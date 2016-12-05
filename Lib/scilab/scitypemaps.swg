@@ -147,11 +147,18 @@
 }
 %enddef
 
+%define %scilab_typecheck_pointer(PRECEDENCE, TYPE)
+%typecheck(PRECEDENCE) TYPE {
+  $1 = SwigScilabCheckPtr(pvApiCtx, $input, $descriptor, SWIG_Scilab_GetFuncName());
+}
+%enddef
+
+
 // Double (and Float) have priority over before Integer type.
 
 // Primitive types
-%scilab_typecheck_generic(SWIG_TYPECHECK_VOIDPTR, isPointerType, SWIGTYPE *)
-%scilab_typecheck_generic(SWIG_TYPECHECK_POINTER, isPointerType, SWIGTYPE *)
+%scilab_typecheck_pointer(SWIG_TYPECHECK_VOIDPTR, SWIGTYPE *)
+%scilab_typecheck_pointer(SWIG_TYPECHECK_POINTER, SWIGTYPE *)
 %scilab_typecheck_generic(SWIG_TYPECHECK_BOOL, isBooleanType,    bool)
 %scilab_typecheck_generic(16, isDoubleType,                      double)
 %scilab_typecheck_generic(17, isDoubleType,                      float)

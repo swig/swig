@@ -161,7 +161,7 @@ SWIG_Python_AppendOutput(PyObject* result, PyObject* obj) {
 
 /* Unpack the argument tuple */
 
-SWIGINTERN int
+SWIGINTERN Py_ssize_t
 SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssize_t max, PyObject **objs)
 {
   if (!args) {
@@ -175,7 +175,7 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
   }  
   if (!PyTuple_Check(args)) {
     if (min <= 1 && max >= 1) {
-      int i;
+      Py_ssize_t i;
       objs[0] = args;
       for (i = 1; i < max; ++i) {
 	objs[i] = 0;
@@ -195,7 +195,7 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
 		   name, (min == max ? "" : "at most "), (int)max, (int)l);
       return 0;
     } else {
-      int i;
+      Py_ssize_t i;
       for (i = 0; i < l; ++i) {
 	objs[i] = PyTuple_GET_ITEM(args, i);
       }
@@ -536,16 +536,32 @@ SwigPyObject_dealloc(PyObject *v)
     if (destroy) {
       /* destroy is always a VARARGS method */
       PyObject *res;
+
+      /* PyObject_CallFunction() has the potential to silently drop
+         the active active exception.  In cases of unnamed temporary
+         variable or where we just finished iterating over a generator
+         StopIteration will be active right now, and this needs to
+         remain true upon return from SwigPyObject_dealloc.  So save
+         and restore. */
+      
+      PyObject *val = NULL, *type = NULL, *tb = NULL;
+      PyErr_Fetch(&val, &type, &tb);
+
       if (data->delargs) {
-	/* we need to create a temporary object to carry the destroy operation */
-	PyObject *tmp = SwigPyObject_New(sobj->ptr, ty, 0);
-	res = SWIG_Python_CallFunctor(destroy, tmp);
-	Py_DECREF(tmp);
+        /* we need to create a temporary object to carry the destroy operation */
+        PyObject *tmp = SwigPyObject_New(sobj->ptr, ty, 0);
+        res = SWIG_Python_CallFunctor(destroy, tmp);
+        Py_DECREF(tmp);
       } else {
-	PyCFunction meth = PyCFunction_GET_FUNCTION(destroy);
-	PyObject *mself = PyCFunction_GET_SELF(destroy);
-	res = ((*meth)(mself, v));
+        PyCFunction meth = PyCFunction_GET_FUNCTION(destroy);
+        PyObject *mself = PyCFunction_GET_SELF(destroy);
+        res = ((*meth)(mself, v));
       }
+      if (!res)
+        PyErr_WriteUnraisable(destroy);
+
+      PyErr_Restore(val, type, tb);
+
       Py_XDECREF(res);
     } 
 #if !defined(SWIG_PYTHON_SILENT_MEMLEAK)
@@ -569,6 +585,7 @@ SwigPyObject_append(PyObject* v, PyObject* next)
   next = tmp;
 #endif
   if (!SwigPyObject_Check(next)) {
+    PyErr_SetString(PyExc_TypeError, "Attempt to append a non SwigPyObject");
     return NULL;
   }
   sobj->next = next;
@@ -724,7 +741,9 @@ SwigPyObject_TypeOnce(void) {
     (unaryfunc)SwigPyObject_oct,  /*nb_oct*/
     (unaryfunc)SwigPyObject_hex,  /*nb_hex*/
 #endif
-#if PY_VERSION_HEX >= 0x03000000 /* 3.0 */
+#if PY_VERSION_HEX >= 0x03050000 /* 3.5 */
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /* nb_inplace_add -> nb_inplace_matrix_multiply */
+#elif PY_VERSION_HEX >= 0x03000000 /* 3.0 */
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /* nb_inplace_add -> nb_index, nb_inplace_divide removed */
 #elif PY_VERSION_HEX >= 0x02050000 /* 2.5.0 */
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /* nb_inplace_add -> nb_index */
@@ -739,7 +758,6 @@ SwigPyObject_TypeOnce(void) {
   static int type_init = 0;
   if (!type_init) {
     const PyTypeObject tmp = {
-      /* PyObject header changed in Python 3 */
 #if PY_VERSION_HEX >= 0x03000000
       PyVarObject_HEAD_INIT(NULL, 0)
 #else
@@ -750,7 +768,7 @@ SwigPyObject_TypeOnce(void) {
       sizeof(SwigPyObject),                 /* tp_basicsize */
       0,                                    /* tp_itemsize */
       (destructor)SwigPyObject_dealloc,     /* tp_dealloc */
-      0,				    /* tp_print */
+      0,                                    /* tp_print */
 #if PY_VERSION_HEX < 0x02020000
       (getattrfunc)SwigPyObject_getattr,    /* tp_getattr */
 #else
@@ -758,7 +776,7 @@ SwigPyObject_TypeOnce(void) {
 #endif
       (setattrfunc)0,                       /* tp_setattr */
 #if PY_VERSION_HEX >= 0x03000000
-    0, /* tp_reserved in 3.0.1, tp_compare in 3.0.0 but not used */
+      0, /* tp_reserved in 3.0.1, tp_compare in 3.0.0 but not used */
 #else
       (cmpfunc)SwigPyObject_compare,        /* tp_compare */
 #endif
@@ -768,7 +786,7 @@ SwigPyObject_TypeOnce(void) {
       0,                                    /* tp_as_mapping */
       (hashfunc)0,                          /* tp_hash */
       (ternaryfunc)0,                       /* tp_call */
-      0,				    /* tp_str */
+      0,                                    /* tp_str */
       PyObject_GenericGetAttr,              /* tp_getattro */
       0,                                    /* tp_setattro */
       0,                                    /* tp_as_buffer */
@@ -804,10 +822,19 @@ SwigPyObject_TypeOnce(void) {
       0,                                    /* tp_del */
 #endif
 #if PY_VERSION_HEX >= 0x02060000
-      0,                                    /* tp_version */
+      0,                                    /* tp_version_tag */
+#endif
+#if PY_VERSION_HEX >= 0x03040000
+      0,                                    /* tp_finalize */
 #endif
 #ifdef COUNT_ALLOCS
-      0,0,0,0                               /* tp_alloc -> tp_next */
+      0,                                    /* tp_allocs */
+      0,                                    /* tp_frees */
+      0,                                    /* tp_maxalloc */
+#if PY_VERSION_HEX >= 0x02050000
+      0,                                    /* tp_prev */
+#endif
+      0                                     /* tp_next */
 #endif
     };
     swigpyobject_type = tmp;
@@ -922,7 +949,6 @@ SwigPyPacked_TypeOnce(void) {
   static int type_init = 0;
   if (!type_init) {
     const PyTypeObject tmp = {
-      /* PyObject header changed in Python 3 */
 #if PY_VERSION_HEX>=0x03000000
       PyVarObject_HEAD_INIT(NULL, 0)
 #else
@@ -983,10 +1009,19 @@ SwigPyPacked_TypeOnce(void) {
       0,                                    /* tp_del */
 #endif
 #if PY_VERSION_HEX >= 0x02060000
-      0,                                    /* tp_version */
+      0,                                    /* tp_version_tag */
+#endif
+#if PY_VERSION_HEX >= 0x03040000
+      0,                                    /* tp_finalize */
 #endif
 #ifdef COUNT_ALLOCS
-      0,0,0,0                               /* tp_alloc -> tp_next */
+      0,                                    /* tp_allocs */
+      0,                                    /* tp_frees */
+      0,                                    /* tp_maxalloc */
+#if PY_VERSION_HEX >= 0x02050000
+      0,                                    /* tp_prev */
+#endif
+      0                                     /* tp_next */
 #endif
     };
     swigpypacked_type = tmp;
@@ -1514,13 +1549,11 @@ PyModule_AddObject(PyObject *m, char *name, PyObject *o)
 {
   PyObject *dict;
   if (!PyModule_Check(m)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "PyModule_AddObject() needs module as first arg");
+    PyErr_SetString(PyExc_TypeError, "PyModule_AddObject() needs module as first arg");
     return SWIG_ERROR;
   }
   if (!o) {
-    PyErr_SetString(PyExc_TypeError,
-		    "PyModule_AddObject() needs non-NULL value");
+    PyErr_SetString(PyExc_TypeError, "PyModule_AddObject() needs non-NULL value");
     return SWIG_ERROR;
   }
   

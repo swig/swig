@@ -3,6 +3,7 @@
 #endif
 
 %{
+#include <typeinfo>
 #include <stdexcept>
 %}
 
@@ -13,6 +14,10 @@ namespace std {
   {
     virtual ~exception() throw();
     virtual const char* what() const throw();
+  };
+
+  struct bad_cast : exception 
+  {
   };
 
   struct bad_exception : exception 

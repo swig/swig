@@ -37,7 +37,7 @@ SWIGINTERNINLINE SV *
 SWIG_From_dec(long)(long value)
 {
   SV *sv;
-  if (value >= IV_MIN && value <= IV_MAX)
+  if (IVSIZE >= sizeof(value) || (value >= IV_MIN && value <= IV_MAX))
     sv = newSViv(value);
   else
     sv = newSVpvf("%ld", value);
@@ -46,20 +46,22 @@ SWIG_From_dec(long)(long value)
 }
 
 %fragment(SWIG_AsVal_frag(long),"header",
+	  fragment="<limits.h>",
+	  fragment="<stdlib.h>",
 	  fragment="SWIG_CanCastAsInteger") {
 SWIGINTERN int
 SWIG_AsVal_dec(long)(SV *obj, long* val)
 {
   if (SvUOK(obj)) {
     UV v = SvUV(obj);
-    if (v <= LONG_MAX) {
+    if (UVSIZE < sizeof(*val) || v <= LONG_MAX) {
       if (val) *val = v;
       return SWIG_OK;
     }
     return SWIG_OverflowError;
   } else if (SvIOK(obj)) {
     IV v = SvIV(obj);
-    if (v >= LONG_MIN && v <= LONG_MAX) {
+    if (IVSIZE <= sizeof(*val) || (v >= LONG_MIN && v <= LONG_MAX)) {
       if(val) *val = v;
       return SWIG_OK;
     }
@@ -102,7 +104,7 @@ SWIGINTERNINLINE SV *
 SWIG_From_dec(unsigned long)(unsigned long value)
 {
   SV *sv;
-  if (value <= UV_MAX)
+  if (UVSIZE >= sizeof(value) || value <= UV_MAX)
     sv = newSVuv(value);
   else
     sv = newSVpvf("%lu", value);
@@ -111,20 +113,22 @@ SWIG_From_dec(unsigned long)(unsigned long value)
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long),"header",
+	  fragment="<limits.h>",
+	  fragment="<stdlib.h>",
 	  fragment="SWIG_CanCastAsInteger") {
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(SV *obj, unsigned long *val) 
 {
   if (SvUOK(obj)) {
     UV v = SvUV(obj);
-    if (v <= ULONG_MAX) {
+    if (UVSIZE <= sizeof(*val) || v <= ULONG_MAX) {
       if (val) *val = v;
       return SWIG_OK;
     }
     return SWIG_OverflowError;
   } else if (SvIOK(obj)) {
     IV v = SvIV(obj);
-    if (v >= 0 && v <= ULONG_MAX) {
+    if (v >= 0 && (IVSIZE <= sizeof(*val) || v <= ULONG_MAX)) {
       if (val) *val = v;
       return SWIG_OK;
     }
@@ -163,14 +167,14 @@ SWIG_AsVal_dec(unsigned long)(SV *obj, unsigned long *val)
 /* long long */
 
 %fragment(SWIG_From_frag(long long),"header",
-	  fragment=SWIG_From_frag(long),
-	  fragment="<limits.h>",
+	  fragment="SWIG_LongLongAvailable",
 	  fragment="<stdio.h>") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERNINLINE SV *
 SWIG_From_dec(long long)(long long value)
 {
   SV *sv;
-  if (value >= IV_MIN && value <= IV_MAX)
+  if (IVSIZE >= sizeof(value) || (value >= IV_MIN && value <= IV_MAX))
     sv = newSViv((IV)(value));
   else {
     //sv = newSVpvf("%lld", value); doesn't work in non 64bit Perl
@@ -180,26 +184,28 @@ SWIG_From_dec(long long)(long long value)
   }
   return sv_2mortal(sv);
 }
+%#endif
 }
 
 %fragment(SWIG_AsVal_frag(long long),"header",
-	  fragment="<limits.h>",
+	  fragment="SWIG_LongLongAvailable",
 	  fragment="<stdlib.h>",
 	  fragment="SWIG_CanCastAsInteger") {
-
+%#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN int
 SWIG_AsVal_dec(long long)(SV *obj, long long *val)
 {
   if (SvUOK(obj)) {
     UV v = SvUV(obj);
-    if (v < LLONG_MAX) {
+    /* pretty sure this could allow v == LLONG MAX */
+    if (UVSIZE < sizeof(*val) || v < LLONG_MAX) {
       if (val) *val = v;
       return SWIG_OK;
     }
     return SWIG_OverflowError;
   } else if (SvIOK(obj)) {
     IV v = SvIV(obj);
-    if (v >= LLONG_MIN && v <= LLONG_MAX) {
+    if (IVSIZE <= sizeof(*val) || (v >= LLONG_MIN && v <= LLONG_MAX)) {
       if (val) *val = v;
       return SWIG_OK;
     }
@@ -235,19 +241,20 @@ SWIG_AsVal_dec(long long)(SV *obj, long long *val)
   }
   return SWIG_TypeError; 
 }
+%#endif
 }
 
 /* unsigned long long */
 
 %fragment(SWIG_From_frag(unsigned long long),"header",
-	  fragment=SWIG_From_frag(long long),
-	  fragment="<limits.h>",
+	  fragment="SWIG_LongLongAvailable",
 	  fragment="<stdio.h>") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERNINLINE SV *
 SWIG_From_dec(unsigned long long)(unsigned long long value)
 {
   SV *sv;
-  if (value <= UV_MAX)
+  if (UVSIZE >= sizeof(value) || value <= UV_MAX)
     sv = newSVuv((UV)(value));
   else {
     //sv = newSVpvf("%llu", value); doesn't work in non 64bit Perl
@@ -257,21 +264,25 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
   }
   return sv_2mortal(sv);
 }
+%#endif
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long long),"header",
-	  fragment="<limits.h>",
+	  fragment="SWIG_LongLongAvailable",
 	  fragment="<stdlib.h>",
 	  fragment="SWIG_CanCastAsInteger") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long long)(SV *obj, unsigned long long *val)
 {
   if (SvUOK(obj)) {
+    /* pretty sure this should be conditional on
+     * (UVSIZE <= sizeof(*val) || v <= ULLONG_MAX) */
     if (val) *val = SvUV(obj);
     return SWIG_OK;
   } else  if (SvIOK(obj)) {
     IV v = SvIV(obj);
-    if (v >= 0 && v <= ULLONG_MAX) {
+    if (v >= 0 && (IVSIZE <= sizeof(*val) || v <= ULLONG_MAX)) {
       if (val) *val = v;
       return SWIG_OK;
     } else {
@@ -307,6 +318,7 @@ SWIG_AsVal_dec(unsigned long long)(SV *obj, unsigned long long *val)
   }
   return SWIG_TypeError;
 }
+%#endif
 }
 
 /* double */

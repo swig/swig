@@ -50,7 +50,7 @@ namespace test {
 			 PyComplex_ImagAsDouble($input));
     } else {
 	PyErr_SetString(PyExc_TypeError,"Expected test_complex.\n");
-	return NULL;
+	SWIG_fail;
     }
 }
 %typemap(freearg) test::test_complex * {
@@ -109,7 +109,11 @@ namespace test {
 #ifdef SWIGGO
 	%typemap(gotype) string_class * "string"
 	%typemap(in) string_class * {
-            $1 = new string_class($input.p);
+	    char* buf = new char[$input.n + 1];
+	    memcpy(buf, $input.p, $input.n);
+	    buf[$input.n] = '\0';
+	    $1 = new string_class(buf);
+	    delete[] buf;
 	}
 	%typemap(freearg) string_class * {
 	    delete $1;
@@ -238,7 +242,7 @@ namespace Split {
 	$1 = PyInt_AsLong($input);
 	if ($1 < 0) {
 	    PyErr_SetString(PyExc_ValueError,"domain error\n");
-	    return NULL;
+	    SWIG_fail;
 	}
     }	
 #endif

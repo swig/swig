@@ -1,13 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<!-- Hand crafted HTML -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>SWIG and PHP</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Php"></a>34 SWIG and PHP</H1>
+<H1><a name="Php">34 SWIG and PHP</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -25,7 +25,7 @@
 <li><a href="#Php_nn2_5">Pointers and References</a>
 <li><a href="#Php_nn2_6">Structures and C++ classes</a>
 <ul>
-<li><a href="#Php_nn2_6_1">Using <tt>-noproxy</tt></a>
+<li><a href="#Php_nn2_6_1">Using -noproxy</a>
 <li><a href="#Php_nn2_6_2">Constructors and Destructors</a>
 <li><a href="#Php_nn2_6_3">Static Member Variables</a>
 <li><a href="#Php_nn2_6_4">Static Member Functions</a>
@@ -50,19 +50,6 @@
 
 
 <p>
-SWIG supports generating wrappers for PHP5.  Support for PHP4 was removed
-in SWIG 1.3.37.  The PHP developers are no longer making new PHP4 releases,
-and won't even be patching critical security issues after 2008-08-08, so it
-doesn't make much sense for SWIG to continue to support PHP4 now.  If you
-really need to continue to use PHP4, just stick with SWIG 1.3.36.
-</p>
-
-<p>
-Currently any PHP5 release should work, but we don't regularly test with
-PHP &lt; 5.3.
-</p>
-
-<p>
 In this chapter, we discuss SWIG's support of PHP.  The PHP module
 was extensively rewritten in release 1.3.26, and support for generating
 OO wrappers for PHP5 was added in 1.3.30.  The PHP module now supports most
@@ -70,7 +57,17 @@ of the features available in some of the other languages.
 </p>
 
 <p>
-In order to use this module, you will need to have a copy of the PHP5
+SWIG supports generating wrappers for PHP5 and PHP7.  Support for PHP4 was removed
+in SWIG 1.3.37.
+</p>
+
+<p>
+Currently any PHP5 or PHP7 release should work, but we don't regularly test with
+PHP &lt; 5.3.
+</p>
+
+<p>
+In order to use this module, you will need to have a copy of the PHP
 include files to compile the SWIG generated files.  If you installed
 PHP from a binary package, you may need to install a "php-dev" or "php-devel"
 package for these to be installed.  You can find out where these files are
@@ -80,16 +77,17 @@ your extension into php directly, you will need the complete PHP source tree
 available.
 </p>
 
-<H2><a name="Php_nn1"></a>34.1 Generating PHP Extensions</H2>
+<H2><a name="Php_nn1">34.1 Generating PHP Extensions</a></H2>
 
 
 <p>
-To build a PHP extension, run swig using the <tt>-php</tt> option as
-follows:
+To build a PHP extension, run swig using the <tt>-php5</tt> or
+<tt>-php7</tt> option as follows (<tt>-php</tt> is also supported
+and currently is an alias for <tt>-php5</tt>):
 </p>
 
 <div class="code"><pre>
-swig -php example.i
+swig -php7 example.i
 </pre></div>
 
 <p>
@@ -102,13 +100,18 @@ The third file,
 <tt>example.php</tt> can be included by PHP scripts.  It attempts to
 dynamically load the extension and contains extra php code specified
 in the interface file.  If wrapping C++ code with PHP classes, it will
-also contain PHP5 class wrappers.
+also contain PHP class wrappers.
 </p>
 
 <p>
 SWIG can generate PHP extensions from C++ libraries as well when
 given the <tt>-c++</tt> option.  The support for C++ is discussed in
-more detail in <a href="#Php_nn2_6">section 27.2.6</a>.
+more detail in <a href="#Php_nn2_6">section 27.2.6</a>.  The generated
+C++ wrapper will be called example_wrap.cpp (for PHP5) or
+example_wrap.cxx (for PHP7 where the default has been changed to align
+with SWIG's default for every other language).  You can specify a
+different extension for the C++ wrapper using <tt>-cppext</tt> -
+e.g. if you want example_wrap.cc use <tt>-cppext cc</tt>.
 </p>
 
 <p>
@@ -125,7 +128,7 @@ and it doesn't play nicely with package system.  We don't recommend
 this approach, or provide explicit support for it.
 </p>
 
-<H3><a name="Php_nn1_1"></a>34.1.1 Building a loadable extension</H3>
+<H3><a name="Php_nn1_1">34.1.1 Building a loadable extension</a></H3>
 
 
 <p>
@@ -136,11 +139,11 @@ least work for Linux though):
 </p>
 
 <div class="code"><pre>
-	gcc `php-config --includes` -fpic -c example_wrap.c example.c
-	gcc -shared example_wrap.o example.o -o example.so
+        gcc `php-config --includes` -fpic -c example_wrap.c example.c
+        gcc -shared example_wrap.o example.o -o example.so
 </pre></div>
 
-<H3><a name="Php_nn1_3"></a>34.1.2 Using PHP Extensions</H3>
+<H3><a name="Php_nn1_3">34.1.2 Using PHP Extensions</a></H3>
 
 
 <p>
@@ -150,7 +153,7 @@ load it.  To do this, add a line like this to the <tt>[PHP]</tt> section of
 </p>
 
 <div class="code"><pre>
-	extension=/path/to/modulename.so
+        extension=/path/to/modulename.so
 </pre></div>
 
 <p>
@@ -165,7 +168,7 @@ PHP script which uses your extension:
 </p>
 
 <div class="code"><pre>
-	dl("/path/to/modulename.so");	// Load the module
+        dl("/path/to/modulename.so"); // Load the module
 </pre></div>
 
 <p>
@@ -180,7 +183,7 @@ call for you if the extension isn't already loaded:
 </p>
 
 <div class="code"><pre>
-	include("example.php");
+        include("example.php");
 </pre></div>
 
 <p>
@@ -188,7 +191,7 @@ This PHP module also defines the PHP classes for the wrapped API, so you'll
 almost certainly want to include it anyway.
 </p>
 
-<H2><a name="Php_nn2"></a>34.2 Basic PHP interface</H2>
+<H2><a name="Php_nn2">34.2 Basic PHP interface</a></H2>
 
 
 <p>
@@ -199,7 +202,7 @@ other symbols unless care is taken to <tt>%rename</tt> them.  At present
 SWIG doesn't have support for the namespace feature added in PHP 5.3.
 </p>
 
-<H3><a name="Php_nn2_1"></a>34.2.1 Constants</H3>
+<H3><a name="Php_nn2_1">34.2.1 Constants</a></H3>
 
 
 <p>
@@ -249,7 +252,7 @@ For example,
 <div class="code"><pre>
 %module example
 
-#define EASY_TO_MISPELL	0
+#define EASY_TO_MISPELL 0
 </pre>
 </div>
 
@@ -262,9 +265,9 @@ accessed incorrectly in PHP,
 include("example.php");
 
 if(EASY_TO_MISPEL) {
-	....
+  ...
 } else {
-	....
+  ...
 }
 
 </pre>
@@ -273,10 +276,11 @@ if(EASY_TO_MISPEL) {
 <p>
 The mis-spelled constant will become the string 'EASY_TO_MISPEL', which
 is treated as true by the if test, when the value of the intended constant
-would be treated as false!
+would be treated as false!  Modern versions of PHP will at least issue
+a PHP notice by default when this happens.
 </p>
 
-<H3><a name="Php_nn2_2"></a>34.2.2 Global Variables</H3>
+<H3><a name="Php_nn2_2">34.2.2 Global Variables</a></H3>
 
 
 <p>
@@ -303,7 +307,7 @@ is accessed as follows:
 <div class="code"><pre>
 include("example.php");
 print seki_get();
-seki_set( seki_get() * 2);	# The C variable is now 4.
+seki_set( seki_get() * 2); # The C variable is now 4.
 print seki_get();
 </pre></div>
 
@@ -325,7 +329,7 @@ undefined.
 At this time SWIG does not support custom accessor methods.
 </p>
 
-<H3><a name="Php_nn2_3"></a>34.2.3 Functions</H3>
+<H3><a name="Php_nn2_3">34.2.3 Functions</a></H3>
 
 
 <p>
@@ -348,7 +352,7 @@ Will be accessed in PHP like this :
 include("example.php");
 $a = foo(2);
 $b = bar(3.5, -1.5);
-$c = bar(3.5);		# Use default argument for 2nd parameter
+$c = bar(3.5);  # Use default argument for 2nd parameter
 
 </pre></div>
 
@@ -378,7 +382,7 @@ print $s;      # The value of $s was not changed.
 -->
 
 
-<H3><a name="Php_nn2_4"></a>34.2.4 Overloading</H3>
+<H3><a name="Php_nn2_4">34.2.4 Overloading</a></H3>
 
 
 <p>
@@ -434,7 +438,7 @@ taking the integer argument.
 </p>
 -->
 
-<H3><a name="Php_nn2_5"></a>34.2.5 Pointers and References</H3>
+<H3><a name="Php_nn2_5">34.2.5 Pointers and References</a></H3>
 
 
 <p>
@@ -579,7 +583,7 @@ PHP in a number of ways: by using <tt>unset</tt> on an existing
 variable, or assigning <tt>NULL</tt> to a variable.
 </p>
 
-<H3><a name="Php_nn2_6"></a>34.2.6 Structures and C++ classes</H3>
+<H3><a name="Php_nn2_6">34.2.6 Structures and C++ classes</a></H3>
 
 
 <p>
@@ -599,10 +603,10 @@ This interface file
 
 class Vector {
 public:
-	double x,y,z;
-	Vector();
-	~Vector();
-	double magnitude();
+  double x,y,z;
+  Vector();
+  ~Vector();
+  double magnitude();
 };
 
 struct Complex {
@@ -611,7 +615,7 @@ struct Complex {
 </pre></div>
 
 <p>
-Would be used in the following way from PHP5:
+Would be used in the following way from PHP:
 </p>
 
 <div class="code"><pre>
@@ -640,13 +644,13 @@ Would be used in the following way from PHP5:
 Member variables and methods are accessed using the <tt>-&gt;</tt> operator.
 </p>
 
-<H4><a name="Php_nn2_6_1"></a>34.2.6.1 Using <tt>-noproxy</tt></H4>
+<H4><a name="Php_nn2_6_1">34.2.6.1 Using -noproxy</a></H4>
 
 
 <p>
 The <tt>-noproxy</tt> option flattens the object structure and
 generates collections of named functions (these are the functions
-which the PHP5 class wrappers call).  The above example results
+which the PHP class wrappers call).  The above example results
 in the following PHP functions:
 </p>
 
@@ -666,7 +670,7 @@ Complex_im_set($obj,$d);
 Complex_im_get($obj);
 </pre></div>
 
-<H4><a name="Php_nn2_6_2"></a>34.2.6.2 Constructors and Destructors</H4>
+<H4><a name="Php_nn2_6_2">34.2.6.2 Constructors and Destructors</a></H4>
 
 
 <p>
@@ -707,7 +711,7 @@ the programmer can either reassign the variable or call
 <tt>unset($v)</tt>
 </p>
 
-<H4><a name="Php_nn2_6_3"></a>34.2.6.3 Static Member Variables</H4>
+<H4><a name="Php_nn2_6_3">34.2.6.3 Static Member Variables</a></H4>
 
 
 <p>
@@ -722,7 +726,7 @@ returns the current value of the class variable. For example
 %module example
 
 class Ko {
-	static int threats;
+  static int threats;
 };
 
 </pre></div>
@@ -750,7 +754,7 @@ Ko::threats(10);
 echo "There have now been " . Ko::threats() . " threats\n";
 
 </pre></div>
-<H4><a name="Php_nn2_6_4"></a>34.2.6.4 Static Member Functions</H4>
+<H4><a name="Php_nn2_6_4">34.2.6.4 Static Member Functions</a></H4>
 
 
 <p>
@@ -772,7 +776,7 @@ Ko::threats();
 </pre></div>
 
 
-<H4><a name="Php_nn2_6_5"></a>34.2.6.5 Specifying Implemented Interfaces</H4>
+<H4><a name="Php_nn2_6_5">34.2.6.5 Specifying Implemented Interfaces</a></H4>
 
 
 <p>
@@ -790,7 +794,7 @@ so:
 If there are multiple interfaces, just list them separated by commas.
 </p>
 
-<H3><a name="Php_nn2_7"></a>34.2.7 PHP Pragmas, Startup and Shutdown code</H3>
+<H3><a name="Php_nn2_7">34.2.7 PHP Pragmas, Startup and Shutdown code</a></H3>
 
 
 <p>
@@ -878,7 +882,7 @@ The <tt>%rinit</tt> and <tt>%rshutdown</tt> statements are very similar but inse
 into the request init (PHP_RINIT_FUNCTION) and request shutdown (PHP_RSHUTDOWN_FUNCTION) code respectively.
 </p>
 
-<H2><a name="Php_nn3"></a>34.3 Cross language polymorphism</H2>
+<H2><a name="Php_nn3">34.3 Cross language polymorphism</a></H2>
 
 
 <p>
@@ -913,7 +917,7 @@ wrapper functions takes care of all the cross-language method routing
 transparently.
 </p>
 
-<H3><a name="Php_nn3_1"></a>34.3.1 Enabling directors</H3>
+<H3><a name="Php_nn3_1">34.3.1 Enabling directors</a></H3>
 
 
 <p>
@@ -995,14 +999,14 @@ require("mymodule.php");
 
 class MyFoo extends Foo {
   function one() {
-     print "one from php\n";
+    print "one from php\n";
   }
 }
 </pre>
 </div>
 
 
-<H3><a name="Php_nn3_2"></a>34.3.2 Director classes</H3>
+<H3><a name="Php_nn3_2">34.3.2 Director classes</a></H3>
 
 
  
@@ -1082,7 +1086,7 @@ so there is no need for the extra overhead involved with routing the
 calls through PHP.
 </p>
 
-<H3><a name="Php_nn3_3"></a>34.3.3 Ownership and object destruction</H3>
+<H3><a name="Php_nn3_3">34.3.3 Ownership and object destruction</a></H3>
 
 
 <p>
@@ -1138,7 +1142,7 @@ In this example, we are assuming that FooContainer will take care of
 deleting all the Foo pointers it contains at some point.
 </p>
 
-<H3><a name="Php_nn3_4"></a>34.3.4 Exception unrolling</H3>
+<H3><a name="Php_nn3_4">34.3.4 Exception unrolling</a></H3>
 
 
 <p>
@@ -1197,7 +1201,7 @@ Swig::DirectorMethodException is thrown, PHP will register the exception
 as soon as the C wrapper function returns.
 </p>
 
-<H3><a name="Php_nn3_5"></a>34.3.5 Overhead and code bloat</H3>
+<H3><a name="Php_nn3_5">34.3.5 Overhead and code bloat</a></H3>
 
 
 <p>
@@ -1230,7 +1234,7 @@ optimized by selectively enabling director methods (using the %feature
 directive) for only those methods that are likely to be extended in PHP.
 </p>
 
-<H3><a name="Php_nn3_6"></a>34.3.6 Typemaps</H3>
+<H3><a name="Php_nn3_6">34.3.6 Typemaps</a></H3>
 
 
 <p>
@@ -1244,7 +1248,7 @@ need to be supported.
 </p>
 
 
-<H3><a name="Php_nn3_7"></a>34.3.7 Miscellaneous</H3>
+<H3><a name="Php_nn3_7">34.3.7 Miscellaneous</a></H3>
 
 
 <p> Director typemaps for STL classes are mostly in place, and hence you

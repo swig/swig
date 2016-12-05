@@ -495,16 +495,16 @@ SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     char d = *(c++);
     unsigned char uu;
     if ((d >= '0') && (d <= '9'))
-      uu = ((d - '0') << 4);
+      uu = (unsigned char)((d - '0') << 4);
     else if ((d >= 'a') && (d <= 'f'))
-      uu = ((d - ('a'-10)) << 4);
+      uu = (unsigned char)((d - ('a'-10)) << 4);
     else
       return (char *) 0;
     d = *(c++);
     if ((d >= '0') && (d <= '9'))
-      uu |= (d - '0');
+      uu |= (unsigned char)(d - '0');
     else if ((d >= 'a') && (d <= 'f'))
-      uu |= (d - ('a'-10));
+      uu |= (unsigned char)(d - ('a'-10));
     else
       return (char *) 0;
     *u = uu;

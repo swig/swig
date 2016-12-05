@@ -61,6 +61,11 @@ public:
   virtual int classHandler(Node *n);
 
 private:
+  static void checkConstraints(ParmList *parms, Wrapper *f);
+  static void argout(ParmList *parms, Wrapper *f);
+  static String *freearg(ParmList *parms);
+  static void cleanupFunction(Node *n, Wrapper *f, ParmList *parms);
+
   void emit_defun(Node *n, String *name);
   void emit_defmethod(Node *n);
   void emit_initialize_instance(Node *n);
@@ -169,9 +174,7 @@ int CFFI::top(Node *n) {
 
   Swig_banner(f_begin);
 
-  Printf(f_runtime, "\n");
-  Printf(f_runtime, "#define SWIGCFFI\n");
-  Printf(f_runtime, "\n");
+  Printf(f_runtime, "\n\n#ifndef SWIGCFFI\n#define SWIGCFFI\n#endif\n\n");
 
   Swig_banner_target_lang(f_lisp, ";;;");
 
@@ -364,6 +367,77 @@ int CFFI::membervariableHandler(Node *n) {
   return Language::membervariableHandler(n);
 }
 
+
+void CFFI::checkConstraints(ParmList *parms, Wrapper *f) {
+  Parm *p = parms;
+  while (p) {
+    String *tm = Getattr(p, "tmap:check");
+    if (!tm) {
+      p = nextSibling(p);
+    } else {
+      tm = Copy(tm);
+      Replaceall(tm, "$input", Getattr(p, "emit:input"));
+      Printv(f->code, tm, "\n\n", NULL);
+      Delete(tm);
+      p = Getattr(p, "tmap:check:next");
+    }
+  }
+}
+
+void CFFI::argout(ParmList *parms, Wrapper *f) {
+  Parm *p = parms;
+  while (p) {
+    String *tm = Getattr(p, "tmap:argout");
+    if (!tm) {
+      p = nextSibling(p);
+    } else {
+      tm = Copy(tm);
+      Replaceall(tm, "$result", Swig_cresult_name());
+      Replaceall(tm, "$input", Getattr(p, "emit:input"));
+      Printv(f->code, tm, "\n", NULL);
+      Delete(tm);
+      p = Getattr(p, "tmap:argout:next");
+    }
+  }
+}
+
+String *CFFI::freearg(ParmList *parms) {
+  String *ret = NewString("");
+  Parm *p = parms;
+  while (p) {
+    String *tm = Getattr(p, "tmap:freearg");
+    if (!tm) {
+      p = nextSibling(p);
+    } else {
+      tm = Copy(tm);
+      Replaceall(tm, "$input", Getattr(p, "emit:input"));
+      Printv(ret, tm, "\n", NULL);
+      Delete(tm);
+      p = Getattr(p, "tmap:freearg:next");
+    }
+  }
+  return ret;
+}
+
+void CFFI::cleanupFunction(Node *n, Wrapper *f, ParmList *parms) {
+  String *cleanup = freearg(parms);
+  Printv(f->code, cleanup, NULL);
+
+  if (GetFlag(n, "feature:new")) {
+    String *tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0);
+    if (tm) {
+      Replaceall(tm, "$source", Swig_cresult_name());
+      Printv(f->code, tm, "\n", NULL);
+      Delete(tm);
+    }
+  }
+
+  Replaceall(f->code, "$cleanup", cleanup);
+  Delete(cleanup);
+
+  Replaceall(f->code, "$symname", Getattr(n, "sym:name"));
+}
+
 int CFFI::functionWrapper(Node *n) {
 
   ParmList *parms = Getattr(n, "parms");
@@ -451,6 +525,9 @@ int CFFI::functionWrapper(Node *n) {
   // Emit the function definition
   String *signature = SwigType_str(return_type, name_and_parms);
   Printf(f->def, "EXPORT %s {", signature);
+
+  checkConstraints(parms, f);
+
   Printf(f->code, "  try {\n");
 
   String *actioncode = emit_action(n);
@@ -459,9 +536,25 @@ int CFFI::functionWrapper(Node *n) {
   if (result_convert) {
     Replaceall(result_convert, "$result", "lresult");
     Printf(f->code, "%s\n", result_convert);
-    if(!is_void_return) Printf(f->code, "    return lresult;\n");
-    Delete(result_convert);
   }
+  Delete(result_convert);
+
+  argout(parms, f);
+
+  cleanupFunction(n, f, parms);
+
+  /* See if there is any return cleanup code */
+  String *tm = 0;
+  if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+    Replaceall(tm, "$source", Swig_cresult_name());
+    Printf(f->code, "%s\n", tm);
+    Delete(tm);
+  }
+
+  if (!is_void_return) {
+    Printf(f->code, "    return lresult;\n");
+  }
+
   emit_return_variable(n, Getattr(n, "type"), f);
 
   Printf(f->code, "  } catch (...) {\n");
@@ -603,6 +696,9 @@ int CFFI::typedefHandler(Node *n) {
 }
 
 int CFFI::enumDeclaration(Node *n) {
+  if (getCurrentClass() && (cplus_mode != PUBLIC))
+    return SWIG_NOWRAP;
+
   String *name = Getattr(n, "sym:name");
   bool slot_name_keywords;
   String *lisp_name = 0;
@@ -860,8 +956,11 @@ void CFFI::emit_struct_union(Node *n, bool un = false) {
 }
 
 void CFFI::emit_export(Node *n, String *name) {
-  if (GetInt(n, "feature:export"))
-    Printf(f_cl, "\n(cl:export '%s)\n", name);
+  if (GetInt(n, "feature:export")) {
+    String* package = Getattr(n, "feature:export:package");
+    Printf(f_cl, "\n(cl:export '%s%s%s)\n", name, package ? " " : "",
+                                                  package ? package : "");
+  }
 }
 
 void CFFI::emit_inline(Node *n, String *name) {
@@ -1019,7 +1118,7 @@ String *CFFI::convert_literal(String *literal, String *type, bool try_to_split) 
     return num;
   } else if (SwigType_type(type) == T_CHAR) {
     /* Use CL syntax for character literals */
-    String* result = NewStringf("#\\%c", s[0]);
+    String* result = NewStringf("#\\%s", s);
     Delete(num);
     return result;
   } else if (SwigType_type(type) == T_STRING) {

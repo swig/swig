@@ -97,10 +97,6 @@ PyString_FromFormat(const char *fmt, ...) {
 }
 #endif
 
-/* Add PyObject_Del for old Pythons */
-#if PY_VERSION_HEX < 0x01060000
-# define PyObject_Del(op) PyMem_DEL((op))
-#endif
 #ifndef PyObject_DEL
 # define PyObject_DEL PyObject_Del
 #endif
@@ -215,4 +211,5 @@ typedef destructor freefunc;
 #if PY_VERSION_HEX < 0x03020000
 #define PyDescr_TYPE(x) (((PyDescrObject *)(x))->d_type)
 #define PyDescr_NAME(x) (((PyDescrObject *)(x))->d_name)
+#define Py_hash_t long
 #endif

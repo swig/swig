@@ -1,3 +1,4 @@
+import sys
 from primitive_types import *
 
 var_init()
@@ -436,3 +437,175 @@ if s != "hello":
 v = SetPos(1, 3)
 if v != 4:
     raise RuntimeError, "bad int typemap"
+
+#
+# Check the bounds for converting various types
+#
+
+# ctypes not available until 2.5
+if sys.version_info[0:2] <= (2, 4):
+    sys.exit(0)
+import ctypes
+
+# Get the minimum and maximum values that fit in signed char, short, int, long, and long long
+overchar = 2 ** 7
+while ctypes.c_byte(overchar).value > 0:
+    overchar *= 2
+minchar = -overchar
+maxchar = overchar - 1
+maxuchar = 2 * maxchar + 1
+overshort = overchar
+while ctypes.c_short(overshort).value > 0:
+    overshort *= 2
+minshort = -overshort
+maxshort = overshort - 1
+maxushort = 2 * maxshort + 1
+overint = overshort
+while ctypes.c_int(overint).value > 0:
+    overint *= 2
+minint = -overint
+maxint = overint - 1
+maxuint = 2 * maxint + 1
+overlong = overint
+while ctypes.c_long(overlong).value > 0:
+    overlong *= 2
+minlong = -overlong
+maxlong = overlong - 1
+maxulong = 2 * maxlong + 1
+overllong = overlong
+while ctypes.c_longlong(overllong).value > 0:
+    overllong *= 2
+minllong = -overllong
+maxllong = overllong - 1
+maxullong = 2 * maxllong + 1
+
+# Make sure Python 2's sys.maxint is the same as the maxlong we calculated
+if sys.version_info[0] <= 2 and maxlong != sys.maxint:
+    raise RuntimeError, "sys.maxint is not the maximum value of a signed long"
+
+def checkType(t, e, val, delta):
+    """t = Test object, e = type name (e.g. ulong), val = max or min allowed value, delta = +1 for max, -1 for min"""
+    error = 0
+    # Set the extreme valid value for var_*
+    setattr(t, 'var_' + e, val)
+    # Make sure it was set properly and works properly in the val_* and ref_* methods
+    if getattr(t, 'var_' + e) != val or getattr(t, 'val_' + e)(val) != val or getattr(t, 'ref_' + e)(val) != val:
+        error = 1
+    # Make sure setting a more extreme value fails without changing the value
+    try:
+        a = getattr(t, 'var_' + e)
+        setattr(t, 'var_' + e, val + delta)
+        error = 1
+    except OverflowError:
+        if a != getattr(t, 'var_' + e):
+            error = 1
+    # Make sure the val_* and ref_* methods fail with a more extreme value
+    try:
+        getattr(t, 'val_' + e)(val + delta)
+        error = 1
+    except OverflowError:
+        pass
+    try:
+        getattr(t, 'ref_' + e)(val + delta)
+        error = 1
+    except OverflowError:
+        pass
+    if error:
+        raise RuntimeError, "bad " + e + " typemap"
+
+def checkFull(t, e, maxval, minval):
+    """Check the maximum and minimum bounds for the type given by e"""
+    checkType(t, e, maxval,  1)
+    checkType(t, e, minval, -1)
+
+checkFull(t, 'llong',  maxllong,  minllong)
+checkFull(t, 'long',   maxlong,   minlong)
+checkFull(t, 'int',    maxint,    minint)
+checkFull(t, 'short',  maxshort,  minshort)
+checkFull(t, 'schar',  maxchar,   minchar)
+checkFull(t, 'ullong', maxullong, 0)
+checkFull(t, 'ulong',  maxulong,  0)
+checkFull(t, 'uint',   maxuint,   0)
+checkFull(t, 'ushort', maxushort, 0)
+checkFull(t, 'uchar',  maxuchar,  0)
+
+def checkOverload(t, name, val, delta, prevval, limit):
+    """
+    Check that overloading works
+        t = Test object
+        name = type name (e.g. ulong)
+        val = max or min allowed value
+        delta = +1 for max, -1 for min
+        prevval = corresponding value for one smaller type
+        limit = most extreme value for any type
+    """
+    # If val == prevval, then the smaller typemap will win
+    if val != prevval:
+        # Make sure the most extreme value of this type gives the name of this type
+        if t.ovr_str(val) != name:
+            raise RuntimeError, "bad " + name + " typemap"
+        # Make sure a more extreme value doesn't give the name of this type
+        try:
+            if t.ovr_str(val + delta) == name:
+                raise RuntimeError, "bad " + name + " typemap"
+            if val == limit:
+                # Should raise NotImplementedError here since this is the largest integral type
+                raise RuntimeError, "bad " + name + " typemap"
+        except NotImplementedError:
+            # NotImplementedError is expected only if this is the most extreme type
+            if val != limit:
+                raise RuntimeError, "bad " + name + " typemap"
+        except TypeError:
+            # TypeError is raised instead if swig is run with -O or -fastdispatch
+            if val != limit:
+                raise RuntimeError, "bad " + name + " typemap"
+
+# Check that overloading works: uchar > schar > ushort > short > uint > int > ulong > long > ullong > llong
+checkOverload(t, 'uchar',  maxuchar,  +1, 0,         maxullong)
+checkOverload(t, 'ushort', maxushort, +1, maxuchar,  maxullong)
+checkOverload(t, 'uint',   maxuint,   +1, maxushort, maxullong)
+checkOverload(t, 'ulong',  maxulong,  +1, maxuint,   maxullong)
+checkOverload(t, 'ullong', maxullong, +1, maxulong,  maxullong)
+checkOverload(t, 'schar',  minchar,   -1, 0,         minllong)
+checkOverload(t, 'short',  minshort,  -1, minchar,   minllong)
+checkOverload(t, 'int',    minint,    -1, minshort,  minllong)
+checkOverload(t, 'long',   minlong,   -1, minint,    minllong)
+checkOverload(t, 'llong',  minllong,  -1, minlong,   minllong)
+
+# Make sure that large ints can be converted to doubles properly
+if val_double(sys.maxint + 1) != float(sys.maxint + 1):
+    raise RuntimeError, "bad double typemap"
+if val_double(-sys.maxint - 2) != float(-sys.maxint - 2):
+    raise RuntimeError, "bad double typemap"
+
+
+# Check the minimum and maximum values that fit in ptrdiff_t and size_t
+def checkType(name, maxfunc, maxval, minfunc, minval, echofunc):
+    if maxfunc() != maxval:
+        raise RuntimeError, "bad " + name + " typemap"
+    if minfunc() != minval:
+        raise RuntimeError, "bad " + name + " typemap"
+    if echofunc(maxval) != maxval:
+        raise RuntimeError, "bad " + name + " typemap"
+    if echofunc(minval) != minval:
+        raise RuntimeError, "bad " + name + " typemap"
+    error = 0
+    try:
+        echofunc(maxval + 1)
+        error = 1
+    except OverflowError:
+        pass
+    if error == 1:
+        raise RuntimeError, "bad " + name + " typemap"
+    try:
+        echofunc(minval - 1)
+        error = 1
+    except OverflowError:
+        pass
+    if error == 1:
+        raise RuntimeError, "bad " + name + " typemap"
+
+# sys.maxsize is the largest value supported by Py_ssize_t, which should be the same as ptrdiff_t
+if sys.version_info[0:2] >= (2, 6):
+    checkType("ptrdiff_t", get_ptrdiff_max, sys.maxsize,           get_ptrdiff_min, -(sys.maxsize + 1), ptrdiff_echo)
+    checkType("size_t",    get_size_max,    (2 * sys.maxsize) + 1, get_size_min,    0,                  size_echo)

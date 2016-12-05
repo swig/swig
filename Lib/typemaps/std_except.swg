@@ -20,6 +20,7 @@
 %enddef
 
 namespace std {
+  %std_exception_map(bad_cast,           SWIG_TypeError);
   %std_exception_map(bad_exception,      SWIG_SystemError);
   %std_exception_map(domain_error,       SWIG_ValueError);
   %std_exception_map(exception,          SWIG_SystemError);

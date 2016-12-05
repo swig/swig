@@ -4,6 +4,32 @@ and CHANGES files.
 
 Release Notes
 =============
+Detailed release notes are available with the release and are also
+published on the SWIG web site at http://swig.org/release.html.
+
+SWIG-3.0.10 summary:
+- Regression fixes for smart pointers and importing Python modules.
+
+SWIG-3.0.9 summary:
+- Add support for Python's implicit namespace packages.
+- Fixes to support Go 1.6.
+- C++11 std::array support added for Java.
+- Improved C++ multiple inheritance support for Java/C# wrappers.
+- Various other minor fixes and improvements for C#, D, Go, Java,
+  Javascript, Lua, Python, R, Ruby, Scilab.
+
+SWIG-3.0.8 summary:
+- pdf documentation enhancements.
+- Various Python 3.5 issues fixed.
+- std::array support added for Ruby and Python.
+- shared_ptr support added for Ruby.
+- Minor improvements for CFFI, Go, Java, Perl, Python, Ruby.
+
+SWIG-3.0.7 summary:
+- Add support for Octave-4.0.0.
+- Remove potential Android security exploit in generated Java classes.
+- Minor new features and bug fixes.
+
 SWIG-3.0.6 summary:
 - Stability and regression fixes.
 - Fixed parsing of C++ corner cases.

@@ -65,9 +65,11 @@
 #endif
 
 /* exporting methods */
-#if (__GNUC__ >= 4) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
-#  ifndef GCC_HASCLASSVISIBILITY
-#    define GCC_HASCLASSVISIBILITY
+#if defined(__GNUC__)
+#  if (__GNUC__ >= 4) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+#    ifndef GCC_HASCLASSVISIBILITY
+#      define GCC_HASCLASSVISIBILITY
+#    endif
 #  endif
 #endif
 

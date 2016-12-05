@@ -79,7 +79,7 @@ namespace std {
                 }
             } else {
                 /* wrapped pair? */
-                std::pair<T,U >* m;
+                std::pair< T, U >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                     $&1_descriptor, 0) == 0)
                     $1 = 1;
@@ -105,7 +105,7 @@ namespace std {
                 }
             } else {
                 /* wrapped pair? */
-                std::pair<T,U >* m;
+                std::pair< T, U >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                     $1_descriptor, 0) == 0)
                     $1 = 1;
@@ -183,7 +183,7 @@ namespace std {
                 }
             } else {
                 /* wrapped pair? */
-                std::pair<T,U >* m;
+                std::pair< T, U >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                     $&1_descriptor, 0) == 0)
                     $1 = 1;
@@ -207,7 +207,7 @@ namespace std {
                 }
             } else {
                 /* wrapped pair? */
-                std::pair<T,U >* m;
+                std::pair< T, U >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                     $1_descriptor, 0) == 0)
                     $1 = 1;
@@ -283,7 +283,7 @@ namespace std {
                 }
             } else {
                 /* wrapped pair? */
-                std::pair<T,U >* m;
+                std::pair< T, U >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                     $&1_descriptor, 0) == 0)
                     $1 = 1;
@@ -307,7 +307,7 @@ namespace std {
                 }
             } else {
                 /* wrapped pair? */
-                std::pair<T,U >* m;
+                std::pair< T, U >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                     $1_descriptor, 0) == 0)
                     $1 = 1;
@@ -377,7 +377,7 @@ namespace std {
                 }
             } else {
                 /* wrapped pair? */
-                std::pair<T,U >* m;
+                std::pair< T, U >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                     $&1_descriptor, 0) == 0)
                     $1 = 1;
@@ -398,7 +398,7 @@ namespace std {
                 }
             } else {
                 /* wrapped pair? */
-                std::pair<T,U >* m;
+                std::pair< T, U >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                     $1_descriptor, 0) == 0)
                     $1 = 1;

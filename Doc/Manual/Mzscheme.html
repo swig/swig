@@ -1,14 +1,14 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<!-- Hand-written HTML -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>SWIG and MzScheme/Racket</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 
 <body bgcolor="#ffffff">
 
-<H1><a name="Mzscheme"></a>30 SWIG and MzScheme/Racket</H1>
+<H1><a name="Mzscheme">30 SWIG and MzScheme/Racket</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -24,7 +24,7 @@
 <p>
 This section contains information on SWIG's support of Racket, formally known as MzScheme.
 
-<H2><a name="MzScheme_nn2"></a>30.1 Creating native structures</H2>
+<H2><a name="MzScheme_nn2">30.1 Creating native structures</a></H2>
 
 
 <p>
@@ -36,12 +36,12 @@ Example interface file:
 /* define a macro for the struct creation */
 %define handle_ptr(TYPE,NAME)
 %typemap(argout) TYPE *NAME{
-    Scheme_Object *o = SWIG_NewStructFromPtr($1, $*1_mangle);
-    SWIG_APPEND_VALUE(o);
+  Scheme_Object *o = SWIG_NewStructFromPtr($1, $*1_mangle);
+  SWIG_APPEND_VALUE(o);
 }
 
 %typemap(in,numinputs=0) TYPE *NAME (TYPE temp) {
-    $1 = &amp;temp;
+  $1 = &amp;temp;
 }
 %enddef
 
@@ -56,16 +56,16 @@ Then in scheme, you can use regular struct access procedures like
 
 <div class="code">
 <pre>
-	; suppose a function created a struct foo as 
-	; (define foo (make-diag-cntrs (#x1 #x2 #x3) (make-inspector))
-	; Then you can do
-	(format "0x~x" (diag-cntrs-field1 foo))
-	(format "0x~x" (diag-cntrs-field2 foo))
-	;etc...
+        ; suppose a function created a struct foo as
+        ; (define foo (make-diag-cntrs (#x1 #x2 #x3) (make-inspector))
+        ; Then you can do
+        (format "0x~x" (diag-cntrs-field1 foo))
+        (format "0x~x" (diag-cntrs-field2 foo))
+        ;etc...
 </pre>
 </div>
 
-<H2><a name="MzScheme_simple"></a>30.2 Simple example</H2>
+<H2><a name="MzScheme_simple">30.2 Simple example</a></H2>
 
 
 <p>
@@ -166,7 +166,7 @@ Some points of interest:
   <li> The above requests mzc to create an extension using the CGC garbage-collector. The alternative -- the 3m collector -- has generally better performance, but work is still required for SWIG to emit code which is compatible with it.
 </ul>
 
-<H2><a name="MzScheme_external_docs"></a>30.3 External documentation</H2>
+<H2><a name="MzScheme_external_docs">30.3 External documentation</a></H2>
 
 
 <p>

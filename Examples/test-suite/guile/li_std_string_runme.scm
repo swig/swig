@@ -25,7 +25,7 @@
 
 (if (not (try-set-locale "C.UTF-8"))     ; Linux
 (if (not (try-set-locale "en_US.utf8"))  ; Linux
-(if (not (try-set-locale "en_US.UTF-8")) ; Mac OSX
+(if (not (try-set-locale "en_US.UTF-8")) ; Mac OS X
 (error "Failed to set any UTF-8 locale")
 )))
 

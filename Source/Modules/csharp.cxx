@@ -52,6 +52,7 @@ class CSHARP:public Language {
   String *imclass_class_code;	// intermediary class code
   String *proxy_class_def;
   String *proxy_class_code;
+  String *interface_class_code; // if %feature("interface") was declared for a class, here goes the interface declaration
   String *module_class_code;
   String *proxy_class_name;	// proxy class name
   String *full_imclass_name;	// fully qualified intermediary class name when using nspace feature, otherwise same as imclass_name
@@ -126,6 +127,7 @@ public:
       imclass_class_code(NULL),
       proxy_class_def(NULL),
       proxy_class_code(NULL),
+      interface_class_code(NULL),
       module_class_code(NULL),
       proxy_class_name(NULL),
       full_imclass_name(NULL),
@@ -186,8 +188,12 @@ public:
 	   String *symname = Copy(Getattr(n, "sym:name"));
 	   if (symname && !GetFlag(n, "feature:flatnested")) {
 	     for (Node *outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
-	       Push(symname, ".");
-	       Push(symname, Getattr(outer_class, "sym:name"));
+               if (String* name = Getattr(outer_class, "sym:name")) {
+                 Push(symname, ".");
+                 Push(symname, name);
+               }
+               else
+                 return NULL;
 	     }
 	   }
 	   if (nspace) {
@@ -272,6 +278,7 @@ public:
     SWIG_config_file("csharp.swg");
 
     allow_overloading();
+    Swig_interface_feature_enable();
   }
 
   /* ---------------------------------------------------------------------
@@ -392,8 +399,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIGCSHARP\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGCSHARP\n#define SWIGCSHARP\n#endif\n\n");
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
@@ -416,8 +422,16 @@ public:
     }
 
     Printf(f_runtime, "\n");
+    if (namespce) {
+      String *wrapper_name = NewStringf("");
+      Printf(wrapper_name, "CSharp_%s_%%f", namespce);
+      Swig_name_register("wrapper", wrapper_name);
+      Delete(wrapper_name);
+    }
+    else {
+      Swig_name_register("wrapper", "CSharp_%f");
+    }
 
-    Swig_name_register("wrapper", "CSharp_%f");
     if (old_variable_names) {
       Swig_name_register("set", "set_%n%v");
       Swig_name_register("get", "get_%n%v");
@@ -1310,7 +1324,7 @@ public:
       const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
       Setattr(n, "enumvalue", val);
     } else if (swigtype == T_CHAR) {
-      String *val = NewStringf("'%s'", Getattr(n, "enumvalue"));
+      String *val = NewStringf("'%(hexescape)s'", Getattr(n, "enumvalue"));
       Setattr(n, "enumvalue", val);
       Delete(val);
     }
@@ -1434,6 +1448,7 @@ public:
   virtual int constantWrapper(Node *n) {
     String *symname = Getattr(n, "sym:name");
     SwigType *t = Getattr(n, "type");
+    SwigType *valuetype = Getattr(n, "valuetype");
     ParmList *l = Getattr(n, "parms");
     String *tm;
     String *return_type = NewString("");
@@ -1486,13 +1501,15 @@ public:
       Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No cstype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
+    // Default (octal) escaping is no good - change to hex escaped value
+    String *hexescaped_value = Getattr(n, "rawvalue") ? NewStringf("%(hexescape)s", Getattr(n, "rawvalue")) : 0;
     // Add the stripped quotes back in
     String *new_value = NewString("");
     if (SwigType_type(t) == T_STRING) {
-      Printf(new_value, "\"%s\"", Copy(Getattr(n, "value")));
+      Printf(new_value, "\"%s\"", hexescaped_value ? hexescaped_value : Copy(Getattr(n, "value")));
       Setattr(n, "value", new_value);
     } else if (SwigType_type(t) == T_CHAR) {
-      Printf(new_value, "\'%s\'", Copy(Getattr(n, "value")));
+      Printf(new_value, "\'%s\'", hexescaped_value ? hexescaped_value : Copy(Getattr(n, "value")));
       Setattr(n, "value", new_value);
     }
 
@@ -1533,10 +1550,14 @@ public:
     } else {
       // Alternative constant handling will use the C syntax to make a true C# constant and hope that it compiles as C# code
       if (Getattr(n, "wrappedasconstant")) {
-	if (SwigType_type(t) == T_CHAR)
-          Printf(constants_code, "\'%s\';\n", Getattr(n, "staticmembervariableHandler:value"));
-	else
+	if (SwigType_type(t) == T_CHAR) {
+	  if (SwigType_type(valuetype) == T_CHAR)
+	    Printf(constants_code, "\'%(hexescape)s\';\n", Getattr(n, "staticmembervariableHandler:value"));
+	  else
+	    Printf(constants_code, "(char)%s;\n", Getattr(n, "staticmembervariableHandler:value"));
+	} else {
           Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
+	}
       } else {
         Printf(constants_code, "%s;\n", Getattr(n, "value"));
       }
@@ -1637,6 +1658,119 @@ public:
   }
 
   /* -----------------------------------------------------------------------------
+   * getQualifiedInterfaceName()
+   * ----------------------------------------------------------------------------- */
+
+  String *getQualifiedInterfaceName(Node *n) {
+    String *ret = Getattr(n, "interface:qname");
+    if (!ret) {
+      String *nspace = Getattr(n, "sym:nspace");
+      String *interface_name = Getattr(n, "interface:name");
+      if (nspace) {
+	if (namespce)
+	  ret = NewStringf("%s.%s.%s", namespce, nspace, interface_name);
+	else
+	  ret = NewStringf("%s.%s", nspace, interface_name);
+      } else {
+	ret = Copy(interface_name);
+      }
+      Setattr(n, "interface:qname", ret);
+    }
+    return ret;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * getInterfaceName()
+   * ----------------------------------------------------------------------------- */
+
+  String *getInterfaceName(SwigType *t, bool qualified) {
+    String *interface_name = NULL;
+    if (proxy_flag) {
+      Node *n = classLookup(t);
+      if (n && Getattr(n, "interface:name"))
+	interface_name = qualified ? getQualifiedInterfaceName(n) : Getattr(n, "interface:name");
+    }
+    return interface_name;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * addInterfaceNameAndUpcasts()
+   * ----------------------------------------------------------------------------- */
+
+  void addInterfaceNameAndUpcasts(SwigType *smart, String *interface_list, String *interface_upcasts, Hash *base_list, String *c_classname) {
+    List *keys = Keys(base_list);
+    for (Iterator it = First(keys); it.item; it = Next(it)) {
+      Node *base = Getattr(base_list, it.item);
+      String *c_baseclass = SwigType_namestr(Getattr(base, "name"));
+      String *interface_name = Getattr(base, "interface:name");
+      if (Len(interface_list))
+	Append(interface_list, ", ");
+      Append(interface_list, interface_name);
+
+      Node *attributes = NewHash();
+      String *interface_code = Copy(typemapLookup(base, "csinterfacecode", Getattr(base, "classtypeobj"), WARN_CSHARP_TYPEMAP_INTERFACECODE_UNDEF, attributes));
+      String *cptr_method_name = 0;
+      if (interface_code) {
+        Replaceall(interface_code, "$interfacename", interface_name);
+	Printv(interface_upcasts, interface_code, NIL);
+	cptr_method_name = Copy(Getattr(attributes, "tmap:csinterfacecode:cptrmethod"));
+      }
+      if (!cptr_method_name)
+	cptr_method_name = NewStringf("%s_GetInterfaceCPtr", interface_name);
+      Replaceall(cptr_method_name, ".", "_");
+      Replaceall(cptr_method_name, "$interfacename", interface_name);
+
+      String *upcast_method_name = Swig_name_member(getNSpace(), proxy_class_name, cptr_method_name);
+      upcastsCode(smart, upcast_method_name, c_classname, c_baseclass);
+
+      Delete(upcast_method_name);
+      Delete(cptr_method_name);
+      Delete(interface_code);
+      Delete(c_baseclass);
+    }
+    Delete(keys);
+  }
+
+  /* -----------------------------------------------------------------------------
+   * upcastsCode()
+   *
+   * Add code for C++ casting to base class
+   * ----------------------------------------------------------------------------- */
+
+  void upcastsCode(SwigType *smart, String *upcast_method_name, String *c_classname, String *c_baseclass) {
+    String *wname = Swig_name_wrapper(upcast_method_name);
+
+    Printv(imclass_cppcasts_code, "\n  [global::System.Runtime.InteropServices.DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
+    Printf(imclass_cppcasts_code, "  public static extern global::System.IntPtr %s(global::System.IntPtr jarg1);\n", upcast_method_name);
+
+    Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
+
+    if (smart) {
+      SwigType *bsmart = Copy(smart);
+      SwigType *rclassname = SwigType_typedef_resolve_all(c_classname);
+      SwigType *rbaseclass = SwigType_typedef_resolve_all(c_baseclass);
+      Replaceall(bsmart, rclassname, rbaseclass);
+      Delete(rclassname);
+      Delete(rbaseclass);
+      String *smartnamestr = SwigType_namestr(smart);
+      String *bsmartnamestr = SwigType_namestr(bsmart);
+      Printv(upcasts_code,
+	  "SWIGEXPORT ", bsmartnamestr, " * SWIGSTDCALL ", wname, "(", smartnamestr, " *jarg1) {\n",
+	  "    return jarg1 ? new ", bsmartnamestr, "(*jarg1) : 0;\n"
+	  "}\n", "\n", NIL);
+      Delete(bsmartnamestr);
+      Delete(smartnamestr);
+      Delete(bsmart);
+    } else {
+      Printv(upcasts_code,
+	  "SWIGEXPORT ", c_baseclass, " * SWIGSTDCALL ", wname, "(", c_classname, " *jarg1) {\n",
+	  "    return (", c_baseclass, " *)jarg1;\n"
+	  "}\n", "\n", NIL);
+    }
+    Delete(wname);
+  }
+
+  /* -----------------------------------------------------------------------------
    * emitProxyClassDefAndCPPCasts()
    * ----------------------------------------------------------------------------- */
 
@@ -1645,9 +1779,12 @@ public:
     String *c_baseclass = NULL;
     String *baseclass = NULL;
     String *c_baseclassname = NULL;
+    String *interface_list = NewStringEmpty();
+    String *interface_upcasts = NewStringEmpty();
     SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
     bool feature_director = Swig_directorclass(n) ? true : false;
     bool has_outerclass = Getattr(n, "nested:outer") != 0 && !GetFlag(n, "feature:flatnested");
+    SwigType *smart = Swig_cparse_smartptr(n);
 
     // Inheritance from pure C# classes
     Node *attributes = NewHash();
@@ -1660,31 +1797,29 @@ public:
     if (!purebase_replace) {
       List *baselist = Getattr(n, "bases");
       if (baselist) {
-        Iterator base = First(baselist);
-        while (base.item && GetFlag(base.item, "feature:ignore")) {
-          base = Next(base);
-        }
-        if (base.item) {
-          c_baseclassname = Getattr(base.item, "name");
-          baseclass = Copy(getProxyName(c_baseclassname));
-          if (baseclass)
-            c_baseclass = SwigType_namestr(Getattr(base.item, "name"));
-          base = Next(base);
-          /* Warn about multiple inheritance for additional base class(es) */
-          while (base.item) {
-            if (GetFlag(base.item, "feature:ignore")) {
-              base = Next(base);
-              continue;
-            }
-            String *proxyclassname = Getattr(n, "classtypeobj");
-            String *baseclassname = Getattr(base.item, "name");
-            Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-                         "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", SwigType_namestr(proxyclassname), SwigType_namestr(baseclassname));
-            base = Next(base);
-          }
-        }
+	Iterator base = First(baselist);
+	while (base.item) {
+	  if (!(GetFlag(base.item, "feature:ignore") || Getattr(base.item, "feature:interface"))) {
+	    String *baseclassname = Getattr(base.item, "name");
+	    if (!c_baseclassname) {
+	      c_baseclassname = baseclassname;
+	      baseclass = Copy(getProxyName(baseclassname));
+	      if (baseclass)
+		c_baseclass = SwigType_namestr(baseclassname);
+	    } else {
+	      /* Warn about multiple inheritance for additional base class(es) */
+	      String *proxyclassname = Getattr(n, "classtypeobj");
+	      Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
+		  "Warning for %s, base %s ignored. Multiple inheritance is not supported in C#.\n", SwigType_namestr(proxyclassname), SwigType_namestr(baseclassname));
+	    }
+	  }
+	  base = Next(base);
+	}
       }
     }
+    Hash *interface_bases = Getattr(n, "interface:bases");
+    if (interface_bases)
+      addInterfaceNameAndUpcasts(smart, interface_list, interface_upcasts, interface_bases, c_classname);
 
     bool derived = baseclass && getProxyName(c_baseclassname);
     if (derived && purebase_notderived)
@@ -1700,12 +1835,15 @@ public:
         Swig_error(Getfile(n), Getline(n), "The csbase typemap for proxy %s must contain just one of the 'replace' or 'notderived' attributes.\n", typemap_lookup_type);
     } else if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
       Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-		   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#. "
+		   "Warning for %s, base %s ignored. Multiple inheritance is not supported in C#. "
 		   "Perhaps you need one of the 'replace' or 'notderived' attributes in the csbase typemap?\n", typemap_lookup_type, pure_baseclass);
     }
 
     // Pure C# interfaces
     const String *pure_interfaces = typemapLookup(n, derived ? "csinterfaces_derived" : "csinterfaces", typemap_lookup_type, WARN_NONE);
+    if (*Char(interface_list) && *Char(pure_interfaces))
+      Append(interface_list, ", ");
+    Append(interface_list, pure_interfaces);
     // Start writing the proxy class
     if (!has_outerclass)
       Printv(proxy_class_def, typemapLookup(n, "csimports", typemap_lookup_type, WARN_NONE),	// Import statements
@@ -1718,8 +1856,8 @@ public:
 
     Printv(proxy_class_def, typemapLookup(n, "csclassmodifiers", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
 	   " $csclassname",	// Class name and base class
-	   (*Char(wanted_base) || *Char(pure_interfaces)) ? " : " : "", wanted_base, (*Char(wanted_base) && *Char(pure_interfaces)) ?	// Interfaces
-	   ", " : "", pure_interfaces, " {", derived ? typemapLookup(n, "csbody_derived", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF) :	// main body of class
+	   (*Char(wanted_base) || *Char(interface_list)) ? " : " : "", wanted_base, (*Char(wanted_base) && *Char(interface_list)) ?	// Interfaces
+	   ", " : "", interface_list, " {", derived ? typemapLookup(n, "csbody_derived", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF) :	// main body of class
 	   typemapLookup(n, "csbody", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF),	// main body of class
 	   NIL);
 
@@ -1764,6 +1902,8 @@ public:
 	Printv(proxy_class_def, "\n  ", destruct_methodmodifiers, " ", derived ? "override" : "virtual", " void ", destruct_methodname, "() ", destruct, "\n",
 	       NIL);
     }
+    if (*Char(interface_upcasts))
+      Printv(proxy_class_def, interface_upcasts, NIL);
 
     if (feature_director) {
       // Generate director connect method
@@ -1845,6 +1985,8 @@ public:
       Delete(director_connect_method_name);
     }
 
+    Delete(interface_upcasts);
+    Delete(interface_list);
     Delete(attributes);
     Delete(destruct);
 
@@ -1852,50 +1994,82 @@ public:
     Printv(proxy_class_def, typemapLookup(n, "cscode", typemap_lookup_type, WARN_NONE),	// extra C# code
 	   "\n", NIL);
 
-    // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if (derived) {
-      String *smartptr = Getattr(n, "feature:smartptr");
-      String *upcast_method = Swig_name_member(getNSpace(), getClassPrefix(), smartptr != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
-      String *wname = Swig_name_wrapper(upcast_method);
-
-      Printv(imclass_cppcasts_code, "\n  [global::System.Runtime.InteropServices.DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
-      Printf(imclass_cppcasts_code, "  public static extern global::System.IntPtr %s(global::System.IntPtr jarg1);\n", upcast_method);
-
-      Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
-
-      if (smartptr) {
-	SwigType *spt = Swig_cparse_type(smartptr);
-	if (spt) {
-	  SwigType *smart = SwigType_typedef_resolve_all(spt);
-	  Delete(spt);
-	  SwigType *bsmart = Copy(smart);
-	  SwigType *rclassname = SwigType_typedef_resolve_all(c_classname);
-	  SwigType *rbaseclass = SwigType_typedef_resolve_all(c_baseclass);
-	  Replaceall(bsmart, rclassname, rbaseclass);
-	  Delete(rclassname);
-	  Delete(rbaseclass);
-	  String *smartnamestr = SwigType_namestr(smart);
-	  String *bsmartnamestr = SwigType_namestr(bsmart);
-	  Printv(upcasts_code,
-		 "SWIGEXPORT ", bsmartnamestr, " * SWIGSTDCALL ", wname, "(", smartnamestr, " *jarg1) {\n",
-		 "    return jarg1 ? new ", bsmartnamestr, "(*jarg1) : 0;\n"
-		 "}\n", "\n", NIL);
-	  Delete(bsmartnamestr);
-	  Delete(smartnamestr);
-	  Delete(bsmart);
-	} else {
-	  Swig_error(Getfile(n), Getline(n), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, c_classname);
-	}
-      } else {
-	Printv(upcasts_code,
-	       "SWIGEXPORT ", c_baseclass, " * SWIGSTDCALL ", wname, "(", c_classname, " *jarg1) {\n",
-	       "    return (", c_baseclass, " *)jarg1;\n"
-	       "}\n", "\n", NIL);
-      }
-      Delete(wname);
-      Delete(upcast_method);
+      String *upcast_method_name = Swig_name_member(getNSpace(), getClassPrefix(), smart != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
+      upcastsCode(smart, upcast_method_name, c_classname, c_baseclass);
+      Delete(upcast_method_name);
     }
+
+    Delete(smart);
     Delete(baseclass);
+  }
+
+  /* ----------------------------------------------------------------------
+   * emitInterfaceDeclaration()
+   * ---------------------------------------------------------------------- */
+
+  void emitInterfaceDeclaration(Node *n, String *interface_name, File *f_interface) {
+    Printv(f_interface, typemapLookup(n, "csimports", Getattr(n, "classtypeobj"), WARN_NONE), "\n", NIL);
+    Printf(f_interface, "public interface %s", interface_name);
+    if (List *baselist = Getattr(n, "bases")) {
+      String *bases = 0;
+      for (Iterator base = First(baselist); base.item; base = Next(base)) {
+	if (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "feature:interface"))
+	  continue; // TODO: warn about skipped non-interface bases
+	String *base_iname = Getattr(base.item, "interface:name");
+	if (!bases)
+	  bases = NewStringf(" : %s", base_iname);
+	else {
+	  Append(bases, ", ");
+	  Append(bases, base_iname);
+	}
+      }
+      if (bases) {
+	Printv(f_interface, bases, NIL);
+	Delete(bases);
+      }
+    }
+    Printf(f_interface, " {\n");
+
+    Node *attributes = NewHash();
+    String *interface_code = Copy(typemapLookup(n, "csinterfacecode", Getattr(n, "classtypeobj"), WARN_CSHARP_TYPEMAP_INTERFACECODE_UNDEF, attributes));
+    if (interface_code) {
+      String *interface_declaration = Copy(Getattr(attributes, "tmap:csinterfacecode:declaration"));
+      if (interface_declaration) {
+        Replaceall(interface_declaration, "$interfacename", interface_name);
+	Printv(f_interface, interface_declaration, NIL);
+	Delete(interface_declaration);
+      }
+      Delete(interface_code);
+    }
+  }
+
+  /* ----------------------------------------------------------------------
+   * calculateDirectBase()
+   * ---------------------------------------------------------------------- */
+
+  void calculateDirectBase(Node* n) {
+    Node* direct_base = 0;
+    // C++ inheritance
+    Node *attributes = NewHash();
+    SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
+    const String *pure_baseclass = typemapLookup(n, "csbase", typemap_lookup_type, WARN_NONE, attributes);
+    bool purebase_replace = GetFlag(attributes, "tmap:csbase:replace") ? true : false;
+    bool purebase_notderived = GetFlag(attributes, "tmap:csbase:notderived") ? true : false;
+    Delete(attributes);
+    if (!purebase_replace) {
+      if (List *baselist = Getattr(n, "bases")) {
+	Iterator base = First(baselist);
+	while (base.item && (GetFlag(base.item, "feature:ignore") || Getattr(base.item, "feature:interface")))
+	  base = Next(base);
+	direct_base = base.item;
+      }
+      if (!direct_base && purebase_notderived)
+	direct_base = symbolLookup(const_cast<String*>(pure_baseclass));
+    } else {
+      direct_base = symbolLookup(const_cast<String*>(pure_baseclass));
+    }
+    Setattr(n, "direct_base", direct_base);
   }
 
   /* ----------------------------------------------------------------------
@@ -1903,9 +2077,9 @@ public:
    * ---------------------------------------------------------------------- */
 
   virtual int classHandler(Node *n) {
-
     String *nspace = getNSpace();
     File *f_proxy = NULL;
+    File *f_interface = NULL;
     // save class local variables
     String *old_proxy_class_name = proxy_class_name;
     String *old_full_imclass_name = full_imclass_name;
@@ -1914,9 +2088,12 @@ public:
     String *old_proxy_class_def = proxy_class_def;
     String *old_proxy_class_code = proxy_class_code;
     bool has_outerclass = Getattr(n, "nested:outer") && !GetFlag(n, "feature:flatnested");
+    String *old_interface_class_code = interface_class_code;
+    interface_class_code = 0;
 
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
+      String *interface_name = Getattr(n, "feature:interface") ? Getattr(n, "interface:name") : 0;
       if (Node *outer = Getattr(n, "nested:outer")) {
 	String *outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
 	for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
@@ -1926,12 +2103,15 @@ public:
 	String *fnspace = nspace ? NewStringf("%s.%s", nspace, outerClassesPrefix) : outerClassesPrefix;
 	if (!addSymbol(proxy_class_name, n, fnspace))
 	  return SWIG_ERROR;
+	if (interface_name && !addInterfaceSymbol(interface_name, n, fnspace))
+	  return SWIG_ERROR;
 	if (nspace)
 	  Delete(fnspace);
 	Delete(outerClassesPrefix);
-      }
-      else {
+      } else {
 	if (!addSymbol(proxy_class_name, n, nspace))
+	  return SWIG_ERROR;
+	if (interface_name && !addInterfaceSymbol(interface_name, n, nspace))
 	  return SWIG_ERROR;
       }
 
@@ -1959,13 +2139,25 @@ public:
 	f_proxy = getOutputFile(output_directory, proxy_class_name);
 
 	addOpenNamespace(nspace, f_proxy);
+        Delete(output_directory);
       }
       else
 	++nesting_depth;
+
       proxy_class_def = NewString("");
       proxy_class_code = NewString("");
       destructor_call = NewString("");
       proxy_class_constants_code = NewString("");
+
+      if (Getattr(n, "feature:interface")) {
+	interface_class_code = NewString("");
+	String *output_directory = outputDirectory(nspace);
+	f_interface = getOutputFile(output_directory, interface_name);
+	addOpenNamespace(nspace, f_interface);
+	emitInterfaceDeclaration(n, interface_name, interface_class_code);
+        Delete(output_directory);
+      }
+      calculateDirectBase(n);
     }
 
     Language::classHandler(n);
@@ -1979,22 +2171,28 @@ public:
       Replaceall(proxy_class_def, "$csclassname", proxy_class_name);
       Replaceall(proxy_class_code, "$csclassname", proxy_class_name);
       Replaceall(proxy_class_constants_code, "$csclassname", proxy_class_name);
+      Replaceall(interface_class_code, "$csclassname", proxy_class_name);
 
       Replaceall(proxy_class_def, "$csclazzname", csclazzname);
       Replaceall(proxy_class_code, "$csclazzname", csclazzname);
       Replaceall(proxy_class_constants_code, "$csclazzname", csclazzname);
+      Replaceall(interface_class_code, "$csclazzname", csclazzname);
 
       Replaceall(proxy_class_def, "$module", module_class_name);
       Replaceall(proxy_class_code, "$module", module_class_name);
       Replaceall(proxy_class_constants_code, "$module", module_class_name);
+      Replaceall(interface_class_code, "$module", module_class_name);
 
       Replaceall(proxy_class_def, "$imclassname", full_imclass_name);
       Replaceall(proxy_class_code, "$imclassname", full_imclass_name);
       Replaceall(proxy_class_constants_code, "$imclassname", full_imclass_name);
+      Replaceall(interface_class_code, "$imclassname", full_imclass_name);
 
       Replaceall(proxy_class_def, "$dllimport", dllimport);
       Replaceall(proxy_class_code, "$dllimport", dllimport);
       Replaceall(proxy_class_constants_code, "$dllimport", dllimport);
+      Replaceall(interface_class_code, "$dllimport", dllimport);
+
       if (!has_outerclass)
 	Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
       else {
@@ -2057,8 +2255,18 @@ public:
 	Delete(downcast_method);
       }
 
+      if (f_interface) {
+	Printv(f_interface, interface_class_code, "}\n", NIL);
+	addCloseNamespace(nspace, f_interface);
+	if (f_interface != f_single_out)
+	  Delete(f_interface);
+	f_interface = 0;
+      }
+
       emitDirectorExtraMethods(n);
 
+      Delete(interface_class_code);
+      interface_class_code = old_interface_class_code;
       Delete(csclazzname);
       Delete(proxy_class_name);
       proxy_class_name = old_proxy_class_name;
@@ -2144,6 +2352,8 @@ public:
     String *pre_code = NewString("");
     String *post_code = NewString("");
     String *terminator_code = NewString("");
+    bool is_interface = Getattr(parentNode(n), "feature:interface") != 0 
+      && !static_flag && Getattr(n, "interface:owner") == 0;
 
     if (!proxy_flag)
       return;
@@ -2216,8 +2426,21 @@ public:
       Printf(function_code, "  %s ", methodmods);
       if (!is_smart_pointer()) {
 	// Smart pointer classes do not mirror the inheritance hierarchy of the underlying pointer type, so no virtual/override/new required.
-	if (Getattr(n, "override"))
-	  Printf(function_code, "override ");
+	if (Node *base_ovr = Getattr(n, "override")) {
+	  if (GetFlag(n, "isextendmember"))
+	    Printf(function_code, "override ");
+	  else {
+	    Node* base = parentNode(base_ovr);
+	    bool ovr = false;
+	    for (Node* direct_base = Getattr(parentNode(n), "direct_base"); direct_base; direct_base = Getattr(direct_base, "direct_base")) {
+	      if (direct_base == base) { // "override" only applies if the base was not discarded (e.g. in case of multiple inheritance or via "ignore")
+		ovr = true;
+		break;
+	      }
+	    }
+	    Printf(function_code, ovr ? "override " : "virtual ");
+	  }
+	}
 	else if (checkAttribute(n, "storage", "virtual"))
 	  Printf(function_code, "virtual ");
 	if (Getattr(n, "hides"))
@@ -2227,6 +2450,9 @@ public:
     if (static_flag)
       Printf(function_code, "static ");
     Printf(function_code, "%s %s(", return_type, proxy_function_name);
+    if (is_interface)
+      Printf(interface_class_code, "  %s %s(", return_type, proxy_function_name);
+    
 
     Printv(imcall, full_imclass_name, ".$imfuncname(", NIL);
     if (!static_flag)
@@ -2306,10 +2532,15 @@ public:
 	}
 
 	/* Add parameter to proxy function */
-	if (gencomma >= 2)
+	if (gencomma >= 2) {
 	  Printf(function_code, ", ");
+	  if (is_interface)
+	    Printf(interface_class_code, ", ");
+	}
 	gencomma = 2;
 	Printf(function_code, "%s %s", param_type, arg);
+	if (is_interface)
+	  Printf(interface_class_code, "%s %s", param_type, arg);
 
 	Delete(arg);
 	Delete(param_type);
@@ -2319,6 +2550,8 @@ public:
 
     Printf(imcall, ")");
     Printf(function_code, ")");
+    if (is_interface)
+      Printf(interface_class_code, ");\n");
 
     // Transform return type used in PInvoke function (in intermediary class) to type used in C# wrapper function (in proxy class)
     if ((tm = Swig_typemap_lookup("csout", n, "", 0))) {
@@ -3187,6 +3420,50 @@ public:
       substitution_performed = true;
       Delete(classnametype);
     }
+    if (Strstr(tm, "$csinterfacename")) {
+      SwigType *interfacenametype = Copy(strippedtype);
+      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$csinterfacename", true);
+      substitution_performed = true;
+      Delete(interfacenametype);
+    }
+    if (Strstr(tm, "$*csinterfacename")) {
+      SwigType *interfacenametype = Copy(strippedtype);
+      Delete(SwigType_pop(interfacenametype));
+      if (Len(interfacenametype) > 0) {
+	substituteInterfacenameSpecialVariable(interfacenametype, tm, "$*csinterfacename", true);
+	substitution_performed = true;
+      }
+      Delete(interfacenametype);
+    }
+    if (Strstr(tm, "$&csinterfacename")) {
+      SwigType *interfacenametype = Copy(strippedtype);
+      SwigType_add_pointer(interfacenametype);
+      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$&csinterfacename", true);
+      substitution_performed = true;
+      Delete(interfacenametype);
+    }
+    if (Strstr(tm, "$interfacename")) {
+      SwigType *interfacenametype = Copy(strippedtype);
+      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$interfacename", false);
+      substitution_performed = true;
+      Delete(interfacenametype);
+    }
+    if (Strstr(tm, "$*interfacename")) {
+      SwigType *interfacenametype = Copy(strippedtype);
+      Delete(SwigType_pop(interfacenametype));
+      if (Len(interfacenametype) > 0) {
+	substituteInterfacenameSpecialVariable(interfacenametype, tm, "$*interfacename", false);
+	substitution_performed = true;
+      }
+      Delete(interfacenametype);
+    }
+    if (Strstr(tm, "$&interfacename")) {
+      SwigType *interfacenametype = Copy(strippedtype);
+      SwigType_add_pointer(interfacenametype);
+      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$&interfacename", false);
+      substitution_performed = true;
+      Delete(interfacenametype);
+    }
 
     Delete(strippedtype);
     Delete(type);
@@ -3230,6 +3507,20 @@ public:
     Replaceall(tm, classnamespecialvariable, replacementname);
 
     Delete(replacementname);
+  }
+
+  /* -----------------------------------------------------------------------------
+   * substituteInterfacenameSpecialVariable()
+   * ----------------------------------------------------------------------------- */
+
+  void substituteInterfacenameSpecialVariable(SwigType *interfacenametype, String *tm, const char *interfacenamespecialvariable, bool qualified) {
+
+    String *interfacename = getInterfaceName(interfacenametype, qualified);
+    if (interfacename) {
+      String *replacementname = Copy(interfacename);
+      Replaceall(tm, interfacenamespecialvariable, replacementname);
+      Delete(replacementname);
+    }
   }
 
   /* -----------------------------------------------------------------------------
@@ -3469,7 +3760,7 @@ public:
     Wrapper *code_wrap = NewWrapper();
     Printf(code_wrap->def, "SWIGEXPORT void SWIGSTDCALL %s(void *objarg", wname);
 
-    if (Len(smartptr)) {
+    if (smartptr) {
       Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", smartptr, smartptr);
       Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
       Printf(code_wrap->code, "  // Avoids using smart pointer specific API.\n");

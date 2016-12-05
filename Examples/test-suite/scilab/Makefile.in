@@ -13,7 +13,6 @@ top_builddir = ../@top_builddir@
 
 C_TEST_CASES += \
 	scilab_consts \
-	scilab_enums \
 	scilab_identifier_name \
 
 CPP_TEST_CASES += \
@@ -21,6 +20,7 @@ CPP_TEST_CASES += \
 	primitive_types \
 	scilab_li_matrix \
 	scilab_multivalue \
+	scilab_enums \
 	scilab_pointer_conversion_functions \
 
 CPP_STD_TEST_CASES += \
@@ -62,7 +62,7 @@ setup = \
 	  mkdir $(TEST_DIR); \
 	fi; \
 	if [ -f $(SRC_RUNME_SCRIPT) ]; then	\
-	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
+	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
 	  if [ ! -f $(TEST_DIR) ]; then	\
 	    cp $(SRC_RUNME_SCRIPT) $(TEST_DIR); \
 	  fi; \
@@ -73,7 +73,7 @@ setup = \
 	    cp $(srcdir)/swigtest.quit $(TEST_DIR); \
 	  fi; \
 	else \
-	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ; \
+	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ; \
 	fi; \
 
 # Runs the testcase. A testcase is only run if

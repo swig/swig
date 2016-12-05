@@ -873,7 +873,7 @@ int Language::cDeclaration(Node *n) {
     } else {
       // Found an unignored templated method that has an empty template instantiation (%template())
       // Ignore it unless it has been %rename'd
-      if (Strncmp(symname, "__dummy_", 8) == 0) {
+      if (Strncmp(symname, "__dummy_", 8) == 0 && Cmp(storage, "typedef") != 0) {
 	SetFlag(n, "feature:ignore");
 	Swig_warning(WARN_LANG_TEMPLATE_METHOD_IGNORE, input_file, line_number,
 	    "%%template() contains no name. Template method ignored: %s\n", Swig_name_decl(n));
@@ -1652,6 +1652,9 @@ int Language::externDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::enumDeclaration(Node *n) {
+  if (CurrentClass && (cplus_mode != PUBLIC))
+    return SWIG_NOWRAP;
+
   String *oldNSpace = NSpace;
   NSpace = Getattr(n, "sym:nspace");
 
@@ -3134,6 +3137,31 @@ int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr
 }
 
 /* -----------------------------------------------------------------------------
+ * Language::addInterfaceSymbol()
+ *
+ * Adds a symbol entry into the target language symbol tables - for the interface
+ * feature only.
+ * Returns 1 if the symbol is added successfully.
+ * The scope is as per addSymbol.
+ * ----------------------------------------------------------------------------- */
+
+int Language::addInterfaceSymbol(const String *interface_name, Node *n, const_String_or_char_ptr scope) {
+  if (interface_name) {
+    Node *existing_symbol = symbolLookup(interface_name, scope);
+    if (existing_symbol) {
+      String *proxy_class_name = Getattr(n, "sym:name");
+      Swig_error(input_file, line_number, "The interface feature name '%s' for proxy class '%s' is already defined in the generated target language module in scope '%s'.\n",
+	  interface_name, proxy_class_name, scope);
+      Swig_error(Getfile(existing_symbol), Getline(existing_symbol), "Previous declaration of '%s'\n", interface_name);
+      return 0;
+    }
+    if (!addSymbol(interface_name, n, scope))
+      return 0;
+  }
+  return 1;
+}
+
+/* -----------------------------------------------------------------------------
  * Language::symbolAddScope()
  *
  * Creates a scope (symbols Hash) for given name. This method is auxiliary,
@@ -3229,7 +3257,7 @@ void Language::dumpSymbols() {
  * Language::symbolLookup()
  * ----------------------------------------------------------------------------- */
 
-Node *Language::symbolLookup(String *s, const_String_or_char_ptr scope) {
+Node *Language::symbolLookup(const String *s, const_String_or_char_ptr scope) {
   Hash *symbols = Getattr(symtabs, scope ? scope : "");
   if (!symbols) {
     return NULL;
@@ -3820,6 +3848,7 @@ String *Language::defaultExternalRuntimeFilename() {
 
 /* -----------------------------------------------------------------------------
  * Language::replaceSpecialVariables()
+ *
  * Language modules should implement this if special variables are to be handled
  * correctly in the $typemap(...) special variable macro.
  * method - typemap method name
@@ -3839,3 +3868,4 @@ Language *Language::instance() {
 Hash *Language::getClassHash() const {
   return classhash;
 }
+

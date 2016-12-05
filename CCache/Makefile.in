@@ -43,17 +43,21 @@ $(srcdir)/$(PACKAGE_NAME).1: $(srcdir)/ccache.yo
 $(srcdir)/web/ccache-man.html: $(srcdir)/ccache.yo
 	yodl2html -o $(srcdir)/web/ccache-man.html $(srcdir)/ccache.yo
 
-install: $(PACKAGE_NAME)$(EXEEXT) $(srcdir)/$(PACKAGE_NAME).1
+install: $(PACKAGE_NAME)$(EXEEXT)
 	@echo "Installing $(PACKAGE_NAME)"
 	@echo "Installing $(DESTDIR)${bindir}/`echo $(PACKAGE_NAME) | sed '$(transform)'`$(EXEEXT)"
 	${INSTALLCMD} -d $(DESTDIR)${bindir}
 	${INSTALLCMD} -m 755 $(PACKAGE_NAME)$(EXEEXT) $(DESTDIR)${bindir}/`echo $(PACKAGE_NAME) | sed '$(transform)'`$(EXEEXT)
+
+install-docs: $(srcdir)/$(PACKAGE_NAME).1
 	@echo "Installing $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1"
 	${INSTALLCMD} -d $(DESTDIR)${mandir}/man1
 	${INSTALLCMD} -m 644 $(srcdir)/$(PACKAGE_NAME).1 $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1
 
-uninstall: $(PACKAGE_NAME)$(EXEEXT) $(srcdir)/$(PACKAGE_NAME).1
+uninstall: $(PACKAGE_NAME)$(EXEEXT)
 	rm -f $(DESTDIR)${bindir}/`echo $(PACKAGE_NAME) | sed '$(transform)'`$(EXEEXT)
+
+uninstall-docs: $(srcdir)/$(PACKAGE_NAME).1
 	rm -f $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1
 
 clean:

@@ -325,8 +325,8 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIGPERL\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGPERL\n#define SWIGPERL\n#endif\n\n");
+
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
     }
@@ -1045,21 +1045,9 @@ public:
 
     String *tt = Getattr(n, "tmap:varout:type");
     if (tt) {
-      String *tm = NewStringf("&SWIGTYPE%s", SwigType_manglestr(t));
-      if (Replaceall(tt, "$1_descriptor", tm)) {
-	SwigType_remember(t);
-      }
-      Delete(tm);
-      SwigType *st = Copy(t);
-      SwigType_add_pointer(st);
-      tm = NewStringf("&SWIGTYPE%s", SwigType_manglestr(st));
-      if (Replaceall(tt, "$&1_descriptor", tm)) {
-	SwigType_remember(st);
-      }
-      Delete(tm);
-      Delete(st);
+      tt = NewStringf("&%s", tt);
     } else {
-      tt = (String *) "0";
+      tt = NewString("0");
     }
     /* Now add symbol to the PERL interpreter */
     if (GetFlag(n, "feature:immutable")) {
@@ -1087,6 +1075,7 @@ public:
     if (export_all)
       Printf(exported, "$%s ", iname);
 
+    Delete(tt);
     DelWrapper(setf);
     DelWrapper(getf);
     Delete(getname);
@@ -2141,6 +2130,8 @@ public:
 	String *cres = SwigType_lstr(returntype, "c_result");
 	Printf(w->code, "%s;\n", cres);
 	Delete(cres);
+      }
+      if (!ignored_method) {
 	String *pres = NewStringf("SV *%s", Swig_cresult_name());
 	Wrapper_add_local(w, Swig_cresult_name(), pres);
 	Delete(pres);

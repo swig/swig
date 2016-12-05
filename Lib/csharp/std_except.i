@@ -7,6 +7,7 @@
  * ----------------------------------------------------------------------------- */
 
 %{
+#include <typeinfo>
 #include <stdexcept>
 %}
 
@@ -16,6 +17,7 @@ namespace std
   struct exception {};
 }
 
+%typemap(throws, canthrow=1) std::bad_cast          "SWIG_CSharpSetPendingException(SWIG_CSharpInvalidCastException, $1.what());\n return $null;"
 %typemap(throws, canthrow=1) std::bad_exception     "SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, $1.what());\n return $null;"
 %typemap(throws, canthrow=1) std::domain_error      "SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, $1.what());\n return $null;"
 %typemap(throws, canthrow=1) std::exception         "SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, $1.what());\n return $null;"

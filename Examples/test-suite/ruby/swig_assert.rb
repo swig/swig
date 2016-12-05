@@ -22,6 +22,8 @@ end
 # msg   - optional additional message to print
 #
 def swig_assert_equal( a, b, scope = nil, msg = nil )
+  a = 'nil' if a == nil
+  b = 'nil' if b == nil
   begin
     check = "#{a} == #{b}"
     if scope.kind_of? Binding

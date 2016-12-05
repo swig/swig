@@ -214,5 +214,12 @@ Enum1 globalTest1(Enum1 e) { return e; }
 Class1::Enum12 globalTest2(Class1::Enum12 e) { return e; }
 Class1::Struct1::Enum12 globalTest3(Class1::Struct1::Enum12 e) { return e; }
 
+class PrivateEnumClass {
+private:
+  enum class Enum {
+    PrivateEnum1,
+    PrivateEnum2
+  };
+};
 %}
 

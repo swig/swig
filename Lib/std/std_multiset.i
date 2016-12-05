@@ -40,8 +40,8 @@ namespace std {
 
   //multiset
 
-  template <class _Key, class _Compare = std::less<_Key>,
-	    class _Alloc = allocator<_Key> >
+  template <class _Key, class _Compare = std::less< _Key >,
+	    class _Alloc = allocator< _Key > >
   class multiset {
   public:
     typedef size_t size_type;
@@ -56,11 +56,11 @@ namespace std {
 
     %traits_swigtype(_Key);
 
-    %fragment(SWIG_Traits_frag(std::multiset<_Key, _Compare, _Alloc >), "header",
+    %fragment(SWIG_Traits_frag(std::multiset< _Key, _Compare, _Alloc >), "header",
 	      fragment=SWIG_Traits_frag(_Key),
 	      fragment="StdMultisetTraits") {
       namespace swig {
-	template <>  struct traits<std::multiset<_Key, _Compare, _Alloc > > {
+	template <>  struct traits<std::multiset< _Key, _Compare, _Alloc > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
 	    return "std::multiset<" #_Key "," #_Compare "," #_Alloc " >";
@@ -69,13 +69,13 @@ namespace std {
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_MULTISET, std::multiset<_Key, _Compare, _Alloc >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_MULTISET, std::multiset< _Key, _Compare, _Alloc >);
 
     multiset( const _Compare& );
 
 #ifdef %swig_multiset_methods
     // Add swig/language extra methods
-    %swig_multiset_methods(std::multiset<_Key, _Compare, _Alloc >);
+    %swig_multiset_methods(std::multiset< _Key, _Compare, _Alloc >);
 #endif
   
     %std_multiset_methods(multiset);

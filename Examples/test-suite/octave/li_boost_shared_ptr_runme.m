@@ -503,7 +503,6 @@ function runtest()
     #KTODO cvar.GlobalPointer = None
 
     # plain reference
-    kglobal;
     k = Klass("global reference");
     cvar.GlobalReference = k;
     verifyCount(1, k)

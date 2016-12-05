@@ -194,8 +194,8 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIGOCTAVE\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGOCTAVE\n#define SWIGOCTAVE\n#endif\n\n");
+
     Printf(f_runtime, "#define SWIG_name_d      \"%s\"\n", module);
     Printf(f_runtime, "#define SWIG_name        %s\n", module);
 
@@ -234,7 +234,7 @@ public:
     }
 
     Printf(f_init, "return true;\n}\n");
-    Printf(s_global_tab, "{0,0,0,0,0}\n};\n");
+    Printf(s_global_tab, "{0,0,0,0,0,0}\n};\n");
 
     Printv(f_wrappers, s_global_tab, NIL);
     SwigType_emit_type_table(f_runtime, f_wrappers);
@@ -469,7 +469,6 @@ public:
         value = Getattr(p, "tmap:doc:value");
       }
 
-      // Note: the generated name should be consistent with that in kwnames[]
       name = name ? name : Getattr(p, "name");
       name = name ? name : Getattr(p, "lname");
       name = Swig_name_make(p, 0, name, 0, 0); // rename parameter if a keyword
@@ -966,25 +965,13 @@ public:
     SwigType *t = Copy(Getattr(n, "name"));
     SwigType_add_pointer(t);
 
-    String *smartptr = Getattr(n, "feature:smartptr");	// Replace storing a pointer to underlying class with a smart pointer (intended for use with non-intrusive smart pointers)
-    SwigType *smart = 0;
-    if (smartptr) {
-      SwigType *cpt = Swig_cparse_type(smartptr);
-      if (cpt) {
-	smart = SwigType_typedef_resolve_all(cpt);
-	Delete(cpt);
-      } else {
-	// TODO: report line number of where the feature comes from
-	Swig_error(Getfile(n), Getline(n), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, class_name);
-      }
-    }
+    // Replace storing a pointer to underlying class with a smart pointer (intended for use with non-intrusive smart pointers)
+    SwigType *smart = Swig_cparse_smartptr(n);
     String *wrap_class = NewStringf("&_wrap_class_%s", class_name);
-    if(smart){
+    if (smart) {
       SwigType_add_pointer(smart);
       SwigType_remember_clientdata(smart, wrap_class);
     }
-    Delete(smart);
-    Delete(smartptr);
     //String *wrap_class = NewStringf("&_wrap_class_%s", class_name);
     SwigType_remember_clientdata(t, wrap_class);
 
@@ -1010,7 +997,7 @@ public:
       Delete(cnameshdw);
     }
 
-    Printf(s_members_tab, "{0,0,0,0}\n};\n");
+    Printf(s_members_tab, "{0,0,0,0,0,0}\n};\n");
     Printv(f_wrappers, s_members_tab, NIL);
 
     String *base_class_names = NewString("");
@@ -1064,6 +1051,7 @@ public:
 
     Delete(base_class);
     Delete(base_class_names);
+    Delete(smart);
     Delete(t);
     Delete(s_members_tab);
     s_members_tab = 0;

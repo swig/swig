@@ -23,6 +23,9 @@ struct Base {
   virtual int method(int v) {
     return v;
   }
+#if !defined(SWIG)
+  virtual ~Base() {}
+#endif
 };
 struct Derived : Base {
   double actualval;

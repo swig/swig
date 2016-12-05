@@ -12,18 +12,35 @@ public class director_smartptr_runme {
     }
   }
 
-  public static void main(String argv[]) {
-    director_smartptr_MyBarFoo myBarFoo =
-      new director_smartptr_MyBarFoo();
+  private static void check(String got, String expected) {
+    if (!got.equals(expected))
+      throw new RuntimeException("Failed, got: " + got + " expected: " + expected);
   }
 
+  public static void main(String argv[]) {
+    director_smartptr.FooBar fooBar = new director_smartptr.FooBar();
+
+    director_smartptr.Foo myBarFoo = new director_smartptr_MyBarFoo();
+    check(myBarFoo.ping(), "director_smartptr_MyBarFoo.ping()");
+    check(director_smartptr.Foo.callPong(myBarFoo), "director_smartptr_MyBarFoo.pong();director_smartptr_MyBarFoo.ping()");
+    check(director_smartptr.Foo.callUpcall(myBarFoo, fooBar), "override;Bar::Foo2::Foo2Bar()");
+
+    director_smartptr.Foo myFoo = myBarFoo.makeFoo();
+    check(myFoo.pong(), "Foo::pong();Foo::ping()");
+    check(director_smartptr.Foo.callPong(myFoo), "Foo::pong();Foo::ping()");
+    check(myFoo.upcall(fooBar), "Bar::Foo2::Foo2Bar()");
+
+    director_smartptr.Foo myFoo2 = new director_smartptr.Foo().makeFoo();
+    check(myFoo2.pong(), "Foo::pong();Foo::ping()");
+    check(director_smartptr.Foo.callPong(myFoo2), "Foo::pong();Foo::ping()");
+  }
 }
 
 class director_smartptr_MyBarFoo extends director_smartptr.Foo {
 
   @Override
   public String ping() {
-    return "director_smartptr_MyBarFoo.ping();";
+    return "director_smartptr_MyBarFoo.ping()";
   }
 
   @Override
@@ -32,17 +49,12 @@ class director_smartptr_MyBarFoo extends director_smartptr.Foo {
   }
 
   @Override
-  public String fooBar(director_smartptr.FooBar fooBar) {
-    return fooBar.FooBarDo();
+  public String upcall(director_smartptr.FooBar fooBarPtr) {
+    return "override;" + fooBarPtr.FooBarDo();
   }
 
   @Override
   public director_smartptr.Foo makeFoo() {
     return new director_smartptr.Foo();
-  }
-
-  @Override
-  public director_smartptr.FooBar makeFooBar() {
-    return new director_smartptr.FooBar();
   }
 }

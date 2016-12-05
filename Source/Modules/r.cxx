@@ -793,9 +793,7 @@ int R::top(Node *n) {
 
   Swig_banner(f_begin);
 
-  Printf(f_runtime, "\n");
-  Printf(f_runtime, "#define SWIGR\n");
-  Printf(f_runtime, "\n");
+  Printf(f_runtime, "\n\n#ifndef SWIGR\n#define SWIGR\n#endif\n\n");
 
   
   Swig_banner_target_lang(s_init, "#");
@@ -1066,7 +1064,7 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
   
   if (!isSet && varaccessor > 0) {
     Printf(f->code, "%svaccessors = c(", tab8);
-    int vcount = 0;
+    int first = 1;
     for(j = 0; j < numMems; j+=3) {
       String *item = Getitem(el, j);
       String *dup = Getitem(el, j + 1);
@@ -1074,8 +1072,8 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
       ptr = &ptr[Len(dup) - 3];
       
       if (!strcmp(ptr, "get")) {
-	vcount++;
-	Printf(f->code, "'%s'%s", item, vcount < varaccessor ? ", " : "");
+	Printf(f->code, "%s'%s'", first ? "" : ", ", item);
+	first = 0;
       }
     }
     Printf(f->code, ");\n");
@@ -1181,6 +1179,9 @@ int R::OutputArrayMethod(String *className, List *el, File *out) {
  tdname is the typedef of the enumeration, i.e. giving its name.
 *************************************************************/
 int R::enumDeclaration(Node *n) {
+  if (getCurrentClass() && (cplus_mode != PUBLIC))
+    return SWIG_NOWRAP;
+
   String *name = Getattr(n, "name");
   String *tdname = Getattr(n, "tdname");
   
@@ -1481,11 +1482,12 @@ List * R::Swig_overload_rank(Node *n,
 		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[i].n), Getline(nodes[i].n),
 				   "using non-const method %s instead.\n", Swig_name_decl(nodes[i].n));
 		    } else {
-		      if (!Getattr(nodes[j].n, "overload:ignore"))
+		      if (!Getattr(nodes[j].n, "overload:ignore")) {
 			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
 				     "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
 			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
 				     "using %s instead.\n", Swig_name_decl(nodes[i].n));
+		      }
 		    }
 		  }
 		  nodes[j].error = 1;
@@ -1498,11 +1500,12 @@ List * R::Swig_overload_rank(Node *n,
 		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[i].n), Getline(nodes[i].n),
 				   "using non-const method %s instead.\n", Swig_name_decl(nodes[i].n));
 		    } else {
-		      if (!Getattr(nodes[j].n, "overload:ignore"))
+		      if (!Getattr(nodes[j].n, "overload:ignore")) {
 			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
 				     "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
 			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
 				     "using %s instead.\n", Swig_name_decl(nodes[i].n));
+		      }
 		    }
 		  }
 		  nodes[j].error = 1;
@@ -1520,11 +1523,12 @@ List * R::Swig_overload_rank(Node *n,
 		Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[i].n), Getline(nodes[i].n),
 			     "as it is shadowed by %s.\n", Swig_name_decl(nodes[i].n));
 	      } else {
-		if (!Getattr(nodes[j].n, "overload:ignore"))
+		if (!Getattr(nodes[j].n, "overload:ignore")) {
 		  Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
 			       "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
 		  Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
 			       "using %s instead.\n", Swig_name_decl(nodes[i].n));
+		}
 	      }
 	      nodes[j].error = 1;
 	    }
@@ -2091,6 +2095,13 @@ int R::functionWrapper(Node *n) {
       Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
       Printf(f->code, "%s\n", tm);
     }
+  }
+
+  /* See if there is any return cleanup code */
+  if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+    Replaceall(tm, "$source", Swig_cresult_name());
+    Printf(f->code, "%s\n", tm);
+    Delete(tm);
   }
 
   Printv(f->code, UnProtectWrapupCode, NIL);

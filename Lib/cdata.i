@@ -29,10 +29,17 @@ typedef struct SWIGCDATA {
 }
 %typemap(in) (const void *indata, int inlen) = (char *STRING, int LENGTH);
 
-#elif SWIGPHP
+#elif SWIGPHP5
 
 %typemap(out) SWIGCDATA {
   ZVAL_STRINGL($result, $1.data, $1.len, 1);
+}
+%typemap(in) (const void *indata, int inlen) = (char *STRING, int LENGTH);
+
+#elif SWIGPHP7
+
+%typemap(out) SWIGCDATA {
+  ZVAL_STRINGL($result, $1.data, $1.len);
 }
 %typemap(in) (const void *indata, int inlen) = (char *STRING, int LENGTH);
 

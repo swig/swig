@@ -18,17 +18,21 @@
  where <slot> is the name of a field in a PyTypeObject, PyNumberMethods,
  PyMappingMethods, PySequenceMethods, or PyBufferProcs.  For example:
 
-   %{
-   
-   static long myHashFunc (PyObject *pyobj) {
-     MyClass *cobj;
-     // Convert pyobj to cobj
-     return (cobj->field1 * (cobj->field2 << 7));
-   }
-   
-   %}
-
    %feature("python:tp_hash") MyClass "myHashFunc";
+
+   class MyClass {
+     public:
+       ...
+   };
+
+   %{
+     // Note: Py_hash_t was introduced in Python 3.2
+     static Py_hash_t myHashFunc(PyObject *pyobj) {
+       MyClass *cobj;
+       // Convert pyobj to cobj
+       return (cobj->field1 * (cobj->field2 << 7));
+     }
+   %}
 
  NOTE: It is the responsibility of the programmer (that's you) to ensure
  that a statically defined slot function has the correct signature.
@@ -36,13 +40,13 @@
  If, instead, you want to dispatch to an instance method, you can
  use %feature("python:slot").  For example:
 
+   %feature("python:slot", "tp_hash", functype="hashfunc") MyClass::myHashFunc;
+
    class MyClass {
      public:
-       long myHashFunc () const;
+       Py_hash_t myHashFunc () const;
        ...
    };
-   
-   %feature("python:slot", "tp_hash", functype="hashfunc") MyClass::myHashFunc;
 
  NOTE: Some python slots use a method signature which does not
  match the signature of SWIG-wrapped methods.  For those slots,
@@ -58,20 +62,21 @@
  operator overloads for comparison (operator==, operator<, etc.), they
  will be called from the generated rich compare function.  If you
  want to explicitly choose a method to handle a certain comparison
- operation, you may use %feature("python:slot") like this:
+ operation, you may use a different feature, %feature("python:compare")
+ like this:
+
+   %feature("python:compare", "Py_LT") MyClass::lessThan;
 
    class MyClass {
      public:
-       bool lessThan (const MyClass& x) const;
+       bool lessThan(const MyClass& other) const;
        ...
    };
    
-   %feature("python:slot", "Py_LT") MyClass::lessThan;
-
  ... where "Py_LT" is one of the rich comparison opcodes defined in the
  python header file object.h.
 
- If there's no method defined to handle a particular comparsion operation,
+ If there's no method defined to handle a particular comparison operation,
  the default behavior is to compare pointer values of the wrapped
  C++ objects.
 
@@ -103,7 +108,6 @@
 %pybinoperator(__neg__,      *::operator-(),		unaryfunc, nb_negative);
 %pybinoperator(__neg__,      *::operator-() const,	unaryfunc, nb_negative);
 %pybinoperator(__mul__,      *::operator*,		binaryfunc, nb_multiply);
-%pybinoperator(__div__,      *::operator/,		binaryfunc, nb_div);
 %pybinoperator(__mod__,      *::operator%,		binaryfunc, nb_remainder);
 %pybinoperator(__lshift__,   *::operator<<,		binaryfunc, nb_lshift);
 %pybinoperator(__rshift__,   *::operator>>,		binaryfunc, nb_rshift);
@@ -117,8 +121,6 @@
 %pycompare(__eq__,           *::operator==,		Py_EQ);
 %pycompare(__ne__,           *::operator!=,		Py_NE);
 
-%feature("python:slot", "nb_truediv", functype="binaryfunc") *::operator/;
-
 /* Special cases */
 %rename(__invert__)     *::operator~;
 %feature("python:slot", "nb_invert", functype="unaryfunc") *::operator~;
@@ -127,6 +129,7 @@
 
 #if defined(SWIGPYTHON_BUILTIN)
 %pybinoperator(__nonzero__,   *::operator bool,		inquiry, nb_nonzero);
+%pybinoperator(__truediv__,   *::operator/    ,		binaryfunc, nb_divide);
 #else
 %feature("shadow")      *::operator bool %{
 def __nonzero__(self):
@@ -134,6 +137,13 @@ def __nonzero__(self):
 __bool__ = __nonzero__
 %};
 %rename(__nonzero__)    *::operator bool;
+%feature("shadow")      *::operator/ %{
+def __truediv__(self, *args):
+    return $action(self, *args)
+__div__ = __truediv__
+%};
+%rename(__truediv__)    *::operator/;
+%pythonmaybecall        *::operator/;
 #endif
 
 /* Ignored operators */
@@ -151,11 +161,11 @@ __bool__ = __nonzero__
 
   They translate the inplace C++ operators (+=, -=, ...)  into the
   corresponding python equivalents(__iadd__,__isub__), etc,
-  disabling the ownership of the input 'self' pointer, and assigning
+  disabling the ownership of the input 'this' pointer, and assigning
   it to the returning object:  
 
-     %feature("del") *::Operator;
-     %feature("new") *::Operator;
+     %feature("del") *::Operator; // disables ownership by generating SWIG_POINTER_DISOWN
+     %feature("new") *::Operator; // claims ownership by generating SWIG_POINTER_OWN
   
   This makes the most common case safe, ie:
 
@@ -174,8 +184,8 @@ __bool__ = __nonzero__
   that never get deleted (maybe, not sure, it depends). But if that is
   the case, you could recover the old behaviour using
 
-     %feature("del","") A::operator+=;
-     %feature("new","") A::operator+=;
+     %feature("del","0") A::operator+=;
+     %feature("new","0") A::operator+=;
 
   which recovers the old behaviour for the class 'A', or if you are
   100% sure your entire system works fine in the old way, use:
@@ -183,6 +193,12 @@ __bool__ = __nonzero__
     %feature("del","") *::operator+=;
     %feature("new","") *::operator+=;
 
+  The default behaviour assumes that the 'this' pointer's memory is
+  already owned by the SWIG object; it relinquishes ownership then
+  takes it back. This may not be the case though as the SWIG object
+  might be owned by memory managed elsewhere, eg after calling a
+  function that returns a C++ reference. In such case you will need
+  to use the features above to recover the old behaviour too.
 */
 
 #if defined(SWIGPYTHON_BUILTIN)
@@ -194,7 +210,6 @@ __bool__ = __nonzero__
 %pyinplaceoper(__iadd__   , *::operator +=,	binaryfunc, nb_inplace_add);
 %pyinplaceoper(__isub__   , *::operator -=,	binaryfunc, nb_inplace_subtract);
 %pyinplaceoper(__imul__   , *::operator *=,	binaryfunc, nb_inplace_multiply);
-%pyinplaceoper(__idiv__   , *::operator /=,	binaryfunc, nb_inplace_divide);
 %pyinplaceoper(__imod__   , *::operator %=,	binaryfunc, nb_inplace_remainder);
 %pyinplaceoper(__iand__   , *::operator &=,	binaryfunc, nb_inplace_and);
 %pyinplaceoper(__ior__    , *::operator |=,	binaryfunc, nb_inplace_or);
@@ -202,6 +217,19 @@ __bool__ = __nonzero__
 %pyinplaceoper(__ilshift__, *::operator <<=,	binaryfunc, nb_inplace_lshift);
 %pyinplaceoper(__irshift__, *::operator >>=,	binaryfunc, nb_inplace_rshift);
 
+/* Special cases */
+#if defined(SWIGPYTHON_BUILTIN)
+%pyinplaceoper(__itruediv__   , *::operator /=,	binaryfunc, nb_inplace_divide);
+#else
+%delobject *::operator /=;
+%newobject *::operator /=;
+%feature("shadow")      *::operator /= %{
+def __itruediv__(self, *args):
+    return $action(self, *args)
+__idiv__ = __itruediv__
+%};
+%rename(__itruediv__)    *::operator /=;
+#endif
 
 /* Finally, in python we need to mark the binary operations to fail as
  'maybecall' methods */
@@ -216,6 +244,7 @@ __bool__ = __nonzero__
 %pybinopermaybecall(neg);
 %pybinopermaybecall(mul);
 %pybinopermaybecall(div);
+%pybinopermaybecall(truediv);
 %pybinopermaybecall(mod);
 %pybinopermaybecall(lshift);
 %pybinopermaybecall(rshift);

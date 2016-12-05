@@ -58,7 +58,13 @@ INTERFACE  =
 INTERFACEDIR  =
 INTERFACEPATH = $(SRCDIR)$(INTERFACEDIR)$(INTERFACE)
 SWIGOPT    =
-SWIG       = swig
+
+# SWIG_LIB_DIR and SWIGEXE must be explicitly set by Makefiles using this Makefile
+SWIG_LIB_DIR = ./Lib
+SWIGEXE    = swig
+SWIG_LIB_SET = @SWIG_LIB_SET@
+SWIGTOOL   =
+SWIG       = $(SWIG_LIB_SET) $(SWIGTOOL) $(SWIGEXE)
 
 LIBM       = @LIBM@
 LIBC       = @LIBC@
@@ -132,6 +138,13 @@ distclean:
 	rm -f Makefile
 	rm -f d/example.mk
 	rm -f xml/Makefile
+
+##################################################################
+# Very generic invocation of swig
+##################################################################
+
+swiginvoke:
+	$(SWIG) $(SWIGOPT)
 
 ##################################################################
 #####                       Tcl/Tk                          ######
@@ -314,11 +327,11 @@ else
 endif
 PYTHON_SO     = @PYTHON_SO@
 
-# SWIG option for Python
+# SWIG option for Python3
 ifeq (,$(PY3))
-  SWIGPYTHON = $(SWIG) -python
+  SWIGOPTPY3 =
 else
-  SWIGPYTHON = $(SWIG) -python -py3
+  SWIGOPTPY3 = -py3
 endif
 
 PEP8         = @PEP8@
@@ -329,7 +342,7 @@ PEP8_FLAGS   = --ignore=E402,E501,E30,W291,W391
 # ----------------------------------------------------------------
 
 python: $(SRCDIR_SRCS)
-	$(SWIGPYTHON) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(SWIG) -python $(SWIGOPTPY3) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(PYTHON_INCLUDE)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
 
@@ -338,7 +351,7 @@ python: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 python_cpp: $(SRCDIR_SRCS)
-	$(SWIGPYTHON) -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(SWIG) -python $(SWIGOPTPY3) -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(PYTHON_INCLUDE)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
 
@@ -354,12 +367,12 @@ TKINTER =
 PYTHON_LIBOPTS = $(PYTHON_LINK) @LIBS@ $(TKINTER) $(SYSLIBS)
 
 python_static: $(SRCDIR_SRCS)
-	$(SWIGPYTHON) -lembed.i $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(SWIG) -python $(SWIGOPTPY3) -lembed.i $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) \
 	$(PYTHON_INCLUDE) $(LIBS) -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
 
 python_static_cpp: $(SRCDIR_SRCS)
-	$(SWIGPYTHON) -c++ -lembed.i $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(SWIG) -python $(SWIGOPTPY3) -c++ -lembed.i $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) \
 	$(PYTHON_INCLUDE) $(LIBS)  -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
 
@@ -377,7 +390,7 @@ PY2TO3 = 2to3 `2to3 -l | grep -v -E "Available|import$$" | awk '{print "-f "$$0}
 
 python_run: $(PYSCRIPT)
 ifneq (,$(PEP8))
-	$(PEP8) $(PEP8_FLAGS) $(PYSCRIPT)
+	$(COMPILETOOL) $(PEP8) $(PEP8_FLAGS) $(PYSCRIPT)
 endif
 	env PYTHONPATH=$$PWD $(RUNTOOL) $(PYTHON) $(PYSCRIPT) $(RUNPIPE)
 
@@ -416,7 +429,7 @@ python_clean:
 ##################################################################
 
 # Make sure these locate your Octave installation
-OCTAVE        = OCTAVE_HISTFILE=/dev/null @OCTAVE@
+OCTAVE        = @OCTAVE@
 OCTAVE_CXX    = $(DEFS) @OCTAVE_CPPFLAGS@ @OCTAVE_CXXFLAGS@
 
 # Extra Octave specific dynamic linking options
@@ -450,7 +463,7 @@ octave_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 octave_run:
-	$(RUNTOOL) $(OCTAVE) $(OCTAVE_SCRIPT) $(RUNPIPE)
+	OCTAVE_HISTFILE=/dev/null $(RUNTOOL) $(OCTAVE) $(OCTAVE_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -574,6 +587,7 @@ JAVASO =@JAVASO@
 JAVALDSHARED = @JAVALDSHARED@
 JAVACXXSHARED = @JAVACXXSHARED@
 JAVACFLAGS = @JAVACFLAGS@
+JAVAFLAGS = @JAVAFLAGS@
 JAVA = @JAVA@
 JAVAC = @JAVAC@ -d .
 
@@ -607,7 +621,7 @@ java_compile: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 java_run:
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(JAVA) $(RUNME) $(RUNPIPE)
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(JAVA) $(JAVAFLAGS) $(RUNME) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1084,7 +1098,7 @@ ruby_cpp_static: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 ruby_run:
-	$(RUNTOOL) $(RUBY) -I. $(RUBY_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(RUBY) $(RUBYFLAGS) -I. $(RUBY_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1103,7 +1117,57 @@ ruby_clean:
 	rm -f *.@OBJEXT@ *$(RUBY_SO)
 
 ##################################################################
-#####                       PHP                             ######
+#####                       PHP5                            ######
+##################################################################
+
+PHP5         = @PHP5@
+PHP5_INCLUDE = @PHP5INC@
+PHP5_SO      = @PHP5_SO@
+PHP5_SCRIPT  = $(SRCDIR)$(RUNME).php
+
+# -------------------------------------------------------------------
+# Build a PHP5 dynamically loadable module (C)
+# -------------------------------------------------------------------
+
+php5: $(SRCDIR_SRCS)
+	$(SWIG) -php5 $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(PHP5_INCLUDE)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(PHP5_SO)
+
+# --------------------------------------------------------------------
+# Build a PHP5 dynamically loadable module (C++)
+# --------------------------------------------------------------------
+
+php5_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -php5 -cppext cxx -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PHP5_INCLUDE)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(PHP5_SO)
+
+# -----------------------------------------------------------------
+# Running a PHP5 example
+# -----------------------------------------------------------------
+
+php5_run:
+	$(RUNTOOL) $(PHP5) -n -q -d extension_dir=. -d safe_mode=Off $(PHP5_SCRIPT) $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+php5_version:
+	$(PHP5) -v | head -n 1
+
+# -----------------------------------------------------------------
+# Cleaning the PHP5 examples
+# -----------------------------------------------------------------
+
+php5_clean:
+	rm -f *_wrap* *~ .~* example.php php_example.h
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *$(PHP5_SO)
+
+##################################################################
+#####                       PHP7                            ######
 ##################################################################
 
 PHP         = @PHP@
@@ -1116,7 +1180,7 @@ PHP_SCRIPT  = $(SRCDIR)$(RUNME).php
 # -------------------------------------------------------------------
 
 php: $(SRCDIR_SRCS)
-	$(SWIG) -php $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(SWIG) -php7 $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(PHP_INCLUDE)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
 
@@ -1125,7 +1189,7 @@ php: $(SRCDIR_SRCS)
 # --------------------------------------------------------------------
 
 php_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -php -cppext cxx -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(SWIG) -php7 -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PHP_INCLUDE)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
 
@@ -1448,6 +1512,12 @@ lua_cpp: $(SRCDIR_SRCS) $(GENCXXSRCS)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(GENCXXSRCS) $(INCLUDES) $(LUA_INCLUDE)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(LUA_LIB) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(LUA_SO)
 
+lua_externalhdr:
+	$(SWIG) -lua -external-runtime $(TARGET)
+
+lua_swig_cpp:
+	$(SWIG) -c++ -lua $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+
 # -----------------------------------------------------------------
 # Build statically linked Lua interpreter
 # -----------------------------------------------------------------
@@ -1652,7 +1722,8 @@ R = R
 RCXXSRCS = $(INTERFACE:.i=_wrap.cpp) #Need to use _wrap.cpp for R build system as it does not understand _wrap.cxx
 RRSRC = $(INTERFACE:.i=.R)
 R_CFLAGS=-fPIC
-R_SCRIPT=$(RUNME).R
+R_OPT = --slave --quiet --no-save --no-restore
+R_SCRIPT=$(SRCDIR)$(RUNME).R
 
 # need to compile .cxx files outside of R build system to make sure that
 # we get -fPIC
@@ -1684,7 +1755,7 @@ endif
 # -----------------------------------------------------------------
 
 r_run:
-	$(RUNTOOL) $(R) CMD BATCH $(R_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(R) $(R_OPT) -f $(R_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display

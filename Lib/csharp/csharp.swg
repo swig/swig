@@ -409,8 +409,8 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 #endif
 
 %typemap(directorin) SWIGTYPE 
-%{ $input = (void *)&$1; %}
-%typemap(csdirectorin) SWIGTYPE "new $&csclassname($iminput, false)"
+%{ $input = (void *)new $1_ltype((const $1_ltype &)$1); %}
+%typemap(csdirectorin) SWIGTYPE "new $&csclassname($iminput, true)"
 %typemap(csdirectorout) SWIGTYPE "$&csclassname.getCPtr($cscall).Handle"
 
 /* Generic pointers and references */
@@ -860,7 +860,8 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     global::System.IntPtr ret = $imcall;$excode
     return ret;
   }
-
+%typemap(csdirectorin) void *VOID_INT_PTR "$iminput"
+%typemap(csdirectorout) void *VOID_INT_PTR "$cscall"
 
 /* Typemaps used for the generation of proxy and type wrapper class code */
 %typemap(csbase)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""

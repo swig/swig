@@ -145,7 +145,6 @@ swig_varlink_type(void) {
   static int type_init = 0;
   if (!type_init) {
     const PyTypeObject tmp = {
-      /* PyObject header changed in Python 3 */
 #if PY_VERSION_HEX >= 0x03000000
       PyVarObject_HEAD_INIT(NULL, 0)
 #else
@@ -183,10 +182,19 @@ swig_varlink_type(void) {
       0,                                  /* tp_del */
 #endif
 #if PY_VERSION_HEX >= 0x02060000
-      0,                                  /* tp_version */
+      0,                                  /* tp_version_tag */
+#endif
+#if PY_VERSION_HEX >= 0x03040000
+      0,                                  /* tp_finalize */
 #endif
 #ifdef COUNT_ALLOCS
-      0,0,0,0                             /* tp_alloc -> tp_next */
+      0,                                  /* tp_allocs */
+      0,                                  /* tp_frees */
+      0,                                  /* tp_maxalloc */
+#if PY_VERSION_HEX >= 0x02050000
+      0,                                  /* tp_prev */
+#endif
+      0                                   /* tp_next */
 #endif
     };
     varlink_type = tmp;
@@ -366,13 +374,13 @@ SWIG_init(void) {
   static PyGetSetDef thisown_getset_def = {
     (char *)"thisown", SwigPyBuiltin_GetterClosure, SwigPyBuiltin_SetterClosure, NULL, &thisown_getset_closure
   };
-  PyObject *metatype_args;
   PyTypeObject *builtin_pytype;
   int builtin_base_count;
   swig_type_info *builtin_basetype;
   PyObject *tuple;
   PyGetSetDescrObject *static_getset;
   PyTypeObject *metatype;
+  PyTypeObject *swigpyobject;
   SwigPyClientData *cd;
   PyObject *public_interface, *public_symbol;
   PyObject *this_descr;
@@ -387,14 +395,9 @@ SWIG_init(void) {
   (void)static_getset;
   (void)self;
 
-  /* metatype is used to implement static member variables. */
-  metatype_args = Py_BuildValue("(s(O){})", "SwigPyObjectType", &PyType_Type);
-  assert(metatype_args);
-  metatype = (PyTypeObject *) PyType_Type.tp_call((PyObject *) &PyType_Type, metatype_args, NULL);
+  /* Metaclass is used to implement static member variables */
+  metatype = SwigPyObjectType();
   assert(metatype);
-  Py_DECREF(metatype_args);
-  metatype->tp_setattro = (setattrofunc) &SwigPyObjectType_setattro;
-  assert(PyType_Ready(metatype) >= 0);
 #endif
 
   /* Fix SwigMethods to carry the callback ptrs when needed */
@@ -412,13 +415,15 @@ SWIG_init(void) {
   SWIG_InitializeModule(0);
 
 #ifdef SWIGPYTHON_BUILTIN
+  swigpyobject = SwigPyObject_TypeOnce();
+
   SwigPyObject_stype = SWIG_MangledTypeQuery("_p_SwigPyObject");
   assert(SwigPyObject_stype);
   cd = (SwigPyClientData*) SwigPyObject_stype->clientdata;
   if (!cd) {
     SwigPyObject_stype->clientdata = &SwigPyObject_clientdata;
-    SwigPyObject_clientdata.pytype = SwigPyObject_TypeOnce();
-  } else if (SwigPyObject_TypeOnce()->tp_basicsize != cd->pytype->tp_basicsize) {
+    SwigPyObject_clientdata.pytype = swigpyobject;
+  } else if (swigpyobject->tp_basicsize != cd->pytype->tp_basicsize) {
     PyErr_SetString(PyExc_RuntimeError, "Import error: attempted to load two incompatible swig-generated modules.");
 # if PY_VERSION_HEX >= 0x03000000
     return NULL;

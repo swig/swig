@@ -18,5 +18,9 @@ public class constant_directive_runme {
       throw new RuntimeException("fail");
     if (constant_directive.TYPE1_CONSTANT3.getVal() != 3)
       throw new RuntimeException("fail");
+    if (constant_directive.TYPE1CONST_CONSTANT1.getVal() != 1)
+      throw new RuntimeException("fail");
+    if (constant_directive.TYPE1CPTR_CONSTANT1.getVal() != 1)
+      throw new RuntimeException("fail");
   }
 }

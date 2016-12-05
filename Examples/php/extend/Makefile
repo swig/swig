@@ -1,5 +1,6 @@
 TOP        = ../..
-SWIG       = $(TOP)/../preinst-swig
+SWIGEXE    = $(TOP)/../swig
+SWIG_LIB_DIR = $(TOP)/../$(TOP_BUILDDIR_TO_TOP_SRCDIR)Lib
 CXXSRCS    = example.cxx
 TARGET     = example
 INTERFACE  = example.i
@@ -10,12 +11,9 @@ check: build
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' php_run
 
 build:
-	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' $(SWIGLIB) CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' $(SWIGLIB) CXXSRCS='$(CXXSRCS)' \
+	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' php_cpp
-
-static:
-	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' $(SWIGLIB) CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
-	SWIGOPT='$(SWIGOPT)' TARGET='myphp' INTERFACE='$(INTERFACE)' php_cpp_static
 
 clean:
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' php_clean

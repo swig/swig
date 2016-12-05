@@ -232,7 +232,7 @@ private:
 
   /* ------------------------------------------------------------
    * docstring()
-   *    Get the docstring text, stripping off {} if neccessary,
+   *    Get the docstring text, stripping off {} if necessary,
    *    and enclose in triple double quotes.  If autodoc is also
    *    set then it will build a combined docstring.
    * ------------------------------------------------------------ */
@@ -1011,6 +1011,8 @@ public:
 
   virtual int top(Node *n) {
 
+    String *mod_docstring = NULL;
+
     /**
      * See if any Ruby module options have been specified as options
      * to the %module directive.
@@ -1032,6 +1034,7 @@ public:
 	  multipleInheritance = true;
 	  director_multiple_inheritance = 1;
 	}
+	mod_docstring = Getattr(options, "docstring");
       }
     }
 
@@ -1097,8 +1100,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIGRUBY\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGRUBY\n#define SWIGRUBY\n#endif\n\n");
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
@@ -1147,6 +1149,15 @@ public:
 
     Printf(f_header, "#define SWIG_init    Init_%s\n", feature);
     Printf(f_header, "#define SWIG_name    \"%s\"\n\n", module);
+
+    if (mod_docstring) {
+      if (Len(mod_docstring)) {
+	Printf(f_header, "/*\n  Document-module: %s\n\n%s\n*/\n", module, mod_docstring);
+      }
+      Delete(mod_docstring);
+      mod_docstring = NULL;
+    }
+
     Printf(f_header, "static VALUE %s;\n", modvar);
 
     /* Start generating the initialization function */
@@ -1535,7 +1546,8 @@ public:
     /* Finish argument marshalling */
     Printf(kwargs, " NULL }");
     if (allow_kwargs) {
-      Printv(f->locals, tab4, "const char *kwnames[] = ", kwargs, ";\n", NIL);
+// kwarg support not implemented
+//      Printv(f->locals, tab4, "const char *kwnames[] = ", kwargs, ";\n", NIL);
     }
 
     /* Trailing varargs */
@@ -1740,11 +1752,13 @@ public:
 
     /* Now write the wrapper function itself */
     if (current == CONSTRUCTOR_ALLOCATE) {
+      Printv(f->def, "SWIGINTERN VALUE\n", NIL);
       Printf(f->def, "#ifdef HAVE_RB_DEFINE_ALLOC_FUNC\n");
-      Printv(f->def, "SWIGINTERN VALUE\n", wname, "(VALUE self) {", NIL);
+      Printv(f->def, wname, "(VALUE self)\n", NIL);
       Printf(f->def, "#else\n");
-      Printv(f->def, "SWIGINTERN VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
+      Printv(f->def, wname, "(int argc, VALUE *argv, VALUE self)\n", NIL);
       Printf(f->def, "#endif\n");
+      Printv(f->def, "{\n", NIL);
     } else if (current == CONSTRUCTOR_INITIALIZE) {
       Printv(f->def, "SWIGINTERN VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       if (!varargs) {
@@ -1830,10 +1844,19 @@ public:
 	  Wrapper_add_local(f, "classname", classname);
 	}
 	if (action) {
-	  Printf(action, "\nDATA_PTR(self) = %s;", Swig_cresult_name());
-	  if (GetFlag(pn, "feature:trackobjects")) {
-	    Printf(action, "\nSWIG_RubyAddTracking(%s, self);", Swig_cresult_name());
+          SwigType *smart = Swig_cparse_smartptr(pn);
+	  String *result_name = NewStringf("%s%s", smart ? "smart" : "", Swig_cresult_name());
+	  if (smart) {
+	    String *result_var = NewStringf("%s *%s = 0", SwigType_namestr(smart), result_name);
+	    Wrapper_add_local(f, result_name, result_var);
+	    Printf(action, "\n%s = new %s(%s);", result_name, SwigType_namestr(smart), Swig_cresult_name());
 	  }
+	  Printf(action, "\nDATA_PTR(self) = %s;", result_name);
+	  if (GetFlag(pn, "feature:trackobjects")) {
+	    Printf(action, "\nSWIG_RubyAddTracking(%s, self);", result_name);
+	  }
+	  Delete(result_name);
+	  Delete(smart);
 	}
       }
 
@@ -1921,11 +1944,17 @@ public:
 
     /* Extra code needed for new and initialize methods */
     if (current == CONSTRUCTOR_ALLOCATE) {
+      Node *pn = Swig_methodclass(n);
+      SwigType *smart = Swig_cparse_smartptr(pn);
+      if (smart)
+	SwigType_add_pointer(smart);
+      String *classtype = smart ? smart : t;
       need_result = 1;
-      Printf(f->code, "VALUE vresult = SWIG_NewClassInstance(self, SWIGTYPE%s);\n", Char(SwigType_manglestr(t)));
+      Printf(f->code, "VALUE vresult = SWIG_NewClassInstance(self, SWIGTYPE%s);\n", Char(SwigType_manglestr(classtype)));
       Printf(f->code, "#ifndef HAVE_RB_DEFINE_ALLOC_FUNC\n");
       Printf(f->code, "rb_obj_call_init(vresult, argc, argv);\n");
       Printf(f->code, "#endif\n");
+      Delete(smart);
     } else if (current == CONSTRUCTOR_INITIALIZE) {
       need_result = 1;
     }
@@ -2094,13 +2123,11 @@ public:
     // Generate prototype list, go to first node
     Node *sibl = n;
 
-    String* type = SwigType_str(Getattr(sibl,"type"),NULL);
-
     while (Getattr(sibl, "sym:previousSibling"))
       sibl = Getattr(sibl, "sym:previousSibling");	// go all the way up
 
     // Constructors will be treated specially
-    const bool isCtor = Cmp(Getattr(sibl,"feature:new"), "1") == 0;
+    const bool isCtor = (!Cmp(Getattr(sibl, "nodeType"), "constructor"));
     const bool isMethod = ( Cmp(Getattr(sibl, "ismember"), "1") == 0 &&
 			    (!isCtor) );
 
@@ -2122,7 +2149,11 @@ public:
     String *protoTypes = NewString("");
     do {
       Append( protoTypes, "\n\"    ");
-      if ( !isCtor )  Printv( protoTypes, type, " ", NIL );
+      if (!isCtor) {
+	SwigType *type = SwigType_str(Getattr(sibl, "type"), NULL);
+	Printv(protoTypes, type, " ", NIL);
+	Delete(type);
+      }
       Printv(protoTypes, methodName, NIL );
       Parm* p = Getattr(sibl, "wrap:parms");
       if (p && (current == MEMBER_FUNC || current == MEMBER_VAR || 
@@ -2143,7 +2174,6 @@ public:
     Append(f->code, "\nreturn Qnil;\n");
 
     Delete(methodName);
-    Delete(type);
     Delete(protoTypes);
 
     Printv(f->code, "}\n", NIL);
@@ -2424,19 +2454,23 @@ public:
 	  SwigType *btype = NewString(basename);
 	  SwigType_add_pointer(btype);
 	  SwigType_remember(btype);
+	  SwigType *smart = Swig_cparse_smartptr(base.item);
+	  if (smart) {
+	    SwigType_add_pointer(smart);
+	    SwigType_remember(smart);
+	  }
+	  String *bmangle = SwigType_manglestr(smart ? smart : btype);
 	  if (multipleInheritance) {
-	    String *bmangle = SwigType_manglestr(btype);
 	    Insert(bmangle, 0, "((swig_class *) SWIGTYPE");
 	    Append(bmangle, "->clientdata)->mImpl");
 	    Printv(klass->init, "rb_include_module(", klass->mImpl, ", ", bmangle, ");\n", NIL);
-	    Delete(bmangle);
 	  } else {
-	    String *bmangle = SwigType_manglestr(btype);
 	    Insert(bmangle, 0, "((swig_class *) SWIGTYPE");
 	    Append(bmangle, "->clientdata)->klass");
 	    Replaceall(klass->init, "$super", bmangle);
-	    Delete(bmangle);
 	  }
+	  Delete(bmangle);
+	  Delete(smart);
 	  Delete(btype);
 	}
 	base = Next(base);
@@ -2453,7 +2487,7 @@ public:
 	    String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
 	    String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
 	    Swig_warning(WARN_RUBY_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-			 "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Ruby.\n", proxyclassname, baseclassname);
+			 "Warning for %s, base %s ignored. Multiple inheritance is not supported in Ruby.\n", proxyclassname, baseclassname);
 	    base = Next(base);
 	  }
 	}
@@ -2537,9 +2571,15 @@ public:
     SwigType *tt = NewString(name);
     SwigType_add_pointer(tt);
     SwigType_remember(tt);
-    String *tm = SwigType_manglestr(tt);
+    SwigType *smart = Swig_cparse_smartptr(n);
+    if (smart) {
+      SwigType_add_pointer(smart);
+      SwigType_remember(smart);
+    }
+    String *tm = SwigType_manglestr(smart ? smart : tt);
     Printf(klass->init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) &SwigClass%s);\n", tm, valid_name);
     Delete(tm);
+    Delete(smart);
     Delete(tt);
     Delete(valid_name);
 
@@ -2718,7 +2758,9 @@ public:
     String *pname0 = Swig_cparm_name(0, 0);
 
     Printv(freefunc, "free_", klass->mname, NIL);
-    Printv(freebody, "SWIGINTERN void\n", freefunc, "(", klass->type, " *", pname0, ") {\n", tab4, NIL);
+    Printv(freebody, "SWIGINTERN void\n", freefunc, "(void *self) {\n", NIL);
+    Printv(freebody, tab4, klass->type, " *", pname0, " = (", klass->type, " *)self;\n", NIL);
+    Printv(freebody, tab4, NIL);
 
     /* Check to see if object tracking is activated for the class
        that owns this destructor. */
@@ -2971,6 +3013,7 @@ public:
 	Printf(rescue->code, "if (%s == 0) ", depthCountName);
 	Printv(rescue->code, Str(tm), "\n", NIL);
 	Printv(rescue->code, "rb_exc_raise(error);\n", NIL);
+	Printv(rescue->code, "return Qnil;\n", NIL);
 	Printv(rescue->code, "}", NIL);
       }
 
@@ -3431,6 +3474,7 @@ public:
    *--------------------------------------------------------------------*/
 
   bool kwargsSupport() const {
+    // kwargs support isn't actually implemented, but changing to return false may break something now as it turns on compactdefaultargs
     return true;
   }
 };				/* class RUBY */

@@ -1,6 +1,6 @@
 %module li_boost_shared_ptr_bits
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
@@ -166,3 +166,53 @@ public:
 int HiddenPrivateDestructor::DeleteCount = 0;
 %}
 
+/////////////////////////////////////////////////
+// Non-public inheritance and shared_ptr
+/////////////////////////////////////////////////
+
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
+%shared_ptr(Base)
+// No %shared_ptr(DerivedPrivate1) to check Warning 520 does not appear
+// No %shared_ptr(DerivedProtected1) to check Warning 520 does not appear
+%shared_ptr(DerivedPrivate2)
+%shared_ptr(DerivedProtected2)
+
+%ignore Base2;
+%shared_ptr(DerivedPublic)
+#endif
+
+%inline %{
+class Base {
+public:
+  virtual int b() = 0;
+  virtual ~Base() {}
+};
+
+class DerivedProtected1 : protected Base {
+public:
+  virtual int b() { return 20; }
+};
+class DerivedPrivate1 : private Base {
+public:
+  virtual int b() { return 20; }
+};
+
+class DerivedProtected2 : protected Base {
+public:
+  virtual int b() { return 20; }
+};
+class DerivedPrivate2 : private Base {
+public:
+  virtual int b() { return 20; }
+};
+
+class Base2 {
+public:
+  virtual int b2() = 0;
+  virtual ~Base2() {}
+};
+class DerivedPublic : public Base2 {
+public:
+  virtual int b2() { return 20; }
+};
+%}

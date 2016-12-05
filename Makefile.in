@@ -21,7 +21,7 @@ FLAGS       = -k -s
 #####################################################################
 
 SHELL       = /bin/sh
-SWIG_LIB    = @swig_lib@
+SWIG_LIB_INSTALL = @SWIG_LIB_INSTALL@
 BIN_DIR     = @bindir@
 ENABLE_CCACHE = @ENABLE_CCACHE@
 TARGET_NOEXE= swig
@@ -49,14 +49,11 @@ maintainer: libfiles
 # Documentation
 #####################################################################
 
-docs: docs-main docs-ccache
+docs: docs-main
 
 docs-main:
 	@echo making docs
 	@test -d $(DOCS) || exit 0; cd $(DOCS) && $(MAKE) all clean-baks
-
-docs-ccache:
-	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) docs)
 
 #####################################################################
 # All the languages SWIG speaks (when it wants to)
@@ -70,6 +67,7 @@ skip-guile	= test -n "@SKIP_GUILE@"
 skip-mzscheme	= test -n "@SKIP_MZSCHEME@"
 skip-ruby	= test -n "@SKIP_RUBY@"
 skip-php	= test -n "@SKIP_PHP@"
+skip-php5	= test -n "@SKIP_PHP5@"
 skip-ocaml      = test -n "@SKIP_OCAML@"
 skip-octave     = test -n "@SKIP_OCTAVE@"
 skip-pike       = test -n "@SKIP_PIKE@"
@@ -94,16 +92,18 @@ skip-android    = test -n "@SKIP_ANDROID@"
 # Special errors test-case
 skip-errors	= test -n ""
 
+check-%-enabled:
+	@if $(skip-$*); then					\
+	  echo skipping $* version;				\
+	  exit 1;   \
+	fi
+
 #####################################################################
 # CHECK
 #####################################################################
 
 ACTION = check
 NOSKIP =
-
-chk-set-swiglib		= SWIG_LIB=@ROOT_DIR@/$(srcdir)/Lib
-chk-set-swig		= SWIG=@ROOT_DIR@/$(TARGET)
-chk-set-env = $(chk-set-swiglib) $(chk-set-swig)
 
 check-aliveness:
 	test -x ./$(TARGET)
@@ -118,7 +118,8 @@ check-aliveness:
 	@$(skip-ruby)     || ./$(TARGET) -ruby       -help
 	@$(skip-ocaml)    || ./$(TARGET) -ocaml      -help
 	@$(skip-octave)   || ./$(TARGET) -octave     -help
-	@$(skip-php)      || ./$(TARGET) -php        -help
+	@$(skip-php)      || ./$(TARGET) -php7       -help
+	@$(skip-php5)     || ./$(TARGET) -php5       -help
 	@$(skip-pike)     || ./$(TARGET) -pike       -help
 	@$(skip-chicken)  || ./$(TARGET) -chicken    -help
 	@$(skip-csharp)   || ./$(TARGET) -csharp     -help
@@ -151,6 +152,7 @@ check-versions:					\
 	check-ocaml-version			\
 	check-octave-version			\
 	check-php-version			\
+	check-php5-version			\
 	check-pike-version			\
 	check-chicken-version			\
 	check-csharp-version			\
@@ -191,6 +193,7 @@ check-examples:					\
 	check-ocaml-examples			\
 	check-octave-examples			\
 	check-php-examples			\
+	check-php5-examples			\
 	check-pike-examples			\
 	check-chicken-examples                  \
 	check-csharp-examples                   \
@@ -217,6 +220,7 @@ ruby_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/ruby/check.list)
 ocaml_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/ocaml/check.list)
 octave_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/octave/check.list)
 php_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/php/check.list)
+php5_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/php5/check.list)
 pike_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/pike/check.list)
 chicken_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/chicken/check.list)
 csharp_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/csharp/check.list)
@@ -250,7 +254,7 @@ check-%-examples :
 %.actionexample:
 	@cd Examples && $(MAKE) Makefile
 	@echo $(ACTION)ing Examples/$(LANGUAGE)/$*
-	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE))
+	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) $(FLAGS) $(ACTION) RUNPIPE=$(RUNPIPE))
 
 # gcj individual example
 java.actionexample:
@@ -259,7 +263,7 @@ java.actionexample:
 	  echo "skipping Examples/$(LANGUAGE)/java $(ACTION) (gcj test)";	\
 	else							\
 	  echo $(ACTION)ing Examples/$(LANGUAGE)/java;		\
-	  (cd Examples/$(LANGUAGE)/java && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE)) \
+	  (cd Examples/$(LANGUAGE)/java && $(MAKE) $(FLAGS) $(ACTION) RUNPIPE=$(RUNPIPE)) \
 	fi
 
 # Checks testcases in the test-suite excluding those which are known to be broken
@@ -275,6 +279,7 @@ check-test-suite:				\
 	check-ocaml-test-suite			\
 	check-octave-test-suite			\
 	check-php-test-suite			\
+	check-php5-test-suite			\
 	check-pike-test-suite			\
 	check-csharp-test-suite			\
 	check-modula3-test-suite		\
@@ -329,6 +334,7 @@ all-test-suite:					\
 	all-ocaml-test-suite			\
 	all-octave-test-suite			\
 	all-php-test-suite			\
+	all-php5-test-suite			\
 	all-pike-test-suite			\
 	all-csharp-test-suite			\
 	all-modula3-test-suite			\
@@ -359,6 +365,7 @@ broken-test-suite:				\
 	broken-ocaml-test-suite			\
 	broken-octave-test-suite		\
 	broken-php-test-suite			\
+	broken-php5-test-suite			\
 	broken-pike-test-suite			\
 	broken-csharp-test-suite		\
 	broken-modula3-test-suite		\
@@ -503,7 +510,7 @@ install-main:
 	@echo "Installing $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@"
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
-lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
+lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php php5 ocaml octave \
 	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r go d javascript javascript/jsc \
 	javascript/v8 scilab
 
@@ -512,16 +519,16 @@ lib-modules = std
 
 install-lib:
 	@echo "Installing the SWIG library"
-	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)
+	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB_INSTALL)
 	@for file in $(srcdir)/Lib/*.i $(srcdir)/Lib/*.swg ; do \
 	    i=`basename $$file` ;				\
-	    echo "Installing $(DESTDIR)$(SWIG_LIB)/$$i";	\
-	    $(INSTALL_DATA) $$file $(DESTDIR)$(SWIG_LIB)/$$i;	\
+	    echo "Installing $(DESTDIR)$(SWIG_LIB_INSTALL)/$$i";	\
+	    $(INSTALL_DATA) $$file $(DESTDIR)$(SWIG_LIB_INSTALL)/$$i;	\
 	    done;
 	@for lang in $(lib-languages) $(lib-modules);		\
 	    do							\
 	    echo "Installing language specific files for $$lang"; \
-	    dst=$(DESTDIR)$(SWIG_LIB)/$$lang;			\
+	    dst=$(DESTDIR)$(SWIG_LIB_INSTALL)/$$lang;			\
 	    $(MKINSTDIRS) $$dst;				\
 	     (doti="`cd $(srcdir)/Lib/$$lang && ls *.i 2>/dev/null || echo ''`"; \
 	      dotswg="`cd $(srcdir)/Lib/$$lang && ls *.swg 2>/dev/null || echo ''`"; \
@@ -556,7 +563,7 @@ uninstall-main:
 
 uninstall-lib:
 	@echo "Uninstalling the SWIG library"
-	rm -rf $(DESTDIR)$(SWIG_LIB)/
+	rm -rf $(DESTDIR)$(SWIG_LIB_INSTALL)/
 
 uninstall-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) uninstall)

@@ -5,25 +5,18 @@ platform:
 environment:
   matrix:
   - SWIGLANG: csharp
-    VSVER: 14
+    VSVER: 12
   - SWIGLANG: csharp
-    VSVER: 12
+    VSVER: 14
   - SWIGLANG: java
-    VSVER: 12
+    VSVER: 14
   - SWIGLANG: python
-    VSVER: 12
+    VSVER: 14
     VER: 27
   - SWIGLANG: python
-    VSVER: 12
-    VER: 34
+    VSVER: 14
+    VER: 35
     PY3: 1
-
-matrix:
-  allow_failures:
-    - platform: x64
-      SWIGLANG: python
-      VSVER: 12
-      VER: 27
 
 install:
 - date /T & time /T
@@ -46,7 +39,7 @@ install:
 - ps: $env:VSCOMNTOOLS=(Get-Content ("env:VS" + "$env:VSVER" + "0COMNTOOLS"))
 - echo "Using Visual Studio %VSVER%.0 at %VSCOMNTOOLS%"
 - call "%VSCOMNTOOLS%\..\..\VC\vcvarsall.bat" %VCVARS_PLATFORM%
-- nuget install pcre -Verbosity detailed -Version 8.33.0.1 -OutputDirectory C:\pcre
+- Tools\nuget-install.cmd pcre -Verbosity detailed -Version 8.33.0.1 -OutputDirectory C:\pcre
 - set PCRE_ROOT=C:/pcre/pcre.8.33.0.1/build/native
 - set PATH=C:\Python%VER%%LANG_PLATFORM%;%PATH%
 - python -V

@@ -6,19 +6,16 @@
 #include <algorithm>
 %}
 
-// Common container methods
+// Common non-resizable container methods
 
-%define %std_container_methods(container...)
+%define %std_container_methods_non_resizable(container...)
+
   container();
   container(const container&);
 
   bool empty() const;
   size_type size() const;
-  void clear();
-
   void swap(container& v);
-
-  allocator_type get_allocator() const;
 
   #ifdef SWIG_EXPORT_ITERATOR_METHODS
   class iterator;
@@ -34,17 +31,27 @@
 
 %enddef
 
+// Common container methods
+
+%define %std_container_methods(container...)
+  %std_container_methods_non_resizable(%arg(container))
+
+  void clear();
+  allocator_type get_allocator() const;
+
+%enddef
+
 // Common sequence
 
 %define %std_sequence_methods_common(sequence)
-  
+
   %std_container_methods(%arg(sequence));
-  
+
   sequence(size_type size);
   void pop_back();
-  
+
   void resize(size_type new_size);
-  
+
   #ifdef SWIG_EXPORT_ITERATOR_METHODS
 %extend {
   // %extend wrapper used for differing definitions of these methods introduced in C++11
@@ -52,24 +59,31 @@
   iterator erase(iterator first, iterator last) { return $self->erase(first, last); }
 }
   #endif
-  
+
 %enddef
 
+%define %std_sequence_methods_non_resizable(sequence)
 
-%define %std_sequence_methods(sequence)
-  
-  %std_sequence_methods_common(%arg(sequence));
-  
-  sequence(size_type size, const value_type& value);
-  void push_back(const value_type& x);  
+  %std_container_methods_non_resizable(%arg(sequence))
 
   const value_type& front() const;
   const value_type& back() const;
- 
-  void assign(size_type n, const value_type& x);
 
+%enddef
+
+%define %std_sequence_methods(sequence)
+
+  %std_sequence_methods_common(%arg(sequence));
+
+  sequence(size_type size, const value_type& value);
+  void push_back(const value_type& x);
+
+  const value_type& front() const;
+  const value_type& back() const;
+
+  void assign(size_type n, const value_type& x);
   void resize(size_type new_size, const value_type& x);
-  
+
   #ifdef SWIG_EXPORT_ITERATOR_METHODS
 %extend {
   // %extend wrapper used for differing definitions of these methods introduced in C++11
@@ -77,23 +91,33 @@
   void insert(iterator pos, size_type n, const value_type& x) { $self->insert(pos, n, x); }
 }
   #endif
-  
+
 %enddef
 
-%define %std_sequence_methods_val(sequence...)
-  
-  %std_sequence_methods_common(%arg(sequence));
-  
-  sequence(size_type size, value_type value);
-  void push_back(value_type x);  
+%define %std_sequence_methods_non_resizable_val(sequence...)
+
+  %std_container_methods_non_resizable(%arg(sequence))
 
   value_type front() const;
   value_type back() const;
- 
-  void assign(size_type n, value_type x);
 
+#endif
+
+%enddef
+
+%define %std_sequence_methods_val(sequence...)
+
+  %std_sequence_methods_common(%arg(sequence));
+
+  sequence(size_type size, value_type value);
+  void push_back(value_type x);
+
+  value_type front() const;
+  value_type back() const;
+
+  void assign(size_type n, value_type x);
   void resize(size_type new_size, value_type x);
-  
+
   #ifdef SWIG_EXPORT_ITERATOR_METHODS
 %extend {
   // %extend wrapper used for differing definitions of these methods introduced in C++11
@@ -101,7 +125,7 @@
   void insert(iterator pos, size_type n, value_type x) { $self->insert(pos, n, x); }
 }
   #endif
-  
+
 %enddef
 
 
@@ -109,10 +133,10 @@
 // Ignore member methods for Type with no default constructor
 //
 %define %std_nodefconst_type(Type...)
-%feature("ignore") std::vector<Type >::vector(size_type size);
-%feature("ignore") std::vector<Type >::resize(size_type size);
-%feature("ignore") std::deque<Type >::deque(size_type size);
-%feature("ignore") std::deque<Type >::resize(size_type size);
-%feature("ignore") std::list<Type >::list(size_type size);
-%feature("ignore") std::list<Type >::resize(size_type size);
+%feature("ignore") std::vector< Type >::vector(size_type size);
+%feature("ignore") std::vector< Type >::resize(size_type size);
+%feature("ignore") std::deque< Type >::deque(size_type size);
+%feature("ignore") std::deque< Type >::resize(size_type size);
+%feature("ignore") std::list< Type >::list(size_type size);
+%feature("ignore") std::list< Type >::resize(size_type size);
 %enddef

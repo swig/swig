@@ -13,6 +13,7 @@ class SimpleNonVirtual
 {
 	public:
 		int dummy() { return 0; }
+		virtual ~SimpleNonVirtual() {}
 };
 
 class SimpleReturnClass

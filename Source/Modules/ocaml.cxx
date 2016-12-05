@@ -269,8 +269,8 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIGOCAML\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGOCAML\n#define SWIGOCAML\n#endif\n\n");
+
     Printf(f_runtime, "#define SWIG_MODULE \"%s\"\n", module);
     /* Module name */
     Printf(f_mlbody, "let module_name = \"%s\"\n", module);
@@ -676,6 +676,14 @@ public:
 	Printv(f->code, tm, "\n", NIL);
       }
     }
+
+    /* See if there is any return cleanup code */
+    if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
+      Printf(f->code, "%s\n", tm);
+      Delete(tm);
+    }
+
     // Free any memory allocated by the function being wrapped..
 
     if ((tm = Swig_typemap_lookup("swig_result", n, Swig_cresult_name(), 0))) {
@@ -1287,6 +1295,9 @@ public:
    * typedef enum and enum are handled.  I need to produce consistent names,
    * which means looking up and registering by typedef and enum name. */
   int enumDeclaration(Node *n) {
+    if (getCurrentClass() && (cplus_mode != PUBLIC))
+      return SWIG_NOWRAP;
+
     String *name = Getattr(n, "name");
     if (name) {
       String *oname = NewString(name);

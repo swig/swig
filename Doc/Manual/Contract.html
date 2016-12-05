@@ -1,12 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>Contract Checking</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Contract"></a>13 Contracts</H1>
+<H1><a name="Contract">13 Contracts</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -38,7 +39,7 @@ When one of the rules is violated by a script, a runtime exception is
 generated rather than having the program continue to execute.
 </p>
 
-<H2><a name="Contract_nn2"></a>13.1 The %contract directive</H2>
+<H2><a name="Contract_nn2">13.1 The %contract directive</a></H2>
 
 
 <p>
@@ -50,9 +51,9 @@ is a simple example:
 <pre>
 %contract sqrt(double x) {
 require:
-    x &gt;= 0;
+  x &gt;= 0;
 ensure:
-    sqrt &gt;= 0;
+  sqrt &gt;= 0;
 }
 
 ...
@@ -94,7 +95,7 @@ RuntimeError: Contract violation: require: (arg1&gt;=0)
 </pre>
 </div>
 
-<H2><a name="Contract_nn3"></a>13.2 %contract and classes</H2>
+<H2><a name="Contract_nn3">13.2 %contract and classes</a></H2>
 
 
 <p>
@@ -105,20 +106,20 @@ The <tt>%contract</tt> directive can also be applied to class methods and constr
 <pre>
 %contract Foo::bar(int x, int y) {
 require:
-   x &gt; 0;
+  x &gt; 0;
 ensure:
-   bar &gt; 0;
+  bar &gt; 0;
 }
 
 %contract Foo::Foo(int a) {
 require:
-   a &gt; 0;
+  a &gt; 0;
 }
 
 class Foo {
 public:
-    Foo(int);
-    int bar(int, int);
+  Foo(int);
+  int bar(int, int);
 };
 </pre>
 </div>
@@ -132,7 +133,7 @@ Thus, any contract that you specified for a base class will also be attached to 
 <pre>
 class Spam : public Foo {
 public:
-   int bar(int,int);    // Gets contract defined for Foo::bar(int,int)
+  int bar(int,int);    // Gets contract defined for Foo::bar(int,int)
 };
 </pre>
 </div>
@@ -145,22 +146,22 @@ In addition to this, separate contracts can be applied to both the base class an
 <pre>
 %contract Foo::bar(int x, int) {
 require:
-    x &gt; 0;
+  x &gt; 0;
 }
 
 %contract Spam::bar(int, int y) {
 require:
-    y &gt; 0;
+  y &gt; 0;
 }
 
 class Foo {
 public:
-    int bar(int,int);   // Gets Foo::bar contract.
+  int bar(int,int);   // Gets Foo::bar contract.
 };
 
 class Spam : public Foo {
 public:
-     int bar(int,int);   // Gets Foo::bar and Spam::bar contract
+  int bar(int,int);   // Gets Foo::bar and Spam::bar contract
 };
 </pre>
 </div>
@@ -173,7 +174,7 @@ specified for the derived class all must hold.  In the above example,
 this means that both the arguments to <tt>Spam::bar</tt> must be positive.
 </p>
 
-<H2><a name="Contract_nn4"></a>13.3 Constant aggregation and %aggregate_check</H2>
+<H2><a name="Contract_nn4">13.3 Constant aggregation and %aggregate_check</a></H2>
 
 
 <p>
@@ -224,7 +225,7 @@ function can be used in contracts.  For example:
 
 %contract move(SomeObject *, int direction, in) {
 require:
-     check_direction(direction);
+  check_direction(direction);
 }
 
 #define  UP     1
@@ -245,7 +246,7 @@ Alternatively, it can be used in typemaps and other directives.  For example:
 %aggregate_check(int, check_direction, UP, DOWN, RIGHT, LEFT);
 
 %typemap(check) int direction {
-    if (!check_direction($1)) SWIG_exception(SWIG_ValueError, "Bad direction");
+  if (!check_direction($1)) SWIG_exception(SWIG_ValueError, "Bad direction");
 }
 
 #define  UP     1
@@ -262,7 +263,7 @@ Regrettably, there is no automatic way to perform similar checks with enums valu
 release.
 </p>
 
-<H2><a name="Contract_nn5"></a>13.4 Notes</H2>
+<H2><a name="Contract_nn5">13.4 Notes</a></H2>
 
 
 <p>

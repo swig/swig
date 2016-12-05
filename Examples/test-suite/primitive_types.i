@@ -2,6 +2,7 @@
 %module(directors="1") primitive_types
 
 #if defined(SWIGSCILAB)
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) ovr_str;
 %warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) ovr_val;
 %rename(TestDir) TestDirector;
 #endif
@@ -365,8 +366,24 @@ macro(size_t,             pfx, sizet)
 %define ovr_decl(type, pfx, name)
   virtual int pfx##_##val(type x) { return 1; }
   virtual int pfx##_##ref(const type& x) { return 1; }
+  virtual const char* pfx##_##str(type x) { return "name"; }
 %enddef
 
+/* checking size_t and ptrdiff_t typemaps */
+%begin %{
+// Must be defined before Python.h is included, since this may indirectly include stdint.h
+#define __STDC_LIMIT_MACROS
+%}
+%include "stdint.i"
+%inline {
+  size_t    get_size_min()    { return 0; }
+  size_t    get_size_max()    { return SIZE_MAX; }
+  ptrdiff_t get_ptrdiff_min() { return PTRDIFF_MIN; }
+  ptrdiff_t get_ptrdiff_max() { return PTRDIFF_MAX; }
+
+  size_t    size_echo   (size_t val)    { return val; }
+  ptrdiff_t ptrdiff_echo(ptrdiff_t val) { return val; }
+}
 
 %inline {
   struct Foo

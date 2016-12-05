@@ -785,6 +785,13 @@ private:
       return SWIG_OK;
     }
 
+    // Don't emit constructors for abstract director classes.  They
+    // will never succeed anyhow.
+    if (Swig_methodclass(n) && Swig_directorclass(n)
+	&& Strcmp(Char(Getattr(n, "wrap:action")), director_prot_ctor_code) == 0) {
+      return SWIG_OK;
+    }
+
     String *name = Getattr(n, "sym:name");
     String *nodetype = Getattr(n, "nodeType");
     bool is_static = is_static_member_function || isStatic(n);
@@ -848,8 +855,7 @@ private:
       Delete(c2);
       Delete(c1);
 
-      if (Swig_methodclass(n) && Swig_directorclass(n)
-	  && Strcmp(Char(Getattr(n, "wrap:action")), director_prot_ctor_code) != 0) {
+      if (Swig_methodclass(n) && Swig_directorclass(n)) {
 	// The core SWIG code skips the first parameter when
 	// generating the $nondirector_new string.  Recreate the
 	// action in this case.  But don't it if we are using the
@@ -1356,6 +1362,10 @@ private:
     goargout(info->parms);
 
     if (SwigType_type(info->result) != T_VOID) {
+
+      Swig_save("cgoGoWrapper", info->n, "type", "tmap:goout", NULL);
+      Setattr(info->n, "type", info->result);
+
       String *goout = goTypemapLookup("goout", info->n, "swig_r");
       if (goout == NULL) {
 	Printv(f_go_wrappers, "\treturn swig_r\n", NULL);
@@ -1368,6 +1378,8 @@ private:
 	Printv(f_go_wrappers, goout, "\n", NULL);
 	Printv(f_go_wrappers, "\treturn swig_r_1\n", NULL);
       }
+
+      Swig_restore(info->n);
     }
 
     Printv(f_go_wrappers, "}\n\n", NULL);
@@ -1612,7 +1624,12 @@ private:
       receiver = NULL;
     }
 
+    Swig_save("cgoGoWrapper", n, "type", "tmap:goout", NULL);
+    Setattr(n, "type", result);
+
     String *goout = goTypemapLookup("goout", n, "swig_r");
+
+    Swig_restore(n);
 
     bool add_to_interface = (interfaces && !is_constructor && !is_destructor && !is_static && !overname && checkFunctionVisibility(n, NULL));
 
@@ -2106,6 +2123,7 @@ private:
     emit_attach_parmmaps(parms, f);
     int parm_count = emit_num_arguments(parms);
     int required_count = emit_num_required(parms);
+    bool needs_swigargs = false;
 
     emit_return_variable(n, result, f);
 
@@ -2119,6 +2137,7 @@ private:
     String *swigargs = NewString("\tstruct swigargs {\n");
 
     if (parm_count > required_count) {
+      needs_swigargs = true;
       Printv(swigargs, "\t\tintgo _swig_optargc;\n", NULL);
     }
 
@@ -2130,6 +2149,7 @@ private:
       SwigType *pt = Getattr(p, "type");
       String *ct = gcCTypeForGoValue(p, pt, ln);
       Printv(swigargs, "\t\t\t", ct, ";\n", NULL);
+      needs_swigargs = true;
       Delete(ct);
 
       String *gn = NewStringf("_swig_go_%d", i);
@@ -2146,6 +2166,7 @@ private:
       String *ct = gcCTypeForGoValue(n, result, ln);
       Delete(ln);
       Printv(swigargs, "\t\t", ct, ";\n", NULL);
+      needs_swigargs = true;
       Delete(ct);
 
       ln = NewString("_swig_go_result");
@@ -2154,7 +2175,7 @@ private:
       Delete(ct);
       Delete(ln);
     }
-    Printv(swigargs, "\t} *swig_a = (struct swigargs *) swig_v;\n", NULL);
+    Printv(swigargs, "\t} SWIGSTRUCTPACKED *swig_a = (struct swigargs *) swig_v;\n", NULL);
 
     // Copy the input arguments out of the structure into the Go local
     // variables.
@@ -2202,7 +2223,10 @@ private:
 
     cleanupFunction(n, f, parms);
 
-    Printv(f->locals, swigargs, NULL);
+    if (needs_swigargs)
+    {
+      Printv(f->locals, swigargs, NULL);
+    }
 
     Printv(f->code, "}\n", NULL);
 
@@ -2421,7 +2445,8 @@ private:
       }
 
       String *code = Copy(Getattr(n, "wrap:action"));
-      Replaceall(code, Getattr(parms, "lname"), current);
+      Replace(code, Getattr(parms, "lname"), current, DOH_REPLACE_ANY | DOH_REPLACE_ID);
+      Delete(current);
       Printv(actioncode, code, "\n", NULL);
     }
 
@@ -2574,6 +2599,14 @@ private:
     Replaceall(f->code, "$cleanup", cleanup);
     Delete(cleanup);
 
+    /* See if there is any return cleanup code */
+    String *tm;
+    if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
+      Printf(f->code, "%s\n", tm);
+      Delete(tm);
+    }
+
     Replaceall(f->code, "$symname", Getattr(n, "sym:name"));
   }
 
@@ -2699,6 +2732,9 @@ private:
    * ---------------------------------------------------------------------- */
 
   virtual int enumDeclaration(Node *n) {
+    if (getCurrentClass() && (cplus_mode != PUBLIC))
+      return SWIG_NOWRAP;
+
     String *name = goEnumName(n);
     if (Strcmp(name, "int") != 0) {
       if (!ImportMode || !imported_package) {
@@ -2773,28 +2809,39 @@ private:
     String *get = NewString("");
     Printv(get, Swig_cresult_name(), " = ", NULL);
 
-    char quote;
-    if (Getattr(n, "wrappedasconstant")) {
-      quote = '\0';
-    } else if (SwigType_type(type) == T_CHAR) {
-      quote = '\'';
-    } else if (SwigType_type(type) == T_STRING) {
-      quote = '"';
+    String *rawval = Getattr(n, "rawval");
+    if (rawval && Len(rawval)) {
+      if (SwigType_type(type) == T_STRING) {
+        Printv(get, "(char *)", NULL);
+      }
+
+      Printv(get, rawval, NULL);
     } else {
-      quote = '\0';
-    }
+      char quote;
+      if (Getattr(n, "wrappedasconstant")) {
+        quote = '\0';
+      } else if (SwigType_type(type) == T_CHAR) {
+        quote = '\'';
+      } else if (SwigType_type(type) == T_STRING) {
+        Printv(get, "(char *)", NULL);
+        quote = '"';
+      } else {
+        quote = '\0';
+      }
 
-    if (quote != '\0') {
-      Printf(get, "%c", quote);
-    }
+      if (quote != '\0') {
+        Printf(get, "%c", quote);
+      }
 
-    Printv(get, Getattr(n, "value"), NULL);
+      Printv(get, Getattr(n, "value"), NULL);
 
-    if (quote != '\0') {
-      Printf(get, "%c", quote);
+      if (quote != '\0') {
+        Printf(get, "%c", quote);
+      }
     }
 
     Printv(get, ";\n", NULL);
+
     Setattr(n, "wrap:action", get);
 
     String *sname = Copy(symname);
@@ -3976,7 +4023,7 @@ private:
     Printv(f_c_directors, director_sig, NULL);
 
     if (!gccgo_flag) {
-      Printv(f_c_directors, "  struct { intgo p; } a;\n", NULL);
+      Printv(f_c_directors, "  struct { intgo p; } SWIGSTRUCTPACKED a;\n", NULL);
       Printv(f_c_directors, "  a.p = go_val;\n", NULL);
       Printv(f_c_directors, "  crosscall2(", wname, ", &a, (int) sizeof a);\n", NULL);
 
@@ -4148,7 +4195,6 @@ private:
 
     Wrapper *dummy = NewWrapper();
     emit_attach_parmmaps(parms, dummy);
-    DelWrapper(dummy);
 
     Swig_typemap_attach_parms("gotype", parms, NULL);
     Swig_typemap_attach_parms("imtype", parms, NULL);
@@ -4204,6 +4250,8 @@ private:
     Swig_typemap_attach_parms("godirectorin", parms, w);
     Swig_typemap_attach_parms("goin", parms, dummy);
     Swig_typemap_attach_parms("goargout", parms, dummy);
+
+    DelWrapper(dummy);
 
     if (!is_ignored) {
       // We use an interface to see if this method is defined in Go.
@@ -5110,7 +5158,7 @@ private:
 	Delete(rname);
       }
 
-      Printv(w->code, "  } swig_a;\n", NULL);
+      Printv(w->code, "  } SWIGSTRUCTPACKED swig_a;\n", NULL);
       Printv(w->code, "  swig_a.go_val = go_val;\n", NULL);
 
       p = parms;

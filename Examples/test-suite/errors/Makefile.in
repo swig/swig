@@ -20,6 +20,9 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
+SWIG_LIB_SET = @SWIG_LIB_SET@
+SWIGINVOKE   = $(SWIG_LIB_SET) $(SWIGTOOL) $(SWIGEXE)
+
 # All .i files with prefix 'cpp_' will be treated as C++ input and remaining .i files as C input
 ALL_ERROR_TEST_CASES := $(patsubst %.i,%, $(notdir $(wildcard $(srcdir)/*.i)))
 CPP_ERROR_TEST_CASES := $(filter cpp_%, $(ALL_ERROR_TEST_CASES))
@@ -44,7 +47,7 @@ $(DOXYGEN_ERROR_TEST_CASES): SWIGOPT += -doxygen
 
 # Portable dos2unix / todos for stripping CR
 TODOS        = tr -d '\r'
-#TODOS        = sed -e 's/\r$$//' # On OSX behaves as if written 's/r$$//'
+#TODOS        = sed -e 's/\r$$//' # On Mac OS X behaves as if written 's/r$$//'
 
 # strip source directory from output, so that diffs compare
 STRIP_SRCDIR = sed -e 's|\\|/|g' -e 's|^$(SRCDIR)||'
@@ -52,17 +55,17 @@ STRIP_SRCDIR = sed -e 's|\\|/|g' -e 's|^$(SRCDIR)||'
 # Rules for the different types of tests
 %.cpptest:
 	echo "$(ACTION)ing errors testcase $*"
-	-$(SWIG) -c++ -python -Wall -Fstandard $(SWIGOPT) $(SRCDIR)$*.i 2>&1 | $(TODOS) | $(STRIP_SRCDIR) > $*.$(ERROR_EXT)
+	-$(SWIGINVOKE) -c++ -python -Wall -Fstandard $(SWIGOPT) $(SRCDIR)$*.i 2>&1 | $(TODOS) | $(STRIP_SRCDIR) > $*.$(ERROR_EXT)
 	$(COMPILETOOL) diff -c $(SRCDIR)$*.stderr $*.$(ERROR_EXT)
 
 %.ctest:
 	echo "$(ACTION)ing errors testcase $*"
-	-$(SWIG) -python -Wall -Fstandard $(SWIGOPT) $(SRCDIR)$*.i 2>&1 | $(TODOS) | $(STRIP_SRCDIR) > $*.$(ERROR_EXT)
+	-$(SWIGINVOKE) -python -Wall -Fstandard $(SWIGOPT) $(SRCDIR)$*.i 2>&1 | $(TODOS) | $(STRIP_SRCDIR) > $*.$(ERROR_EXT)
 	$(COMPILETOOL) diff -c $(SRCDIR)$*.stderr $*.$(ERROR_EXT)
 
 %.clean:
 	@exit 0
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" python_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' python_clean
 	@rm -f *.$(ERROR_EXT) *.py

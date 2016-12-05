@@ -102,6 +102,7 @@ ANOTHER_MACRO(int)
 void another_macro_checking(void) {
   struct Defined d;
   d.defined = 10;
+  (void)d;
   thing(10);
   stuff(10);
   bumpf(10);

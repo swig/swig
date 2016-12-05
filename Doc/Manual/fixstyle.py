@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Adds the SWIG stylesheet to the generated documentation on a single page
+# Replace the inline htmldoc stylesheet with the SWIG stylesheet
 
 import sys
 import string
@@ -14,11 +14,16 @@ swigstyle = "\n" + open("style.css").read()
 
 lines = data.splitlines()
 result = [ ]
+skip = False
 for s in lines:
-	if s == "<STYLE TYPE=\"text/css\"><!--":
-		result.append(s + swigstyle)
-	else:
-		result.append(s)
+    if not skip:
+        result.append(s)
+    if s == "<STYLE TYPE=\"text/css\"><!--":
+        result.append(swigstyle)
+        skip = True
+    elif s == "--></STYLE>":
+        result.append(s)
+        skip = False
 
 data = "\n".join(result)
 

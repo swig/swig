@@ -102,7 +102,8 @@
 	  res = traits_asptr_stdseq<map_type, std::pair<K, T> >::asptr(items, val);
 	} else {
 	  map_type *p;
-	  res = SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<map_type>(),0);
+	  swig_type_info *descriptor = swig::type_info<map_type>();
+	  res = descriptor ? SWIG_ConvertPtr(obj, (void **)&p, descriptor, 0) : SWIG_ERROR;
 	  if (SWIG_IsOK(res) && val)  *val = p;
 	}
 	SWIG_PYTHON_THREAD_END_BLOCK;
@@ -119,10 +120,9 @@
       static PyObject *asdict(const map_type& map) {
 	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	size_type size = map.size();
-	int pysize = (size <= (size_type) INT_MAX) ? (int) size : -1;
+	Py_ssize_t pysize = (size <= (size_type) INT_MAX) ? (Py_ssize_t) size : -1;
 	if (pysize < 0) {
-	  PyErr_SetString(PyExc_OverflowError,
-			  "map size not valid in python");
+	  PyErr_SetString(PyExc_OverflowError, "map size not valid in python");
 	  SWIG_PYTHON_THREAD_END_BLOCK;
 	  return NULL;
 	}
@@ -211,17 +211,16 @@
     
     PyObject* keys() {
       Map::size_type size = self->size();
-      int pysize = (size <= (Map::size_type) INT_MAX) ? (int) size : -1;
+      Py_ssize_t pysize = (size <= (Map::size_type) INT_MAX) ? (Py_ssize_t) size : -1;
       SWIG_PYTHON_THREAD_BEGIN_BLOCK;
       if (pysize < 0) {
-	PyErr_SetString(PyExc_OverflowError,
-			"map size not valid in python");
+	PyErr_SetString(PyExc_OverflowError, "map size not valid in python");
 	SWIG_PYTHON_THREAD_END_BLOCK;
 	return NULL;
       }
       PyObject* keyList = PyList_New(pysize);
       Map::const_iterator i = self->begin();
-      for (int j = 0; j < pysize; ++i, ++j) {
+      for (Py_ssize_t j = 0; j < pysize; ++i, ++j) {
 	PyList_SET_ITEM(keyList, j, swig::from(i->first));
       }
       SWIG_PYTHON_THREAD_END_BLOCK;
@@ -230,17 +229,16 @@
     
     PyObject* values() {
       Map::size_type size = self->size();
-      int pysize = (size <= (Map::size_type) INT_MAX) ? (int) size : -1;
+      Py_ssize_t pysize = (size <= (Map::size_type) INT_MAX) ? (Py_ssize_t) size : -1;
       SWIG_PYTHON_THREAD_BEGIN_BLOCK;
       if (pysize < 0) {
-	PyErr_SetString(PyExc_OverflowError,
-			"map size not valid in python");
+	PyErr_SetString(PyExc_OverflowError, "map size not valid in python");
 	SWIG_PYTHON_THREAD_END_BLOCK;
 	return NULL;
       }
       PyObject* valList = PyList_New(pysize);
       Map::const_iterator i = self->begin();
-      for (int j = 0; j < pysize; ++i, ++j) {
+      for (Py_ssize_t j = 0; j < pysize; ++i, ++j) {
 	PyList_SET_ITEM(valList, j, swig::from(i->second));
       }
       SWIG_PYTHON_THREAD_END_BLOCK;
@@ -249,17 +247,16 @@
     
     PyObject* items() {
       Map::size_type size = self->size();
-      int pysize = (size <= (Map::size_type) INT_MAX) ? (int) size : -1;
+      Py_ssize_t pysize = (size <= (Map::size_type) INT_MAX) ? (Py_ssize_t) size : -1;
       SWIG_PYTHON_THREAD_BEGIN_BLOCK;
       if (pysize < 0) {
-	PyErr_SetString(PyExc_OverflowError,
-			"map size not valid in python");
+	PyErr_SetString(PyExc_OverflowError, "map size not valid in python");
 	SWIG_PYTHON_THREAD_END_BLOCK;
 	return NULL;
       }    
       PyObject* itemList = PyList_New(pysize);
       Map::const_iterator i = self->begin();
-      for (int j = 0; j < pysize; ++i, ++j) {
+      for (Py_ssize_t j = 0; j < pysize; ++i, ++j) {
 	PyList_SET_ITEM(itemList, j, swig::from(*i));
       }
       SWIG_PYTHON_THREAD_END_BLOCK;

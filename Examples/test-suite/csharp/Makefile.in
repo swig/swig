@@ -73,7 +73,7 @@ setup = \
 # Compiles C# files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.cs appended after the testcase name.
 # Note C# uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows and SHLIB_PATH on HPUX.
-# DYLD_FALLBACK_LIBRARY_PATH is cleared for MacOSX.
+# DYLD_FALLBACK_LIBRARY_PATH is cleared for Mac OS X.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile \

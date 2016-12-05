@@ -78,10 +78,6 @@ outdir = os.path.basename(os.getcwd()) + "/" + dirname + "/"
 print "Grabbing tagged release git repository using 'git archive' into " + outdir
 os.system("(cd .. && git archive --prefix=" + outdir + " " + tag + " . | tar -xf -)") == 0 or failed()
 
-# Remove the debian directory -- it's not official
-
-os.system("rm -Rf "+dirname+"/debian") == 0 or failed()
-
 # Go build the system
 
 print "Building system"
@@ -95,8 +91,6 @@ os.system("find "+dirname+" -name autom4te.cache -exec rm -rf {} \\;")
 # Build documentation
 print "Building html documentation"
 os.system("cd "+dirname+"/Doc/Manual && make all clean-baks") == 0 or failed()
-print "Building man pages"
-os.system("cd "+dirname+"/CCache && yodl2man -o ccache-swig.1 ccache.yo") == 0 or failed()
 
 # Build the tar-ball
 os.system("tar -cf "+dirname+".tar "+dirname) == 0 or failed()

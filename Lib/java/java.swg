@@ -310,8 +310,11 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
   sz = JCALL1(GetArrayLength, jenv, ba);
   $1 = 0;
-  for(i=0; i<sz; i++) {
-    $1 = ($1 << 8) | ($1_type)(unsigned char)bae[i];
+  if (sz > 0) {
+    $1 = ($1_type)(signed char)bae[0];
+    for(i=1; i<sz; i++) {
+      $1 = ($1 << 8) | ($1_type)(unsigned char)bae[i];
+    }
   }
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }
@@ -334,8 +337,11 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
   sz = JCALL1(GetArrayLength, jenv, ba);
   $result = 0;
-  for(i=0; i<sz; i++) {
-    $result = ($result << 8) | ($1_type)(unsigned char)bae[i];
+  if (sz > 0) {
+    $result = ($1_type)(signed char)bae[0];
+    for(i=1; i<sz; i++) {
+      $result = ($result << 8) | ($1_type)(unsigned char)bae[i];
+    }
   }
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }
@@ -406,7 +412,6 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     if (!$input) return $null;
   }
   Swig::LocalRefGuard $1_refguard(jenv, $input);
-// boohoo
 }
 
 %typemap(freearg, noblock=1) char * { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, (const char *)$1); }
@@ -553,8 +558,11 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   sz = JCALL1(GetArrayLength, jenv, ba);
   $1 = &temp;
   temp = 0;
-  for(i=0; i<sz; i++) {
-    temp = (temp << 8) | ($*1_ltype)(unsigned char)bae[i];
+  if (sz > 0) {
+    temp = ($*1_ltype)(signed char)bae[0];
+    for(i=1; i<sz; i++) {
+      temp = (temp << 8) | ($*1_ltype)(unsigned char)bae[i];
+    }
   }
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }
@@ -579,8 +587,11 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   sz = JCALL1(GetArrayLength, jenv, ba);
   $result = &temp;
   temp = 0;
-  for(i=0; i<sz; i++) {
-    temp = (temp << 8) | ($*1_ltype)(unsigned char)bae[i];
+  if (sz > 0) {
+    temp = ($*1_ltype)(signed char)bae[0];
+    for(i=1; i<sz; i++) {
+      temp = (temp << 8) | ($*1_ltype)(unsigned char)bae[i];
+    }
   }
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }
@@ -636,8 +647,8 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 %typemap(directorin,descriptor="L$packagepath/$&javaclassname;") SWIGTYPE 
 %{ $input = 0;
-   *(($&1_ltype*)&$input) = &$1; %}
-%typemap(javadirectorin) SWIGTYPE "new $&javaclassname($jniinput, false)"
+   *(($&1_ltype*)&$input) = new $1_ltype((const $1_ltype &)$1); %}
+%typemap(javadirectorin) SWIGTYPE "new $&javaclassname($jniinput, true)"
 %typemap(javadirectorout) SWIGTYPE "$&javaclassname.getCPtr($javacall)"
 
 /* Generic pointers and references */
@@ -1148,8 +1159,8 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %define SWIG_JAVABODY_PROXY(PTRCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...)
 // Base proxy classes
 %typemap(javabody) TYPE %{
-  private long swigCPtr;
-  protected boolean swigCMemOwn;
+  private transient long swigCPtr;
+  protected transient boolean swigCMemOwn;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
     swigCMemOwn = cMemoryOwn;
@@ -1163,7 +1174,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 // Derived proxy classes
 %typemap(javabody_derived) TYPE %{
-  private long swigCPtr;
+  private transient long swigCPtr;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
     super($imclassname.$javaclazznameSWIGUpcast(cPtr), cMemoryOwn);
@@ -1179,7 +1190,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %define SWIG_JAVABODY_TYPEWRAPPER(PTRCTOR_VISIBILITY, DEFAULTCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...)
 // Typewrapper classes
 %typemap(javabody) TYPE *, TYPE &, TYPE &&, TYPE [] %{
-  private long swigCPtr;
+  private transient long swigCPtr;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, @SuppressWarnings("unused") boolean futureUse) {
     swigCPtr = cPtr;
@@ -1195,7 +1206,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %}
 
 %typemap(javabody) TYPE (CLASS::*) %{
-  private String swigCMemberPtr;
+  private transient String swigCMemberPtr;
 
   PTRCTOR_VISIBILITY $javaclassname(String cMemberPtr, @SuppressWarnings("unused") boolean futureUse) {
     swigCMemberPtr = cMemberPtr;
@@ -1330,8 +1341,8 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 %typemap(freearg) (char *STRING, size_t LENGTH) ""
 %typemap(in)      (char *STRING, size_t LENGTH) {
   if ($input) {
-    $1 = (char *) JCALL2(GetByteArrayElements, jenv, $input, 0);
-    $2 = (size_t) JCALL1(GetArrayLength, jenv, $input);
+    $1 = ($1_ltype) JCALL2(GetByteArrayElements, jenv, $input, 0);
+    $2 = ($2_type) JCALL1(GetArrayLength, jenv, $input);
   } else {
     $1 = 0;
     $2 = 0;

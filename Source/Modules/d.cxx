@@ -472,8 +472,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIGD\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGD\n#define SWIGD\n#endif\n\n");
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
@@ -911,7 +910,7 @@ public:
       const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
       Setattr(n, "enumvalue", val);
     } else if (swigtype == T_CHAR) {
-      String *val = NewStringf("'%s'", Getattr(n, "enumvalue"));
+      String *val = NewStringf("'%(escape)s'", Getattr(n, "enumvalue"));
       Setattr(n, "enumvalue", val);
       Delete(val);
     }
@@ -1424,6 +1423,7 @@ public:
 
     String *constants_code = NewString("");
     SwigType *t = Getattr(n, "type");
+    SwigType *valuetype = Getattr(n, "valuetype");
     ParmList *l = Getattr(n, "parms");
 
     // Attach the non-standard typemaps to the parameter list.
@@ -1471,16 +1471,21 @@ public:
       Printf(constants_code, "%s;\n", override_value);
     } else {
       // Just take the value from the C definition and hope it compiles in D.
-      String* value = Getattr(n, "wrappedasconstant") ?
-	Getattr(n, "staticmembervariableHandler:value") : Getattr(n, "value");
-
-      // Add the stripped quotes back in.
-      if (SwigType_type(t) == T_STRING) {
-	Printf(constants_code, "\"%s\";\n", value);
-      } else if (SwigType_type(t) == T_CHAR) {
-	Printf(constants_code, "\'%s\';\n", value);
+      if (Getattr(n, "wrappedasconstant")) {
+	if (SwigType_type(valuetype) == T_CHAR)
+          Printf(constants_code, "\'%(escape)s\';\n", Getattr(n, "staticmembervariableHandler:value"));
+	else
+          Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
       } else {
-	Printf(constants_code, "%s;\n", value);
+	// Add the stripped quotes back in.
+	String* value = Getattr(n, "value");
+	if (SwigType_type(t) == T_STRING) {
+	  Printf(constants_code, "\"%s\";\n", value);
+	} else if (SwigType_type(t) == T_CHAR) {
+	  Printf(constants_code, "\'%s\';\n", value);
+	} else {
+	  Printf(constants_code, "%s;\n", value);
+	}
       }
     }
 
@@ -3124,28 +3129,23 @@ private:
       List *baselist = Getattr(n, "bases");
       if (baselist) {
 	Iterator base = First(baselist);
-	while (base.item && GetFlag(base.item, "feature:ignore")) {
-	  base = Next(base);
-	}
-	if (base.item) {
-	  basenode = base.item;
-	  c_baseclassname = Getattr(base.item, "name");
-	  basename = createProxyName(c_baseclassname);
-	  if (basename)
-	    c_baseclass = SwigType_namestr(Getattr(base.item, "name"));
-	  base = Next(base);
-	  /* Warn about multiple inheritance for additional base class(es) */
-	  while (base.item) {
-	    if (GetFlag(base.item, "feature:ignore")) {
-	      base = Next(base);
-	      continue;
+	while (base.item) {
+	  if (!GetFlag(base.item, "feature:ignore")) {
+	    String *baseclassname = Getattr(base.item, "name");
+	    if (!c_baseclassname) {
+	      basenode = base.item;
+	      c_baseclassname = baseclassname;
+	      basename = createProxyName(c_baseclassname);
+	      if (basename)
+		c_baseclass = SwigType_namestr(baseclassname);
+	    } else {
+	      /* Warn about multiple inheritance for additional base class(es) */
+	      String *proxyclassname = Getattr(n, "classtypeobj");
+	      Swig_warning(WARN_D_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
+		  "Base %s of class %s ignored: multiple inheritance is not supported in D.\n", SwigType_namestr(baseclassname), SwigType_namestr(proxyclassname));
 	    }
-	    String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
-	    String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
-	    Swig_warning(WARN_D_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-	      "Base %s of class %s ignored: multiple inheritance is not supported in D.\n", baseclassname, proxyclassname);
-	    base = Next(base);
 	  }
+	  base = Next(base);
 	}
       }
     }
@@ -3170,7 +3170,7 @@ private:
       }
     } else if (basename && Len(pure_baseclass) > 0) {
       Swig_warning(WARN_D_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-	"Warning for %s proxy: Base class %s ignored. Multiple inheritance is not supported in D. "
+	"Warning for %s, base class %s ignored. Multiple inheritance is not supported in D. "
 	"Perhaps you need one of the 'replace' or 'notderived' attributes in the dbase typemap?\n", typemap_lookup_type, pure_baseclass);
     }
 
@@ -3329,45 +3329,33 @@ private:
   /* ---------------------------------------------------------------------------
    * D::writeClassUpcast()
    * --------------------------------------------------------------------------- */
-  void writeClassUpcast(Node *n, const String* d_class_name,
-    String* c_class_name, String* c_base_name) {
+  void writeClassUpcast(Node *n, const String* d_class_name, String* c_class_name, String* c_base_name) {
 
-    String *smartptr = Getattr(n, "feature:smartptr");
-    String *upcast_name = Swig_name_member(getNSpace(), d_class_name,
-      (smartptr != 0 ? "SmartPtrUpcast" : "Upcast"));
-
+    SwigType *smart = Swig_cparse_smartptr(n);
+    String *upcast_name = Swig_name_member(getNSpace(), d_class_name, (smart != 0 ? "SmartPtrUpcast" : "Upcast"));
     String *upcast_wrapper_name = Swig_name_wrapper(upcast_name);
 
     writeImDModuleFunction(upcast_name, "void*", "(void* objectRef)",
       upcast_wrapper_name);
 
-    if (smartptr) {
-      SwigType *spt = Swig_cparse_type(smartptr);
-      if (spt) {
-	SwigType *smart = SwigType_typedef_resolve_all(spt);
-	Delete(spt);
-	SwigType *bsmart = Copy(smart);
-	SwigType *rclassname = SwigType_typedef_resolve_all(c_class_name);
-	SwigType *rbaseclass = SwigType_typedef_resolve_all(c_base_name);
-	Replaceall(bsmart, rclassname, rbaseclass);
-	Delete(rclassname);
-	Delete(rbaseclass);
-	String *smartnamestr = SwigType_namestr(smart);
-	String *bsmartnamestr = SwigType_namestr(bsmart);
-	Printv(upcasts_code,
-	  "SWIGEXPORT ", bsmartnamestr, " * ", upcast_wrapper_name,
-	    "(", smartnamestr, " *objectRef) {\n",
-	  "    return objectRef ? new ", bsmartnamestr, "(*objectRef) : 0;\n"
-	  "}\n",
-	  "\n", NIL);
-	Delete(bsmartnamestr);
-	Delete(smartnamestr);
-	Delete(bsmart);
-      } else {
-	Swig_error(Getfile(n), Getline(n),
-	  "Invalid type (%s) in 'smartptr' feature for class %s.\n",
-	  smartptr, c_class_name);
-      }
+    if (smart) {
+      SwigType *bsmart = Copy(smart);
+      SwigType *rclassname = SwigType_typedef_resolve_all(c_class_name);
+      SwigType *rbaseclass = SwigType_typedef_resolve_all(c_base_name);
+      Replaceall(bsmart, rclassname, rbaseclass);
+      Delete(rclassname);
+      Delete(rbaseclass);
+      String *smartnamestr = SwigType_namestr(smart);
+      String *bsmartnamestr = SwigType_namestr(bsmart);
+      Printv(upcasts_code,
+	"SWIGEXPORT ", bsmartnamestr, " * ", upcast_wrapper_name,
+	  "(", smartnamestr, " *objectRef) {\n",
+	"    return objectRef ? new ", bsmartnamestr, "(*objectRef) : 0;\n"
+	"}\n",
+	"\n", NIL);
+      Delete(bsmartnamestr);
+      Delete(smartnamestr);
+      Delete(bsmart);
     } else {
       Printv(upcasts_code,
 	"SWIGEXPORT ", c_base_name, " * ", upcast_wrapper_name,
@@ -3382,6 +3370,7 @@ private:
 
     Delete(upcast_name);
     Delete(upcast_wrapper_name);
+    Delete(smart);
   }
 
   /* ---------------------------------------------------------------------------

@@ -67,7 +67,7 @@ SWIGINTERNINLINE PyObject*
 /* long */
 
 %fragment(SWIG_From_frag(long),"header") {
-  %define_as(SWIG_From_dec(long),           PyLong_FromLong)
+  %define_as(SWIG_From_dec(long),           PyInt_FromLong)
 }
 
 %fragment(SWIG_AsVal_frag(long),"header",
@@ -75,16 +75,20 @@ SWIGINTERNINLINE PyObject*
 SWIGINTERN int
 SWIG_AsVal_dec(long)(PyObject *obj, long* val)
 {
+%#if PY_VERSION_HEX < 0x03000000
   if (PyInt_Check(obj)) {
     if (val) *val = PyInt_AsLong(obj);
     return SWIG_OK;
-  } else if (PyLong_Check(obj)) {
+  } else
+%#endif
+  if (PyLong_Check(obj)) {
     long v = PyLong_AsLong(obj);
     if (!PyErr_Occurred()) {
       if (val) *val = v;
       return SWIG_OK;
     } else {
       PyErr_Clear();
+      return SWIG_OverflowError;
     }
   }
 %#ifdef SWIG_PYTHON_CAST_MODE
@@ -119,7 +123,7 @@ SWIGINTERNINLINE PyObject*
 SWIG_From_dec(unsigned long)(unsigned long value)
 {
   return (value > LONG_MAX) ?
-    PyLong_FromUnsignedLong(value) : PyLong_FromLong(%numeric_cast(value,long)); 
+    PyLong_FromUnsignedLong(value) : PyInt_FromLong(%numeric_cast(value,long));
 }
 }
 
@@ -146,18 +150,7 @@ SWIG_AsVal_dec(unsigned long)(PyObject *obj, unsigned long *val)
       return SWIG_OK;
     } else {
       PyErr_Clear();
-%#if PY_VERSION_HEX >= 0x03000000
-      {
-        long v = PyLong_AsLong(obj);
-        if (!PyErr_Occurred()) {
-          if (v < 0) {
-            return SWIG_OverflowError;
-          }
-        } else {
-          PyErr_Clear();
-        }
-      }
-%#endif
+      return SWIG_OverflowError;
     }
   }
 %#ifdef SWIG_PYTHON_CAST_MODE
@@ -187,20 +180,22 @@ SWIG_AsVal_dec(unsigned long)(PyObject *obj, unsigned long *val)
 /* long long */
 
 %fragment(SWIG_From_frag(long long),"header",
-	  fragment=SWIG_From_frag(long),
-	  fragment="<limits.h>") {
+	  fragment="SWIG_LongLongAvailable") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERNINLINE PyObject* 
 SWIG_From_dec(long long)(long long value)
 {
   return ((value < LONG_MIN) || (value > LONG_MAX)) ?
-    PyLong_FromLongLong(value) : PyLong_FromLong(%numeric_cast(value,long)); 
+    PyLong_FromLongLong(value) : PyInt_FromLong(%numeric_cast(value,long));
 }
+%#endif
 }
 
 %fragment(SWIG_AsVal_frag(long long),"header",
 	  fragment=SWIG_AsVal_frag(long),
 	  fragment="SWIG_CanCastAsInteger",
-	  fragment="<limits.h>") {
+	  fragment="SWIG_LongLongAvailable") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN int
 SWIG_AsVal_dec(long long)(PyObject *obj, long long *val)
 {
@@ -212,6 +207,7 @@ SWIG_AsVal_dec(long long)(PyObject *obj, long long *val)
       return SWIG_OK;
     } else {
       PyErr_Clear();
+      res = SWIG_OverflowError;
     }
   } else {
     long v;
@@ -227,6 +223,8 @@ SWIG_AsVal_dec(long long)(PyObject *obj, long long *val)
     const double mant_min = -mant_max;
     double d;
     res = SWIG_AsVal(double)(obj,&d);
+    if (SWIG_IsOK(res) && !SWIG_CanCastAsInteger(&d, mant_min, mant_max))
+      return SWIG_OverflowError;
     if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, mant_min, mant_max)) {
       if (val) *val = (long long)(d);
       return SWIG_AddCast(res);
@@ -236,25 +234,28 @@ SWIG_AsVal_dec(long long)(PyObject *obj, long long *val)
 %#endif
   return res;
 }
+%#endif
 }
 
 /* unsigned long long */
 
 %fragment(SWIG_From_frag(unsigned long long),"header",
-	  fragment=SWIG_From_frag(long long),
-	  fragment="<limits.h>") {
+	  fragment="SWIG_LongLongAvailable") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERNINLINE PyObject* 
 SWIG_From_dec(unsigned long long)(unsigned long long value)
 {
   return (value > LONG_MAX) ?
-    PyLong_FromUnsignedLongLong(value) : PyLong_FromLong(%numeric_cast(value,long)); 
+    PyLong_FromUnsignedLongLong(value) : PyInt_FromLong(%numeric_cast(value,long));
 }
+%#endif
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long long),"header",
 	  fragment=SWIG_AsVal_frag(unsigned long),
 	  fragment="SWIG_CanCastAsInteger",
-	  fragment="<limits.h>") {
+	  fragment="SWIG_LongLongAvailable") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long long)(PyObject *obj, unsigned long long *val)
 {
@@ -266,6 +267,7 @@ SWIG_AsVal_dec(unsigned long long)(PyObject *obj, unsigned long long *val)
       return SWIG_OK;
     } else {
       PyErr_Clear();
+      res = SWIG_OverflowError;
     }
   } else {
     unsigned long v;
@@ -280,6 +282,8 @@ SWIG_AsVal_dec(unsigned long long)(PyObject *obj, unsigned long long *val)
     const double mant_max = 1LL << DBL_MANT_DIG;
     double d;
     res = SWIG_AsVal(double)(obj,&d);
+    if (SWIG_IsOK(res) && !SWIG_CanCastAsInteger(&d, 0, mant_max))
+      return SWIG_OverflowError;
     if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, mant_max)) {
       if (val) *val = (unsigned long long)(d);
       return SWIG_AddCast(res);
@@ -289,6 +293,7 @@ SWIG_AsVal_dec(unsigned long long)(PyObject *obj, unsigned long long *val)
 %#endif
   return res;
 }
+%#endif
 }
 
 /* double */
@@ -305,9 +310,11 @@ SWIG_AsVal_dec(double)(PyObject *obj, double *val)
   if (PyFloat_Check(obj)) {
     if (val) *val = PyFloat_AsDouble(obj);
     return SWIG_OK;
+%#if PY_VERSION_HEX < 0x03000000
   } else if (PyInt_Check(obj)) {
-    if (val) *val = PyInt_AsLong(obj);
+    if (val) *val = (double) PyInt_AsLong(obj);
     return SWIG_OK;
+%#endif
   } else if (PyLong_Check(obj)) {
     double v = PyLong_AsDouble(obj);
     if (!PyErr_Occurred()) {

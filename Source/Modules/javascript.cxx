@@ -1100,7 +1100,7 @@ int JSEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
  * ----------------------------------------------------------------------------- */
 
 int JSEmitter::emitConstant(Node *n) {
-  // HACK: somehow it happened under OSX that before everything started
+  // HACK: somehow it happened under Mac OS X that before everything started
   // a lot of SWIG internal constants were emitted
   // This didn't happen on other platforms yet...
   // we ignore those premature definitions
@@ -1354,6 +1354,11 @@ void JSEmitter::emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params) {
     }
   }
 
+  /* See if there is any return cleanup code */
+  if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+    Printf(wrapper->code, "%s\n", tm);
+    Delete(tm);
+  }
 }
 
 int JSEmitter::switchNamespace(Node *n) {

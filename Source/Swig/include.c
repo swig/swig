@@ -291,6 +291,7 @@ int Swig_insert_file(const_String_or_char_ptr filename, File *outfile) {
   while ((nbytes = Read(f, buffer, 4096)) > 0) {
     Write(outfile, buffer, nbytes);
   }
+  fclose(f);
   return 0;
 }
 

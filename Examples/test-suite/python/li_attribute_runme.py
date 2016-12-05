@@ -71,3 +71,13 @@ if myStringyClass.ReadWriteString != "changed string":
     raise RuntimeError
 if myStringyClass.ReadOnlyString != "changed string":
     raise RuntimeError
+
+# Check a proper AttributeError is raised for non-existent attributes, old versions used to raise unhelpful error:
+# AttributeError: type object 'object' has no attribute '__getattr__'
+try:
+    x = myFoo.does_not_exist
+    raise RuntimeError
+except AttributeError, e:
+    if str(e).find("does_not_exist") == -1:
+        raise RuntimeError
+

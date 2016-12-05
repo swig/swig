@@ -363,41 +363,44 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       return octave_value_list();
     }
 
-    bool dispatch_unary_op(const std::string &symbol, octave_value &ret) {
-      member_value_pair *m = find_member(symbol, false);
+    bool dispatch_unary_op(const std::string &symbol, octave_value &ret) const {
+      octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
+      member_value_pair *m = nc_this->find_member(symbol, false);
       if (!m || m->first->is_static() || m->first->is_global())
 	return false;
       octave_value_list args;
-      args.append(as_value());
-      octave_value_list argout(member_invoke(m, args, 1));
+      args.append(nc_this->as_value());
+      octave_value_list argout(nc_this->member_invoke(m, args, 1));
       if (argout.length() < 1)
 	return false;
       ret = argout(0);
       return true;
     }
 
-    bool dispatch_binary_op(const std::string &symbol, const octave_base_value &rhs, octave_value &ret) {
-      member_value_pair *m = find_member(symbol, false);
+    bool dispatch_binary_op(const std::string &symbol, const octave_base_value &rhs, octave_value &ret) const {
+      octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
+      member_value_pair *m = nc_this->find_member(symbol, false);
       if (!m || m->first->is_static() || m->first->is_global())
 	return false;
       octave_value_list args;
-      args.append(as_value());
+      args.append(nc_this->as_value());
       args.append(make_value_hack(rhs));
-      octave_value_list argout(member_invoke(m, args, 1));
+      octave_value_list argout(nc_this->member_invoke(m, args, 1));
       if (argout.length() < 1)
 	return false;
       ret = argout(0);
       return true;
     }
 
-    bool dispatch_index_op(const std::string &symbol, const octave_value_list &rhs, octave_value_list &ret) {
-      member_value_pair *m = find_member(symbol, false);
+    bool dispatch_index_op(const std::string &symbol, const octave_value_list &rhs, octave_value_list &ret) const {
+      octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
+      member_value_pair *m = nc_this->find_member(symbol, false);
       if (!m || m->first->is_static() || m->first->is_global())
 	return false;
       octave_value_list args;
-      args.append(as_value());
+      args.append(nc_this->as_value());
       args.append(rhs);
-      octave_value_list argout(member_invoke(m, args, 1));
+      octave_value_list argout(nc_this->member_invoke(m, args, 1));
       if (argout.length() >= 1)
 	ret = argout(0);
       return true;
@@ -459,22 +462,9 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     }
 
     dim_vector dims(void) const {
-      octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
-      
-      // Find the __dims__ method of this object
-      member_value_pair *m = nc_this->find_member("__dims__", false);
-
-      if (!m) return dim_vector(1,1);
-      
-      // Call the __dims__ method of this object
-      octave_value_list inarg;
-      inarg.append(nc_this->as_value());
-      octave_value_list outarg = nc_this->member_invoke(m, inarg, 1);
-
-      // __dims__ should return (at least) one output argument
-      if (outarg.length() < 1) return dim_vector(1,1);
-      
-      octave_value & out = outarg(0);
+      octave_value out;
+      if (!dispatch_unary_op("__dims__", out))
+        return dim_vector(1,1);
 
       // Return value should be cell or matrix of integers
       if (out.is_cell()) {
@@ -814,19 +804,37 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     }
 
     virtual std::string string_value(bool force = false) const {
-      octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
-      member_value_pair *m = nc_this->find_member("__str__", false);
-      if (!m) {
-	error("__str__ method not defined");
-	return std::string();
+      octave_value ret;
+      if (!dispatch_unary_op("__str__", ret)) {
+        error("__str__ method not defined");
+        return std::string();
       }
-      octave_value_list outarg = nc_this->member_invoke(m, octave_value_list(nc_this->as_value()), 1);
-      if (outarg.length() < 1 || !outarg(0).is_string()) {
+      if (!ret.is_string()) {
 	error("__str__ method did not return a string");
 	return std::string();
       }
-      return outarg(0).string_value();
+      return ret.string_value();
     }
+
+    virtual double scalar_value(bool frc_str_conv = false) const {
+      octave_value ret;
+      if (!dispatch_unary_op("__float__", ret)) {
+        error("__float__ method not defined");
+      }
+      return ret.scalar_value();
+    }
+
+#if SWIG_OCTAVE_PREREQ(3,8,0)
+    virtual octave_value map(octave_base_value::unary_mapper_t umap) const {
+      const std::string opname = std::string("__") + octave_base_value::get_umap_name(umap) + std::string("__");
+      octave_value ret;
+      if (!dispatch_unary_op(opname, ret)) {
+        error((opname + std::string(" method not found")).c_str());
+        return octave_value();
+      }
+      return ret;
+    }
+#endif
 
 #if SWIG_OCTAVE_PREREQ(3,3,52)
     virtual octave_map map_value() const {
@@ -982,10 +990,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     }
 
 #if SWIG_OCTAVE_PREREQ(4,0,0)
-    void print(std::ostream &os, bool pr_as_read_syntax = false) {
+    void print(std::ostream &os, bool pr_as_read_syntax = false)
 #else
-    void print(std::ostream &os, bool pr_as_read_syntax = false) const {
+    void print(std::ostream &os, bool pr_as_read_syntax = false) const
 #endif
+    {
       if (is_string()) {
 	os << string_value();
 	return;
@@ -1080,6 +1089,14 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     virtual std::string string_value(bool force = false) const 
       { return ptr->string_value(force); }
 
+    virtual double scalar_value(bool frc_str_conv = false) const
+      { return ptr->scalar_value(frc_str_conv); }
+
+#if SWIG_OCTAVE_PREREQ(3,8,0)
+    virtual octave_value map(octave_base_value::unary_mapper_t umap) const
+      { return ptr->map(umap); }
+#endif
+
 #if SWIG_OCTAVE_PREREQ(3,3,52)
     virtual octave_map map_value() const
       { return ptr->map_value(); }
@@ -1137,7 +1154,17 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
 #endif
       { return ptr->print(os, pr_as_read_syntax); }
 
+    virtual type_conv_info numeric_conversion_function(void) const {
+      return octave_base_value::type_conv_info (default_numeric_conversion_function,
+                                                octave_scalar::static_type_id ());
+    }
+
   private:
+    static octave_base_value *default_numeric_conversion_function (const octave_base_value& a) {
+      const octave_swig_ref& v = dynamic_cast<const octave_swig_ref&>(a);
+      return new octave_scalar(v.scalar_value());
+    }
+
 #if !SWIG_OCTAVE_PREREQ(4,0,0)
     DECLARE_OCTAVE_ALLOCATOR;
 #endif
@@ -1178,10 +1205,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     }
 
 #if SWIG_OCTAVE_PREREQ(4,0,0)
-    void print(std::ostream &os, bool pr_as_read_syntax = false) {
+    void print(std::ostream &os, bool pr_as_read_syntax = false)
 #else
-    void print(std::ostream &os, bool pr_as_read_syntax = false) const {
+    void print(std::ostream &os, bool pr_as_read_syntax = false) const
 #endif
+    {
       indent(os);
       os << "swig packed type: name = " << (type ? type->name : std::string()) << ", len = " << buf.size(); newline(os);
     }

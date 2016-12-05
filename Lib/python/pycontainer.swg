@@ -206,7 +206,7 @@ namespace swig {
     if (step == 0) {
       throw std::invalid_argument("slice step cannot be zero");
     } else if (step > 0) {
-      // Required range: 0 <= i < size, 0 <= j < size
+      // Required range: 0 <= i < size, 0 <= j < size, i <= j
       if (i < 0) {
         ii = 0;
       } else if (i < (Difference)size) {
@@ -214,13 +214,15 @@ namespace swig {
       } else if (insert && (i >= (Difference)size)) {
         ii = (Difference)size;
       }
-      if ( j < 0 ) {
+      if (j < 0) {
         jj = 0;
       } else {
         jj = (j < (Difference)size) ? j : (Difference)size;
       }
+      if (jj < ii)
+        jj = ii;
     } else {
-      // Required range: -1 <= i < size-1, -1 <= j < size-1
+      // Required range: -1 <= i < size-1, -1 <= j < size-1, i >= j
       if (i < -1) {
         ii = -1;
       } else if (i < (Difference) size) {
@@ -233,6 +235,8 @@ namespace swig {
       } else {
         jj = (j < (Difference)size ) ? j : (Difference)(size-1);
       }
+      if (ii < jj)
+        ii = jj;
     }
   }
 
@@ -252,6 +256,19 @@ namespace swig {
     return pos;
   }
 
+  template <class Sequence>
+  inline void
+  erase(Sequence* seq, const typename Sequence::iterator& position) {
+    seq->erase(position);
+  }
+
+  template <class Sequence>
+  struct traits_reserve {
+    static void reserve(Sequence & /*seq*/, typename Sequence::size_type /*n*/) {
+      // This should be specialized for types that support reserve
+    }
+  };
+
   template <class Sequence, class Difference>
   inline Sequence*
   getslice(const Sequence* self, Difference i, Difference j, Py_ssize_t step) {
@@ -269,6 +286,7 @@ namespace swig {
         return new Sequence(sb, se);
       } else {
         Sequence *sequence = new Sequence();
+        swig::traits_reserve<Sequence>::reserve(*sequence, (jj - ii + step - 1) / step);
         typename Sequence::const_iterator it = sb;
         while (it!=se) {
           sequence->push_back(*it);
@@ -279,17 +297,16 @@ namespace swig {
       } 
     } else {
       Sequence *sequence = new Sequence();
-      if (ii > jj) {
-        typename Sequence::const_reverse_iterator sb = self->rbegin();
-        typename Sequence::const_reverse_iterator se = self->rbegin();
-        std::advance(sb,size-ii-1);
-        std::advance(se,size-jj-1);
-        typename Sequence::const_reverse_iterator it = sb;
-        while (it!=se) {
-          sequence->push_back(*it);
-          for (Py_ssize_t c=0; c<-step && it!=se; ++c)
-            it++;
-        }
+      swig::traits_reserve<Sequence>::reserve(*sequence, (ii - jj - step - 1) / -step);
+      typename Sequence::const_reverse_iterator sb = self->rbegin();
+      typename Sequence::const_reverse_iterator se = self->rbegin();
+      std::advance(sb,size-ii-1);
+      std::advance(se,size-jj-1);
+      typename Sequence::const_reverse_iterator it = sb;
+      while (it!=se) {
+        sequence->push_back(*it);
+        for (Py_ssize_t c=0; c<-step && it!=se; ++c)
+          it++;
       }
       return sequence;
     }
@@ -303,12 +320,11 @@ namespace swig {
     Difference jj = 0;
     swig::slice_adjust(i, j, step, size, ii, jj, true);
     if (step > 0) {
-      if (jj < ii)
-        jj = ii;
       if (step == 1) {
         size_t ssize = jj - ii;
         if (ssize <= is.size()) {
           // expanding/staying the same size
+          swig::traits_reserve<Sequence>::reserve(*self, self->size() - ssize + is.size());
           typename Sequence::iterator sb = self->begin();
           typename InputSeq::const_iterator isit = is.begin();
           std::advance(sb,ii);
@@ -342,8 +358,6 @@ namespace swig {
         }
       }
     } else {
-      if (jj > ii)
-        jj = ii;
       size_t replacecount = (ii - jj - step - 1) / -step;
       if (is.size() != replacecount) {
         char msg[1024];
@@ -369,36 +383,32 @@ namespace swig {
     Difference jj = 0;
     swig::slice_adjust(i, j, step, size, ii, jj, true);
     if (step > 0) {
-      if (jj > ii) {
-        typename Sequence::iterator sb = self->begin();
-        std::advance(sb,ii);
-        if (step == 1) {
-          typename Sequence::iterator se = self->begin();
-          std::advance(se,jj);
-          self->erase(sb,se);
-        } else {
-          typename Sequence::iterator it = sb;
-          size_t delcount = (jj - ii + step - 1) / step;
-          while (delcount) {
-            it = self->erase(it);
-            for (Py_ssize_t c=0; c<(step-1) && it != self->end(); ++c)
-              it++;
-            delcount--;
-          }
-        }
-      }
-    } else {
-      if (ii > jj) {
-        typename Sequence::reverse_iterator sb = self->rbegin();
-        std::advance(sb,size-ii-1);
-        typename Sequence::reverse_iterator it = sb;
-        size_t delcount = (ii - jj - step - 1) / -step;
+      typename Sequence::iterator sb = self->begin();
+      std::advance(sb,ii);
+      if (step == 1) {
+        typename Sequence::iterator se = self->begin();
+        std::advance(se,jj);
+        self->erase(sb,se);
+      } else {
+        typename Sequence::iterator it = sb;
+        size_t delcount = (jj - ii + step - 1) / step;
         while (delcount) {
-          it = typename Sequence::reverse_iterator(self->erase((++it).base()));
-          for (Py_ssize_t c=0; c<(-step-1) && it != self->rend(); ++c)
+          it = self->erase(it);
+          for (Py_ssize_t c=0; c<(step-1) && it != self->end(); ++c)
             it++;
           delcount--;
         }
+      }
+    } else {
+      typename Sequence::reverse_iterator sb = self->rbegin();
+      std::advance(sb,size-ii-1);
+      typename Sequence::reverse_iterator it = sb;
+      size_t delcount = (ii - jj - step - 1) / -step;
+      while (delcount) {
+        it = typename Sequence::reverse_iterator(self->erase((++it).base()));
+        for (Py_ssize_t c=0; c<(-step-1) && it != self->rend(); ++c)
+          it++;
+        delcount--;
       }
     }
   }
@@ -415,7 +425,7 @@ namespace swig
   template <class T>
   struct SwigPySequence_Ref
   {
-    SwigPySequence_Ref(PyObject* seq, int index)
+    SwigPySequence_Ref(PyObject* seq, Py_ssize_t index)
       : _seq(seq), _index(index)
     {
     }
@@ -427,7 +437,7 @@ namespace swig
 	return swig::as<T>(item, true);
       } catch (std::exception& e) {
 	char msg[1024];
-	sprintf(msg, "in sequence element %d ", _index);
+	sprintf(msg, "in sequence element %d ", (int)_index);
 	if (!PyErr_Occurred()) {
 	  ::%type_error(swig::type_name<T>());
 	}
@@ -445,7 +455,7 @@ namespace swig
 
   private:
     PyObject* _seq;
-    int _index;
+    Py_ssize_t _index;
   };
 
   template <class T>
@@ -466,13 +476,13 @@ namespace swig
     typedef Reference reference;
     typedef T value_type;
     typedef T* pointer;
-    typedef int difference_type;
+    typedef Py_ssize_t difference_type;
 
     SwigPySequence_InputIterator()
     {
     }
 
-    SwigPySequence_InputIterator(PyObject* seq, int index)
+    SwigPySequence_InputIterator(PyObject* seq, Py_ssize_t index)
       : _seq(seq), _index(index)
     {
     }
@@ -552,6 +562,7 @@ namespace swig
     difference_type _index;
   };
 
+  // STL container wrapper around a Python sequence
   template <class T>
   struct SwigPySequence_Cont
   {
@@ -559,8 +570,8 @@ namespace swig
     typedef const SwigPySequence_Ref<T> const_reference;
     typedef T value_type;
     typedef T* pointer;
-    typedef int difference_type;
-    typedef int size_type;
+    typedef Py_ssize_t difference_type;
+    typedef size_t size_type;
     typedef const pointer const_pointer;
     typedef SwigPySequence_InputIterator<T, reference> iterator;
     typedef SwigPySequence_InputIterator<T, const_reference> const_iterator;
@@ -621,13 +632,13 @@ namespace swig
 
     bool check(bool set_err = true) const
     {
-      int s = size();
-      for (int i = 0; i < s; ++i) {
+      Py_ssize_t s = size();
+      for (Py_ssize_t i = 0; i < s; ++i) {
 	swig::SwigVar_PyObject item = PySequence_GetItem(_seq, i);
 	if (!swig::check<value_type>(item)) {
 	  if (set_err) {
 	    char msg[1024];
-	    sprintf(msg, "in sequence element %d", i);
+	    sprintf(msg, "in sequence element %d", (int)i);
 	    SWIG_Error(SWIG_RuntimeError, msg);
 	  }
 	  return false;
@@ -748,7 +759,6 @@ namespace swig
       return self->size();
     }
   }
-
 %enddef
 
 
@@ -756,7 +766,7 @@ namespace swig
 %define %swig_sequence_methods_common(Sequence...)
   %swig_sequence_iterator(%arg(Sequence))
   %swig_container_methods(%arg(Sequence))
-  
+
   %fragment("SwigPySequence_Base");
 
 #if defined(SWIGPYTHON_BUILTIN)
@@ -769,14 +779,6 @@ namespace swig
 #endif // SWIGPYTHON_BUILTIN
 
   %extend {
-    value_type pop() throw (std::out_of_range) {
-      if (self->size() == 0)
-	throw std::out_of_range("pop from empty container");
-      Sequence::value_type x = self->back();
-      self->pop_back();
-      return x;
-    }
-
     /* typemap for slice object support */
     %typemap(in) PySliceObject* {
       if (!PySlice_Check($input)) {
@@ -794,7 +796,11 @@ namespace swig
       return swig::getslice(self, i, j, 1);
     }
 
-    void __setslice__(difference_type i, difference_type j, const Sequence& v = Sequence()) throw (std::out_of_range, std::invalid_argument) {
+    void __setslice__(difference_type i, difference_type j) throw (std::out_of_range, std::invalid_argument) {
+      swig::setslice(self, i, j, 1, Sequence());
+    }
+
+    void __setslice__(difference_type i, difference_type j, const Sequence& v) throw (std::out_of_range, std::invalid_argument) {
       swig::setslice(self, i, j, 1, v);
     }
 
@@ -803,10 +809,9 @@ namespace swig
     }
 #endif
 
-    void __delitem__(difference_type i) throw (std::out_of_range) {
-      self->erase(swig::getpos(self,i));
+    void __delitem__(difference_type i) throw (std::out_of_range, std::invalid_argument) {
+      swig::erase(self, swig::getpos(self, i));
     }
-
 
     /* Overloaded methods for Python 3 compatibility 
      * (Also useful in Python 2.x)
@@ -858,12 +863,11 @@ namespace swig
       Sequence::difference_type jd = j;
       swig::delslice(self, id, jd, step);
     }
-     
-  }
 
+  }
 %enddef
 
-%define %swig_sequence_methods(Sequence...)
+%define %swig_sequence_methods_non_resizable(Sequence...)
   %swig_sequence_methods_common(%arg(Sequence))
   %extend {
     const value_type& __getitem__(difference_type i) const throw (std::out_of_range) {
@@ -876,19 +880,32 @@ namespace swig
 
 #if defined(SWIGPYTHON_BUILTIN)
     // This will be called through the mp_ass_subscript slot to delete an entry.
-    void __setitem__(difference_type i) throw (std::out_of_range) {
-      self->erase(swig::getpos(self,i));
+    void __setitem__(difference_type i) throw (std::out_of_range, std::invalid_argument) {
+      swig::erase(self, swig::getpos(self, i));
     }
 #endif
+
+  }
+%enddef
+
+%define %swig_sequence_methods(Sequence...)
+  %swig_sequence_methods_non_resizable(%arg(Sequence))
+  %extend {
+    value_type pop() throw (std::out_of_range) {
+      if (self->size() == 0)
+	throw std::out_of_range("pop from empty container");
+      Sequence::value_type x = self->back();
+      self->pop_back();
+      return x;
+    }
 
     void append(const value_type& x) {
       self->push_back(x);
     }
- }
-
+  }
 %enddef
 
-%define %swig_sequence_methods_val(Sequence...)
+%define %swig_sequence_methods_non_resizable_val(Sequence...)
   %swig_sequence_methods_common(%arg(Sequence))
   %extend {
     value_type __getitem__(difference_type i) throw (std::out_of_range) {
@@ -901,16 +918,28 @@ namespace swig
 
 #if defined(SWIGPYTHON_BUILTIN)
     // This will be called through the mp_ass_subscript slot to delete an entry.
-    void __setitem__(difference_type i) throw (std::out_of_range) {
-      self->erase(swig::getpos(self,i));
+    void __setitem__(difference_type i) throw (std::out_of_range, std::invalid_argument) {
+      swig::erase(self, swig::getpos(self, i));
     }
 #endif
+  }
+%enddef
+
+%define %swig_sequence_methods_val(Sequence...)
+  %swig_sequence_methods_non_resizable_val(%arg(Sequence))
+  %extend {
+    value_type pop() throw (std::out_of_range) {
+      if (self->size() == 0)
+	throw std::out_of_range("pop from empty container");
+      Sequence::value_type x = self->back();
+      self->pop_back();
+      return x;
+    }
 
     void append(value_type x) {
       self->push_back(x);
     }
- }
-
+  }
 %enddef
 
 
@@ -943,8 +972,8 @@ namespace swig {
     static int asptr(PyObject *obj, sequence **seq) {
       if (obj == Py_None || SWIG_Python_GetSwigThis(obj)) {
 	sequence *p;
-	if (::SWIG_ConvertPtr(obj,(void**)&p,
-			      swig::type_info<sequence>(),0) == SWIG_OK) {
+	swig_type_info *descriptor = swig::type_info<sequence>();
+	if (descriptor && SWIG_IsOK(::SWIG_ConvertPtr(obj, (void **)&p, descriptor, 0))) {
 	  if (seq) *seq = p;
 	  return SWIG_OLDOBJ;
 	}
@@ -983,15 +1012,14 @@ namespace swig {
 %#ifdef SWIG_PYTHON_EXTRA_NATIVE_CONTAINERS
       swig_type_info *desc = swig::type_info<sequence>();
       if (desc && desc->clientdata) {
-	return SWIG_NewPointerObj(new sequence(seq), desc, SWIG_POINTER_OWN);
+	return SWIG_InternalNewPointerObj(new sequence(seq), desc, SWIG_POINTER_OWN);
       }
 %#endif
       size_type size = seq.size();
       if (size <= (size_type)INT_MAX) {
-	PyObject *obj = PyTuple_New((int)size);
-	int i = 0;
-	for (const_iterator it = seq.begin();
-	     it != seq.end(); ++it, ++i) {
+	PyObject *obj = PyTuple_New((Py_ssize_t)size);
+	Py_ssize_t i = 0;
+	for (const_iterator it = seq.begin(); it != seq.end(); ++it, ++i) {
 	  PyTuple_SetItem(obj,i,swig::from<value_type>(*it));
 	}
 	return obj;

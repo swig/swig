@@ -17,3 +17,6 @@ if defaults2.ret(10.0) != 10.0:
 
 if defaults2.ret() != -1.0:
     raise RuntimeError
+
+if defaults2.nodefault(-2) != -2:
+    raise RuntimeError

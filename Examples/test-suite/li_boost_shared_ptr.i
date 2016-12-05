@@ -44,7 +44,7 @@
 # define SWIG_SHARED_PTR_NAMESPACE SwigBoost
 #endif
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
@@ -341,6 +341,7 @@ template <class T1, class T2> struct Base {
   T2 baseVal2;
   Base(T1 t1, T2 t2) : baseVal1(t1*2), baseVal2(t2*2) {}
   virtual std::string getValue() const { return "Base<>"; };
+  virtual ~Base() {}
 };
 %}
 

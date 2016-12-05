@@ -661,6 +661,21 @@ PHPCN(generator); // As of PHP 5.5
 PHPCN(self);
 PHPCN(static);
 PHPCN(parent);
+/* http://php.net/manual/en/migration70.incompatible.php#migration70.incompatible.other.classes */
+PHPCN(bool); // As of PHP 7.0
+PHPCN(int); // As of PHP 7.0
+PHPCN(float); // As of PHP 7.0
+PHPCN(string); // As of PHP 7.0
+PHPCN(NULL); // As of PHP 7.0
+PHPCN(TRUE); // As of PHP 7.0
+PHPCN(FALSE); // As of PHP 7.0
+PHPCN(resource); // As of PHP 7.0 (currently works but reserved)
+PHPCN(object); // As of PHP 7.0 (currently works but reserved)
+PHPCN(mixed); // As of PHP 7.0 (currently works but reserved)
+PHPCN(numeric); // As of PHP 7.0 (currently works but reserved)
+/* http://php.net/manual/en/migration71.incompatible.php#migration71.incompatible.invalid-class-names */
+PHPCN(iterable); // As of PHP 7.1
+PHPCN(void); // As of PHP 7.1
 /* From extensions (which of these are actually predefined depends which
  * extensions are loaded by default). */
 PHPCN(xmlwriter);

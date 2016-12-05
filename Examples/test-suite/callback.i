@@ -1,10 +1,18 @@
 %module callback
 
+// Not specifying the callback name is only possible in Python.
+#ifdef SWIGPYTHON
 %callback(1) foo;
 %callback(1) foof;
 %callback(1) A::bar;
 %callback(1) A::foom;
-%callback("%s_Cb_Ptr") foo_T;  // old style, still works.
+#else
+%callback("%s") foo;
+%callback("%s") foof;
+%callback("%s") A::bar;
+%callback("%s") A::foom;
+#endif
+%callback("%(uppercase)s_Cb_Ptr") foo_T;  // this works in Python too
 
 %inline %{
 

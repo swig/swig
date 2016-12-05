@@ -47,6 +47,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/emit.cxx		\
 		Modules/go.cxx			\
 		Modules/guile.cxx		\
+		Modules/interface.cxx		\
 		Modules/java.cxx		\
 		Modules/javascript.cxx		\
 		Modules/lang.cxx		\
@@ -61,6 +62,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/overload.cxx		\
 		Modules/perl5.cxx		\
 		Modules/php.cxx			\
+		Modules/php5.cxx		\
 		Modules/pike.cxx		\
 		Modules/python.cxx		\
 		Modules/r.cxx			\

@@ -15,6 +15,7 @@
     class Base {
   public:
     virtual T bar() {return 1;}
+    virtual ~Base() {}
   };
 
   template <class T> 
@@ -29,7 +30,7 @@
 
 %}
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
@@ -66,7 +67,7 @@ INTEGER bar_getter(Base<INTEGER>& foo) {
 // 2nd test - templates with default template parameters
 #if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 
-%shared_ptr(Space::BaseDefault<short>)
+%shared_ptr(Space::BaseDefault<short, int>)
 %shared_ptr(Space::DerivedDefault<short>)
 %shared_ptr(Space::DerivedDefault2<short>)
 
@@ -79,6 +80,7 @@ template <class X, class T = int>
 class BaseDefault {
   public:
   virtual T bar2() {return 3;}
+  virtual ~BaseDefault() {}
 };
 
 template <class X, class T = int> 

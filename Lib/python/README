@@ -15,7 +15,6 @@ complex.i		C99 or C++ complex type
 cstring.i		Various forms of C character string handling
 cwstring.i		Various forms of C wchar_t string handling
 embed.i			embedding the Python interpreter in something else
-embed15.i		embedding the Python interpreter in something else
 file.i			FILE C type
 implicit.i		Allow the use of implicit C++ constructors
 wchar.i			wchar_t C type

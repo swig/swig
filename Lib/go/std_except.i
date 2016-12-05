@@ -7,6 +7,7 @@
  * ----------------------------------------------------------------------------- */
 
 %{
+#include <typeinfo>
 #include <stdexcept>
 %}
 
@@ -16,6 +17,7 @@ namespace std
   struct exception {};
 }
 
+%typemap(throws) std::bad_cast		%{_swig_gopanic($1.what());%}
 %typemap(throws) std::bad_exception	%{_swig_gopanic($1.what());%}
 %typemap(throws) std::domain_error	%{_swig_gopanic($1.what());%}
 %typemap(throws) std::exception		%{_swig_gopanic($1.what());%}

@@ -85,8 +85,6 @@ swig.spec
 # Build Artifacts
 .dirstamp
 CCache/ccache-swig
-CCache/ccache-swig.1
-CCache/web/ccache-man.html
 Lib/swigwarn.swg
 Source/CParse/parser.c
 Source/CParse/parser.h
@@ -96,7 +94,6 @@ swig
 Tools/javascript/javascript
 
 # Generated documentation
-Doc/Manual/CCache.html
 Doc/Manual/SWIGDocumentation.html
 Doc/Manual/SWIGDocumentation.pdf
 Doc/Manual/*.book
@@ -113,6 +110,10 @@ Examples/scratch
 
 # Out of source tree build directories
 *build*/
+
+# errors test-suite
+Examples/test-suite/errors/*.newerr
+Examples/test-suite/errors/*.py
 
 ########## Language specific files ##########
 
@@ -132,6 +133,14 @@ Examples/d/**/runme
 # Go
 *.[5689]
 *_gc.c
+Examples/test-suite/go/*.go
+!Examples/test-suite/go/*runme.go
+Examples/test-suite/go/*runme
+Examples/test-suite/go/gopath
+Examples/test-suite/go/testdir
+Examples/go/*/gopath
+Examples/go/*/example.go
+Examples/go/*/runme
 
 # Guile
 Examples/guile/*/my-guile
