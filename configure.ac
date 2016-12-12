@@ -1391,6 +1391,7 @@ fi
 # Turned off due to spurious warnings in later versions of openjdk-1.8
 # JAVAFLAGS=-Xcheck:jni
 
+AC_SUBST(JAVA_HOME)
 AC_SUBST(JAVA)
 AC_SUBST(JAVAC)
 AC_SUBST(JAVAINC)

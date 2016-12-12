@@ -6,8 +6,10 @@ LANGUAGE     = java
 JAVA         = @JAVA@
 JAVAC        = @JAVAC@
 JAVAFLAGS    = @JAVAFLAGS@
-JAVA_CLASSPATH_SEP := @JAVA_CLASSPATH_SEP@
+JAVA_CLASSPATH_SEP = @JAVA_CLASSPATH_SEP@
 SCRIPTSUFFIX = _runme.java
+
+JAVA_HOME ?= @JAVA_HOME@
 
 srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
