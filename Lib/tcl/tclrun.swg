@@ -225,7 +225,7 @@ SWIG_Tcl_ConvertPacked(Tcl_Interp *SWIGUNUSEDPARM(interp) , Tcl_Obj *obj, void *
 
 /* Take a pointer and convert it to a string */
 SWIGRUNTIME void
-SWIG_Tcl_MakePtr(char *c, void *ptr, swig_type_info *ty, int flags) {
+SWIG_Tcl_MakePtr(char *c, void *ptr, swig_type_info *ty, int SWIGUNUSEDPARM(flags)) {
   if (ptr) {
     *(c++) = '_';
     c = SWIG_PackData(c,&ptr,sizeof(void *));
@@ -233,7 +233,6 @@ SWIG_Tcl_MakePtr(char *c, void *ptr, swig_type_info *ty, int flags) {
   } else {
     strcpy(c,(char *)"NULL");
   }
-  flags = 0;
 }
 
 /* Create a new pointer object */
