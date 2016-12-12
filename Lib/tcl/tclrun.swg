@@ -231,7 +231,7 @@ SWIG_Tcl_MakePtr(char *c, void *ptr, swig_type_info *ty, int SWIGUNUSEDPARM(flag
     c = SWIG_PackData(c,&ptr,sizeof(void *));
     strcpy(c,ty->name);
   } else {
-    strcpy(c,(char *)"NULL");
+    strcpy(c,"NULL");
   }
 }
 
