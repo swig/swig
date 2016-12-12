@@ -293,7 +293,8 @@ SWIG_Tcl_SetModule(Tcl_Interp *interp, swig_module_info *module) {
 SWIGRUNTIME void
 SWIG_Tcl_ObjectDelete(ClientData clientData) {
   swig_instance *si = (swig_instance *) clientData;
-  if ((si) && (si->destroy) && (SWIG_Disown(si->thisvalue))) {
+  if (!si) return;
+  if (si->destroy && SWIG_Disown(si->thisvalue)) {
     if (si->classptr->destructor) {
       (si->classptr->destructor)(si->thisvalue);
     }
