@@ -343,7 +343,6 @@ SWIG_Tcl_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   }
   cls_stack[cls_stack_top] = inst->classptr;
   cls_stack_bi[cls_stack_top] = -1;
-  cls = inst->classptr;
   while (1) {
     Tcl_HashEntry* hashentry;
     bi = cls_stack_bi[cls_stack_top];
