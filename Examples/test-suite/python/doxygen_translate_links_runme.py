@@ -1,14 +1,14 @@
 #!/usr/bin/python
 
 import doxygen_translate_links
+import inspect
 import string
 import sys
 import commentVerifier
 
 
-commentVerifier.check(doxygen_translate_links.function.__doc__,
-r"""
-Testing typenames converting in @ link
+commentVerifier.check(inspect.getdoc(doxygen_translate_links.function),
+r"""Testing typenames converting in @ link
 
 superFunc(int,std::string)
 Test for std_string member
@@ -37,5 +37,4 @@ some failing params:
 
 See also: superFunc()
 See also: superFunc()
-See also: superFunc()
-""")
+See also: superFunc()""")

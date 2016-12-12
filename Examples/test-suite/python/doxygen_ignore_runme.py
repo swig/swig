@@ -1,20 +1,19 @@
 #!/usr/bin/python
 
 import doxygen_ignore
+import inspect
 import commentVerifier
 
-commentVerifier.check(doxygen_ignore.func.__doc__,
-    r"""
-    A contrived example of ignoring too many commands in one comment.
+commentVerifier.check(inspect.getdoc(doxygen_ignore.func),
+    """\
+A contrived example of ignoring too many commands in one comment.
 
 
 
 
 
 
-    This is specific to **Python**.
+This is specific to **Python**.
 
 
-    Command ignored, but anything here is still included.
-
-    """)
+Command ignored, but anything here is still included.""")

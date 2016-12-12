@@ -1,14 +1,14 @@
 #!/usr/bin/python
 
 import doxygen_translate
+import inspect
 import string
 import sys
 import commentVerifier
 
 
-commentVerifier.check(doxygen_translate.function.__doc__,
-r"""
-*Hello*
+commentVerifier.check(inspect.getdoc(doxygen_translate.function),
+r"""*Hello*
 
 * some list item
 
@@ -140,9 +140,8 @@ And here goes simple text"""
 
 
 
-commentVerifier.check(doxygen_translate.htmlFunction.__doc__,
-r"""
-Test for html tags. See Doxygen doc for list of tags recognized by Doxygen.
+commentVerifier.check(inspect.getdoc(doxygen_translate.htmlFunction),
+r"""Test for html tags. See Doxygen doc for list of tags recognized by Doxygen.
 
 This is link ("http://acme.com/index.html")
 **bold**
@@ -222,13 +221,11 @@ Starts a piece of text displayed in a typewriter font.
 *Starts a piece of text displayed in an italic font.*
 
 
-<u>underlined \b bold text - doxy commands are ignored inside 'htmlonly' section </u>
-""")
+<u>underlined \b bold text - doxy commands are ignored inside 'htmlonly' section </u>""")
 
 
-commentVerifier.check(doxygen_translate.htmlTableFunction.__doc__,
-r"""
-The meaning of flags:
+commentVerifier.check(inspect.getdoc(doxygen_translate.htmlTableFunction),
+r"""The meaning of flags:
 
 :type byFlags: int
 :param byFlags: bits marking required items:
@@ -243,9 +240,8 @@ The meaning of flags:
       ``htmlTable...`` functions.""")
 
 
-commentVerifier.check(doxygen_translate.htmlEntitiesFunction.__doc__,
-r"""
-All entities are treated as commands (C)  TM (R)
+commentVerifier.check(inspect.getdoc(doxygen_translate.htmlEntitiesFunction),
+r"""All entities are treated as commands (C)  TM (R)
 should work also<in text
 >
 &

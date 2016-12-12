@@ -1,13 +1,13 @@
 #!/usr/bin/python
 
 import doxygen_basic_translate
+import inspect
 import string
 import sys
 import commentVerifier
 
-commentVerifier.check(doxygen_basic_translate.function.__doc__,
-    """
-
+commentVerifier.check(inspect.getdoc(doxygen_basic_translate.function),
+    """\
 Brief description.
 
 The comment text.
@@ -19,12 +19,12 @@ Author: Some author
 
 See also: function2"""
 )
-commentVerifier.check(doxygen_basic_translate.function2.__doc__,
-    """
+commentVerifier.check(inspect.getdoc(doxygen_basic_translate.function2),
+    """\
 A test of a very very very very very very very very very very very very very very very very
 very very very very very long comment string."""
 )
-commentVerifier.check(doxygen_basic_translate.function3.__doc__,
+commentVerifier.check(inspect.getdoc(doxygen_basic_translate.function3),
     """*Overload 1:*
 
 A test for overloaded functions
@@ -37,8 +37,8 @@ This is function **one**
 A test for overloaded functions
 This is function **two**"""
 )
-commentVerifier.check(doxygen_basic_translate.function4.__doc__,
-    """
+commentVerifier.check(inspect.getdoc(doxygen_basic_translate.function4),
+    """\
 A test of some mixed tag usage
 If: CONDITION {
 This *code* fragment shows us something .
@@ -56,31 +56,31 @@ Warning: This may not work as expected
 
 }"""
 )
-commentVerifier.check(doxygen_basic_translate.function5.__doc__,
-    """ This is a post comment."""
+commentVerifier.check(inspect.getdoc(doxygen_basic_translate.function5),
+    """This is a post comment."""
 )
-commentVerifier.check(doxygen_basic_translate.function6.__doc__,
-    """
+commentVerifier.check(inspect.getdoc(doxygen_basic_translate.function6),
+    """\
 Test for default args
 :type a: int
 :param a: Some parameter, default is 42"""
 )
-commentVerifier.check(doxygen_basic_translate.function7.__doc__,
-    """
+commentVerifier.check(inspect.getdoc(doxygen_basic_translate.function7),
+    """\
 Test for a parameter with difficult type
 (mostly for python)
 :type a: :py:class:`Shape`
 :param a: Very strange param"""
 )
 
-commentVerifier.check(doxygen_basic_translate.Atan2.__doc__,
-    """
-    Multiple parameters test.
+commentVerifier.check(inspect.getdoc(doxygen_basic_translate.Atan2),
+    """\
+Multiple parameters test.
 
-    :type y: float
-    :param y: Vertical coordinate.
-    :type x: float
-    :param x: Horizontal coordinate.
-    :rtype: float
-    :return: Arc tangent of ``y/x``."""
+:type y: float
+:param y: Vertical coordinate.
+:type x: float
+:param x: Horizontal coordinate.
+:rtype: float
+:return: Arc tangent of ``y/x``."""
 )

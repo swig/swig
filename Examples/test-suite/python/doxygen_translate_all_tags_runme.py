@@ -1,14 +1,14 @@
 #!/usr/bin/python
 
 import doxygen_translate_all_tags
+import inspect
 import string
 import sys
 import commentVerifier
 
 
-commentVerifier.check(doxygen_translate_all_tags.func01.__doc__,
-r"""
-*Hello*
+commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func01),
+r"""*Hello*
 
 
 
@@ -39,12 +39,10 @@ Not everything works right now...
 
 .. code-block:: c++
 
-     some test code
-""")
+     some test code""")
 
-commentVerifier.check(doxygen_translate_all_tags.func02.__doc__,
-r"""
-Conditional comment: SOMECONDITION
+commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func02),
+r"""Conditional comment: SOMECONDITION
 Some conditional comment
 End of conditional comment.
 
@@ -67,9 +65,8 @@ Deprecated: Now use another function
 This is very large
 and detailed description of some thing""")
 
-commentVerifier.check(doxygen_translate_all_tags.func03.__doc__,
-r"""
-Comment for **func03()**.
+commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func03),
+r"""Comment for **func03()**.
 
 
 
@@ -88,10 +85,8 @@ emphazedWord
 Example: someFile.txt
 Some details on using the example""")
 
-commentVerifier.check(doxygen_translate_all_tags.func04.__doc__,
-r"""
-
-:raises: SuperError
+commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func04),
+r""":raises: SuperError
 
 
 
@@ -119,12 +114,10 @@ r"""
 
 
 
-This will only appear in hmtl
-""")
+This will only appear in hmtl""")
 
-commentVerifier.check(doxygen_translate_all_tags.func05.__doc__,
-r"""
-If: ANOTHERCONDITION {
+commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func05),
+r"""If: ANOTHERCONDITION {
   First part of comment
   If: SECONDCONDITION {
     Nested condition text
@@ -157,9 +150,8 @@ Image: testImage.bmp("Hello, world!")
 Some text
 describing invariant.""")
 
-commentVerifier.check(doxygen_translate_all_tags.func06.__doc__,
-r"""
-Comment for **func06()**.
+commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func06),
+r"""Comment for **func06()**.
 
 
 
@@ -181,23 +173,10 @@ someMember Some description follows
 
 
 
-This will only appear in man
+This will only appear in man""")
 
-
-
-
-
-
-
-
-
-
-
-""")
-
-commentVerifier.check(doxygen_translate_all_tags.func07.__doc__,
-r"""
-Comment for **func07()**.
+commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func07),
+r"""Comment for **func07()**.
 
 
 
@@ -223,21 +202,10 @@ Maybe even multiline
 
 
 :type a: int
-:param a: the first param
+:param a: the first param""")
 
-
-
-
-""")
-
-commentVerifier.check(doxygen_translate_all_tags.func08.__doc__,
-r"""
-
-
-
-
-
-Text after anchor.
+commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func08),
+r"""Text after anchor.
 
 
 
@@ -269,13 +237,10 @@ Another remarks section
 :return: it
 
 :rtype: void
-:return: may return
-""")
+:return: may return""")
 
-commentVerifier.check(doxygen_translate_all_tags.func09.__doc__,
-r"""
-
-This will only appear in RTF
+commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func09),
+r"""This will only appear in RTF
 
 
 See also: someOtherMethod
@@ -309,9 +274,8 @@ Since: version 0.0.0.1
 
 :raises: RuntimeError""")
 
-commentVerifier.check(doxygen_translate_all_tags.func10.__doc__,
-r"""
-TODO: Some very important task
+commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func10),
+r"""TODO: Some very important task
 
 :type b: float
 :param b: B is mentioned again...
