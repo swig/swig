@@ -286,7 +286,7 @@ SWIG_Tcl_SetModule(Tcl_Interp *interp, swig_module_info *module) {
 }
 
 /* -----------------------------------------------------------------------------*
- *  Object auxiliars
+ *  Object auxiliaries
  * -----------------------------------------------------------------------------*/
 
 
