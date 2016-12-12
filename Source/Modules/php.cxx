@@ -2641,7 +2641,7 @@ done:
       // variable named after the result of Swig_cresult_name(), so that can't
       // be a zval - make it a pointer to one instead.
       Printf(w->code, "zval swig_zval_result, swig_funcname;\n", Swig_cresult_name());
-      Printf(w->code, "zval *%s = &swig_zval_result;\n", Swig_cresult_name());
+      Printf(w->code, "zval * SWIGUNUSED %s = &swig_zval_result;\n", Swig_cresult_name());
       const char * funcname = GetChar(n, "sym:name");
       Printf(w->code, "ZVAL_STRINGL(&swig_funcname, \"%s\", %d);\n", funcname, strlen(funcname));
 
