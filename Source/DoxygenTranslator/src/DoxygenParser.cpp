@@ -1400,7 +1400,7 @@ size_t DoxygenParser::processNormalComment(size_t pos, const std::string &line)
   default:
     m_tokenListIt = m_tokenList.end();
     printListError(WARN_DOXYGEN_COMMAND_ERROR,
-        "Unknown special character: " + line[pos]);
+        std::string("Unknown special character: ") + line[pos]);
   }
 
   return pos;
