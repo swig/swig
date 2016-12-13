@@ -3288,7 +3288,7 @@ public:
       }
 
       /* declare Ruby return value */
-      String *value_result = NewStringf("VALUE %s", Swig_cresult_name());
+      String *value_result = NewStringf("VALUE SWIGUNUSED %s", Swig_cresult_name());
       Wrapper_add_local(w, Swig_cresult_name(), value_result);
       Delete(value_result);
 
