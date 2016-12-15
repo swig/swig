@@ -1147,12 +1147,20 @@ deleting all the Foo pointers it contains at some point.
 
 <p>
 With directors routing method calls to PHP, and proxies routing them
-to C++, the handling of exceptions is an important concern. By default, the
-directors ignore exceptions that occur during method calls that are
-resolved in PHP. To handle such exceptions correctly, it is necessary
-to temporarily translate them into C++ exceptions. This can be done with
-the %feature("director:except") directive. The following code should
-suffice in most cases:
+to C++, the handling of exceptions is an important concern. By default, an
+exception thrown in PHP code called from C++ causes the PHP interpreter
+to flag that an exception is thrown, then return passes to C++ as if
+the PHP function had returned <code>Null</code>.  Assuming the directorout
+typemaps handle this (those SWIG defines by default should) then once
+control returns to PHP code again, the PHP exception will actually propagate.
+</p>
+
+<p>
+Sometimes this control flow is problematic, and you want to skip any
+handling in the C++ code.  To achieve this, it is necessary
+to temporarily translate the PHP exception into a C++ exception. This can be
+achieved using the %feature("director:except") directive. The following code
+should suffice in most cases:
 </p>
 
 <div class="code">
