@@ -15,4 +15,10 @@ checkequal(foo_addr, expected_foo_addr, "SWIG_this(pfoo_get())");
 pfoo = SWIG_ptr(foo_addr);
 checkequal(equalFooPointer(pfoo), %T, "equalFooPointer(pfoo)");
 
+// Test conversion of mlist type pointers
+stA = new_structA();
+assert_checkequal(typeof(stA), "_p_structA");
+p = SWIG_ptr(stA);
+assert_checkequal(typeof(p), "pointer");
+
 exec("swigtest.quit", -1);
