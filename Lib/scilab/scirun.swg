@@ -251,8 +251,7 @@ SwigScilabPtrToObject(void *pvApiCtx, int iVar, void **pvObj, swig_type_info *de
     void *pvTypeinfo = NULL;
 
     sciErr = getListItemNumber(pvApiCtx, piAddrVar, &iItemCount);
-    if (sciErr.iErr)
-    {
+    if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
@@ -334,7 +333,6 @@ SwigScilabPtrFromObject(void *pvApiCtx, int iVarOut, void *pvObj, swig_type_info
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
-
 
     sciErr = createPointerInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piMListAddr, 3, pvObj);
     if (sciErr.iErr) {
