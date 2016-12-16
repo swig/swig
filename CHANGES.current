@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-12-19: olly
+	    Attempt to fix isfinite() checks to work with all C++11 compilers.
+	    Fixes https://github.com/swig/swig/issues/615 and https://github.com/swig/swig/pull/788
+
 2016-12-18: ezralanglois 
             [Python, Ruby, Octave] Memory leak fix on error in std::pair wrappers.
             Issue https://github.com/swig/swig/pull/851
