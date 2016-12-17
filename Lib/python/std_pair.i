@@ -68,10 +68,18 @@
 	  value_type *vp = %new_instance(std::pair<T,U>);
 	  T *pfirst = &(vp->first);
 	  int res1 = swig::asval((PyObject*)first, pfirst);
-	  if (!SWIG_IsOK(res1)) return res1;
+	  if (!SWIG_IsOK(res1))
+	  {
+	    %delete(vp);
+	    return res1;
+	  }
 	  U *psecond = &(vp->second);
 	  int res2 = swig::asval((PyObject*)second, psecond);
-	  if (!SWIG_IsOK(res2)) return res2;
+	  if (!SWIG_IsOK(res2))
+	  {
+	    %delete(vp);
+	    return res2;
+	  }
 	  *val = vp;
 	  return SWIG_AddNewMask(res1 > res2 ? res1 : res2);
 	} else {
