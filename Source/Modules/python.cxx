@@ -2542,7 +2542,7 @@ public:
     if (!fastunpack) {
       Wrapper_add_local(f, "ii", "Py_ssize_t ii");
       if (maxargs - (add_self ? 1 : 0) > 0)
-	Append(f->code, "if (!PyTuple_Check(args)) SWIG_fail;\n");
+	Append(f->code, "if (args && !PyTuple_Check(args)) SWIG_fail;\n");
       Append(f->code, "argc = args ? PyObject_Length(args) : 0;\n");
       if (add_self)
 	Append(f->code, "argv[0] = self;\n");
