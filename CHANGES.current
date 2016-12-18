@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-12-18: wsfulton
+            Zero initialize arrays when using %array_class and %array_functions.
+
 2016-12-18: t-ikegami
             [Python] Fix https://github.com/swig/swig/issues/446
             Python %array_class of carrays.i failed with -builtin option.
