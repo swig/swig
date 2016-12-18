@@ -43,7 +43,7 @@
 
     %new_instance(Type)             Allocate a new instance of given Type
     %new_copy(value,Type)           Allocate and initialize a new instance with 'value'
-    %new_array(size,Type)           Allocate a new array with given size and Type
+    %new_array(size,Type)           Allocate a new array with given size and Type and zero initialize
     %new_copy_array(cptr,size,Type) Allocate and initialize a new array from 'cptr'
     %delete(cptr)                   Delete an instance
     %delete_array(cptr)             Delete an array
@@ -159,15 +159,15 @@ nocppval
 #if defined(__cplusplus)
 # define %new_instance(Type...)             (new Type)
 # define %new_copy(val,Type...)             (new Type(%static_cast(val, const Type&)))
-# define %new_array(size,Type...)           (new Type[size])
-# define %new_copy_array(ptr,size,Type...)  %reinterpret_cast(memcpy(%new_array(size,Type), ptr, sizeof(Type)*(size)), Type*)
+# define %new_array(size,Type...)           (new Type[size]())
+# define %new_copy_array(ptr,size,Type...)  %reinterpret_cast(memcpy(new Type[size], ptr, sizeof(Type)*(size)), Type*)
 # define %delete(cptr)                      delete cptr
 # define %delete_array(cptr)                delete[] cptr
 #else /* C case */
 # define %new_instance(Type...)             (Type *)malloc(sizeof(Type))
 # define %new_copy(val,Type...)             (Type *)memcpy(%new_instance(Type),&val,sizeof(Type))
-# define %new_array(size,Type...)           (Type *)malloc((size)*sizeof(Type))
-# define %new_copy_array(ptr,size,Type...)  (Type *)memcpy(%new_array(size,Type), ptr, sizeof(Type)*(size))
+# define %new_array(size,Type...)           (Type *)calloc(size, sizeof(Type))
+# define %new_copy_array(ptr,size,Type...)  (Type *)memcpy(malloc((size)*sizeof(Type)), ptr, sizeof(Type)*(size))
 # define %delete(cptr)                      free((char*)cptr)
 # define %delete_array(cptr)                free((char*)cptr)
 #endif /* __cplusplus */

@@ -10,6 +10,10 @@ if d[5] + d[0] != 17:
 
 shorts = shortArray(5)
 
+sum = sum_array(shorts)
+if sum != 0:
+    raise RuntimeError("incorrect zero sum, got: " + str(sum))
+
 for i in range(5):
     shorts[i] = i
 
