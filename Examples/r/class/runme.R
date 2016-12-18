@@ -31,6 +31,14 @@ print("Here is their current position:")
 sprintf("    Circle = (%f, %f)", circle$x,circle$y)
 sprintf("    Square = (%f, %f)", square$x,square$y)
 
+c2 <- Circle(1, 5, 15)
+c1 <- circle
+c1$move(1, 5)
+print(Circle_MemberEq(c1, c2))
+print(Circle_MemberNotEq(c1, c2))
+
+print(c1$MemberEq(c2))
+
 # ----- Call some methods -----
 
 print ("Here are some properties of the shapes:")
