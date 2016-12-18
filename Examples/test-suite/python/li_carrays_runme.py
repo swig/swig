@@ -7,3 +7,11 @@ d[5] = d[0] + 3
 
 if d[5] + d[0] != 17:
     raise RuntimeError
+
+shorts = shortArray(5)
+for i in range(5):
+    shorts[i] = i
+
+sum = sum_array(shorts)
+if sum != 0+1+2+3+4:
+    raise RuntimeError("incorrect sum, got: " + str(sum))
