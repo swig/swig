@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-12-18: ezralanglois 
+            [Python, Ruby, Octave] Memory leak fix on error in std::pair wrappers.
+            Issue https://github.com/swig/swig/pull/851
+
 2016-12-18: wsfulton
             Zero initialize arrays when using %array_class and %array_functions.
 
