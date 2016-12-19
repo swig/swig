@@ -122,28 +122,36 @@
 }
 %enddef
 
-/* Scilab equivalent for C integers can be sci_ints or sci_matrix */
-%define %scilab_typecheck_integer(PRECEDENCE, INTTYPE, TYPE)
-%typecheck(PRECEDENCE) TYPE {
+%fragment("SWIG_Check_SciDoubleOrInt", "header") {
+SWIGINTERN int
+SWIG_Check_SciDoubleOrInt(void *pvApiCtx, SwigSciObject iVar, int iIntegerType) {
   int *piAddrVar = NULL;
-  SciErr sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
+  int ret = 0;
+  SciErr sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
-  $1 = isIntegerType(pvApiCtx, piAddrVar);
-  if ($1 == 1) {
+  ret = isIntegerType(pvApiCtx, piAddrVar);
+  if (ret == 1) {
     int iPrec = 0;
     sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
-    $1 = (iPrec == INTTYPE) ? 1 : 0;
+    ret = (iPrec == iIntegerType) ? 1 : 0;
   }
   else {
-    $1 = isDoubleType(pvApiCtx, piAddrVar);
+    ret = isDoubleType(pvApiCtx, piAddrVar);
   }
+}
+}
+
+/* Scilab equivalent for C integers can be sci_intXX or sci_matrix */
+%define %scilab_typecheck_integer(PRECEDENCE, INTTYPE, TYPE)
+%typecheck(PRECEDENCE, fragment="SWIG_Check_SciDoubleOrInt") TYPE {
+  $1 = SWIG_Check_SciDoubleOrInt(pvApiCtx, $input, INTTYPE);
 }
 %enddef
 
