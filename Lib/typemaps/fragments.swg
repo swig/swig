@@ -175,9 +175,12 @@
 /* Use a template so that this works whether isfinite() is std::isfinite() or
  * in the global namespace.  The reality seems to vary between compiler
  * versions.
+ *
+ * Make sure namespace std exists to avoid compiler warnings.
  */
+namespace std { }
 template<typename T>
-int SWIG_isfinite_func(T x) {
+inline int SWIG_isfinite_func(T x) {
     using namespace std;
     return isfinite(x);
 }
