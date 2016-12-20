@@ -181,8 +181,8 @@
 namespace std { }
 template<typename T>
 inline int SWIG_isfinite_func(T x) {
-    using namespace std;
-    return isfinite(x);
+  using namespace std;
+  return isfinite(x);
 }
 #  define SWIG_isfinite(X) (SWIG_isfinite_func(X))
 # elif defined(_MSC_VER)
