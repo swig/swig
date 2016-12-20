@@ -130,7 +130,7 @@ SWIG_Check_SciDoubleOrInt(void *pvApiCtx, SwigSciObject iVar, int iIntegerType) 
   SciErr sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
-    return SWIG_ERROR;
+    return 0;
   }
   ret = isIntegerType(pvApiCtx, piAddrVar);
   if (ret == 1) {
@@ -138,13 +138,14 @@ SWIG_Check_SciDoubleOrInt(void *pvApiCtx, SwigSciObject iVar, int iIntegerType) 
     sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
-      return SWIG_ERROR;
+      return 0;
     }
     ret = (iPrec == iIntegerType) ? 1 : 0;
   }
   else {
     ret = isDoubleType(pvApiCtx, piAddrVar);
   }
+  return ret;
 }
 }
 
