@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-12-20: wsfulton
+            %namewarn unnecessarily caused keyword warnings for non-instantiated template classes
+            and duplicate warnings for instantiated template classes when keywords were used.
+            Issue https://github.com/swig/swig/issues/845
+
 2016-12-18: ezralanglois 
             [Python, Ruby, Octave] Memory leak fix on error in std::pair wrappers.
             Issue https://github.com/swig/swig/pull/851
