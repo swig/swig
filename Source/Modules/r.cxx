@@ -984,8 +984,7 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
     
     String *className = Getitem(el, 0);
     char *ptr = Char(key);
-    ptr = &ptr[Len(key) - 3];
-    int isSet = strcmp(ptr, "set") == 0;
+    int isSet = Strncmp(ptr, "set", 3) == 0;
     
     //        OutputArrayMethod(className, el, out);        
     OutputMemberReferenceMethod(className, isSet, el, out);
@@ -1036,9 +1035,8 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
     
     String *dup = Getitem(el, j + 1);
     char *ptr = Char(dup);
-    ptr = &ptr[Len(dup) - 3];
     
-    if (!strcmp(ptr, "get"))
+    if (!Strncmp(ptr, "get", 3))
       varaccessor++;
 
     String *pitem;
@@ -1069,9 +1067,8 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
       String *item = Getitem(el, j);
       String *dup = Getitem(el, j + 1);
       char *ptr = Char(dup);
-      ptr = &ptr[Len(dup) - 3];
       
-      if (!strcmp(ptr, "get")) {
+      if (!Strncmp(ptr, "get", 3)) {
 	Printf(f->code, "%s'%s'", first ? "" : ", ", item);
 	first = 0;
       }
@@ -1273,7 +1270,7 @@ void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
   if(isSet < 0) {
     int n = Len(name);
     char *ptr = Char(name);
-    isSet = Strcmp(NewString(&ptr[n-3]), "set") == 0;
+    isSet = Strncmp(NewString(ptr), "set", 3) == 0;
   }
   
   List *l = isSet ? class_member_set_functions : class_member_functions;
@@ -1753,7 +1750,7 @@ int R::functionWrapper(Node *n) {
     
     int n = Len(iname);
     char *ptr = Char(iname);
-    bool isSet(Strcmp(NewString(&ptr[n-3]), "set") == 0);
+    bool isSet(Strncmp(NewString(ptr), "set", 3) == 0);
     
     
     String *tmp = NewString("");
