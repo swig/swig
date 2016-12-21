@@ -9,6 +9,8 @@ Version 3.0.11 (in progress)
             Changed generation of functions so that only functions
             that end in _set generate accessor functions rather than
 	    looking for "set"
+	    Change generation of operators to not have underscores
+	    to start in R
 
 2016-12-21: olly
 	    Fix isfinite() checks to work with all C++11 compilers.
