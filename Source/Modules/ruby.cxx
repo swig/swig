@@ -1419,9 +1419,8 @@ public:
     case DESTRUCTOR:
     case CLASS_CONST:
     case STATIC_VAR:
-      assert(false);		// Should not have gotten here for these types
     default:
-      assert(false);
+      assert(false);		// Should not have gotten here for these types
     }
 
     defineAliases(n, iname);
