@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-12-21: joequamt
+            Changed generation of functions so that only functions
+            that end in _set generate accessor functions rather than
+	    looking for "set"
+
 2016-12-21: olly
 	    Fix isfinite() checks to work with all C++11 compilers.
 	    Fixes https://github.com/swig/swig/issues/615, https://github.com/swig/swig/pull/788
