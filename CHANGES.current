@@ -8,9 +8,9 @@ Version 3.0.11 (in progress)
 2016-12-21: joequamt
             Changed generation of functions so that only functions
             that end in _set generate accessor functions rather than
-	    looking for "set"
+	    looking for "set".
 	    Change generation of operators to not have underscores
-	    to start in R
+	    to start in R. Users need to provide custom names for these operator overloads.
 
 2016-12-21: olly
 	    Fix isfinite() checks to work with all C++11 compilers.
