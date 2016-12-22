@@ -20,12 +20,8 @@ private:
   double radius;
 public:
   Circle(double r) : radius(r) { }
-  Circle(double xx, double yy, double rr);
   virtual double area();
   virtual double perimeter();
-
-  bool operator==(const Circle & other);
-  bool operator!=(const Circle & other);
 };
 
 class Square : public Shape {
@@ -35,7 +31,4 @@ public:
   Square(double w) : width(w) { }
   virtual double area();
   virtual double perimeter();
-
-  bool operator==(const Square & other);
-  bool operator!=(const Square & other);
 };

@@ -19,35 +19,8 @@ double Circle::perimeter() {
   return 2*M_PI*radius;
 }
 
-Circle::Circle(double xx, double yy, double rr)
-  : radius(rr)
-{
-  x = xx;
-  y = yy;
-}
-
-bool Circle::operator==(const Circle & other)
-{
-  return x == other.x && y == other.y && radius == other.radius;
-}
-
-bool Circle::operator!=(const Circle & other)
-{
-  return !operator==(other);
-}
-
 double Square::area() {
   return width*width;
-}
-
-bool Square::operator==(const Square & other)
-{
-  return x == other.x && y == other.y && width == other.width;
-}
-
-bool Square::operator!=(const Square & other)
-{
-  return !operator==(other);
 }
 
 double Square::perimeter() {
