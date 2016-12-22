@@ -91,6 +91,26 @@ Version 3.0.11 (in progress)
               };
               %template(Xint) X<int>;
 
+            This also fixes %rename override of global %rename for templates. For example:
+
+              // Global rename to make all functions start with a lower case letter
+              %rename("%(firstlowercase)s", %$isfunction ) "";
+              %rename(woohoo) W::Woo; // fix now overrides above %rename
+
+              template<typename T> struct W {
+                W Woo();
+                ...
+              };
+              %template(Wint) W<int>;
+
+            The above also introduces a possibly unexpected change. Many of the STL containers
+            provided by SWIG use %rename to rename some methods, eg in std::vector, push_back
+            is renamed to add in Java. Previously this intended rename did not happen when using
+            using global %rename rules and the method would remain as push_back, but is now
+            renamed to add. Some more info in issue https://github.com/swig/swig/issues/856.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2016-11-26: m7thon
             [Python] Issue #709 - improved wrapping of division operators
             'from __future__ import division' now works in Python 2 whether or not the
