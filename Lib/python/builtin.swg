@@ -13,6 +13,11 @@ SWIGINTERN Py_hash_t
 SWIG_PyNumber_AsPyHash(PyObject *obj) {
   Py_hash_t result = -1;
 #if PY_VERSION_HEX < 0x03020000
+#if PY_VERSION_HEX < 0x03000000
+  if (PyInt_Check(obj))
+    result = PyInt_AsLong(obj);
+  else
+#endif
   if (PyLong_Check(obj))
     result = PyLong_AsLong(obj);
 #else
@@ -21,7 +26,7 @@ SWIG_PyNumber_AsPyHash(PyObject *obj) {
 #endif
   else
     PyErr_Format(PyExc_TypeError, "Wrong type for hash function");
-  return result;
+  return PyErr_Occurred() ? -1 : result;
 }
 
 SWIGINTERN int
