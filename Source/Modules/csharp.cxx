@@ -3917,8 +3917,12 @@ public:
       }
 
       Printf(callback_def, "  private %s SwigDirector%s(", tm, overloaded_name);
-      if (!ignored_method)
-	Printf(director_delegate_definitions, "  public delegate %s", tm);
+      if (!ignored_method) {
+	const String *csdirectordelegatemodifiers = Getattr(n, "feature:csdirectordelegatemodifiers");
+	String *modifiers = (csdirectordelegatemodifiers ? NewStringf("%s%s", csdirectordelegatemodifiers, Len(csdirectordelegatemodifiers) > 0 ? " " : "") : NewStringf("public "));
+	Printf(director_delegate_definitions, "  %sdelegate %s", modifiers, tm);
+	Delete(modifiers);
+      }
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s\n", SwigType_str(returntype, 0));
     }

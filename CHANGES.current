@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-12-24: wsfulton
+            [C#] Add %feature("csdirectordelegatemodifiers") to enable customization
+            of the delegate access modifiers generated in director classes.
+            Fixes issue https://github.com/swig/swig/issues/748
+
 2016-12-23: wsfulton
             [Python] Fix builtin "python:slot" feature failing for tp_hash when using
             hashfunc closure with a "Wrong type for hash function" for Python 2.

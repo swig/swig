@@ -1695,6 +1695,31 @@ void SwigDirector_Base::BaseBoolMethod(Base const &amp;b, bool flag) {
 </pre>
 </div>
 
+<p>
+The delegates from the above example are <tt>public</tt> by default:
+</p>
+
+<div class="code">
+<pre>
+  public delegate uint SwigDelegateBase_0(uint x);
+  public delegate void SwigDelegateBase_1(global::System.IntPtr b, bool flag);
+</pre>
+</div>
+
+<p>
+These can be changed if desired via the <tt>csdirectordelegatemodifiers</tt>
+<a href="Customization.html#Customization_features">%feature directive</a>.
+For example, using <tt>%feature("csdirectordelegatemodifiers") "internal"</tt>
+before SWIG parses the Base class will change all the delegates to <tt>internal</tt>:
+</p>
+
+<div class="code">
+<pre>
+  internal delegate uint SwigDelegateBase_0(uint x);
+  internal delegate void SwigDelegateBase_1(global::System.IntPtr b, bool flag);
+</pre>
+</div>
+
 <H3><a name="CSharp_director_caveats">20.6.3 Director caveats</a></H3>
 
 
