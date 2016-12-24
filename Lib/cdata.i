@@ -71,8 +71,6 @@ static jbyteArray SWIG_JavaArrayOutCDATA(JNIEnv *jenv, char *result, jsize sz) {
     return $jnicall;
   }
 
-#else
-%echo "cdata.i module not supported."
 #endif
 
 
