@@ -228,7 +228,7 @@ Version 3.0.11 (in progress)
 
 2016-09-12: xypron
             [C#] Patch #786 Keyword rename to be CLS compliant by adding an underscore
-            suffix instead of an underscore suffix to the C symbol name. Please use an explicit
+            suffix instead of an underscore prefix to the C symbol name. Please use an explicit
             %rename to rename the symbol with a _ prefix if you want the old symbol name.
 
             *** POTENTIAL INCOMPATIBILITY ***
