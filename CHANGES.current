@@ -1,6 +1,8 @@
 Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
+Issue # numbers mentioned below can be found on Github. For more details, add
+the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
 Version 3.0.11 (in progress)
 ============================
@@ -8,12 +10,12 @@ Version 3.0.11 (in progress)
 2016-12-24: wsfulton
             [C#] Add %feature("csdirectordelegatemodifiers") to enable customization
             of the delegate access modifiers generated in director classes.
-            Fixes issue https://github.com/swig/swig/issues/748
+            Fixes issue #748.
 
 2016-12-23: wsfulton
             [Python] Fix builtin "python:slot" feature failing for tp_hash when using
             hashfunc closure with a "Wrong type for hash function" for Python 2.
-            Issue https://github.com/swig/swig/issues/843
+            Issue #843.
 
 2016-12-21: joequamt
             Changed generation of functions so that only functions
@@ -24,30 +26,29 @@ Version 3.0.11 (in progress)
 
 2016-12-21: olly
 	    Fix isfinite() checks to work with all C++11 compilers.
-	    Fixes https://github.com/swig/swig/issues/615, https://github.com/swig/swig/pull/788
-	    and https://github.com/swig/swig/pull/849.
+	    Fixes issues #615, #788 and #849.
 
 2016-12-20: wsfulton
             %namewarn unnecessarily caused keyword warnings for non-instantiated template classes
             and duplicate warnings for instantiated template classes when keywords were used.
-            Issue https://github.com/swig/swig/issues/845
+            Issue #845.
 
 2016-12-18: ezralanglois 
             [Python, Ruby, Octave] Memory leak fix on error in std::pair wrappers.
-            Issue https://github.com/swig/swig/pull/851
+            Issue #851.
 
 2016-12-18: wsfulton
             Zero initialize arrays when using %array_class and %array_functions.
 
 2016-12-18: t-ikegami
-            [Python] Fix https://github.com/swig/swig/issues/446
+            [Python] Fix #446
             Python %array_class of carrays.i failed with -builtin option.
 
 2016-12-16: bcaine
             [Guile] Patch #744 Added support for Guile's native pointer functionality
 
 2016-12-01: wsfulton
-            [Python] Issue https://github.com/swig/swig/issues/769
+            [Python] Issue #769.
             Add optional moduleimport attribute to %module so that the
             default module import code can be overridden. See the "Searching for the wrapper module"
             documentation in Python.html. Example:
@@ -65,7 +66,7 @@ Version 3.0.11 (in progress)
 	    compatible wrappers.  The default extension for generated wrappers
 	    is now .cxx (to match SWIG's default for every other language - to
 	    generate foo_wrap.cpp you can run SWIG with -cppext cpp).  Fixes
-	    https://github.com/swig/swig/issues/571
+	    issue #571.
 
 	    As part of this change, the language subdirectory for PHP5 has
 	    changed from "php" to "php5" - if you are making use of the search
@@ -117,7 +118,7 @@ Version 3.0.11 (in progress)
             provided by SWIG use %rename to rename some methods, eg in std::vector, push_back
             is renamed to add in Java. Previously this intended rename did not happen when using
             using global %rename rules and the method would remain as push_back, but is now
-            renamed to add. Some more info in issue https://github.com/swig/swig/issues/856.
+            renamed to add. Some more info in issue #856.
 
 	    *** POTENTIAL INCOMPATIBILITY ***
 

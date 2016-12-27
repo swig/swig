@@ -2,6 +2,8 @@ SWIG (Simplified Wrapper and Interface Generator)
 
 See the CHANGES.current file for changes in the current version.
 See the RELEASENOTES file for a summary of changes in each release.
+Issue # numbers mentioned below can be found on Github. For more details, add
+the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
 Version 3.0.10 (12 Jun 2016)
 ============================
@@ -177,7 +179,7 @@ Version 3.0.9 (29 May 2016)
 
 2016-03-01: olly
 	    Fix isfinite() check to work with GCC6.  Fixes
-	    https://github.com/swig/swig/issues/615 reported by jplesnik.
+	    issue #615 reported by jplesnik.
 
 2016-02-17: olly
 	    [Python] Add missing keywords 'as' and 'with' to pythonkw.swg.
@@ -234,7 +236,7 @@ Version 3.0.9 (29 May 2016)
 
 2016-01-12: olly
 	    [Javascript] For v8 >= 4.3.0, use V8_MAJOR_VERSION.
-	    Fixes https://github.com/swig/swig/issues/561.
+	    Fixes issue 561.
 
 2016-01-10: ahnolds
             Improved size_t and ptrdiff_t typemaps to support large values
