@@ -370,13 +370,8 @@ public:
     Printf(s_header, "int error_code;\n");
     Printf(s_header, "ZEND_END_MODULE_GLOBALS(%s)\n", module);
     Printf(s_header, "ZEND_DECLARE_MODULE_GLOBALS(%s)\n", module);
-    Printf(s_header, "#ifdef ZTS\n");
-    Printf(s_header, "#define SWIG_ErrorMsg() TSRMG(%s_globals_id, zend_%s_globals *, error_msg )\n", module, module);
-    Printf(s_header, "#define SWIG_ErrorCode() TSRMG(%s_globals_id, zend_%s_globals *, error_code )\n", module, module);
-    Printf(s_header, "#else\n");
     Printf(s_header, "#define SWIG_ErrorMsg() (%s_globals.error_msg)\n", module);
     Printf(s_header, "#define SWIG_ErrorCode() (%s_globals.error_code)\n", module);
-    Printf(s_header, "#endif\n\n");
 
     /* The following can't go in Lib/php/phprun.swg as it uses SWIG_ErrorMsg(), etc
      * which has to be dynamically generated as it depends on the module name.
@@ -474,9 +469,6 @@ public:
     Printf(f_h, "#else\n");
     Printf(f_h, "# define PHP_%s_API\n", cap_module);
     Printf(f_h, "#endif\n\n");
-    Printf(f_h, "#ifdef ZTS\n");
-    Printf(f_h, "#include \"TSRM.h\"\n");
-    Printf(f_h, "#endif\n\n");
     Printf(f_h, "PHP_MINIT_FUNCTION(%s);\n", module);
     Printf(f_h, "PHP_MSHUTDOWN_FUNCTION(%s);\n", module);
     Printf(f_h, "PHP_RINIT_FUNCTION(%s);\n", module);
@@ -567,9 +559,6 @@ public:
     Printv(s_init, "PHP_MSHUTDOWN_FUNCTION(", module, ")\n"
 		   "{\n",
 		   s_shutdown,
-		   "#ifdef ZTS\n"
-		   "    ts_free_id(", module, "_globals_id);\n"
-		   "#endif\n"
 		   "    return SUCCESS;\n"
 		   "}\n\n", NIL);
 
