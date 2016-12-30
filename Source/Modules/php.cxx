@@ -490,10 +490,6 @@ public:
     Printf(s_entry, "static zend_function_entry %s_functions[] = {\n", module);
 
     /* start the init section */
-    Append(s_init, "#if ZEND_MODULE_API_NO <= 20090626\n");
-    Append(s_init, "#undef ZEND_MODULE_BUILD_ID\n");
-    Append(s_init, "#define ZEND_MODULE_BUILD_ID (char*)\"API\" ZEND_TOSTR(ZEND_MODULE_API_NO) ZEND_BUILD_TS ZEND_BUILD_DEBUG ZEND_BUILD_SYSTEM ZEND_BUILD_EXTRA\n");
-    Append(s_init, "#endif\n");
     Printv(s_init, "zend_module_entry ", module, "_module_entry = {\n", NIL);
     Printf(s_init, "    STANDARD_MODULE_HEADER,\n");
     Printf(s_init, "    \"%s\",\n", module);
