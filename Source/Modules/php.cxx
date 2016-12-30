@@ -262,14 +262,14 @@ public:
     f_runtime = NewStringEmpty();
 
     /* sections of the output file */
-    s_init = NewString("/* init section */\n");
-    r_init = NewString("/* rinit section */\n");
-    s_shutdown = NewString("/* shutdown section */\n");
-    r_shutdown = NewString("/* rshutdown section */\n");
+    s_init = NewStringEmpty();
+    r_init = NewStringEmpty();
+    s_shutdown = NewStringEmpty();
+    r_shutdown = NewStringEmpty();
     s_header = NewString("/* header section */\n");
     s_wrappers = NewString("/* wrapper section */\n");
     /* subsections of the init section */
-    s_vinit = NewString("/* vinit subsection */\n");
+    s_vinit = NewStringEmpty();
     s_vdecl = NewString("/* vdecl subsection */\n");
     s_cinit = NewString("/* cinit subsection */\n");
     s_oinit = NewString("/* oinit subsection */\n");
@@ -469,11 +469,6 @@ public:
     Printf(f_h, "#else\n");
     Printf(f_h, "# define PHP_%s_API\n", cap_module);
     Printf(f_h, "#endif\n\n");
-    Printf(f_h, "PHP_MINIT_FUNCTION(%s);\n", module);
-    Printf(f_h, "PHP_MSHUTDOWN_FUNCTION(%s);\n", module);
-    Printf(f_h, "PHP_RINIT_FUNCTION(%s);\n", module);
-    Printf(f_h, "PHP_RSHUTDOWN_FUNCTION(%s);\n", module);
-    Printf(f_h, "PHP_MINFO_FUNCTION(%s);\n\n", module);
 
     /* start the arginfo section */
     s_arginfo = NewString("/* arginfo subsection */\n");
@@ -489,41 +484,66 @@ public:
     Printf(s_entry, "/* Every non-class user visible function must have an entry here */\n");
     Printf(s_entry, "static zend_function_entry %s_functions[] = {\n", module);
 
-    /* start the init section */
-    Printv(s_init, "zend_module_entry ", module, "_module_entry = {\n", NIL);
-    Printf(s_init, "    STANDARD_MODULE_HEADER,\n");
-    Printf(s_init, "    \"%s\",\n", module);
-    Printf(s_init, "    %s_functions,\n", module);
-    Printf(s_init, "    PHP_MINIT(%s),\n", module);
-    Printf(s_init, "    PHP_MSHUTDOWN(%s),\n", module);
-    Printf(s_init, "    PHP_RINIT(%s),\n", module);
-    Printf(s_init, "    PHP_RSHUTDOWN(%s),\n", module);
-    Printf(s_init, "    PHP_MINFO(%s),\n", module);
-    Printf(s_init, "    NO_VERSION_YET,\n");
-    Printf(s_init, "    STANDARD_MODULE_PROPERTIES\n");
-    Printf(s_init, "};\n");
-    Printf(s_init, "zend_module_entry* SWIG_module_entry = &%s_module_entry;\n\n", module);
+    /* Emit all of the code */
+    Language::top(n);
 
-    Printf(s_init, "#ifdef __cplusplus\n");
-    Printf(s_init, "extern \"C\" {\n");
-    Printf(s_init, "#endif\n");
-    // We want to write "SWIGEXPORT ZEND_GET_MODULE(%s)" but ZEND_GET_MODULE
-    // in PHP5 has "extern "C" { ... }" around it so we can't do that.
-    Printf(s_init, "SWIGEXPORT zend_module_entry *get_module(void) { return &%s_module_entry; }\n", module);
-    Printf(s_init, "#ifdef __cplusplus\n");
-    Printf(s_init, "}\n");
-    Printf(s_init, "#endif\n\n");
+    SwigPHP_emit_resource_registrations();
+
+    /* start the init section */
+    {
+      String * s_init_old = s_init;
+      s_init = NewString("/* init section */\n");
+      Printv(s_init, "zend_module_entry ", module, "_module_entry = {\n", NIL);
+      Printf(s_init, "    STANDARD_MODULE_HEADER,\n");
+      Printf(s_init, "    \"%s\",\n", module);
+      Printf(s_init, "    %s_functions,\n", module);
+      Printf(s_init, "    PHP_MINIT(%s),\n", module);
+      if (Len(s_shutdown) > 0) {
+	Printf(s_init, "    PHP_MSHUTDOWN(%s),\n", module);
+      } else {
+	Printf(s_init, "    NULL, /* No MSHUTDOWN code */\n");
+      }
+      if (Len(r_init) > 0 || Len(s_vinit) > 0) {
+	Printf(s_init, "    PHP_RINIT(%s),\n", module);
+      } else {
+	Printf(s_init, "    NULL, /* No RINIT code */\n");
+      }
+      if (Len(r_shutdown) > 0) {
+	Printf(s_init, "    PHP_RSHUTDOWN(%s),\n", module);
+      } else {
+	Printf(s_init, "    NULL, /* No RSHUTDOWN code */\n");
+      }
+      if (Len(pragma_phpinfo) > 0) {
+	Printf(s_init, "    PHP_MINFO(%s),\n", module);
+      } else {
+	Printf(s_init, "    NULL, /* No MINFO code */\n");
+      }
+      Printf(s_init, "    NO_VERSION_YET,\n");
+      Printf(s_init, "    STANDARD_MODULE_PROPERTIES\n");
+      Printf(s_init, "};\n");
+      Printf(s_init, "zend_module_entry* SWIG_module_entry = &%s_module_entry;\n\n", module);
+
+      Printf(s_init, "#ifdef __cplusplus\n");
+      Printf(s_init, "extern \"C\" {\n");
+      Printf(s_init, "#endif\n");
+      // We want to write "SWIGEXPORT ZEND_GET_MODULE(%s)" but ZEND_GET_MODULE
+      // in PHP5 has "extern "C" { ... }" around it so we can't do that.
+      Printf(s_init, "SWIGEXPORT zend_module_entry *get_module(void) { return &%s_module_entry; }\n", module);
+      Printf(s_init, "#ifdef __cplusplus\n");
+      Printf(s_init, "}\n");
+      Printf(s_init, "#endif\n\n");
+
+      Printf(s_init, "#define SWIG_php_minit PHP_MINIT_FUNCTION(%s)\n\n", module);
+
+      Printv(s_init, s_init_old, NIL);
+      Delete(s_init_old);
+    }
 
     /* We have to register the constants before they are (possibly) used
      * by the pointer typemaps. This all needs re-arranging really as
      * things are being called in the wrong order
      */
-    Printf(s_init, "#define SWIG_php_minit PHP_MINIT_FUNCTION(%s)\n", module);
 
-    /* Emit all of the code */
-    Language::top(n);
-
-    SwigPHP_emit_resource_registrations();
     //    Printv(s_init,s_resourcetypes,NIL);
     /* We need this after all classes written out by ::top */
     Printf(s_oinit, "CG(active_class_entry) = NULL;\n");
@@ -540,35 +560,66 @@ public:
     Printf(s_init, "}\n\n");
 
     // Now do REQUEST init which holds any user specified %rinit, and also vinit
-    Printf(s_init, "PHP_RINIT_FUNCTION(%s)\n{\n", module);
-    Printf(s_init, "%s\n", r_init);
+    if (Len(r_init) > 0 || Len(s_vinit) > 0) {
+      Printf(f_h, "PHP_RINIT_FUNCTION(%s);\n", module);
 
-    /* finish our init section which will have been used by class wrappers */
-    Printf(s_vinit, "/* end vinit subsection */\n");
-    Printf(s_init, "%s\n", s_vinit);
-    Clear(s_vinit);
-    Delete(s_vinit);
+      Printf(s_init, "PHP_RINIT_FUNCTION(%s)\n{\n", module);
+      if (Len(r_init) > 0) {
+	Printv(s_init,
+	       "/* rinit section */\n",
+	       r_init, "\n",
+	       NIL);
+      }
 
-    Printf(s_init, "    return SUCCESS;\n");
-    Printf(s_init, "}\n\n");
+      if (Len(s_vinit) > 0) {
+	/* finish our init section which will have been used by class wrappers */
+	Printv(s_init,
+	       "/* vinit subsection */\n",
+	       s_vinit, "\n"
+	       "/* end vinit subsection */\n",
+	       NIL);
+	Clear(s_vinit);
+      }
+      Delete(s_vinit);
 
-    Printv(s_init, "PHP_MSHUTDOWN_FUNCTION(", module, ")\n"
-		   "{\n",
-		   s_shutdown,
-		   "    return SUCCESS;\n"
-		   "}\n\n", NIL);
+      Printf(s_init, "    return SUCCESS;\n");
+      Printf(s_init, "}\n\n");
+    }
 
-    Printf(s_init, "PHP_RSHUTDOWN_FUNCTION(%s)\n{\n", module);
-    Printf(s_init, "%s\n", r_shutdown);
-    Printf(s_init, "    return SUCCESS;\n");
-    Printf(s_init, "}\n\n");
+    Printf(f_h, "PHP_MINIT_FUNCTION(%s);\n", module);
 
-    Printf(s_init, "PHP_MINFO_FUNCTION(%s)\n{\n", module);
-    Printf(s_init, "%s", pragma_phpinfo);
-    Printf(s_init, "}\n");
+    if (Len(s_shutdown) > 0) {
+      Printf(f_h, "PHP_MSHUTDOWN_FUNCTION(%s);\n", module);
+
+      Printv(s_init, "PHP_MSHUTDOWN_FUNCTION(", module, ")\n"
+		     "/* shutdown section */\n"
+		     "{\n",
+		     s_shutdown,
+		     "    return SUCCESS;\n"
+		     "}\n\n", NIL);
+    }
+
+    if (Len(r_shutdown) > 0) {
+      Printf(f_h, "PHP_RSHUTDOWN_FUNCTION(%s);\n", module);
+
+      Printf(s_init, "PHP_RSHUTDOWN_FUNCTION(%s)\n{\n", module);
+      Printf(s_init, "/* rshutdown section */\n");
+      Printf(s_init, "%s\n", r_shutdown);
+      Printf(s_init, "    return SUCCESS;\n");
+      Printf(s_init, "}\n\n");
+    }
+
+    if (Len(pragma_phpinfo) > 0) {
+      Printf(f_h, "PHP_MINFO_FUNCTION(%s);\n", module);
+
+      Printf(s_init, "PHP_MINFO_FUNCTION(%s)\n{\n", module);
+      Printf(s_init, "%s", pragma_phpinfo);
+      Printf(s_init, "}\n");
+    }
+
     Printf(s_init, "/* end init section */\n");
 
-    Printf(f_h, "#endif /* PHP_%s_H */\n", cap_module);
+    Printf(f_h, "\n#endif /* PHP_%s_H */\n", cap_module);
 
     Delete(f_h);
 
