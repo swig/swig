@@ -362,7 +362,7 @@ public:
 
     /* Initialize the rest of the module */
 
-    Printf(s_oinit, "ZEND_INIT_MODULE_GLOBALS(%s, %s_init_globals, %s_destroy_globals);\n", module, module, module);
+    Printf(s_oinit, "ZEND_INIT_MODULE_GLOBALS(%s, %s_init_globals, NULL);\n", module, module);
 
     /* start the header section */
     Printf(s_header, "ZEND_BEGIN_MODULE_GLOBALS(%s)\n", module);
@@ -392,9 +392,6 @@ public:
     Printf(s_header, "  globals->error_code = default_error_code;\n");
     Printf(s_header, "}\n");
 
-    Printf(s_header, "static void %s_destroy_globals(zend_%s_globals * globals) { (void)globals; }\n", module, module);
-
-    Printf(s_header, "\n");
     Printf(s_header, "static void SWIG_ResetError(void) {\n");
     Printf(s_header, "  SWIG_ErrorMsg() = default_error_msg;\n");
     Printf(s_header, "  SWIG_ErrorCode() = default_error_code;\n");
