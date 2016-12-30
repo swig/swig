@@ -276,5 +276,5 @@ static swig_module_info *SWIG_Php_GetModule() {
 
 static void SWIG_Php_SetModule(swig_module_info *pointer) {
   TSRMLS_FETCH();
-  REGISTER_MAIN_LONG_CONSTANT(const_name, (long) pointer, 0);
+  REGISTER_MAIN_LONG_CONSTANT(const_name, (long) pointer, CONST_PERSISTENT | CONST_CS);
 }

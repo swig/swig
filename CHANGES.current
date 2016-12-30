@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 3.0.11 (29 Dec 2016)
 ============================
 
+2016-12-30: olly
+	    [PHP7] Register internal 'swig_runtime_data_type_pointer' constant
+	    as "CONST_PERSISTENT" to avoid segmentation fault on module unload.
+	    Fixes https://github.com/swig/swig/issues/859 reported by Timotheus
+	    Pokorra - thanks also to Javier Torres for a minimal reproducer.
+
 2016-12-24: wsfulton
             [C#] Add %feature("csdirectordelegatemodifiers") to enable customization
             of the delegate access modifiers generated in director classes.
