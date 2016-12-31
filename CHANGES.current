@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 3.0.12 (in progress)
 ============================
 
+2016-12-31: ajrheading1
+	    Issue #860 - Remove use of std::unary_function and std::binary_function
+            which is deprecated in C++11.
+
 2016-12-30: olly
 	    [PHP7] Register internal 'swig_runtime_data_type_pointer' constant
 	    as "CONST_PERSISTENT" to avoid segmentation fault on module unload.
