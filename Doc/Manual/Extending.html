@@ -243,7 +243,7 @@ of <tt>swig.swg</tt> looks like this:
 
 /* Access control directives */
 
-#define %immutable   %feature("immutable","1")
+#define %immutable   %feature("immutable", "1")
 #define %mutable     %feature("immutable")
 
 /* Directives for callback functions */
@@ -306,7 +306,7 @@ datatype such as <tt>int</tt> or <tt>void</tt>.   <tt><em>type</em></tt> may be 
 qualified with a qualifier such as <tt>const</tt> or <tt>volatile</tt>. <tt><em>declarator</em></tt>
 is a name with additional type-construction modifiers attached to it (pointers, arrays, references,
 functions, etc.).  Examples of declarators include <tt>*x</tt>, <tt>**x</tt>, <tt>x[20]</tt>, and
-<tt>(*x)(int,double)</tt>.   The <tt><em>initializer</em></tt> may be a value assigned using <tt>=</tt> or
+<tt>(*x)(int, double)</tt>.   The <tt><em>initializer</em></tt> may be a value assigned using <tt>=</tt> or
 body of code enclosed in braces <tt>{ ... }</tt>.
 </p>
 
@@ -372,7 +372,7 @@ For example, in an old C program, you might see things like this:
 
 <div class="code">
 <pre>
-foo(a,b) {
+foo(a, b) {
 ...
 }
 </pre>
@@ -516,8 +516,8 @@ $ swig -c++ -python -debug-module 4 example.i
                         +++ cdecl ----------------------------------------
                         | sym:name     - "move"
                         | name         - "move"
-                        | decl         - "f(double,double)."
-                        | parms        - double ,double
+                        | decl         - "f(double, double)."
+                        | parms        - double, double
                         | type         - "void"
                         | sym:symtab   - 0x40194140
                         |
@@ -1381,14 +1381,14 @@ List *l = (some list);
 Iterator i;
 
 for (i = First(l); i.item; i = Next(i)) {
-  Printf(stdout,"%s\n", i.item);
+  Printf(stdout, "%s\n", i.item);
 }
 
 Hash *h = (some hash);
 Iterator j;
 
 for (j = First(j); j.item; j= Next(j)) {
-  Printf(stdout,"%s : %s\n", j.key, j.item);
+  Printf(stdout, "%s : %s\n", j.key, j.item);
 }
 </pre>
 </div>
@@ -1414,7 +1414,7 @@ operators have the same meaning.
 </div>
 
 <p>
-<b><tt>int Printv(String_or_FILE *f, String_or_char *arg1,..., NULL)</tt></b>
+<b><tt>int Printv(String_or_FILE *f, String_or_char *arg1, ..., NULL)</tt></b>
 </p>
 
 <div class="indent">
@@ -1469,7 +1469,7 @@ Same as the C <tt>ungetc()</tt> function.
 
 <div class="indent">
 Same as the C <tt>seek()</tt> function.  <tt>offset</tt> is the number
-of bytes.  <tt>whence</tt> is one of <tt>SEEK_SET</tt>,<tt>SEEK_CUR</tt>,
+of bytes.  <tt>whence</tt> is one of <tt>SEEK_SET</tt>, <tt>SEEK_CUR</tt>,
 or <tt>SEEK_END</tt>..
 </div>
 
@@ -1515,9 +1515,9 @@ common to see small code fragments of code generated using code like this:
 <pre>
 /* Print into a string */
 String *s = NewString("");
-Printf(s,"Hello\n");
+Printf(s, "Hello\n");
 for (i = 0; i &lt; 10; i++) {
-  Printf(s,"%d\n", i);
+  Printf(s, "%d\n", i);
 }
 ...
 /* Print string into a file */
@@ -1674,9 +1674,9 @@ Since parse tree nodes are just hash tables, attributes are accessed using the <
 <div class="code">
 <pre>
 int functionHandler(Node *n) {
-  String *name    = Getattr(n,"name");
-  String *symname = Getattr(n,"sym:name");
-  SwigType *type  = Getattr(n,"type");
+  String *name    = Getattr(n, "name");
+  String *symname = Getattr(n, "sym:name");
+  SwigType *type  = Getattr(n, "type");
   ...
 }
 </pre>
@@ -1691,7 +1691,7 @@ For example:
 <div class="code">
 <pre>
 ...
-Setattr(n,"python:docstring", doc);     /* Store docstring */
+Setattr(n, "python:docstring", doc);     /* Store docstring */
 ...
 </pre>
 </div>
@@ -1702,7 +1702,7 @@ A quick way to check the value of an attribute is to use the <tt>checkAttribute(
 
 <div class="code">
 <pre>
-if (checkAttribute(n,"storage","virtual")) {
+if (checkAttribute(n, "storage", "virtual")) {
   /* n is virtual */
   ...
 }
@@ -1723,7 +1723,7 @@ the following functions are used:
 <div class="indent">
 Saves a copy of attributes <tt>name1</tt>, <tt>name2</tt>, etc. from node <tt>n</tt>.
 Copies of the attributes are actually resaved in the node in a different namespace which is
-set by the <tt>ns</tt> argument.   For example, if you call <tt>Swig_save("foo",n,"type",NIL)</tt>,
+set by the <tt>ns</tt> argument.   For example, if you call <tt>Swig_save("foo", n, "type", NIL)</tt>,
 then the "type" attribute will be copied and saved as "foo:type".  The namespace name itself is stored in
 the "view" attribute of the node.  If necessary, this can be examined to find out where previous
 values of attributes might have been saved.
@@ -1750,11 +1750,11 @@ Calls can be nested if necessary.  Here is an example that shows how the functio
 <div class="code">
 <pre>
 int variableHandler(Node *n) {
-  Swig_save("variableHandler",n,"type","sym:name",NIL);
-  String *symname = Getattr(n,"sym:name");
-  SwigType *type  = Getattr(n,"type");
+  Swig_save("variableHandler", n, "type", "sym:name", NIL);
+  String *symname = Getattr(n, "sym:name");
+  SwigType *type  = Getattr(n, "type");
   ...
-  Append(symname,"_global");         // Change symbol name
+  Append(symname, "_global");         // Change symbol name
   SwigType_add_pointer(type);        // Add pointer
   ...
   generate wrappers
@@ -1808,7 +1808,7 @@ C datatype                     SWIG encoding (strings)
 int                            "int"
 int *                          "p.int"
 const int *                    "p.q(const).int"
-int (*x)(int,double)           "p.f(int,double).int"
+int (*x)(int, double)          "p.f(int, double).int"
 int [20][30]                   "a(20).a(30).int"
 int (F::*)(int)                "m(F).f(int).int"
 vector&lt;int&gt; *                  "p.vector&lt;(int)&gt;"
@@ -1817,8 +1817,8 @@ vector&lt;int&gt; *                  "p.vector&lt;(int)&gt;"
 
 <p>
 Reading the SWIG encoding is often easier than figuring out the C code---just
-read it from left to right.  For a type of "p.f(int,double).int" is
-a "pointer to a function(int,double) that returns int".
+read it from left to right.  For a type of "p.f(int, double).int" is
+a "pointer to a function(int, double) that returns int".
 </p>
 
 <p>
@@ -1854,7 +1854,7 @@ an extremely perverted example:
 
 <div class="diagram">
 <pre>
-`p.a(10).p.f(int,p.f(int).int)` foo(int, int (*x)(int));
+`p.a(10).p.f(int, p.f(int).int)` foo(int, int (*x)(int));
 </pre>
 </div>
 
@@ -1864,7 +1864,7 @@ This corresponds to the immediately obvious C declaration:
 
 <div class="diagram">
 <pre>
-(*(*foo(int,int (*)(int)))[10])(int,int (*)(int));
+(*(*foo(int, int (*)(int)))[10])(int, int (*)(int));
 </pre>
 </div>
 
@@ -1947,7 +1947,7 @@ Returns number of array dimensions of <tt>ty</tt>.
 </div>
 
 <p>
-<b><tt>String* SwigType_array_getdim(SwigType *ty,int n)</tt></b>
+<b><tt>String* SwigType_array_getdim(SwigType *ty, int n)</tt></b>
 </p>
 
 <div class="indent">
@@ -2375,9 +2375,9 @@ code like this:
 Parm *parms;
 Parm *p;
 for (p = parms; p; p = nextSibling(p)) {
-  SwigType *type  = Getattr(p,"type");
-  String   *name  = Getattr(p,"name");
-  String   *value = Getattr(p,"value");
+  SwigType *type  = Getattr(p, "type");
+  String   *name  = Getattr(p, "name");
+  String   *value = Getattr(p, "value");
   ...
 }
 </pre>
@@ -2537,7 +2537,7 @@ also return a pointer to the base class (<tt>Language</tt>) so that only the int
 Save the code for your language module in a file named "<tt>python.cxx</tt>" and
 place this file in the <tt>Source/Modules</tt> directory of the SWIG distribution.
 To ensure that your module is compiled into SWIG along with the other language modules,
-modify the file <tt>Source/Modules/Makefile.am</tt> to include the additional source
+modify the file <tt>Source/Makefile.am</tt> to include the additional source
 files.  In addition, modify the file <tt>Source/Modules/swigmain.cxx</tt>
 with an additional command line option that activates the module. Read the source---it's straightforward.
 </p>
@@ -2593,7 +2593,7 @@ command line options, simply use code similar to this:
 void Language::main(int argc, char *argv[]) {
   for (int i = 1; i &lt; argc; i++) {
       if (argv[i]) {
-          if(strcmp(argv[i],"-interface") == 0) {
+          if (strcmp(argv[i], "-interface") == 0) {
             if (argv[i+1]) {
               interface = NewString(argv[i+1]);
               Swig_mark_arg(i);
@@ -2602,7 +2602,7 @@ void Language::main(int argc, char *argv[]) {
             } else {
               Swig_arg_error();
             }
-          } else if (strcmp(argv[i],"-globals") == 0) {
+          } else if (strcmp(argv[i], "-globals") == 0) {
             if (argv[i+1]) {
               global_name = NewString(argv[i+1]);
               Swig_mark_arg(i);
@@ -2611,14 +2611,14 @@ void Language::main(int argc, char *argv[]) {
             } else {
               Swig_arg_error();
             }
-          } else if ( (strcmp(argv[i],"-proxy") == 0)) {
+          } else if ((strcmp(argv[i], "-proxy") == 0)) {
             proxy_flag = 1;
             Swig_mark_arg(i);
-          } else if (strcmp(argv[i],"-keyword") == 0) {
+          } else if (strcmp(argv[i], "-keyword") == 0) {
             use_kw = 1;
             Swig_mark_arg(i);
-          } else if (strcmp(argv[i],"-help") == 0) {
-            fputs(usage,stderr);
+          } else if (strcmp(argv[i], "-help") == 0) {
+            fputs(usage, stderr);
           }
           ...
       }
@@ -2722,10 +2722,10 @@ An outline of <tt>top()</tt> might be as follows:
 int Python::top(Node *n) {
 
   /* Get the module name */
-  String *module = Getattr(n,"name");
+  String *module = Getattr(n, "name");
 
   /* Get the output file name */
-  String *outfile = Getattr(n,"outfile");
+  String *outfile = Getattr(n, "outfile");
 
   /* Initialize I/O (see next section) */
   ...
@@ -2858,15 +2858,15 @@ A simple modification to write some basic details to the wrapper looks like this
 <pre>
 int Python::functionWrapper(Node *n) {
   /* Get some useful attributes of this function */
-  String   *name   = Getattr(n,"sym:name");
-  SwigType *type   = Getattr(n,"type");
-  ParmList *parms  = Getattr(n,"parms");
+  String   *name   = Getattr(n, "sym:name");
+  SwigType *type   = Getattr(n, "type");
+  ParmList *parms  = Getattr(n, "parms");
   String   *parmstr= ParmList_str_defaultargs(parms); // to string
   String   *func   = SwigType_str(type, NewStringf("%s(%s)", name, parmstr));
-  String   *action = Getattr(n,"wrap:action");
+  String   *action = Getattr(n, "wrap:action");
 
-  Printf(f_wrappers,"functionWrapper   : %s\n", func);
-  Printf(f_wrappers,"           action : %s\n", action);
+  Printf(f_wrappers, "functionWrapper   : %s\n", func);
+  Printf(f_wrappers, "           action : %s\n", action);
   return SWIG_OK;
 }
 </pre>
@@ -2881,13 +2881,13 @@ This will now produce some useful information within your wrapper file.
 functionWrapper   : void delete_Shape(Shape *self)
            action : delete arg1;
 
-functionWrapper   : void Shape_x_set(Shape *self,double x)
+functionWrapper   : void Shape_x_set(Shape *self, double x)
            action : if (arg1) (arg1)-&gt;x = arg2;
 
 functionWrapper   : double Shape_x_get(Shape *self)
            action : result = (double) ((arg1)-&gt;x);
 
-functionWrapper   : void Shape_y_set(Shape *self,double y)
+functionWrapper   : void Shape_y_set(Shape *self, double y)
            action : if (arg1) (arg1)-&gt;y = arg2;
 ...
 </pre>
@@ -2918,7 +2918,7 @@ In general most language wrappers look a little like this:
 </p>
 <div class="code">
 <pre>
-/* wrapper for TYPE3 some_function(TYPE1,TYPE2); */
+/* wrapper for TYPE3 some_function(TYPE1, TYPE2); */
 RETURN_TYPE _wrap_some_function(ARGS){
   TYPE1 arg1;
   TYPE2 arg2;
@@ -2929,7 +2929,7 @@ RETURN_TYPE _wrap_some_function(ARGS){
   if(ARG2 is not of TYPE2) goto fail;
   arg2=(convert ARG2);
 
-  result=some_function(arg1,arg2);
+  result=some_function(arg1, arg2);
 
   convert 'result' to whatever the language wants;
 
@@ -2973,9 +2973,9 @@ There are a lot of issues to address.
 <pre>
 virtual int functionWrapper(Node *n) {
   /* get useful attributes */
-  String   *name   = Getattr(n,"sym:name");
-  SwigType *type   = Getattr(n,"type");
-  ParmList *parms  = Getattr(n,"parms");
+  String   *name   = Getattr(n, "sym:name");
+  SwigType *type   = Getattr(n, "type");
+  ParmList *parms  = Getattr(n, "parms");
   ...
 
   /* create the wrapper object */
@@ -2988,7 +2988,7 @@ virtual int functionWrapper(Node *n) {
   ....
 
   /* write the wrapper function definition */
-  Printv(wrapper-&gt;def,"RETURN_TYPE ", wname, "(ARGS) {",NIL);
+  Printv(wrapper-&gt;def, "RETURN_TYPE ", wname, "(ARGS) {", NIL);
 
   /* if any additional local variable needed, add them now */
   ...
@@ -3006,7 +3006,7 @@ virtual int functionWrapper(Node *n) {
   ....
 
   /* Emit the function call */
-  emit_action(n,wrapper);
+  emit_action(n, wrapper);
 
   /* return value if necessary  */
   ....
@@ -3030,7 +3030,7 @@ virtual int functionWrapper(Node *n) {
   ...
 
   /* Dump the function out */
-  Wrapper_print(wrapper,f_wrappers);
+  Wrapper_print(wrapper, f_wrappers);
 
   /* tidy up */
   Delete(wname);

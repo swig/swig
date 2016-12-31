@@ -95,7 +95,7 @@ int execlp(const char *path, const char *arg1, ...);
 ...
 
 /* Example */
-execlp("ls","ls","-l",NULL);
+execlp("ls", "ls", "-l", NULL);
 </pre>
 </div>
 
@@ -189,9 +189,9 @@ In contrast, suppose you attempted to make some kind of wrapper around
 <pre>
 int wrap_printf(const char *fmt, ...) {
   va_list ap;
-  va_start(ap,fmt);
+  va_start(ap, fmt);
   ...
-  printf(fmt,ap);
+  printf(fmt, ap);
   ...
   va_end(ap);
 };
@@ -478,7 +478,7 @@ wrap_printf() {
   arg1 = "%s";
   arg2 = (void *) PyString_AsString(arg2obj);
   ...
-  result = printf(arg1,arg2);
+  result = printf(arg1, arg2);
   ...
 }
 </pre>
@@ -633,10 +633,10 @@ example. For example:
   argc = PyTuple_Size(varargs);
   argv = (char **) malloc(sizeof(char *)*(argc+1));
   for (i = 0; i &lt; argc; i++) {
-    PyObject *o = PyTuple_GetItem(varargs,i);
+    PyObject *o = PyTuple_GetItem(varargs, i);
     if (!PyString_Check(o)) {
       free(argv);
-      PyErr_SetString(PyExc_ValueError,"Expected a string");
+      PyErr_SetString(PyExc_ValueError, "Expected a string");
       SWIG_fail;
     }
     argv[i] = PyString_AsString(o);
@@ -733,7 +733,7 @@ As a more extreme example of libffi, here is some code that attempts to wrap <tt
   argc = PyTuple_Size(varargs);
   argv = (vtype *) malloc(argc*sizeof(vtype));
   for (i = 0; i &lt; argc; i++) {
-    PyObject *o = PyTuple_GetItem(varargs,i);
+    PyObject *o = PyTuple_GetItem(varargs, i);
     if (PyInt_Check(o)) {
       argv[i].type = VT_INT;
       argv[i].val.ivalue = PyInt_AsLong(o);
@@ -745,7 +745,7 @@ As a more extreme example of libffi, here is some code that attempts to wrap <tt
       argv[i].val.pvalue = (void *) PyString_AsString(o);
     } else {
       free(argv);
-      PyErr_SetString(PyExc_ValueError,"Unsupported argument type");
+      PyErr_SetString(PyExc_ValueError, "Unsupported argument type");
       return NULL;
     }
   }

@@ -115,7 +115,7 @@ this module is in generating pointers to primitive datatypes such as
 </p>
 
 <p>
-<b><tt>%pointer_functions(type,name)</tt></b>
+<b><tt>%pointer_functions(type, name)</tt></b>
 </p>
 
 <div class="indent">
@@ -195,7 +195,7 @@ Now, in Python:
 <pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; c = example.new_intp()     # Create an "int" for storing result
-&gt;&gt;&gt; example.add(3,4,c)         # Call function
+&gt;&gt;&gt; example.add(3, 4, c)         # Call function
 &gt;&gt;&gt; example.intp_value(c)      # Dereference
 7
 &gt;&gt;&gt; example.delete_intp(c)     # Delete
@@ -205,7 +205,7 @@ Now, in Python:
 </div>
 
 <p>
-<b><tt>%pointer_class(type,name)</tt></b>
+<b><tt>%pointer_class(type, name)</tt></b>
 </p>
 
 <div class="indent">
@@ -275,7 +275,7 @@ Now, in Python (using proxy classes)
 <pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; c = example.intp()         # Create an "int" for storing result
-&gt;&gt;&gt; example.add(3,4,c)         # Call function
+&gt;&gt;&gt; example.add(3, 4, c)         # Call function
 &gt;&gt;&gt; c.value()                  # Dereference
 7
 </pre>
@@ -331,7 +331,7 @@ raw C array data.
 </p>
 
 <p>
-<b><tt>%array_functions(type,name)</tt></b>
+<b><tt>%array_functions(type, name)</tt></b>
 </p>
 
 <div class="indent">
@@ -414,8 +414,8 @@ Now, in a scripting language, you might write this:
 <div class="code">
 <pre>
 a = new_doubleArray(10)           # Create an array
-for i in range(0,10):
-    doubleArray_setitem(a,i,2*i)  # Set a value
+for i in range(0, 10):
+    doubleArray_setitem(a, i, 2*i)  # Set a value
 print_array(a)                    # Pass to C
 delete_doubleArray(a)             # Destroy array
 </pre>
@@ -424,7 +424,7 @@ delete_doubleArray(a)             # Destroy array
 </div>
 
 <p>
-<b><tt>%array_class(type,name)</tt></b>
+<b><tt>%array_class(type, name)</tt></b>
 </p>
 <div class="indent">
 
@@ -479,7 +479,7 @@ Allows you to do this:
 <pre>
 import example
 c = example.doubleArray(10)  # Create double[10]
-for i in range(0,10):
+for i in range(0, 10):
     c[i] = 2*i               # Assign values
 example.print_array(c)       # Pass to C
 </pre>
@@ -507,7 +507,7 @@ This module defines macros for wrapping the low-level C memory allocation functi
 </p>
 
 <p>
-<b><tt>%malloc(type [,name=type])</tt></b>
+<b><tt>%malloc(type [, name=type])</tt></b>
 </p>
 
 <div class="indent">
@@ -530,7 +530,7 @@ is not a valid identifier (e.g., "<tt>int *</tt>", "<tt>double **</tt>", etc.).
 </div>
 
 <p>
-<b><tt>%calloc(type [,name=type])</tt></b>
+<b><tt>%calloc(type [, name=type])</tt></b>
 </p>
 
 <div class="indent">
@@ -551,7 +551,7 @@ If <tt>type</tt> is <tt>void</tt>, then the size parameter <tt>sz</tt> is requir
 </div>
 
 <p>
-<b><tt>%realloc(type [,name=type])</tt></b>
+<b><tt>%realloc(type [, name=type])</tt></b>
 </p>
 
 <div class="indent">
@@ -574,7 +574,7 @@ it holds 100 integers.
 </div>
 
 <p>
-<b><tt>%free(type [,name=type])</tt></b>
+<b><tt>%free(type [, name=type])</tt></b>
 </p>
 
 <div class="indent">
@@ -590,7 +590,7 @@ void free_<em>name</em>(<em>type</em> *ptr);
 </div>
 
 <p>
-<b><tt>%sizeof(type [,name=type])</tt></b>
+<b><tt>%sizeof(type [, name=type])</tt></b>
 </p>
 
 <div class="indent">
@@ -606,7 +606,7 @@ Creates the constant:
 </div>
 
 <p>
-<b><tt>%allocators(type [,name=type])</tt></b>
+<b><tt>%allocators(type [, name=type])</tt></b>
 </p>
 
 <div class="indent"><p>
@@ -716,14 +716,14 @@ Python example:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = intArray(10)
-&gt;&gt;&gt; for i in range(0,10):
+&gt;&gt;&gt; for i in range(0, 10):
 ...    a[i] = i
-&gt;&gt;&gt; b = cdata(a,40)
+&gt;&gt;&gt; b = cdata(a, 40)
 &gt;&gt;&gt; b
 '\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04
 \x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00\x07\x00\x00\x00\x08\x00\x00\x00\t'
 &gt;&gt;&gt; c = intArray(10)
-&gt;&gt;&gt; memmove(c,b)
+&gt;&gt;&gt; memmove(c, b)
 &gt;&gt;&gt; print c[4]
 4
 &gt;&gt;&gt;
@@ -735,7 +735,7 @@ Since the size of data is not always known, the following macro is also defined:
 </p>
 
 <p>
-<b><tt>%cdata(type [,name=type])</tt></b>
+<b><tt>%cdata(type [, name=type])</tt></b>
 </p>
 
 <div class="indent">
@@ -855,7 +855,7 @@ Now, in the target language, you can use binary string data like this:
 <div class="code">
 <pre>
 &gt;&gt;&gt; s = "H\x00\x15eg\x09\x20"
-&gt;&gt;&gt; parity(s,0)
+&gt;&gt;&gt; parity(s, 0)
 </pre>
 </div>
 
@@ -920,7 +920,7 @@ implementation:
 <pre>
 void get_path(char *s) {
   // Potential buffer overflow---uh, oh.
-  sprintf(s,"%s/%s", base_directory, sub_directory);
+  sprintf(s, "%s/%s", base_directory, sub_directory);
 }
 ...
 // Somewhere else in the C program
@@ -1554,7 +1554,7 @@ To illustrate the use of this library, consider the following functions:
 #include &lt;numeric&gt;
 
 double average(std::vector&lt;int&gt; v) {
-  return std::accumulate(v.begin(),v.end(),0.0)/v.size();
+  return std::accumulate(v.begin(), v.end(), 0.0)/v.size();
 }
 
 std::vector&lt;double&gt; half(const std::vector&lt;double&gt;&amp; v) {
@@ -1565,8 +1565,8 @@ std::vector&lt;double&gt; half(const std::vector&lt;double&gt;&amp; v) {
 }
 
 void halve_in_place(std::vector&lt;double&gt;&amp; v) {
-  std::transform(v.begin(),v.end(),v.begin(),
-                 std::bind2nd(std::divides&lt;double&gt;(),2.0));
+  std::transform(v.begin(), v.end(), v.begin(),
+                 std::bind2nd(std::divides&lt;double&gt;(), 2.0));
 }
 </pre>
 </div>
@@ -1602,20 +1602,20 @@ Now, to illustrate the behavior in the scripting interpreter, consider this Pyth
 <pre>
 &gt;&gt;&gt; from example import *
 &gt;&gt;&gt; iv = IntVector(4)         # Create an vector&lt;int&gt;
-&gt;&gt;&gt; for i in range(0,4):
+&gt;&gt;&gt; for i in range(0, 4):
 ...      iv[i] = i
 &gt;&gt;&gt; average(iv)               # Call method
 1.5
-&gt;&gt;&gt; average([0,1,2,3])        # Call with list
+&gt;&gt;&gt; average([0, 1, 2, 3])        # Call with list
 1.5
-&gt;&gt;&gt; half([1,2,3])             # Half a list
-(0.5,1.0,1.5)
-&gt;&gt;&gt; halve_in_place([1,2,3])   # Oops
+&gt;&gt;&gt; half([1, 2, 3])             # Half a list
+(0.5, 1.0, 1.5)
+&gt;&gt;&gt; halve_in_place([1, 2, 3])   # Oops
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
 TypeError: Type error. Expected _p_std__vectorTdouble_t
 &gt;&gt;&gt; dv = DoubleVector(4)
-&gt;&gt;&gt; for i in range(0,4):
+&gt;&gt;&gt; for i in range(0, 4):
 ...       dv[i] = i
 &gt;&gt;&gt; halve_in_place(dv)       # Ok
 &gt;&gt;&gt; for i in dv:
@@ -1629,7 +1629,7 @@ TypeError: Type error. Expected _p_std__vectorTdouble_t
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
   File "example.py", line 81, in __setitem__
-    def __setitem__(*args): return apply(examplec.DoubleVector___setitem__,args)
+    def __setitem__(*args): return apply(examplec.DoubleVector___setitem__, args)
 IndexError: vector index out of range
 &gt;&gt;&gt;
 </pre>
@@ -2014,7 +2014,7 @@ For example:
   try {
     $action
   } catch (std::out_of_range&amp; e) {
-    SWIG_exception(SWIG_IndexError,const_cast&lt;char*&gt;(e.what()));
+    SWIG_exception(SWIG_IndexError, const_cast&lt;char*&gt;(e.what()));
   }
 }
 </pre>

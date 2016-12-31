@@ -68,7 +68,7 @@ First, you can run SWIG with the <tt>-w</tt> command line option. For example:
 <div class="shell">
 <pre>
 % swig -python -w501 example.i
-% swig -python -w501,505,401 example.i
+% swig -python -w501, 505, 401 example.i
 </pre>
 </div>
 
@@ -81,7 +81,7 @@ into the input file:
 <pre>
 %module example
 #pragma SWIG nowarn=501
-#pragma SWIG nowarn=501,505,401
+#pragma SWIG nowarn=501, 505, 401
 </pre>
 </div>
 
@@ -170,7 +170,7 @@ previous section--simply add a "+" to all warning numbers.  For example:
 
 <div class="shell">
 <pre>
-% swig -w+309,+452 example.i
+% swig -w+309, +452 example.i
 </pre>
 </div>
 
@@ -180,7 +180,7 @@ or in your interface file use either
 
 <div class="code">
 <pre>
-#pragma SWIG nowarn=+309,+452
+#pragma SWIG nowarn=+309, +452
 </pre>
 </div>
 
@@ -190,7 +190,7 @@ or
 
 <div class="code">
 <pre>
-%warnfilter(+309,+452) foo;
+%warnfilter(+309, +452) foo;
 </pre>
 </div>
 
@@ -205,12 +205,12 @@ You can of course also enable all warnings and suppress a select few, for exampl
 
 <div class="shell">
 <pre>
-% swig -Wextra -w309,452 example.i
+% swig -Wextra -w309, 452 example.i
 </pre>
 </div>
 
 <p>
-The warnings on the right take precedence over the warnings on the left, so in the above example <tt>-Wextra</tt> adds numerous warnings including 452, but then <tt>-w309,452</tt> overrides this and so 452 is suppressesed.
+The warnings on the right take precedence over the warnings on the left, so in the above example <tt>-Wextra</tt> adds numerous warnings including 452, but then <tt>-w309, 452</tt> overrides this and so 452 is suppressesed.
 </p>
 
 <p>

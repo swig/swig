@@ -1243,7 +1243,7 @@ struct triplet {
   }
 };
 
-%template(IntTriplet) triplet&lt;int,int,int&gt;;
+%template(IntTriplet) triplet&lt;int, int, int&gt;;
 </pre></div>
 
 <p>
@@ -1321,7 +1321,7 @@ private:
 <div class="targetlang"><pre>
 --&gt; c1 = new_Complex(3, 7);
 
---&gt; c2 = Complex_plus(c, new_Complex(1,1));
+--&gt; c2 = Complex_plus(c, new_Complex(1, 1));
 
 --&gt; Complex_toDouble(c2)
  ans  =
@@ -1355,7 +1355,7 @@ namespace foo {
   }
 
   struct Vector {
-    double x,y,z;
+    double x, y, z;
   };
 };
 
@@ -1636,17 +1636,17 @@ double **create_matrix() {
   return M;
 }
 
-// Gets the item M(i,j) value
+// Gets the item M(i, j) value
 double get_matrix(double **M, int i, int j) {
   return M[i][j];
 }
 
-// Sets the item M(i,j) value to be val
+// Sets the item M(i, j) value to be val
 void set_matrix(double **M, int i, int j, double val) {
   M[i][j] = val;
 }
 
-// Prints a matrix (2,2) to console
+// Prints a matrix (2, 2) to console
 void print_matrix(double **M, int nbRows, int nbCols) {
   int i, j;
   for (i = 0; i &lt; 2; i++) {
@@ -1769,7 +1769,7 @@ void absolute(int *matrix, int matrixNbRow, int matrixNbCol,
 The remarks made earlier for arrays also apply here:
 </p>
 <ul>
-<li>The values of matrices in Scilab are column-major orderered,</li>
+<li>The values of matrices in Scilab are column-major orderered, </li>
 <li>There is no control while converting <tt>double</tt> values to integers, <tt>double</tt> values are truncated without any checking or warning.</li>
 </ul>
 
@@ -2062,7 +2062,7 @@ The command is:
 </p>
 
 <div class="shell"><pre>
-$ swig -scilab -builder -buildercflags -I/opt/foo/include -builderldflags "-L/opt/foo/lib -lfoo" -buildersources baa1.cxx,baa2.cxx example.i
+$ swig -scilab -builder -buildercflags -I/opt/foo/include -builderldflags "-L/opt/foo/lib -lfoo" -buildersources baa1.cxx, baa2.cxx example.i
 </pre></div>
 
 <H2><a name="Scilab_generated_scripts">39.7 Generated scripts</a></H2>
@@ -2082,12 +2082,12 @@ In this part we give some details about the generated Scilab scripts.
 ilib_name = "examplelib";
 files = ["example_wrap.c"];
 libs = [];
-table = ["fact","_wrap_fact";"Foo_set","_wrap_Foo_set";"Foo_get","_wrap_Foo_get";];
-ilib_build(ilib_name,table,files,libs);
+table = ["fact", "_wrap_fact";"Foo_set", "_wrap_Foo_set";"Foo_get", "_wrap_Foo_get";];
+ilib_build(ilib_name, table, files, libs);
 </pre></div>
 
 <p>
-<tt>ilib_build(lib_name,table,files,libs)</tt> is used to create shared libraries, and to generate a loader file used to dynamically load the shared library into Scilab.
+<tt>ilib_build(lib_name, table, files, libs)</tt> is used to create shared libraries, and to generate a loader file used to dynamically load the shared library into Scilab.
 </p>
 
 <ul>
@@ -2118,7 +2118,7 @@ list_functions = [             'fact';
             'Foo_set';
             'Foo_get';
 ];
-addinter(libexamplelib_path+'/libexamplelib.so','libexamplelib',list_functions);
+addinter(libexamplelib_path+'/libexamplelib.so', 'libexamplelib', list_functions);
 // remove temp. variables on stack
 clear libexamplelib_path;
 clear list_functions;
@@ -2127,7 +2127,7 @@ clear get_file_path;
 </pre></div>
 
 <p>
-<tt>addinter(files,spname,fcts)</tt> performs dynamic linking of a compiled C interface function.
+<tt>addinter(files, spname, fcts)</tt> performs dynamic linking of a compiled C interface function.
 </p>
 <ul>
 <li><tt><b>files</b></tt>: a character string or a vector of character strings defining the object files (containing the C interface functions) to link with.</li>

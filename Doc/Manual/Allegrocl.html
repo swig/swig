@@ -526,8 +526,8 @@ interested in generating an interface to C++.
   <pre>
 %module ffargs
 
-%ffargs(strings_convert="nil",call_direct="t") foo;
-%ffargs(strings_convert="nil",release_heap=":never",optimize_for_space="t") bar;
+%ffargs(strings_convert="nil", call_direct="t") foo;
+%ffargs(strings_convert="nil", release_heap=":never", optimize_for_space="t") bar;
 
 int foo(float f1, float f2);
 int foo(float f1, char c2);
@@ -1357,7 +1357,7 @@ EXPORT float ACL___xxx__SWIG_0 (int larg1, int larg2) {
   arg1 = larg1;
   arg2 = larg2;
   try {
-    result = (float)xxx(arg1,arg2);
+    result = (float)xxx(arg1, arg2);
 
     lresult = result;
     return lresult;
@@ -1393,7 +1393,7 @@ EXPORT float ACL___xxx__SWIG_2 (A *larg1, int larg2) {
   arg1 = larg1;
   arg2 = larg2;
   try {
-    result = (float)xxx(arg1,arg2);
+    result = (float)xxx(arg1, arg2);
 
     lresult = result;
     return lresult;
@@ -1526,8 +1526,8 @@ overload&gt;
 %rename(__predecr__)         *::operator--();
 %rename(__postdecr__)        *::operator--(int);
 
-%rename(__comma__)           *::operator,();
-%rename(__comma__)           *::operator,() const;
+%rename(__comma__)           *::operator, ();
+%rename(__comma__)           *::operator, () const;
 
 %rename(__member_ref__)      *::operator-&gt;;
 %rename(__member_func_ref__) *::operator-&gt;*;

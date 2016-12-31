@@ -295,7 +295,7 @@ the use of automatically generated accessor functions.
 %inline %{
   double seki = 2;
   void print_seki() {
-    zend_printf("seki is now %f\n",seki);
+    zend_printf("seki is now %f\n", seki);
   }
 %}
 </pre></div>
@@ -463,7 +463,7 @@ One can include <b>cpointer.i</b> to generate PHP wrappers to <tt>int
 <div class="code"><pre>
 %module example
 %include "cpointer.i"
-%pointer_functions(int,intp)
+%pointer_functions(int, intp)
 
 void add( int *in1, int *in2, int *result);
 </pre></div>
@@ -513,7 +513,7 @@ include("example.php");
 
 $in1 = 3;
 $in2 = 5;
-$result= add($in1,$in2);  # Note using variables for the input is unnecessary.
+$result= add($in1, $in2);  # Note using variables for the input is unnecessary.
 
 echo "The sum $in1 + $in2 = $result\n";
 ?&gt;
@@ -559,7 +559,7 @@ include("example.php");
 $in1 = 3;
 $in2 = 5;
 $result = 0;
-add($in1,$in2,$result);
+add($in1, $in2, $result);
 
 echo "The sum $in1 + $in2 = $result\n";
 ?&gt;
@@ -603,7 +603,7 @@ This interface file
 
 class Vector {
 public:
-  double x,y,z;
+  double x, y, z;
   Vector();
   ~Vector();
   double magnitude();
@@ -627,7 +627,7 @@ Would be used in the following way from PHP:
   $v-&gt;y = 4;
   $v-&gt;z = 5;
 
-  echo "Magnitude of ($v-&gt;x,$v-&gt;y,$v-&gt;z) = " . $v-&gt;magnitude() . "\n";
+  echo "Magnitude of ($v-&gt;x, $v-&gt;y, $v-&gt;z) = " . $v-&gt;magnitude() . "\n";
 
   $v = NULL;   # destructor called.
 
@@ -656,17 +656,17 @@ in the following PHP functions:
 
 <div class="code"><pre>
 new_Vector();
-Vector_x_set($obj,$d);
+Vector_x_set($obj, $d);
 Vector_x_get($obj);
-Vector_y_set($obj,$d);
+Vector_y_set($obj, $d);
 Vector_y_get($obj);
-Vector_z_set($obj,$d);
+Vector_z_set($obj, $d);
 Vector_z_get($obj);
 Vector_magnitude($obj);
 new_Complex();
-Complex_re_set($obj,$d);
+Complex_re_set($obj, $d);
 Complex_re_get($obj);
-Complex_im_set($obj,$d);
+Complex_im_set($obj, $d);
 Complex_im_get($obj);
 </pre></div>
 
