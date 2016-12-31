@@ -38,7 +38,7 @@
 
 namespace swig {
   template < class T >
-  struct yield : public std::unary_function< T, bool >
+  struct yield
   {
     bool
     operator()( const T& v ) const

@@ -90,7 +90,7 @@ namespace swig {
   static ID call_id = rb_intern("call");
 
   template <class _T = GC_VALUE, class _DefaultFunc = std::less<GC_VALUE> >
-  struct BinaryPredicate : GC_VALUE, std::binary_function< _T, _T, bool >
+  struct BinaryPredicate : GC_VALUE
   {
     BinaryPredicate(VALUE obj = Qnil) : GC_VALUE(obj) { }
     bool operator()(_T a, _T b) const
@@ -109,7 +109,7 @@ namespace swig {
   };
 
   template <class _T = GC_VALUE, class _DefaultFunc = std::less< _T > >
-  struct BinaryFunction : GC_VALUE, std::binary_function< _T, _T, _T >
+  struct BinaryFunction : GC_VALUE
   {
     BinaryFunction(VALUE obj = Qnil) : GC_VALUE(obj) { }
     _T operator()(_T a, _T b) const
@@ -128,7 +128,7 @@ namespace swig {
   };
 
   template< class _T = GC_VALUE >
-  struct UnaryPredicate : GC_VALUE, std::unary_function< _T, bool >
+  struct UnaryPredicate : GC_VALUE
   {
     UnaryPredicate(VALUE obj = Qnil) : GC_VALUE(obj) { }
     bool operator()(_T a) const
@@ -142,7 +142,7 @@ namespace swig {
   };
 
   template< class _T = GC_VALUE >
-  struct UnaryFunction : GC_VALUE, std::unary_function< _T, _T >
+  struct UnaryFunction : GC_VALUE
   {
     UnaryFunction(VALUE obj = Qnil) : GC_VALUE(obj) { }
     _T operator()(_T a) const
