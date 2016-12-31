@@ -195,7 +195,7 @@ Now, in Python:
 <pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; c = example.new_intp()     # Create an "int" for storing result
-&gt;&gt;&gt; example.add(3, 4, c)         # Call function
+&gt;&gt;&gt; example.add(3, 4, c)       # Call function
 &gt;&gt;&gt; example.intp_value(c)      # Dereference
 7
 &gt;&gt;&gt; example.delete_intp(c)     # Delete
@@ -275,7 +275,7 @@ Now, in Python (using proxy classes)
 <pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; c = example.intp()         # Create an "int" for storing result
-&gt;&gt;&gt; example.add(3, 4, c)         # Call function
+&gt;&gt;&gt; example.add(3, 4, c)       # Call function
 &gt;&gt;&gt; c.value()                  # Dereference
 7
 </pre>
@@ -413,11 +413,11 @@ Now, in a scripting language, you might write this:
 
 <div class="code">
 <pre>
-a = new_doubleArray(10)           # Create an array
+a = new_doubleArray(10)             # Create an array
 for i in range(0, 10):
     doubleArray_setitem(a, i, 2*i)  # Set a value
-print_array(a)                    # Pass to C
-delete_doubleArray(a)             # Destroy array
+print_array(a)                      # Pass to C
+delete_doubleArray(a)               # Destroy array
 </pre>
 </div>
 

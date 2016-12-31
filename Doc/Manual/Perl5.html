@@ -841,7 +841,7 @@ In Perl:
 <div class="targetlang">
 <pre>
 use example;
-print $example::FOO, "\n";    # OK
+print $example::FOO, "\n";   # OK
 $example::FOO = 2;           # Error
 </pre>
 </div>
@@ -1004,7 +1004,7 @@ These functions are then used to access structure data from Perl as follows:
 
 <div class="targetlang"><pre>
 $v = example::new_Vector();
-print example::Vector_x_get($v), "\n";    # Get x component
+print example::Vector_x_get($v), "\n";   # Get x component
 example::Vector_x_set($v, 7.8);          # Change x component
 </pre></div>
 
@@ -1286,7 +1286,7 @@ a single Perl module. The name of the module is determined by the
 <div class="targetlang"><pre>
 $ perl5
 use example;                      # load the example module
-print example::fact(4), "\n"       # Call a function in it
+print example::fact(4), "\n"      # Call a function in it
 24
 </pre></div>
 
@@ -2216,7 +2216,7 @@ use argv;
 @a = ("Dave", "Mike", "John", "Mary");           # Create an array of strings
 argv::print_args(\@a);                           # Pass it to our C function
 $b = argv::get_args();                           # Get array of strings from C
-print @$b, "\n";                                  # Print it out
+print @$b, "\n";                                 # Print it out
 </pre></div>
 
 

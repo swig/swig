@@ -727,7 +727,7 @@ In the previous example, the GOOPS definitions will be in a file named Test.scm.
 
 <p>Because of the naming conflicts, you can't in general use both the <code>-primitive</code> and the GOOPS 
 guile-modules at the same time.  To do this, you need to rename the exported symbols from one or both 
-guile-modules.  For example, </p>
+guile-modules.  For example,</p>
 <div class="targetlang"><pre>
 (use-modules ((Test-primitive) #:renamer (symbol-prefix-proc 'primitive:)))
 (use-modules ((Test) #:renamer (symbol-prefix-proc 'goops:)))

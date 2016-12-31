@@ -649,7 +649,7 @@ print cvar.foo                  # Print value of foo
 
 # Perl
 $foo = 3.5;                     # Set foo to 3.5
-print $foo, "\n";                # Print value of foo
+print $foo, "\n";               # Print value of foo
 
 # Ruby
 Module.foo = 3.5               # Set foo to 3.5
@@ -1648,7 +1648,7 @@ If you wanted to make all wrapped variables read-only, barring one or two, it mi
 
 <div class="code"><pre>
 %immutable;                     // Make all variables read-only
-%feature("immutable", "0") x;    // except, make x read/write
+%feature("immutable", "0") x;   // except, make x read/write
 ...
 double x;
 double y;

@@ -563,7 +563,7 @@ Don't worry if the wrapper file doesn't exist yet--Visual Studio will keep a ref
 <li>Enter "SWIG" in the description field.
 <li>Enter "<tt>swig -java -o $(ProjDir)\$(InputName)_wrap.c $(InputPath)</tt>" in the "Build command(s) field"
 <li>Enter "<tt>$(ProjDir)\$(InputName)_wrap.c</tt>" in the "Output files(s) field".
-<li>Next, select the settings for the entire project and go to C/C++ tab and select the Preprocessor category . Add the include directories to the JNI header files under "Additional include directories", eg "C:\jdk1.3\include, C:\jdk1.3\include\win32".
+<li>Next, select the settings for the entire project and go to C/C++ tab and select the Preprocessor category. Add the include directories to the JNI header files under "Additional include directories", eg "C:\jdk1.3\include, C:\jdk1.3\include\win32".
 <li>Next, select the settings for the entire project and go to Link tab and select the General category. Set the name of the output file to match the name of your Java module (ie. example.dll).
 <li>Next, select the example.c and example_wrap.c files and go to the C/C++ tab and select the Precompiled Headers tab in the project settings. Disabling precompiled headers for these files will overcome any precompiled header errors while building.
 <li>Finally, add the java compilation as a post build rule in the Post-build step tab in project settings, eg, "c:\jdk1.3\bin\javac *.java" 

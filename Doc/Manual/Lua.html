@@ -1109,7 +1109,7 @@ Now, in Lua
 &gt; e = c + d
 &gt; print(e)      -- print uses __str__ to get the string form to print
 Complex(10, 12)
-&gt; print(e==Complex(10, 12))      -- testing the == operator
+&gt; print(e==Complex(10, 12))  -- testing the == operator
 true
 &gt; print(e!=Complex(12, 12))  -- the != uses the == operator
 true
@@ -1121,7 +1121,7 @@ Extend works with both C and C++ code, on classes and structs. It does not modif
 <H3><a name="Lua_nn20">28.3.13 Using %newobject to release memory</a></H3>
 
 
-<p> If you have a function that allocates memory like this, </p>
+<p> If you have a function that allocates memory like this,</p>
 <div class="code">
 <pre>char *foo() {
   char *result = (char *) malloc(...);

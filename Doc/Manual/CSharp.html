@@ -602,7 +602,7 @@ For the <tt>%array_functions</tt> example, the equivalent usage would be:
 <pre>
 SWIGTYPE_p_double a = example.new_doubleArray(10);  // Create an array
 for (int i=0; i&lt;10; i++)
-  example.doubleArray_setitem(a, i, 2*i);             // Set a value
+  example.doubleArray_setitem(a, i, 2*i);           // Set a value
 example.print_array(a);                             // Pass to C
 example.delete_doubleArray(a);                      // Destroy array
 </pre>
@@ -2160,8 +2160,8 @@ The typemaps to achieve this are shown below.
 %typemap(cstype) CDate &amp; "out System.DateTime"
 %typemap(csin, 
          pre="    CDate temp$csinput = new CDate();", 
-         post="      $csinput = new System.DateTime(temp$csinput.getYear(), "
-              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
+         post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
+              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);",
          cshin="out $csinput"
         ) CDate &amp;
          "$csclassname.getCPtr(temp$csinput)"
@@ -2266,8 +2266,8 @@ will be possible with the following <tt>CDate *</tt> typemaps
 
 %typemap(csin,
          pre="    CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);",
-         post="      $csinput = new System.DateTime(temp$csinput.getYear(), "
-              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
+         post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
+              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);",
          cshin="ref $csinput"
         ) CDate *
          "$csclassname.getCPtr(temp$csinput)"
@@ -2305,8 +2305,8 @@ The <tt>subtractYears</tt> method is nearly identical to the above <tt>addYears<
 <pre>
 %typemap(csin,
   pre="    using (CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day)) {",
-  post="      $csinput = new System.DateTime(temp$csinput.getYear(), "
-       " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
+  post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
+       " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);",
   terminator="    } // terminate temp$csinput using block",
   cshin="ref $csinput"
  ) CDate *
@@ -2377,8 +2377,8 @@ The typemap type required is thus <tt>CDate *</tt>. Given that the previous sect
 
 %typemap(csin,
          pre="    CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);",
-         post="      $csinput = new System.DateTime(temp$csinput.getYear(), "
-              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
+         post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
+              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);",
          cshin="ref $csinput"
         ) CDate *
          "$csclassname.getCPtr(temp$csinput)"

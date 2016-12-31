@@ -645,7 +645,7 @@ you can attach it to class members and parameterized declarations as before.  Fo
 <div class="code">
 <pre>
 %newobject ::blah();                   // Only applies to global blah
-%newobject Object::blah(int, double);   // Only blah(int, double) in Object
+%newobject Object::blah(int, double);  // Only blah(int, double) in Object
 %newobject *::copy;                    // Copy method in all classes
 ...
 </pre>
@@ -914,13 +914,13 @@ int red;                        // mutable
 %feature("immutable");          // global enable
 int orange;                     // immutable
 
-%feature("immutable", "0");      // global disable
+%feature("immutable", "0");     // global disable
 int yellow;                     // mutable
 
-%feature("immutable", "1");      // another form of global enable
+%feature("immutable", "1");     // another form of global enable
 int green;                      // immutable
 
-%feature("immutable", "");       // clears the global feature
+%feature("immutable", "");      // clears the global feature
 int blue;                       // mutable
 </pre>
 </div>
