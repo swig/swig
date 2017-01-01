@@ -17,6 +17,30 @@
 <li><a href="#com_compiling_dynamic">Compiling a dynamic module</a>
 <li><a href="#com_using_module">Using your module</a>
 </ul>
+<li><a href="#com_practical_tips">Practical Tips for Using and Testing the COM Module</a>
+<ul>
+<li><a href="#com_tips_overview">Overview</a>
+<li><a href="#com_compilation_using_various_toolchains">Compilation using various toolchains</a>
+<ul>
+<li><a href="#com_microsoft_visual_studio">Microsoft Visual Studio</a>
+<li><a href="#com_mingw_cywin_on_windows_using_midl">MinGW/Cygwin on Windows (using MIDL)</a>
+<li><a href="#com_digital_mars_cpp_on_windows">Digital Mars C++ on Windows (using MIDL)</a>
+<li><a href="#com_mingw_on_linux_usin_widl">MinGW on Linux (using WIDL)</a>
+<li><a href="#com_winegcc">WineGCC</a>
+</ul>
+<li><a href="#com_testing_environment_windows_cygwin_midl">Testing environment (Windows/Cygwin and MIDL)</a>
+<ul>
+<li><a href="#com_using_cygwin_default_compiler">Using Cygwin's default C/C++ compiler</a>
+<li><a href="#com_using_microsoft_visual_cpp">Using Microsoft Visual C++</a>
+<li><a href="#com_using_digital_mars_cpp">Using Digital Mars C++</a>
+</ul>
+<li><a href="#com_testing_environment">Testing environment (Unix/Linux, using WINE and possibly MinGW)</a>
+<li><a href="#com_winegcc2">Winegcc</a>
+<li><a href="#com_mingw">MinGW</a>
+<ul>
+<li><a href="#com_vbscript_run_tests_on_linux">VBScript run tests on Linux</a>
+</ul>
+</ul>
 <li><a href="#com_basic_tour">A tour of basic C/C++ wrapping</a>
 <ul>
 <li><a href="#com_functions">Global functions</a>
@@ -268,7 +292,254 @@ allows you to call global functions and access global variables defined in your 
 allows you to create instances of C++ classes and to call static member functions.
 </p>
 
-<H2><a name="com_basic_tour"></a>17.3 A tour of basic C/C++ wrapping</H2>
+<H2><a name="com_practical_tips"></a>17.3 Practical Tips for Using and Testing the COM Module</H2>
+
+
+<H3><a name="com_tips_overview"></a>17.3.1 Overview</H3>
+
+
+<p>
+Setting up the infrastructure needed for running the test-suite using the COM module is a bit more tricky than for other modules. This is because you need tools that are usually not present on POSIX systems, like a IDL and RC compiler. In addition often the compiler used for building SWIG itself is not appropriate for running the tests. This page shows some ways to set up an environment for running the test-suite.
+<p>
+<H3><a name="com_compilation_using_various_toolchains"></a>17.3.2 Compilation using various toolchains</H3>
+
+
+<p>
+This section lists the commands used for compiling the modules using various toolchains. This might be useful for verifying if the environment is set up correctly. We assume that we are using C++ and that the module is named 'example'.
+<p>
+<H4><a name="com_microsoft_visual_studio"></a>17.3.2.1 Microsoft Visual Studio</H4>
+
+
+<p>
+<div class="shell">
+<pre>
+$ midl example.idl
+$ rc example.rc
+$ cl /LD /GR /EHs /Feexample.dll example.cpp example_wrap.cxx example.def example.res ole32.lib uuid.lib advapi32.lib oleaut32.lib
+</pre>
+</div>
+<p>
+<H4><a name="com_mingw_cywin_on_windows_using_midl"></a>17.3.2.2 MinGW/Cygwin on Windows (using MIDL)</H4>
+
+
+<p>
+Please note that the MinGW linker does not understand .res files and the .rc file needs to be compiled to an object file before linking. To prevent potential name clashes you can rename the object file containing the resources, as shown below.
+<p>
+<div class="shell">
+<pre>
+$ midl example.idl
+$ windres example.rc example_rc.o
+$ g++ -shared -o example.dll example.cpp example_wrap.cxx example.def example_rc.o -lole32 -luuid -ladvapi32 -loleaut32
+</pre>
+</div>
+<p>
+<H4><a name="com_digital_mars_cpp_on_windows"></a>17.3.2.3 Digital Mars C++ on Windows (using MIDL)</H4>
+
+
+<div class="shell">
+<pre>
+$ midl example.idl
+$ rcc example.rc
+$ dmc -WD -L/exetype:nt -oexample.dll example.cpp example_wrap.cxx example.def example.res ole32.lib uuid.lib advapi32.lib oleaut32.lib kernel32.lib user32.lib
+</pre>
+</div>
+<p>
+<H4><a name="com_mingw_on_linux_usin_widl"></a>17.3.2.4 MinGW on Linux (using WIDL)</H4>
+
+
+<p>
+Please note that the MinGW linker does not understand .res files and the .rc file needs to be compiled to an object file before linking. To prevent potential name clashes you can rename the object file containing the resources, as shown below.
+<p>
+<div class="shell">
+<pre>
+$ widl -t -I /usr/include/wine/windows example.idl
+$ i586-mingw32msvc-windres example.rc example_rc.o
+$ i586-mingw32msvc-g++ -shared -o example.dll example.cpp example_wrap.cxx example.def example_rc.o -lole32 -luuid -ladvapi32 -loleaut32
+</pre>
+</div>
+<p>
+<H4><a name="com_winegcc"></a>17.3.2.5 WineGCC</H4>
+
+
+<p>
+<div class="shell">
+<pre>
+$ widl -t -I /usr/include/wine/windows example.idl
+$ wrc -i example.rc -o example.res
+$ wineg++ -shared -o example.dll.so example.cpp example_wrap.cxx example.def example.res -lole32 -luuid -ladvapi32 -loleaut32
+</pre>
+</div>
+<p>
+You are welcome to add instructions for other toolchains to this page.
+<p>
+<H3><a name="com_testing_environment_windows_cygwin_midl"></a>17.3.3 Testing environment (Windows/Cygwin and MIDL)</H3>
+
+
+<p>
+This section shows how you can run the tests on Windows using Cygwin (using various C/C++ compilers). Other POSIX-like environments (UWIN, MS SFU, MKS Toolkit) might work too but have not been tested. We assume that you have the MIDL compiler (search for midl.exe) installed somewhere; it comes with Visual Studio and probably also with the Windows SDK (previously known as Platform SDK).
+<p>
+<H4><a name="com_using_cygwin_default_compiler"></a>17.3.3.1 Using Cygwin's default C/C++ compiler</H4>
+
+
+<p>
+The only thing not available in Cygwin is the IDL compiler, so you will need to set it up (unless you are lucky and midl works out of the box). You can use the following script to set up the paths needed by MIDL (you may need to adjust the actual paths):
+<p>
+<div class="code">
+<pre>
+# vars_cygwin.sh
+
+# Path to midl.exe
+export PATH=$PATH:/cygdrive/c/Program\ Files/Microsoft\ SDKs/Windows/v6.0A/bin
+
+# Path to cl.exe (used as preprocessor)
+export PATH=$PATH:/cygdrive/c/Program\ Files/Microsoft\ Visual\ Studio\ 9.0/VC/bin/
+
+# Contains DLLs needed by cl.exe
+export PATH=$PATH:/cygdrive/c/Program\ Files/Microsoft\ Visual\ Studio\ 9.0/Common7/IDE
+
+# Platform includes, needed for MIDL
+export INCLUDE=c:\\Program\ Files\\Microsoft\ SDKs\\Windows\\v6.0A\\Include 
+</pre>
+</div>
+<p>
+Now you can use the following options for configure:
+<p>
+<div class="shell">
+<pre>
+$ . ./vars_cygwin.sh
+$ ./configure --with-com-cc=gcc --with-com-cxx=g++ --with-com-idl=midl --with-com-rc=windres
+</pre>
+</div>
+<p>
+<H4><a name="com_using_microsoft_visual_cpp"></a>17.3.3.2 Using Microsoft Visual C++</H4>
+
+
+<p>
+You can use the following script to set up the paths needed by MSVC and MIDL (you may need to adjust the actual paths):
+<p>
+<div class="code">
+<pre>
+# vars_vc.sh
+
+# Path to midl.exe
+export PATH=$PATH:/cygdrive/c/Program\ Files/Microsoft\ SDKs/Windows/v6.0A/bin
+
+# Path to cl.exe (used as preprocessor)
+export PATH=$PATH:/cygdrive/c/Program\ Files/Microsoft\ Visual\ Studio\ 9.0/VC/bin/
+
+# Contains DLLs needed by cl.exe
+export PATH=$PATH:/cygdrive/c/Program\ Files/Microsoft\ Visual\ Studio\ 9.0/Common7/IDE
+
+# Includes
+export INCLUDE=c:\\Program\ Files\\Microsoft\ SDKs\\Windows\\v6.0A\\Include\;c:\\Program\ Files\\Microsoft\ Visual\ Studio\ 9.0\\VC\\Include
+
+# Libs
+export LIB=c:\\Program\ Files\\Microsoft\ SDKs\\Windows\\v6.0A\\Lib\;c:\\Program\ Files\\Microsoft\ Visual\ Studio\ 9.0\\VC\\Lib
+</pre>
+</div>
+<p>
+Now you can use the following options for configure:
+<p>
+<div class="shell">
+<pre>
+$ . ./vars_vc.sh
+$ ./configure --with-com-cc=cl --with-com-cxx=cl --with-com-idl=midl --with-com-rc=rc
+</pre>
+</div>
+<p>
+<H4><a name="com_using_digital_mars_cpp"></a>17.3.3.3 Using Digital Mars C++</H4>
+
+
+<p>
+You can use the following script to set up the paths needed by DMC and MIDL (you may need to adjust the actual paths):
+<p>
+<div class="code">
+<pre>
+# vars_dmc.sh
+
+# Path to midl.exe
+export PATH=$PATH:/cygdrive/c/Program\ Files/Microsoft\ SDKs/Windows/v6.0A/bin
+
+# Path to cl.exe (used as preprocessor)
+export PATH=$PATH:/cygdrive/c/Program\ Files/Microsoft\ Visual\ Studio\ 9.0/VC/bin/
+
+# Path to Digital Mars installation
+# Note: It is important that DMC's cl.exe does not override Visual Studio's
+#       cl.exe which is used as the C preprocessor by midl.exe
+export PATH=$PATH:/cygdrive/c/Program\ Files/dmc/bin
+
+# Contains DLLs needed by cl.exe
+export PATH=$PATH:/cygdrive/c/Program\ Files/Microsoft\ Visual\ Studio\ 9.0/Common7/IDE
+
+# Platform includes, needed for MIDL
+export INCLUDE=c:\\Program\ Files\\Microsoft\ SDKs\\Windows\\v6.0A\\Include
+</pre>
+</div>
+<p>
+Now you can use the following options for configure:
+<p>
+<div class="shell">
+<pre>
+$ . ./vars_dmc.sh
+$ ./configure --with-com-cc=dmc --with-com-cxx=dmc --with-com-idl=midl --with-com-rc=rcc
+</pre>
+</div>
+<p>
+<H3><a name="com_testing_environment"></a>17.3.4 Testing environment (Unix/Linux, using WINE and possibly MinGW)</H3>
+
+
+<p>
+On Unix platforms you will definitely need WINE (for WIDL and for run-tests) - most recent versions should be OK (0.9.46, 1.0 and 1.1.0 are known to work). You may use WINE's gcc wrapper (winegcc) or the separate MinGW cross compiler. We assume that the binaries are present in your PATH.
+<p>
+<H3><a name="com_winegcc2"></a>17.3.5 Winegcc</H3>
+
+
+<p>
+If you have WINE installed properly you can just use the following options for configure:
+<p>
+<div class="shell">
+<pre>
+$ ./configure --with-com-runtool=wine --with-com-cc=winegcc --with-com-cxx=wineg++ --with-com-idl=widl --with-com-rc=wrc
+</pre>
+</div>
+<p>
+<H3><a name="com_mingw"></a>17.3.6 MinGW</H3>
+
+
+<p>
+For MinGW use the following options:
+<p>
+<div class="shell">
+<pre>
+$ ./configure --with-com-runtool=wine --with-com-cc=i586-mingw32msvc-gcc --with-com-cxx=i586-mingw32msvc-g++ --with-com-idl=widl --with-com-rc=i586-mingw32msvc-windres
+</pre>
+</div>
+<p>
+<H4><a name="com_vbscript_run_tests_on_linux"></a>17.3.6.1 VBScript run tests on Linux</H4>
+
+
+<p>
+The test suite contains run-tests written in C and in VBScript. The C tests should 'just work' as should the VBScript ones on Windows. If you want to use the VBScript tests on Linux you will first need to install the Windows Script Host (standalone or as part of Internet Explorer) under WINE. This procedure may depend on the version of WINE/WSH/IE and is outside of the scope of this page. After installing WSH you will need to create a wrapper script (let's call it cscript) and put it in your PATH. The script could look like this:
+<p>
+<div class="shell">
+<pre>
+#!/bin/sh
+
+wine c:\\windows\\system32\\cscript.exe $*
+</pre>
+</div>
+<p>
+You can then add the following option to configure:
+<p>
+<div class="shell">
+<pre>
+--with-com-cscript=cscript
+</pre>
+</div>
+<p>
+On platforms other than Windows/Cygwin the presence of cscript is not autodetected (as it's highly unusual to have it) and you will need to specify it manually.
+
+<H2><a name="com_basic_tour"></a>17.4 A tour of basic C/C++ wrapping</H2>
 
 
 <p>
@@ -277,7 +548,7 @@ of differences between C/C++ and COM there are some aspects that need
 special attention. They are described in this section
 </p>
 
-<H3><a name="com_functions"></a>17.3.1 Global functions</H3>
+<H3><a name="com_functions"></a>17.4.1 Global functions</H3>
 
 
 <p>
@@ -302,7 +573,7 @@ Print example.fact(4)
 </pre></div>
 
 
-<H3><a name="com_global_variables"></a>17.3.2 Global variables</H3>
+<H3><a name="com_global_variables"></a>17.4.2 Global variables</H3>
 
 
 <p>
@@ -375,7 +646,7 @@ extern char *path;      // Read-only (due to %immutable)
 </div>
 
 
-<H3><a name="com_constants"></a>17.3.3 Constants</H3>
+<H3><a name="com_constants"></a>17.4.3 Constants</H3>
 
 
 <p>
@@ -398,7 +669,7 @@ Please note that SWIG can infer the C type from the <tt>#define</tt> directive -
 is wrapped as a floating point value while <tt>VERSION</tt> is wrapped as a string.
 </p>
 
-<H3><a name="com_enumerations"></a>17.3.4 Enumerations</H3>
+<H3><a name="com_enumerations"></a>17.4.4 Enumerations</H3>
 
 
 <p>
@@ -459,7 +730,7 @@ example.MyClass.bev = example.MyClass.PILSNER
 </pre>
 </div>
 
-<H3><a name="com_pointers"></a>17.3.5 Pointers</H3>
+<H3><a name="com_pointers"></a>17.4.5 Pointers</H3>
 
 
 <p>
@@ -535,7 +806,7 @@ This is especially important when you use a cast from a supertype to a subtype; 
 case only <tt>dynamic_cast</tt> is guaranteed to work reliably.
 </p>
 
-<H3><a name="com_structures"></a>17.3.6 Structures</H3>
+<H3><a name="com_structures"></a>17.4.6 Structures</H3>
 
 
 <p>
@@ -570,7 +841,7 @@ about how SWIG handles C++ classes is provided in the next section.
 </p>
 
 
-<H3><a name="com_classes"></a>17.3.7 C++ classes</H3>
+<H3><a name="com_classes"></a>17.4.7 C++ classes</H3>
 
 
 <p>
@@ -669,7 +940,7 @@ functions/variable). If you plan to create a multi-threaded program you should e
 either within the wrapped C/C++ code or in the target language.
 </p>
 
-<H3><a name="com_inheritance"></a>17.3.8 C++ inheritance</H3>
+<H3><a name="com_inheritance"></a>17.4.8 C++ inheritance</H3>
 
 
 <p>
@@ -713,7 +984,7 @@ example.spam(b)
 </div>
 
 
-<H3><a name="com_pointers_refs_arrays"></a>17.3.9 Pointers, references, arrays and pass by value</H3>
+<H3><a name="com_pointers_refs_arrays"></a>17.4.9 Pointers, references, arrays and pass by value</H3>
 
 
 <p>
@@ -774,7 +1045,7 @@ to hold the result and a pointer is returned (the generated COM code will free t
 memory when the object is no longer needed, that is when its reference count reaches 0).
 </p>
 
-<H4><a name="com_null_pointers"></a>17.3.9.1 Null pointers</H4>
+<H4><a name="com_null_pointers"></a>17.4.9.1 Null pointers</H4>
 
 
 <p>
@@ -784,7 +1055,7 @@ You should not pass null to functions expecting a reference - in this case the
 function call will fail with an E_INVALIDARG error.
 </p>
 
-<H3><a name="com_overloaded_functions"></a>17.3.10 C++ overloaded functions</H3>
+<H3><a name="com_overloaded_functions"></a>17.4.10 C++ overloaded functions</H3>
 
 
 <p>
@@ -817,7 +1088,7 @@ void spam(unsigned short);   // Ignored
 </div>
 
 
-<H3><a name="com_default_arguments"></a>17.3.11 C++ default arguments</H3>
+<H3><a name="com_default_arguments"></a>17.4.11 C++ default arguments</H3>
 
 
 <p>
@@ -837,7 +1108,7 @@ void defaults(double d=10.0, int i=0);
 </div>
 
 
-<H3><a name="com_namespaces"></a>17.3.12 C++ namespaces</H3>
+<H3><a name="com_namespaces"></a>17.4.12 C++ namespaces</H3>
 
 
 <p>
@@ -899,7 +1170,7 @@ If you have more than one namespace and you want to keep their
 symbols separate, consider wrapping them as separate SWIG modules.
 </p>
 
-<H3><a name="com_constructors"></a>17.3.13 Constructors</H3>
+<H3><a name="com_constructors"></a>17.4.13 Constructors</H3>
 
 
 <p>
@@ -953,7 +1224,7 @@ Obviously there is no way to use this syntax for calling a constructor that expe
 receive parameters.
 </p>
 
-<H3><a name="com_templates"></a>17.3.14 C++ templates</H3>
+<H3><a name="com_templates"></a>17.4.14 C++ templates</H3>
 
 
 <p>
@@ -1005,7 +1276,7 @@ Obviously, there is more to template wrapping than shown in this example.
 More details can be found in the <a href="SWIGPlus.html#SWIGPlus">SWIG and C++</a> chapter.   
 </p>
 
-<H3><a name="com_smart_pointers"></a>17.3.15 C++ Smart Pointers</H3>
+<H3><a name="com_smart_pointers"></a>17.4.15 C++ Smart Pointers</H3>
 
 
 <p>
@@ -1013,7 +1284,7 @@ TODO
 </p>
 
 
-<H2><a name="com_further_details"></a>17.4 Further details on COM wrapping</H2>
+<H2><a name="com_further_details"></a>17.5 Further details on COM wrapping</H2>
 
 
 <p>
@@ -1022,7 +1293,7 @@ COM objects. For users wanting to have a better understanding of how things work
 beneath the surface this section provides some more details.
 </p>
 
-<H3><a name="com_classes_and_interfaces"></a>17.4.1 Classes and interfaces</H3>
+<H3><a name="com_classes_and_interfaces"></a>17.5.1 Classes and interfaces</H3>
 
 
 <p>
@@ -1084,7 +1355,7 @@ value as an <tt>out</tt> parameter, and the <tt>ISWIGWrappedObject</tt> interfac
 They will be described in later subsections.
 </p>
 
-<H3><a name="com_module_class"></a>17.4.2 Module class and class objects</H3>
+<H3><a name="com_module_class"></a>17.5.2 Module class and class objects</H3>
 
 
 <p>
@@ -1157,7 +1428,7 @@ a class object (e.g. using <tt>CreateObject</tt> in Basic) and need to use the m
 class. There is no good reason for it other than that it has not yet been implemented.
 </p>
 
-<H3><a name="com_guids"></a>17.4.3 GUID handling</H3>
+<H3><a name="com_guids"></a>17.5.3 GUID handling</H3>
 
 
 <p>
@@ -1228,7 +1499,7 @@ change the public interface of some of your wrapped classes you can do this eith
 manually specifying their new CLSIDs and IIDs, or by changing the master GUID.
 </p>
 
-<H3><a name="com_class_factories"></a>17.4.4 Class factories and aggregation</H3>
+<H3><a name="com_class_factories"></a>17.5.4 Class factories and aggregation</H3>
 
 
 <p>
@@ -1242,7 +1513,7 @@ SWIG supports COM aggregation for proxy classes. The module class currently cann
 aggregated.
 </p>
 
-<H3><a name="com_hresult"></a>17.4.5 IDispatch and HRESULT as return value</H3>
+<H3><a name="com_hresult"></a>17.5.5 IDispatch and HRESULT as return value</H3>
 
 
 <p>
@@ -1260,7 +1531,7 @@ then you will need to explicitly provide a pointer to the address where the retu
 is to be stored.
 </p>
 
-<H3><a name="com_iswigwrappedobject"></a>17.4.6 ISWIGWrappedObject interface</H3>
+<H3><a name="com_iswigwrappedobject"></a>17.5.6 ISWIGWrappedObject interface</H3>
 
 
 <p>
@@ -1283,7 +1554,7 @@ so you should not rely on its presence. However it may be useful for debugging
 purposes.
 </p>
 
-<H3><a name="com_memory"></a>17.4.7 Memory management</H3>
+<H3><a name="com_memory"></a>17.5.7 Memory management</H3>
 
 
 <p>
@@ -1300,7 +1571,7 @@ deallocated using <tt>delete</tt>; this means that the destructor
 will be called, just as it would be called in C++.
 </p>
 
-<H3><a name="com_exception"></a>17.4.8 Exceptions</H3>
+<H3><a name="com_exception"></a>17.5.8 Exceptions</H3>
 
 
 <p>
@@ -1330,10 +1601,10 @@ You can customize the exception handling process by modifying the
 <tt>throws</tt> typemap.
 </p>
 
-<H2><a name="com_customization"></a>17.5 Customization features</H2>
+<H2><a name="com_customization"></a>17.6 Customization features</H2>
 
 
-<H3><a name="com_typemaps"></a>17.5.1 Typemaps</H3>
+<H3><a name="com_typemaps"></a>17.6.1 Typemaps</H3>
 
 
 <p>
