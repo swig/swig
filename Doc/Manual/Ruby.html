@@ -1014,7 +1014,7 @@ void foo(char *c);</pre>
 irb(main):002:0&gt; <b>foo("Hello")</b> # foo(char *c)</pre>
 </div>
 
-<p>Similarly, if you have a class like this,</p>
+<p>Similarly, if you have a class like this, </p>
 
 <div class="code">
 <pre>class Foo {
@@ -1141,7 +1141,7 @@ like this, </p>
 namespace foo {
   int fact(int n);
   struct Vector {
-    double x,y,z;
+    double x, y, z;
   };
 };</pre>
 </div>
@@ -1210,7 +1210,7 @@ struct pair {
   ~pair();
 };
 
-%template(Pairii) pair&lt;int,int&gt;;</pre>
+%template(Pairii) pair&lt;int, int&gt;;</pre>
 </div>
 
 <p>In Ruby:</p>
@@ -1273,7 +1273,7 @@ v.each { |x| puts x }
 3
 4
 v.delete_if { |x| x == 3 }
-=&gt; [2,4]</pre>
+=&gt; [2, 4]</pre>
 </div>
 
 <p>The SWIG Ruby module provides also the ability for all the STL
@@ -1303,7 +1303,7 @@ include NativeVector
 
 v = NativeVector.new
 v &lt;&lt; 1
-v &lt;&lt; [1,2]
+v &lt;&lt; [1, 2]
 v &lt;&lt; 'hello'
 
 class A; end
@@ -1311,7 +1311,7 @@ class A; end
 v &lt;&lt; A.new
 
 puts v
-=&gt; [1, [1,2], 'hello', #&lt;A:0x245325&gt;]
+=&gt; [1, [1, 2], 'hello', #&lt;A:0x245325&gt;]
 </pre>
 </div>
 
@@ -1368,15 +1368,15 @@ a &lt;&lt; 1
 a &lt;&lt; 2
 a &lt;&lt; 3
 a
-<b>=&gt; [1,2,3]</b>
+<b>=&gt; [1, 2, 3]</b>
 
 # Custom sorting behavior defined by a Ruby proc
-b = IntSet.new( proc { |a,b| a &gt; b } )
+b = IntSet.new( proc { |a, b| a &gt; b } )
 b &lt;&lt; 1
 b &lt;&lt; 2
 b &lt;&lt; 3
 b
-<b>=&gt;  [3,2,1]</b>
+<b>=&gt;  [3, 2, 1]</b>
 </pre>
 </div>
 
@@ -1493,7 +1493,7 @@ like this: </p>
 }</pre>
 </div>
 
-<p>Then, if you have a class like this,</p>
+<p>Then, if you have a class like this, </p>
 
 <div class="code">
 <pre>class Foo {
@@ -1665,7 +1665,7 @@ a comma-separated list of aliases to the <tt>%alias</tt>
 directive, e.g. </p>
 
 <div class="code">
-<pre>%alias MyArray::length "amount,quantity,size";</pre>
+<pre>%alias MyArray::length "amount, quantity, size";</pre>
 </div>
 
 <p> From an end-user's standpoint, there's no functional
@@ -1835,10 +1835,10 @@ int sub(int *INPUT, int *INPUT);</pre>
 <p>In Ruby, this allows you to pass simple values. For example:</p>
 
 <div class="code targetlang">
-<pre>a = Example.add(3,4)
+<pre>a = Example.add(3, 4)
 puts a
 7
-b = Example.sub(7,4)
+b = Example.sub(7, 4)
 puts b
 3</pre>
 </div>
@@ -2086,7 +2086,7 @@ public:
 <p> Then, in ruby, it can be used like:</p>
 
 <div class="targetlang"><pre>
-Window.new(0,0,360,480) { |w|
+Window.new(0, 0, 360, 480) { |w|
   w.color = Fltk::RED
   w.border = false
 }
@@ -2102,7 +2102,7 @@ a special in typemap, like:</p>
 //
 // void func(int x);
 
-%typemap(in,numinputs=0) int RUBY_YIELD_SELF {
+%typemap(in, numinputs=0) int RUBY_YIELD_SELF {
   if ( !rb_block_given_p() )
     rb_raise("No block given");
   return rb_yield(self);
@@ -2384,7 +2384,7 @@ from Ruby to C, you might define a typemap like this: </p>
 
 %typemap(in) int {
   $1 = (int) NUM2INT($input);
-  printf("Received an integer : %d\n",$1);
+  printf("Received an integer : %d\n", $1);
 }
 
 %inline %{
@@ -2428,7 +2428,7 @@ supplying an optional parameter name. For example: </p>
 
 %typemap(in) int n {
   $1 = (int) NUM2INT($input);
-  printf("n = %d\n",$1);
+  printf("n = %d\n", $1);
 }
 
 %inline %{
@@ -2450,7 +2450,7 @@ declarations. For example: </p>
 <div class="code">
 <pre>%typemap(in) int n {
   $1 = (int) NUM2INT($input);
-  printf("n = %d\n",$1);
+  printf("n = %d\n", $1);
 }
 
 typedef int Integer;
@@ -2478,7 +2478,7 @@ always handled as a single Ruby object. This allows the function <tt>count</tt>
 to be used as follows (notice how the length parameter is omitted): </p>
 
 <div class="code targetlang">
-<pre>puts Example.count('o','Hello World')
+<pre>puts Example.count('o', 'Hello World')
 2</pre>
 </div>
 
@@ -2747,7 +2747,7 @@ functions and methods. It merely checks an argument to see whether or
 not it matches a specific type. For example:</p>
 
 <div class="code">
-<pre>%typemap(typecheck,precedence=SWIG_TYPECHECK_INTEGER) int {
+<pre>%typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int {
   $1 = FIXNUM_P($input) ? 1 : 0;
 }</pre>
 </div>
@@ -2862,7 +2862,7 @@ arguments have been converted. For example:</p>
 <div class="code">
 <pre>%typemap(check) int positive {
   if ($1 &lt;= 0) {
-    SWIG_exception(SWIG_ValueError,"Expected positive value.");
+    SWIG_exception(SWIG_ValueError, "Expected positive value.");
   }
 }</pre>
 </div>
@@ -3168,7 +3168,7 @@ directive. Thus, a function can be made to return "nothing"
 if you do:</p>
 
 <div class="code"><pre>
-%feature("numoutputs","0") MyClass::function;
+%feature("numoutputs", "0") MyClass::function;
 </pre></div>
 
 <p>This feature can be useful if a function returns a status
@@ -3346,7 +3346,7 @@ across multiple languages.</p>
     </tr>
     <tr>
       <td>rb_float_new(double) </td>
-      <td>SWIG_From_double(double),<br>
+      <td>SWIG_From_double(double), <br>
 SWIG_From_float(float)</td>
       <td>float/double to Float</td>
     </tr>
@@ -3365,7 +3365,7 @@ versions do not, but return a status value to indicate success (<tt>SWIG_OK</tt>
 %typemap(in) size_t (int ok)
   ok = SWIG_AsVal_size_t($input, &amp;$1);
   if (!SWIG_IsOK(ok)) {
-    SWIG_exception_fail(SWIG_ArgError(ok), Ruby_Format_TypeError( "$1_name", "$1_type","$symname", $argnum, $input));
+    SWIG_exception_fail(SWIG_ArgError(ok), Ruby_Format_TypeError( "$1_name", "$1_type", "$symname", $argnum, $input));
   }
 }
 </pre>
@@ -3615,7 +3615,7 @@ Array instance to be used as a <tt>char **</tt> object. </p>
 int print_args(char **argv) {
   int i = 0;
   while (argv[i]) {
-    printf("argv[%d] = %s\n", i,argv[i]);
+    printf("argv[%d] = %s\n", i, argv[i]);
     i++;
   }
   return i;
@@ -3628,7 +3628,7 @@ operates as follows : </p>
 
 <div class="code targetlang">
 <pre>require 'Argv'
-Argv.print_args(["Dave","Mike","Mary","Jane","John"])
+Argv.print_args(["Dave", "Mike", "Mary", "Jane", "John"])
 argv[0] = Dave
 argv[1] = Mike
 argv[2] = Mary
@@ -4591,7 +4591,7 @@ comma-separated list of module names to the <tt>%mixin</tt>
 directive, e.g. </p>
 
 <div class="code">
-<pre>%mixin Set "Fee,Fi,Fo,Fum";</pre>
+<pre>%mixin Set "Fee, Fi, Fo, Fum";</pre>
 </div>
 
 <p> Note that the <tt>%mixin</tt> directive is

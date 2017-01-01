@@ -133,7 +133,7 @@ Thus, any contract that you specified for a base class will also be attached to 
 <pre>
 class Spam : public Foo {
 public:
-  int bar(int,int);    // Gets contract defined for Foo::bar(int,int)
+  int bar(int, int);    // Gets contract defined for Foo::bar(int, int)
 };
 </pre>
 </div>
@@ -156,12 +156,12 @@ require:
 
 class Foo {
 public:
-  int bar(int,int);   // Gets Foo::bar contract.
+  int bar(int, int);   // Gets Foo::bar contract.
 };
 
 class Spam : public Foo {
 public:
-  int bar(int,int);   // Gets Foo::bar and Spam::bar contract
+  int bar(int, int);   // Gets Foo::bar and Spam::bar contract
 };
 </pre>
 </div>

@@ -161,7 +161,7 @@ Assuming all goes well, you will be able to do this:
 
           <div class="targetlang"><pre>$ octave -q
 octave:1&gt; swigexample
-octave:2&gt; swigexample.gcd(4,6)
+octave:2&gt; swigexample.gcd(4, 6)
 ans =  2
 octave:3&gt; swigexample.cvar.Foo
 ans =  3
@@ -189,7 +189,7 @@ To load an Octave module, simply type its name:
 
 <div class="targetlang"><pre>
 octave:1&gt; swigexample;
-octave:2&gt; gcd(4,6)
+octave:2&gt; gcd(4, 6)
 ans =  2
 octave:3&gt; cvar.Foo
 ans =  3
@@ -204,16 +204,16 @@ If the module is also used in the base context, however, it must first be loaded
 </p>
 
 <div class="targetlang"><pre>
-octave:1&gt; function l = my_lcm(a,b)
+octave:1&gt; function l = my_lcm(a, b)
 &gt; swigexample
-&gt; l = abs(a*b)/swigexample.gcd(a,b);
+&gt; l = abs(a*b)/swigexample.gcd(a, b);
 &gt; endfunction
-octave:2&gt; my_lcm(4,6)
+octave:2&gt; my_lcm(4, 6)
 ans =  12
-octave:3&gt; swigexample.gcd(4,6)
+octave:3&gt; swigexample.gcd(4, 6)
 error: can't perform indexing operations for &lt;unknown type&gt; type
 octave:3&gt; swigexample;
-octave:4&gt; swigexample.gcd(4,6)
+octave:4&gt; swigexample.gcd(4, 6)
 ans =  2
 </pre></div>
 
@@ -297,7 +297,7 @@ ans =  3.1420 </pre></div>
     <div class="code"><pre>%module swigexample
 %constant int ICONST=42;
 #define    SCONST      "Hello World"
-enum Days{SUNDAY,MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY};
+enum Days{SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY};
 </pre></div>
 
 <p>
@@ -329,8 +329,8 @@ When wrapped, you will be able to use the functions in a natural way from Octave
 
 <div class="targetlang"><pre>
 octave:1&gt; swigexample;
-octave:2&gt; f=swigexample.fopen("w","junk");
-octave:3&gt; swigexample.fputs("Hello world",f);
+octave:2&gt; f=swigexample.fopen("w", "junk");
+octave:3&gt; swigexample.fputs("Hello world", f);
 octave:4&gt; swigexample.fclose(f);
 </pre></div>
 
@@ -339,7 +339,7 @@ octave:4&gt; swigexample.fclose(f);
 </p>
 
     <div class="targetlang"><pre>octave:1&gt; swigexample;
-octave:2&gt; f=swigexample.fopen("junk","w");
+octave:2&gt; f=swigexample.fopen("junk", "w");
 octave:3&gt; f
 f =
 
@@ -352,7 +352,7 @@ f =
 </p>
 
     <div class="targetlang"><pre>octave:1&gt; swigexample;
-octave:2&gt; f=swigexample.fopen("not there","r");
+octave:2&gt; f=swigexample.fopen("not there", "r");
 error: value on right hand side of assignment is undefined
 error: evaluating assignment expression near line 2, column 2 </pre></div>
 
@@ -365,7 +365,7 @@ For each wrapped structure and class, a <tt>swig_ref</tt> will be exposed that h
 </p>
 
     <div class="code"><pre>struct Point{
-  int x,y;
+  int x, y;
 };
 </pre></div>
 
@@ -395,12 +395,12 @@ Methods also work as expected. For example, code wrapped in the following way
 
     <div class="code"><pre>class Point{
 public:
-  int x,y;
-  Point(int _x,int _y) : x(_x),y(_y) {}
+  int x, y;
+  Point(int _x, int _y) : x(_x), y(_y) {}
   double distance(const Point&amp; rhs) {
-    return sqrt(pow(x-rhs.x,2)+pow(y-rhs.y,2));
+    return sqrt(pow(x-rhs.x, 2)+pow(y-rhs.y, 2));
   }
-  void set(int _x,int _y) {
+  void set(int _x, int _y) {
     x=_x; y=_y;
   }
 };
@@ -410,8 +410,8 @@ can be used from Octave like this
 </p>
     <div class="targetlang">
       <pre>octave:1&gt; swigexample;
-octave:2&gt; p1=swigexample.Point(3,5);
-octave:3&gt; p2=swigexample.Point(1,2);
+octave:2&gt; p1=swigexample.Point(3, 5);
+octave:3&gt; p2=swigexample.Point(1, 2);
 octave:4&gt; p1.distance(p2)
 ans =  3.6056
 </pre></div>
@@ -433,7 +433,7 @@ This differs from the usual pass-by-value (copy-on-write) semantics that Octave 
 
     <div class="targetlang">
       <pre>
-octave:7> a=struct('x',4)
+octave:7> a=struct('x', 4)
 a =
 {
   x =  4
@@ -464,7 +464,7 @@ However, when dealing with wrapped objects, one gets the behavior
 
     <div class="targetlang">
       <pre>
-octave:2> a=Point(3,5)
+octave:2> a=Point(3, 5)
 a =
 
 {
@@ -478,7 +478,7 @@ b =
   Point, ptr = 0x9afbbb0
 }
 
-octave:4> b.set(2,1);
+octave:4> b.set(2, 1);
 octave:5> b.x, b.y
 ans =  2
 ans =  1
@@ -621,7 +621,7 @@ Octave can also utilise friend (i.e. non-member) operators with a simple %rename
 The %extend directive works the same as in other modules.
 </p>
 <p>
-You can use it to define special behavior, like for example defining Octave operators not mapped to C++ operators, or defining certain Octave mechanisms such as how an object prints. For example, the <tt>octave_value::{is_string,string_value,print}</tt> functions are routed to a special method <tt>__str__</tt> that can be defined inside an %extend.
+You can use it to define special behavior, like for example defining Octave operators not mapped to C++ operators, or defining certain Octave mechanisms such as how an object prints. For example, the <tt>octave_value::{is_string, string_value, print}</tt> functions are routed to a special method <tt>__str__</tt> that can be defined inside an %extend.
 </p>
 <div class="code"><pre>
 %extend A {
@@ -639,7 +639,7 @@ Then in Octave one gets,
 octave:1&gt; a=A(4);
 octave:2&gt; a
 a = 4
-octave:3&gt; printf("%s\n",a);
+octave:3&gt; printf("%s\n", a);
 4
 octave:4&gt; a.__str__()
 4
@@ -664,7 +664,7 @@ For example, function templates can be instantiated as follows:
 <div class="code"><pre>%module swigexample
 %inline {
   template&lt;class __scalar&gt;
-    __scalar mul(__scalar a,__scalar b) {
+    __scalar mul(__scalar a, __scalar b) {
     return a*b;
   }
 }
@@ -677,11 +677,11 @@ and then used from Octave
 </p>
 
 <div class="targetlang"><pre>
-octave:1> mul(4,3)
+octave:1> mul(4, 3)
 ans =  12
-octave:2> mul(4.2,3.6)
+octave:2> mul(4.2, 3.6)
 ans =  15.120
-octave:3> mul(3+4i,10+2i)
+octave:3> mul(3+4i, 10+2i)
 ans =  22 + 46i
 </pre></div>
 
@@ -722,11 +722,11 @@ octave:2> a=sum_complex(2+3i);
 octave:3> a.add(2)
 ans =
 
-(4,3)
+(4, 3)
 octave:4> a.add(3+i)
 ans =
 
-(7,4)
+(7, 4)
 </pre></div>
 
 
@@ -766,7 +766,7 @@ For example,
 <div class="targetlang"><pre>
 octave:1&gt; a=subclass();
 octave:2&gt; a.my_var = 4;
-octave:3&gt; a.my_method = @(self) printf("my_var = ",self.my_var);
+octave:3&gt; a.my_method = @(self) printf("my_var = ", self.my_var);
 octave:4&gt; a.my_method();
 my_var = 4
 </pre></div>
@@ -790,7 +790,7 @@ void call_your_method(A&amp; a) {
 Then from Octave you can say:
 </p>
 <div class="targetlang"><pre>
-octave:1&gt; B=@() subclass(A(),@my_method);
+octave:1&gt; B=@() subclass(A(), @my_method);
 octave:2&gt; function my_method(self)
 octave:3&gt;   printf("octave-side routine called\n");
 octave:4&gt; end
@@ -801,7 +801,7 @@ octave-side routine called
 or more concisely,
 </p>
 <div class="targetlang"><pre>
-octave:1&gt; B=@() subclass(A(),'my_method',@(self) printf("octave-side routine called\n"));
+octave:1&gt; B=@() subclass(A(), 'my_method', @(self) printf("octave-side routine called\n"));
 octave:2&gt; call_your_method(B());
 octave-side routine called
 </pre></div>
@@ -809,10 +809,10 @@ octave-side routine called
 Note that you have to enable directors via the %feature directive (see other modules for this).
 </p>
 <p>
-<tt>subclass()</tt> will accept any number of C++ bases or other <tt>subclass()</tt>'ed objects, <tt>(string,octave_value)</tt> pairs, and <tt>function_handles</tt>. In the first case, these are taken as base classes; in the second case, as named members (either variables or functions, depending on whether the given value is a function handle); in the third case, as member functions whose name is taken from the given function handle. E.g.,
+<tt>subclass()</tt> will accept any number of C++ bases or other <tt>subclass()</tt>'ed objects, <tt>(string, octave_value)</tt> pairs, and <tt>function_handles</tt>. In the first case, these are taken as base classes; in the second case, as named members (either variables or functions, depending on whether the given value is a function handle); in the third case, as member functions whose name is taken from the given function handle. E.g.,
 </p>
 <div class="targetlang"><pre>
-octave:1&gt; B=@(some_var=2) subclass(A(),'some_var',some_var,@some_func,'another_func',
+octave:1&gt; B=@(some_var=2) subclass(A(), 'some_var', some_var, @some_func, 'another_func',
 @(self) do_stuff())
 </pre></div>
 <p>
@@ -822,7 +822,7 @@ You can also assign non-C++ member variables and functions after construct time.
 There is limited support for explicitly referencing C++ bases. So, in the example above, we could have
 </p>
 <div class="targetlang"><pre>
-octave:1&gt; B=@() subclass(A(),@my_method);
+octave:1&gt; B=@() subclass(A(), @my_method);
 octave:2&gt; function my_method(self)
 octave:3&gt;   self.A.my_method();
 octave:4&gt;   printf("octave-side routine called\n");
@@ -887,7 +887,7 @@ Various STL library files are provided for wrapping STL containers.
 Octave provides a rich set of classes for dealing with matrices. Currently there are no built-in typemaps to deal with those. However, these are relatively straight forward for users to add themselves (see the docs on typemaps). Without much work (a single typemap decl-- say, 5 lines of code in the interface file), it would be possible to have a function
 </p>
 <div class="code"><pre>
-double my_det(const double* mat,int m,int n);
+double my_det(const double* mat, int m, int n);
 </pre></div>
 <p>
 that is accessed from Octave as,

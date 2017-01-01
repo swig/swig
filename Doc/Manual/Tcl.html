@@ -981,7 +981,7 @@ This provides a very natural interface.  For example,
 
 <div class="code"><pre>
 struct Vector {
-  double x,y,z;
+  double x, y, z;
 };
 
 </pre></div>
@@ -1663,7 +1663,7 @@ submodules or packages.  For example, if you have a file like this,
 namespace foo {
   int fact(int n);
   struct Vector {
-    double x,y,z;
+    double x, y, z;
   };
 };
 </pre>
@@ -1739,7 +1739,7 @@ struct pair {
   ~pair();
 };
 
-%template(pairii) pair&lt;int,int&gt;;
+%template(pairii) pair&lt;int, int&gt;;
 </pre>
 </div>
 
@@ -2465,9 +2465,9 @@ you might define a typemap like this:
 %module example
 
 %typemap(in) int {
-    if (Tcl_GetIntFromObj(interp,$input,&amp;$1) == TCL_ERROR)
+    if (Tcl_GetIntFromObj(interp, $input, &amp;$1) == TCL_ERROR)
       return TCL_ERROR;
-    printf("Received an integer : %d\n",$1);
+    printf("Received an integer : %d\n", $1);
 }
 %inline %{
 extern int fact(int n);
@@ -2504,9 +2504,9 @@ You can refine this by supplying an optional parameter name.  For example:
 %module example
 
 %typemap(in) int n {
-  if (Tcl_GetIntFromObj(interp,$input,&amp;$1) == TCL_ERROR)
+  if (Tcl_GetIntFromObj(interp, $input, &amp;$1) == TCL_ERROR)
     return TCL_ERROR;
-  printf("n = %d\n",$1);
+  printf("n = %d\n", $1);
 }
 %inline %{
 extern int fact(int n);
@@ -2528,9 +2528,9 @@ the typemap system follows <tt>typedef</tt> declarations.  For example:
 <div class="code">
 <pre>
 %typemap(in) int n {
-  if (Tcl_GetIntFromObj(interp,$input,&amp;$1) == TCL_ERROR)
+  if (Tcl_GetIntFromObj(interp, $input, &amp;$1) == TCL_ERROR)
     return TCL_ERROR;
-  printf("n = %d\n",$1);
+  printf("n = %d\n", $1);
 }
 %inline %{
 typedef int Integer;
@@ -2552,7 +2552,7 @@ Typemaps can also be defined for groups of consecutive arguments.  For example:
 <div class="code">
 <pre>
 %typemap(in) (char *str, int len) {
-    $1 = Tcl_GetStringFromObj($input,&amp;$2);
+    $1 = Tcl_GetStringFromObj($input, &amp;$2);
 };
 
 int count(char c, char *str, int len);
@@ -2585,7 +2585,7 @@ like this:
 <div class="code">
 <pre>
 %typemap(out) int {
-    Tcl_SetObjResult(interp,Tcl_NewIntObj($1));
+    Tcl_SetObjResult(interp, Tcl_NewIntObj($1));
 }
 </pre>
 </div>
@@ -2804,7 +2804,7 @@ used as a <tt>char **</tt> object.
   }
   $1 = (char **) malloc((nitems+1)*sizeof(char *));
   for (i = 0; i &lt; nitems; i++) {
-    $1[i] = Tcl_GetStringFromObj(listobjv[i],0);
+    $1[i] = Tcl_GetStringFromObj(listobjv[i], 0);
   }
   $1[i] = 0;
 }
@@ -2821,7 +2821,7 @@ used as a <tt>char **</tt> object.
   int print_args(char **argv) {
     int i = 0;
     while (argv[i]) {
-      printf("argv[%d] = %s\n", i,argv[i]);
+      printf("argv[%d] = %s\n", i, argv[i]);
       i++;
     }
     return i;
@@ -2855,19 +2855,19 @@ function argument. For example :
 // A typemap defining how to return an argument by appending it to the result
 %typemap(argout) double *outvalue {
   Tcl_Obj *o = Tcl_NewDoubleObj($1);
-  Tcl_ListObjAppendElement(interp,$result,o);
+  Tcl_ListObjAppendElement(interp, $result, o);
 }
 
 // A typemap telling SWIG to ignore an argument for input
 // However, we still need to pass a pointer to the C function
-%typemap(in,numinputs=0) double *outvalue (double temp) {
+%typemap(in, numinputs=0) double *outvalue (double temp) {
   $1 = &amp;temp;
 }
 
 // Now a function returning two values
 int mypow(double a, double b, double *outvalue) {
   if ((a &lt; 0) || (b &lt; 0)) return -1;
-  *outvalue = pow(a,b);
+  *outvalue = pow(a, b);
   return 0;
 };
 </pre></div>
@@ -2991,7 +2991,7 @@ work)
 <div class="code">
 <pre>
 %typemap(out) int, short, long {
-  Tcl_SetIntObj($result,(int) $1);
+  Tcl_SetIntObj($result, (int) $1);
 }
 </pre>
 </div>
@@ -3038,8 +3038,8 @@ work)
 
 <div class="code">
 <pre>
-%typemap(out,noblock=1,fragment="SWIG_FromCharPtr") char *, const char * {
-  Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)$1));
+%typemap(out, noblock=1, fragment="SWIG_FromCharPtr") char *, const char * {
+  Tcl_SetObjResult(interp, SWIG_FromCharPtr((const char *)$1));
 }
 
 </pre>

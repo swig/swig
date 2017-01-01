@@ -422,7 +422,7 @@ struct A {
 
 <p>As with any other language, the SWIG test-suite can be built for D using the <tt>*-d-test-suite</tt> targets of the top-level Makefile. By default, D1 is targeted, to build it with D2, use the optional <tt>D_VERSION</tt> variable, e.g. <tt>make check-d-test-suite D_VERSION=2</tt>.</p>
 
-<p>Note: If you want to use GDC on Linux or another platform which requires you to link <tt>libdl</tt> for dynamically loading the shared library, you might have to add <tt>-ldl</tt> manually to the <tt>d_compile</tt> target in <tt>Examples/Makefile</tt>, because GDC does not currently honor the <tt>pragma(lib,...)</tt> statement.</p>
+<p>Note: If you want to use GDC on Linux or another platform which requires you to link <tt>libdl</tt> for dynamically loading the shared library, you might have to add <tt>-ldl</tt> manually to the <tt>d_compile</tt> target in <tt>Examples/Makefile</tt>, because GDC does not currently honor the <tt>pragma(lib, ...)</tt> statement.</p>
 
 
 <H2><a name="D_typemap_examples">22.9 D Typemap examples</a></H2>
