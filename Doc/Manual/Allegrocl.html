@@ -1526,8 +1526,8 @@ overload&gt;
 %rename(__predecr__)         *::operator--();
 %rename(__postdecr__)        *::operator--(int);
 
-%rename(__comma__)           *::operator, ();
-%rename(__comma__)           *::operator, () const;
+%rename(__comma__)           *::operator,();
+%rename(__comma__)           *::operator,() const;
 
 %rename(__member_ref__)      *::operator-&gt;;
 %rename(__member_func_ref__) *::operator-&gt;*;
