@@ -70,19 +70,19 @@
 %rename(__brace__)     *::operator[];
 
 // Ignored inplace operators
-%ignoreoperator(PLUSEQ)     operator+=;
-%ignoreoperator(MINUSEQ)    operator-=;
-%ignoreoperator(MULEQ)      operator*=;
-%ignoreoperator(DIVEQ)      operator/=;
-%ignoreoperator(MODEQ)      operator%=;
-%ignoreoperator(LSHIFTEQ)   operator<<=;
-%ignoreoperator(RSHIFTEQ)   operator>>=;
-%ignoreoperator(ANDEQ)      operator&=;
-%ignoreoperator(OREQ)       operator|=;
-%ignoreoperator(XOREQ)      operator^=;
+%ignoreoperator(PLUSEQ)     *::operator+=;
+%ignoreoperator(MINUSEQ)    *::operator-=;
+%ignoreoperator(MULEQ)      *::operator*=;
+%ignoreoperator(DIVEQ)      *::operator/=;
+%ignoreoperator(MODEQ)      *::operator%=;
+%ignoreoperator(LSHIFTEQ)   *::operator<<=;
+%ignoreoperator(RSHIFTEQ)   *::operator>>=;
+%ignoreoperator(ANDEQ)      *::operator&=;
+%ignoreoperator(OREQ)       *::operator|=;
+%ignoreoperator(XOREQ)      *::operator^=;
 
 // Ignored operators
-%ignoreoperator(EQ)         operator=;
-%ignoreoperator(ARROWSTAR)  operator->*;
+%ignoreoperator(EQ)         *::operator=;
+%ignoreoperator(ARROWSTAR)  *::operator->*;
 
 #endif /* __cplusplus */
