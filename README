@@ -20,7 +20,7 @@ Up-to-date SWIG related information can be found at
 
 A SWIG FAQ and other hints can be found on the SWIG Wiki:
 
-        http://www.dabeaz.com/cgi-bin/wiki.pl
+        https://github.com/swig/swig/wiki
 
 License
 =======
@@ -126,7 +126,7 @@ installed.  To fix this:
         have to do this.
 
 If you are having other troubles, you might look at the SWIG Wiki at
-http://www.dabeaz.com/cgi-bin/wiki.pl.
+https://github.com/swig/swig/wiki.
 
 Participate!
 ============
