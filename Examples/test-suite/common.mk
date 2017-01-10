@@ -389,6 +389,7 @@ CPP_TEST_CASES += \
 	static_const_member_2 \
 	string_constants \
 	struct_initialization_cpp \
+	struct_redundant_typedef \
 	struct_value \
 	swig_exception \
 	symbol_clash \
@@ -656,6 +657,7 @@ C_TEST_CASES += \
 	sizeof_pointer \
 	sneaky1 \
 	string_simple \
+	struct_redundant_typedef \
 	struct_rename \
 	struct_initialization \
 	typedef_struct \
