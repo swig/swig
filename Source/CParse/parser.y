@@ -3005,6 +3005,18 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 	      } else {
 		set_nextSibling($$,$5);
 	      }
+
+              /* If we encounter a redundant typedef (typedef struct Hello Hello;) - omit it from the AST */
+              if (Cmp($1,"typedef") == 0) {
+                String* type = Copy($2);
+                Replace(type,"struct ","",DOH_REPLACE_FIRST);
+                Replace(type,"union ","",DOH_REPLACE_FIRST);
+                Replace(type,"class ","",DOH_REPLACE_FIRST);
+                if (Strcmp($3.id, type) == 0) {
+                  Delete($$);
+                  $$ = 0;
+                }
+              }
            }
            /* Alternate function syntax introduced in C++11:
               auto funcName(int x, int y) -> int; */
