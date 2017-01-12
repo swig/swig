@@ -1045,16 +1045,16 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
   bool has_prev = false;
   for(j = 0; j < numMems; j+=3) {
     String *item = Getitem(el, j);
-    if (Getattr(itemList, item)) 
-      continue;
-    Setattr(itemList, item, "1");
-    
     String *dup = Getitem(el, j + 1);
     char *ptr = Char(dup);
     ptr = &ptr[Len(dup) - 3];
     
     if (!strcmp(ptr, "get"))
       varaccessor++;
+
+    if (Getattr(itemList, item))
+      continue;
+    Setattr(itemList, item, "1");
 
     String *pitem;
     if (!Strcmp(item, "operator ()")) {
@@ -2270,7 +2270,13 @@ int R::outputRegistrationRoutines(File *out) {
   if(!noInitializationCode) {
     if (inCPlusMode)
       Printv(out, "extern \"C\" ", NIL);
-    Printf(out, "SWIGEXPORT void R_init_%s(DllInfo *dll) {\n", Rpackage);
+    { /* R allows pckage names to have '.' in the name, which is not allowed in C++ var names
+         we simply replace all occurrences of '.' with '_' to construct the var name */
+      String * Rpackage_sane = Copy(Rpackage);
+      Replace(Rpackage_sane, ".", "_", DOH_REPLACE_ANY);
+      Printf(out, "SWIGEXPORT void R_init_%s(DllInfo *dll) {\n", Rpackage_sane);
+      Delete(Rpackage_sane);
+    }
     Printf(out, "%sR_registerRoutines(dll, NULL, CallEntries, NULL, NULL);\n", tab4);
     if(Len(s_init_routine)) {
       Printf(out, "\n%s\n", s_init_routine);
