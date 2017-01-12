@@ -21,105 +21,72 @@
  *   fs = example.FiddleSticks;
  * ----------------------------------------------------------------------------- */
 
-%fragment("SWIG_JSCGetIntProperty",    "header", fragment=SWIG_AsVal_frag(int)) {}
+
+%fragment("SWIG_JSCGetIntProperty", "header", fragment=SWIG_AsVal_frag(int)) {}
 %fragment("SWIG_JSCGetNumberProperty", "header", fragment=SWIG_AsVal_frag(double)) {}
+%fragment("SWIG_JSCOutInt", "header", fragment=SWIG_From_frag(int)) {}
+%fragment("SWIG_JSCOutNumber", "header", fragment=SWIG_From_frag(double)) {}
 
-%typemap(in, fragment="SWIG_JSCGetIntProperty") int[], int[ANY]
-    (int length = 0, v8::Local<v8::Array> array, v8::Local<v8::Value> jsvalue, int i = 0, int res = 0, $*1_ltype temp) {
+%define JAVASCRIPT_ARRAYS_IN_DECL(NAME, CTYPE, ANY, ANYLENGTH)
+
+%typemap(in, fragment=NAME) CTYPE[ANY] {
   if ($input->IsArray())
   {
     // Convert into Array
-    array = v8::Local<v8::Array>::Cast($input);
+    v8::Local<v8::Array> array = v8::Local<v8::Array>::Cast($input);
 
-    length = $1_dim0;
+    int length = ANYLENGTH;
 
     $1  = ($*1_ltype *)malloc(sizeof($*1_ltype) * length);
 
     // Get each element from array
-    for (i = 0; i < length; i++)
+    for (int i = 0; i < length; i++)
     {
-      jsvalue = array->Get(i);
+      v8::Local<v8::Value> jsvalue = array->Get(i);
+      $*1_ltype temp;
 
       // Get primitive value from JSObject
-      res = SWIG_AsVal(int)(jsvalue, &temp);
+      int res = SWIG_AsVal(CTYPE)(jsvalue, &temp);
       if (!SWIG_IsOK(res))
       {
         SWIG_exception_fail(SWIG_ERROR, "Failed to convert $input to double");
       }
       arg$argnum[i] = temp;
     }
-
   }
   else
   {
-    SWIG_exception_fail(SWIG_ERROR, "$input is not JSObjectRef");
+    SWIG_exception_fail(SWIG_ERROR, "$input is not an array");
   }
 }
 
-%typemap(freearg) int[], int[ANY] {
+%typemap(freearg) CTYPE[ANY] {
     free($1);
 }
 
-%typemap(out, fragment=SWIG_From_frag(int)) int[], int[ANY] (int length = 0, int i = 0)
-{
-  length = $1_dim0;
-  v8::Local<v8::Array> array = v8::Array::New(length);
+%enddef
 
-  for (i = 0; i < length; i++)
+%define JAVASCRIPT_ARRAYS_OUT_DECL(NAME, CTYPE)
+
+%typemap(out, fragment=NAME) CTYPE[ANY] {
+  int length = $1_dim0;
+  v8::Local<v8::Array> array = SWIGV8_ARRAY_NEW(length);
+
+  for (int i = 0; i < length; i++)
   {
-    array->Set(i, SWIG_From(int)($1[i]));
+    array->Set(i, SWIG_From(CTYPE)($1[i]));
   }
-
 
   $result = array;
 }
 
-%typemap(in, fragment="SWIG_JSCGetNumberProperty") double[], double[ANY]
-    (int length = 0, v8::Local<v8::Array> array, v8::Local<v8::Value> jsvalue, int i = 0, int res = 0, $*1_ltype temp) {
-  if ($input->IsArray())
-  {
-    // Convert into Array
-    array = v8::Local<v8::Array>::Cast($input);
+%enddef
 
-    length = $1_dim0;
+JAVASCRIPT_ARRAYS_IN_DECL("SWIG_JSCGetIntProperty", int, , array->Length())
+JAVASCRIPT_ARRAYS_IN_DECL("SWIG_JSCGetIntProperty", int, ANY, $1_dim0)
+JAVASCRIPT_ARRAYS_IN_DECL("SWIG_JSCGetNumberProperty", double, , array->Length())
+JAVASCRIPT_ARRAYS_IN_DECL("SWIG_JSCGetNumberProperty", double, ANY, $1_dim0)
 
-    $1  = ($*1_ltype *)malloc(sizeof($*1_ltype) * length);
+JAVASCRIPT_ARRAYS_OUT_DECL("SWIG_JSCOutInt", int)
+JAVASCRIPT_ARRAYS_OUT_DECL("SWIG_JSCOutNumber", double)
 
-    // Get each element from array
-    for (i = 0; i < length; i++)
-    {
-      jsvalue = array->Get(i);
-
-      // Get primitive value from JSObject
-      res = SWIG_AsVal(double)(jsvalue, &temp);
-      if (!SWIG_IsOK(res))
-      {
-        SWIG_exception_fail(SWIG_ERROR, "Failed to convert $input to double");
-      }
-      arg$argnum[i] = temp;
-    }
-
-  }
-  else
-  {
-    SWIG_exception_fail(SWIG_ERROR, "$input is not JSObjectRef");
-  }
-}
-
-%typemap(freearg) double[], double[ANY] {
-    free($1);
-}
-
-%typemap(out, fragment=SWIG_From_frag(double)) double[], double[ANY] (int length = 0, int i = 0)
-{
-  length = $1_dim0;
-  v8::Local<v8::Array> array = v8::Array::New(length);
-
-  for (i = 0; i < length; i++)
-  {
-    array->Set(i, SWIG_From(double)($1[i]));
-  }
-
-
-  $result = array;
-}
