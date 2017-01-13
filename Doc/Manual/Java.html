@@ -100,6 +100,7 @@
 <ul>
 <li><a href="#Java_helper_functions">C/C++ helper functions</a>
 <li><a href="#Java_class_extension">Class extension with %extend</a>
+<li><a href="#Java_proxycode">Class extension with %proxycode</a>
 <li><a href="#Java_exception_handling">Exception handling with %exception and %javaexception</a>
 <li><a href="#Java_method_access">Method access with %javamethodmodifiers</a>
 </ul>
@@ -4363,7 +4364,144 @@ Vector(2, 3, 4)
 in any way---the extensions only show up in the Java interface.
 </p>
 
-<H3><a name="Java_exception_handling">25.7.3 Exception handling with %exception and %javaexception</a></H3>
+<H3><a name="Java_proxycode">25.7.3 Class extension with %proxycode</a></H3>
+
+
+<p>
+The previous section described how to extend a wrapped class with C or C++ code.
+This section describes how to extend a wrapped class with Java code instead of C/C++ code.
+The <tt>%proxycode</tt> directive is used and is just a macro for <tt>%insert("proxycode")</tt>.
+The <a href="SWIG.html#SWIG_nn42">Code insertion block</a> section describes the <tt>%insert</tt> directive.
+The section of code for insertion is "proxycode", that is, the Java proxy class.
+This directive must hence only be used within the scope of a class, otherwise it is silently ignored.
+There are two common ways to get the scope correct.
+</p>
+
+<p>
+The first is to use <tt>%proxycode</tt> inside a class that SWIG parses, for example a <tt>toString()</tt> method can be added to a C++ class using pure Java code.
+A C++ header file can mix C++ and Java code inside the C++ class as follows:
+</p>
+
+<div class="code">
+<pre>
+// flag.h header file
+class Flag {
+  bool flag;
+public:
+  Flag(bool flag) : flag(flag) {}
+  bool FetchFlag() { return flag; }
+#if defined(SWIG)
+%proxycode %{
+  public String toString() {
+    boolean flag = FetchFlag();
+    return Boolean.toString(flag);
+  }
+%}
+#endif
+};
+</pre>
+</div>
+
+<p>
+and wrapped using:
+</p>
+
+<div class="code">
+<pre>
+%{
+#include "flag.h"
+%}
+%include "flag.h"
+</pre>
+</div>
+
+<p>
+The second is to use <tt>%proxycode</tt> within <tt>%extend</tt> as everything within a <tt>%extend</tt> block is effectively within the scope of the class, for example:
+</p>
+
+<div class="code">
+<pre>
+// flag.h header file
+class Flag {
+  bool flag;
+public:
+  Flag(bool flag) : flag(flag) {}
+  bool FetchFlag() { return flag; }
+};
+</pre>
+</div>
+
+<p>
+and wrapped using:
+</p>
+
+<div class="code">
+<pre>
+%{
+#include "flag.h"
+%}
+%include "flag.h"
+
+%extend Flag {
+#if defined(SWIG)
+%proxycode %{
+  public String toString() {
+    boolean flag = FetchFlag();
+    return Boolean.toString(flag);
+  }
+%}
+#endif
+}
+</pre>
+</div>
+
+<p>
+There is some very limited support of typemaps within a <tt>%proxycode</tt> block.
+A useful trick is to obtain the Java type for a given C/C++ type using the <a href="Typemaps.html#Typemaps_special_macro_typemap">$typemap</a> special macro.
+The following C++ template demonstrates this:
+</p>
+
+<div class="code">
+<pre>
+%inline %{
+template&lt;typename T&gt; struct Value {
+  T value;
+  Value(const T&amp; val) : value(val) {}
+};
+%}
+
+%extend Value {
+%proxycode %{
+  public String toString() {
+    // Note template type expansion is supported, so T is expanded to 'unsigned int' in this example
+    // and $typemap(jstype, unsigned int) in turn is expanded to 'long'
+    $typemap(jstype, T) val = getValue();
+    return "$javaclassname value: " + val + " Java type: $typemap(jstype, T) JNI type: $typemap(jni, T)";
+  }
+%}
+}
+%template(ValueUnsignedInt) Value&lt;unsigned int&gt;;
+</pre>
+</div>
+
+<p>
+The generated Java contains the expanded special variable and macro resulting in Java proxy code:
+</p>
+
+<div class="code">
+<pre>
+public class ValueUnsignedInt {
+  ...
+  public String toString() {
+    long val = getValue();
+    return "ValueUnsignedInt value: " + val + " Java type: long JNI type: jlong";
+  }
+
+}
+</pre>
+</div>
+
+<H3><a name="Java_exception_handling">25.7.4 Exception handling with %exception and %javaexception</a></H3>
 
 
 <p>
@@ -4522,7 +4660,7 @@ to raise exceptions.  See the <a href="Library.html#Library">SWIG Library</a> ch
 The typemap example <a href="#Java_exception_typemap">Handling C++ exception specifications as Java exceptions</a> provides further exception handling capabilities.
 </p>
 
-<H3><a name="Java_method_access">25.7.4 Method access with %javamethodmodifiers</a></H3>
+<H3><a name="Java_method_access">25.7.5 Method access with %javamethodmodifiers</a></H3>
 
 
 <p>

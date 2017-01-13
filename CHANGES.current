@@ -7,6 +7,24 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 3.0.12 (in progress)
 ============================
 
+2017-01-13: wsfulton
+	    [C# D Java] Add new %proxycode directive which is a macro for %insert("proxycode").
+            This is a way of adding pure C#/D/Java code into the appropriate proxy class, eg:
+
+              %extend Proxy2 {
+              %proxycode %{
+                public int proxycode2(int i) {
+                  return i+2;
+                }
+              %}
+              }
+
+              %inline %{
+              struct Proxy2 {};
+              %}
+
+            There will then be a pure Java/C#/D method called proxycode2 in the Proxy2 class.
+
 2016-12-31: ajrheading1
 	    Issue #860 - Remove use of std::unary_function and std::binary_function
             which is deprecated in C++11.

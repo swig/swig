@@ -1584,11 +1584,23 @@ public:
    * ----------------------------------------------------------------------------- */
 
   virtual int insertDirective(Node *n) {
+    int ret = SWIG_OK;
     String *code = Getattr(n, "code");
+    String *section = Getattr(n, "section");
     Replaceall(code, "$module", module_class_name);
     Replaceall(code, "$imclassname", imclass_name);
     Replaceall(code, "$dllimport", dllimport);
-    return Language::insertDirective(n);
+
+    if (!ImportMode && (Cmp(section, "proxycode") == 0)) {
+      if (proxy_class_code) {
+	Swig_typemap_replace_embedded_typemap(code, n);
+	int offset = Len(code) > 0 && *Char(code) == '\n' ? 1 : 0;
+	Printv(proxy_class_code, Char(code) + offset, "\n", NIL);
+      }
+    } else {
+      ret = Language::insertDirective(n);
+    }
+    return ret;
   }
 
   /* -----------------------------------------------------------------------------
