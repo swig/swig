@@ -12,6 +12,7 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
+#include "cparse.h"
 
 static const double DEFAULT_NUMBER = .0000123456712312312323;
 
@@ -908,7 +909,7 @@ int R::DumpCode(Node *n) {
     writeListByLine(namespaceFunctions, ns);
     Printf(ns, ")\n");
     Printf(ns, "\nexportMethods(\n");
-    writeListByLine(namespaceFunctions, ns, 1);
+    writeListByLine(namespaceMethods, ns, 1);
     Printf(ns, ")\n");
     Delete(ns);
     Delete(s_namespace);
@@ -1826,8 +1827,16 @@ int R::functionWrapper(Node *n) {
   Printf(sfun->def, "# Start of %s\n", iname);         
   Printv(sfun->def, "\n`", sfname, "` = function(", NIL);
 
-  if(outputNamespaceInfo) //XXX Need to be a little more discriminating
-    addNamespaceFunction(iname);
+  if(outputNamespaceInfo) {//XXX Need to be a little more discriminating
+      if (constructor) {
+          String *niname = Copy(iname);
+          Replace(niname, "new_", "", DOH_REPLACE_FIRST);
+          addNamespaceFunction(niname);
+          Delete(niname);
+      } else {
+          addNamespaceFunction(iname);
+      }
+  }
 
   Swig_typemap_attach_parms("scoercein", l, f);
   Swig_typemap_attach_parms("scoerceout", l, f);
@@ -2328,8 +2337,17 @@ void R::registerClass(Node *n) {
 
     Printf(s_classes, "setClass('%s', contains = %s)\n", sname, base);
     Delete(base);
+    String *smartptr = Getattr(n, "feature:smartptr");
+    if (smartptr) {
+        SwigType *spt = Swig_cparse_type(smartptr);
+        String *smart = SwigType_typedef_resolve_all(spt);
+        String *smart_rname = SwigType_manglestr(smart);
+        Printf(s_classes, "setClass('_p%s', contains = c('%s'))\n", smart_rname, sname);
+        Delete(spt);
+        Delete(smart);
+        Delete(smart_rname);
+    }
   }
-  
 }
 
 int R::classDeclaration(Node *n) {
