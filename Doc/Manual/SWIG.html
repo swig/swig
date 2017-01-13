@@ -3140,9 +3140,9 @@ output of SWIG is structured first.</p>
 
 
 <p>
-When SWIG creates its output file, it is broken up into five sections
+When SWIG creates its output C/C++ file, it is broken up into five sections
 corresponding to runtime code, headers, wrapper functions, and module
-initialization code (in that order).   
+initialization code (in that order).
 </p>
 
 <ul>
@@ -3174,11 +3174,38 @@ the module upon loading.
 
 <H3><a name="SWIG_nn42">5.6.2 Code insertion blocks</a></H3>
 
+<p>
+The <tt>%insert</tt> directive enables inserting blocks of code into a given section of the generated code.
+It can be used in one of two ways:
+</p>
+
+<div class="code">
+<pre>
+%insert("section") "filename"
+%insert("section") %{ ... %}
+</pre>
+</div>
 
 <p>
-Code is inserted into the appropriate code section by using one
-of the code insertion directives listed below. The order of the sections in
-the wrapper file is as shown:
+The first will dump the contents of the file in the given <tt>filename</tt> into the named <tt>section</tt>.
+The second inserts the code between the braces into the named <tt>section</tt>.
+For example, the following adds code into the runtime section:
+</p>
+
+<div class="code">
+<pre>
+%insert("runtime") %{
+  ... code in runtime section ...
+%}
+</pre>
+</div>
+
+<p>
+There are the 5 sections, however, some target languages add in additional sections and some of these result in code being generated into a target language file instead of the C/C++ wrapper file.
+These are documented when available in the target language chapters.
+Macros named after the code sections are available as additional directives and these macro directives are normally used instead of <tt>%insert</tt>.
+For example, <tt>%runtime</tt> is used instead of <tt>%insert("runtime")</tt>.
+The valid sections and order of the sections in the generated C/C++ wrapper file is as shown:
 </p>
 
 <div class="code">
