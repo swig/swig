@@ -6208,6 +6208,9 @@ class modifiers for the Java class: default is "public class"
 <p><tt>%typemap(javacode)</tt></p>
 <div class="indent">
 Java code is copied verbatim to the Java class: empty default
+As there can only be one "javacode" typemap per class, also consider using the
+<a href="Java.html#Java_proxycode">%proxycode</a> directive which can be used multiple times per class
+and offers nearly identical functionality.
 </div>
 
 <p><tt>%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized")</tt> <br></p>
