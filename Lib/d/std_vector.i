@@ -24,7 +24,7 @@
 %define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CONST_REFERENCE, CTYPE...)
 #if (SWIG_D_VERSION == 1)
 %typemap(dimports) std::vector< CTYPE > "static import tango.core.Exception;"
-%typemap(dcode) std::vector< CTYPE > %{
+%proxycode %{
 public this($typemap(dtype, CTYPE)[] values) {
   this();
   append(values);
@@ -185,7 +185,7 @@ static import std.exception;
 static import std.range;
 static import std.traits;
 %}
-%typemap(dcode) std::vector< CTYPE > %{
+%proxycode %{
 alias size_t KeyType;
 alias $typemap(dtype, CTYPE) ValueType;
 

@@ -1476,7 +1476,7 @@ static void mark_nodes_as_extend(Node *n) {
 %type <p>        parm valparm rawvalparms valparms valptail ;
 %type <p>        typemap_parm tm_list tm_tail ;
 %type <p>        templateparameter ;
-%type <id>       templcpptype cpptype access_specifier;
+%type <id>       templcpptype cpptype classkey classkeyopt access_specifier;
 %type <node>     base_specifier;
 %type <str>      ellipsis variadic;
 %type <type>     type rawtype type_right anon_bitfield_type decltype ;
@@ -1627,14 +1627,14 @@ swig_directive : extend_directive { $$ = $1; }
    %extend classname { ... } 
    ------------------------------------------------------------ */
 
-extend_directive : EXTEND options idcolon LBRACE {
+extend_directive : EXTEND options classkeyopt idcolon LBRACE {
                Node *cls;
 	       String *clsname;
 	       extendmode = 1;
 	       cplus_mode = CPLUS_PUBLIC;
 	       if (!classes) classes = NewHash();
 	       if (!classes_typedefs) classes_typedefs = NewHash();
-	       clsname = make_class_name($3);
+	       clsname = make_class_name($4);
 	       cls = Getattr(classes,clsname);
 	       if (!cls) {
 	         cls = Getattr(classes_typedefs, clsname);
@@ -1643,7 +1643,7 @@ extend_directive : EXTEND options idcolon LBRACE {
 		   Node *am = Getattr(Swig_extend_hash(),clsname);
 		   if (!am) {
 		     Swig_symbol_newscope();
-		     Swig_symbol_setscopename($3);
+		     Swig_symbol_setscopename($4);
 		     prev_symtab = 0;
 		   } else {
 		     prev_symtab = Swig_symbol_setscope(Getattr(am,"symtab"));
@@ -1656,7 +1656,7 @@ extend_directive : EXTEND options idcolon LBRACE {
 		   prev_symtab = Swig_symbol_setscope(Getattr(cls, "symtab"));
 		   current_class = cls;
 		   SWIG_WARN_NODE_BEGIN(cls);
-		   Swig_warning(WARN_PARSE_EXTEND_NAME, cparse_file, cparse_line, "Deprecated %%extend name used - the %s name '%s' should be used instead of the typedef name '%s'.\n", Getattr(cls, "kind"), SwigType_namestr(Getattr(cls, "name")), $3);
+		   Swig_warning(WARN_PARSE_EXTEND_NAME, cparse_file, cparse_line, "Deprecated %%extend name used - the %s name '%s' should be used instead of the typedef name '%s'.\n", Getattr(cls, "kind"), SwigType_namestr(Getattr(cls, "name")), $4);
 		   SWIG_WARN_NODE_END(cls);
 		 }
 	       } else {
@@ -1664,7 +1664,7 @@ extend_directive : EXTEND options idcolon LBRACE {
 		 prev_symtab = Swig_symbol_setscope(Getattr(cls,"symtab"));
 		 current_class = cls;
 	       }
-	       Classprefix = NewString($3);
+	       Classprefix = NewString($4);
 	       Namespaceprefix= Swig_symbol_qualifiedscopename(0);
 	       Delete(clsname);
 	     } cpp_members RBRACE {
@@ -1676,22 +1676,22 @@ extend_directive : EXTEND options idcolon LBRACE {
 		 Swig_symbol_setscope(prev_symtab);
 	       }
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-               clsname = make_class_name($3);
+               clsname = make_class_name($4);
 	       Setattr($$,"name",clsname);
 
-	       mark_nodes_as_extend($6);
+	       mark_nodes_as_extend($7);
 	       if (current_class) {
 		 /* We add the extension to the previously defined class */
-		 appendChild($$,$6);
+		 appendChild($$, $7);
 		 appendChild(current_class,$$);
 	       } else {
 		 /* We store the extensions in the extensions hash */
 		 Node *am = Getattr(Swig_extend_hash(),clsname);
 		 if (am) {
 		   /* Append the members to the previous extend methods */
-		   appendChild(am,$6);
+		   appendChild(am, $7);
 		 } else {
-		   appendChild($$,$6);
+		   appendChild($$, $7);
 		   Setattr(Swig_extend_hash(),clsname,$$);
 		 }
 	       }
@@ -6310,7 +6310,6 @@ access_specifier :  PUBLIC { $$ = (char*)"public"; }
                | PROTECTED { $$ = (char*)"protected"; }
                ;
 
-
 templcpptype   : CLASS { 
                    $$ = (char*)"class"; 
 		   if (!inherit_list) last_cpptype = $$;
@@ -6339,6 +6338,28 @@ cpptype        : templcpptype {
                | UNION {
                    $$ = (char*)"union"; 
 		   if (!inherit_list) last_cpptype = $$;
+               }
+               ;
+
+classkey       : CLASS {
+                   $$ = (char*)"class";
+		   if (!inherit_list) last_cpptype = $$;
+               }
+               | STRUCT {
+                   $$ = (char*)"struct";
+		   if (!inherit_list) last_cpptype = $$;
+               }
+               | UNION {
+                   $$ = (char*)"union";
+		   if (!inherit_list) last_cpptype = $$;
+               }
+               ;
+
+classkeyopt    : classkey {
+		   $$ = $1;
+               }
+               | empty {
+		   $$ = 0;
                }
                ;
 
