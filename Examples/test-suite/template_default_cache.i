@@ -1,7 +1,5 @@
 %module template_default_cache;
 
-%import "amodel.i"
-
 %inline %{
     namespace d {
         template< typename T > class d {};
