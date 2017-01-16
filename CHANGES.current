@@ -7,7 +7,7 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 3.0.12 (in progress)
 ============================
 
-2017-01-16: Cpt-Cork
+2017-01-16: wkalinin
             [C#] Fix #733 regression introduced in swig-3.0.9.
             Missing virtual function override in C# layer when using %import.
 
