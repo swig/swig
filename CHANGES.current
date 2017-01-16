@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 3.0.12 (in progress)
 ============================
 
+2017-01-16: fschlimb
+            Fix #813 template symbol name lookup bug when typedef names are the same but in different
+            namespaces.
+
 2017-01-15: wsfulton
             [C# D Java]
             The SWIG library no longer uses the javatype, dtype or cstype typemaps, thereby
