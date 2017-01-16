@@ -102,9 +102,13 @@ JAVA_ARRAYS_DECL(short, jshort, Short, Short)         /* short[] */
 JAVA_ARRAYS_DECL(unsigned short, jint, Int, Ushort)   /* unsigned short[] */
 JAVA_ARRAYS_DECL(int, jint, Int, Int)                 /* int[] */
 JAVA_ARRAYS_DECL(unsigned int, jlong, Long, Uint)     /* unsigned int[] */
+#if defined(SWIGWORDSIZE64)
+JAVA_ARRAYS_DECL(long, jlong, Long, Long)        /* long long[] */
+#else
 JAVA_ARRAYS_DECL(long, jint, Int, Long)               /* long[] */
 JAVA_ARRAYS_DECL(unsigned long, jlong, Long, Ulong)   /* unsigned long[] */
 JAVA_ARRAYS_DECL(jlong, jlong, Long, Longlong)        /* long long[] */
+#endif
 JAVA_ARRAYS_DECL(float, jfloat, Float, Float)         /* float[] */
 JAVA_ARRAYS_DECL(double, jdouble, Double, Double)     /* double[] */
 
@@ -126,9 +130,13 @@ JAVA_ARRAYS_IMPL(short, jshort, Short, Short)         /* short[] */
 JAVA_ARRAYS_IMPL(unsigned short, jint, Int, Ushort)   /* unsigned short[] */
 JAVA_ARRAYS_IMPL(int, jint, Int, Int)                 /* int[] */
 JAVA_ARRAYS_IMPL(unsigned int, jlong, Long, Uint)     /* unsigned int[] */
+#if defined(SWIGWORDSIZE64)
+JAVA_ARRAYS_IMPL(long, jlong, Long, Long)        /* long long[] */
+#else
 JAVA_ARRAYS_IMPL(long, jint, Int, Long)               /* long[] */
 JAVA_ARRAYS_IMPL(unsigned long, jlong, Long, Ulong)   /* unsigned long[] */
 JAVA_ARRAYS_IMPL(jlong, jlong, Long, Longlong)        /* long long[] */
+#endif
 JAVA_ARRAYS_IMPL(float, jfloat, Float, Float)         /* float[] */
 JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
 
@@ -183,9 +191,13 @@ JAVA_ARRAYS_TYPEMAPS(short, short, jshort, Short, "[S")         /* short[ANY] */
 JAVA_ARRAYS_TYPEMAPS(unsigned short, int, jint, Ushort, "[I")   /* unsigned short[ANY] */
 JAVA_ARRAYS_TYPEMAPS(int, int, jint, Int, "[I")                 /* int[ANY] */
 JAVA_ARRAYS_TYPEMAPS(unsigned int, long, jlong, Uint, "[J")     /* unsigned int[ANY] */
+#if defined(SWIGWORDSIZE64)
+JAVA_ARRAYS_TYPEMAPS(long, long, jlong, Long, "[J")    /* long long[ANY] */
+#else
 JAVA_ARRAYS_TYPEMAPS(long, int, jint, Long, "[I")               /* long[ANY] */
 JAVA_ARRAYS_TYPEMAPS(unsigned long, long, jlong, Ulong, "[J")   /* unsigned long[ANY] */
 JAVA_ARRAYS_TYPEMAPS(long long, long, jlong, Longlong, "[J")    /* long long[ANY] */
+#endif
 JAVA_ARRAYS_TYPEMAPS(float, float, jfloat, Float, "[F")         /* float[ANY] */
 JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] */
 
@@ -203,21 +215,41 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
     short[ANY], short[]
     ""
 
+#if defined(SWIGWORDSIZE64)
+%typecheck(SWIG_TYPECHECK_INT32_ARRAY) /* Java int[] */
+    unsigned short[ANY], unsigned short[],
+    int[ANY], int[]    
+    ""
+#else
 %typecheck(SWIG_TYPECHECK_INT32_ARRAY) /* Java int[] */
     unsigned short[ANY], unsigned short[],
     int[ANY], int[],
     long[ANY], long[]
     ""
+#endif
 
+#if defined(SWIGWORDSIZE64)
+%typecheck(SWIG_TYPECHECK_INT64_ARRAY) /* Java long[] */
+    unsigned int[ANY], unsigned int[],    
+    long[ANY], long[]
+    ""
+#else
 %typecheck(SWIG_TYPECHECK_INT64_ARRAY) /* Java long[] */
     unsigned int[ANY], unsigned int[],
     unsigned long[ANY], unsigned long[],
     long long[ANY], long long[]
     ""
+#endif
 
+#if defined(SWIGWORDSIZE64)
+%typecheck(SWIG_TYPECHECK_INT128_ARRAY) /* Java BigInteger[] */
+    unsigned long[ANY], unsigned long[]
+    ""
+#else
 %typecheck(SWIG_TYPECHECK_INT128_ARRAY) /* Java BigInteger[] */
     unsigned long long[ANY], unsigned long long[]
     ""
+#endif
 
 %typecheck(SWIG_TYPECHECK_FLOAT_ARRAY) /* Java float[] */
     float[ANY], float[]

@@ -63,10 +63,15 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(jni) unsigned short,     const unsigned short &     "jint"
 %typemap(jni) int,                const int &                "jint"
 %typemap(jni) unsigned int,       const unsigned int &       "jlong"
+#if defined(SWIGWORDSIZE64)
+%typemap(jni) long,          const long &          "jlong"
+%typemap(jni) unsigned long, const unsigned long & "jobject"
+#else
 %typemap(jni) long,               const long &               "jint"
 %typemap(jni) unsigned long,      const unsigned long &      "jlong"
 %typemap(jni) long long,          const long long &          "jlong"
 %typemap(jni) unsigned long long, const unsigned long long & "jobject"
+#endif
 %typemap(jni) float,              const float &              "jfloat"
 %typemap(jni) double,             const double &             "jdouble"
 %typemap(jni) void                                           "void"
@@ -79,10 +84,15 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(jtype) unsigned short,     const unsigned short &     "int"
 %typemap(jtype) int,                const int &                "int"
 %typemap(jtype) unsigned int,       const unsigned int &       "long"
+#if defined(SWIGWORDSIZE64)
+%typemap(jtype) long,          const long &          "long"
+%typemap(jtype) unsigned long, const unsigned long & "java.math.BigInteger"
+#else
 %typemap(jtype) long,               const long &               "int"
 %typemap(jtype) unsigned long,      const unsigned long &      "long"
 %typemap(jtype) long long,          const long long &          "long"
 %typemap(jtype) unsigned long long, const unsigned long long & "java.math.BigInteger"
+#endif
 %typemap(jtype) float,              const float &              "float"
 %typemap(jtype) double,             const double &             "double"
 %typemap(jtype) void                                           "void"
@@ -95,10 +105,15 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(jstype) unsigned short,     const unsigned short &     "int"
 %typemap(jstype) int,                const int &                "int"
 %typemap(jstype) unsigned int,       const unsigned int &       "long"
+#if defined(SWIGWORDSIZE64)
+%typemap(jstype) long,          const long &          "long"
+%typemap(jstype) unsigned long, const unsigned long & "java.math.BigInteger"
+#else
 %typemap(jstype) long,               const long &               "int"
 %typemap(jstype) unsigned long,      const unsigned long &      "long"
 %typemap(jstype) long long,          const long long &          "long"
 %typemap(jstype) unsigned long long, const unsigned long long & "java.math.BigInteger"
+#endif
 %typemap(jstype) float,              const float &              "float"
 %typemap(jstype) double,             const double &             "double"
 %typemap(jstype) void                                           "void"
@@ -242,9 +257,13 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(directorin, descriptor="I") unsigned short   "$input = (jint) $1;"
 %typemap(directorin, descriptor="I") int              "$input = (jint) $1;"
 %typemap(directorin, descriptor="J") unsigned int     "$input = (jlong) $1;"
+#if defined(SWIGWORDSIZE64)
+%typemap(directorin, descriptor="J") long        "$input = (jlong) $1;"
+#else
 %typemap(directorin, descriptor="I") long             "$input = (jint) $1;"
 %typemap(directorin, descriptor="J") unsigned long    "$input = (jlong) $1;"
 %typemap(directorin, descriptor="J") long long        "$input = (jlong) $1;"
+#endif
 %typemap(directorin, descriptor="F") float            "$input = (jfloat) $1;"
 %typemap(directorin, descriptor="D") double           "$input = (jdouble) $1;"
 
@@ -284,15 +303,23 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(out) unsigned short %{ $result = (jint)$1; %}
 %typemap(out) int            %{ $result = (jint)$1; %}
 %typemap(out) unsigned int   %{ $result = (jlong)$1; %}
+#if defined(SWIGWORDSIZE64)
+%typemap(out) long      %{ $result = (jlong)$1; %}
+#else
 %typemap(out) long           %{ $result = (jint)$1; %}
 %typemap(out) unsigned long  %{ $result = (jlong)$1; %}
 %typemap(out) long long      %{ $result = (jlong)$1; %}
+#endif
 %typemap(out) float          %{ $result = (jfloat)$1; %}
 %typemap(out) double         %{ $result = (jdouble)$1; %}
 
 /* unsigned long long */
 /* Convert from BigInteger using the toByteArray member function */
+#if defined(SWIGWORDSIZE64)
+%typemap(in) unsigned long { 
+#else
 %typemap(in) unsigned long long { 
+#endif
   jclass clazz;
   jmethodID mid;
   jbyteArray ba;
@@ -319,7 +346,11 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }
 
+#if defined(SWIGWORDSIZE64)
+%typemap(directorout) unsigned long { 
+#else
 %typemap(directorout) unsigned long long { 
+#endif
   jclass clazz;
   jmethodID mid;
   jbyteArray ba;
@@ -348,7 +379,11 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 
 /* Convert to BigInteger - byte array holds number in 2's complement big endian format */
+#if defined(SWIGWORDSIZE64)
+%typemap(out) unsigned long { 
+#else
 %typemap(out) unsigned long long { 
+#endif
   jbyteArray ba = JCALL1(NewByteArray, jenv, 9);
   jbyte* bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
   jclass clazz = JCALL1(FindClass, jenv, "java/math/BigInteger");
@@ -367,7 +402,11 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 }
 
 /* Convert to BigInteger (see out typemap) */
+#if defined(SWIGWORDSIZE64)
+%typemap(directorin, descriptor="Ljava/math/BigInteger;") unsigned long, const unsigned long & {
+#else
 %typemap(directorin, descriptor="Ljava/math/BigInteger;") unsigned long long, const unsigned long long & {
+#endif
   jbyteArray ba = JCALL1(NewByteArray, jenv, 9);
   jbyte* bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
   jclass clazz = JCALL1(FindClass, jenv, "java/math/BigInteger");
@@ -385,8 +424,13 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   $input = bigint;
 }
 
+#if defined(SWIGWORDSIZE64)
+%typemap(javadirectorin) unsigned long "$jniinput"
+%typemap(javadirectorout) unsigned long "$javacall"
+#else
 %typemap(javadirectorin) unsigned long long "$jniinput"
 %typemap(javadirectorout) unsigned long long "$javacall"
+#endif
 
 /* char * - treat as String */
 %typemap(in, noblock=1) char * {
@@ -488,9 +532,13 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(directorin, descriptor="I") const unsigned short & "$input = (jint)$1;"
 %typemap(directorin, descriptor="I") const int &            "$input = (jint)$1;"
 %typemap(directorin, descriptor="J") const unsigned int &   "$input = (jlong)$1;"
+#if defined(SWIGWORDSIZE64)
+%typemap(directorin, descriptor="J") const long &           "$input = (jlong)$1;"
+#else
 %typemap(directorin, descriptor="I") const long &           "$input = (jint)$1;"
 %typemap(directorin, descriptor="J") const unsigned long &  "$input = (jlong)$1;"
 %typemap(directorin, descriptor="J") const long long &      "$input = (jlong)$1;"
+#endif
 %typemap(directorin, descriptor="F") const float &          "$input = (jfloat)$1;"
 %typemap(directorin, descriptor="D") const double &         "$input = (jdouble)$1;"
 
@@ -531,15 +579,23 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(out) const unsigned short & %{ $result = (jint)*$1; %}
 %typemap(out) const int &            %{ $result = (jint)*$1; %}
 %typemap(out) const unsigned int &   %{ $result = (jlong)*$1; %}
+#if defined(SWIGWORDSIZE64)
+%typemap(out) const long &           %{ $result = (jlong)*$1; %}
+#else
 %typemap(out) const long &           %{ $result = (jint)*$1; %}
 %typemap(out) const unsigned long &  %{ $result = (jlong)*$1; %}
 %typemap(out) const long long &      %{ $result = (jlong)*$1; %}
+#endif
 %typemap(out) const float &          %{ $result = (jfloat)*$1; %}
 %typemap(out) const double &         %{ $result = (jdouble)*$1; %}
 
 /* const unsigned long long & */
 /* Similar to unsigned long long */
+#if defined(SWIGWORDSIZE64)
+%typemap(in) const unsigned long & ($*1_ltype temp) {
+#else
 %typemap(in) const unsigned long long & ($*1_ltype temp) { 
+#endif
   jclass clazz;
   jmethodID mid;
   jbyteArray ba;
@@ -567,7 +623,11 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }
 
+#if defined(SWIGWORDSIZE64)
+%typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const unsigned long & {
+#else
 %typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const unsigned long long & { 
+#endif
   static $*1_ltype temp;
   jclass clazz;
   jmethodID mid;
@@ -596,7 +656,11 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }
 
+#if defined(SWIGWORDSIZE64)
+%typemap(out) const unsigned long & {
+#else
 %typemap(out) const unsigned long long & { 
+#endif
   jbyteArray ba = JCALL1(NewByteArray, jenv, 9);
   jbyte* bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
   jclass clazz = JCALL1(FindClass, jenv, "java/math/BigInteger");
@@ -614,8 +678,13 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   $result = bigint;
 }
 
+#if defined(SWIGWORDSIZE64)
+%typemap(javadirectorin) const unsigned long & "$jniinput"
+%typemap(javadirectorout) const unsigned long & "$javacall"
+#else
 %typemap(javadirectorin) const unsigned long long & "$jniinput"
 %typemap(javadirectorout) const unsigned long long & "$javacall"
+#endif
 
 /* Default handling. Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE ($&1_type argp)
@@ -908,6 +977,15 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     const short &
     ""
 
+#if defined(SWIGWORDSIZE64)
+%typecheck(SWIG_TYPECHECK_INT32) /* Java int */
+    jint,
+    unsigned short, 
+    int,     
+    const unsigned short &, 
+    const int &    
+    ""
+#else
 %typecheck(SWIG_TYPECHECK_INT32) /* Java int */
     jint,
     unsigned short, 
@@ -917,7 +995,17 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     const int &, 
     const long &
     ""
+#endif
 
+#if defined(SWIGWORDSIZE64)
+%typecheck(SWIG_TYPECHECK_INT64) /* Java long */
+    jlong,
+    unsigned int,     
+    long, 
+    const unsigned int &,    
+    const long &
+    ""
+#else
 %typecheck(SWIG_TYPECHECK_INT64) /* Java long */
     jlong,
     unsigned int, 
@@ -927,11 +1015,19 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     const unsigned long &, 
     const long long &
     ""
+#endif
 
+#if defined(SWIGWORDSIZE64)
+%typecheck(SWIG_TYPECHECK_INT128) /* Java BigInteger */
+    unsigned long,
+    const unsigned long &
+    ""
+#else
 %typecheck(SWIG_TYPECHECK_INT128) /* Java BigInteger */
     unsigned long long,
     const unsigned long long &
     ""
+#endif
 
 %typecheck(SWIG_TYPECHECK_FLOAT) /* Java float */
     jfloat,
