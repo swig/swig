@@ -18,7 +18,7 @@ SWIG_pchar_descriptor(void)
 }
 
 %fragment("SWIG_strnlen","header",fragment="SWIG_FromCharPtrAndSize") {
-size_t
+SWIGINTERN size_t
 SWIG_strnlen(const char* s, size_t maxlen)
 {
   const char *p;
