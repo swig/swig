@@ -6491,14 +6491,14 @@ A typemap for C character strings is:
 
 <div class="code">
 <pre>
-%typemap(directorin, descriptor="Ljava/lang/String;", noblock=1) char * %{
+%typemap(directorin, descriptor="Ljava/lang/String;", noblock=1) char * {
   $input = 0;
   if ($1) {
     $input = JCALL1(NewStringUTF, jenv, (const char *)$1);
     if (!$input) return $null;
   }
   Swig::LocalRefGuard $1_refguard(jenv, $input);
-%}
+}
 </pre>
 </div>
 
