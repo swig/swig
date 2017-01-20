@@ -1,0 +1,26 @@
+ccl: now loading quicklisp...
+enabled: 
+(ql:system-apropos "") ;(ql:quickload "")
+ccl: loading 
+; Loading system definition from /home/jaten/quicklisp/dists/quicklisp/software/babel-20101107-darcs/babel.asd into #<Package "asdf0">
+; Registering #<system "babel">
+; Loading system definition from /home/jaten/quicklisp/dists/quicklisp/software/alexandria-20110320-git/alexandria.asd into #<Package "asdf0">
+; Registering #<system "alexandria">
+; Loading system definition from /home/jaten/quicklisp/dists/quicklisp/software/trivial-features-20101006-darcs/trivial-features.asd into #<Package "asdf0">
+; Registering #<system "trivial-features">
+Welcome to Clozure Common Lisp Version 1.6  (Linuxx8664)!
+? cffi
+nil
+? t
+? t
+? #<shlib ./small.so #x30200164F76D>
+? #P"/home/jaten/research/djitia/basic_swig/small.lx64fsl"
+? #P"/home/jaten/research/djitia/basic_swig/small-clos.lx64fsl"
+? t
+? #<TESTCLASS #x3020016C612D>
+? 
+ * * * * * * * * * * * * * * *
+ * * * all tests passed. * * *
+ * * * * * * * * * * * * * * *
+nil
+? 

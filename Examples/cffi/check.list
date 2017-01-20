@@ -1,0 +1,7 @@
+# see top-level Makefile.in
+structs-as-classes
+small-rename-test
+overctor
+simple
+class
+static_member_vars_and_global_var_check
