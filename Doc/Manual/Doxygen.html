@@ -122,7 +122,7 @@ Documenting the code</A>). Here they are:
 </p>
 
 <p>
-Also any of the above with '<' added after comment-starting symbol,
+Also any of the above with '&lt;' added after comment-starting symbol,
 like <i>/**&lt;, /*!&lt;, ///&lt;, </i> or <i> //!&lt;</i> will be
 treated as post-comment and will be assigned to the node before the
 comment.
@@ -164,8 +164,8 @@ After C\C++ expressions at the end of the line:
 </p>
 
 <div class="code"><pre>
-int someVariable = 9; ///< This is a var holding magic number 9
-void doNothing(); ///< This does nothing, nop
+int someVariable = 9; ///&lt; This is a var holding magic number 9
+void doNothing(); ///&lt; This does nothing, nop
 </pre></div>
 
 <p>
@@ -174,7 +174,7 @@ and in some special cases, like function parameter comments:
 
 <div class="code"><pre>
 void someFunction(
-         int a ///< Some parameter 
+         int a ///&lt; Some parameter 
      );
 </pre></div>
 
@@ -185,8 +185,8 @@ or enum element comments:
 <div class="code"><pre>
 enum E_NUMBERS
 {
-    EN_ZERO, ///< The first enum item, gets zero as it's value
-    EN_ONE, ///< The second, EN_ONE=1
+    EN_ZERO, ///&lt; The first enum item, gets zero as it's value
+    EN_ONE, ///&lt; The second, EN_ONE=1
     EN_THREE
 };
 </pre></div>
@@ -623,7 +623,7 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\par</td>
-<td>replaced with &lt;p alt='title'&gt;...&lt/p&gt;</td>
+<td>replaced with &lt;p alt='title'&gt;...&lt;/p&gt;</td>
 </tr>
 <tr>
 <td>\param</td>
