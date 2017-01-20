@@ -192,28 +192,13 @@ to compile this file and link it with the rest of your program. </p>
 
 
 <p> In order to compile the wrapper code, the compiler needs the <tt>ruby.h</tt>
-header file. This file is usually contained in a directory such as </p>
-
-<div class="code shell diagram">
-<pre>/usr/lib/ruby/1.8/x86_64-linux-gnu/ruby.h
-/usr/include/ruby-2.1.0/ruby.h
-</pre>
-</div>
-
-<p> The exact location may vary on your machine, but the above
-location is typical. If you are not entirely sure where Ruby is
-installed, you can run Ruby to find out. For example: </p>
+header file and its dependencies, notably <tt>ruby/config.h</tt> which is
+found in a different, architecture-dependent, directory. The best way to find
+the compiler options needed to compile the code is to ask Ruby itself:</p>
 
 <div class="code shell">
-<pre>$ ruby -e 'puts $:.join("\n")'
-/usr/local/lib/site_ruby/2.1.0
-/usr/local/lib/x86_64-linux-gnu/site_ruby
-/usr/local/lib/site_ruby
-/usr/lib/ruby/vendor_ruby/2.1.0
-/usr/lib/x86_64-linux-gnu/ruby/vendor_ruby/2.1.0
-/usr/lib/ruby/vendor_ruby
-/usr/lib/ruby/2.1.0
-/usr/lib/x86_64-linux-gnu/ruby/2.1.0
+<pre>$ ruby -e 'require "rbconfig"; puts "-I#{RbConfig::CONFIG[%q{rubyhdrdir} -I#{RbConfig::CONFIG[%q{rubyarchhdrdir}]}"'
+-I/usr/include/ruby-2.1.0 -I/usr/include/x86_64-linux-gnu/ruby-2.1.0
 </pre>
 </div>
 
