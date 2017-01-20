@@ -2506,24 +2506,24 @@ AC_SUBST(CLISPBIN)
 # Look for a lisp system using CFFI, say Clozure Common Lisp (CCL), or SBCL
 #----------------------------------------------------------------
 
-CFFILISPBIN=
+CFFIBIN=
 
 AC_ARG_WITH(cffi, AS_HELP_STRING([--without-cffilisp], [Disable CFFI lisp])
-AS_HELP_STRING([--with-cffilisp=path], [Set location of Common Lisp repl that already has CFFI installed (e.g. ccl,sbcl,etc)]),[ CFFILISPBIN="$withval"], [CFFILISPBIN=yes])
+AS_HELP_STRING([--with-cffilisp=path], [Set location of Common Lisp repl that already has CFFI installed (e.g. ccl,sbcl,etc)]),[ CFFIBIN="$withval"], [CFFIBIN=yes])
 
 # First, check for "--without-cffilisp" or "--with-cffilisp=no".
-if test x"${CFFILISPBIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${CFFIBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling CFFI lisp])
-CFFILISPBIN=
+CFFIBIN=
 else
 
 # can we find ccl as a default?
-if test "x$CFFILISPBIN" = xyes; then
-   AC_PATH_PROG(CFFILISPBIN, ccl)
+if test "x$CFFIBIN" = xyes; then
+   AC_PATH_PROG(CFFIBIN, ccl)
 fi
 fi
 
-AC_SUBST(CFFILISPBIN)
+AC_SUBST(CFFIBIN)
 
 
 #----------------------------------------------------------------
@@ -2904,7 +2904,7 @@ fi
 AC_SUBST(SKIP_R)
 
 SKIP_CFFI=
-if test -z "$CFFILISPBIN" ; then
+if test -z "$CFFIBIN" ; then
     SKIP_CFFI="1"
 fi
 AC_SUBST(SKIP_CFFI)
