@@ -197,7 +197,7 @@ found in a different, architecture-dependent, directory. The best way to find
 the compiler options needed to compile the code is to ask Ruby itself:</p>
 
 <div class="code shell">
-<pre>$ ruby -e 'require "rbconfig"; puts "-I#{RbConfig::CONFIG[%q{rubyhdrdir} -I#{RbConfig::CONFIG[%q{rubyarchhdrdir}]}"'
+<pre>$ ruby -e 'require "rbconfig"; puts "-I#{RbConfig::CONFIG[%q{rubyhdrdir}]} -I#{RbConfig::CONFIG[%q{rubyarchhdrdir}]}"'
 -I/usr/include/ruby-2.1.0 -I/usr/include/x86_64-linux-gnu/ruby-2.1.0
 </pre>
 </div>
