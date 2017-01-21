@@ -77,13 +77,14 @@ matrix:
       dist: trusty
     - compiler: gcc
       os: linux
-      env: SWIGLANG=octave SWIGJOBS=-j2 # 3.2
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=octave SWIGJOBS=-j2 VER=3.8
+      env: SWIGLANG=octave SWIGJOBS=-j2 # 3.8
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.0
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=perl5
