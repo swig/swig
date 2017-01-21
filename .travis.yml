@@ -87,6 +87,11 @@ matrix:
       dist: trusty
     - compiler: gcc
       os: linux
+      env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.2 CPP11=1
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=perl5
       sudo: required
       dist: trusty

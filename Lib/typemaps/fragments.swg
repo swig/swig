@@ -177,9 +177,11 @@
  * versions.
  *
  * Make sure namespace std exists to avoid compiler warnings.
+ *
+ * extern "C++" is required as this fragment can end up inside an extern "C" { } block
  */
 namespace std { }
-template<typename T>
+extern "C++" template<typename T>
 inline int SWIG_isfinite_func(T x) {
   using namespace std;
   return isfinite(x);

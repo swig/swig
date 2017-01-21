@@ -1017,30 +1017,31 @@ OCTAVE_SO=.oct
 AC_ARG_WITH(octave, AS_HELP_STRING([--without-octave], [Disable Octave])
 AS_HELP_STRING([--with-octave=path], [Set location of Octave executable]),[OCTAVEBIN="$withval"], [OCTAVEBIN="$alllang_default"])
 
-# First, check for "--without-octave" or "--with-octave=no".
+# Check for "--without-octave" or "--with-octave=no".
 if test x"${OCTAVEBIN}" = xno; then
    AC_MSG_NOTICE([Disabling Octave])
    OCTAVE=
 
-# First figure out what the name of Octave is
+# Check for Octave; prefer command-line program "octave-cli" to (in newer versions) GUI program "octave"
 elif test "x$OCTAVEBIN" = xyes; then
-   AC_PATH_PROG(OCTAVE, [octave])
+   AC_PATH_PROG(OCTAVE, [octave-cli octave])
 
 else
    OCTAVE="$OCTAVEBIN"
 fi
 
+# Check for required Octave helper program "mkoctfile"
 if test -n "$OCTAVE"; then
-   AC_MSG_CHECKING([for mkoctfile])
-   mkoctfile="$(dirname $OCTAVE)/$(basename $OCTAVE | sed -e 's/octave/mkoctfile/')"
-   AS_IF([test -x "${mkoctfile}"],[
-      AC_MSG_RESULT([${mkoctfile}])
-   ],[
-      AC_MSG_RESULT([not found, disabling Octave])
+   AC_PATH_PROG(mkoctfile, [mkoctfile], [], [`dirname $OCTAVE`])
+   AS_IF([test "x${mkoctfile}" = x],[
+      AC_MSG_NOTICE([mkoctfile not found, disabling Octave])
       OCTAVE=
    ])
 fi
+
+# Check for Octave preprocessor/compiler/linker flags
 if test -n "$OCTAVE"; then
+
    AC_MSG_CHECKING([for Octave preprocessor flags])
    OCTAVE_CPPFLAGS=
    for var in CPPFLAGS INCFLAGS ALL_CXXFLAGS; do
@@ -1052,12 +1053,13 @@ if test -n "$OCTAVE"; then
       done
    done
    AC_MSG_RESULT([$OCTAVE_CPPFLAGS])
+
    AC_MSG_CHECKING([for Octave compiler flags])
    OCTAVE_CXXFLAGS=
-   for var in ALL_CXXFLAGS; do
+   for var in CXX ALL_CXXFLAGS; do
       for flag in `env - ${mkoctfile} -p ${var}`; do
          case ${flag} in
-            -g*|-W*) OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} ${flag}";;
+            -std=*|-g*|-W*) OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} ${flag}";;
             *) ;;
          esac
       done
@@ -1065,19 +1067,25 @@ if test -n "$OCTAVE"; then
    save_CXXFLAGS="${CXXFLAGS}"
    CXXFLAGS="-Werror -O0"
    AC_COMPILE_IFELSE([
-      AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT],[])
+      AC_LANG_PROGRAM([],[])
    ],[
       OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} -O0"
    ])
    CXXFLAGS="${save_CXXFLAGS}"
    AC_MSG_RESULT([$OCTAVE_CXXFLAGS])
+
    AC_MSG_CHECKING([for Octave linker flags])
    OCTAVE_LDFLAGS=
    for var in RDYNAMIC_FLAG LFLAGS RLD_FLAG OCTAVE_LIBS LIBS; do
      OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`env - ${mkoctfile} -p ${var}`
    done
    AC_MSG_RESULT([$OCTAVE_LDFLAGS])
-   for octave_opt in --silent --norc --no-history --no-window-system; do
+
+fi
+
+# Check for Octave options
+if test -n "$OCTAVE"; then
+   for octave_opt in --no-window-system --silent --norc --no-history; do
       AC_MSG_CHECKING([if Octave option '${octave_opt}' is supported])
       octave_out=`${OCTAVE} ${octave_opt} /dev/null 2>&1 | sed -n '1p' | sed -n '/unrecognized/p'`
       AS_IF([test "x${octave_out}" = x],[
