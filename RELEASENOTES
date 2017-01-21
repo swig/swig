@@ -7,6 +7,12 @@ Release Notes
 Detailed release notes are available with the release and are also
 published on the SWIG web site at http://swig.org/release.html.
 
+SWIG-3.0.11 summary:
+- PHP 7 support added.
+- C++11 alias templates and type aliasing support added.
+- Minor fixes and enhancements for C# Go Guile Java Javascript Octave
+  PHP Python R Ruby Scilab XML.
+
 SWIG-3.0.10 summary:
 - Regression fixes for smart pointers and importing Python modules.
 

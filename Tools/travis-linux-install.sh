@@ -71,11 +71,16 @@ case "$SWIGLANG" in
 			sudo apt-get -qq install liboctave${VER}-dev
 		fi
 		;;
-	"php")
+	"php5")
 		sudo apt-get -qq install php5-cli php5-dev
 		;;
+	"php")
+		sudo add-apt-repository -y ppa:ondrej/php
+		sudo apt-get -qq update
+		sudo apt-get -qq install php$VER-cli php$VER-dev
+		;;
 	"python")
-		sudo apt-get -qq install pep8
+		pip install pep8
 		if [[ "$PY3" ]]; then
 			sudo apt-get install -qq python3-dev
 		fi

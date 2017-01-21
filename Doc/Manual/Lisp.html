@@ -148,7 +148,7 @@ struct foo {
 
 int pointer_func(void (*ClosureFun)( void* _fun, void* _data, void* _evt ), int p);
 
-int func123(div_t * p,int **q[100],int r[][1000][10]);
+int func123(div_t * p, int **q[100], int r[][1000][10]);
 
 void lispsort_double (int n, double * array);
 
@@ -170,11 +170,11 @@ The generated SWIG Code will be:
 
 (cl:defmacro defanonenum (&amp;body enums)
    "Converts anonymous enums to defconstants."
-  `(cl:progn ,@(cl:loop for value in enums
+  `(cl:progn , @(cl:loop for value in enums
                         for index = 0 then (cl:1+ index)
                         when (cl:listp value) do (cl:setf index (cl:second value)
                                                           value (cl:first value))
-                        collect `(cl:defconstant ,value ,index))))
+                        collect `(cl:defconstant , value , index))))
 
 (cl:eval-when (:compile-toplevel :load-toplevel)
   (cl:unless (cl:fboundp 'swig-lispify)
@@ -280,7 +280,7 @@ Let's edit the interface file such that the C type "div_t*" is changed
 
 %typemap(cin) div_t* ":my-pointer";
 
-%feature("intern_function","1");
+%feature("intern_function", "1");
 %feature("export");
 
 %feature("inline") lispsort_double;
@@ -305,7 +305,7 @@ The <i>typemap(cin)</i> ensures that for all arguments which are input
 The feature <i>intern_function</i> ensures that all C names are
       interned using the <b>swig-lispify</b> function. The "1" given
       to the feature is optional. The use of feature like
-      <i>%feature("intern_function","1");</i> globally enables
+      <i>%feature("intern_function", "1");</i> globally enables
       interning for everything. If you want to target a single
       function, or declaration then use the targeted version of
       feature, <i>%feature("intern_function", "my-lispify")
@@ -722,7 +722,7 @@ The ffi wrappers for functions and variables are generated as shown
 extern "C" {
 int pointer_func(void (*ClosureFun)( void* _fun, void* _data, void* _evt ), int y);
 
-int func123(div_t * x,int **z[100],int y[][1000][10]);
+int func123(div_t * x, int **z[100], int y[][1000][10]);
 
 void lispsort_double (int n, double * array);
 

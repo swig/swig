@@ -289,7 +289,7 @@ PyObject *wrap_gcd(PyObject *self, PyObject *args) {
     arg2 = PyInt_AsLong(obj2);
   }
 </b>
-  result = gcd(arg1,arg2);
+  result = gcd(arg1, arg2);
 
   /* "out" typemap, return value */<b>
   {
@@ -375,7 +375,7 @@ example, you could write a typemap like this:
 %typemap(in) <b>double nonnegative</b> {
   $1 = PyFloat_AsDouble($input);
   if ($1 &lt; 0) {
-    PyErr_SetString(PyExc_ValueError,"argument must be nonnegative.");
+    PyErr_SetString(PyExc_ValueError, "argument must be nonnegative.");
     SWIG_fail;
   }
 }
@@ -623,7 +623,7 @@ function like this:
 
 <div class="targetlang">
 <pre>
-foo("hello",3)          # Reversed arguments
+foo("hello", 3)          # Reversed arguments
 </pre>
 </div>
 
@@ -637,7 +637,7 @@ function instead.  For example:
 %rename(foo) wrap_foo;
 %inline %{
 void wrap_foo(char *s, int x) {
-  foo(x,s);
+  foo(x, s);
 }
 %}
 </pre>
@@ -777,7 +777,7 @@ Here are some examples of valid typemap specifications:
 }
 
 /* Typemap with modifiers */
-%typemap(in,doc="integer") int "$1 = scm_to_int($input);";
+%typemap(in, doc="integer") int "$1 = scm_to_int($input);";
 
 /* Typemap applied to patterns of multiple arguments */
 %typemap(in) (char *str, int len),
@@ -1248,7 +1248,7 @@ like this:
 <div class="code">
 <pre>
 typedef int Integer;
-typedef foo&lt;Integer,Integer&gt; fooii;
+typedef foo&lt;Integer, Integer&gt; fooii;
 void blah(fooii *x);
 </pre>
 </div>
@@ -1262,9 +1262,9 @@ In this case, the following typemap patterns are searched for the argument <tt>f
 fooii *x
 fooii *
 
-# Reduce fooii --&gt; foo&lt;Integer,Integer&gt;
-foo&lt;Integer,Integer&gt; *x
-foo&lt;Integer,Integer&gt; *
+# Reduce fooii --&gt; foo&lt;Integer, Integer&gt;
+foo&lt;Integer, Integer&gt; *x
+foo&lt;Integer, Integer&gt; *
 
 # Reduce Integer -&gt; int
 foo&lt;int, Integer&gt; *x
@@ -1279,7 +1279,7 @@ foo&lt;int, int&gt; *
 <p>
 Typemap reductions are always applied to the left-most type that appears.  Only when no reductions can be made to the left-most
 type are reductions made to other parts of the type.   This behavior means that you could define a typemap for
-<tt>foo&lt;int,Integer&gt;</tt>, but a typemap for <tt>foo&lt;Integer,int&gt;</tt> would never be matched.  Admittedly, this
+<tt>foo&lt;int, Integer&gt;</tt>, but a typemap for <tt>foo&lt;Integer, int&gt;</tt> would never be matched.  Admittedly, this
 is rather esoteric--there's little practical reason to write a typemap quite like that.  Of course, you could rely on this
 to confuse your coworkers even more.
 </p>
@@ -1714,7 +1714,7 @@ you'll find the full typemap contents (example shown below for Python):
 <div class="code">
 <pre>
 %typemap(in, noblock=1) SWIGTYPE [] (void *argp = 0, int res = 0) {
-  res = SWIG_ConvertPtr($input, &amp;argp,$descriptor, $disown |  0 );
+  res = SWIG_ConvertPtr($input, &amp;argp, $descriptor, $disown |  0 );
   if (!SWIG_IsOK(res)) { 
     SWIG_exception_fail(SWIG_ArgError(res), "in method '" "$symname" "', argument "
                        "$argnum"" of type '" "$type""'"); 
@@ -1736,7 +1736,7 @@ SWIGINTERN PyObject *_wrap_foo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   void *argp1 = 0 ;
   int res1 = 0 ;
 ...
-  res1 = SWIG_ConvertPtr(obj0, &amp;argp1,SWIGTYPE_p_a_4__int, 0 |  0 );
+  res1 = SWIG_ConvertPtr(obj0, &amp;argp1, SWIGTYPE_p_a_4__int, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "foo" "', argument "
                        "1"" of type '" "int [10][4]""'"); 
@@ -1758,7 +1758,7 @@ For example, the output for the code in the <a href="#Typemaps_multi_argument_ty
 example.h:39: Searching for a suitable 'in' typemap for: char *buffer
   Looking for: char *buffer
   Multi-argument typemap found...
-  Using: %typemap(in) (char *buffer,int len)
+  Using: %typemap(in) (char *buffer, int len)
 ...
 </pre>
 </div>
@@ -1968,8 +1968,8 @@ then pass a pointer to the object.   To do this, simply specify the typemap with
 %typemap(in) std::string * <b>(std::string temp)</b> {
   unsigned int len;
   char        *s;
-  s = SvPV($input,len);         /* Extract string data */
-  temp.assign(s,len);           /* Assign to temp */
+  s = SvPV($input, len);         /* Extract string data */
+  temp.assign(s, len);           /* Assign to temp */
   $1 = &amp;temp;                   /* Set argument to point to temp */
 }
 </pre>
@@ -1989,7 +1989,7 @@ wrap_foo() {
   /* Typemap code */
   {
     ...
-    temp.assign(s,len);
+    temp.assign(s, len);
     ...
   }
   ...
@@ -2032,21 +2032,21 @@ wrap_foo() {
     char *s;
     unsigned int len;
     ...
-    temp1.assign(s,len);
+    temp1.assign(s, len);
     arg1 = *temp1;
   }
   {
     char *s;
     unsigned int len;
     ...
-    temp2.assign(s,len);
+    temp2.assign(s, len);
     arg2 = &amp;temp2;
   }
   {
     char *s;
     unsigned int len;
     ...
-    temp3.assign(s,len);
+    temp3.assign(s, len);
     arg3 = &amp;temp3;
   }
   ...
@@ -2577,7 +2577,7 @@ to see whether or not it matches a specific type.  For example:
 
 <div class="code">
 <pre>
-%typemap(typecheck,precedence=SWIG_TYPECHECK_INTEGER) int {
+%typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int {
   $1 = PyInt_Check($input) ? 1 : 0;
 }
 </pre>
@@ -2690,7 +2690,7 @@ converted.  For example:
 <pre>
 %typemap(check) int positive {
   if ($1 &lt;= 0) {
-    SWIG_exception(SWIG_ValueError,"Expected positive value.");
+    SWIG_exception(SWIG_ValueError, "Expected positive value.");
   }
 }
 </pre>
@@ -2963,19 +2963,19 @@ similar to this:
 %typemap(in) float value[4] (float temp[4]) {
   int i;
   if (!PySequence_Check($input)) {
-    PyErr_SetString(PyExc_ValueError,"Expected a sequence");
+    PyErr_SetString(PyExc_ValueError, "Expected a sequence");
     SWIG_fail;
   }
   if (PySequence_Length($input) != 4) {
-    PyErr_SetString(PyExc_ValueError,"Size mismatch. Expected 4 elements");
+    PyErr_SetString(PyExc_ValueError, "Size mismatch. Expected 4 elements");
     SWIG_fail;
   }
   for (i = 0; i &lt; 4; i++) {
-    PyObject *o = PySequence_GetItem($input,i);
+    PyObject *o = PySequence_GetItem($input, i);
     if (PyNumber_Check(o)) {
       temp[i] = (float) PyFloat_AsDouble(o);
     } else {
-      PyErr_SetString(PyExc_ValueError,"Sequence elements must be numbers");      
+      PyErr_SetString(PyExc_ValueError, "Sequence elements must be numbers");      
       SWIG_fail;
     }
   }
@@ -3008,19 +3008,19 @@ If you wanted to generalize the typemap to apply to arrays of all dimensions you
 %typemap(in) float value[ANY] (float temp[$1_dim0]) {
   int i;
   if (!PySequence_Check($input)) {
-    PyErr_SetString(PyExc_ValueError,"Expected a sequence");
+    PyErr_SetString(PyExc_ValueError, "Expected a sequence");
     SWIG_fail;
   }
   if (PySequence_Length($input) != $1_dim0) {
-    PyErr_SetString(PyExc_ValueError,"Size mismatch. Expected $1_dim0 elements");
+    PyErr_SetString(PyExc_ValueError, "Size mismatch. Expected $1_dim0 elements");
     SWIG_fail;
   }
   for (i = 0; i &lt; $1_dim0; i++) {
-    PyObject *o = PySequence_GetItem($input,i);
+    PyObject *o = PySequence_GetItem($input, i);
     if (PyNumber_Check(o)) {
       temp[i] = (float) PyFloat_AsDouble(o);
     } else {
-      PyErr_SetString(PyExc_ValueError,"Sequence elements must be numbers");      
+      PyErr_SetString(PyExc_ValueError, "Sequence elements must be numbers");      
       SWIG_fail;
     }
   }
@@ -3052,21 +3052,21 @@ as shown.   To work with heap allocated data, the following technique can be use
 %typemap(in) float value[ANY] {
   int i;
   if (!PySequence_Check($input)) {
-    PyErr_SetString(PyExc_ValueError,"Expected a sequence");
+    PyErr_SetString(PyExc_ValueError, "Expected a sequence");
     SWIG_fail;
   }
   if (PySequence_Length($input) != $1_dim0) {
-    PyErr_SetString(PyExc_ValueError,"Size mismatch. Expected $1_dim0 elements");
+    PyErr_SetString(PyExc_ValueError, "Size mismatch. Expected $1_dim0 elements");
     SWIG_fail;
   }
   $1 = (float *) malloc($1_dim0*sizeof(float));
   for (i = 0; i &lt; $1_dim0; i++) {
-    PyObject *o = PySequence_GetItem($input,i);
+    PyObject *o = PySequence_GetItem($input, i);
     if (PyNumber_Check(o)) {
       $1[i] = (float) PyFloat_AsDouble(o);
     } else {
       free($1);
-      PyErr_SetString(PyExc_ValueError,"Sequence elements must be numbers");
+      PyErr_SetString(PyExc_ValueError, "Sequence elements must be numbers");
       SWIG_fail;
     }
   }
@@ -3169,7 +3169,7 @@ To fix this, you can write an "out" typemap.   For example:
   $result = PyList_New($1_dim0);
   for (i = 0; i &lt; $1_dim0; i++) {
     PyObject *o = PyFloat_FromDouble((double) $1[i]);
-    PyList_SetItem($result,i,o);
+    PyList_SetItem($result, i, o);
   }
 }
 </pre>
@@ -3228,7 +3228,7 @@ pointers. For example:</p>
 <div class="code"><pre>
 %typemap(check) Vector * {
   if ($1 == 0) {
-    PyErr_SetString(PyExc_TypeError,"NULL Pointer not allowed");
+    PyErr_SetString(PyExc_TypeError, "NULL Pointer not allowed");
     SWIG_fail;
   }
 }
@@ -3268,7 +3268,7 @@ The example above also shows a common approach of issuing a warning for an as ye
 
 <p>
 <b>Compatibility note: </b> In SWIG-1.1 different languages could be distinguished with the language name being put within the <tt>%typemap</tt> directive, for example, <br>
-<tt>%typemap(ruby,in) int "$1 = NUM2INT($input);"</tt>.
+<tt>%typemap(ruby, in) int "$1 = NUM2INT($input);"</tt>.
 </p>
 
 <H2><a name="Typemaps_optimal">11.8 Optimal code generation when returning by value</a></H2>
@@ -3513,7 +3513,7 @@ maps perform the conversion described for the above example:
   $1 = PyList_Size($input);
   $2 = (char **) malloc(($1+1)*sizeof(char *));
   for (i = 0; i &lt; $1; i++) {
-    PyObject *s = PyList_GetItem($input,i);
+    PyObject *s = PyList_GetItem($input, i);
     if (!PyString_Check(s)) {
       free($2);
       PyErr_SetString(PyExc_ValueError, "List items must be strings");
@@ -3661,7 +3661,7 @@ might write typemaps like this:
     PyErr_SetFromErrno(PyExc_IOError);
     return NULL;
   }
-  $result = PyString_FromStringAndSize($1,result);
+  $result = PyString_FromStringAndSize($1, result);
   free($1);
 }
 </pre>
@@ -3680,16 +3680,16 @@ Now, in a script, you can write code that simply passes buffers as strings like 
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; f = example.open("Makefile")
-&gt;&gt;&gt; example.read(f,40)
+&gt;&gt;&gt; example.read(f, 40)
 'TOP        = ../..\nSWIG       = $(TOP)/.'
-&gt;&gt;&gt; example.read(f,40)
+&gt;&gt;&gt; example.read(f, 40)
 './swig\nSRCS       = example.c\nTARGET    '
 &gt;&gt;&gt; example.close(f)
 0
 &gt;&gt;&gt; g = example.open("foo", example.O_WRONLY | example.O_CREAT, 0644)
-&gt;&gt;&gt; example.write(g,"Hello world\n")
+&gt;&gt;&gt; example.write(g, "Hello world\n")
 12
-&gt;&gt;&gt; example.write(g,"This is a test\n")
+&gt;&gt;&gt; example.write(g, "This is a test\n")
 15
 &gt;&gt;&gt; example.close(g)
 0
@@ -3959,7 +3959,7 @@ list. Consider:
 
 <div class="code">
 <pre>
-%typemap(in, fragment="frag1,frag2,frag3") {...}
+%typemap(in, fragment="frag1, frag2, frag3") {...}
 </pre>
 </div>
 
@@ -4421,7 +4421,7 @@ You can access the functions in a normal way from the scripting interpreter:
 # Python
 foo(3)           # foo(int)
 foo(3.5)         # foo(double)
-foo("hello",5)   # foo(char *, int)
+foo("hello", 5)  # foo(char *, int)
 
 # Tcl
 foo 3            # foo(int)
@@ -4463,7 +4463,7 @@ _wrap_foo_2(argc, args[]) {       // foo(char *, int)
   ...
   arg1 = FromString(args[0]);
   arg2 = FromInteger(args[1]);
-  result = foo(arg1,arg2);
+  result = foo(arg1, arg2);
   return ToInteger(result);
 }
 
@@ -4479,15 +4479,15 @@ Next, a dynamic dispatch function is generated:
 _wrap_foo(argc, args[]) {
   if (argc == 1) {
     if (IsInteger(args[0])) {
-      return _wrap_foo_0(argc,args);
+      return _wrap_foo_0(argc, args);
     }
     if (IsDouble(args[0])) {
-      return _wrap_foo_1(argc,args);
+      return _wrap_foo_1(argc, args);
     }
   }
   if (argc == 2) {
     if (IsString(args[0]) &amp;&amp; IsInteger(args[1])) {
-      return _wrap_foo_2(argc,args);
+      return _wrap_foo_2(argc, args);
     }
   }
   error("No matching function!\n");
@@ -4568,7 +4568,7 @@ The following excerpt from the Python module illustrates this:
 <div class="code">
 <pre>
 /* Python type checking rules */
-/* Note:  %typecheck(X) is a macro for %typemap(typecheck,precedence=X) */
+/* Note:  %typecheck(X) is a macro for %typemap(typecheck, precedence=X) */
 
 %typecheck(SWIG_TYPECHECK_INTEGER)
   int, short, long,
@@ -4599,7 +4599,7 @@ The following excerpt from the Python module illustrates this:
   $1 = PyString_Check($input) ? 1 : 0;
 }
 
-%typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE * {
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, noblock=1) SWIGTYPE * {
   void *vptr = 0;
   int res = SWIG_ConvertPtr($input, &amp;vptr, $1_descriptor, 0);
   $1 = SWIG_IsOK(res) ? 1 : 0;
@@ -4659,7 +4659,7 @@ If you write a typecheck typemap and omit the precedence level, for example comm
 
 <div class="code">
 <pre>
-%typemap(typecheck /*,precedence=SWIG_TYPECHECK_INTEGER*/) int {
+%typemap(typecheck /*, precedence=SWIG_TYPECHECK_INTEGER*/) int {
   $1 = PyInt_Check($input) ? 1 : 0;
 }
 </pre>
@@ -4711,7 +4711,7 @@ a set of typemaps like this:
 
 <div class="code">
 <pre>
-%typemap(in,numinputs=0) int *OUTPUT (int temp) {
+%typemap(in, numinputs=0) int *OUTPUT (int temp) {
   $1 = &amp;temp;
 }
 %typemap(argout) int *OUTPUT {
@@ -4762,7 +4762,7 @@ For example:
 
 %typemap(check) int *POSITIVE {
   if (*$1 &lt;= 0) {
-    SWIG_exception(SWIG_ValueError,"Expected a positive number!\n");
+    SWIG_exception(SWIG_ValueError, "Expected a positive number!\n");
     return NULL;
   }
 }

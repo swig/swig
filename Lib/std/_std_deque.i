@@ -24,7 +24,7 @@
          };
 */
 
-%define %std_deque_methods_noempty(T)
+%define %std_deque_methods_noempty(T...)
        typedef size_t size_type;
        typedef ptrdiff_t difference_type;
        typedef T value_type;
@@ -116,7 +116,7 @@
 %enddef
 
 #ifdef SWIGPHP
-%define %std_deque_methods(T)
+%define %std_deque_methods(T...)
     %extend {
         bool is_empty() const {
             return self->empty();
@@ -125,7 +125,7 @@
     %std_deque_methods_noempty(T)
 %enddef
 #else
-%define %std_deque_methods(T)
+%define %std_deque_methods(T...)
     bool empty() const;
     %std_deque_methods_noempty(T)
 %enddef

@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[3.0.11],[http://www.swig.org])
+AC_INIT([swig],[3.0.12],[http://www.swig.org])
 
 dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
 dnl     definition below can be removed
@@ -385,6 +385,9 @@ case $host in
    *-*-darwin*) PHP_SO=.so;;
    *) PHP_SO=$SO;;
 esac
+
+AC_SUBST(PHP5_SO)
+PHP5_SO=$PHP_SO
 
 AC_SUBST(MZSCHEME_SO)
 case $host in
@@ -883,7 +886,15 @@ else
   AC_SUBST(PY3LIB)
   AC_SUBST(PY3LINK)
   AC_SUBST(PYTHON3DYNAMICLINKING)
+fi
+
+if test -n "$PYINCLUDE" || test -n "$PY3INCLUDE" ; then
   AC_CHECK_PROGS(PEP8, pep8)
+  if test -n "$PEP8"; then
+    AC_MSG_CHECKING(pep8 version)
+    pep8_version=`$PEP8 --version 2>/dev/null`
+    AC_MSG_RESULT($pep8_version)
+  fi
 fi
 
 #----------------------------------------------------------------
@@ -1896,7 +1907,54 @@ AC_SUBST(RUBYSO)
 AC_SUBST(RUBYDYNAMICLINKING)
 
 #-------------------------------------------------------------------------
-# Look for PHP
+# Look for PHP5
+#-------------------------------------------------------------------------
+
+PHP5BIN=
+
+AC_ARG_WITH(php5, AS_HELP_STRING([--without-php5], [Disable PHP5])
+AS_HELP_STRING([--with-php5=path], [Set location of PHP5 executable]),[ PHP5BIN="$withval"], [PHP5BIN="$alllang_default"])
+
+# First, check for "--without-php5" or "--with-php5=no".
+if test x"${PHP5BIN}" = xno; then
+    AC_MSG_NOTICE([Disabling PHP5])
+    PHP5=
+else
+    if test "x$PHP5BIN" = xyes; then
+      AC_CHECK_PROGS(PHP5, [php5 php])
+    else
+      PHP5=$PHP5BIN
+    fi
+
+    AC_MSG_CHECKING(for PHP5 header files)
+    dnl /usr/bin/php5 -> /usr/bin/php-config5
+    case $PHP5 in
+      *5)
+	PHP5CONFIG=`echo "$PHP5"|sed 's/5$/-config5/'` ;;
+      *)
+	PHP5CONFIG=$PHP5-config ;;
+    esac
+    php5_version=`$PHP5CONFIG --version 2>/dev/null`
+    case $php5_version in
+    5*)
+	PHP5INC=`$PHP5CONFIG --includes 2>/dev/null`
+	if test -n "$PHP5INC"; then
+	  AC_MSG_RESULT($PHP5INC)
+	else
+	  AC_MSG_RESULT(not found)
+	fi
+	;;
+    "")
+        AC_MSG_RESULT([could not find $PHP5CONFIG or obtain PHP5 version from it]) ;;
+    *)
+	AC_MSG_RESULT([found PHP $php_version - not PHP 5]) ;;
+    esac
+fi
+AC_SUBST(PHP5)
+AC_SUBST(PHP5INC)
+
+#-------------------------------------------------------------------------
+# Look for PHP7
 #-------------------------------------------------------------------------
 
 PHPBIN=
@@ -1909,24 +1967,23 @@ if test x"${PHPBIN}" = xno; then
     AC_MSG_NOTICE([Disabling PHP])
     PHP=
 else
-
     if test "x$PHPBIN" = xyes; then
-      AC_CHECK_PROGS(PHP, [php5 php])
+      AC_CHECK_PROGS(PHP, [php7.1 php7.0 php])
     else
       PHP=$PHPBIN
     fi
 
     AC_MSG_CHECKING(for PHP header files)
-    dnl /usr/bin/php5 -> /usr/bin/php-config5
+    dnl /usr/bin/php7.0 -> /usr/bin/php-config7.0
     case $PHP in
-      *5)
-	PHPCONFIG=`echo "$PHP"|sed 's/5$/-config5/'` ;;
+      *7.*)
+	PHPCONFIG=`echo "$PHP"|sed 's/7\...*$/-config&/'` ;;
       *)
 	PHPCONFIG=$PHP-config ;;
     esac
     php_version=`$PHPCONFIG --version 2>/dev/null`
     case $php_version in
-    5*)
+    7.*)
 	PHPINC=`$PHPCONFIG --includes 2>/dev/null`
 	if test -n "$PHPINC"; then
 	  AC_MSG_RESULT($PHPINC)
@@ -1937,7 +1994,7 @@ else
     "")
         AC_MSG_RESULT([could not find $PHPCONFIG or obtain PHP version from it]) ;;
     *)
-	AC_MSG_RESULT([found PHP $php_version, but only PHP 5 is supported]) ;;
+	AC_MSG_RESULT([found PHP $php_version - not PHP 7]) ;;
     esac
 fi
 AC_SUBST(PHP)
@@ -2756,6 +2813,13 @@ fi
 AC_SUBST(SKIP_PHP)
 
 
+SKIP_PHP5=
+if test -z "$PHP5" || test -z "$PHP5INC" ; then
+    SKIP_PHP5="1"
+fi
+AC_SUBST(SKIP_PHP5)
+
+
 SKIP_OCAML=
 if test -z "$OCAMLC" ; then
     SKIP_OCAML="1"
@@ -2955,6 +3019,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/octave/Makefile
     Examples/test-suite/perl5/Makefile
     Examples/test-suite/php/Makefile
+    Examples/test-suite/php5/Makefile
     Examples/test-suite/pike/Makefile
     Examples/test-suite/python/Makefile
     Examples/test-suite/ruby/Makefile
@@ -3029,6 +3094,7 @@ test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
 test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "
 test -n "$SKIP_PERL5"		|| langs="${langs}perl5 "
 test -n "$SKIP_PHP"		|| langs="${langs}php "
+test -n "$SKIP_PHP5"		|| langs="${langs}php5 "
 test -n "$SKIP_PIKE"		|| langs="${langs}pike "
 test -n "$SKIP_PYTHON"		|| langs="${langs}python "
 test -n "$SKIP_R"		|| langs="${langs}r "

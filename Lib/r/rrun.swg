@@ -20,6 +20,7 @@ extern "C" {
 #define SWIG_ConvertPtrAndOwn(obj,pptr,type,flags,own)  SWIG_R_ConvertPtr(obj, pptr, type, flags)
 #define SWIG_NewPointerObj(ptr, type, flags)            SWIG_R_NewPointerObj(ptr, type, flags)
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 

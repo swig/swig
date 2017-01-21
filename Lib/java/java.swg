@@ -1211,7 +1211,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 %}
 
 %typemap(javabody) TYPE (CLASS::*) %{
-  private String swigCMemberPtr;
+  private transient String swigCMemberPtr;
 
   PTRCTOR_VISIBILITY $javaclassname(String cMemberPtr, @SuppressWarnings("unused") boolean futureUse) {
     swigCMemberPtr = cMemberPtr;
@@ -1322,6 +1322,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 #define %javaexception(exceptionclasses) %feature("except",throws=exceptionclasses)
 #define %nojavaexception            %feature("except","0",throws="")
 #define %clearjavaexception         %feature("except","",throws="")
+#define %proxycode                  %insert("proxycode")
 
 %pragma(java) jniclassclassmodifiers="public class"
 %pragma(java) moduleclassmodifiers="public class"

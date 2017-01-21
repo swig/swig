@@ -264,7 +264,7 @@
 // Base proxy classes
 %typemap(javabody) TYPE %{
   private transient long swigCPtr;
-  private boolean swigCMemOwnBase;
+  private transient boolean swigCMemOwnBase;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
     swigCMemOwnBase = cMemoryOwn;
@@ -279,7 +279,7 @@
 // Derived proxy classes
 %typemap(javabody_derived) TYPE %{
   private transient long swigCPtr;
-  private boolean swigCMemOwnDerived;
+  private transient boolean swigCMemOwnDerived;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
     super($imclassname.$javaclazznameSWIGSmartPtrUpcast(cPtr), true);
@@ -414,7 +414,7 @@
 // Base proxy classes
 %typemap(javabody) TYPE %{
   private transient long swigCPtr;
-  private boolean swigCMemOwnBase;
+  private transient boolean swigCMemOwnBase;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
     swigCMemOwnBase = cMemoryOwn;
@@ -429,7 +429,7 @@
 // Derived proxy classes
 %typemap(javabody_derived) TYPE %{
   private transient long swigCPtr;
-  private boolean swigCMemOwnDerived;
+  private transient boolean swigCMemOwnDerived;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
     super($imclassname.$javaclazznameSWIGSmartPtrUpcast(cPtr), true);

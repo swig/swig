@@ -50,19 +50,6 @@
 
 
 <p>
-SWIG supports generating wrappers for PHP5.  Support for PHP4 was removed
-in SWIG 1.3.37.  The PHP developers are no longer making new PHP4 releases,
-and won't even be patching critical security issues after 2008-08-08, so it
-doesn't make much sense for SWIG to continue to support PHP4 now.  If you
-really need to continue to use PHP4, just stick with SWIG 1.3.36.
-</p>
-
-<p>
-Currently any PHP5 release should work, but we don't regularly test with
-PHP &lt; 5.3.
-</p>
-
-<p>
 In this chapter, we discuss SWIG's support of PHP.  The PHP module
 was extensively rewritten in release 1.3.26, and support for generating
 OO wrappers for PHP5 was added in 1.3.30.  The PHP module now supports most
@@ -70,7 +57,17 @@ of the features available in some of the other languages.
 </p>
 
 <p>
-In order to use this module, you will need to have a copy of the PHP5
+SWIG supports generating wrappers for PHP5 and PHP7.  Support for PHP4 was removed
+in SWIG 1.3.37.
+</p>
+
+<p>
+Currently any PHP5 or PHP7 release should work, but we don't regularly test with
+PHP &lt; 5.3.
+</p>
+
+<p>
+In order to use this module, you will need to have a copy of the PHP
 include files to compile the SWIG generated files.  If you installed
 PHP from a binary package, you may need to install a "php-dev" or "php-devel"
 package for these to be installed.  You can find out where these files are
@@ -84,12 +81,13 @@ available.
 
 
 <p>
-To build a PHP extension, run swig using the <tt>-php</tt> option as
-follows:
+To build a PHP extension, run swig using the <tt>-php5</tt> or
+<tt>-php7</tt> option as follows (<tt>-php</tt> is also supported
+and currently is an alias for <tt>-php5</tt>):
 </p>
 
 <div class="code"><pre>
-swig -php example.i
+swig -php7 example.i
 </pre></div>
 
 <p>
@@ -102,13 +100,18 @@ The third file,
 <tt>example.php</tt> can be included by PHP scripts.  It attempts to
 dynamically load the extension and contains extra php code specified
 in the interface file.  If wrapping C++ code with PHP classes, it will
-also contain PHP5 class wrappers.
+also contain PHP class wrappers.
 </p>
 
 <p>
 SWIG can generate PHP extensions from C++ libraries as well when
 given the <tt>-c++</tt> option.  The support for C++ is discussed in
-more detail in <a href="#Php_nn2_6">section 27.2.6</a>.
+more detail in <a href="#Php_nn2_6">section 27.2.6</a>.  The generated
+C++ wrapper will be called example_wrap.cpp (for PHP5) or
+example_wrap.cxx (for PHP7 where the default has been changed to align
+with SWIG's default for every other language).  You can specify a
+different extension for the C++ wrapper using <tt>-cppext</tt> -
+e.g. if you want example_wrap.cc use <tt>-cppext cc</tt>.
 </p>
 
 <p>
@@ -273,7 +276,8 @@ if(EASY_TO_MISPEL) {
 <p>
 The mis-spelled constant will become the string 'EASY_TO_MISPEL', which
 is treated as true by the if test, when the value of the intended constant
-would be treated as false!
+would be treated as false!  Modern versions of PHP will at least issue
+a PHP notice by default when this happens.
 </p>
 
 <H3><a name="Php_nn2_2">34.2.2 Global Variables</a></H3>
@@ -291,7 +295,7 @@ the use of automatically generated accessor functions.
 %inline %{
   double seki = 2;
   void print_seki() {
-    zend_printf("seki is now %f\n",seki);
+    zend_printf("seki is now %f\n", seki);
   }
 %}
 </pre></div>
@@ -459,7 +463,7 @@ One can include <b>cpointer.i</b> to generate PHP wrappers to <tt>int
 <div class="code"><pre>
 %module example
 %include "cpointer.i"
-%pointer_functions(int,intp)
+%pointer_functions(int, intp)
 
 void add( int *in1, int *in2, int *result);
 </pre></div>
@@ -509,7 +513,7 @@ include("example.php");
 
 $in1 = 3;
 $in2 = 5;
-$result= add($in1,$in2);  # Note using variables for the input is unnecessary.
+$result= add($in1, $in2);  # Note using variables for the input is unnecessary.
 
 echo "The sum $in1 + $in2 = $result\n";
 ?&gt;
@@ -555,7 +559,7 @@ include("example.php");
 $in1 = 3;
 $in2 = 5;
 $result = 0;
-add($in1,$in2,$result);
+add($in1, $in2, $result);
 
 echo "The sum $in1 + $in2 = $result\n";
 ?&gt;
@@ -599,7 +603,7 @@ This interface file
 
 class Vector {
 public:
-  double x,y,z;
+  double x, y, z;
   Vector();
   ~Vector();
   double magnitude();
@@ -611,7 +615,7 @@ struct Complex {
 </pre></div>
 
 <p>
-Would be used in the following way from PHP5:
+Would be used in the following way from PHP:
 </p>
 
 <div class="code"><pre>
@@ -623,7 +627,7 @@ Would be used in the following way from PHP5:
   $v-&gt;y = 4;
   $v-&gt;z = 5;
 
-  echo "Magnitude of ($v-&gt;x,$v-&gt;y,$v-&gt;z) = " . $v-&gt;magnitude() . "\n";
+  echo "Magnitude of ($v-&gt;x, $v-&gt;y, $v-&gt;z) = " . $v-&gt;magnitude() . "\n";
 
   $v = NULL;   # destructor called.
 
@@ -646,23 +650,23 @@ Member variables and methods are accessed using the <tt>-&gt;</tt> operator.
 <p>
 The <tt>-noproxy</tt> option flattens the object structure and
 generates collections of named functions (these are the functions
-which the PHP5 class wrappers call).  The above example results
+which the PHP class wrappers call).  The above example results
 in the following PHP functions:
 </p>
 
 <div class="code"><pre>
 new_Vector();
-Vector_x_set($obj,$d);
+Vector_x_set($obj, $d);
 Vector_x_get($obj);
-Vector_y_set($obj,$d);
+Vector_y_set($obj, $d);
 Vector_y_get($obj);
-Vector_z_set($obj,$d);
+Vector_z_set($obj, $d);
 Vector_z_get($obj);
 Vector_magnitude($obj);
 new_Complex();
-Complex_re_set($obj,$d);
+Complex_re_set($obj, $d);
 Complex_re_get($obj);
-Complex_im_set($obj,$d);
+Complex_im_set($obj, $d);
 Complex_im_get($obj);
 </pre></div>
 
@@ -1143,12 +1147,20 @@ deleting all the Foo pointers it contains at some point.
 
 <p>
 With directors routing method calls to PHP, and proxies routing them
-to C++, the handling of exceptions is an important concern. By default, the
-directors ignore exceptions that occur during method calls that are
-resolved in PHP. To handle such exceptions correctly, it is necessary
-to temporarily translate them into C++ exceptions. This can be done with
-the %feature("director:except") directive. The following code should
-suffice in most cases:
+to C++, the handling of exceptions is an important concern. By default, an
+exception thrown in PHP code called from C++ causes the PHP interpreter
+to flag that an exception is thrown, then return passes to C++ as if
+the PHP function had returned <code>Null</code>.  Assuming the directorout
+typemaps handle this (those SWIG defines by default should) then once
+control returns to PHP code again, the PHP exception will actually propagate.
+</p>
+
+<p>
+Sometimes this control flow is problematic, and you want to skip any
+handling in the C++ code.  To achieve this, it is necessary
+to temporarily translate the PHP exception into a C++ exception. This can be
+achieved using the %feature("director:except") directive. The following code
+should suffice in most cases:
 </p>
 
 <div class="code">

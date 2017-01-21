@@ -11,6 +11,7 @@ top_builddir = @top_builddir@
 
 CPP_TEST_CASES += \
 	callback \
+	li_factory \
 	php_iterator \
 	php_namewarn_rename \
 

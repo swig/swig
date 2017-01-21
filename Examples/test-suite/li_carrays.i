@@ -6,6 +6,7 @@
 
 %array_functions(int,intArray);
 %array_class(double, doubleArray);
+%array_class(short, shortArray);
 
 %inline %{
 typedef struct {
@@ -26,3 +27,13 @@ AB globalABArray[3];
 %array_class(XY, XYArray)
 %array_functions(AB, ABArray)
 
+%inline %{
+short sum_array(short x[5]) {
+  short sum = 0;
+  int i;
+  for (i=0; i<5; i++) {
+    sum = sum + x[i];
+  }
+  return sum;
+}
+%}

@@ -193,27 +193,27 @@ Normally Lua is embedded into another program and will be statically linked. An 
 
 extern int luaopen_example(lua_State* L); // declare the wrapped module
 
-int main(int argc,char* argv[])
+int main(int argc, char* argv[])
 {
  lua_State *L;
  if (argc&lt;2)
  {
-  printf("%s: &lt;filename.lua&gt;\n",argv[0]);
+  printf("%s: &lt;filename.lua&gt;\n", argv[0]);
   return 0;
  }
  L=lua_open();
  luaopen_base(L);       // load basic libs (eg. print)
  luaopen_example(L);    // load the wrapped module
- if (luaL_loadfile(L,argv[1])==0) // load and run the file
-  lua_pcall(L,0,0,0);
+ if (luaL_loadfile(L, argv[1])==0) // load and run the file
+  lua_pcall(L, 0, 0, 0);
  else
-  printf("unable to load %s\n",argv[1]);
+  printf("unable to load %s\n", argv[1]);
  lua_close(L);
  return 0;
 }
 </pre></div>
 <p>
-A much improved set of code can be found in the Lua distribution <tt>src/lua/lua.c</tt>. Include your module, just add the external declaration &amp; add a <tt>#define LUA_EXTRALIBS {"example",luaopen_example}</tt>, at the relevant place.
+A much improved set of code can be found in the Lua distribution <tt>src/lua/lua.c</tt>. Include your module, just add the external declaration &amp; add a <tt>#define LUA_EXTRALIBS {"example", luaopen_example}</tt>, at the relevant place.
 </p>
 <p>
 The exact commands for compiling and linking vary from platform to platform. Here is a possible set of commands of doing this:
@@ -272,8 +272,8 @@ require("example")
 For those using Lua 5.0.x, you will also need an interpreter with the loadlib function (such as the default interpreter compiled with Lua). In order to dynamically load a module you must call the loadlib function with two parameters: the filename of the shared library, and the function exported by SWIG. Calling loadlib should return the function, which you then call to initialise the module
 </p>
 <div class="targetlang"><pre>
-my_init=loadlib("example.so","luaopen_example") -- for Unix/Linux
---my_init=loadlib("example.dll","luaopen_example") -- for Windows
+my_init=loadlib("example.so", "luaopen_example") -- for Unix/Linux
+--my_init=loadlib("example.dll", "luaopen_example") -- for Windows
 assert(my_init) -- make sure it's not nil
 my_init()       -- call the init fn of the lib
 </pre></div>
@@ -281,7 +281,7 @@ my_init()       -- call the init fn of the lib
 Or can be done in a single line of Lua code
 </p>
 <div class="targetlang"><pre>
-assert(loadlib("example.so","luaopen_example"))()
+assert(loadlib("example.so", "luaopen_example"))()
 </pre></div>
 
 
@@ -289,9 +289,9 @@ assert(loadlib("example.so","luaopen_example"))()
 If the code didn't work, don't panic. The best thing to do is to copy the module and your interpreter into a single directory and then execute the interpreter and try to manually load the module (take care, all this code is case sensitive).
 </p>
 <div class="targetlang"><pre>
-a,b,c=package.loadlib("example.so","luaopen_example") -- for Unix/Linux
---a,b,c=package.loadlib("example.dll","luaopen_example") -- for Windows
-print(a,b,c)
+a, b, c=package.loadlib("example.so", "luaopen_example") -- for Unix/Linux
+--a, b, c=package.loadlib("example.dll", "luaopen_example") -- for Windows
+print(a, b, c)
 </pre></div>
 <p>
 Note: for Lua 5.0:<br>
@@ -326,7 +326,7 @@ Assuming all goes well, you will be able to this:
 </p>
 <div class="targetlang"><pre>
 $ ./my_lua
-&gt; print(example.gcd(4,6))
+&gt; print(example.gcd(4, 6))
 2
 &gt; print(example.Foo)
 3
@@ -373,7 +373,7 @@ This can easily overwrite existing functions, so this must be used with care.
 This option is considered deprecated and will be removed in the near future.
 </p>
 <div class="targetlang"><pre>
-&gt; for k,v in pairs(example) do _G[k]=v end
+&gt; for k, v in pairs(example) do _G[k]=v end
 &gt; print(fact(4))
 24
 &gt;
@@ -411,7 +411,7 @@ SWIG will effectively generate two functions <tt>example.Foo_set()</tt> and <tt>
 &gt; print(c)
 3
 &gt; c=5 -- this will not effect the original example.Foo
-&gt; print(example.Foo,c)
+&gt; print(example.Foo, c)
 4    5
 </pre></div>
 <p>
@@ -486,7 +486,7 @@ Because Lua doesn't really have the concept of constants, C/C++ constants are no
 <div class="code"><pre>%module example
 %constant int ICONST=42;
 #define    SCONST      "Hello World"
-enum Days{SUNDAY,MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY};
+enum Days{SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY};
 </pre></div>
 <p>
 This is 'effectively' converted into the following Lua code:
@@ -584,8 +584,8 @@ int fclose(FILE *);
 When wrapped, you will be able to use the functions in a natural way from Lua. For example:
 </p>
 <div class="targetlang"><pre>
-&gt; f=example.fopen("junk","w")
-&gt; example.fputs("Hello World",f)
+&gt; f=example.fopen("junk", "w")
+&gt; example.fputs("Hello World", f)
 &gt; example.fclose(f)
 </pre></div>
 <p>
@@ -601,7 +601,7 @@ FILE * -- it's a FILE*
 Lua enforces the integrity of its userdata, so it is virtually impossible to corrupt the data. But as the user of the pointer, you are responsible for freeing it, or closing any resources associated with it (just as you would in a C program). This does not apply so strictly to classes &amp; structs (see below). One final note: if a function returns a NULL pointer, this is not encoded as a userdata, but as a Lua nil.
 </p>
 <div class="targetlang"><pre>
-&gt; f=example.fopen("not there","r") -- this will return a NULL in C
+&gt; f=example.fopen("not there", "r") -- this will return a NULL in C
 &gt; print(f)
 nil
 </pre></div>
@@ -613,7 +613,7 @@ nil
  If you wrap a C structure, it is also mapped to a Lua userdata. By adding a metatable to the userdata, this provides a very natural interface. For example,
 </p>
 <div class="code"><pre>struct Point{
-  int x,y;
+  int x, y;
 };
 </pre></div>
 <p>
@@ -623,7 +623,7 @@ is used as follows:
 &gt; p=example.new_Point()
 &gt; p.x=3
 &gt; p.y=5
-&gt; print(p.x,p.y)
+&gt; print(p.x, p.y)
 3       5
 &gt;
 </pre></div>
@@ -953,8 +953,8 @@ public:
 When wrapped, it works like you expect:
 </p>
 <div class="targetlang"><pre>
-&gt; c = Complex(3,4)
-&gt; d = Complex(7,8)
+&gt; c = Complex(3, 4)
+&gt; d = Complex(7, 8)
 &gt; e = c + d
 &gt; e:re()
 10.0
@@ -1000,18 +1000,18 @@ The current list of operators which can be overloaded (and the alternative funct
 <li><tt>__le__</tt> operator<tt>&lt;=</tt>
 </ul>
 <p>
-Note: in Lua, only the equals, less than, and less than equals operators are defined. The other operators (!=,&gt;,&gt;=) are achieved by using a logical not applied to the results of other operators.
+Note: in Lua, only the equals, less than, and less than equals operators are defined. The other operators (!=, &gt;, &gt;=) are achieved by using a logical not applied to the results of other operators.
 </p>
 <p>
 The following operators cannot be overloaded (mainly because they are not supported in Lua)<ul>
-<li>++ and --<li>+=,-=,*= etc<li>% operator (you have to use math.mod)<li>assignment operator<li>all bitwise/logical operations</ul>
+<li>++ and --<li>+=, -=, *= etc<li>% operator (you have to use math.mod)<li>assignment operator<li>all bitwise/logical operations</ul>
 <p>
 SWIG also accepts the <tt>__str__()</tt> member function which converts an object to a string. This function should return a const char*, preferably to static memory. This will be used for the <tt>print()</tt> and <tt>tostring()</tt> functions in Lua. Assuming the complex class has a function
 </p>
 <div class="code"><pre>const char* __str__()
 {
         static char buffer[255];
-        sprintf(buffer,"Complex(%g,%g)",this-&gt;re(),this-&gt;im());
+        sprintf(buffer, "Complex(%g, %g)", this-&gt;re(), this-&gt;im());
         return buffer;
 }
 </pre></div>
@@ -1019,14 +1019,14 @@ SWIG also accepts the <tt>__str__()</tt> member function which converts an objec
 Then this will support the following code in Lua
 </p>
 <div class="targetlang"><pre>
-&gt; c = Complex(3,4)
-&gt; d = Complex(7,8)
+&gt; c = Complex(3, 4)
+&gt; d = Complex(7, 8)
 &gt; e = c + d
 &gt; print(e)
-Complex(10,12)
+Complex(10, 12)
 &gt; s=tostring(e) -- s is the number in string form
 &gt; print(s)
-Complex(10,12)
+Complex(10, 12)
 </pre></div>
 <p>
 It is also possible to overload the operator<tt>[]</tt>, but currently this cannot be automatically performed. To overload the operator<tt>[]</tt> you need to provide two functions, <tt>__getitem__()</tt> and <tt>__setitem__()</tt>
@@ -1035,7 +1035,7 @@ It is also possible to overload the operator<tt>[]</tt>, but currently this cann
 {
         //....
         double __getitem__(int i)const; // i is the index, returns the data
-        void __setitem__(int i,double d); // i is the index, d is the data
+        void __setitem__(int i, double d); // i is the index, d is the data
 };
 </pre></div>
 <p>
@@ -1092,7 +1092,7 @@ Now we extend it with some new code
 <div class="code"><pre>%extend Complex {
   const char *__str__() {
     static char tmp[1024];
-    sprintf(tmp,"Complex(%g,%g)", $self-&gt;re(),$self-&gt;im());
+    sprintf(tmp, "Complex(%g, %g)", $self-&gt;re(), $self-&gt;im());
     return tmp;
   }
   bool operator==(const Complex&amp; c) {
@@ -1104,14 +1104,14 @@ Now we extend it with some new code
 Now, in Lua
 </p>
 <div class="targetlang"><pre>
-&gt; c = Complex(3,4)
-&gt; d = Complex(7,8)
+&gt; c = Complex(3, 4)
+&gt; d = Complex(7, 8)
 &gt; e = c + d
 &gt; print(e)      -- print uses __str__ to get the string form to print
-Complex(10,12)
-&gt; print(e==Complex(10,12))      -- testing the == operator
+Complex(10, 12)
+&gt; print(e==Complex(10, 12))  -- testing the == operator
 true
-&gt; print(e!=Complex(12,12))  -- the != uses the == operator
+&gt; print(e!=Complex(12, 12))  -- the != uses the == operator
 true
 </pre></div>
 <p>
@@ -1164,14 +1164,14 @@ struct pair {
   ~pair();
 };
 
-%template(pairii) pair&lt;int,int&gt;;
+%template(pairii) pair&lt;int, int&gt;;
 </pre></div>
 <p>
 In Lua:
 </p>
 <div class="targetlang"><pre>
-&gt; p = example.pairii(3,4)
-&gt; print(p.first,p.second)
+&gt; p = example.pairii(3, 4)
+&gt; print(p.first, p.second)
 3    4
 </pre></div>
 <p>
@@ -1265,11 +1265,11 @@ Using xpcall will allow you to obtain additional debug information (such as a st
 <div class="targetlang"><pre>
 &gt; function a() b() end -- function a() calls function b()
 &gt; function b() message() end -- function b() calls C++ function message(), which throws 
-&gt; ok,res=pcall(a)  -- call the function
-&gt; print(ok,res)
+&gt; ok, res=pcall(a)  -- call the function
+&gt; print(ok, res)
 false   I died.
-&gt; ok,res=xpcall(a,debug.traceback)  -- call the function
-&gt; print(ok,res)
+&gt; ok, res=xpcall(a, debug.traceback)  -- call the function
+&gt; print(ok, res)
 false   I died.
 stack traceback:
         [C]: in function 'message'
@@ -1322,7 +1322,7 @@ If you have your own class which you want output as a string you will need to ad
 <div class="code"><pre>
 %typemap(throws) my_except
 %{ 
-  lua_pushstring(L,$1.what()); // assuming my_except::what() returns a const char* message
+  lua_pushstring(L, $1.what()); // assuming my_except::what() returns a const char* message
   SWIG_fail; // trigger the error handler
 %}
 </pre></div>
@@ -1337,26 +1337,26 @@ class Exc {
 public:
   Exc(int c, const char *m) {
     code = c;
-    strncpy(msg,m,256);
+    strncpy(msg, m, 256);
   }
   int code;
   char msg[256];
 };
 
 void throw_exc() throw(Exc) {
-  throw(Exc(42,"Hosed"));
+  throw(Exc(42, "Hosed"));
 } 
 </pre></div>
 <p>
 Then the following code can be used (note: we use pcall to catch the error so we can process the exception).
 </p>
 <div class="targetlang"><pre>
-&gt; ok,res=pcall(throw_exc)
+&gt; ok, res=pcall(throw_exc)
 &gt; print(ok)
 false
 &gt; print(res)
 userdata: 0003D880
-&gt; print(res.code,res.msg)
+&gt; print(res.code, res.msg)
 42      Hosed
 &gt;
 </pre></div>
@@ -1537,8 +1537,8 @@ function
 <div class="code"><pre>%module example
 
 %typemap(in) int {
-  $1 = (int) lua_tonumber(L,$input);
-  printf("Received an integer : %d\n",$1);
+  $1 = (int) lua_tonumber(L, $input);
+  printf("Received an integer : %d\n", $1);
 }
 %inline %{
 extern int fact(int n);
@@ -1596,13 +1596,13 @@ void swap(int *sx, int *sy);
 <p>When wrapped, it gives the following results:</p>
 
 <div class="targetlang"><pre>&gt; require "example"
-&gt; print(example.add(1,2))
+&gt; print(example.add(1, 2))
 3
-&gt; print(demo.sub(1,2))
+&gt; print(demo.sub(1, 2))
 -1
-&gt; a,b=1,2
-&gt; c,d=demo.swap(a,b)
-&gt; print(a,b,c,d)
+&gt; a, b=1, 2
+&gt; c, d=demo.swap(a, b)
+&gt; print(a, b, c, d)
 1       2       2       1
 </pre></div>
 
@@ -1633,13 +1633,13 @@ More details can be found in the <a href="Library.html#Library_carrays">carrays.
 <div class="code"><pre>// using the C-array
 %include &lt;carrays.i&gt;
 // this declares a batch of function for manipulating C integer arrays
-%array_functions(int,int)
+%array_functions(int, int)
 
 extern void sort_int(int* arr, int len); // the function to wrap
 
 // using typemaps
 %include &lt;typemaps.i&gt;
-%apply (double *INOUT,int) {(double* arr,int len)};
+%apply (double *INOUT, int) {(double* arr, int len)};
 
 extern void sort_double(double* arr, int len); // the function to wrap
 </pre></div>
@@ -1651,16 +1651,16 @@ ARRAY_SIZE=10
 
 -- passing a C array to the sort_int()
 arr=example.new_int(ARRAY_SIZE) -- create the array
-for i=0,ARRAY_SIZE-1 do -- index 0..9 (just like C)
-    example.int_setitem(arr,i,math.random(1000))
+for i=0, ARRAY_SIZE-1 do -- index 0..9 (just like C)
+    example.int_setitem(arr, i, math.random(1000))
 end
-example.sort_int(arr,ARRAY_SIZE)  -- call the function
+example.sort_int(arr, ARRAY_SIZE)  -- call the function
 example.delete_int(arr) -- must delete the allocated memory
 
 -- use a typemap to call with a Lua-table
 -- one item of note: the typemap creates a copy, rather than edit-in-place
 t={} -- a Lua table
-for i=1,ARRAY_SIZE do -- index 1..10 (Lua style)
+for i=1, ARRAY_SIZE do -- index 1..10 (Lua style)
     t[i]=math.random(1000)/10
 end
 t=example.sort_double(t) -- replace t with the result
@@ -1704,7 +1704,7 @@ int Create_Math(iMath** pptr); // its creator (assume it mallocs)
 
 <p>The usage is as follows:</p>
 
-<div class="targetlang"><pre>ok,ptr=Create_Math() -- ptr is an iMath* which is returned with the int (ok)
+<div class="targetlang"><pre>ok, ptr=Create_Math() -- ptr is an iMath* which is returned with the int (ok)
 ptr=nil -- the iMath* will be GC'ed as normal
 </pre></div>
 
@@ -1735,7 +1735,7 @@ ptr=nil -- the iMath* will be GC'ed as normal
 
 <p>This section explains the SWIG specific Lua-C API. It does not cover the main Lua-C api, as this is well documented and not worth covering.</p>
 
-<p><tt>int SWIG_ConvertPtr(lua_State* L,int index,void** ptr,swig_type_info *type,int flags);</tt></p>
+<p><tt>int SWIG_ConvertPtr(lua_State* L, int index, void** ptr, swig_type_info *type, int flags);</tt></p>
 
 <div class="indent">
 This is the standard function used for converting a Lua userdata to a void*. It takes the value at the given index in the Lua state and converts it to a userdata. It will then provide the necessary type checks, confirming that the pointer is compatible with the type given in 'type'. Then finally setting '*ptr' to the pointer.
@@ -1743,14 +1743,14 @@ If flags is set to SWIG_POINTER_DISOWN, this is will clear any ownership flag se
 This returns a value which can be checked with the macro SWIG_IsOK()
 </div>
 
-<p><tt>void SWIG_NewPointerObj(lua_State* L,void* ptr,swig_type_info *type,int own);</tt></p>
+<p><tt>void SWIG_NewPointerObj(lua_State* L, void* ptr, swig_type_info *type, int own);</tt></p>
 
 <div class="indent">
 This is the opposite of SWIG_ConvertPtr, as it pushes a new userdata which wrappers the pointer 'ptr' of type 'type'.
 The parameter 'own' specifies if the object is owned be Lua and if it is 1 then Lua will GC the object when the userdata is disposed of.
 </div>
 
-<p><tt>void* SWIG_MustGetPtr(lua_State* L,int index,swig_type_info *type,int flags,int argnum,const char* func_name);</tt></p>
+<p><tt>void* SWIG_MustGetPtr(lua_State* L, int index, swig_type_info *type, int flags, int argnum, const char* func_name);</tt></p>
 
 <div class="indent">
 This function is a version of SWIG_ConvertPtr(), except that it will either work, or it will trigger a lua_error() with a text error message. This function is rarely used, and may be deprecated in the future.
@@ -1762,11 +1762,11 @@ This function is a version of SWIG_ConvertPtr(), except that it will either work
 This macro, when called within the context of a SWIG wrapped function, will jump to the error handler code. This will call any cleanup code (freeing any temp variables) and then triggers a lua_error.<br>
 A common use for this code is:<br><pre>
 if (!SWIG_IsOK(SWIG_ConvertPtr( .....)){
- lua_pushstring(L,"something bad happened");
+ lua_pushstring(L, "something bad happened");
  SWIG_fail;
 }</pre></div>
 
-<p><tt>SWIG_fail_arg(char* func_name,int argnum,char* type)</tt></p>
+<p><tt>SWIG_fail_arg(char* func_name, int argnum, char* type)</tt></p>
 
 <div class="indent">
 This macro, when called within the context of a SWIG wrapped function, will display the error message and jump to the error handler code. The error message is of the form 
@@ -1774,7 +1774,7 @@ This macro, when called within the context of a SWIG wrapped function, will disp
 "Error in <i>func_name</i> (arg <i>argnum</i>), expected '<i>type</i>' got '<i>whatever the type was</i>'"
 </pre></div>
 
-<p><tt>SWIG_fail_ptr(const char* fn_name,int argnum,swig_type_info* type);</tt></p>
+<p><tt>SWIG_fail_ptr(const char* fn_name, int argnum, swig_type_info* type);</tt></p>
 
 <div class="indent">
 Similar to SWIG_fail_arg, except that it will display the swig_type_info information instead.</div>
@@ -1878,24 +1878,24 @@ At initialisation time, it will then add to the interpreter a table called 'exam
 &gt; print(example)
 table: 003F8F90
 &gt; m=getmetatable(example)
-&gt; table.foreach(m,print)
+&gt; table.foreach(m, print)
 .set    table: 003F9088
 .get    table: 003F9038
 __index function: 003F8FE0
 __newindex      function: 003F8FF8
 &gt; g=m['.get']
-&gt; table.foreach(g,print)
+&gt; table.foreach(g, print)
 Foo     function: 003FAFD8
 &gt;
 </pre></div>
 <p>
-The .get and .set tables are lookups connecting the variable name 'Foo' to the accessor/mutator functions (Foo_set,Foo_get)
+The .get and .set tables are lookups connecting the variable name 'Foo' to the accessor/mutator functions (Foo_set, Foo_get)
 </p>
 <p>
 The Lua equivalent of the code for the <tt>__index</tt> and <tt>__newindex</tt> looks a bit like this
 </p>
 <div class="targetlang"><pre>
-function __index(mod,name)
+function __index(mod, name)
         local g=getmetatable(mod)['.get'] -- gets the table
         if not g then return nil end
         local f=g[name] -- looks for the function
@@ -1904,13 +1904,13 @@ function __index(mod,name)
         return nil
 end
 
-function __newindex(mod,name,value)
+function __newindex(mod, name, value)
         local s=getmetatable(mod)['.set'] -- gets the table
         if not s then return end
         local f=s[name] -- looks for the function
         -- calls it to set the value
         if type(f)=="function" then f(value)
-        else rawset(mod,name,value) end
+        else rawset(mod, name, value) end
 end
 </pre></div>
 <p>
@@ -1933,10 +1933,10 @@ Given a class
 class Point
 {
 public:
- int x,y;
+ int x, y;
  Point(){x=y=0;}
  ~Point(){}
- virtual void Print(){printf("Point @%p (%d,%d)\n",this,x,y);}
+ virtual void Print(){printf("Point @%p (%d, %d)\n", this, x, y);}
 };
 </pre></div>
 <p>
@@ -1950,7 +1950,7 @@ Some of the internals can be seen by looking at the metatable of a class:
 &gt; print(p)
 userdata: 003FDB28
 &gt; m=getmetatable(p)
-&gt; table.foreach(m,print)
+&gt; table.foreach(m, print)
 .type   Point
 __gc    function: 003FB6C8
 __newindex      function: 003FB6B0
@@ -1966,7 +1966,7 @@ The '.type' attribute is the name of the class. The '.get' and '.set' tables wor
 The Lua equivalent of the code for enabling functions looks a little like this
 </p>
 <div class="targetlang"><pre>
-function __index(obj,name)
+function __index(obj, name)
         local m=getmetatable(obj) -- gets the metatable
         if not m then return nil end
         local g=m['.get'] -- gets the attribute table

@@ -203,7 +203,7 @@ public:
 <p>And then call this constructor from your target language, for example, in Python, the following will call the constructor taking the <tt>std::vector</tt>:</p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; c = Container( [1,2,3,4] )
+&gt;&gt;&gt; c = Container( [1, 2, 3, 4] )
 </pre></div>
 
 <p>
@@ -392,7 +392,7 @@ auto SomeStruct::FuncName(int x, int y) -&gt; int {
 
 <div class="targetlang"><pre>
 &gt;&gt;&gt; a = SomeStruct()
-&gt;&gt;&gt; a.FuncName(10,5)
+&gt;&gt;&gt; a.FuncName(10, 5)
 15
 </pre></div>
 
@@ -623,19 +623,14 @@ typedef void (*PFD)(double);  // The old style
 </pre></div>
 
 <p>
-SWIG supports type aliasing.
-</p>
-
-<p>
 The following is an example of an alias template:
 
 <div class="code"><pre>
-template&lt; typename T1, typename T2, int &gt;
+template&lt; typename T1, typename T2, int N &gt;
 class SomeType {
 public:
   T1 a;
   T2 b;
-  int c;
 };
 
 template&lt; typename T2 &gt;
@@ -643,14 +638,19 @@ using TypedefName = SomeType&lt;char*, T2, 5&gt;;
 </pre></div>
 
 <p>
-These are partially supported as SWIG will parse these and identify them, however, they are ignored as they are not added to the type system. A warning such as the following is issued:
+SWIG supports both type aliasing and alias templates.
+However, in order to use an alias template, two <tt>%template</tt> directives must be used:
 </p>
 
-<div class="shell">
-<pre>
-example.i:13: Warning 342: The 'using' keyword in template aliasing is not fully supported yet.
-</pre>
-</div>
+<div class="code"><pre>
+%template(SomeTypeBool) SomeType&lt;char*, bool, 5&gt;;
+%template() TypedefName&lt;bool&gt;;
+</pre></div>
+
+<p>Firstly, the actual template is instantiated with a name to be used by the target language, as per any template being wrapped.
+Secondly, the empty template instantiation, <tt>%template()</tt>, is required for the alias template.
+This second requirement is necessary to add the appropriate instantiated template type into the type system as SWIG does not automatically instantiate templates.
+See the <a href="SWIGPlus.html#SWIGPlus_nn30">Templates</a> section for more general information on wrapping templates.
 
 <H3><a name="CPlusPlus11_unrestricted_unions">7.2.17 Unrestricted unions</a></H3>
 
@@ -1057,7 +1057,7 @@ It does not involve <tt>std::function</tt>.
 
 <div class="targetlang"><pre>
 t = Test()
-b = t(1,2) # invoke C++ function object
+b = t(1, 2) # invoke C++ function object
 </pre></div>
 
 <H3><a name="CPlusPlus11_type_traits_for_metaprogramming">7.3.9 Type traits for metaprogramming</a></H3>

@@ -68,7 +68,7 @@ namespace swig {
 
 namespace std {
   template <>
-  struct less <octave_value>: public binary_function<octave_value, octave_value, bool>
+  struct less <octave_value>
   {
     bool
     operator()(const octave_value& v, const octave_value& w) const

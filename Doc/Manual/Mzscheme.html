@@ -34,13 +34,13 @@ Example interface file:
 <div class="code">
 <pre>
 /* define a macro for the struct creation */
-%define handle_ptr(TYPE,NAME)
+%define handle_ptr(TYPE, NAME)
 %typemap(argout) TYPE *NAME{
   Scheme_Object *o = SWIG_NewStructFromPtr($1, $*1_mangle);
   SWIG_APPEND_VALUE(o);
 }
 
-%typemap(in,numinputs=0) TYPE *NAME (TYPE temp) {
+%typemap(in, numinputs=0) TYPE *NAME (TYPE temp) {
   $1 = &amp;temp;
 }
 %enddef

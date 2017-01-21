@@ -12,9 +12,11 @@
                    unsigned long,
                    unsigned char,
                    signed char,
-                   bool,
                    enum SWIGTYPE
   "SWIG_LONG_CONSTANT($symname, ($1_type)$value);";
+
+%typemap(consttab) bool
+  "SWIG_BOOL_CONSTANT($symname, ($1_type)$value);";
 
 %typemap(consttab) float,
                    double
@@ -33,18 +35,13 @@
                    SWIGTYPE &,
                    SWIGTYPE &&,
                    SWIGTYPE [] {
-  zval *z_var;
   zend_constant c;
-  size_t len = sizeof("$symname") - 1;
-  MAKE_STD_ZVAL(z_var);
-  SWIG_SetPointerZval(z_var, (void*)$value, $1_descriptor, 0);
-  c.value = *z_var;
+  SWIG_SetPointerZval(&c.value, (void*)$value, $1_descriptor, 0);
   zval_copy_ctor(&c.value);
-  c.name = zend_strndup("$symname", len);
-  c.name_len = len+1;
-  c.flags = CONST_CS | CONST_PERSISTENT;
+  c.name = zend_string_init("$symname", sizeof("$symname") - 1, 0);
+  c.flags = CONST_CS;
   c.module_number = module_number;
-  zend_register_constant( &c TSRMLS_CC );
+  zend_register_constant(&c);
 }
 
 /* Handled as a global variable. */

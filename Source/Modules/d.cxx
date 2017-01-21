@@ -717,9 +717,20 @@ public:
    * D::insertDirective()
    * --------------------------------------------------------------------------- */
   virtual int insertDirective(Node *n) {
+    int ret = SWIG_OK;
     String *code = Getattr(n, "code");
+    String *section = Getattr(n, "section");
     replaceModuleVariables(code);
-    return Language::insertDirective(n);
+
+    if (!ImportMode && (Cmp(section, "proxycode") == 0)) {
+      if (proxy_class_body_code) {
+	Swig_typemap_replace_embedded_typemap(code, n);
+	Printv(proxy_class_body_code, code, NIL);
+      }
+    } else {
+      ret = Language::insertDirective(n);
+    }
+    return ret;
   }
 
   /* ---------------------------------------------------------------------------

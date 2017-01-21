@@ -415,7 +415,7 @@ open new windows, and many more things.
   var example = require("example");
   var x = 18;
   var y = 24;
-  var z = example.gcd(x,y);
+  var z = example.gcd(x, y);
   document.querySelector('#x').innerHTML = x;
   document.querySelector('#y').innerHTML = y;
   document.querySelector('#z').innerHTML = z;
@@ -467,7 +467,7 @@ var example = require("./build/Release/example");
 // calling the global method
 var x = 42;
 var y = 105;
-var g = example.gcd(x,y);
+var g = example.gcd(x, y);
 
 // Accessing the global variable
 var f = example.Foo;
@@ -742,7 +742,7 @@ t_register.replace("$jsparent", state.clazz(NAME_MANGLED))
     .trim().
     print(f_init_static_wrappers);</pre>
 </div>
-<p>A code template is registered with the <em>JSEmitter</em> via <code>fragment(name, &quot;template&quot;)</code>, e.g.,</p>
+<p>A code template is registered with the <em>JSEmitter</em> via <code>fragment(name, &quot;template&quot;)</code>, e.g., </p>
 <div class="code">
 <pre>
 %fragment ("jsc_variable_declaration", "templates")
@@ -921,7 +921,7 @@ state.clazz(NAME, Getattr(n, "sym:name"));</pre>
 <p>Applications with an embedded JavascriptCore should be able to present detailed exception messages that occur in the Javascript engine. Below is an example derived from code provided by Brian Barnes on how these exception details can be extracted.</p>
 <div class="code">
 <pre>
-void script_exception_to_string(JSContextRef js_context,JSValueRef exception_value_ref,char* return_error_string, int return_error_string_max_length)
+void script_exception_to_string(JSContextRef js_context, JSValueRef exception_value_ref, char* return_error_string, int return_error_string_max_length)
 {
   JSObjectRef exception_object;
   JSValueRef value_ref;
@@ -933,7 +933,7 @@ void script_exception_to_string(JSContextRef js_context,JSValueRef exception_val
   exception_object = JSValueToObject(js_context, exception_value_ref, NULL);
 
   /* source url */
-  strcpy(return_error_string,&quot;[&quot;);
+  strcpy(return_error_string, &quot;[&quot;);
   jsstring_property_name = JSStringCreateWithUTF8CString(&quot;sourceURL&quot;);
   value_ref = JSObjectGetProperty(js_context, exception_object, jsstring_property_name, &amp;temporary_exception);
   JSStringRelease(jsstring_property_name);

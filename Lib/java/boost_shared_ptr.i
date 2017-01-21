@@ -161,7 +161,7 @@
 // Derived proxy classes
 %typemap(javabody_derived) TYPE %{
   private transient long swigCPtr;
-  private boolean swigCMemOwnDerived;
+  private transient boolean swigCMemOwnDerived;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
     super($imclassname.$javaclazznameSWIGSmartPtrUpcast(cPtr), true);

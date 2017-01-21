@@ -1584,11 +1584,23 @@ public:
    * ----------------------------------------------------------------------------- */
 
   virtual int insertDirective(Node *n) {
+    int ret = SWIG_OK;
     String *code = Getattr(n, "code");
+    String *section = Getattr(n, "section");
     Replaceall(code, "$module", module_class_name);
     Replaceall(code, "$imclassname", imclass_name);
     Replaceall(code, "$dllimport", dllimport);
-    return Language::insertDirective(n);
+
+    if (!ImportMode && (Cmp(section, "proxycode") == 0)) {
+      if (proxy_class_code) {
+	Swig_typemap_replace_embedded_typemap(code, n);
+	int offset = Len(code) > 0 && *Char(code) == '\n' ? 1 : 0;
+	Printv(proxy_class_code, Char(code) + offset, "\n", NIL);
+      }
+    } else {
+      ret = Language::insertDirective(n);
+    }
+    return ret;
   }
 
   /* -----------------------------------------------------------------------------
@@ -2045,34 +2057,6 @@ public:
   }
 
   /* ----------------------------------------------------------------------
-   * calculateDirectBase()
-   * ---------------------------------------------------------------------- */
-
-  void calculateDirectBase(Node* n) {
-    Node* direct_base = 0;
-    // C++ inheritance
-    Node *attributes = NewHash();
-    SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
-    const String *pure_baseclass = typemapLookup(n, "csbase", typemap_lookup_type, WARN_NONE, attributes);
-    bool purebase_replace = GetFlag(attributes, "tmap:csbase:replace") ? true : false;
-    bool purebase_notderived = GetFlag(attributes, "tmap:csbase:notderived") ? true : false;
-    Delete(attributes);
-    if (!purebase_replace) {
-      if (List *baselist = Getattr(n, "bases")) {
-	Iterator base = First(baselist);
-	while (base.item && (GetFlag(base.item, "feature:ignore") || Getattr(base.item, "feature:interface")))
-	  base = Next(base);
-	direct_base = base.item;
-      }
-      if (!direct_base && purebase_notderived)
-	direct_base = symbolLookup(const_cast<String*>(pure_baseclass));
-    } else {
-      direct_base = symbolLookup(const_cast<String*>(pure_baseclass));
-    }
-    Setattr(n, "direct_base", direct_base);
-  }
-
-  /* ----------------------------------------------------------------------
    * classHandler()
    * ---------------------------------------------------------------------- */
 
@@ -2157,7 +2141,6 @@ public:
 	emitInterfaceDeclaration(n, interface_name, interface_class_code);
         Delete(output_directory);
       }
-      calculateDirectBase(n);
     }
 
     Language::classHandler(n);
@@ -2426,21 +2409,8 @@ public:
       Printf(function_code, "  %s ", methodmods);
       if (!is_smart_pointer()) {
 	// Smart pointer classes do not mirror the inheritance hierarchy of the underlying pointer type, so no virtual/override/new required.
-	if (Node *base_ovr = Getattr(n, "override")) {
-	  if (GetFlag(n, "isextendmember"))
+	if (Getattr(n, "override"))
 	    Printf(function_code, "override ");
-	  else {
-	    Node* base = parentNode(base_ovr);
-	    bool ovr = false;
-	    for (Node* direct_base = Getattr(parentNode(n), "direct_base"); direct_base; direct_base = Getattr(direct_base, "direct_base")) {
-	      if (direct_base == base) { // "override" only applies if the base was not discarded (e.g. in case of multiple inheritance or via "ignore")
-		ovr = true;
-		break;
-	      }
-	    }
-	    Printf(function_code, ovr ? "override " : "virtual ");
-	  }
-	}
 	else if (checkAttribute(n, "storage", "virtual"))
 	  Printf(function_code, "virtual ");
 	if (Getattr(n, "hides"))
@@ -3917,8 +3887,12 @@ public:
       }
 
       Printf(callback_def, "  private %s SwigDirector%s(", tm, overloaded_name);
-      if (!ignored_method)
-	Printf(director_delegate_definitions, "  public delegate %s", tm);
+      if (!ignored_method) {
+	const String *csdirectordelegatemodifiers = Getattr(n, "feature:csdirectordelegatemodifiers");
+	String *modifiers = (csdirectordelegatemodifiers ? NewStringf("%s%s", csdirectordelegatemodifiers, Len(csdirectordelegatemodifiers) > 0 ? " " : "") : NewStringf("public "));
+	Printf(director_delegate_definitions, "  %sdelegate %s", modifiers, tm);
+	Delete(modifiers);
+      }
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s\n", SwigType_str(returntype, 0));
     }

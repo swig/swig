@@ -44,7 +44,7 @@ static File *f_shadow_py = 0;
 static String *f_shadow = 0;
 static String *f_shadow_begin = 0;
 static Hash *f_shadow_imports = 0;
-static String *f_shadow_builtin_imports = 0;
+static String *f_shadow_after_begin = 0;
 static String *f_shadow_stubs = 0;
 static Hash *builtin_getset = 0;
 static Hash *builtin_closures = 0;
@@ -565,6 +565,7 @@ public:
      * interface file to enable director generation.
      */
     String *mod_docstring = NULL;
+    String *moduleimport = NULL;
     {
       Node *mod = Getattr(n, "module");
       if (mod) {
@@ -605,6 +606,7 @@ public:
 	  }
 	  mod_docstring = Getattr(options, "docstring");
 	  package = Getattr(options, "package");
+	  moduleimport = Getattr(options, "moduleimport");
 	}
       }
     }
@@ -779,6 +781,7 @@ public:
     }
 
     /* If shadow classing is enabled, we're going to change the module name to "_module" */
+    String *default_import_code = NewString("");
     if (shadow) {
       String *filen = NewStringf("%s%s.py", SWIG_output_directory(), Char(module));
       // If we don't have an interface then change the module name X to _X
@@ -796,7 +799,7 @@ public:
       f_shadow = NewString("");
       f_shadow_begin = NewString("");
       f_shadow_imports = NewHash();
-      f_shadow_builtin_imports = NewString("");
+      f_shadow_after_begin = NewString("");
       f_shadow_stubs = NewString("");
 
       Swig_register_filebyname("shadow", f_shadow);
@@ -808,19 +811,19 @@ public:
 	  // follow PEP257 rules: https://www.python.org/dev/peps/pep-0257/
 	  // reported by pep257: https://github.com/GreenSteam/pep257
 	  bool multi_line_ds = Strchr(mod_docstring, '\n') != 0;
-	  Printv(f_shadow, triple_double, multi_line_ds ? "\n":"", mod_docstring, multi_line_ds ? "\n":"", triple_double, "\n\n", NIL);
+	  Printv(f_shadow_after_begin, "\n", triple_double, multi_line_ds ? "\n":"", mod_docstring, multi_line_ds ? "\n":"", triple_double, "\n", NIL);
 	}
 	Delete(mod_docstring);
 	mod_docstring = NULL;
       }
 
-      Printv(f_shadow, "\nfrom sys import version_info as _swig_python_version_info\n", NULL);
+      Printv(default_import_code, "\nfrom sys import version_info as _swig_python_version_info\n", NULL);
 
       if (!builtin && fastproxy) {
-	Printv(f_shadow, "if _swig_python_version_info >= (3, 0, 0):\n", NULL);
-	Printf(f_shadow, tab4 "new_instancemethod = lambda func, inst, cls: %s.SWIG_PyInstanceMethod_New(func)\n", module);
-	Printv(f_shadow, "else:\n", NULL);
-	Printv(f_shadow, tab4, "from new import instancemethod as new_instancemethod\n", NULL);
+	Printv(default_import_code, "if _swig_python_version_info >= (3, 0, 0):\n", NULL);
+	Printf(default_import_code, tab4 "new_instancemethod = lambda func, inst, cls: %s.SWIG_PyInstanceMethod_New(func)\n", module);
+	Printv(default_import_code, "else:\n", NULL);
+	Printv(default_import_code, tab4, "from new import instancemethod as new_instancemethod\n", NULL);
       }
 
       /* Import the C-extension module.  This should be a relative import,
@@ -840,42 +843,39 @@ public:
        * ImportError then fallback and try and load just the module name from
        * the global namespace.
        */
-      Printv(f_shadow, "if _swig_python_version_info >= (2, 7, 0):\n", NULL);
-      Printv(f_shadow, tab4, "def swig_import_helper():\n", NULL);
-      Printv(f_shadow, tab8, "import importlib\n", NULL);
-      Printv(f_shadow, tab8, "pkg = __name__.rpartition('.')[0]\n", NULL);
-      Printf(f_shadow, tab8 "mname = '.'.join((pkg, '%s')).lstrip('.')\n",
-        module);
-      Printv(f_shadow, tab8, "try:\n", NULL);
-      Printv(f_shadow, tab8, tab4, "return importlib.import_module(mname)\n",
-        NULL);
-      Printv(f_shadow, tab8, "except ImportError:\n", NULL);
-      Printf(f_shadow, tab8 tab4 "return importlib.import_module('%s')\n",
-        module);
-      Printf(f_shadow, tab4 "%s = swig_import_helper()\n", module);
-      Printv(f_shadow, tab4, "del swig_import_helper\n", NULL);
-      Printv(f_shadow, "elif _swig_python_version_info >= (2, 6, 0):\n", NULL);
-      Printv(f_shadow, tab4, "def swig_import_helper():\n", NULL);
-      Printv(f_shadow, tab8, "from os.path import dirname\n", NULL);
-      Printv(f_shadow, tab8, "import imp\n", NULL);
-      Printv(f_shadow, tab8, "fp = None\n", NULL);
-      Printv(f_shadow, tab8, "try:\n", NULL);
-      Printf(f_shadow, tab4 tab8 "fp, pathname, description = imp.find_module('%s', [dirname(__file__)])\n", module);
-      Printf(f_shadow, tab8 "except ImportError:\n");
+      Printv(default_import_code, "if _swig_python_version_info >= (2, 7, 0):\n", NULL);
+      Printv(default_import_code, tab4, "def swig_import_helper():\n", NULL);
+      Printv(default_import_code, tab8, "import importlib\n", NULL);
+      Printv(default_import_code, tab8, "pkg = __name__.rpartition('.')[0]\n", NULL);
+      Printf(default_import_code, tab8 "mname = '.'.join((pkg, '%s')).lstrip('.')\n", module);
+      Printv(default_import_code, tab8, "try:\n", NULL);
+      Printv(default_import_code, tab8, tab4, "return importlib.import_module(mname)\n", NULL);
+      Printv(default_import_code, tab8, "except ImportError:\n", NULL);
+      Printf(default_import_code, tab8 tab4 "return importlib.import_module('%s')\n", module);
+      Printf(default_import_code, tab4 "%s = swig_import_helper()\n", module);
+      Printv(default_import_code, tab4, "del swig_import_helper\n", NULL);
+      Printv(default_import_code, "elif _swig_python_version_info >= (2, 6, 0):\n", NULL);
+      Printv(default_import_code, tab4, "def swig_import_helper():\n", NULL);
+      Printv(default_import_code, tab8, "from os.path import dirname\n", NULL);
+      Printv(default_import_code, tab8, "import imp\n", NULL);
+      Printv(default_import_code, tab8, "fp = None\n", NULL);
+      Printv(default_import_code, tab8, "try:\n", NULL);
+      Printf(default_import_code, tab4 tab8 "fp, pathname, description = imp.find_module('%s', [dirname(__file__)])\n", module);
+      Printf(default_import_code, tab8 "except ImportError:\n");
       /* At here, the module may already loaded, so simply import it. */
-      Printf(f_shadow, tab4 tab8 "import %s\n", module);
-      Printf(f_shadow, tab4 tab8 "return %s\n", module);
-      Printv(f_shadow, tab8 "try:\n", NULL);
+      Printf(default_import_code, tab4 tab8 "import %s\n", module);
+      Printf(default_import_code, tab4 tab8 "return %s\n", module);
+      Printv(default_import_code, tab8 "try:\n", NULL);
       /* imp.load_module() handles fp being None. */
-      Printf(f_shadow, tab4 tab8 "_mod = imp.load_module('%s', fp, pathname, description)\n", module);
-      Printv(f_shadow, tab8, "finally:\n", NULL);
-      Printv(f_shadow, tab4 tab8 "if fp is not None:\n", NULL);
-      Printv(f_shadow, tab8 tab8, "fp.close()\n", NULL);
-      Printv(f_shadow, tab8, "return _mod\n", NULL);
-      Printf(f_shadow, tab4 "%s = swig_import_helper()\n", module);
-      Printv(f_shadow, tab4, "del swig_import_helper\n", NULL);
-      Printv(f_shadow, "else:\n", NULL);
-      Printf(f_shadow, tab4 "import %s\n", module);
+      Printf(default_import_code, tab4 tab8 "_mod = imp.load_module('%s', fp, pathname, description)\n", module);
+      Printv(default_import_code, tab8, "finally:\n", NULL);
+      Printv(default_import_code, tab4 tab8 "if fp is not None:\n", NULL);
+      Printv(default_import_code, tab8 tab8, "fp.close()\n", NULL);
+      Printv(default_import_code, tab8, "return _mod\n", NULL);
+      Printf(default_import_code, tab4 "%s = swig_import_helper()\n", module);
+      Printv(default_import_code, tab4, "del swig_import_helper\n", NULL);
+      Printv(default_import_code, "else:\n", NULL);
+      Printf(default_import_code, tab4 "import %s\n", module);
 
       if (builtin) {
         /*
@@ -890,22 +890,22 @@ public:
          *     globals()[attr] = getattr(_foo, attr)
          * 
          */
-        Printf(f_shadow, "# pull in all the attributes from %s\n", module);
-        Printv(f_shadow, "if __name__.rpartition('.')[0] != '':\n", NULL);
-        Printv(f_shadow, tab4, "if _swig_python_version_info >= (2, 7, 0):\n", NULL);
-        Printv(f_shadow, tab8, "try:\n", NULL);
-        Printf(f_shadow, tab8 tab4 "from .%s import *\n", module);
-        Printv(f_shadow, tab8 "except ImportError:\n", NULL);
-        Printf(f_shadow, tab8 tab4 "from %s import *\n", module);
-        Printv(f_shadow, tab4, "else:\n", NULL);
-        Printf(f_shadow, tab8 "from %s import *\n", module);
-        Printv(f_shadow, "else:\n", NULL);
-        Printf(f_shadow, tab4 "from %s import *\n", module);
+        Printf(default_import_code, "# pull in all the attributes from %s\n", module);
+        Printv(default_import_code, "if __name__.rpartition('.')[0] != '':\n", NULL);
+        Printv(default_import_code, tab4, "if _swig_python_version_info >= (2, 7, 0):\n", NULL);
+        Printv(default_import_code, tab8, "try:\n", NULL);
+        Printf(default_import_code, tab8 tab4 "from .%s import *\n", module);
+        Printv(default_import_code, tab8 "except ImportError:\n", NULL);
+        Printf(default_import_code, tab8 tab4 "from %s import *\n", module);
+        Printv(default_import_code, tab4, "else:\n", NULL);
+        Printf(default_import_code, tab8 "from %s import *\n", module);
+        Printv(default_import_code, "else:\n", NULL);
+        Printf(default_import_code, tab4 "from %s import *\n", module);
       }
 
       /* Delete the _swig_python_version_info symbol since we don't use it elsewhere in the
        * module. */
-      Printv(f_shadow, "del _swig_python_version_info\n", NULL);
+      Printv(default_import_code, "del _swig_python_version_info\n\n", NULL);
 
       if (modern || !classic) {
 	Printv(f_shadow, "try:\n", tab4, "_swig_property = property\n", "except NameError:\n", tab4, "pass  # Python < 2.2 doesn't have 'property'.\n\n", NULL);
@@ -1052,8 +1052,16 @@ public:
       if (!modern && !classic) {
 	Printv(f_shadow, "# This file is compatible with both classic and new-style classes.\n", NIL);
       }
-      Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
-      Printv(f_shadow_py, "\n", f_shadow_builtin_imports, "\n", NIL);
+      if (Len(f_shadow_begin) > 0)
+	Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
+      if (Len(f_shadow_after_begin) > 0)
+      Printv(f_shadow_py, f_shadow_after_begin, "\n", NIL);
+      if (moduleimport) {
+	Replaceall(moduleimport, "$module", module);
+	Printv(f_shadow_py, "\n", moduleimport, "\n", NIL);
+      } else {
+	Printv(f_shadow_py, default_import_code, NIL);
+      }
       Printv(f_shadow_py, f_shadow, "\n", NIL);
       Printv(f_shadow_py, f_shadow_stubs, "\n", NIL);
       Delete(f_shadow_py);
@@ -1077,6 +1085,11 @@ public:
       Printf(f_begin, "static PyTypeObject *builtin_bases[%d];\n\n", max_bases + 2);
     Wrapper_pretty_print(f_init, f_begin);
 
+    Delete(default_import_code);
+    Delete(f_shadow_after_begin);
+    Delete(f_shadow_imports);
+    Delete(f_shadow_begin);
+    Delete(f_shadow);
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_builtins);
@@ -1385,7 +1398,7 @@ public:
 	    String *_import = import_directive_string(package, pkg, modname, "_");
 	    if (!GetFlagAttr(f_shadow_imports, _import)) {
 	      String *import = import_directive_string(package, pkg, modname);
-	      Printf(builtin ? f_shadow_builtin_imports : f_shadow, "%s", import);
+	      Printf(builtin ? f_shadow_after_begin : f_shadow, "%s", import);
 	      Delete(import);
 	      SetFlag(f_shadow_imports, _import);
 	    }

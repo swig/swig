@@ -974,7 +974,9 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
   String *key;
   int i, n = Len(keys);
   /* Loop over all the  <Class>_set and <Class>_get entries in the table. */
-  
+  /* This function checks for names ending in _set - perhaps it should */
+  /* use attributes of some other form, as it potentially clashes with */
+  /* methods ending in _set */
   if(n && outputNamespaceInfo) {
     Printf(s_namespace, "exportClasses(");
   }
@@ -984,9 +986,13 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
     
     String *className = Getitem(el, 0);
     char *ptr = Char(key);
-    ptr = &ptr[Len(key) - 3];
-    int isSet = strcmp(ptr, "set") == 0;
-    
+    int klen = Len(key);
+    int isSet = 0;
+    if (klen > 4) {
+      ptr = &ptr[klen - 4];
+      isSet = strcmp(ptr, "_set") == 0;
+    }
+
     //        OutputArrayMethod(className, el, out);        
     OutputMemberReferenceMethod(className, isSet, el, out);
     
@@ -1064,7 +1070,7 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
   
   if (!isSet && varaccessor > 0) {
     Printf(f->code, "%svaccessors = c(", tab8);
-    int vcount = 0;
+    int first = 1;
     for(j = 0; j < numMems; j+=3) {
       String *item = Getitem(el, j);
       String *dup = Getitem(el, j + 1);
@@ -1072,8 +1078,8 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
       ptr = &ptr[Len(dup) - 3];
       
       if (!strcmp(ptr, "get")) {
-	vcount++;
-	Printf(f->code, "'%s'%s", item, vcount < varaccessor ? ", " : "");
+	Printf(f->code, "%s'%s'", first ? "" : ", ", item);
+	first = 0;
       }
     }
     Printf(f->code, ");\n");
@@ -1273,7 +1279,9 @@ void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
   if(isSet < 0) {
     int n = Len(name);
     char *ptr = Char(name);
-    isSet = Strcmp(NewString(&ptr[n-3]), "set") == 0;
+    if (n>4) {
+      isSet = Strcmp(NewString(&ptr[n-4]), "_set") == 0;
+    }
   }
   
   List *l = isSet ? class_member_set_functions : class_member_functions;
@@ -1753,7 +1761,8 @@ int R::functionWrapper(Node *n) {
     
     int n = Len(iname);
     char *ptr = Char(iname);
-    bool isSet(Strcmp(NewString(&ptr[n-3]), "set") == 0);
+    bool isSet(0);
+    if (n > 4) isSet = Strcmp(NewString(&ptr[n-4]), "_set") == 0;
     
     
     String *tmp = NewString("");

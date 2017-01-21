@@ -261,10 +261,9 @@ public:
       rename = strip(name);
       Printf(f_classInit, "ADD_FUNCTION(\"%s\", %s, tFunc(%s), 0);\n", rename, function, description);
       break;
-    case CLASS_CONST:
-      assert(false);		// shouldn't have gotten here for CLASS_CONST nodes
-    default:
-      assert(false);		// what is this?
+    case CLASS_CONST: // shouldn't have gotten here for CLASS_CONST nodes
+    default: // what is this?
+      assert(false);
     }
     Delete(rename);
   }

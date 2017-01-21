@@ -90,7 +90,7 @@ If you're not familiar with the Objective Caml language, you can visit
 <p>
 SWIG 3.0 works with Ocaml 3.08.3 and above.  Given the choice,
 you should use the latest stable release.  The SWIG Ocaml module has
-been tested on Linux (x86,PPC,Sparc) and Cygwin on Windows.  The
+been tested on Linux (x86, PPC, Sparc) and Cygwin on Windows.  The
 best way to determine whether your system will work is to compile the
 examples and test-suite which come with SWIG.  You can do this by running
 <tt>make check</tt> from the SWIG root directory after installing SWIG.
@@ -327,7 +327,7 @@ A few functions exist which generate and return these:
 Because of this style, a typemap can return any kind of value it
 wants from a function.  This enables out typemaps and inout typemaps
 to work well.  The one thing to remember about outputting values
-is that you must append them to the return list with swig_result = caml_list_append(swig_result,v).
+is that you must append them to the return list with swig_result = caml_list_append(swig_result, v).
 </p>
 
 <p>
@@ -505,7 +505,7 @@ Unfortunately, unbounded arrays and pointers can't be handled in a
 completely general way by SWIG, because the end-condition of such an
 array can't be predicted.  In some cases, it will be by consent
 (e.g. an array of four or more chars), sometimes by explicit length
-(char *buffer, int len), and sometimes by sentinel value (0,-1,etc.).
+(char *buffer, int len), and sometimes by sentinel value (0, -1, etc.).
 SWIG can't predict which of these methods will be used in the array,
 so you have to specify it for yourself in the form of a typemap.
 </p>
@@ -560,7 +560,7 @@ void printfloats( float *tab, int len ) {
   $2 = caml_array_len($input);
   $1 = ($*1_type *)malloc( $2 * sizeof( float ) );
   for( i = 0; i &lt; $2; i++ ) {
-    $1[i] = caml_double_val(caml_array_nth($input,i));
+    $1[i] = caml_double_val(caml_array_nth($input, i));
   }
 }
 
@@ -684,7 +684,7 @@ C_list
 - : Example.c_obj = C_void
 # x '[1] ;;
 - : Example.c_obj = C_string "bar"
-# x -&gt; set (1,"spam") ;;
+# x -&gt; set (1, "spam") ;;
 - : Example.c_obj = C_void
 # x '[1] ;;
 - : Example.c_obj = C_string "spam"
@@ -757,11 +757,11 @@ bash-2.05a$ ./qt_top
 
 # open Swig ;;
 # open Qt ;;
-# let a = new_QApplication '(0,0) ;;
+# let a = new_QApplication '(0, 0) ;;
 val a : Qt.c_obj = C_obj &lt;fun&gt;
-# let hello = new_QPushButton '("hi",0) ;;
+# let hello = new_QPushButton '("hi", 0) ;;
 val hello : Qt.c_obj = C_obj &lt;fun&gt;
-# hello -&gt; resize (100,30) ;;
+# hello -&gt; resize (100, 30) ;;
 - : Qt.c_obj = C_void
 # hello -&gt; show () ;;
 - : Qt.c_obj = C_void
@@ -857,7 +857,7 @@ let triangle_class pts ob meth args =
 let triangle =
   new_derived_object
     new_shape
-    (triangle_class ((0.0,0.0),(0.5,1.0),(1.0,0.0)))
+    (triangle_class ((0.0, 0.0), (0.5, 1.0), (1.0, 0.0)))
     '() ;;
 
 let _ = _draw_shape_coverage '(triangle, C_int 60, C_int 20) ;;
@@ -901,7 +901,7 @@ The definition of the actual object triangle can be described this way:
 let triangle =
   new_derived_object
     new_shape
-    (triangle_class ((0.0,0.0),(0.5,1.0),(1.0,0.0)))
+    (triangle_class ((0.0, 0.0), (0.5, 1.0), (1.0, 0.0)))
     '()
 </pre></div>
 

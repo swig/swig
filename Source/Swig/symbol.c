@@ -518,7 +518,6 @@ void Swig_symbol_inherit(Symtab *s) {
 
 void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
   Node *append = 0;
-
   Node *cn;
   /* There are a few options for weak symbols.  A "weak" symbol 
      is any symbol that can be replaced by another symbol in the C symbol
@@ -1907,19 +1906,37 @@ SwigType *Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
   int len = Len(elements);
   int i;
 #ifdef SWIG_TEMPLATE_DEFTYPE_CACHE
-  static Hash *deftype_cache = 0;
-  String *scopetype = tscope ? NewStringf("%s::%s", Getattr(tscope, "name"), type)
+  static Hash *s_cache = 0;
+  Hash *scope_cache;
+  /* The lookup depends on the current scope and potential namespace qualification.
+     Looking up x in namespace y is not the same as looking up x::y in outer scope.
+     -> we use a 2-level hash: first scope and then symbol. */
+  String *scope_name = tscope
+      ? Swig_symbol_qualifiedscopename(tscope)
+      : Swig_symbol_qualifiedscopename(current_symtab);
+  String *type_name = tscope
+      ? NewStringf("%s::%s", Getattr(tscope, "name"), type)
       : NewStringf("%s::%s", Swig_symbol_getscopename(), type);
-  if (!deftype_cache) {
-    deftype_cache = NewHash();
+  if (!scope_name) scope_name = NewString("::");
+  if (!s_cache) {
+    s_cache = NewHash();
   }
-  if (scopetype) {
-    String *cres = Getattr(deftype_cache, scopetype);
+  scope_cache = Getattr(s_cache, scope_name);
+  if (scope_cache) {
+    String *cres = Getattr(scope_cache, type_name);
     if (cres) {
       Append(result, cres);
-      Delete(scopetype);
+#ifdef SWIG_DEBUG
+      Printf(stderr, "cached deftype %s(%s) -> %s\n", type, scope_name, result);
+#endif
+      Delete(type_name);
+      Delete(scope_name);
       return result;
     }
+  } else {
+      scope_cache = NewHash();
+      Setattr(s_cache, scope_name, scope_cache);
+      Delete(scope_name);
   }
 #endif
 
@@ -2019,8 +2036,8 @@ SwigType *Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
   }
   Delete(elements);
 #ifdef SWIG_TEMPLATE_DEFTYPE_CACHE
-  Setattr(deftype_cache, scopetype, result);
-  Delete(scopetype);
+  Setattr(scope_cache, type_name, result);
+  Delete(type_name);
 #endif
 
   return result;

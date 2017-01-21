@@ -12,8 +12,12 @@ if is_python_builtin():
   if h != h2:
     raise RuntimeError("default tp_hash not working")
 
-  # Test 1 for tp_hash
+  # Test 1a for tp_hash
   if hash(SimpleValue(222)) != 222:
+    raise RuntimeError("tp_hash not working")
+
+  # Test 1b for tp_hash
+  if hash(SimpleValue2(333)) != 333:
     raise RuntimeError("tp_hash not working")
 
   # Test 2 for tp_hash

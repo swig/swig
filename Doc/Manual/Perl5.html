@@ -197,7 +197,7 @@ SWIG tries to guess the right options when it is installed.  Therefore,
 you may want to start with one of the examples in the <tt>SWIG/Examples/perl5</tt> 
 directory.   If that doesn't work, you will need to read the man-pages for
 your compiler and linker to get the right set of options.  You might also
-check the <a href="http://www.dabeaz.com/cgi-bin/wiki.pl">SWIG Wiki</a> for
+check the <a href="https://github.com/swig/swig/wiki">SWIG Wiki</a> for
 additional information.
 </p>
 
@@ -322,7 +322,7 @@ all goes well, you will be able to do this:
 <div class="targetlang"><pre>
 $ perl
 use example;
-print example::fact(4),"\n";
+print example::fact(4), "\n";
 24
 </pre></div>
 
@@ -770,7 +770,7 @@ is accessed as follows:</p>
 
 <div class="targetlang"><pre>
 use example;
-print $example::Spam,"\n";
+print $example::Spam, "\n";
 $example::Spam = $example::Spam + 4
 # ... etc ...
 
@@ -841,7 +841,7 @@ In Perl:
 <div class="targetlang">
 <pre>
 use example;
-print $example::FOO,"\n";    # OK
+print $example::FOO, "\n";   # OK
 $example::FOO = 2;           # Error
 </pre>
 </div>
@@ -855,7 +855,7 @@ usually gives a more natural Perl interface, for example:
 <div class="targetlang">
 <pre>
 use example;
-print example::FOO,"\n";
+print example::FOO, "\n";
 </pre>
 </div>
 
@@ -978,7 +978,7 @@ accessor functions as described in the "SWIG Basics" chapter.  For example,
 
 <div class="code"><pre>
 struct Vector {
-  double x,y,z;
+  double x, y, z;
 };
 </pre></div>
 
@@ -1004,8 +1004,8 @@ These functions are then used to access structure data from Perl as follows:
 
 <div class="targetlang"><pre>
 $v = example::new_Vector();
-print example::Vector_x_get($v),"\n";    # Get x component
-example::Vector_x_set($v,7.8);          # Change x component
+print example::Vector_x_get($v), "\n";   # Get x component
+example::Vector_x_set($v, 7.8);          # Change x component
 </pre></div>
 
 <p>
@@ -1148,14 +1148,14 @@ In Perl, these functions are used in a straightforward manner:
 <div class="targetlang"><pre>
 use example;
 $l = example::new_List();
-example::List_insert($l,"Ale");
-example::List_insert($l,"Stout");
-example::List_insert($l,"Lager")
+example::List_insert($l, "Ale");
+example::List_insert($l, "Stout");
+example::List_insert($l, "Lager")
 example::List_print($l)
 Lager
 Stout
 Ale
-print example::List_length_get($l),"\n";
+print example::List_length_get($l), "\n";
 3
 </pre></div>
 
@@ -1238,8 +1238,8 @@ Now, in Perl, the methods are accessed as follows:
 use example;
 example::foo_i(3);
 $s = example::new_Spam();
-example::Spam_foo_i($s,3);
-example::Spam_foo_d($s,3.14);
+example::Spam_foo_i($s, 3);
+example::Spam_foo_d($s, 3.14);
 </pre>
 </div>
 
@@ -1286,7 +1286,7 @@ a single Perl module. The name of the module is determined by the
 <div class="targetlang"><pre>
 $ perl5
 use example;                      # load the example module
-print example::fact(4),"\n"       # Call a function in it
+print example::fact(4), "\n"      # Call a function in it
 24
 </pre></div>
 
@@ -1365,7 +1365,7 @@ all of the functions in that module will be installed into the package
 
 <div class="targetlang"><pre>
 use example;   # Load the module like before
-print Foo::fact(4),"\n";        # Call a function in package FooBar
+print Foo::fact(4), "\n";        # Call a function in package FooBar
 </pre></div>
 -->
 
@@ -1417,10 +1417,10 @@ In Perl, this allows you to pass simple values.  For example:
 
 <div class="targetlang">
 <pre>
-$a = example::add(3,4);
+$a = example::add(3, 4);
 print "$a\n";
 7
-$b = example::sub(7,4);
+$b = example::sub(7, 4);
 print "$b\n";
 3
 </pre>
@@ -1552,7 +1552,7 @@ Now, in Perl:
 
 <div class="targetlang">
 <pre>
-($r,$c) = example::get_dimensions($m);
+($r, $c) = example::get_dimensions($m);
 </pre>
 </div>
 
@@ -1578,7 +1578,7 @@ In Perl:
 <pre>
 use example;
 $c = 0.0;
-example::add(3,4,\$c);
+example::add(3, 4, \$c);
 print "$c\n";
 7
 </pre>
@@ -1830,7 +1830,7 @@ the typemap system follows <tt>typedef</tt> declarations.  For example:
 <pre>
 %typemap(in) int n {
   $1 = (int) SvIV($input);
-  printf("n = %d\n",$1);
+  printf("n = %d\n", $1);
 }
 %inline %{
 typedef int Integer;
@@ -1852,7 +1852,7 @@ Typemaps can also be defined for groups of consecutive arguments.  For example:
 <div class="targetlang">
 <pre>
 %typemap(in) (char *str, unsigned len) {
-    $1 = SvPV($input,$2);
+    $1 = SvPV($input, $2);
 };
 
 int count(char c, char *str, unsigned len);
@@ -1867,7 +1867,7 @@ parameter is omitted):
 
 <div class="targetlang">
 <pre>
-example::count("e","Hello World");
+example::count("e", "Hello World");
 1
 &gt;&gt;&gt;
 </pre>
@@ -2156,7 +2156,7 @@ reference to be used as a char ** datatype.
   $1 = (char **) malloc((len+2)*sizeof(char *));
   for (i = 0; i &lt;= len; i++) {
     tv = av_fetch(tempav, i, 0);
-    $1[i] = (char *) SvPV(*tv,PL_na);
+    $1[i] = (char *) SvPV(*tv, PL_na);
   }
   $1[i] = NULL;
 };
@@ -2170,16 +2170,16 @@ reference to be used as a char ** datatype.
 %typemap(out) char ** {
   AV *myav;
   SV **svs;
-  int i = 0,len = 0;
+  int i = 0, len = 0;
   /* Figure out how many elements we have */
   while ($1[len])
     len++;
   svs = (SV **) malloc(len*sizeof(SV *));
   for (i = 0; i &lt; len ; i++) {
     svs[i] = sv_newmortal();
-    sv_setpv((SV*)svs[i],$1[i]);
+    sv_setpv((SV*)svs[i], $1[i]);
   };
-  myav = av_make(len,svs);
+  myav = av_make(len, svs);
   free(svs);
   $result = newRV_noinc((SV*)myav);
   sv_2mortal($result);
@@ -2191,7 +2191,7 @@ reference to be used as a char ** datatype.
   int print_args(char **argv) {
     int i = 0;
     while (argv[i]) {
-      printf("argv[%d] = %s\n", i,argv[i]);
+      printf("argv[%d] = %s\n", i, argv[i]);
       i++;
     }
     return i;
@@ -2216,7 +2216,7 @@ use argv;
 @a = ("Dave", "Mike", "John", "Mary");           # Create an array of strings
 argv::print_args(\@a);                           # Pass it to our C function
 $b = argv::get_args();                           # Get array of strings from C
-print @$b,"\n";                                  # Print it out
+print @$b, "\n";                                 # Print it out
 </pre></div>
 
 
@@ -2241,10 +2241,10 @@ can be done using the <tt>EXTEND()</tt> macro as in:
 <div class="code"><pre>
 %typemap(argout) int *OUTPUT {
   if (argvi &gt;= items) {
-    EXTEND(sp,1);              /* Extend the stack by 1 object */
+    EXTEND(sp, 1);              /* Extend the stack by 1 object */
   }
   $result = sv_newmortal();
-  sv_setiv($target,(IV) *($1));
+  sv_setiv($target, (IV) *($1));
   argvi++;
 }
 </pre></div>
@@ -2271,7 +2271,7 @@ its arguments.  This example describes the implementation of the <tt>OUTPUT</tt>
 
 // We don't care what the input value is. Ignore, but set to a temporary variable
 
-%typemap(in,numinputs=0) double *OUTPUT(double junk) {
+%typemap(in, numinputs=0) double *OUTPUT(double junk) {
   $1 = &amp;junk;
 }
 
@@ -2298,9 +2298,9 @@ For example:
 </p>
 
 <div class="targetlang"><pre>
-@r = multout(7,13);
-print "multout(7,13) = @r\n";
-($x,$y) = multout(7,13);
+@r = multout(7, 13);
+print "multout(7, 13) = @r\n";
+($x, $y) = multout(7, 13);
 </pre></div>
 
 <H3><a name="Perl5_nn36">33.8.4 Accessing array structure members</a></H3>
@@ -2390,7 +2390,7 @@ A common misinterpretation of this function is the following Perl script:
 $a = 3.5;
 $b = 7.5;
 $c = 0.0;          # Output value
-add($a,$b,\$c);    # Place result in c (Except that it doesn't work)
+add($a, $b, \$c);    # Place result in c (Except that it doesn't work)
 </pre></div>
 
 <p>
@@ -2426,7 +2426,7 @@ Now, if you place this before the add function, you can do this:
 $a = 3.5;
 $b = 7.5;
 $c = 0.0;
-add($a,$b,\$c);            # Now it works!
+add($a, $b, \$c);            # Now it works!
 print "$c\n";
 
 </pre></div>
@@ -2566,7 +2566,7 @@ Suppose you have the following SWIG interface file:
 struct Vector {
   Vector(double x, double y, double z);
   ~Vector();
-  double x,y,z;
+  double x, y, z;
 };
 
 </pre></div>
@@ -2608,7 +2608,7 @@ sub new () {
     $OWNER{$self} = 1;
     my %retval;
     tie %retval, "example::Vector", $self;
-    return bless \%retval,"Vector";
+    return bless \%retval, "Vector";
 }
 
 sub DESTROY {
@@ -2622,25 +2622,25 @@ sub DESTROY {
 }
 
 sub FETCH {
-    my ($self,$field) = @_;
+    my ($self, $field) = @_;
     my $member_func = "vectorc::Vector_${field}_get";
     my $val = &amp;$member_func($self);
     if (exists $BLESSEDMEMBERS{$field}) {
         return undef if (!defined($val));
         my %retval;
-        tie %retval,$BLESSEDMEMBERS{$field},$val;
+        tie %retval, $BLESSEDMEMBERS{$field}, $val;
         return bless \%retval, $BLESSEDMEMBERS{$field};
     }
     return $val;
 }
 
 sub STORE {
-    my ($self,$field,$newval) = @_;
+    my ($self, $field, $newval) = @_;
     my $member_func = "vectorc::Vector_${field}_set";
     if (exists $BLESSEDMEMBERS{$field}) {
-        &amp;$member_func($self,tied(%{$newval}));
+        &amp;$member_func($self, tied(%{$newval}));
     } else {
-        &amp;$member_func($self,$newval);
+        &amp;$member_func($self, $newval);
     }
 }
 </pre></div>
@@ -2662,8 +2662,8 @@ To use our new proxy class we can simply do the following:
 
 <div class="targetlang"><pre>
 # Perl code using Vector class
-$v = new Vector(2,3,4);
-$w = Vector-&gt;new(-1,-2,-3);
+$v = new Vector(2, 3, 4);
+$w = Vector-&gt;new(-1, -2, -3);
 
 # Assignment of a single member
 $v-&gt;{x} = 7.5;
@@ -2706,7 +2706,7 @@ Vector object:
 <div class="code"><pre>
 Vector *new_Vector(double x, double y, double z) {
   Vector *v;
-  v = new Vector(x,y,z);        // Call C++ constructor
+  v = new Vector(x, y, z);        // Call C++ constructor
   return v;
 }
 </pre></div>
@@ -2747,7 +2747,7 @@ done using the <tt>DISOWN</tt> method.
 
 <div class="targetlang"><pre>
 # Perl code to change ownership of an object
-$v = new Vector(x,y,z);
+$v = new Vector(x, y, z);
 $v-&gt;DISOWN();     
 </pre></div>
 
@@ -3002,10 +3002,10 @@ low-level helper functions.  For example, this code now seems to work:
 <div class="targetlang">
 <pre>
 my $a =
-  [[1,0,0,0],
-  [0,1,0,0],
-  [0,0,1,0],
-  [0,0,0,1]];
+  [[1, 0, 0, 0],
+  [0, 1, 0, 0],
+  [0, 0, 1, 0],
+  [0, 0, 0, 1]];
 set_transform($im, $a);
 </pre>
 </div>

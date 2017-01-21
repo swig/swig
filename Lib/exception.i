@@ -12,10 +12,17 @@
 %insert("runtime") "swigerrors.swg"
 
 
-#ifdef SWIGPHP
+#ifdef SWIGPHP5
 %{
 #include "zend_exceptions.h"
 #define SWIG_exception(code, msg) do { zend_throw_exception(NULL, (char*)msg, code TSRMLS_CC); goto thrown; } while (0)
+%}
+#endif
+
+#ifdef SWIGPHP7
+%{
+#include "zend_exceptions.h"
+#define SWIG_exception(code, msg) do { zend_throw_exception(NULL, (char*)msg, code); goto thrown; } while (0)
 %}
 #endif
 

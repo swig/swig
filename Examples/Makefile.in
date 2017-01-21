@@ -1116,7 +1116,57 @@ ruby_clean:
 	rm -f *.@OBJEXT@ *$(RUBY_SO)
 
 ##################################################################
-#####                       PHP                             ######
+#####                       PHP5                            ######
+##################################################################
+
+PHP5         = @PHP5@
+PHP5_INCLUDE = @PHP5INC@
+PHP5_SO      = @PHP5_SO@
+PHP5_SCRIPT  = $(SRCDIR)$(RUNME).php
+
+# -------------------------------------------------------------------
+# Build a PHP5 dynamically loadable module (C)
+# -------------------------------------------------------------------
+
+php5: $(SRCDIR_SRCS)
+	$(SWIG) -php5 $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(PHP5_INCLUDE)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(PHP5_SO)
+
+# --------------------------------------------------------------------
+# Build a PHP5 dynamically loadable module (C++)
+# --------------------------------------------------------------------
+
+php5_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -php5 -cppext cxx -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PHP5_INCLUDE)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(PHP5_SO)
+
+# -----------------------------------------------------------------
+# Running a PHP5 example
+# -----------------------------------------------------------------
+
+php5_run:
+	$(RUNTOOL) $(PHP5) -n -q -d extension_dir=. -d safe_mode=Off $(PHP5_SCRIPT) $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+php5_version:
+	$(PHP5) -v | head -n 1
+
+# -----------------------------------------------------------------
+# Cleaning the PHP5 examples
+# -----------------------------------------------------------------
+
+php5_clean:
+	rm -f *_wrap* *~ .~* example.php php_example.h
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *$(PHP5_SO)
+
+##################################################################
+#####                       PHP7                            ######
 ##################################################################
 
 PHP         = @PHP@
@@ -1129,7 +1179,7 @@ PHP_SCRIPT  = $(SRCDIR)$(RUNME).php
 # -------------------------------------------------------------------
 
 php: $(SRCDIR_SRCS)
-	$(SWIG) -php $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(SWIG) -php7 $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(PHP_INCLUDE)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
 
@@ -1138,7 +1188,7 @@ php: $(SRCDIR_SRCS)
 # --------------------------------------------------------------------
 
 php_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -php -cppext cxx -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(SWIG) -php7 -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PHP_INCLUDE)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
 
@@ -1147,7 +1197,7 @@ php_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 php_run:
-	$(RUNTOOL) $(PHP) -n -q -d extension_dir=. -d safe_mode=Off $(PHP_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(PHP) -n -q -d extension_dir=. -d safe_mode=Off -d display_errors=stderr $(PHP_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
