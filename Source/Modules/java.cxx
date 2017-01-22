@@ -4399,7 +4399,7 @@ public:
       for (p = l; p;) {
 	if ((tm = Getattr(p, "tmap:directorargout"))) {
 	  addThrows(n, "tmap:directorargout", p);
-	  Replaceall(tm, "$result", Getattr(p, "name"));
+	  Replaceall(tm, "$result", makeParameterName(n, p, i, false));
 	  Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
 	  Printv(w->code, tm, "\n", NIL);
 	  p = Getattr(p, "tmap:directorargout:next");
