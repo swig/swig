@@ -8,6 +8,26 @@
 
 %include <typemaps.i>
 
+%apply bool& OUTPUT {bool&};
+
+%apply signed char& OUTPUT {signed char&};
+%apply unsigned char& OUTPUT {unsigned char&};
+
+%apply short& OUTPUT {short&};
+%apply unsigned short& OUTPUT {unsigned short&};
+
+%apply int& OUTPUT {int&};
+%apply unsigned int& OUTPUT {unsigned int&};
+
+%apply long& OUTPUT {long&};
+%apply unsigned long& OUTPUT {unsigned long&};
+
+%apply long long& OUTPUT {long long&};
+// %apply unsigned long long& OUTPUT {unsigned long long&};
+
+%apply float& OUTPUT {float&};
+%apply double& OUTPUT {double&};
+
 %apply bool& OUTPUT {bool& boolarg_output};
 
 %apply signed char& OUTPUT {signed char& signed_chararg_output};
@@ -140,6 +160,29 @@ public:
     doublearg_inout = 50;
   }
 
+  virtual void director_method_bool_nameless_args(
+    bool& ,
+
+    signed char& ,
+    unsigned char& ,
+
+    short& ,
+    unsigned short& ,
+
+    int& ,
+    unsigned int& ,
+
+    long& ,
+    unsigned long& ,
+
+    long long& ,
+    // unsigned long long& ,
+
+    float& ,
+    double&)
+  {
+  }
+
   void etest() {
     bool boolarg_inout = false;
 
@@ -260,6 +303,66 @@ public:
 
     assert(floatarg_inout == 111);
     assert(doublearg_inout == 112);
+
+    director_method_bool_nameless_args(
+       boolarg_inout,
+
+       signed_chararg_inout,
+       unsigned_chararg_inout,
+
+       shortarg_inout,
+       unsigned_shortarg_inout,
+
+       intarg_inout,
+       unsigned_intarg_inout,
+
+       longarg_inout,
+       unsigned_longarg_inout,
+
+       long_longarg_inout,
+       // unsigned_long_longarg_inout,
+
+       floatarg_inout,
+       doublearg_inout);
+
+    assert(boolarg_inout == true);
+    assert(signed_chararg_inout == 12);
+    assert(unsigned_chararg_inout == 13);
+
+    assert(shortarg_inout == 14);
+    assert(unsigned_shortarg_inout == 15);
+
+    assert(intarg_inout == 16);
+    assert(unsigned_intarg_inout == 17);
+
+    assert(longarg_inout == 18);
+    assert(unsigned_longarg_inout == 19);
+
+    assert(long_longarg_inout == 20);
+    // assert(unsigned_long_longarg_inout == 111);
+
+    assert(floatarg_inout == 112);
+    assert(doublearg_inout == 113);
   }
 };
 %}
+
+%clear bool&;
+
+%clear signed char&;
+%clear unsigned char&;
+
+%clear short&;
+%clear unsigned short&;
+
+%clear int&;
+%clear unsigned int&;
+
+%clear long&;
+%clear unsigned long&;
+
+%clear long long&;
+// %clear unsigned long long&;
+
+%clear float&;
+%clear double&;

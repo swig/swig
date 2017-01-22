@@ -112,4 +112,40 @@ class java_director_MyQuux extends Quux {
     float_arg[0] = 111;
     double_arg[0] = 112;
   }
+
+  public void director_method_bool_nameless_args(
+      boolean[] bool_arg,
+
+      byte[] signed_char_arg,
+      short[] unsigned_char_arg,
+
+      short[] short_arg,
+      int[] unsigned_short_arg,
+
+      int[] int_arg,
+      long[] unsigned_int_arg,
+
+      int[] long_arg,
+      long[] unsigned_long_arg,
+
+      long[] long_long_arg,
+      // BigInteger[] unsigned_long_long_arg,
+
+      float[] float_arg,
+      double[] double_arg)
+  {
+    bool_arg[0] = true;
+    signed_char_arg[0] = 12;
+    unsigned_char_arg[0] = 13;
+    short_arg[0] = 14;
+    unsigned_short_arg[0] = 15;
+    int_arg[0] = 16;
+    unsigned_int_arg[0] = 17;
+    long_arg[0] = 18;
+    unsigned_long_arg[0] = 19;
+    long_long_arg[0] = 20;
+    // unsigned_long_long_arg[0] = 111;
+    float_arg[0] = 112;
+    double_arg[0] = 113;
+  }
 }
