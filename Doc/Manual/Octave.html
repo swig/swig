@@ -64,8 +64,15 @@ Also, there are a dozen or so examples in the Examples/octave directory, and hun
 
 
 <p>
-As of SWIG 3.0.7, the Octave module is regularly tested with Octave versions 3.2.4, 3.8.1, and 4.0.0.
-Use of older Octave versions is not recommended, as these versions are no longer tested with SWIG.
+SWIG is regularly tested against the following versions of Octave: 3.8, 4.0, 4.2.
+</p>
+
+<p>
+Every effort is made to maintain backward compatibility with older versions of Octave.
+This cannot be guaranteed however, as in recent times new Octave releases have required nontrivial updates to SWIG, which may break backward compatibility for older Octave versions against which SWIG is not regularly tested.
+</p>
+
+<p>
 The SWIG runtime exports the function <tt>swig_octave_prereq()</tt> for checking the version of Octave.
 </p>
 

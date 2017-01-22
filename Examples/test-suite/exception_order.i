@@ -23,7 +23,17 @@
    user's throw declarations.
 */
 
-#if defined(SWIGUTL)
+#if defined(SWIGOCTAVE)
+%exception {
+  try {
+    $action
+  }
+  SWIG_RETHROW_OCTAVE_EXCEPTIONS
+  catch(...) {
+    SWIG_exception(SWIG_RuntimeError,"postcatch unknown");
+  }
+}
+#elif defined(SWIGUTL)
 %exception {
   try {
     $action
