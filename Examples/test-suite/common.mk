@@ -227,6 +227,7 @@ CPP_TEST_CASES += \
 	extend_placement \
 	extend_special_variables \
 	extend_template \
+	extend_template_method \
 	extend_template_ns \
 	extend_typedef_class \
 	extern_c \

@@ -7,6 +7,19 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 3.0.12 (in progress)
 ============================
 
+2017-01-22: wsfulton
+            Issue #876 Enhance %extend to extend a class with template methods, eg:
+
+              struct Foo {
+                %extend {
+                  template<typename T>
+                  void do_stuff(int a, T b) {
+                    ...
+                  }
+                }
+              };
+              %template(do_stuff_inst) Foo::do_stuff<double>;
+
 2017-01-22: kwwette
             [Octave] add support for version 4.2
             - The Octave API now uses some C++11 features. It is recommended to use

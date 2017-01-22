@@ -3636,6 +3636,43 @@ and the second will take two integer arguments.
 </p>
 
 <p>
+It is even possible to extend a class via <tt>%extend</tt> with template methods, for example:
+</p>
+
+<div class="code">
+<pre>
+%include &lt;std_string.i&gt;
+
+%inline %{
+class ExtendMe {
+public:
+  template &lt;typename T&gt;
+  T do_stuff_impl(int a, T b, double d) {
+    return b;
+  }
+};
+%}
+
+%extend ExtendMe {
+  template&lt;typename T&gt;
+  T do_overloaded_stuff(T b) {
+    return $self-&gt;do_stuff_impl(0, b, 4.0);
+  }
+}
+%template(do_overloaded_stuff) ExtendMe::do_overloaded_stuff&lt;std::string&gt;;
+%template(do_overloaded_stuff) ExtendMe::do_overloaded_stuff&lt;double&gt;;
+</pre>
+</div>
+
+<p>
+The wrapped <tt>ExtendMe</tt> class will then have two (overloaded) methods called <tt>do_overloaded_stuff</tt>.
+</p>
+
+<p>
+<b>Compatibility Note</b>:  Extending a class with template methods was added in version 3.0.12
+</p>
+
+<p>
 Needless to say, SWIG's template support provides plenty of opportunities to
 break the universe.  That said, an important final point is that <b>SWIG does
 not perform extensive error checking of templates!</b>  Specifically, SWIG does
