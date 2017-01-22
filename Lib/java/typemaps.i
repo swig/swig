@@ -216,18 +216,18 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
   $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
   Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
-%typemap(directorargout) TYPE &OUTPUT
+%typemap(directorargout, noblock=1) TYPE &OUTPUT
 {
-  JNITYPE jvalue;
-  JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &jvalue);
-  $result = jvalue;
+  JNITYPE $1_jvalue;
+  JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+  $result = $1_jvalue;
 }
 
-%typemap(directorargout) TYPE *OUTPUT
+%typemap(directorargout, noblock=1) TYPE *OUTPUT
 {
-  JNITYPE jvalue;
-  JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &jvalue);
-  *$result = jvalue;
+  JNITYPE $1_jvalue;
+  JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+  *$result = $1_jvalue;
 }
 
 %typemap(typecheck) TYPE *OUTPUT = TYPECHECKTYPE;
@@ -373,28 +373,26 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 
 %typemap(directorin,descriptor=JNIDESC) TYPE &INOUT %{
     $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
-    const JNITYPE $1_jvalue = (JNITYPE)$1;
+    JNITYPE $1_jvalue = (JNITYPE)$1;
     JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
     Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
 %typemap(directorin,descriptor=JNIDESC) TYPE *INOUT %{
   $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
-  const JNITYPE $1_jvalue = (JNITYPE)*$1;
+  JNITYPE $1_jvalue = (JNITYPE)*$1;
   JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
   Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
-%typemap(directorargout) TYPE &INOUT
+%typemap(directorargout, noblock=1) TYPE &INOUT
 {
-  JNITYPE jvalue;
-  JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &jvalue);
-  $result = jvalue;
+  JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+  $result = $1_jvalue;
 }
 
-%typemap(directorargout) TYPE *INOUT
+%typemap(directorargout, noblock=1) TYPE *INOUT
 {
-  JNITYPE jvalue;
-  JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &jvalue);
-  *$result = jvalue;
+  JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+  *$result = $1_jvalue;
 }
 
 %typemap(typecheck) TYPE *INOUT = TYPECHECKTYPE;
