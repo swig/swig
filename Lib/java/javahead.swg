@@ -4,11 +4,11 @@
  * Java support code
  * ----------------------------------------------------------------------------- */
 
-%insert(runtime) %{
+
 /* JNI function calls require different calling conventions for C and C++. These JCALL macros are used so 
  * that the same typemaps can be used for generating code for both C and C++. The SWIG preprocessor can expand
  * the macros thereby generating the correct calling convention. It is thus essential that all typemaps that
- * use the macros are not within SWIG brackets as they won't be run through the SWIG preprocessor. */
+ * use the macros are not within %{ %} brackets as they won't be run through the SWIG preprocessor. */
 #ifdef __cplusplus
 #   define JCALL0(func, jenv) jenv->func()
 #   define JCALL1(func, jenv, ar1) jenv->func(ar1)
@@ -28,7 +28,6 @@
 #   define JCALL6(func, jenv, ar1, ar2, ar3, ar4, ar5, ar6) (*jenv)->func(jenv, ar1, ar2, ar3, ar4, ar5, ar6)
 #   define JCALL7(func, jenv, ar1, ar2, ar3, ar4, ar5, ar6, ar7) (*jenv)->func(jenv, ar1, ar2, ar3, ar4, ar5, ar6, ar7)
 #endif
-%}
 
 %insert(runtime) %{
 /* Fix for jlong on some versions of gcc on Windows */
