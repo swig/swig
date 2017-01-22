@@ -7,6 +7,30 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 3.0.12 (in progress)
 ============================
 
+2017-01-22: kwwette
+            [Octave] add support for version 4.2
+            - The Octave API now uses some C++11 features. It is recommended to use
+              the mkoctfile program supplied by Octave to compile the SWIG-generated
+              wrapper code, as mkoctfile will ensure the correct C++ compiler/options
+              are used. Otherwise, the value of `mkoctfile -p CXX` should be parsed
+              for any -std=* flags which might be present.
+            - Octave has dropped support for << and >> operators, so SWIG now
+              ignores them.
+            - The Octave error() function now raises C++ exceptions to propagate
+              Octave errors, so %exception directives may need to be modified.
+              For convenience the SWIG_RETHROW_OCTAVE_EXCEPTIONS macro can be used
+              to rethrow any Octave exceptions for Octave itself to handle, e.g.:
+
+                try {
+                  $action                        // may call error()
+                }
+                SWIG_RETHROW_OCTAVE_EXCEPTIONS   // error() exceptions are rethrown
+                catch(...) {
+                  ...                            // all other exceptions
+                }
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2017-01-16: wkalinin
             [C#] Fix #733 regression introduced in swig-3.0.9.
             Missing virtual function override in C# layer when using %import.

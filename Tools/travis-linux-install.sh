@@ -64,7 +64,7 @@ case "$SWIGLANG" in
 		;;
 	"octave")
 		if [[ -z "$VER" ]]; then
-			sudo apt-get -qq install octave3.2 octave3.2-headers
+			sudo apt-get -qq install liboctave-dev
 		else
 			sudo add-apt-repository -y ppa:kwwette/octaves
 			sudo apt-get -qq update
