@@ -1267,8 +1267,9 @@ int Language::memberfunctionHandler(Node *n) {
   if (GetFlag(n, "explicitcall"))
     DirectorExtraCall = CWRAP_DIRECTOR_ONE_CALL;
 
-  Swig_MethodToFunction(n, NSpace, ClassType, Getattr(n, "template") ? Extend | SmartPointer : Extend | SmartPointer | DirectorExtraCall, director_type,
-			is_member_director(CurrentClass, n));
+  int extendmember = GetFlag(n, "isextendmember") ? Extend : 0;
+  int flags = Getattr(n, "template") ? extendmember | SmartPointer : Extend | SmartPointer | DirectorExtraCall;
+  Swig_MethodToFunction(n, NSpace, ClassType, flags, director_type, is_member_director(CurrentClass, n));
   Setattr(n, "sym:name", fname);
 
   functionWrapper(n);

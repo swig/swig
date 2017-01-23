@@ -372,7 +372,8 @@ static void add_symbols(Node *n) {
     }
 
     if (extendmode) {
-      Setattr(n,"isextendmember","1");
+      if (!Getattr(n, "template"))
+        SetFlag(n,"isextendmember");
     }
 
     if (!isfriend && inclass) {
