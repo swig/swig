@@ -1031,13 +1031,15 @@ else
 fi
 
 # Check if Octave works
-AC_MSG_CHECKING([if ${OCTAVE} works])
-AS_IF([test "x`${OCTAVE} --version 2>/dev/null | sed -n -e '1p' | sed -n -e '/Octave, version/p'`" != x],[
-   AC_MSG_RESULT([yes])
-],[
-   AC_MSG_NOTICE([no, disabling Octave])
-   OCTAVE=
-])
+if test -n "$OCTAVE"; then
+   AC_MSG_CHECKING([if ${OCTAVE} works])
+   AS_IF([test "x`${OCTAVE} --version 2>/dev/null | sed -n -e '1p' | sed -n -e '/Octave, version/p'`" != x],[
+      AC_MSG_RESULT([yes])
+   ],[
+      AC_MSG_NOTICE([no, disabling Octave])
+      OCTAVE=
+   ])
+fi
 
 # Check for required Octave helper program "mkoctfile"
 if test -n "$OCTAVE"; then
