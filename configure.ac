@@ -1030,11 +1030,25 @@ else
    OCTAVE="$OCTAVEBIN"
 fi
 
+# Check if Octave works
+AC_MSG_CHECKING([if ${OCTAVE} works])
+AS_IF([test "x`${OCTAVE} --version 2>/dev/null | sed -n -e '1p' | sed -n -e '/Octave, version/p'`" != x],[
+   AC_MSG_RESULT([yes])
+],[
+   AC_MSG_NOTICE([no, disabling Octave])
+   OCTAVE=
+])
+
 # Check for required Octave helper program "mkoctfile"
 if test -n "$OCTAVE"; then
-   AC_PATH_PROG(mkoctfile, [mkoctfile], [], [`dirname $OCTAVE`])
-   AS_IF([test "x${mkoctfile}" = x],[
-      AC_MSG_NOTICE([mkoctfile not found, disabling Octave])
+   AC_MSG_CHECKING([for mkoctfile])
+   mkoctfile=["`echo $OCTAVE | sed -e 's|[a-z][a-z-]*$|mkoctfile|;t;s|[a-z][a-z-]*\(-[0-9][0-9.+]*\)$|mkoctfile\1|;t'`"]
+   AC_MSG_RESULT([${mkoctfile}])
+   AC_MSG_CHECKING([if ${mkoctfile} works])
+   AS_IF([test "x`${mkoctfile} --version 2>/dev/null | sed -n -e '1p' | sed -n -e '/mkoctfile, version/p'`" != x],[
+      AC_MSG_RESULT([yes])
+   ],[
+      AC_MSG_NOTICE([no, disabling Octave])
       OCTAVE=
    ])
 fi
