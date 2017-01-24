@@ -2137,6 +2137,15 @@ int R::functionWrapper(Node *n) {
   if ((tm = Swig_typemap_lookup("scoerceout", n, Swig_cresult_name(), sfun))) {
     Replaceall(tm,"$source","ans");
     Replaceall(tm,"$result","ans");
+    if (constructor) {
+        Node * parent = Getattr(n, "parentNode");
+        String * smartname = Getattr(parent, "feature:smartptr");
+        if (smartname) {
+            smartname = getRClassName(smartname, 1, 1);
+            Replaceall(tm, "$R_class", smartname);
+            Delete(smartname);
+        }
+    }
     replaceRClass(tm, Getattr(n, "type"));
     Chop(tm);
   }
