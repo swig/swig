@@ -32,6 +32,8 @@ public class extend_template_method_runme {
         if (!ret_string.equals("hello there"))
           throw new RuntimeException("string failed " + ret_string);
       }
+      if (ExtendMe.static_method(123) != 123)
+        throw new RuntimeException("static_method failed");
     }
     {
       TemplateExtend em = new TemplateExtend();
@@ -52,6 +54,8 @@ public class extend_template_method_runme {
         if (!ret_string.equals("hello there"))
           throw new RuntimeException("string failed " + ret_string);
       }
+      if (TemplateExtend.static_template_method(123) != 123)
+        throw new RuntimeException("static_template_method failed");
     }
   }
 }

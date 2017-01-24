@@ -17,6 +17,8 @@ ret_string = em.do_overloaded_stuff("hello there")
 if ret_string != "hello there":
     raise RuntimeError("string failed " + ret_string)
 
+if ExtendMe.static_method(123) != 123:
+  raise RuntimeError("static_method failed");
 
 em = TemplateExtend()
 
@@ -34,3 +36,6 @@ if ret_double != 1.1:
 ret_string = em.do_template_overloaded_stuff("hello there")
 if ret_string != "hello there":
     raise RuntimeError("string failed " + ret_string)
+
+if TemplateExtend.static_template_method(123) != 123:
+  raise RuntimeError("static_template_method failed");

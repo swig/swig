@@ -1145,7 +1145,9 @@ int Language::globalfunctionHandler(Node *n) {
     Delete(cbname);
   }
   Setattr(n, "parms", nonvoid_parms(parms));
-  String *call = Swig_cfunction_call(name, parms);
+
+  String *extendname = Getattr(n, "extendname");
+  String *call = Swig_cfunction_call(extendname ? extendname : name, parms);
   String *cres = Swig_cresult(type, Swig_cresult_name(), call);
   Setattr(n, "wrap:action", cres);
   Delete(cres);
@@ -1322,7 +1324,10 @@ int Language::staticmemberfunctionHandler(Node *n) {
 
     if (!defaultargs && code) {
       /* Hmmm. An added static member.  We have to create a little wrapper for this */
-      Swig_add_extension_code(n, cname, parms, type, code, CPlusPlus, 0);
+      String *mangled_cname = Swig_name_mangle(cname);
+      Swig_add_extension_code(n, mangled_cname, parms, type, code, CPlusPlus, 0);
+      Setattr(n, "extendname", mangled_cname);
+      Delete(mangled_cname);
     }
   }
 
