@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 3.0.12 (in progress)
 ============================
 
+2017-01-24: andrey-starodubtsev
+            [Java] Apply #704 - director typemap improvements.
+            Memory leak fixes, add support for "directorargout" typemap and
+            add director support to typemaps.i.
+
 2017-01-24: wsfulton
             Enhance %extend to extend a class with template constructors, eg:
 

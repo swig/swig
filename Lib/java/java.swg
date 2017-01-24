@@ -1366,9 +1366,8 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
   }
   Swig::LocalRefGuard $1_refguard(jenv, $input);
 }
-%typemap(directorargout) (char *STRING, size_t LENGTH) {
-  if ($input && $1) (jenv)->GetByteArrayRegion($input, 0, (jsize)$2, (jbyte *)$1);
-}
+%typemap(directorargout, noblock=1) (char *STRING, size_t LENGTH)
+{ if ($input && $1) JCALL4(GetByteArrayRegion, jenv, $input, 0, (jsize)$2, (jbyte *)$1); }
 %typemap(javadirectorin, descriptor="[B") (char *STRING, size_t LENGTH) "$jniinput"
 %apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
 

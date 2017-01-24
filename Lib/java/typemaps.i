@@ -372,10 +372,10 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 { JCALL3(Release##JAVATYPE##ArrayElements, jenv, $input, (JNITYPE *)$1, 0); }
 
 %typemap(directorin,descriptor=JNIDESC) TYPE &INOUT %{
-    $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
-    JNITYPE $1_jvalue = (JNITYPE)$1;
-    JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
-    Swig::LocalRefGuard $1_refguard(jenv, $input); %}
+  $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
+  JNITYPE $1_jvalue = (JNITYPE)$1;
+  JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+  Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
 %typemap(directorin,descriptor=JNIDESC) TYPE *INOUT %{
   $input = JCALL1(New##JAVATYPE##Array, jenv, 1);

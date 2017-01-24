@@ -1,8 +1,4 @@
-/*
- * Test Lib/java/typemaps.i
- */
-
-%module(directors="1") java_director
+%module(directors="1") java_director_typemaps
 
 %feature("director", assumeoverride=1) Quux;
 
@@ -68,8 +64,11 @@
 %apply float& INOUT {float& floatarg_inout};
 %apply double& INOUT {double& doublearg_inout};
 
+%{
+#include <stdexcept>
+#define verify(ok) if (!(ok)) throw std::runtime_error(# ok);
+%}
 %inline %{
-#include <assert.h>
 
 class Quux {
 public:
@@ -225,24 +224,24 @@ public:
        floatarg_inout,
        doublearg_inout);
 
-    assert(boolarg_inout == true);
-    assert(signed_chararg_inout == 1);
-    assert(unsigned_chararg_inout == 2);
+    verify(boolarg_inout == true);
+    verify(signed_chararg_inout == 1);
+    verify(unsigned_chararg_inout == 2);
 
-    assert(shortarg_inout == 3);
-    assert(unsigned_shortarg_inout == 4);
+    verify(shortarg_inout == 3);
+    verify(unsigned_shortarg_inout == 4);
 
-    assert(intarg_inout == 5);
-    assert(unsigned_intarg_inout == 6);
+    verify(intarg_inout == 5);
+    verify(unsigned_intarg_inout == 6);
 
-    assert(longarg_inout == 7);
-    assert(unsigned_longarg_inout == 8);
+    verify(longarg_inout == 7);
+    verify(unsigned_longarg_inout == 8);
 
-    assert(long_longarg_inout == 9);
-    // assert(unsigned_long_longarg_inout == 10);
+    verify(long_longarg_inout == 9);
+    // verify(unsigned_long_longarg_inout == 10);
 
-    assert(floatarg_inout == 11);
-    assert(doublearg_inout == 12);
+    verify(floatarg_inout == 11);
+    verify(doublearg_inout == 12);
 
     boolarg_inout = false;
 
@@ -285,24 +284,24 @@ public:
        floatarg_inout,
        doublearg_inout);
 
-    assert(boolarg_inout == false);
-    assert(signed_chararg_inout == 11);
-    assert(unsigned_chararg_inout == 12);
+    verify(boolarg_inout == false);
+    verify(signed_chararg_inout == 11);
+    verify(unsigned_chararg_inout == 12);
 
-    assert(shortarg_inout == 13);
-    assert(unsigned_shortarg_inout == 14);
+    verify(shortarg_inout == 13);
+    verify(unsigned_shortarg_inout == 14);
 
-    assert(intarg_inout == 15);
-    assert(unsigned_intarg_inout == 16);
+    verify(intarg_inout == 15);
+    verify(unsigned_intarg_inout == 16);
 
-    assert(longarg_inout == 17);
-    assert(unsigned_longarg_inout == 18);
+    verify(longarg_inout == 17);
+    verify(unsigned_longarg_inout == 18);
 
-    assert(long_longarg_inout == 19);
-    // assert(unsigned_long_longarg_inout == 110);
+    verify(long_longarg_inout == 19);
+    // verify(unsigned_long_longarg_inout == 110);
 
-    assert(floatarg_inout == 111);
-    assert(doublearg_inout == 112);
+    verify(floatarg_inout == 111);
+    verify(doublearg_inout == 112);
 
     director_method_bool_nameless_args(
        boolarg_inout,
@@ -325,24 +324,24 @@ public:
        floatarg_inout,
        doublearg_inout);
 
-    assert(boolarg_inout == true);
-    assert(signed_chararg_inout == 12);
-    assert(unsigned_chararg_inout == 13);
+    verify(boolarg_inout == true);
+    verify(signed_chararg_inout == 12);
+    verify(unsigned_chararg_inout == 13);
 
-    assert(shortarg_inout == 14);
-    assert(unsigned_shortarg_inout == 15);
+    verify(shortarg_inout == 14);
+    verify(unsigned_shortarg_inout == 15);
 
-    assert(intarg_inout == 16);
-    assert(unsigned_intarg_inout == 17);
+    verify(intarg_inout == 16);
+    verify(unsigned_intarg_inout == 17);
 
-    assert(longarg_inout == 18);
-    assert(unsigned_longarg_inout == 19);
+    verify(longarg_inout == 18);
+    verify(unsigned_longarg_inout == 19);
 
-    assert(long_longarg_inout == 20);
-    // assert(unsigned_long_longarg_inout == 111);
+    verify(long_longarg_inout == 20);
+    // verify(unsigned_long_longarg_inout == 111);
 
-    assert(floatarg_inout == 112);
-    assert(doublearg_inout == 113);
+    verify(floatarg_inout == 112);
+    verify(doublearg_inout == 113);
   }
 };
 %}

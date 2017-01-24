@@ -16,13 +16,13 @@ public class java_director_typemaps_runme {
 
 
   public static void main(String argv[]) {
-    Quux quux = new java_director_MyQuux();
+    Quux quux = new java_director_typemaps_MyQuux();
     quux.etest();
   }
 }
 
-class java_director_MyQuux extends Quux {
-  public java_director_MyQuux() {
+class java_director_typemaps_MyQuux extends Quux {
+  public java_director_typemaps_MyQuux() {
     super();
   }
 
