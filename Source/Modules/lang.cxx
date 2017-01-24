@@ -2791,7 +2791,9 @@ int Language::constructorHandler(Node *n) {
     Setattr(n, "handled_as_constructor", "1");
   }
 
-  Swig_ConstructorToFunction(n, NSpace, ClassType, none_comparison, director_ctor, CPlusPlus, Getattr(n, "template") ? 0 : Extend, DirectorClassName);
+  int extendmember = GetFlag(n, "isextendmember") ? Extend : 0;
+  int flags = Getattr(n, "template") ? extendmember : Extend;
+  Swig_ConstructorToFunction(n, NSpace, ClassType, none_comparison, director_ctor, CPlusPlus, flags, DirectorClassName);
   Setattr(n, "sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);

@@ -18,7 +18,9 @@ if ret_string != "hello there":
     raise RuntimeError("string failed " + ret_string)
 
 if ExtendMe.static_method(123) != 123:
-  raise RuntimeError("static_method failed");
+  raise RuntimeError("static_method failed")
+
+em2 = ExtendMe(123)
 
 em = TemplateExtend()
 
@@ -38,4 +40,6 @@ if ret_string != "hello there":
     raise RuntimeError("string failed " + ret_string)
 
 if TemplateExtend.static_template_method(123) != 123:
-  raise RuntimeError("static_template_method failed");
+  raise RuntimeError("static_template_method failed")
+
+em2 = TemplateExtend(123)

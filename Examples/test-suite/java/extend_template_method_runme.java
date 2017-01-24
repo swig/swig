@@ -34,6 +34,7 @@ public class extend_template_method_runme {
       }
       if (ExtendMe.static_method(123) != 123)
         throw new RuntimeException("static_method failed");
+      ExtendMe em2 = new ExtendMe(123);
     }
     {
       TemplateExtend em = new TemplateExtend();
@@ -56,6 +57,7 @@ public class extend_template_method_runme {
       }
       if (TemplateExtend.static_template_method(123) != 123)
         throw new RuntimeException("static_template_method failed");
+      TemplateExtend em2 = new TemplateExtend(123);
     }
   }
 }
