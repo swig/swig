@@ -6,10 +6,10 @@
 //
 
 %include <std_unordered_map.i>
-
+#define SWIG_NO_REVERSE_ITERATOR_METHODS
 
 %define %std_unordered_multimap_methods(mmap...)
-  %std_map_methods_common(mmap);
+  %std_unordered_map_methods_common(mmap);
 
 #ifdef SWIG_EXPORT_ITERATOR_METHODS
   std::pair<iterator,iterator> equal_range(const key_type& x);
@@ -44,7 +44,7 @@
 
 
 namespace std {
-  template<class _Key, class _Tp, class _Compare = std::less< _Key >,
+  template<class _Key, class _Tp, class _Hash = std::hash< _Key >, class _Pred = std::equal_to< _Key >,
 	   class _Alloc = allocator<std::pair< const _Key, _Tp > > >
   class unordered_multimap {
   public:
@@ -63,28 +63,27 @@ namespace std {
     %traits_swigtype(_Key);
     %traits_swigtype(_Tp);	    
 
-    %fragment(SWIG_Traits_frag(std::unordered_multimap< _Key, _Tp, _Compare, _Alloc >), "header",
+    %fragment(SWIG_Traits_frag(std::unordered_multimap< _Key, _Tp, _Hash, _Pred, _Alloc >), "header",
 	      fragment=SWIG_Traits_frag(std::pair< _Key, _Tp >),
-	      fragment="StdMultimapTraits") {
+	      fragment="StdUnorderedMultimapTraits") {
       namespace swig {
-	template <>  struct traits<std::unordered_multimap< _Key, _Tp, _Compare, _Alloc > > {
+	template <>  struct traits<std::unordered_multimap< _Key, _Tp, _Hash, _Pred, _Alloc > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
-	    return "std::unordered_multimap<" #_Key "," #_Tp "," #_Compare "," #_Alloc " >";
+	    return "std::unordered_multimap<" #_Key "," #_Tp "," #_Hash "," #_Pred "," #_Alloc " >";
 	  }
 	};
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_MULTIMAP, std::unordered_multimap< _Key, _Tp, _Compare, _Alloc >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_MULTIMAP, std::unordered_multimap< _Key, _Tp, _Hash, _Pred, _Alloc >);
   
-    unordered_multimap( const _Compare& );
-
 #ifdef %swig_unordered_multimap_methods
     // Add swig/language extra methods
-    %swig_unordered_multimap_methods(std::unordered_multimap< _Key, _Tp, _Compare, _Alloc >);
+    %swig_unordered_multimap_methods(std::unordered_multimap< _Key, _Tp, _Hash, _Pred, _Alloc >);
 #endif
 
     %std_unordered_multimap_methods(unordered_multimap);
   };
 }
+#undef SWIG_NO_REVERSE_ITERATOR_METHODS

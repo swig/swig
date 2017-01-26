@@ -43,7 +43,8 @@ namespace std {
 
   //unordered_multiset
 
-  template <class _Key, class _Compare = std::less< _Key >,
+  template <class _Key, class _Hash = std::hash< _Key >,
+            class _Compare = std::equal_to< _Key >,
 	    class _Alloc = allocator< _Key > >
   class unordered_multiset {
   public:
@@ -59,26 +60,24 @@ namespace std {
 
     %traits_swigtype(_Key);
 
-    %fragment(SWIG_Traits_frag(std::unordered_multiset< _Key, _Compare, _Alloc >), "header",
+    %fragment(SWIG_Traits_frag(std::unordered_multiset< _Key, _Hash, _Compare, _Alloc >), "header",
 	      fragment=SWIG_Traits_frag(_Key),
 	      fragment="StdMultisetTraits") {
       namespace swig {
-	template <>  struct traits<std::unordered_multiset< _Key, _Compare, _Alloc > > {
+	template <>  struct traits<std::unordered_multiset< _Key, _Hash, _Compare, _Alloc > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
-	    return "std::unordered_multiset<" #_Key "," #_Compare "," #_Alloc " >";
+	    return "std::unordered_multiset<" #_Key "," #_Hash "," #_Compare "," #_Alloc " >";
 	  }
 	};
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_MULTISET, std::unordered_multiset< _Key, _Compare, _Alloc >);
-
-    unordered_multiset( const _Compare& );
+    %typemap_traits_ptr(SWIG_TYPECHECK_MULTISET, std::unordered_multiset< _Key, _Hash, _Compare, _Alloc >);
 
 #ifdef %swig_unordered_multiset_methods
     // Add swig/language extra methods
-    %swig_unordered_multiset_methods(std::unordered_multiset< _Key, _Compare, _Alloc >);
+    %swig_unordered_multiset_methods(std::unordered_multiset< _Key, _Hash, _Compare, _Alloc >);
 #endif
   
     %std_unordered_multiset_methods(unordered_multiset);

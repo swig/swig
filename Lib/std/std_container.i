@@ -26,18 +26,16 @@
   class const_iterator;
   iterator begin();
   iterator end();
-  #endif
 
-%enddef
-
-%define %std_container_methods_reverse_iterators(container...)
-
-  #ifdef SWIG_EXPORT_ITERATOR_METHODS
+  #if !defined(SWIG_NO_REVERSE_ITERATOR_METHODS)
   class reverse_iterator;
   class const_reverse_iterator;
   reverse_iterator rbegin();
   reverse_iterator rend();
   #endif
+
+  #endif
+
 
 %enddef
 

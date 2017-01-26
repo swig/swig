@@ -110,8 +110,6 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_TYPECHECK_SET, std::unordered_set< _Key, _Hash, _Compare, _Alloc >);
 
-    unordered_set( const _Compare& );
-
 #ifdef %swig_unordered_set_methods
     // Add swig/language extra methods
     %swig_unordered_set_methods(std::unordered_set< _Key, _Hash, _Compare, _Alloc >);
