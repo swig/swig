@@ -7,6 +7,11 @@ Release Notes
 Detailed release notes are available with the release and are also
 published on the SWIG web site at http://swig.org/release.html.
 
+SWIG-3.0.12 summary:
+- Add support for Octave-4.2.
+- Enhance %extend to support template functions.
+- Language specific enhancements and fixes for C#, D, Java, PHP7.
+
 SWIG-3.0.11 summary:
 - PHP 7 support added.
 - C++11 alias templates and type aliasing support added.
