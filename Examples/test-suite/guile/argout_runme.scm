@@ -7,7 +7,7 @@
 
 ;; if we're running guile 1.8, then bytevector->pointer won't exist and this
 ;; test is useless
-(if (module-variable (resolve-module '(system foreign)) 'bytevector->pointer)
+(if (>= (string->number (major-version)) 2)
     (begin
       (use-modules (srfi srfi-4) (system foreign))
 
