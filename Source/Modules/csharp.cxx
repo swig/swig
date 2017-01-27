@@ -683,7 +683,7 @@ public:
       String *filen = NewStringf("%s%s.cs", dir, name);
       File *f = NewFile(filen, "w", SWIG_output_files());
       if (!f) {
-	FileErrorDisplay(f);
+	FileErrorDisplay(filen);
 	SWIG_exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filen));
