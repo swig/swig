@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 3.0.12 (27 Jan 2017)
 ============================
 
+2017-01-27: wsfulton
+            [C#] #882 Fix missing filename in error messages when there is a problem
+            writing out C# files.
+
+2017-01-27: briancaine
+            [Guile] #744 Fix compilation errors in Guile wrappers - regression
+            introduced in swig-3.0.11.
+
 2017-01-24: andrey-starodubtsev
             [Java] Apply #704 - director typemap improvements.
             Memory leak fixes, add support for "directorargout" typemap and

@@ -45,7 +45,7 @@ Version 3.0.11 (29 Dec 2016)
             [Python] Fix #446
             Python %array_class of carrays.i failed with -builtin option.
 
-2016-12-16: bcaine
+2016-12-16: briancaine
             [Guile] Patch #744 Added support for Guile's native pointer functionality
 
 2016-12-01: wsfulton
