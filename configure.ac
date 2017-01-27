@@ -1950,29 +1950,31 @@ else
       PHP5=$PHP5BIN
     fi
 
-    AC_MSG_CHECKING(for PHP5 header files)
-    dnl /usr/bin/php5 -> /usr/bin/php-config5
-    case $PHP5 in
-      *5)
-	PHP5CONFIG=`echo "$PHP5"|sed 's/5$/-config5/'` ;;
-      *)
-	PHP5CONFIG=$PHP5-config ;;
-    esac
-    php5_version=`$PHP5CONFIG --version 2>/dev/null`
-    case $php5_version in
-    5*)
-	PHP5INC=`$PHP5CONFIG --includes 2>/dev/null`
-	if test -n "$PHP5INC"; then
-	  AC_MSG_RESULT($PHP5INC)
-	else
-	  AC_MSG_RESULT(not found)
-	fi
-	;;
-    "")
+    if test -n "$PHP5"; then
+      AC_MSG_CHECKING(for PHP5 header files)
+      dnl /usr/bin/php5 -> /usr/bin/php-config5
+      case $PHP5 in
+        *5)
+          PHP5CONFIG=`echo "$PHP5"|sed 's/5$/-config5/'` ;;
+        *)
+          PHP5CONFIG=$PHP5-config ;;
+      esac
+      php5_version=`$PHP5CONFIG --version 2>/dev/null`
+      case $php5_version in
+      5*)
+        PHP5INC=`$PHP5CONFIG --includes 2>/dev/null`
+        if test -n "$PHP5INC"; then
+          AC_MSG_RESULT($PHP5INC)
+        else
+          AC_MSG_RESULT(not found)
+        fi
+        ;;
+      "")
         AC_MSG_RESULT([could not find $PHP5CONFIG or obtain PHP5 version from it]) ;;
-    *)
-	AC_MSG_RESULT([found PHP $php_version - not PHP 5]) ;;
-    esac
+      *)
+        AC_MSG_RESULT([found PHP $php_version - not PHP 5]) ;;
+      esac
+    fi
 fi
 AC_SUBST(PHP5)
 AC_SUBST(PHP5INC)
@@ -1997,29 +1999,31 @@ else
       PHP=$PHPBIN
     fi
 
-    AC_MSG_CHECKING(for PHP header files)
-    dnl /usr/bin/php7.0 -> /usr/bin/php-config7.0
-    case $PHP in
-      *7.*)
-	PHPCONFIG=`echo "$PHP"|sed 's/7\...*$/-config&/'` ;;
-      *)
-	PHPCONFIG=$PHP-config ;;
-    esac
-    php_version=`$PHPCONFIG --version 2>/dev/null`
-    case $php_version in
-    7.*)
-	PHPINC=`$PHPCONFIG --includes 2>/dev/null`
-	if test -n "$PHPINC"; then
-	  AC_MSG_RESULT($PHPINC)
-	else
-	  AC_MSG_RESULT(not found)
-	fi
-	;;
-    "")
+    if test -n "$PHP"; then
+      AC_MSG_CHECKING(for PHP header files)
+      dnl /usr/bin/php7.0 -> /usr/bin/php-config7.0
+      case $PHP in
+        *7.*)
+          PHPCONFIG=`echo "$PHP"|sed 's/7\...*$/-config&/'` ;;
+        *)
+          PHPCONFIG=$PHP-config ;;
+      esac
+      php_version=`$PHPCONFIG --version 2>/dev/null`
+      case $php_version in
+      7.*)
+        PHPINC=`$PHPCONFIG --includes 2>/dev/null`
+        if test -n "$PHPINC"; then
+          AC_MSG_RESULT($PHPINC)
+        else
+          AC_MSG_RESULT(not found)
+        fi
+        ;;
+      "")
         AC_MSG_RESULT([could not find $PHPCONFIG or obtain PHP version from it]) ;;
-    *)
-	AC_MSG_RESULT([found PHP $php_version - not PHP 7]) ;;
-    esac
+      *)
+        AC_MSG_RESULT([found PHP $php_version - not PHP 7]) ;;
+      esac
+    fi
 fi
 AC_SUBST(PHP)
 AC_SUBST(PHPINC)
