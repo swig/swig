@@ -121,5 +121,5 @@ Version 3.0.12 (27 Jan 2017)
 2016-12-30: olly
 	    [PHP7] Register internal 'swig_runtime_data_type_pointer' constant
 	    as "CONST_PERSISTENT" to avoid segmentation fault on module unload.
-	    Fixes https://github.com/swig/swig/issues/859 reported by Timotheus
-	    Pokorra - thanks also to Javier Torres for a minimal reproducer.
+	    Fixes #859 reported by Timotheus Pokorra. Thanks also to Javier Torres
+	    for a minimal reproducer.
