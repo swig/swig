@@ -1117,19 +1117,17 @@ int Swig_scopename_check(const String *s) {
  *
  *  Printf(stderr,"%(command:sed 's/[a-z]/\U\\1/' <<<)s","hello") -> Hello
  * ----------------------------------------------------------------------------- */
-#if defined(HAVE_POPEN)
-#  if defined(_MSC_VER)
-#    define popen _popen
-#    define pclose _pclose
-#  else
-extern FILE *popen(const char *command, const char *type);
-extern int pclose(FILE *stream);
+#if defined(_MSC_VER)
+#  define popen _popen
+#  define pclose _pclose
+#  if !defined(HAVE_POPEN)
+#    define HAVE_POPEN 1
 #  endif
 #else
-#  if defined(_MSC_VER)
-#    define HAVE_POPEN 1
-#    define popen _popen
-#    define pclose _pclose
+#  if !defined(_WIN32)
+/* These Posix functions are not ISO C and so are not always defined in stdio.h */
+extern FILE *popen(const char *command, const char *type);
+extern int pclose(FILE *stream);
 #  endif
 #endif
 
