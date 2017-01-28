@@ -1,5 +1,4 @@
 rem Workaround 'nuget install' not being reliable by retrying a few times
-
 @echo off
 rem initiate the retry number
 set errorCode=1
@@ -13,6 +12,7 @@ rem problem?
 IF ERRORLEVEL %errorCode% GOTO :RETRY
 
 rem everything is fine!
+@echo Installed nuget, retries: %reTryNumber%
 GOTO :EXIT
 
 :RETRY
