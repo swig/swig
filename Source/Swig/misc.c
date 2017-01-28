@@ -1206,7 +1206,7 @@ String *Swig_string_rstrip(String *s) {
       String *suffix = NewStringf(fmt, cs+1);
       int suffix_len = Len(suffix);
       if (0 == Strncmp(cs+len-suffix_len, suffix, suffix_len)) {
-	int copy_len = len-suffix_len-(ce+1-cs);
+	int copy_len = len-suffix_len-(int)(ce+1-cs);
         ns = NewStringWithSize(ce+1, copy_len);
       } else {
         ns = NewString(ce+1);
