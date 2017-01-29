@@ -62,7 +62,7 @@ namespace std {
 
     %fragment(SWIG_Traits_frag(std::unordered_multiset< _Key, _Hash, _Compare, _Alloc >), "header",
 	      fragment=SWIG_Traits_frag(_Key),
-	      fragment="StdMultisetTraits") {
+	      fragment="StdUnorderedMultisetTraits") {
       namespace swig {
 	template <>  struct traits<std::unordered_multiset< _Key, _Hash, _Compare, _Alloc > > {
 	  typedef pointer_category category;
