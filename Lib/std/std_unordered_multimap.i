@@ -6,7 +6,6 @@
 //
 
 %include <std_unordered_map.i>
-#define SWIG_NO_REVERSE_ITERATOR_METHODS
 
 %define %std_unordered_multimap_methods(mmap...)
   %std_unordered_map_methods_common(mmap);
@@ -86,4 +85,3 @@ namespace std {
     %std_unordered_multimap_methods(unordered_multimap);
   };
 }
-#undef SWIG_NO_REVERSE_ITERATOR_METHODS

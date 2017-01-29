@@ -4,12 +4,11 @@
 // operator--() and constructor(compare function) not available for unordered_
 // types
 //
-#define SWIG_NO_REVERSE_ITERATOR_METHODS
 %include <std_pair.i>
 %include <std_container.i>
 
 %define %std_unordered_map_methods_common(unordered_map...)
-  %std_container_methods(unordered_map);
+  %std_container_methods_without_reverse_iterators(unordered_map);
 
   size_type erase(const key_type& x);
   size_type count(const key_type& x) const;
@@ -123,4 +122,3 @@ namespace std {
   };
 
 }
-#undef SWIG_NO_REVERSE_ITERATOR_METHODS
