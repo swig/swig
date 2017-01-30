@@ -139,7 +139,11 @@ SWIGINTERN bool SWIG_Octave_LoadModule(std::string name) {
 #endif
 #if SWIG_OCTAVE_PREREQ(4,2,0)
     try {
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+      octave::feval(name, octave_value_list(), 0);
+#else
       feval(name, octave_value_list(), 0);
+#endif
       retn = true;
     } catch (octave::execution_exception&) { }
 #else
@@ -181,7 +185,11 @@ SWIGINTERN bool SWIG_Octave_InstallFunction(octave_function *octloadfcn, std::st
     args.append(octloadfcn->fcn_file_name());
 #if SWIG_OCTAVE_PREREQ(4,2,0)
     try {
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+      octave::feval("autoload", args, 0);
+#else
       feval("autoload", args, 0);
+#endif
       retn = true;
     } catch (octave::execution_exception&) { }
 #else
@@ -351,7 +359,11 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
                      "__swig_atexit__; "
                      "atexit(\"__swig_atexit__\", false); "
                      "atexit(\"__swig_atexit__\")");
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+    octave::feval("evalin", eval_args, 0);
+#else
     feval("evalin", eval_args, 0);
+#endif
 #endif
 
     octave_swig_ref::register_type();
