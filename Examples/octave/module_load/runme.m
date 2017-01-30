@@ -16,24 +16,24 @@ clear all
 
 # load module in a function globally before base context
 clear all;
-function testme
+function testme_1
   swigexample;
   assert(cvar.ivar == ifunc);
   assert(exist("swigexample","var"));
 endfunction
-testme
-testme
+testme_1
+testme_1
 swigexample;
 assert(cvar.ivar == ifunc);
 assert(exist("swigexample","var"));
 clear all
-function testme
+function testme_2
   swigexample;
   assert(cvar.ivar == ifunc);
   assert(exist("swigexample","var"));
 endfunction
-testme
-testme
+testme_2
+testme_2
 swigexample;
 assert(cvar.ivar == ifunc);
 assert(exist("swigexample","var"));
@@ -44,24 +44,24 @@ clear all;
 swigexample;
 assert(cvar.ivar == ifunc);
 assert(exist("swigexample","var"));
-function testme
+function testme_3
   swigexample;
   assert(cvar.ivar == ifunc);
   assert(exist("swigexample","var"));
 endfunction
-testme
-testme
+testme_3
+testme_3
 clear all
 swigexample;
 assert(cvar.ivar == ifunc);
 assert(exist("swigexample","var"));
-function testme
+function testme_4
   swigexample;
   assert(cvar.ivar == ifunc);
   assert(exist("swigexample","var"));
 endfunction
-testme
-testme
+testme_4
+testme_4
 clear all
 
 # octave 3.0.5 randomly crashes on the remaining tests
