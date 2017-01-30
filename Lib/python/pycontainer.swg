@@ -654,7 +654,7 @@ namespace swig
 }
 }
 
-%define %swig_sequence_iterator(Sequence...)
+%define %swig_sequence_iterator(Make_output_iterator_func,Sequence...)
 #if defined(SWIG_EXPORT_ITERATOR_METHODS)
   class iterator;
   class reverse_iterator;
@@ -663,15 +663,15 @@ namespace swig
 
   %typemap(out,noblock=1,fragment="SwigPySequence_Cont")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
-    $result = SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &)),
+    $result = SWIG_NewPointerObj(Make_output_iterator_func(%static_cast($1,const $type &)),
 				 swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN);
   }
   %typemap(out,noblock=1,fragment="SwigPySequence_Cont")
     std::pair<iterator, iterator>, std::pair<const_iterator, const_iterator> {
     $result = PyTuple_New(2);
-    PyTuple_SetItem($result,0,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
+    PyTuple_SetItem($result,0,SWIG_NewPointerObj(Make_output_iterator_func(%static_cast($1,const $type &).first),
 						 swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN));
-    PyTuple_SetItem($result,1,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).second),
+    PyTuple_SetItem($result,1,SWIG_NewPointerObj(Make_output_iterator_func(%static_cast($1,const $type &).second),
 						 swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN));    
   }
 
@@ -680,7 +680,7 @@ namespace swig
   %typemap(out,noblock=1,fragment="SwigPyPairBoolOutputIterator")
     std::pair<iterator, bool>, std::pair<const_iterator, bool> {
     $result = PyTuple_New(2);
-    PyTuple_SetItem($result,0,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
+    PyTuple_SetItem($result,0,SWIG_NewPointerObj(Make_output_iterator_func(%static_cast($1,const $type &).first),
 					       swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN));    
     PyTuple_SetItem($result,1,SWIG_From(bool)(%static_cast($1,const $type &).second));
   }
@@ -715,7 +715,7 @@ namespace swig
   %newobject iterator(PyObject **PYTHON_SELF);
   %extend  {
     swig::SwigPyIterator* iterator(PyObject **PYTHON_SELF) {
-      return swig::make_output_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
+      return Make_output_iterator_func(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
     }
 
 #if defined(SWIGPYTHON_BUILTIN)
@@ -764,7 +764,7 @@ namespace swig
 
 
 %define %swig_sequence_methods_common(Sequence...)
-  %swig_sequence_iterator(%arg(Sequence))
+%swig_sequence_iterator(swig::make_output_iterator,%arg(Sequence))
   %swig_container_methods(%arg(Sequence))
 
   %fragment("SwigPySequence_Base");
