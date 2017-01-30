@@ -234,7 +234,7 @@ namespace swig {
   template<typename OutIterator, 
 	   typename ValueType = typename std::iterator_traits<OutIterator>::value_type,
 	   typename FromOper = from_oper<ValueType> >
-  class SwigPyIteratorOpen_T :  public SwigPyIterator_T<OutIterator>
+  class SwigPyIteratorOpen_T :  public SwigPyForwardIteratorOpen_T<OutIterator, ValueType, FromOper>
   {
   public:
     FromOper from;
@@ -244,25 +244,8 @@ namespace swig {
     typedef SwigPyIteratorOpen_T<OutIterator, ValueType, FromOper> self_type;
     
     SwigPyIteratorOpen_T(out_iterator curr, PyObject *seq)
-      : SwigPyIterator_T<OutIterator>(curr, seq)
+      : SwigPyForwardIteratorOpen_T<OutIterator>(curr, seq)
     {
-    }
-    
-    PyObject *value() const {
-      return from(static_cast<const value_type&>(*(base::current)));
-    }
-    
-    SwigPyIterator *copy() const
-    {
-      return new self_type(*this);
-    }
-
-    SwigPyIterator *incr(size_t n = 1)
-    {
-      while (n--) {
-	++base::current;
-      }
-      return this;
     }
 
     SwigPyIterator *decr(size_t n = 1)
@@ -273,6 +256,7 @@ namespace swig {
       return this;
     }
   };
+
   template<typename OutIterator, 
 	   typename ValueType = typename std::iterator_traits<OutIterator>::value_type,
 	   typename FromOper = from_oper<ValueType> >
@@ -315,7 +299,7 @@ namespace swig {
       return this;
     }
 
-  private:
+  protected:
     out_iterator begin;
     out_iterator end;
   };
@@ -323,49 +307,25 @@ namespace swig {
   template<typename OutIterator, 
 	   typename ValueType = typename std::iterator_traits<OutIterator>::value_type,
 	   typename FromOper = from_oper<ValueType> >
-  class SwigPyIteratorClosed_T :  public SwigPyIterator_T<OutIterator>
+  class SwigPyIteratorClosed_T :  public SwigPyForwardIteratorClosed_T<OutIterator,ValueType,FromOper>
   {
   public:
     FromOper from;
     typedef OutIterator out_iterator;
     typedef ValueType value_type;
-    typedef SwigPyIterator_T<out_iterator>  base;    
+    typedef SwigPyIterator_T<out_iterator>  base;
+    typedef SwigPyForwardIteratorClosed_T<OutIterator, ValueType, FromOper> base0;
     typedef SwigPyIteratorClosed_T<OutIterator, ValueType, FromOper> self_type;
     
     SwigPyIteratorClosed_T(out_iterator curr, out_iterator first, out_iterator last, PyObject *seq)
-      : SwigPyIterator_T<OutIterator>(curr, seq), begin(first), end(last)
+      : SwigPyForwardIteratorClosed_T<OutIterator,ValueType,FromOper>(curr, first, last, seq)
     {
-    }
-    
-    PyObject *value() const {
-      if (base::current == end) {
-	throw stop_iteration();
-      } else {
-	return from(static_cast<const value_type&>(*(base::current)));
-      }
-    }
-    
-    SwigPyIterator *copy() const
-    {
-      return new self_type(*this);
-    }
-
-    SwigPyIterator *incr(size_t n = 1)
-    {
-      while (n--) {
-	if (base::current == end) {
-	  throw stop_iteration();
-	} else {
-	  ++base::current;
-	}
-      }
-      return this;
     }
 
     SwigPyIterator *decr(size_t n = 1)
     {
       while (n--) {
-	if (base::current == begin) {
+	if (base::current == base0::begin) {
 	  throw stop_iteration();
 	} else {
 	  --base::current;
@@ -373,10 +333,6 @@ namespace swig {
       }
       return this;
     }
-
-  private:
-    out_iterator begin;
-    out_iterator end;
   };
 
 
