@@ -40,7 +40,7 @@
 %}
 
 %define %swig_unordered_set_methods(unordered_set...)
-  %swig_sequence_iterator(swig::make_output_forward_iterator,unordered_set);
+  %swig_sequence_forward_iterator(unordered_set);
   %swig_container_methods(unordered_set);
 
   %extend  {

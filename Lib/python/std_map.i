@@ -149,7 +149,7 @@
 }
 
 %define %swig_map_common(Map...)
-  %swig_sequence_iterator(swig::make_output_iterator,Map);
+  %swig_sequence_iterator(Map);
   %swig_container_methods(Map)
 
 #if defined(SWIGPYTHON_BUILTIN)

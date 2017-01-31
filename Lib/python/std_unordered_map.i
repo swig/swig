@@ -122,7 +122,7 @@
 }
 
 %define %swig_unordered_map_common(Map...)
-  %swig_sequence_iterator(swig::make_output_forward_iterator,Map);
+  %swig_sequence_forward_iterator(Map);
   %swig_container_methods(Map)
 
   %extend {

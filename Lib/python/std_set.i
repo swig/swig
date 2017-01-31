@@ -33,7 +33,7 @@
 %}
 
 %define %swig_set_methods(set...)
-  %swig_sequence_iterator(swig::make_output_iterator,set);
+  %swig_sequence_iterator(set);
   %swig_container_methods(set);
 
   %extend  {
