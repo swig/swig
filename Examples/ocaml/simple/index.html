@@ -84,7 +84,7 @@ let g = _gcd '(x,y) as int
 </pre>
 </blockquote>
 
-<li>C global variables are accessed through a special variable called '_Foo'. For example:
+<li>C global variable Foo is wrapped as _Foo in ocaml. For example:
 <blockquote>
 <pre>
 let _ = Printf.printf "Foo = %f\n" (_Foo '() as float)
