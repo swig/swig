@@ -309,11 +309,9 @@ PYTHON_FLAGS =
 # Make sure these locate your Python installation
 ifeq (,$(PY3))
   PYTHON_INCLUDE= $(DEFS) @PYINCLUDE@
-  PYTHON_LIB    = @PYLIB@
   PYTHON        = @PYTHON@ $(PYTHON_FLAGS)
 else
   PYTHON_INCLUDE= $(DEFS) @PY3INCLUDE@
-  PYTHON_LIB    = @PY3LIB@
   PYTHON        = @PYTHON3@ $(PYTHON_FLAGS)
 endif
 
@@ -369,12 +367,12 @@ PYTHON_LIBOPTS = $(PYTHON_LINK) @LIBS@ $(TKINTER) $(SYSLIBS)
 python_static: $(SRCDIR_SRCS)
 	$(SWIG) -python $(SWIGOPTPY3) -lembed.i $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) \
-	$(PYTHON_INCLUDE) $(LIBS) -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
+	$(PYTHON_INCLUDE) $(LIBS) $(PYTHON_LIBOPTS) -o $(TARGET)
 
 python_static_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -python $(SWIGOPTPY3) -c++ -lembed.i $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) \
-	$(PYTHON_INCLUDE) $(LIBS)  -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
+	$(PYTHON_INCLUDE) $(LIBS)  $(PYTHON_LIBOPTS) -o $(TARGET)
 
 # -----------------------------------------------------------------
 # Running a Python example
