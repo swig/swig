@@ -128,7 +128,8 @@ void DoxygenParser::printTree(const DoxygenEntityList &rootList)
   }
 }
 
-int DoxygenParser::commandBelongs(const std::string &theCommand)
+DoxygenParser::DoxyCommandEnum
+DoxygenParser::commandBelongs(const std::string &theCommand)
 {
   DoxyCommandsMapIt it = doxygenCommands.find(stringToLower(theCommand));
 
@@ -1046,6 +1047,13 @@ int DoxygenParser::addCommand(const std::string &commandString,
     return addCommandHtmlEntity(theCommand, tokList, doxyList);
   case COMMAND_IGNORE:
     return ignoreCommand(commandString, tokList, doxyList);
+  case NONE:
+  case END_LINE:
+  case PARAGRAPH_END:
+  case PLAINSTRING:
+  case COMMAND:
+    // TODO: Ensure that these values either are correctly ignored here or can't happen.
+    break;
   }
   return 0;
 }

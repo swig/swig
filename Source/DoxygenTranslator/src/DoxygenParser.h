@@ -130,7 +130,7 @@ private:
    * Determines how a command should be handled (what group it belongs to
    * for parsing rules
    */
-  int commandBelongs(const std::string &theCommand);
+  DoxyCommandEnum commandBelongs(const std::string &theCommand);
 
   /*
    *prints the parse tree
