@@ -1459,7 +1459,7 @@ String *Preprocessor_parse(String *s) {
 	break;
       }
       state = 43;
-      /* no break intended here */
+      /* FALL THRU */
 
     case 43:
       /* Get preprocessor value */

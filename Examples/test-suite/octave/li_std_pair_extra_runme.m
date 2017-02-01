@@ -1,3 +1,8 @@
+# do not dump Octave core
+if exist("crash_dumps_octave_core", "builtin")
+  crash_dumps_octave_core(0);
+endif
+
 li_std_pair_extra
 
 p = {1,2};

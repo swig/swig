@@ -227,6 +227,7 @@ CPP_TEST_CASES += \
 	extend_placement \
 	extend_special_variables \
 	extend_template \
+	extend_template_method \
 	extend_template_ns \
 	extend_typedef_class \
 	extern_c \
@@ -335,6 +336,7 @@ CPP_TEST_CASES += \
 	preproc_constants \
 	primitive_ref \
 	private_assign \
+	proxycode \
 	protected_rename \
 	pure_virtual \
 	redefined \
@@ -408,6 +410,7 @@ CPP_TEST_CASES += \
 	template_default_arg_overloaded \
 	template_default_arg_overloaded_extend \
 	template_default_arg_virtual_destructor \
+	template_default_cache \
 	template_default_class_parms \
 	template_default_class_parms_typedef \
 	template_default_inherit \

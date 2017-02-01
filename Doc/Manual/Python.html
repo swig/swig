@@ -400,7 +400,7 @@ However, SWIG tries to guess the right options when it is installed.  Therefore,
 you may want to start with one of the examples in the <tt>SWIG/Examples/python</tt> 
 directory.   If that doesn't work, you will need to read the man-pages for
 your compiler and linker to get the right set of options.  You might also
-check the <a href="http://www.dabeaz.com/cgi-bin/wiki.pl">SWIG Wiki</a> for
+check the <a href="https://github.com/swig/swig/wiki">SWIG Wiki</a> for
 additional information.
 </p>
 
@@ -914,7 +914,7 @@ only used by the Visual Studio compiler:
 Some users have reported success in building extension modules using Cygwin
 and other compilers.  However, the problem of building usable DLLs with these
 compilers tends to be rather problematic.  For the latest information,
-you may want to consult the <a href="http://www.dabeaz.com/cgi-bin/wiki.pl">
+you may want to consult the <a href="https://github.com/swig/swig/wiki">
 SWIG Wiki</a>.
 </p>
 
@@ -1294,7 +1294,7 @@ a very natural interface.  For example,
 
 <div class="code"><pre>
 struct Vector {
-  double x,y,z;
+  double x, y, z;
 };
 
 </pre></div>
@@ -1589,11 +1589,11 @@ structure.   All of the usual Python utility functions work normally:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; b = Bar()
-&gt;&gt;&gt; instance(b,Foo)
+&gt;&gt;&gt; instance(b, Foo)
 1
-&gt;&gt;&gt; issubclass(Bar,Foo)
+&gt;&gt;&gt; issubclass(Bar, Foo)
 1
-&gt;&gt;&gt; issubclass(Foo,Bar)
+&gt;&gt;&gt; issubclass(Foo, Bar)
 0
 </pre>
 </div>
@@ -1836,8 +1836,8 @@ When wrapped, it works like you expect:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; c = Complex(3,4)
-&gt;&gt;&gt; d = Complex(7,8)
+&gt;&gt;&gt; c = Complex(3, 4)
+&gt;&gt;&gt; d = Complex(7, 8)
 &gt;&gt;&gt; e = c + d
 &gt;&gt;&gt; e.re()
 10.0
@@ -1905,7 +1905,7 @@ submodules or packages.  For example, if you have a file like this,
 namespace foo {
   int fact(int n);
   struct Vector {
-    double x,y,z;
+    double x, y, z;
   };
 };
 </pre>
@@ -1984,7 +1984,7 @@ struct pair {
  ~pair();
 };
 
-%template(pairii) pair&lt;int,int&gt;;
+%template(pairii) pair&lt;int, int&gt;;
 </pre>
 </div>
 
@@ -1995,7 +1995,7 @@ In Python:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; import example
-&gt;&gt;&gt; p = example.pairii(3,4)
+&gt;&gt;&gt; p = example.pairii(3, 4)
 &gt;&gt;&gt; p.first
 3
 &gt;&gt;&gt; p.second
@@ -2203,8 +2203,8 @@ class Foo(object):
     def __del__(self):
         if self.thisown:
             _example.delete_Foo(self.this)
-    def spam(self,arg1):
-        return _example.Foo_spam(self.this,arg1)
+    def spam(self, arg1):
+        return _example.Foo_spam(self.this, arg1)
     x = property(_example.Foo_x_get, _example.Foo_x_set)
 </pre>
 </div>
@@ -3296,11 +3296,11 @@ For example, you might get errors like this:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = [
-...   [1,0,0,0],
-...   [0,1,0,0],
-...   [0,0,1,0],
-...   [0,0,0,1]]
-&gt;&gt;&gt; set_transform(im,a)
+...   [1, 0, 0, 0],
+...   [0, 1, 0, 0],
+...   [0, 0, 1, 0],
+...   [0, 0, 0, 1]]
+&gt;&gt;&gt; set_transform(im, a)
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
 TypeError: Type error. Expected _p_a_4__double
@@ -3340,11 +3340,11 @@ From Python, you could then write code like this:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = new_mat44()
-&gt;&gt;&gt; mat44_set(a,0,0,1.0)
-&gt;&gt;&gt; mat44_set(a,1,1,1.0)
-&gt;&gt;&gt; mat44_set(a,2,2,1.0)
+&gt;&gt;&gt; mat44_set(a, 0, 0, 1.0)
+&gt;&gt;&gt; mat44_set(a, 1, 1, 1.0)
+&gt;&gt;&gt; mat44_set(a, 2, 2, 1.0)
 ...
-&gt;&gt;&gt; set_transform(im,a)
+&gt;&gt;&gt; set_transform(im, a)
 &gt;&gt;&gt;
 </pre>
 </div>
@@ -3372,12 +3372,12 @@ void set_transform(Image *im, double x[4][4]);
 ...
 /* Rewrite the high level interface to set_transform */
 %pythoncode %{
-def set_transform(im,x):
+def set_transform(im, x):
     a = new_mat44()
     for i in range(4):
         for j in range(4):
-            mat44_set(a,i,j,x[i][j])
-    _example.set_transform(im,a)
+            mat44_set(a, i, j, x[i][j])
+    _example.set_transform(im, a)
     free_mat44(a)
 %}
 </pre>
@@ -3391,11 +3391,11 @@ low-level helper functions.  For example, this code now seems to work:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = [
-...   [1,0,0,0],
-...   [0,1,0,0],
-...   [0,0,1,0],
-...   [0,0,0,1]]
-&gt;&gt;&gt; set_transform(im,a)
+...   [1, 0, 0, 0],
+...   [0, 1, 0, 0],
+...   [0, 0, 1, 0],
+...   [0, 0, 0, 1]]
+&gt;&gt;&gt; set_transform(im, a)
 &gt;&gt;&gt;
 </pre>
 </div>
@@ -3624,13 +3624,13 @@ Here is a simple example:
 %}
 
 struct Vector {
-  double x,y,z;
+  double x, y, z;
 };
 
 %extend Vector {
   char *__str__() {
     static char tmp[1024];
-    sprintf(tmp,"Vector(%g,%g,%g)", $self-&gt;x,$self-&gt;y,$self-&gt;z);
+    sprintf(tmp, "Vector(%g, %g, %g)", $self-&gt;x, $self-&gt;y, $self-&gt;z);
     return tmp;
   }
   Vector(double x, double y, double z) {
@@ -3650,9 +3650,9 @@ Now, in Python
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; v = example.Vector(2,3,4)
+&gt;&gt;&gt; v = example.Vector(2, 3, 4)
 &gt;&gt;&gt; print v
-Vector(2,3,4)
+Vector(2, 3, 4)
 &gt;&gt;&gt;
 </pre>
 </div>
@@ -3683,10 +3683,10 @@ Use it like this:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; import example
-&gt;&gt;&gt; v = example.Vector(2,3,4)
-&gt;&gt;&gt; w = example.Vector(10,11,12)
+&gt;&gt;&gt; v = example.Vector(2, 3, 4)
+&gt;&gt;&gt; w = example.Vector(10, 11, 12)
 &gt;&gt;&gt; print v+w
-Vector(12,14,16)
+Vector(12, 14, 16)
 &gt;&gt;&gt; 
 </pre>
 </div>
@@ -3715,7 +3715,7 @@ or a NULL pointer perhaps).  Here is a simple example of how you might handle th
 %exception malloc {
   $action
   if (!result) {
-    PyErr_SetString(PyExc_MemoryError,"Not enough memory");
+    PyErr_SetString(PyExc_MemoryError, "Not enough memory");
     SWIG_fail;
   }
 }
@@ -3888,10 +3888,10 @@ In Python, this allows you to pass simple values.  For example:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; a = add(3,4)
+&gt;&gt;&gt; a = add(3, 4)
 &gt;&gt;&gt; print a
 7
-&gt;&gt;&gt; b = sub(7,4)
+&gt;&gt;&gt; b = sub(7, 4)
 &gt;&gt;&gt; print b
 3
 &gt;&gt;&gt;
@@ -4034,7 +4034,7 @@ Now, in Python:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; r,c = get_dimensions(m)
+&gt;&gt;&gt; r, c = get_dimensions(m)
 </pre>
 </div>
 
@@ -4075,7 +4075,7 @@ extern void add(int x, int y, int *result);
 </div>
 
 <p>
-The <tt>%pointer_functions(type,name)</tt> macro generates five helper functions that can be used to create,
+The <tt>%pointer_functions(type, name)</tt> macro generates five helper functions that can be used to create,
 destroy, copy, assign, and dereference a pointer.  In this case, the functions are as follows:
 </p>
 
@@ -4098,7 +4098,7 @@ In Python, you would use the functions like this:
 &gt;&gt;&gt; result = new_intp()
 &gt;&gt;&gt; print result
 _108fea8_p_int
-&gt;&gt;&gt; add(3,4,result)
+&gt;&gt;&gt; add(3, 4, result)
 &gt;&gt;&gt; print intp_value(result)
 7
 &gt;&gt;&gt;
@@ -4106,13 +4106,13 @@ _108fea8_p_int
 </div>
 
 <p>
-If you replace <tt>%pointer_functions()</tt> by <tt>%pointer_class(type,name)</tt>, the interface is more class-like.
+If you replace <tt>%pointer_functions()</tt> by <tt>%pointer_class(type, name)</tt>, the interface is more class-like.
 </p>
 
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; result = intp()
-&gt;&gt;&gt; add(3,4,result)
+&gt;&gt;&gt; add(3, 4, result)
 &gt;&gt;&gt; print result.value()
 7
 </pre>
@@ -4164,7 +4164,7 @@ For instance, you will be able to do this in Python:
 &gt;&gt;&gt; a = intArray(10000000)         # Array of 10-million integers
 &gt;&gt;&gt; for i in xrange(10000):        # Set some values
 ...     a[i] = i
-&gt;&gt;&gt; sumitems(a,10000)
+&gt;&gt;&gt; sumitems(a, 10000)
 49995000
 &gt;&gt;&gt;
 </pre>
@@ -4384,7 +4384,7 @@ you might define a typemap like this:
 
 %typemap(in) int {
   $1 = (int) PyLong_AsLong($input);
-  printf("Received an integer : %d\n",$1);
+  printf("Received an integer : %d\n", $1);
 }
 %inline %{
 extern int fact(int n);
@@ -4423,7 +4423,7 @@ You can refine this by supplying an optional parameter name.  For example:
 %typemap(in) int nonnegative {
   $1 = (int) PyLong_AsLong($input);
   if ($1 &lt; 0) {
-    PyErr_SetString(PyExc_ValueError,"Expected a nonnegative value.");
+    PyErr_SetString(PyExc_ValueError, "Expected a nonnegative value.");
     SWIG_fail;
   }
 }
@@ -4448,7 +4448,7 @@ the typemap system follows <tt>typedef</tt> declarations.  For example:
 <pre>
 %typemap(in) int n {
   $1 = (int) PyLong_AsLong($input);
-  printf("n = %d\n",$1);
+  printf("n = %d\n", $1);
 }
 %inline %{
 typedef int Integer;
@@ -4480,7 +4480,7 @@ parameter is omitted):
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; example.count('e','Hello World')
+&gt;&gt;&gt; example.count('e', 'Hello World')
 1
 &gt;&gt;&gt;
 </pre>
@@ -4756,18 +4756,18 @@ object to be used as a <tt>char **</tt> object.
     int i = 0;
     $1 = (char **) malloc((size+1)*sizeof(char *));
     for (i = 0; i &lt; size; i++) {
-      PyObject *o = PyList_GetItem($input,i);
+      PyObject *o = PyList_GetItem($input, i);
       if (PyString_Check(o)) {
-        $1[i] = PyString_AsString(PyList_GetItem($input,i));
+        $1[i] = PyString_AsString(PyList_GetItem($input, i));
       } else {
         free($1);
-        PyErr_SetString(PyExc_TypeError,"list must contain strings");
+        PyErr_SetString(PyExc_TypeError, "list must contain strings");
         SWIG_fail;
       }
     }
     $1[i] = 0;
   } else {
-    PyErr_SetString(PyExc_TypeError,"not a list");
+    PyErr_SetString(PyExc_TypeError, "not a list");
     SWIG_fail;
   }
 }
@@ -4782,7 +4782,7 @@ object to be used as a <tt>char **</tt> object.
 int print_args(char **argv) {
   int i = 0;
   while (argv[i]) {
-    printf("argv[%d] = %s\n", i,argv[i]);
+    printf("argv[%d] = %s\n", i, argv[i]);
     i++;
   }
   return i;
@@ -4855,18 +4855,18 @@ previous example:
     $1 = PyList_Size($input);
     $2 = (char **) malloc(($1+1)*sizeof(char *));
     for (i = 0; i &lt; $1; i++) {
-      PyObject *o = PyList_GetItem($input,i);
+      PyObject *o = PyList_GetItem($input, i);
       if (PyString_Check(o)) {
-        $2[i] = PyString_AsString(PyList_GetItem($input,i));
+        $2[i] = PyString_AsString(PyList_GetItem($input, i));
       } else {
         free($2);
-        PyErr_SetString(PyExc_TypeError,"list must contain strings");
+        PyErr_SetString(PyExc_TypeError, "list must contain strings");
         SWIG_fail;
       }
     }
     $2[i] = 0;
   } else {
-    PyErr_SetString(PyExc_TypeError,"not a list");
+    PyErr_SetString(PyExc_TypeError, "not a list");
     SWIG_fail;
   }
 }
@@ -4929,7 +4929,7 @@ Traceback (most recent call last):
     example.foo(["foo", "bar", "spam", "1"])
 NotImplementedError: Wrong number or type of arguments for overloaded function 'foo'.
   Possible C/C++ prototypes are:
-    foo(int,char **)
+    foo(int, char **)
     foo()
 </pre>
 </div>
@@ -4972,12 +4972,12 @@ A typemap can be used to handle this case as follows :
     if (!PyTuple_Check($result)) {
       PyObject *o2 = $result;
       $result = PyTuple_New(1);
-      PyTuple_SetItem($result,0,o2);
+      PyTuple_SetItem($result, 0, o2);
     }
     o3 = PyTuple_New(1);
-    PyTuple_SetItem(o3,0,o);
+    PyTuple_SetItem(o3, 0, o);
     o2 = $result;
-    $result = PySequence_Concat(o2,o3);
+    $result = PySequence_Concat(o2, o3);
     Py_DECREF(o2);
     Py_DECREF(o3);
   }
@@ -5001,7 +5001,7 @@ no meaningful input value), an additional typemap can be written.  For example:
 </p>
 
 <div class="code"><pre>
-%typemap(in,numinputs=0) double *OutValue(double temp) {
+%typemap(in, numinputs=0) double *OutValue(double temp) {
   $1 = &amp;temp;
 }
 
@@ -5015,10 +5015,10 @@ function can now be used as follows:
 </p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; a = spam(4,5)
+&gt;&gt;&gt; a = spam(4, 5)
 &gt;&gt;&gt; print a
 (0, 2.45, 5.0)
-&gt;&gt;&gt; x,y,z = spam(4,5)
+&gt;&gt;&gt; x, y, z = spam(4, 5)
 &gt;&gt;&gt;
 </pre></div>
 
@@ -5043,13 +5043,13 @@ This too, can be handled used typemaps as follows :
 %typemap(in) double[4](double temp[4]) {   // temp[4] becomes a local variable
   int i;
   if (PyTuple_Check($input)) {
-    if (!PyArg_ParseTuple($input,"dddd",temp,temp+1,temp+2,temp+3)) {
-      PyErr_SetString(PyExc_TypeError,"tuple must have 4 elements");
+    if (!PyArg_ParseTuple($input, "dddd", temp, temp+1, temp+2, temp+3)) {
+      PyErr_SetString(PyExc_TypeError, "tuple must have 4 elements");
       SWIG_fail;
     }
     $1 = &amp;temp[0];
   } else {
-    PyErr_SetString(PyExc_TypeError,"expected a tuple.");
+    PyErr_SetString(PyExc_TypeError, "expected a tuple.");
     SWIG_fail;
   }
 }
@@ -5062,7 +5062,7 @@ Python as follows :
 </p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; set_direction((0.5,0.0,1.0,-0.25))
+&gt;&gt;&gt; set_direction((0.5, 0.0, 1.0, -0.25))
 </pre></div>
 
 <p>
@@ -5084,18 +5084,18 @@ arrays of different sizes.  To do this, you might write a typemap as follows:
 %typemap(in) double[ANY](double temp[$1_dim0]) {
   int i;
   if (!PySequence_Check($input)) {
-    PyErr_SetString(PyExc_TypeError,"Expecting a sequence");
+    PyErr_SetString(PyExc_TypeError, "Expecting a sequence");
     SWIG_fail;
   }
   if (PyObject_Length($input) != $1_dim0) {
-    PyErr_SetString(PyExc_ValueError,"Expecting a sequence with $1_dim0 elements");
+    PyErr_SetString(PyExc_ValueError, "Expecting a sequence with $1_dim0 elements");
     SWIG_fail;
   }
   for (i =0; i &lt; $1_dim0; i++) {
-    PyObject *o = PySequence_GetItem($input,i);
+    PyObject *o = PySequence_GetItem($input, i);
     if (!PyFloat_Check(o)) {
       Py_XDECREF(o);
-      PyErr_SetString(PyExc_ValueError,"Expecting a sequence of floats");
+      PyErr_SetString(PyExc_ValueError, "Expecting a sequence of floats");
       SWIG_fail;
     }
     temp[i] = PyFloat_AsDouble(o);
@@ -5130,18 +5130,18 @@ to use a helper function instead.  This will greatly reduce the amount of wrappe
 static int convert_darray(PyObject *input, double *ptr, int size) {
   int i;
   if (!PySequence_Check(input)) {
-    PyErr_SetString(PyExc_TypeError,"Expecting a sequence");
+    PyErr_SetString(PyExc_TypeError, "Expecting a sequence");
     return 0;
   }
   if (PyObject_Length(input) != size) {
-    PyErr_SetString(PyExc_ValueError,"Sequence size mismatch");
+    PyErr_SetString(PyExc_ValueError, "Sequence size mismatch");
     return 0;
   }
   for (i =0; i &lt; size; i++) {
-    PyObject *o = PySequence_GetItem(input,i);
+    PyObject *o = PySequence_GetItem(input, i);
     if (!PyFloat_Check(o)) {
       Py_XDECREF(o);
-      PyErr_SetString(PyExc_ValueError,"Expecting a sequence of floats");
+      PyErr_SetString(PyExc_ValueError, "Expecting a sequence of floats");
       return 0;
     }
     ptr[i] = PyFloat_AsDouble(o);
@@ -5152,7 +5152,7 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
 %}
 
 %typemap(in) double [ANY](double temp[$1_dim0]) {
-  if (!convert_darray($input,temp,$1_dim0)) {
+  if (!convert_darray($input, temp, $1_dim0)) {
     SWIG_fail;
   }
   $1 = &amp;temp[0];

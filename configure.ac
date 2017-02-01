@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[3.0.11],[http://www.swig.org])
+AC_INIT([swig],[3.0.13],[http://www.swig.org])
 
 dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
 dnl     definition below can be removed
@@ -886,7 +886,15 @@ else
   AC_SUBST(PY3LIB)
   AC_SUBST(PY3LINK)
   AC_SUBST(PYTHON3DYNAMICLINKING)
+fi
+
+if test -n "$PYINCLUDE" || test -n "$PY3INCLUDE" ; then
   AC_CHECK_PROGS(PEP8, pep8)
+  if test -n "$PEP8"; then
+    AC_MSG_CHECKING(pep8 version)
+    pep8_version=`$PEP8 --version 2>/dev/null`
+    AC_MSG_RESULT($pep8_version)
+  fi
 fi
 
 #----------------------------------------------------------------
@@ -1009,30 +1017,47 @@ OCTAVE_SO=.oct
 AC_ARG_WITH(octave, AS_HELP_STRING([--without-octave], [Disable Octave])
 AS_HELP_STRING([--with-octave=path], [Set location of Octave executable]),[OCTAVEBIN="$withval"], [OCTAVEBIN="$alllang_default"])
 
-# First, check for "--without-octave" or "--with-octave=no".
+# Check for "--without-octave" or "--with-octave=no".
 if test x"${OCTAVEBIN}" = xno; then
    AC_MSG_NOTICE([Disabling Octave])
    OCTAVE=
 
-# First figure out what the name of Octave is
+# Check for Octave; prefer command-line program "octave-cli" to (in newer versions) GUI program "octave"
 elif test "x$OCTAVEBIN" = xyes; then
-   AC_PATH_PROG(OCTAVE, [octave])
+   AC_PATH_PROG(OCTAVE, [octave-cli octave])
 
 else
    OCTAVE="$OCTAVEBIN"
 fi
 
+# Check if Octave works
 if test -n "$OCTAVE"; then
-   AC_MSG_CHECKING([for mkoctfile])
-   mkoctfile="$(dirname $OCTAVE)/$(basename $OCTAVE | sed -e 's/octave/mkoctfile/')"
-   AS_IF([test -x "${mkoctfile}"],[
-      AC_MSG_RESULT([${mkoctfile}])
+   AC_MSG_CHECKING([if ${OCTAVE} works])
+   AS_IF([test "x`${OCTAVE} --version 2>/dev/null | sed -n -e '1p' | sed -n -e '/Octave, version/p'`" != x],[
+      AC_MSG_RESULT([yes])
    ],[
-      AC_MSG_RESULT([not found, disabling Octave])
+      AC_MSG_NOTICE([no, disabling Octave])
       OCTAVE=
    ])
 fi
+
+# Check for required Octave helper program "mkoctfile"
 if test -n "$OCTAVE"; then
+   AC_MSG_CHECKING([for mkoctfile])
+   mkoctfile=["`echo $OCTAVE | sed -e 's|[a-z][a-z-]*$|mkoctfile|;t;s|[a-z][a-z-]*\(-[0-9][0-9.+]*\)$|mkoctfile\1|;t'`"]
+   AC_MSG_RESULT([${mkoctfile}])
+   AC_MSG_CHECKING([if ${mkoctfile} works])
+   AS_IF([test "x`${mkoctfile} --version 2>/dev/null | sed -n -e '1p' | sed -n -e '/mkoctfile, version/p'`" != x],[
+      AC_MSG_RESULT([yes])
+   ],[
+      AC_MSG_NOTICE([no, disabling Octave])
+      OCTAVE=
+   ])
+fi
+
+# Check for Octave preprocessor/compiler/linker flags
+if test -n "$OCTAVE"; then
+
    AC_MSG_CHECKING([for Octave preprocessor flags])
    OCTAVE_CPPFLAGS=
    for var in CPPFLAGS INCFLAGS ALL_CXXFLAGS; do
@@ -1044,12 +1069,13 @@ if test -n "$OCTAVE"; then
       done
    done
    AC_MSG_RESULT([$OCTAVE_CPPFLAGS])
+
    AC_MSG_CHECKING([for Octave compiler flags])
    OCTAVE_CXXFLAGS=
-   for var in ALL_CXXFLAGS; do
+   for var in CXX ALL_CXXFLAGS; do
       for flag in `env - ${mkoctfile} -p ${var}`; do
          case ${flag} in
-            -g*|-W*) OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} ${flag}";;
+            -std=*|-g*|-W*) OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} ${flag}";;
             *) ;;
          esac
       done
@@ -1057,19 +1083,25 @@ if test -n "$OCTAVE"; then
    save_CXXFLAGS="${CXXFLAGS}"
    CXXFLAGS="-Werror -O0"
    AC_COMPILE_IFELSE([
-      AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT],[])
+      AC_LANG_PROGRAM([],[])
    ],[
       OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} -O0"
    ])
    CXXFLAGS="${save_CXXFLAGS}"
    AC_MSG_RESULT([$OCTAVE_CXXFLAGS])
+
    AC_MSG_CHECKING([for Octave linker flags])
    OCTAVE_LDFLAGS=
    for var in RDYNAMIC_FLAG LFLAGS RLD_FLAG OCTAVE_LIBS LIBS; do
      OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`env - ${mkoctfile} -p ${var}`
    done
    AC_MSG_RESULT([$OCTAVE_LDFLAGS])
-   for octave_opt in --silent --norc --no-history --no-window-system; do
+
+fi
+
+# Check for Octave options
+if test -n "$OCTAVE"; then
+   for octave_opt in --no-window-system --silent --norc --no-history; do
       AC_MSG_CHECKING([if Octave option '${octave_opt}' is supported])
       octave_out=`${OCTAVE} ${octave_opt} /dev/null 2>&1 | sed -n '1p' | sed -n '/unrecognized/p'`
       AS_IF([test "x${octave_out}" = x],[
@@ -1928,29 +1960,31 @@ else
       PHP5=$PHP5BIN
     fi
 
-    AC_MSG_CHECKING(for PHP5 header files)
-    dnl /usr/bin/php5 -> /usr/bin/php-config5
-    case $PHP5 in
-      *5)
-	PHP5CONFIG=`echo "$PHP5"|sed 's/5$/-config5/'` ;;
-      *)
-	PHP5CONFIG=$PHP5-config ;;
-    esac
-    php5_version=`$PHP5CONFIG --version 2>/dev/null`
-    case $php5_version in
-    5*)
-	PHP5INC=`$PHP5CONFIG --includes 2>/dev/null`
-	if test -n "$PHP5INC"; then
-	  AC_MSG_RESULT($PHP5INC)
-	else
-	  AC_MSG_RESULT(not found)
-	fi
-	;;
-    "")
+    if test -n "$PHP5"; then
+      AC_MSG_CHECKING(for PHP5 header files)
+      dnl /usr/bin/php5 -> /usr/bin/php-config5
+      case $PHP5 in
+        *5)
+          PHP5CONFIG=`echo "$PHP5"|sed 's/5$/-config5/'` ;;
+        *)
+          PHP5CONFIG=$PHP5-config ;;
+      esac
+      php5_version=`$PHP5CONFIG --version 2>/dev/null`
+      case $php5_version in
+      5*)
+        PHP5INC=`$PHP5CONFIG --includes 2>/dev/null`
+        if test -n "$PHP5INC"; then
+          AC_MSG_RESULT($PHP5INC)
+        else
+          AC_MSG_RESULT(not found)
+        fi
+        ;;
+      "")
         AC_MSG_RESULT([could not find $PHP5CONFIG or obtain PHP5 version from it]) ;;
-    *)
-	AC_MSG_RESULT([found PHP $php_version - not PHP 5]) ;;
-    esac
+      *)
+        AC_MSG_RESULT([found PHP $php_version - not PHP 5]) ;;
+      esac
+    fi
 fi
 AC_SUBST(PHP5)
 AC_SUBST(PHP5INC)
@@ -1975,29 +2009,31 @@ else
       PHP=$PHPBIN
     fi
 
-    AC_MSG_CHECKING(for PHP header files)
-    dnl /usr/bin/php7.0 -> /usr/bin/php-config7.0
-    case $PHP in
-      *7.*)
-	PHPCONFIG=`echo "$PHP"|sed 's/7\...*$/-config&/'` ;;
-      *)
-	PHPCONFIG=$PHP-config ;;
-    esac
-    php_version=`$PHPCONFIG --version 2>/dev/null`
-    case $php_version in
-    7.*)
-	PHPINC=`$PHPCONFIG --includes 2>/dev/null`
-	if test -n "$PHPINC"; then
-	  AC_MSG_RESULT($PHPINC)
-	else
-	  AC_MSG_RESULT(not found)
-	fi
-	;;
-    "")
+    if test -n "$PHP"; then
+      AC_MSG_CHECKING(for PHP header files)
+      dnl /usr/bin/php7.0 -> /usr/bin/php-config7.0
+      case $PHP in
+        *7.*)
+          PHPCONFIG=`echo "$PHP"|sed 's/7\...*$/-config&/'` ;;
+        *)
+          PHPCONFIG=$PHP-config ;;
+      esac
+      php_version=`$PHPCONFIG --version 2>/dev/null`
+      case $php_version in
+      7.*)
+        PHPINC=`$PHPCONFIG --includes 2>/dev/null`
+        if test -n "$PHPINC"; then
+          AC_MSG_RESULT($PHPINC)
+        else
+          AC_MSG_RESULT(not found)
+        fi
+        ;;
+      "")
         AC_MSG_RESULT([could not find $PHPCONFIG or obtain PHP version from it]) ;;
-    *)
-	AC_MSG_RESULT([found PHP $php_version - not PHP 7]) ;;
-    esac
+      *)
+        AC_MSG_RESULT([found PHP $php_version - not PHP 7]) ;;
+      esac
+    fi
 fi
 AC_SUBST(PHP)
 AC_SUBST(PHPINC)

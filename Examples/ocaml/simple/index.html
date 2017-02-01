@@ -1,18 +1,18 @@
 <html>
 <head>
-<title>SWIG:Examples:python:simple</title>
+<title>SWIG:Examples:ocaml:simple</title>
 </head>
 
 <body bgcolor="#ffffff">
 
 
-<tt>SWIG/Examples/python/simple/</tt>
+<tt>SWIG/Examples/ocaml/simple/</tt>
 <hr>
 
-<H2>Simple Python Example</H2>
+<H2>Simple Ocaml Example</H2>
 
 <p>
-This example illustrates how you can hook Python to a very simple C program containing
+This example illustrates how you can hook Ocaml to a very simple C program containing
 a function and a global variable.
 
 <h2>The C Code</h2>
@@ -57,7 +57,7 @@ extern double Foo;
 <h2>Compilation</h2>
 
 <ol>
-<li><tt>swig -python <a href="example.i">example.i</a></tt>
+<li><tt>swig -ocaml <a href="example.i">example.i</a></tt>
 <p>
 <li>Compile <tt><a href="example_wrap.c">example_wrap.c</a></tt> and <tt><a href="example.c">example.c</a></tt>
 to create the extension <tt>examplemodule.so</tt>. 
@@ -65,29 +65,29 @@ to create the extension <tt>examplemodule.so</tt>.
 
 <h2>Using the extension</h2>
 
-Click <a href="example.py">here</a> to see a script that calls our C functions from Python.
+Click <a href="example.ml">here</a> to see a script that calls our C functions from Ocaml.
 
 <h2>Key points</h2>
 
 <ul>
-<li>Use the <tt>import</tt> statement to load your extension module from Python. For example:
+<li>Use the <tt>open</tt> statement to load your extension module from Ocaml. For example:
 <blockquote>
 <pre>
-import example
+open Example
 </pre>
 </blockquote>
 
-<li>C functions work just like Python functions. For example:
+<li>C functions work just like Ocaml functions. For example:
 <blockquote>
 <pre>
-g = example.gcd(42,105)
+let g = _gcd '(x,y) as int
 </pre>
 </blockquote>
 
-<li>C global variables are accessed through a special variable called 'cvar'. For example:
+<li>C global variable Foo is wrapped as _Foo in ocaml. For example:
 <blockquote>
 <pre>
-a = example.cvar.Foo
+let _ = Printf.printf "Foo = %f\n" (_Foo '() as float)
 </pre>
 </blockquote>
 </ul>

@@ -19,7 +19,7 @@ SWIG_pwchar_descriptor()
 }
 
 %fragment("SWIG_wcsnlen","header",fragment="SWIG_FromWCharPtrAndSize") {
-size_t
+SWIGINTERN size_t
 SWIG_wcsnlen(const wchar_t* s, size_t maxlen)
 {
   const wchar_t *p;

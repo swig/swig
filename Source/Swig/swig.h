@@ -402,6 +402,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Swig_typemap_clear(const_String_or_char_ptr tmap_method, ParmList *pattern);
   extern int Swig_typemap_apply(ParmList *srcpat, ParmList *destpat);
   extern void Swig_typemap_clear_apply(ParmList *pattern);
+  extern void Swig_typemap_replace_embedded_typemap(String *s, Node *file_line_node);
   extern void Swig_typemap_debug(void);
   extern void Swig_typemap_search_debug_set(void);
   extern void Swig_typemap_used_debug_set(void);

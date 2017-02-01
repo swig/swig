@@ -1877,6 +1877,21 @@ static List *split_embedded_typemap(String *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_typemap_replace_embedded_typemap()
+ *
+ * For special variable macro $typemap(...) expansion outside of typemaps.
+ * Only limited usage works as most typemap special variables ($1, $input etc)
+ * are not expanded correctly outside of typemaps.
+ * ----------------------------------------------------------------------------- */
+
+void Swig_typemap_replace_embedded_typemap(String *s, Node *file_line_node) {
+  Setfile(s, Getfile(file_line_node));
+  Setline(s, Getline(file_line_node));
+  Replaceall(s, "$typemap", "$TYPEMAP");
+  replace_embedded_typemap(s, 0, 0, file_line_node);
+}
+
+/* -----------------------------------------------------------------------------
  * replace_embedded_typemap()
  *
  * This function replaces the special variable macro $typemap(...) with typemap

@@ -799,6 +799,8 @@ static int need_name_warning(Node *n) {
     need = 0;
   } else if (Getattr(n, "templatetype")) {
     need = 0;
+  } else if (GetFlag(n, "parsing_template_declaration")) {
+    need = 0;
   }
   return need;
 }

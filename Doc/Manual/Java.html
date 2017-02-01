@@ -100,6 +100,7 @@
 <ul>
 <li><a href="#Java_helper_functions">C/C++ helper functions</a>
 <li><a href="#Java_class_extension">Class extension with %extend</a>
+<li><a href="#Java_proxycode">Class extension with %proxycode</a>
 <li><a href="#Java_exception_handling">Exception handling with %exception and %javaexception</a>
 <li><a href="#Java_method_access">Method access with %javamethodmodifiers</a>
 </ul>
@@ -281,7 +282,7 @@ compiling and using the generated files.
 
 
 <p>
-The following table list the additional commandline options available for the Java module. They can also be seen by using: 
+The following table lists the additional commandline options available for the Java module. They can also be seen by using:
 </p>
 
 <div class="code"><pre>
@@ -349,7 +350,7 @@ However, SWIG tries to guess the right options when it is installed.  Therefore,
 you may want to start with one of the examples in the <tt>Examples/java</tt> 
 directory.   If that doesn't work, you will need to read the man-pages for
 your compiler and linker to get the right set of options.  You might also
-check the <a href="http://www.dabeaz.com/cgi-bin/wiki.pl">SWIG Wiki</a> for
+check the <a href="https://github.com/swig/swig/wiki">SWIG Wiki</a> for
 additional information.
 </p>
 
@@ -481,7 +482,7 @@ One last piece of advice is to beware of the common faux pas of having more than
 In summary, ensure that you are using the correct C/C++ compiler and linker combination and options for successful native library loading. 
 If you are using the examples that ship with SWIG, then the Examples/Makefile must have these set up correctly for your system. 
 The SWIG installation package makes a best attempt at getting these correct but does not get it right 100% of the time.
-The <a href="http://www.dabeaz.com/cgi-bin/wiki.pl">SWIG Wiki</a> also has some settings for commonly used compiler and operating system combinations.
+The <a href="https://github.com/swig/swig/wiki">SWIG Wiki</a> also has some settings for commonly used compiler and operating system combinations.
 The following section also contains some C++ specific linking problems and solutions.
 </p>
 
@@ -563,7 +564,7 @@ Don't worry if the wrapper file doesn't exist yet--Visual Studio will keep a ref
 <li>Enter "SWIG" in the description field.
 <li>Enter "<tt>swig -java -o $(ProjDir)\$(InputName)_wrap.c $(InputPath)</tt>" in the "Build command(s) field"
 <li>Enter "<tt>$(ProjDir)\$(InputName)_wrap.c</tt>" in the "Output files(s) field".
-<li>Next, select the settings for the entire project and go to C/C++ tab and select the Preprocessor category . Add the include directories to the JNI header files under "Additional include directories", eg "C:\jdk1.3\include,C:\jdk1.3\include\win32".
+<li>Next, select the settings for the entire project and go to C/C++ tab and select the Preprocessor category. Add the include directories to the JNI header files under "Additional include directories", eg "C:\jdk1.3\include, C:\jdk1.3\include\win32".
 <li>Next, select the settings for the entire project and go to Link tab and select the General category. Set the name of the output file to match the name of your Java module (ie. example.dll).
 <li>Next, select the example.c and example_wrap.c files and go to the C/C++ tab and select the Precompiled Headers tab in the project settings. Disabling precompiled headers for these files will overcome any precompiled header errors while building.
 <li>Finally, add the java compilation as a post build rule in the Post-build step tab in project settings, eg, "c:\jdk1.3\bin\javac *.java" 
@@ -1267,7 +1268,7 @@ When wrapped, you will be able to use the functions in a natural way from Java. 
 
 <div class="code">
 <pre>
-SWIGTYPE_p_FILE f = example.fopen("junk","w");
+SWIGTYPE_p_FILE f = example.fopen("junk", "w");
 example.fputs("Hello World\n", f);
 example.fclose(f);
 </pre>
@@ -1341,7 +1342,7 @@ member variables. For example,
 
 <div class="code"><pre>
 struct Vector {
-  double x,y,z;
+  double x, y, z;
 };
 
 </pre></div>
@@ -1878,7 +1879,7 @@ submodules or packages.  For example, if you have a file like this,
 namespace foo {
   int fact(int n);
   struct Vector {
-    double x,y,z;
+    double x, y, z;
   };
 };
 </pre>
@@ -1978,7 +1979,7 @@ struct pair {
   ~pair();
 };
 
-%template(pairii) pair&lt;int,int&gt;;
+%template(pairii) pair&lt;int, int&gt;;
 </pre>
 </div>
 
@@ -1988,7 +1989,7 @@ In Java:
 
 <div class="code">
 <pre>
-pairii p = new pairii(3,4);
+pairii p = new pairii(3, 4);
 int first = p.getFirst();
 int second = p.getSecond();
 </pre>
@@ -4285,11 +4286,11 @@ From Java, you could then write code like this:
 <pre>
 Image im = new Image();
 SWIGTYPE_p_a_4__double a = example.new_mat44();
-example.mat44_set(a,0,0,1.0);
-example.mat44_set(a,1,1,1.0);
-example.mat44_set(a,2,2,1.0);
+example.mat44_set(a, 0, 0, 1.0);
+example.mat44_set(a, 1, 1, 1.0);
+example.mat44_set(a, 2, 2, 1.0);
 ...
-example.set_transform(im,a);
+example.set_transform(im, a);
 example.free_mat44(a);
 </pre>
 </div>
@@ -4317,13 +4318,13 @@ Here is a simple example:
 %}
 
 struct Vector {
-  double x,y,z;
+  double x, y, z;
 };
 
 %extend Vector {
   char *toString() {
       static char tmp[1024];
-      sprintf(tmp,"Vector(%g,%g,%g)", $self-&gt;x,$self-&gt;y,$self-&gt;z);
+      sprintf(tmp, "Vector(%g, %g, %g)", $self-&gt;x, $self-&gt;y, $self-&gt;z);
       return tmp;
   }
   Vector(double x, double y, double z) {
@@ -4343,7 +4344,7 @@ Now, in Java
 
 <div class="code">
 <pre>
-Vector v = new Vector(2,3,4);
+Vector v = new Vector(2, 3, 4);
 System.out.println(v);
 </pre>
 </div>
@@ -4354,7 +4355,7 @@ will display
 
 <div class="code">
 <pre>
-Vector(2,3,4)
+Vector(2, 3, 4)
 </pre>
 </div>
 
@@ -4363,7 +4364,144 @@ Vector(2,3,4)
 in any way---the extensions only show up in the Java interface.
 </p>
 
-<H3><a name="Java_exception_handling">25.7.3 Exception handling with %exception and %javaexception</a></H3>
+<H3><a name="Java_proxycode">25.7.3 Class extension with %proxycode</a></H3>
+
+
+<p>
+The previous section described how to extend a wrapped class with C or C++ code.
+This section describes how to extend a wrapped class with Java code instead of C/C++ code.
+The <tt>%proxycode</tt> directive is used and is just a macro for <tt>%insert("proxycode")</tt>.
+The <a href="SWIG.html#SWIG_nn42">Code insertion block</a> section describes the <tt>%insert</tt> directive.
+The section of code for insertion is "proxycode", that is, the Java proxy class.
+This directive must hence only be used within the scope of a class, otherwise it is silently ignored.
+There are two common ways to get the scope correct.
+</p>
+
+<p>
+The first is to use <tt>%proxycode</tt> inside a class that SWIG parses, for example a <tt>toString()</tt> method can be added to a C++ class using pure Java code.
+A C++ header file can mix C++ and Java code inside the C++ class as follows:
+</p>
+
+<div class="code">
+<pre>
+// flag.h header file
+class Flag {
+  bool flag;
+public:
+  Flag(bool flag) : flag(flag) {}
+  bool FetchFlag() { return flag; }
+#if defined(SWIG)
+%proxycode %{
+  public String toString() {
+    boolean flag = FetchFlag();
+    return Boolean.toString(flag);
+  }
+%}
+#endif
+};
+</pre>
+</div>
+
+<p>
+and wrapped using:
+</p>
+
+<div class="code">
+<pre>
+%{
+#include "flag.h"
+%}
+%include "flag.h"
+</pre>
+</div>
+
+<p>
+The second is to use <tt>%proxycode</tt> within <tt>%extend</tt> as everything within a <tt>%extend</tt> block is effectively within the scope of the class, for example:
+</p>
+
+<div class="code">
+<pre>
+// flag.h header file
+class Flag {
+  bool flag;
+public:
+  Flag(bool flag) : flag(flag) {}
+  bool FetchFlag() { return flag; }
+};
+</pre>
+</div>
+
+<p>
+and wrapped using:
+</p>
+
+<div class="code">
+<pre>
+%{
+#include "flag.h"
+%}
+%include "flag.h"
+
+%extend Flag {
+#if defined(SWIG)
+%proxycode %{
+  public String toString() {
+    boolean flag = FetchFlag();
+    return Boolean.toString(flag);
+  }
+%}
+#endif
+}
+</pre>
+</div>
+
+<p>
+There is some very limited support of typemaps within a <tt>%proxycode</tt> block.
+A useful trick is to obtain the Java type for a given C/C++ type using the <a href="Typemaps.html#Typemaps_special_macro_typemap">$typemap</a> special macro.
+The following C++ template demonstrates this:
+</p>
+
+<div class="code">
+<pre>
+%inline %{
+template&lt;typename T&gt; struct Value {
+  T value;
+  Value(const T&amp; val) : value(val) {}
+};
+%}
+
+%extend Value {
+%proxycode %{
+  public String toString() {
+    // Note template type expansion is supported, so T is expanded to 'unsigned int' in this example
+    // and $typemap(jstype, unsigned int) in turn is expanded to 'long'
+    $typemap(jstype, T) val = getValue();
+    return "$javaclassname value: " + val + " Java type: $typemap(jstype, T) JNI type: $typemap(jni, T)";
+  }
+%}
+}
+%template(ValueUnsignedInt) Value&lt;unsigned int&gt;;
+</pre>
+</div>
+
+<p>
+The generated Java contains the expanded special variable and macro resulting in Java proxy code:
+</p>
+
+<div class="code">
+<pre>
+public class ValueUnsignedInt {
+  ...
+  public String toString() {
+    long val = getValue();
+    return "ValueUnsignedInt value: " + val + " Java type: long JNI type: jlong";
+  }
+
+}
+</pre>
+</div>
+
+<H3><a name="Java_exception_handling">25.7.4 Exception handling with %exception and %javaexception</a></H3>
 
 
 <p>
@@ -4522,7 +4660,7 @@ to raise exceptions.  See the <a href="Library.html#Library">SWIG Library</a> ch
 The typemap example <a href="#Java_exception_typemap">Handling C++ exception specifications as Java exceptions</a> provides further exception handling capabilities.
 </p>
 
-<H3><a name="Java_method_access">25.7.4 Method access with %javamethodmodifiers</a></H3>
+<H3><a name="Java_method_access">25.7.5 Method access with %javamethodmodifiers</a></H3>
 
 
 <p>
@@ -4606,10 +4744,10 @@ In Java, this allows you to pass simple values.  For example:
 
 <div class="code">
 <pre>
-int result = example.sub(7,4);
+int result = example.sub(7, 4);
 System.out.println("7 - 4 = " + result);
 int[] sum = {0};
-example.add(3,4,sum);
+example.add(3, 4, sum);
 System.out.println("3 + 4 = " + sum[0]);
 </pre>
 </div>
@@ -4754,7 +4892,7 @@ extern void add(int x, int y, int *result);
 </div>
 
 <p>
-The <tt>%pointer_functions(type,name)</tt> macro generates five helper functions that can be used to create,
+The <tt>%pointer_functions(type, name)</tt> macro generates five helper functions that can be used to create,
 destroy, copy, assign, and dereference a pointer.  In this case, the functions are as follows:
 </p>
 
@@ -4775,20 +4913,20 @@ In Java, you would use the functions like this:
 <div class="code">
 <pre>
 SWIGTYPE_p_int intPtr = example.new_intp();
-example.add(3,4,intPtr);
+example.add(3, 4, intPtr);
 int result = example.intp_value(intPtr);
 System.out.println("3 + 4 = " + result);
 </pre>
 </div>
 
 <p>
-If you replace <tt>%pointer_functions(int,intp)</tt> by <tt>%pointer_class(int,intp)</tt>, the interface is more class-like.
+If you replace <tt>%pointer_functions(int, intp)</tt> by <tt>%pointer_class(int, intp)</tt>, the interface is more class-like.
 </p>
 
 <div class="code">
 <pre>
 intp intPtr = new intp();
-example.add(3,4,intPtr.cast());
+example.add(3, 4, intPtr.cast());
 int result = intPtr.value();
 System.out.println("3 + 4 = " + result);
 </pre>
@@ -4907,7 +5045,7 @@ int[] array = new int[10000000];          // Array of 10-million integers
 for (int i=0; i&lt;array.length; i++) {      // Set some values
   array[i] = i;
 }
-int sum = example.sumitems(array,10000);
+int sum = example.sumitems(array, 10000);
 System.out.println("Sum = " + sum);
 </pre>
 </div>
@@ -4939,7 +5077,7 @@ For example:
 </div>
 
 <p>
-The <tt>%array_functions(type,name)</tt> macro generates four helper functions that can be used to create and
+The <tt>%array_functions(type, name)</tt> macro generates four helper functions that can be used to create and
 destroy arrays and operate on elements.  In this case, the functions are as follows:
 </p>
 
@@ -4960,15 +5098,15 @@ In Java, you would use the functions like this:
 <pre>
 SWIGTYPE_p_int array = example.new_intArray(10000000);  // Array of 10-million integers
 for (int i=0; i&lt;10000; i++) {                           // Set some values
-  example.intArray_setitem(array,i,i);
+  example.intArray_setitem(array, i, i);
 }
-int sum = example.sumitems(array,10000);
+int sum = example.sumitems(array, 10000);
 System.out.println("Sum = " + sum);
 </pre>
 </div>
 
 <p>
-If you replace <tt>%array_functions(int,intp)</tt> by <tt>%array_class(int,intp)</tt>, the interface is more class-like
+If you replace <tt>%array_functions(int, intp)</tt> by <tt>%array_class(int, intp)</tt>, the interface is more class-like
 and a couple more helper functions are available for casting between the array and the type wrapper class.
 </p>
 
@@ -4989,9 +5127,9 @@ For instance, you will be able to do this in Java:
 <pre>
 intArray array = new intArray(10000000);  // Array of 10-million integers
 for (int i=0; i&lt;10000; i++) {             // Set some values
-  array.setitem(i,i);
+  array.setitem(i, i);
 }
-int sum = example.sumitems(array.cast(),10000);
+int sum = example.sumitems(array.cast(), 10000);
 System.out.println("Sum = " + sum);
 </pre>
 </div>
@@ -5491,7 +5629,7 @@ parameter is omitted):
 
 <div class="code">
 <pre>
-int c = example.count('e',"Hello World");
+int c = example.count('e', "Hello World");
 </pre>
 </div>
 
@@ -5814,7 +5952,7 @@ Note that when the 'pre' or 'post' attributes are specified and the associated t
 
 
 <p>
-The standard SWIG special variables are available for use within typemaps as described in the <a href="Typemaps.html#Typemaps">Typemaps documentation</a>, for example <tt>$1</tt>, <tt>$input</tt>,<tt>$result</tt> etc.
+The standard SWIG special variables are available for use within typemaps as described in the <a href="Typemaps.html#Typemaps">Typemaps documentation</a>, for example <tt>$1</tt>, <tt>$input</tt>, <tt>$result</tt> etc.
 </p>
 
 <p>
@@ -6070,6 +6208,9 @@ class modifiers for the Java class: default is "public class"
 <p><tt>%typemap(javacode)</tt></p>
 <div class="indent">
 Java code is copied verbatim to the Java class: empty default
+As there can only be one "javacode" typemap per class, also consider using the
+<a href="Java.html#Java_proxycode">%proxycode</a> directive which can be used multiple times per class
+and offers nearly identical functionality.
 </div>
 
 <p><tt>%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized")</tt> <br></p>
@@ -6337,7 +6478,7 @@ For example, integers are converted as follows:
 
 <div class="code">
 <pre>
-%typemap(directorin,descriptor="I") int "$input = (jint) $1;"
+%typemap(directorin, descriptor="I") int "$input = (jint) $1;"
 </pre>
 </div>
 
@@ -6350,14 +6491,14 @@ A typemap for C character strings is:
 
 <div class="code">
 <pre>
-%typemap(directorin, descriptor="Ljava/lang/String;", noblock=1) char * %{
+%typemap(directorin, descriptor="Ljava/lang/String;", noblock=1) char * {
   $input = 0;
   if ($1) {
     $input = JCALL1(NewStringUTF, jenv, (const char *)$1);
     if (!$input) return $null;
   }
   Swig::LocalRefGuard $1_refguard(jenv, $input);
-%}
+}
 </pre>
 </div>
 
@@ -7072,7 +7213,7 @@ public class runme {
   }
 
   public static void main(String argv[]) {
-    String animals[] = {"Cat","Dog","Cow","Goat"};
+    String animals[] = {"Cat", "Dog", "Cow", "Goat"};
     example.print_args(animals);
     String args[] = example.get_args();
     for (int i=0; i&lt;args.length; i++)

@@ -27,7 +27,7 @@ struct ValueStruct {
 };
 %}
 
-// Test 1 for tp_hash
+// Test 1a for tp_hash
 #if defined(SWIGPYTHON_BUILTIN)
 %feature("python:tp_hash") SimpleValue "SimpleValueHashFunction"
 #endif
@@ -53,6 +53,24 @@ long SimpleValueHashFunction(PyObject *v)
 hashfunc test_hashfunc_cast() {
     return SimpleValueHashFunction;
 }
+%}
+
+// Test 1b for tp_hash
+#if defined(SWIGPYTHON_BUILTIN)
+%feature("python:slot", "tp_hash", functype="hashfunc") SimpleValue2::HashFunc;
+#endif
+
+%inline %{
+struct SimpleValue2 {
+  int value;
+  SimpleValue2(int value) : value(value) {}
+#if PY_VERSION_HEX >= 0x03020000
+  typedef Py_hash_t HashType;
+#else
+  typedef long HashType;
+#endif
+  HashType HashFunc() { return (HashType)value; }
+};
 %}
 
 // Test 2 for tp_hash

@@ -995,6 +995,7 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 #define %csmethodmodifiers          %feature("cs:methodmodifiers")
 #define %csnothrowexception         %feature("except")
 #define %csattributes               %feature("cs:attributes")
+#define %proxycode                  %insert("proxycode")
 
 %pragma(csharp) imclassclassmodifiers="class"
 %pragma(csharp) moduleclassmodifiers="public class"

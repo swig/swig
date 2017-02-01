@@ -64,7 +64,7 @@ case "$SWIGLANG" in
 		;;
 	"octave")
 		if [[ -z "$VER" ]]; then
-			sudo apt-get -qq install octave3.2 octave3.2-headers
+			sudo apt-get -qq install liboctave-dev
 		else
 			sudo add-apt-repository -y ppa:kwwette/octaves
 			sudo apt-get -qq update
@@ -80,7 +80,7 @@ case "$SWIGLANG" in
 		sudo apt-get -qq install php$VER-cli php$VER-dev
 		;;
 	"python")
-		sudo apt-get -qq install pep8
+		pip install pep8
 		if [[ "$PY3" ]]; then
 			sudo apt-get install -qq python3-dev
 		fi

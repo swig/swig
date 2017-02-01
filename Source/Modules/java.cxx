@@ -1708,10 +1708,22 @@ public:
    * ----------------------------------------------------------------------------- */
 
   virtual int insertDirective(Node *n) {
+    int ret = SWIG_OK;
     String *code = Getattr(n, "code");
+    String *section = Getattr(n, "section");
     Replaceall(code, "$module", module_class_name);
     Replaceall(code, "$imclassname", imclass_name);
-    return Language::insertDirective(n);
+
+    if (!ImportMode && (Cmp(section, "proxycode") == 0)) {
+      if (proxy_class_code) {
+	Swig_typemap_replace_embedded_typemap(code, n);
+	int offset = Len(code) > 0 && *Char(code) == '\n' ? 1 : 0;
+	Printv(proxy_class_code, Char(code) + offset, "\n", NIL);
+      }
+    } else {
+      ret = Language::insertDirective(n);
+    }
+    return ret;
   }
 
   /* -----------------------------------------------------------------------------
@@ -4522,7 +4534,7 @@ public:
       for (p = l; p;) {
 	if ((tm = Getattr(p, "tmap:directorargout"))) {
 	  addThrows(n, "tmap:directorargout", p);
-	  Replaceall(tm, "$result", "jresult");
+	  Replaceall(tm, "$result", makeParameterName(n, p, i, false));
 	  Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
 	  Printv(w->code, tm, "\n", NIL);
 	  p = Getattr(p, "tmap:directorargout:next");

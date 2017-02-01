@@ -480,7 +480,7 @@ Or in Python:
 <div class="targetlang"><pre>
 &gt;&gt;&gt; example.sin(3)
 5.2335956
-&gt;&gt;&gt; example.strcmp('Dave','Mike')
+&gt;&gt;&gt; example.strcmp('Dave', 'Mike')
 -1
 &gt;&gt;&gt; print example.cvar.Foo
 42
@@ -649,7 +649,7 @@ print cvar.foo                  # Print value of foo
 
 # Perl
 $foo = 3.5;                     # Set foo to 3.5
-print $foo,"\n";                # Print value of foo
+print $foo, "\n";               # Print value of foo
 
 # Ruby
 Module.foo = 3.5               # Set foo to 3.5
@@ -750,7 +750,7 @@ form of type-checking however).</p>
 <p>
 For enumerations, it is critical that the original enum definition be
 included somewhere in the interface file (either in a header file or
-in the <tt>%{,%}</tt> block). SWIG only translates the enumeration
+in the <tt>%{ %}</tt> block). SWIG only translates the enumeration
 into code needed to add the constants to a scripting language. It
 needs the original enumeration declaration in order to get the correct
 enum values as assigned by the C compiler.
@@ -1042,14 +1042,14 @@ expect :</p>
 
 <div class="targetlang"><pre>
 # Copy a file 
-def filecopy(source,target):
-  f1 = fopen(source,"r")
-  f2 = fopen(target,"w")
+def filecopy(source, target):
+  f1 = fopen(source, "r")
+  f2 = fopen(target, "w")
   buffer = malloc(8192)
-  nbytes = fread(buffer,8192,1,f1)
+  nbytes = fread(buffer, 8192, 1, f1)
   while (nbytes &gt; 0):
-    fwrite(buffer,8192,1,f2)
-          nbytes = fread(buffer,8192,1,f1)
+    fwrite(buffer, 8192, 1, f2)
+          nbytes = fread(buffer, 8192, 1, f1)
   free(buffer)
 </pre></div>
 
@@ -1238,7 +1238,7 @@ creating a wrapper equivalent to the following:
 double wrap_dot_product(Vector *a, Vector *b) {
     Vector x = *a;
     Vector y = *b;
-    return dot_product(x,y);
+    return dot_product(x, y);
 }
 </pre></div>
 
@@ -1270,7 +1270,7 @@ Vector *wrap_cross_product(Vector *v1, Vector *v2) {
         Vector y = *v2;
         Vector *result;
         result = (Vector *) malloc(sizeof(Vector));
-        *(result) = cross(x,y);
+        *(result) = cross(x, y);
         return result;
 }
 </pre></div>
@@ -1282,7 +1282,7 @@ or if SWIG was run with the <tt>-c++</tt> option:</p>
 Vector *wrap_cross(Vector *v1, Vector *v2) {
         Vector x = *v1;
         Vector y = *v2;
-        Vector *result = new Vector(cross(x,y)); // Uses default copy constructor
+        Vector *result = new Vector(cross(x, y)); // Uses default copy constructor
         return result;
 }
 </pre></div>
@@ -1360,14 +1360,14 @@ SWIG generates the following code:
 void foo_set(char *value) {
   if (foo) free(foo);
   foo = (char *) malloc(strlen(value)+1);
-  strcpy(foo,value);
+  strcpy(foo, value);
 }
 
 /* C++ mode.  When -c++ option is used */
 void foo_set(char *value) {
   if (foo) delete [] foo;
   foo = new char[strlen(value)+1];
-  strcpy(foo,value);
+  strcpy(foo, value);
 }
 </pre>
 </div>
@@ -1382,7 +1382,7 @@ exactly like you want.  For example:
 <pre>
 %inline %{
   void set_foo(char *value) {
-    strncpy(foo,value, 50);
+    strncpy(foo, value, 50);
   }
 %}
 </pre>
@@ -1591,7 +1591,7 @@ char *pathname_get() {
   return pathname;
 }
 void pathname_set(char *value) {
-  strncpy(pathname,value,256);
+  strncpy(pathname, value, 256);
 }
 </pre>
 </div>
@@ -1612,9 +1612,9 @@ directive as shown :</p>
 
 int a;       // Can read/write
 %immutable;
-int b,c,d;   // Read only variables
+int b, c, d;   // Read only variables
 %mutable;
-double x,y;  // read/write
+double x, y;  // read/write
 </pre></div>
 
 <p>
@@ -1639,7 +1639,7 @@ The <tt>%mutable</tt> and <tt>%immutable</tt> directives are actually
 
 <div class="code"><pre>
 #define %immutable   %feature("immutable")
-#define %mutable     %feature("immutable","")
+#define %mutable     %feature("immutable", "")
 </pre></div>
 
 <p>
@@ -1648,7 +1648,7 @@ If you wanted to make all wrapped variables read-only, barring one or two, it mi
 
 <div class="code"><pre>
 %immutable;                     // Make all variables read-only
-%feature("immutable","0") x;    // except, make x read/write
+%feature("immutable", "0") x;   // except, make x read/write
 ...
 double x;
 double y;
@@ -2173,7 +2173,7 @@ consider a function like this:
 </p>
 
 <div class="code"><pre>
-int binary_op(int a, int b, int (*op)(int,int));
+int binary_op(int a, int b, int (*op)(int, int));
 </pre></div>
 
 <p>
@@ -2182,10 +2182,10 @@ may find the function to be impossible to use.  For instance, in Python:
 </p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; def add(x,y):
+&gt;&gt;&gt; def add(x, y):
 ...     return x+y
 ...
-&gt;&gt;&gt; binary_op(3,4,add)
+&gt;&gt;&gt; binary_op(3, 4, add)
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
 TypeError: Type error. Expected _p_f_int_int__int
@@ -2202,12 +2202,12 @@ One way to do this is to use the <tt>%constant</tt> directive like this:
 
 <div class="code"><pre>
 /* Function with a callback */
-int binary_op(int a, int b, int (*op)(int,int));
+int binary_op(int a, int b, int (*op)(int, int));
 
 /* Some callback functions */
-%constant int add(int,int);
-%constant int sub(int,int);
-%constant int mul(int,int);
+%constant int add(int, int);
+%constant int sub(int, int);
+%constant int mul(int, int);
 </pre></div>
 
 <p>
@@ -2217,9 +2217,9 @@ constants in the target scripting language.  This allows you to use them as foll
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; binary_op(3,4,add)
+&gt;&gt;&gt; binary_op(3, 4, add)
 7
-&gt;&gt;&gt; binary_op(3,4,mul)
+&gt;&gt;&gt; binary_op(3, 4, mul)
 12
 &gt;&gt;&gt;
 </pre>
@@ -2232,7 +2232,7 @@ as functions. For example:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; add(3,4)
+&gt;&gt;&gt; add(3, 4)
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
 TypeError: object is not callable: '_ff020efc_p_f_int_int__int'
@@ -2248,13 +2248,13 @@ can use the <tt>%callback</tt> and <tt>%nocallback</tt> directives like this:
 <div class="code">
 <pre>
 /* Function with a callback */
-int binary_op(int a, int b, int (*op)(int,int));
+int binary_op(int a, int b, int (*op)(int, int));
 
 /* Some callback functions */
 %callback("%s_cb");
-int add(int,int);
-int sub(int,int);
-int mul(int,int);
+int add(int, int);
+int sub(int, int);
+int mul(int, int);
 %nocallback;
 </pre></div>
 
@@ -2267,13 +2267,13 @@ disabled using <tt>%nocallback</tt>.  When you do this, the interface now works 
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; binary_op(3,4,add_cb)
+&gt;&gt;&gt; binary_op(3, 4, add_cb)
 7
-&gt;&gt;&gt; binary_op(3,4,mul_cb)
+&gt;&gt;&gt; binary_op(3, 4, mul_cb)
 12
-&gt;&gt;&gt; add(3,4)
+&gt;&gt;&gt; add(3, 4)
 7
-&gt;&gt;&gt; mul(3,4)
+&gt;&gt;&gt; mul(3, 4)
 12
 </pre>
 </div>
@@ -2294,9 +2294,9 @@ variation installs the callbacks as all upper case constants such as
 <div class="code"><pre>
 /* Some callback functions */
 %callback("%(uppercase)s");
-int add(int,int);
-int sub(int,int);
-int mul(int,int);
+int add(int, int);
+int sub(int, int);
+int mul(int, int);
 %nocallback;
 </pre></div>
 
@@ -2332,7 +2332,7 @@ to an individual member. For example, the declaration :</p>
 
 <div class="code"><pre>
 struct Vector {
-  double x,y,z;
+  double x, y, z;
 }
 
 </pre></div>
@@ -2368,7 +2368,7 @@ defined in the interface.  For example:
 
 <div class="code"><pre>
 struct Vector *new_Vector() {
-    return (Vector *) calloc(1,sizeof(struct Vector));
+    return (Vector *) calloc(1, sizeof(struct Vector));
 }
 void delete_Vector(struct Vector *obj) {
     free(obj);
@@ -2384,9 +2384,9 @@ language using code like this:
 <div class="code">
 <pre>
 v = new_Vector()
-Vector_x_set(v,2)
-Vector_y_set(v,10)
-Vector_z_set(v,-5)
+Vector_x_set(v, 2)
+Vector_y_set(v, 10)
+Vector_z_set(v, -5)
 ...
 delete_Vector(v)
 </pre>
@@ -2405,7 +2405,7 @@ programs :</p>
 
 <div class="code"><pre>
 typedef struct {
-  double x,y,z;
+  double x, y, z;
 } Vector;
 
 </pre></div>
@@ -2430,7 +2430,7 @@ If two different names are used like this :</p>
 
 <div class="code"><pre>
 typedef struct vector_struct {
-  double x,y,z;
+  double x, y, z;
 } Vector;
 
 </pre></div>
@@ -2474,7 +2474,7 @@ char *Foo_name_set(Foo *obj, char *c) {
   if (obj-&gt;name)
     free(obj-&gt;name);
   obj-&gt;name = (char *) malloc(strlen(c)+1);
-  strcpy(obj-&gt;name,c);
+  strcpy(obj-&gt;name, c);
   return obj-&gt;name;
 }
 </pre></div>
@@ -2571,7 +2571,7 @@ language interface) results in the following code:
 <div class="code">
 <pre>
 Bar *b;
-Foo_x_set(Bar_f_get(b),37);
+Foo_x_set(Bar_f_get(b), 37);
 </pre>
 </div>
 
@@ -2727,7 +2727,7 @@ the following declaration :</p>
 /* file : vector.h */
 ...
 typedef struct Vector {
-  double x,y,z;
+  double x, y, z;
 } Vector;
 
 </pre></div>
@@ -2760,7 +2760,7 @@ You can make a <tt>Vector</tt> look a lot like a class by writing a SWIG interfa
     return sqrt($self-&gt;x*$self-&gt;x+$self-&gt;y*$self-&gt;y+$self-&gt;z*$self-&gt;z);
   }
   void print() {
-    printf("Vector [%g, %g, %g]\n", $self-&gt;x,$self-&gt;y,$self-&gt;z);
+    printf("Vector [%g, %g, %g]\n", $self-&gt;x, $self-&gt;y, $self-&gt;z);
   }
 };
 
@@ -2780,7 +2780,7 @@ Now, when used with proxy classes in Python, you can do things like
 this :</p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; v = Vector(3,4,0)                 # Create a new vector
+&gt;&gt;&gt; v = Vector(3, 4, 0)                 # Create a new vector
 &gt;&gt;&gt; print v.magnitude()                # Print magnitude
 5.0
 &gt;&gt;&gt; v.print()                  # Print it out
@@ -2800,7 +2800,7 @@ of the Vector structure. For example:</p>
 %}
 
 typedef struct Vector {
-  double x,y,z;
+  double x, y, z;
   %extend {
     Vector(double x, double y, double z) { ... }
     ~Vector() { ... }
@@ -2842,9 +2842,9 @@ double Vector_magnitude(Vector *v) {
 %}
 
 typedef struct Vector {
-  double x,y,z;
+  double x, y, z;
   %extend {
-    Vector(int,int,int); // This calls new_Vector()
+    Vector(int, int, int); // This calls new_Vector()
     ~Vector();           // This calls delete_Vector()
     double magnitude();  // This will call Vector_magnitude()
     ...
@@ -2959,7 +2959,7 @@ char *Person_name_get(Person *p) {
 }
 
 void Person_name_set(Person *p, char *val) {
-  strncpy(p-&gt;name,val,50);
+  strncpy(p-&gt;name, val, 50);
   make_upper(p-&gt;name);
 }
 %}
@@ -3104,11 +3104,11 @@ _wrap_Vector_x_get(ClientData clientData, Tcl_Interp *interp,
   struct Vector *arg1 ;
   double result ;
 
-  if (SWIG_GetArgs(interp, objc, objv,"p:Vector_x_get self ",&amp;arg0,
+  if (SWIG_GetArgs(interp, objc, objv, "p:Vector_x_get self ", &amp;arg0,
                    SWIGTYPE_p_Vector) == TCL_ERROR)
     return TCL_ERROR;
   result = (double ) (arg1-&gt;x);
-  Tcl_SetObjResult(interp,Tcl_NewDoubleObj((double) result));
+  Tcl_SetObjResult(interp, Tcl_NewDoubleObj((double) result));
   return TCL_OK;
 }
 </pre>
@@ -3140,9 +3140,9 @@ output of SWIG is structured first.</p>
 
 
 <p>
-When SWIG creates its output file, it is broken up into five sections
+When SWIG creates its output C/C++ file, it is broken up into five sections
 corresponding to runtime code, headers, wrapper functions, and module
-initialization code (in that order).   
+initialization code (in that order).
 </p>
 
 <ul>
@@ -3176,9 +3176,37 @@ the module upon loading.
 
 
 <p>
-Code is inserted into the appropriate code section by using one
-of the code insertion directives listed below. The order of the sections in
-the wrapper file is as shown:
+The <tt>%insert</tt> directive enables inserting blocks of code into a given section of the generated code.
+It can be used in one of two ways:
+</p>
+
+<div class="code">
+<pre>
+%insert("section") "filename"
+%insert("section") %{ ... %}
+</pre>
+</div>
+
+<p>
+The first will dump the contents of the file in the given <tt>filename</tt> into the named <tt>section</tt>.
+The second inserts the code between the braces into the named <tt>section</tt>.
+For example, the following adds code into the runtime section:
+</p>
+
+<div class="code">
+<pre>
+%insert("runtime") %{
+  ... code in runtime section ...
+%}
+</pre>
+</div>
+
+<p>
+There are the 5 sections, however, some target languages add in additional sections and some of these result in code being generated into a target language file instead of the C/C++ wrapper file.
+These are documented when available in the target language chapters.
+Macros named after the code sections are available as additional directives and these macro directives are normally used instead of <tt>%insert</tt>.
+For example, <tt>%runtime</tt> is used instead of <tt>%insert("runtime")</tt>.
+The valid sections and order of the sections in the generated C/C++ wrapper file is as shown:
 </p>
 
 <div class="code">
@@ -3442,7 +3470,7 @@ header files.
 <p>
 Sometimes, it is necessary to use certain header files in order for
 the code generated by SWIG to compile properly. Make sure you
-include certain header files by using a <tt>%{,%}</tt> block like this:
+include certain header files by using a <tt>%{ %}</tt> block like this:
 </p>
 
 <div class="code"><pre>

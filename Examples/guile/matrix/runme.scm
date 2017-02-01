@@ -1,6 +1,3 @@
-#!./matrix \
--e do-test -s
-!#
 ;;; Authors: David Beazley <beazley@cs.uchicago.edu>, 1999
 ;;;          Martin Froehlich <MartinFroehlich@ACM.org>, 2000
 ;;;

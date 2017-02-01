@@ -5,7 +5,12 @@
 
 %warnfilter(SWIGWARN_LANG_IDENTIFIER);
 
-  
+#if defined(SWIGOCTAVE)
+%warnfilter(SWIGWARN_IGNORE_OPERATOR_LSHIFT_MSG) operator<<;
+%warnfilter(SWIGWARN_IGNORE_OPERATOR_RSHIFT_MSG) operator>>;
+#endif
+
+
 %inline 
 {
 

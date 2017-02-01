@@ -17,14 +17,24 @@
   size_type size() const;
   void swap(container& v);
 
+%enddef
+
+%define %std_container_methods_forward_iterators(container...)
+
   #ifdef SWIG_EXPORT_ITERATOR_METHODS
   class iterator;
-  class reverse_iterator;
   class const_iterator;
-  class const_reverse_iterator;
-
   iterator begin();
   iterator end();
+  #endif
+
+%enddef
+
+%define %std_container_methods_reverse_iterators(container...)
+
+  #ifdef SWIG_EXPORT_ITERATOR_METHODS
+  class reverse_iterator;
+  class const_reverse_iterator;
   reverse_iterator rbegin();
   reverse_iterator rend();
   #endif
@@ -34,7 +44,20 @@
 // Common container methods
 
 %define %std_container_methods(container...)
+
   %std_container_methods_non_resizable(%arg(container))
+  %std_container_methods_forward_iterators(%arg(container))
+  %std_container_methods_reverse_iterators(%arg(container))
+
+  void clear();
+  allocator_type get_allocator() const;
+
+%enddef
+
+%define %std_container_methods_without_reverse_iterators(container...)
+
+  %std_container_methods_non_resizable(%arg(container))
+  %std_container_methods_forward_iterators(%arg(container))
 
   void clear();
   allocator_type get_allocator() const;
@@ -65,6 +88,8 @@
 %define %std_sequence_methods_non_resizable(sequence)
 
   %std_container_methods_non_resizable(%arg(sequence))
+  %std_container_methods_forward_iterators(%arg(container))
+  %std_container_methods_reverse_iterators(%arg(container))
 
   const value_type& front() const;
   const value_type& back() const;
@@ -97,6 +122,8 @@
 %define %std_sequence_methods_non_resizable_val(sequence...)
 
   %std_container_methods_non_resizable(%arg(sequence))
+  %std_container_methods_forward_iterators(%arg(container))
+  %std_container_methods_reverse_iterators(%arg(container))
 
   value_type front() const;
   value_type back() const;

@@ -57,6 +57,7 @@ static Node    *currentOuterClass = 0; /* for nested classes */
 static const char *last_cpptype = 0;
 static int      inherit_list = 0;
 static Parm    *template_parameters = 0;
+static int      parsing_template_declaration = 0;
 static int      extendmode   = 0;
 static int      compact_default_args = 0;
 static int      template_reduce = 0;
@@ -310,6 +311,7 @@ static String *add_oldname = 0;
 
 
 static String *make_name(Node *n, String *name,SwigType *decl) {
+  String *made_name = 0;
   int destructor = name && (*(Char(name)) == '~');
 
   if (yyrename) {
@@ -323,7 +325,13 @@ static String *make_name(Node *n, String *name,SwigType *decl) {
   }
 
   if (!name) return 0;
-  return Swig_name_make(n,Namespaceprefix,name,decl,add_oldname);
+
+  if (parsing_template_declaration)
+    SetFlag(n, "parsing_template_declaration");
+  made_name = Swig_name_make(n, Namespaceprefix, name, decl, add_oldname);
+  Delattr(n, "parsing_template_declaration");
+
+  return made_name;
 }
 
 /* Generate an unnamed identifier */
@@ -412,7 +420,8 @@ static void add_symbols(Node *n) {
     }
 
     if (extendmode) {
-      Setattr(n,"isextendmember","1");
+      if (!Getattr(n, "template"))
+        SetFlag(n,"isextendmember");
     }
 
     if (!isfriend && inclass) {
@@ -488,7 +497,10 @@ static void add_symbols(Node *n) {
 	symname = Copy(Getattr(n,"unnamed"));
       }
       if (symname) {
+	if (parsing_template_declaration)
+	  SetFlag(n, "parsing_template_declaration");
 	wrn = Swig_name_warning(n, Namespaceprefix, symname,0);
+	Delattr(n, "parsing_template_declaration");
       }
     } else {
       String *name = Getattr(n,"name");
@@ -501,7 +513,10 @@ static void add_symbols(Node *n) {
       Swig_features_get(Swig_cparse_features(),Namespaceprefix,name,fun,n);
 
       symname = make_name(n, name,fun);
+      if (parsing_template_declaration)
+	SetFlag(n, "parsing_template_declaration");
       wrn = Swig_name_warning(n, Namespaceprefix,symname,fun);
+      Delattr(n, "parsing_template_declaration");
       
       Delete(fdecl);
       Delete(fun);
@@ -1513,7 +1528,7 @@ static void mark_nodes_as_extend(Node *n) {
 %type <p>        parm_no_dox parm valparm rawvalparms valparms valptail ;
 %type <p>        typemap_parm tm_list tm_tail ;
 %type <p>        templateparameter ;
-%type <id>       templcpptype cpptype access_specifier;
+%type <id>       templcpptype cpptype classkey classkeyopt access_specifier;
 %type <node>     base_specifier;
 %type <str>      ellipsis variadic;
 %type <type>     type rawtype type_right anon_bitfield_type decltype ;
@@ -1678,14 +1693,14 @@ swig_directive : extend_directive { $$ = $1; }
    %extend classname { ... } 
    ------------------------------------------------------------ */
 
-extend_directive : EXTEND options idcolon LBRACE {
+extend_directive : EXTEND options classkeyopt idcolon LBRACE {
                Node *cls;
 	       String *clsname;
 	       extendmode = 1;
 	       cplus_mode = CPLUS_PUBLIC;
 	       if (!classes) classes = NewHash();
 	       if (!classes_typedefs) classes_typedefs = NewHash();
-	       clsname = make_class_name($3);
+	       clsname = make_class_name($4);
 	       cls = Getattr(classes,clsname);
 	       if (!cls) {
 	         cls = Getattr(classes_typedefs, clsname);
@@ -1694,7 +1709,7 @@ extend_directive : EXTEND options idcolon LBRACE {
 		   Node *am = Getattr(Swig_extend_hash(),clsname);
 		   if (!am) {
 		     Swig_symbol_newscope();
-		     Swig_symbol_setscopename($3);
+		     Swig_symbol_setscopename($4);
 		     prev_symtab = 0;
 		   } else {
 		     prev_symtab = Swig_symbol_setscope(Getattr(am,"symtab"));
@@ -1707,7 +1722,7 @@ extend_directive : EXTEND options idcolon LBRACE {
 		   prev_symtab = Swig_symbol_setscope(Getattr(cls, "symtab"));
 		   current_class = cls;
 		   SWIG_WARN_NODE_BEGIN(cls);
-		   Swig_warning(WARN_PARSE_EXTEND_NAME, cparse_file, cparse_line, "Deprecated %%extend name used - the %s name '%s' should be used instead of the typedef name '%s'.\n", Getattr(cls, "kind"), SwigType_namestr(Getattr(cls, "name")), $3);
+		   Swig_warning(WARN_PARSE_EXTEND_NAME, cparse_file, cparse_line, "Deprecated %%extend name used - the %s name '%s' should be used instead of the typedef name '%s'.\n", Getattr(cls, "kind"), SwigType_namestr(Getattr(cls, "name")), $4);
 		   SWIG_WARN_NODE_END(cls);
 		 }
 	       } else {
@@ -1715,7 +1730,7 @@ extend_directive : EXTEND options idcolon LBRACE {
 		 prev_symtab = Swig_symbol_setscope(Getattr(cls,"symtab"));
 		 current_class = cls;
 	       }
-	       Classprefix = NewString($3);
+	       Classprefix = NewString($4);
 	       Namespaceprefix= Swig_symbol_qualifiedscopename(0);
 	       Delete(clsname);
 	     } cpp_members RBRACE {
@@ -1727,22 +1742,22 @@ extend_directive : EXTEND options idcolon LBRACE {
 		 Swig_symbol_setscope(prev_symtab);
 	       }
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-               clsname = make_class_name($3);
+               clsname = make_class_name($4);
 	       Setattr($$,"name",clsname);
 
-	       mark_nodes_as_extend($6);
+	       mark_nodes_as_extend($7);
 	       if (current_class) {
 		 /* We add the extension to the previously defined class */
-		 appendChild($$,$6);
+		 appendChild($$, $7);
 		 appendChild(current_class,$$);
 	       } else {
 		 /* We store the extensions in the extensions hash */
 		 Node *am = Getattr(Swig_extend_hash(),clsname);
 		 if (am) {
 		   /* Append the members to the previous extend methods */
-		   appendChild(am,$6);
+		   appendChild(am, $7);
 		 } else {
-		   appendChild($$,$6);
+		   appendChild($$, $7);
 		   Setattr(Swig_extend_hash(),clsname,$$);
 		 }
 	       }
@@ -3915,9 +3930,10 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
    ------------------------------------------------------------ */
 
 cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { 
-		   if (currentOuterClass)
-		     Setattr(currentOuterClass, "template_parameters", template_parameters);
+		    if (currentOuterClass)
+		      Setattr(currentOuterClass, "template_parameters", template_parameters);
 		    template_parameters = $3; 
+		    parsing_template_declaration = 1;
 		  } cpp_temp_possible {
 			String *tname = 0;
 			int     error = 0;
@@ -4170,6 +4186,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			  template_parameters = Getattr(currentOuterClass, "template_parameters");
 			else
 			  template_parameters = 0;
+			parsing_template_declaration = 0;
                 }
 
 		/* Explicit template instantiation */
@@ -6437,7 +6454,6 @@ access_specifier :  PUBLIC { $$ = (char*)"public"; }
                | PROTECTED { $$ = (char*)"protected"; }
                ;
 
-
 templcpptype   : CLASS { 
                    $$ = (char*)"class"; 
 		   if (!inherit_list) last_cpptype = $$;
@@ -6466,6 +6482,28 @@ cpptype        : templcpptype {
                | UNION {
                    $$ = (char*)"union"; 
 		   if (!inherit_list) last_cpptype = $$;
+               }
+               ;
+
+classkey       : CLASS {
+                   $$ = (char*)"class";
+		   if (!inherit_list) last_cpptype = $$;
+               }
+               | STRUCT {
+                   $$ = (char*)"struct";
+		   if (!inherit_list) last_cpptype = $$;
+               }
+               | UNION {
+                   $$ = (char*)"union";
+		   if (!inherit_list) last_cpptype = $$;
+               }
+               ;
+
+classkeyopt    : classkey {
+		   $$ = $1;
+               }
+               | empty {
+		   $$ = 0;
                }
                ;
 

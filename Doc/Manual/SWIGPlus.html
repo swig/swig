@@ -282,13 +282,13 @@ class FooProxy {
       delete_Foo(self);
     }
     int bar(int x) {
-      return Foo_bar(self,x);
+      return Foo_bar(self, x);
     }
     int x_get() {
       return Foo_x_get(self);
     }
     void x_set(int x) {
-      Foo_x_set(self,x);
+      Foo_x_set(self, x);
     }
 };
 </pre>
@@ -306,15 +306,15 @@ class Foo:
         self.this = new_Foo()
     def __del__(self):
         delete_Foo(self.this)
-    def bar(self,x):
-        return Foo_bar(self.this,x)
-    def __getattr__(self,name):
+    def bar(self, x):
+        return Foo_bar(self.this, x)
+    def __getattr__(self, name):
         if name == 'x':
             return Foo_x_get(self.this)
         ...
-    def __setattr__(self,name,value):
+    def __setattr__(self, name, value):
         if name == 'x':
-            Foo_x_set(self.this,value)
+            Foo_x_set(self.this, value)
         ...
 </pre>
 </div>
@@ -442,7 +442,7 @@ class SpamProxy {
     return FooPtrProxy(Spam_value_get(self));
   }
   void value_set(FooProxy *v) {
-    Spam_value_set(self,v-&gt;self);
+    Spam_value_set(self, v-&gt;self);
     v-&gt;disown();
   }
   ...
@@ -1435,7 +1435,7 @@ following:
 Vector *wrap_cross_product(Vector *a, Vector *b) {
   Vector x = *a;
   Vector y = *b;
-  Vector r = cross_product(x,y);
+  Vector r = cross_product(x, y);
   return new Vector(r);
 }</pre>
 </div>
@@ -1457,7 +1457,7 @@ called the "Fulton Transform".  This produces a wrapper that looks like this:
 Vector cross_product(Vector *a, Vector *b) {
   SwigValueWrapper&lt;Vector&gt; x = *a;
   SwigValueWrapper&lt;Vector&gt; y = *b;
-  SwigValueWrapper&lt;Vector&gt; r = cross_product(x,y);
+  SwigValueWrapper&lt;Vector&gt; r = cross_product(x, y);
   return new Vector(r);
 }
 </pre>
@@ -1550,7 +1550,7 @@ the full C++ code has been omitted.</p>
 
 class Shape {
 public:
-  double x,y;
+  double x, y;
   virtual double area() = 0;
   virtual double perimeter() = 0;
   void    set_location(double x, double y);
@@ -1586,7 +1586,7 @@ $ python
 153.93804004599999757
 &gt;&gt;&gt; print shapes.Shape_area(square)
 100.00000000000000000
-&gt;&gt;&gt; shapes.Shape_set_location(square,2,-3)
+&gt;&gt;&gt; shapes.Shape_set_location(square, 2, -3)
 &gt;&gt;&gt; print shapes.Shape_perimeter(square)
 40.00000000000000000
 &gt;&gt;&gt;
@@ -1892,7 +1892,7 @@ it might be used like this
 &gt;&gt;&gt; f = Foo()          # Create a Foo
 &gt;&gt;&gt; f.bar(3)
 &gt;&gt;&gt; g = Foo(f)         # Copy Foo
-&gt;&gt;&gt; f.bar("hello",2)
+&gt;&gt;&gt; f.bar("hello", 2)
 </pre>
 </div>
 
@@ -2129,7 +2129,7 @@ If you get an error message such as the following,
 <pre>
 foo.i:6. Overloaded declaration ignored.  Spam::foo(double )
 foo.i:5. Previous declaration is Spam::foo(int )
-foo.i:7. Overloaded declaration ignored.  Spam::foo(Bar *,Spam *,int )
+foo.i:7. Overloaded declaration ignored.  Spam::foo(Bar *, Spam *, int )
 foo.i:5. Previous declaration is Spam::foo(int )
 </pre>
 </div>
@@ -2674,8 +2674,8 @@ operator normally. For example:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; a = Complex(3,4)
-&gt;&gt;&gt; b = Complex(5,2)
+&gt;&gt;&gt; a = Complex(3, 4)
+&gt;&gt;&gt; b = Complex(5, 2)
 &gt;&gt;&gt; c = a + b           # Invokes __add__ method
 </pre>
 </div>
@@ -2698,8 +2698,8 @@ The resulting scripting interface might work like this:
 
 <div class="targetlang">
 <pre>
-a = Complex(3,4)
-b = Complex(5,2)
+a = Complex(3, 4)
+b = Complex(5, 2)
 c = a.add(b)      # Call a.operator+(b)
 </pre>
 </div>
@@ -2807,14 +2807,14 @@ example :
 
 class Vector {
 public:
-  double x,y,z;
+  double x, y, z;
   Vector();
   ~Vector();
   ... bunch of C++ methods ...
   %extend {
     char *__str__() {
       static char temp[256];
-      sprintf(temp,"[ %g, %g, %g ]", $self-&gt;x,$self-&gt;y,$self-&gt;z);
+      sprintf(temp, "[ %g, %g, %g ]", $self-&gt;x, $self-&gt;y, $self-&gt;z);
       return &amp;temp[0];
     }
   }
@@ -2899,7 +2899,7 @@ is expected in an interface file.  For example:
 <div class="code">
 <pre>
 void foo(vector&lt;int&gt; *a, int n);
-void bar(list&lt;int,100&gt; *x);
+void bar(list&lt;int, 100&gt; *x);
 </pre>
 </div>
 
@@ -2912,9 +2912,9 @@ and '&gt;' within a constant expressions currently is not supported by SWIG
 
 <div class="code">
 <pre>
-void bar(list&lt;int,100&gt; *x);                // OK
-void bar(list&lt;int,2*50&gt; *x);               // OK
-void bar(list&lt;int,(2&gt;1 ? 100 : 50)&gt; *x)    // Not supported
+void bar(list&lt;int, 100&gt; *x);                // OK
+void bar(list&lt;int, 2*50&gt; *x);               // OK
+void bar(list&lt;int, (2&gt;1 ? 100 : 50)&gt; *x)    // Not supported
 </pre>
 </div>
 
@@ -3085,7 +3085,7 @@ template vector&lt;typename T, int max=100&gt; class vector {
 };
 
 %template(intvec) vector&lt;int&gt;;           // OK
-%template(vec1000) vector&lt;int,1000&gt;;     // OK
+%template(vec1000) vector&lt;int, 1000&gt;;     // OK
 </pre>
 </div>
 
@@ -3205,8 +3205,8 @@ use the empty template instantiation, that is, <tt>%template</tt> with no name. 
 
 <div class="code">
 <pre>
-// Instantiate traits&lt;double,double&gt;, but don't wrap it.
-%template() traits&lt;double,double&gt;;
+// Instantiate traits&lt;double, double&gt;, but don't wrap it.
+%template() traits&lt;double, double&gt;;
 </pre>
 </div>
 
@@ -3466,8 +3466,8 @@ template&lt;class T1, class T2&gt; struct pair {
   T2 second;
   pair() : first(T1()), second(T2()) { }
   pair(const T1 &amp;x, const T2 &amp;y) : first(x), second(y) { }
-  template&lt;class U1, class U2&gt; pair(const pair&lt;U1,U2&gt; &amp;x)
-                                       : first(x.first),second(x.second) { }
+  template&lt;class U1, class U2&gt; pair(const pair&lt;U1, U2&gt; &amp;x)
+                                       : first(x.first), second(x.second) { }
 };
 </pre>
 </div>
@@ -3481,7 +3481,7 @@ in the template class itself.  For example:
 <div class="code">
 <pre>
 %extend pair {
-  %template(pair) pair&lt;T1,T2&gt;;        // Generate default copy constructor
+  %template(pair) pair&lt;T1, T2&gt;;        // Generate default copy constructor
 };
 </pre>
 </div>
@@ -3498,18 +3498,18 @@ Alternatively, you could expand the constructor template in selected instantiati
 <div class="code">
 <pre>
 // Instantiate a few versions
-%template(pairii) pair&lt;int,int&gt;;
-%template(pairdd) pair&lt;double,double&gt;;
+%template(pairii) pair&lt;int, int&gt;;
+%template(pairdd) pair&lt;double, double&gt;;
 
 // Create a default constructor only 
-%extend pair&lt;int,int&gt; {
-  %template(paird) pair&lt;int,int&gt;;         // Default constructor
+%extend pair&lt;int, int&gt; {
+  %template(paird) pair&lt;int, int&gt;;         // Default constructor
 };
 
 // Create default and conversion constructors 
-%extend pair&lt;double,double&gt; {
-  %template(paird) pair&lt;double,dobule&gt;;   // Default constructor
-  %template(pairc) pair&lt;int,int&gt;;         // Conversion constructor
+%extend pair&lt;double, double&gt; {
+  %template(paird) pair&lt;double, dobule&gt;;   // Default constructor
+  %template(pairc) pair&lt;int, int&gt;;         // Conversion constructor
 };
 </pre>
 </div>
@@ -3522,9 +3522,9 @@ instead:
 <div class="code">
 <pre>
 // Create default and conversion constructors 
-%extend pair&lt;double,double&gt; {
-  %template(pair) pair&lt;double,dobule&gt;;   // Default constructor
-  %template(pair) pair&lt;int,int&gt;;         // Conversion constructor
+%extend pair&lt;double, double&gt; {
+  %template(pair) pair&lt;double, dobule&gt;;   // Default constructor
+  %template(pair) pair&lt;int, int&gt;;         // Conversion constructor
 };
 </pre>
 </div>
@@ -3633,6 +3633,43 @@ template&lt;class T&gt; void foo(T x, T y) { };
 <p>
 This will generate two overloaded wrapper methods, the first will take a single integer as an argument
 and the second will take two integer arguments.
+</p>
+
+<p>
+It is even possible to extend a class via <tt>%extend</tt> with template methods, for example:
+</p>
+
+<div class="code">
+<pre>
+%include &lt;std_string.i&gt;
+
+%inline %{
+class ExtendMe {
+public:
+  template &lt;typename T&gt;
+  T do_stuff_impl(int a, T b, double d) {
+    return b;
+  }
+};
+%}
+
+%extend ExtendMe {
+  template&lt;typename T&gt;
+  T do_overloaded_stuff(T b) {
+    return $self-&gt;do_stuff_impl(0, b, 4.0);
+  }
+}
+%template(do_overloaded_stuff) ExtendMe::do_overloaded_stuff&lt;std::string&gt;;
+%template(do_overloaded_stuff) ExtendMe::do_overloaded_stuff&lt;double&gt;;
+</pre>
+</div>
+
+<p>
+The wrapped <tt>ExtendMe</tt> class will then have two (overloaded) methods called <tt>do_overloaded_stuff</tt>.
+</p>
+
+<p>
+<b>Compatibility Note</b>:  Extending a class with template methods was added in version 3.0.12
 </p>
 
 <p>
@@ -3745,7 +3782,7 @@ namespace math {
   double cos(double);
 
   class Complex {
-    double im,re;
+    double im, re;
   public:
     ...
   };
@@ -4364,7 +4401,7 @@ write code like this:
 f = Foo()
 try:
     f.blah()
-except Error,e:
+except Error, e:
     # e is a wrapped instance of "Error"
 </pre>
 </div>
@@ -4403,14 +4440,14 @@ struct Error2 : EBase { };
 struct Error3 : EBase { };
 struct Error4 : EBase { };
 
-%catches(Error1,Error2,...) Foo::bar();
+%catches(Error1, Error2, ...) Foo::bar();
 %catches(EBase) Foo::blah();
 
 class Foo {
 public:
     ...
     void bar();
-    void blah() throw(Error1,Error2,Error3,Error4);
+    void blah() throw(Error1, Error2, Error3, Error4);
     ...
 };
 </pre>
@@ -4441,9 +4478,9 @@ For example:
 
 <div class="code">
 <pre>
-double do_op(Object *o, double (Object::*callback)(double,double));
-extern double (Object::*fooptr)(double,double);
-%constant double (Object::*FOO)(double,double) = &amp;Object::foo;
+double do_op(Object *o, double (Object::*callback)(double, double));
+extern double (Object::*fooptr)(double, double);
+%constant double (Object::*FOO)(double, double) = &amp;Object::foo;
 </pre>
 </div>
 

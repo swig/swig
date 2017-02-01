@@ -31,6 +31,7 @@ CPP_TEST_CASES = \
 	java_director_exception_feature \
 	java_director_exception_feature_nspace \
 	java_director_ptrclass \
+	java_director_typemaps \
 	java_enums \
 	java_jnitypes \
 	java_lib_arrays_dimensionless \

@@ -1198,7 +1198,7 @@ php_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 php_run:
-	$(RUNTOOL) $(PHP) -n -q -d extension_dir=. -d safe_mode=Off $(PHP_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(PHP) -n -q -d extension_dir=. -d safe_mode=Off -d display_errors=stderr $(PHP_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
