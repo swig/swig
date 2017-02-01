@@ -226,13 +226,58 @@ instead of the corresponding language tool (<tt>javadoc</tt>, <tt>sphinx</tt>,
 </p>
 
 
+<h4>doxygen:alias:&lt;command-name&gt;</h4>
+
+<p>
+Specify an alias for a Doxygen command with the given name. This can be useful
+for custom Doxygen commands which can be defined using <tt>ALIASES</tt> option
+for Doxygen itself but which are unknown to SWIG. <tt>"command-name"</tt> is the
+name of the command in the Doxyfile, e.g. if it contains
+</p>
+
+<div class="code"><pre>
+ALIASES = "sideeffect=\par Side Effects:\n"
+</pre></div>
+
+<p>
+Then you could also the same expansion for SWIG with:
+</p>
+
+<div class="code"><pre>
+%feature("doxygen:alias:sideeffect") "\par Side Effects:\n"
+</pre></div>
+
+<p>
+Please note that command arguments are not currently supported with this
+feature.
+</p>
+
+<p>
+Notice that it is perfectly possible and potentially useful to define the alias
+expansion differently depending on the target language, e.g. with
+</p>
+
+<div class="code"><pre>
+#ifdef SWIGJAVA
+%feature("doxygen:alias:not_for_java") "This functionality is not available for Java"
+#else
+%feature("doxygen:alias:not_for_java") ""
+#endif
+</pre></div>
+
+<p>
+you could use <tt>@not_for_java</tt> in the documentation comments of all
+functions which can't, for whatever reason, be currently exposed in Java
+wrappers of the C++ API.
+</p>
+
+
 <h4>doxygen:ignore:&lt;command-name&gt;</h4>
 
 <p>
-Specify that the Doxygen command with the given name should be ignored. This is
-useful for custom Doxygen commands which can be defined using <tt>ALIASES</tt>
-option for Doxygen itself but which are unknown to SWIG. <tt>"command-name"</tt>
-is the real name of the command, e.g. you could use
+This feature allows to just ignore an unknown Doxygen command, instead of
+replacing it with a predefined text as <tt>doxygen:alias</tt> features allows to
+do. For example, you could use
 </p>
 
 <div class="code"><pre>

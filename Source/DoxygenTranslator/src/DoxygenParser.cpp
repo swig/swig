@@ -137,6 +137,11 @@ DoxygenParser::commandBelongs(const std::string &theCommand)
     return it->second;
   }
 
+  // Check if this command is defined as an alias.
+  if (String* const alias = Getattr(m_node, ("feature:doxygen:alias:" + theCommand).c_str())) {
+    return COMMAND_ALIAS;
+  }
+
   // Check if this command should be ignored.
   if (String* const ignore = getIgnoreFeature(theCommand)) {
     // Check that no value is specified for this feature ("1" is the implicit
@@ -895,6 +900,18 @@ DoxygenParser::addCommandUnique(const std::string &theCommand,
   }
 }
 
+void
+DoxygenParser::aliasCommand(const std::string& theCommand,
+                            const TokenList& /* tokList */,
+                            DoxygenEntityList &doxyList)
+{
+  String* const alias = Getattr(m_node, ("feature:doxygen:alias:" + theCommand).c_str());
+  if (!alias)
+    return;
+
+  doxyList.push_back(DoxygenEntity("plainstd::string", Char(alias)));
+}
+
 String* DoxygenParser::getIgnoreFeature(const std::string& theCommand,
                                         const char* argument) const
 {
@@ -1051,6 +1068,9 @@ DoxygenParser::addCommand(const std::string &commandString,
     break;
   case COMMAND_HTML_ENTITY:
     addCommandHtmlEntity(theCommand, tokList, doxyList);
+    break;
+  case COMMAND_ALIAS:
+    aliasCommand(commandString, tokList, doxyList);
     break;
   case COMMAND_IGNORE:
     ignoreCommand(commandString, tokList, doxyList);

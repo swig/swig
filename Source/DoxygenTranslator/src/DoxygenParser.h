@@ -39,6 +39,7 @@ private:
     COMMANDUNIQUE,
     COMMAND_HTML,
     COMMAND_HTML_ENTITY,
+    COMMAND_ALIAS,
     COMMAND_IGNORE,
     END_LINE,
     PARAGRAPH_END,
@@ -345,6 +346,13 @@ private:
   void addCommandUnique(const std::string &theCommand,
                        const TokenList &tokList,
                        DoxygenEntityList &doxyList);
+
+  /*
+   * Replace the given command with its predefined alias expansion.
+   */
+  void aliasCommand(const std::string& theCommand,
+		    const TokenList &tokList,
+		    DoxygenEntityList &doxyList);
 
   /*
    * Simply ignore the given command, possibly with the word following it or

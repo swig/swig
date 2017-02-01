@@ -583,6 +583,7 @@ $(eval HAS_DOXYGEN := $($(LANGUAGE)_HAS_DOXYGEN))
 ifdef HAS_DOXYGEN
 DOXYGEN_TEST_CASES += \
 	doxygen_parsing \
+	doxygen_alias \
 	doxygen_ignore \
 	doxygen_basic_translate \
 	doxygen_basic_notranslate \
