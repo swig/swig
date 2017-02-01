@@ -24,7 +24,7 @@
 class DoxygenParser {
 private:
 
-  typedef enum {
+  enum DoxyCommandEnum {
     NONE = -1,
     SIMPLECOMMAND,
     COMMANDWORD,
@@ -44,7 +44,7 @@ private:
     PARAGRAPH_END,
     PLAINSTRING,
     COMMAND
-  } DoxyCommandEnum;
+  };
 
 
   /** This class contains parts of Doxygen comment as a token. */
