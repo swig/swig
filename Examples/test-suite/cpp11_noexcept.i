@@ -3,9 +3,13 @@
 %ignore NoExceptClass(NoExceptClass&&);
 %rename(Assignment) NoExceptClass::operator=;
 
+%{
+extern "C" void global_noexcept(int, bool) noexcept {}
+%}
 %inline %{
 
 extern "C" void global_noexcept(int, bool) noexcept;
+extern "C" void global_noexcept2(int, bool) noexcept {}
 
 struct NoExceptClass {
   static const bool VeryTrue = true;
