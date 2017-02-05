@@ -26,13 +26,21 @@
 %define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CSINTERFACE, CONST_REFERENCE, CTYPE...)
 %typemap(csinterfaces) std::vector< CTYPE > "global::System.IDisposable, global::System.Collections.IEnumerable\n    , global::System.Collections.Generic.CSINTERFACE<$typemap(cstype, CTYPE)>\n";
 %proxycode %{
-  public $csclassname(global::System.Collections.ICollection c) : this() {
+  public $csclassname(global::System.Collections.IEnumerable c) : this() {
     if (c == null)
       throw new global::System.ArgumentNullException("c");
     foreach ($typemap(cstype, CTYPE) element in c) {
       this.Add(element);
     }
   }
+  
+  public $csclassname(global::System.Collections.Generic.IEnumerable<$typemap(cstype, CTYPE)> c) : this() {
+    if (c == null)
+      throw new global::System.ArgumentNullException("c");
+    foreach ($typemap(cstype, CTYPE) element in c) {
+      this.Add(element);
+    }
+  }  
 
   public bool IsFixedSize {
     get {
