@@ -26,7 +26,7 @@ public:
 
 class Test {
 public:
-  int simple() throw(int&) {
+  int simple() throw(int) {
       throw(37);
       return 1;
   }
