@@ -7,3 +7,8 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 3.0.13 (in progress)
 ============================
 
+2017-02-08: jcsharp
+            [C#] #887 Improve std::vector<T> wrapper constructors -
+            Replace constructor taking ICollection with IEnumerable and also add IEnumerable<T>
+            constructor to avoid the boxing and unboxing overhead of the original constructor,
+            when the type parameter is a value type.
