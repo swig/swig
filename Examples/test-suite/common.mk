@@ -534,7 +534,7 @@ CPP_TEST_CASES += \
 	wrapmacro
 
 # C++11 test cases.
-CPP11_TEST_CASES = \
+CPP11_TEST_CASES += \
 	cpp11_alignment \
 	cpp11_alternate_function_syntax \
 	cpp11_constexpr \
@@ -572,7 +572,6 @@ CPP11_TEST_CASES = \
 
 # Broken C++11 test cases.
 CPP11_TEST_BROKEN = \
-#	cpp11_hash_tables \           # not fully implemented yet
 #	cpp11_variadic_templates \    # Broken for some languages (such as Java)
 #	cpp11_reference_wrapper \     # No typemaps
 
