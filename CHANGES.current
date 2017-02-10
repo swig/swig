@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 3.0.13 (in progress)
 ============================
 
+2017-02-10: tamuratak
+            [Ruby] #883 - Add support for C++11 hash tables:
+              std::unordered_map
+              std::unordered_set
+              std::unordered_multimap
+              std::unordered_multiset
+
 2017-02-08: jcsharp
             [C#] #887 Improve std::vector<T> wrapper constructors -
             Replace constructor taking ICollection with IEnumerable and also add IEnumerable<T>
