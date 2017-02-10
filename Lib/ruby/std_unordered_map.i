@@ -21,7 +21,7 @@
       typedef std::unordered_map<K,T> map_type;
       static int asptr(VALUE obj, map_type **val) {
 	int res = SWIG_ERROR;
-	if ( TYPE(obj) == T_HASH ) {
+	if (TYPE(obj) == T_HASH) {
 	  static ID id_to_a = rb_intern("to_a");
 	  VALUE items = rb_funcall(obj, id_to_a, 0);
 	  res = traits_asptr_stdseq<std::unordered_map<K,T>, std::pair<K, T> >::asptr(items, val);
@@ -50,7 +50,7 @@
 	  int rubysize = (size <= (size_type) INT_MAX) ? (int) size : -1;
 	  if (rubysize < 0) {
 	    SWIG_RUBY_THREAD_BEGIN_BLOCK;
-	    rb_raise( rb_eRuntimeError, "map size not valid in Ruby");
+	    rb_raise(rb_eRuntimeError, "map size not valid in Ruby");
 	    SWIG_RUBY_THREAD_END_BLOCK;
 	    return Qnil;
 	  }

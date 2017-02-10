@@ -59,24 +59,22 @@
 	    VALUE key = swig::from(i->first);
 	    VALUE val = swig::from(i->second);
 
-	    VALUE oldval = rb_hash_aref( obj, key );
-	    if ( oldval == Qnil )
+	    VALUE oldval = rb_hash_aref(obj, key);
+	    if (oldval == Qnil) {
 	      rb_hash_aset(obj, key, val);
-	    else {
+	    } else {
 	      // Multiple values for this key, create array if needed
 	      // and add a new element to it.
 	      VALUE ary;
-	      if ( TYPE(oldval) == T_ARRAY )
+	      if (TYPE(oldval) == T_ARRAY) {
 		ary = oldval;
-	      else
-		{
-		  ary = rb_ary_new2(2);
-		  rb_ary_push( ary, oldval );
-		  rb_hash_aset( obj, key, ary );
-		}
-	      rb_ary_push( ary, val );
+	      } else {
+                ary = rb_ary_new2(2);
+                rb_ary_push(ary, oldval);
+                rb_hash_aset(obj, key, ary);
+              }
+	      rb_ary_push(ary, val);
 	    }
-
 	  }
 	  return obj;
 	}

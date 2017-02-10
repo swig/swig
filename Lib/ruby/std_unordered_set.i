@@ -38,8 +38,6 @@
 
 %mixin std::unordered_set "Enumerable";
 
-
-
 %rename("delete")     std::unordered_set::__delete__;
 %rename("reject!")    std::unordered_set::reject_bang;
 %rename("map!")       std::unordered_set::map_bang;
@@ -49,6 +47,4 @@
 
 %alias  std::unordered_set::push          "<<";
 
-
 %include <std/std_unordered_set.i>
-

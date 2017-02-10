@@ -36,8 +36,6 @@
 
 #define %swig_unordered_multiset_methods(Set...) %swig_unordered_set_methods(Set)
 
-
-
 %rename("delete")     std::unordered_multiset::__delete__;
 %rename("reject!")    std::unordered_multiset::reject_bang;
 %rename("map!")       std::unordered_multiset::map_bang;
