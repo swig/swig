@@ -228,6 +228,10 @@ matrix:
       sudo: required
       dist: trusty
     - os: linux
+      env: SWIGLANG=ruby SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      sudo: required
+      dist: trusty
+    - os: linux
       env: SWIGLANG=csharp SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
       sudo: required
       dist: trusty
@@ -237,6 +241,10 @@ matrix:
       dist: trusty
     - os: linux
       env: SWIGLANG=python SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
+      sudo: required
+      dist: trusty
+    - os: linux
+      env: SWIGLANG=ruby SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
       sudo: required
       dist: trusty
     - compiler: gcc
