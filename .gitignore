@@ -156,11 +156,10 @@ Examples/test-suite/javascript/*/
 
 # Matlab
 *.mex*
-# module directories
-[+]*/
-# matlab common
-SwigRef.m
-SwigMem.m
+Examples/test-suite/matlab/[+]*/
+Examples/test-suite/matlab/*setup.m
+Examples/test-suite/matlab/SwigRef.m
+Examples/test-suite/matlab/SwigMem.m
 
 # Octave
 swigexample*.oct
