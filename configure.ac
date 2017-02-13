@@ -1286,6 +1286,7 @@ AC_SUBST(SCILAB)
 AC_SUBST(SCILABINCLUDE)
 AC_SUBST(SCILABOPT)
 
+
 #----------------------------------------------------------------
 # Look for java
 #----------------------------------------------------------------
@@ -3072,10 +3073,10 @@ AC_CONFIG_FILES([
     Examples/test-suite/guile/Makefile
     Examples/test-suite/java/Makefile
     Examples/test-suite/javascript/Makefile
+    Examples/test-suite/matlab/Makefile
     Examples/test-suite/mzscheme/Makefile
     Examples/test-suite/ocaml/Makefile
     Examples/test-suite/octave/Makefile
-    Examples/test-suite/matlab/Makefile
     Examples/test-suite/perl5/Makefile
     Examples/test-suite/php/Makefile
     Examples/test-suite/pike/Makefile
@@ -3146,11 +3147,11 @@ test -n "$SKIP_GUILE"		|| langs="${langs}guile "
 test -n "$SKIP_JAVA"		|| langs="${langs}java "
 test -n "$SKIP_JAVASCRIPT"	|| langs="${langs}javascript "
 test -n "$SKIP_LUA"		|| langs="${langs}lua "
+test -n "$SKIP_MATLAB"		|| langs="${langs}matlab "
 test -n "$SKIP_MODULA3"		|| langs="${langs}modula3 "
 test -n "$SKIP_MZSCHEME"	|| langs="${langs}mzscheme "
 test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
 test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "
-test -n "$SKIP_MATLAB"		|| langs="${langs}matlab "
 test -n "$SKIP_PERL5"		|| langs="${langs}perl5 "
 test -n "$SKIP_PHP"		|| langs="${langs}php "
 test -n "$SKIP_PIKE"		|| langs="${langs}pike "
