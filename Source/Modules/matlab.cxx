@@ -616,10 +616,10 @@ int MATLAB::top(Node *n) {
   Delete(f_begin);
   Delete(f_constants);
   Delete(f_gateway);
-  if (pkg_name) Delete(pkg_name);
-  if (pkg_name_fullpath) Delete(pkg_name_fullpath);
-  if (op_prefix) Delete(op_prefix);
-  if (mex_name) Delete(mex_name);
+  Delete(pkg_name);
+  Delete(pkg_name_fullpath);
+  Delete(op_prefix);
+  Delete(mex_name);
 
   return SWIG_OK;
 }
