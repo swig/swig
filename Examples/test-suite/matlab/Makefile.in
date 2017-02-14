@@ -66,9 +66,3 @@ run_testcase = \
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" matlab_clean
-
-cvsignore:
-	@echo '*wrap* *.mex* *.so *.dll *.exp *.lib'
-	@echo Makefile
-	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do echo $$i.m; done
-	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do if grep -q $${i}_runme.m CVS/Entries ; then echo $${i}_runme.m; fi; done
