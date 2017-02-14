@@ -16,9 +16,9 @@
 
 static const char *usage = (char *) "\
 Matlab Options (available with -matlab)\n\
-     -opprefix <str> - Prefix <str> for global operator functions [default: 'op_']\n\
-     -pkgname <str> - Prefix <str> for package name ' [default: '<module_name>']\n\
-     -mexname <str> - Specify mex function name <str> ' [default: '<module_name>MEX']\n\
+     -opprefix <str> - Set global operator functions prefix to <str> [default: 'op_']\n\
+     -pkgname <str>  - Set package name prefix to <str> [default: '<module>']\n\
+     -mexname <name> - Set mex function name to <name> [default: '<module>MEX']\n\
 \n";
 
 class MATLAB : public Language {
