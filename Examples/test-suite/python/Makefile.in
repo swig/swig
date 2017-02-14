@@ -179,19 +179,6 @@ clean:
 	rm -f imports_a.py imports_b.py mod_a.py mod_b.py multi_import_a.py
 	rm -f multi_import_b.py packageoption_a.py packageoption_b.py packageoption_c.py
 
-cvsignore:
-	@echo '*wrap* *.pyc *.so *.dll *.exp *.lib'
-	@echo Makefile
-	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do echo $$i.py; done
-	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do if grep -q $${i}_runme.py CVS/Entries ; then echo $${i}_runme.py; fi; done
-	@echo clientdata_prop_a.py
-	@echo clientdata_prop_b.py
-	@echo imports_a.py
-	@echo imports_b.py
-	@echo mod_a.py mod_b.py
-	@echo hugemod.h hugemod_a.i hugemod_b.i hugemod_a.py hugemod_b.py hugemod_runme.py
-	@echo template_typedef_import.py
-
 hugemod_runme = hugemod$(SCRIPTPREFIX)
 
 hugemod:
