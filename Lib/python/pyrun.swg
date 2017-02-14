@@ -1287,25 +1287,22 @@ SWIG_Python_ConvertFunctionPtr(PyObject *obj, void **ptr, swig_type_info *ty) {
     return SWIG_ConvertPtr(obj, ptr, ty, 0);
   } else {
     void *vptr = 0;
-    
+    swig_cast_info *tc;
+
     /* here we get the method pointer for callbacks */
     const char *doc = (((PyCFunctionObject *)obj) -> m_ml -> ml_doc);
     const char *desc = doc ? strstr(doc, "swig_ptr: ") : 0;
     if (desc)
       desc = ty ? SWIG_UnpackVoidPtr(desc + 10, &vptr, ty->name) : 0;
-    if (!desc) 
+    if (!desc)
       return SWIG_ERROR;
-    if (ty) {
-      swig_cast_info *tc = SWIG_TypeCheck(desc,ty);
-      if (tc) {
-        int newmemory = 0;
-        *ptr = SWIG_TypeCast(tc,vptr,&newmemory);
-        assert(!newmemory); /* newmemory handling not yet implemented */
-      } else {
-        return SWIG_ERROR;
-      }
+    tc = SWIG_TypeCheck(desc,ty);
+    if (tc) {
+      int newmemory = 0;
+      *ptr = SWIG_TypeCast(tc,vptr,&newmemory);
+      assert(!newmemory); /* newmemory handling not yet implemented */
     } else {
-      *ptr = vptr;
+      return SWIG_ERROR;
     }
     return SWIG_OK;
   }
