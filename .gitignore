@@ -198,3 +198,6 @@ Examples/r/*/.RData
 Examples/test-suite/scilab/*/
 loader.sce
 
+# Fortran
+*.mod
+

@@ -1,0 +1,61 @@
+#######################################################################
+# Makefile for Fortran test-suite
+#######################################################################
+
+LANGUAGE	= fortran
+FORTRAN		= @FORTRAN@
+FC      	= @FC@
+host		= @host@
+SCRIPTSUFFIX	= _runme.f90
+
+FORTRANOBJEXT = o
+
+SO = @SO@
+
+srcdir         = @srcdir@
+top_srcdir     = @top_srcdir@
+top_builddir   = @top_builddir@
+abs_top_srcdir = @abs_top_srcdir@
+
+
+include $(srcdir)/../common.mk
+
+
+# Override the test lists for now to avoid all of the failing tests
+C_TEST_CASES = integers
+CPP_TEST_CASES = cpp_basic
+
+
+.SUFFIXES: .cpptest .ctest .multicpptest
+
+# Rules for the different types of tests
+%.cpptest:
+	$(setup)
+	+$(swig_and_compile_cpp)
+	$(run_testcase_cpp)
+
+%.ctest:
+	$(setup)
+	+$(swig_and_compile_c)
+	$(run_testcase_cpp)
+
+%.multicpptest:
+	$(setup)
+	+$(swig_and_compile_multi_cpp)
+	$(run_testcase_cpp)
+
+# Runs the testcase.
+run_testcase_cpp = \
+	if test -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
+	  if $(FORTRAN); then \
+	    $(COMPILETOOL) $(FORTRAN) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -c && \
+	    $(COMPILETOOL) $(FORTRAN) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $*.a; \
+	  fi && \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
+	fi
+
+%.clean:
+	@rm -rf $*.o $*.a
+
+cvsignore:
+	@echo Makefile
