@@ -16,6 +16,8 @@ struct Base {
   virtual void finaloverride2() {}
   virtual void finaloverride3() {}
   virtual void finaloverride4() const {}
+  virtual void finaloverride5() {}
+  virtual void finaloverride6() const {}
   virtual ~Base() {}
 };
 
@@ -31,6 +33,8 @@ struct Derived /*final*/ : Base {
   virtual void finaloverride2() override final {}
   virtual void finaloverride3() noexcept override final {}
   virtual void finaloverride4() const noexcept override final {}
+  virtual void finaloverride5() throw(int) override final {}
+  virtual void finaloverride6() const throw(int) override final {}
   virtual ~Derived() override final {}
 };
 void Derived::override2() const noexcept {}

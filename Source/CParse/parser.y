@@ -6397,6 +6397,11 @@ exception_specification : THROW LPAREN parms RPAREN {
                     $$.throwf = 0;
                     $$.nexcept = 0;
 	       }
+	       | THROW LPAREN parms RPAREN virt_specifier_seq {
+                    $$.throws = $3;
+                    $$.throwf = NewString("1");
+                    $$.nexcept = 0;
+	       }
 	       | NOEXCEPT virt_specifier_seq {
                     $$.throws = 0;
                     $$.throwf = 0;
