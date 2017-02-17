@@ -592,7 +592,7 @@ int MATLAB::top(Node *n) {
   Printf(f_begin, "}\n\n");
 
   // Touch module
-  Printf(f_begin, "int swigTouch(int resc, mxArray** /*resv*/, int argc, mxArray** /*argv*/) {\n");
+  Printf(f_begin, "int swigTouch(int resc, mxArray** SWIGUNUSEDPARM(resv), int argc, mxArray** SWIGUNUSEDPARM(argv)) {\n");
 
   // Make sure no inputs or outputs
   Printf(f_begin, "  if (argc!=0 || resc!=0) {\n");
@@ -2316,7 +2316,7 @@ void MATLAB::finalizeGateway() {
 void MATLAB::initConstant() {
   if (CPlusPlus)
     Printf(f_constants, "extern \"C\"\n");
-  Printf(f_constants, "int swigConstant(int /*resc*/, mxArray *resv[], int argc, mxArray *argv[]) {\n");
+  Printf(f_constants, "int swigConstant(int SWIGUNUSEDPARM(resc), mxArray *resv[], int argc, mxArray *argv[]) {\n");
 
   // The first argument is always the ID
   Printf(f_constants, "  if (--argc < 0 || !mxIsDouble(*argv) || mxGetNumberOfElements(*argv)!=1) {\n");
