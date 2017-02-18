@@ -4,7 +4,7 @@
 
 %include <std_set.i>
 
-%fragment("StdUnorderedSetTraits","header",fragment="<stddef.h>",fragment="StdSequenceTraits")
+%fragment("StdUnorderedSetTraits","header",fragment="<stddef.h>",fragment="StdSetTraits")
 %{
   namespace swig {
     template <class RubySeq, class T>
