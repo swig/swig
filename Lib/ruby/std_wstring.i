@@ -15,9 +15,9 @@ extern "C" {
 #ifndef SWIG_RUBY_WSTRING_ENCODING
 
 #if WCHAR_MAX == 0x7fff || WCHAR_MAX == 0xffff
-#define SWIG_RUBY_WSTRING_ENCODING "UTF-16"
+#define SWIG_RUBY_WSTRING_ENCODING "UTF-16LE"
 #elif WCHAR_MAX == 0x7fffffff || WCHAR_MAX == 0xffffffff
-#define SWIG_RUBY_WSTRING_ENCODING "UTF-32"
+#define SWIG_RUBY_WSTRING_ENCODING "UTF-32LE"
 #else
 #error unsupported wchar_t size. SWIG_RUBY_WSTRING_ENCODING must be given.
 #endif
