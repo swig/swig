@@ -45,5 +45,5 @@ SWIGINTERNINLINE mxArray*
 
 
 #if !defined(SWIG_STD_WSTRING)
-// TODO Python has lots of stuff here
+// TODO
 #endif

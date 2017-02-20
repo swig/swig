@@ -175,7 +175,7 @@ namespace Swig {
   class UnknownExceptionHandler {
   };
 
-  /* type mismatch in the return value from a python method call */
+  /* type mismatch in the return value from a matlab method call */
   class DirectorTypeMismatchException : public DirectorException {
   public:
     DirectorTypeMismatchException(const char *error, const char *msg)
@@ -195,7 +195,7 @@ namespace Swig {
     }
   };
 
-  /* any python exception that occurs during a director method call */
+  /* any matlab exception that occurs during a director method call */
   class DirectorMethodException : public DirectorException {
   public:
     DirectorMethodException(const char *msg = "")
