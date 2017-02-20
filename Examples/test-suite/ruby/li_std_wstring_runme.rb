@@ -35,3 +35,8 @@ begin
 rescue RuntimeError => e
   swig_assert_equal("e.message", "'x'", binding)
 end
+
+x = "abc\0def"
+swig_assert_equal("Li_std_wstring.test_value(x)", "x", binding)
+swig_assert_equal("Li_std_wstring.test_ccvalue(x)", '"abc"', binding)
+swig_assert_equal("Li_std_wstring.test_wchar_overload(x)", '"abc"', binding)

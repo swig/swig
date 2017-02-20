@@ -26,7 +26,7 @@ extern "C" {
 
 /**
  *  If Encoding.default_internal is nil, this encoding will be used
- *  when coverting from std::wstring to String object in Ruby.
+ *  when converting from std::wstring to String object in Ruby.
  */
 #ifndef SWIG_RUBY_INTERNAL_ENCODING
 #define SWIG_RUBY_INTERNAL_ENCODING "UTF-8"
