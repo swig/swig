@@ -1,7 +1,3 @@
-#define SWIG_Error(code, msg) Rf_error(msg)
-
-#define SWIG_fail goto fail
-
 /* for raw pointers */
 #define SWIG_ConvertPtr(oc, ptr, ty, flags)             SWIG_R_ConvertPtr(oc, ptr, ty, flags)
 #define SWIG_ConvertFunctionPtr(oc, ptr, ty)            SWIG_R_ConvertPtr(oc, ptr, ty, 0)
