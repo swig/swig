@@ -9,13 +9,13 @@ cacheMetaData(1)
 
 print("Creating some objects:");
 a <- Foo();
-print(paste("    Count: ", Foo_get_count()));
+print(paste("    Count:", Foo_get_count()));
 b <- Foo();
-print(paste("    Count: ", Foo_get_count()));
+print(paste("    Count:", Foo_get_count()));
 
 # ----- Test for possible memory leak -----
 
-print(paste("    Let's see a normal behaviour: "));
+print(paste("    Let's see a normal behaviour:"));
 invisible(verify_no_memory_leak("no problem", a));
 print(paste("        The count should be 2:", Foo_get_count()));
 if (Foo_get_count() != 2)
@@ -23,7 +23,7 @@ if (Foo_get_count() != 2)
   stop("Memory leak detected!");
 }
 
-print(paste("    Let's see the case where we introduce a SWIG exception: "));
+print(paste("    Let's see the case where we introduce a SWIG exception:"));
 result <- tryCatch({
   verify_no_memory_leak("null", b);
 }, warning = function(w) {
