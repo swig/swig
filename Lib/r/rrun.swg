@@ -1,5 +1,5 @@
-#include <cstdarg> // va_list, va_start, va_end
-#include <cstdio> // vsnprintf
+#include <stdarg.h> // va_list, va_start, va_end
+#include <stdio.h> // vsnprintf
 
 /* Last error */
 static int SWIG_lasterror_code = 0;
