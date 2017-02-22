@@ -5,8 +5,8 @@
 static int SWIG_lasterror_code = 0;
 static char SWIG_lasterror_msg[1024];
 SWIGRUNTIME void SWIG_Error(int code, const char *format, ...) {
-  SWIG_lasterror_code = code;
   va_list arg;
+  SWIG_lasterror_code = code;
   va_start(arg, format);
   vsnprintf(SWIG_lasterror_msg, sizeof(SWIG_lasterror_msg), format, arg);
   va_end(arg);
