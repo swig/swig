@@ -32,10 +32,18 @@ extern "C" {
 #define SWIG_RUBY_INTERNAL_ENCODING "UTF-8"
 #endif
 
+static rb_encoding *swig_ruby_wstring_encoding;
+static rb_encoding *swig_ruby_internal_encoding;
+
 #ifdef __cplusplus
 }
 #endif
 %}
+
+%init{
+  swig_ruby_wstring_encoding  = rb_enc_find( SWIG_RUBY_WSTRING_ENCODING );
+  swig_ruby_internal_encoding = rb_enc_find( SWIG_RUBY_INTERNAL_ENCODING );
+}
 
 %include <rubywstrings.swg>
 %include <typemaps/std_wstring.swg>

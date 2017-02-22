@@ -8,7 +8,7 @@
 SWIGINTERN int
 SWIG_AsWCharPtrAndSize(VALUE obj, wchar_t **cptr, size_t *psize, int *alloc)
 {
-  static rb_encoding* wstr_enc = rb_to_encoding(rb_str_new_cstr( SWIG_RUBY_WSTRING_ENCODING ));
+  rb_encoding* wstr_enc = swig_ruby_wstring_encoding;
 
   if (TYPE(obj) == T_STRING) {
     VALUE rstr = rb_str_conv_enc(obj, rb_enc_get(obj), wstr_enc);
@@ -37,8 +37,8 @@ SWIG_AsWCharPtrAndSize(VALUE obj, wchar_t **cptr, size_t *psize, int *alloc)
 SWIGINTERNINLINE VALUE 
 SWIG_FromWCharPtrAndSize(const wchar_t * carray, size_t size)
 {
-  static rb_encoding* wstr_enc = rb_to_encoding(rb_str_new_cstr( SWIG_RUBY_WSTRING_ENCODING ));
-  static rb_encoding* rb_enc = rb_to_encoding(rb_str_new_cstr( SWIG_RUBY_INTERNAL_ENCODING ));
+  rb_encoding* wstr_enc = swig_ruby_wstring_encoding;
+  rb_encoding* rb_enc   = swig_ruby_internal_encoding;
 
   if (carray && size <= LONG_MAX/sizeof(wchar_t)) {
     VALUE rstr = rb_str_new( (const char*)carray, %numeric_cast(size*sizeof(wchar_t),long) );
