@@ -2001,7 +2001,9 @@ int R::functionWrapper(Node *n) {
   for (p = l; p;) {
     if ((tm = Getattr(p, "tmap:freearg"))) {
       Replaceall(tm, "$source", Getattr(p, "lname"));
-      Printv(cleanup, tm, "\n", NIL);
+      if (tm && (Len(tm) != 0)) {
+        Printv(cleanup, tm, "\n", NIL);
+      }
       p = Getattr(p, "tmap:freearg:next");
     } else {
       p = nextSibling(p);
