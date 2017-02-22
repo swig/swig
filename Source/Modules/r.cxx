@@ -2149,12 +2149,12 @@ int R::functionWrapper(Node *n) {
   
   /* Error handling code */
 
+  Printv(f->code, "fail:\n", NIL);
   if (need_cleanup) {
-    Printv(f->code, "fail:\n", NIL);
     Printv(f->code, cleanup, NIL);
-    Printv(f->code, "Rf_error(\"%s %s\", SWIG_ErrorType(SWIG_lasterror_code), SWIG_lasterror_msg);\n", NIL);
-    Printv(f->code, "  return R_NilValue;\n", NIL);
   }
+  Printv(f->code, "  Rf_error(\"%s %s\", SWIG_ErrorType(SWIG_lasterror_code), SWIG_lasterror_msg);\n", NIL);
+  Printv(f->code, "  return R_NilValue;\n", NIL);
   Delete(cleanup);
   
   Printv(f->code, "}\n", NIL);
