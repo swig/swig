@@ -40,7 +40,7 @@ static rb_encoding *swig_ruby_internal_encoding;
 #endif
 %}
 
-%init{
+%fragment("SWIG_ruby_wstring_encoding_init", "init") {
   swig_ruby_wstring_encoding  = rb_enc_find( SWIG_RUBY_WSTRING_ENCODING );
   swig_ruby_internal_encoding = rb_enc_find( SWIG_RUBY_INTERNAL_ENCODING );
 }
