@@ -2148,8 +2148,7 @@ int R::functionWrapper(Node *n) {
   Printv(f->code, "return r_ans;\n", NIL);
   
   /* Error handling code */
-  Printv(f->code, "\ngoto fail; /* FIXME: HOW TO MANAGE THE CASE WHERE THERE IS NO 'goto fail' STATEMENT? */\n ", NIL);
-  Printv(f->code, "fail:\n", NIL);
+  Printv(f->code, "fail: SWIGUNUSED;\n", NIL);
   if (need_cleanup) {
     Printv(f->code, cleanup, NIL);
   }
