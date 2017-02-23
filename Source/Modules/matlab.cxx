@@ -901,7 +901,7 @@ int MATLAB::functionWrapper(Node *n) {
     Append(overname, Getattr(n, "sym:overname"));
 
   Wrapper *f = NewWrapper();
-  Printf(f->def, "int %s (int resc, mxArray *resv[], int argc, mxArray *argv[]) {", overname);
+  Printf(f->def, "int %s(int resc, mxArray *resv[], int argc, mxArray *argv[]) {", overname);
 
   emit_parameter_variables(l, f);
   emit_attach_parmmaps(l, f);
@@ -918,7 +918,7 @@ int MATLAB::functionWrapper(Node *n) {
 
   Printf(f->code, "if (!SWIG_check_num_args(\"%s\",argc,%i,%i,%i)) " "{\n SWIG_fail;\n }\n", iname, num_arguments, num_required, varargs);
   if (num_arguments == 0 && num_required == 0) {
-    Printf(f->code, "(void)argv; // Unused variable\n");
+    Printf(f->code, "(void)argv;\n");
   } else if (constructor && num_arguments == 1 && num_required == 1) {
     if (Cmp(storage, "explicit") == 0) {
       Node *parent = Swig_methodclass(n);
@@ -1277,7 +1277,7 @@ int MATLAB::variableWrapper(Node *n) {
   Wrapper *getf = NewWrapper();
   int addfail = 0;
   Setattr(n, "wrap:name", getname);
-  Printf(getf->def, "SWIGINTERN int %s (int resc, mxArray *resv[], int argc, mxArray *argv[]) {", getwname);
+  Printf(getf->def, "SWIGINTERN int %s(int resc, mxArray *resv[], int argc, mxArray *argv[]) {", getwname);
   if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
     Replaceall(tm, "$source", name);
     Replaceall(tm, "$target", "resv[0]");
@@ -1312,7 +1312,7 @@ int MATLAB::variableWrapper(Node *n) {
     // varin typemap
     Wrapper *setf = NewWrapper();
     Setattr(n, "wrap:name", setname);
-    Printf(setf->def, "SWIGINTERN int %s (int resc, mxArray *resv[], int argc, mxArray *argv[]) {", setwname);
+    Printf(setf->def, "SWIGINTERN int %s(int resc, mxArray *resv[], int argc, mxArray *argv[]) {", setwname);
     if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
       Replaceall(tm, "$source", "argv[0]");
       Replaceall(tm, "$target", name);
@@ -2348,7 +2348,7 @@ void MATLAB::finalizeConstant() {
   Printf(f_constants, "    return 1;\n");
   Printf(f_constants, "  }\n");
   if (num_constant == 0) {
-    Printf(f_constants, "  (void)resv; // Unused variable\n");
+    Printf(f_constants, "  (void)resv;\n");
   }
   Printf(f_constants, "  return 0;\n");
   Printf(f_constants, "}\n");
@@ -2878,7 +2878,7 @@ void MATLAB::dispatchFunction(Node *n) {
     Delete(fulldecl);
   } while ((sibl = Getattr(sibl, "sym:nextSibling")));
 
-  Printf(f->def, "int %s (int resc, mxArray *resv[], int argc, mxArray *argv[]) {", wname);
+  Printf(f->def, "int %s(int resc, mxArray *resv[], int argc, mxArray *argv[]) {", wname);
   Printv(f->code, dispatch, "\n", NIL);
   Printf(f->code, "SWIG_Error(SWIG_RuntimeError, \"No matching function for overload function '%s'.\"\n", iname);
   Printf(f->code, "   \"  Possible C/C++ prototypes are:\\n\"%s);\n", protoTypes);
