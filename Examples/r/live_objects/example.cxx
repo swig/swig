@@ -17,4 +17,4 @@ Foo::~Foo()
 unsigned Foo::get_count()
 {
   return count;
-};
+}
