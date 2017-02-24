@@ -1,9 +1,4 @@
-/* File : example.i */
-%module example
-
-%{
-#include "example.h"
-%}
+%module r_memory_leak
 
 %include <std_string.i>
 
@@ -24,12 +19,22 @@
 %typemap(scoerceout) Foo*
   %{ if (!is.null($result) && !is.logical($result)) {$result <- new("$R_class", ref=$result) ;} %}
 
-/* Let's just grab the original header file here */
-%include "example.h"
+%inline %{
+  #include <string>
 
-%{
-static Foo* verify_no_memory_leak(const std::string& message, Foo* foo)
-{
-  return (message == "null") ? NULL : foo;
-};
+  class Foo {
+      static unsigned count;
+    public:
+      Foo() { ++count; }
+      ~Foo() { --count; }
+      static unsigned get_count() { return count; }
+  };
+
+  unsigned Foo::count = 0;
+
+  static Foo* trigger_internal_swig_exception(const std::string& message, Foo* foo)
+  {
+    return (message == "null") ? NULL : foo;
+  };
+
 %}
