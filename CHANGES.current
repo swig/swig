@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 3.0.13 (in progress)
 ============================
 
+2017-02-27: assambar
+            [C++11] Extend parser to support throw specifier in combination
+            with override and/or final.
+
 2017-02-10: tamuratak
             [Ruby] #883 - Add support for C++11 hash tables:
               std::unordered_map
