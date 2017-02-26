@@ -54,6 +54,7 @@ require 'cpp11_hash_tables'
  Cpp11_hash_tables::UnorderedMapIntInt,
  Cpp11_hash_tables::UnorderedMultiMapIntInt,
  Cpp11_hash_tables::SetInt,
+ Cpp11_hash_tables::MultiSetInt,
  Cpp11_hash_tables::UnorderedSetInt,
  Cpp11_hash_tables::UnorderedMultiSetInt].each{|k|
   swig_assert("k.include?(Enumerable)", binding)
