@@ -469,7 +469,7 @@ int MATLAB::top(Node *n) {
 
   // Get constant name by index, internal
   Printf(f_begin, "\n");
-  Printf(f_begin, "const char* swigConstantName_(int con_id) {\n");
+  Printf(f_begin, "SWIGINTERN const char* SwigConstantName(int con_id) {\n");
   Printf(f_begin, "  switch (con_id) {\n");
 
   // Add cases and deallocate list
@@ -487,7 +487,7 @@ int MATLAB::top(Node *n) {
 
   // Get constant name by index
   Printf(f_begin, "\n");
-  Printf(f_begin, "int swigConstantName(int resc, mxArray *resv[], int argc, mxArray *argv[]) {\n");
+  Printf(f_begin, "SWIGINTERN int swigConstantName(int resc, mxArray *resv[], int argc, mxArray *argv[]) {\n");
 
   // The first argument is always the ID
   Printf(f_begin, "  if (argc!=1 || !mxIsDouble(*argv) || mxGetNumberOfElements(*argv)!=1) {\n");
@@ -504,7 +504,7 @@ int MATLAB::top(Node *n) {
 
   // Get the string
   Printf(f_begin, "  int con_id = (int)mxGetScalar(*argv);\n");
-  Printf(f_begin, "  const char* s = swigConstantName_(con_id);\n");
+  Printf(f_begin, "  const char* s = SwigConstantName(con_id);\n");
 
   // Make sure found
   Printf(f_begin, "  if (s==0) {\n");
@@ -521,7 +521,7 @@ int MATLAB::top(Node *n) {
 
   // Get function name by index, internal
   Printf(f_begin, "\n");
-  Printf(f_begin, "const char* swigFunctionName_(int fcn_id) {\n");
+  Printf(f_begin, "SWIGINTERN const char* SwigFunctionName(int fcn_id) {\n");
   Printf(f_begin, "  switch(fcn_id) {\n");
 
   // Add cases and deallocate list
@@ -539,7 +539,7 @@ int MATLAB::top(Node *n) {
 
   // Get function name by index
   Printf(f_begin, "\n");
-  Printf(f_begin, "int swigFunctionName(int resc, mxArray *resv[], int argc, mxArray *argv[]) {\n");
+  Printf(f_begin, "SWIGINTERN int swigFunctionName(int resc, mxArray *resv[], int argc, mxArray *argv[]) {\n");
 
   // The first argument is always the ID
   Printf(f_begin, "  if (argc!=1 || !mxIsDouble(*argv) || mxGetNumberOfElements(*argv)!=1) {\n");
@@ -556,7 +556,7 @@ int MATLAB::top(Node *n) {
 
   // Get the string
   Printf(f_begin, "  int fcn_id = (int)mxGetScalar(*argv);\n");
-  Printf(f_begin, "  const char* s = swigFunctionName_(fcn_id);\n");
+  Printf(f_begin, "  const char* s = SwigFunctionName(fcn_id);\n");
 
   // Make sure found
   Printf(f_begin, "  if (s==0) {\n");
@@ -570,7 +570,7 @@ int MATLAB::top(Node *n) {
   Printf(f_begin, "}\n\n");
 
   // Get memory
-  Printf(f_begin, "int swigThis(int resc, mxArray *resv[], int argc, mxArray *argv[]) {\n");
+  Printf(f_begin, "SWIGINTERN int swigThis(int resc, mxArray *resv[], int argc, mxArray *argv[]) {\n");
 
   // Make sure only one input and max one output
   Printf(f_begin, "  if (argc!=1 || resc!=1) {\n");
@@ -592,7 +592,7 @@ int MATLAB::top(Node *n) {
   Printf(f_begin, "}\n\n");
 
   // Touch module
-  Printf(f_begin, "int swigTouch(int resc, mxArray** SWIGUNUSEDPARM(resv), int argc, mxArray** SWIGUNUSEDPARM(argv)) {\n");
+  Printf(f_begin, "SWIGINTERN int swigTouch(int resc, mxArray** SWIGUNUSEDPARM(resv), int argc, mxArray** SWIGUNUSEDPARM(argv)) {\n");
 
   // Make sure no inputs or outputs
   Printf(f_begin, "  if (argc!=0 || resc!=0) {\n");
@@ -2314,9 +2314,7 @@ void MATLAB::finalizeGateway() {
 }
 
 void MATLAB::initConstant() {
-  if (CPlusPlus)
-    Printf(f_constants, "extern \"C\"\n");
-  Printf(f_constants, "int swigConstant(int SWIGUNUSEDPARM(resc), mxArray *resv[], int argc, mxArray *argv[]) {\n");
+  Printf(f_constants, "SWIGINTERN int swigConstant(int SWIGUNUSEDPARM(resc), mxArray *resv[], int argc, mxArray *argv[]) {\n");
 
   // The first argument is always the ID
   Printf(f_constants, "  if (--argc < 0 || !mxIsDouble(*argv) || mxGetNumberOfElements(*argv)!=1) {\n");
