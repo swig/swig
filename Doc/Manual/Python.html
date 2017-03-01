@@ -136,6 +136,7 @@
 <li><a href="#Python_multithreaded">Support for Multithreaded Applications</a>
 <ul>
 <li><a href="#Python_thread_UI">UI for Enabling Multithreading Support</a>
+<li><a href="#Python_thread_performance">Multithread Performance</a>
 </ul>
 </ul>
 </div>
@@ -6760,11 +6761,69 @@ will not be able to run any other threads, even if the wrapped C/C++ code is wai
             </li>
             <li>
                 The <b>threads</b> module option in the *.i template file:
-                <div class="code">%module("threads"=1)</div>
+                <div class="code">%feature("nothread") method;</div>
+            </li>
+        </ul>
+    </li>
+    <li>You can disable thread support for a given method:
+        <div class="code">%module("threads"=1)<br><b>or</b><br>%nothread method;</div>
+    </li>
+    <li>You can partially disable thread support for a given method:
+        <ul>
+            <li> To disable the C++/python thread protection:
+                <div class="code">%feature("nothreadblock") method;<br><b>or</b><br>%nothreadblock method;</div>
+            </li>
+            <li>
+                To disable the python/C++ thread protection
+                <div class="code">%feature("nothreadallow") method;<br><b>or</b><br>%nothreadallow method;</div>
             </li>
         </ul>
     </li>
 </ol>
+
+<H3><a name="Python_thread_performance">36.13.2 Multithread Performance</a></H3>
+<p>
+    For the curious about performance, here are some numbers for the profiletest.i test,
+    which is used to check the speed of the wrapped code:
+</p>
+
+<table>
+    <tr>
+        <th>Thread Mode</th>
+        <th>Execution Time (sec)</th>
+        <th>Comment</th>
+    </tr>
+    <tr>
+        <td>Single Threaded</td>
+        <td>9.6</td>
+        <td>no "-threads" option given</td>
+    </tr>
+    <tr>
+        <td>Fully Multithreaded</td>
+        <td>15.5</td>
+        <td>"-threads" option = 'allow' + 'block'</td>
+    </tr>
+    <tr>
+        <td>No Thread block</td>
+        <td>12.2</td>
+        <td>only 'allow'</td>
+    </tr>
+    <tr>
+        <td>No Thread Allow</td>
+        <td>13.6</td>
+        <td>only block'</td>
+    </tr>
+</table>
+
+<p>
+    Fullly threaded code decreases the wrapping performance by
+    around 60%. If that is important to your application, you
+    can tune each method using the different 'nothread',
+    'nothreadblock' or 'nothreadallow' features as
+    needed. Note that for some methods deactivating the
+    'thread block' or 'thread allow' code is not an option,
+    so, be careful.
+</p>
 
 </body>
 </html>
