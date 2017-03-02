@@ -3,9 +3,10 @@
 
 
  /*
-  * We want to put the folloing code after the fragment "StdTraits" at rubystdcommon.swg.
-  * This code is needed if and only if "StdTraits" and this std_shared_ptr.i are included at the same time.
-  * They don't always require each other. So specifying the dependecy by using %fragment does not work.
+  * We want to put the following code after the fragment "StdTraits" at rubystdcommon.swg.
+  * This code is needed if and only if the fragment and this std_shared_ptr.i are included at the same time.
+  * They don't always require each other. The order of including them is not predetermined either.
+  * So specifying the dependecy by using %fragment does not work.
   */
 %wrapper %{
 #ifdef SWIG_RUBYSTDCOMMON
