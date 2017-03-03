@@ -7,6 +7,8 @@
 %fragment("StdTraits","header",fragment="StdTraitsCommon")
 {
 
+%#define SWIG_RUBYSTDCOMMON
+
 namespace swig {  
   /*
     Traits that provides the from method
