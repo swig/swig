@@ -1351,6 +1351,37 @@ static void mark_nodes_as_extend(Node *n) {
   }
 }
 
+/* -----------------------------------------------------------------------------
+ * add_qualifier_to_declarator
+ *
+ * Adding a qualifier to a pointer to member function is a special case.
+ * For example       : typedef double (Cls::*pmf)(void) const;
+ * The declarator is : m(Cls).f(void).
+ * We need           : m(Cls).q(const).f(void).
+ * ----------------------------------------------------------------------------- */
+
+static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) {
+  int is_pointer_to_member_function = 0;
+  String *decl = Copy(type);
+  assert(qualifier);
+  if (SwigType_ismemberpointer(decl)) {
+    String *memberptr = SwigType_pop(decl);
+    if (SwigType_isfunction(decl)) {
+      assert(!SwigType_isqualifier(decl));
+      SwigType_push(decl, qualifier);
+      SwigType_push(decl, memberptr);
+      is_pointer_to_member_function = 1;
+    } else {
+      Delete(decl);
+      decl = Copy(type);
+    }
+    Delete(memberptr);
+  }
+  if (!is_pointer_to_member_function)
+    SwigType_push(decl, qualifier);
+  return decl;
+}
+
 %}
 
 %union {
@@ -1751,7 +1782,6 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		   }
 
 	       }
-
                | CONSTANT type declarator def_args SEMI {
 		 if (($4.type != T_ERROR) && ($4.type != T_SYMBOL)) {
 		   SwigType_push($2,$3.type);
@@ -1768,12 +1798,38 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		   SetFlag($$,"feature:immutable");
 		   add_symbols($$);
 		 } else {
-		     if ($4.type == T_ERROR) {
-		       Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,cparse_file,cparse_line,"Unsupported constant value\n");
-		     }
+		   if ($4.type == T_ERROR) {
+		     Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,cparse_file,cparse_line, "Unsupported constant value\n");
+		   }
 		   $$ = 0;
 		 }
                }
+	       /* Member const function pointers . eg.
+	         %constant short (Funcs::*pmf)(bool) const = &Funcs::F; */
+	       | CONSTANT type direct_declarator LPAREN parms RPAREN CONST_QUAL def_args SEMI {
+		 if (($8.type != T_ERROR) && ($8.type != T_SYMBOL)) {
+		   SwigType_add_function($2, $5);
+		   SwigType_add_qualifier($2, "const");
+		   SwigType_push($2, $3.type);
+		   /* Sneaky callback function trick */
+		   if (SwigType_isfunction($2)) {
+		     SwigType_add_pointer($2);
+		   }
+		   $$ = new_node("constant");
+		   Setattr($$, "name", $3.id);
+		   Setattr($$, "type", $2);
+		   Setattr($$, "value", $8.val);
+		   if ($8.rawval) Setattr($$, "rawval", $8.rawval);
+		   Setattr($$, "storage", "%constant");
+		   SetFlag($$, "feature:immutable");
+		   add_symbols($$);
+		 } else {
+		   if ($8.type == T_ERROR) {
+		     Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,cparse_file,cparse_line, "Unsupported constant value\n");
+		   }
+		   $$ = 0;
+		 }
+	       }
                | CONSTANT error SEMI {
 		 Swig_warning(WARN_PARSE_BAD_VALUE,cparse_file,cparse_line,"Bad constant value (ignored).\n");
 		 $$ = 0;
@@ -2942,12 +2998,14 @@ c_declaration   : c_decl {
    ------------------------------------------------------------ */
 
 c_decl  : storage_class type declarator initializer c_decl_tail {
+	      String *decl = $3.type;
               $$ = new_node("cdecl");
-	      if ($4.qualifier) SwigType_push($3.type,$4.qualifier);
+	      if ($4.qualifier)
+	        decl = add_qualifier_to_declarator($3.type, $4.qualifier);
 	      Setattr($$,"type",$2);
 	      Setattr($$,"storage",$1);
 	      Setattr($$,"name",$3.id);
-	      Setattr($$,"decl",$3.type);
+	      Setattr($$,"decl",decl);
 	      Setattr($$,"parms",$3.parms);
 	      Setattr($$,"value",$4.val);
 	      Setattr($$,"throws",$4.throws);
@@ -4959,6 +5017,27 @@ parameter_declarator : declarator def_args {
               $$.id = 0;
 	      $$.defarg = $1.rawval ? $1.rawval : $1.val;
             }
+	    /* Member const function pointer parameters. eg.
+	      int f(short (Funcs::*parm)(bool) const); */
+	    | direct_declarator LPAREN parms RPAREN CONST_QUAL {
+	      SwigType *t;
+	      $$ = $1;
+	      t = NewStringEmpty();
+	      SwigType_add_function(t,$3);
+	      SwigType_add_qualifier(t, "const");
+	      if (!$$.have_parms) {
+		$$.parms = $3;
+		$$.have_parms = 1;
+	      }
+	      if (!$$.type) {
+		$$.type = t;
+	      } else {
+		SwigType_push(t, $$.type);
+		Delete($$.type);
+		$$.type = t;
+	      }
+	      $$.defarg = 0;
+	    }
             ;
 
 plain_declarator : declarator {
@@ -5001,7 +5080,6 @@ plain_declarator : declarator {
 	      $$.parms = 0;
 	      }
             ;
-
 
 declarator :  pointer notso_direct_declarator {
               $$ = $2;
@@ -5404,7 +5482,7 @@ direct_declarator : idcolon {
 		      Delete($$.type);
 		      $$.type = t;
 		    }
-                 }
+		  }
                  /* User-defined string literals. eg.
                     int operator"" _mySuffix(const char* val, int length) {...} */
 		 /* This produces one S/R conflict. */
