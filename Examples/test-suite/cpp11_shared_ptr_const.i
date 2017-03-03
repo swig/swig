@@ -13,15 +13,23 @@ public:
   int m;
 };
 
-std::vector<std::shared_ptr<Foo> > foo_vec() {
+std::shared_ptr<Foo> foo(Foo v) {
+  return std::shared_ptr<Foo>(new Foo(v));
+}
+
+std::shared_ptr<const Foo> const_foo(Foo v) {
+  return std::shared_ptr<const Foo>(new Foo(v));
+}
+
+std::vector<std::shared_ptr<Foo> > foo_vec(Foo v) {
     std::vector<std::shared_ptr<Foo> > result;
-    result.push_back( std::shared_ptr<Foo>(new Foo(7)) );
+    result.push_back( std::shared_ptr<Foo>(new Foo(v)) );
     return result;
 }
 
-std::vector<std::shared_ptr<const Foo> > const_foo_vec() {
+std::vector<std::shared_ptr<const Foo> > const_foo_vec(Foo v) {
   std::vector<std::shared_ptr<const Foo> > result;
-  result.push_back( std::shared_ptr<Foo>(new Foo(7)) );
+  result.push_back( std::shared_ptr<Foo>(new Foo(v)) );
   return result;
 }
 
@@ -35,8 +43,10 @@ std::vector<std::shared_ptr<const Foo> > const_foo_vec() {
 %template (FooVector) std::vector<std::shared_ptr<Foo> >;
 %template (FooConstVector) std::vector<std::shared_ptr<Foo const> >;
 
-std::vector<std::shared_ptr<Foo> > foo_vec() const;
-std::vector<std::shared_ptr<const Foo> > const_foo_vec() const;
+std::shared_ptr<Foo> foo(Foo v);
+std::shared_ptr<const Foo> const_foo(Foo v);
+std::vector<std::shared_ptr<Foo> > foo_vec(Foo v) const;
+std::vector<std::shared_ptr<const Foo> > const_foo_vec(Foo v) const;
 
 class Foo
 {
