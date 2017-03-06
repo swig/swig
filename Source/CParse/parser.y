@@ -3067,36 +3067,36 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
            }
            /* Alternate function syntax introduced in C++11:
               auto funcName(int x, int y) -> int; */
-           | storage_class AUTO declarator ARROW cpp_alternate_rettype initializer c_decl_tail {
+           | storage_class AUTO declarator cpp_const ARROW cpp_alternate_rettype initializer c_decl_tail {
               $$ = new_node("cdecl");
-	      if ($6.qualifier) SwigType_push($3.type,$6.qualifier);
-	      Setattr($$,"type",$5);
+	      if ($4.qualifier) SwigType_push($3.type, $4.qualifier);
+	      Setattr($$,"type",$6);
 	      Setattr($$,"storage",$1);
 	      Setattr($$,"name",$3.id);
 	      Setattr($$,"decl",$3.type);
 	      Setattr($$,"parms",$3.parms);
-	      Setattr($$,"value",$6.val);
-	      Setattr($$,"throws",$6.throws);
-	      Setattr($$,"throw",$6.throwf);
-	      Setattr($$,"noexcept",$6.nexcept);
-	      if (!$7) {
+	      Setattr($$,"value",$4.val);
+	      Setattr($$,"throws",$4.throws);
+	      Setattr($$,"throw",$4.throwf);
+	      Setattr($$,"noexcept",$4.nexcept);
+	      if (!$8) {
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
 		  Setattr($$,"code",code);
 		  Delete(code);
 		}
 	      } else {
-		Node *n = $7;
+		Node *n = $8;
 		while (n) {
-		  String *type = Copy($5);
+		  String *type = Copy($6);
 		  Setattr(n,"type",type);
 		  Setattr(n,"storage",$1);
 		  n = nextSibling(n);
 		  Delete(type);
 		}
 	      }
-	      if ($6.bitfield) {
-		Setattr($$,"bitfield", $6.bitfield);
+	      if ($4.bitfield) {
+		Setattr($$,"bitfield", $4.bitfield);
 	      }
 
 	      if (Strstr($3.id,"::")) {
@@ -3107,18 +3107,18 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		    String *lstr = Swig_scopename_last($3.id);
 		    Setattr($$,"name",lstr);
 		    Delete(lstr);
-		    set_nextSibling($$,$7);
+		    set_nextSibling($$, $8);
 		  } else {
 		    Delete($$);
-		    $$ = $7;
+		    $$ = $8;
 		  }
 		  Delete(p);
 		} else {
 		  Delete($$);
-		  $$ = $7;
+		  $$ = $8;
 		}
 	      } else {
-		set_nextSibling($$,$7);
+		set_nextSibling($$, $8);
 	      }
            }
            ;
