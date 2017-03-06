@@ -49,6 +49,8 @@ public class member_pointer_const_runme {
     check( "Square area ", 100.0, member_pointer_const.do_op(s,member_pointer_const.AREAPT) );
     check( "Square perim", 40.0, member_pointer_const.do_op(s,member_pointer_const.PERIMPT) );
 
+    // Typedefs
+    check( "Square perim", 40.0, member_pointer_const.do_op_td(s,perim_pt) );
   }
 
   private static void check(String what, double expected, double actual) {

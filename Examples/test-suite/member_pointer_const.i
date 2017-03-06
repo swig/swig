@@ -45,17 +45,22 @@ public:
   virtual double perimeter(void) const;
 };
 
+/* Typedef */
+typedef double (Shape::*PerimeterFunc_td)(void) const;
+
 extern double do_op(Shape *s, double (Shape::*m)(void) const);
+extern double do_op_td(Shape *s, PerimeterFunc_td m);
 
 /* Functions that return member pointers */
 
 extern double (Shape::*areapt())(void) const;
 extern double (Shape::*perimeterpt())(void) const;
+extern PerimeterFunc_td perimeterpt_td();
 
 /* Global variables that are member pointers */
 extern double (Shape::*areavar)(void) const;
 extern double (Shape::*perimetervar)(void) const;
-
+extern PerimeterFunc_td perimetervar_td;
 %}
 
 %{
@@ -89,6 +94,10 @@ double do_op(Shape *s, double (Shape::*m)(void) const) {
   return (s->*m)();
 }
 
+double do_op_td(Shape *s, PerimeterFunc_td m) {
+  return (s->*m)();
+}
+
 double (Shape::*areapt())(void) const {
   return &Shape::area;
 }
@@ -97,9 +106,14 @@ double (Shape::*perimeterpt())(void) const {
   return &Shape::perimeter;
 }
 
+PerimeterFunc_td perimeterpt_td() {
+  return &Shape::perimeter;
+}
+
 /* Member pointer variables */
 double (Shape::*areavar)(void) const = &Shape::area;
 double (Shape::*perimetervar)(void) const = &Shape::perimeter;
+PerimeterFunc_td perimetervar_td = &Shape::perimeter;
 %}
 
 
