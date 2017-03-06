@@ -5670,6 +5670,24 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
 		      $$.have_parms = 1;
 		    }
 		  }
+                  | direct_abstract_declarator LPAREN parms RPAREN type_qualifier {
+		    SwigType *t;
+                    $$ = $1;
+		    t = NewStringEmpty();
+                    SwigType_add_function(t,$3);
+		    SwigType_push(t, $5);
+		    if (!$$.type) {
+		      $$.type = t;
+		    } else {
+		      SwigType_push(t,$$.type);
+		      Delete($$.type);
+		      $$.type = t;
+		    }
+		    if (!$$.have_parms) {
+		      $$.parms = $3;
+		      $$.have_parms = 1;
+		    }
+		  }
                   | LPAREN parms RPAREN {
                     $$.type = NewStringEmpty();
                     SwigType_add_function($$.type,$2);

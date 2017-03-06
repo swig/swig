@@ -27,6 +27,8 @@ public:
 
   void    move(double dx, double dy);
   virtual double area(Shape &ref, int & (FunkSpace::Funktions::*d)(const int &, int)) { return 0.0; }
+  virtual double area_const(Shape &ref, int & (FunkSpace::Funktions::*)(const int &, int) const) { return 0.0; } // Note: unnamed parameter
+  virtual double zyx(int (FunkSpace::Funktions::*)() const) { return 0.0; } // Note: unnamed parameter
   virtual double abc(Thing<short> ts, Thing< const Space::Shape * > tda[]) { return 0.0; }
   virtual ~Shape() {}
 };
@@ -55,6 +57,10 @@ double do_op(Space::Shape *s, double (Space::Shape::*m)(void)) {
   return (s->*m)();
 }
 
+double do_op_const(Space::Shape *s, double (Space::Shape::*m)(void) const) {
+  return (s->*m)();
+}
+
 double (Space::Shape::*areapt(Space::Shape &ref, int & (FunkSpace::Funktions::*d)(const int &, int)))(Space::Shape &, int & (FunkSpace::Funktions::*d)(const int &, int)) {
   return &Space::Shape::area;
 }
@@ -75,6 +81,7 @@ double (Space::Shape::*abcvar)(Thing<short>, Thing< const Space::Shape * >[]) = 
 
 /* Some constants */
 %constant double (Space::Shape::*AREAPT)(Space::Shape &, int & (FunkSpace::Funktions::*)(const int &, int)) = &Space::Shape::area;
+%constant double (Space::Shape::*AREAPT_CONST)(Space::Shape &, int & (FunkSpace::Funktions::*)(const int &, int) const) = &Space::Shape::area_const;
 %constant double (Space::Shape::*PERIMPT)(Thing<short>, Thing< const Space::Shape * >[]) = &Space::Shape::abc;
 %constant double (Space::Shape::*NULLPT)(void) = 0;
 
