@@ -67,9 +67,9 @@ namespace swig {
     static std::shared_ptr<Type> as(VALUE obj, bool throw_error) {
       std::shared_ptr<Type> ret;
       std::shared_ptr<Type> *v = &ret;
-      int res = (obj ? traits_asptr<std::shared_ptr<Type> >::asptr(obj, &v) : SWIG_ERROR);
+      int res = traits_asptr<std::shared_ptr<Type> >::asptr(obj, &v);
       if (SWIG_IsOK(res)) {
-	  return ret;
+	return ret;
       } else {
 	// Uninitialized return value, no Type() constructor required.
 	if (throw_error) throw std::invalid_argument("bad type");
@@ -82,7 +82,7 @@ namespace swig {
 	return *v_def;
       }
     }
-    };
+  };
  }
 #endif
 %}
