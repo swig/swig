@@ -3040,29 +3040,34 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		Setattr($$,"bitfield", $4.bitfield);
 	      }
 
-	      /* Look for "::" declarations (ignored) */
-	      if (Strstr($3.id,"::")) {
-                /* This is a special case. If the scope name of the declaration exactly
-                   matches that of the declaration, then we will allow it. Otherwise, delete. */
-                String *p = Swig_scopename_prefix($3.id);
-		if (p) {
-		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
-		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
-		    String *lstr = Swig_scopename_last($3.id);
-		    Setattr($$,"name",lstr);
-		    Delete(lstr);
-		    set_nextSibling($$,$5);
+	      if ($3.id) {
+		/* Look for "::" declarations (ignored) */
+		if (Strstr($3.id, "::")) {
+		  /* This is a special case. If the scope name of the declaration exactly
+		     matches that of the declaration, then we will allow it. Otherwise, delete. */
+		  String *p = Swig_scopename_prefix($3.id);
+		  if (p) {
+		    if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
+			(Classprefix && Strcmp(p, Classprefix) == 0)) {
+		      String *lstr = Swig_scopename_last($3.id);
+		      Setattr($$, "name", lstr);
+		      Delete(lstr);
+		      set_nextSibling($$, $5);
+		    } else {
+		      Delete($$);
+		      $$ = $5;
+		    }
+		    Delete(p);
 		  } else {
 		    Delete($$);
 		    $$ = $5;
 		  }
-		  Delete(p);
 		} else {
-		  Delete($$);
-		  $$ = $5;
+		  set_nextSibling($$, $5);
 		}
 	      } else {
-		set_nextSibling($$,$5);
+		Swig_error(cparse_file, cparse_line, "Missing symbol name for global declaration\n");
+		$$ = 0;
 	      }
            }
            /* Alternate function syntax introduced in C++11:
