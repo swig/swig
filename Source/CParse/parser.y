@@ -5433,7 +5433,7 @@ direct_declarator : idcolon {
 		    }
 		    SwigType_add_rvalue_reference($$.type);
                   }
-                  | LPAREN idcolon DSTAR direct_declarator RPAREN {
+                  | LPAREN idcolon DSTAR declarator RPAREN {
 		    SwigType *t;
 		    $$ = $4;
 		    t = NewStringEmpty();
@@ -5443,7 +5443,42 @@ direct_declarator : idcolon {
 		      Delete($$.type);
 		    }
 		    $$.type = t;
+		  }
+                  | LPAREN idcolon DSTAR type_qualifier declarator RPAREN {
+		    SwigType *t;
+		    $$ = $5;
+		    t = NewStringEmpty();
+		    SwigType_add_memberpointer(t, $2);
+		    SwigType_push(t, $4);
+		    if ($$.type) {
+		      SwigType_push(t, $$.type);
+		      Delete($$.type);
 		    }
+		    $$.type = t;
+		  }
+                  | LPAREN idcolon DSTAR abstract_declarator RPAREN {
+		    SwigType *t;
+		    $$ = $4;
+		    t = NewStringEmpty();
+		    SwigType_add_memberpointer(t, $2);
+		    if ($$.type) {
+		      SwigType_push(t, $$.type);
+		      Delete($$.type);
+		    }
+		    $$.type = t;
+		  }
+                  | LPAREN idcolon DSTAR type_qualifier abstract_declarator RPAREN {
+		    SwigType *t;
+		    $$ = $5;
+		    t = NewStringEmpty();
+		    SwigType_add_memberpointer(t, $2);
+		    SwigType_push(t, $4);
+		    if ($$.type) {
+		      SwigType_push(t, $$.type);
+		      Delete($$.type);
+		    }
+		    $$.type = t;
+		  }
                   | direct_declarator LBRACKET RBRACKET { 
 		    SwigType *t;
 		    $$ = $1;
@@ -5593,6 +5628,14 @@ abstract_declarator : pointer {
                     $$.parms = 0;
 		    $$.have_parms = 0;
       	          }
+                  | idcolon DSTAR type_qualifier {
+		    $$.type = NewStringEmpty();
+		    SwigType_add_memberpointer($$.type, $1);
+		    SwigType_push($$.type, $3);
+		    $$.id = 0;
+		    $$.parms = 0;
+		    $$.have_parms = 0;
+		  }
                   | pointer idcolon DSTAR { 
 		    SwigType *t = NewStringEmpty();
                     $$.type = $1;

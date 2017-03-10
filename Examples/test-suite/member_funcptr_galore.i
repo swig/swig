@@ -101,3 +101,65 @@ int call3(int & (FunkSpace::Funktions::*d)(const int &, int), int a, int b) { Fu
 int unreal1(double (Space::Shape::*memptr)(Space::Shape &, int & (FunkSpace::Funktions::*)(const int &, int))) { return 0; }
 int unreal2(double (Space::Shape::*memptr)(Thing<short>)) { return 0; }
 %}
+
+
+%inline %{
+struct Funcs {
+  short FF(bool) {}
+  short CC(bool) const {}
+};
+
+class MemberFuncPtrs
+{
+public:
+    // member const function pointers, unnamed parameters
+    int aaa1(short (Funcs::* )(bool) const) const;
+    int aaa2(short (Funcs::* const *&)(bool) const) const;
+    int aaa3(short (Funcs::* *& )(bool) const) const;
+    int aaa4(short (Funcs::* *const& )(bool) const) const;
+    int aaa5(short (Funcs::* & )(bool) const) const;
+    int aaa6(short (Funcs::* const)(bool) const) const;
+    int aaa7(short (Funcs::* const&)(bool) const) const;
+
+    // member non-const function pointers, unnamed parameters
+    int bbb1(short (Funcs::* )(bool)) const;
+    int bbb2(short (Funcs::* const *&)(bool)) const;
+    int bbb3(short (Funcs::* *& )(bool)) const;
+    int bbb4(short (Funcs::* *const& )(bool)) const;
+    int bbb5(short (Funcs::* & )(bool)) const;
+    int bbb6(short (Funcs::* const)(bool)) const;
+    int bbb7(short (Funcs::* const&)(bool)) const;
+
+    // member const function pointers, named parameters
+    int ppp1(short (Funcs::* pp1)(bool) const) const;
+    int ppp2(short (Funcs::* const *& pp2)(bool) const) const;
+    int ppp3(short (Funcs::* *& pp3)(bool) const) const;
+    int ppp4(short (Funcs::* *const& pp4)(bool) const) const;
+    int ppp5(short (Funcs::* & pp5)(bool) const) const;
+    int ppp6(short (Funcs::* const pp6)(bool) const) const;
+    int ppp7(short (Funcs::* const& pp7)(bool) const) const;
+
+    // member non-const function pointers, named parameters
+    int qqq1(short (Funcs::* qq1)(bool)) const;
+    int qqq2(short (Funcs::* const *& qq2)(bool)) const;
+    int qqq3(short (Funcs::* *& qq3)(bool)) const;
+    int qqq4(short (Funcs::* *const& qq4)(bool)) const;
+    int qqq5(short (Funcs::* & qq5)(bool)) const;
+    int qqq6(short (Funcs::* const qq6)(bool)) const;
+    int qqq7(short (Funcs::* const& qq7)(bool)) const;
+};
+
+// member function pointer variables
+short (Funcs::* pp1)(bool) = &Funcs::FF;
+
+short (Funcs::* const * extra2)(bool) = &pp1;
+short (Funcs::* * extra3)(bool) = &pp1;
+short (Funcs::* *const extra4)(bool) = &pp1;
+
+short (Funcs::* const *& pp2)(bool) = extra2;
+short (Funcs::* *& pp3)(bool) = extra3;
+short (Funcs::* *const& pp4)(bool) = extra4;
+short (Funcs::* & pp5)(bool) = pp1;
+short (Funcs::* const pp6)(bool) = &Funcs::FF;
+short (Funcs::* const& pp7)(bool) = pp1;
+%}

@@ -64,10 +64,11 @@
  *
  * More examples:
  *
- *        String Encoding                 C Example
- *        ---------------                 ---------
+ *        String Encoding                 C++ Example
+ *        ---------------                 -----------
  *        p.f(bool).q(const).long         const long (*)(bool)
  *        m(Funcs).q(const).f(bool).long  long (Funcs::*)(bool) const
+ *        r.q(const).m(Funcs).f(int).long long (Funcs::*const &)(int)
  *
  * For the most part, this module tries to minimize the use of special
  * characters (*, [, <, etc...) in its type encoding.  One reason for this
@@ -438,8 +439,13 @@ SwigType *SwigType_default_deduce(const SwigType *t) {
 	  Setitem(l, numitems-2, deduced_subtype);
 	}
       } else if (SwigType_ismemberpointer(subtype)) {
-	/* member pointer deduction, m(CLASS). => p. */
-	Setitem(l, numitems-2, NewString("p."));
+	if (numitems >= 3) {
+	  /* member pointer deduction, eg, r.p.m(CLASS) => r.m(CLASS) */
+	  Delitem(l, numitems-3);
+	} else {
+	  /* member pointer deduction, m(CLASS). => p. */
+	  Setitem(l, numitems-2, NewString("p."));
+	}
       } else if (is_enum && !SwigType_isqualifier(subtype)) {
 	/* enum deduction, enum SWIGTYPE => SWIGTYPE */
 	Setitem(l, numitems-1, NewString("SWIGTYPE"));
@@ -803,7 +809,10 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
   if (SwigType_isconst(s)) {
     tc = Copy(s);
     Delete(SwigType_pop(tc));
-    rs = tc;
+    if (SwigType_ismemberpointer(tc))
+      rs = s;
+    else
+      rs = tc;
   } else {
     rs = s;
   }
