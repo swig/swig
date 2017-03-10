@@ -11,6 +11,8 @@ struct SomeStruct {
   auto addAlternateConstNoExcept(int x, int y) const noexcept -> int;
   auto addAlternateMemberPtrParm(int x, int (SomeStruct::*mp)(int, int)) -> int;
   auto addAlternateMemberPtrConstParm(int x, int (SomeStruct::*mp)(int, int) const) const -> int;
+
+  virtual auto addFinal(int x, int y) const noexcept -> int final { return x + y; }
 };
  
 int SomeStruct::addNormal(int x, int y) { return x + y; }
