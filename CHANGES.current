@@ -7,6 +7,23 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 3.0.13 (in progress)
 ============================
 
+2017-03-10: wsfulton
+            Add support for member const function pointers such as:
+
+              int fn(short (Funcs::* parm)(bool)) const;
+
+            Also fix parsing of references/pointers and qualifiers to member
+            pointers such as:
+
+              int fn(short (Funcs::* const parm)(bool));
+              int fn(short (Funcs::* & parm)(bool));
+
+2017-03-10: wsfulton
+            Extend C++11 alternate function syntax parsing to support const and noexcept, such as:
+
+              auto sum1(int x, int y) const -> int { return x + y; }
+              auto sum2(int x, int y) noexcept -> int { return x + y; }
+
 2017-02-27: assambar
             [C++11] Extend parser to support throw specifier in combination
             with override and/or final.
