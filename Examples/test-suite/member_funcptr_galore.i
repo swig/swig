@@ -105,8 +105,8 @@ int unreal2(double (Space::Shape::*memptr)(Thing<short>)) { return 0; }
 
 %inline %{
 struct Funcs {
-  short FF(bool) {}
-  short CC(bool) const {}
+  short FF(bool) { return 0; }
+  short CC(bool) const { return 0; }
 };
 
 class MemberFuncPtrs
