@@ -185,6 +185,7 @@ int MemberFuncPtrs::qqq5(short (Funcs::* & qq5)(bool)) const { return 0; }
 int MemberFuncPtrs::qqq6(short (Funcs::* const qq6)(bool)) const { return 0; }
 int MemberFuncPtrs::qqq7(short (Funcs::* const& qq7)(bool)) const { return 0; }
 
+#if !defined(SWIGGO)
 // member function pointer variables
 short (Funcs::* pp1)(bool) = &Funcs::FF;
 
@@ -198,4 +199,5 @@ short (Funcs::* *const& pp4)(bool) = extra4;
 short (Funcs::* & pp5)(bool) = pp1;
 short (Funcs::* const pp6)(bool) = &Funcs::FF;
 short (Funcs::* const& pp7)(bool) = pp1;
+#endif
 %}

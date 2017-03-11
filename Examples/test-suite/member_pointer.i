@@ -48,18 +48,24 @@ public:
 typedef double (Shape::*PerimeterFunc_td)(void);
 
 extern double do_op(Shape *s, double (Shape::*m)(void));
+#if !defined(SWIGGO)
 extern double do_op_td(Shape *s, PerimeterFunc_td m);
+#endif
 
 /* Functions that return member pointers */
 
 extern double (Shape::*areapt())(void);
 extern double (Shape::*perimeterpt())(void);
+#if !defined(SWIGGO)
 extern PerimeterFunc_td perimeterpt_td();
+#endif
 
 /* Global variables that are member pointers */
 extern double (Shape::*areavar)(void);
 extern double (Shape::*perimetervar)(void);
+#if !defined(SWIGGO)
 extern PerimeterFunc_td perimetervar_td;
+#endif
 %}
 
 %{
