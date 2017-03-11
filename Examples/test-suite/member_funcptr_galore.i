@@ -149,6 +149,42 @@ public:
     int qqq7(short (Funcs::* const& qq7)(bool)) const;
 };
 
+    // member const function pointers, unnamed parameters
+int MemberFuncPtrs::aaa1(short (Funcs::* )(bool) const) const { return 0; }
+int MemberFuncPtrs::aaa2(short (Funcs::* const *&)(bool) const) const { return 0; }
+int MemberFuncPtrs::aaa3(short (Funcs::* *& )(bool) const) const { return 0; }
+int MemberFuncPtrs::aaa4(short (Funcs::* *const& )(bool) const) const { return 0; }
+int MemberFuncPtrs::aaa5(short (Funcs::* & )(bool) const) const { return 0; }
+int MemberFuncPtrs::aaa6(short (Funcs::* const)(bool) const) const { return 0; }
+int MemberFuncPtrs::aaa7(short (Funcs::* const&)(bool) const) const { return 0; }
+
+// member non-const function pointers, unnamed parameters
+int MemberFuncPtrs::bbb1(short (Funcs::* )(bool)) const { return 0; }
+int MemberFuncPtrs::bbb2(short (Funcs::* const *&)(bool)) const { return 0; }
+int MemberFuncPtrs::bbb3(short (Funcs::* *& )(bool)) const { return 0; }
+int MemberFuncPtrs::bbb4(short (Funcs::* *const& )(bool)) const { return 0; }
+int MemberFuncPtrs::bbb5(short (Funcs::* & )(bool)) const { return 0; }
+int MemberFuncPtrs::bbb6(short (Funcs::* const)(bool)) const { return 0; }
+int MemberFuncPtrs::bbb7(short (Funcs::* const&)(bool)) const { return 0; }
+
+// member const function pointers, named parameters
+int MemberFuncPtrs::ppp1(short (Funcs::* pp1)(bool) const) const { return 0; }
+int MemberFuncPtrs::ppp2(short (Funcs::* const *& pp2)(bool) const) const { return 0; }
+int MemberFuncPtrs::ppp3(short (Funcs::* *& pp3)(bool) const) const { return 0; }
+int MemberFuncPtrs::ppp4(short (Funcs::* *const& pp4)(bool) const) const { return 0; }
+int MemberFuncPtrs::ppp5(short (Funcs::* & pp5)(bool) const) const { return 0; }
+int MemberFuncPtrs::ppp6(short (Funcs::* const pp6)(bool) const) const { return 0; }
+int MemberFuncPtrs::ppp7(short (Funcs::* const& pp7)(bool) const) const { return 0; }
+
+// member non-const function pointers, named parameters
+int MemberFuncPtrs::qqq1(short (Funcs::* qq1)(bool)) const { return 0; }
+int MemberFuncPtrs::qqq2(short (Funcs::* const *& qq2)(bool)) const { return 0; }
+int MemberFuncPtrs::qqq3(short (Funcs::* *& qq3)(bool)) const { return 0; }
+int MemberFuncPtrs::qqq4(short (Funcs::* *const& qq4)(bool)) const { return 0; }
+int MemberFuncPtrs::qqq5(short (Funcs::* & qq5)(bool)) const { return 0; }
+int MemberFuncPtrs::qqq6(short (Funcs::* const qq6)(bool)) const { return 0; }
+int MemberFuncPtrs::qqq7(short (Funcs::* const& qq7)(bool)) const { return 0; }
+
 // member function pointer variables
 short (Funcs::* pp1)(bool) = &Funcs::FF;
 
