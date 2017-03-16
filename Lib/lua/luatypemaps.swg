@@ -386,6 +386,8 @@ parameters match which function
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }
+%apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
+%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
 // size_t (which is just a unsigned long)
 %apply unsigned long { size_t };

@@ -2806,17 +2806,25 @@ private:
       return SWIG_NOWRAP;
     }
 
-    String *get = NewString("");
-    Printv(get, Swig_cresult_name(), " = ", NULL);
-
     String *rawval = Getattr(n, "rawval");
     if (rawval && Len(rawval)) {
-      if (SwigType_type(type) == T_STRING) {
-        Printv(get, "(char *)", NULL);
+      // Based on Swig_VargetToFunction
+      String *nname = NewStringf("(%s)", rawval);
+      String *call;
+      if (SwigType_isclass(type)) {
+	call = NewStringf("%s", nname);
+      } else {
+	call = SwigType_lcaststr(type, nname);
       }
-
-      Printv(get, rawval, NULL);
+      String *cres = Swig_cresult(type, Swig_cresult_name(), call);
+      Setattr(n, "wrap:action", cres);
+      Delete(nname);
+      Delete(call);
+      Delete(cres);
     } else {
+      String *get = NewString("");
+      Printv(get, Swig_cresult_name(), " = ", NULL);
+
       char quote;
       if (Getattr(n, "wrappedasconstant")) {
         quote = '\0';
@@ -2838,11 +2846,12 @@ private:
       if (quote != '\0') {
         Printf(get, "%c", quote);
       }
+
+      Printv(get, ";\n", NULL);
+
+      Setattr(n, "wrap:action", get);
+      Delete(get);
     }
-
-    Printv(get, ";\n", NULL);
-
-    Setattr(n, "wrap:action", get);
 
     String *sname = Copy(symname);
     if (class_name) {
@@ -6234,7 +6243,7 @@ private:
       }
     } else if (SwigType_isfunctionpointer(type) || SwigType_isfunction(type)) {
       ret = NewString("_swig_fnptr");
-    } else if (SwigType_ismemberpointer(type)) {
+    } else if (SwigType_ismemberpointer(t)) {
       ret = NewString("_swig_memberptr");
     } else if (SwigType_issimple(t)) {
       Node *cn = classLookup(t);

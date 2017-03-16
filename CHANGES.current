@@ -7,7 +7,7 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 3.0.13 (in progress)
 ============================
 
-2017-03-10: wsfulton
+2017-03-16: wsfulton
             Add support for member const function pointers such as:
 
               int fn(short (Funcs::* parm)(bool)) const;

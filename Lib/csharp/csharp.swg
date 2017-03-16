@@ -843,6 +843,13 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     $*csclassname ret = (cPtr == global::System.IntPtr.Zero) ? null : new $*csclassname(cPtr, $owner);$excode
     return ret;
   }
+%typemap(csvarout, excode=SWIGEXCODE) SWIGTYPE *const& %{
+    get {
+      global::System.IntPtr cPtr = $imcall;
+      $*csclassname ret = (cPtr == global::System.IntPtr.Zero) ? null : new $*csclassname(cPtr, $owner);$excode
+      return ret;
+    } %}
+
 %typemap(in) SWIGTYPE *const& ($*1_ltype temp = 0)
 %{ temp = ($*1_ltype)$input;
    $1 = ($1_ltype)&temp; %}
@@ -1011,6 +1018,8 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }
+%apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
+%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
 /* csharp keywords */
 %include <csharpkw.swg>

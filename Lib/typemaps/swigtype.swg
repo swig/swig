@@ -584,6 +584,9 @@
 }
 #endif
 
+%apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
+%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
+
 /* ------------------------------------------------------------
  * --- function ptr typemaps --- 
  * ------------------------------------------------------------ */

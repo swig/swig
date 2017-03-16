@@ -439,13 +439,8 @@ SwigType *SwigType_default_deduce(const SwigType *t) {
 	  Setitem(l, numitems-2, deduced_subtype);
 	}
       } else if (SwigType_ismemberpointer(subtype)) {
-	if (numitems >= 3) {
-	  /* member pointer deduction, eg, r.p.m(CLASS) => r.m(CLASS) */
-	  Delitem(l, numitems-3);
-	} else {
-	  /* member pointer deduction, m(CLASS). => p. */
-	  Setitem(l, numitems-2, NewString("p."));
-	}
+	/* member pointer deduction, m(CLASS). => p. */
+	Setitem(l, numitems-2, NewString("p."));
       } else if (is_enum && !SwigType_isqualifier(subtype)) {
 	/* enum deduction, enum SWIGTYPE => SWIGTYPE */
 	Setitem(l, numitems-1, NewString("SWIGTYPE"));
