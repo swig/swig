@@ -15,6 +15,9 @@ Version 3.0.13 (in progress)
             [Ruby] Fix #939 - Wrapping std::vector<bool> fix due to incorrect null checks
             on VALUE obj.
 
+2017-03-17: vadz
+            [C#] Add support for std::complex<T>
+
 2017-03-17: wsfulton
             [Go] Fix handling of typedef'd function pointers and typedef'd member function pointers
             such as:
