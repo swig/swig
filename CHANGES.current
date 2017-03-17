@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 3.0.13 (in progress)
 ============================
 
+2017-03-17: wsfulton
+            [Go] Fix handling of typedef'd function pointers and typedef'd member function pointers
+            such as:
+
+              typedef int (*FnPtr_td)(int, int);
+              int do_op(int x, int y, FnPtr_td op);
+
 2017-03-16: wsfulton
             Add support for member const function pointers such as:
 
