@@ -102,7 +102,7 @@ namespace swig {
 } 
 }
 
-%fragment("SwigPySequence_Base","header",fragment="<stddef.h>")
+%fragment("SwigPySequence_Base","header",fragment="<stddef.h>",fragment="StdTraits")
 {
 %#include <functional>
 
