@@ -896,10 +896,10 @@ mzscheme_clean:
 #####                          Ocaml                         #####
 ##################################################################
 
-OCC=@OCAMLC@
-OCAMLDLGEN=@OCAMLDLGEN@
-OCAMLFIND=@OCAMLFIND@
-OCAMLMKTOP=@OCAMLMKTOP@ $(SWIGWHERE)
+OCC=$(COMPILETOOL) @OCAMLC@
+OCAMLDLGEN=$(COMPILETOOL) @OCAMLDLGEN@
+OCAMLFIND=$(COMPILETOOL) @OCAMLFIND@
+OCAMLMKTOP=$(COMPILETOOL) @OCAMLMKTOP@ $(SWIGWHERE)
 NOLINK ?= false
 OCAMLPP= -pp "camlp4o ./swigp4.cmo"
 OCAMLP4WHERE=`$(COMPILETOOL) @CAMLP4@ -where`
