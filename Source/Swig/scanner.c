@@ -749,6 +749,9 @@ static int look(Scanner *s) {
 	  }
 	  
 	  if (Strcmp( str_delimiter, end_delimiter )==0) {
+	    int len = Len(s->text);
+	    Delslice(s->text, len - 2 - Len(str_delimiter), len); /* Delete ending )XXXX" */
+	    Delslice(s->text, 0, Len(str_delimiter) + 1); /* Delete starting XXXX( */
 	    Delete( end_delimiter ); /* Correct end delimiter )XXXX" occured */
 	    Delete( str_delimiter );
 	    str_delimiter = 0;
