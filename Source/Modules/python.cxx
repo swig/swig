@@ -3311,6 +3311,22 @@ public:
       Setattr(h, "getter", "SwigPyObject_get___dict__");
     }
 
+    /* for builtin types, store the docstring (if it exists) in the PyGetSetDef entry. */
+    if (builtin && have_docstring(n)) {
+      String *memname = Getattr(n, "membervariableHandler:sym:name");
+      if (!memname)
+	memname = iname;
+      Hash *h = Getattr(builtin_getset, memname);
+      if (!h) {
+	h = NewHash();
+	Setattr(builtin_getset, memname, h);
+	Delete(h);
+      }
+      String *ds = cdocstring(n, AUTODOC_FUNC);
+      Setattr(h, "docstring", ds);
+      Delete(ds);
+    }
+
     if (builtin_getter) {
       String *memname = Getattr(n, "membervariableHandler:sym:name");
       if (!memname)
@@ -3997,15 +4013,20 @@ public:
     for (Iterator member_iter = First(builtin_getset); member_iter.item; member_iter = Next(member_iter)) {
       String *memname = member_iter.key;
       Hash *mgetset = member_iter.item;
+      String *doc = Getattr(mgetset, "docstring");
+      String *fullname = NULL;
       String *getter = Getattr(mgetset, "getter");
       String *setter = Getattr(mgetset, "setter");
       const char *getter_closure = getter ? funpack ? "SwigPyBuiltin_FunpackGetterClosure" : "SwigPyBuiltin_GetterClosure" : "0";
       const char *setter_closure = setter ? funpack ? "SwigPyBuiltin_FunpackSetterClosure" : "SwigPyBuiltin_SetterClosure" : "0";
       String *gspair = NewStringf("%s_%s_getset", symname, memname);
       Printf(f, "static SwigPyGetSet %s = { %s, %s };\n", gspair, getter ? getter : "0", setter ? setter : "0");
+      if (!doc) {
+	fullname = NewStringf("%s.%s", name, memname);
+      }
       String *entry =
-	  NewStringf("{ (char *) \"%s\", (getter) %s, (setter) %s, (char *)\"%s.%s\", (void *) &%s }\n", memname, getter_closure,
-		     setter_closure, name, memname, gspair);
+	  NewStringf("{ (char *) \"%s\", (getter) %s, (setter) %s, (char *)\"%s\", (void *) &%s }\n", memname, getter_closure,
+		     setter_closure, doc ? doc : fullname, gspair);
       if (GetFlag(mgetset, "static")) {
 	Printf(f, "static PyGetSetDef %s_def = %s;\n", gspair, entry);
 	Printf(f_init, "static_getset = SwigPyStaticVar_new_getset(metatype, &%s_def);\n", gspair);
@@ -4016,6 +4037,9 @@ public:
       }
       Delete(gspair);
       Delete(entry);
+      if (fullname) {
+	Delete(doc);
+      }
     }
     Printv(f, getset_def, "    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */\n", "};\n\n", NIL);
 
