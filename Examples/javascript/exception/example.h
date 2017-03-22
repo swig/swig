@@ -1,6 +1,6 @@
 /* File : example.h */
 
-#include <string>
+#include <string.h>
 #ifndef SWIG
 struct A {
 };
