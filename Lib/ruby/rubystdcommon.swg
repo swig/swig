@@ -117,7 +117,7 @@ namespace swig {
     static Type as(VALUE obj, bool throw_error) {
       Type v;
       int res = asval(obj, &v);
-      if (!obj || !SWIG_IsOK(res)) {
+      if (!SWIG_IsOK(res)) {
 	if (throw_error) throw std::invalid_argument("bad type");
 	VALUE lastErr = rb_gv_get("$!");
 	if (lastErr == Qnil) {
@@ -132,7 +132,7 @@ namespace swig {
   struct traits_as<Type, pointer_category> {
     static Type as(VALUE obj, bool throw_error) {
       Type *v = 0;      
-      int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : SWIG_ERROR);
+      int res = traits_asptr<Type>::asptr(obj, &v);
       if (SWIG_IsOK(res) && v) {
 	if (SWIG_IsNewObj(res)) {
 	  Type r(*v);
@@ -159,7 +159,7 @@ namespace swig {
   struct traits_as<Type*, pointer_category> {
     static Type* as(VALUE obj, bool throw_error) {
       Type *v = 0;      
-      int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : SWIG_ERROR);
+      int res = traits_asptr<Type>::asptr(obj, &v);
       if (SWIG_IsOK(res)) {
 	return v;
       } else {
@@ -181,7 +181,7 @@ namespace swig {
   template <class Type> 
   struct traits_check<Type, value_category> {
     static bool check(VALUE obj) {
-      int res = obj ? asval(obj, (Type *)(0)) : SWIG_ERROR;
+      int res = asval(obj, (Type *)(0));
       return SWIG_IsOK(res) ? true : false;
     }
   };
@@ -189,7 +189,7 @@ namespace swig {
   template <class Type> 
   struct traits_check<Type, pointer_category> {
     static bool check(VALUE obj) {
-      int res = obj ? asptr(obj, (Type **)(0)) : SWIG_ERROR;
+      int res = asptr(obj, (Type **)(0));
       return SWIG_IsOK(res) ? true : false;
     }
   };
