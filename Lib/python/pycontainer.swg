@@ -351,7 +351,7 @@ namespace swig {
         typename Sequence::const_iterator isit = is.begin();
         typename Sequence::iterator it = self->begin();
         std::advance(it,ii);
-        for (size_t rc=0; rc<replacecount; ++rc) {
+        for (size_t rc=0; rc<replacecount && it != self->end(); ++rc) {
           *it++ = *isit++;
           for (Py_ssize_t c=0; c<(step-1) && it != self->end(); ++c)
             it++;
@@ -367,7 +367,7 @@ namespace swig {
       typename Sequence::const_iterator isit = is.begin();
       typename Sequence::reverse_iterator it = self->rbegin();
       std::advance(it,size-ii-1);
-      for (size_t rc=0; rc<replacecount; ++rc) {
+      for (size_t rc=0; rc<replacecount && it != self->rend(); ++rc) {
         *it++ = *isit++;
         for (Py_ssize_t c=0; c<(-step-1) && it != self->rend(); ++c)
           it++;
