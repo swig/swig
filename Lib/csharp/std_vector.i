@@ -70,7 +70,7 @@
     set {
       if (value < size())
         throw new global::System.ArgumentOutOfRangeException("Capacity");
-      reserve((uint)value);
+      reserve(($typemap(cstype, size_t))value);
     }
   }
 
