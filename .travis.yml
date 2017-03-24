@@ -309,12 +309,6 @@ matrix:
       env: SWIGLANG=python SWIG_FEATURES=-O
       sudo: required
       dist: trusty
-    # Has started to fail at package install time
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.2 CPP11=1
-      sudo: required
-      dist: trusty
 before_install:
   - date -u
   - uname -a
