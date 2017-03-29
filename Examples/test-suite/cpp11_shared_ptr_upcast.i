@@ -9,9 +9,9 @@
 #include <vector>
 %}
 
-%include std_vector.i
-%include std_map.i
-%include std_shared_ptr.i
+%include <std_vector.i>
+%include <std_map.i>
+%include <std_shared_ptr.i>
 
 %{
 

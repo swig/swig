@@ -1,16 +1,15 @@
 #define SWIG_SHARED_PTR_NAMESPACE std
 %include <boost_shared_ptr.i>
+%include <rubystdcommon_forward.swg>
 
 
- /*
-  * We want to put the following code after the fragment "StdTraits" at rubystdcommon.swg.
-  * This code is needed if and only if the fragment and this std_shared_ptr.i are included at the same time.
-  * They don't always require each other. The order of including them is not predetermined either.
-  * So specifying the dependecy by using %fragment does not work.
-  */
-%wrapper %{
-#ifdef SWIG_RUBYSTDCOMMON
+%fragment("StdSharedPtrTraits","header",fragment="StdTraitsForwardDeclaration")
+{
 namespace swig {
+  /*
+   template specialization for functions defined in rubystdcommon.swg.
+   here we should treat smart pointers in a way different from the way we treat raw pointers.
+  */
   template <class Type>
   struct traits_asptr<std::shared_ptr<Type> > {
     static int asptr(VALUE obj, std::shared_ptr<Type> **val) {
@@ -84,6 +83,11 @@ namespace swig {
     }
   };
 
+  /*
+   we have to remove the const qualifier to work around a BUG
+   SWIG_TypeQuery("std::shared_ptr<const Type>") == NULL,
+   which is caused by %template treating const qualifiers not properly.
+  */
   template<class Type>
   struct traits_from<std::shared_ptr<const Type> > {
     static VALUE from(const std::shared_ptr<const Type>& val) {
@@ -92,5 +96,7 @@ namespace swig {
     }
   };
 }
-#endif
-%}
+}
+
+//force the fragment.
+%fragment("StdSharedPtrTraits");
