@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 3.0.13 (in progress)
 ============================
 
+2017-02-29: tamuratak
+            [Ruby] #917 - Add Enumerable module to all container class wrappers. It was missing
+            for std::list, std::multiset, std::unordered_multiset and std::unordered_map.
+
 2017-03-24: tamuratak 
             [Ruby] Fix #939 - Wrapping std::vector<bool> fix due to incorrect null checks
             on VALUE obj.
