@@ -1,12 +1,7 @@
 #!/usr/bin/env ruby
 #
-# A simple function to create useful asserts
+# Useful assert functions
 #
-# 
-# 
-# 
-#
-
 
 #
 # Exception raised when some swig binding test fails
@@ -16,15 +11,15 @@ end
 
 
 #
-# simple assertions. strings are not needed as arguments.
+# Simple assertions. Strings are not needed as arguments.
 #
-def simple_assert_equal(a, b)
+def swig_assert_equal_simple(a, b)
   unless a == b
     raise SwigRubyError.new("\n#{a} expected but was \n#{b}")
   end
 end
 
-def simple_assert(a)
+def swig_assert_simple(a)
   unless a
     raise SwigRubyError.new("assertion falied.")
   end
