@@ -24,5 +24,11 @@ public class complextest_runme {
 
     if ( complextest.Copy_h(vec).Count != 2 )
         throw new Exception("vector<complex> test failed");
+
+    var p = new ComplexPair();
+    p.z1 = new Complex(0, 1);
+    p.z2 = new Complex(0, -1);
+    if ( Complex.Conjugate(p.z2) != p.z1 )
+        throw new Exception("vector<complex> test failed");
   }
 }
