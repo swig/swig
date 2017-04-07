@@ -26,7 +26,7 @@ SWIG_V8_GetModule(void *) {
   global_obj->GetPrivate(SWIGV8_CURRENT_CONTEXT(), privateKey).ToLocal(&moduleinfo);
 #endif
 
-  if (moduleinfo.IsEmpty())
+  if (moduleinfo.IsEmpty() || moduleinfo->IsNull() || moduleinfo->IsUndefined())
   {
     // It's not yet loaded
     return 0;
@@ -34,7 +34,7 @@ SWIG_V8_GetModule(void *) {
 
   v8::Local<v8::External> moduleinfo_extern = v8::Local<v8::External>::Cast(moduleinfo);
 
-  if (moduleinfo_extern.IsEmpty())
+  if (moduleinfo_extern.IsEmpty() || moduleinfo_extern->IsNull() || moduleinfo_extern->IsUndefined())
   {
     // Something's not right
     return 0;
