@@ -31,33 +31,58 @@ public:
   int n;
 };
 
- typedef std::shared_ptr<Base>    BasePtr;
- typedef std::shared_ptr<Derived> DerivedPtr;
+typedef std::shared_ptr<Base>    BasePtr;
+typedef std::shared_ptr<Derived> DerivedPtr;
 
- int derived_num(DerivedPtr v) {
-   return (*v).get_n();
- }
+// non-overloaded
+int derived_num1(DerivedPtr v) {
+ return (*v).get_n();
+}
 
- int derived_num(std::vector<DerivedPtr> v) {
-   return (*v[0]).get_n();
- }
+int derived_num2(std::vector<DerivedPtr> v) {
+ return (*v[0]).get_n();
+}
 
- int derived_num(std::map<int, DerivedPtr> v) {
-   return (*v[0]).get_n();
- }
+int derived_num3(std::map<int, DerivedPtr> v) {
+ return (*v[0]).get_n();
+}
 
- int base_num(BasePtr v) {
-   return (*v).get_m();
- }
+int base_num1(BasePtr v) {
+ return (*v).get_m();
+}
 
- int base_num(std::vector<BasePtr > v) {
-   return (*v[0]).get_m();
- }
+int base_num2(std::vector<BasePtr > v) {
+ return (*v[0]).get_m();
+}
 
- int base_num(std::map<int, BasePtr > v) {
-   return (*v[0]).get_m();
- }
+int base_num3(std::map<int, BasePtr > v) {
+ return (*v[0]).get_m();
+}
 
+// overloaded
+int derived_num(DerivedPtr v) {
+ return derived_num1(v);
+}
+
+int derived_num(std::vector<DerivedPtr> v) {
+ return derived_num2(v);
+}
+
+int derived_num(std::map<int, DerivedPtr> v) {
+ return derived_num3(v);
+}
+
+int base_num(BasePtr v) {
+ return base_num1(v);
+}
+
+int base_num(std::vector<BasePtr > v) {
+ return base_num2(v);
+}
+
+int base_num(std::map<int, BasePtr > v) {
+ return base_num3(v);
+}
 %}
 
 
@@ -88,10 +113,18 @@ public:
 typedef std::shared_ptr<Base>    BasePtr;
 typedef std::shared_ptr<Derived> DerivedPtr;
 
+// non-overloaded
+int derived_num1(DerivedPtr);
+int derived_num2(std::vector<std::shared_ptr<Derived> > v);
+int derived_num3(std::map<int, DerivedPtr> v);
+int base_num1(BasePtr);
+int base_num2(std::vector<std::shared_ptr<Base> > v);
+int base_num3(std::map<int, BasePtr > v);
+
+// overloaded
 int derived_num(DerivedPtr);
 int derived_num(std::vector<std::shared_ptr<Derived> > v);
 int derived_num(std::map<int, DerivedPtr> v);
 int base_num(BasePtr);
 int base_num(std::vector<std::shared_ptr<Base> > v);
 int base_num(std::map<int, BasePtr > v);
-
