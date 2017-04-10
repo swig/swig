@@ -197,6 +197,18 @@
   %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
 }
 
+%typemap(directorout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > (void * swig_argp, int swig_res = 0) {
+  if (NIL_P($input)) {
+    $result = $ltype();
+  } else {
+    swig_res = SWIG_ConvertPtr($input,&swig_argp,$&descriptor, %convertptr_flags);
+    if (!SWIG_IsOK(swig_res)) {
+      %dirout_fail(swig_res,"$type");
+    }
+    $result = *(%reinterpret_cast(swig_argp, $&ltype));
+  }
+}
+
 %typemap(varin) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > {
   swig_ruby_owntype newmem = {0, 0};
   void *argp = 0;

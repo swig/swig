@@ -19,6 +19,6 @@ class Derived < Creator
 
 end
 
-crash(Derived.new(false))
-crash(Derived.new(true))
+p crash(Derived.new(false))
+p crash(Derived.new(true))
 

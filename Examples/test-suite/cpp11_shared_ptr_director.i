@@ -9,7 +9,10 @@
 %feature("director") Creator;
 
 %inline %{
-struct Created {};
+struct Created {
+  Created() {};
+  int get_m() { return 1; };
+};
 
 struct Creator {
   Creator() {};
@@ -17,7 +20,13 @@ struct Creator {
   virtual ~Creator() {}
 };
 
-void crash(Creator* creator) {
+int crash(Creator* creator) {
   std::shared_ptr<Created> ptr = creator->create();
+  if (ptr) {
+    return ptr->get_m();
+  } else {
+    return -1;
+  }
 }
+
 %}
