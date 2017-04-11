@@ -33,7 +33,8 @@ CPP_TEST_CASES = \
 CPP11_TEST_CASES = \
 	cpp11_hash_tables \
 	cpp11_shared_ptr_upcast \
-	cpp11_shared_ptr_const
+	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_director
 
 C_TEST_CASES += \
 	li_cstring \
