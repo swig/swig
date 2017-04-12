@@ -26,11 +26,35 @@ class Derived < Base
   end
 
   def take_c_shared_ptr_by_value(c)
-    c.get_m
+    if c
+      c.get_m
+    else
+      -2
+    end
   end
 
   def take_c_shared_ptr_by_ref(c)
-    c.get_m
+    if c
+      c.get_m
+    else
+      -3
+    end
+  end
+
+  def take_c_shared_ptr_by_pointer(c)
+    if c
+      c.get_m
+    else
+      -4
+    end
+  end
+
+  def take_c_shared_ptr_by_pointer_ref(c)
+    if c
+      c.get_m
+    else
+      -5
+    end
   end
 
 end
@@ -42,7 +66,14 @@ raise unless call_ret_c_shared_ptr(a) ==  1
 raise unless call_ret_c_shared_ptr(b) == -1
 raise unless call_ret_c_by_value(a)   ==  1
 
-raise unless call_take_c_by_value(a)            == 5
-raise unless call_take_c_shared_ptr_by_value(a) == 6
-raise unless call_take_c_shared_ptr_by_ref(a)   == 7
+raise unless call_take_c_by_value(a)                  == 5
+raise unless call_take_c_shared_ptr_by_value(a)       == 6
+raise unless call_take_c_shared_ptr_by_ref(a)         == 7
+raise unless call_take_c_shared_ptr_by_pointer(a)     == 8
+raise unless call_take_c_shared_ptr_by_pointer_ref(a) == 9
+
+raise unless call_take_c_shared_ptr_by_value_with_null(a)       == -2
+raise unless call_take_c_shared_ptr_by_ref_with_null(a)         == -3
+raise unless call_take_c_shared_ptr_by_pointer_with_null(a)     == -4
+raise unless call_take_c_shared_ptr_by_pointer_ref_with_null(a) == -5
 
