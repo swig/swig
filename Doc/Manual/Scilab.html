@@ -304,6 +304,11 @@ The following table lists the Scilab specific command line options in addition t
 <td>Generate the gateway XML with the given &lt;gateway_id&gt;</td>
 </tr>
 
+<tr>
+<td><tt>-targetversion</tt></td>
+<td>Generate for Scilab target (major) version</td>
+</tr>
+
 </table>
 
 <p>
@@ -331,11 +336,15 @@ There are a few exceptions, such as constants and enumerations, which can be wra
 
 
 <p>
-In Scilab 5.x, identifier names are composed of 24 characters maximum (this limitation should disappear from Scilab 6.0 onwards).
-<br>Thus long function or variable names may be truncated and this can cause ambiguities.
+In Scilab 5.x, identifier names are composed of 24 characters maximum (this limitation disappears from Scilab 6.0 onwards).
+<br>By default, variable, member, and function names longer than 24 charaters are truncated, and a warning is produced for each truncation.
 </p>
-<p>This happens especially when wrapping structs/classes, for which the wrapped function name is composed of the struct/class name and field names.
+<p>This can cause ambiguities, especially when wrapping structs/classes, for which the wrapped function name is composed of the struct/class name and field names.
 In these cases, the <a href="SWIG.html#SWIG_rename_ignore">%rename directive</a> can be used to choose a different Scilab name.
+</p>
+
+<p>
+Note: truncations can be disabled by specifying the target version 6 of Scilab in the <tt>targetversion</tt> argument (i.e. <tt>-targetversion 6</tt>).
 </p>
 
 <H3><a name="Scilab_wrapping_functions">39.3.3 Functions</a></H3>
