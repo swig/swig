@@ -16,6 +16,21 @@ end
 
 
 #
+# simple assertions. strings are not needed as arguments.
+#
+def simple_assert_equal(a, b)
+  unless a == b
+    raise SwigRubyError.new("\n#{a} expected but was \n#{b}")
+  end
+end
+
+def simple_assert(a)
+  unless a
+    raise SwigRubyError.new("assertion falied.")
+  end
+end
+
+#
 # Asserts whether a and b are equal.
 #
 # scope - optional Binding where to run the code
