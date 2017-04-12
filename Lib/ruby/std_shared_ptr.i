@@ -7,23 +7,32 @@
 {
 namespace swig {
   /*
-   template specialization for functions defined in rubystdcommon.swg.
-   here we should treat smart pointers in a way different from the way we treat raw pointers.
+   Template specialization for functions defined in rubystdcommon.swg. Special handling for shared_ptr
+   is required as, shared_ptr<T> * is used rather than the usual T *, see shared_ptr.i.
   */
   template <class Type>
   struct traits_asptr<std::shared_ptr<Type> > {
     static int asptr(VALUE obj, std::shared_ptr<Type> **val) {
-      std::shared_ptr<Type> *p=0;
+      std::shared_ptr<Type> *p = 0;
       swig_type_info *descriptor = type_info<std::shared_ptr<Type> >();
       swig_ruby_owntype newmem = {0, 0};
       int res = descriptor ? SWIG_ConvertPtrAndOwn(obj, (void **)&p, descriptor, 0, &newmem) : SWIG_ERROR;
-      if (SWIG_IsOK(res) && p) {
-	if (val && *val) **val = *p;
-        if (newmem.own & SWIG_CAST_NEW_MEMORY) delete p;
-        return SWIG_OK;
-      } else {
-        return SWIG_ERROR;
+      if (SWIG_IsOK(res)) {
+	if (val) {
+	  if (*val) {
+	    **val = p ? *p : std::shared_ptr<Type>();
+	  } else {
+	    *val = p;
+	    if (newmem.own & SWIG_CAST_NEW_MEMORY) {
+	      // Upcast for pointers to shared_ptr in this generic framework has not been implemented
+	      res = SWIG_ERROR;
+	    }
+	  }
+	}
+	if (newmem.own & SWIG_CAST_NEW_MEMORY)
+	  delete p;
       }
+      return res;
     }
   };
 
@@ -31,12 +40,13 @@ namespace swig {
   struct traits_asval<std::shared_ptr<Type> > {
     static int asval(VALUE obj, std::shared_ptr<Type> *val) {
       if (val) {
-        std::shared_ptr<Type> ret;
-	std::shared_ptr<Type> *p=&ret;
+	std::shared_ptr<Type> ret;
+	std::shared_ptr<Type> *p = &ret;
 	int res = traits_asptr<std::shared_ptr<Type> >::asptr(obj, &p);
-	if (!SWIG_IsOK(res)) return res;
-        if (val) *val = ret;
-        return SWIG_OK;
+	if (!SWIG_IsOK(res))
+	  return res;
+	*val = ret;
+	return SWIG_OK;
       } else {
 	return traits_asptr<std::shared_ptr<Type> >::asptr(obj, (std::shared_ptr<Type> **)(0));
       }
@@ -44,17 +54,24 @@ namespace swig {
   };
 
   template <class Type>
-    struct traits_asval<std::shared_ptr<Type>*> {
+    struct traits_asval<std::shared_ptr<Type> *> {
     static int asval(VALUE obj, std::shared_ptr<Type> **val) {
-      if (val && *val) {
-        typedef typename noconst_traits<std::shared_ptr<Type> >::noconst_type noconst_type;
-        noconst_type ret;
-        noconst_type *p = &ret;
-        int res = traits_asptr<noconst_type>::asptr(obj,  &p);
-        if (SWIG_IsOK(res)) {
-          **(const_cast<noconst_type**>(val)) = ret;
+      if (val) {
+	typedef typename noconst_traits<std::shared_ptr<Type> >::noconst_type noconst_type;
+	if (*val) {
+	  noconst_type ret;
+	  noconst_type *p = &ret;
+	  int res = traits_asptr<noconst_type>::asptr(obj, &p);
+	  if (SWIG_IsOK(res))
+	    **(const_cast<noconst_type**>(val)) = ret;
+	  return res;
+	} else {
+	  noconst_type *p = 0;
+	  int res = traits_asptr<noconst_type>::asptr(obj,  &p);
+	  if (SWIG_IsOK(res))
+	    *val = p;
+	  return res;
 	}
-	return res;
       } else {
 	return traits_asptr<std::shared_ptr<Type> >::asptr(obj, (std::shared_ptr<Type> **)(0));
       }
@@ -73,12 +90,28 @@ namespace swig {
 	// Uninitialized return value, no Type() constructor required.
 	if (throw_error) throw std::invalid_argument("bad type");
 	VALUE lastErr = rb_gv_get("$!");
-	if (lastErr == Qnil) {
+	if (lastErr == Qnil)
 	  SWIG_Error(SWIG_TypeError,  swig::type_name<std::shared_ptr<Type> >());
-	}
-	static std::shared_ptr<Type> *v_def = (std::shared_ptr<Type>*) malloc(sizeof(std::shared_ptr<Type>));
+	static std::shared_ptr<Type> *v_def = (std::shared_ptr<Type> *) malloc(sizeof(std::shared_ptr<Type>));
 	memset(v_def,0,sizeof(std::shared_ptr<Type>));
 	return *v_def;
+      }
+    }
+  };
+
+  template <class Type>
+  struct traits_as<std::shared_ptr<Type> *, pointer_category> {
+    static std::shared_ptr<Type> * as(VALUE obj, bool throw_error) {
+      std::shared_ptr<Type> *p = 0;
+      int res = traits_asptr<std::shared_ptr<Type> >::asptr(obj, &p);
+      if (SWIG_IsOK(res)) {
+	return p;
+      } else {
+	if (throw_error) throw std::invalid_argument("bad type");
+	VALUE lastErr = rb_gv_get("$!");
+	if (lastErr == Qnil)
+	  SWIG_Error(SWIG_TypeError,  swig::type_name<std::shared_ptr<Type> *>());
+	return 0;
       }
     }
   };
