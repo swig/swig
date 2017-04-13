@@ -87,14 +87,11 @@ namespace swig {
       if (SWIG_IsOK(res)) {
 	return ret;
       } else {
-	// Uninitialized return value, no Type() constructor required.
 	if (throw_error) throw std::invalid_argument("bad type");
 	VALUE lastErr = rb_gv_get("$!");
 	if (lastErr == Qnil)
 	  SWIG_Error(SWIG_TypeError,  swig::type_name<std::shared_ptr<Type> >());
-	static std::shared_ptr<Type> *v_def = (std::shared_ptr<Type> *) malloc(sizeof(std::shared_ptr<Type>));
-	memset(v_def,0,sizeof(std::shared_ptr<Type>));
-	return *v_def;
+	return std::shared_ptr<Type>();
       }
     }
   };
