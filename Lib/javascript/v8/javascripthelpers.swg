@@ -6,7 +6,7 @@ typedef v8::InvocationCallback  SwigV8FunctionCallback;
 typedef v8::AccessorGetter      SwigV8AccessorGetterCallback;
 typedef v8::AccessorSetter      SwigV8AccessorSetterCallback;
 typedef v8::AccessorInfo        SwigV8PropertyCallbackInfoVoid;
-#elif (V8_MAJOR_VERSION-0) < 5 || (V8_MAJOR_VERSION == 5 && V8_MINOR_VERSION < 2)
+#elif (V8_MAJOR_VERSION-0) < 5
 typedef v8::FunctionCallback            SwigV8FunctionCallback;
 typedef v8::AccessorGetterCallback      SwigV8AccessorGetterCallback;
 typedef v8::AccessorSetterCallback      SwigV8AccessorSetterCallback;
@@ -70,14 +70,14 @@ SWIGRUNTIME void SWIGV8_AddStaticFunction(v8::Handle<v8::Object> obj, const char
  */
 SWIGRUNTIME void SWIGV8_AddStaticVariable(v8::Handle<v8::Object> obj, const char* symbol,
   SwigV8AccessorGetterCallback getter, SwigV8AccessorSetterCallback setter) {
-#if (V8_MAJOR_VERSION-0) < 5 || (V8_MAJOR_VERSION == 5 && V8_MINOR_VERSION < 2)
+#if (V8_MAJOR_VERSION-0) < 5
   obj->SetAccessor(SWIGV8_SYMBOL_NEW(symbol), getter, setter);
 #else
   obj->SetAccessor(SWIGV8_CURRENT_CONTEXT(), SWIGV8_SYMBOL_NEW(symbol), getter, setter);
 #endif
 }
 
-#if (V8_MAJOR_VERSION-0) < 5 || (V8_MAJOR_VERSION == 5 && V8_MINOR_VERSION < 2)
+#if (V8_MAJOR_VERSION-0) < 5
 SWIGRUNTIME void JS_veto_set_variable(v8::Local<v8::String> property, v8::Local<v8::Value> value, const SwigV8PropertyCallbackInfoVoid& info)
 #else
 SWIGRUNTIME void JS_veto_set_variable(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const SwigV8PropertyCallbackInfoVoid& info)
@@ -87,7 +87,7 @@ SWIGRUNTIME void JS_veto_set_variable(v8::Local<v8::Name> property, v8::Local<v8
     char msg[512];
     int res;
 
-#if (V8_MAJOR_VERSION-0) < 5 || (V8_MAJOR_VERSION == 5 && V8_MINOR_VERSION < 2)
+#if (V8_MAJOR_VERSION-0) < 5
     property->WriteUtf8(buffer, 256);
     res = sprintf(msg, "Tried to write read-only variable: %s.", buffer);
 #else
