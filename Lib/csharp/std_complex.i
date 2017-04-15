@@ -33,14 +33,14 @@ public:
     return new System.Numerics.Complex(cppret.real(), cppret.imag());
   }
 
-%typemap(csvarin, excode=SWIGEXCODE2) std::complex<T>* %{
+%typemap(csvarin, excode=SWIGEXCODE2) std::complex<T>*, const std::complex<T>& %{
     set {
       var cppvalue = new Complex_##T((T)value.Real, (T)value.Imaginary);
       $imcall;$excode
     }
   %}
 
-%typemap(csvarout, excode=SWIGEXCODE2) std::complex<T>* %{
+%typemap(csvarout, excode=SWIGEXCODE2) std::complex<T>*, const std::complex<T>& %{
     get {
       var cppret = new Complex_##T($imcall, $owner);$excode
       return new System.Numerics.Complex(cppret.real(), cppret.imag());
