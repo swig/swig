@@ -183,11 +183,15 @@ public:
     else
       full_imclass_name = NewStringf("%s", imclass_name);
 
-    if (nspace && !package) {
-      String *name = Getattr(n, "name") ? Getattr(n, "name") : NewString("<unnamed>");
-      Swig_warning(WARN_JAVA_NSPACE_WITHOUT_PACKAGE, Getfile(n), Getline(n),
-	  "The nspace feature is used on '%s' without -package. "
-	  "The generated code may not compile as Java does not support types declared in a named package accessing types declared in an unnamed package.\n", name);
+    if (!nspace && !package) {
+      String *name = Getattr(n, "name");
+      Swig_warning(WARN_JAVA_CLASSES_IN_UNNAMED_PACKAGE, Getfile(n), Getline(n),
+		 "Generating '%s' without %%nspace or -package \"pkgname\" creates java classes in unnamed package, which will be inaccessible from java classes in a package\n", name ? name : "<unnamed>");
+    }
+    if (nspace && !package && !imclass_package) {
+      String *name = Getattr(n, "name");
+      Swig_error(Getfile(n), Getline(n),
+		 "The nspace feature is used on '%s' without -package. Interface must provide %%pragma(java) jniclasspackage=\"pkgname\" to generate valid code\n", name ? name : "<unnamed>");
     }
   }
 
