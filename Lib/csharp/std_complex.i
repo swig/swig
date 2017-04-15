@@ -50,5 +50,13 @@ public:
 %template(Complex_##T) std::complex<T>;
 %enddef
 
+// By default, typemaps for both std::complex<double> and std::complex<float>
+// are defined, but one of them can be disabled by predefining the
+// corresponding symbol before including this file.
+#ifndef SWIG_NO_STD_COMPLEX_DOUBLE
 swig_complex_typemaps(double)
+#endif
+
+#ifndef SWIG_NO_STD_COMPLEX_FLOAT
 swig_complex_typemaps(float)
+#endif
