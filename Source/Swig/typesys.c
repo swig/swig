@@ -419,14 +419,19 @@ static Typetab *SwigType_find_scope(Typetab *s, const SwigType *nameprefix) {
   String *nnameprefix = 0;
   static int check_parent = 1;
 
+  if (SwigType_istemplate(nameprefix) || strstr(Char(nameprefix), "::") != NULL) {
+    nnameprefix = SwigType_typedef_resolve_all(nameprefix);
+    if (strncmp(Char(nnameprefix), "::", 2) == 0) {
+      s = global_scope;
+      s_orig = s;
+      Delitem(nnameprefix, 0);
+      Delitem(nnameprefix, 0);
+    }
+    nameprefix = nnameprefix;
+  }
   if (Getmark(s))
     return 0;
   Setmark(s, 1);
-
-  if (SwigType_istemplate(nameprefix)) {
-    nnameprefix = SwigType_typedef_resolve_all(nameprefix);
-    nameprefix = nnameprefix;
-  }
 
   ss = s;
   while (ss) {
