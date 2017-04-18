@@ -382,6 +382,17 @@
   $1 = SWIG_CheckState(res);
 }
 
+%wrapper %{
+
+namespace swig {
+  template<typename Type> int asptr(VALUE obj, Type **vptr);
+  template<>
+  inline int asptr< CONST TYPE >(VALUE obj, CONST TYPE **vptr) {
+    return SWIG_ConvertPtr(obj, 0, SWIG_TypeQuery("std::shared_ptr<" #TYPE  "> *"), 0);
+  }
+}
+
+%}
 
 // various missing typemaps - If ever used (unlikely) ensure compilation error rather than runtime bug
 %typemap(in) CONST TYPE[], CONST TYPE[ANY], CONST TYPE (CLASS::*) %{
