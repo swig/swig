@@ -13,3 +13,4 @@ raise unless a[1]       == nil
 raise unless a[2].get_m == 9
 
 raise unless is_last_null([C.new(7), C.new(8), nil])
+raise if is_last_null([C.new(7), C.new(8)])
