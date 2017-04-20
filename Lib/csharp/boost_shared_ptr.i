@@ -14,7 +14,7 @@
 %naturalvar SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >;
 
 // destructor mods
-%feature("unref") TYPE 
+%feature("unref") TYPE
 //"if (debug_shared) { cout << \"deleting use_count: \" << (*smartarg1).use_count() << \" [\" << (boost::get_deleter<SWIG_null_deleter>(*smartarg1) ? std::string(\"CANNOT BE DETERMINED SAFELY\") : ( (*smartarg1).get() ? (*smartarg1)->getValue() : std::string(\"NULL PTR\") )) << \"]\" << endl << flush; }\n"
                                "(void)arg1; delete smartarg1;"
 
@@ -28,7 +28,7 @@
     return $null;
   }
   $1 = *argp; %}
-%typemap(out) CONST TYPE 
+%typemap(out) CONST TYPE
 %{ $result = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(new $1_ltype(($1_ltype &)$1)); %}
 
 // plain pointer
@@ -66,7 +66,7 @@
 %typemap(in, canthrow=1) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & ($*1_ltype tempnull)
 %{ $1 = $input ? ($1_ltype)$input : &tempnull; %}
 %typemap(out) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &
-%{ $result = *$1 ? new $*1_ltype(*$1) : 0; %} 
+%{ $result = *$1 ? new $*1_ltype(*$1) : 0; %}
 
 // shared_ptr by pointer
 %typemap(in) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * ($*1_ltype tempnull)
@@ -80,7 +80,7 @@
 %{ temp = $input ? *($1_ltype)&$input : &tempnull;
    $1 = &temp; %}
 %typemap(out) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
-%{ *($1_ltype)&$result = (*$1 && **$1) ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(**$1) : 0; %} 
+%{ *($1_ltype)&$result = (*$1 && **$1) ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(**$1) : 0; %}
 
 // various missing typemaps - If ever used (unlikely) ensure compilation error rather than runtime bug
 %typemap(in) CONST TYPE[], CONST TYPE[ANY], CONST TYPE (CLASS::*) %{
@@ -91,20 +91,20 @@
 %}
 
 
-%typemap (ctype)  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >, 
+%typemap (ctype)  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "void *"
-%typemap (imtype, out="global::System.IntPtr") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >, 
+%typemap (imtype, out="global::System.IntPtr") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
                                 SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                                 SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
                                 SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "global::System.Runtime.InteropServices.HandleRef"
-%typemap (cstype) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >, 
+%typemap (cstype) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "$typemap(cstype, TYPE)"
 
-%typemap(csin) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >, 
+%typemap(csin) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
                SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
                SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "$typemap(cstype, TYPE).getCPtr($csinput)"
