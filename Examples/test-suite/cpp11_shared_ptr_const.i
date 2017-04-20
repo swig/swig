@@ -43,11 +43,6 @@ std::vector<std::shared_ptr<const Foo> > const_foo_vec(Foo v) {
 %template (FooVector) std::vector<std::shared_ptr<Foo> >;
 %template (FooConstVector) std::vector<std::shared_ptr<Foo const> >;
 
-std::shared_ptr<Foo> foo(Foo v);
-std::shared_ptr<const Foo> const_foo(Foo v);
-std::vector<std::shared_ptr<Foo> > foo_vec(Foo v) const;
-std::vector<std::shared_ptr<const Foo> > const_foo_vec(Foo v) const;
-
 class Foo
 {
 public:
@@ -55,3 +50,8 @@ public:
   int get_m();
   int m;
 };
+std::shared_ptr<Foo> foo(Foo v);
+std::shared_ptr<const Foo> const_foo(Foo v);
+std::vector<std::shared_ptr<Foo> > foo_vec(Foo v) const;
+std::vector<std::shared_ptr<const Foo> > const_foo_vec(Foo v) const;
+
