@@ -386,7 +386,6 @@
 %fragment("StdSharedPtrAsptr" #CONST #TYPE,"header",fragment="StdTraitsForwardDeclaration")
 {
 namespace swig {
-  template<typename Type> int asptr(VALUE obj, Type **vptr);
   template<>
   inline int asptr< CONST TYPE >(VALUE obj, CONST TYPE **vptr) {
     assert(!(vptr && *vptr));
