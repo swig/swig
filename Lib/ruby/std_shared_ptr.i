@@ -114,9 +114,8 @@ namespace swig {
   };
 
   /*
-   we have to remove the const qualifier to work around a BUG
-   SWIG_TypeQuery("std::shared_ptr<const Type>") == NULL,
-   which is caused by %template treating const qualifiers not properly.
+   The descriptors in the shared_ptr typemaps remove the const qualifier for the SWIG type system.
+   Remove const likewise here, otherwise SWIG_TypeQuery("std::shared_ptr<const Type>") will return NULL.
   */
   template<class Type>
   struct traits_from<std::shared_ptr<const Type> > {
@@ -128,5 +127,4 @@ namespace swig {
 }
 }
 
-//force the fragment.
 %fragment("StdSharedPtrTraits");
