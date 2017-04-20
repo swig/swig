@@ -172,7 +172,7 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
   VALUE klass;
   VALUE obj;
   
-  if (!ptr)
+  if (!ptr || !type)
     return Qnil;
   
   if (type->clientdata) {
