@@ -3,8 +3,9 @@
  * The Ruby classes, for C++
  * ------------------------------------------------------------ */
 %include <rubyclasses.swg>
+%include <rubystdcommon_forward.swg>
 
-%fragment("StdTraits","header",fragment="StdTraitsCommon")
+%fragment("StdTraits","header",fragment="StdTraitsCommon",fragment="StdTraitsForwardDeclaration")
 {
 
 namespace swig {  
