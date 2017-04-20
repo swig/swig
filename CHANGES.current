@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 3.0.13 (in progress)
 ============================
 
+2017-04-20: wsfulton
+            [Ruby] #586, #935 Add assert for invalid NULL type parameter when calling SWIG_Ruby_NewPointerObj.
+
 2017-04-20: tamuratak
             [Ruby] #930, #937 - Fix containers of std::shared_ptr.
             Upcasting, const types (eg vector<shared_ptr<const T>>) and NULL/nullptr support added.
