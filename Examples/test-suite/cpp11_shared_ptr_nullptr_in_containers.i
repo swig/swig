@@ -3,6 +3,8 @@
 %{
 #include <memory>
 #include <vector>
+
+class C;
 %}
 
 %include <std_shared_ptr.i>
@@ -38,7 +40,7 @@ public:
   }
 
   bool is_last_null(const std::vector<std::shared_ptr<C> >& v) {
-    if( *v.end() ) {
+    if( v.back() ) {
       return false;
     } else {
       return true;
