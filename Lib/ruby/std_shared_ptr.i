@@ -125,17 +125,6 @@ namespace swig {
     }
   };
 
-  template <class Type>
-  struct traits_from_ptr<std::shared_ptr<Type> > {
-    static VALUE from(std::shared_ptr<Type> *val, int owner = 0) {
-      if (val && *val) {
-        return SWIG_NewPointerObj(val, type_info<std::shared_ptr<Type> >(), owner);
-      } else {
-        return Qnil;
-      }
-    }
-  };
-
   /*
    The descriptors in the shared_ptr typemaps remove the const qualifier for the SWIG type system.
    Remove const likewise here, otherwise SWIG_TypeQuery("std::shared_ptr<const Type>") will return NULL.
