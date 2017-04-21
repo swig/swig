@@ -2133,3 +2133,62 @@ d_clean:
 	rm -f *_wrap* *~ .~* $(RUNME) $(RUNME).exe `find . -name \*.d | grep -v $(RUNME).d`
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
+
+
+##################################################################
+#####                      DELPHI                          ######
+##################################################################
+
+# Extra DELPHI specific dynamic linking options
+DELPHI_DLNK  =  @DELPHIDYNAMICLINKING@
+DELPHI_LIBPREFIX = 
+DELPHICOMPILER = @DELPHICOMPILER@ 
+DELPHICFLAGS = @DELPHICFLAGS@
+DELPHISO = @DELPHISO@
+DELPHIFLAGS = @DELPHIFLAGS@
+# ----------------------------------------------------------------
+# Build a DELPHI dynamically loadable module (C)
+# ----------------------------------------------------------------
+
+delphi: $(SRCDIR_SRCS)
+	$(SWIG) -delphi $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+#	$(CC) -c $(CCSHARED) $(CFLAGS) $(DELPHICFLAGS) $(SRCS) $(ISRCS) $(INCLUDES)
+#	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(DELPHI_DLNK) $(LIBS) -o $(DELPHI_LIBPREFIX)$(TARGET)$(DELPHISO)
+
+# ----------------------------------------------------------------
+# Build a DELPHI dynamically loadable module (C++)
+# ----------------------------------------------------------------
+
+delphi_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -delphi -c++  $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(DELPHICFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES)
+	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(DELPHI_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(DELPHI_LIBPREFIX)$(TARGET)$(DELPHISO)
+
+# ----------------------------------------------------------------
+# Compile DELPHI files
+# ----------------------------------------------------------------
+
+delphi_compile: $(SRCDIR_SRCS)
+	$(DELPHICOMPILER) $(DELPHIFLAGS) $(DELPHIIFLAGS) $(DELPHISRCS)
+
+# -----------------------------------------------------------------
+# Run DELPHI example
+# -----------------------------------------------------------------
+
+delphi_run:
+	$(RUNTOOL) false $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+delphi_version:
+	echo "Unknown delphi version"
+# -----------------------------------------------------------------
+# Cleaning the DELPHI examples
+# -----------------------------------------------------------------
+
+delphi_clean:
+	rm -f *_wrap* *~ .~* runme runme.exe *.exe.mdb gc.log `find . -name \*.cs | grep -v runme.cs`
+	rm -f core *.stackdump *.exp *.lib *.pdb *.ilk
+	rm -f *.o *.dll *.dcu *.ppu *.a example*.pas

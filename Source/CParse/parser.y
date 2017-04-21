@@ -74,6 +74,14 @@ static void yyerror (const char *e) {
   (void)e;
 }
 
+/* TODO -oSMK : (SMK1) this function seems to be relevant for Delphi only. Make it language independent */
+static String * checkT_Element_Replace(String * value) {
+	if (strncmp(value, "T", 1) == 0) {
+		return NewStringf("_%s", value);
+	}
+	return value;
+}
+
 /* Copies a node.  Does not copy tree links or symbol table data (except for
    sym:name) */
 
@@ -99,7 +107,7 @@ static Node *copy_node(Node *n) {
 	(strcmp(ckey,"sym:weak") == 0) ||
 	(strcmp(ckey,"sym:typename") == 0)) {
       String *ci = Copy(k.item);
-      Setattr(nn,key, ci);
+      Setattr(nn,key, checkT_Element_Replace(ci)); // TODO -oSMK : See (SMK1) above
       Delete(ci);
       continue;
     }
@@ -152,7 +160,7 @@ static Node *copy_node(Node *n) {
     }
     /* Looks okay.  Just copy the data using Copy */
     ci = Copy(k.item);
-    Setattr(nn, key, ci);
+    Setattr(nn, key, checkT_Element_Replace(ci)); // TODO -oSMK : See (SMK1) above
     Delete(ci);
   }
   return nn;

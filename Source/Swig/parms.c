@@ -60,6 +60,13 @@ Parm *NewParmNode(SwigType *type, Node *from_node) {
   return p;
 }
 
+/* TODO -oSMK : (SMK1) this function seems to be relevant for Delphi only. Make it language independent */
+static String * checkT_Element_Replace(String * value) {
+	if (strncmp(value, "T", 1) == 0) {
+		return NewStringf("_%s", value);
+	}
+	return value;
+}
 /* ------------------------------------------------------------------------
  * CopyParm()
  * ------------------------------------------------------------------------ */
@@ -70,7 +77,7 @@ Parm *CopyParm(Parm *p) {
   for (ki = First(p); ki.key; ki = Next(ki)) {
     if (DohIsString(ki.item)) {
       DOH *c = Copy(ki.item);
-      Setattr(np,ki.key,c);
+      Setattr(np, ki.key, checkT_Element_Replace(c)); // TODO -oSMK : see (SMK1) above
       Delete(c);
     }
   }
