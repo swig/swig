@@ -1,10 +1,10 @@
 %module(directors="1") "cpp11_shared_ptr_director"
 
 %{
-#include <memory>
+#include <boost/shared_ptr.hpp>
 %}
 
-%include "std_shared_ptr.i";
+%include "boost_shared_ptr.i";
 %shared_ptr(C);
 %feature("director") Base;
 
@@ -18,18 +18,18 @@ struct C {
 
 struct Base {
   Base() {};
-  virtual std::shared_ptr<C> ret_c_shared_ptr() = 0;
+  virtual boost::shared_ptr<C> ret_c_shared_ptr() = 0;
   virtual C ret_c_by_value() = 0;
   virtual int take_c_by_value(C c) = 0;
-  virtual int take_c_shared_ptr_by_value(std::shared_ptr<C> c) = 0;
-  virtual int take_c_shared_ptr_by_ref(std::shared_ptr<C>& c) = 0;
-  virtual int take_c_shared_ptr_by_pointer(std::shared_ptr<C>* c) = 0;
-  virtual int take_c_shared_ptr_by_pointer_ref(std::shared_ptr<C>*const&c) = 0;
+  virtual int take_c_shared_ptr_by_value(boost::shared_ptr<C> c) = 0;
+  virtual int take_c_shared_ptr_by_ref(boost::shared_ptr<C>& c) = 0;
+  virtual int take_c_shared_ptr_by_pointer(boost::shared_ptr<C>* c) = 0;
+  virtual int take_c_shared_ptr_by_pointer_ref(boost::shared_ptr<C>*const&c) = 0;
   virtual ~Base() {}
 };
 
 int call_ret_c_shared_ptr(Base* b) {
-  std::shared_ptr<C> ptr = b->ret_c_shared_ptr();
+  boost::shared_ptr<C> ptr = b->ret_c_shared_ptr();
   if (ptr) {
     return ptr->get_m();
   } else {
@@ -48,42 +48,42 @@ int call_take_c_by_value(Base* b) {
 }
 
 int call_take_c_shared_ptr_by_value(Base* b) {
-  std::shared_ptr<C> ptr(new C(6));
+  boost::shared_ptr<C> ptr(new C(6));
   return b->take_c_shared_ptr_by_value(ptr);
 }
 
 int call_take_c_shared_ptr_by_value_with_null(Base* b) {
-  std::shared_ptr<C> ptr;
+  boost::shared_ptr<C> ptr;
   return b->take_c_shared_ptr_by_value(ptr);
 }
 
 int call_take_c_shared_ptr_by_ref(Base* b) {
-  std::shared_ptr<C> ptr(new C(7));
+  boost::shared_ptr<C> ptr(new C(7));
   return b->take_c_shared_ptr_by_ref(ptr);
 }
 
 int call_take_c_shared_ptr_by_ref_with_null(Base* b) {
-  std::shared_ptr<C> ptr;
+  boost::shared_ptr<C> ptr;
   return b->take_c_shared_ptr_by_ref(ptr);
 }
 
 int call_take_c_shared_ptr_by_pointer(Base* b) {
-  std::shared_ptr<C> ptr(new C(8));
+  boost::shared_ptr<C> ptr(new C(8));
   return b->take_c_shared_ptr_by_pointer(&ptr);
 }
 
 int call_take_c_shared_ptr_by_pointer_with_null(Base* b) {
-  std::shared_ptr<C> ptr;
+  boost::shared_ptr<C> ptr;
   return b->take_c_shared_ptr_by_pointer(&ptr);
 }
 
 int call_take_c_shared_ptr_by_pointer_ref(Base* b) {
-  auto ptr = new std::shared_ptr<C>(new C(9));
+  boost::shared_ptr<C> *ptr = new boost::shared_ptr<C>(new C(9));
   return b->take_c_shared_ptr_by_pointer_ref(ptr);
 }
 
 int call_take_c_shared_ptr_by_pointer_ref_with_null(Base* b) {
-  auto ptr = new std::shared_ptr<C>();
+  boost::shared_ptr<C> *ptr = new boost::shared_ptr<C>();
   return b->take_c_shared_ptr_by_pointer_ref(ptr);
 }
 
