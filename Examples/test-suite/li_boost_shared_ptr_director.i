@@ -1,4 +1,4 @@
-%module(directors="1") "cpp11_shared_ptr_director"
+%module(directors="1") "li_boost_shared_ptr_director"
 
 %{
 #include <boost/shared_ptr.hpp>

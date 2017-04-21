@@ -1,6 +1,6 @@
-require 'cpp11_shared_ptr_director'
+require 'li_boost_shared_ptr_director'
 
-include Cpp11_shared_ptr_director
+include Li_boost_shared_ptr_director
 
 class Derived < Base
 

@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 3.0.13 (in progress)
 ============================
 
+2017-04-21: tamuratak
+            [Ruby] #964 - Add shared_ptr director typemaps.
+
 2017-04-20: tamuratak
             [Ruby] #930, #937 - Fix containers of std::shared_ptr.
             Upcasting, const types (eg vector<shared_ptr<const T>>) and NULL/nullptr support added.
