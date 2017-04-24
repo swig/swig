@@ -6,7 +6,6 @@
 #include <string>
 #include <cmath>
 
-
 class Employee {
 private:
 	std::string name;
@@ -14,8 +13,7 @@ public:
 	Employee(const char* n): name(n) {}
 	virtual std::string getTitle() { return getPosition() + " " + getName(); }
 	virtual std::string getName() { return name; }
-	std::string getPosition()  { return "Employee"; }
-	void funcVoid(void * param1) { }
+	virtual std::string getPosition() const { return "Employee"; }
 	virtual ~Employee() { printf("~Employee() @ %p\n", this); }
 };
 
@@ -23,7 +21,7 @@ public:
 class Manager: public Employee {
 public:
 	Manager(const char* n): Employee(n) {}
-	std::string getPosition()  { return "Manager"; }
+	virtual std::string getPosition() const { return "Manager"; }
 };
 
 
@@ -55,4 +53,3 @@ public:
 		std::cout << "~EmployeeList empty." << std::endl;
 	}
 };
-
