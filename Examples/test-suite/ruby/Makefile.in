@@ -27,9 +27,9 @@ CPP_TEST_CASES = \
 	ruby_naming \
 	ruby_track_objects \
 	ruby_track_objects_directors \
-	std_containers
-#	ruby_li_std_speed
-#	stl_new
+	std_containers \
+#	ruby_li_std_speed \
+#	stl_new \
 
 CPP11_TEST_CASES = \
 	cpp11_hash_tables \
