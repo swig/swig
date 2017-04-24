@@ -66,6 +66,8 @@ CCache/ccache_swig_config.h
 CCache/config.h
 CCache/config.log
 CCache/config.status
+CCache/test.[0-9]*
+
 Examples/Makefile
 Examples/d/example.mk
 Examples/guile/Makefile
