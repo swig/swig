@@ -1,0 +1,1113 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=us-ascii">
+<meta name=Generator content="Microsoft Word 11 (filtered)">
+<title>SWIG and Delphi (Object Pascal)</title>
+
+<link rel=Stylesheet type="text/css" media=all href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<style>
+</style>
+
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h1><a name="Delphi"></a>23 SWIG and Delphi (Object Pascal)</h1>
+
+<div class="sectiontoc">
+
+<!-- INDEX -->
+
+<ul>
+<li> <a href="#pascal_overview">Overview</a></li>
+
+<ul>
+
+<li><a href="#whyscripting">Why not scripting ?</a></li>
+
+<li><a href="#whypascl">Why Pascal ?</a></li>
+
+<li><a href="#whycpp">Why C / C++ ?</a></li>
+
+<li><a href="#whyswig">Why SWIG ?</a></li>
+</ul>
+
+<li><a href="#conception">Conception</a></li>
+
+<li><a href="#cinterface">Interfaces to C libraries</a></li>
+
+<ul>
+<li><a href="#cppinterface">Interfaces to C++ libraries</a></li>
+
+<li><a href="#preliminaries">Preliminaries</a></li>
+</ul>
+
+<ul>
+<li><a href="#compilers">Compilers</a></li>
+
+<li><a href="#commandline">Additional Commandline Options</a></li>
+</ul>
+
+<li><a href="#pascal_typemaps">Pascal typemaps</a></li>
+
+<ul>
+<li><a href="#inoutparam">Inputs and outputs</a></li>
+
+<li><a href="#ordinals">Subranges, Enumerations, Sets</a></li>
+
+<li><a href="#class">Objects</a></li>
+
+<li><a href="#imports">Imports</a></li>
+
+<li><a href="#exceptions">Exceptions</a></li>
+
+<li><a href="#typemap_example">Example</a></li>
+
+</ul>
+<li><a href="#hints">More hints to the generator</a></li>
+
+<ul>
+<li><a href="#features">Features</a></li>
+
+<li><a href="#pragmas">Pragmas</a></li>
+
+</ul>
+<li><a href="#remarks">Remarks</a></li>
+
+</ul>
+
+</div>
+
+<!-- INDEX -->
+<p>This chapter describes SWIG's support of Delphi (Object Pascal). You should be familiar with the <a
+href="SWIG.html#SWIG"> basics</a> of SWIG, especially <a
+href="Typemaps.html">typemaps</a>.</p>
+
+<h2><a name=pascal_overview></a>23.1 Overview</h2>
+
+<p>The Object Pascal support is early stage but it is able to convert
+plain C API as well as C++ classes and to wrap them in Object Pascal classes.</p>
+
+<p>For any comment and suggestion please contact me:</p>
+
+<p>Dr. Eng. Stefano Moratto</p>
+
+<p><a href="mailto:stefano.moratto@gmail.com">stefano.moratto@gmail.com</a></p>
+
+<h3>23.1.0 Acknowledgment</h3>
+
+<p>My work had been started from the Modula-3 module. I would
+like to thanks the author for its job. It has been a valuable start for this
+project.</p>
+
+<h3><a name=whyscripting></a><a name=whymodula3></a><span lang=EN-GB>23.1.2 Why
+(Object) Pascal ?</span></h3>
+
+<p>The&nbsp; Pascal language has a long history but now it is
+not widely used like C++ Java.&nbsp;</p>
+
+<p>Its most used implementation is CodeGear (aka Borland) Delphi: it has a very productive IDE, 
+an impressive components library and a big market of open source and commercial components. 
+It implements a variation of Pascal, the Object Pascal. It has all the features, except for generic programming (from version 2009 this is not true anymore), of the other languages around the world. Delphi targets only Windows platform.</p>
+
+<p>There is an emerging implementation that targets many platform: Free Pascal.</p>
+
+<p>This Swig module targets &nbsp;Delphi Win32 and Free Pascal
+using (-Sd) Delphi mode. I think it would be very interesting for the Free
+Pascal community.</p>
+
+<h3><a name=whycpp></a>23.1.3 Why C / C++ ?</h3>
+
+<p>Although it is no problem to write Object Pascal programs
+that performs as fast as C most libraries are not written in Pascal but in C.
+Fortunately the binary interface of most function libraries can be addressed by
+Pascal. Even more fortunately even non-C libraries may provide C header files.
+This is where SWIG becomes helpful. </p>
+
+<h3><a name=whyswig></a>23.1.4 Why SWIG ?</h3>
+
+<p>The C headers and the possibility to interface to C
+libraries still leaves the work for you to write Pascal interfaces to them.</p>
+
+<p>SWIG converts C headers to Pascal interfaces for you. You
+could call the C functions without loss of efficiency but it won't be joy
+because you could not pass <tt>String
+(without a cast to PChar)</tt>or open arrays and you
+would have to process error return codes rather then exceptions. But using some
+typemaps SWIG will also generate wrappers that bring the whole Pascal comfort
+to you. If the library API is ill designed writing appropriate typemaps can be
+still time-consuming. E.g. C programmers are very creative to work-around
+missing data types like (real) enumerations and sets.</p>
+
+<p>But you have still a problem: C library interfaces are
+often ill. They lack for certain information because C compilers wouldn't care
+about. You should integrate detailed type information by adding <tt>typedef</tt>s and <tt>const</tt>s and you
+should persuade the C library programmer to add this information to his
+interface. Only this way other language users can benefit from your work and
+only this way you can easily update your interfaces when a new library version
+is released. You will realise that writing <b>good</b> SWIG interfaces is very
+costly and it will only amortise when considering evolving libraries.</p>
+
+<p>Without SWIG you would probably never consider to call C++
+libraries from Pascal. But with SWIG this is worth a consideration. SWIG can
+write C wrappers to C++ functions and object methods. In fact it breaks down
+C++ libraries to C interfaces which can be in turn called from Pascal. To make
+it complete you can hide the C interface with Pascal classes and exceptions.</p>
+
+<p>The purpose of this module is to allow Pascal programmer to
+leverage the huge amount of open source C/C++ code available. The C/C++
+libraries must have to be compiled as DLL. The swig module generates import
+units for the exported function and variable, const and typedefs.</p>
+
+<p>Basically the produced units are a list of procedures
+/functions with the <b>external</b> statement. </p>
+
+<p>&nbsp;</p>
+
+<h2><a name=conception></a>23.2 Conception</h2>
+
+<h3><a name=cinterface></a>23.2.1 Interfaces to C libraries</h3>
+
+<p>Codegear&#8217;s Pascal as well as FreePascal have an
+integrated support for calling C functions. This is also extensively used by
+the standard Pascal libraries to call OS functions. The Pascal part of SWIG and
+the corresponding SWIG library <a
+href="../Lib/modula3/delphi.swg"><tt>delphi.swg</tt></a>contains
+code that uses these features. Because of the built-in support there is no need
+for calling the SWIG kernel to generate wrappers written in C. All conversion
+and argument checking can be done in Pascal and the interfacing is quite
+efficient. All you have to do is to write pieces of Pascal code that SWIG puts
+together.</p>
+
+<p>For each DLL you want to use in Pascal you have to write a
+interface file like dllapi.i.&nbsp; Given this interface file&nbsp; SWIG
+produces a <i>modulename</i>.pas file and a <i>wrap</i>.c (or .cpp). The
+modulename is obtained by the %module directive contained in the .i file.</p>
+
+<p>E.g.</p>
+
+<div class="code">
+<pre>// dllapi.i 
+%module API
+</pre>
+</div>
+
+<p>It produces:</p>
+
+<div class="code"><pre>unit API;
+
+interface
+
+implementation
+
+initialization
+
+finalization
+
+end.
+</pre>
+
+</div>
+
+<p><i>Wrap.c(.cpp)</i> contains helper
+function that are generated in order to wrap C/C++ items into exportable functions.
+Its name can be overridden by the <i>wrapdllname</i> command line
+parameter.</p>
+
+<p>The modulename.pas files contains:</p>
+
+<ul>
+<li>Function/procedure declaration</li>
+
+<li>Types declaration</li>
+
+<li>Enum declaration</li>
+
+<li>Const declaration</li>
+
+<li>Function pointer</li>
+</ul>
+
+<h4>Function/Procedure declaration</h4>
+
+<p>Since the objective of this SWIG module is to import C/C++
+functions packaged in DLLs into Delphi the main feature is the ability to write
+import declaration.</p>
+
+<p>E.g.</p>
+
+<div class="code"> 
+<pre>
+int add (int a, int b);
+</pre>
+</div>
+
+<p>it is translated in:</p>
+
+<div class="code"> <pre>
+//Unit's interface section
+function add(a, b : integer) : integer; stdcall;
+</pre>
+</div>
+
+<p>and in:</p>
+
+<div class="code"> <pre>
+// Unit's implementation section 
+function add(a, b : integer) : integer; stdcall; external __DLLNAME name 'add';
+</pre></div>
+
+<p>The SWIG module emits two declarations in the generated
+module&#8217;s unit: one in the interface section and one in the implementation
+section. In the implementation the function is declared as an external function
+contained in a DLL named __DLLNAME.</p>
+
+<p>__DLLNAME is variable declared in the beginning of the
+implementation section. Its default value is &#8220;modulename.dll&#8221;, but
+it can be overridden using del &#8211;dllname command line switch.</p>
+
+<p>The calling convention is stdcall. It is typical of
+function exported by DLL. It can be overridden using the DELPHI pragma
+CALLCONV.</p>
+
+
+<h4>Types declaration</h4>
+
+<p>Each structure is declared in Pascal as an opaque pointer.</p>
+
+<p>E.g.</p>
+
+<div class="code"> <pre>
+typedef struct tagMyStruct { int a } MyStruct;
+</pre></div>
+
+<p>it is translated in:</p>
+
+<div class="code"> <pre>
+type MyStruct = type pointer;
+</pre></div>
+
+<p>This means that every type&#8217;s instance is&nbsp;
+dynamically allocated. For each type SWIG produces a pair of functions(
+New_TYPE and Delete_Type) used for allocating and deallocating). For every
+field of the structure a get/set pair of functions are declared.</p>
+
+<div class="code"> <pre>
+function New_MyStruct : MyStruct;
+procedure Delete_MyStruct (Self:MyStruct);
+procedure MyStruct_a_set (Self:MyStruct, value : integer);
+function MyStruct_a_get (Self:MyStruct) : integer;
+</pre></div>
+
+<p>We can convert in Pascal every kind of C declaration but we
+may encounter problems of structure packing, field alignment&nbsp; and case of
+mixing instance allocation (e.g. an instance may be allocated by the C library
+but deallocated in Pascal, C and Pascal have different memory manager). So it
+is safe and easer to consider only opaque pointer like most of the Windows API.
+For example consider the HDC or HWND type.</p>
+
+<h4>Const declaration</h4>
+
+<p>Each C/C++ const (or define) is declared in Pascal using
+the const statement. When the translation from C to Pascal is too complicated a
+const can be declared using the %feature &quot;delphi:runtime_const&quot;. When
+it is enabled a const is declared as a variable and its value is initialized at
+runtime in the initialization section of the unit.</p>
+
+<p>E.g.</p>
+
+<div class="code"> <pre>
+#define C (some very complicated expression)
+</pre></div>
+
+<p>It is translated in</p>
+
+<div class="code"> <pre>
+var C : integer;
+initialization
+C := c_get();
+</pre></div>
+
+<h4>Enum declaration</h4>
+
+<p>Each C/C++ enum is declared in Pascal using a integer for
+the enum type and const statements for the enum values. When the translation
+from C to Pascal is too complicated the enum values can be declared using the %feature
+&quot;delphi:runtime_const&quot;. (See const declaration). The C enum are not
+translated in Pascal enum because of the binary size of an enum is different
+between C and Pascal (although it could be resolved using pascal compiler
+directives)</p>
+
+<p>E.g.</p>
+
+<div class="code"> <pre>
+enum Color {RED, BLUE, GREEN};
+</pre></div>
+
+<p>is translated in:</p>
+
+<div class="code"> <pre>
+type Color = type integer;
+const Color_RED= 0;
+const Color_BLUE= 1;
+const Color_GREEN= 2;
+</pre></div>
+
+<h3><a name=cppinterface></a>23.2.2 Interfaces to C++ libraries</h3>
+
+<p>Interfaces to C++ files are much more complicated. As in
+the case of C struct, a class is handled as an opaque pointer:
+<ul>
+<li>An opaque type is generated.</li>
+<li>The class is flatted into plain functions.</li>
+<li>Optionally a TObject derived class is generated.</li>
+<li>Templates are instantiated</li>
+</ul>
+</p>
+
+<h4>Flatten class.</h4>
+
+<p>A C++ class is composed by instance methods ( object function
+/ procedure),&nbsp; variables ( fields), static method (class
+function/procedure), constructor&nbsp; and destructor. Each of those items are
+wrapped into plain C function allowing to be called by external programs.</p>
+
+<p> E.g.</p>
+
+<div class="code"> <pre>
+class MyClass {
+
+ void f1(int a);
+
+ int var1;
+
+};
+</pre></div>
+
+<p>It is wrapped in:</p>
+
+<div class="code"> <pre>
+void MyClass_f1(MyClass * Self, int a);
+int MyClass_var1_set(MyClass * Self, int var1);
+void MyClass_var1_get(MyClass * Self);
+</pre></div>
+
+<p>This plain C API is imported as we have seen in previous
+section. </p>
+
+<h4>TObject derived wrap class</h4>
+
+<p>The C++ classes can be reconstructed in Pascal creating a
+TObject derived class that wraps the C API:</p>
+
+<div class="code"> <pre>
+TMyClass&nbsp; = class (TObject, IUnknown)
+
+private
+
+   FCObjPtr : MyClass;
+   FOwnCObj : Boolean;
+
+protected 
+
+   // IUnknown ...
+
+public
+   
+   property CObjPtr : MyClass ... ;
+   property OwnCObj : Boolean ... ;
+   contructor Create(FCObjPtr : MyClass; OwnCObj : Boolean); overload;
+   contructor Create(); overload;destructor Destroy(); virtual;
+   
+   // Wrapped C++ API
+
+   procedure f1(a:integer);
+   property var1 : integer ... ;
+
+end;
+</pre></div>
+
+<p>This kind of Pascal class is called &#8220;proxy&#8221;
+class in SWIG.</p>
+
+<p>Each method calls the correspondent&nbsp; C function
+passing the FCObjPtr as the self parameter that is the instance&#8217;s
+pointer:</p>
+
+<p>E.g.</p>
+
+<div class="code"> <pre>
+contructor TMyClass.Create();
+begin
+   inherited Create;
+   FCObjPtr := New_MyClass();
+   FOwnCObj := true;
+end;
+
+destructor TMyClass.Destroy();
+begin
+   if (FOwnCObj) and (FCObjPtr &lt;&gt; nil) then begin
+      Delete_MyClass(FCObjPtr);
+      FCObjPtr := nil;
+      FOwnCObj := false;
+   end;
+   Inherited;
+end;
+
+procedure TMyClass.f1(a:integer);
+begin
+   MyClass_f1(FCObjPtr,&nbsp; a);
+end; 
+</pre></div>
+
+<p>The ownership of the object is specified by the FCOwnObj property.</p>
+
+<h4>Template instantiation</h4>
+
+<p>In order to use a template in pascal code it has to be
+instantiated using concrete type for all the template types. Once it is
+instantiated it is exposed though SWIG as all the normal functions / classes.</p>
+
+<p>SWIG supports template via the %template directive. In
+order to generate correct code in pascal it is required to use the macro</p>
+
+<div class="code"> <pre>
+TEMPLATE_WRAP0(template class/function, instance name,&nbsp; concrete template type0, concrete template type1, &#8230;);
+</pre></div>
+
+<p>This macro calls the %template directive and creates some
+typemaps needed by the pascal generator.</p>
+
+<h4>Overriding C++ virtual function in Pascal</h4>
+
+<p>The ability to override C++ virtual function in Pascal is provided by the SWIG
+feature called director. The basic idea is to define for each class a COM
+interface that contains all the C++ virtual functions. The Pascal proxy class
+should implements this interface. It is still in development.</p>
+
+<h4>Other issues</h4>
+
+<p>Wrapping C++ libraries arises additional problems:
+<ul>
+<li>Multiple inheritance is not supported.</li> 
+<li>Support for&nbsp;&nbsp;<tt>%newobject</tt> is implemented but&nbsp;&nbsp;<a href="Customization.html#ownership"> <tt>%typemap(newfree)</tt></a>
+isn't implemented.
+</li>
+<li>Exception are not currently supported.</li>
+</ul>
+</p>
+
+<h2><a name=preliminaries></a>23.3 Preliminaries</h2>
+
+<h3><a name=compilers></a>23.3.1 Compilers</h3>
+
+<p>This module has been tested using Delphi 7 but it should be
+compatible with the FreePascal.</p>
+
+<h3><a name=commandline></a>23.3.2 Commandline Options</h3>
+
+<p>There are some experimental command line options that
+prevent SWIG from generating interface files. Instead files are emitted that
+may assist you when writing SWIG interface files. </p>
+
+<table border summary="Object Pascal specific options">
+ <tr>
+  <td><b>Delphi specific</b></td>
+  <td><b>Description</b></td>
+ </tr>
+ <tr>
+  <td width=180 valign=top>
+  <p>-noproxy</p>
+  </td>
+  <td width=753>
+  no pascal proxy classes are generated for c++ classes.
+  Valid only for c++ mode. 
+  </td>
+ </tr>
+ <tr>
+  <td width=180 valign=top >
+  <p>-callconv</p>
+  </td>
+  <td width=753 >
+  It specifies the calling convention used for the
+  declaration of the imported function. Valid values are stdcall or cdel. 
+  The default is stdcall (eg : function foo() ; cdel;
+  external DLLNAME; )</p>
+  </td>
+ </tr>
+ <tr>
+  <td width=180 valign=top>
+  <p>-dllname</p>
+  </td>
+  <td width=753 >
+  It specifies the name of the dll&nbsp; used for the
+  declaration of the imported functions.&nbsp; (eg : function foo() ; stdcall;
+  external DLLNAME; )
+  </td>
+ </tr>
+ <tr>
+  <td width=180 valign=top>
+  <p>-wrapdllname</p>
+  </td>
+  <td width=753 >
+  It specifies the name of the dll&nbsp; used for the
+  declaration of the imported functions from the module&#8217;s generated
+  helper code.&nbsp; (eg : function new_bar() : bar ; stdcall; external
+  WRAPDLLNAME name &#8220;Delphi_new_bar&#8221;; )
+  </td>
+ </tr>
+ <tr>
+  <td width=180 valign=top >
+ <p>-runtime_const</p>
+  </td>
+  <td width=753>
+  All constants and enum values are obtained at runtime
+  calling exported functions.
+  </td>
+ </tr>
+</table>
+
+<h2><a name="pascal_typemaps"></a>23.4 Pascal&nbsp; typemaps</h2>
+
+<h3><a name=inoutparam></a>23.4.1 Inputs and outputs</h3>
+
+<p>Each C procedure has a bunch of inputs and outputs. Inputs
+are passed as function arguments, outputs are updated referential arguments and
+the function value.</p>
+
+<p>Each C type can have several typemaps that apply only in
+case if a type is used for an input argument, for an output argument, or for a
+return value. A further typemap may specify the direction that is used for
+certain parameters. I have chosen this separation in order to be able to write
+general typemaps for the typemap library<a
+href="delphi.swg"><tt>delphi.swg</tt></a>. In the
+library code the final usage of the type is not known. Using separate typemaps
+for each possible use allows appropriate definitions for each case. If these
+pre-definitions are fine then the direction of the function parameter is the
+only hint the user must give.</p>
+
+<p>The typemaps specific to Pascal&nbsp; have a common name
+scheme: A typemap name starts with &quot;pas&quot;, followed by &quot;raw&quot;
+or &quot;wrap&quot; depending on whether it controls the generation of the
+imported functions or for the wrapping classes, respectively. It follows an
+&quot;in&quot; for typemaps applied to input argument, &quot;out&quot; for
+output arguments, &quot;arg&quot; for all kind of arguments, &quot;ret&quot;
+for returned values.</p>
+
+<p>The primary typemaps are:</p>
+
+<table border cellspacing=3 cellpadding=0>
+ <tr>
+  <td width=147 valign=top>
+ <p> pasrawtype</p>
+  </td>
+  <td width=504 valign=top>
+  <p>It is used to define types for global const values / enum
+  values.</p>
+  <p>E.g.</p>
+  <p>const float t = 1; it is translated in const t : single =
+  1;</p>
+  </td>
+ </tr>
+ <tr>
+  <td width=147 valign=top>
+  <p>pasrawintype</p>
+  </td>
+  <td width=504 valign=top>
+  <p>It is used to declare function&#8217;s input parameter
+  type. E.g.</p>
+  <p>void foo( int x)</p>
+  <p>int is translated to integer in pascal and the
+  declaration is:</p>
+  <p>procedure (x : integer)</p>
+  </td>
+ </tr>
+ <tr>
+  <td width=147 valign=top >
+  <p>pasrawinmode</p>
+  </td>
+  <td width=504 valign=top>
+  <p>It is used to declare function&#8217;s input parameter
+  modified (var |&nbsp; const | out). E.g.</p>
+  <p>void foo( int &amp; x)</p>
+  <p>&amp; is translated to var in pascal and the declaration
+  is:</p>
+  <p>procedure (var x : integer)</p>
+  </td>
+ </tr>
+ <tr>
+  <td width=147 valign=top>
+  <p>pasrawouttype</p>
+  </td>
+  <td width=504 valign=top>
+ <p> Not currently used</p>
+  </td>
+ </tr>
+ <tr>
+  <td width=147 valign=top>
+  <p>pasrawoutmode</p>
+  </td>
+  <td width=504 valign=top>
+  <p>Not currently used</p>
+  </td>
+ </tr>
+ <tr>
+  <td width=147 valign=top>
+  <p>pasrawrettype</p>
+  </td>
+  <td width=504 valign=top>
+  <p>It is used to declare function&#8217;s return value type.
+  E.g.</p>
+  <p>int foo( )</p>
+  <p>int is translated to integer in pascal and the
+  declaration is:</p>
+  <p>function foo : integer;</p>
+  </td>
+ </tr>
+</table>
+
+<p>The raw function/procedure declaration schema is :</p>
+
+<p>function | procedure&nbsp; FXNAME (pasrawinmode
+parameter_name_i : pasrawintype, &#8230;. )&nbsp; [ : pasrawretype ];</p>
+
+<p>Some typemaps are used to wrap C++ classes in Pascal proxy
+classes. They are used for class declaration and definition and for calling
+imported functions inside pascal classes.</p>
+
+<p>The following typemaps are used as a template to declare
+and implement a Object Pascal proxy class.</p>
+
+<table border cellspacing=3 cellpadding=0>
+ <tr>
+  <td width=326 valign=top >
+  <p>pasclassdef_base</p>
+  </td>
+  <td width=326 valign=top >
+  <p>This is a template used to start a class declaration
+  without base class</p>
+  </td>
+ </tr>
+ <tr>
+  <td width=326 valign=top >
+  <p>pasvarrw</p>
+  </td>
+  <td width=326 valign=top >
+  <p>This is a template used to declare a class read/write
+  property</p>
+  </td>
+ </tr>
+ <tr>
+  <td width=326 valign=top>
+  <p>pasvarro</p>
+  </td>
+  <td width=326 valign=top >
+  <p>This is a template used to declare a class read only
+  property</p>
+  </td>
+ </tr>
+ <tr>
+  <td width=326 valign=top >
+  <p>pasdefault_constructor_def</p>
+  </td>
+  <td width=326 valign=top >
+  <p>This is a template used to declare a class default
+  constructor</p>
+  </td>
+ </tr>
+ <tr>
+  <td width=326 valign=top >
+  <p>pasdefault_constructor_code</p>
+  </td>
+  <td width=326 valign=top >
+  <p>This is a template used to implement a class default
+  constructor</p>
+  </td>
+ </tr>
+ <tr>
+  <td width=326 valign=top >
+  <p>pasclassdef_derived</p>
+  </td>
+  <td width=326 valign=top >
+  <p>This is a template used to start a class declaration with
+  a base class</p>
+  </td>
+ </tr>
+ <tr>
+  <td width=326 valign=top>
+  <p>pasclassdef_end</p>
+  </td>
+  <td width=326 valign=top >
+  <p>This is a template used to end a class declaration</p>
+  </td>
+ </tr>
+ <tr>
+  <td width=326 valign=top >
+  <p>pasdestruct_def</p>
+  </td>
+  <td width=326 valign=top >
+  <p>This is a template used to declare a destructor of class
+  without a parent</p>
+  </td>
+ </tr>
+ <tr>
+  <td width=326 valign=top >
+  <p>pasdestruct_code</p>
+  </td>
+  <td width=326 valign=top >
+  <p>This is a template used to declare a destructor of class
+  that has&nbsp; a parent</p>
+  </td>
+ </tr>
+ <tr style='height:25.8pt'>
+  <td width=326 valign=top >
+  <p>pasdestruct_derived_code</p>
+  </td>
+  <td width=326 valign=top>
+  <p>This is a template used to implement a destructor of
+  class that has&nbsp; a parent</p>
+  </td>
+ </tr>
+ <tr>
+  <td width=326 valign=top >
+  <p>asgetcptr_intf</p>
+  </td>
+  <td width=326 valign=top >
+  <p>This is a template used to declare the property that
+  gives the class &#8220;C&#8221; object pointer.</p>
+  </td>
+ </tr>
+</table>
+
+<p>The following typemaps are used to implement the proxy
+class method.</p>
+
+<table border cellspacing=3 cellpadding=0>
+ <tr>
+  <td width=326 valign=top >
+  <p>paswraptype</p>
+  </td>
+  <td width=326 valign=top style='width:244.45pt;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p><span lang=EN-GB>It is used to declare function&#8217;s return value type</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=326 valign=top style='width:244.45pt;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p><span style='font-size:10.0pt;font-family:"Courier New"'>paswrapintype</span></p>
+  </td>
+  <td width=326 valign=top style='width:244.45pt;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p><span lang=EN-GB>It is used to declare function&#8217;s input parameter
+  type</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=326 valign=top style='width:244.45pt;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p><span style='font-size:10.0pt;font-family:"Courier New"'>paswrapinmode</span></p>
+  </td>
+  <td width=326 valign=top style='width:244.45pt;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p><span lang=EN-GB>It is used to declare function&#8217;s input parameter
+  modified (var |&nbsp; const | out)</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=326 valign=top style='width:244.45pt;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p><span style='font-size:10.0pt;font-family:"Courier New"'>pasin</span></p>
+  </td>
+  <td width=326 valign=top style='width:244.45pt;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p><span lang=EN-GB>It is used to pass the parameter to function that is
+  about to be called </span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=326 valign=top style='width:244.45pt;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p><span style='font-size:10.0pt;font-family:"Courier New"'>pasin_locals</span></p>
+  </td>
+  <td width=326 valign=top style='width:244.45pt;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p><span lang=EN-GB>It is used to declare local temporary variables used
+  for&nbsp; parameter transformation -&gt; function_locals</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=326 valign=top style='width:244.45pt;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p><span style='font-size:10.0pt;font-family:"Courier New"'>pasin_pre</span></p>
+  </td>
+  <td width=326 valign=top style='width:244.45pt;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p><span lang=EN-GB>It is used to declare code to be applied to parameter
+  before the function call -&gt; pre_code</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=326 valign=top style='width:244.45pt;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p><span style='font-size:10.0pt;font-family:"Courier New"'>pasin_post</span></p>
+  </td>
+  <td width=326 valign=top style='width:244.45pt;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p><span lang=EN-GB>It is used to declare code to be applied to parameter
+  after the function call -&gt; post_code</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=326 valign=top style='width:244.45pt;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p><span style='font-size:10.0pt;font-family:"Courier New"'>pasout</span></p>
+  </td>
+  <td width=326 valign=top style='width:244.45pt;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p><span lang=EN-GB>It is used to declare code to be applied to the result of
+  the function call -&gt; out_code</span></p>
+  </td>
+ </tr>
+</table>
+
+
+<p>
+The generated code for a method of a proxy class is :
+</p>
+
+<div class="code"> <pre>
+function | procedure&nbsp; TCLASSNAME.METHODNAME (paswrapinmode parameter_name_i : paswraptype, ...  ) [ : paswraptype ];
+function_locals
+begin
+   pre_code
+   plain function call ( pas_in )
+   post_code
+   out_code
+end;
+</pre></div>
+
+<h3><a name=ordinals></a>23.4.2 Subranges, Enumerations, Sets</h3>
+
+<p>Pascal , enumerations, and sets are not used. </p>
+
+<h3><a name=class></a>23.4.3 Objects</h3>
+
+<p><span lang=EN-GB>Declarations of C++ classes are mapped to TObject derived
+classes while it is tried to retain the access hierarch. </span></p>
+
+<h3><a name=imports></a>23.4.4 Uses</h3>
+
+<p>To add units to the uses clause of the generated unit it
+can be used the USES pragma.</p>
+
+<div class="code"> <pre>
+%pragma(delphi) USES = &quot;my_unit&quot;
+</pre></div>
+
+<p><a name=exceptions></a>he above code add my_unit to the
+interface uses clause.</p>
+
+<h3>23.4.5 Exceptions</h3>
+
+<p>Exceptions are not yet supported.</p>
+
+<h2><a name="typemap_example"></a><a name=hints></a>23.5 More
+hints to the generator</h2>
+
+</div>
+
+<h3><a name=features></a>23.5.1 Features</h3>
+
+<table border cellpadding=0 summary="Pascal features">
+ <tr>
+  <td >
+  <p> <b>Feature</b></p>
+  </td>
+  <td width=236 >
+  <p ><b>Example</b></p>
+  </td>
+  <td >
+  <p ><b>Description</b></p>
+  </td>
+ </tr>
+ <tr>
+  <td >
+  <p ><tt>nowrap_function</tt></p>
+  </td>
+  <td width=236 >
+  <p ><tt>%feature(&quot;nowrap_function&quot;,&quot;1&quot;)
+  </tt></p>
+  </td>
+  <td >
+  <p >his feature can be used to not wrap
+  exported functions. It can be useful in case of 
+  having a well defined API library that
+  does not need to have wrapped functions argument.&nbsp;</p>
+  </td>
+ </tr>
+ <tr>
+  <td >
+  <p><tt>runtime_const</tt></p>
+  </td>
+  <td width=236 >
+  <p><tt>%feature(&quot;runtime_const&quot;,&quot;1&quot;)
+  </tt></p>
+  </td>
+  <td >
+  <p >This feature can be used initialize
+  constants and enum values at runtime.&nbsp;</p>
+  </td>
+ </tr>
+</table>
+
+<h3><a name=pragmas></a>23.5.2 Pragmas</h3>
+
+<table border=1 cellpadding=0 summary="Pascal pragmas">
+ <tr>
+  <td >
+  <p ><b>Pragma</b></p>
+  </td>
+  <td>
+  <p> <b>Example</b></p>
+  </td>
+  <td>
+  <p ><b>Description</b></p>
+  </td>
+ </tr>
+ <tr>
+  <td >
+  <p >USES</p>
+  </td>
+  <td>
+  <p><tt>%pragma(delphi)
+  USES="...";</tt></p>
+  </td>
+  <td >
+  <p ><>Add units to the uses clauses.</p>
+  </td>
+ </tr>
+ <tr>
+  <td >
+  <p><tt>CALLCONV</tt></p>
+  </td>
+  <td >
+  <p ><tt>%pragma(delphi)
+  CALLCONV=</tt><tt>&quot;cdecl&quot;;</tt></p>
+  </td>
+  <td >
+  <p>Set the function calling convention</p>
+  </td>
+ </tr>
+
+ </tr>
+</table>
+
+<h3><a name=remarks></a>23.5.3 Section of code</h3>
+
+<p>The generated unit's code can be customized in the .i file
+using the following sections of code that are injected in the .pas file:
+
+<ul>
+<li>interface_uses</li>
+
+<li>interface_begin</li>
+
+<li>interface_end</li>
+
+<li>interface_functions</li>
+
+<li>interface_functions_wrapper</li>
+
+<li>implementation_uses</li>
+
+<li>implementation_begin</li>
+
+<li>implementation_end</li>
+
+<li>implementation_functions</li>
+
+<li>implementation_functions_wrapper</li>
+
+<li>implementation_end</li>
+</ul>
+
+</p>
+<p>The generated unit has this structure:</p>
+<div class="code"><pre>
+unit modulename;
+ 
+interface
+ 
+uses
+%interface_uses %{
+%}
+ 
+%interface_begin %{
+%}
+ 
+....
+ 
+%interface_end %{
+%}
+ 
+%interface_functions %{
+%}
+ 
+%interface_functions_wrapper %{
+%}
+ 
+ 
+implementation
+ 
+initialization
+ 
+uses
+ 
+%implementation_uses %{
+%}
+ 
+%implementation_begin %{
+%}
+ 
+....
+ 
+%implementation_end %{
+%}
+ 
+ 
+%implementation_functions %{
+%}
+ 
+%implementation_functions_wrapper %{
+%}
+ 
+%initialization %{
+%}
+ 
+finalization
+ 
+%finalization %{
+%}
+ 
+end;
+
+</pre></div>
+
+<h2>23.6 Remarks</h2>
+
+<h3>23.6.1 STDCALL convention</h3>
+
+<p> The main purpose of this module is to import into Delphi external code contained in
+precompiled DLL. The default calling convention is STDCALL for exported
+function in Windows environment. Delphi fully supports this convention but
+problems may occur depending of which compiler has been used to produce the
+DLL. These problems are related to function name decoration: every compiler has
+its convention especially Visual C++.</p>
+
+<p>For each exported using stdcall&nbsp; VC++ add the
+following decoration:</p>
+
+<p>_FUNCTIONNAME@N,</p>
+
+<p>Where N is the number of byte put onto the stack for
+parameters. The only way to remove _ and @N is to write a .DEF file containing
+all the exported functions name. This is time consuming and the DLL may not be
+compilable.</p>
+
+<p>So I wrote a little perl script that extracst all the names
+from a DLL and patch the generated pas source adding _ and @N where necessary.
+It is stored in Lib/Delphi/dllnames_fixup.pl</p>
+</div>
+
+</body>
+
+</html>

@@ -309,6 +309,19 @@
 
 /* please leave 890-899 free for Go */
 
+#define WARN_DELPHI_TYPEMAP_TYPE_UNDEF        1050
+#define WARN_DELPHI_TYPEMAP_GETCPTR_UNDEF     1051
+#define WARN_DELPHI_TYPEMAP_CLASSMOD_UNDEF    1052
+#define WARN_DELPHI_TYPEMAP_PTRCONSTMOD_UNDEF 1053
+#define WARN_DELPHI_TYPEMAP_MULTIPLE_RETURN   1054
+#define WARN_DELPHI_MULTIPLE_INHERITANCE      1055
+#define WARN_DELPHI_TYPECONSTRUCTOR_UNKNOWN   1056
+#define WARN_DELPHI_UNKNOWN_PRAGMA            1057
+#define WARN_DELPHI_BAD_ENUMERATION           1058
+#define WARN_DELPHI_DOUBLE_ID                 1059
+#define WARN_DELPHI_BAD_IMPORT                1060
+
+/* please leave 1050 - 1069 free for Delphi */
 /* -- User defined warnings (900 - 999) -- */
 
 #endif

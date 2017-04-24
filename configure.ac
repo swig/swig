@@ -2770,6 +2770,80 @@ AC_SUBST(DDEFAULTVERSION)
 AC_SUBST(DLIBPREFIX)
 
 #----------------------------------------------------------------
+# Look for Delphi
+#----------------------------------------------------------------
+
+AC_ARG_WITH(delphi, AS_HELP_STRING([--without-delphi], [Disable Delphi]), [with_delphi="$withval"], [with_delphi=yes])
+AC_ARG_WITH(delphi-compiler, [  --with-delphi-compiler=path     Set location of Delphi compiler],[DELPHICOMPILERBIN="$withval"], [DELPHICOMPILERBIN=])
+
+# First, check for "--without-delphi" or "--with-delphi=no".
+if test x"${with_delphi}" = xno -o x"${with_alllang}" = xno ; then 
+AC_MSG_NOTICE([Disabling Delphi])
+DELPHICOMPILER=
+else
+  DELPHICOMPILER="$DELPHICOMPILERBIN"
+fi
+
+DELPHIFLAGS="-CC"
+
+AC_MSG_CHECKING(for Delphi compiler)
+#if test -z "$DELPHICOMPILERBIN"; then
+if test x"$DELPHICOMPILERBIN" = x ; then
+AC_CHECK_PROGS(DELPHICOMPILER, dcc32 fpc, :)
+else
+DELPHICOMPILER="$DELPHICOMPILERBIN"
+AC_MSG_NOTICE([Delphi compiler from DELPHICOMPILERBIN = "$DELPHICOMPILERBIN"])
+
+fi
+
+DELPHIPATHSEPARATOR="/"
+DELPHICYGPATH_W=echo
+	
+case $DELPHICOMPILER in
+*fpc*)
+AC_MSG_NOTICE([Delphi compiler is fpc])	
+DELPHIFLAGS="-Sd"
+;;
+*dcc32*)
+AC_MSG_NOTICE([Delphi compiler is dcc32])	
+DELPHIFLAGS="-CC"
+;;
+esac
+
+DELPHISO=$SO
+
+# Cygwin requires the Windows standard (Pascal) calling convention as it is a Windows executable and not a Cygwin built executable
+case $host in
+*-*-cygwin* | *-*-mingw*)
+    if test "$GCC" = yes; then
+        DELPHIDYNAMICLINKING=" -mno-cygwin -mthreads -Wl,--add-stdcall-alias"
+        DELPHICFLAGS="-mno-cygwin -mthreads"
+    else
+        DELPHIDYNAMICLINKING=""
+        DELPHICFLAGS=""
+    fi ;;
+*)
+        DELPHIDYNAMICLINKING=""
+        DELPHICFLAGS=""
+        ;;
+esac
+
+# Delphi on Windows platforms including Cygwin doesn't use libname.dll, rather name.dll when loading dlls
+case $host in
+*-*-cygwin* | *-*-mingw*) DELPHILIBRARYPREFIX="";;
+*)DELPHILIBRARYPREFIX="lib";;
+esac
+
+AC_SUBST(DELPHIPATHSEPARATOR)
+AC_SUBST(DELPHICYGPATH_W)
+AC_SUBST(DELPHICOMPILER)
+AC_SUBST(DELPHIDYNAMICLINKING)
+AC_SUBST(DELPHILIBRARYPREFIX) # Is this going to be used?
+AC_SUBST(DELPHICFLAGS)
+AC_SUBST(DELPHIFLAGS)
+AC_SUBST(DELPHISO)
+
+#----------------------------------------------------------------
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
@@ -2943,6 +3017,12 @@ if test -z "$DDEFAULTVERSION" ; then
 fi
 AC_SUBST(SKIP_D)
 
+SKIP_DELPHI=
+if test -z "$DELPHICOMPILER" ; then
+    SKIP_DELPHI="1"
+fi
+AC_SUBST(SKIP_DELPHI)
+
 #----------------------------------------------------------------
 # Additional language dependencies
 #----------------------------------------------------------------
@@ -3045,6 +3125,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/chicken/Makefile
     Examples/test-suite/csharp/Makefile
     Examples/test-suite/d/Makefile
+    Examples/test-suite/delphi/Makefile
     Examples/test-suite/guile/Makefile
     Examples/test-suite/java/Makefile
     Examples/test-suite/javascript/Makefile
@@ -3117,6 +3198,7 @@ test -n "$SKIP_CHICKEN"		|| langs="${langs}chicken "
 test -n "$SKIP_CLISP"		|| langs="${langs}clisp "
 test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
 test -n "$SKIP_D"		|| langs="${langs}d "
+test -n "$SKIP_DELPHI"		|| langs="${langs}delphi "
 test -n "$SKIP_GO"		|| langs="${langs}go "
 test -n "$SKIP_GUILE"		|| langs="${langs}guile "
 test -n "$SKIP_JAVA"		|| langs="${langs}java "
