@@ -2090,6 +2090,10 @@ public:
     Delete(target);
 
     // Get any exception classes in the throws typemap
+    if (Getattr(n, "noexcept")) {
+      Append(w->def, " noexcept");
+      Append(declaration, " noexcept");
+    }
     ParmList *throw_parm_list = 0;
 
     if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
@@ -2486,7 +2490,10 @@ public:
     Delete(mangle);
     Delete(ptype);
 
-    if (Getattr(n, "throw")) {
+    if (Getattr(n, "noexcept")) {
+      Printf(f_directors_h, "    virtual ~%s() noexcept;\n", DirectorClassName);
+      Printf(f_directors, "%s::~%s() noexcept {%s}\n\n", DirectorClassName, DirectorClassName, body);
+    } else if (Getattr(n, "throw")) {
       Printf(f_directors_h, "    virtual ~%s() throw ();\n", DirectorClassName);
       Printf(f_directors, "%s::~%s() throw () {%s}\n\n", DirectorClassName, DirectorClassName, body);
     } else {

@@ -2217,6 +2217,10 @@ public:
     Delete(target);
 
     // Add any exception specifications to the methods in the director class
+    if (Getattr(n, "noexcept")) {
+      Append(w->def, " noexcept");
+      Append(declaration, " noexcept");
+    }
     ParmList *throw_parm_list = NULL;
     if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
       int gencomma = 0;
@@ -2483,7 +2487,10 @@ public:
     String *dirclassname = directorClassName(current_class);
     Wrapper *w = NewWrapper();
 
-    if (Getattr(n, "throw")) {
+    if (Getattr(n, "noexcept")) {
+      Printf(f_directors_h, "    virtual ~%s() noexcept;\n", dirclassname);
+      Printf(w->def, "%s::~%s() noexcept {\n", dirclassname, dirclassname);
+    } else if (Getattr(n, "throw")) {
       Printf(f_directors_h, "    virtual ~%s() throw ();\n", dirclassname);
       Printf(w->def, "%s::~%s() throw () {\n", dirclassname, dirclassname);
     } else {

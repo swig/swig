@@ -4293,6 +4293,10 @@ public:
       }
     }
 
+    if (Getattr(n, "noexcept")) {
+      Append(w->def, " noexcept");
+      Append(declaration, " noexcept");
+    }
     if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
       int gencomma = 0;
 
@@ -4671,7 +4675,10 @@ public:
     String *dirClassName = directorClassName(current_class);
     Wrapper *w = NewWrapper();
 
-    if (Getattr(n, "throw")) {
+    if (Getattr(n, "noexcept")) {
+      Printf(f_directors_h, "    virtual ~%s() noexcept;\n", dirClassName);
+      Printf(w->def, "%s::~%s() noexcept {\n", dirClassName, dirClassName);
+    } else if (Getattr(n, "throw")) {
       Printf(f_directors_h, "    virtual ~%s() throw ();\n", dirClassName);
       Printf(w->def, "%s::~%s() throw () {\n", dirClassName, dirClassName);
     } else {
