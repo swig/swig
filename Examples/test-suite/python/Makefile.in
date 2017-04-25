@@ -73,18 +73,21 @@ CPP_TEST_CASES += \
 	simutry \
 	std_containers \
 	swigobject \
-	template_matrix
+	template_matrix \
 
 #	li_std_carray
 #	director_profile
 #	python_pybuf
+
+CPP11_TEST_CASES = \
+	cpp11_hash_tables \
 
 C_TEST_CASES += \
 	file_test \
 	li_cstring \
 	li_cwstring \
 	python_nondynamic \
-	python_varargs_typemap
+	python_varargs_typemap \
 
 #
 # This test only works with modern C compilers
