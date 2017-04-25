@@ -77,7 +77,7 @@ Parm *CopyParm(Parm *p) {
   for (ki = First(p); ki.key; ki = Next(ki)) {
     if (DohIsString(ki.item)) {
       DOH *c = Copy(ki.item);
-      Setattr(np, ki.key, checkT_Element_Replace(c)); // TODO -oSMK : see (SMK1) above
+      Setattr(np, ki.key, checkT_Element_Replace(c)); /* TODO -oSMK : see (SMK1) above */
       Delete(c);
     }
   }

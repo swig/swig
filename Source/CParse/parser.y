@@ -108,7 +108,7 @@ static Node *copy_node(Node *n) {
 	(strcmp(ckey,"sym:weak") == 0) ||
 	(strcmp(ckey,"sym:typename") == 0)) {
       String *ci = Copy(k.item);
-      Setattr(nn,key, checkT_Element_Replace(ci)); // TODO -oSMK : See (SMK1) above
+      Setattr(nn,key, checkT_Element_Replace(ci)); /* TODO -oSMK : See (SMK1) above */
       Delete(ci);
       continue;
     }
@@ -161,7 +161,7 @@ static Node *copy_node(Node *n) {
     }
     /* Looks okay.  Just copy the data using Copy */
     ci = Copy(k.item);
-    Setattr(nn, key, checkT_Element_Replace(ci)); // TODO -oSMK : See (SMK1) above
+    Setattr(nn, key, checkT_Element_Replace(ci)); /* TODO -oSMK : See (SMK1) above */
     Delete(ci);
   }
   return nn;
