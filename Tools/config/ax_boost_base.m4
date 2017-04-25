@@ -1,5 +1,5 @@
 # ===========================================================================
-#       http://www.gnu.org/software/autoconf-archive/ax_boost_base.html
+#      https://www.gnu.org/software/autoconf-archive/ax_boost_base.html
 # ===========================================================================
 #
 # SYNOPSIS
@@ -33,7 +33,7 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 26
+#serial 29
 
 AC_DEFUN([AX_BOOST_BASE],
 [
@@ -96,7 +96,7 @@ if test "x$want_boost" = "xyes"; then
         libsubdirs="lib64 libx32 lib lib64"
         ;;
       ppc64|s390x|sparc64|aarch64|ppc64le)
-        libsubdirs="lib64 lib lib64 ppc64le"
+        libsubdirs="lib64 lib lib64"
         ;;
     esac
 
@@ -176,7 +176,9 @@ if test "x$want_boost" = "xyes"; then
         CPPFLAGS="$CPPFLAGS_SAVED"
         LDFLAGS="$LDFLAGS_SAVED"
         BOOST_CPPFLAGS=
-        BOOST_LDFLAGS=
+        if test "$ac_boost_lib_path" = ""; then
+            BOOST_LDFLAGS=
+        fi
         _version=0
         if test "$ac_boost_path" != ""; then
             if test -d "$ac_boost_path" && test -r "$ac_boost_path"; then
