@@ -1,16 +1,18 @@
-%module(directors="1") ruby_director
+%module(directors="1") ruby_director_exception
 
 %{
-#include <iostream>
+
+static int c_counter;
+static int d_counter;
 
 class ShouldBeDestroyed {
 public:
   ShouldBeDestroyed() {
-    std::cout << "constructed." << std::endl;
+    c_counter++;
   }
 
   ~ShouldBeDestroyed() {
-    std::cout << "yes destroyed." << std::endl;
+    d_counter++;
   }
 };
 
@@ -30,6 +32,12 @@ int call_ret_m(Base *b) {
 }
 
 %}
+
+%init %{
+  c_counter = 0;
+  d_counter = 0;
+%}
+
 %feature("director:except") {
   throw Swig::DirectorMethodException($error);
 }
@@ -46,5 +54,8 @@ public:
   virtual ~Base();
   virtual int ret_m();
 };
+
+static int c_counter;
+static int d_counter;
 
 int call_ret_m(Base *b);
