@@ -3015,7 +3015,8 @@ public:
       Printf(w->code, "args.id = rb_intern(\"%s\");\n", methodName);
       Printf(w->code, "args.argc = %d;\n", argc);
       if (argc > 0) {
-	Printf(w->code, "args.argv = new VALUE[%d];\n", argc);
+	Printf(w->code, "VALUE argv_buf[%d];\n", argc);
+	Printf(w->code, "args.argv = argv_buf;\n");
 	for (int i = 0; i < argc; i++) {
 	  Printf(w->code, "args.argv[%d] = obj%d;\n", i, i);
 	}
@@ -3028,9 +3029,7 @@ public:
       Printf(w->code, "VALUE lastErr = rb_gv_get(\"$!\");\n");
       Printf(w->code, "%s(reinterpret_cast<VALUE>(&args), lastErr, status);\n", rescueName);
       Printf(w->code, "}\n");
-      if (argc > 0) {
-	Printv(w->code, "delete [] args.argv;\n", NIL);
-      }
+
       // Dump wrapper code
       Wrapper_print(body, f_directors_helpers);
       Wrapper_print(rescue, f_directors_helpers);
