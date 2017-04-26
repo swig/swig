@@ -2982,7 +2982,6 @@ public:
 
     String *bodyName = NewStringf("%s_%s_body", className, methodName);
     String *rescueName = NewStringf("%s_%s_rescue", className, methodName);
-    String *depthCountName = NewStringf("%s_%s_call_depth", className, methodName);
 
     // Check for an exception typemap of some kind
     String *tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0);
@@ -2991,9 +2990,7 @@ public:
     }
 
     if ((tm != 0) && (Len(tm) > 0) && (Strcmp(tm, "1") != 0)) {
-      // Declare a global to hold the depth count
       if (!Getattr(n, "sym:nextSibling")) {
-
 	// Function body
 	Printf(body->def, "VALUE %s(VALUE data) {\n", bodyName);
 	Wrapper_add_localv(body, "args", "Swig::body_args *", "args", "= reinterpret_cast<Swig::body_args *>(data)", NIL);
@@ -3049,7 +3046,6 @@ public:
     // Clean up
     Delete(bodyName);
     Delete(rescueName);
-    Delete(depthCountName);
     DelWrapper(body);
     DelWrapper(rescue);
   }
