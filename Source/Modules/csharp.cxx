@@ -403,6 +403,7 @@ public:
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
+      Printf(f_runtime, "#include <assert.h>\n");
 
       /* Emit initial director header and director code: */
       Swig_banner(f_directors_h);
@@ -3935,7 +3936,12 @@ public:
       }
       Delete(super_call);
     } else {
-      Printf(w->code, " throw Swig::DirectorPureVirtualException(\"%s::%s\");\n", SwigType_namestr(c_classname), SwigType_namestr(name));
+      if (Getattr(n, "noexcept")) {
+        Printf(w->code, " //can't throw exception here\n");
+        Printf(w->code, " assert(0 && \"swig DirectorPureVirtualException %s::%s\");", SwigType_namestr(c_classname), SwigType_namestr(name));
+      } else {
+        Printf(w->code, " throw Swig::DirectorPureVirtualException(\"%s::%s\");\n", SwigType_namestr(c_classname), SwigType_namestr(name));
+      }
     }
 
     if (!ignored_method)
