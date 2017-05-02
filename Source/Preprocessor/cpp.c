@@ -607,6 +607,23 @@ static List *find_args(String *s, int ismacro, String *macro_name) {
 	skip_tochar(s, '\'', str);
 	c = Getc(s);
 	continue;
+      } else if (c == '/') {
+        /* Ensure comments are ignored by eating up the characters */
+        c = Getc(s);
+        if (c == '*') {
+          while ((c = Getc(s)) != EOF) {
+            if (c == '*') {
+              c = Getc(s);
+              if (c == '/' || c == EOF)
+                break;
+            }
+          }
+          c = Getc(s);
+          continue;
+        }
+        /* ensure char is available in the stream as this was not a comment*/
+        Ungetc(c, s);
+        c = '/';
       }
       if ((c == ',') && (level == 0))
 	break;
