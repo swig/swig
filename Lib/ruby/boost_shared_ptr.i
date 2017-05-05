@@ -383,7 +383,7 @@
 }
 
 #if defined(SWIG_USE_STD_SHARED_PTR)
-%fragment("StdSharedPtrAsptr" #CONST #TYPE,"header",fragment="StdTraitsForwardDeclaration")
+%fragment("StdSharedPtrAsptr" #CONST #TYPE,"wrapper",fragment="StdTraitsForwardDeclaration")
 {
 namespace swig {
   template<>
