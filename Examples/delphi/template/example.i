@@ -2,22 +2,22 @@
 %module example
 
 %{
-// We must declare a function pointer typedef in order to generate its declaration
-typedef int (*funptr)(int,int);
-%}
-typedef int (*funptr)(int,int);
-%{
 #include "example.h"
 %}
 
+/* Let's just grab the original header file here */
+%include "example.h"
 
+/* Now instantiate some specific template declarations */
 
-/* Wrap a function taking a pointer to a function */
-//extern int  do_op(int a, int b, int (*op)(int, int));
-//extern int  do_op(int a, int b, funptr);
-/* Now install a bunch of "ops" as constants */
-extern int add(int,int);
-extern int sub(int,int);
-extern int mul(int,int);
+TEMPLATE_WRAP0(max, maxint,  int);
 
-extern funptr funcvar;
+TEMPLATE_WRAP0(max,maxdouble,  double);
+
+%rename(_set) vector<int>::set(int index, int &val);
+
+TEMPLATE_WRAP0(vector ,vecint,  int );
+
+%rename(_set) vector<double>::set(int index, double &val);
+
+%TEMPLATE_WRAP0(vector, vecdouble, double);

@@ -1,22 +1,21 @@
 TOP        = ../..
-SWIGEXE    = $(TOP)/../swig
-SWIG_LIB_DIR = $(TOP)/../$(TOP_BUILDDIR_TO_TOP_SRCDIR)Lib
+SWIG       = $(TOP)/../preinst-swig
 CXXSRCS    = example.cxx
 TARGET     = example
 INTERFACE  = example.i
-SWIGOPT    = 
+SWIGOPT    = -c++
 DELPHISRCS = example.pas
 DELPHIFLAGS= 
 
-check: build
-	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' delphi_run
+all::	delphi
 
-build:
-	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
-	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
+delphi::
+	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' delphi_cpp
 	$(MAKE) -f $(TOP)/Makefile DELPHISRCS='$(DELPHISRCS)' delphi_compile
 	$(MAKE) -f $(TOP)/Makefile DELPHISRCS='runme.dpr' delphi_compile
 
-clean:
-	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' delphi_clean
+clean::
+	$(MAKE) -f $(TOP)/Makefile delphi_clean
+
+check: all
