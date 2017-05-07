@@ -294,7 +294,7 @@ public:
     f_runtime = NewStringEmpty();
 
     /* sections of the output file */
-    s_init = NewString("/* init section */\n");
+    s_init = NewStringEmpty();
     r_init = NewString("/* rinit section */\n");
     s_shutdown = NewString("/* shutdown section */\n");
     r_shutdown = NewString("/* rshutdown section */\n");
@@ -528,7 +528,14 @@ public:
     Printf(s_entry, "/* Every non-class user visible function must have an entry here */\n");
     Printf(s_entry, "static zend_function_entry %s_functions[] = {\n", module);
 
+    /* Emit all of the code */
+    Language::top(n);
+
+    SwigPHP_emit_resource_registrations();
+
     /* start the init section */
+    String * s_init_old = s_init;
+    s_init = NewString("/* init section */\n");
     Append(s_init, "#if ZEND_MODULE_API_NO <= 20090626\n");
     Append(s_init, "#undef ZEND_MODULE_BUILD_ID\n");
     Append(s_init, "#define ZEND_MODULE_BUILD_ID (char*)\"API\" ZEND_TOSTR(ZEND_MODULE_API_NO) ZEND_BUILD_TS ZEND_BUILD_DEBUG ZEND_BUILD_SYSTEM ZEND_BUILD_EXTRA\n");
@@ -562,11 +569,9 @@ public:
      * things are being called in the wrong order
      */
     Printf(s_init, "#define SWIG_php_minit PHP_MINIT_FUNCTION(%s)\n", module);
+    Printv(s_init, s_init_old, NIL);
+    Delete(s_init_old);
 
-    /* Emit all of the code */
-    Language::top(n);
-
-    SwigPHP_emit_resource_registrations();
     //    Printv(s_init,s_resourcetypes,NIL);
     /* We need this after all classes written out by ::top */
     Printf(s_oinit, "CG(active_class_entry) = NULL;\n");
