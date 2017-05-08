@@ -96,6 +96,7 @@ static String *all_cs_entry;
 static String *pragma_incl;
 static String *pragma_code;
 static String *pragma_phpinfo;
+static String *pragma_version;
 static String *s_oowrappers;
 static String *s_fakeoowrappers;
 static String *s_phpclasses;
@@ -359,6 +360,7 @@ public:
     /* sub-sections of the php file */
     pragma_code = NewStringEmpty();
     pragma_incl = NewStringEmpty();
+    pragma_version = NULL;
 
     /* Initialize the rest of the module */
 
@@ -515,7 +517,11 @@ public:
       } else {
 	Printf(s_init, "    NULL, /* No MINFO code */\n");
       }
-      Printf(s_init, "    NO_VERSION_YET,\n");
+      if (Len(pragma_version) > 0) {
+	Printf(s_init, "    \"%s\",\n", pragma_version);
+      } else {
+	Printf(s_init, "    NO_VERSION_YET,\n");
+      }
       Printf(s_init, "    STANDARD_MODULE_PROPERTIES\n");
       Printf(s_init, "};\n");
       Printf(s_init, "zend_module_entry* SWIG_module_entry = &%s_module_entry;\n\n", module);
@@ -2006,6 +2012,10 @@ done:
 	} else if (Strcmp(type, "phpinfo") == 0) {
 	  if (value) {
 	    Printf(pragma_phpinfo, "%s\n", value);
+	  }
+	} else if (Strcmp(type, "version") == 0) {
+	  if (value) {
+	    pragma_version = value;
 	  }
 	} else {
 	  Swig_warning(WARN_PHP_UNKNOWN_PRAGMA, input_file, line_number, "Unrecognized pragma <%s>.\n", type);
