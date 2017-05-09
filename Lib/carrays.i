@@ -5,6 +5,12 @@
  * pointers as arrays.
  * ----------------------------------------------------------------------------- */
 
+#ifndef __cplusplus
+// C uses free/calloc/malloc
+%include "swigfragments.swg"
+%fragment("<stdlib.h>");
+#endif
+
 /* -----------------------------------------------------------------------------
  * %array_functions(TYPE,NAME)
  *

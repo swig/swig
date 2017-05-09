@@ -442,6 +442,10 @@ namespace std {
  * Default char * and C array typemaps
  * ----------------------------------------------------------------------------- */
 
+%fragment("<string.h>", "runtime") %{
+#include <string.h>
+%}
+
 /* Set up the typemap for handling new return strings */
 
 #ifdef __cplusplus
@@ -453,7 +457,7 @@ namespace std {
 /* Default typemap for handling char * members */
 
 #ifdef __cplusplus
-%typemap(memberin) char * {
+%typemap(memberin,fragment="<string.h>") char * {
   delete [] $1;
   if ($input) {
      $1 = ($1_type) (new char[strlen((const char *)$input)+1]);
@@ -462,7 +466,7 @@ namespace std {
      $1 = 0;
   }
 }
-%typemap(memberin,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const char * {
+%typemap(memberin,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG,fragment="<string.h>") const char * {
   if ($input) {
      $1 = ($1_type) (new char[strlen((const char *)$input)+1]);
      strcpy((char *)$1, (const char *)$input);
@@ -470,7 +474,7 @@ namespace std {
      $1 = 0;
   }
 }
-%typemap(globalin) char * {
+%typemap(globalin,fragment="<string.h>") char * {
   delete [] $1;
   if ($input) {
      $1 = ($1_type) (new char[strlen((const char *)$input)+1]);
@@ -479,7 +483,7 @@ namespace std {
      $1 = 0;
   }
 }
-%typemap(globalin,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const char * {
+%typemap(globalin,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG,fragment="<string.h>") const char * {
   if ($input) {
      $1 = ($1_type) (new char[strlen((const char *)$input)+1]);
      strcpy((char *)$1, (const char *)$input);
@@ -488,7 +492,7 @@ namespace std {
   }
 }
 #else
-%typemap(memberin) char * {
+%typemap(memberin,fragment="<string.h>") char * {
   free($1);
   if ($input) {
      $1 = ($1_type) malloc(strlen((const char *)$input)+1);
@@ -497,7 +501,7 @@ namespace std {
      $1 = 0;
   }
 }
-%typemap(memberin,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const char * {
+%typemap(memberin,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG,fragment="<string.h>") const char * {
   if ($input) {
      $1 = ($1_type) malloc(strlen((const char *)$input)+1);
      strcpy((char *)$1, (const char *)$input);
@@ -505,7 +509,7 @@ namespace std {
      $1 = 0;
   }
 }
-%typemap(globalin) char * {
+%typemap(globalin,fragment="<string.h>") char * {
   free($1);
   if ($input) {
      $1 = ($1_type) malloc(strlen((const char *)$input)+1);
@@ -514,7 +518,7 @@ namespace std {
      $1 = 0;
   }
 }
-%typemap(globalin,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const char * {
+%typemap(globalin,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG,fragment="<string.h>") const char * {
   if ($input) {
      $1 = ($1_type) malloc(strlen((const char *)$input)+1);
      strcpy((char *)$1, (const char *)$input);
@@ -527,7 +531,7 @@ namespace std {
 
 /* Character array handling */
 
-%typemap(memberin) char [ANY] {
+%typemap(memberin,fragment="<string.h>") char [ANY] {
   if($input) {
     strncpy((char*)$1, (const char *)$input, $1_dim0-1);
     $1[$1_dim0-1] = 0;
@@ -536,7 +540,7 @@ namespace std {
   }
 }
 
-%typemap(globalin) char [ANY] {
+%typemap(globalin,fragment="<string.h>") char [ANY] {
   if($input) {
     strncpy((char*)$1, (const char *)$input, $1_dim0-1);
     $1[$1_dim0-1] = 0;
@@ -545,25 +549,25 @@ namespace std {
   }
 }
 
-%typemap(memberin) char [] {
+%typemap(memberin,fragment="<string.h>") char [] {
   if ($input) strcpy((char *)$1, (const char *)$input);
   else $1[0] = 0;
 }
 
-%typemap(globalin) char [] {
+%typemap(globalin,fragment="<string.h>") char [] {
   if ($input) strcpy((char *)$1, (const char *)$input);
   else $1[0] = 0;
 }
 
 /* memberin/globalin typemap for arrays. */
 
-%typemap(memberin) SWIGTYPE [ANY] {
+%typemap(memberin,fragment="<string.h>") SWIGTYPE [ANY] {
   size_t ii;
   $1_basetype *b = ($1_basetype *) $1;
   for (ii = 0; ii < (size_t)$1_size; ii++) b[ii] = *(($1_basetype *) $input + ii);
 }
 
-%typemap(globalin) SWIGTYPE [ANY] {
+%typemap(globalin,fragment="<string.h>") SWIGTYPE [ANY] {
   size_t ii;
   $1_basetype *b = ($1_basetype *) $1;
   for (ii = 0; ii < (size_t)$1_size; ii++) b[ii] = *(($1_basetype *) $input + ii);
@@ -571,7 +575,7 @@ namespace std {
 
 /* memberin/globalin typemap for double arrays. */
 
-%typemap(memberin) SWIGTYPE [ANY][ANY] {
+%typemap(memberin,fragment="<string.h>") SWIGTYPE [ANY][ANY] {
   $basetype (*inp)[$1_dim1] = ($basetype (*)[$1_dim1])($input);
   $basetype (*dest)[$1_dim1] = ($basetype (*)[$1_dim1])($1);
   size_t ii = 0;
@@ -583,7 +587,7 @@ namespace std {
   }
 }
 
-%typemap(globalin) SWIGTYPE [ANY][ANY] {
+%typemap(globalin,fragment="<string.h>") SWIGTYPE [ANY][ANY] {
   $basetype (*inp)[$1_dim1] = ($basetype (*)[$1_dim1])($input);
   $basetype (*dest)[$1_dim1] = ($basetype (*)[$1_dim1])($1);
   size_t ii = 0;
