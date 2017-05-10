@@ -63,8 +63,8 @@
 %typemap(cstype) int64_t *,            int64_t &            "ref int64_t"
 %typemap(cstype) uint32_t *,            uint32_t &            "ref uint32_t"
 %typemap(cstype) size_t *,             size_t &             "ref size_t"
-%%typemap(cstype) long long *,          long long &          "ref long"
-typemap(cstype) unsigned long long *, unsigned long long & "ref ulong"
+%typemap(cstype) long long *,          long long &          "ref long"
+%typemap(cstype) unsigned long long *, unsigned long long & "ref ulong"
 %typemap(cstype) float *,              float &              "ref float"
 %typemap(cstype) double *,             double &             "ref double"
 
