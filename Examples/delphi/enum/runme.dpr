@@ -7,27 +7,27 @@ var
 begin
 // Print out the value of some enums
         WriteLn('*** color ***');
-        WriteLn('    color_RED    = ' , color_RED);
-        WriteLn('    color_BLUE   = ' , color_BLUE);
-        WriteLn('    color_GREEN  = ' , color_GREEN);
+        WriteLn('    color_RED    = ' , ord(TColor.RED));
+        WriteLn('    color_BLUE   = ' , ord(TColor.BLUE));
+        WriteLn('    color_GREEN  = ' , ord(TColor.GREEN));
 
         WriteLn('*** Foo::speed ***');
-        WriteLn('    Foo_speed_IMPULSE  = ' , Foo_speed_IMPULSE);
-        WriteLn('    Foo_speed_WARP  = ' , Foo_speed_WARP);
-        WriteLn('    Foo_speed_LUDICROUS  = ' , Foo_speed_LUDICROUS);
+        WriteLn('    Foo_speed_IMPULSE  = ' , ord(TFoo_speed.IMPULSE));
+        WriteLn('    Foo_speed_WARP  = ' , ord(TFoo_speed.WARP));
+        WriteLn('    Foo_speed_LUDICROUS  = ' , ord(TFoo_speed.LUDICROUS));
 
         WriteLn('Testing use of enums with functions');
 
-        example.enum_test(color_RED, Foo_speed_IMPULSE);
-        example.enum_test(color_BLUE, Foo_speed_WARP);
-        example.enum_test(color_GREEN, Foo_speed_LUDICROUS);
+        example.enum_test(ord(TColor.RED), ord(TFoo_speed.IMPULSE));
+        example.enum_test(ord(TColor.BLUE),  ord(TFoo_speed.WARP));
+        example.enum_test(ord(TColor.GREEN), ord(TFoo_speed.LUDICROUS));
 
         WriteLn( 'Testing use of enum with class method' );
         f := TFoo.Create();
 
-        f.enum_test(Foo_speed_IMPULSE);
-        f.enum_test(Foo_speed_WARP);
-        f.enum_test(Foo_speed_LUDICROUS);
+        f.enum_test(ord(TFoo_speed.IMPULSE));
+        f.enum_test(ord(TFoo_speed.WARP));
+        f.enum_test(ord(TFoo_speed.LUDICROUS));
 
         f.Free;
 end.
