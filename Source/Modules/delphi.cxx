@@ -6917,12 +6917,5 @@ Delphi Options (available with -delphi)\n\
      -generatetypemap <file> - generate templates for some basic typemaps\n\
      -oldvarnames    - old intermediary method names for variable wrappers\n\
 \n";
-
-/*
--generateconst <file> - stem of the .c source file for computing the numeric values of constants\n\
--generaterename <file> - stem of the .i source file containing %rename suggestions\n\
--generatetypemap <file> - stem of the .i source file containing typemap patterns\n\
-*/
-
 #endif 
 
