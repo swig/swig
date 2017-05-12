@@ -6911,12 +6911,12 @@ extern "C" Language *swig_delphi(void) {
 * ----------------------------------------------------------------------------- */
 
 const char *DELPHI::usage =  "\
-									 Delphi Options (available with -delphi)\n\
-									 -generateconst <file>   - generate code for computing numeric values of constants\n\
-									 -generaterename <file>  - generate suggestions for %rename\n\
-									 -generatetypemap <file> - generate templates for some basic typemaps\n\
-									 -oldvarnames    - old intermediary method names for variable wrappers\n\
-									 \n";
+Delphi Options (available with -delphi)\n\
+     -generateconst <file>   - generate code for computing numeric values of constants\n\
+     -generaterename <file>  - generate suggestions for %rename\n\
+     -generatetypemap <file> - generate templates for some basic typemaps\n\
+     -oldvarnames    - old intermediary method names for variable wrappers\n\
+\n";
 
 /*
 -generateconst <file> - stem of the .c source file for computing the numeric values of constants\n\
