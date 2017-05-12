@@ -17,7 +17,7 @@
 #include <unistd.h>
 #endif
 
-#include <iostream>
+#include <swig_examples_lock.h>
 
 class Foo;  
 extern "C" {
@@ -28,8 +28,17 @@ extern "C" {
   void* working(void* t);
   pthread_t thread;
 #endif
+
   static int thread_terminate = 0;
-  
+  static SwigExamples::CriticalSection critical_section;
+  int get_thread_terminate() {
+    SwigExamples::Lock lock(critical_section);
+    return thread_terminate;
+  }
+  void set_thread_terminate(int value) {
+    SwigExamples::Lock lock(critical_section);
+    thread_terminate = value;
+  }
 }
 %}
 
@@ -55,7 +64,7 @@ extern "C" {
     }
 
     void stop() {
-      thread_terminate = 1;
+      set_thread_terminate(1);
     %#ifdef _WIN32
       /*TODO(bhy) what to do for win32? */
     %#else  
@@ -87,7 +96,7 @@ extern "C" {
 #endif
   {
     Foo* f = static_cast<Foo*>(t);
-    while ( ! thread_terminate ) {
+    while (!get_thread_terminate()) {
       MilliSecondSleep(50);
       f->do_foo();
     }
