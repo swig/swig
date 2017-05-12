@@ -11,6 +11,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <process.h>
+#include <stdio.h>
 #else
 #include <pthread.h>
 #include <signal.h>
@@ -22,11 +23,11 @@
 class Foo;  
 extern "C" {
 #ifdef _WIN32
-  unsigned int __stdcall working(void* t);
-  unsigned int thread_id(0);
+  static unsigned int __stdcall working(void* t);
+  static HANDLE thread_handle = 0;
 #else
   void* working(void* t);
-  pthread_t thread;
+  static pthread_t thread;
 #endif
 
   static int thread_terminate = 0;
@@ -66,7 +67,8 @@ extern "C" {
     void stop() {
       set_thread_terminate(1);
     %#ifdef _WIN32
-      /*TODO(bhy) what to do for win32? */
+      WaitForSingleObject(thread_handle, INFINITE);
+      CloseHandle(thread_handle);
     %#else  
       pthread_join(thread, NULL);
     %#endif
@@ -74,9 +76,18 @@ extern "C" {
 
     void run() {
 %#ifdef _WIN32
-      _beginthreadex(NULL,0,working,this,0,&thread_id);
+      int thread_id = 0;
+      thread_handle = (HANDLE)_beginthreadex(NULL,0,working,this,0,&thread_id);
+      if (thread_handle == 0) {
+        fprintf(stderr, "_beginthreadex failed in run()\n");
+        assert(0);
+      }
 %#else
-      pthread_create(&thread,NULL,working,this);
+      int create = pthread_create(&thread,NULL,working,this);
+      if (create != 0) {
+        fprintf(stderr, "pthread_create failed in run()\n");
+        assert(0);
+      }
 %#endif
       MilliSecondSleep(500);
     }
@@ -100,11 +111,6 @@ extern "C" {
       MilliSecondSleep(50);
       f->do_foo();
     }
-#ifdef _WIN32
-    /* TODO(bhy) what's the corresponding of pthread_exit in win32? */
-#else
-    pthread_exit(0);
-#endif
     return 0;
   }
 }
