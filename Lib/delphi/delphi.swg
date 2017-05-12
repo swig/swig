@@ -11,10 +11,10 @@
 
 /* The ctype, pasrawtype and paswraptype typemaps work together and so there should be one of each. 
  * The ctype typemap contains the C type used in the signature of C wrappers for C++ functions. 
- * The pasrawtype typemap contains the M3 type used in the raw interface.
- * The pasrawintype typemap contains the M3 type used as function argument.
- * The pasrawrettype typemap contains the M3 type used as return value.
- * The paswraptype typemap contains the M3 type used in the M3 type wrapper classes and module class. */
+ * The pasrawtype typemap contains the Delphi type used in the raw interface.
+ * The pasrawintype typemap contains the Delphi type used as function argument.
+ * The pasrawrettype typemap contains the Delphi type used as return value.
+ * The paswraptype typemap contains the Delphi type used in the Delphi type wrapper classes and module class. */
 
 %typemap(ctype) bool,               const bool &               "bool"
 %typemap(ctype) char,               const char &               "char"
