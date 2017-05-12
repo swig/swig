@@ -18,7 +18,8 @@
 #include <unistd.h>
 #endif
 
-#include <swig_examples_lock.h>
+#include <assert.h>
+#include "swig_examples_lock.h"
 
 class Foo;  
 extern "C" {
@@ -76,7 +77,7 @@ extern "C" {
 
     void run() {
 %#ifdef _WIN32
-      int thread_id = 0;
+      unsigned int thread_id = 0;
       thread_handle = (HANDLE)_beginthreadex(NULL,0,working,this,0,&thread_id);
       if (thread_handle == 0) {
         fprintf(stderr, "_beginthreadex failed in run()\n");
