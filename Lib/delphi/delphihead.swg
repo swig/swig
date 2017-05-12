@@ -14,7 +14,7 @@
 #include <stdio.h>
 %}
 
-#if 0
+#if 0 /* TODO -oSMK : check if it is needed at all */
 %insert(runtime) %{
 /* Support for throwing Modula3 exceptions */
 typedef enum {
