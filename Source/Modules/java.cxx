@@ -4375,11 +4375,9 @@ public:
 
       Printf(w->code, "jenv->%s(Swig::jclass_%s, Swig::director_method_ids[%s], %s);\n", methop, imclass_name, methid, jupcall_args);
 
-    if (!Getattr(n, "noexcept")) {
       // Generate code to handle any Java exception thrown by director delegation
       directorExceptHandler(n, catches_list ? catches_list : throw_parm_list, w);
-    }
-    
+
       if (!is_void) {
 	String *jresult_str = NewString("jresult");
 	String *result_str = NewString("c_result");
