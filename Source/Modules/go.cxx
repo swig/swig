@@ -5492,6 +5492,8 @@ private:
    *--------------------------------------------------------------------*/
 
   String *buildThrow(Node *n) {
+    if (Getattr(n, "noexcept"))
+      return NewString("noexcept");
     ParmList *throw_parm_list = Getattr(n, "throws");
     if (!throw_parm_list && !Getattr(n, "throw"))
       return NULL;
