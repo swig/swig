@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-05-13: yag00
+            Patch #975 - Add support for noexcept on director methods.
+
 2017-04-27: redbrain
             Issue #974, Patch #976 - Fix preprocessor handling of macros with commas in a comment.
 
