@@ -4490,7 +4490,7 @@ public:
       Printf(directorexcept, "jthrowable $error = jenv->ExceptionOccurred();\n");
       Printf(directorexcept, "if ($error) {\n");
       Printf(directorexcept, "  jenv->ExceptionClear();$directorthrowshandlers\n");
-      Printf(directorexcept, "  throw Swig::DirectorException(jenv, $error);\n");
+      Printf(directorexcept, "  Swig::DirectorException::raise(jenv, $error);\n");
       Printf(directorexcept, "}\n");
     } else {
       directorexcept = Copy(directorexcept);

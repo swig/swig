@@ -2077,7 +2077,7 @@ public:
       }
       Delete(super_call);
     } else {
-      Printf(w->code, " throw Swig::DirectorPureVirtualException(\"%s::%s\");\n", SwigType_namestr(c_classname), SwigType_namestr(name));
+      Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"%s::%s\");\n", SwigType_namestr(c_classname), SwigType_namestr(name));
     }
 
     if (!ignored_method)
