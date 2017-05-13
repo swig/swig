@@ -225,7 +225,19 @@ matrix:
       sudo: required
       dist: trusty
     - os: linux
+      env: SWIGLANG=go SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      sudo: required
+      dist: trusty
+    - os: linux
       env: SWIGLANG=java SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      sudo: required
+      dist: trusty
+    - os: linux
+      env: SWIGLANG=perl5 SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      sudo: required
+      dist: trusty
+    - os: linux
+      env: SWIGLANG=php VER=7.1 SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
       sudo: required
       dist: trusty
     - os: linux
@@ -237,11 +249,27 @@ matrix:
       sudo: required
       dist: trusty
     - os: linux
+      env: SWIGLANG=tcl SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      sudo: required
+      dist: trusty
+    - os: linux
       env: SWIGLANG=csharp SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
       sudo: required
       dist: trusty
     - os: linux
+      env: SWIGLANG=go SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
+      sudo: required
+      dist: trusty
+    - os: linux
       env: SWIGLANG=java SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
+      sudo: required
+      dist: trusty
+    - os: linux
+      env: SWIGLANG=perl5 SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
+      sudo: required
+      dist: trusty
+    - os: linux
+      env: SWIGLANG=php VER=7.1 SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
       sudo: required
       dist: trusty
     - os: linux
@@ -250,6 +278,10 @@ matrix:
       dist: trusty
     - os: linux
       env: SWIGLANG=ruby SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
+      sudo: required
+      dist: trusty
+    - os: linux
+      env: SWIGLANG=tcl SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
       sudo: required
       dist: trusty
     - compiler: gcc
