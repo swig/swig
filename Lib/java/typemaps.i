@@ -220,14 +220,14 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
 {
   JNITYPE $1_jvalue;
   JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
-  $result = $1_jvalue;
+  $result = ($*1_ltype)$1_jvalue;
 }
 
 %typemap(directorargout, noblock=1) TYPE *OUTPUT
 {
   JNITYPE $1_jvalue;
   JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
-  *$result = $1_jvalue;
+  *$result = ($*1_ltype)$1_jvalue;
 }
 
 %typemap(typecheck) TYPE *OUTPUT = TYPECHECKTYPE;
@@ -263,6 +263,21 @@ OUTPUT_TYPEMAP(double, jdouble, double, Double, "[D", jdoubleArray);
   temp = false;
   $1 = &temp; 
 }
+
+%typemap(directorargout, noblock=1) bool &OUTPUT
+{
+  jboolean $1_jvalue;
+  JCALL4(GetBooleanArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+  $result = $1_jvalue ? true : false;
+}
+
+%typemap(directorargout, noblock=1) bool *OUTPUT
+{
+  jboolean $1_jvalue;
+  JCALL4(GetBooleanArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+  *$result = $1_jvalue ? true : false;
+}
+
 
 /* Convert to BigInteger - byte array holds number in 2's complement big endian format */
 /* Use first element in BigInteger array for output */
@@ -386,13 +401,13 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 %typemap(directorargout, noblock=1) TYPE &INOUT
 {
   JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
-  $result = $1_jvalue;
+  $result = ($*1_ltype)$1_jvalue;
 }
 
 %typemap(directorargout, noblock=1) TYPE *INOUT
 {
   JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
-  *$result = $1_jvalue;
+  *$result = ($*1_ltype)$1_jvalue;
 }
 
 %typemap(typecheck) TYPE *INOUT = TYPECHECKTYPE;
@@ -435,6 +450,19 @@ INOUT_TYPEMAP(double, jdouble, double, Double, "[D", jdoubleArray);
   *jbtemp$argnum = btemp$argnum ? (jboolean)1 : (jboolean)0;
   JCALL3(ReleaseBooleanArrayElements, jenv, $input , (jboolean *)jbtemp$argnum, 0);
 }
+
+%typemap(directorargout, noblock=1) bool &INOUT
+{
+  JCALL4(GetBooleanArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+  $result = $1_jvalue ? true : false;
+}
+
+%typemap(directorargout, noblock=1) bool *INOUT
+{
+  JCALL4(GetBooleanArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+  *$result = $1_jvalue ? true : false;
+}
+
 
 /* Override the typemap in the INOUT_TYPEMAP macro for unsigned long long */
 %typemap(in) unsigned long long *INOUT ($*1_ltype temp), unsigned long long &INOUT ($*1_ltype temp) { 
