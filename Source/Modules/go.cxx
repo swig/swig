@@ -5058,7 +5058,19 @@ private:
       Printv(w->def, " {\n", NULL);
 
       if (SwigType_type(result) != T_VOID) {
-	Wrapper_add_local(w, "c_result", SwigType_lstr(result, "c_result"));
+	if (!SwigType_isclass(result)) {
+	  if (!(SwigType_ispointer(result) || SwigType_isreference(result))) {
+	    String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(result, 0));
+	    Wrapper_add_localv(w, "c_result", SwigType_lstr(result, "c_result"), construct_result, NIL);
+	    Delete(construct_result);
+	  } else {
+	    Wrapper_add_localv(w, "c_result", SwigType_lstr(result, "c_result"), "= 0", NIL);
+	  }
+	} else {
+	  String *cres = SwigType_lstr(result, "c_result");
+	  Printf(w->code, "%s;\n", cres);
+	  Delete(cres);
+	}
       }
 
       if (!is_ignored) {
