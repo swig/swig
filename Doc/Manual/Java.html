@@ -3923,9 +3923,21 @@ is used in the feature code. Consider the following, which also happens to be th
   if ($error) {
     jenv-&gt;ExceptionClear();
     $directorthrowshandlers
-    throw Swig::DirectorException(jenv, $error);
+    Swig::DirectorException::raise(jenv, $error);
   }
 %}
+</pre>
+</div>
+
+<p>
+where <tt>Swig::DirectorException::raise</tt> is a helper method in the DirectorException class to throw a C++ exception (implemented in director.swg):
+</p>
+
+<div class="code">
+<pre>
+    static void raise(JNIEnv *jenv, jthrowable throwable) {
+      throw DirectorException(jenv, throwable);
+    }
 </pre>
 </div>
 
@@ -3963,7 +3975,7 @@ if (swigerror) {
     throw std::out_of_range(Swig::JavaExceptionMessage(jenv, swigerror).message());
   }
   
-  throw Swig::DirectorException(jenv, swigerror);
+  Swig::DirectorException::raise(jenv, swigerror);
 }
 </pre>
 </div>

@@ -5366,8 +5366,11 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   Delete(target);
 
   // Get any exception classes in the throws typemap
+  if (Getattr(n, "noexcept")) {
+    Append(w->def, " noexcept");
+    Append(declaration, " noexcept");
+  }
   ParmList *throw_parm_list = 0;
-
   if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
     Parm *p;
     int gencomma = 0;
