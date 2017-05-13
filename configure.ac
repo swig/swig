@@ -2816,8 +2816,8 @@ DELPHISO=$SO
 case $host in
 *-*-cygwin* | *-*-mingw*)
     if test "$GCC" = yes; then
-        DELPHIDYNAMICLINKING=" -mno-cygwin -mthreads -Wl,--add-stdcall-alias"
-        DELPHICFLAGS="-mno-cygwin -mthreads"
+        DELPHIDYNAMICLINKING="-mthreads -Wl,--add-stdcall-alias"
+        DELPHICFLAGS="-mthreads"
     else
         DELPHIDYNAMICLINKING=""
         DELPHICFLAGS=""
