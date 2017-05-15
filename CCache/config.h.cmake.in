@@ -1,0 +1,119 @@
+/* config.h.  Generated from config.h.in by configure.  */
+/* config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define to 1 if you would like to have zlib compression for ccache. */
+#cmakedefine01 ENABLE_ZLIB
+
+/* Define to 1 if you have the `asprintf' function. */
+#cmakedefine01 HAVE_ASPRINTF
+
+/* */
+#cmakedefine01 HAVE_C99_VSNPRINTF
+
+/* */
+#cmakedefine01 HAVE_COMPAR_FN_T
+
+/* Define to 1 if you have the <ctype.h> header file. */
+#cmakedefine01 HAVE_CTYPE_H
+
+/* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
+   */
+#cmakedefine01 HAVE_DIRENT_H
+
+/* Define to 1 if you have the `gethostname' function. */
+#cmakedefine01 HAVE_GETHOSTNAME
+
+/* Define to 1 if you have the `getpwuid' function. */
+#cmakedefine01 HAVE_GETPWUID
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#cmakedefine01 HAVE_INTTYPES_H
+
+/* Define to 1 if you have the <memory.h> header file. */
+#cmakedefine01 HAVE_MEMORY_H
+
+/* Define to 1 if you have the `mkstemp' function. */
+#cmakedefine01 HAVE_MKSTEMP
+
+/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
+#cmakedefine01 HAVE_NDIR_H
+
+/* Define to 1 if you have the <pwd.h> header file. */
+#cmakedefine01 HAVE_PWD_H
+
+/* Define to 1 if you have the `realpath' function. */
+#cmakedefine01 HAVE_REALPATH
+
+/* Define to 1 if you have the `snprintf' function. */
+#cmakedefine01 HAVE_SNPRINTF
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#cmakedefine01 HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#cmakedefine01 HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#cmakedefine01 HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#cmakedefine01 HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
+   */
+#cmakedefine01 HAVE_SYS_DIR_H
+
+/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
+   */
+#cmakedefine01 HAVE_SYS_NDIR_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#cmakedefine01 HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#cmakedefine01 HAVE_SYS_TIME_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#cmakedefine01 HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
+#cmakedefine01 HAVE_SYS_WAIT_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#cmakedefine01 HAVE_UNISTD_H
+
+/* Define to 1 if you have the `utimes' function. */
+#cmakedefine01 HAVE_UTIMES
+
+/* Define to 1 if you have the `vasprintf' function. */
+#cmakedefine01 HAVE_VASPRINTF
+
+/* Define to 1 if you have the `vsnprintf' function. */
+#cmakedefine01 HAVE_VSNPRINTF
+
+/* Define to the address where bug reports for this package should be sent. */
+#define PACKAGE_BUGREPORT "bugs@swig.org"
+
+/* Define to the full name of this package. */
+#define PACKAGE_NAME "ccache-swig"
+
+/* Define to the full name and version of this package. */
+#define PACKAGE_STRING "ccache-swig 0.0"
+
+/* Define to the one symbol short name of this package. */
+#define PACKAGE_TARNAME "ccache-swig"
+
+/* Define to the home page for this package. */
+#define PACKAGE_URL ""
+
+/* Define to the version of this package. */
+#define PACKAGE_VERSION "0.0"
+
+/* Define to 1 if you have the ANSI C header files. */
+#cmakedefine01 STDC_HEADERS
+
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+#cmakedefine01 TIME_WITH_SYS_TIME
+
+/* Define _GNU_SOURCE so that we get all necessary prototypes */
+#cmakedefine01 _GNU_SOURCE
