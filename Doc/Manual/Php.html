@@ -821,6 +821,15 @@ echo "example.php execution\n";
 </pre></div>
 
 <p>
+The <b>version</b> pragma can be used to add version to generated PHP extension module. The version is inserted in the zend_module_entry block.
+</p>
+
+<div class="code"><pre>
+%module example
+%pragma(php) version="1.5"
+</pre></div>
+
+<p>
 The <b>include</b> pragma is a short cut to add include statements to
 the example.php file.
 </p>
