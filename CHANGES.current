@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-05-16: nihal95
+            [PHP] Add %pragma version directive to allow the version of the
+            extension to be set.  Patch #970, fixes #360.
+
 2017-05-13: yag00
             Patch #975 - Add support for noexcept on director methods.
 
