@@ -79,26 +79,26 @@
 	
 	public void AddFirst($csclassnameNode newNode)
 	{
-        if (this.Count == 0)
-        {
-            newNode.next = null;
-            newNode.prev = null;
-            this.head = newNode;
-            this.tail = newNode;
-        }
-        else
-        {
+		if (this.Count == 0)
+		{
+			newNode.next = null;
+			newNode.prev = null;
+			this.head = newNode;
+			this.tail = newNode;
+		}
+		else
+		{
 			$csclassnameNode	tmp = this.First;
-		    
-		    while (tmp != null)	{
-		    	tmp.index++;
-		    	tmp = tmp.Next;
-		    }
-            newNode.next = this.head;
-            this.head.prev = newNode;
-            this.head = newNode;
-        }
-        push_front(newNode.Value);
+			
+			while (tmp != null)	{
+				tmp.index++;
+				tmp = tmp.Next;
+			}
+			newNode.next = this.head;
+			this.head.prev = newNode;
+			this.head = newNode;
+		}
+		push_front(newNode.Value);
 		if (newNode.index == -1)
 			newNode.index = 0;
 		if (newNode.list == null)
@@ -114,21 +114,21 @@
 
 	public void AddLast($csclassnameNode newNode)
 	{
-        if (this.Count == 0)
-        {
-            newNode.next = null;
-            newNode.prev = null;
-            this.head = newNode;
-            this.tail = newNode;
-        }
-        else
-        {
-            newNode.prev = this.Last;
-            this.Last.next = newNode;
-            this.tail = newNode;
-        }
-        push_back(newNode.Value);
-        if (newNode.index == -1)
+		if (this.Count == 0)
+		{
+			newNode.next = null;
+			newNode.prev = null;
+			this.head = newNode;
+			this.tail = newNode;
+		}
+		else
+		{
+			newNode.prev = this.Last;
+			this.Last.next = newNode;
+			this.tail = newNode;
+		}
+		push_back(newNode.Value);
+		if (newNode.index == -1)
 			newNode.index = (int)size() - 1;
 		if (newNode.list == null)
 			newNode.list = this;
@@ -226,7 +226,7 @@
 				node.Next.prev = node.Previous; 
 				node.Previous.next = node.Next;
 				if (this.head == node) {
-				    this.head = node.Next;
+					this.head = node.Next;
 				} 
 				else if (this.tail == node) {
 					this.tail = node.Previous;
@@ -263,13 +263,13 @@
 			throw new global::System.ArgumentException("Multi dimensional array.", "array");
 		$csclassnameNode current = this.First;
 		if (current != null)
-        {
-            do
-            {
-                array[index++] = current.Value;
-                current = current.Next;
-            } while (current != null);
-        }
+		{
+			do
+			{
+				array[index++] = current.Value;
+				current = current.Next;
+			} while (current != null);
+		}
 	}
 
 	public void Clear()
@@ -292,11 +292,11 @@
 	internal void ValidateNode($csclassnameNode node)
 	{
 		if (node == null) {
-		    throw new System.ArgumentNullException("node"); 
+			throw new System.ArgumentNullException("node"); 
 		} 
 		
 		if ( node.list != this) { 
-		    throw new System.InvalidOperationException("node");
+			throw new System.InvalidOperationException("node");
 		}
 	}
 
@@ -320,9 +320,9 @@
 	{
 		private $csclassname collectionRef;
 		private $csclassnameNode currentNode;
-		private int		currentIndex;
-		private object	currentObject;
-		private int		currentSize;
+		private int	currentIndex;
+		private object currentObject;
+		private int	currentSize;
 		
 		public $csclassnameEnumerator($csclassname collection)
 		{
@@ -357,14 +357,14 @@
 		
 		public bool MoveNext()
 		{
-            if (currentNode == null) {
-                currentIndex = collectionRef.Count + 1;
-                return false;
-            }
-            ++currentIndex;
-            currentObject = currentNode.Value;
-            currentNode = currentNode.Next;
-            return true;
+			if (currentNode == null) {
+				currentIndex = collectionRef.Count + 1;
+				return false;
+			}
+			++currentIndex;
+			currentObject = currentNode.Value;
+			currentNode = currentNode.Next;
+			return true;
 		}
 		
 		public void Reset()
@@ -385,9 +385,9 @@
 	
 	public sealed class $csclassnameNode
 	{
-		internal $csclassname		list;
-		internal $typemap(cstype, CTYPE)			item;
-		internal int			index;
+		internal $csclassname list;
+		internal $typemap(cstype, CTYPE) item;
+		internal int index;
 		
 		public $csclassnameNode($typemap(cstype, CTYPE) value)
 		{
@@ -407,7 +407,7 @@
 		}
 
 		private $csclassnameNode _next;
-		internal $csclassnameNode	next
+		internal $csclassnameNode next
 		{
 			get {
 				if (this._next == null && index + 1 < (int)this.list.size()) {
