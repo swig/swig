@@ -12,7 +12,7 @@ template<typename T>
 class complex
 {
 public:
-    complex(T re, T im);
+    complex(T re = T(), T im = T());
 
     T real() const;
     T imag() const;
