@@ -1,3 +1,10 @@
+/* -----------------------------------------------------------------------------
+ * std_complex.i
+ *
+ * Typemaps for handling std::complex<float> and std::complex<double> as a .NET
+ * System.Numerics.Complex type. Requires .NET 4 minimum.
+ * ----------------------------------------------------------------------------- */
+
 %{
 #include <complex>
 %}
