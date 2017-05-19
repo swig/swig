@@ -5033,7 +5033,7 @@ public:
 	Printv(f_shadow, tab4, "__swig_destroy__ = ", module, ".", Swig_name_destroy(NSPACE_TODO, symname), "\n", NIL);
 	if (!have_pythonprepend(n) && !have_pythonappend(n)) {
 	  if (proxydel) {
-	    Printv(f_shadow, tab4, "__del__ = lambda self: None\n", NIL);
+	    Printv(f_shadow, tab4, "def __del__(self):\n", tab8, "return None\n", NIL);
 	  }
 	  return SWIG_OK;
 	}
