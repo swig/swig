@@ -3,13 +3,21 @@
 %}
 
 %fragment("SwigSystemNumericsComplex", "header") {
+extern "C" {
 // Identical to the layout of System.Numerics.Complex, but does assume that it is
 // LayoutKind.Sequential on the managed side
 struct SwigSystemNumericsComplex {
   double real;
   double imag;
-  SwigSystemNumericsComplex(double r = 0.0, double i = 0.0) : real(r), imag(i) {}
 };
+}
+
+SWIGINTERN SwigSystemNumericsComplex SwigCreateSystemNumericsComplex(double real, double imag) {
+  SwigSystemNumericsComplex cpx;
+  cpx.real = real;
+  cpx.imag = imag;
+  return cpx;
+}
 }
 
 namespace std {
@@ -25,7 +33,7 @@ public:
 
 }
 
-%define swig_complex_typemaps(T)
+%define SWIG_COMPLEX_TYPEMAPS(T)
 %typemap(ctype, fragment="SwigSystemNumericsComplex") std::complex<T>, const std::complex<T> & "SwigSystemNumericsComplex"
 %typemap(imtype) std::complex<T>, const std::complex<T> & "System.Numerics.Complex"
 %typemap(cstype) std::complex<T>, const std::complex<T> & "System.Numerics.Complex"
@@ -34,11 +42,11 @@ public:
 %{temp = std::complex< double >($input.real, $input.imag);
   $1 = &temp;%}
 
-%typemap(out) std::complex<T>
-%{$result = SwigSystemNumericsComplex($1.real(), $1.imag());%}
+%typemap(out, null="SwigCreateSystemNumericsComplex(0.0, 0.0)") std::complex<T>
+%{$result = SwigCreateSystemNumericsComplex($1.real(), $1.imag());%}
 
-%typemap(out) const std::complex<T> &
-%{$result = SwigSystemNumericsComplex($1->real(), $1->imag());%}
+%typemap(out, null="SwigCreateSystemNumericsComplex(0.0, 0.0)") const std::complex<T> &
+%{$result = SwigCreateSystemNumericsComplex($1->real(), $1->imag());%}
 
 %typemap(cstype) std::complex<T>, const std::complex<T> & "System.Numerics.Complex"
 
@@ -69,9 +77,9 @@ public:
 // are defined, but one of them can be disabled by predefining the
 // corresponding symbol before including this file.
 #ifndef SWIG_NO_STD_COMPLEX_DOUBLE
-swig_complex_typemaps(double)
+SWIG_COMPLEX_TYPEMAPS(double)
 #endif
 
 #ifndef SWIG_NO_STD_COMPLEX_FLOAT
-swig_complex_typemaps(float)
+SWIG_COMPLEX_TYPEMAPS(float)
 #endif
