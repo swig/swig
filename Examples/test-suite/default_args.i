@@ -156,6 +156,9 @@
       int double_if_handle_is_null(int n, MyHandle h = 0) { return h ? n : 2*n; }
       int double_if_dbl_ptr_is_null(int n, double* null_by_default)
         { return null_by_default ? n : 2*n; }
+
+      void defaulted1(unsigned offset = -1U) {} // minus unsigned!
+      void defaulted2(int offset = -1U) {} // minus unsigned!
   };
   int Foo::bar = 1;
   int Foo::spam = 2;

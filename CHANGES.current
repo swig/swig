@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-05-21: wsfulton
+            [Python] #993 Fix handling of default -ve unsigned values, such as:
+              void f(unsigned = -1U);
+
 2017-05-20: jschueller
             [Python] #991 Fix E731 PEP8 warning: do not assign a lambda expression
 

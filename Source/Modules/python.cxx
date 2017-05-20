@@ -2115,6 +2115,8 @@ public:
 
 	      case 'u':
 	      case 'U':
+		if (value < 0)
+		  fail = true;
 		break;
 
 	      default:
