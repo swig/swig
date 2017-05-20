@@ -13,6 +13,7 @@ top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@
 
 CPP_TEST_CASES = \
+	complextest \
 	csharp_attributes \
 	csharp_swig2_compatibility \
 	csharp_exceptions \
@@ -40,6 +41,7 @@ CSHARPFLAGSSPECIAL =
 
 # Custom tests - tests with additional commandline options
 intermediary_classname.cpptest: SWIGOPT += -dllimport intermediary_classname
+complextest.cpptest: CSHARPFLAGSSPECIAL = -r:System.Numerics.dll
 csharp_lib_arrays.cpptest: CSHARPFLAGSSPECIAL = -unsafe
 csharp_swig2_compatibility.cpptest: SWIGOPT += -DSWIG2_CSHARP
 

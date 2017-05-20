@@ -15,3 +15,9 @@ try:
     complextest.Copy_h(v)
 except:
     pass
+
+p = complextest.ComplexPair()
+p.z1 = complex(0, 1)
+p.z2 = complex(0, -1)
+if complextest.Conj(p.z2) != p.z1:
+    raise RuntimeError, "bad complex mapping"

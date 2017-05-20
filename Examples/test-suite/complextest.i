@@ -34,6 +34,11 @@
     return b;
   }  
 #endif
+
+  struct ComplexPair
+  {
+    std::complex<double> z1, z2;
+  };
 }
 
 
