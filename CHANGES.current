@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-05-20: jschueller
+            [Python] #991 Fix E731 PEP8 warning: do not assign a lambda expression
+
 2017-05-16: nihal95
             [PHP] Add %pragma version directive to allow the version of the
             extension to be set.  Patch #970, fixes #360.
@@ -43,7 +46,7 @@ Version 4.0.0 (in progress)
             on VALUE obj.
 
 2017-03-17: vadz
-            [C#] Add support for std::complex<T>
+            [C#] #947 Add support for std::complex<T>
 
 2017-03-17: wsfulton
             [Go] Fix handling of typedef'd function pointers and typedef'd member function pointers
