@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-05-21: Sghirate
+            [Java, C#, D] #449 Remove unnecessary use of dynamic_cast in directors to enable
+            non-RTTI compilation.
+
 2017-05-21: wsfulton
             [Python] #993 Fix handling of default -ve unsigned values, such as:
               void f(unsigned = -1U);
