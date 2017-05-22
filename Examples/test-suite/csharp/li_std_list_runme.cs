@@ -63,7 +63,6 @@ public class li_std_list_runme {
           throw new Exception("First getter test (1) failed");
         if (list.Last == null)
           throw new Exception("Last getter test (1) failed");
-        Console.WriteLine(list.Last.Value);
         if (list.Last.Next != null)
           throw new Exception("Next getter test (1) failed");
         if (list.First.Next == null)
@@ -288,7 +287,6 @@ public class li_std_list_runme {
         }
         temp = inputlist.First;
         for (int i = 0; i < arrayLen; i++) {
-          Console.WriteLine(outputarray[i].num + " - " + temp.Value.num);
           if (outputarray[i].num != temp.Value.num)
             throw new Exception("CopyTo method test (4) failed, index:" + i);
           temp = temp.Next;
