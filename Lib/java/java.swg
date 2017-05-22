@@ -1260,7 +1260,7 @@ SWIG_JAVABODY_TYPEWRAPPER(protected, protected, protected, SWIGTYPE)
  */
 
 %define SWIG_PROXY_CONSTRUCTOR(OWNERSHIP, WEAKREF, TYPENAME...)
-%typemap(javaconstruct,directorconnect="\n    $imclassname.$javaclazznamedirector_connect(this, swigCPtr, swigCMemOwn, WEAKREF);") TYPENAME {
+%typemap(javaconstruct,directorconnect="\n    $imclassname.$javaclazznamedirector_connect(this, swigCPtr, OWNERSHIP, WEAKREF);") TYPENAME {
     this($imcall, OWNERSHIP);$directorconnect
   }
 %enddef
