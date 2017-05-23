@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-05-23: wsfulton
+            [Java] #230 #759 Fix Java shared_ptr and directors for derived classes java compilation
+            error.
+
+            For shared_ptr proxy proxy classes, add a protected method swigSetCMemOwn for modifying
+            the swigCMemOwn and swigCMemOwnDerived member variables which are used by various other
+            methods for controlling memory ownership.
+
 2017-05-21: Sghirate
             [Java, C#, D] #449 Remove unnecessary use of dynamic_cast in directors to enable
             non-RTTI compilation.
