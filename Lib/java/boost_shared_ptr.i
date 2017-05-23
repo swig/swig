@@ -156,6 +156,10 @@
   CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
+
+  CPTR_VISIBILITY void swigSetCMemOwn(boolean own) {
+    swigCMemOwn = own;
+  }
 %}
 
 // Derived proxy classes
@@ -171,6 +175,11 @@
 
   CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
+  }
+
+  CPTR_VISIBILITY void swigSetCMemOwn(boolean own) {
+    swigCMemOwnDerived = own;
+    super.swigSetCMemOwn(own);
   }
 %}
 
@@ -195,6 +204,26 @@
     super.delete();
   }
 
+%typemap(directordisconnect, methodname="swigDirectorDisconnect") TYPE %{
+  protected void $methodname() {
+    swigSetCMemOwn(false);
+    $jnicall;
+  }
+%}
+
+%typemap(directorowner_release, methodname="swigReleaseOwnership") TYPE %{
+  public void $methodname() {
+    swigSetCMemOwn(false);
+    $jnicall;
+  }
+%}
+
+%typemap(directorowner_take, methodname="swigTakeOwnership") TYPE %{
+  public void $methodname() {
+    swigSetCMemOwn(true);
+    $jnicall;
+  }
+%}
 
 %template() SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >;
 %enddef
