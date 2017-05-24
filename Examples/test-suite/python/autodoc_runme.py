@@ -3,7 +3,9 @@ import sys
 
 
 def check(got, expected, expected_builtin=None, skip=False):
-    if not skip:
+    # The fastproxy feature uses instancemethod objects that
+    # have new autodoc strings not covered in these tests.
+    if not skip and (not is_python_fastproxy()):
         expect = expected
         if is_python_builtin() and expected_builtin != None:
             expect = expected_builtin
