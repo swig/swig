@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-05-25: asibross
+            [Java] #370 #417 Missing smart pointer handling in Java director extra methods
+            swigReleaseOwnership() and swigTakeOwnership().
+
 2017-05-23: wsfulton
             [Java] #230 #759 Fix Java shared_ptr and directors for derived classes java compilation
             error.

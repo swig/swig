@@ -39,6 +39,13 @@ public class director_smartptr_runme {
     check(director_smartptr.FooDerived.callPong(myBarFooDerived), "director_smartptr_MyBarFooDerived.pong();director_smartptr_MyBarFooDerived.ping()");
     check(director_smartptr.FooDerived.callUpcall(myBarFooDerived, fooBar), "overrideDerived;Bar::Foo2::Foo2Bar()");
 
+    director_smartptr.Foo myFoo3 = myBarFoo.makeFoo();
+    myFoo3.swigReleaseOwnership();
+    myFoo3.swigTakeOwnership();
+    director_smartptr.FooDerived myBarFooDerived2 = new director_smartptr_MyBarFooDerived();
+    myBarFooDerived2.swigReleaseOwnership();
+    myBarFooDerived2.swigTakeOwnership();
+
   }
 }
 
