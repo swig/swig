@@ -33,7 +33,7 @@ int size_as_int(std::size_t sz) {
 %define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CTYPE, CREF_TYPE)
 %typemap(javabase) std::vector< CTYPE > "java.util.AbstractList<$typemap(jboxtype, CTYPE)>"
 %typemap(javainterfaces) std::vector< CTYPE > "java.util.RandomAccess"
-%typemap(javacode) std::vector< CTYPE > %{
+%proxycode %{
   public $javaclassname($typemap(jstype, CTYPE)[] initialElements) {
     this();
     for ($typemap(jstype, CTYPE) element : initialElements) {
@@ -110,6 +110,7 @@ int size_as_int(std::size_t sz) {
                     throw std::out_of_range("vector index out of range");
                 }
             }
+
             value_type doRemove(int index) throw (std::out_of_range) {
                 const int size = size_as_int(self->size());
                 if (0 <= index && index < size) {
@@ -120,6 +121,7 @@ int size_as_int(std::size_t sz) {
                     throw std::out_of_range("vector index out of range");
                 }
             }
+
             CREF_TYPE doGet(int i) throw (std::out_of_range) {
                 const int size = size_as_int(self->size());
                 if (i>=0 && i<size)
@@ -127,6 +129,7 @@ int size_as_int(std::size_t sz) {
                 else
                     throw std::out_of_range("vector index out of range");
             }
+
             value_type doSet(int i, const value_type& val) throw (std::out_of_range) {
                 const int size = size_as_int(self->size());
                 if (i>=0 && i<size) {
@@ -137,6 +140,7 @@ int size_as_int(std::size_t sz) {
                 else
                     throw std::out_of_range("vector index out of range");
             }
+
             void doRemoveRange(int fromIndex, int toIndex) throw (std::out_of_range) {
                 const int size = size_as_int(self->size());
                 if (0 <= fromIndex && fromIndex <= toIndex && toIndex <= size) {
@@ -148,6 +152,7 @@ int size_as_int(std::size_t sz) {
         }
 %enddef
 
+%javamethodmodifiers std::vector::doSize        "private";
 %javamethodmodifiers std::vector::doAdd         "private";
 %javamethodmodifiers std::vector::doGet         "private";
 %javamethodmodifiers std::vector::doSet         "private";
