@@ -31,9 +31,9 @@ int size_as_int(std::size_t sz) {
 %}
 
 %define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CTYPE, CREF_TYPE)
-%typemap(javabase) std::vector<CTYPE> "java.util.AbstractList<$typemap(jboxtype, CTYPE)>"
-%typemap(javainterfaces) std::vector<CTYPE> "java.util.RandomAccess"
-%typemap(javacode) std::vector<CTYPE> %{
+%typemap(javabase) std::vector< CTYPE > "java.util.AbstractList<$typemap(jboxtype, CTYPE)>"
+%typemap(javainterfaces) std::vector< CTYPE > "java.util.RandomAccess"
+%typemap(javacode) std::vector< CTYPE > %{
   public $javaclassname($typemap(jstype, CTYPE)[] initialElements) {
     this();
     for ($typemap(jstype, CTYPE) element : initialElements) {
