@@ -231,9 +231,9 @@
         else
           throw std::out_of_range("index");
       }
-      void setitem(int index, CTYPE const& val) throw (std::out_of_range) {
+      void setitem(int index, CTYPE const& value) throw (std::out_of_range) {
         if (index>=0 && index<(int)$self->size())
-          (*$self)[index] = val;
+          (*$self)[index] = value;
         else
           throw std::out_of_range("index");
       }

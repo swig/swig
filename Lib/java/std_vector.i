@@ -130,11 +130,11 @@ int size_as_int(std::size_t sz) {
                     throw std::out_of_range("vector index out of range");
             }
 
-            value_type doSet(int i, const value_type& val) throw (std::out_of_range) {
+            value_type doSet(int i, const value_type& value) throw (std::out_of_range) {
                 const int size = size_as_int(self->size());
                 if (i>=0 && i<size) {
                     CTYPE const old_value = (*self)[i];
-                    (*self)[i] = val;
+                    (*self)[i] = value;
                     return old_value;
                 }
                 else

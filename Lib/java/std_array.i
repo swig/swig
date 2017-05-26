@@ -29,10 +29,10 @@ namespace std {
         else
           throw std::out_of_range("array index out of range");
       }
-      void set(int i, const value_type& val) throw (std::out_of_range) {
+      void set(int i, const value_type& value) throw (std::out_of_range) {
         int size = int(self->size());
         if (i>=0 && i<size)
-          (*self)[i] = val;
+          (*self)[i] = value;
         else
           throw std::out_of_range("array index out of range");
       }

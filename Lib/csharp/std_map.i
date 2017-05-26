@@ -239,11 +239,11 @@
         return iter != $self->end();
       }
 
-      void Add(const key_type& key, const mapped_type& val) throw (std::out_of_range) {
+      void Add(const key_type& key, const mapped_type& value) throw (std::out_of_range) {
         std::map< K, T, C >::iterator iter = $self->find(key);
         if (iter != $self->end())
           throw std::out_of_range("key already exists");
-        $self->insert(std::pair< K, T >(key, val));
+        $self->insert(std::pair< K, T >(key, value));
       }
 
       bool Remove(const key_type& key) {
