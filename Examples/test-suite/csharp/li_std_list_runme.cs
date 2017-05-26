@@ -1,4 +1,5 @@
 using System;
+using li_std_listNamespace;
 
 public class li_std_list_runme {
   private static readonly int collectionSize = 20;
@@ -397,5 +398,5 @@ public class li_std_list_runme {
           throw new Exception("StructConstPtrList test (2) failed (a deep copy was incorrectly made), i:" + i);
       }
     }
-  } 
+  }
 }
