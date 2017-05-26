@@ -368,51 +368,51 @@ public:
     void *getFirstIter() {
       if ($self->size() == 0)
         return NULL;
-      auto iterator = new std::list< CTYPE >::iterator($self->begin());
-      return reinterpret_cast<void *>(iterator);
+      std::list< CTYPE >::iterator* it = new std::list< CTYPE >::iterator($self->begin());
+      return reinterpret_cast<void *>(it);
     }
 
     void *getLastIter() {
       if ($self->size() == 0)
         return NULL;
-      auto iterator = new std::list< CTYPE >::iterator(--$self->end());
-      return reinterpret_cast<void *>(iterator);
+      std::list< CTYPE >::iterator* it = new std::list< CTYPE >::iterator(--$self->end());
+      return reinterpret_cast<void *>(it);
     }
 
     void *getNextIter(void *iter) {
-      auto it = *(reinterpret_cast<std::list< CTYPE >::iterator *>(iter));
+      std::list< CTYPE >::iterator it = *(reinterpret_cast<std::list< CTYPE >::iterator *>(iter));
       if (std::distance(it, --$self->end()) != 0) {
-        auto itnext = new std::list< CTYPE >::iterator(++it);
-        return itnext;
+        std::list< CTYPE >::iterator* itnext = new std::list< CTYPE >::iterator(++it);
+        return reinterpret_cast<void *>(itnext);
       }
       return NULL;
     }
 
     void *getPrevIter(void *iter) {
-      auto it = *(reinterpret_cast<std::list< CTYPE >::iterator *>(iter));
+      std::list< CTYPE >::iterator it = *(reinterpret_cast<std::list< CTYPE >::iterator *>(iter));
       if (std::distance($self->begin(), it) != 0) {
-        auto itprev = new std::list< CTYPE >::iterator(--it);
-        return itprev;
+        std::list< CTYPE >::iterator* itprev = new std::list< CTYPE >::iterator(--it);
+        return reinterpret_cast<void *>(itprev);
       }
       return NULL;
     }
 
     void *insertNode(void *iter, CTYPE const& value) {
-      auto it = $self->insert(*(reinterpret_cast<std::list< CTYPE >::iterator *>(iter)), value);
-      auto newit = reinterpret_cast<void *>(new std::list< CTYPE >::iterator(it));
+      std::list< CTYPE >::iterator it = $self->insert(*(reinterpret_cast<std::list< CTYPE >::iterator *>(iter)), value);
+      void* newit = reinterpret_cast<void *>(new std::list< CTYPE >::iterator(it));
       return newit;
     }
 
     void *find(CTYPE const& value) {
       if (std::find($self->begin(), $self->end(), value) != $self->end()) {
-        auto it = reinterpret_cast<void *>(new std::list< CTYPE >::iterator(std::find($self->begin(), $self->end(), value)));
+        void* it = reinterpret_cast<void *>(new std::list< CTYPE >::iterator(std::find($self->begin(), $self->end(), value)));
         return it;
       }
       return NULL;
     }
 
     void eraseIter(void *iter) {
-      auto it = *reinterpret_cast<std::list< CTYPE >::iterator*>(iter);
+      std::list< CTYPE >::iterator it = *reinterpret_cast<std::list< CTYPE >::iterator*>(iter);
       $self->erase(it);
     }
 

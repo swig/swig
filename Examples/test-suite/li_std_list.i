@@ -30,6 +30,8 @@ namespace std {
     %template(RealList) list<Real>;
 }
 
+%ignore Struct::operator==;
+
 %inline %{
 
 double average(std::list<int> v) {
@@ -59,8 +61,6 @@ const std::list<Struct> & liststruct(const std::list<Struct> & list) { return li
 const std::list<Struct *> & liststructptr(const std::list<Struct *> & list) { return list; }
 const std::list<const Struct *> & liststructconstptr(const std::list<const Struct *> & list) { return list; }
 %}
-
-%ignore Struct::operator==;
 
 #if !defined(SWIGR)
 %template(IntPtrList) std::list<int *>;
