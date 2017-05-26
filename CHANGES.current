@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-05-26: Volker Diels-Grabsch, vadz
+            [Java] Implement java.util.List<> for std::vector. This notably allows to
+            iterate over wrapped vectors in a natural way.
+
 2017-05-25: asibross
             [Java] #370 #417 Missing smart pointer handling in Java director extra methods
             swigReleaseOwnership() and swigTakeOwnership().

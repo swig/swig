@@ -103,9 +103,25 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(jstype) double,             const double &             "double"
 %typemap(jstype) void                                           "void"
 
+%typemap(jboxtype) bool                 "Boolean"
+%typemap(jboxtype) char                 "Character"
+%typemap(jboxtype) signed char          "Byte"
+%typemap(jboxtype) unsigned char        "Short"
+%typemap(jboxtype) short                "Short"
+%typemap(jboxtype) unsigned short       "Integer"
+%typemap(jboxtype) int                  "Integer"
+%typemap(jboxtype) unsigned int         "Long"
+%typemap(jboxtype) long                 "Integer"
+%typemap(jboxtype) unsigned long        "Long"
+%typemap(jboxtype) long long            "Long"
+%typemap(jboxtype) unsigned long long   "java.math.BigInteger"
+%typemap(jboxtype) float                "Float"
+%typemap(jboxtype) double               "Double"
+
 %typemap(jni) char *, char *&, char[ANY], char[]               "jstring"
 %typemap(jtype) char *, char *&, char[ANY], char[]               "String"
 %typemap(jstype) char *, char *&, char[ANY], char[]               "String"
+%typemap(jboxtype) char *, char *&, char[ANY], char[]               "String"
 
 /* JNI types */
 %typemap(jni) jboolean      "jboolean"
@@ -172,6 +188,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(jni) SWIGTYPE "jlong"
 %typemap(jtype) SWIGTYPE "long"
 %typemap(jstype) SWIGTYPE "$&javaclassname"
+%typemap(jboxtype) SWIGTYPE "$typemap(jstype, $1_type)"
 
 %typemap(jni) SWIGTYPE [] "jlong"
 %typemap(jtype) SWIGTYPE [] "long"

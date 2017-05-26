@@ -19,6 +19,9 @@ public class li_std_vector_runme {
 
     v1.add(123);
     if (v1.get(0) != 123) throw new RuntimeException("v1 test failed");
+    for (int n : v1) {
+        if (n != 123) throw new RuntimeException("v1 loop test failed");
+    }
 
     StructVector v4 = li_std_vector.vecstruct(new StructVector());
     StructPtrVector v5 = li_std_vector.vecstructptr(new StructPtrVector());
@@ -28,9 +31,18 @@ public class li_std_vector_runme {
     v5.add(new Struct(34));
     v6.add(new Struct(56));
 
-    Struct s = null;
     if (v4.get(0).getNum() != 12) throw new RuntimeException("v4 test failed");
     if (v5.get(0).getNum() != 34) throw new RuntimeException("v5 test failed");
     if (v6.get(0).getNum() != 56) throw new RuntimeException("v6 test failed");
+
+    for (Struct s : v4) {
+        if (s.getNum() != 12) throw new RuntimeException("v4 loop test failed");
+    }
+    for (Struct s : v5) {
+        if (s.getNum() != 34) throw new RuntimeException("v5 loop test failed");
+    }
+    for (Struct s : v6) {
+        if (s.getNum() != 56) throw new RuntimeException("v6 loop test failed");
+    }
   }
 }
