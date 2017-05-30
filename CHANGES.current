@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-05-30: davidcl
+            [Scilab] #994 Undefined symbol error when loading in Scilab 6
+
 2017-05-25: asibross
             [Java] #370 #417 Missing smart pointer handling in Java director extra methods
             swigReleaseOwnership() and swigTakeOwnership().
