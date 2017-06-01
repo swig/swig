@@ -1,10 +1,10 @@
 /* File : example.h */
 
-// Some template definitions
-
+/* Let's define a function template: */
 template<class T> T max(T a, T b) { return  a>b ? a : b; }
 
-template<class T> class vector {
+/* TODO -oSMK : And a class template */
+/* template<class T> class vector {
   T *v;
   int sz;
  public:
@@ -28,4 +28,5 @@ template<class T> class vector {
     }
   }
 #endif
-};
+}
+*/;

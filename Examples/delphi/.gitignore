@@ -1,1 +1,15 @@
+# Delphi Compiled Unit, created by compiler
 *.dcu
+
+# Files below are created/updated by Delphi IDE
+*.~*
+/*/*.dproj
+/*/*.dsk
+/*/*.identcache
+/*/*.local
+/*/*.stat
+/*/runme.res
+
+# These are sources but auto-generated
+/*/example.pas
+/*/example.cxx
