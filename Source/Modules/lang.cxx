@@ -81,7 +81,6 @@ extern int AddExtern;
 /* import modes */
 
 #define  IMPORT_MODE     1
-#define  IMPORT_MODULE   2
 
 /* ----------------------------------------------------------------------
  * Dispatcher::emit_one()
