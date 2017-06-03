@@ -462,10 +462,10 @@ int JAVASCRIPT::fragmentDirective(Node *n) {
   // and register them at the emitter.
   String *section = Getattr(n, "section");
 
-  if (Equal(section, "templates")) {
+  if (Equal(section, "templates") && !ImportMode) {
     emitter->registerTemplate(Getattr(n, "value"), Getattr(n, "code"));
   } else {
-    Swig_fragment_register(n);
+    return Language::fragmentDirective(n);
   }
 
   return SWIG_OK;

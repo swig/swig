@@ -7,6 +7,28 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-06-03: wsfulton
+            Fix %import on a file containing a file scope %fragment forced inclusion to not
+            generate the fragment contents as %import should not result in code being generated.
+            The behaviour is now the same as importing code insertion blocks.
+            Wrapping FileC.i in the following example will result in no generated code, whereas
+            previously "#include <limits.h>" was generated:
+
+              // FileA.i
+              %fragment("<limits.h>", "header") %{
+                #include <limits.h>
+              %}
+
+              %{
+                #include <stdio.h>
+              %}
+              %fragment("<limits.h>");
+
+              // FileC.i
+              %import "FileA.i"
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2017-05-26: Volker Diels-Grabsch, vadz
             [Java] Implement java.util.List<> for std::vector. This notably allows to
             iterate over wrapped vectors in a natural way.
