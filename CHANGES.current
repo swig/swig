@@ -30,8 +30,8 @@ Version 4.0.0 (in progress)
             *** POTENTIAL INCOMPATIBILITY ***
 
 2017-05-26: Volker Diels-Grabsch, vadz
-            [Java] Implement java.util.List<> for std::vector. This notably allows to
-            iterate over wrapped vectors in a natural way.
+            [Java] #842 Extend from java.util.AbstractList<> and implement java.util.RandomAccess for
+            std::vector wrappers. This notably allows to iterate over wrapped vectors in a natural way.
 
 2017-05-25: asibross
             [Java] #370 #417 Missing smart pointer handling in Java director extra methods
@@ -83,10 +83,6 @@ Version 4.0.0 (in progress)
             [Scilab] New parameter targetversion to specify the Scilab target version (5, 6, ..) for code generation
             With Scilab 6 target specified, identifier names truncation is disabled (no longer necessary)
 
-2017-02-29: tamuratak
-            [Ruby] #917 - Add Enumerable module to all container class wrappers. It was missing
-            for std::list, std::multiset, std::unordered_multiset and std::unordered_map.
-
 2017-03-24: tamuratak
             [Ruby] Fix #939 - Wrapping std::vector<bool> fix due to incorrect null checks
             on VALUE obj.
@@ -117,6 +113,10 @@ Version 4.0.0 (in progress)
 
               auto sum1(int x, int y) const -> int { return x + y; }
               auto sum2(int x, int y) noexcept -> int { return x + y; }
+
+2017-02-29: tamuratak
+            [Ruby] #917 - Add Enumerable module to all container class wrappers. It was missing
+            for std::list, std::multiset, std::unordered_multiset and std::unordered_map.
 
 2017-02-27: assambar
             [C++11] Extend parser to support throw specifier in combination
