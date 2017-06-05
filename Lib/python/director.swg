@@ -174,6 +174,8 @@ namespace Swig {
       }
       if (!PyErr_Occurred()) {
         PyErr_SetString(error, what());
+      } else {
+        PyErr_PrintEx(0);
       }
       SWIG_PYTHON_THREAD_END_BLOCK;
     }
