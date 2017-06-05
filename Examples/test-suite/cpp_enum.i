@@ -6,6 +6,12 @@ The primary purpose of this testcase is to ensure that enums used along with the
 
 %inline %{
 
+#if __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
+/* for anonymous enums */
+/* dereferencing type-punned pointer will break strict-aliasing rules [-Werror=strict-aliasing] */
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
+
 enum SOME_ENUM {ENUM_ONE, ENUM_TWO};
 
 struct StructWithEnums {

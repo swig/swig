@@ -45,7 +45,7 @@
  *  'a(n).'             = Array of size n  [n]
  *  'f(..,..).'         = Function with arguments  (args)
  *  'q(str).'           = Qualifier (such as const or volatile) (const, volatile)
- *  'm(qual).'          = Pointer to member (qual::*)
+ *  'm(cls).'           = Pointer to member (cls::*)
  *
  * The encoding follows the order that you might describe a type in words.
  * For example "p.a(200).int" is "A pointer to array of int's" and
@@ -61,6 +61,14 @@
  * like this:
  *
  *        Replace(t,"q(const).","",DOH_REPLACE_ANY)
+ *
+ * More examples:
+ *
+ *        String Encoding                 C++ Example
+ *        ---------------                 -----------
+ *        p.f(bool).q(const).long         const long (*)(bool)
+ *        m(Funcs).q(const).f(bool).long  long (Funcs::*)(bool) const
+ *        r.q(const).m(Funcs).f(int).long long (Funcs::*const &)(int)
  *
  * For the most part, this module tries to minimize the use of special
  * characters (*, [, <, etc...) in its type encoding.  One reason for this
@@ -372,7 +380,7 @@ SwigType *SwigType_default_create(const SwigType *ty) {
  * and is very close to the type deduction used in partial template class
  * specialization matching in that the most specialized type is always chosen.
  * SWIGTYPE is used as the generic type. The basic idea is to repeatedly call
- * this function to find a deduced type unless until nothing matches.
+ * this function to find a deduced type until nothing matches.
  *
  * The type t must have already been converted to the default type via a call to
  * SwigType_default_create() before calling this function.
@@ -528,8 +536,10 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
   String *element = 0;
   String *nextelement;
   String *forwardelement;
+  String *member_const_function_element = 0;
   List *elements;
   int nelements, i;
+  int member_const_function = 0;
 
   if (id) {
     /* stringify the id expanding templates, for example when the id is a fully qualified templated class name */
@@ -560,11 +570,15 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
       forwardelement = 0;
     }
     if (SwigType_isqualifier(element)) {
-      DOH *q = 0;
-      q = SwigType_parm(element);
-      Insert(result, 0, " ");
-      Insert(result, 0, q);
-      Delete(q);
+      if (!member_const_function) {
+	DOH *q = 0;
+	q = SwigType_parm(element);
+	Insert(result, 0, " ");
+	Insert(result, 0, q);
+	Delete(q);
+      } else {
+        member_const_function = 0;
+      }
     } else if (SwigType_ispointer(element)) {
       Insert(result, 0, "*");
       if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
@@ -579,6 +593,10 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
       if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
 	Insert(result, 0, "(");
 	Append(result, ")");
+      }
+      if (SwigType_isqualifier(nextelement)) {
+	member_const_function_element = nextelement;
+	member_const_function = 1;
       }
       Delete(q);
     } else if (SwigType_isreference(element)) {
@@ -613,6 +631,13 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
 	  Append(result, ",");
       }
       Append(result, ")");
+      if (member_const_function_element) {
+	String *p = SwigType_str(member_const_function_element, 0);
+	Append(result, " ");
+	Append(result, p);
+	Delete(p);
+	member_const_function_element = 0;
+      }
       Delete(parms);
     } else {
       if (strcmp(Char(element), "v(...)") == 0) {
@@ -763,6 +788,7 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
   String *element = 0;
   String *nextelement;
   String *forwardelement;
+  String *member_const_function_element = 0;
   SwigType *td, *tc = 0;
   const SwigType *rs;
   List *elements;
@@ -771,13 +797,17 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
   int firstarray = 1;
   int isreference = 0;
   int isfunction = 0;
+  int member_const_function = 0;
 
   result = NewStringEmpty();
 
   if (SwigType_isconst(s)) {
     tc = Copy(s);
     Delete(SwigType_pop(tc));
-    rs = tc;
+    if (SwigType_ismemberpointer(tc))
+      rs = s;
+    else
+      rs = tc;
   } else {
     rs = s;
   }
@@ -816,12 +846,16 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       forwardelement = 0;
     }
     if (SwigType_isqualifier(element)) {
-      DOH *q = 0;
-      q = SwigType_parm(element);
-      Insert(result, 0, " ");
-      Insert(result, 0, q);
-      Delete(q);
-      clear = 0;
+      if (!member_const_function) {
+	DOH *q = 0;
+	q = SwigType_parm(element);
+	Insert(result, 0, " ");
+	Insert(result, 0, q);
+	Delete(q);
+	clear = 0;
+      } else {
+        member_const_function = 0;
+      }
     } else if (SwigType_ispointer(element)) {
       Insert(result, 0, "*");
       if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
@@ -838,6 +872,10 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
 	Insert(result, 0, "(");
 	Append(result, ")");
+      }
+      if (SwigType_isqualifier(nextelement)) {
+	member_const_function_element = nextelement;
+	member_const_function = 1;
       }
       firstarray = 0;
     } else if (SwigType_isreference(element)) {
@@ -885,6 +923,14 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       }
       Append(result, ")");
       Delete(parms);
+      if (member_const_function_element) {
+	String *p = SwigType_str(member_const_function_element, 0);
+	Append(result, " ");
+	Append(result, p);
+	Delete(p);
+	member_const_function_element = 0;
+	clear = 0;
+      }
       isfunction = 1;
     } else {
       String *bs = SwigType_namestr(element);

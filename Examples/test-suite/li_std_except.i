@@ -6,6 +6,10 @@
 #if defined(_MSC_VER)
   #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
 #endif
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
+#endif
 %}
 
 
@@ -24,6 +28,7 @@
     int foo3() throw(E1) { return 0; }
     int foo4() throw(E2) { return 0; }
     // all the STL exceptions...
+    void throw_bad_cast()         throw(std::bad_cast)          { throw std::bad_cast(); }
     void throw_bad_exception()    throw(std::bad_exception)     { throw std::bad_exception(); }
     void throw_domain_error()     throw(std::domain_error)      { throw std::domain_error("oops"); }
     void throw_exception()        throw(std::exception)         { throw std::exception(); }
@@ -36,4 +41,14 @@
     void throw_runtime_error()    throw(std::runtime_error)     { throw std::runtime_error("oops"); }
     void throw_underflow_error()  throw(std::underflow_error)   { throw std::underflow_error("oops"); }
   };
+%}
+
+
+%{
+#if defined(_MSC_VER)
+  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic pop
+#endif
 %}

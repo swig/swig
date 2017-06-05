@@ -56,12 +56,12 @@ handler. For example, you can specify the following:
 
 <div class="code"><pre>
 %exception {
-    try {
-        $action
-    }
-    catch (RangeError) {
-        ... handle error ...
-    }
+  try {
+    $action
+  }
+  catch (RangeError) {
+    ... handle error ...
+  }
 }
 </pre></div>
 
@@ -71,13 +71,13 @@ How the exception is handled depends on the target language, for example, Python
 
 <div class="code"><pre>
 %exception {
-    try {
-        $action
-    }
-    catch (RangeError) {
-        PyErr_SetString(PyExc_IndexError,"index out-of-bounds");
-        SWIG_fail;
-    }
+  try {
+    $action
+  }
+  catch (RangeError) {
+    PyErr_SetString(PyExc_IndexError, "index out-of-bounds");
+    SWIG_fail;
+  }
 }
 </pre></div>
 
@@ -116,7 +116,7 @@ static char error_message[256];
 static int error_status = 0;
 
 void throw_exception(char *msg) {
-  strncpy(error_message,msg,256);
+  strncpy(error_message, msg, 256);
   error_status = 1;
 }
 
@@ -193,7 +193,7 @@ extern int exception_status;
 
 #define try if ((exception_status = setjmp(exception_buffer)) == 0)
 #define catch(val) else if (exception_status == val)
-#define throw(val) longjmp(exception_buffer,val)
+#define throw(val) longjmp(exception_buffer, val)
 #define finally else
 
 /* Exception codes */
@@ -341,12 +341,12 @@ to specific declaration name. For example:
 <div class="code">
 <pre>
 %exception allocate {
-    try {
-        $action
-    } 
-    catch (MemoryError) {
-        croak("Out of memory");
-    }
+  try {
+    $action
+  }
+  catch (MemoryError) {
+    croak("Out of memory");
+  }
 }
 </pre>
 </div>
@@ -364,12 +364,12 @@ an exception handler for a specific class, you might write this:
 <div class="code">
 <pre>
 %exception Object::allocate {
-    try {
-        $action
-    } 
-    catch (MemoryError) {
-        croak("Out of memory");
-    }
+  try {
+    $action
+  }
+  catch (MemoryError) {
+    croak("Out of memory");
+  }
 }
 </pre>
 </div>
@@ -386,12 +386,12 @@ in the specified class as well as for identically named functions appearing in d
 <div class="code">
 <pre>
 %exception Object::allocate(int) {
-    try {
-        $action
-    } 
-    catch (MemoryError) {
-        croak("Out of memory");
-    }
+  try {
+    $action
+  }
+  catch (MemoryError) {
+    croak("Out of memory");
+  }
 }
 </pre>
 </div>
@@ -410,21 +410,21 @@ to attach exceptions to specific parts of a header file. For example:
 
 // Define a few exception handlers for specific declarations
 %exception Object::allocate(int) {
-    try {
-        $action
-    } 
-    catch (MemoryError) {
-        croak("Out of memory");
-    }
+  try {
+    $action
+  }
+  catch (MemoryError) {
+    croak("Out of memory");
+  }
 }
 
 %exception Object::getitem {
-    try {
-       $action
-    }
-    catch (RangeError) {
-       croak("Index out of range");
-    }
+  try {
+    $action
+  }
+  catch (RangeError) {
+    croak("Index out of range");
+  }
 }
 ...
 // Read a raw header file
@@ -560,17 +560,17 @@ common scripting language exceptions in a portable manner.  For example :</p>
 %include exception.i       
 
 %exception {
-    try {
-        $action
-    } catch(RangeError) {
-        SWIG_exception(SWIG_ValueError, "Range Error");
-    } catch(DivisionByZero) {
-        SWIG_exception(SWIG_DivisionByZero, "Division by zero");
-    } catch(OutOfMemory) {
-        SWIG_exception(SWIG_MemoryError, "Out of memory");
-    } catch(...) {
-        SWIG_exception(SWIG_RuntimeError,"Unknown exception");
-    }
+  try {
+    $action
+  } catch(RangeError) {
+    SWIG_exception(SWIG_ValueError, "Range Error");
+  } catch(DivisionByZero) {
+    SWIG_exception(SWIG_DivisionByZero, "Division by zero");
+  } catch(OutOfMemory) {
+    SWIG_exception(SWIG_MemoryError, "Out of memory");
+  } catch(...) {
+    SWIG_exception(SWIG_RuntimeError, "Unknown exception");
+  }
 }
 
 </pre></div>
@@ -611,8 +611,8 @@ example, consider a function like this:
 <div class="code">
 <pre>
 Foo *blah() {
-   Foo *f = new Foo();
-   return f;
+  Foo *f = new Foo();
+  return f;
 }
 </pre>
 </div>
@@ -645,7 +645,7 @@ you can attach it to class members and parameterized declarations as before.  Fo
 <div class="code">
 <pre>
 %newobject ::blah();                   // Only applies to global blah
-%newobject Object::blah(int,double);   // Only blah(int,double) in Object
+%newobject Object::blah(int, double);  // Only blah(int, double) in Object
 %newobject *::copy;                    // Copy method in all classes
 ...
 </pre>
@@ -771,15 +771,15 @@ using the <tt>%feature</tt> directive. For example:
 <div class="code">
 <pre>
 %feature("except") Object::allocate {
-    try {
-        $action
-    } 
-    catch (MemoryError) {
-        croak("Out of memory");
-    }
+  try {
+    $action
+  }
+  catch (MemoryError) {
+    croak("Out of memory");
+  }
 }
 
-%feature("new","1") *::copy;
+%feature("new", "1") *::copy;
 </pre>
 </div>
 
@@ -791,7 +791,7 @@ involving <tt>%feature</tt>:
 <div class="code">
 <pre>
 #define %exception %feature("except")
-#define %newobject %feature("new","1")
+#define %newobject %feature("new", "1")
 </pre>
 </div>
 
@@ -811,10 +811,10 @@ are defined.  For example:
 <pre>
 /* Define a global exception handler */
 %feature("except") {
-   try {
-     $action
-   }
-   ...
+  try {
+    $action
+  }
+  ...
 }
 
 ... bunch of declarations ...
@@ -831,7 +831,7 @@ The following are all equivalent:
 %feature("except") Object::method { $action };
 %feature("except") Object::method %{ $action %};
 %feature("except") Object::method " $action ";
-%feature("except","$action") Object::method;
+%feature("except", "$action") Object::method;
 </pre>
 </div>
 
@@ -850,7 +850,7 @@ The following is the generic syntax for features:
 
 <div class="code">
 <pre>
-%feature("name","value", attribute1="AttributeValue1") symbol;
+%feature("name", "value", attribute1="AttributeValue1") symbol;
 %feature("name", attribute1="AttributeValue1") symbol {value};
 %feature("name", attribute1="AttributeValue1") symbol %{value%};
 %feature("name", attribute1="AttributeValue1") symbol "value";
@@ -867,11 +867,11 @@ In the following example, <tt>MyExceptionClass</tt> is the name of the Java clas
 <div class="code">
 <pre>
 %feature("except", throws="MyExceptionClass") Object::method { 
-   try {
-     $action
-   } catch (...) {
-     ... code to throw a MyExceptionClass Java exception ...
-   }
+  try {
+    $action
+  } catch (...) {
+    ... code to throw a MyExceptionClass Java exception ...
+  }
 };
 </pre>
 </div>
@@ -914,13 +914,13 @@ int red;                        // mutable
 %feature("immutable");          // global enable
 int orange;                     // immutable
 
-%feature("immutable","0");      // global disable
+%feature("immutable", "0");     // global disable
 int yellow;                     // mutable
 
-%feature("immutable","1");      // another form of global enable
+%feature("immutable", "1");     // another form of global enable
 int green;                      // immutable
 
-%feature("immutable","");       // clears the global feature
+%feature("immutable", "");      // clears the global feature
 int blue;                       // mutable
 </pre>
 </div>
@@ -932,8 +932,8 @@ The above intersperses SWIG directives with C code. Of course you can target fea
 
 <div class="code">
 <pre>
-%feature("immutable","1") orange;
-%feature("immutable","1") green;
+%feature("immutable", "1") orange;
+%feature("immutable", "1") green;
 int red;                        // mutable
 int orange;                     // immutable
 int yellow;                     // mutable
@@ -949,10 +949,10 @@ The logic above can of course be inverted and rewritten as:
 
 <div class="code">
 <pre>
-%feature("immutable","1");
-%feature("immutable","0") red;
-%feature("immutable","0") yellow;
-%feature("immutable","0") blue;
+%feature("immutable", "1");
+%feature("immutable", "0") red;
+%feature("immutable", "0") yellow;
+%feature("immutable", "0") blue;
 int red;                        // mutable
 int orange;                     // immutable
 int yellow;                     // mutable
@@ -983,7 +983,7 @@ The concept of clearing features is discussed next.
 
 <p>
 A feature stays in effect until it is explicitly cleared.  A feature is cleared by
-supplying a <tt>%feature</tt> directive with no value.  For example <tt>%feature("name","")</tt>.
+supplying a <tt>%feature</tt> directive with no value.  For example <tt>%feature("name", "")</tt>.
 A cleared feature means that any feature exactly matching any previously defined feature is no longer used in the name matching rules.
 So if a feature is cleared, it might mean that another name matching rule will apply.
 To clarify, let's consider the <tt>except</tt> feature again (<tt>%exception</tt>):
@@ -993,27 +993,27 @@ To clarify, let's consider the <tt>except</tt> feature again (<tt>%exception</tt
 <pre>
 // Define global exception handler
 %feature("except") {
-    try {
-        $action
-    } catch (...) {
-        croak("Unknown C++ exception");
-    }
+  try {
+    $action
+  } catch (...) {
+    croak("Unknown C++ exception");
+  }
 }
 
 // Define exception handler for all clone methods to log the method calls
 %feature("except") *::clone() {
-    try {
-        logger.info("$action");
-        $action
-    } catch (...) {
-        croak("Unknown C++ exception");
-    }
+  try {
+    logger.info("$action");
+    $action
+  } catch (...) {
+    croak("Unknown C++ exception");
+  }
 }
 
 ... initial set of class declarations with clone methods ...
 
 // clear the previously defined feature
-%feature("except","") *::clone();
+%feature("except", "") *::clone();
 
 ... final set of class declarations with clone methods ...
 </pre>
@@ -1027,8 +1027,8 @@ However, these clone methods will still have an exception handler (without loggi
 
 <p>
 Note that clearing a feature is not always the same as disabling it.
-Clearing the feature above with <tt>%feature("except","") *::clone()</tt> is not the same as specifying
-<tt>%feature("except","0") *::clone()</tt>. The former will disable the feature for clone methods -
+Clearing the feature above with <tt>%feature("except", "") *::clone()</tt> is not the same as specifying
+<tt>%feature("except", "0") *::clone()</tt>. The former will disable the feature for clone methods -
 the feature is still a better match than the global feature.
 If on the other hand, no global exception handler had been defined at all,
 then clearing the feature would be the same as disabling it as no other feature would have matched.
@@ -1042,7 +1042,7 @@ For example the following attempt to clear the initial feature will not work:
 <div class="code">
 <pre>
 %feature("except") clone() { logger.info("$action"); $action }
-%feature("except","") *::clone();
+%feature("except", "") *::clone();
 </pre>
 </div>
 
@@ -1053,7 +1053,7 @@ but this will:
 <div class="code">
 <pre>
 %feature("except") clone() { logger.info("$action"); $action }
-%feature("except","") clone();
+%feature("except", "") clone();
 </pre>
 </div>
 
@@ -1066,8 +1066,8 @@ The three macros below show this for the "except" feature:
 <div class="code">
 <pre>
 #define %exception      %feature("except")
-#define %noexception    %feature("except","0")
-#define %clearexception %feature("except","")
+#define %noexception    %feature("except", "0")
+#define %clearexception %feature("except", "")
 </pre>
 </div>
 
@@ -1158,21 +1158,21 @@ in the Python module. You might use <tt>%feature</tt> to rewrite proxy/shadow cl
 <div class="code">
 <pre>
 %module example
-%rename(bar_id) bar(int,double);
+%rename(bar_id) bar(int, double);
 
 // Rewrite bar() to allow some nice overloading
 
 %feature("shadow") Foo::bar(int) %{
 def bar(*args):
     if len(args) == 3:
-         return apply(examplec.Foo_bar_id,args)
-    return apply(examplec.Foo_bar,args)
+        return apply(examplec.Foo_bar_id, args)
+    return apply(examplec.Foo_bar, args)
 %}
     
 class Foo {
 public:
-    int bar(int x);
-    int bar(int x, double y);
+  int bar(int x);
+  int bar(int x, double y);
 }
 </pre>
 </div>

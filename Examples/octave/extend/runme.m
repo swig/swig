@@ -1,4 +1,7 @@
-# file: runme.m
+# do not dump Octave core
+if exist("crash_dumps_octave_core", "builtin")
+  crash_dumps_octave_core(0);
+endif
 
 # This file illustrates the cross language polymorphism using directors.
 

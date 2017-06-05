@@ -1,7 +1,138 @@
 Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
+Issue # numbers mentioned below can be found on Github. For more details, add
+the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
-Version 3.0.10 (in progress)
-============================
+Version 4.0.0 (in progress)
+===========================
 
+2017-06-03: wsfulton
+            Fix %import on a file containing a file scope %fragment forced inclusion to not
+            generate the fragment contents as %import should not result in code being generated.
+            The behaviour is now the same as importing code insertion blocks.
+            Wrapping FileC.i in the following example will result in no generated code, whereas
+            previously "#include <limits.h>" was generated:
+
+              // FileA.i
+              %fragment("<limits.h>", "header") %{
+                #include <limits.h>
+              %}
+
+              %{
+                #include <stdio.h>
+              %}
+              %fragment("<limits.h>");
+
+              // FileC.i
+              %import "FileA.i"
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2017-05-26: Volker Diels-Grabsch, vadz
+            [Java] #842 Extend from java.util.AbstractList<> and implement java.util.RandomAccess for
+            std::vector wrappers. This notably allows to iterate over wrapped vectors in a natural way.
+2017-05-30: davidcl
+            [Scilab] #994 Undefined symbol error when loading in Scilab 6
+
+2017-05-25: asibross
+            [Java] #370 #417 Missing smart pointer handling in Java director extra methods
+            swigReleaseOwnership() and swigTakeOwnership().
+
+2017-05-23: wsfulton
+            [Java] #230 #759 Fix Java shared_ptr and directors for derived classes java compilation
+            error.
+
+            For shared_ptr proxy proxy classes, add a protected method swigSetCMemOwn for modifying
+            the swigCMemOwn and swigCMemOwnDerived member variables which are used by various other
+            methods for controlling memory ownership.
+
+2017-05-21: Sghirate
+            [Java, C#, D] #449 Remove unnecessary use of dynamic_cast in directors to enable
+            non-RTTI compilation.
+
+2017-05-21: wsfulton
+            [Python] #993 Fix handling of default -ve unsigned values, such as:
+              void f(unsigned = -1U);
+
+2017-05-20: jschueller
+            [Python] #991 Fix E731 PEP8 warning: do not assign a lambda expression
+
+2017-05-16: nihal95
+            [PHP] Add %pragma version directive to allow the version of the
+            extension to be set.  Patch #970, fixes #360.
+
+2017-05-13: yag00
+            Patch #975 - Add support for noexcept on director methods.
+
+2017-04-27: redbrain
+            Issue #974, Patch #976 - Fix preprocessor handling of macros with commas in a comment.
+
+2017-04-25: jleveque
+            [Lua] #959 - Fix Visual Studio C4244 conversion warnings in Lua wrappers.
+
+2017-04-21: tamuratak
+            [Ruby] #964 - Add shared_ptr director typemaps.
+
+2017-04-20: wsfulton
+            [Ruby] #586, #935 Add assert for invalid NULL type parameter when calling SWIG_Ruby_NewPointerObj.
+
+2017-04-20: tamuratak
+            [Ruby] #930, #937 - Fix containers of std::shared_ptr.
+            Upcasting, const types (eg vector<shared_ptr<const T>>) and NULL/nullptr support added.
+
+2017-04-12: smarchetto
+            [Scilab] New parameter targetversion to specify the Scilab target version (5, 6, ..) for code generation
+            With Scilab 6 target specified, identifier names truncation is disabled (no longer necessary)
+
+2017-03-24: tamuratak
+            [Ruby] Fix #939 - Wrapping std::vector<bool> fix due to incorrect null checks
+            on VALUE obj.
+
+2017-03-17: vadz
+            [C#] #947 Add support for std::complex<T>
+
+2017-03-17: wsfulton
+            [Go] Fix handling of typedef'd function pointers and typedef'd member function pointers
+            such as:
+
+              typedef int (*FnPtr_td)(int, int);
+              int do_op(int x, int y, FnPtr_td op);
+
+2017-03-16: wsfulton
+            Add support for member const function pointers such as:
+
+              int fn(short (Funcs::* parm)(bool)) const;
+
+            Also fix parsing of references/pointers and qualifiers to member
+            pointers such as:
+
+              int fn(short (Funcs::* const parm)(bool));
+              int fn(short (Funcs::* & parm)(bool));
+
+2017-03-10: wsfulton
+            Extend C++11 alternate function syntax parsing to support const and noexcept, such as:
+
+              auto sum1(int x, int y) const -> int { return x + y; }
+              auto sum2(int x, int y) noexcept -> int { return x + y; }
+
+2017-02-29: tamuratak
+            [Ruby] #917 - Add Enumerable module to all container class wrappers. It was missing
+            for std::list, std::multiset, std::unordered_multiset and std::unordered_map.
+
+2017-02-27: assambar
+            [C++11] Extend parser to support throw specifier in combination
+            with override and/or final.
+
+2017-02-10: tamuratak
+            [Ruby] #883 - Add support for C++11 hash tables:
+              std::unordered_map
+              std::unordered_set
+              std::unordered_multimap
+              std::unordered_multiset
+
+2017-02-08: jcsharp
+            [C#] #887 Improve std::vector<T> wrapper constructors -
+            Replace constructor taking ICollection with IEnumerable and also add IEnumerable<T>
+            constructor to avoid the boxing and unboxing overhead of the original constructor,
+            when the type parameter is a value type.

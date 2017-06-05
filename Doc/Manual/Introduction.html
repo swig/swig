@@ -251,7 +251,7 @@ unix &gt; <b>ld -G example.o example_wrap.o -o example.so</b> # This is for Sola
 unix &gt; <b>perl5.003
 use example;
 print example::fact(4), "\n";
-print example::my_mod(23,7), "\n";
+print example::my_mod(23, 7), "\n";
 print $example::My_variable + 4.5, "\n";
 &lt;ctrl-d&gt;</b>
 24
@@ -279,7 +279,7 @@ Type "copyright", "credits" or "license" for more information.
 &gt;&gt;&gt; <b>import example</b>
 &gt;&gt;&gt; <b>example.fact(4)</b>
 24
-&gt;&gt;&gt; <b>example.my_mod(23,7)</b>
+&gt;&gt;&gt; <b>example.my_mod(23, 7)</b>
 2
 &gt;&gt;&gt; <b>example.cvar.My_variable + 4.5</b>
 7.5
@@ -303,7 +303,7 @@ unix &gt; <b>ld -G example.o example_wrap.o -o example.so</b>
 unix &gt; <b>perl5.003
 use example;
 print example::fact(4), "\n";
-print example::my_mod(23,7), "\n";
+print example::my_mod(23, 7), "\n";
 print $example::My_variable + 4.5, "\n";
 &lt;ctrl-d&gt;</b>
 24

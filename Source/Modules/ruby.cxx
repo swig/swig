@@ -1419,9 +1419,8 @@ public:
     case DESTRUCTOR:
     case CLASS_CONST:
     case STATIC_VAR:
-      assert(false);		// Should not have gotten here for these types
     default:
-      assert(false);
+      assert(false);		// Should not have gotten here for these types
     }
 
     defineAliases(n, iname);
@@ -3113,6 +3112,10 @@ public:
     Delete(target);
 
     // Get any exception classes in the throws typemap
+    if (Getattr(n, "noexcept")) {
+      Append(w->def, " noexcept");
+      Append(declaration, " noexcept");
+    }
     ParmList *throw_parm_list = 0;
 
     if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
@@ -3151,9 +3154,19 @@ public:
      * if the return value is a reference or const reference, a specialized typemap must
      * handle it, including declaration of c_result ($result).
      */
-    if (!is_void) {
-      if (!(ignored_method && !pure_virtual)) {
-	Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), NIL);
+    if (!is_void && (!ignored_method || pure_virtual)) {
+      if (!SwigType_isclass(returntype)) {
+	if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
+	  String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
+	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
+	  Delete(construct_result);
+	} else {
+	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
+	}
+      } else {
+	String *cres = SwigType_lstr(returntype, "c_result");
+	Printf(w->code, "%s;\n", cres);
+	Delete(cres);
       }
     }
 
@@ -3288,7 +3301,7 @@ public:
       }
 
       /* declare Ruby return value */
-      String *value_result = NewStringf("VALUE %s", Swig_cresult_name());
+      String *value_result = NewStringf("VALUE SWIGUNUSED %s", Swig_cresult_name());
       Wrapper_add_local(w, Swig_cresult_name(), value_result);
       Delete(value_result);
 

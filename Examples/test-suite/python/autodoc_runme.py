@@ -15,9 +15,17 @@ def check(got, expected, expected_builtin=None, skip=False):
 def is_new_style_class(cls):
     return hasattr(cls, "__class__")
 
+def is_fastproxy(module):
+    return "new_instancemethod" in module
+
 if not is_new_style_class(A):
     # Missing static methods make this hard to test... skip if -classic is
     # used!
+    sys.exit(0)
+
+if is_fastproxy(dir()):
+    # Detect when -fastproxy is specified and skip test as it changes the function names making it
+    # hard to test... skip until the number of options are reduced in SWIG-3.1 and autodoc is improved
     sys.exit(0)
 
 # skip builtin check - the autodoc is missing, but it probably should not be

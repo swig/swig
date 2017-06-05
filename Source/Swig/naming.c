@@ -404,7 +404,17 @@ DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType
 	}
 	Delete(cls);
       }
-      /* A template-based class lookup, check name first */
+      /* Lookup a name within a templated-based class */
+      if (!rn) {
+	String *t_name = SwigType_istemplate_templateprefix(prefix);
+	if (t_name) {
+	  Clear(tname);
+	  Printf(tname, "%s::%s", t_name, name);
+	  rn = name_object_get(namehash, tname, decl, ncdecl);
+	  Delete(t_name);
+	}
+      }
+      /* Lookup a template-based name within a class */
       if (!rn) {
 	String *t_name = SwigType_istemplate_templateprefix(name);
 	if (t_name)
@@ -788,6 +798,8 @@ static int need_name_warning(Node *n) {
   } else if (Getattr(n, "ignore")) {
     need = 0;
   } else if (Getattr(n, "templatetype")) {
+    need = 0;
+  } else if (GetFlag(n, "parsing_template_declaration")) {
     need = 0;
   }
   return need;

@@ -189,9 +189,11 @@ void copy_fd(int fd_in, int fd_out) {
 
 	while ((n = gzread(gz_in, buf, sizeof(buf))) > 0) {
 		if (write(fd_out, buf, n) != n) {
+			gzclose(gz_in);
 			fatal("Failed to copy fd");
 		}
 	}
+	gzclose(gz_in);
 }
 
 static int _copy_file(const char *src, const char *dest, int mode) {
@@ -248,9 +250,11 @@ static int _copy_file(const char *src, const char *dest, int mode) {
 	}
 
 	if (mode == COPY_TO_CACHE) {
-		gz_out = gzdopen(dup(fd_out), "wb");
+		int dup_fd_out = dup(fd_out);
+		gz_out = gzdopen(dup_fd_out, "wb");
 		if (!gz_out) {
 			gzclose(gz_in);
+			close(dup_fd_out);
 			close(fd_out);
 			free(tmp_name);
 			return -1;
@@ -459,6 +463,7 @@ int create_cachedirtag(const char *dir)
 	f = fopen(filename, "w");
 	if (!f) goto error;
 	if (fwrite(CACHEDIR_TAG, sizeof(CACHEDIR_TAG)-1, 1, f) != 1) {
+		fclose(f);
 		goto error;
 	}
 	if (fclose(f)) goto error;
@@ -485,7 +490,7 @@ void x_asprintf(char **ptr, const char *format, ...)
 	}
 	va_end(ap);
 	
-	if (!ptr) fatal("out of memory in x_asprintf");
+	if (!*ptr) fatal("out of memory in x_asprintf");
 }
 
 /*

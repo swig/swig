@@ -87,7 +87,6 @@ CPP_TEST_BROKEN += \
 	director_nested_class \
 	exception_partial_info \
 	extend_variable \
-	li_std_vector_ptr \
 	li_boost_shared_ptr_template \
 	nested_private \
 	overload_complicated \
@@ -204,6 +203,7 @@ CPP_TEST_CASES += \
 	director_thread \
 	director_unroll \
 	director_using \
+	director_void \
 	director_wombat \
 	disown \
 	dynamic_cast \
@@ -227,6 +227,7 @@ CPP_TEST_CASES += \
 	extend_placement \
 	extend_special_variables \
 	extend_template \
+	extend_template_method \
 	extend_template_ns \
 	extend_typedef_class \
 	extern_c \
@@ -245,6 +246,7 @@ CPP_TEST_CASES += \
 	global_vars \
 	grouping \
 	ignore_parameter \
+	import_fragments \
 	import_nomodule \
 	inherit \
 	inherit_member \
@@ -260,7 +262,6 @@ CPP_TEST_CASES += \
 	langobj \
 	li_attribute \
 	li_attribute_template \
-	li_boost_array \
 	li_boost_shared_ptr \
 	li_boost_shared_ptr_bits \
 	li_boost_shared_ptr_template \
@@ -278,6 +279,7 @@ CPP_TEST_CASES += \
 	memberin_extend \
 	member_funcptr_galore \
 	member_pointer \
+	member_pointer_const \
 	member_template \
 	minherit \
 	minherit2 \
@@ -308,6 +310,7 @@ CPP_TEST_CASES += \
 	nested_class \
 	nested_directors \
 	nested_comment \
+	nested_ignore \
 	nested_scope \
 	nested_template_base \
 	nested_workaround \
@@ -335,6 +338,7 @@ CPP_TEST_CASES += \
 	preproc_constants \
 	primitive_ref \
 	private_assign \
+	proxycode \
 	protected_rename \
 	pure_virtual \
 	redefined \
@@ -353,6 +357,7 @@ CPP_TEST_CASES += \
 	rename_pcre_encoder \
 	rename_pcre_enum \
 	rename_predicates \
+	rename_wildcard \
 	restrict_cplusplus \
 	return_const_value \
 	return_value_scope \
@@ -363,6 +368,7 @@ CPP_TEST_CASES += \
 	smart_pointer_const2 \
 	smart_pointer_const_overload \
 	smart_pointer_extend \
+	smart_pointer_ignore \
 	smart_pointer_member \
 	smart_pointer_multi \
 	smart_pointer_multi_typedef \
@@ -388,6 +394,7 @@ CPP_TEST_CASES += \
 	string_constants \
 	struct_initialization_cpp \
 	struct_value \
+	swig_exception \
 	symbol_clash \
 	template_arg_replace \
 	template_arg_scope \
@@ -405,6 +412,7 @@ CPP_TEST_CASES += \
 	template_default_arg_overloaded \
 	template_default_arg_overloaded_extend \
 	template_default_arg_virtual_destructor \
+	template_default_cache \
 	template_default_class_parms \
 	template_default_class_parms_typedef \
 	template_default_inherit \
@@ -485,6 +493,7 @@ CPP_TEST_CASES += \
 	typemap_array_qualifiers \
 	typemap_delete \
 	typemap_directorout \
+	typemap_documentation \
 	typemap_global_scope \
 	typemap_manyargs \
 	typemap_namespace \
@@ -518,6 +527,7 @@ CPP_TEST_CASES += \
 	valuewrapper_opaque \
 	varargs \
 	varargs_overload \
+	variable_replacement \
 	virtual_destructor \
 	virtual_poly \
 	virtual_vs_nonvirtual_base \
@@ -526,7 +536,7 @@ CPP_TEST_CASES += \
 	wrapmacro
 
 # C++11 test cases.
-CPP11_TEST_CASES = \
+CPP11_TEST_CASES += \
 	cpp11_alignment \
 	cpp11_alternate_function_syntax \
 	cpp11_constexpr \
@@ -534,6 +544,7 @@ CPP11_TEST_CASES = \
 	cpp11_default_delete \
 	cpp11_delegating_constructors \
 	cpp11_director_enums \
+	cpp11_directors \
 	cpp11_explicit_conversion_operators \
 	cpp11_final_override \
 	cpp11_function_objects \
@@ -564,7 +575,6 @@ CPP11_TEST_CASES = \
 
 # Broken C++11 test cases.
 CPP11_TEST_BROKEN = \
-#	cpp11_hash_tables \           # not fully implemented yet
 #	cpp11_variadic_templates \    # Broken for some languages (such as Java)
 #	cpp11_reference_wrapper \     # No typemaps
 
@@ -586,6 +596,7 @@ CPP_STD_TEST_CASES += \
 	li_std_vector \
 	li_std_vector_enum \
 	li_std_vector_member_var\
+	li_std_vector_ptr \
 	smart_pointer_inherit \
 	template_typedef_fnc \
 	template_type_namespace \
@@ -755,7 +766,7 @@ swig_and_compile_external =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	TARGET='$*_wrap_hdr.h' \
-	$(LANGUAGE)$(VARIANT)_externalhdr; \
+	$(LANGUAGE)$(VARIANT)_externalhdr && \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS) $*_external.cxx' \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	INCLUDES='$(INCLUDES)' SWIGOPT='$(SWIGOPT)' NOLINK=true \
@@ -769,7 +780,7 @@ setup = \
 	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
 	else								  \
 	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
-	fi;
+	fi
 
 
 

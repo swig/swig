@@ -36,6 +36,7 @@ static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
   SWIG_exception(SWIG_ERROR, "Class $jsname can not be instantiated");
+fail:
   SWIGV8_RETURN(SWIGV8_UNDEFINED());
 }
 %}

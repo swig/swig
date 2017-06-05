@@ -67,7 +67,7 @@ INTEGER bar_getter(Base<INTEGER>& foo) {
 // 2nd test - templates with default template parameters
 #if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 
-%shared_ptr(Space::BaseDefault<short>)
+%shared_ptr(Space::BaseDefault<short, int>)
 %shared_ptr(Space::DerivedDefault<short>)
 %shared_ptr(Space::DerivedDefault2<short>)
 

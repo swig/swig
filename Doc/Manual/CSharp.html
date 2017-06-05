@@ -544,12 +544,16 @@ unless the imclassname attribute is specified in the <a href="CSharp.html#CSharp
 
 <p>
 The directory <tt>Examples/csharp</tt> has a number of simple examples. 
-Visual Studio .NET 2003 solution and project files are available for compiling with the Microsoft .NET C# compiler on Windows.
-If your SWIG installation went well on a Unix environment and your C# compiler was detected, you should be able to type <tt>make</tt> in each example directory, 
-then <tt>ilrun runme.exe</tt> (Portable.NET C# compiler) or <tt>mono runme.exe</tt> (Mono C# compiler) to run the examples.
+Visual Studio .NET 2003 solution and project files are available for compiling with the Microsoft .NET C#
+compiler on Windows. This also works with newer versions of Visual Studio if you allow
+it to convert the solution to the latest version.
+If your SWIG installation went well on a Unix environment and your C# compiler was detected, you should be able to type <tt>make</tt> in each example directory.
+After SWIG has run and both the C# and C/C++ compilers have finished building,
+the examples will be run, by either running <tt>runme.exe</tt> or by running
+<tt>mono runme.exe</tt> (Mono C# compiler).
 Windows users can also get the examples working using a
 <a href="http://www.cygwin.com">Cygwin</a> or <a href="http://www.mingw.org">MinGW</a> environment for automatic configuration of the example makefiles.
-Any one of the three C# compilers (Portable.NET, Mono or Microsoft) can be detected from within a Cygwin or Mingw environment if installed in your path. 
+Any one of the C# compilers (Mono or Microsoft) can be detected from within a Cygwin or Mingw environment if installed in your path. 
 
 <H2><a name="CSharp_void_pointers">20.3 Void pointers</a></H2>
 
@@ -598,7 +602,7 @@ For the <tt>%array_functions</tt> example, the equivalent usage would be:
 <pre>
 SWIGTYPE_p_double a = example.new_doubleArray(10);  // Create an array
 for (int i=0; i&lt;10; i++)
-  example.doubleArray_setitem(a,i,2*i);             // Set a value
+  example.doubleArray_setitem(a, i, 2*i);           // Set a value
 example.print_array(a);                             // Pass to C
 example.delete_doubleArray(a);                      // Destroy array
 </pre>
@@ -1021,18 +1025,18 @@ Now let's analyse the generated code to gain a fuller understanding of the typem
 <div class="code">
 <pre>
 SWIGEXPORT void SWIGSTDCALL CSharp_positivesonly(int jarg1) {
-    int arg1 ;
-    
-    arg1 = (int)jarg1; 
-    
-    if (arg1 &lt; 0) {
-        SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException,
-                                               "only positive numbers accepted", "number");
-        return ;
-    }
-    
-    positivesonly(arg1);
-    
+  int arg1 ;
+
+  arg1 = (int)jarg1;
+
+  if (arg1 &lt; 0) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException,
+      "only positive numbers accepted", "number");
+    return ;
+  }
+
+  positivesonly(arg1);
+
 }
 </pre>
 </div>
@@ -1155,18 +1159,17 @@ The generated unmanaged code this time catches the C++ exception and converts it
 <div class="code">
 <pre>
 SWIGEXPORT void SWIGSTDCALL CSharp_negativesonly(int jarg1) {
-    int arg1 ;
-    
-    arg1 = (int)jarg1; 
-    
-    try {
-        negativesonly(arg1);
-        
-    } catch (std::out_of_range e) {
-        SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, e.what());
-        return ;
-    }
-    
+  int arg1 ;
+
+  arg1 = (int)jarg1;
+
+  try {
+    negativesonly(arg1);
+
+  } catch (std::out_of_range e) {
+    SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, e.what());
+    return ;
+  }
 }
 </pre>
 </div>
@@ -1221,19 +1224,18 @@ SWIG generates a try catch block with the throws typemap code in the catch handl
 <div class="code">
 <pre>
 SWIGEXPORT void SWIGSTDCALL CSharp_evensonly(int jarg1) {
-    int arg1 ;
-    
-    arg1 = (int)jarg1; 
-    try {
-        evensonly(arg1);
+  int arg1 ;
+
+  arg1 = (int)jarg1;
+  try {
+    evensonly(arg1);
+  }
+  catch(std::out_of_range &amp;_e) {
+    {
+      SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, (&amp;_e)-&gt;what(), NULL);
+      return ;
     }
-    catch(std::out_of_range &amp;_e) {
-      {
-          SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, (&amp;_e)-&gt;what(), NULL);
-          return ;
-      }
-    }
-    
+  }
 }
 </pre>
 </div>
@@ -1592,8 +1594,8 @@ public class Base : global::System.IDisposable {
     BaseBoolMethod(new Base(b, false), flag);
   }
 
-  internal delegate uint SwigDelegateBase_0(uint x);
-  internal delegate void SwigDelegateBase_1(global::System.IntPtr b, bool flag);
+  public delegate uint SwigDelegateBase_0(uint x);
+  public delegate void SwigDelegateBase_1(global::System.IntPtr b, bool flag);
 
   private SwigDelegateBase_0 swigDelegate0;
   private SwigDelegateBase_1 swigDelegate1;
@@ -1643,20 +1645,20 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Base_director_connect(void *objarg,
 
 class SwigDirector_Base : public Base, public Swig::Director {
 public:
-    SwigDirector_Base();
-    virtual unsigned int UIntMethod(unsigned int x);
-    virtual ~SwigDirector_Base();
-    virtual void BaseBoolMethod(Base const &amp;b, bool flag);
+  SwigDirector_Base();
+  virtual unsigned int UIntMethod(unsigned int x);
+  virtual ~SwigDirector_Base();
+  virtual void BaseBoolMethod(Base const &amp;b, bool flag);
 
-    typedef unsigned int (SWIGSTDCALL* SWIG_Callback0_t)(unsigned int);
-    typedef void (SWIGSTDCALL* SWIG_Callback1_t)(void *, unsigned int);
-    void swig_connect_director(SWIG_Callback0_t callbackUIntMethod, 
-                               SWIG_Callback1_t callbackBaseBoolMethod);
+  typedef unsigned int (SWIGSTDCALL* SWIG_Callback0_t)(unsigned int);
+  typedef void (SWIGSTDCALL* SWIG_Callback1_t)(void *, unsigned int);
+  void swig_connect_director(SWIG_Callback0_t callbackUIntMethod,
+                             SWIG_Callback1_t callbackBaseBoolMethod);
 
 private:
-    SWIG_Callback0_t swig_callbackUIntMethod;
-    SWIG_Callback1_t swig_callbackBaseBoolMethod;
-    void swig_init_callbacks();
+  SWIG_Callback0_t swig_callbackUIntMethod;
+  SWIG_Callback1_t swig_callbackBaseBoolMethod;
+  void swig_init_callbacks();
 };
 
 void SwigDirector_Base::swig_connect_director(SWIG_Callback0_t callbackUIntMethod, 
@@ -1682,7 +1684,7 @@ void SwigDirector_Base::BaseBoolMethod(Base const &amp;b, bool flag) {
   unsigned int jflag  ;
   
   if (!swig_callbackBaseBoolMethod) {
-    Base::BaseBoolMethod(b,flag);
+    Base::BaseBoolMethod(b, flag);
     return;
   } else {
     jb = (Base *) &amp;b; 
@@ -1690,6 +1692,31 @@ void SwigDirector_Base::BaseBoolMethod(Base const &amp;b, bool flag) {
     swig_callbackBaseBoolMethod(jb, jflag);
   }
 }
+</pre>
+</div>
+
+<p>
+The delegates from the above example are <tt>public</tt> by default:
+</p>
+
+<div class="code">
+<pre>
+  public delegate uint SwigDelegateBase_0(uint x);
+  public delegate void SwigDelegateBase_1(global::System.IntPtr b, bool flag);
+</pre>
+</div>
+
+<p>
+These can be changed if desired via the <tt>csdirectordelegatemodifiers</tt>
+<a href="Customization.html#Customization_features">%feature directive</a>.
+For example, using <tt>%feature("csdirectordelegatemodifiers") "internal"</tt>
+before SWIG parses the Base class will change all the delegates to <tt>internal</tt>:
+</p>
+
+<div class="code">
+<pre>
+  internal delegate uint SwigDelegateBase_0(uint x);
+  internal delegate void SwigDelegateBase_1(global::System.IntPtr b, bool flag);
 </pre>
 </div>
 
@@ -1940,10 +1967,10 @@ and usage from C++
 
 <div class="code">
 <pre>
-    Container container;
-    Element element(20);
-    container.setElement(&amp;element);
-    cout &lt;&lt; "element.value: " &lt;&lt; container.getElement()-&gt;value &lt;&lt; endl;
+  Container container;
+  Element element(20);
+  container.setElement(&amp;element);
+  cout &lt;&lt; "element.value: " &lt;&lt; container.getElement()-&gt;value &lt;&lt; endl;
 </pre>
 </div>
 
@@ -2134,7 +2161,7 @@ The typemaps to achieve this are shown below.
 %typemap(csin, 
          pre="    CDate temp$csinput = new CDate();", 
          post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
-              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
+              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);",
          cshin="out $csinput"
         ) CDate &amp;
          "$csclassname.getCPtr(temp$csinput)"
@@ -2240,7 +2267,7 @@ will be possible with the following <tt>CDate *</tt> typemaps
 %typemap(csin,
          pre="    CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);",
          post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
-              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
+              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);",
          cshin="ref $csinput"
         ) CDate *
          "$csclassname.getCPtr(temp$csinput)"
@@ -2279,7 +2306,7 @@ The <tt>subtractYears</tt> method is nearly identical to the above <tt>addYears<
 %typemap(csin,
   pre="    using (CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day)) {",
   post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
-       " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
+       " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);",
   terminator="    } // terminate temp$csinput using block",
   cshin="ref $csinput"
  ) CDate *
@@ -2351,7 +2378,7 @@ The typemap type required is thus <tt>CDate *</tt>. Given that the previous sect
 %typemap(csin,
          pre="    CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);",
          post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
-              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
+              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);",
          cshin="ref $csinput"
         ) CDate *
          "$csclassname.getCPtr(temp$csinput)"

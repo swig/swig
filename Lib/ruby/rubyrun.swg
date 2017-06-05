@@ -171,10 +171,11 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
   swig_class *sklass;
   VALUE klass;
   VALUE obj;
-  
+
   if (!ptr)
     return Qnil;
-  
+
+  assert(type);
   if (type->clientdata) {
     sklass = (swig_class *) type->clientdata;
 		
@@ -182,7 +183,7 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
     track = sklass->trackObjects;
     if (track) {
       obj = SWIG_RubyInstanceFor(ptr);
-      
+
       /* Check the object's type and make sure it has the correct type.
         It might not in cases where methods do things like 
         downcast methods. */
@@ -214,7 +215,7 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
     obj = Data_Wrap_Struct(klass, 0, 0, ptr);
   }
   rb_iv_set(obj, "@__swigtype__", rb_str_new2(type->name));
-  
+
   return obj;
 }
 
@@ -246,7 +247,7 @@ typedef struct {
 SWIGRUNTIME swig_ruby_owntype
 SWIG_Ruby_AcquirePtr(VALUE obj, swig_ruby_owntype own) {
   swig_ruby_owntype oldown = {0, 0};
-  if (obj) {
+  if (TYPE(obj) == T_DATA) {
     oldown.datafree = RDATA(obj)->dfree;
     RDATA(obj)->dfree = own.datafree;
   }

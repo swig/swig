@@ -11,9 +11,11 @@ top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
 CPP_TEST_CASES = \
+	li_boost_shared_ptr_director \
 	li_cstring \
 	li_factory \
 	li_std_functors \
+	li_std_list \
 	li_std_multimap \
 	li_std_pair_lang_object \
 	li_std_queue \
@@ -25,9 +27,19 @@ CPP_TEST_CASES = \
 	ruby_naming \
 	ruby_track_objects \
 	ruby_track_objects_directors \
-	std_containers
-#	ruby_li_std_speed
-#	stl_new
+	std_containers \
+#	ruby_li_std_speed \
+#	stl_new \
+
+CPP11_TEST_CASES = \
+	cpp11_hash_tables \
+	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_nullptr_in_containers \
+	cpp11_shared_ptr_upcast \
+	cpp11_std_unordered_map \
+	cpp11_std_unordered_multimap \
+	cpp11_std_unordered_multiset \
+	cpp11_std_unordered_set \
 
 C_TEST_CASES += \
 	li_cstring \

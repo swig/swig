@@ -856,6 +856,9 @@ public:
     //Printf(stdout,"Swig_overload_dispatch %s %s '%s' %d\n",symname,wname,dispatch,maxargs);
 
     if (!luaAddSymbol(lua_name, n)) {
+      DelWrapper(f);
+      Delete(dispatch);
+      Delete(tmp);
       return SWIG_ERROR;
     }
 

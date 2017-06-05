@@ -224,7 +224,7 @@ class TypePass:private Dispatcher {
 	  if (tname)
 	    Delete(tname);
 	  if (!bcls) {
-	    if (!clsforward) {
+	    if (!clsforward && !GetFlag(cls, "feature:ignore")) {
 	      if (ispublic && !Getmeta(bname, "already_warned")) {
 		Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Nothing known about base class '%s'. Ignored.\n", SwigType_namestr(bname));
 		if (Strchr(bname, '<')) {
@@ -265,7 +265,13 @@ class TypePass:private Dispatcher {
 	    SwigType *bsmart = Copy(smart);
 	    SwigType *rclsname = SwigType_typedef_resolve_all(clsname);
 	    SwigType *rbname = SwigType_typedef_resolve_all(bname);
-	    Replaceall(bsmart, rclsname, rbname);
+	    int replace_count = Replaceall(bsmart, rclsname, rbname);
+	    if (replace_count == 0) {
+	      // If no replacement made, it will be because rclsname is fully resolved, but the
+	      // type in the smartptr feature used a typedef or not fully resolved name.
+	      String *firstname = Getattr(first, "name");
+	      Replaceall(bsmart, firstname, rbname);
+	    }
 	    Delete(rclsname);
 	    Delete(rbname);
 	    String *smartnamestr = SwigType_namestr(smart);
@@ -503,8 +509,7 @@ class TypePass:private Dispatcher {
     /* Inherit type definitions into the class */
     if (name && !(GetFlag(n, "nested") && !checkAttribute(n, "access", "public") && 
       (GetFlag(n, "feature:flatnested") || Language::instance()->nestedClassesSupport() == Language::NCS_None))) {
-      if (!GetFlag(n, "feature:ignore"))
-	cplus_inherit_types(n, 0, nname ? nname : (fname ? fname : name));
+      cplus_inherit_types(n, 0, nname ? nname : (fname ? fname : name));
     }
 
     inclass = n;
@@ -561,6 +566,10 @@ class TypePass:private Dispatcher {
       SwigType_typedef_class(rname);
       Delete(rname);
       /*      SwigType_typedef_class(name); */
+    } else if (Strcmp(ttype, "cdecl") == 0) {
+      String *rname = SwigType_typedef_resolve_all(name);
+      SwigType_typedef_class(rname);
+      Delete(rname);
     }
     return SWIG_OK;
   }

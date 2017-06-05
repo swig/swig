@@ -12,6 +12,12 @@
 
 %inline %{
 
+#if __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
+/* for anonymous enums */
+/* dereferencing type-punned pointer will break strict-aliasing rules [-Werror=strict-aliasing] */
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
+
 typedef enum { 
     CSP_ITERATION_FWD,
     CSP_ITERATION_BWD = 11

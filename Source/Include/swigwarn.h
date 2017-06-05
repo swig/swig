@@ -93,8 +93,8 @@
 #define WARN_PARSE_EXTEND_NAME        326
 
 #define WARN_CPP11_LAMBDA             340
-#define WARN_CPP11_ALIAS_DECLARATION  341
-#define WARN_CPP11_ALIAS_TEMPLATE     342
+#define WARN_CPP11_ALIAS_DECLARATION  341  /* redundant now */
+#define WARN_CPP11_ALIAS_TEMPLATE     342  /* redundant now */
 #define WARN_CPP11_VARIADIC_TEMPLATE  343
 
 #define WARN_IGNORE_OPERATOR_NEW        350	/* new */
@@ -215,9 +215,9 @@
 /* Feel free to claim any number in this space that's not currently being used. Just make sure you
    add an entry here */
 
-#define WARN_D_TYPEMAP_CTYPE_UNDEF           700
+#define WARN_D_TYPEMAP_CTYPE_UNDEF            700
 #define WARN_D_TYPEMAP_IMTYPE_UNDEF           701
-#define WARN_D_TYPEMAP_DTYPE_UNDEF           702
+#define WARN_D_TYPEMAP_DTYPE_UNDEF            702
 #define WARN_D_MULTIPLE_INHERITANCE           703
 #define WARN_D_TYPEMAP_CLASSMOD_UNDEF         704
 #define WARN_D_TYPEMAP_DBODY_UNDEF            705

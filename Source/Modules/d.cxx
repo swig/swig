@@ -717,9 +717,20 @@ public:
    * D::insertDirective()
    * --------------------------------------------------------------------------- */
   virtual int insertDirective(Node *n) {
+    int ret = SWIG_OK;
     String *code = Getattr(n, "code");
+    String *section = Getattr(n, "section");
     replaceModuleVariables(code);
-    return Language::insertDirective(n);
+
+    if (!ImportMode && (Cmp(section, "proxycode") == 0)) {
+      if (proxy_class_body_code) {
+	Swig_typemap_replace_embedded_typemap(code, n);
+	Printv(proxy_class_body_code, code, NIL);
+      }
+    } else {
+      ret = Language::insertDirective(n);
+    }
+    return ret;
   }
 
   /* ---------------------------------------------------------------------------
@@ -1964,7 +1975,7 @@ public:
 
     qualified_return = SwigType_rcaststr(returntype, "c_result");
 
-    if (!is_void && !ignored_method) {
+    if (!is_void && (!ignored_method || pure_virtual)) {
       if (!SwigType_isclass(returntype)) {
 	if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
 	  String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
@@ -2066,7 +2077,11 @@ public:
       }
       Delete(super_call);
     } else {
-      Printf(w->code, " throw Swig::DirectorPureVirtualException(\"%s::%s\");\n", SwigType_namestr(c_classname), SwigType_namestr(name));
+      Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"%s::%s\");\n", SwigType_namestr(c_classname), SwigType_namestr(name));
+      if (!is_void)
+	Printf(w->code, "return %s;", qualified_return);
+      else if (!ignored_method)
+	Printf(w->code, "return;\n");
     }
 
     if (!ignored_method)
@@ -2206,6 +2221,10 @@ public:
     Delete(target);
 
     // Add any exception specifications to the methods in the director class
+    if (Getattr(n, "noexcept")) {
+      Append(w->def, " noexcept");
+      Append(declaration, " noexcept");
+    }
     ParmList *throw_parm_list = NULL;
     if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
       int gencomma = 0;
@@ -2472,7 +2491,10 @@ public:
     String *dirclassname = directorClassName(current_class);
     Wrapper *w = NewWrapper();
 
-    if (Getattr(n, "throw")) {
+    if (Getattr(n, "noexcept")) {
+      Printf(f_directors_h, "    virtual ~%s() noexcept;\n", dirclassname);
+      Printf(w->def, "%s::~%s() noexcept {\n", dirclassname, dirclassname);
+    } else if (Getattr(n, "throw")) {
       Printf(f_directors_h, "    virtual ~%s() throw ();\n", dirclassname);
       Printf(w->def, "%s::~%s() throw () {\n", dirclassname, dirclassname);
     } else {
@@ -3545,10 +3567,9 @@ private:
     Printf(code_wrap->def, "SWIGEXPORT void D_%s(void *objarg, void *dobj", connect_name);
 
     Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", norm_name, norm_name);
-    Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName);
+    Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj);\n", dirClassName, dirClassName);
 
-    Printf(code_wrap->code, "  if (director) {\n");
-    Printf(code_wrap->code, "    director->swig_connect_director(dobj");
+    Printf(code_wrap->code, "  director->swig_connect_director(dobj");
 
     for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
       UpcallData *udata = Getitem(dmethods_seq, i);
@@ -3562,7 +3583,6 @@ private:
     Printf(code_wrap->def, ") {\n");
     Printf(code_wrap->code, ");\n");
     Printf(im_dmodule_code, ") %s;\n", connect_name);
-    Printf(code_wrap->code, "  }\n");
     Printf(code_wrap->code, "}\n");
 
     Wrapper_print(code_wrap, f_wrappers);

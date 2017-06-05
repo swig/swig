@@ -29,7 +29,7 @@
 <li><a href="#CPlusPlus11_strongly_typed_enumerations">Strongly typed enumerations</a>
 <li><a href="#CPlusPlus11_double_angle_brackets">Double angle brackets</a>
 <li><a href="#CPlusPlus11_explicit_conversion_operators">Explicit conversion operators</a>
-<li><a href="#CPlusPlus11_alias_templates">Alias templates</a>
+<li><a href="#CPlusPlus11_alias_templates">Type alias and alias templates</a>
 <li><a href="#CPlusPlus11_unrestricted_unions">Unrestricted unions</a>
 <li><a href="#CPlusPlus11_variadic_templates">Variadic templates</a>
 <li><a href="#CPlusPlus11_new_string_literals">New string literals</a>
@@ -52,7 +52,7 @@
 <li><a href="#CPlusPlus11_general_purpose_smart_pointers">General-purpose smart pointers</a>
 <li><a href="#CPlusPlus11_extensible_random_number_facility">Extensible random number facility</a>
 <li><a href="#CPlusPlus11_wrapper_reference">Wrapper reference</a>
-<li><a href="#CPlusPlus11_polymorphous_wrappers_for_function_objects">Polymorphous wrappers for function objects</a>
+<li><a href="#CPlusPlus11_polymorphous_wrappers_for_function_objects">Polymorphic wrappers for function objects</a>
 <li><a href="#CPlusPlus11_type_traits_for_metaprogramming">Type traits for metaprogramming</a>
 <li><a href="#CPlusPlus11_uniform_method_for_computing_return_type_of_function_objects">Uniform method for computing return type of function objects</a>
 </ul>
@@ -203,7 +203,7 @@ public:
 <p>And then call this constructor from your target language, for example, in Python, the following will call the constructor taking the <tt>std::vector</tt>:</p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; c = Container( [1,2,3,4] )
+&gt;&gt;&gt; c = Container( [1, 2, 3, 4] )
 </pre></div>
 
 <p>
@@ -392,7 +392,7 @@ auto SomeStruct::FuncName(int x, int y) -&gt; int {
 
 <div class="targetlang"><pre>
 &gt;&gt;&gt; a = SomeStruct()
-&gt;&gt;&gt; a.FuncName(10,5)
+&gt;&gt;&gt; a.FuncName(10, 5)
 15
 </pre></div>
 
@@ -457,10 +457,10 @@ This kind of initialization is handled by SWIG.
 <div class="code"><pre>
 class SomeClass {
 public:
-    SomeClass() {}
-    explicit SomeClass(int new_value) : value(new_value) {}
+  SomeClass() {}
+  explicit SomeClass(int new_value) : value(new_value) {}
 
-    int value = 5;
+  int value = 5;
 };
 </pre></div>
 
@@ -603,37 +603,11 @@ Conversion operators either with or without <tt>explicit</tt> need renaming to a
 them available as a normal proxy method.
 </p>
 
-<H3><a name="CPlusPlus11_alias_templates">7.2.16 Alias templates</a></H3>
+<H3><a name="CPlusPlus11_alias_templates">7.2.16 Type alias and alias templates</a></H3>
 
 
 <p>
-The following is an example of an alias template:
-
-<div class="code"><pre>
-template&lt; typename T1, typename T2, int &gt;
-class SomeType {
-public:
-  T1 a;
-  T2 b;
-  int c;
-};
-
-template&lt; typename T2 &gt;
-using TypedefName = SomeType&lt;char*, T2, 5&gt;;
-</pre></div>
-
-<p>
-These are partially supported as SWIG will parse these and identify them, however, they are ignored as they are not added to the type system. A warning such as the following is issued:
-</p>
-
-<div class="shell">
-<pre>
-example.i:13: Warning 342: The 'using' keyword in template aliasing is not fully supported yet.
-</pre>
-</div>
-
-<p>
-Similarly for non-template type aliasing:
+A type alias is a statement of the form:
 </p>
 
 <div class="code"><pre>
@@ -641,21 +615,42 @@ using PFD = void (*)(double); // New introduced syntax
 </pre></div>
 
 <p>
-A warning will be issued:
+which is equivalent to the old style typedef:
 </p>
-
-<div class="shell">
-<pre>
-example.i:17: Warning 341: The 'using' keyword in type aliasing is not fully supported yet.
-</pre>
-</div>
-
-
-<p>The equivalent old style typedefs can be used as a workaround:</p>
 
 <div class="code"><pre>
 typedef void (*PFD)(double);  // The old style
 </pre></div>
+
+<p>
+The following is an example of an alias template:
+
+<div class="code"><pre>
+template&lt; typename T1, typename T2, int N &gt;
+class SomeType {
+public:
+  T1 a;
+  T2 b;
+};
+
+template&lt; typename T2 &gt;
+using TypedefName = SomeType&lt;char*, T2, 5&gt;;
+</pre></div>
+
+<p>
+SWIG supports both type aliasing and alias templates.
+However, in order to use an alias template, two <tt>%template</tt> directives must be used:
+</p>
+
+<div class="code"><pre>
+%template(SomeTypeBool) SomeType&lt;char*, bool, 5&gt;;
+%template() TypedefName&lt;bool&gt;;
+</pre></div>
+
+<p>Firstly, the actual template is instantiated with a name to be used by the target language, as per any template being wrapped.
+Secondly, the empty template instantiation, <tt>%template()</tt>, is required for the alias template.
+This second requirement is necessary to add the appropriate instantiated template type into the type system as SWIG does not automatically instantiate templates.
+See the <a href="SWIGPlus.html#SWIGPlus_nn30">Templates</a> section for more general information on wrapping templates.
 
 <H3><a name="CPlusPlus11_unrestricted_unions">7.2.17 Unrestricted unions</a></H3>
 
@@ -693,7 +688,7 @@ initializers) with some limitations. The following code is correctly parsed:</p>
 <div class="code"><pre>
 template &lt;typename... BaseClasses&gt; class ClassName : public BaseClasses... {
 public:
-   ClassName (BaseClasses &amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
+  ClassName (BaseClasses &amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
 }
 </pre></div>
 
@@ -823,7 +818,7 @@ reachable by the current thread can be defined as:</p>
 
 <div class="code"><pre>
 struct A {
-   static thread_local int val;
+  static thread_local int val;
 };
 thread_local int global_val;
 </pre></div>
@@ -863,8 +858,8 @@ For example, the C++ compiler will not compile any code which attempts to use an
 
 <div class="code"><pre>
 struct NoInt {
-    void f(double i);
-    void f(int) = delete;
+  void f(double i);
+  void f(int) = delete;
 };
 </pre></div>
 
@@ -999,7 +994,8 @@ Variadic template support requires further work to provide substantial tuple wra
 
 <p>
 The new hash tables in the STL are <tt>unordered_set</tt>, <tt>unordered_multiset</tt>, <tt>unordered_map</tt>, <tt>unordered_multimap</tt>.
-These are not available in SWIG, but in principle should be easily implemented by adapting the current STL containers.
+These are not available in all target languages.
+Any missing support can in principle be easily implemented by adapting the current STL containers.
 </p>
 
 <H3><a name="CPlusPlus11_regular_expressions">7.3.4 Regular expressions</a></H3>
@@ -1034,7 +1030,7 @@ Users would need to write their own typemaps if wrapper references are being use
 </p>
 
 
-<H3><a name="CPlusPlus11_polymorphous_wrappers_for_function_objects">7.3.8 Polymorphous wrappers for function objects</a></H3>
+<H3><a name="CPlusPlus11_polymorphous_wrappers_for_function_objects">7.3.8 Polymorphic wrappers for function objects</a></H3>
 
 
 <p>
@@ -1062,7 +1058,7 @@ It does not involve <tt>std::function</tt>.
 
 <div class="targetlang"><pre>
 t = Test()
-b = t(1,2) # invoke C++ function object
+b = t(1, 2) # invoke C++ function object
 </pre></div>
 
 <H3><a name="CPlusPlus11_type_traits_for_metaprogramming">7.3.9 Type traits for metaprogramming</a></H3>

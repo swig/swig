@@ -1,6 +1,6 @@
 #include "imports_a.h"
 
-class B : public A 
+class B : public A_Intermediate
 { 
  public: 
   B() {};

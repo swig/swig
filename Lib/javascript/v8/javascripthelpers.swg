@@ -83,6 +83,7 @@ SWIGRUNTIME void JS_veto_set_variable(v8::Local<v8::String> property, v8::Local<
     } else {
       SWIG_exception(SWIG_ERROR, msg);
     }
+fail: ;
 }
 
 %} // v8_helper_functions

@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[3.0.10],[http://www.swig.org])
+AC_INIT([swig],[4.0.0],[http://www.swig.org])
 
 dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
 dnl     definition below can be removed
@@ -386,6 +386,9 @@ case $host in
    *) PHP_SO=$SO;;
 esac
 
+AC_SUBST(PHP5_SO)
+PHP5_SO=$PHP_SO
+
 AC_SUBST(MZSCHEME_SO)
 case $host in
    *) MZSCHEME_SO=.so;;
@@ -612,8 +615,11 @@ else
       PYVER=0
     else
       AC_MSG_CHECKING(for Python os.name)
-      PYOSNAME=`($PYTHON -c "import sys, os; sys.stdout.write(os.name)")`
+      PYOSNAME=`($PYTHON -c "import sys, os; sys.stdout.write(os.name)") 2>/dev/null`
       AC_MSG_RESULT($PYOSNAME)
+      AC_MSG_CHECKING(for Python path separator)
+      PYSEPARATOR=`($PYTHON -c "import sys, os; sys.stdout.write(os.sep)") 2>/dev/null`
+      AC_MSG_RESULT($PYSEPARATOR)
     fi
   fi
 
@@ -625,8 +631,8 @@ else
     PYEPREFIX=`($PYTHON -c "import sys; sys.stdout.write(sys.exec_prefix)") 2>/dev/null`
     AC_MSG_RESULT($PYEPREFIX)
 
-    if test x"$PYOSNAME" = x"nt"; then
-      # Windows installations are quite different to posix installations
+    if test x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\"; then
+      # Windows installations are quite different to posix installations (MinGW path separator is a forward slash)
       PYPREFIX=`echo "$PYPREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
       PYTHON_SO=.pyd
 
@@ -654,7 +660,7 @@ else
 
       # Need to do this hack since autoconf replaces __file__ with the name of the configure file
       filehack="file__"
-      PYVERSION=`($PYTHON -c "import sys,string,operator,os.path; sys.stdout.write(operator.getitem(os.path.split(operator.getitem(os.path.split(string.__$filehack),0)),1))")`
+      PYVERSION=`($PYTHON -c "import sys,string,operator,os.path; sys.stdout.write(operator.getitem(os.path.split(operator.getitem(os.path.split(string.__$filehack),0)),1))") 2>/dev/null`
       AC_MSG_RESULT($PYVERSION)
 
       # Find the directory for libraries this is necessary to deal with
@@ -742,7 +748,7 @@ else
     PYVER=0
   fi
   if test "x$PY3BIN" = xyes; then
-    if test x"$PYOSNAME" = x"nt" -a $PYVER -ge 3; then
+    if test x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\" -a $PYVER -ge 3; then
       PYTHON3="$PYTHON"
     else
       for py_ver in 3 3.9 3.8 3.7 3.6 3.5 3.4 3.3 3.2 3.1 3.0 ""; do
@@ -771,10 +777,13 @@ else
 
   if test $PYVER -ge 3; then
     AC_MSG_CHECKING(for Python 3.x os.name)
-    PY3OSNAME=`($PYTHON3 -c "import sys, os; sys.stdout.write(os.name)")`
+    PY3OSNAME=`($PYTHON3 -c "import sys, os; sys.stdout.write(os.name)") 2>/dev/null`
     AC_MSG_RESULT($PY3OSNAME)
+    AC_MSG_CHECKING(for Python 3.x path separator)
+    PYSEPARATOR=`($PYTHON3 -c "import sys, os; sys.stdout.write(os.sep)") 2>/dev/null`
+    AC_MSG_RESULT($PYSEPARATOR)
 
-    if test x"$PY3OSNAME" = x"nt"; then
+    if test x"$PY3OSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\"; then
       # Windows installations are quite different to posix installations
       # There is no python-config to use
       AC_MSG_CHECKING(for Python 3.x prefix)
@@ -825,7 +834,7 @@ else
 
       # Need to do this hack since autoconf replaces __file__ with the name of the configure file
       filehack="file__"
-      PY3VERSION=`($PYTHON3 -c "import string,operator,os.path; print(operator.getitem(os.path.split(operator.getitem(os.path.split(string.__$filehack),0)),1))")`
+      PY3VERSION=`($PYTHON3 -c "import string,operator,os.path; print(operator.getitem(os.path.split(operator.getitem(os.path.split(string.__$filehack),0)),1))") 2>/dev/null`
       AC_MSG_RESULT($PY3VERSION)
 
       # Find the directory for libraries this is necessary to deal with
@@ -883,7 +892,15 @@ else
   AC_SUBST(PY3LIB)
   AC_SUBST(PY3LINK)
   AC_SUBST(PYTHON3DYNAMICLINKING)
+fi
+
+if test -n "$PYINCLUDE" || test -n "$PY3INCLUDE" ; then
   AC_CHECK_PROGS(PEP8, pep8)
+  if test -n "$PEP8"; then
+    AC_MSG_CHECKING(pep8 version)
+    pep8_version=`$PEP8 --version 2>/dev/null`
+    AC_MSG_RESULT($pep8_version)
+  fi
 fi
 
 #----------------------------------------------------------------
@@ -1006,30 +1023,47 @@ OCTAVE_SO=.oct
 AC_ARG_WITH(octave, AS_HELP_STRING([--without-octave], [Disable Octave])
 AS_HELP_STRING([--with-octave=path], [Set location of Octave executable]),[OCTAVEBIN="$withval"], [OCTAVEBIN="$alllang_default"])
 
-# First, check for "--without-octave" or "--with-octave=no".
+# Check for "--without-octave" or "--with-octave=no".
 if test x"${OCTAVEBIN}" = xno; then
    AC_MSG_NOTICE([Disabling Octave])
    OCTAVE=
 
-# First figure out what the name of Octave is
+# Check for Octave; prefer command-line program "octave-cli" to (in newer versions) GUI program "octave"
 elif test "x$OCTAVEBIN" = xyes; then
-   AC_PATH_PROG(OCTAVE, [octave])
+   AC_PATH_PROG(OCTAVE, [octave-cli octave])
 
 else
    OCTAVE="$OCTAVEBIN"
 fi
 
+# Check if Octave works
 if test -n "$OCTAVE"; then
-   AC_MSG_CHECKING([for mkoctfile])
-   mkoctfile="$(dirname $OCTAVE)/$(basename $OCTAVE | sed -e 's/octave/mkoctfile/')"
-   AS_IF([test -x "${mkoctfile}"],[
-      AC_MSG_RESULT([${mkoctfile}])
+   AC_MSG_CHECKING([if ${OCTAVE} works])
+   AS_IF([test "x`${OCTAVE} --version 2>/dev/null | sed -n -e '1p' | sed -n -e '/Octave, version/p'`" != x],[
+      AC_MSG_RESULT([yes])
    ],[
-      AC_MSG_RESULT([not found, disabling Octave])
+      AC_MSG_NOTICE([no, disabling Octave])
       OCTAVE=
    ])
 fi
+
+# Check for required Octave helper program "mkoctfile"
 if test -n "$OCTAVE"; then
+   AC_MSG_CHECKING([for mkoctfile])
+   mkoctfile=["`echo $OCTAVE | sed -e 's|[a-z][a-z-]*$|mkoctfile|;t;s|[a-z][a-z-]*\(-[0-9][0-9.+]*\)$|mkoctfile\1|;t'`"]
+   AC_MSG_RESULT([${mkoctfile}])
+   AC_MSG_CHECKING([if ${mkoctfile} works])
+   AS_IF([test "x`${mkoctfile} --version 2>/dev/null | sed -n -e '1p' | sed -n -e '/mkoctfile, version/p'`" != x],[
+      AC_MSG_RESULT([yes])
+   ],[
+      AC_MSG_NOTICE([no, disabling Octave])
+      OCTAVE=
+   ])
+fi
+
+# Check for Octave preprocessor/compiler/linker flags
+if test -n "$OCTAVE"; then
+
    AC_MSG_CHECKING([for Octave preprocessor flags])
    OCTAVE_CPPFLAGS=
    for var in CPPFLAGS INCFLAGS ALL_CXXFLAGS; do
@@ -1041,12 +1075,13 @@ if test -n "$OCTAVE"; then
       done
    done
    AC_MSG_RESULT([$OCTAVE_CPPFLAGS])
+
    AC_MSG_CHECKING([for Octave compiler flags])
    OCTAVE_CXXFLAGS=
-   for var in ALL_CXXFLAGS; do
+   for var in CXX ALL_CXXFLAGS; do
       for flag in `env - ${mkoctfile} -p ${var}`; do
          case ${flag} in
-            -g*|-W*) OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} ${flag}";;
+            -std=*|-g*|-W*) OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} ${flag}";;
             *) ;;
          esac
       done
@@ -1054,19 +1089,25 @@ if test -n "$OCTAVE"; then
    save_CXXFLAGS="${CXXFLAGS}"
    CXXFLAGS="-Werror -O0"
    AC_COMPILE_IFELSE([
-      AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT],[])
+      AC_LANG_PROGRAM([],[])
    ],[
       OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} -O0"
    ])
    CXXFLAGS="${save_CXXFLAGS}"
    AC_MSG_RESULT([$OCTAVE_CXXFLAGS])
+
    AC_MSG_CHECKING([for Octave linker flags])
    OCTAVE_LDFLAGS=
    for var in RDYNAMIC_FLAG LFLAGS RLD_FLAG OCTAVE_LIBS LIBS; do
      OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`env - ${mkoctfile} -p ${var}`
    done
    AC_MSG_RESULT([$OCTAVE_LDFLAGS])
-   for octave_opt in --silent --norc --no-history --no-window-system; do
+
+fi
+
+# Check for Octave options
+if test -n "$OCTAVE"; then
+   for octave_opt in --no-window-system --silent --norc --no-history; do
       AC_MSG_CHECKING([if Octave option '${octave_opt}' is supported])
       octave_out=`${OCTAVE} ${octave_opt} /dev/null 2>&1 | sed -n '1p' | sed -n '/unrecognized/p'`
       AS_IF([test "x${octave_out}" = x],[
@@ -1896,7 +1937,56 @@ AC_SUBST(RUBYSO)
 AC_SUBST(RUBYDYNAMICLINKING)
 
 #-------------------------------------------------------------------------
-# Look for PHP
+# Look for PHP5
+#-------------------------------------------------------------------------
+
+PHP5BIN=
+
+AC_ARG_WITH(php5, AS_HELP_STRING([--without-php5], [Disable PHP5])
+AS_HELP_STRING([--with-php5=path], [Set location of PHP5 executable]),[ PHP5BIN="$withval"], [PHP5BIN="$alllang_default"])
+
+# First, check for "--without-php5" or "--with-php5=no".
+if test x"${PHP5BIN}" = xno; then
+    AC_MSG_NOTICE([Disabling PHP5])
+    PHP5=
+else
+    if test "x$PHP5BIN" = xyes; then
+      AC_CHECK_PROGS(PHP5, [php5 php])
+    else
+      PHP5=$PHP5BIN
+    fi
+
+    if test -n "$PHP5"; then
+      AC_MSG_CHECKING(for PHP5 header files)
+      dnl /usr/bin/php5 -> /usr/bin/php-config5
+      case $PHP5 in
+        *5)
+          PHP5CONFIG=`echo "$PHP5"|sed 's/5$/-config5/'` ;;
+        *)
+          PHP5CONFIG=$PHP5-config ;;
+      esac
+      php5_version=`$PHP5CONFIG --version 2>/dev/null`
+      case $php5_version in
+      5*)
+        PHP5INC=`$PHP5CONFIG --includes 2>/dev/null`
+        if test -n "$PHP5INC"; then
+          AC_MSG_RESULT($PHP5INC)
+        else
+          AC_MSG_RESULT(not found)
+        fi
+        ;;
+      "")
+        AC_MSG_RESULT([could not find $PHP5CONFIG or obtain PHP5 version from it]) ;;
+      *)
+        AC_MSG_RESULT([found PHP $php_version - not PHP 5]) ;;
+      esac
+    fi
+fi
+AC_SUBST(PHP5)
+AC_SUBST(PHP5INC)
+
+#-------------------------------------------------------------------------
+# Look for PHP7
 #-------------------------------------------------------------------------
 
 PHPBIN=
@@ -1909,36 +1999,37 @@ if test x"${PHPBIN}" = xno; then
     AC_MSG_NOTICE([Disabling PHP])
     PHP=
 else
-
     if test "x$PHPBIN" = xyes; then
-      AC_CHECK_PROGS(PHP, [php5 php])
+      AC_CHECK_PROGS(PHP, [php7.1 php7.0 php])
     else
       PHP=$PHPBIN
     fi
 
-    AC_MSG_CHECKING(for PHP header files)
-    dnl /usr/bin/php5 -> /usr/bin/php-config5
-    case $PHP in
-      *5)
-	PHPCONFIG=`echo "$PHP"|sed 's/5$/-config5/'` ;;
-      *)
-	PHPCONFIG=$PHP-config ;;
-    esac
-    php_version=`$PHPCONFIG --version 2>/dev/null`
-    case $php_version in
-    5*)
-	PHPINC=`$PHPCONFIG --includes 2>/dev/null`
-	if test -n "$PHPINC"; then
-	  AC_MSG_RESULT($PHPINC)
-	else
-	  AC_MSG_RESULT(not found)
-	fi
-	;;
-    "")
+    if test -n "$PHP"; then
+      AC_MSG_CHECKING(for PHP header files)
+      dnl /usr/bin/php7.0 -> /usr/bin/php-config7.0
+      case $PHP in
+        *7.*)
+          PHPCONFIG=`echo "$PHP"|sed 's/7\...*$/-config&/'` ;;
+        *)
+          PHPCONFIG=$PHP-config ;;
+      esac
+      php_version=`$PHPCONFIG --version 2>/dev/null`
+      case $php_version in
+      7.*)
+        PHPINC=`$PHPCONFIG --includes 2>/dev/null`
+        if test -n "$PHPINC"; then
+          AC_MSG_RESULT($PHPINC)
+        else
+          AC_MSG_RESULT(not found)
+        fi
+        ;;
+      "")
         AC_MSG_RESULT([could not find $PHPCONFIG or obtain PHP version from it]) ;;
-    *)
-	AC_MSG_RESULT([found PHP $php_version, but only PHP 5 is supported]) ;;
-    esac
+      *)
+        AC_MSG_RESULT([found PHP $php_version - not PHP 7]) ;;
+      esac
+    fi
 fi
 AC_SUBST(PHP)
 AC_SUBST(PHPINC)
@@ -2176,14 +2267,14 @@ else
 if test -z "$CSHARPCOMPILERBIN" ; then
   case $host in
   *-*-cygwin* | *-*-mingw*)
-    # prefer Mono gmcs (.NET 2.0) over mcs (.NET 1.1) - note mcs-1.2.3 has major pinvoke bug
-    AC_CHECK_PROGS(CSHARPCOMPILER, csc mono-csc gmcs mcs cscc)
+    # prefer unified Mono mcs compiler (not to be confused with the ancient .NET 1 mcs) over older/alternative names.
+    AC_CHECK_PROGS(CSHARPCOMPILER, csc mcs mono-csc gmcs cscc)
     if test -n "$CSHARPCOMPILER" && test "$CSHARPCOMPILER" = "csc" ; then
       AC_MSG_CHECKING(whether csc is the Microsoft CSharp compiler)
       csc 2>/dev/null | grep "C#" > /dev/null || CSHARPCOMPILER=""
       if test -z "$CSHARPCOMPILER" ; then
         AC_MSG_RESULT(no)
-        AC_CHECK_PROGS(CSHARPCOMPILER, mono-csc gmcs mcs cscc)
+        AC_CHECK_PROGS(CSHARPCOMPILER, mcs mono-csc gmcs cscc)
       else
         AC_MSG_RESULT(yes)
       fi
@@ -2756,6 +2847,13 @@ fi
 AC_SUBST(SKIP_PHP)
 
 
+SKIP_PHP5=
+if test -z "$PHP5" || test -z "$PHP5INC" ; then
+    SKIP_PHP5="1"
+fi
+AC_SUBST(SKIP_PHP5)
+
+
 SKIP_OCAML=
 if test -z "$OCAMLC" ; then
     SKIP_OCAML="1"
@@ -2955,6 +3053,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/octave/Makefile
     Examples/test-suite/perl5/Makefile
     Examples/test-suite/php/Makefile
+    Examples/test-suite/php5/Makefile
     Examples/test-suite/pike/Makefile
     Examples/test-suite/python/Makefile
     Examples/test-suite/ruby/Makefile
@@ -3029,6 +3128,7 @@ test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
 test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "
 test -n "$SKIP_PERL5"		|| langs="${langs}perl5 "
 test -n "$SKIP_PHP"		|| langs="${langs}php "
+test -n "$SKIP_PHP5"		|| langs="${langs}php5 "
 test -n "$SKIP_PIKE"		|| langs="${langs}pike "
 test -n "$SKIP_PYTHON"		|| langs="${langs}python "
 test -n "$SKIP_R"		|| langs="${langs}r "

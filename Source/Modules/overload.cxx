@@ -433,6 +433,7 @@ String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *
     int fn = 0;
     Node *ni = Getitem(dispatch, i);
     Parm *pi = Getattr(ni, "wrap:parms");
+    bool implicitconvtypecheckoff = GetFlag(ni, "implicitconvtypecheckoff") != 0;
     int num_required = emit_num_required(pi);
     int num_arguments = emit_num_arguments(pi);
     if (num_arguments > *maxargs)
@@ -476,6 +477,7 @@ String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *
 
 	String *tm = Getattr(pj, "tmap:typecheck");
 	if (tm) {
+	  tm = Copy(tm);
 	  /* normalise for comparison later */
 	  Replaceid(tm, Getattr(pj, "lname"), "_v");
 
@@ -528,13 +530,14 @@ String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *
 	    String *tmp = NewStringf(argv_template_string, j);
 
 	    String *conv = Getattr(pj, "implicitconv");
-	    if (conv) {
+	    if (conv && !implicitconvtypecheckoff) {
 	      Replaceall(tm, "$implicitconv", conv);
 	    } else {
 	      Replaceall(tm, "$implicitconv", "0");
 	    }
 	    Replaceall(tm, "$input", tmp);
 	    Printv(f, "{\n", tm, "}\n", NIL);
+	    Delete(tm);
 	    fn = i + 1;
 	    Printf(f, "if (!_v) goto check_%d;\n", fn);
 	    Printf(f, "_ranki += _v*_pi;\n");
@@ -574,6 +577,9 @@ String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *
     if (fn)
       Printf(f, "check_%d:\n\n", fn);
 
+    if (implicitconvtypecheckoff)
+      Delattr(ni, "implicitconvtypecheckoff");
+
     Delete(lfmt);
     Delete(coll);
   }
@@ -607,6 +613,7 @@ String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *
     int fn = 0;
     Node *ni = Getitem(dispatch, i);
     Parm *pi = Getattr(ni, "wrap:parms");
+    bool implicitconvtypecheckoff = GetFlag(ni, "implicitconvtypecheckoff") != 0;
     int num_required = emit_num_required(pi);
     int num_arguments = emit_num_arguments(pi);
     if (num_arguments > *maxargs)
@@ -646,6 +653,7 @@ String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *
 
 	String *tm = Getattr(pj, "tmap:typecheck");
 	if (tm) {
+	  tm = Copy(tm);
 	  /* normalise for comparison later */
 	  Replaceid(tm, Getattr(pj, "lname"), "_v");
 
@@ -699,13 +707,14 @@ String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *
 	    String *tmp = NewStringf(argv_template_string, j);
 
 	    String *conv = Getattr(pj, "implicitconv");
-	    if (conv) {
+	    if (conv && !implicitconvtypecheckoff) {
 	      Replaceall(tm, "$implicitconv", conv);
 	    } else {
 	      Replaceall(tm, "$implicitconv", "0");
 	    }
 	    Replaceall(tm, "$input", tmp);
 	    Printv(f, "{\n", tm, "}\n", NIL);
+	    Delete(tm);
 	    fn = i + 1;
 	    Printf(f, "if (!_v) goto check_%d;\n", fn);
 	  }
@@ -736,6 +745,9 @@ String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *
     Printf(f, "}\n");		/* braces closes "if" for this method */
     if (fn)
       Printf(f, "check_%d:\n\n", fn);
+
+    if (implicitconvtypecheckoff)
+      Delattr(ni, "implicitconvtypecheckoff");
 
     Delete(lfmt);
     Delete(coll);

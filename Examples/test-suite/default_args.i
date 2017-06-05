@@ -6,6 +6,10 @@
 #if defined(_MSC_VER)
   #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
 #endif
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
+#endif
 %}
 
 %include <std_string.i>
@@ -152,6 +156,9 @@
       int double_if_handle_is_null(int n, MyHandle h = 0) { return h ? n : 2*n; }
       int double_if_dbl_ptr_is_null(int n, double* null_by_default)
         { return null_by_default ? n : 2*n; }
+
+      void defaulted1(unsigned offset = -1U) {} // minus unsigned!
+      void defaulted2(int offset = -1U) {} // minus unsigned!
   };
   int Foo::bar = 1;
   int Foo::spam = 2;
@@ -305,3 +312,11 @@ struct CDA {
 };
 %}
 
+%{
+#if defined(_MSC_VER)
+  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic pop
+#endif
+%}

@@ -32,6 +32,7 @@ static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef ctorObject,
     size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
     SWIG_exception(SWIG_ERROR, "Class $jsname can not be instantiated");
+fail:
     return 0;
 }
 %}

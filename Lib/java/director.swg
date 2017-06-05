@@ -356,6 +356,10 @@ namespace Swig {
       }
     }
 
+    static void raise(JNIEnv *jenv, jthrowable throwable) {
+      throw DirectorException(jenv, throwable);
+    }
+
   private:
     static char *copypath(const char *srcmsg) {
       char *target = copystr(srcmsg);

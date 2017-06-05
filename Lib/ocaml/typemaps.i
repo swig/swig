@@ -368,4 +368,6 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }
+%apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
+%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 

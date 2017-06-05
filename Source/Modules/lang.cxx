@@ -81,7 +81,6 @@ extern int AddExtern;
 /* import modes */
 
 #define  IMPORT_MODE     1
-#define  IMPORT_MODULE   2
 
 /* ----------------------------------------------------------------------
  * Dispatcher::emit_one()
@@ -625,7 +624,8 @@ int Language::constantDirective(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::fragmentDirective(Node *n) {
-  Swig_fragment_register(n);
+  if (!(Getattr(n, "emitonly") && ImportMode))
+    Swig_fragment_register(n);
   return SWIG_OK;
 }
 
@@ -870,7 +870,7 @@ int Language::cDeclaration(Node *n) {
     } else {
       // Found an unignored templated method that has an empty template instantiation (%template())
       // Ignore it unless it has been %rename'd
-      if (Strncmp(symname, "__dummy_", 8) == 0) {
+      if (Strncmp(symname, "__dummy_", 8) == 0 && Cmp(storage, "typedef") != 0) {
 	SetFlag(n, "feature:ignore");
 	Swig_warning(WARN_LANG_TEMPLATE_METHOD_IGNORE, input_file, line_number,
 	    "%%template() contains no name. Template method ignored: %s\n", Swig_name_decl(n));
@@ -1145,7 +1145,9 @@ int Language::globalfunctionHandler(Node *n) {
     Delete(cbname);
   }
   Setattr(n, "parms", nonvoid_parms(parms));
-  String *call = Swig_cfunction_call(name, parms);
+
+  String *extendname = Getattr(n, "extendname");
+  String *call = Swig_cfunction_call(extendname ? extendname : name, parms);
   String *cres = Swig_cresult(type, Swig_cresult_name(), call);
   Setattr(n, "wrap:action", cres);
   Delete(cres);
@@ -1267,8 +1269,9 @@ int Language::memberfunctionHandler(Node *n) {
   if (GetFlag(n, "explicitcall"))
     DirectorExtraCall = CWRAP_DIRECTOR_ONE_CALL;
 
-  Swig_MethodToFunction(n, NSpace, ClassType, Getattr(n, "template") ? SmartPointer : Extend | SmartPointer | DirectorExtraCall, director_type,
-			is_member_director(CurrentClass, n));
+  int extendmember = GetFlag(n, "isextendmember") ? Extend : 0;
+  int flags = Getattr(n, "template") ? extendmember | SmartPointer : Extend | SmartPointer | DirectorExtraCall;
+  Swig_MethodToFunction(n, NSpace, ClassType, flags, director_type, is_member_director(CurrentClass, n));
   Setattr(n, "sym:name", fname);
 
   functionWrapper(n);
@@ -1321,7 +1324,10 @@ int Language::staticmemberfunctionHandler(Node *n) {
 
     if (!defaultargs && code) {
       /* Hmmm. An added static member.  We have to create a little wrapper for this */
-      Swig_add_extension_code(n, cname, parms, type, code, CPlusPlus, 0);
+      String *mangled_cname = Swig_name_mangle(cname);
+      Swig_add_extension_code(n, mangled_cname, parms, type, code, CPlusPlus, 0);
+      Setattr(n, "extendname", mangled_cname);
+      Delete(mangled_cname);
     }
   }
 
@@ -2785,7 +2791,9 @@ int Language::constructorHandler(Node *n) {
     Setattr(n, "handled_as_constructor", "1");
   }
 
-  Swig_ConstructorToFunction(n, NSpace, ClassType, none_comparison, director_ctor, CPlusPlus, Getattr(n, "template") ? 0 : Extend, DirectorClassName);
+  int extendmember = GetFlag(n, "isextendmember") ? Extend : 0;
+  int flags = Getattr(n, "template") ? extendmember : Extend;
+  Swig_ConstructorToFunction(n, NSpace, ClassType, none_comparison, director_ctor, CPlusPlus, flags, DirectorClassName);
   Setattr(n, "sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);

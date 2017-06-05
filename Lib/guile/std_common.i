@@ -14,7 +14,8 @@
 %{
 #include <string>
 
-inline std::string SWIG_scm2string(SCM x) {
+SWIGINTERNINLINE
+std::string SWIG_scm2string(SCM x) {
     char* temp;
     temp = SWIG_scm2str(x);
     std::string s(temp);

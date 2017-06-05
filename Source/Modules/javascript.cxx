@@ -462,10 +462,10 @@ int JAVASCRIPT::fragmentDirective(Node *n) {
   // and register them at the emitter.
   String *section = Getattr(n, "section");
 
-  if (Equal(section, "templates")) {
+  if (Equal(section, "templates") && !ImportMode) {
     emitter->registerTemplate(Getattr(n, "value"), Getattr(n, "code"));
   } else {
-    Swig_fragment_register(n);
+    return Language::fragmentDirective(n);
   }
 
   return SWIG_OK;
@@ -1354,6 +1354,11 @@ void JSEmitter::emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params) {
     }
   }
 
+  /* See if there is any return cleanup code */
+  if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+    Printf(wrapper->code, "%s\n", tm);
+    Delete(tm);
+  }
 }
 
 int JSEmitter::switchNamespace(Node *n) {
