@@ -5694,6 +5694,17 @@ The most important of these implement the mapping of C/C++ types to Java types:
 </tr>
 
 <tr>
+<td>jboxtype</td>
+<td>Java boxed type.
+  These are Java code typemaps to provide the Java boxed type, such as, <tt>Integer</tt> for C type <tt>int</tt>.
+    As autoboxing is only relevant to the Java primitive types, these are only provided for the
+    C types that map to Java primitive types.
+    This typemap is usually only used by C++ STL container wrappers that are wrapped by Java generic
+    types as the boxed type must be used instead of the unboxed/primitive type when declaring a Java generic type.
+    </td>
+</tr>
+
+<tr>
 <td>javadirectorin</td>
 <td>Conversion from jtype to jstype for director methods.
     These are Java code typemaps which transform the type used in the Java intermediary JNI class (as specified in the "jtype" typemap) to 
