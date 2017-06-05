@@ -600,8 +600,8 @@ CPP_STD_TEST_CASES += \
 	smart_pointer_inherit \
 	template_typedef_fnc \
 	template_type_namespace \
-	template_opaque
-#        li_std_list
+	template_opaque \
+        li_std_list
 
 
 ifndef SKIP_CPP_STD_CASES
