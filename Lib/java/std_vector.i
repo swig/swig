@@ -7,28 +7,16 @@
 %{
 #include <vector>
 #include <stdexcept>
-#include <climits>
-
-// C++ allows to have up to 2^64-1 items in a vector on 64 bit machines and
-// 2^32-1 even on 32 bit ones, but in Java size() must return a value of type
-// "int" which is limited to signed 32 bit values, i.e. 2^31-1, and there
-// doesn't seem to be any way to represent bigger vectors there.
-//
-// The only thing we can do is to at least detect such situation and throw an
-// exception instead of silently returning the wrong size in this case and we
-// use this helper to convert size_t values to int, instead of just casting
-// them, in order to achieve this.
-namespace {
-int size_as_int(std::size_t sz) {
-  if (sz > static_cast<std::size_t>(INT_MAX)) {
-    throw std::out_of_range("vector size is too big to be representable as int");
-  }
-
-  return static_cast<int>(sz);
-}
-} // anonymous namespace
-
 %}
+
+%fragment("SWIG_VectorSize", "header", fragment="SWIG_JavaIntFromSize_t") {
+SWIGINTERN jint SWIG_VectorSize(size_t size) {
+  jint sz = SWIG_JavaIntFromSize_t(size);
+  if (sz == -1)
+    throw std::out_of_range("vector size is too large to fit into a Java int");
+  return sz;
+}
+}
 
 %define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CTYPE, CREF_TYPE)
 %typemap(javabase) std::vector< CTYPE > "java.util.AbstractList<$typemap(jboxtype, CTYPE)>"
@@ -94,16 +82,17 @@ int size_as_int(std::size_t sz) {
     bool empty() const;
     void clear();
     %extend {
-      int doSize() const {
-        return size_as_int(self->size());
+      %fragment("SWIG_VectorSize");
+      jint doSize() const throw (std::out_of_range) {
+        return SWIG_VectorSize(self->size());
       }
 
       void doAdd(const value_type& value) {
         self->push_back(value);
       }
 
-      void doAdd(int index, const value_type& value) throw (std::out_of_range) {
-        const int size = size_as_int(self->size());
+      void doAdd(jint index, const value_type& value) throw (std::out_of_range) {
+        const jint size = SWIG_VectorSize(self->size());
         if (0 <= index && index <= size) {
           self->insert(self->begin() + index, value);
         } else {
@@ -111,8 +100,8 @@ int size_as_int(std::size_t sz) {
         }
       }
 
-      value_type doRemove(int index) throw (std::out_of_range) {
-        const int size = size_as_int(self->size());
+      value_type doRemove(jint index) throw (std::out_of_range) {
+        const jint size = SWIG_VectorSize(self->size());
         if (0 <= index && index < size) {
           CTYPE const old_value = (*self)[index];
           self->erase(self->begin() + index);
@@ -122,27 +111,27 @@ int size_as_int(std::size_t sz) {
         }
       }
 
-      CREF_TYPE doGet(int i) throw (std::out_of_range) {
-        const int size = size_as_int(self->size());
-        if (i>=0 && i<size)
-          return (*self)[i];
+      CREF_TYPE doGet(jint index) throw (std::out_of_range) {
+        const jint size = SWIG_VectorSize(self->size());
+        if (index >= 0 && index < size)
+          return (*self)[index];
         else
           throw std::out_of_range("vector index out of range");
       }
 
-      value_type doSet(int i, const value_type& value) throw (std::out_of_range) {
-        const int size = size_as_int(self->size());
-        if (i>=0 && i<size) {
-          CTYPE const old_value = (*self)[i];
-          (*self)[i] = value;
+      value_type doSet(jint index, const value_type& value) throw (std::out_of_range) {
+        const jint size = SWIG_VectorSize(self->size());
+        if (index >= 0 && index < size) {
+          CTYPE const old_value = (*self)[index];
+          (*self)[index] = value;
           return old_value;
         }
         else
           throw std::out_of_range("vector index out of range");
       }
 
-      void doRemoveRange(int fromIndex, int toIndex) throw (std::out_of_range) {
-        const int size = size_as_int(self->size());
+      void doRemoveRange(jint fromIndex, jint toIndex) throw (std::out_of_range) {
+        const jint size = SWIG_VectorSize(self->size());
         if (0 <= fromIndex && fromIndex <= toIndex && toIndex <= size) {
           self->erase(self->begin() + fromIndex, self->begin() + toIndex);
         } else {

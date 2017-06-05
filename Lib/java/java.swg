@@ -54,6 +54,14 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 }
 }
 
+%fragment("SWIG_JavaIntFromSize_t", "header") {
+/* Check for overflow converting to Java int (always signed 32-bit) from (unsigned variable-bit) size_t */
+SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
+  static const jint JINT_MAX = 0x7FFFFFFF;
+  return (size > (size_t)JINT_MAX) ? -1 : (jint)size;
+}
+}
+
 /* Primitive types */
 %typemap(jni) bool,               const bool &               "jboolean"
 %typemap(jni) char,               const char &               "jchar"
