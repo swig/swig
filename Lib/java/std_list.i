@@ -1,5 +1,4 @@
 %include <std_common.i>
-%include <autobox.i>
 
 %{
 #include <list>
@@ -61,7 +60,7 @@ namespace std {
      * interface and give "natural" semantics to Java users of the C++ iterator)
      */
     //%typemap(javaclassmodifiers) iterator "public class"
-    //%typemap(javainterfaces) iterator "ListIterator<$typemap(autobox,$1_basetype::value_type)>"
+    //%typemap(javainterfaces) iterator "ListIterator<$typemap(jboxtype,$1_basetype::value_type)>"
 
     struct iterator {
       %extend {
@@ -141,9 +140,9 @@ namespace std {
   import java.util.Collection;
 %}
 
-%typemap(javabase) std::list "AbstractSequentialList<$typemap(autobox,$1_basetype::value_type)>"
+%typemap(javabase) std::list "AbstractSequentialList<$typemap(jboxtype,$1_basetype::value_type)>"
 
-#define JAVA_VALUE_TYPE $typemap(autobox,$1_basetype::value_type)
+#define JAVA_VALUE_TYPE $typemap(jboxtype,$1_basetype::value_type)
 #define JAVA_ITERATOR_TYPE Iterator
 
 %typemap(javacode,noblock=1) std::list {
