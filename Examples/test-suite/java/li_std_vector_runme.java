@@ -110,5 +110,12 @@ public class li_std_vector_runme {
     if (v8.set(0, false) != true) throw new RuntimeException("v8 test (3) failed");;
     if (v8.set(0, false) != false) throw new RuntimeException("v8 test (4) failed");;
     if (v8.size() != 1) throw new RuntimeException("v8 test (5) failed");;
+
+    java.util.ArrayList<Boolean> bl = new java.util.ArrayList<Boolean>(java.util.Arrays.asList(true, false, true, false));
+    BoolVector bv = new BoolVector(java.util.Arrays.asList(true, false, true, false));
+    BoolVector bv2 = new BoolVector(bl);
+    java.util.ArrayList<Boolean> bl2 = new java.util.ArrayList<Boolean>(bv);
+    boolean bbb1 = bv.get(0);
+    Boolean bbb2 = bv.get(0);
   }
 }
