@@ -6,14 +6,14 @@
 
 %inline %{
 #ifdef SWIG
-#define CONST const
+#define SWIGTESTCONST const
 #else
-#define CONST
+#define SWIGTESTCONST
 #endif
 constexpr int AAA = 10;
 constexpr const int BBB = 20;
 constexpr int CCC() { return 30; }
-constexpr CONST int DDD() { return 40; }
+constexpr SWIGTESTCONST int DDD() { return 40; }
 
 constexpr int XXX() { return 10; }
 constexpr int YYY = XXX() + 100;
@@ -23,7 +23,7 @@ struct ConstExpressions {
   static constexpr int KKK = 200;
   static const int LLL = 300;
   constexpr int MMM() { return 400; }
-  constexpr CONST int NNN() { return 500; }
+  constexpr SWIGTESTCONST int NNN() { return 500; }
   // Regression tests for support added in SWIG 3.0.4:
   static constexpr const int JJJ1 = 101;
   constexpr static int KKK1 = 201;
