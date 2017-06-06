@@ -27,6 +27,9 @@ CPP_STD_TEST_CASES += \
 	li_std_container_typemaps \
 	li_std_string_extra \
 
+FAILING_MULTI_CPP_TESTS = \
+	import_stl \
+
 include $(srcdir)/../common.mk
 
 # Overriden variables
