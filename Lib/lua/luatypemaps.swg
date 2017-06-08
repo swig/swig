@@ -391,6 +391,9 @@ parameters match which function
 %apply unsigned long { size_t };
 %apply const unsigned long & { const size_t & };
 
+// ssize_t (which is just a signed long)
+%apply long { ssize_t };
+%apply const long & { const ssize_t & };
 
 /* -----------------------------------------------------------------------------
  *                          Specials
