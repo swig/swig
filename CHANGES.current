@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-06-13: olly
+	    [Perl] Fix testsuite to work without . in @INC - it was removed in
+	    Perl 5.26 for security reasons, and has also been removed from
+	    older versions in some distros.  Fixes
+	    https://github.com/swig/swig/issues/997 reported by lfam.
+
 2017-06-03: wsfulton
             Fix %import on a file containing a file scope %fragment forced inclusion to not
             generate the fragment contents as %import should not result in code being generated.

@@ -282,7 +282,7 @@ perl5_static_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 perl5_run:
-	$(RUNTOOL) $(PERL) $(PERL5_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(PERL) -I. $(PERL5_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
