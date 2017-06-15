@@ -36,6 +36,6 @@ func DeleteGoCallback(p GoCallback) {
 	p.deleteCallback()
 }
 
-func (p *goCallback) Run() {
+func (p *overwrittenMethodsOnCallback) Run() {
 	fmt.Println("GoCallback.Run")
 }
