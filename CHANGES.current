@@ -8,6 +8,10 @@ Version 4.0.0 (in progress)
 ===========================
 
 2017-06-16: wsfulton
+            Make sure warning and error messages are not split up by other processes writing to
+            stdout at the same time.
+
+2017-06-16: wsfulton
             [R] Fix wrapping function pointers containing rvalue and lvalue reference parameters.
 
 2017-06-13: olly

@@ -106,13 +106,16 @@ void Swig_warning(int wnum, const_String_or_char_ptr filename, int line, const c
   }
   if (warnall || wrn) {
     String *formatted_filename = format_filename(filename);
+    String *full_message = NewString("");
     if (wnum) {
-      Printf(stderr, wrn_wnum_fmt, formatted_filename, line, wnum);
+      Printf(full_message, wrn_wnum_fmt, formatted_filename, line, wnum);
     } else {
-      Printf(stderr, wrn_nnum_fmt, formatted_filename, line);
+      Printf(full_message, wrn_nnum_fmt, formatted_filename, line);
     }
-    Printf(stderr, "%s", msg);
+    Printf(full_message, "%s", msg);
+    Printv(stderr, full_message, NIL);
     nwarning++;
+    Delete(full_message);
     Delete(formatted_filename);
   }
   Delete(out);
@@ -128,6 +131,7 @@ void Swig_warning(int wnum, const_String_or_char_ptr filename, int line, const c
 void Swig_error(const_String_or_char_ptr filename, int line, const char *fmt, ...) {
   va_list ap;
   String *formatted_filename = NULL;
+  String *full_message = NULL;
 
   if (silence)
     return;
@@ -136,14 +140,17 @@ void Swig_error(const_String_or_char_ptr filename, int line, const char *fmt, ..
 
   va_start(ap, fmt);
   formatted_filename = format_filename(filename);
+  full_message = NewString("");
   if (line > 0) {
-    Printf(stderr, err_line_fmt, formatted_filename, line);
+    Printf(full_message, err_line_fmt, formatted_filename, line);
   } else {
-    Printf(stderr, err_eof_fmt, formatted_filename);
+    Printf(full_message, err_eof_fmt, formatted_filename);
   }
-  vPrintf(stderr, fmt, ap);
+  vPrintf(full_message, fmt, ap);
+  Printv(stderr, full_message, NIL);
   va_end(ap);
   nerrors++;
+  Delete(full_message);
   Delete(formatted_filename);
 }
 
