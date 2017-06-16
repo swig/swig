@@ -55,10 +55,11 @@ short && func(short &&i) { return std::move(i); }
 Thingy getit() { return Thingy(22, std::move(glob)); }
 
 void rvalrefFunction1(int &&v = (int &&)5) {}
-void rvalrefFunctionBYVAL(short (Thingy::*memFunc)(short)) {}
-void rvalrefFunctionLVALUE(short &(Thingy::*memFunc)(short &)) {}
-void rvalrefFunction2(short && (Thingy::*memFunc)(short &&)) {}
-void rvalrefFunction3(short && (*memFunc)(short &&)) {}
+void rvalrefFunctionBYVAL(short (Thingy::*fptr)(short)) {}
+void rvalrefFunctionPTR(short * (*fptr)(short *)) {}
+void rvalrefFunctionLVALUE(short & (Thingy::*fptr)(short &)) {}
+void rvalrefFunction2(short && (Thingy::*fptr)(short &&)) {}
+void rvalrefFunction3(short && (*fptr)(short &&)) {}
 
 template <typename T> struct RemoveReference {
      typedef T type;

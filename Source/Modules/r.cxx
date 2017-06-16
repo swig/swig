@@ -573,7 +573,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
     String *lname;
 
     if (!arg && Cmp(Getattr(p, "type"), "void")) {
-      lname = NewStringf("s_arg%d", i+1);
+      lname = NewStringf("arg%d", i+1);
       Setattr(p, "name", lname);
     } else
       lname = arg;
@@ -616,19 +616,25 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   for(i = 0; p; i++) {
     SwigType *tt = Getattr(p, "type");
     SwigType *name = Getattr(p, "name");
+    SwigType *swig_parm_name = NewStringf("swigarg_%s", name);
     String *tm = Getattr(p, "tmap:out");
-    Printf(f->def,  "%s %s", SwigType_str(tt, 0), name);
-     if(tm) {
-      Replaceall(tm, "$1", name);
-      if (SwigType_isreference(tt)) {
-	String *tmp = NewString("");
-        Append(tmp, "*");
-	Append(tmp, name);
-	Replaceall(tm, tmp, name);
+    bool isVoidParm = Strcmp(tt, "void") == 0;
+    if (isVoidParm)
+      Printf(f->def, "%s", SwigType_str(tt, 0));
+    else
+      Printf(f->def, "%s %s", SwigType_str(tt, 0), swig_parm_name);
+    if (tm) {
+      String *lstr = SwigType_lstr(tt, 0);
+      if (SwigType_isreference(tt) || SwigType_isrvalue_reference(tt)) {
+	Printf(f->code, "%s = (%s) &%s;\n", Getattr(p, "lname"), lstr, swig_parm_name);
+      } else if (!isVoidParm) {
+	Printf(f->code, "%s = (%s) %s;\n", Getattr(p, "lname"), lstr, swig_parm_name);
       }
+      Replaceall(tm, "$1", name);
       Replaceall(tm, "$result", "r_tmp");
       replaceRClass(tm, Getattr(p,"type"));
       Replaceall(tm,"$owner", "R_SWIG_EXTERNAL");
+      Delete(lstr);
     } 
     
     Printf(setExprElements, "%s\n", tm);
@@ -697,10 +703,13 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   Printv(f->code, "R_SWIG_popCallbackFunctionData(1);\n", NIL);
   Printv(f->code, "\n", UnProtectWrapupCode, NIL);
 
-  if (SwigType_isreference(rettype)) {  
+  if (SwigType_isreference(rettype)) {
     Printv(f->code,  "return *", Swig_cresult_name(), ";\n", NIL);
-  } else if(!isVoidType)
+  } else if (SwigType_isrvalue_reference(rettype)) {
+    Printv(f->code,  "return std::move(*", Swig_cresult_name(), ");\n", NIL);
+  } else if (!isVoidType) {
     Printv(f->code,  "return ", Swig_cresult_name(), ";\n", NIL);
+  }
   
   Printv(f->code, "\n}\n", NIL);
   Replaceall(f->code, "SWIG_exception_fail", "SWIG_exception_noreturn");
