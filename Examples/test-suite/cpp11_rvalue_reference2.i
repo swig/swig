@@ -51,7 +51,7 @@ int glob = 123;
 
 Thingy &&globalrrval = Thingy(55, std::move(glob));
 
-short && func(short &&i) { return std::move(i); }
+short && funk(short &&i) { return std::move(i); }
 Thingy getit() { return Thingy(22, std::move(glob)); }
 
 void rvalrefFunction1(int &&v = (int &&)5) {}

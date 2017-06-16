@@ -23,7 +23,7 @@ namespace simuPOP
     {
     }
     
-    virtual int func() const 
+    virtual int funk() const 
     { return m_pop.m_a; }
   };
 
@@ -32,7 +32,7 @@ namespace simuPOP
   struct DerivedOperator: public Operator<Pop>
   {
     DerivedOperator(int a):Operator<Pop>(a){}
-    virtual int func() const 
+    virtual int funk() const 
     { return 2*this->m_pop.m_a; }
   };
 
@@ -90,7 +90,7 @@ namespace simuPOP
   void test( const std::vector< Operator<pop>*>& para)
   {
     for( size_t i =0; i < para.size(); ++i)
-    para[i]->func();
+    para[i]->funk();
   }
 }
 }
