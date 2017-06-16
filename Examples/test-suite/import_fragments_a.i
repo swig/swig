@@ -1,4 +1,7 @@
+#if !defined(SWIGGO)
+// Prevent Go from generating a Go module import - this test is not set up as true multiple modules
 %module import_fragments_a
+#endif
 
 %fragment("ImportA1", "header") %{
 ImportA1_this_will_not_compile;

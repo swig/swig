@@ -38,9 +38,6 @@ CPP_TEST_CASES = \
 MULTI_CPP_TEST_CASES = \
 	go_subdir_import
 
-FAILING_CPP_TESTS = \
-	import_fragments \
-
 include $(srcdir)/../common.mk
 
 INCLUDES = -I$(abs_top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
