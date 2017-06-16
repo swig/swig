@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-06-17: fabrice102
+            [Go] Fix Go callback example.  Fixes github #600, #955, #1000.
+
 2017-06-16: wsfulton
             Make sure warning and error messages are not split up by other processes writing to
             stdout at the same time.
