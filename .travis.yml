@@ -237,6 +237,10 @@ matrix:
       sudo: required
       dist: trusty
     - os: linux
+      env: SWIGLANG=r CPP11=1 # Note: making 'R CMD SHLIB' use a different compiler is non-trivial
+      sudo: required
+      dist: trusty
+    - os: linux
       env: SWIGLANG=ruby SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
       sudo: required
       dist: trusty
