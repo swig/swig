@@ -1,0 +1,3 @@
+#if !defined(MYNAME)
+#define MYNAME "@MYNAME@@EXEEXT@"
+#endif

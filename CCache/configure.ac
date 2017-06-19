@@ -7,6 +7,7 @@ AC_CONFIG_SRCDIR([ccache.h])
 AC_MSG_NOTICE([Configuring ccache])
 
 AC_CONFIG_HEADER(config.h)
+AC_CONFIG_FILES([config_w32.h])
 
 dnl Checks for programs.
 AC_PROG_CC
