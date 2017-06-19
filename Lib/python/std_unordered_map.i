@@ -53,7 +53,7 @@
       static PyObject *from(const unordered_map_type& unordered_map) {
 	swig_type_info *desc = swig::type_info<unordered_map_type>();
 	if (desc && desc->clientdata) {
-	  return SWIG_NewPointerObj(new unordered_map_type(unordered_map), desc, SWIG_POINTER_OWN);
+	  return SWIG_InternalNewPointerObj(new unordered_map_type(unordered_map), desc, SWIG_POINTER_OWN);
 	} else {
 	  size_type size = unordered_map.size();
 	  Py_ssize_t pysize = (size <= (size_type) INT_MAX) ? (Py_ssize_t) size : -1;

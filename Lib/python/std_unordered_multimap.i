@@ -50,7 +50,7 @@
       static PyObject *from(const unordered_multimap_type& unordered_multimap) {
 	swig_type_info *desc = swig::type_info<unordered_multimap_type>();
 	if (desc && desc->clientdata) {
-	  return SWIG_NewPointerObj(new unordered_multimap_type(unordered_multimap), desc, SWIG_POINTER_OWN);
+	  return SWIG_InternalNewPointerObj(new unordered_multimap_type(unordered_multimap), desc, SWIG_POINTER_OWN);
 	} else {
 	  size_type size = unordered_multimap.size();
 	  Py_ssize_t pysize = (size <= (size_type) INT_MAX) ? (Py_ssize_t) size : -1;
