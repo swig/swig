@@ -7,6 +7,27 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-06-19: wsfulton
+            [Python] Fix handling of rich comparisons when wrapping overloaded operators:
+
+              operator<  operator<=  operator>  operator>=  operator==  operator!=
+
+            Previously a TypeError was always thrown if the type was not correct. NotImplemented
+            is now returned from these wrapped functions if the type being compared with is
+            not correct. The subsequent behaviour varies between different versions of Python
+            and the comparison function being used, but is now consistent with normal Python
+            behaviour. For example, for the first 4 operator overloads above, a TypeError
+            'unorderable types' is thrown in Python 3, but Python 2 will return True or False.
+            NotImplemented should be returned when the comparison cannot be done, see PEP 207 and
+            https://docs.python.org/3/library/constants.html#NotImplemented
+
+            Note that the bug was only present when overloaded operators did not also have a
+            function overload.
+
+            Fixes SF bug #1208 (3441262) and SF patch #303.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2017-06-17: fabrice102
             [Go] Fix Go callback example.  Fixes github #600, #955, #1000.
 

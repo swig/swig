@@ -2573,8 +2573,8 @@ public:
 
     if (GetFlag(n, "feature:python:maybecall")) {
       Append(f->code, "fail:\n");
-      Append(f->code, "Py_INCREF(Py_NotImplemented);\n");
-      Append(f->code, "return Py_NotImplemented;\n");
+      Append(f->code, "  Py_INCREF(Py_NotImplemented);\n");
+      Append(f->code, "  return Py_NotImplemented;\n");
     } else {
       Node *sibl = n;
       while (Getattr(sibl, "sym:previousSibling"))
@@ -2586,7 +2586,7 @@ public:
 	Delete(fulldecl);
       } while ((sibl = Getattr(sibl, "sym:nextSibling")));
       Append(f->code, "fail:\n");
-      Printf(f->code, "SWIG_SetErrorMsg(PyExc_NotImplementedError,"
+      Printf(f->code, "  SWIG_SetErrorMsg(PyExc_NotImplementedError,"
 	     "\"Wrong number or type of arguments for overloaded function '%s'.\\n\"" "\n\"  Possible C/C++ prototypes are:\\n\"%s);\n", symname, protoTypes);
       Printf(f->code, "return %s;\n", builtin_ctor ? "-1" : "0");
       Delete(protoTypes);
@@ -3211,10 +3211,17 @@ public:
     if (need_cleanup) {
       Printv(f->code, cleanup, NIL);
     }
-    if (builtin_ctor)
+    if (builtin_ctor) {
       Printv(f->code, "  return -1;\n", NIL);
-    else
-      Printv(f->code, "  return NULL;\n", NIL);
+    } else {
+      if (GetFlag(n, "feature:python:maybecall")) {
+	Append(f->code, "  PyErr_Clear();\n");
+	Append(f->code, "  Py_INCREF(Py_NotImplemented);\n");
+	Append(f->code, "  return Py_NotImplemented;\n");
+      } else {
+        Printv(f->code, "  return NULL;\n", NIL);
+      }
+    }
 
 
     if (funpack) {
