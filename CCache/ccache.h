@@ -51,8 +51,6 @@
 #define STATUS_FATAL 4
 #define STATUS_NOCACHE 5
 
-#define MYNAME PACKAGE_NAME
-
 #define LIMIT_MULTIPLE 0.8
 
 /* default maximum cache size */

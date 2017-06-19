@@ -14,6 +14,20 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_ARG_PROGRAM # for program_transform_name
 
+AC_SUBST(MYNAME)
+if test "x$program_prefix" != "xNONE" -a "x$program_prefix" != "x" 
+then
+	MYNAME="$program_prefix$PACKAGE_NAME"
+else
+	MYNAME="$PACKAGE_NAME"
+fi
+if test "x$program_suffix" != "xNONE" -a "x$program_suffix" != "x" 
+then
+	MYNAME="$MYNAME$program_suffix"
+fi
+
+AC_DEFINE_UNQUOTED(MYNAME, "$MYNAME", [Define my program name])
+   
 AC_DEFINE([_GNU_SOURCE], 1,
           [Define _GNU_SOURCE so that we get all necessary prototypes])
 
