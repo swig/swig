@@ -1,3 +1,0 @@
-#if !defined(MYNAME)
-#define MYNAME "@MYNAME@.exe"
-#endif

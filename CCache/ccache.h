@@ -6,7 +6,7 @@
 #include "config.h"
 #else
 #include <sys/locking.h>
-#include "config_w32.h"
+#include "config_win32.h"
 #endif
 
 #include <stdio.h>
@@ -50,6 +50,8 @@
 #define STATUS_NOTFOUND 3
 #define STATUS_FATAL 4
 #define STATUS_NOCACHE 5
+
+#define MYNAME PROGRAM_NAME
 
 #define LIMIT_MULTIPLE 0.8
 
