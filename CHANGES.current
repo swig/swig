@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-06-21: tamuratak
+            [Ruby] #911 - Add std::wstring support.
+
 2017-06-19: wsfulton
             [Python] Fix handling of rich comparisons when wrapping overloaded operators:
 
