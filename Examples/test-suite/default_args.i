@@ -5,6 +5,7 @@
 %{
 #if defined(_MSC_VER)
   #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+  #pragma warning(disable: 4146) // unary minus operator applied to unsigned type, result still unsigned
 #endif
 #if __GNUC__ >= 7
   #pragma GCC diagnostic push
