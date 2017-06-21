@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-06-21: futatuki
+            #1004 - Fix ccache-swig executable name to respect configure's --program-prefix and
+            --program-suffix values if used.
+
 2017-06-21: tamuratak
             [Ruby] #911 - Add std::wstring support.
 
