@@ -20,7 +20,12 @@ fi
 PATH="`echo $PATH | \
  sed -e 's!:/usr\(/local\)*/lib\([0-9]\)*/ccache\(/\)*!!g'`"
 
-CCACHE=../ccache-swig
+if test -n "$CCACHE"; then
+ CCACHE="$CCACHE"
+else
+ CCACHE=../ccache-swig
+fi
+
 TESTDIR=test.$$
 
 test_failed() {
