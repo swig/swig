@@ -99,7 +99,7 @@ CPP_TEST_BROKEN += \
 
 # Broken C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_BROKEN += \
-	tag_no_clash_with_variable
+	tag_no_clash_with_variable \
 
 # C++ test cases. (Can be run individually using: make testcase.cpptest)
 CPP_TEST_CASES += \
@@ -533,7 +533,7 @@ CPP_TEST_CASES += \
 	virtual_vs_nonvirtual_base \
 	voidtest \
 	wallkw \
-	wrapmacro
+	wrapmacro \
 
 # C++11 test cases.
 CPP11_TEST_CASES += \
@@ -601,8 +601,6 @@ CPP_STD_TEST_CASES += \
 	template_typedef_fnc \
 	template_type_namespace \
 	template_opaque \
-        li_std_list
-
 
 ifndef SKIP_CPP_STD_CASES
 CPP_TEST_CASES += ${CPP_STD_TEST_CASES}
@@ -666,7 +664,7 @@ C_TEST_CASES += \
 	typedef_struct \
 	typemap_subst \
 	union_parameter \
-	unions
+	unions \
 
 
 # Multi-module C++ test cases . (Can be run individually using make testcase.multicpptest)
@@ -677,7 +675,7 @@ MULTI_CPP_TEST_CASES += \
 	packageoption \
 	mod \
 	template_typedef_import \
-	multi_import
+	multi_import \
 
 # Custom tests - tests with additional commandline options
 wallkw.cpptest: SWIGOPT += -Wallkw
