@@ -16,11 +16,6 @@ SWIGINTERN jint SWIG_ListSize(size_t size) {
 
 %javamethodmodifiers std::list::begin "private";
 %javamethodmodifiers std::list::insert "private";
-%javamethodmodifiers std::list::set "private";
-%javamethodmodifiers std::list::previous "private";
-%javamethodmodifiers std::list::next "private";
-%javamethodmodifiers std::list::deref "private";
-%javamethodmodifiers std::list::advance "private";
 %javamethodmodifiers std::list::doSize "private";
 %javamethodmodifiers std::list::doPreviousIndex "private";
 %javamethodmodifiers std::list::doNextIndex "private";
