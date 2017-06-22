@@ -26,11 +26,10 @@ SWIGINTERN jint SWIG_ListSize(size_t size) {
 
 %nodefaultctor std::list::iterator;
 
-%typemap(javabase) std::list "java.util.AbstractSequentialList<$typemap(jboxtype, $1_basetype::value_type)>"
-
 namespace std {
   template <typename T> class list {
 
+%typemap(javabase) std::list< T > "java.util.AbstractSequentialList<$typemap(jboxtype, T)>"
 %proxycode %{
   public $javaclassname(java.util.Collection c) {
     this();
