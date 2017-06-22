@@ -26,22 +26,15 @@ SWIGINTERN jint SWIG_ListSize(size_t size) {
 
 %nodefaultctor std::list::iterator;
 
-%typemap(javaimports) std::list %{
-  import java.util.AbstractSequentialList;
-  import java.util.ListIterator;
-  import java.util.NoSuchElementException;
-  import java.util.Collection;
-%}
-
-%typemap(javabase) std::list "AbstractSequentialList<$typemap(jboxtype, $1_basetype::value_type)>"
+%typemap(javabase) std::list "java.util.AbstractSequentialList<$typemap(jboxtype, $1_basetype::value_type)>"
 
 namespace std {
   template <typename T> class list {
 
 %proxycode %{
-  public $javaclassname(Collection c) {
+  public $javaclassname(java.util.Collection c) {
     this();
-    ListIterator<$typemap(jboxtype, T)> it = listIterator(0);
+    java.util.ListIterator<$typemap(jboxtype, T)> it = listIterator(0);
     // Special case the "copy constructor" here to avoid lots of cross-language calls
     for (Object o : c) {
       it.add(($typemap(jboxtype, T))o);
@@ -52,12 +45,12 @@ namespace std {
     return doSize();
   }
 
-  public ListIterator<$typemap(jboxtype, T)> listIterator(int index) {
-    return new ListIterator<$typemap(jboxtype, T)>() {
+  public java.util.ListIterator<$typemap(jboxtype, T)> listIterator(int index) {
+    return new java.util.ListIterator<$typemap(jboxtype, T)>() {
       private Iterator pos;
       private Iterator last;
 
-      private ListIterator<$typemap(jboxtype, T)> init(int index) {
+      private java.util.ListIterator<$typemap(jboxtype, T)> init(int index) {
         pos = $javaclassname.this.begin();
 	pos = pos.advance_unchecked(index);
         return this;
@@ -93,7 +86,7 @@ namespace std {
 
       public $typemap(jboxtype, T) previous() {
         if (previousIndex() < 0) {
-          throw new NoSuchElementException();
+          throw new java.util.NoSuchElementException();
         }
         last = pos;
         pos = pos.previous_unchecked();
@@ -102,7 +95,7 @@ namespace std {
 
       public $typemap(jboxtype, T) next() {
         if (!hasNext()) {
-          throw new NoSuchElementException();
+          throw new java.util.NoSuchElementException();
         }
         last = pos;
         pos = pos.next_unchecked();
@@ -133,7 +126,7 @@ namespace std {
      * interface and give "natural" semantics to Java users of the C++ iterator)
      */
     //%typemap(javaclassmodifiers) iterator "public class"
-    //%typemap(javainterfaces) iterator "ListIterator<$typemap(jboxtype, $1_basetype::value_type)>"
+    //%typemap(javainterfaces) iterator "java.util.ListIterator<$typemap(jboxtype, $1_basetype::value_type)>"
 
     struct iterator {
       %extend {
