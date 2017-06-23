@@ -7,6 +7,27 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-06-23: m7thon
+            [Python] fix and improve default argument handling:
+
+            1. Fix negative octals. Currently not handled correctly by `-py3`
+               (unusual case, but incorrect).
+            2. Fix arguments of type "octal + something" (e.g. `0640 | 04`).
+               Currently drops everything after the first octal. Nasty!
+            3. Fix bool arguments "0 + something" (e.g. `0 | 1`) are always
+               "False" (unusual case, but incorrect).
+            4. Remove special handling of "TRUE" and "FALSE" from
+               `convertValue` since there's no reason these have to match
+               "true" and "false".
+            5. Remove the Python 2 vs. Python 3 distinction based on the
+               `-py3` flag. Now the same python code is produced for default
+               arguments for Python 2 and Python 3. For this, octal default
+               arguments, e.g. 0644, are now wrapped as `int('644', 8)`. This
+               is required, as Python 2 and Python 3 have incompatible syntax
+               for octal literals.
+
+            Fixes #707
+
 2017-06-21: futatuki
             #1004 - Fix ccache-swig executable name to respect configure's --program-prefix and
             --program-suffix values if used.
