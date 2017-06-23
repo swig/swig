@@ -22,7 +22,20 @@ public class li_std_list_runme {
     if (v1.size() != 1) throw new RuntimeException("v1 test (4) failed");
     if (v1.isEmpty()) throw new RuntimeException("v1 test (5) failed");
 
+    int sum = 0;
+    for (int n : v1) {
+      if (n != 123) throw new RuntimeException("v1 loop test failed");
+      sum += n;
+    }
+    if (sum != 123) throw new RuntimeException("v1 sum test failed");
     if (v1.get(0) != 123) throw new RuntimeException("v1 test failed");
+    v1.clear();
+    if (!v1.isEmpty()) throw new RuntimeException("v1 test clear failed");
+    v1.add(123);
+
+    if (v1.set(0, 456) != 123) throw new RuntimeException("v1 test (6) failed");
+    if (v1.size() != 1) throw new RuntimeException("v1 test (7) failed");
+    if (v1.get(0) != 456) throw new RuntimeException("v1 test (8) failed");
 
     StructList v4 = new StructList();
     StructPtrList v5 = new StructPtrList();

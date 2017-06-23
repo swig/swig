@@ -17,15 +17,23 @@ public class li_std_vector_runme {
     IntPtrVector v2 = li_std_vector.vecintptr(new IntPtrVector());
     IntConstPtrVector v3 = li_std_vector.vecintconstptr(new IntConstPtrVector());
 
-    for (int n : v1) {
-        if (n != 123) throw new RuntimeException("v1 loop test failed");
-    }
-
     if (!v1.isEmpty()) throw new RuntimeException("v1 test (1) failed");
     if (v1.size() != 0) throw new RuntimeException("v1 test (2) failed");
     if (!v1.add(123)) throw new RuntimeException("v1 test (3) failed");
     if (v1.size() != 1) throw new RuntimeException("v1 test (4) failed");
     if (v1.isEmpty()) throw new RuntimeException("v1 test (5) failed");
+
+    int sum = 0;
+    for (int n : v1) {
+      if (n != 123) throw new RuntimeException("v1 loop test failed");
+      sum += n;
+    }
+    if (sum != 123) throw new RuntimeException("v1 sum test failed");
+    if (v1.get(0) != 123) throw new RuntimeException("v1 test failed");
+    v1.clear();
+    if (!v1.isEmpty()) throw new RuntimeException("v1 test clear failed");
+    v1.add(123);
+
     if (v1.set(0, 456) != 123) throw new RuntimeException("v1 test (6) failed");
     if (v1.size() != 1) throw new RuntimeException("v1 test (7) failed");
     if (v1.get(0) != 456) throw new RuntimeException("v1 test (8) failed");
@@ -59,13 +67,13 @@ public class li_std_vector_runme {
     if (v6.get(0).getNum() != 56) throw new RuntimeException("v6 test failed");
 
     for (Struct s : v4) {
-        if (s.getNum() != 12) throw new RuntimeException("v4 loop test failed");
+      if (s.getNum() != 12) throw new RuntimeException("v4 loop test failed");
     }
     for (Struct s : v5) {
-        if (s.getNum() != 34) throw new RuntimeException("v5 loop test failed");
+      if (s.getNum() != 34) throw new RuntimeException("v5 loop test failed");
     }
     for (Struct s : v6) {
-        if (s.getNum() != 56) throw new RuntimeException("v6 loop test failed");
+      if (s.getNum() != 56) throw new RuntimeException("v6 loop test failed");
     }
 
     StructVector v7 = li_std_vector.vecstruct(new StructVector());
