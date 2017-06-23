@@ -1874,6 +1874,7 @@ public:
 	String *new_value = convertValue(value, Getattr(p, "type"));
 	if (new_value)
 	  Printf(doc, "=%s", new_value);
+	Delete(new_value);
       }
       Delete(type_str);
       Delete(made_name);
@@ -2090,7 +2091,7 @@ public:
       Delete(octal_string);
       return result;
     }
-    result = *end == '\0' ? v : NewStringWithSize(s, (int) (end - s));
+    result = *end == '\0' ? Copy(v) : NewStringWithSize(s, (int) (end - s));
     return result;
   }
 
@@ -2132,7 +2133,7 @@ public:
 
       // Avoid unnecessary string allocation in the common case when we don't
       // need to remove any suffix.
-      return *end == '\0' ? v : NewStringWithSize(s, (int)(end - s));
+      return *end == '\0' ? Copy(v) : NewStringWithSize(s, (int)(end - s));
     }
 
     return NIL;
@@ -2167,7 +2168,7 @@ public:
 	  Node *lookup = Swig_symbol_clookup(v, 0);
 	  if (lookup) {
 	    if (Cmp(Getattr(lookup, "nodeType"), "enumitem") == 0)
-	      result = Getattr(lookup, "sym:name");
+	      result = Copy(Getattr(lookup, "sym:name"));
 	  }
 	}
       }
@@ -2214,10 +2215,12 @@ public:
       if (Getattr(p, "tmap:default"))
 	return false;
 
-      if (String *value = Getattr(p, "value")) {
-	String *type = Getattr(p, "type");
-	if (!convertValue(value, type))
+      String *value = Getattr(p, "value");
+      if (value) {
+	String *convertedValue = convertValue(value, Getattr(p, "type"));
+	if (!convertedValue)
 	  return false;
+	Delete(convertedValue);
       }
     }
 
