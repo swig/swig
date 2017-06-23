@@ -2732,7 +2732,8 @@ void MATLAB::createSwigRef() {
   Printf(f_wrap_m, "  end\n");
   Printf(f_wrap_m, "  methods\n");
   Printf(f_wrap_m, "    function out = saveobj(self)\n");
-  Printf(f_wrap_m, "      error('Serializing SWIG objects not supported.')\n");
+  Printf(f_wrap_m, "      warning('Serializing SWIG objects not supported.');\n");
+  Printf(f_wrap_m, "      out = saveobj('Serializing SWIG object not supported');\n");
   Printf(f_wrap_m, "    end\n");
   Printf(f_wrap_m, "    function b = isnull(self)\n");
   Printf(f_wrap_m, "      b = isempty(self.swigPtr);\n");
@@ -2742,6 +2743,12 @@ void MATLAB::createSwigRef() {
   Printf(f_wrap_m, "    end\n");
   Printf(f_wrap_m, "    function ptr = SwigGet(self)\n");
   Printf(f_wrap_m, "        ptr = self.swigPtr;\n");
+  Printf(f_wrap_m, "    end\n");
+  Printf(f_wrap_m, "  end\n");
+  Printf(f_wrap_m, "   methods(Static)\n");
+  Printf(f_wrap_m, "    function obj = loadobj(s)\n");
+  Printf(f_wrap_m, "      warning('Serializing SWIG objects not supported.');\n");
+  Printf(f_wrap_m, "      obj = SwigRef.Null();\n");
   Printf(f_wrap_m, "    end\n");
   Printf(f_wrap_m, "  end\n");
   Printf(f_wrap_m, "end\n");
