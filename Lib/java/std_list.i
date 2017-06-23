@@ -125,11 +125,11 @@ namespace std {
      * interface and give "natural" semantics to Java users of the C++ iterator)
      */
     //%typemap(javaclassmodifiers) iterator "public class"
-    //%typemap(javainterfaces) iterator "java.util.ListIterator<$typemap(jboxtype, $1_basetype::value_type)>"
+    //%typemap(javainterfaces) iterator "java.util.ListIterator<$typemap(jboxtype, T)>"
 
     struct iterator {
       %extend {
-	void set_unchecked(const value_type &v) {
+	void set_unchecked(const T &v) {
 	  **$self = v;
 	}
 
@@ -145,7 +145,7 @@ namespace std {
 	  return ret;
 	}
 
-	value_type deref_unchecked() const {
+	T deref_unchecked() const {
 	  return **$self;
 	}
 
@@ -158,10 +158,10 @@ namespace std {
     };
 
     list();
-    list(size_type n, const value_type &value = value_type());
-    list(const list &o);
+    list(size_type n, const T &value = T());
+    list(const list &other);
     ~list();
-    void assign(size_type n, const value_type &val);
+    void assign(size_type n, const T &value);
     %rename(isEmpty) empty;
     bool empty() const;
     void clear();
@@ -170,11 +170,11 @@ namespace std {
     size_type max_size() const;
     void pop_back();
     void pop_front();
-    void push_back(const value_type &x);
-    void push_front(const value_type &x);
+    void push_back(const T &value);
+    void push_front(const T &value);
     iterator begin();
     iterator end();
-    iterator insert(iterator pos, const value_type &v);
+    iterator insert(iterator pos, const T &value);
 
     %extend {
       %fragment("SWIG_ListSize");
