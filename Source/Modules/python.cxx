@@ -2047,14 +2047,18 @@ public:
     if (errno == ERANGE || end == s)
       return NIL;
     if (*end != '\0') {
-      // If there is a suffix after the number, we can safely ignore any
-      // combination of "l" and "u", but not anything else.
+      // If there is a suffix after the number, we can safely ignore "l"
+      // and (provided the number is unsigned) "u", and also combinations of
+      // these, but not anything else.
       for (char *p = end; *p != '\0'; ++p) {
         switch (*p) {
           case 'l':
           case 'L':
+	    break;
           case 'u':
           case 'U':
+	    if (value < 0)
+	      return NIL;
             break;
           default:
             return NIL;
