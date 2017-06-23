@@ -162,6 +162,7 @@ namespace std {
     list(const list &o);
     ~list();
     void assign(size_type n, const value_type &val);
+    %rename(isEmpty) empty;
     bool empty() const;
     size_type max_size() const;
     void pop_back();
