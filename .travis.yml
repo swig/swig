@@ -169,6 +169,10 @@ matrix:
       env: SWIGLANG=python SWIG_FEATURES=-builtin SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
       sudo: required
       dist: trusty
+    - os: linux
+      env: SWIGLANG=python SWIG_FEATURES=-builtin SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1 PY3=3 VER=3.5
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.4
