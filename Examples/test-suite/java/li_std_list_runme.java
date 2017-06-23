@@ -37,6 +37,22 @@ public class li_std_list_runme {
     if (v1.size() != 1) throw new RuntimeException("v1 test (7) failed");
     if (v1.get(0) != 456) throw new RuntimeException("v1 test (8) failed");
 
+    java.util.Iterator<Integer> v1_iterator = v1.iterator();
+    if (!v1_iterator.hasNext()) throw new RuntimeException("v1 test (9) failed");
+    if (v1_iterator.next() != 456) throw new RuntimeException("v1 test (10) failed");
+    if (v1_iterator.hasNext()) throw new RuntimeException("v1 test (11) failed");
+    try {
+      v1_iterator.next();
+      throw new RuntimeException("v1 test (12) failed");
+    } catch (java.util.NoSuchElementException e) {
+    }
+
+    if (v1.remove(new Integer(123))) throw new RuntimeException("v1 test (13) failed");
+    if (!v1.remove(new Integer(456))) throw new RuntimeException("v1 test (14) failed");
+    if (!v1.isEmpty()) throw new RuntimeException("v1 test (15) failed");
+    if (v1.size() != 0) throw new RuntimeException("v1 test (16) failed");
+    if (v1.remove(new Integer(456))) throw new RuntimeException("v1 test (17) failed");
+
     StructList v4 = new StructList();
     StructPtrList v5 = new StructPtrList();
     StructConstPtrList v6 = new StructConstPtrList();

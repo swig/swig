@@ -165,6 +165,8 @@ namespace std {
     %rename(isEmpty) empty;
     bool empty() const;
     void clear();
+    %rename(remove) erase;
+    iterator erase(iterator pos);
     size_type max_size() const;
     void pop_back();
     void pop_front();
