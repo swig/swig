@@ -177,13 +177,13 @@ namespace std {
 
     %extend {
       %fragment("SWIG_ListSize");
-      list(jint count) {
+      list(jint count) throw (std::out_of_range) {
         if (count < 0)
           throw std::out_of_range("list count must be positive");
         return new std::list<T>(static_cast<std::list<T>::size_type>(count));
       }
 
-      list(jint count, const T &value) {
+      list(jint count, const T &value) throw (std::out_of_range) {
         if (count < 0)
           throw std::out_of_range("list count must be positive");
         return new std::list<T>(static_cast<std::list<T>::size_type>(count), value);
@@ -193,11 +193,11 @@ namespace std {
         return SWIG_ListSize(self->size());
       }
 
-      jint doPreviousIndex(const iterator &pos) const {
+      jint doPreviousIndex(const iterator &pos) const throw (std::out_of_range) {
         return pos == self->begin() ? -1 : SWIG_ListSize(std::distance(self->begin(), static_cast<std::list<T>::const_iterator>(pos)));
       }
 
-      jint doNextIndex(const iterator &pos) const {
+      jint doNextIndex(const iterator &pos) const throw (std::out_of_range) {
         return pos == self->end() ? self->size() : SWIG_ListSize(std::distance(self->begin(), static_cast<std::list<T>::const_iterator>(pos)));
       }
 

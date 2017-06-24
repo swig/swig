@@ -83,13 +83,13 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
     void clear();
     %extend {
       %fragment("SWIG_VectorSize");
-      vector(jint count) {
+      vector(jint count) throw (std::out_of_range) {
         if (count < 0)
           throw std::out_of_range("vector count must be positive");
         return new std::vector< CTYPE >(static_cast<std::vector< CTYPE >::size_type>(count));
       }
 
-      vector(jint count, const CTYPE &value) {
+      vector(jint count, const CTYPE &value) throw (std::out_of_range) {
         if (count < 0)
           throw std::out_of_range("vector count must be positive");
         return new std::vector< CTYPE >(static_cast<std::vector< CTYPE >::size_type>(count), value);
