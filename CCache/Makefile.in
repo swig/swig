@@ -24,7 +24,7 @@ transform = @program_transform_name@
 LIBS= @LIBS@
 OBJS= ccache.o mdfour.o hash.o execute.o util.o args.o stats.o \
 	cleanup.o snprintf.o unify.o
-HEADERS = ccache.h mdfour.h
+HEADERS = ccache.h mdfour.h config.h config_win32.h
 
 all: $(PACKAGE_NAME)$(EXEEXT)
 
