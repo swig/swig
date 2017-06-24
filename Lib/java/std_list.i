@@ -14,6 +14,7 @@ SWIGINTERN jint SWIG_ListSize(size_t size) {
 }
 }
 
+%javamethodmodifiers std::list::push_back "private";
 %javamethodmodifiers std::list::begin "private";
 %javamethodmodifiers std::list::insert "private";
 %javamethodmodifiers std::list::doSize "private";
@@ -42,6 +43,11 @@ namespace std {
 
   public int size() {
     return doSize();
+  }
+
+  public boolean add($typemap(jboxtype, T) value) {
+    push_back(value);
+    return true;
   }
 
   public java.util.ListIterator<$typemap(jboxtype, T)> listIterator(int index) {

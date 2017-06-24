@@ -130,5 +130,13 @@ public class li_std_list_runme {
     java.util.ArrayList<Boolean> bl2 = new java.util.ArrayList<Boolean>(bv);
     boolean bbb1 = bv.get(0);
     Boolean bbb2 = bv.get(0);
+
+    IntList v9 = new IntList(java.util.Arrays.asList(10, 20, 30, 40));
+    v9.add(50);
+    v9.add(60);
+    v9.add(70);
+    if (v9.size() != 7) throw new RuntimeException("v9 test (1) failed");
+    if (!v9.remove(new Integer(60))) throw new RuntimeException("v9 test (2) failed");
+    if (v9.size() != 6) throw new RuntimeException("v9 test (3) failed");
   }
 }
