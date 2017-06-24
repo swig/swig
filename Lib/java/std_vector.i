@@ -75,7 +75,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
     typedef CTYPE value_type;
     typedef CREF_TYPE const_reference;
     vector();
-    vector(size_type n);
+    vector(const vector &other);
     size_type capacity() const;
     void reserve(size_type n);
     %rename(isEmpty) empty;
@@ -83,6 +83,18 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
     void clear();
     %extend {
       %fragment("SWIG_VectorSize");
+      vector(jint count) {
+        if (count < 0)
+          throw std::out_of_range("vector count must be positive");
+        return new std::vector< CTYPE >(static_cast<std::vector< CTYPE >::size_type>(count));
+      }
+
+      vector(jint count, const CTYPE &value) {
+        if (count < 0)
+          throw std::out_of_range("vector count must be positive");
+        return new std::vector< CTYPE >(static_cast<std::vector< CTYPE >::size_type>(count), value);
+      }
+
       jint doSize() const throw (std::out_of_range) {
         return SWIG_VectorSize(self->size());
       }

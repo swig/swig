@@ -29,7 +29,7 @@ SWIGINTERN jint SWIG_ListSize(size_t size) {
 namespace std {
   template <typename T> class list {
 
-%typemap(javabase) std::list< T > "java.util.AbstractSequentialList<$typemap(jboxtype, T)>"
+%typemap(javabase) std::list<T> "java.util.AbstractSequentialList<$typemap(jboxtype, T)>"
 %proxycode %{
   public $javaclassname(java.util.Collection c) {
     this();
@@ -158,7 +158,6 @@ namespace std {
     };
 
     list();
-    list(size_type n, const T &value = T());
     list(const list &other);
     ~list();
     void assign(size_type n, const T &value);
@@ -178,6 +177,18 @@ namespace std {
 
     %extend {
       %fragment("SWIG_ListSize");
+      list(jint count) {
+        if (count < 0)
+          throw std::out_of_range("list count must be positive");
+        return new std::list<T>(static_cast<std::list<T>::size_type>(count));
+      }
+
+      list(jint count, const T &value) {
+        if (count < 0)
+          throw std::out_of_range("list count must be positive");
+        return new std::list<T>(static_cast<std::list<T>::size_type>(count), value);
+      }
+
       jint doSize() const throw (std::out_of_range) {
         return SWIG_ListSize(self->size());
       }

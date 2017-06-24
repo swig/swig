@@ -54,6 +54,12 @@ public class li_std_vector_runme {
     if (v1.size() != 0) throw new RuntimeException("v1 test (16) failed");
     if (v1.remove(new Integer(456))) throw new RuntimeException("v1 test (17) failed");
 
+    if (new IntVector(3).size() != 3) throw new RuntimeException("constructor initial size test failed");
+    for (int n : new IntVector(10, 999))
+      if (n != 999) throw new RuntimeException("constructor initialization with value failed");
+    for (int n : new IntVector(new IntVector(10, 999)))
+      if (n != 999) throw new RuntimeException("copy constructor initialization with value failed");
+
     StructVector v4 = li_std_vector.vecstruct(new StructVector());
     StructPtrVector v5 = li_std_vector.vecstructptr(new StructPtrVector());
     StructConstPtrVector v6 = li_std_vector.vecstructconstptr(new StructConstPtrVector());
