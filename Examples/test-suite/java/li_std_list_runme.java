@@ -138,5 +138,15 @@ public class li_std_list_runme {
     if (v9.size() != 7) throw new RuntimeException("v9 test (1) failed");
     if (!v9.remove(new Integer(60))) throw new RuntimeException("v9 test (2) failed");
     if (v9.size() != 6) throw new RuntimeException("v9 test (3) failed");
+    v9.addFirst(-10);
+    v9.addLast(80);
+    if (v9.size() != 8) throw new RuntimeException("v9 test (4) failed");
+    if (v9.get(0) != -10) throw new RuntimeException("v9 test (5) failed");;
+    if (v9.get(v9.size()-1) != 80) throw new RuntimeException("v9 test (6) failed");;
+    v9.removeFirst();
+    if (v9.get(0) != 10) throw new RuntimeException("v9 test (7) failed");;
+    v9.removeLast();
+    if (v9.size() != 6) throw new RuntimeException("v9 test (8) failed");
+    if (v9.get(v9.size()-1) != 70) throw new RuntimeException("v9 test (9) failed");;
   }
 }
