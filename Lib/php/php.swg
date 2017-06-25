@@ -85,10 +85,9 @@
 /* Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE ($&1_ltype tmp)
 %{
-	if (SWIG_ConvertPtr(&$input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL) {
-          SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
-	}
-	$1 = *tmp;
+	$arg2if (SWIG_ConvertPtr(&$input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL)
+          $arg2SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
+  $arg2$1 = *tmp;
 %}
 
 %typemap(directorout) SWIGTYPE ($&1_ltype tmp)
@@ -104,9 +103,8 @@
 %typemap(in) SWIGTYPE *,
 	     SWIGTYPE []
 %{
-	if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0) {
-            SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
-	}
+	$arg2if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0)
+            $arg2SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
 %}
 
 %typemap(in) SWIGTYPE &
@@ -133,9 +131,8 @@
 
 %typemap(in) SWIGTYPE *DISOWN
 %{
-  if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, SWIG_POINTER_DISOWN ) < 0) {
-    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
-  }
+  $arg2if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, SWIG_POINTER_DISOWN ) < 0)
+    $arg2SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
 %}
 
 %typemap(argout) SWIGTYPE *,
@@ -369,7 +366,7 @@
               SWIGTYPE &,
               SWIGTYPE &&
 %{
-  SWIG_SetPointerZval(return_value, (void *)$1, $1_descriptor, $owner);
+  SWIG_SetZval($result, $newobj , $c_obj, (void *)result, SWIGTYPE$swig_type, $zend_obj);
 %}
 
 %typemap(out) SWIGTYPE *const&

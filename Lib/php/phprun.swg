@@ -237,3 +237,23 @@ static swig_module_info *SWIG_Php_GetModule() {
 static void SWIG_Php_SetModule(swig_module_info *pointer) {
   REGISTER_MAIN_LONG_CONSTANT(const_name, (long) pointer, CONST_PERSISTENT | CONST_CS);
 }
+
+static void
+SWIG_SetZval( zval *zv, int object, int class_obj ,void *ptr, swig_type_info *type, zend_object *std) {
+
+  if (class_obj)
+    return;
+
+  if (!ptr) {
+    ZVAL_NULL(zv);
+    return;
+  }
+
+  if (object == 1) {
+    ZVAL_OBJ(zv,std);
+  }
+
+  if (object == 2) {
+    SWIG_SetPointerZval(zv,ptr,type,class_obj);
+  }
+}
