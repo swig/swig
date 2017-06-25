@@ -137,6 +137,33 @@ extern "C" {
   static void (*r_prevtracefunc) (const SwigType *t, String *mangled, String *clientdata) = 0;
 }
 
+/* Function used to get the return type mapped to PHP return type.
+ * Used for defining class constants or class properties.
+ */
+static String *Swig_Get_type(String *type) {
+  String *return_value = NULL;
+  if ( Cmp(type,"int") == 0 ||
+        Cmp(type,"unsigned int") == 0 ||
+         Cmp(type,"signed int") == 0 ||
+          Cmp(type,"short") == 0 ||
+           Cmp(type,"unsigned short int") == 0 ||
+            Cmp(type,"signed short int") == 0 ||
+             Cmp(type,"long int") == 0 ||
+              Cmp(type,"unsigned long int") == 0 ||
+               Cmp(type,"signed long int") == 0)
+     return_value = NewString("long");
+    else if (Cmp(type,"float") == 0 ||
+              Cmp(type,"double") == 0 ||
+               Cmp(type,"long double") == 0)
+      return_value = NewString("double");
+    else if (Cmp(type,"bool") == 0)
+      return_value = NewString("bool");
+    else if (Cmp(type,"char") == 0 ||
+              Cmp(type,"String") == 0)
+      return_value = NewString("string");
+  return return_value;
+}
+
 /* Function used to determine if its a valid object pointer that needs object creation.
  * Used to mainly distingush between standard datatype pointers and typedef pointers.
  */
@@ -2065,16 +2092,34 @@ done:
     String *value = rawval ? rawval : Getattr(n, "value");
     String *tm;
 
+    bool isMemberConstant = false;
+
+    if (Strchr(name,':') && Cmp(class_name,NULL) != 0) {
+      isMemberConstant = true;
+      char *ptr = Char(strrchr(GetChar(n, "name"),':')) + 1;
+      name = (String*) ptr;
+    }
+
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
 
     SwigType_remember(type);
 
-    if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
+    if (!isMemberConstant && (tm = Swig_typemap_lookup("consttab", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
       Printf(s_cinit, "%s\n", tm);
+    }
+    else {
+      String *s_type = Swig_Get_type(Getattr(n, "type"));
+      if (Cmp(s_type,NULL) != 0)
+        if (Cmp(s_type,"string") == 0)
+          Printf(s_cinit, "zend_declare_class_constant_string(%s_ce, \"%s\", sizeof(\"%s\") - 1, \"%s\" TSRMLS_CC);\n\n", class_name, name, name, value);
+        else
+          Printf(s_cinit, "zend_declare_class_constant_%s(%s_ce, \"%s\", sizeof(\"%s\") - 1, %s TSRMLS_CC);\n\n", s_type, class_name, name, name, value);
+      else
+        Printf(s_cinit, "zend_declare_class_constant_null(%s_ce, \"%s\", sizeof(\"%s\") - 1 TSRMLS_CC);\n\n", class_name, name, name);
     }
 
     if (shadow) {
