@@ -170,7 +170,6 @@ namespace std {
     void clear();
     %rename(remove) erase;
     iterator erase(iterator pos);
-    size_type max_size() const;
     %rename(removeLast) pop_back;
     void pop_back();
     %rename(removeFirst) pop_front;
