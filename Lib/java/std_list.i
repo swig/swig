@@ -165,7 +165,6 @@ namespace std {
     list();
     list(const list &other);
     ~list();
-    void assign(size_type n, const T &value);
     %rename(isEmpty) empty;
     bool empty() const;
     void clear();
