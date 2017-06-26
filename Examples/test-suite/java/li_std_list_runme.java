@@ -148,5 +148,15 @@ public class li_std_list_runme {
     v9.removeLast();
     if (v9.size() != 6) throw new RuntimeException("v9 test (8) failed");
     if (v9.get(v9.size()-1) != 70) throw new RuntimeException("v9 test (9) failed");;
+
+    IntList v10 = new IntList(java.util.Arrays.asList(10, 20, 30, 40, 50));
+    v10.subList(1, 4).clear(); // Recommended way to call protected method removeRange(1,3)
+    if (v10.size() != 2) throw new RuntimeException("v10 test (1) failed");
+    if (v10.get(0) != 10) throw new RuntimeException("v10 test (2) failed");
+    if (v10.get(1) != 50) throw new RuntimeException("v10 test (3) failed");
+    v10.addAll(1, java.util.Arrays.asList(22, 33));
+    if (v10.size() != 4) throw new RuntimeException("v10 test (4) failed");
+    if (v10.get(1) != 22) throw new RuntimeException("v10 test (5) failed");
+    if (v10.get(2) != 33) throw new RuntimeException("v10 test (6) failed");
   }
 }
