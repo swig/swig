@@ -175,7 +175,7 @@ units for the exported function and variable, const and typedefs.</p>
 integrated support for calling C functions. This is also extensively used by
 the standard Pascal libraries to call OS functions. The Pascal part of SWIG and
 the corresponding SWIG library <a
-href="../Lib/modula3/delphi.swg"><tt>delphi.swg</tt></a>contains
+href="../../Lib/delphi/delphi.swg"><tt>delphi.swg</tt></a> contains
 code that uses these features. Because of the built-in support there is no need
 for calling the SWIG kernel to generate wrappers written in C. All conversion
 and argument checking can be done in Pascal and the interfacing is quite
@@ -196,7 +196,7 @@ modulename is obtained by the %module directive contained in the .i file.</p>
 </div>
 
 <p>It produces:</p>
-
+<!-- TODO : either fix SWIG so that it will really produce this, or put here real output -->
 <div class="code"><pre>unit API;
 
 interface
@@ -216,6 +216,7 @@ end.
 function that are generated in order to wrap C/C++ items into exportable functions.
 Its name can be overridden by the <i>wrapdllname</i> command line
 parameter.</p>
+<!-- TODO : there's no such parameter -->
 
 <p>The modulename.pas files contains:</p>
 
@@ -265,6 +266,7 @@ module&#8217;s unit: one in the interface section and one in the implementation
 section. In the implementation the function is declared as an external function
 contained in a DLL named __DLLNAME.</p>
 
+<!-- TODO : __DLLNAME is _constant_; again there's no such switch -->
 <p>__DLLNAME is variable declared in the beginning of the
 implementation section. Its default value is &#8220;modulename.dll&#8221;, but
 it can be overridden using del &#8211;dllname command line switch.</p>
@@ -280,6 +282,7 @@ CALLCONV.</p>
 
 <p>E.g.</p>
 
+<!-- TODO : this code does not work at all -->
 <div class="code"> <pre>
 typedef struct tagMyStruct { int a } MyStruct;
 </pre></div>
@@ -311,6 +314,7 @@ For example consider the HDC or HWND type.</p>
 
 <h4>Const declaration</h4>
 
+<!-- TODO : (T1) there's no such `feature`, swig gives only Error: Syntax error in input -->
 <p>Each C/C++ const (or define) is declared in Pascal using
 the const statement. When the translation from C to Pascal is too complicated a
 const can be declared using the %feature &quot;delphi:runtime_const&quot;. When
@@ -333,6 +337,7 @@ C := c_get();
 
 <h4>Enum declaration</h4>
 
+<!-- TODO : there's no such `feature`. See (T1) above -->
 <p>Each C/C++ enum is declared in Pascal using a integer for
 the enum type and const statements for the enum values. When the translation
 from C to Pascal is too complicated the enum values can be declared using the %feature
@@ -349,6 +354,9 @@ enum Color {RED, BLUE, GREEN};
 
 <p>is translated in:</p>
 
+<!-- TODO : In fact C enum is translated into proper Delphi enum:
+TColor = (RED = 0, BLUE = 1, GREEN = 2);
+I suppose all this paragraph is obsolete -->
 <div class="code"> <pre>
 type Color = type integer;
 const Color_RED= 0;
