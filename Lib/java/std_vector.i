@@ -72,8 +72,13 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
 
   public:
     typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
     typedef CTYPE value_type;
+    typedef CTYPE &reference;
     typedef CREF_TYPE const_reference;
+    typedef CTYPE *pointer;
+    typedef CTYPE const *const_pointer;
+
     vector();
     vector(const vector &other);
     size_type capacity() const;
