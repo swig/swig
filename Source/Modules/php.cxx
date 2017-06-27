@@ -854,13 +854,12 @@ public:
     String *tm;
     Wrapper *f;
 
-    String *wname;
+    String *wname = NewStringEmpty();
     int overloaded = 0;
     String *overname = 0;
     String *modes = NULL;
 
     if (constructor) {
-      name = NewString("__construct");
       modes = NewString("ZEND_ACC_PUBLIC | ZEND_ACC_CTOR");
     }
     else if (wrapperType == staticmemberfn || Cmp(Getattr(n, "storage"),"static") == 0)
@@ -868,21 +867,25 @@ public:
     else
       modes = NewString("ZEND_ACC_PUBLIC");
 
-    if (wrapperType == membervar || wrapperType == globalvar) {
+    if (constructor)
+      wname = NewString("__construct");
+    else if (wrapperType == membervar || wrapperType == globalvar) {
       char *ptr = Char(iname);
       ptr+= strlen(Char(iname)) - 4 - strlen(Char(name));
-      name = (String*) ptr;
+      wname = (String*) ptr;
     }
     else if (wrapperType == staticmembervar) {
       char *ptr = Char(iname);
       ptr+= strlen(Char(iname)) - 4 - strlen(strrchr(GetChar(n, "name"),':') + 1);
-      name = (String*) ptr;
+      wname = (String*) ptr;
     }
     else if (wrapperType == staticmemberfn) {
       char *ptr = Char(iname);
       ptr+= strlen(Char(iname)) - strlen(strrchr(GetChar(n, "name"),':') + 1);
-      name = (String*) ptr;
+      wname = (String*) ptr;
     }
+    else
+      wname = name;
 
     if (Cmp(nodeType, "destructor") == 0) {
       // We just generate the Zend List Destructor and let Zend manage the
@@ -899,7 +902,6 @@ public:
 	return SWIG_ERROR;
     }
 
-    wname = Swig_name_wrapper(iname);
     if (overname) {
       Printf(wname, "%s", overname);
     }
@@ -910,9 +912,9 @@ public:
     String *cleanup = NewStringEmpty();
 
     if (Cmp(class_name,NULL) != 0)
-      Printv(f->def, "PHP_METHOD(", class_name, ",", name,") {\n", NIL);
+      Printv(f->def, "PHP_METHOD(", class_name, ",", wname,") {\n", NIL);
     else
-      Printv(f->def, "PHP_FUNCTION(", name,") {\n", NIL);
+      Printv(f->def, "PHP_FUNCTION(", wname,") {\n", NIL);
 
     emit_parameter_variables(l, f);
     /* Attach standard typemaps */
@@ -920,7 +922,7 @@ public:
     emit_attach_parmmaps(l, f);
     // Not issued for overloaded functions.
     if (!overloaded) {
-      create_command(class_name, name, n, modes);
+      create_command(class_name, wname, n, modes);
     }
 
     // wrap:parms is used by overload resolution.
@@ -1209,7 +1211,6 @@ public:
       dispatchFunction(n);
     }
 
-    Delete(wname);
     wname = NULL;
 
     if (!shadow) {
