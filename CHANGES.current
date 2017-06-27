@@ -8,6 +8,10 @@ Version 4.0.0 (in progress)
 ===========================
 
 2017-06-27: nihaln
+	    [PHP] Update the OUTPUT Typemap to add return statement to the
+	    PHP Wrapper.
+
+2017-06-27: nihaln
 	    [PHP] Update the enum and value examples to use the OO wrappers
 	    rather than the flat functions produced with -noproxy.  There's
 	    not been a good reason to use -noproxy for since PHP5 OO wrapping

@@ -1827,7 +1827,7 @@ public:
 	  Delete(wrapobj);
 	}
       } else {
-	if (non_void_return) {
+	if (non_void_return || hasargout) {
 	  Printf(output, "\t\treturn %s;\n", invoke);
 	} else if (Cmp(invoke, "$r") != 0) {
 	  Printf(output, "\t\t%s;\n", invoke);
