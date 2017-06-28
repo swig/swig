@@ -858,6 +858,8 @@ public:
     int overloaded = 0;
     String *overname = 0;
     String *modes = NULL;
+    bool static_setter = false;
+    bool static_getter = false;
 
     if (constructor) {
       modes = NewString("ZEND_ACC_PUBLIC | ZEND_ACC_CTOR");
@@ -875,9 +877,20 @@ public:
       wname = (String*) ptr;
     }
     else if (wrapperType == staticmembervar) {
-      char *ptr = Char(iname);
-      ptr+= strlen(Char(iname)) - 4 - strlen(strrchr(GetChar(n, "name"),':') + 1);
+      // Shape::nshapes -> nshapes
+      char *ptr = Char(strrchr(GetChar(n, "name"),':'));
+      ptr+= 1;
       wname = (String*) ptr;
+
+      /* We get called twice for getter and setter methods. But to maintain
+         compatibility, Shape::nshapes() is being used for both setter and 
+         getter methods. So using static_setter and static_getter variables
+         to generate half of the code each time.
+       */
+      if (Cmp(strrchr(GetChar(n, "sym:name"),'_'),"_set") == 0)
+        static_setter = true;
+      else
+        static_getter = true;
     }
     else if (wrapperType == staticmemberfn) {
       char *ptr = Char(iname);
@@ -911,17 +924,19 @@ public:
     String *outarg = NewStringEmpty();
     String *cleanup = NewStringEmpty();
 
-    if (Cmp(class_name,NULL) != 0)
-      Printv(f->def, "PHP_METHOD(", class_name, ",", wname,") {\n", NIL);
-    else
-      Printv(f->def, "PHP_FUNCTION(", wname,") {\n", NIL);
+    if (!static_getter) {
+      if (Cmp(class_name,NULL) != 0)
+        Printv(f->def, "PHP_METHOD(", class_name, ",", wname,") {\n", NIL);
+      else
+        Printv(f->def, "PHP_FUNCTION(", wname,") {\n", NIL);
+    }
 
     emit_parameter_variables(l, f);
     /* Attach standard typemaps */
 
     emit_attach_parmmaps(l, f);
     // Not issued for overloaded functions.
-    if (!overloaded) {
+    if (!overloaded && !static_getter) {
       create_command(class_name, wname, n, modes);
     }
 
@@ -965,6 +980,12 @@ public:
       Printf(f->code, "if(arg_count<%d || arg_count>%d ||\n", num_required, num_arguments);
       Printf(f->code, "   zend_get_parameters_array_ex(arg_count,args)!=SUCCESS)\n");
       Printf(f->code, "\tWRONG_PARAM_COUNT;\n\n");
+    } else if (static_setter || static_getter) {
+      if (num_arguments == 0) {
+        Printf(f->code, "if(ZEND_NUM_ARGS() == 0) {\n");
+      } else {
+        Printf(f->code, "if(ZEND_NUM_ARGS() == %d && zend_get_parameters_array_ex(%d, args) == SUCCESS) {\n", num_arguments, num_arguments);
+      }
     } else {
       if (num_arguments == 0) {
 	Printf(f->code, "if(ZEND_NUM_ARGS() != 0) {\n");
@@ -1190,15 +1211,20 @@ public:
       Delete(tm);
     }
 
-    Printf(f->code, "thrown:\n");
-    Printf(f->code, "return;\n");
+    if (static_setter || static_getter)
+      Printf(f->code, "}\n");
 
-    /* Error handling code */
-    Printf(f->code, "fail:\n");
-    Printv(f->code, cleanup, NIL);
-    Append(f->code, "SWIG_FAIL();\n");
+    if (!static_setter) {
+      Printf(f->code, "thrown:\n");
+      Printf(f->code, "return;\n");
 
-    Printf(f->code, "}\n");
+      /* Error handling code */
+      Printf(f->code, "fail:\n");
+      Printv(f->code, cleanup, NIL);
+      Append(f->code, "SWIG_FAIL();\n");
+
+      Printf(f->code, "}\n");
+    }
 
     Replaceall(f->code, "$cleanup", cleanup);
     Replaceall(f->code, "$symname", iname);
