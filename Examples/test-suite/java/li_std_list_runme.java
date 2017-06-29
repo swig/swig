@@ -1,10 +1,10 @@
-import li_std_vector.*;
+import li_std_list.*;
 
-public class li_std_vector_runme {
+public class li_std_list_runme {
 
   static {
     try {
-      System.loadLibrary("li_std_vector");
+        System.loadLibrary("li_std_list");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);
@@ -13,9 +13,8 @@ public class li_std_vector_runme {
 
   public static void main(String argv[]) throws Throwable
   {
-    IntVector v1 = li_std_vector.vecintptr(new IntVector());
-    IntPtrVector v2 = li_std_vector.vecintptr(new IntPtrVector());
-    IntConstPtrVector v3 = li_std_vector.vecintconstptr(new IntConstPtrVector());
+    IntList v1 = new IntList();
+    DoubleList v2 = new DoubleList();
 
     if (!v1.isEmpty()) throw new RuntimeException("v1 test (1) failed");
     if (v1.size() != 0) throw new RuntimeException("v1 test (2) failed");
@@ -54,15 +53,15 @@ public class li_std_vector_runme {
     if (v1.size() != 0) throw new RuntimeException("v1 test (16) failed");
     if (v1.remove(new Integer(456))) throw new RuntimeException("v1 test (17) failed");
 
-    if (new IntVector(3).size() != 3) throw new RuntimeException("constructor initial size test failed");
-    for (int n : new IntVector(10, 999))
+    if (new IntList(3).size() != 3) throw new RuntimeException("constructor initial size test failed");
+    for (int n : new IntList(10, 999))
       if (n != 999) throw new RuntimeException("constructor initialization with value failed");
-    for (int n : new IntVector(new IntVector(10, 999)))
+    for (int n : new IntList(new IntList(10, 999)))
       if (n != 999) throw new RuntimeException("copy constructor initialization with value failed");
 
-    StructVector v4 = li_std_vector.vecstruct(new StructVector());
-    StructPtrVector v5 = li_std_vector.vecstructptr(new StructPtrVector());
-    StructConstPtrVector v6 = li_std_vector.vecstructconstptr(new StructConstPtrVector());
+    StructList v4 = new StructList();
+    StructPtrList v5 = new StructPtrList();
+    StructConstPtrList v6 = new StructConstPtrList();
 
     v4.add(new Struct(12));
     v5.add(new Struct(34));
@@ -82,7 +81,7 @@ public class li_std_vector_runme {
       if (s.getNum() != 56) throw new RuntimeException("v6 loop test failed");
     }
 
-    StructVector v7 = li_std_vector.vecstruct(new StructVector());
+    StructList v7 = li_std_list.CopyContainerStruct(new StructList());
     v7.add(new Struct(1));
     v7.add(new Struct(23));
     v7.add(new Struct(456));
@@ -118,7 +117,7 @@ public class li_std_vector_runme {
       if (i7 != a7.length) throw new RuntimeException("v7 test (8) failed");
     }
 
-    BoolVector v8 = new BoolVector();
+    BoolList v8 = new BoolList();
     if (!v8.add(true)) throw new RuntimeException("v8 test (1) failed");;
     if (v8.get(0) != true) throw new RuntimeException("v8 test (2) failed");;
     if (v8.set(0, false) != true) throw new RuntimeException("v8 test (3) failed");;
@@ -126,21 +125,31 @@ public class li_std_vector_runme {
     if (v8.size() != 1) throw new RuntimeException("v8 test (5) failed");;
 
     java.util.ArrayList<Boolean> bl = new java.util.ArrayList<Boolean>(java.util.Arrays.asList(true, false, true, false));
-    BoolVector bv = new BoolVector(java.util.Arrays.asList(true, false, true, false));
-    BoolVector bv2 = new BoolVector(bl);
+    BoolList bv = new BoolList(java.util.Arrays.asList(true, false, true, false));
+    BoolList bv2 = new BoolList(bl);
     java.util.ArrayList<Boolean> bl2 = new java.util.ArrayList<Boolean>(bv);
     boolean bbb1 = bv.get(0);
     Boolean bbb2 = bv.get(0);
 
-    IntVector v9 = new IntVector(java.util.Arrays.asList(10, 20, 30, 40));
+    IntList v9 = new IntList(java.util.Arrays.asList(10, 20, 30, 40));
     v9.add(50);
     v9.add(60);
     v9.add(70);
     if (v9.size() != 7) throw new RuntimeException("v9 test (1) failed");
     if (!v9.remove(new Integer(60))) throw new RuntimeException("v9 test (2) failed");
     if (v9.size() != 6) throw new RuntimeException("v9 test (3) failed");
+    v9.addFirst(-10);
+    v9.addLast(80);
+    if (v9.size() != 8) throw new RuntimeException("v9 test (4) failed");
+    if (v9.get(0) != -10) throw new RuntimeException("v9 test (5) failed");;
+    if (v9.get(v9.size()-1) != 80) throw new RuntimeException("v9 test (6) failed");;
+    v9.removeFirst();
+    if (v9.get(0) != 10) throw new RuntimeException("v9 test (7) failed");;
+    v9.removeLast();
+    if (v9.size() != 6) throw new RuntimeException("v9 test (8) failed");
+    if (v9.get(v9.size()-1) != 70) throw new RuntimeException("v9 test (9) failed");;
 
-    IntVector v10 = new IntVector(java.util.Arrays.asList(10, 20, 30, 40, 50));
+    IntList v10 = new IntList(java.util.Arrays.asList(10, 20, 30, 40, 50));
     v10.subList(1, 4).clear(); // Recommended way to call protected method removeRange(1,3)
     if (v10.size() != 2) throw new RuntimeException("v10 test (1) failed");
     if (v10.get(0) != 10) throw new RuntimeException("v10 test (2) failed");
@@ -154,7 +163,7 @@ public class li_std_vector_runme {
     if (v10.size() != 5) throw new RuntimeException("v10 test (7) failed");
     if (v10.get(4) != 55) throw new RuntimeException("v10 test (8) failed");
 
-    IntVector v11 = new IntVector(java.util.Arrays.asList(11, 22, 33, 44));
+    IntList v11 = new IntList(java.util.Arrays.asList(11, 22, 33, 44));
     v11.listIterator(0);
     v11.listIterator(v11.size());
     try {

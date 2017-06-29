@@ -72,17 +72,34 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
 
   public:
     typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
     typedef CTYPE value_type;
+    typedef CTYPE &reference;
     typedef CREF_TYPE const_reference;
+    typedef CTYPE *pointer;
+    typedef CTYPE const *const_pointer;
+
     vector();
-    vector(size_type n);
+    vector(const vector &other);
     size_type capacity() const;
-    void reserve(size_type n);
+    void reserve(size_type n) throw (std::length_error);
     %rename(isEmpty) empty;
     bool empty() const;
     void clear();
     %extend {
       %fragment("SWIG_VectorSize");
+      vector(jint count) throw (std::out_of_range) {
+        if (count < 0)
+          throw std::out_of_range("vector count must be positive");
+        return new std::vector< CTYPE >(static_cast<std::vector< CTYPE >::size_type>(count));
+      }
+
+      vector(jint count, const CTYPE &value) throw (std::out_of_range) {
+        if (count < 0)
+          throw std::out_of_range("vector count must be positive");
+        return new std::vector< CTYPE >(static_cast<std::vector< CTYPE >::size_type>(count), value);
+      }
+
       jint doSize() const throw (std::out_of_range) {
         return SWIG_VectorSize(self->size());
       }
@@ -92,7 +109,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
       }
 
       void doAdd(jint index, const value_type& value) throw (std::out_of_range) {
-        const jint size = SWIG_VectorSize(self->size());
+        const jint size = static_cast<std::vector< CTYPE >::size_type>(self->size());
         if (0 <= index && index <= size) {
           self->insert(self->begin() + index, value);
         } else {
@@ -101,7 +118,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
       }
 
       value_type doRemove(jint index) throw (std::out_of_range) {
-        const jint size = SWIG_VectorSize(self->size());
+        const jint size = static_cast<std::vector< CTYPE >::size_type>(self->size());
         if (0 <= index && index < size) {
           CTYPE const old_value = (*self)[index];
           self->erase(self->begin() + index);
@@ -112,7 +129,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
       }
 
       CREF_TYPE doGet(jint index) throw (std::out_of_range) {
-        const jint size = SWIG_VectorSize(self->size());
+        const jint size = static_cast<std::vector< CTYPE >::size_type>(self->size());
         if (index >= 0 && index < size)
           return (*self)[index];
         else
@@ -120,7 +137,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
       }
 
       value_type doSet(jint index, const value_type& value) throw (std::out_of_range) {
-        const jint size = SWIG_VectorSize(self->size());
+        const jint size = static_cast<std::vector< CTYPE >::size_type>(self->size());
         if (index >= 0 && index < size) {
           CTYPE const old_value = (*self)[index];
           (*self)[index] = value;
@@ -131,7 +148,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
       }
 
       void doRemoveRange(jint fromIndex, jint toIndex) throw (std::out_of_range) {
-        const jint size = SWIG_VectorSize(self->size());
+        const jint size = static_cast<std::vector< CTYPE >::size_type>(self->size());
         if (0 <= fromIndex && fromIndex <= toIndex && toIndex <= size) {
           self->erase(self->begin() + fromIndex, self->begin() + toIndex);
         } else {
