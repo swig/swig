@@ -204,7 +204,7 @@ namespace std {
       }
 
       jint doNextIndex(const iterator &pos) const throw (std::out_of_range) {
-        return pos == self->end() ? self->size() : SWIG_ListSize(std::distance(self->begin(), static_cast<std::list<T>::const_iterator>(pos)));
+        return pos == self->end() ? SWIG_ListSize(self->size()) : SWIG_ListSize(std::distance(self->begin(), static_cast<std::list<T>::const_iterator>(pos)));
       }
 
       bool doHasNext(const iterator &pos) const {
