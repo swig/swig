@@ -55,6 +55,8 @@ namespace std {
       private Iterator last;
 
       private java.util.ListIterator<$typemap(jboxtype, T)> init(int index) {
+        if (index < 0 || index > $javaclassname.this.size())
+          throw new IndexOutOfBoundsException("Index: " + index);
         pos = $javaclassname.this.begin();
 	pos = pos.advance_unchecked(index);
         return this;

@@ -149,5 +149,23 @@ public class li_std_vector_runme {
     if (v10.size() != 4) throw new RuntimeException("v10 test (4) failed");
     if (v10.get(1) != 22) throw new RuntimeException("v10 test (5) failed");
     if (v10.get(2) != 33) throw new RuntimeException("v10 test (6) failed");
+
+    v10.add(v10.size(), 55);
+    if (v10.size() != 5) throw new RuntimeException("v10 test (7) failed");
+    if (v10.get(4) != 55) throw new RuntimeException("v10 test (8) failed");
+
+    IntVector v11 = new IntVector(java.util.Arrays.asList(11, 22, 33, 44));
+    v11.listIterator(0);
+    v11.listIterator(v11.size());
+    try {
+      v11.listIterator(v11.size() + 1);
+      throw new RuntimeException("v11 test (1) failed");
+    } catch (IndexOutOfBoundsException e) {
+    }
+    try {
+      v11.listIterator(-1);
+      throw new RuntimeException("v11 test (2) failed");
+    } catch (IndexOutOfBoundsException e) {
+    }
   }
 }
