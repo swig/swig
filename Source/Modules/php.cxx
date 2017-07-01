@@ -164,18 +164,6 @@ static String *Swig_Get_type(String *type) {
   return return_value;
 }
 
-/* Function used to determine if its a valid object pointer that needs object creation.
- * Used to mainly distingush between standard datatype pointers and typedef pointers.
- */
-static bool SWIG_is_valid_class(String *Type_class) {
-  Iterator c_iterator;
-  for (c_iterator = First(classes); c_iterator.item; c_iterator = Next(c_iterator)) {
-    if (Cmp(c_iterator.item,Type_class) == 0)
-      return true;
-  }
-  return false;
-}
-
 static void SwigPHP_emit_resource_registrations() {
   Iterator ki;
   bool emitted_default_dtor = false;
@@ -1041,11 +1029,11 @@ public:
         paramType_class = NewString(paramType);
         Replace(paramType_class,"*","",DOH_REPLACE_FIRST);
         Chop(paramType_class);
-        paramType_valid = SWIG_is_valid_class(paramType_class) & (!decrement);
+        paramType_valid = is_class(paramType_class) & (!decrement);
         if (paramType_valid)
           Printf(f->code, "arg%d = Z_%(upper)s_OBJ_P(&args[%d])->%s_obj;\n",i+1,paramType_class,param_number,paramType_class);
       }
-      else if (SWIG_is_valid_class(pt)) {
+      else if (is_class(pt)) {
         paramType_class = NewString(paramType);
         Chop(paramType_class);
         Printf(f->code, "arg%d = *Z_%(upper)s_OBJ_P(&args[%d])->%s_obj;\n",i+1,paramType_class,param_number,paramType_class);
@@ -1155,7 +1143,7 @@ public:
         Replace(retType_class,"*","",DOH_REPLACE_FIRST);
         Chop(retType_class);
         Printf(retType_class_upper, "%(upper)s",retType_class);
-        retType_valid = SWIG_is_valid_class(retType_class);
+        retType_valid = is_class(retType_class);
 
         if (retType_valid)
           Printf(f->code, "\nstruct %s_object *obj;\n",retType_class);
