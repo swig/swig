@@ -135,12 +135,11 @@ namespace swig {
 	}
       } else {
 	// Uninitialized return value, no Type() constructor required.
-	static Type *v_def = (Type*) malloc(sizeof(Type));
+	static Type *v_def = (Type*) calloc(1, sizeof(Type)); // memory leak?
 	if (!PyErr_Occurred()) {
 	  %type_error(swig::type_name<Type>());
 	}
 	if (throw_error) throw std::invalid_argument("bad type");
-	memset(v_def,0,sizeof(Type));
 	return *v_def;
       }
     }
