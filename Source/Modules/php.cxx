@@ -103,6 +103,9 @@ static String *s_phpclasses;
 
 static String *class_name = NULL;
 static List *classes = NewList();
+static String *magic_set = NULL;
+static String *magic_get = NULL;
+static String *magic_isset = NULL;
 
 /* To reduce code size (generated and compiled) we only want to emit each
  * different arginfo once, so we need to track which have been used.
@@ -475,6 +478,12 @@ public:
     Printf(s_header,"#ifdef __GNUG__\n#define SWIG_remove(zv) delete zv\n");
     Printf(s_header,"#else\n#define SWIG_remove(zv) free(zv)\n#endif\n\n");
 
+    Printf(s_header, "#define CALL_METHOD(name, retval, thisptr)                  \
+                      call_user_function(EG(function_table),thisptr,&name,retval,0,NULL TSRMLS_CC);\n\n");
+
+    Printf(s_header, "#define CALL_METHOD_PARAM_1(name, retval, thisptr, param)                  \
+                      call_user_function(EG(function_table),thisptr,&name,retval,1,&param TSRMLS_CC);\n\n");
+
     if (directorsEnabled()) {
       // Insert director runtime
       Swig_insert_file("director_common.swg", s_header);
@@ -825,6 +834,203 @@ public:
 	return true;
     }
     return false;
+  }
+
+  /* Magic methods __set, __get, __isset is declared here in the extension.
+     The flag variable is used to decide whether all variables are read or not.
+   */
+  void magic_method_setter(Node *n, bool flag) {
+
+    if (magic_set == NULL) {
+      magic_set = NewStringEmpty();
+      magic_get = NewStringEmpty();
+      magic_isset = NewStringEmpty();
+    }
+    if (flag) {
+      Wrapper *f = NewWrapper();
+
+      // Need arg info set for __get magic function with one variable.
+      String * arginfo_code = NewString("0");
+      if (!GetFlag(arginfo_used, arginfo_code)) {
+        // Not had this one before, so emit it.
+        SetFlag(arginfo_used, arginfo_code);
+        Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%s, 0, 0, 0)\n", arginfo_code);
+        for (const char * p = Char(arginfo_code); *p; ++p) {
+          Printf(s_arginfo, " ZEND_ARG_PASS_INFO(%c)\n", *p);
+        }
+        Printf(s_arginfo, "ZEND_END_ARG_INFO()\n");
+      }
+
+      arginfo_code = NULL;
+
+      // Need arg info set for __set and __isset magic function with two variable.
+      arginfo_code = NewString("00");
+      if (!GetFlag(arginfo_used, arginfo_code)) {
+        // Not had this one before, so emit it.
+        SetFlag(arginfo_used, arginfo_code);
+        Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%s, 0, 0, 0)\n", arginfo_code);
+        for (const char * p = Char(arginfo_code); *p; ++p) {
+          Printf(s_arginfo, " ZEND_ARG_PASS_INFO(%c)\n", *p);
+        }
+        Printf(s_arginfo, "ZEND_END_ARG_INFO()\n");
+      }
+
+      arginfo_code = NULL;
+
+      Printf(f_h, "PHP_METHOD(%s,__set);\n", class_name);
+      Printf(all_cs_entry, " PHP_ME(%s,__set,swig_arginfo_00,ZEND_ACC_PUBLIC)\n", class_name);
+      Printf(f->code, "PHP_METHOD(%s,__set) {\n",class_name);
+
+      Printf(f->code, "  struct %s_object *arg = (struct %s_object *)Z_%(upper)s_OBJ_P(getThis());\n", class_name, class_name, class_name);
+      Printf(f->code, "  %s *arg1 = (%s *)(arg->%s_obj);\n", class_name, class_name, class_name);
+      Printf(f->code, "  zval args[2];\n  zend_string *arg2 = 0;\n\n");
+      Printf(f->code, "  if(ZEND_NUM_ARGS() != 2 || zend_get_parameters_array_ex(2, args) != SUCCESS) {\n");
+      Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
+      Printf(f->code, "  if(!arg1) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
+      Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
+
+      Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n",magic_set);
+      Printf(f->code, "%s\n",magic_set);
+      Printf(f->code, "else {\nif (!arg->extras) {\n");
+      Printf(f->code, "ALLOC_HASHTABLE(arg->extras);\nzend_hash_init(arg->extras, 0, NULL, ZVAL_PTR_DTOR, 0);\n}\n");
+      Printf(f->code, "if (!zend_hash_find(arg->extras,arg2))\nzend_hash_add(arg->extras,arg2,&args[1]);\n");
+      Printf(f->code, "else\nzend_hash_update(arg->extras,arg2,&args[1]);\n}\n\n");
+
+
+      Printf(f->code, "zend_string_release(arg2);\n\n");
+      Printf(f->code, "thrown:\n");
+      Printf(f->code, "return;\n");
+
+      /* Error handling code */
+      Printf(f->code, "fail:\n");
+      Append(f->code, "SWIG_FAIL();\n");
+      Printf(f->code, "}\n\n\n");
+
+
+      Printf(f_h, "PHP_METHOD(%s,__get);\n", class_name);
+      Printf(all_cs_entry, " PHP_ME(%s,__get,swig_arginfo_0,ZEND_ACC_PUBLIC)\n", class_name);
+      Printf(f->code, "PHP_METHOD(%s,__get) {\n",class_name);
+
+      Printf(f->code, "  struct %s_object *arg = (struct %s_object *)Z_%(upper)s_OBJ_P(getThis());\n", class_name, class_name, class_name);
+      Printf(f->code, "  %s *arg1 = (%s *)(arg->%s_obj);\n", class_name, class_name, class_name);      Printf(f->code, "  zval args[1];\n  zend_string *arg2 = 0;\n\n");
+      Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
+      Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
+      Printf(f->code, "  if(!arg1) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
+      Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
+
+      Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n",magic_set);
+      Printf(f->code, "%s\n",magic_get);
+      Printf(f->code, "else {\nif (!arg->extras) {\nRETVAL_NULL();\n}\n");
+      Printf(f->code, "else {\nzval *zv = zend_hash_find(arg->extras,arg2);\n");
+      Printf(f->code, "if (!zv)\nRETVAL_NULL();\nelse\nRETVAL_ZVAL(zv,1,ZVAL_PTR_DTOR);\n}\n}\n\n");
+
+
+      Printf(f->code, "zend_string_release(arg2);\n\n");
+      Printf(f->code, "thrown:\n");
+      Printf(f->code, "return;\n");
+
+      /* Error handling code */
+      Printf(f->code, "fail:\n");
+      Append(f->code, "SWIG_FAIL();\n");
+      Printf(f->code, "}\n\n\n");
+
+
+      Printf(f_h, "PHP_METHOD(%s,__isset);\n", class_name);
+      Printf(all_cs_entry, " PHP_ME(%s,__isset,swig_arginfo_0,ZEND_ACC_PUBLIC)\n", class_name);
+      Printf(f->code, "PHP_METHOD(%s,__isset) {\n",class_name);
+
+      Printf(f->code, "  struct %s_object *arg = (struct %s_object *)Z_%(upper)s_OBJ_P(getThis());\n", class_name, class_name, class_name);
+      Printf(f->code, "  %s *arg1 = (%s *)(arg->%s_obj);\n", class_name, class_name, class_name);      Printf(f->code, "  zval args[1];\n  zend_string *arg2 = 0;\n\n");
+      Printf(f->code, "  int newSize = 1;\nchar *method_name = 0;\n\n");
+      Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
+      Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
+      Printf(f->code, "  if(!arg1) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
+      Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
+      Printf(f->code, "  newSize += arg2->len + strlen(\"_get\");\nmethod_name = (char *)malloc(newSize);\n");
+      Printf(f->code, "  strcpy(method_name,arg2->val);\nstrcat(method_name,\"_get\");\n\n");
+
+      Printf(magic_isset, "\nelse if (zend_hash_exists(&%s_ce->function_table, zend_string_init(method_name, newSize-1, 0))) {\n",class_name);
+      Printf(magic_isset, "RETVAL_TRUE;\n}\n");
+
+      Printf(f->code, "if (!arg2) {\n  RETVAL_FALSE;\n}\n",magic_set);
+      Printf(f->code, "%s\n",magic_isset);
+      Printf(f->code, "else {\nif (!arg->extras) {\nRETVAL_FALSE;\n}\n");
+      Printf(f->code, "else {\nif (!zend_hash_find(arg->extras,arg2))\n");
+      Printf(f->code, "RETVAL_FALSE;\nelse\nRETVAL_TRUE;\n}\n}\n\n");
+
+      Printf(f->code, "free(method_name);\nzend_string_release(arg2);\n\n");
+      Printf(f->code, "thrown:\n");
+      Printf(f->code, "return;\n");
+
+      /* Error handling code */
+      Printf(f->code, "fail:\n");
+      Append(f->code, "SWIG_FAIL();\n");
+      Printf(f->code, "}\n\n\n");
+
+
+      Wrapper_print(f, s_wrappers);
+      DelWrapper(f);
+      f = NULL;
+
+      Delete(magic_set);
+      Delete(magic_get);
+      Delete(magic_isset);
+      magic_set = NULL;
+      magic_get = NULL;
+      magic_isset = NULL;
+
+      return;
+    }
+
+    String *v_name = GetChar(n, "name");
+    String *r_type = Swig_Get_type(Getattr(n, "type"));
+
+    if (Cmp(r_type,NULL) == 0) {
+      r_type = SwigType_str(Getattr(n, "type"),0);
+      Replace(r_type,"*","",DOH_REPLACE_FIRST);
+      Chop(r_type);
+
+      if (is_class(r_type)) {
+        Printf(magic_set, "\nelse if (strcmp(arg2->val,\"%s\") == 0)\n{\n",v_name);
+        Printf(magic_set, "arg1->%s = Z_%(upper)s_OBJ_P(&args[1])->%s_obj;\n}\n",v_name,r_type,r_type);
+      }
+      else {
+        Printf(magic_set, "\nelse if (strcmp(arg2->val,\"%s\") == 0)\n{\n",v_name);
+        Printf(magic_set, "zval zv;\nZVAL_STRING(&zv, \"%s_set\");\n",v_name);
+        Printf(magic_set, "CALL_METHOD_PARAM_1(zv, return_value, getThis(),args[1]);\n}\n\n");
+      }
+
+      Printf(magic_get, "\nelse if (strcmp(arg2->val,\"%s\") == 0)\n{\n",v_name);
+      Printf(magic_get, "zval zv;\nZVAL_STRING(&zv, \"%s_get\");\n",v_name);
+      Printf(magic_get, "CALL_METHOD(zv, return_value, getThis());\n}\n");
+    }
+
+    else if (Cmp(r_type,"string") == 0) {
+      Printf(magic_set, "\nelse if (strcmp(arg2->val,\"%s\") == 0) {\n",v_name);
+      Printf(magic_set, "arg1->%s = *zval_get_%s(&args[1])->val;\n}\n",v_name,r_type,r_type);
+
+      Printf(magic_get, "\nelse if (strcmp(arg2->val,\"%s\") == 0) {\n",v_name);
+      Printf(magic_get, "RETVAL_%(upper)sL(&arg1->%s,sizeof(arg1->%s));\n}\n",r_type,v_name,v_name);
+    }
+
+    else if (Cmp(r_type,"bool") == 0) {
+      Printf(magic_set, "\nelse if (strcmp(arg2->val,\"%s\") == 0) {\n",v_name);
+      Printf(magic_set, "if(Z_TYPE(args[1]) == IS_TRUE)\n");
+      Printf(magic_set, "arg1->%s = true;\n",v_name);
+      Printf(magic_set, "else if(Z_TYPE(args[1]) == IS_FALSE)\n");
+      Printf(magic_set, "arg1->%s = false;\n}\n",v_name);
+
+      Printf(magic_get, "\nelse if (strcmp(arg2->val,\"%s\") == 0) {\n",v_name);
+      Printf(magic_get, "RETVAL_%(upper)s(arg1->%s);\n}\n",r_type,v_name);
+    }
+
+    else {
+      Printf(magic_set, "\nelse if (strcmp(arg2->val,\"%s\") == 0) {\n",v_name);
+      Printf(magic_set, "arg1->%s = zval_get_%s(&args[1]);\n}\n",v_name,r_type,r_type);
+
+      Printf(magic_get, "\nelse if (strcmp(arg2->val,\"%s\") == 0) {\n",v_name);
+      Printf(magic_get, "RETVAL_%(upper)s(arg1->%s);\n}\n",r_type,v_name);
+    }
   }
 
   virtual int functionWrapper(Node *n) {
@@ -1222,6 +1428,9 @@ public:
     Wrapper_print(f, s_wrappers);
     DelWrapper(f);
     f = NULL;
+
+    if (wrapperType == membervar && Strstr(wname,"_get") != NULL)
+      magic_method_setter(n,false);
 
     if (overloaded && !Getattr(n, "sym:nextSibling")) {
       dispatchFunction(n);
@@ -2229,7 +2438,7 @@ done:
       Printf(s_header, "zend_class_entry *%s_ce;\n\n",symname);
       Printf(s_header, "#define Z_%(upper)s_OBJ_P(zv) php_%s_object_fetch_object(Z_OBJ_P(zv))\n\n",symname,symname);
       Printf(s_header, "zend_object_handlers %s_object_handlers;\n",symname);
-      Printf(s_header, "struct %s_object {\n  %s *%s_obj;\n  zend_object std;\n};\n\n",symname,symname,symname);
+      Printf(s_header, "struct %s_object {\n  %s *%s_obj;\n  zend_object std;\n  HashTable *extras;\n};\n\n",symname,symname,symname);
       Printf(s_header, "static inline struct %s_object * php_%s_object_fetch_object(zend_object *obj) {\n",symname,symname);
       Printf(s_header, "  return (struct %s_object *)((char *)obj - XtOffsetOf(struct %s_object, std));\n}\n\n",symname,symname);
 
@@ -2243,7 +2452,10 @@ done:
       Printf(s_header, "  if(!object)\n\t  return;\n");
       Printf(s_header, "  struct %s_object *obj = (struct %s_object *)php_%s_object_fetch_object(object);\n",symname,symname,symname);
       Printf(s_header, "  if(obj->%s_obj)\n",symname);
-      Printf(s_header, "    SWIG_remove(obj->%s_obj);\n",symname);
+      Printf(s_header, "   SWIG_remove(obj->%s_obj);\n",symname);
+      Printf(s_header, "  if(obj->extras) {\n");
+      Printf(s_header, "    zend_hash_destroy(obj->extras);\n");
+      Printf(s_header, "    FREE_HASHTABLE(obj->extras);\n  }\n\n");
       Printf(s_header, "  if(&obj->std)\n");
       Printf(s_header, "    zend_object_std_dtor(&obj->std TSRMLS_CC);\n}\n\n\n");
 
@@ -2499,6 +2711,7 @@ done:
       Delete(shadow_get_vars);
       shadow_get_vars = NULL;
     }
+    magic_method_setter(n,true);
     class_name = NULL;
     return SWIG_OK;
   }
