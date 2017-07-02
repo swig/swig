@@ -1162,7 +1162,9 @@ public:
       if (retType_class) {
         String *retZend_obj = NewStringEmpty();
         Printf(retZend_obj, "%s_object_new(%s_ce)", retType_class, retType_class);
-        Replaceall(tm, "$zend_obj", retType_valid ? (constructor ? "NULL" : retZend_obj) : "NULL");       
+        String *ret_other_Zend_obj = NewStringEmpty();
+        Printf(ret_other_Zend_obj, "zend_objects_new(%s_ce)", retType_class);
+        Replaceall(tm, "$zend_obj", retType_valid ? (constructor ? "NULL" : (newobject ? retZend_obj : ret_other_Zend_obj)) : "NULL");       
       }
       Replaceall(tm, "$newobj", retType_valid ? "1" : "2");
       Replaceall(tm, "$c_obj", constructor? "1" : "0");
