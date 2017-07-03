@@ -434,8 +434,8 @@ namespace swig
     {
       swig::SwigVar_PyObject item = PySequence_GetItem(_seq, _index);
       try {
-	return swig::as<T>(item, true);
-      } catch (std::exception& e) {
+	return swig::as<T>(item);
+      } catch (const std::invalid_argument& e) {
 	char msg[1024];
 	sprintf(msg, "in sequence element %d ", (int)_index);
 	if (!PyErr_Occurred()) {
