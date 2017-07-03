@@ -122,7 +122,7 @@ namespace swig {
 
   template <class Type> 
   struct traits_as<Type, pointer_category> {
-    static Type as(PyObject *obj, bool throw_error) {
+    static Type as(PyObject *obj, bool /* throw_error */) {
       Type *v = 0;      
       int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : SWIG_ERROR);
       if (SWIG_IsOK(res) && v) {
@@ -134,12 +134,10 @@ namespace swig {
 	  return *v;
 	}
       } else {
-	static Type v_def;
 	if (!PyErr_Occurred()) {
 	  %type_error(swig::type_name<Type>());
 	}
-	if (throw_error) throw std::invalid_argument("bad type");
-	return v_def;
+	throw std::invalid_argument("bad type");
       }
     }
   };
