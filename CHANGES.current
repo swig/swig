@@ -7,6 +7,23 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-07-07: wsfulton
+            [Python] Fix display of documented template types when using the autodoc
+            feature. For example when wrapping:
+
+              %feature("autodoc");
+              template<typename X> struct T {};
+              %template(TInteger) T<int>;
+
+            the generated documentation contains:
+              """Proxy of C++ T< int > class."""
+            instead of:
+              """Proxy of C++ T<(int)> class."""
+            and
+              """__init__(TInteger self) -> TInteger"""
+            instead of
+              """__init__(T<(int)> self) -> TInteger"""
+
 2017-06-27: nihaln
 	    [PHP] Update the OUTPUT Typemap to add return statement to the
 	    PHP Wrapper.

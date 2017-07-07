@@ -1960,9 +1960,9 @@ public:
 		Delete(rname);
 	      } else {
 		if (CPlusPlus) {
-		  Printf(doc, "Proxy of C++ %s class.", real_classname);
+		  Printf(doc, "Proxy of C++ %s class.", SwigType_namestr(real_classname));
 		} else {
-		  Printf(doc, "Proxy of C %s struct.", real_classname);
+		  Printf(doc, "Proxy of C %s struct.", SwigType_namestr(real_classname));
 		}
 	      }
 	    }
@@ -1973,7 +1973,7 @@ public:
 	    String *paramList = make_autodocParmList(n, showTypes);
 	    Printf(doc, "__init__(");
 	    if (showTypes)
-	      Printf(doc, "%s ", getClassName());
+	      Printf(doc, "%s ", class_name);
 	    if (Len(paramList))
 	      Printf(doc, "self, %s) -> %s", paramList, class_name);
 	    else
@@ -1984,7 +1984,7 @@ public:
 
 	case AUTODOC_DTOR:
 	  if (showTypes)
-	    Printf(doc, "__del__(%s self)", getClassName());
+	    Printf(doc, "__del__(%s self)", class_name);
 	  else
 	    Printf(doc, "__del__(self)");
 	  break;
