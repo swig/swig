@@ -475,14 +475,14 @@ public:
     Printf(s_header, "}\n");
     Printf(s_header, "#endif\n\n");
 
-    Printf(s_header,"#ifdef __GNUG__\n#define SWIG_remove(zv) delete zv\n");
+    Printf(s_header,"#ifdef __cplusplus\n#define SWIG_remove(zv) delete zv\n");
     Printf(s_header,"#else\n#define SWIG_remove(zv) free(zv)\n#endif\n\n");
 
     Printf(s_header, "#define CALL_METHOD(name, retval, thisptr)                  \
-                      call_user_function(EG(function_table),thisptr,&name,retval,0,NULL TSRMLS_CC);\n\n");
+                      call_user_function(EG(function_table),thisptr,&name,retval,0,NULL);\n\n");
 
     Printf(s_header, "#define CALL_METHOD_PARAM_1(name, retval, thisptr, param)                  \
-                      call_user_function(EG(function_table),thisptr,&name,retval,1,&param TSRMLS_CC);\n\n");
+                      call_user_function(EG(function_table),thisptr,&name,retval,1,&param);\n\n");
 
     if (directorsEnabled()) {
       // Insert director runtime
@@ -731,7 +731,7 @@ public:
   /* Just need to append function names to function table to register with PHP. */
   void create_command(String *cname, String *fname, Node *n, String *modes = NULL) {
     // This is for the single main zend_function_entry record
-    if (Cmp(cname,NULL) != 0)
+    if (cname)
       Printf(f_h, "PHP_METHOD(%s,%s);\n", cname, fname);
     else
       Printf(f_h, "PHP_FUNCTION(%s);\n", fname);
@@ -763,7 +763,7 @@ public:
 
     String * s = cs_entry;
     if (!s) s = s_entry;
-    if (Cmp(cname,NULL) != 0)
+    if (cname)
       Printf(all_cs_entry, " PHP_ME(%s,%s,swig_arginfo_%s,%s)\n", cname, fname, arginfo_code, modes);
     else
       Printf(s, " PHP_FE(%s,swig_arginfo_%s)\n", fname, arginfo_code);
@@ -985,7 +985,7 @@ public:
     String *v_name = GetChar(n, "name");
     String *r_type = Swig_Get_type(Getattr(n, "type"));
 
-    if (Cmp(r_type,NULL) == 0) {
+    if (!r_type) {
       r_type = SwigType_str(Getattr(n, "type"),0);
       Replace(r_type,"*","",DOH_REPLACE_FIRST);
       Chop(r_type);
@@ -1119,7 +1119,7 @@ public:
     String *cleanup = NewStringEmpty();
 
     if (!static_getter) {
-      if (Cmp(class_name,NULL) != 0)
+      if (class_name)
         Printv(f->def, "PHP_METHOD(", class_name, ",", wname,") {\n", NIL);
       else
         Printv(f->def, "PHP_FUNCTION(", wname,") {\n", NIL);
@@ -1218,7 +1218,7 @@ public:
       SwigType *pt = Getattr(p, "type");
 
       bool decrement = false;
-      if (i == 0 && Cmp(class_name,NULL) != 0)
+      if (i == 0 && class_name)
         decrement = true;
 
       String *paramType = SwigType_str(pt, 0);
@@ -1226,7 +1226,7 @@ public:
       bool paramType_valid = false;
       int param_number = i;
 
-      if (Cmp(class_name,NULL) != 0)
+      if (class_name)
         param_number-=2;
       if (param_number < 0)
         param_number++;
@@ -1428,18 +1428,10 @@ public:
     Wrapper_print(f, s_wrappers);
     DelWrapper(f);
     f = NULL;
-
-    if (wrapperType == membervar && Strstr(wname,"_get") != NULL)
-      magic_method_setter(n,false);
+    wname = NULL;
 
     if (overloaded && !Getattr(n, "sym:nextSibling")) {
       dispatchFunction(n);
-    }
-
-    wname = NULL;
-
-    if (!shadow) {
-      return SWIG_OK;
     }
 
     // Handle getters and setters.
@@ -1449,11 +1441,16 @@ public:
 	p += strlen(p) - 4;
 	String *varname = Getattr(n, "membervariableHandler:sym:name");
 	if (strcmp(p, "_get") == 0) {
+          magic_method_setter(n,false);
 	  Setattr(shadow_get_vars, varname, Getattr(n, "type"));
 	} else if (strcmp(p, "_set") == 0) {
 	  Setattr(shadow_set_vars, varname, iname);
 	}
       }
+      return SWIG_OK;
+    }
+
+    if (!shadow) {
       return SWIG_OK;
     }
 
@@ -2320,7 +2317,7 @@ done:
 
     bool isMemberConstant = false;
 
-    if (Strchr(name,':') && Cmp(class_name,NULL) != 0) {
+    if (Strchr(name,':') && class_name) {
       isMemberConstant = true;
       char *ptr = Char(strrchr(GetChar(n, "name"),':')) + 1;
       name = (String*) ptr;
@@ -2339,13 +2336,13 @@ done:
     }
     else {
       String *s_type = Swig_Get_type(Getattr(n, "type"));
-      if (Cmp(s_type,NULL) != 0)
+      if (s_type)
         if (Cmp(s_type,"string") == 0)
-          Printf(s_cinit, "zend_declare_class_constant_string(%s_ce, \"%s\", sizeof(\"%s\") - 1, \"%s\" TSRMLS_CC);\n\n", class_name, name, name, value);
+          Printf(s_cinit, "zend_declare_class_constant_string(%s_ce, \"%s\", sizeof(\"%s\") - 1, \"%s\");\n\n", class_name, name, name, value);
         else
-          Printf(s_cinit, "zend_declare_class_constant_%s(%s_ce, \"%s\", sizeof(\"%s\") - 1, %s TSRMLS_CC);\n\n", s_type, class_name, name, name, value);
+          Printf(s_cinit, "zend_declare_class_constant_%s(%s_ce, \"%s\", sizeof(\"%s\") - 1, %s);\n\n", s_type, class_name, name, name, value);
       else
-        Printf(s_cinit, "zend_declare_class_constant_null(%s_ce, \"%s\", sizeof(\"%s\") - 1 TSRMLS_CC);\n\n", class_name, name, name);
+        Printf(s_cinit, "zend_declare_class_constant_null(%s_ce, \"%s\", sizeof(\"%s\") - 1);\n\n", class_name, name, name);
     }
 
     if (shadow) {
@@ -2443,12 +2440,12 @@ done:
       Printf(s_header, "  return (struct %s_object *)((char *)obj - XtOffsetOf(struct %s_object, std));\n}\n\n",symname,symname);
 
       Printf(s_header, "/* dtor Method for class %s */\n",symname);
-      Printf(s_header, "void %s_destroy_object(zend_object *object TSRMLS_DC) {\n",symname);
+      Printf(s_header, "void %s_destroy_object(zend_object *object) {\n",symname);
       Printf(s_header, "  if(!object)\n\t  return;\n");
-      Printf(s_header, "  zend_objects_destroy_object(object TSRMLS_CC);\n}\n\n\n");
+      Printf(s_header, "  zend_objects_destroy_object(object);\n}\n\n\n");
 
       Printf(s_header, "/* Garbage Collection Method for class %s */\n",symname);
-      Printf(s_header, "void %s_free_storage(zend_object *object TSRMLS_DC) {\n",symname);
+      Printf(s_header, "void %s_free_storage(zend_object *object) {\n",symname);
       Printf(s_header, "  if(!object)\n\t  return;\n");
       Printf(s_header, "  struct %s_object *obj = (struct %s_object *)php_%s_object_fetch_object(object);\n",symname,symname,symname);
       Printf(s_header, "  if(obj->%s_obj)\n",symname);
@@ -2457,12 +2454,12 @@ done:
       Printf(s_header, "    zend_hash_destroy(obj->extras);\n");
       Printf(s_header, "    FREE_HASHTABLE(obj->extras);\n  }\n\n");
       Printf(s_header, "  if(&obj->std)\n");
-      Printf(s_header, "    zend_object_std_dtor(&obj->std TSRMLS_CC);\n}\n\n\n");
+      Printf(s_header, "    zend_object_std_dtor(&obj->std);\n}\n\n\n");
 
       Printf(s_header, "/* Object Creation Method for class %s */\n",symname);
-      Printf(s_header, "zend_object * %s_object_new(zend_class_entry *ce TSRMLS_DC) {\n",symname);
+      Printf(s_header, "zend_object * %s_object_new(zend_class_entry *ce) {\n",symname);
       Printf(s_header, "  struct %s_object *obj = (struct %s_object*)ecalloc(1,sizeof(struct %s_object) + zend_object_properties_size(ce));\n",symname,symname,symname);
-      Printf(s_header, "  zend_object_std_init(&obj->std, ce TSRMLS_CC);\n");
+      Printf(s_header, "  zend_object_std_init(&obj->std, ce);\n");
       //Printf(s_header, "  object_properties_init(&obj->std, ce);\n");
       Printf(s_header, "  %s_object_handlers.offset = XtOffsetOf(struct %s_object, std);\n",symname,symname);
       Printf(s_header, "  %s_object_handlers.free_obj = %s_free_storage;\n",symname,symname);
@@ -2525,10 +2522,10 @@ done:
 	    base = Next(base);
 	  }
 	}
-        Printf(s_oinit, "%s_ce = zend_register_internal_class_ex(&%s_internal_ce, zend_exception_get_default(TSRMLS_C));\n", symname , symname);
+        Printf(s_oinit, "%s_ce = zend_register_internal_class_ex(&%s_internal_ce, zend_exception_get_default());\n", symname , symname);
       }
       else
-        Printf(s_oinit, "%s_ce = zend_register_internal_class(&%s_internal_ce TSRMLS_CC);\n", symname , symname);
+        Printf(s_oinit, "%s_ce = zend_register_internal_class(&%s_internal_ce);\n", symname , symname);
     }
 
     Printf(s_oinit, "%s_ce->create_object = %s_object_new;\n", symname, symname);
