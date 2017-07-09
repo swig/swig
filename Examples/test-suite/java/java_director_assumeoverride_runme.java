@@ -18,7 +18,7 @@ public class java_director_assumeoverride_runme {
   public static void main(String argv[]) {
     OverrideMe overrideMe = new MyOverrideMe();
 
-    // MyOverrideMe doesn't actually override func(), but because assumeoverride
+    // MyOverrideMe doesn't actually override funk(), but because assumeoverride
     // was set to true, the C++ side will believe it was overridden.
     if (!java_director_assumeoverride.isFuncOverridden(overrideMe)) {
       throw new RuntimeException ( "isFuncOverridden()" );

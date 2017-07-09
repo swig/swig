@@ -53,7 +53,7 @@
       static PyObject *from(const unordered_map_type& unordered_map) {
 	swig_type_info *desc = swig::type_info<unordered_map_type>();
 	if (desc && desc->clientdata) {
-	  return SWIG_NewPointerObj(new unordered_map_type(unordered_map), desc, SWIG_POINTER_OWN);
+	  return SWIG_InternalNewPointerObj(new unordered_map_type(unordered_map), desc, SWIG_POINTER_OWN);
 	} else {
 	  size_type size = unordered_map.size();
 	  Py_ssize_t pysize = (size <= (size_type) INT_MAX) ? (Py_ssize_t) size : -1;
@@ -226,7 +226,17 @@
 
 %define %swig_unordered_map_methods(Map...)
   %swig_unordered_map_common(Map)
+
+#if defined(SWIGPYTHON_BUILTIN)
+  %feature("python:slot", "mp_ass_subscript", functype="objobjargproc") __setitem__;
+#endif
+
   %extend {
+    // This will be called through the mp_ass_subscript slot to delete an entry.
+    void __setitem__(const key_type& key) {
+      self->erase(key);
+    }
+
     void __setitem__(const key_type& key, const mapped_type& x) throw (std::out_of_range) {
       (*self)[key] = x;
     }

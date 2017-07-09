@@ -96,6 +96,7 @@ static String *all_cs_entry;
 static String *pragma_incl;
 static String *pragma_code;
 static String *pragma_phpinfo;
+static String *pragma_version;
 static String *s_oowrappers;
 static String *s_fakeoowrappers;
 static String *s_phpclasses;
@@ -294,7 +295,7 @@ public:
     f_runtime = NewStringEmpty();
 
     /* sections of the output file */
-    s_init = NewString("/* init section */\n");
+    s_init = NewStringEmpty();
     r_init = NewString("/* rinit section */\n");
     s_shutdown = NewString("/* shutdown section */\n");
     r_shutdown = NewString("/* rshutdown section */\n");
@@ -391,6 +392,7 @@ public:
     /* sub-sections of the php file */
     pragma_code = NewStringEmpty();
     pragma_incl = NewStringEmpty();
+    pragma_version = NULL;
 
     /* Initialize the rest of the module */
 
@@ -528,7 +530,14 @@ public:
     Printf(s_entry, "/* Every non-class user visible function must have an entry here */\n");
     Printf(s_entry, "static zend_function_entry %s_functions[] = {\n", module);
 
+    /* Emit all of the code */
+    Language::top(n);
+
+    SwigPHP_emit_resource_registrations();
+
     /* start the init section */
+    String * s_init_old = s_init;
+    s_init = NewString("/* init section */\n");
     Append(s_init, "#if ZEND_MODULE_API_NO <= 20090626\n");
     Append(s_init, "#undef ZEND_MODULE_BUILD_ID\n");
     Append(s_init, "#define ZEND_MODULE_BUILD_ID (char*)\"API\" ZEND_TOSTR(ZEND_MODULE_API_NO) ZEND_BUILD_TS ZEND_BUILD_DEBUG ZEND_BUILD_SYSTEM ZEND_BUILD_EXTRA\n");
@@ -542,7 +551,11 @@ public:
     Printf(s_init, "    PHP_RINIT(%s),\n", module);
     Printf(s_init, "    PHP_RSHUTDOWN(%s),\n", module);
     Printf(s_init, "    PHP_MINFO(%s),\n", module);
-    Printf(s_init, "    NO_VERSION_YET,\n");
+    if (Len(pragma_version) > 0) {
+       Printf(s_init, "    \"%s\",\n", pragma_version);
+     } else {
+       Printf(s_init, "    NO_VERSION_YET,\n");
+     }
     Printf(s_init, "    STANDARD_MODULE_PROPERTIES\n");
     Printf(s_init, "};\n");
     Printf(s_init, "zend_module_entry* SWIG_module_entry = &%s_module_entry;\n\n", module);
@@ -562,11 +575,9 @@ public:
      * things are being called in the wrong order
      */
     Printf(s_init, "#define SWIG_php_minit PHP_MINIT_FUNCTION(%s)\n", module);
+    Printv(s_init, s_init_old, NIL);
+    Delete(s_init_old);
 
-    /* Emit all of the code */
-    Language::top(n);
-
-    SwigPHP_emit_resource_registrations();
     //    Printv(s_init,s_resourcetypes,NIL);
     /* We need this after all classes written out by ::top */
     Printf(s_oinit, "CG(active_class_entry) = NULL;\n");
@@ -1816,7 +1827,7 @@ public:
 	  Delete(wrapobj);
 	}
       } else {
-	if (non_void_return) {
+	if (non_void_return || hasargout) {
 	  Printf(output, "\t\treturn %s;\n", invoke);
 	} else if (Cmp(invoke, "$r") != 0) {
 	  Printf(output, "\t\t%s;\n", invoke);
@@ -1987,6 +1998,10 @@ done:
 	} else if (Strcmp(type, "phpinfo") == 0) {
 	  if (value) {
 	    Printf(pragma_phpinfo, "%s\n", value);
+	  }
+	} else if (Strcmp(type, "version") == 0) {
+	  if (value) {
+	    pragma_version = value;
 	  }
 	} else {
 	  Swig_warning(WARN_PHP_UNKNOWN_PRAGMA, input_file, line_number, "Unrecognized pragma <%s>.\n", type);
@@ -2525,6 +2540,10 @@ done:
     Delete(target);
 
     // Get any exception classes in the throws typemap
+    if (Getattr(n, "noexcept")) {
+      Append(w->def, " noexcept");
+      Append(declaration, " noexcept");
+    }
     ParmList *throw_parm_list = 0;
 
     if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
@@ -2562,8 +2581,16 @@ done:
      * if the return value is a reference or const reference, a specialized typemap must
      * handle it, including declaration of c_result ($result).
      */
-    if (!is_void) {
-      if (!(ignored_method && !pure_virtual)) {
+    if (!is_void && (!ignored_method || pure_virtual)) {
+      if (!SwigType_isclass(returntype)) {
+	if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
+	  String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
+	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
+	  Delete(construct_result);
+	} else {
+	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
+	}
+      } else {
 	String *cres = SwigType_lstr(returntype, "c_result");
 	Printf(w->code, "%s;\n", cres);
 	Delete(cres);

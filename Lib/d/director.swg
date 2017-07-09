@@ -40,6 +40,10 @@ namespace Swig {
   public:
     DirectorPureVirtualException(const char *msg) : DirectorException(std::string("Attempted to invoke pure virtual method ") + msg) {
     }
+
+    static void raise(const char *msg) {
+      throw DirectorPureVirtualException(msg);
+    }
   };
 }
 

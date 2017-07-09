@@ -3904,9 +3904,9 @@ A fragment can use one or more additional fragments, for example:
 
 <div class="code">
 <pre>
-%fragment("&lt;limits.h&gt;", "header") {
-  %#include &lt;limits.h&gt;
-}
+%fragment("&lt;limits.h&gt;", "header") %{
+  #include &lt;limits.h&gt;
+%}
 
 
 %fragment("AsMyClass", "header", fragment="&lt;limits.h&gt;") {
@@ -3989,8 +3989,91 @@ Finally, you can force the inclusion of a fragment at any point in the generated
 </div>
 
 <p>
-which is very useful inside a template class, for example.
+which, for example, is very useful inside a template class.
+Another useful case is when using <tt>%extend</tt> inside a class
+where the additional code in the <tt>%extend</tt> block depends on the contents of the fragment.
 </p>
+
+<div class="code">
+<pre>
+%fragment("&lt;limits.h&gt;", "header") %{
+  #include &lt;limits.h&gt;
+%}
+
+struct X {
+  ...
+  %extend {
+    %fragment("&lt;limits.h&gt;");
+    bool check(short val) {
+      if (val &lt; SHRT_MIN /*defined in &lt;limits.h&gt;*/) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+};
+</pre>
+</div>
+
+
+<p>
+Forced inclusion of fragments can be used as a replacement for <a href="SWIG.html#SWIG_nn42">code insertion block</a>, ensuring the
+code block is only generated once.
+Consider the contents of FileA.i below which first uses a code insertion block and then a forced fragment inclusion to generate code:
+<p>
+<div class="code">
+<pre>
+// FileA.i
+%{
+  #include &lt;stdio.h&gt;
+%}
+%fragment("&lt;limits.h&gt;");
+</pre>
+</div>
+
+<p>
+and another file including the above:
+</p>
+
+<div class="code">
+<pre>
+// FileB.i
+%include "FileA.i"
+</pre>
+</div>
+
+<p>
+The resulting code in the wrappers for FileB.i is:
+</p>
+
+<div class="code">
+<pre>
+  #include &lt;stdio.h&gt;
+
+  #include &lt;limits.h&gt;
+</pre>
+</div>
+
+<p>
+A note of caution must be mentioned when using <tt>%fragment</tt> forced inclusion or code insertion blocks with <tt>%import</tt>.
+If <tt>%import</tt> is used instead:
+<p>
+
+<div class="code">
+<pre>
+// FileC.i
+%import "FileA.i"
+</pre>
+</div>
+
+<p>
+then nothing is generated in the resulting code in the wrappers for FileC.i.
+This is because <tt>%import</tt> is for collecting type information and does not result in any code
+being generated, see <a href="Preprocessor.html#Preprocessor_nn3">File Imports</a>.
+</p>
+
+
 </ol>
 
 <p>

@@ -3,7 +3,7 @@ if [ catch { load ./null_pointer[info sharedlibextension] null_pointer} err_msg 
 }
 
 set a [A]
-if {[func $a] != 0} {
+if {[funk $a] != 0} {
     puts stderr "null_pointer test 1 failed"
     exit 1
 }

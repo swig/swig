@@ -3923,9 +3923,21 @@ is used in the feature code. Consider the following, which also happens to be th
   if ($error) {
     jenv-&gt;ExceptionClear();
     $directorthrowshandlers
-    throw Swig::DirectorException(jenv, $error);
+    Swig::DirectorException::raise(jenv, $error);
   }
 %}
+</pre>
+</div>
+
+<p>
+where <tt>Swig::DirectorException::raise</tt> is a helper method in the DirectorException class to throw a C++ exception (implemented in director.swg):
+</p>
+
+<div class="code">
+<pre>
+    static void raise(JNIEnv *jenv, jthrowable throwable) {
+      throw DirectorException(jenv, throwable);
+    }
 </pre>
 </div>
 
@@ -3963,7 +3975,7 @@ if (swigerror) {
     throw std::out_of_range(Swig::JavaExceptionMessage(jenv, swigerror).message());
   }
   
-  throw Swig::DirectorException(jenv, swigerror);
+  Swig::DirectorException::raise(jenv, swigerror);
 }
 </pre>
 </div>
@@ -5679,6 +5691,17 @@ The most important of these implement the mapping of C/C++ types to Java types:
     These are Java code typemaps which transform the type used in the Java intermediary JNI class (as specified in the "jtype" typemap) to 
     the Java type used in the Java module class, proxy classes and type wrapper classes (as specified in the "jstype" typemap).
     In other words the typemap provides the conversion from the native method call return type. </td>
+</tr>
+
+<tr>
+<td>jboxtype</td>
+<td>Java boxed type.
+  These are Java code typemaps to provide the Java boxed type, such as, <tt>Integer</tt> for C type <tt>int</tt>.
+    As autoboxing is only relevant to the Java primitive types, these are only provided for the
+    C types that map to Java primitive types.
+    This typemap is usually only used by C++ STL container wrappers that are wrapped by Java generic
+    types as the boxed type must be used instead of the unboxed/primitive type when declaring a Java generic type.
+    </td>
 </tr>
 
 <tr>

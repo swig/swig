@@ -10,14 +10,14 @@
 
 %inline %{
 struct C {
-  C() : m(1) {};
-  C(int n) : m(n) {};
-  int get_m() { return m; };
+  C() : m(1) {}
+  C(int n) : m(n) {}
+  int get_m() { return m; }
   int m;
 };
 
 struct Base {
-  Base() {};
+  Base() {}
   virtual boost::shared_ptr<C> ret_c_shared_ptr() = 0;
   virtual C ret_c_by_value() = 0;
   virtual int take_c_by_value(C c) = 0;

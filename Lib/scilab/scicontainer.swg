@@ -42,7 +42,9 @@
 
 %fragment("SciSequence_Cont", "header",
 	  fragment="StdTraits",
-	  fragment="SwigSciIterator_T")
+	  fragment="SwigSciIterator_T",
+	  fragment=SWIG_Traits_Sequence_frag(ptr),
+	  fragment=SWIG_Traits_SequenceItem_frag(ptr))
 {
 namespace swig
 {
@@ -334,8 +336,7 @@ namespace swig
 
 %fragment("StdSequenceTraits","header",
 	  fragment="StdTraits",
-	  fragment="SciSequence_Cont",
-    fragment=SWIG_Traits_SequenceItem_frag(ptr))
+	  fragment="SciSequence_Cont")
 {
 namespace swig {
   template <class SciSeq, class Seq>

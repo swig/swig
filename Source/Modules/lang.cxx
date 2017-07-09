@@ -81,7 +81,6 @@ extern int AddExtern;
 /* import modes */
 
 #define  IMPORT_MODE     1
-#define  IMPORT_MODULE   2
 
 /* ----------------------------------------------------------------------
  * Dispatcher::emit_one()
@@ -625,7 +624,8 @@ int Language::constantDirective(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::fragmentDirective(Node *n) {
-  Swig_fragment_register(n);
+  if (!(Getattr(n, "emitonly") && ImportMode))
+    Swig_fragment_register(n);
   return SWIG_OK;
 }
 

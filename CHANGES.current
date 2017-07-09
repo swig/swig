@@ -7,6 +7,139 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-06-27: nihaln
+	    [PHP] Update the OUTPUT Typemap to add return statement to the
+	    PHP Wrapper.
+
+2017-06-27: nihaln
+	    [PHP] Update the enum and value examples to use the OO wrappers
+	    rather than the flat functions produced with -noproxy.  There's
+	    not been a good reason to use -noproxy for since PHP5 OO wrapping
+	    was fixed back in 2005.
+
+2017-06-23: m7thon
+            [Python] fix and improve default argument handling:
+
+            1. Fix negative octals. Currently not handled correctly by `-py3`
+               (unusual case, but incorrect).
+            2. Fix arguments of type "octal + something" (e.g. `0640 | 04`).
+               Currently drops everything after the first octal. Nasty!
+            3. Fix bool arguments "0 + something" (e.g. `0 | 1`) are always
+               "False" (unusual case, but incorrect).
+            4. Remove special handling of "TRUE" and "FALSE" from
+               `convertValue` since there's no reason these have to match
+               "true" and "false".
+            5. Remove the Python 2 vs. Python 3 distinction based on the
+               `-py3` flag. Now the same python code is produced for default
+               arguments for Python 2 and Python 3. For this, octal default
+               arguments, e.g. 0644, are now wrapped as `int('644', 8)`. This
+               is required, as Python 2 and Python 3 have incompatible syntax
+               for octal literals.
+
+            Fixes #707
+
+2017-06-21: futatuki
+            #1004 - Fix ccache-swig executable name to respect configure's --program-prefix and
+            --program-suffix values if used.
+
+2017-06-21: tamuratak
+            [Ruby] #911 - Add std::wstring support.
+
+2017-06-19: wsfulton
+            [Python] Fix handling of rich comparisons when wrapping overloaded operators:
+
+              operator<  operator<=  operator>  operator>=  operator==  operator!=
+
+            Previously a TypeError was always thrown if the type was not correct. NotImplemented
+            is now returned from these wrapped functions if the type being compared with is
+            not correct. The subsequent behaviour varies between different versions of Python
+            and the comparison function being used, but is now consistent with normal Python
+            behaviour. For example, for the first 4 operator overloads above, a TypeError
+            'unorderable types' is thrown in Python 3, but Python 2 will return True or False.
+            NotImplemented should be returned when the comparison cannot be done, see PEP 207 and
+            https://docs.python.org/3/library/constants.html#NotImplemented
+
+            Note that the bug was only present when overloaded operators did not also have a
+            function overload.
+
+            Fixes SF bug #1208 (3441262) and SF patch #303.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2017-06-17: fabrice102
+            [Go] Fix Go callback example.  Fixes github #600, #955, #1000.
+
+2017-06-16: wsfulton
+            Make sure warning and error messages are not split up by other processes writing to
+            stdout at the same time.
+
+2017-06-16: wsfulton
+            [R] Fix wrapping function pointers containing rvalue and lvalue reference parameters.
+
+2017-06-13: olly
+	    [Perl] Fix testsuite to work without . in @INC - it was removed in
+	    Perl 5.26 for security reasons, and has also been removed from
+	    older versions in some distros.  Fixes
+	    https://github.com/swig/swig/issues/997 reported by lfam.
+
+2017-06-03: wsfulton
+            Fix %import on a file containing a file scope %fragment forced inclusion to not
+            generate the fragment contents as %import should not result in code being generated.
+            The behaviour is now the same as importing code insertion blocks.
+            Wrapping FileC.i in the following example will result in no generated code, whereas
+            previously "#include <limits.h>" was generated:
+
+              // FileA.i
+              %fragment("<limits.h>", "header") %{
+                #include <limits.h>
+              %}
+
+              %{
+                #include <stdio.h>
+              %}
+              %fragment("<limits.h>");
+
+              // FileC.i
+              %import "FileA.i"
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2017-05-26: Volker Diels-Grabsch, vadz
+            [Java] #842 Extend from java.util.AbstractList<> and implement java.util.RandomAccess for
+            std::vector wrappers. This notably allows to iterate over wrapped vectors in a natural way.
+2017-05-30: davidcl
+            [Scilab] #994 Undefined symbol error when loading in Scilab 6
+
+2017-05-25: asibross
+            [Java] #370 #417 Missing smart pointer handling in Java director extra methods
+            swigReleaseOwnership() and swigTakeOwnership().
+
+2017-05-23: wsfulton
+            [Java] #230 #759 Fix Java shared_ptr and directors for derived classes java compilation
+            error.
+
+            For shared_ptr proxy proxy classes, add a protected method swigSetCMemOwn for modifying
+            the swigCMemOwn and swigCMemOwnDerived member variables which are used by various other
+            methods for controlling memory ownership.
+
+2017-05-21: Sghirate
+            [Java, C#, D] #449 Remove unnecessary use of dynamic_cast in directors to enable
+            non-RTTI compilation.
+
+2017-05-21: wsfulton
+            [Python] #993 Fix handling of default -ve unsigned values, such as:
+              void f(unsigned = -1U);
+
+2017-05-20: jschueller
+            [Python] #991 Fix E731 PEP8 warning: do not assign a lambda expression
+
+2017-05-16: nihal95
+            [PHP] Add %pragma version directive to allow the version of the
+            extension to be set.  Patch #970, fixes #360.
+
+2017-05-13: yag00
+            Patch #975 - Add support for noexcept on director methods.
+
 2017-04-27: redbrain
             Issue #974, Patch #976 - Fix preprocessor handling of macros with commas in a comment.
 
@@ -27,13 +160,12 @@ Version 4.0.0 (in progress)
             [Scilab] New parameter targetversion to specify the Scilab target version (5, 6, ..) for code generation
             With Scilab 6 target specified, identifier names truncation is disabled (no longer necessary)
 
-2017-02-29: tamuratak
-            [Ruby] #917 - Add Enumerable module to all container class wrappers. It was missing
-            for std::list, std::multiset, std::unordered_multiset and std::unordered_map.
-
 2017-03-24: tamuratak
             [Ruby] Fix #939 - Wrapping std::vector<bool> fix due to incorrect null checks
             on VALUE obj.
+
+2017-03-17: vadz
+            [C#] #947 Add support for std::complex<T>
 
 2017-03-17: wsfulton
             [Go] Fix handling of typedef'd function pointers and typedef'd member function pointers
@@ -58,6 +190,10 @@ Version 4.0.0 (in progress)
 
               auto sum1(int x, int y) const -> int { return x + y; }
               auto sum2(int x, int y) noexcept -> int { return x + y; }
+
+2017-02-29: tamuratak
+            [Ruby] #917 - Add Enumerable module to all container class wrappers. It was missing
+            for std::list, std::multiset, std::unordered_multiset and std::unordered_map.
 
 2017-02-27: assambar
             [C++11] Extend parser to support throw specifier in combination

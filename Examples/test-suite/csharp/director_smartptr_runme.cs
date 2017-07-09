@@ -26,6 +26,29 @@ public class runme
     }
   }
 
+  private class director_smartptr_MyBarFooDerived : FooDerived
+  {
+    public override string ping()
+    {
+      return "director_smartptr_MyBarFooDerived.ping()";
+    }
+
+    public override string pong()
+    {
+      return "director_smartptr_MyBarFooDerived.pong();" + ping();
+    }
+
+    public override string upcall(FooBar fooBarPtr)
+    {
+      return "overrideDerived;" + fooBarPtr.FooBarDo();
+    }
+
+    public override Foo makeFoo()
+    {
+      return new Foo();
+    }
+  }
+
   private static void check(string got, string expected)
   {
     if (got != expected)
@@ -49,5 +72,11 @@ public class runme
     Foo myFoo2 = new Foo().makeFoo();
     check(myFoo2.pong(), "Foo::pong();Foo::ping()");
     check(Foo.callPong(myFoo2), "Foo::pong();Foo::ping()");
+
+    FooDerived myBarFooDerived = new director_smartptr_MyBarFooDerived();
+    check(myBarFooDerived.ping(), "director_smartptr_MyBarFooDerived.ping()");
+    check(FooDerived.callPong(myBarFooDerived), "director_smartptr_MyBarFooDerived.pong();director_smartptr_MyBarFooDerived.ping()");
+    check(FooDerived.callUpcall(myBarFooDerived, fooBar), "overrideDerived;Bar::Foo2::Foo2Bar()");
+
   }
 }

@@ -2272,39 +2272,6 @@ public:
 	--nesting_depth;
       }
 
-      /* Output the downcast method, if necessary. Note: There's no other really
-         good place to put this code, since Abstract Base Classes (ABCs) can and should have 
-         downcasts, making the constructorHandler() a bad place (because ABCs don't get to
-         have constructors emitted.) */
-      if (GetFlag(n, "feature:javadowncast")) {
-	String *downcast_method = Swig_name_member(getNSpace(), getClassPrefix(), "SWIGDowncast");
-	String *jniname = makeValidJniName(downcast_method);
-	String *wname = Swig_name_wrapper(jniname);
-
-	String *norm_name = SwigType_namestr(Getattr(n, "name"));
-
-	Printf(imclass_class_code, "  public final static native %s %s(long cPtrBase, boolean cMemoryOwn);\n", proxy_class_name, downcast_method);
-
-	Wrapper *dcast_wrap = NewWrapper();
-
-	Printf(dcast_wrap->def, "SWIGEXPORT jobject JNICALL %s(JNIEnv *jenv, jclass jcls, jlong jCPtrBase, jboolean cMemoryOwn) {", wname);
-	Printf(dcast_wrap->code, "  Swig::Director *director = (Swig::Director *) 0;\n");
-	Printf(dcast_wrap->code, "  jobject jresult = (jobject) 0;\n");
-	Printf(dcast_wrap->code, "  %s *obj = *((%s **)&jCPtrBase);\n", norm_name, norm_name);
-	Printf(dcast_wrap->code, "  if (obj) director = dynamic_cast<Swig::Director *>(obj);\n");
-	Printf(dcast_wrap->code, "  if (director) jresult = director->swig_get_self(jenv);\n");
-	Printf(dcast_wrap->code, "  return jresult;\n");
-	Printf(dcast_wrap->code, "}\n");
-
-	Wrapper_print(dcast_wrap, f_wrappers);
-	DelWrapper(dcast_wrap);
-
-	Delete(norm_name);
-	Delete(wname);
-	Delete(jniname);
-	Delete(downcast_method);
-      }
-
       if (f_interface) {
 	Printv(f_interface, interface_class_code, "}\n", NIL);
 	Delete(f_interface);
@@ -3760,18 +3727,16 @@ public:
       Printf(code_wrap->code, "  (void)jcls;\n");
       Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
       Printf(code_wrap->code, "  // Avoids using smart pointer specific API.\n");
-      Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
+      Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
     }
     else {
       Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
       Printf(code_wrap->code, "  (void)jcls;\n");
-      Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName); 
+      Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj);\n", dirClassName, dirClassName); 
     }
 
-    Printf(code_wrap->code, "  if (director) {\n");
-    Printf(code_wrap->code, "    director->swig_connect_director(jenv, jself, jenv->GetObjectClass(jself), "
+    Printf(code_wrap->code, "  director->swig_connect_director(jenv, jself, jenv->GetObjectClass(jself), "
 	   "(jswig_mem_own == JNI_TRUE), (jweak_global == JNI_TRUE));\n");
-    Printf(code_wrap->code, "  }\n");
     Printf(code_wrap->code, "}\n");
 
     Wrapper_print(code_wrap, f_wrappers);
@@ -3790,12 +3755,20 @@ public:
     Printf(code_wrap->def,
 	   "SWIGEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jtake_or_release) {\n",
 	   jnipackage, jni_imclass_name, changeown_jnimethod_name);
-    Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
-    Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName);
+
+    if (Len(smartptr)) {
+        Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", smartptr, smartptr);
+        Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
+        Printf(code_wrap->code, "  // Avoids using smart pointer specific API.\n");
+        Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
+    }
+    else {
+        Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
+        Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj);\n", dirClassName, dirClassName);
+    }
+
     Printf(code_wrap->code, "  (void)jcls;\n");
-    Printf(code_wrap->code, "  if (director) {\n");
-    Printf(code_wrap->code, "    director->swig_java_change_ownership(jenv, jself, jtake_or_release ? true : false);\n");
-    Printf(code_wrap->code, "  }\n");
+    Printf(code_wrap->code, "  director->swig_java_change_ownership(jenv, jself, jtake_or_release ? true : false);\n");
     Printf(code_wrap->code, "}\n");
 
     Wrapper_print(code_wrap, f_wrappers);
@@ -4293,6 +4266,10 @@ public:
       }
     }
 
+    if (Getattr(n, "noexcept")) {
+      Append(w->def, " noexcept");
+      Append(declaration, " noexcept");
+    }
     if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
       int gencomma = 0;
 
@@ -4486,7 +4463,7 @@ public:
       Printf(directorexcept, "jthrowable $error = jenv->ExceptionOccurred();\n");
       Printf(directorexcept, "if ($error) {\n");
       Printf(directorexcept, "  jenv->ExceptionClear();$directorthrowshandlers\n");
-      Printf(directorexcept, "  throw Swig::DirectorException(jenv, $error);\n");
+      Printf(directorexcept, "  Swig::DirectorException::raise(jenv, $error);\n");
       Printf(directorexcept, "}\n");
     } else {
       directorexcept = Copy(directorexcept);
@@ -4671,7 +4648,10 @@ public:
     String *dirClassName = directorClassName(current_class);
     Wrapper *w = NewWrapper();
 
-    if (Getattr(n, "throw")) {
+    if (Getattr(n, "noexcept")) {
+      Printf(f_directors_h, "    virtual ~%s() noexcept;\n", dirClassName);
+      Printf(w->def, "%s::~%s() noexcept {\n", dirClassName, dirClassName);
+    } else if (Getattr(n, "throw")) {
       Printf(f_directors_h, "    virtual ~%s() throw ();\n", dirClassName);
       Printf(w->def, "%s::~%s() throw () {\n", dirClassName, dirClassName);
     } else {

@@ -282,7 +282,7 @@ perl5_static_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 perl5_run:
-	$(RUNTOOL) $(PERL) $(PERL5_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(PERL) -I. $(PERL5_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1693,7 +1693,7 @@ r: $(SRCDIR_SRCS)
 ifneq ($(SRCDIR_SRCS),)
 	$(CC) -g -c $(CPPFLAGS) $(CFLAGS) $(R_CFLAGS) $(SRCDIR_SRCS) $(INCLUDES)
 endif
-	+( PKG_CPPFLAGS="$(CPPFLAGS) $(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null )
+	+( PKG_CPPFLAGS="$(CPPFLAGS) $(INCLUDES)" PKG_CFLAGS="$(CFLAGS)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null )
 
 # ----------------------------------------------------------------
 # Build a R dynamically loadable module (C++)
@@ -1703,7 +1703,7 @@ r_cpp: $(SRCDIR_CXXSRCS)
 ifneq ($(SRCDIR_CXXSRCS),)
 	$(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) $(R_CFLAGS) $(SRCDIR_CXXSRCS) $(INCLUDES)
 endif
-	+( PKG_CPPFLAGS="$(CPPFLAGS) $(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null )
+	+( PKG_CPPFLAGS="$(CPPFLAGS) $(INCLUDES)" PKG_CXXFLAGS="$(CXXFLAGS)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null )
 
 # -----------------------------------------------------------------
 # Run R example

@@ -17,7 +17,9 @@
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) hh;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) ii;
 
+#if defined(SWIGTCL) || defined(SWIGCSHARP) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGPYTHON) || defined(SWIGJAVA)
 %include <std_wstring.i>
+#endif
 
 %inline %{
 #include <iostream>

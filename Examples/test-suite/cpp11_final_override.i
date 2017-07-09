@@ -82,6 +82,7 @@ struct Destructors4 : Base {
 struct FinalOverrideMethods {
     virtual void final() {}
     virtual void override(int) {}
+    virtual ~FinalOverrideMethods() = default;
 };
 struct FinalOverrideVariables {
     int final;
