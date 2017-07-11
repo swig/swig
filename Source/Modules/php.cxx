@@ -891,6 +891,8 @@ public:
 
       Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n",magic_set);
       Printf(f->code, "%s\n",magic_set);
+      Printf(f->code, "\nelse if (strcmp(arg2->val,\"thisown\") == 0)\n{\n");
+      Printf(f->code, "arg->newobject = zval_get_long(&args[1]);\n}\n\n");
       Printf(f->code, "else {\nif (!arg->extras) {\n");
       Printf(f->code, "ALLOC_HASHTABLE(arg->extras);\nzend_hash_init(arg->extras, 0, NULL, ZVAL_PTR_DTOR, 0);\n}\n");
       Printf(f->code, "if (!zend_hash_find(arg->extras,arg2))\nzend_hash_add(arg->extras,arg2,&args[1]);\n");
@@ -920,6 +922,8 @@ public:
 
       Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n",magic_set);
       Printf(f->code, "%s\n",magic_get);
+      Printf(f->code, "\nelse if (strcmp(arg2->val,\"thisown\") == 0)\n{\n");
+      Printf(f->code, "if(arg->newobject) {\nRETVAL_LONG(1);\n}\nelse {\nRETVAL_LONG(0);\n}\n}\n\n");
       Printf(f->code, "else {\nif (!arg->extras) {\nRETVAL_NULL();\n}\n");
       Printf(f->code, "else {\nzval *zv = zend_hash_find(arg->extras,arg2);\n");
       Printf(f->code, "if (!zv)\nRETVAL_NULL();\nelse\nRETVAL_ZVAL(zv,1,ZVAL_PTR_DTOR);\n}\n}\n\n");
@@ -953,6 +957,8 @@ public:
       Printf(magic_isset, "RETVAL_TRUE;\n}\n");
 
       Printf(f->code, "if (!arg2) {\n  RETVAL_FALSE;\n}\n",magic_set);
+      Printf(f->code, "\nelse if (strcmp(arg2->val,\"thisown\") == 0)\n{\n");
+      Printf(f->code, "RETVAL_TRUE;\n}\n\n");
       Printf(f->code, "%s\n",magic_isset);
       Printf(f->code, "else {\nif (!arg->extras) {\nRETVAL_FALSE;\n}\n");
       Printf(f->code, "else {\nif (!zend_hash_find(arg->extras,arg2))\n");
@@ -1322,7 +1328,7 @@ public:
         Printf(retType_class_upper, "%(upper)s",retType_class);
 
         if (retType_valid)
-          Printf(f->code, "\nstruct %s_object *obj;\n",retType_class);
+          Printf(f->code, "\nstruct %s_object *obj = NULL;\n",retType_class);
     }
     else if (retType_valid) {
         retType_class = NewString(retType);
@@ -1345,7 +1351,7 @@ public:
         Printf(retZend_obj, "%s_object_new(%s_ce)", retType_class, retType_class);
         String *ret_other_Zend_obj = NewStringEmpty();
         Printf(ret_other_Zend_obj, "zend_objects_new(%s_ce)", retType_class);
-        Replaceall(tm, "$zend_obj", retType_valid ? (constructor ? "NULL" : (newobject ? retZend_obj : ret_other_Zend_obj)) : "NULL");       
+        Replaceall(tm, "$zend_obj", retType_valid ? (constructor ? "NULL" : (newobject ? retZend_obj : ret_other_Zend_obj)) : "NULL"); 
       }
       Replaceall(tm, "$newobj", retType_valid ? "1" : "2");
       Replaceall(tm, "$c_obj", constructor? "1" : "0");
@@ -1368,6 +1374,8 @@ public:
     else if (retType_valid)
       Printf(f->code,"obj = Z_%(upper)s_OBJ_P(return_value);\nobj->%s_obj = result;\n\n", retType_class, retType_class);
 
+    if (retType_valid)
+      Printf(f->code, "if (obj)\nobj->newobject = %d;\n", newobject ? 1 : 0);
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
@@ -2410,7 +2418,7 @@ done:
       Printf(s_header, "zend_class_entry *%s_ce;\n\n",symname);
       Printf(s_header, "#define Z_%(upper)s_OBJ_P(zv) php_%s_object_fetch_object(Z_OBJ_P(zv))\n\n",symname,symname);
       Printf(s_header, "zend_object_handlers %s_object_handlers;\n",symname);
-      Printf(s_header, "struct %s_object {\n  %s *%s_obj;\n  zend_object std;\n  HashTable *extras;\n};\n\n",symname,symname,symname);
+      Printf(s_header, "struct %s_object {\n  %s *%s_obj;\n  zend_object std;\n  HashTable *extras;\n  int newobject;\n};\n\n",symname,symname,symname);
       Printf(s_header, "static inline struct %s_object * php_%s_object_fetch_object(zend_object *obj) {\n",symname,symname);
       Printf(s_header, "  return (struct %s_object *)((char *)obj - XtOffsetOf(struct %s_object, std));\n}\n\n",symname,symname);
 
@@ -2423,6 +2431,7 @@ done:
       Printf(s_header, "void %s_free_storage(zend_object *object) {\n",symname);
       Printf(s_header, "  if(!object)\n\t  return;\n");
       Printf(s_header, "  struct %s_object *obj = (struct %s_object *)php_%s_object_fetch_object(object);\n",symname,symname,symname);
+      Printf(s_header, "  if(!obj->newobject)\n\t  return;\n");
       Printf(s_header, "  if(obj->%s_obj)\n",symname);
       Printf(s_header, "   SWIG_remove(obj->%s_obj);\n",symname);
       Printf(s_header, "  if(obj->extras) {\n");
@@ -2439,7 +2448,7 @@ done:
       Printf(s_header, "  %s_object_handlers.offset = XtOffsetOf(struct %s_object, std);\n",symname,symname);
       Printf(s_header, "  %s_object_handlers.free_obj = %s_free_storage;\n",symname,symname);
       Printf(s_header, "  %s_object_handlers.dtor_obj = %s_destroy_object;\n",symname,symname);
-      Printf(s_header, "  obj->std.handlers = &%s_object_handlers;\n  return &obj->std;\n}\n\n\n",symname);
+      Printf(s_header, "  obj->std.handlers = &%s_object_handlers;\n  obj->newobject = 1;\n  return &obj->std;\n}\n\n\n",symname);
 
       if (Len(classes) != 0)
         Printf(all_cs_entry, " { NULL, NULL, NULL }\n};\n\n");

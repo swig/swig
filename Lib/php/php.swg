@@ -141,8 +141,14 @@
 
 %typemap(in) SWIGTYPE *DISOWN
 %{
-  $arg2if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, SWIG_POINTER_DISOWN ) < 0)
-    $arg2SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
+  if (zend_lookup_class(zend_string_init("$lower_param",sizeof("$lower_param")-1,0))) {
+    Z_$upper_param_OBJ_P(&$input)->newobject = 0;
+    $1 = Z_$upper_param_OBJ_P(&$input)->$lower_param_obj;
+  }
+  else {
+    if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, SWIG_POINTER_DISOWN ) < 0)
+      SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
+  }
 %}
 
 %typemap(argout) SWIGTYPE *,
