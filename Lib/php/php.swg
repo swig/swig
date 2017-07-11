@@ -119,9 +119,9 @@
 
 %typemap(in) SWIGTYPE &
 %{
-	if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL) {
-	    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
-	}
+	/*if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL)
+      SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
+  */
 %}
 
 %typemap(in) SWIGTYPE &&
@@ -482,8 +482,11 @@
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE
 {
-  void *tmp;
-  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, $&1_descriptor, 0) >= 0);
+  if (Z_TYPE($input) == IS_OBJECT && SWIG_is_correct_object(&$input,$1_descriptor))
+    _v = 1;
+  else
+    _v = 0;
+  //_v = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, 0) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER)
@@ -493,20 +496,29 @@
              SWIGTYPE &&,
              SWIGTYPE *const&
 {
-  void *tmp;
-  _v = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, 0) >= 0);
+  if (Z_TYPE($input) == IS_OBJECT && SWIG_is_correct_object(&$input,$1_descriptor))
+    _v = 1;
+  else
+    _v = 0;
+  //_v = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, 0) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const&
 {
-  void *tmp;
-  _v = (SWIG_ConvertPtr(&$input, (void**)&tmp, $*1_descriptor, 0) >= 0);
+  if (Z_TYPE($input) == IS_OBJECT && SWIG_is_correct_object(&$input,$1_descriptor))
+    _v = 1;
+  else
+    _v = 0;
+  //_v = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, 0) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void *
 {
-  void *tmp;
-  _v = (SWIG_ConvertPtr(&$input, (void**)&tmp, 0, 0) >= 0);
+  if (Z_TYPE($input) == IS_OBJECT && SWIG_is_correct_object(&$input,$1_descriptor))
+    _v = 1;
+  else
+    _v = 0;
+  //_v = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, 0) >= 0);
 }
 
 /* Exception handling */

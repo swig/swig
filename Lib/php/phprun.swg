@@ -257,3 +257,47 @@ SWIG_SetZval( zval *zv, int object, int class_obj ,void *ptr, swig_type_info *ty
     SWIG_SetPointerZval(zv,ptr,type,class_obj);
   }
 }
+
+static int
+is_derived_class(zend_class_entry *child_class, zend_class_entry *parent_class) /* {{{ */
+{
+  child_class = child_class->parent;
+  while (child_class) {
+    if (child_class == parent_class) {
+      return 1;
+    }
+    child_class = child_class->parent;
+  }
+  return 0;
+}
+
+static int
+SWIG_is_correct_object (zval *zv, swig_type_info *ty) {
+
+  int return_value = 0;
+
+  int excess = strlen(strchr(SWIG_TypePrettyName(ty),' '));
+  if (excess == 0)
+    excess = strlen(strchr(SWIG_TypePrettyName(ty),'*'));
+
+  int needed_length = strlen(SWIG_TypePrettyName(ty))-excess;
+
+  char *ty_name = (char *)malloc(needed_length);
+  memcpy(ty_name,SWIG_TypePrettyName(ty),needed_length);
+
+  zend_class_entry *lookup_ce = zend_lookup_class(zend_string_init(ty_name, needed_length , 0));
+  zend_string *zend_class_name = zend_string_copy(Z_OBJ_P(zv)->ce->name);
+  zend_class_entry *zval_ce = zend_lookup_class(zend_class_name);
+
+  if (!zval_ce || !lookup_ce)
+    return 0;
+
+  if (strcmp(zend_class_name->val,ty_name)) {
+    if (is_derived_class(zval_ce,lookup_ce))
+      return_value = 1;
+  }
+  else
+    return_value = 1;
+
+  return return_value;
+}

@@ -729,22 +729,30 @@ public:
   }
 
   /* Just need to append function names to function table to register with PHP. */
-  void create_command(String *cname, String *fname, Node *n, String *modes = NULL) {
+  void create_command(String *cname, String *fname, Node *n, bool overload, String *modes = NULL) {
     // This is for the single main zend_function_entry record
     if (cname)
-      Printf(f_h, "PHP_METHOD(%s,%s);\n", cname, fname);
-    else
-      Printf(f_h, "PHP_FUNCTION(%s);\n", fname);
-
+        Printf(f_h, "PHP_METHOD(%s,%s);\n", cname, fname);
+    else {
+      if (overload)
+        Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", fname);
+      else
+        Printf(f_h, "PHP_FUNCTION(%s);\n", fname);
+    }
     // We want to only emit each different arginfo once, as that reduces the
     // size of both the generated source code and the compiled extension
     // module.  To do this, we name the arginfo to encode the number of
     // parameters and which (if any) are passed by reference by using a
     // sequence of 0s (for non-reference) and 1s (for by references).
     ParmList *l = Getattr(n, "parms");
+    int Iterator = 0;
     String * arginfo_code = NewStringEmpty();
     for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
       /* Ignored parameters */
+      if (overload && (Iterator == 0)) {
+        Iterator++;
+        continue;
+      }
       if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	continue;
       }
@@ -765,10 +773,146 @@ public:
     if (!s) s = s_entry;
     if (cname)
       Printf(all_cs_entry, " PHP_ME(%s,%s,swig_arginfo_%s,%s)\n", cname, fname, arginfo_code, modes);
-    else
-      Printf(s, " PHP_FE(%s,swig_arginfo_%s)\n", fname, arginfo_code);
+    else {
+      if (overload)
+        Printf(s, " SWIG_ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%s)\n", Getattr(n, "sym:name"), fname, arginfo_code);
+      else
+        Printf(s, " PHP_FE(%s,swig_arginfo_%s)\n", fname, arginfo_code);
+    }
     Delete(arginfo_code);
   }
+
+  // /* -----------------------------------------------------------------------------
+  //  * print_typecheck() - Helper Function for Class Overload Dispatch
+  //  * ----------------------------------------------------------------------------- */
+
+  static bool print_typecheck(String *f, int j, Parm *pj, bool implicitconvtypecheckoff) {
+    char tmp[256];
+    sprintf(tmp, Char(argv_template_string), j);
+    String *tm = Getattr(pj, "tmap:typecheck");
+    if (tm) {
+      tm = Copy(tm);
+      Replaceid(tm, Getattr(pj, "lname"), "_v");
+      String *conv = Getattr(pj, "implicitconv");
+      if (conv && !implicitconvtypecheckoff) {
+        Replaceall(tm, "$implicitconv", conv);
+      } else {
+        Replaceall(tm, "$implicitconv", "0");
+      }
+      Replaceall(tm, "$input", tmp);
+      Printv(f, tm, "\n", NIL);
+      Delete(tm);
+      return true;
+    } else
+      return false;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * ReplaceFormat() - Helper Function for Class Overload Dispatch
+   * ----------------------------------------------------------------------------- */
+
+  static String *ReplaceFormat(const_String_or_char_ptr fmt, int j) {
+    String *lfmt = NewString(fmt);
+    char buf[50];
+    sprintf(buf, "%d", j);
+    Replaceall(lfmt, "$numargs", buf);
+    int i;
+    String *commaargs = NewString("");
+    for (i = 0; i < j; i++) {
+      Printv(commaargs, ", ", NIL);
+      Printf(commaargs, Char(argv_template_string), i);
+    }
+    Replaceall(lfmt, "$commaargs", commaargs);
+    return lfmt;
+  }
+
+  /* ------------------------------------------------------------
+   * Class dispatch Function - Overloaded Class Methods
+   * ------------------------------------------------------------ */
+   String *Swig_class_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxargs) {
+
+     int i, j;
+
+     *maxargs = 1;
+
+     String *f = NewString("");
+
+     /* Get a list of methods ranked by precedence values and argument count */
+     List *dispatch = Swig_overload_rank(n, true);
+     int nfunc = Len(dispatch);
+
+    /* Loop over the functions */
+
+    for (i = 0; i < nfunc; i++) {
+      Node *ni = Getitem(dispatch, i);
+      Parm *pi = Getattr(ni, "wrap:parms");
+      bool implicitconvtypecheckoff = GetFlag(ni, "implicitconvtypecheckoff") != 0;
+      int num_required = emit_num_required(pi)-1;
+      int num_arguments = emit_num_arguments(pi)-1;
+      if (GetFlag(n, "wrap:this")) {
+        num_required++;
+        num_arguments++;
+      }
+      if (num_arguments > *maxargs)
+        *maxargs = num_arguments;
+
+      if (num_required == num_arguments) {
+        Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
+      } else {
+        Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
+      }
+
+      if (num_arguments) {
+        Printf(f, "int _v;\n");
+      }
+
+      int num_braces = 0;
+      j = 0;
+      Parm *pj = pi;
+      pj = nextSibling(pj);
+      while (pj) {
+        if (checkAttribute(pj, "tmap:in:numinputs", "0")) {
+          pj = Getattr(pj, "tmap:in:next");
+          continue;
+        }
+        if (j >= num_required) {
+          String *lfmt = ReplaceFormat(fmt, num_arguments);
+          Printf(f, "if (%s <= %d) {\n", argc_template_string, j);
+          Printf(f, Char(lfmt), Getattr(ni, "wrap:name"));
+          Printf(f, "}\n");
+          Delete(lfmt);
+        }
+        if (print_typecheck(f, (GetFlag(n, "wrap:this") ? j + 1 : j), pj, implicitconvtypecheckoff)) {
+          Printf(f, "if (_v) {\n");
+          num_braces++;
+        }
+        if (!Getattr(pj, "tmap:in:SWIGTYPE") && Getattr(pj, "tmap:typecheck:SWIGTYPE")) {
+          /* we emit  a warning if the argument defines the 'in' typemap, but not the 'typecheck' one */
+          Swig_warning(WARN_TYPEMAP_TYPECHECK_UNDEF, Getfile(ni), Getline(ni),
+                     "Overloaded method %s with no explicit typecheck typemap for arg %d of type '%s'\n",
+                     Swig_name_decl(n), j, SwigType_str(Getattr(pj, "type"), 0));
+        }
+        Parm *pk = Getattr(pj, "tmap:in:next");
+        if (pk)
+          pj = pk;
+        else
+          pj = nextSibling(pj);
+        j++;
+      }
+      String *lfmt = ReplaceFormat(fmt, num_arguments);
+      Printf(f, Char(lfmt), Getattr(ni, "wrap:name"));
+      Delete(lfmt);
+      /* close braces */
+      for ( /* empty */ ; num_braces > 0; num_braces--)
+        Printf(f, "}\n");
+      Printf(f, "}\n");           /* braces closes "if" for this method */
+      if (implicitconvtypecheckoff)
+        Delattr(ni, "implicitconvtypecheckoff");
+    }
+    Delete(dispatch);
+    return f;
+
+   }
 
   /* ------------------------------------------------------------
    * dispatchFunction()
@@ -782,16 +926,37 @@ public:
       /* We have an extra 'this' parameter. */
       SetFlag(n, "wrap:this");
     }
-    String *dispatch = Swig_overload_dispatch(n, "%s(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;", &maxargs);
+
+    String *dispatch = NULL;
+
+    if (!class_name)
+      dispatch = Swig_overload_dispatch(n, "%s(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;", &maxargs);
+    else
+      dispatch = Swig_class_overload_dispatch(n, "%s(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;", &maxargs);
 
     /* Generate a dispatch wrapper for all overloaded functions */
 
     Wrapper *f = NewWrapper();
     String *symname = Getattr(n, "sym:name");
-    String *wname = Swig_name_wrapper(symname);
+    String *wname = NULL;
+    String *modes = NULL;
 
-    create_command(symname, wname, n);
-    Printv(f->def, "ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
+    if (class_name)
+      wname = Getattr(n, "name");
+    else
+      wname = Swig_name_wrapper(symname);
+
+    if (wrapperType == staticmemberfn || Cmp(Getattr(n, "storage"),"static") == 0)
+      modes = NewString("ZEND_ACC_PUBLIC | ZEND_ACC_STATIC");
+    else
+      modes = NewString("ZEND_ACC_PUBLIC");
+
+    create_command(class_name, wname, n, true, modes);
+
+    if (!class_name)
+      Printv(f->def, "ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
+    else
+      Printv(f->def,  "PHP_METHOD(", class_name, ",", wname, ") {\n", NIL);
 
     Wrapper_add_local(f, "argc", "int argc");
 
@@ -1030,8 +1195,22 @@ public:
     else
       modes = NewString("ZEND_ACC_PUBLIC");
 
-    if (constructor)
+    if (Getattr(n, "sym:overloaded")) {
+      overloaded = 1;
+      overname = Getattr(n, "sym:overname");
+    } else {
+      if (!addSymbol(iname, n))
+        return SWIG_ERROR;
+    }
+
+    // Test for overloading
+    if (overname) {
+      wname = Swig_name_wrapper(iname);
+      Printf(wname, "%s", overname);
+    }
+    else if (constructor) {
       wname = NewString("__construct");
+    }
     else if (wrapperType == membervar || wrapperType == globalvar) {
       char *ptr = Char(iname);
       ptr+= strlen(Char(iname)) - 4 - strlen(Char(name));
@@ -1060,24 +1239,11 @@ public:
     }
     else
       wname = name;
-
     if (Cmp(nodeType, "destructor") == 0) {
       // We just generate the Zend List Destructor and let Zend manage the
       // reference counting.  There's no explicit destructor, but the user can
       // just do `$obj = null;' to remove a reference to an object.
       return CreateZendListDestructor(n);
-    }
-    // Test for overloading;
-    if (Getattr(n, "sym:overloaded")) {
-      overloaded = 1;
-      overname = Getattr(n, "sym:overname");
-    } else {
-      if (!addSymbol(iname, n))
-	return SWIG_ERROR;
-    }
-
-    if (overname) {
-      Printf(wname, "%s", overname);
     }
 
     f = NewWrapper();
@@ -1085,11 +1251,19 @@ public:
     String *outarg = NewStringEmpty();
     String *cleanup = NewStringEmpty();
 
-    if (!static_getter) {
+    if (!overloaded) {
+      if (!static_getter) {
+        if (class_name)
+          Printv(f->def, "PHP_METHOD(", class_name, ",", wname,") {\n", NIL);
+        else
+          Printv(f->def, "PHP_FUNCTION(", wname,") {\n", NIL);
+      }
+    }
+    else {
       if (class_name)
         Printv(f->def, "PHP_METHOD(", class_name, ",", wname,") {\n", NIL);
       else
-        Printv(f->def, "PHP_FUNCTION(", wname,") {\n", NIL);
+        Printv(f->def, "ZEND_NAMED_FUNCTION(", wname,") {\n", NIL);
     }
 
     emit_parameter_variables(l, f);
@@ -1098,7 +1272,7 @@ public:
     emit_attach_parmmaps(l, f);
     // Not issued for overloaded functions.
     if (!overloaded && !static_getter) {
-      create_command(class_name, wname, n, modes);
+      create_command(class_name, wname, n, false, modes);
     }
 
     // wrap:parms is used by overload resolution.
@@ -1115,7 +1289,7 @@ public:
       String *args = NewStringEmpty();
       if (wrapperType == directorconstructor)
         Wrapper_add_local(f, "arg0", "zval * arg0");
-      if (wrapperType == memberfn || wrapperType == membervar) {
+      if ((wrapperType == memberfn || wrapperType == membervar)) {
         num_arguments--; //To remove This Pointer
         Printf(args, "arg1 = (%s *)((Z_%(upper)s_OBJ_P(getThis()))->%s_obj);\n", class_name, class_name, class_name);
       }
@@ -1186,7 +1360,7 @@ public:
 
       if (wrapperType == directorconstructor) {
         source = NewStringf("args[%d]", i+1);
-      } else if (wrapperType == memberfn || wrapperType == membervar) { 
+      } else if (wrapperType == memberfn || wrapperType == membervar) {
         source = NewStringf("args[%d]", i-1);   
       } else {
         source = NewStringf("args[%d]", i);
@@ -1313,7 +1487,17 @@ public:
       }
     }
 
-    Setattr(n, "wrap:name", wname);
+    if (!overloaded)
+      Setattr(n, "wrap:name", wname);
+    else {
+      if (class_name) {
+        String *m_call = NewStringEmpty();
+        Printf(m_call, "ZEND_MN(%s_%s)", class_name, wname);
+        Setattr(n, "wrap:name", m_call);
+      }
+      else
+        Setattr(n, "wrap:name", wname);
+    }
 
     String *retType = SwigType_str(d, 0);
     String *retType_class = NULL;
@@ -1334,6 +1518,12 @@ public:
         retType_class = NewString(retType);
         Chop(retType_class);
         Printf(f->code, "\nstruct %s_object *obj = NULL;\n",retType_class);
+    }
+    else if (is_class(d)) {
+        retType_class = NewString(retType);
+        Chop(retType_class);
+        Printf(f->code, "\nstruct %s_object *obj;\n",retType_class);
+        retType_valid = true;
     }
 
     /* emit function call */
@@ -2491,6 +2681,8 @@ done:
 	while (base.item && GetFlag(base.item, "feature:ignore")) {
 	  base = Next(base);
 	}
+        Printf(s_oinit, "%s_ce = zend_register_internal_class_ex(&%s_internal_ce, %s_ce);\n", symname , symname, Getattr(base.item, "name"));
+
 	base = Next(base);
 	if (base.item) {
 	  /* Warn about multiple inheritance for additional base class(es) */
@@ -2506,7 +2698,6 @@ done:
 	    base = Next(base);
 	  }
 	}
-        Printf(s_oinit, "%s_ce = zend_register_internal_class_ex(&%s_internal_ce, zend_exception_get_default());\n", symname , symname);
       }
       else
         Printf(s_oinit, "%s_ce = zend_register_internal_class(&%s_internal_ce);\n", symname , symname);
