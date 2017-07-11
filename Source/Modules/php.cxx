@@ -983,55 +983,16 @@ public:
     }
 
     String *v_name = GetChar(n, "name");
-    String *r_type = Swig_Get_type(Getattr(n, "type"));
 
-    if (!r_type) {
-      r_type = SwigType_str(Getattr(n, "type"),0);
-      Replace(r_type,"*","",DOH_REPLACE_FIRST);
-      Chop(r_type);
+    Printf(magic_set, "\nelse if (strcmp(arg2->val,\"%s\") == 0)\n{\n",v_name);
+    Printf(magic_set, "zval zv;\nZVAL_STRING(&zv, \"%s_set\");\n",v_name);
+    Printf(magic_set, "CALL_METHOD_PARAM_1(zv, return_value, getThis(),args[1]);\n}\n\n");
 
-      if (is_class(r_type)) {
-        Printf(magic_set, "\nelse if (strcmp(arg2->val,\"%s\") == 0)\n{\n",v_name);
-        Printf(magic_set, "arg1->%s = Z_%(upper)s_OBJ_P(&args[1])->%s_obj;\n}\n",v_name,r_type,r_type);
-      }
-      else {
-        Printf(magic_set, "\nelse if (strcmp(arg2->val,\"%s\") == 0)\n{\n",v_name);
-        Printf(magic_set, "zval zv;\nZVAL_STRING(&zv, \"%s_set\");\n",v_name);
-        Printf(magic_set, "CALL_METHOD_PARAM_1(zv, return_value, getThis(),args[1]);\n}\n\n");
-      }
+    Printf(magic_get, "\nelse if (strcmp(arg2->val,\"%s\") == 0)\n{\n",v_name);
+    Printf(magic_get, "zval zv;\nZVAL_STRING(&zv, \"%s_get\");\n",v_name);
+    Printf(magic_get, "CALL_METHOD(zv, return_value, getThis());\n}\n");
 
-      Printf(magic_get, "\nelse if (strcmp(arg2->val,\"%s\") == 0)\n{\n",v_name);
-      Printf(magic_get, "zval zv;\nZVAL_STRING(&zv, \"%s_get\");\n",v_name);
-      Printf(magic_get, "CALL_METHOD(zv, return_value, getThis());\n}\n");
     }
-
-    else if (Cmp(r_type,"string") == 0) {
-      Printf(magic_set, "\nelse if (strcmp(arg2->val,\"%s\") == 0) {\n",v_name);
-      Printf(magic_set, "arg1->%s = *zval_get_%s(&args[1])->val;\n}\n",v_name,r_type,r_type);
-
-      Printf(magic_get, "\nelse if (strcmp(arg2->val,\"%s\") == 0) {\n",v_name);
-      Printf(magic_get, "RETVAL_%(upper)sL(&arg1->%s,sizeof(arg1->%s));\n}\n",r_type,v_name,v_name);
-    }
-
-    else if (Cmp(r_type,"bool") == 0) {
-      Printf(magic_set, "\nelse if (strcmp(arg2->val,\"%s\") == 0) {\n",v_name);
-      Printf(magic_set, "if(Z_TYPE(args[1]) == IS_TRUE)\n");
-      Printf(magic_set, "arg1->%s = true;\n",v_name);
-      Printf(magic_set, "else if(Z_TYPE(args[1]) == IS_FALSE)\n");
-      Printf(magic_set, "arg1->%s = false;\n}\n",v_name);
-
-      Printf(magic_get, "\nelse if (strcmp(arg2->val,\"%s\") == 0) {\n",v_name);
-      Printf(magic_get, "RETVAL_%(upper)s(arg1->%s);\n}\n",r_type,v_name);
-    }
-
-    else {
-      Printf(magic_set, "\nelse if (strcmp(arg2->val,\"%s\") == 0) {\n",v_name);
-      Printf(magic_set, "arg1->%s = zval_get_%s(&args[1]);\n}\n",v_name,r_type,r_type);
-
-      Printf(magic_get, "\nelse if (strcmp(arg2->val,\"%s\") == 0) {\n",v_name);
-      Printf(magic_get, "RETVAL_%(upper)s(arg1->%s);\n}\n",r_type,v_name);
-    }
-  }
 
   virtual int functionWrapper(Node *n) {
     String *name = GetChar(n, "name");
