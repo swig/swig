@@ -1178,35 +1178,6 @@ public:
 
       SwigType *pt = Getattr(p, "type");
 
-      bool decrement = false;
-      if (i == 0 && class_name)
-        decrement = true;
-
-      String *paramType = SwigType_str(pt, 0);
-      String *paramType_class = NULL;
-      bool paramType_valid = false;
-      int param_number = i;
-
-      if (class_name)
-        param_number-=2;
-      if (param_number < 0)
-        param_number++;
-      
-      if (Strchr(paramType,'*')) {
-        paramType_class = NewString(paramType);
-        Replace(paramType_class,"*","",DOH_REPLACE_FIRST);
-        Chop(paramType_class);
-        paramType_valid = is_class(paramType_class) & (!decrement);
-        if (paramType_valid)
-          Printf(f->code, "arg%d = Z_%(upper)s_OBJ_P(&args[%d])->%s_obj;\n",i+1,paramType_class,param_number,paramType_class);
-      }
-      else if (is_class(pt)) {
-        paramType_class = NewString(paramType);
-        Chop(paramType_class);
-        Printf(f->code, "arg%d = *Z_%(upper)s_OBJ_P(&args[%d])->%s_obj;\n",i+1,paramType_class,param_number,paramType_class);
-        paramType_valid = true;
-      }
-
       if (wrapperType == directorconstructor) {
         source = NewStringf("args[%d]", i+1);
       } else if (wrapperType == memberfn || wrapperType == membervar) { 
@@ -1219,17 +1190,56 @@ public:
 
       /* Check if optional */
       if (i >= num_required) {
-	Printf(f->code, "\tif(arg_count > %d) {\n", i);
+        Printf(f->code, "\tif(arg_count > %d) {\n", i);
+      }
+
+      String *paramType = SwigType_str(pt, 0);
+      String *paramType_class = NULL;
+      String *paramType_class_upper = NULL;
+      bool paramType_valid = is_class(pt);
+
+      if (Strchr(paramType,'*') || Strchr(paramType,'&')) {
+        paramType_class = NewString(paramType);
+        Replace(paramType_class,"*","",DOH_REPLACE_FIRST);
+        Replace(paramType_class,Strchr(paramType,' '),"",DOH_REPLACE_FIRST);
+        Chop(paramType_class);
+        paramType_class_upper = NewStringEmpty();
+        Printf(paramType_class_upper, "%(upper)s", paramType_class);
+      }
+      else if (paramType_valid) {
+        paramType_class = NewString(paramType);
+        Chop(paramType_class);
+        paramType_class_upper = NewStringEmpty();
+        Printf(paramType_class_upper, "%(upper)s", paramType_class);
       }
 
       if ((tm = Getattr(p, "tmap:in"))) {
 	Replaceall(tm, "$source", &source);
 	Replaceall(tm, "$target", ln);
-	Replaceall(tm, "$input", source);
-        if (decrement || paramType_valid)
-          Replaceall(tm, "$arg2", "//");
-        else
-          Replaceall(tm, "$arg2", "");
+        if (Cmp(source,"args[-1]") == 0) {
+          Replaceall(tm, "$uinput", "getThis()");
+          Replaceall(tm, "$linput", "args[0]");         // Adding this to compile. It won't reach the generated if clause.
+        }
+        else {
+          Replaceall(tm, "$linput", source);
+          Replaceall(tm, "$uinput", "args[0]");         // Adding this to compile. It won't reach the generated if clause.
+        }
+        Replaceall(tm, "$input", source);
+        if (paramType_valid) {
+          String *param_value = NewStringEmpty();
+          String *param_zval = NewStringEmpty();
+          if (class_name)
+            Printf(param_zval, "getThis()");
+          else
+            Printf(param_zval, "&%s", source);
+          Printf(param_value, "Z_%(upper)s_OBJ_P(%s)->%s_obj", paramType_class_upper, param_zval , paramType_class);
+          Replaceall(tm, "$obj_value", param_value);
+        }
+        String *temp_obj = NewStringEmpty();
+        Printf(temp_obj, "&%s", ln);
+        Replaceall(tm, "$obj_value", SwigType_ispointer(pt) ? "NULL" : temp_obj);        // Adding this to compile. It won't reach this if $obj_val is required.
+        Replaceall(tm, "$upper_param", paramType_class_upper);
+        Replaceall(tm, "$lower_param", paramType_class);
 	Setattr(p, "emit:input", source);
 	Printf(f->code, "%s\n", tm);
 	if (i == 0 && Getattr(p, "self")) {
@@ -1302,7 +1312,7 @@ public:
     String *retType = SwigType_str(d, 0);
     String *retType_class = NULL;
     String *retType_class_upper = NULL;
-    bool retType_valid = false;
+    bool retType_valid = is_class(d);
     
     if (Strchr(retType,'*')) {
         retType_class = NewString(retType);
@@ -1310,10 +1320,14 @@ public:
         Replace(retType_class,"*","",DOH_REPLACE_FIRST);
         Chop(retType_class);
         Printf(retType_class_upper, "%(upper)s",retType_class);
-        retType_valid = is_class(retType_class);
 
         if (retType_valid)
           Printf(f->code, "\nstruct %s_object *obj;\n",retType_class);
+    }
+    else if (retType_valid) {
+        retType_class = NewString(retType);
+        Chop(retType_class);
+        Printf(f->code, "\nstruct %s_object *obj = NULL;\n",retType_class);
     }
 
     /* emit function call */
