@@ -18,9 +18,6 @@ SWIG=swig
 SWIG_LIB=../$(srcdir)/../Lib
 EXEEXT=@EXEEXT@
 
-# Use standard autoconf approach to transform executable name using --program-prefix and --program-suffix
-transform = @program_transform_name@
-
 LIBS= @LIBS@
 OBJS= ccache.o mdfour.o hash.o execute.o util.o args.o stats.o \
 	cleanup.o snprintf.o unify.o
@@ -59,10 +56,13 @@ uninstall: $(PACKAGE_NAME)$(EXEEXT)
 	rm -f $(DESTDIR)${bindir}/$(PROGRAM_NAME)$(EXEEXT)
 
 uninstall-docs: $(srcdir)/$(PACKAGE_NAME).1
-	rm -f $(DESTDIR)${mandir}/man1/$(PACKAGE_NAME).1
+	rm -f $(DESTDIR)${mandir}/man1/$(PROGRAM_NAME).1
 
-clean:
+clean: clean-docs
 	/bin/rm -f $(OBJS) *~ $(PACKAGE_NAME)$(EXEEXT)
+
+clean-docs:
+	rm -f $(srcdir)/$(PACKAGE_NAME).1 $(srcdir)/web/$(PACKAGE_NAME)-man.html
 
 test: test.sh
 	SWIG_LIB='$(SWIG_LIB)' PATH=../..:$$PATH SWIG='$(SWIG)' CC='$(CC)' NOSOFTLINKSTEST='$(NOSOFTLINKSTEST)' CCACHE='../$(PACKAGE_NAME)' CCACHE_PROG=$(PROGRAM_NAME) $(srcdir)/test.sh
