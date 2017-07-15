@@ -411,6 +411,10 @@ swigtests() {
 # main program
 rm -rf $TESTDIR
 mkdir $TESTDIR
+if test -n "$CCACHE_PROG"; then
+  ln -s $CCACHE $TESTDIR/$CCACHE_PROG
+  CCACHE=./$CCACHE_PROG
+fi
 cd $TESTDIR || exit 1
 
 unset CCACHE_DIR
