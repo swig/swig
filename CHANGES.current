@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-07-17: fflexo
+            [Java] #674 Add std_list.i to add support for std::list containers. The Java proxy
+            extends java.util.AbstractSequentialList and makes the C++ std::list container look
+            and feel much like a java.util.LinkedList from Java.
+
 2017-07-07: wsfulton
             [Python] Fix display of documented template types when using the autodoc
             feature. For example when wrapping:

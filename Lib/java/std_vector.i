@@ -1,5 +1,10 @@
 /* -----------------------------------------------------------------------------
  * std_vector.i
+ *
+ * SWIG typemaps for std::vector.
+ * The Java proxy class extends java.util.AbstractList and implements
+ * java.util.RandomAccess. The std::vector container looks and feels much like a
+ * java.util.ArrayList from Java.
  * ----------------------------------------------------------------------------- */
 
 %include <std_common.i>

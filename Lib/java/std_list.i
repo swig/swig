@@ -1,3 +1,11 @@
+/* -----------------------------------------------------------------------------
+ * std_list.i
+ *
+ * SWIG typemaps for std::list.
+ * The Java proxy class extends java.util.AbstractSequentialList. The std::list
+ * container looks and feels much like a java.util.LinkedList from Java.
+ * ----------------------------------------------------------------------------- */
+
 %include <std_common.i>
 
 %{
