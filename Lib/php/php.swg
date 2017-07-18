@@ -119,9 +119,8 @@
 
 %typemap(in) SWIGTYPE &
 %{
-	/*if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL)
+	if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL)
       SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
-  */
 %}
 
 %typemap(in) SWIGTYPE &&
@@ -142,8 +141,8 @@
 %typemap(in) SWIGTYPE *DISOWN
 %{
   if (zend_lookup_class(zend_string_init("$lower_param",sizeof("$lower_param")-1,0))) {
-    Z_$upper_param_OBJ_P(&$input)->newobject = 0;
-    $1 = Z_$upper_param_OBJ_P(&$input)->$lower_param_obj;
+    Z_FETCH_OBJ_P(&$input)->newobject = 0;
+    $1 = ($lower_param *)Z_FETCH_OBJ_P(&$input)->ptr;
   }
   else {
     if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, SWIG_POINTER_DISOWN ) < 0)
@@ -482,11 +481,8 @@
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE
 {
-  if (Z_TYPE($input) == IS_OBJECT && SWIG_is_correct_object(&$input,$1_descriptor))
-    _v = 1;
-  else
-    _v = 0;
-  //_v = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, 0) >= 0);
+  void *tmp;
+  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, $1_descriptor, 0) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER)
@@ -496,29 +492,20 @@
              SWIGTYPE &&,
              SWIGTYPE *const&
 {
-  if (Z_TYPE($input) == IS_OBJECT && SWIG_is_correct_object(&$input,$1_descriptor))
-    _v = 1;
-  else
-    _v = 0;
-  //_v = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, 0) >= 0);
+  void *tmp;
+  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, $1_descriptor, 0) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const&
 {
-  if (Z_TYPE($input) == IS_OBJECT && SWIG_is_correct_object(&$input,$1_descriptor))
-    _v = 1;
-  else
-    _v = 0;
-  //_v = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, 0) >= 0);
+  void *tmp;
+  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, $1_descriptor, 0) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void *
 {
-  if (Z_TYPE($input) == IS_OBJECT && SWIG_is_correct_object(&$input,$1_descriptor))
-    _v = 1;
-  else
-    _v = 0;
-  //_v = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, 0) >= 0);
+  void *tmp;
+  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, $1_descriptor, 0) >= 0);
 }
 
 /* Exception handling */
