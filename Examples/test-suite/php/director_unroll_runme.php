@@ -7,8 +7,6 @@ require "director_unroll.php";
 check::functions(array(foo_ping,foo_pong));
 // No new classes
 check::classes(array(Foo,Bar));
-// now new vars
-check::globals(array(bar));
 
 class MyFoo extends Foo {
   function ping() {
