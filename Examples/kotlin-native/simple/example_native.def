@@ -1,0 +1,3 @@
+headers = example_native.h
+compilerOpts = -I.
+linkerOpts = -L. -lexample
