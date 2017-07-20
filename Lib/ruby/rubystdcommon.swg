@@ -115,15 +115,15 @@ namespace swig {
 
   template <class Type> 
   struct traits_as<Type, value_category> {
-    static Type as(VALUE obj, bool throw_error) {
+    static Type as(VALUE obj) {
       Type v;
       int res = asval(obj, &v);
       if (!SWIG_IsOK(res)) {
-	if (throw_error) throw std::invalid_argument("bad type");
 	VALUE lastErr = rb_gv_get("$!");
 	if (lastErr == Qnil) {
 	  %type_error(swig::type_name<Type>());
 	}
+        throw std::invalid_argument("bad type");
       }
       return v;
     }
@@ -131,7 +131,7 @@ namespace swig {
 
   template <class Type> 
   struct traits_as<Type, pointer_category> {
-    static Type as(VALUE obj, bool throw_error) {
+    static Type as(VALUE obj) {
       Type *v = 0;      
       int res = traits_asptr<Type>::asptr(obj, &v);
       if (SWIG_IsOK(res) && v) {
@@ -143,40 +143,35 @@ namespace swig {
 	  return *v;
 	}
       } else {
-	// Uninitialized return value, no Type() constructor required.
-	if (throw_error) throw std::invalid_argument("bad type");
 	VALUE lastErr = rb_gv_get("$!");
 	if (lastErr == Qnil) {
 	  %type_error(swig::type_name<Type>());
 	}
-	static Type *v_def = (Type*) malloc(sizeof(Type));
-	memset(v_def,0,sizeof(Type));
-	return *v_def;
+        throw std::invalid_argument("bad type");
       }
     }
   };
 
   template <class Type> 
   struct traits_as<Type*, pointer_category> {
-    static Type* as(VALUE obj, bool throw_error) {
+    static Type* as(VALUE obj) {
       Type *v = 0;      
       int res = traits_asptr<Type>::asptr(obj, &v);
       if (SWIG_IsOK(res)) {
 	return v;
       } else {
-	if (throw_error) throw std::invalid_argument("bad type");
 	VALUE lastErr = rb_gv_get("$!");
 	if (lastErr == Qnil) {
 	  %type_error(swig::type_name<Type>());
 	}
-	return 0;
+        throw std::invalid_argument("bad type");
       }
     }
   };
 
   template <class Type>
-  inline Type as(VALUE obj, bool te = false) {
-    return traits_as< Type, typename traits< Type >::category >::as(obj, te);
+  inline Type as(VALUE obj) {
+    return traits_as< Type, typename traits< Type >::category >::as(obj);
   }
 
   template <class Type> 
