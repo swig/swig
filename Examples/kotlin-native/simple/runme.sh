@@ -11,10 +11,14 @@ if [ -n "$KOTLIN_BIN_DIR" ]; then
 	export PATH=$PATH:$KOTLIN_BIN_DIR
 fi
 
-gcc -shared -o libexample.so example.c || exit 1
+SWIG=../../../swig
 
-cinterop -target linux -def example_native.def -o example_native || exit 1
+${SWIG} -python example.i || exit 1
 
-kotlinc -target linux example.kt -library example_native -produce program -o example_kotlin || exit 1
+#gcc -shared -o libexample.so example.c || exit 1
 
-./example_kotlin.kexe
+#cinterop -target linux -def example_native.def -o example_native || exit 1
+
+#kotlinc -target linux example.kt -library example_native -produce program -o example_kotlin || exit 1
+
+#./example_kotlin.kexe

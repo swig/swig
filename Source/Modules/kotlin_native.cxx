@@ -30,8 +30,22 @@ public:
    * ------------------------------------------------------------ */
 
   virtual void main(int argc, char *argv[]) {
-    printf("Kotlin/Native main!\n");
+    SWIG_library_directory("kotlin_native");
+    Preprocessor_define("SWIGKOTLINNATIVE 1", 0);
+    SWIG_typemap_lang("kotlin_native");
+    //SWIG_config_file("kotlin_native.swg");
   }
+
+
+
+  /* ------------------------------------------------------------
+   * top()
+   * ------------------------------------------------------------ */
+
+  /*virtual int top(Node *n) {
+
+  }*/
+
 };
 
 
