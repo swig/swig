@@ -54,7 +54,7 @@ extern "C" {
   Language *swig_go(void);
   Language *swig_d(void);
   Language *swig_javascript(void);
-  Language *swig_kotlin_native(void);
+  Language *swig_kotlinnative(void);
 }
 
 struct swig_module {
@@ -78,7 +78,7 @@ static swig_module modules[] = {
   {"-guile", swig_guile, "Guile"},
   {"-java", swig_java, "Java"},
   {"-javascript", swig_javascript, "Javascript"},
-  {"-kotlin-native", swig_kotlin_native, "Kotlin/Native"},
+  {"-kotlinnative", swig_kotlinnative, "Kotlin/Native"},
   {"-lua", swig_lua, "Lua"},
   {"-modula3", swig_modula3, "Modula 3"},
   {"-mzscheme", swig_mzscheme, "Mzscheme"},

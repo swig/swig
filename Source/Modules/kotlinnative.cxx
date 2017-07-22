@@ -7,7 +7,7 @@
  * included with the SWIG source code as distributed by the SWIG developers
  * and at http://www.swig.org/legal.html.
  *
- * kotlin_native.cxx
+ * kotlinnative.cxx
  *
  * Kotlin/Native language module for SWIG.
  * ----------------------------------------------------------------------------- */
@@ -19,7 +19,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
-class KOTLIN_NATIVE:public Language {
+class KOTLINNATIVE:public Language {
 protected:
   File *f_begin;
   File *f_runtime;
@@ -31,14 +31,14 @@ protected:
   File *f_wrappers_h;
 
 public:
-  KOTLIN_NATIVE() {
+  KOTLINNATIVE() {
   }
 
   virtual void main(int argc, char *argv[]) {
-    SWIG_library_directory("kotlin_native");
+    SWIG_library_directory("kotlinnative");
     Preprocessor_define("SWIGKOTLINNATIVE 1", 0);
-    SWIG_typemap_lang("kotlin_native");
-    SWIG_config_file("kotlin_native.swg");
+    SWIG_typemap_lang("kotlinnative");
+    SWIG_config_file("kotlinnative.swg");
   }
 
   virtual int top(Node *n) {
@@ -139,12 +139,12 @@ public:
 
 
 /* -----------------------------------------------------------------------------
- * swig_kotlin_native()    - Instantiate module
+ * swig_kotlinnative()    - Instantiate module
  * ----------------------------------------------------------------------------- */
 
-static Language *new_swig_kotlin_native() {
-  return new KOTLIN_NATIVE();
+static Language *new_swig_kotlinnative() {
+  return new KOTLINNATIVE();
 }
-extern "C" Language *swig_kotlin_native(void) {
-  return new_swig_kotlin_native();
+extern "C" Language *swig_kotlinnative(void) {
+  return new_swig_kotlinnative();
 }

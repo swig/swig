@@ -50,7 +50,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/interface.cxx		\
 		Modules/java.cxx		\
 		Modules/javascript.cxx		\
-		Modules/kotlin_native.cxx	\
+		Modules/kotlinnative.cxx	\
 		Modules/lang.cxx		\
 		Modules/lua.cxx			\
 		Modules/main.cxx		\
