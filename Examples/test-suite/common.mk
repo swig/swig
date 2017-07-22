@@ -444,6 +444,7 @@ CPP_TEST_CASES += \
 	template_ns_enum2 \
 	template_ns_inherit \
 	template_ns_scope \
+	template_parameters_global_scope \
 	template_partial_arg \
 	template_partial_specialization \
 	template_partial_specialization_typedef \

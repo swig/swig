@@ -248,10 +248,26 @@ void SwigType_new_scope(const_String_or_char_ptr name) {
   ttab = NewHash();
   Setattr(s, "typetab", ttab);
 
-  /* Build fully qualified name and */
+  /* Build fully qualified name */
   qname = SwigType_scope_name(s);
+#if 1
+  {
+    /* TODO: only do with templates? What happens with non-templates with code below? */
+    String *stripped_qname;
+    stripped_qname = SwigType_remove_global_scope_prefix(qname);
+    /* Use fully qualified name for hash key without unary scope prefix, qname may contain unary scope */
+    Setattr(scopes, stripped_qname, s);
+    Setattr(s, "qname", qname);
+    /*
+    Printf(stdout, "SwigType_new_scope stripped %s %s\n", qname, stripped_qname);
+    */
+    Delete(stripped_qname);
+  }
+#else
+  Printf(stdout, "SwigType_new_scope %s\n", qname);
   Setattr(scopes, qname, s);
   Setattr(s, "qname", qname);
+#endif
   Delete(qname);
 
   current_scope = s;
@@ -418,12 +434,14 @@ static Typetab *SwigType_find_scope(Typetab *s, const SwigType *nameprefix) {
   Typetab *s_orig = s;
   String *nnameprefix = 0;
   static int check_parent = 1;
+  int is_template = 0;
 
   if (Getmark(s))
     return 0;
   Setmark(s, 1);
 
-  if (SwigType_istemplate(nameprefix)) {
+  is_template = SwigType_istemplate(nameprefix);
+  if (is_template) {
     nnameprefix = SwigType_typedef_resolve_all(nameprefix);
     nameprefix = nnameprefix;
   }
@@ -437,10 +455,12 @@ static Typetab *SwigType_find_scope(Typetab *s, const SwigType *nameprefix) {
     } else {
       full = NewString(nameprefix);
     }
-    if (Getattr(scopes, full)) {
-      s = Getattr(scopes, full);
-    } else {
-      s = 0;
+    s = Getattr(scopes, full);
+    if (!s && is_template) {
+      /* try look up scope with all the unary scope operators within the template parameter list removed */
+      SwigType *full_stripped = SwigType_remove_global_scope_prefix(full);
+      s = Getattr(scopes, full_stripped);
+      Delete(full_stripped);
     }
     Delete(full);
     if (s) {
@@ -911,6 +931,9 @@ SwigType *SwigType_typedef_resolve_all(const SwigType *t) {
     return Copy(r);
   }
 
+#ifdef SWIG_DEBUG
+  Printf(stdout, "SwigType_typedef_resolve_all start ... %s\n", t);
+#endif
   /* Recursively resolve the typedef */
   r = NewString(t);
   while ((n = SwigType_typedef_resolve(r))) {
@@ -931,6 +954,9 @@ SwigType *SwigType_typedef_resolve_all(const SwigType *t) {
     Delete(key);
     Delete(rr);
   }
+#ifdef SWIG_DEBUG
+  Printf(stdout, "SwigType_typedef_resolve_all end   === %s => %s\n", t, r);
+#endif
   return r;
 }
 
