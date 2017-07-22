@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
+
 class KOTLINNATIVE:public Language {
 protected:
   File *f_begin;
@@ -29,6 +30,11 @@ protected:
 
   File *f_begin_h;
   File *f_wrappers_h;
+
+  File *f_begin_def;
+
+  File *f_begin_kt;
+  File *f_wrappers_kt;
 
 public:
   KOTLINNATIVE() {
@@ -41,22 +47,21 @@ public:
     SWIG_config_file("kotlinnative.swg");
   }
 
+#define NEW_FILE_CHECK(file, filename) { file = NewFile(filename, "w", SWIG_output_files()); if (!file) { FileErrorDisplay(filename); SWIG_exit(EXIT_FAILURE); } }
+
   virtual int top(Node *n) {
+    String *module = Getattr(n, "name");
+
     // Initialize all of the output files
     String *outfile = Getattr(n, "outfile");
     String *outfile_h = Getattr(n, "outfile_h");
+    String *outfile_def = NewStringf("%s%s.def", SWIG_output_directory(), Char(module));
+    String *outfile_kt = NewStringf("%s%s.kt", SWIG_output_directory(), Char(module));
 
-    f_begin = NewFile(outfile, "w", SWIG_output_files());
-    if (!f_begin) {
-      FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
-    }
-
-    f_begin_h = NewFile(outfile_h, "w", SWIG_output_files());
-    if (!f_begin_h) {
-      FileErrorDisplay(outfile_h);
-      SWIG_exit(EXIT_FAILURE);
-    }
+    NEW_FILE_CHECK(f_begin, outfile);
+    NEW_FILE_CHECK(f_begin_h, outfile_h);
+    NEW_FILE_CHECK(f_begin_def, outfile_def);
+    NEW_FILE_CHECK(f_begin_kt, outfile_kt);
 
 
     f_runtime = NewString("");
@@ -65,6 +70,8 @@ public:
     f_wrappers = NewString("");
 
     f_wrappers_h = NewString("");
+
+    f_wrappers_kt = NewString("");
 
     // Register file targets with the SWIG file handler
     Swig_register_filebyname("begin", f_begin);
@@ -86,6 +93,13 @@ public:
 
 
 
+    Swig_banner(f_begin_kt);
+
+    // TODO: get name from swig instead of hard-coding *_wrap
+    Printv(f_begin_kt, "\n\nimport ", module, "_wrap.*\n\n", NIL);
+
+
+
     // emit code
     Language::top(n);
 
@@ -98,6 +112,8 @@ public:
 
     Dump(f_wrappers_h, f_begin_h);
 
+    Dump(f_wrappers_kt, f_begin_kt);
+
     // Cleanup files
     Delete(f_runtime);
     Delete(f_header);
@@ -108,8 +124,16 @@ public:
     Delete(f_wrappers_h);
     Delete(f_begin_h);
 
+    Delete(f_begin_def);
+    Delete(outfile_def);
+
+    Delete(f_begin_kt);
+    Delete(outfile_kt);
+
     return SWIG_OK;
   }
+
+#undef NEW_FILE_CHECK
 
 
   virtual int functionWrapper(Node *n) {
@@ -121,6 +145,7 @@ public:
     String *wname = Swig_name_wrapper(name);
     String *parm_str = ParmList_str(parms);
 
+    // C/C++
     Printv(wrapper->def, type, " ", wname, "(", parm_str, ") {", NIL);
     Printv(wrapper->code, "return ALL_OK;", NIL);
     Printv(wrapper->code, "}", NIL);
@@ -128,7 +153,15 @@ public:
     Wrapper_print(wrapper, f_wrappers);
     DelWrapper(wrapper);
 
+
+    // C/C++ Header
     Printv(f_wrappers_h, type, " ", wname, "(", parm_str, ");\n", NIL);
+
+
+    // Kotlin
+    Printv(f_wrappers_kt, "fun ", name, "() {\n", NIL);
+    Printv(f_wrappers_kt, "  // TODO: call wrapper function\n", NIL);
+    Printv(f_wrappers_kt, "}\n\n", NIL);
 
     Delete(wname);
     Delete(parm_str);
