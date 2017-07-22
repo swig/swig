@@ -12,8 +12,9 @@ if [ -n "$KOTLIN_BIN_DIR" ]; then
 fi
 
 SWIG=../../../swig
+export SWIG_LIB=../../../Lib
 
-${SWIG} -python example.i || exit 1
+${SWIG} -c++ -kotlin-native example.i || exit 1
 
 #gcc -shared -o libexample.so example.c || exit 1
 
