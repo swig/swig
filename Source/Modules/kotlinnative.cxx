@@ -92,11 +92,13 @@ public:
     Printf(f_begin_h, "\n\n#pragma once\n\n");
 
 
+    Printv(f_begin_def, "headers = ", outfile_h, "\n", NIL);
+    Printv(f_begin_def, "compilerOpts = -I.\n", NIL);
+    Printv(f_begin_def, "linkerOpts = -L. -l", module, "_wrap\n", NIL); // TODO: is there any generic way to do this?
+
 
     Swig_banner(f_begin_kt);
-
-    // TODO: get name from swig instead of hard-coding *_wrap
-    Printv(f_begin_kt, "\n\nimport ", module, "_wrap.*\n\n", NIL);
+    Printv(f_begin_kt, "\n\nimport ", module, ".*\n\n", NIL);
 
 
 
@@ -140,26 +142,56 @@ public:
     String   *name   = Getattr(n, "sym:name");
     SwigType *type   = Getattr(n, "type");
     ParmList *parms  = Getattr(n, "parms");
+    String   *action = Getattr(n, "wrap:action");
 
-    Wrapper *wrapper = NewWrapper();
+    bool is_void_return = (Cmp(type, "void") == 0);
+
+    Wrapper *f = NewWrapper();
     String *wname = Swig_name_wrapper(name);
     String *parm_str = ParmList_str(parms);
 
     // C/C++
-    Printv(wrapper->def, type, " ", wname, "(", parm_str, ") {", NIL);
-    Printv(wrapper->code, "return ALL_OK;", NIL);
-    Printv(wrapper->code, "}", NIL);
+    Printv(f->def, "#ifdef __cplusplus\nextern \"C\"\n#endif\n", type, " ", wname, "(", NIL);
 
-    Wrapper_print(wrapper, f_wrappers);
-    DelWrapper(wrapper);
+    // arguments
+    int i;
+    Parm *p;
+    for (i = 0, p = parms; p; i++, p = nextSibling(p)) {
+      SwigType *pt = Getattr(p, "type");
+      //String *ln = Getattr(p, "lname");
+      String *ln = NewStringf("arg%d", i+1); // TODO: use lname or something else, don't hard-code arg*
+
+      if (i != 0) {
+        Printv(f->def, ", ", NIL);
+      }
+      Printv(f->def, pt, " ", ln, NIL);
+
+      Delete(ln);
+    }
+
+    Printv(f->def, ") {", NIL);
+
+
+
+    if (!is_void_return) {
+      Printv(f->code, type, " result;\n", NIL);
+    }
+    Printv(f->code, action, "\n", NIL);
+    if (!is_void_return) {
+      Printv(f->code, "return result;\n", NIL);
+    }
+    Printv(f->code, "}", NIL);
+
+    Wrapper_print(f, f_wrappers);
+    DelWrapper(f);
 
 
     // C/C++ Header
-    Printv(f_wrappers_h, type, " ", wname, "(", parm_str, ");\n", NIL);
+    Printv(f_wrappers_h, "#ifdef __cplusplus\nextern \"C\"\n#endif\n", type, " ", wname, "(", parm_str, ");\n\n", NIL);
 
 
     // Kotlin
-    Printv(f_wrappers_kt, "fun ", name, "() {\n", NIL);
+    Printv(f_wrappers_kt, "fun ", name, "(/* TODO: add parameters */) {\n", NIL);
     Printv(f_wrappers_kt, "  // TODO: call wrapper function\n", NIL);
     Printv(f_wrappers_kt, "}\n\n", NIL);
 

@@ -14,12 +14,12 @@ fi
 SWIG=../../../swig
 export SWIG_LIB=../../../Lib
 
-${SWIG} -c++ -kotlin-native example.i || exit 1
+${SWIG} -c++ -kotlinnative example.i || exit 1
 
-#gcc -shared -o libexample.so example.c || exit 1
+g++ -shared -fPIC -o libexample_wrap.so example_wrap.cxx example.c || exit 1
 
-#cinterop -target linux -def example_native.def -o example_native || exit 1
+cinterop -target linux -def example.def -o example || exit 1
 
-#kotlinc -target linux example.kt -library example_native -produce program -o example_kotlin || exit 1
+kotlinc -target linux example_test.kt -library example -produce program -o example_test || exit 1
 
-#./example_kotlin.kexe
+./example_test.kexe

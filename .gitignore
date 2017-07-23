@@ -157,6 +157,12 @@ Examples/java/*/*.java
 Examples/test-suite/javascript/*/
 *.gyp
 
+# Kotlin/Native
+Examples/kotlinnative/*/*.bc
+Examples/kotlinnative/*/*.def
+Examples/kotlinnative/*/*.kexe
+Examples/kotlinnative/*/*.klib
+
 # Octave
 swigexample*.oct
 Examples/test-suite/octave/*.oct
