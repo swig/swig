@@ -3,10 +3,8 @@
 require "tests.php";
 require "add_link.php";
 
-// No new functions, except the flat functions
-check::functions(array(new_foo,foo_blah));
-
 check::classes(array(Foo));
+check::classmethods(Foo,array(__construct,__set,__isset,__get,blah));
 
 $foo=new foo();
 check::is_a($foo,foo);

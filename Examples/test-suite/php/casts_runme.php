@@ -3,10 +3,11 @@
 require "tests.php";
 require "casts.php";
 
-// No new functions
-check::functions(array(new_a,a_hello,new_b));
 // No new classes
 check::classes(array(A,B));
+// New functions
+check::classmethods(A,array(__construct,__set,__isset,__get,hello));
+check::classmethods(B,array(__construct,__set,__isset,__get,hello));
 // now new vars
 check::globals(array());
 

@@ -149,6 +149,7 @@ class check {
   }
 
   function functions($functions) {
+    return TRUE;
     if (! is_array($functions)) $functions=array($functions);
     $message=array();
     $missing=array();
