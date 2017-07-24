@@ -8,17 +8,17 @@ fun main(args: Array<String>)
 
 	val x = 42
 	val y = 105
-	val g = _wrap_gcd(x, y)
+	val g = gcd(x, y)
 	println("The gcd of $x and $y is $g")
 
     // Manipulate the Foo global variable
 
     // Output its current value
-    println("Foo = ${_wrap_Foo_get()}")
+    println("Foo = $Foo")
 
     // Change its value
-    _wrap_Foo_set(3.1415926)
+    Foo = 3.1415926
 
     // See if the change took effect
-    println("Foo = ${_wrap_Foo_get()}")
+    println("Foo = $Foo")
 }

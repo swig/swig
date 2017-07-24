@@ -103,7 +103,7 @@ public:
 
 
     // emit code
-    Language::top(n);
+    int result = Language::top(n);
 
 
     // Write all to the files
@@ -132,7 +132,7 @@ public:
     Delete(f_begin_kt);
     Delete(outfile_kt);
 
-    return SWIG_OK;
+    return result;
   }
 
 #undef NEW_FILE_CHECK
@@ -174,11 +174,11 @@ public:
 
 
     if (!is_void_return) {
-      Printv(f->code, type, " result;\n", NIL);
+      Printv(f->code, type, " ", Swig_cresult_name(), ";\n", NIL);
     }
     Printv(f->code, action, "\n", NIL);
     if (!is_void_return) {
-      Printv(f->code, "return result;\n", NIL);
+      Printv(f->code, "return ", Swig_cresult_name(), ";\n", NIL);
     }
     Printv(f->code, "}", NIL);
 
@@ -190,15 +190,95 @@ public:
     Printv(f_wrappers_h, "#ifdef __cplusplus\nextern \"C\"\n#endif\n", type, " ", wname, "(", parm_str, ");\n\n", NIL);
 
 
-    // Kotlin
-    Printv(f_wrappers_kt, "fun ", name, "(/* TODO: add parameters */) {\n", NIL);
-    Printv(f_wrappers_kt, "  // TODO: call wrapper function\n", NIL);
-    Printv(f_wrappers_kt, "}\n\n", NIL);
-
     Delete(wname);
     Delete(parm_str);
 
     return SWIG_OK;
+  }
+
+
+  virtual int globalfunctionHandler(Node *n) {
+    String   *name   = Getattr(n, "sym:name");
+    SwigType *type   = Getattr(n, "type");
+    ParmList *parms  = Getattr(n, "parms");
+
+    bool is_void_return = (Cmp(type, "void") == 0);
+
+
+    // def
+
+    Printv(f_wrappers_kt, "fun ", name, "(", NIL);
+
+    int i;
+    Parm *p;
+    for (i = 0, p = parms; p; i++, p = nextSibling(p)) {
+      if(i != 0) {
+        Printv(f_wrappers_kt, ", ", NIL);
+      }
+      String *kt_type = Swig_typemap_lookup("cinterop", p, "", 0);
+      String *p_name = Getattr(p, "name");
+      Printv(f_wrappers_kt, p_name, ": ", kt_type, NIL);
+      Delete(kt_type);
+    }
+
+    Printv(f_wrappers_kt, ")", NIL);
+
+    if (!is_void_return) {
+      String *kt_type = Swig_typemap_lookup("cinterop", n, "", 0);
+      Printv(f_wrappers_kt, ": ", kt_type, NIL);
+    }
+
+    Printv(f_wrappers_kt, " {\n", NIL);
+
+
+    // body
+
+    Printv(f_wrappers_kt, "  ", NIL);
+
+    if(!is_void_return) {
+      Printv(f_wrappers_kt, "return ", NIL);
+    }
+
+    String *wname = Swig_name_wrapper(name);
+    Printv(f_wrappers_kt, wname, "(", NIL);
+    Delete(wname);
+
+    for (i = 0, p = parms; p; i++, p = nextSibling(p)) {
+      if(i != 0) {
+        Printv(f_wrappers_kt, ", ", NIL);
+      }
+      String *p_name = Getattr(p, "name");
+      Printv(f_wrappers_kt, p_name, NIL);
+    }
+
+    Printv(f_wrappers_kt, ")\n}\n\n", NIL);
+
+    return Language::globalfunctionHandler(n);
+  }
+
+  virtual int globalvariableHandler(Node *n) {
+    String   *name   = Getattr(n, "sym:name");
+
+    String   *kt_type = Swig_typemap_lookup("cinterop", n, "", 0);
+
+
+    Printv(f_wrappers_kt, "var ", name, ": ", kt_type, "\n", NIL);
+
+
+    String *fname = Swig_name_get(0, name); // TODO: what is the nspace parameter for?
+    String *fname_wrap = Swig_name_wrapper(fname);
+    Printv(f_wrappers_kt, "  get() = ", fname_wrap, "()\n", NIL);
+    Delete(fname_wrap);
+    Delete(fname);
+
+    // TODO: only create setter if needed
+    fname = Swig_name_set(0, name); // TODO: what is the nspace parameter for?
+    fname_wrap = Swig_name_wrapper(fname);
+    Printv(f_wrappers_kt, "  set(value) { ", fname_wrap, "(value) }\n\n", NIL);
+    Delete(fname_wrap);
+    Delete(fname);
+
+    return Language::globalvariableHandler(n);
   }
 };
 

@@ -20,6 +20,6 @@ g++ -shared -fPIC -o libexample_wrap.so example_wrap.cxx example.c || exit 1
 
 cinterop -target linux -def example.def -o example || exit 1
 
-kotlinc -target linux example_test.kt -library example -produce program -o example_test || exit 1
+kotlinc -target linux example_test.kt example.kt -library example -produce program -o example_test || exit 1
 
 ./example_test.kexe
