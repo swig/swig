@@ -2770,6 +2770,47 @@ AC_SUBST(DDEFAULTVERSION)
 AC_SUBST(DLIBPREFIX)
 
 #----------------------------------------------------------------
+# Look for Kotlin/Native
+#----------------------------------------------------------------
+
+AC_ARG_WITH(kotlinnative, AS_HELP_STRING([--without-kotlinnative], [Disable Kotlin/Native]))
+AC_ARG_WITH(kotlinc-native, AS_HELP_STRING([--with-kotlinc-native=path], [Set location of Kotlin/Native compiler]),[ KOTLINCNATIVEBIN="$withval"], [KOTLINCNATIVEBIN="$alllang_default"])
+AC_ARG_WITH(cinterop, AS_HELP_STRING([--with-cinterop=path], [Set location of Kotlin/Native cinterop tool]), [KOTLINCINTEROPBIN="$withval"], [KOTLINCINTEROPBIN="$alllang_default"])
+
+# First, check for "--without-kotlinnative" or "--with-kotlinnative=no".
+if test x"${with_kotlinnative}" = xno; then
+  AC_MSG_NOTICE([Disabling Kotlin/Native])
+  KOTLINCNATIVE=
+  KOTLINCINTEROP=
+else
+
+  if test -z "$KOTLINCNATIVEBIN" ; then
+      AC_CHECK_PROGS(KOTLINCNATIVE, kotlinc-native)
+
+      # if test -n "$KOTLINCNATIVE" ; then
+      #   AC_MSG_CHECKING(whether the Kotlin/Native compiler works)
+      #   # TODO: check if kotlinc-native works
+      # fi
+  else
+    KOTLINCNATIVE="$KOTLINCNATIVEBIN"
+  fi
+
+  if test -z "$KOTLINCINTEROPBIN" ; then
+      AC_CHECK_PROGS(KOTLINCINTEROP, cinterop)
+
+      # if test -n "$KOTLINCINTEROP" ; then
+      #   AC_MSG_CHECKING(whether Kotlin/Native cinterop works)
+      #   # TODO: check if cinterop works
+      # fi
+  else
+    KOTLINCINTEROP="$KOTLINCINTEROPBIN"
+  fi
+fi
+
+AC_SUBST(KOTLINCNATIVE)
+AC_SUBST(KOTLINCINTEROP)
+
+#----------------------------------------------------------------
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
@@ -2942,6 +2983,12 @@ if test -z "$DDEFAULTVERSION" ; then
     SKIP_D="1"
 fi
 AC_SUBST(SKIP_D)
+
+SKIP_KOTLINNATIVE=
+if test -z "$KOTLINCNATIVE" ; then
+    SKIP_KOTLINNATIVE="1"
+fi
+AC_SUBST(SKIP_KOTLINNATIVE)
 
 #----------------------------------------------------------------
 # Additional language dependencies
@@ -3121,6 +3168,7 @@ test -n "$SKIP_GO"		|| langs="${langs}go "
 test -n "$SKIP_GUILE"		|| langs="${langs}guile "
 test -n "$SKIP_JAVA"		|| langs="${langs}java "
 test -n "$SKIP_JAVASCRIPT"	|| langs="${langs}javascript "
+test -n "$SKIP_KOTLINNATIVE"	|| langs="${langs}kotlinnative "
 test -n "$SKIP_LUA"		|| langs="${langs}lua "
 test -n "$SKIP_MODULA3"		|| langs="${langs}modula3 "
 test -n "$SKIP_MZSCHEME"	|| langs="${langs}mzscheme "

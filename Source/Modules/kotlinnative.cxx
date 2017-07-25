@@ -41,6 +41,7 @@ public:
   }
 
   virtual void main(int argc, char *argv[]) {
+    (void)argc; (void)argv;
     SWIG_library_directory("kotlinnative");
     Preprocessor_define("SWIGKOTLINNATIVE 1", 0);
     SWIG_typemap_lang("kotlinnative");

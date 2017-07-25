@@ -2089,3 +2089,70 @@ d_clean:
 	rm -f *_wrap* *~ .~* $(RUNME) $(RUNME).exe `find . -name \*.d | grep -v $(RUNME).d`
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
+
+
+##################################################################
+#####                    Kotlin/Native                      ######
+##################################################################
+
+KOTLINC             = kotlinc
+KOTLINCINTEROP      = cinterop
+
+KOTLINNATIVE_SO     = .so
+
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# ----------------------------------------------------------------
+
+kotlinnative: $(SRCDIR_SRCS)
+	$(SWIG) -kotlinnative $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o lib$(TARGET)_wrap.so
+
+# -----------------------------------------------------------------
+# Build a C++ dynamically loadable module
+# -----------------------------------------------------------------
+
+kotlinnative_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -kotlinnative $(SWIGOPTPY3) -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o lib$(TARGET)_wrap.so
+
+# -----------------------------------------------------------------
+# Run Kotlin/Native cinterop
+# -----------------------------------------------------------------
+
+kotlinnative_cinterop:
+	$(KOTLINCINTEROP) -def $(TARGET).def -o $(TARGET)
+
+# -----------------------------------------------------------------
+# Build Kotlin/Native code
+# -----------------------------------------------------------------
+
+kotlinnative_build:
+	$(KOTLINC) $(TARGET).kt $(KOTLINSRCS) -library $(TARGET) -o $(KOTLINTARGET)
+
+# -----------------------------------------------------------------
+# Running a Kotlin/Native example
+# -----------------------------------------------------------------
+
+kotlinnative_run:
+	LD_LIBRARY_PATH=. ./$(KOTLINTARGET).kexe
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+kotlinnative_version:
+	$(KOTLINC) -version
+
+# -----------------------------------------------------------------
+# Cleaning the Kotlin/Native examples
+# -----------------------------------------------------------------
+
+kotlinnative_clean:
+	rm -f *_wrap* *~ .~*
+	rm -f *.o *.so
+	rm -f *.kexe *.klib *.bc *.def
+	rm -f $(TARGET).kt
+	rm -rf $(TARGET)-build
