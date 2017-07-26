@@ -21,6 +21,9 @@ struct Base {
   virtual boost::shared_ptr<C> ret_c_shared_ptr() = 0;
   virtual C ret_c_by_value() = 0;
   virtual int take_c_by_value(C c) = 0;
+  virtual int take_c_by_ref(C& c) = 0;
+  virtual int take_c_by_pointer(C* c) = 0;
+  virtual int take_c_by_pointer_ref(C*& c) = 0;
   virtual int take_c_shared_ptr_by_value(boost::shared_ptr<C> c) = 0;
   virtual int take_c_shared_ptr_by_ref(boost::shared_ptr<C>& c) = 0;
   virtual int take_c_shared_ptr_by_pointer(boost::shared_ptr<C>* c) = 0;
@@ -47,8 +50,34 @@ int call_take_c_by_value(Base* b) {
   return b->take_c_by_value(c);
 }
 
+int call_take_c_by_ref(Base* b) {
+  C c(6);
+  return b->take_c_by_ref(c);
+}
+
+int call_take_c_by_pointer(Base* b) {
+  C c(7);
+  return b->take_c_by_pointer(&c);
+}
+
+int call_take_c_by_pointer_ref(Base* b) {
+  C c(8);
+  C* p(&c);
+  return b->take_c_by_pointer_ref(p);
+}
+
+int call_take_c_by_pointer_with_null(Base* b) {
+  C* p = NULL;
+  return b->take_c_by_pointer(p);
+}
+
+int call_take_c_by_pointer_ref_with_null(Base* b) {
+  C* p = NULL;
+  return b->take_c_by_pointer_ref(p);
+}
+
 int call_take_c_shared_ptr_by_value(Base* b) {
-  boost::shared_ptr<C> ptr(new C(6));
+  boost::shared_ptr<C> ptr(new C(9));
   return b->take_c_shared_ptr_by_value(ptr);
 }
 
@@ -58,7 +87,7 @@ int call_take_c_shared_ptr_by_value_with_null(Base* b) {
 }
 
 int call_take_c_shared_ptr_by_ref(Base* b) {
-  boost::shared_ptr<C> ptr(new C(7));
+  boost::shared_ptr<C> ptr(new C(10));
   return b->take_c_shared_ptr_by_ref(ptr);
 }
 
@@ -68,7 +97,7 @@ int call_take_c_shared_ptr_by_ref_with_null(Base* b) {
 }
 
 int call_take_c_shared_ptr_by_pointer(Base* b) {
-  boost::shared_ptr<C> ptr(new C(8));
+  boost::shared_ptr<C> ptr(new C(11));
   return b->take_c_shared_ptr_by_pointer(&ptr);
 }
 
@@ -78,7 +107,7 @@ int call_take_c_shared_ptr_by_pointer_with_null(Base* b) {
 }
 
 int call_take_c_shared_ptr_by_pointer_ref(Base* b) {
-  boost::shared_ptr<C> *ptr = new boost::shared_ptr<C>(new C(9));
+  boost::shared_ptr<C> *ptr = new boost::shared_ptr<C>(new C(12));
   return b->take_c_shared_ptr_by_pointer_ref(ptr);
 }
 
