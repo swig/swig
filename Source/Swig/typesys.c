@@ -594,14 +594,15 @@ static String *template_parameters_resolve(const String *base) {
     if ((i + 1) < sz)
       Append(type, ",");
   }
-  Append(type, ")>");
-  Append(type, suffix);
-  Delete(suffix);
-  Delete(tparms);
-  if (!rep) {
+  if (rep) {
+    Append(type, ")>");
+    Append(type, suffix);
+  } else {
     Delete(type);
     type = 0;
   }
+  Delete(suffix);
+  Delete(tparms);
   return type;
 }
 
