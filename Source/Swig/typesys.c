@@ -561,8 +561,11 @@ static SwigType *_typedef_resolve(Typetab *s, String *base, int look_parent) {
 /* ----------------------------------------------------------------------------- 
  * template_parameters_resolve()
  *
- * For use with templates only. The template parameters are resolved. If none
- * of the parameters can be resolved, zero is returned.
+ * For use with templates only. Attempts to resolve one template parameter.
+ *
+ * If one of the template parameters can be resolved, the type is returned with
+ * just the one parameter resolved and the remaining parameters left as is.
+ * If none of the template parameters can be resolved, zero is returned.
  * ----------------------------------------------------------------------------- */
 
 static String *template_parameters_resolve(const String *base) {
