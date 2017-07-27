@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
+static const char *class_this_name = "ref";
 
 class KOTLINNATIVE:public Language {
 protected:
@@ -281,6 +282,22 @@ public:
 
     return Language::globalvariableHandler(n);
   }
+
+  virtual int classHandler(Node *n) {
+    String   *name   = Getattr(n, "name");
+    Swig_print(n);
+
+    Printv(f_wrappers_kt, "class ", name, NIL);
+    // TODO: base classes
+    Printv(f_wrappers_kt, " {\n  val ", class_this_name, " = ", NIL);
+
+    int result = Language::classHandler(n);
+
+    Printv(f_wrappers_kt, "}\n\n", NIL);
+
+    return result;
+  }
+
 };
 
 
