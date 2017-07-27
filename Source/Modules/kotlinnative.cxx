@@ -82,7 +82,7 @@ public:
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", f_init);
 
-    //Swig_register_filebyname("wrapper_h", f_wrappers_h);
+    Swig_register_filebyname("begin_kt", f_wrappers_kt);
 
 
     Swig_banner(f_begin);
@@ -147,28 +147,37 @@ public:
     String   *action = Getattr(n, "wrap:action");
 
     bool is_void_return = (Cmp(type, "void") == 0);
+    char *test = Char(type);
 
     Wrapper *f = NewWrapper();
     String *wname = Swig_name_wrapper(name);
     String *parm_str = ParmList_str(parms);
 
+    String *type_str = SwigType_str(type, 0);
+
     // C/C++
-    Printv(f->def, "#ifdef __cplusplus\nextern \"C\"\n#endif\n", type, " ", wname, "(", NIL);
+    Printv(f->def, "#ifdef __cplusplus\nextern \"C\"\n#endif\n", type_str, " ", wname, "(", NIL);
 
     // arguments
     int i;
     Parm *p;
     for (i = 0, p = parms; p; i++, p = nextSibling(p)) {
-      SwigType *pt = Getattr(p, "type");
-      //String *ln = Getattr(p, "lname");
+      SwigType *pt_original = Getattr(p, "type");
+      SwigType *pt = Swig_typemap_lookup("kt_wrap", p, pt_original, 0);
       String *ln = NewStringf("arg%d", i+1); // TODO: use lname or something else, don't hard-code arg*
 
+      String *pstr = SwigType_str(pt, 0);
       if (i != 0) {
         Printv(f->def, ", ", NIL);
       }
-      Printv(f->def, pt, " ", ln, NIL);
+      Printv(f->def, pstr, " _", ln, NIL);
+      Delete(pstr);
+
+      pstr = SwigType_str(pt_original, 0);
+      Printf(f->code, "  %s arg%d = (%s)_arg%d;\n", pstr, i+1, pstr, i+1);
 
       Delete(ln);
+      Delete(pstr);
     }
 
     Printv(f->def, ") {", NIL);
@@ -176,7 +185,7 @@ public:
 
 
     if (!is_void_return) {
-      Printv(f->code, type, " ", Swig_cresult_name(), ";\n", NIL);
+      Printv(f->code, type_str, " ", Swig_cresult_name(), ";\n", NIL);
     }
     Printv(f->code, action, "\n", NIL);
     if (!is_void_return) {
@@ -189,9 +198,10 @@ public:
 
 
     // C/C++ Header
-    Printv(f_wrappers_h, "#ifdef __cplusplus\nextern \"C\"\n#endif\n", type, " ", wname, "(", parm_str, ");\n\n", NIL);
+    Printv(f_wrappers_h, "#ifdef __cplusplus\nextern \"C\"\n#endif\n", type_str, " ", wname, "(", parm_str, ");\n\n", NIL);
 
 
+    Delete(type_str);
     Delete(wname);
     Delete(parm_str);
 

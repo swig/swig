@@ -162,6 +162,7 @@ Examples/kotlinnative/*/*.bc
 Examples/kotlinnative/*/*.def
 Examples/kotlinnative/*/*.kexe
 Examples/kotlinnative/*/*.klib
+Examples/kotlinnative/*/example.kt
 
 # Octave
 swigexample*.oct

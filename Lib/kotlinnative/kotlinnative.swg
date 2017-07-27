@@ -3,3 +3,16 @@
 
 %typemap(cinterop) int          "Int"
 %typemap(cinterop) double       "Double"
+%typemap(cinterop) SWIGTYPE *   "COpaquePointer"
+
+%typemap(kt_wrap) int           "int"
+%typemap(kt_wrap) double        "double"
+%typemap(kt_wrap) SWIGTYPE *    "void *"
+
+%insert(begin_kt)
+{
+import kotlinx.cinterop.*
+
+private class SwigObject(val ref: COpaquePointer) {
+}
+}
