@@ -102,7 +102,9 @@ static String *s_fakeoowrappers;
 static String *s_phpclasses;
 
 static String *class_name = NULL;
+static String *class_type = NULL;
 static List *classes = NewList();
+static List *class_types = NewList();
 static String *magic_set = NULL;
 static String *magic_get = NULL;
 static String *magic_isset = NULL;
@@ -138,6 +140,56 @@ static enum {
 
 extern "C" {
   static void (*r_prevtracefunc) (const SwigType *t, String *mangled, String *clientdata) = 0;
+}
+
+static void print_creation_free_wrapper(int item_index) {
+
+  class_name = Getitem(classes, item_index);
+  class_type = Getitem(class_types, item_index);
+
+  Printf(s_header, "/* class entry for %s */\n",class_name);
+  Printf(s_header, "zend_class_entry *%s_ce;\n\n",class_name);
+  Printf(s_header, "/* class object handlers for %s */\n",class_name);
+  Printf(s_header, "zend_object_handlers %s_object_handlers;\n\n",class_name);
+
+  Printf(s_header, "/* dtor Method for class %s */\n",class_name);
+  Printf(s_header, "void %s_destroy_object(zend_object *object) {\n",class_name);
+  Printf(s_header, "  if(!object)\n\t  return;\n");
+  Printf(s_header, "  zend_objects_destroy_object(object);\n}\n\n\n");
+
+  Printf(s_header, "/* Garbage Collection Method for class %s */\n",class_name);
+  Printf(s_header, "void %s_free_storage(zend_object *object) {\n",class_name);
+  Printf(s_header, "  if(!object)\n\t  return;\n");
+  Printf(s_header, "  swig_object_wrapper *obj = (swig_object_wrapper *)php_fetch_object(object);\n");
+  Printf(s_header, "  if(!obj->newobject)\n\t  return;\n");
+  Printf(s_header, "  if(obj->ptr)\n");
+  Printf(s_header, "   SWIG_remove((%s *)obj->ptr);\n",class_type);
+  Printf(s_header, "  if(obj->extras) {\n");
+  Printf(s_header, "    zend_hash_destroy(obj->extras);\n");
+  Printf(s_header, "    FREE_HASHTABLE(obj->extras);\n  }\n\n");
+  Printf(s_header, "  if(&obj->std)\n");
+  Printf(s_header, "    zend_object_std_dtor(&obj->std);\n}\n\n\n");
+
+  Printf(s_header, "/* Object Creation Method for class %s */\n",class_name);
+  Printf(s_header, "zend_object * %s_object_new(zend_class_entry *ce) {\n",class_name);
+  Printf(s_header, "  swig_object_wrapper *obj = (swig_object_wrapper *)ecalloc(1,sizeof(swig_object_wrapper) + zend_object_properties_size(ce));\n");
+  Printf(s_header, "  zend_object_std_init(&obj->std, ce);\n");
+  Printf(s_header, "  %s_object_handlers.offset = XtOffsetOf(swig_object_wrapper, std);\n",class_name);
+  Printf(s_header, "  %s_object_handlers.free_obj = %s_free_storage;\n",class_name,class_name);
+  Printf(s_header, "  %s_object_handlers.dtor_obj = %s_destroy_object;\n",class_name,class_name);
+  Printf(s_header, "  obj->std.handlers = &%s_object_handlers;\n  obj->newobject = 1;\n  return &obj->std;\n}\n\n\n",class_name);
+
+  class_name = NULL;
+  class_type = NULL;
+
+}
+
+static void SwigPHP_emit_all_creation_free_wrapper() {
+  for (int Iterator = 0; Iterator < Len(classes); Iterator++) {
+    print_creation_free_wrapper(Iterator);
+  }
+  Delete(classes);
+  Delete(class_types);
 }
 
 static void SwigPHP_emit_resource_registrations() {
@@ -502,7 +554,11 @@ public:
     /* Emit all of the code */
     Language::top(n);
 
+    if (Len(classes) > 0)
+      Printf(all_cs_entry, " { NULL, NULL, NULL }\n};\n\n");
+
     SwigPHP_emit_resource_registrations();
+    SwigPHP_emit_all_creation_free_wrapper();
 
     /* start the init section */
     {
@@ -662,9 +718,6 @@ public:
     Printf(s_wrappers, "/* end wrapper section */\n");
     Printf(s_vdecl, "/* end vdecl subsection */\n");
 
-    if (Len(classes) > 0)
-      Printf(all_cs_entry, " { NULL, NULL, NULL }\n};\n\n");
-
     Dump(f_runtime, f_begin);
     Printv(f_begin, s_header, NIL);
     if (directorsEnabled()) {
@@ -717,12 +770,16 @@ public:
     // module.  To do this, we name the arginfo to encode the number of
     // parameters and which (if any) are passed by reference by using a
     // sequence of 0s (for non-reference) and 1s (for by references).
+    bool constructor = false;
+    if (Cmp(fname,"__construct") == 0)
+      constructor = true;
+
     ParmList *l = Getattr(n, "parms");
     int Iterator = 0;
     String * arginfo_code = NewStringEmpty();
     for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
       /* Ignored parameters */
-      if (overload && (Iterator == 0)) {
+      if ((overload || (!constructor && class_name)) && (Iterator == 0)) {
         Iterator++;
         continue;
       }
@@ -974,6 +1031,12 @@ public:
     return false;
   }
 
+  /* Helper method for PHP::functionWrapper to get Node n of a class */
+  Node *get_class_node(SwigType *t) {
+    Node *n = classLookup(t);
+    return n;
+  }
+
   /* Helper method for PHP::functionWrapper to get class name for parameter*/
   String *get_class_name(SwigType *t) {
     Node *n = classLookup(t);
@@ -1009,7 +1072,6 @@ public:
     }
     if (flag) {
       Wrapper *f = NewWrapper();
-
       // Need arg info set for __get magic function with one variable.
       String * arginfo_code = NewString("0");
       if (!GetFlag(arginfo_used, arginfo_code)) {
@@ -1043,7 +1105,7 @@ public:
       Printf(f->code, "PHP_METHOD(%s,__set) {\n",class_name);
 
       Printf(f->code, "  swig_object_wrapper *arg = (swig_object_wrapper *)Z_FETCH_OBJ_P(getThis());\n");
-      Printf(f->code, "  %s *arg1 = (%s *)(arg->ptr);\n", class_name, class_name);
+      Printf(f->code, "  %s *arg1 = (%s *)(arg->ptr);\n", class_type, class_type);
       Printf(f->code, "  zval args[2];\n  zend_string *arg2 = 0;\n\n");
       Printf(f->code, "  if(ZEND_NUM_ARGS() != 2 || zend_get_parameters_array_ex(2, args) != SUCCESS) {\n");
       Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
@@ -1075,7 +1137,7 @@ public:
       Printf(f->code, "PHP_METHOD(%s,__get) {\n",class_name);
 
       Printf(f->code, "  swig_object_wrapper *arg = (swig_object_wrapper *)Z_FETCH_OBJ_P(getThis());\n", class_name);
-      Printf(f->code, "  %s *arg1 = (%s *)(arg->ptr);\n", class_name, class_name);
+      Printf(f->code, "  %s *arg1 = (%s *)(arg->ptr);\n", class_type, class_type);
       Printf(f->code, "  zval args[1];\n  zend_string *arg2 = 0;\n\n");
       Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
       Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
@@ -1106,7 +1168,7 @@ public:
       Printf(f->code, "PHP_METHOD(%s,__isset) {\n",class_name);
 
       Printf(f->code, "  swig_object_wrapper *arg = (swig_object_wrapper *)Z_FETCH_OBJ_P(getThis());\n", class_name);
-      Printf(f->code, "  %s *arg1 = (%s *)(arg->ptr);\n", class_name, class_name);
+      Printf(f->code, "  %s *arg1 = (%s *)(arg->ptr);\n", class_type, class_type);
       Printf(f->code, "  zval args[1];\n  zend_string *arg2 = 0;\n\n");
       Printf(f->code, "  int newSize = 1;\nchar *method_name = 0;\n\n");
       Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
@@ -1135,7 +1197,6 @@ public:
       Printf(f->code, "fail:\n");
       Append(f->code, "SWIG_FAIL();\n");
       Printf(f->code, "}\n\n\n");
-
 
       Wrapper_print(f, s_wrappers);
       DelWrapper(f);
@@ -1235,8 +1296,19 @@ public:
       ptr+= strlen(Char(iname)) - strlen(strrchr(GetChar(n, "name"),':') + 1);
       wname = (String*) ptr;
     }
-    else
-      wname = name;
+    else {
+      if (class_name) {
+        String *intermediate_name = NewString(class_name);
+        Append(intermediate_name, "_");
+        String *intermediate_method_name = NewString(iname);
+        Replace(intermediate_method_name, intermediate_name, "", DOH_REPLACE_FIRST);
+        wname = intermediate_method_name;
+        Delete(intermediate_name);
+      }
+      else
+        wname = iname;
+    }
+
     if (Cmp(nodeType, "destructor") == 0) {
       // We just generate the Zend List Destructor and let Zend manage the
       // reference counting.  There's no explicit destructor, but the user can
@@ -1245,6 +1317,9 @@ public:
     }
 
     f = NewWrapper();
+
+    if (static_getter)
+      Printf(f->def, "{\n");
 
     String *outarg = NewStringEmpty();
     String *cleanup = NewStringEmpty();
@@ -1280,16 +1355,16 @@ public:
     int num_required = emit_num_required(l);
     numopt = num_arguments - num_required;
 
-    if (wrapperType == directorconstructor)
-      num_arguments++;
+    //if (wrapperType == directorconstructor)
+      //num_arguments++;
 
     if (num_arguments > 0) {
       String *args = NewStringEmpty();
-      if (wrapperType == directorconstructor)
-        Wrapper_add_local(f, "arg0", "zval * arg0");
+      //if (wrapperType == directorconstructor)
+        //Wrapper_add_local(f, "arg0", "zval * arg0;");
       if ((wrapperType == memberfn || wrapperType == membervar)) {
         num_arguments--; //To remove This Pointer
-        Printf(args, "arg1 = (%s *)((Z_FETCH_OBJ_P(getThis()))->ptr);\n", class_name, class_name);
+        Printf(args, "arg1 = (%s *)((Z_FETCH_OBJ_P(getThis()))->ptr);\n", class_type);
       }
       Printf(args, "zval args[%d]", num_arguments);
       Wrapper_add_local(f, "args", args);
@@ -1328,7 +1403,7 @@ public:
       Printf(f->code, "WRONG_PARAM_COUNT;\n}\n\n");
     }
     if (wrapperType == directorconstructor)
-      Printf(f->code, "arg0 = &args[0];\n  \n");
+      Printf(f->code, "zval * arg0 = getThis();\n  \n");
 
     String *retType_class = NULL;
     bool retType_valid = is_class(d);
@@ -1351,9 +1426,9 @@ public:
     // This may mean looking at Language::memberfunctionHandler
 
     int limit = num_arguments;
-    if (wrapperType == directorconstructor)
-      limit--;
-    else if (wrapperType == memberfn || wrapperType == membervar)
+    //if (wrapperType == directorconstructor)
+      //limit--;
+    if (wrapperType == memberfn || wrapperType == membervar)
       limit++;
     for (i = 0, p = l; i < limit; i++) {
       String *source;
@@ -1367,7 +1442,7 @@ public:
       SwigType *pt = Getattr(p, "type");
 
       if (wrapperType == directorconstructor) {
-        source = NewStringf("args[%d]", i+1);
+        source = NewStringf("args[%d]", i);
       } else if (wrapperType == memberfn || wrapperType == membervar) {
         source = NewStringf("args[%d]", i-1);   
       } else {
@@ -1382,11 +1457,13 @@ public:
       }
 
       String *paramType_class = NULL;
+      String *paramType_type = NULL;
       bool paramType_valid = is_class(pt);
       SwigType *resolved = SwigType_typedef_resolve_all(pt);
 
       if (paramType_valid) {
         paramType_class = get_class_name(pt);
+        paramType_type = Getattr(get_class_node(pt), "classtype");
         Chop(paramType_class);
       }
 
@@ -1405,11 +1482,11 @@ public:
         if (paramType_valid) {
           String *param_value = NewStringEmpty();
           String *param_zval = NewStringEmpty();
-          if (class_name)
+          if (Cmp(source,"args[-1]") == 0)
             Printf(param_zval, "getThis()");
           else
             Printf(param_zval, "&%s", source);
-          Printf(param_value, "(%s *) Z_FETCH_OBJ_P(%s)->ptr", paramType_class , param_zval);
+          Printf(param_value, "(%s *) Z_FETCH_OBJ_P(%s)->ptr", paramType_type , param_zval);
           Replaceall(tm, "$obj_value", param_value);
         }
         String *temp_obj = NewStringEmpty();
@@ -1437,8 +1514,8 @@ public:
 
     if (is_member_director(n)) {
       Wrapper_add_local(f, "upcall", "bool upcall = false");
-      Printf(f->code, "upcall = !Swig::Director::swig_is_overridden_method(\"%s%s\", \"%s\");\n",
-	  prefix, Swig_class_name(Swig_methodclass(n)), name);
+      Printf(f->code, "upcall = !Swig::Director::swig_is_overridden_method(\"%s%s\", getThis());\n",
+	  prefix, Swig_class_name(Swig_methodclass(n)));
     }
 
     Swig_director_emit_dynamic_cast(n, f);
@@ -1530,14 +1607,14 @@ public:
     }
 
     if (constructor) {
-      Printf(f->code,"obj = (swig_object_wrapper *) Z_FETCH_OBJ_P(getThis());\nobj->ptr = result;\n\n", class_name);
+      Printf(f->code,"obj = (swig_object_wrapper *) Z_FETCH_OBJ_P(getThis());\nobj->ptr = (void *)result;\n\n");
       Printf(f->code,"ht = Z_OBJ_HT_P(getThis())->get_properties(getThis());\n");
       Printf(f->code,"if(ht) {\nzval zv;\n");
       Printf(f->code,"ZVAL_RES(&zv,zend_register_resource(result,*(int *)(SWIGTYPE%s->clientdata)));\n", SwigType_manglestr(d));
       Printf(f->code,"zend_hash_str_add(ht, \"_cPtr\", sizeof(\"_cPtr\") - 1, &zv);\n}\n\n");
     }
     else if (retType_valid) {
-      Printf(f->code,"obj = (swig_object_wrapper *) Z_FETCH_OBJ_P(return_value);\nobj->ptr = result;\n\n", retType_class);
+      Printf(f->code,"obj = (swig_object_wrapper *) Z_FETCH_OBJ_P(return_value);\nobj->ptr = (void *)result;\n\n");
       Printf(f->code,"ht = Z_OBJ_HT_P(return_value)->get_properties(return_value);\n");
       Printf(f->code,"if(ht) {\nzval zv;\n");
       Printf(f->code,"ZVAL_RES(&zv,zend_register_resource(result,*(int *)(SWIGTYPE%s->clientdata)));\n", SwigType_manglestr(d));
@@ -1559,6 +1636,9 @@ public:
       Printf(f->code, "%s\n", tm);
       Delete(tm);
     }
+
+    if (static_getter)
+      Printf(f->code, "}\n");
 
     if (static_setter || static_getter)
       Printf(f->code, "}\n");
@@ -2584,45 +2664,17 @@ done:
       String *symname = Getattr(n, "sym:name");
       Setattr(n, "php:proxy", symname);
 
-      Printf(s_header, "/* class entry for %s */\n",className);
-      Printf(s_header, "zend_class_entry *%s_ce;\n\n",className);
-      Printf(s_header, "/* class object handlers for %s */\n",className);
-      Printf(s_header, "zend_object_handlers %s_object_handlers;\n\n",className);
-
-      Printf(s_header, "/* dtor Method for class %s */\n",className);
-      Printf(s_header, "void %s_destroy_object(zend_object *object) {\n",className);
-      Printf(s_header, "  if(!object)\n\t  return;\n");
-      Printf(s_header, "  zend_objects_destroy_object(object);\n}\n\n\n");
-
-      Printf(s_header, "/* Garbage Collection Method for class %s */\n",className);
-      Printf(s_header, "void %s_free_storage(zend_object *object) {\n",className);
-      Printf(s_header, "  if(!object)\n\t  return;\n");
-      Printf(s_header, "  swig_object_wrapper *obj = (swig_object_wrapper *)php_fetch_object(object);\n");
-      Printf(s_header, "  if(!obj->newobject)\n\t  return;\n");
-      Printf(s_header, "  if(obj->ptr)\n");
-      Printf(s_header, "   SWIG_remove((%s *)obj->ptr);\n",className);
-      Printf(s_header, "  if(obj->extras) {\n");
-      Printf(s_header, "    zend_hash_destroy(obj->extras);\n");
-      Printf(s_header, "    FREE_HASHTABLE(obj->extras);\n  }\n\n");
-      Printf(s_header, "  if(&obj->std)\n");
-      Printf(s_header, "    zend_object_std_dtor(&obj->std);\n}\n\n\n");
-
-      Printf(s_header, "/* Object Creation Method for class %s */\n",className);
-      Printf(s_header, "zend_object * %s_object_new(zend_class_entry *ce) {\n",className);
-      Printf(s_header, "  swig_object_wrapper *obj = (swig_object_wrapper *)ecalloc(1,sizeof(swig_object_wrapper) + zend_object_properties_size(ce));\n");
-      Printf(s_header, "  zend_object_std_init(&obj->std, ce);\n");
-      Printf(s_header, "  %s_object_handlers.offset = XtOffsetOf(swig_object_wrapper, std);\n",className);
-      Printf(s_header, "  %s_object_handlers.free_obj = %s_free_storage;\n",className,className);
-      Printf(s_header, "  %s_object_handlers.dtor_obj = %s_destroy_object;\n",className,className);
-      Printf(s_header, "  obj->std.handlers = &%s_object_handlers;\n  obj->newobject = 1;\n  return &obj->std;\n}\n\n\n",className);
+      if (className != symname)
+        class_name = symname;
+      else
+        class_name = className;
 
       if (Len(classes) != 0)
         Printf(all_cs_entry, " { NULL, NULL, NULL }\n};\n\n");
 
-      Printf(all_cs_entry, "static zend_function_entry class_%s_functions[] = {\n", className);
-
-      class_name = className;
-      Append(classes,className);
+      Printf(all_cs_entry, "static zend_function_entry class_%s_functions[] = {\n", class_name);
+      
+      Append(classes,class_name);
     }
 
     return Language::classDeclaration(n);
@@ -2637,9 +2689,11 @@ done:
     current_class = n;
     String *className = Getattr(n, "name");
     String *symname = Getattr(n, "sym:name");
+    class_type = Getattr(n, "classtype");
+    Append(class_types, class_type);
 
-    Printf(s_oinit, "\nzend_class_entry %s_internal_ce;\n", className);
-    Printf(s_oinit, "INIT_CLASS_ENTRY(%s_internal_ce, \"%s\", class_%s_functions);\n", className, className, className);
+    Printf(s_oinit, "\nzend_class_entry %s_internal_ce;\n", class_name);
+    Printf(s_oinit, "INIT_CLASS_ENTRY(%s_internal_ce, \"%s\", class_%s_functions);\n", class_name, class_name, class_name);
 
     if (shadow) {
       char *rename = GetChar(n, "sym:name");
@@ -2658,7 +2712,7 @@ done:
 	while (base.item && GetFlag(base.item, "feature:ignore")) {
 	  base = Next(base);
 	}
-        Printf(s_oinit, "%s_ce = zend_register_internal_class_ex(&%s_internal_ce, %s_ce);\n", className , className, Getattr(base.item, "name"));
+        Printf(s_oinit, "%s_ce = zend_register_internal_class_ex(&%s_internal_ce, %s_ce);\n", class_name , class_name, Getattr(base.item, "sym:name"));
 
 	base = Next(base);
 	if (base.item) {
@@ -2677,16 +2731,16 @@ done:
 	}
       }
       else
-        Printf(s_oinit, "%s_ce = zend_register_internal_class(&%s_internal_ce);\n", className , className);
+        Printf(s_oinit, "%s_ce = zend_register_internal_class(&%s_internal_ce);\n", class_name , class_name);
     }
 
     if (Cmp(symname,className) != 0) {
-        Printf(s_oinit, "zend_register_class_alias_ex(\"%s\",sizeof(\"%s\"),%s_ce);\n\n",className, className, className);
+        Printf(s_oinit, "zend_register_class_alias_ex(\"%s\",sizeof(\"%s\"),%s_ce);\n\n",class_name, class_name, class_name);
     }
 
-    Printf(s_oinit, "%s_ce->create_object = %s_object_new;\n", className, className);
-    Printf(s_oinit, "memcpy(&%s_object_handlers,zend_get_std_object_handlers(), sizeof(zend_object_handlers));\n", className);
-    Printf(s_oinit, "%s_object_handlers.clone_obj = NULL;\n\n", className);
+    Printf(s_oinit, "%s_ce->create_object = %s_object_new;\n", class_name, class_name);
+    Printf(s_oinit, "memcpy(&%s_object_handlers,zend_get_std_object_handlers(), sizeof(zend_object_handlers));\n", class_name);
+    Printf(s_oinit, "%s_object_handlers.clone_obj = NULL;\n\n", class_name);
 
     classnode = n;
     Language::classHandler(n);
@@ -2866,6 +2920,7 @@ done:
     }
     magic_method_setter(n,true);
     class_name = NULL;
+    class_type = NULL;
     return SWIG_OK;
   }
 
@@ -2970,7 +3025,6 @@ done:
     }
     Language::constructorHandler(n);
     wrapperType = standard;
-
     return SWIG_OK;
   }
 
