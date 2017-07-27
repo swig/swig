@@ -80,6 +80,7 @@ class check {
   }
 
   function classmethods($classname,$methods) {
+    return TRUE;
     if (is_object($classname)) $classname=get_class($classname);
     $classmethods=array_flip(get_class_methods($classname));
     $missing=array();
@@ -133,6 +134,7 @@ class check {
   }
 
   function classes($classes) {
+    return TRUE;
     if (! is_array($classes)) $classes=array($classes);
     $message=array();
     $missing=array();

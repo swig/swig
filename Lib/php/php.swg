@@ -381,7 +381,7 @@
               SWIGTYPE &,
               SWIGTYPE &&
 %{
-  SWIG_SetZval($result, $newobj , $c_obj, (void *)result, SWIGTYPE$swig_type, $zend_obj);
+  SWIG_SetZval($result, $newobj , $c_obj, (void *)result, $1_descriptor, $zend_obj);
 %}
 
 %typemap(out) SWIGTYPE *const&
