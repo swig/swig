@@ -2116,7 +2116,7 @@ kotlinnative: $(SRCDIR_SRCS)
 kotlinnative_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -kotlinnative $(SWIGOPTPY3) -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o lib$(TARGET)_wrap.so
+	$(CXXSHARED) $(CCSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o lib$(TARGET)_wrap.so
 
 # -----------------------------------------------------------------
 # Run Kotlin/Native cinterop

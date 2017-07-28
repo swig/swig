@@ -50,9 +50,9 @@ private:
     }
   }
 
-  void printParametersCall(void *obj, ParmList *parms) {
+  void printParametersCall(void *obj, ParmList *parms, bool first_comma = false) {
     for (Parm *p = parms; p; p = nextSibling(p)) {
-      if(p != parms) {
+      if(p != parms || first_comma) {
         Printv(obj, ", ", NIL);
       }
       String *p_name = Getattr(p, "name");
@@ -176,14 +176,14 @@ public:
 
     Wrapper *f = NewWrapper();
     String *wname = Swig_name_wrapper(name);
-    String *parm_str = ParmList_str(parms);
 
-    String *type_str = SwigType_str(type, 0);
+    SwigType *type_wrap = Swig_typemap_lookup("kt_wrap", n, type, 0);String *type_str = SwigType_str(type_wrap, 0);
 
-    // C/C++
     Printv(f->def, "#ifdef __cplusplus\nextern \"C\"\n#endif\n", type_str, " ", wname, "(", NIL);
+    Printv(f_wrappers_h, "#ifdef __cplusplus\nextern \"C\"\n#endif\n", type_str, " ", wname, "(", NIL);
 
     // arguments
+
     int i;
     Parm *p;
     for (i = 0, p = parms; p; i++, p = nextSibling(p)) {
@@ -194,8 +194,10 @@ public:
       String *pstr = SwigType_str(pt, 0);
       if (i != 0) {
         Printv(f->def, ", ", NIL);
+        Printv(f_wrappers_h, ", ", NIL);
       }
       Printv(f->def, pstr, " _", ln, NIL);
+      Printv(f_wrappers_h, pstr, NIL); // TODO: default arguments
       Delete(pstr);
 
       pstr = SwigType_str(pt_original, 0);
@@ -206,6 +208,7 @@ public:
     }
 
     Printv(f->def, ") {", NIL);
+    Printv(f_wrappers_h, ");\n\n", NIL);
 
 
 
@@ -222,13 +225,9 @@ public:
     DelWrapper(f);
 
 
-    // C/C++ Header
-    Printv(f_wrappers_h, "#ifdef __cplusplus\nextern \"C\"\n#endif\n", type_str, " ", wname, "(", parm_str, ");\n\n", NIL);
-
 
     Delete(type_str);
     Delete(wname);
-    Delete(parm_str);
 
     return SWIG_OK;
   }
@@ -240,7 +239,6 @@ public:
     ParmList *parms  = Getattr(n, "parms");
 
     bool is_void_return = (Cmp(type, "void") == 0);
-
 
     // def
 
@@ -259,11 +257,9 @@ public:
     // body
 
     Printv(f_wrappers_kt, "  ", NIL);
-
     if(!is_void_return) {
       Printv(f_wrappers_kt, "return ", NIL);
     }
-
     String *wname = Swig_name_wrapper(name);
     Printv(f_wrappers_kt, wname, "(", NIL);
     Delete(wname);
@@ -305,7 +301,7 @@ public:
     List *baselist  = Getattr(n, "baselist");
     int base_count = Len(baselist);
 
-    Printv(f_wrappers_kt, "class ", name, ": ", NIL);
+    Printv(f_wrappers_kt, "open class ", name, ": ", NIL);
     if(base_count == 0) {
       Printv(f_wrappers_kt, "SwigObject", NIL);
     } else {
@@ -336,12 +332,64 @@ public:
     printKotlinParameters(f_wrappers_kt, parms);
     Printv(f_wrappers_kt, "): super(", wrapper_name, "(", NIL);
     printParametersCall(f_wrappers_kt, parms);
-    Printv(f_wrappers_kt, "))\n", NIL);
+    Printv(f_wrappers_kt, ")!!)\n", NIL);
 
     Delete(wrapper_name);
 
-    int result = Language::constructorHandler(n);
-    return result;
+    return Language::constructorHandler(n);
+  }
+
+
+  virtual int memberfunctionHandler(Node *n) {
+    String   *name   = Getattr(n, "sym:name");
+    SwigType *type   = Getattr(n, "type");
+    ParmList *parms  = Getattr(n, "parms");
+
+    String *fname = Swig_name_member(0, getClassPrefix(), name);
+
+    bool is_void_return = (Cmp(type, "void") == 0);
+    bool is_override = (Getattr(n, "override") != 0);
+    bool is_virtual = (Cmp(Getattr(n, "storage"), "virtual") == 0);
+
+    // def
+
+    Printv(f_wrappers_kt, "\n  ", NIL);
+
+    if (is_override) {
+      Printv(f_wrappers_kt, "override ", NIL);
+    } else if (is_virtual) {
+      Printv(f_wrappers_kt, "open ", NIL);
+    }
+
+    Printv(f_wrappers_kt, "fun ", name, "(", NIL);
+    printKotlinParameters(f_wrappers_kt, parms);
+    Printv(f_wrappers_kt, ")", NIL);
+
+    if (!is_void_return) {
+      String *kt_type = Swig_typemap_lookup("cinterop", n, "", 0);
+      Printv(f_wrappers_kt, ": ", kt_type, NIL);
+    }
+
+    Printv(f_wrappers_kt, " {\n", NIL);
+
+
+    // body
+
+    Printv(f_wrappers_kt, "    ", NIL);
+    if(!is_void_return) {
+      Printv(f_wrappers_kt, "return ", NIL);
+    }
+    String *wname = Swig_name_wrapper(fname);
+    Printv(f_wrappers_kt, wname, "(ref", NIL);
+    Delete(wname);
+
+    printParametersCall(f_wrappers_kt, parms, true);
+
+    Printv(f_wrappers_kt, ")\n  }\n", NIL);
+
+    Delete(fname);
+
+    return Language::memberfunctionHandler(n);
   }
 
 

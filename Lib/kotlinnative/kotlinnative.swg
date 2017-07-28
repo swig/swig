@@ -7,6 +7,7 @@
 
 %typemap(kt_wrap) int           "int"
 %typemap(kt_wrap) double        "double"
+%typemap(kt_wrap) void          "void"
 %typemap(kt_wrap) SWIGTYPE *    "void *"
 
 %insert(begin_kt)

@@ -7,28 +7,28 @@ fun main(args: Array<String>)
     // ----- Object creation -----
 
     println("Creating some objects:")
-    val c = Circle(10)
+    val c = Circle(10.0)
     println("    Created circle $c")
-    s = example.Square(10)
+    val s = Square(10.0)
     println("    Created square $s")
 
     // ----- Access a static member -----
 
-    println("\nA total of ${Shape.nshapes} shapes were created")
+    // TODO println("\nA total of ${Shape.nshapes} shapes were created")
 
     // ----- Member data access -----
 
     // Set the location of the object
 
-    c.x = 20
-    c.y = 30
+    // TODO c.x = 20
+    // TODO c.y = 30
 
-    s.x = -10
-    s.y = 5
+    // TODO s.x = -10
+    // TODO s.y = 5
 
-    println("\nHere is their current position:")
-    println("    Circle = (${c.x}, ${c.y})")
-    println("    Square = (${s.x}, ${s.y})")
+    // TODO println("\nHere is their current position:")
+    // TODO println("    Circle = (${c.x}, ${c.y})")
+    // TODO println("    Square = (${s.x}, ${s.y})")
 
     // ----- Call some methods -----
 
@@ -45,7 +45,7 @@ fun main(args: Array<String>)
     // del c
     // del s
 
-    println("${Shape.nshapes} shapes remain")
-    println("Goodbye")
+    // TODO println("${Shape.nshapes} shapes remain")
+    // TODO println("Goodbye")
 
 }
