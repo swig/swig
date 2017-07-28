@@ -13,6 +13,5 @@
 {
 import kotlinx.cinterop.*
 
-private class SwigObject(val ref: COpaquePointer) {
-}
+abstract class SwigObject(val ref: COpaquePointer)
 }

@@ -37,6 +37,29 @@ protected:
   File *f_begin_kt;
   File *f_wrappers_kt;
 
+private:
+  void printKotlinParameters(void *obj, ParmList *parms) {
+    for (Parm *p = parms; p; p = nextSibling(p)) {
+      if(p != parms) {
+        Printv(obj, ", ", NIL);
+      }
+      String *kt_type = Swig_typemap_lookup("cinterop", p, "", 0);
+      String *p_name = Getattr(p, "name");
+      Printv(obj, p_name, ": ", kt_type, NIL);
+      Delete(kt_type);
+    }
+  }
+
+  void printParametersCall(void *obj, ParmList *parms) {
+    for (Parm *p = parms; p; p = nextSibling(p)) {
+      if(p != parms) {
+        Printv(obj, ", ", NIL);
+      }
+      String *p_name = Getattr(p, "name");
+      Printv(obj, p_name, NIL);
+    }
+  }
+
 public:
   KOTLINNATIVE() {
   }
@@ -49,7 +72,9 @@ public:
     SWIG_config_file("kotlinnative.swg");
   }
 
-#define NEW_FILE_CHECK(file, filename) { file = NewFile(filename, "w", SWIG_output_files()); if (!file) { FileErrorDisplay(filename); SWIG_exit(EXIT_FAILURE); } }
+#define NEW_FILE_CHECK(file, filename) { \
+  file = NewFile(filename, "w", SWIG_output_files()); \
+  if (!file) { FileErrorDisplay(filename); SWIG_exit(EXIT_FAILURE); } }
 
   virtual int top(Node *n) {
     String *module = Getattr(n, "name");
@@ -220,19 +245,7 @@ public:
     // def
 
     Printv(f_wrappers_kt, "fun ", name, "(", NIL);
-
-    int i;
-    Parm *p;
-    for (i = 0, p = parms; p; i++, p = nextSibling(p)) {
-      if(i != 0) {
-        Printv(f_wrappers_kt, ", ", NIL);
-      }
-      String *kt_type = Swig_typemap_lookup("cinterop", p, "", 0);
-      String *p_name = Getattr(p, "name");
-      Printv(f_wrappers_kt, p_name, ": ", kt_type, NIL);
-      Delete(kt_type);
-    }
-
+    printKotlinParameters(f_wrappers_kt, parms);
     Printv(f_wrappers_kt, ")", NIL);
 
     if (!is_void_return) {
@@ -255,13 +268,7 @@ public:
     Printv(f_wrappers_kt, wname, "(", NIL);
     Delete(wname);
 
-    for (i = 0, p = parms; p; i++, p = nextSibling(p)) {
-      if(i != 0) {
-        Printv(f_wrappers_kt, ", ", NIL);
-      }
-      String *p_name = Getattr(p, "name");
-      Printv(f_wrappers_kt, p_name, NIL);
-    }
+    printParametersCall(f_wrappers_kt, parms);
 
     Printv(f_wrappers_kt, ")\n}\n\n", NIL);
 
@@ -295,11 +302,21 @@ public:
 
   virtual int classHandler(Node *n) {
     String   *name   = Getattr(n, "name");
-    Swig_print(n);
+    List *baselist  = Getattr(n, "baselist");
+    int base_count = Len(baselist);
 
-    Printv(f_wrappers_kt, "class ", name, NIL);
-    // TODO: base classes
-    Printv(f_wrappers_kt, " {\n  val ", class_this_name, " = ", NIL);
+    Printv(f_wrappers_kt, "class ", name, ": ", NIL);
+    if(base_count == 0) {
+      Printv(f_wrappers_kt, "SwigObject", NIL);
+    } else {
+      if(base_count > 1) {
+        // TODO: error for now
+      }
+      Printv(f_wrappers_kt, Getitem(baselist, 0), NIL);
+    }
+
+    Printv(f_wrappers_kt, " {\n", NIL);
+    Printv(f_wrappers_kt, "  constructor(ref: COpaquePointer) : super(ref)\n", NIL);
 
     int result = Language::classHandler(n);
 
@@ -307,6 +324,26 @@ public:
 
     return result;
   }
+
+  virtual int constructorHandler(Node *n) {
+    ParmList *parms  = Getattr(n, "parms");
+    String *name  = Getattr(n, "sym:name");
+    String *cname = Swig_name_construct(0, name);
+    String *wrapper_name = Swig_name_wrapper(cname);
+    Delete(cname);
+
+    Printv(f_wrappers_kt, "  constructor(", NIL);
+    printKotlinParameters(f_wrappers_kt, parms);
+    Printv(f_wrappers_kt, "): super(", wrapper_name, "(", NIL);
+    printParametersCall(f_wrappers_kt, parms);
+    Printv(f_wrappers_kt, "))\n", NIL);
+
+    Delete(wrapper_name);
+
+    int result = Language::constructorHandler(n);
+    return result;
+  }
+
 
 };
 
