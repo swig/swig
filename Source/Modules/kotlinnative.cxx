@@ -443,6 +443,18 @@ public:
     return Language::constructorHandler(n);
   }
 
+  virtual int destructorHandler(Node *n) {
+    int result = Language::destructorHandler(n);
+
+    String   *wname  = Getattr(n, "wrap:name");
+
+    Printv(f_wrappers_kt, "\n", NIL);
+    indent_line(f_wrappers_kt);
+    Printv(f_wrappers_kt, "override fun delete() { ", wname, "(", class_this_name, ") }\n", NIL);
+
+    return result;
+  }
+
 
   virtual int memberfunctionHandler(Node *n) {
     int result = Language::memberfunctionHandler(n);

@@ -42,8 +42,8 @@ fun main(args: Array<String>)
     println("\nGuess I'll clean up now")
 
     // Note: this invokes the virtual destructor
-    // del c
-    // del s
+    c.delete()
+    s.delete()
 
     println("${Shape.nshapes} shapes remain")
     println("Goodbye")

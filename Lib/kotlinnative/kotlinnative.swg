@@ -14,5 +14,7 @@
 {
 import kotlinx.cinterop.*
 
-abstract class SwigObject(val ref: COpaquePointer)
+abstract class SwigObject(val ref: COpaquePointer) {
+    abstract fun delete()
+}
 }
