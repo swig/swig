@@ -37,8 +37,12 @@ protected:
   File *f_begin_kt;
   File *f_wrappers_kt;
 
+  File *companion_object_kt;
+
+  int current_indent;
+
 private:
-  void printKotlinParameters(void *obj, ParmList *parms) {
+  void print_kotlin_parameters(void *obj, ParmList *parms) {
     for (Parm *p = parms; p; p = nextSibling(p)) {
       if(p != parms) {
         Printv(obj, ", ", NIL);
@@ -50,7 +54,7 @@ private:
     }
   }
 
-  void printParametersCall(void *obj, ParmList *parms, bool first_comma = false) {
+  void print_parameters_call(void *obj, ParmList *parms, bool first_comma = false) {
     for (Parm *p = parms; p; p = nextSibling(p)) {
       if(p != parms || first_comma) {
         Printv(obj, ", ", NIL);
@@ -58,6 +62,46 @@ private:
       String *p_name = Getattr(p, "name");
       Printv(obj, p_name, NIL);
     }
+  }
+
+  void indent_line(void *obj) {
+    switch(current_indent) {
+      case 0:
+        return;
+      case 1:
+        Printv(obj, "  ", NIL);
+        return;
+      case 2:
+        Printv(obj, "    ", NIL);
+        return;
+      case 3:
+        Printv(obj, "      ", NIL);
+        return;
+      case 4:
+        Printv(obj, "        ", NIL);
+        return;
+      case 5:
+        Printv(obj, "          ", NIL);
+        return;
+      case 6:
+        Printv(obj, "            ", NIL);
+        return;
+      default:
+        Printv(obj, "              ", NIL);
+        break;
+    }
+
+    for(int i=0; i<current_indent-6; i++) {
+      Printv(obj, "  ", NIL);
+    }
+  }
+
+  File *init_companion_object() {
+    if (companion_object_kt) {
+      return companion_object_kt;
+    }
+
+    return companion_object_kt = NewStringEmpty();
   }
 
 public:
@@ -127,6 +171,9 @@ public:
     Swig_banner(f_begin_kt);
     Printv(f_begin_kt, "\n\nimport ", module, ".*\n\n", NIL);
 
+    companion_object_kt = 0;
+
+    current_indent = 0;
 
 
     // emit code
@@ -166,18 +213,59 @@ public:
 
 
   virtual int functionWrapper(Node *n) {
-    String   *name   = Getattr(n, "sym:name");
-    SwigType *type   = Getattr(n, "type");
-    ParmList *parms  = Getattr(n, "parms");
-    String   *action = Getattr(n, "wrap:action");
+    String   *name      = Getattr(n, "sym:name");
+    SwigType *type      = Getattr(n, "type");
+    ParmList *parms     = Getattr(n, "parms");
+    String   *action    = Getattr(n, "wrap:action");
+    String   *kind      = Getattr(n, "kind");
+    String   *varname;
+    SwigType *vartype;
 
+    bool is_static      = Cmp(Getattr(n, "storage"), "static") == 0;
     bool is_void_return = (Cmp(type, "void") == 0);
-    char *test = Char(type);
+    bool is_member      = (Cmp(Getattr(n, "ismember"), "1") == 0);
+    bool is_var         = false;
+
+    if (kind) {
+      is_var = Cmp(kind, "variable") == 0;
+    }
+
+    bool is_getter;
+    bool is_setter;
+
+    if (is_member && !is_static) {
+      is_getter         = Getattr(n, "memberget") != 0;
+      is_setter         = Getattr(n, "memberset") != 0;
+
+      varname           = Getattr(n, "membervariableHandler:name");
+      vartype           = Getattr(n, "membervariableHandler:type");
+    } else {
+      is_getter         = Getattr(n, "varget") != 0;
+      is_setter         = Getattr(n, "varset") != 0;
+
+      vartype         = Getattr(n, "variableWrapper:type");
+
+      if (is_static) {
+        varname         = Getattr(n, "variableWrapper:name");
+      } else {
+        varname         = Getattr(n, "staticmembervariableWrapper:name");
+      }
+    }
+
 
     Wrapper *f = NewWrapper();
-    String *wname = Swig_name_wrapper(name);
+    String *wname;
 
-    SwigType *type_wrap = Swig_typemap_lookup("kt_wrap", n, type, 0);String *type_str = SwigType_str(type_wrap, 0);
+    if(is_var && is_member && !is_static) {
+      String *member_name = Swig_name_member(getNSpace(), getClassPrefix(), name);
+      wname = Swig_name_wrapper(member_name);
+      Delete(member_name);
+    } else {
+      wname = Swig_name_wrapper(name);
+    }
+
+    SwigType *type_wrap = Swig_typemap_lookup("kt_wrap", n, type, 0);
+    String *type_str = SwigType_str(type_wrap, 0);
 
     Printv(f->def, "#ifdef __cplusplus\nextern \"C\"\n#endif\n", type_str, " ", wname, "(", NIL);
     Printv(f_wrappers_h, "#ifdef __cplusplus\nextern \"C\"\n#endif\n", type_str, " ", wname, "(", NIL);
@@ -189,7 +277,7 @@ public:
     for (i = 0, p = parms; p; i++, p = nextSibling(p)) {
       SwigType *pt_original = Getattr(p, "type");
       SwigType *pt = Swig_typemap_lookup("kt_wrap", p, pt_original, 0);
-      String *ln = NewStringf("arg%d", i+1); // TODO: use lname or something else, don't hard-code arg*
+      String *ln = NewStringf("arg%d", i + 1);
 
       String *pstr = SwigType_str(pt, 0);
       if (i != 0) {
@@ -201,21 +289,38 @@ public:
       Delete(pstr);
 
       pstr = SwigType_str(pt_original, 0);
-      Printf(f->code, "  %s arg%d = (%s)_arg%d;\n", pstr, i+1, pstr, i+1);
+      Printf(f->code, "  %s arg%d = (%s)_arg%d;\n", pstr, i + 1, pstr, i + 1);
 
       Delete(ln);
       Delete(pstr);
     }
 
+
     Printv(f->def, ") {", NIL);
     Printv(f_wrappers_h, ");\n\n", NIL);
 
 
+    // action code
 
     if (!is_void_return) {
       Printv(f->code, type_str, " ", Swig_cresult_name(), ";\n", NIL);
     }
-    Printv(f->code, action, "\n", NIL);
+
+    if (is_var && !is_static) {
+      if (is_getter) {
+        Printv(f->code, Swig_cresult_name(), " = arg1->", varname, ";\n", NIL);
+      } else {
+        String *vartype_str = SwigType_str(vartype, 0);
+        Printv(f->code, "arg1->", varname, " = (", vartype_str, ")arg2;\n", NIL);
+        Delete(vartype_str);
+      }
+    } else {
+      Printv(f->code, action, "\n", NIL);
+    }
+
+
+    // return
+
     if (!is_void_return) {
       Printv(f->code, "return ", Swig_cresult_name(), ";\n", NIL);
     }
@@ -224,7 +329,13 @@ public:
     Wrapper_print(f, f_wrappers);
     DelWrapper(f);
 
-
+    if (is_getter) {
+      Setattr(n, "wrap:get", wname);
+    } else if(is_setter) {
+      Setattr(n, "wrap:set", wname);
+    } else {
+      Setattr(n, "wrap:name", wname);
+    }
 
     Delete(type_str);
     Delete(wname);
@@ -243,7 +354,7 @@ public:
     // def
 
     Printv(f_wrappers_kt, "fun ", name, "(", NIL);
-    printKotlinParameters(f_wrappers_kt, parms);
+    print_kotlin_parameters(f_wrappers_kt, parms);
     Printv(f_wrappers_kt, ")", NIL);
 
     if (!is_void_return) {
@@ -264,36 +375,11 @@ public:
     Printv(f_wrappers_kt, wname, "(", NIL);
     Delete(wname);
 
-    printParametersCall(f_wrappers_kt, parms);
+    print_parameters_call(f_wrappers_kt, parms);
 
     Printv(f_wrappers_kt, ")\n}\n\n", NIL);
 
     return Language::globalfunctionHandler(n);
-  }
-
-  virtual int globalvariableHandler(Node *n) {
-    String   *name   = Getattr(n, "sym:name");
-
-    String   *kt_type = Swig_typemap_lookup("cinterop", n, "", 0);
-
-
-    Printv(f_wrappers_kt, "var ", name, ": ", kt_type, "\n", NIL);
-
-
-    String *fname = Swig_name_get(0, name); // TODO: what is the nspace parameter for?
-    String *fname_wrap = Swig_name_wrapper(fname);
-    Printv(f_wrappers_kt, "  get() = ", fname_wrap, "()\n", NIL);
-    Delete(fname_wrap);
-    Delete(fname);
-
-    // TODO: only create setter if needed
-    fname = Swig_name_set(0, name); // TODO: what is the nspace parameter for?
-    fname_wrap = Swig_name_wrapper(fname);
-    Printv(f_wrappers_kt, "  set(value) { ", fname_wrap, "(value) }\n\n", NIL);
-    Delete(fname_wrap);
-    Delete(fname);
-
-    return Language::globalvariableHandler(n);
   }
 
   virtual int classHandler(Node *n) {
@@ -314,7 +400,24 @@ public:
     Printv(f_wrappers_kt, " {\n", NIL);
     Printv(f_wrappers_kt, "  constructor(ref: COpaquePointer) : super(ref)\n", NIL);
 
+    File *old_companion_object = companion_object_kt;
+    companion_object_kt = 0;
+
+    current_indent++;
     int result = Language::classHandler(n);
+
+    if (companion_object_kt) {
+      Printv(f_wrappers_kt, "\n", NIL);
+      indent_line(f_wrappers_kt);
+      Printv(f_wrappers_kt, "companion object {", companion_object_kt, NIL);
+      indent_line(f_wrappers_kt);
+      Printv(f_wrappers_kt, "}\n", NIL);
+      Delete(companion_object_kt);
+    }
+
+    current_indent--;
+
+    companion_object_kt = old_companion_object;
 
     Printv(f_wrappers_kt, "}\n\n", NIL);
 
@@ -328,10 +431,11 @@ public:
     String *wrapper_name = Swig_name_wrapper(cname);
     Delete(cname);
 
-    Printv(f_wrappers_kt, "  constructor(", NIL);
-    printKotlinParameters(f_wrappers_kt, parms);
+    indent_line(f_wrappers_kt);
+    Printv(f_wrappers_kt, "constructor(", NIL);
+    print_kotlin_parameters(f_wrappers_kt, parms);
     Printv(f_wrappers_kt, "): super(", wrapper_name, "(", NIL);
-    printParametersCall(f_wrappers_kt, parms);
+    print_parameters_call(f_wrappers_kt, parms);
     Printv(f_wrappers_kt, ")!!)\n", NIL);
 
     Delete(wrapper_name);
@@ -341,11 +445,12 @@ public:
 
 
   virtual int memberfunctionHandler(Node *n) {
+    int result = Language::memberfunctionHandler(n);
+
     String   *name   = Getattr(n, "sym:name");
     SwigType *type   = Getattr(n, "type");
     ParmList *parms  = Getattr(n, "parms");
-
-    String *fname = Swig_name_member(0, getClassPrefix(), name);
+    String   *wname  = Getattr(n, "wrap:name");
 
     bool is_void_return = (Cmp(type, "void") == 0);
     bool is_override = (Getattr(n, "override") != 0);
@@ -353,7 +458,8 @@ public:
 
     // def
 
-    Printv(f_wrappers_kt, "\n  ", NIL);
+    Printv(f_wrappers_kt, "\n", NIL);
+    indent_line(f_wrappers_kt);
 
     if (is_override) {
       Printv(f_wrappers_kt, "override ", NIL);
@@ -362,7 +468,7 @@ public:
     }
 
     Printv(f_wrappers_kt, "fun ", name, "(", NIL);
-    printKotlinParameters(f_wrappers_kt, parms);
+    print_kotlin_parameters(f_wrappers_kt, parms);
     Printv(f_wrappers_kt, ")", NIL);
 
     if (!is_void_return) {
@@ -375,23 +481,76 @@ public:
 
     // body
 
-    Printv(f_wrappers_kt, "    ", NIL);
+    current_indent++;
+    indent_line(f_wrappers_kt);
     if(!is_void_return) {
       Printv(f_wrappers_kt, "return ", NIL);
     }
-    String *wname = Swig_name_wrapper(fname);
-    Printv(f_wrappers_kt, wname, "(ref", NIL);
-    Delete(wname);
+    Printv(f_wrappers_kt, wname, "(",  class_this_name, NIL);
 
-    printParametersCall(f_wrappers_kt, parms, true);
+    print_parameters_call(f_wrappers_kt, parms, true);
 
-    Printv(f_wrappers_kt, ")\n  }\n", NIL);
+    Printv(f_wrappers_kt, ")\n", NIL);
 
-    Delete(fname);
+    current_indent--;
+    indent_line(f_wrappers_kt);
+    Printv(f_wrappers_kt, "}\n", NIL);
 
-    return Language::memberfunctionHandler(n);
+    return result;
   }
 
+  virtual int variableHandler(Node *n) {
+    int result = Language::variableHandler(n);
+
+    String   *name       = Getattr(n, "sym:name");
+    String   *wname_get  = Getattr(n, "wrap:get");
+    String   *wname_set  = Getattr(n, "wrap:set");
+
+    bool is_member      = (Cmp(Getattr(n, "ismember"), "1") == 0);
+    bool is_static      = (Cmp(Getattr(n, "storage"), "static") == 0);
+
+    File *file = f_wrappers_kt;
+
+    if (is_static) {
+      file = init_companion_object();
+      current_indent++;
+    }
+
+    // var
+    String   *kt_type = Swig_typemap_lookup("cinterop", n, "", 0);
+    Printv(file, "\n", NIL);
+    indent_line(file);
+    Printv(file, "var ", name, ": ", kt_type, "\n", NIL);
+    Delete(kt_type);
+
+    current_indent++;
+
+    // get
+    indent_line(file);
+    Printv(file, "get() = ", wname_get, "(", NIL);
+    if (is_member && !is_static) {
+      Printv(file, class_this_name, NIL);
+    }
+    Printv(file, ")\n", NIL);
+
+    // set
+    if (wname_set) {
+      indent_line(file);
+      Printv(file, "set(value) { ", wname_set, "(", NIL);
+      if (is_member && !is_static) {
+        Printv(file, class_this_name, ", ", NIL);
+      }
+      Printv(file, "value) }\n", NIL);
+    }
+
+    current_indent--;
+
+    if (is_static) {
+      current_indent--;
+    }
+
+    return result;
+  }
 
 };
 

@@ -14,21 +14,21 @@ fun main(args: Array<String>)
 
     // ----- Access a static member -----
 
-    // TODO println("\nA total of ${Shape.nshapes} shapes were created")
+    println("\nA total of ${Shape.nshapes} shapes were created")
 
     // ----- Member data access -----
 
     // Set the location of the object
 
-    // TODO c.x = 20
-    // TODO c.y = 30
+    c.x = 20.0
+    c.y = 30.0
 
-    // TODO s.x = -10
-    // TODO s.y = 5
+    s.x = -10.0
+    s.y = 5.0
 
-    // TODO println("\nHere is their current position:")
-    // TODO println("    Circle = (${c.x}, ${c.y})")
-    // TODO println("    Square = (${s.x}, ${s.y})")
+    println("\nHere is their current position:")
+    println("    Circle = (${c.x}, ${c.y})")
+    println("    Square = (${s.x}, ${s.y})")
 
     // ----- Call some methods -----
 
@@ -45,7 +45,7 @@ fun main(args: Array<String>)
     // del c
     // del s
 
-    // TODO println("${Shape.nshapes} shapes remain")
-    // TODO println("Goodbye")
+    println("${Shape.nshapes} shapes remain")
+    println("Goodbye")
 
 }
