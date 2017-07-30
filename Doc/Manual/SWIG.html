@@ -1043,14 +1043,14 @@ expect :</p>
 <div class="targetlang"><pre>
 # Copy a file 
 def filecopy(source, target):
-  f1 = fopen(source, "r")
-  f2 = fopen(target, "w")
-  buffer = malloc(8192)
-  nbytes = fread(buffer, 8192, 1, f1)
-  while (nbytes &gt; 0):
-    fwrite(buffer, 8192, 1, f2)
-          nbytes = fread(buffer, 8192, 1, f1)
-  free(buffer)
+    f1 = fopen(source, "r")
+    f2 = fopen(target, "w")
+    buffer = malloc(8192)
+    nbytes = fread(buffer, 8192, 1, f1)
+    while (nbytes &gt; 0):
+        fwrite(buffer, 8192, 1, f2)
+            nbytes = fread(buffer, 8192, 1, f1)
+    free(buffer)
 </pre></div>
 
 <p>

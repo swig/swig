@@ -777,9 +777,9 @@ the normal constructor function.  For example, if you have this:
 <pre>
 class List {
 public:
-    List();    
-    List(const List &amp;);      // Copy constructor
-    ...
+  List();    
+  List(const List &amp;);      // Copy constructor
+  ...
 };
 </pre>
 </div>
@@ -803,7 +803,7 @@ through a special function like this:
 <div class="code">
 <pre>
 List *copy_List(List *f) {
-    return new List(*f);
+  return new List(*f);
 }
 </pre>
 </div>
@@ -832,7 +832,7 @@ However, copy constructor wrappers can be generated if using the <tt>copyctor</t
 
 class List {
 public:
-    List();    
+  List();    
 };
 </pre>
 </div>
@@ -851,9 +851,9 @@ could be wrapped, but they had to be renamed.  For example:
 <pre>
 class Foo {
 public:
-    Foo();
+  Foo();
   %name(CopyFoo) Foo(const Foo &amp;);
-    ...
+  ...
 };
 </pre>
 </div>
@@ -969,8 +969,8 @@ not primitive types, such as classes. For instance, if you had another class lik
 <pre>
 class Foo {
 public:
-    List items;
-    ...
+  List items;
+  ...
 </pre>
 </div>
 
@@ -982,10 +982,10 @@ For example:
 <div class="code">
 <pre>
 List *Foo_items_get(Foo *self) {
-    return &amp;self-&gt;items;
+  return &amp;self-&gt;items;
 }
 void Foo_items_set(Foo *self, List *value) {
-    self-&gt;items = *value;
+  self-&gt;items = *value;
 }
 </pre>
 </div>
@@ -1007,10 +1007,10 @@ It is the naturalvar feature and can be used to effectively change the way acces
 <div class="code">
 <pre>
 const List &amp;Foo_items_get(Foo *self) {
-    return self-&gt;items;
+  return self-&gt;items;
 }
 void Foo_items_set(Foo *self, const List &amp;value) {
-    self-&gt;items = value;
+  self-&gt;items = value;
 }
 </pre>
 </div>
@@ -1105,7 +1105,7 @@ SWIG will wrap all types of functions that have default arguments. For example m
 <pre>
 class Foo {
 public:
-    void bar(int x, int y = 3, int z = 4);
+  void bar(int x, int y = 3, int z = 4);
 };
 </pre>
 </div>
@@ -1120,9 +1120,9 @@ Thus for the example above, it is as if we had instead given the following to SW
 <pre>
 class Foo {
 public:
-    void bar(int x, int y, int z);
-    void bar(int x, int y);
-    void bar(int x);
+  void bar(int x, int y, int z);
+  void bar(int x, int y);
+  void bar(int x);
 };
 </pre>
 </div>
@@ -1158,7 +1158,7 @@ can be re-activated by using the <tt>compactdefaultargs</tt>
 %feature("compactdefaultargs") Foo::bar;
 class Foo {
 public:
-    void bar(int x, int y = 3, int z = 4);
+  void bar(int x, int y = 3, int z = 4);
 };
 </pre>
 </div>
@@ -1485,8 +1485,8 @@ class A;
 
 %feature("valuewrapper") B;
 struct B { 
-    B();
-    // ....
+  B();
+  // ....
 };   
 </pre></div>
 
@@ -3000,15 +3000,15 @@ provide an expanded version of the class directly like this:
 %rename(intList) List&lt;int&gt;;       // Rename to a suitable identifier
 class List&lt;int&gt; {
 private:
-    int *data;
-    int nitems;
-    int maxitems;
+  int *data;
+  int nitems;
+  int maxitems;
 public:
-    List(int max);
-    ~List();
-    void append(int obj);
-    int length();
-    int get(int n);
+  List(int max);
+  ~List();
+  void append(int obj);
+  int length();
+  int get(int n);
 };
 </pre>
 </div>
@@ -3244,15 +3244,15 @@ a class like this,
 <pre>
 template&lt;&gt; class List&lt;int&gt; {
 private:
-    int *data;
-    int nitems;
-    int maxitems;
+  int *data;
+  int nitems;
+  int maxitems;
 public:
-    List(int max);
-    ~List();
-    void append(int obj);
-    int length();
-    int get(int n);
+  List(int max);
+  ~List();
+  void append(int obj);
+  int length();
+  int get(int n);
 };
 </pre>
 </div>
@@ -3275,15 +3275,15 @@ code defines a template that is applied when the template argument is a pointer.
 <pre>
 template&lt;class T&gt; class List&lt;T*&gt; {
 private:
-    T *data;
-    int nitems;
-    int maxitems;
+  T *data;
+  int nitems;
+  int maxitems;
 public:
-    List(int max);
-    ~List();
-    void append(int obj);
-    int length();
-    T get(int n);
+  List(int max);
+  ~List();
+  void append(int obj);
+  int length();
+  T get(int n);
 };
 </pre>
 </div>
@@ -3587,11 +3587,11 @@ It is also possible to separate these declarations from the template class.  For
 
 ...
 template&lt;class T&gt; class List {
-    ...
-    public:
-    List() { }
-    T get(int index);
-    ...
+  ...
+  public:
+  List() { }
+  T get(int index);
+  ...
 };
 </pre>
 </div>
@@ -3609,9 +3609,9 @@ additional methods to a specific instantiation. For example:
 %template(intList) List&lt;int&gt;;
 
 %extend List&lt;int&gt; {
-    void blah() {
-          printf("Hey, I'm an List&lt;int&gt;!\n");
-    }
+  void blah() {
+    printf("Hey, I'm an List&lt;int&gt;!\n");
+  }
 };
 </pre>
 </div>
@@ -3698,7 +3698,7 @@ template &lt;class T&gt; class OuterTemplateClass {};
 // OuterTemplateClass&lt;OuterClass::InnerStruct&gt; and thus the template needs
 // to be expanded with %template before the OuterClass declaration.
 %template(OuterTemplateClass_OuterClass__InnerStruct)
-    OuterTemplateClass&lt;OuterClass::InnerStruct&gt;
+  OuterTemplateClass&lt;OuterClass::InnerStruct&gt;
 
 
 // Don't forget to use %feature("flatnested") for OuterClass::InnerStruct and
@@ -3736,7 +3736,7 @@ introduced a new class name.  This name could then be used with other directives
 <pre>
 %template(vectori) vector&lt;int&gt;;
 %extend vectori {
-    void somemethod() { }
+  void somemethod() { }
 };
 </pre>
 </div>
@@ -3750,7 +3750,7 @@ as the class name.  For example:
 <pre>
 %template(vectori) vector&lt;int&gt;;
 %extend vector&lt;int&gt; {
-    void somemethod() { }
+  void somemethod() { }
 };
 </pre>
 </div>
@@ -4011,7 +4011,7 @@ in a different namespace.  For example:
 <div class="code">
 <pre>
 namespace foo {
-    template&lt;typename T&gt; T max(T a, T b) { return a &gt; b ? a : b; }
+  template&lt;typename T&gt; T max(T a, T b) { return a &gt; b ? a : b; }
 }
 
 using foo::max;
@@ -4020,8 +4020,8 @@ using foo::max;
 %template(maxfloat) foo::max&lt;float&gt;;    // Okay (qualified name).
 
 namespace bar {
-    using namespace foo;
-    %template(maxdouble)  max&lt;double&gt;;    // Okay.
+  using namespace foo;
+  %template(maxdouble)  max&lt;double&gt;;    // Okay.
 }
 </pre>
 </div>
@@ -4445,10 +4445,10 @@ struct Error4 : EBase { };
 
 class Foo {
 public:
-    ...
-    void bar();
-    void blah() throw(Error1, Error2, Error3, Error4);
-    ...
+  ...
+  void bar();
+  void blah() throw(Error1, Error2, Error3, Error4);
+  ...
 };
 </pre>
 </div>
@@ -4545,8 +4545,8 @@ public:
 // Ordinary class
 class Foo_Impl {
 public:
-    int x;
-    virtual void bar();
+  int x;
+  virtual void bar();
     ...
 };
 
@@ -4555,13 +4555,13 @@ typedef SmartPtr&lt;Foo_Impl&gt; Foo;
 
 // Create smart pointer Foo
 Foo make_Foo() {
-    return SmartPtr&lt;Foo_Impl&gt;(new Foo_Impl());
+  return SmartPtr&lt;Foo_Impl&gt;(new Foo_Impl());
 }
 
 // Do something with smart pointer Foo
 void do_something(Foo f) {
-    printf("x = %d\n", f-&gt;x);
-    f-&gt;bar();
+  printf("x = %d\n", f-&gt;x);
+  f-&gt;bar();
 }
 
 // Call the wrapped smart pointer proxy class in the target language 'Foo'
@@ -4660,13 +4660,13 @@ example, if you have this code</p>
 <pre>
 class Foo {
 public:
-    int x;
+  int x;
 };
 
 class Bar {
 public:
-    int x;       
-    Foo *operator-&gt;();
+  int x;       
+  Foo *operator-&gt;();
 };
 </pre>
 </div>
@@ -4970,14 +4970,14 @@ you wrap this code in Python, the module works just like you would expect:
 <pre>
 class Foo {
 protected:
-    int x;
-    int blah(int x);
+  int x;
+  int blah(int x);
 };
 
 class Bar : public Foo {
 public:
-    using Foo::x;       // Make x public
-    using Foo::blah;    // Make blah public
+  using Foo::x;       // Make x public
+  using Foo::blah;    // Make blah public
 };
 </pre>
 </div>
