@@ -3915,6 +3915,8 @@ then SWIG simply creates three wrapper functions <tt>bar()</tt>,
 <tt>spam()</tt>, and <tt>blah()</tt> in the target language.  SWIG
 does not prepend the names with a namespace prefix nor are the
 functions packaged in any kind of nested scope.
+Note that the default handling of flattening all the namespace scopes in the target language
+can be changed via the <a href="#SWIGPlus_nspace">nspace feature</a>.
 </p>
 
 <p>
@@ -4203,9 +4205,7 @@ namespace foo {
 <p>
 <b>Note:</b> The flattening of namespaces is only intended to serve as
 a basic namespace implementation.  
-None of the target language modules are currently programmed
-with any namespace awareness.   In the future, language modules may or may not provide
-more advanced namespace support.
+More advanced handling of namespaces is discussed next.
 </p>
 
 <H3><a name="SWIGPlus_nspace">6.19.1 The nspace feature for namespaces</a></H3>
