@@ -346,8 +346,8 @@ public:
 
 class Spam {
 public:
-      Foo *value;
-      ...
+  Foo *value;
+  ...
 };
 </pre>
 </div>
@@ -726,7 +726,7 @@ public:
 
 class Grok : public Bar {
 public:
-      Grok();            // Not wrapped. No implementation of abstract spam().
+  Grok();              // Not wrapped. No implementation of abstract spam().
 };
 </pre>
 </div>
@@ -4915,19 +4915,19 @@ base classes.  For example:
 <pre>
 class Foo {
 public:
-      int  blah(int x);
+  int  blah(int x);
 };
 
 class Bar {
 public:
-      double blah(double x);
+  double blah(double x);
 };
 
 class FooBar : public Foo, public Bar {
 public:
-      using Foo::blah;  
-      using Bar::blah;
-      char *blah(const char *x);
+  using Foo::blah;
+  using Bar::blah;
+  char *blah(const char *x);
 };
 </pre>
 </div>
@@ -5008,14 +5008,14 @@ correctly, you can always change the interface to the following:
 class FooBar : public Foo, public Bar {
 public:
 #ifndef SWIG
-      using Foo::blah;  
-      using Bar::blah;
+  using Foo::blah;
+  using Bar::blah;
 #else
-      int blah(int x);         // explicitly tell SWIG about other declarations
-      double blah(double x);
+  int blah(int x);         // explicitly tell SWIG about other declarations
+  double blah(double x);
 #endif
 
-      char *blah(const char *x);
+  char *blah(const char *x);
 };
 </pre>
 </div>

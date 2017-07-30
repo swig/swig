@@ -3935,9 +3935,9 @@ where <tt>Swig::DirectorException::raise</tt> is a helper method in the Director
 
 <div class="code">
 <pre>
-    static void raise(JNIEnv *jenv, jthrowable throwable) {
-      throw DirectorException(jenv, throwable);
-    }
+  static void raise(JNIEnv *jenv, jthrowable throwable) {
+    throw DirectorException(jenv, throwable);
+  }
 </pre>
 </div>
 
@@ -4335,16 +4335,16 @@ struct Vector {
 
 %extend Vector {
   char *toString() {
-      static char tmp[1024];
-      sprintf(tmp, "Vector(%g, %g, %g)", $self-&gt;x, $self-&gt;y, $self-&gt;z);
-      return tmp;
+    static char tmp[1024];
+    sprintf(tmp, "Vector(%g, %g, %g)", $self-&gt;x, $self-&gt;y, $self-&gt;z);
+    return tmp;
   }
   Vector(double x, double y, double z) {
-      Vector *v = (Vector *) malloc(sizeof(Vector));
-      v-&gt;x = x;
-      v-&gt;y = y;
-      v-&gt;z = z;
-      return v;
+    Vector *v = (Vector *) malloc(sizeof(Vector));
+    v-&gt;x = x;
+    v-&gt;y = y;
+    v-&gt;z = z;
+    return v;
   }
 };
 </pre>

@@ -1633,9 +1633,8 @@ class DoubleArray {
     void setitem(int i, double val) {
       if ((i &gt;= 0) &amp;&amp; (i &lt; n))
         ptr[i] = val;
-      else {
+      else
         throw RangeError();
-      }
     }
   };
 </pre></div>
@@ -2985,7 +2984,7 @@ sub set_transform
     for (my $j = 0; $j &lt; 4, $j++)
     {
       mat44_set($a, $i, $j, $x-&gt;[i][j])
-      }
+    }
   }
   example.set_transform($im, $a);
   free_mat44($a);
