@@ -1236,9 +1236,9 @@ creating a wrapper equivalent to the following:
 
 <div class="code"><pre>
 double wrap_dot_product(Vector *a, Vector *b) {
-    Vector x = *a;
-    Vector y = *b;
-    return dot_product(x, y);
+  Vector x = *a;
+  Vector y = *b;
+  return dot_product(x, y);
 }
 </pre></div>
 
@@ -2368,10 +2368,10 @@ defined in the interface.  For example:
 
 <div class="code"><pre>
 struct Vector *new_Vector() {
-    return (Vector *) calloc(1, sizeof(struct Vector));
+  return (Vector *) calloc(1, sizeof(struct Vector));
 }
 void delete_Vector(struct Vector *obj) {
-    free(obj);
+  free(obj);
 }
 </pre>
 </div>
@@ -2602,10 +2602,10 @@ like this:
 <div class="code">
 <pre>
 WORD Foo_w_get(Foo *f) {
-    return f-&gt;w;
+  return f-&gt;w;
 }
 void Foo_w_set(FOO *f, WORD value) {
-    f-&gt;w = value;
+  f-&gt;w = value;
 }
 </pre>
 </div>
@@ -2896,7 +2896,7 @@ instead of a method.  To do this, you might write some code like this:
 <pre>
 // Add a new attribute to Vector
 %extend Vector {
-    const double magnitude;
+  const double magnitude;
 }
 // Now supply the implementation of the Vector_magnitude_get function
 %{
