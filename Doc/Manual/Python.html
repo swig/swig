@@ -226,16 +226,15 @@ resulting C file should be built as a python extension, inserting the module
 #include "example.h"
 
 int fact(int n) {
-    if (n &lt; 0){ /* This should probably return an error, but this is simpler */
-        return 0;
-    }
-    if (n == 0) {
-        return 1;
-    }
-    else {
-        /* testing for overflow would be a good idea here */
-        return n * fact(n-1);
-    }
+  if (n &lt; 0) { /* This should probably return an error, but this is simpler */
+    return 0;
+  }
+  if (n == 0) {
+    return 1;
+  } else {
+    /* testing for overflow would be a good idea here */
+    return n * fact(n-1);
+  }
 }
 
 </pre>
@@ -3133,9 +3132,9 @@ suffice in most cases:
 <div class="code">
 <pre>
 %feature("director:except") {
-    if ($error != NULL) {
-        throw Swig::DirectorMethodException();
-    }
+  if ($error != NULL) {
+    throw Swig::DirectorMethodException();
+  }
 }
 </pre>
 </div>
@@ -4142,11 +4141,11 @@ Sometimes a C function expects an array to be passed as a pointer.  For example,
 <div class="code">
 <pre>
 int sumitems(int *first, int nitems) {
-    int i, sum = 0;
-    for (i = 0; i &lt; nitems; i++) {
-        sum += first[i];
-    }
-    return sum;
+  int i, sum = 0;
+  for (i = 0; i &lt; nitems; i++) {
+    sum += first[i];
+  }
+  return sum;
 }
 </pre>
 </div>
@@ -6526,7 +6525,7 @@ string that cannot be completely decoded as UTF-8:
 %inline %{
 
 const char* non_utf8_c_str(void) {
-        return "h\xe9llo w\xc3\xb6rld";
+  return "h\xe9llo w\xc3\xb6rld";
 }
 
 %}

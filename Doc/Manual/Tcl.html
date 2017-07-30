@@ -3215,28 +3215,28 @@ helper functions to access arrays :
 
 %inline %{
 double *new_double(int size) {
-        return (double *) malloc(size*sizeof(double));
+  return (double *) malloc(size*sizeof(double));
 }
 void delete_double(double *a) {
-        free(a);
+  free(a);
 }
 double get_double(double *a, int index) {
-        return a[index];
+  return a[index];
 }
 void set_double(double *a, int index, double val) {
-        a[index] = val;
+  a[index] = val;
 }
 int *new_int(int size) {
-        return (int *) malloc(size*sizeof(int));
+  return (int *) malloc(size*sizeof(int));
 }
 void delete_int(int *a) {
-        free(a);
+  free(a);
 }
 int get_int(int *a, int index) {
-        return a[index];
+  return a[index];
 }
 int set_int(int *a, int index, int val) {
-        a[index] = val;
+  a[index] = val;
 }
 %}
 

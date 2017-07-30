@@ -1266,12 +1266,12 @@ pointers.  As a result, SWIG creates a wrapper like this:
 
 <div class="code"><pre>
 Vector *wrap_cross_product(Vector *v1, Vector *v2) {
-        Vector x = *v1;
-        Vector y = *v2;
-        Vector *result;
-        result = (Vector *) malloc(sizeof(Vector));
-        *(result) = cross(x, y);
-        return result;
+  Vector x = *v1;
+  Vector y = *v2;
+  Vector *result;
+  result = (Vector *) malloc(sizeof(Vector));
+  *(result) = cross(x, y);
+  return result;
 }
 </pre></div>
 
@@ -1280,10 +1280,10 @@ or if SWIG was run with the <tt>-c++</tt> option:</p>
 
 <div class="code"><pre>
 Vector *wrap_cross(Vector *v1, Vector *v2) {
-        Vector x = *v1;
-        Vector y = *v2;
-        Vector *result = new Vector(cross(x, y)); // Uses default copy constructor
-        return result;
+  Vector x = *v1;
+  Vector y = *v2;
+  Vector *result = new Vector(cross(x, y)); // Uses default copy constructor
+  return result;
 }
 </pre></div>
 

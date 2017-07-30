@@ -121,15 +121,15 @@ In this example we bind from C a function and a global variable into Scilab. The
 double Foo = 3.0;
 
 int fact(int n) {
-    if (n &lt; 0) {
-        return 0;
-    }
-    else if (n == 0) {
-        return 1;
-    }
-    else {
-        return n * fact(n-1);
-    }
+  if (n &lt; 0) {
+    return 0;
+  }
+  else if (n == 0) {
+    return 1;
+  }
+  else {
+    return n * fact(n-1);
+  }
 }
 %}
 </pre></div>
@@ -896,8 +896,8 @@ Let's see it on an example of a struct with two members:
 %inline %{
 
 typedef struct {
-    int x;
-    int arr[4];
+  int x;
+  int arr[4];
 } Foo;
 
 %}
@@ -1143,11 +1143,11 @@ As explained in <a href="SWIGPlus.html#SWIGPlus_overloaded_methods">6.15</a> SWI
 %module example
 
 void magnify(Square *square, double factor) {
-    square-&gt;size *= factor;
+  square-&gt;size *= factor;
 };
 
 void magnify(Circle *circle, double factor) {
-    square-&gt;radius *= factor;
+  square-&gt;radius *= factor;
 };
 </pre></div>
 

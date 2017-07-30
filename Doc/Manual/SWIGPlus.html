@@ -2958,29 +2958,29 @@ To illustrate, consider the following template definition:
 <div class="code"><pre>
 template&lt;class T&gt; class List {
 private:
-    T *data;
-    int nitems;
-    int maxitems;
+  T *data;
+  int nitems;
+  int maxitems;
 public:
-    List(int max) {
-      data = new T [max];
-      nitems = 0;
-      maxitems = max;
+  List(int max) {
+    data = new T [max];
+    nitems = 0;
+    maxitems = max;
+  }
+  ~List() {
+    delete [] data;
+  };
+  void append(T obj) {
+    if (nitems &lt; maxitems) {
+      data[nitems++] = obj;
     }
-    ~List() {
-      delete [] data;
-    };
-    void append(T obj) {
-      if (nitems &lt; maxitems) {
-        data[nitems++] = obj;
-      }
-    }
-    int length() {
-      return nitems;
-    }
-    T get(int n) {
-      return data[n];
-    }
+  }
+  int length() {
+    return nitems;
+  }
+  T get(int n) {
+    return data[n];
+  }
 };
 </pre></div>
 
@@ -3704,10 +3704,10 @@ template &lt;class T&gt; class OuterTemplateClass {};
 // Don't forget to use %feature("flatnested") for OuterClass::InnerStruct and
 // OuterClass::InnerClass if the target language doesn't support nested classes.
 class OuterClass {
-    public:
-        // Forward declarations:
-        struct InnerStruct;
-        class InnerClass;
+  public:
+    // Forward declarations:
+    struct InnerStruct;
+    class InnerClass;
 };
 
 struct OuterClass::InnerStruct {};
@@ -4533,13 +4533,13 @@ around some other class.  For example:
 <pre>
 // Smart-pointer class
 template&lt;class T&gt; class SmartPtr {
-    T *pointee;
+  T *pointee;
 public:
-    SmartPtr(T *p) : pointee(p) { ... }
-    T *operator-&gt;() {
-        return pointee;
-    }
-    ...
+  SmartPtr(T *p) : pointee(p) { ... }
+  T *operator-&gt;() {
+    return pointee;
+  }
+  ...
 };
 
 // Ordinary class
