@@ -12,6 +12,14 @@ Version 4.0.0 (in progress)
 	    after template<T>).  Fixes https://github.com/swig/swig/issues/1031
 	    reported by Artem V L.
 
+2017-08-02: wsfulton
+            Fix incorrectly shown warning when an empty template instantiation was used on a
+            class used as a base class and that base class was explicitly ignored with %ignore.
+            Example of the warning which will no longer appear:
+
+              Warning 401: Base class 'Functor< int,int >' has no name as it is an empty
+              template instantiated with '%template()'. Ignored.
+
 2017-07-17: fflexo
             [Java] #674 Add std_list.i to add support for std::list containers. The Java proxy
             extends java.util.AbstractSequentialList and makes the C++ std::list container look
