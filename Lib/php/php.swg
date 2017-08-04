@@ -421,13 +421,45 @@
 #ifdef __cplusplus
 {
   $&1_ltype resultobj = new $1_ltype((const $1_ltype &) $1);
-  SWIG_SetPointerZval(return_value, (void *)resultobj, $&1_descriptor, 1);
+  SWIG_SetZval(return_value, $newobj , $c_obj, (void *)resultobj, $&1_descriptor, $zend_obj);
+  swig_object_wrapper *obj = NULL;
+
+  HashTable * ht = NULL;
+
+  obj = (swig_object_wrapper *) Z_FETCH_OBJ_P(return_value);
+  obj->ptr = (void *)resultobj;
+  ht = Z_OBJ_HT_P(return_value)->get_properties(return_value);
+  if(ht) {
+    zval zv;
+    ZVAL_RES(&zv,zend_register_resource(resultobj,*(int *)($&1_descriptor->clientdata)));
+    zend_hash_str_add(ht, "_cPtr", sizeof("_cPtr") - 1, &zv);
+  }
+  if ($newobj == 1)
+    obj->newobject = 1;
+  else
+    obj->newobject = 0;
 }
 #else
 {
   $&1_ltype resultobj = ($&1_ltype) emalloc(sizeof($1_type));
   memcpy(resultobj, &$1, sizeof($1_type));
-  SWIG_SetPointerZval(return_value, (void *)resultobj, $&1_descriptor, 1);
+  SWIG_SetZval(return_value, $newobj , $c_obj, (void *)resultobj, $&1_descriptor, $zend_obj);
+  swig_object_wrapper *obj = NULL;
+
+  HashTable * ht = NULL;
+
+  obj = (swig_object_wrapper *) Z_FETCH_OBJ_P(return_value);
+  obj->ptr = (void *)resultobj;
+  ht = Z_OBJ_HT_P(return_value)->get_properties(return_value);
+  if(ht) {
+    zval zv;
+    ZVAL_RES(&zv,zend_register_resource(resultobj,*(int *)($&1_descriptor->clientdata)));
+    zend_hash_str_add(ht, "_cPtr", sizeof("_cPtr") - 1, &zv);
+  }
+  if ($newobj)
+    obj->newobject = 1;
+  else
+    obj->newobject = 0;
 }
 #endif
 

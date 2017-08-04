@@ -555,7 +555,7 @@ public:
     Language::top(n);
 
     if (Len(classes) > 0)
-      Printf(all_cs_entry, " { NULL, NULL, NULL }\n};\n\n");
+      Printf(all_cs_entry, " ZEND_FE_END\n};\n\n");
 
     SwigPHP_emit_resource_registrations();
     SwigPHP_emit_all_creation_free_wrapper();
@@ -727,7 +727,7 @@ public:
     Printv(f_begin, s_arginfo, "\n\n", all_cs_entry, "\n\n", s_entry,
 	" SWIG_ZEND_NAMED_FE(swig_", module, "_alter_newobject,_wrap_swig_", module, "_alter_newobject,NULL)\n"
 	" SWIG_ZEND_NAMED_FE(swig_", module, "_get_newobject,_wrap_swig_", module, "_get_newobject,NULL)\n"
-	" { NULL, NULL, NULL }\n};\n\n", NIL);
+	" ZEND_FE_END\n};\n\n", NIL);
     Printv(f_begin, s_init, NIL);
     Delete(s_header);
     Delete(s_wrappers);
@@ -1288,8 +1288,11 @@ public:
        */
       if (Cmp(strrchr(GetChar(n, "sym:name"),'_'),"_set") == 0)
         static_setter = true;
-      else
-        static_getter = true;
+      else if (Cmp(strrchr(GetChar(n, "sym:name"),'_'),"_get") == 0) {
+        // This is to overcome types that can't be set and hence no setter.
+        if (Cmp(Getattr(n, "feature:warnfilter"),"462") != 0)
+          static_getter = true;
+      }
     }
     else if (wrapperType == staticmemberfn) {
       char *ptr = Char(iname);
@@ -1303,6 +1306,7 @@ public:
         String *intermediate_method_name = NewString(iname);
         Replace(intermediate_method_name, intermediate_name, "", DOH_REPLACE_FIRST);
         wname = intermediate_method_name;
+        //Printf(s_oinit, "ASd %s %s %s\n", iname, name ,wname);
         Delete(intermediate_name);
       }
       else
@@ -1404,16 +1408,6 @@ public:
     }
     if (wrapperType == directorconstructor)
       Printf(f->code, "zval * arg0 = getThis();\n  \n");
-
-    String *retType_class = NULL;
-    bool retType_valid = is_class(d);
-
-    if (retType_valid) {
-        retType_class = get_class_name(d);
-        Chop(retType_class);
-        Printf(f->code, "\nswig_object_wrapper *obj = NULL;\n");
-        Printf(f->code, "\nHashTable * ht = NULL;\n");
-    }
 
     /* Now convert from PHP to C variables */
     // At this point, argcount if used is the number of deliberately passed args
@@ -1572,6 +1566,16 @@ public:
         Setattr(n, "wrap:name", wname);
     }
 
+    String *retType_class = NULL;
+    bool retType_valid = is_class(d);
+    bool retType_operator = false;
+
+    if (retType_valid) {
+        retType_class = get_class_name(d);
+        Chop(retType_class);
+        retType_operator = Getattr(n, "conversion_operator") ? true : false;
+    }
+
     /* emit function call */
     String *actioncode = emit_action(n);
 
@@ -1587,7 +1591,7 @@ public:
         Printf(retZend_obj, "%s_object_new(%s_ce)", retType_class, retType_class);
         String *ret_other_Zend_obj = NewStringEmpty();
         Printf(ret_other_Zend_obj, "zend_objects_new(%s_ce)", retType_class);
-        Replaceall(tm, "$zend_obj", retType_valid ? (constructor ? "NULL" : (newobject ? retZend_obj : ret_other_Zend_obj)) : "NULL"); 
+        Replaceall(tm, "$zend_obj", retType_valid ? (constructor ? "NULL" : (newobject ? retZend_obj : (retType_operator ? retZend_obj : ret_other_Zend_obj))) : "NULL"); 
       }
       Replaceall(tm, "$zend_obj", "NULL");
       Replaceall(tm, "$newobj", retType_valid ? "1" : "2");
@@ -1606,23 +1610,20 @@ public:
       Printv(f->code, cleanup, NIL);
     }
 
-    if (constructor) {
-      Printf(f->code,"obj = (swig_object_wrapper *) Z_FETCH_OBJ_P(getThis());\nobj->ptr = (void *)result;\n\n");
-      Printf(f->code,"ht = Z_OBJ_HT_P(getThis())->get_properties(getThis());\n");
-      Printf(f->code,"if(ht) {\nzval zv;\n");
-      Printf(f->code,"ZVAL_RES(&zv,zend_register_resource(result,*(int *)(SWIGTYPE%s->clientdata)));\n", SwigType_manglestr(d));
-      Printf(f->code,"zend_hash_str_add(ht, \"_cPtr\", sizeof(\"_cPtr\") - 1, &zv);\n}\n\n");
-    }
-    else if (retType_valid) {
-      Printf(f->code,"obj = (swig_object_wrapper *) Z_FETCH_OBJ_P(return_value);\nobj->ptr = (void *)result;\n\n");
-      Printf(f->code,"ht = Z_OBJ_HT_P(return_value)->get_properties(return_value);\n");
-      Printf(f->code,"if(ht) {\nzval zv;\n");
-      Printf(f->code,"ZVAL_RES(&zv,zend_register_resource(result,*(int *)(SWIGTYPE%s->clientdata)));\n", SwigType_manglestr(d));
-      Printf(f->code,"zend_hash_str_add(ht, \"_cPtr\", sizeof(\"_cPtr\") - 1, &zv);\n}\n\n");
+    String *zval_ret_obj = constructor ? NewString("getThis()") : NewString("return_value"); 
+
+    if (retType_valid && !SwigType_issimple(d)) {
+      Printf(f->code, "\n{\nswig_object_wrapper *obj = NULL;\n");
+      Printf(f->code, "\nHashTable * ht = NULL;\n\n");
+      Printf(f->code, "obj = (swig_object_wrapper *) Z_FETCH_OBJ_P(%s);\n", zval_ret_obj);
+      Printf(f->code, "obj->ptr = (void *)result;\n");
+      Printf(f->code, "ht = Z_OBJ_HT_P(%s)->get_properties(%s);\n", zval_ret_obj, zval_ret_obj);
+      Printf(f->code, "if(ht) {\nzval zv;\n");
+      Printf(f->code, "ZVAL_RES(&zv,zend_register_resource(result,*(int *)(SWIGTYPE%s->clientdata)));\n", SwigType_manglestr(d));
+      Printf(f->code, "zend_hash_str_add(ht, \"_cPtr\", sizeof(\"_cPtr\") - 1, &zv);\n}\n\n");
+      Printf(f->code, "if (obj)\nobj->newobject = %d;\n}\n\n", newobject ? 1 : 0);
     }
 
-    if (retType_valid)
-      Printf(f->code, "if (obj)\nobj->newobject = %d;\n", newobject ? 1 : 0);
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
@@ -2670,7 +2671,7 @@ done:
         class_name = className;
 
       if (Len(classes) != 0)
-        Printf(all_cs_entry, " { NULL, NULL, NULL }\n};\n\n");
+        Printf(all_cs_entry, " ZEND_FE_END\n};\n\n");
 
       Printf(all_cs_entry, "static zend_function_entry class_%s_functions[] = {\n", class_name);
       
@@ -2735,7 +2736,32 @@ done:
     }
 
     if (Cmp(symname,className) != 0) {
-        Printf(s_oinit, "zend_register_class_alias_ex(\"%s\",sizeof(\"%s\"),%s_ce);\n\n",class_name, class_name, class_name);
+        Printf(s_oinit, "zend_register_class_alias_ex(\"%s\",sizeof(\"%s\"),%s_ce);\n\n",symname, symname, symname);
+    }
+
+    {
+      Node *node = NewHash();
+      Setattr(node, "type", Getattr(n, "name"));
+      Setfile(node, Getfile(n));
+      Setline(node, Getline(n));
+      String *interfaces = Swig_typemap_lookup("phpinterfaces", node, "", 0);
+      Replaceall(interfaces, " ", "");
+      if (interfaces) {
+        List *interface_list = Split(interfaces, ',', -1);
+        int num_interfaces = Len(interface_list);
+        String *append_interface = NewStringEmpty();
+        for(int Iterator = 1; Iterator <= num_interfaces; Iterator++) {
+          String *interface = Getitem(interface_list, Iterator-1);
+          String *interface_ce = NewStringEmpty();
+          Printf(interface_ce, "php_interface_ce_%d" , Iterator);
+          Printf(s_oinit, "zend_class_entry *%s = zend_lookup_class(zend_string_init(\"%s\", sizeof(\"%s\") - 1, 0));\n", interface_ce , interface, interface);
+          Append(append_interface, interface_ce);
+          Append(append_interface, " ");
+        }
+        Chop(append_interface);
+        Replaceall(append_interface, " ", ",");
+        Printf(s_oinit, "zend_class_implements(%s_ce, %d, %s);\n", class_name, num_interfaces, append_interface);
+      }
     }
 
     Printf(s_oinit, "%s_ce->create_object = %s_object_new;\n", class_name, class_name);
@@ -3038,17 +3064,22 @@ done:
     String *iname = GetChar(n, "sym:name");
     ParmList *l = Getattr(n, "parms");
 
+    String *name_prefix = NewString("delete_");
+    String *intermediate_name = NewString(iname);
+    Replace(intermediate_name, name_prefix, "", DOH_REPLACE_FIRST);
+
     String *destructorname = NewStringEmpty();
     Printf(destructorname, "_%s", Swig_name_wrapper(iname));
     Setattr(classnode, "destructor", destructorname);
 
     Wrapper *f = NewWrapper();
+
     Printf(f->def, "/* This function is designed to be called by the zend list destructors */\n");
     Printf(f->def, "/* to typecast and do the actual destruction */\n");
     Printf(f->def, "static void %s(zend_resource *res, const char *type_name) {\n", destructorname);
 
-    Printf(f->code, "if(zend_lookup_class(zend_string_init(\"%s\",sizeof(\"%s\")-1,0))) {\n", name, name);
-    Printf(f->code, "return;\n}\n\n");
+    Printf(f->def, "\n\nif(zend_lookup_class(zend_string_init(\"%s\",sizeof(\"%s\")-1,0))) {\n", intermediate_name, intermediate_name);
+    Printf(f->def, "return;\n}\n");
 
     Wrapper_add_localv(f, "value", "swig_object_wrapper *value=(swig_object_wrapper *) res->ptr", NIL);
     Wrapper_add_localv(f, "ptr", "void *ptr=value->ptr", NIL);
