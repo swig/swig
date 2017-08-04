@@ -2991,6 +2991,9 @@ c_declaration   : c_decl {
 		  SetFlag($$,"aliastemplate");
 		  add_symbols($$);
 		}
+                | cpp_static_assert {
+                   $$ = $1;
+                }
                 ;
 
 /* ------------------------------------------------------------
@@ -4209,9 +4212,6 @@ cpp_temp_possible:  c_decl {
                 | cpp_constructor_decl {
                    $$ = $1;
                 }
-                | cpp_static_assert {
-                   $$ = $1;
-                }
                 | cpp_template_decl {
 		  $$ = 0;
                 }
@@ -4469,7 +4469,6 @@ cpp_member   : c_declaration { $$ = $1; }
                  default_arguments($$);
              }
              | cpp_destructor_decl { $$ = $1; }
-             | cpp_static_assert { $$ = $1; }
              | cpp_protection_decl { $$ = $1; }
              | cpp_swig_directive { $$ = $1; }
              | cpp_conversion_operator { $$ = $1; }
@@ -4673,7 +4672,8 @@ cpp_catch_decl : CATCH LPAREN parms RPAREN LBRACE {
                }
                ;
 
-/* static_assert(bool, const char*); */
+/* static_assert(bool, const char*); (C++11)
+ * static_assert(bool); (C++17) */
 cpp_static_assert : STATIC_ASSERT LPAREN {
                 skip_balanced('(',')');
                 $$ = 0;

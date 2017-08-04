@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-08-05: olly
+	    [C++11] Allow static_assert at the top level (and disallow it right
+	    after template<T>).  Fixes https://github.com/swig/swig/issues/1031
+	    reported by Artem V L.
+
 2017-07-17: fflexo
             [Java] #674 Add std_list.i to add support for std::list containers. The Java proxy
             extends java.util.AbstractSequentialList and makes the C++ std::list container look
