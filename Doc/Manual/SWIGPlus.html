@@ -56,6 +56,7 @@
 <li><a href="#SWIGPlus_template_class_inheritance">Template base classes</a>
 <li><a href="#SWIGPlus_template_specialization">Template specialization</a>
 <li><a href="#SWIGPlus_template_member">Member templates</a>
+<li><a href="#SWIGPlus_template_scoping">Scoping and templates</a>
 <li><a href="#SWIGPlus_template_more">More on templates</a>
 </ul>
 <li><a href="#SWIGPlus_namespaces">Namespaces</a>
@@ -3599,7 +3600,108 @@ constructor, that will dispatch the proper call depending on the argument
 type.
 </p>
 
-<H3><a name="SWIGPlus_template_more">6.18.7 More on templates</a></H3>
+<H3><a name="SWIGPlus_template_scoping">6.18.7 Scoping and templates</a></H3>
+
+
+<p>
+The <tt>%template</tt> directive for a class template is the equivalent to an explicit instantiation
+of a C++ class template. The scope for a valid <tt>%template</tt> instantiation is the same
+as the scope required for a valid explicit instantiation of a C++ template.
+A definition of the template for the explicit instantiation must be in scope
+where the instantiation is declared and must not be enclosed within a different namespace.
+</p>
+
+<p>
+For example, a few <tt>%template</tt> instantiations and C++ explicit instantiations are shown below:
+</p>
+
+<div class="code">
+<pre>
+namespace N {
+  template&lt;typename T&gt; class C {};
+}
+
+// valid
+%template(cin) N::C&lt;int&gt;;
+template class N::C&lt;int&gt;;
+
+// valid
+namespace N {
+  %template(cin) C&lt;int&gt;;
+  template class C&lt;int&gt;;
+}
+
+// valid
+using namespace N;
+%template(cin) C&lt;int&gt;;
+template class C&lt;int&gt;;
+
+// valid
+using N::C;
+%template(cin) C&lt;int&gt;;
+template class C&lt;int&gt;;
+
+// ill-formed
+namespace unrelated {
+  using N::C;
+  %template(cin) C&lt;int&gt;;
+  template class C&lt;int&gt;;
+}
+
+// ill-formed
+namespace unrelated {
+  using namespace N;
+  %template(cin) C&lt;int&gt;;
+  template class C&lt;int&gt;;
+}
+
+// ill-formed
+namespace unrelated {
+  namespace N {
+    %template(cin) C&lt;int&gt;;
+    template class C&lt;int&gt;;
+  }
+}
+
+// ill-formed
+namespace unrelated {
+  %template(cin) N::C&lt;int&gt;;
+  template class N::C&lt;int&gt;;
+}
+</pre>
+</div>
+
+<p>
+When the scope is incorrect, such as for the ill-formed examples above, an error occurs:
+</p>
+
+<div class="shell">
+<pre>
+cpp_template_scope.i:34: Error: 'C' resolves to 'N::C' and was incorrectly instantiated
+in scope 'unrelated' instead of within scope 'N'.
+</pre>
+</div>
+
+<p>
+A note for the C++ standard geeks out there; a valid instantiation is one which conforms to
+the C++03 standard as C++11 made a change to disallow using declarations and using directives to find a template.
+</p>
+
+<div class="code">
+<pre>
+// valid C++03, ill-formed C++11
+using N::C;
+template class C&lt;int&gt;;
+</pre>
+</div>
+
+<p>
+<b>Compatibility Note</b>:  Versions prior to SWIG-4.0.0 did not error out with incorrectly scoped
+<tt>%template</tt> declarations, but this led to numerous subtle template scope problems.
+</p>
+
+ 
+<H3><a name="SWIGPlus_template_more">6.18.8 More on templates</a></H3>
 
 
 <p>
@@ -4348,9 +4450,9 @@ In the example below, the generic template type is used to rename to <tt>bbb</tt
 
 <div class="code">
 <pre>
-%rename(bbb) Space::ABC::aaa(T t);                  // will match but with lower precedence than ccc
+%rename(bbb) Space::ABC::aaa(T t);                     // will match but with lower precedence than ccc
 %rename(ccc) Space::ABC&lt;Space::XYZ&gt;::aaa(Space::XYZ t);// will match but with higher precedence
-                                                             // than bbb
+                                                       // than bbb
 
 namespace Space {
   class XYZ {};

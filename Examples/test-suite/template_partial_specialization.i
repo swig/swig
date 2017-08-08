@@ -32,7 +32,7 @@ namespace One {
 %template(H) One::OneParm<int **>;
 
 // %template scope explicit specializations
-namespace ONE {
+namespace One {
   %template(I) One::OneParm<float>;
   %template(J) ::One::OneParm<float *>;
 }
@@ -42,7 +42,7 @@ namespace One {
 }
 
 // %template scope partial specializations
-namespace ONE {
+namespace One {
   %template(BB) One::OneParm<bool *>;
   %template(BBB) ::One::OneParm<char *>;
 }
