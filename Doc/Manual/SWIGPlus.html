@@ -49,6 +49,15 @@
 <li><a href="#SWIGPlus_nn28">Wrapping overloaded operators</a>
 <li><a href="#SWIGPlus_class_extension">Class extension</a>
 <li><a href="#SWIGPlus_nn30">Templates</a>
+<ul>
+<li><a href="#SWIGPlus_template_directive">The %template directive</a>
+<li><a href="#SWIGPlus_template_functions">Function templates</a>
+<li><a href="#SWIGPlus_template_classes">Default template arguments</a>
+<li><a href="#SWIGPlus_template_class_inheritance">Template base classes</a>
+<li><a href="#SWIGPlus_template_specialization">Template specialization</a>
+<li><a href="#SWIGPlus_template_member">Member templates</a>
+<li><a href="#SWIGPlus_template_more">More on templates</a>
+</ul>
 <li><a href="#SWIGPlus_namespaces">Namespaces</a>
 <ul>
 <li><a href="#SWIGPlus_nspace">The nspace feature for namespaces</a>
@@ -2936,23 +2945,24 @@ as <tt>vector&lt;int&gt;</tt>.  The wrapper for <tt>foo()</tt> will
 accept either variant.
 </p>
 
+<H3><a name="SWIGPlus_template_directive">6.18.1 The %template directive</a></H3>
+
+
 <p>
-Starting with SWIG-1.3.7, simple C++ template declarations can also be
-wrapped.  SWIG-1.3.12 greatly expands upon the earlier implementation. Before discussing this any further, there are a few things
-you need to know about template wrapping.  First, a bare C++ template
+There are a couple of important points about template wrapping.
+First, a bare C++ template
 does not define any sort of runnable object-code for which SWIG can
 normally create a wrapper.  Therefore, in order to wrap a template,
 you need to give SWIG information about a particular template
-instantiation (e.g., <tt>vector&lt;int&gt;</tt>,
+instantiation (e.g., <tt>vector&lt;int&gt;</tt>, 
 <tt>array&lt;double&gt;</tt>, etc.).  Second, an instantiation name
 such as <tt>vector&lt;int&gt;</tt> is generally not a valid identifier
 name in most target languages.  Thus, you will need to give the
-template instantiation a more suitable name such as <tt>intvector</tt>
-when creating a wrapper.
+template instantiation a more suitable name such as <tt>intvector</tt>.
 </p>
 
 <p>
-To illustrate, consider the following template definition:
+To illustrate, consider the following class template definition:
 </p>
 
 <div class="code"><pre>
@@ -2985,14 +2995,26 @@ public:
 </pre></div>
 
 <p>
-By itself, this template declaration is useless--SWIG simply ignores it
-because it doesn't know how to generate any code until unless a definition of
+By itself, this class template is useless--SWIG simply ignores it
+because it doesn't know how to generate any code unless a definition of
 <tt>T</tt> is provided.
+The <tt>%template</tt> directive is required to instantiate the template for use in a target language.
+The directive requires an identifier name for use in the target language plus the template for instantiation.
+The example below instantiates <tt>List&lt;int&gt;</tt> for use as a class named <tt>intList</tt>:
 </p>
 
+<div class="code">
+<pre>
+%template(intList) List&lt;int&gt;;
+</pre>
+</div>
+
 <p>
-One way to create wrappers for a specific template instantiation is to simply
-provide an expanded version of the class directly like this:
+The instantiation expands the template code as a C++ compiler would do and then makes it available
+under the given identifier name.
+Essentially it is the same as wrapping the following concept code where 
+the class template definition has <tt>T</TT> expanded to <tt>int</tt>
+(note that this is not entirely valid syntax):
 </p>
 
 <div class="code">
@@ -3015,28 +3037,6 @@ public:
 
 
 <p>
-The <tt>%rename</tt> directive is needed to give the template class an appropriate identifier
-name in the target language (most languages would not recognize C++ template syntax as a valid
-class name).  The rest of the code is the same as what would appear in a normal
-class definition.
-</p>
-
-<p>
-Since manual expansion of templates gets old in a hurry, the <tt>%template</tt> directive can
-be used to create instantiations of a template class.  Semantically, <tt>%template</tt> is
-simply a shortcut---it expands template code in exactly the same way as shown above.  Here
-are some examples:
-</p>
-
-<div class="code">
-<pre>
-/* Instantiate a few different versions of the template */
-%template(intList) List&lt;int&gt;;
-%template(doubleList) List&lt;double&gt;;
-</pre>
-</div>
-
-<p>
 The argument to <tt>%template()</tt> is the name of the instantiation
 in the target language.  The name you choose should not conflict with
 any other declarations in the interface file with one exception---it
@@ -3053,7 +3053,67 @@ typedef List&lt;int&gt; intList;    // OK
 </div>
 
 <p>
-SWIG can also generate wrappers for function templates using a similar technique.
+The <tt>%template</tt> directive
+must always appear <em>after</em> the definition of the template to be expanded, so the following will work:
+</p>
+
+<div class="code">
+<pre>
+template&lt;class T&gt; class List { ... };
+%template(intList) List&lt;int&gt;;
+</pre>
+</div>
+
+<p>
+but if %template is used before the template definition, such as:
+</p>
+
+<div class="code">
+<pre>
+%template(intList) List&lt;int&gt;;
+template&lt;class T&gt; class List { ... };
+</pre>
+</div>
+
+<p>
+SWIG will generate an error:
+</p>
+
+<div class="shell">
+<pre>
+example.i:3: Error: Template 'List' undefined.
+</pre>
+</div>
+
+<p>
+Since the type system knows how to handle <tt>typedef</tt>, it is
+generally not necessary to instantiate different versions of a template
+for typenames that are equivalent.  For instance, consider this code:
+</p>
+
+<div class="code">
+<pre>
+%template(intList) List&lt;int&gt;;
+typedef int Integer;
+...
+void foo(List&lt;Integer&gt; *x);
+</pre>
+</div>
+
+<p>
+In this case, <tt>List&lt;Integer&gt;</tt> is exactly the same type as
+<tt>List&lt;int&gt;</tt>.  Any use of <tt>List&lt;Integer&gt;</tt> is mapped back to the 
+instantiation of <tt>List&lt;int&gt;</tt> created earlier.  Therefore, it is
+not necessary to instantiate a new class for the type <tt>Integer</tt> (doing so is
+redundant and will simply result in code bloat).
+</p>
+
+<H3><a name="SWIGPlus_template_functions">6.18.2 Function templates</a></H3>
+
+
+<p>
+SWIG can also generate wrappers for function templates using a similar technique
+to that shown above for class templates.
 For example:
 </p>
 
@@ -3072,6 +3132,28 @@ template&lt;class T&gt; T max(T a, T b) { return a &gt; b ? a : b; }
 In this case, <tt>maxint</tt> and <tt>maxdouble</tt> become unique names for specific 
 instantiations of the function.
 </p>
+
+<p>
+SWIG even supports overloaded templated functions.  As usual the <tt>%template</tt> directive
+is used to wrap templated functions. For example:
+</p>
+
+<div class="code">
+<pre>
+template&lt;class T&gt; void foo(T x) { };
+template&lt;class T&gt; void foo(T x, T y) { };
+
+%template(foo) foo&lt;int&gt;;
+</pre>
+</div>
+
+<p>
+This will generate two overloaded wrapper methods, the first will take a single integer as an argument
+and the second will take two integer arguments.
+</p>
+
+<H3><a name="SWIGPlus_template_classes">6.18.3 Default template arguments</a></H3>
+
 
 <p>
 The number of arguments supplied to <tt>%template</tt> should match that in the
@@ -3110,28 +3192,8 @@ instantiation only once in order to reduce the potential for code
 bloat.
 </p>
 
-<p>
-Since the type system knows how to handle <tt>typedef</tt>, it is
-generally not necessary to instantiate different versions of a template
-for typenames that are equivalent.  For instance, consider this code:
-</p>
+<H3><a name="SWIGPlus_template_class_inheritance">6.18.4 Template base classes</a></H3>
 
-<div class="code">
-<pre>
-%template(intList) vector&lt;int&gt;;
-typedef int Integer;
-...
-void foo(vector&lt;Integer&gt; *x);
-</pre>
-</div>
-
-<p>
-In this case, <tt>vector&lt;Integer&gt;</tt> is exactly the same type as
-<tt>vector&lt;int&gt;</tt>.  Any use of <tt>Vector&lt;Integer&gt;</tt> is mapped back to the 
-instantiation of <tt>vector&lt;int&gt;</tt> created earlier.  Therefore, it is
-not necessary to instantiate a new class for the type <tt>Integer</tt> (doing so is
-redundant and will simply result in code bloat).
-</p>
 
 <p>
 When a template is instantiated using <tt>%template</tt>, information
@@ -3158,13 +3220,13 @@ nothing is known about <tt>List&lt;int&gt;</tt>, you will get a warning message 
 
 <div class="shell">
 <pre>
-example.h:42: Warning 401. Nothing known about class 'List&lt;int &gt;'. Ignored. 
-example.h:42: Warning 401. Maybe you forgot to instantiate 'List&lt;int &gt;' using %template. 
+example.h:42: Warning 401. Nothing known about class 'List&lt; int &gt;'. Ignored. 
+example.h:42: Warning 401. Maybe you forgot to instantiate 'List&lt; int &gt;' using %template. 
 </pre>
 </div>
 
 <p>
-If a template class inherits from another template class, you need to
+If a class template inherits from another class template, you need to
 make sure that base classes are instantiated before derived classes.
 For example:
 </p>
@@ -3235,6 +3297,9 @@ TEMPLATE_WRAP(PairStringInt, std::pair&lt;string, int&gt;)
 Note the use of a vararg macro for the type T. If this wasn't used, the comma in the templated type in the last example would not be possible.
 </p>
 
+<H3><a name="SWIGPlus_template_specialization">6.18.5 Template specialization</a></H3>
+
+
 <p>
 The SWIG template mechanism <em>does</em> support specialization. For instance, if you define
 a class like this,
@@ -3281,7 +3346,7 @@ private:
 public:
   List(int max);
   ~List();
-  void append(int obj);
+  void append(T obj);
   int length();
   T get(int n);
 };
@@ -3322,10 +3387,13 @@ SWIG implements template argument deduction so that the following partial specia
 </pre>
 </div>
 
+<H3><a name="SWIGPlus_template_member">6.18.6 Member templates</a></H3>
+
+
 <p>
-Member function templates are supported.  The underlying principle is the same
+Member templates are supported.  The underlying principle is the same
 as for normal templates--SWIG can't create a wrapper unless you provide
-more information about types.  For example, a class with a member template might
+more information about types.  For example, a class with a member function template might
 look like this:
 </p>
 
@@ -3400,11 +3468,6 @@ methods to the Foo class.
 
 
 <p>
-Note: because of the way that templates are handled, the <tt>%template</tt> directive
-must always appear <em>after</em> the definition of the template to be expanded.
-</p>
-
-<p>
 Now, if your target language supports overloading, you can even try
 </p>
 
@@ -3424,7 +3487,7 @@ depending on the argument type.
 
 <p>
 When used with members, the <tt>%template</tt> directive may be placed in another
-template class.  Here is a slightly perverse example:
+class template.  Here is a slightly perverse example:
 </p>
 
 <div class="code">
@@ -3475,7 +3538,7 @@ template&lt;class T1, class T2&gt; struct pair {
 <p>
 This declaration is perfectly acceptable to SWIG, but the constructor template will be ignored
 unless you explicitly expand it.  To do that, you could expand a few versions of the constructor
-in the template class itself.  For example:
+in the class template itself.  For example:
 </p>
 
 <div class="code">
@@ -3536,6 +3599,9 @@ constructor, that will dispatch the proper call depending on the argument
 type.
 </p>
 
+<H3><a name="SWIGPlus_template_more">6.18.7 More on templates</a></H3>
+
+
 <p>
 If all of this isn't quite enough and you really want to make
 someone's head explode, SWIG directives such as
@@ -3568,7 +3634,7 @@ instantiation.
 </p>
 
 <p>
-It is also possible to separate these declarations from the template class.  For example:
+It is also possible to separate these declarations from the class template.  For example:
 </p>
 
 <div class="code">
@@ -3615,25 +3681,6 @@ additional methods to a specific instantiation. For example:
 };
 </pre>
 </div>
-
-<p>
-SWIG even supports overloaded templated functions.  As usual the <tt>%template</tt> directive
-is used to wrap templated functions. For example:
-</p>
-
-<div class="code">
-<pre>
-template&lt;class T&gt; void foo(T x) { };
-template&lt;class T&gt; void foo(T x, T y) { };
-
-%template(foo) foo&lt;int&gt;;
-</pre>
-</div>
-
-<p>
-This will generate two overloaded wrapper methods, the first will take a single integer as an argument
-and the second will take two integer arguments.
-</p>
 
 <p>
 It is even possible to extend a class via <tt>%extend</tt> with template methods, for example:
@@ -3694,7 +3741,7 @@ For example:
 <pre>
 template &lt;class T&gt; class OuterTemplateClass {};
 
-// The nested class OuterClass::InnerClass inherits from the template class
+// The nested class OuterClass::InnerClass inherits from the class template
 // OuterTemplateClass&lt;OuterClass::InnerStruct&gt; and thus the template needs
 // to be expanded with %template before the OuterClass declaration.
 %template(OuterTemplateClass_OuterClass__InnerStruct)
@@ -4524,7 +4571,7 @@ for member pointers.
 <p>
 In some C++ programs, objects are often encapsulated by smart-pointers
 or proxy classes.   This is sometimes done to implement automatic memory management (reference counting) or
-persistence. Typically a smart-pointer is defined by a template class where
+persistence. Typically a smart-pointer is defined by a class template where
 the <tt>-&gt;</tt> operator has been overloaded.  This class is then wrapped
 around some other class.  For example:
 </p>
