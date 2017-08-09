@@ -9,17 +9,17 @@ namespace Alloc {
 %}
 
 %inline %{
-struct Bucket {};
-typedef Bucket TDBucket;
-typedef ::Bucket TDGlobalBucket;
+struct Bucket_ {};
+typedef Bucket_ TDBucket;
+typedef ::Bucket_ TDGlobalBucket;
 %}
 
 // Check 1: %template no unary scope operator
-%template(RebindBucket) Alloc::Rebind< Bucket >;
+%template(RebindBucket) Alloc::Rebind< Bucket_ >;
 
 %inline %{
-Alloc::Rebind< Bucket >::Integer Bucket1() { return 1; }
-Alloc::Rebind< ::Bucket >::Integer Bucket2() { return 2; }
+Alloc::Rebind< Bucket_ >::Integer Bucket1() { return 1; }
+Alloc::Rebind< ::Bucket_ >::Integer Bucket2() { return 2; }
 Alloc::Rebind< TDBucket >::Integer Bucket3() { return 3; }
 Alloc::Rebind< ::TDBucket >::Integer Bucket4() { return 4; }
 Alloc::Rebind< TDGlobalBucket >::Integer Bucket5() { return 5; }
