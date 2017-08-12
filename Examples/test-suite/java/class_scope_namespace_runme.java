@@ -47,7 +47,7 @@ public class class_scope_namespace_runme {
     class_scope_namespace.ccc(c, c);
     class_scope_namespace.ddd(d, d, d);
     class_scope_namespace.eee(e, e, e);
-    class_scope_namespace.fff(f, f, f);
+    class_scope_namespace.fff(f, f, f, f);
     class_scope_namespace.ggg(g, g);
     class_scope_namespace.hhh(h);
     class_scope_namespace.iii(i, i);

@@ -53,8 +53,7 @@
  *      typedef A B;
  *      typedef B *C;
  *
- * typetab is built as follows:
- *
+ * typetab in scope '' contains:
  *      "A"     : "int"
  *      "B"     : "A"
  *      "C"     : "p.B"
@@ -67,31 +66,76 @@
  *               ---> a(40).p.p.A     (B --> A)
  *               ---> a(40).p.p.int   (A --> int)
  *
+ *
+ * Using declarations are stored in the "typetab" hash table. For example,
+ *
+ *      namespace NN {
+ *        struct SS {};
+ *      }
+ *      namespace N {
+ *        struct S {};
+ *        using NN::SS;
+ *      }
+ *      using N::S;
+ *
+ * typetab in scope '' contains:
+ *      "S" : "N::S"
+ * 
+ * and typetab in scope 'N' contains:
+ *      "SS" : "NN::SS"
+ *      "S" : "S"
+ *
+ *
  * For inheritance, SWIG tries to resolve types back to the base class. For instance, if
  * you have this:
  *
- *     class Foo {
- *     public:
- *        typedef int Integer;
- *     };
+ *      class Foo {
+ *      public:
+ *         typedef int Integer;
+ *      };
+ *      struct Bar : public Foo {
+ *        void blah(Integer x);
+ *      };
  *
- *     class Bar : public Foo {
- *           void blah(Integer x);
- *     };
+ * In this case typetab in scope '' contains:
+ *      "Foo" : "Foo"
+ *      "Bar" : "Bar"
+ * and scope 'Foo' contains:
+ *      "Integer" : "int"
+ * and scope 'Bar' inherits from 'Foo' but is empty (observe that blah is not a scope or typedef)
  *
  * The argument type of Bar::blah will be set to Foo::Integer.   
+ *
+ *
+ * The scope-inheritance mechanism is used to manage C++ using directives.
+ *
+ *      namespace XX {
+ *        class CC {};
+ *      }
+ *      namespace X {
+ *        class C {};
+ *        using namespace XX;
+ *      }
+ *      using namespace X;
+ *
+ * typetab in scope '' inherits from 'X'
+ * typetab in scope 'X' inherits from 'XX' and contains:
+ *      "C" : "C"
+ * typetab in scope 'XX' contains:
+ *      "CC" : "CC"
+ *
  *
  * The scope-inheritance mechanism is used to manage C++ namespace aliases.
  * For example, if you have this:
  *
- *    namespace Foo {
- *         typedef int Integer;
- *    }
+ *      namespace Foo {
+ *        typedef int Integer;
+ *      }
  *
- *   namespace F = Foo;
+ *      namespace F = Foo;
  *
- * In this case, "F::" is defined as a scope that "inherits" from Foo.  Internally,
- * "F::" will merely be an empty scope that refers to Foo.  SWIG will never 
+ * In this case, F is defined as a scope that "inherits" from Foo.  Internally,
+ * F will merely be an empty scope that points to Foo.  SWIG will never 
  * place new type information into a namespace alias---attempts to do so
  * will generate a warning message (in the parser) and will place information into 
  * Foo instead.
@@ -968,8 +1012,17 @@ SwigType *SwigType_typedef_resolve_all(const SwigType *t) {
 /* -----------------------------------------------------------------------------
  * SwigType_typedef_qualified()
  *
- * Given a type declaration, this function tries to fully qualify it according to
- * typedef scope rules.
+ * Given a type declaration, this function tries to fully qualify it so that the
+ * resulting type can be used in the global scope. The type name is resolved in
+ * the current scope.
+ *
+ * It provides a fully qualified name, not necessarily a fully expanded name.
+ * When a using declaration or using directive is found the type may not be fully
+ * expanded, but it will be resolved and fully qualified for use in the global scope.
+ *
+ * This function is for looking up scopes to qualify a type. It does not resolve
+ * C typedefs, it just qualifies them. See SwigType_typedef_resolve for resolving.
+ *
  * If the unary scope operator (::) is used as a prefix to the type to denote global
  * scope, it is left in place.
  * ----------------------------------------------------------------------------- */
@@ -1030,20 +1083,14 @@ SwigType *SwigType_typedef_qualified(const SwigType *t) {
 	       out of the current scope */
 
 	    Typetab *cs = current_scope;
-	    while (cs) {
-	      String *qs = SwigType_scope_name(cs);
-	      if (Len(qs)) {
-		Append(qs, "::");
-	      }
-	      Append(qs, e);
-	      if (Getattr(scopes, qs)) {
+	    if (cs) {
+	      Typetab *found_scope = SwigType_find_scope(cs, e);
+	      if (found_scope) {
+		String *qs = SwigType_scope_name(found_scope);
 		Clear(e);
 		Append(e, qs);
 		Delete(qs);
-		break;
 	      }
-	      Delete(qs);
-	      cs = Getattr(cs, "parent");
 	    }
 	  }
 	}

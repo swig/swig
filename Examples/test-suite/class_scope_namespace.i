@@ -73,8 +73,7 @@ namespace Space5 {
   struct SubSubSpace5::F {
     void ff(Space5::SubSpace5::SubSubSpace5::F, SubSpace5::SubSubSpace5::F, SubSubSpace5::F, F) {}
   };
-// needs fixing
-  void fff(Space5::SubSpace5::SubSubSpace5::F, SubSpace5::SubSubSpace5::F, /*SubSubSpace5::F,*/ F) {}
+  void fff(Space5::SubSpace5::SubSubSpace5::F, SubSpace5::SubSubSpace5::F, SubSubSpace5::F, F) {}
 }
 
 namespace Space6 {
