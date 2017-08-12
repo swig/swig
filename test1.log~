@@ -1,0 +1,513 @@
+checking php test-suite
+checking php testcase callback (with run test)
+checking php testcase li_factory (with run test)
+checking php testcase php_iterator (with run test)
+checking php testcase php_namewarn_rename
+checking php testcase php_pragma (with run test)
+checking php testcase abstract_access
+checking php testcase abstract_inherit (with run test)
+checking php testcase abstract_inherit_ok (with run test)
+checking php testcase abstract_signature
+checking php testcase abstract_typedef
+checking php testcase abstract_typedef2
+checking php testcase abstract_virtual
+checking php testcase access_change
+checking php testcase add_link (with run test)
+checking php testcase aggregate
+checking php testcase allowexcept
+checking php testcase allprotected
+checking php testcase allprotected_not
+checking php testcase anonymous_bitfield
+checking php testcase apply_signed_char
+checking php testcase apply_strings
+checking php testcase argout (with run test)
+checking php testcase array_member
+checking php testcase array_typedef_memberin
+checking php testcase arrayref
+checking php testcase arrays_dimensionless
+checking php testcase arrays_global (with run test)
+checking php testcase arrays_global_twodim (with run test)
+checking php testcase arrays_scope (with run test)
+checking php testcase autodoc
+checking php testcase bloody_hell
+checking php testcase bools
+checking php testcase catches
+checking php testcase cast_operator
+checking php testcase casts (with run test)
+checking php testcase char_binary
+checking php testcase char_strings (with run test)
+checking php testcase chartest
+checking php testcase class_forward
+checking php testcase class_ignore (with run test)
+checking php testcase class_scope_weird
+checking php testcase compactdefaultargs
+checking php testcase const_const_2
+checking php testcase constant_directive
+checking php testcase constant_pointers
+checking php testcase constover
+checking php testcase constructor_copy
+checking php testcase constructor_exception
+checking php testcase constructor_explicit
+checking php testcase constructor_ignore
+checking php testcase constructor_rename
+checking php testcase constructor_value
+checking php testcase contract
+checking php testcase conversion (with run test)
+checking php testcase conversion_namespace (with run test)
+checking php testcase conversion_ns_template (with run test)
+checking php testcase conversion_operators
+checking php testcase cplusplus_throw
+checking php testcase cpp_basic (with run test)
+checking php testcase cpp_enum
+checking php testcase cpp_namespace
+checking php testcase cpp_nodefault
+checking php testcase cpp_static (with run test)
+checking php testcase cpp_typedef
+checking php testcase curiously_recurring_template_pattern
+checking php testcase default_args
+checking php testcase default_arg_values
+checking php testcase default_constructor
+checking php testcase defvalue_constructor
+checking php testcase derived_byvalue
+checking php testcase derived_nested
+checking php testcase destructor_reprotected
+checking php testcase director_abstract (with run test)
+checking php testcase director_alternating
+checking php testcase director_basic (with run test)
+checking php testcase director_binary_string
+checking php testcase director_classes
+checking php testcase director_classic (with run test)
+checking php testcase director_constructor
+checking php testcase director_default (with run test)
+checking php testcase director_detect (with run test)
+checking php testcase director_enum (with run test)
+checking php testcase director_exception (with run test)
+checking php testcase director_extend (with run test)
+checking php testcase director_finalizer (with run test)
+checking php testcase director_frob (with run test)
+checking php testcase director_ignore
+checking php testcase director_keywords
+checking php testcase director_namespace_clash
+checking php testcase director_nested (with run test)
+checking php testcase director_nspace
+checking php testcase director_nspace_director_name_collision
+checking php testcase director_overload
+checking php testcase director_overload2
+checking php testcase director_pass_by_value (with run test)
+checking php testcase director_primitives
+checking php testcase director_property
+checking php testcase director_protected (with run test)
+checking php testcase director_protected_overloaded
+checking php testcase director_redefined
+checking php testcase director_ref
+checking php testcase director_smartptr
+checking php testcase director_unroll (with run test)
+checking php testcase director_using
+checking php testcase director_void
+checking php testcase director_wombat
+checking php testcase disown
+checking php testcase dynamic_cast
+checking php testcase empty
+checking php testcase enum_ignore
+checking php testcase enum_plus
+checking php testcase enum_rename
+checking php testcase enum_scope_template (with run test)
+checking php testcase enum_template
+checking php testcase enum_thorough
+checking php testcase enum_var
+checking php testcase equality
+checking php testcase evil_diamond (with run test)
+checking php testcase evil_diamond_ns (with run test)
+checking php testcase evil_diamond_prop (with run test)
+checking php testcase exception_classname
+checking php testcase exception_order (with run test)
+checking php testcase extend
+checking php testcase extend_constructor_destructor
+checking php testcase extend_default
+checking php testcase extend_placement
+checking php testcase extend_special_variables
+checking php testcase extend_template (with run test)
+checking php testcase extend_template_method
+checking php testcase extend_template_ns (with run test)
+checking php testcase extend_typedef_class
+checking php testcase extern_c
+checking php testcase extern_namespace
+checking php testcase extern_throws
+checking php testcase expressions
+checking php testcase features
+checking php testcase fragments
+checking php testcase friends
+checking php testcase friends_template
+checking php testcase funcptr_cpp
+checking php testcase fvirtual
+checking php testcase global_namespace
+checking php testcase global_ns_arg
+checking php testcase global_scope_types
+checking php testcase global_vars
+checking php testcase grouping (with run test)
+checking php testcase ignore_parameter (with run test)
+checking php testcase import_fragments
+checking php testcase import_nomodule (with run test)
+checking php testcase inherit
+checking php testcase inherit_member
+checking php testcase inherit_missing
+checking php testcase inherit_same_name
+checking php testcase inherit_target_language
+checking php testcase inherit_void_arg
+checking php testcase inline_initializer
+checking php testcase insert_directive
+checking php testcase keyword_rename
+checking php testcase kind
+checking php testcase kwargs_feature
+checking php testcase langobj
+checking php testcase li_attribute
+checking php testcase li_attribute_template
+checking php testcase li_boost_shared_ptr
+checking php testcase li_boost_shared_ptr_template
+checking php testcase li_boost_shared_ptr_attribute
+checking php testcase li_carrays_cpp (with run test)
+checking php testcase li_cdata_cpp
+checking php testcase li_cpointer_cpp
+checking php testcase li_std_auto_ptr
+checking php testcase li_stdint
+checking php testcase li_swigtype_inout
+checking php testcase li_typemaps
+checking php testcase li_typemaps_apply
+checking php testcase li_windows
+checking php testcase long_long_apply
+checking php testcase memberin_extend
+checking php testcase member_funcptr_galore
+checking php testcase member_pointer
+checking php testcase member_pointer_const
+checking php testcase member_template
+checking php testcase minherit
+checking php testcase minherit2
+checking php testcase mixed_types
+checking php testcase multiple_inheritance
+checking php testcase multiple_inheritance_abstract
+checking php testcase multiple_inheritance_interfaces
+checking php testcase multiple_inheritance_nspace
+checking php testcase multiple_inheritance_shared_ptr
+checking php testcase name_cxx
+checking php testcase name_warnings
+checking php testcase namespace_class
+checking php testcase namespace_enum
+checking php testcase namespace_extend
+checking php testcase namespace_forward_declaration
+checking php testcase namespace_nested
+checking php testcase namespace_spaces
+checking php testcase namespace_template
+checking php testcase namespace_typedef_class
+checking php testcase namespace_typemap
+checking php testcase namespace_union
+checking php testcase namespace_virtual_method
+checking php testcase nspace
+checking php testcase nspace_extend
+checking php testcase naturalvar
+checking php testcase naturalvar_more
+checking php testcase naturalvar_onoff
+checking php testcase nested_class
+checking php testcase nested_directors
+checking php testcase nested_comment
+checking php testcase nested_ignore
+checking php testcase nested_scope
+checking php testcase nested_template_base
+checking php testcase nested_workaround
+checking php testcase newobject1 (with run test)
+checking php testcase null_pointer
+checking php testcase operator_overload
+checking php testcase operator_overload_break
+checking php testcase operator_pointer_ref
+checking php testcase operbool
+checking php testcase ordering
+checking php testcase overload_arrays
+checking php testcase overload_bool
+checking php testcase overload_copy
+checking php testcase overload_extend
+checking php testcase overload_method
+checking php testcase overload_numeric
+checking php testcase overload_polymorphic
+checking php testcase overload_rename (with run test)
+checking php testcase overload_return_type (with run test)
+checking php testcase overload_simple
+checking php testcase overload_subtype
+checking php testcase overload_template
+checking php testcase overload_template_fast
+checking php testcase pointer_reference (with run test)
+checking php testcase preproc_constants (with run test)
+checking php testcase primitive_ref (with run test)
+checking php testcase private_assign
+checking php testcase proxycode
+checking php testcase protected_rename
+checking php testcase pure_virtual
+checking php testcase redefined
+checking php testcase redefined_not
+checking php testcase refcount
+checking php testcase reference_global_vars
+checking php testcase register_par
+checking php testcase rename1
+checking php testcase rename2
+checking php testcase rename3
+checking php testcase rename4
+checking php testcase rename_rstrip_encoder
+checking php testcase rename_scope (with run test)
+checking php testcase rename_simple
+checking php testcase rename_strip_encoder
+checking php testcase rename_pcre_encoder
+checking php testcase rename_pcre_enum
+checking php testcase rename_predicates
+checking php testcase rename_wildcard
+checking php testcase restrict_cplusplus
+checking php testcase return_const_value
+checking php testcase return_value_scope
+checking php testcase rname
+checking php testcase samename
+checking php testcase sizet
+checking php testcase smart_pointer_const
+checking php testcase smart_pointer_const2
+checking php testcase smart_pointer_const_overload
+checking php testcase smart_pointer_extend
+checking php testcase smart_pointer_ignore
+checking php testcase smart_pointer_member
+checking php testcase smart_pointer_multi
+checking php testcase smart_pointer_multi_typedef
+checking php testcase smart_pointer_namespace
+checking php testcase smart_pointer_namespace2
+checking php testcase smart_pointer_not
+checking php testcase smart_pointer_overload
+checking php testcase smart_pointer_protected
+checking php testcase smart_pointer_rename (with run test)
+checking php testcase smart_pointer_simple
+checking php testcase smart_pointer_static
+checking php testcase smart_pointer_template_const_overload
+checking php testcase smart_pointer_template_defaults_overload
+checking php testcase smart_pointer_templatemethods
+checking php testcase smart_pointer_templatevariables
+checking php testcase smart_pointer_typedef
+checking php testcase special_variables
+checking php testcase special_variable_attributes
+checking php testcase special_variable_macros
+checking php testcase static_array_member
+checking php testcase static_const_member
+checking php testcase static_const_member_2
+checking php testcase string_constants
+checking php testcase struct_initialization_cpp
+checking php testcase struct_value
+checking php testcase swig_exception (with run test)
+checking php testcase symbol_clash
+checking php testcase template_arg_replace
+checking php testcase template_arg_scope
+checking php testcase template_arg_typename (with run test)
+checking php testcase template_array_numeric
+checking php testcase template_basic
+checking php testcase template_base_template
+checking php testcase template_classes
+checking php testcase template_const_ref
+checking php testcase template_construct (with run test)
+checking php testcase template_templated_constructors
+checking php testcase template_default
+checking php testcase template_default2
+checking php testcase template_default_arg
+checking php testcase template_default_arg_overloaded
+checking php testcase template_default_arg_overloaded_extend
+checking php testcase template_default_arg_virtual_destructor
+checking php testcase template_default_cache
+checking php testcase template_default_class_parms
+checking php testcase template_default_class_parms_typedef
+checking php testcase template_default_inherit
+checking php testcase template_default_qualify
+checking php testcase template_default_vw
+checking php testcase template_enum
+checking php testcase template_enum_ns_inherit
+checking php testcase template_enum_typedef
+checking php testcase template_explicit
+checking php testcase template_extend1
+checking php testcase template_extend2
+checking php testcase template_extend_overload
+checking php testcase template_extend_overload_2
+checking php testcase template_forward
+checking php testcase template_inherit
+checking php testcase template_inherit_abstract
+checking php testcase template_int_const
+checking php testcase template_keyword_in_type
+checking php testcase template_methods
+checking php testcase template_namespace_forward_declaration
+checking php testcase template_using_directive_and_declaration_forward
+checking php testcase template_nested
+checking php testcase template_nested_typemaps
+checking php testcase template_ns
+checking php testcase template_ns2
+checking php testcase template_ns3
+checking php testcase template_ns4
+checking php testcase template_ns_enum
+checking php testcase template_ns_enum2
+checking php testcase template_ns_inherit
+checking php testcase template_ns_scope
+checking php testcase template_partial_arg
+checking php testcase template_partial_specialization
+checking php testcase template_partial_specialization_typedef
+checking php testcase template_qualifier
+checking php testcase template_ref_type
+checking php testcase template_rename
+checking php testcase template_retvalue
+checking php testcase template_specialization
+checking php testcase template_specialization_defarg
+checking php testcase template_specialization_enum
+checking php testcase template_static
+checking php testcase template_tbase_template
+checking php testcase template_template_parameters
+checking php testcase template_typedef
+checking php testcase template_typedef_class_template
+checking php testcase template_typedef_cplx
+checking php testcase template_typedef_cplx2
+checking php testcase template_typedef_cplx3
+checking php testcase template_typedef_cplx4
+checking php testcase template_typedef_cplx5
+checking php testcase template_typedef_funcptr
+checking php testcase template_typedef_inherit
+checking php testcase template_typedef_ns
+checking php testcase template_typedef_ptr
+checking php testcase template_typedef_rec
+checking php testcase template_typedef_typedef
+checking php testcase template_typemaps
+checking php testcase template_typemaps_typedef
+checking php testcase template_typemaps_typedef2
+checking php testcase template_using
+checking php testcase template_virtual
+checking php testcase template_whitespace
+checking php testcase threads
+checking php testcase threads_exception (with run test)
+checking php testcase throw_exception
+checking php testcase typedef_array_member
+checking php testcase typedef_class
+checking php testcase typedef_funcptr
+checking php testcase typedef_inherit
+checking php testcase typedef_mptr
+checking php testcase typedef_reference (with run test)
+checking php testcase typedef_scope
+checking php testcase typedef_sizet
+checking php testcase typedef_struct_cpp
+checking php testcase typedef_typedef
+checking php testcase typemap_arrays
+checking php testcase typemap_array_qualifiers
+checking php testcase typemap_delete
+checking php testcase typemap_directorout
+checking php testcase typemap_documentation
+checking php testcase typemap_global_scope
+checking php testcase typemap_manyargs
+checking php testcase typemap_namespace
+checking php testcase typemap_ns_using (with run test)
+checking php testcase typemap_numinputs
+checking php testcase typemap_template
+checking php testcase typemap_template_parm_typedef
+checking php testcase typemap_out_optimal
+checking php testcase typemap_qualifier_strip
+checking php testcase typemap_variables
+checking php testcase typemap_various
+checking php testcase typename
+checking php testcase types_directive
+checking php testcase unicode_strings
+checking php testcase union_scope
+checking php testcase using1 (with run test)
+checking php testcase using2 (with run test)
+checking php testcase using_composition
+checking php testcase using_directive_and_declaration
+checking php testcase using_directive_and_declaration_forward
+checking php testcase using_extend
+checking php testcase using_inherit
+checking php testcase using_namespace
+checking php testcase using_namespace_loop
+checking php testcase using_pointers
+checking php testcase using_private
+checking php testcase using_protected
+checking php testcase valuewrapper
+checking php testcase valuewrapper_base (with run test)
+checking php testcase valuewrapper_const
+checking php testcase valuewrapper_opaque
+checking php testcase varargs
+checking php testcase varargs_overload
+checking php testcase variable_replacement
+checking php testcase virtual_destructor
+checking php testcase virtual_poly
+checking php testcase virtual_vs_nonvirtual_base (with run test)
+checking php testcase voidtest
+checking php testcase wallkw
+checking php testcase wrapmacro (with run test)
+checking php testcase director_string (with run test)
+checking php testcase ignore_template_constructor
+checking php testcase li_std_combinations
+checking php testcase li_std_deque
+checking php testcase li_std_except
+checking php testcase li_std_except_as_class
+checking php testcase li_std_map
+checking php testcase li_std_pair
+checking php testcase li_std_pair_using
+checking php testcase li_std_string (with run test)
+checking php testcase li_std_vector
+checking php testcase li_std_vector_enum
+checking php testcase li_std_vector_member_var (with run test)
+checking php testcase li_std_vector_ptr
+checking php testcase smart_pointer_inherit
+checking php testcase template_typedef_fnc
+checking php testcase template_type_namespace
+checking php testcase template_opaque
+checking php testcase arrays (with run test)
+checking php testcase bom_utf8
+checking php testcase c_delete
+checking php testcase c_delete_function
+checking php testcase char_constant
+checking php testcase const_const
+checking php testcase constant_expr
+checking php testcase empty_c
+checking php testcase enums
+checking php testcase enum_forward
+checking php testcase enum_macro
+checking php testcase enum_missing
+checking php testcase extern_declaration
+checking php testcase funcptr
+checking php testcase function_typedef
+checking php testcase global_functions
+checking php testcase immutable_values
+checking php testcase inctest
+checking php testcase infinity
+checking php testcase integers
+checking php testcase keyword_rename_c
+checking php testcase lextype
+checking php testcase li_carrays (with run test)
+checking php testcase li_cdata
+checking php testcase li_cmalloc
+checking php testcase li_constraints
+checking php testcase li_cpointer
+checking php testcase li_math
+checking php testcase long_long
+checking php testcase memberin_extend_c
+checking php testcase name
+checking php testcase nested
+checking php testcase nested_extend_c
+checking php testcase nested_structs
+checking php testcase newobject2
+checking php testcase overload_extend_c
+checking php testcase overload_extend2
+checking php testcase preproc
+checking php testcase preproc_constants_c (with run test)
+checking php testcase preproc_defined
+checking php testcase preproc_include
+checking php testcase preproc_line_file
+checking php testcase ret_by_value
+checking php testcase simple_array
+checking php testcase sizeof_pointer
+checking php testcase sneaky1
+checking php testcase string_simple
+checking php testcase struct_rename
+checking php testcase struct_initialization
+checking php testcase typedef_struct
+checking php testcase typemap_subst
+checking php testcase union_parameter
+checking php testcase unions
+checking php testcase clientdata_prop
+checking php testcase imports
+checking php testcase import_stl
+checking php testcase packageoption
+checking php testcase mod
+checking php testcase template_typedef_import
+checking php testcase multi_import

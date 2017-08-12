@@ -1123,7 +1123,7 @@ public:
       Printf(f_h, "PHP_METHOD(%s,__set);\n", class_name);
       Printf(all_cs_entry, " PHP_ME(%s,__set,swig_arginfo_00,ZEND_ACC_PUBLIC)\n", class_name);
       Printf(f->code, "PHP_METHOD(%s,__set) {\n",class_name);
-
+      
       Printf(f->code, "  swig_object_wrapper *arg = (swig_object_wrapper *)SWIG_Z_FETCH_OBJ_P(getThis());\n");
       Printf(f->code, "  %s *arg1 = (%s *)(arg->ptr);\n", class_type, class_type);
       Printf(f->code, "  zval args[2];\n  zend_string *arg2 = 0;\n\n");
@@ -2752,7 +2752,7 @@ done:
 	while (base.item && GetFlag(base.item, "feature:ignore")) {
 	  base = Next(base);
 	}
-        baseClassExtend = Getattr(base.item, "sym:name");
+  baseClassExtend = Getattr(base.item, "sym:name");
 	base = Next(base);
 	if (base.item) {
 	  /* Warn about multiple inheritance for additional base class(es) */
