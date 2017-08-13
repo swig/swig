@@ -86,7 +86,7 @@
 %typemap(in) SWIGTYPE ($&1_ltype tmp)
 %{
   if (zend_lookup_class(zend_string_init("$lower_param",sizeof("$lower_param")-1,0))) {
-    $1 = *$obj_value;
+    $1 = *(($1_ltype *)$obj_value);
   }
   else {
     if (SWIG_ConvertPtr(&$input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL)
@@ -109,7 +109,7 @@
 	     SWIGTYPE []
 %{
   if (zend_lookup_class(zend_string_init("$lower_param",sizeof("$lower_param")-1,0))) {
-    $1 = $obj_value;
+    $1 = ($1_ltype) $obj_value;
   }
   else {
     if (SWIG_ConvertPtr(&$linput, (void **) &$1, $1_descriptor, 0) < 0)
@@ -120,7 +120,7 @@
 %typemap(in) SWIGTYPE &
 %{
   if (zend_lookup_class(zend_string_init("$lower_param",sizeof("$lower_param")-1,0))) {
-    $1 = $obj_value;
+    $1 = ($1_ltype) $obj_value;
   }
   else {
 	  if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL)
@@ -131,7 +131,7 @@
 %typemap(in) SWIGTYPE &&
 %{
   if (zend_lookup_class(zend_string_init("$lower_param",sizeof("$lower_param")-1,0))) {
-    $1 = $obj_value;
+    $1 = ($1_ltype) $obj_value;
   }
   else {
     if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL) {
@@ -142,10 +142,15 @@
 
 %typemap(in) SWIGTYPE *const& ($*ltype temp)
 %{
-  if (SWIG_ConvertPtr(&$input, (void **) &temp, $*1_descriptor, 0) < 0) {
-    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $*1_descriptor");
+  if (zend_lookup_class(zend_string_init("$lower_param",sizeof("$lower_param")-1,0))) {
+    $1 = ($1_ltype) $obj_value;
   }
+  else {
+    if (SWIG_ConvertPtr(&$input, (void **) &temp, $*1_descriptor, 0) < 0) {
+      SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $*1_descriptor");
+    }
   $1 = ($1_ltype)&temp;
+  }
 %}
 
 %typemap(in) SWIGTYPE *DISOWN

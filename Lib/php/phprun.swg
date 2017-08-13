@@ -185,6 +185,14 @@ SWIG_ConvertResourcePtr(zval *z, swig_type_info *ty, int flags) {
 
   type_name=zend_rsrc_list_get_rsrc_type(Z_RES_P(z));
 
+  if (!type_name) {
+    if (Z_TYPE_P(z) == IS_OBJECT) {
+      HashTable * ht = Z_OBJ_HT_P(z)->get_properties(z);
+        zval * _cPtr = zend_hash_str_find(ht, "_cPtr", sizeof("_cPtr") - 1);
+        type_name=zend_rsrc_list_get_rsrc_type(Z_RES_P(_cPtr));
+    }
+  }
+
   return SWIG_ConvertResourceData(p, type_name, ty);
 }
 
@@ -207,7 +215,13 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
             _cPtr = Z_INDIRECT_P(_cPtr);
           }
           if (Z_TYPE_P(_cPtr) == IS_RESOURCE) {
-            *ptr = SWIG_ConvertResourcePtr(_cPtr, ty, flags);
+            zval *zv;
+            if (!zend_hash_str_exists(ht, "SWIG_classWrapper", sizeof("SWIG_classWrapper") - 1))
+              zv = _cPtr;
+            else
+              zv = z;
+
+            *ptr = SWIG_ConvertResourcePtr(zv, ty, flags);
             return (*ptr == NULL ? -1 : 0);
           }
         }
@@ -245,6 +259,8 @@ SWIG_generalize_object(zval *zval_obj, void *ptr, int class_obj, int userNewObj 
     zval zv;
     ZVAL_RES(&zv,zend_register_resource(ptr,*(int *)(type->clientdata)));
     zend_hash_str_add(ht, "_cPtr", sizeof("_cPtr") - 1, &zv);
+    ZVAL_TRUE(&zv);
+    zend_hash_str_add(ht, "SWIG_classWrapper", sizeof("SWIG_classWrapper") - 1, &zv);
   }
   obj->newobject = userNewObj;
 }
@@ -252,7 +268,7 @@ SWIG_generalize_object(zval *zval_obj, void *ptr, int class_obj, int userNewObj 
 static void
 SWIG_SetZval( zval *zv, zval *class_zv, int userNewObj ,int object, int class_obj ,void *ptr, swig_type_info *type, zend_object *std) {
 
-  if (class_obj) {
+  if (class_obj == 1) {
     SWIG_generalize_object(class_zv, ptr, class_obj, userNewObj ,type);
     return;
   }
@@ -268,7 +284,10 @@ SWIG_SetZval( zval *zv, zval *class_zv, int userNewObj ,int object, int class_ob
   }
 
   if (object == 2) {
-    SWIG_SetPointerZval(zv,ptr,type,class_obj);
+    int newobj = class_obj;
+    if (class_obj == 2)
+      newobj = 1;
+    SWIG_SetPointerZval(zv,ptr,type,newobj);
   }
 }
 
