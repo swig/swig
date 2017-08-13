@@ -47,6 +47,6 @@ testdir/README file.
 Further Documentation
 ---------------------
 
-There is documentation about the test-suite and how to use use it in
+There is documentation about the test-suite and how to use it in
 the SWIG documentation - Doc/Manual/Extending.html#Extending_test_suite.
 

@@ -180,7 +180,7 @@ typedef struct swig_elua_entry {
  * -------------------------------------------------------------------------- */
 
 /* Push the string STR on the Lua stack, like lua_pushstring, but
-   prefixed with the the location of the innermost Lua call-point
+   prefixed with the location of the innermost Lua call-point
    (as formated by luaL_where).  */
 SWIGRUNTIME void
 SWIG_Lua_pusherrstring (lua_State *L, const char *str)
@@ -191,7 +191,7 @@ SWIG_Lua_pusherrstring (lua_State *L, const char *str)
 }
 
 /* Push a formatted string generated from FMT and following args on
-   the Lua stack, like lua_pushfstring, but prefixed with the the
+   the Lua stack, like lua_pushfstring, but prefixed with the
    location of the innermost Lua call-point (as formated by luaL_where).  */
 SWIGRUNTIME void
 SWIG_Lua_pushferrstring (lua_State *L, const char *fmt, ...)

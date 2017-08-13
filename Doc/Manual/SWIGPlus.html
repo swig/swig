@@ -2779,7 +2779,7 @@ into two methods such that additional logic can be packed into the operations; C
 <tt>this[type key] { get { ... } set { ... }}</tt>, Python uses
 <tt>__getitem__</tt> and <tt>__setitem__</tt>, etc. In C++ if the return
 type of <tt>operator[]</tt> is a reference and the method is const, it is often indicative of the <i>setter</i>,
-and and the <i>getter</i> is usually a const function return an object by value.
+and the <i>getter</i> is usually a const function return an object by value.
 In the absence of any hard and fast rules and the fact that there may be multiple index operators,
 it is up to the user to choose the getter and setter to use by using %rename as shown earlier.
 </p>

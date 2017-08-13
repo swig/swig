@@ -350,7 +350,7 @@ SWIG_R_NewPackedObj(void *ptr, size_t sz, swig_type_info *type) {
   return ptr ? RSwigPacked_New((void *) ptr, sz, type) : R_NilValue;
 }
 
-/* Convert a packed value value */
+/* Convert a packed pointer value */
 
 SWIGRUNTIME int
 SWIG_R_ConvertPacked(SEXP obj, void *ptr, size_t sz, swig_type_info *ty) {

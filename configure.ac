@@ -280,7 +280,7 @@ fi
 AC_MSG_RESULT($RPATH)
 
 # LINKFORSHARED are the flags passed to the $(CC) command that links
-# the a few executables -- this is only needed for a few systems
+# a few executables -- this is only needed for a few systems
 
 AC_MSG_CHECKING(LINKFORSHARED)
 if test -z "$LINKFORSHARED"
