@@ -1,5 +1,7 @@
 %module template_empty_inherit
 
+%rename(FunctorOperator) operator();
+
 %inline %{
 template<class Arg, typename Result> struct Functor {
   virtual Result operator()(Arg x) const = 0;
@@ -13,6 +15,7 @@ template<class Arg, typename Result> struct Functor {
 
 %inline %{
 #include <algorithm>
+#include <iterator>
 struct SquareFunctor : Functor<int, int> {
   int operator()(int v) const { return v*v; }
 };
