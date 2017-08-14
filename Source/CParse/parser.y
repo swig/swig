@@ -848,38 +848,61 @@ static String *resolve_create_node_scope(String *cname) {
       /* Check if the scope is the current scope */
       String *current_scopename = Swig_symbol_qualifiedscopename(0);
       String *found_scopename = Swig_symbol_qualifiedscopename(symtab);
-      int len;
+      int len_curr, len_found;
+      int ignore_found = 0;
       if (!current_scopename)
 	current_scopename = NewString("");
       if (!found_scopename)
 	found_scopename = NewString("");
-      len = Len(current_scopename);
-      if ((len > 0) && (Strncmp(current_scopename, found_scopename, len) == 0)) {
-	if (Len(found_scopename) > len + 2) {
-	  /* A matching weak symbol was found in non-global scope, some scope adjustment may be required */
-	  String *new_cname = NewString(Char(found_scopename) + len + 2); /* skip over "::" prefix */
-	  String *base = Swig_scopename_last(cname);
-	  Printf(new_cname, "::%s", base);
-	  cname = new_cname;
-	  Delete(base);
-	} else {
-	  /* A matching weak symbol was found in the same non-global local scope, no scope adjustment required */
-	  assert(len == Len(found_scopename));
-	}
-      } else {
-	String *base = Swig_scopename_last(cname);
-	if (Len(found_scopename) > 0) {
-	  /* A matching weak symbol was found in a different scope to the local scope - probably via a using declaration */
-	  cname = NewStringf("%s::%s", found_scopename, base);
-	} else {
-	  /* Either:
-	      1) A matching weak symbol was found in a different scope to the local scope - this is actually a
-	      symbol with the same name in a different scope which we don't want, so no adjustment required.
-	      2) A matching weak symbol was found in the global scope - no adjustment required.
-	  */
-	  cname = Copy(base);
-	}
-	Delete(base);
+      len_curr = Len(current_scopename);
+      len_found = Len(found_scopename);
+      if (Equal(nodeType(cname_node), "template") && Strcmp(current_scopename, found_scopename) != 0) {
+          /* check if we found the same namespace */
+          String * qname = Copy(current_scopename);
+          String * prefix = Swig_scopename_prefix(cname);
+          if(Len(prefix)) {
+              Append(qname, "::");
+              Append(qname, prefix);
+          }
+          
+          if (Len(prefix) == 0 || (Strcmp(prefix, found_scopename)) && Strcmp(qname, found_scopename)) {
+              /* A "matching" template class was found in a different scope.
+                 C++ does not allow specialization in a different namespace (unless explicitly quialified).
+                 Hence, we got an independent template class with the same name.
+                 -> ignore the match. */
+              ignore_found = 1;
+          }
+          Delete(prefix);
+          Delete(qname);
+      }
+      if (ignore_found == 0) {
+          if ((len_curr > 0) && (Strncmp(current_scopename, found_scopename, len_curr) == 0)) {
+              if (len_found > len_curr + 2) {
+                  /* A matching weak symbol was found in non-global scope, some scope adjustment may be required */
+                  String *new_cname = NewString(Char(found_scopename) + len_curr + 2); /* skip over "::" prefix */
+                  String *base = Swig_scopename_last(cname);
+                  Printf(new_cname, "::%s", base);
+                  cname = new_cname;
+                  Delete(base);
+              } else {
+                  /* A matching weak symbol was found in the same non-global local scope, no scope adjustment required */
+                  assert(len_curr == len_found);
+              }
+          } else {
+              String *base = Swig_scopename_last(cname);
+              if (len_found > 0) {
+                  /* A matching weak symbol was found in a different scope to the local scope - probably via a using declaration */
+                  cname = NewStringf("%s::%s", found_scopename, base);
+              } else {
+                  /* Either:
+                     1) A matching weak symbol was found in a different scope to the local scope - this is actually a
+                     symbol with the same name in a different scope which we don't want, so no adjustment required.
+                     2) A matching weak symbol was found in the global scope - no adjustment required.
+                  */
+                  cname = Copy(base);
+              }
+              Delete(base);
+          }
       }
       Delete(current_scopename);
       Delete(found_scopename);
