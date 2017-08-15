@@ -42,10 +42,15 @@
  *    "name"            -  Scope name
  *    "qname"           -  Fully qualified typename
  *    "typetab"         -  Type table containing typenames and typedef information
+ *                         For a given key in the typetab table, the value is a fully
+ *                         qualified name if not pointing to itself.
  *    "symtab"          -  Hash table of symbols defined in a scope
  *    "inherit"         -  List of inherited scopes       
  *    "parent"          -  Parent scope
  * 
+ * The contents of these tables can be viewed for debugging using the -debug-typedef
+ * option which calls SwigType_print_scope().
+ *
  * Typedef information is stored in the "typetab" hash table.  For example,
  * if you have these declarations:
  *
@@ -210,6 +215,7 @@ void SwigType_typesystem_init() {
  * ----------------------------------------------------------------------------- */
 
 int SwigType_typedef(const SwigType *type, const_String_or_char_ptr name) {
+  /* Printf(stdout, "typedef %s %s\n", type, name); */
   if (Getattr(current_typetab, name))
     return -1;			/* Already defined */
   if (Strcmp(type, name) == 0) {	/* Can't typedef a name to itself */
@@ -660,6 +666,17 @@ static SwigType *typedef_resolve(Typetab *s, String *base) {
 
 /* ----------------------------------------------------------------------------- 
  * SwigType_typedef_resolve()
+ *
+ * Given a type declaration, this function looks to reduce/resolve the type via a
+ * typedef (including via C++ using declarations).
+ *
+ * If it is able to find a typedef, the resolved type is returned. If no typedef
+ * is found NULL is returned. The type name is resolved in the current scope.
+ * The type returned is not always fully qualified for the global scope, it is
+ * valid for use in the current scope. If the current scope is global scope, a
+ * fully qualified type should be returned.
+ *
+ * Some additional notes are in Doc/Manual/Extending.html.
  * ----------------------------------------------------------------------------- */
 
 /* #define SWIG_DEBUG */
@@ -784,6 +801,25 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
 	/* Name is unqualified. */
 	type = typedef_resolve(s, base);
       }
+    }
+
+    if (!type && SwigType_istemplate(base)) {
+      String *tprefix = SwigType_templateprefix(base);
+      String *rtprefix = SwigType_typedef_resolve(tprefix);
+      /* We're looking for a using declaration on the template prefix to resolve the template prefix
+       * in another scope. Using declaration do not have template parameters. */
+      if (rtprefix && !SwigType_istemplate(rtprefix)) {
+	String *tsuffix = SwigType_templatesuffix(base);
+	String *targs = SwigType_templateargs(base);
+	type = NewString(rtprefix);
+	newtype = 1;
+	Append(type, targs);
+	Append(type, tsuffix);
+	Delete(targs);
+	Delete(tsuffix);
+	Delete(rtprefix);
+      }
+      Delete(tprefix);
     }
 
     if (type && (Equal(base, type))) {
@@ -1106,10 +1142,6 @@ SwigType *SwigType_typedef_qualified(const SwigType *t) {
 	Parm *p;
 	List *parms;
 	ty = Swig_symbol_template_deftype(e, current_symtab);
-	/*
-	String *dt = Swig_symbol_template_deftype(e, current_symtab);
-	ty = Swig_symbol_type_qualify(dt, 0);
-	*/
 	e = ty;
 	parms = SwigType_parmlist(e);
 	tprefix = SwigType_templateprefix(e);
@@ -1176,9 +1208,6 @@ SwigType *SwigType_typedef_qualified(const SwigType *t) {
 	Delete(tprefix);
 	Delete(qprefix);
 	Delete(parms);
-	/*
-	Delete(dt);
-	*/
       }
       Append(result, e);
       Delete(ty);
@@ -1258,7 +1287,7 @@ int SwigType_typedef_using(const_String_or_char_ptr name) {
 
   String *defined_name = 0;
 
-  /*  Printf(stdout,"using %s\n", name); */
+  /* Printf(stdout, "using %s\n", name); */
 
   if (!Swig_scopename_check(name))
     return -1;			/* Not properly qualified */
