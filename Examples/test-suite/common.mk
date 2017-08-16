@@ -136,6 +136,7 @@ CPP_TEST_CASES += \
 	char_binary \
 	char_strings \
 	chartest \
+	class_scope_namespace \
 	class_forward \
 	class_ignore \
 	class_scope_weird \
@@ -291,6 +292,7 @@ CPP_TEST_CASES += \
 	multiple_inheritance_shared_ptr \
 	name_cxx \
 	name_warnings \
+	namespace_chase \
 	namespace_class \
 	namespace_enum \
 	namespace_extend \
@@ -435,6 +437,7 @@ CPP_TEST_CASES += \
 	template_methods \
 	template_namespace_forward_declaration \
 	template_using_directive_and_declaration_forward \
+	template_using_directive_typedef \
 	template_nested \
 	template_nested_typemaps \
 	template_ns \
@@ -445,6 +448,7 @@ CPP_TEST_CASES += \
 	template_ns_enum2 \
 	template_ns_inherit \
 	template_ns_scope \
+	template_parameters_global_scope \
 	template_partial_arg \
 	template_partial_specialization \
 	template_partial_specialization_typedef \

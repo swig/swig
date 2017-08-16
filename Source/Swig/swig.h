@@ -326,6 +326,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern String *Swig_scopename_last(const String *s);
   extern String *Swig_scopename_first(const String *s);
   extern String *Swig_scopename_suffix(const String *s);
+  extern List *Swig_scopename_tolist(const String *s);
   extern int Swig_scopename_check(const String *s);
   extern String *Swig_string_lower(String *s);
   extern String *Swig_string_upper(String *s);

@@ -1203,10 +1203,7 @@ class TypePass:private Dispatcher {
 	} else if (Strcmp(ntype, "enum") == 0) {
 	  SwigType_typedef_using(Getattr(n, "uname"));
 	} else if (Strcmp(ntype, "template") == 0) {
-	  /*
-	  Printf(stdout, "usingDeclaration template %s --- %s\n", Getattr(n, "name"), Getattr(n, "uname"));
 	  SwigType_typedef_using(Getattr(n, "uname"));
-	  */
 	}
       }
     }
