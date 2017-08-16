@@ -8,7 +8,7 @@ Version 4.0.0 (in progress)
 ===========================
 
 2017-08-16: wsfulton
-            Fix #1051. Add using declarations to templates into typedef table.
+            Fix #1063. Add using declarations to templates into typedef table.
 
             Using declarations to templates were missing in SWIG's internal typedef tables.
             This led to a few problems, such as, templates that did not instantiate and generated
@@ -35,7 +35,7 @@ Version 4.0.0 (in progress)
               }
 
 2017-08-16: wsfulton
-            %template scope enforcement and class definition fixes.
+            Issue #1051. %template scope enforcement and class definition fixes.
 
             The scoping rules around %template have been specified and enforced.
             The %template directive for a class template is the equivalent to an
