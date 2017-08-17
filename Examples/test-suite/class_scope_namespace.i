@@ -20,9 +20,17 @@ namespace Space2 {
   struct B;
 }
 using Space2::B;
+#ifdef __clang__
+namespace Space2 {
+  struct B {
+    void bb(Space2::B, B) {}
+  };
+}
+#else
 struct B {
   void bb(Space2::B, B) {}
 };
+#endif
 void bbb(Space2::B, B) {}
 
 namespace Space3 {
