@@ -850,7 +850,7 @@ public:
       Printf(default_import_code, tab8 "mname = '.'.join((pkg, '%s')).lstrip('.')\n", module);
       Printv(default_import_code, tab8, "try:\n", NULL);
       Printv(default_import_code, tab8, tab4, "return importlib.import_module(mname)\n", NULL);
-      Printv(default_import_code, tab8, "except:\n", NULL);
+      Printv(default_import_code, tab8, "except (ImportError, NameError):\n", NULL);
       Printf(default_import_code, tab8 tab4 "return importlib.import_module('%s')\n", module);
       Printf(default_import_code, tab4 "%s = swig_import_helper()\n", module);
       Printv(default_import_code, tab4, "del swig_import_helper\n", NULL);
