@@ -85,7 +85,7 @@
 /* Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE ($&1_ltype tmp)
 %{
-  if (zend_lookup_class(zend_string_init("$lower_param",sizeof("$lower_param")-1,0))) {
+  if ($needNewFlow) {
     $1 = *(($1_ltype *)$obj_value);
   }
   else {
@@ -108,7 +108,7 @@
 %typemap(in) SWIGTYPE *,
 	     SWIGTYPE []
 %{
-  if (zend_lookup_class(zend_string_init("$lower_param",sizeof("$lower_param")-1,0))) {
+  if ($needNewFlow) {
     $1 = ($1_ltype) $obj_value;
   }
   else {
@@ -119,7 +119,7 @@
 
 %typemap(in) SWIGTYPE &
 %{
-  if (zend_lookup_class(zend_string_init("$lower_param",sizeof("$lower_param")-1,0))) {
+  if ($needNewFlow) {
     $1 = ($1_ltype) $obj_value;
   }
   else {
@@ -130,7 +130,7 @@
 
 %typemap(in) SWIGTYPE &&
 %{
-  if (zend_lookup_class(zend_string_init("$lower_param",sizeof("$lower_param")-1,0))) {
+  if ($needNewFlow) {
     $1 = ($1_ltype) $obj_value;
   }
   else {
@@ -142,7 +142,7 @@
 
 %typemap(in) SWIGTYPE *const& ($*ltype temp)
 %{
-  if (zend_lookup_class(zend_string_init("$lower_param",sizeof("$lower_param")-1,0))) {
+  if ($needNewFlow) {
     $1 = ($1_ltype) $obj_value;
   }
   else {
@@ -155,7 +155,7 @@
 
 %typemap(in) SWIGTYPE *DISOWN
 %{
-  if (zend_lookup_class(zend_string_init("$lower_param",sizeof("$lower_param")-1,0))) {
+  if ($needNewFlow) {
     SWIG_Z_FETCH_OBJ_P(&$input)->newobject = 0;
     $1 = ($lower_param *)SWIG_Z_FETCH_OBJ_P(&$input)->ptr;
   }

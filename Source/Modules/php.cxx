@@ -1297,7 +1297,7 @@ public:
     else if (wrapperType == staticmemberfn || Cmp(Getattr(n, "storage"),"static") == 0)
       Append(modes, " | ZEND_ACC_STATIC");
 
-    if (Cmp(Getattr(n, "abstract"), "1") == 0)
+    if (GetFlag(n, "abstract") && Swig_directorclass(Swig_methodclass(n)))
       Append(modes, " | ZEND_ACC_ABSTRACT");
 
     if (Getattr(n, "sym:overloaded")) {
@@ -1537,7 +1537,7 @@ public:
           Printf(param_value, "%sSWIG_Z_FETCH_OBJ_P(%s)->ptr", SwigType_isreference(pt) ? "&" : "", param_zval);
           Replaceall(tm, "$obj_value", param_value);
         }
-        Replaceall(tm, "$classFlag", "0");
+        Replaceall(tm, "$needNewFlow", paramType_valid ? (is_class_wrapped(paramType_class) ? "1" : "0") : "0");
         String *temp_obj = NewStringEmpty();
         Printf(temp_obj, "&%s", ln);
         Replaceall(tm, "$obj_value", is_param_type_pointer(resolved ? resolved : pt) ? "NULL" : temp_obj);        // Adding this to compile. It won't reach this if $obj_val is required.
@@ -1641,6 +1641,7 @@ public:
       Replaceall(tm, "$target", "return_value");
       Replaceall(tm, "$result", "return_value");
       Replaceall(tm, "$owner", newobject ? "1" : "0");
+      Replaceall(tm, "$needNewFlow", retType_valid ? (valid_wrapped_class ? "1" : "0") : "0");
       Replaceall(tm, "$classZv", constructor ? "getThis()" : "NULL");
       if (retType_class) {
         String *retZend_obj = NewStringEmpty();
@@ -2732,20 +2733,11 @@ done:
   virtual int classHandler(Node *n) {
     constructors = 0;
     current_class = n;
-    String *className = Getattr(n, "name");
     String *symname = Getattr(n, "sym:name");
-    //String *nameSpace = NULL;
     String *baseClassExtend = NULL;
     bool exceptionClassFlag = false;
 
-    //check for namespaces
-    //if (Strstr(className, ":"))
-      //nameSpace = getNameSpace(GetChar(n, "name"));
-
-    if (className != symname)
-      class_name = symname;
-    else
-      class_name = className;
+    class_name = symname;
 
     if (Len(classes) != 0)
         Printf(all_cs_entry, " ZEND_FE_END\n};\n\n");
@@ -2819,10 +2811,6 @@ done:
     }
     else {
       Printf(s_oinit, "%s_ce = zend_register_internal_class(&%s_internal_ce);\n", class_name , class_name);
-    }
-
-    if (Cmp(symname,className) != 0) {
-        Printf(s_oinit, "zend_register_class_alias_ex(\"%s\",sizeof(\"%s\"),%s_ce);\n\n",symname, symname, symname);
     }
 
     {
