@@ -485,6 +485,16 @@ static void add_symbols(Node *n) {
         SetFlag(n,"deleted");
         SetFlag(n,"feature:ignore");
       }
+      {
+	String *refqualifier = Getattr(n, "refqualifier");
+	if (Equal(refqualifier, "&&") && strncmp(Char(symname), "$ignore", 7) != 0) {
+	  SWIG_WARN_NODE_BEGIN(n);
+	  Swig_warning(WARN_TYPE_RVALUE_REF_QUALIFIER_IGNORED, Getfile(n), Getline(n),
+	      "Method with rvalue ref-qualifier ignored %s.\n", Swig_name_decl(n));
+	  SWIG_WARN_NODE_END(n);
+	  SetFlag(n, "feature:ignore");
+	}
+      }
     }
     if (only_csymbol || GetFlag(n,"feature:ignore") || strncmp(Char(symname),"$ignore",7) == 0) {
       /* Only add to C symbol table and continue */
@@ -1451,6 +1461,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     String *rawval;
     int     type;
     String *qualifier;
+    String *refqualifier;
     String *bitfield;
     Parm   *throws;
     String *throwf;
@@ -1560,7 +1571,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 
 /* Misc */
 %type <id>       identifier;
-%type <dtype>    initializer cpp_const exception_specification;
+%type <dtype>    initializer cpp_const exception_specification cv_ref_qualifier;
 %type <id>       storage_class extern_string;
 %type <pl>       parms  ptail rawparms varargs_parms ;
 %type <pl>       templateparameters templateparameterstail;
@@ -1576,7 +1587,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <dtype>    expr exprnum exprcompound valexpr;
 %type <id>       ename ;
 %type <id>       less_valparms_greater;
-%type <str>      type_qualifier ;
+%type <str>      type_qualifier;
+%type <str>      ref_qualifier;
 %type <id>       type_qualifier_raw;
 %type <id>       idstring idstringopt;
 %type <id>       pragma_lang;
@@ -3063,6 +3075,7 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
               $$ = new_node("cdecl");
 	      if ($4.qualifier)
 	        decl = add_qualifier_to_declarator($3.type, $4.qualifier);
+	      Setattr($$,"refqualifier",$4.refqualifier);
 	      Setattr($$,"type",$2);
 	      Setattr($$,"storage",$1);
 	      Setattr($$,"name",$3.id);
@@ -3136,6 +3149,7 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
            | storage_class AUTO declarator cpp_const ARROW cpp_alternate_rettype initializer c_decl_tail {
               $$ = new_node("cdecl");
 	      if ($4.qualifier) SwigType_push($3.type, $4.qualifier);
+	      Setattr($$,"refqualifier",$4.refqualifier);
 	      Setattr($$,"type",$6);
 	      Setattr($$,"storage",$1);
 	      Setattr($$,"name",$3.id);
@@ -3198,6 +3212,7 @@ c_decl_tail    : SEMI {
                | COMMA declarator initializer c_decl_tail {
 		 $$ = new_node("cdecl");
 		 if ($3.qualifier) SwigType_push($2.type,$3.qualifier);
+		 Setattr($$,"refqualifier",$3.refqualifier);
 		 Setattr($$,"name",$2.id);
 		 Setattr($$,"decl",$2.type);
 		 Setattr($$,"parms",$2.parms);
@@ -3236,13 +3251,15 @@ c_decl_tail    : SEMI {
 initializer   : def_args { 
                    $$ = $1; 
                    $$.qualifier = 0;
+                   $$.refqualifier = 0;
 		   $$.throws = 0;
 		   $$.throwf = 0;
 		   $$.nexcept = 0;
               }
-              | type_qualifier def_args { 
+              | cv_ref_qualifier def_args {
                    $$ = $2; 
-		   $$.qualifier = $1;
+		   $$.qualifier = $1.qualifier;
+		   $$.refqualifier = $1.refqualifier;
 		   $$.throws = 0;
 		   $$.throwf = 0;
 		   $$.nexcept = 0;
@@ -3250,13 +3267,15 @@ initializer   : def_args {
               | exception_specification def_args { 
 		   $$ = $2; 
                    $$.qualifier = 0;
+                   $$.refqualifier = 0;
 		   $$.throws = $1.throws;
 		   $$.throwf = $1.throwf;
 		   $$.nexcept = $1.nexcept;
               }
-              | type_qualifier exception_specification def_args { 
+              | cv_ref_qualifier exception_specification def_args {
                    $$ = $3; 
-                   $$.qualifier = $1;
+                   $$.qualifier = $1.qualifier;
+		   $$.refqualifier = $1.refqualifier;
 		   $$.throws = $2.throws;
 		   $$.throwf = $2.throwf;
 		   $$.nexcept = $2.nexcept;
@@ -4809,6 +4828,7 @@ cpp_vend       : cpp_const SEMI {
                      Clear(scanner_ccode);
                      $$.val = 0;
                      $$.qualifier = $1.qualifier;
+                     $$.refqualifier = 0;
                      $$.bitfield = 0;
                      $$.throws = $1.throws;
                      $$.throwf = $1.throwf;
@@ -4818,6 +4838,7 @@ cpp_vend       : cpp_const SEMI {
                      Clear(scanner_ccode);
                      $$.val = $3.val;
                      $$.qualifier = $1.qualifier;
+                     $$.refqualifier = 0;
                      $$.bitfield = 0;
                      $$.throws = $1.throws; 
                      $$.throwf = $1.throwf; 
@@ -4827,6 +4848,7 @@ cpp_vend       : cpp_const SEMI {
                      skip_balanced('{','}');
                      $$.val = 0;
                      $$.qualifier = $1.qualifier;
+                     $$.refqualifier = 0;
                      $$.bitfield = 0;
                      $$.throws = $1.throws; 
                      $$.throwf = $1.throwf; 
@@ -5828,6 +5850,29 @@ pointer    : STAR type_qualifier pointer {
            }
            ;
 
+/* cv-qualifier plus C++11 ref-qualifier for non-static member functions */
+cv_ref_qualifier : type_qualifier {
+		  $$.qualifier = $1;
+	          $$.refqualifier = 0;
+	       }
+	       | type_qualifier ref_qualifier {
+		  $$.qualifier = $1;
+	          $$.refqualifier = $2;
+	       }
+	       | ref_qualifier {
+		  $$.qualifier = 0;
+	          $$.refqualifier = $1;
+	       }
+	       ;
+
+ref_qualifier : AND {
+	          $$ = NewString("&");
+	       }
+	       | LAND {
+	          $$ = NewString("&&");
+	       }
+	       ;
+
 type_qualifier : type_qualifier_raw {
 	          $$ = NewStringEmpty();
 	          if ($1) SwigType_add_qualifier($$,$1);
@@ -6049,6 +6094,7 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		     $$.rawval = NewStringf("%s", $$.val);
 		   }
 		   $$.qualifier = 0;
+		   $$.refqualifier = 0;
 		   $$.bitfield = 0;
 		   $$.throws = 0;
 		   $$.throwf = 0;
@@ -6074,6 +6120,7 @@ deleted_definition : DELETE_KW {
 		  $$.rawval = 0;
 		  $$.type = T_STRING;
 		  $$.qualifier = 0;
+		  $$.refqualifier = 0;
 		  $$.bitfield = 0;
 		  $$.throws = 0;
 		  $$.throwf = 0;
@@ -6087,6 +6134,7 @@ explicit_default : DEFAULT {
 		  $$.rawval = 0;
 		  $$.type = T_STRING;
 		  $$.qualifier = 0;
+		  $$.refqualifier = 0;
 		  $$.bitfield = 0;
 		  $$.throws = 0;
 		  $$.throwf = 0;
@@ -6616,25 +6664,29 @@ exception_specification : THROW LPAREN parms RPAREN {
 	       }
 	       ;	
 
-cpp_const      : type_qualifier {
+cpp_const      : cv_ref_qualifier {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = 0;
-                    $$.qualifier = $1;
+                    $$.qualifier = $1.qualifier;
+                    $$.refqualifier = $1.refqualifier;
                }
                | exception_specification {
 		    $$ = $1;
                     $$.qualifier = 0;
+                    $$.refqualifier = 0;
                }
-               | type_qualifier exception_specification {
+               | cv_ref_qualifier exception_specification {
 		    $$ = $2;
-                    $$.qualifier = $1;
+                    $$.qualifier = $1.qualifier;
+                    $$.refqualifier = $1.refqualifier;
                }
                | empty { 
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = 0;
-                    $$.qualifier = 0; 
+                    $$.qualifier = 0;
+                    $$.refqualifier = 0;
                }
                ;
 

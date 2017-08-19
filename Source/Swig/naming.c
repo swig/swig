@@ -1681,6 +1681,7 @@ String *Swig_name_str(Node *n) {
  *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate()"
  *   "MyNameSpace::ABC::ABC(int,double)"
  *   "MyNameSpace::ABC::constmethod(int) const"
+ *   "MyNameSpace::ABC::refqualifiermethod(int) const &"
  *   "MyNameSpace::ABC::variablename"
  * 
  * ----------------------------------------------------------------------------- */
@@ -1688,6 +1689,7 @@ String *Swig_name_str(Node *n) {
 String *Swig_name_decl(Node *n) {
   String *qname;
   String *decl;
+  String *refqualifier = Getattr(n, "refqualifier");
 
   qname = Swig_name_str(n);
 
@@ -1695,6 +1697,8 @@ String *Swig_name_decl(Node *n) {
     decl = NewStringf("%s", qname);
   else
     decl = NewStringf("%s(%s)%s", qname, ParmList_errorstr(Getattr(n, "parms")), SwigType_isconst(Getattr(n, "decl")) ? " const" : "");
+  if (refqualifier)
+    Printv(decl, " ", refqualifier, NIL);
 
   Delete(qname);
 
