@@ -152,7 +152,7 @@ static void print_creation_free_wrapper(int item_index) {
     need_free = true;
 
   Printf(s_header, "/* class entry for %s */\n",class_name);
-  Printf(s_header, "zend_class_entry *%s_ce;\n\n",class_name);
+  Printf(s_header, "zend_class_entry *SWIGTYPE_%s_ce;\n\n",class_name);
   Printf(s_header, "/* class object handlers for %s */\n",class_name);
   Printf(s_header, "zend_object_handlers %s_object_handlers;\n\n",class_name);
 
@@ -182,6 +182,7 @@ static void print_creation_free_wrapper(int item_index) {
   Printf(s_header, "zend_object * %s_object_new(zend_class_entry *ce) {\n",class_name);
   Printf(s_header, "  swig_object_wrapper *obj = (swig_object_wrapper *)ecalloc(1,sizeof(swig_object_wrapper) + zend_object_properties_size(ce));\n");
   Printf(s_header, "  zend_object_std_init(&obj->std, ce);\n");
+  //Printf(s_header, "  object_properties_init(&obj->std, ce);\n");
   Printf(s_header, "  %s_object_handlers.offset = XtOffsetOf(swig_object_wrapper, std);\n",class_name);
   Printf(s_header, "  %s_object_handlers.free_obj = %s_free_storage;\n",class_name,class_name);
   Printf(s_header, "  %s_object_handlers.dtor_obj = %s_destroy_object;\n",class_name,class_name);
@@ -797,10 +798,11 @@ public:
       Append(arginfo_code, GetFlag(p, "tmap:in:byref") ? "1" : "0");
     }
 
+    int numberOfParams = Len(arginfo_code);
     if (!GetFlag(arginfo_used, arginfo_code)) {
       // Not had this one before, so emit it.
       SetFlag(arginfo_used, arginfo_code);
-      Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%s, 0, 0, 0)\n", arginfo_code);
+      Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%s, 0, 0, %d)\n", arginfo_code, numberOfParams);
       for (const char * p = Char(arginfo_code); *p; ++p) {
 	Printf(s_arginfo, " ZEND_ARG_PASS_INFO(%c)\n", *p);
       }
@@ -875,6 +877,8 @@ public:
 
      String *f = NewString("");
 
+     int constructorOverload = (Cmp(Getattr(n, "nodeType"), "constructor") == 0);
+
      /* Get a list of methods ranked by precedence values and argument count */
      List *dispatch = Swig_overload_rank(n, true);
      int nfunc = Len(dispatch);
@@ -887,10 +891,12 @@ public:
       bool implicitconvtypecheckoff = GetFlag(ni, "implicitconvtypecheckoff") != 0;
       int num_required = emit_num_required(pi)-1;
       int num_arguments = emit_num_arguments(pi)-1;
-      if (GetFlag(n, "wrap:this")) {
+
+      if (constructorOverload) {
         num_required++;
         num_arguments++;
       }
+
       if (num_arguments > *maxargs)
         *maxargs = num_arguments;
 
@@ -907,7 +913,8 @@ public:
       int num_braces = 0;
       j = 0;
       Parm *pj = pi;
-      pj = nextSibling(pj);
+      if (!constructorOverload && pj)
+        pj = nextSibling(pj);
       while (pj) {
         if (checkAttribute(pj, "tmap:in:numinputs", "0")) {
           pj = Getattr(pj, "tmap:in:next");
@@ -967,15 +974,11 @@ public:
   /* ------------------------------------------------------------
    * dispatchFunction()
    * ------------------------------------------------------------ */
-  void dispatchFunction(Node *n) {
+  void dispatchFunction(Node *n, int constructor) {
     /* Last node in overloaded chain */
 
     int maxargs;
     String *tmp = NewStringEmpty();
-    if (Swig_directorclass(n) && wrapperType == directorconstructor) {
-      /* We have an extra 'this' parameter. */
-      SetFlag(n, "wrap:this");
-    }
 
     String *dispatch = NULL;
 
@@ -991,8 +994,10 @@ public:
     String *wname = NULL;
     String *modes = NULL;
 
-    if (class_name)
-      wname = getWrapperMethodName(Getattr(n, "name"), symname);
+    if (constructor)
+      wname = NewString("__construct");
+    else if (class_name)
+      wname = getWrapperMethodName(class_name, symname);
     else
       wname = Swig_name_wrapper(symname);
 
@@ -1068,6 +1073,16 @@ public:
     return r;
   }
 
+  /* Helper function to check if class is wrapped */
+  bool is_class_wrapped(String *className) {
+    Iterator iterate;
+    for (iterate = First(classes); iterate.item; iterate = Next(iterate)) {
+      if (Cmp(iterate.item, className) == 0)
+        return true;
+    }
+    return false;
+  }
+
   /* Is special return type */
   bool is_param_type_pointer(SwigType *t) {
     
@@ -1097,7 +1112,7 @@ public:
       if (!GetFlag(arginfo_used, arginfo_code)) {
         // Not had this one before, so emit it.
         SetFlag(arginfo_used, arginfo_code);
-        Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%s, 0, 0, 0)\n", arginfo_code);
+        Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%s, 0, 0, 1)\n", arginfo_code);
         for (const char * p = Char(arginfo_code); *p; ++p) {
           Printf(s_arginfo, " ZEND_ARG_PASS_INFO(%c)\n", *p);
         }
@@ -1111,7 +1126,7 @@ public:
       if (!GetFlag(arginfo_used, arginfo_code)) {
         // Not had this one before, so emit it.
         SetFlag(arginfo_used, arginfo_code);
-        Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%s, 0, 0, 0)\n", arginfo_code);
+        Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%s, 0, 0, 2)\n", arginfo_code);
         for (const char * p = Char(arginfo_code); *p; ++p) {
           Printf(s_arginfo, " ZEND_ARG_PASS_INFO(%c)\n", *p);
         }
@@ -1198,7 +1213,7 @@ public:
       Printf(f->code, "  newSize += arg2->len + strlen(\"_get\");\nmethod_name = (char *)malloc(newSize);\n");
       Printf(f->code, "  strcpy(method_name,arg2->val);\nstrcat(method_name,\"_get\");\n\n");
 
-      Printf(magic_isset, "\nelse if (zend_hash_exists(&%s_ce->function_table, zend_string_init(method_name, newSize-1, 0))) {\n",class_name);
+      Printf(magic_isset, "\nelse if (zend_hash_exists(&SWIGTYPE_%s_ce->function_table, zend_string_init(method_name, newSize-1, 0))) {\n",class_name);
       Printf(magic_isset, "RETVAL_TRUE;\n}\n");
 
       Printf(f->code, "if (!arg2) {\n  RETVAL_FALSE;\n}\n",magic_set);
@@ -1277,10 +1292,13 @@ public:
     modes = getAccessMode(Getattr(n, "access"));
 
     if (constructor) {
-      Append(modes,"| ZEND_ACC_CTOR");
+      Append(modes, " | ZEND_ACC_CTOR");
     }
     else if (wrapperType == staticmemberfn || Cmp(Getattr(n, "storage"),"static") == 0)
-      Append(modes,"| ZEND_ACC_STATIC");
+      Append(modes, " | ZEND_ACC_STATIC");
+
+    if (GetFlag(n, "abstract") && Swig_directorclass(Swig_methodclass(n)))
+      Append(modes, " | ZEND_ACC_ABSTRACT");
 
     if (Getattr(n, "sym:overloaded")) {
       overloaded = 1;
@@ -1335,9 +1353,13 @@ public:
       }
     }
     else if (wrapperType == staticmemberfn) {
-      char *ptr = Char(iname);
-      ptr+= strlen(Char(iname)) - strlen(strrchr(GetChar(n, "name"),':') + 1);
-      wname = (String*) ptr;
+      if (Char(Strchr(name, ':'))) {
+        char *ptr = Char(iname);
+        ptr+= strlen(Char(iname)) - strlen(strrchr(GetChar(n, "name"),':') + 1);
+        wname = (String*) ptr;
+      }
+      else
+        wname = iname;
     }
     else {
       if (class_name) {
@@ -1485,13 +1507,11 @@ public:
       }
 
       String *paramType_class = NULL;
-      String *paramType_type = NULL;
       bool paramType_valid = is_class(pt);
       SwigType *resolved = SwigType_typedef_resolve_all(pt);
 
       if (paramType_valid) {
         paramType_class = get_class_name(pt);
-        paramType_type = Getattr(get_class_node(pt), "classtype");
         Chop(paramType_class);
       }
 
@@ -1514,9 +1534,10 @@ public:
             Printf(param_zval, "getThis()");
           else
             Printf(param_zval, "&%s", source);
-          Printf(param_value, "(%s *) SWIG_Z_FETCH_OBJ_P(%s)->ptr", paramType_type , param_zval);
+          Printf(param_value, "%sSWIG_Z_FETCH_OBJ_P(%s)->ptr", SwigType_isreference(pt) ? "&" : "", param_zval);
           Replaceall(tm, "$obj_value", param_value);
         }
+        Replaceall(tm, "$needNewFlow", paramType_valid ? (is_class_wrapped(paramType_class) ? "1" : "0") : "0");
         String *temp_obj = NewStringEmpty();
         Printf(temp_obj, "&%s", ln);
         Replaceall(tm, "$obj_value", is_param_type_pointer(resolved ? resolved : pt) ? "NULL" : temp_obj);        // Adding this to compile. It won't reach this if $obj_val is required.
@@ -1579,6 +1600,7 @@ public:
 	//      Replaceall(tm,"$input",Getattr(p,"lname"));
 	Replaceall(tm, "$target", "return_value");
 	Replaceall(tm, "$result", "return_value");
+        Replaceall(tm, "$classFlag", "0");
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(outarg, tm, "\n", NIL);
@@ -1602,10 +1624,12 @@ public:
 
     String *retType_class = NULL;
     bool retType_valid = is_class(d);
+    bool valid_wrapped_class = false;
 
     if (retType_valid) {
         retType_class = get_class_name(d);
         Chop(retType_class);
+        valid_wrapped_class = is_class_wrapped(retType_class);
     }
 
     /* emit function call */
@@ -1617,15 +1641,16 @@ public:
       Replaceall(tm, "$target", "return_value");
       Replaceall(tm, "$result", "return_value");
       Replaceall(tm, "$owner", newobject ? "1" : "0");
+      Replaceall(tm, "$needNewFlow", retType_valid ? (valid_wrapped_class ? "1" : "0") : "0");
       Replaceall(tm, "$classZv", constructor ? "getThis()" : "NULL");
       if (retType_class) {
         String *retZend_obj = NewStringEmpty();
-        Printf(retZend_obj, "%s_object_new(%s_ce)", retType_class, retType_class);
-        Replaceall(tm, "$zend_obj", retType_valid ? (constructor ? "NULL" : retZend_obj) : "NULL");
+        Printf(retZend_obj, "%s_object_new(SWIGTYPE_%s_ce)", retType_class, retType_class);
+        Replaceall(tm, "$zend_obj", retType_valid ? (constructor ? "NULL" : (valid_wrapped_class ? retZend_obj : "NULL")) : "NULL");
       }
       Replaceall(tm, "$zend_obj", "NULL");
-      Replaceall(tm, "$newobj", retType_valid ? "1" : "2");
-      Replaceall(tm, "$c_obj", constructor? "1" : "0");
+      Replaceall(tm, "$newobj", retType_valid ? (valid_wrapped_class ? "1" : "2") : "2");
+      Replaceall(tm, "$c_obj", newobject? (valid_wrapped_class ? (constructor ? "1" : "0") : "2") : "0");
       Printf(f->code, "%s\n", tm);
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
@@ -1681,7 +1706,7 @@ public:
     wname = NULL;
 
     if (overloaded && !Getattr(n, "sym:nextSibling")) {
-      dispatchFunction(n);
+      dispatchFunction(n, constructor);
     }
 
     // Handle getters and setters.
@@ -2677,23 +2702,9 @@ done:
 
   virtual int classDeclaration(Node *n) {
     if (!Getattr(n, "feature:onlychildren")) {
-      String *className = Getattr(n, "name");
       String *symname = Getattr(n, "sym:name");
       Setattr(n, "php:proxy", symname);
-
-      if (className != symname)
-        class_name = symname;
-      else
-        class_name = className;
-
-      if (Len(classes) != 0)
-        Printf(all_cs_entry, " ZEND_FE_END\n};\n\n");
-
-      Printf(all_cs_entry, "static zend_function_entry class_%s_functions[] = {\n", class_name);
-      
-      Append(classes,class_name);
     }
-
     return Language::classDeclaration(n);
   }
 
@@ -2706,6 +2717,15 @@ done:
     return present_name;
   }
 
+  /* Helper method to get names without namespace
+   */
+  String *getNameWithoutNamespace(char *name) {
+    char *returnName = Char(strrchr(name, ':'));
+    if (!returnName)
+      return NULL;
+    return NewString(returnName + 1);
+  }
+
   /* ------------------------------------------------------------
    * classHandler()
    * ------------------------------------------------------------ */
@@ -2713,27 +2733,29 @@ done:
   virtual int classHandler(Node *n) {
     constructors = 0;
     current_class = n;
-    String *className = Getattr(n, "name");
     String *symname = Getattr(n, "sym:name");
-    String *nameSpace = NULL;
     String *baseClassExtend = NULL;
+    bool exceptionClassFlag = false;
 
-    //check for namespaces
-    if (Strstr(className, ":"))
-      nameSpace = getNameSpace(GetChar(n, "name"));
+    class_name = symname;
 
+    if (Len(classes) != 0)
+        Printf(all_cs_entry, " ZEND_FE_END\n};\n\n");
+
+    Printf(all_cs_entry, "static zend_function_entry class_%s_functions[] = {\n", class_name);
 
     class_type = Getattr(n, "classtype");
+    Append(classes,class_name);
     Append(class_types, class_type);
     Append(class_need_free, "0");
 
-    Printf(s_oinit, "\nzend_class_entry %s_internal_ce;\n", class_name);
+    Printf(s_oinit, "\nzend_class_entry SWIGTYPE_%s_internal_ce;\n", class_name);
     
     // namespace code to introduce namespaces into wrapper classes.
     //if (nameSpace != NULL)
       //Printf(s_oinit, "INIT_CLASS_ENTRY(%s_internal_ce, \"%s\\\\%s\", class_%s_functions);\n", class_name, nameSpace ,class_name, class_name);
     //else
-    Printf(s_oinit, "INIT_CLASS_ENTRY(%s_internal_ce, \"%s\", class_%s_functions);\n", class_name, class_name, class_name);
+    Printf(s_oinit, "INIT_CLASS_ENTRY(SWIGTYPE_%s_internal_ce, \"%s\", class_%s_functions);\n", class_name, class_name, class_name);
 
     if (shadow) {
       char *rename = GetChar(n, "sym:name");
@@ -2752,7 +2774,8 @@ done:
 	while (base.item && GetFlag(base.item, "feature:ignore")) {
 	  base = Next(base);
 	}
-        baseClassExtend = Getattr(base.item, "sym:name");
+        if (base.item)
+          baseClassExtend = Getattr(base.item, "sym:name");
 	base = Next(base);
 	if (base.item) {
 	  /* Warn about multiple inheritance for additional base class(es) */
@@ -2779,18 +2802,15 @@ done:
         baseClassExtend = NewString(class_name);
         Append(baseClassExtend, "_Exception");
 
-        Printf(s_oinit, "zend_class_entry *%s_ce = zend_lookup_class(zend_string_init(\"Exception\", sizeof(\"Exception\") - 1, 0));\n", baseClassExtend);
+        Printf(s_oinit, "zend_class_entry *SWIGTYPE_%s_ce = zend_lookup_class(zend_string_init(\"Exception\", sizeof(\"Exception\") - 1, 0));\n", baseClassExtend);
+        exceptionClassFlag = true;
     }
 
-    if (baseClassExtend) {
-      Printf(s_oinit, "%s_ce = zend_register_internal_class_ex(&%s_internal_ce, %s_ce);\n", class_name , class_name, baseClassExtend);
+    if (baseClassExtend && (exceptionClassFlag || is_class_wrapped(baseClassExtend))) {
+      Printf(s_oinit, "SWIGTYPE_%s_ce = zend_register_internal_class_ex(&SWIGTYPE_%s_internal_ce, SWIGTYPE_%s_ce);\n", class_name , class_name, baseClassExtend);
     }
     else {
-      Printf(s_oinit, "%s_ce = zend_register_internal_class(&%s_internal_ce);\n", class_name , class_name);
-    }
-
-    if (Cmp(symname,className) != 0) {
-        Printf(s_oinit, "zend_register_class_alias_ex(\"%s\",sizeof(\"%s\"),%s_ce);\n\n",symname, symname, symname);
+      Printf(s_oinit, "SWIGTYPE_%s_ce = zend_register_internal_class(&SWIGTYPE_%s_internal_ce);\n", class_name , class_name);
     }
 
     {
@@ -2814,11 +2834,11 @@ done:
         }
         Chop(append_interface);
         Replaceall(append_interface, " ", ",");
-        Printf(s_oinit, "zend_class_implements(%s_ce, %d, %s);\n", class_name, num_interfaces, append_interface);
+        Printf(s_oinit, "zend_class_implements(SWIGTYPE_%s_ce, %d, %s);\n", class_name, num_interfaces, append_interface);
       }
     }
 
-    Printf(s_oinit, "%s_ce->create_object = %s_object_new;\n", class_name, class_name);
+    Printf(s_oinit, "SWIGTYPE_%s_ce->create_object = %s_object_new;\n", class_name, class_name);
     Printf(s_oinit, "memcpy(&%s_object_handlers,zend_get_std_object_handlers(), sizeof(zend_object_handlers));\n", class_name);
     Printf(s_oinit, "%s_object_handlers.clone_obj = NULL;\n\n", class_name);
 

@@ -3,15 +3,10 @@
 require "tests.php";
 require "cpp_basic.php";
 
-// New Functions
-check::functions(array(get_func1_ptr,get_func2_ptr,test_func_ptr));
+// New functions
+check::functions(array(foo_func1,foo_func2,foo___str__,foosubsub___str__,bar_test,bar_testfoo,get_func1_ptr,get_func2_ptr,test_func_ptr,fl_window_show));
 // New classes
 check::classes(array(cpp_basic,Foo,FooSub,FooSubSub,Bar,Fl_Window));
-// New Class functions
-check::classmethods(Foo,array(__construct,__set,__isset,__get,func1,func2,__str__));	
-check::classmethods(foosubsub,array(__construct,__set,__isset,__get,__str__));
-check::classmethods(bar,array(__construct,__set,__isset,__get,test,testfoo));
-check::classmethods(Fl_Window,array(__construct,__set,__isset,__get,show));
 
 $f = new Foo(3);
 $f->func_ptr = get_func1_ptr();
