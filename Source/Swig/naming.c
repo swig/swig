@@ -1697,8 +1697,11 @@ String *Swig_name_decl(Node *n) {
     decl = NewStringf("%s", qname);
   else
     decl = NewStringf("%s(%s)%s", qname, ParmList_errorstr(Getattr(n, "parms")), SwigType_isconst(Getattr(n, "decl")) ? " const" : "");
-  if (refqualifier)
-    Printv(decl, " ", refqualifier, NIL);
+  if (refqualifier) {
+    String *rq = SwigType_str(refqualifier, 0);
+    Printv(decl, " ", rq, NIL);
+    Delete(rq);
+  }
 
   Delete(qname);
 

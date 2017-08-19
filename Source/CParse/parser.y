@@ -487,7 +487,7 @@ static void add_symbols(Node *n) {
       }
       {
 	String *refqualifier = Getattr(n, "refqualifier");
-	if (Equal(refqualifier, "&&") && strncmp(Char(symname), "$ignore", 7) != 0) {
+	if (SwigType_isrvalue_reference(refqualifier) && strncmp(Char(symname), "$ignore", 7) != 0) {
 	  SWIG_WARN_NODE_BEGIN(n);
 	  Swig_warning(WARN_TYPE_RVALUE_REF_QUALIFIER_IGNORED, Getfile(n), Getline(n),
 	      "Method with rvalue ref-qualifier ignored %s.\n", Swig_name_decl(n));
@@ -5866,10 +5866,12 @@ cv_ref_qualifier : type_qualifier {
 	       ;
 
 ref_qualifier : AND {
-	          $$ = NewString("&");
+	          $$ = NewStringEmpty();
+	          SwigType_add_reference($$);
 	       }
 	       | LAND {
-	          $$ = NewString("&&");
+	          $$ = NewStringEmpty();
+	          SwigType_add_rvalue_reference($$);
 	       }
 	       ;
 
