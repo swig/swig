@@ -152,7 +152,7 @@ static void print_creation_free_wrapper(int item_index) {
     need_free = true;
 
   Printf(s_header, "/* class entry for %s */\n",class_name);
-  Printf(s_header, "zend_class_entry *%s_ce;\n\n",class_name);
+  Printf(s_header, "zend_class_entry *SWIGTYPE_%s_ce;\n\n",class_name);
   Printf(s_header, "/* class object handlers for %s */\n",class_name);
   Printf(s_header, "zend_object_handlers %s_object_handlers;\n\n",class_name);
 
@@ -1213,7 +1213,7 @@ public:
       Printf(f->code, "  newSize += arg2->len + strlen(\"_get\");\nmethod_name = (char *)malloc(newSize);\n");
       Printf(f->code, "  strcpy(method_name,arg2->val);\nstrcat(method_name,\"_get\");\n\n");
 
-      Printf(magic_isset, "\nelse if (zend_hash_exists(&%s_ce->function_table, zend_string_init(method_name, newSize-1, 0))) {\n",class_name);
+      Printf(magic_isset, "\nelse if (zend_hash_exists(&SWIGTYPE_%s_ce->function_table, zend_string_init(method_name, newSize-1, 0))) {\n",class_name);
       Printf(magic_isset, "RETVAL_TRUE;\n}\n");
 
       Printf(f->code, "if (!arg2) {\n  RETVAL_FALSE;\n}\n",magic_set);
@@ -1645,7 +1645,7 @@ public:
       Replaceall(tm, "$classZv", constructor ? "getThis()" : "NULL");
       if (retType_class) {
         String *retZend_obj = NewStringEmpty();
-        Printf(retZend_obj, "%s_object_new(%s_ce)", retType_class, retType_class);
+        Printf(retZend_obj, "%s_object_new(SWIGTYPE_%s_ce)", retType_class, retType_class);
         Replaceall(tm, "$zend_obj", retType_valid ? (constructor ? "NULL" : (valid_wrapped_class ? retZend_obj : "NULL")) : "NULL");
       }
       Replaceall(tm, "$zend_obj", "NULL");
@@ -2749,13 +2749,13 @@ done:
     Append(class_types, class_type);
     Append(class_need_free, "0");
 
-    Printf(s_oinit, "\nzend_class_entry %s_internal_ce;\n", class_name);
+    Printf(s_oinit, "\nzend_class_entry SWIGTYPE_%s_internal_ce;\n", class_name);
     
     // namespace code to introduce namespaces into wrapper classes.
     //if (nameSpace != NULL)
       //Printf(s_oinit, "INIT_CLASS_ENTRY(%s_internal_ce, \"%s\\\\%s\", class_%s_functions);\n", class_name, nameSpace ,class_name, class_name);
     //else
-    Printf(s_oinit, "INIT_CLASS_ENTRY(%s_internal_ce, \"%s\", class_%s_functions);\n", class_name, class_name, class_name);
+    Printf(s_oinit, "INIT_CLASS_ENTRY(SWIGTYPE_%s_internal_ce, \"%s\", class_%s_functions);\n", class_name, class_name, class_name);
 
     if (shadow) {
       char *rename = GetChar(n, "sym:name");
@@ -2802,15 +2802,15 @@ done:
         baseClassExtend = NewString(class_name);
         Append(baseClassExtend, "_Exception");
 
-        Printf(s_oinit, "zend_class_entry *%s_ce = zend_lookup_class(zend_string_init(\"Exception\", sizeof(\"Exception\") - 1, 0));\n", baseClassExtend);
+        Printf(s_oinit, "zend_class_entry *SWIGTYPE_%s_ce = zend_lookup_class(zend_string_init(\"Exception\", sizeof(\"Exception\") - 1, 0));\n", baseClassExtend);
         exceptionClassFlag = true;
     }
 
     if (baseClassExtend && (exceptionClassFlag || is_class_wrapped(baseClassExtend))) {
-      Printf(s_oinit, "%s_ce = zend_register_internal_class_ex(&%s_internal_ce, %s_ce);\n", class_name , class_name, baseClassExtend);
+      Printf(s_oinit, "SWIGTYPE_%s_ce = zend_register_internal_class_ex(&SWIGTYPE_%s_internal_ce, SWIGTYPE_%s_ce);\n", class_name , class_name, baseClassExtend);
     }
     else {
-      Printf(s_oinit, "%s_ce = zend_register_internal_class(&%s_internal_ce);\n", class_name , class_name);
+      Printf(s_oinit, "SWIGTYPE_%s_ce = zend_register_internal_class(&SWIGTYPE_%s_internal_ce);\n", class_name , class_name);
     }
 
     {
@@ -2834,11 +2834,11 @@ done:
         }
         Chop(append_interface);
         Replaceall(append_interface, " ", ",");
-        Printf(s_oinit, "zend_class_implements(%s_ce, %d, %s);\n", class_name, num_interfaces, append_interface);
+        Printf(s_oinit, "zend_class_implements(SWIGTYPE_%s_ce, %d, %s);\n", class_name, num_interfaces, append_interface);
       }
     }
 
-    Printf(s_oinit, "%s_ce->create_object = %s_object_new;\n", class_name, class_name);
+    Printf(s_oinit, "SWIGTYPE_%s_ce->create_object = %s_object_new;\n", class_name, class_name);
     Printf(s_oinit, "memcpy(&%s_object_handlers,zend_get_std_object_handlers(), sizeof(zend_object_handlers));\n", class_name);
     Printf(s_oinit, "%s_object_handlers.clone_obj = NULL;\n\n", class_name);
 

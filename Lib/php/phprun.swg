@@ -196,6 +196,13 @@ SWIG_ConvertResourcePtr(zval *z, swig_type_info *ty, int flags) {
   return SWIG_ConvertResourceData(p, type_name, ty);
 }
 
+#define SWIG_Z_FETCH_OBJ_P(zv) php_fetch_object(Z_OBJ_P(zv))
+
+static inline
+swig_object_wrapper * php_fetch_object(zend_object *obj) {
+  return (swig_object_wrapper *)((char *)obj - XtOffsetOf(swig_object_wrapper, std));
+}
+
 /* We allow passing of a RESOURCE pointing to the object or an OBJECT whose
    _cPtr is a resource pointing to the object */
 static int
@@ -211,17 +218,15 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
       if (ht) {
         zval * _cPtr = zend_hash_str_find(ht, "_cPtr", sizeof("_cPtr") - 1);
         if (_cPtr) {
+          if (zend_hash_str_exists(ht, "SWIG_classWrapper", sizeof("SWIG_classWrapper") - 1)) {
+            *ptr = SWIG_Z_FETCH_OBJ_P(z)->ptr;
+            return (*ptr == NULL ? -1 : 0);
+          }
           if (Z_TYPE_P(_cPtr) == IS_INDIRECT) {
             _cPtr = Z_INDIRECT_P(_cPtr);
           }
           if (Z_TYPE_P(_cPtr) == IS_RESOURCE) {
-            zval *zv;
-            if (!zend_hash_str_exists(ht, "SWIG_classWrapper", sizeof("SWIG_classWrapper") - 1))
-              zv = _cPtr;
-            else
-              zv = z;
-
-            *ptr = SWIG_ConvertResourcePtr(zv, ty, flags);
+            *ptr = SWIG_ConvertResourcePtr(_cPtr, ty, flags);
             return (*ptr == NULL ? -1 : 0);
           }
         }
@@ -237,13 +242,6 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
   }
 
   return -1;
-}
-
-#define SWIG_Z_FETCH_OBJ_P(zv) php_fetch_object(Z_OBJ_P(zv))
-
-static inline
-swig_object_wrapper * php_fetch_object(zend_object *obj) {
-  return (swig_object_wrapper *)((char *)obj - XtOffsetOf(swig_object_wrapper, std));
 }
 
 static void

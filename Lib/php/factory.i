@@ -95,14 +95,7 @@ if (!dcast) {
   Type *dobj = dynamic_cast<Type *>($1);
   if (dobj) {
     dcast = 1;
-    zend_object *std = NULL;
-    if ($newobj) {
-      zend_class_entry *ce = zend_lookup_class(zend_string_init("Type", sizeof("Type")-1, 0));
-      std = ce->create_object(ce);
-    }
-    else {
-      std = $zend_obj;
-    }
+    zend_object *std = $descriptor(Type)##_ce->create_object($descriptor(Type)##_ce);
     SWIG_SetZval(return_value, $classZv, $owner, $newobj, $c_obj, SWIG_as_voidptr(dobj), $descriptor(Type *), std);
   }   
 }%enddef
