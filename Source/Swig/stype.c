@@ -670,6 +670,7 @@ SwigType *SwigType_ltype(const SwigType *s) {
   int nelements, i;
   int firstarray = 1;
   int notypeconv = 0;
+  int memberpointer = 0;
 
   result = NewStringEmpty();
   tc = Copy(s);
@@ -707,13 +708,16 @@ SwigType *SwigType_ltype(const SwigType *s) {
       notypeconv = 1;
     }
     if (SwigType_isqualifier(element)) {
-      /* Do nothing. Ignore */
+      if (memberpointer)
+	Append(result, element);
+      /* otherwise ignore */
     } else if (SwigType_ispointer(element)) {
       Append(result, element);
       firstarray = 0;
     } else if (SwigType_ismemberpointer(element)) {
       Append(result, element);
       firstarray = 0;
+      memberpointer = 1;
     } else if (SwigType_isreference(element)) {
       if (notypeconv) {
 	Append(result, element);

@@ -1432,22 +1432,39 @@ static void mark_nodes_as_extend(Node *n) {
 static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) {
   int is_pointer_to_member_function = 0;
   String *decl = Copy(type);
+  String *poppedtype = NewString("");
   assert(qualifier);
-  if (SwigType_ismemberpointer(decl)) {
-    String *memberptr = SwigType_pop(decl);
-    if (SwigType_isfunction(decl)) {
-      assert(!SwigType_isqualifier(decl));
-      SwigType_push(decl, qualifier);
-      SwigType_push(decl, memberptr);
-      is_pointer_to_member_function = 1;
+
+  while (decl) {
+    if (SwigType_ismemberpointer(decl)) {
+      String *memberptr = SwigType_pop(decl);
+      if (SwigType_isfunction(decl)) {
+	is_pointer_to_member_function = 1;
+	SwigType_push(decl, qualifier);
+	SwigType_push(decl, memberptr);
+	Insert(decl, 0, poppedtype);
+	Delete(memberptr);
+	break;
+      } else {
+	Append(poppedtype, memberptr);
+      }
+      Delete(memberptr);
     } else {
-      Delete(decl);
-      decl = Copy(type);
+      String *popped = SwigType_pop(decl);
+      if (!popped)
+	break;
+      Append(poppedtype, popped);
+      Delete(popped);
     }
-    Delete(memberptr);
   }
-  if (!is_pointer_to_member_function)
+
+  if (!is_pointer_to_member_function) {
+    Delete(decl);
+    decl = Copy(type);
     SwigType_push(decl, qualifier);
+  }
+
+  Delete(poppedtype);
   return decl;
 }
 

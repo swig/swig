@@ -48,7 +48,7 @@
  *  'a(n).'             = Array of size n  [n]
  *  'f(..,..).'         = Function with arguments  (args)
  *  'q(str).'           = Qualifier (such as const or volatile) (const, volatile)
- *  'm(qual).'          = Pointer to member (qual::*)
+ *  'm(cls).'           = Pointer to member (cls::*)
  *
  *  The complete type representation for varargs is:
  *  'v(...)'
