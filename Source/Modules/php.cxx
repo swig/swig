@@ -1506,13 +1506,25 @@ public:
         Printf(f->code, "\tif(arg_count > %d) {\n", i);
       }
 
+      String *paramType = SwigType_str(pt, 0);
       String *paramType_class = NULL;
+      String *paramType_class_upper = NULL;
       bool paramType_valid = is_class(pt);
       SwigType *resolved = SwigType_typedef_resolve_all(pt);
 
-      if (paramType_valid) {
-        paramType_class = get_class_name(pt);
+      if (Strchr(paramType,'*') || Strchr(paramType,'&')) {
+        paramType_class = NewString(paramType);
+        Replace(paramType_class,"*","",DOH_REPLACE_FIRST);
+        Replace(paramType_class,Strchr(paramType,' '),"",DOH_REPLACE_FIRST);
         Chop(paramType_class);
+        paramType_class_upper = NewStringEmpty();
+        Printf(paramType_class_upper, "%(upper)s", paramType_class);
+      }
+      else if (paramType_valid) {
+        paramType_class = NewString(paramType);
+        Chop(paramType_class);
+        paramType_class_upper = NewStringEmpty();
+        Printf(paramType_class_upper, "%(upper)s", paramType_class);
       }
 
       if ((tm = Getattr(p, "tmap:in"))) {

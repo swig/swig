@@ -507,8 +507,11 @@
              SWIGTYPE &&,
              SWIGTYPE *const&
 {
-  void *tmp;
-  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, $1_descriptor, 0) >= 0);
+  if (Z_TYPE($input) == IS_OBJECT && SWIG_is_correct_object(&$input,$1_descriptor))
+    _v = 1;
+  else
+    _v = 0;
+  //_v = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, 0) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const&
