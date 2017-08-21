@@ -102,7 +102,6 @@ static String *s_fakeoowrappers;
 static String *s_phpclasses;
 
 static String *class_name = NULL;
-static String *class_type = NULL;
 static List *classes = NewList();
 static List *class_types = NewList();
 static List *class_need_free = NewList();
@@ -567,7 +566,6 @@ public:
       Printf(all_cs_entry, " ZEND_FE_END\n};\n\n");
 
     SwigPHP_emit_resource_registrations();
-    SwigPHP_emit_all_creation_free_wrapper();
 
     /* start the init section */
     {
@@ -727,6 +725,9 @@ public:
     Printf(s_wrappers, "/* end wrapper section */\n");
     Printf(s_vdecl, "/* end vdecl subsection */\n");
 
+    if (Len(classes) > 0)
+      Printf(all_cs_entry, " { NULL, NULL, NULL }\n};\n\n");
+
     Dump(f_runtime, f_begin);
     Printv(f_begin, s_header, NIL);
     if (directorsEnabled()) {
@@ -779,16 +780,12 @@ public:
     // module.  To do this, we name the arginfo to encode the number of
     // parameters and which (if any) are passed by reference by using a
     // sequence of 0s (for non-reference) and 1s (for by references).
-    bool constructor = false;
-    if (Cmp(fname,"__construct") == 0)
-      constructor = true;
-
     ParmList *l = Getattr(n, "parms");
     int Iterator = 0;
     String * arginfo_code = NewStringEmpty();
     for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
       /* Ignored parameters */
-      if ((overload || (!constructor && class_name)) && (Iterator == 0)) {
+      if (overload && (Iterator == 0)) {
         Iterator++;
         continue;
       }
@@ -1055,12 +1052,6 @@ public:
     return false;
   }
 
-  /* Helper method for PHP::functionWrapper to get Node n of a class */
-  Node *get_class_node(SwigType *t) {
-    Node *n = classLookup(t);
-    return n;
-  }
-
   /* Helper method for PHP::functionWrapper to get class name for parameter*/
   String *get_class_name(SwigType *t) {
     Node *n = classLookup(t);
@@ -1107,6 +1098,7 @@ public:
     }
     if (flag) {
       Wrapper *f = NewWrapper();
+
       // Need arg info set for __get magic function with one variable.
       String * arginfo_code = NewString("0");
       if (!GetFlag(arginfo_used, arginfo_code)) {
@@ -1232,6 +1224,7 @@ public:
       Printf(f->code, "fail:\n");
       Append(f->code, "SWIG_FAIL();\n");
       Printf(f->code, "}\n\n\n");
+
 
       Wrapper_print(f, s_wrappers);
       DelWrapper(f);
@@ -1378,9 +1371,6 @@ public:
 
     f = NewWrapper();
 
-    if (static_getter)
-      Printf(f->def, "{\n");
-
     String *outarg = NewStringEmpty();
     String *cleanup = NewStringEmpty();
 
@@ -1415,13 +1405,13 @@ public:
     int num_required = emit_num_required(l);
     numopt = num_arguments - num_required;
 
-    //if (wrapperType == directorconstructor)
-      //num_arguments++;
+    if (wrapperType == directorconstructor)
+      num_arguments++;
 
     if (num_arguments > 0) {
       String *args = NewStringEmpty();
-      //if (wrapperType == directorconstructor)
-        //Wrapper_add_local(f, "arg0", "zval * arg0;");
+      if (wrapperType == directorconstructor)
+        Wrapper_add_local(f, "arg0", "zval * arg0");
       if ((wrapperType == memberfn || wrapperType == membervar)) {
         num_arguments--; //To remove This Pointer
         Printf(args, "arg1 = (%s *)((SWIG_Z_FETCH_OBJ_P(getThis()))->ptr);\n", class_type);
@@ -1463,7 +1453,7 @@ public:
       Printf(f->code, "WRONG_PARAM_COUNT;\n}\n\n");
     }
     if (wrapperType == directorconstructor)
-      Printf(f->code, "zval * arg0 = getThis();\n  \n");
+      Printf(f->code, "arg0 = &args[0];\n  \n");
 
     /* Now convert from PHP to C variables */
     // At this point, argcount if used is the number of deliberately passed args
@@ -1476,9 +1466,9 @@ public:
     // This may mean looking at Language::memberfunctionHandler
 
     int limit = num_arguments;
-    //if (wrapperType == directorconstructor)
-      //limit--;
-    if (wrapperType == memberfn || wrapperType == membervar)
+    if (wrapperType == directorconstructor)
+      limit--;
+    else if (wrapperType == memberfn || wrapperType == membervar)
       limit++;
     for (i = 0, p = l; i < limit; i++) {
       String *source;
@@ -1492,7 +1482,7 @@ public:
       SwigType *pt = Getattr(p, "type");
 
       if (wrapperType == directorconstructor) {
-        source = NewStringf("args[%d]", i);
+        source = NewStringf("args[%d]", i+1);
       } else if (wrapperType == memberfn || wrapperType == membervar) {
         source = NewStringf("args[%d]", i-1);   
       } else {
@@ -1542,7 +1532,7 @@ public:
         if (paramType_valid) {
           String *param_value = NewStringEmpty();
           String *param_zval = NewStringEmpty();
-          if (Cmp(source,"args[-1]") == 0)
+          if (class_name)
             Printf(param_zval, "getThis()");
           else
             Printf(param_zval, "&%s", source);
@@ -1575,8 +1565,8 @@ public:
 
     if (is_member_director(n)) {
       Wrapper_add_local(f, "upcall", "bool upcall = false");
-      Printf(f->code, "upcall = !Swig::Director::swig_is_overridden_method(\"%s%s\", getThis());\n",
-	  prefix, Swig_class_name(Swig_methodclass(n)));
+      Printf(f->code, "upcall = !Swig::Director::swig_is_overridden_method(\"%s%s\", \"%s\");\n",
+	  prefix, Swig_class_name(Swig_methodclass(n)), name);
     }
 
     Swig_director_emit_dynamic_cast(n, f);
@@ -1690,9 +1680,6 @@ public:
       Printf(f->code, "%s\n", tm);
       Delete(tm);
     }
-
-    if (static_getter)
-      Printf(f->code, "}\n");
 
     if (static_setter || static_getter)
       Printf(f->code, "}\n");
@@ -3032,7 +3019,6 @@ done:
     }
     magic_method_setter(n,true);
     class_name = NULL;
-    class_type = NULL;
     return SWIG_OK;
   }
 
@@ -3137,6 +3123,7 @@ done:
     }
     Language::constructorHandler(n);
     wrapperType = standard;
+
     return SWIG_OK;
   }
 
