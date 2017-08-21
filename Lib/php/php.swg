@@ -436,13 +436,21 @@
 #ifdef __cplusplus
 {
   $&1_ltype resultobj = new $1_ltype((const $1_ltype &) $1);
+<<<<<<< HEAD
   SWIG_SetZval(return_value, $classZv, $owner, $newobj, $c_obj, (void *)resultobj, $&1_descriptor, $zend_obj);
+=======
+  SWIG_SetPointerZval(return_value, (void *)resultobj, $&1_descriptor, 1);
+>>>>>>> parent of ae71fc2... Refactor Code and Support phpinterfaces, factory dispatch
 }
 #else
 {
   $&1_ltype resultobj = ($&1_ltype) emalloc(sizeof($1_type));
   memcpy(resultobj, &$1, sizeof($1_type));
+<<<<<<< HEAD
   SWIG_SetZval(return_value, $classZv, $owner, $newobj, $c_obj, (void *)resultobj, $&1_descriptor, $zend_obj);
+=======
+  SWIG_SetPointerZval(return_value, (void *)resultobj, $&1_descriptor, 1);
+>>>>>>> parent of ae71fc2... Refactor Code and Support phpinterfaces, factory dispatch
 }
 #endif
 

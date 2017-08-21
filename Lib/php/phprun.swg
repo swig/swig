@@ -242,6 +242,21 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
   return -1;
 }
 
+static char const_name[] = "swig_runtime_data_type_pointer";
+static swig_module_info *SWIG_Php_GetModule() {
+  zval *pointer = zend_get_constant_str(const_name, sizeof(const_name) - 1);
+  if (pointer) {
+    if (Z_TYPE_P(pointer) == IS_LONG) {
+      return (swig_module_info *) pointer->value.lval;
+    }
+  } 
+  return NULL;
+}
+
+static void SWIG_Php_SetModule(swig_module_info *pointer) {
+  REGISTER_MAIN_LONG_CONSTANT(const_name, (long) pointer, CONST_PERSISTENT | CONST_CS);
+}
+
 static void
 SWIG_generalize_object(zval *zval_obj, void *ptr, int class_obj, int userNewObj ,swig_type_info *type) {
   swig_object_wrapper *obj = NULL;
