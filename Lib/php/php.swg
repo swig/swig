@@ -85,41 +85,31 @@
 /* Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE ($&1_ltype tmp)
 %{
-<<<<<<< HEAD
   if ($needNewFlow) {
     $1 = *(($1_ltype *)$obj_value);
-=======
-	if (zend_lookup_class(zend_string_init("$lower_param",sizeof("$lower_param")-1,0))) {
-    $1 = *$obj_value;
->>>>>>> parent of 8252f37... Refactor code and introduce some functionalities. Also Fix some testcases.
   }
   else {
     if (SWIG_ConvertPtr(&$input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL)
-      SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
+      SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1&_descriptor");
     $1 = *tmp;
   }
 %}
 
 %typemap(directorout) SWIGTYPE ($&1_ltype tmp)
 %{
-	/* If exit was via exception, PHP NULL is returned so skip the conversion. */
-	if (!EG(exception)) {
-	  if (SWIG_ConvertPtr($input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL)
-	    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
-	  $result = *tmp;
-	}
+  /* If exit was via exception, PHP NULL is returned so skip the conversion. */
+  if (!EG(exception)) {
+    if (SWIG_ConvertPtr($input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL)
+      SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
+    $result = *tmp;
+  }
 %}
 
 %typemap(in) SWIGTYPE *,
 	     SWIGTYPE []
 %{
-<<<<<<< HEAD
   if ($needNewFlow) {
     $1 = ($1_ltype) $obj_value;
-=======
-	if (zend_lookup_class(zend_string_init("$lower_param",sizeof("$lower_param")-1,0))) {
-    $1 = $obj_value;
->>>>>>> parent of 8252f37... Refactor code and introduce some functionalities. Also Fix some testcases.
   }
   else {
     if (SWIG_ConvertPtr(&$linput, (void **) &$1, $1_descriptor, 0) < 0)
@@ -129,21 +119,17 @@
 
 %typemap(in) SWIGTYPE &
 %{
-<<<<<<< HEAD
   if ($needNewFlow) {
     $1 = ($1_ltype) $obj_value;
   }
   else {
 	  if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL)
-=======
-	if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL)
->>>>>>> parent of 8252f37... Refactor code and introduce some functionalities. Also Fix some testcases.
       SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
+  }
 %}
 
 %typemap(in) SWIGTYPE &&
 %{
-<<<<<<< HEAD
   if ($needNewFlow) {
     $1 = ($1_ltype) $obj_value;
   }
@@ -152,16 +138,10 @@
       SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
     }
   }
-=======
-	if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL) {
-	    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
-	}
->>>>>>> parent of 8252f37... Refactor code and introduce some functionalities. Also Fix some testcases.
 %}
 
 %typemap(in) SWIGTYPE *const& ($*ltype temp)
 %{
-<<<<<<< HEAD
   if ($needNewFlow) {
     $1 = ($1_ltype) $obj_value;
   }
@@ -171,25 +151,13 @@
     }
   $1 = ($1_ltype)&temp;
   }
-=======
-	if (SWIG_ConvertPtr(&$input, (void **) &temp, $*1_descriptor, 0) < 0) {
-            SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $*1_descriptor");
-	}
-	$1 = ($1_ltype)&temp;
->>>>>>> parent of 8252f37... Refactor code and introduce some functionalities. Also Fix some testcases.
 %}
 
 %typemap(in) SWIGTYPE *DISOWN
 %{
-<<<<<<< HEAD
   if ($needNewFlow) {
     SWIG_Z_FETCH_OBJ_P(&$input)->newobject = 0;
     $1 = ($lower_param *)SWIG_Z_FETCH_OBJ_P(&$input)->ptr;
-=======
-  if (zend_lookup_class(zend_string_init("$lower_param",sizeof("$lower_param")-1,0))) {
-    Z_FETCH_OBJ_P(&$input)->newobject = 0;
-    $1 = ($lower_param *)Z_FETCH_OBJ_P(&$input)->ptr;
->>>>>>> parent of 8252f37... Refactor code and introduce some functionalities. Also Fix some testcases.
   }
   else {
     if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, SWIG_POINTER_DISOWN ) < 0)
@@ -204,12 +172,12 @@
 
 %typemap(in) void *
 %{
-	if (SWIG_ConvertPtr(&$input, (void **) &$1, 0, 0) < 0) {
-	  /* Allow NULL from php for void* */
-	  if (Z_ISNULL($input)) $1=0;
-	  else
-            SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
-	}
+  if (SWIG_ConvertPtr(&$input, (void **) &$1, 0, 0) < 0) {
+    /* Allow NULL from php for void* */
+    if (Z_ISNULL($input)) $1=0;
+    else
+      SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
+  }
 %}
 
 /* Special case when void* is passed by reference so it can be made to point
@@ -428,12 +396,12 @@
               SWIGTYPE &,
               SWIGTYPE &&
 %{
-  SWIG_SetZval($result, $newobj , $c_obj, (void *)result, $1_descriptor, $zend_obj);
+  SWIG_SetZval($result, $classZv, $owner, $newobj, $c_obj, (void *)result, $1_descriptor, $zend_obj);
 %}
 
 %typemap(out) SWIGTYPE *const&
 %{
-  SWIG_SetPointerZval(return_value, (void *)*$1, $*1_descriptor, $owner);
+  SWIG_SetZval(return_value, $classZv, $owner, $newobj, $c_obj, (void *)*$1, $*1_descriptor, $zend_obj);
 %}
 
 %typemap(directorin) SWIGTYPE *,
@@ -468,61 +436,13 @@
 #ifdef __cplusplus
 {
   $&1_ltype resultobj = new $1_ltype((const $1_ltype &) $1);
-<<<<<<< HEAD
-<<<<<<< HEAD
   SWIG_SetZval(return_value, $classZv, $owner, $newobj, $c_obj, (void *)resultobj, $&1_descriptor, $zend_obj);
-=======
-  SWIG_SetPointerZval(return_value, (void *)resultobj, $&1_descriptor, 1);
->>>>>>> parent of ae71fc2... Refactor Code and Support phpinterfaces, factory dispatch
-=======
-  SWIG_SetZval(return_value, $newobj , $c_obj, (void *)resultobj, $&1_descriptor, $zend_obj);
-  swig_object_wrapper *obj = NULL;
-
-  HashTable * ht = NULL;
-
-  obj = (swig_object_wrapper *) Z_FETCH_OBJ_P(return_value);
-  obj->ptr = (void *)resultobj;
-  ht = Z_OBJ_HT_P(return_value)->get_properties(return_value);
-  if(ht) {
-    zval zv;
-    ZVAL_RES(&zv,zend_register_resource(resultobj,*(int *)($&1_descriptor->clientdata)));
-    zend_hash_str_add(ht, "_cPtr", sizeof("_cPtr") - 1, &zv);
-  }
-  if ($newobj == 1)
-    obj->newobject = 1;
-  else
-    obj->newobject = 0;
->>>>>>> parent of 8252f37... Refactor code and introduce some functionalities. Also Fix some testcases.
 }
 #else
 {
   $&1_ltype resultobj = ($&1_ltype) emalloc(sizeof($1_type));
   memcpy(resultobj, &$1, sizeof($1_type));
-<<<<<<< HEAD
-<<<<<<< HEAD
   SWIG_SetZval(return_value, $classZv, $owner, $newobj, $c_obj, (void *)resultobj, $&1_descriptor, $zend_obj);
-=======
-  SWIG_SetPointerZval(return_value, (void *)resultobj, $&1_descriptor, 1);
->>>>>>> parent of ae71fc2... Refactor Code and Support phpinterfaces, factory dispatch
-=======
-  SWIG_SetZval(return_value, $newobj , $c_obj, (void *)resultobj, $&1_descriptor, $zend_obj);
-  swig_object_wrapper *obj = NULL;
-
-  HashTable * ht = NULL;
-
-  obj = (swig_object_wrapper *) Z_FETCH_OBJ_P(return_value);
-  obj->ptr = (void *)resultobj;
-  ht = Z_OBJ_HT_P(return_value)->get_properties(return_value);
-  if(ht) {
-    zval zv;
-    ZVAL_RES(&zv,zend_register_resource(resultobj,*(int *)($&1_descriptor->clientdata)));
-    zend_hash_str_add(ht, "_cPtr", sizeof("_cPtr") - 1, &zv);
-  }
-  if ($newobj)
-    obj->newobject = 1;
-  else
-    obj->newobject = 0;
->>>>>>> parent of 8252f37... Refactor code and introduce some functionalities. Also Fix some testcases.
 }
 #endif
 
@@ -577,7 +497,7 @@
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE
 {
   void *tmp;
-  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, $1_descriptor, 0) >= 0);
+  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, $&1_descriptor, 0) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER)
@@ -587,23 +507,20 @@
              SWIGTYPE &&,
              SWIGTYPE *const&
 {
-  if (Z_TYPE($input) == IS_OBJECT && SWIG_is_correct_object(&$input,$1_descriptor))
-    _v = 1;
-  else
-    _v = 0;
-  //_v = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, 0) >= 0);
+  void *tmp;
+  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, $1_descriptor, 0) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const&
 {
   void *tmp;
-  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, $1_descriptor, 0) >= 0);
+  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, $*1_descriptor, 0) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void *
 {
   void *tmp;
-  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, $1_descriptor, 0) >= 0);
+  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, 0, 0) >= 0);
 }
 
 /* Exception handling */
