@@ -242,6 +242,7 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
   return -1;
 }
 
+<<<<<<< HEAD
 static char const_name[] = "swig_runtime_data_type_pointer";
 static swig_module_info *SWIG_Php_GetModule() {
   zval *pointer = zend_get_constant_str(const_name, sizeof(const_name) - 1);
@@ -281,8 +282,13 @@ SWIG_SetZval( zval *zv, zval *class_zv, int userNewObj ,int object, int class_ob
 
   if (class_obj == 1) {
     SWIG_generalize_object(class_zv, ptr, class_obj, userNewObj ,type);
+=======
+static void
+SWIG_SetZval( zval *zv, int object, int class_obj ,void *ptr, swig_type_info *type, zend_object *std) {
+
+  if (class_obj)
+>>>>>>> parent of 8252f37... Refactor code and introduce some functionalities. Also Fix some testcases.
     return;
-  }
 
   if (!ptr) {
     ZVAL_NULL(zv);
@@ -291,7 +297,6 @@ SWIG_SetZval( zval *zv, zval *class_zv, int userNewObj ,int object, int class_ob
 
   if (object == 1) {
     ZVAL_OBJ(zv,std);
-    SWIG_generalize_object(zv, ptr, class_obj, userNewObj, type);
   }
 
   if (object == 2) {
@@ -300,6 +305,13 @@ SWIG_SetZval( zval *zv, zval *class_zv, int userNewObj ,int object, int class_ob
       newobj = 1;
     SWIG_SetPointerZval(zv,ptr,type,newobj);
   }
+}
+
+#define Z_FETCH_OBJ_P(zv) php_fetch_object(Z_OBJ_P(zv))
+
+static inline
+swig_object_wrapper * php_fetch_object(zend_object *obj) {
+  return (swig_object_wrapper *)((char *)obj - XtOffsetOf(swig_object_wrapper, std));
 }
 
 static char const_name[] = "swig_runtime_data_type_pointer";

@@ -104,7 +104,6 @@ static String *s_phpclasses;
 static String *class_name = NULL;
 static List *classes = NewList();
 static List *class_types = NewList();
-static List *class_need_free = NewList();
 static String *magic_set = NULL;
 static String *magic_get = NULL;
 static String *magic_isset = NULL;
@@ -146,9 +145,6 @@ static void print_creation_free_wrapper(int item_index) {
 
   class_name = Getitem(classes, item_index);
   class_type = Getitem(class_types, item_index);
-  bool need_free = false;
-  if (Cmp(Getitem(class_need_free, item_index), "1") == 0)
-    need_free = true;
 
   Printf(s_header, "/* class entry for %s */\n",class_name);
   Printf(s_header, "zend_class_entry *SWIGTYPE_%s_ce;\n\n",class_name);
@@ -165,12 +161,8 @@ static void print_creation_free_wrapper(int item_index) {
   Printf(s_header, "  if(!object)\n\t  return;\n");
   Printf(s_header, "  swig_object_wrapper *obj = (swig_object_wrapper *)php_fetch_object(object);\n");
   Printf(s_header, "  if(!obj->newobject)\n\t  return;\n");
-
-  if (need_free) {
-    Printf(s_header, "  if(obj->ptr)\n");
-    Printf(s_header, "   SWIG_remove((%s *)obj->ptr);\n",class_type);
-  }
-
+  Printf(s_header, "  if(obj->ptr)\n");
+  Printf(s_header, "   SWIG_remove((%s *)obj->ptr);\n",class_type);
   Printf(s_header, "  if(obj->extras) {\n");
   Printf(s_header, "    zend_hash_destroy(obj->extras);\n");
   Printf(s_header, "    FREE_HASHTABLE(obj->extras);\n  }\n\n");
@@ -956,18 +948,6 @@ public:
 
    }
 
-   /* Helper method to remove class prefix on method names.
-    * Ex- Class_method_name -> method_name
-    */
-   String *getWrapperMethodName(String *className, String *methodName) {
-    String *wrapper_class_name = NewString(className);
-    Append(wrapper_class_name, "_");
-    String *wrapper_method_name = NewString(methodName);
-    Replace(wrapper_method_name, wrapper_class_name, "", DOH_REPLACE_FIRST);
-    Delete(wrapper_class_name);
-    return wrapper_method_name;
-  }
-
   /* ------------------------------------------------------------
    * dispatchFunction()
    * ------------------------------------------------------------ */
@@ -1033,6 +1013,7 @@ public:
     DelWrapper(f);
     Delete(dispatch);
     Delete(tmp);
+    Delete(wname);
   }
 
   /* ------------------------------------------------------------
@@ -1075,12 +1056,11 @@ public:
   }
 
   /* Is special return type */
-  bool is_param_type_pointer(SwigType *t) {
+  bool is_return(SwigType *t) {
     
     if (SwigType_ispointer(t) ||
           SwigType_ismemberpointer(t) ||
-            SwigType_isreference(t) ||
-              SwigType_isarray(t))
+            SwigType_isarray(t))
       return true;
 
     return false;
@@ -1131,7 +1111,7 @@ public:
       Printf(all_cs_entry, " PHP_ME(%s,__set,swig_arginfo_00,ZEND_ACC_PUBLIC)\n", class_name);
       Printf(f->code, "PHP_METHOD(%s,__set) {\n",class_name);
 
-      Printf(f->code, "  swig_object_wrapper *arg = (swig_object_wrapper *)SWIG_Z_FETCH_OBJ_P(getThis());\n");
+      Printf(f->code, "  swig_object_wrapper *arg = (swig_object_wrapper *)Z_FETCH_OBJ_P(getThis());\n");
       Printf(f->code, "  %s *arg1 = (%s *)(arg->ptr);\n", class_type, class_type);
       Printf(f->code, "  zval args[2];\n  zend_string *arg2 = 0;\n\n");
       Printf(f->code, "  if(ZEND_NUM_ARGS() != 2 || zend_get_parameters_array_ex(2, args) != SUCCESS) {\n");
@@ -1163,7 +1143,7 @@ public:
       Printf(all_cs_entry, " PHP_ME(%s,__get,swig_arginfo_0,ZEND_ACC_PUBLIC)\n", class_name);
       Printf(f->code, "PHP_METHOD(%s,__get) {\n",class_name);
 
-      Printf(f->code, "  swig_object_wrapper *arg = (swig_object_wrapper *)SWIG_Z_FETCH_OBJ_P(getThis());\n", class_name);
+      Printf(f->code, "  swig_object_wrapper *arg = (swig_object_wrapper *)Z_FETCH_OBJ_P(getThis());\n", class_name);
       Printf(f->code, "  %s *arg1 = (%s *)(arg->ptr);\n", class_type, class_type);
       Printf(f->code, "  zval args[1];\n  zend_string *arg2 = 0;\n\n");
       Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
@@ -1194,7 +1174,7 @@ public:
       Printf(all_cs_entry, " PHP_ME(%s,__isset,swig_arginfo_0,ZEND_ACC_PUBLIC)\n", class_name);
       Printf(f->code, "PHP_METHOD(%s,__isset) {\n",class_name);
 
-      Printf(f->code, "  swig_object_wrapper *arg = (swig_object_wrapper *)SWIG_Z_FETCH_OBJ_P(getThis());\n", class_name);
+      Printf(f->code, "  swig_object_wrapper *arg = (swig_object_wrapper *)Z_FETCH_OBJ_P(getThis());\n", class_name);
       Printf(f->code, "  %s *arg1 = (%s *)(arg->ptr);\n", class_type, class_type);
       Printf(f->code, "  zval args[1];\n  zend_string *arg2 = 0;\n\n");
       Printf(f->code, "  int newSize = 1;\nchar *method_name = 0;\n\n");
@@ -1250,15 +1230,7 @@ public:
     Printf(magic_get, "zval zv;\nZVAL_STRING(&zv, \"%s_get\");\n",v_name);
     Printf(magic_get, "CALL_METHOD(zv, return_value, getThis());\n}\n");
 
-  }
-
-  String *getAccessMode(String *access) {
-    if (Cmp(access, "protected") == 0)
-      return NewString("ZEND_ACC_PROTECTED");
-    else if (Cmp(access, "private") == 0)
-      return NewString("ZEND_ACC_PRIVATE");
-    return NewString("ZEND_ACC_PUBLIC");
-  }
+    }
 
   virtual int functionWrapper(Node *n) {
     String *name = GetChar(n, "name");
@@ -1281,8 +1253,6 @@ public:
     String *modes = NULL;
     bool static_setter = false;
     bool static_getter = false;
-
-    modes = getAccessMode(Getattr(n, "access"));
 
     if (constructor) {
       Append(modes, " | ZEND_ACC_CTOR");
@@ -1309,22 +1279,10 @@ public:
     else if (constructor) {
       wname = NewString("__construct");
     }
-    else if (wrapperType == membervar) {
+    else if (wrapperType == membervar || wrapperType == globalvar) {
       char *ptr = Char(iname);
       ptr+= strlen(Char(iname)) - 4 - strlen(Char(name));
       wname = (String*) ptr;
-    }
-    else if (wrapperType == globalvar) {
-      //check for namespaces
-      String *nameSpace = getNameSpace(GetChar(n, "name"));
-      if (nameSpace == NULL) {
-        char *ptr = Char(iname);
-        ptr+= strlen(Char(iname)) - 4 - strlen(Char(name));
-        wname = (String*) ptr;
-      }
-      else {
-        wname = iname;
-      }
     }
     else if (wrapperType == staticmembervar) {
       // Shape::nshapes -> nshapes
@@ -1339,16 +1297,11 @@ public:
        */
       if (Cmp(strrchr(GetChar(n, "sym:name"),'_'),"_set") == 0)
         static_setter = true;
-<<<<<<< HEAD
       else if (Cmp(strrchr(GetChar(n, "sym:name"),'_'),"_get") == 0) {
         // This is to overcome types that can't be set and hence no setter.
-        if (Cmp(Getattr(n, "feature:immutable"),"1") != 0)
+        if (Cmp(Getattr(n, "feature:warnfilter"),"462") != 0)
           static_getter = true;
       }
-=======
-      else
-        static_getter = true;
->>>>>>> parent of ae71fc2... Refactor Code and Support phpinterfaces, factory dispatch
     }
     else if (wrapperType == staticmemberfn) {
       if (Char(Strchr(name, ':'))) {
@@ -1361,16 +1314,7 @@ public:
     }
     else {
       if (class_name) {
-<<<<<<< HEAD
         wname = getWrapperMethodName(class_name, iname);
-=======
-        String *intermediate_name = NewString(class_name);
-        Append(intermediate_name, "_");
-        String *intermediate_method_name = NewString(iname);
-        Replace(intermediate_method_name, intermediate_name, "", DOH_REPLACE_FIRST);
-        wname = intermediate_method_name;
-        Delete(intermediate_name);
->>>>>>> parent of ae71fc2... Refactor Code and Support phpinterfaces, factory dispatch
       }
       else
         wname = iname;
@@ -1428,7 +1372,7 @@ public:
         Wrapper_add_local(f, "arg0", "zval * arg0");
       if ((wrapperType == memberfn || wrapperType == membervar)) {
         num_arguments--; //To remove This Pointer
-        Printf(args, "arg1 = (%s *)((SWIG_Z_FETCH_OBJ_P(getThis()))->ptr);\n", class_type);
+        Printf(args, "arg1 = (%s *)((Z_FETCH_OBJ_P(getThis()))->ptr);\n", class_type);
       }
       Printf(args, "zval args[%d]", num_arguments);
       Wrapper_add_local(f, "args", args);
@@ -1566,7 +1510,7 @@ public:
         Replaceall(tm, "$needNewFlow", paramType_valid ? (is_class_wrapped(paramType_class) ? "1" : "0") : "0");
         String *temp_obj = NewStringEmpty();
         Printf(temp_obj, "&%s", ln);
-        Replaceall(tm, "$obj_value", is_param_type_pointer(resolved ? resolved : pt) ? "NULL" : temp_obj);        // Adding this to compile. It won't reach this if $obj_val is required.
+        Replaceall(tm, "$obj_value", is_return(resolved ? resolved : pt) ? "NULL" : temp_obj);        // Adding this to compile. It won't reach this if $obj_val is required.
         Replaceall(tm, "$lower_param", paramType_class);
 	Setattr(p, "emit:input", source);
 	Printf(f->code, "%s\n", tm);
@@ -1648,19 +1592,16 @@ public:
         Setattr(n, "wrap:name", wname);
     }
 
-<<<<<<< HEAD
     String *retType_class = NULL;
     bool retType_valid = is_class(d);
     bool valid_wrapped_class = false;
 
     if (retType_valid) {
-        retType_class = get_class_name(d);
-        Chop(retType_class);
-        valid_wrapped_class = is_class_wrapped(retType_class);
+      retType_class = get_class_name(d);
+      Chop(retType_class);
+      valid_wrapped_class = is_class_wrapped(retType_class);
     }
 
-=======
->>>>>>> parent of ae71fc2... Refactor Code and Support phpinterfaces, factory dispatch
     /* emit function call */
     String *actioncode = emit_action(n);
 
@@ -1674,15 +1615,8 @@ public:
       Replaceall(tm, "$classZv", constructor ? "getThis()" : "NULL");
       if (retType_class) {
         String *retZend_obj = NewStringEmpty();
-<<<<<<< HEAD
         Printf(retZend_obj, "%s_object_new(SWIGTYPE_%s_ce)", retType_class, retType_class);
         Replaceall(tm, "$zend_obj", retType_valid ? (constructor ? "NULL" : (valid_wrapped_class ? retZend_obj : "NULL")) : "NULL");
-=======
-        Printf(retZend_obj, "%s_object_new(%s_ce)", retType_class, retType_class);
-        String *ret_other_Zend_obj = NewStringEmpty();
-        Printf(ret_other_Zend_obj, "zend_objects_new(%s_ce)", retType_class);
-        Replaceall(tm, "$zend_obj", retType_valid ? (constructor ? "NULL" : (newobject ? retZend_obj : ret_other_Zend_obj)) : "NULL"); 
->>>>>>> parent of ae71fc2... Refactor Code and Support phpinterfaces, factory dispatch
       }
       Replaceall(tm, "$zend_obj", "NULL");
       Replaceall(tm, "$newobj", retType_valid ? (valid_wrapped_class ? "1" : "2") : "2");
@@ -1701,26 +1635,6 @@ public:
       Printv(f->code, cleanup, NIL);
     }
 
-<<<<<<< HEAD
-=======
-    if (constructor) {
-      Printf(f->code,"obj = (swig_object_wrapper *) Z_FETCH_OBJ_P(getThis());\nobj->ptr = (void *)result;\n\n");
-      Printf(f->code,"ht = Z_OBJ_HT_P(getThis())->get_properties(getThis());\n");
-      Printf(f->code,"if(ht) {\nzval zv;\n");
-      Printf(f->code,"ZVAL_RES(&zv,zend_register_resource(result,*(int *)(SWIGTYPE%s->clientdata)));\n", SwigType_manglestr(d));
-      Printf(f->code,"zend_hash_str_add(ht, \"_cPtr\", sizeof(\"_cPtr\") - 1, &zv);\n}\n\n");
-    }
-    else if (retType_valid) {
-      Printf(f->code,"obj = (swig_object_wrapper *) Z_FETCH_OBJ_P(return_value);\nobj->ptr = (void *)result;\n\n");
-      Printf(f->code,"ht = Z_OBJ_HT_P(return_value)->get_properties(return_value);\n");
-      Printf(f->code,"if(ht) {\nzval zv;\n");
-      Printf(f->code,"ZVAL_RES(&zv,zend_register_resource(result,*(int *)(SWIGTYPE%s->clientdata)));\n", SwigType_manglestr(d));
-      Printf(f->code,"zend_hash_str_add(ht, \"_cPtr\", sizeof(\"_cPtr\") - 1, &zv);\n}\n\n");
-    }
-
-    if (retType_valid)
-      Printf(f->code, "if (obj)\nobj->newobject = %d;\n", newobject ? 1 : 0);
->>>>>>> parent of ae71fc2... Refactor Code and Support phpinterfaces, factory dispatch
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
@@ -2757,21 +2671,6 @@ done:
     if (!Getattr(n, "feature:onlychildren")) {
       String *symname = Getattr(n, "sym:name");
       Setattr(n, "php:proxy", symname);
-<<<<<<< HEAD
-=======
-
-      if (className != symname)
-        class_name = symname;
-      else
-        class_name = className;
-
-      if (Len(classes) != 0)
-        Printf(all_cs_entry, " { NULL, NULL, NULL }\n};\n\n");
-
-      Printf(all_cs_entry, "static zend_function_entry class_%s_functions[] = {\n", class_name);
-      
-      Append(classes,class_name);
->>>>>>> parent of ae71fc2... Refactor Code and Support phpinterfaces, factory dispatch
     }
     return Language::classDeclaration(n);
   }
@@ -2815,7 +2714,6 @@ done:
     class_type = Getattr(n, "classtype");
     Append(classes,class_name);
     Append(class_types, class_type);
-    Append(class_need_free, "0");
 
     Printf(s_oinit, "\nzend_class_entry SWIGTYPE_%s_internal_ce;\n", class_name);
     
@@ -2862,7 +2760,6 @@ done:
       }
     }
 
-<<<<<<< HEAD
     if (Cmp(Getattr(n, "feature:exceptionclass"), "1") == 0 && Getattr(n, "feature:except")) {
         if (baseClassExtend) {
           Swig_warning(WARN_PHP_MULTIPLE_INHERITANCE, input_file, line_number,
@@ -2896,7 +2793,7 @@ done:
         for(int Iterator = 1; Iterator <= num_interfaces; Iterator++) {
           String *interface = Getitem(interface_list, Iterator-1);
           String *interface_ce = NewStringEmpty();
-          Printf(interface_ce, "php_%s_interface_ce_%d" , class_name , Iterator);
+          Printf(interface_ce, "php_interface_ce_%d" , Iterator);
           Printf(s_oinit, "zend_class_entry *%s = zend_lookup_class(zend_string_init(\"%s\", sizeof(\"%s\") - 1, 0));\n", interface_ce , interface, interface);
           Append(append_interface, interface_ce);
           Append(append_interface, " ");
@@ -2905,10 +2802,6 @@ done:
         Replaceall(append_interface, " ", ",");
         Printf(s_oinit, "zend_class_implements(SWIGTYPE_%s_ce, %d, %s);\n", class_name, num_interfaces, append_interface);
       }
-=======
-    if (Cmp(symname,className) != 0) {
-        Printf(s_oinit, "zend_register_class_alias_ex(\"%s\",sizeof(\"%s\"),%s_ce);\n\n",class_name, class_name, class_name);
->>>>>>> parent of ae71fc2... Refactor Code and Support phpinterfaces, factory dispatch
     }
 
     Printf(s_oinit, "SWIGTYPE_%s_ce->create_object = %s_object_new;\n", class_name, class_name);
@@ -3180,8 +3073,8 @@ done:
       Delete(director_ctor_code);
       director_ctor_code = NewStringEmpty();
       director_prot_ctor_code = NewStringEmpty();
-      Printf(director_ctor_code, "if (Swig::Director::swig_is_overridden_method(\"%s\", arg0)) { /* not subclassed */\n", class_name);
-      Printf(director_prot_ctor_code, "if (Swig::Director::swig_is_overridden_method(\"%s\", arg0)) { /* not subclassed */\n", class_name);
+      Printf(director_ctor_code, "if (Z_TYPE_P(arg0) == IS_NULL) { /* not subclassed */\n");
+      Printf(director_prot_ctor_code, "if (Z_TYPE_P(arg0) == IS_NULL) { /* not subclassed */\n");
       Printf(director_ctor_code, "  %s = (%s *)new %s(%s);\n", Swig_cresult_name(), ctype, ctype, args);
       Printf(director_prot_ctor_code, "  SWIG_PHP_Error(E_ERROR, \"accessing abstract class or protected constructor\");\n", name, name, args);
       if (i) {
@@ -3211,16 +3104,9 @@ done:
     String *iname = GetChar(n, "sym:name");
     ParmList *l = Getattr(n, "parms");
 
-<<<<<<< HEAD
     Delitem(class_need_free, Len(class_need_free) - 1);
     Append(class_need_free, "1");
 
-    String *name_prefix = NewString("delete_");
-    String *intermediate_name = NewString(iname);
-    Replace(intermediate_name, name_prefix, "", DOH_REPLACE_FIRST);
-
-=======
->>>>>>> parent of ae71fc2... Refactor Code and Support phpinterfaces, factory dispatch
     String *destructorname = NewStringEmpty();
     Printf(destructorname, "_%s", Swig_name_wrapper(iname));
     Setattr(classnode, "destructor", destructorname);

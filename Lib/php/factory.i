@@ -105,6 +105,6 @@ if (!dcast) {
   int dcast = 0;
   %formacro(%_factory_dispatch, Types)
   if (!dcast) {
-    SWIG_SetZval(return_value, $classZv, $owner, $newobj, $c_obj, SWIG_as_voidptr($1), $descriptor, $zend_obj);
+    SWIG_SetZval(return_value, $newobj , $c_obj, SWIG_as_voidptr($1), $descriptor, $zend_obj);
   }
 }%enddef
