@@ -487,16 +487,16 @@ static void add_symbols(Node *n) {
       }
       {
 	String *refqualifier = Getattr(n, "refqualifier");
-	if (SwigType_isrvalue_reference(refqualifier) && strncmp(Char(symname), "$ignore", 7) != 0) {
+	if (SwigType_isrvalue_reference(refqualifier) && Strcmp(symname, "$ignore") != 0) {
 	  SWIG_WARN_NODE_BEGIN(n);
 	  Swig_warning(WARN_TYPE_RVALUE_REF_QUALIFIER_IGNORED, Getfile(n), Getline(n),
-	      "Method with rvalue ref-qualifier ignored %s.\n", Swig_name_decl(n));
+	      "Method with rvalue ref-qualifier %s ignored.\n", Swig_name_decl(n));
 	  SWIG_WARN_NODE_END(n);
 	  SetFlag(n, "feature:ignore");
 	}
       }
     }
-    if (only_csymbol || GetFlag(n,"feature:ignore") || strncmp(Char(symname),"$ignore",7) == 0) {
+    if (only_csymbol || GetFlag(n, "feature:ignore") || Strncmp(symname, "$ignore", 7) == 0) {
       /* Only add to C symbol table and continue */
       Swig_symbol_add(0, n);
       if (!only_csymbol && !GetFlag(n, "feature:ignore")) {
@@ -1421,10 +1421,12 @@ static void mark_nodes_as_extend(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * add_qualifier_to_declarator
+ * add_qualifier_to_declarator()
  *
+ * Normally the qualifier is pushed on to the front of the type.
  * Adding a qualifier to a pointer to member function is a special case.
  * For example       : typedef double (Cls::*pmf)(void) const;
+ * The qualifier is  : q(const).
  * The declarator is : m(Cls).f(void).
  * We need           : m(Cls).q(const).f(void).
  * ----------------------------------------------------------------------------- */
@@ -5870,15 +5872,17 @@ pointer    : STAR type_qualifier pointer {
 /* cv-qualifier plus C++11 ref-qualifier for non-static member functions */
 cv_ref_qualifier : type_qualifier {
 		  $$.qualifier = $1;
-	          $$.refqualifier = 0;
+		  $$.refqualifier = 0;
 	       }
 	       | type_qualifier ref_qualifier {
 		  $$.qualifier = $1;
-	          $$.refqualifier = $2;
+		  $$.refqualifier = $2;
+		  SwigType_push($$.qualifier, $2);
 	       }
 	       | ref_qualifier {
-		  $$.qualifier = 0;
-	          $$.refqualifier = $1;
+		  $$.qualifier = NewStringEmpty();
+		  $$.refqualifier = $1;
+		  SwigType_push($$.qualifier, $1);
 	       }
 	       ;
 

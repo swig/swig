@@ -1689,18 +1689,23 @@ String *Swig_name_str(Node *n) {
 String *Swig_name_decl(Node *n) {
   String *qname;
   String *decl;
-  String *refqualifier = Getattr(n, "refqualifier");
 
   qname = Swig_name_str(n);
+  decl = NewStringf("%s", qname);
 
-  if (checkAttribute(n, "kind", "variable"))
-    decl = NewStringf("%s", qname);
-  else
-    decl = NewStringf("%s(%s)%s", qname, ParmList_errorstr(Getattr(n, "parms")), SwigType_isconst(Getattr(n, "decl")) ? " const" : "");
-  if (refqualifier) {
-    String *rq = SwigType_str(refqualifier, 0);
-    Printv(decl, " ", rq, NIL);
-    Delete(rq);
+  if (!checkAttribute(n, "kind", "variable")) {
+    String *d = Getattr(n, "decl");
+    Printv(decl, "(", ParmList_errorstr(Getattr(n, "parms")), ")", NIL);
+    if (SwigType_isfunction(d)) {
+      SwigType *decl_temp = Copy(d);
+      SwigType *qualifiers = SwigType_pop_function_qualifiers(decl_temp);
+      if (qualifiers) {
+	String *qualifiers_string = SwigType_str(qualifiers, 0);
+	Printv(decl, " ", qualifiers_string, NIL);
+	Delete(qualifiers_string);
+      }
+      Delete(decl_temp);
+    }
   }
 
   Delete(qname);

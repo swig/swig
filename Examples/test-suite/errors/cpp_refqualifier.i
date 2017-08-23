@@ -1,6 +1,8 @@
 %module cpp_refqualifier
 
 %ignore Host::h_ignored;
+%ignore Host::i_ignored() &&;
+%ignore Host::j_ignored() const &&;
 
 class Host {
 public:
@@ -15,4 +17,6 @@ public:
   void h() const &&;
 
   void h_ignored() &&;
+  void i_ignored() &&;
+  void j_ignored() const &&;
 };

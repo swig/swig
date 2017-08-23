@@ -1,6 +1,6 @@
-cpp_refqualifier.i:9: Warning 405: Method with rvalue ref-qualifier ignored h3() &&.
-cpp_refqualifier.i:10: Warning 405: Method with rvalue ref-qualifier ignored h4() const &&.
-cpp_refqualifier.i:14: Warning 405: Method with rvalue ref-qualifier ignored h() &&.
-cpp_refqualifier.i:15: Warning 405: Method with rvalue ref-qualifier ignored h() const &&.
-cpp_refqualifier.i:13: Warning 512: Overloaded method Host::h() const & ignored,
-cpp_refqualifier.i:12: Warning 512: using non-const method Host::h() & instead.
+cpp_refqualifier.i:11: Warning 405: Method with rvalue ref-qualifier h3() && ignored.
+cpp_refqualifier.i:12: Warning 405: Method with rvalue ref-qualifier h4() const && ignored.
+cpp_refqualifier.i:16: Warning 405: Method with rvalue ref-qualifier h() && ignored.
+cpp_refqualifier.i:17: Warning 405: Method with rvalue ref-qualifier h() const && ignored.
+cpp_refqualifier.i:15: Warning 512: Overloaded method Host::h() const & ignored,
+cpp_refqualifier.i:14: Warning 512: using non-const method Host::h() & instead.

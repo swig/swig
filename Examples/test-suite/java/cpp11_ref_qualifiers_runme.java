@@ -14,9 +14,34 @@ public class cpp11_ref_qualifiers_runme {
 
   public static void main(String argv[]) {
     Host h = new Host();
+
+    // Basic testing
     h.h1();
     h.h2();
+    h.h6();
+    h.h7();
+
     h.h();
+
+    // %feature testing
+    Features f = new Features();
+    if (!f.F1().equals("F1")) throw new RuntimeException("Fail");
+    if (!f.F2().equals("F2")) throw new RuntimeException("Fail");
+    if (!f.F3().equals("F3")) throw new RuntimeException("Fail");
+
+    if (!f.C1(0).equals("C1")) throw new RuntimeException("Fail");
+    if (!f.C2(0).equals("C2")) throw new RuntimeException("Fail");
+    if (!f.C3(0).equals("C3")) throw new RuntimeException("Fail");
+
+    // %rename testing
+    Renames r = new Renames();
+    r.RR1();
+    r.RR2();
+    r.RR3();
+
+    r.SS1(0);
+    r.SS2(0);
+    r.SS3(0);
   }
 }
 

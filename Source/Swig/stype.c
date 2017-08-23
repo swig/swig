@@ -44,7 +44,7 @@
  *  'z.'                = Rvalue reference (&&)
  *  'a(n).'             = Array of size n  [n]
  *  'f(..,..).'         = Function with arguments  (args)
- *  'q(str).'           = Qualifier (such as const or volatile) (const, volatile)
+ *  'q(str).'           = Qualifier, such as const or volatile (cv-qualifier)
  *  'm(cls).'           = Pointer to member (cls::*)
  *
  * The encoding follows the order that you might describe a type in words.
@@ -64,11 +64,19 @@
  *
  * More examples:
  *
- *        String Encoding                 C++ Example
- *        ---------------                 -----------
- *        p.f(bool).q(const).long         const long (*)(bool)
- *        m(Funcs).q(const).f(bool).long  long (Funcs::*)(bool) const
- *        r.q(const).m(Funcs).f(int).long long (Funcs::*const &)(int)
+ *        String Encoding                     C++ Example
+ *        ---------------                     -----------
+ *        p.f(bool).r.q(const).long           const long & (*)(bool)
+ *        m(Funcs).q(const).f(bool).long      long (Funcs::*)(bool) const
+ *        r.q(const).m(Funcs).f(int).long     long (Funcs::*const &)(int)
+ *        m(Funcs).z.q(const).f(bool).long    long (Funcs::*)(bool) const &&
+ *
+ * Function decl examples:
+ *
+ *        f(bool).                            long a(bool);
+ *        r.f(bool).                          long b(bool) &;
+ *        z.f(bool).                          long c(bool) &&;
+ *        z.q(const).f(bool).                 long d(bool) const &&;
  *
  * For the most part, this module tries to minimize the use of special
  * characters (*, [, <, etc...) in its type encoding.  One reason for this
