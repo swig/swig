@@ -81,7 +81,7 @@ namespace Space {
 %exception Space::ABC::operator ABC %{
 #if defined(__clang__)
   // Workaround for: warning: conversion function converting 'Space::ABC' to itself will never be used
-  result = *arg1;
+  _swig_result = *arg1;
 #else
   $action
 #endif

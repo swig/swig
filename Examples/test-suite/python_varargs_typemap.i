@@ -39,7 +39,7 @@
 
 %feature("action") testfunc {
   char **vargs = (char **) arg3;
-  result = testfunc(arg1, arg2, vargs[0], vargs[1], vargs[2], vargs[3], vargs[4],
+  _swig_result = testfunc(arg1, arg2, vargs[0], vargs[1], vargs[2], vargs[3], vargs[4],
                     vargs[5], vargs[6], vargs[7], vargs[8], vargs[9], NULL);
 }
 

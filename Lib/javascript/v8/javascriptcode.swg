@@ -16,7 +16,7 @@ static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args) {
   if(args.Length() != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   $jscode
 
-  SWIGV8_SetPrivateData(self, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
+  SWIGV8_SetPrivateData(self, _swig_result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
   SWIGV8_RETURN(self);
 
   goto fail;
@@ -83,7 +83,7 @@ static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args, V8ErrorHandler 
   if(args.Length() != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   $jscode
 
-  SWIGV8_SetPrivateData(self, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
+  SWIGV8_SetPrivateData(self, _swig_result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
   SWIGV8_RETURN(self);
 
   goto fail;

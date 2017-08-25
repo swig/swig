@@ -1494,7 +1494,7 @@ public:
 	SwigType_add_pointer(type);
 	String *action = NewString("");
 	Printv(action, "{\n", "  Swig::Director *director = SWIG_DIRECTOR_CAST(arg1);\n",
-	       "  result = sv_newmortal();\n" "  if (director) sv_setsv(result, director->swig_get_self());\n", "}\n", NIL);
+	       "  _swig_result = sv_newmortal();\n" "  if (director) sv_setsv(_swig_result, director->swig_get_self());\n", "}\n", NIL);
 	Setfile(get_attr, Getfile(n));
 	Setline(get_attr, Getline(n));
 	Setattr(get_attr, "wrap:action", action);
