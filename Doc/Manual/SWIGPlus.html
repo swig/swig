@@ -2409,8 +2409,8 @@ the first renaming rule found on a depth-first traversal of the class hierarchy
 is used.
 </li>
 
-<li><p>The name matching rules strictly follow member qualification rules.
-For example, if you have a class like this:</p>
+<li><p>The name matching rules strictly follow member qualifier rules.
+For example, if you have a class and member with a member that is const qualified like this:</p>
 
 <div class="code">
 <pre>
@@ -2434,13 +2434,33 @@ the declaration
 </div>
 
 <p>
-will not apply as there is no unqualified member <tt>bar()</tt>. The following will apply as
+will not apply as there is no unqualified member <tt>bar()</tt>. The following will apply the rename as
 the qualifier matches correctly:
 </p>
 
 <div class="code">
 <pre>
 %rename(name) Spam::bar() const;
+</pre>
+</div>
+
+<p>
+Similarly for combinations of cv-qualifiers and ref-qualifiers, all the qualifiers must be specified to match correctly:
+</p>
+
+<div class="code">
+<pre>
+%rename(name) Jam::bar();          // will not match
+%rename(name) Jam::bar() &amp;;        // will not match
+%rename(name) Jam::bar() const;    // will not match
+%rename(name) Jam::bar() const &amp;;  // ok, will match
+
+class Jam {
+public:
+  ...
+  void bar() const &amp;;
+  ...
+};
 </pre>
 </div>
 
@@ -2476,7 +2496,7 @@ For example we can give them separate names in the target language:
 <p>
 Similarly, if you
 merely wanted to ignore one of the declarations, use <tt>%ignore</tt>
-with the full qualification.  For example, the following directive
+with the full qualifier.  For example, the following directive
 would tell SWIG to ignore the <tt>const</tt> version of <tt>bar()</tt>
 above:
 </p>
