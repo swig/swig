@@ -562,6 +562,7 @@ CPP11_TEST_CASES += \
 	cpp11_null_pointer_constant \
 	cpp11_raw_string_literals \
 	cpp11_ref_qualifiers \
+	cpp11_ref_qualifiers_rvalue_unignore \
 	cpp11_result_of \
 	cpp11_rvalue_reference \
 	cpp11_rvalue_reference2 \

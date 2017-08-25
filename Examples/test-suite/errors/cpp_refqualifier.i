@@ -18,5 +18,11 @@ public:
 
   void h_ignored() &&;
   void i_ignored() &&;
-  void j_ignored() const &&;
+  void i_ignored() &&;
+};
+
+%feature("ignore", "0") Unignore::k_unignored() const &&;
+
+struct Unignore {
+  void k_unignored() const &&;
 };

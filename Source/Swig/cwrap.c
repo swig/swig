@@ -1024,6 +1024,15 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
       }
     }
 
+    if (!self && SwigType_isrvalue_reference(Getattr(n, "refqualifier"))) {
+      String *memory_header = NewString("<memory>");
+      Setfile(memory_header, Getfile(n));
+      Setline(memory_header, Getline(n));
+      Swig_fragment_emit(memory_header);
+      self = NewString("std::move(*this).");
+      Delete(memory_header);
+    }
+
     call = Swig_cmethod_call(explicitcall_name ? explicitcall_name : name, p, self, explicit_qualifier, director_type);
     cres = Swig_cresult(Getattr(n, "type"), Swig_cresult_name(), call);
 

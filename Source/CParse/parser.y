@@ -485,9 +485,10 @@ static void add_symbols(Node *n) {
         SetFlag(n,"deleted");
         SetFlag(n,"feature:ignore");
       }
-      {
-	String *refqualifier = Getattr(n, "refqualifier");
-	if (SwigType_isrvalue_reference(refqualifier) && Strcmp(symname, "$ignore") != 0) {
+      if (SwigType_isrvalue_reference(Getattr(n, "refqualifier"))) {
+	/* Ignore rvalue ref-qualifiers by default
+	 * Use Getattr instead of GetFlag to handle explicit ignore and explicit not ignore */
+	if (!(Getattr(n, "feature:ignore") || Strncmp(symname, "$ignore", 7) == 0)) {
 	  SWIG_WARN_NODE_BEGIN(n);
 	  Swig_warning(WARN_TYPE_RVALUE_REF_QUALIFIER_IGNORED, Getfile(n), Getline(n),
 	      "Method with rvalue ref-qualifier %s ignored.\n", Swig_name_decl(n));
