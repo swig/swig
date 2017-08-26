@@ -1629,7 +1629,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <node>     lambda_introducer lambda_body;
 %type <pl>       lambda_tail;
 %type <node>     optional_constant_directive;
-%type <str>      virt_specifier_seq;
+%type <str>      virt_specifier_seq virt_specifier_seq_opt;
 
 %%
 
@@ -3166,7 +3166,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
            }
            /* Alternate function syntax introduced in C++11:
               auto funcName(int x, int y) -> int; */
-           | storage_class AUTO declarator cpp_const ARROW cpp_alternate_rettype cpp_const initializer c_decl_tail {
+           | storage_class AUTO declarator cpp_const ARROW cpp_alternate_rettype virt_specifier_seq_opt initializer c_decl_tail {
               $$ = new_node("cdecl");
 	      if ($4.qualifier) SwigType_push($3.type, $4.qualifier);
 	      Setattr($$,"refqualifier",$4.refqualifier);
@@ -6625,6 +6625,14 @@ virt_specifier_seq : OVERRIDE {
 	       | OVERRIDE FINAL {
                    $$ = 0;
 	       }
+               ;
+
+virt_specifier_seq_opt : virt_specifier_seq {
+                   $$ = 0;
+               }
+               | empty {
+                   $$ = 0;
+               }
                ;
 
 exception_specification : THROW LPAREN parms RPAREN {
