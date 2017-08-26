@@ -1591,7 +1591,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 
 /* Misc */
 %type <id>       identifier;
-%type <dtype>    initializer cpp_const exception_specification cv_ref_qualifier;
+%type <dtype>    initializer cpp_const exception_specification cv_ref_qualifier qualifiers_exception_specification;
 %type <id>       storage_class extern_string;
 %type <pl>       parms  ptail rawparms varargs_parms ;
 %type <pl>       templateparameters templateparameterstail;
@@ -3268,37 +3268,21 @@ c_decl_tail    : SEMI {
                }
               ;
 
-initializer   : def_args { 
-                   $$ = $1; 
+initializer   : def_args {
+                   $$ = $1;
                    $$.qualifier = 0;
                    $$.refqualifier = 0;
 		   $$.throws = 0;
 		   $$.throwf = 0;
 		   $$.nexcept = 0;
               }
-              | cv_ref_qualifier def_args {
-                   $$ = $2; 
-		   $$.qualifier = $1.qualifier;
-		   $$.refqualifier = $1.refqualifier;
-		   $$.throws = 0;
-		   $$.throwf = 0;
-		   $$.nexcept = 0;
-	      }
-              | exception_specification def_args { 
-		   $$ = $2; 
-                   $$.qualifier = 0;
-                   $$.refqualifier = 0;
+              | qualifiers_exception_specification def_args {
+                   $$ = $2;
+                   $$.qualifier = $1.qualifier;
+                   $$.refqualifier = $1.refqualifier;
 		   $$.throws = $1.throws;
 		   $$.throwf = $1.throwf;
 		   $$.nexcept = $1.nexcept;
-              }
-              | cv_ref_qualifier exception_specification def_args {
-                   $$ = $3; 
-                   $$.qualifier = $1.qualifier;
-		   $$.refqualifier = $1.refqualifier;
-		   $$.throws = $2.throws;
-		   $$.throwf = $2.throwf;
-		   $$.nexcept = $2.nexcept;
               }
               ;
 
@@ -6688,7 +6672,7 @@ exception_specification : THROW LPAREN parms RPAREN {
 	       }
 	       ;	
 
-cpp_const      : cv_ref_qualifier {
+qualifiers_exception_specification : cv_ref_qualifier {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = 0;
@@ -6704,6 +6688,11 @@ cpp_const      : cv_ref_qualifier {
 		    $$ = $2;
                     $$.qualifier = $1.qualifier;
                     $$.refqualifier = $1.refqualifier;
+               }
+               ;
+
+cpp_const      : qualifiers_exception_specification {
+                    $$ = $1;
                }
                | empty { 
                     $$.throws = 0;
