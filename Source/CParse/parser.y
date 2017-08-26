@@ -3090,7 +3090,7 @@ c_declaration   : c_decl {
    A C global declaration of some kind (may be variable, function, typedef, etc.)
    ------------------------------------------------------------ */
 
-c_decl  : storage_class type declarator initializer c_decl_tail {
+c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      String *decl = $3.type;
               $$ = new_node("cdecl");
 	      if ($4.qualifier)
@@ -3101,26 +3101,26 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 	      Setattr($$,"name",$3.id);
 	      Setattr($$,"decl",decl);
 	      Setattr($$,"parms",$3.parms);
-	      Setattr($$,"value",$4.val);
+	      Setattr($$,"value",$5.val);
 	      Setattr($$,"throws",$4.throws);
 	      Setattr($$,"throw",$4.throwf);
 	      Setattr($$,"noexcept",$4.nexcept);
-	      if ($4.val && $4.type) {
+	      if ($5.val && $5.type) {
 		/* store initializer type as it might be different to the declared type */
-		SwigType *valuetype = NewSwigType($4.type);
+		SwigType *valuetype = NewSwigType($5.type);
 		if (Len(valuetype) > 0)
 		  Setattr($$,"valuetype",valuetype);
 		else
 		  Delete(valuetype);
 	      }
-	      if (!$5) {
+	      if (!$6) {
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
 		  Setattr($$,"code",code);
 		  Delete(code);
 		}
 	      } else {
-		Node *n = $5;
+		Node *n = $6;
 		/* Inherit attributes */
 		while (n) {
 		  String *type = Copy($2);
@@ -3130,8 +3130,8 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		  Delete(type);
 		}
 	      }
-	      if ($4.bitfield) {
-		Setattr($$,"bitfield", $4.bitfield);
+	      if ($5.bitfield) {
+		Setattr($$,"bitfield", $5.bitfield);
 	      }
 
 	      if ($3.id) {
@@ -3146,18 +3146,18 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		      String *lstr = Swig_scopename_last($3.id);
 		      Setattr($$, "name", lstr);
 		      Delete(lstr);
-		      set_nextSibling($$, $5);
+		      set_nextSibling($$, $6);
 		    } else {
 		      Delete($$);
-		      $$ = $5;
+		      $$ = $6;
 		    }
 		    Delete(p);
 		  } else {
 		    Delete($$);
-		    $$ = $5;
+		    $$ = $6;
 		  }
 		} else {
-		  set_nextSibling($$, $5);
+		  set_nextSibling($$, $6);
 		}
 	      } else {
 		Swig_error(cparse_file, cparse_line, "Missing symbol name for global declaration\n");
@@ -3166,7 +3166,7 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
            }
            /* Alternate function syntax introduced in C++11:
               auto funcName(int x, int y) -> int; */
-           | storage_class AUTO declarator cpp_const ARROW cpp_alternate_rettype initializer c_decl_tail {
+           | storage_class AUTO declarator cpp_const ARROW cpp_alternate_rettype cpp_const initializer c_decl_tail {
               $$ = new_node("cdecl");
 	      if ($4.qualifier) SwigType_push($3.type, $4.qualifier);
 	      Setattr($$,"refqualifier",$4.refqualifier);
@@ -3179,14 +3179,14 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 	      Setattr($$,"throws",$4.throws);
 	      Setattr($$,"throw",$4.throwf);
 	      Setattr($$,"noexcept",$4.nexcept);
-	      if (!$8) {
+	      if (!$9) {
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
 		  Setattr($$,"code",code);
 		  Delete(code);
 		}
 	      } else {
-		Node *n = $8;
+		Node *n = $9;
 		while (n) {
 		  String *type = Copy($6);
 		  Setattr(n,"type",type);
@@ -3207,18 +3207,18 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		    String *lstr = Swig_scopename_last($3.id);
 		    Setattr($$,"name",lstr);
 		    Delete(lstr);
-		    set_nextSibling($$, $8);
+		    set_nextSibling($$, $9);
 		  } else {
 		    Delete($$);
-		    $$ = $8;
+		    $$ = $9;
 		  }
 		  Delete(p);
 		} else {
 		  Delete($$);
-		  $$ = $8;
+		  $$ = $9;
 		}
 	      } else {
-		set_nextSibling($$, $8);
+		set_nextSibling($$, $9);
 	      }
            }
            ;
@@ -3229,28 +3229,28 @@ c_decl_tail    : SEMI {
                    $$ = 0;
                    Clear(scanner_ccode); 
                }
-               | COMMA declarator initializer c_decl_tail {
+               | COMMA declarator cpp_const initializer c_decl_tail {
 		 $$ = new_node("cdecl");
 		 if ($3.qualifier) SwigType_push($2.type,$3.qualifier);
 		 Setattr($$,"refqualifier",$3.refqualifier);
 		 Setattr($$,"name",$2.id);
 		 Setattr($$,"decl",$2.type);
 		 Setattr($$,"parms",$2.parms);
-		 Setattr($$,"value",$3.val);
+		 Setattr($$,"value",$4.val);
 		 Setattr($$,"throws",$3.throws);
 		 Setattr($$,"throw",$3.throwf);
 		 Setattr($$,"noexcept",$3.nexcept);
-		 if ($3.bitfield) {
-		   Setattr($$,"bitfield", $3.bitfield);
+		 if ($4.bitfield) {
+		   Setattr($$,"bitfield", $4.bitfield);
 		 }
-		 if (!$4) {
+		 if (!$5) {
 		   if (Len(scanner_ccode)) {
 		     String *code = Copy(scanner_ccode);
 		     Setattr($$,"code",code);
 		     Delete(code);
 		   }
 		 } else {
-		   set_nextSibling($$,$4);
+		   set_nextSibling($$, $5);
 		 }
 	       }
                | LBRACE { 
@@ -3270,19 +3270,6 @@ c_decl_tail    : SEMI {
 
 initializer   : def_args {
                    $$ = $1;
-                   $$.qualifier = 0;
-                   $$.refqualifier = 0;
-		   $$.throws = 0;
-		   $$.throwf = 0;
-		   $$.nexcept = 0;
-              }
-              | qualifiers_exception_specification def_args {
-                   $$ = $2;
-                   $$.qualifier = $1.qualifier;
-                   $$.refqualifier = $1.refqualifier;
-		   $$.throws = $1.throws;
-		   $$.throwf = $1.throwf;
-		   $$.nexcept = $1.nexcept;
               }
               ;
 
@@ -3425,7 +3412,7 @@ c_enum_decl :  storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBR
 		    Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		  }
                }
-	       | storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBRACE declarator initializer c_decl_tail {
+	       | storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBRACE declarator cpp_const initializer c_decl_tail {
 		 Node *n;
 		 SwigType *ty = 0;
 		 String   *unnamed = 0;
@@ -3472,8 +3459,8 @@ c_enum_decl :  storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBR
 		   SetFlag(n,"unnamedinstance");
 		   Delete(cty);
                  }
-		 if ($10) {
-		   Node *p = $10;
+		 if ($11) {
+		   Node *p = $11;
 		   set_nextSibling(n,p);
 		   while (p) {
 		     SwigType *cty = Copy(ty);
@@ -3981,12 +3968,12 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
              ;
 
 cpp_opt_declarators :  SEMI { $$ = 0; }
-                    |  declarator initializer c_decl_tail {
+                    |  declarator cpp_const initializer c_decl_tail {
                         $$ = new_node("cdecl");
                         Setattr($$,"name",$1.id);
                         Setattr($$,"decl",$1.type);
                         Setattr($$,"parms",$1.parms);
-			set_nextSibling($$,$3);
+			set_nextSibling($$, $4);
                     }
                     ;
 /* ------------------------------------------------------------
