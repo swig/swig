@@ -1000,16 +1000,28 @@ public:
     String *symname = Getattr(n, "sym:name");
     String *wname = NULL;
     String *modes = NULL;
+    bool constructorRenameOverload = false;
 
     if (constructor) {
-      wname = NewString("__construct");
+      // Renamed constructor - turn into static factory method
+      if (Cmp(class_name, Getattr(n, "constructorHandler:sym:name")) != 0) {
+        constructorRenameOverload = true;
+        wname = Copy(Getattr(n, "constructorHandler:sym:name"));
+      } else {
+        wname = NewString("__construct");
+      }
     } else if (class_name) {
       wname = getWrapperMethodName(class_name, symname);
     } else {
       wname = Swig_name_wrapper(symname);
     }
 
-    if (wrapperType == staticmemberfn || Cmp(Getattr(n, "storage"),"static") == 0) {
+    if (constructor) {
+      modes = NewString("ZEND_ACC_PUBLIC | ZEND_ACC_CTOR");
+      if (constructorRenameOverload) {
+        Append(modes, " | ZEND_ACC_STATIC");
+      }
+    } else if (wrapperType == staticmemberfn || Cmp(Getattr(n, "storage"),"static") == 0) {
       modes = NewString("ZEND_ACC_PUBLIC | ZEND_ACC_STATIC");
     } else {
       modes = NewString("ZEND_ACC_PUBLIC");
@@ -1330,10 +1342,10 @@ public:
 
     if (constructor) {
       Append(modes, " | ZEND_ACC_CTOR");
-    } else if (wrapperType == staticmemberfn || Cmp(Getattr(n, "storage"),"static") == 0) {
+    } 
+    if (wrapperType == staticmemberfn || Cmp(Getattr(n, "storage"),"static") == 0) {
       Append(modes, " | ZEND_ACC_STATIC");
     }
-
     if (GetFlag(n, "abstract") && Swig_directorclass(Swig_methodclass(n)))
       Append(modes, " | ZEND_ACC_ABSTRACT");
 
@@ -1345,8 +1357,8 @@ public:
         return SWIG_ERROR;
     }
 
-    // Test for overloading
     if (overname) {
+      // Test for overloading
       wname = Swig_name_wrapper(iname);
       Printf(wname, "%s", overname);
     } else if (constructor) {
@@ -1649,11 +1661,16 @@ public:
     String *retType_class = NULL;
     bool retType_valid = is_class(d);
     bool valid_wrapped_class = false;
+    bool constructorRenameOverload = false;
 
     if (retType_valid) {
       retType_class = get_class_name(d);
       Chop(retType_class);
       valid_wrapped_class = is_class_wrapped(retType_class);
+    }
+
+    if (constructor && Cmp(class_name, Getattr(n, "constructorHandler:sym:name")) != 0) {
+      constructorRenameOverload = true;
     }
 
     /* emit function call */
@@ -1663,18 +1680,15 @@ public:
       Replaceall(tm, "$input", Swig_cresult_name());
       Replaceall(tm, "$source", Swig_cresult_name());
       Replaceall(tm, "$target", "return_value");
-      Replaceall(tm, "$result", "return_value");
+      Replaceall(tm, "$result", constructor ? (constructorRenameOverload ? "return_value" : "getThis()") : "return_value");
       Replaceall(tm, "$owner", newobject ? "1" : "0");
-      Replaceall(tm, "$needNewFlow", retType_valid ? (valid_wrapped_class ? "1" : "0") : "0");
-      Replaceall(tm, "$classZv", constructor ? "getThis()" : "NULL");
+      Replaceall(tm, "$needNewFlow", retType_valid ? (constructor ? (constructorRenameOverload ? "1" : "2") : (valid_wrapped_class ? "1" : "0")) : "0");
       if (retType_class) {
         String *retZend_obj = NewStringEmpty();
         Printf(retZend_obj, "%s_object_new(SWIGTYPE_%s_ce)", retType_class, retType_class);
-        Replaceall(tm, "$zend_obj", retType_valid ? (constructor ? "NULL" : (valid_wrapped_class ? retZend_obj : "NULL")) : "NULL");
+        Replaceall(tm, "$zend_obj", retType_valid ? (constructor ? (constructorRenameOverload ? retZend_obj : "NULL") : (valid_wrapped_class ? retZend_obj : "NULL")) : "NULL");
       }
       Replaceall(tm, "$zend_obj", "NULL");
-      Replaceall(tm, "$newobj", retType_valid ? (valid_wrapped_class ? "1" : "2") : "2");
-      Replaceall(tm, "$c_obj", newobject? (valid_wrapped_class ? (constructor ? "1" : "0") : "2") : "0");
       Printf(f->code, "%s\n", tm);
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
