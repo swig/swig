@@ -1367,15 +1367,14 @@ public:
       wname = getWrapperMethodName(class_name, iname);
     } else if (wrapperType == globalvar) {
       //check for namespaces (global class vars)
-      String *nameSpace = getNameSpace(GetChar(n, "name"));
-      if (nameSpace == NULL) {
+      if (Strchr(name,':')) {
         wname = getWrapperMethodName(class_name, iname);
       } else {
         wname = iname;
       }
     } else if (wrapperType == staticmembervar) {
       // Shape::nshapes -> nshapes
-      wname = (String*) Char(Getattr(n, "staticmembervariableHandler:sym:name"));
+      wname = Getattr(n, "staticmembervariableHandler:sym:name");
 
       /* We get called twice for getter and setter methods. But to maintain
          compatibility, Shape::nshapes() is being used for both setter and 
@@ -1390,11 +1389,7 @@ public:
           static_getter = true;
       }
     } else if (wrapperType == staticmemberfn) {
-      if (Char(Strchr(name, ':'))) {
-        wname = getWrapperMethodName(class_name, iname);
-      } else {
-        wname = iname;
-      }
+      wname = Getattr(n, "staticmemberfunctionHandler:sym:name");
     } else {
       if (class_name) {
         wname = getWrapperMethodName(class_name, iname);
@@ -2636,9 +2631,7 @@ done:
 
     if (Strchr(name,':') && class_name) {
       isMemberConstant = true;
-      char *ptr = Char(strrchr(GetChar(n, "name"),':')) + 1;
-      constant_name = NewStringEmpty();
-      constant_name = (String*) ptr;
+      constant_name = getWrapperMethodName(class_name, iname);
     }
 
     if (!addSymbol(iname, n))
@@ -2746,25 +2739,6 @@ done:
       Setattr(n, "php:proxy", symname);
     }
     return Language::classDeclaration(n);
-  }
-
-  /* class helper method to get namespace 
-   */
-  String *getNameSpace(char *name) {
-    String *present_name = NewString(name);
-    String *second_half = NewString(strchr(name, ':'));
-    Replace(present_name, second_half, "", DOH_REPLACE_FIRST);
-    return present_name;
-  }
-
-  /* Helper method to get names without namespace
-   */
-  String *getNameWithoutNamespace(char *name) {
-    char *returnName = Char(strrchr(name, ':'));
-    if (!returnName) {
-      return NULL;
-    }
-    return NewString(returnName + 1);
   }
 
   /* ------------------------------------------------------------
