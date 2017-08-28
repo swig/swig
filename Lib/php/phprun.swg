@@ -245,14 +245,19 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
 }
 
 static void
-SWIG_generalize_object(zval *zval_obj, void *ptr, int class_obj, int userNewObj ,swig_type_info *type) {
+SWIG_pack_zval(zval *zv, void *ptr, int userNewObj) {
   swig_object_wrapper *obj = NULL;
+  obj = (swig_object_wrapper *) SWIG_Z_FETCH_OBJ_P(zv);
+  obj->ptr = ptr;
+  obj->newobject = userNewObj;
+}
 
-  HashTable * ht = NULL;
+static void
+SWIG_generalize_object(zval *zval_obj, void *ptr, int userNewObj ,swig_type_info *type) {
+  SWIG_pack_zval(zval_obj, ptr, userNewObj);
 
-  obj = (swig_object_wrapper *) SWIG_Z_FETCH_OBJ_P(zval_obj);
-  obj->ptr = (void *)ptr;
-  ht = Z_OBJ_HT_P(zval_obj)->get_properties(zval_obj);
+  HashTable *ht = Z_OBJ_HT_P(zval_obj)->get_properties(zval_obj);
+
   if(ht) {
     zval zv;
     ZVAL_RES(&zv,zend_register_resource(ptr,*(int *)(type->clientdata)));
@@ -260,32 +265,23 @@ SWIG_generalize_object(zval *zval_obj, void *ptr, int class_obj, int userNewObj 
     ZVAL_TRUE(&zv);
     zend_hash_str_add(ht, "SWIG_classWrapper", sizeof("SWIG_classWrapper") - 1, &zv);
   }
-  obj->newobject = userNewObj;
 }
 
 static void
-SWIG_SetZval( zval *zv, zval *class_zv, int userNewObj ,int object, int class_obj ,void *ptr, swig_type_info *type, zend_object *std) {
-
-  if (class_obj == 1) {
-    SWIG_generalize_object(class_zv, ptr, class_obj, userNewObj ,type);
-    return;
-  }
+SWIG_SetZval( zval *zv, int newFlow, int userNewObj, void *ptr, swig_type_info *type, zend_object *std) {
 
   if (!ptr) {
     ZVAL_NULL(zv);
     return;
   }
 
-  if (object == 1) {
-    ZVAL_OBJ(zv,std);
-    SWIG_generalize_object(zv, ptr, class_obj, userNewObj, type);
+  if (newFlow) {
+    if (newFlow == 1)
+      ZVAL_OBJ(zv,std);
+    SWIG_generalize_object(zv, ptr, userNewObj, type);
   }
-
-  if (object == 2) {
-    int newobj = class_obj;
-    if (class_obj == 2)
-      newobj = 1;
-    SWIG_SetPointerZval(zv,ptr,type,newobj);
+  else {
+    SWIG_SetPointerZval(zv, ptr, type, userNewObj);
   }
 }
 
