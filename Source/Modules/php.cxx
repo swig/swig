@@ -2760,10 +2760,12 @@ done:
 
     Printf(all_cs_entry, "static zend_function_entry class_%s_functions[] = {\n", class_name);
 
-    class_type = Getattr(n, "classtype");
+    class_type = SwigType_typedef_resolve_all(Getattr(n, "classtype"));
     Append(classes,class_name);
     Append(class_types, class_type);
     Append(class_need_free, "0");
+
+    Printf(s_oinit, "asd %s %s %s\n",Getattr(n, "classtype"),class_type, SwigType_str(SwigType_ltype(Getattr(n, "classtype")),0) );
 
     Printf(s_oinit, "\nzend_class_entry SWIGTYPE_%s_internal_ce;\n", class_name);
     
