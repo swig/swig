@@ -770,7 +770,7 @@ public:
   /* Just need to append function names to function table to register with PHP. */
   void create_command(String *cname, String *fname, Node *n, bool overload, String *modes = NULL) {
     // This is for the single main zend_function_entry record
-    if (cname) {
+    if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
         Printf(f_h, "PHP_METHOD(%s,%s);\n", cname, fname);
     } else {
       if (overload)
@@ -816,7 +816,7 @@ public:
 
     String * s = cs_entry;
     if (!s) s = s_entry;
-    if (cname) {
+    if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
       Printf(all_cs_entry, " PHP_ME(%s,%s,swig_arginfo_%s,%s)\n", cname, fname, arginfo_code, modes);
     } else {
       if (overload)
@@ -988,10 +988,10 @@ public:
 
     String *dispatch = NULL;
 
-    if (!class_name) {
-      dispatch = Swig_overload_dispatch(n, "%s(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;", &maxargs);
-    } else {
+    if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
       dispatch = Swig_class_overload_dispatch(n, "%s(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;", &maxargs);
+    } else {
+      dispatch = Swig_overload_dispatch(n, "%s(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;", &maxargs);
     }
 
     /* Generate a dispatch wrapper for all overloaded functions */
@@ -1029,10 +1029,10 @@ public:
 
     create_command(class_name, wname, n, true, modes);
 
-    if (!class_name) {
-      Printv(f->def, "ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
-    } else {
+    if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
       Printv(f->def,  "PHP_METHOD(", class_name, ",", wname, ") {\n", NIL);
+    } else {
+      Printv(f->def, "ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
     }
 
     Wrapper_add_local(f, "argc", "int argc");
@@ -1421,14 +1421,14 @@ public:
 
     if (!overloaded) {
       if (!static_getter) {
-        if (class_name) {
+        if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
           Printv(f->def, "PHP_METHOD(", class_name, ",", wname,") {\n", NIL);
         } else {
           Printv(f->def, "PHP_FUNCTION(", wname,") {\n", NIL);
         }
       }
     } else {
-      if (class_name) {
+      if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
         Printv(f->def, "PHP_METHOD(", class_name, ",", wname,") {\n", NIL);
       } else {
         Printv(f->def, "ZEND_NAMED_FUNCTION(", wname,") {\n", NIL);
@@ -1649,7 +1649,7 @@ public:
     if (!overloaded) {
       Setattr(n, "wrap:name", wname);
     } else {
-      if (class_name) {
+      if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
         String *m_call = NewStringEmpty();
         Printf(m_call, "ZEND_MN(%s_%s)", class_name, wname);
         Setattr(n, "wrap:name", m_call);
