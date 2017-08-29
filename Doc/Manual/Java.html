@@ -8165,13 +8165,10 @@ public class Container {
   // Ensure that the GC doesn't collect any Element set from Java
   // as the underlying C++ class stores a shallow copy
   private Element elementReference;
-  private long getCPtrAndAddReference(Element element) {
-    elementReference = element;
-    return Element.getCPtr(element);
-  }
 
   public void setElement(Element e) {
-    exampleJNI.Container_setElement(swigCPtr, this, getCPtrAndAddReference(e), e);
+    exampleJNI.Container_setElement(swigCPtr, this, Element.getCPtr(e), e);
+    elementReference = e;
   }
 }
 </pre>
@@ -8179,22 +8176,20 @@ public class Container {
 
 <p>
 The following typemaps will generate the desired code.
-The 'javain' typemap matches the input parameter type for the <tt>setElement</tt> method.
+The 'javain' typemap matches the input parameter type for the <tt>setElement</tt> method and allows adding code after the call. 
 The 'javacode' typemap simply adds in the specified code into the Java proxy class.
 </p>
 
 <div class="code">
 <pre>
-%typemap(javain) Element *e "getCPtrAndAddReference($javainput)"
+%typemap(javain, 
+         post="elementReference = $javainput;\n"
+         ) Element *e "Element.getCPtr($javainput)"
 
 %typemap(javacode) Container %{
   // Ensure that the GC doesn't collect any element set from Java
   // as the underlying C++ class stores a shallow copy
   private Element elementReference;
-  private long getCPtrAndAddReference(Element element) {
-    elementReference = element;
-    return Element.getCPtr(element);
-  }
 %}
 </pre>
 </div>
