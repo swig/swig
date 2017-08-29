@@ -42,6 +42,15 @@ public class cpp11_ref_qualifiers_runme {
     r.SS1(0);
     r.SS2(0);
     r.SS3(0);
+
+    // Conversion operators
+    String s = null;
+    ConversionOperators co = new ConversionOperators();
+    s = co.StringConvertCopy();
+    s = co.StringConvertMove();
+
+    ConversionOperators2 co2 = new ConversionOperators2();
+    s = co2.StringConvertMove();
   }
 }
 

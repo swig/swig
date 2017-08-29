@@ -4656,6 +4656,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 if ($8.qualifier) {
 		   SwigType_push($4,$8.qualifier);
 		 }
+		 Setattr($$,"refqualifier",$8.refqualifier);
 		 Setattr($$,"decl",$4);
 		 Setattr($$,"parms",$6);
 		 Setattr($$,"conversion_operator","1");
@@ -4673,6 +4674,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 if ($8.qualifier) {
 		   SwigType_push(decl,$8.qualifier);
 		 }
+		 Setattr($$,"refqualifier",$8.refqualifier);
 		 Setattr($$,"decl",decl);
 		 Setattr($$,"parms",$6);
 		 Setattr($$,"conversion_operator","1");
@@ -4690,6 +4692,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 if ($8.qualifier) {
 		   SwigType_push(decl,$8.qualifier);
 		 }
+		 Setattr($$,"refqualifier",$8.refqualifier);
 		 Setattr($$,"decl",decl);
 		 Setattr($$,"parms",$6);
 		 Setattr($$,"conversion_operator","1");
@@ -4709,6 +4712,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 if ($9.qualifier) {
 		   SwigType_push(decl,$9.qualifier);
 		 }
+		 Setattr($$,"refqualifier",$9.refqualifier);
 		 Setattr($$,"decl",decl);
 		 Setattr($$,"parms",$7);
 		 Setattr($$,"conversion_operator","1");
@@ -4725,6 +4729,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		if ($7.qualifier) {
 		  SwigType_push(t,$7.qualifier);
 		}
+		 Setattr($$,"refqualifier",$7.refqualifier);
 		Setattr($$,"decl",t);
 		Setattr($$,"parms",$5);
 		Setattr($$,"conversion_operator","1");
@@ -4819,7 +4824,7 @@ cpp_vend       : cpp_const SEMI {
                      Clear(scanner_ccode);
                      $$.val = 0;
                      $$.qualifier = $1.qualifier;
-                     $$.refqualifier = 0;
+                     $$.refqualifier = $1.refqualifier;
                      $$.bitfield = 0;
                      $$.throws = $1.throws;
                      $$.throwf = $1.throwf;
@@ -4829,7 +4834,7 @@ cpp_vend       : cpp_const SEMI {
                      Clear(scanner_ccode);
                      $$.val = $3.val;
                      $$.qualifier = $1.qualifier;
-                     $$.refqualifier = 0;
+                     $$.refqualifier = $1.refqualifier;
                      $$.bitfield = 0;
                      $$.throws = $1.throws; 
                      $$.throwf = $1.throwf; 
@@ -4839,7 +4844,7 @@ cpp_vend       : cpp_const SEMI {
                      skip_balanced('{','}');
                      $$.val = 0;
                      $$.qualifier = $1.qualifier;
-                     $$.refqualifier = 0;
+                     $$.refqualifier = $1.refqualifier;
                      $$.bitfield = 0;
                      $$.throws = $1.throws; 
                      $$.throwf = $1.throwf; 

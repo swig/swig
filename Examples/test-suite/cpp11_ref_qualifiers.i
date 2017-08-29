@@ -74,3 +74,18 @@ struct Renames {
   string S3(int i) const & { return string(); }
 };
 %}
+
+// Conversion operators
+%rename(StringConvertCopy) operator string() &;
+%rename(StringConvertMove) operator string() &&;
+%feature("ignore", "0") operator string() &&; // unignore as it is ignored by default
+
+%inline %{
+struct ConversionOperators {
+  virtual operator string() & { return string(); }
+  virtual operator string() && { return std::move(string()); }
+};
+struct ConversionOperators2 {
+  virtual operator string() && { return std::move(string()); }
+};
+%}

@@ -35,3 +35,11 @@ r.RR3()
 r.SS1(0)
 r.SS2(0)
 r.SS3(0)
+
+# Conversion operators
+co = cpp11_ref_qualifiers.ConversionOperators()
+s = co.StringConvertCopy()
+s = co.StringConvertMove()
+
+co2 = cpp11_ref_qualifiers.ConversionOperators2()
+s = co2.StringConvertMove()
