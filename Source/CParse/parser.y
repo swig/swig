@@ -3163,6 +3163,9 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		Swig_error(cparse_file, cparse_line, "Missing symbol name for global declaration\n");
 		$$ = 0;
 	      }
+
+	      if ($4.qualifier && $1 && Strstr($1, "static"))
+		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
            }
            /* Alternate function syntax introduced in C++11:
               auto funcName(int x, int y) -> int; */
@@ -3220,6 +3223,9 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      } else {
 		set_nextSibling($$, $9);
 	      }
+
+	      if ($4.qualifier && $1 && Strstr($1, "static"))
+		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
            }
            ;
 
@@ -4610,6 +4616,8 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 	       Setattr($$,"noexcept",$6.nexcept);
 	       if ($6.val)
 	         Setattr($$,"value",$6.val);
+	       if ($6.qualifier)
+		 Swig_error(cparse_file, cparse_line, "Destructor %s %s cannot have a qualifier.\n", Swig_name_decl($$), SwigType_str($6.qualifier, 0));
 	       add_symbols($$);
 	      }
 
@@ -4639,7 +4647,8 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 		  Setattr($$,"decl",decl);
 		  Delete(decl);
 		}
-
+		if ($7.qualifier)
+		  Swig_error(cparse_file, cparse_line, "Destructor %s %s cannot have a qualifier.\n", Swig_name_decl($$), SwigType_str($7.qualifier, 0));
 		add_symbols($$);
 	      }
               ;
@@ -4800,6 +4809,9 @@ cpp_swig_directive: pragma_directive { $$ = $1; }
 cpp_end        : cpp_const SEMI {
 	            Clear(scanner_ccode);
 		    $$.val = 0;
+		    $$.qualifier = $1.qualifier;
+		    $$.refqualifier = $1.refqualifier;
+		    $$.bitfield = 0;
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
 		    $$.nexcept = $1.nexcept;
@@ -4807,6 +4819,9 @@ cpp_end        : cpp_const SEMI {
                | cpp_const EQUAL default_delete SEMI {
 	            Clear(scanner_ccode);
 		    $$.val = $3.val;
+		    $$.qualifier = $1.qualifier;
+		    $$.refqualifier = $1.refqualifier;
+		    $$.bitfield = 0;
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
 		    $$.nexcept = $1.nexcept;
@@ -4814,6 +4829,9 @@ cpp_end        : cpp_const SEMI {
                | cpp_const LBRACE { 
 		    skip_balanced('{','}'); 
 		    $$.val = 0;
+		    $$.qualifier = $1.qualifier;
+		    $$.refqualifier = $1.refqualifier;
+		    $$.bitfield = 0;
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
 		    $$.nexcept = $1.nexcept;
@@ -6710,6 +6728,8 @@ ctor_end       : cpp_const ctor_initializer SEMI {
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
 		    $$.nexcept = $1.nexcept;
+                    if ($1.qualifier)
+                      Swig_error(cparse_file, cparse_line, "Constructor cannot have a qualifier.\n");
                }
                | cpp_const ctor_initializer LBRACE { 
                     skip_balanced('{','}'); 
@@ -6718,6 +6738,8 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.throws = $1.throws;
                     $$.throwf = $1.throwf;
                     $$.nexcept = $1.nexcept;
+                    if ($1.qualifier)
+                      Swig_error(cparse_file, cparse_line, "Constructor cannot have a qualifier.\n");
                }
                | LPAREN parms RPAREN SEMI { 
                     Clear(scanner_ccode); 
@@ -6750,6 +6772,8 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.throws = $1.throws;
                     $$.throwf = $1.throwf;
                     $$.nexcept = $1.nexcept;
+                    if ($1.qualifier)
+                      Swig_error(cparse_file, cparse_line, "Constructor cannot have a qualifier.\n");
                }
                ;
 
