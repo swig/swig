@@ -1335,7 +1335,7 @@ public:
     if (wrapperType == staticmemberfn || Cmp(Getattr(n, "storage"),"static") == 0) {
       Append(modes, " | ZEND_ACC_STATIC");
     }
-    if (GetFlag(n, "abstract") && Swig_directorclass(Swig_methodclass(n)))
+    if (GetFlag(n, "abstract") && Swig_directorclass(Swig_methodclass(n)) && !is_member_director(n))
       Append(modes, " | ZEND_ACC_ABSTRACT");
 
     if (Getattr(n, "sym:overloaded")) {
