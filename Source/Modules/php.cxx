@@ -965,18 +965,6 @@ public:
 
    }
 
-   /* Helper method to remove class prefix on method names.
-    * Ex- Class_method_name -> method_name
-    */
-   String *getWrapperMethodName(String *className, String *methodName) {
-    String *wrapper_class_name = NewString(className);
-    Append(wrapper_class_name, "_");
-    String *wrapper_method_name = NewString(methodName);
-    Replace(wrapper_method_name, wrapper_class_name, "", DOH_REPLACE_FIRST);
-    Delete(wrapper_class_name);
-    return wrapper_method_name;
-  }
-
   /* ------------------------------------------------------------
    * dispatchFunction()
    * ------------------------------------------------------------ */
@@ -1011,7 +999,7 @@ public:
         wname = NewString("__construct");
       }
     } else if (class_name) {
-      wname = getWrapperMethodName(class_name, symname);
+      wname = Getattr(n, "wrapper:method:name");
     } else {
       wname = Swig_name_wrapper(symname);
     }
@@ -1332,6 +1320,7 @@ public:
     Wrapper *f;
 
     String *wname = NewStringEmpty();
+    String *overloadwname = NULL;
     int overloaded = 0;
     String *overname = 0;
     String *modes = NULL;
@@ -1359,16 +1348,30 @@ public:
 
     if (overname) {
       // Test for overloading
-      wname = Swig_name_wrapper(iname);
-      Printf(wname, "%s", overname);
-    } else if (constructor) {
+      overloadwname = NewString(Swig_name_wrapper(iname));
+      Printf(overloadwname, "%s", overname);
+    }
+
+    if (constructor) {
       wname = NewString("__construct");
     } else if (wrapperType == membervar) {
-      wname = getWrapperMethodName(class_name, iname);
+      wname = Copy(Getattr(n, "membervariableHandler:sym:name"));
+      if (is_setter_method(n)) {
+        Append(wname, "_set");
+      } else if (is_getter_method(n)) {
+        Append(wname, "_get");
+      }
+    } else if (wrapperType == memberfn) {
+      wname = Getattr(n, "memberfunctionHandler:sym:name");
     } else if (wrapperType == globalvar) {
       //check for namespaces (global class vars)
-      if (Strchr(name,':')) {
-        wname = getWrapperMethodName(class_name, iname);
+      if (class_name) {
+        wname = Copy(Getattr(n, "variableWrapper:sym:name"));
+        if (is_setter_method(n)) {
+          Append(wname, "_set");
+        } else if (is_getter_method(n)) {
+          Append(wname, "_get");
+        }
       } else {
         wname = iname;
       }
@@ -1392,10 +1395,18 @@ public:
       wname = Getattr(n, "staticmemberfunctionHandler:sym:name");
     } else {
       if (class_name) {
-        wname = getWrapperMethodName(class_name, iname);
+        if (Cmp(Getattr(n, "storage"), "friend") == 0 && Cmp(Getattr(n, "view"), "globalfunctionHandler") == 0) {
+          wname = iname;
+        } else {
+          wname = Getattr(n, "destructorHandler:sym:name");
+        }
       } else {
         wname = iname;
       }
+    }
+
+    if (!wname) {
+        Swig_print_node(n);
     }
 
     if (Cmp(nodeType, "destructor") == 0) {
@@ -1424,9 +1435,9 @@ public:
       }
     } else {
       if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
-        Printv(f->def, "PHP_METHOD(", class_name, ",", wname,") {\n", NIL);
+        Printv(f->def, "PHP_METHOD(", class_name, ",", overloadwname,") {\n", NIL);
       } else {
-        Printv(f->def, "ZEND_NAMED_FUNCTION(", wname,") {\n", NIL);
+        Printv(f->def, "ZEND_NAMED_FUNCTION(", overloadwname,") {\n", NIL);
       }
     }
 
@@ -1646,12 +1657,13 @@ public:
     } else {
       if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
         String *m_call = NewStringEmpty();
-        Printf(m_call, "ZEND_MN(%s_%s)", class_name, wname);
+        Printf(m_call, "ZEND_MN(%s_%s)", class_name, overloadwname);
         Setattr(n, "wrap:name", m_call);
       } else {
-        Setattr(n, "wrap:name", wname);
+        Setattr(n, "wrap:name", overloadwname);
       }
     }
+    Setattr(n, "wrapper:method:name", wname);
 
     String *retType_class = NULL;
     bool retType_valid = is_class(d);
@@ -2629,9 +2641,9 @@ done:
     bool isMemberConstant = false;
     String *constant_name = NULL;
 
-    if (Strchr(name,':') && class_name) {
+    if (class_name) {
       isMemberConstant = true;
-      constant_name = getWrapperMethodName(class_name, iname);
+      constant_name = Getattr(n ,"memberconstantHandler:sym:name");
     }
 
     if (!addSymbol(iname, n))
