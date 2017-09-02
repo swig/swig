@@ -2638,27 +2638,19 @@ done:
     String *value = rawval ? rawval : Getattr(n, "value");
     String *tm;
 
-    bool isMemberConstant = false;
-    String *constant_name = NULL;
-
-    if (class_name) {
-      isMemberConstant = true;
-      constant_name = Getattr(n ,"memberconstantHandler:sym:name");
-    }
-
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
 
     SwigType_remember(type);
 
-    if (!isMemberConstant && (tm = Swig_typemap_lookup("consttab", n, name, 0))) {
+    if (!wrapping_member_constant && (tm = Swig_typemap_lookup("consttab", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
       Printf(s_cinit, "%s\n", tm);
-    } else if (isMemberConstant && (tm = Swig_typemap_lookup("classconsttab", n, name, 0))) {
+    } else if (wrapping_member_constant && (tm = Swig_typemap_lookup("classconsttab", n, name, 0))) {
       Replaceall(tm, "$class", class_name);
-      Replaceall(tm, "$const_name", constant_name);
+      Replaceall(tm, "$const_name", wrapping_member_constant);
       Replaceall(tm, "$value", value);
       Printf(s_cinit, "%s\n", tm);
     }
