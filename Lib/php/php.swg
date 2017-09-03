@@ -87,8 +87,7 @@
 %{
   if ($needNewFlow) {
     $1 = *(($1_ltype *)$obj_value);
-  }
-  else {
+  } else {
     if (SWIG_ConvertPtr(&$input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL)
       SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1&_descriptor");
     $1 = *tmp;
@@ -99,9 +98,16 @@
 %{
   /* If exit was via exception, PHP NULL is returned so skip the conversion. */
   if (!EG(exception)) {
-    if (SWIG_ConvertPtr($input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL)
-      SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
-    $result = *tmp;
+    if ($needNewFlow) {
+      swig_object_wrapper *obj = SWIG_Z_FETCH_OBJ_P(result);
+      tmp = ($&1_ltype) &obj->ptr;
+      c_result = *tmp;
+      obj->newobject = 0;
+    } else {
+      if (SWIG_ConvertPtr($input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL)
+        SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
+      $result = *tmp;
+    }
   }
 %}
 
@@ -110,8 +116,7 @@
 %{
   if ($needNewFlow) {
     $1 = ($1_ltype) $obj_value;
-  }
-  else {
+  } else {
     if (SWIG_ConvertPtr(&$linput, (void **) &$1, $1_descriptor, 0) < 0)
       SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
   }
@@ -121,8 +126,7 @@
 %{
   if ($needNewFlow) {
     $1 = ($1_ltype) $obj_value;
-  }
-  else {
+  } else {
 	  if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL)
       SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
   }
@@ -132,8 +136,7 @@
 %{
   if ($needNewFlow) {
     $1 = ($1_ltype) $obj_value;
-  }
-  else {
+  } else {
     if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL) {
       SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
     }
@@ -144,8 +147,7 @@
 %{
   if ($needNewFlow) {
     $1 = ($1_ltype) $obj_value;
-  }
-  else {
+  } else {
     if (SWIG_ConvertPtr(&$input, (void **) &temp, $*1_descriptor, 0) < 0) {
       SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $*1_descriptor");
     }
@@ -158,8 +160,7 @@
   if ($needNewFlow) {
     SWIG_Z_FETCH_OBJ_P(&$input)->newobject = 0;
     $1 = ($lower_param *)SWIG_Z_FETCH_OBJ_P(&$input)->ptr;
-  }
-  else {
+  } else {
     if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, SWIG_POINTER_DISOWN ) < 0)
       SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
   }
