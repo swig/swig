@@ -38,7 +38,11 @@ SWIG_From_dec(long)(long value)
 SWIGINTERNINLINE  int
 SWIG_AsVal_dec(long)(SEXP obj, long *val)
 {
-   if (val) *val = Rf_asInteger(obj);
+   if (val) {
+      double tmp = Rf_asReal(obj);
+      if(tmp > (2L<<(DBL_MANT_DIG-1)) || tmp < -(2L<<(DBL_MANT_DIG-1))) Rf_warning("long integers > 2^DBL_MANT_DIG not properly supported");
+      *val = (long)tmp;
+   }
    return SWIG_OK;
 }
 }
@@ -80,7 +84,11 @@ SWIG_From_dec(unsigned long)(unsigned long value)
 SWIGINTERNINLINE  int
 SWIG_AsVal_dec(unsigned long)(SEXP obj, unsigned long *val)
 {
-   if (val) *val = Rf_asInteger(obj);
+   if (val) {
+      double tmp = Rf_asReal(obj);
+      if(tmp > (2L<<(DBL_MANT_DIG-1))) Rf_warning("long integers > 2^DBL_MANT_DIG not properly supported");
+      *val = (unsigned long)tmp;
+   }
    return SWIG_OK;
 }
 }

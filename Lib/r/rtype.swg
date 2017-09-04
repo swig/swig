@@ -4,7 +4,7 @@
  */
 
 %typemap("rtype") int, int *, int &      "integer";
-%typemap("rtype") long, long *, long &      "integer";
+%typemap("rtype") long, long *, long &   "double";
 %typemap("rtype") float, float*, float & "numeric";
 %typemap("rtype") double, double*, double & "numeric";
 %typemap("rtype") char *, char ** "character";
@@ -73,7 +73,7 @@
 %typemap(scoercein) int, int *, int &
   %{  $input = as.integer($input);     %}
 %typemap(scoercein) long, long *, long &
-  %{  $input = as.integer($input);     %}
+  %{  $input = as.double($input);     %}
 %typemap(scoercein) float, float*, float &,
   double, double *, double &
   %{ %}
@@ -124,11 +124,12 @@
 		    "$input = as.logical($input);";
 %typemap(scoercein) int, 
                     int *, 
-		    int &,
-		    long,
+		    int &
+  "$input = as.integer($input);";
+%typemap(scoercein) long,
 		    long *,
 		    long &
-  "$input = as.integer($input);";
+  "$input = as.double($input);";
 
 %typemap(scoercein) char *, string, std::string,
 string &, std::string &
@@ -211,51 +212,39 @@ string &, std::string &
 		     unsigned char &
  %{    %}
 
-%apply int {size_t,
-std::size_t,
-ptrdiff_t,
-std::ptrdiff_t,
-signed int,
-unsigned int,
-short,
-unsigned short,
-signed char,
-unsigned char}
+%apply int {
+       signed int,
+       unsigned int,
+       short,
+       unsigned short,
+       signed char,
+       unsigned char}
 
-%apply int* {size_t[],
-std::size_t[],
-ptrdiff_t[],
-std::ptrdiff_t[],
-signed int[],
-unsigned int[],
-short[],
-unsigned short[],
-signed char[],
-unsigned char[]}
-
-%apply int* {size_t[ANY],
-std::size_t[ANY],
-ptrdiff_t[ANY],
-std::ptrdiff_t[ANY],
-signed int[ANY],
-unsigned int[ANY],
-short[ANY],
-unsigned short[ANY],
-signed char[ANY],
-unsigned char[ANY]}
-
-%apply int* {size_t*,
-std::size_t*,
-ptrdiff_t*,
-std::ptrdiff_t*,
-signed int*,
-unsigned int*,
-short*,
-unsigned short*,
-signed char*,
-unsigned char*}
+%apply int* {
+       signed int[],
+       unsigned int[],
+       short[],
+       unsigned short[],
+       signed char[],
+       unsigned char[],
+       signed int[ANY],
+       unsigned int[ANY],
+       short[ANY],
+       unsigned short[ANY],
+       signed char[ANY],
+       unsigned char[ANY],
+       signed int*,
+       unsigned int*,
+       short*,
+       unsigned short*,
+       signed char*,
+       unsigned char*}
 
 %apply long {
+       size_t,
+       std::size_t,
+       ptrdiff_t,
+       std::ptrdiff_t,
        long long,
        signed long long,
        unsigned long long,
@@ -263,16 +252,27 @@ unsigned char*}
        unsigned long}
 
 %apply long* {
+       std::size_t*,
+       ptrdiff_t*,
+       std::ptrdiff_t*,
        long long*,
        signed long long*,
        unsigned long long*,
        signed long*,
        unsigned long*,
+       size_t[],
+       std::size_t[],
+       ptrdiff_t[],
+       std::ptrdiff_t[],
        long long[],
        signed long long[],
        unsigned long long[],
        signed long[],
        unsigned long[],
+       size_t[ANY],
+       std::size_t[ANY],
+       ptrdiff_t[ANY],
+       std::ptrdiff_t[ANY],
        long long[ANY],
        signed long long[ANY],
        unsigned long long[ANY],
