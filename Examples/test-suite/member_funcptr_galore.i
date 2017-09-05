@@ -161,7 +161,7 @@ public:
     int qqq7(short (Funcs::* const& qq7)(bool)) const;
 };
 
-    // member const function pointers, unnamed parameters
+// member const function pointers, unnamed parameters
 int MemberFuncPtrs::aaa1(short (Funcs::* )(bool) const) const { return 0; }
 int MemberFuncPtrs::aaa2(short (Funcs::* const *&)(bool) const) const { return 0; }
 int MemberFuncPtrs::aaa3(short (Funcs::* *& )(bool) const) const { return 0; }

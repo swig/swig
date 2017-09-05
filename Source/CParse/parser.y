@@ -1897,10 +1897,10 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
                }
 	       /* Member const function pointers . eg.
 	         %constant short (Funcs::*pmf)(bool) const = &Funcs::F; */
-	       | CONSTANT type direct_declarator LPAREN parms RPAREN CONST_QUAL def_args SEMI {
+	       | CONSTANT type direct_declarator LPAREN parms RPAREN cv_ref_qualifier def_args SEMI {
 		 if (($8.type != T_ERROR) && ($8.type != T_SYMBOL)) {
 		   SwigType_add_function($2, $5);
-		   SwigType_add_qualifier($2, "const");
+		   SwigType_push($2, $7.qualifier);
 		   SwigType_push($2, $3.type);
 		   /* Sneaky callback function trick */
 		   if (SwigType_isfunction($2)) {
@@ -5118,12 +5118,13 @@ parameter_declarator : declarator def_args {
             }
 	    /* Member const function pointer parameters. eg.
 	      int f(short (Funcs::*parm)(bool) const); */
-	    | direct_declarator LPAREN parms RPAREN CONST_QUAL {
+	    | direct_declarator LPAREN parms RPAREN cv_ref_qualifier {
 	      SwigType *t;
 	      $$ = $1;
 	      t = NewStringEmpty();
 	      SwigType_add_function(t,$3);
-	      SwigType_add_qualifier(t, "const");
+	      if ($5.qualifier)
+	        SwigType_push(t, $5.qualifier);
 	      if (!$$.have_parms) {
 		$$.parms = $3;
 		$$.have_parms = 1;
@@ -5812,12 +5813,12 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
 		      $$.have_parms = 1;
 		    }
 		  }
-                  | direct_abstract_declarator LPAREN parms RPAREN type_qualifier {
+                  | direct_abstract_declarator LPAREN parms RPAREN cv_ref_qualifier {
 		    SwigType *t;
                     $$ = $1;
 		    t = NewStringEmpty();
                     SwigType_add_function(t,$3);
-		    SwigType_push(t, $5);
+		    SwigType_push(t, $5.qualifier);
 		    if (!$$.type) {
 		      $$.type = t;
 		    } else {
