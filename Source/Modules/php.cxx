@@ -1576,7 +1576,7 @@ public:
           } else {
             Printf(param_zval, "&%s", source);
           }
-          Printf(param_value, "%sSWIG_Z_FETCH_OBJ_P(%s)->ptr", SwigType_isreference(pt) ? "&" : "", param_zval);
+          Printf(param_value, "SWIG_Z_FETCH_OBJ_P(%s)->ptr", param_zval);
           Replaceall(tm, "$obj_value", param_value);
         }
         Replaceall(tm, "$needNewFlow", paramType_valid ? (is_class_wrapped(paramType_class) ? "1" : "0") : "0");
