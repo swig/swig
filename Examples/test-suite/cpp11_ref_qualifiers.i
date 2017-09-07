@@ -114,6 +114,8 @@ public:
   int aaa6(short (Funcs::* const)(bool) &) const;
   int aaa7(short (Funcs::* const&)(bool) &) const;
 
+  int aaa8(short (Funcs::* const&)(bool) &&) const;
+
   // member cv-qualified and ref-qualified function pointers, unnamed parameters
   int bbb1(short (Funcs::*)(bool) const &) const;
   int bbb2(short (Funcs::* const *&)(bool) const &) const;
@@ -122,6 +124,8 @@ public:
   int bbb5(short (Funcs::* &)(bool) const &) const;
   int bbb6(short (Funcs::* const)(bool) const &) const;
   int bbb7(short (Funcs::* const&)(bool) const &) const;
+
+  int bbb8(short (Funcs::*)(bool) const &&) const;
 
   // member ref-qualified function pointers, named parameters
   int qqq1(short (Funcs::* qq1)(bool) &) const;
@@ -132,6 +136,8 @@ public:
   int qqq6(short (Funcs::* const qq6)(bool) &) const;
   int qqq7(short (Funcs::* const& qq7)(bool) &) const;
 
+  int qqq8(short (Funcs::* const& qq8)(bool) &&) const;
+
   // member cv-qualified and ref-qualified function pointers, named parameters
   int rrr1(short (Funcs::* rr1)(bool) const &) const;
   int rrr2(short (Funcs::* const *& rr2)(bool) const &) const;
@@ -140,6 +146,8 @@ public:
   int rrr5(short (Funcs::* & rr5)(bool) const &) const;
   int rrr6(short (Funcs::* const rr6)(bool) const &) const;
   int rrr7(short (Funcs::* const& rr7)(bool) const &) const;
+
+  int rrr8(short (Funcs::* rr1)(bool) const &&) const;
 };
 
 // member ref-qualified function pointers, unnamed parameters
@@ -151,6 +159,8 @@ int MemberFuncPtrs::aaa5(short (Funcs::* &)(bool) &) const { return 0; }
 int MemberFuncPtrs::aaa6(short (Funcs::* const)(bool) &) const { return 0; }
 int MemberFuncPtrs::aaa7(short (Funcs::* const&)(bool) &) const { return 0; }
 
+int MemberFuncPtrs::aaa8(short (Funcs::* const&)(bool) &&) const { return 0; }
+
 // member cv-qualified and ref-qualified function pointers, unnamed parameters
 int MemberFuncPtrs::bbb1(short (Funcs::*)(bool) const &) const { return 0; }
 int MemberFuncPtrs::bbb2(short (Funcs::* const *&)(bool) const &) const { return 0; }
@@ -159,6 +169,8 @@ int MemberFuncPtrs::bbb4(short (Funcs::* *const&)(bool) const &) const { return 
 int MemberFuncPtrs::bbb5(short (Funcs::* &)(bool) const &) const { return 0; }
 int MemberFuncPtrs::bbb6(short (Funcs::* const)(bool) const &) const { return 0; }
 int MemberFuncPtrs::bbb7(short (Funcs::* const&)(bool) const &) const { return 0; }
+
+int MemberFuncPtrs::bbb8(short (Funcs::*)(bool) const &&) const { return 0; }
 
 // member ref-qualified function pointers, named parameters
 int MemberFuncPtrs::qqq1(short (Funcs::* qq1)(bool) &) const { return 0; }
@@ -169,6 +181,8 @@ int MemberFuncPtrs::qqq5(short (Funcs::* & qq5)(bool) &) const { return 0; }
 int MemberFuncPtrs::qqq6(short (Funcs::* const qq6)(bool) &) const { return 0; }
 int MemberFuncPtrs::qqq7(short (Funcs::* const& qq7)(bool) &) const { return 0; }
 
+int MemberFuncPtrs::qqq8(short (Funcs::* const& qq8)(bool) &&) const { return 0; }
+
 // member cv-qualified and ref-qualified function pointers, named parameters
 int MemberFuncPtrs::rrr1(short (Funcs::* rr1)(bool) const &) const { return 0; }
 int MemberFuncPtrs::rrr2(short (Funcs::* const *& rr2)(bool) const &) const { return 0; }
@@ -177,6 +191,8 @@ int MemberFuncPtrs::rrr4(short (Funcs::* *const& rr4)(bool) const &) const { ret
 int MemberFuncPtrs::rrr5(short (Funcs::* & rr5)(bool) const &) const { return 0; }
 int MemberFuncPtrs::rrr6(short (Funcs::* const rr6)(bool) const &) const { return 0; }
 int MemberFuncPtrs::rrr7(short (Funcs::* const& rr7)(bool) const &) const { return 0; }
+
+int MemberFuncPtrs::rrr8(short (Funcs::* rr1)(bool) const &&) const { return 0; }
 
 // member cv-qualified and ref-qualified pointer variables
 short (Funcs::* cc1)(bool) const & = &Funcs::CC;

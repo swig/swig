@@ -620,7 +620,7 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
     } else if (SwigType_isrvalue_reference(element)) {
       if (!member_function_qualifiers)
 	Insert(result, 0, "&&");
-      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+      if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
 	Insert(result, 0, "(");
 	Append(result, ")");
       }
