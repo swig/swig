@@ -1895,7 +1895,7 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		   $$ = 0;
 		 }
                }
-	       /* Member const function pointers . eg.
+	       /* Member function pointers with qualifiers. eg.
 	         %constant short (Funcs::*pmf)(bool) const = &Funcs::F; */
 	       | CONSTANT type direct_declarator LPAREN parms RPAREN cv_ref_qualifier def_args SEMI {
 		 if (($8.type != T_ERROR) && ($8.type != T_SYMBOL)) {
@@ -5116,7 +5116,7 @@ parameter_declarator : declarator def_args {
               $$.id = 0;
 	      $$.defarg = $1.rawval ? $1.rawval : $1.val;
             }
-	    /* Member const function pointer parameters. eg.
+	    /* Member function pointers with qualifiers. eg.
 	      int f(short (Funcs::*parm)(bool) const); */
 	    | direct_declarator LPAREN parms RPAREN cv_ref_qualifier {
 	      SwigType *t;
@@ -5174,6 +5174,27 @@ plain_declarator : declarator {
 		$$.parms = 0;
 	      }
             }
+	    /* Member function pointers with qualifiers. eg.
+	      int f(short (Funcs::*parm)(bool) const) */
+	    | direct_declarator LPAREN parms RPAREN cv_ref_qualifier {
+	      SwigType *t;
+	      $$ = $1;
+	      t = NewStringEmpty();
+	      SwigType_add_function(t, $3);
+	      if ($5.qualifier)
+	        SwigType_push(t, $5.qualifier);
+	      if (!$$.have_parms) {
+		$$.parms = $3;
+		$$.have_parms = 1;
+	      }
+	      if (!$$.type) {
+		$$.type = t;
+	      } else {
+		SwigType_push(t, $$.type);
+		Delete($$.type);
+		$$.type = t;
+	      }
+	    }
             | empty {
    	      $$.type = 0;
               $$.id = 0;
