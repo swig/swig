@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-09-10: mlamarre
+            [Python] Patch #1083. Define_DEBUG to 1 to do exactly like Visual Studio
+            /LDd, /MDd or /MTd compiler options.
+
 2017-08-16: wsfulton
             Fix #1063. Add using declarations to templates into typedef table.
 
