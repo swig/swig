@@ -90,9 +90,11 @@ struct Renames {
 struct ConversionOperators {
   virtual operator string() & { return string(); }
   virtual operator string() && { return std::move(string()); }
+  virtual ~ConversionOperators() {}
 };
 struct ConversionOperators2 {
   virtual operator string() && { return std::move(string()); }
+  virtual ~ConversionOperators2() {}
 };
 %}
 
