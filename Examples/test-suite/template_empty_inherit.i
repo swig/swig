@@ -5,6 +5,7 @@
 %inline %{
 template<class Arg, typename Result> struct Functor {
   virtual Result operator()(Arg x) const = 0;
+  virtual ~Functor() {}
 };
 %}
 

@@ -43,12 +43,12 @@
  * All type constructors are denoted by a trailing '.':
  * 
  *  'p.'                = Pointer (*)
- *  'r.'                = Reference (&)
- *  'z.'                = Rvalue reference (&&)
+ *  'r.'                = Reference or ref-qualifier (&)
+ *  'z.'                = Rvalue reference or ref-qualifier (&&)
  *  'a(n).'             = Array of size n  [n]
  *  'f(..,..).'         = Function with arguments  (args)
- *  'q(str).'           = Qualifier (such as const or volatile) (const, volatile)
- *  'm(qual).'          = Pointer to member (qual::*)
+ *  'q(str).'           = Qualifier, such as const or volatile (cv-qualifier)
+ *  'm(cls).'           = Pointer to member (cls::*)
  *
  *  The complete type representation for varargs is:
  *  'v(...)'
@@ -183,9 +183,10 @@ SwigType *SwigType_del_element(SwigType *t) {
  * SwigType_pop()
  * 
  * Pop one type element off the type.
- * Example: t in:  q(const).p.Integer
- *          t out: p.Integer
- *	   result: q(const).
+ * For example:
+ *   t in:   q(const).p.Integer
+ *   t out:  p.Integer
+ *   result: q(const).
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_pop(SwigType *t) {
@@ -771,7 +772,6 @@ SwigType *SwigType_array_type(const SwigType *ty) {
  *                                    Functions
  *
  * SwigType_add_function()
- * SwigType_del_function()
  * SwigType_isfunction()
  * SwigType_pop_function()
  *
@@ -795,12 +795,34 @@ SwigType *SwigType_add_function(SwigType *t, ParmList *parms) {
   return t;
 }
 
+/* -----------------------------------------------------------------------------
+ * SwigType_pop_function()
+ *
+ * Pop and return the function from the input type leaving the function's return
+ * type, if any.
+ * For example:
+ *   t in:   q(const).f().p.
+ *   t out:  p.
+ *   result: q(const).f().
+ * ----------------------------------------------------------------------------- */
+
 SwigType *SwigType_pop_function(SwigType *t) {
   SwigType *f = 0;
   SwigType *g = 0;
   char *c = Char(t);
-  if (strncmp(c, "q(", 2) == 0) {
+  if (strncmp(c, "r.", 2) == 0 || strncmp(c, "z.", 2) == 0) {
+    /* Remove ref-qualifier */
     f = SwigType_pop(t);
+    c = Char(t);
+  }
+  if (strncmp(c, "q(", 2) == 0) {
+    /* Remove cv-qualifier */
+    String *qual = SwigType_pop(t);
+    if (f) {
+      SwigType_push(qual, f);
+      Delete(f);
+    }
+    f = qual;
     c = Char(t);
   }
   if (strncmp(c, "f(", 2)) {
@@ -814,14 +836,55 @@ SwigType *SwigType_pop_function(SwigType *t) {
   return g;
 }
 
+/* -----------------------------------------------------------------------------
+ * SwigType_pop_function_qualifiers()
+ *
+ * Pop and return the function qualifiers from the input type leaving the rest of
+ * function declaration. Returns NULL if no qualifiers.
+ * For example:
+ *   t in:   r.q(const).f().p.
+ *   t out:  f().p.
+ *   result: r.q(const)
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_pop_function_qualifiers(SwigType *t) {
+  SwigType *qualifiers = 0;
+  char *c = Char(t);
+  if (strncmp(c, "r.", 2) == 0 || strncmp(c, "z.", 2) == 0) {
+    /* Remove ref-qualifier */
+    String *qual = SwigType_pop(t);
+    qualifiers = qual;
+    c = Char(t);
+  }
+  if (strncmp(c, "q(", 2) == 0) {
+    /* Remove cv-qualifier */
+    String *qual = SwigType_pop(t);
+    if (qualifiers) {
+      SwigType_push(qual, qualifiers);
+      Delete(qualifiers);
+    }
+    qualifiers = qual;
+    c = Char(t);
+  }
+  assert(strncmp(c, "f(", 2) == 0);
+
+  return qualifiers;
+}
+
 int SwigType_isfunction(const SwigType *t) {
   char *c;
   if (!t) {
     return 0;
   }
   c = Char(t);
+  if (strncmp(c, "r.", 2) == 0 || strncmp(c, "z.", 2) == 0) {
+    /* Might be a function with a ref-qualifier, skip over */
+    c += 2;
+    if (!*c)
+      return 0;
+  }
   if (strncmp(c, "q(", 2) == 0) {
-    /* Might be a 'const' function.  Try to skip over the 'const' */
+    /* Might be a function with a cv-qualifier, skip over */
     c = strchr(c, '.');
     if (c)
       c++;

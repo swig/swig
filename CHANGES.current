@@ -11,6 +11,29 @@ Version 4.0.0 (in progress)
             [Python] Patch #1083. Define_DEBUG to 1 to do exactly like Visual Studio
             /LDd, /MDd or /MTd compiler options.
 
+2017-08-25: wsfulton
+            Issue #1059. Add support for C++11 ref-qualifiers on non-static member functions.
+            Members with lvalue ref-qualifiers such as:
+
+              struct RQ {
+                void m1(int x) &;
+                void m2(int x) const &;
+              };
+
+            are wrapped like any other member function. Member functions with rvalue ref-qualifiers
+            are ignored by default, such as:
+
+              struct RQ {
+                void m3(int x) &&;
+                void m4(int x) const &&;
+              };
+
+              example.i:7: Warning 405: Method with rvalue ref-qualifier m3(int) && ignored.
+              example.i:8: Warning 405: Method with rvalue ref-qualifier m4(int) const && ignored.
+
+            These can be unignored and exposed to the target language, see further documentation in
+            CPlusPlus11.html.
+
 2017-08-16: wsfulton
             Fix #1063. Add using declarations to templates into typedef table.
 
