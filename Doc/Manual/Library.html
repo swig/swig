@@ -1729,6 +1729,10 @@ Any thrown STL exceptions will then be gracefully handled instead of causing a c
 
 
 <p>
+<b>%shared_ptr Basics</b>
+</p>
+
+<p>
 Some target languages have support for handling the shared_ptr reference counted smart pointer.
 This smart pointer is available in the standard C++11 library as <tt>std::shared_ptr</tt>.
 It was also in TR1 as <tt>std::tr1::shared_ptr</tt> before it was fully standardized.
@@ -1822,7 +1826,11 @@ System.out.println(val1 + " " + val2);
 </div>
 
 <p>
-This shared_ptr library works quite differently to SWIG's normal, but somewhat limited, 
+<b>%shared_ptr and Inheritance</b>
+</p>
+
+<p>
+The shared_ptr library works quite differently to SWIG's normal, but somewhat limited, 
 <a href="SWIGPlus.html#SWIGPlus_smart_pointers">smart pointer handling</a>.
 The shared_ptr library does not generate extra wrappers, just for smart pointer handling, in addition to the proxy class.
 The normal proxy class including inheritance relationships is generated as usual.
@@ -1900,7 +1908,7 @@ Adding the missing <tt>%shared_ptr</tt> macros will fix this:
 
 <div class="code">
 <pre>
-%include "boost_shared_ptr.i"
+%include &lt;boost_shared_ptr.i&gt;
 %shared_ptr(GrandParent);
 %shared_ptr(Parent);
 %shared_ptr(Child);
@@ -1908,6 +1916,37 @@ Adding the missing <tt>%shared_ptr</tt> macros will fix this:
 ... as before ...
 </pre>
 </div>
+
+<p>
+<b>%shared_ptr and Templates</b>
+</p>
+
+<p>
+Only the single <tt>%shared_ptr</tt> declaration should be used for all specializations
+of the template before the first template instantiation using the following notation:
+<tt>%shared_ptr(TemplateName&lt;&gt;)</tt>. For example:
+</p>
+
+<div class="code">
+<pre>
+%include &lt;std_shared_ptr.i&gt;
+
+%shared_ptr(Graph&lt;&gt;);  //!< Declaration of the transparent shared ptr for the Graph template
+
+%{
+  #include "graph.hpp"  // Graph definition (inside the namespace gany)
+  using namespace gany;
+%}
+
+%include "graph.h"  // Graph declaration (inside the namespace gany)
+using namespace gany;
+
+%template(SGraph) Graph&lt;false&gt;;  //!< Simple graph 
+// Note: the Graph name is redefined in the following line from the template to the specialization (class)
+%template(Graph) Graph&lt;true&gt;;  //!< Weighted graph
+</pre>
+</div>
+
 
 <p>
 <b>Note:</b> There is somewhat limited support for <tt>%shared_ptr</tt> and the director feature
