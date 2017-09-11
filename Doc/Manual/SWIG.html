@@ -3293,7 +3293,6 @@ Vector *new_Vector() {
   return (Vector *) malloc(sizeof(Vector));
 }
 %}
-
 </pre></div>
 
 <p>
@@ -3304,6 +3303,11 @@ Thus, the above example creates a new command <tt>new_Vector</tt> using only one
 declaration. Since the code inside an <tt>%inline %{ ... %}</tt> block
 is given to both the C compiler and SWIG, it is illegal to include any
 SWIG directives inside a <tt>%{ ... %}</tt> block.</p>
+
+<p>
+<b>Note:</b>Any <tt>#include</tt> directives are omitted inside the
+<tt>%inline %{ ... %}</tt> block unless the <tt>-includeall</tt> command line
+option is supplied.</p>
 
 <H3><a name="SWIG_nn44">5.6.4 Initialization blocks</a></H3>
 
