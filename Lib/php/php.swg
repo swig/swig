@@ -411,7 +411,7 @@
                      SWIGTYPE &,
                      SWIGTYPE &&
 %{
-  SWIG_SetPointerZval($input, (void *)&$1, $1_descriptor, ($owner)|2);
+  SWIG_SetZval($input, $needNewFlow, $owner, (void *)&$1, $1_descriptor, $zend_obj);
 %}
 
 %typemap(out, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)
@@ -450,7 +450,7 @@
 
 %typemap(directorin) SWIGTYPE
 %{
-  SWIG_SetPointerZval($input, SWIG_as_voidptr(new $1_ltype((const $1_ltype &)$1)), $&1_descriptor, 1|2);
+  SWIG_SetZval($input, $needNewFlow, $owner, SWIG_as_voidptr(new $1_ltype((const $1_ltype &)$1)), $&1_descriptor, $zend_obj);
 %}
 
 %typemap(out) void "";

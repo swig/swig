@@ -3429,6 +3429,15 @@ done:
 	if ((tm = Getattr(p, "tmap:directorin")) != 0) {
 	  String *parse = Getattr(p, "tmap:directorin:parse");
 	  if (!parse) {
+            if (is_class(Getattr(p, "type"))) {
+              String *return_class_name = get_class_name(Getattr(p, "type"));
+              String *object_name = NewStringEmpty();
+              Printf(object_name, "%s_object_new(SWIGTYPE_%s_ce)", return_class_name, return_class_name);
+              Replaceall(tm, "$zend_obj", object_name);
+              Replaceall(tm, "$needNewFlow", "1");
+            }
+            Replaceall(tm, "$zend_obj", "NULL");
+            Replaceall(tm, "$needNewFlow", "0");
 	    String *input = NewStringf("&args[%d]", idx++);
 	    Setattr(p, "emit:directorinput", input);
 	    Replaceall(tm, "$input", input);
@@ -3517,7 +3526,7 @@ done:
 	  char temp[24];
 	  sprintf(temp, "%d", idx);
 	  Replaceall(tm, "$argnum", temp);
-         Replaceall(tm, "$needNewFlow", "1");
+         Replaceall(tm, "$needNewFlow", Getattr(n, "feature:new") ? "1" : "0");
 
 	  /* TODO check this */
 	  if (Getattr(n, "wrap:disown")) {
