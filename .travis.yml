@@ -1,5 +1,4 @@
 language: cpp
-group: deprecated-2017Q3 # workaround for failing: pip install pep8
 matrix:
   include:
     - compiler: clang

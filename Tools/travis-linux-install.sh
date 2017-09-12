@@ -88,7 +88,7 @@ case "$SWIGLANG" in
 		travis_retry sudo apt-get -qq install php$VER-cli php$VER-dev
 		;;
 	"python")
-		pip install pep8
+		pip install --user pep8
 		if [[ "$PY3" ]]; then
 			travis_retry sudo apt-get install -qq python3-dev
 		fi
