@@ -1152,11 +1152,10 @@ public:
       Printf(f->code, "PHP_METHOD(%s,__set) {\n",class_name);
 
       Printf(f->code, "  swig_object_wrapper *arg = (swig_object_wrapper *)SWIG_Z_FETCH_OBJ_P(getThis());\n");
-      Printf(f->code, "  %s *arg1 = (%s *)(arg->ptr);\n", class_type, class_type);
       Printf(f->code, "  zval args[2];\n  zend_string *arg2 = 0;\n\n");
       Printf(f->code, "  if(ZEND_NUM_ARGS() != 2 || zend_get_parameters_array_ex(2, args) != SUCCESS) {\n");
       Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
-      Printf(f->code, "  if(!arg1) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
+      Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
       Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
 
       Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n",magic_set);
@@ -1184,11 +1183,10 @@ public:
       Printf(f->code, "PHP_METHOD(%s,__get) {\n",class_name);
 
       Printf(f->code, "  swig_object_wrapper *arg = (swig_object_wrapper *)SWIG_Z_FETCH_OBJ_P(getThis());\n", class_name);
-      Printf(f->code, "  %s *arg1 = (%s *)(arg->ptr);\n", class_type, class_type);
       Printf(f->code, "  zval args[1];\n  zend_string *arg2 = 0;\n\n");
       Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
       Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
-      Printf(f->code, "  if(!arg1) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
+      Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
       Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
 
       Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n",magic_set);
@@ -1215,12 +1213,11 @@ public:
       Printf(f->code, "PHP_METHOD(%s,__isset) {\n",class_name);
 
       Printf(f->code, "  swig_object_wrapper *arg = (swig_object_wrapper *)SWIG_Z_FETCH_OBJ_P(getThis());\n", class_name);
-      Printf(f->code, "  %s *arg1 = (%s *)(arg->ptr);\n", class_type, class_type);
       Printf(f->code, "  zval args[1];\n  zend_string *arg2 = 0;\n\n");
       Printf(f->code, "  int newSize = 1;\nchar *method_name = 0;\n\n");
       Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
       Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
-      Printf(f->code, "  if(!arg1) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
+      Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
       Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
       Printf(f->code, "  newSize += arg2->len + strlen(\"_get\");\nmethod_name = (char *)malloc(newSize);\n");
       Printf(f->code, "  strcpy(method_name,arg2->val);\nstrcat(method_name,\"_get\");\n\n");
