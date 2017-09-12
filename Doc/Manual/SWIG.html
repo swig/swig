@@ -1737,6 +1737,43 @@ careful about namespaces and your use of modules, you can usually
 avoid these problems.</p>
 
 <p>
+<tt>%rename</tt> directive respects function parameters and <i>discriminates default parameters</i> from non-default,
+which is essential for some languages including Python. Be careful renaming functions having default parameters:
+</p>
+<div class="code"><pre>
+%rename(toFFVal) to_val(FileFormat, bool bin=false);
+int to_val(FileFormat flag, bool bin=false)
+{
+  return 0;
+}
+
+%rename(toDFVal) to_val(DirFormat, bool bin);
+int to_val(DirFormat flag, bool bin=false)
+{
+  return 0;
+}
+
+%rename(toLFVal) to_val(FolderFormat, bool bin);
+int to_val(FolderFormat flag, bool bin=false)
+{
+  return 0;
+}
+</pre></div>
+
+<p>
+The SWIG generator yields the following warning for the last renaming:<br/>
+<tt>
+rename.i:36: Warning 509: Overloaded method to_val(FolderFormat) effectively ignored,<br/>
+rename.i:26: Warning 509: as it is shadowed by to_val(DirFormat).<br/>
+</tt>
+The renaming performed for the <tt>int to_val(FolderFormat flag, bool bin)</tt>,
+but not for the <tt>int to_val(FolderFormat flag)</tt>, where the second parameter <tt>bool bin</tt>
+is omitted taking the default value <tt>false</tt>. See details about the default
+parameters processing in the <a href="SWIGPlus.html#SWIGPlus_default_args">Default Arguments</a> section.
+</p>
+
+
+<p>
 Closely related to <tt>%rename</tt> is the <tt>%ignore</tt> directive.  <tt>%ignore</tt> instructs SWIG
 to ignore declarations that match a given identifier.  For example:
 </p>
