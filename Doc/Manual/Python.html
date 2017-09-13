@@ -226,16 +226,15 @@ resulting C file should be built as a python extension, inserting the module
 #include "example.h"
 
 int fact(int n) {
-    if (n &lt; 0){ /* This should probably return an error, but this is simpler */
-        return 0;
-    }
-    if (n == 0) {
-        return 1;
-    }
-    else {
-        /* testing for overflow would be a good idea here */
-        return n * fact(n-1);
-    }
+  if (n &lt; 0) { /* This should probably return an error, but this is simpler */
+    return 0;
+  }
+  if (n == 0) {
+    return 1;
+  } else {
+    /* testing for overflow would be a good idea here */
+    return n * fact(n-1);
+  }
 }
 
 </pre>
@@ -1276,7 +1275,7 @@ Foo *BarToFoo(Bar *b) {
 }
 
 Foo *IncrFoo(Foo *f, int i) {
-    return f+i;
+  return f+i;
 }
 %}
 </pre>
@@ -1386,7 +1385,7 @@ example, consider this:
 <div class="code">
 <pre>
 struct Bar {
-    int  x[16];
+  int  x[16];
 };
 </pre>
 </div>
@@ -1716,9 +1715,9 @@ Similarly, if you have a class like this,
 <pre>
 class Foo {
 public:
-    Foo();
-    Foo(const Foo &amp;);
-    ...
+  Foo();
+  Foo(const Foo &amp;);
+  ...
 };
 </pre>
 </div>
@@ -1951,11 +1950,11 @@ For example:
 %rename(Bar_spam) Bar::spam;
 
 namespace Foo {
-    int spam();
+  int spam();
 }
 
 namespace Bar {
-    int spam();
+  int spam();
 }
 </pre>
 </div>
@@ -2166,9 +2165,9 @@ have a class like this
 <pre>
 class Foo {
 public:
-    int x;
-    int spam(int);
-    ...
+  int x;
+  int spam(int);
+  ...
 </pre>
 </div>
 
@@ -2179,19 +2178,19 @@ then SWIG transforms it into a set of low-level procedural wrappers. For example
 <div class="code">
 <pre>
 Foo *new_Foo() {
-    return new Foo();
+  return new Foo();
 }
 void delete_Foo(Foo *f) {
-    delete f;
+  delete f;
 }
 int Foo_x_get(Foo *f) {
-    return f-&gt;x;
+  return f-&gt;x;
 }
 void Foo_x_set(Foo *f, int value) {
-    f-&gt;x = value;
+  f-&gt;x = value;
 }
 int Foo_spam(Foo *f, int arg1) {
-    return f-&gt;spam(arg1);
+  return f-&gt;spam(arg1);
 }
 </pre>
 </div>
@@ -2310,10 +2309,10 @@ please refer to the python documentation:</p>
 <div class="code">
 <pre>
 typedef struct {
-    PyObject_HEAD
-    PyObject *dict;
-    PyObject *args;
-    PyObject *message;
+  PyObject_HEAD
+  PyObject *dict;
+  PyObject *args;
+  PyObject *message;
 } PyBaseExceptionObject;
 </pre>
 </div>
@@ -2323,12 +2322,12 @@ typedef struct {
 <div class="code">
 <pre>
 typedef struct {
-    PyObject_HEAD
-    void *ptr;
-    swig_type_info *ty;
-    int own;
-    PyObject *next;
-    PyObject *dict;
+  PyObject_HEAD
+  void *ptr;
+  swig_type_info *ty;
+  int own;
+  PyObject *next;
+  PyObject *dict;
 } SwigPyObject;
 </pre>
 </div>
@@ -2339,13 +2338,13 @@ typedef struct {
 <pre>
 class MyException {
 public:
-    MyException (const char *msg_);
-    ~MyException ();
+  MyException (const char *msg_);
+  ~MyException ();
 
-    const char *what () const;
+  const char *what () const;
 
 private:
-    char *msg;
+  char *msg;
 };
 </pre>
 </div>
@@ -2372,9 +2371,9 @@ strings, you can define an <tt>'operator+ (const char*)'</tt> method :</p>
 <pre>
 class MyString {
 public:
-    MyString (const char *init);
-    MyString operator+ (const char *other) const;
-    ...
+  MyString (const char *init);
+  MyString operator+ (const char *other) const;
+  ...
 };
 </pre>
 </div>
@@ -2473,11 +2472,12 @@ slot entries.  For example, suppose you have this class:
 <pre>
 class Twit {
 public:
-    Twit operator+ (const Twit&amp; twit) const;
+  Twit operator+ (const Twit&amp; twit) const;
 
-    // Forward to operator+
-    Twit add (const Twit&amp; twit) const
-    { return *this + twit; }
+  // Forward to operator+
+  Twit add (const Twit&amp; twit) const {
+    return *this + twit;
+  }
 };
 </pre>
 </div>
@@ -2565,9 +2565,9 @@ the function callback in the tp_hash slot for the builtin type for <tt>MyClass</
 <div class="code">
 <pre>
 static PyHeapTypeObject SwigPyBuiltin__MyClass_type = {
-    ...
-    (hashfunc) myHashFunc,       /* tp_hash */
-    ...
+  ...
+  (hashfunc) myHashFunc,       /* tp_hash */
+  ...
 </pre>
 </div>
 
@@ -2636,8 +2636,8 @@ ownership of the result.  For example:
 <pre>
 class Foo {
 public:
-    Foo();
-    Foo bar();
+  Foo();
+  Foo bar();
 };
 </pre>
 </div>
@@ -2666,9 +2666,9 @@ they came from.  Therefore, the ownership is set to zero.  For example:
 <pre>
 class Foo {
 public:
-    ...
-    Foo *spam();
-    ...
+  ...
+  Foo *spam();
+  ...
 };
 </pre>
 </div>
@@ -2707,8 +2707,8 @@ or global variable.  For example, consider this interface:
 %module example
 
 struct Foo {
-    int  value;
-    Foo  *next;
+  int  value;
+  Foo  *next;
 };
 
 Foo *head = 0;
@@ -2939,15 +2939,15 @@ the methods one() and two() (but not three()):
 %feature("director") Foo;
 class Foo {
 public:
-    Foo(int foo);
-    virtual ~Foo();
-    virtual void one();
-    virtual void two();
+  Foo(int foo);
+  virtual ~Foo();
+  virtual void one();
+  virtual void two();
 };
 
 class Bar: public Foo {
 public:
-    virtual void three();
+  virtual void three();
 };
 </pre>
 </div>
@@ -3087,12 +3087,12 @@ references. Here is an example:
 <pre>
 class Foo {
 public:
-    ...
+  ...
 };
 class FooContainer {
 public:
-    void addFoo(Foo *);
-    ...
+  void addFoo(Foo *);
+  ...
 };
 </pre>
 </div>
@@ -3133,9 +3133,9 @@ suffice in most cases:
 <div class="code">
 <pre>
 %feature("director:except") {
-    if ($error != NULL) {
-        throw Swig::DirectorMethodException();
-    }
+  if ($error != NULL) {
+    throw Swig::DirectorMethodException();
+  }
 }
 </pre>
 </div>
@@ -3162,8 +3162,8 @@ suitable exception handler:
 <div class="code">
 <pre>
 %exception {
-    try { $action }
-    catch (Swig::DirectorException &amp;e) { SWIG_fail; }
+  try { $action }
+  catch (Swig::DirectorException &amp;e) { SWIG_fail; }
 }
 </pre>
 </div>
@@ -3240,7 +3240,7 @@ references, such as
 <pre>
 class Foo {
 &hellip;
-    virtual const int&amp; bar();
+  virtual const int&amp; bar();
 &hellip;
 };
 </pre>
@@ -3258,7 +3258,7 @@ types, wherever possible, for example
 <pre>
 class Foo {
 &hellip;
-    virtual int bar();
+  virtual int bar();
 &hellip;
 };
 </pre>
@@ -3511,7 +3511,7 @@ def bar(*args):
 
 class Foo {
 public:
-    int bar(int x);
+  int bar(int x);
 };
 </pre>
 </div>
@@ -3548,7 +3548,7 @@ proxy, just before the return statement.
 
 class Foo {
 public:
-    int bar(int x);
+  int bar(int x);
 };
 </pre>
 </div>
@@ -3577,7 +3577,7 @@ SWIG version 1.3.28 you can use the directive forms
 
 class Foo {
 public:
-    int bar(int x);
+  int bar(int x);
 };
 </pre>
 </div>
@@ -3606,8 +3606,8 @@ as it will then get attached to all the overloaded C++ methods. For example:
 
 class Foo {
 public:
-    int bar(int x);
-    int bar();
+  int bar(int x);
+  int bar();
 };
 </pre>
 </div>
@@ -4142,11 +4142,11 @@ Sometimes a C function expects an array to be passed as a pointer.  For example,
 <div class="code">
 <pre>
 int sumitems(int *first, int nitems) {
-    int i, sum = 0;
-    for (i = 0; i &lt; nitems; i++) {
-        sum += first[i];
-    }
-    return sum;
+  int i, sum = 0;
+  for (i = 0; i &lt; nitems; i++) {
+    sum += first[i];
+  }
+  return sum;
 }
 </pre>
 </div>
@@ -6046,7 +6046,7 @@ zipimporter requires python-3.5.1 or newer to work with subpackages.
 
 <p>
 When SWIG creates wrappers from an interface file, say foo.i, two Python modules are
-created.  There is a pure Python module module (foo.py) and C/C++ code which is
+created.  There is a pure Python module (foo.py) and C/C++ code which is
 built and linked into a dynamically (or statically) loaded low-level module _foo
 (see the <a href="Python.html#Python_nn3">Preliminaries section</a> for details).  So, the interface
 file really defines two Python modules.   How these two modules are loaded is
@@ -6526,7 +6526,7 @@ string that cannot be completely decoded as UTF-8:
 %inline %{
 
 const char* non_utf8_c_str(void) {
-        return "h\xe9llo w\xc3\xb6rld";
+  return "h\xe9llo w\xc3\xb6rld";
 }
 
 %}

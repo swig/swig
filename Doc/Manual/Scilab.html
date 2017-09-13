@@ -121,15 +121,15 @@ In this example we bind from C a function and a global variable into Scilab. The
 double Foo = 3.0;
 
 int fact(int n) {
-    if (n &lt; 0) {
-        return 0;
-    }
-    else if (n == 0) {
-        return 1;
-    }
-    else {
-        return n * fact(n-1);
-    }
+  if (n &lt; 0) {
+    return 0;
+  }
+  else if (n == 0) {
+    return 1;
+  }
+  else {
+    return n * fact(n-1);
+  }
 }
 %}
 </pre></div>
@@ -896,8 +896,8 @@ Let's see it on an example of a struct with two members:
 %inline %{
 
 typedef struct {
-    int x;
-    int arr[4];
+  int x;
+  int arr[4];
 } Foo;
 
 %}
@@ -1136,18 +1136,18 @@ But we can use either use the <tt>get_perimeter()</tt> function of the parent cl
 As explained in <a href="SWIGPlus.html#SWIGPlus_overloaded_methods">6.15</a> SWIG provides support for overloaded functions and constructors.
 </p>
 
-<p>As SWIG knows pointer types, the overloading works also with pointer types, here is is an example with a function <tt>magnify</tt> overloaded for the previous classes <tt>Shape</tt> and <tt>Circle</tt>:
+<p>As SWIG knows pointer types, the overloading works also with pointer types, here is an example with a function <tt>magnify</tt> overloaded for the previous classes <tt>Shape</tt> and <tt>Circle</tt>:
 </p>
 
 <div class="code"><pre>
 %module example
 
 void magnify(Square *square, double factor) {
-    square-&gt;size *= factor;
+  square-&gt;size *= factor;
 };
 
 void magnify(Circle *circle, double factor) {
-    square-&gt;radius *= factor;
+  square-&gt;radius *= factor;
 };
 </pre></div>
 
@@ -1620,11 +1620,11 @@ void printArray(int values[], int len) {
 
 
 <p>
-There are no specific typemaps for pointer-to-pointers, they are are mapped as pointers in Scilab.
+There are no specific typemaps for pointer-to-pointers, they are mapped as pointers in Scilab.
 </p>
 
 <p>
-Pointer-to-pointers are sometimes used to implement matrices in C. The following is a an example of this:
+Pointer-to-pointers are sometimes used to implement matrices in C. The following is an example of this:
 </p>
 
 
@@ -2062,7 +2062,7 @@ In this mode, the following SWIG options may be used to setup the build:
 Let's give an example how to build a module <tt>example</tt>, composed of two sources, and using a library dependency:
 </p>
 <ul>
-<li>the sources are <tt>baa1.c</tt> and <tt>baa2.c</tt> (and are stored in in the current directory)</li>
+<li>the sources are <tt>baa1.c</tt> and <tt>baa2.c</tt> (and are stored in the current directory)</li>
 <li>the library is <tt>libfoo</tt> in <tt>/opt/foo</tt> (headers stored in <tt>/opt/foo/include</tt>, and shared library in <tt>/opt/foo/lib</tt>)</li>
 </ul>
 

@@ -718,7 +718,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
      function that handles the scoerceout. 
      We need to check if any of the argument types have an entry in
      that map. If none do, the ignore and call the function straight.
-     Otherwise, generate the a marshalling function.
+     Otherwise, generate a marshalling function.
      Need to be able to find it in S. Or use an entirely generic one
      that evaluates the expressions.
      Handle errors in the evaluation of the function by restoring

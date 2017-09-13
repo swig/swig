@@ -163,7 +163,7 @@ If the module is in PHP's default extension directory, you can omit the path.
 <p>
 For some SAPIs (for example, the CLI SAPI) you can instead use the
 <a href="http://php.net/manual/en/function.dl.php">dl() function</a> to load
-an extension at run time, by adding a like like this to the start of each
+an extension at run time, by adding a line like this to the start of each
 PHP script which uses your extension:
 </p>
 
@@ -986,14 +986,14 @@ the methods one() and two() (but not three()):
 %feature("director") Foo;
 class Foo {
 public:
-    Foo(int foo);
-    virtual void one();
-    virtual void two();
+  Foo(int foo);
+  virtual void one();
+  virtual void two();
 };
 
 class Bar: public Foo {
 public:
-    virtual void three();
+  virtual void three();
 };
 </pre>
 </div>
@@ -1125,12 +1125,12 @@ Here is an example:
 <pre>
 class Foo {
 public:
-    ...
+  ...
 };
 class FooContainer {
 public:
-    void addFoo(Foo *);
-    ...
+  void addFoo(Foo *);
+  ...
 };
 </pre>
 </div>
@@ -1175,9 +1175,9 @@ should suffice in most cases:
 <div class="code">
 <pre>
 %feature("director:except") {
-    if ($error == FAILURE) {
-        throw Swig::DirectorMethodException();
-    }
+  if ($error == FAILURE) {
+    throw Swig::DirectorMethodException();
+  }
 }
 </pre>
 </div>
@@ -1204,8 +1204,8 @@ suitable exception handler:
 <div class="code">
 <pre>
 %exception {
-    try { $action }
-    catch (Swig::DirectorException &amp;e) { SWIG_fail; }
+  try { $action }
+  catch (Swig::DirectorException &amp;e) { SWIG_fail; }
 }
 </pre>
 </div>

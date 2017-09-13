@@ -389,7 +389,7 @@ For example
 /* bar not wrapped unless foo has been defined and 
    the declaration of bar within foo has already been parsed */
 int foo::bar(int) {
-    ... whatever ...
+  ... whatever ...
 }
 </pre>
 </div>
@@ -1043,14 +1043,14 @@ expect :</p>
 <div class="targetlang"><pre>
 # Copy a file 
 def filecopy(source, target):
-  f1 = fopen(source, "r")
-  f2 = fopen(target, "w")
-  buffer = malloc(8192)
-  nbytes = fread(buffer, 8192, 1, f1)
-  while (nbytes &gt; 0):
-    fwrite(buffer, 8192, 1, f2)
-          nbytes = fread(buffer, 8192, 1, f1)
-  free(buffer)
+    f1 = fopen(source, "r")
+    f2 = fopen(target, "w")
+    buffer = malloc(8192)
+    nbytes = fread(buffer, 8192, 1, f1)
+    while (nbytes &gt; 0):
+        fwrite(buffer, 8192, 1, f2)
+            nbytes = fread(buffer, 8192, 1, f1)
+    free(buffer)
 </pre></div>
 
 <p>
@@ -1236,9 +1236,9 @@ creating a wrapper equivalent to the following:
 
 <div class="code"><pre>
 double wrap_dot_product(Vector *a, Vector *b) {
-    Vector x = *a;
-    Vector y = *b;
-    return dot_product(x, y);
+  Vector x = *a;
+  Vector y = *b;
+  return dot_product(x, y);
 }
 </pre></div>
 
@@ -1266,12 +1266,12 @@ pointers.  As a result, SWIG creates a wrapper like this:
 
 <div class="code"><pre>
 Vector *wrap_cross_product(Vector *v1, Vector *v2) {
-        Vector x = *v1;
-        Vector y = *v2;
-        Vector *result;
-        result = (Vector *) malloc(sizeof(Vector));
-        *(result) = cross(x, y);
-        return result;
+  Vector x = *v1;
+  Vector y = *v2;
+  Vector *result;
+  result = (Vector *) malloc(sizeof(Vector));
+  *(result) = cross(x, y);
+  return result;
 }
 </pre></div>
 
@@ -1280,10 +1280,10 @@ or if SWIG was run with the <tt>-c++</tt> option:</p>
 
 <div class="code"><pre>
 Vector *wrap_cross(Vector *v1, Vector *v2) {
-        Vector x = *v1;
-        Vector y = *v2;
-        Vector *result = new Vector(cross(x, y)); // Uses default copy constructor
-        return result;
+  Vector x = *v1;
+  Vector y = *v2;
+  Vector *result = new Vector(cross(x, y)); // Uses default copy constructor
+  return result;
 }
 </pre></div>
 
@@ -2368,10 +2368,10 @@ defined in the interface.  For example:
 
 <div class="code"><pre>
 struct Vector *new_Vector() {
-    return (Vector *) calloc(1, sizeof(struct Vector));
+  return (Vector *) calloc(1, sizeof(struct Vector));
 }
 void delete_Vector(struct Vector *obj) {
-    free(obj);
+  free(obj);
 }
 </pre>
 </div>
@@ -2602,10 +2602,10 @@ like this:
 <div class="code">
 <pre>
 WORD Foo_w_get(Foo *f) {
-    return f-&gt;w;
+  return f-&gt;w;
 }
 void Foo_w_set(FOO *f, WORD value) {
-    f-&gt;w = value;
+  f-&gt;w = value;
 }
 </pre>
 </div>
@@ -2896,7 +2896,7 @@ instead of a method.  To do this, you might write some code like this:
 <pre>
 // Add a new attribute to Vector
 %extend Vector {
-    const double magnitude;
+  const double magnitude;
 }
 // Now supply the implementation of the Vector_magnitude_get function
 %{

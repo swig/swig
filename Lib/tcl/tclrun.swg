@@ -199,7 +199,7 @@ SWIG_Tcl_PointerTypeFromString(char *c) {
   return c;
 }
 
-/* Convert a packed value value */
+/* Convert a packed pointer value */
 SWIGRUNTIME int
 SWIG_Tcl_ConvertPacked(Tcl_Interp *SWIGUNUSEDPARM(interp) , Tcl_Obj *obj, void *ptr, int sz, swig_type_info *ty) {
   swig_cast_info *tc;

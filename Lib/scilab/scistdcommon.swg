@@ -104,23 +104,21 @@ namespace swig {
 
   template <class Type>
   struct traits_as<Type, value_category> {
-    static Type as(const SwigSciObject& obj, bool throw_error) {
+    static Type as(const SwigSciObject& obj) {
       Type v;
       int res = asval(obj, &v);
       if (SWIG_IsOK(res)) {
         return v;
       } else {
-	      %type_error(swig::type_name<Type>());
-	      if (throw_error)
-          throw std::invalid_argument("bad type");
-        return res;
+        %type_error(swig::type_name<Type>());
+        throw std::invalid_argument("bad type");
       }
     }
   };
 
   template <class Type>
   struct traits_as<Type, pointer_category> {
-    static Type as(const SwigSciObject& obj, bool throw_error) {
+    static Type as(const SwigSciObject& obj) {
       Type *v = 0;
       int res = traits_asptr<Type>::asptr(obj, &v);
       if (SWIG_IsOK(res) && v) {
@@ -132,36 +130,29 @@ namespace swig {
 	  return *v;
 	}
       } else {
-	// Uninitialized return value, no Type() constructor required.
-	static Type *v_def = (Type*) malloc(sizeof(Type));
-  %type_error(swig::type_name<Type>());
-	if (throw_error)
-    throw std::invalid_argument("bad type");
-	memset(v_def,0,sizeof(Type));
-	return *v_def;
+        %type_error(swig::type_name<Type>());
+        throw std::invalid_argument("bad type");
       }
     }
   };
 
   template <class Type>
   struct traits_as<Type*, pointer_category> {
-    static Type* as(const SwigSciObject& obj, bool throw_error) {
+    static Type* as(const SwigSciObject& obj) {
       Type *v = 0;
       int res = traits_asptr<Type>::asptr(obj, &v);
       if (SWIG_IsOK(res)) {
 	return v;
       } else {
-  %type_error(swig::type_name<Type>());
-	if (throw_error)
-    throw std::invalid_argument("bad type");
-	return SWIG_OK;
+        %type_error(swig::type_name<Type>());
+        throw std::invalid_argument("bad type");
       }
     }
   };
 
   template <class Type>
-  inline Type as(const SwigSciObject& obj, bool te = false) {
-    return traits_as<Type, typename traits<Type>::category>::as(obj, te);
+  inline Type as(const SwigSciObject& obj) {
+    return traits_as<Type, typename traits<Type>::category>::as(obj);
   }
 
   template <class Type>

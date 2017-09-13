@@ -162,7 +162,7 @@
   return ret;
 }
 
-// Treat references to arrays like like references to a single element.
+// Treat references to arrays like references to a single element.
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
 
 

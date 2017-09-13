@@ -209,7 +209,7 @@ static String *yyrename = 0;
 
 /* Forward renaming operator */
 
-static String *resolve_create_node_scope(String *cname);
+static String *resolve_create_node_scope(String *cname, int is_class_definition);
 
 
 Hash *Swig_cparse_features(void) {
@@ -815,32 +815,53 @@ static String *remove_block(Node *kw, const String *inputcode) {
   return modified_code;
 }
 
-
+/*
+#define RESOLVE_DEBUG 1
+*/
 static Node *nscope = 0;
 static Node *nscope_inner = 0;
 
 /* Remove the scope prefix from cname and return the base name without the prefix.
  * The scopes required for the symbol name are resolved and/or created, if required.
  * For example AA::BB::CC as input returns CC and creates the namespace AA then inner 
- * namespace BB in the current scope. If cname is found to already exist as a weak symbol
- * (forward reference) then the scope might be changed to match, such as when a symbol match 
- * is made via a using reference. */
-static String *resolve_create_node_scope(String *cname) {
+ * namespace BB in the current scope. */
+static String *resolve_create_node_scope(String *cname, int is_class_definition) {
   Symtab *gscope = 0;
   Node *cname_node = 0;
-  int skip_lookup = 0;
+  String *last = Swig_scopename_last(cname);
   nscope = 0;
   nscope_inner = 0;  
 
-  if (Strncmp(cname,"::",2) == 0)
-    skip_lookup = 1;
-
-  cname_node = skip_lookup ? 0 : Swig_symbol_clookup_no_inherit(cname, 0);
+  if (Strncmp(cname,"::" ,2) != 0) {
+    if (is_class_definition) {
+      /* Only lookup symbols which are in scope via a using declaration but not via a using directive.
+         For example find y via 'using x::y' but not y via a 'using namespace x'. */
+      cname_node = Swig_symbol_clookup_no_inherit(cname, 0);
+      if (!cname_node) {
+	Node *full_lookup_node = Swig_symbol_clookup(cname, 0);
+	if (full_lookup_node) {
+	 /* This finds a symbol brought into scope via both a using directive and a using declaration. */
+	  Node *last_node = Swig_symbol_clookup_no_inherit(last, 0);
+	  if (last_node == full_lookup_node)
+	    cname_node = last_node;
+	}
+      }
+    } else {
+      /* For %template, the template needs to be in scope via any means. */
+      cname_node = Swig_symbol_clookup(cname, 0);
+    }
+  }
+#if RESOLVE_DEBUG
+  if (!cname_node)
+    Printf(stdout, "symbol does not yet exist (%d): [%s]\n", is_class_definition, cname);
+  else
+    Printf(stdout, "symbol does exist (%d): [%s]\n", is_class_definition, cname);
+#endif
 
   if (cname_node) {
     /* The symbol has been defined already or is in another scope.
-       If it is a weak symbol, it needs replacing and if it was brought into the current scope
-       via a using declaration, the scope needs adjusting appropriately for the new symbol.
+       If it is a weak symbol, it needs replacing and if it was brought into the current scope,
+       the scope needs adjusting appropriately for the new symbol.
        Similarly for defined templates. */
     Symtab *symtab = Getattr(cname_node, "sym:symtab");
     Node *sym_weak = Getattr(cname_node, "sym:weak");
@@ -848,48 +869,92 @@ static String *resolve_create_node_scope(String *cname) {
       /* Check if the scope is the current scope */
       String *current_scopename = Swig_symbol_qualifiedscopename(0);
       String *found_scopename = Swig_symbol_qualifiedscopename(symtab);
-      int len;
       if (!current_scopename)
 	current_scopename = NewString("");
       if (!found_scopename)
 	found_scopename = NewString("");
-      len = Len(current_scopename);
-      if ((len > 0) && (Strncmp(current_scopename, found_scopename, len) == 0)) {
-	if (Len(found_scopename) > len + 2) {
-	  /* A matching weak symbol was found in non-global scope, some scope adjustment may be required */
-	  String *new_cname = NewString(Char(found_scopename) + len + 2); /* skip over "::" prefix */
-	  String *base = Swig_scopename_last(cname);
-	  Printf(new_cname, "::%s", base);
-	  cname = new_cname;
-	  Delete(base);
-	} else {
-	  /* A matching weak symbol was found in the same non-global local scope, no scope adjustment required */
-	  assert(len == Len(found_scopename));
+
+      {
+	int fail = 1;
+	List *current_scopes = Swig_scopename_tolist(current_scopename);
+	List *found_scopes = Swig_scopename_tolist(found_scopename);
+        Iterator cit = First(current_scopes);
+	Iterator fit = First(found_scopes);
+#if RESOLVE_DEBUG
+Printf(stdout, "comparing current: [%s] found: [%s]\n", current_scopename, found_scopename);
+#endif
+	for (; fit.item && cit.item; fit = Next(fit), cit = Next(cit)) {
+	  String *current = cit.item;
+	  String *found = fit.item;
+#if RESOLVE_DEBUG
+	  Printf(stdout, "  looping %s %s\n", current, found);
+#endif
+	  if (Strcmp(current, found) != 0)
+	    break;
 	}
-      } else {
-	String *base = Swig_scopename_last(cname);
-	if (Len(found_scopename) > 0) {
-	  /* A matching weak symbol was found in a different scope to the local scope - probably via a using declaration */
-	  cname = NewStringf("%s::%s", found_scopename, base);
+
+	if (!cit.item) {
+	  String *subscope = NewString("");
+	  for (; fit.item; fit = Next(fit)) {
+	    if (Len(subscope) > 0)
+	      Append(subscope, "::");
+	    Append(subscope, fit.item);
+	  }
+	  if (Len(subscope) > 0)
+	    cname = NewStringf("%s::%s", subscope, last);
+	  else
+	    cname = Copy(last);
+#if RESOLVE_DEBUG
+	  Printf(stdout, "subscope to create: [%s] cname: [%s]\n", subscope, cname);
+#endif
+	  fail = 0;
+	  Delete(subscope);
 	} else {
-	  /* Either:
-	      1) A matching weak symbol was found in a different scope to the local scope - this is actually a
-	      symbol with the same name in a different scope which we don't want, so no adjustment required.
-	      2) A matching weak symbol was found in the global scope - no adjustment required.
-	  */
-	  cname = Copy(base);
+	  if (is_class_definition) {
+	    if (!fit.item) {
+	      /* It is valid to define a new class with the same name as one forward declared in a parent scope */
+	      fail = 0;
+	    } else if (Swig_scopename_check(cname)) {
+	      /* Classes defined with scope qualifiers must have a matching forward declaration in matching scope */
+	      fail = 1;
+	    } else {
+	      /* This may let through some invalid cases */
+	      fail = 0;
+	    }
+#if RESOLVE_DEBUG
+	    Printf(stdout, "scope for class definition, fail: %d\n", fail);
+#endif
+	  } else {
+#if RESOLVE_DEBUG
+	    Printf(stdout, "no matching base scope for template\n");
+#endif
+	    fail = 1;
+	  }
 	}
-	Delete(base);
+
+	Delete(found_scopes);
+	Delete(current_scopes);
+
+	if (fail) {
+	  String *cname_resolved = NewStringf("%s::%s", found_scopename, last);
+	  Swig_error(cparse_file, cparse_line, "'%s' resolves to '%s' and was incorrectly instantiated in scope '%s' instead of within scope '%s'.\n", cname, cname_resolved, current_scopename, found_scopename);
+	  cname = Copy(last);
+	  Delete(cname_resolved);
+	}
       }
+
       Delete(current_scopename);
       Delete(found_scopename);
     }
+  } else if (!is_class_definition) {
+    /* A template instantiation requires a template to be found in scope... fail here too?
+    Swig_error(cparse_file, cparse_line, "No template found to instantiate '%s' with %%template.\n", cname);
+     */
   }
 
   if (Swig_scopename_check(cname)) {
     Node   *ns;
     String *prefix = Swig_scopename_prefix(cname);
-    String *base = Swig_scopename_last(cname);
     if (prefix && (Strncmp(prefix,"::",2) == 0)) {
 /* I don't think we can use :: global scope to declare classes and hence neither %template. - consider reporting error instead - wsfulton. */
       /* Use the global scope */
@@ -899,6 +964,7 @@ static String *resolve_create_node_scope(String *cname) {
       gscope = set_scope_to_global();
     }
     if (Len(prefix) == 0) {
+      String *base = Copy(last);
       /* Use the global scope, but we need to add a 'global' namespace.  */
       if (!gscope) gscope = set_scope_to_global();
       /* note that this namespace is not the "unnamed" one,
@@ -907,6 +973,7 @@ static String *resolve_create_node_scope(String *cname) {
       nscope = new_node("namespace");
       Setattr(nscope,"symtab", gscope);;
       nscope_inner = nscope;
+      Delete(last);
       return base;
     }
     /* Try to locate the scope */
@@ -924,7 +991,7 @@ static String *resolve_create_node_scope(String *cname) {
 	String *nname = Swig_symbol_qualifiedscopename(nstab);
 	if (tname && (Strcmp(tname,nname) == 0)) {
 	  ns = 0;
-	  cname = base;
+	  cname = Copy(last);
 	}
 	Delete(tname);
 	Delete(nname);
@@ -932,19 +999,10 @@ static String *resolve_create_node_scope(String *cname) {
       if (ns) {
 	/* we will try to create a new node using the namespaces we
 	   can find in the scope name */
-	List *scopes;
+	List *scopes = Swig_scopename_tolist(prefix);
 	String *sname;
 	Iterator si;
-	String *name = NewString(prefix);
-	scopes = NewList();
-	while (name) {
-	  String *base = Swig_scopename_last(name);
-	  String *tprefix = Swig_scopename_prefix(name);
-	  Insert(scopes,0,base);
-	  Delete(base);
-	  Delete(name);
-	  name = tprefix;
-	}
+
 	for (si = First(scopes); si.item; si = Next(si)) {
 	  Node *ns1,*ns2;
 	  sname = si.item;
@@ -990,12 +1048,13 @@ static String *resolve_create_node_scope(String *cname) {
 	  nscope_inner = ns2;
 	  if (!nscope) nscope = ns2;
 	}
-	cname = base;
+	cname = Copy(last);
 	Delete(scopes);
       }
     }
     Delete(prefix);
   }
+  Delete(last);
 
   return cname;
 }
@@ -2631,9 +2690,8 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		  tscope = Swig_symbol_current();          /* Get the current scope */
 
 		  /* If the class name is qualified, we need to create or lookup namespace entries */
-		  if (!inclass) {
-		    $5 = resolve_create_node_scope($5);
-		  }
+		  $5 = resolve_create_node_scope($5, 0);
+
 		  if (nscope_inner && Strcmp(nodeType(nscope_inner), "class") == 0) {
 		    outer_class	= nscope_inner;
 		  }
@@ -2991,6 +3049,9 @@ c_declaration   : c_decl {
 		  SetFlag($$,"aliastemplate");
 		  add_symbols($$);
 		}
+                | cpp_static_assert {
+                   $$ = $1;
+                }
                 ;
 
 /* ------------------------------------------------------------
@@ -3520,7 +3581,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   Setattr($<node>$,"prev_symtab",Swig_symbol_current());
 		  
 		   /* If the class name is qualified.  We need to create or lookup namespace/scope entries */
-		   scope = resolve_create_node_scope($3);
+		   scope = resolve_create_node_scope($3, 1);
 		   /* save nscope_inner to the class - it may be overwritten in nested classes*/
 		   Setattr($<node>$, "nested:innerscope", nscope_inner);
 		   Setattr($<node>$, "nested:nscope", nscope);
@@ -4209,9 +4270,6 @@ cpp_temp_possible:  c_decl {
                 | cpp_constructor_decl {
                    $$ = $1;
                 }
-                | cpp_static_assert {
-                   $$ = $1;
-                }
                 | cpp_template_decl {
 		  $$ = 0;
                 }
@@ -4469,7 +4527,6 @@ cpp_member   : c_declaration { $$ = $1; }
                  default_arguments($$);
              }
              | cpp_destructor_decl { $$ = $1; }
-             | cpp_static_assert { $$ = $1; }
              | cpp_protection_decl { $$ = $1; }
              | cpp_swig_directive { $$ = $1; }
              | cpp_conversion_operator { $$ = $1; }
@@ -4673,7 +4730,8 @@ cpp_catch_decl : CATCH LPAREN parms RPAREN LBRACE {
                }
                ;
 
-/* static_assert(bool, const char*); */
+/* static_assert(bool, const char*); (C++11)
+ * static_assert(bool); (C++17) */
 cpp_static_assert : STATIC_ASSERT LPAREN {
                 skip_balanced('(',')');
                 $$ = 0;

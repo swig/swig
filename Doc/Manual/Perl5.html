@@ -949,7 +949,7 @@ Foo *BarToFoo(Bar *b) {
 }
 
 Foo *IncrFoo(Foo *f, int i) {
-    return f+i;
+  return f+i;
 }
 %}
 </pre>
@@ -1057,7 +1057,7 @@ produces a single accessor function like this:
 <div class="code">
 <pre>
 int *Foo_x_get(Foo *self) {
-    return self-&gt;x;
+  return self-&gt;x;
 };
 </pre>
 </div>
@@ -1092,11 +1092,11 @@ generates accessor functions such as this:
 <div class="code">
 <pre>
 Foo *Bar_f_get(Bar *b) {
-    return &amp;b-&gt;f;
+  return &amp;b-&gt;f;
 }
 
 void Bar_f_set(Bar *b, Foo *val) {
-    b-&gt;f = *val;
+  b-&gt;f = *val;
 }
 </pre>
 </div>
@@ -1633,9 +1633,8 @@ class DoubleArray {
     void setitem(int i, double val) {
       if ((i &gt;= 0) &amp;&amp; (i &lt; n))
         ptr[i] = val;
-      else {
+      else
         throw RangeError();
-      }
     }
   };
 </pre></div>
@@ -1888,9 +1887,9 @@ like this:
 <div class="targetlang">
 <pre>
 %typemap(out) int {
-    $result = sv_newmortal();
-    set_setiv($result, (IV) $1);
-    argvi++;
+  $result = sv_newmortal();
+  set_setiv($result, (IV) $1);
+  argvi++;
 }
 </pre>
 </div>
@@ -2313,8 +2312,8 @@ Consider the following data structure:
 <div class="code"><pre>
 #define SIZE  8
 typedef struct {
-    int   values[SIZE];
-    ...
+  int   values[SIZE];
+  ...
 } Foo;
 
 </pre></div>
@@ -2328,10 +2327,10 @@ To make the member writable, a "memberin" typemap can be used.
 
 <div class="code"><pre>
 %typemap(memberin) int [SIZE] {
-    int i;
-    for (i = 0; i &lt; SIZE; i++) {
-        $1[i] = $input[i];
-    }
+  int i;
+  for (i = 0; i &lt; SIZE; i++) {
+    $1[i] = $input[i];
+  }
 }
 
 </pre></div>
@@ -2600,48 +2599,48 @@ package example::Vector;
 %BLESSEDMEMBERS = ();
 
 sub new () {
-    my $self = shift;
-    my @args = @_;
-    $self = vectorc::new_Vector(@args);
-    return undef if (!defined($self));
-    bless $self, "example::Vector";
-    $OWNER{$self} = 1;
-    my %retval;
-    tie %retval, "example::Vector", $self;
-    return bless \%retval, "Vector";
+  my $self = shift;
+  my @args = @_;
+  $self = vectorc::new_Vector(@args);
+  return undef if (!defined($self));
+  bless $self, "example::Vector";
+  $OWNER{$self} = 1;
+  my %retval;
+  tie %retval, "example::Vector", $self;
+  return bless \%retval, "Vector";
 }
 
 sub DESTROY {
-    return unless $_[0]-&gt;isa('HASH');
-    my $self = tied(%{$_[0]});
-    delete $ITERATORS{$self};
-    if (exists $OWNER{$self}) {
-        examplec::delete_Vector($self));
-        delete $OWNER{$self};
-    }
+  return unless $_[0]-&gt;isa('HASH');
+  my $self = tied(%{$_[0]});
+  delete $ITERATORS{$self};
+  if (exists $OWNER{$self}) {
+    examplec::delete_Vector($self));
+    delete $OWNER{$self};
+  }
 }
 
 sub FETCH {
-    my ($self, $field) = @_;
-    my $member_func = "vectorc::Vector_${field}_get";
-    my $val = &amp;$member_func($self);
-    if (exists $BLESSEDMEMBERS{$field}) {
-        return undef if (!defined($val));
-        my %retval;
-        tie %retval, $BLESSEDMEMBERS{$field}, $val;
-        return bless \%retval, $BLESSEDMEMBERS{$field};
-    }
-    return $val;
+  my ($self, $field) = @_;
+  my $member_func = "vectorc::Vector_${field}_get";
+  my $val = &amp;$member_func($self);
+  if (exists $BLESSEDMEMBERS{$field}) {
+    return undef if (!defined($val));
+    my %retval;
+    tie %retval, $BLESSEDMEMBERS{$field}, $val;
+    return bless \%retval, $BLESSEDMEMBERS{$field};
+  }
+  return $val;
 }
 
 sub STORE {
-    my ($self, $field, $newval) = @_;
-    my $member_func = "vectorc::Vector_${field}_set";
-    if (exists $BLESSEDMEMBERS{$field}) {
-        &amp;$member_func($self, tied(%{$newval}));
-    } else {
-        &amp;$member_func($self, $newval);
-    }
+  my ($self, $field, $newval) = @_;
+  my $member_func = "vectorc::Vector_${field}_set";
+  if (exists $BLESSEDMEMBERS{$field}) {
+    &amp;$member_func($self, tied(%{$newval}));
+  } else {
+    &amp;$member_func($self, $newval);
+  }
 }
 </pre></div>
 
@@ -2842,11 +2841,11 @@ this:
 
 <div class="targetlang"><pre>
 sub dot_product {
-    my @args = @_;
-    $args[0] = tied(%{$args[0]});         # Get the real pointer values
-    $args[1] = tied(%{$args[1]});
-    my $result = vectorc::dot_product(@args);
-    return $result;
+  my @args = @_;
+  $args[0] = tied(%{$args[0]});         # Get the real pointer values
+  $args[1] = tied(%{$args[1]});
+  my $result = vectorc::dot_product(@args);
+  return $result;
 }
 </pre></div>
 
@@ -2985,7 +2984,7 @@ sub set_transform
     for (my $j = 0; $j &lt; 4, $j++)
     {
       mat44_set($a, $i, $j, $x-&gt;[i][j])
-      }
+    }
   }
   example.set_transform($im, $a);
   free_mat44($a);
@@ -3104,14 +3103,14 @@ the methods one() and two() (but not three()):
 %feature("director") Foo;
 class Foo {
 public:
-    Foo(int foo);
-    virtual void one();
-    virtual void two();
+  Foo(int foo);
+  virtual void one();
+  virtual void two();
 };
 
 class Bar: public Foo {
 public:
-    virtual void three();
+  virtual void three();
 };
 </pre>
 </div>
@@ -3279,9 +3278,9 @@ suffice in most cases:
 <div class="code">
 <pre>
 %feature("director:except") {
-    if ($error != NULL) {
-        throw Swig::DirectorMethodException();
-    }
+  if ($error != NULL) {
+    throw Swig::DirectorMethodException();
+  }
 }
 </pre>
 </div>
@@ -3305,8 +3304,8 @@ suitable exception handler:
 <div class="code">
 <pre>
 %exception {
-    try { $action }
-    catch (Swig::DirectorException &amp;e) { SWIG_fail; }
+  try { $action }
+  catch (Swig::DirectorException &amp;e) { SWIG_fail; }
 }
 </pre>
 </div>

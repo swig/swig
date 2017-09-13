@@ -990,7 +990,7 @@ private:
    * overname: The overload string for overloaded function.
    * wname: The SWIG wrapped name--the name of the C function.
    * base: A list of the names of base classes, in the case where this
-   *       is is a vritual method not defined in the current class.
+   *       is a virtual method not defined in the current class.
    * parms: The parameters.
    * result: The result type.
    * is_static: Whether this is a static method or member.
