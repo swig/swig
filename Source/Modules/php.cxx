@@ -1110,7 +1110,7 @@ public:
   /* Magic methods __set, __get, __isset is declared here in the extension.
      The flag variable is used to decide whether all variables are read or not.
    */
-  void magic_method_setter(Node *n, bool flag) {
+  void magic_method_setter(Node *n, bool flag, String *baseClassExtend) {
 
     if (magic_set == NULL) {
       magic_set = NewStringEmpty();
@@ -1118,6 +1118,9 @@ public:
       magic_isset = NewStringEmpty();
     }
     if (flag) {
+      if (Cmp(baseClassExtend, "Exception") == 0 || !is_class_wrapped(baseClassExtend)) {
+        baseClassExtend = NULL;
+      }
       Wrapper *f = NewWrapper();
       // Need arg info set for __get magic function with one variable.
       String * arginfo_code = NewString("0");
@@ -1160,13 +1163,17 @@ public:
 
       Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n",magic_set);
       Printf(f->code, "%s\n",magic_set);
-      Printf(f->code, "\nelse if (strcmp(arg2->val,\"thisown\") == 0)\n{\n");
+      Printf(f->code, "\nelse if (strcmp(arg2->val,\"thisown\") == 0) {\n");
       Printf(f->code, "arg->newobject = zval_get_long(&args[1]);\n}\n\n");
-      Printf(f->code, "else {\nif (!arg->extras) {\n");
-      Printf(f->code, "ALLOC_HASHTABLE(arg->extras);\nzend_hash_init(arg->extras, 0, NULL, ZVAL_PTR_DTOR, 0);\n}\n");
-      Printf(f->code, "if (!zend_hash_find(arg->extras,arg2))\nzend_hash_add(arg->extras,arg2,&args[1]);\n");
-      Printf(f->code, "else\nzend_hash_update(arg->extras,arg2,&args[1]);\n}\n\n");
-
+      Printf(f->code, "else {\n");
+      if (baseClassExtend) {
+        Printf(f->code, "PHP_MN(%s___set)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
+      } else {
+        Printf(f->code, "if (!arg->extras) {\n");
+        Printf(f->code, "ALLOC_HASHTABLE(arg->extras);\nzend_hash_init(arg->extras, 0, NULL, ZVAL_PTR_DTOR, 0);\n}\n");
+        Printf(f->code, "if (!zend_hash_find(arg->extras,arg2))\nzend_hash_add(arg->extras,arg2,&args[1]);\n");
+        Printf(f->code, "else\nzend_hash_update(arg->extras,arg2,&args[1]);\n}\n");
+      }
 
       Printf(f->code, "zend_string_release(arg2);\n\n");
       Printf(f->code, "thrown:\n");
@@ -1191,12 +1198,16 @@ public:
 
       Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n",magic_set);
       Printf(f->code, "%s\n",magic_get);
-      Printf(f->code, "\nelse if (strcmp(arg2->val,\"thisown\") == 0)\n{\n");
+      Printf(f->code, "\nelse if (strcmp(arg2->val,\"thisown\") == 0) {\n");
       Printf(f->code, "if(arg->newobject) {\nRETVAL_LONG(1);\n}\nelse {\nRETVAL_LONG(0);\n}\n}\n\n");
-      Printf(f->code, "else {\nif (!arg->extras) {\nRETVAL_NULL();\n}\n");
-      Printf(f->code, "else {\nzval *zv = zend_hash_find(arg->extras,arg2);\n");
-      Printf(f->code, "if (!zv)\nRETVAL_NULL();\nelse\nRETVAL_ZVAL(zv,1,ZVAL_PTR_DTOR);\n}\n}\n\n");
-
+      Printf(f->code, "else {\n");
+      if (baseClassExtend) {
+        Printf(f->code, "PHP_MN(%s___get)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
+      } else {
+        Printf(f->code, "if (!arg->extras) {\nRETVAL_NULL();\n}\n");
+        Printf(f->code, "else {\nzval *zv = zend_hash_find(arg->extras,arg2);\n");
+        Printf(f->code, "if (!zv)\nRETVAL_NULL();\nelse\nRETVAL_ZVAL(zv,1,ZVAL_PTR_DTOR);\n}\n}\n");
+      }
 
       Printf(f->code, "zend_string_release(arg2);\n\n");
       Printf(f->code, "thrown:\n");
@@ -1226,12 +1237,17 @@ public:
       Printf(magic_isset, "RETVAL_TRUE;\n}\n");
 
       Printf(f->code, "if (!arg2) {\n  RETVAL_FALSE;\n}\n",magic_set);
-      Printf(f->code, "\nelse if (strcmp(arg2->val,\"thisown\") == 0)\n{\n");
+      Printf(f->code, "\nelse if (strcmp(arg2->val,\"thisown\") == 0) {\n");
       Printf(f->code, "RETVAL_TRUE;\n}\n\n");
       Printf(f->code, "%s\n",magic_isset);
-      Printf(f->code, "else {\nif (!arg->extras) {\nRETVAL_FALSE;\n}\n");
-      Printf(f->code, "else {\nif (!zend_hash_find(arg->extras,arg2))\n");
-      Printf(f->code, "RETVAL_FALSE;\nelse\nRETVAL_TRUE;\n}\n}\n\n");
+      Printf(f->code, "else {\n");
+      if (baseClassExtend) {
+        Printf(f->code, "PHP_MN(%s___isset)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
+      } else {
+        Printf(f->code, "if (!arg->extras) {\nRETVAL_FALSE;\n}\n");
+        Printf(f->code, "else {\nif (!zend_hash_find(arg->extras,arg2))\n");
+        Printf(f->code, "RETVAL_FALSE;\nelse\nRETVAL_TRUE;\n}\n}\n");
+      }
 
       Printf(f->code, "free(method_name);\nzend_string_release(arg2);\n\n");
       Printf(f->code, "thrown:\n");
@@ -1258,11 +1274,11 @@ public:
 
     String *v_name = GetChar(n, "name");
 
-    Printf(magic_set, "\nelse if (strcmp(arg2->val,\"%s\") == 0)\n{\n",v_name);
+    Printf(magic_set, "\nelse if (strcmp(arg2->val,\"%s\") == 0) {\n",v_name);
     Printf(magic_set, "zval zv;\nZVAL_STRING(&zv, \"%s_set\");\n",v_name);
     Printf(magic_set, "CALL_METHOD_PARAM_1(zv, return_value, getThis(),args[1]);\n}\n\n");
 
-    Printf(magic_get, "\nelse if (strcmp(arg2->val,\"%s\") == 0)\n{\n",v_name);
+    Printf(magic_get, "\nelse if (strcmp(arg2->val,\"%s\") == 0) {\n",v_name);
     Printf(magic_get, "zval zv;\nZVAL_STRING(&zv, \"%s_get\");\n",v_name);
     Printf(magic_get, "CALL_METHOD(zv, return_value, getThis());\n}\n");
 
@@ -1760,7 +1776,7 @@ public:
 	p += strlen(p) - 4;
 	String *varname = Getattr(n, "membervariableHandler:sym:name");
 	if (strcmp(p, "_get") == 0) {
-          magic_method_setter(n,false);
+          magic_method_setter(n, false, NULL);
 	  Setattr(shadow_get_vars, varname, Getattr(n, "type"));
 	} else if (strcmp(p, "_set") == 0) {
 	  Setattr(shadow_set_vars, varname, iname);
@@ -3034,7 +3050,7 @@ done:
       Delete(shadow_get_vars);
       shadow_get_vars = NULL;
     }
-    magic_method_setter(n,true);
+    magic_method_setter(n, true, baseClassExtend);
     class_name = NULL;
     class_type = NULL;
     return SWIG_OK;
