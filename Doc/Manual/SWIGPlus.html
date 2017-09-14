@@ -39,14 +39,14 @@
 <li><a href="#SWIGPlus_nn20">Inheritance</a>
 <li><a href="#SWIGPlus_nn21">A brief discussion of multiple inheritance, pointers,  and type checking</a>
 <li><a href="#SWIGPlus_default_args">Default arguments</a>
-<li><a href="#SWIGPlus_overloaded_methods">Wrapping Overloaded Functions and Methods</a>
+<li><a href="#SWIGPlus_overloaded_methods">Overloaded functions and methods</a>
 <ul>
 <li><a href="#SWIGPlus_nn24">Dispatch function generation</a>
 <li><a href="#SWIGPlus_nn25">Ambiguity in Overloading</a>
 <li><a href="#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a>
 <li><a href="#SWIGPlus_nn27">Comments on overloading</a>
 </ul>
-<li><a href="#SWIGPlus_nn28">Wrapping overloaded operators</a>
+<li><a href="#SWIGPlus_nn28">Overloaded operators</a>
 <li><a href="#SWIGPlus_class_extension">Class extension</a>
 <li><a href="#SWIGPlus_nn30">Templates</a>
 <ul>
@@ -1772,7 +1772,7 @@ public:
 
 <p>
 The wrappers produced are exactly the same as if the above code was instead fed into SWIG.
-Details of this are covered later in the <a href="#SWIGPlus_overloaded_methods">Wrapping Overloaded Functions and Methods</a> section.
+Details of this are covered later in the <a href="#SWIGPlus_overloaded_methods">Overloaded functions and methods</a> section.
 This approach allows SWIG to wrap all possible default arguments, but can be verbose.
 For example if a method has ten default arguments, then eleven wrapper methods are generated.
 </p>
@@ -1843,7 +1843,7 @@ Keyword arguments are a language feature of some scripting languages, for exampl
 SWIG is unable to support kwargs when wrapping overloaded methods, so the default approach cannot be used.
 </p>
 
-<H2><a name="SWIGPlus_overloaded_methods">6.15 Wrapping Overloaded Functions and Methods</a></H2>
+<H2><a name="SWIGPlus_overloaded_methods">6.15 Overloaded functions and methods</a></H2>
 
 
 <p>
@@ -2616,7 +2616,7 @@ As a general rule, statically typed languages like Java are able to provide more
 than dynamically typed languages like Perl, Python, Ruby, and Tcl.
 </p>
 
-<H2><a name="SWIGPlus_nn28">6.16 Wrapping overloaded operators</a></H2>
+<H2><a name="SWIGPlus_nn28">6.16 Overloaded operators</a></H2>
 
 
 <p>
