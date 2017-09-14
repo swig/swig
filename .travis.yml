@@ -1,5 +1,4 @@
 language: cpp
-group: deprecated-2017Q3 # workaround for failing: pip install pep8
 matrix:
   include:
     - compiler: clang
@@ -50,10 +49,11 @@ matrix:
       env: SWIGLANG=java
       sudo: required
       dist: trusty
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=javascript ENGINE=node
-#      dist: trusty
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=javascript ENGINE=node
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=javascript ENGINE=jsc

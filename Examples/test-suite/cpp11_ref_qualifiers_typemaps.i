@@ -5,30 +5,30 @@
 %}
 
 // typemaps to completely ignore the input parm and override it
-%typemap(in) short (Funcs::*ff)(bool) const   %{ $1 = &Funcs::FF2; %}
-%typemap(in) short (Funcs::*cc)(bool) &       %{ $1 = &Funcs::CC5; %}
-%typemap(in) short (Funcs::*gg)(bool) const & %{ $1 = &Funcs::GG8; %}
-%typemap(in) short (Funcs::*hh)(bool) &&      %{ $1 = &Funcs::HH11; %}
+%typemap(in) short (Funcs::*ff)(bool) const   %{ $1 = &Funcs::FFF2; %}
+%typemap(in) short (Funcs::*cc)(bool) &       %{ $1 = &Funcs::CCC5; %}
+%typemap(in) short (Funcs::*gg)(bool) const & %{ $1 = &Funcs::GGG8; %}
+%typemap(in) short (Funcs::*hh)(bool) &&      %{ $1 = &Funcs::HHH11; %}
 
-%typemap(in) short (Funcs::*)(bool) const   %{ $1 = &Funcs::FF3; %}
-%typemap(in) short (Funcs::*)(bool) &       %{ $1 = &Funcs::CC6; %}
-%typemap(in) short (Funcs::*)(bool) const & %{ $1 = &Funcs::GG9; %}
-%typemap(in) short (Funcs::*)(bool) &&      %{ $1 = &Funcs::HH12; %}
+%typemap(in) short (Funcs::*)(bool) const   %{ $1 = &Funcs::FFF3; %}
+%typemap(in) short (Funcs::*)(bool) &       %{ $1 = &Funcs::CCC6; %}
+%typemap(in) short (Funcs::*)(bool) const & %{ $1 = &Funcs::GGG9; %}
+%typemap(in) short (Funcs::*)(bool) &&      %{ $1 = &Funcs::HHH12; %}
 
 %inline %{
 struct Funcs {
-  short FF1(bool) const { return 1; }
-  short FF2(bool) const { return 2; }
-  short FF3(bool) const { return 3; }
-  short CC4(bool) & { return 4; }
-  short CC5(bool) & { return 5; }
-  short CC6(bool) & { return 6; }
-  short GG7(bool) const & { return 7; }
-  short GG8(bool) const & { return 8; }
-  short GG9(bool) const & { return 9; }
-  short HH10(bool) && { return 10; }
-  short HH11(bool) && { return 11; }
-  short HH12(bool) && { return 12; }
+  short FFF1(bool) const { return 1; }
+  short FFF2(bool) const { return 2; }
+  short FFF3(bool) const { return 3; }
+  short CCC4(bool) & { return 4; }
+  short CCC5(bool) & { return 5; }
+  short CCC6(bool) & { return 6; }
+  short GGG7(bool) const & { return 7; }
+  short GGG8(bool) const & { return 8; }
+  short GGG9(bool) const & { return 9; }
+  short HHH10(bool) && { return 10; }
+  short HHH11(bool) && { return 11; }
+  short HHH12(bool) && { return 12; }
 };
 struct TypemapsNamedParms
 {
@@ -68,7 +68,7 @@ struct TypemapsUnnamedParms
 };
 %}
 
-%constant short (Funcs::*FF1_MFP)(bool) const = &Funcs::FF1;
-%constant short (Funcs::*CC4_MFP)(bool) & = &Funcs::CC4;
-%constant short (Funcs::*GG7_MFP)(bool) const & = &Funcs::GG7;
-%constant short (Funcs::*HH10_MFP)(bool) && = &Funcs::HH10;
+%constant short (Funcs::*FF1_MFP)(bool) const = &Funcs::FFF1;
+%constant short (Funcs::*CC4_MFP)(bool) & = &Funcs::CCC4;
+%constant short (Funcs::*GG7_MFP)(bool) const & = &Funcs::GGG7;
+%constant short (Funcs::*HH10_MFP)(bool) && = &Funcs::HHH10;

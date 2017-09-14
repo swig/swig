@@ -31,7 +31,6 @@
 <li><a href="#SWIGPlus_nn12">Static members</a>
 <li><a href="#SWIGPlus_member_data">Member data</a>
 </ul>
-<li><a href="#SWIGPlus_default_args">Default arguments</a>
 <li><a href="#SWIGPlus_nn15">Protection</a>
 <li><a href="#SWIGPlus_nn16">Enums and constants</a>
 <li><a href="#SWIGPlus_nn17">Friends</a>
@@ -39,14 +38,15 @@
 <li><a href="#SWIGPlus_nn19">Pass and return by value</a>
 <li><a href="#SWIGPlus_nn20">Inheritance</a>
 <li><a href="#SWIGPlus_nn21">A brief discussion of multiple inheritance, pointers,  and type checking</a>
-<li><a href="#SWIGPlus_overloaded_methods">Wrapping Overloaded Functions and Methods</a>
+<li><a href="#SWIGPlus_default_args">Default arguments</a>
+<li><a href="#SWIGPlus_overloaded_methods">Overloaded functions and methods</a>
 <ul>
 <li><a href="#SWIGPlus_nn24">Dispatch function generation</a>
-<li><a href="#SWIGPlus_nn25">Ambiguity in Overloading</a>
-<li><a href="#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a>
+<li><a href="#SWIGPlus_nn25">Ambiguity in overloading</a>
+<li><a href="#SWIGPlus_ambiguity_resolution_renaming">Renaming and ambiguity resolution</a>
 <li><a href="#SWIGPlus_nn27">Comments on overloading</a>
 </ul>
-<li><a href="#SWIGPlus_nn28">Wrapping overloaded operators</a>
+<li><a href="#SWIGPlus_nn28">Overloaded operators</a>
 <li><a href="#SWIGPlus_class_extension">Class extension</a>
 <li><a href="#SWIGPlus_nn30">Templates</a>
 <ul>
@@ -1104,113 +1104,7 @@ a few problems related to structure wrapping and some of SWIG's
 customization features.
 </p>
 
-<H2><a name="SWIGPlus_default_args">6.7 Default arguments</a></H2>
-
-
-<p>
-SWIG will wrap all types of functions that have default arguments. For example member functions:
-</p>
-
-<div class="code">
-<pre>
-class Foo {
-public:
-  void bar(int x, int y = 3, int z = 4);
-};
-</pre>
-</div>
-
-<p>
-SWIG handles default arguments by generating an extra overloaded method for each defaulted argument.
-SWIG is effectively handling methods with default arguments as if it was wrapping the equivalent overloaded methods.
-Thus for the example above, it is as if we had instead given the following to SWIG:
-</p>
-
-<div class="code">
-<pre>
-class Foo {
-public:
-  void bar(int x, int y, int z);
-  void bar(int x, int y);
-  void bar(int x);
-};
-</pre>
-</div>
-
-<p>
-The wrappers produced are exactly the same as if the above code was instead fed into SWIG.
-Details of this are covered later in the <a href="#SWIGPlus_overloaded_methods">Wrapping Overloaded Functions and Methods</a> section.
-This approach allows SWIG to wrap all possible default arguments, but can be verbose.
-For example if a method has ten default arguments, then eleven wrapper methods are generated.
-</p>
-
-<p>
-Please see the <a href="Customization.html#Customization_features_default_args">Features and default arguments</a>
-section for more information on using <tt>%feature</tt> with functions with default arguments.
-The <a href="#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a> section 
-also deals with using <tt>%rename</tt> and <tt>%ignore</tt> on methods with default arguments.
-If you are writing your own typemaps for types used in methods with default arguments, you may also need to write a <tt>typecheck</tt> typemap.
-See the <a href="Typemaps.html#Typemaps_overloading">Typemaps and overloading</a> section for details or otherwise
-use the <tt>compactdefaultargs</tt> feature flag as mentioned below.
-</p>
-
-<p>
-<b>Compatibility note:</b> Versions of SWIG prior to SWIG-1.3.23 wrapped default arguments slightly differently.
-Instead a single wrapper method was generated and the default values were copied into the C++ wrappers
-so that the method being wrapped was then called with all the arguments specified.
-If the size of the wrappers are a concern then this approach to wrapping methods with default arguments
-can be re-activated by using the <tt>compactdefaultargs</tt> 
-<a href="Customization.html#Customization_feature_flags">feature flag</a>.
-</p>
-
-<div class="code">
-<pre>
-%feature("compactdefaultargs") Foo::bar;
-class Foo {
-public:
-  void bar(int x, int y = 3, int z = 4);
-};
-</pre>
-</div>
-
-
-<p>
-This is great for reducing the size of the wrappers, but the caveat is it does not work for the statically typed languages,
-such as C# and Java,
-which don't have optional arguments in the language, 
-Another restriction of this feature is that it cannot handle default arguments that are not public.
-The following example illustrates this:
-</p>
-
-<div class="code">
-<pre>
-class Foo {
-private:
-  static const int spam;
-public:
-  void bar(int x, int y = spam);   // Won't work with %feature("compactdefaultargs") -
-                                   // private default value
-};
-</pre>
-</div>
-
-<p>
-This produces uncompilable wrapper code because default values in C++ are
-evaluated in the same scope as the member function whereas SWIG
-evaluates them in the scope of a wrapper function (meaning that the
-values have to be public). 
-</p>
-
-<p>
-The <tt>compactdefaultargs</tt> feature is automatically turned on when wrapping <a href="SWIG.html#SWIG_default_args">C code with default arguments</a>.
-Some target languages will also automatically turn on this feature
-if the keyword arguments feature (kwargs) is specified for either C or C++ functions, and the target language supports kwargs,
-the <tt>compactdefaultargs</tt> feature is also automatically turned on.
-Keyword arguments are a language feature of some scripting languages, for example Ruby and Python.
-SWIG is unable to support kwargs when wrapping overloaded methods, so the default approach cannot be used.
-</p>
-
-<H2><a name="SWIGPlus_nn15">6.8 Protection</a></H2>
+<H2><a name="SWIGPlus_nn15">6.7 Protection</a></H2>
 
 
 <p>
@@ -1230,7 +1124,7 @@ until you explicitly give a `<tt>public:</tt>' declaration (This is
 the same convention used by C++).
 </p>
 
-<H2><a name="SWIGPlus_nn16">6.9 Enums and constants</a></H2>
+<H2><a name="SWIGPlus_nn16">6.8 Enums and constants</a></H2>
 
 
 <p>
@@ -1260,7 +1154,7 @@ Swig_STOUT = Swig::STOUT
 Members declared as <tt>const</tt> are wrapped as read-only members and do not create constants.
 </p>
 
-<H2><a name="SWIGPlus_nn17">6.10 Friends</a></H2>
+<H2><a name="SWIGPlus_nn17">6.9 Friends</a></H2>
 
 
 <p>
@@ -1321,7 +1215,7 @@ namespace bar {
 and a wrapper for the method 'blah' will not be generated.
 </p>
 
-<H2><a name="SWIGPlus_nn18">6.11 References and pointers</a></H2>
+<H2><a name="SWIGPlus_nn18">6.10 References and pointers</a></H2>
 
 
 <p>
@@ -1421,7 +1315,7 @@ templates and the STL.  This was first added in SWIG-1.3.12.
 </p>
 
 
-<H2><a name="SWIGPlus_nn19">6.12 Pass and return by value</a></H2>
+<H2><a name="SWIGPlus_nn19">6.11 Pass and return by value</a></H2>
 
 
 <p>
@@ -1525,7 +1419,7 @@ classes that don't define a default constructor.
 It is not used for C++ pointers or references.
 </p>
 
-<H2><a name="SWIGPlus_nn20">6.13 Inheritance</a></H2>
+<H2><a name="SWIGPlus_nn20">6.12 Inheritance</a></H2>
 
 
 <p>
@@ -1711,7 +1605,7 @@ functions for virtual members that are already defined in a base
 class.
 </p>
 
-<H2><a name="SWIGPlus_nn21">6.14 A brief discussion of multiple inheritance, pointers,  and type checking</a></H2>
+<H2><a name="SWIGPlus_nn21">6.13 A brief discussion of multiple inheritance, pointers,  and type checking</a></H2>
 
 
 <p>
@@ -1843,7 +1737,113 @@ int y = B_function((B *) pB);
 In practice, the pointer is held as an integral number in the target language proxy class.
 </p>
 
-<H2><a name="SWIGPlus_overloaded_methods">6.15 Wrapping Overloaded Functions and Methods</a></H2>
+<H2><a name="SWIGPlus_default_args">6.14 Default arguments</a></H2>
+
+
+<p>
+SWIG will wrap all types of functions that have default arguments. For example member functions:
+</p>
+
+<div class="code">
+<pre>
+class Foo {
+public:
+  void bar(int x, int y = 3, int z = 4);
+};
+</pre>
+</div>
+
+<p>
+SWIG handles default arguments by generating an extra overloaded method for each defaulted argument.
+SWIG is effectively handling methods with default arguments as if it was wrapping the equivalent overloaded methods.
+Thus for the example above, it is as if we had instead given the following to SWIG:
+</p>
+
+<div class="code">
+<pre>
+class Foo {
+public:
+  void bar(int x, int y, int z);
+  void bar(int x, int y);
+  void bar(int x);
+};
+</pre>
+</div>
+
+<p>
+The wrappers produced are exactly the same as if the above code was instead fed into SWIG.
+Details of this are covered in the next section <a href="#SWIGPlus_overloaded_methods">Overloaded functions and methods</a>.
+This approach allows SWIG to wrap all possible default arguments, but can be verbose.
+For example if a method has ten default arguments, then eleven wrapper methods are generated.
+</p>
+
+<p>
+Please see the <a href="Customization.html#Customization_features_default_args">Features and default arguments</a>
+section for more information on using <tt>%feature</tt> with functions with default arguments.
+The <a href="#SWIGPlus_ambiguity_resolution_renaming">Renaming and ambiguity resolution</a> section 
+also deals with using <tt>%rename</tt> and <tt>%ignore</tt> on methods with default arguments.
+If you are writing your own typemaps for types used in methods with default arguments, you may also need to write a <tt>typecheck</tt> typemap.
+See the <a href="Typemaps.html#Typemaps_overloading">Typemaps and overloading</a> section for details or otherwise
+use the <tt>compactdefaultargs</tt> feature flag as mentioned below.
+</p>
+
+<p>
+<b>Compatibility note:</b> Versions of SWIG prior to SWIG-1.3.23 wrapped default arguments slightly differently.
+Instead a single wrapper method was generated and the default values were copied into the C++ wrappers
+so that the method being wrapped was then called with all the arguments specified.
+If the size of the wrappers are a concern then this approach to wrapping methods with default arguments
+can be re-activated by using the <tt>compactdefaultargs</tt> 
+<a href="Customization.html#Customization_feature_flags">feature flag</a>.
+</p>
+
+<div class="code">
+<pre>
+%feature("compactdefaultargs") Foo::bar;
+class Foo {
+public:
+  void bar(int x, int y = 3, int z = 4);
+};
+</pre>
+</div>
+
+
+<p>
+This is great for reducing the size of the wrappers, but the caveat is it does not work for the statically typed languages,
+such as C# and Java,
+which don't have optional arguments in the language, 
+Another restriction of this feature is that it cannot handle default arguments that are not public.
+The following example illustrates this:
+</p>
+
+<div class="code">
+<pre>
+class Foo {
+private:
+  static const int spam;
+public:
+  void bar(int x, int y = spam);   // Won't work with %feature("compactdefaultargs") -
+                                   // private default value
+};
+</pre>
+</div>
+
+<p>
+This produces uncompilable wrapper code because default values in C++ are
+evaluated in the same scope as the member function whereas SWIG
+evaluates them in the scope of a wrapper function (meaning that the
+values have to be public). 
+</p>
+
+<p>
+The <tt>compactdefaultargs</tt> feature is automatically turned on when wrapping <a href="SWIG.html#SWIG_default_args">C code with default arguments</a>.
+Some target languages will also automatically turn on this feature
+if the keyword arguments feature (kwargs) is specified for either C or C++ functions, and the target language supports kwargs,
+the <tt>compactdefaultargs</tt> feature is also automatically turned on.
+Keyword arguments are a language feature of some scripting languages, for example Ruby and Python.
+SWIG is unable to support kwargs when wrapping overloaded methods, so the default approach cannot be used.
+</p>
+
+<H2><a name="SWIGPlus_overloaded_methods">6.15 Overloaded functions and methods</a></H2>
 
 
 <p>
@@ -2031,7 +2031,7 @@ checked in the same order as they appear in this ranking.
 If you're still confused, don't worry about it---SWIG is probably doing the right thing.
 </p>
 
-<H3><a name="SWIGPlus_nn25">6.15.2 Ambiguity in Overloading</a></H3>
+<H3><a name="SWIGPlus_nn25">6.15.2 Ambiguity in overloading</a></H3>
 
 
 <p>
@@ -2149,7 +2149,7 @@ it means that the target language module has not yet implemented support for ove
 functions and methods.  The only way to fix the problem is to read the next section.
 </p>
 
-<H3><a name="SWIGPlus_ambiguity_resolution_renaming">6.15.3 Ambiguity resolution and renaming</a></H3>
+<H3><a name="SWIGPlus_ambiguity_resolution_renaming">6.15.3 Renaming and ambiguity resolution</a></H3>
 
 
 <p>
@@ -2562,8 +2562,7 @@ exactly matches the wrapped method:
 <p>
 The C++ method can then be called from the target language with the new name no matter how many arguments are specified, for example:
 <tt>newbar(2, 2.0)</tt>, <tt>newbar(2)</tt> or <tt>newbar()</tt>.
-However, if the <tt>%rename</tt> does not contain the default arguments, it will only apply to the single equivalent target language overloaded method.
-So if instead we have:
+However, if the <tt>%rename</tt> does not contain the default arguments:
 </p>
 
 <div class="code">
@@ -2573,8 +2572,23 @@ So if instead we have:
 </div>
 
 <p>
+then only one of the three equivalent overloaded methods will be renamed and wrapped as if SWIG parsed:
+</p>
+
+<div class="code">
+<pre>
+void Spam::newbar(int i, double d);
+void Spam::bar(int i);
+void Spam::bar();
+</pre>
+</div>
+
+<p>
 The C++ method must then be called from the target language with the new name <tt>newbar(2, 2.0)</tt> when both arguments are supplied
 or with the original name as <tt>bar(2)</tt> (one argument) or <tt>bar()</tt> (no arguments).
+</p>
+
+<p>
 In fact it is possible to use <tt>%rename</tt> on the equivalent overloaded methods, to rename all the equivalent overloaded methods:
 </p>
 
@@ -2616,7 +2630,7 @@ As a general rule, statically typed languages like Java are able to provide more
 than dynamically typed languages like Perl, Python, Ruby, and Tcl.
 </p>
 
-<H2><a name="SWIGPlus_nn28">6.16 Wrapping overloaded operators</a></H2>
+<H2><a name="SWIGPlus_nn28">6.16 Overloaded operators</a></H2>
 
 
 <p>

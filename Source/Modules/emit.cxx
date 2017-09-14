@@ -454,7 +454,7 @@ String *emit_action(Node *n) {
   if (catchlist) {
     int unknown_catch = 0;
     int has_varargs = 0;
-    Printf(eaction, "}\n");
+    Printf(eaction, "} ");
     for (Parm *ep = catchlist; ep; ep = nextSibling(ep)) {
       String *em = Swig_typemap_lookup("throws", ep, "_e", 0);
       if (em) {

@@ -177,7 +177,7 @@ static String *getSlot(Node *n = NULL, const char *key = NULL, String *default_s
 
 static void printSlot(File *f, String *slotval, const char *slotname, const char *functype = NULL) {
   String *slotval_override = 0;
-  if (functype)
+  if (functype && Strcmp(slotval, "0") == 0)
     slotval = slotval_override = NewStringf("(%s) %s", functype, slotval);
   int len = Len(slotval);
   int fieldwidth = len > 41 ? (len > 61 ? 0 : 61 - len) : 41 - len;
@@ -2501,7 +2501,8 @@ public:
 
     String *tmp = NewString("");
     String *dispatch;
-    const char *dispatch_code = funpack ? "return %s(self, argc, argv);" : "return %s(self, args);";
+    const char *dispatch_code = funpack ? "return %s(self, argc, argv);" :
+      (builtin_ctor ? "return %s(self, args, NULL);" : "return %s(self, args);");
 
     if (castmode) {
       dispatch = Swig_overload_dispatch_cast(n, dispatch_code, &maxargs);
@@ -2515,7 +2516,8 @@ public:
     String *symname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(symname);
 
-    Printv(f->def, linkage, builtin_ctor ? "int " : "PyObject *", wname, "(PyObject *self, PyObject *args) {", NIL);
+    const char *builtin_kwargs = builtin_ctor ? ", PyObject *SWIGUNUSEDPARM(kwargs)" : "";
+    Printv(f->def, linkage, builtin_ctor ? "int " : "PyObject *", wname, "(PyObject *self, PyObject *args", builtin_kwargs, ") {", NIL);
 
     Wrapper_add_local(f, "argc", "Py_ssize_t argc");
     Printf(tmp, "PyObject *argv[%d] = {0}", maxargs + 1);
@@ -2729,9 +2731,10 @@ public:
       Append(wname, overname);
     }
 
+    const char *builtin_kwargs = builtin_ctor ? ", PyObject *SWIGUNUSEDPARM(kwargs)" : "";
     if (!allow_kwargs || overname) {
       if (!varargs) {
-	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args) {", NIL);
+	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args", builtin_kwargs, ") {", NIL);
       } else {
 	Printv(f->def, linkage, wrap_return, wname, "__varargs__", "(PyObject *", self_param, ", PyObject *args, PyObject *varargs) {", NIL);
       }
@@ -2933,11 +2936,7 @@ public:
 	  }
 	  Printf(parse_args, "if ((nobjs < %d) || (nobjs > %d)) SWIG_fail;\n", num_required, num_arguments);
 	} else {
-	  if (noargs) {
-	    Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args) {", NIL);
-	  } else {
-	    Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args) {", NIL);
-	  }
+	  Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args", builtin_kwargs, ") {", NIL);
 	  if (onearg && !builtin_ctor) {
 	    Printf(parse_args, "if (!args) SWIG_fail;\n");
 	    Append(parse_args, "swig_obj[0] = args;\n");
@@ -3241,7 +3240,7 @@ public:
 	// Note: funpack is currently always false for varargs
 	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", Py_ssize_t nobjs, PyObject **swig_obj) {", NIL);
       } else {
-	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args) {", NIL);
+	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args", builtin_kwargs, ") {", NIL);
       }
       Wrapper_add_local(f, "resultobj", builtin_ctor ? "int resultobj" : "PyObject *resultobj");
       Wrapper_add_local(f, "varargs", "PyObject *varargs");
@@ -3351,7 +3350,7 @@ public:
 	  closure_name = Copy(wrapper_name);
 	}
 	if (func_type) {
-	  String *s = NewStringf("(%s) %s", func_type, closure_name);
+	  String *s = NewStringf("%s", closure_name);
 	  Delete(closure_name);
 	  closure_name = s;
 	}
