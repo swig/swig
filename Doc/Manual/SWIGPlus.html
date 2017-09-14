@@ -42,8 +42,8 @@
 <li><a href="#SWIGPlus_overloaded_methods">Overloaded functions and methods</a>
 <ul>
 <li><a href="#SWIGPlus_nn24">Dispatch function generation</a>
-<li><a href="#SWIGPlus_nn25">Ambiguity in Overloading</a>
-<li><a href="#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a>
+<li><a href="#SWIGPlus_nn25">Ambiguity in overloading</a>
+<li><a href="#SWIGPlus_ambiguity_resolution_renaming">Renaming and ambiguity resolution</a>
 <li><a href="#SWIGPlus_nn27">Comments on overloading</a>
 </ul>
 <li><a href="#SWIGPlus_nn28">Overloaded operators</a>
@@ -1772,7 +1772,7 @@ public:
 
 <p>
 The wrappers produced are exactly the same as if the above code was instead fed into SWIG.
-Details of this are covered later in the <a href="#SWIGPlus_overloaded_methods">Overloaded functions and methods</a> section.
+Details of this are covered in the next section <a href="#SWIGPlus_overloaded_methods">Overloaded functions and methods</a>.
 This approach allows SWIG to wrap all possible default arguments, but can be verbose.
 For example if a method has ten default arguments, then eleven wrapper methods are generated.
 </p>
@@ -1780,7 +1780,7 @@ For example if a method has ten default arguments, then eleven wrapper methods a
 <p>
 Please see the <a href="Customization.html#Customization_features_default_args">Features and default arguments</a>
 section for more information on using <tt>%feature</tt> with functions with default arguments.
-The <a href="#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a> section 
+The <a href="#SWIGPlus_ambiguity_resolution_renaming">Renaming and ambiguity resolution</a> section 
 also deals with using <tt>%rename</tt> and <tt>%ignore</tt> on methods with default arguments.
 If you are writing your own typemaps for types used in methods with default arguments, you may also need to write a <tt>typecheck</tt> typemap.
 See the <a href="Typemaps.html#Typemaps_overloading">Typemaps and overloading</a> section for details or otherwise
@@ -2031,7 +2031,7 @@ checked in the same order as they appear in this ranking.
 If you're still confused, don't worry about it---SWIG is probably doing the right thing.
 </p>
 
-<H3><a name="SWIGPlus_nn25">6.15.2 Ambiguity in Overloading</a></H3>
+<H3><a name="SWIGPlus_nn25">6.15.2 Ambiguity in overloading</a></H3>
 
 
 <p>
@@ -2149,7 +2149,7 @@ it means that the target language module has not yet implemented support for ove
 functions and methods.  The only way to fix the problem is to read the next section.
 </p>
 
-<H3><a name="SWIGPlus_ambiguity_resolution_renaming">6.15.3 Ambiguity resolution and renaming</a></H3>
+<H3><a name="SWIGPlus_ambiguity_resolution_renaming">6.15.3 Renaming and ambiguity resolution</a></H3>
 
 
 <p>
@@ -2562,8 +2562,7 @@ exactly matches the wrapped method:
 <p>
 The C++ method can then be called from the target language with the new name no matter how many arguments are specified, for example:
 <tt>newbar(2, 2.0)</tt>, <tt>newbar(2)</tt> or <tt>newbar()</tt>.
-However, if the <tt>%rename</tt> does not contain the default arguments, it will only apply to the single equivalent target language overloaded method.
-So if instead we have:
+However, if the <tt>%rename</tt> does not contain the default arguments:
 </p>
 
 <div class="code">
@@ -2573,8 +2572,23 @@ So if instead we have:
 </div>
 
 <p>
+then only one of the three equivalent overloaded methods will be renamed and wrapped as if SWIG parsed:
+</p>
+
+<div class="code">
+<pre>
+void Spam::newbar(int i, double d);
+void Spam::bar(int i);
+void Spam::bar();
+</pre>
+</div>
+
+<p>
 The C++ method must then be called from the target language with the new name <tt>newbar(2, 2.0)</tt> when both arguments are supplied
 or with the original name as <tt>bar(2)</tt> (one argument) or <tt>bar()</tt> (no arguments).
+</p>
+
+<p>
 In fact it is possible to use <tt>%rename</tt> on the equivalent overloaded methods, to rename all the equivalent overloaded methods:
 </p>
 

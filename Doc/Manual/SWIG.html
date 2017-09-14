@@ -1737,41 +1737,14 @@ careful about namespaces and your use of modules, you can usually
 avoid these problems.</p>
 
 <p>
-<tt>%rename</tt> directive respects function parameters and <i>discriminates default parameters</i> from non-default,
-which is essential for some languages including Python. Be careful renaming functions having default parameters:
+When wrapping C code, simple use of identifiers/symbols with <tt>%rename</tt> usually suffices.
+When wrapping C++ code, simple use of simple identifiers/symbols with <tt>%rename</tt> might be too
+limiting when using C++ features such as function overloading, default arguments, namespaces, template specialization etc.
+If you are using the <tt>%rename</tt> directive and C++, make sure you read the
+<a href="SWIGPlus.html">SWIG and C++</a> chapter and in particular the section on
+<a href="SWIGPlus.html#SWIGPlus_ambiguity_resolution_renaming">Renaming and ambiguity resolution</a>
+for method overloading and default arguments.
 </p>
-<div class="code"><pre>
-%rename(toFFVal) to_val(FileFormat, bool bin=false);
-int to_val(FileFormat flag, bool bin=false)
-{
-  return 0;
-}
-
-%rename(toDFVal) to_val(DirFormat, bool bin);
-int to_val(DirFormat flag, bool bin=false)
-{
-  return 0;
-}
-
-%rename(toLFVal) to_val(FolderFormat, bool bin);
-int to_val(FolderFormat flag, bool bin=false)
-{
-  return 0;
-}
-</pre></div>
-
-<p>
-The SWIG generator yields the following warning for the last renaming:<br/>
-<tt>
-rename.i:36: Warning 509: Overloaded method to_val(FolderFormat) effectively ignored,<br/>
-rename.i:26: Warning 509: as it is shadowed by to_val(DirFormat).<br/>
-</tt>
-The renaming performed for the <tt>int to_val(FolderFormat flag, bool bin)</tt>,
-but not for the <tt>int to_val(FolderFormat flag)</tt>, where the second parameter <tt>bool bin</tt>
-is omitted taking the default value <tt>false</tt>. See details about the default
-parameters processing in the <a href="SWIGPlus.html#SWIGPlus_default_args">Default Arguments</a> section.
-</p>
-
 
 <p>
 Closely related to <tt>%rename</tt> is the <tt>%ignore</tt> directive.  <tt>%ignore</tt> instructs SWIG
@@ -2115,7 +2088,7 @@ except those consisting of capital letters only:
 <p>
 Finally, variants of <tt>%rename</tt> and <tt>%ignore</tt> directives can be used to help
 wrap C++ overloaded functions and methods or C++ methods which use default arguments. This is described in the
-<a href="SWIGPlus.html#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a> section in the C++ chapter.
+<a href="SWIGPlus.html#SWIGPlus_ambiguity_resolution_renaming">Renaming and ambiguity resolution</a> section in the C++ chapter.
 </p>
 
 
