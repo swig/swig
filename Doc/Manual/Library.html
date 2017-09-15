@@ -12,26 +12,32 @@
 <div class="sectiontoc">
 <ul>
 <li><a href="#Library_nn2">The %include directive and library search path</a>
-<li><a href="#Library_nn3">C Arrays and Pointers</a>
+<li><a href="#Library_nn3">C arrays and pointers</a>
 <ul>
 <li><a href="#Library_nn4">cpointer.i</a>
 <li><a href="#Library_carrays">carrays.i</a>
 <li><a href="#Library_nn6">cmalloc.i</a>
 <li><a href="#Library_nn7">cdata.i</a>
 </ul>
-<li><a href="#Library_nn8">C String Handling</a>
+<li><a href="#Library_nn8">C string handling</a>
 <ul>
 <li><a href="#Library_nn9">Default string handling</a>
 <li><a href="#Library_nn10">Passing binary data</a>
 <li><a href="#Library_nn11">Using %newobject to release memory</a>
 <li><a href="#Library_nn12">cstring.i</a>
 </ul>
-<li><a href="#Library_stl_cpp_library">STL/C++ Library</a>
+<li><a href="#Library_stl_cpp_library">STL/C++ library</a>
 <ul>
 <li><a href="#Library_std_string">std::string</a>
 <li><a href="#Library_std_vector">std::vector</a>
 <li><a href="#Library_stl_exceptions">STL exceptions</a>
 <li><a href="#Library_std_shared_ptr">shared_ptr smart pointer</a>
+<ul>
+<li><a href="#Library_shared_ptr_basics">shared_ptr basics</a>
+<li><a href="#Library_shared_ptr_inheritance">shared_ptr and inheritance</a>
+<li><a href="#Library_shared_ptr_templates">shared_ptr and templates</a>
+<li><a href="#Library_shared_ptr_directors">shared_ptr and directors</a>
+</ul>
 <li><a href="#Library_std_auto_ptr">auto_ptr smart pointer</a>
 </ul>
 <li><a href="#Library_nn16">Utility Libraries</a>
@@ -92,7 +98,7 @@ Set the environment variable to hold an alternative library directory.
 The directories that are searched are displayed when using <tt>-verbose</tt> commandline option.
 </p>
 
-<H2><a name="Library_nn3">9.2 C Arrays and Pointers</a></H2>
+<H2><a name="Library_nn3">9.2 C arrays and pointers</a></H2>
 
 
 <p>
@@ -761,7 +767,7 @@ char *cdata_<em>name</em>(type* ptr, int nitems)
 Clearly they are unsafe.
 </p>
 
-<H2><a name="Library_nn8">9.3 C String Handling</a></H2>
+<H2><a name="Library_nn8">9.3 C string handling</a></H2>
 
 
 <p>
@@ -1365,7 +1371,7 @@ structure or class instead.
 </li>
 </ul>
 
-<H2><a name="Library_stl_cpp_library">9.4 STL/C++ Library</a></H2>
+<H2><a name="Library_stl_cpp_library">9.4 STL/C++ library</a></H2>
 
 
 <p>
@@ -1728,9 +1734,8 @@ Any thrown STL exceptions will then be gracefully handled instead of causing a c
 <H3><a name="Library_std_shared_ptr">9.4.4 shared_ptr smart pointer</a></H3>
 
 
-<p>
-<b>%shared_ptr Basics</b>
-</p>
+<H4><a name="Library_shared_ptr_basics">9.4.4.1 shared_ptr basics</a></H4>
+
 
 <p>
 Some target languages have support for handling the shared_ptr reference counted smart pointer.
@@ -1825,9 +1830,8 @@ System.out.println(val1 + " " + val2);
 </pre>
 </div>
 
-<p>
-<b>%shared_ptr and Inheritance</b>
-</p>
+<H4><a name="Library_shared_ptr_inheritance">9.4.4.2 shared_ptr and inheritance</a></H4>
+
 
 <p>
 The shared_ptr library works quite differently to SWIG's normal, but somewhat limited, 
@@ -1917,9 +1921,8 @@ Adding the missing <tt>%shared_ptr</tt> macros will fix this:
 </pre>
 </div>
 
-<p>
-<b>%shared_ptr and Templates</b>
-</p>
+<H4><a name="Library_shared_ptr_templates">9.4.4.3 shared_ptr and templates</a></H4>
+
 
 <p>
 Only the single <tt>%shared_ptr</tt> declaration should be used for all specializations
@@ -1931,25 +1934,27 @@ of the template before the first template instantiation using the following nota
 <pre>
 %include &lt;std_shared_ptr.i&gt;
 
-%shared_ptr(Graph&lt;&gt;);  //!< Declaration of the transparent shared ptr for the Graph template
+%shared_ptr(Graph&lt;&gt;);  // Declaration of the transparent shared ptr for the Graph template
 
 %{
-  #include "graph.hpp"  // Graph definition (inside the namespace gany)
+  #include "graph.h"  // Graph definition (inside the namespace gany)
   using namespace gany;
 %}
 
 %include "graph.h"  // Graph declaration (inside the namespace gany)
 using namespace gany;
 
-%template(SGraph) Graph&lt;false&gt;;  //!< Simple graph 
+%template(SGraph) Graph&lt;false&gt;;  // Simple graph
 // Note: the Graph name is redefined in the following line from the template to the specialization (class)
-%template(Graph) Graph&lt;true&gt;;  //!< Weighted graph
+%template(WGraph) Graph&lt;true&gt;;  // Weighted graph
 </pre>
 </div>
 
+<H4><a name="Library_shared_ptr_directors">9.4.4.4 shared_ptr and directors</a></H4>
+
 
 <p>
-<b>Note:</b> There is somewhat limited support for <tt>%shared_ptr</tt> and the director feature
+There is somewhat limited support for <tt>%shared_ptr</tt> and the director feature
 and the degrees of success varies among the different target languages.
 Please help to improve this support by providing patches with improvements.
 </p>
