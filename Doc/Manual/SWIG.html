@@ -3303,17 +3303,38 @@ Vector *new_Vector() {
   return (Vector *) malloc(sizeof(Vector));
 }
 %}
-
 </pre></div>
 
 <p>
-The <tt>%inline</tt> directive inserts all of the code that follows
+This is the same as writing:
+</p>
+
+<div class="code"><pre>
+%{
+/* Create a new vector */
+Vector *new_Vector() {
+  return (Vector *) malloc(sizeof(Vector));
+}
+%}
+
+/* Create a new vector */
+Vector *new_Vector() {
+  return (Vector *) malloc(sizeof(Vector));
+}
+</pre></div>
+<p>
+In other words, the <tt>%inline</tt> directive inserts all of the code that follows
 verbatim into the header portion of an interface file. The code is
 then parsed by both the SWIG preprocessor and parser.
 Thus, the above example creates a new command <tt>new_Vector</tt> using only one
 declaration. Since the code inside an <tt>%inline %{ ... %}</tt> block
 is given to both the C compiler and SWIG, it is illegal to include any
 SWIG directives inside a <tt>%{ ... %}</tt> block.</p>
+
+
+<p>
+<b>Note:</b> The usual SWIG C preprocessor rules apply to code in <tt>%apply</tt> blocks when SWIG parses this code. For example, as mentioned earlier, <a href="SWIG.html#SWIG_nn6">SWIG's C Preprocessor</a> does not follow <tt>#include</tt> directives by default.
+</p>
 
 <H3><a name="SWIG_nn44">5.6.4 Initialization blocks</a></H3>
 
