@@ -1923,30 +1923,42 @@ Adding the missing <tt>%shared_ptr</tt> macros will fix this:
 
 <H4><a name="Library_shared_ptr_templates">9.4.4.3 shared_ptr and templates</a></H4>
 
+<p>
+The <tt>%shared_ptr</tt> macro should be used for all the required instantiations
+of the template before each of the <tt>%template</tt> instantiations.
+For example, consider <tt>number.h</tt> containing the following illustrative template:
+</p>
+
+<div class="code">
+<pre>
+#include &lt;memory&gt;
+
+template&lt;int N&gt; struct Number {
+  int num;
+  Number() : num(N) {}
+  static std::shared_ptr&lt;Number&lt;N&gt;&gt; make() { return std::make_shared&lt;Number&lt;N&gt;&gt;(); }
+};
+</pre>
+</div>
 
 <p>
-Only the single <tt>%shared_ptr</tt> declaration should be used for all specializations
-of the template before the first template instantiation using the following notation:
-<tt>%shared_ptr(TemplateName&lt;&gt;)</tt>. For example:
+The SWIG code below shows the required ordering:
 </p>
 
 <div class="code">
 <pre>
 %include &lt;std_shared_ptr.i&gt;
 
-%shared_ptr(Graph&lt;&gt;);  // Declaration of the transparent shared ptr for the Graph template
+%shared_ptr(Number&lt;10&gt;);
+%shared_ptr(Number&lt;42&gt;);
 
 %{
-  #include "graph.h"  // Graph definition (inside the namespace gany)
-  using namespace gany;
+  #include "number.h"
 %}
+%include "number.h"
 
-%include "graph.h"  // Graph declaration (inside the namespace gany)
-using namespace gany;
-
-%template(SGraph) Graph&lt;false&gt;;  // Simple graph
-// Note: the Graph name is redefined in the following line from the template to the specialization (class)
-%template(WGraph) Graph&lt;true&gt;;  // Weighted graph
+%template(Number10) Number&lt;10&gt;;
+%template(Number42) Number&lt;42&gt;;
 </pre>
 </div>
 
