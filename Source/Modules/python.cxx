@@ -5643,7 +5643,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       Printv(w->code, Str(tm), "\n", NIL);
     } else {
       Append(w->code, "  if (error) {\n");
-      Printf(w->code, "    Swig::DirectorMethodException::raise(\"Error detected when calling '%s.%s'\");\n", classname, pyname);
+      Printf(w->code, "    Swig::DirectorMethodException::raise_after_pyerr(\"Error detected when calling '%s.%s'\");\n", classname, pyname);
       Append(w->code, "  }\n");
     }
     Append(w->code, "}\n");

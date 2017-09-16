@@ -269,6 +269,30 @@ namespace Swig {
     static void raise(const char *msg) {
       throw DirectorMethodException(msg);
     }
+
+    /* this should be called only if a Python error has occurred */
+    static void raise_after_pyerr(const char *msg) {
+      std::string full_msg(msg);
+
+      PyObject *exception, *v, *tb;
+      PyErr_Fetch(&exception, &v, &tb);
+      PyErr_NormalizeException(&exception, &v, &tb);
+
+      if (PyObject *s = PyObject_Str(v)) {
+        if (const char *cstr = SWIG_Python_str_AsChar(s)) {
+          full_msg += ": ";
+          full_msg += cstr;
+          SWIG_Python_str_DelForPy3(cstr);
+        }
+        Py_XDECREF(s);
+      }
+
+      Py_XDECREF(exception);
+      Py_XDECREF(v);
+      Py_XDECREF(tb);
+
+      raise(full_msg.c_str());
+    }
   };
 
   /* attempt to call a pure virtual method via a director method */
