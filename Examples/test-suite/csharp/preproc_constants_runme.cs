@@ -60,6 +60,8 @@ public class runme {
     assert( typeof(bool) == preproc_constants.EXPR_LAND.GetType() );
     assert( typeof(bool) == preproc_constants.EXPR_LOR.GetType() );
     assert( typeof(double) == preproc_constants.EXPR_CONDITIONAL.GetType() );
+    assert( typeof(int) == preproc_constants.EXPR_WCHAR_MAX.GetType() );
+    assert( typeof(int) == preproc_constants.EXPR_WCHAR_MIN.GetType() );
 
   }
   static void assert(bool assertion) {

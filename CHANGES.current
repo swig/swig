@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-09-17: wsfulton
+            Fix generated code for constant expressions containing wchar_t L literals such as:
+              # define __WCHAR_MAX    (0x7fffffff + L'\0')
+              # define __WCHAR_MIN    (-__WCHAR_MAX - 1)
+
 2017-09-10: mlamarre
             [Python] Patch #1083. Define_DEBUG to 1 to do exactly like Visual Studio
             /LDd, /MDd or /MTd compiler options.

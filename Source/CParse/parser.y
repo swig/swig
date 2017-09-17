@@ -194,7 +194,7 @@ int SWIG_cparse_template_reduce(int treduce) {
  * ----------------------------------------------------------------------------- */
 
 static int promote_type(int t) {
-  if (t <= T_UCHAR || t == T_CHAR) return T_INT;
+  if (t <= T_UCHAR || t == T_CHAR || t == T_WCHAR) return T_INT;
   return t;
 }
 

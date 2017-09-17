@@ -87,6 +87,9 @@
 #define EXPR_LOR         0xFF || 1
 #define EXPR_CONDITIONAL true ? 2 : 2.2
 
+#define EXPR_WCHAR_MAX   (0x7fffffff + L'\0')
+#define EXPR_WCHAR_MIN   (-EXPR_WCHAR_MAX - 1)
+
 #define EXPR_CHAR_COMPOUND_ADD 'A' + 12
 #define EXPR_CHAR_COMPOUND_LSHIFT 'B' << 6
 #define H_SUPPRESS_SCALING_MAGIC (('s'<<24) | ('u'<<16) | ('p'<<8) | 'p')
