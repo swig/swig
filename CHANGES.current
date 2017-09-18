@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-09-18: wsfulton
+            Fix type promotion wrapping constant expressions of the form:
+              # define EXPR_MIXED1    (0x80 + 11.1) - 1
+            This was previously an integral type instead of a floating point type.
+
 2017-09-17: wsfulton
             Fix generated code for constant expressions containing wchar_t L literals such as:
               # define __WCHAR_MAX    (0x7fffffff + L'\0')

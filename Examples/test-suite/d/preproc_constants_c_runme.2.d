@@ -61,6 +61,7 @@ void main() {
   static assert(is(int == typeof(EXPR_LAND())));
   static assert(is(int == typeof(EXPR_LOR())));
   static assert(is(double == typeof(EXPR_CONDITIONAL())));
+  static assert(is(double == typeof(EXPR_MIXED1())));
   static assert(is(int == typeof(EXPR_WCHAR_MAX())));
   static assert(is(int == typeof(EXPR_WCHAR_MIN())));
 }

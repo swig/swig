@@ -6338,6 +6338,7 @@ valexpr        : exprnum { $$ = $1; }
 		       break;
 		   }
 		 }
+		 $$.type = promote($2.type, $4.type);
  	       }
                | LPAREN expr pointer RPAREN expr %prec CAST {
                  $$ = $5;

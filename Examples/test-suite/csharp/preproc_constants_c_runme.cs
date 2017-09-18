@@ -61,6 +61,7 @@ public class runme {
     assert( typeof(int) == preproc_constants_c.EXPR_LAND.GetType() );
     assert( typeof(int) == preproc_constants_c.EXPR_LOR.GetType() );
     assert( typeof(double) == preproc_constants_c.EXPR_CONDITIONAL.GetType() );
+    assert( typeof(double) == preproc_constants_c.EXPR_MIXED1.GetType() );
     assert( typeof(int) == preproc_constants_c.EXPR_WCHAR_MAX.GetType() );
     assert( typeof(int) == preproc_constants_c.EXPR_WCHAR_MIN.GetType() );
   }
