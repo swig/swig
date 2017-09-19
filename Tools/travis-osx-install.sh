@@ -3,28 +3,28 @@
 set -e # exit on failure (same as -o errexit)
 
 sw_vers
-brew update
-brew list
-# brew install pcre # Travis Xcode-7.3 has pcre
-# brew install boost
+travis_retry brew update
+travis_retry brew list
+# travis_retry brew install pcre # Travis Xcode-7.3 has pcre
+# travis_retry brew install boost
 
 WITHLANG=$SWIGLANG
 
 case "$SWIGLANG" in
 	"csharp")
-		brew install mono
+		travis_retry brew install mono
 		;;
 	"guile")
-		Tools/brew-install guile
+		travis_retry Tools/brew-install guile
 		;;
 	"lua")
-		brew install lua
+		travis_retry brew install lua
 		;;
 	"python")
 		WITHLANG=$SWIGLANG$PY3
 		if [[ "$PY3" ]]; then
-			brew install python3
-			brew list -v python3
+			travis_retry brew install python3
+			travis_retry brew list -v python3
 		fi
 		;;
 esac

@@ -99,7 +99,7 @@ CPP_TEST_BROKEN += \
 
 # Broken C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_BROKEN += \
-	tag_no_clash_with_variable
+	tag_no_clash_with_variable \
 
 # C++ test cases. (Can be run individually using: make testcase.cpptest)
 CPP_TEST_CASES += \
@@ -136,6 +136,7 @@ CPP_TEST_CASES += \
 	char_binary \
 	char_strings \
 	chartest \
+	class_scope_namespace \
 	class_forward \
 	class_ignore \
 	class_scope_weird \
@@ -246,6 +247,7 @@ CPP_TEST_CASES += \
 	global_vars \
 	grouping \
 	ignore_parameter \
+	import_fragments \
 	import_nomodule \
 	inherit \
 	inherit_member \
@@ -278,6 +280,7 @@ CPP_TEST_CASES += \
 	memberin_extend \
 	member_funcptr_galore \
 	member_pointer \
+	member_pointer_const \
 	member_template \
 	minherit \
 	minherit2 \
@@ -289,6 +292,7 @@ CPP_TEST_CASES += \
 	multiple_inheritance_shared_ptr \
 	name_cxx \
 	name_warnings \
+	namespace_chase \
 	namespace_class \
 	namespace_enum \
 	namespace_extend \
@@ -416,6 +420,7 @@ CPP_TEST_CASES += \
 	template_default_inherit \
 	template_default_qualify \
 	template_default_vw \
+	template_empty_inherit \
 	template_enum \
 	template_enum_ns_inherit \
 	template_enum_typedef \
@@ -432,6 +437,7 @@ CPP_TEST_CASES += \
 	template_methods \
 	template_namespace_forward_declaration \
 	template_using_directive_and_declaration_forward \
+	template_using_directive_typedef \
 	template_nested \
 	template_nested_typemaps \
 	template_ns \
@@ -442,6 +448,7 @@ CPP_TEST_CASES += \
 	template_ns_enum2 \
 	template_ns_inherit \
 	template_ns_scope \
+	template_parameters_global_scope \
 	template_partial_arg \
 	template_partial_specialization \
 	template_partial_specialization_typedef \
@@ -531,10 +538,10 @@ CPP_TEST_CASES += \
 	virtual_vs_nonvirtual_base \
 	voidtest \
 	wallkw \
-	wrapmacro
+	wrapmacro \
 
 # C++11 test cases.
-CPP11_TEST_CASES = \
+CPP11_TEST_CASES += \
 	cpp11_alignment \
 	cpp11_alternate_function_syntax \
 	cpp11_constexpr \
@@ -542,6 +549,7 @@ CPP11_TEST_CASES = \
 	cpp11_default_delete \
 	cpp11_delegating_constructors \
 	cpp11_director_enums \
+	cpp11_directors \
 	cpp11_explicit_conversion_operators \
 	cpp11_final_override \
 	cpp11_function_objects \
@@ -553,6 +561,9 @@ CPP11_TEST_CASES = \
 	cpp11_noexcept \
 	cpp11_null_pointer_constant \
 	cpp11_raw_string_literals \
+	cpp11_ref_qualifiers \
+	cpp11_ref_qualifiers_rvalue_unignore \
+	cpp11_ref_qualifiers_typemaps \
 	cpp11_result_of \
 	cpp11_rvalue_reference \
 	cpp11_rvalue_reference2 \
@@ -572,7 +583,6 @@ CPP11_TEST_CASES = \
 
 # Broken C++11 test cases.
 CPP11_TEST_BROKEN = \
-#	cpp11_hash_tables \           # not fully implemented yet
 #	cpp11_variadic_templates \    # Broken for some languages (such as Java)
 #	cpp11_reference_wrapper \     # No typemaps
 
@@ -621,9 +631,7 @@ CPP_STD_TEST_CASES += \
 	smart_pointer_inherit \
 	template_typedef_fnc \
 	template_type_namespace \
-	template_opaque
-#        li_std_list
-
+	template_opaque \
 
 ifndef SKIP_CPP_STD_CASES
 CPP_TEST_CASES += ${CPP_STD_TEST_CASES}
@@ -687,7 +695,7 @@ C_TEST_CASES += \
 	typedef_struct \
 	typemap_subst \
 	union_parameter \
-	unions
+	unions \
 
 
 # Multi-module C++ test cases . (Can be run individually using make testcase.multicpptest)
@@ -698,7 +706,7 @@ MULTI_CPP_TEST_CASES += \
 	packageoption \
 	mod \
 	template_typedef_import \
-	multi_import
+	multi_import \
 
 # Custom tests - tests with additional commandline options
 wallkw.cpptest: SWIGOPT += -Wallkw
@@ -791,7 +799,7 @@ swig_and_compile_external =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	TARGET='$*_wrap_hdr.h' \
-	$(LANGUAGE)$(VARIANT)_externalhdr; \
+	$(LANGUAGE)$(VARIANT)_externalhdr && \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS) $*_external.cxx' \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	INCLUDES='$(INCLUDES)' SWIGOPT='$(SWIGOPT)' NOLINK=true \
@@ -805,7 +813,7 @@ setup = \
 	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
 	else								  \
 	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
-	fi;
+	fi
 
 
 

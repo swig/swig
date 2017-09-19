@@ -1,15 +1,11 @@
 //
 // std::unordered_map
-// Work in progress - the code is not compilable yet:
-// operator--() and constructor(compare function) not available for unordered_
-// types
 //
-
 %include <std_pair.i>
 %include <std_container.i>
 
 %define %std_unordered_map_methods_common(unordered_map...)
-  %std_container_methods(unordered_map);
+  %std_container_methods_without_reverse_iterators(unordered_map);
 
   size_type erase(const key_type& x);
   size_type count(const key_type& x) const;
@@ -22,8 +18,6 @@
 }
 
   iterator find(const key_type& x);
-  iterator lower_bound(const key_type& x);
-  iterator upper_bound(const key_type& x);
 #endif
 %enddef
 
@@ -68,7 +62,7 @@
 
 namespace std {
 
-  template<class _Key, class _Tp, class _Compare = std::less< _Key >,
+  template<class _Key, class _Tp, class _Hash = std::hash< _Key >, class _Pred = std::equal_to< _Key >,
 	   class _Alloc = allocator<std::pair< const _Key, _Tp > > >
   class unordered_map {
   public:
@@ -101,26 +95,24 @@ namespace std {
       }
     }
 
-    %fragment(SWIG_Traits_frag(std::unordered_map< _Key, _Tp, _Compare, _Alloc >), "header",
+    %fragment(SWIG_Traits_frag(std::unordered_map< _Key, _Tp, _Hash, _Pred, _Alloc >), "header",
 	      fragment=SWIG_Traits_frag(std::pair< _Key, _Tp >),
-	      fragment="StdMapTraits") {
+	      fragment="StdUnorderedMapTraits") {
       namespace swig {
-	template <>  struct traits<std::unordered_map< _Key, _Tp, _Compare, _Alloc > > {
+	template <>  struct traits<std::unordered_map< _Key, _Tp, _Hash, _Pred, _Alloc > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
-	    return "std::unordered_map<" #_Key "," #_Tp "," #_Compare "," #_Alloc " >";
+	    return "std::unordered_map<" #_Key "," #_Tp "," #_Hash "," #_Pred "," #_Alloc " >";
 	  }
 	};
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_MAP, std::unordered_map< _Key, _Tp, _Compare, _Alloc >);
-
-    unordered_map( const _Compare& );
+    %typemap_traits_ptr(SWIG_TYPECHECK_MAP, std::unordered_map< _Key, _Tp, _Hash, _Pred, _Alloc >);
 
 #ifdef %swig_unordered_map_methods
     // Add swig/language extra methods
-    %swig_unordered_map_methods(std::unordered_map< _Key, _Tp, _Compare, _Alloc >);
+    %swig_unordered_map_methods(std::unordered_map< _Key, _Tp, _Hash, _Pred, _Alloc >);
 #endif
   
     %std_unordered_map_methods(unordered_map);

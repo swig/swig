@@ -242,7 +242,7 @@ int SWIG_cparse_template_reduce(int treduce) {
  * ----------------------------------------------------------------------------- */
 
 static int promote_type(int t) {
-  if (t <= T_UCHAR || t == T_CHAR) return T_INT;
+  if (t <= T_UCHAR || t == T_CHAR || t == T_WCHAR) return T_INT;
   return t;
 }
 
@@ -257,7 +257,7 @@ static String *yyrename = 0;
 
 /* Forward renaming operator */
 
-static String *resolve_create_node_scope(String *cname);
+static String *resolve_create_node_scope(String *cname, int is_class_definition);
 
 
 Hash *Swig_cparse_features(void) {
@@ -533,8 +533,19 @@ static void add_symbols(Node *n) {
         SetFlag(n,"deleted");
         SetFlag(n,"feature:ignore");
       }
+      if (SwigType_isrvalue_reference(Getattr(n, "refqualifier"))) {
+	/* Ignore rvalue ref-qualifiers by default
+	 * Use Getattr instead of GetFlag to handle explicit ignore and explicit not ignore */
+	if (!(Getattr(n, "feature:ignore") || Strncmp(symname, "$ignore", 7) == 0)) {
+	  SWIG_WARN_NODE_BEGIN(n);
+	  Swig_warning(WARN_TYPE_RVALUE_REF_QUALIFIER_IGNORED, Getfile(n), Getline(n),
+	      "Method with rvalue ref-qualifier %s ignored.\n", Swig_name_decl(n));
+	  SWIG_WARN_NODE_END(n);
+	  SetFlag(n, "feature:ignore");
+	}
+      }
     }
-    if (only_csymbol || GetFlag(n,"feature:ignore") || strncmp(Char(symname),"$ignore",7) == 0) {
+    if (only_csymbol || GetFlag(n, "feature:ignore") || Strncmp(symname, "$ignore", 7) == 0) {
       /* Only add to C symbol table and continue */
       Swig_symbol_add(0, n);
       if (!only_csymbol && !GetFlag(n, "feature:ignore")) {
@@ -863,32 +874,53 @@ static String *remove_block(Node *kw, const String *inputcode) {
   return modified_code;
 }
 
-
+/*
+#define RESOLVE_DEBUG 1
+*/
 static Node *nscope = 0;
 static Node *nscope_inner = 0;
 
 /* Remove the scope prefix from cname and return the base name without the prefix.
  * The scopes required for the symbol name are resolved and/or created, if required.
  * For example AA::BB::CC as input returns CC and creates the namespace AA then inner 
- * namespace BB in the current scope. If cname is found to already exist as a weak symbol
- * (forward reference) then the scope might be changed to match, such as when a symbol match 
- * is made via a using reference. */
-static String *resolve_create_node_scope(String *cname) {
+ * namespace BB in the current scope. */
+static String *resolve_create_node_scope(String *cname, int is_class_definition) {
   Symtab *gscope = 0;
   Node *cname_node = 0;
-  int skip_lookup = 0;
+  String *last = Swig_scopename_last(cname);
   nscope = 0;
   nscope_inner = 0;  
 
-  if (Strncmp(cname,"::",2) == 0)
-    skip_lookup = 1;
-
-  cname_node = skip_lookup ? 0 : Swig_symbol_clookup_no_inherit(cname, 0);
+  if (Strncmp(cname,"::" ,2) != 0) {
+    if (is_class_definition) {
+      /* Only lookup symbols which are in scope via a using declaration but not via a using directive.
+         For example find y via 'using x::y' but not y via a 'using namespace x'. */
+      cname_node = Swig_symbol_clookup_no_inherit(cname, 0);
+      if (!cname_node) {
+	Node *full_lookup_node = Swig_symbol_clookup(cname, 0);
+	if (full_lookup_node) {
+	 /* This finds a symbol brought into scope via both a using directive and a using declaration. */
+	  Node *last_node = Swig_symbol_clookup_no_inherit(last, 0);
+	  if (last_node == full_lookup_node)
+	    cname_node = last_node;
+	}
+      }
+    } else {
+      /* For %template, the template needs to be in scope via any means. */
+      cname_node = Swig_symbol_clookup(cname, 0);
+    }
+  }
+#if RESOLVE_DEBUG
+  if (!cname_node)
+    Printf(stdout, "symbol does not yet exist (%d): [%s]\n", is_class_definition, cname);
+  else
+    Printf(stdout, "symbol does exist (%d): [%s]\n", is_class_definition, cname);
+#endif
 
   if (cname_node) {
     /* The symbol has been defined already or is in another scope.
-       If it is a weak symbol, it needs replacing and if it was brought into the current scope
-       via a using declaration, the scope needs adjusting appropriately for the new symbol.
+       If it is a weak symbol, it needs replacing and if it was brought into the current scope,
+       the scope needs adjusting appropriately for the new symbol.
        Similarly for defined templates. */
     Symtab *symtab = Getattr(cname_node, "sym:symtab");
     Node *sym_weak = Getattr(cname_node, "sym:weak");
@@ -896,48 +928,92 @@ static String *resolve_create_node_scope(String *cname) {
       /* Check if the scope is the current scope */
       String *current_scopename = Swig_symbol_qualifiedscopename(0);
       String *found_scopename = Swig_symbol_qualifiedscopename(symtab);
-      int len;
       if (!current_scopename)
 	current_scopename = NewString("");
       if (!found_scopename)
 	found_scopename = NewString("");
-      len = Len(current_scopename);
-      if ((len > 0) && (Strncmp(current_scopename, found_scopename, len) == 0)) {
-	if (Len(found_scopename) > len + 2) {
-	  /* A matching weak symbol was found in non-global scope, some scope adjustment may be required */
-	  String *new_cname = NewString(Char(found_scopename) + len + 2); /* skip over "::" prefix */
-	  String *base = Swig_scopename_last(cname);
-	  Printf(new_cname, "::%s", base);
-	  cname = new_cname;
-	  Delete(base);
-	} else {
-	  /* A matching weak symbol was found in the same non-global local scope, no scope adjustment required */
-	  assert(len == Len(found_scopename));
+
+      {
+	int fail = 1;
+	List *current_scopes = Swig_scopename_tolist(current_scopename);
+	List *found_scopes = Swig_scopename_tolist(found_scopename);
+        Iterator cit = First(current_scopes);
+	Iterator fit = First(found_scopes);
+#if RESOLVE_DEBUG
+Printf(stdout, "comparing current: [%s] found: [%s]\n", current_scopename, found_scopename);
+#endif
+	for (; fit.item && cit.item; fit = Next(fit), cit = Next(cit)) {
+	  String *current = cit.item;
+	  String *found = fit.item;
+#if RESOLVE_DEBUG
+	  Printf(stdout, "  looping %s %s\n", current, found);
+#endif
+	  if (Strcmp(current, found) != 0)
+	    break;
 	}
-      } else {
-	String *base = Swig_scopename_last(cname);
-	if (Len(found_scopename) > 0) {
-	  /* A matching weak symbol was found in a different scope to the local scope - probably via a using declaration */
-	  cname = NewStringf("%s::%s", found_scopename, base);
+
+	if (!cit.item) {
+	  String *subscope = NewString("");
+	  for (; fit.item; fit = Next(fit)) {
+	    if (Len(subscope) > 0)
+	      Append(subscope, "::");
+	    Append(subscope, fit.item);
+	  }
+	  if (Len(subscope) > 0)
+	    cname = NewStringf("%s::%s", subscope, last);
+	  else
+	    cname = Copy(last);
+#if RESOLVE_DEBUG
+	  Printf(stdout, "subscope to create: [%s] cname: [%s]\n", subscope, cname);
+#endif
+	  fail = 0;
+	  Delete(subscope);
 	} else {
-	  /* Either:
-	      1) A matching weak symbol was found in a different scope to the local scope - this is actually a
-	      symbol with the same name in a different scope which we don't want, so no adjustment required.
-	      2) A matching weak symbol was found in the global scope - no adjustment required.
-	  */
-	  cname = Copy(base);
+	  if (is_class_definition) {
+	    if (!fit.item) {
+	      /* It is valid to define a new class with the same name as one forward declared in a parent scope */
+	      fail = 0;
+	    } else if (Swig_scopename_check(cname)) {
+	      /* Classes defined with scope qualifiers must have a matching forward declaration in matching scope */
+	      fail = 1;
+	    } else {
+	      /* This may let through some invalid cases */
+	      fail = 0;
+	    }
+#if RESOLVE_DEBUG
+	    Printf(stdout, "scope for class definition, fail: %d\n", fail);
+#endif
+	  } else {
+#if RESOLVE_DEBUG
+	    Printf(stdout, "no matching base scope for template\n");
+#endif
+	    fail = 1;
+	  }
 	}
-	Delete(base);
+
+	Delete(found_scopes);
+	Delete(current_scopes);
+
+	if (fail) {
+	  String *cname_resolved = NewStringf("%s::%s", found_scopename, last);
+	  Swig_error(cparse_file, cparse_line, "'%s' resolves to '%s' and was incorrectly instantiated in scope '%s' instead of within scope '%s'.\n", cname, cname_resolved, current_scopename, found_scopename);
+	  cname = Copy(last);
+	  Delete(cname_resolved);
+	}
       }
+
       Delete(current_scopename);
       Delete(found_scopename);
     }
+  } else if (!is_class_definition) {
+    /* A template instantiation requires a template to be found in scope... fail here too?
+    Swig_error(cparse_file, cparse_line, "No template found to instantiate '%s' with %%template.\n", cname);
+     */
   }
 
   if (Swig_scopename_check(cname)) {
     Node   *ns;
     String *prefix = Swig_scopename_prefix(cname);
-    String *base = Swig_scopename_last(cname);
     if (prefix && (Strncmp(prefix,"::",2) == 0)) {
 /* I don't think we can use :: global scope to declare classes and hence neither %template. - consider reporting error instead - wsfulton. */
       /* Use the global scope */
@@ -947,6 +1023,7 @@ static String *resolve_create_node_scope(String *cname) {
       gscope = set_scope_to_global();
     }
     if (Len(prefix) == 0) {
+      String *base = Copy(last);
       /* Use the global scope, but we need to add a 'global' namespace.  */
       if (!gscope) gscope = set_scope_to_global();
       /* note that this namespace is not the "unnamed" one,
@@ -955,6 +1032,7 @@ static String *resolve_create_node_scope(String *cname) {
       nscope = new_node("namespace");
       Setattr(nscope,"symtab", gscope);;
       nscope_inner = nscope;
+      Delete(last);
       return base;
     }
     /* Try to locate the scope */
@@ -972,7 +1050,7 @@ static String *resolve_create_node_scope(String *cname) {
 	String *nname = Swig_symbol_qualifiedscopename(nstab);
 	if (tname && (Strcmp(tname,nname) == 0)) {
 	  ns = 0;
-	  cname = base;
+	  cname = Copy(last);
 	}
 	Delete(tname);
 	Delete(nname);
@@ -980,19 +1058,10 @@ static String *resolve_create_node_scope(String *cname) {
       if (ns) {
 	/* we will try to create a new node using the namespaces we
 	   can find in the scope name */
-	List *scopes;
+	List *scopes = Swig_scopename_tolist(prefix);
 	String *sname;
 	Iterator si;
-	String *name = NewString(prefix);
-	scopes = NewList();
-	while (name) {
-	  String *base = Swig_scopename_last(name);
-	  String *tprefix = Swig_scopename_prefix(name);
-	  Insert(scopes,0,base);
-	  Delete(base);
-	  Delete(name);
-	  name = tprefix;
-	}
+
 	for (si = First(scopes); si.item; si = Next(si)) {
 	  Node *ns1,*ns2;
 	  sname = si.item;
@@ -1038,12 +1107,13 @@ static String *resolve_create_node_scope(String *cname) {
 	  nscope_inner = ns2;
 	  if (!nscope) nscope = ns2;
 	}
-	cname = base;
+	cname = Copy(last);
 	Delete(scopes);
       }
     }
     Delete(prefix);
   }
+  Delete(last);
 
   return cname;
 }
@@ -1399,6 +1469,56 @@ static void mark_nodes_as_extend(Node *n) {
   }
 }
 
+/* -----------------------------------------------------------------------------
+ * add_qualifier_to_declarator()
+ *
+ * Normally the qualifier is pushed on to the front of the type.
+ * Adding a qualifier to a pointer to member function is a special case.
+ * For example       : typedef double (Cls::*pmf)(void) const;
+ * The qualifier is  : q(const).
+ * The declarator is : m(Cls).f(void).
+ * We need           : m(Cls).q(const).f(void).
+ * ----------------------------------------------------------------------------- */
+
+static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) {
+  int is_pointer_to_member_function = 0;
+  String *decl = Copy(type);
+  String *poppedtype = NewString("");
+  assert(qualifier);
+
+  while (decl) {
+    if (SwigType_ismemberpointer(decl)) {
+      String *memberptr = SwigType_pop(decl);
+      if (SwigType_isfunction(decl)) {
+	is_pointer_to_member_function = 1;
+	SwigType_push(decl, qualifier);
+	SwigType_push(decl, memberptr);
+	Insert(decl, 0, poppedtype);
+	Delete(memberptr);
+	break;
+      } else {
+	Append(poppedtype, memberptr);
+      }
+      Delete(memberptr);
+    } else {
+      String *popped = SwigType_pop(decl);
+      if (!popped)
+	break;
+      Append(poppedtype, popped);
+      Delete(popped);
+    }
+  }
+
+  if (!is_pointer_to_member_function) {
+    Delete(decl);
+    decl = Copy(type);
+    SwigType_push(decl, qualifier);
+  }
+
+  Delete(poppedtype);
+  return decl;
+}
+
 %}
 
 %union {
@@ -1409,6 +1529,7 @@ static void mark_nodes_as_extend(Node *n) {
     String *rawval;
     int     type;
     String *qualifier;
+    String *refqualifier;
     String *bitfield;
     Parm   *throws;
     String *throwf;
@@ -1521,7 +1642,7 @@ static void mark_nodes_as_extend(Node *n) {
 
 /* Misc */
 %type <id>       identifier;
-%type <dtype>    initializer cpp_const exception_specification;
+%type <dtype>    initializer cpp_const exception_specification cv_ref_qualifier qualifiers_exception_specification;
 %type <id>       storage_class extern_string;
 %type <pl>       parms  ptail rawparms varargs_parms ;
 %type <pl>       templateparameters templateparameterstail;
@@ -1537,7 +1658,8 @@ static void mark_nodes_as_extend(Node *n) {
 %type <dtype>    expr exprnum exprcompound valexpr;
 %type <id>       ename ;
 %type <id>       less_valparms_greater;
-%type <str>      type_qualifier ;
+%type <str>      type_qualifier;
+%type <str>      ref_qualifier;
 %type <id>       type_qualifier_raw;
 %type <id>       idstring idstringopt;
 %type <id>       pragma_lang;
@@ -1557,7 +1679,7 @@ static void mark_nodes_as_extend(Node *n) {
 %type <node>     featattr;
 %type <node>     lambda_introducer lambda_body;
 %type <pl>       lambda_tail;
-%type <str>      virt_specifier_seq;
+%type <str>      virt_specifier_seq virt_specifier_seq_opt;
 
 %%
 
@@ -1816,7 +1938,6 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		   }
 
 	       }
-
                | CONSTANT type declarator def_args SEMI {
 		 if (($4.type != T_ERROR) && ($4.type != T_SYMBOL)) {
 		   SwigType_push($2,$3.type);
@@ -1833,12 +1954,38 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		   SetFlag($$,"feature:immutable");
 		   add_symbols($$);
 		 } else {
-		     if ($4.type == T_ERROR) {
-		       Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,cparse_file,cparse_line,"Unsupported constant value\n");
-		     }
+		   if ($4.type == T_ERROR) {
+		     Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,cparse_file,cparse_line, "Unsupported constant value\n");
+		   }
 		   $$ = 0;
 		 }
                }
+	       /* Member function pointers with qualifiers. eg.
+	         %constant short (Funcs::*pmf)(bool) const = &Funcs::F; */
+	       | CONSTANT type direct_declarator LPAREN parms RPAREN cv_ref_qualifier def_args SEMI {
+		 if (($8.type != T_ERROR) && ($8.type != T_SYMBOL)) {
+		   SwigType_add_function($2, $5);
+		   SwigType_push($2, $7.qualifier);
+		   SwigType_push($2, $3.type);
+		   /* Sneaky callback function trick */
+		   if (SwigType_isfunction($2)) {
+		     SwigType_add_pointer($2);
+		   }
+		   $$ = new_node("constant");
+		   Setattr($$, "name", $3.id);
+		   Setattr($$, "type", $2);
+		   Setattr($$, "value", $8.val);
+		   if ($8.rawval) Setattr($$, "rawval", $8.rawval);
+		   Setattr($$, "storage", "%constant");
+		   SetFlag($$, "feature:immutable");
+		   add_symbols($$);
+		 } else {
+		   if ($8.type == T_ERROR) {
+		     Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,cparse_file,cparse_line, "Unsupported constant value\n");
+		   }
+		   $$ = 0;
+		 }
+	       }
                | CONSTANT error SEMI {
 		 Swig_warning(WARN_PARSE_BAD_VALUE,cparse_file,cparse_line,"Bad constant value (ignored).\n");
 		 $$ = 0;
@@ -2640,9 +2787,8 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		  tscope = Swig_symbol_current();          /* Get the current scope */
 
 		  /* If the class name is qualified, we need to create or lookup namespace entries */
-		  if (!inclass) {
-		    $5 = resolve_create_node_scope($5);
-		  }
+		  $5 = resolve_create_node_scope($5, 0);
+
 		  if (nscope_inner && Strcmp(nodeType(nscope_inner), "class") == 0) {
 		    outer_class	= nscope_inner;
 		  }
@@ -3000,16 +3146,99 @@ c_declaration   : c_decl {
 		  SetFlag($$,"aliastemplate");
 		  add_symbols($$);
 		}
+                | cpp_static_assert {
+                   $$ = $1;
+                }
                 ;
 
 /* ------------------------------------------------------------
    A C global declaration of some kind (may be variable, function, typedef, etc.)
    ------------------------------------------------------------ */
 
-c_decl  : storage_class type declarator initializer c_decl_tail {
+c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
+	      String *decl = $3.type;
               $$ = new_node("cdecl");
-	      if ($4.qualifier) SwigType_push($3.type,$4.qualifier);
+	      if ($4.qualifier)
+	        decl = add_qualifier_to_declarator($3.type, $4.qualifier);
+	      Setattr($$,"refqualifier",$4.refqualifier);
 	      Setattr($$,"type",$2);
+	      Setattr($$,"storage",$1);
+	      Setattr($$,"name",$3.id);
+	      Setattr($$,"decl",decl);
+	      Setattr($$,"parms",$3.parms);
+	      Setattr($$,"value",$5.val);
+	      Setattr($$,"throws",$4.throws);
+	      Setattr($$,"throw",$4.throwf);
+	      Setattr($$,"noexcept",$4.nexcept);
+	      if ($5.val && $5.type) {
+		/* store initializer type as it might be different to the declared type */
+		SwigType *valuetype = NewSwigType($5.type);
+		if (Len(valuetype) > 0)
+		  Setattr($$,"valuetype",valuetype);
+		else
+		  Delete(valuetype);
+	      }
+	      if (!$6) {
+		if (Len(scanner_ccode)) {
+		  String *code = Copy(scanner_ccode);
+		  Setattr($$,"code",code);
+		  Delete(code);
+		}
+	      } else {
+		Node *n = $6;
+		/* Inherit attributes */
+		while (n) {
+		  String *type = Copy($2);
+		  Setattr(n,"type",type);
+		  Setattr(n,"storage",$1);
+		  n = nextSibling(n);
+		  Delete(type);
+		}
+	      }
+	      if ($5.bitfield) {
+		Setattr($$,"bitfield", $5.bitfield);
+	      }
+
+	      if ($3.id) {
+		/* Look for "::" declarations (ignored) */
+		if (Strstr($3.id, "::")) {
+		  /* This is a special case. If the scope name of the declaration exactly
+		     matches that of the declaration, then we will allow it. Otherwise, delete. */
+		  String *p = Swig_scopename_prefix($3.id);
+		  if (p) {
+		    if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
+			(Classprefix && Strcmp(p, Classprefix) == 0)) {
+		      String *lstr = Swig_scopename_last($3.id);
+		      Setattr($$, "name", lstr);
+		      Delete(lstr);
+		      set_nextSibling($$, $6);
+		    } else {
+		      Delete($$);
+		      $$ = $6;
+		    }
+		    Delete(p);
+		  } else {
+		    Delete($$);
+		    $$ = $6;
+		  }
+		} else {
+		  set_nextSibling($$, $6);
+		}
+	      } else {
+		Swig_error(cparse_file, cparse_line, "Missing symbol name for global declaration\n");
+		$$ = 0;
+	      }
+
+	      if ($4.qualifier && $1 && Strstr($1, "static"))
+		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
+           }
+           /* Alternate function syntax introduced in C++11:
+              auto funcName(int x, int y) -> int; */
+           | storage_class AUTO declarator cpp_const ARROW cpp_alternate_rettype virt_specifier_seq_opt initializer c_decl_tail {
+              $$ = new_node("cdecl");
+	      if ($4.qualifier) SwigType_push($3.type, $4.qualifier);
+	      Setattr($$,"refqualifier",$4.refqualifier);
+	      Setattr($$,"type",$6);
 	      Setattr($$,"storage",$1);
 	      Setattr($$,"name",$3.id);
 	      Setattr($$,"decl",$3.type);
@@ -3018,25 +3247,16 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 	      Setattr($$,"throws",$4.throws);
 	      Setattr($$,"throw",$4.throwf);
 	      Setattr($$,"noexcept",$4.nexcept);
-	      if ($4.val && $4.type) {
-		/* store initializer type as it might be different to the declared type */
-		SwigType *valuetype = NewSwigType($4.type);
-		if (Len(valuetype) > 0)
-		  Setattr($$,"valuetype",valuetype);
-		else
-		  Delete(valuetype);
-	      }
-	      if (!$5) {
+	      if (!$9) {
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
 		  Setattr($$,"code",code);
 		  Delete(code);
 		}
 	      } else {
-		Node *n = $5;
-		/* Inherit attributes */
+		Node *n = $9;
 		while (n) {
-		  String *type = Copy($2);
+		  String *type = Copy($6);
 		  Setattr(n,"type",type);
 		  Setattr(n,"storage",$1);
 		  n = nextSibling(n);
@@ -3047,10 +3267,7 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		Setattr($$,"bitfield", $4.bitfield);
 	      }
 
-	      /* Look for "::" declarations (ignored) */
 	      if (Strstr($3.id,"::")) {
-                /* This is a special case. If the scope name of the declaration exactly
-                   matches that of the declaration, then we will allow it. Otherwise, delete. */
                 String *p = Swig_scopename_prefix($3.id);
 		if (p) {
 		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
@@ -3058,75 +3275,22 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		    String *lstr = Swig_scopename_last($3.id);
 		    Setattr($$,"name",lstr);
 		    Delete(lstr);
-		    set_nextSibling($$,$5);
+		    set_nextSibling($$, $9);
 		  } else {
 		    Delete($$);
-		    $$ = $5;
+		    $$ = $9;
 		  }
 		  Delete(p);
 		} else {
 		  Delete($$);
-		  $$ = $5;
+		  $$ = $9;
 		}
 	      } else {
-		set_nextSibling($$,$5);
-	      }
-           }
-           /* Alternate function syntax introduced in C++11:
-              auto funcName(int x, int y) -> int; */
-           | storage_class AUTO declarator ARROW cpp_alternate_rettype initializer c_decl_tail {
-              $$ = new_node("cdecl");
-	      if ($6.qualifier) SwigType_push($3.type,$6.qualifier);
-	      Setattr($$,"type",$5);
-	      Setattr($$,"storage",$1);
-	      Setattr($$,"name",$3.id);
-	      Setattr($$,"decl",$3.type);
-	      Setattr($$,"parms",$3.parms);
-	      Setattr($$,"value",$6.val);
-	      Setattr($$,"throws",$6.throws);
-	      Setattr($$,"throw",$6.throwf);
-	      Setattr($$,"noexcept",$6.nexcept);
-	      if (!$7) {
-		if (Len(scanner_ccode)) {
-		  String *code = Copy(scanner_ccode);
-		  Setattr($$,"code",code);
-		  Delete(code);
-		}
-	      } else {
-		Node *n = $7;
-		while (n) {
-		  String *type = Copy($5);
-		  Setattr(n,"type",type);
-		  Setattr(n,"storage",$1);
-		  n = nextSibling(n);
-		  Delete(type);
-		}
-	      }
-	      if ($6.bitfield) {
-		Setattr($$,"bitfield", $6.bitfield);
+		set_nextSibling($$, $9);
 	      }
 
-	      if (Strstr($3.id,"::")) {
-                String *p = Swig_scopename_prefix($3.id);
-		if (p) {
-		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
-		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
-		    String *lstr = Swig_scopename_last($3.id);
-		    Setattr($$,"name",lstr);
-		    Delete(lstr);
-		    set_nextSibling($$,$7);
-		  } else {
-		    Delete($$);
-		    $$ = $7;
-		  }
-		  Delete(p);
-		} else {
-		  Delete($$);
-		  $$ = $7;
-		}
-	      } else {
-		set_nextSibling($$,$7);
-	      }
+	      if ($4.qualifier && $1 && Strstr($1, "static"))
+		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
            }
            ;
 
@@ -3136,27 +3300,28 @@ c_decl_tail    : SEMI {
                    $$ = 0;
                    Clear(scanner_ccode); 
                }
-               | COMMA declarator initializer c_decl_tail {
+               | COMMA declarator cpp_const initializer c_decl_tail {
 		 $$ = new_node("cdecl");
 		 if ($3.qualifier) SwigType_push($2.type,$3.qualifier);
+		 Setattr($$,"refqualifier",$3.refqualifier);
 		 Setattr($$,"name",$2.id);
 		 Setattr($$,"decl",$2.type);
 		 Setattr($$,"parms",$2.parms);
-		 Setattr($$,"value",$3.val);
+		 Setattr($$,"value",$4.val);
 		 Setattr($$,"throws",$3.throws);
 		 Setattr($$,"throw",$3.throwf);
 		 Setattr($$,"noexcept",$3.nexcept);
-		 if ($3.bitfield) {
-		   Setattr($$,"bitfield", $3.bitfield);
+		 if ($4.bitfield) {
+		   Setattr($$,"bitfield", $4.bitfield);
 		 }
-		 if (!$4) {
+		 if (!$5) {
 		   if (Len(scanner_ccode)) {
 		     String *code = Copy(scanner_ccode);
 		     Setattr($$,"code",code);
 		     Delete(code);
 		   }
 		 } else {
-		   set_nextSibling($$,$4);
+		   set_nextSibling($$, $5);
 		 }
 	       }
                | LBRACE { 
@@ -3174,33 +3339,8 @@ c_decl_tail    : SEMI {
                }
               ;
 
-initializer   : def_args { 
-                   $$ = $1; 
-                   $$.qualifier = 0;
-		   $$.throws = 0;
-		   $$.throwf = 0;
-		   $$.nexcept = 0;
-              }
-              | type_qualifier def_args { 
-                   $$ = $2; 
-		   $$.qualifier = $1;
-		   $$.throws = 0;
-		   $$.throwf = 0;
-		   $$.nexcept = 0;
-	      }
-              | exception_specification def_args { 
-		   $$ = $2; 
-                   $$.qualifier = 0;
-		   $$.throws = $1.throws;
-		   $$.throwf = $1.throwf;
-		   $$.nexcept = $1.nexcept;
-              }
-              | type_qualifier exception_specification def_args { 
-                   $$ = $3; 
-                   $$.qualifier = $1;
-		   $$.throws = $2.throws;
-		   $$.throwf = $2.throwf;
-		   $$.nexcept = $2.nexcept;
+initializer   : def_args {
+                   $$ = $1;
               }
               ;
 
@@ -3343,7 +3483,7 @@ c_enum_decl :  storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBR
 		    Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		  }
                }
-	       | storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBRACE declarator initializer c_decl_tail {
+	       | storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBRACE declarator cpp_const initializer c_decl_tail {
 		 Node *n;
 		 SwigType *ty = 0;
 		 String   *unnamed = 0;
@@ -3390,8 +3530,8 @@ c_enum_decl :  storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBR
 		   SetFlag(n,"unnamedinstance");
 		   Delete(cty);
                  }
-		 if ($10) {
-		   Node *p = $10;
+		 if ($11) {
+		   Node *p = $11;
 		   set_nextSibling(n,p);
 		   while (p) {
 		     SwigType *cty = Copy(ty);
@@ -3522,7 +3662,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   Setattr($<node>$,"prev_symtab",Swig_symbol_current());
 		  
 		   /* If the class name is qualified.  We need to create or lookup namespace/scope entries */
-		   scope = resolve_create_node_scope($3);
+		   scope = resolve_create_node_scope($3, 1);
 		   /* save nscope_inner to the class - it may be overwritten in nested classes*/
 		   Setattr($<node>$, "nested:innerscope", nscope_inner);
 		   Setattr($<node>$, "nested:nscope", nscope);
@@ -3899,12 +4039,12 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
              ;
 
 cpp_opt_declarators :  SEMI { $$ = 0; }
-                    |  declarator initializer c_decl_tail {
+                    |  declarator cpp_const initializer c_decl_tail {
                         $$ = new_node("cdecl");
                         Setattr($$,"name",$1.id);
                         Setattr($$,"decl",$1.type);
                         Setattr($$,"parms",$1.parms);
-			set_nextSibling($$,$3);
+			set_nextSibling($$, $4);
                     }
                     ;
 /* ------------------------------------------------------------
@@ -4211,9 +4351,6 @@ cpp_temp_possible:  c_decl {
                 | cpp_constructor_decl {
                    $$ = $1;
                 }
-                | cpp_static_assert {
-                   $$ = $1;
-                }
                 | cpp_template_decl {
 		  $$ = 0;
                 }
@@ -4471,7 +4608,6 @@ cpp_member_no_dox : c_declaration { $$ = $1; }
                  default_arguments($$);
              }
              | cpp_destructor_decl { $$ = $1; }
-             | cpp_static_assert { $$ = $1; }
              | cpp_protection_decl { $$ = $1; }
              | cpp_swig_directive { $$ = $1; }
              | cpp_conversion_operator { $$ = $1; }
@@ -4557,6 +4693,8 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 	       Setattr($$,"noexcept",$6.nexcept);
 	       if ($6.val)
 	         Setattr($$,"value",$6.val);
+	       if ($6.qualifier)
+		 Swig_error(cparse_file, cparse_line, "Destructor %s %s cannot have a qualifier.\n", Swig_name_decl($$), SwigType_str($6.qualifier, 0));
 	       add_symbols($$);
 	      }
 
@@ -4586,7 +4724,8 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 		  Setattr($$,"decl",decl);
 		  Delete(decl);
 		}
-
+		if ($7.qualifier)
+		  Swig_error(cparse_file, cparse_line, "Destructor %s %s cannot have a qualifier.\n", Swig_name_decl($$), SwigType_str($7.qualifier, 0));
 		add_symbols($$);
 	      }
               ;
@@ -4603,6 +4742,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 if ($8.qualifier) {
 		   SwigType_push($4,$8.qualifier);
 		 }
+		 Setattr($$,"refqualifier",$8.refqualifier);
 		 Setattr($$,"decl",$4);
 		 Setattr($$,"parms",$6);
 		 Setattr($$,"conversion_operator","1");
@@ -4620,6 +4760,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 if ($8.qualifier) {
 		   SwigType_push(decl,$8.qualifier);
 		 }
+		 Setattr($$,"refqualifier",$8.refqualifier);
 		 Setattr($$,"decl",decl);
 		 Setattr($$,"parms",$6);
 		 Setattr($$,"conversion_operator","1");
@@ -4637,6 +4778,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 if ($8.qualifier) {
 		   SwigType_push(decl,$8.qualifier);
 		 }
+		 Setattr($$,"refqualifier",$8.refqualifier);
 		 Setattr($$,"decl",decl);
 		 Setattr($$,"parms",$6);
 		 Setattr($$,"conversion_operator","1");
@@ -4656,6 +4798,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 if ($9.qualifier) {
 		   SwigType_push(decl,$9.qualifier);
 		 }
+		 Setattr($$,"refqualifier",$9.refqualifier);
 		 Setattr($$,"decl",decl);
 		 Setattr($$,"parms",$7);
 		 Setattr($$,"conversion_operator","1");
@@ -4672,6 +4815,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		if ($7.qualifier) {
 		  SwigType_push(t,$7.qualifier);
 		}
+		 Setattr($$,"refqualifier",$7.refqualifier);
 		Setattr($$,"decl",t);
 		Setattr($$,"parms",$5);
 		Setattr($$,"conversion_operator","1");
@@ -4687,7 +4831,8 @@ cpp_catch_decl : CATCH LPAREN parms RPAREN LBRACE {
                }
                ;
 
-/* static_assert(bool, const char*); */
+/* static_assert(bool, const char*); (C++11)
+ * static_assert(bool); (C++17) */
 cpp_static_assert : STATIC_ASSERT LPAREN {
                 skip_balanced('(',')');
                 $$ = 0;
@@ -4741,6 +4886,9 @@ cpp_swig_directive: pragma_directive { $$ = $1; }
 cpp_end        : cpp_const SEMI {
 	            Clear(scanner_ccode);
 		    $$.val = 0;
+		    $$.qualifier = $1.qualifier;
+		    $$.refqualifier = $1.refqualifier;
+		    $$.bitfield = 0;
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
 		    $$.nexcept = $1.nexcept;
@@ -4748,6 +4896,9 @@ cpp_end        : cpp_const SEMI {
                | cpp_const EQUAL default_delete SEMI {
 	            Clear(scanner_ccode);
 		    $$.val = $3.val;
+		    $$.qualifier = $1.qualifier;
+		    $$.refqualifier = $1.refqualifier;
+		    $$.bitfield = 0;
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
 		    $$.nexcept = $1.nexcept;
@@ -4755,6 +4906,9 @@ cpp_end        : cpp_const SEMI {
                | cpp_const LBRACE { 
 		    skip_balanced('{','}'); 
 		    $$.val = 0;
+		    $$.qualifier = $1.qualifier;
+		    $$.refqualifier = $1.refqualifier;
+		    $$.bitfield = 0;
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
 		    $$.nexcept = $1.nexcept;
@@ -4765,6 +4919,7 @@ cpp_vend       : cpp_const SEMI {
                      Clear(scanner_ccode);
                      $$.val = 0;
                      $$.qualifier = $1.qualifier;
+                     $$.refqualifier = $1.refqualifier;
                      $$.bitfield = 0;
                      $$.throws = $1.throws;
                      $$.throwf = $1.throwf;
@@ -4774,6 +4929,7 @@ cpp_vend       : cpp_const SEMI {
                      Clear(scanner_ccode);
                      $$.val = $3.val;
                      $$.qualifier = $1.qualifier;
+                     $$.refqualifier = $1.refqualifier;
                      $$.bitfield = 0;
                      $$.throws = $1.throws; 
                      $$.throwf = $1.throwf; 
@@ -4783,6 +4939,7 @@ cpp_vend       : cpp_const SEMI {
                      skip_balanced('{','}');
                      $$.val = 0;
                      $$.qualifier = $1.qualifier;
+                     $$.refqualifier = $1.refqualifier;
                      $$.bitfield = 0;
                      $$.throws = $1.throws; 
                      $$.throwf = $1.throwf; 
@@ -5060,6 +5217,28 @@ parameter_declarator : declarator def_args {
               $$.id = 0;
 	      $$.defarg = $1.rawval ? $1.rawval : $1.val;
             }
+	    /* Member function pointers with qualifiers. eg.
+	      int f(short (Funcs::*parm)(bool) const); */
+	    | direct_declarator LPAREN parms RPAREN cv_ref_qualifier {
+	      SwigType *t;
+	      $$ = $1;
+	      t = NewStringEmpty();
+	      SwigType_add_function(t,$3);
+	      if ($5.qualifier)
+	        SwigType_push(t, $5.qualifier);
+	      if (!$$.have_parms) {
+		$$.parms = $3;
+		$$.have_parms = 1;
+	      }
+	      if (!$$.type) {
+		$$.type = t;
+	      } else {
+		SwigType_push(t, $$.type);
+		Delete($$.type);
+		$$.type = t;
+	      }
+	      $$.defarg = 0;
+	    }
             ;
 
 plain_declarator : declarator {
@@ -5096,13 +5275,33 @@ plain_declarator : declarator {
 		$$.parms = 0;
 	      }
             }
+	    /* Member function pointers with qualifiers. eg.
+	      int f(short (Funcs::*parm)(bool) const) */
+	    | direct_declarator LPAREN parms RPAREN cv_ref_qualifier {
+	      SwigType *t;
+	      $$ = $1;
+	      t = NewStringEmpty();
+	      SwigType_add_function(t, $3);
+	      if ($5.qualifier)
+	        SwigType_push(t, $5.qualifier);
+	      if (!$$.have_parms) {
+		$$.parms = $3;
+		$$.have_parms = 1;
+	      }
+	      if (!$$.type) {
+		$$.type = t;
+	      } else {
+		SwigType_push(t, $$.type);
+		Delete($$.type);
+		$$.type = t;
+	      }
+	    }
             | empty {
    	      $$.type = 0;
               $$.id = 0;
 	      $$.parms = 0;
 	      }
             ;
-
 
 declarator :  pointer notso_direct_declarator {
               $$ = $2;
@@ -5456,7 +5655,7 @@ direct_declarator : idcolon {
 		    }
 		    SwigType_add_rvalue_reference($$.type);
                   }
-                  | LPAREN idcolon DSTAR direct_declarator RPAREN {
+                  | LPAREN idcolon DSTAR declarator RPAREN {
 		    SwigType *t;
 		    $$ = $4;
 		    t = NewStringEmpty();
@@ -5466,7 +5665,42 @@ direct_declarator : idcolon {
 		      Delete($$.type);
 		    }
 		    $$.type = t;
+		  }
+                  | LPAREN idcolon DSTAR type_qualifier declarator RPAREN {
+		    SwigType *t;
+		    $$ = $5;
+		    t = NewStringEmpty();
+		    SwigType_add_memberpointer(t, $2);
+		    SwigType_push(t, $4);
+		    if ($$.type) {
+		      SwigType_push(t, $$.type);
+		      Delete($$.type);
 		    }
+		    $$.type = t;
+		  }
+                  | LPAREN idcolon DSTAR abstract_declarator RPAREN {
+		    SwigType *t;
+		    $$ = $4;
+		    t = NewStringEmpty();
+		    SwigType_add_memberpointer(t, $2);
+		    if ($$.type) {
+		      SwigType_push(t, $$.type);
+		      Delete($$.type);
+		    }
+		    $$.type = t;
+		  }
+                  | LPAREN idcolon DSTAR type_qualifier abstract_declarator RPAREN {
+		    SwigType *t;
+		    $$ = $5;
+		    t = NewStringEmpty();
+		    SwigType_add_memberpointer(t, $2);
+		    SwigType_push(t, $4);
+		    if ($$.type) {
+		      SwigType_push(t, $$.type);
+		      Delete($$.type);
+		    }
+		    $$.type = t;
+		  }
                   | direct_declarator LBRACKET RBRACKET { 
 		    SwigType *t;
 		    $$ = $1;
@@ -5505,7 +5739,7 @@ direct_declarator : idcolon {
 		      Delete($$.type);
 		      $$.type = t;
 		    }
-                 }
+		  }
                  /* User-defined string literals. eg.
                     int operator"" _mySuffix(const char* val, int length) {...} */
 		 /* This produces one S/R conflict. */
@@ -5616,6 +5850,14 @@ abstract_declarator : pointer {
                     $$.parms = 0;
 		    $$.have_parms = 0;
       	          }
+                  | idcolon DSTAR type_qualifier {
+		    $$.type = NewStringEmpty();
+		    SwigType_add_memberpointer($$.type, $1);
+		    SwigType_push($$.type, $3);
+		    $$.id = 0;
+		    $$.parms = 0;
+		    $$.have_parms = 0;
+		  }
                   | pointer idcolon DSTAR { 
 		    SwigType *t = NewStringEmpty();
                     $$.type = $1;
@@ -5693,6 +5935,24 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
 		      $$.have_parms = 1;
 		    }
 		  }
+                  | direct_abstract_declarator LPAREN parms RPAREN cv_ref_qualifier {
+		    SwigType *t;
+                    $$ = $1;
+		    t = NewStringEmpty();
+                    SwigType_add_function(t,$3);
+		    SwigType_push(t, $5.qualifier);
+		    if (!$$.type) {
+		      $$.type = t;
+		    } else {
+		      SwigType_push(t,$$.type);
+		      Delete($$.type);
+		      $$.type = t;
+		    }
+		    if (!$$.have_parms) {
+		      $$.parms = $3;
+		      $$.have_parms = 1;
+		    }
+		  }
                   | LPAREN parms RPAREN {
                     $$.type = NewStringEmpty();
                     SwigType_add_function($$.type,$2);
@@ -5726,6 +5986,33 @@ pointer    : STAR type_qualifier pointer {
 	     SwigType_add_pointer($$);
            }
            ;
+
+/* cv-qualifier plus C++11 ref-qualifier for non-static member functions */
+cv_ref_qualifier : type_qualifier {
+		  $$.qualifier = $1;
+		  $$.refqualifier = 0;
+	       }
+	       | type_qualifier ref_qualifier {
+		  $$.qualifier = $1;
+		  $$.refqualifier = $2;
+		  SwigType_push($$.qualifier, $2);
+	       }
+	       | ref_qualifier {
+		  $$.qualifier = NewStringEmpty();
+		  $$.refqualifier = $1;
+		  SwigType_push($$.qualifier, $1);
+	       }
+	       ;
+
+ref_qualifier : AND {
+	          $$ = NewStringEmpty();
+	          SwigType_add_reference($$);
+	       }
+	       | LAND {
+	          $$ = NewStringEmpty();
+	          SwigType_add_rvalue_reference($$);
+	       }
+	       ;
 
 type_qualifier : type_qualifier_raw {
 	          $$ = NewStringEmpty();
@@ -5948,6 +6235,7 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		     $$.rawval = NewStringf("%s", $$.val);
 		   }
 		   $$.qualifier = 0;
+		   $$.refqualifier = 0;
 		   $$.bitfield = 0;
 		   $$.throws = 0;
 		   $$.throwf = 0;
@@ -5973,6 +6261,7 @@ deleted_definition : DELETE_KW {
 		  $$.rawval = 0;
 		  $$.type = T_STRING;
 		  $$.qualifier = 0;
+		  $$.refqualifier = 0;
 		  $$.bitfield = 0;
 		  $$.throws = 0;
 		  $$.throwf = 0;
@@ -5986,6 +6275,7 @@ explicit_default : DEFAULT {
 		  $$.rawval = 0;
 		  $$.type = T_STRING;
 		  $$.qualifier = 0;
+		  $$.refqualifier = 0;
 		  $$.bitfield = 0;
 		  $$.throws = 0;
 		  $$.throwf = 0;
@@ -6191,6 +6481,7 @@ valexpr        : exprnum { $$ = $1; }
 		       break;
 		   }
 		 }
+		 $$.type = promote($2.type, $4.type);
  	       }
                | LPAREN expr pointer RPAREN expr %prec CAST {
                  $$ = $5;
@@ -6525,6 +6816,14 @@ virt_specifier_seq : OVERRIDE {
 	       }
                ;
 
+virt_specifier_seq_opt : virt_specifier_seq {
+                   $$ = 0;
+               }
+               | empty {
+                   $$ = 0;
+               }
+               ;
+
 exception_specification : THROW LPAREN parms RPAREN {
                     $$.throws = $3;
                     $$.throwf = NewString("1");
@@ -6540,6 +6839,11 @@ exception_specification : THROW LPAREN parms RPAREN {
                     $$.throwf = 0;
                     $$.nexcept = 0;
 	       }
+	       | THROW LPAREN parms RPAREN virt_specifier_seq {
+                    $$.throws = $3;
+                    $$.throwf = NewString("1");
+                    $$.nexcept = 0;
+	       }
 	       | NOEXCEPT virt_specifier_seq {
                     $$.throws = 0;
                     $$.throwf = 0;
@@ -6552,25 +6856,34 @@ exception_specification : THROW LPAREN parms RPAREN {
 	       }
 	       ;	
 
-cpp_const      : type_qualifier {
+qualifiers_exception_specification : cv_ref_qualifier {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = 0;
-                    $$.qualifier = $1;
+                    $$.qualifier = $1.qualifier;
+                    $$.refqualifier = $1.refqualifier;
                }
                | exception_specification {
 		    $$ = $1;
                     $$.qualifier = 0;
+                    $$.refqualifier = 0;
                }
-               | type_qualifier exception_specification {
+               | cv_ref_qualifier exception_specification {
 		    $$ = $2;
-                    $$.qualifier = $1;
+                    $$.qualifier = $1.qualifier;
+                    $$.refqualifier = $1.refqualifier;
+               }
+               ;
+
+cpp_const      : qualifiers_exception_specification {
+                    $$ = $1;
                }
                | empty { 
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = 0;
-                    $$.qualifier = 0; 
+                    $$.qualifier = 0;
+                    $$.refqualifier = 0;
                }
                ;
 
@@ -6581,6 +6894,8 @@ ctor_end       : cpp_const ctor_initializer SEMI {
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
 		    $$.nexcept = $1.nexcept;
+                    if ($1.qualifier)
+                      Swig_error(cparse_file, cparse_line, "Constructor cannot have a qualifier.\n");
                }
                | cpp_const ctor_initializer LBRACE { 
                     skip_balanced('{','}'); 
@@ -6589,6 +6904,8 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.throws = $1.throws;
                     $$.throwf = $1.throwf;
                     $$.nexcept = $1.nexcept;
+                    if ($1.qualifier)
+                      Swig_error(cparse_file, cparse_line, "Constructor cannot have a qualifier.\n");
                }
                | LPAREN parms RPAREN SEMI { 
                     Clear(scanner_ccode); 
@@ -6621,6 +6938,8 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.throws = $1.throws;
                     $$.throwf = $1.throwf;
                     $$.nexcept = $1.nexcept;
+                    if ($1.qualifier)
+                      Swig_error(cparse_file, cparse_line, "Constructor cannot have a qualifier.\n");
                }
                ;
 

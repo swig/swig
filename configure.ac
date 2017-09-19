@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[3.0.13],[http://www.swig.org])
+AC_INIT([swig],[4.0.0],[http://www.swig.org])
 
 dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
 dnl     definition below can be removed
@@ -280,7 +280,7 @@ fi
 AC_MSG_RESULT($RPATH)
 
 # LINKFORSHARED are the flags passed to the $(CC) command that links
-# the a few executables -- this is only needed for a few systems
+# a few executables -- this is only needed for a few systems
 
 AC_MSG_CHECKING(LINKFORSHARED)
 if test -z "$LINKFORSHARED"
@@ -615,8 +615,11 @@ else
       PYVER=0
     else
       AC_MSG_CHECKING(for Python os.name)
-      PYOSNAME=`($PYTHON -c "import sys, os; sys.stdout.write(os.name)")`
+      PYOSNAME=`($PYTHON -c "import sys, os; sys.stdout.write(os.name)") 2>/dev/null`
       AC_MSG_RESULT($PYOSNAME)
+      AC_MSG_CHECKING(for Python path separator)
+      PYSEPARATOR=`($PYTHON -c "import sys, os; sys.stdout.write(os.sep)") 2>/dev/null`
+      AC_MSG_RESULT($PYSEPARATOR)
     fi
   fi
 
@@ -628,8 +631,8 @@ else
     PYEPREFIX=`($PYTHON -c "import sys; sys.stdout.write(sys.exec_prefix)") 2>/dev/null`
     AC_MSG_RESULT($PYEPREFIX)
 
-    if test x"$PYOSNAME" = x"nt"; then
-      # Windows installations are quite different to posix installations
+    if test x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\"; then
+      # Windows installations are quite different to posix installations (MinGW path separator is a forward slash)
       PYPREFIX=`echo "$PYPREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
       PYTHON_SO=.pyd
 
@@ -657,7 +660,7 @@ else
 
       # Need to do this hack since autoconf replaces __file__ with the name of the configure file
       filehack="file__"
-      PYVERSION=`($PYTHON -c "import sys,string,operator,os.path; sys.stdout.write(operator.getitem(os.path.split(operator.getitem(os.path.split(string.__$filehack),0)),1))")`
+      PYVERSION=`($PYTHON -c "import sys,string,operator,os.path; sys.stdout.write(operator.getitem(os.path.split(operator.getitem(os.path.split(string.__$filehack),0)),1))") 2>/dev/null`
       AC_MSG_RESULT($PYVERSION)
 
       # Find the directory for libraries this is necessary to deal with
@@ -745,7 +748,7 @@ else
     PYVER=0
   fi
   if test "x$PY3BIN" = xyes; then
-    if test x"$PYOSNAME" = x"nt" -a $PYVER -ge 3; then
+    if test x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\" -a $PYVER -ge 3; then
       PYTHON3="$PYTHON"
     else
       for py_ver in 3 3.9 3.8 3.7 3.6 3.5 3.4 3.3 3.2 3.1 3.0 ""; do
@@ -774,10 +777,13 @@ else
 
   if test $PYVER -ge 3; then
     AC_MSG_CHECKING(for Python 3.x os.name)
-    PY3OSNAME=`($PYTHON3 -c "import sys, os; sys.stdout.write(os.name)")`
+    PY3OSNAME=`($PYTHON3 -c "import sys, os; sys.stdout.write(os.name)") 2>/dev/null`
     AC_MSG_RESULT($PY3OSNAME)
+    AC_MSG_CHECKING(for Python 3.x path separator)
+    PYSEPARATOR=`($PYTHON3 -c "import sys, os; sys.stdout.write(os.sep)") 2>/dev/null`
+    AC_MSG_RESULT($PYSEPARATOR)
 
-    if test x"$PY3OSNAME" = x"nt"; then
+    if test x"$PY3OSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\"; then
       # Windows installations are quite different to posix installations
       # There is no python-config to use
       AC_MSG_CHECKING(for Python 3.x prefix)
@@ -828,7 +834,7 @@ else
 
       # Need to do this hack since autoconf replaces __file__ with the name of the configure file
       filehack="file__"
-      PY3VERSION=`($PYTHON3 -c "import string,operator,os.path; print(operator.getitem(os.path.split(operator.getitem(os.path.split(string.__$filehack),0)),1))")`
+      PY3VERSION=`($PYTHON3 -c "import string,operator,os.path; print(operator.getitem(os.path.split(operator.getitem(os.path.split(string.__$filehack),0)),1))") 2>/dev/null`
       AC_MSG_RESULT($PY3VERSION)
 
       # Find the directory for libraries this is necessary to deal with
@@ -2271,14 +2277,14 @@ else
 if test -z "$CSHARPCOMPILERBIN" ; then
   case $host in
   *-*-cygwin* | *-*-mingw*)
-    # prefer Mono gmcs (.NET 2.0) over mcs (.NET 1.1) - note mcs-1.2.3 has major pinvoke bug
-    AC_CHECK_PROGS(CSHARPCOMPILER, csc mono-csc gmcs mcs cscc)
+    # prefer unified Mono mcs compiler (not to be confused with the ancient .NET 1 mcs) over older/alternative names.
+    AC_CHECK_PROGS(CSHARPCOMPILER, csc mcs mono-csc gmcs cscc)
     if test -n "$CSHARPCOMPILER" && test "$CSHARPCOMPILER" = "csc" ; then
       AC_MSG_CHECKING(whether csc is the Microsoft CSharp compiler)
       csc 2>/dev/null | grep "C#" > /dev/null || CSHARPCOMPILER=""
       if test -z "$CSHARPCOMPILER" ; then
         AC_MSG_RESULT(no)
-        AC_CHECK_PROGS(CSHARPCOMPILER, mono-csc gmcs mcs cscc)
+        AC_CHECK_PROGS(CSHARPCOMPILER, mcs mono-csc gmcs cscc)
       else
         AC_MSG_RESULT(yes)
       fi

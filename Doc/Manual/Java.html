@@ -3923,9 +3923,21 @@ is used in the feature code. Consider the following, which also happens to be th
   if ($error) {
     jenv-&gt;ExceptionClear();
     $directorthrowshandlers
-    throw Swig::DirectorException(jenv, $error);
+    Swig::DirectorException::raise(jenv, $error);
   }
 %}
+</pre>
+</div>
+
+<p>
+where <tt>Swig::DirectorException::raise</tt> is a helper method in the DirectorException class to throw a C++ exception (implemented in director.swg):
+</p>
+
+<div class="code">
+<pre>
+  static void raise(JNIEnv *jenv, jthrowable throwable) {
+    throw DirectorException(jenv, throwable);
+  }
 </pre>
 </div>
 
@@ -3963,7 +3975,7 @@ if (swigerror) {
     throw std::out_of_range(Swig::JavaExceptionMessage(jenv, swigerror).message());
   }
   
-  throw Swig::DirectorException(jenv, swigerror);
+  Swig::DirectorException::raise(jenv, swigerror);
 }
 </pre>
 </div>
@@ -4093,7 +4105,7 @@ the exception specification or <code>%catches</code> feature.
 </p>
 
 <p>Note that the "directorthrows" typemaps are important
-only if it is important for the the exceptions passed through the C++
+only if it is important for the exceptions passed through the C++
 layer to be mapped to distinct C++ exceptions.  If director methods
 are being called by C++ code that is itself wrapped in a
 SWIG generated Java wrapper and access is always through this wrapper,
@@ -4323,16 +4335,16 @@ struct Vector {
 
 %extend Vector {
   char *toString() {
-      static char tmp[1024];
-      sprintf(tmp, "Vector(%g, %g, %g)", $self-&gt;x, $self-&gt;y, $self-&gt;z);
-      return tmp;
+    static char tmp[1024];
+    sprintf(tmp, "Vector(%g, %g, %g)", $self-&gt;x, $self-&gt;y, $self-&gt;z);
+    return tmp;
   }
   Vector(double x, double y, double z) {
-      Vector *v = (Vector *) malloc(sizeof(Vector));
-      v-&gt;x = x;
-      v-&gt;y = y;
-      v-&gt;z = z;
-      return v;
+    Vector *v = (Vector *) malloc(sizeof(Vector));
+    v-&gt;x = x;
+    v-&gt;y = y;
+    v-&gt;z = z;
+    return v;
   }
 };
 </pre>
@@ -5266,7 +5278,7 @@ void * operator new(size_t t) {
       throw bad_alloc();
     pJalloc-&gt;ref = 0;
     return static_cast&lt;void *&gt;(
-        static_cast&lt;char *&gt;(static_cast&lt;void *&gt;(pJalloc)) + sizeof(Jalloc));
+      static_cast&lt;char *&gt;(static_cast&lt;void *&gt;(pJalloc)) + sizeof(Jalloc));
   }
 }
 
@@ -5679,6 +5691,17 @@ The most important of these implement the mapping of C/C++ types to Java types:
     These are Java code typemaps which transform the type used in the Java intermediary JNI class (as specified in the "jtype" typemap) to 
     the Java type used in the Java module class, proxy classes and type wrapper classes (as specified in the "jstype" typemap).
     In other words the typemap provides the conversion from the native method call return type. </td>
+</tr>
+
+<tr>
+<td>jboxtype</td>
+<td>Java boxed type.
+  These are Java code typemaps to provide the Java boxed type, such as, <tt>Integer</tt> for C type <tt>int</tt>.
+    As autoboxing is only relevant to the Java primitive types, these are only provided for the
+    C types that map to Java primitive types.
+    This typemap is usually only used by C++ STL container wrappers that are wrapped by Java generic
+    types as the boxed type must be used instead of the unboxed/primitive type when declaring a Java generic type.
+    </td>
 </tr>
 
 <tr>
@@ -7217,7 +7240,7 @@ public class runme {
     example.print_args(animals);
     String args[] = example.get_args();
     for (int i=0; i&lt;args.length; i++)
-        System.out.println(i + ":" + args[i]);
+      System.out.println(i + ":" + args[i]);
   }
 }
 </pre></div>

@@ -121,7 +121,7 @@ public class li_std_vector_runme {
       throw new Exception("Contains test 4 failed");
 
     {
-      // ICollection constructor
+      // IEnumerable constructor
       double[] doubleArray = new double[] { 0.0, 11.1, 22.2, 33.3, 44.4, 55.5, 33.3 };
       DoubleVector dv = new DoubleVector(doubleArray);
       if (doubleArray.Length != dv.Count)
@@ -619,6 +619,55 @@ public class li_std_vector_runme {
       }
     }
 
+    // Test construction
+    {
+      string[] one_two_three = new string[] { "one", "two", "three" };
+
+      // Test construction from array
+      {
+        string[] collection = one_two_three;
+        check123(new StringVector(collection));
+      }
+
+      // Test construction from IEnumerable
+      {
+        global::System.Collections.IEnumerable collection = one_two_three;
+        check123(new StringVector(collection));
+      }
+
+      // Test construction from IEnumerable<>
+      {
+        global::System.Collections.Generic.IEnumerable<string> collection = one_two_three;
+        check123(new StringVector(collection));
+      }
+
+      // Test construction from IList<>
+      {
+        global::System.Collections.Generic.IList<string> collection = one_two_three;
+        check123(new StringVector(collection));
+      }
+
+      // Test construction from ICollection
+      {
+        global::System.Collections.ICollection collection = one_two_three;
+        check123(new StringVector(collection));
+      }
+
+      // Test construction from ICollection<>
+      {
+        global::System.Collections.Generic.ICollection<string> collection = new global::System.Collections.Generic.List<string>(one_two_three);
+        check123(new StringVector(collection));
+      }
+    }
+
+  }
+
+  private static void check123(StringVector stringv) {
+    string concatenated = "";
+    foreach (string s in stringv)
+      concatenated = concatenated + s;
+    if (concatenated != "onetwothree")
+      throw new Exception("concatenated string failed: " + concatenated);
   }
 
 }

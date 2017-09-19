@@ -122,9 +122,12 @@ swig -cffi -help
 <H3><a name="Lisp_nn5">27.2.2 Generating CFFI bindings</a></H3>
 
 
+<p>
+
 As we mentioned earlier the ideal way to use SWIG is to use interface
     files. To illustrate the use of it, let's assume that we have a
     file named <i>test.h</i> with the following C code:
+</p>
 
 <div class="code"><pre>
 #define y 5
@@ -155,7 +158,10 @@ void lispsort_double (int n, double * array);
 enum color { RED, BLUE, GREEN};
 </pre></div>
 
+<p>
 Corresponding to this we will write a simple interface file:
+</p>
+
 <div class="code"><pre>
 %module test
 
@@ -163,7 +169,9 @@ Corresponding to this we will write a simple interface file:
 
 </pre></div>
 
+<p>
 The generated SWIG Code will be:
+</p>
 
 <div class="targetlang"><pre>
 ;;;SWIG wrapper code starts here
@@ -430,8 +438,10 @@ Also, while parsing the C++ file and generating C wrapper code SWIG
 %include "target/header.h"
 
 </pre></div>
+<p>
 Various features which were available for C headers can also be used
     here. The target header which we are going to use here is:
+</p>
 <div class="code"><pre>
 namespace OpenDemo {
   class Test
@@ -478,8 +488,10 @@ namespace OpenDemo {
 %include "test.cpp"
 </pre></div>
 
+<p>
 SWIG generates 3 files, the first one is a C wrap which we don't show,
     the second is the plain CFFI wrapper which is as shown below:
+</p>
 <div class="targetlang"><pre>
 (cffi:defcfun ("_wrap_Test_x_set" Test_x_set) :void
   (self :pointer)
@@ -528,11 +540,13 @@ SWIG generates 3 files, the first one is a C wrap which we don't show,
 (cffi:defcfun ("_wrap_RandomUnitVectorOnXZPlane" RandomUnitVectorOnXZPlane) :pointer)
 </pre></div>
 
+<p>
 The output is pretty good but it fails in disambiguating overloaded
     functions such as the constructor, in this case. One way of
     resolving this problem is to make the interface use the rename
     directiv, but hopefully there are better solutions.
  In addition SWIG also generates, a CLOS file
+</p>
 
 
 <div class="targetlang"><pre>

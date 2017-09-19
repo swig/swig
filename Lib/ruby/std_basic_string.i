@@ -55,6 +55,10 @@ SWIGINTERNINLINE VALUE
 
 #if !defined(SWIG_STD_WSTRING)
 
+%traits_swigtype(std::basic_string<wchar_t>);
+%fragment(SWIG_Traits_frag(std::basic_string<wchar_t>));
+
+
 %fragment(SWIG_AsPtr_frag(std::basic_string<wchar_t>),"header",
 	  fragment="SWIG_AsWCharPtrAndSize") {
 SWIGINTERN int

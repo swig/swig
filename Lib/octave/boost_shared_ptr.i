@@ -8,7 +8,7 @@
 %naturalvar SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >;
 
 // destructor wrapper customisation
-%feature("unref") TYPE 
+%feature("unref") TYPE
 //"if (debug_shared) { cout << \"deleting use_count: \" << (*smartarg1).use_count() << \" [\" << (boost::get_deleter<SWIG_null_deleter>(*smartarg1) ? std::string(\"CANNOT BE DETERMINED SAFELY\") : ( (*smartarg1).get() ? (*smartarg1)->getValue() : std::string(\"NULL PTR\") )) << \"]\" << endl << flush; }\n"
                                "(void)arg1; delete smartarg1;"
 
@@ -19,7 +19,7 @@
   int newmem = 0;
   res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
-    %argument_fail(res, "$type", $symname, $argnum); 
+    %argument_fail(res, "$type", $symname, $argnum);
   }
   if (!argp) {
     %argument_nullref("$type", $symname, $argnum);
@@ -58,7 +58,7 @@
   int newmem = 0;
   res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
-    %argument_fail(res, "$type", $symname, $argnum); 
+    %argument_fail(res, "$type", $symname, $argnum);
   }
   if (newmem & SWIG_CAST_NEW_MEMORY) {
     tempshared = *%reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *);
@@ -102,7 +102,7 @@
   int newmem = 0;
   res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
-    %argument_fail(res, "$type", $symname, $argnum); 
+    %argument_fail(res, "$type", $symname, $argnum);
   }
   if (!argp) { %argument_nullref("$type", $symname, $argnum); }
   if (newmem & SWIG_CAST_NEW_MEMORY) {
@@ -148,7 +148,7 @@
   int newmem = 0;
   res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
-    %argument_fail(res, "$type", $symname, $argnum); 
+    %argument_fail(res, "$type", $symname, $argnum);
   }
   if (newmem & SWIG_CAST_NEW_MEMORY) {
     tempshared = *%reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *);
@@ -176,7 +176,7 @@
   int newmem = 0;
   res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
-    %argument_fail(res, "$type", $symname, $argnum); 
+    %argument_fail(res, "$type", $symname, $argnum);
   }
   if (argp) $1 = *(%reinterpret_cast(argp, $&ltype));
   if (newmem & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(argp, $&ltype);
@@ -206,7 +206,7 @@
   int newmem = 0;
   res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
-    %argument_fail(res, "$type", $symname, $argnum); 
+    %argument_fail(res, "$type", $symname, $argnum);
   }
   if (newmem & SWIG_CAST_NEW_MEMORY) {
     if (argp) tempshared = *%reinterpret_cast(argp, $ltype);
@@ -233,7 +233,7 @@
   int newmem = 0;
   res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
-    %argument_fail(res, "$type", $symname, $argnum); 
+    %argument_fail(res, "$type", $symname, $argnum);
   }
   if (newmem & SWIG_CAST_NEW_MEMORY) {
     if (argp) tempshared = *%reinterpret_cast(argp, $ltype);
@@ -261,7 +261,7 @@
   int newmem = 0;
   res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
-    %argument_fail(res, "$type", $symname, $argnum); 
+    %argument_fail(res, "$type", $symname, $argnum);
   }
   if (argp) tempshared = *%reinterpret_cast(argp, $*ltype);
   if (newmem & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(argp, $*ltype);
@@ -281,9 +281,9 @@
 %}
 
 // Typecheck typemaps
-// Note: SWIG_ConvertPtr with void ** parameter set to 0 instead of using SWIG_ConvertPtrAndOwn, so that the casting 
+// Note: SWIG_ConvertPtr with void ** parameter set to 0 instead of using SWIG_ConvertPtrAndOwn, so that the casting
 // function is not called thereby avoiding a possible smart pointer copy constructor call when casting up the inheritance chain.
-%typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER,noblock=1) 
+%typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER,noblock=1)
                       TYPE CONST,
                       TYPE CONST &,
                       TYPE CONST *,

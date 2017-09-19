@@ -306,9 +306,9 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
 	  char *ndoc = (char*)malloc(ldoc + lptr + 10);
 	  if (ndoc) {
 	    char *buff = ndoc;
-	    strncpy(buff, methods[i].ml_doc, ldoc);
+	    memcpy(buff, methods[i].ml_doc, ldoc);
 	    buff += ldoc;
-	    strncpy(buff, "swig_ptr: ", 10);
+	    memcpy(buff, "swig_ptr: ", 10);
 	    buff += 10;
 	    SWIG_PackVoidPtr(buff, ptr, ty->name, lptr);
 	    methods[i].ml_doc = ndoc;

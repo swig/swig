@@ -280,7 +280,7 @@ class SomeClass : AnInterface, AnotherInterface {
   ...
 }
 </pre></div>
-    <p>For this to work, <tt>AnInterface</tt> and <tt>AnotherInterface</tt> have to be in scope. If SWIG is not in split proxy mode, this is already the case, but it it is, they have to be added to the import list via the <tt>dimports</tt> typemap. Additionally, the import statement depends on the package SWIG is configured to emit the modules to.</p>
+    <p>For this to work, <tt>AnInterface</tt> and <tt>AnotherInterface</tt> have to be in scope. If SWIG is not in split proxy mode, this is already the case, but if it is, they have to be added to the import list via the <tt>dimports</tt> typemap. Additionally, the import statement depends on the package SWIG is configured to emit the modules to.</p>
     <p>The <tt>$importtype</tt> macro helps you to elegantly solve this problem:</p>
 <div class="code"><pre>
 %typemap(dimports) RemoteMpe %{

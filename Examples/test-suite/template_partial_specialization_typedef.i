@@ -59,7 +59,7 @@ namespace One {
 %template(H) One::OneParm<TypeDef::IntPtrPtr>;
 
 // %template scope explicit specializations
-namespace ONE {
+namespace One {
   %template(I) One::OneParm<TypeDef::Float>;
   %template(J) ::One::OneParm<TypeDef::FloatPtr>;
 }
@@ -69,7 +69,7 @@ namespace One {
 }
 
 // %template scope partial specializations
-namespace ONE {
+namespace One {
   %template(BB) One::OneParm<TypeDef::BoolPtr>;
   %template(BBB) ::One::OneParm<TypeDef::CharPtr>;
 }

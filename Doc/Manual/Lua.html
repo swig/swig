@@ -1008,11 +1008,10 @@ The following operators cannot be overloaded (mainly because they are not suppor
 <p>
 SWIG also accepts the <tt>__str__()</tt> member function which converts an object to a string. This function should return a const char*, preferably to static memory. This will be used for the <tt>print()</tt> and <tt>tostring()</tt> functions in Lua. Assuming the complex class has a function
 </p>
-<div class="code"><pre>const char* __str__()
-{
-        static char buffer[255];
-        sprintf(buffer, "Complex(%g, %g)", this-&gt;re(), this-&gt;im());
-        return buffer;
+<div class="code"><pre>const char* __str__() {
+  static char buffer[255];
+  sprintf(buffer, "Complex(%g, %g)", this-&gt;re(), this-&gt;im());
+  return buffer;
 }
 </pre></div>
 <p>
@@ -1031,11 +1030,10 @@ Complex(10, 12)
 <p>
 It is also possible to overload the operator<tt>[]</tt>, but currently this cannot be automatically performed. To overload the operator<tt>[]</tt> you need to provide two functions, <tt>__getitem__()</tt> and <tt>__setitem__()</tt>
 </p>
-<div class="code"><pre>class Complex
-{
-        //....
-        double __getitem__(int i)const; // i is the index, returns the data
-        void __setitem__(int i, double d); // i is the index, d is the data
+<div class="code"><pre>class Complex {
+  //....
+  double __getitem__(int i)const; // i is the index, returns the data
+  void __setitem__(int i, double d); // i is the index, d is the data
 };
 </pre></div>
 <p>

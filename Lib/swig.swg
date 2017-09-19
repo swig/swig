@@ -309,11 +309,13 @@ static int NAME(TYPE x) {
 
 %define %$classname      %$ismember,"match$parentNode$name"  %enddef
 %define %$isnested       "match$nested"="1"  %enddef
+
 /* -----------------------------------------------------------------------------
- * Include all the warnings labels and macros 
+ * Common includes for warning labels, macros, fragments etc
  * ----------------------------------------------------------------------------- */
 
 %include <swigwarnings.swg>
+%include <swigfragments.swg>
 
 /* -----------------------------------------------------------------------------
  * Overloading support

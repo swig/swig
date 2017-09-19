@@ -1429,9 +1429,19 @@ public:
      * if the return value is a reference or const reference, a specialized typemap must
      * handle it, including declaration of c_result ($result).
      */
-    if (!is_void) {
-      if (!(ignored_method && !pure_virtual)) {
-	Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), NIL);
+    if (!is_void && (!ignored_method || pure_virtual)) {
+      if (!SwigType_isclass(returntype)) {
+	if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
+	  String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
+	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
+	  Delete(construct_result);
+	} else {
+	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
+	}
+      } else {
+	String *cres = SwigType_lstr(returntype, "c_result");
+	Printf(w->code, "%s;\n", cres);
+	Delete(cres);
       }
     }
 

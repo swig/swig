@@ -13,6 +13,8 @@ require 'swig_assert'
 require 'std_containers'
 include Std_containers
 
+swig_assert_equal("[true, false]", "videntb([true, false])")
+
 swig_assert_each_line(<<'EOF', binding)
 
 cube = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]

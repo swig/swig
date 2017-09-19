@@ -33,6 +33,19 @@ public class director_smartptr_runme {
     director_smartptr.Foo myFoo2 = new director_smartptr.Foo().makeFoo();
     check(myFoo2.pong(), "Foo::pong();Foo::ping()");
     check(director_smartptr.Foo.callPong(myFoo2), "Foo::pong();Foo::ping()");
+
+    director_smartptr.FooDerived myBarFooDerived = new director_smartptr_MyBarFooDerived();
+    check(myBarFooDerived.ping(), "director_smartptr_MyBarFooDerived.ping()");
+    check(director_smartptr.FooDerived.callPong(myBarFooDerived), "director_smartptr_MyBarFooDerived.pong();director_smartptr_MyBarFooDerived.ping()");
+    check(director_smartptr.FooDerived.callUpcall(myBarFooDerived, fooBar), "overrideDerived;Bar::Foo2::Foo2Bar()");
+
+    director_smartptr.Foo myFoo3 = myBarFoo.makeFoo();
+    myFoo3.swigReleaseOwnership();
+    myFoo3.swigTakeOwnership();
+    director_smartptr.FooDerived myBarFooDerived2 = new director_smartptr_MyBarFooDerived();
+    myBarFooDerived2.swigReleaseOwnership();
+    myBarFooDerived2.swigTakeOwnership();
+
   }
 }
 
@@ -51,6 +64,29 @@ class director_smartptr_MyBarFoo extends director_smartptr.Foo {
   @Override
   public String upcall(director_smartptr.FooBar fooBarPtr) {
     return "override;" + fooBarPtr.FooBarDo();
+  }
+
+  @Override
+  public director_smartptr.Foo makeFoo() {
+    return new director_smartptr.Foo();
+  }
+}
+
+class director_smartptr_MyBarFooDerived extends director_smartptr.FooDerived {
+
+  @Override
+  public String ping() {
+    return "director_smartptr_MyBarFooDerived.ping()";
+  }
+
+  @Override
+  public String pong() {
+    return "director_smartptr_MyBarFooDerived.pong();" + ping();
+  }
+
+  @Override
+  public String upcall(director_smartptr.FooBar fooBarPtr) {
+    return "overrideDerived;" + fooBarPtr.FooBarDo();
   }
 
   @Override

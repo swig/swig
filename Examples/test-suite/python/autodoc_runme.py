@@ -201,3 +201,7 @@ check(inspect.getdoc(func_output), "func_output() -> int")
 check(inspect.getdoc(func_inout), "func_inout(int * INOUT) -> int")
 check(inspect.getdoc(func_cb), "func_cb(int c, int d) -> int")
 check(inspect.getdoc(banana), "banana(S a, S b, int c, Integer d)")
+
+check(inspect.getdoc(TInteger), "Proxy of C++ T< int > class.", "::T< int >")
+check(inspect.getdoc(TInteger.__init__), "__init__(TInteger self) -> TInteger", None, skip)
+check(inspect.getdoc(TInteger.inout), "inout(TInteger self, TInteger t) -> TInteger")

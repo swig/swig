@@ -5,6 +5,11 @@
 %{
 #if defined(_MSC_VER)
   #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+  #pragma warning(disable: 4146) // unary minus operator applied to unsigned type, result still unsigned
+#endif
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
 #endif
 %}
 
@@ -14,14 +19,20 @@
   #include <string>
 
   // All kinds of numbers: hex, octal (which pose special problems to Python), negative...
-  void trickyvalue1(int first, int pos = -1) {}
-  void trickyvalue2(int first, unsigned rgb = 0xabcdef) {}
-  void trickyvalue3(int first, int mode = 0644) {}
+
+  class TrickyInPython {
+  public:
+    int value_m1(int first, int pos = -1) { return pos; }
+    unsigned value_0xabcdef(int first, unsigned rgb = 0xabcdef) { return rgb; }
+    int value_0644(int first, int mode = 0644) { return mode; }
+    int value_perm(int first, int mode = 0640 | 0004) { return mode; }
+    int value_m01(int first, int val = -01) { return val; }
+    bool booltest2(bool x = 0 | 1) { return x; }
+  };
 
   void doublevalue1(int first, double num = 0.0e-1) {}
   void doublevalue2(int first, double num = -0.0E2) {}
 
-  // Long long arguments are not handled at Python level currently but still work.
   void seek(long long offset = 0LL) {}
   void seek2(unsigned long long offset = 0ULL) {}
   void seek3(long offset = 0L) {}
@@ -152,6 +163,9 @@
       int double_if_handle_is_null(int n, MyHandle h = 0) { return h ? n : 2*n; }
       int double_if_dbl_ptr_is_null(int n, double* null_by_default)
         { return null_by_default ? n : 2*n; }
+
+      void defaulted1(unsigned offset = -1U) {} // minus unsigned!
+      void defaulted2(int offset = -1U) {} // minus unsigned!
   };
   int Foo::bar = 1;
   int Foo::spam = 2;
@@ -305,3 +319,11 @@ struct CDA {
 };
 %}
 
+%{
+#if defined(_MSC_VER)
+  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic pop
+#endif
+%}

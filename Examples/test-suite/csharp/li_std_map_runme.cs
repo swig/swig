@@ -18,7 +18,7 @@ public class li_std_map_runme {
 
     public static void Main()
     {
-        // Set up an int int map
+        // Set up an string to int map
         StringIntMap simap = new StringIntMap();
         for (int i = 0; i < collectionSize; i++)
         {

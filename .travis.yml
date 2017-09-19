@@ -9,9 +9,6 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=
       sudo: required
       dist: trusty
     - os: linux
@@ -55,6 +52,8 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=javascript ENGINE=node
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=javascript ENGINE=jsc
@@ -73,6 +72,11 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=lua VER=5.3
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=ocaml
       sudo: required
       dist: trusty
     - compiler: gcc
@@ -160,6 +164,14 @@ matrix:
       env: SWIGLANG=python SWIG_FEATURES=-builtin
       sudo: required
       dist: trusty
+    - os: linux
+      env: SWIGLANG=python SWIG_FEATURES=-builtin SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      sudo: required
+      dist: trusty
+    - os: linux
+      env: SWIGLANG=python SWIG_FEATURES=-builtin SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1 PY3=3 VER=3.5
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.4
@@ -220,6 +232,10 @@ matrix:
       sudo: required
       dist: trusty
     - os: linux
+      env: SWIGLANG=go SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      sudo: required
+      dist: trusty
+    - os: linux
       env: SWIGLANG=java SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
       sudo: required
       dist: trusty
@@ -228,7 +244,23 @@ matrix:
       sudo: required
       dist: trusty
     - os: linux
+      env: SWIGLANG=r CPP11=1 # Note: making 'R CMD SHLIB' use a different compiler is non-trivial
+      sudo: required
+      dist: trusty
+    - os: linux
+      env: SWIGLANG=ruby SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      sudo: required
+      dist: trusty
+    - os: linux
+      env: SWIGLANG=tcl SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      sudo: required
+      dist: trusty
+    - os: linux
       env: SWIGLANG=csharp SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
+      sudo: required
+      dist: trusty
+    - os: linux
+      env: SWIGLANG=go SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
       sudo: required
       dist: trusty
     - os: linux
@@ -237,6 +269,14 @@ matrix:
       dist: trusty
     - os: linux
       env: SWIGLANG=python SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
+      sudo: required
+      dist: trusty
+    - os: linux
+      env: SWIGLANG=ruby SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
+      sudo: required
+      dist: trusty
+    - os: linux
+      env: SWIGLANG=tcl SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
       sudo: required
       dist: trusty
     - compiler: gcc
@@ -280,6 +320,10 @@ matrix:
       env: SWIGLANG=tcl
 
   allow_failures:
+    # Started failing after upgrade from Guile 2.0.14 to Guile 2.2.0
+    - compiler: clang
+      os: osx
+      env: SWIGLANG=guile
     # Lots of failing tests currently
     - compiler: gcc
       os: linux

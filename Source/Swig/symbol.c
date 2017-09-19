@@ -599,7 +599,7 @@ void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
     Setattr(ccurrent, name, n);
   }
 
-  /* Multiple entries in the C symbol table.   We append to to the symbol table */
+  /* Multiple entries in the C symbol table.   We append to the symbol table */
   if (append) {
     Node *fn, *pn = 0;
     cn = Getattr(ccurrent, name);

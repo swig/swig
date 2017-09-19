@@ -70,20 +70,6 @@ run_testcase = \
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' octave_clean
 
-cvsignore:
-	@echo '*wrap* *.mc *.so *.dll *.exp *.lib'
-	@echo Makefile
-	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do echo $$i.m; done
-	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do if grep -q $${i}_runme.m CVS/Entries ; then echo $${i}_runme.m; fi; done
-	@echo clientdata_prop_a.m
-	@echo clientdata_prop_b.m
-	@echo imports_a.m
-	@echo imports_b.m
-	@echo mod_a.m mod_b.m
-	@echo hugemod.h hugemod_a.i hugemod_b.i hugemod_a.m hugemod_b.m hugemod_runme.m
-	@echo template_typedef_import.m
-
-
 hugemod:
 	perl hugemod.pl
 	$(MAKE) hugemod_a.cpptest

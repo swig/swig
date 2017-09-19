@@ -6,7 +6,7 @@
 #include "config.h"
 #else
 #include <sys/locking.h>
-#define PACKAGE_NAME "ccache-swig.exe"
+#include "config_win32.h"
 #endif
 
 #include <stdio.h>
@@ -51,7 +51,7 @@
 #define STATUS_FATAL 4
 #define STATUS_NOCACHE 5
 
-#define MYNAME PACKAGE_NAME
+#define MYNAME PROGRAM_NAME
 
 #define LIMIT_MULTIPLE 0.8
 

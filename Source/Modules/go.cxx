@@ -990,7 +990,7 @@ private:
    * overname: The overload string for overloaded function.
    * wname: The SWIG wrapped name--the name of the C function.
    * base: A list of the names of base classes, in the case where this
-   *       is is a vritual method not defined in the current class.
+   *       is a virtual method not defined in the current class.
    * parms: The parameters.
    * result: The result type.
    * is_static: Whether this is a static method or member.
@@ -2806,17 +2806,25 @@ private:
       return SWIG_NOWRAP;
     }
 
-    String *get = NewString("");
-    Printv(get, Swig_cresult_name(), " = ", NULL);
-
     String *rawval = Getattr(n, "rawval");
     if (rawval && Len(rawval)) {
-      if (SwigType_type(type) == T_STRING) {
-        Printv(get, "(char *)", NULL);
+      // Based on Swig_VargetToFunction
+      String *nname = NewStringf("(%s)", rawval);
+      String *call;
+      if (SwigType_isclass(type)) {
+	call = NewStringf("%s", nname);
+      } else {
+	call = SwigType_lcaststr(type, nname);
       }
-
-      Printv(get, rawval, NULL);
+      String *cres = Swig_cresult(type, Swig_cresult_name(), call);
+      Setattr(n, "wrap:action", cres);
+      Delete(nname);
+      Delete(call);
+      Delete(cres);
     } else {
+      String *get = NewString("");
+      Printv(get, Swig_cresult_name(), " = ", NULL);
+
       char quote;
       if (Getattr(n, "wrappedasconstant")) {
         quote = '\0';
@@ -2838,11 +2846,12 @@ private:
       if (quote != '\0') {
         Printf(get, "%c", quote);
       }
+
+      Printv(get, ";\n", NULL);
+
+      Setattr(n, "wrap:action", get);
+      Delete(get);
     }
-
-    Printv(get, ";\n", NULL);
-
-    Setattr(n, "wrap:action", get);
 
     String *sname = Copy(symname);
     if (class_name) {
@@ -5049,7 +5058,19 @@ private:
       Printv(w->def, " {\n", NULL);
 
       if (SwigType_type(result) != T_VOID) {
-	Wrapper_add_local(w, "c_result", SwigType_lstr(result, "c_result"));
+	if (!SwigType_isclass(result)) {
+	  if (!(SwigType_ispointer(result) || SwigType_isreference(result))) {
+	    String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(result, 0));
+	    Wrapper_add_localv(w, "c_result", SwigType_lstr(result, "c_result"), construct_result, NIL);
+	    Delete(construct_result);
+	  } else {
+	    Wrapper_add_localv(w, "c_result", SwigType_lstr(result, "c_result"), "= 0", NIL);
+	  }
+	} else {
+	  String *cres = SwigType_lstr(result, "c_result");
+	  Printf(w->code, "%s;\n", cres);
+	  Delete(cres);
+	}
       }
 
       if (!is_ignored) {
@@ -5483,6 +5504,8 @@ private:
    *--------------------------------------------------------------------*/
 
   String *buildThrow(Node *n) {
+    if (Getattr(n, "noexcept"))
+      return NewString("noexcept");
     ParmList *throw_parm_list = Getattr(n, "throws");
     if (!throw_parm_list && !Getattr(n, "throw"))
       return NULL;
@@ -6232,9 +6255,9 @@ private:
 	Setattr(undefined_enum_types, t, ret);
 	Delete(tt);
       }
-    } else if (SwigType_isfunctionpointer(type) || SwigType_isfunction(type)) {
+    } else if (SwigType_isfunctionpointer(t) || SwigType_isfunction(t)) {
       ret = NewString("_swig_fnptr");
-    } else if (SwigType_ismemberpointer(type)) {
+    } else if (SwigType_ismemberpointer(t)) {
       ret = NewString("_swig_memberptr");
     } else if (SwigType_issimple(t)) {
       Node *cn = classLookup(t);

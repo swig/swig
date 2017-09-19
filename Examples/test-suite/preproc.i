@@ -370,3 +370,21 @@ int methodX(int x);
 int methodX(int x) { return x+100; }
 %}
 
+// Comma in macro - Github issue #974
+%inline %{
+#define swig__attribute__(x)
+#define TCX_PACKED(d) d swig__attribute__ ((__packed__))
+
+
+TCX_PACKED (typedef struct tcxMessageTestImpl
+{
+    int mHeader; /**< comment */
+}) tcxMessageTest;
+
+
+TCX_PACKED (typedef struct tcxMessageBugImpl
+{
+    int mBid; /**< Bid price and size, check PresentMap if available in message */
+}) tcxMessageBug;
+%}
+

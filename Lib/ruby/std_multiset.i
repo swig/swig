@@ -36,7 +36,7 @@
 
 #define %swig_multiset_methods(Set...) %swig_set_methods(Set)
 
-
+%mixin std::multiset "Enumerable";
 
 %rename("delete")     std::multiset::__delete__;
 %rename("reject!")    std::multiset::reject_bang;

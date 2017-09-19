@@ -290,8 +290,6 @@ public:
   int membervariableHandler(Node *n);
 
   int typedefHandler(Node *n);
-  static List *Swig_overload_rank(Node *n,
-			   bool script_lang_wrapping);
 
   int memberfunctionHandler(Node *n) {
     if (debugMode)
@@ -573,7 +571,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
     String *lname;
 
     if (!arg && Cmp(Getattr(p, "type"), "void")) {
-      lname = NewStringf("s_arg%d", i+1);
+      lname = NewStringf("arg%d", i+1);
       Setattr(p, "name", lname);
     } else
       lname = arg;
@@ -616,19 +614,25 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   for(i = 0; p; i++) {
     SwigType *tt = Getattr(p, "type");
     SwigType *name = Getattr(p, "name");
+    SwigType *swig_parm_name = NewStringf("swigarg_%s", name);
     String *tm = Getattr(p, "tmap:out");
-    Printf(f->def,  "%s %s", SwigType_str(tt, 0), name);
-     if(tm) {
-      Replaceall(tm, "$1", name);
-      if (SwigType_isreference(tt)) {
-	String *tmp = NewString("");
-        Append(tmp, "*");
-	Append(tmp, name);
-	Replaceall(tm, tmp, name);
+    bool isVoidParm = Strcmp(tt, "void") == 0;
+    if (isVoidParm)
+      Printf(f->def, "%s", SwigType_str(tt, 0));
+    else
+      Printf(f->def, "%s %s", SwigType_str(tt, 0), swig_parm_name);
+    if (tm) {
+      String *lstr = SwigType_lstr(tt, 0);
+      if (SwigType_isreference(tt) || SwigType_isrvalue_reference(tt)) {
+	Printf(f->code, "%s = (%s) &%s;\n", Getattr(p, "lname"), lstr, swig_parm_name);
+      } else if (!isVoidParm) {
+	Printf(f->code, "%s = (%s) %s;\n", Getattr(p, "lname"), lstr, swig_parm_name);
       }
+      Replaceall(tm, "$1", name);
       Replaceall(tm, "$result", "r_tmp");
       replaceRClass(tm, Getattr(p,"type"));
       Replaceall(tm,"$owner", "R_SWIG_EXTERNAL");
+      Delete(lstr);
     } 
     
     Printf(setExprElements, "%s\n", tm);
@@ -697,10 +701,13 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   Printv(f->code, "R_SWIG_popCallbackFunctionData(1);\n", NIL);
   Printv(f->code, "\n", UnProtectWrapupCode, NIL);
 
-  if (SwigType_isreference(rettype)) {  
+  if (SwigType_isreference(rettype)) {
     Printv(f->code,  "return *", Swig_cresult_name(), ";\n", NIL);
-  } else if(!isVoidType)
+  } else if (SwigType_isrvalue_reference(rettype)) {
+    Printv(f->code,  "return std::move(*", Swig_cresult_name(), ");\n", NIL);
+  } else if (!isVoidType) {
     Printv(f->code,  "return ", Swig_cresult_name(), ";\n", NIL);
+  }
   
   Printv(f->code, "\n}\n", NIL);
   Replaceall(f->code, "SWIG_exception_fail", "SWIG_exception_noreturn");
@@ -709,7 +716,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
      function that handles the scoerceout. 
      We need to check if any of the argument types have an entry in
      that map. If none do, the ignore and call the function straight.
-     Otherwise, generate the a marshalling function.
+     Otherwise, generate a marshalling function.
      Need to be able to find it in S. Or use an entirely generic one
      that evaluates the expressions.
      Handle errors in the evaluation of the function by restoring
@@ -1303,260 +1310,6 @@ void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
   // if we could put the wrapper in directly:       Append(l, Copy(sfun));
   if (debugMode)
     Printf(stdout, "Adding accessor: %s (%s) => %s\n", memberName, name, tmp);
-}
-
-#define MAX_OVERLOAD 256
-
-struct Overloaded {
-  Node      *n;          /* Node                               */
-  int        argc;       /* Argument count                     */
-  ParmList  *parms;      /* Parameters used for overload check */
-  int        error;      /* Ambiguity error                    */
-};
-
-
-List * R::Swig_overload_rank(Node *n, 
-				 bool script_lang_wrapping) {
-  Overloaded  nodes[MAX_OVERLOAD];
-  int         nnodes = 0;
-  Node *o = Getattr(n,"sym:overloaded");
-
-
-  if (!o) return 0;
-
-  Node *c = o;
-  while (c) {
-    if (Getattr(c,"error")) {
-      c = Getattr(c,"sym:nextSibling");
-      continue;
-    }
-    /*    if (SmartPointer && Getattr(c,"cplus:staticbase")) {
-	  c = Getattr(c,"sym:nextSibling");
-	  continue;
-	  } */
-
-    /* Make a list of all the declarations (methods) that are overloaded with
-     * this one particular method name */
-
-    if (Getattr(c,"wrap:name")) {
-      nodes[nnodes].n = c;
-      nodes[nnodes].parms = Getattr(c,"wrap:parms");
-      nodes[nnodes].argc = emit_num_required(nodes[nnodes].parms);
-      nodes[nnodes].error = 0;
-      nnodes++;
-    }
-    c = Getattr(c,"sym:nextSibling");
-  }
-  
-  /* Sort the declarations by required argument count */
-  {
-    int i,j;
-    for (i = 0; i < nnodes; i++) {
-      for (j = i+1; j < nnodes; j++) {
-	if (nodes[i].argc > nodes[j].argc) {
-	  Overloaded t = nodes[i];
-	  nodes[i] = nodes[j];
-	  nodes[j] = t;
-	}
-      }
-    }
-  }
-
-  /* Sort the declarations by argument types */
-  {
-    int i,j;
-    for (i = 0; i < nnodes-1; i++) {
-      if (nodes[i].argc == nodes[i+1].argc) {
-	for (j = i+1; (j < nnodes) && (nodes[j].argc == nodes[i].argc); j++) {
-	  Parm *p1 = nodes[i].parms;
-	  Parm *p2 = nodes[j].parms;
-	  int   differ = 0;
-	  int   num_checked = 0;
-	  while (p1 && p2 && (num_checked < nodes[i].argc)) {
-	    if (debugMode) {
-	      Printf(stdout,"p1 = '%s', p2 = '%s'\n", Getattr(p1,"type"), Getattr(p2,"type"));
-	    }
-	    if (checkAttribute(p1,"tmap:in:numinputs","0")) {
-	      p1 = Getattr(p1,"tmap:in:next");
-	      continue;
-	    }
-	    if (checkAttribute(p2,"tmap:in:numinputs","0")) {
-	      p2 = Getattr(p2,"tmap:in:next");
-	      continue;
-	    }
-	    String *t1 = Getattr(p1,"tmap:typecheck:precedence");
-	    String *t2 = Getattr(p2,"tmap:typecheck:precedence");
-	    if (debugMode) {
-	      Printf(stdout,"t1 = '%s', t2 = '%s'\n", t1, t2);
-	    }
-	    if ((!t1) && (!nodes[i].error)) {
-	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[i].n), Getline(nodes[i].n),
-			   "Overloaded method %s not supported (incomplete type checking rule - no precedence level in typecheck typemap for '%s').\n",
-			   Swig_name_decl(nodes[i].n), SwigType_str(Getattr(p1, "type"), 0));
-	      nodes[i].error = 1;
-	    } else if ((!t2) && (!nodes[j].error)) {
-	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[j].n), Getline(nodes[j].n),
-			   "Overloaded method %s not supported (incomplete type checking rule - no precedence level in typecheck typemap for '%s').\n",
-			   Swig_name_decl(nodes[j].n), SwigType_str(Getattr(p2, "type"), 0));
-	      nodes[j].error = 1;
-	    }
-	    if (t1 && t2) {
-	      int t1v, t2v;
-	      t1v = atoi(Char(t1));
-	      t2v = atoi(Char(t2));
-	      differ = t1v-t2v;
-	    }
-	    else if (!t1 && t2) differ = 1;
-	    else if (t1 && !t2) differ = -1;
-	    else if (!t1 && !t2) differ = -1;
-	    num_checked++;
-	    if (differ > 0) {
-	      Overloaded t = nodes[i];
-	      nodes[i] = nodes[j];
-	      nodes[j] = t;
-	      break;
-	    } else if ((differ == 0) && (Strcmp(t1,"0") == 0)) {
-	      t1 = Getattr(p1,"ltype");
-	      if (!t1) {
-		t1 = SwigType_ltype(Getattr(p1,"type"));
-		if (Getattr(p1,"tmap:typecheck:SWIGTYPE")) {
-		  SwigType_add_pointer(t1);
-		}
-		Setattr(p1,"ltype",t1);
-	      }
-	      t2 = Getattr(p2,"ltype");
-	      if (!t2) {
-		t2 = SwigType_ltype(Getattr(p2,"type"));
-		if (Getattr(p2,"tmap:typecheck:SWIGTYPE")) {
-		  SwigType_add_pointer(t2);
-		}
-		Setattr(p2,"ltype",t2);
-	      }
-
-	      /* Need subtype check here.  If t2 is a subtype of t1, then we need to change the
-                 order */
-
-	      if (SwigType_issubtype(t2,t1)) {
-		Overloaded t = nodes[i];
-		nodes[i] = nodes[j];
-		nodes[j] = t;
-	      }
-
-	      if (Strcmp(t1,t2) != 0) {
-		differ = 1;
-		break;
-	      }
-	    } else if (differ) {
-	      break;
-	    }
-	    if (Getattr(p1,"tmap:in:next")) {
-	      p1 = Getattr(p1,"tmap:in:next");
-	    } else {
-	      p1 = nextSibling(p1);
-	    }
-	    if (Getattr(p2,"tmap:in:next")) {
-	      p2 = Getattr(p2,"tmap:in:next");
-	    } else {
-	      p2 = nextSibling(p2);
-	    }
-	  }
-	  if (!differ) {
-	    /* See if declarations differ by const only */
-	    String *d1 = Getattr(nodes[i].n, "decl");
-	    String *d2 = Getattr(nodes[j].n, "decl");
-	    if (d1 && d2) {
-	      String *dq1 = Copy(d1);
-	      String *dq2 = Copy(d2);
-	      if (SwigType_isconst(d1)) {
-		Delete(SwigType_pop(dq1));
-	      }
-	      if (SwigType_isconst(d2)) {
-		Delete(SwigType_pop(dq2));
-	      }
-	      if (Strcmp(dq1, dq2) == 0) {
-
-		if (SwigType_isconst(d1) && !SwigType_isconst(d2)) {
-		  if (script_lang_wrapping) {
-		    // Swap nodes so that the const method gets ignored (shadowed by the non-const method)
-		    Overloaded t = nodes[i];
-		    nodes[i] = nodes[j];
-		    nodes[j] = t;
-		  }
-		  differ = 1;
-		  if (!nodes[j].error) {
-		    if (script_lang_wrapping) {
-		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[j].n), Getline(nodes[j].n),
-				   "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
-		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[i].n), Getline(nodes[i].n),
-				   "using non-const method %s instead.\n", Swig_name_decl(nodes[i].n));
-		    } else {
-		      if (!Getattr(nodes[j].n, "overload:ignore")) {
-			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
-				     "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
-			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
-				     "using %s instead.\n", Swig_name_decl(nodes[i].n));
-		      }
-		    }
-		  }
-		  nodes[j].error = 1;
-		} else if (!SwigType_isconst(d1) && SwigType_isconst(d2)) {
-		  differ = 1;
-		  if (!nodes[j].error) {
-		    if (script_lang_wrapping) {
-		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[j].n), Getline(nodes[j].n),
-				   "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
-		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[i].n), Getline(nodes[i].n),
-				   "using non-const method %s instead.\n", Swig_name_decl(nodes[i].n));
-		    } else {
-		      if (!Getattr(nodes[j].n, "overload:ignore")) {
-			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
-				     "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
-			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
-				     "using %s instead.\n", Swig_name_decl(nodes[i].n));
-		      }
-		    }
-		  }
-		  nodes[j].error = 1;
-		}
-	      }
-	      Delete(dq1);
-	      Delete(dq2);
-	    }
-	  }
-	  if (!differ) {
-	    if (!nodes[j].error) {
-	      if (script_lang_wrapping) {
-		Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[j].n), Getline(nodes[j].n),
-			     "Overloaded method %s effectively ignored,\n", Swig_name_decl(nodes[j].n));
-		Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[i].n), Getline(nodes[i].n),
-			     "as it is shadowed by %s.\n", Swig_name_decl(nodes[i].n));
-	      } else {
-		if (!Getattr(nodes[j].n, "overload:ignore")) {
-		  Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
-			       "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
-		  Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
-			       "using %s instead.\n", Swig_name_decl(nodes[i].n));
-		}
-	      }
-	      nodes[j].error = 1;
-	    }
-	  }
-	}
-      }
-    }
-  }
-  List *result = NewList();
-  {
-    int i;
-    for (i = 0; i < nnodes; i++) {
-      if (nodes[i].error)
-        Setattr(nodes[i].n, "overload:ignore", "1");
-      Append(result,nodes[i].n);
-      //      Printf(stdout,"[ %d ] %s\n", i, ParmList_errorstr(nodes[i].parms));
-      //      Swig_print_node(nodes[i].n);
-    }
-  }
-  return result;
 }
 
 void R::dispatchFunction(Node *n) {
