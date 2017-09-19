@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-09-19: futatuki
+            [Python] #1003 Add --with-2to3=/path/to/2to3 option to configure.
+
 2017-09-18: wsfulton
             Fix type promotion wrapping constant expressions of the form:
               # define EXPR_MIXED1    (0x80 + 11.1) - 1
