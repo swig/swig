@@ -8165,40 +8165,52 @@ public class Container {
   // Ensure that the GC doesn't collect any Element set from Java
   // as the underlying C++ class stores a shallow copy
   private Element elementReference;
-  private long getCPtrAndAddReference(Element element) {
-    elementReference = element;
-    return Element.getCPtr(element);
-  }
 
   public void setElement(Element e) {
-    exampleJNI.Container_setElement(swigCPtr, this, getCPtrAndAddReference(e), e);
+    exampleJNI.Container_setElement(swigCPtr, this, Element.getCPtr(e), e);
+    elementReference = e;
   }
 }
 </pre>
 </div>
 
 <p>
-The following typemaps will generate the desired code.
-The 'javain' typemap matches the input parameter type for the <tt>setElement</tt> method.
-The 'javacode' typemap simply adds in the specified code into the Java proxy class.
+The following typemaps can be used to generate this code:
 </p>
 
 <div class="code">
 <pre>
-%typemap(javain) Element *e "getCPtrAndAddReference($javainput)"
-
 %typemap(javacode) Container %{
   // Ensure that the GC doesn't collect any element set from Java
   // as the underlying C++ class stores a shallow copy
   private Element elementReference;
-  private long getCPtrAndAddReference(Element element) {
-    elementReference = element;
-    return Element.getCPtr(element);
-  }
 %}
+
+%typemap(javain, 
+         post="      elementReference = $javainput;"
+         ) Element *e "Element.getCPtr($javainput)"
 </pre>
 </div>
 
+<p>
+The 'javacode' typemap simply adds in the specified code into the Java proxy class.
+The 'javain' typemap matches the input parameter type and name for the <tt>setElement</tt> method and
+the 'post' typemap attribute allows adding code after the JNI call.
+The 'post' code is generated into a finally block after the JNI call so the resulting code isn't quite
+as mentioned earlier, <tt>setElement</tt> is actually:
+</p>
+
+<div class="code">
+<pre>
+  public void setElement(Element e) {
+    try {
+      exampleJNI.Container_setElement(swigCPtr, this, Element.getCPtr(e), e);
+    } finally {
+      elementReference = e;
+    }
+  }
+</pre>
+</div>
 
 <H3><a name="Java_date_marshalling">25.10.13 Date marshalling using the javain typemap and associated attributes</a></H3>
 
