@@ -902,6 +902,11 @@ if test -n "$PYINCLUDE" || test -n "$PY3INCLUDE" ; then
     AC_MSG_RESULT($pep8_version)
   fi
 fi
+AC_ARG_WITH(2to3, AS_HELP_STRING([--with-2to3], [alternate 2to3 executable])
+AS_HELP_STRING([--with-2to3=path], [Specify 2to3 utility path]),[ PY2TO3="$withval"], [PY2TO3="2to3"])
+if [ ! -z "$PYTHON3" ] ; then
+  AC_CHECK_PROGS(PY2TO3PROG, $PY2TO3)
+fi
 
 #----------------------------------------------------------------
 # Look for Perl5
