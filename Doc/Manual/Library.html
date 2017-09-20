@@ -1830,6 +1830,12 @@ System.out.println(val1 + " " + val2);
 </pre>
 </div>
 
+<p>
+<b>Note:</b> Transparent <tt>shared_ptr</tt> affects functions overloading, in particular overloading of the function having
+the transparent <tt>shared_ptr&lt;Type&gt;</tt> argument with the <tt>Type&amp;</tt> argument causes compilation errors.
+<tt>%rename</tt> can be applied as a workaround for this issue (see section <a href="SWIG.html#SWIG_rename_ignore">Renaming and ignoring declarations</a>).
+</p>
+
 <H4><a name="Library_shared_ptr_inheritance">9.4.4.2 shared_ptr and inheritance</a></H4>
 
 
