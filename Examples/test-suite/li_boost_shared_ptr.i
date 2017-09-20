@@ -55,7 +55,7 @@
 %shared_ptr(Space::KlassDerived)
 %shared_ptr(Space::Klass2ndDerived)
 %shared_ptr(Space::Klass3rdDerived)
-%shared_ptr(IgnoredMultipleInheritBase) // IgnoredMultipleInheritBase not actually used in any wrapped functions, so this isn't entirely necessary and warning 520 could instead have been suppressed.
+%shared_ptr(Space::IgnoredMultipleInheritBase) // IgnoredMultipleInheritBase not actually used in any wrapped functions, so this isn't entirely necessary and warning 520 could instead have been suppressed.
 
 #endif
 

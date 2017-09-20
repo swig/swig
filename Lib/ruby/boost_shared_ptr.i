@@ -382,6 +382,19 @@
   $1 = SWIG_CheckState(res);
 }
 
+#if defined(SWIG_USE_STD_SHARED_PTR)
+%fragment("StdSharedPtrAsptr" #CONST #TYPE,"wrapper",fragment="StdTraitsForwardDeclaration")
+{
+namespace swig {
+  template<>
+  inline int asptr< CONST TYPE >(VALUE obj, CONST TYPE **vptr) {
+    assert(!(vptr && *vptr));
+    return SWIG_ConvertPtr(obj, 0, SWIG_TypeQuery("std::shared_ptr<" #TYPE  "> *"), 0);
+  }
+}
+}
+%fragment("StdSharedPtrAsptr" #CONST #TYPE);
+#endif
 
 // various missing typemaps - If ever used (unlikely) ensure compilation error rather than runtime bug
 %typemap(in) CONST TYPE[], CONST TYPE[ANY], CONST TYPE (CLASS::*) %{

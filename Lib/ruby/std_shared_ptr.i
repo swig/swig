@@ -1,4 +1,5 @@
 #define SWIG_SHARED_PTR_NAMESPACE std
+#define SWIG_USE_STD_SHARED_PTR
 %include <boost_shared_ptr.i>
 %include <rubystdcommon_forward.swg>
 

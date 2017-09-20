@@ -11,5 +11,6 @@ namespace swig {
   template <class Type> swig_type_info* type_info();
   template <class Type> const char* type_name();
   template <class Type> VALUE from(const Type& val);
+  template <typename Type> int asptr(VALUE obj, Type **vptr);
 }
 }
