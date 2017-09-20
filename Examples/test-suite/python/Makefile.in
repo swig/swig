@@ -16,7 +16,7 @@ PEP8_FLAGS   = --ignore=E30,E402,E501,E731,W291,W391
 #*_runme.py for Python 2.x, *_runme3.py for Python 3.x
 PY2SCRIPTSUFFIX = _runme.py
 PY3SCRIPTSUFFIX = _runme3.py
-PY2TO3       = @PY2TO3PROG@ -x import
+PY2TO3       = @PY2TO3@ -x import
 
 ifeq (,$(PY3))
   SCRIPTSUFFIX = $(PY2SCRIPTSUFFIX)
