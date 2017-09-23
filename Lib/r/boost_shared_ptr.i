@@ -281,7 +281,7 @@
 // Typecheck typemaps
 // Note: SWIG_ConvertPtr with void ** parameter set to 0 instead of using SWIG_ConvertPtrAndOwn, so that the casting
 // function is not called thereby avoiding a possible smart pointer copy constructor call when casting up the inheritance chain.
-%typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER,noblock=1)
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *", noblock=1)
                       TYPE CONST,
                       TYPE CONST &,
                       TYPE CONST *,

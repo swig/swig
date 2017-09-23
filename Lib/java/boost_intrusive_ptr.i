@@ -467,6 +467,17 @@
 %typemap(jtype, nopgcpp="1") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > swigSharedPtrUpcast "long"
 %typemap(jtype, nopgcpp="1") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > swigSharedPtrUpcast "long"
 
+// Typecheck typemaps
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *")
+  TYPE CONST,
+  TYPE CONST &,
+  TYPE CONST *,
+  TYPE *CONST&,
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
+  ""
 
 %template() SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >;
 %enddef

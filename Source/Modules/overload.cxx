@@ -185,7 +185,8 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 	      nodes[j] = t;
 	      break;
 	    } else if ((differ == 0) && (Strcmp(t1, "0") == 0)) {
-	      t1 = Getattr(p1, "ltype");
+	      t1 = Getattr(p1, "equivtype");
+	      t1 = t1 ? t1 : Getattr(p1, "ltype");
 	      if (!t1) {
 		t1 = SwigType_ltype(Getattr(p1, "type"));
 		if (Getattr(p1, "tmap:typecheck:SWIGTYPE")) {
@@ -193,7 +194,8 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 		}
 		Setattr(p1, "ltype", t1);
 	      }
-	      t2 = Getattr(p2, "ltype");
+	      t2 = Getattr(p2, "equivtype");
+	      t2 = t2 ? t2 : Getattr(p2, "ltype");
 	      if (!t2) {
 		t2 = SwigType_ltype(Getattr(p2, "type"));
 		if (Getattr(p2, "tmap:typecheck:SWIGTYPE")) {
