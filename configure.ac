@@ -587,10 +587,10 @@ AC_SUBST(TCLCXXSHARED)
 # Macrodefinitions
 #----------------------------------------------------------------
 
-# Package revision (git commit)
+# Package revision (git commit) with the ending "+" for any uncommited files
 # NOTE: The revision is dynamically evaluated on make unlike other static package definitions
 dnl PACKAGE_REVISION="\"`git rev-parse HEAD`(`git log -1 --format=%ci --`)\""
-PACKAGE_REVISION_DEF='-DPACKAGE_REVISION="\"`git rev-parse HEAD | head -c7`\""'
+PACKAGE_REVISION_DEF='-DPACKAGE_REVISION="\"`git rev-parse HEAD | head -c7``git status --porcelain -uno | wc -l | sed -e '"'"'/^0/d'"'"' -e '"'"'s/.*/+/'"'"'`\""'
 AC_SUBST(PACKAGE_REVISION_DEF)
 
 #----------------------------------------------------------------
