@@ -646,11 +646,11 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	fprintf(stdout, "\nPlease see %s for reporting bugs and further information\n", PACKAGE_BUGREPORT);
 	SWIG_exit(EXIT_SUCCESS);
       } else if (strcmp(argv[i], "-revision") == 0) {
-	fprintf(stdout, "\nSWIG Revision %s\n", Swig_package_revision());
+	fprintf(stdout, "%s\n", Swig_package_revision());  // Brief output might be useful for the automation
 	SWIG_exit(EXIT_SUCCESS);
       } else if (strcmp(argv[i], "-copyright") == 0) {
 	fprintf(stdout, "\nSWIG Version %s\n", Swig_package_version());
-	fprintf(stdout, "\nSWIG Revision %s\n", Swig_package_revision());
+	fprintf(stdout, "SWIG Revision %s\n", Swig_package_revision());
 	fprintf(stdout, "Copyright (c) 1995-1998\n");
 	fprintf(stdout, "University of Utah and the Regents of the University of California\n");
 	fprintf(stdout, "Copyright (c) 1998-2005\n");
