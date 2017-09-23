@@ -8,7 +8,9 @@ BUILD_SOURCE_DIR=$(top_builddir)/Source
 
 SWIG_CXX_DEFS = @SWILL@
 
-AM_CPPFLAGS =	-I$(BUILD_SOURCE_DIR)/Include	\
+# AM_CPPFLAGS - C Pre Processor flags (for both C and C++)
+AM_CPPFLAGS = @PACKAGE_REVISION_DEF@	\
+		-I$(BUILD_SOURCE_DIR)/Include	\
 		-I$(BUILD_SOURCE_DIR)/CParse	\
 		-I$(SOURCE_DIR)/Include		\
 		-I$(SOURCE_DIR)/DOH		\
@@ -17,7 +19,8 @@ AM_CPPFLAGS =	-I$(BUILD_SOURCE_DIR)/Include	\
 		-I$(SOURCE_DIR)/Swig		\
 		-I$(SOURCE_DIR)/Modules
 
-AM_CXXFLAGS =	$(SWIG_CXX_DEFS)
+# AM_CXXFLAGS - C++ compiler flags
+AM_CXXFLAGS = $(SWIG_CXX_DEFS)
 
 AM_YFLAGS = -d
 

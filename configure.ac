@@ -584,6 +584,16 @@ AC_SUBST(TCLLDSHARED)
 AC_SUBST(TCLCXXSHARED)
 
 #----------------------------------------------------------------
+# Macrodefinitions
+#----------------------------------------------------------------
+
+# Package revision (git commit)
+# NOTE: The revision is dynamically evaluated on make unlike other static package definitions
+dnl PACKAGE_REVISION="\"`git rev-parse HEAD`(`git log -1 --format=%ci --`)\""
+PACKAGE_REVISION_DEF='-DPACKAGE_REVISION="\"`git rev-parse HEAD | head -c7`\""'
+AC_SUBST(PACKAGE_REVISION_DEF)
+
+#----------------------------------------------------------------
 # Look for Python
 #----------------------------------------------------------------
 

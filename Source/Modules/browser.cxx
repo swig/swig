@@ -186,7 +186,7 @@ static void display(FILE *f, Node *n) {
   /* Print standard HTML header */
 
   Printf(f, "<HTML><HEAD><TITLE>SWIG-%s</TITLE></HEAD><BODY BGCOLOR=\"#ffffff\">\n", Swig_package_version());
-  Printf(f, "<b>SWIG-%s</b><br>\n", Swig_package_version());
+  Printf(f, "<b>SWIG-%s (%s)</b><br>\n", Swig_package_version(), Swig_package_revision());
   Printf(f, "[ <a href=\"exit.html\">Exit</a> ]");
   Printf(f, " [ <a href=\"index.html?node=%p\">Top</a> ]", tree_top);
   if (n != tree_top) {
@@ -305,7 +305,7 @@ void data_handler(FILE *f) {
     n = 0;
   }
   Printf(f, "<HTML><HEAD><TITLE>SWIG-%s</TITLE></HEAD><BODY BGCOLOR=\"#ffffff\">\n", Swig_package_version());
-  Printf(f, "<b>SWIG-%s</b><br>\n", Swig_package_version());
+  Printf(f, "<b>SWIG-%s (%s)</b><br>\n", Swig_package_version(), Swig_package_revision());
   Printf(f, "[ <a href=\"exit.html\">Exit</a> ]");
   Printf(f, " [ <a href=\"index.html?node=%p\">Top</a> ]", tree_top);
   Printf(f, "<br><hr><p>\n");
@@ -321,7 +321,7 @@ void symbol_handler(FILE *f) {
   char *name = 0;
 
   Printf(f, "<HTML><HEAD><TITLE>SWIG-%s</TITLE></HEAD><BODY BGCOLOR=\"#ffffff\">\n", Swig_package_version());
-  Printf(f, "<b>SWIG-%s</b><br>\n", Swig_package_version());
+  Printf(f, "<b>SWIG-%s (%s)</b><br>\n", Swig_package_version(), Swig_package_revision());
   Printf(f, "[ <a href=\"exit.html\">Exit</a> ]");
   Printf(f, " [ <a href=\"index.html?node=%p\">Top</a> ]", tree_top);
   Printf(f, " [ <a href=\"symbol.html\">Symbols</a> ]");
