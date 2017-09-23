@@ -35,6 +35,7 @@
 <ul>
 <li><a href="#Library_shared_ptr_basics">shared_ptr basics</a>
 <li><a href="#Library_shared_ptr_inheritance">shared_ptr and inheritance</a>
+<li><a href="#Library_shared_ptr_overloading">shared_ptr and method overloading</a>
 <li><a href="#Library_shared_ptr_templates">shared_ptr and templates</a>
 <li><a href="#Library_shared_ptr_directors">shared_ptr and directors</a>
 </ul>
@@ -1921,7 +1922,30 @@ Adding the missing <tt>%shared_ptr</tt> macros will fix this:
 </pre>
 </div>
 
-<H4><a name="Library_shared_ptr_templates">9.4.4.3 shared_ptr and templates</a></H4>
+<H4><a name="Library_shared_ptr_overloading">9.4.4.3 shared_ptr and method overloading</a></H4>
+
+
+<p>
+A C++ compiler can disambiguate a method overloaded by a shared_ptr and one using the raw underlying type.
+For example, either one of these methods can be called in C++:
+</p>
+
+<div class="code">
+<pre>
+int age(std::shared_ptr&lt;GrandParent&gt; num);
+int age(GrandParent&amp; num);
+</pre>
+</div>
+
+<p>
+When wrapped by SWIG, disambiguation is not possible using the overloaded names as there is just one equivalent type (<tt>GrandParent</tt>) in the target language.
+SWIG will choose to wrap just the first method by default.
+<a href="SWIGPlus.html#SWIGPlus_nn25">Ambiguity in overloading</a> discusses ways to control which method(s) gets wrapped using <tt>%ignore</tt> or <tt>%rename</tt>.
+For the interested reader, SWIG detects that they are equivalent types via the <a href=Typemaps.html#Typemaps_typecheck_pointer>typecheck typemaps</a> in the shared_ptr library.
+</p>
+
+<H4><a name="Library_shared_ptr_templates">9.4.4.4 shared_ptr and templates</a></H4>
+
 
 <p>
 The <tt>%shared_ptr</tt> macro should be used for all the required instantiations
@@ -1962,7 +1986,7 @@ The SWIG code below shows the required ordering:
 </pre>
 </div>
 
-<H4><a name="Library_shared_ptr_directors">9.4.4.4 shared_ptr and directors</a></H4>
+<H4><a name="Library_shared_ptr_directors">9.4.4.5 shared_ptr and directors</a></H4>
 
 
 <p>

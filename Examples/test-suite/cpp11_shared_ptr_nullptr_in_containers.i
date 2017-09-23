@@ -15,11 +15,11 @@ class C;
 %inline %{
 
 class C {
+  int m;
 public:
   C() : m(-1) {}
   C(int i) : m(i) {}
   int get_m() { return m; }
-  int m;
 };
 
 %}

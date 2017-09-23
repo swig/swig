@@ -197,5 +197,17 @@ public static void* swigGetCPtr(typeof(this) obj) {
   }
 }
 
+// Typecheck typemaps
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *")
+  TYPE CONST,
+  TYPE CONST &,
+  TYPE CONST *,
+  TYPE *CONST&,
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
+  ""
+
 %template() SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >;
 %enddef

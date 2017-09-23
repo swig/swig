@@ -7,6 +7,36 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-09-23: wsfulton
+            Issue #1098. Fix overloading of shared_ptr with underlying pointer types, eg:
+
+              void m(std::shared_ptr<T> p);
+              void m(T &p);
+              void m(T *p);
+
+            Only the first method is wrapped and the others are ignored/shadowed.
+            The implementation is done via a new attribute in the 'typecheck' typemap called
+            'equivalent'. If specified, it must contain the equivalent pointer type for overloading
+            and can only be used for the special SWIG_TYPECHECK_POINTER precedence level.
+            The shared_ptr 'typecheck' typemaps have been modified accordingly.
+            Here is a simplified version:
+
+              %typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="T *")
+                T,
+                T CONST &,
+                T CONST *,
+                T *CONST&,
+                std::shared_ptr< T >,
+                std::shared_ptr< T > &,
+                std::shared_ptr< T > *,
+                std::shared_ptr< T > *&
+                { ... }
+
+            Overloading with any of these types will result in SWIG ignoring all but the first
+            overloaded method by default. Without the 'equivalent' attribute, wrapping the overloaded
+            methods resulted in types being shadowed (scripting languages) or code that did not
+            compile (statically typed languages).
+
 2017-09-19: futatuki
             [Python] #1003 Add --with-2to3=/path/to/2to3 option to configure.
 
