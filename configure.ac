@@ -589,9 +589,12 @@ AC_SUBST(TCLCXXSHARED)
 
 # Package revision (git commit) with the ending "+" for any uncommited files
 # NOTE: The revision is dynamically evaluated on make unlike other static package definitions
-dnl PACKAGE_REVISION="\"`git rev-parse HEAD`(`git log -1 --format=%ci --`)\""
+dnl PACKAGE_REVISION="\"`git rev-parse --short HEAD`(`git log -1 --format=%ci --`)\""
+# We don't care where "git" absent or just the sources are not in the .git repository
 if git rev-parse HEAD; then
-  PACKAGE_REVISION_DEF='-DPACKAGE_REVISION="\"`git rev-parse HEAD | head -c7``git status --porcelain -uno | wc -l | sed -e '"'"'/^0/d'"'"' -e '"'"'s/.*/+/'"'"'`\""'
+  # Also add '+' suffix in case of any stagged uncommited files
+  # Use `git diff-index HEAD --` or `git status --porcelain -uno` (the latter is more lightweight)
+  PACKAGE_REVISION_DEF='-DPACKAGE_REVISION="\"`git rev-parse --short HEAD``git status --porcelain -uno | head -n 1 | sed '"'"'s/.*/+/'"'"'`\""'
 fi
 AC_SUBST(PACKAGE_REVISION_DEF)
 

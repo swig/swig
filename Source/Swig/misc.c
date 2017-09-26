@@ -73,7 +73,7 @@ const char *Swig_package_revision(void) {
 #ifdef PACKAGE_REVISION
 	PACKAGE_REVISION
 #else
-	"UNDEFINED_REVISION"
+	"NA"  // Not Applicable, UNDEFINED_REVISION
 #endif
 	;
 }
