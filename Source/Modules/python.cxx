@@ -846,7 +846,10 @@ public:
       Printv(default_import_code, "if _swig_python_version_info >= (2, 7, 0):\n", NULL);
       Printv(default_import_code, tab4, "def swig_import_helper():\n", NULL);
       Printv(default_import_code, tab8, "import importlib\n", NULL);
-      Printv(default_import_code, tab8, "pkg = __name__.rpartition('.')[0]\n", NULL);
+      Printv(default_import_code, tab8, "pkg_parts = __name__.rpartition('.')\n", NULL);
+      Printv(default_import_code, tab8, "pkg = pkg_parts[0]\n", NULL);
+      Printv(default_import_code, tab8, "if pkg_parts[1] != '.':\n", NULL);
+      Printv(default_import_code, tab8, tab4, "pkg = pkg_parts[2]\n", NULL);
       Printf(default_import_code, tab8 "mname = '.'.join((pkg, '%s')).lstrip('.')\n", module);
       Printv(default_import_code, tab8, "try:\n", NULL);
       Printv(default_import_code, tab8, tab4, "return importlib.import_module(mname)\n", NULL);
