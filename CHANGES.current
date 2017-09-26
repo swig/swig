@@ -197,6 +197,27 @@ Version 4.0.0 (in progress)
               cpp_class_definition.i:5: Error: 'Space1::A' resolves to 'Space1::A' and
               was incorrectly instantiated in scope 'Space2' instead of within scope 'Space1'.
 
+            Previously some symbols would have been instantiated in the wrong scope and led
+            to lots of scope problems involving SWIG typemaps, features, renames etc.
+            You will need to correct the scope used in other SWIG directives which do not
+            support 'using declarations' and 'using directives'. For example, if you previously had:
+
+              %rename(Zap) vector<int>::clear;
+              using namespace std;
+              %template(VectorInt) vector<int>;
+
+            Prior versions of SWIG incorrectly instantiated vector<int> in the global namespace
+            and so the %rename matched. Now the template is instantiated in the correct namespace,
+            so is fully qualified as std::vector<int>. The other SWIG directives need correcting as
+            they do not follow 'using declarations' and 'using directives'. Change it to:
+
+              %rename(Zap) std::vector<int>::clear;
+              using namespace std;
+              %template(vin) vector<int>;
+
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2017-08-16: wsfulton
             Fix scope lookup for template parameters containing unary scope operators.
 

@@ -6,10 +6,6 @@
 #define SHARED_PTR_DISOWN 0
 #endif
 
-%fragment("SWIG_null_deleter_python", "header", fragment="SWIG_null_deleter") {
-%#define SWIG_NO_NULL_DELETER_SWIG_BUILTIN_INIT
-}
-
 // Language specific macro implementing all the customisations for handling the smart pointer
 %define SWIG_SHARED_PTR_TYPEMAPS(CONST, TYPE...)
 
@@ -98,7 +94,7 @@
   }
 }
 
-%typemap(out, fragment="SWIG_null_deleter_python") CONST TYPE * {
+%typemap(out, fragment="SWIG_null_deleter") CONST TYPE * {
   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = $1 ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1 SWIG_NO_NULL_DELETER_$owner) : 0;
   %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), $owner | SWIG_POINTER_OWN));
 }
@@ -121,7 +117,7 @@
     $1 = %const_cast((smartarg ? smartarg->get() : 0), $1_ltype);
   }
 }
-%typemap(varout, fragment="SWIG_null_deleter_python") CONST TYPE * {
+%typemap(varout, fragment="SWIG_null_deleter") CONST TYPE * {
   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = $1 ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1 SWIG_NO_NULL_DELETER_0) : 0;
   %set_varoutput(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
 }
@@ -149,7 +145,7 @@
     $1 = %const_cast(%reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)->get(), $1_ltype);
   }
 }
-%typemap(out, fragment="SWIG_null_deleter_python") CONST TYPE & {
+%typemap(out, fragment="SWIG_null_deleter") CONST TYPE & {
   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1 SWIG_NO_NULL_DELETER_$owner);
   %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
 }
@@ -173,7 +169,7 @@
     $1 = *%const_cast(%reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)->get(), $1_ltype);
   }
 }
-%typemap(varout, fragment="SWIG_null_deleter_python") CONST TYPE & {
+%typemap(varout, fragment="SWIG_null_deleter") CONST TYPE & {
   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(&$1 SWIG_NO_NULL_DELETER_0);
   %set_varoutput(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
 }
@@ -202,7 +198,7 @@
   }
   $1 = &temp;
 }
-%typemap(out, fragment="SWIG_null_deleter_python") TYPE *CONST& {
+%typemap(out, fragment="SWIG_null_deleter") TYPE *CONST& {
   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(*$1 SWIG_NO_NULL_DELETER_$owner);
   %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
 }
