@@ -303,7 +303,8 @@
 
 %typemap(directorin,noblock=1) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & {
   if ($1) {
-    $input = SWIG_NewPointerObj(%as_voidptr(&$1), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %newpointer_flags);
+    SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1);
+    $input = SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN | %newpointer_flags);
   } else {
     $input = SWIG_Py_Void();
   }
@@ -342,7 +343,8 @@
 
 %typemap(directorin,noblock=1) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *const& {
   if ($1 && *$1) {
-    $input = SWIG_NewPointerObj(%as_voidptr($1), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %newpointer_flags);
+    SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(*$1);
+    $input = SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN | %newpointer_flags);
   } else {
     $input = SWIG_Py_Void();
   }
@@ -377,7 +379,8 @@
 
 %typemap(directorin,noblock=1) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *const& {
   if ($1 && *$1) {
-    $input = SWIG_NewPointerObj(%as_voidptr($1), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %newpointer_flags);
+    SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(*$1);
+    $input = SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN | %newpointer_flags);
   } else {
     $input = SWIG_Py_Void();
   }
