@@ -405,6 +405,7 @@ CPP_TEST_CASES += \
 	template_basic \
 	template_base_template \
 	template_classes \
+	template_class_reuse_name \
 	template_const_ref \
 	template_construct \
 	template_templated_constructors \
