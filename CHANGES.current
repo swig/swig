@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-09-29: wsfulton
+            Issue #1100 - Allow an instantiated template to have the same name in the target
+            language as the C++ template name, for example, this is now possible:
+
+              template<typename T> struct X { ... };
+              %template(X) X<int>; 
+
 2017-09-23: wsfulton
             Issue #1098. Fix overloading of shared_ptr with underlying pointer types, eg:
 

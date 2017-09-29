@@ -690,7 +690,7 @@ void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
  * ----------------------------------------------------------------------------- */
 
 Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
-  Hash *c, *cn, *cl = 0;
+  Hash *c, *cl = 0;
   SwigType *decl, *ndecl;
   String *cstorage, *nstorage;
   int nt = 0, ct = 0;
@@ -756,10 +756,9 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
        (1) A conflict between a class/enum and a typedef declaration is okay.
        In this case, the symbol table entry is set to the class/enum declaration
        itself, not the typedef.   
-
        (2) A conflict between namespaces is okay--namespaces are open
-
        (3) Otherwise, overloading is only allowed for functions
+       (4) This special case is okay: a class template instantiated with same name as the template's name
      */
 
     /* Check for namespaces */
@@ -777,6 +776,25 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
       Setattr(n, "sym:previousSibling", pcl);
       return n;
     }
+
+    /* Special case: class template instantiated with same name as the template's name eg: %template(X) X<int>; */
+    if (Equal(nodeType(c), "template")) {
+      String *nt1 = Getattr(c, "templatetype");
+      String *nt2 = nodeType(n);
+      if (Equal(nt1, "class") && Equal(nt1, nt2)) {
+	if (Getattr(n, "template")) {
+	  /* Finally check that another %template with same name doesn't already exist */
+	  if (!Getattr(c, "sym:nextSibling")) {
+	    Setattr(c, "sym:nextSibling", n);
+	    Setattr(n, "sym:symtab", current_symtab);
+	    Setattr(n, "sym:name", symname);
+	    Setattr(n, "sym:previousSibling", c);
+	    return n;
+	  }
+	}
+      }
+    }
+
     if (Getattr(n, "allows_typedef"))
       nt = 1;
     if (Getattr(c, "allows_typedef"))
@@ -857,7 +875,7 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
       String *nt = Getattr(n, "nodeType");
       int n_template = Equal(nt, "template") && Checkattr(n, "templatetype", "cdecl");
       int n_plain_cdecl = Equal(nt, "cdecl");
-      cn = c;
+      Node *cn = c;
       pn = 0;
       while (cn) {
 	decl = Getattr(cn, "decl");
