@@ -1585,7 +1585,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl cpp_alternate_rettype;
 %type <node>     cpp_members cpp_member;
 %type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator cpp_static_assert;
-%type <node>     cpp_swig_directive cpp_temp_possible cpp_opt_declarators ;
+%type <node>     cpp_swig_directive cpp_template_possible cpp_opt_declarators ;
 %type <node>     cpp_using_decl cpp_namespace_decl cpp_catch_decl cpp_lambda_decl;
 %type <node>     kwargs options;
 
@@ -4009,7 +4009,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 		      Setattr(currentOuterClass, "template_parameters", template_parameters);
 		    template_parameters = $3; 
 		    parsing_template_declaration = 1;
-		  } cpp_temp_possible {
+		  } cpp_template_possible {
 			String *tname = 0;
 			int     error = 0;
 
@@ -4277,7 +4277,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
                 }
                 ;
 
-cpp_temp_possible:  c_decl {
+cpp_template_possible:  c_decl {
 		  $$ = $1;
                 }
                 | cpp_class_decl {
