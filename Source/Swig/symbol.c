@@ -210,9 +210,10 @@ void Swig_symbol_print_tables_summary(void) {
  * symbol_print_symbols()
  * ----------------------------------------------------------------------------- */
 
-static void symbol_print_symbols(const char *symboltabletype) {
+static void symbol_print_symbols(const char *symboltabletype, const char *nextSibling) {
   Node *table = symtabs;
   Iterator ki = First(table);
+  int show_pointers = 0;
   while (ki.key) {
     String *k = ki.key;
     Printf(stdout, "===================================================\n");
@@ -222,10 +223,20 @@ static void symbol_print_symbols(const char *symboltabletype) {
       Iterator it = First(symtab);
       while (it.key) {
 	String *symname = it.key;
-	Printf(stdout, "  %s (%s)\n", symname, nodeType(it.item));
-	/*
-	Printf(stdout, "  %s - %p (%s)\n", symname, it.item, Getattr(it.item, "name"));
-	*/
+	Printf(stdout, "  %s (%s)", symname, nodeType(it.item));
+        if (show_pointers)
+	  Printf(stdout, " %p", it.item);
+	Printf(stdout, "\n");
+	{
+	  Node *sibling = Getattr(it.item, nextSibling);
+	  while (sibling) {
+	    Printf(stdout, "  %s (%s)", symname, nodeType(sibling));
+	    if (show_pointers)
+	      Printf(stdout, " %p", sibling);
+	    Printf(stdout, "\n");
+	    sibling = Getattr(sibling, nextSibling);
+	  }
+	}
 	it = Next(it);
       }
     }
@@ -241,7 +252,7 @@ static void symbol_print_symbols(const char *symboltabletype) {
 
 void Swig_symbol_print_symbols(void) {
   Printf(stdout, "SYMBOLS start  =======================================\n");
-  symbol_print_symbols("symtab");
+  symbol_print_symbols("symtab", "sym:nextSibling");
   Printf(stdout, "SYMBOLS finish =======================================\n");
 }
 
@@ -253,7 +264,7 @@ void Swig_symbol_print_symbols(void) {
 
 void Swig_symbol_print_csymbols(void) {
   Printf(stdout, "CSYMBOLS start  =======================================\n");
-  symbol_print_symbols("csymtab");
+  symbol_print_symbols("csymtab", "csym:nextSibling");
   Printf(stdout, "CSYMBOLS finish =======================================\n");
 }
 
