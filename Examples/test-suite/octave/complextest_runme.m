@@ -26,4 +26,5 @@ endif
 
 v = (complex(1,2), complex(2,3), complex(4,3), 1);
 
-complextest.Copy_h(v);
+complextest.CopyHalf(v);
+complextest.CopyHalfRef(v);

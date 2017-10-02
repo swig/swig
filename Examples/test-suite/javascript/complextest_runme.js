@@ -27,4 +27,5 @@ v.add([4,3]);
 v.add(1);
 
 // TODO: how to check validity?
-complextest.Copy_h(v);
+complextest.CopyHalf(v);
+complextest.CopyHalfRef(v);

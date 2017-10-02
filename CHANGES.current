@@ -15,6 +15,9 @@ Version 4.0.0 (in progress)
 	    smart-pointer classes deriving from parent smart-pointers
 
 2017-10-02: wsfulton
+            [C#] Fix std::complex types passed by value.
+
+2017-10-02: wsfulton
             [Javascript, Python, Ruby] Issue #732 - Missing type information for std::complex
             in std_complex.i meant that previously std::complex always had to be fully qualified
             in order to be wrapped with the appropriate typemaps.

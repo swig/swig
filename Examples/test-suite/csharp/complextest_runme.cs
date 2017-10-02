@@ -28,8 +28,11 @@ public class complextest_runme {
     vec.Add(new Complex(4, 3));
     vec.Add(new Complex(1, 0));
 
-    if ( complextest.Copy_h(vec).Count != 2 )
-        throw new Exception("vector<complex> test failed");
+    if ( complextest.CopyHalf(vec).Count != 2 )
+        throw new Exception("CopyHalf test failed");
+
+    if ( complextest.CopyHalfRef(vec).Count != 2 )
+        throw new Exception("CopyHalfRef test failed");
 
     var p = new ComplexPair();
     p.z1 = new Complex(0, 1);
