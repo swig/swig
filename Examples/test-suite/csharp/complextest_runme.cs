@@ -16,6 +16,12 @@ public class complextest_runme {
     if ( complextest.Conjf(a) != Complex.Conjugate(a) )
         throw new Exception("std::complex<float> test failed");
 
+    if ( complextest.Conj2(a) != Complex.Conjugate(a) )
+        throw new Exception("std::complex<double> test failed");
+
+    if ( complextest.Conjf2(a) != Complex.Conjugate(a) )
+        throw new Exception("std::complex<float> test failed");
+
     var vec = new VectorStdCplx();
     vec.Add(new Complex(1, 2));
     vec.Add(new Complex(2, 3));

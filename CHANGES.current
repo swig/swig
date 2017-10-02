@@ -14,6 +14,11 @@ Version 4.0.0 (in progress)
 	    declared as such)
 	    smart-pointer classes deriving from parent smart-pointers
 
+2017-10-02: wsfulton
+            [Javascript, Python, Ruby] Issue #732 - Missing type information for std::complex
+            in std_complex.i meant that previously std::complex always had to be fully qualified
+            in order to be wrapped with the appropriate typemaps.
+
 2017-09-29: wsfulton
             Issue #1100 - Allow an instantiated template to have the same name in the target
             language as the C++ template name, for example, this is now possible:

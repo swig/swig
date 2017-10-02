@@ -8,8 +8,16 @@ a_c = complextest.Conj(a);
 if (a_c.toString() != expected.toString())
   throw "Error in Conj(a)";
 
-a_c_f = complextest.Conjf(a);
-if (a_c_f.toString() != expected.toString())
+a_c = complextest.Conjf(a);
+if (a_c.toString() != expected.toString())
+    throw "Error in Conjf(a)";
+
+a_c = complextest.Conj2(a);
+if (a_c.toString() != expected.toString())
+  throw "Error in Conj(a)";
+
+a_c = complextest.Conjf2(a);
+if (a_c.toString() != expected.toString())
     throw "Error in Conjf(a)";
 
 v = new complextest.VectorStdCplx();

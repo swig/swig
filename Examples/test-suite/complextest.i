@@ -26,19 +26,30 @@
     return std::conj(a);
   }  
 
-#if 1
   std::vector<std::complex<double> > Copy_h(const std::vector<std::complex<double> >&  a) 
   {
     std::vector<std::complex<double> > b(a.size()/2);
     std::copy(a.begin(), a.begin()+a.size()/2, b.begin());
     return b;
   }  
-#endif
+
+  using namespace std;
 
   struct ComplexPair
   {
-    std::complex<double> z1, z2;
+    std::complex<double> z1;
+    complex<double> z2;
   };
+
+  complex<double> Conj2(const complex<double>&  a)
+  {
+    return std::conj(a);
+  }
+
+  complex<float> Conjf2(const complex<float>&  a)
+  {
+    return std::conj(a);
+  }
 }
 
 
