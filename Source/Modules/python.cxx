@@ -2044,6 +2044,7 @@ public:
     String *result = NIL;
 
     // Check if this is an integer number in any base.
+    errno = 0;
     long value = strtol(s, &end, 0);
     if (errno == ERANGE || end == s)
       return NIL;
@@ -2105,6 +2106,7 @@ public:
     const char *const s = Char(v);
     char *end;
 
+    errno = 0;
     double value = strtod(s, &end);
     (void) value;
     if (errno != ERANGE && end != s) {
