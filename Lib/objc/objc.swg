@@ -14,39 +14,39 @@
  */
  
 // Primary types: ObjectiveC++ understands C primary types.
-%typemap(imtype) char               "char"
-%typemap(imtype) signed char        "signed char"
-%typemap(imtype) unsigned char      "unsigned char"
-%typemap(imtype) short              "short"
-%typemap(imtype) unsigned short     "unsigned short"
-%typemap(imtype) int                "int"
-%typemap(imtype) unsigned int       "unsigned int"
-%typemap(imtype) long               "long"
-%typemap(imtype) unsigned long      "unsigned long"
-%typemap(imtype) long long          "long long"
-%typemap(imtype) unsigned long long "unsigned long long"
-%typemap(imtype) float              "float"
-%typemap(imtype) double             "double"
-%typemap(imtype) void               "void"
+%typemap(imtype) char, const char &                      "char"
+%typemap(imtype) signed char, const signed char &        "signed char"
+%typemap(imtype) unsigned char, const unsigned char &    "unsigned char"
+%typemap(imtype) short, const short &                    "short"
+%typemap(imtype) unsigned short, const unsigned short &  "unsigned short"
+%typemap(imtype) int, const int &                        "int"
+%typemap(imtype) unsigned int, const unsigned int &      "unsigned int"
+%typemap(imtype) long, const long &                      "long"
+%typemap(imtype) unsigned long, const unsigned long &    "unsigned long"
+%typemap(imtype) long long, const long long &            "long long"
+%typemap(imtype) unsigned long long, const unsigned long long & "unsigned long long"
+%typemap(imtype) float, const float &                    "float"
+%typemap(imtype) double, const double &                  "double"
+%typemap(imtype) void                                    "void"
 
 // References to primitive types are treated as pointers in the wrapper(ObjectiveC++) layer.
-%typemap(imtype) const char &,              char &                  "char *"
-%typemap(imtype) const signed char &, 		signed char &           "signed char *"
-%typemap(imtype) const unsigned char &, 	unsigned char &         "unsigned char *"
-%typemap(imtype) const short &,				short &                 "short *"
-%typemap(imtype) const unsigned short &,	unsigned short &        "unsigned short *"
-%typemap(imtype) const int &,		    	int &                   "int *"
-%typemap(imtype) const unsigned int &,		unsigned int &          "unsigned int *"
-%typemap(imtype) const long &,				long &                  "long *"
-%typemap(imtype) const unsigned long &, 	unsigned long &         "unsigned long  *"
-%typemap(imtype) const long long &, 		long long &             "long long *"
-%typemap(imtype) const unsigned long long &,unsigned long long &    "unsigned long long  *"
-%typemap(imtype) const float &, 			float &                 "float *"
-%typemap(imtype) const double &,  			double &                "double *"
+%typemap(imtype) char &                  "char *"
+%typemap(imtype) signed char &           "signed char *"
+%typemap(imtype) unsigned char &         "unsigned char *"
+%typemap(imtype) short &                 "short *"
+%typemap(imtype) unsigned short &        "unsigned short *"
+%typemap(imtype) int &                   "int *"
+%typemap(imtype) unsigned int &          "unsigned int *"
+%typemap(imtype) long &                  "long *"
+%typemap(imtype) unsigned long &         "unsigned long  *"
+%typemap(imtype) long long &             "long long *"
+%typemap(imtype) unsigned long long &    "unsigned long long  *"
+%typemap(imtype) float &                 "float *"
+%typemap(imtype) double &                "double *"
 
 // Booleans
-%typemap(imtype) bool               					"BOOL"
-%typemap(imtype) const bool &, bool &, const bool *, bool *             "BOOL *"
+%typemap(imtype) bool, const bool &      "BOOL"
+%typemap(imtype) bool &, const bool *, bool * "BOOL *"
 
 // C strings:
 %typemap(imtype) char *, const char *, char[ANY], char[]              "NSString *"
@@ -126,19 +126,34 @@
 %typemap(directorin) void ""
 
 // References: are treated as pointers in the wrapper layer (ObjectiveC++)
-%typemap(in)	const char &,  			char &,
-	     	 const signed char &, 		signed char &,
-	         const unsigned char &, 	unsigned char &,
-		     const short &,				short &,
-		     const unsigned short &,	unsigned short &,
-		     const int &,		    	int &,
-		     const unsigned int &,		unsigned int &,
-			 const long &,				long &,
-	     	 const unsigned long &, 	unsigned long &,
-	     	 const long long &, 		long long &,
-	     	 const unsigned long long &,unsigned long long &,
-	      	 const float &, 			float &,
-	      	 const double &,  			double &
+%typemap(in) const char & ($*1_ltype temp),
+             const signed char & ($*1_ltype temp),
+             const unsigned char & ($*1_ltype temp),
+             const short & ($*1_ltype temp),
+             const unsigned short & ($*1_ltype temp),
+             const int & ($*1_ltype temp),
+             const unsigned int & ($*1_ltype temp),
+             const long & ($*1_ltype temp),
+             const unsigned long & ($*1_ltype temp),
+             const long long & ($*1_ltype temp),
+             const float & ($*1_ltype temp),
+             const double & ($*1_ltype temp)
+%{ temp = ($*1_ltype)$input;
+   $1 = &temp; %}
+
+%typemap(in)	char &,
+	     	signed char &,
+	      	unsigned char &,
+		short &,
+		unsigned short &,
+		int &,
+		unsigned int &,
+		long &,
+		unsigned long &,
+		long long &,
+		unsigned long long &,
+		float &,
+		double &
 %{ $1 = ($1_ltype)$input; %}
 
 %typemap(in) const signed char *, 		signed char *,           
@@ -156,14 +171,18 @@
 %{ $1 = ($1_ltype)$input;%}
 
 //Booleans:
+%typemap(in) const bool & ($*1_ltype temp)
+%{ temp = ($*1_ltype)$input;
+   $1 = &temp; %}
+
 %typemap(in) bool
-%{ $1 = $input ? true : false; %}
+%{ $1 = $input != NO; %}
 
 %typemap(directorout) bool
-%{ $result = $input ? true : false; %}
+%{ $result = $input != NO; %}
 
-%typemap(in) bool * (bool temp), const bool * (bool temp), const bool & (bool temp), bool & (bool temp) {
-  temp = ($input) ? true : false;
+%typemap(in) bool * (bool temp), const bool * (bool temp), bool & (bool temp) {
+  temp = ($input) != NO;
   $1 = &temp;
 }
 
@@ -293,19 +312,96 @@
 %typemap(out) void ""
 
 // References as exported as pointers (by default)
-%typemap(out)const char &,  			char &,
-	     	 const signed char &, 		signed char &,
-	         const unsigned char &, 	unsigned char &,
-		     const short &,				short &,
-		     const unsigned short &,	unsigned short &,
-		     const int &,		    	int &,
-		     const unsigned int &,		unsigned int &,
-			 const long &,				long &,
-	     	 const unsigned long &, 	unsigned long &,
-	     	 const long long &, 		long long &,
-	     	 const unsigned long long &,unsigned long long &,
-	      	 const float &, 			float &,
-	      	 const double &,  			double &
+%typemap(out) const char &               %{ $result = (char)*$1; %}
+%typemap(out) const signed char &        %{ $result = (signed char)*$1; %}
+%typemap(out) const unsigned char &      %{ $result = (unsigned char)*$1; %}
+%typemap(out) const short &              %{ $result = (short)*$1; %}
+%typemap(out) const unsigned short &     %{ $result = (unsigned short)*$1; %}
+%typemap(out) const int &                %{ $result = (int)*$1; %}
+%typemap(out) const unsigned int &       %{ $result = (unsigned int)*$1; %}
+%typemap(out) const long &               %{ $result = (long)*$1; %}
+%typemap(out) const unsigned long &      %{ $result = (unsigned long)*$1; %}
+%typemap(out) const long long &          %{ $result = (long long)*$1; %}
+%typemap(out) const unsigned long long & %{ $result = (unsigned long long)*$1; %}
+%typemap(out) const float &              %{ $result = (float)*$1; %}
+%typemap(out) const double &             %{ $result = (double)*$1; %}
+
+%typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const char &,
+             const signed char &,
+             const unsigned char &,
+             const short &,
+             const unsigned short &,
+             const int &,
+             const unsigned int &,
+             const long &,
+             const unsigned long &,
+             const long long &,
+             const float &,
+             const double &
+%{ static $*1_ltype temp;
+   temp = ($*1_ltype)$input;
+   $result = &temp; %}
+
+%typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const bool &
+%{ static $*1_ltype temp;
+   temp = $input != NO;
+   $result = &temp; %}
+
+%typemap(directorin) const char &               %{ $input = (char)$1; %}
+%typemap(directorin) const signed char &        %{ $input = (signed char)$1; %}
+%typemap(directorin) const unsigned char &      %{ $input = (unsigned char)$1; %}
+%typemap(directorin) const short &              %{ $input = (short)$1; %}
+%typemap(directorin) const unsigned short &     %{ $input = (unsigned short)$1; %}
+%typemap(directorin) const int &                %{ $input = (int)$1; %}
+%typemap(directorin) const unsigned int &       %{ $input = (unsigned int)$1; %}
+%typemap(directorin) const long &               %{ $input = (long)$1; %}
+%typemap(directorin) const unsigned long &      %{ $input = (unsigned long)$1; %}
+%typemap(directorin) const long long &          %{ $input = (long long)$1; %}
+%typemap(directorin) const unsigned long long & %{ $input = (unsigned long long)$1; %}
+%typemap(directorin) const float &              %{ $input = (float)$1; %}
+%typemap(directorin) const double &             %{ $input = (double)$1; %}
+
+%typemap(objcdirectorin) const char & ($*1_ltype temp),
+                         const signed char & ($*1_ltype temp),
+                         const unsigned char & ($*1_ltype temp),
+                         const short & ($*1_ltype temp),
+                         const unsigned short & ($*1_ltype temp),
+                         const int & ($*1_ltype temp),
+                         const unsigned int & ($*1_ltype temp),
+                         const long & ($*1_ltype temp),
+                         const unsigned long & ($*1_ltype temp),
+                         const long long & ($*1_ltype temp),
+                         const float & ($*1_ltype temp),
+                         const double & ($*1_ltype temp)
+  "$iminput"
+
+%typemap(objcdirectorout) const char & ($*1_ltype temp),
+                          const signed char & ($*1_ltype temp),
+                          const unsigned char & ($*1_ltype temp),
+                          const short & ($*1_ltype temp),
+                          const unsigned short & ($*1_ltype temp),
+                          const int & ($*1_ltype temp),
+                          const unsigned int & ($*1_ltype temp),
+                          const long & ($*1_ltype temp),
+                          const unsigned long & ($*1_ltype temp),
+                          const long long & ($*1_ltype temp),
+                          const float & ($*1_ltype temp),
+                          const double & ($*1_ltype temp)
+  "$objccall"
+
+%typemap(out)			char &,
+	     	  		signed char &,
+	         		unsigned char &,
+				short &,
+				unsigned short &,
+			    	int &,
+				unsigned int &,
+				long &,
+			 	unsigned long &,
+				long long &,
+				unsigned long long &,
+				float &,
+				double &
 %{ $result = $1; %}
 
 
@@ -326,19 +422,31 @@
 
 // Booleans:
 %typemap(out) bool
-%{ $result = ($1) ? YES:NO; %}
+%{ $result = ($1) ? YES : NO; %}
+
+%typemap(out) const bool &
+%{ $result = (*$1) ? YES : NO; %}
 
 %typemap(directorin) bool
+  "$input = ($1) ? YES : NO;"
+
+%typemap(directorin) const bool &
   "$input = ($1) ? YES : NO;"
 
 %typemap(objcdirectorin) bool
   "($iminput) ? YES : NO"
 
+%typemap(objcdirectorin) const bool & 
+  "($iminput) ? YES : NO"
+
 %typemap(objcdirectorout) bool
   "($objccall) != NO"
 
-%typemap(out) bool& (BOOL temp), bool* (BOOL temp), const bool& (BOOL temp), const bool& (BOOL temp)
-%{ temp = (*$1)? YES:NO;
+%typemap(objcdirectorout) const bool &
+  "($objccall) != NO"
+
+%typemap(out) bool& (BOOL temp), bool* (BOOL temp)
+%{ temp = (*$1)? YES : NO;
    BOOL* ret = &temp;
    return ret; %}
 
@@ -400,37 +508,37 @@
  * OBJCTYPE TYPEMAPS: Represents the ObjectiveC(proxy) type corresponding to each ObjectiveC++ type in the intermediate(wrapper) layer. 
  */
 // Primary types
-%typemap(objctype)  bool               "BOOL"
-%typemap(objctype)  char               "char"
-%typemap(objctype)  signed char        "signed char"
-%typemap(objctype)  unsigned char      "unsigned char"
-%typemap(objctype)  short              "short"
-%typemap(objctype)  unsigned short     "unsigned short"
-%typemap(objctype)  int                "int"
-%typemap(objctype)  unsigned int       "unsigned int"
-%typemap(objctype)  long               "long"
-%typemap(objctype)  unsigned long      "unsigned long"
-%typemap(objctype)  long long          "long long"
-%typemap(objctype)  unsigned long long "unsigned long long"
-%typemap(objctype)  float              "float"
-%typemap(objctype)  double             "double"
-%typemap(objctype)  void               "void"
+%typemap(objctype)  bool, const bool &                      "BOOL"
+%typemap(objctype)  char, const char &                      "char"
+%typemap(objctype)  signed char, const signed char &        "signed char"
+%typemap(objctype)  unsigned char, const unsigned char &    "unsigned char"
+%typemap(objctype)  short, const short &                    "short"
+%typemap(objctype)  unsigned short, const unsigned short &  "unsigned short"
+%typemap(objctype)  int, const int &                         "int"
+%typemap(objctype)  unsigned int, const unsigned int &       "unsigned int"
+%typemap(objctype)  long, const long &                       "long"
+%typemap(objctype)  unsigned long, const unsigned long &     "unsigned long"
+%typemap(objctype)  long long, const long long &             "long long"
+%typemap(objctype)  unsigned long long, const unsigned long long & "unsigned long long"
+%typemap(objctype)  float, const float &                     "float"
+%typemap(objctype)  double, const double &                   "double"
+%typemap(objctype)  void                                     "void"
 
 // References will always be treated as pointers in the proxy layer (ObjectiveC)
-%typemap(objctype) const bool &,              bool &                  "BOOL *"
-%typemap(objctype) const char &,              char &                  "char *"
-%typemap(objctype) const signed char &, 		signed char &           "signed char *"
-%typemap(objctype) const unsigned char &, 	unsigned char &         "unsigned char *"
-%typemap(objctype) const short &,				short &                 "short *"
-%typemap(objctype) const unsigned short &,	unsigned short &        "unsigned short *"
-%typemap(objctype) const int &,		    	int &                   "int *"
-%typemap(objctype) const unsigned int &,		unsigned int &          "unsigned int *"
-%typemap(objctype) const long &,				long &                  "long *"
-%typemap(objctype) const unsigned long &, 	unsigned long &         "unsigned long  *"
-%typemap(objctype) const long long &, 		long long &             "long long *"
-%typemap(objctype) const unsigned long long &,unsigned long long &    "unsigned long long  *"
-%typemap(objctype) const float &, 			float &                 "float *"
-%typemap(objctype) const double &,  			double &                "double *"
+%typemap(objctype) bool &                  "BOOL *"
+%typemap(objctype) char &                  "char *"
+%typemap(objctype) signed char &           "signed char *"
+%typemap(objctype) unsigned char &         "unsigned char *"
+%typemap(objctype) short &                 "short *"
+%typemap(objctype) unsigned short &        "unsigned short *"
+%typemap(objctype) int &                   "int *"
+%typemap(objctype) unsigned int &          "unsigned int *"
+%typemap(objctype) long &                  "long *"
+%typemap(objctype) unsigned long &         "unsigned long  *"
+%typemap(objctype) long long &             "long long *"
+%typemap(objctype) unsigned long long &    "unsigned long long  *"
+%typemap(objctype) float &                 "float *"
+%typemap(objctype) double &                "double *"
 
 // C strings:
 %typemap(objctype) char *, const char *, char *&, char[ANY], char[]    "NSString *"
@@ -481,58 +589,58 @@
  */
 
 // Primary types
-%typemap(objcin) bool,
-	     char, 
-             signed char, 
-             unsigned char, 
-             short, 
-             unsigned short, 
-             int, 
-             unsigned int, 
-             long, 
-             unsigned long, 
-             long long, 
-             unsigned long long,
-             float, 
-             double
+%typemap(objcin) bool, const bool &,
+	     char, const char &,
+             signed char, const signed char &,
+             unsigned char, const unsigned char &,
+             short, const short &,
+             unsigned short, const unsigned short &,
+             int, const int &,
+             unsigned int, const unsigned int &,
+             long, const long &,
+             unsigned long, const unsigned long &,
+             long long, const long long &,
+             unsigned long long, const unsigned long long &,
+             float, const float &,
+             double, const double &
 "$objcinput"
 
 // No "objcin" for void
 %typemap(objcin) void ""
 
 // References: are treated as pointers in the proxy layer (ObjectiveC)
-%typemap(objcin) const bool &,                  bool &, 
-                 const char &,  		char &,
-	     	 const signed char &, 		signed char &,
-	         const unsigned char &, 	unsigned char &,
-		     const short &,				short &,
-		     const unsigned short &,	unsigned short &,
-		     const int &,		    	int &,
-		     const unsigned int &,		unsigned int &,
-			 const long &,				long &,
-	     	 const unsigned long &, 	unsigned long &,
-	     	 const long long &, 		long long &,
-	     	 const unsigned long long &,unsigned long long &,
-	      	 const float &, 			float &,
-	      	 const double &,  			double &
+%typemap(objcin) bool &, 
+                 char &,
+	     	 signed char &,
+	         unsigned char &,
+		 short &,
+		 unsigned short &,
+		 int &,
+		 unsigned int &,
+		 long &,
+		 unsigned long &,
+		 long long &,
+		 unsigned long long &,
+		 float &,
+		 double &
 "$objcinput"
 
 // C/C++ pointers to primitive types are treated as is in the Proxy layer.
-%typemap(objcin)const bool *,              bool *,
-             const char *,  			char *,
+%typemap(objcin) const bool *,                  bool *,
+                 const char *,  		char *,
 	     	 const signed char *, 		signed char *,
 	         const unsigned char *, 	unsigned char *,
-		     const short *,				short *,
-		     const unsigned short *,	unsigned short *,
-		     const int *,		    	int *,
-		     const unsigned int *,		unsigned int *,
-			 const long *,				long &,
+		 const short *,			short *,
+		 const unsigned short *,	unsigned short *,
+		 const int *,		    	int *,
+		 const unsigned int *,		unsigned int *,
+		 const long *,			long &,
 	     	 const unsigned long *, 	unsigned long &,
 	     	 const long long *, 		long long *,
 	     	 const unsigned long long *,unsigned long long *,
-	      	 const float *, 			float *,
-	      	 const double *,  			double *,
-	      	 const void *,                          void *
+	      	 const float *, 		float *,
+	      	 const double *,  		double *,
+	      	 const void *,                  void *
 "$objcinput"
 
 //C strings:
@@ -556,55 +664,55 @@
  */
 
 // Primary types are exported as ObjectiveC primary types
-%typemap(objcout) bool,
-		char,
-	      signed char,
-	      unsigned char,
-	      short,
-	      unsigned short,
-	      int,
-	      unsigned int,
-	      long,
-	      unsigned long,
-	      long long,
-	      unsigned long long,
-	      float,
-	      double
+%typemap(objcout) bool, const bool &,
+	      char, const char &,
+	      signed char, const signed char &,
+	      unsigned char, const unsigned char &,
+	      short, const short &,
+	      unsigned short, const unsigned short &,
+	      int, const int &,
+	      unsigned int, const unsigned int &,
+	      long, const long &,
+	      unsigned long, const unsigned long &,
+	      long long, const long long &,
+	      unsigned long long, const unsigned long &,
+	      float, const float &,
+	      double, const double &
 %{   return $imcall; %}
 
 %typemap(objcout) void "   $imcall;"
 
-%typemap(objcout) const bool &,         bool &,
-             const char &,  			char &,
-	     	 const signed char &, 		signed char &,
-	         const unsigned char &, 	unsigned char &,
-		     const short &,				short &,
-		     const unsigned short &,	unsigned short &,
-		     const int &,		    	int &,
-		     const unsigned int &,		unsigned int &,
-			 const long &,				long &,
-	     	 const unsigned long &, 	unsigned long &,
-	     	 const long long &, 		long long &,
-	     	 const unsigned long long &,unsigned long long &,
-	      	 const float &, 			float &,
-	      	 const double &,  			double &
+%typemap(objcout) bool &,
+		  char &,
+		  signed char &,
+	 	  unsigned char &,
+		  short &,
+		  unsigned short &,
+		  int &,
+		  unsigned int &,
+		  long &,
+		  unsigned long &,
+		  long long &,
+		  unsigned long long &,
+		  float &,
+		  double &
 %{   return $imcall; %}
 
-%typemap(objcout)const bool *,              bool *,
-             const char *,  			char *,
-	     	 const signed char *, 		signed char *,
-	         const unsigned char *, 	unsigned char *,
-		     const short *,				short *,
-		     const unsigned short *,	unsigned short *,
-		     const int *,		    	int *,
-		     const unsigned int *,		unsigned int *,
-			 const long *,				long *,
-	     	 const unsigned long *, 	unsigned long *,
-	     	 const long long *, 		long long *,
-	     	 const unsigned long long *,unsigned long long *,
-	      	 const float *, 			float *,
-	      	 const double *,  			double *,
-	      	 const void *,                          void *
+%typemap(objcout) const bool *,              bool *,
+             	  const char *,  			char *,
+	     	  const signed char *, 		signed char *,
+	          const unsigned char *, 	unsigned char *,
+		  const short *,				short *,
+		  const unsigned short *,	unsigned short *,
+		  const int *,		    	int *,
+		  const unsigned int *,		unsigned int *,
+		  const long *,				long *,
+	     	  const unsigned long *, 	unsigned long *,
+	     	  const long long *, 		long long *,
+	     	  const unsigned long long *,unsigned long long *,
+	      	  const float *, 			float *,
+	      	  const double *,  			double *,
+	      	  const void *,                          void *
 %{   return $imcall; %}
 
 // C strings: 
