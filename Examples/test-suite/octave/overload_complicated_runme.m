@@ -5,15 +5,15 @@ endif
 
 overload_complicated
 
-pInt = None;
+pInt = []; # NULL
 
 # Check the correct constructors are available
 p = Pop(pInt);
 
-p = Pop(pInt, 0);
+p = Pop(pInt, false);
 
 # Check overloaded in const only and pointers/references which target languages cannot disambiguate
-if (p.hip(0) != 701)
+if (p.hip(false) != 701)
   error("Test 1 failed")
 endif
 
@@ -26,16 +26,16 @@ if (p.hop(pInt) != 805)
   error("Test 3 failed")
 endif
 
-if (p.hop(0) != 801)
+if (p.hop(false) != 801)
   error("Test 4 failed")
 endif
 
 # Few more variations and order shuffled
-if (p.pop(0) != 901)
+if (p.pop(false) != 901)
   error("Test 5 failed")
 endif
 
-if (p.pop(pInt) != 902)
+if (p.pop(pInt) != 904)
   error("Test 6 failed")
 endif
 
@@ -48,12 +48,12 @@ if (p.bop(pInt) != 1001)
   error("Test 8 failed")
 endif
 
-if (p.bip(pInt) != 2001)
+if (p.bip(pInt) != 2002)
   error("Test 9 failed")
 endif
 
 # Globals
-if (muzak(0) != 3001)
+if (muzak(false) != 3001)
   error("Test 10 failed")
 endif
 
