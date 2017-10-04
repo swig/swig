@@ -70,6 +70,7 @@ CPP_TEST_CASES += \
 	python_pythoncode \
 	python_richcompare \
 	python_strict_unicode \
+	python_threads \
 	simutry \
 	std_containers \
 	swigobject \
