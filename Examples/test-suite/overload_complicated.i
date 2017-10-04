@@ -1,8 +1,6 @@
 // A complicated test of overloaded functions
 %module overload_complicated
 
-#ifndef SWIG_NO_OVERLOAD
-
 // Different overloaded warning filters needed for scripting languages (eg Python) and for statically typed languages (eg C#).
 %warnfilter(509, 516) Pop::Pop;
 %warnfilter(509, 516) Pop::hip;
@@ -69,6 +67,3 @@ int muzak(int& i)                 { return 3003; }
 int muzak(const int* i)           { return 3004; }
 
 %}
-
-#endif
-
