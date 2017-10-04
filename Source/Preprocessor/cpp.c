@@ -640,13 +640,8 @@ static List *find_args(String *s, int ismacro, String *macro_name) {
       goto unterm;
     }
     Chop(str);
-    if (Len(args) || Len(str))
-      Append(args, str);
+    Append(args, str);
     Delete(str);
-
-    /*    if (Len(str) && (c != ')'))
-       Append(args,str); */
-
     if (c == ')')
       return args;
     c = Getc(s);
@@ -818,14 +813,16 @@ static String *expand_macro(String *name, List *args, String *line_file) {
     }
   }
 
-  if (args && margs && Len(margs) == 1 && Len(args) == 0) {
+  if (args && margs && Len(margs) == 0 && Len(args) == 1 && Len(Getitem(args, 0)) == 0) {
     /* FOO() can invoke a macro defined as FOO(X) as well as one defined FOO().
-     * Handle this by adding an empty argument to args.
+     *
+     * Handle this by removing the only argument if it's empty and the macro
+     * expects no arguments.
      *
      * We don't need to worry about varargs here - a varargs macro will always have
      * Len(margs) >= 1, since the varargs are put in the final macro argument.
      */
-    Append(args, NewStringEmpty());
+    Delitem(args, 0);
   }
 
   /* If there are arguments, see if they match what we were given */
