@@ -9,14 +9,14 @@
 %apply int TMAP77 { XXX<int>::Long cc }
 
 %inline %{
-typedef int Integer;
+typedef int MyInteger;
 
 template<typename T> struct XXX {
 #ifdef SWIG
 // In swig-3.0.12 'Long aa' was actually stored as 'long aa' in typemap table instead of 'XXX<int>::Long aa'
 %apply int TMAP55 { Long aa }
 %apply int TMAP66 { XXX<int>::Long bb }
-%apply int TMAP88 { XXX<Integer>::Long dd }
+%apply int TMAP88 { XXX<MyInteger>::Long dd }
 #endif
   typedef long Long;
   long aa1(long aa) { return aa; }
@@ -30,7 +30,7 @@ template<typename T> struct XXX {
 #ifdef SWIG
 %clear Long aa;
 %clear XXX<int>::Long bb;
-%clear XXX<Integer>::Long dd;
+%clear XXX<MyInteger>::Long dd;
 #endif
   long aa3(Long aa) { return aa; }
   long bb3(Long bb) { return bb; }
@@ -39,7 +39,7 @@ template<typename T> struct XXX {
 };
 %}
 
-%template(XXXInt) XXX<Integer>;
+%template(XXXInt) XXX<MyInteger>;
 
 %clear XXX<int>::Long cc;
 
@@ -50,17 +50,17 @@ template<typename T> struct XXX {
   long bb2(long bb) { return bb; }
   long cc1(XXX<int>::Long cc) { return cc; }
   long cc2(long cc) { return cc; }
-  long dd1(XXX<Integer>::Long dd) { return dd; }
+  long dd1(XXX<MyInteger>::Long dd) { return dd; }
   long dd2(long dd) { return dd; }
 %}
 
 %inline %{
-typedef Integer INTEGER;
-template<typename T1, typename T2 = INTEGER> struct YYY {
+typedef MyInteger MY_INTEGER;
+template<typename T1, typename T2 = MY_INTEGER> struct YYY {
   void meff(T1 t1, T2 t2) {}
 };
 %}
-%template(YYYIntInt) YYY<INTEGER>;
+%template(YYYIntInt) YYY<MY_INTEGER>;
 %inline %{
-  void whyohwhy(YYY<INTEGER> yy) {}
+  void whyohwhy(YYY<MY_INTEGER> yy) {}
 %}

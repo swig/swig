@@ -507,6 +507,7 @@ CPP_TEST_CASES += \
 	typemap_numinputs \
 	typemap_template \
 	typemap_template_parm_typedef \
+	typemap_template_typedef \
 	typemap_out_optimal \
 	typemap_qualifier_strip \
 	typemap_variables \
