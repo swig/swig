@@ -50,7 +50,6 @@ void Swig_cparse_debug_templates(int x) {
  * patching typenames and other aspects of the node according to a list of
  * template parameters
  * ----------------------------------------------------------------------------- */
-
 static void cparse_template_expand(Node *templnode, Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist, List *cpatchlist) {
   static int expanded = 0;
   String *nodeType;
@@ -259,6 +258,12 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   String *tname;
   String *iname;
   String *tbase;
+  String *scopename = 0;
+  String *tmp = tscope ? Getattr(tscope, "name") : 0;
+  if( tmp ) {
+    scopename = Swig_scopename_last(Str(tmp));
+  }
+
   patchlist = NewList();
   cpatchlist = NewList();
   typelist = NewList();
@@ -373,8 +378,8 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	    String *s = Getitem(typelist, i);
 	    /*      Replace(s,name,value, DOH_REPLACE_ID); */
 	    /*      Printf(stdout,"name = '%s', value = '%s', tbase = '%s', iname='%s' s = '%s' --> ", name, dvalue, tbase, iname, s); */
-	    SwigType_typename_replace(s, name, dvalue);
-	    SwigType_typename_replace(s, tbase, iname);
+	    SwigType_typename_replace(s, name, dvalue, scopename);
+	    SwigType_typename_replace(s, tbase, iname, scopename);
 	    /*      Printf(stdout,"'%s'\n", s); */
 	  }
 
@@ -404,7 +409,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       sz = Len(typelist);
       for (i = 0; i < sz; i++) {
 	String *s = Getitem(typelist, i);
-	SwigType_typename_replace(s, tbase, iname);
+	SwigType_typename_replace(s, tbase, iname, scopename);
       }
     }
   }
@@ -428,6 +433,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   Delete(tbase);
   Delete(tname);
   Delete(templateargs);
+  Delete(scopename);
 
   /*  set_nodeType(n,"template"); */
   return 0;
