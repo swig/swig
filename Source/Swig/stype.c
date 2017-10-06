@@ -1268,7 +1268,7 @@ String *SwigType_manglestr(const SwigType *s) {
  * Replaces a typename in a type with something else.  Needed for templates.
  * ----------------------------------------------------------------------------- */
 
-void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
+void SwigType_typename_replace(SwigType *t, String *pat, String *rep, String *scopename) {
   String *nt;
   int i, ilen;
   List *elem;
@@ -1304,7 +1304,7 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	  Append(nt, "<(");
 	  jlen = Len(tparms);
 	  for (j = 0; j < jlen; j++) {
-	    SwigType_typename_replace(Getitem(tparms, j), pat, rep);
+          SwigType_typename_replace(Getitem(tparms, j), pat, rep, scopename);
 	    Append(nt, Getitem(tparms, j));
 	    if (j < (jlen - 1))
 	      Putc(',', nt);
@@ -1333,10 +1333,12 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	}
 
 	Clear(e);
-	if (first)
-	  SwigType_typename_replace(first, pat, rep);
-	SwigType_typename_replace(rest, pat, rep);
-	Printv(e, first ? first : "", "::", rest, NIL);
+	if( ! scopename || Strstr(scopename, first) ) {
+	  if (first)
+	    SwigType_typename_replace(first, pat, rep);
+	  SwigType_typename_replace(rest, pat, rep);
+	  Printv(e, first ? first : "", "::", rest, NIL);
+	}
 	Delete(first);
 	Delete(rest);
       }
@@ -1347,7 +1349,7 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
       Append(e, "f(");
       jlen = Len(fparms);
       for (j = 0; j < jlen; j++) {
-	SwigType_typename_replace(Getitem(fparms, j), pat, rep);
+	SwigType_typename_replace(Getitem(fparms, j), pat, rep, scopename);
 	Append(e, Getitem(fparms, j));
 	if (j < (jlen - 1))
 	  Putc(',', e);
