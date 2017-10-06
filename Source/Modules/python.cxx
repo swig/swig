@@ -18,8 +18,14 @@
 #include <errno.h>
 #include <stdlib.h>
 
+#include <iostream>
+#include <stdint.h>
+
 #define PYSHADOW_MEMBER  0x2
 #define WARN_PYTHON_MULTIPLE_INH 405
+
+#define PYTHON_INT_MAX (2147483647)
+#define PYTHON_INT_MIN (-2147483647-1)
 
 static String *const_code = 0;
 static String *module = 0;
@@ -2048,6 +2054,7 @@ public:
     long value = strtol(s, &end, 0);
     if (errno == ERANGE || end == s)
       return NIL;
+
     if (*end != '\0') {
       // If there is a suffix after the number, we can safely ignore "l"
       // and (provided the number is unsigned) "u", and also combinations of
@@ -2069,6 +2076,14 @@ public:
     }
     // So now we are certain that we are indeed dealing with an integer
     // that has a representation as long given by value.
+
+    // Restrict to guaranteed supported range in Python, see maxint docs: https://docs.python.org/2/library/sys.html#sys.maxint
+    // Don't do this pointless check when long is 32 bits or smaller as strtol will have already failed with ERANGE
+#if LONG_MAX > PYTHON_INT_MAX || LONG_MIN < PYTHON_INT_MIN
+    if (value > PYTHON_INT_MAX || value < PYTHON_INT_MIN) {
+      return NIL;
+    }
+#endif
 
     if (Cmp(resolved_type, "bool") == 0)
       // Allow integers as the default value for a bool parameter.

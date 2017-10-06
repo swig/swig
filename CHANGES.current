@@ -6,6 +6,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
 Version 4.0.0 (in progress)
 ===========================
+2017-10-06: wsfulton
+            [Python] Issue #1108. Fix platorm inconsistency in Python default argument handling.
+            32 bit and 64 bit compiled versions of SWIG generated different Python files
+            when default arguments were outside the range of 32 bit signed integers.
+            The default arguments specified in Python are now only those that are in the
+            range of a 32 bit signed integer, otherwise the default is obtained from C/C++ code.
+
 2017-10-02: wsfulton
             [C#] Fix std::complex types passed by value.
 
