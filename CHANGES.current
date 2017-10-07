@@ -6,6 +6,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
 Version 4.0.0 (in progress)
 ===========================
+2017-10-09: olly
+	    Remove GCJ support.  It isn't in a good state and doesn't seem to
+	    be used, and GCC7 dropped GCJ.  Closes
+	    https://sourceforge.net/p/swig/bugs/823/
+
 2017-10-07: olly
 	    Fix preprocessor handling of empty macro arguments to match that of
 	    C/C++ compilers.  Fixes https://github.com/swig/swig/pull/1111 and

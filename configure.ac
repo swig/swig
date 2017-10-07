@@ -1636,34 +1636,6 @@ AC_SUBST(NODEJS)
 AC_SUBST(NODEGYP)
 
 #----------------------------------------------------------------
-# Look for gcj
-#----------------------------------------------------------------
-
-AC_ARG_WITH(gcj, AS_HELP_STRING([--without-gcj], [Disable GCJ])
-AS_HELP_STRING([--with-gcj=path], [Set location of gcj executable]),[GCJBIN="$withval"], [GCJBIN="$alllang_default"])
-AC_ARG_WITH(gcjh, [  --with-gcjh=path        Set location of gcjh executable],[GCJHBIN="$withval"], [GCJHBIN=])
-
-# First, check for "--without-gcj" or "--with-gcj=no".
-if test x"${GCJBIN}" = xno; then
-  AC_MSG_NOTICE([Disabling GCJ])
-else
-  if test "x$GCJBIN" = xyes; then
-    AC_CHECK_PROGS(GCJ, gcj)
-  else
-    GCJ="$GCJBIN"
-  fi
-
-  if test -z "$GCJCBIN"; then
-    AC_CHECK_PROGS(GCJH, gcjh)
-  else
-    GCJH="$GCJHBIN"
-  fi
-fi
-
-AC_SUBST(GCJ)
-AC_SUBST(GCJH)
-
-#----------------------------------------------------------------
 # Look for Android
 #----------------------------------------------------------------
 
@@ -2958,16 +2930,6 @@ AC_SUBST(SKIP_D)
 #----------------------------------------------------------------
 # Additional language dependencies
 #----------------------------------------------------------------
-SKIP_GCJ=
-if test -z "$GCJ" || test -z "$GCJH" ; then
-  SKIP_GCJ="1"
-else
-  if test "$GCC" != yes; then
-    SKIP_GCJ="1"
-  fi
-fi
-AC_SUBST(SKIP_GCJ)
-
 
 SKIP_ANDROID=
 if test -z "$ANDROID" || test -z "$ADB" || test -z "$ANT" || test -z "$NDKBUILD" ; then
