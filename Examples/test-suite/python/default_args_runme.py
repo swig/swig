@@ -148,9 +148,6 @@ def run(module_name):
     if tricky.max_32bit_int2() != 0x7FFFFFFF:
         print "max_32bit_int2 failed"
         tricky_failure = True
-    if tricky.min_32bit_int2() != -2147483648:
-        print "min_32bit_int2 failed"
-        tricky_failure = True
 
     tricky.too_big_32bit_int1()
     tricky.too_small_32bit_int1()

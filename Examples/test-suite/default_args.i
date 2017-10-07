@@ -31,7 +31,6 @@
     int max_32bit_int1(int a = 0x7FFFFFFF) { return a; }
     int max_32bit_int2(int a = 2147483647) { return a; }
     int min_32bit_int1(int a = -0x80000000) { return a; }
-    int min_32bit_int2(int a = -2147483648) { return a; }
     long long too_big_32bit_int1(long long a = 0x80000000) { return a; }
     long long too_big_32bit_int2(long long a = 2147483648LL) { return a; }
     long long too_small_32bit_int1(long long a = -0x80000001) { return a; }
