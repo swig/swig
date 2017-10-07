@@ -86,7 +86,6 @@ skip-d		= test -n "@SKIP_D@"
 skip-javascript	= test -n "@SKIP_JAVASCRIPT@"
 
 # Additional dependencies for some tests
-skip-gcj        = test -n "@SKIP_GCJ@"
 skip-android    = test -n "@SKIP_ANDROID@"
 
 # Special errors test-case
@@ -255,16 +254,6 @@ check-%-examples :
 	@cd Examples && $(MAKE) Makefile
 	@echo $(ACTION)ing Examples/$(LANGUAGE)/$*
 	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) $(FLAGS) $(ACTION) RUNPIPE=$(RUNPIPE))
-
-# gcj individual example
-java.actionexample:
-	@cd Examples && $(MAKE) Makefile
-	@if $(skip-gcj); then					\
-	  echo "skipping Examples/$(LANGUAGE)/java $(ACTION) (gcj test)";	\
-	else							\
-	  echo $(ACTION)ing Examples/$(LANGUAGE)/java;		\
-	  (cd Examples/$(LANGUAGE)/java && $(MAKE) $(FLAGS) $(ACTION) RUNPIPE=$(RUNPIPE)) \
-	fi
 
 # Checks testcases in the test-suite excluding those which are known to be broken
 check-test-suite:				\
@@ -510,7 +499,7 @@ install-main:
 	@echo "Installing $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@"
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
-lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php php5 ocaml octave \
+lib-languages = typemaps tcl perl5 python guile java mzscheme ruby php php5 ocaml octave \
 	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r go d javascript javascript/jsc \
 	javascript/v8 scilab
 
