@@ -95,6 +95,11 @@
 #define EXPR_CHAR_COMPOUND_LSHIFT 'B' << 6
 #define H_SUPPRESS_SCALING_MAGIC (('s'<<24) | ('u'<<16) | ('p'<<8) | 'p')
 
+// https://sourceforge.net/p/swig/bugs/1168/
+#define CHR(ch1,ch2,ch3,ch4) (((ch1)<<24)|((ch2)<<16)|((ch3)<<8)|(ch4))
+#define DEFAULT_LANG CHR('d','f','l','t')
+%constant DEFAULT_LANG_SIMPLIFIED = ('d')<<24;
+
 /// constant assignment in enum
 #if defined(SWIGCSHARP)
 %csconstvalue("1<<2") kValue;

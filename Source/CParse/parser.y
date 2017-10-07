@@ -6316,9 +6316,12 @@ valexpr        : exprnum { $$ = $1; }
 
 /* grouping */
                |  LPAREN expr RPAREN %prec CAST {
-   	            $$.val = NewStringf("(%s)",$2.val);
+		    $$.val = NewStringf("(%s)",$2.val);
+		    if ($2.rawval) {
+		      $$.rawval = NewStringf("(%s)",$2.rawval);
+		    }
 		    $$.type = $2.type;
-   	       }
+	       }
 
 /* A few common casting operations */
 
