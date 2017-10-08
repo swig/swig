@@ -316,6 +316,7 @@ CPP_TEST_CASES += \
 	nested_template_base \
 	nested_workaround \
 	newobject1 \
+	newobject3 \
 	null_pointer \
 	operator_overload \
 	operator_overload_break \

@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 2017-10-09: olly
+	    [PHP] Fix incorrect wrapper code generated when there's a
+	    combination of overloading, parameters with a default value
+	    and %newobject.  Fixes https://sourceforge.net/p/swig/bugs/1350/
+
+2017-10-09: olly
 	    Remove GCJ support.  It isn't in a good state and doesn't seem to
 	    be used, and GCC7 dropped GCJ.  Closes
 	    https://sourceforge.net/p/swig/bugs/823/
