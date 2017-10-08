@@ -6,6 +6,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
 Version 4.0.0 (in progress)
 ===========================
+2017-10-07: olly
+	    Fix preprocessor handling of empty macro arguments to match that of
+	    C/C++ compilers.  Fixes https://github.com/swig/swig/pull/1111 and
+	    https://sourceforge.net/p/swig/bugs/826/
+
 2017-10-06: wsfulton
             [Python] Issue #1108. Fix platorm inconsistency in Python default argument handling.
             32 bit and 64 bit compiled versions of SWIG generated different Python files

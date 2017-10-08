@@ -44,18 +44,16 @@ struct SWIG_null_deleter {
 %#define SWIG_NO_NULL_DELETER_1
 }
 
-// Workaround empty first macro argument bug
-#define SWIGEMPTYHACK
 // Main user macro for defining intrusive_ptr typemaps for both const and non-const pointer types
 %define %intrusive_ptr(TYPE...)
 %feature("smartptr", noblock=1) TYPE { SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > }
-SWIG_INTRUSIVE_PTR_TYPEMAPS(SWIGEMPTYHACK, TYPE)
+SWIG_INTRUSIVE_PTR_TYPEMAPS(, TYPE)
 SWIG_INTRUSIVE_PTR_TYPEMAPS(const, TYPE)
 %enddef
 
 %define %intrusive_ptr_no_wrap(TYPE...)
 %feature("smartptr", noblock=1) TYPE { SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > }
-SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(SWIGEMPTYHACK, TYPE)
+SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(, TYPE)
 SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(const, TYPE)
 %enddef
 
