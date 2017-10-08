@@ -609,7 +609,16 @@ v8::Handle<v8::Value> SWIGV8_AppendOutput(v8::Local<v8::Value> result, v8::Handl
   
   if (result->IsUndefined()) {
     result = SWIGV8_ARRAY_NEW();
+  } else if (!result->IsArray()) {
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
+    v8::Handle<v8::Array> tmparr = SWIGV8_ARRAY_NEW();
+#else  
+    v8::Local<v8::Array> tmparr = SWIGV8_ARRAY_NEW();
+#endif
+    tmparr->Set(0, result);
+    result = tmparr;
   }
+
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
   v8::Handle<v8::Array> arr = v8::Handle<v8::Array>::Cast(result);
 #else  
