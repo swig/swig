@@ -1560,13 +1560,15 @@ public:
 	      Printf(prepare, "case %d: ", ++last_handled_i);
 	    }
 	    if (non_void_return) {
-	      if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
+	      if ((!directorsEnabled() || !Swig_directorclass(n)) && !constructor) {
+		Append(prepare, "$r=");
+	      } else if (wrapperType == staticmemberfn || wrapperType == staticmembervar) {
 		Append(prepare, "$r=");
 	      } else {
 		Printf(prepare, "$this->%s=", SWIG_PTR);
 	      }
 	    }
-	    if (!directorsEnabled() || !Swig_directorclass(n) || !newobject) {
+	    if (!directorsEnabled() || !Swig_directorclass(n) || !constructor) {
 	      Printf(prepare, "%s(%s); break;\n", iname, invoke_args);
 	    } else if (!i) {
 	      Printf(prepare, "%s($_this%s); break;\n", iname, invoke_args);
@@ -1582,14 +1584,16 @@ public:
 	if (had_a_case)
 	  Printf(prepare, "default: ");
 	if (non_void_return) {
-	  if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
+	  if ((!directorsEnabled() || !Swig_directorclass(n)) && !constructor) {
+	    Append(prepare, "$r=");
+	  } else if (wrapperType == staticmemberfn || wrapperType == staticmembervar) {
 	    Append(prepare, "$r=");
 	  } else {
 	    Printf(prepare, "$this->%s=", SWIG_PTR);
 	  }
 	}
 
-	if (!directorsEnabled() || !Swig_directorclass(n) || !newobject) {
+	if (!directorsEnabled() || !Swig_directorclass(n) || !constructor) {
 	  Printf(prepare, "%s(%s);\n", iname, invoke_args);
 	} else {
 	  Printf(prepare, "%s($_this, %s);\n", iname, invoke_args);
@@ -1699,7 +1703,7 @@ public:
 	Printf(output, "\tstatic function %s(%s) {\n", methodname, args);
       }
 
-      if (!newobject)
+      if (!constructor)
 	Printf(output, "%s", prepare);
       if (constructor) {
 	if (!directorsEnabled() || !Swig_directorclass(n)) {
