@@ -14,8 +14,6 @@
 #include "swigmod.h"
 #include "cparse.h"
 
-static const double DEFAULT_NUMBER = .0000123456712312312323;
-
 static String* replaceInitialDash(const String *name)
 {
   String *retval;
@@ -264,13 +262,16 @@ static void replaceRClass(String *tm, SwigType *type) {
   Delete(tmp); Delete(tmp_base); Delete(tmp_ref);
 }
 
-static double getNumber(String *value) {
-  double d = DEFAULT_NUMBER;
+static bool getNumber(String *value, int* result) {
   if(Char(value)) {
-    if(sscanf(Char(value), "%lf", &d) != 1)
-      return(DEFAULT_NUMBER);
+    // Check the conversion processed the whole of value by having %c at
+    // the end of the format, and checking that only the first value is
+    // converted.  We don't want to convert "3+7" -> 3.
+    char dummy;
+    if (sscanf(Char(value), "%i%c", result, &dummy) == 1)
+      return true;
   }
-  return(d);
+  return false;
 }
 
 class R : public Language {
@@ -1228,16 +1229,28 @@ int R::enumDeclaration(Node *n) {
     name = Getattr(c, "name");
     String *val = Getattr(c, "enumvalue");
     if(val && Char(val)) {
-      int inval = (int) getNumber(val);
-      if(inval == DEFAULT_NUMBER)
-	value++;
-      else
+      int inval;
+      if (!getNumber(val, &inval)) {
+	// Conversion failed - use the string value in val.
+      } else {
+	val = NULL;
 	value = inval;
-    } else
+      }
+    } else {
+      val = NULL;
       value++;
+    }
 
-    Printf(scode, "%s%s%s'%s' = %d%s\n", tab8, tab8, tab8, name, value,
-	   nextSibling(c) ? ", " : "");
+    if (val != NULL) {
+      // This won't work in general, but will at least handle cases like (3)
+      // and 3+7, and when it doesn't work, it'll fail noisly rather than
+      // quietly using the wrong enum value like we used to.
+      Printf(scode, "%s%s%s'%s' = %s%s\n", tab8, tab8, tab8, name, val,
+	     nextSibling(c) ? ", " : "");
+    } else {
+      Printf(scode, "%s%s%s'%s' = %d%s\n", tab8, tab8, tab8, name, value,
+	     nextSibling(c) ? ", " : "");
+    }
     //      }
   }
 
