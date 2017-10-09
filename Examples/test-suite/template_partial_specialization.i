@@ -12,10 +12,10 @@ namespace One {
   template <>           struct OneParm<int * const &>   { void g() {} };
   template <>           struct OneParm<int **>          { void h() {} };
 
-  template <>           struct OneParm<float>           { void i() {} };
-  template <>           struct OneParm<float *>         { void j() {} };
-  template <>           struct OneParm<float **>        { void k() {} };
-  template <>           struct OneParm<float ***>       { void l() {} };
+  template <>           struct OneParm<float>           { void j() {} };
+  template <>           struct OneParm<float *>         { void k() {} };
+  template <>           struct OneParm<float **>        { void m() {} };
+  template <>           struct OneParm<float ***>       { void n() {} };
 }
 %}
 
@@ -33,12 +33,12 @@ namespace One {
 
 // %template scope explicit specializations
 namespace One {
-  %template(I) One::OneParm<float>;
-  %template(J) ::One::OneParm<float *>;
+  %template(J) One::OneParm<float>;
+  %template(K) ::One::OneParm<float *>;
 }
-%template(K) ::One::OneParm<float **>;
+%template(M) ::One::OneParm<float **>;
 namespace One {
-  %template(L) OneParm<float ***>;
+  %template(N) OneParm<float ***>;
 }
 
 // %template scope partial specializations

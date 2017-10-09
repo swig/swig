@@ -3,7 +3,7 @@
 %module class_scope_namespace
 
 %warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) H::HH;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Space8::I::II;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Space8::I_::II;
 
 %inline %{
 struct A;
@@ -107,12 +107,12 @@ void hhh(H::HH) {}
 
 namespace Space8 {
   struct II;
-  struct I {
+  struct I_ {
     struct II {
-      void ii(Space8::I::II, I::II) {}
+      void ii(Space8::I_::II, I_::II) {}
     };
   };
-  void iii(Space8::I::II, I::II) {}
+  void iii(Space8::I_::II, I_::II) {}
 }
 
 struct J;
