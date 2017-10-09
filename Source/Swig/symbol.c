@@ -391,8 +391,12 @@ void Swig_symbol_add_using(String * name, String * uname, Node * n) {
   h = Swig_symbol_clookup(uname,0);
   if (h && checkAttribute(h, "kind", "class")) {
     String *qcurrent = Swig_symbol_qualifiedscopename(0);
-    Append(qcurrent, "::");
-    Append(qcurrent, name);
+    if(qcurrent) {
+        Append(qcurrent, "::");
+        Append(qcurrent, name);
+    } else {
+        qcurrent = NewString(name);
+    }
     Setattr(symtabs, qcurrent, n);
     Delete(qcurrent);
   }
