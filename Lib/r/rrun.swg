@@ -23,6 +23,7 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <float.h>
 
 #if R_VERSION >= R_Version(2,6,0)
 #define VMAXTYPE void *
