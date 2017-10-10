@@ -391,11 +391,11 @@ void Swig_symbol_add_using(String * name, String * uname, Node * n) {
   h = Swig_symbol_clookup(uname,0);
   if (h && checkAttribute(h, "kind", "class")) {
     String *qcurrent = Swig_symbol_qualifiedscopename(0);
-    if(qcurrent) {
-        Append(qcurrent, "::");
-        Append(qcurrent, name);
+    if (qcurrent) {
+	Append(qcurrent, "::");
+	Append(qcurrent, name);
     } else {
-        qcurrent = NewString(name);
+	qcurrent = NewString(name);
     }
     Setattr(symtabs, qcurrent, n);
     Delete(qcurrent);
@@ -1086,27 +1086,26 @@ static Node *symbol_lookup_qualified(const_String_or_char_ptr name, Symtab *symt
     } else {
       cqname = prefix;
     }
-
     st = Getattr(symtabs, cqname);
     /* Found a scope match */
     if (st) {
       if (!name) {
-        if (qalloc)
-          Delete(qalloc);
-        return st;
+	if (qalloc)
+	  Delete(qalloc);
+	return st;
       }
       if (checkAttribute(st, "nodeType", "using")) {
-        String *uname = Getattr(st, "uname");
-        if (uname) {
-          st = Getattr(symtabs, uname);
-          if (st) {
-            n = symbol_lookup(name, st, checkfunc);
-          } else {
-            fprintf(stderr, "Error: Found corrupt 'using' node\n");
-          }
-        }
+	String *uname = Getattr(st, "uname");
+	if (uname) {
+	  st = Getattr(symtabs, uname);
+	  if (st) {
+	    n = symbol_lookup(name, st, checkfunc);
+	  } else {
+	    fprintf(stderr, "Error: Found corrupt 'using' node\n");
+	  }
+	}
       } else if (Getattr(st, "csymtab")) {
-        n = symbol_lookup(name, st, checkfunc);
+	n = symbol_lookup(name, st, checkfunc);
       }
     }
     if (qalloc)

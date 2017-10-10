@@ -260,7 +260,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   String *tbase;
   String *scopename = 0;
   String *tmp = tscope ? Getattr(tscope, "name") : 0;
-  if( tmp ) {
+  if (tmp) {
     scopename = Swig_scopename_last(Str(tmp));
   }
 
