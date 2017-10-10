@@ -1304,7 +1304,7 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep, String *sc
 	  Append(nt, "<(");
 	  jlen = Len(tparms);
 	  for (j = 0; j < jlen; j++) {
-          SwigType_typename_replace(Getitem(tparms, j), pat, rep, scopename);
+	    SwigType_typename_replace(Getitem(tparms, j), pat, rep, scopename);
 	    Append(nt, Getitem(tparms, j));
 	    if (j < (jlen - 1))
 	      Putc(',', nt);
@@ -1335,8 +1335,8 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep, String *sc
 	Clear(e);
 	if( ! scopename || Strstr(scopename, first) ) {
 	  if (first)
-	    SwigType_typename_replace(first, pat, rep);
-	  SwigType_typename_replace(rest, pat, rep);
+	    SwigType_typename_replace(first, pat, rep, scopename);
+	  SwigType_typename_replace(rest, pat, rep, scopename);
 	  Printv(e, first ? first : "", "::", rest, NIL);
 	}
 	Delete(first);
