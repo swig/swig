@@ -49,7 +49,7 @@ public:
 %{$1 = std::complex< double >($input.real, $input.imag);%}
 
 %typemap(in) const std::complex<T> &($*1_ltype temp)
-%{temp = std::complex< T >($input.real, $input.imag);
+%{temp = std::complex< T >((T)$input.real, (T)$input.imag);
   $1 = &temp;%}
 
 %typemap(out, null="SwigCreateSystemNumericsComplex(0.0, 0.0)") std::complex<T>
