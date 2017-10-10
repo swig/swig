@@ -16,6 +16,9 @@
 //Suppress: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
 #pragma clang diagnostic ignored "-Wconstant-logical-operand"
 #endif
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4003) // not enough actual parameters for macro 'FOO2'
+#endif
 %}
 
 /* check __cplusplus case */
