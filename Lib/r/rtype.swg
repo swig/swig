@@ -23,13 +23,13 @@
 %typemap("rtype") SWIGTYPE && "$R_class";
 %typemap("rtype") SWIGTYPE "$&R_class";
 
-%typemap("rtypecheck") int, int &, long, long &
+%typemap("rtypecheck") int, int &
   %{ (is.integer($arg) || is.numeric($arg)) && length($arg) == 1 %}
 %typemap("rtypecheck") int *, long *
   %{ is.integer($arg) || is.numeric($arg) %}
 
 
-%typemap("rtypecheck") float, double
+%typemap("rtypecheck") float, double, long, long &
   %{ is.numeric($arg) && length($arg) == 1 %}
 %typemap("rtypecheck") float *, double *
   %{ is.numeric($arg) %}

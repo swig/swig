@@ -60,13 +60,7 @@ SWIG_InitializeModule(0);
 	     unsigned int *, unsigned int[ANY],
              short *, short[ANY],
              signed short *, signed short[ANY],
-             unsigned short *, unsigned short[ANY],
-             long *, long[ANY],
-             signed long *, signed long[ANY],
-             unsigned long *, unsigned long[ANY],
-             long long *, long long[ANY],
-             signed long long *, signed long long[ANY],
-             unsigned long long *, unsigned long long[ANY]
+             unsigned short *, unsigned short[ANY]
              
 {
 { int _rswigi;
@@ -79,7 +73,13 @@ SWIG_InitializeModule(0);
 } 
 
 %typemap(in) float *, float[ANY],
-             double *, double[ANY]
+             double *, double[ANY],
+             long *, long[ANY],
+             signed long *, signed long[ANY],
+             unsigned long *, unsigned long[ANY],
+             long long *, long long[ANY],
+             signed long long *, signed long long[ANY],
+             unsigned long long *, unsigned long long[ANY]
              
 {
 {  int _rswigi;
@@ -220,12 +220,12 @@ $1 = %static_cast(CHAR(STRING_ELT($input, 0))[0],$1_ltype);
  }
 
 
-%typemap(in,noblock=1) int, long
+%typemap(in,noblock=1) int
 {
   $1 = %static_cast(INTEGER($input)[0], $1_ltype);
 }
 
-%typemap(out,noblock=1) int, long
+%typemap(out,noblock=1) int
   "$result = Rf_ScalarInteger($1);";
 
 
@@ -238,7 +238,8 @@ $1 = %static_cast(CHAR(STRING_ELT($input, 0))[0],$1_ltype);
 
 %typemap(in,noblock=1) 
              float, 
-             double
+             double,
+             long
 {
   $1 = %static_cast(REAL($input)[0], $1_ltype); 
 }

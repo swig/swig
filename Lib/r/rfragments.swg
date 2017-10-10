@@ -30,7 +30,7 @@
 SWIGINTERNINLINE SEXP
 SWIG_From_dec(long)(long value)
 {
-	return Rf_ScalarInteger((int)value);
+	return Rf_ScalarReal((double)value);
 }
 }
 
@@ -54,7 +54,7 @@ SWIG_AsVal_dec(long)(SEXP obj, long *val)
 SWIGINTERNINLINE SEXP
 SWIG_From_dec(long long)(long long value)
 {
-	return Rf_ScalarInteger((int)value);
+	return Rf_ScalarReal((double)value);
 }
 %#endif
 }
@@ -65,7 +65,11 @@ SWIG_From_dec(long long)(long long value)
 SWIGINTERNINLINE  int
 SWIG_AsVal_dec(long long)(SEXP obj, long long *val)
 {
-   if (val) *val = Rf_asInteger(obj);
+   if (val) {
+      double tmp = Rf_asReal(obj);
+      if(tmp > (2L<<(DBL_MANT_DIG-1)) || tmp < -(2L<<(DBL_MANT_DIG-1))) Rf_warning("long integers > 2^DBL_MANT_DIG not properly supported");
+      *val = (long)tmp;
+   }
    return SWIG_OK;
 }
 %#endif
@@ -75,7 +79,7 @@ SWIG_AsVal_dec(long long)(SEXP obj, long long *val)
 SWIGINTERNINLINE SEXP
 SWIG_From_dec(unsigned long)(unsigned long value)
 {
-	return Rf_ScalarInteger((int)value);
+	return Rf_ScalarReal((double)value);
 }
 }
 
@@ -100,7 +104,7 @@ SWIG_AsVal_dec(unsigned long)(SEXP obj, unsigned long *val)
 SWIGINTERNINLINE SEXP
 SWIG_From_dec(unsigned long long)(unsigned long long value)
 {
-	return Rf_ScalarInteger((int)value);
+	return Rf_ScalarReal((double)value);
 }
 %#endif
 }
@@ -112,7 +116,11 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
 SWIGINTERNINLINE  int
 SWIG_AsVal_dec(unsigned long long)(SEXP obj, unsigned long long *val)
 {
-   if (val) *val = Rf_asInteger(obj);
+   if (val) {
+      double tmp = Rf_asReal(obj);
+      if(tmp > (2L<<(DBL_MANT_DIG-1))) Rf_warning("long integers > 2^DBL_MANT_DIG not properly supported");
+      *val = (unsigned long)tmp;
+   }
    return SWIG_OK;
 }
 %#endif
