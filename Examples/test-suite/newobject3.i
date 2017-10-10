@@ -6,20 +6,20 @@
 
 %newobject factory::create;
 %inline %{
-class product {};
+class Product {};
 class factory {
 public:
-    product * create(short id, short type = 0);
-    product * create(const char * name, short type = 0);
+    Product * create(short id, short type = 0);
+    Product * create(const char * name, short type = 0);
 };
 %}
 
 %{
-product * factory::create(short id, short type) {
-    return (id && type >= 0) ? new product : NULL;
+Product * factory::create(short id, short type) {
+    return (id && type >= 0) ? new Product : NULL;
 }
 
-product * factory::create(const char * name, short type) {
-    return (name && type >= 0) ? new product : NULL;
+Product * factory::create(const char * name, short type) {
+    return (name && type >= 0) ? new Product : NULL;
 }
 %}
