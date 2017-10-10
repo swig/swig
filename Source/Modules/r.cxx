@@ -1,3 +1,4 @@
+
 /* -----------------------------------------------------------------------------
  * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
@@ -1245,8 +1246,16 @@ int R::enumDeclaration(Node *n) {
       // This won't work in general, but will at least handle cases like (3)
       // and 3+7, and when it doesn't work, it'll fail noisly rather than
       // quietly using the wrong enum value like we used to.
-      Printf(scode, "%s%s%s'%s' = %s%s\n", tab8, tab8, tab8, name, val,
-	     nextSibling(c) ? ", " : "");
+      if (!Strcmp(val, "true")) {
+	Printf(scode, "%s%s%s'%s' = %s%s\n", tab8, tab8, tab8, name, "TRUE",
+	       nextSibling(c) ? ", " : "");
+      } else if (!Strcmp(val, "false")) {
+	Printf(scode, "%s%s%s'%s' = %s%s\n", tab8, tab8, tab8, name, "FALSE",
+	       nextSibling(c) ? ", " : "");
+      } else {
+	Printf(scode, "%s%s%s'%s' = %s%s\n", tab8, tab8, tab8, name, val,
+	       nextSibling(c) ? ", " : "");
+      }
     } else {
       Printf(scode, "%s%s%s'%s' = %d%s\n", tab8, tab8, tab8, name, value,
 	     nextSibling(c) ? ", " : "");

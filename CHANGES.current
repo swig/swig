@@ -6,6 +6,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
 Version 4.0.0 (in progress)
 ===========================
+2017-10-10: joequant
+	    [R] pass enum expressions to R.  This will generate
+	    incorrect files when there is an arithmetic expression
+	    in the enum, but this is better than silently generating
+	    incorrect code
+
 2017-10-09: olly
 	    [PHP] Fix incorrect wrapper code generated when there's a
 	    combination of overloading, parameters with a default value
