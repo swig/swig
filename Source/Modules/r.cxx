@@ -637,7 +637,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
       Replaceall(tm, "$1", name);
       Replaceall(tm, "$result", "r_tmp");
       replaceRClass(tm, Getattr(p,"type"));
-      Replaceall(tm,"$owner", "R_SWIG_EXTERNAL");
+      Replaceall(tm,"$owner", "0");
       Delete(lstr);
     } 
     
@@ -697,7 +697,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
       Replaceall(tm,"$input", "r_swig_cb_data->retValue");
       Replaceall(tm,"$target", Swig_cresult_name());
       replaceRClass(tm, rettype);
-      Replaceall(tm,"$owner", "R_SWIG_EXTERNAL");
+      Replaceall(tm,"$owner", "0");
       Replaceall(tm,"$disown","0");
       Printf(f->code, "%s\n", tm);
     }
@@ -2062,7 +2062,7 @@ int R::functionWrapper(Node *n) {
       Replaceall(tm,"$n", pos); // The position into which to store the answer.
       Replaceall(tm,"$arg", Getattr(p, "emit:input"));
       Replaceall(tm,"$input", Getattr(p, "emit:input"));
-      Replaceall(tm,"$owner", "R_SWIG_EXTERNAL");
+      Replaceall(tm,"$owner", "0");
 
 
       Printf(outargs, "%s\n", tm);
@@ -2087,9 +2087,9 @@ int R::functionWrapper(Node *n) {
     replaceRClass(tm, retType);
 
     if (GetFlag(n,"feature:new")) {
-      Replaceall(tm, "$owner", "R_SWIG_OWNER");
+      Replaceall(tm, "$owner", "SWIG_POINTER_OWN");
     } else {
-      Replaceall(tm,"$owner", "R_SWIG_EXTERNAL");
+      Replaceall(tm,"$owner", "0");
     }
 
 #if 0
