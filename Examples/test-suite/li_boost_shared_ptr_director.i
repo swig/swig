@@ -4,7 +4,13 @@
 #include <boost/shared_ptr.hpp>
 %}
 
-%include "boost_shared_ptr.i";
+#if defined(SWIGPYTHON) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR)
+#define SHARED_PTR_WRAPPERS_IMPLEMENTED
+#endif
+
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
+
+%include <boost_shared_ptr.i>
 %shared_ptr(C);
 %feature("director") Base;
 
@@ -117,3 +123,5 @@ int call_take_c_shared_ptr_by_pointer_ref_with_null(Base* b) {
 }
 
 %}
+
+#endif

@@ -62,17 +62,17 @@
   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(new $1_ltype(($1_ltype &)$1));
   $input = SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN | %newpointer_flags);
 }
-%typemap(directorout,noblock=1) CONST TYPE (void *argp, int res = 0) {
+%typemap(directorout,noblock=1) CONST TYPE (void *swig_argp, int swig_res = 0) {
   swig_ruby_owntype newmem = {0, 0};
-  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
-  if (!SWIG_IsOK(res)) {
-    %dirout_fail(res, "$type");
+  swig_res = SWIG_ConvertPtrAndOwn($input, &swig_argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
+  if (!SWIG_IsOK(swig_res)) {
+    %dirout_fail(swig_res, "$type");
   }
-  if (!argp) {
+  if (!swig_argp) {
     %dirout_nullref("$type");
   } else {
-    $result = *(%reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)->get());
-    if (newmem.own & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *);
+    $result = *(%reinterpret_cast(swig_argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)->get());
+    if (newmem.own & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(swig_argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *);
   }
 }
 
@@ -251,22 +251,18 @@
 }
 
 %typemap(directorin,noblock=1) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > {
-  if ($1) {
-    SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1);
-    $input = SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN | %newpointer_flags);
-  } else {
-    $input = Qnil;
-  }
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = $1 ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1) : 0;
+  $input = SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN | %newpointer_flags);
 }
-%typemap(directorout,noblock=1) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > (void * swig_argp, int swig_res = 0) {
-  if (NIL_P($input)) {
-    $result = $ltype();
-  } else {
-    swig_res = SWIG_ConvertPtr($input, &swig_argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags);
-    if (!SWIG_IsOK(swig_res)) {
-      %dirout_fail(swig_res,"$type");
-    }
+%typemap(directorout,noblock=1) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > (void *swig_argp, int swig_res = 0) {
+  swig_ruby_owntype newmem = {0, 0};
+  swig_res = SWIG_ConvertPtrAndOwn($input, &swig_argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
+  if (!SWIG_IsOK(swig_res)) {
+    %dirout_fail(swig_res, "$type");
+  }
+  if (swig_argp) {
     $result = *(%reinterpret_cast(swig_argp, $&ltype));
+    if (newmem.own & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(swig_argp, $&ltype);
   }
 }
 
@@ -298,12 +294,8 @@
 %}
 
 %typemap(directorin,noblock=1) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & {
-  if ($1) {
-    SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1);
-    $input = SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN | %newpointer_flags);
-  } else {
-    $input = Qnil;
-  }
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = $1 ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1) : 0;
+  $input = SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN | %newpointer_flags);
 }
 %typemap(directorout,noblock=1) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & %{
 #error "directorout typemap for shared_ptr ref not implemented"
@@ -338,12 +330,8 @@
 %}
 
 %typemap(directorin,noblock=1) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * {
-  if ($1 && *$1) {
-    SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(*$1);
-    $input = SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN | %newpointer_flags);
-  } else {
-    $input = Qnil;
-  }
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = ($1 && *$1) ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(*$1) : 0;
+  $input = SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN | %newpointer_flags);
 }
 %typemap(directorout,noblock=1) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * %{
 #error "directorout typemap for pointer to shared_ptr not implemented"
@@ -374,12 +362,8 @@
 %}
 
 %typemap(directorin,noblock=1) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& {
-  if ($1 && *$1) {
-    SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(*$1);
-    $input = SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN | %newpointer_flags);
-  } else {
-    $input = Qnil;
-  }
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = ($1 && *$1) ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(*$1) : 0;
+  $input = SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN | %newpointer_flags);
 }
 %typemap(directorout,noblock=1) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& %{
 #error "directorout typemap for pointer ref to shared_ptr not implemented"

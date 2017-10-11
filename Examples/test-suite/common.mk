@@ -263,9 +263,10 @@ CPP_TEST_CASES += \
 	li_attribute \
 	li_attribute_template \
 	li_boost_shared_ptr \
-	li_boost_shared_ptr_bits \
-	li_boost_shared_ptr_template \
 	li_boost_shared_ptr_attribute \
+	li_boost_shared_ptr_bits \
+	li_boost_shared_ptr_director \
+	li_boost_shared_ptr_template \
 	li_carrays_cpp \
 	li_cdata_cpp \
 	li_cpointer_cpp \
