@@ -499,7 +499,7 @@ public:
 	  no_header_file = 1;
 	  Swig_mark_arg(i);
 	} else if ((strcmp(argv[i], "-new_vwm") == 0) || (strcmp(argv[i], "-newvwm") == 0)) {
-	  /* Turn on new value wrapper mpde */
+	  /* Turn on new value wrapper mode */
 	  Swig_value_wrapper_mode(1);
 	  no_header_file = 1;
 	  Swig_mark_arg(i);
