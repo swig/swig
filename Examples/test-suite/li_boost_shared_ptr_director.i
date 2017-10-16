@@ -4,7 +4,8 @@
 #include <boost/shared_ptr.hpp>
 %}
 
-#if defined(SWIGPYTHON) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR)
+//#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR)
+#if defined(SWIGJAVA) || defined(SWIGPYTHON) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
@@ -29,7 +30,7 @@ struct Base {
   virtual int take_c_by_value(C c) = 0;
   virtual int take_c_by_ref(C& c) = 0;
   virtual int take_c_by_pointer(C* c) = 0;
-  virtual int take_c_by_pointer_ref(C*& c) = 0;
+  virtual int take_c_by_pointer_ref(C*const& c) = 0;
   virtual int take_c_shared_ptr_by_value(boost::shared_ptr<C> c) = 0;
   virtual int take_c_shared_ptr_by_ref(boost::shared_ptr<C>& c) = 0;
   virtual int take_c_shared_ptr_by_pointer(boost::shared_ptr<C>* c) = 0;
