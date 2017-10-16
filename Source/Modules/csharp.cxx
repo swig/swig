@@ -3881,7 +3881,7 @@ public:
     Swig_typemap_attach_parms("ctype", l, 0);
     Swig_typemap_attach_parms("imtype", l, 0);
     Swig_typemap_attach_parms("cstype", l, 0);
-    Swig_typemap_attach_parms("directorin", l, 0);
+    Swig_typemap_attach_parms("directorin", l, w);
     Swig_typemap_attach_parms("csdirectorin", l, 0);
     Swig_typemap_attach_parms("directorargout", l, w);
 

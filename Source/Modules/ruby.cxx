@@ -3188,7 +3188,7 @@ public:
       Swig_director_parms_fixup(l);
 
       Swig_typemap_attach_parms("in", l, 0);
-      Swig_typemap_attach_parms("directorin", l, 0);
+      Swig_typemap_attach_parms("directorin", l, w);
       Swig_typemap_attach_parms("directorargout", l, w);
 
       char source[256];

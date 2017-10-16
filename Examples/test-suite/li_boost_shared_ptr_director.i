@@ -35,6 +35,16 @@ struct Base {
   virtual int take_c_shared_ptr_by_ref(boost::shared_ptr<C>& c) = 0;
   virtual int take_c_shared_ptr_by_pointer(boost::shared_ptr<C>* c) = 0;
   virtual int take_c_shared_ptr_by_pointer_ref(boost::shared_ptr<C>*const&c) = 0;
+  virtual int take_many_args(
+    C v1, C v2,
+    C &r1, C &r2,
+    C *p1, C *p2,
+    C *const& cr1, C *const& cr2,
+    boost::shared_ptr<C> sv1, boost::shared_ptr<C> sv2,
+    boost::shared_ptr<C> &sr1, boost::shared_ptr<C> &sr2,
+    boost::shared_ptr<C> *sp1, boost::shared_ptr<C> *sp2,
+    boost::shared_ptr<C> *const& spr1, boost::shared_ptr<C> *const& spr2
+  ) = 0;
   virtual ~Base() {}
 };
 
