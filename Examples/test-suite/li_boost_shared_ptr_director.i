@@ -5,7 +5,7 @@
 %}
 
 //#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR)
-#if defined(SWIGJAVA) || defined(SWIGPYTHON) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
@@ -20,6 +20,7 @@ struct C {
   C() : m(1) {}
   C(int n) : m(n) {}
   int get_m() { return m; }
+private:
   int m;
 };
 
