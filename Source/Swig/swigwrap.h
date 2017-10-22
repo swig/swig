@@ -16,6 +16,7 @@ typedef struct Wrapper {
     String *def;
     String *locals;
     String *code;
+    const char *end_statement;
 } Wrapper;
 
 extern Wrapper *NewWrapper(void);
