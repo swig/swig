@@ -4062,11 +4062,11 @@ public:
     /* header declaration, start wrapper definition */
     String *target;
     SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-    target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
     Printf(w->def, "%s", target);
     Delete(qualified_name);
     Delete(target);
-    target = Swig_method_decl(rtype, decl, name, l, 0, 1);
+    target = Swig_method_decl(rtype, decl, name, l, 1);
     Printf(declaration, "    virtual %s", target);
     Delete(target);
 
@@ -4283,7 +4283,7 @@ public:
       /* constructor */
       {
 	String *basetype = Getattr(parent, "classtype");
-	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 0);
+	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0);
 	String *call = Swig_csuperclass_call(0, basetype, superparms);
 
 	Printf(f_directors, "%s::%s : %s, %s {\n", dirclassname, target, call, Getattr(parent, "director:ctor"));
@@ -4296,7 +4296,7 @@ public:
 
       /* constructor header */
       {
-	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 1);
+	String *target = Swig_method_decl(0, decl, dirclassname, parms, 1);
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }

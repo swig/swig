@@ -2478,7 +2478,7 @@ done:
 	String *call;
 	String *basetype = Getattr(parent, "classtype");
 
-	String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
+	String *target = Swig_method_decl(0, decl, classname, parms, 0);
 	call = Swig_csuperclass_call(0, basetype, superparms);
 	Printf(w->def, "%s::%s: %s, Swig::Director(self) {", classname, target, call);
 	Append(w->def, "}");
@@ -2490,7 +2490,7 @@ done:
 
       /* constructor header */
       {
-	String *target = Swig_method_decl(0, decl, classname, parms, 0, 1);
+	String *target = Swig_method_decl(0, decl, classname, parms, 1);
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }
@@ -2534,12 +2534,12 @@ done:
     String *pclassname = NewStringf("SwigDirector_%s", classname);
     String *qualified_name = NewStringf("%s::%s", pclassname, name);
     SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-    target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
     Printf(w->def, "%s", target);
     Delete(qualified_name);
     Delete(target);
     /* header declaration */
-    target = Swig_method_decl(rtype, decl, name, l, 0, 1);
+    target = Swig_method_decl(rtype, decl, name, l, 1);
     Printf(declaration, "    virtual %s", target);
     Delete(target);
 
