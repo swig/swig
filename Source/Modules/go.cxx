@@ -1204,12 +1204,12 @@ private:
     // Write out the result type.
     if (info->is_constructor) {
       String *cl = exportedName(class_name);
-      Printv(parm_print, " (_swig_ret ", cl, ")", NULL);
+      Printv(parm_print, " ", cl, NULL);
       Delete(cl);
     } else {
       if (SwigType_type(info->result) != T_VOID) {
 	String *tm = goType(info->n, info->result);
-	Printv(parm_print, " (_swig_ret ", tm, ")", NULL);
+	Printv(parm_print, " ", tm, NULL);
 	Delete(tm);
       }
     }
@@ -1822,7 +1822,7 @@ private:
     // Write out the result type.
     if (is_constructor) {
       String *cl = exportedName(class_name);
-      Printv(parm_print, " (_swig_ret ", cl, ")", NULL);
+      Printv(parm_print, " ", cl, "", NULL);
       if (first == NULL) {
 	first = NewString("_swig_ret");
       }
@@ -1830,7 +1830,7 @@ private:
     } else {
       if (SwigType_type(result) != T_VOID) {
 	String *tm = goType(n, result);
-	Printv(parm_print, " (_swig_ret ", tm, ")", NULL);
+	Printv(parm_print, " ", tm, NULL);
 	if (first == NULL) {
 	  first = NewString("_swig_ret");
 	}
@@ -3684,7 +3684,7 @@ private:
 	  p = nextParm(p);
 	}
 
-	Printv(f_go_wrappers, ") (_swig_ret ", go_type_name, ")", NULL);
+	Printv(f_go_wrappers, ") ", go_type_name, NULL);
 
 	if (!gccgo_flag) {
 	  Printv(f_go_wrappers, " {\n", NULL);
@@ -4339,7 +4339,7 @@ private:
 
 	  if (SwigType_type(result) != T_VOID) {
 	    String *tm = goWrapperType(n, result, true);
-	    Printv(f_go_wrappers, " (_swig_ret ", tm, ")", NULL);
+	    Printv(f_go_wrappers, " ", tm, NULL);
 	    Delete(tm);
 	  }
 
