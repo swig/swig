@@ -182,3 +182,14 @@
   $*dclassname ret = (cPtr is null) ? null : new $*dclassname(cPtr, $owner);$excode
   return ret;
 }
+%typemap(directorin) SWIGTYPE *const&
+  "$input = (void *) $1;"
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *const&
+  "$result = ($1_ltype)&$input;"
+%typemap(ddirectorin,
+  nativepointer="cast($dtype)$winput"
+) SWIGTYPE *const& "($winput is null) ? null : new $*dclassname($winput, false)"
+%typemap(ddirectorout,
+  nativepointer="cast(void*)$dcall"
+) SWIGTYPE *const& "$*dclassname.swigGetCPtr($dcall)"
+
