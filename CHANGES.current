@@ -6,6 +6,20 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
 Version 4.0.0 (in progress)
 ===========================
+
+2017-10-26: wsfulton
+            Add support for C++11 ref-qualifiers when using directors.
+
+2017-10-26: wsfulton
+            Fix generated code when using directors and methods returning const ref pointers.
+
+2017-10-26: wsfulton
+            [C#, D, Java, Octave, R, Scilab] Port director typemaps to these additional languages.
+            Issue #700.
+
+2017-10-26: radarsat1
+            [Ruby Python] Patch #1029 - Correct handling of null using directors and shared_ptr.
+
 2017-10-10: joequant
 	    [R] pass enum expressions to R.  This will generate
 	    incorrect files when there is an arithmetic expression
