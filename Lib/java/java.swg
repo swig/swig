@@ -1173,6 +1173,12 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
    $1 = ($1_ltype)&temp; %}
 %typemap(out) SWIGTYPE *const&
 %{ *($1_ltype)&$result = *$1; %} 
+%typemap(directorin,descriptor="L$packagepath/$*javaclassname;") SWIGTYPE *const&
+%{ *(($1_ltype)&$input) = ($*1_ltype) $1; %}
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *const&
+%{ $result = ($1_ltype)&$input; %}
+%typemap(javadirectorin) SWIGTYPE *const& "($jniinput == 0) ? null : new $*javaclassname($jniinput, false)"
+%typemap(javadirectorout) SWIGTYPE *const& "$*javaclassname.getCPtr($javacall)"
 
 /* Typemaps used for the generation of proxy and type wrapper class code */
 %typemap(javabase)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
