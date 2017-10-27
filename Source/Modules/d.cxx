@@ -1995,15 +1995,17 @@ public:
 	    /* If returning a reference, initialize the pointer to a sane
 	       default - if a D exception occurs, then the pointer returns
 	       something other than a NULL-initialized reference. */
-	    String *non_ref_type = Copy(returntype);
+	    SwigType *noref_type = SwigType_del_reference(Copy(returntype));
+	    String *noref_ltype = SwigType_lstr(noref_type, 0);
+	    String *return_ltype = SwigType_lstr(returntype, 0);
 
-	    /* Remove reference and const qualifiers */
-	    Replaceall(non_ref_type, "r.", "");
-	    Replaceall(non_ref_type, "q(const).", "");
-	    Wrapper_add_localv(w, "result_default", "static", SwigType_str(non_ref_type, "result_default"), "=", SwigType_str(non_ref_type, "()"), NIL);
-	    Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= &result_default", NIL);
-
-	    Delete(non_ref_type);
+	    Wrapper_add_localv(w, "result_default", "static", noref_ltype, "result_default", NIL);
+	    Wrapper_add_localv(w, "c_result", return_ltype, "c_result", NIL);
+	    Printf(w->code, "result_default = SwigValueInit< %s >();\n", noref_ltype);
+	    Printf(w->code, "c_result = &result_default;\n");
+	    Delete(return_ltype);
+	    Delete(noref_ltype);
+	    Delete(noref_type);
 	  }
 
 	  Delete(base_typename);
@@ -2058,7 +2060,7 @@ public:
     Swig_typemap_attach_parms("ctype", l, 0);
     Swig_typemap_attach_parms("imtype", l, 0);
     Swig_typemap_attach_parms("dtype", l, 0);
-    Swig_typemap_attach_parms("directorin", l, 0);
+    Swig_typemap_attach_parms("directorin", l, w);
     Swig_typemap_attach_parms("ddirectorin", l, 0);
     Swig_typemap_attach_parms("directorargout", l, w);
 
@@ -2212,11 +2214,11 @@ public:
     /* header declaration, start wrapper definition */
     String *target;
     SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-    target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
     Printf(w->def, "%s", target);
     Delete(qualified_name);
     Delete(target);
-    target = Swig_method_decl(rtype, decl, name, l, 0, 1);
+    target = Swig_method_decl(rtype, decl, name, l, 1);
     Printf(declaration, "    virtual %s", target);
     Delete(target);
 
@@ -2436,7 +2438,7 @@ public:
       /* constructor */
       {
 	String *basetype = Getattr(parent, "classtype");
-	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 0);
+	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0);
 	String *call = Swig_csuperclass_call(0, basetype, superparms);
 	String *classtype = SwigType_namestr(Getattr(n, "name"));
 
@@ -2451,7 +2453,7 @@ public:
 
       /* constructor header */
       {
-	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 1);
+	String *target = Swig_method_decl(0, decl, dirclassname, parms, 1);
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }

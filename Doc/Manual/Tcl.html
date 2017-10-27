@@ -958,7 +958,7 @@ Foo *BarToFoo(Bar *b) {
 }
 
 Foo *IncrFoo(Foo *f, int i) {
-    return f+i;
+  return f+i;
 }
 %}
 </pre>
@@ -1054,7 +1054,7 @@ example, consider this:
 <div class="code">
 <pre>
 struct Bar {
-    int  x[16];
+  int  x[16];
 };
 </pre>
 </div>
@@ -1456,9 +1456,9 @@ Similarly, if you have a class like this,
 <pre>
 class Foo {
 public:
-    Foo();
-    Foo(const Foo &amp;);
-    ...
+  Foo();
+  Foo(const Foo &amp;);
+  ...
 };
 </pre>
 </div>
@@ -1693,11 +1693,11 @@ For example:
 %rename(Bar_spam) Bar::spam;
 
 namespace Foo {
-    int spam();
+  int spam();
 }
 
 namespace Bar {
-    int spam();
+  int spam();
 }
 </pre>
 </div>
@@ -1886,19 +1886,19 @@ then SWIG transforms it into a set of low-level procedural wrappers. For example
 <div class="code">
 <pre>
 Foo *new_Foo() {
-    return new Foo();
+  return new Foo();
 }
 void delete_Foo(Foo *f) {
-    delete f;
+  delete f;
 }
 int Foo_x_get(Foo *f) {
-    return f-&gt;x;
+  return f-&gt;x;
 }
 void Foo_x_set(Foo *f, int value) {
-    f-&gt;x = value;
+  f-&gt;x = value;
 }
 int Foo_spam(Foo *f, int arg1) {
-    return f-&gt;spam(arg1);
+  return f-&gt;spam(arg1);
 }
 </pre>
 </div>
@@ -1945,8 +1945,8 @@ ownership of the result.  For example:
 <pre>
 class Foo {
 public:
-    Foo();
-    Foo bar();
+  Foo();
+  Foo bar();
 };
 </pre>
 </div>
@@ -1975,9 +1975,9 @@ they came from.  Therefore, the ownership is set to zero.  For example:
 <pre>
 class Foo {
 public:
-    ...
-    Foo *spam();
-    ...
+  ...
+  Foo *spam();
+  ...
 };
 </pre>
 </div>
@@ -2011,8 +2011,8 @@ or global variable.  For example, consider this interface:
 %module example
 
 struct Foo {
-    int  value;
-    Foo  *next;
+  int  value;
+  Foo  *next;
 };
 
 Foo *head = 0;
@@ -2465,9 +2465,9 @@ you might define a typemap like this:
 %module example
 
 %typemap(in) int {
-    if (Tcl_GetIntFromObj(interp, $input, &amp;$1) == TCL_ERROR)
-      return TCL_ERROR;
-    printf("Received an integer : %d\n", $1);
+  if (Tcl_GetIntFromObj(interp, $input, &amp;$1) == TCL_ERROR)
+    return TCL_ERROR;
+  printf("Received an integer : %d\n", $1);
 }
 %inline %{
 extern int fact(int n);
@@ -2585,7 +2585,7 @@ like this:
 <div class="code">
 <pre>
 %typemap(out) int {
-    Tcl_SetObjResult(interp, Tcl_NewIntObj($1));
+  Tcl_SetObjResult(interp, Tcl_NewIntObj($1));
 }
 </pre>
 </div>
@@ -3215,28 +3215,28 @@ helper functions to access arrays :
 
 %inline %{
 double *new_double(int size) {
-        return (double *) malloc(size*sizeof(double));
+  return (double *) malloc(size*sizeof(double));
 }
 void delete_double(double *a) {
-        free(a);
+  free(a);
 }
 double get_double(double *a, int index) {
-        return a[index];
+  return a[index];
 }
 void set_double(double *a, int index, double val) {
-        a[index] = val;
+  a[index] = val;
 }
 int *new_int(int size) {
-        return (int *) malloc(size*sizeof(int));
+  return (int *) malloc(size*sizeof(int));
 }
 void delete_int(int *a) {
-        free(a);
+  free(a);
 }
 int get_int(int *a, int index) {
-        return a[index];
+  return a[index];
 }
 int set_int(int *a, int index, int val) {
-        a[index] = val;
+  a[index] = val;
 }
 %}
 

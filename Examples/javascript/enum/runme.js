@@ -30,5 +30,5 @@ f.enum_test(example.Foo.LUDICROUS);
 // enum value BLUE of enum color is accessed as property of cconst
 console.log("example.BLUE= " + example.BLUE);
 
-// enum value LUDICROUS of enum Foo::speed is accessed as as property of cconst
+// enum value LUDICROUS of enum Foo::speed is accessed as property of cconst
 console.log("example.speed.LUDICROUS= " + example.Foo.LUDICROUS); 

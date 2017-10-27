@@ -18,8 +18,14 @@
 #include <errno.h>
 #include <stdlib.h>
 
+#include <iostream>
+#include <stdint.h>
+
 #define PYSHADOW_MEMBER  0x2
 #define WARN_PYTHON_MULTIPLE_INH 405
+
+#define PYTHON_INT_MAX (2147483647)
+#define PYTHON_INT_MIN (-2147483647-1)
 
 static String *const_code = 0;
 static String *module = 0;
@@ -177,7 +183,7 @@ static String *getSlot(Node *n = NULL, const char *key = NULL, String *default_s
 
 static void printSlot(File *f, String *slotval, const char *slotname, const char *functype = NULL) {
   String *slotval_override = 0;
-  if (functype)
+  if (functype && Strcmp(slotval, "0") == 0)
     slotval = slotval_override = NewStringf("(%s) %s", functype, slotval);
   int len = Len(slotval);
   int fieldwidth = len > 41 ? (len > 61 ? 0 : 61 - len) : 41 - len;
@@ -493,7 +499,7 @@ public:
 	  no_header_file = 1;
 	  Swig_mark_arg(i);
 	} else if ((strcmp(argv[i], "-new_vwm") == 0) || (strcmp(argv[i], "-newvwm") == 0)) {
-	  /* Turn on new value wrapper mpde */
+	  /* Turn on new value wrapper mode */
 	  Swig_value_wrapper_mode(1);
 	  no_header_file = 1;
 	  Swig_mark_arg(i);
@@ -1960,9 +1966,9 @@ public:
 		Delete(rname);
 	      } else {
 		if (CPlusPlus) {
-		  Printf(doc, "Proxy of C++ %s class.", real_classname);
+		  Printf(doc, "Proxy of C++ %s class.", SwigType_namestr(real_classname));
 		} else {
-		  Printf(doc, "Proxy of C %s struct.", real_classname);
+		  Printf(doc, "Proxy of C %s struct.", SwigType_namestr(real_classname));
 		}
 	      }
 	    }
@@ -1973,7 +1979,7 @@ public:
 	    String *paramList = make_autodocParmList(n, showTypes);
 	    Printf(doc, "__init__(");
 	    if (showTypes)
-	      Printf(doc, "%s ", getClassName());
+	      Printf(doc, "%s ", class_name);
 	    if (Len(paramList))
 	      Printf(doc, "self, %s) -> %s", paramList, class_name);
 	    else
@@ -1984,7 +1990,7 @@ public:
 
 	case AUTODOC_DTOR:
 	  if (showTypes)
-	    Printf(doc, "__del__(%s self)", getClassName());
+	    Printf(doc, "__del__(%s self)", class_name);
 	  else
 	    Printf(doc, "__del__(self)");
 	  break;
@@ -2044,9 +2050,11 @@ public:
     String *result = NIL;
 
     // Check if this is an integer number in any base.
+    errno = 0;
     long value = strtol(s, &end, 0);
     if (errno == ERANGE || end == s)
       return NIL;
+
     if (*end != '\0') {
       // If there is a suffix after the number, we can safely ignore "l"
       // and (provided the number is unsigned) "u", and also combinations of
@@ -2068,6 +2076,14 @@ public:
     }
     // So now we are certain that we are indeed dealing with an integer
     // that has a representation as long given by value.
+
+    // Restrict to guaranteed supported range in Python, see maxint docs: https://docs.python.org/2/library/sys.html#sys.maxint
+    // Don't do this pointless check when long is 32 bits or smaller as strtol will have already failed with ERANGE
+#if LONG_MAX > PYTHON_INT_MAX || LONG_MIN < PYTHON_INT_MIN
+    if (value > PYTHON_INT_MAX || value < PYTHON_INT_MIN) {
+      return NIL;
+    }
+#endif
 
     if (Cmp(resolved_type, "bool") == 0)
       // Allow integers as the default value for a bool parameter.
@@ -2105,6 +2121,7 @@ public:
     const char *const s = Char(v);
     char *end;
 
+    errno = 0;
     double value = strtod(s, &end);
     (void) value;
     if (errno != ERANGE && end != s) {
@@ -2501,7 +2518,8 @@ public:
 
     String *tmp = NewString("");
     String *dispatch;
-    const char *dispatch_code = funpack ? "return %s(self, argc, argv);" : "return %s(self, args);";
+    const char *dispatch_code = funpack ? "return %s(self, argc, argv);" :
+      (builtin_ctor ? "return %s(self, args, NULL);" : "return %s(self, args);");
 
     if (castmode) {
       dispatch = Swig_overload_dispatch_cast(n, dispatch_code, &maxargs);
@@ -2515,7 +2533,8 @@ public:
     String *symname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(symname);
 
-    Printv(f->def, linkage, builtin_ctor ? "int " : "PyObject *", wname, "(PyObject *self, PyObject *args) {", NIL);
+    const char *builtin_kwargs = builtin_ctor ? ", PyObject *SWIGUNUSEDPARM(kwargs)" : "";
+    Printv(f->def, linkage, builtin_ctor ? "int " : "PyObject *", wname, "(PyObject *self, PyObject *args", builtin_kwargs, ") {", NIL);
 
     Wrapper_add_local(f, "argc", "Py_ssize_t argc");
     Printf(tmp, "PyObject *argv[%d] = {0}", maxargs + 1);
@@ -2729,9 +2748,10 @@ public:
       Append(wname, overname);
     }
 
+    const char *builtin_kwargs = builtin_ctor ? ", PyObject *SWIGUNUSEDPARM(kwargs)" : "";
     if (!allow_kwargs || overname) {
       if (!varargs) {
-	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args) {", NIL);
+	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args", builtin_kwargs, ") {", NIL);
       } else {
 	Printv(f->def, linkage, wrap_return, wname, "__varargs__", "(PyObject *", self_param, ", PyObject *args, PyObject *varargs) {", NIL);
       }
@@ -2927,17 +2947,13 @@ public:
 	Clear(f->def);
 	if (overname) {
 	  if (noargs) {
-	    Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", int nobjs, PyObject **SWIGUNUSEDPARM(swig_obj)) {", NIL);
+	    Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", Py_ssize_t nobjs, PyObject **SWIGUNUSEDPARM(swig_obj)) {", NIL);
 	  } else {
-	    Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", int nobjs, PyObject **swig_obj) {", NIL);
+	    Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", Py_ssize_t nobjs, PyObject **swig_obj) {", NIL);
 	  }
 	  Printf(parse_args, "if ((nobjs < %d) || (nobjs > %d)) SWIG_fail;\n", num_required, num_arguments);
 	} else {
-	  if (noargs) {
-	    Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args) {", NIL);
-	  } else {
-	    Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args) {", NIL);
-	  }
+	  Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args", builtin_kwargs, ") {", NIL);
 	  if (onearg && !builtin_ctor) {
 	    Printf(parse_args, "if (!args) SWIG_fail;\n");
 	    Append(parse_args, "swig_obj[0] = args;\n");
@@ -3238,9 +3254,10 @@ public:
       DelWrapper(f);
       f = NewWrapper();
       if (funpack) {
-	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", int nobjs, PyObject **swig_obj) {", NIL);
+	// Note: funpack is currently always false for varargs
+	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", Py_ssize_t nobjs, PyObject **swig_obj) {", NIL);
       } else {
-	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args) {", NIL);
+	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args", builtin_kwargs, ") {", NIL);
       }
       Wrapper_add_local(f, "resultobj", builtin_ctor ? "int resultobj" : "PyObject *resultobj");
       Wrapper_add_local(f, "varargs", "PyObject *varargs");
@@ -3350,7 +3367,7 @@ public:
 	  closure_name = Copy(wrapper_name);
 	}
 	if (func_type) {
-	  String *s = NewStringf("(%s) %s", func_type, closure_name);
+	  String *s = NewStringf("%s", closure_name);
 	  Delete(closure_name);
 	  closure_name = s;
 	}
@@ -3716,7 +3733,7 @@ public:
 	Wrapper *w = NewWrapper();
 	String *call;
 	String *basetype = Getattr(parent, "classtype");
-	String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
+	String *target = Swig_method_decl(0, decl, classname, parms, 0);
 	call = Swig_csuperclass_call(0, basetype, superparms);
 	Printf(w->def, "%s::%s: %s, Swig::Director(self) { \n", classname, target, call);
 	Printf(w->def, "   SWIG_DIRECTOR_RGTR((%s *)this, this); \n", basetype);
@@ -3729,7 +3746,7 @@ public:
 
       /* constructor header */
       {
-	String *target = Swig_method_decl(0, decl, classname, parms, 0, 1);
+	String *target = Swig_method_decl(0, decl, classname, parms, 1);
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }
@@ -5345,12 +5362,12 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   String *pclassname = NewStringf("SwigDirector_%s", classname);
   String *qualified_name = NewStringf("%s::%s", pclassname, name);
   SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-  target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
+  target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
   Printf(w->def, "%s", target);
   Delete(qualified_name);
   Delete(target);
   /* header declaration */
-  target = Swig_method_decl(rtype, decl, name, l, 0, 1);
+  target = Swig_method_decl(rtype, decl, name, l, 1);
   Printf(declaration, "    virtual %s", target);
   Delete(target);
 
@@ -5434,7 +5451,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 
     /* remove the wrapper 'w' since it was producing spurious temps */
     Swig_typemap_attach_parms("in", l, 0);
-    Swig_typemap_attach_parms("directorin", l, 0);
+    Swig_typemap_attach_parms("directorin", l, w);
     Swig_typemap_attach_parms("directorargout", l, w);
 
     Parm *p;

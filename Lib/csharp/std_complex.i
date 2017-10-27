@@ -45,8 +45,11 @@ public:
 %typemap(imtype) std::complex<T>, const std::complex<T> & "System.Numerics.Complex"
 %typemap(cstype) std::complex<T>, const std::complex<T> & "System.Numerics.Complex"
 
-%typemap(in) std::complex<T>($*1_ltype temp), const std::complex<T> &($*1_ltype temp)
-%{temp = std::complex< double >($input.real, $input.imag);
+%typemap(in) std::complex<T>
+%{$1 = std::complex< double >($input.real, $input.imag);%}
+
+%typemap(in) const std::complex<T> &($*1_ltype temp)
+%{temp = std::complex< T >((T)$input.real, (T)$input.imag);
   $1 = &temp;%}
 
 %typemap(out, null="SwigCreateSystemNumericsComplex(0.0, 0.0)") std::complex<T>

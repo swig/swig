@@ -855,6 +855,12 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
    $1 = ($1_ltype)&temp; %}
 %typemap(out) SWIGTYPE *const&
 %{ $result = (void *)*$1; %} 
+%typemap(directorin) SWIGTYPE *const&
+%{ $input = (void *) $1; %}
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *const&
+%{ $result = ($1_ltype)&$input; %}
+%typemap(csdirectorin) SWIGTYPE *const& "($iminput == global::System.IntPtr.Zero) ? null : new $*csclassname($iminput, false)"
+%typemap(csdirectorout) SWIGTYPE *const& "$*csclassname.getCPtr($cscall).Handle"
 
 /* Marshal C/C++ pointer to global::System.IntPtr */
 %typemap(ctype) void *VOID_INT_PTR "void *"

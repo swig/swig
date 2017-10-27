@@ -1560,13 +1560,15 @@ public:
 	      Printf(prepare, "case %d: ", ++last_handled_i);
 	    }
 	    if (non_void_return) {
-	      if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
+	      if ((!directorsEnabled() || !Swig_directorclass(n)) && !constructor) {
+		Append(prepare, "$r=");
+	      } else if (wrapperType == staticmemberfn || wrapperType == staticmembervar) {
 		Append(prepare, "$r=");
 	      } else {
 		Printf(prepare, "$this->%s=", SWIG_PTR);
 	      }
 	    }
-	    if (!directorsEnabled() || !Swig_directorclass(n) || !newobject) {
+	    if (!directorsEnabled() || !Swig_directorclass(n) || !constructor) {
 	      Printf(prepare, "%s(%s); break;\n", iname, invoke_args);
 	    } else if (!i) {
 	      Printf(prepare, "%s($_this%s); break;\n", iname, invoke_args);
@@ -1582,14 +1584,16 @@ public:
 	if (had_a_case)
 	  Printf(prepare, "default: ");
 	if (non_void_return) {
-	  if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
+	  if ((!directorsEnabled() || !Swig_directorclass(n)) && !constructor) {
+	    Append(prepare, "$r=");
+	  } else if (wrapperType == staticmemberfn || wrapperType == staticmembervar) {
 	    Append(prepare, "$r=");
 	  } else {
 	    Printf(prepare, "$this->%s=", SWIG_PTR);
 	  }
 	}
 
-	if (!directorsEnabled() || !Swig_directorclass(n) || !newobject) {
+	if (!directorsEnabled() || !Swig_directorclass(n) || !constructor) {
 	  Printf(prepare, "%s(%s);\n", iname, invoke_args);
 	} else {
 	  Printf(prepare, "%s($_this, %s);\n", iname, invoke_args);
@@ -1699,7 +1703,7 @@ public:
 	Printf(output, "\tstatic function %s(%s) {\n", methodname, args);
       }
 
-      if (!newobject)
+      if (!constructor)
 	Printf(output, "%s", prepare);
       if (constructor) {
 	if (!directorsEnabled() || !Swig_directorclass(n)) {
@@ -2462,7 +2466,7 @@ done:
 
 	// We put TSRMLS_DC after the self parameter in order to cope with
 	// any default parameters.
-	String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
+	String *target = Swig_method_decl(0, decl, classname, parms, 0);
 	const char * p = Char(target);
 	const char * comma = strchr(p, ',');
 	int ins = comma ? (int)(comma - p) : Len(target) - 1;
@@ -2481,7 +2485,7 @@ done:
       {
 	// We put TSRMLS_DC after the self parameter in order to cope with
 	// any default parameters.
-	String *target = Swig_method_decl(0, decl, classname, parms, 0, 1);
+	String *target = Swig_method_decl(0, decl, classname, parms, 1);
 	const char * p = Char(target);
 	const char * comma = strchr(p, ',');
 	int ins = comma ? (int)(comma - p) : Len(target) - 1;
@@ -2530,12 +2534,12 @@ done:
     String *pclassname = NewStringf("SwigDirector_%s", classname);
     String *qualified_name = NewStringf("%s::%s", pclassname, name);
     SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-    target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
     Printf(w->def, "%s", target);
     Delete(qualified_name);
     Delete(target);
     /* header declaration */
-    target = Swig_method_decl(rtype, decl, name, l, 0, 1);
+    target = Swig_method_decl(rtype, decl, name, l, 1);
     Printf(declaration, "    virtual %s", target);
     Delete(target);
 
@@ -2616,7 +2620,7 @@ done:
 
       /* remove the wrapper 'w' since it was producing spurious temps */
       Swig_typemap_attach_parms("in", l, 0);
-      Swig_typemap_attach_parms("directorin", l, 0);
+      Swig_typemap_attach_parms("directorin", l, w);
       Swig_typemap_attach_parms("directorargout", l, w);
 
       Parm *p;

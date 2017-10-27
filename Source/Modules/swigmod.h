@@ -385,7 +385,7 @@ String *Swig_csuperclass_call(String *base, String *method, ParmList *l);
 String *Swig_class_declaration(Node *n, String *name);
 String *Swig_class_name(Node *n);
 String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms);
-String *Swig_method_decl(SwigType *rtype, SwigType *decl, const_String_or_char_ptr id, List *args, int strip, int values);
+String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_String_or_char_ptr id, List *args, int default_args);
 String *Swig_director_declaration(Node *n);
 void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f);
 void Swig_director_parms_fixup(ParmList *parms);

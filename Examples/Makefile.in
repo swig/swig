@@ -386,7 +386,7 @@ else
   PYSCRIPT = $(RUNME)3.py
 endif
 
-PY2TO3 = 2to3 `2to3 -l | grep -v -E "Available|import$$" | awk '{print "-f "$$0}'`
+PY2TO3 = @PY2TO3@ `@PY2TO3@ -l | grep -v -E "Available|import$$" | awk '{print "-f "$$0}'`
 
 python_run: $(PYSCRIPT)
 ifneq (,$(PEP8))

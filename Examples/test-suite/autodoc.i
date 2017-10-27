@@ -133,6 +133,14 @@ typedef int Integer;
 void banana(S *a, const struct tagS *b, int c, Integer d) {}
 %}
 
+// Check docs for a template type
+%inline %{
+template<typename X> struct T {
+  T inout(T t) { return t; }
+};
+%}
+%template(TInteger) T<int>;
+
 %inline %{
 #ifdef SWIGPYTHON_BUILTIN
 bool is_python_builtin() { return true; }
@@ -140,4 +148,3 @@ bool is_python_builtin() { return true; }
 bool is_python_builtin() { return false; }
 #endif
 %}
-  

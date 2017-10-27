@@ -42,6 +42,7 @@
 <li><a href="#CPlusPlus11_noexcept">Exception specifications and noexcept</a>
 <li><a href="#CPlusPlus11_alignment">Control and query object alignment</a>
 <li><a href="#CPlusPlus11_attributes">Attributes</a>
+<li><a href="#CPlusPlus11_ref_qualifiers">Methods with ref-qualifiers</a>
 </ul>
 <li><a href="#CPlusPlus11_standard_library_changes">Standard library changes</a>
 <ul>
@@ -877,7 +878,8 @@ so in this case it is entirely possible to pass an int instead of a double to <t
 
 
 <p>
-SWIG correctly parses the new <tt>static_assert</tt> declarations.
+SWIG correctly parses the new <tt>static_assert</tt> declarations (though 3.0.12 and earlier
+had a bug which meant this wasn't accepted at file scope).
 This is a C++ compile time directive so there isn't anything useful that SWIG can do with it.
 </p>
 
@@ -970,6 +972,104 @@ int [[attr1]] i [[attr2, attr3]];
 [[noreturn, nothrow]] void f [[noreturn]] ();
 </pre></div>
 
+
+<H3><a name="CPlusPlus11_ref_qualifiers">7.2.29 Methods with ref-qualifiers</a></H3>
+
+
+<p>
+C++11 non-static member functions can be declared with ref-qualifiers.
+Member functions declared with a <tt>&amp;</tt> lvalue ref-qualifiers are wrapped like any other function without ref-qualifiers.
+Member functions declared with a <tt>&amp;&amp;</tt> rvalue ref-qualifiers are ignored by default
+as they are unlikely to be required from non-C++ languages where the concept of <i>rvalue-ness</i>
+for the implied *this pointer does not apply.
+The warning is hidden by default, but can be displayed as described in the section on <a href="Warnings.html#Warnings_nn4">Enabling extra warnings</a>.
+</p>
+
+<p>
+Consider:
+</p>
+
+<div class="code"><pre>
+struct RQ {
+  void m1(int x) &amp;;
+  void m2(int x) &amp;&amp;;
+};
+</pre></div>
+
+<p>
+The only wrapped method will be the lvalue ref-qualified method <tt>m1</tt>
+and if SWIG is run with the <tt>-Wextra</tt> command-line option, the following warning will be issued indicating <tt>m2</tt> is not wrapped:
+</p>
+
+<div class="shell">
+<pre>
+example.i:7: Warning 405: Method with rvalue ref-qualifier m2(int) &amp;&amp; ignored.
+</pre>
+</div>
+
+<p>
+If you unignore the method as follows, wrappers for <tt>m2</tt> will be generated:
+</p>
+
+<div class="code"><pre>
+%feature("ignore", "0") RQ::m2(int x) &amp;&amp;;
+struct RQ {
+  void m1(int x) &amp;;
+  void m2(int x) &amp;&amp;;
+};
+</pre></div>
+
+<p>
+Inspection of the generated C++ code, will show that <tt>std::move</tt> is used on the instance
+of the <tt>RQ *</tt> class:
+</p>
+
+<div class="code"><pre>
+  RQ *arg1 = (RQ *) 0 ;
+  int arg2 ;
+
+  arg1 = ...marshalled from target language...
+  arg2 = ...marshalled from target language...
+
+  std::move(*arg1).m2(arg2);
+</pre></div>
+
+<p>
+This will compile but when run, the move effects may not be what you want.
+As stated earlier, rvalue ref-qualifiers aren't really applicable outside the world of C++.
+However, if you really know what you are doing, full control over the call to the method is
+possible via the low-level "action" feature.
+This feature completely replaces the call to the underlying function, that is, the last line in the snippet of code above.
+</p>
+
+<div class="code"><pre>
+%feature("ignore", "0") RQ::m2(int x) &amp;&amp;;
+%feature("action") RQ::m2(int x) &amp;&amp; %{
+  RQ().m2(arg2);
+%}
+struct RQ {
+  void m1(int x) &amp;;
+  void m2(int x) &amp;&amp;;
+};
+</pre></div>
+
+<p>
+resulting in:
+</p>
+
+<div class="code"><pre>
+  RQ *arg1 = (RQ *) 0 ;
+  int arg2 ;
+
+  arg1 = ...marshalled from target language...
+  arg2 = ...marshalled from target language...
+
+  RQ().m2(arg2);
+</pre></div>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.0.0 was the first version to support ref-qualifiers.
+</p>
 <H2><a name="CPlusPlus11_standard_library_changes">7.3 Standard library changes</a></H2>
 
 
@@ -1175,6 +1275,7 @@ Example usage from Python should give the not too surprising result:
 Phew, that is a lot of hard work to get a callback working.
 You could just go with the more attractive option of just using <tt>double</tt> as the return type in the function declaration instead of <tt>result_of</tt>!
 </p>
+
 
 </body>
 </html>

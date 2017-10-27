@@ -228,7 +228,6 @@
 <li><a href="SWIGPlus.html#SWIGPlus_nn12">Static members</a>
 <li><a href="SWIGPlus.html#SWIGPlus_member_data">Member data</a>
 </ul>
-<li><a href="SWIGPlus.html#SWIGPlus_default_args">Default arguments</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn15">Protection</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn16">Enums and constants</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn17">Friends</a>
@@ -236,16 +235,27 @@
 <li><a href="SWIGPlus.html#SWIGPlus_nn19">Pass and return by value</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn20">Inheritance</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn21">A brief discussion of multiple inheritance, pointers,  and type checking</a>
-<li><a href="SWIGPlus.html#SWIGPlus_overloaded_methods">Wrapping Overloaded Functions and Methods</a>
+<li><a href="SWIGPlus.html#SWIGPlus_default_args">Default arguments</a>
+<li><a href="SWIGPlus.html#SWIGPlus_overloaded_methods">Overloaded functions and methods</a>
 <ul>
 <li><a href="SWIGPlus.html#SWIGPlus_nn24">Dispatch function generation</a>
-<li><a href="SWIGPlus.html#SWIGPlus_nn25">Ambiguity in Overloading</a>
-<li><a href="SWIGPlus.html#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a>
+<li><a href="SWIGPlus.html#SWIGPlus_nn25">Ambiguity in overloading</a>
+<li><a href="SWIGPlus.html#SWIGPlus_ambiguity_resolution_renaming">Renaming and ambiguity resolution</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn27">Comments on overloading</a>
 </ul>
-<li><a href="SWIGPlus.html#SWIGPlus_nn28">Wrapping overloaded operators</a>
+<li><a href="SWIGPlus.html#SWIGPlus_nn28">Overloaded operators</a>
 <li><a href="SWIGPlus.html#SWIGPlus_class_extension">Class extension</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn30">Templates</a>
+<ul>
+<li><a href="SWIGPlus.html#SWIGPlus_template_directive">The %template directive</a>
+<li><a href="SWIGPlus.html#SWIGPlus_template_functions">Function templates</a>
+<li><a href="SWIGPlus.html#SWIGPlus_template_classes">Default template arguments</a>
+<li><a href="SWIGPlus.html#SWIGPlus_template_class_inheritance">Template base classes</a>
+<li><a href="SWIGPlus.html#SWIGPlus_template_specialization">Template specialization</a>
+<li><a href="SWIGPlus.html#SWIGPlus_template_member">Member templates</a>
+<li><a href="SWIGPlus.html#SWIGPlus_template_scoping">Scoping and templates</a>
+<li><a href="SWIGPlus.html#SWIGPlus_template_more">More on templates</a>
+</ul>
 <li><a href="SWIGPlus.html#SWIGPlus_namespaces">Namespaces</a>
 <ul>
 <li><a href="SWIGPlus.html#SWIGPlus_nspace">The nspace feature for namespaces</a>
@@ -300,6 +310,7 @@
 <li><a href="CPlusPlus11.html#CPlusPlus11_noexcept">Exception specifications and noexcept</a>
 <li><a href="CPlusPlus11.html#CPlusPlus11_alignment">Control and query object alignment</a>
 <li><a href="CPlusPlus11.html#CPlusPlus11_attributes">Attributes</a>
+<li><a href="CPlusPlus11.html#CPlusPlus11_ref_qualifiers">Methods with ref-qualifiers</a>
 </ul>
 <li><a href="CPlusPlus11.html#CPlusPlus11_standard_library_changes">Standard library changes</a>
 <ul>
@@ -347,26 +358,33 @@
 <div class="sectiontoc">
 <ul>
 <li><a href="Library.html#Library_nn2">The %include directive and library search path</a>
-<li><a href="Library.html#Library_nn3">C Arrays and Pointers</a>
+<li><a href="Library.html#Library_nn3">C arrays and pointers</a>
 <ul>
 <li><a href="Library.html#Library_nn4">cpointer.i</a>
 <li><a href="Library.html#Library_carrays">carrays.i</a>
 <li><a href="Library.html#Library_nn6">cmalloc.i</a>
 <li><a href="Library.html#Library_nn7">cdata.i</a>
 </ul>
-<li><a href="Library.html#Library_nn8">C String Handling</a>
+<li><a href="Library.html#Library_nn8">C string handling</a>
 <ul>
 <li><a href="Library.html#Library_nn9">Default string handling</a>
 <li><a href="Library.html#Library_nn10">Passing binary data</a>
 <li><a href="Library.html#Library_nn11">Using %newobject to release memory</a>
 <li><a href="Library.html#Library_nn12">cstring.i</a>
 </ul>
-<li><a href="Library.html#Library_stl_cpp_library">STL/C++ Library</a>
+<li><a href="Library.html#Library_stl_cpp_library">STL/C++ library</a>
 <ul>
 <li><a href="Library.html#Library_std_string">std::string</a>
 <li><a href="Library.html#Library_std_vector">std::vector</a>
 <li><a href="Library.html#Library_stl_exceptions">STL exceptions</a>
 <li><a href="Library.html#Library_std_shared_ptr">shared_ptr smart pointer</a>
+<ul>
+<li><a href="Library.html#Library_shared_ptr_basics">shared_ptr basics</a>
+<li><a href="Library.html#Library_shared_ptr_inheritance">shared_ptr and inheritance</a>
+<li><a href="Library.html#Library_shared_ptr_overloading">shared_ptr and method overloading</a>
+<li><a href="Library.html#Library_shared_ptr_templates">shared_ptr and templates</a>
+<li><a href="Library.html#Library_shared_ptr_directors">shared_ptr and directors</a>
+</ul>
 <li><a href="Library.html#Library_std_auto_ptr">auto_ptr smart pointer</a>
 </ul>
 <li><a href="Library.html#Library_nn16">Utility Libraries</a>
@@ -483,6 +501,9 @@
 <li><a href="Typemaps.html#Typemaps_runtime_type_checker_usage">Usage</a>
 </ul>
 <li><a href="Typemaps.html#Typemaps_overloading">Typemaps and overloading</a>
+<ul>
+<li><a href="Typemaps.html#Typemaps_typecheck_pointer">SWIG_TYPECHECK_POINTER precedence level and the typecheck typemap</a>
+</ul>
 <li><a href="Typemaps.html#Typemaps_nn48">More about %apply and %clear</a>
 <li><a href="Typemaps.html#Typemaps_nn47">Passing data between typemaps</a>
 <li><a href="Typemaps.html#Typemaps_nn52">C++ "this" pointer</a>

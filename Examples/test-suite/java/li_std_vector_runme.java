@@ -17,15 +17,23 @@ public class li_std_vector_runme {
     IntPtrVector v2 = li_std_vector.vecintptr(new IntPtrVector());
     IntConstPtrVector v3 = li_std_vector.vecintconstptr(new IntConstPtrVector());
 
-    for (int n : v1) {
-        if (n != 123) throw new RuntimeException("v1 loop test failed");
-    }
-
     if (!v1.isEmpty()) throw new RuntimeException("v1 test (1) failed");
     if (v1.size() != 0) throw new RuntimeException("v1 test (2) failed");
     if (!v1.add(123)) throw new RuntimeException("v1 test (3) failed");
     if (v1.size() != 1) throw new RuntimeException("v1 test (4) failed");
     if (v1.isEmpty()) throw new RuntimeException("v1 test (5) failed");
+
+    int sum = 0;
+    for (int n : v1) {
+      if (n != 123) throw new RuntimeException("v1 loop test failed");
+      sum += n;
+    }
+    if (sum != 123) throw new RuntimeException("v1 sum test failed");
+    if (v1.get(0) != 123) throw new RuntimeException("v1 test failed");
+    v1.clear();
+    if (!v1.isEmpty()) throw new RuntimeException("v1 test clear failed");
+    v1.add(123);
+
     if (v1.set(0, 456) != 123) throw new RuntimeException("v1 test (6) failed");
     if (v1.size() != 1) throw new RuntimeException("v1 test (7) failed");
     if (v1.get(0) != 456) throw new RuntimeException("v1 test (8) failed");
@@ -46,6 +54,12 @@ public class li_std_vector_runme {
     if (v1.size() != 0) throw new RuntimeException("v1 test (16) failed");
     if (v1.remove(new Integer(456))) throw new RuntimeException("v1 test (17) failed");
 
+    if (new IntVector(3).size() != 3) throw new RuntimeException("constructor initial size test failed");
+    for (int n : new IntVector(10, 999))
+      if (n != 999) throw new RuntimeException("constructor initialization with value failed");
+    for (int n : new IntVector(new IntVector(10, 999)))
+      if (n != 999) throw new RuntimeException("copy constructor initialization with value failed");
+
     StructVector v4 = li_std_vector.vecstruct(new StructVector());
     StructPtrVector v5 = li_std_vector.vecstructptr(new StructPtrVector());
     StructConstPtrVector v6 = li_std_vector.vecstructconstptr(new StructConstPtrVector());
@@ -59,13 +73,13 @@ public class li_std_vector_runme {
     if (v6.get(0).getNum() != 56) throw new RuntimeException("v6 test failed");
 
     for (Struct s : v4) {
-        if (s.getNum() != 12) throw new RuntimeException("v4 loop test failed");
+      if (s.getNum() != 12) throw new RuntimeException("v4 loop test failed");
     }
     for (Struct s : v5) {
-        if (s.getNum() != 34) throw new RuntimeException("v5 loop test failed");
+      if (s.getNum() != 34) throw new RuntimeException("v5 loop test failed");
     }
     for (Struct s : v6) {
-        if (s.getNum() != 56) throw new RuntimeException("v6 loop test failed");
+      if (s.getNum() != 56) throw new RuntimeException("v6 loop test failed");
     }
 
     StructVector v7 = li_std_vector.vecstruct(new StructVector());
@@ -117,5 +131,41 @@ public class li_std_vector_runme {
     java.util.ArrayList<Boolean> bl2 = new java.util.ArrayList<Boolean>(bv);
     boolean bbb1 = bv.get(0);
     Boolean bbb2 = bv.get(0);
+
+    IntVector v9 = new IntVector(java.util.Arrays.asList(10, 20, 30, 40));
+    v9.add(50);
+    v9.add(60);
+    v9.add(70);
+    if (v9.size() != 7) throw new RuntimeException("v9 test (1) failed");
+    if (!v9.remove(new Integer(60))) throw new RuntimeException("v9 test (2) failed");
+    if (v9.size() != 6) throw new RuntimeException("v9 test (3) failed");
+
+    IntVector v10 = new IntVector(java.util.Arrays.asList(10, 20, 30, 40, 50));
+    v10.subList(1, 4).clear(); // Recommended way to call protected method removeRange(1,3)
+    if (v10.size() != 2) throw new RuntimeException("v10 test (1) failed");
+    if (v10.get(0) != 10) throw new RuntimeException("v10 test (2) failed");
+    if (v10.get(1) != 50) throw new RuntimeException("v10 test (3) failed");
+    v10.addAll(1, java.util.Arrays.asList(22, 33));
+    if (v10.size() != 4) throw new RuntimeException("v10 test (4) failed");
+    if (v10.get(1) != 22) throw new RuntimeException("v10 test (5) failed");
+    if (v10.get(2) != 33) throw new RuntimeException("v10 test (6) failed");
+
+    v10.add(v10.size(), 55);
+    if (v10.size() != 5) throw new RuntimeException("v10 test (7) failed");
+    if (v10.get(4) != 55) throw new RuntimeException("v10 test (8) failed");
+
+    IntVector v11 = new IntVector(java.util.Arrays.asList(11, 22, 33, 44));
+    v11.listIterator(0);
+    v11.listIterator(v11.size());
+    try {
+      v11.listIterator(v11.size() + 1);
+      throw new RuntimeException("v11 test (1) failed");
+    } catch (IndexOutOfBoundsException e) {
+    }
+    try {
+      v11.listIterator(-1);
+      throw new RuntimeException("v11 test (2) failed");
+    } catch (IndexOutOfBoundsException e) {
+    }
   }
 }

@@ -1,0 +1,14 @@
+cpp_template_duplicate_names.i:14: Warning 302: Identifier 'Duplicate1' redefined (ignored),
+cpp_template_duplicate_names.i:13: Warning 302: previous definition of 'Duplicate1'.
+cpp_template_duplicate_names.i:14: Warning 302: Identifier 'Duplicate1' redefined (ignored),
+cpp_template_duplicate_names.i:13: Warning 302: previous definition of 'Duplicate1'.
+cpp_template_duplicate_names.i:25: Warning 302: Identifier 'Duplicate2_0' redefined (ignored) (Renamed from 'Duplicate2< 0 >'),
+cpp_template_duplicate_names.i:24: Warning 302: previous definition of 'Duplicate2_0' (Renamed from 'Duplicate2< 0 >').
+cpp_template_duplicate_names.i:35: Warning 302: Identifier 'Duplicate3' redefined (ignored) (Renamed from 'Duplicate3< 0 >'),
+cpp_template_duplicate_names.i:31: Warning 302: previous definition of 'Duplicate3'.
+cpp_template_duplicate_names.i:47: Warning 302: Identifier 'Duplicate4' redefined (ignored),
+cpp_template_duplicate_names.i:46: Warning 302: previous definition of 'Duplicate4'.
+cpp_template_duplicate_names.i:47: Warning 302: Identifier 'Duplicate4' redefined (ignored),
+cpp_template_duplicate_names.i:46: Warning 302: previous definition of 'Duplicate4'.
+cpp_template_duplicate_names.i:50: Warning 302: Identifier 'Duplicate4' redefined (ignored) (Renamed from 'Duplicate4< 0 >'),
+cpp_template_duplicate_names.i:46: Warning 302: previous definition of 'Duplicate4'.

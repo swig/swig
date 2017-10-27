@@ -29,6 +29,10 @@ CPP_TEST_CASES = \
 	li_boost_intrusive_ptr
 
 CPP11_TEST_CASES = \
+	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_nullptr_in_containers \
+	cpp11_shared_ptr_overload \
+	cpp11_shared_ptr_upcast \
 	cpp11_strongly_typed_enumerations_simple \
 
 include $(srcdir)/../common.mk

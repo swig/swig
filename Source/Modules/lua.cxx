@@ -1755,7 +1755,7 @@ public:
    *
    * This is to convert the string of Lua code into a proper string, which can then be
    * emitted into the C/C++ code.
-   * Basically is is a lot of search & replacing of odd sequences
+   * Basically it is a lot of search & replacing of odd sequences
    * ---------------------------------------------------------------------------- */
 
   void escapeCode(String *str) {
@@ -1770,7 +1770,7 @@ public:
   /* -----------------------------------------------------------------------------
    * rawGetCArraysHash(String *name)
    *
-   * A small helper to hide impelementation of how CArrays hashes are stored
+   * A small helper to hide implementation of how CArrays hashes are stored
    * ---------------------------------------------------------------------------- */
 
   Hash *rawGetCArraysHash(const_String_or_char_ptr name) {

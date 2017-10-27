@@ -7,6 +7,351 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-10-26: wsfulton
+            Add support for C++11 ref-qualifiers when using directors.
+
+2017-10-26: wsfulton
+            Fix generated code when using directors and methods returning const ref pointers.
+
+2017-10-26: wsfulton
+            [C#, D, Java, Octave, R, Scilab] Port director typemaps to these additional languages.
+            Issue #700.
+
+2017-10-26: radarsat1
+            [Ruby Python] Patch #1029 - Correct handling of null using directors and shared_ptr.
+
+2017-10-10: joequant
+	    [R] pass enum expressions to R.  This will generate
+	    incorrect files when there is an arithmetic expression
+	    in the enum, but this is better than silently generating
+	    incorrect code
+
+2017-10-09: olly
+	    [PHP] Fix incorrect wrapper code generated when there's a
+	    combination of overloading, parameters with a default value
+	    and %newobject.  Fixes https://sourceforge.net/p/swig/bugs/1350/
+
+2017-10-09: olly
+	    Remove GCJ support.  It isn't in a good state and doesn't seem to
+	    be used, and GCC7 dropped GCJ.  Closes
+	    https://sourceforge.net/p/swig/bugs/823/
+
+2017-10-07: olly
+	    Fix preprocessor handling of empty macro arguments to match that of
+	    C/C++ compilers.  Fixes https://github.com/swig/swig/pull/1111 and
+	    https://sourceforge.net/p/swig/bugs/826/
+
+2017-10-06: wsfulton
+            [Python] Issue #1108. Fix platorm inconsistency in Python default argument handling.
+            32 bit and 64 bit compiled versions of SWIG generated different Python files
+            when default arguments were outside the range of 32 bit signed integers.
+            The default arguments specified in Python are now only those that are in the
+            range of a 32 bit signed integer, otherwise the default is obtained from C/C++ code.
+
+2017-10-02: wsfulton
+            [C#] Fix std::complex types passed by value.
+
+2017-10-02: wsfulton
+            [Javascript, Python, Ruby] Issue #732 - Missing type information for std::complex
+            in std_complex.i meant that previously std::complex always had to be fully qualified
+            in order to be wrapped with the appropriate typemaps.
+
+2017-10-01: joequant
+            allow R package names with docs
+	    allowing mulitple get accessors in R
+	    fix smrt-pointer and NAMESPACE support
+	    constructors now returning smart pointers (if class
+	    declared as such)
+	    smart-pointer classes deriving from parent smart-pointers
+
+2017-09-29: wsfulton
+            Issue #1100 - Allow an instantiated template to have the same name in the target
+            language as the C++ template name, for example, this is now possible:
+
+              template<typename T> struct X { ... };
+              %template(X) X<int>; 
+
+2017-09-23: wsfulton
+            Issue #1098. Fix overloading of shared_ptr with underlying pointer types, eg:
+
+              void m(std::shared_ptr<T> p);
+              void m(T &p);
+              void m(T *p);
+
+            Only the first method is wrapped and the others are ignored/shadowed.
+            The implementation is done via a new attribute in the 'typecheck' typemap called
+            'equivalent'. If specified, it must contain the equivalent pointer type for overloading
+            and can only be used for the special SWIG_TYPECHECK_POINTER precedence level.
+            The shared_ptr 'typecheck' typemaps have been modified accordingly.
+            Here is a simplified version:
+
+              %typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="T *")
+                T,
+                T CONST &,
+                T CONST *,
+                T *CONST&,
+                std::shared_ptr< T >,
+                std::shared_ptr< T > &,
+                std::shared_ptr< T > *,
+                std::shared_ptr< T > *&
+                { ... }
+
+            Overloading with any of these types will result in SWIG ignoring all but the first
+            overloaded method by default. Without the 'equivalent' attribute, wrapping the overloaded
+            methods resulted in types being shadowed (scripting languages) or code that did not
+            compile (statically typed languages).
+
+2017-09-19: futatuki
+            [Python] #1003 Add --with-2to3=/path/to/2to3 option to configure.
+
+2017-09-18: wsfulton
+            Fix type promotion wrapping constant expressions of the form:
+              # define EXPR_MIXED1    (0x80 + 11.1) - 1
+            This was previously an integral type instead of a floating point type.
+
+2017-09-17: wsfulton
+            Fix generated code for constant expressions containing wchar_t L literals such as:
+              # define __WCHAR_MAX    (0x7fffffff + L'\0')
+              # define __WCHAR_MIN    (-__WCHAR_MAX - 1)
+
+2017-09-10: mlamarre
+            [Python] Patch #1083. Define_DEBUG to 1 to do exactly like Visual Studio
+            /LDd, /MDd or /MTd compiler options.
+
+2017-08-25: wsfulton
+            Issue #1059. Add support for C++11 ref-qualifiers on non-static member functions.
+            Members with lvalue ref-qualifiers such as:
+
+              struct RQ {
+                void m1(int x) &;
+                void m2(int x) const &;
+              };
+
+            are wrapped like any other member function. Member functions with rvalue ref-qualifiers
+            are ignored by default, such as:
+
+              struct RQ {
+                void m3(int x) &&;
+                void m4(int x) const &&;
+              };
+
+              example.i:7: Warning 405: Method with rvalue ref-qualifier m3(int) && ignored.
+              example.i:8: Warning 405: Method with rvalue ref-qualifier m4(int) const && ignored.
+
+            These can be unignored and exposed to the target language, see further documentation in
+            CPlusPlus11.html.
+
+2017-08-16: wsfulton
+            Fix #1063. Add using declarations to templates into typedef table.
+
+            Using declarations to templates were missing in SWIG's internal typedef tables.
+            This led to a few problems, such as, templates that did not instantiate and generated
+            C++ code that did not compile as SWIG did not know what scope the template was
+            in. This happened mostly when a using declaration was used on a template type in a
+            completely unrelated namespace.
+
+2017-08-16: wsfulton
+            Fix type lookup in the presence of using directives and using declarations.
+
+            Fix some cases of type lookup failure via a combination of both using directives and
+            using declarations resulting in C++ code that did not compile as the generated type was
+            not fully qualified for use in the global namespace. Example below:
+
+              namespace Space5 {
+                namespace SubSpace5 {
+                  namespace SubSubSpace5 {
+                    struct F {};
+                  }
+                }
+                using namespace SubSpace5;
+                using SubSubSpace5::F;
+                void func(SubSubSpace5::F f);
+              }
+
+2017-08-16: wsfulton
+            Issue #1051. %template scope enforcement and class definition fixes.
+
+            The scoping rules around %template have been specified and enforced.
+            The %template directive for a class template is the equivalent to an
+            explicit instantiation of a C++ class template. The scope for a valid
+            %template instantiation is now the same as the scope required for a
+            valid explicit instantiation of a C++ template. A definition of the
+            template for the explicit instantiation must be in scope where the
+            instantiation is declared and must not be enclosed within a different
+            namespace.
+
+            For example, a few %template and C++ explicit instantiations of std::vector
+            are shown below:
+
+              // valid
+              namespace std {
+                %template(vin) vector<int>;
+                template class vector<int>;
+              }
+
+              // valid
+              using namespace std;
+              %template(vin) vector<int>;
+              template class vector<int>;
+
+              // valid
+              using std::vector;
+              %template(vin) vector<int>;
+              template class vector<int>;
+
+              // ill-formed
+              namespace unrelated {
+                using std::vector;
+                %template(vin) vector<int>;
+                template class vector<int>;
+              }
+
+              // ill-formed
+              namespace unrelated {
+                using namespace std;
+                %template(vin) vector<int>;
+                template class vector<int>;
+              }
+
+              // ill-formed
+              namespace unrelated {
+                namespace std {
+                  %template(vin) vector<int>;
+                  template class vector<int>;
+                }
+              }
+
+              // ill-formed
+              namespace unrelated {
+                %template(vin) std::vector<int>;
+                template class std::vector<int>;
+              }
+
+            When the scope is incorrect, an error now occurs such as:
+
+              cpp_template_scope.i:34: Error: 'vector' resolves to 'std::vector' and
+              was incorrectly instantiated in scope 'unrelated' instead of within scope 'std'.
+
+            Previously SWIG accepted the ill-formed examples above but this led to
+            numerous subtle template scope problems especially in the presence of
+            using declarations and using directives as well as with %feature and %typemap.
+
+            Actually, a valid instantiation is one which conforms to the C++03
+            standard as C++11 made a change to disallow using declarations and
+            using directives to find a template.
+
+              // valid C++03, ill-formed C++11
+              using std::vector;
+              template class vector<int>;
+
+            Similar fixes for defining classes using forward class references have
+            also been put in place. For example:
+
+              namespace Space1 {
+                struct A;
+              }
+              namespace Space2 {
+                struct Space1::A {
+                  void x();
+                }
+              }
+
+            will now error out with:
+
+              cpp_class_definition.i:5: Error: 'Space1::A' resolves to 'Space1::A' and
+              was incorrectly instantiated in scope 'Space2' instead of within scope 'Space1'.
+
+            Previously some symbols would have been instantiated in the wrong scope and led
+            to lots of scope problems involving SWIG typemaps, features, renames etc.
+            You will need to correct the scope used in other SWIG directives which do not
+            support 'using declarations' and 'using directives'. For example, if you previously had:
+
+              %rename(Zap) vector<int>::clear;
+              using namespace std;
+              %template(VectorInt) vector<int>;
+
+            Prior versions of SWIG incorrectly instantiated vector<int> in the global namespace
+            and so the %rename matched. Now the template is instantiated in the correct namespace,
+            so is fully qualified as std::vector<int>. The other SWIG directives need correcting as
+            they do not follow 'using declarations' and 'using directives'. Change it to:
+
+              %rename(Zap) std::vector<int>::clear;
+              using namespace std;
+              %template(vin) vector<int>;
+
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2017-08-16: wsfulton
+            Fix scope lookup for template parameters containing unary scope operators.
+
+            Fixes cases like:
+
+            namespace Alloc {
+              template<typename T> struct Rebind {
+                typedef int Integer;
+              };
+            }
+            %template(RebindBucket) Alloc::Rebind< Bucket >;
+            OR
+            %template(RebindBucket) Alloc::Rebind< ::Bucket >;
+
+            Alloc::Rebind< Bucket >::Integer Bucket1();
+            Alloc::Rebind< ::Bucket >::Integer Bucket2();
+            Alloc::Rebind<::template TemplateBucket<double>>::Integer Bucket3();
+
+2017-08-16: wsfulton
+            For templates only, the template parameters are fully resolved when
+            handling typemaps. Without this, it is too hard to have decent rules
+            to apply typemaps when parameter types are typedef'd and template
+            parameters have default values.
+
+            Fixes %clear for typedefs in templates, eg:
+
+              %typemap("in") XXX<int>::Long "..."
+              template typename<T> struct XXX {
+                typedef long Long;
+              };
+              %clear XXX<int>::Long;
+
+            as the typemap was previously incorrectly stored as a typemap for long
+            instead of XXX<int>::Long.
+
+2017-08-05: olly
+	    [C++11] Allow static_assert at the top level (and disallow it right
+	    after template<T>).  Fixes https://github.com/swig/swig/issues/1031
+	    reported by Artem V L.
+
+2017-08-02: wsfulton
+            Fix incorrectly shown warning when an empty template instantiation was used on a
+            class used as a base class and that base class was explicitly ignored with %ignore.
+            Example of the warning which will no longer appear:
+
+              Warning 401: Base class 'Functor< int,int >' has no name as it is an empty
+              template instantiated with '%template()'. Ignored.
+
+2017-07-17: fflexo
+            [Java] #674 Add std_list.i to add support for std::list containers. The Java proxy
+            extends java.util.AbstractSequentialList and makes the C++ std::list container look
+            and feel much like a java.util.LinkedList from Java.
+
+2017-07-07: wsfulton
+            [Python] Fix display of documented template types when using the autodoc
+            feature. For example when wrapping:
+
+              %feature("autodoc");
+              template<typename X> struct T {};
+              %template(TInteger) T<int>;
+
+            the generated documentation contains:
+              """Proxy of C++ T< int > class."""
+            instead of:
+              """Proxy of C++ T<(int)> class."""
+            and
+              """__init__(TInteger self) -> TInteger"""
+            instead of
+              """__init__(T<(int)> self) -> TInteger"""
+
 2017-06-27: nihaln
 	    [PHP] Update the OUTPUT Typemap to add return statement to the
 	    PHP Wrapper.

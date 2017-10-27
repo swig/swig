@@ -89,6 +89,9 @@
 <li><a href="#Typemaps_runtime_type_checker_usage">Usage</a>
 </ul>
 <li><a href="#Typemaps_overloading">Typemaps and overloading</a>
+<ul>
+<li><a href="#Typemaps_typecheck_pointer">SWIG_TYPECHECK_POINTER precedence level and the typecheck typemap</a>
+</ul>
 <li><a href="#Typemaps_nn48">More about %apply and %clear</a>
 <li><a href="#Typemaps_nn47">Passing data between typemaps</a>
 <li><a href="#Typemaps_nn52">C++ "this" pointer</a>
@@ -4021,7 +4024,7 @@ struct X {
 Forced inclusion of fragments can be used as a replacement for <a href="SWIG.html#SWIG_nn42">code insertion block</a>, ensuring the
 code block is only generated once.
 Consider the contents of FileA.i below which first uses a code insertion block and then a forced fragment inclusion to generate code:
-<p>
+</p>
 <div class="code">
 <pre>
 // FileA.i
@@ -4058,7 +4061,7 @@ The resulting code in the wrappers for FileB.i is:
 <p>
 A note of caution must be mentioned when using <tt>%fragment</tt> forced inclusion or code insertion blocks with <tt>%import</tt>.
 If <tt>%import</tt> is used instead:
-<p>
+</p>
 
 <div class="code">
 <pre>
@@ -4754,7 +4757,8 @@ then the type is given a precedence higher than any other known precedence level
 
 <div class="shell">
 <pre>
-example.i:18: Warning 467: Overloaded method foo(int) not supported (incomplete type checking rule - no precedence level in typecheck typemap for 'int').
+example.i:18: Warning 467: Overloaded method foo(int) not supported (incomplete type
+checking rule - no precedence level in typecheck typemap for 'int').
 </pre>
 </div>
 
@@ -4779,9 +4783,111 @@ simply check the type of the first array element and use that to dispatch to the
 Subsequent "in" typemaps would then perform more extensive type-checking.
 </li>
 
-<li>Make sure you read the section on overloading in the "<a href="SWIGPlus.html#SWIGPlus">SWIG and C++</a>" chapter.
+<li>Make sure you read the section on <a href="SWIGPlus.html#SWIGPlus_overloaded_methods">overloading</a> in the SWIG and C++ chapter.
 </li>
 </ul>
+
+<H3><a name="Typemaps_typecheck_pointer">11.13.1 SWIG_TYPECHECK_POINTER precedence level and the typecheck typemap</a></H3>
+
+
+<p>
+When it comes to overloading of a particular type passed by value, pointer or reference (const and non-const),
+a C++ compiler can disambiguate which overloaded function to call.
+However, SWIG effectively treats these as pointers in the target language and thus as equivalent types.
+For example, consider:
+</p>
+
+<div class="code">
+<pre>
+class X { ... };
+void m(X const &amp;c); // equivalent: void m(X *c);
+void m(X &amp;r);       // equivalent: void m(X *r);
+void m(X *p);       // equivalent: void m(X *p);
+</pre>
+</div>
+
+<p>
+These cannot be disambiguated in the target languages and so SWIG will choose the first method and ignore the subsequent two methods.
+The scripting languages do this by using the overload dispatch mechanism described earlier and warnings indicate this:
+</p>
+
+<div class="shell">
+<pre>
+example.i:6: Warning 509: Overloaded method m(X &amp;) effectively ignored,
+example.i:5: Warning 509: as it is shadowed by m(X const &amp;).
+example.i:7: Warning 509: Overloaded method m(X *) effectively ignored,
+example.i:5: Warning 509: as it is shadowed by m(X const &amp;).
+</pre>
+</div>
+
+<p>
+The statically typed languages like Java and C# automatically ignore all but the first equivalent overloaded methods with warnings:
+</p>
+
+<div class="shell">
+<pre>
+example.i:6: Warning 516: Overloaded method m(X &amp;) ignored,
+example.i:5: Warning 516: using m(X const &amp;) instead.
+example.i:7: Warning 516: Overloaded method m(X *) ignored,
+example.i:5: Warning 516: using m(X const &amp;) instead.
+</pre>
+</div>
+
+<p>
+You can select the overloaded method you would like to wrap by ignoring the other two with <tt>%ignore</tt> or rename two of them with <tt>%rename</tt>
+and this will of course remove the warnings too.
+The problem of ambiguity is also discussed in the C++ chapter on <a href="SWIGPlus.html#SWIGPlus_overloaded_methods">overloading</a>.
+</p>
+
+<p>
+So how does this work with respect to typemaps?
+The typemaps SWIG provides to handle overloading for these three methods are from the SWIGTYPE family.
+As discussed earlier, in <a href="Typemaps.html#Typemaps_nn19">Default typemap matching rules</a>,
+the <tt>SWIGTYPE &amp;</tt> typemaps are used for references and <tt>SWIGTYPE *</tt> typemaps are used for pointers.
+SWIG uses the special <tt>SWIG_TYPECHECK_POINTER</tt> (0) precedence level to handle these types in the "typecheck" typemap:
+</p>
+
+<div class="code">
+<pre>
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER) SWIGTYPE &amp; "..."
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER) SWIGTYPE * "..."
+</pre>
+</div>
+
+<p>
+When the SWIGTYPE "typecheck" typemaps use the <tt>SWIG_TYPECHECK_POINTER</tt> precedence level,
+SWIG converts the type to a pointer equivalent type and then uses the equivalent type to detect if it can be disambiguated in an overloaded method in the target language.
+In our example above, the equivalent types for <tt>X const &amp;</tt>, <tt>X &amp;</tt> and <tt>X *</tt> are all <tt>X *</tt>.
+As they are the same, they cannot be disambiguated and so just the first overloaded method is chosen.
+</p>
+
+<p>
+The automatic conversion to equivalent types and subsequent type comparison is triggered via the use of the special <tt>SWIG_TYPECHECK_POINTER</tt> precedence level
+and works for types passed by value, pointer and reference.
+Alas, there are more ways to overload a method that also need handling.
+C++ smart pointers are such a type which can be disambiguated by a C++ compiler but not automatically by SWIG.
+SWIG does not automatically know that a smart pointer has an equivalent type, but it can be told manually.
+Just specify the 'equivalent' attribute in the "typecheck" typemap with a pointer to the underlying type.
+</p>
+
+<div class="code">
+<pre>
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="X *") MySmartPtr&lt;X&gt; " ... "
+
+void m(X &amp;r);            // equivalent: void m(X *r);
+void m(MySmartPtr&lt;X&gt; s); // equivalent: void m(X *s);
+</pre>
+</div>
+
+<p>
+Now SWIG will detect the two types are equivalent and generate valid code by wrapping just the first overloaded method.
+You can of course choose which method to wrap by ignoring one of them with <tt>%ignore</tt>.
+Otherwise both can be wrapped by removing the overloading name ambiguity by renaming one of them with <tt>%rename</tt>.
+</p>
+
+<p>
+The 'equivalent' attribute is used in the implementation for the <a href="Library.html#Library_std_shared_ptr">shared_ptr smart pointer</a> library.
+</p>
 
 <H2><a name="Typemaps_nn48">11.14 More about %apply and %clear</a></H2>
 

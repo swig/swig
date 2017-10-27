@@ -8,13 +8,20 @@ if complextest.Conj(a) != a.conjugate():
 if complextest.Conjf(a) != a.conjugate():
     raise RuntimeError, "bad complex mapping"
 
+if complextest.Conj2(a) != a.conjugate():
+    raise RuntimeError, "bad complex mapping"
+
+if complextest.Conjf2(a) != a.conjugate():
+    raise RuntimeError, "bad complex mapping"
+
 
 v = (complex(1, 2), complex(2, 3), complex(4, 3), 1)
 
-try:
-    complextest.Copy_h(v)
-except:
-    pass
+if len(complextest.CopyHalf(v)) != 2:
+    raise RuntimeError("CopyHalf failed")
+
+if len(complextest.CopyHalfRef(v)) != 2:
+    raise RuntimeError("CopyHalfRef failed")
 
 p = complextest.ComplexPair()
 p.z1 = complex(0, 1)

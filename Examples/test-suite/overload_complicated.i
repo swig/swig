@@ -1,27 +1,27 @@
 // A complicated test of overloaded functions
 %module overload_complicated
 
-#ifndef SWIG_NO_OVERLOAD
-
-// Different warning filters needed for scripting languages (eg Python) and for statically typed languages (eg C#).
-%warnfilter(509, 516) Pop::Pop;      // Overloaded xxxx is shadowed by xxxx at xxx:y. | Overloaded method xxxx ignored. Method at xxx:y used.
-%warnfilter(509, 516) Pop::hip;      // Overloaded xxxx is shadowed by xxxx at xxx:y. | Overloaded method xxxx ignored. Method at xxx:y used.
-%warnfilter(509, 516) Pop::hop;      // Overloaded xxxx is shadowed by xxxx at xxx:y. | Overloaded method xxxx ignored. Method at xxx:y used.
-%warnfilter(509, 516) Pop::pop;      // Overloaded xxxx is shadowed by xxxx at xxx:y. | Overloaded method xxxx ignored. Method at xxx:y used.
-%warnfilter(516) Pop::bop;           // Overloaded method xxxx ignored. Method at xxx:y used.
-%warnfilter(516) Pop::bip;           // Overloaded method xxxx ignored. Method at xxx:y used.
-%warnfilter(509, 516) ::muzak;       // Overloaded xxxx is shadowed by xxxx at xxx:y. | Overloaded method xxxx ignored. Method at xxx:y used.
+// Different overloaded warning filters needed for scripting languages (eg Python) and for statically typed languages (eg C#).
+%warnfilter(509, 516) Pop::Pop;
+%warnfilter(509, 516) Pop::hip;
+%warnfilter(509, 516) Pop::hop;
+%warnfilter(509, 516) Pop::pop;
+%warnfilter(516) Pop::bop;
+%warnfilter(516) Pop::bip;
+%warnfilter(509, 516) ::muzak;
+%warnfilter(509, 516) foo;
 
 %typemap(in, numinputs=0) int l { $1 = 4711; }
 
 %inline %{
 
-double foo(int, int, char *, int) {
+int foo(int, int, char *, int) {
     return 15;
 }
 
-double foo(int i, int j, double k = 17.4, int l = 18, char m = 'P') {
-    return i + j + k + l + (int) m;
+int foo(int i, int j, double k = 17.4, int l = 18 /* Note numinputs typemap above */, char m = 'P') {
+    int sum = i + j + (int)k + l + (int)m;
+    return sum;
 }
 
 struct Pop {
@@ -67,6 +67,3 @@ int muzak(int& i)                 { return 3003; }
 int muzak(const int* i)           { return 3004; }
 
 %}
-
-#endif
-

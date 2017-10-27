@@ -136,6 +136,7 @@ extern "C" {
   extern SwigType *SwigType_add_function(SwigType *t, ParmList *parms);
   extern SwigType *SwigType_add_template(SwigType *t, ParmList *parms);
   extern SwigType *SwigType_pop_function(SwigType *t);
+  extern SwigType *SwigType_pop_function_qualifiers(SwigType *t);
   extern ParmList *SwigType_function_parms(const SwigType *t, Node *file_line_node);
   extern List *SwigType_split(const SwigType *t);
   extern String *SwigType_pop(SwigType *t);
@@ -326,6 +327,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern String *Swig_scopename_last(const String *s);
   extern String *Swig_scopename_first(const String *s);
   extern String *Swig_scopename_suffix(const String *s);
+  extern List *Swig_scopename_tolist(const String *s);
   extern int Swig_scopename_check(const String *s);
   extern String *Swig_string_lower(String *s);
   extern String *Swig_string_upper(String *s);

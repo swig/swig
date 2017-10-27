@@ -13,6 +13,10 @@ elif [[ "$CC" == gcc-6 ]]; then
 	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 	travis_retry sudo apt-get -qq update
 	travis_retry sudo apt-get install -qq g++-6
+elif [[ "$CC" == gcc-7 ]]; then
+	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+	travis_retry sudo apt-get -qq update
+	travis_retry sudo apt-get install -qq g++-7
 fi
 
 travis_retry sudo apt-get -qq install libboost-dev
@@ -33,10 +37,7 @@ case "$SWIGLANG" in
 	"javascript")
 		case "$ENGINE" in
 			"node")
-				travis_retry sudo add-apt-repository -y ppa:chris-lea/node.js
-				travis_retry sudo apt-get -qq update
-				travis_retry sudo apt-get install -qq nodejs rlwrap
-				travis_retry sudo npm install -g node-gyp
+				travis_retry sudo apt-get install -qq nodejs node-gyp
 				;;
 			"jsc")
 				travis_retry sudo apt-get install -qq libwebkitgtk-dev
@@ -88,7 +89,7 @@ case "$SWIGLANG" in
 		travis_retry sudo apt-get -qq install php$VER-cli php$VER-dev
 		;;
 	"python")
-		pip install pep8
+		pip install --user pep8
 		if [[ "$PY3" ]]; then
 			travis_retry sudo apt-get install -qq python3-dev
 		fi

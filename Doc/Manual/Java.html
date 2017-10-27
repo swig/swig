@@ -3935,9 +3935,9 @@ where <tt>Swig::DirectorException::raise</tt> is a helper method in the Director
 
 <div class="code">
 <pre>
-    static void raise(JNIEnv *jenv, jthrowable throwable) {
-      throw DirectorException(jenv, throwable);
-    }
+  static void raise(JNIEnv *jenv, jthrowable throwable) {
+    throw DirectorException(jenv, throwable);
+  }
 </pre>
 </div>
 
@@ -4105,7 +4105,7 @@ the exception specification or <code>%catches</code> feature.
 </p>
 
 <p>Note that the "directorthrows" typemaps are important
-only if it is important for the the exceptions passed through the C++
+only if it is important for the exceptions passed through the C++
 layer to be mapped to distinct C++ exceptions.  If director methods
 are being called by C++ code that is itself wrapped in a
 SWIG generated Java wrapper and access is always through this wrapper,
@@ -4335,16 +4335,16 @@ struct Vector {
 
 %extend Vector {
   char *toString() {
-      static char tmp[1024];
-      sprintf(tmp, "Vector(%g, %g, %g)", $self-&gt;x, $self-&gt;y, $self-&gt;z);
-      return tmp;
+    static char tmp[1024];
+    sprintf(tmp, "Vector(%g, %g, %g)", $self-&gt;x, $self-&gt;y, $self-&gt;z);
+    return tmp;
   }
   Vector(double x, double y, double z) {
-      Vector *v = (Vector *) malloc(sizeof(Vector));
-      v-&gt;x = x;
-      v-&gt;y = y;
-      v-&gt;z = z;
-      return v;
+    Vector *v = (Vector *) malloc(sizeof(Vector));
+    v-&gt;x = x;
+    v-&gt;y = y;
+    v-&gt;z = z;
+    return v;
   }
 };
 </pre>
@@ -5278,7 +5278,7 @@ void * operator new(size_t t) {
       throw bad_alloc();
     pJalloc-&gt;ref = 0;
     return static_cast&lt;void *&gt;(
-        static_cast&lt;char *&gt;(static_cast&lt;void *&gt;(pJalloc)) + sizeof(Jalloc));
+      static_cast&lt;char *&gt;(static_cast&lt;void *&gt;(pJalloc)) + sizeof(Jalloc));
   }
 }
 
@@ -7240,7 +7240,7 @@ public class runme {
     example.print_args(animals);
     String args[] = example.get_args();
     for (int i=0; i&lt;args.length; i++)
-        System.out.println(i + ":" + args[i]);
+      System.out.println(i + ":" + args[i]);
   }
 }
 </pre></div>
@@ -8165,40 +8165,52 @@ public class Container {
   // Ensure that the GC doesn't collect any Element set from Java
   // as the underlying C++ class stores a shallow copy
   private Element elementReference;
-  private long getCPtrAndAddReference(Element element) {
-    elementReference = element;
-    return Element.getCPtr(element);
-  }
 
   public void setElement(Element e) {
-    exampleJNI.Container_setElement(swigCPtr, this, getCPtrAndAddReference(e), e);
+    exampleJNI.Container_setElement(swigCPtr, this, Element.getCPtr(e), e);
+    elementReference = e;
   }
 }
 </pre>
 </div>
 
 <p>
-The following typemaps will generate the desired code.
-The 'javain' typemap matches the input parameter type for the <tt>setElement</tt> method.
-The 'javacode' typemap simply adds in the specified code into the Java proxy class.
+The following typemaps can be used to generate this code:
 </p>
 
 <div class="code">
 <pre>
-%typemap(javain) Element *e "getCPtrAndAddReference($javainput)"
-
 %typemap(javacode) Container %{
   // Ensure that the GC doesn't collect any element set from Java
   // as the underlying C++ class stores a shallow copy
   private Element elementReference;
-  private long getCPtrAndAddReference(Element element) {
-    elementReference = element;
-    return Element.getCPtr(element);
-  }
 %}
+
+%typemap(javain, 
+         post="      elementReference = $javainput;"
+         ) Element *e "Element.getCPtr($javainput)"
 </pre>
 </div>
 
+<p>
+The 'javacode' typemap simply adds in the specified code into the Java proxy class.
+The 'javain' typemap matches the input parameter type and name for the <tt>setElement</tt> method and
+the 'post' typemap attribute allows adding code after the JNI call.
+The 'post' code is generated into a finally block after the JNI call so the resulting code isn't quite
+as mentioned earlier, <tt>setElement</tt> is actually:
+</p>
+
+<div class="code">
+<pre>
+  public void setElement(Element e) {
+    try {
+      exampleJNI.Container_setElement(swigCPtr, this, Element.getCPtr(e), e);
+    } finally {
+      elementReference = e;
+    }
+  }
+</pre>
+</div>
 
 <H3><a name="Java_date_marshalling">25.10.13 Date marshalling using the javain typemap and associated attributes</a></H3>
 

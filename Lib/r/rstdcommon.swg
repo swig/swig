@@ -101,12 +101,11 @@ namespace swig {
 
   template <class Type> 
   struct traits_as<Type, value_category> {
-    static Type as(SWIG_Object obj, bool throw_error) {
+    static Type as(SWIG_Object obj) {
       Type v;
       int res = asval(obj, &v);
       if (!obj || !SWIG_IsOK(res)) {
-	if (throw_error)
-          throw std::invalid_argument("bad type");
+        throw std::invalid_argument("bad type");
       }
       return v;
     }
@@ -114,7 +113,7 @@ namespace swig {
 
   template <class Type> 
   struct traits_as<Type, pointer_category> {
-    static Type as(SWIG_Object obj, bool throw_error) {
+    static Type as(SWIG_Object obj) {
       Type *v = 0;      
       int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : SWIG_ERROR);
       if (SWIG_IsOK(res) && v) {
@@ -126,12 +125,7 @@ namespace swig {
 	  return *v;
 	}
       } else {
-	// Uninitialized return value, no Type() constructor required.
-	static Type *v_def = (Type*) malloc(sizeof(Type));
-	if (throw_error)
           throw std::invalid_argument("bad type");
-	memset(v_def,0,sizeof(Type));
-	return *v_def;
       }
     }
   };
@@ -152,8 +146,8 @@ namespace swig {
   };
     
   template <class Type>
-  inline Type as(SWIG_Object obj, bool te = false) {
-    return traits_as<Type, typename traits<Type>::category>::as(obj, te);
+  inline Type as(SWIG_Object obj) {
+    return traits_as<Type, typename traits<Type>::category>::as(obj);
   }
 
   template <class Type> 

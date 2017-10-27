@@ -66,8 +66,8 @@ CCache/ccache_swig_config.h
 CCache/config.h
 CCache/config.log
 CCache/config.status
+CCache/config_win32.h
 CCache/test.[0-9]*
-
 Examples/Makefile
 Examples/d/example.mk
 Examples/guile/Makefile
@@ -87,6 +87,8 @@ swig.spec
 # Build Artifacts
 .dirstamp
 CCache/ccache-swig
+CCache/ccache-swig.1
+CCache/web/ccache-swig-man.html
 Lib/swigwarn.swg
 Source/CParse/parser.c
 Source/CParse/parser.h

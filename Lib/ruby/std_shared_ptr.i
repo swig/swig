@@ -3,7 +3,7 @@
 %include <rubystdcommon_forward.swg>
 
 
-%fragment("StdSharedPtrTraits","header",fragment="StdTraitsForwardDeclaration")
+%fragment("StdSharedPtrTraits","header",fragment="StdTraitsForwardDeclaration",fragment="<memory>")
 {
 namespace swig {
   /*
@@ -80,35 +80,35 @@ namespace swig {
 
   template <class Type>
   struct traits_as<std::shared_ptr<Type>, pointer_category> {
-    static std::shared_ptr<Type> as(VALUE obj, bool throw_error) {
+    static std::shared_ptr<Type> as(VALUE obj) {
       std::shared_ptr<Type> ret;
       std::shared_ptr<Type> *v = &ret;
       int res = traits_asptr<std::shared_ptr<Type> >::asptr(obj, &v);
       if (SWIG_IsOK(res)) {
 	return ret;
       } else {
-	if (throw_error) throw std::invalid_argument("bad type");
+	
 	VALUE lastErr = rb_gv_get("$!");
 	if (lastErr == Qnil)
 	  SWIG_Error(SWIG_TypeError,  swig::type_name<std::shared_ptr<Type> >());
-	return std::shared_ptr<Type>();
+        throw std::invalid_argument("bad type");
       }
     }
   };
 
   template <class Type>
   struct traits_as<std::shared_ptr<Type> *, pointer_category> {
-    static std::shared_ptr<Type> * as(VALUE obj, bool throw_error) {
+    static std::shared_ptr<Type> * as(VALUE obj) {
       std::shared_ptr<Type> *p = 0;
       int res = traits_asptr<std::shared_ptr<Type> >::asptr(obj, &p);
       if (SWIG_IsOK(res)) {
 	return p;
       } else {
-	if (throw_error) throw std::invalid_argument("bad type");
+	
 	VALUE lastErr = rb_gv_get("$!");
 	if (lastErr == Qnil)
 	  SWIG_Error(SWIG_TypeError,  swig::type_name<std::shared_ptr<Type> *>());
-	return 0;
+        throw std::invalid_argument("bad type");
       }
     }
   };

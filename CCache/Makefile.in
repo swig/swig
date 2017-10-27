@@ -18,54 +18,54 @@ SWIG=swig
 SWIG_LIB=../$(srcdir)/../Lib
 EXEEXT=@EXEEXT@
 
-# Use standard autoconf approach to transform executable name using --program-prefix and --program-suffix
-transform = @program_transform_name@
-
 LIBS= @LIBS@
 OBJS= ccache.o mdfour.o hash.o execute.o util.o args.o stats.o \
 	cleanup.o snprintf.o unify.o
-HEADERS = ccache.h mdfour.h
+HEADERS = ccache.h mdfour.h config.h config_win32.h
 
-all: $(PROGRAM_NAME)$(EXEEXT)
+all: $(PACKAGE_NAME)$(EXEEXT)
 
 # Regenerate Makefile if Makefile.in or config.status have changed.
 Makefile: $(srcdir)/Makefile.in ./config.status
 	$(SHELL) ./config.status
 
 # Note that HTML documentation is actually generated and used from the main SWIG documentation Makefile
-docs: $(srcdir)/$(PROGRAM_NAME).1 $(srcdir)/web/$(PROGRAM_NAME)-man.html
+docs: $(srcdir)/$(PACKAGE_NAME).1 $(srcdir)/web/$(PACKAGE_NAME)-man.html
 
-$(PROGRAM_NAME)$(EXEEXT): $(OBJS) $(HEADERS)
+$(PACKAGE_NAME)$(EXEEXT): $(OBJS) $(HEADERS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
-$(srcdir)/$(PROGRAM_NAME).1: $(srcdir)/ccache.yo
-	-yodl2man -o $(srcdir)/$(PROGRAM_NAME).1 $(srcdir)/ccache.yo
+$(srcdir)/$(PACKAGE_NAME).1: $(srcdir)/ccache.yo
+	-yodl2man -o $(srcdir)/$(PACKAGE_NAME).1 $(srcdir)/ccache.yo
 
-$(srcdir)/web/$(PROGRAM_NAME)-man.html: $(srcdir)/ccache.yo
-	yodl2html -o $(srcdir)/web/$(PROGRAM_NAME)-man.html $(srcdir)/ccache.yo
+$(srcdir)/web/$(PACKAGE_NAME)-man.html: $(srcdir)/ccache.yo
+	yodl2html -o $(srcdir)/web/$(PACKAGE_NAME)-man.html $(srcdir)/ccache.yo
 
-install: $(PROGRAM_NAME)$(EXEEXT)
-	@echo "Installing $(PROGRAM_NAME)"
+install: $(PACKAGE_NAME)$(EXEEXT)
+	@echo "Installing $(PACKAGE_NAME)"
 	@echo "Installing $(DESTDIR)${bindir}/$(PROGRAM_NAME)$(EXEEXT)"
 	${INSTALLCMD} -d $(DESTDIR)${bindir}
-	${INSTALLCMD} -m 755 $(PROGRAM_NAME)$(EXEEXT) $(DESTDIR)${bindir}/$(PROGRAM_NAME)$(EXEEXT)
+	${INSTALLCMD} -m 755 $(PACKAGE_NAME)$(EXEEXT) $(DESTDIR)${bindir}/$(PROGRAM_NAME)$(EXEEXT)
 
-install-docs: $(srcdir)/$(PROGRAM_NAME).1
+install-docs: $(srcdir)/$(PACKAGE_NAME).1
 	@echo "Installing $(DESTDIR)${mandir}/man1/$(PROGRAM_NAME).1"
 	${INSTALLCMD} -d $(DESTDIR)${mandir}/man1
-	${INSTALLCMD} -m 644 $(srcdir)/$(PROGRAM_NAME).1 $(DESTDIR)${mandir}/man1/$(PROGRAM_NAME).1
+	${INSTALLCMD} -m 644 $(srcdir)/$(PACKAGE_NAME).1 $(DESTDIR)${mandir}/man1/$(PROGRAM_NAME).1
 
-uninstall: $(PROGRAM_NAME)$(EXEEXT)
+uninstall: $(PACKAGE_NAME)$(EXEEXT)
 	rm -f $(DESTDIR)${bindir}/$(PROGRAM_NAME)$(EXEEXT)
 
-uninstall-docs: $(srcdir)/$(PROGRAM_NAME).1
+uninstall-docs: $(srcdir)/$(PACKAGE_NAME).1
 	rm -f $(DESTDIR)${mandir}/man1/$(PROGRAM_NAME).1
 
-clean:
-	/bin/rm -f $(OBJS) *~ $(PROGRAM_NAME)$(EXEEXT)
+clean: clean-docs
+	/bin/rm -f $(OBJS) *~ $(PACKAGE_NAME)$(EXEEXT)
+
+clean-docs:
+	rm -f $(srcdir)/$(PACKAGE_NAME).1 $(srcdir)/web/$(PACKAGE_NAME)-man.html
 
 test: test.sh
-	SWIG_LIB='$(SWIG_LIB)' PATH=../..:$$PATH SWIG='$(SWIG)' CC='$(CC)' NOSOFTLINKSTEST='$(NOSOFTLINKSTEST)' CCACHE='../$(PROGRAM_NAME)' $(srcdir)/test.sh
+	SWIG_LIB='$(SWIG_LIB)' PATH=../..:$$PATH SWIG='$(SWIG)' CC='$(CC)' NOSOFTLINKSTEST='$(NOSOFTLINKSTEST)' CCACHE='../$(PACKAGE_NAME)' CCACHE_PROG=$(PROGRAM_NAME) $(srcdir)/test.sh
 
 check: test
 
@@ -74,7 +74,7 @@ distclean: clean
 	/bin/rm -rf autom4te.cache
 
 maintainer-clean: distclean
-	/bin/rm -f $(srcdir)/$(PROGRAM_NAME).1 $(srcdir)/web/$(PROGRAM_NAME)-man.html
+	/bin/rm -f $(srcdir)/$(PACKAGE_NAME).1 $(srcdir)/web/$(PACKAGE_NAME)-man.html
 
 
 # FIXME: To fix this, test.sh needs to be able to take ccache from the

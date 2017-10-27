@@ -363,7 +363,7 @@ SWIG_Ruby_NewPackedObj(void *ptr, int sz, swig_type_info *type) {
   return rb_str_new2(result);
 }
 
-/* Convert a packed value value */
+/* Convert a packed pointer value */
 SWIGRUNTIME int
 SWIG_Ruby_ConvertPacked(VALUE obj, void *ptr, int sz, swig_type_info *ty) {
   swig_cast_info *tc;

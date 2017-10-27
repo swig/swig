@@ -16,19 +16,19 @@
 %{
 
 class Base {
+  int m;
 public:
   Base() : m(-1) {}
   Base(int i) : m(i) {}
   int get_m() { return m; }
-  int m;
 };
 
 class Derived : public Base {
+  int n;
 public:
   Derived() : n(-2) {}
   Derived(int i) : n(i) {}
   int get_n() { return n; }
-  int n;
 };
 
 typedef std::shared_ptr<Base>    BasePtr;
@@ -96,18 +96,18 @@ int base_num(std::map<int, BasePtr > v) {
 %template(DerivedMap) std::map<int, std::shared_ptr<Derived> >;
 
 class Base {
+  int m;
 public:
   Base();
   int get_m();
-  int m;
 };
 
 class Derived : public Base {
+  int n;
 public:
   Derived();
   Derived(int i);
   int get_n();
-  int n;
 };
 
 typedef std::shared_ptr<Base>    BasePtr;
@@ -135,20 +135,20 @@ int base_num(std::map<int, BasePtr > v);
 
 %inline %{
 class Base2 {
+  int m;
 public:
   Base2() : m(-1) {}
   Base2(int i) : m(i) {}
   int get_m() { return m; }
-  int m;
 };
 
 
 class Derived2 : public Base2 {
+  int n;
 public:
   Derived2() : n(0) {}
   Derived2(int i) : n(i) {}
   int get_n_2() { return n; }
-  int n;
 };
 %}
 
