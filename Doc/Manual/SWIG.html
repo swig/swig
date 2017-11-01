@@ -2177,7 +2177,7 @@ in the C++ chapter for further details.
 <p>
 Occasionally, a C library may include functions that expect to receive
 pointers to functions--possibly to serve as callbacks. SWIG
-provides full support for function pointers provided that the callback
+provides full support for function pointers when the callback
 functions are defined in C and not in the target language.  For example,
 consider a function like this:
 </p>
@@ -2321,7 +2321,9 @@ And now, a final note about function pointer support.  Although SWIG
 does not normally allow callback functions to be written in the target language, this
 can be accomplished with the use of typemaps and other advanced SWIG features.
 See the <a href="Typemaps.html#Typemaps">Typemaps chapter</a> for more about typemaps
-and individual target language chapters for more on callbacks and the 'director' feature.
+and individual target language chapters for more on callbacks.
+The 'director' feature can be used to make callbacks from C/C++ into the target language,
+see <a href="SWIGPlus.html#SWIGPlus_target_language_callbacks">Callbacks to the target language</a>.
 </p>
 
 <H2><a name="SWIG_nn31">5.5 Structures and unions</a></H2>
