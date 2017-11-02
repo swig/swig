@@ -503,6 +503,7 @@ you should consider using a special array object rather than a bare pointer.
 <p>
 <b>Note:</b> <tt>%array_functions()</tt> and <tt>%array_class()</tt> should not be
 used with types of <tt>char</tt> or <tt>char *</tt>.
+SWIG's default handling of these types is to handle them as character strings and the two macros do not do enough to change this.
 </p>
 
 <H3><a name="Library_nn6">9.2.3 cmalloc.i</a></H3>
