@@ -420,11 +420,11 @@ Now, in a scripting language, you might write this:
 
 <div class="targetlang">
 <pre>
-a = new_doubleArray(10)             # Create an array
+a = new_doubleArray(10)               # Create an array
 for i in range(0, 10):
-    doubleArray_setitem(a, i, 2*i)  # Set a value
-print_array(a)                      # Pass to C
-delete_doubleArray(a)               # Destroy array
+    doubleArray_setitem(a, i, 2 * i)  # Set a value
+print_array(a)                        # Pass to C
+delete_doubleArray(a)                 # Destroy array
 </pre>
 </div>
 
@@ -487,7 +487,7 @@ Allows you to do this:
 import example
 c = example.doubleArray(10)  # Create double[10]
 for i in range(0, 10):
-    c[i] = 2*i               # Assign values
+    c[i] = 2 * i             # Assign values
 example.print_array(c)       # Pass to C
 </pre>
 </div>
@@ -1475,7 +1475,7 @@ In the target language:
 <div class="targetlang">
 <pre>
 x = my_struct();
-x.foo="Hello World";      # assign with string
+x.foo = "Hello World";    # assign with string
 print x.foo;              # print as string
 </pre>
 </div>
