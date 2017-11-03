@@ -1542,7 +1542,7 @@ SwigType *SwigType_alttype(const SwigType *t, int local_tmap) {
 	}
       } else {
 	if (SwigType_issimple(td) && SwigType_istemplate(td)) {
-	  use_wrapper = !n || !GetFlag(n, "feature:novaluewrapper");
+	  use_wrapper = 1;
 	}
       }
     }
