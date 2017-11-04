@@ -2038,7 +2038,7 @@ The following typemaps can be used to generate this code:
   // Ensure that the GC doesn't collect any Element set from C#
   // as the underlying C++ class stores a shallow copy
   private Element elementReference;
-}
+%}
 
 %typemap(csin,
          post="      elementReference = $csinput;"
