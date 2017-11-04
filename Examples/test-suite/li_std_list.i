@@ -38,12 +38,22 @@ struct Struct {
   double num;
   Struct() : num(0.0) {}
   Struct(double d) : num(d) {}
-//  bool operator==(const Struct &other) { return (num == other.num); }
+  bool operator==(const Struct &other) { return (num == other.num); }
 };
 
 const std::list<Struct> & CopyContainerStruct(const std::list<Struct> & container) { return container; }
 const std::list<Struct *> & CopyContainerStructPtr(const std::list<Struct *> & container) { return container; }
 const std::list<const Struct *> & CopyContainerStructConstPtr(const std::list<const Struct *> & container) { return container; }
+
+const std::list<float> & listreal(const std::list<float> & list) { return list; }
+           
+const std::list<int> & listint(const std::list<int> & list) { return list; }
+const std::list<int *> & listintptr(const std::list<int *> & list) { return list; }
+const std::list<const int *> & listintconstptr(const std::list<const int *> & list) { return list; }
+           
+const std::list<Struct> & liststruct(const std::list<Struct> & list) { return list; }
+const std::list<Struct *> & liststructptr(const std::list<Struct *> & list) { return list; }
+const std::list<const Struct *> & liststructconstptr(const std::list<const Struct *> & list) { return list; }
 
 enum Fruit {
   APPLE,
@@ -53,8 +63,11 @@ enum Fruit {
 };
 %}
 
+#if !defined(SWIGR)
+%template(IntPtrList) std::list<int *>;
+%template(IntConstPtrList) std::list<const int *>;
+#endif
 %template(StructList) std::list<Struct>;
-%template(StructPtrList) std::list<Struct*>;
+%template(StructPtrList) std::list<Struct *>;
 %template(StructConstPtrList) std::list<const Struct *>;
-
 %template(FruitList) std::list<enum Fruit>;
