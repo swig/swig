@@ -5,11 +5,21 @@
  the number of arguments expected in the function pointer.
 extern void do(int (*op)(int (*i)(double, double), int j)); 
 */
+%{
+#include <stdlib.h>
+%}
 
 %inline %{
 typedef double (*DistFun)(double* data, int r, int c, int i, int j, void *xdata);
 
 void distance(double *data, int *dim, DistFun fun,  double *output) {
+    double val;
+    val = fun(data, dim[0], dim[1], dim[2], dim[3], output);
+}
+
+typedef double (*const CDistFun)(double* data, int r, int c, int i, int j, void *xdata);
+void const_distance(double *data, int *dim, CDistFun fun,  double *output) {
+    double val = fun(data, dim[0], dim[1], dim[2], dim[3], output);
 }
 
 typedef int (*Operator)(int i,int j);

@@ -3,6 +3,7 @@ This test case tests that various types of arrays are working.
 */
 
 %module arrays
+
 %{
 #include <stdlib.h>
 %}
@@ -67,10 +68,42 @@ void array_pointer_func(int (*x)[10]) {}
 %inline %{
 typedef float FLOAT;
 
-typedef FLOAT cartPosition_t[3]; 
+typedef FLOAT cartPosition_t[3];
 
 typedef struct {
 cartPosition_t p;
 } CartPoseData_t;
 
 %}
+
+#ifdef SWIGFORTRAN
+/* Fortran can't handle hex, but it can substitute compile-time constants like
+ * the enum into the 'contains' part of the code. HOWEVER, the interface must
+ * "import" the enums, so enums don't work after all. */
+%ignore oned_hex;
+%ignore oned_enum;
+%ignore twod_enum;
+
+%inline %{
+enum {TEN = 10};
+void oned_int(int a[10]);
+void oned_expr(int a[2*5]);
+void oned_enum(int a[TEN]);
+void oned_hex(int a[0xa]);
+void twod_int(int a[10][4]);
+void twod_expr1(int a[2*5][4]);
+void twod_expr2(int a[10][2*2]);
+void twod_expr3(int a[2*5][2*2]);
+void twod_enum(int a[TEN][4]);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+void oned_unknown(int a[]);
+void twod_unknown_int(int a[][10]);
+#ifdef __cplusplus
+}
+#endif
+%}
+#endif
+

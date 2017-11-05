@@ -103,6 +103,7 @@ C_TEST_BROKEN += \
 # C++ test cases. (Can be run individually using: make testcase.cpptest)
 CPP_TEST_CASES += \
 	abstract_access \
+	abstract_basecast \
 	abstract_inherit \
 	abstract_inherit_ok \
 	abstract_signature \
@@ -345,6 +346,7 @@ CPP_TEST_CASES += \
 	overload_subtype \
 	overload_template \
 	overload_template_fast \
+	pod_struct \
 	pointer_reference \
 	preproc_constants \
 	primitive_ref \
@@ -670,6 +672,7 @@ C_TEST_CASES += \
 	newobject2 \
 	overload_extend_c \
 	overload_extend2 \
+	pod_struct_c \
 	preproc \
 	preproc_constants_c \
 	preproc_defined \
