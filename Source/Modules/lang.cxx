@@ -1516,6 +1516,15 @@ int Language::membervariableHandler(Node *n) {
       Setattr(n, "memberget", "1");
       functionWrapper(n);
       Delattr(n, "memberget");
+
+      /* Delete all attached typemaps and typemap attributes: this node may
+       * be reused in the case of smart pointer-type functionality (see the
+       * smart_pointer_member.i test) */
+      Iterator ki;
+      for (ki = First(n); ki.key; ki = Next(ki)) {
+        if (Strncmp(ki.key, "tmap:", 5) == 0)
+          Delattr(n, ki.key);
+      }
     }
     Delete(mrename_get);
     Delete(mrename_set);
@@ -3066,6 +3075,14 @@ int Language::variableWrapper(Node *n) {
   Setattr(n, "varget", "1");
   functionWrapper(n);
   Delattr(n, "varget");
+
+  /* Delete all attached typemaps and typemap attributes */
+  Iterator ki;
+  for (ki = First(n); ki.key; ki = Next(ki)) {
+      if (Strncmp(ki.key, "tmap:", 5) == 0)
+          Delattr(n, ki.key);
+  }
+
   Swig_restore(n);
   Delete(newsymname);
   return SWIG_OK;
