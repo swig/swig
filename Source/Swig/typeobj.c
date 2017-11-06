@@ -645,6 +645,17 @@ SwigType *SwigType_del_array(SwigType *t) {
   return t;
 }
 
+int SwigType_isarraypointer(const SwigType *t) {
+  char *c;
+  if (!t)
+    return 0;
+  c = Char(t);
+  if (strncmp(c, "p.a(", 4) == 0) {
+    return 1;
+  }
+  return 0;
+}
+
 int SwigType_isarray(const SwigType *t) {
   char *c;
   if (!t)
