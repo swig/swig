@@ -6,7 +6,8 @@
 
 /* Inserting MATLAB code */
 #define %matlabcode  %insert("matlab")
-
+#define %matlabcode_static  %insert("matlab_static")
+#define %matlabcode_class  %insert("matlab_class")
 /* ------------------------------------------------------------------------- */
 /*
   Implicit Conversion using the C++ constructor mechanism
