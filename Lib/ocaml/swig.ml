@@ -156,4 +156,4 @@ let class_master_list = Hashtbl.create 20
 let register_class_byname nm co = 
   Hashtbl.replace class_master_list nm (Obj.magic co)
 let create_class nm arg = 
-  try (Obj.magic (Hashtbl.find class_master_list nm)) arg with _ -> raise (NoSuchClass nm)
+  try (Obj.magic (Hashtbl.find class_master_list nm)) with _ -> raise (NoSuchClass nm)

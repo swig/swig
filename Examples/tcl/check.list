@@ -5,7 +5,6 @@ contract
 enum
 funcptr
 import
-java
 multimap
 operator
 pointer

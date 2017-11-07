@@ -6,7 +6,7 @@
 
 // List
 
-%define %std_list_methods(list)
+%define %std_list_methods(list...)
   %std_sequence_methods(list)
   
   void pop_front();
@@ -17,7 +17,7 @@
 %enddef
 
 
-%define %std_list_methods_val(list)
+%define %std_list_methods_val(list...)
   %std_sequence_methods_val(list)
   
   void pop_front();

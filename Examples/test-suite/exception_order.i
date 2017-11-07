@@ -16,6 +16,10 @@
 #if defined(_MSC_VER)
   #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
 #endif
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
+#endif
 %}
 
 /* 
@@ -23,7 +27,17 @@
    user's throw declarations.
 */
 
-#if defined(SWIGUTL)
+#if defined(SWIGOCTAVE)
+%exception {
+  try {
+    $action
+  }
+  SWIG_RETHROW_OCTAVE_EXCEPTIONS
+  catch(...) {
+    SWIG_exception(SWIG_RuntimeError,"postcatch unknown");
+  }
+}
+#elif defined(SWIGUTL)
 %exception {
   try {
     $action
@@ -136,3 +150,12 @@ bool is_python_builtin() { return false; }
 
 %template(ET_i) ET<int>;
 %template(ET_d) ET<double>;
+
+%{
+#if defined(_MSC_VER)
+  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic pop
+#endif
+%}

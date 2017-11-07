@@ -122,9 +122,12 @@ swig -cffi -help
 <H3><a name="Lisp_nn5">27.2.2 Generating CFFI bindings</a></H3>
 
 
+<p>
+
 As we mentioned earlier the ideal way to use SWIG is to use interface
     files. To illustrate the use of it, let's assume that we have a
     file named <i>test.h</i> with the following C code:
+</p>
 
 <div class="code"><pre>
 #define y 5
@@ -134,29 +137,31 @@ typedef int days;
 
 struct bar {
   short p, q;
-    char a, b;
-    int *z[1000];
-    struct bar * n;
+  char a, b;
+  int *z[1000];
+  struct bar * n;
 };
   
 struct   bar * my_struct;
 
 struct foo {
-    int a;
-    struct foo * b[100];
-  
+  int a;
+  struct foo * b[100];
 };
 
 int pointer_func(void (*ClosureFun)( void* _fun, void* _data, void* _evt ), int p);
 
-int func123(div_t * p,int **q[100],int r[][1000][10]);
+int func123(div_t * p, int **q[100], int r[][1000][10]);
 
 void lispsort_double (int n, double * array);
 
 enum color { RED, BLUE, GREEN};
 </pre></div>
 
+<p>
 Corresponding to this we will write a simple interface file:
+</p>
+
 <div class="code"><pre>
 %module test
 
@@ -164,18 +169,20 @@ Corresponding to this we will write a simple interface file:
 
 </pre></div>
 
+<p>
 The generated SWIG Code will be:
+</p>
 
 <div class="targetlang"><pre>
 ;;;SWIG wrapper code starts here
 
 (cl:defmacro defanonenum (&amp;body enums)
    "Converts anonymous enums to defconstants."
-  `(cl:progn ,@(cl:loop for value in enums
+  `(cl:progn , @(cl:loop for value in enums
                         for index = 0 then (cl:1+ index)
                         when (cl:listp value) do (cl:setf index (cl:second value)
                                                           value (cl:first value))
-                        collect `(cl:defconstant ,value ,index))))
+                        collect `(cl:defconstant , value , index))))
 
 (cl:eval-when (:compile-toplevel :load-toplevel)
   (cl:unless (cl:fboundp 'swig-lispify)
@@ -281,7 +288,7 @@ Let's edit the interface file such that the C type "div_t*" is changed
 
 %typemap(cin) div_t* ":my-pointer";
 
-%feature("intern_function","1");
+%feature("intern_function", "1");
 %feature("export");
 
 %feature("inline") lispsort_double;
@@ -306,7 +313,7 @@ The <i>typemap(cin)</i> ensures that for all arguments which are input
 The feature <i>intern_function</i> ensures that all C names are
       interned using the <b>swig-lispify</b> function. The "1" given
       to the feature is optional. The use of feature like
-      <i>%feature("intern_function","1");</i> globally enables
+      <i>%feature("intern_function", "1");</i> globally enables
       interning for everything. If you want to target a single
       function, or declaration then use the targeted version of
       feature, <i>%feature("intern_function", "my-lispify")
@@ -431,49 +438,48 @@ Also, while parsing the C++ file and generating C wrapper code SWIG
 %include "target/header.h"
 
 </pre></div>
+<p>
 Various features which were available for C headers can also be used
     here. The target header which we are going to use here is:
+</p>
 <div class="code"><pre>
 namespace OpenDemo {
   class Test
-    {
+  {
     public:
-        float x;
-        // constructors
-        Test (void) {x = 0;}
-        Test (float X) {x = X;}
+      float x;
+      // constructors
+      Test (void) {x = 0;}
+      Test (float X) {x = X;}
 
-        // vector addition
-        Test operator+ (const Test&amp; v) const {return Test (x+v.x);}
+      // vector addition
+      Test operator+ (const Test&amp; v) const {return Test (x+v.x);}
 
       // length squared
-        float lengthSquared (void) const {return this-&gt;dot (*this);}
+      float lengthSquared (void) const {return this-&gt;dot (*this);}
 
-        static float distance (const Test&amp; a, const Test&amp; b){return(a-b).length();}
+      static float distance (const Test&amp; a, const Test&amp; b){return(a-b).length();}
 
-        inline Test parallelComponent (const Test&amp; unitBasis) const {
-          return unitBasis * projection;
-        }
+      inline Test parallelComponent (const Test&amp; unitBasis) const {
+        return unitBasis * projection;
+      }
 
-        Test setYtoZero (void) const {return Test (this-&gt;x);}
+      Test setYtoZero (void) const {return Test (this-&gt;x);}
 
-        static const Test zero;
-    };
+      static const Test zero;
+  };
 
+  inline Test operator* (float s, const Test&amp; v) {return v*s;}
 
-   inline Test operator* (float s, const Test&amp; v) {return v*s;}
+  inline std::ostream&amp; operator&lt;&lt; (std::ostream&amp; o, const Test&amp; v)
+  {
+    return o &lt;&lt; "(" &lt;&lt; v.x &lt;&lt; ")";
+  }
 
-
-    inline std::ostream&amp; operator&lt;&lt; (std::ostream&amp; o, const Test&amp; v)
-    {
-        return o &lt;&lt; "(" &lt;&lt; v.x &lt;&lt; ")";
-    }
-
-
-    inline Test RandomUnitVectorOnXZPlane (void)
-    {
-        return RandomVectorInUnitRadiusSphere().setYtoZero().normalize();
-    }
+  inline Test RandomUnitVectorOnXZPlane (void)
+  {
+    return RandomVectorInUnitRadiusSphere().setYtoZero().normalize();
+  }
 }
 </pre></div>
 <p>The interface used is: </p>
@@ -482,8 +488,10 @@ namespace OpenDemo {
 %include "test.cpp"
 </pre></div>
 
+<p>
 SWIG generates 3 files, the first one is a C wrap which we don't show,
     the second is the plain CFFI wrapper which is as shown below:
+</p>
 <div class="targetlang"><pre>
 (cffi:defcfun ("_wrap_Test_x_set" Test_x_set) :void
   (self :pointer)
@@ -532,11 +540,13 @@ SWIG generates 3 files, the first one is a C wrap which we don't show,
 (cffi:defcfun ("_wrap_RandomUnitVectorOnXZPlane" RandomUnitVectorOnXZPlane) :pointer)
 </pre></div>
 
+<p>
 The output is pretty good but it fails in disambiguating overloaded
     functions such as the constructor, in this case. One way of
     resolving this problem is to make the interface use the rename
     directiv, but hopefully there are better solutions.
  In addition SWIG also generates, a CLOS file
+</p>
 
 
 <div class="targetlang"><pre>
@@ -726,7 +736,7 @@ The ffi wrappers for functions and variables are generated as shown
 extern "C" {
 int pointer_func(void (*ClosureFun)( void* _fun, void* _data, void* _evt ), int y);
 
-int func123(div_t * x,int **z[100],int y[][1000][10]);
+int func123(div_t * x, int **z[100], int y[][1000][10]);
 
 void lispsort_double (int n, double * array);
 
@@ -778,10 +788,10 @@ The module also handles strutcures and #define constants as shown
 </p>
 <div class="code"><pre>
 struct bar {
-    short x, y;
-    char a, b;
-    int *z[1000];
-    struct bar * n;
+  short x, y;
+  char a, b;
+  int *z[1000];
+  struct bar * n;
 };
 
 #define max 1000

@@ -19,8 +19,6 @@
 #endif
 
 
-
-#ifndef SWIG_NO_OVERLOAD
 %immutable Spam::type;
 
 %inline %{
@@ -129,8 +127,6 @@ static char *bar(void *[SIZE]) {
 };
 
 %}
-
-#endif
 
 
 %inline {

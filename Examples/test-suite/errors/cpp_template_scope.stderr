@@ -1,0 +1,11 @@
+cpp_template_scope.i:18: Warning 320: Explicit template instantiation ignored.
+cpp_template_scope.i:24: Warning 320: Explicit template instantiation ignored.
+cpp_template_scope.i:29: Warning 320: Explicit template instantiation ignored.
+cpp_template_scope.i:34: Error: 'vector' resolves to 'std::vector' and was incorrectly instantiated in scope 'unrelated' instead of within scope 'std'.
+cpp_template_scope.i:35: Warning 320: Explicit template instantiation ignored.
+cpp_template_scope.i:41: Error: 'vector' resolves to 'std::vector' and was incorrectly instantiated in scope 'unrelated' instead of within scope 'std'.
+cpp_template_scope.i:42: Warning 320: Explicit template instantiation ignored.
+cpp_template_scope.i:48: Error: 'vector' resolves to 'std::vector' and was incorrectly instantiated in scope 'unrelated::std' instead of within scope 'std'.
+cpp_template_scope.i:49: Warning 320: Explicit template instantiation ignored.
+cpp_template_scope.i:55: Error: 'std::vector' resolves to 'std::vector' and was incorrectly instantiated in scope 'unrelated' instead of within scope 'std'.
+cpp_template_scope.i:56: Warning 320: Explicit template instantiation ignored.

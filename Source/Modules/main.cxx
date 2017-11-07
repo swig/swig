@@ -38,14 +38,15 @@ int NoExcept = 0;
 int SwigRuntime = 0;		// 0 = no option, 1 = -runtime, 2 = -noruntime
 
 /* Suppress warning messages for private inheritance, preprocessor evaluation etc...
-   WARN_PP_EVALUATION            202
-   WARN_PARSE_PRIVATE_INHERIT    309
-   WARN_TYPE_ABSTRACT            403
-   WARN_LANG_OVERLOAD_CONST      512
-   WARN_PARSE_BUILTIN_NAME       321
-   WARN_PARSE_REDUNDANT          322
+   WARN_PP_EVALUATION                           202
+   WARN_PARSE_PRIVATE_INHERIT                   309
+   WARN_PARSE_BUILTIN_NAME                      321
+   WARN_PARSE_REDUNDANT                         322
+   WARN_TYPE_ABSTRACT                           403
+   WARN_TYPE_RVALUE_REF_QUALIFIER_IGNORED       405
+   WARN_LANG_OVERLOAD_CONST                     512
  */
-#define EXTRA_WARNINGS "202,309,403,512,321,322"
+#define EXTRA_WARNINGS "202,309,403,405,512,321,322"
 
 extern "C" {
   extern String *ModuleName;
@@ -64,7 +65,7 @@ static const char *usage1 = (const char *) "\
      -copyctor       - Automatically generate copy constructors wherever possible\n\
      -cpperraswarn   - Treat the preprocessor #error statement as #warning (default)\n\
      -cppext <ext>   - Change file extension of generated C++ files to <ext>\n\
-                       (default is cxx, except for PHP which uses cpp)\n\
+                       (default is cxx, except for PHP5 which uses cpp)\n\
      -copyright      - Display copyright notices\n\
      -debug-classes  - Display information about the classes found in the interface\n\
      -debug-module <n>- Display module parse tree at stages 1-4, <n> is a csv list of stages\n\

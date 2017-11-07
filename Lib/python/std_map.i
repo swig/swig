@@ -102,7 +102,8 @@
 	  res = traits_asptr_stdseq<map_type, std::pair<K, T> >::asptr(items, val);
 	} else {
 	  map_type *p;
-	  res = SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<map_type>(),0);
+	  swig_type_info *descriptor = swig::type_info<map_type>();
+	  res = descriptor ? SWIG_ConvertPtr(obj, (void **)&p, descriptor, 0) : SWIG_ERROR;
 	  if (SWIG_IsOK(res) && val)  *val = p;
 	}
 	SWIG_PYTHON_THREAD_END_BLOCK;

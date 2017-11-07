@@ -9,6 +9,10 @@
 #if defined(_MSC_VER)
   #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
 #endif
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
+#endif
 %}
 
 %{
@@ -29,5 +33,14 @@ void test_domain_error() throw(std::domain_error)
 bool is_python_builtin() { return true; }
 #else
 bool is_python_builtin() { return false; }
+#endif
+%}
+
+%{
+#if defined(_MSC_VER)
+  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic pop
 #endif
 %}

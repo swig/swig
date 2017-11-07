@@ -1,10 +1,12 @@
 # Makefile for generating the SWIG documentation
 #
-# Note that the htmldoc package needs to be installed, but requires patching (using the
-# margin-left.patch file from this directory) in order to correctly generate the pdf docs.
+# Note that the htmldoc package needs to be installed. wkhtmltopdf patched with qt is also required
+# and can be installed from http://wkhtmltopdf.org/downloads.html.
+#
 # The .html files are first processed and updated with chapter numbering and anchor names
 # are added to the HTML headings using the python scripts. The htmldoc program is then
-# used to generate the PDF document and single page HTML version of the documentation.
+# used to generate the single page HTML version of the documentation.
+# wkhtmltopdf is used to generate the pdf document from the single page html file.
 # HTML TIDY (package also known as tidy) is also required and is used as an aid to HTML
 # validation.
 #

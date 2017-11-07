@@ -50,9 +50,9 @@
 %shared_ptr(Space::Bottom3)
 
 %include "swiginterface.i"
-SWIG_SHARED_PTR_INTERFACE_TYPEMAPS(SWIGEMPTYHACK, Space::ABase1)
-SWIG_SHARED_PTR_INTERFACE_TYPEMAPS(SWIGEMPTYHACK, Space::CBase1)
-SWIG_SHARED_PTR_INTERFACE_TYPEMAPS(SWIGEMPTYHACK, Space::CBase2)
+SWIG_SHARED_PTR_INTERFACE_TYPEMAPS(, Space::ABase1)
+SWIG_SHARED_PTR_INTERFACE_TYPEMAPS(, Space::CBase1)
+SWIG_SHARED_PTR_INTERFACE_TYPEMAPS(, Space::CBase2)
 %interface_impl(Space::ABase1)
 %interface_impl(Space::CBase1)
 %interface_impl(Space::CBase2)

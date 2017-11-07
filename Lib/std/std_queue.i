@@ -122,7 +122,7 @@ namespace std {
     %swig_queue_methods_val(std::queue< _Tp*, _Sequence >);
 #endif
 
-    %std_queue_methods_val(std::queue< _Tp*, _Sequence >);
+    %std_queue_methods_val(queue);
   };
 
 }

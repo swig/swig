@@ -1,0 +1,2 @@
+cpp_bad_global_memberptr.i:5: Error: Missing symbol name for global declaration
+cpp_bad_global_memberptr.i:6: Error: Missing symbol name for global declaration

@@ -121,15 +121,15 @@ In this example we bind from C a function and a global variable into Scilab. The
 double Foo = 3.0;
 
 int fact(int n) {
-    if (n &lt; 0) {
-        return 0;
-    }
-    else if (n == 0) {
-        return 1;
-    }
-    else {
-        return n * fact(n-1);
-    }
+  if (n &lt; 0) {
+    return 0;
+  }
+  else if (n == 0) {
+    return 1;
+  }
+  else {
+    return n * fact(n-1);
+  }
 }
 %}
 </pre></div>
@@ -304,6 +304,11 @@ The following table lists the Scilab specific command line options in addition t
 <td>Generate the gateway XML with the given &lt;gateway_id&gt;</td>
 </tr>
 
+<tr>
+<td><tt>-targetversion</tt></td>
+<td>Generate for Scilab target (major) version</td>
+</tr>
+
 </table>
 
 <p>
@@ -331,11 +336,15 @@ There are a few exceptions, such as constants and enumerations, which can be wra
 
 
 <p>
-In Scilab 5.x, identifier names are composed of 24 characters maximum (this limitation should disappear from Scilab 6.0 onwards).
-<br>Thus long function or variable names may be truncated and this can cause ambiguities.
+In Scilab 5.x, identifier names are composed of 24 characters maximum (this limitation disappears from Scilab 6.0 onwards).
+<br>By default, variable, member, and function names longer than 24 charaters are truncated, and a warning is produced for each truncation.
 </p>
-<p>This happens especially when wrapping structs/classes, for which the wrapped function name is composed of the struct/class name and field names.
+<p>This can cause ambiguities, especially when wrapping structs/classes, for which the wrapped function name is composed of the struct/class name and field names.
 In these cases, the <a href="SWIG.html#SWIG_rename_ignore">%rename directive</a> can be used to choose a different Scilab name.
+</p>
+
+<p>
+Note: truncations can be disabled by specifying the target version 6 of Scilab in the <tt>targetversion</tt> argument (i.e. <tt>-targetversion 6</tt>).
 </p>
 
 <H3><a name="Scilab_wrapping_functions">39.3.3 Functions</a></H3>
@@ -443,14 +452,15 @@ The example below shows this for a C function returning 2 values and a result:
 int divide(int n, int d, int *OUTPUT, int *OUTPUT);
 
 %{
-int divide(int n, int d, int q*, int *r) {
-   if (d != 0) {
-     *q = n / d;
-     *r = n % d;
-     return 1;
-   }
-   else return 0;
-}
+  int divide(int n, int d, int q*, int *r) {
+    if (d != 0) {
+      *q = n / d;
+      *r = n % d;
+      return 1;
+    } else {
+      return 0;
+    }
+  }
 %}
 </pre></div>
 
@@ -886,8 +896,8 @@ Let's see it on an example of a struct with two members:
 %inline %{
 
 typedef struct {
-    int x;
-    int arr[4];
+  int x;
+  int arr[4];
 } Foo;
 
 %}
@@ -1123,21 +1133,21 @@ But we can use either use the <tt>get_perimeter()</tt> function of the parent cl
 
 
 <p>
-As explained in <a href="http://www.swig.org/Doc3.0/SWIGPlus.html#SWIGPlus_overloaded_methods">6.15</a> SWIG provides support for overloaded functions and constructors.
+As explained in <a href="SWIGPlus.html#SWIGPlus_overloaded_methods">Overloaded functions and methods</a> SWIG provides support for overloaded functions and constructors.
 </p>
 
-<p>As SWIG knows pointer types, the overloading works also with pointer types, here is is an example with a function <tt>magnify</tt> overloaded for the previous classes <tt>Shape</tt> and <tt>Circle</tt>:
+<p>As SWIG knows pointer types, the overloading works also with pointer types, here is an example with a function <tt>magnify</tt> overloaded for the previous classes <tt>Shape</tt> and <tt>Circle</tt>:
 </p>
 
 <div class="code"><pre>
 %module example
 
 void magnify(Square *square, double factor) {
-    square-&gt;size *= factor;
+  square-&gt;size *= factor;
 };
 
 void magnify(Circle *circle, double factor) {
-    square-&gt;radius *= factor;
+  square-&gt;radius *= factor;
 };
 </pre></div>
 
@@ -1242,7 +1252,7 @@ struct triplet {
   }
 };
 
-%template(IntTriplet) triplet&lt;int,int,int&gt;;
+%template(IntTriplet) triplet&lt;int, int, int&gt;;
 </pre></div>
 
 <p>
@@ -1320,7 +1330,7 @@ private:
 <div class="targetlang"><pre>
 --&gt; c1 = new_Complex(3, 7);
 
---&gt; c2 = Complex_plus(c, new_Complex(1,1));
+--&gt; c2 = Complex_plus(c, new_Complex(1, 1));
 
 --&gt; Complex_toDouble(c2)
  ans  =
@@ -1354,7 +1364,7 @@ namespace foo {
   }
 
   struct Vector {
-    double x,y,z;
+    double x, y, z;
   };
 };
 
@@ -1610,11 +1620,11 @@ void printArray(int values[], int len) {
 
 
 <p>
-There are no specific typemaps for pointer-to-pointers, they are are mapped as pointers in Scilab.
+There are no specific typemaps for pointer-to-pointers, they are mapped as pointers in Scilab.
 </p>
 
 <p>
-Pointer-to-pointers are sometimes used to implement matrices in C. The following is a an example of this:
+Pointer-to-pointers are sometimes used to implement matrices in C. The following is an example of this:
 </p>
 
 
@@ -1635,17 +1645,17 @@ double **create_matrix() {
   return M;
 }
 
-// Gets the item M(i,j) value
+// Gets the item M(i, j) value
 double get_matrix(double **M, int i, int j) {
   return M[i][j];
 }
 
-// Sets the item M(i,j) value to be val
+// Sets the item M(i, j) value to be val
 void set_matrix(double **M, int i, int j, double val) {
   M[i][j] = val;
 }
 
-// Prints a matrix (2,2) to console
+// Prints a matrix (2, 2) to console
 void print_matrix(double **M, int nbRows, int nbCols) {
   int i, j;
   for (i = 0; i &lt; 2; i++) {
@@ -1768,7 +1778,7 @@ void absolute(int *matrix, int matrixNbRow, int matrixNbCol,
 The remarks made earlier for arrays also apply here:
 </p>
 <ul>
-<li>The values of matrices in Scilab are column-major orderered,</li>
+<li>The values of matrices in Scilab are column-major orderered, </li>
 <li>There is no control while converting <tt>double</tt> values to integers, <tt>double</tt> values are truncated without any checking or warning.</li>
 </ul>
 
@@ -2052,7 +2062,7 @@ In this mode, the following SWIG options may be used to setup the build:
 Let's give an example how to build a module <tt>example</tt>, composed of two sources, and using a library dependency:
 </p>
 <ul>
-<li>the sources are <tt>baa1.c</tt> and <tt>baa2.c</tt> (and are stored in in the current directory)</li>
+<li>the sources are <tt>baa1.c</tt> and <tt>baa2.c</tt> (and are stored in the current directory)</li>
 <li>the library is <tt>libfoo</tt> in <tt>/opt/foo</tt> (headers stored in <tt>/opt/foo/include</tt>, and shared library in <tt>/opt/foo/lib</tt>)</li>
 </ul>
 
@@ -2061,7 +2071,7 @@ The command is:
 </p>
 
 <div class="shell"><pre>
-$ swig -scilab -builder -buildercflags -I/opt/foo/include -builderldflags "-L/opt/foo/lib -lfoo" -buildersources baa1.cxx,baa2.cxx example.i
+$ swig -scilab -builder -buildercflags -I/opt/foo/include -builderldflags "-L/opt/foo/lib -lfoo" -buildersources baa1.cxx, baa2.cxx example.i
 </pre></div>
 
 <H2><a name="Scilab_generated_scripts">39.7 Generated scripts</a></H2>
@@ -2081,12 +2091,12 @@ In this part we give some details about the generated Scilab scripts.
 ilib_name = "examplelib";
 files = ["example_wrap.c"];
 libs = [];
-table = ["fact","_wrap_fact";"Foo_set","_wrap_Foo_set";"Foo_get","_wrap_Foo_get";];
-ilib_build(ilib_name,table,files,libs);
+table = ["fact", "_wrap_fact";"Foo_set", "_wrap_Foo_set";"Foo_get", "_wrap_Foo_get";];
+ilib_build(ilib_name, table, files, libs);
 </pre></div>
 
 <p>
-<tt>ilib_build(lib_name,table,files,libs)</tt> is used to create shared libraries, and to generate a loader file used to dynamically load the shared library into Scilab.
+<tt>ilib_build(lib_name, table, files, libs)</tt> is used to create shared libraries, and to generate a loader file used to dynamically load the shared library into Scilab.
 </p>
 
 <ul>
@@ -2117,7 +2127,7 @@ list_functions = [             'fact';
             'Foo_set';
             'Foo_get';
 ];
-addinter(libexamplelib_path+'/libexamplelib.so','libexamplelib',list_functions);
+addinter(libexamplelib_path+'/libexamplelib.so', 'libexamplelib', list_functions);
 // remove temp. variables on stack
 clear libexamplelib_path;
 clear list_functions;
@@ -2126,7 +2136,7 @@ clear get_file_path;
 </pre></div>
 
 <p>
-<tt>addinter(files,spname,fcts)</tt> performs dynamic linking of a compiled C interface function.
+<tt>addinter(files, spname, fcts)</tt> performs dynamic linking of a compiled C interface function.
 </p>
 <ul>
 <li><tt><b>files</b></tt>: a character string or a vector of character strings defining the object files (containing the C interface functions) to link with.</li>

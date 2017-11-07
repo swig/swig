@@ -115,6 +115,10 @@
     return v;
   }
 
+  std::vector<bool> videntb(const std::vector<bool>& v)
+  {
+    return v;
+  }
 
   int get_elem(const std::vector<int>& v, int index)
   {

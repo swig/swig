@@ -18,4 +18,12 @@ class A {
   virtual MemberEnum member_virtual_test(MemberEnum e) { return e; }
   virtual GlobalEnum global_virtual_test(GlobalEnum e) { return global_test(e); }
 };
+
+/* This class overrides nothing. Inherited classes should see base functions.
+*/
+class A_Intermediate : public A { 
+ public:
+  A_Intermediate(){}
+  ~A_Intermediate(){}
+};
 #endif

@@ -51,7 +51,7 @@
 <li><a href="#Python_builtin_types">Built-in Types</a>
 <ul>
 <li><a href="#Python_builtin_limitations">Limitations</a>
-<li><a href="#Python_builtin_overloads">Operator overloads -- use them!</a>
+<li><a href="#Python_builtin_overloads">Operator overloads and slots -- use them!</a>
 </ul>
 <li><a href="#Python_nn30">Memory management</a>
 <li><a href="#Python_nn31">Python 2.2 and classic classes</a>
@@ -133,6 +133,11 @@
 <li><a href="#Python_nn77">Byte string output conversion</a>
 <li><a href="#Python_2_unicode">Python 2 Unicode</a>
 </ul>
+<li><a href="#Python_multithreaded">Support for Multithreaded Applications</a>
+<ul>
+<li><a href="#Python_thread_UI">UI for Enabling Multithreading Support</a>
+<li><a href="#Python_thread_performance">Multithread Performance</a>
+</ul>
 </ul>
 </div>
 <!-- INDEX -->
@@ -162,7 +167,7 @@ Basics</a>" chapter.
 
 <p>
 To build Python extension modules, SWIG uses a layered approach in which
-parts of the extension module are defined in C and other parts are 
+parts of the extension module are defined in C and other parts are
 defined in Python.  The C layer contains low-level wrappers whereas Python code
 is used to define high-level features.
 </p>
@@ -221,16 +226,15 @@ resulting C file should be built as a python extension, inserting the module
 #include "example.h"
 
 int fact(int n) {
-    if (n &lt; 0){ /* This should probably return an error, but this is simpler */
-        return 0;
-    }
-    if (n == 0) {
-        return 1;
-    }
-    else {
-        /* testing for overflow would be a good idea here */
-        return n * fact(n-1);
-    }
+  if (n &lt; 0) { /* This should probably return an error, but this is simpler */
+    return 0;
+  }
+  if (n == 0) {
+    return 1;
+  } else {
+    /* testing for overflow would be a good idea here */
+    return n * fact(n-1);
+  }
 }
 
 </pre>
@@ -395,12 +399,12 @@ $ gcc -shared example.o example_wrap.o -o _example.so
 </pre></div>
 
 <p>
-The exact commands for doing this vary from platform to platform. 
-However, SWIG tries to guess the right options when it is installed.  Therefore, 
-you may want to start with one of the examples in the <tt>SWIG/Examples/python</tt> 
+The exact commands for doing this vary from platform to platform.
+However, SWIG tries to guess the right options when it is installed.  Therefore,
+you may want to start with one of the examples in the <tt>SWIG/Examples/python</tt>
 directory.   If that doesn't work, you will need to read the man-pages for
 your compiler and linker to get the right set of options.  You might also
-check the <a href="http://www.dabeaz.com/cgi-bin/wiki.pl">SWIG Wiki</a> for
+check the <a href="https://github.com/swig/swig/wiki">SWIG Wiki</a> for
 additional information.
 </p>
 
@@ -409,7 +413,7 @@ When linking the module, <b>the name of the output file has to match the name
 of the module prefixed by an underscore</b>.  If the name of your module is "<tt>example</tt>", then the
 name of the corresponding object file should be
 "<tt>_example.so</tt>" or "<tt>_examplemodule.so</tt>".
-The name of the module is specified using the <tt>%module</tt> directive or the 
+The name of the module is specified using the <tt>%module</tt> directive or the
 <tt>-module</tt> command line option.
 </p>
 
@@ -433,7 +437,7 @@ An alternative approach to dynamic linking is to rebuild the Python
 interpreter with your extension module added to it.  In the past,
 this approach was sometimes necessary due to limitations in dynamic loading
 support on certain machines.  However, the situation has improved greatly
-over the last few years and you should not consider this approach 
+over the last few years and you should not consider this approach
 unless there is really no other option.
 </p>
 
@@ -493,7 +497,7 @@ linking if possible. Some programmers may be inclined
 to use static linking in the interest of getting better performance.
 However, the performance gained by static linking tends to be rather
 minimal in most situations (and quite frankly not worth the extra
-hassle in the opinion of this author). 
+hassle in the opinion of this author).
 </p>
 
 <p>
@@ -509,7 +513,7 @@ If using static linking, you might want to rely on a different approach
 
 <p>
 To use your module, simply use the Python <tt>import</tt> statement. If
-all goes well, you will be able to this:
+all goes well, you will be able to run this:
 </p>
 
 <div class="targetlang"><pre>
@@ -552,13 +556,13 @@ Another possible error is the following:
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
 ImportError: dynamic module does not define init function (init_example)
-&gt;&gt;&gt;                                                               
+&gt;&gt;&gt;
 </pre>
 </div>
 
 <p>
-This error is almost always caused when a bad name is given to the shared object file. 
-For example, if you created a file <tt>example.so</tt> instead of <tt>_example.so</tt> you would 
+This error is almost always caused when a bad name is given to the shared object file.
+For example, if you created a file <tt>example.so</tt> instead of <tt>_example.so</tt> you would
 get this error.  Alternatively, this error could arise if the name of the module is
 inconsistent with the module name supplied with the <tt>%module</tt> directive.
 Double-check the interface to make sure the module name and the shared object
@@ -584,7 +588,7 @@ This error usually indicates that you forgot to include some object
 files or libraries in the linking of the shared library file.  Make
 sure you compile both the SWIG wrapper file and your original program
 into a shared library file.  Make sure you pass all of the required libraries
-to the linker.  
+to the linker.
 </p>
 
 <p>
@@ -619,7 +623,7 @@ problem when you try to use your module:
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
 ImportError: libfoo.so: cannot open shared object file: No such file or directory
-&gt;&gt;&gt;                 
+&gt;&gt;&gt;
 </pre>
 </div>
 
@@ -642,7 +646,7 @@ $ gcc -shared example.o example_wrap.o -L/home/beazley/projects/lib -lfoo \
 
 <p>
 Alternatively, you can set the <tt>LD_LIBRARY_PATH</tt> environment variable to
-include the directory with your shared libraries. 
+include the directory with your shared libraries.
 If setting <tt>LD_LIBRARY_PATH</tt>, be aware that setting this variable can introduce
 a noticeable performance impact on all other applications that you run.
 To set it only for Python, you might want to do this instead:
@@ -707,7 +711,7 @@ $ CC -G example.o example_wrap.o -L/opt/SUNWspro/lib -o _example.so -lCrun
 </pre></div>
 
 <p>
-Of course, the extra libraries to use are completely non-portable---you will 
+Of course, the extra libraries to use are completely non-portable---you will
 probably need to do some experimentation.
 </p>
 
@@ -715,8 +719,8 @@ probably need to do some experimentation.
 Sometimes people have suggested that it is necessary to relink the
 Python interpreter using the C++ compiler to make C++ extension modules work.
 In the experience of this author, this has never actually appeared to be
-necessary.   Relinking the interpreter with C++ really only includes the 
-special run-time libraries described above---as long as you link your extension 
+necessary.   Relinking the interpreter with C++ really only includes the
+special run-time libraries described above---as long as you link your extension
 modules with these libraries, it should not be necessary to rebuild Python.
 </p>
 
@@ -760,7 +764,7 @@ might want to investigate using a more formal standard such as COM.
 On platforms that support 64-bit applications (Solaris, Irix, etc.),
 special care is required when building extension modules.  On these
 machines, 64-bit applications are compiled and linked using a different
-set of compiler/linker options.  In addition, it is not generally possible to mix 
+set of compiler/linker options.  In addition, it is not generally possible to mix
 32-bit and 64-bit code together in the same application.
 </p>
 
@@ -814,10 +818,10 @@ If you need to build it on your own, the following notes are provided:
 </p>
 
 <p>
-You will need to create a DLL that can be loaded into the interpreter. 
+You will need to create a DLL that can be loaded into the interpreter.
 This section briefly describes the use of SWIG with Microsoft Visual
 C++.   As a starting point, many of SWIG's examples include project
-files (.dsp files) for Visual C++ 6. These can be opened by more 
+files (.dsp files) for Visual C++ 6. These can be opened by more
 recent versions of Visual Studio.
 You might want to take a quick look at these examples in addition to
 reading this section.
@@ -852,7 +856,7 @@ settings, select the "Custom Build" option.
 "C++:Preprocessor". Add the include directories for your Python
 installation under "Additional include directories".
 
-<li>Define the symbol  __WIN32__ under preprocessor options.  
+<li>Define the symbol  __WIN32__ under preprocessor options.
 
 <li>Finally, select the settings for the entire project and go to
 "Link Options".  Add the Python library file to your link libraries.
@@ -866,7 +870,7 @@ match the name of your Python module, ie. _example.pyd - Note that _example.dll 
 If all went well, SWIG will be automatically invoked whenever
 you build your project.  Any changes made to the interface file will
 result in SWIG being automatically executed to produce a new version of
-the wrapper file. 
+the wrapper file.
 </p>
 
 <p>
@@ -885,9 +889,9 @@ $ python
 <p>
 If you get an <tt>ImportError</tt> exception when importing the module, you may
 have forgotten to include additional library files when you built your module.
-If you get an access violation or some kind of general protection fault 
-immediately upon import, you have a more serious problem.   This 
-is often caused by linking your extension module against the wrong 
+If you get an access violation or some kind of general protection fault
+immediately upon import, you have a more serious problem.   This
+is often caused by linking your extension module against the wrong
 set of Win32 debug or thread libraries.  You will have to fiddle around with
 the build options of project to try and track this down.
 </p>
@@ -914,7 +918,7 @@ only used by the Visual Studio compiler:
 Some users have reported success in building extension modules using Cygwin
 and other compilers.  However, the problem of building usable DLLs with these
 compilers tends to be rather problematic.  For the latest information,
-you may want to consult the <a href="http://www.dabeaz.com/cgi-bin/wiki.pl">
+you may want to consult the <a href="https://github.com/swig/swig/wiki">
 SWIG Wiki</a>.
 </p>
 
@@ -938,7 +942,7 @@ wrapped into a Python '<tt>example</tt>' module.  Underneath the covers,
 this module consists of a Python source file <tt>example.py</tt> and a low-level
 extension module <tt>_example.so</tt>. When choosing a
 module name, make sure you don't use the same name as a built-in
-Python command or standard module name.  
+Python command or standard module name.
 </p>
 
 <H3><a name="Python_nn15">36.3.2 Functions</a></H3>
@@ -991,8 +995,8 @@ then "a" and "b" are both names for the object containing the value
 3.4. Thus, there is only one object containing 3.4 and "a"
 and "b" are both names that refer to it. This is quite
 different than C where a variable name refers to a memory location in which
-a value is stored (and assignment copies data into that location). 
-Because of this, there is no direct way to map variable 
+a value is stored (and assignment copies data into that location).
+Because of this, there is no direct way to map variable
 assignment in C to variable assignment in Python.
 </p>
 
@@ -1038,7 +1042,7 @@ error message.  For example:
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
 TypeError: C variable 'density (double )'
-&gt;&gt;&gt; 
+&gt;&gt;&gt;
 </pre></div>
 
 <p>
@@ -1188,7 +1192,7 @@ simply represented as opaque values using an especial python container object:
 
 <p>
 This pointer value can be freely passed around to different C functions that
-expect to receive an object of type <tt>FILE *</tt>.  The only thing you can't do is 
+expect to receive an object of type <tt>FILE *</tt>.  The only thing you can't do is
 dereference the pointer from Python. Of course, that isn't much of a concern in this example.
 </p>
 
@@ -1262,16 +1266,16 @@ consider writing some helper functions instead.  For example:
 %inline %{
 /* C-style cast */
 Bar *FooToBar(Foo *f) {
-   return (Bar *) f;
+  return (Bar *) f;
 }
 
 /* C++-style cast */
 Foo *BarToFoo(Bar *b) {
-   return dynamic_cast&lt;Foo*&gt;(b);
+  return dynamic_cast&lt;Foo*&gt;(b);
 }
 
 Foo *IncrFoo(Foo *f, int i) {
-    return f+i;
+  return f+i;
 }
 %}
 </pre>
@@ -1294,7 +1298,7 @@ a very natural interface.  For example,
 
 <div class="code"><pre>
 struct Vector {
-  double x,y,z;
+  double x, y, z;
 };
 
 </pre></div>
@@ -1309,7 +1313,7 @@ is used as follows:
 &gt;&gt;&gt; v.y = 7.2
 &gt;&gt;&gt; print v.x, v.y, v.z
 7.8 -4.5 0.0
-&gt;&gt;&gt; 
+&gt;&gt;&gt;
 </pre></div>
 
 <p>
@@ -1355,12 +1359,12 @@ can also be forced to be read-only using the <tt>%immutable</tt> directive. For 
 <div class="code">
 <pre>
 struct Foo {
-   ...
-   %immutable;
-   int x;        /* Read-only members */
-   char *name;
-   %mutable;
-   ...
+  ...
+  %immutable;
+  int x;        /* Read-only members */
+  char *name;
+  %mutable;
+  ...
 };
 </pre>
 </div>
@@ -1368,7 +1372,7 @@ struct Foo {
 <p>
 When <tt>char *</tt> members of a structure are wrapped, the contents are assumed to be
 dynamically allocated using <tt>malloc</tt> or <tt>new</tt> (depending on whether or not
-SWIG is run with the -c++ option).   When the structure member is set, the old contents will be 
+SWIG is run with the -c++ option).   When the structure member is set, the old contents will be
 released and a new value created.   If this is not the behavior you want, you will have to use
 a typemap (described later).
 </p>
@@ -1381,7 +1385,7 @@ example, consider this:
 <div class="code">
 <pre>
 struct Bar {
-    int  x[16];
+  int  x[16];
 };
 </pre>
 </div>
@@ -1395,7 +1399,7 @@ If accessed in Python, you will see behavior like this:
 &gt;&gt;&gt; b = example.Bar()
 &gt;&gt;&gt; print b.x
 _801861a4_p_int
-&gt;&gt;&gt; 
+&gt;&gt;&gt;
 </pre>
 </div>
 
@@ -1427,11 +1431,11 @@ pointer.  For example, suppose you have two structures like this:
 <div class="code">
 <pre>
 struct Foo {
-   int a;
+  int a;
 };
 
 struct Bar {
-   Foo f;
+  Foo f;
 };
 </pre>
 </div>
@@ -1460,7 +1464,7 @@ Foo *x = &amp;b-&gt;f;       /* Points inside b */
 </div>
 
 <p>
-Because the pointer points inside the structure, you can modify the contents and 
+Because the pointer points inside the structure, you can modify the contents and
 everything works just like you would expect. For example:
 </p>
 
@@ -1468,7 +1472,7 @@ everything works just like you would expect. For example:
 <pre>
 &gt;&gt;&gt; b = Bar()
 &gt;&gt;&gt; b.f.a = 3               # Modify attribute of structure member
-&gt;&gt;&gt; x = b.f                   
+&gt;&gt;&gt; x = b.f
 &gt;&gt;&gt; x.a = 3                 # Modifies the same structure
 </pre>
 </div>
@@ -1510,13 +1514,13 @@ you can use it in Python like this:
 </pre></div>
 
 <p>
-Class data members are accessed in the same manner as C structures.  
+Class data members are accessed in the same manner as C structures.
 </p>
 
 <p>
-Static class members present a special problem for Python.  Prior to Python-2.2, 
+Static class members present a special problem for Python.  Prior to Python-2.2,
 Python classes had no support for static methods and no version of Python
-supports static member variables in a manner that SWIG can utilize.  Therefore, 
+supports static member variables in a manner that SWIG can utilize.  Therefore,
 SWIG generates wrappers that try to work around some of these issues.  To illustrate,
 suppose you have a class like this:
 </p>
@@ -1525,9 +1529,8 @@ suppose you have a class like this:
 <pre>
 class Spam {
 public:
-   static void foo();
-   static int bar;
-
+  static void foo();
+  static int bar;
 };
 </pre>
 </div>
@@ -1590,11 +1593,11 @@ structure.   All of the usual Python utility functions work normally:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; b = Bar()
-&gt;&gt;&gt; instance(b,Foo)
+&gt;&gt;&gt; instance(b, Foo)
 1
-&gt;&gt;&gt; issubclass(Bar,Foo)
+&gt;&gt;&gt; issubclass(Bar, Foo)
 1
-&gt;&gt;&gt; issubclass(Foo,Bar)
+&gt;&gt;&gt; issubclass(Foo, Bar)
 0
 </pre>
 </div>
@@ -1670,10 +1673,10 @@ const Foo &amp;spam9();
 
 <p>
 then all three functions will return a pointer to some <tt>Foo</tt> object.
-Since the third function (spam8) returns a value, newly allocated memory is used 
-to hold the result and a pointer is returned (Python will release this memory 
+Since the third function (spam8) returns a value, newly allocated memory is used
+to hold the result and a pointer is returned (Python will release this memory
 when the return value is garbage collected). The fourth case (spam9)
-which returns a const reference, in most of the cases will be 
+which returns a const reference, in most of the cases will be
 treated as a returning value, and it will follow the same
 allocation/deallocation process.
 </p>
@@ -1712,9 +1715,9 @@ Similarly, if you have a class like this,
 <pre>
 class Foo {
 public:
-    Foo();
-    Foo(const Foo &amp;);
-    ...
+  Foo();
+  Foo(const Foo &amp;);
+  ...
 };
 </pre>
 </div>
@@ -1772,7 +1775,7 @@ To fix this, you either need to ignore or rename one of the methods.  For exampl
 <pre>
 %rename(spam_short) spam(short);
 ...
-void spam(int);    
+void spam(int);
 void spam(short);   // Accessed as spam_short
 </pre>
 </div>
@@ -1785,7 +1788,7 @@ or
 <pre>
 %ignore spam(short);
 ...
-void spam(int);    
+void spam(int);
 void spam(short);   // Ignored
 </pre>
 </div>
@@ -1798,7 +1801,7 @@ first declaration takes precedence.
 </p>
 
 <p>
-Please refer to the "SWIG and C++" chapter for more information about overloading. 
+Please refer to the "SWIG and C++" chapter for more information about overloading.
 </p>
 
 <H3><a name="Python_nn24">36.3.11 C++ operators</a></H3>
@@ -1824,7 +1827,7 @@ public:
   Complex operator-(const Complex &amp;c) const;
   Complex operator*(const Complex &amp;c) const;
   Complex operator-() const;
-  
+
   double re() const { return rpart; }
   double im() const { return ipart; }
 };
@@ -1837,8 +1840,8 @@ When wrapped, it works like you expect:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; c = Complex(3,4)
-&gt;&gt;&gt; d = Complex(7,8)
+&gt;&gt;&gt; c = Complex(3, 4)
+&gt;&gt;&gt; d = Complex(7, 8)
 &gt;&gt;&gt; e = c + d
 &gt;&gt;&gt; e.re()
 10.0
@@ -1890,6 +1893,14 @@ Also, be aware that certain operators don't map cleanly to Python.  For instance
 overloaded assignment operators don't map to Python semantics and will be ignored.
 </p>
 
+<p>
+Operator overloading is implemented in the <tt>pyopers.swg</tt> library file.
+In particular overloaded operators are marked with the <tt>python:maybecall</tt> feature, also known as <tt>%pythonmaybecall</tt>.
+This feature forces SWIG to generate code that return an instance of Python's <tt>NotImplemented</tt>
+instead of raising an exception when the comparison fails, that is, on any kind of error.
+This follows the guidelines in <a href="https://www.python.org/dev/peps/pep-0207/">PEP 207 - Rich Comparisons</a> and <a href="https://docs.python.org/3/library/constants.html#NotImplemented">NotImplemented Python constant</a>.
+</p>
+
 <H3><a name="Python_nn25">36.3.12 C++ namespaces</a></H3>
 
 
@@ -1904,10 +1915,10 @@ submodules or packages.  For example, if you have a file like this,
 %module example
 
 namespace foo {
-   int fact(int n);
-   struct Vector {
-       double x,y,z;
-   };
+  int fact(int n);
+  struct Vector {
+    double x, y, z;
+  };
 };
 </pre>
 </div>
@@ -1939,11 +1950,11 @@ For example:
 %rename(Bar_spam) Bar::spam;
 
 namespace Foo {
-    int spam();
+  int spam();
 }
 
 namespace Bar {
-    int spam();
+  int spam();
 }
 </pre>
 </div>
@@ -1976,16 +1987,16 @@ For example:
 
 template&lt;class T1, class T2&gt;
 struct pair {
-   typedef T1 first_type;
-   typedef T2 second_type;
-   T1 first;
-   T2 second;
-   pair();
-   pair(const T1&amp;, const T2&amp;);
-  ~pair();
+  typedef T1 first_type;
+  typedef T2 second_type;
+  T1 first;
+  T2 second;
+  pair();
+  pair(const T1&amp;, const T2&amp;);
+ ~pair();
 };
 
-%template(pairii) pair&lt;int,int&gt;;
+%template(pairii) pair&lt;int, int&gt;;
 </pre>
 </div>
 
@@ -1996,7 +2007,7 @@ In Python:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; import example
-&gt;&gt;&gt; p = example.pairii(3,4)
+&gt;&gt;&gt; p = example.pairii(3, 4)
 &gt;&gt;&gt; p.first
 3
 &gt;&gt;&gt; p.second
@@ -2006,7 +2017,7 @@ In Python:
 
 <p>
 Obviously, there is more to template wrapping than shown in this example.
-More details can be found in the <a href="SWIGPlus.html#SWIGPlus">SWIG and C++</a> chapter.  
+More details can be found in the <a href="SWIGPlus.html#SWIGPlus">SWIG and C++</a> chapter.
 Some more complicated
 examples will appear later.
 </p>
@@ -2037,9 +2048,9 @@ that implements <tt>operator-&gt;()</tt> like this:
 <div class="code">
 <pre>
 template&lt;class T&gt; class SmartPtr {
-   ...
-   T *operator-&gt;();
-   ...
+  ...
+  T *operator-&gt;();
+  ...
 }
 </pre>
 </div>
@@ -2052,8 +2063,8 @@ Then, if you have a class like this,
 <pre>
 class Foo {
 public:
-     int x;
-     int bar();
+  int x;
+  int bar();
 };
 </pre>
 </div>
@@ -2154,9 +2165,9 @@ have a class like this
 <pre>
 class Foo {
 public:
-     int x;
-     int spam(int);
-     ...
+  int x;
+  int spam(int);
+  ...
 </pre>
 </div>
 
@@ -2167,19 +2178,19 @@ then SWIG transforms it into a set of low-level procedural wrappers. For example
 <div class="code">
 <pre>
 Foo *new_Foo() {
-    return new Foo();
+  return new Foo();
 }
 void delete_Foo(Foo *f) {
-    delete f;
+  delete f;
 }
 int Foo_x_get(Foo *f) {
-    return f-&gt;x;
+  return f-&gt;x;
 }
 void Foo_x_set(Foo *f, int value) {
-    f-&gt;x = value;
+  f-&gt;x = value;
 }
 int Foo_spam(Foo *f, int arg1) {
-    return f-&gt;spam(arg1);
+  return f-&gt;spam(arg1);
 }
 </pre>
 </div>
@@ -2189,7 +2200,7 @@ These wrappers can be found in the low-level extension module (e.g., <tt>_exampl
 </p>
 
 <p>
-Using these wrappers, SWIG generates a high-level Python proxy class (also known as a shadow class) like this (shown 
+Using these wrappers, SWIG generates a high-level Python proxy class (also known as a shadow class) like this (shown
 for Python 2.2):
 </p>
 
@@ -2204,14 +2215,14 @@ class Foo(object):
     def __del__(self):
         if self.thisown:
             _example.delete_Foo(self.this)
-    def spam(self,arg1):
-        return _example.Foo_spam(self.this,arg1)
+    def spam(self, arg1):
+        return _example.Foo_spam(self.this, arg1)
     x = property(_example.Foo_x_get, _example.Foo_x_set)
 </pre>
 </div>
 
 <p>
-This class merely holds a pointer to the underlying C++ object (<tt>.this</tt>) and dispatches methods and 
+This class merely holds a pointer to the underlying C++ object (<tt>.this</tt>) and dispatches methods and
 member variable access to that object using the low-level accessor functions.   From a user's point of
 view, it makes the class work normally:
 </p>
@@ -2255,7 +2266,7 @@ class Foo(object):
 </div>
 
 <p>When a <tt>Foo</tt> instance is created, the call to <tt>_example.new_Foo()</tt>
-creates a new C++ <tt>Foo</tt> instance; wraps that C++ instance inside an instance of 
+creates a new C++ <tt>Foo</tt> instance; wraps that C++ instance inside an instance of
 a python built-in type called <tt>SwigPyObject</tt>; and stores the <tt>SwigPyObject</tt>
 instance in the 'this' field of the python Foo object.  Did you get all that?  So, the
 python <tt>Foo</tt> object is composed of three parts:</p>
@@ -2298,10 +2309,10 @@ please refer to the python documentation:</p>
 <div class="code">
 <pre>
 typedef struct {
-    PyObject_HEAD
-    PyObject *dict;
-    PyObject *args;
-    PyObject *message;
+  PyObject_HEAD
+  PyObject *dict;
+  PyObject *args;
+  PyObject *message;
 } PyBaseExceptionObject;
 </pre>
 </div>
@@ -2311,12 +2322,12 @@ typedef struct {
 <div class="code">
 <pre>
 typedef struct {
-    PyObject_HEAD
-    void *ptr;
-    swig_type_info *ty;
-    int own;
-    PyObject *next;
-    PyObject *dict;
+  PyObject_HEAD
+  void *ptr;
+  swig_type_info *ty;
+  int own;
+  PyObject *next;
+  PyObject *dict;
 } SwigPyObject;
 </pre>
 </div>
@@ -2327,13 +2338,13 @@ typedef struct {
 <pre>
 class MyException {
 public:
-    MyException (const char *msg_);
-    ~MyException ();
+  MyException (const char *msg_);
+  ~MyException ();
 
-    const char *what () const;
+  const char *what () const;
 
 private:
-    char *msg;
+  char *msg;
 };
 </pre>
 </div>
@@ -2360,9 +2371,9 @@ strings, you can define an <tt>'operator+ (const char*)'</tt> method :</p>
 <pre>
 class MyString {
 public:
-    MyString (const char *init);
-    MyString operator+ (const char *other) const;
-    ...
+  MyString (const char *init);
+  MyString operator+ (const char *other) const;
+  ...
 };
 </pre>
 </div>
@@ -2442,7 +2453,7 @@ assert(issubclass(B.Derived, A.Base))
 </li>
 </ul>
 
-<H4><a name="Python_builtin_overloads">36.4.2.2 Operator overloads -- use them!</a></H4>
+<H4><a name="Python_builtin_overloads">36.4.2.2 Operator overloads and slots -- use them!</a></H4>
 
 
 <p>The entire justification for the <tt>-builtin</tt> option is improved
@@ -2461,11 +2472,12 @@ slot entries.  For example, suppose you have this class:
 <pre>
 class Twit {
 public:
-    Twit operator+ (const Twit&amp; twit) const;
+  Twit operator+ (const Twit&amp; twit) const;
 
-    // Forward to operator+
-    Twit add (const Twit&amp; twit) const
-    { return *this + twit; }
+  // Forward to operator+
+  Twit add (const Twit&amp; twit) const {
+    return *this + twit;
+  }
 };
 </pre>
 </div>
@@ -2494,52 +2506,110 @@ automatically converted to python slot operators, refer to the file
 <tt>python/pyopers.swig</tt> in the SWIG library.
 </p>
 
-<p>There are other very useful python slots that you
-may explicitly define using <tt>%feature</tt> directives.  For example,
-suppose you want to use instances of a wrapped class as keys in a native python
-<tt>dict</tt>.  That will work as long as you define a hash function for
-instances of your class, and use it to define the python <tt>tp_hash</tt>
-slot:
+
+<p>
+Read about all of the available python slots here:
+<a href="http://docs.python.org/c-api/typeobj.html">http://docs.python.org/c-api/typeobj.html</a></p>
+
+<p>
+There are two ways to define a python slot function: dispatch to a
+statically defined function; or dispatch to a method defined on the
+operand.
+</p>
+
+<p>
+To dispatch to a statically defined function, use %feature("python:&lt;slot&gt;"),
+where &lt;slot&gt; is the name of a field in a <tt>PyTypeObject, PyNumberMethods,
+PyMappingMethods, PySequenceMethods</tt> or <tt>PyBufferProcs</tt>.
+You may override (almost) all of these slots.
+</p>
+
+
+<p>
+Let's consider an example setting the <tt>tp_hash</tt> slot for the <tt>MyClass</tt> type.
+This is akin to providing a <tt>__hash__</tt> method (for non-builtin types) to make a type hashable.
+The hashable type can then for example be added to a Python <tt>dict</tt>.
 </p>
 
 <div class="code">
 <pre>
-%feature("python:slot", "tp_hash", functype="hashfunc") Cheese::cheeseHashFunc;
+%feature("python:tp_hash") MyClass "myHashFunc";
 
-class Cheese {
+class MyClass {
 public:
-    Cheese (const char *name);
-    long cheeseHashFunc () const;
+  long field1;
+  long field2;
+  ...
+};
+
+%{
+#if PY_VERSION_HEX &gt;= 0x03020000
+  static Py_hash_t myHashFunc(PyObject *pyobj)
+#else
+  static long myHashFunc(PyObject *pyobj)
+#endif
+  {
+    MyClass *cobj;
+    // Convert pyobj to cobj
+    return (cobj-&gt;field1 * (cobj-&gt;field2 &lt;&lt; 7));
+  }
+%}
+</pre>
+</div>
+
+<p>
+If you examine the generated code, the supplied hash function will now be
+the function callback in the tp_hash slot for the builtin type for <tt>MyClass</tt>:
+</p>
+
+<div class="code">
+<pre>
+static PyHeapTypeObject SwigPyBuiltin__MyClass_type = {
+  ...
+  (hashfunc) myHashFunc,       /* tp_hash */
+  ...
+</pre>
+</div>
+
+<p>
+NOTE: It is the responsibility of the programmer (that's you!) to ensure
+that a statically defined slot function has the correct signature, the <tt>hashfunc</tt>
+typedef in this case.
+</p>
+
+<p>
+If, instead, you want to dispatch to an instance method, you can
+use %feature("python:slot").  For example:
+</p>
+
+<div class="code">
+<pre>
+%feature("python:slot", "tp_hash", functype="hashfunc") MyClass::myHashFunc;
+
+#if PY_VERSION_HEX &lt; 0x03020000
+  #define Py_hash_t long
+#endif
+
+class MyClass {
+  public:
+    Py_hash_t myHashFunc() const;
+    ...
 };
 </pre>
 </div>
 
-<p>This will allow you to write python code like this:</p>
+<p>
+NOTE: Some python slots use a method signature which does not
+match the signature of SWIG-wrapped methods.  For those slots,
+SWIG will automatically generate a "closure" function to re-marshal
+the arguments before dispatching to the wrapped method.  Setting
+the "functype" attribute of the feature enables SWIG to generate
+the chosen closure function.
+</p>
 
-<div class="targetlang">
-<pre>
-from my MyPackage import Cheese
-
-inventory = {
-    Cheese("cheddar") : 0,
-    Cheese("gouda") : 0,
-    Cheese("camembert") : 0
-}
-</pre>
-</div>
-
-<p>Because you defined the <tt>tp_hash</tt> slot, <tt>Cheese</tt> objects may
-be used as hash keys; and when the <tt>cheeseHashFunc</tt> method is invoked
-by a python <tt>dict</tt>, it will <b>not</b> go through named method dispatch.
-A more detailed discussion about <tt>%feature("python:slot")</tt> can be found
+<p>
+There is further information on <tt>%feature("python:slot")</tt>
 in the file <tt>python/pyopers.swig</tt> in the SWIG library.
-You can read about all of the available python slots here:</p>
-
-<p><a href="http://docs.python.org/c-api/typeobj.html">http://docs.python.org/c-api/typeobj.html</a></p>
-
-<p>You may override (almost) all of the slots defined in the <tt>PyTypeObject,
-PyNumberMethods, PyMappingMethods, PySequenceMethods</tt>, and <tt>PyBufferProcs</tt>
-structs.
 </p>
 
 
@@ -2552,7 +2622,7 @@ when the <tt>-builtin</tt> option is used.</p>
 <p>
 Associated with proxy object, is an ownership flag <tt>.thisown</tt>   The value of this
 flag determines who is responsible for deleting the underlying C++ object.   If set to 1,
-the Python interpreter will destroy the C++ object when the proxy class is 
+the Python interpreter will destroy the C++ object when the proxy class is
 garbage collected.   If set to 0 (or if the attribute is missing), then the destruction
 of the proxy class has no effect on the C++ object.
 </p>
@@ -2566,8 +2636,8 @@ ownership of the result.  For example:
 <pre>
 class Foo {
 public:
-    Foo();
-    Foo bar();
+  Foo();
+  Foo bar();
 };
 </pre>
 </div>
@@ -2596,9 +2666,9 @@ they came from.  Therefore, the ownership is set to zero.  For example:
 <pre>
 class Foo {
 public:
-    ...
-    Foo *spam();
-    ...
+  ...
+  Foo *spam();
+  ...
 };
 </pre>
 </div>
@@ -2637,8 +2707,8 @@ or global variable.  For example, consider this interface:
 %module example
 
 struct Foo {
-    int  value;
-    Foo  *next;
+  int  value;
+  Foo  *next;
 };
 
 Foo *head = 0;
@@ -2655,7 +2725,7 @@ is assigned to a global variable.  For example:
 &gt;&gt;&gt; f = example.Foo()
 &gt;&gt;&gt; f.thisown
 1
-&gt;&gt;&gt; example.cvar.head = f           
+&gt;&gt;&gt; example.cvar.head = f
 &gt;&gt;&gt; f.thisown
 0
 &gt;&gt;&gt;
@@ -2691,10 +2761,10 @@ change the ownership of an object.  For instance, consider code like this:
 <div class="code">
 <pre>
 class Node {
-   Object *value;
+  Object *value;
 public:
-   void set_value(Object *v) { value = v; }
-   ...
+  void set_value(Object *v) { value = v; }
+  ...
 };
 </pre>
 </div>
@@ -2756,7 +2826,7 @@ To address differences between Python versions, SWIG currently emits
 dual-mode proxy class wrappers.  In Python-2.2 and newer releases,
 these wrappers encapsulate C++ objects in new-style classes that take
 advantage of new features (static methods and properties).  However,
-if these very same wrappers are imported into an older version of Python, 
+if these very same wrappers are imported into an older version of Python,
 old-style classes are used instead.
 </p>
 
@@ -2826,18 +2896,18 @@ option to the %module directive, like this:
 
 <p>
 Without this option no director code will be generated.  Second, you
-must use the %feature("director") directive to tell SWIG which classes 
-and methods should get directors.  The %feature directive can be applied 
+must use the %feature("director") directive to tell SWIG which classes
+and methods should get directors.  The %feature directive can be applied
 globally, to specific classes, and to specific methods, like this:
 </p>
 
 <div class="code">
 <pre>
 // generate directors for all classes that have virtual methods
-%feature("director");         
+%feature("director");
 
 // generate directors for all virtual methods in class Foo
-%feature("director") Foo;      
+%feature("director") Foo;
 </pre>
 </div>
 
@@ -2855,11 +2925,11 @@ directors for specific classes or methods.  So for example,
 
 <p>
 will generate directors for all virtual methods of class Foo except
-bar().  
+bar().
 </p>
 
 <p>
-Directors can also be generated implicitly through inheritance. 
+Directors can also be generated implicitly through inheritance.
 In the following, class Bar will get a director class that handles
 the methods one() and two() (but not three()):
 </p>
@@ -2869,15 +2939,15 @@ the methods one() and two() (but not three()):
 %feature("director") Foo;
 class Foo {
 public:
-    Foo(int foo);
-    virtual ~Foo();
-    virtual void one();
-    virtual void two();
+  Foo(int foo);
+  virtual ~Foo();
+  virtual void one();
+  virtual void two();
 };
 
 class Bar: public Foo {
 public:
-    virtual void three();
+  virtual void three();
 };
 </pre>
 </div>
@@ -2902,9 +2972,6 @@ class MyFoo(mymodule.Foo):
 
 
 <H3><a name="Python_nn34">36.5.2 Director classes</a></H3>
-
-
- 
 
 
 <p>
@@ -3020,12 +3087,12 @@ references. Here is an example:
 <pre>
 class Foo {
 public:
-    ...
+  ...
 };
 class FooContainer {
 public:
-    void addFoo(Foo *);
-    ...
+  void addFoo(Foo *);
+  ...
 };
 </pre>
 </div>
@@ -3066,9 +3133,9 @@ suffice in most cases:
 <div class="code">
 <pre>
 %feature("director:except") {
-    if ($error != NULL) {
-        throw Swig::DirectorMethodException();
-    }
+  if ($error != NULL) {
+    throw Swig::DirectorMethodException();
+  }
 }
 </pre>
 </div>
@@ -3095,8 +3162,8 @@ suitable exception handler:
 <div class="code">
 <pre>
 %exception {
-    try { $action }
-    catch (Swig::DirectorException &amp;e) { SWIG_fail; }
+  try { $action }
+  catch (Swig::DirectorException &amp;e) { SWIG_fail; }
 }
 </pre>
 </div>
@@ -3167,13 +3234,13 @@ be able to use std::vector, std::string, etc., as you would any other type.
 
 <p>
 <b>Note:</b> The director typemaps for return types based in const
-references, such as 
+references, such as
 
 <div class="code">
 <pre>
 class Foo {
 &hellip;
-    virtual const int&amp; bar();
+  virtual const int&amp; bar();
 &hellip;
 };
 </pre>
@@ -3191,7 +3258,7 @@ types, wherever possible, for example
 <pre>
 class Foo {
 &hellip;
-    virtual int bar();
+  virtual int bar();
 &hellip;
 };
 </pre>
@@ -3239,11 +3306,11 @@ For example, you might get errors like this:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = [
-...   [1,0,0,0],
-...   [0,1,0,0],
-...   [0,0,1,0],
-...   [0,0,0,1]]
-&gt;&gt;&gt; set_transform(im,a)
+...   [1, 0, 0, 0],
+...   [0, 1, 0, 0],
+...   [0, 0, 1, 0],
+...   [0, 0, 0, 1]]
+&gt;&gt;&gt; set_transform(im, a)
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
 TypeError: Type error. Expected _p_a_4__double
@@ -3261,16 +3328,16 @@ functions.  Just use the <tt>%inline</tt> directive. For example:
 %inline %{
 /* Note: double[4][4] is equivalent to a pointer to an array double (*)[4] */
 double (*new_mat44())[4] {
-   return (double (*)[4]) malloc(16*sizeof(double));
+  return (double (*)[4]) malloc(16*sizeof(double));
 }
 void free_mat44(double (*x)[4]) {
-   free(x);
+  free(x);
 }
 void mat44_set(double x[4][4], int i, int j, double v) {
-   x[i][j] = v;
+  x[i][j] = v;
 }
 double mat44_get(double x[4][4], int i, int j) {
-   return x[i][j];
+  return x[i][j];
 }
 %}
 </pre>
@@ -3283,11 +3350,11 @@ From Python, you could then write code like this:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = new_mat44()
-&gt;&gt;&gt; mat44_set(a,0,0,1.0)
-&gt;&gt;&gt; mat44_set(a,1,1,1.0)
-&gt;&gt;&gt; mat44_set(a,2,2,1.0)
+&gt;&gt;&gt; mat44_set(a, 0, 0, 1.0)
+&gt;&gt;&gt; mat44_set(a, 1, 1, 1.0)
+&gt;&gt;&gt; mat44_set(a, 2, 2, 1.0)
 ...
-&gt;&gt;&gt; set_transform(im,a)
+&gt;&gt;&gt; set_transform(im, a)
 &gt;&gt;&gt;
 </pre>
 </div>
@@ -3315,13 +3382,13 @@ void set_transform(Image *im, double x[4][4]);
 ...
 /* Rewrite the high level interface to set_transform */
 %pythoncode %{
-def set_transform(im,x):
-   a = new_mat44()
-   for i in range(4):
-       for j in range(4):
-           mat44_set(a,i,j,x[i][j])
-   _example.set_transform(im,a)
-   free_mat44(a)
+def set_transform(im, x):
+    a = new_mat44()
+    for i in range(4):
+        for j in range(4):
+            mat44_set(a, i, j, x[i][j])
+    _example.set_transform(im, a)
+    free_mat44(a)
 %}
 </pre>
 </div>
@@ -3334,11 +3401,11 @@ low-level helper functions.  For example, this code now seems to work:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = [
-...   [1,0,0,0],
-...   [0,1,0,0],
-...   [0,0,1,0],
-...   [0,0,0,1]]
-&gt;&gt;&gt; set_transform(im,a)
+...   [1, 0, 0, 0],
+...   [0, 1, 0, 0],
+...   [0, 0, 1, 0],
+...   [0, 0, 0, 1]]
+&gt;&gt;&gt; set_transform(im, a)
 &gt;&gt;&gt;
 </pre>
 </div>
@@ -3441,16 +3508,16 @@ def bar(*args):
     $action
     #do something after
 %}
-    
+
 class Foo {
 public:
-    int bar(int x);
+  int bar(int x);
 };
 </pre>
 </div>
 
 <p> where <tt>$action</tt> will be replaced by the call to
-the C/C++ proper method. 
+the C/C++ proper method.
 </p>
 
 <p>
@@ -3468,20 +3535,20 @@ proxy, just before the return statement.
 <pre>
 %module example
 
-// Add python code to bar() 
+// Add python code to bar()
 
 %feature("pythonprepend") Foo::bar(int) %{
-   #do something before C++ call
+    #do something before C++ call
 %}
 
 %feature("pythonappend") Foo::bar(int) %{
-   #do something after C++ call
+    #do something after C++ call
 %}
 
-    
+
 class Foo {
 public:
-    int bar(int x);
+  int bar(int x);
 };
 </pre>
 </div>
@@ -3497,20 +3564,20 @@ SWIG version 1.3.28 you can use the directive forms
 <pre>
 %module example
 
-// Add python code to bar() 
+// Add python code to bar()
 
 %pythonprepend Foo::bar(int) %{
-   #do something before C++ call
+    #do something before C++ call
 %}
 
 %pythonappend Foo::bar(int) %{
-   #do something after C++ call
+    #do something after C++ call
 %}
 
-    
+
 class Foo {
 public:
-    int bar(int x);
+  int bar(int x);
 };
 </pre>
 </div>
@@ -3529,18 +3596,18 @@ as it will then get attached to all the overloaded C++ methods. For example:
 // Add python code to bar()
 
 %pythonprepend Foo::bar %{
-   #do something before C++ call
+    #do something before C++ call
 %}
 
 %pythonappend Foo::bar %{
-   #do something after C++ call
+    #do something after C++ call
 %}
 
 
 class Foo {
 public:
-    int bar(int x);
-    int bar();
+  int bar(int x);
+  int bar();
 };
 </pre>
 </div>
@@ -3567,22 +3634,22 @@ Here is a simple example:
 %}
 
 struct Vector {
-   double x,y,z;
+  double x, y, z;
 };
 
 %extend Vector {
-   char *__str__() {
-       static char tmp[1024];
-       sprintf(tmp,"Vector(%g,%g,%g)", $self-&gt;x,$self-&gt;y,$self-&gt;z);
-       return tmp;
-   }
-   Vector(double x, double y, double z) {
-       Vector *v = (Vector *) malloc(sizeof(Vector));
-       v-&gt;x = x;
-       v-&gt;y = y;
-       v-&gt;z = z;
-       return v;
-   }
+  char *__str__() {
+    static char tmp[1024];
+    sprintf(tmp, "Vector(%g, %g, %g)", $self-&gt;x, $self-&gt;y, $self-&gt;z);
+    return tmp;
+  }
+  Vector(double x, double y, double z) {
+    Vector *v = (Vector *) malloc(sizeof(Vector));
+    v-&gt;x = x;
+    v-&gt;y = y;
+    v-&gt;z = z;
+    return v;
+  }
 };
 </pre>
 </div>
@@ -3593,28 +3660,28 @@ Now, in Python
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; v = example.Vector(2,3,4)
+&gt;&gt;&gt; v = example.Vector(2, 3, 4)
 &gt;&gt;&gt; print v
-Vector(2,3,4)
+Vector(2, 3, 4)
 &gt;&gt;&gt;
 </pre>
 </div>
 
 <p>
-<tt>%extend</tt> can be used for many more tasks than this.  
+<tt>%extend</tt> can be used for many more tasks than this.
 For example, if you wanted to overload a Python operator, you might do this:
 </p>
 
 <div class="code">
 <pre>
 %extend Vector {
-    Vector __add__(Vector *other) {
-         Vector v;
-         v.x = $self-&gt;x + other-&gt;x;
-         v.y = $self-&gt;y + other-&gt;y;
-         v.z = $self-&gt;z + other-&gt;z;
-         return v;
-    }
+  Vector __add__(Vector *other) {
+    Vector v;
+    v.x = $self-&gt;x + other-&gt;x;
+    v.y = $self-&gt;y + other-&gt;y;
+    v.z = $self-&gt;z + other-&gt;z;
+    return v;
+  }
 };
 </pre>
 </div>
@@ -3626,11 +3693,11 @@ Use it like this:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; import example
-&gt;&gt;&gt; v = example.Vector(2,3,4)
-&gt;&gt;&gt; w = example.Vector(10,11,12)
+&gt;&gt;&gt; v = example.Vector(2, 3, 4)
+&gt;&gt;&gt; w = example.Vector(10, 11, 12)
 &gt;&gt;&gt; print v+w
-Vector(12,14,16)
-&gt;&gt;&gt; 
+Vector(12, 14, 16)
+&gt;&gt;&gt;
 </pre>
 </div>
 
@@ -3658,8 +3725,8 @@ or a NULL pointer perhaps).  Here is a simple example of how you might handle th
 %exception malloc {
   $action
   if (!result) {
-     PyErr_SetString(PyExc_MemoryError,"Not enough memory");
-     return NULL;
+    PyErr_SetString(PyExc_MemoryError, "Not enough memory");
+    SWIG_fail;
   }
 }
 void *malloc(size_t nbytes);
@@ -3688,11 +3755,11 @@ that.  For example:
 <div class="code">
 <pre>
 %exception {
-   $action
-   if (err_occurred()) {
-      PyErr_SetString(PyExc_RuntimeError, err_message());
-      return NULL;
-   }
+  $action
+  if (err_occurred()) {
+    PyErr_SetString(PyExc_RuntimeError, err_message());
+    SWIG_fail;
+  }
 }
 </pre>
 </div>
@@ -3708,25 +3775,26 @@ C++ exceptions are also easy to handle.  For example, you can write code like th
 <div class="code">
 <pre>
 %exception getitem {
-   try {
-      $action
-   } catch (std::out_of_range &amp;e) {
-      PyErr_SetString(PyExc_IndexError, const_cast&lt;char*&gt;(e.what()));
-      return NULL;
-   }
+  try {
+    $action
+  } catch (std::out_of_range &amp;e) {
+    PyErr_SetString(PyExc_IndexError, const_cast&lt;char*&gt;(e.what()));
+    SWIG_fail;
+  }
 }
 
 class Base {
 public:
-     Foo *getitem(int index);      // Exception handled added
-     ...
+  Foo *getitem(int index);      // Exception handled added
+  ...
 };
 </pre>
 </div>
 
 <p>
 When raising a Python exception from C, use the <tt>PyErr_SetString()</tt>
-function as shown above.  The following exception types can be used as the first argument.
+function as shown above followed by <tt>SWIG_fail</tt>.
+The following exception types can be used as the first argument.
 </p>
 
 <div class="code">
@@ -3761,6 +3829,13 @@ PyExc_ZeroDivisionError
 </div>
 
 <p>
+<tt>SWIG_fail</tt> is a C macro which when called within the context of SWIG wrapper function,
+will jump to the error handler code. This will call any cleanup code (freeing any temp variables)
+and then return from the wrapper function so that the Python interpreter can raise the Python exception.
+This macro should always be called after setting a Python error in code snippets, such as typemaps and <tt>%exception</tt>, that are ultimately generated into the wrapper function.
+</p>
+
+<p>
 The language-independent <tt>exception.i</tt> library file can also be used
 to raise exceptions.  See the <a href="Library.html#Library">SWIG Library</a> chapter.
 </p>
@@ -3786,7 +3861,7 @@ example:
 <div class="code">
 <pre>
 void add(int x, int y, int *result) {
-   *result = x + y;
+  *result = x + y;
 }
 </pre>
 </div>
@@ -3798,7 +3873,7 @@ or perhaps
 <div class="code">
 <pre>
 int sub(int *x, int *y) {
-   return *x-*y;
+  return *x-*y;
 }
 </pre>
 </div>
@@ -3823,10 +3898,10 @@ In Python, this allows you to pass simple values.  For example:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; a = add(3,4)
+&gt;&gt;&gt; a = add(3, 4)
 &gt;&gt;&gt; print a
 7
-&gt;&gt;&gt; b = sub(7,4)
+&gt;&gt;&gt; b = sub(7, 4)
 &gt;&gt;&gt; print b
 3
 &gt;&gt;&gt;
@@ -3863,7 +3938,7 @@ If a function mutates one of its parameters like this,
 <div class="code">
 <pre>
 void negate(int *x) {
-   *x = -(*x);
+  *x = -(*x);
 }
 </pre>
 </div>
@@ -3926,7 +4001,7 @@ int send_message(char *text, int *success);
 </div>
 
 <p>
-When used in Python, the function will return multiple values.  
+When used in Python, the function will return multiple values.
 </p>
 
 <div class="targetlang">
@@ -3969,7 +4044,7 @@ Now, in Python:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; r,c = get_dimensions(m)
+&gt;&gt;&gt; r, c = get_dimensions(m)
 </pre>
 </div>
 
@@ -4010,7 +4085,7 @@ extern void add(int x, int y, int *result);
 </div>
 
 <p>
-The <tt>%pointer_functions(type,name)</tt> macro generates five helper functions that can be used to create,
+The <tt>%pointer_functions(type, name)</tt> macro generates five helper functions that can be used to create,
 destroy, copy, assign, and dereference a pointer.  In this case, the functions are as follows:
 </p>
 
@@ -4033,7 +4108,7 @@ In Python, you would use the functions like this:
 &gt;&gt;&gt; result = new_intp()
 &gt;&gt;&gt; print result
 _108fea8_p_int
-&gt;&gt;&gt; add(3,4,result)
+&gt;&gt;&gt; add(3, 4, result)
 &gt;&gt;&gt; print intp_value(result)
 7
 &gt;&gt;&gt;
@@ -4041,13 +4116,13 @@ _108fea8_p_int
 </div>
 
 <p>
-If you replace <tt>%pointer_functions()</tt> by <tt>%pointer_class(type,name)</tt>, the interface is more class-like.
+If you replace <tt>%pointer_functions()</tt> by <tt>%pointer_class(type, name)</tt>, the interface is more class-like.
 </p>
 
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; result = intp()
-&gt;&gt;&gt; add(3,4,result)
+&gt;&gt;&gt; add(3, 4, result)
 &gt;&gt;&gt; print result.value()
 7
 </pre>
@@ -4067,17 +4142,17 @@ Sometimes a C function expects an array to be passed as a pointer.  For example,
 <div class="code">
 <pre>
 int sumitems(int *first, int nitems) {
-    int i, sum = 0;
-    for (i = 0; i &lt; nitems; i++) {
-        sum += first[i];
-    }
-    return sum;
+  int i, sum = 0;
+  for (i = 0; i &lt; nitems; i++) {
+    sum += first[i];
+  }
+  return sum;
 }
 </pre>
 </div>
 
 <p>
-To wrap this into Python, you need to pass an array pointer as the first argument. 
+To wrap this into Python, you need to pass an array pointer as the first argument.
 A simple way to do this is to use the <tt>carrays.i</tt> library file.  For example:
 </p>
 
@@ -4099,7 +4174,7 @@ For instance, you will be able to do this in Python:
 &gt;&gt;&gt; a = intArray(10000000)         # Array of 10-million integers
 &gt;&gt;&gt; for i in xrange(10000):        # Set some values
 ...     a[i] = i
-&gt;&gt;&gt; sumitems(a,10000)
+&gt;&gt;&gt; sumitems(a, 10000)
 49995000
 &gt;&gt;&gt;
 </pre>
@@ -4154,13 +4229,13 @@ using the <tt>cstring.i</tt> library file described in the <a href="Library.html
 </p>
 
 <p>
-When functions return a <tt>char *</tt>, it is assumed to be a NULL-terminated string. 
+When functions return a <tt>char *</tt>, it is assumed to be a NULL-terminated string.
 Data is copied into a new Python string and returned.
 </p>
 
 <p>
 If your program needs to work with binary data, you can use a typemap
-to expand a Python string into a pointer/length argument pair.   As luck would have it, 
+to expand a Python string into a pointer/length argument pair.   As luck would have it,
 just such a typemap is already defined. Just do this:
 </p>
 
@@ -4195,7 +4270,7 @@ also be used to extra binary data from arbitrary pointers.
 <p>
 C++ default argument code generation is documented in the main
 <a href="SWIGPlus.html#SWIGPlus_default_args">Default arguments</a> section.
-There is also an optional Python specific feature that can be used called the <tt>python:cdefaultargs</tt> 
+There is also an optional Python specific feature that can be used called the <tt>python:cdefaultargs</tt>
 <a href="Customization.html#Customization_feature_flags">feature flag</a>.
 By default, SWIG attempts to convert C++ default argument values
 into Python values and generates code into the Python layer containing these values.
@@ -4238,7 +4313,7 @@ class CDA(object):
 <p>
 Adding the feature:
 </p>
-  
+
 <div class="code">
 <pre>
 %feature("python:cdefaultargs") CDA::fff;
@@ -4299,7 +4374,7 @@ as the material in the "<a href="Typemaps.html#Typemaps">Typemaps</a>" chapter.
 </p>
 
 <p>
-Before proceeding, it should be stressed that typemaps are not a required 
+Before proceeding, it should be stressed that typemaps are not a required
 part of using SWIG---the default wrapping behavior is enough in most cases.
 Typemaps are only used if you want to change some aspect of the primitive
 C-Python interface or if you want to elevate your guru status.
@@ -4309,7 +4384,7 @@ C-Python interface or if you want to elevate your guru status.
 
 
 <p>
-A typemap is nothing more than a code generation rule that is attached to 
+A typemap is nothing more than a code generation rule that is attached to
 a specific C datatype.   For example, to convert integers from Python to C,
 you might define a typemap like this:
 </p>
@@ -4319,7 +4394,7 @@ you might define a typemap like this:
 
 %typemap(in) int {
   $1 = (int) PyLong_AsLong($input);
-  printf("Received an integer : %d\n",$1);
+  printf("Received an integer : %d\n", $1);
 }
 %inline %{
 extern int fact(int n);
@@ -4358,8 +4433,8 @@ You can refine this by supplying an optional parameter name.  For example:
 %typemap(in) int nonnegative {
   $1 = (int) PyLong_AsLong($input);
   if ($1 &lt; 0) {
-    PyErr_SetString(PyExc_ValueError,"Expected a nonnegative value.");
-    return NULL;
+    PyErr_SetString(PyExc_ValueError, "Expected a nonnegative value.");
+    SWIG_fail;
   }
 }
 %inline %{
@@ -4383,7 +4458,7 @@ the typemap system follows <tt>typedef</tt> declarations.  For example:
 <pre>
 %typemap(in) int n {
   $1 = (int) PyLong_AsLong($input);
-  printf("n = %d\n",$1);
+  printf("n = %d\n", $1);
 }
 %inline %{
 typedef int Integer;
@@ -4399,8 +4474,8 @@ Typemaps can also be defined for groups of consecutive arguments.  For example:
 <div class="code">
 <pre>
 %typemap(in) (char *str, int len) {
-    $1 = PyString_AsString($input);
-    $2 = PyString_Size($input);
+  $1 = PyString_AsString($input);
+  $2 = PyString_Size($input);
 };
 
 int count(char c, char *str, int len);
@@ -4415,7 +4490,7 @@ parameter is omitted):
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; example.count('e','Hello World')
+&gt;&gt;&gt; example.count('e', 'Hello World')
 1
 &gt;&gt;&gt;
 </pre>
@@ -4441,7 +4516,7 @@ like this:
 
 <p>
 A detailed list of available methods can be found in the "<a
-href="Typemaps.html#Typemaps">Typemaps</a>" chapter.  
+href="Typemaps.html#Typemaps">Typemaps</a>" chapter.
 </p>
 
 <p>
@@ -4503,7 +4578,7 @@ A <tt>PyObject *</tt> that holds the result to be returned to Python.
 </p>
 
 <div class="indent">
-The parameter name that was matched. 
+The parameter name that was matched.
 </div>
 
 <p>
@@ -4691,19 +4766,19 @@ object to be used as a <tt>char **</tt> object.
     int i = 0;
     $1 = (char **) malloc((size+1)*sizeof(char *));
     for (i = 0; i &lt; size; i++) {
-      PyObject *o = PyList_GetItem($input,i);
-      if (PyString_Check(o))
-        $1[i] = PyString_AsString(PyList_GetItem($input,i));
-      else {
-        PyErr_SetString(PyExc_TypeError,"list must contain strings");
+      PyObject *o = PyList_GetItem($input, i);
+      if (PyString_Check(o)) {
+        $1[i] = PyString_AsString(PyList_GetItem($input, i));
+      } else {
         free($1);
-        return NULL;
+        PyErr_SetString(PyExc_TypeError, "list must contain strings");
+        SWIG_fail;
       }
     }
     $1[i] = 0;
   } else {
-    PyErr_SetString(PyExc_TypeError,"not a list");
-    return NULL;
+    PyErr_SetString(PyExc_TypeError, "not a list");
+    SWIG_fail;
   }
 }
 
@@ -4715,12 +4790,12 @@ object to be used as a <tt>char **</tt> object.
 // Now a test function
 %inline %{
 int print_args(char **argv) {
-    int i = 0;
-    while (argv[i]) {
-         printf("argv[%d] = %s\n", i,argv[i]);
-         i++;
-    }
-    return i;
+  int i = 0;
+  while (argv[i]) {
+    printf("argv[%d] = %s\n", i, argv[i]);
+    i++;
+  }
+  return i;
 }
 %}
 
@@ -4747,7 +4822,7 @@ In the example, two different typemaps are used.  The "in" typemap is
 used to receive an input argument and convert it to a C array.  Since dynamic
 memory allocation is used to allocate memory for the array, the
 "freearg" typemap is used to later release this memory after the execution of
-the C function. 
+the C function.
 </p>
 
 <H3><a name="Python_nn60">36.9.2 Expanding a Python object into multiple arguments</a></H3>
@@ -4790,19 +4865,19 @@ previous example:
     $1 = PyList_Size($input);
     $2 = (char **) malloc(($1+1)*sizeof(char *));
     for (i = 0; i &lt; $1; i++) {
-      PyObject *o = PyList_GetItem($input,i);
-      if (PyString_Check(o))
-        $2[i] = PyString_AsString(PyList_GetItem($input,i));
-      else {
-        PyErr_SetString(PyExc_TypeError,"list must contain strings");
+      PyObject *o = PyList_GetItem($input, i);
+      if (PyString_Check(o)) {
+        $2[i] = PyString_AsString(PyList_GetItem($input, i));
+      } else {
         free($2);
-        return NULL;
+        PyErr_SetString(PyExc_TypeError, "list must contain strings");
+        SWIG_fail;
       }
     }
     $2[i] = 0;
   } else {
-    PyErr_SetString(PyExc_TypeError,"not a list");
-    return NULL;
+    PyErr_SetString(PyExc_TypeError, "not a list");
+    SWIG_fail;
   }
 }
 
@@ -4813,7 +4888,7 @@ previous example:
 </div>
 
 <p>
-When writing a multiple-argument typemap, each of the types is referenced by a variable such 
+When writing a multiple-argument typemap, each of the types is referenced by a variable such
 as <tt>$1</tt> or <tt>$2</tt>.   The typemap code simply fills in the appropriate values from
 the supplied Python object.
 </p>
@@ -4864,7 +4939,7 @@ Traceback (most recent call last):
     example.foo(["foo", "bar", "spam", "1"])
 NotImplementedError: Wrong number or type of arguments for overloaded function 'foo'.
   Possible C/C++ prototypes are:
-    foo(int,char **)
+    foo(int, char **)
     foo()
 </pre>
 </div>
@@ -4895,7 +4970,7 @@ A typemap can be used to handle this case as follows :
 %module outarg
 
 // This tells SWIG to treat an double * argument with name 'OutValue' as
-// an output value.  We'll append the value to the current result which 
+// an output value.  We'll append the value to the current result which
 // is guaranteed to be a List object by SWIG.
 
 %typemap(argout) double *OutValue {
@@ -4907,12 +4982,12 @@ A typemap can be used to handle this case as follows :
     if (!PyTuple_Check($result)) {
       PyObject *o2 = $result;
       $result = PyTuple_New(1);
-      PyTuple_SetItem($result,0,o2);
+      PyTuple_SetItem($result, 0, o2);
     }
     o3 = PyTuple_New(1);
-    PyTuple_SetItem(o3,0,o);
+    PyTuple_SetItem(o3, 0, o);
     o2 = $result;
-    $result = PySequence_Concat(o2,o3);
+    $result = PySequence_Concat(o2, o3);
     Py_DECREF(o2);
     Py_DECREF(o3);
   }
@@ -4936,8 +5011,8 @@ no meaningful input value), an additional typemap can be written.  For example:
 </p>
 
 <div class="code"><pre>
-%typemap(in,numinputs=0) double *OutValue(double temp) {
-    $1 = &amp;temp;
+%typemap(in, numinputs=0) double *OutValue(double temp) {
+  $1 = &amp;temp;
 }
 
 </pre></div>
@@ -4950,10 +5025,10 @@ function can now be used as follows:
 </p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; a = spam(4,5)
+&gt;&gt;&gt; a = spam(4, 5)
 &gt;&gt;&gt; print a
 (0, 2.45, 5.0)
-&gt;&gt;&gt; x,y,z = spam(4,5)
+&gt;&gt;&gt; x, y, z = spam(4, 5)
 &gt;&gt;&gt;
 </pre></div>
 
@@ -4978,14 +5053,14 @@ This too, can be handled used typemaps as follows :
 %typemap(in) double[4](double temp[4]) {   // temp[4] becomes a local variable
   int i;
   if (PyTuple_Check($input)) {
-    if (!PyArg_ParseTuple($input,"dddd",temp,temp+1,temp+2,temp+3)) {
-      PyErr_SetString(PyExc_TypeError,"tuple must have 4 elements");
-      return NULL;
+    if (!PyArg_ParseTuple($input, "dddd", temp, temp+1, temp+2, temp+3)) {
+      PyErr_SetString(PyExc_TypeError, "tuple must have 4 elements");
+      SWIG_fail;
     }
     $1 = &amp;temp[0];
   } else {
-    PyErr_SetString(PyExc_TypeError,"expected a tuple.");
-    return NULL;
+    PyErr_SetString(PyExc_TypeError, "expected a tuple.");
+    SWIG_fail;
   }
 }
 
@@ -4997,7 +5072,7 @@ Python as follows :
 </p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; set_direction((0.5,0.0,1.0,-0.25))
+&gt;&gt;&gt; set_direction((0.5, 0.0, 1.0, -0.25))
 </pre></div>
 
 <p>
@@ -5019,22 +5094,22 @@ arrays of different sizes.  To do this, you might write a typemap as follows:
 %typemap(in) double[ANY](double temp[$1_dim0]) {
   int i;
   if (!PySequence_Check($input)) {
-      PyErr_SetString(PyExc_TypeError,"Expecting a sequence");
-      return NULL;
+    PyErr_SetString(PyExc_TypeError, "Expecting a sequence");
+    SWIG_fail;
   }
   if (PyObject_Length($input) != $1_dim0) {
-      PyErr_SetString(PyExc_ValueError,"Expecting a sequence with $1_dim0 elements");
-      return NULL;
+    PyErr_SetString(PyExc_ValueError, "Expecting a sequence with $1_dim0 elements");
+    SWIG_fail;
   }
   for (i =0; i &lt; $1_dim0; i++) {
-      PyObject *o = PySequence_GetItem($input,i);
-      if (!PyFloat_Check(o)) {
-         Py_XDECREF(o);
-         PyErr_SetString(PyExc_ValueError,"Expecting a sequence of floats");
-         return NULL;
-      }
-      temp[i] = PyFloat_AsDouble(o);
-      Py_DECREF(o);
+    PyObject *o = PySequence_GetItem($input, i);
+    if (!PyFloat_Check(o)) {
+      Py_XDECREF(o);
+      PyErr_SetString(PyExc_ValueError, "Expecting a sequence of floats");
+      SWIG_fail;
+    }
+    temp[i] = PyFloat_AsDouble(o);
+    Py_DECREF(o);
   }
   $1 = &amp;temp[0];
 }
@@ -5065,32 +5140,32 @@ to use a helper function instead.  This will greatly reduce the amount of wrappe
 static int convert_darray(PyObject *input, double *ptr, int size) {
   int i;
   if (!PySequence_Check(input)) {
-      PyErr_SetString(PyExc_TypeError,"Expecting a sequence");
-      return 0;
+    PyErr_SetString(PyExc_TypeError, "Expecting a sequence");
+    return 0;
   }
   if (PyObject_Length(input) != size) {
-      PyErr_SetString(PyExc_ValueError,"Sequence size mismatch");
-      return 0;
+    PyErr_SetString(PyExc_ValueError, "Sequence size mismatch");
+    return 0;
   }
   for (i =0; i &lt; size; i++) {
-      PyObject *o = PySequence_GetItem(input,i);
-      if (!PyFloat_Check(o)) {
-         Py_XDECREF(o);
-         PyErr_SetString(PyExc_ValueError,"Expecting a sequence of floats");
-         return 0;
-      }
-      ptr[i] = PyFloat_AsDouble(o);
-      Py_DECREF(o);
+    PyObject *o = PySequence_GetItem(input, i);
+    if (!PyFloat_Check(o)) {
+      Py_XDECREF(o);
+      PyErr_SetString(PyExc_ValueError, "Expecting a sequence of floats");
+      return 0;
+    }
+    ptr[i] = PyFloat_AsDouble(o);
+    Py_DECREF(o);
   }
   return 1;
 }
 %}
 
 %typemap(in) double [ANY](double temp[$1_dim0]) {
-   if (!convert_darray($input,temp,$1_dim0)) {
-      return NULL;
-   }
-   $1 = &amp;temp[0];
+  if (!convert_darray($input, temp, $1_dim0)) {
+    SWIG_fail;
+  }
+  $1 = &amp;temp[0];
 }
 </pre>
 </div>
@@ -5143,8 +5218,9 @@ is usually accessed as follows:
 <div class="code">
 <pre>
 Foo *f;
-if (SWIG_ConvertPtr($input, (void **) &amp;f, SWIGTYPE_p_Foo, SWIG_POINTER_EXCEPTION) == -1)
-  return NULL;
+if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;f, SWIGTYPE_p_Foo, 0))) {
+  SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo");
+}
 
 PyObject *obj;
 obj = SWIG_NewPointerObj(f, SWIGTYPE_p_Foo, 0);
@@ -5159,8 +5235,9 @@ variable <tt>$1_descriptor</tt>.  For example:
 <div class="code">
 <pre>
 %typemap(in) Foo * {
-if ((SWIG_ConvertPtr($input,(void **) &amp;$1, $1_descriptor,SWIG_POINTER_EXCEPTION)) == -1)
-  return NULL;
+  if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;$1, $1_descriptor, 0))) {
+    SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo");
+  }
 }
 </pre>
 </div>
@@ -5173,9 +5250,9 @@ For example:
 <div class="code">
 <pre>
 %typemap(in) Foo * {
-if ((SWIG_ConvertPtr($input,(void **) &amp;$1, $descriptor(Foo *), 
-                                               SWIG_POINTER_EXCEPTION)) == -1)
-  return NULL;
+  if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;$1, $descriptor(Foo *), 0))) {
+    SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo");
+  }
 }
 </pre>
 </div>
@@ -5245,7 +5322,7 @@ example:
 <div class="code">
 <pre>
 %define DOCSTRING
-"The `XmlResource` class allows program resources defining menus, 
+"The `XmlResource` class allows program resources defining menus,
 layout of controls on a panel, etc. to be loaded from an XML file."
 %enddef
 
@@ -5384,7 +5461,7 @@ resulting in
 <div class="targetlang">
 <pre>
 def function_name(*args, **kwargs):
-  """
+    """
     function_name(x, y, foo=None, bar=None) -&gt; bool
 
     Parameters
@@ -5540,7 +5617,7 @@ Packages</a> for more information.
 
 <p>
 If you place a SWIG generated module into a Python package then there
-are details concerning the way SWIG  
+are details concerning the way SWIG
 <a href="#Python_package_search">searches for the wrapper module</a>
 that you may want to familiarize yourself with.
 </p>
@@ -5969,8 +6046,8 @@ zipimporter requires python-3.5.1 or newer to work with subpackages.
 
 <p>
 When SWIG creates wrappers from an interface file, say foo.i, two Python modules are
-created.  There is a pure Python module module (foo.py) and C/C++ code which is
-built and linked into a dynamically (or statically) loaded module _foo
+created.  There is a pure Python module (foo.py) and C/C++ code which is
+built and linked into a dynamically (or statically) loaded low-level module _foo
 (see the <a href="Python.html#Python_nn3">Preliminaries section</a> for details).  So, the interface
 file really defines two Python modules.   How these two modules are loaded is
 covered next.
@@ -5997,7 +6074,43 @@ pure Python module uses to find the C/C++ module is as follows:
 </ol>
 
 <p>
-As an example suppose foo.i is compiled into foo.py and _foo.so.  Assuming
+The Python code implementing the loading logic described above is quite complex to handle multiple
+versions of Python, but it can be replaced with custom code.
+This is not recommended unless you understand the full intricacies of importing Python modules.
+The custom code can be specified by setting the <tt>moduleimport</tt> option of the <tt>%module</tt> directive with the appropriate import code.  For example:
+</p>
+
+<div class="code">
+<pre>
+%module(moduleimport="import _foo") foo
+</pre>
+</div>
+
+<p>
+The special variable <tt>$module</tt> will also be expanded into the low-level C/C++ module name, <tt>_foo</tt> in the case above.
+When you have more than just a line or so then you can retain the easy
+readability of the <tt>%module</tt> directive by using a macro.  For
+example:
+</p>
+
+<div class="code">
+<pre>
+%define MODULEIMPORT
+"
+print 'Loading low-level module $module'
+import $module
+print 'Module has loaded'
+"
+%enddef
+
+%module(moduleimport=MODULEIMPORT) foo
+</pre>
+</div>
+
+
+<p>
+Now let's consider an example using the SWIG default loading logic.
+Suppose foo.i is compiled into foo.py and _foo.so.  Assuming
 /dir is on PYTHONPATH, then the two modules can be installed and used in the
 following ways:
 </p>
@@ -6228,7 +6341,7 @@ is backported to 2.6.
 <div class="code"><pre>
 %include &lt;pybuffer.i&gt;
 %pybuffer_mutable_string(char *str);
-void get_path(char *s);
+void get_path(char *str);
 </pre></div>
 
 <p>
@@ -6275,7 +6388,7 @@ In Python:
 &gt;&gt;&gt; snprintf(buf, "Hello world!")
 &gt;&gt;&gt; print(buf)
 bytearray(b'Hello\x00')
-&gt;&gt;&gt; 
+&gt;&gt;&gt;
 </pre></div>
 
 </div>
@@ -6311,7 +6424,7 @@ bytearray(b'FOO\x00')
 
 <p>
 Both <tt>%pybuffer_mutable_binary</tt> and <tt>%pybuffer_mutable_string</tt>
-require the provided buffer to be mutable, eg. they can accept a 
+require the provided buffer to be mutable, eg. they can accept a
 <tt>bytearray</tt> type but can't accept an immutable <tt>byte</tt>
 type.
 </p>
@@ -6413,7 +6526,7 @@ string that cannot be completely decoded as UTF-8:
 %inline %{
 
 const char* non_utf8_c_str(void) {
-        return "h\xe9llo w\xc3\xb6rld";
+  return "h\xe9llo w\xc3\xb6rld";
 }
 
 %}
@@ -6625,6 +6738,110 @@ Note that defining both <tt>SWIG_PYTHON_2_UNICODE</tt> and
 <tt>SWIG_PYTHON_STRICT_BYTE_CHAR</tt> at the same time is not allowed, since
 the first is allowing unicode conversion and the second is explicitly
 prohibiting it.
+</p>
+
+<H2><a name="Python_multithreaded">36.13 Support for Multithreaded Applications</a></H2>
+
+
+<p>By default, SWIG does not enable support for multithreaded Python applications.  More
+specifically, the Python wrappers generated by SWIG will not release the
+    Python's interpreter's Global Interpreter Lock (GIL) when wrapped C/C++ code is
+entered.  Hence, while any of the wrapped C/C++ code is executing, the Python interpreter
+will not be able to run any other threads, even if the wrapped C/C++ code is waiting
+    in a blocking call for something like network or disk IO.
+
+    Fortunately, SWIG does have the ability to enable multithreaded support and automatic
+    release of the GIL either for all wrapped code  in a module or on a more selective basis.  The user
+    interface for this is described in the next section.
+</p>
+
+<H3><a name="Python_thread_UI">36.13.1 UI for Enabling Multithreading Support</a></H3>
+
+
+<p>The user interface is as follows:</p>
+<ol>
+  <li><p>Module thread support can be enabled in two ways:</p>
+    <ul>
+      <li>
+        <p>
+        The <tt>-threads</tt> swig python option at the command line (or in <tt>setup.py</tt>):
+        </p>
+        <div class="shell"><pre>$ swig -python -threads example.i</pre></div>
+      </li>
+      <li>
+        <p>
+        The <tt>threads</tt> module option in the *.i template file:
+        </p>
+        <div class="code"><pre>%feature("nothread") method;</pre></div>
+      </li>
+    </ul>
+  </li>
+  <li><p>You can disable thread support for a given method:</p>
+    <div class="code"><pre>%module("threads"=1)</pre></div>
+      or
+      <div class="code"><pre>%nothread method;</pre></div>
+  </li>
+  <li><p>You can partially disable thread support for a given method:</p>
+    <ul>
+      <li><p>To disable the C++/python thread protection:</p>
+        <div class="code"><pre>%feature("nothreadblock") method;</pre></div>
+          or
+          <div class="code"><pre>%nothreadblock method;</pre></div>
+      </li>
+      <li>
+        <p>To disable the python/C++ thread protection</p>
+        <div class="code"><pre>%feature("nothreadallow") method;</pre></div>
+          or
+          <div class="code"><pre>%nothreadallow method;</pre></div>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<H3><a name="Python_thread_performance">36.13.2 Multithread Performance</a></H3>
+
+
+<p>
+    For the curious about performance, here are some numbers for the profiletest.i test,
+    which is used to check the speed of the wrapped code:
+</p>
+
+<table summary="Python multithread performance">
+    <tr>
+        <th>Thread Mode</th>
+        <th>Execution Time (sec)</th>
+        <th>Comment</th>
+    </tr>
+    <tr>
+        <td>Single Threaded</td>
+        <td>9.6</td>
+        <td>no "-threads" option given</td>
+    </tr>
+    <tr>
+        <td>Fully Multithreaded</td>
+        <td>15.5</td>
+        <td>"-threads" option = 'allow' + 'block'</td>
+    </tr>
+    <tr>
+        <td>No Thread block</td>
+        <td>12.2</td>
+        <td>only 'allow'</td>
+    </tr>
+    <tr>
+        <td>No Thread Allow</td>
+        <td>13.6</td>
+        <td>only block'</td>
+    </tr>
+</table>
+
+<p>
+    Fully threaded code decreases the wrapping performance by
+    around 60%. If that is important to your application, you
+    can tune each method using the different 'nothread',
+    'nothreadblock' or 'nothreadallow' features as
+    needed. Note that for some methods deactivating the
+    'thread block' or 'thread allow' code is not an option,
+    so, be careful.
 </p>
 
 </body>

@@ -3,7 +3,8 @@
 require "tests.php";
 require "director_thread.php";
 
-# Fails in a ZTS-build of PHP - see: https://github.com/swig/swig/pull/155
+# Fails in a ZTS-build of PHP5 - see: https://github.com/swig/swig/pull/155
+# FIXME: Does this still fail in a threaded build of PHP7?
 exit(0);
 
 // No new functions

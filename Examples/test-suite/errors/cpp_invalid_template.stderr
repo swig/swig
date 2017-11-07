@@ -1,0 +1,3 @@
+cpp_invalid_template.i:3: Error: Undefined scope 'SSS'
+cpp_invalid_template.i:3: Error: Template 'SSS::AAA' undefined.
+cpp_invalid_template.i:9: Error: 'JJJ' is not defined as a template. (classforward)
