@@ -26,6 +26,23 @@
 #define SWIG_GetModule(clientdata)                      SWIG_R_GetModule()
 #define SWIG_SetModule(clientdata, pointer)             SWIG_R_SetModule(pointer)
 
+%fragment(SWIG_From_frag(int),"header") {
+SWIGINTERNINLINE SEXP
+SWIG_From_dec(int)(int value)
+{
+	return Rf_ScalarInteger(value);
+}
+}
+
+%fragment(SWIG_AsVal_frag(int),"header") {
+SWIGINTERNINLINE  int
+SWIG_AsVal_dec(int)(SEXP obj, int *val)
+{
+   if (val) *val = Rf_asInteger(obj);
+   return SWIG_OK;
+}
+}
+
 %fragment(SWIG_From_frag(long),"header") {
 SWIGINTERNINLINE SEXP
 SWIG_From_dec(long)(long value)

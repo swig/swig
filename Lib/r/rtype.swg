@@ -4,7 +4,7 @@
  */
 
 %typemap("rtype") int, int *, int &      "integer";
-%typemap("rtype") long, long *, long &   "double";
+%typemap("rtype") long, long *, long &   "numeric";
 %typemap("rtype") float, float*, float & "numeric";
 %typemap("rtype") double, double*, double & "numeric";
 %typemap("rtype") char *, char ** "character";
@@ -25,13 +25,13 @@
 
 %typemap("rtypecheck") int, int &
   %{ (is.integer($arg) || is.numeric($arg)) && length($arg) == 1 %}
-%typemap("rtypecheck") int *, long *
+%typemap("rtypecheck") int *
   %{ is.integer($arg) || is.numeric($arg) %}
 
 
-%typemap("rtypecheck") float, double, long, long &
+%typemap("rtypecheck") float, double, long, float &, double &, long &
   %{ is.numeric($arg) && length($arg) == 1 %}
-%typemap("rtypecheck") float *, double *
+%typemap("rtypecheck") float *, double *, long *
   %{ is.numeric($arg) %}
 
 %typemap("rtypecheck") bool, bool &
