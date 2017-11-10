@@ -3843,7 +3843,6 @@ handle the mapping of Java exceptions into C++ exceptions.
 %feature("director:except") MyClass::method(int x) {
   jthrowable $error = jenv-&gt;ExceptionOccurred();
   if ($error) {
-    jenv-&gt;ExceptionClear();
     if (Swig::ExceptionMatches(jenv, $error, "java/lang/IndexOutOfBoundsException"))
       throw std::out_of_range(Swig::JavaExceptionMessage(jenv, $error).message());
     if (Swig::ExceptionMatches(jenv, $error, "$packagepath/MyJavaException"))
@@ -3921,7 +3920,6 @@ is used in the feature code. Consider the following, which also happens to be th
 %feature("director:except") %{
   jthrowable $error = jenv-&gt;ExceptionOccurred();
   if ($error) {
-    jenv-&gt;ExceptionClear();
     $directorthrowshandlers
     Swig::DirectorException::raise(jenv, $error);
   }
@@ -3970,7 +3968,6 @@ the resulting code generated in the director method after calling up to Java wil
 <pre>
 jthrowable swigerror = jenv-&gt;ExceptionOccurred();
 if (swigerror) {
-  jenv-&gt;ExceptionClear();
   if (Swig::ExceptionMatches(jenv, swigerror, "java/lang/IndexOutOfBoundsException")) {
     throw std::out_of_range(Swig::JavaExceptionMessage(jenv, swigerror).message());
   }
@@ -3992,7 +3989,7 @@ this potential fate.
 <p>Because the default code generation maps any unhandled Java exceptions to
 <code>Swig::DirectorException</code>, any director methods that have exception
 specifications may cause program termination.  To simply ignore
-unexpected exceptions, the default handling can be changed with:
+unexpected exceptions, the default handling can be changed by adding:
 </p>
 
 <div class="code">
@@ -4068,14 +4065,10 @@ DEFINE_EXCEPTION(ExceptionA)
 DEFINE_EXCEPTION(ExceptionB)
 DEFINE_EXCEPTION(Unexpected)
 
-// Mark three methods to map director thrown exceptions.
-%feature("director:except") MyClass::meth1(int);
-%feature("director:except") MyClass::meth2;
-%feature("director:except") meth3;
-
 %typemap(directorthrows) MyNS::ExceptionA, MyNS::ExceptionB, MyNS::Unexpected %{
-  if (Swig::ExceptionMatches(jenv, $error, "$packagepath/$javaclassname"))
+  if (Swig::ExceptionMatches(jenv, $error, "$packagepath/$javaclassname")) {
     throw $1_type(Swig::JavaExceptionMessage(jenv, $error).message());
+  }
 %}
 
 DECLARE_EXCEPTION(ExceptionA)
@@ -4083,6 +4076,8 @@ DECLARE_EXCEPTION(ExceptionB)
 DECLARE_EXCEPTION(Unexpected)
 
 %catches(MyNS::ExceptionA, MyNS::ExceptionB, MyNS::Unexpected) MyClass::meth2();
+
+%feature("director") MyClass;
 
 %inline {
   class MyClass {
@@ -4100,13 +4095,13 @@ DECLARE_EXCEPTION(Unexpected)
 In this case the three different "directorthrows" typemaps will be used
 to generate the three different exception handlers for
 <code>meth1</code>, <code>meth2</code> and <code>meth3</code>.  The generated
-handlers will have "if" blocks for each exception type specified, in
+handlers will have "if" blocks for each exception type, where the exception types are listed in either
 the exception specification or <code>%catches</code> feature. 
 </p>
 
 <p>Note that the "directorthrows" typemaps are important
 only if it is important for the exceptions passed through the C++
-layer to be mapped to distinct C++ exceptions.  If director methods
+layer need to be mapped to distinct C++ exceptions.  If director methods
 are being called by C++ code that is itself wrapped in a
 SWIG generated Java wrapper and access is always through this wrapper,
 the default <code>Swig::DirectorException</code> class provides enough information
