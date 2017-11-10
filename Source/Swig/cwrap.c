@@ -1426,9 +1426,9 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
     String *cres;
     String *code = Getattr(n, "code");
 
-    String *sname = Swig_name_set(0, name);
-    String *membername = Swig_name_member(0, classname, sname);
-    String *mangled = Swig_name_mangle(membername);
+    String *membername = Swig_name_member(0, classname, name);
+    String *sname = Swig_name_set(0, membername);
+    String *mangled = Swig_name_mangle(sname);
 
     if (code) {
       /* I don't think this ever gets run - WSF */
@@ -1508,9 +1508,9 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
     String *cres;
     String *code = Getattr(n, "code");
 
-    String *gname = Swig_name_get(0, name);
-    String *membername = Swig_name_member(0, classname, gname);
-    String *mangled = Swig_name_mangle(membername);
+    String *membername = Swig_name_member(0, classname, name);
+    String *gname = Swig_name_get(0, membername);
+    String *mangled = Swig_name_mangle(gname);
 
     if (code) {
       /* I don't think this ever gets run - WSF */

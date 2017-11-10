@@ -32,12 +32,24 @@ struct Derived : Base {
 };
 %}
 
+#ifdef SWIGFORTRAN
+%inline %{
+#define GETTER(CLS, VALUE) get_ ## CLS ## _ ## VALUE
+#define SETTER(CLS, VALUE) set_ ## CLS ## _ ## VALUE
+%}
+#else
+%inline %{
+#define GETTER(CLS, VALUE) CLS ## _ ## VALUE ## _get
+#define SETTER(CLS, VALUE) CLS ## _ ## VALUE ## _set
+%}
+#endif
+
 %{
   double extendval = 0;
-  double Derived_extendval_get(Derived *self) {
+  double GETTER(Derived,extendval)(Derived *self) {
     return self->actualval * 100;
   }
-  void Derived_extendval_set(Derived *self, double d) {
+  void SETTER(Derived,extendval)(Derived *self, double d) {
     self->actualval = d/100;
   }
 %}
