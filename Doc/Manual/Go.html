@@ -639,12 +639,12 @@ public:
   virtual ~FooBarAbstract() {};
 
   std::string FooBar() {
-          return this->Foo() + ", " + this->Bar();
+    return this-&gt;Foo() + ", " + this-&gt;Bar();
   };
 
 protected:
   virtual std::string Foo() {
-          return "Foo";
+    return "Foo";
   };
 
   virtual std::string Bar() = 0;

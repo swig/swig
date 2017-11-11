@@ -16,6 +16,7 @@ Expected output if PrintDebug enabled:
 Base - Val(444.555)
 Base - Ref(444.555)
 Base - Ptr(444.555)
+Base - ConstPtrRef(444.555)
 Base - FullyOverloaded(int 10)
 Base - FullyOverloaded(bool 1)
 Base - SemiOverloaded(int -678)
@@ -26,6 +27,7 @@ Base - DefaultParms(10, 1.1)
 Derived - Val(444.555)
 Derived - Ref(444.555)
 Derived - Ptr(444.555)
+Derived - ConstPtrRef(444.555)
 Derived - FullyOverloaded(int 10)
 Derived - FullyOverloaded(bool 1)
 Derived - SemiOverloaded(int -678)
@@ -36,6 +38,7 @@ Derived - DefaultParms(10, 1.1)
 CSharpDerived - Val(444.555)
 CSharpDerived - Ref(444.555)
 CSharpDerived - Ptr(444.555)
+CSharpDerived - ConstPtrRef(444.555)
 CSharpDerived - FullyOverloaded(int 10)
 CSharpDerived - FullyOverloaded(bool True)
 CSharpDerived - SemiOverloaded(-678)
@@ -59,7 +62,7 @@ public class runme
 
   void run()
   {
-    if (director_classes.PrintDebug) Console.WriteLine("------------ Start ------------ ");
+    if (director_classes.PrintDebug) Console.WriteLine("------------ Start ------------");
 
     Caller myCaller = new Caller();
 
@@ -85,7 +88,7 @@ public class runme
       makeCalls(myCaller, myBase);
     }
 
-    if (director_classes.PrintDebug) Console.WriteLine("------------ Finish ------------ ");
+    if (director_classes.PrintDebug) Console.WriteLine("------------ Finish ------------");
   }
 
   void makeCalls(Caller myCaller, Base myBase)
@@ -99,6 +102,7 @@ public class runme
     if (myCaller.ValCall(dh).val != dh.val) throw new Exception("failed");
     if (myCaller.RefCall(dh).val != dh.val) throw new Exception("failed");
     if (myCaller.PtrCall(dh).val != dh.val) throw new Exception("failed");
+    if (myCaller.ConstPtrRefCall(dh).val != dh.val) throw new Exception("failed");
 
     // Fully overloaded method test (all methods in base class are overloaded)
     if (NAMESPACE + myCaller.FullyOverloadedCall(10) != myBase.GetType() + "::FullyOverloaded(int)") throw new Exception("failed");
@@ -140,6 +144,11 @@ public class CSharpDerived : Base
   public override DoubleHolder Ptr(DoubleHolder x)
   {
     if (director_classes.PrintDebug) Console.WriteLine("CSharpDerived - Ptr({0})", x.val);
+    return x;
+  }
+  public override DoubleHolder ConstPtrRef(DoubleHolder x)
+  {
+    if (director_classes.PrintDebug) Console.WriteLine("CSharpDerived - ConstPtrRef({0})", x.val);
     return x;
   }
   public override String FullyOverloaded(int x)

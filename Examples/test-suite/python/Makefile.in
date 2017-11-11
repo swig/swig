@@ -16,7 +16,7 @@ PEP8_FLAGS   = --ignore=E30,E402,E501,E731,W291,W391
 #*_runme.py for Python 2.x, *_runme3.py for Python 3.x
 PY2SCRIPTSUFFIX = _runme.py
 PY3SCRIPTSUFFIX = _runme3.py
-PY2TO3       = 2to3 -x import
+PY2TO3       = @PY2TO3@ -x import
 
 ifeq (,$(PY3))
   SCRIPTSUFFIX = $(PY2SCRIPTSUFFIX)
@@ -70,21 +70,29 @@ CPP_TEST_CASES += \
 	python_pythoncode \
 	python_richcompare \
 	python_strict_unicode \
+	python_threads \
 	simutry \
 	std_containers \
 	swigobject \
-	template_matrix
+	template_matrix \
 
 #	li_std_carray
 #	director_profile
 #	python_pybuf
+
+CPP11_TEST_CASES = \
+	cpp11_hash_tables \
+	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_nullptr_in_containers \
+	cpp11_shared_ptr_overload \
+	cpp11_shared_ptr_upcast \
 
 C_TEST_CASES += \
 	file_test \
 	li_cstring \
 	li_cwstring \
 	python_nondynamic \
-	python_varargs_typemap
+	python_varargs_typemap \
 
 #
 # This test only works with modern C compilers

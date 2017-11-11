@@ -4,8 +4,6 @@
 %warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) test;
 #endif
 
-#ifndef SWIG_NO_OVERLOAD
-
 %inline %{
 struct Foo {
    int x;
@@ -23,6 +21,4 @@ public:
    }
 };
 %}
-
-#endif
 

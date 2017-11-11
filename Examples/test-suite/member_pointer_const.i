@@ -49,24 +49,18 @@ public:
 typedef double (Shape::*PerimeterFunc_td)(void) const;
 
 extern double do_op(Shape *s, double (Shape::*m)(void) const);
-#if !defined(SWIGGO)
 extern double do_op_td(Shape *s, PerimeterFunc_td m);
-#endif
 
 /* Functions that return member pointers */
 
 extern double (Shape::*areapt())(void) const;
 extern double (Shape::*perimeterpt())(void) const;
-#if !defined(SWIGGO)
 extern PerimeterFunc_td perimeterpt_td();
-#endif
 
 /* Global variables that are member pointers */
 extern double (Shape::*areavar)(void) const;
 extern double (Shape::*perimetervar)(void) const;
-#if !defined(SWIGGO)
 extern PerimeterFunc_td perimetervar_td;
-#endif
 %}
 
 %{
@@ -124,11 +118,9 @@ PerimeterFunc_td perimetervar_td = &Shape::perimeter;
 
 
 /* Some constants */
-#if !defined(SWIGGO)
 %constant double (Shape::*AREAPT)(void) const = &Shape::area;
 %constant double (Shape::*PERIMPT)(void) const = &Shape::perimeter;
 %constant double (Shape::*NULLPT)(void) const = 0;
-#endif
 
 /*
 %inline %{
@@ -152,8 +144,6 @@ int call1(int (Funktions::*d)(const int &, int) const, int a, int b) { Funktions
 //int call3(int & (Funktions::*d)(const int &, int) const, int a, int b) { Funktions f; return (f.*d)(a, b); }
 %}
 
-#if !defined(SWIGGO)
 %constant int (Funktions::*ADD_BY_VALUE)(const int &, int) const = &Funktions::addByValue;
-#endif
 //%constant int * (Funktions::*ADD_BY_POINTER)(const int &, int) const = &Funktions::addByPointer;
 //%constant int & (Funktions::*ADD_BY_REFERENCE)(const int &, int) const = &Funktions::addByReference;

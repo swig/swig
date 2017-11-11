@@ -86,10 +86,19 @@
 #define EXPR_LAND        0xFF && 1
 #define EXPR_LOR         0xFF || 1
 #define EXPR_CONDITIONAL true ? 2 : 2.2
+#define EXPR_MIXED1      (0x80 + 11.1) - 1
+
+#define EXPR_WCHAR_MAX   (0x7fffffff + L'\0')
+#define EXPR_WCHAR_MIN   (-EXPR_WCHAR_MAX - 1)
 
 #define EXPR_CHAR_COMPOUND_ADD 'A' + 12
 #define EXPR_CHAR_COMPOUND_LSHIFT 'B' << 6
 #define H_SUPPRESS_SCALING_MAGIC (('s'<<24) | ('u'<<16) | ('p'<<8) | 'p')
+
+// https://sourceforge.net/p/swig/bugs/1168/
+#define CHR(ch1,ch2,ch3,ch4) (((ch1)<<24)|((ch2)<<16)|((ch3)<<8)|(ch4))
+#define DEFAULT_LANG CHR('d','f','l','t')
+%constant DEFAULT_LANG_SIMPLIFIED = ('d')<<24;
 
 /// constant assignment in enum
 #if defined(SWIGCSHARP)

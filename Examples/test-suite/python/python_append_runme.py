@@ -9,7 +9,7 @@ if is_python_builtin():
     exit(0)
 
 t = Test()
-t.func()
+t.funk()
 if is_new_style_class(Test):
     t.static_func()
 else:

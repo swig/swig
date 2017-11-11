@@ -7,7 +7,7 @@
 
 
 # This could be provided as a separate run-time library but this
-# approach allows the code to to be included directly into the
+# approach allows the code to be included directly into the
 # generated bindings and so removes the need to have and install an
 # additional library.  We may however end up with multiple copies of
 # this and some confusion at run-time as to which class to use. This

@@ -23,7 +23,11 @@
 	int res = SWIG_ERROR;
 	if (PyDict_Check(obj)) {
 	  SwigVar_PyObject items = PyObject_CallMethod(obj,(char *)"items",NULL);
-	  return traits_asptr_stdseq<std::multimap<K,T>, std::pair<K, T> >::asptr(items, val);
+%#if PY_VERSION_HEX >= 0x03000000
+          /* In Python 3.x the ".items()" method returns a dict_items object */
+          items = PySequence_Fast(items, ".items() didn't return a sequence!");
+%#endif
+	  res = traits_asptr_stdseq<std::multimap<K,T>, std::pair<K, T> >::asptr(items, val);
 	} else {
 	  multimap_type *p;
 	  swig_type_info *descriptor = swig::type_info<multimap_type>();
@@ -68,7 +72,17 @@
 
 %define %swig_multimap_methods(Type...) 
   %swig_map_common(Type);
+
+#if defined(SWIGPYTHON_BUILTIN)
+  %feature("python:slot", "mp_ass_subscript", functype="objobjargproc") __setitem__;
+#endif
+
   %extend {
+    // This will be called through the mp_ass_subscript slot to delete an entry.
+    void __setitem__(const key_type& key) {
+      self->erase(key);
+    }
+
     void __setitem__(const key_type& key, const mapped_type& x) throw (std::out_of_range) {
       self->insert(Type::value_type(key,x));
     }

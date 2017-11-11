@@ -27,6 +27,7 @@
 #define %swig_list_methods(Type...) %swig_sequence_methods(Type)
 #define %swig_list_methods_val(Type...) %swig_sequence_methods_val(Type);
 
+%mixin std::list "Enumerable";
 
 %rename("delete")     std::list::__delete__;
 %rename("reject!")    std::list::reject_bang;

@@ -185,7 +185,7 @@ public:
   void etest() {
     bool boolarg_inout = false;
 
-    signed char signed_chararg_inout = 150;
+    signed char signed_chararg_inout = 111;
     unsigned char unsigned_chararg_inout = 150;
 
     short shortarg_inout = 150;

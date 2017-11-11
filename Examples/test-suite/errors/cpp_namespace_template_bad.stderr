@@ -1,0 +1,9 @@
+cpp_namespace_template_bad.i:14: Error: 'max' resolves to 'test::max' and was incorrectly instantiated in scope 'test2' instead of within scope 'test'.
+cpp_namespace_template_bad.i:15: Error: 'vector' resolves to 'test::vector' and was incorrectly instantiated in scope 'test2' instead of within scope 'test'.
+cpp_namespace_template_bad.i:21: Error: 'max' resolves to 'test::max' and was incorrectly instantiated in scope 'test3' instead of within scope 'test'.
+cpp_namespace_template_bad.i:22: Error: 'vector' resolves to 'test::vector' and was incorrectly instantiated in scope 'test3' instead of within scope 'test'.
+cpp_namespace_template_bad.i:31: Error: 'max' resolves to 'test::max' and was incorrectly instantiated in scope 'test4' instead of within scope 'test'.
+cpp_namespace_template_bad.i:32: Error: 'vector' resolves to 'test::vector' and was incorrectly instantiated in scope 'test4' instead of within scope 'test'.
+cpp_namespace_template_bad.i:37: Error: 'max' resolves to 'test::max' and was incorrectly instantiated in scope 'test5' instead of within scope 'test'.
+cpp_namespace_template_bad.i:37: Error: Template 'max' undefined.
+cpp_namespace_template_bad.i:38: Error: 'vector' resolves to 'test::vector' and was incorrectly instantiated in scope 'test5' instead of within scope 'test'.

@@ -538,7 +538,7 @@ SwigPyObject_dealloc(PyObject *v)
       PyObject *res;
 
       /* PyObject_CallFunction() has the potential to silently drop
-         the active active exception.  In cases of unnamed temporary
+         the active exception.  In cases of unnamed temporary
          variable or where we just finished iterating over a generator
          StopIteration will be active right now, and this needs to
          remain true upon return from SwigPyObject_dealloc.  So save
@@ -1308,7 +1308,7 @@ SWIG_Python_ConvertFunctionPtr(PyObject *obj, void **ptr, swig_type_info *ty) {
   }
 }
 
-/* Convert a packed value value */
+/* Convert a packed pointer value */
 
 SWIGRUNTIME int
 SWIG_Python_ConvertPacked(PyObject *obj, void *ptr, size_t sz, swig_type_info *ty) {

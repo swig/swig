@@ -102,7 +102,7 @@ namespace swig {
 } 
 }
 
-%fragment("SwigPySequence_Base","header",fragment="<stddef.h>")
+%fragment("SwigPySequence_Base","header",fragment="<stddef.h>",fragment="StdTraits")
 {
 %#include <functional>
 
@@ -351,7 +351,7 @@ namespace swig {
         typename Sequence::const_iterator isit = is.begin();
         typename Sequence::iterator it = self->begin();
         std::advance(it,ii);
-        for (size_t rc=0; rc<replacecount; ++rc) {
+        for (size_t rc=0; rc<replacecount && it != self->end(); ++rc) {
           *it++ = *isit++;
           for (Py_ssize_t c=0; c<(step-1) && it != self->end(); ++c)
             it++;
@@ -367,7 +367,7 @@ namespace swig {
       typename Sequence::const_iterator isit = is.begin();
       typename Sequence::reverse_iterator it = self->rbegin();
       std::advance(it,size-ii-1);
-      for (size_t rc=0; rc<replacecount; ++rc) {
+      for (size_t rc=0; rc<replacecount && it != self->rend(); ++rc) {
         *it++ = *isit++;
         for (Py_ssize_t c=0; c<(-step-1) && it != self->rend(); ++c)
           it++;
@@ -434,8 +434,8 @@ namespace swig
     {
       swig::SwigVar_PyObject item = PySequence_GetItem(_seq, _index);
       try {
-	return swig::as<T>(item, true);
-      } catch (std::exception& e) {
+	return swig::as<T>(item);
+      } catch (const std::invalid_argument& e) {
 	char msg[1024];
 	sprintf(msg, "in sequence element %d ", (int)_index);
 	if (!PyErr_Occurred()) {
@@ -655,6 +655,14 @@ namespace swig
 }
 
 %define %swig_sequence_iterator(Sequence...)
+  %swig_sequence_iterator_with_making_function(swig::make_output_iterator,Sequence...)
+%enddef
+
+%define %swig_sequence_forward_iterator(Sequence...)
+  %swig_sequence_iterator_with_making_function(swig::make_output_forward_iterator,Sequence...)
+%enddef
+
+%define %swig_sequence_iterator_with_making_function(Make_output_iterator,Sequence...)
 #if defined(SWIG_EXPORT_ITERATOR_METHODS)
   class iterator;
   class reverse_iterator;
@@ -663,15 +671,15 @@ namespace swig
 
   %typemap(out,noblock=1,fragment="SwigPySequence_Cont")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
-    $result = SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &)),
+    $result = SWIG_NewPointerObj(Make_output_iterator(%static_cast($1,const $type &)),
 				 swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN);
   }
   %typemap(out,noblock=1,fragment="SwigPySequence_Cont")
     std::pair<iterator, iterator>, std::pair<const_iterator, const_iterator> {
     $result = PyTuple_New(2);
-    PyTuple_SetItem($result,0,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
+    PyTuple_SetItem($result,0,SWIG_NewPointerObj(Make_output_iterator(%static_cast($1,const $type &).first),
 						 swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN));
-    PyTuple_SetItem($result,1,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).second),
+    PyTuple_SetItem($result,1,SWIG_NewPointerObj(Make_output_iterator(%static_cast($1,const $type &).second),
 						 swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN));    
   }
 
@@ -680,7 +688,7 @@ namespace swig
   %typemap(out,noblock=1,fragment="SwigPyPairBoolOutputIterator")
     std::pair<iterator, bool>, std::pair<const_iterator, bool> {
     $result = PyTuple_New(2);
-    PyTuple_SetItem($result,0,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
+    PyTuple_SetItem($result,0,SWIG_NewPointerObj(Make_output_iterator(%static_cast($1,const $type &).first),
 					       swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN));    
     PyTuple_SetItem($result,1,SWIG_From(bool)(%static_cast($1,const $type &).second));
   }
@@ -715,7 +723,7 @@ namespace swig
   %newobject iterator(PyObject **PYTHON_SELF);
   %extend  {
     swig::SwigPyIterator* iterator(PyObject **PYTHON_SELF) {
-      return swig::make_output_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
+      return Make_output_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
     }
 
 #if defined(SWIGPYTHON_BUILTIN)

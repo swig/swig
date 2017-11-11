@@ -77,7 +77,7 @@
 %rename("include?")   std::unordered_map::__contains__ const;
 %rename("has_key?")   std::unordered_map::has_key const;
 
-%mixin std::map "Enumerable";
-%alias  std::unordered_map::push          "<<";
+%mixin std::unordered_map "Enumerable";
+%alias std::unordered_map::push          "<<";
 
 %include <std/std_unordered_map.i>
