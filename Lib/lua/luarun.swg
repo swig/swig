@@ -1860,7 +1860,7 @@ SWIG_Lua_InstallConstants(lua_State *L, swig_lua_const_info constants[]) {
     switch(constants[i].type) {
     case SWIG_LUA_INT:
       lua_pushstring(L,constants[i].name);
-      lua_pushinteger(L,(lua_Number)constants[i].lvalue);
+      lua_pushinteger(L,(lua_Integer)constants[i].lvalue);
       lua_rawset(L,-3);
       break;
     case SWIG_LUA_FLOAT:

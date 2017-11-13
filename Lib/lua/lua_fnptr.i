@@ -23,8 +23,8 @@ just push the parameters, call the function and return the result.
   int my_func(int a, int b, SWIGLUA_FN fn)
   {
     SWIGLUA_FN_GET(fn);
-    lua_pushnumber(fn.L,a);
-    lua_pushnumber(fn.L,b);
+    lua_pushinteger(fn.L,a);
+    lua_pushinteger(fn.L,b);
     lua_call(fn.L,2,1);    // 2 in, 1 out
     return luaL_checknumber(fn.L,-1);
   }
@@ -76,8 +76,8 @@ if you need that you must add it yourself.
   int my_func(int a, int b, SWIGLUA_FN fn)
   {
     SWIGLUA_FN_GET(fn);
-    lua_pushnumber(fn.L,a);
-    lua_pushnumber(fn.L,b);
+    lua_pushinteger(fn.L,a);
+    lua_pushinteger(fn.L,b);
     lua_call(fn.L,2,1);    // 2 in, 1 out
     return luaL_checknumber(fn.L,-1);
   }
