@@ -45,6 +45,30 @@ or provide a %apply statement
 */
 
 
+%define SWIG_INTEGER_TYPEMAP(TYPE)
+%typemap(in,checkfn="lua_isnumber")	TYPE *INPUT($*ltype temp), TYPE &INPUT($*ltype temp)
+%{ temp = ($*ltype)lua_tonumber(L,$input);
+   $1 = &temp; %}
+%typemap(in, numinputs=0) TYPE *OUTPUT ($*ltype temp)
+%{ $1 = &temp; %}
+%typemap(argout) TYPE *OUTPUT
+%{  
+ lua_pushinteger(L, (lua_Integer) *$1);
+ SWIG_arg++;
+%}
+
+%typemap(in) TYPE *INOUT = TYPE *INPUT;
+%typemap(argout) TYPE *INOUT = TYPE *OUTPUT;
+%typemap(in) TYPE &OUTPUT = TYPE *OUTPUT;
+%typemap(argout) TYPE &OUTPUT = TYPE *OUTPUT;
+%typemap(in) TYPE &INOUT = TYPE *INPUT;
+%typemap(argout) TYPE &INOUT = TYPE *OUTPUT;
+// const version (the $*ltype is the basic number without ptr or const's)
+%typemap(in,checkfn="lua_isnumber")	const TYPE *INPUT($*ltype temp)
+%{ temp = ($*ltype)lua_tonumber(L,$input);
+   $1 = &temp; %}
+%enddef
+
 %define SWIG_NUMBER_TYPEMAP(TYPE)
 %typemap(in,checkfn="lua_isnumber")	TYPE *INPUT($*ltype temp), TYPE &INPUT($*ltype temp)
 %{ temp = ($*ltype)lua_tonumber(L,$input);
@@ -66,16 +90,16 @@ or provide a %apply statement
 %enddef
 
 // now the code
-SWIG_NUMBER_TYPEMAP(unsigned char); SWIG_NUMBER_TYPEMAP(signed char);
+SWIG_INTEGER_TYPEMAP(unsigned char); SWIG_INTEGER_TYPEMAP(signed char);
 
-SWIG_NUMBER_TYPEMAP(short); SWIG_NUMBER_TYPEMAP(unsigned short); SWIG_NUMBER_TYPEMAP(signed short);
-SWIG_NUMBER_TYPEMAP(int); SWIG_NUMBER_TYPEMAP(unsigned int); SWIG_NUMBER_TYPEMAP(signed int);
-SWIG_NUMBER_TYPEMAP(long); SWIG_NUMBER_TYPEMAP(unsigned long); SWIG_NUMBER_TYPEMAP(signed long);
+SWIG_INTEGER_TYPEMAP(short); SWIG_INTEGER_TYPEMAP(unsigned short); SWIG_INTEGER_TYPEMAP(signed short);
+SWIG_INTEGER_TYPEMAP(int); SWIG_INTEGER_TYPEMAP(unsigned int); SWIG_INTEGER_TYPEMAP(signed int);
+SWIG_INTEGER_TYPEMAP(long); SWIG_INTEGER_TYPEMAP(unsigned long); SWIG_INTEGER_TYPEMAP(signed long);
 SWIG_NUMBER_TYPEMAP(float);
 SWIG_NUMBER_TYPEMAP(double);
-SWIG_NUMBER_TYPEMAP(enum SWIGTYPE);
+SWIG_INTEGER_TYPEMAP(enum SWIGTYPE);
 // also for long longs's
-SWIG_NUMBER_TYPEMAP(long long); SWIG_NUMBER_TYPEMAP(unsigned long long); SWIG_NUMBER_TYPEMAP(signed long long);
+SWIG_INTEGER_TYPEMAP(long long); SWIG_INTEGER_TYPEMAP(unsigned long long); SWIG_INTEGER_TYPEMAP(signed long long);
 
 // note we dont do char, as a char* is probably a string not a ptr to a single char
 
@@ -289,6 +313,63 @@ SWIGINTERN int SWIG_table_size(lua_State* L, int index)
 			lua_rawseti(L,-2,i+1);/* -1 is the number, -2 is the table*/ \
 		}\
 	}
+#define SWIG_DECLARE_TYPEMAP_ARR_FN_INTEGER(NAME,TYPE)\
+	SWIGINTERN int SWIG_read_##NAME##_num_array(lua_State* L,int index,TYPE *array,int size){\
+		int i;\
+		for (i = 0; i < size; i++) {\
+			lua_rawgeti(L,index,i+1);\
+			if (lua_isnumber(L,-1)){\
+				array[i] = (TYPE)lua_tonumber(L,-1);\
+			} else {\
+				lua_pop(L,1);\
+				return 0;\
+			}\
+			lua_pop(L,1);\
+		}\
+		return 1;\
+	}\
+	SWIGINTERN TYPE* SWIG_get_##NAME##_num_array_fixed(lua_State* L, int index, int size){\
+		TYPE *array;\
+		if (!lua_istable(L,index) || SWIG_itable_size(L,index) != size) {\
+			SWIG_Lua_pushferrstring(L,"expected a table of size %d",size);\
+			return 0;\
+		}\
+		array=SWIG_ALLOC_ARRAY(TYPE,size);\
+		if (!SWIG_read_##NAME##_num_array(L,index,array,size)){\
+			SWIG_Lua_pusherrstring(L,"table must contain numbers");\
+			SWIG_FREE_ARRAY(array);\
+			return 0;\
+		}\
+		return array;\
+	}\
+	SWIGINTERN TYPE* SWIG_get_##NAME##_num_array_var(lua_State* L, int index, int* size)\
+	{\
+		TYPE *array;\
+		if (!lua_istable(L,index)) {\
+			SWIG_Lua_pusherrstring(L,"expected a table");\
+			return 0;\
+		}\
+		*size=SWIG_itable_size(L,index);\
+		if (*size<1){\
+			SWIG_Lua_pusherrstring(L,"table appears to be empty");\
+			return 0;\
+		}\
+		array=SWIG_ALLOC_ARRAY(TYPE,*size);\
+		if (!SWIG_read_##NAME##_num_array(L,index,array,*size)){\
+			SWIG_Lua_pusherrstring(L,"table must contain numbers");\
+			SWIG_FREE_ARRAY(array);\
+			return 0;\
+		}\
+		return array;\
+	}\
+	SWIGINTERN void SWIG_write_##NAME##_num_array(lua_State* L,TYPE *array,int size){\
+		int i;\
+		lua_newtable(L);\
+		for (i = 0; i < size; i++){\
+			lua_pushinteger(L,(lua_Integer)array[i]);\
+			lua_rawseti(L,-2,i+1);/* -1 is the number, -2 is the table*/ \
+		}\
+	}
 %}
 
 /*
@@ -297,6 +378,8 @@ for array handling
 */
 %define SWIG_TYPEMAP_NUM_ARR(NAME,TYPE)
 %{SWIG_DECLARE_TYPEMAP_ARR_FN(NAME,TYPE)%}
+%define SWIG_TYPEMAP_NUM_ARR_INTEGER(NAME,TYPE)
+%{SWIG_DECLARE_TYPEMAP_ARR_FN_INTEGER(NAME,TYPE)%}
 
 // fixed size array's
 %typemap(in) TYPE INPUT[ANY]
@@ -347,14 +430,14 @@ for array handling
 // as well as defining typemaps for
 // fixed len arrays in & out, & variable length arrays in
 
-SWIG_TYPEMAP_NUM_ARR(schar,signed char);
-SWIG_TYPEMAP_NUM_ARR(uchar,unsigned char);
-SWIG_TYPEMAP_NUM_ARR(int,int);
-SWIG_TYPEMAP_NUM_ARR(uint,unsigned int);
-SWIG_TYPEMAP_NUM_ARR(short,short);
-SWIG_TYPEMAP_NUM_ARR(ushort,unsigned short);
-SWIG_TYPEMAP_NUM_ARR(long,long);
-SWIG_TYPEMAP_NUM_ARR(ulong,unsigned long);
+SWIG_TYPEMAP_NUM_ARR_INTEGER(schar,signed char);
+SWIG_TYPEMAP_NUM_ARR_INTEGER(uchar,unsigned char);
+SWIG_TYPEMAP_NUM_ARR_INTEGER(int,int);
+SWIG_TYPEMAP_NUM_ARR_INTEGER(uint,unsigned int);
+SWIG_TYPEMAP_NUM_ARR_INTEGER(short,short);
+SWIG_TYPEMAP_NUM_ARR_INTEGER(ushort,unsigned short);
+SWIG_TYPEMAP_NUM_ARR_INTEGER(long,long);
+SWIG_TYPEMAP_NUM_ARR_INTEGER(ulong,unsigned long);
 SWIG_TYPEMAP_NUM_ARR(float,float);
 SWIG_TYPEMAP_NUM_ARR(double,double);
 
