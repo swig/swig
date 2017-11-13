@@ -378,6 +378,52 @@ for array handling
 */
 %define SWIG_TYPEMAP_NUM_ARR(NAME,TYPE)
 %{SWIG_DECLARE_TYPEMAP_ARR_FN(NAME,TYPE)%}
+
+// fixed size array's
+%typemap(in) TYPE INPUT[ANY]
+%{	$1 = SWIG_get_##NAME##_num_array_fixed(L,$input,$1_dim0);
+	if (!$1) SWIG_fail;%}
+
+%typemap(freearg) TYPE INPUT[ANY]
+%{	SWIG_FREE_ARRAY($1);%}
+
+// variable size array's
+%typemap(in) (TYPE *INPUT,int)
+%{	$1 = SWIG_get_##NAME##_num_array_var(L,$input,&$2);
+	if (!$1) SWIG_fail;%}
+
+%typemap(freearg) (TYPE *INPUT,int)
+%{	SWIG_FREE_ARRAY($1);%}
+
+// out fixed arrays
+%typemap(in,numinputs=0) TYPE OUTPUT[ANY]
+%{  $1 = SWIG_ALLOC_ARRAY(TYPE,$1_dim0); %}
+
+%typemap(argout) TYPE OUTPUT[ANY]
+%{	SWIG_write_##NAME##_num_array(L,$1,$1_dim0); SWIG_arg++; %}
+
+%typemap(freearg) TYPE OUTPUT[ANY]
+%{	SWIG_FREE_ARRAY($1); %}
+
+// inout fixed arrays
+%typemap(in) TYPE INOUT[ANY]=TYPE INPUT[ANY];
+%typemap(argout) TYPE INOUT[ANY]=TYPE OUTPUT[ANY];
+%typemap(freearg) TYPE INOUT[ANY]=TYPE INPUT[ANY];
+// inout variable arrays
+%typemap(in) (TYPE *INOUT,int)=(TYPE *INPUT,int);
+%typemap(argout) (TYPE *INOUT,int)
+%{	SWIG_write_##NAME##_num_array(L,$1,$2); SWIG_arg++; %}
+%typemap(freearg) (TYPE *INOUT,int)=(TYPE *INPUT,int);
+
+// TODO out variable arrays (is there a standard form for such things?)
+
+// referencing so that (int *INPUT,int) and (int INPUT[],int) are the same
+%typemap(in) (TYPE INPUT[],int)=(TYPE *INPUT,int);
+%typemap(freearg) (TYPE INPUT[],int)=(TYPE *INPUT,int);
+
+%enddef
+
+
 %define SWIG_TYPEMAP_NUM_ARR_INTEGER(NAME,TYPE)
 %{SWIG_DECLARE_TYPEMAP_ARR_FN_INTEGER(NAME,TYPE)%}
 
