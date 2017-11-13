@@ -69,7 +69,7 @@ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
 %{$1 = ($type)(int)lua_tonumber(L, $input);%}
 
 %typemap(out) enum SWIGTYPE
-%{  lua_pushintger(L, (lua_Integer)(int)($1)); SWIG_arg++;%}
+%{  lua_pushinteger(L, (lua_Integer)(int)($1)); SWIG_arg++;%}
 
 // and const refs
 %typemap(in,checkfn="lua_isnumber") const enum SWIGTYPE &($basetype temp)
@@ -77,9 +77,9 @@ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
 %typemap(in,checkfn="lua_isnumber") const enum SWIGTYPE &&($basetype temp)
 %{ temp=($basetype)(int)lua_tonumber(L,$input); $1=&temp;%}
 %typemap(out) const enum SWIGTYPE &
-%{  lua_pushintger(L, (lua_Integer) *$1); SWIG_arg++;%}
+%{  lua_pushinteger(L, (lua_Integer) *$1); SWIG_arg++;%}
 %typemap(out) const enum SWIGTYPE &&
-%{  lua_pushintger(L, (lua_Integer) *$1); SWIG_arg++;%}
+%{  lua_pushinteger(L, (lua_Integer) *$1); SWIG_arg++;%}
 
 
 // boolean (which is a special type in lua)
