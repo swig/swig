@@ -3825,17 +3825,20 @@ The disadvantage is that invocation of director methods from C++ when Java doesn
 <p>
 With directors routing method calls to Java, and proxies routing them
 to C++, the handling of exceptions is an important concern.
-The default behavior from SWIG 3.0
-onwards is to convert the thrown Java exception into a SWIG defined
-<code>DirectorException</code> C++ exception.
-SWIG 2.0 and earlier versions didn't provide any mechanism to handle the Java director method exceptions in C++.
+The default behavior for Java exceptions thrown in a director method overridden in Java is
+to convert the thrown Java exception into a SWIG defined
+<code>DirectorException</code> C++ class exception in the C++ layer and then throw this C++ exception.
 </p>
 
 <p>
-Converting Java exceptions into C++ exceptions can be done in two different ways using
+The conversion of Java exceptions into C++ exceptions can be customized in two different ways using
 the <code>director:except</code> <a href="Customization.html#Customization_features">feature</a>.
 In the simplest approach, a code block is attached to each director method to
 handle the mapping of Java exceptions into C++ exceptions.
+The example below converts a 
+<tt>java.lang.IndexOutOfBoundsException</tt> into a C++ <tt>std::out_of_range</tt> exception and converts a
+user's Java <tt>MyJavaException</tt> into a C++ <tt>MyCppException</tt> exception.
+If the Java exception doesn't match either of these, a fallback <tt>std::runtime_error</tt> C++ exception is thrown.
 </p>
 
 <div class="code">
@@ -3859,6 +3862,61 @@ class MyClass {
 </div>
 
 <p>
+A few special variables are expanded from the <tt>director:except</tt> feature when generated.
+The special variable <code>$error</code> is expanded by SWIG into a unique variable name and
+should be used for the 
+assignment of the exception that occurred.  The special variable <code>$packagepath</code> is
+replaced by the outer package provided for SWIG generation by the -package option. 
+</p>
+
+<p>
+Utility functions/classes in director.swg are provided to aid the exception conversion as follows:
+</p>
+
+<div class="code">
+<pre>
+namespace Swig {
+
+  // Helper method to determine if a Java throwable matches a particular Java class type
+  bool ExceptionMatches(JNIEnv *jenv, jthrowable throwable, const char *classname);
+
+  // Helper class to extract the exception message from a Java throwable
+  class JavaExceptionMessage {
+  public:
+    JavaExceptionMessage(JNIEnv *jenv, jthrowable throwable);
+
+    // Return a C string of the exception message in the jthrowable passed in the constructor
+    // If no message is available, null_string is return instead
+    const char *message(const char *null_string = 
+                        "Could not get exception message in JavaExceptionMessage") const;
+  };
+
+  // C++ Exception class for handling Java exceptions thrown during a director method Java upcall
+  class DirectorException : public std::exception {
+  public:
+
+    // Construct exception from a Java throwable
+    DirectorException(JNIEnv *jenv, jthrowable throwable);
+
+    // More general constructor for handling as a java.lang.RuntimeException
+    DirectorException(const char *msg);
+
+    // Return exception message extracted from the Java throwable
+    const char *what() const throw();
+
+    // Reconstruct and raise/throw the Java Exception that caused the DirectorException
+    // Note that any error in the JNI exception handling results in a Java RuntimeException
+    void raiseJavaException(JNIEnv *jenv) const;
+
+    // Create and throw the DirectorException
+    static void raise(JNIEnv *jenv, jthrowable throwable);
+  };
+
+}
+</pre>
+</div>
+
+<p>
 This approach allows a flexible mapping of Java exceptions thrown by director methods into
 C++ exceptions expected by a C++ caller.  There
 need not be any C++ <em>exception specifications</em> on the C++ method. The
@@ -3872,11 +3930,8 @@ type, or derives from the given type, <code>Swig::ExceptionMatches</code> will r
 provide the correct fully qualified name, since for wrapped exceptions the
 generated proxy class will have additional package qualification, depending on
 the '-package' argument and use of the <a href="#Java_namespaces">nspace
-  feature</a>.  The special variable <code>$error</code> is expanded by SWIG into a unique variable name and
-should be used for the 
-assignment of the exception that occurred.  The special variable <code>$packagepath</code> is
-replaced by the outer package provided for SWIG generation by the -package
-option.  The utility class <code>Swig::JavaExceptionMessage</code> is a holder
+  feature</a>.  
+The utility class <code>Swig::JavaExceptionMessage</code> is a holder
 providing access to the message from the thrown Java exception.
 The <code>message()</code> method returns the exception message as a <code>const char *</code>,
 which is only valid during the lifetime of the holder.  Any code using this message
@@ -3884,20 +3939,20 @@ needs to copy it, for example into a std::string or a newly constructed C++ exce
 </p>
 
 <p>
-Using the above approach to
+Using the above simple approach to
 write handlers for a large number of methods will require 
 repetitive duplication of the <code>director:except</code> feature code.
 To mitigate this, an alternative approach is provided via typemaps in a
 fashion analagous to
-the <a href="Typemaps.html#throws_typemap">"throws" typemap.</a>  The
-"throws" typemap provides an approach to automatically map all the C++
+the <a href="Typemaps.html#throws_typemap">"throws" typemap</a>.
+The "throws" typemap provides the second approach to map all the C++
 exceptions listed in a method's defined exceptions (either from
 a C++ <em>exception specification</em> or a <code>%catches</code>
 feature) into Java exceptions.
 The "directorthrows" typemap provides the inverse mapping and should contain
 code to convert a suitably matching Java exception into a C++ exception.
 The example below converts a Java <code>java.lang.IndexOutOfBoundsException</code> exception
-to the typemap's type, that is <code>std::out_of_range</code>:
+to the typemap's type, that is a <code>std::out_of_range</code> C++ exception:
 
 <div class="code">
 <pre>
@@ -3928,7 +3983,7 @@ is used in the feature code. Consider the following, which also happens to be th
 </div>
 
 <p>
-where <tt>Swig::DirectorException::raise</tt> is a helper method in the DirectorException class to throw a C++ exception (implemented in director.swg):
+where <tt>Swig::DirectorException::raise</tt> is the helper method to throw a C++ <tt>Swig::DirectorException</tt>.
 </p>
 
 <div class="code">
@@ -3948,7 +4003,7 @@ specification or <code>%catches</code> as described for the
 </p>
 
 <p>
-Consider the following director method:
+Let's try all this together and consider the following director method:
 </p>
 
 <div class="code">
@@ -3997,8 +4052,8 @@ unexpected exceptions, the default handling can be changed by adding:
 %feature("director:except") %{
   jthrowable $error = jenv-&gt;ExceptionOccurred();
   if ($error) {
-    jenv-&gt;ExceptionClear();
     $directorthrowshandlers
+    jenv-&gt;ExceptionClear();
     return $null; // exception is ignored
   }
 %}

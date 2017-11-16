@@ -2901,12 +2901,18 @@ For example:
   PyErr_SetString(PyExc_RuntimeError, $1);
   SWIG_fail;
 %}
-void bar() throw (const char *);
+
+// Either an exception specification on the method
+  void bar() throw (const char *);
+
+// Or a %catches feature attached to the method
+  %catches(const char *) bar();
+  void bar();
 </pre>
 </div>
 
 <p>
-As can be seen from the generated code below, SWIG generates an exception handler
+As can be seen from the resulting generated code below, SWIG generates an exception handler
 with the catch block comprising the "throws" typemap content.
 </p>
 
@@ -2915,8 +2921,7 @@ with the catch block comprising the "throws" typemap content.
 ...
 try {
   bar();
-}
-catch(char const *_e) {
+} catch(char const *_e) {
   PyErr_SetString(PyExc_RuntimeError, _e);
   SWIG_fail;
 }
@@ -2925,8 +2930,8 @@ catch(char const *_e) {
 </div>
 
 <p>
-Note that if your methods do not have an exception specification yet they do throw exceptions, SWIG cannot know how to deal with them.
-For a neat way to handle these, see the <a href="Customization.html#Customization_exception">Exception handling with %exception</a> section.
+Note that if your methods do not have an exception specification but they do throw exceptions and you are not using <tt>%catches</tt>, SWIG cannot know how to deal with them.
+Please also see the <a href="Customization.html#Customization_exception">Exception handling with %exception</a> section for another way to handle exceptions.
 </p>
 
 <H2><a name="Typemaps_nn39">11.6 Some typemap examples</a></H2>

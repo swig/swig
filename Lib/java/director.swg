@@ -259,6 +259,8 @@ namespace Swig {
     JavaExceptionMessage(JNIEnv *jenv, jthrowable throwable) : message_(jenv, exceptionMessageFromThrowable(jenv, throwable)) {
     }
 
+    // Return a C string of the exception message in the jthrowable passed in the constructor
+    // If no message is available, null_string is return instead
     const char *message(const char *null_string = "Could not get exception message in JavaExceptionMessage") const {
       return message_.c_str(null_string);
     }
@@ -369,6 +371,7 @@ namespace Swig {
       }
     }
 
+    // Create and throw the DirectorException
     static void raise(JNIEnv *jenv, jthrowable throwable) {
       throw DirectorException(jenv, throwable);
     }
