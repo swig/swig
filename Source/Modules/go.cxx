@@ -615,6 +615,12 @@ private:
 
     Language::top(n);
 
+    if (directorsEnabled()) {
+      // Insert director runtime into the f_runtime file (make it occur before %header section)
+      Swig_insert_file("director_common.swg", f_c_runtime);
+      Swig_insert_file("director.swg", f_c_runtime);
+    }
+
     Delete(go_imports);
 
     // Write out definitions for the types not defined by SWIG.

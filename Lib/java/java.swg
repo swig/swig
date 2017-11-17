@@ -1051,6 +1051,10 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %{ SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1);
    return $null; %}
 
+// For directors to raise/throw the original Java exception
+%typemap(throws) Swig::DirectorException
+%{  $1.raiseJavaException(jenv);
+    return $null; %}
 
 /* Typemaps for code generation in proxy classes and Java type wrapper classes */
 
