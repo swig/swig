@@ -20,14 +20,10 @@
 
 #ifndef SWIG_DIRECTORS
 namespace Swig {
-class DirectorException {};
-class DirectorMethodException: public Swig::DirectorException {};
+  class DirectorException {};
+  class DirectorMethodException: public Swig::DirectorException {};
 }
-  #ifndef SWIG_fail
-    #define SWIG_fail
-  #endif
 #endif /* !SWIG_DIRECTORS */
-
 %}
 
 %include "std_string.i"
@@ -41,8 +37,8 @@ class DirectorMethodException: public Swig::DirectorException {};
 }
 
 %exception {
-	try { $action }
-	catch (Swig::DirectorException &) { SWIG_fail; }
+  try { $action }
+  catch (Swig::DirectorException &) { SWIG_fail; }
 }
 
 #endif
@@ -56,8 +52,8 @@ class DirectorMethodException: public Swig::DirectorException {};
 }
 
 %exception {
-	try { $action }
-	catch (Swig::DirectorException &) { SWIG_fail; }
+  try { $action }
+  catch (Swig::DirectorException &) { SWIG_fail; }
 }
 
 #endif
@@ -75,12 +71,12 @@ class DirectorMethodException: public Swig::DirectorException {};
 // Change back to old 2.0 default behavior
 
 %feature("director:except") {
-	jthrowable $error = jenv->ExceptionOccurred();
-	if ($error) {
-	  // Dont clear exception, still be active when return to java execution
-	  // Essentially ignore exception occurred -- old behavior.
-	  return $null;
-	}
+  jthrowable $error = jenv->ExceptionOccurred();
+  if ($error) {
+    // Dont clear exception, still be active when return to java execution
+    // Essentially ignore exception occurred -- old behavior.
+    return $null;
+  }
 }
 
 #endif
