@@ -40,9 +40,7 @@ namespace std
 #endif
     
     virtual ~A() {}
-#ifndef SWIGGO // func is a keyword in Go.
-    virtual int func() = 0;
-#endif
+    virtual int funk() = 0;
   private:
      typedef complex False;
   };

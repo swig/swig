@@ -44,7 +44,7 @@
  *  'z.'                = Rvalue reference (&&)
  *  'a(n).'             = Array of size n  [n]
  *  'f(..,..).'         = Function with arguments  (args)
- *  'q(str).'           = Qualifier (such as const or volatile) (const, volatile)
+ *  'q(str).'           = Qualifier, such as const or volatile (cv-qualifier)
  *  'm(cls).'           = Pointer to member (cls::*)
  *
  * The encoding follows the order that you might describe a type in words.
@@ -64,11 +64,19 @@
  *
  * More examples:
  *
- *        String Encoding                 C++ Example
- *        ---------------                 -----------
- *        p.f(bool).q(const).long         const long (*)(bool)
- *        m(Funcs).q(const).f(bool).long  long (Funcs::*)(bool) const
- *        r.q(const).m(Funcs).f(int).long long (Funcs::*const &)(int)
+ *        String Encoding                     C++ Example
+ *        ---------------                     -----------
+ *        p.f(bool).r.q(const).long           const long & (*)(bool)
+ *        m(Funcs).q(const).f(bool).long      long (Funcs::*)(bool) const
+ *        r.q(const).m(Funcs).f(int).long     long (Funcs::*const &)(int)
+ *        m(Funcs).z.q(const).f(bool).long    long (Funcs::*)(bool) const &&
+ *
+ * Function decl examples:
+ *
+ *        f(bool).                            long a(bool);
+ *        r.f(bool).                          long b(bool) &;
+ *        z.f(bool).                          long c(bool) &&;
+ *        z.q(const).f(bool).                 long d(bool) const &&;
  *
  * For the most part, this module tries to minimize the use of special
  * characters (*, [, <, etc...) in its type encoding.  One reason for this
@@ -536,10 +544,9 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
   String *element = 0;
   String *nextelement;
   String *forwardelement;
-  String *member_const_function_element = 0;
+  SwigType *member_function_qualifiers = 0;
   List *elements;
   int nelements, i;
-  int member_const_function = 0;
 
   if (id) {
     /* stringify the id expanding templates, for example when the id is a fully qualified templated class name */
@@ -570,14 +577,12 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
       forwardelement = 0;
     }
     if (SwigType_isqualifier(element)) {
-      if (!member_const_function) {
+      if (!member_function_qualifiers) {
 	DOH *q = 0;
 	q = SwigType_parm(element);
 	Insert(result, 0, " ");
 	Insert(result, 0, q);
 	Delete(q);
-      } else {
-        member_const_function = 0;
       }
     } else if (SwigType_ispointer(element)) {
       Insert(result, 0, "*");
@@ -594,20 +599,28 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
 	Insert(result, 0, "(");
 	Append(result, ")");
       }
-      if (SwigType_isqualifier(nextelement)) {
-	member_const_function_element = nextelement;
-	member_const_function = 1;
+      {
+	String *next3elements = NewStringEmpty();
+	int j;
+	for (j = i + 1; j < i + 4 && j < nelements; j++) {
+	  Append(next3elements, Getitem(elements, j));
+	}
+	if (SwigType_isfunction(next3elements))
+	  member_function_qualifiers = SwigType_pop_function_qualifiers(next3elements);
+	Delete(next3elements);
       }
       Delete(q);
     } else if (SwigType_isreference(element)) {
-      Insert(result, 0, "&");
+      if (!member_function_qualifiers)
+	Insert(result, 0, "&");
       if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
 	Insert(result, 0, "(");
 	Append(result, ")");
       }
     } else if (SwigType_isrvalue_reference(element)) {
-      Insert(result, 0, "&&");
-      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+      if (!member_function_qualifiers)
+	Insert(result, 0, "&&");
+      if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
 	Insert(result, 0, "(");
 	Append(result, ")");
       }
@@ -631,12 +644,13 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
 	  Append(result, ",");
       }
       Append(result, ")");
-      if (member_const_function_element) {
-	String *p = SwigType_str(member_const_function_element, 0);
+      if (member_function_qualifiers) {
+	String *p = SwigType_str(member_function_qualifiers, 0);
 	Append(result, " ");
 	Append(result, p);
 	Delete(p);
-	member_const_function_element = 0;
+	Delete(member_function_qualifiers);
+	member_function_qualifiers = 0;
       }
       Delete(parms);
     } else {
@@ -670,6 +684,7 @@ SwigType *SwigType_ltype(const SwigType *s) {
   int nelements, i;
   int firstarray = 1;
   int notypeconv = 0;
+  int ignore_member_function_qualifiers = 0;
 
   result = NewStringEmpty();
   tc = Copy(s);
@@ -696,6 +711,7 @@ SwigType *SwigType_ltype(const SwigType *s) {
       tc = td;
     }
   }
+
   elements = SwigType_split(tc);
   nelements = Len(elements);
 
@@ -705,14 +721,33 @@ SwigType *SwigType_ltype(const SwigType *s) {
     /* when we see a function, we need to preserve the following types */
     if (SwigType_isfunction(element)) {
       notypeconv = 1;
+      ignore_member_function_qualifiers = 0;
     }
-    if (SwigType_isqualifier(element)) {
-      /* Do nothing. Ignore */
+    if (ignore_member_function_qualifiers) {
+      /* cv-qualifiers and ref-qualifiers up until the f() element have already been added */
+    } else if (SwigType_isqualifier(element)) {
+      /* swallow cv-qualifiers */
     } else if (SwigType_ispointer(element)) {
       Append(result, element);
       firstarray = 0;
     } else if (SwigType_ismemberpointer(element)) {
       Append(result, element);
+      {
+	String *next3elements = NewStringEmpty();
+	int j;
+	for (j = i + 1; j < i + 4 && j < nelements; j++) {
+	  Append(next3elements, Getitem(elements, j));
+	}
+	if (SwigType_isfunction(next3elements)) {
+	  SwigType *member_function_qualifiers = SwigType_pop_function_qualifiers(next3elements);
+	  /* compilers won't let us cast from a member function without qualifiers to one with qualifiers, so the qualifiers are kept in the ltype */
+	  if (member_function_qualifiers)
+	    Append(result, member_function_qualifiers);
+	  Delete(member_function_qualifiers);
+	  ignore_member_function_qualifiers = 1;
+	}
+	Delete(next3elements);
+      }
       firstarray = 0;
     } else if (SwigType_isreference(element)) {
       if (notypeconv) {
@@ -752,13 +787,14 @@ SwigType *SwigType_ltype(const SwigType *s) {
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_lstr(DOH *s, DOH *id)
+ * SwigType_lstr()
  *
  * Produces a type-string that is suitable as a lvalue in an expression.
  * That is, a type that can be freely assigned a value without violating
  * any C assignment rules.
  *
  *      -   Qualifiers such as 'const' and 'volatile' are stripped.
+ *          Except for member function cv-qualifiers and ref-qualifiers.
  *      -   Arrays are converted into a *single* pointer (i.e.,
  *          double [][] becomes double *).
  *      -   References are converted into a pointer.
@@ -788,7 +824,7 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
   String *element = 0;
   String *nextelement;
   String *forwardelement;
-  String *member_const_function_element = 0;
+  String *member_function_qualifiers = 0;
   SwigType *td, *tc = 0;
   const SwigType *rs;
   List *elements;
@@ -797,7 +833,6 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
   int firstarray = 1;
   int isreference = 0;
   int isfunction = 0;
-  int member_const_function = 0;
 
   result = NewStringEmpty();
 
@@ -846,15 +881,13 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       forwardelement = 0;
     }
     if (SwigType_isqualifier(element)) {
-      if (!member_const_function) {
+      if (!member_function_qualifiers) {
 	DOH *q = 0;
 	q = SwigType_parm(element);
 	Insert(result, 0, " ");
 	Insert(result, 0, q);
 	Delete(q);
 	clear = 0;
-      } else {
-        member_const_function = 0;
       }
     } else if (SwigType_ispointer(element)) {
       Insert(result, 0, "*");
@@ -868,32 +901,42 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       Insert(result, 0, "::*");
       q = SwigType_parm(element);
       Insert(result, 0, q);
-      Delete(q);
       if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
 	Insert(result, 0, "(");
 	Append(result, ")");
       }
-      if (SwigType_isqualifier(nextelement)) {
-	member_const_function_element = nextelement;
-	member_const_function = 1;
+      {
+	String *next3elements = NewStringEmpty();
+	int j;
+	for (j = i + 1; j < i + 4 && j < nelements; j++) {
+	  Append(next3elements, Getitem(elements, j));
+	}
+	if (SwigType_isfunction(next3elements))
+	  member_function_qualifiers = SwigType_pop_function_qualifiers(next3elements);
+	Delete(next3elements);
       }
       firstarray = 0;
+      Delete(q);
     } else if (SwigType_isreference(element)) {
-      Insert(result, 0, "&");
+      if (!member_function_qualifiers) {
+	Insert(result, 0, "&");
+	if (!isfunction)
+	  isreference = 1;
+      }
       if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
 	Insert(result, 0, "(");
 	Append(result, ")");
       }
-      if (!isfunction)
-	isreference = 1;
     } else if (SwigType_isrvalue_reference(element)) {
-      Insert(result, 0, "&&");
+      if (!member_function_qualifiers) {
+	Insert(result, 0, "&&");
+	if (!isfunction)
+	  isreference = 1;
+      }
       if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
 	Insert(result, 0, "(");
 	Append(result, ")");
       }
-      if (!isfunction)
-	isreference = 1;
       clear = 0;
     } else if (SwigType_isarray(element)) {
       DOH *size;
@@ -923,12 +966,13 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       }
       Append(result, ")");
       Delete(parms);
-      if (member_const_function_element) {
-	String *p = SwigType_str(member_const_function_element, 0);
+      if (member_function_qualifiers) {
+	String *p = SwigType_str(member_function_qualifiers, 0);
 	Append(result, " ");
 	Append(result, p);
 	Delete(p);
-	member_const_function_element = 0;
+	Delete(member_function_qualifiers);
+	member_function_qualifiers = 0;
 	clear = 0;
       }
       isfunction = 1;

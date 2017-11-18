@@ -5,8 +5,8 @@ endif
 
 octave_cell_deref;
 
-assert(func("hello"));
-assert(func({"hello"}));
+assert(funk("hello"));
+assert(funk({"hello"}));
 
 c = func2();
 assert(strcmp(c{1}, "hello"));

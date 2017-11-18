@@ -5,7 +5,7 @@ SRCS       = example.c
 TARGET     = example
 INTERFACE  = example.i
 LIBS       =
-SWIGOPT    = -noproxy
+SWIGOPT    =
 
 check: build
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' php_run

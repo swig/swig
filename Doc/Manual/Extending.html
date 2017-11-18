@@ -1576,7 +1576,7 @@ return the node for the first class member.
 
 <div class="indent">
 Returns the last child node.   You might use this if you wanted to append a new
-node to the of a class.
+node to the children of a class.
 </div>
 
 <p>
@@ -2592,36 +2592,36 @@ command line options, simply use code similar to this:
 <pre>
 void Language::main(int argc, char *argv[]) {
   for (int i = 1; i &lt; argc; i++) {
-      if (argv[i]) {
-          if (strcmp(argv[i], "-interface") == 0) {
-            if (argv[i+1]) {
-              interface = NewString(argv[i+1]);
-              Swig_mark_arg(i);
-              Swig_mark_arg(i+1);
-              i++;
-            } else {
-              Swig_arg_error();
-            }
-          } else if (strcmp(argv[i], "-globals") == 0) {
-            if (argv[i+1]) {
-              global_name = NewString(argv[i+1]);
-              Swig_mark_arg(i);
-              Swig_mark_arg(i+1);
-              i++;
-            } else {
-              Swig_arg_error();
-            }
-          } else if ((strcmp(argv[i], "-proxy") == 0)) {
-            proxy_flag = 1;
-            Swig_mark_arg(i);
-          } else if (strcmp(argv[i], "-keyword") == 0) {
-            use_kw = 1;
-            Swig_mark_arg(i);
-          } else if (strcmp(argv[i], "-help") == 0) {
-            fputs(usage, stderr);
-          }
-          ...
+    if (argv[i]) {
+      if (strcmp(argv[i], "-interface") == 0) {
+        if (argv[i+1]) {
+          interface = NewString(argv[i+1]);
+          Swig_mark_arg(i);
+          Swig_mark_arg(i+1);
+          i++;
+        } else {
+          Swig_arg_error();
+        }
+      } else if (strcmp(argv[i], "-globals") == 0) {
+        if (argv[i+1]) {
+          global_name = NewString(argv[i+1]);
+          Swig_mark_arg(i);
+          Swig_mark_arg(i+1);
+          i++;
+        } else {
+          Swig_arg_error();
+        }
+      } else if ((strcmp(argv[i], "-proxy") == 0)) {
+        proxy_flag = 1;
+        Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-keyword") == 0) {
+        use_kw = 1;
+        Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-help") == 0) {
+        fputs(usage, stderr);
       }
+      ...
+    }
   }
 }
 </pre>
@@ -3164,7 +3164,7 @@ these kinds of problems.
 </p>
 
 <dt> <b>Examples/Makefile.in</b>
-<dd> Nothing special here; see comments at top the of this file
+<dd> Nothing special here; see comments at the top of this file
 and look to the existing languages for examples.
 
 <dt> <b>Examples/qux99/check.list</b>

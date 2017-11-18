@@ -365,3 +365,9 @@ check(func_output.__doc__, "func_output() -> int")
 check(func_inout.__doc__, "func_inout(int * INOUT) -> int")
 check(func_cb.__doc__, "func_cb(int c, int d) -> int")
 check(banana.__doc__, "banana(S a, S b, int c, Integer d)")
+
+check(TInteger.__doc__, "Proxy of C++ T< int > class.", "::T< int >")
+check(TInteger.__init__.__doc__, "__init__(TInteger self) -> TInteger", None, skip)
+check(TInteger.inout.__doc__,
+      "inout(TInteger self, TInteger t) -> TInteger",
+      "inout(TInteger t) -> TInteger")

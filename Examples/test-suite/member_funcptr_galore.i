@@ -6,6 +6,12 @@
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) pp3;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) pp5;
 
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) ccextra2;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) ccextra3;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) cc2;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) cc3;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) cc5;
+
 %{
 #if defined(__SUNPRO_CC)
 #pragma error_messages (off, badargtype2w) /* Formal argument ... is being passed extern "C" ... */
@@ -155,7 +161,7 @@ public:
     int qqq7(short (Funcs::* const& qq7)(bool)) const;
 };
 
-    // member const function pointers, unnamed parameters
+// member const function pointers, unnamed parameters
 int MemberFuncPtrs::aaa1(short (Funcs::* )(bool) const) const { return 0; }
 int MemberFuncPtrs::aaa2(short (Funcs::* const *&)(bool) const) const { return 0; }
 int MemberFuncPtrs::aaa3(short (Funcs::* *& )(bool) const) const { return 0; }
@@ -191,7 +197,7 @@ int MemberFuncPtrs::qqq5(short (Funcs::* & qq5)(bool)) const { return 0; }
 int MemberFuncPtrs::qqq6(short (Funcs::* const qq6)(bool)) const { return 0; }
 int MemberFuncPtrs::qqq7(short (Funcs::* const& qq7)(bool)) const { return 0; }
 
-// member function pointer variables
+// member non-const function pointer variables
 short (Funcs::* pp1)(bool) = &Funcs::FF;
 
 short (Funcs::* const * extra2)(bool) = &pp1;
@@ -204,4 +210,18 @@ short (Funcs::* *const& pp4)(bool) = extra4;
 short (Funcs::* & pp5)(bool) = pp1;
 short (Funcs::* const pp6)(bool) = &Funcs::FF;
 short (Funcs::* const& pp7)(bool) = pp1;
+
+// member const function pointer variables
+short (Funcs::* cc1)(bool) const = &Funcs::CC;
+
+short (Funcs::* const * ccextra2)(bool) const = &cc1;
+short (Funcs::* * ccextra3)(bool) const = &cc1;
+short (Funcs::* *const ccextra4)(bool) const = &cc1;
+
+short (Funcs::* const *& cc2)(bool) const = ccextra2;
+short (Funcs::* *& cc3)(bool) const = ccextra3;
+short (Funcs::* *const& cc4)(bool) const = ccextra4;
+short (Funcs::* & cc5)(bool) const = cc1;
+short (Funcs::* const cc6)(bool) const = &Funcs::CC;
+short (Funcs::* const& cc7)(bool) const = cc1;
 %}

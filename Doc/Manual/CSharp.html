@@ -677,7 +677,7 @@ As a result, we get the following method in the module class:
 <div class="code">
 <pre>
 public static void myArrayCopy(int[] sourceArray, int[] targetArray, int nitems) {
-    examplePINVOKE.myArrayCopy(sourceArray, targetArray, nitems);
+  examplePINVOKE.myArrayCopy(sourceArray, targetArray, nitems);
 }
 </pre>
 </div>
@@ -997,9 +997,9 @@ When the following C# code is executed:
 <div class="code">
 <pre>
 public class runme {
-    static void Main() {
-      example.positivesonly(-1);
-    }
+  static void Main() {
+    example.positivesonly(-1);
+  }
 }
 </pre>
 </div>
@@ -1772,7 +1772,7 @@ should pass the call on to <tt>CSharpDefaults.DefaultMethod(int)</tt>using the C
 
 
 <p>
-When using <a href="Modules.html#Modules">multiple modules</a> it is is possible to compile each SWIG generated wrapper
+When using <a href="Modules.html#Modules">multiple modules</a> it is possible to compile each SWIG generated wrapper
 into a different assembly.
 However, by default the generated code may not compile if 
 generated classes in one assembly use generated classes in another assembly.
@@ -1846,12 +1846,12 @@ and the following usage from C# after running the code through SWIG:
 
 <div class="code">
 <pre>
-      Wheel wheel = new Bike(10).getWheel();
-      Console.WriteLine("wheel size: " + wheel.size);
-      // Simulate a garbage collection
-      global::System.GC.Collect();
-      global::System.GC.WaitForPendingFinalizers();
-      global::System.Console.WriteLine("wheel size: " + wheel.size);
+  Wheel wheel = new Bike(10).getWheel();
+  Console.WriteLine("wheel size: " + wheel.size);
+  // Simulate a garbage collection
+  global::System.GC.Collect();
+  global::System.GC.WaitForPendingFinalizers();
+  global::System.Console.WriteLine("wheel size: " + wheel.size);
 </pre>
 </div>
 
@@ -1980,9 +1980,9 @@ and more or less equivalent usage from C#
 
 <div class="code">
 <pre>
-      Container container = new Container();
-      Element element = new Element(20);
-      container.setElement(element);
+  Container container = new Container();
+  Element element = new Element(20);
+  container.setElement(element);
 </pre>
 </div>
 
@@ -1993,14 +1993,14 @@ In order to understand why, consider a garbage collection occuring...
 
 <div class="code">
 <pre>
-      Container container = new Container();
-      Element element = new Element(20);
-      container.setElement(element);
-      Console.WriteLine("element.value: " + container.getElement().value);
-      // Simulate a garbage collection
-      global::System.GC.Collect();
-      global::System.GC.WaitForPendingFinalizers();
-      global::System.Console.WriteLine("element.value: " + container.getElement().value);
+  Container container = new Container();
+  Element element = new Element(20);
+  container.setElement(element);
+  Console.WriteLine("element.value: " + container.getElement().value);
+  // Simulate a garbage collection
+  global::System.GC.Collect();
+  global::System.GC.WaitForPendingFinalizers();
+  global::System.Console.WriteLine("element.value: " + container.getElement().value);
 </pre>
 </div>
 

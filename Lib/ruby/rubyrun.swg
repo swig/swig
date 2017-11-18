@@ -171,10 +171,11 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
   swig_class *sklass;
   VALUE klass;
   VALUE obj;
-  
+
   if (!ptr)
     return Qnil;
-  
+
+  assert(type);
   if (type->clientdata) {
     sklass = (swig_class *) type->clientdata;
 		
@@ -182,7 +183,7 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
     track = sklass->trackObjects;
     if (track) {
       obj = SWIG_RubyInstanceFor(ptr);
-      
+
       /* Check the object's type and make sure it has the correct type.
         It might not in cases where methods do things like 
         downcast methods. */
@@ -214,7 +215,7 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
     obj = Data_Wrap_Struct(klass, 0, 0, ptr);
   }
   rb_iv_set(obj, "@__swigtype__", rb_str_new2(type->name));
-  
+
   return obj;
 }
 
@@ -362,7 +363,7 @@ SWIG_Ruby_NewPackedObj(void *ptr, int sz, swig_type_info *type) {
   return rb_str_new2(result);
 }
 
-/* Convert a packed value value */
+/* Convert a packed pointer value */
 SWIGRUNTIME int
 SWIG_Ruby_ConvertPacked(VALUE obj, void *ptr, int sz, swig_type_info *ty) {
   swig_cast_info *tc;

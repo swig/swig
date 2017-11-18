@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[3.0.13],[http://www.swig.org])
+AC_INIT([swig],[4.0.0],[http://www.swig.org])
 
 dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
 dnl     definition below can be removed
@@ -280,7 +280,7 @@ fi
 AC_MSG_RESULT($RPATH)
 
 # LINKFORSHARED are the flags passed to the $(CC) command that links
-# the a few executables -- this is only needed for a few systems
+# a few executables -- this is only needed for a few systems
 
 AC_MSG_CHECKING(LINKFORSHARED)
 if test -z "$LINKFORSHARED"
@@ -900,6 +900,18 @@ if test -n "$PYINCLUDE" || test -n "$PY3INCLUDE" ; then
     AC_MSG_CHECKING(pep8 version)
     pep8_version=`$PEP8 --version 2>/dev/null`
     AC_MSG_RESULT($pep8_version)
+  fi
+fi
+
+AC_ARG_WITH(2to3, AS_HELP_STRING([--with-2to3=path], [Set location of Python 2to3 tool]), [PY2TO3BIN="$withval"], [PY2TO3BIN="yes"])
+if test -n "$PYTHON3"; then
+  if test "x$PY2TO3BIN" = xyes; then
+    AC_CHECK_PROGS(PY2TO3, 2to3)
+  else
+    PY2TO3="$PY2TO3BIN"
+  fi
+  if test -z "$PY2TO3"; then
+    PYTHON3=
   fi
 fi
 
@@ -1624,34 +1636,6 @@ AC_SUBST(NODEJS)
 AC_SUBST(NODEGYP)
 
 #----------------------------------------------------------------
-# Look for gcj
-#----------------------------------------------------------------
-
-AC_ARG_WITH(gcj, AS_HELP_STRING([--without-gcj], [Disable GCJ])
-AS_HELP_STRING([--with-gcj=path], [Set location of gcj executable]),[GCJBIN="$withval"], [GCJBIN="$alllang_default"])
-AC_ARG_WITH(gcjh, [  --with-gcjh=path        Set location of gcjh executable],[GCJHBIN="$withval"], [GCJHBIN=])
-
-# First, check for "--without-gcj" or "--with-gcj=no".
-if test x"${GCJBIN}" = xno; then
-  AC_MSG_NOTICE([Disabling GCJ])
-else
-  if test "x$GCJBIN" = xyes; then
-    AC_CHECK_PROGS(GCJ, gcj)
-  else
-    GCJ="$GCJBIN"
-  fi
-
-  if test -z "$GCJCBIN"; then
-    AC_CHECK_PROGS(GCJH, gcjh)
-  else
-    GCJH="$GCJHBIN"
-  fi
-fi
-
-AC_SUBST(GCJ)
-AC_SUBST(GCJH)
-
-#----------------------------------------------------------------
 # Look for Android
 #----------------------------------------------------------------
 
@@ -2267,14 +2251,14 @@ else
 if test -z "$CSHARPCOMPILERBIN" ; then
   case $host in
   *-*-cygwin* | *-*-mingw*)
-    # prefer Mono gmcs (.NET 2.0) over mcs (.NET 1.1) - note mcs-1.2.3 has major pinvoke bug
-    AC_CHECK_PROGS(CSHARPCOMPILER, csc mono-csc gmcs mcs cscc)
+    # prefer unified Mono mcs compiler (not to be confused with the ancient .NET 1 mcs) over older/alternative names.
+    AC_CHECK_PROGS(CSHARPCOMPILER, csc mcs mono-csc gmcs cscc)
     if test -n "$CSHARPCOMPILER" && test "$CSHARPCOMPILER" = "csc" ; then
       AC_MSG_CHECKING(whether csc is the Microsoft CSharp compiler)
       csc 2>/dev/null | grep "C#" > /dev/null || CSHARPCOMPILER=""
       if test -z "$CSHARPCOMPILER" ; then
         AC_MSG_RESULT(no)
-        AC_CHECK_PROGS(CSHARPCOMPILER, mono-csc gmcs mcs cscc)
+        AC_CHECK_PROGS(CSHARPCOMPILER, mcs mono-csc gmcs cscc)
       else
         AC_MSG_RESULT(yes)
       fi
@@ -2946,16 +2930,6 @@ AC_SUBST(SKIP_D)
 #----------------------------------------------------------------
 # Additional language dependencies
 #----------------------------------------------------------------
-SKIP_GCJ=
-if test -z "$GCJ" || test -z "$GCJH" ; then
-  SKIP_GCJ="1"
-else
-  if test "$GCC" != yes; then
-    SKIP_GCJ="1"
-  fi
-fi
-AC_SUBST(SKIP_GCJ)
-
 
 SKIP_ANDROID=
 if test -z "$ANDROID" || test -z "$ADB" || test -z "$ANT" || test -z "$NDKBUILD" ; then

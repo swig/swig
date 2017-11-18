@@ -1,7 +1,7 @@
 %module octave_cell_deref
 
 %inline {
-  bool func(const char* s) {
+  bool funk(const char* s) {
     return !strcmp("hello",s);
   }
 

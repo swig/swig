@@ -3,7 +3,7 @@
 /* Use debug wrappers with the Python release dll */
 # undef _DEBUG
 # include <Python.h>
-# define _DEBUG
+# define _DEBUG 1
 #else
 # include <Python.h>
 #endif

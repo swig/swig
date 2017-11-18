@@ -311,6 +311,12 @@ SWIGRUNTIME void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void *ptr, sw
   } else {
     cdata->handle.MakeWeak(v8::Isolate::GetCurrent(), cdata, SWIGV8_Proxy_DefaultDtor);
   }
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x054500)
+  if(cdata->swigCMemOwn && (SWIGV8_ClientData*)info->clientdata) {
+    cdata->handle.SetWeak(cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor);
+  } else {
+    cdata->handle.SetWeak(cdata, SWIGV8_Proxy_DefaultDtor);
+  }
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
   if(cdata->swigCMemOwn && (SWIGV8_ClientData*)info->clientdata) {
     cdata->handle.MakeWeak(cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor);
@@ -556,6 +562,8 @@ SWIGRUNTIME void _wrap_SwigV8PackedData_delete(const v8::WeakCallbackInfo<SwigV8
   object.Dispose(isolate);
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032100)
   object->Dispose(isolate);
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x054500)
+  object.Clear();
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
   object->Dispose();
 #elif (V8_MAJOR_VERSION-0) < 5
@@ -597,6 +605,8 @@ v8::Handle<v8::Value> SWIGV8_NewPackedObj(void *data, size_t size, swig_type_inf
   cdata->handle.MakeWeak(cdata, _wrap_SwigV8PackedData_delete);
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031918)
   cdata->handle.MakeWeak(v8::Isolate::GetCurrent(), cdata, _wrap_SwigV8PackedData_delete);
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x054500)
+  cdata->handle.SetWeak(cdata, _wrap_SwigV8PackedData_delete);
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
   cdata->handle.MakeWeak(cdata, _wrap_SwigV8PackedData_delete);
 #elif (V8_MAJOR_VERSION-0) < 5

@@ -35,9 +35,9 @@ class DirectorMethodException: public Swig::DirectorException {};
 #ifdef SWIGPHP
 
 %feature("director:except") {
-	if ($error == FAILURE) {
-		throw Swig::DirectorMethodException();
-	}
+  if ($error == FAILURE) {
+    Swig::DirectorMethodException::raise("$symname");
+  }
 }
 
 %exception {
@@ -50,9 +50,9 @@ class DirectorMethodException: public Swig::DirectorException {};
 #ifdef SWIGPYTHON
 
 %feature("director:except") {
-	if ($error != NULL) {
-		throw Swig::DirectorMethodException();
-	}
+  if ($error != NULL) {
+    Swig::DirectorMethodException::raise("$symname");
+  }
 }
 
 %exception {
@@ -88,7 +88,7 @@ class DirectorMethodException: public Swig::DirectorException {};
 #ifdef SWIGRUBY
 
 %feature("director:except") {
-    throw Swig::DirectorMethodException($error);
+  Swig::DirectorMethodException::raise($error);
 }
 
 %exception {
