@@ -6,6 +6,8 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
 Version 4.0.0 (in progress)
 ===========================
+2017-11-24: joequant
+	    Fix github #1124 and return R_NilValue for null pointers
 
 2017-10-26: wsfulton
             Add support for C++11 ref-qualifiers when using directors.
