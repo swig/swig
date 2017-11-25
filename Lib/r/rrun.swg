@@ -260,10 +260,11 @@ AddOutputArgToReturn(int pos, SEXP value, const char *name, SEXP output)
 /* Create a new pointer object */
 SWIGRUNTIMEINLINE SEXP
 SWIG_R_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
+  SEXP rptr;
   if (!ptr) {
      return R_NilValue;
   }
-  SEXP rptr = R_MakeExternalPtr(ptr, 
+  rptr = R_MakeExternalPtr(ptr, 
   R_MakeExternalPtr(type, R_NilValue, R_NilValue), R_NilValue); 
   SET_S4_OBJECT(rptr);
   return rptr;
