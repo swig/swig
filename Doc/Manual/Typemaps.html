@@ -67,7 +67,7 @@
 <li><a href="#Typemaps_nn35">"memberin" typemap</a>
 <li><a href="#Typemaps_nn36">"varin" typemap</a>
 <li><a href="#Typemaps_nn37">"varout" typemap</a>
-<li><a href="#throws_typemap">"throws" typemap</a>
+<li><a href="#Typemaps_throws_typemap">"throws" typemap</a>
 </ul>
 <li><a href="#Typemaps_nn39">Some typemap examples</a>
 <ul>
@@ -2884,11 +2884,11 @@ The "varout" typemap is used to convert a C/C++ object to an object in the targe
 language when reading a C/C++ global variable.  This is implementation specific.
 </p>
 
-<H3><a name="throws_typemap">11.5.14 "throws" typemap</a></H3>
+<H3><a name="Typemaps_throws_typemap">11.5.14 "throws" typemap</a></H3>
 
 
 <p>
-The "throws" typemap is only used when SWIG parses a C++ method with an exception specification or has the <tt>%catches</tt> feature attached to the method.
+The "throws" typemap is only used when SWIG parses a C++ method with an exception specification or has the <tt>%catches</tt> feature attached to the method (see <a href="SWIGPlus.html#SWIGPlus_catches">Exception handling with %catches</a>).
 It provides a default mechanism for handling C++ methods that have declared the exceptions they will throw.
 The purpose of this typemap is to convert a C++ exception into an error or exception in the target language.
 It is slightly different to the other typemaps as it is based around the exception type rather than the type of a parameter or variable.
@@ -2901,13 +2901,19 @@ For example:
   PyErr_SetString(PyExc_RuntimeError, $1);
   SWIG_fail;
 %}
-void bar() throw (const char *);
+
+// Either an exception specification on the method
+  void bar() throw (const char *);
+
+// Or a %catches feature attached to the method
+  %catches(const char *) bar();
+  void bar();
 </pre>
 </div>
 
 <p>
-As can be seen from the generated code below, SWIG generates an exception handler
-with the catch block comprising the "throws" typemap content.
+As can be seen from the resulting generated code below, SWIG generates an exception handler
+when wrapping the <tt>bar</tt> function with the catch block comprising the "throws" typemap content.
 </p>
 
 <div class="code">
@@ -2915,8 +2921,7 @@ with the catch block comprising the "throws" typemap content.
 ...
 try {
   bar();
-}
-catch(char const *_e) {
+} catch(char const *_e) {
   PyErr_SetString(PyExc_RuntimeError, _e);
   SWIG_fail;
 }
@@ -2925,8 +2930,8 @@ catch(char const *_e) {
 </div>
 
 <p>
-Note that if your methods do not have an exception specification yet they do throw exceptions, SWIG cannot know how to deal with them.
-For a neat way to handle these, see the <a href="Customization.html#Customization_exception">Exception handling with %exception</a> section.
+Note that if your methods do not have an exception specification but they do throw exceptions and you are not using <tt>%catches</tt>, SWIG cannot know how to deal with them.
+Please also see the <a href="Customization.html#Customization_exception">Exception handling with %exception</a> section for another way to handle exceptions.
 </p>
 
 <H2><a name="Typemaps_nn39">11.6 Some typemap examples</a></H2>

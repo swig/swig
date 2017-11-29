@@ -259,8 +259,10 @@ namespace Swig {
     JavaExceptionMessage(JNIEnv *jenv, jthrowable throwable) : message_(jenv, exceptionMessageFromThrowable(jenv, throwable)) {
     }
 
-    const char *message() const {
-      return message_.c_str("Could not get exception message in JavaExceptionMessage");
+    // Return a C string of the exception message in the jthrowable passed in the constructor
+    // If no message is available, null_string is return instead
+    const char *message(const char *null_string = "Could not get exception message in JavaExceptionMessage") const {
+      return message_.c_str(null_string);
     }
 
   private:
@@ -294,10 +296,11 @@ namespace Swig {
   public:
 
     // Construct exception from a Java throwable
-    DirectorException(JNIEnv *jenv, jthrowable throwable) : classname_(0), msg_(0) {
+    DirectorException(JNIEnv *jenv, jthrowable throwable) : jenv_(jenv), throwable_(throwable), classname_(0), msg_(0) {
 
       // Call Java method Object.getClass().getName() to obtain the throwable's class name (delimited by '/')
-      if (throwable) {
+      if (jenv && throwable) {
+	jenv->ExceptionClear(); // Cannot invoke methods with any pending exceptions
 	jclass throwclz = jenv->GetObjectClass(throwable);
 	if (throwclz) {
 	  jclass clzclz = jenv->GetObjectClass(throwclz);
@@ -318,11 +321,11 @@ namespace Swig {
       }
 
       JavaExceptionMessage exceptionmsg(jenv, throwable);
-      msg_ = copystr(exceptionmsg.message());
+      msg_ = copystr(exceptionmsg.message(0));
     }
 
     // More general constructor for handling as a java.lang.RuntimeException
-    DirectorException(const char *msg) : classname_(0), msg_(copystr(msg ? msg : "Unspecified DirectorException message")) {
+    DirectorException(const char *msg) : jenv_(0), throwable_(0), classname_(0), msg_(msg ? copystr(msg) : 0) {
     }
 
     ~DirectorException() throw() {
@@ -331,31 +334,49 @@ namespace Swig {
     }
 
     const char *what() const throw() {
-      return msg_;
+      return msg_ ? msg_ : "Unspecified DirectorException message";
     }
 
     // Reconstruct and raise/throw the Java Exception that caused the DirectorException
     // Note that any error in the JNI exception handling results in a Java RuntimeException
-    void raiseJavaException(JNIEnv *jenv) const {
+    void throwException(JNIEnv *jenv) const {
       if (jenv) {
-	jenv->ExceptionClear();
+        if (jenv == jenv_ && throwable_) {
+          // Throw original exception if not already pending
+          jthrowable throwable = jenv->ExceptionOccurred();
+          if (throwable && jenv->IsSameObject(throwable, throwable_) == JNI_FALSE) {
+            jenv->ExceptionClear();
+            throwable = 0;
+          }
+          if (!throwable)
+            jenv->Throw(throwable_);
+        } else {
+          // Try and reconstruct original exception, but original stacktrace is not reconstructed
+          jenv->ExceptionClear();
 
-	jmethodID ctorMethodID = 0;
-	jclass throwableclass = 0;
-        if (classname_) {
-          throwableclass = jenv->FindClass(classname_);
-          if (throwableclass)
-            ctorMethodID = jenv->GetMethodID(throwableclass, "<init>", "(Ljava/lang/String;)V");
-	}
+          jmethodID ctorMethodID = 0;
+          jclass throwableclass = 0;
+          if (classname_) {
+            throwableclass = jenv->FindClass(classname_);
+            if (throwableclass)
+              ctorMethodID = jenv->GetMethodID(throwableclass, "<init>", "(Ljava/lang/String;)V");
+          }
 
-	if (ctorMethodID) {
-	  jenv->ThrowNew(throwableclass, what());
-	} else {
-	  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, what());
-	}
+          if (ctorMethodID) {
+            jenv->ThrowNew(throwableclass, what());
+          } else {
+            SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, what());
+          }
+        }
       }
     }
 
+    // Deprecated - use throwException
+    void raiseJavaException(JNIEnv *jenv) const {
+      throwException(jenv);
+    }
+
+    // Create and throw the DirectorException
     static void raise(JNIEnv *jenv, jthrowable throwable) {
       throw DirectorException(jenv, throwable);
     }
@@ -380,11 +401,14 @@ namespace Swig {
       return target;
     }
 
+    JNIEnv *jenv_;
+    jthrowable throwable_;
     const char *classname_;
     const char *msg_;
   };
 
   // Helper method to determine if a Java throwable matches a particular Java class type
+  // Note side effect of clearing any pending exceptions
   SWIGINTERN bool ExceptionMatches(JNIEnv *jenv, jthrowable throwable, const char *classname) {
     bool matches = false;
 

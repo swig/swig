@@ -4463,8 +4463,8 @@ public:
     if (!directorexcept) {
       directorexcept = NewString("");
       Printf(directorexcept, "jthrowable $error = jenv->ExceptionOccurred();\n");
-      Printf(directorexcept, "if ($error) {\n");
-      Printf(directorexcept, "  jenv->ExceptionClear();$directorthrowshandlers\n");
+      Printf(directorexcept, "if ($error) {");
+      Printf(directorexcept, "$directorthrowshandlers\n");
       Printf(directorexcept, "  Swig::DirectorException::raise(jenv, $error);\n");
       Printf(directorexcept, "}\n");
     } else {

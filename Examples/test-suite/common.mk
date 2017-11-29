@@ -181,6 +181,7 @@ CPP_TEST_CASES += \
 	director_detect \
 	director_enum \
 	director_exception \
+	director_exception_catches \
 	director_extend \
 	director_finalizer \
 	director_frob \

@@ -1051,6 +1051,14 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %{ SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1);
    return $null; %}
 
+/* For methods to raise/throw the original Java exception thrown in a director method */
+%typemap(throws) Swig::DirectorException
+%{  $1.throwException(jenv);
+    return $null; %}
+
+/* Java to C++ DirectorException should already be handled. Suppress warning and do nothing in the
+   event a user specifies a global: %catches(Swig::DirectorException); */
+%typemap(directorthrows) Swig::DirectorException ""
 
 /* Typemaps for code generation in proxy classes and Java type wrapper classes */
 
