@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-11-29: wsfulton
+            [Java] director exception handling improvements.
+
+            When a director method throws an exception and it is caught by DirectorException
+            and passed back to Java using Swig::DirectorException::throwException, the Java
+            stack trace now contains the original source line that threw the exception.
+
+            Deprecate Swig::DirectorException::raiseJavaException, please replace usage with
+            Swig::DirectorException::throwException.
+
 2017-10-26: wsfulton
             Add support for C++11 ref-qualifiers when using directors.
 
