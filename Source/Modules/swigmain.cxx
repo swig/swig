@@ -119,7 +119,8 @@ static swig_module modules[] = {
 void SWIG_merge_envopt(const char *env, int oargc, char *oargv[], int *nargc, char ***nargv) {
   if (!env) {
     *nargc = oargc;
-    *nargv = oargv;
+    *nargv = (char **)malloc(sizeof(char *) * (oargc + 1));
+    memcpy(*nargv, oargv, sizeof(char *) * (oargc + 1));
     return;
   }
 
@@ -153,6 +154,84 @@ void SWIG_merge_envopt(const char *env, int oargc, char *oargv[], int *nargc, ch
   *nargv = argv;
 }
 
+static void insert_option(int *argc, char ***argv, int index, char const *start, char const *end) {
+  int new_argc = *argc;
+  char **new_argv = *argv;
+  size_t option_len = end - start;
+
+  // Preserve the NULL pointer at argv[argc]
+  new_argv = (char **)realloc(new_argv, (new_argc + 2) * sizeof(char *));
+  memmove(&new_argv[index + 1], &new_argv[index], sizeof(char *) * (new_argc + 1 - index));
+  new_argc++;
+
+  new_argv[index] = (char *)malloc(option_len + 1);
+  memcpy(new_argv[index], start, option_len);
+  new_argv[index][option_len] = '\0';
+
+  *argc = new_argc;
+  *argv = new_argv;
+}
+
+static void merge_options_files(int *argc, char ***argv) {
+  static const int BUFFER_SIZE = 4096;
+  char buffer[BUFFER_SIZE];
+  int i;
+  int insert;
+  char **new_argv = *argv;
+  int new_argc = *argc;
+  FILE *f;
+
+  i = 1;
+  while (i < new_argc) {
+    if (new_argv[i] && new_argv[i][0] == '@' && (f = fopen(&new_argv[i][1], "r"))) {
+      char c;
+      char *b;
+      char *be = &buffer[BUFFER_SIZE];
+      int quote = 0;
+      bool escape = false;
+
+      new_argc--;
+      memmove(&new_argv[i], &new_argv[i + 1], sizeof(char *) * (new_argc - i));
+      insert = i;
+      b = buffer;
+
+      while ((c = fgetc(f)) != EOF) {
+        if (escape) {
+          if (b != be) {
+            *b = c;
+            ++b;
+          }
+          escape = false;
+        } else if (c == '\\') {
+          escape = true;
+        } else if (!quote && (c == '\'' || c == '"')) {
+          quote = c;
+        } else if (quote && c == quote) {
+          quote = 0;
+        } else if (isspace(c) && !quote) {
+          if (b != buffer) {
+            insert_option(&new_argc, &new_argv, insert, buffer, b);
+            insert++;
+
+            b = buffer;
+          }
+        } else if (b != be) {
+          *b = c;
+          ++b;
+        }
+      }
+      if (b != buffer)
+        insert_option(&new_argc, &new_argv, insert, buffer, b);
+      fclose(f);
+    } else {
+      ++i;
+    }
+  }
+
+  *argv = new_argv;
+  *argc = new_argc;
+}
+
 int main(int margc, char **margv) {
   int i;
   Language *dl = 0;
@@ -162,6 +241,7 @@ int main(int margc, char **margv) {
   char **argv;
 
   SWIG_merge_envopt(getenv("SWIG_FEATURES"), margc, margv, &argc, &argv);
+  merge_options_files(&argc, &argv);
 
 #ifdef MACSWIG
   SIOUXSettings.asktosaveonclose = false;
