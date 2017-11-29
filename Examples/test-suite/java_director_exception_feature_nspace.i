@@ -139,9 +139,10 @@
 %}
 
 %feature ("except",throws="Exception")  MyNS::Bar::genericpong %{
-  try { $action }
-  catch (Swig::DirectorException & direxcp) {
-    direxcp.raiseJavaException(jenv);  // jenv always available in JNI code
+  try {
+    $action
+  } catch (Swig::DirectorException & direxcp) {
+    direxcp.throwException(jenv);  // jenv always available in JNI code
     return $null;
   }
 %}

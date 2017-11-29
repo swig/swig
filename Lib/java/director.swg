@@ -339,7 +339,7 @@ namespace Swig {
 
     // Reconstruct and raise/throw the Java Exception that caused the DirectorException
     // Note that any error in the JNI exception handling results in a Java RuntimeException
-    void raiseJavaException(JNIEnv *jenv) const {
+    void throwException(JNIEnv *jenv) const {
       if (jenv) {
         if (jenv == jenv_ && throwable_) {
           // Throw original exception if not already pending
@@ -369,6 +369,11 @@ namespace Swig {
           }
         }
       }
+    }
+
+    // Deprecated - use throwException
+    void raiseJavaException(JNIEnv *jenv) const {
+      throwException(jenv);
     }
 
     // Create and throw the DirectorException

@@ -3992,7 +3992,7 @@ namespace Swig {
 
     // Reconstruct and raise/throw the Java Exception that caused the DirectorException
     // Note that any error in the JNI exception handling results in a Java RuntimeException
-    void raiseJavaException(JNIEnv *jenv) const;
+    void throwException(JNIEnv *jenv) const;
 
     // Create and throw the DirectorException
     static void raise(JNIEnv *jenv, jthrowable throwable) {
@@ -4295,7 +4295,7 @@ SWIGEXPORT void JNICALL Java_exampleJNI_MyClass_1call_1dirmethod(JNIEnv *jenv, j
       return ;
       
     } catch(Swig::DirectorException &amp;_e) {
-      (&amp;_e)-&gt;raiseJavaException(jenv);
+      (&amp;_e)-&gt;throwException(jenv);
       return ; 
     }
   } catch (const std::exception &amp;e) {

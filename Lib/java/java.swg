@@ -1053,7 +1053,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 
 /* For methods to raise/throw the original Java exception thrown in a director method */
 %typemap(throws) Swig::DirectorException
-%{  $1.raiseJavaException(jenv);
+%{  $1.throwException(jenv);
     return $null; %}
 
 /* Java to C++ DirectorException should already be handled. Suppress warning and do nothing in the
