@@ -463,6 +463,16 @@ class TypePass:private Dispatcher {
 	  SwigType_typedef_class(fname);
 	  scopename = Copy(fname);
 	}
+        // Incorportate the template argument namespace, so the wrapper class package declaration and location is correct
+        SwigType* tan = SwigType_templateargs(name);
+        Replace(tan, "<(", "", DOH_REPLACE_ANY);
+        Replace(tan, ")>", "", DOH_REPLACE_ANY);
+        SwigType* ansname = Swig_scopename_prefix(tan);
+        Replace(ansname, "::", ".", DOH_REPLACE_ANY);
+        Setattr(n, "sym:nspace", ansname);
+        Delete(tan);
+        Delete(ansname);
+
 	Delete(deftype_name);
 	Delete(resolved_name);
       } else {
