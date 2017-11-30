@@ -610,11 +610,22 @@ static List *find_args(String *s, int ismacro, String *macro_name) {
       } else if (c == '/') {
         /* Ensure comments are ignored by eating up the characters */
         c = Getc(s);
+        /* Handle / * ... * / type comments (multi-line) */
         if (c == '*') {
           while ((c = Getc(s)) != EOF) {
             if (c == '*') {
               c = Getc(s);
               if (c == '/' || c == EOF)
+                break;
+            }
+          }
+          c = Getc(s);
+          continue;
+        }
+        /* Handle // ... type comments (single-line) */
+        if (c == '/') {
+          while ((c = Getc(s)) != EOF) {
+            if (c == '\n') {
                 break;
             }
           }
