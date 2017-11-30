@@ -163,6 +163,32 @@ can be obtained by typing <tt>swig -help</tt> or <tt>swig
 
 </pre></div>
 
+<p>
+Arguments may also be passed in a command-line options file (also known as a
+response file) which is useful if they exceed the system command line length
+limit. To do this, put the arguments in a file, then provide the file name
+prefixed with <tt>@</tt> like so:
+</p>
+
+<div class="shell"><pre>
+swig @<em>file</em>
+</pre></div>
+
+<p>
+The options read from the file are inserted in place of the file option. If the
+file does not exist, or cannot be read, then the option will be treated
+literally and not removed.
+</p>
+
+<p>
+Options in the file are separated by whitespace. A whitespace character may be
+included in an option by surrounding the entire option in either single or
+double quotes. Any character (including a backslash) may be included by
+prefixing the character to be included with a backslash. The file may itself
+contain additional <tt>@file</tt> options; any such options will be processed
+recursively.
+</p>
+
 <H3><a name="SWIG_nn3">5.1.1 Input format</a></H3>
 
 
