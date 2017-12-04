@@ -25,3 +25,13 @@ if sys.version_info[0:2] < (3, 0):
     check(unicode_strings.charstring(unicode("hello4")), "hello4")
     unicode_strings.charstring(u"hell\xb05")
     unicode_strings.charstring(u"hell\u00f66")
+
+low_surrogate_string = u"\udcff"
+try:
+    unicode_strings.instring(low_surrogate_string)
+    # Will succeed with Python 2
+except TypeError, e:
+    # Python 3 will fail the PyUnicode_AsUTF8String conversion resulting in a TypeError.
+    # The real error is actually:
+    # UnicodeEncodeError: 'utf-8' codec can't encode character '\udcff' in position 0: surrogates not allowed
+    pass

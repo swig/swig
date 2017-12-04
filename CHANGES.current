@@ -6,8 +6,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
 Version 4.0.0 (in progress)
 ===========================
+
+2017-12-04: wsfulton
+            [Python] Add missing checks for failures in calls to PyUnicode_AsUTF8String. Previously a 
+            seg fault could occur when passing invalid UTF8 strings (low surrogates), eg passing
+            u"\udcff" to the C layer (Python 3).
+
 2017-11-24: joequant
-	    Fix github #1124 and return R_NilValue for null pointers
+	    Fix #1124 and return R_NilValue for null pointers
 
 2017-11-29: wsfulton
             [Java] director exception handling improvements.
