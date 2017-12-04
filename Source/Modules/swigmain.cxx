@@ -125,7 +125,7 @@ void SWIG_merge_envopt(const char *env, int oargc, char *oargv[], int *nargc, ch
 
   int argc = 1;
   int arge = oargc + 1024;
-  char **argv = (char **) malloc(sizeof(char *) * (arge));
+  char **argv = (char **) malloc(sizeof(char *) * (arge + 1));
   char *buffer = (char *) malloc(2048);
   char *b = buffer;
   char *be = b + 1023;
@@ -147,6 +147,7 @@ void SWIG_merge_envopt(const char *env, int oargc, char *oargv[], int *nargc, ch
   for (int i = 1; (i < oargc) && (argc < arge); ++i, ++argc) {
     argv[argc] = oargv[i];
   }
+  argv[argc] = NULL;
 
   *nargc = argc;
   *nargv = argv;
