@@ -967,7 +967,7 @@ if test -n "$PERL"; then
 			AC_MSG_RESULT($PERL5LIB)
 		fi
     AC_MSG_CHECKING(for Perl5 ccflags)
- 		PERL5CCFLAGS=`($PERL -e 'use Config; print $Config{ccflags}, "\n"' | sed "s/-Wdeclaration-after-statement//" | sed "s/-I/$ISYSTEM/") 2>/dev/null`
+		PERL5CCFLAGS=`($PERL -MConfig -le '$_=$Config::Config{ccflags}; s/-W\S*//g; s/-O\S*//g; s/-I/'"$ISYSTEM"'/g; print') 2>/dev/null`
  		if test -z "$PERL5CCFLAGS" ; then
  			AC_MSG_RESULT(not found)
  		else
