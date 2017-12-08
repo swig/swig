@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-12-08: olly
+	    [PHP] Use ZEND_MODULE_GLOBALS_ACCESSOR to access globals - this
+	    should make the generated code work with PHP 7.2.0.
+
 2017-12-04: wsfulton
             [Python] Add missing checks for failures in calls to PyUnicode_AsUTF8String. Previously a 
             seg fault could occur when passing invalid UTF8 strings (low surrogates), eg passing
