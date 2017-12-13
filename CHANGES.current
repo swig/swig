@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-12-13: wsfulton
+            Issue #1167 Fix directorout typemaps which were causing undefined behaviour when
+            returning pointers by reference.
+
 2017-12-08: olly
 	    [PHP] Use ZEND_MODULE_GLOBALS_ACCESSOR to access globals - this
 	    should make the generated code work with PHP 7.2.0.

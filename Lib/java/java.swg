@@ -1183,8 +1183,10 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %{ *($1_ltype)&$result = *$1; %} 
 %typemap(directorin,descriptor="L$packagepath/$*javaclassname;") SWIGTYPE *const&
 %{ *(($1_ltype)&$input) = ($*1_ltype) $1; %}
-%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *const&
-%{ $result = ($1_ltype)&$input; %}
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) SWIGTYPE *const&
+%{ static $*1_ltype swig_temp;
+   swig_temp = *($1_ltype)&$input;
+   $result = &swig_temp; %}
 %typemap(javadirectorin) SWIGTYPE *const& "($jniinput == 0) ? null : new $*javaclassname($jniinput, false)"
 %typemap(javadirectorout) SWIGTYPE *const& "$*javaclassname.getCPtr($javacall)"
 
