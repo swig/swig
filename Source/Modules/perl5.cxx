@@ -900,6 +900,15 @@ public:
       Printf(f->code, "%s\n", tm);
     }
 
+    if (director_method) {
+      if ((tm = Swig_typemap_lookup("directorfree", n, Swig_cresult_name(), 0))) {
+	Replaceall(tm, "$input", Swig_cresult_name());
+	Replaceall(tm, "$result", "ST(argvi)");
+	Printf(f->code, "%s\n", tm);
+	Delete(tm);
+      }
+    }
+
     Printv(f->code, "XSRETURN(argvi);\n", "fail:\n", cleanup, "SWIG_croak_null();\n" "}\n" "}\n", NIL);
 
     /* Add the dXSARGS last */

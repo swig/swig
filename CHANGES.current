@@ -8,6 +8,9 @@ Version 4.0.0 (in progress)
 ===========================
 
 2017-12-13: wsfulton
+            [Perl] add missing support for directorfree typemaps.
+
+2017-12-13: wsfulton
             Issue #1167 Fix directorout typemaps which were causing undefined behaviour when
             returning pointers by reference.
 
