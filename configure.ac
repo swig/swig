@@ -895,9 +895,9 @@ else
 fi
 
 if test -n "$PYINCLUDE" || test -n "$PY3INCLUDE" ; then
-  AC_CHECK_PROGS(PEP8, pep8)
+  AC_CHECK_PROGS(PEP8, pycodestyle)
   if test -n "$PEP8"; then
-    AC_MSG_CHECKING(pep8 version)
+    AC_MSG_CHECKING(pycodestyle version)
     pep8_version=`$PEP8 --version 2>/dev/null`
     AC_MSG_RESULT($pep8_version)
   fi
