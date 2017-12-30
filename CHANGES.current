@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2017-12-30: wsfulton
+            [Python] Replace pep8 with pycodestyle for checking the Python code style when
+            running Python tests.
+
 2017-12-13: wsfulton
             [Perl] add missing support for directorfree typemaps.
 
