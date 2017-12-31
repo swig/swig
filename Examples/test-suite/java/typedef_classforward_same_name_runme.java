@@ -15,8 +15,12 @@ public class typedef_classforward_same_name_runme {
   public static void main(String argv[]) {
     Foo foo = new Foo();
     foo.setX(5);
-    if (typedef_classforward_same_name.extract(foo) == 5) {
-      // All good!
-    }
+    if (typedef_classforward_same_name.extractFoo(foo) != 5)
+      throw new RuntimeException("unexpected value");
+
+    Boo boo = new Boo();
+    boo.setX(5);
+    if (typedef_classforward_same_name.extractBoo(boo) != 5)
+      throw new RuntimeException("unexpected value");
   }
 }

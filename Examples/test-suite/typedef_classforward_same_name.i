@@ -5,5 +5,11 @@ typedef struct Foo Foo;
 struct Foo {
    int x;
 };
-int extract(Foo* foo) { return foo->x; }
+int extractFoo(Foo* foo) { return foo->x; }
+
+struct Boo {
+   int x;
+};
+typedef struct Boo Boo;
+int extractBoo(Boo* boo) { return boo->x; }
 %}
