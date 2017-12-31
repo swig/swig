@@ -3296,6 +3296,14 @@ Node *Language::classLookup(const SwigType *s) const {
 	break;
       if (Strcmp(nodeType(n), "class") == 0)
 	break;
+      Node *sibling = n;
+      while (sibling) {
+       sibling = Getattr(sibling, "csym:nextSibling");
+       if (sibling && Strcmp(nodeType(sibling), "class") == 0)
+         break;
+      }
+      if (sibling)
+       break;
       n = parentNode(n);
       if (!n)
 	break;
