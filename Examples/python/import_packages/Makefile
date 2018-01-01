@@ -18,22 +18,22 @@ import_packages_subdirs = \
 check: build
 	if test "x$(SRCDIR)" != x; then \
 		for file in `cd $(SRCDIR) && find . -type f -name "*.py"`; do \
-			mkdir -p `dirname $$file`; \
+			mkdir -p `dirname $$file` \
 			cp "${SRCDIR}$$file" "$$file" || exit 1; \
 		done; \
 	fi; \
 	for s in $(import_packages_subdirs); do \
-		(cd $$s && $(MAKE) check); \
+		(cd $$s && $(MAKE) check) || exit 1; \
 	done
 
 build:
 	for s in $(import_packages_subdirs); do \
-		(cd $$s && $(MAKE) SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' build); \
+		(cd $$s && $(MAKE) SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' build) || exit 1; \
 	done
 
 static:
 	for s in $(import_packages_subdirs); do \
-		(cd $$s && $(MAKE) SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' static); \
+		(cd $$s && $(MAKE) SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' static) || exit 1; \
 	done
 
 clean:
@@ -44,5 +44,5 @@ clean:
 		done; \
 	fi; \
 	for s in $(import_packages_subdirs); do \
-		(cd $$s && $(MAKE) clean); \
+		(cd $$s && $(MAKE) clean) || exit 1; \
 	done
