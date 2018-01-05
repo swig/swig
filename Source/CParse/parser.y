@@ -1604,7 +1604,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <type>     type rawtype type_right anon_bitfield_type decltype ;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
-%type <dtype>    expr exprnum exprcompound valexpr;
+%type <dtype>    expr exprnum exprcompound valexpr exprmem;
 %type <id>       ename ;
 %type <id>       less_valparms_greater;
 %type <str>      type_qualifier;
@@ -6266,7 +6266,33 @@ expr           : valexpr { $$ = $1; }
                }
 	       ;
 
-valexpr        : exprnum { $$ = $1; }
+/* simple member access expressions */
+exprmem        : ID ARROW ID {
+		 $$.val = NewStringf("%s->%s", $1, $3);
+		 $$.type = 0;
+	       }
+	       | exprmem ARROW ID {
+		 $$ = $1;
+		 Printf($$.val, "->%s", $3);
+	       }
+/* This generates a shift-reduce
+	       | ID PERIOD ID {
+		 $$.val = NewStringf("%s.%s", $1, $3);
+		 $$.type = 0;
+	       }
+*/
+	       | exprmem PERIOD ID {
+		 $$ = $1;
+		 Printf($$.val, ".%s", $3);
+	       }
+	       ;
+
+valexpr        : exprnum {
+		    $$ = $1;
+               }
+               | exprmem {
+		    $$ = $1;
+               }
                | string {
 		    $$.val = $1;
                     $$.type = T_STRING;
