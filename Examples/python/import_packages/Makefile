@@ -12,7 +12,7 @@ import_packages_subdirs = \
 	relativeimport2 \
 	relativeimport3 \
 	split_modules \
-	namespace_pkg
+	namespace_pkg \
 
 
 check: build
@@ -21,7 +21,7 @@ check: build
 			mkdir -p `dirname $$file`; \
 			cp "${SRCDIR}$$file" "$$file" || exit 1; \
 		done; \
-	fi; \
+	fi
 	for s in $(import_packages_subdirs); do \
 		(cd $$s && $(MAKE) check) || exit 1; \
 	done
@@ -42,7 +42,7 @@ clean:
 		for file in `cd $(SRCDIR) && find . -type f -name "*.py"`; do \
 			rm -f "$$file" || exit 1; \
 		done; \
-	fi; \
+	fi
 	for s in $(import_packages_subdirs); do \
 		(cd $$s && $(MAKE) clean) || exit 1; \
 	done
