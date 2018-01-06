@@ -18,7 +18,7 @@ import_packages_subdirs = \
 check: build
 	if test "x$(SRCDIR)" != x; then \
 		for file in `cd $(SRCDIR) && find . -type f -name "*.py"`; do \
-			mkdir -p `dirname $$file` \
+			mkdir -p `dirname $$file`; \
 			cp "${SRCDIR}$$file" "$$file" || exit 1; \
 		done; \
 	fi; \
