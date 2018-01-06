@@ -491,6 +491,7 @@ CPP_TEST_CASES += \
 	throw_exception \
 	typedef_array_member \
 	typedef_class \
+	typedef_classforward_same_name \
 	typedef_funcptr \
 	typedef_inherit \
 	typedef_mptr \
@@ -677,6 +678,7 @@ C_TEST_CASES += \
 	string_simple \
 	struct_rename \
 	struct_initialization \
+	typedef_classforward_same_name \
 	typedef_struct \
 	typemap_subst \
 	union_parameter \
