@@ -20,6 +20,7 @@
 #define SWIG_ConvertPtr(obj, pp, type, flags)           SWIG_Perl_ConvertPtr(SWIG_PERL_OBJECT_CALL obj, pp, type, flags)
 #define SWIG_ConvertPtrAndOwn(obj, pp, type, flags,own) SWIG_Perl_ConvertPtrAndOwn(SWIG_PERL_OBJECT_CALL obj, pp, type, flags, own)
 #define SWIG_NewPointerObj(p, type, flags)              SWIG_Perl_NewPointerObj(SWIG_PERL_OBJECT_CALL p, type, flags)
+#define SWIG_AcquirePtr(ptr, src)                       SWIG_Perl_AcquirePtr(ptr, src)
 #define swig_owntype                                    int
 
 /* for raw packed data */
@@ -226,6 +227,14 @@ SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
       iter = iter->next;
     }
   }
+  return 0;
+}
+
+/* Acquire a pointer value */
+
+SWIGRUNTIME int
+SWIG_Perl_AcquirePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, int own) {
+  /* TODO */
   return 0;
 }
 

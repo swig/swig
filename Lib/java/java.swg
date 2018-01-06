@@ -1051,6 +1051,14 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %{ SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1);
    return $null; %}
 
+/* For methods to raise/throw the original Java exception thrown in a director method */
+%typemap(throws) Swig::DirectorException
+%{  $1.throwException(jenv);
+    return $null; %}
+
+/* Java to C++ DirectorException should already be handled. Suppress warning and do nothing in the
+   event a user specifies a global: %catches(Swig::DirectorException); */
+%typemap(directorthrows) Swig::DirectorException ""
 
 /* Typemaps for code generation in proxy classes and Java type wrapper classes */
 
@@ -1175,8 +1183,10 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %{ *($1_ltype)&$result = *$1; %} 
 %typemap(directorin,descriptor="L$packagepath/$*javaclassname;") SWIGTYPE *const&
 %{ *(($1_ltype)&$input) = ($*1_ltype) $1; %}
-%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *const&
-%{ $result = ($1_ltype)&$input; %}
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) SWIGTYPE *const&
+%{ static $*1_ltype swig_temp;
+   swig_temp = *($1_ltype)&$input;
+   $result = &swig_temp; %}
 %typemap(javadirectorin) SWIGTYPE *const& "($jniinput == 0) ? null : new $*javaclassname($jniinput, false)"
 %typemap(javadirectorout) SWIGTYPE *const& "$*javaclassname.getCPtr($javacall)"
 

@@ -46,7 +46,22 @@ namespace Swig {
     }
   };
 
-  struct DirectorTypeMismatchException {
+  // Base class for director exceptions.
+  class DirectorException : public std::exception {
+  public:
+    static void raise(const char *msg) {
+      // ... todo
+      throw(DirectorException());
+    }
+
+    static void raise(const octave_value &ov, const char *msg) {
+      // ... todo
+      raise(msg);
+    }
+  };
+
+  class DirectorTypeMismatchException : public DirectorException {
+  public:
     static void raise(const char *msg) {
       // ... todo
       throw(DirectorTypeMismatchException());
@@ -58,7 +73,8 @@ namespace Swig {
     }
   };
 
-  struct DirectorPureVirtualException {
+  class DirectorPureVirtualException : public DirectorException {
+  public:
     static void raise(const char *msg) {
       // ... todo
       throw(DirectorPureVirtualException());

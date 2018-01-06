@@ -4630,7 +4630,7 @@ The next section details a way of simulating an exception specification or repla
 Exceptions are automatically handled for methods with an exception specification.
 Similar handling can be achieved for methods without exception specifications through the <tt>%catches</tt> feature.
 It is also possible to replace any declared exception specification using the <tt>%catches</tt> feature.
-In fact, <tt>%catches</tt> uses the same <a href="Typemaps.html#throws_typemap">"throws" typemaps</a> that SWIG uses for exception specifications in handling exceptions.
+In fact, <tt>%catches</tt> uses the same <a href="Typemaps.html#Typemaps_throws_typemap">"throws" typemaps</a> that SWIG uses for exception specifications in handling exceptions.
 The <tt>%catches</tt> feature must contain a list of possible types that can be thrown.
 For each type that is in the list, SWIG will generate a catch handler, in the same way that it would for types declared in the exception specification.
 Note that the list can also include the catch all specification "...".

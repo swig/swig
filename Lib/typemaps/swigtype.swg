@@ -431,6 +431,7 @@
 }
 
 /* directorout */
+
 #if defined(__cplusplus) && defined(%implicitconv_flag)
 %typemap(directorout,noblock=1,implicitconv=1) SWIGTYPE (void * swig_argp, int swig_res = 0) {
   swig_res = SWIG_ConvertPtr($input,&swig_argp,$&descriptor, %convertptr_flags | %implicitconv_flag);
@@ -471,8 +472,9 @@
   if (!SWIG_IsOK(swig_res)) {
     %dirout_fail(swig_res,"$type");
   }
-  $result = %reinterpret_cast(&swig_argp, $ltype);
-  swig_acquire_ownership_obj(%as_voidptr(*$result), own /* & TODO: SWIG_POINTER_OWN */);
+  $1_ltype swig_temp = new $*1_ltype(($*1_ltype)swig_argp);
+  swig_acquire_ownership(swig_temp);
+  $result = swig_temp;
 }
 %typemap(directorfree,noblock=1,match="directorout") SWIGTYPE *const& {
   if (director) {

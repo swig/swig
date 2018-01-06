@@ -483,29 +483,29 @@ String *emit_action(Node *n) {
   if (catchlist) {
     int unknown_catch = 0;
     int has_varargs = 0;
-    Printf(eaction, "} ");
+    Printf(eaction, "}");
     for (Parm *ep = catchlist; ep; ep = nextSibling(ep)) {
       String *em = Swig_typemap_lookup("throws", ep, "_e", 0);
       if (em) {
         SwigType *et = Getattr(ep, "type");
         SwigType *etr = SwigType_typedef_resolve_all(et);
         if (SwigType_isreference(etr) || SwigType_ispointer(etr) || SwigType_isarray(etr)) {
-          Printf(eaction, "catch(%s) {", SwigType_str(et, "_e"));
+          Printf(eaction, " catch(%s) {", SwigType_str(et, "_e"));
         } else if (SwigType_isvarargs(etr)) {
-          Printf(eaction, "catch(...) {");
+          Printf(eaction, " catch(...) {");
           has_varargs = 1;
         } else {
-          Printf(eaction, "catch(%s) {", SwigType_str(et, "&_e"));
+          Printf(eaction, " catch(%s) {", SwigType_str(et, "&_e"));
         }
         Printv(eaction, em, "\n", NIL);
-        Printf(eaction, "}\n");
+        Printf(eaction, "}");
       } else {
 	Swig_warning(WARN_TYPEMAP_THROW, Getfile(n), Getline(n), "No 'throws' typemap defined for exception type '%s'\n", SwigType_str(Getattr(ep, "type"), 0));
         unknown_catch = 1;
       }
     }
     if (unknown_catch && !has_varargs) {
-      Printf(eaction, "catch(...) { throw; }\n");
+      Printf(eaction, " catch(...) {\nthrow;\n}");
     }
   }
 

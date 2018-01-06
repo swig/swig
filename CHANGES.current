@@ -7,6 +7,48 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-01-05: wsfulton
+            Fix default arguments using expressions containing -> syntax error. Problem reported on
+            swig-user mailing list.
+
+2017-12-30: wsfulton
+            [Python] Replace pep8 with pycodestyle for checking the Python code style when
+            running Python tests.
+
+2017-12-30: davedissian
+            Fixed a symbol lookup issue when encountering a typedef of a symbol from the tag
+            namespace to the global namespace when the names are identical, such as 'typedef
+            struct Foo Foo;'.
+
+2017-12-13: wsfulton
+            [Perl] add missing support for directorfree typemaps.
+
+2017-12-13: wsfulton
+            Issue #1167 Fix directorout typemaps which were causing undefined behaviour when
+            returning pointers by reference.
+
+2017-12-08: olly
+	    [PHP] Use ZEND_MODULE_GLOBALS_ACCESSOR to access globals - this
+	    should make the generated code work with PHP 7.2.0.
+
+2017-12-04: wsfulton
+            [Python] Add missing checks for failures in calls to PyUnicode_AsUTF8String. Previously a 
+            seg fault could occur when passing invalid UTF8 strings (low surrogates), eg passing
+            u"\udcff" to the C layer (Python 3).
+
+2017-11-24: joequant
+	    Fix #1124 and return R_NilValue for null pointers
+
+2017-11-29: wsfulton
+            [Java] director exception handling improvements.
+
+            When a director method throws an exception and it is caught by DirectorException
+            and passed back to Java using Swig::DirectorException::throwException, the Java
+            stack trace now contains the original source line that threw the exception.
+
+            Deprecate Swig::DirectorException::raiseJavaException, please replace usage with
+            Swig::DirectorException::throwException.
+
 2017-10-26: wsfulton
             Add support for C++11 ref-qualifiers when using directors.
 
