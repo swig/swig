@@ -35,7 +35,7 @@ public class runme {
     assert( typeof(string) == preproc_constants.CONST_STRING2.GetType() );
 
     assert( typeof(int) == preproc_constants.INT_AND_BOOL.GetType() );
-//    assert( typeof(int) == preproc_constants.INT_AND_CHAR.GetType() );
+    assert( typeof(int) == preproc_constants.INT_AND_CHAR.GetType() );
     assert( typeof(int) == preproc_constants.INT_AND_INT.GetType() );
     assert( typeof(uint) == preproc_constants.INT_AND_UINT.GetType() );
     assert( typeof(int) == preproc_constants.INT_AND_LONG.GetType() );
@@ -60,6 +60,9 @@ public class runme {
     assert( typeof(bool) == preproc_constants.EXPR_LAND.GetType() );
     assert( typeof(bool) == preproc_constants.EXPR_LOR.GetType() );
     assert( typeof(double) == preproc_constants.EXPR_CONDITIONAL.GetType() );
+    assert( typeof(double) == preproc_constants.EXPR_MIXED1.GetType() );
+    assert( typeof(int) == preproc_constants.EXPR_WCHAR_MAX.GetType() );
+    assert( typeof(int) == preproc_constants.EXPR_WCHAR_MIN.GetType() );
 
   }
   static void assert(bool assertion) {

@@ -990,7 +990,7 @@ private:
    * overname: The overload string for overloaded function.
    * wname: The SWIG wrapped name--the name of the C function.
    * base: A list of the names of base classes, in the case where this
-   *       is is a vritual method not defined in the current class.
+   *       is a virtual method not defined in the current class.
    * parms: The parameters.
    * result: The result type.
    * is_static: Whether this is a static method or member.
@@ -2445,7 +2445,8 @@ private:
       }
 
       String *code = Copy(Getattr(n, "wrap:action"));
-      Replaceall(code, Getattr(parms, "lname"), current);
+      Replace(code, Getattr(parms, "lname"), current, DOH_REPLACE_ANY | DOH_REPLACE_ID);
+      Delete(current);
       Printv(actioncode, code, "\n", NULL);
     }
 
@@ -2597,6 +2598,14 @@ private:
 
     Replaceall(f->code, "$cleanup", cleanup);
     Delete(cleanup);
+
+    /* See if there is any return cleanup code */
+    String *tm;
+    if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
+      Printf(f->code, "%s\n", tm);
+      Delete(tm);
+    }
 
     Replaceall(f->code, "$symname", Getattr(n, "sym:name"));
   }
@@ -2797,33 +2806,52 @@ private:
       return SWIG_NOWRAP;
     }
 
-    String *get = NewString("");
-    Printv(get, Swig_cresult_name(), " = ", NULL);
-
-    char quote;
-    if (Getattr(n, "wrappedasconstant")) {
-      quote = '\0';
-    } else if (SwigType_type(type) == T_CHAR) {
-      quote = '\'';
-    } else if (SwigType_type(type) == T_STRING) {
-      Printv(get, "(char *)", NULL);
-      quote = '"';
+    String *rawval = Getattr(n, "rawval");
+    if (rawval && Len(rawval)) {
+      // Based on Swig_VargetToFunction
+      String *nname = NewStringf("(%s)", rawval);
+      String *call;
+      if (SwigType_isclass(type)) {
+	call = NewStringf("%s", nname);
+      } else {
+	call = SwigType_lcaststr(type, nname);
+      }
+      String *cres = Swig_cresult(type, Swig_cresult_name(), call);
+      Setattr(n, "wrap:action", cres);
+      Delete(nname);
+      Delete(call);
+      Delete(cres);
     } else {
-      quote = '\0';
+      String *get = NewString("");
+      Printv(get, Swig_cresult_name(), " = ", NULL);
+
+      char quote;
+      if (Getattr(n, "wrappedasconstant")) {
+        quote = '\0';
+      } else if (SwigType_type(type) == T_CHAR) {
+        quote = '\'';
+      } else if (SwigType_type(type) == T_STRING) {
+        Printv(get, "(char *)", NULL);
+        quote = '"';
+      } else {
+        quote = '\0';
+      }
+
+      if (quote != '\0') {
+        Printf(get, "%c", quote);
+      }
+
+      Printv(get, Getattr(n, "value"), NULL);
+
+      if (quote != '\0') {
+        Printf(get, "%c", quote);
+      }
+
+      Printv(get, ";\n", NULL);
+
+      Setattr(n, "wrap:action", get);
+      Delete(get);
     }
-
-    if (quote != '\0') {
-      Printf(get, "%c", quote);
-    }
-
-    Printv(get, Getattr(n, "value"), NULL);
-
-    if (quote != '\0') {
-      Printf(get, "%c", quote);
-    }
-
-    Printv(get, ";\n", NULL);
-    Setattr(n, "wrap:action", get);
 
     String *sname = Copy(symname);
     if (class_name) {
@@ -3829,12 +3857,11 @@ private:
     String *cxx_director_name = NewString("SwigDirector_");
     Append(cxx_director_name, class_name);
 
-    String *decl = Swig_method_decl(NULL, Getattr(n, "decl"),
-				    cxx_director_name, first_parm, 0, 0);
+    String *decl = Swig_method_decl(NULL, Getattr(n, "decl"), cxx_director_name, first_parm, 0);
     Printv(f_c_directors_h, "  ", decl, ";\n", NULL);
     Delete(decl);
 
-    decl = Swig_method_decl(NULL, Getattr(n, "decl"), cxx_director_name, first_parm, 0, 0);
+    decl = Swig_method_decl(NULL, Getattr(n, "decl"), cxx_director_name, first_parm, 0);
     Printv(f_c_directors, cxx_director_name, "::", decl, "\n", NULL);
     Delete(decl);
 
@@ -4559,7 +4586,7 @@ private:
 	  Append(upcall_method_name, overname);
 	}
 	SwigType *rtype = Getattr(n, "classDirectorMethods:type");
-	String *upcall_decl = Swig_method_decl(rtype, Getattr(n, "decl"), upcall_method_name, parms, 0, 0);
+	String *upcall_decl = Swig_method_decl(rtype, Getattr(n, "decl"), upcall_method_name, parms, 0);
 	Printv(f_c_directors_h, "  ", upcall_decl, " {\n", NULL);
 	Delete(upcall_decl);
 
@@ -5007,13 +5034,13 @@ private:
       // Declare the method for the director class.
 
       SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-      String *decl = Swig_method_decl(rtype, Getattr(n, "decl"), Getattr(n, "name"), parms, 0, 0);
+      String *decl = Swig_method_decl(rtype, Getattr(n, "decl"), Getattr(n, "name"), parms, 0);
       Printv(f_c_directors_h, "  virtual ", decl, NULL);
       Delete(decl);
 
       String *qname = NewString("");
       Printv(qname, "SwigDirector_", class_name, "::", Getattr(n, "name"), NULL);
-      decl = Swig_method_decl(rtype, Getattr(n, "decl"), qname, parms, 0, 0);
+      decl = Swig_method_decl(rtype, Getattr(n, "decl"), qname, parms, 0);
       Printv(w->def, decl, NULL);
       Delete(decl);
       Delete(qname);
@@ -5030,7 +5057,19 @@ private:
       Printv(w->def, " {\n", NULL);
 
       if (SwigType_type(result) != T_VOID) {
-	Wrapper_add_local(w, "c_result", SwigType_lstr(result, "c_result"));
+	if (!SwigType_isclass(result)) {
+	  if (!(SwigType_ispointer(result) || SwigType_isreference(result))) {
+	    String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(result, 0));
+	    Wrapper_add_localv(w, "c_result", SwigType_lstr(result, "c_result"), construct_result, NIL);
+	    Delete(construct_result);
+	  } else {
+	    Wrapper_add_localv(w, "c_result", SwigType_lstr(result, "c_result"), "= 0", NIL);
+	  }
+	} else {
+	  String *cres = SwigType_lstr(result, "c_result");
+	  Printf(w->code, "%s;\n", cres);
+	  Delete(cres);
+	}
       }
 
       if (!is_ignored) {
@@ -5464,6 +5503,8 @@ private:
    *--------------------------------------------------------------------*/
 
   String *buildThrow(Node *n) {
+    if (Getattr(n, "noexcept"))
+      return NewString("noexcept");
     ParmList *throw_parm_list = Getattr(n, "throws");
     if (!throw_parm_list && !Getattr(n, "throw"))
       return NULL;
@@ -6213,9 +6254,9 @@ private:
 	Setattr(undefined_enum_types, t, ret);
 	Delete(tt);
       }
-    } else if (SwigType_isfunctionpointer(type) || SwigType_isfunction(type)) {
+    } else if (SwigType_isfunctionpointer(t) || SwigType_isfunction(t)) {
       ret = NewString("_swig_fnptr");
-    } else if (SwigType_ismemberpointer(type)) {
+    } else if (SwigType_ismemberpointer(t)) {
       ret = NewString("_swig_memberptr");
     } else if (SwigType_issimple(t)) {
       Node *cn = classLookup(t);

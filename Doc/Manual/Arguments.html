@@ -100,7 +100,7 @@ like this (shown for Python):
 </p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; a = add(3,4)
+&gt;&gt;&gt; a = add(3, 4)
 &gt;&gt;&gt; print a
 7
 &gt;&gt;&gt;
@@ -148,7 +148,7 @@ For example, consider this code:
 %include "typemaps.i"
 %apply int *OUTPUT { int *width, int *height };
 
-// Returns a pair (width,height)
+// Returns a pair (width, height)
 void getwinsize(int winid, int *width, int *height);
 </pre>
 </div>
@@ -158,7 +158,7 @@ In this case, the function returns multiple values, allowing it to be used like 
 </p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; w,h = genwinsize(wid)
+&gt;&gt;&gt; w, h = genwinsize(wid)
 &gt;&gt;&gt; print w
 400
 &gt;&gt;&gt; print h
@@ -245,7 +245,7 @@ When the function is used in the scripting language interpreter, it will work li
 </p>
 
 <div class="targetlang"><pre>
-result = add(3,4)
+result = add(3, 4)
 </pre></div>
 
 <H3><a name="Arguments_nn5">10.1.3 Output parameters</a></H3>

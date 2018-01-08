@@ -185,7 +185,8 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 	      nodes[j] = t;
 	      break;
 	    } else if ((differ == 0) && (Strcmp(t1, "0") == 0)) {
-	      t1 = Getattr(p1, "ltype");
+	      t1 = Getattr(p1, "equivtype");
+	      t1 = t1 ? t1 : Getattr(p1, "ltype");
 	      if (!t1) {
 		t1 = SwigType_ltype(Getattr(p1, "type"));
 		if (Getattr(p1, "tmap:typecheck:SWIGTYPE")) {
@@ -193,7 +194,8 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 		}
 		Setattr(p1, "ltype", t1);
 	      }
-	      t2 = Getattr(p2, "ltype");
+	      t2 = Getattr(p2, "equivtype");
+	      t2 = t2 ? t2 : Getattr(p2, "ltype");
 	      if (!t2) {
 		t2 = SwigType_ltype(Getattr(p2, "type"));
 		if (Getattr(p2, "tmap:typecheck:SWIGTYPE")) {
@@ -231,9 +233,21 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 	  }
 	  if (!differ) {
 	    /* See if declarations differ by const only */
-	    String *d1 = Getattr(nodes[i].n, "decl");
-	    String *d2 = Getattr(nodes[j].n, "decl");
-	    if (d1 && d2) {
+	    String *decl1 = Getattr(nodes[i].n, "decl");
+	    String *decl2 = Getattr(nodes[j].n, "decl");
+	    if (decl1 && decl2) {
+	      /* Remove ref-qualifiers. Note that rvalue ref-qualifiers are already ignored and 
+	       * it is illegal to overload a function with and without ref-qualifiers. So with
+	       * all the combinations of ref-qualifiers and cv-qualifiers, we just detect 
+	       * the cv-qualifier (const) overloading. */
+	      String *d1 = Copy(decl1);
+	      String *d2 = Copy(decl2);
+	      if (SwigType_isreference(d1) || SwigType_isrvalue_reference(d1)) {
+		Delete(SwigType_pop(d1));
+	      }
+	      if (SwigType_isreference(d2) || SwigType_isrvalue_reference(d2)) {
+		Delete(SwigType_pop(d2));
+	      }
 	      String *dq1 = Copy(d1);
 	      String *dq2 = Copy(d2);
 	      if (SwigType_isconst(d1)) {

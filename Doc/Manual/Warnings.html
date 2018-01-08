@@ -112,16 +112,16 @@ suppress a warning for a method in a class hierarchy, you could do this:
 %warnfilter(501) Object::foo;
 class Object {
 public:
-   int foo(int);
-   int foo(double);      // Silently ignored
-   ...
+  int foo(int);
+  int foo(double);      // Silently ignored
+  ...
 };
 
 class Derived : public Object {
 public:
-   int foo(int);
-   int foo(double);      // Silently ignored
-   ...
+  int foo(int);
+  int foo(double);      // Silently ignored
+  ...
 };
 </pre>
 </div>
@@ -136,7 +136,7 @@ Warnings can be suppressed for an entire class by supplying a class name.  For e
 
 class Object {
 public:
-   ...                      // All 501 warnings ignored in class
+  ...                      // All 501 warnings ignored in class
 };
 </pre>
 </div>
@@ -259,7 +259,7 @@ Warning messages can be associated with typemaps using the
 <div class="code">
 <pre>
 %typemap(in, warning="901:You are really going to regret this usage of $1_type $1_name") blah * {
-   ...
+  ...
 }
 </pre>
 </div>

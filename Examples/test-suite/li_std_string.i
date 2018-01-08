@@ -6,6 +6,16 @@
 %apply std::string& INOUT { std::string &inout }
 #endif
 
+%{
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
+#endif
+%}
+
 
 %inline %{
 
@@ -48,10 +58,6 @@ std::string test_reference_input(std::string &input) {
 void test_reference_inout(std::string &inout) {
   inout += inout;
 }
-
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
 
 void test_throw() throw(std::string){
   static std::string x = "test_throw message";
@@ -154,6 +160,13 @@ public:
   const char *get_null(const char *a) {
     return a == 0 ? a : "non-null";
   }
+%}
 
-
+%{
+#if defined(_MSC_VER)
+  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic pop
+#endif
 %}

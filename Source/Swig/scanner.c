@@ -754,6 +754,10 @@ static int look(Scanner *s) {
 	    str_delimiter = 0;
 	    return SWIG_TOKEN_STRING;
 	  } else {                   /* Incorrect end delimiter occured */
+	    if (c == 0) {
+	      Swig_error(cparse_file, cparse_start_line, "Unterminated raw string, started with R\"%s( is not terminated by )%s\"\n", str_delimiter, str_delimiter);
+	      return SWIG_TOKEN_ERROR;
+	    }
 	    retract( s, i );
 	    Delete( end_delimiter );
 	  }

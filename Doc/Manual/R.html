@@ -129,7 +129,7 @@ These two files can be loaded in any order
 <li>If you do not set the output file name appropriately, you might see errors like 
 <div class="shell">
 <pre>
-> fact(4)
+&gt; fact(4)
 Error in .Call("R_swig_fact", s_arg1, as.logical(.copy), PACKAGE = "example") :
   "R_swig_fact" not available for .Call() for package "example"
 </pre>
@@ -146,7 +146,7 @@ file makeRData.R which contains the following
 
 <pre>
 source('BigFile.R')
-save(list=ls(all=TRUE),file="BigFile.RData", compress=TRUE)
+save(list=ls(all=TRUE), file="BigFile.RData", compress=TRUE)
 q(save="no")
 </pre>
 

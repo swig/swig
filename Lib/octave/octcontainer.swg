@@ -68,7 +68,7 @@ namespace swig {
 
 namespace std {
   template <>
-  struct less <octave_value>: public binary_function<octave_value, octave_value, bool>
+  struct less <octave_value>
   {
     bool
     operator()(const octave_value& v, const octave_value& w) const
@@ -202,8 +202,8 @@ namespace swig
       //      swig::SwigVar_PyObject item = OctSequence_GetItem(_seq, _index);
       octave_value item; // * todo
       try {
-	return swig::as<T>(item, true);
-      } catch (std::exception& e) {
+	return swig::as<T>(item);
+      } catch (const std::exception& e) {
 	char msg[1024];
 	sprintf(msg, "in sequence element %d ", _index);
 	if (!Octave_Error_Occurred()) {
@@ -562,8 +562,8 @@ namespace swig {
     static int asptr(const octave_value& obj, sequence **seq) {
       if (!obj.is_defined() || Swig::swig_value_deref(obj)) {
 	sequence *p;
-	if (SWIG_ConvertPtr(obj,(void**)&p,
-			    swig::type_info<sequence>(),0) == SWIG_OK) {
+	swig_type_info *descriptor = swig::type_info<sequence>();
+	if (descriptor && SWIG_IsOK(SWIG_ConvertPtr(obj, (void **)&p, descriptor, 0))) {
 	  if (seq) *seq = p;
 	  return SWIG_OLDOBJ;
 	}

@@ -121,7 +121,7 @@ namespace std {
     %swig_stack_methods_val(std::stack< _Tp*, _Sequence >);
 #endif
 
-    %std_stack_methods_val(std::stack< _Tp*, _Sequence >);
+    %std_stack_methods_val(stack);
   };
 
 }

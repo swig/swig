@@ -16,7 +16,7 @@ PEP8_FLAGS   = --ignore=E30,E402,E501,E731,W291,W391
 #*_runme.py for Python 2.x, *_runme3.py for Python 3.x
 PY2SCRIPTSUFFIX = _runme.py
 PY3SCRIPTSUFFIX = _runme3.py
-PY2TO3       = 2to3 -x import
+PY2TO3       = @PY2TO3@ -x import
 
 ifeq (,$(PY3))
   SCRIPTSUFFIX = $(PY2SCRIPTSUFFIX)
@@ -58,29 +58,41 @@ CPP_TEST_CASES += \
 	primitive_types \
 	python_abstractbase \
 	python_append \
+	python_builtin \
 	python_destructor_exception \
 	python_director \
 	python_docstring \
+	python_extranative \
+	python_moduleimport \
 	python_nondynamic \
 	python_overload_simple_cast \
+	python_pickle \
 	python_pythoncode \
 	python_richcompare \
 	python_strict_unicode \
+	python_threads \
 	simutry \
 	std_containers \
 	swigobject \
-	template_matrix
+	template_matrix \
 
 #	li_std_carray
 #	director_profile
 #	python_pybuf
+
+CPP11_TEST_CASES = \
+	cpp11_hash_tables \
+	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_nullptr_in_containers \
+	cpp11_shared_ptr_overload \
+	cpp11_shared_ptr_upcast \
 
 C_TEST_CASES += \
 	file_test \
 	li_cstring \
 	li_cwstring \
 	python_nondynamic \
-	python_varargs_typemap
+	python_varargs_typemap \
 
 #
 # This test only works with modern C compilers
@@ -174,19 +186,6 @@ clean:
 	rm -f clientdata_prop_a.py clientdata_prop_b.py import_stl_a.py import_stl_b.py
 	rm -f imports_a.py imports_b.py mod_a.py mod_b.py multi_import_a.py
 	rm -f multi_import_b.py packageoption_a.py packageoption_b.py packageoption_c.py
-
-cvsignore:
-	@echo '*wrap* *.pyc *.so *.dll *.exp *.lib'
-	@echo Makefile
-	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do echo $$i.py; done
-	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do if grep -q $${i}_runme.py CVS/Entries ; then echo $${i}_runme.py; fi; done
-	@echo clientdata_prop_a.py
-	@echo clientdata_prop_b.py
-	@echo imports_a.py
-	@echo imports_b.py
-	@echo mod_a.py mod_b.py
-	@echo hugemod.h hugemod_a.i hugemod_b.i hugemod_a.py hugemod_b.py hugemod_runme.py
-	@echo template_typedef_import.py
 
 hugemod_runme = hugemod$(SCRIPTPREFIX)
 

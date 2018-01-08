@@ -7,4 +7,5 @@ import pkg1.foo
 
 print "  Finished importing pkg1.foo"
 
-assert(pkg1.foo.count() == 3)
+if not(pkg1.foo.count() == 3):
+    raise RuntimeError("test failed")

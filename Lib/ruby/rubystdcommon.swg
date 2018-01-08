@@ -3,8 +3,9 @@
  * The Ruby classes, for C++
  * ------------------------------------------------------------ */
 %include <rubyclasses.swg>
+%include <rubystdcommon_forward.swg>
 
-%fragment("StdTraits","header",fragment="StdTraitsCommon")
+%fragment("StdTraits","header",fragment="StdTraitsCommon",fragment="StdTraitsForwardDeclaration")
 {
 
 namespace swig {  
@@ -52,8 +53,9 @@ namespace swig {
   template <class Type>
   struct traits_asptr {   
     static int asptr(VALUE obj, Type **val) {
-      Type *p;
-      int res = SWIG_ConvertPtr(obj, (void**)&p, type_info<Type>(), 0);
+      Type *p = 0;
+      swig_type_info *descriptor = type_info<Type>();
+      int res = descriptor ? SWIG_ConvertPtr(obj, (void **)&p, descriptor, 0) : SWIG_ERROR;
       if (SWIG_IsOK(res)) {
 	if (val) *val = p;
       }
@@ -113,15 +115,15 @@ namespace swig {
 
   template <class Type> 
   struct traits_as<Type, value_category> {
-    static Type as(VALUE obj, bool throw_error) {
+    static Type as(VALUE obj) {
       Type v;
       int res = asval(obj, &v);
-      if (!obj || !SWIG_IsOK(res)) {
-	if (throw_error) throw std::invalid_argument("bad type");
+      if (!SWIG_IsOK(res)) {
 	VALUE lastErr = rb_gv_get("$!");
 	if (lastErr == Qnil) {
 	  %type_error(swig::type_name<Type>());
 	}
+        throw std::invalid_argument("bad type");
       }
       return v;
     }
@@ -129,9 +131,9 @@ namespace swig {
 
   template <class Type> 
   struct traits_as<Type, pointer_category> {
-    static Type as(VALUE obj, bool throw_error) {
+    static Type as(VALUE obj) {
       Type *v = 0;      
-      int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : SWIG_ERROR);
+      int res = traits_asptr<Type>::asptr(obj, &v);
       if (SWIG_IsOK(res) && v) {
 	if (SWIG_IsNewObj(res)) {
 	  Type r(*v);
@@ -141,46 +143,41 @@ namespace swig {
 	  return *v;
 	}
       } else {
-	// Uninitialized return value, no Type() constructor required.
-	if (throw_error) throw std::invalid_argument("bad type");
 	VALUE lastErr = rb_gv_get("$!");
 	if (lastErr == Qnil) {
 	  %type_error(swig::type_name<Type>());
 	}
-	static Type *v_def = (Type*) malloc(sizeof(Type));
-	memset(v_def,0,sizeof(Type));
-	return *v_def;
+        throw std::invalid_argument("bad type");
       }
     }
   };
 
   template <class Type> 
   struct traits_as<Type*, pointer_category> {
-    static Type* as(VALUE obj, bool throw_error) {
+    static Type* as(VALUE obj) {
       Type *v = 0;      
-      int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : SWIG_ERROR);
+      int res = traits_asptr<Type>::asptr(obj, &v);
       if (SWIG_IsOK(res)) {
 	return v;
       } else {
-	if (throw_error) throw std::invalid_argument("bad type");
 	VALUE lastErr = rb_gv_get("$!");
 	if (lastErr == Qnil) {
 	  %type_error(swig::type_name<Type>());
 	}
-	return 0;
+        throw std::invalid_argument("bad type");
       }
     }
   };
 
   template <class Type>
-  inline Type as(VALUE obj, bool te = false) {
-    return traits_as< Type, typename traits< Type >::category >::as(obj, te);
+  inline Type as(VALUE obj) {
+    return traits_as< Type, typename traits< Type >::category >::as(obj);
   }
 
   template <class Type> 
   struct traits_check<Type, value_category> {
     static bool check(VALUE obj) {
-      int res = obj ? asval(obj, (Type *)(0)) : SWIG_ERROR;
+      int res = asval(obj, (Type *)(0));
       return SWIG_IsOK(res) ? true : false;
     }
   };
@@ -188,7 +185,7 @@ namespace swig {
   template <class Type> 
   struct traits_check<Type, pointer_category> {
     static bool check(VALUE obj) {
-      int res = obj ? asptr(obj, (Type **)(0)) : SWIG_ERROR;
+      int res = asptr(obj, (Type **)(0));
       return SWIG_IsOK(res) ? true : false;
     }
   };

@@ -11,7 +11,38 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
-C_TEST_CASES =
+FAILING_CPP_TESTS = \
+allowexcept \
+allprotected \
+apply_signed_char \
+apply_strings \
+cpp_enum \
+default_constructor \
+director_binary_string \
+director_enum \
+director_exception \
+director_ignore \
+director_nested \
+director_pass_by_value \
+director_primitives \
+director_protected \
+director_redefined \
+director_string \
+director_using \
+enum_thorough \
+member_pointer_const \
+minherit \
+nested_directors \
+preproc_constants \
+smart_pointer_inherit \
+typedef_mptr \
+using_protected \
+
+FAILING_C_TESTS = \
+enums \
+preproc_constants_c \
+string_simple \
+unions \
 
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -a \

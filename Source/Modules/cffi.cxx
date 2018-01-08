@@ -543,6 +543,14 @@ int CFFI::functionWrapper(Node *n) {
 
   cleanupFunction(n, f, parms);
 
+  /* See if there is any return cleanup code */
+  String *tm = 0;
+  if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+    Replaceall(tm, "$source", Swig_cresult_name());
+    Printf(f->code, "%s\n", tm);
+    Delete(tm);
+  }
+
   if (!is_void_return) {
     Printf(f->code, "    return lresult;\n");
   }

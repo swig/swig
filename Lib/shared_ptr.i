@@ -4,6 +4,13 @@
 // to use a pointer to the smart pointer of the type, rather than the usual pointer to the underlying type.
 // So for some type T, shared_ptr<T> * is used rather than T *.
 
+// Another key part of the implementation is the smartptr feature:
+//   %feature("smartptr") T { shared_ptr<T> }
+// This feature marks the class T as having a smartptr to it (the shared_ptr<T> type). This is then used to
+// support smart pointers and inheritance. Say class D derives from base B, then shared_ptr<D> is marked
+// with a fake inheritance from shared_ptr<B> in the type system if the "smartptr" feature is used on both
+// B and D. This is to emulate the conversion of shared_ptr<D> to shared_ptr<B> in the target language.
+
 // shared_ptr namespaces could be boost or std or std::tr1
 // For example for std::tr1, use:
 // #define SWIG_SHARED_PTR_NAMESPACE std
@@ -42,12 +49,10 @@ struct SWIG_null_deleter {
 }
 
 
-// Workaround empty first macro argument bug
-#define SWIGEMPTYHACK
 // Main user macro for defining shared_ptr typemaps for both const and non-const pointer types
 %define %shared_ptr(TYPE...)
 %feature("smartptr", noblock=1) TYPE { SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > }
-SWIG_SHARED_PTR_TYPEMAPS(SWIGEMPTYHACK, TYPE)
+SWIG_SHARED_PTR_TYPEMAPS(, TYPE)
 SWIG_SHARED_PTR_TYPEMAPS(const, TYPE)
 %enddef
 

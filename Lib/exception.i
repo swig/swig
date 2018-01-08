@@ -12,10 +12,17 @@
 %insert("runtime") "swigerrors.swg"
 
 
-#ifdef SWIGPHP
+#ifdef SWIGPHP5
 %{
 #include "zend_exceptions.h"
-#define SWIG_exception(code, msg) zend_throw_exception(NULL, (char*)msg, code TSRMLS_CC)
+#define SWIG_exception(code, msg) do { zend_throw_exception(NULL, (char*)msg, code TSRMLS_CC); goto thrown; } while (0)
+%}
+#endif
+
+#ifdef SWIGPHP7
+%{
+#include "zend_exceptions.h"
+#define SWIG_exception(code, msg) do { zend_throw_exception(NULL, (char*)msg, code); goto thrown; } while (0)
 %}
 #endif
 
@@ -258,6 +265,7 @@ SWIGINTERN void SWIG_DThrowException(int code, const char *msg) {
   }
 */
 %{
+#include <typeinfo>
 #include <stdexcept>
 %}
 %define SWIG_CATCH_STDEXCEPT
@@ -274,6 +282,8 @@ SWIGINTERN void SWIG_DThrowException(int code, const char *msg) {
     SWIG_exception(SWIG_IndexError, e.what() );
   } catch (std::runtime_error& e) {
     SWIG_exception(SWIG_RuntimeError, e.what() );
+  } catch (std::bad_cast& e) {
+    SWIG_exception(SWIG_TypeError, e.what() );
   } catch (std::exception& e) {
     SWIG_exception(SWIG_SystemError, e.what() );
   }

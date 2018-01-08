@@ -1,12 +1,7 @@
 #!/usr/bin/env ruby
 #
-# A simple function to create useful asserts
+# Useful assert functions
 #
-# 
-# 
-# 
-#
-
 
 #
 # Exception raised when some swig binding test fails
@@ -14,6 +9,21 @@
 class SwigRubyError < RuntimeError
 end
 
+
+#
+# Simple assertions. Strings are not needed as arguments.
+#
+def swig_assert_equal_simple(a, b)
+  unless a == b
+    raise SwigRubyError.new("\n#{a} expected but was \n#{b}")
+  end
+end
+
+def swig_assert_simple(a)
+  unless a
+    raise SwigRubyError.new("assertion falied.")
+  end
+end
 
 #
 # Asserts whether a and b are equal.

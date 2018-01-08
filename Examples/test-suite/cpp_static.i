@@ -22,5 +22,28 @@ public:
 %}
 
 %{
-int StaticMemberTest::static_int;
+int StaticMemberTest::static_int = 99;
+%}
+
+%inline %{
+struct StaticBase {
+  static int statty;
+  virtual ~StaticBase() {}
+};
+struct StaticDerived : StaticBase {
+  static int statty;
+};
+%}
+
+%{
+int StaticBase::statty = 11;
+int StaticDerived::statty = 111;
+%}
+
+%inline %{
+#ifdef SWIGPYTHON_BUILTIN
+bool is_python_builtin() { return true; }
+#else
+bool is_python_builtin() { return false; }
+#endif
 %}

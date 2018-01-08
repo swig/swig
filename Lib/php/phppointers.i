@@ -3,19 +3,23 @@
              TYPE &REF ($*1_ltype tmp)
 %{
   /* First Check for SWIG wrapped type */
-  if ( ZVAL_IS_NULL( *$input ) ) {
+  if (Z_ISNULL($input)) {
       $1 = 0;
-  } else if ( PZVAL_IS_REF( *$input ) ) {
+  } else if (Z_ISREF($input)) {
       /* Not swig wrapped type, so we check if it's a PHP reference type */
-      CONVERT_IN( tmp, $*1_ltype, $input );
+      CONVERT_IN(tmp, $*1_ltype, $input);
       $1 = &tmp;
   } else {
-      SWIG_PHP_Error( E_ERROR, SWIG_PHP_Arg_Error_Msg($argnum, Expected a reference) );
+      SWIG_PHP_Error(E_ERROR, SWIG_PHP_Arg_Error_Msg($argnum, Expected a reference));
   }
 %}
 %typemap(argout) TYPE *REF,
                  TYPE &REF
-  "CONVERT_OUT(*$input, tmp$argnum );";
+%{
+  if (Z_ISREF($input)) {
+    CONVERT_OUT(Z_REFVAL($input), tmp$argnum);
+  }
+%}
 %enddef
 
 %pass_by_ref( size_t, CONVERT_INT_IN, ZVAL_LONG );

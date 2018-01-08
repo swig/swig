@@ -18,6 +18,7 @@
  * Base - Val(444.555)
  * Base - Ref(444.555)
  * Base - Ptr(444.555)
+ * Base - ConstPtrRef(444.555)
  * Base - FullyOverloaded(int 10)
  * Base - FullyOverloaded(bool 1)
  * Base - SemiOverloaded(int -678)
@@ -28,6 +29,7 @@
  * Derived - Val(444.555)
  * Derived - Ref(444.555)
  * Derived - Ptr(444.555)
+ * Derived - ConstPtrRef(444.555)
  * Derived - FullyOverloaded(int 10)
  * Derived - FullyOverloaded(bool 1)
  * Derived - SemiOverloaded(int -678)
@@ -38,6 +40,7 @@
  * DDerived - Val(444.555)
  * DDerived - Ref(444.555)
  * DDerived - Ptr(444.555)
+ * DDerived - ConstPtrRef(444.555)
  * DDerived - FullyOverloaded(int 10)
  * DDerived - FullyOverloaded(bool true)
  * DDerived - SemiOverloaded(-678)
@@ -58,7 +61,7 @@ import director_classes.Derived;
 import director_classes.DoubleHolder;
 
 void main() {
-  if (PrintDebug) writeln("------------ Start ------------ ");
+  if (PrintDebug) writeln("------------ Start ------------");
 
   auto myCaller = new Caller();
 
@@ -84,7 +87,7 @@ void main() {
     makeCalls(myCaller, myBase);
   }
 
-  if (PrintDebug) writeln("------------ Finish ------------ ");
+  if (PrintDebug) writeln("------------ Finish ------------");
 }
 
 void makeCalls(Caller myCaller, Base myBase) {
@@ -97,6 +100,7 @@ void makeCalls(Caller myCaller, Base myBase) {
   enforce(myCaller.ValCall(dh).val == dh.val, "[1] failed");
   enforce(myCaller.RefCall(dh).val == dh.val, "[2] failed");
   enforce(myCaller.PtrCall(dh).val == dh.val, "[3] failed");
+  enforce(myCaller.ConstPtrRefCall(dh).val == dh.val, "[3] failed");
 
   // Fully overloaded method test (all methods in base class are overloaded)
   enforce(myCaller.FullyOverloadedCall(10) == myBaseType ~ "::FullyOverloaded(int)", "[4] failed");
@@ -134,6 +138,11 @@ public class DDerived : Base {
 
   public override DoubleHolder Ptr(DoubleHolder x) {
     if (PrintDebug) writefln("DDerived - Ptr(%s)", x.val);
+    return x;
+  }
+
+  public override DoubleHolder ConstPtrRef(DoubleHolder x) {
+    if (PrintDebug) writefln("DDerived - ConstPtrRef(%s)", x.val);
     return x;
   }
 

@@ -69,7 +69,7 @@ extern int gcdmain(int argc, char *argv[]);
   PyObject *utf8str;
   if (!PyUnicode_Check($input)) {
     PyErr_SetString(PyExc_ValueError,"Expected a string");
-    return NULL;
+    SWIG_fail;
   }
   utf8str = PyUnicode_AsUTF8String($input);
   PyBytes_AsStringAndSize(utf8str, &cstr, &len);
@@ -79,7 +79,7 @@ extern int gcdmain(int argc, char *argv[]);
 %#else
   if (!PyString_Check($input)) {
     PyErr_SetString(PyExc_ValueError,"Expected a string");
-    return NULL;
+    SWIG_fail;
   }
   $1 = PyString_AsString($input);
   $2 = (int)PyString_Size($input);

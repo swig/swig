@@ -235,7 +235,6 @@ $1=($1_ltype)&temp;%}
 // so the standard wrapping cannot be done
 // nor can you cast a member function pointer to a void* (obviously)
 // therefore a special wrapping functions SWIG_ConvertMember() & SWIG_NewMemberObj() were written
-#ifdef __cplusplus
 %typemap(in,checkfn="lua_isuserdata") SWIGTYPE (CLASS::*)
 %{
   if (!SWIG_IsOK(SWIG_ConvertMember(L,$input,(void*)(&$1),sizeof($type),$descriptor)))
@@ -246,7 +245,6 @@ $1=($1_ltype)&temp;%}
 %{ 
   SWIG_NewMemberObj(L,(void*)(&$1),sizeof($type),$descriptor); SWIG_arg++; 
 %}
-#endif
 
 
 // void (must be empty without the SWIG_arg++)
@@ -386,6 +384,8 @@ parameters match which function
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }
+%apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
+%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
 // size_t (which is just a unsigned long)
 %apply unsigned long { size_t };

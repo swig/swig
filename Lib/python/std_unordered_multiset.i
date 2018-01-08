@@ -19,6 +19,13 @@
     }
 
     template <class T>
+    struct traits_reserve<std::unordered_multiset<T> >  {
+      static void reserve(std::unordered_multiset<T> &seq, typename std::unordered_multiset<T>::size_type n) {
+        seq.reserve(n);
+      }
+    };
+
+    template <class T>
     struct traits_asptr<std::unordered_multiset<T> >  {
       static int asptr(PyObject *obj, std::unordered_multiset<T> **m) {
 	return traits_asptr_stdseq<std::unordered_multiset<T> >::asptr(obj, m);
@@ -34,7 +41,7 @@
   }
 %}
 
-#define %swig_unordered_multiset_methods(Set...) %swig_set_methods(Set)
+#define %swig_unordered_multiset_methods(Set...) %swig_unordered_set_methods(Set)
 
 
 

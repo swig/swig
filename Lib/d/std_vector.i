@@ -24,7 +24,7 @@
 %define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CONST_REFERENCE, CTYPE...)
 #if (SWIG_D_VERSION == 1)
 %typemap(dimports) std::vector< CTYPE > "static import tango.core.Exception;"
-%typemap(dcode) std::vector< CTYPE > %{
+%proxycode %{
 public this($typemap(dtype, CTYPE)[] values) {
   this();
   append(values);
@@ -165,11 +165,11 @@ public void capacity(size_t value) {
     // generation issue when using const pointers as vector elements (like
     // std::vector< const int* >).
     %extend {
-      void setElement(size_type index, CTYPE const& val) throw (std::out_of_range) {
+      void setElement(size_type index, CTYPE const& value) throw (std::out_of_range) {
         if ((index < 0) || ($self->size() <= index)) {
           throw std::out_of_range("Tried to set value of element with invalid index.");
         }
-        (*$self)[index] = val;
+        (*$self)[index] = value;
       }
     }
 
@@ -185,7 +185,7 @@ static import std.exception;
 static import std.range;
 static import std.traits;
 %}
-%typemap(dcode) std::vector< CTYPE > %{
+%proxycode %{
 alias size_t KeyType;
 alias $typemap(dtype, CTYPE) ValueType;
 
@@ -517,11 +517,11 @@ int opApply(int delegate(ref size_t index, ref $typemap(dtype, CTYPE) value) dg)
     // generation issue when using const pointers as vector elements (like
     // std::vector< const int* >).
     %extend {
-      void setElement(size_type index, CTYPE const& val) throw (std::out_of_range) {
+      void setElement(size_type index, CTYPE const& value) throw (std::out_of_range) {
         if ((index < 0) || ($self->size() <= index)) {
           throw std::out_of_range("Tried to set value of element with invalid index.");
         }
-        (*$self)[index] = val;
+        (*$self)[index] = value;
       }
     }
 

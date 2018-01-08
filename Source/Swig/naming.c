@@ -404,7 +404,17 @@ DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType
 	}
 	Delete(cls);
       }
-      /* A template-based class lookup, check name first */
+      /* Lookup a name within a templated-based class */
+      if (!rn) {
+	String *t_name = SwigType_istemplate_templateprefix(prefix);
+	if (t_name) {
+	  Clear(tname);
+	  Printf(tname, "%s::%s", t_name, name);
+	  rn = name_object_get(namehash, tname, decl, ncdecl);
+	  Delete(t_name);
+	}
+      }
+      /* Lookup a template-based name within a class */
       if (!rn) {
 	String *t_name = SwigType_istemplate_templateprefix(name);
 	if (t_name)
@@ -788,6 +798,8 @@ static int need_name_warning(Node *n) {
   } else if (Getattr(n, "ignore")) {
     need = 0;
   } else if (Getattr(n, "templatetype")) {
+    need = 0;
+  } else if (GetFlag(n, "parsing_template_declaration")) {
     need = 0;
   }
   return need;
@@ -1669,6 +1681,7 @@ String *Swig_name_str(Node *n) {
  *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate()"
  *   "MyNameSpace::ABC::ABC(int,double)"
  *   "MyNameSpace::ABC::constmethod(int) const"
+ *   "MyNameSpace::ABC::refqualifiermethod(int) const &"
  *   "MyNameSpace::ABC::variablename"
  * 
  * ----------------------------------------------------------------------------- */
@@ -1678,11 +1691,22 @@ String *Swig_name_decl(Node *n) {
   String *decl;
 
   qname = Swig_name_str(n);
+  decl = NewStringf("%s", qname);
 
-  if (checkAttribute(n, "kind", "variable"))
-    decl = NewStringf("%s", qname);
-  else
-    decl = NewStringf("%s(%s)%s", qname, ParmList_errorstr(Getattr(n, "parms")), SwigType_isconst(Getattr(n, "decl")) ? " const" : "");
+  if (!checkAttribute(n, "kind", "variable")) {
+    String *d = Getattr(n, "decl");
+    Printv(decl, "(", ParmList_errorstr(Getattr(n, "parms")), ")", NIL);
+    if (SwigType_isfunction(d)) {
+      SwigType *decl_temp = Copy(d);
+      SwigType *qualifiers = SwigType_pop_function_qualifiers(decl_temp);
+      if (qualifiers) {
+	String *qualifiers_string = SwigType_str(qualifiers, 0);
+	Printv(decl, " ", qualifiers_string, NIL);
+	Delete(qualifiers_string);
+      }
+      Delete(decl_temp);
+    }
+  }
 
   Delete(qname);
 

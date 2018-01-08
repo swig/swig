@@ -4,14 +4,14 @@
  * SWIG typemaps for std::map< K, T, C >
  *
  * The C# wrapper is made to look and feel like a C# System.Collections.Generic.IDictionary<>.
- * 
+ *
  * Using this wrapper is fairly simple. For example, to create a map from integers to doubles use:
  *
  *   %include <std_map.i>
  *   %template(MapIntDouble) std::map<int, double>
  *
  * Notes:
- * 1) IEnumerable<> is implemented in the proxy class which is useful for using LINQ with 
+ * 1) IEnumerable<> is implemented in the proxy class which is useful for using LINQ with
  *    C++ std::map wrappers.
  *
  * Warning: heavy macro usage in this file. Use swig -E to get a sane view on the real file contents!
@@ -27,7 +27,7 @@
 %define SWIG_STD_MAP_INTERNAL(K, T, C)
 
 %typemap(csinterfaces) std::map< K, T, C > "global::System.IDisposable \n    , global::System.Collections.Generic.IDictionary<$typemap(cstype, K), $typemap(cstype, T)>\n";
-%typemap(cscode) std::map<K, T, C > %{
+%proxycode %{
 
   public $typemap(cstype, T) this[$typemap(cstype, K) key] {
     get {
@@ -55,8 +55,8 @@
   }
 
   public bool IsReadOnly {
-    get { 
-      return false; 
+    get {
+      return false;
     }
   }
 
@@ -84,7 +84,7 @@
       return vals;
     }
   }
-  
+
   public void Add(global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> item) {
     Add(item.Key, item.Value);
   }
@@ -143,7 +143,7 @@
   /// whenever the collection is modified. This has been done for changes in the size of the
   /// collection but not when one of the elements of the collection is modified as it is a bit
   /// tricky to detect unmanaged code that modifies the collection under our feet.
-  public sealed class $csclassnameEnumerator : global::System.Collections.IEnumerator, 
+  public sealed class $csclassnameEnumerator : global::System.Collections.IEnumerator,
       global::System.Collections.Generic.IEnumerator<global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>>
   {
     private $csclassname collectionRef;
@@ -206,7 +206,7 @@
       currentObject = null;
     }
   }
-  
+
 %}
 
   public:
@@ -239,11 +239,11 @@
         return iter != $self->end();
       }
 
-      void Add(const key_type& key, const mapped_type& val) throw (std::out_of_range) {
+      void Add(const key_type& key, const mapped_type& value) throw (std::out_of_range) {
         std::map< K, T, C >::iterator iter = $self->find(key);
         if (iter != $self->end())
           throw std::out_of_range("key already exists");
-        $self->insert(std::pair< K, T >(key, val));
+        $self->insert(std::pair< K, T >(key, value));
       }
 
       bool Remove(const key_type& key) {
@@ -251,7 +251,7 @@
         if (iter != $self->end()) {
           $self->erase(iter);
           return true;
-        }                
+        }
         return false;
       }
 
@@ -285,12 +285,12 @@
 %csmethodmodifiers std::map::destroy_iterator "private"
 
 // Default implementation
-namespace std {   
+namespace std {
   template<class K, class T, class C = std::less<K> > class map {
     SWIG_STD_MAP_INTERNAL(K, T, C)
   };
 }
- 
+
 
 // Legacy macros (deprecated)
 %define specialize_std_map_on_key(K,CHECK,CONVERT_FROM,CONVERT_TO)

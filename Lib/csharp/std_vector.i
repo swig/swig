@@ -5,9 +5,9 @@
  * C# implementation
  * The C# wrapper is made to look and feel like a C# System.Collections.Generic.List<> collection.
  *
- * Note that IEnumerable<> is implemented in the proxy class which is useful for using LINQ with 
+ * Note that IEnumerable<> is implemented in the proxy class which is useful for using LINQ with
  * C++ std::vector wrappers. The IList<> interface is also implemented to provide enhanced functionality
- * whenever we are confident that the required C++ operator== is available. This is the case for when 
+ * whenever we are confident that the required C++ operator== is available. This is the case for when
  * T is a primitive type or a pointer. If T does define an operator==, then use the SWIG_STD_VECTOR_ENHANCED
  * macro to obtain this enhanced functionality, for example:
  *
@@ -25,8 +25,16 @@
 // MACRO for use within the std::vector class body
 %define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CSINTERFACE, CONST_REFERENCE, CTYPE...)
 %typemap(csinterfaces) std::vector< CTYPE > "global::System.IDisposable, global::System.Collections.IEnumerable\n    , global::System.Collections.Generic.CSINTERFACE<$typemap(cstype, CTYPE)>\n";
-%typemap(cscode) std::vector< CTYPE > %{
-  public $csclassname(global::System.Collections.ICollection c) : this() {
+%proxycode %{
+  public $csclassname(global::System.Collections.IEnumerable c) : this() {
+    if (c == null)
+      throw new global::System.ArgumentNullException("c");
+    foreach ($typemap(cstype, CTYPE) element in c) {
+      this.Add(element);
+    }
+  }
+
+  public $csclassname(global::System.Collections.Generic.IEnumerable<$typemap(cstype, CTYPE)> c) : this() {
     if (c == null)
       throw new global::System.ArgumentNullException("c");
     foreach ($typemap(cstype, CTYPE) element in c) {
@@ -62,7 +70,7 @@
     set {
       if (value < size())
         throw new global::System.ArgumentOutOfRangeException("Capacity");
-      reserve((uint)value);
+      reserve(($typemap(cstype, size_t))value);
     }
   }
 
@@ -223,9 +231,9 @@
         else
           throw std::out_of_range("index");
       }
-      void setitem(int index, CTYPE const& val) throw (std::out_of_range) {
+      void setitem(int index, CTYPE const& value) throw (std::out_of_range) {
         if (index>=0 && index<(int)$self->size())
-          (*$self)[index] = val;
+          (*$self)[index] = value;
         else
           throw std::out_of_range("index");
       }
@@ -324,7 +332,7 @@
         std::vector< CTYPE >::iterator it = std::find($self->begin(), $self->end(), value);
         if (it != $self->end()) {
           $self->erase(it);
-	  return true;
+          return true;
         }
         return false;
       }
@@ -398,4 +406,5 @@ SWIG_STD_VECTOR_ENHANCED(unsigned long long)
 SWIG_STD_VECTOR_ENHANCED(float)
 SWIG_STD_VECTOR_ENHANCED(double)
 SWIG_STD_VECTOR_ENHANCED(std::string) // also requires a %include <std_string.i>
+SWIG_STD_VECTOR_ENHANCED(std::wstring) // also requires a %include <std_wstring.i>
 

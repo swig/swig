@@ -7,6 +7,10 @@
 #if defined(_MSC_VER)
   #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
 #endif
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
+#endif
 
 #include <string>
 
@@ -28,12 +32,27 @@ class DirectorMethodException: public Swig::DirectorException {};
 
 %include "std_string.i"
 
+#ifdef SWIGPHP
+
+%feature("director:except") {
+  if ($error == FAILURE) {
+    Swig::DirectorMethodException::raise("$symname");
+  }
+}
+
+%exception {
+	try { $action }
+	catch (Swig::DirectorException &) { SWIG_fail; }
+}
+
+#endif
+
 #ifdef SWIGPYTHON
 
 %feature("director:except") {
-	if ($error != NULL) {
-		throw Swig::DirectorMethodException();
-	}
+  if ($error != NULL) {
+    Swig::DirectorMethodException::raise("$symname");
+  }
 }
 
 %exception {
@@ -69,7 +88,7 @@ class DirectorMethodException: public Swig::DirectorException {};
 #ifdef SWIGRUBY
 
 %feature("director:except") {
-    throw Swig::DirectorMethodException($error);
+  Swig::DirectorMethodException::raise($error);
 }
 
 %exception {

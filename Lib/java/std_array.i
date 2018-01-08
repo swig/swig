@@ -8,13 +8,13 @@ namespace std {
 
   template<class T, size_t N> class array {
   public:
-    typedef T& reference;
-    typedef const T& const_reference;
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
     typedef T value_type;
-    typedef T* pointer;
-    typedef const T* const_pointer;
+    typedef T &reference;
+    typedef const T &const_reference;
+    typedef T *pointer;
+    typedef const T *const_pointer;
     array();
     array(const array& other);
     size_type size() const;
@@ -29,10 +29,10 @@ namespace std {
         else
           throw std::out_of_range("array index out of range");
       }
-      void set(int i, const value_type& val) throw (std::out_of_range) {
+      void set(int i, const value_type& value) throw (std::out_of_range) {
         int size = int(self->size());
         if (i>=0 && i<size)
-          (*self)[i] = val;
+          (*self)[i] = value;
         else
           throw std::out_of_range("array index out of range");
       }

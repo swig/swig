@@ -3,6 +3,7 @@
 
 %warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) Base::Ref;
 %warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) Base::Ptr;
+%warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) Base::ConstPtrRef;
 
 %module(directors="1") director_classes
 
@@ -43,6 +44,7 @@ public:
   virtual DoubleHolder Val(DoubleHolder x) { if (PrintDebug) std::cout << "Base - Val(" << x.val << ")" << std::endl; return x; }
   virtual DoubleHolder& Ref(DoubleHolder& x) { if (PrintDebug) std::cout << "Base - Ref(" << x.val << ")" << std::endl; return x; }
   virtual DoubleHolder* Ptr(DoubleHolder* x) { if (PrintDebug) std::cout << "Base - Ptr(" << x->val << ")" << std::endl; return x; }
+  virtual DoubleHolder *const& ConstPtrRef(DoubleHolder *const& cprx) { if (PrintDebug) std::cout << "Base - ConstPtrRef(" << cprx->val << ")" << std::endl; return cprx; }
 
   virtual std::string FullyOverloaded(int x) { if (PrintDebug) std::cout << "Base - FullyOverloaded(int " << x << ")" << std::endl; return "Base::FullyOverloaded(int)"; }
   virtual std::string FullyOverloaded(bool x) { if (PrintDebug) std::cout << "Base - FullyOverloaded(bool " << x << ")" << std::endl; return "Base::FullyOverloaded(bool)"; }
@@ -68,6 +70,7 @@ public:
   virtual DoubleHolder Val(DoubleHolder x) { if (PrintDebug) std::cout << "Derived - Val(" << x.val << ")" << std::endl; return x; }
   virtual DoubleHolder& Ref(DoubleHolder& x) { if (PrintDebug) std::cout << "Derived - Ref(" << x.val << ")" << std::endl; return x; }
   virtual DoubleHolder* Ptr(DoubleHolder* x) { if (PrintDebug) std::cout << "Derived - Ptr(" << x->val << ")" << std::endl; return x; }
+  virtual DoubleHolder *const& ConstPtrRef(DoubleHolder *const& cprx) { if (PrintDebug) std::cout << "Derived - ConstPtrRef(" << cprx->val << ")" << std::endl; return cprx; }
 
   virtual std::string FullyOverloaded(int x) { if (PrintDebug) std::cout << "Derived - FullyOverloaded(int " << x << ")" << std::endl; return "Derived::FullyOverloaded(int)"; }
   virtual std::string FullyOverloaded(bool x) { if (PrintDebug) std::cout << "Derived - FullyOverloaded(bool " << x << ")" << std::endl; return "Derived::FullyOverloaded(bool)"; }
@@ -99,6 +102,7 @@ public:
   DoubleHolder ValCall(DoubleHolder x) { return m_base->Val(x); }
   DoubleHolder& RefCall(DoubleHolder& x) { return m_base->Ref(x); }
   DoubleHolder* PtrCall(DoubleHolder* x) { return m_base->Ptr(x); }
+  DoubleHolder *const& ConstPtrRefCall(DoubleHolder *const& cprx) { return m_base->ConstPtrRef(cprx); }
   std::string FullyOverloadedCall(int x) { return m_base->FullyOverloaded(x); }
   std::string FullyOverloadedCall(bool x) { return m_base->FullyOverloaded(x); }
   std::string SemiOverloadedCall(int x) { return m_base->SemiOverloaded(x); }
