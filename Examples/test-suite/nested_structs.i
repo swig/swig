@@ -1,6 +1,5 @@
 %module nested_structs
 
-<<<<<<< HEAD
 /* MATLAB/Octave not (always) case sensitive */
 #ifdef SWIGMATLAB
 %rename(outer_) outer;
