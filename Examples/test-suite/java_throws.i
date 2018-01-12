@@ -142,6 +142,7 @@ JAVAEXCEPTION(imethod)
 %inline %{
     struct InterfaceTest {
         virtual void imethod(bool raise) = 0;
+        virtual ~InterfaceTest() {}
     };
 
     struct InterfaceTestImpl : InterfaceTest {
