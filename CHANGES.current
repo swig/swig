@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-01-12: wsfulton
+            [Java] Fix issue #1156. Add missing throws clause for interfaces when using the
+            %interface family of macros.
+
 2018-01-05: wsfulton
             Fix default arguments using expressions containing -> syntax error. Problem reported on
             swig-user mailing list.

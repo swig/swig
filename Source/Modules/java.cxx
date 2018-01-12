@@ -2544,8 +2544,6 @@ public:
 
     Printf(imcall, ")");
     Printf(function_code, ")");
-    if (is_interface)
-      Printf(interface_class_code, ");\n");
 
     // Transform return type used in JNI function (in intermediary class) to type used in Java wrapper function (in proxy class)
     if ((tm = Swig_typemap_lookup("javaout", n, "", 0))) {
@@ -2603,6 +2601,11 @@ public:
       Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, "No javaout typemap defined for %s\n", SwigType_str(t, 0));
     }
 
+    if (is_interface) {
+      Printf(interface_class_code, ")");
+      generateThrowsClause(n, interface_class_code);
+      Printf(interface_class_code, ";\n");
+    }
     generateThrowsClause(n, function_code);
     Printf(function_code, " %s\n\n", tm ? (const String *) tm : empty_string);
     Printv(proxy_class_code, function_code, NIL);
