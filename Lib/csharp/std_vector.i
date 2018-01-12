@@ -115,7 +115,7 @@
   }
 
   public $typemap(cstype, CTYPE)[] ToArray() {
-    $typemap(cstype, CTYPE)[] array = new $typemap(cstype, CTYPE)[Count];
+    $typemap(cstype, CTYPE)[] array = new $typemap(cstype, CTYPE)[this.Count];
     this.CopyTo(array);
     return array;
   }

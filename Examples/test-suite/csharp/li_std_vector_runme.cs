@@ -177,6 +177,17 @@ public class li_std_vector_runme {
         if (doubleArray[i] != dvCopy[i])
           throw new Exception("Copy constructor failed, index:" + i);
       }
+      if (dvCopy.Count != doubleArray.Length)
+        throw new Exception("Copy constructor lengths mismatch");
+
+      // ToArray test
+      double[] dvArray = dv.ToArray();
+      for (int i=0; i<doubleArray.Length; i++) {
+        if (doubleArray[i] != dvArray[i])
+          throw new Exception("ToArray failed, index:" + i);
+      }
+      if (dvArray.Length != doubleArray.Length)
+        throw new Exception("ToArray lengths mismatch");
     }
     {
       // Repeat() test
