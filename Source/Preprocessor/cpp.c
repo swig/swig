@@ -930,19 +930,21 @@ static String *expand_macro(String *name, List *args, String *line_file) {
 	namelen = Len(aname);
 	a = strstr(s, name);
 	while (a) {
-	  char ca = a[namelen + 1];
+	  char ca = a[namelen];
 	  if (!isidchar((int) ca)) {
 	    /* Matched the entire vararg name, not just a prefix */
-	    t = a - 1;
-	    if (*t == '\002') {
-	      t--;
-	      while (t >= s) {
-		if (isspace((int) *t))
-		  t--;
-		else if (*t == ',') {
-		  *t = ' ';
-		} else
-		  break;
+	    if (a > s) {
+	      t = a - 1;
+	      if (*t == '\002') {
+		t--;
+		while (t >= s) {
+		  if (isspace((int) *t))
+		    t--;
+		  else if (*t == ',') {
+		    *t = ' ';
+		  } else
+		    break;
+		}
 	      }
 	    }
 	  }
