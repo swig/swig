@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-01-14: wsfulton
+            Fix issue #1172. Seg fault parsing invalid exponents in the preprocessor.
+
 2018-01-12: Liryna
             [C#] Patch #1128. Add ToArray function to std::vector wrappers.
 
