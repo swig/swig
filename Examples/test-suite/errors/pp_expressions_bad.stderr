@@ -1,0 +1,8 @@
+pp_expressions_bad.i:5: Warning 202: Could not evaluate expression '1%ZERO'
+pp_expressions_bad.i:5: Warning 202: Error: 'Modulo by zero in expression'
+pp_expressions_bad.i:7: Warning 202: Could not evaluate expression '2/ZERO'
+pp_expressions_bad.i:7: Warning 202: Error: 'Division by zero in expression'
+pp_expressions_bad.i:10: Warning 202: Could not evaluate expression '1%(5-5)'
+pp_expressions_bad.i:10: Warning 202: Error: 'Modulo by zero in expression'
+pp_expressions_bad.i:12: Warning 202: Could not evaluate expression '2/(55-55)'
+pp_expressions_bad.i:12: Warning 202: Error: 'Division by zero in expression'

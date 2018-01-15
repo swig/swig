@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-01-15: wsfulton
+            Fix issue #1183. Floating point exception evaluating preprocessor expressions
+            resulting in division by zero.
+
 2018-01-14: wsfulton
             Fix issue #1172. Seg fault parsing invalid exponents in the preprocessor.
 

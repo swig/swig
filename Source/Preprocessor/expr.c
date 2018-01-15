@@ -188,12 +188,22 @@ static int reduce_op() {
       sp--;
       break;
     case SWIG_TOKEN_SLASH:
-      stack[sp - 2].value = stack[sp - 2].value / stack[sp].value;
-      sp -= 2;
+      if (stack[sp].value != 0) {
+	stack[sp - 2].value = stack[sp - 2].value / stack[sp].value;
+	sp -= 2;
+      } else {
+	errmsg = "Division by zero in expression";
+	return 0;
+      }
       break;
     case SWIG_TOKEN_PERCENT:
-      stack[sp - 2].value = stack[sp - 2].value % stack[sp].value;
-      sp -= 2;
+      if (stack[sp].value != 0) {
+	stack[sp - 2].value = stack[sp - 2].value % stack[sp].value;
+	sp -= 2;
+      } else {
+	errmsg = "Modulo by zero in expression";
+	return 0;
+      }
       break;
     case SWIG_TOKEN_LSHIFT:
       stack[sp - 2].value = stack[sp - 2].value << stack[sp].value;
