@@ -7,6 +7,31 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-01-16: wsfulton
+            Expressions following a preprocessor directive must now be separated by whitespace
+            or non-numeric characters. This syntax change makes the SWIG preprocessor work like
+            the C preprocessor in this area.
+
+            For example, the following code used be accepted as valid syntax:
+              #if1
+              #define ABC 123
+              #endif
+
+            Now you get an error:
+              example.h:1: Error: Unknown SWIG preprocessor directive: if1 (if this is a block of
+              target language code, delimit it with %{ and %})
+              example.h:3: Error: Extraneous #endif.
+
+            The following is the correct syntax:
+              #if 1
+              #define ABC 123
+              #endif
+
+            The following of course also works:
+              #if(1)
+              #define ABC 123
+              #endif
+
 2018-01-15: wsfulton
             Fix issue #1183. Floating point exception evaluating preprocessor expressions
             resulting in division by zero.

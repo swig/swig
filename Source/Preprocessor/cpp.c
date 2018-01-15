@@ -1454,7 +1454,7 @@ String *Preprocessor_parse(String *s) {
       break;
 
     case 41:			/* Build up the name of the preprocessor directive */
-      if ((isspace(c) || (!isalpha(c)))) {
+      if ((isspace(c) || (!isidchar(c)))) {
 	Clear(value);
 	Clear(comment);
 	if (c == '\n') {

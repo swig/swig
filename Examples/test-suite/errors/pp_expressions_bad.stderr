@@ -12,3 +12,8 @@ pp_expressions_bad.i:21: Warning 202: Could not evaluate expression '2e3'
 pp_expressions_bad.i:21: Warning 202: Error: 'Floating point constant in preprocessor expression'
 pp_expressions_bad.i:25: Warning 202: Could not evaluate expression '8.8'
 pp_expressions_bad.i:25: Warning 202: Error: 'Floating point constant in preprocessor expression'
+pp_expressions_bad.i:29: Error: Unknown SWIG preprocessor directive: if123 (if this is a block of target language code, delimit it with %{ and %})
+pp_expressions_bad.i:30: Error: Extraneous #endif.
+pp_expressions_bad.i:32: Error: Unknown SWIG preprocessor directive: if456e (if this is a block of target language code, delimit it with %{ and %})
+pp_expressions_bad.i:33: Error: Extraneous #endif.
+pp_expressions_bad.i:42: Warning 204: CPP #warning, "Warning okay: #if(1)".

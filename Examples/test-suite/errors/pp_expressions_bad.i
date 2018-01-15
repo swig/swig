@@ -24,3 +24,20 @@
 #if 0
 #elif 8.8
 #endif
+
+/* Missing whitespace after preproc directive */
+#if123
+#endif
+
+#if456e
+#endif
+
+#if 0
+#warning This should not warn
+#elif1
+#warning This should also not warn
+#endif
+
+#if(1)
+#warning Warning okay: #if(1)
+#endif
