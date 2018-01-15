@@ -319,6 +319,10 @@ int Preprocessor_expr(DOH *s, int *error) {
 	stack[sp].value = 0;
 	stack[sp].svalue = 0;
 	stack[sp].op = EXPR_VALUE;
+      } else if ((token == SWIG_TOKEN_FLOAT) || (token == SWIG_TOKEN_DOUBLE)) {
+	errmsg = "Floating point constant in preprocessor expression";
+	*error = 1;
+	return 0;
       } else
 	goto syntax_error;
       break;
