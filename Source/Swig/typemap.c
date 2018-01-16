@@ -1124,11 +1124,11 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
     Delete(amp_type);
 
     /* Base type */
-    if (SwigType_isarray(type)) {
-      base_type = Copy(type);
+    if (SwigType_isarray(ftype)) {
+      base_type = Copy(ftype);
       Delete(SwigType_pop_arrays(base_type));
     } else {
-      base_type = SwigType_base(type);
+      base_type = SwigType_base(ftype);
     }
 
     base_type_str = SwigType_str(base_type, 0);
