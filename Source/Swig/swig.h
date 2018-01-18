@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -53,10 +53,10 @@ extern "C" {
   typedef DOH Typetab;
   typedef DOH SwigType;
 
-/* --- Legacy DataType interface.  These type codes are provided solely 
+/* --- Legacy DataType interface.  These type codes are provided solely
        for backwards compatibility with older modules --- */
 
-/* --- The ordering of type values is used to determine type-promotion 
+/* --- The ordering of type values is used to determine type-promotion
        in the parser.  Do not change */
 
 /* Numeric types */
@@ -166,6 +166,8 @@ extern "C" {
   extern int SwigType_isvarargs(const SwigType *t);
   extern int SwigType_istemplate(const SwigType *t);
   extern int SwigType_isenum(const SwigType *t);
+  extern int SwigType_isnamedenum(const SwigType *t);
+  extern int SwigType_isanonenum(const SwigType *t);
   extern int SwigType_check_decl(const SwigType *t, const_String_or_char_ptr decl);
   extern SwigType *SwigType_strip_qualifiers(const SwigType *t);
   extern SwigType *SwigType_strip_single_qualifier(const SwigType *t);
