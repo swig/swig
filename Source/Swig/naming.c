@@ -1267,7 +1267,7 @@ static Hash *name_nameobj_lget(List *namelist, Node *n, String *prefix, String *
  * ----------------------------------------------------------------------------- */
 
 void Swig_name_namewarn_add(String *prefix, String *name, SwigType *decl, Hash *namewrn) {
-  const char *namewrn_keys[] = { "rename", "error", "fullname", "sourcefmt", "targetfmt", 0 };
+  const char *namewrn_keys[] = { "rename", "error", "fullname", "sourcefmt", "targetfmt", "regextarget", 0 };
   name_object_attach_keys(namewrn_keys, namewrn);
   name_nameobj_add(name_namewarn_hash(), name_namewarn_list(), prefix, name, decl, namewrn);
 }
