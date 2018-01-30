@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-01-30: smarchetto
+            [Scilab] add type name argument in SWIG_ptr() function to cast from pointer adress to typed pointers
+
 2018-01-16: wsfulton
             Expressions following a preprocessor directive must now be separated by whitespace
             or non-numeric characters. This syntax change makes the SWIG preprocessor work like
@@ -71,7 +74,7 @@ Version 4.0.0 (in progress)
 	    should make the generated code work with PHP 7.2.0.
 
 2017-12-04: wsfulton
-            [Python] Add missing checks for failures in calls to PyUnicode_AsUTF8String. Previously a 
+            [Python] Add missing checks for failures in calls to PyUnicode_AsUTF8String. Previously a
             seg fault could occur when passing invalid UTF8 strings (low surrogates), eg passing
             u"\udcff" to the C layer (Python 3).
 
@@ -150,7 +153,7 @@ Version 4.0.0 (in progress)
             language as the C++ template name, for example, this is now possible:
 
               template<typename T> struct X { ... };
-              %template(X) X<int>; 
+              %template(X) X<int>;
 
 2017-09-23: wsfulton
             Issue #1098. Fix overloading of shared_ptr with underlying pointer types, eg:
