@@ -491,6 +491,9 @@ int SWIG_ptr(SWIG_GatewayParameters) {
         return SWIG_Scilab_SetOutput(pvApiCtx,
           SwigScilabPtrFromObject(pvApiCtx, 1, ptrValue, SWIG_Scilab_TypeQuery(pstInputPtrTypeName), 0, pstOutputMListTypeName));
       }
+      else {
+        return SWIG_ERROR;
+      }
     }
     else if (iTypeVar1 == sci_matrix) {
       double dValue = 0;
