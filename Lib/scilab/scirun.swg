@@ -447,6 +447,7 @@ extern "C"
 #endif
 int SWIG_ptr(SWIG_GatewayParameters) {
   if (SWIG_NbInputArgument(pvApiCtx) > 0) {
+    SciErr sciErr;
     int *piAddrVar1 = NULL;
     int iTypeVar1 = 0;
     char *pstInputPtrTypeName = NULL;
@@ -454,7 +455,7 @@ int SWIG_ptr(SWIG_GatewayParameters) {
     if (SWIG_NbInputArgument(pvApiCtx) > 2) {
       int *piAddrVar2 = NULL;
       int *piAddrVar3 = NULL;
-      SciErr sciErr = getVarAddressFromPosition(pvApiCtx, 2, &piAddrVar2);
+      sciErr = getVarAddressFromPosition(pvApiCtx, 2, &piAddrVar2);
       if (sciErr.iErr) {
         printError(&sciErr, 0);
         return SWIG_ERROR;
@@ -472,7 +473,7 @@ int SWIG_ptr(SWIG_GatewayParameters) {
       }
     }
 
-    SciErr sciErr = getVarAddressFromPosition(pvApiCtx, 1, &piAddrVar1);
+    sciErr = getVarAddressFromPosition(pvApiCtx, 1, &piAddrVar1);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
