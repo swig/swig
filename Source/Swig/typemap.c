@@ -611,6 +611,24 @@ void Swig_typemap_clear_apply(Parm *parms) {
   Delete(tsig);
 }
 
+/* Internal function to replace non-empty dimensions with ANY. */
+static SwigType *simplify_arrays(SwigType *type) {
+  SwigType *t;
+  String *dim;
+  int ndim;
+  int i;
+  t = Copy(type);
+  ndim = SwigType_array_ndim(t);
+  for (i = 0; i < ndim; i++) {
+    dim = SwigType_array_getdim(t, i);
+    if (dim && Len(dim) > 0) {
+      SwigType_array_setdim(t, i, "ANY");
+    }
+    Delete(dim);
+  }
+  return t;
+}
+
 /* Internal function to strip array dimensions. */
 static SwigType *strip_arrays(SwigType *type) {
   SwigType *t;
@@ -696,7 +714,6 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
   SwigType *primitive = 0;
   SwigType *ctype = 0;
   SwigType *ctype_unstripped = 0;
-  int isarray;
   const String *cname = 0;
   const String *cqualifiedname = 0;
   String *tm_method = typemap_method_name(tmap_method);
@@ -734,11 +751,18 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
     }
 
     /* look for [ANY] arrays */
-    isarray = SwigType_isarray(ctype);
-    if (isarray) {
-      /* If working with arrays, strip away all of the dimensions and replace with "ANY".
-	 See if that generates a match */
-      SwigType *noarrays = strip_arrays(ctype);
+    if (SwigType_isarray(ctype)) {
+      /* If working with arrays, strip away all of the non-empty dimensions and
+       * replace with "ANY".  See if that generates a match */
+      SwigType *noarrays = simplify_arrays(ctype);
+      tm = get_typemap(noarrays);
+      result = typemap_search_helper(debug_display, tm, tm_method, noarrays, cqualifiedname, cname, &backup);
+      Delete(noarrays);
+      if (result && Getattr(result, "code"))
+	goto ret_result;
+
+      /* Now try replacing empty dimensions as well. */
+      noarrays = strip_arrays(ctype);
       tm = get_typemap(noarrays);
       result = typemap_search_helper(debug_display, tm, tm_method, noarrays, cqualifiedname, cname, &backup);
       Delete(noarrays);
