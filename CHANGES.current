@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-02-11: wsfulton
+            [Javascript] #1187 Fix compilation error wrapping std::complex via
+            std_complex.i.
+
 2018-01-30: smarchetto
             [Scilab] add type name argument in SWIG_ptr() function to cast from pointer adress to typed pointers
 
