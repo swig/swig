@@ -1490,7 +1490,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   while (kw) {
     String *value = Copy(Getattr(kw, "value"));
     String *kwtype = Getattr(kw, "type");
-    char *ckwname = Char(Getattr(kw, "name"));
+    String *kwname = Getattr(kw, "name");
     {
       /* Expand special variables in typemap attributes. */
       SwigType *ptype = Getattr(node, "type");
@@ -1511,8 +1511,15 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
       Append(value, mangle);
       Delete(mangle);
     }
-    sprintf(temp, "%s:%s", cmethod, ckwname);
-    Setattr(node, typemap_method_name(temp), value);
+    if (Cmp(kwname, "fragment") != 0) {
+      sprintf(temp, "%s:%s", cmethod, Char(kwname));
+      Setattr(node, typemap_method_name(temp), value);
+    } else {
+      /* Emit this fragment */
+      Setfile(value, Getfile(node));
+      Setline(value, Getline(node));
+      Swig_fragment_emit(value);
+    }
     Delete(value);
     kw = nextSibling(kw);
   }
@@ -1547,20 +1554,6 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
       Replace(warning, "$symname", symname, DOH_REPLACE_ANY);
     Swig_warning(0, Getfile(node), Getline(node), "%s\n", warning);
     Delete(warning);
-  }
-
-  /* Look for code fragments */
-  {
-    String *fragment;
-    sprintf(temp, "%s:fragment", cmethod);
-    fragment = Getattr(node, typemap_method_name(temp));
-    if (fragment) {
-      String *fname = Copy(fragment);
-      Setfile(fname, Getfile(node));
-      Setline(fname, Getline(node));
-      Swig_fragment_emit(fname);
-      Delete(fname);
-    }
   }
 
   Delete(cname);
