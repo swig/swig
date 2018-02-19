@@ -1,2 +1,5 @@
-# see top-level Makefile.in
+# List of examples that have makefiles; including them here will cause them to
+# be run when you execute `make check-fortran-examples` from the root SWIG
+# build directory. The SWIG example makefile template requires an
+# in-source-tree build, so testing won't always work.
 barefunctions
