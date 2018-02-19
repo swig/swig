@@ -1364,6 +1364,7 @@ Below is a list of the typical default types supplied by language modules, showi
 %typemap(in) SWIGTYPE []           { ... unknown sized array handling ...                     };
 %typemap(in) enum SWIGTYPE         { ... default handling for enum values ...                 };
 %typemap(in) const enum SWIGTYPE &amp; { ... default handling for const enum reference values ... };
+%typemap(in) SWIGTYPE (*)(ANY)     { ... default function pointer handling ...                  };
 %typemap(in) SWIGTYPE (CLASS::*)   { ... default pointer member handling ...                  };
 %typemap(in) SWIGTYPE              { ... simple default handling ...                          };
 </pre>

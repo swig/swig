@@ -883,7 +883,81 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Go.html#Go">24 SWIG and Go</a></h3>
+<h3><a href="Fortran.html#Fortran">23 SWIG and Fortran</a></h3>
+
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="#Fortran_overview">Overview</a></li>
+<li><a href="#Fortran_fundamental_concepts">Fundamental concepts</a><ul>
+<li><a href="#Fortran_nomenclature">Nomenclature</a></li>
+<li><a href="#Fortran_identifiers">Identifiers</a></li>
+<li><a href="#Fortran_running_swig">Running SWIG</a></li>
+<li><a href="#Fortran_compiling_a_simple_fortran_program">Compiling a simple Fortran program</a></li>
+<li><a href="#Fortran_compiling_more_complex_fortrancc_programs">Compiling more complex Fortran/C/C++ programs</a></li>
+</ul></li>
+<li><a href="#Fortran_basic_fortranc_data_type_interoperability">Basic Fortran/C data type interoperability</a><ul>
+<li><a href="#Fortran_fundamental_types">Fundamental types</a><ul>
+<li><a href="#Fortran_other_integer_types">Other integer types</a></li>
+<li><a href="#Fortran_booleanlogical_values">Boolean/logical values</a></li>
+<li><a href="#Fortran_characters">Characters</a></li>
+</ul></li>
+<li><a href="#Fortran_pointers_and_references">Pointers and references</a></li>
+<li><a href="#Fortran_strings">Strings</a></li>
+<li><a href="#Fortran_arrays">Arrays</a></li>
+<li><a href="#Fortran_classes_and_structs">Classes and structs</a></li>
+<li><a href="#Fortran_ignored_or_unimplemented_forward_declared_structs_and_classes">Ignored or unimplemented forward-declared structs and classes</a></li>
+<li><a href="#Fortran_enumerations">Enumerations</a></li>
+<li><a href="#Fortran_function_pointers">Function pointers</a></li>
+<li><a href="#Fortran_handles_and_other_oddities">Handles and other oddities</a></li>
+</ul></li>
+<li><a href="#Fortran_basic_cc_features">Basic C/C++ features</a><ul>
+<li><a href="#Fortran_functions">Functions</a></li>
+<li><a href="#Fortran_function_overloading">Function overloading</a></li>
+<li><a href="#Fortran_global_variables">Global variables</a><ul>
+<li><a href="#Fortran_global_constants">Global constants</a></li>
+</ul></li>
+<li><a href="#Fortran_classes">Classes</a></li>
+<li><a href="#Fortran_exceptions">Exceptions</a></li>
+</ul></li>
+<li><a href="#Fortran_provided_typemaps">Provided typemaps</a><ul>
+<li><a href="#Fortran_c_string">C string</a></li>
+<li><a href="#Fortran_stdstring">Std::string</a></li>
+<li><a href="#Fortran_smart_pointers">Smart pointers</a></li>
+<li><a href="#Fortran_array_views">Array views</a></li>
+<li><a href="#Fortran_mpi_compatibility">MPI compatibility</a></li>
+<li><a href="#Fortran_integer_types">Integer types</a></li>
+</ul></li>
+<li><a href="#Fortran_proxy_classes">Proxy classes</a><ul>
+<li><a href="#Fortran_constructors_and_destructors">Constructors and Destructors</a></li>
+<li><a href="#Fortran_member_functions">Member functions</a></li>
+<li><a href="#Fortran_member_data">Member data</a></li>
+<li><a href="#Fortran_inheritance">Inheritance</a></li>
+<li><a href="#Fortran_memory_management">Memory management</a></li>
+<li><a href="#Fortran_opaque_class_types">Opaque class types</a></li>
+<li><a href="#Fortran_proxy_class_wrapper_code">Proxy class wrapper code</a></li>
+</ul></li>
+<li><a href="#Fortran_advanced">Advanced</a><ul>
+<li><a href="#Fortran_direct_c_binding">Direct C binding</a><ul>
+<li><a href="#Fortran_generating_c_bound_fortran_types_from_c_structs">Generating C-bound Fortran types from C structs</a></li>
+<li><a href="#Fortran_interfaces_with_fortran_c_bound_types">Interfaces with Fortran C-bound types</a></li>
+<li><a href="#Fortran_generating_direct_fortran_interfaces_to_c_functions">Generating direct Fortran interfaces to C functions</a></li>
+</ul></li>
+<li><a href="#Fortran_typemaps">Typemaps</a><ul>
+<li><a href="#Fortran_iso_c_wrapper_interface">ISO C Wrapper interface</a></li>
+<li><a href="#Fortran_fortran_proxy_datatype_translation">Fortran proxy datatype translation</a></li>
+<li><a href="#Fortran_special_overrides_for_return_variables">Special overrides for return variables</a></li>
+<li><a href="#Fortran_allocating_local_fortran_variables_in_wrapper_codes">Allocating local Fortran variables in wrapper codes</a></li>
+<li><a href="#Fortran_special_class_typemaps">Special class typemaps</a></li>
+</ul></li>
+<li><a href="#Fortran_fragments">Fragments</a></li>
+<li><a href="#Fortran_known_issues">Known Issues</a></li>
+</ul></li>
+</ul>
+</div>
+<!-- INDEX -->
+
+<h3><a href="Go.html#Go">23 SWIG and Go</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
