@@ -84,3 +84,11 @@
 %fragment("<memory>", "header") %{
 #include <memory>
 %}
+
+%fragment("<utility>", "header") %{
+#include <utility>
+%}
+
+%fragment("<cctype>", "header") %{
+#include <cctype>
+%}

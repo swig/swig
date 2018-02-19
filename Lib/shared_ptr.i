@@ -52,8 +52,12 @@ struct SWIG_null_deleter {
 // Main user macro for defining shared_ptr typemaps for both const and non-const pointer types
 %define %shared_ptr(TYPE...)
 %feature("smartptr", noblock=1) TYPE { SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > }
+#define %as_mutable(PTR) PTR
 SWIG_SHARED_PTR_TYPEMAPS(, TYPE)
+#undef %as_mutable
+#define %as_mutable(PTR) const_cast<TYPE*>(PTR)
 SWIG_SHARED_PTR_TYPEMAPS(const, TYPE)
+#undef %as_mutable
 %enddef
 
 // Legacy macros
