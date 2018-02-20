@@ -1,10 +1,11 @@
 %module contract
 
 %warnfilter(SWIGWARN_RUBY_MULTIPLE_INHERITANCE,
-	    SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
-	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
-	    SWIGWARN_D_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) C; /* Ruby, C#, D, Java, PHP multiple inheritance */
+      SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
+      SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
+      SWIGWARN_D_MULTIPLE_INHERITANCE,
+      SWIGWARN_FORTRAN_MULTIPLE_INHERITANCE,
+      SWIGWARN_PHP_MULTIPLE_INHERITANCE) C; /* Ruby, C#, D, Java, PHP multiple inheritance */
 
 #ifdef SWIGCSHARP
 %ignore B::bar; // otherwise get a warning: `C.bar' no suitable methods found to override
@@ -16,20 +17,20 @@
 
 %contract test_preassert(int a, int b) {
 require:
-	a > 0;
-	b > 0;
+  a > 0;
+  b > 0;
 }
 
 %contract test_postassert(int a) {
 ensure:
-	test_postassert > 0;
+  test_postassert > 0;
 }
 
 %contract test_prepost(int a, int b) {
 require:
-	a > 0;
+  a > 0;
 ensure:
-	test_prepost > 0;
+  test_prepost > 0;
 }
 
 %inline %{
@@ -44,7 +45,7 @@ int test_postassert(int x) {
 }
 
 int test_prepost(int x, int y) {
-    return x+y;    
+    return x+y;
 }
 %}
 
@@ -84,27 +85,27 @@ int test_prepost(int x, int y) {
 class Foo {
 public:
         virtual ~Foo() { }
-  
-	virtual int test_preassert(int x, int y) {
+
+  virtual int test_preassert(int x, int y) {
             if ((x > 0) && (y > 0)) return 1;
             return 0;
-	}   
-	virtual int test_postassert(int x) {
-	  return x;
-	}
-	virtual int test_prepost(int x, int y) {
-	  return x+y;
-	}
-	static int stest_prepost(int x, int y) {
-	  return x+y;
-	}
+  }
+  virtual int test_postassert(int x) {
+    return x;
+  }
+  virtual int test_prepost(int x, int y) {
+    return x+y;
+  }
+  static int stest_prepost(int x, int y) {
+    return x+y;
+  }
  };
 
 class Bar : public Foo {
 public:
-	virtual int test_prepost(int x, int y) {
-	  return x+y;
-	}
+  virtual int test_prepost(int x, int y) {
+    return x+y;
+  }
 };
 
 %}
@@ -153,7 +154,7 @@ public:
     virtual ~A() {}
     virtual int foo(int a, int b, int c, int d, int e) {
       if ((a > 0) && (b > 0) && (c > 0) && (d > 0) && (e > 0)) {
-	return 1;
+  return 1;
       }
       return 0;
     }
@@ -164,7 +165,7 @@ public:
     virtual ~B() {}
     virtual int bar(int a, int b, int c, int d, int e) {
       if ((a > 0) && (b > 0) && (c > 0) && (d > 0) && (e > 0)) {
-	return 1;
+  return 1;
       }
       return 0;
     }
@@ -179,7 +180,7 @@ public:
       return B::bar(a,b,c,d,e);
     }
   };
-  
+
   class D : public C {
    public:
     virtual int foo(int a, int b, int c, int d, int e) {
@@ -215,7 +216,7 @@ namespace myNames {
 class myClass
 {
     public:
-    	myClass(int i) {}
+      myClass(int i) {}
 };
 
 }
@@ -231,7 +232,7 @@ require:
 class myClass
 {
     public:
-    	myClass(int i) {}
+      myClass(int i) {}
 };
 
 }

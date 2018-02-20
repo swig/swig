@@ -34,7 +34,7 @@ template <typename T> struct Thing {};
 namespace Space {
 class Shape {
 public:
-  double  x, y;   
+  double  x, y;
   double  *z;
 
   void    move(double dx, double dy);
@@ -95,6 +95,9 @@ double (Space::Shape::*abcvar)(Thing<short>, Thing< const Space::Shape * >[]) = 
 %constant double (Space::Shape::*AREAPT)(Space::Shape &, int & (FunkSpace::Funktions::*)(const int &, int)) = &Space::Shape::area;
 %constant double (Space::Shape::*AREAPT_CONST)(Space::Shape &, int & (FunkSpace::Funktions::*)(const int &, int) const) = &Space::Shape::area_const;
 %constant double (Space::Shape::*PERIMPT)(Thing<short>, Thing< const Space::Shape * >[]) = &Space::Shape::abc;
+#ifdef SWIGFORTRAN
+%noparameter NULLPT;
+#endif
 %constant double (Space::Shape::*NULLPT)(void) = 0;
 
 %inline %{

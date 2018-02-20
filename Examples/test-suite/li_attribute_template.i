@@ -2,6 +2,11 @@
 
 %include <exception.i>
 
+// Fortran doesn't have native attribute wrap support
+#ifdef SWIGFORTRAN
+#pragma SWIG nowarn=507
+#endif
+
 //#define SWIG_ATTRIBUTE_TEMPLATE
 %include <attribute.i>
 %include <std_string.i>

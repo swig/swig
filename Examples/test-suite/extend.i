@@ -2,7 +2,7 @@
 
 %extend Base {
   ~Base() {
-    delete $self; 
+    delete $self;
   }
   static int zeroVal() {
     return 0;

@@ -175,7 +175,11 @@ protected:
   };
 %}
 
+#ifndef SWIGFORTRAN
+// It's unclear to me what this typedef is trying to do. The result compiles
+// with Python but does not compile in Fortran.
 typedef void OSRSpatialReferenceShadow; 
+#endif
 
 class OSRSpatialReferenceShadow {
 private:
