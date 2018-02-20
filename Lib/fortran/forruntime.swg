@@ -4,18 +4,6 @@
 
 %include <typemaps/fragments.swg>
 
-/* Define SWIGEXTERN for *const* global data variables: 'extern' if C++,
- * nothing if C.
- */
-%insert("runtime") %{
-#ifndef SWIGEXTERN
-#ifdef __cplusplus
-#define SWIGEXTERN extern
-#else
-#define SWIGEXTERN
-#endif
-#endif
-%}
 
 /* Insert SWIG error macros.
  *
