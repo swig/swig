@@ -150,7 +150,7 @@ SWIGEXPORT void SWIG_check_unhandled_exception_impl(const char* decl) {
  * Functional interface to SWIG error string
  * ------------------------------------------------------------------------- */
 #ifdef __cplusplus
-%include <std_string.i>
+%include <forstring.swg>
 
 %apply const std::string& NATIVE { const std::string& SWIG_FORTRAN_ERROR_STR};
 
