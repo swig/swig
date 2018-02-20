@@ -1381,7 +1381,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
   }
 }
 %typemap(argout)  (const char *STRING, size_t LENGTH) {
-  if ($input) JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, 0);
+  if ($input) JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, JNI_ABORT);
 }
 %typemap(directorin, descriptor="[B", noblock=1) (const char *STRING, size_t LENGTH) {
   $input = 0;
@@ -1394,6 +1394,9 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 }
 %typemap(javadirectorin, descriptor="[B") (const char *STRING, size_t LENGTH) "$jniinput"
 %apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
+%typemap(argout)  (char *STRING, size_t LENGTH) {
+  if ($input) JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, 0);
+}
 %typemap(directorargout, noblock=1) (char *STRING, size_t LENGTH)
 { if ($input && $1) JCALL4(GetByteArrayRegion, jenv, $input, 0, (jsize)$2, (jbyte *)$1); }
 %apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
