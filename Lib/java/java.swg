@@ -1394,6 +1394,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 }
 %typemap(javadirectorin, descriptor="[B") (const char *STRING, size_t LENGTH) "$jniinput"
 %apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
+/* Enable write-back for non-const version */
 %typemap(argout)  (char *STRING, size_t LENGTH) {
   if ($input) JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, 0);
 }
