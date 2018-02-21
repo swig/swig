@@ -1,6 +1,6 @@
 /* Last error */
 static int SWIG_lasterror_code = 0;
-static char SWIG_lasterror_msg[1024];
+static char SWIG_lasterror_msg[65536];
 SWIGRUNTIME void SWIG_Error(int code, const char *format, ...) {
   SWIG_lasterror_code = code;
   va_list arg;
