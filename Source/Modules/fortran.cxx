@@ -1081,9 +1081,6 @@ void FORTRAN::cfuncWrapper(Node *n) {
 
   Printf(cfunc->code, "}\n");
 
-  // Update contract assertion macro to include 'return' function
-  Replaceall(cfunc->code, "SWIG_contract_assert(", "SWIG_contract_assert(return $null, ");
-
   // Apply standard SWIG substitutions
   if (Strstr(cfunc->code, "$")) {
     // Cleanup code if a function exits early -- in practice, not used.

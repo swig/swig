@@ -28,15 +28,8 @@
 %}
 #endif
 
-/* Contract support.
- *
- * Note that RETURNNULL is first because it's inserted via a 'Replaceall' in
- * the fortran.cxx file.
- */
-%insert("runtime") %{
-#define SWIG_contract_assert(RETURNNULL, EXPR, MSG) \
-    if (!(EXPR)) { SWIG_exception_impl("$decl", SWIG_ValueError, MSG, RETURNNULL); }
-%}
-
+/* Support for the `contract` feature. */
+#define SWIG_contract_assert(EXPR, MSG) \
+    if (!(EXPR)) { SWIG_exception_impl("$decl", SWIG_ValueError, MSG, return $null); }
 
 /* vim: set ts=2 sw=2 sts=2 tw=129 : */
