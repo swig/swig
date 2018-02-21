@@ -743,7 +743,8 @@ The above code will wrap (by default) *every* function call. (The standard SWIG
 `%allowexception` and `%noallowexception` directives can be used to selectively
 enable or disable exception handling.) Before calling the wrapped function,
 the call to `SWIG_check_unhandled_exception` ensures that no previous unhandled
-error exists.
+error exists.  If you wish to wrap only a few functions with only specific
+exceptions, use the ["throws" typemap](SWIG.html#throws_typemap).
 
 When exception handling code is used, SWIG generates a few internal data
 structures as well as two externally accessible symbols with external C linkage
@@ -759,6 +760,22 @@ custom names before including the exception handling file:
 #define SWIG_FORTRAN_ERROR_STR get_my_serr
 %include <std_except.i>
 ```
+
+If you're linking multiple modules together (using %import or otherwise), only
+one of those modules should define the error integer and accessor. Every other
+module needs to add
+```swig
+%include <extern_exception.i>
+```
+before any other module is `%import`ed (or any other exception-related source
+files are `%include`d). This inserts the correct exception macros in the
+wrapper code and *declares* (but does not define) the external-linkage error
+function and variable. You must also ensure the `SWIG_FORTRAN_ERROR_INT` macro
+is correctly defined before this include if it's being used upstream.
+
+If you forget to make the above inclusion and an `%import`ed module loads
+`exception.i`, a SWIG error will be displayed with a reminder of what to do. If
+*all* of your modules declare `extern_exception.i`, 
 
 <!-- ###################################################################### -->
 

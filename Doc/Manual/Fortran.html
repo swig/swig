@@ -975,7 +975,7 @@ void do_it(int i)
 
 
 <p>
-The above code will wrap (by default) <em>every</em> function call. (The standard SWIG <code>%allowexception</code> and <code>%noallowexception</code> directives can be used to selectively enable or disable exception handling.) Before calling the wrapped function, the call to <code>SWIG_check_unhandled_exception</code> ensures that no previous unhandled error exists.
+The above code will wrap (by default) <em>every</em> function call. (The standard SWIG <code>%allowexception</code> and <code>%noallowexception</code> directives can be used to selectively enable or disable exception handling.) Before calling the wrapped function, the call to <code>SWIG_check_unhandled_exception</code> ensures that no previous unhandled error exists. If you wish to wrap only a few functions with only specific exceptions, use the <a href="SWIG.html#throws_typemap">“throws” typemap</a>.
 </p>
 
 
@@ -994,6 +994,26 @@ The names of the integer and string accessor have C linkage and thus must be uni
 %include &lt;std_except.i&gt;
 </code></pre>
 </div>
+
+
+<p>
+If you’re linking multiple modules together (using %import or otherwise), only one of those modules should define the error integer and accessor. Every other module needs to add
+</p>
+
+
+<div class="code"><pre><code>%include &lt;extern_exception.i&gt;
+</code></pre>
+</div>
+
+
+<p>
+before any other module is <code>%import</code>ed (or any other exception-related source files are <code>%include</code>d). This inserts the correct exception macros in the wrapper code and <em>declares</em> (but does not define) the external-linkage error function and variable. You must also ensure the <code>SWIG_FORTRAN_ERROR_INT</code> macro is correctly defined before this include if it’s being used upstream.
+</p>
+
+
+<p>
+If you forget to make the above inclusion and an <code>%import</code>ed module loads <code>exception.i</code>, a SWIG error will be displayed with a reminder of what to do. If <em>all</em> of your modules declare <code>extern_exception.i</code>,
+</p>
 
 <!-- ###################################################################### -->
 

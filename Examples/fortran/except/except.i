@@ -1,6 +1,10 @@
 /* File : except.i */
 %module except
 
+/* Rename the error variables */
+#define SWIG_FORTRAN_ERROR_INT ierr_test
+#define SWIG_FORTRAN_ERROR_STR get_serr_test
+
 %include <std_except.i>
 
 %exception {

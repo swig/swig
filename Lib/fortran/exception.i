@@ -6,7 +6,13 @@
  * well.
  * ------------------------------------------------------------------------- */
 
-// Allow the user to change the name of the error flag on the fortran side
+/* Error if this file is being imported without being loaded through
+ * extern_exception.i */
+#if defined(SWIGIMPORTED) && !defined(SWIG_FORTRAN_EXTERN_EXCEPTION)
+#error "exception.i cannot be %imported directly: instead, %include <extern_exception.i> just below your %module declaration"
+#endif
+
+/* Allow the user to change the name of the error flag on the fortran side */
 #ifndef SWIG_FORTRAN_ERROR_INT
 #define SWIG_FORTRAN_ERROR_INT ierr
 #endif
