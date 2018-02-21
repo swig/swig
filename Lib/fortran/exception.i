@@ -106,7 +106,7 @@ SWIGEXPORT void SWIG_check_unhandled_exception_impl(const char* decl) {
     msg += decl;
     msg += "; ";
     std::string prev_msg = SWIG_FORTRAN_ERROR_STR();
-    prev_msg.front() = std::tolower(prev_msg.front());
+    prev_msg[0] = std::tolower(prev_msg[0]);
     msg += prev_msg;
     throw std::runtime_error(msg);
   }

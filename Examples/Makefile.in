@@ -2029,7 +2029,7 @@ FORTRAN = @FORTRAN@
 FORTRANCFLAGS =
 FORTRAN_RUNME = $(RUNME)
 FORTRAN_CSUMMARY = "summary-c.txt"
-FORTRAN_SUMMARY = "summary.txt"
+FORTRAN_CXXSUMMARY = "summary-cxx.txt"
 FOBJ = $(INTERFACE:.i=_fort.@OBJEXT@)
 
 ifneq (,$(SRCDIR))
@@ -2049,20 +2049,18 @@ fortran: $(SRCDIR_SRCS)
 	$(TCLLDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(FOBJ) $(TCL_DLNK) \
 			$(LIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO) \
 		|| (echo "$(TARGET)|failed to link" >> $(FORTRAN_CSUMMARY) && exit 1)
-	echo "$(TARGET)|passed" >> $(FORTRAN_CSUMMARY)
 
 fortran_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -fortran -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH) \
-		|| (echo "$(TARGET)|failed to run swig" >> $(FORTRAN_SUMMARY) && exit 1)
+		|| (echo "$(TARGET)|failed to run swig" >> $(FORTRAN_CXXSUMMARY) && exit 1)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(FORTRANCFLAGS) \
 			$(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) \
-		|| (echo "$(TARGET)|failed to compile wrapper" >> $(FORTRAN_SUMMARY) && exit 1)
+		|| (echo "$(TARGET)|failed to compile wrapper" >> $(FORTRAN_CXXSUMMARY) && exit 1)
 	$(FORTRAN) -c $(TARGET).f90 -o $(FOBJ) \
-		|| (echo "$(TARGET)|failed to compile fortran" >> $(FORTRAN_SUMMARY) && exit 1)
+		|| (echo "$(TARGET)|failed to compile fortran" >> $(FORTRAN_CXXSUMMARY) && exit 1)
 	$(TCLCXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(FOBJ) $(TCL_DLNK) \
 			$(LIBS) $(CXX_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO) \
-		|| (echo "$(TARGET)|failed to link" >> $(FORTRAN_SUMMARY) && exit 1)
-	echo "$(TARGET)|passed" >> $(FORTRAN_SUMMARY)
+		|| (echo "$(TARGET)|failed to link" >> $(FORTRAN_CXXSUMMARY) && exit 1)
 
 fortran_run: $(SRCDIR_SRCS)
 	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) ./$(RUNME).exe $(RUNPIPE)

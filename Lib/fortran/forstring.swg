@@ -54,7 +54,7 @@ class string;
 %typemap(out, fragment="<stdlib.h>", fragment="<string.h>") std::string NATIVE %{
   $result.size = $1.size();
   if ($result.size > 0) {
-    $result.data = std::malloc($result.size);
+    $result.data = malloc($result.size);
     memcpy($result.data, $1.c_str(), $result.size);
   } else {
     $result.data = NULL;

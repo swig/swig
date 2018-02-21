@@ -4,7 +4,8 @@
 
 %{
 #include <set>
-  %}
+%}
+
 template<class _Key, class _Compare = std::less<_Key>, class _Alloc = allocator<_Key> >
 class set {
 public:

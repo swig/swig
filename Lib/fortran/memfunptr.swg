@@ -2,6 +2,13 @@
  * memfunptr.swg
  * ------------------------------------------------------------------------- */
 
+/* The size of the opaque object that stores the member function pointer.
+ *
+ * This could be overridden by generating a config.h file with the actual maximum function pointer size and %include-ing that configure file in a local forfragments.swg file. */
+#ifndef SWIG_MEMFUNPTR_SIZE
+%define SWIG_MEMFUNPTR_SIZE 32 %enddef
+#endif
+
 /* -------------------------------------------------------------------------
  * BRUTE CAST
  * ------------------------------------------------------------------------- */
@@ -14,13 +21,13 @@
 template<typename Dst, typename Src>
 SWIGINTERN void SWIG_opaque_memcpy(Dst* dst, const Src* src) {
   const size_t MINSIZE
-    = (sizeof(dst) < sizeof(src) ? sizeof(dst) : sizeof(src));
+    = (sizeof(Dst) < sizeof(Src) ? sizeof(Dst) : sizeof(Src));
   const size_t MAXSIZE
-    = (sizeof(dst) > sizeof(src) ? sizeof(dst) : sizeof(src));
-  std::memcpy(dst, src, MINSIZE);
+    = (sizeof(Dst) > sizeof(Src) ? sizeof(Dst) : sizeof(Src));
+  memcpy(dst, src, MINSIZE);
   if (MAXSIZE > MINSIZE)
   {
-    std::memset(static_cast<char*>(static_cast<void*>(dst)) + MINSIZE,
+    memset(static_cast<char*>(static_cast<void*>(dst)) + MINSIZE,
                 MAXSIZE - MINSIZE,
                 0);
   }
@@ -69,33 +76,34 @@ using swig::brute_cast;
  * ------------------------------------------------------------------------- */
 
 // Add array wrapper to C++ code when used by Fortran fragment
-%fragment("SwigOpaqueMemFunPtr", "header", fragment="<string.h>") %{
+%fragment("SwigOpaqueMemFunPtr", "header", noblock=1, fragment="<string.h>") {
+%#if __cplusplus >= 201103L
+namespace detail { class UndefinedClass; }
+%#endif
+
 struct SwigOpaqueMemFunPtr {
-  enum { MEMPTR_SIZE = 32 };
-  char data[MEMPTR_SIZE];
-#if __cplusplus >= 201103L
-  static_assert(sizeof(void (detail::UndefinedClass::*)()) <= MEMPTR_SIZE,
+  char data[SWIG_MEMFUNPTR_SIZE];
+%#if __cplusplus >= 201103L
+  static_assert(sizeof(void (detail::UndefinedClass::*)()) <= SWIG_MEMFUNPTR_SIZE,
                 "Member pointer buffer isn't large enough");
-#endif
+%#endif
 };
 
 SWIGINTERN SwigOpaqueMemFunPtr SwigOpaqueMemFunPtr_uninitialized() {
   SwigOpaqueMemFunPtr result;
-  std::memset(result.data, sizeof(result.data), 0);
+  memset(result.data, sizeof(result.data), 0);
   return result;
 }
-%}
+}
 
 // This fragment is inserted by the fortran.cxx code when an unknown class is
 // encountered. Note for this to compile and not crash, the size of 'data' should
-// be the same size as in SwigOpaqueMemFunPtr. This can be accomplished more
-// elegantly by  generating a config.h file and including it in Fortran using
-// the C preprocessor.
-%fragment("SwigOpaqueMemFunPtr_f", "fpublic", noblock=1, fragment="SwigOpaqueMemFunPtr") %{
+// be the same size as in SwigOpaqueMemFunPtr. 
+%fragment("SwigOpaqueMemFunPtr_f", "fpublic", noblock=1, fragment="SwigOpaqueMemFunPtr") {
 type, public, bind(C) :: SwigOpaqueMemFunPtr
-  integer(C_SIGNED_CHAR), dimension(32), public :: data
+  integer(C_SIGNED_CHAR), dimension(SWIG_MEMFUNPTR_SIZE), public :: data
 end type
-%}
+}
 
 /* -------------------------------------------------------------------------
  * TYPEMAPS
@@ -126,4 +134,9 @@ end type
 // Copy to immutable member function pointers
 FORT_COPY_TYPEMAPS(SWIGTYPE (CLASS::*),
                    SWIGTYPE (CLASS::* const));
+
+%typemap(bindc, in="type(C_FUNPTR), value",
+         fragment="SwigOpaqueMemFunPtr_f") SWIGTYPE (CLASS::*), SWIGTYPE (CLASS::* const)
+  "type(SwigOpaqueMemFunPtr)"
+
 /* vim: set ts=2 sw=2 sts=2 tw=129 : */

@@ -69,7 +69,7 @@ end subroutine
 %typemap(out, fragment="<stdlib.h>", fragment="<string.h>") const char* NATIVE %{
   $result.size = strlen($1);
   if ($owner) {
-    $result.data = std::malloc($result.size);
+    $result.data = malloc($result.size);
     memcpy($result.data, $1, $result.size);
   } else {
     $result.data = $1;

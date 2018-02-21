@@ -343,6 +343,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
           Traits_t::copy_assign(pself, pother);
           break;
       }
+      break;
     case SWIG_CREF:
       switch (other->mem) {
         case SWIG_NULL:
@@ -354,6 +355,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
               "Cannot assign to a const reference", return);
           break;
       }
+      break;
   }
 }
 %}
@@ -377,11 +379,102 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
 #else
 
 %fragment("SWIG_assign_impl", "header",
-          fragment="SwigClassWrapper", fragment="<stddef.h>") %{
+          fragment="SwigClassWrapper", fragment="<stdlib.h>",
+          fragment="<string.h>") %{
 SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other, size_t size) {
-    SWIG_exception_impl("SWIG_assign_impl", SWIG_RuntimeError,
-        "Assignment is not yet implemented in C",
-        assert(0));
+  void* pself  = self->ptr;
+  void* pother = other->ptr;
+
+  switch (self->mem) {
+    case SWIG_NULL:
+      /* LHS is unassigned */
+      switch (other->mem) {
+        case SWIG_NULL: /* null op */ break;
+        case SWIG_MOVE: /* capture pointer from RHS */
+          self->ptr = other->ptr;
+          other->ptr = NULL;
+          self->mem = SWIG_OWN;
+          other->mem = SWIG_NULL;
+          break;
+        case SWIG_OWN: /* copy from RHS */
+          pself = malloc(size);
+          memcpy(pself, pother, size);
+          self->ptr = pself;
+          self->mem = SWIG_OWN;
+          break;
+        case SWIG_REF: /* pointer to RHS */
+        case SWIG_CREF:
+          self->ptr = other->ptr;
+          self->mem = other->mem;
+          break;
+      }
+      break;
+    case SWIG_OWN:
+      /* LHS owns memory */
+      switch (other->mem) {
+        case SWIG_NULL:
+          /* Delete LHS */
+          free(pself);
+          self->ptr = NULL;
+          self->mem = SWIG_NULL;
+          break;
+        case SWIG_MOVE:
+          /* Move RHS into LHS; delete RHS */
+          memcpy(pself, pother, size);
+          free(pother);
+          other->ptr = NULL;
+          other->mem = SWIG_NULL;
+          break;
+        case SWIG_OWN:
+        case SWIG_REF:
+        case SWIG_CREF:
+          /* Copy RHS to LHS */
+          memcpy(pself, pother, size);
+          break;
+      }
+      break;
+    case SWIG_MOVE:
+      SWIG_exception_impl("assignment", SWIG_RuntimeError,
+        "Left-hand side of assignment should never be in a 'MOVE' state",
+        return);
+      break;
+    case SWIG_REF:
+      /* LHS is a reference */
+      switch (other->mem) {
+        case SWIG_NULL:
+          /* Remove LHS reference */
+          self->ptr = NULL;
+          self->mem = SWIG_NULL;
+          break;
+        case SWIG_MOVE:
+          /* Move RHS into LHS; delete RHS. The original ownership stays the
+           * same. */
+          memcpy(pself, pother, size);
+          free(pother);
+          other->ptr = NULL;
+          other->mem = SWIG_NULL;
+          break;
+        case SWIG_OWN:
+        case SWIG_REF:
+        case SWIG_CREF:
+          /* Copy RHS to LHS */
+          memcpy(pself, pother, size);
+          break;
+      }
+      break;
+    case SWIG_CREF:
+      switch (other->mem) {
+        case SWIG_NULL:
+          /* Remove LHS reference */
+          self->ptr = NULL;
+          self->mem = SWIG_NULL;
+        default:
+          SWIG_exception_impl("assignment", SWIG_RuntimeError,
+              "Cannot assign to a const reference", return);
+          break;
+      }
+      break;
+  }
 }
 %}
 
@@ -391,8 +484,6 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
 #define SWIG_assign(LEFTTYPE, LEFT, RIGHTTYPE, RIGHT, FLAGS) \
     SWIG_assign_impl(LEFT, RIGHT, sizeof(LEFTTYPE));
 %}
-
-%fragment("SWIG_assign");
 
 #endif
 

@@ -2,6 +2,11 @@
 
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) doubleArray; /* Ruby, wrong class name */
 
+#ifdef SWIGFORTRAN
+%fortran_bindc_struct(AB);
+%fortran_bindc_struct(XY);
+#endif
+
 %include <carrays.i>
 
 %array_functions(int,intArray);

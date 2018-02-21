@@ -84,6 +84,13 @@ end function
   %typemap(fout) CPPTYPE
     "$result = $1"
 
+  // Treat rvalue references as values
+  %apply CPPTYPE { CPPTYPE&& };
+  %typemap(in) CPPTYPE&& (CPPTYPE temp)
+    "temp = *$input; $1 = &temp;"
+  %typemap(out) CPPTYPE&&
+    "$result = *$1;"
+
   // Mutable references are passed by pointers as arguments, but they're
   // *returned* as actual pointers (becoming Fortran pointers). Again we face
   // problems when these typemaps are "applied" to a different type. Ideally we
@@ -258,7 +265,7 @@ FORT_COPY_TYPEMAPS(const void*,
                    SWIGTYPE* const *, SWIGTYPE* const [], SWIGTYPE* const [ANY]);
 
 // Generic pointers are treated as C pointers when binding
-%typemap(bindc, in="type(C_PTR), value") SWIGTYPE*
+%typemap(bindc, in="type(C_PTR), value") SWIGTYPE*, const SWIGTYPE*
   "type(C_PTR)"
 
 /* -------------------------------------------------------------------------
@@ -280,10 +287,10 @@ FORT_COPY_TYPEMAPS(const void*,
 %typemap(fout)   SWIGTYPE (*)(ANY)
   "$result = $1"
 
-// Copy to immutable function pointers
 FORT_COPY_TYPEMAPS(SWIGTYPE (*)(ANY), SWIGTYPE (*const)(ANY));
 
-%typemap(bindc, in="type(C_FUNPTR), value") SWIGTYPE (*)(ANY)
+// Function pointers can be bound directly
+%typemap(bindc, in="type(C_FUNPTR), value") SWIGTYPE (*)(ANY), SWIGTYPE (*const)(ANY)
   "type(C_FUNPTR)"
 
 /* -------------------------------------------------------------------------

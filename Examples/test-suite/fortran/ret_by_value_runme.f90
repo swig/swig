@@ -1,33 +1,28 @@
-program ret_by_value_runme
+! File : ret_by_value_runme.f90
 
+program ret_by_value_runme
   use ret_by_value
-  use iso_fortran_env
-  use iso_c_binding
+  use ISO_C_BINDING
+  implicit none
 
   type(test) :: test_val
-  logical :: okay
-  integer(c_short) :: short
-  integer(c_int) :: int
-
-  okay = .true.
+  integer(C_SHORT) :: short
+  integer(C_INT) :: int
 
   test_val = get_test()
 
   int = test_val%myInt
   short = test_val%myShort
 
-  if(test_val%myInt /= 100) then
-    write(*,*)"Wrong value for %myInt",100
-    okay = .false.
+  if(test_val%myInt /= 100_C_INT) then
+    write(*,*)"Wrong value for %myInt", test_val%myInt
+    stop 1
   endif
 
-  if(test_val%myShort /= 200) then
-    write(*,*)"Wrong value for "
-    okay = .false.
-  endif
-
-
-  if(.not.okay) then
+  if(test_val%myShort /= 200_C_SHORT) then
+    write(*,*)"Wrong value for %myShort", test_val%myShort
     stop 1
   endif
 end program
+
+! vim: set ts=2 sw=2 sts=2 tw=129 :

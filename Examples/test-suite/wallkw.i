@@ -11,10 +11,15 @@
 %warnfilter(SWIGWARN_PARSE_KEYWORD) _123_leading_underscore; // leading underscores and numbers are illegal in fortran
 
 #ifdef SWIGFORTRAN
-// Ignore identifiers that are renamed to illegal fortran
-%ignore delegate;
-%ignore pass;
-%ignore alias;
+// Disallow renaming of language keywords to invalid fortran identifiers
+%rename("delegate_") delegate;
+%rename("pass_") pass;
+%rename("alias_") alias;
+#else
+// Silence warning for renamed identifiers
+%warnfilter(SWIGWARN_LANG_IDENTIFIER,SWIGWARN_PARSE_KEYWORD) delegate;
+%warnfilter(SWIGWARN_LANG_IDENTIFIER,SWIGWARN_PARSE_KEYWORD) pass;
+%warnfilter(SWIGWARN_LANG_IDENTIFIER,SWIGWARN_PARSE_KEYWORD) alias;
 #endif
 
 %inline %{

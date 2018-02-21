@@ -3,7 +3,9 @@
  * ------------------------------------------------------------------------- */
 
 %{
+#if __cplusplus >= 201103L
 #include <array>
+#endif
 %}
 
 #warning "std::array support is not yet implemented"

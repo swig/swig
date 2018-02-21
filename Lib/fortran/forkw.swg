@@ -3,135 +3,326 @@
  * ------------------------------------------------------------------------- */
 
 #ifdef __cplusplus
-// Give special names to special operations
-//%rename(__ptr__)    *::operator->;
-//%rename(__deref__)  *::operator*();
-//%ignore *::operator*() const;
-//%rename(__assign__) *::operator=;
-//%rename(__eq__) *::operator==;
+/* Give special names to special operations
+%rename(__ptr__)    *::operator->;
+%rename(__deref__)  *::operator*();
+%ignore *::operator*() const;
+%rename(__assign__) *::operator=;
+%rename(__eq__) *::operator==;
+*/
 %ignore *::operator->;
 %ignore *::operator*();
 %ignore *::operator=;
 
-// Add suffix
+/* Rename member functions that conflict with our special ones */
 %keywordwarn("'release' is reserved for SWIG destructors",
              rename="release_") "*::release";
-%keywordwarn("'final' is reserved for SWIG finalization routines",
-             rename="final_") "*::release";
 #endif
 
-// Prevent identifiers from having a leading underscore.
-// Since SWIG uses "__dummy_%d__" internally for %template()-instantiated
-// classes, ignore identifiers that also end with _.
-%namewarn("Fortran identifiers may not begin with underscores or numerals; "
-          "prepending 'f' to %s",
+/* Prevent identifiers from having a leading underscore.
+   Since SWIG uses "__dummy_%d__" internally for %template()-instantiated
+   classes, exclude identifiers that also end with _.
+ */
+%namewarn(%warningmsg(SWIGWARN_LANG_IDENTIFIER, "Fortran identifiers may not begin with underscores or numerals"),
           rename="f%s", regextarget=1) "^[_0-9]+.*[^_]+$";
 
-#define FORTRANKW(x) %keywordwarn("'" `x` "' is a Fortran keyword")  `x`
+/* We define a macro for Fortran keywords, but you can use keywords as
+ * identifiers with no problem (yes, `integer :: if` is valid), thus we don't
+ * warn about it.
+ */
+#define FORTRANKW(x) %keywordwarn("'" `x` "' is a Fortran keyword") `x`;
 
-#define FORTRANFN(x) %keywordwarn("'" `x` "' is a Fortran built-in function" `x` "'",sourcefmt="%(lower)s",%$isfunction,%$not %$ismember) `x`
+/* However, we probably do want to warn about overriding intrinsic functions; 
+ * some versions of GCC will write a compiler warning on top of that.
+ */
+#define FORTRANFN(x) %builtinwarn("'" `x` "' may shadow a Fortran intrinsic",sourcefmt="%(lower)s", %$isfunction, %$not %$ismember) `x`;
 
-
-// FORTRAN 77
-//FORTRANKW(assign);
-FORTRANKW(backspace);
-FORTRANKW(block data);
-FORTRANKW(call);
-FORTRANKW(close);
-FORTRANKW(common);
-FORTRANKW(continue);
-FORTRANKW(data);
-FORTRANKW(dimension);
-FORTRANKW(do);
-FORTRANKW(else);
-FORTRANKW(else if);
-FORTRANKW(end);
-FORTRANKW(endfile);
-FORTRANKW(endif);
-//FORTRANKW(entry);
-FORTRANKW(equivalence);
-FORTRANKW(external);
-FORTRANKW(format);
-FORTRANKW(function);
-FORTRANKW(goto);
-FORTRANKW(if);
-FORTRANKW(implicit);
-FORTRANKW(inquire);
-FORTRANKW(intrinsic);
-FORTRANKW(open);
-FORTRANKW(parameter);
-//FORTRANKW(pause);
-FORTRANKW(print);
-FORTRANKW(program);
-FORTRANKW(read);
-FORTRANKW(return);
-FORTRANKW(rewind);
-FORTRANKW(rewrite);
-FORTRANKW(save);
-FORTRANKW(stop);
-FORTRANKW(subroutine);
-FORTRANKW(then);
-FORTRANKW(write);
-
-// Fortran 90
-// FORTRANKW(allocatable);
-// FORTRANKW(allocate);
-// FORTRANKW(case);
-// FORTRANKW(contains);
-// FORTRANKW(cycle);
-// FORTRANKW(deallocate);
-// FORTRANKW(elsewhere);
-// FORTRANKW(exit);
-// FORTRANKW(include);
-// FORTRANKW(interface);
-// FORTRANKW(intent);
-// FORTRANKW(module);
-// FORTRANKW(namelist);
-// FORTRANKW(nullify);
-// FORTRANKW(only);
-// FORTRANKW(operator);
-// FORTRANKW(optional);
-// FORTRANKW(pointer);
-// FORTRANKW(private);
-// FORTRANKW(procedure);
-// FORTRANKW(public);
-// FORTRANKW(recursive);
-// FORTRANKW(result);
-// FORTRANKW(select);
-// FORTRANKW(sequence);
-// FORTRANKW(target);
-// FORTRANKW(use);
-// FORTRANKW(while);
-// FORTRANKW(where);
-
-// Fortran 95
-// FORTRANKW(elemental);
-// FORTRANKW(forall);
-// FORTRANKW(pure);
-
-// Fortran 2003
-// FORTRANKW(abstract);
-// FORTRANKW(associate);
-// FORTRANKW(asynchronous);
-// FORTRANKW(bind);
-// FORTRANKW(class);
-// FORTRANKW(deferred);
-// FORTRANKW(enum);
-// FORTRANKW(enumerator);
-// FORTRANKW(extends);
-// FORTRANKW(final);
-// FORTRANKW(flush);
-// FORTRANKW(generic);
-// FORTRANKW(import);
-// FORTRANKW(non_overridable);
-// FORTRANKW(nopass);
-// FORTRANKW(pass);
-// FORTRANKW(protected);
-// FORTRANKW(value);
-// FORTRANKW(volatile);
-// FORTRANKW(wait);
+/* This list of intrinsic procedures is from
+ * https://gcc.gnu.org/onlinedocs/gfortran/Intrinsic-Procedures.html
+ */
+FORTRANFN(abort)
+FORTRANFN(abs)
+FORTRANFN(access)
+FORTRANFN(achar)
+FORTRANFN(acos)
+FORTRANFN(acosd)
+FORTRANFN(acosh)
+FORTRANFN(adjustl)
+FORTRANFN(adjustr)
+FORTRANFN(aimag)
+FORTRANFN(aint)
+FORTRANFN(alarm)
+FORTRANFN(all)
+FORTRANFN(allocated)
+FORTRANFN(and)
+FORTRANFN(anint)
+FORTRANFN(any)
+FORTRANFN(asin)
+FORTRANFN(asind)
+FORTRANFN(asinh)
+FORTRANFN(associated)
+FORTRANFN(atan)
+FORTRANFN(atand)
+FORTRANFN(atan2)
+FORTRANFN(atan2d)
+FORTRANFN(atanh)
+FORTRANFN(atomic_add)
+FORTRANFN(atomic_and)
+FORTRANFN(atomic_cas)
+FORTRANFN(atomic_define)
+FORTRANFN(atomic_fetch_add)
+FORTRANFN(atomic_fetch_and)
+FORTRANFN(atomic_fetch_or)
+FORTRANFN(atomic_fetch_xor)
+FORTRANFN(atomic_or)
+FORTRANFN(atomic_ref)
+FORTRANFN(atomic_xor)
+FORTRANFN(backtrace)
+FORTRANFN(bessel_j0)
+FORTRANFN(bessel_j1)
+FORTRANFN(bessel_jn)
+FORTRANFN(bessel_y0)
+FORTRANFN(bessel_y1)
+FORTRANFN(bessel_yn)
+FORTRANFN(bge)
+FORTRANFN(bgt)
+FORTRANFN(bit_size)
+FORTRANFN(ble)
+FORTRANFN(blt)
+FORTRANFN(btest)
+FORTRANFN(c_associated)
+FORTRANFN(c_f_pointer)
+FORTRANFN(c_f_procpointer)
+FORTRANFN(c_funloc)
+FORTRANFN(c_loc)
+FORTRANFN(c_sizeof)
+FORTRANFN(ceiling)
+FORTRANFN(char)
+FORTRANFN(chdir)
+FORTRANFN(chmod)
+FORTRANFN(cmplx)
+FORTRANFN(co_broadcast)
+FORTRANFN(co_max)
+FORTRANFN(co_min)
+FORTRANFN(co_reduce)
+FORTRANFN(co_sum)
+FORTRANFN(command_argument_count)
+FORTRANFN(compiler_options)
+FORTRANFN(compiler_version)
+FORTRANFN(complex)
+FORTRANFN(conjg)
+FORTRANFN(cos)
+FORTRANFN(cosd)
+FORTRANFN(cosh)
+FORTRANFN(cotan)
+FORTRANFN(cotand)
+FORTRANFN(count)
+FORTRANFN(cpu_time)
+FORTRANFN(cshift)
+FORTRANFN(ctime)
+FORTRANFN(date_and_time)
+FORTRANFN(dble)
+FORTRANFN(dcmplx)
+FORTRANFN(digits)
+FORTRANFN(dim)
+FORTRANFN(dot_product)
+FORTRANFN(dprod)
+FORTRANFN(dreal)
+FORTRANFN(dshiftl)
+FORTRANFN(dshiftr)
+FORTRANFN(dtime)
+FORTRANFN(eoshift)
+FORTRANFN(epsilon)
+FORTRANFN(erf)
+FORTRANFN(erfc)
+FORTRANFN(erfc_scaled)
+FORTRANFN(etime)
+FORTRANFN(event_query)
+FORTRANFN(execute_command_line)
+FORTRANFN(exit)
+FORTRANFN(exp)
+FORTRANFN(exponent)
+FORTRANFN(extends_type_of)
+FORTRANFN(fdate)
+FORTRANFN(fget)
+FORTRANFN(fgetc)
+FORTRANFN(floor)
+FORTRANFN(flush)
+FORTRANFN(fnum)
+FORTRANFN(fput)
+FORTRANFN(fputc)
+FORTRANFN(fraction)
+FORTRANFN(free)
+FORTRANFN(fseek)
+FORTRANFN(fstat)
+FORTRANFN(ftell)
+FORTRANFN(gamma)
+FORTRANFN(gerror)
+FORTRANFN(getarg)
+FORTRANFN(get_command)
+FORTRANFN(get_command_argument)
+FORTRANFN(getcwd)
+FORTRANFN(getenv)
+FORTRANFN(get_environment_variable)
+FORTRANFN(getgid)
+FORTRANFN(getlog)
+FORTRANFN(getpid)
+FORTRANFN(getuid)
+FORTRANFN(gmtime)
+FORTRANFN(hostnm)
+FORTRANFN(huge)
+FORTRANFN(hypot)
+FORTRANFN(iachar)
+FORTRANFN(iall)
+FORTRANFN(iand)
+FORTRANFN(iany)
+FORTRANFN(iargc)
+FORTRANFN(ibclr)
+FORTRANFN(ibits)
+FORTRANFN(ibset)
+FORTRANFN(ichar)
+FORTRANFN(idate)
+FORTRANFN(ieor)
+FORTRANFN(ierrno)
+FORTRANFN(image_index)
+FORTRANFN(index)
+FORTRANFN(int)
+FORTRANFN(int2)
+FORTRANFN(int8)
+FORTRANFN(ior)
+FORTRANFN(iparity)
+FORTRANFN(irand)
+FORTRANFN(is_iostat_end)
+FORTRANFN(is_iostat_eor)
+FORTRANFN(isatty)
+FORTRANFN(ishft)
+FORTRANFN(ishftc)
+FORTRANFN(isnan)
+FORTRANFN(itime)
+FORTRANFN(kill)
+FORTRANFN(kind)
+FORTRANFN(lbound)
+FORTRANFN(lcobound)
+FORTRANFN(leadz)
+FORTRANFN(len)
+FORTRANFN(len_trim)
+FORTRANFN(lge)
+FORTRANFN(lgt)
+FORTRANFN(link)
+FORTRANFN(lle)
+FORTRANFN(llt)
+FORTRANFN(lnblnk)
+FORTRANFN(loc)
+FORTRANFN(log)
+FORTRANFN(log10)
+FORTRANFN(log_gamma)
+FORTRANFN(logical)
+FORTRANFN(long)
+FORTRANFN(lshift)
+FORTRANFN(lstat)
+FORTRANFN(ltime)
+FORTRANFN(malloc)
+FORTRANFN(maskl)
+FORTRANFN(maskr)
+FORTRANFN(matmul)
+FORTRANFN(max)
+FORTRANFN(maxexponent)
+FORTRANFN(maxloc)
+FORTRANFN(maxval)
+FORTRANFN(mclock)
+FORTRANFN(mclock8)
+FORTRANFN(merge)
+FORTRANFN(merge_bits)
+FORTRANFN(min)
+FORTRANFN(minexponent)
+FORTRANFN(minloc)
+FORTRANFN(minval)
+FORTRANFN(mod)
+FORTRANFN(modulo)
+FORTRANFN(move_alloc)
+FORTRANFN(mvbits)
+FORTRANFN(nearest)
+FORTRANFN(new_line)
+FORTRANFN(nint)
+FORTRANFN(norm2)
+FORTRANFN(not)
+FORTRANFN(null)
+FORTRANFN(num_images)
+FORTRANFN(or)
+FORTRANFN(pack)
+FORTRANFN(parity)
+FORTRANFN(perror)
+FORTRANFN(popcnt)
+FORTRANFN(poppar)
+FORTRANFN(precision)
+FORTRANFN(present)
+FORTRANFN(product)
+FORTRANFN(radix)
+FORTRANFN(ran)
+FORTRANFN(rand)
+FORTRANFN(random_number)
+FORTRANFN(random_seed)
+FORTRANFN(range)
+FORTRANFN(rank )
+FORTRANFN(real)
+FORTRANFN(rename)
+FORTRANFN(repeat)
+FORTRANFN(reshape)
+FORTRANFN(rrspacing)
+FORTRANFN(rshift)
+FORTRANFN(same_type_as)
+FORTRANFN(scale)
+FORTRANFN(scan)
+FORTRANFN(secnds)
+FORTRANFN(second)
+FORTRANFN(selected_char_kind)
+FORTRANFN(selected_int_kind)
+FORTRANFN(selected_real_kind)
+FORTRANFN(set_exponent)
+FORTRANFN(shape)
+FORTRANFN(shifta)
+FORTRANFN(shiftl)
+FORTRANFN(shiftr)
+FORTRANFN(sign)
+FORTRANFN(signal)
+FORTRANFN(sin)
+FORTRANFN(sind)
+FORTRANFN(sinh)
+FORTRANFN(size)
+FORTRANFN(sizeof)
+FORTRANFN(sleep)
+FORTRANFN(spacing)
+FORTRANFN(spread)
+FORTRANFN(sqrt)
+FORTRANFN(srand)
+FORTRANFN(stat)
+FORTRANFN(storage_size)
+FORTRANFN(sum)
+FORTRANFN(symlnk)
+FORTRANFN(system)
+FORTRANFN(system_clock)
+FORTRANFN(tan)
+FORTRANFN(tand)
+FORTRANFN(tanh)
+FORTRANFN(this_image)
+FORTRANFN(time)
+FORTRANFN(time8)
+FORTRANFN(tiny)
+FORTRANFN(trailz)
+FORTRANFN(transfer)
+FORTRANFN(transpose)
+FORTRANFN(trim)
+FORTRANFN(ttynam)
+FORTRANFN(ubound)
+FORTRANFN(ucobound)
+FORTRANFN(umask)
+FORTRANFN(unlink)
+FORTRANFN(unpack)
+FORTRANFN(verify)
+FORTRANFN(xor)
 
 #undef FORTRANKW
+#undef FORTRANFN
 
 
 /* vim: set ts=2 sw=2 sts=2 tw=129 : */

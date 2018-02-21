@@ -116,6 +116,12 @@ double (Shape::*perimetervar)(void) const = &Shape::perimeter;
 PerimeterFunc_td perimetervar_td = &Shape::perimeter;
 %}
 
+#ifdef SWIGFORTRAN
+/* Prevent the '0' from being wrapped like a compile-time constant.
+ * Alternatively, use nullptr.
+ */
+%noparameter NULLPT;
+#endif
 
 /* Some constants */
 %constant double (Shape::*AREAPT)(void) const = &Shape::area;

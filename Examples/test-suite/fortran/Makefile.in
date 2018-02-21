@@ -5,7 +5,6 @@
 LANGUAGE	= fortran
 FORTRAN		= @FORTRAN@
 FC      	= @FC@
-host		= @host@
 SCRIPTSUFFIX= _runme.f90
 
 FORTRANOBJEXT = o
@@ -21,32 +20,39 @@ include $(srcdir)/failing-cpp-tests.mk
 include $(srcdir)/failing-c-tests.mk
 include $(srcdir)/../common.mk
 
+FORTRAN_CSUMMARY = "summary-c.txt"
+FORTRAN_CXXSUMMARY = "summary-cxx.txt"
+
 .SUFFIXES: .cpptest .ctest .multicpptest
 
 # Rules for the different types of tests
 %.cpptest:
 	$(setup)
 	+$(swig_and_compile_cpp)
-	$(run_testcase_cpp)
+	$(run_testcase)
+	echo "$(TARGET)|passed" >> $(FORTRAN_CXXSUMMARY)
 
 %.ctest:
 	$(setup)
 	+$(swig_and_compile_c)
-	$(run_testcase_cpp)
+	$(run_testcase)
+	echo "$(TARGET)|passed" >> $(FORTRAN_CSUMMARY)
 
 %.multicpptest:
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
-	$(run_testcase_cpp)
+	$(run_testcase)
+	echo "$(TARGET)|passed" >> $(FORTRAN_CXXSUMMARY)
 
 # Runs the testcase.
-run_testcase_cpp = \
-	if test -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
-	    $(COMPILETOOL) $(FORTRAN) $*.f90 -c; \
-	    $(COMPILETOOL) $(FORTRAN) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -c; \
-	    $(COMPILETOOL) $(FORTRAN) -o $*_runme.exe $(SCRIPTPREFIX)$*.@OBJEXT@ $(SCRIPTPREFIX)$*_runme.@OBJEXT@ \
-			$(LIBPREFIX)$*$(TCL_SO); \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme.exe; \
+run_testcase = \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  $(COMPILETOOL) $(FORTRAN) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -c \
+		|| (echo "$*|failed to build test" >> $(FORTRAN_CSUMMARY) && exit 1); \
+	  $(COMPILETOOL) $(FORTRAN) -o $*_runme.exe $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $(LIBPREFIX)$*$(TCL_SO) \
+		|| (echo "$*|failed to link test" >> $(FORTRAN_CSUMMARY) && exit 1); \
+      env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme.exe \
+		|| (echo "$*|failed to run test" >> $(FORTRAN_CSUMMARY) && exit 1) \
 	fi
 
 %.clean:

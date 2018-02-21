@@ -386,6 +386,9 @@ private:
   String *f_finterfaces;                                 //!< Fortran interface declarations to SWIG functions
   String *f_fwrapper;                                    //!< Fortran subroutine wrapper functions
 
+  // Keep track of "No $fclassname replacement
+  Hash *d_warned_fclassname;
+
   // Module-wide procedure interfaces
   Hash *d_overloads;                                 //!< Overloaded subroutine -> overload names
 
@@ -420,7 +423,7 @@ public:
   virtual String *makeParameterName(Node *n, Parm *p, int arg_num, bool is_setter = false) const;
   virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm);
 
-  FORTRAN() : d_overloads(NULL), d_method_overloads(NULL), d_enum_public(NULL) {}
+  FORTRAN() : d_warned_fclassname(NULL), d_overloads(NULL), d_method_overloads(NULL), d_enum_public(NULL) {}
 
 private:
   void cfuncWrapper(Node *n);
@@ -438,7 +441,7 @@ private:
   void replace_fspecial_impl(SwigType *classnametype, String *tm, const char *classnamespecialvariable, bool is_enum);
 
   // Add lowercase symbol (fortran)
-  int add_fsymbol(String *s, Node *n);
+  int add_fsymbol(String *s, Node *n, int warning=WARN_FORTRAN_NAME_CONFLICT);
   // Make a unique symbolic name
   String *make_unique_symname(Node *n);
   // Get overloads of the given named method
@@ -566,6 +569,7 @@ int FORTRAN::top(Node *n) {
   Swig_name_register("set", "set_%n%v");
   Swig_name_register("get", "get_%n%v");
 
+  d_warned_fclassname = NewHash();
   d_overloads = NewHash();
 
   // Declare scopes: fortran types and forward-declared types
@@ -711,44 +715,39 @@ void FORTRAN::write_module(String *filename) {
  * \brief Process a %module
  */
 int FORTRAN::moduleDirective(Node *n) {
-  Language::moduleDirective(n);
-
-  // Check for module name uniqueness. If this is the "real" module command
-  // then the symbol should be the first instance; but if the code mistakenly
-  // has multiple %module directives only the first should be considered.
-  String *modname = Getattr(n, "name");
-  bool added_symbol = add_fsymbol(modname, n);
-
+  String *modname = Swig_string_lower(Getattr(n, "name"));
+  int success = this->add_fsymbol(modname, n, WARN_NONE);
+  
   if (ImportMode) {
     // This %module directive is inside another module being %imported
     Printv(f_fmodule, " use ", modname, "\n", NULL);
-    return SWIG_OK;
-  }
-
-  if (!added_symbol) {
-    return SWIG_NOWRAP;
-  }
-
-  // Write documentation if given. Note that it's simply labeled "docstring"
-  // and in a daughter node; to unify the doc string processing we just set
-  // it as a feature attribute on the module.
-  Node *options = Getattr(n, "options");
-  if (options) {
-    String *docstring = Getattr(options, "docstring");
-    if (docstring) {
-      Setattr(n, "feature:docstring", docstring);
-      this->write_docstring(n, f_fmodule);
+    success = SWIG_OK;
+  } else if (success) {
+    // This is the first time the `%module` directive is seen. (Note that
+    // other `%module` directives may be present, but they're
+    // given the same name as the main module and should be ignored.
+    // Write documentation if given. Note that it's simply labeled "docstring"
+    // and in a daughter node; to unify the doc string processing we just set
+    // it as a feature attribute on the module.
+    Node *options = Getattr(n, "options");
+    if (options) {
+      String *docstring = Getattr(options, "docstring");
+      if (docstring) {
+        Setattr(n, "feature:docstring", docstring);
+        this->write_docstring(n, f_fmodule);
+      }
     }
+
+    Printv(f_fmodule,
+           "module ",
+           modname,
+           "\n"
+           " use, intrinsic :: ISO_C_BINDING\n",
+           NULL);
   }
 
-  Printv(f_fmodule,
-         "module ",
-         modname,
-         "\n"
-         " use, intrinsic :: ISO_C_BINDING\n",
-         NULL);
-
-  return SWIG_OK;
+  Delete(modname);
+  return success;
 }
 
 /* -------------------------------------------------------------------------
@@ -1560,9 +1559,9 @@ void FORTRAN::assignmentWrapper(Node *n) {
          NULL);
 
   // Determine construction flags. These are ignored if C++11 is being used
-  // to compile the wrapper.
+  // to compile the wrapper. If 'default_destructor' is not set, the class probably has a private or protected destructor.
   String *flags = NewString("0");
-  if (GetFlag(n, "allocate:allocate:default_destructor")) {
+  if (GetFlag(n, "allocate:default_destructor")) {
     Printv(flags, " | swig::IS_DESTR", NULL);
   }
   if (!Abstract && GetFlag(n, "allocate:copy_constructor")) {
@@ -1683,9 +1682,15 @@ String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool setter)  
  * The superclass calls classHandler.
  */
 int FORTRAN::classDeclaration(Node *n) {
-  if (is_bindc(n)) {
-    // Prevent default constructors, destructors, etc.
-    SetFlag(n, "feature:nodefault");
+  if (!GetFlag(n, "feature:onlychildren")) {
+    if (ImportMode) {
+      // Add the class to the symbol table since it's not being wrapped
+      add_fsymbol(Getattr(n, "sym:name"), n);
+    }
+    if (is_bindc(n)) {
+      // Prevent default constructors, destructors, etc.
+      SetFlag(n, "feature:nodefault");
+    }
   }
   return Language::classDeclaration(n);
 }
@@ -2016,9 +2021,6 @@ int FORTRAN::staticmembervariableHandler(Node *n) {
  * \brief Wrap an enum declaration
  */
 int FORTRAN::enumDeclaration(Node *n) {
-  if (ImportMode)
-    return SWIG_OK;
-
   String *access = Getattr(n, "access");
   if (access && Strcmp(access, "public") != 0) {
     // Not a public enum
@@ -2050,6 +2052,10 @@ int FORTRAN::enumDeclaration(Node *n) {
   // Make sure the enum name isn't a duplicate
   if (enum_name && (add_fsymbol(enum_name, n) == SWIG_NOWRAP))
     return SWIG_NOWRAP;
+
+  // Don't generate wrappers if we're in import mode, but make sure the symbol renaming above is still performed
+  if (ImportMode)
+    return SWIG_OK;
 
   // Determine whether to add enum as a native fortran enumeration. If false,
   // the values are all wrapped as constants.
@@ -2375,10 +2381,14 @@ void FORTRAN::replace_fspecial_impl(SwigType *basetype, String *tm, const char *
 
   if (!replacementname) {
     // No class/enum type or symname was found
-    Swig_warning(WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF, input_file, line_number,
-                 "No '$fclassname' replacement (wrapped %s) found for %s\n",
-                 is_enum ? "enum" : "class",
-                 SwigType_str(basetype, 0));
+    if (!GetFlag(d_warned_fclassname, basetype)) {
+      // First time encountered with this particular class
+      Swig_warning(WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF, input_file, line_number,
+                   "No %s '$fclassname' replacement found for %s\n",
+                   is_enum ? "enum" : "class",
+                   SwigType_str(basetype, 0));
+      SetFlag(d_warned_fclassname, basetype);
+    }
     // Replace with a placeholder class
     alloc_string = NewString(is_enum ? "SwigUnknownEnum" : "SwigUnknownClass");
     // Emit the fragment that defines the class (forfragments.swg)
@@ -2406,18 +2416,20 @@ void FORTRAN::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
  *
  * Return SWIG_NOWRAP if the name conflicts.
  */
-int FORTRAN::add_fsymbol(String *s, Node *n) {
+int FORTRAN::add_fsymbol(String *s, Node *n, int warn) {
   assert(s);
   const char scope[] = "fortran";
   String *lower = Swig_string_lower(s);
   Node *existing = this->symbolLookup(lower, scope);
 
   if (existing) {
-    String *n1 = get_symname_or_name(n);
-    String *n2 = get_symname_or_name(existing);
-    Swig_warning(WARN_FORTRAN_NAME_CONFLICT, input_file, line_number,
-                 "Ignoring '%s' due to Fortran name ('%s') conflict with '%s'\n",
-                 n1, lower, n2);
+    if (warn != WARN_NONE) {
+      String *n1 = get_symname_or_name(n);
+      String *n2 = get_symname_or_name(existing);
+      Swig_warning(warn, input_file, line_number,
+                   "Ignoring '%s' due to Fortran name ('%s') conflict with '%s'\n",
+                   n1, lower, n2);
+    }
     Delete(lower);
     return SWIG_NOWRAP;
   }
