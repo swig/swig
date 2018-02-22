@@ -1517,6 +1517,15 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
 	result = apply_rename(n, rename, fullname, prefix, name);
 	if ((msg) && (Len(msg))) {
 	  if (!Getmeta(nname, "already_warned")) {
+	    String* suffix = 0;
+	    if (Strcmp(result, "$ignore") == 0) {
+	      suffix = NewStringf(": ignoring '%s'\n", name);
+	    } else if (Strcmp(result, name) != 0) {
+	      suffix = NewStringf(": renaming '%s' to '%s'\n", name, result);
+	    } else {
+	      /* No rename was performed */
+	      suffix = NewString("\n");
+	    }
 	    if (n) {
 	      /* Parameter renaming is not fully implemented. Mainly because there is no C/C++ syntax to
 	       * for %rename to fully qualify a function's parameter name from outside the function. Hence it
@@ -1524,13 +1533,14 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
 	      int suppress_parameter_rename_warning = Equal(nodeType(n), "parm");
 	      if (!suppress_parameter_rename_warning) {
 		SWIG_WARN_NODE_BEGIN(n);
-		Swig_warning(0, Getfile(n), Getline(n), "%s\n", msg);
+	      Swig_warning(0, Getfile(n), Getline(n), "%s%s", msg, suffix);
 		SWIG_WARN_NODE_END(n);
 	      }
 	    } else {
-	      Swig_warning(0, Getfile(name), Getline(name), "%s\n", msg);
+	      Swig_warning(0, Getfile(name), Getline(name), "%s%s", msg, suffix);
 	    }
 	    Setmeta(nname, "already_warned", "1");
+	    Delete(suffix);
 	  }
 	}
       }
