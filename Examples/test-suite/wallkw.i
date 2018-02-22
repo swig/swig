@@ -8,7 +8,7 @@
 %warnfilter(SWIGWARN_PARSE_KEYWORD) alias; // 'alias' is a D keyword, renaming to '_alias'
 %warnfilter(SWIGWARN_PARSE_KEYWORD) rescue; // 'rescue' is a ruby keyword, renaming to 'C_rescue'
 %warnfilter(SWIGWARN_PARSE_KEYWORD) write; // 'write' is a fortran keyword, just warn
-%warnfilter(SWIGWARN_PARSE_KEYWORD) _123_leading_underscore; // leading underscores and numbers are illegal in fortran
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) _123_leading_underscore; // leading underscores and numbers are illegal in fortran
 
 #ifdef SWIGFORTRAN
 // Disallow renaming of language keywords to invalid fortran identifiers
