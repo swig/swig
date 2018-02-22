@@ -12,13 +12,21 @@ matrix:
       sudo: required
       dist: trusty
     - os: linux
-      env: SWIGLANG= SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      env: SWIGLANG= SWIG_CC=gcc-5 SWIG_CXX=g++-5 SWIG_FC=gfortran-5 CPP11=1
       sudo: required
       dist: trusty
+      addons: &gfortran5
+        apt:
+          sources: ubuntu-toolchain-r-test
+          packages: gfortran-5
     - os: linux
-      env: SWIGLANG= SWIG_CC=gcc-6 SWIG_CXX=g++-6
+      env: SWIGLANG= SWIG_CC=gcc-6 SWIG_CXX=g++-6 SWIG_FC=gfortran-6
       sudo: required
       dist: trusty
+      addons: &gfortran6
+        apt:
+          sources: ubuntu-toolchain-r-test
+          packages: gfortran-6
     - compiler: gcc
       os: linux
       env: SWIGLANG=csharp
@@ -242,10 +250,20 @@ matrix:
       env: SWIGLANG=tcl
       sudo: required
       dist: trusty
+    - compiler: gcc
+      env: SWIGLANG=fortran SWIG_FC=gfortran-5 # Note: C++98
+      sudo: required
+      dist: trusty
+      addons: *gfortran5
     - os: linux
       env: SWIGLANG=csharp SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
       sudo: required
       dist: trusty
+    - os: linux
+      env: SWIGLANG=fortran SWIG_CC=gcc-5 SWIG_CXX=g++-5 SWIG_FC=gfortran-5 CPP11=1
+      sudo: required
+      dist: trusty
+      addons: *gfortran5
     - os: linux
       env: SWIGLANG=go SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
       sudo: required
@@ -274,6 +292,11 @@ matrix:
       env: SWIGLANG=csharp SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
       sudo: required
       dist: trusty
+    - os: linux
+      env: SWIGLANG=fortran SWIG_CC=gcc-6 SWIG_CXX=g++-6 SWIG_FC=gfortran-6 CPP14=1
+      sudo: required
+      dist: trusty
+      addons: *gfortran6
     - os: linux
       env: SWIGLANG=go SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
       sudo: required
@@ -381,6 +404,7 @@ before_install:
     # Travis overrides CC environment with compiler predefined values
   - if test -n "$SWIG_CC"; then export CC="$SWIG_CC"; fi
   - if test -n "$SWIG_CXX"; then export CXX="$SWIG_CXX"; fi
+  - if test -n "$SWIG_FC"; then export FC="$SWIG_FC"; fi
 install:
   - if test "$TRAVIS_OS_NAME" = "linux"; then source Tools/travis-linux-install.sh; fi
   - if test "$TRAVIS_OS_NAME" = "osx"; then source Tools/travis-osx-install.sh; fi
@@ -389,8 +413,10 @@ install:
   - if test -n "$CPP17"; then CONFIGOPTS+=(--enable-cpp11-testing --without-maximum-compile-warnings "CXXFLAGS=-std=c++17 -Wall -Wextra" "CFLAGS=-std=c17 -Wall -Wextra") && export CSTD=c17 && export CPPSTD=c++17; fi
   - ls -la $(which $CC)
   - ls -la $(which $CXX)
+  - if test -n "$SWIG_FC"; then ls -la $(which $FC); fi
   - $CC --version
   - $CXX --version
+  - if test -n "$SWIG_FC"; then $FC --version; fi
 script:
   - echo 'Configuring...' && echo -en 'travis_fold:start:script.1\\r'
   - if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi

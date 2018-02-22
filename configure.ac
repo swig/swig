@@ -2714,14 +2714,15 @@ if test x"${FORTRAN}" = xno; then
   AC_MSG_NOTICE([Disabling Fortran])
   FC=
 else
-
   if test "x$FORTRAN" = xyes; then
     AC_PROG_FC
   else
     FC=$FORTRAN
   fi
 
-  AC_FC_LIBRARY_LDFLAGS dnl fortran library flags
+  if test -n "$FC"; then
+    AC_FC_LIBRARY_LDFLAGS dnl fortran library flags
+  fi
 
   if test -n "$FFLAGS"; then
     FFLAGS="$FFLAGS"
@@ -2742,10 +2743,9 @@ else
         FORTRANLDSHARED='$(LDSHARED)'
         FORTRANCXXSHARED='$(CXXSHARED)'
         ;;
-    esac
-  fi
+  esac
+fi
 
-AC_SUBST(FORTRAN)
 AC_SUBST(FC)
 AC_SUBST(FFLAGS)
 AC_SUBST(FCLIBS)
@@ -3012,7 +3012,7 @@ fi
 AC_SUBST(SKIP_D)
 
 SKIP_FORTRAN=
-if test -z "$FORTRAN" ; then
+if test -z "$FC" ; then
     SKIP_FORTRAN="1"
 fi
 AC_SUBST(SKIP_FORTRAN)
