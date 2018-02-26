@@ -5,14 +5,11 @@
 #include <stdexcept>
 #define M_PI 3.14159265358979323846
 
+Shape::Shape() : x(0), y(0) {
+  nshapes++;
+}
 Shape::~Shape() {
   nshapes--;
-}
-
-/* Move the shape to a new location */
-void Shape::move(double dx, double dy) {
-  x += dx;
-  y += dy;
 }
 
 int Shape::nshapes = 0;

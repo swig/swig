@@ -3,13 +3,12 @@
 #######################################################################
 
 LANGUAGE	= fortran
-FORTRAN		= @FORTRAN@
 FC      	= @FC@
 SCRIPTSUFFIX= _runme.f90
 
 FORTRANOBJEXT = o
 
-TCL_SO = @TCL_SO@
+FORTRAN_SO = @FORTRAN_SO@
 
 srcdir         = @srcdir@
 top_srcdir     = @top_srcdir@
@@ -20,9 +19,6 @@ include $(srcdir)/failing-cpp-tests.mk
 include $(srcdir)/failing-c-tests.mk
 include $(srcdir)/../common.mk
 
-FORTRAN_CSUMMARY = "summary-c.txt"
-FORTRAN_CXXSUMMARY = "summary-cxx.txt"
-
 .SUFFIXES: .cpptest .ctest .multicpptest
 
 # Rules for the different types of tests
@@ -30,33 +26,30 @@ FORTRAN_CXXSUMMARY = "summary-cxx.txt"
 	$(setup)
 	+$(swig_and_compile_cpp)
 	$(run_testcase)
-	echo "$(TARGET)|passed" >> $(FORTRAN_CXXSUMMARY)
 
 %.ctest:
 	$(setup)
 	+$(swig_and_compile_c)
 	$(run_testcase)
-	echo "$(TARGET)|passed" >> $(FORTRAN_CSUMMARY)
 
 %.multicpptest:
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
-	echo "$(TARGET)|passed" >> $(FORTRAN_CXXSUMMARY)
 
 # Runs the testcase.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  $(COMPILETOOL) $(FORTRAN) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -c \
-		|| (echo "$*|failed to build test" >> $(FORTRAN_CSUMMARY) && exit 1); \
-	  $(COMPILETOOL) $(FORTRAN) -o $*_runme.exe $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $(LIBPREFIX)$*$(TCL_SO) \
-		|| (echo "$*|failed to link test" >> $(FORTRAN_CSUMMARY) && exit 1); \
-      env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme.exe \
-		|| (echo "$*|failed to run test" >> $(FORTRAN_CSUMMARY) && exit 1) \
+	$(COMPILETOOL) $(FC) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -c; \
+	$(COMPILETOOL) $(FC) -o $*_runme.exe $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $(LIBPREFIX)$*$(FORTRAN_SO); \
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme.exe; \
 	fi
 
 %.clean:
-	@rm -rf $*.o $*.a
+	@rm -rf $*.o $*.a $*.f90 $*_runme.exe
+
+clean:
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' fortran_clean
 
 cvsignore:
 	@echo Makefile

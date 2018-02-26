@@ -15,7 +15,7 @@
   FORT_FUND_TYPEMAP(CTYPE, "type($fclassname)")
 
   %fragment("SWIG_null_struct"{CTYPE}, "header",
-            fragment="<stdlib.h>") {
+            fragment="<string.h>") {
 CTYPE SWIG_null_struct_ ## CTYPE() {
   CTYPE result;
   memset(&result, sizeof(CTYPE), 0);

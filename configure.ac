@@ -400,6 +400,12 @@ case $host in
    *) LUA_SO=$SO;;
 esac
 
+AC_SUBST(FORTRAN_SO)
+case $host in
+   *-*-darwin*) FORTRAN_SO=.dylib;;
+   *) FORTRAN_SO=$SO;;
+esac
+
 # Check for specific libraries.   Used for SWIG examples
 AC_CHECK_LIB(dl, dlopen)	# Dynamic linking for SunOS/Solaris and SYSV
 AC_CHECK_LIB(dld, shl_load)	# Dynamic linking for HP-UX
@@ -2697,31 +2703,54 @@ AC_SUBST(GOVERSIONOPTION)
 #----------------------------------------------------------------
 # Look for Fortran
 #----------------------------------------------------------------
-AC_ARG_WITH(fortran, AS_HELP_STRING([--without-fortran], [Disable Fortran])
-AS_HELP_STRING([--with-fortran=path], [Set location of Fortran compiler]),
-[FORTRANBIN="$withval"], [FORTRANBIN="$alllang_default"])
 
-if test x"${FORTRANBIN}" = xno; then
+AC_ARG_WITH(fortran,
+  AS_HELP_STRING([--without-fortran], [Disable Fortran])
+  AS_HELP_STRING([--with-fortran=path], [Set location of Fortran compiler])
+  , [FORTRAN="$withval"], [FORTRAN="$alllang_default"])
+
+
+if test x"${FORTRAN}" = xno; then
   AC_MSG_NOTICE([Disabling Fortran])
-  FORTRAN=
   FC=
 else
 
-  if test "x$FORTRANBIN" = xyes; then
-    AC_CHECK_PROGS(FORTRAN, gfortran)
+  if test "x$FORTRAN" = xyes; then
+    AC_PROG_FC
   else
-    FORTRAN="$FORTRAN"
+    FC=$FORTRAN
   fi
-  FC=FORTRAN
 
-  if test -n "$FORTRAN" ; then
-      # This is where version or feature checking should go
-      AC_MSG_NOTICE([No version or capablity checks being performed for Fortran compiler])
+  AC_FC_LIBRARY_LDFLAGS dnl fortran library flags
+
+  if test -n "$FFLAGS"; then
+    FFLAGS="$FFLAGS"
+  elif test "x$GCC" = xyes; then
+    FFLAGS="-std=f2003 -Wall -Wextra -Wimplicit-procedure -Wimplicit-interface -Wno-compare-reals -ffree-line-length-none"
+  else
+    FFLAGS="-std=f2003"
   fi
-fi
 
-AC_SUBST(FC)
+  # FORTRANLDSHARED is the ld *command* used to create shared library
+  # This must make a dynamic library as opposerd to a bundle.
+  case $host in
+    *-*-darwin*)
+        FORTRANLDSHARED='$(CC) -dynamiclib'
+        FORTRANCXXSHARED='$(CXX) -dynamiclib'
+        ;;
+      *)
+        FORTRANLDSHARED='$(LDSHARED)'
+        FORTRANCXXSHARED='$(CXXSHARED)'
+        ;;
+    esac
+  fi
+
 AC_SUBST(FORTRAN)
+AC_SUBST(FC)
+AC_SUBST(FFLAGS)
+AC_SUBST(FCLIBS)
+AC_SUBST(FORTRANLDSHARED)
+AC_SUBST(FORTRANCXXSHARED)
 
 
 #----------------------------------------------------------------

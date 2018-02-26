@@ -4,11 +4,11 @@ public:
   static int nshapes;
   double x, y;
 
-  Shape() { nshapes++; }
+  Shape();
   virtual ~Shape() = 0;
-  void move(double dx, double dy);
   virtual double area() const = 0;
   virtual double perimeter() const = 0;
+  virtual const char* kind() const = 0;
 };
 
 class Circle : public Shape {
@@ -19,6 +19,7 @@ public:
   explicit Circle(double r);
   virtual double area() const;
   virtual double perimeter() const;
+  virtual const char* kind() const { return "circle"; }
 };
 
 class Square : public Shape {
@@ -29,6 +30,7 @@ public:
   explicit Square(double w) : width(w) {}
   virtual double area() const;
   virtual double perimeter() const;
+  virtual const char* kind() const { return "square"; }
 };
 
 class Sphere {
@@ -38,6 +40,7 @@ private:
 public:
   explicit Sphere(double r);
   double volume() const;
+  const char* kind() const { return "sphere"; }
 };
 
 // Function takes the base class and calls virtual functions
