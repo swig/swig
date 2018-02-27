@@ -33,10 +33,10 @@ FORT_ARRAYPTR_TYPEMAP(VTYPE, const ARRTYPE& NATIVE)
 }
 
 // C output translation typemaps: $1 is vector<VTYPE>*, $input is SwigArrayWrapper
-%typemap(out) const ARRTYPE& NATIVE %{
+%typemap(out, noblock=1) const ARRTYPE& NATIVE {
   $result.data = ($1->empty() ? NULL : &(*$1->begin()));
   $result.size = $1->size();
-%}
+}
 
 %typemap(ftype, out={$typemap(imtype, VTYPE), dimension(:), allocatable}, noblock=1)
     const ARRTYPE& NATIVE {

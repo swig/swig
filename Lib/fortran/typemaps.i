@@ -26,22 +26,21 @@
 
   %typemap(findecl)
       std::pair<const char*, std::size_t>,
-      std::pair<char*, std::size_t> %{
-    character(kind=C_CHAR), dimension(:), allocatable, target :: $1_chars
-  %}
+      std::pair<char*, std::size_t>
+    "character(kind=C_CHAR), dimension(:), allocatable, target :: $1_chars"
 
   // Fortran proxy translation code: copy var-length character type to
   // fixed-length character array
   %typemap(fin, fragment="SWIG_string_to_chararray_f", noblock=1)
       std::pair<const char*, std::size_t>,
-      std::pair<char*, std::size_t> %{
+      std::pair<char*, std::size_t> {
     call swig_string_to_chararray($input, $1_chars, $1)
-  %}
+  }
 
   %typemap(ffreearg, fragment="SWIG_restore_chararray_f", noblock=1)
-      std::pair<char*, std::size_t> %{
+      std::pair<char*, std::size_t> {
     call SWIG_restore_chararray($1_chars, $input)
-  %}
+  }
 
 %enddef
 

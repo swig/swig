@@ -22,21 +22,21 @@ SWIGINTERN SwigArrayWrapper SwigArrayWrapper_uninitialized() {
 %}
 
 // Add array wrapper to Fortran types when used
-%fragment("SwigArrayWrapper_f", "fpublic", noblock="1") %{
+%fragment("SwigArrayWrapper_f", "fpublic", noblock=1) {
 type, bind(C) :: SwigArrayWrapper
   type(C_PTR), public :: data = C_NULL_PTR
   integer(C_SIZE_T), public :: size = 0
 end type
-%}
+}
 
 // Generate a wrapper function for cstdlib's 'free' memory function
-%fragment("SWIG_free_f", "finterfaces", fragment="<stdlib.h>") %{
+%fragment("SWIG_free_f", "finterfaces", fragment="<stdlib.h>", noblock=1) {
 subroutine SWIG_free(ptr) &
   bind(C, name="free")
  use, intrinsic :: ISO_C_BINDING
  type(C_PTR), value :: ptr
 end subroutine
-%}
+}
 
 /* -------------------------------------------------------------------------
  * MACROS
@@ -84,15 +84,15 @@ end subroutine
     $typemap(imtype, VTYPE), pointer :: $1_view
   }
   
-  %typemap(fin) CPPTYPE %{
+  %typemap(fin, noblock=1) CPPTYPE {
     $1_view => $input(1)
     $1%data = c_loc($1_view)
     $1%size = size($input)
-  %}
+  }
   
   // Fortran proxy translation code: convert from imtype 1 to ftype $result
-  %typemap(fout) CPPTYPE %{
+  %typemap(fout, noblock=1) CPPTYPE {
     call c_f_pointer($1%data, $result, [$1%size])
-  %}
+  }
 %enddef
 /* vim: set ts=2 sw=2 sts=2 tw=129 : */

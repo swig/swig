@@ -110,15 +110,14 @@ end type
  * ------------------------------------------------------------------------- */
 
 %typemap(ctype, fragment="SwigOpaqueMemFunPtr",
-         null="SwigOpaqueMemFunPtr_uninitialized()") SWIGTYPE (CLASS::*) %{
-  SwigOpaqueMemFunPtr
-%}
-%typemap(in, fragment="swig::brute_cast") SWIGTYPE (CLASS::*) %{
+         null="SwigOpaqueMemFunPtr_uninitialized()") SWIGTYPE (CLASS::*)
+  "SwigOpaqueMemFunPtr"
+%typemap(in, noblock=1, fragment="swig::brute_cast") SWIGTYPE (CLASS::*) {
   $1 = brute_cast<$1_ltype>($input);
-%}
-%typemap(out, fragment="swig::brute_cast") SWIGTYPE (CLASS::*) %{
+}
+%typemap(out, noblock=1, fragment="swig::brute_cast") SWIGTYPE (CLASS::*) {
   $result = brute_cast<SwigOpaqueMemFunPtr>($1);
-%}
+}
 %typemap(imtype, in="type(SwigOpaqueMemFunPtr), intent(in), value",
          import="SwigOpaqueMemFunPtr",
          fragment="SwigOpaqueMemFunPtr_f") SWIGTYPE (CLASS::*)

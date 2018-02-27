@@ -18,7 +18,7 @@ using std::ptrdiff_t;
  * FRAGMENTS
  * ------------------------------------------------------------------------- */
 /* Convert Fortran logical values to and from C-bound integers */
-%fragment("SWIG_logical_to_int_f", "fwrapper", noblock="1") %{
+%fragment("SWIG_logical_to_int_f", "fwrapper", noblock=1) {
 function SWIG_logical_to_int(inp) &
     result(out)
   use, intrinsic :: ISO_C_BINDING
@@ -30,9 +30,9 @@ function SWIG_logical_to_int(inp) &
     out = 0
   end if
 end function
-%}
+}
 
-%fragment("SWIG_int_to_logical_f", "fwrapper", noblock="1") %{
+%fragment("SWIG_int_to_logical_f", "fwrapper", noblock=1) {
 function SWIG_int_to_logical(inp) &
     result(out)
   use, intrinsic :: ISO_C_BINDING
@@ -44,7 +44,7 @@ function SWIG_int_to_logical(inp) &
     out = .false.
   end if
 end function
-%}
+}
 
 /* -------------------------------------------------------------------------
  * MACROS
@@ -118,9 +118,8 @@ end function
   // ...except that fixed-sized arrays can be treated natively
   %typemap(ftype, out=FTYPE ", dimension(:), pointer", checkdim=1) CPPTYPE[ANY]
     FTYPE ", dimension($1_dim0), target, intent(inout)"
-  %typemap(fout, checkdim=1) CPPTYPE[ANY] %{
-      call c_f_pointer($1, $result, [$1_dim0])
-  %}
+  %typemap(fout, checkdim=1) CPPTYPE[ANY]
+    "call c_f_pointer($1, $result, [$1_dim0])"
 
   // Const pointers also are treated like raw pointers for the most part,
   // except for some constness issues. (SWIG's temporary variables are
@@ -273,11 +272,11 @@ FORT_COPY_TYPEMAPS(const void*,
  * ------------------------------------------------------------------------- */
 
 %typemap(ctype)  SWIGTYPE (*)(ANY)
-  %{$1_ltype%}
+  "$1_ltype"
 %typemap(in)     SWIGTYPE (*)(ANY)
-  %{$1 = $input;%}
+  "$1 = $input;"
 %typemap(out)    SWIGTYPE (*)(ANY)
-  %{$result = $1;%}
+  "$result = $1;"
 %typemap(imtype, in="type(C_FUNPTR), value") SWIGTYPE (*)(ANY)
   "type(C_FUNPTR)"
 %typemap(ftype, out="type(C_FUNPTR)")  SWIGTYPE (*)(ANY)
@@ -367,7 +366,7 @@ FORT_FUND_TYPEMAP(unsigned long long, "integer(C_LONG_LONG)");
 // Treat const references like values
 %apply bool { const bool& };
 // ... except our 'in' typemap has to create a temporary
-%typemap(in) const bool& (bool tempbool) {
+%typemap(in, noblock=1) const bool& (bool tempbool) {
   tempbool = (*$input ? true : false);
   $1 = &tempbool;
 }

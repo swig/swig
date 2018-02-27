@@ -27,13 +27,12 @@
 %apply int { MPI_Comm };
 
 %typemap(ftype) MPI_Comm
-"integer"
-%typemap(fin, noblock=1) MPI_Comm {
-  $1 = int($input, C_INT)
+  "integer"
+%typemap(fin) MPI_Comm
+  "$1 = int($input, C_INT)"
 }
-%typemap(fout, noblock=1) MPI_Comm {
-  $result = int($1)
-}
+%typemap(fout) MPI_Comm
+  "$result = int($1)"
 
 %typemap(in, noblock=1) MPI_Comm {
 %#ifdef HAVE_MPI

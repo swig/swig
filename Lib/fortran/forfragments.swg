@@ -9,7 +9,7 @@
   to the SWIG integer type, you could add:
 
     %fragment("SWIG_logical_to_int_f", "fwrapper",
-              noblock="1") %{
+              noblock="1") {
     function SWIG_logical_to_int(inp) &
         result(out)
       use, intrinsic :: ISO_C_BINDING
@@ -17,6 +17,6 @@
       integer(kind=C_INT) :: out
       <your code here>
     end function
-    %}
+    }
 */
 /* vim: set ts=2 sw=2 sts=2 tw=129 : */

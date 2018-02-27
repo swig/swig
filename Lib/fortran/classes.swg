@@ -506,13 +506,13 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
   "type(SwigClassWrapper), public :: swigdata"
 
 // Call destructor if the data is owned; then clear the pointer
-%typemap(fdestructor) SWIGTYPE %{
+%typemap(fdestructor, noblock=1) SWIGTYPE {
   if ($input%swigdata%mem == SWIG_OWN) then
     $action
   end if
   $input%swigdata%ptr = C_NULL_PTR
   $input%swigdata%mem = SWIG_NULL
-%}
+}
 
 /* -------------------------------------------------------------------------
  * CLASS TYPEMAPS
