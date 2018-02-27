@@ -1567,8 +1567,14 @@ void FORTRAN::assignmentWrapper(Node *n) {
   if (!Abstract && GetFlag(n, "allocate:copy_constructor")) {
     Printv(flags, " | swig::IS_COPY_CONSTR", NULL);
   }
-  if (GetFlag(n, "allocate:has_assign") && !GetFlag(n, "allocate:noassign")) {
-    Printv(flags, " | swig::IS_COPY_ASSIGN", NULL);
+  if (!GetFlag(n, "allocate:noassign")) {
+    if (GetFlag(n, "allocate:has_assign")) {
+      Printv(flags, " | swig::IS_COPY_ASSIGN", NULL);
+    } else {
+      // Otherwise, the class might be default assignable, or it might not.
+      // We don't know. Let C++11 figure it out, or the user can specialize
+      // the `swig::AssignmentTraits` class on the type.
+    }
   }
 
   // Add C code
