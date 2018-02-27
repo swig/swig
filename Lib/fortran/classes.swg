@@ -129,9 +129,7 @@ end type
  * ------------------------------------------------------------------------- */
 
 #ifdef __cplusplus
-
-// Optional "std::move" support if using C++11
-%fragment("swig::AssignmentTraits", "header", fragment="<utility>") %{
+%fragment("swig::AssignmentFlags", "runtime") %{
 namespace swig {
 
 enum AssignmentFlags {
@@ -141,6 +139,15 @@ enum AssignmentFlags {
   IS_MOVE_CONSTR = 0x08,
   IS_MOVE_ASSIGN = 0x10
 };
+
+template<class T, int Flags>
+struct assignment_flags;
+}
+%}
+
+// Optional "std::move" support if using C++11
+%fragment("swig::AssignmentTraits", "header", fragment="<utility>", fragment="swig::AssignmentFlags") %{
+namespace swig {
 
 // Define our own switching struct to support pre-c++11 builds
 template<bool Val>
@@ -212,14 +219,23 @@ SWIGINTERN void move_assign_impl(T*, U*, false_type) {
                       return);
 }
 
-template<class T>
-constexpr int assignment_flags() {
-  return   (std::is_destructible<T>::value       ? IS_DESTR       : 0)
-         | (std::is_copy_constructible<T>::value ? IS_COPY_CONSTR : 0)
-         | (std::is_copy_assignable<T>::value    ? IS_COPY_ASSIGN : 0)
-         | (std::is_move_constructible<T>::value ? IS_MOVE_CONSTR : 0)
-         | (std::is_move_assignable<T>::value    ? IS_MOVE_ASSIGN : 0);
-}
+template<class T, int Flags>
+struct assignment_flags {
+  constexpr static int value =
+             (std::is_destructible<T>::value       ? IS_DESTR       : 0)
+           | (std::is_copy_constructible<T>::value ? IS_COPY_CONSTR : 0)
+           | (std::is_copy_assignable<T>::value    ? IS_COPY_ASSIGN : 0)
+           | (std::is_move_constructible<T>::value ? IS_MOVE_CONSTR : 0)
+           | (std::is_move_assignable<T>::value    ? IS_MOVE_ASSIGN : 0);
+};
+
+#else
+
+template<class T, int Flags>
+struct assignment_flags {
+  enum { value = Flags };
+};
+
 #endif
 
 template<class T, int Flags>
@@ -363,14 +379,8 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
 // Assignment: left = right
 %fragment("SWIG_assign", "runtime",
           fragment="SWIG_assign_impl") %{
-#if __cplusplus >= 201103L
 #define SWIG_assign(LEFTTYPE, LEFT, RIGHTTYPE, RIGHT, FLAGS) \
-    SWIG_assign_impl<LEFTTYPE , RIGHTTYPE, swig::assignment_flags<LEFTTYPE >() >( \
-            LEFT, RIGHT);
-#else
-#define SWIG_assign(LEFTTYPE, LEFT, RIGHTTYPE, RIGHT, FLAGS) \
-    SWIG_assign_impl<LEFTTYPE , RIGHTTYPE, FLAGS >(LEFT, RIGHT);
-#endif
+    SWIG_assign_impl<LEFTTYPE , RIGHTTYPE, swig::assignment_flags<LEFTTYPE, FLAGS >::value >(LEFT, RIGHT);
 %}
 
 /* -------------------------------------------------------------------------

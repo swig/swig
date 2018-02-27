@@ -4,7 +4,7 @@
 
 %{
 #include <map>
-  %}
+%}
 #warning "std::map support is not yet implemented"
 
 namespace std {
