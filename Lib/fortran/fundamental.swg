@@ -253,7 +253,8 @@ end function
 // Void pointers are returned as opaque C pointers
 FORT_COPY_TYPEMAPS(void*, const void*, void* const, void&, void[], void[ANY]);
 // Handles are returned as opaque C pointers
-FORT_COPY_TYPEMAPS(void*, SWIGTYPE**, SWIGTYPE* [], SWIGTYPE* [ANY])
+FORT_COPY_TYPEMAPS(void*, SWIGTYPE**, SWIGTYPE* [], SWIGTYPE* [ANY],
+                   void**, void* [], void* [ANY])
 
 // Use const-correct arguments/return values.
 %typemap(in, noblock=1) const void* {
@@ -261,11 +262,19 @@ FORT_COPY_TYPEMAPS(void*, SWIGTYPE**, SWIGTYPE* [], SWIGTYPE* [ANY])
 }
 FORT_COPY_TYPEMAPS(const void*,
                    const SWIGTYPE**, const SWIGTYPE* [], const SWIGTYPE* [ANY],
-                   SWIGTYPE* const *, SWIGTYPE* const [], SWIGTYPE* const [ANY]);
+                   SWIGTYPE* const *, SWIGTYPE* const [], SWIGTYPE* const [ANY],
+                   const void**, const void* [], const void* [ANY],
+                   void* const *, void* const [], void* const [ANY]);
 
 // Generic pointers are treated as C pointers when binding
-%typemap(bindc, in="type(C_PTR), value") SWIGTYPE*, const SWIGTYPE*
+%typemap(bindc, in="type(C_PTR), value") SWIGTYPE*, const SWIGTYPE*, void*, void[]
   "type(C_PTR)"
+%typemap(bindc, checkdim=1) void[ANY]
+  "type(C_PTR), dimension($1_dim0)"
+%typemap(bindc, checkdim=1) SWIGTYPE *[ANY], SWIGTYPE* const [ANY]
+  "type(C_PTR), dimension($1_dim0)"
+// Handles
+%typemap(bindc) SWIGTYPE**, SWIGTYPE* [], SWIGTYPE* const *, SWIGTYPE* const [] = void*;
 
 /* -------------------------------------------------------------------------
  * FUNCTION POINTERS

@@ -9,11 +9,17 @@ SCRIPTSUFFIX= _runme.f90
 FORTRANOBJEXT = o
 
 FORTRAN_SO = @FORTRAN_SO@
+FFLAGS = @FFLAGS@
+CCSHARED=	@CCSHARED@
 
 srcdir         = @srcdir@
 top_srcdir     = @top_srcdir@
 top_builddir   = @top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
+
+C_TEST_CASES = \
+	fortran_bindc \
+	fortran_enums
 
 include $(srcdir)/failing-cpp-tests.mk
 include $(srcdir)/failing-c-tests.mk
@@ -40,8 +46,8 @@ include $(srcdir)/../common.mk
 # Runs the testcase.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	$(COMPILETOOL) $(FC) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -c; \
-	$(COMPILETOOL) $(FC) -o $*_runme.exe $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $(LIBPREFIX)$*$(FORTRAN_SO); \
+	$(COMPILETOOL) $(FC) $(FFLAGS) $(CCSHARED) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -c; \
+	$(COMPILETOOL) $(FC) $(FFLAGS) $(CCSHARED) -o $*_runme.exe $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $(LIBPREFIX)$*$(FORTRAN_SO); \
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme.exe; \
 	fi
 

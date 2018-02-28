@@ -3,25 +3,17 @@
 
 %module(ruby_minherit="1") default_constructor
 
+/* C#, D, Fortran, Java, PHP multiple inheritance */
+%define %warnfilter_multiple_inheritance(CLS)
 %warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
 	    SWIGWARN_D_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) EB; /* C#, D, Java, PHP multiple inheritance */
-
-%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
-	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
-	    SWIGWARN_D_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) AD; /* C#, D, Java, PHP multiple inheritance */
-
-%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
-	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
-	    SWIGWARN_D_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) GGG; /* C#, D, Java, PHP multiple inheritance */
-
-%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
-	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
-	    SWIGWARN_D_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) HHH; /* C#, D, Java, PHP multiple inheritance */
+	    SWIGWARN_FORTRAN_MULTIPLE_INHERITANCE,
+	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) CLS;
+%enddef
+%warnfilter_multiple_inheritance(AD);
+%warnfilter_multiple_inheritance(GGG);
+%warnfilter_multiple_inheritance(HHH);
 
 %warnfilter(SWIGWARN_LANG_FRIEND_IGNORE) F; /* friend function */
 
@@ -75,7 +67,7 @@ public:
 
 /* This class does not get a default constructor */
 class DD: public D {
-	
+
 };
 
 /* No default constructor.  A is okay, but D is not */
@@ -108,7 +100,7 @@ public:
    void foo(int, int) { }
    friend void bar(F *);
    void destroy() { delete this; }
-    
+
 };
 
 void bar(F *) { }
@@ -118,7 +110,7 @@ void bar(F *) { }
 #endif
 
 // Single inheritance, base has private destructor
-class FFF : public F { 
+class FFF : public F {
 };
 
 // Multiple inheritance, one base has private destructor
@@ -140,11 +132,11 @@ public:
   static void destroy(G *g) { delete g; }
 };
 
-class GG : public G { 
+class GG : public G {
 };
 
 template <class T>
-class HH_T 
+class HH_T
 {
 
 
@@ -153,16 +145,16 @@ public:
   HH_T(int i,int j)
   {
   }
-  
+
 
 protected:
   HH_T();
-  
+
 };
- 
- 
+
+
 %}
- 
+
 
 %template(HH) HH_T<int>;
 
@@ -178,7 +170,7 @@ protected:
 #ifndef SWIGFORTRAN
 // It's unclear to me what this typedef is trying to do. The result compiles
 // with Python but does not compile in Fortran.
-typedef void OSRSpatialReferenceShadow; 
+typedef void OSRSpatialReferenceShadow;
 #endif
 
 class OSRSpatialReferenceShadow {
@@ -188,7 +180,7 @@ public:
     OSRSpatialReferenceShadow( char const * wkt = "" ) {
       return 0;
     }
-  } 
+  }
 };
 
 %inline %{
@@ -198,4 +190,4 @@ bool is_python_builtin() { return true; }
 bool is_python_builtin() { return false; }
 #endif
 %}
-  
+

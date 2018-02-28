@@ -324,7 +324,7 @@ String *get_typemap(const_String_or_char_ptr tmname, const_String_or_char_ptr ex
  *
  * This also sets the attribute in the node.
  *
- * This function is (exclusively?) used for the "tmap:ctype" attribute, which
+ * This function is exclusively used for the "tmap:ctype" attribute, which
  * the user inputs as a plain-text C declaration but doesn't automatically get
  * converted by the SWIG type system like the "type" attribute does.
  *
@@ -333,7 +333,7 @@ String *get_typemap(const_String_or_char_ptr tmname, const_String_or_char_ptr ex
  */
 SwigType *parse_typemap(const_String_or_char_ptr tmname, const_String_or_char_ptr ext, Node *n, int warning) {
   // Get the typemap, which has the *unparsed and unsimplified* type
-  String *raw_tm = get_typemap(tmname, ext, n, warning, true);
+  String *raw_tm = get_typemap(tmname, ext, n, warning);
   // Convert the plain-text string to a SWIG type
   SwigType *parsed_type = Swig_cparse_type(raw_tm);
   assert(parsed_type);
@@ -823,9 +823,9 @@ int FORTRAN::functionWrapper(Node *n) {
     fsymname = Copy(fsymname);
   }
 
-  if (!is_cbound) {
-    // >>> GENERATE WRAPPER CODE
+  // >>> GENERATE WRAPPER CODE
 
+  if (!is_cbound) {
     // Typical function wrapping
     this->cfuncWrapper(n);
     if (this->imfuncWrapper(n) == SWIG_NOWRAP)
@@ -833,13 +833,13 @@ int FORTRAN::functionWrapper(Node *n) {
     if (this->proxyfuncWrapper(n) == SWIG_NOWRAP)
       return SWIG_NOWRAP;
   } else {
+    // Simply binding a function for Fortran
     if (CPlusPlus && !Swig_storage_isexternc(n)) {
       Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number,
                    "The function '%s' appears not to be defined with external "
                    "C linkage (extern \"C\"). Link errors may result.\n",
                    symname);
     }
-    // Simply binding a function for Fortran
 
     // Emit all of the local variables for holding arguments.
     ParmList *parmlist = Getattr(n, "parms");
@@ -931,10 +931,8 @@ void FORTRAN::cfuncWrapper(Node *n) {
 
   String *c_return_str = NULL;
   if (needs_typedef(c_return_type)) {
-    // For these types (where the name is the middle of the expression
-    // rather than at the right side,
-    // i.e. void (*func)() instead of int func,
-    // we either have to add a new typedef OR wrap the
+    // For these types (where the name is the middle of the expression rather than at the right side,
+    // i.e. void (*func)() instead of int func, we either have to add a new typedef OR wrap the
     // entire function in parens. The former is easier.
     c_return_str = NewStringf("%s_swigrtype", symname);
 
@@ -960,48 +958,48 @@ void FORTRAN::cfuncWrapper(Node *n) {
   emit_parameter_variables(parmlist, cfunc);
   Swig_typemap_attach_parms("ctype", parmlist, cfunc);
   emit_attach_parmmaps(parmlist, cfunc);
+  emit_mark_varargs(parmlist);
   Setattr(n, "wrap:parms", parmlist);
 
   // Create a list of parameters wrapped by the intermediate function
   List *cparmlist = NewList();
 
+  // Loop using the 'tmap:in:next' property rather than 'nextSibling' to account for multi-argument typemaps
   const char *prepend_comma = "";
-  Parm *p = parmlist;
-  while (p) {
+  for (Parm *p = parmlist; p; p = Getattr(p, "tmap:in:next")) {
     if (checkAttribute(p, "tmap:in:numinputs", "0")) {
-      // Skip this typemap
-      p = Getattr(p, "tmap:in:next");
+      // The typemap is being skipped with the 'numinputs=0' keyword
       continue;
-    } else if (SwigType_isvarargs(Getattr(p, "type"))) {
+    }
+    if (checkAttribute(p, "varargs:ignore", "1")) {
+      // We don't understand varargs
       Swig_warning(WARN_LANG_NATIVE_UNIMPL, Getfile(p), Getline(p),
                    "Variable arguments (in function '%s') are not implemented in Fortran.\n",
                    SwigType_namestr(Getattr(n, "sym:name")));
-    } else {
-      // Name of the argument in the function call (e.g. farg1)
-      String *imname = NewStringf("f%s", Getattr(p, "lname"));
-      Setattr(p, "imname", imname);
-      Append(cparmlist, p);
-
-      // Get the user-provided C type string, and convert it to a SWIG
-      // internal representation using Swig_cparse_type . Then convert the
-      // type and argument name to a valid C expression using SwigType_str.
-      SwigType *parsed_tm = parse_typemap("ctype", NULL, p, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
-      if (!parsed_tm) {
-        Swig_error(input_file, line_number,
-                   "Failed to parse 'ctype' typemap for argument %s of %s\n",
-                   SwigType_str(Getattr(p, "type"), Getattr(p, "name")), SwigType_namestr(symname));
-        return;
-      }
-      String *carg = SwigType_str(parsed_tm, imname);
-      Printv(cfunc->def, prepend_comma, carg, NULL);
-      Delete(carg);
-
-      // Next iteration
-      prepend_comma = ", ";
+      continue;
     }
 
-    // Next iteration
-    p = nextSibling(p);
+    // Name of the argument in the function call (e.g. farg1)
+    String *imname = NewStringf("f%s", Getattr(p, "lname"));
+    Setattr(p, "imname", imname);
+    Append(cparmlist, p);
+
+    // Get the user-provided C type string, and convert it to a SWIG
+    // internal representation using Swig_cparse_type . Then convert the
+    // type and argument name to a valid C expression using SwigType_str.
+    SwigType *parsed_tm = parse_typemap("ctype", NULL, p, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
+    if (!parsed_tm) {
+      Swig_error(input_file, line_number,
+                 "Failed to parse 'ctype' typemap for argument %s of %s\n",
+                 SwigType_str(Getattr(p, "type"), Getattr(p, "name")), SwigType_namestr(symname));
+      return;
+    }
+    String *carg = SwigType_str(parsed_tm, imname);
+    Printv(cfunc->def, prepend_comma, carg, NULL);
+    Delete(carg);
+
+    // Since we successfully output an argument, the next one should have a comma before it
+    prepend_comma = ", ";
   }
 
   // Save list of wrapped parms for im declaration and proxy

@@ -100,6 +100,7 @@
 /* TYPEMAPS */
 %include "fundamental.swg"
 %include "enums.swg"
+%include "cstring.swg"
 %include "bindc.swg"
 %include "classes.swg"
 
