@@ -68,7 +68,7 @@ end subroutine
  * ------------------------------------------------------------------------- */
 
 // C wrapper type: pointer to templated array wrapper
-%typemap(ctype, out="SwigArrayWrapper", null="SwigArrayWrapper_uninitialized()", fragment="SwigArrayWrapper") const char *
+%typemap(ctype, out="SwigArrayWrapper", null="SwigArrayWrapper_uninitialized()", fragment="SwigArrayWrapper_uninitialized") const char *
   "SwigArrayWrapper*"
 
 // Copy the output string (if owned) or reference it
@@ -118,7 +118,7 @@ FORT_COPY_TYPEMAPS_AND_DECL(const char *,
  * ------------------------------------------------------------------------- */
 
 // C wrapper type: pointer to templated array wrapper
-%typemap(ctype, noblock=1, null="SwigArrayWrapper_uninitialized()", fragment="SwigArrayWrapper") (char *STRING, size_t LENGTH)
+%typemap(ctype, noblock=1, null="SwigArrayWrapper_uninitialized()", fragment="SwigArrayWrapper_uninitialized") (char *STRING, size_t LENGTH)
   "SwigArrayWrapper*"
 
 %typemap(imtype, import="SwigArrayWrapper", fragment="SwigArrayWrapper_f") (char *STRING, size_t LENGTH)

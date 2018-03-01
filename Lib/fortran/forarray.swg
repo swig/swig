@@ -7,12 +7,23 @@
  * FRAGMENTS
  * ------------------------------------------------------------------------- */
 
-%fragment("SwigArrayWrapper", "header") %{
+#ifdef __cplusplus
+%fragment("SwigArrayWrapper", "header", fragment="<stdlib.h>") %{
 struct SwigArrayWrapper {
     void* data;
-    std::size_t size;
+    size_t size;
 };
+%}
+#else
+%fragment("SwigArrayWrapper", "header", fragment="<stdlib.h>") %{
+typedef struct {
+    void* data;
+    size_t size;
+} SwigArrayWrapper;
+%}
+#endif
 
+%fragment("SwigArrayWrapper_uninitialized", "header", fragment="SwigArrayWrapper") %{
 SWIGINTERN SwigArrayWrapper SwigArrayWrapper_uninitialized() {
   SwigArrayWrapper result;
   result.data = NULL;
@@ -30,7 +41,7 @@ end type
 }
 
 // Generate a wrapper function for cstdlib's 'free' memory function
-%fragment("SWIG_free_f", "finterfaces", fragment="<stdlib.h>", noblock=1) {
+%fragment("SWIG_free_f", "finterfaces", noblock=1) {
 subroutine SWIG_free(ptr) &
   bind(C, name="free")
  use, intrinsic :: ISO_C_BINDING
@@ -55,7 +66,7 @@ end subroutine
   // C wrapper type: pointer to templated array wrapper
   %typemap(ctype, noblock=1, out="SwigArrayWrapper",
          null="SwigArrayWrapper_uninitialized()",
-         fragment="SwigArrayWrapper") CPPTYPE {
+         fragment="SwigArrayWrapper_uninitialized") CPPTYPE {
     SwigArrayWrapper*
   }
   
