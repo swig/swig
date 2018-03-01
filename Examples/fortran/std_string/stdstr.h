@@ -7,9 +7,9 @@
 
 void print_str(const std::string &s);
 
-void halve_str(std::string &s);
+std::string halved_str(std::string s);
 
-std::string get_reversed_native_string(const std::string &input);
+std::string reversed_str(const std::string &input);
 
 #endif
 

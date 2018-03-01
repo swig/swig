@@ -8,10 +8,6 @@
 /* Replace double-precision with single in Fortran wrapper */
 %apply float { double };
 
-/* Enable C-string wrapping */
-%include <cstring.i>
-%apply const char* NATIVE { const char* };
-
 /* Enable exceptions */
 %include <std_except.i>
 %exception {

@@ -80,7 +80,7 @@ end subroutine
   // arithmetic.
   // TODO: use the "CONTIGUOUS" attribute if f2008 is being used to guarantee
   // that we can get the C location of the input array directly.
-  %typemap(findecl, noblock=1) CPPTYPE {
+  %typemap(findecl, match="fin", noblock=1) CPPTYPE {
     $typemap(imtype, VTYPE), pointer :: $1_view
   }
   

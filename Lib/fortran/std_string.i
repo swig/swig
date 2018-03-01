@@ -1,45 +1,17 @@
 /* -------------------------------------------------------------------------
  * std_string.i
+ *
+ * This header file simply applies native Fortran character string wrapping to
+ * the std::string class. Strings are returned as
+ *   character(kind=C_CHAR, len=:), allocatable
+ * and input as
+ *   character(kind=C_CHAR, len=*)
+ *
  * ------------------------------------------------------------------------- */
 
 %include <forstring.swg>
 
-%{
-#include <string>
-%}
-
-
-/* -------------------------------------------------------------------------
- * DEFINITIONS
- * ------------------------------------------------------------------------- */
-namespace std {
-class string {
-public:
-  typedef std::size_t size_type;
-  typedef char value_type;
-  //typedef const char& const_reference;
-  typedef const char *const_pointer;
-  typedef char *pointer;
-
-public:
-  // >>> Construct and assign
-
-  string();
-  void resize(size_type count);
-  void clear();
-
-  // >>> ACCESS
-
-  size_type size() const;
-  size_type length() const;
-
-  %extend {
-    %apply const std::string &NATIVE{ const std::string & str };
-    // Access as a newly allocated fortran string
-    const std::string &str() { return *$self; }
-  }
-};
-}
-
+FORT_COPY_TYPEMAPS_AND_DECL(const std::string &NATIVE, const std::string &);
+FORT_COPY_TYPEMAPS_AND_DECL(std::string NATIVE, std::string);
 
 /* vim: set ts=2 sw=2 sts=2 tw=129 : */

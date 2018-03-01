@@ -3,72 +3,41 @@
 program main
   use ISO_FORTRAN_ENV
   use, intrinsic :: ISO_C_BINDING
-  use stdstr, only : print_str, halve_str, string, create_string, &
-    get_reversed_native_string
+  use stdstr, only : print_str, halved_str, reversed_str
   implicit none
   character(len=*), parameter :: paramstr = "short string   "
-  character(len=:), allocatable :: varlen, tostr
-  character(kind=C_CHAR), dimension(:), pointer :: ptrstr
+  character(len=*), parameter :: sampletext = "Through the looking glass"
+  character(len=:), allocatable :: tempstr
   character(len=16) :: fixedlen
-  integer :: i
-  type(string) :: s
 
-  write(0, *) "Constructing..."
-  s = create_string()
-  write(0, *) "Size:", s%size()
+  write(0, *) "Print parameter string:"
+  call print_str(trim(paramstr))
 
-  call s%assign_from(trim(paramstr))
-  write(0, *) "Assigned from trimmed string:"
-  call print_str(s)
+  write(0, *) "Print trimmed parameter string:"
+  call print_str(trim(paramstr))
 
-  fixedlen = "fixed"
-  call s%assign_from(fixedlen)
-  write(0, *) "Assigned from fixed-length string:"
-  call print_str(s)
+  write(0, *) "Print inline string:"
+  call print_str("fixed")
+
+  fixedlen = "01234567" // c_null_char// "9abcdef"
+  write(0, *) "Fixed-length string with embedded null: '"//fixedlen//"'"
+  call print_str(fixedlen)
 
   ! Cut it in half and read it back out to varlen
+  tempstr = "Tacocat tacocat!"
   write(0, *) "Halving..."
-  call halve_str(s)
+  tempstr = halved_str(tempstr)
 
-  ptrstr => s%view()
-  write(0, *) "String view size:", size(ptrstr)
+  write(0, *) "Halved: '" // tempstr // "' (len=", len(tempstr), ")"
 
-  ! Get a view of the string as an array of single chars
-  call halve_str(s)
-  ptrstr => s%view()
-
-  ! NOTE: putting the size call inside the allocate call causes a crash
-  write(0, *) "Allocating and copying to varlen"
-  i = size(ptrstr)
-  allocate(character(len=i) :: varlen)
-  do i = 1,len(varlen)
-    varlen(i:i) = ptrstr(i)
-  enddo
-
-  write(0, *) "Quarter-length string: '"//varlen//"'"
-
-  ! Get using native string output operator
-  tostr = s%str()
-  write(0, *) "As native allocated string: '"//tostr//"'"
-
-  ! Copy string to fixed-length array (alternate way of extracting)
-  fixedlen = "XXXXXXXXXXXXXXXX"
-  call s%copy_to(fixedlen)
-  write(0, *) "Fixed-length string: '"//fixedlen//"'"
-
-  write(0, *) "Destroying..."
-  call s%release()
-
-  write(0, *) "Calling deallocate"
-  deallocate(varlen)
-  write(0, *) "Calling deallocate"
-  deallocate(tostr)
+  tempstr = halved_str(tempstr)
+  write(0, *) "Quarter-length string: '"//tempstr//"'"
 
   write(0, *) "Reversing"
-  varlen = "Through the looking glass"
-  tostr = get_reversed_native_string(varlen)
+  tempstr = sampletext
+  tempstr = reversed_str(tempstr)
 
-  write(0, *) "'"//varlen//"' -> '"//tostr//"'"
+  write(0, *) "'"//sampletext//"' -> '"//tempstr//"'"
 end program
 
 

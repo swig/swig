@@ -75,10 +75,10 @@
 
 /* -------------------------------------------------------------------------
  * \def FORT_COPY_TYPEMAPS
- * \brief Assign our special typemaps to one or more types from an original.
+ * \brief Assign all *required* special typemaps to one or more types from an original.
  *
  * This is basically like %apply but doesn't touch anything else SWIG has
- * set up, i.e. globalin
+ * set up, i.e. globalin .
  */
 %define FORT_COPY_TYPEMAPS(SRC_TYPE, DST_TYPE...)
   %typemap(ctype)     DST_TYPE = SRC_TYPE;
@@ -88,6 +88,10 @@
   %typemap(ftype)     DST_TYPE = SRC_TYPE;
   %typemap(fin)       DST_TYPE = SRC_TYPE;
   %typemap(fout)      DST_TYPE = SRC_TYPE;
+%enddef
+%define FORT_COPY_TYPEMAPS_AND_DECL(SRC_TYPE, DST_TYPE...)
+  FORT_COPY_TYPEMAPS(SRC_TYPE, DST_TYPE)
+  %typemap(findecl) DST_TYPE = SRC_TYPE;
 %enddef
 
 /* FRAGMENT OVERRIDES */
@@ -100,7 +104,7 @@
 /* TYPEMAPS */
 %include "fundamental.swg"
 %include "enums.swg"
-%include "cstring.swg"
+%include "forstring.swg"
 %include "bindc.swg"
 %include "classes.swg"
 

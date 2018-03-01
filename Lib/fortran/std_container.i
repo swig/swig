@@ -44,7 +44,7 @@ FORT_ARRAYPTR_TYPEMAP(VTYPE, const ARRTYPE& NATIVE)
 }
 
 // Fortran proxy translation code: convert from imtype $1 to ftype $result
-%typemap(foutdecl, noblock=1) const ARRTYPE& NATIVE {
+%typemap(foutdecl, noblock=1, match="fout") const ARRTYPE& NATIVE {
   $typemap(imtype, VTYPE), pointer :: $1_view(:)
 }
 

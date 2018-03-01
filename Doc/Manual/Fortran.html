@@ -29,6 +29,7 @@
 <li><a href="#Fortran_pointers_and_references">Pointers and references</a></li>
 <li><a href="#Fortran_strings">Strings</a></li>
 <li><a href="#Fortran_arrays">Arrays</a></li>
+<li><a href="#Fortran_byte_strings">Byte strings</a></li>
 <li><a href="#Fortran_classes_and_structs">Classes and structs</a></li>
 <li><a href="#Fortran_ignored_or_unimplemented_forward_declared_structs_and_classes">Ignored or unimplemented forward-declared structs and classes</a></li>
 <li><a href="#Fortran_enumerations">Enumerations</a></li>
@@ -45,7 +46,6 @@
 <li><a href="#Fortran_exceptions">Exceptions</a></li>
 </ul></li>
 <li><a href="#Fortran_provided_typemaps">Provided typemaps</a><ul>
-<li><a href="#Fortran_c_string">C string</a></li>
 <li><a href="#Fortran_stdstring">Std::string</a></li>
 <li><a href="#Fortran_smart_pointers">Smart pointers</a></li>
 <li><a href="#Fortran_array_views">Array views</a></li>
@@ -440,8 +440,17 @@ The astute reader may notice the omission of <code>C_BOOL</code> from the above 
 <H4><a name="Fortran_characters">Characters</a></H4>
 
 <p>
-Since <code>char*</code>, <code>const char[]</code>, etc. typically signify character strings in C and C++, the results of the default wrapping for characters may not be what you expect. See the <a href="#Fortran_c_string"><code>&lt;cstring.i&gt;</code> header</a> for how to wrap character arrays.
+Since <code>char*</code>, <code>const char[]</code>, etc. typically signify character strings in C and C++, the default behavior of these is to convert to native Fortran strings (see the <a href="#Fortran_strings">Strings</a> section). To restore the “fundamental” behavior of a character type – i.e., you want to make a <code>char *</code> return result map to <code>character(C_CHAR), pointer</code> – you can call an internal macro and apply it to the particular function or argument you need:
 </p>
+
+
+<div class="code"><pre><code>typedef char NativeChar;
+FORT_FUND_TYPEMAP(NativeChar, &quot;character(C_CHAR)&quot;)
+%apply NativeChar* { char * get_my_char_ptr };
+
+char* get_my_char_ptr();
+</code></pre>
+</div>
 
 <H3><a name="Fortran_pointers_and_references">Pointers and references</a></H3>
 
@@ -551,14 +560,87 @@ First the pointer is assigned, then the pointed-to data is assigned.
 <H3><a name="Fortran_strings">Strings</a></H3>
 
 <p>
-Fortran’s interoperability specifications prohibit using <code>C_LOC</code> on variables with length type parameters: thus the standard <code>character(len=*)</code> type cannot be natively passed to C. Instead, SWIG injects small helper functions that convert between strings and arrays of characters. The character arrays are then passed through the interface layer to C, which can reconstruct the full string.
+A long-standing difficulty with Fortran/C interaction has been the two languages’ representation of character strings. The size of a C string is determined by counting the number of characters until a null terminator <code>\0</code> is encountered. Shortening a string requires simply placing the null terminator earlier in the storage space. In contrast, the historical Fortran string is a character array sized at compile time: representing a smaller string at run time is done by filling the storage with trailing blanks. The Fortran intrinsic <code>LEN_TRIM</code> returns the length of a string without trailing blanks, and the <code>TRIM</code> function is used if necessary to return a string with those trailing blanks removed. Of course, this definition of a string means <code>foo</code> and <code>foo</code> are equivalent.
 </p>
 
 
 <p>
-Because the actual Fortran string length is passed to C during this process, character arrays with the null character can be converted to byte objects without unexpected string truncation.
+Starting with Fortran 90, strings with an unambiguous size can be dynamically allocated:
 </p>
 
+
+<div class="targetlang"><pre><code>character(kind=C_CHAR, len=:), allocatable :: mystring
+allocate(character(kind=C_CHAR, len=123) :: mystring)
+</code></pre>
+</div>
+
+
+<p>
+and the length is given by <code>LEN(mystring)</code>.
+</p>
+
+
+<p>
+SWIG injects small helper functions that convert between strings and arrays of characters, which are then passed through the interface layer to C. Because the actual Fortran string length is passed to C during this process, character arrays with the null character can be converted to byte objects without unexpected string truncation.
+</p>
+
+
+<p>
+The default <code>char*</code> typemaps assume that both the input and output are standard null-terminated C strings on the C++ side, and a variable-length string on the Fortran side (i.e. any trailing blanks are intentional). Note that by using null-terminated strings, if a Fortran string has null characters embedded in it, the string will be truncated when read by C. Thus the function as written is <em>not</em> suitable for passing binary data between C and Fortran. (See <a href="#Fortran_byte_strings">byte strings</a> for how to do this.)
+</p>
+
+
+<p>
+If a function <code>char* to_string(float f);</code> emits a <code>malloc</code>’d string value, and the output is to be wrapped by SWIG, use the <code>%newobject</code> feature to avoid memory leaks:
+</p>
+
+
+<div class="code"><pre><code>%apply const char* NATIVE { char* to_string };
+%newobject to_string;
+char* to_string(float f);
+</code></pre>
+</div>
+
+
+<p>
+The Fortran-to-C string translation performs the following steps:
+</p>
+
+<ol>
+<li>Allocates a character array of <code>len(string) + 1</code></li>
+<li>Copies the string contents into that array and sets the final character to <code>C_NULL_CHAR</code></li>
+<li>Saves the C pointer to the character array using <code>C_LOC</code> and the size to a small <code>SwigArrayWrapper</code> struct</li>
+<li>Passes this struct to the C wrapper code, which uses the data pointer.</li>
+</ol>
+
+<p>
+The C-to-Fortran string translation is similar:
+</p>
+
+<ol>
+<li>Use <code>strlen</code> to save the string length to <code>SwigArrayWrapper.size</code>, and save the pointer to the data; return this struct to Fortran</li>
+<li>Call <code>C_F_POINTER</code> to reinterpret the opaque C pointer as a character array</li>
+<li>Allocate a new string with a length determined by the <code>size</code> member</li>
+<li>Copy the character array to the new string</li>
+<li>If the <code>%newobject</code> feature applies, call the C-bound <code>free</code> function.</li>
+</ol>
+
+<p>
+The intermediate step of allocating and copying an array is required not only to add a null terminator but also because the Fortran’s interoperability specifications prohibit using <code>C_LOC</code> on variables with length type parameters. Thus the standard <code>character(len=*)</code> type cannot be natively passed to C.
+</p>
+
+
+<p>
+Improved support for the various character typemaps and representations (as in the standard SWIG <code>&lt;cstring.i&gt;</code> which provides <code>%cstring_bounded_output</code>) could be implemented in a later version of SWIG.
+</p>
+
+
+<p>
+Note: it seems that some Fortran compilers (gfortran 5.5) emit a spurious warning when assigning an allocatable string returned by one of these functions:
+</p>
+
+<pre><code>Warning: &#39;.str&#39; may be used uninitialized in this function [-Wmaybe-uninitialized]
+</code></pre>
 
 <p>
 Currently SWIG provides typemaps (see the <a href="#Fortran_provided_typemaps">Typemaps section</a> ) that allow transparent conversion between Fortran character arrays and null-terminated C strings, as well as C++ <code>std::string</code> objects.
@@ -581,6 +663,43 @@ int global_data2[];  /* OK */
 int global_data3[sizeof(int)];  /* WARN AND IGNORE */
 </code></pre>
 </div>
+
+<H3><a name="Fortran_byte_strings">Byte strings</a></H3>
+
+<p>
+SWIG provides a two-argument typemap for converting fixed-length byte sequences, useful for passing buffers of binary data. This typemap searches for two consecutive function arguments called <code>(char *STRING, size_t LENGTH)</code>; but like any other SWIG typemap it can be applied to other argument names as well:
+</p>
+
+
+<div class="code"><pre><code>%apply (char *STRING, size_t LENGTH) { (const char *buf, size_t len) }
+void send_bytes(int dst, const char *buf, size_t len);
+</code></pre>
+</div>
+
+
+<p>
+can be used in Fortran as:
+</p>
+
+
+<div class="targetlang"><pre><code>call send_bytes(123, &quot;these are&quot; // c_null_char // &quot; some bytes&quot;)
+</code></pre>
+</div>
+
+
+<p>
+The function will be passed the actual length of the byte string (9 + 1 + 10) in addition to the raw data, including the embedded null character. Compare this to
+</p>
+
+
+<div class="code"><pre><code>void send_bytes(int dst, const char *buf);
+</code></pre>
+</div>
+
+
+<p>
+which would treat <code>buf</code> as a C string, use <code>strlen</code> to find its length, and truncate it at the first null character (for a length of 9).
+</p>
 
 <H3><a name="Fortran_classes_and_structs">Classes and structs</a></H3>
 
@@ -1043,156 +1162,10 @@ or to the output of a specific function such as <code>const char* get_foo_string
 </code></pre>
 </div>
 
-<H3><a name="Fortran_c_string">C string</a></H3>
-
-<p>
-A long-standing difficulty with Fortran/C interaction has been the two languages’ representation of character strings. The size of a C string is determined by counting the number of characters until a null terminator <code>\0</code> is encountered. Shortening a string requires simply placing the null terminator earlier in the storage space. In contrast, the historical Fortran string is a character array sized at compile time: representing a smaller string at run time is done by filling the storage with trailing blanks. The Fortran intrinsic <code>LEN_TRIM</code> returns the length of a string without trailing blanks, and the <code>TRIM</code> function is used if necessary to return a string with those trailing blanks removed. Of course, this definition of a string means <code>foo</code> and <code>foo</code> are equivalent.
-</p>
-
-
-<p>
-Starting with Fortran 90, strings with an unambiguous size can be dynamically allocated:
-</p>
-
-
-<div class="targetlang"><pre><code>character(kind=C_CHAR, len=:), allocatable :: mystring
-allocate(character(kind=C_CHAR, len=123) :: mystring)
-</code></pre>
-</div>
-
-
-<p>
-and the length is given by <code>LEN(mystring)</code>.
-</p>
-
-
-<p>
-Including the <code>&lt;cstring.i&gt;</code> library file defines input and output typemaps for <code>const char* NATIVE</code>. These typemaps assume that both the input and output are standard null-terminated C strings on the C++ side, and a variable-length string on the Fortran side (i.e. any trailing blanks are intentional). Note that by using null-terminated strings, if a Fortran string has null characters embedded in it, the string will be truncated when read by C. Thus the function as written is <em>not</em> suitable for passing binary data between C and Fortran.
-</p>
-
-
-<p>
-If a function <code>char* to_string(float f);</code> emits a <code>malloc</code>’d string value, and the output is to be wrapped by SWIG, use the <code>%newobject</code> feature to avoid memory leaks:
-</p>
-
-
-<div class="code"><pre><code>%apply const char* NATIVE { char* to_string };
-%newobject to_string;
-char* to_string(float f);
-</code></pre>
-</div>
-
-
-<p>
-The Fortran-to-C string translation performs the following steps:
-</p>
-
-<ol>
-<li>Allocates a character array of <code>len(string) + 1</code></li>
-<li>Copies the string contents into that array and sets the final character to <code>C_NULL_CHAR</code></li>
-<li>Saves the C pointer to the character array using <code>C_LOC</code> and the size to a small <code>SwigArrayWrapper</code> struct</li>
-<li>Passes this struct to the C wrapper code, which uses the data pointer.</li>
-</ol>
-
-<p>
-The C-to-Fortran string translation is similar:
-</p>
-
-<ol>
-<li>Use <code>strlen</code> to save the string length to <code>SwigArrayWrapper.size</code>, and save the pointer to the data; return this struct to Fortran</li>
-<li>Call <code>C_F_POINTER</code> to reinterpret the opaque C pointer as a character array</li>
-<li>Allocate a new string with a length determined by the <code>size</code> member</li>
-<li>Copy the character array to the new string</li>
-<li>If the <code>%newobject</code> feature applies, call the C-bound <code>free</code> function.</li>
-</ol>
-
-<p>
-The intermediate step of allocating and copying an array is required not only to add a null terminator but also because the Fortran standard prohibits taking the C address of a dynamic-length string.
-</p>
-
-
-<p>
-Improved support for the various character typemaps and representations (as in the standard SWIG <code>&lt;cstring.i&gt;</code> which provides <code>%cstring_bounded_output</code>) could be implemented in a later version of SWIG.
-</p>
-
-
-<p>
-Note: it seems that some Fortran compilers (gfortran 5.5) emit a spurious warning when assigning an allocatable string returned by one of these functions:
-</p>
-
-<pre><code>Warning: &#39;.str&#39; may be used uninitialized in this function [-Wmaybe-uninitialized]
-</code></pre>
 <H3><a name="Fortran_stdstring">Std::string</a></H3>
 
 <p>
-A special set of typemaps is provided that transparently converts native Fortran character strings to and from <code>std::string</code> classes. It operates essentially like the <code>&lt;cstring.i&gt;</code> function described above but makes no requirements or assumptions about null terminator characters.
-</p>
-
-
-<p>
-This typemap is provided in <code>&lt;std_string.i&gt;</code>, which also defines the <code>std::string</code> class for wrapping. If you want only the typemaps but not a proxy class definition for <code>string</code>, then simply <code>%ignore</code> it before loading the file:
-</p>
-
-
-<div class="code"><pre><code>%ignore std::string;
-%include &lt;std_string.i&gt;
-</code></pre>
-</div>
-
-
-<p>
-An example of using this typemap is for a dictionary where the “key” is typically a string that needs no manipulation:
-</p>
-
-
-<div class="code"><pre><code>%include &lt;std_string.i&gt;
-%apply const std::string&amp; NATIVE { const std::string&amp; key };
-
-class Dict {
-public:
-  template&lt;class T&gt;
-  const T&amp; get(const std::string&amp; key, const T&amp; default);
-};
-
-%template(get) Dict::get&lt;int&gt;;
-%template(get) Dict::get&lt;double&gt;;
-%template(get) Dict::get&lt;std::string&gt;;
-</code></pre>
-</div>
-
-
-<p>
-Note that since only parameters named <code>key</code> use this typemap, the <code>std::string</code> instantiation of the function still requires and returns a class instance.
-</p>
-
-
-<div class="targetlang"><pre><code>type(Dict), intent(in) :: mydict
-type(string) :: default_str
-type(string) :: result_str
-type(C_INT) :: result_int
-type(C_DOUBLE) :: result_dbl
-
-result_int = mydict%get(&quot;an integer&quot;, 123)
-result_dbl = mydict%get(&quot;a double&quot;, 123.d0)
-
-default_str = create_string(&quot;default&quot;)
-result_str = mydict%get(&quot;a string&quot;, default_str)
-</code></pre>
-</div>
-
-
-<p>
-As demonstrated above with C strings, and like other typemaps, the <code>NATIVE</code> typemap can be applied to the output of only a particular function <code>const std::string&amp; get_foo()</code> using
-</p>
-
-
-<div class="code"><pre><code>%apply const std::string&amp; NATIVE { const std::string&amp; get_foo };
-</code></pre>
-</div>
-
-
-<p>
-The Fortran/C string translation works as described in the <a href="#Fortran_c_strings">C strings</a> section, except the exact string size is retained when moving from Fortran to C, and <code>s.size()</code> is used rather than <code>strlen(s)</code> when copying a string from C to Fortran.
+A special set of typemaps is provided that transparently converts native Fortran character strings to and from <code>std::string</code> classes. It operates essentially like the <a href="#Fortran_byte_strings">byte strings</a> described above: it can transparently convert strings of data, even those with embedded null characters, to and from Fortran. This typemap is provided in <code>&lt;std_string.i&gt;</code>.
 </p>
 
 <H3><a name="Fortran_smart_pointers">Smart pointers</a></H3>

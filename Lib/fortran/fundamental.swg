@@ -303,6 +303,9 @@ FORT_COPY_TYPEMAPS(SWIGTYPE (*)(ANY), SWIGTYPE (*const)(ANY));
 
 /* -------------------------------------------------------------------------
  * FUNDAMENTAL ISO C TYPES
+ *
+ * Note: const char * typemap will be overridden by the native c string
+ * typemaps in `forstring.swg`
  * ------------------------------------------------------------------------- */
 
 FORT_FUND_TYPEMAP(bool       , "logical(C_BOOL)"     )

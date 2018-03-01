@@ -7,6 +7,8 @@ Run with:
 pandoc --from=gfm+smart --no-highlight \
 -M title:"SWIG and Fortran" -M author:"Seth R Johnson" \
 --toc --standalone -H style.css -o ../Fortran.html Fortran.md
+python pandoc2swigman.py
+git add -p ../Fortran.html
 
 -->
 
@@ -297,9 +299,18 @@ booleans between the two languages.
 ### Characters
 
 Since `char*`, `const char[]`, etc. typically signify character strings in C
-and C++, the results of the default wrapping for characters may not be what you
-expect. See the [`<cstring.i>` header](#c-string) for how to wrap character
-arrays.
+and C++, the default behavior of these is to convert to native Fortran
+strings (see the [Strings](#strings) section). To restore the "fundamental"
+behavior of a character type -- i.e., you want to make a `char *` return result
+map to `character(C_CHAR), pointer` -- you can call an internal macro and apply
+it to the particular function or argument you need:
+```swig
+typedef char NativeChar;
+FORT_FUND_TYPEMAP(NativeChar, "character(C_CHAR)")
+%apply NativeChar* { char * get_my_char_ptr };
+
+char* get_my_char_ptr();
+```
 
 ## Pointers and references
 
@@ -371,15 +382,83 @@ First the pointer is assigned, then the pointed-to data is assigned.
 
 ## Strings
 
-Fortran's interoperability specifications prohibit using `C_LOC` on variables
-with length type parameters: thus the standard `character(len=*)` type cannot
-be natively passed to C. Instead, SWIG injects small helper functions that
-convert between strings and arrays of characters. The character arrays are then
-passed through the interface layer to C, which can reconstruct the full string.
+A long-standing difficulty with Fortran/C interaction has been the two
+languages' representation of character strings.
+The size of a C string is determined by counting the number of characters until
+a null terminator `\0` is encountered. Shortening a string requires simply
+placing the null terminator earlier in the storage space.
+In contrast, the historical Fortran string is a character array sized at compile
+time: representing a smaller string at run time is done by filling the
+storage with trailing blanks.
+The Fortran intrinsic `LEN_TRIM` returns the length of a string without
+trailing blanks, and the `TRIM` function is used if necessary to return a
+string with those trailing blanks removed. Of course, this definition of a
+string means `foo` and `foo ` are equivalent.
 
-Because the actual Fortran string length is passed to C during this process,
-character arrays with the null character can be converted to byte objects
-without unexpected string truncation.
+Starting with Fortran 90, strings with an unambiguous size can be dynamically
+allocated:
+```fortran
+character(kind=C_CHAR, len=:), allocatable :: mystring
+allocate(character(kind=C_CHAR, len=123) :: mystring)
+```
+and the length is given by `LEN(mystring)`.
+
+SWIG injects small helper functions that
+convert between strings and arrays of characters, which are then
+passed through the interface layer to C.  Because the actual Fortran string
+length is passed to C during this process, character arrays with the null
+character can be converted to byte objects without unexpected string
+truncation.
+
+The default `char*` typemaps assume that both the input and output are
+standard null-terminated C strings on the C++ side, and a variable-length
+string on the Fortran side (i.e. any trailing blanks are intentional). Note
+that by using null-terminated strings, if a Fortran string has null characters
+embedded in it, the string will be truncated when read by C. Thus the function
+as written is *not* suitable for passing binary data between C and Fortran.
+(See [byte strings](#byte-strings) for how to do this.)
+
+If a function `char* to_string(float f);` emits a `malloc`'d string value,
+and the output is to be wrapped by SWIG, use the `%newobject` feature to
+avoid memory leaks:
+```swig
+%apply const char* NATIVE { char* to_string };
+%newobject to_string;
+char* to_string(float f);
+```
+
+The Fortran-to-C string translation performs the following steps:
+1. Allocates a character array of `len(string) + 1`
+2. Copies the string contents into that array and sets the final character to
+   `C_NULL_CHAR`
+3. Saves the C pointer to the character array using `C_LOC` and the size to a
+   small `SwigArrayWrapper` struct
+4. Passes this struct to the C wrapper code, which uses the data pointer.
+
+The C-to-Fortran string translation is similar:
+1. Use `strlen` to save the string length to `SwigArrayWrapper.size`, and save
+   the pointer to the data; return this struct to Fortran
+2. Call `C_F_POINTER` to reinterpret the opaque C pointer as a character array
+3. Allocate a new string with a length determined by the `size` member
+4. Copy the character array to the new string
+5. If the `%newobject` feature applies, call the C-bound `free` function.
+
+The intermediate step of allocating and copying an array is required not only
+to add a null terminator but also because the Fortran's interoperability
+specifications prohibit using `C_LOC` on variables
+with length type parameters. Thus the standard `character(len=*)` type cannot
+be natively passed to C. 
+
+Improved support for the various character typemaps and representations (as in
+the standard SWIG `<cstring.i>` which provides `%cstring_bounded_output`) could
+be implemented in a later version of SWIG.
+
+Note: it seems that some Fortran compilers (gfortran 5.5) emit a spurious
+warning when assigning an allocatable string returned by one of these
+functions:
+```
+Warning: '.str' may be used uninitialized in this function [-Wmaybe-uninitialized]
+```
 
 Currently SWIG provides typemaps (see the [Typemaps section](#provided-typemaps)
 ) that allow transparent conversion between Fortran character arrays and
@@ -402,6 +481,30 @@ int global_data1[8]; /* OK */
 int global_data2[];  /* OK */
 int global_data3[sizeof(int)];  /* WARN AND IGNORE */
 ```
+
+## Byte strings
+
+SWIG provides a two-argument typemap for converting fixed-length byte
+sequences, useful for passing buffers of binary data. This typemap searches for
+two consecutive function arguments called `(char *STRING, size_t LENGTH)`; but
+like any other SWIG typemap it can be applied to other argument names as well:
+```swig
+%apply (char *STRING, size_t LENGTH) { (const char *buf, size_t len) }
+void send_bytes(int dst, const char *buf, size_t len);
+```
+can be used in Fortran as:
+```fortran
+call send_bytes(123, "these are" // c_null_char // " some bytes")
+```
+
+The function will be passed the actual length of the byte string (9 + 1 + 10)
+in addition to the raw data, including the embedded null character. Compare
+this to
+```swig
+void send_bytes(int dst, const char *buf);
+```
+which would treat `buf` as a C string, use `strlen` to find its length, and
+truncate it at the first null character (for a length of 9).
 
 ## Classes and structs
 
@@ -803,138 +906,13 @@ with
 %apply const char* NATIVE { get_foo_string };
 ```
 
-## C string
-
-A long-standing difficulty with Fortran/C interaction has been the two
-languages' representation of character strings.
-The size of a C string is determined by counting the number of characters until
-a null terminator `\0` is encountered. Shortening a string requires simply
-placing the null terminator earlier in the storage space.
-In contrast,
-the historical Fortran string is a character array sized at compile
-time: representing a smaller string at run time is done by filling the
-storage with trailing blanks.
-The Fortran intrinsic `LEN_TRIM` returns the length of a string without
-trailing blanks, and the `TRIM` function is used if necessary to return a
-string with those trailing blanks removed. Of course, this definition of a
-string means `foo` and `foo ` are equivalent.
-
-Starting with Fortran 90, strings with an unambiguous size can be dynamically
-allocated:
-```fortran
-character(kind=C_CHAR, len=:), allocatable :: mystring
-allocate(character(kind=C_CHAR, len=123) :: mystring)
-```
-and the length is given by `LEN(mystring)`.
-
-Including the `<cstring.i>` library file defines input and output typemaps for
-`const char* NATIVE`. These typemaps assume that both the input and output are
-standard null-terminated C strings on the C++ side, and a variable-length
-string on the Fortran side (i.e. any trailing blanks are intentional). Note
-that by using null-terminated strings, if a Fortran string has null characters
-embedded in it, the string will be truncated when read by C. Thus the function
-as written is *not* suitable for passing binary data between C and Fortran.
-
-If a function `char* to_string(float f);` emits a `malloc`'d string value,
-and the output is to be wrapped by SWIG, use the `%newobject` feature to
-avoid memory leaks:
-```swig
-%apply const char* NATIVE { char* to_string };
-%newobject to_string;
-char* to_string(float f);
-```
-
-The Fortran-to-C string translation performs the following steps:
-1. Allocates a character array of `len(string) + 1`
-2. Copies the string contents into that array and sets the final character to
-   `C_NULL_CHAR`
-3. Saves the C pointer to the character array using `C_LOC` and the size to a
-   small `SwigArrayWrapper` struct
-4. Passes this struct to the C wrapper code, which uses the data pointer.
-
-The C-to-Fortran string translation is similar:
-1. Use `strlen` to save the string length to `SwigArrayWrapper.size`, and save
-   the pointer to the data; return this struct to Fortran
-2. Call `C_F_POINTER` to reinterpret the opaque C pointer as a character array
-3. Allocate a new string with a length determined by the `size` member
-4. Copy the character array to the new string
-5. If the `%newobject` feature applies, call the C-bound `free` function.
-
-The intermediate step of allocating and copying an array is required not only
-to add a null terminator but also because the Fortran standard prohibits taking
-the C address of a dynamic-length string.
-
-Improved support for the various character typemaps and representations (as in
-the standard SWIG `<cstring.i>` which provides `%cstring_bounded_output`) could
-be implemented in a later version of SWIG.
-
-Note: it seems that some Fortran compilers (gfortran 5.5) emit a spurious
-warning when assigning an allocatable string returned by one of these
-functions:
-```
-Warning: '.str' may be used uninitialized in this function [-Wmaybe-uninitialized]
-```
-
 ## Std::string
 
 A special set of typemaps is provided that transparently converts native Fortran
 character strings to and from `std::string` classes. It operates essentially
-like the `<cstring.i>` function described above but makes no requirements or
-assumptions about null terminator characters.
-
-This typemap is provided in `<std_string.i>`, which also defines the
-`std::string` class for wrapping. If you want only the typemaps but not a proxy
-class definition for `string`, then simply `%ignore` it before loading the
-file:
-```swig
-%ignore std::string;
-%include <std_string.i>
-```
-
-An example of using this typemap is for a dictionary where the "key" is
-typically a string that needs no manipulation:
-```swig
-%include <std_string.i>
-%apply const std::string& NATIVE { const std::string& key };
-
-class Dict {
-public:
-  template<class T>
-  const T& get(const std::string& key, const T& default);
-};
-
-%template(get) Dict::get<int>;
-%template(get) Dict::get<double>;
-%template(get) Dict::get<std::string>;
-```
-
-Note that since only parameters named `key` use this typemap, the `std::string`
-instantiation of the function still requires and returns a class instance.
-```fortran
-type(Dict), intent(in) :: mydict
-type(string) :: default_str
-type(string) :: result_str
-type(C_INT) :: result_int
-type(C_DOUBLE) :: result_dbl
-
-result_int = mydict%get("an integer", 123)
-result_dbl = mydict%get("a double", 123.d0)
-
-default_str = create_string("default")
-result_str = mydict%get("a string", default_str)
-```
-
-As demonstrated above with C strings, and like other typemaps, the `NATIVE`
-typemap can be applied to the output of only a particular function `const
-std::string& get_foo()` using
-```swig
-%apply const std::string& NATIVE { const std::string& get_foo };
-```
-
-The Fortran/C string translation works as described in the [C
-strings](#c-strings) section, except the exact string size is retained when
-moving from Fortran to C, and `s.size()` is used rather than
-`strlen(s)` when copying a string from C to Fortran.
+like the [byte strings](#byte-strings) described above: it can transparently
+convert strings of data, even those with embedded null characters, to and from
+Fortran. This typemap is provided in `<std_string.i>`.
 
 ## Smart pointers
 
