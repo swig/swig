@@ -851,6 +851,13 @@ int FORTRAN::functionWrapper(Node *n) {
     List *cparmlist = NewList();
     int i = 0;
     for (Parm *p = parmlist; p; p = nextSibling(p), ++i) {
+      // Check for varargs
+      if (SwigType_isvarargs(Getattr(p, "type"))) {
+        Swig_warning(WARN_LANG_NATIVE_UNIMPL, Getfile(p), Getline(p),
+                     "C-bound variable arguments (in function '%s') are not implemented in Fortran.\n",
+                     SwigType_namestr(symname));
+        return SWIG_NOWRAP;
+      }
       // Use C arguments
       String *imname = this->makeParameterName(n, p, i);
       Setattr(p, "imname", imname);
