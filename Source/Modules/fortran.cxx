@@ -28,7 +28,7 @@ Fotran Options (available with -fortran)\n\
 //! Maximum line length
 const int g_max_line_length = 128;
 
-const char fortran_end_statement[] = "\n";
+const char g_fortran_end_statement[] = "\n";
 
 /* -------------------------------------------------------------------------
  * UTILITY FUNCTIONS
@@ -66,7 +66,7 @@ int print_wrapped_list(String *out, Iterator it, int line_length) {
  */
 Wrapper *NewFortranWrapper() {
   Wrapper *w = NewWrapper();
-  w->end_statement = fortran_end_statement;
+  w->end_statement = g_fortran_end_statement;
   return w;
 }
 
@@ -1166,15 +1166,13 @@ int FORTRAN::imfuncWrapper(Node *n) {
   String *imlocals = NewStringEmpty();
 
   // >>> BUILD WRAPPER FUNCTION AND INTERFACE CODE
-  const char *prepend_comma = "";
+  List *imfunc_arglist = NewList();
   for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
     Parm *p = it.item;
 
-    // Name of the argument in the function call (e.g. farg1)
+    // Add function parameter name (e.g. farg1) to the arglist
     String *imname = Getattr(p, "imname");
-
-    // Add parameter name to declaration list
-    Printv(imfunc->def, prepend_comma, imname, NULL);
+    Append(imfunc_arglist, imname);
 
     // Add dummy argument to wrapper body
     String *imtype = get_typemap(tmtype, "in", p, warning_flag);
@@ -1193,12 +1191,10 @@ int FORTRAN::imfuncWrapper(Node *n) {
       this->replace_fclassname(Getattr(p, "type"), imimport);
       Setattr(imimport_hash, imimport, "1");
     }
-
-    // Next iteration
-    prepend_comma = ", ";
   }
 
   // END FUNCTION DEFINITION
+  print_wrapped_list(imfunc->def, First(imfunc_arglist), Len(imfunc->def));
   Printv(imfunc->def,
          ") &\n"
          "    bind(C, name=\"",
@@ -1341,7 +1337,8 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   }
 
   int i = 0;
-  const char *prepend_comma = "";
+  List *ffunc_arglist = NewList();
+  List *fcall_arglist = NewList();
   for (Iterator it = First(cparmlist); it.item; it = Next(it), ++i) {
     Parm *p = it.item;
     String *cpptype = Getattr(p, "type");
@@ -1349,7 +1346,7 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
     // Add parameter name to declaration list
     String *farg = this->makeParameterName(n, p, i);
     Setattr(p, "fname", farg);
-    Printv(ffunc->def, prepend_comma, farg, NULL);
+    Append(ffunc_arglist, farg);
 
     // Add dummy argument to wrapper body
     String *ftype = get_typemap("ftype", "in", p, WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF);
@@ -1361,7 +1358,7 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
     }
 
     // Add this argument to the intermediate call function
-    Printv(fcall, prepend_comma, Getattr(p, "imname"), NULL);
+    Append(fcall_arglist, Getattr(p, "imname"));
 
     // >>> F PROXY CONVERSION
 
@@ -1377,14 +1374,21 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
     }
 
     Delete(farg);
-
-    // Next iteration
-    prepend_comma = ", ";
   }
 
   // END FUNCTION DEFINITION
+  print_wrapped_list(ffunc->def, First(ffunc_arglist), Len(ffunc->def));
   Printv(ffunc->def, ")", NULL);
+  if (!is_fsubroutine) {
+    Setattr(n, "fname", swig_result_name);
+    Printv(ffunc->def, " &\n     result(", swig_result_name, ")", NULL);
+  }
+  Delete(ffunc_arglist);
+  
+  // END FUNCTION DEFINITION
+  print_wrapped_list(fcall, First(fcall_arglist), Len(fcall));
   Printv(fcall, ")", NULL);
+  Delete(fcall_arglist);
 
   // Save fortran function call action
   Setattr(n, "wrap:faction", fcall);
@@ -1396,11 +1400,6 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
     Printv(ffunc->code, action_wrap, "\n", NULL);
   } else {
     Printv(ffunc->code, fcall, "\n", NULL);
-  }
-
-  if (!is_fsubroutine) {
-    Setattr(n, "fname", swig_result_name);
-    Printv(ffunc->def, " &\n     result(", swig_result_name, ")", NULL);
   }
 
   // Append dummy variables to the proxy function definition
