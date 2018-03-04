@@ -188,14 +188,14 @@ bool is_native_parameter(Node *n) {
 bool is_bindc(Node *n) {
   String *bindc_feature = Getattr(n, "feature:fortran:bindc");
   if (!bindc_feature) {
-    // No user override given: if it's extern(C) storage function, default
+    // No user override given: if it's marked as extern(C) storage, default
     // to binding it.
     String *kind = Getattr(n, "kind");
     if (!kind || Strcmp(kind, "function") != 0 || GetFlag(n, "ismember")) {
       // Not a function
       return false;
     }
-    return !CPlusPlus || Swig_storage_isexternc(n);
+    return Swig_storage_isexternc(n);
   } else if (Strcmp(bindc_feature, "0") == 0) {
     // Not a native param
     return false;
