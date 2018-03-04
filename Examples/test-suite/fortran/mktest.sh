@@ -11,12 +11,6 @@ open ../python/${NAME}_runme.py ../java/${NAME}_runme.java ../${NAME}.i
 open ${NAME}_runme.f90
 
 # Incomplete tests written in both python and java that compile fortran:
-# enum_forward
-# extend_template_method
-# friends
-# global_namespace
-# imports
-# inctest
 # kwargs_feature
 # li_boost_shared_ptr_bits
 # li_boost_shared_ptr_director
@@ -77,3 +71,4 @@ open ${NAME}_runme.f90
 # director_thread
 # director_unroll
 # dynamic_cast
+# enum_forward
