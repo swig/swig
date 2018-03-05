@@ -17,9 +17,13 @@ top_srcdir     = @top_srcdir@
 top_builddir   = @top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 
+CPP_TEST_CASES = \
+	fortran_bindc
+
 C_TEST_CASES = \
-	fortran_bindc \
-	fortran_enums
+	fortran_bindc_c \
+	fortran_bindc_all \
+	fortran_enums \
 
 include $(srcdir)/failing-cpp-tests.mk
 include $(srcdir)/failing-c-tests.mk
