@@ -83,24 +83,26 @@ cartPosition_t p;
 %ignore oned_hex;
 %ignore oned_enum;
 %ignore twod_enum;
+%bindc oned_unknown;
+%bindc twod_unknown_int;
 
 %inline %{
 enum {TEN = 10};
-void oned_int(int a[10]);
-void oned_expr(int a[2*5]);
-void oned_enum(int a[TEN]);
-void oned_hex(int a[0xa]);
-void twod_int(int a[10][4]);
-void twod_expr1(int a[2*5][4]);
-void twod_expr2(int a[10][2*2]);
-void twod_expr3(int a[2*5][2*2]);
-void twod_enum(int a[TEN][4]);
+void oned_int(int a[10]) { a[0] = 0; }
+void oned_expr(int a[2*5]) { a[0] = 0; }
+void oned_enum(int a[TEN]) { a[0] = 0; }
+void oned_hex(int a[0xa]) { a[0] = 0; }
+void twod_int(int a[10][4]) { a[0][0] = 0; }
+void twod_expr1(int a[2*5][4]) { a[0][0] = 0; }
+void twod_expr2(int a[10][2*2]) { a[0][0] = 0; }
+void twod_expr3(int a[2*5][2*2]) { a[0][0] = 0; }
+void twod_enum(int a[TEN][4]) { a[0][0] = 0; }
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-void oned_unknown(int a[]);
-void twod_unknown_int(int a[][10]);
+void oned_unknown(int a[]) { a[0] = 0; }
+void twod_unknown_int(int a[][10]) { a[0][0] = 0; }
 #ifdef __cplusplus
 }
 #endif

@@ -9,7 +9,7 @@ SCRIPTSUFFIX= _runme.f90
 FORTRANOBJEXT = o
 
 FORTRAN_SO = @FORTRAN_SO@
-FFLAGS = @FFLAGS@
+FCFLAGS = @FCFLAGS@
 CCSHARED=	@CCSHARED@
 
 srcdir         = @srcdir@
@@ -43,11 +43,12 @@ include $(srcdir)/../common.mk
 	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
 
+
 # Runs the testcase.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	$(COMPILETOOL) $(FC) $(FFLAGS) $(CCSHARED) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -c; \
-	$(COMPILETOOL) $(FC) $(FFLAGS) $(CCSHARED) -o $*_runme.exe $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $(LIBPREFIX)$*$(FORTRAN_SO); \
+	$(COMPILETOOL) $(FC) $(FCFLAGS) $(CCSHARED) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -c; \
+	$(COMPILETOOL) $(FC) $(FCFLAGS) $(CCSHARED) -o $*_runme.exe $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $(LIBPREFIX)$*$(FORTRAN_SO); \
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme.exe; \
 	fi
 

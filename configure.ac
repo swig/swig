@@ -2724,12 +2724,12 @@ else
     AC_FC_LIBRARY_LDFLAGS dnl fortran library flags
   fi
 
-  if test -n "$FFLAGS"; then
-    FFLAGS="$FFLAGS"
+  if test -n "$FCFLAGS"; then
+    FCFLAGS="$FCFLAGS"
   elif test "x$GCC" = xyes; then
-    FFLAGS="-std=f2003 -Wall -Wextra -Wimplicit-procedure -Wimplicit-interface -Wno-compare-reals -ffree-line-length-none"
+    FCFLAGS="-std=f2003 -Wall -Wextra -Wimplicit-procedure -Wimplicit-interface -Wno-compare-reals -ffree-line-length-none"
   else
-    FFLAGS="-std=f2003"
+    FCFLAGS="-std=f2003"
   fi
 
   # FORTRANLDSHARED is the ld *command* used to create shared library
@@ -2747,7 +2747,7 @@ else
 fi
 
 AC_SUBST(FC)
-AC_SUBST(FFLAGS)
+AC_SUBST(FCFLAGS)
 AC_SUBST(FCLIBS)
 AC_SUBST(FORTRANLDSHARED)
 AC_SUBST(FORTRANCXXSHARED)

@@ -2023,10 +2023,11 @@ go_clean:
 #####                      Fortran                          ######
 ##################################################################
 FC = @FC@
-FFLAGS = @FFLAGS@
+FCFLAGS = @FCFLAGS@
 FORTRANCFLAGS =
 FORTRANCXXFLAGS =
 FORTRAN_RUNME = $(RUNME)
+FMOD = $(INTERFACE:.i=.f90)
 FOBJ = $(INTERFACE:.i=_fort.@OBJEXT@)
 FORTRAN_SO = @FORTRAN_SO@
 FCLIBS = @FCLIBS@
@@ -2037,24 +2038,24 @@ fortran: $(SRCDIR_SRCS)
 	$(SWIG) -fortran $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(FORTRANCFLAGS) \
 		$(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS) $(INCLUDES)
-	$(FC) -c $(CCSHARED) $(FFLAGS) $(TARGET).f90 -o $(FOBJ)
+	$(FC) -c $(CCSHARED) $(FCFLAGS) $(FMOD) -o $(FOBJ)
 	$(FORTRANLDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(FOBJ) \
 		$(FCLIBS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(FORTRAN_SO)
-
 
 fortran_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -fortran -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(FORTRANCXXFLAGS) \
 		$(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES)
-	$(FC) -c $(CCSHARED) $(FFLAGS) $(TARGET).f90 -o $(FOBJ)
-	$(FORTRANCXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(FOBJ) \
-		$(FCLIBS) $(LIBS) $(CXX_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(FORTRAN_SO)
+	$(FC) -c $(CCSHARED) $(FCFLAGS) $(FMOD) -o $(FOBJ)
+	$(FORTRANCXXSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(FOBJ) \
+		$(FCLIBS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(FORTRAN_SO)
 
 fortran_run: $(SRCDIR_SRCS)
 	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) ./$(RUNME).exe $(RUNPIPE)
 
+# FORTRANSRCS is the 'runme.f90' in the 'Examples' dir
 fortran_compile: $(SRCDIR_SRCS)
-	$(COMPILETOOL) $(FC) $(CCSHARED) $(FFLAGS) $(addprefix $(SRCDIR),$(FORTRANSRCS)) $(LIBPREFIX)$(TARGET)$(FORTRAN_SO) \
+	$(COMPILETOOL) $(FC) $(CCSHARED) $(FCFLAGS) $(addprefix $(SRCDIR),$(FORTRANSRCS)) $(LIBPREFIX)$(TARGET)$(FORTRAN_SO) \
 		-o $(RUNME).exe
 
 fortran_clean:

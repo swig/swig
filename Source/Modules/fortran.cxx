@@ -2387,6 +2387,10 @@ void FORTRAN::replace_fspecial_impl(SwigType *basetype, String *tm, const char *
       // If not, use the symbolic name
       replacementname = Getattr(lookup, "sym:name");
     }
+    // If it's a missing enum, replace with 'unknown'
+    if (GetFlag(lookup, "enumMissing")) {
+      replacementname = NULL;
+    }
   }
 
   if (!replacementname) {

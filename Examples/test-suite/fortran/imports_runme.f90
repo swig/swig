@@ -1,10 +1,31 @@
 ! File : imports_runme.f90
 
 program imports_runme
-  use imports
+  use imports_a
+  use imports_b
   use ISO_C_BINDING
   implicit none
+  type(A) :: aa, a1, a2
+  type(B) :: bb
+  type(C) :: cc
 
+  bb = create_B()
+  call bb%hello()
+
+  aa = create_A()
+
+  cc = create_C()
+  a1 = cc%get_a(cc)
+  a2 = cc%get_a_type(cc)
+
+  call a1%hello()
+  call a2%hello()
+
+  call aa%release()
+  call bb%release()
+  call cc%release()
+  call a1%release()
+  call a2%release()
 end program
 
 ! vim: set ts=2 sw=2 sts=2 tw=129 :
