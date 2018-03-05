@@ -44,9 +44,7 @@ include $(srcdir)/../common.mk
 
 %.multicpptest:
 	$(setup)
-	+$(swig_and_compile_multi_cpp)
-	$(run_testcase)
-
+	@echo "*** Fortran multi tests are disabled; skipping '$*'"
 
 # Runs the testcase.
 run_testcase = \
