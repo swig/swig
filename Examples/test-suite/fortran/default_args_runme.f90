@@ -8,7 +8,7 @@ program default_args_runme
   type(DerivedEnumClass) :: de
   type(Statics) :: s
 
-  ec = create_EnumClass()
+  ec = EnumClass()
   if (ec%blah() .neqv. .true.) stop 1
   if (chartest1() /= 'x') stop 1
   if (chartest2() /= c_null_char) stop 1
@@ -18,7 +18,7 @@ program default_args_runme
   ! the standard DOES NOT guarantee it becomes a disassociated pointer
   ! if (associated(casts1())) stop 1
 
-  de = create_DerivedEnumClass()
+  de = DerivedEnumClass()
   call de%accelerate()
   call de%accelerate(EnumClass_SLOW)
 

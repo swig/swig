@@ -9,7 +9,7 @@ program extend_template_method_runme
   real(C_DOUBLE) :: dbl
   character(kind=C_CHAR, len=:), allocatable :: str
 
-  em = create_ExtendMe()
+  em = ExtendMe()
   dbl = em%do_stuff_double(1, 1.1d0)
   if (dbl /= 1.1d0) stop 1
   str = em%do_stuff_string(1, "hello there")
@@ -25,7 +25,7 @@ program extend_template_method_runme
   ! Static method works on unreleased em
   if (em%static_method(123) /= 123) stop 1
 
-  tm = create_TemplateExtend()
+  tm = TemplateExtend()
   dbl = tm%do_template_stuff_double(1, 1.1d0)
   if (dbl /= 1.1d0) stop 1
   str = tm%do_template_stuff_string(1, "hello there")
@@ -41,7 +41,7 @@ program extend_template_method_runme
   ! Static method works on unreleased em
   if (tm%static_template_method(123) /= 123) stop 1
 
-  tm = create_TemplateExtend(123)
+  tm = TemplateExtend(123)
 
 end program
 

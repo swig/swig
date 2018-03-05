@@ -1220,17 +1220,17 @@ and the user code is:
 <div class="targetlang"><pre><code>#define ASSERT(COND) if (.not. (COND)) stop(1)
 program main
   use ISO_FORTRAN_ENV
-  use spdemo, only : Foo, create_foo, use_count
+  use spdemo, only : Foo, use_count
   type(Foo) :: f1, f2
 
   ASSERT(use_count(f1) == 0)
-  f1 = create_foo(1) ! Construct
+  f1 = Foo(1) ! Construct
   ASSERT(use_count(f1) == 1)
   f2 = f1 ! Copy shared pointer, not underlying object
   ASSERT(use_count(f1) == 2)
   ASSERT(use_count(f2) == 2)
 
-  f2 = create_foo(2) ! Create a new object, assigning the *shared pointer*
+  f2 = Foo(2) ! Create a new object, assigning the *shared pointer*
                      ! but not replacing the underlying object.
   ASSERT(use_count(f1) == 1)
   ASSERT(use_count(f2) == 1)
@@ -1386,14 +1386,14 @@ In C++, the allocation and initialization of a class instance is (almost without
 
 
 <p>
-Because of limitations in <a href="#Fortran_function_overloading">function overloading</a> with <a href="#Fortran_inheritance">inheritance</a> in Fortran, it is not generally possible to provide type-bound procedures that mirror the C++ constructors. The design decision was made to construct objects by calling procedures <em>not</em> bound to a type. The constructor is wrapped as <code>create_{symname}</code>:
+However, “construction” can be done separately by an unbound procedure, which uses an <code>interface</code> to share the name of the class:
 </p>
 
 
 <div class="targetlang"><pre><code>type(Foo) :: f
 type(Foo) :: g
-f = create_Foo()
-g = create_Foo(123)
+f = Foo()
+g = Foo(123)
 call f%do_something()
 call g%do_something_else()
 </code></pre>
@@ -1445,7 +1445,7 @@ Type-bound procedures in Fortran proxy classes are treated exactly the same as f
 
 <div class="targetlang"><pre><code>integer(C_INT) :: value
 type(Foo) :: food
-food = create_Foo()
+food = Foo()
 call food%do_something()
 value = food%get_something()
 </code></pre>
@@ -1490,7 +1490,7 @@ the interface to an instance and its data is:
 
 
 <div class="targetlang"><pre><code>type(Foo) :: f
-f = create_Foo()
+f = Foo()
 call food%set_val(123)
 value = food%get_val()
 </code></pre>

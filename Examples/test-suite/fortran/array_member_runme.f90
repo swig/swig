@@ -8,7 +8,7 @@ program array_member_runme
   integer(C_INT), dimension(:), pointer :: global_data, local_data
   integer :: i
 
-  f = create_Foo()
+  f = Foo()
   global_data => get_global_data()
   call f%set_data(global_data)
 

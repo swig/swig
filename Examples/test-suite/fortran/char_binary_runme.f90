@@ -9,7 +9,7 @@ program char_binary_runme
 
   if (len(withnull) /= 4) stop 2
 
-  t = create_Test()
+  t = Test()
   if (t%strlen("hile") /= 4) stop 1
   if (t%ustrlen("hile") /= 4) stop 1
 

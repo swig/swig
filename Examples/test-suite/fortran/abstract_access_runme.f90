@@ -6,7 +6,7 @@ program abstract_access_runme
   implicit none
   type(D), target :: dcls
   class(A), pointer :: basecls => NULL()
-  dcls = create_d()
+  dcls = D()
   basecls => dcls
 
   if (basecls%do_x() /= 1) stop 1

@@ -9,12 +9,12 @@ program imports_runme
   type(B) :: bb
   type(C) :: cc
 
-  bb = create_B()
+  bb = B()
   call bb%hello()
 
-  aa = create_A()
+  aa = A()
 
-  cc = create_C()
+  cc = C()
   a1 = cc%get_a(cc)
   a2 = cc%get_a_type(cc)
 

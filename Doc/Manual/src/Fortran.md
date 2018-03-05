@@ -973,17 +973,17 @@ and the user code is:
 #define ASSERT(COND) if (.not. (COND)) stop(1)
 program main
   use ISO_FORTRAN_ENV
-  use spdemo, only : Foo, create_foo, use_count
+  use spdemo, only : Foo, use_count
   type(Foo) :: f1, f2
 
   ASSERT(use_count(f1) == 0)
-  f1 = create_foo(1) ! Construct
+  f1 = Foo(1) ! Construct
   ASSERT(use_count(f1) == 1)
   f2 = f1 ! Copy shared pointer, not underlying object
   ASSERT(use_count(f1) == 2)
   ASSERT(use_count(f2) == 2)
 
-  f2 = create_foo(2) ! Create a new object, assigning the *shared pointer*
+  f2 = Foo(2) ! Create a new object, assigning the *shared pointer*
                      ! but not replacing the underlying object.
   ASSERT(use_count(f1) == 1)
   ASSERT(use_count(f2) == 1)
@@ -1120,17 +1120,13 @@ overloaded, the instance can be allocated and initialized by several different
 code paths. In Fortran, initialization can only assign simple scalars and set
 pointers to null. 
 
-Because of limitations in [function overloading](#function-overloading) with
-[inheritance](#inheritance) in Fortran, it is not generally possible to provide
-type-bound procedures that mirror the C++ constructors.
-The design decision was
-made to construct objects by calling procedures *not* bound to a type. The
-constructor is wrapped as `create_{symname}`:
+However, "construction" can be done separately by an unbound procedure, which
+uses an `interface` to share the name of the class:
 ```fortran
 type(Foo) :: f
 type(Foo) :: g
-f = create_Foo()
-g = create_Foo(123)
+f = Foo()
+g = Foo(123)
 call f%do_something()
 call g%do_something_else()
 ```
@@ -1172,7 +1168,7 @@ for native derived types:
 ```fortran
 integer(C_INT) :: value
 type(Foo) :: food
-food = create_Foo()
+food = Foo()
 call food%do_something()
 value = food%get_something()
 ```
@@ -1206,7 +1202,7 @@ struct Foo {
 the interface to an instance and its data is:
 ```fortran
 type(Foo) :: f
-f = create_Foo()
+f = Foo()
 call food%set_val(123)
 value = food%get_val()
 ```

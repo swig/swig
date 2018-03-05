@@ -3,8 +3,7 @@
 program main
   use ISO_FORTRAN_ENV
   use, intrinsic :: ISO_C_BINDING
-  use thinvec, only : print_vec, print_offbyone, Vec => ThinVecInt, &
-    create_vec => create_ThinVecInt
+  use thinvec, only : print_vec, print_offbyone, Vec => ThinVecInt
   implicit none
   integer :: i
   type(Vec) :: v
@@ -16,7 +15,7 @@ program main
   call v%release()
 
   write(0, *) "Constructing..."
-  v = create_vec()
+  v = Vec()
   write(0, *) "Sizing..."
   call v%resize(4)
   call print_vec(v)

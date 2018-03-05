@@ -12,11 +12,11 @@ type(BaseClass), target :: v1
 type(BaseClass), target :: v2
 
 ! Set variables
-v1 = create_baseclass()
+v1 = BaseClass()
 call v1%set_i(2)
 ASSERT(v1%get_i() == 2)
 
-v2 = create_baseclass()
+v2 = BaseClass()
 call v2%set_i(3)
 ASSERT(v1%get_i() == 3)
 ASSERT(v2%get_i() == 3)

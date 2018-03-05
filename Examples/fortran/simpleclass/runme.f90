@@ -19,7 +19,7 @@ subroutine test_simple_class_memory()
   type(SimpleClass) :: unassigned
 
   write(0, *) "Constructing..."
-  orig = create_SimpleClass()
+  orig = SimpleClass()
   call orig%set(1)
 
   ! Copy construct
@@ -30,7 +30,7 @@ subroutine test_simple_class_memory()
   ASSERT(copied%id() == 12)
 
   ! Assign to an already-created instance
-  assigned = create_SimpleClass_dbl(3.0d0)
+  assigned = SimpleClass(3.0d0)
   ASSERT(assigned%id() == 3)
   call orig%set(1234)
   write(0, *) "Assigning"
@@ -79,11 +79,11 @@ subroutine test_simple_class_actions()
   call sc%release()
 
   write(0, *) "Constructing..."
-  sc = create_SimpleClass()
+  sc = SimpleClass()
   call sc%set(9)
 
   write(0, *) "Alternate constructor..."
-  sc = create_SimpleClass(1.0d0, 2.0d0)
+  sc = SimpleClass(1.0d0, 2.0d0)
 
   example = 7
   call sc%action(example)
@@ -99,7 +99,7 @@ subroutine test_basic_struct()
   implicit none
   type(BasicStruct) :: bs
 
-  bs = create_BasicStruct()
+  bs = BasicStruct()
   call bs%set_foo(4321)
   call bs%set_bar(1.234d0)
   call print_struct(bs)

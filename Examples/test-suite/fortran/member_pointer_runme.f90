@@ -13,7 +13,7 @@ program member_pointer_runme
   perim_memptr = perimeterpt()
 
   ! Allocate a square
-  s = create_Square(10.0d0)
+  s = Square(10.0d0)
 
   ! Call a function that takes a member function pointer and an object
   val = do_op(s, area_memptr)

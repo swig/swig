@@ -9,7 +9,7 @@ subroutine test_usage()
   use, intrinsic :: ISO_C_BINDING
   use stdvec, only : make_view => make_const_viewdbl, &
     print_view => print_viewdbl, VecDbl, get_vec => get_vecdbl, &
-    create_vecdbl, as_array_ptr, make_array
+    as_array_ptr, make_array
   implicit none
   type(VecDbl) :: v
   integer :: i
@@ -22,7 +22,7 @@ subroutine test_usage()
   call v%release()
 
   write(0, *) "Constructing..."
-  v = create_vecdbl()
+  v = VecDbl()
   write(0, *) "Sizing..."
   call v%resize(4)
   write(0, *) "Resizing with fill..."

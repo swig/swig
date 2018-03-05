@@ -394,6 +394,7 @@ private:
 
   // Current class parameters
   Hash *d_method_overloads;                                 //!< Overloaded subroutine -> overload names
+  List *d_constructors;                                 //!< Overloaded subroutine -> overload names
 
   // Inside of the 'enum' definitions
   List *d_enum_public;                                 //!< List of enumerator values
@@ -423,7 +424,7 @@ public:
   virtual String *makeParameterName(Node *n, Parm *p, int arg_num, bool is_setter = false) const;
   virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm);
 
-  FORTRAN() : d_warned_fclassname(NULL), d_overloads(NULL), d_method_overloads(NULL), d_enum_public(NULL) {}
+  FORTRAN() : d_warned_fclassname(NULL), d_overloads(NULL), d_method_overloads(NULL), d_constructors(NULL), d_enum_public(NULL) {}
 
 private:
   void cfuncWrapper(Node *n);
@@ -873,7 +874,9 @@ int FORTRAN::functionWrapper(Node *n) {
 
   // >>> GENERATE CODE FOR MODULE INTERFACE
 
-  if (is_member_function) {
+  if (GetFlag(n, "fortran:private")) {
+    /* private function; don't generate interface */
+  } else if (is_member_function) {
     ASSERT_OR_PRINT_NODE(!is_basic_struct(), n);
     String *qualifiers = NewStringEmpty();
 
@@ -1781,6 +1784,9 @@ int FORTRAN::classHandler(Node *n) {
 
     // Initialize output strings that will be added by 'functionHandler'.
     d_method_overloads = NewHash();
+
+    // Constructors
+    d_constructors = NewList();
   }
 
   assert(basic_struct == this->is_basic_struct());
@@ -1805,10 +1811,26 @@ int FORTRAN::classHandler(Node *n) {
   }
 
   // Close out the type
-  Printv(f_ftypes, " end type\n", NULL);
+  Printf(f_ftypes, " end type %s\n", symname);
 
-  Delete(d_method_overloads);
-  d_method_overloads = NULL;
+  // Save overloads as a node attribute for debugging
+  if (d_method_overloads) {
+    Setattr(n, "fortran:overloads", d_method_overloads);
+    Delete(d_method_overloads);
+    d_method_overloads = NULL;
+  }
+
+  // Print constructor interfaces
+  if (d_constructors && (Len(d_constructors) > 0)) {
+    Printf(f_ftypes, " interface %s\n", symname);
+    for (Iterator it = First(d_constructors); it.item; it = Next(it)) {
+      Printf(f_ftypes, "  procedure %s\n", it.item);
+    }
+    Printf(f_ftypes, " end interface\n");
+    Setattr(n, "fortran:constructors", d_constructors);
+    Delete(d_constructors);
+    d_constructors = NULL;
+  }
 
   return SWIG_OK;
 }
@@ -1820,31 +1842,15 @@ int FORTRAN::constructorHandler(Node *n) {
   Node *classn = getCurrentClass();
   ASSERT_OR_PRINT_NODE(classn, n);
 
-  // Get the constructor's name. This will usually be the unscoped C++ class
-  // name: for std::vector<int> will be "vector", but the user can possibly
-  // %rename a constructor as well, i.e.
-  String *symname = Getattr(n, "sym:name");
-  // The class's symbolic name (e.g. VecInt)
-  String *classname = Getattr(classn, "sym:name");
-
-  // Rename the proxy function to "create_$fclassname"
-  String *constructor_name = NULL;
-  if (Strcmp(symname, classname) != 0) {
-    // The constructor has been %rename'd. Note that this may cause
-    // problems if the class is templated and being instantiated more than
-    // once: https://github.com/swig/swig/issues/844
-    constructor_name = Copy(symname);
-  } else {
-    constructor_name = NewStringf("create_%s", classname);
-  }
-  Setattr(n, "fortran:name", constructor_name);
-  Delete(constructor_name);
-
   // Override the result variable name
   Setattr(n, "wrap:fresult", "self");
+  // Don't generate a public interface
+  SetFlag(n, "fortran:private");
 
-  // NOTE: return type has not yet been assigned at this point
-  return Language::constructorHandler(n);
+  Language::constructorHandler(n);
+
+  Append(d_constructors, Getattr(n, "wrap:fname"));
+  return SWIG_OK;
 }
 
 /* -------------------------------------------------------------------------

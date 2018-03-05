@@ -8,10 +8,10 @@ program inctest_runme
   type(A) :: ai
   type(B) :: bi
 
-  ai = create_A()
+  ai = A()
   call ai%release()
 
-  bi = create_B()
+  bi = B()
   call bi%release()
   
   if (importtest1(5) /= 15) stop 1

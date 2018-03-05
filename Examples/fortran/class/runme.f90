@@ -15,8 +15,8 @@ subroutine run()
   ! ----- Object creation -----
     
   write(*,*) "Creating some objects"
-  c = create_circle(10.0)
-  s = create_square(10.0)
+  c = Circle(10.0)
+  s = Square(10.0)
 
   ! ----- Access a static member -----
   write(*,'(a,i2,a)')"A total of", s%get_nshapes(), " shapes were created"
@@ -48,7 +48,7 @@ subroutine run()
   write(*,*)" Square P/A  = ", surface_to_volume(s)
 
   ! Example of exception handling
-  c = create_circle(-2.0)
+  c = circle(-2.0)
   if (ierr /= 0) then
     write(*,*) "Caught the following error: ", get_serr()
     ierr = 0

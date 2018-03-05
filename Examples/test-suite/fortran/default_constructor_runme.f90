@@ -5,7 +5,7 @@ program default_constructor_runme
   use ISO_C_BINDING
   implicit none
   type(G) :: ginstance
-  ginstance = create_g()
+  ginstance = G()
   ! call ginstance%release()
 
   ! Call a static method

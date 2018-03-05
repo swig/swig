@@ -32,7 +32,7 @@ program li_carrays_runme
   if (tempxy%y /= 3) stop 1
 
   ! Allocate a new C array
-  xyarr = create_XYArray(3);
+  xyarr = XYArray(3);
   do i = 1,3
     tempxy%x = 10 * i
     tempxy%y = 10 * i + 1

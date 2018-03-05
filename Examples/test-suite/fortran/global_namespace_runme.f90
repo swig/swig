@@ -22,13 +22,13 @@ program global_namespace_runme
   type(XYZMethods) :: xyzm
   type(TheEnumMethods) :: tem
 
-  k1 = create_Klass1()
-  k2 = create_Klass2()
-  k3 = create_Klass3()
-  k4 = create_Klass4()
-  k5 = create_Klass5()
-  k6 = create_Klass6()
-  k7 = create_Klass7()
+  k1 = Klass1()
+  k2 = Klass2()
+  k3 = Klass3()
+  k4 = Klass4()
+  k5 = Klass5()
+  k6 = Klass6()
+  k7 = Klass7()
 
   call km%methodA(k1, k2, k3, k4, k5, k6, k7)
   call km%methodB(k1, k2, k3, k4, k5, k6, k7)
@@ -79,13 +79,13 @@ program global_namespace_runme
   call k6%release()
   call k7%release()
 
-  x1 = create_XYZ1()
-  x2 = create_XYZ2()
-  x3 = create_XYZ3()
-  x4 = create_XYZ4()
-  x5 = create_XYZ5()
-  x6 = create_XYZ6()
-  x7 = create_XYZ7()
+  x1 = XYZ1()
+  x2 = XYZ2()
+  x3 = XYZ3()
+  x4 = XYZ4()
+  x5 = XYZ5()
+  x6 = XYZ6()
+  x7 = XYZ7()
 
   call xyzm%methodA(x1, x2, x3, x4, x5, x6, x7)
   call xyzm%methodB(x1, x2, x3, x4, x5, x6, x7)

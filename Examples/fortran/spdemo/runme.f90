@@ -12,12 +12,12 @@ contains
 
 subroutine test_class()
   use ISO_FORTRAN_ENV
-  use spdemo, only : Foo, create_foo, print_foo => print_crsp
+  use spdemo, only : Foo, print_foo => print_crsp
   implicit none
   type(Foo) :: f, f2, f3
 
   write(0, *) "Constructing..."
-  f = create_foo()
+  f = foo()
   write(0, *) "Setting..."
   call f%set(123.0d0)
   write(0, *) "Clone..."
@@ -43,13 +43,13 @@ end subroutine
 
 subroutine test_spcopy()
   use ISO_FORTRAN_ENV
-  use spdemo, only : Foo, create_foo, print_foo => print_crsp, use_count
+  use spdemo, only : Foo, print_foo => print_crsp, use_count
   implicit none
   type(Foo) :: f1, f2
 
   write(0, *) "Use count should be 0:", use_count(f1)
   write(0, *) "Constructing..."
-  f1 = create_foo(1.0d0)
+  f1 = foo(1.0d0)
   write(0, *) "Use count should be 1:", use_count(f1)
 
   write(0, *) "Assigning..."

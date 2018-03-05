@@ -23,16 +23,16 @@ type, bind(C) :: SwigClassWrapper
 end type
 
  public :: Thing_Dbl
- public :: create_Thing_Dbl
- interface create_Thing_Dbl
+ public :: Thing_Dbl
+ interface Thing_Dbl
   module procedure new_Thing_Dbl
  end interface
  public :: print_thing
  interface print_thing
   module procedure print_thing__SWIG_1, print_thing__SWIG_2
  end interface
- public :: create_Thing_Int
- interface create_Thing_Int
+ public :: Thing_Int
+ interface Thing_Int
   module procedure new_Thing_Int
  end interface
 
