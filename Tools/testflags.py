@@ -68,6 +68,19 @@ def get_cxxflags(language, std, compiler):
         raise RuntimeError("{} is not a supported language".format(language))
     return " ".join(flags + cxx_common)
 
+def get_fcflags(language, std, compiler):
+    if not std:
+        std = "f2003"
+    fcflags = ["-std=" + std, "-Wall", "-Wextra", "-Wimplicit-procedure",
+            "-Wimplicit-interface", "-Wno-compare-reals",
+            "-ffree-line-length-none"]
+    # Note: some test cases generate spurious -Wsurprising and
+    # -Wmaybe-uninitialized; others warn about shadowing intrinsics; so we
+    # don't add -Werror
+    if compiler.startswith('gfortran'):
+        # Enable C preprocessing
+        fcflags.append("-cpp")
+    return " ".join(fcflags)
 
 import argparse
 parser = argparse.ArgumentParser(description="Display CFLAGS or CXXFLAGS to use for testing the SWIG examples and test-suite.")
@@ -75,6 +88,7 @@ parser.add_argument('-l', '--language', required=True, help='set language to sho
 flags = parser.add_mutually_exclusive_group(required=True)
 flags.add_argument('-c', '--cflags', action='store_true', default=False, help='show CFLAGS')
 flags.add_argument('-x', '--cxxflags', action='store_true', default=False, help='show CXXFLAGS')
+flags.add_argument('-f', '--fcflags', action='store_true', default=False, help='show FCFLAGS')
 parser.add_argument('-s', '--std', required=False, help='language standard flags for the -std= option')
 parser.add_argument('-C', '--compiler', required=False, help='compiler used (clang or gcc)')
 args = parser.parse_args()
@@ -83,6 +97,8 @@ if args.cflags:
     get_flags = get_cflags
 elif args.cxxflags:
     get_flags = get_cxxflags
+elif args.fcflags:
+    get_flags = get_fcflags
 else:
     parser.print_help()
     exit(1)

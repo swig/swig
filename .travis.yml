@@ -27,6 +27,14 @@ matrix:
         apt:
           sources: ubuntu-toolchain-r-test
           packages: gfortran-6
+    - os: linux
+      env: SWIGLANG=fortran SWIG_CC=gcc-7 SWIG_CXX=g++-7 SWIG_FC=gfortran-7 CPP11=1 FCSTD=f2008
+      sudo: required
+      dist: trusty
+      addons: &gfortran7
+        apt:
+          sources: ubuntu-toolchain-r-test
+          packages: gfortran-7
     - compiler: gcc
       os: linux
       env: SWIGLANG=csharp
@@ -394,6 +402,7 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-O
+    - os: linux
       sudo: required
       dist: trusty
 before_install:
@@ -433,10 +442,11 @@ script:
   # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
   - if test -n "$SWIGLANG"; then cflags=$($TRAVIS_BUILD_DIR/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC) && echo $cflags; fi
   - if test -n "$SWIGLANG"; then cxxflags=$($TRAVIS_BUILD_DIR/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC) && echo $cxxflags; fi
+  - if test -n "$SWIGLANG" && test -n "$SWIG_FC"; then fcflags=$($TRAVIS_BUILD_DIR/Tools/testflags.py --language $SWIGLANG --fcflags --std=$FCSTD --compiler=$FC) && echo $fcflags; fi
   - if test -n "$SWIGLANG"; then make -s check-$SWIGLANG-version; fi
   - if test -n "$SWIGLANG"; then make check-$SWIGLANG-enabled; fi
-  - if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
-  - if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
+  - if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags" FCFLAGS="$fcflags"; fi
+  - if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags" FCFLAGS="$fcflags"; fi
   - echo 'Cleaning...' && echo -en 'travis_fold:start:script.3\\r'
   - make check-maintainer-clean && ../../configure $CONFIGOPTS
   - echo -en 'travis_fold:end:script.3\\r'

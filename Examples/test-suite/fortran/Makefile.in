@@ -20,6 +20,9 @@ abs_top_srcdir = @abs_top_srcdir@
 CPP_TEST_CASES = \
 	fortran_bindc
 
+CPP11_TEST_CASES = \
+	fortran_shared_ptr
+
 C_TEST_CASES = \
 	fortran_array_typemap \
 	fortran_bindc_c \

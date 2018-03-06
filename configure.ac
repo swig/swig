@@ -2727,9 +2727,11 @@ else
   if test -n "$FCFLAGS"; then
     FCFLAGS="$FCFLAGS"
   elif test "x$GCC" = xyes; then
-    FCFLAGS="-std=f2003 -Wall -Wextra -Wimplicit-procedure -Wimplicit-interface -Wno-compare-reals -ffree-line-length-none"
+    # NOTE: unit tests use C preprocessor, so -cpp must be set
+    FCFLAGS="-std=f2003 -Wall -Wextra -Wimplicit-procedure -Wimplicit-interface -Wno-compare-reals -ffree-line-length-none -cpp"
   else
-    FCFLAGS="-std=f2003"
+    # Unknown compiler
+    FCFLAGS="-std=f2003 -cpp"
   fi
 
   # FORTRANLDSHARED is the ld *command* used to create shared library
