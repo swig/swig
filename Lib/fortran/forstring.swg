@@ -65,6 +65,9 @@ end subroutine
 
 /* -------------------------------------------------------------------------
  * C STRING TYPEMAPS
+ *
+ * By default, "const char*" and "char*" are automatically converted to and
+ * from Fortran native strings.
  * ------------------------------------------------------------------------- */
 
 // C wrapper type: pointer to templated array wrapper
@@ -115,9 +118,11 @@ FORT_COPY_TYPEMAPS_AND_DECL(const char *,
 
 /* -------------------------------------------------------------------------
  * BYTE ARRAY TYPEMAPS
+ *
+ * Transform (char *STRING, size_t LENGTH) to a byte array.
  * ------------------------------------------------------------------------- */
 
-// C wrapper type: pointer to templated array wrapper
+/* C wrapper type: pointer to templated array wrapper */
 %typemap(ctype, noblock=1, null="SwigArrayWrapper_uninitialized()", fragment="SwigArrayWrapper_uninitialized") (char *STRING, size_t LENGTH)
   "SwigArrayWrapper*"
 
@@ -152,7 +157,9 @@ FORT_COPY_TYPEMAPS_AND_DECL(const char *,
  * STD::STRING TYPEMAPS
  *
  * Optional string typemaps for native fortran string conversion. Include
- * `std_string.i` to use these as the default for string operations.
+ * `std_string.i` to use these as the default for string operations. These
+ * definitions are specified here because we use the bindings to return
+ * exception messages, even if the user isn't using std::string values.
  *
  * Use:
  *     %apply const std::string& NATIVE { const std::string& key };

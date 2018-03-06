@@ -48,7 +48,8 @@
 <li><a href="#Fortran_provided_typemaps">Provided typemaps</a><ul>
 <li><a href="#Fortran_stdstring">Std::string</a></li>
 <li><a href="#Fortran_smart_pointers">Smart pointers</a></li>
-<li><a href="#Fortran_array_views">Array views</a></li>
+<li><a href="#Fortran_fortran_to_c_array_translation">Fortran-to-C array translation</a></li>
+<li><a href="#Fortran_returning_array_pointers">Returning array pointers</a></li>
 <li><a href="#Fortran_mpi_compatibility">MPI compatibility</a></li>
 <li><a href="#Fortran_integer_types">Integer types</a></li>
 </ul></li>
@@ -1250,10 +1251,46 @@ end program
 </code></pre>
 </div>
 
-<H3><a name="Fortran_array_views">Array views</a></H3>
+<H3><a name="Fortran_fortran_to_c_array_translation">Fortran-to-C array translation</a></H3>
 
 <p>
-The <code>&lt;view.i&gt;</code> library file provides a simple means of converting to and from Fortran array pointers. It translates <code>std::pair&lt;T*, size_t&gt;</code> input and output values to and from Fortran array pointers. See the section on <a href="#Fortran_pointers_and_references">pointers and references</a> for cautions on functions returning pointers, but in short, the wrapper code
+The <code>&lt;typemaps.i&gt;</code> library file provides a simple means of passing Fortran arrays by reference. It defines a two-argument typemap <code>(SWIGTYPE *DATA, size_t SIZE)</code> that is wrapped as a single Fortran argument, an array of <code>SWIGTYPE</code> values. For functions that accept but do not modify an array of values, the signature <code>(const SWIGTYPE *DATA, size_t SIZE)</code> is also available.
+</p>
+
+
+<p>
+The following example shows how to apply the typemap to two different functions:
+</p>
+
+
+<div class="code"><pre><code>%include &lt;typemaps.i&gt;
+%apply (SWIGTYPE *DATA, size_t SIZE) { (double *x, int x_length) };
+%apply (const SWIGTYPE *DATA, size_t SIZE) { (const int *arr, size_t len) };
+
+void fill_with_zeros(double* x, int x_length);
+int accumulate(const int *arr, size_t len);
+</code></pre>
+</div>
+
+
+<p>
+These functions can then be used in Fortran target code:
+</p>
+
+
+<div class="targetlang"><pre><code>real(C_DOUBLE), dimension(10) :: dbl_values
+integer(C_INT), allocatable, dimension(:)  :: int_values
+integer(C_INT) :: summed
+
+call fill_with_zeros(dbl_values)
+summed = accumulate(int_values)
+</code></pre>
+</div>
+
+<H3><a name="Fortran_returning_array_pointers">Returning array pointers</a></H3>
+
+<p>
+The <code>&lt;view.i&gt;</code> library file provides an alternate means of converting to and from Fortran array pointers. It translates <code>std::pair&lt;T*, size_t&gt;</code> input and output values to and from Fortran array pointers. See the section on <a href="#Fortran_pointers_and_references">pointers and references</a> for cautions on functions returning pointers, but in short, the wrapper code
 </p>
 
 

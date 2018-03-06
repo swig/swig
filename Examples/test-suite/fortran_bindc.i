@@ -24,27 +24,27 @@ struct Foo;
 #endif
 
 typedef struct {
-    int j;
-    int k;
+  int j;
+  int k;
 } OtherStruct;
 
 typedef struct {
-    int i;
-    double d;
-    char c;
-    BinaryOp funptr;
-    void* v;
-    const char* s;
-    OtherStruct o;
-    float p[3];
-    // Foo f // uncommenting will produce an error in Fortran since 'Foo' is a
-             // class and not POD
+  int i;
+  double d;
+  char c;
+  BinaryOp funptr;
+  void* v;
+  const char* s;
+  OtherStruct o;
+  float p[3];
+  // Foo f // uncommenting will produce an error in Fortran since 'Foo' is a
+  // class and not POD
 } SimpleStruct;
 %}
 
 %{
-static SimpleStruct global_struct = {0,0,0,0,0,0,{0,0},{0,0,0}};
-static SimpleStruct* global_struct_ptr = 0;
+  static SimpleStruct global_struct = {0,0,0,0,0,0,{0,0},{0,0,0}};
+  static SimpleStruct* global_struct_ptr = 0;
 %}
 
 %inline %{
@@ -70,3 +70,5 @@ SimpleStruct** get_handle() { return &global_struct_ptr; }
 }
 #endif
 %}
+
+/* vim: set ts=2 sw=2 sts=2 tw=129 : */

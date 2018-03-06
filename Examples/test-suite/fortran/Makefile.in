@@ -21,6 +21,7 @@ CPP_TEST_CASES = \
 	fortran_bindc
 
 C_TEST_CASES = \
+	fortran_array_typemap \
 	fortran_bindc_c \
 	fortran_bindc_all \
 	fortran_enums \

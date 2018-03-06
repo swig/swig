@@ -1002,10 +1002,36 @@ program main
 end program
 ```
 
-## Array views
+## Fortran-to-C array translation
+The `<typemaps.i>` library file provides a simple means of passing Fortran
+arrays by reference. It defines a two-argument typemap `(SWIGTYPE *DATA, size_t
+SIZE)` that is wrapped as a single Fortran argument, an array of `SWIGTYPE`
+values. For functions that accept but do not modify an array of values, the
+signature `(const SWIGTYPE *DATA, size_t SIZE)` is also available.
 
-The `<view.i>` library file provides a simple means of converting to and from
-Fortran array pointers. It translates `std::pair<T*, size_t>` input and
+The following example shows how to apply the typemap to two different
+functions:
+```swig
+%include <typemaps.i>
+%apply (SWIGTYPE *DATA, size_t SIZE) { (double *x, int x_length) };
+%apply (const SWIGTYPE *DATA, size_t SIZE) { (const int *arr, size_t len) };
+
+void fill_with_zeros(double* x, int x_length);
+int accumulate(const int *arr, size_t len);
+```
+These functions can then be used in Fortran target code:
+```fortran
+real(C_DOUBLE), dimension(10) :: dbl_values
+integer(C_INT), allocatable, dimension(:)  :: int_values
+integer(C_INT) :: summed
+
+call fill_with_zeros(dbl_values)
+summed = accumulate(int_values)
+```
+
+## Returning array pointers
+
+The `<view.i>` library file provides an alternate means of converting to and from Fortran array pointers. It translates `std::pair<T*, size_t>` input and
 output values to and from Fortran array pointers. See the section on [pointers
 and references](#pointers-and-references) for cautions on functions returning
 pointers, but in short, the wrapper code
