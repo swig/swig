@@ -30,7 +30,6 @@
   "integer"
 %typemap(fin) MPI_Comm
   "$1 = int($input, C_INT)"
-}
 %typemap(fout) MPI_Comm
   "$result = int($1)"
 

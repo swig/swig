@@ -1,5 +1,5 @@
 # cd BUILD
-# cmake -C PATH_TO/config.cmake PATH_TO/swig/fortran/barefunction
+# cmake -C PATH_TO/config.cmake PATH_TO/swig/Examples/fortran
 
 SET(CMAKE_CXX_COMPILER "/opt/local/bin/g++" CACHE PATH "")
 SET(CMAKE_C_COMPILER "/opt/local/bin/gcc" CACHE PATH "")
@@ -10,3 +10,6 @@ SET(SWIG_DIR "/Users/s3j/_local/swig-debug/share/3.0.10" CACHE PATH "")
 
 SET(BUILD_SHARED_LIBS ON CACHE BOOL "")
 SET(CMAKE_BUILD_TYPE Debug CACHE STRING "")
+
+# Search for MPI compilers
+SET(USE_MPI ON CACHE BOOL "")

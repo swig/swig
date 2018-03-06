@@ -18,6 +18,20 @@ FIND_PACKAGE(SWIG REQUIRED)
 LIST(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 INCLUDE(SwigModules)
 
+# Optional MPI setup
+IF (NOT DEFINED USE_MPI)
+  SET(USE_MPI FALSE)
+ENDIF()
+IF (USE_MPI)
+  FIND_PACKAGE(MPI)
+  IF (MPI_Fortran_FOUND AND MPI_C_FOUND)
+    MESSAGE(STATUS "Found MPI")
+  ELSE()
+    MESSAGE(STATUS "MPI requires both C and Fortran compilers")
+    SET(USE_MPI FALSE)
+  ENDIF()
+ENDIF()
+
 ADD_SUBDIRECTORY(arrayview)
 ADD_SUBDIRECTORY(barefunctions)
 ADD_SUBDIRECTORY(bindc)
@@ -34,6 +48,11 @@ ADD_SUBDIRECTORY(std_string)
 ADD_SUBDIRECTORY(std_vector)
 ADD_SUBDIRECTORY(templated)
 ADD_SUBDIRECTORY(thinvec)
+
+IF(USE_MPI)
+  ADD_SUBDIRECTORY(mpitest)
+ENDIF()
+
 
 ##---------------------------------------------------------------------------##
 ## end of fortran/CMakeLists.txt
