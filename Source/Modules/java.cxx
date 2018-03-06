@@ -2767,7 +2767,8 @@ public:
 
       /* Insert the javaconstruct typemap, doing the replacement for $directorconnect, as needed */
       Hash *attributes = NewHash();
-      String *construct_tm = Copy(typemapLookup(n, "javaconstruct", Getattr(n, "name"),
+      String *typemap_lookup_type = Getattr(getCurrentClass(), "classtypeobj");
+      String *construct_tm = Copy(typemapLookup(n, "javaconstruct", typemap_lookup_type,
 						WARN_JAVA_TYPEMAP_JAVACONSTRUCT_UNDEF, attributes));
       if (construct_tm) {
 	if (!feature_director) {
