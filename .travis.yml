@@ -56,6 +56,11 @@ matrix:
       dist: trusty
     - compiler: gcc
       os: linux
+      env: SWIGLANG=javascript ENGINE=node TRAVIS_NODE_VERSION="9"
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=javascript ENGINE=jsc
       sudo: required
       dist: trusty
