@@ -34,8 +34,11 @@
 
 /* However, we probably do want to warn about overriding intrinsic functions; 
  * some versions of GCC will write a compiler warning on top of that.
+ *
+ * These are *DISABLED BY DEFAULT* via the "EXTRA_WARNINGS" in main.cxx.
+ * To enable them, run SWIG with '-Wextra' or '-w+321'
  */
-#define FORTRANFN(x) %builtinwarn("'" `x` "' may shadow a Fortran intrinsic",sourcefmt="%(lower)s", %$isfunction, %$not %$ismember) `x`;
+#define FORTRANFN(x) %namewarn(%warningmsg(SWIGWARN_PARSE_BUILTIN_NAME, "'" `x` "' may shadow a Fortran intrinsic"), sourcefmt="%(lower)s", %$isfunction, %$not %$ismember) `x`;
 
 /* This list of intrinsic procedures is from
  * https://gcc.gnu.org/onlinedocs/gfortran/Intrinsic-Procedures.html
