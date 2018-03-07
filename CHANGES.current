@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-03-07: llongi
+	    Github PR #1166 - Fix preprocessor handling of macros with commas
+	    in a // comment.
+
 2018-02-18: JPEWdev
             Patch #1164 - Add support for a command-line options file, also sometimes
             called a response file. This is useful if the command-line options exceed
