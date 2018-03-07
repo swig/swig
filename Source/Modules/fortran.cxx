@@ -1251,10 +1251,6 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
 
   String *f_return_str = NULL;
   if (!f_return_str) {
-    f_return_str = Getattr(n, "feature:ftype");
-    Chop(f_return_str);
-  }
-  if (!f_return_str) {
     f_return_str = attach_typemap("ftype", "out", n, WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF);
   }
   assert(f_return_str);
@@ -1418,33 +1414,16 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
 
   // >>> ADDITIONAL WRAPPER CODE
 
-  // Get transformations on the output data in the fortran proxy code
-  String *fbody = Getattr(n, "feature:fout");
-  String *fparm = Getattr(n, "feature:foutdecl");
-
-  if (!fbody) {
-    // Instead of using a feature (overriding), use a typemap
-    if (fparm) {
-      // Foutdecl *must* have fout
-      Swig_warning(WARN_NONE, input_file, line_number,
-                   "'feature:foutdecl' is being ignored for %s because 'feature:fout' is not defined for it\n",
-                   Getattr(n, "name"));
-    }
-
-    // Get the typemap for output argument conversion
-    Parm *temp = NewParm(cpp_return_type, Getattr(n, "name"), n);
-    Setattr(temp, "lname", "fresult");                                 // Replaces $1
-    fbody = attach_typemap("fout", temp, WARN_FORTRAN_TYPEMAP_FOUT_UNDEF);
-    if (bad_fortran_dims(temp, "fout")) {
-      return SWIG_NOWRAP;
-    }
-
-    fparm = attach_typemap("foutdecl", temp, WARN_NONE);
-    Delete(temp);
-  } else {
-    // Replace special variables in feature
-    Replaceall(fbody, "$1", "fresult");
+  // Get the typemap for output argument conversion
+  Parm *temp = NewParm(cpp_return_type, Getattr(n, "name"), n);
+  Setattr(temp, "lname", "fresult"); // Replaces $1
+  String* fbody = attach_typemap("fout", temp, WARN_FORTRAN_TYPEMAP_FOUT_UNDEF);
+  if (bad_fortran_dims(temp, "fout")) {
+    return SWIG_NOWRAP;
   }
+
+  String* fparm = attach_typemap("foutdecl", temp, WARN_NONE);
+  Delete(temp);
   Chop(fbody);
 
   if (fparm) {
