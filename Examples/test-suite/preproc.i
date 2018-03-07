@@ -391,16 +391,16 @@ TCX_PACKED (typedef struct tcxMessageBugImpl
 }) tcxMessageBug;
 
 
-TCX_PACKED (typedef struct tcxMessageTestImplSlashSlash
+TCX_PACKED (typedef struct tcxMessageTestImpl2
 {
     int mHeader; ///< comment
-}) tcxMessageTestSlashSlash;
+}) tcxMessageTest2;
 
 
-TCX_PACKED (typedef struct tcxMessageBugImplSlashSlash
+TCX_PACKED (typedef struct tcxMessageBugImpl2
 {
     int mBid; ///< Bid price and size, check PresentMap if available in message
-}) tcxMessageBugSlashSlash;
+}) tcxMessageBug2;
 
 
 %}
