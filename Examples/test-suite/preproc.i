@@ -373,7 +373,8 @@ int methodX(int x);
 int methodX(int x) { return x+100; }
 %}
 
-// Comma in macro - Github issue #974
+// Comma in macro - https://github.com/swig/swig/issues/974 (for /* */)
+// and https://github.com/swig/swig/pull/1166 (for //)
 %inline %{
 #define swig__attribute__(x)
 #define TCX_PACKED(d) d swig__attribute__ ((__packed__))
