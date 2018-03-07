@@ -389,6 +389,20 @@ TCX_PACKED (typedef struct tcxMessageBugImpl
 {
     int mBid; /**< Bid price and size, check PresentMap if available in message */
 }) tcxMessageBug;
+
+
+TCX_PACKED (typedef struct tcxMessageTestImplSlashSlash
+{
+    int mHeader; ///< comment
+}) tcxMessageTestSlashSlash;
+
+
+TCX_PACKED (typedef struct tcxMessageBugImplSlashSlash
+{
+    int mBid; ///< Bid price and size, check PresentMap if available in message
+}) tcxMessageBugSlashSlash;
+
+
 %}
 
 // Regression tests for https://github.com/swig/swig/pull/1111
