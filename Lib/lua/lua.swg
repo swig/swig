@@ -20,15 +20,21 @@
 // this basically adds to a table of constants
 %typemap(consttab) int, unsigned int, short, unsigned short, long, unsigned long, unsigned char, signed char, bool, enum SWIGTYPE
        {SWIG_LUA_CONSTTAB_INT("$symname", $value)}
+	   
+%typemap(consttab) const int&, const unsigned int&, const short&, const unsigned short &, const long &, const unsigned long &, const unsigned char&, const signed char&, const bool&, const enum SWIGTYPE&
+       {SWIG_LUA_CONSTTAB_INT("$symname", $value)}
 
 %typemap(consttab) float, double
        {SWIG_LUA_CONSTTAB_FLOAT("$symname", $value)}
 
-%typemap(consttab) long long, unsigned long long, signed long long
+%typemap(consttab) const float&, const double&
        {SWIG_LUA_CONSTTAB_FLOAT("$symname", $value)}
 
+%typemap(consttab) long long, unsigned long long, signed long long
+       {SWIG_LUA_CONSTTAB_INT("$symname", $value)}
+
 %typemap(consttab) const long long&, const unsigned long long&, const signed long long&
-       {SWIG_LUA_CONSTTAB_FLOAT("$symname", *$value)}
+       {SWIG_LUA_CONSTTAB_INT("$symname", *$value)}
 
 %typemap(consttab) char *, const char *, char [], const char []
        {SWIG_LUA_CONSTTAB_STRING("$symname", $value)}
@@ -37,9 +43,6 @@
 // signed char & unsigned char are numbers
 %typemap(consttab) char
        {SWIG_LUA_CONSTTAB_CHAR("$symname", $value)}
-
-%typemap(consttab) long long, unsigned long long
-       {SWIG_LUA_CONSTTAB_STRING("$symname", "$value")}
 
 %typemap(consttab) SWIGTYPE *, SWIGTYPE *const, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE []
        { SWIG_LUA_CONSTTAB_POINTER("$symname",$value, $1_descriptor) }
@@ -161,15 +164,18 @@ use %include <std_except.i> instead
 %typemap(throws) int,unsigned int,signed int,
 				long,unsigned long,signed long,
 				short,unsigned short,signed short,
-				float,double,
 				long long,unsigned long long,
 				unsigned char, signed char,
                 int&,unsigned int&,signed int&,
 				long&,unsigned long&,signed long&,
 				short&,unsigned short&,signed short&,
-				float&,double&,
 				long long&,unsigned long long&,
 				unsigned char&, signed char&
+%{lua_pushinteger(L,(lua_Integer)$1);SWIG_fail; %}
+
+// number as number+error
+%typemap(throws) float,double,
+				float&,double&,
 %{lua_pushnumber(L,(lua_Number)$1);SWIG_fail; %}
 
 %typemap(throws) bool,bool& 
@@ -177,7 +183,7 @@ use %include <std_except.i> instead
 
 // enum as number+error
 %typemap(throws) enum SWIGTYPE
-%{lua_pushnumber(L,(lua_Number)(int)$1);SWIG_fail; %}
+%{lua_pushinteger(L,(lua_Integer)(int)$1);SWIG_fail; %}
 
 // strings are just sent as errors
 %typemap(throws) char *, const char *

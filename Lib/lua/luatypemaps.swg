@@ -27,11 +27,13 @@
 %{SWIG_contract_assert((lua_tonumber(L,$input)>=0),"number must not be negative")
 $1 = ($type)lua_tonumber(L, $input);%}
 
+%typemap(out) float,double
+%{  lua_pushnumber(L, (lua_Number) $1); SWIG_arg++;%}
+
 %typemap(out) int,short,long,
              unsigned int,unsigned short,unsigned long,
-             signed char,unsigned char,
-             float,double
-%{  lua_pushnumber(L, (lua_Number) $1); SWIG_arg++;%}
+             signed char,unsigned char
+%{  lua_pushinteger(L, (lua_Integer) $1); SWIG_arg++;%}
 
 // we must also provide typemaps for primitives by const reference:
 // given a function:
@@ -47,11 +49,15 @@ $1 = ($type)lua_tonumber(L, $input);%}
 temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
 
 %typemap(out) const int&, const unsigned int&
+%{  lua_pushinteger(L, (lua_Integer) *$1); SWIG_arg++;%}
+
+%typemap(out) const float&
 %{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
 
 // for the other numbers we can just use an apply statement to cover them
-%apply const int & {const short&,const long&,const signed char&,
-             const float&,const double&};
+%apply const int & {const short&,const long&,const signed char&};
+
+%apply const float & {const double&};
 
 %apply const unsigned int & {const unsigned short&,const unsigned long&,
              const unsigned char&};
@@ -63,7 +69,7 @@ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
 %{$1 = ($type)(int)lua_tonumber(L, $input);%}
 
 %typemap(out) enum SWIGTYPE
-%{  lua_pushnumber(L, (lua_Number)(int)($1)); SWIG_arg++;%}
+%{  lua_pushinteger(L, (lua_Integer)(int)($1)); SWIG_arg++;%}
 
 // and const refs
 %typemap(in,checkfn="lua_isnumber") const enum SWIGTYPE &($basetype temp)
@@ -71,9 +77,9 @@ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
 %typemap(in,checkfn="lua_isnumber") const enum SWIGTYPE &&($basetype temp)
 %{ temp=($basetype)(int)lua_tonumber(L,$input); $1=&temp;%}
 %typemap(out) const enum SWIGTYPE &
-%{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
+%{  lua_pushinteger(L, (lua_Integer) *$1); SWIG_arg++;%}
 %typemap(out) const enum SWIGTYPE &&
-%{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
+%{  lua_pushinteger(L, (lua_Integer) *$1); SWIG_arg++;%}
 
 
 // boolean (which is a special type in lua)
