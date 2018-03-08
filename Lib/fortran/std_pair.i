@@ -19,8 +19,9 @@ struct pair {
 
 }
 
-/* Prevent assignment for pairs of const values */
 %fragment("swig::AssignmentFlags");
+
+/* Prevent assignment for pairs of const values */
 %{
 namespace swig {
 template<class T, class U, int Flags>
