@@ -3763,15 +3763,16 @@ public:
         Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", smartptr, smartptr);
         Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
         Printf(code_wrap->code, "  // Avoids using smart pointer specific API.\n");
-        Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
-    }
-    else {
+        Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
+    } else {
         Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
-        Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj);\n", dirClassName, dirClassName);
+        Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName);
     }
 
     Printf(code_wrap->code, "  (void)jcls;\n");
-    Printf(code_wrap->code, "  director->swig_java_change_ownership(jenv, jself, jtake_or_release ? true : false);\n");
+    Printf(code_wrap->code, "  if (director) {\n");
+    Printf(code_wrap->code, "    director->swig_java_change_ownership(jenv, jself, jtake_or_release ? true : false);\n");
+    Printf(code_wrap->code, "  }\n");
     Printf(code_wrap->code, "}\n");
 
     Wrapper_print(code_wrap, f_wrappers);
