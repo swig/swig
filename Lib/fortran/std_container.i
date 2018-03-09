@@ -9,7 +9,7 @@
  *
  * ------------------------------------------------------------------------- */
 
-%include <view.i>
+%include <forarray.swg>
 
 /* -------------------------------------------------------------------------
  * \def %std_native_container
@@ -23,20 +23,25 @@
 %define %std_native_container(ARRTYPE...)
 
 #define VTYPE ARRTYPE::value_type
-FORT_ARRAYPTR_TYPEMAP(VTYPE, const ARRTYPE& NATIVE)
+FORT_ARRAYPTR_TYPEMAP(VTYPE, const ARRTYPE& POINTER)
+
+// C output translation typemaps: $1 is vector<VTYPE>*, $input is SwigArrayWrapper
+%typemap(out, noblock=1) const ARRTYPE& POINTER {
+  $result.data = ($1->empty() ? NULL : &(*$1->begin()));
+  $result.size = $1->size();
+}
+
+// Returning container by mutable reference can be transformed to getting an array pointer
+%apply const ARRTYPE& POINTER { ARRTYPE& POINTER };
 
 // C input translation typemaps: $1 is SWIGPAIR__, $input is SwigArrayWrapper
-%typemap(in, noblock=1) const ARRTYPE& NATIVE (ARRTYPE temparr, VTYPE* tempbegin) {
+%typemap(in, noblock=1) const ARRTYPE& POINTER (ARRTYPE temparr, VTYPE* tempbegin) {
   tempbegin = static_cast<VTYPE*>($input->data);
   temparr.assign(tempbegin, tempbegin + $input->size);
   $1 = &temparr;
 }
 
-// C output translation typemaps: $1 is vector<VTYPE>*, $input is SwigArrayWrapper
-%typemap(out, noblock=1) const ARRTYPE& NATIVE {
-  $result.data = ($1->empty() ? NULL : &(*$1->begin()));
-  $result.size = $1->size();
-}
+%apply const ARRTYPE& POINTER { const ARRTYPE& NATIVE };
 
 %typemap(ftype, out={$typemap(imtype, VTYPE), dimension(:), allocatable}, noblock=1)
     const ARRTYPE& NATIVE {
@@ -57,7 +62,7 @@ FORT_ARRAYPTR_TYPEMAP(VTYPE, const ARRTYPE& NATIVE)
 // Return by value: allocate data and free it
 %apply const ARRTYPE& NATIVE { ARRTYPE NATIVE };
 
-// Copy the string to a temporary buffer (not null-terminated)
+// Copy the array to a temporary buffer (not null-terminated)
 %typemap(out, fragment="<stdlib.h>", fragment="<string.h>", noblock=1) ARRTYPE NATIVE {
   $result.size = $1.size();
   if ($result.size > 0) {

@@ -24,6 +24,7 @@
  * `%template() std::vector<double>` .
  */
 %include "std_container.i"
+%include "typemaps.i"
 
 namespace std {
   template<class _Tp, class _Alloc = std::allocator<_Tp> >
@@ -58,6 +59,14 @@ namespace std {
     const_reference front() const;
     const_reference back() const;
 
+    // Declare typemaps for using 'NATIVE' wrapping
+    %std_native_container(std::vector<_Tp, _Alloc >)
+
+    // Enable view output and input
+    %apply vector<_Tp, _Alloc >& POINTER { vector<_Tp, _Alloc >& view() };
+    %apply (const SWIGTYPE *DATA, ::size_t SIZE)
+    { (const value_type* DATA, size_type SIZE) };
+
     // Extend for Fortran
     %extend{
       // C indexing used here!
@@ -71,15 +80,22 @@ namespace std {
         // TODO: check range
         return (*$self)[index];
       }
-    } // end extend
 
-  // Declare typemaps for using 'NATIVE' wrapping
-  %std_native_container(std::vector<_Tp, _Alloc >)
+      // Assign from another vector
+      void assign(const value_type* DATA, size_type SIZE) {
+        $self->assign(DATA, DATA + SIZE);
+      }
+
+      // Get a mutable view to ourself
+      vector<_Tp, _Alloc >& view() {
+        return *$self;
+      }
+  }
 };
 
 // Specialize on bool
-template<class _Alloc>
-class vector<bool, _Alloc> {
+template<class _Alloc >
+class vector<bool, _Alloc > {
   /* NOT IMPLEMENTED */
 };
 }                                 // end namespace std
