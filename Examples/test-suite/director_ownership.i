@@ -29,7 +29,7 @@ class ContentDerived: public ContentBase
 public:
     ContentDerived():ContentBase() { m_name = "ContentDerived"; }
     virtual ~ContentDerived() {}
-    virtual std::string get_name() const override { return m_name; }
+    virtual std::string get_name() const { return m_name; }
 
 private:
     std::string m_name;
