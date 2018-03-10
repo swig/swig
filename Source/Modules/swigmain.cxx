@@ -53,6 +53,7 @@ extern "C" {
   Language *swig_scilab(void);
   Language *swig_go(void);
   Language *swig_d(void);
+  Language *swig_delphi(void);
   Language *swig_javascript(void);
 }
 
@@ -73,6 +74,7 @@ static swig_module modules[] = {
   {"-cffi", swig_cffi, "CFFI"},
   {"-csharp", swig_csharp, "C#"},
   {"-d", swig_d, "D"},
+  {"-delphi", swig_delphi, "Delphi"},
   {"-go", swig_go, "Go"},
   {"-guile", swig_guile, "Guile"},
   {"-java", swig_java, "Java"},

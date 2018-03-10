@@ -75,6 +75,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/uffi.cxx		\
 		Modules/utils.cxx		\
 		Modules/xml.cxx			\
+		Modules/delphi.cxx			\
 		Preprocessor/cpp.c		\
 		Preprocessor/expr.c		\
 		Swig/cwrap.c			\
