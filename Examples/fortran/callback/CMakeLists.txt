@@ -10,7 +10,7 @@ INCLUDE_DIRECTORIES(${CMAKE_PROJECT_SOURCE_DIR})
 
 # Generate SWIG module
 MAKE_SWIG(MODULE callback
-  EXTRASRC callback.cxx)
+  EXTRASRC callback.cxx callback_ext.cxx cbext.f90)
 
 # Create test executable
 ADD_EXECUTABLE(callback_test.exe runme.f90)
