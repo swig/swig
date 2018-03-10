@@ -19,6 +19,7 @@ extern "C" {
 SwigArrayWrapper swigc_fp_transform(const SwigArrayWrapper* farg1);
 }
 
+// This callback function wraps a single fortran function pointer.
 std::string director_cb_impl(const std::string& str) {
   /* convert str -> array wrapper */
   SwigArrayWrapper arg1;
@@ -35,14 +36,14 @@ std::string director_cb_impl(const std::string& str) {
 }
 
 extern "C" {
-// director_cb: callback function that can be referenced by fortran
+// swigc_director_cb: callback function that can be referenced by fortran; points to director_cb_impl
 SWIGEXPORT SWIGEXTERN std::string (*const swigc_director_cb)(std::string const &) = (std::string (*)(std::string const &s))(director_cb_impl);
 }
 %}
 
 %insert("fpublic") %{
 public :: fp_transform ! Abstract interface
-public :: fortran_procptr ! Callback function that should point to user fortran code
+public :: director_procptr ! Callback function that should point to user fortran code
 %}
 
 %insert("fparams") %{
@@ -60,7 +61,7 @@ abstract interface
   end function
 end interface
 ! User must set the following procedure
-procedure(fp_transform), pointer :: fortran_procptr => null()
+procedure(fp_transform), pointer :: director_procptr => null()
 %}
 
 %insert("fwrapper") %{
@@ -77,13 +78,13 @@ function swigc_fp_transform(farg1) bind(C) &
   character(kind=C_CHAR, len=:), allocatable :: swig_result
   character(kind=C_CHAR), dimension(:), allocatable, target, save :: fresult_chars
 
-  ! Convert input array to f string
+  ! Convert input C string array to fortran string
   call SWIG_chararray_to_string(farg1, s)
-  ! Call pure fortran function
-  swig_result = fortran_procptr(s)
+  ! Call fortran function pointer with native fortran input/output
+  swig_result = director_procptr(s)
   ! Convert output back into a C-compatible form; it must not be deallocated
   ! before the C code on the other side can convert it to the native format.
-  ! That's why we include the 'save' attribute on the output.
+  ! That's why we include the 'save' attribute on the temporary "fresult_chars".
   call SWIG_string_to_chararray(swig_result, fresult_chars, fresult)
 end function
 %}

@@ -1,6 +1,9 @@
 module my_transforms
   implicit none
 contains
+  ! Fortran functions that return a modified string based on an input string.
+  ! These interfaces conform to the "fp_transform" abstract interface defined
+  ! in the "callback" module.
   function enquote_single(s) &
       result(news)
     use, intrinsic :: ISO_C_BINDING
@@ -19,18 +22,17 @@ contains
 end module
 
 program test_callback
-  use callback
   implicit none
 
   call test_procptr()
   call test_transform()
   call test_cb()
-
 contains
 
 ! Fortran callback test
 subroutine test_procptr
   use my_transforms
+  use callback
   implicit none
   procedure(fp_transform), pointer :: trans => null()
 
@@ -66,13 +68,15 @@ subroutine test_cb
   write(*,*) "test_cb"
 
   ! Choose the internal Fortran procedure to wrap
-  fortran_procptr => enquote_single
+  director_procptr => enquote_single
 
+  ! Call the C++ function with the callback function that wraps the interface
+  ! function that calls "director_procptr"
   str = join_transformed(", and ", director_cb)
   write(0,*) "Got string: " // str
 
   ! Choose the internal Fortran procedure to wrap
-  fortran_procptr => bracket
+  director_procptr => bracket
 
   str = join_transformed(", and ", director_cb)
   write(0,*) "Got string: " // str
