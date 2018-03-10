@@ -12,21 +12,13 @@ matrix:
       sudo: required
       dist: trusty
     - os: linux
-      env: SWIGLANG= SWIG_CC=gcc-5 SWIG_CXX=g++-5 SWIG_FC=gfortran-5 CPP11=1
+      env: SWIGLANG= SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
       sudo: required
       dist: trusty
-      addons: &gfortran5
-        apt:
-          sources: ubuntu-toolchain-r-test
-          packages: gfortran-5
     - os: linux
-      env: SWIGLANG= SWIG_CC=gcc-6 SWIG_CXX=g++-6 SWIG_FC=gfortran-6
+      env: SWIGLANG= SWIG_CC=gcc-6 SWIG_CXX=g++-6
       sudo: required
       dist: trusty
-      addons: &gfortran6
-        apt:
-          sources: ubuntu-toolchain-r-test
-          packages: gfortran-6
     - compiler: gcc
       os: linux
       env: SWIGLANG=csharp
@@ -251,19 +243,17 @@ matrix:
       sudo: required
       dist: trusty
     - compiler: gcc
-      env: SWIGLANG=fortran SWIG_FC=gfortran-5 # Note: C++98
+      env: SWIGLANG=fortran # Note: C++98
       sudo: required
       dist: trusty
-      addons: *gfortran5
     - os: linux
       env: SWIGLANG=csharp SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
       sudo: required
       dist: trusty
     - os: linux
-      env: SWIGLANG=fortran SWIG_CC=gcc-5 SWIG_CXX=g++-5 SWIG_FC=gfortran-5 CPP11=1
+      env: SWIGLANG=fortran SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
       sudo: required
       dist: trusty
-      addons: *gfortran5
     - os: linux
       env: SWIGLANG=go SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
       sudo: required
@@ -293,10 +283,9 @@ matrix:
       sudo: required
       dist: trusty
     - os: linux
-      env: SWIGLANG=fortran SWIG_CC=gcc-6 SWIG_CXX=g++-6 SWIG_FC=gfortran-6 CPP14=1
+      env: SWIGLANG=fortran SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
       sudo: required
       dist: trusty
-      addons: *gfortran6
     - os: linux
       env: SWIGLANG=go SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
       sudo: required
@@ -318,13 +307,9 @@ matrix:
       sudo: required
       dist: trusty
     - os: linux
-      env: SWIGLANG=fortran SWIG_CC=gcc-7 SWIG_CXX=g++-7 SWIG_FC=gfortran-7 CPP14=1 FCSTD=f2008
+      env: SWIGLANG=fortran SWIG_CC=gcc-7 SWIG_CXX=g++-7 CPP14=1 FCSTD=f2008
       sudo: required
       dist: trusty
-      addons: &gfortran7
-        apt:
-          sources: ubuntu-toolchain-r-test
-          packages: gfortran-7
     - os: linux
       env: SWIGLANG=java SWIG_CC=gcc-7 SWIG_CXX=g++-7 CPP14=1
       sudo: required
@@ -413,7 +398,6 @@ before_install:
     # Travis overrides CC environment with compiler predefined values
   - if test -n "$SWIG_CC"; then export CC="$SWIG_CC"; fi
   - if test -n "$SWIG_CXX"; then export CXX="$SWIG_CXX"; fi
-  - if test -n "$SWIG_FC"; then export FC="$SWIG_FC"; fi
 install:
   - if test "$TRAVIS_OS_NAME" = "linux"; then source Tools/travis-linux-install.sh; fi
   - if test "$TRAVIS_OS_NAME" = "osx"; then source Tools/travis-osx-install.sh; fi
@@ -422,10 +406,9 @@ install:
   - if test -n "$CPP17"; then CONFIGOPTS+=(--enable-cpp11-testing --without-maximum-compile-warnings "CXXFLAGS=-std=c++17 -Wall -Wextra" "CFLAGS=-std=c17 -Wall -Wextra") && export CSTD=c17 && export CPPSTD=c++17; fi
   - ls -la $(which $CC)
   - ls -la $(which $CXX)
-  - if test -n "$SWIG_FC"; then ls -la $(which $FC); fi
   - $CC --version
   - $CXX --version
-  - if test -n "$SWIG_FC"; then $FC --version; fi
+  - if test -n "$FC"; then $FC --version; fi
 script:
   - echo 'Configuring...' && echo -en 'travis_fold:start:script.1\\r'
   - if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
@@ -442,7 +425,7 @@ script:
   # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
   - if test -n "$SWIGLANG"; then cflags=$($TRAVIS_BUILD_DIR/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC) && echo $cflags; fi
   - if test -n "$SWIGLANG"; then cxxflags=$($TRAVIS_BUILD_DIR/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC) && echo $cxxflags; fi
-  - if test -n "$SWIGLANG" && test -n "$SWIG_FC"; then fcflags=$($TRAVIS_BUILD_DIR/Tools/testflags.py --language $SWIGLANG --fcflags --std=$FCSTD --compiler=$FC) && echo $fcflags; fi
+  - if test -n "$SWIGLANG" && test -n "$FC"; then fcflags=$($TRAVIS_BUILD_DIR/Tools/testflags.py --language $SWIGLANG --fcflags --std=$FCSTD --compiler=$FC) && echo $fcflags; fi
   - if test -n "$SWIGLANG"; then make -s check-$SWIGLANG-version; fi
   - if test -n "$SWIGLANG"; then make check-$SWIGLANG-enabled; fi
   - if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags" FCFLAGS="$fcflags"; fi
