@@ -3108,12 +3108,18 @@ AC_CONFIG_FILES([
     Examples/d/example.mk
     Examples/xml/Makefile
     Examples/test-suite/errors/Makefile
+    Examples/test-suite/allegrocl/Makefile
+    Examples/test-suite/cffi/Makefile
     Examples/test-suite/chicken/Makefile
+    Examples/test-suite/clisp/Makefile
     Examples/test-suite/csharp/Makefile
     Examples/test-suite/d/Makefile
+    Examples/test-suite/fortran/Makefile
+    Examples/test-suite/go/Makefile
     Examples/test-suite/guile/Makefile
     Examples/test-suite/java/Makefile
     Examples/test-suite/javascript/Makefile
+    Examples/test-suite/lua/Makefile
     Examples/test-suite/mzscheme/Makefile
     Examples/test-suite/ocaml/Makefile
     Examples/test-suite/octave/Makefile
@@ -3122,17 +3128,11 @@ AC_CONFIG_FILES([
     Examples/test-suite/php5/Makefile
     Examples/test-suite/pike/Makefile
     Examples/test-suite/python/Makefile
+    Examples/test-suite/r/Makefile
     Examples/test-suite/ruby/Makefile
     Examples/test-suite/scilab/Makefile
     Examples/test-suite/tcl/Makefile
-    Examples/test-suite/lua/Makefile
-    Examples/test-suite/allegrocl/Makefile
-    Examples/test-suite/clisp/Makefile
-    Examples/test-suite/cffi/Makefile
     Examples/test-suite/uffi/Makefile
-    Examples/test-suite/r/Makefile
-    Examples/test-suite/go/Makefile
-    Examples/test-suite/fortran/Makefile
     Source/Makefile
     Tools/javascript/Makefile
 ])
@@ -3184,6 +3184,7 @@ test -n "$SKIP_CHICKEN"		|| langs="${langs}chicken "
 test -n "$SKIP_CLISP"		|| langs="${langs}clisp "
 test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
 test -n "$SKIP_D"		|| langs="${langs}d "
+test -n "$SKIP_FORTRAN"		|| langs="${langs}fortran "
 test -n "$SKIP_GO"		|| langs="${langs}go "
 test -n "$SKIP_GUILE"		|| langs="${langs}guile "
 test -n "$SKIP_JAVA"		|| langs="${langs}java "
@@ -3203,7 +3204,6 @@ test -n "$SKIP_RUBY"		|| langs="${langs}ruby "
 test -n "$SKIP_SCILAB"		|| langs="${langs}scilab "
 test -n "$SKIP_TCL"		|| langs="${langs}tcl "
 test -n "$SKIP_UFFI"		|| langs="${langs}uffi "
-test -n "$SKIP_FORTRAN"		|| langs="${langs}fortran "
 
 echo "
 The SWIG test-suite and examples are configured for the following languages:
