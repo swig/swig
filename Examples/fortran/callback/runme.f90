@@ -1,9 +1,26 @@
+module my_transforms
+  implicit none
+contains
+  function enquote_single(s) &
+      result(news)
+    use, intrinsic :: ISO_C_BINDING
+    character(kind=C_CHAR, len=:), allocatable :: news
+    character(kind=C_CHAR, len=*) :: s
+    news = "'" // s // "'"
+  end function
+
+  function bracket(s) &
+      result(news)
+    use, intrinsic :: ISO_C_BINDING
+    character(kind=C_CHAR, len=:), allocatable :: news
+    character(kind=C_CHAR, len=*) :: s
+    news = "[" // s // "]"
+  end function
+end module
+
 program test_callback
-  use cbext
   use callback
   implicit none
-
-  call printcrap
 
   call test_procptr()
   call test_transform()
@@ -13,7 +30,7 @@ contains
 
 ! Fortran callback test
 subroutine test_procptr
-  use cbext
+  use my_transforms
   implicit none
   procedure(fp_transform), pointer :: trans => null()
 
@@ -40,7 +57,7 @@ end subroutine
 
 ! Actual C++ callback to wrapped Function procedure
 subroutine test_cb
-  use cbext
+  use my_transforms
   use callback
   use, intrinsic :: ISO_C_BINDING
   implicit none
@@ -50,8 +67,6 @@ subroutine test_cb
 
   ! Choose the internal Fortran procedure to wrap
   fortran_procptr => enquote_single
-  ! Set C callback to our interface function (only needs to be done once)
-  fortran_cb = c_funloc(swigc_fp_transform)
 
   str = join_transformed(", and ", director_cb)
   write(0,*) "Got string: " // str
