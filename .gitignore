@@ -133,6 +133,13 @@ Examples/d/**/example.d
 Examples/d/**/example_im.d
 Examples/d/**/runme
 
+# Fortran
+*.mod
+Examples/test-suite/fortran/*.f90
+!Examples/test-suite/fortran/*runme.f90
+Examples/fortran/*/*.f90
+!Examples/fortran/*/*runme.f90
+
 # Go
 *.[5689]
 *_gc.c
@@ -197,7 +204,3 @@ Examples/r/*/.RData
 # Scilab
 Examples/test-suite/scilab/*/
 loader.sce
-
-# Fortran
-*.mod
-

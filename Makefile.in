@@ -287,7 +287,7 @@ check-test-suite:				\
 	check-scilab-test-suite			\
 	check-go-test-suite			\
 	check-d-test-suite			\
-	check-javascript-test-suite \
+	check-javascript-test-suite			\
 	check-fortran-test-suite
 
 check-%-test-suite:

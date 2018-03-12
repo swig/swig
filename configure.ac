@@ -2706,9 +2706,8 @@ AC_SUBST(GOVERSIONOPTION)
 
 AC_ARG_WITH(fortran,
   AS_HELP_STRING([--without-fortran], [Disable Fortran])
-  AS_HELP_STRING([--with-fortran=path], [Set location of Fortran compiler])
-  , [FORTRAN="$withval"], [FORTRAN="$alllang_default"])
-
+  AS_HELP_STRING([--with-fortran=path], [Set location of Fortran compiler]), \
+    [FORTRAN="$withval"], [FORTRAN="$alllang_default"])
 
 if test x"${FORTRAN}" = xno; then
   AC_MSG_NOTICE([Disabling Fortran])
@@ -2728,10 +2727,7 @@ else
     FCFLAGS="$FCFLAGS"
   elif test "x$GCC" = xyes; then
     # NOTE: unit tests use C preprocessor, so -cpp must be set
-    FCFLAGS="-std=f2003 -Wall -Wextra -Wimplicit-procedure -Wimplicit-interface -Wno-compare-reals -ffree-line-length-none -cpp"
-  else
-    # Unknown compiler
-    FCFLAGS="-std=f2003 -cpp"
+    FCFLAGS="-std=f2003 -Wall -Wimplicit-procedure -Wimplicit-interface -cpp"
   fi
 
   # FORTRANLDSHARED is the ld *command* used to create shared library
