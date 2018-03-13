@@ -336,7 +336,9 @@ SwigType *parse_typemap(const_String_or_char_ptr tmname, const_String_or_char_pt
   String *raw_tm = get_typemap(tmname, ext, n, warning);
   // Convert the plain-text string to a SWIG type
   SwigType *parsed_type = Swig_cparse_type(raw_tm);
-  assert(parsed_type);
+  if (!parsed_type) {
+    return NULL;
+  }
   // Resolve typedefs in the parsed type
   SwigType *resolved_type = SwigType_typedef_resolve_all(parsed_type);
 
@@ -427,7 +429,7 @@ public:
   FORTRAN() : d_warned_fclassname(NULL), d_overloads(NULL), d_method_overloads(NULL), d_constructors(NULL), d_enum_public(NULL) {}
 
 private:
-  void cfuncWrapper(Node *n);
+  int cfuncWrapper(Node *n);
   int imfuncWrapper(Node *n);
   int proxyfuncWrapper(Node *n);
   void assignmentWrapper(Node *n);
@@ -828,7 +830,8 @@ int FORTRAN::functionWrapper(Node *n) {
 
   if (!is_cbound) {
     // Typical function wrapping
-    this->cfuncWrapper(n);
+    if (this->cfuncWrapper(n) == SWIG_NOWRAP)
+      return SWIG_NOWRAP;
     if (this->imfuncWrapper(n) == SWIG_NOWRAP)
       return SWIG_NOWRAP;
     if (this->proxyfuncWrapper(n) == SWIG_NOWRAP)
@@ -926,7 +929,7 @@ int FORTRAN::functionWrapper(Node *n) {
 /* -------------------------------------------------------------------------
  * \brief Generate C/C++ wrapping code
  */
-void FORTRAN::cfuncWrapper(Node *n) {
+int FORTRAN::cfuncWrapper(Node *n) {
   String *symname = Getattr(n, "sym:name");
 
   Wrapper *cfunc = NewWrapper();
@@ -937,6 +940,12 @@ void FORTRAN::cfuncWrapper(Node *n) {
   // ctype typemap has to be attached
   Swig_typemap_lookup("ctype", n, Getattr(n, "name"), NULL);
   SwigType *c_return_type = parse_typemap("ctype", "out", n, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
+  if (!c_return_type) {
+    Swig_error(input_file, line_number,
+               "Failed to parse 'ctype' typemap return value of '%s'\n",
+               SwigType_namestr(symname));
+    return SWIG_NOWRAP;
+  }
   const bool is_csubroutine = (Strcmp(c_return_type, "void") == 0);
 
   String *c_return_str = NULL;
@@ -1000,9 +1009,9 @@ void FORTRAN::cfuncWrapper(Node *n) {
     SwigType *parsed_tm = parse_typemap("ctype", NULL, p, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
     if (!parsed_tm) {
       Swig_error(input_file, line_number,
-                 "Failed to parse 'ctype' typemap for argument %s of %s\n",
+                 "Failed to parse 'ctype' typemap for argument '%s' of '%s'\n",
                  SwigType_str(Getattr(p, "type"), Getattr(p, "name")), SwigType_namestr(symname));
-      return;
+      return SWIG_NOWRAP;
     }
     String *carg = SwigType_str(parsed_tm, imname);
     Printv(cfunc->def, prepend_comma, carg, NULL);
@@ -1116,6 +1125,7 @@ void FORTRAN::cfuncWrapper(Node *n) {
   Delete(cleanup);
   Delete(c_return_str);
   DelWrapper(cfunc);
+  return SWIG_OK;
 }
 
 /* -------------------------------------------------------------------------
