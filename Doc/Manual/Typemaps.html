@@ -712,7 +712,7 @@ these methods is described later.
 </p>
 
 <p>
-<em>modifiers</em> is an optional comma separated list of <tt>name="value"</tt> values. 
+<em>modifiers</em> is an optional comma separated list of <tt>name="value"</tt> or <tt>name={value}</tt> values. 
 These are sometimes to attach extra information to a typemap and is often target-language dependent.
 They are also known as typemap attributes.
 </p>
@@ -781,6 +781,7 @@ Here are some examples of valid typemap specifications:
 
 /* Typemap with modifiers */
 %typemap(in, doc="integer") int "$1 = scm_to_int($input);";
+%typemap(in, doc={embedded MACRO will be expanded}) int "$1 = scm_to_int($input);";
 
 /* Typemap applied to patterns of multiple arguments */
 %typemap(in) (char *str, int len),
