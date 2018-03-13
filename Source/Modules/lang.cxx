@@ -3387,7 +3387,6 @@ Node *Language::enumLookup(SwigType *s) {
     String *base = SwigType_base(ty2);
 
     Replaceall(base, "enum ", "");
-    Replaceall(base, "enum_anon ", "");
     String *prefix = SwigType_prefix(ty2);
 
     if (strncmp(Char(base), "::", 2) == 0) {

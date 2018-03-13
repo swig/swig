@@ -697,9 +697,7 @@ class TypePass:private Dispatcher {
       Delete(qualifiedname);
     }
 
-    if (checkAttribute(n, "storage", "typedef")
-        && !Getattr(n, "unnamed")) {
-      // Apply typedefs unless they're unnamed
+    if (checkAttribute(n, "storage", "typedef")) {
       String *name = Getattr(n, "name");
       ty = Getattr(n, "type");
       decl = Getattr(n, "decl");
@@ -783,12 +781,6 @@ class TypePass:private Dispatcher {
 
   virtual int enumDeclaration(Node *n) {
     String *name = Getattr(n, "name");
-    String *unnamed = Getattr(n, "unnamed");
-    String *tdname = Getattr(n, "tdname");
-    String *storage = Getattr(n, "storage");
-
-    // Whether it's a 'typedef enum {...} name' declaration
-    bool is_anon_typedef = unnamed && tdname && (Cmp(storage, "typedef") == 0);
 
     if (name) {
       String *scope = 0;
@@ -808,16 +800,13 @@ class TypePass:private Dispatcher {
 	String *nname = NewStringf("%s::%s", scope, name);
 	Setattr(n, "name", nname);
 
+	String *tdname = Getattr(n, "tdname");
 	if (tdname) {
 	  tdname = NewStringf("%s::%s", scope, tdname);
 	  Setattr(n, "tdname", tdname);
 	}
 
 	SwigType *t = NewStringf("enum %s", nname);
-	SwigType_typedef(t, name);
-      } else if (is_anon_typedef) {
-        // Special case of enums: generated code MUST NOT have 'enum' prefix.
-	SwigType *t = NewStringf("enum_anon %s", name);
 	SwigType_typedef(t, name);
       } else {
 	SwigType *t = NewStringf("enum %s", name);
@@ -826,10 +815,14 @@ class TypePass:private Dispatcher {
       Delete(scope);
     }
 
+    String *tdname = Getattr(n, "tdname");
+    String *unnamed = Getattr(n, "unnamed");
+    String *storage = Getattr(n, "storage");
+
     // Construct enumtype - for declaring an enum of this type with SwigType_ltype() etc
     String *enumtype = 0;
-    if (is_anon_typedef) {
-      enumtype = Copy(tdname);
+    if (unnamed && tdname && (Cmp(storage, "typedef") == 0)) {
+      enumtype = Copy(Getattr(n, "tdname"));
     } else if (name) {
       enumtype = NewStringf("%s%s", CPlusPlus ? "" : "enum ", Getattr(n, "name"));
     } else {

@@ -1085,8 +1085,7 @@ SwigType *SwigType_typedef_qualified(const SwigType *t) {
     if (SwigType_issimple(e)) {
       if (!SwigType_istemplate(e)) {
 	String *isenum = 0;
-	if (SwigType_isnamedenum(e)) {
-          /* temporarily strip 'enum ' prefix */
+	if (SwigType_isenum(e)) {
 	  isenum = NewString("enum ");
 	  ty = NewString(Char(e) + 5);
 	  e = ty;
