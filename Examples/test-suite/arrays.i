@@ -78,13 +78,14 @@ cartPosition_t p;
 
 #ifdef SWIGFORTRAN
 /* Fortran can't handle hex, but it can substitute compile-time constants like
- * the enum into the 'contains' part of the code. HOWEVER, the interface must
- * "import" the enums, so enums don't work after all. */
+ * the enum into the 'contains' part of the code. HOWEVER, the interface would
+ * have to "import" the enums for that to work, which we don't support. */
 %ignore oned_hex;
 %ignore oned_enum;
 %ignore twod_enum;
 %bindc oned_unknown;
 %bindc twod_unknown_int;
+#endif
 
 %inline %{
 enum {TEN = 10};
@@ -101,11 +102,58 @@ void twod_enum(int a[TEN][4]) { a[0][0] = 0; }
 #ifdef __cplusplus
 extern "C" {
 #endif
+/* The "bindc" typemap will be used on these for Fortran */
 void oned_unknown(int a[]) { a[0] = 0; }
-void twod_unknown_int(int a[][10]) { a[0][0] = 0; }
+void twod_unknown_int(int a[][10], int nj) {
+    int i, j;
+    for (j = 0; j < nj; ++j) {
+        for (i = 0; i < 10; ++i) {
+            a[j][i] = 10 * j + i + 1;
+        }
+    }
+}
+
 #ifdef __cplusplus
 }
 #endif
 %}
+
+%inline %{
+void* get_ptr(void* inp) { return inp; }
+%}
+
+/* Test preferential matching of [][ANY] over [ANY][ANY].
+ * This should be consistent between the "SWIGTYPE" evaulation
+ * and an explicit type's evaluation.
+ */
+
+#ifndef SWIGFORTRAN
+%define OTHERTYPE SWIGTYPE* %enddef
+#else
+%define OTHERTYPE void*     %enddef
 #endif
 
+%typemap(in) int[][ANY] = OTHERTYPE;
+%typemap(in) int[ANY][ANY] %{
+/* this should NOT match */
+#error "Matched the wrong integer array typemap"
+%}
+
+%typemap(in) SWIGTYPE[][ANY] = OTHERTYPE;
+%typemap(in) SWIGTYPE[][] %{
+#error "Matched the wrong generic array typemap"
+%}
+
+%inline %{
+
+/* This should match int[][ANY] */
+void match_int(int a[][10]) {
+    a[0][0] = 0;
+}
+
+/* This should match SWIGTYPE[][ANY] */
+void twod_unknown_float(float a[][10]) {
+    a[0][0] = 0;
+}
+
+%}

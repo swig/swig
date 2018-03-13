@@ -611,20 +611,27 @@ void Swig_typemap_clear_apply(Parm *parms) {
   Delete(tsig);
 }
 
-/* Internal function to replace non-empty dimensions with ANY. */
+/* Internal function to replace non-empty dimensions with ANY.
+ * If no replacements are made, return NULL. */
 static SwigType *simplify_arrays(SwigType *type) {
   SwigType *t;
   String *dim;
   int ndim;
   int i;
+  int replaced = 0;
   t = Copy(type);
   ndim = SwigType_array_ndim(t);
   for (i = 0; i < ndim; i++) {
     dim = SwigType_array_getdim(t, i);
     if (dim && Len(dim) > 0) {
       SwigType_array_setdim(t, i, "ANY");
+      replaced = 1;
     }
     Delete(dim);
+  }
+  if (!replaced) {
+    Delete(t);
+    t = NULL;
   }
   return t;
 }
@@ -754,17 +761,27 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
     if (SwigType_isarray(ctype)) {
       /* If working with arrays, strip away all of the non-empty dimensions and
        * replace with "ANY".  See if that generates a match */
-      SwigType *noarrays = simplify_arrays(ctype);
-      tm = get_typemap(noarrays);
-      result = typemap_search_helper(debug_display, tm, tm_method, noarrays, cqualifiedname, cname, &backup);
-      Delete(noarrays);
-      if (result && Getattr(result, "code"))
-	goto ret_result;
+      SwigType *noarrays;
+      SwigType *oldnoarrays;
+      noarrays = simplify_arrays(ctype);
+      if (noarrays) {
+        tm = get_typemap(noarrays);
+        result = typemap_search_helper(debug_display, tm, tm_method, noarrays, cqualifiedname, cname, &backup);
+        if (result && Getattr(result, "code")) {
+          Delete(noarrays);
+          goto ret_result;
+        }
+      }
 
       /* Now try replacing empty dimensions as well. */
+      oldnoarrays = noarrays;
       noarrays = strip_arrays(ctype);
-      tm = get_typemap(noarrays);
-      result = typemap_search_helper(debug_display, tm, tm_method, noarrays, cqualifiedname, cname, &backup);
+      if (oldnoarrays && !Equal(oldnoarrays, noarrays)) {
+        tm = get_typemap(noarrays);
+        result = typemap_search_helper(debug_display, tm, tm_method, noarrays, cqualifiedname, cname, &backup);
+      }
+
+      Delete(oldnoarrays);
       Delete(noarrays);
       if (result && Getattr(result, "code"))
 	goto ret_result;

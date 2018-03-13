@@ -1062,11 +1062,12 @@ For example <tt>int const*const</tt> is first stripped to <tt>int *const</tt> th
 </p>
 
 <p>
-If <tt>TYPE</tt> is an array.  The following transformation is made:
+If <tt>TYPE</tt> is an array (or multi-dimensional array), two different rules are attempted:
 </p>
 
 <ul>
-<li>Replace all dimensions to <tt>[ANY]</tt> and look for a generic array typemap.
+    <li>First, try replacing all fixed-size (not empty) dimensions with <tt>[ANY]</tt> and look for a typemap that matches. For example, <tt>int [][10]</tt> checks <tt>int [][ANY]</tt>.</li>
+    <li>If that lookup fails, replace <em>all</em> dimensions with <tt>[ANY]</tt> and look for a generic array typemap. If no <tt>int [][ANY]</tt></li> typemap exists, then the typemap for <tt>int [ANY][ANY]</tt> is checked.</li>
 </ul>
 
 <p>

@@ -122,7 +122,7 @@ bool bad_fortran_dims(Node *n, const char *tmap_name) {
       int ndim = SwigType_array_ndim(t);
       for (int i = 0; i < ndim; i++) {
         String *dim = SwigType_array_getdim(t, i);
-        if (dim && !is_fortran_intexpr(dim)) {
+        if (dim && Len(dim) > 0 && !is_fortran_intexpr(dim)) {
           Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number,
                        "Array dimension expression '%s' is incompatible with Fortran\n",
                        dim);

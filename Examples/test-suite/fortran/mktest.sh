@@ -1,13 +1,16 @@
 #!/bin/sh -ex
 NAME="$1"
 EXT=cxx
-BUILDDIR=$HOME/_code/_build/swig-debug/Examples/test-suite/fortran
-test -f ../python/${NAME}_runme.py
-test -f ../java/${NAME}_runme.java
+BUILDDIR=$HOME/_code/_build/swig-merge/Examples/test-suite/fortran
 template-gen ${NAME}.runme.f90
 mv ${NAME}.runme.f90 ${NAME}_runme.f90
 open $BUILDDIR/${NAME}.f90 $BUILDDIR/${NAME}_wrap.${EXT}
-open ../python/${NAME}_runme.py ../java/${NAME}_runme.java ../${NAME}.i
+FILES="../${NAME}.i"
+for LANG in python java; do
+  TEMPF=../python/${NAME}_runme.py 
+  test -f TEMPF && FILES="${TEMPF} ${FILES}"
+done
+open $FILES
 open ${NAME}_runme.f90
 
 # Incomplete tests written in both python and java that compile fortran:
