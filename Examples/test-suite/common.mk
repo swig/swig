@@ -507,6 +507,7 @@ CPP_TEST_CASES += \
 	typedef_sizet \
 	typedef_struct_cpp \
 	typedef_typedef \
+	typemap_args \
 	typemap_arrays \
 	typemap_array_qualifiers \
 	typemap_delete \
