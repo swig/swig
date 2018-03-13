@@ -3961,14 +3961,16 @@ inclusion of the other fragments.
 
 <li>
 <p>
-A typemap can also use more than one fragment, but since the
-syntax is different, you need to specify the dependent fragments in a comma separated
-list. Consider:
+A typemap can also use more than one fragment. You can provide multiple
+"fragment" keywords to the typemap (the same syntax as the <tt>%fragment</tt>
+directive) or specify the dependent fragments in a comma-separated list.
+Consider:
 </p>
 
 <div class="code">
 <pre>
 %typemap(in, fragment="frag1, frag2, frag3") {...}
+%typemap(out, fragment="frag1", fragment="frag2") {...}
 </pre>
 </div>
 
