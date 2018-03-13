@@ -339,16 +339,13 @@ SwigType *parse_typemap(const_String_or_char_ptr tmname, const_String_or_char_pt
   if (!parsed_type) {
     return NULL;
   }
-  // Resolve typedefs in the parsed type
-  SwigType *resolved_type = SwigType_typedef_resolve_all(parsed_type);
 
   // Replace the contents of the original typemap string with the parsed
   // result -- this is a sort of hack for avoiding the 'Setattr(tmname,
   // resolved_type)' where we'd have to recalculate the tmname key again
   Clear(raw_tm);
-  Printv(raw_tm, resolved_type, NULL);
+  Printv(raw_tm, parsed_type, NULL);
   Delete(parsed_type);
-  Delete(resolved_type);
   return raw_tm;
 }
 
