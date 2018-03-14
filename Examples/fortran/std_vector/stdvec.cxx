@@ -18,8 +18,8 @@ void print_vec(const std::vector<T> &v) {
 template<class T>
 void print_view(std::pair<const T *, size_t> view) {
   cout << "{";
-  auto iter = view.first;
-  auto end = iter + view.second;
+  const T *iter = view.first;
+  const T *end = iter + view.second;
   if (iter != end) {
     cout << *iter++;
   }

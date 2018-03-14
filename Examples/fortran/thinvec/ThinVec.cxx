@@ -31,8 +31,8 @@ template<typename T>
 void print_vec(const ThinVec<T> &v) {
   cout << "Thinvec contents at " << &v << ": {";
   const char *sep = "";
-  for (const double &val : v.data()) {
-    cout << sep << val;
+  for (typename ThinVec<T>::const_iterator it = v.begin(); it != v.end(); ++it) {
+    cout << sep << *it;
     sep = ", ";
   }
   cout << "}\n";

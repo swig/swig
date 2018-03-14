@@ -2713,21 +2713,20 @@ if test x"${FORTRAN}" = xno; then
   AC_MSG_NOTICE([Disabling Fortran])
   FC=
 else
+  if test -n "$FCFLAGS" && test "x$GCC" = xyes; then
+    # NOTE: unit tests use C preprocessor, so -cpp must be set
+    FCFLAGS="-std=f2003 -Wall -Wimplicit-procedure -Wimplicit-interface"
+  fi
+
   if test "x$FORTRAN" = xyes; then
-    AC_PROG_FC
+    AC_PROG_FC dnl This command also sets FCFLAGS
   else
     FC=$FORTRAN
+    FCFLAGS=$FCFLAGS
   fi
 
   if test -n "$FC"; then
-    AC_FC_LIBRARY_LDFLAGS dnl fortran library flags
-  fi
-
-  if test -n "$FCFLAGS"; then
-    FCFLAGS="$FCFLAGS"
-  elif test "x$GCC" = xyes; then
-    # NOTE: unit tests use C preprocessor, so -cpp must be set
-    FCFLAGS="-std=f2003 -Wall -Wimplicit-procedure -Wimplicit-interface -cpp"
+    AC_FC_LIBRARY_LDFLAGS dnl Set up Fortran library flags
   fi
 
   # FORTRANLDSHARED is the ld *command* used to create shared library

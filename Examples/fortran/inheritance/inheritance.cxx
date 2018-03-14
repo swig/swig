@@ -1,5 +1,6 @@
 /* File : inheritance.cxx */
 #include "inheritance.h"
+
 #include <iostream>
 
 BaseClass::BaseClass() : _i(-1) {
@@ -38,8 +39,8 @@ float DerivedA::foo() const {
 }
 
 void DerivedA::print() const {
-  for (const auto &v : _data) {
-    std::cout << v << " ";
+  for (std::vector<int>::const_iterator it = _data.begin(); it != _data.end(); ++it) {
+    std::cout << *it << " ";
   }
   std::cout << "\n";
   return;

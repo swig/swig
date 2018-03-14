@@ -29,8 +29,8 @@
 
   std::pair<TYPE*, std::size_t> view() {
     if ($self->empty())
-      return {nullptr, 0};
-    return {$self->data(), $self->size()};
+      return std::pair<TYPE*, std::size_t>(NULL, 0);
+    return std::make_pair(&((*$self)[0]), $self->size());
   }
 } // end extend
 
@@ -85,7 +85,10 @@ FORT_ARRAYPTR_TYPEMAP(double, std::vector<double>& NATIVE)
 %apply std::vector<double> NATIVE { std::vector<double> make_array };
 
 %inline %{
-std::vector<double> make_array() { return {1,1,2,3,5}; }
+std::vector<double> make_array() {
+  static const int vals[] = {1,1,2,3,5,8};
+  return std::vector<double>(vals, vals + 6);
+}
 %}
 
 

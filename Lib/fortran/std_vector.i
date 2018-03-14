@@ -74,7 +74,7 @@ namespace std {
     } // end extend
 
   // Declare typemaps for using 'NATIVE' wrapping
-  %std_native_container(std::vector<_Tp, _Alloc>)
+  %std_native_container(std::vector<_Tp, _Alloc >)
 };
 
 // Specialize on bool
