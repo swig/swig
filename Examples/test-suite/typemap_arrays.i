@@ -43,15 +43,13 @@ FUNCSIG { (void)x; }
 
 %enddef
 
-/* Check array matching order. The fixed-size "ANY" typemap should be used
- * instead of
+/* Check array matching order.
  *
- * INPUT: Foo [3][4]:
- *   Foo [3][4]
- *   Foo [ANY][ANY]
- *   SWIGTYPE [ANY][ANY]
- *   SWIGTYPE [][ANY]
+ * This should be consistent between the "SWIGTYPE" evaulation
+ * and an explicit type's evaluation.
  *
+ * The documentation states that [ANY] is for "fixed size arrays handling"
+ * and [] is for "unknown sized array handling"
  */
 
 %inline %{
@@ -91,10 +89,12 @@ TEST_TYPEMAP(void multiarrayu3(Foo x[][4]),
 TEST_TYPEMAP(void multiarrayu4(Foo x[][4]),
              SWIGTYPE [][ANY],
              SWIGTYPE [ANY][ANY]) /* first array dim is NOT fixed size! */
-/* The first attempt should replace only *known* array dimension */
+#if 0
+/* The first attempt should ideally replace only *known* array dimension */
 TEST_TYPEMAP(void multiarrayu5(Foo x[][4]),
              Foo [][ANY],
              Foo [ANY][ANY])
+#endif
 
 #if 0
 /* The given type signature is invalid C++:
@@ -114,16 +114,15 @@ TEST_TYPEMAP(void array(Foo x[4]),
 TEST_TYPEMAP(void array2(Foo x[]),
              Foo [],
              Foo [ANY])
+#if 0
 /* Unknown-size arrays shouldn't be tested against fixed-size typemaps.
  */
 TEST_TYPEMAP(void array3(Foo x[]),
              SWIGTYPE [],
              Foo [ANY])
-#if 0
 /* Currently Foo[] does not get converted to Foo* in the type checking order.
  */
 TEST_TYPEMAP(void array4(Foo x[]),
              Foo *,
              SWIGTYPE [])
 #endif
-

@@ -611,31 +611,6 @@ void Swig_typemap_clear_apply(Parm *parms) {
   Delete(tsig);
 }
 
-/* Internal function to replace non-empty dimensions with ANY.
- * If no replacements are made, return NULL. */
-static SwigType *simplify_arrays(SwigType *type) {
-  SwigType *t;
-  String *dim;
-  int ndim;
-  int i;
-  int replaced = 0;
-  t = Copy(type);
-  ndim = SwigType_array_ndim(t);
-  for (i = 0; i < ndim; i++) {
-    dim = SwigType_array_getdim(t, i);
-    if (dim && Len(dim) > 0) {
-      SwigType_array_setdim(t, i, "ANY");
-      replaced = 1;
-    }
-    Delete(dim);
-  }
-  if (!replaced) {
-    Delete(t);
-    t = NULL;
-  }
-  return t;
-}
-
 /* Internal function to strip array dimensions. */
 static SwigType *strip_arrays(SwigType *type) {
   SwigType *t;
@@ -721,6 +696,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
   SwigType *primitive = 0;
   SwigType *ctype = 0;
   SwigType *ctype_unstripped = 0;
+  int isarray;
   const String *cname = 0;
   const String *cqualifiedname = 0;
   String *tm_method = typemap_method_name(tmap_method);
@@ -758,30 +734,13 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
     }
 
     /* look for [ANY] arrays */
-    if (SwigType_isarray(ctype)) {
-      /* If working with arrays, strip away all of the non-empty dimensions and
-       * replace with "ANY".  See if that generates a match */
-      SwigType *noarrays;
-      SwigType *oldnoarrays;
-      noarrays = simplify_arrays(ctype);
-      if (noarrays) {
-        tm = get_typemap(noarrays);
-        result = typemap_search_helper(debug_display, tm, tm_method, noarrays, cqualifiedname, cname, &backup);
-        if (result && Getattr(result, "code")) {
-          Delete(noarrays);
-          goto ret_result;
-        }
-      }
-
-      /* Now try replacing empty dimensions as well. */
-      oldnoarrays = noarrays;
-      noarrays = strip_arrays(ctype);
-      if (oldnoarrays && !Equal(oldnoarrays, noarrays)) {
-        tm = get_typemap(noarrays);
-        result = typemap_search_helper(debug_display, tm, tm_method, noarrays, cqualifiedname, cname, &backup);
-      }
-
-      Delete(oldnoarrays);
+    isarray = SwigType_isarray(ctype);
+    if (isarray) {
+      /* If working with arrays, strip away all of the dimensions and replace with "ANY".
+	 See if that generates a match */
+      SwigType *noarrays = strip_arrays(ctype);
+      tm = get_typemap(noarrays);
+      result = typemap_search_helper(debug_display, tm, tm_method, noarrays, cqualifiedname, cname, &backup);
       Delete(noarrays);
       if (result && Getattr(result, "code"))
 	goto ret_result;
@@ -1305,32 +1264,32 @@ static String *typemap_warn(const_String_or_char_ptr tmap_method, Parm *p) {
  * ----------------------------------------------------------------------------- */
 
 static void typemap_merge_fragment_kwargs(Parm *kw) {
-  Parm   *reattach_kw = NULL;
-  Parm   *prev_kw     = NULL;
-  Parm   *next_kw     = NULL;
-  String *fragment    = NULL;
+  Parm *reattach_kw = NULL;
+  Parm *prev_kw = NULL;
+  Parm *next_kw = NULL;
+  String *fragment = NULL;
   while (kw) {
     next_kw = nextSibling(kw);
     if (Strcmp(Getattr(kw, "name"), "fragment") == 0) {
       String *thisfragment = Getattr(kw, "value");
       if (!fragment) {
-        /* First fragment found; it should remain in the list */
-        fragment = thisfragment;
-        prev_kw = kw;
+	/* First fragment found; it should remain in the list */
+	fragment = thisfragment;
+	prev_kw = kw;
       } else {
-        /* Concatentate to previously found fragment */
-        Printv(fragment, ",", thisfragment, NULL);
-        reattach_kw = prev_kw;
+	/* Concatentate to previously found fragment */
+	Printv(fragment, ",", thisfragment, NULL);
+	reattach_kw = prev_kw;
       }
     } else {
       /* Not a fragment */
       if (reattach_kw) {
-        /* Update linked list to remove duplicate fragment */
-        DohIncref(kw);
-        set_nextSibling(reattach_kw, kw);
-        set_previousSibling(kw, reattach_kw);
-        Delete(reattach_kw);
-        reattach_kw = NULL;
+	/* Update linked list to remove duplicate fragment */
+	DohIncref(kw);
+	set_nextSibling(reattach_kw, kw);
+	set_previousSibling(kw, reattach_kw);
+	Delete(reattach_kw);
+	reattach_kw = NULL;
       }
       prev_kw = kw;
     }
@@ -1575,7 +1534,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
       Delete(mangle);
     }
     sprintf(temp, "%s:%s", cmethod, ckwname);
-      Setattr(node, typemap_method_name(temp), value);
+    Setattr(node, typemap_method_name(temp), value);
     Delete(value);
     kw = nextSibling(kw);
   }
