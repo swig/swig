@@ -125,6 +125,9 @@ void* get_ptr(void* inp) { return inp; }
 /* Test preferential matching of [][ANY] over [ANY][ANY].
  * This should be consistent between the "SWIGTYPE" evaulation
  * and an explicit type's evaluation.
+ *
+ * The documentation states that [ANY] is for "fixed size arrays handling"
+ * and [] is for "unknown sized array handling"
  */
 
 #ifndef SWIGFORTRAN
