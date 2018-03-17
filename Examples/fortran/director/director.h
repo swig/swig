@@ -7,13 +7,13 @@ class Joiner {
   virtual ~Joiner() = 0;
 
   //! Add quotes to the string or whatever
-  virtual std::string transform(const std::string& s) const = 0;
+  virtual std::string transform(const std::string& str) const = 0;
 
   //! Join all stored strings
   std::string join(const std::string& conjunction) const;
 
   //! Add an item to be joined
-  void append(const std::string& s) { items_.push_back(s); }
+  void append(const std::string& str) { items_.push_back(str); }
 
   //! Add several items for convenience
   void append_several();
@@ -25,12 +25,12 @@ class Joiner {
 
 class PassthroughJoiner : public Joiner {
  public:
-  virtual std::string transform(const std::string& s) const { return s; }
+  virtual std::string transform(const std::string& str) const { return str; }
 };
 
 class QuoteJoiner : public Joiner {
  public:
-  virtual std::string transform(const std::string& s) const;
+  virtual std::string transform(const std::string& str) const;
 };
 
 std::string join_with_commas(const Joiner& j);
