@@ -1,5 +1,6 @@
 module my_joiners
   use director
+  use, intrinsic :: ISO_C_BINDING
   implicit none
   type, extends(FortranJoiner) :: SingleJoiner
   contains
@@ -8,6 +9,11 @@ module my_joiners
   type, extends(FortranJoiner) :: BracketJoiner
   contains
     procedure :: transform => bracket
+  end type
+  type, extends(FortranJoiner) :: ArbitraryJoiner
+    character(kind=C_CHAR, len=1) :: ch = '"'
+  contains
+    procedure :: transform => arb_transform
   end type
 contains
   function enquote_single(self, str) &
@@ -26,6 +32,15 @@ contains
     character(kind=C_CHAR, len=:), allocatable :: news
     character(kind=C_CHAR, len=*), target :: str
     news = "[" // str // "]"
+  end function
+
+  function arb_transform(self, str) &
+      result(news)
+    use, intrinsic :: ISO_C_BINDING
+    class(ArbitraryJoiner), intent(in) :: self
+    character(kind=C_CHAR, len=:), allocatable :: news
+    character(kind=C_CHAR, len=*), target :: str
+    news = self%ch // str // self%ch
   end function
 end module
 
@@ -57,7 +72,7 @@ subroutine test_subclass
   deallocate(join)
 
 !  call join%append_several()
-!  write(0,*) "Got string: " // join%join(", and ")
+!  write(0,*) "Transformed: " // join%join(", and ")
 end subroutine
 
 ! Actual C++ class test
@@ -73,7 +88,7 @@ subroutine test_transform
   allocate(join, source=QuoteJoiner())
   call join%append_several()
   str = join%join(", and ")
-  write(0,*) "Got string: " // str
+  write(0,*) "Transformed: " // str
 
   deallocate(str)
   str = join_with_commas(join)
@@ -95,13 +110,35 @@ subroutine test_actual
   call init_FortranJoiner(join)
   call join%append_several()
   str = join%join(", and ")
-  write(0,*) "Got string: " // str
+  write(0,*) "Transformed: " // str
 
   deallocate(str)
   str = join_with_commas(join)
   write(0,*) "Joined with commas: " // str
 
   call join%release()
+  deallocate(join)
+
+  allocate(join, source=ArbitraryJoiner())
+  call init_FortranJoiner(join)
+  call join%append_several()
+  str = join%join(", and ")
+  write(0,*) "Transformed: " // str
+  deallocate(str)
+
+  select type (j => join)
+  class is (ArbitraryJoiner)
+    j%ch = '!'
+  end select
+  str = join%join(", and ")
+  write(0,*) "Transformed: " // str
+  deallocate(str)
+
+  str = join_with_commas(join)
+  write(0,*) "Joined with commas: " // str
+
+  call join%release()
+  deallocate(join)
 end subroutine
 
 end program
