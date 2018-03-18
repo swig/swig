@@ -12,6 +12,9 @@ class Joiner {
   //! Join all stored strings
   std::string join(const std::string& conjunction) const;
 
+  //! Join with a default conjunction
+  virtual std::string join_default() const;
+
   //! Add an item to be joined
   void append(const std::string& str) { items_.push_back(str); }
 
@@ -34,5 +37,7 @@ class QuoteJoiner : public Joiner {
 };
 
 std::string join_with_commas(const Joiner& j);
+
+std::string join_default(const Joiner& j);
 
 /* vim: set ts=2 sw=2 sts=2 tw=129 : */

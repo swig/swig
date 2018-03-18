@@ -18,6 +18,10 @@ std::string Joiner::join(const std::string& conjunction) const
   return os.str();
 }
 
+std::string Joiner::join_default() const {
+  return this->join(", ");
+}
+
 void Joiner::append_several() {
   static const char* my_strings[] = {
     "whiskey",
@@ -43,6 +47,10 @@ std::string QuoteJoiner::transform(const std::string& s) const {
 
 std::string join_with_commas(const Joiner& j) {
   return j.join(", ");
+}
+
+std::string join_default(const Joiner& j) {
+  return j.join_default();
 }
 
 /* vim: set ts=2 sw=2 sts=2 tw=129 : */

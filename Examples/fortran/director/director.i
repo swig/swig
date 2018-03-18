@@ -14,12 +14,9 @@
 %insert("header") %{
 extern "C" {
 /* Fortran BIND(C) function */
-SwigArrayWrapper swigc_transform(void* farg1, const SwigArrayWrapper* farg2);
+SwigArrayWrapper swigd_Joiner_transform(void* farg1, const SwigArrayWrapper* farg2);
+SwigArrayWrapper swigd_Joiner_join_default(void* farg1);
 }
-%}
-
-%fortranprepend FortranJoiner::transform %{
-  ! Prepended stuff here
 %}
 
 %fortranprepend FortranJoiner::~FortranJoiner() %{
@@ -34,11 +31,16 @@ SwigArrayWrapper swigc_transform(void* farg1, const SwigArrayWrapper* farg2);
   deallocate(handle)
 %}
 
+%insert("header") %{
+#include <bitset>
+%}
 
 %inline %{
   class FortranJoiner : public Joiner {
     // Pointer to polymorphic fortran pointer
     void* fhandle_;
+    // Which functions are overridden
+    std::bitset<1> overridden_;
    public:
     FortranJoiner() : fhandle_(NULL) { /* * */ }
 
@@ -55,7 +57,24 @@ SwigArrayWrapper swigc_transform(void* farg1, const SwigArrayWrapper* farg2);
       arg1.size = str.size();
 
       /* pass through C fortran interface */
-      fresult = swigc_transform(&self, &arg1);
+      fresult = swigd_Joiner_transform(&self, &arg1);
+
+      /* convert result back to string */
+      char* result = static_cast<char*>(fresult.data);
+      return std::string(result, result  + fresult.size);
+    }
+
+    virtual std::string join_default() const {
+      if (!overridden_[0]) return Joiner::join_default();
+      /* construct "this" pointer */
+      SwigClassWrapper self;
+      self.ptr = const_cast<FortranJoiner*>(this);
+      self.mem = SWIG_CREF; // since this function is const
+
+      /* convert str -> array wrapper */
+      SwigArrayWrapper fresult;
+      /* pass through C fortran interface */
+      fresult = swigd_Joiner_join_default(&self);
 
       /* convert result back to string */
       char* result = static_cast<char*>(fresult.data);
@@ -65,6 +84,7 @@ SwigArrayWrapper swigc_transform(void* farg1, const SwigArrayWrapper* farg2);
     const void* fhandle() const { return this->fhandle_; }
 
     void init(void* fh) { fhandle_ = fh; }
+    void swig_override(int idx) { overridden_[idx] = true; }
   };
 %}
 
@@ -79,33 +99,41 @@ public :: init_FortranJoiner
 %}
 
 %insert("fwrapper") %{
-! Convert SWIG array wrapper to temporary Fortran string, pass to the fortran
-! cb function, convert back to SWIG array wrapper.
-! This function must have input/output arguments compatible with ISO C, and it must be marked with "bind(C)"
-function swigc_transform(farg1, farg2) bind(C) &
-    result(fresult)
-  use, intrinsic :: ISO_C_BINDING
-  implicit none
-  type(SwigClassWrapper) :: farg1
-  type(SwigArrayWrapper) :: farg2
-  type(SwigArrayWrapper) :: fresult
-  type(C_PTR) :: fself_ptr
+! Convert a ISO-C class pointer struct into a user Fortran native pointer
+subroutine c_f_pointer_Joiner(clswrap, fptr)
+  type(SwigClassWrapper), intent(in) :: clswrap
+  class(FortranJoiner), pointer, intent(out) :: fptr
   type(FortranJoinerWrapper), pointer :: handle
-  class(FortranJoiner), pointer :: self
-  character(kind=C_CHAR, len=:), allocatable :: s
-  character(kind=C_CHAR, len=:), allocatable :: swig_result
-  character(kind=C_CHAR), dimension(:), allocatable, target, save :: fresult_chars
-
+  type(C_PTR) :: fself_ptr
   ! Convert C handle to fortran pointer
-  fself_ptr = swigc_FortranJoiner_fhandle(farg1)
+  fself_ptr = swigc_FortranJoiner_fhandle(clswrap)
   ! *** NOTE *** : gfortran 5 through 7 falsely claim the next line is not standards compliant. Since 'handle' is a scalar and
   ! not an array it should be OK, but TS29113 explicitly removes the interoperability requirement for fptr.
   ! Error: TS 29113/TS 18508: Noninteroperable array FPTR at (1) to C_F_POINTER: Expression is a noninteroperable derived type
   ! see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84924
   call c_f_pointer(cptr=fself_ptr, fptr=handle)
   ! Access the pointer inside that
-  self => handle%data
+  fptr => handle%data
+end subroutine
 
+! Convert SWIG array wrapper to temporary Fortran string, pass to the fortran
+! cb function, convert back to SWIG array wrapper.
+! This function must have input/output arguments compatible with ISO C, and it must be marked with "bind(C)"
+function swigd_Joiner_transform(farg1, farg2) &
+    bind(C, name="swigd_Joiner_transform") &
+    result(fresult)
+  use, intrinsic :: ISO_C_BINDING
+  implicit none
+  type(SwigClassWrapper), intent(in) :: farg1
+  type(SwigArrayWrapper), intent(in) :: farg2
+  type(SwigArrayWrapper) :: fresult
+  class(FortranJoiner), pointer :: self
+  character(kind=C_CHAR, len=:), allocatable :: s
+  character(kind=C_CHAR, len=:), allocatable :: swig_result
+  character(kind=C_CHAR), dimension(:), allocatable, save :: fresult_chars
+
+  ! Get pointer to Fortran object from class wrapper
+  call c_f_pointer_Joiner(farg1, self)
   ! Convert input C string array to fortran string
   call SWIG_chararray_to_string(farg2, s)
   ! Call fortran function pointer with native fortran input/output
@@ -113,6 +141,25 @@ function swigc_transform(farg1, farg2) bind(C) &
   ! Convert output back into a C-compatible form; it must not be deallocated
   ! before the C code on the other side can convert it to the native format.
   ! That's why we include the 'save' attribute on the temporary "fresult_chars".
+  ! (Alternatively, we could add a fortran binding for a call to deallocate)
+  call SWIG_string_to_chararray(swig_result, fresult_chars, fresult)
+end function
+
+function swigd_Joiner_join_default(farg1) &
+    bind(C, name="swigd_Joiner_join_default") &
+    result(fresult)
+  use, intrinsic :: ISO_C_BINDING
+  implicit none
+  type(SwigClassWrapper), intent(in) :: farg1
+  type(SwigArrayWrapper) :: fresult
+  class(FortranJoiner), pointer :: self
+  character(kind=C_CHAR, len=:), allocatable :: swig_result
+  character(kind=C_CHAR), dimension(:), allocatable, save :: fresult_chars
+
+  ! Get pointer to Fortran object from class wrapper
+  call c_f_pointer_Joiner(farg1, self)
+
+  swig_result = self%join_default()
   call SWIG_string_to_chararray(swig_result, fresult_chars, fresult)
 end function
 

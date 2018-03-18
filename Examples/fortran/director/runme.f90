@@ -4,11 +4,12 @@ module my_joiners
   implicit none
   type, extends(FortranJoiner) :: SingleJoiner
   contains
-    procedure :: transform => enquote_single
+    procedure :: transform => transform_enquote_single
   end type
   type, extends(FortranJoiner) :: BracketJoiner
   contains
-    procedure :: transform => bracket
+    procedure :: transform => transform_bracket
+    procedure :: join_default => join_default_bracket
   end type
   type, extends(FortranJoiner) :: ArbitraryJoiner
     character(kind=C_CHAR, len=1) :: ch = '"'
@@ -16,7 +17,7 @@ module my_joiners
     procedure :: transform => arb_transform
   end type
 contains
-  function enquote_single(self, str) &
+  function transform_enquote_single(self, str) &
       result(news)
     use, intrinsic :: ISO_C_BINDING
     class(SingleJoiner), intent(in) :: self
@@ -25,13 +26,21 @@ contains
     news = "'" // str // "'"
   end function
 
-  function bracket(self, str) &
+  function transform_bracket(self, str) &
       result(news)
     use, intrinsic :: ISO_C_BINDING
     class(BracketJoiner), intent(in) :: self
     character(kind=C_CHAR, len=:), allocatable :: news
     character(kind=C_CHAR, len=*), target :: str
     news = "[" // str // "]"
+  end function
+
+  function join_default_bracket(self) &
+      result(news)
+    use, intrinsic :: ISO_C_BINDING
+    class(BracketJoiner), intent(in) :: self
+    character(kind=C_CHAR, len=:), allocatable :: news
+    news = self%join("><")
   end function
 
   function arb_transform(self, str) &
@@ -106,6 +115,8 @@ subroutine test_actual
 
   write(*,*) "test_actual"
 
+  ! -- SingleJoiner --
+
   allocate(join, source=SingleJoiner())
   call init_FortranJoiner(join)
   call join%append_several()
@@ -115,9 +126,31 @@ subroutine test_actual
   deallocate(str)
   str = join_with_commas(join)
   write(0,*) "Joined with commas: " // str
+  deallocate(str)
+  str = join_default(join)
+  write(0,*) "Joined with default: " // str
 
   call join%release()
   deallocate(join)
+
+  ! -- BracketJoiner --
+
+  allocate(join, source=BracketJoiner())
+  call init_FortranJoiner(join)
+  call join%swig_override(0)
+  call join%append_several()
+
+  deallocate(str)
+  str = join_with_commas(join)
+  write(0,*) "Joined with commas: " // str
+  deallocate(str)
+  str = join_default(join)
+  write(0,*) "Joined with default: " // str
+
+  call join%release()
+  deallocate(join)
+  
+  ! -- ArbitraryJoiner --
 
   allocate(join, source=ArbitraryJoiner())
   call init_FortranJoiner(join)
