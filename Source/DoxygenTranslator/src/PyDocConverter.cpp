@@ -34,19 +34,35 @@ public:
   // One indent level.
   static const char* Level() { return "    "; }
 
+  // Default ctor doesn't do anything and prevents the dtor from doing anything
+  // too and should only be used when the guard needs to be initialized
+  // conditionally as Init() can then be called after checking some condition.
+  // Otherwise, prefer to use the non default ctor below.
+  IndentGuard()
+  {
+    m_initialized = false;
+  }
+
   // Ctor takes the output to determine the current indent and to remove the
   // extra indent added to it in the dtor and the variable containing the indent
   // to use, which must be used after every new line by the code actually
   // updating the output.
-  explicit IndentGuard(string& output, string& indent) :
-    m_output(output),
-    m_indent(indent)
+  IndentGuard(string& output, string& indent)
   {
-    const size_t lastNonSpace = m_output.find_last_not_of(' ');
+    Init(output, indent);
+  }
+
+  // Really initializes the object created using the default ctor.
+  void Init(string& output, string& indent)
+  {
+    m_output = &output;
+    m_indent = &indent;
+
+    const size_t lastNonSpace = m_output->find_last_not_of(' ');
     if (lastNonSpace == string::npos) {
-      m_firstLineIndent = m_output.length();
-    } else if (m_output[lastNonSpace] == '\n') {
-      m_firstLineIndent = m_output.length() - (lastNonSpace + 1);
+      m_firstLineIndent = m_output->length();
+    } else if ((*m_output)[lastNonSpace] == '\n') {
+      m_firstLineIndent = m_output->length() - (lastNonSpace + 1);
     } else {
       m_firstLineIndent = 0;
     }
@@ -54,7 +70,9 @@ public:
     // Notice that the indent doesn't include the first line indent because it's
     // implicit, i.e. it is present in the input and so is copied into the
     // output anyhow.
-    m_indent = Level();
+    *m_indent = Level();
+
+    m_initialized = true;
   }
 
   // Get the indent for the first line of the paragraph, which is smaller than
@@ -63,23 +81,27 @@ public:
 
   ~IndentGuard()
   {
-    m_indent.clear();
+    if (!m_initialized)
+      return;
+
+    m_indent->clear();
 
     // Get rid of possible remaining extra indent, e.g. if there were any trailing
     // new lines: we shouldn't add the extra indent level to whatever follows
     // this paragraph.
     static const size_t lenIndentLevel = strlen(Level());
-    if (m_output.length() > lenIndentLevel) {
-      const size_t start = m_output.length() - lenIndentLevel;
-      if (m_output.compare(start, string::npos, Level()) == 0)
-          m_output.erase(start);
+    if (m_output->length() > lenIndentLevel) {
+      const size_t start = m_output->length() - lenIndentLevel;
+      if (m_output->compare(start, string::npos, Level()) == 0)
+          m_output->erase(start);
     }
   }
 
 private:
-  string& m_output;
-  string& m_indent;
+  string* m_output;
+  string* m_indent;
   unsigned m_firstLineIndent;
+  bool m_initialized;
 
   IndentGuard(const IndentGuard&);
   IndentGuard& operator=(const IndentGuard&);
@@ -433,7 +455,7 @@ void PyDocConverter::handleMath(DoxygenEntity &tag,
                                 std::string &translatedComment,
                                 const std::string& arg)
 {
-  IndentGuard indent(translatedComment, m_indent);
+  IndentGuard indent;
 
   // Only \f$ is translated to inline formulae, \f[ and \f{ are for the block ones.
   const bool inlineFormula = tag.typeOfEntity == "f$";
@@ -443,6 +465,8 @@ void PyDocConverter::handleMath(DoxygenEntity &tag,
   if (inlineFormula) {
     translatedComment += ":math:`";
   } else {
+    indent.Init(translatedComment, m_indent);
+
     trimWhitespace(translatedComment);
     translatedComment += '\n';
 
