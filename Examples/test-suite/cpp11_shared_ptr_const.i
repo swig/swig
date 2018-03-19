@@ -7,10 +7,10 @@
 
 class Foo
 {
+  int m;
 public:
   Foo(int i) : m(i) {}
   int get_m() { return m;}
-  int m;
 };
 
 std::shared_ptr<Foo> foo(Foo v) {
@@ -45,10 +45,10 @@ std::vector<std::shared_ptr<const Foo> > const_foo_vec(Foo v) {
 
 class Foo
 {
+  int m;
 public:
   Foo(int i);
   int get_m();
-  int m;
 };
 std::shared_ptr<Foo> foo(Foo v);
 std::shared_ptr<const Foo> const_foo(Foo v);

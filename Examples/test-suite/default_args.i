@@ -28,6 +28,13 @@
     int value_perm(int first, int mode = 0640 | 0004) { return mode; }
     int value_m01(int first, int val = -01) { return val; }
     bool booltest2(bool x = 0 | 1) { return x; }
+    int max_32bit_int1(int a = 0x7FFFFFFF) { return a; }
+    int max_32bit_int2(int a = 2147483647) { return a; }
+    int min_32bit_int1(int a = -0x80000000) { return a; }
+    long long too_big_32bit_int1(long long a = 0x80000000) { return a; }
+    long long too_big_32bit_int2(long long a = 2147483648LL) { return a; }
+    long long too_small_32bit_int1(long long a = -0x80000001) { return a; }
+    long long too_small_32bit_int2(long long a = -2147483649LL) { return a; }
   };
 
   void doublevalue1(int first, double num = 0.0e-1) {}

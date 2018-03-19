@@ -156,6 +156,11 @@ matrix:
       dist: trusty
     - compiler: gcc
       os: linux
+      env: SWIGLANG=python PY3=3 VER=3.6
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin VER=2.6
       sudo: required
       dist: trusty
@@ -165,11 +170,11 @@ matrix:
       sudo: required
       dist: trusty
     - os: linux
-      env: SWIGLANG=python SWIG_FEATURES=-builtin SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      env: SWIGLANG=python SWIG_FEATURES=-builtin SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP11=1
       sudo: required
       dist: trusty
     - os: linux
-      env: SWIGLANG=python SWIG_FEATURES=-builtin SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1 PY3=3 VER=3.5
+      env: SWIGLANG=python SWIG_FEATURES=-builtin SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP11=1 PY3=3 VER=3.6
       sudo: required
       dist: trusty
     - compiler: gcc
@@ -184,7 +189,12 @@ matrix:
       dist: trusty
     - compiler: gcc
       os: linux
-      env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.5 SWIGOPTPY3=
+      env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.6
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.6 SWIGOPTPY3=
       sudo: required
       dist: trusty
     - compiler: gcc
@@ -279,6 +289,14 @@ matrix:
       env: SWIGLANG=tcl SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
       sudo: required
       dist: trusty
+    - os: linux
+      env: SWIGLANG=java SWIG_CC=gcc-7 SWIG_CXX=g++-7 CPP14=1
+      sudo: required
+      dist: trusty
+    - os: linux
+      env: SWIGLANG=python SWIG_CC=gcc-7 SWIG_CXX=g++-7 CPP14=1
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: osx
       env: SWIGLANG=
@@ -349,6 +367,7 @@ install:
   - if test "$TRAVIS_OS_NAME" = "osx"; then source Tools/travis-osx-install.sh; fi
   - if test -n "$CPP11"; then CONFIGOPTS+=(--enable-cpp11-testing --without-maximum-compile-warnings "CXXFLAGS=-std=c++11 -Wall -Wextra" "CFLAGS=-std=c11 -Wall -Wextra") && export CSTD=c11 && export CPPSTD=c++11; fi
   - if test -n "$CPP14"; then CONFIGOPTS+=(--enable-cpp11-testing --without-maximum-compile-warnings "CXXFLAGS=-std=c++14 -Wall -Wextra" "CFLAGS=-std=c11 -Wall -Wextra") && export CSTD=c11 && export CPPSTD=c++14; fi
+  - if test -n "$CPP17"; then CONFIGOPTS+=(--enable-cpp11-testing --without-maximum-compile-warnings "CXXFLAGS=-std=c++17 -Wall -Wextra" "CFLAGS=-std=c11 -Wall -Wextra") && export CSTD=c11 && export CPPSTD=c++17; fi
   - ls -la $(which $CC)
   - ls -la $(which $CXX)
   - $CC --version

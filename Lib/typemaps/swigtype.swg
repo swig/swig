@@ -410,12 +410,16 @@
 
 /* directorin */
 
-%typemap(directorin,noblock=1) SWIGTYPE *, SWIGTYPE *const& {
+%typemap(directorin,noblock=1) SWIGTYPE {
+  $input = SWIG_NewPointerObj(%as_voidptr(new $1_ltype((const $1_ltype &)$1)), $&descriptor, SWIG_POINTER_OWN | %newpointer_flags);
+}
+
+%typemap(directorin,noblock=1) SWIGTYPE * {
   $input = SWIG_NewPointerObj(%as_voidptr($1), $descriptor, %newpointer_flags);
 }
 
-%typemap(directorin,noblock=1) SWIGTYPE {
-  $input = SWIG_NewPointerObj(%as_voidptr(new $1_ltype((const $1_ltype &)$1)), $&descriptor, SWIG_POINTER_OWN | %newpointer_flags);
+%typemap(directorin,noblock=1) SWIGTYPE *const& {
+  $input = SWIG_NewPointerObj(%as_voidptr($1), $*descriptor, %newpointer_flags);
 }
 
 %typemap(directorin,noblock=1) SWIGTYPE & {
@@ -427,6 +431,7 @@
 }
 
 /* directorout */
+
 #if defined(__cplusplus) && defined(%implicitconv_flag)
 %typemap(directorout,noblock=1,implicitconv=1) SWIGTYPE (void * swig_argp, int swig_res = 0) {
   swig_res = SWIG_ConvertPtr($input,&swig_argp,$&descriptor, %convertptr_flags | %implicitconv_flag);
@@ -458,6 +463,22 @@
 %typemap(directorfree,noblock=1,match="directorout") SWIGTYPE * {
   if (director) {
     SWIG_AcquirePtr($result, director->swig_release_ownership(%as_voidptr($input)));
+  }
+}
+
+%typemap(directorout,noblock=1,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) 
+  SWIGTYPE *const&(void *swig_argp, int swig_res, swig_owntype own) {
+  swig_res = SWIG_ConvertPtrAndOwn($input, &swig_argp, $*descriptor, %convertptr_flags | SWIG_POINTER_DISOWN, &own);
+  if (!SWIG_IsOK(swig_res)) {
+    %dirout_fail(swig_res,"$type");
+  }
+  $1_ltype swig_temp = new $*1_ltype(($*1_ltype)swig_argp);
+  swig_acquire_ownership(swig_temp);
+  $result = swig_temp;
+}
+%typemap(directorfree,noblock=1,match="directorout") SWIGTYPE *const& {
+  if (director) {
+    SWIG_AcquirePtr($result, director->swig_release_ownership(%as_voidptr(*$input)));
   }
 }
 

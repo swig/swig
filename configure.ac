@@ -28,8 +28,6 @@ AH_BOTTOM([
 dnl Check for programs that a user requires to build SWIG
 AC_PROG_CC
 AC_PROG_CXX
-AC_EXEEXT
-AC_OBJEXT
 AM_PROG_CC_C_O  # Needed for subdir-objects in AUTOMAKE_OPTIONS
 
 AC_COMPILE_WARNINGS # Increase warning levels
@@ -895,11 +893,23 @@ else
 fi
 
 if test -n "$PYINCLUDE" || test -n "$PY3INCLUDE" ; then
-  AC_CHECK_PROGS(PEP8, pep8)
-  if test -n "$PEP8"; then
-    AC_MSG_CHECKING(pep8 version)
-    pep8_version=`$PEP8 --version 2>/dev/null`
-    AC_MSG_RESULT($pep8_version)
+  AC_CHECK_PROGS(PYCODESTYLE, pycodestyle)
+  if test -n "$PYCODESTYLE"; then
+    AC_MSG_CHECKING(pycodestyle version)
+    pycodestyle_version=`$PYCODESTYLE --version 2>/dev/null`
+    AC_MSG_RESULT($pycodestyle_version)
+  fi
+fi
+
+AC_ARG_WITH(2to3, AS_HELP_STRING([--with-2to3=path], [Set location of Python 2to3 tool]), [PY2TO3BIN="$withval"], [PY2TO3BIN="yes"])
+if test -n "$PYTHON3"; then
+  if test "x$PY2TO3BIN" = xyes; then
+    AC_CHECK_PROGS(PY2TO3, 2to3)
+  else
+    PY2TO3="$PY2TO3BIN"
+  fi
+  if test -z "$PY2TO3"; then
+    PYTHON3=
   fi
 fi
 
@@ -1632,34 +1642,6 @@ AC_SUBST(JSV8ENABLED)
 
 AC_SUBST(NODEJS)
 AC_SUBST(NODEGYP)
-
-#----------------------------------------------------------------
-# Look for gcj
-#----------------------------------------------------------------
-
-AC_ARG_WITH(gcj, AS_HELP_STRING([--without-gcj], [Disable GCJ])
-AS_HELP_STRING([--with-gcj=path], [Set location of gcj executable]),[GCJBIN="$withval"], [GCJBIN="$alllang_default"])
-AC_ARG_WITH(gcjh, [  --with-gcjh=path        Set location of gcjh executable],[GCJHBIN="$withval"], [GCJHBIN=])
-
-# First, check for "--without-gcj" or "--with-gcj=no".
-if test x"${GCJBIN}" = xno; then
-  AC_MSG_NOTICE([Disabling GCJ])
-else
-  if test "x$GCJBIN" = xyes; then
-    AC_CHECK_PROGS(GCJ, gcj)
-  else
-    GCJ="$GCJBIN"
-  fi
-
-  if test -z "$GCJCBIN"; then
-    AC_CHECK_PROGS(GCJH, gcjh)
-  else
-    GCJH="$GCJHBIN"
-  fi
-fi
-
-AC_SUBST(GCJ)
-AC_SUBST(GCJH)
 
 #----------------------------------------------------------------
 # Look for Android
@@ -2956,16 +2938,6 @@ AC_SUBST(SKIP_D)
 #----------------------------------------------------------------
 # Additional language dependencies
 #----------------------------------------------------------------
-SKIP_GCJ=
-if test -z "$GCJ" || test -z "$GCJH" ; then
-  SKIP_GCJ="1"
-else
-  if test "$GCC" != yes; then
-    SKIP_GCJ="1"
-  fi
-fi
-AC_SUBST(SKIP_GCJ)
-
 
 SKIP_ANDROID=
 if test -z "$ANDROID" || test -z "$ADB" || test -z "$ANT" || test -z "$NDKBUILD" ; then

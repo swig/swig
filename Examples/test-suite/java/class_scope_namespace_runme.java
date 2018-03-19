@@ -22,7 +22,7 @@ public class class_scope_namespace_runme {
     F f = new F();
     G g = new G();
     H.HH h = new H.HH();
-    I.II i = new I.II();
+    I_.II i = new I_.II();
     J j = new J();
     K k = new K();
     L l = new L();

@@ -3,7 +3,7 @@
 %include <rubystdcommon_forward.swg>
 
 
-%fragment("StdSharedPtrTraits","header",fragment="StdTraitsForwardDeclaration")
+%fragment("StdSharedPtrTraits","header",fragment="StdTraitsForwardDeclaration",fragment="<memory>")
 {
 namespace swig {
   /*

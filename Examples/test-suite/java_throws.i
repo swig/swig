@@ -135,6 +135,24 @@ JAVAEXCEPTION(FeatureTest::staticMethod)
     };
 %}
 
+%include <swiginterface.i>
+%interface_impl(InterfaceTest);
+JAVAEXCEPTION(imethod)
+
+%inline %{
+    struct InterfaceTest {
+        virtual void imethod(bool raise) = 0;
+        virtual ~InterfaceTest() {}
+    };
+
+    struct InterfaceTestImpl : InterfaceTest {
+        void imethod(bool raise) {
+            if (raise)
+                throw MyException("raise message");
+        }
+    };
+%}
+
 // Mixing except feature and typemaps when both generate a class for the throws clause
 %typemap(in, throws="ClassNotFoundException") int both { 
     $1 = (int)$input;

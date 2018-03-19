@@ -1636,7 +1636,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl cpp_alternate_rettype;
 %type <node>     cpp_members cpp_member cpp_member_no_dox;
 %type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator cpp_static_assert;
-%type <node>     cpp_swig_directive cpp_temp_possible cpp_opt_declarators ;
+%type <node>     cpp_swig_directive cpp_template_possible cpp_opt_declarators ;
 %type <node>     cpp_using_decl cpp_namespace_decl cpp_catch_decl cpp_lambda_decl;
 %type <node>     kwargs options;
 
@@ -1655,7 +1655,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <type>     type rawtype type_right anon_bitfield_type decltype ;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
-%type <dtype>    expr exprnum exprcompound valexpr;
+%type <dtype>    expr exprnum exprcompound valexpr exprmem;
 %type <id>       ename ;
 %type <id>       less_valparms_greater;
 %type <str>      type_qualifier;
@@ -4074,7 +4074,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 		      Setattr(currentOuterClass, "template_parameters", template_parameters);
 		    template_parameters = $3; 
 		    parsing_template_declaration = 1;
-		  } cpp_temp_possible {
+		  } cpp_template_possible {
 			String *tname = 0;
 			int     error = 0;
 
@@ -4342,7 +4342,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
                 }
                 ;
 
-cpp_temp_possible:  c_decl {
+cpp_template_possible:  c_decl {
 		  $$ = $1;
                 }
                 | cpp_class_decl {
@@ -6409,7 +6409,33 @@ expr           : valexpr { $$ = $1; }
                }
 	       ;
 
-valexpr        : exprnum { $$ = $1; }
+/* simple member access expressions */
+exprmem        : ID ARROW ID {
+		 $$.val = NewStringf("%s->%s", $1, $3);
+		 $$.type = 0;
+	       }
+	       | exprmem ARROW ID {
+		 $$ = $1;
+		 Printf($$.val, "->%s", $3);
+	       }
+/* This generates a shift-reduce
+	       | ID PERIOD ID {
+		 $$.val = NewStringf("%s.%s", $1, $3);
+		 $$.type = 0;
+	       }
+*/
+	       | exprmem PERIOD ID {
+		 $$ = $1;
+		 Printf($$.val, ".%s", $3);
+	       }
+	       ;
+
+valexpr        : exprnum {
+		    $$ = $1;
+               }
+               | exprmem {
+		    $$ = $1;
+               }
                | string {
 		    $$.val = $1;
                     $$.type = T_STRING;
@@ -6459,9 +6485,12 @@ valexpr        : exprnum { $$ = $1; }
 
 /* grouping */
                |  LPAREN expr RPAREN %prec CAST {
-   	            $$.val = NewStringf("(%s)",$2.val);
+		    $$.val = NewStringf("(%s)",$2.val);
+		    if ($2.rawval) {
+		      $$.rawval = NewStringf("(%s)",$2.rawval);
+		    }
 		    $$.type = $2.type;
-   	       }
+	       }
 
 /* A few common casting operations */
 

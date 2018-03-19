@@ -67,7 +67,7 @@
 <li><a href="#Typemaps_nn35">"memberin" typemap</a>
 <li><a href="#Typemaps_nn36">"varin" typemap</a>
 <li><a href="#Typemaps_nn37">"varout" typemap</a>
-<li><a href="#throws_typemap">"throws" typemap</a>
+<li><a href="#Typemaps_throws_typemap">"throws" typemap</a>
 </ul>
 <li><a href="#Typemaps_nn39">Some typemap examples</a>
 <ul>
@@ -89,6 +89,9 @@
 <li><a href="#Typemaps_runtime_type_checker_usage">Usage</a>
 </ul>
 <li><a href="#Typemaps_overloading">Typemaps and overloading</a>
+<ul>
+<li><a href="#Typemaps_typecheck_pointer">SWIG_TYPECHECK_POINTER precedence level and the typecheck typemap</a>
+</ul>
 <li><a href="#Typemaps_nn48">More about %apply and %clear</a>
 <li><a href="#Typemaps_nn47">Passing data between typemaps</a>
 <li><a href="#Typemaps_nn52">C++ "this" pointer</a>
@@ -2881,11 +2884,11 @@ The "varout" typemap is used to convert a C/C++ object to an object in the targe
 language when reading a C/C++ global variable.  This is implementation specific.
 </p>
 
-<H3><a name="throws_typemap">11.5.14 "throws" typemap</a></H3>
+<H3><a name="Typemaps_throws_typemap">11.5.14 "throws" typemap</a></H3>
 
 
 <p>
-The "throws" typemap is only used when SWIG parses a C++ method with an exception specification or has the <tt>%catches</tt> feature attached to the method.
+The "throws" typemap is only used when SWIG parses a C++ method with an exception specification or has the <tt>%catches</tt> feature attached to the method (see <a href="SWIGPlus.html#SWIGPlus_catches">Exception handling with %catches</a>).
 It provides a default mechanism for handling C++ methods that have declared the exceptions they will throw.
 The purpose of this typemap is to convert a C++ exception into an error or exception in the target language.
 It is slightly different to the other typemaps as it is based around the exception type rather than the type of a parameter or variable.
@@ -2898,13 +2901,19 @@ For example:
   PyErr_SetString(PyExc_RuntimeError, $1);
   SWIG_fail;
 %}
-void bar() throw (const char *);
+
+// Either an exception specification on the method
+  void bar() throw (const char *);
+
+// Or a %catches feature attached to the method
+  %catches(const char *) bar();
+  void bar();
 </pre>
 </div>
 
 <p>
-As can be seen from the generated code below, SWIG generates an exception handler
-with the catch block comprising the "throws" typemap content.
+As can be seen from the resulting generated code below, SWIG generates an exception handler
+when wrapping the <tt>bar</tt> function with the catch block comprising the "throws" typemap content.
 </p>
 
 <div class="code">
@@ -2912,8 +2921,7 @@ with the catch block comprising the "throws" typemap content.
 ...
 try {
   bar();
-}
-catch(char const *_e) {
+} catch(char const *_e) {
   PyErr_SetString(PyExc_RuntimeError, _e);
   SWIG_fail;
 }
@@ -2922,8 +2930,8 @@ catch(char const *_e) {
 </div>
 
 <p>
-Note that if your methods do not have an exception specification yet they do throw exceptions, SWIG cannot know how to deal with them.
-For a neat way to handle these, see the <a href="Customization.html#Customization_exception">Exception handling with %exception</a> section.
+Note that if your methods do not have an exception specification but they do throw exceptions and you are not using <tt>%catches</tt>, SWIG cannot know how to deal with them.
+Please also see the <a href="Customization.html#Customization_exception">Exception handling with %exception</a> section for another way to handle exceptions.
 </p>
 
 <H2><a name="Typemaps_nn39">11.6 Some typemap examples</a></H2>
@@ -4754,7 +4762,8 @@ then the type is given a precedence higher than any other known precedence level
 
 <div class="shell">
 <pre>
-example.i:18: Warning 467: Overloaded method foo(int) not supported (incomplete type checking rule - no precedence level in typecheck typemap for 'int').
+example.i:18: Warning 467: Overloaded method foo(int) not supported (incomplete type
+checking rule - no precedence level in typecheck typemap for 'int').
 </pre>
 </div>
 
@@ -4779,9 +4788,111 @@ simply check the type of the first array element and use that to dispatch to the
 Subsequent "in" typemaps would then perform more extensive type-checking.
 </li>
 
-<li>Make sure you read the section on overloading in the "<a href="SWIGPlus.html#SWIGPlus">SWIG and C++</a>" chapter.
+<li>Make sure you read the section on <a href="SWIGPlus.html#SWIGPlus_overloaded_methods">overloading</a> in the SWIG and C++ chapter.
 </li>
 </ul>
+
+<H3><a name="Typemaps_typecheck_pointer">11.13.1 SWIG_TYPECHECK_POINTER precedence level and the typecheck typemap</a></H3>
+
+
+<p>
+When it comes to overloading of a particular type passed by value, pointer or reference (const and non-const),
+a C++ compiler can disambiguate which overloaded function to call.
+However, SWIG effectively treats these as pointers in the target language and thus as equivalent types.
+For example, consider:
+</p>
+
+<div class="code">
+<pre>
+class X { ... };
+void m(X const &amp;c); // equivalent: void m(X *c);
+void m(X &amp;r);       // equivalent: void m(X *r);
+void m(X *p);       // equivalent: void m(X *p);
+</pre>
+</div>
+
+<p>
+These cannot be disambiguated in the target languages and so SWIG will choose the first method and ignore the subsequent two methods.
+The scripting languages do this by using the overload dispatch mechanism described earlier and warnings indicate this:
+</p>
+
+<div class="shell">
+<pre>
+example.i:6: Warning 509: Overloaded method m(X &amp;) effectively ignored,
+example.i:5: Warning 509: as it is shadowed by m(X const &amp;).
+example.i:7: Warning 509: Overloaded method m(X *) effectively ignored,
+example.i:5: Warning 509: as it is shadowed by m(X const &amp;).
+</pre>
+</div>
+
+<p>
+The statically typed languages like Java and C# automatically ignore all but the first equivalent overloaded methods with warnings:
+</p>
+
+<div class="shell">
+<pre>
+example.i:6: Warning 516: Overloaded method m(X &amp;) ignored,
+example.i:5: Warning 516: using m(X const &amp;) instead.
+example.i:7: Warning 516: Overloaded method m(X *) ignored,
+example.i:5: Warning 516: using m(X const &amp;) instead.
+</pre>
+</div>
+
+<p>
+You can select the overloaded method you would like to wrap by ignoring the other two with <tt>%ignore</tt> or rename two of them with <tt>%rename</tt>
+and this will of course remove the warnings too.
+The problem of ambiguity is also discussed in the C++ chapter on <a href="SWIGPlus.html#SWIGPlus_overloaded_methods">overloading</a>.
+</p>
+
+<p>
+So how does this work with respect to typemaps?
+The typemaps SWIG provides to handle overloading for these three methods are from the SWIGTYPE family.
+As discussed earlier, in <a href="Typemaps.html#Typemaps_nn19">Default typemap matching rules</a>,
+the <tt>SWIGTYPE &amp;</tt> typemaps are used for references and <tt>SWIGTYPE *</tt> typemaps are used for pointers.
+SWIG uses the special <tt>SWIG_TYPECHECK_POINTER</tt> (0) precedence level to handle these types in the "typecheck" typemap:
+</p>
+
+<div class="code">
+<pre>
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER) SWIGTYPE &amp; "..."
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER) SWIGTYPE * "..."
+</pre>
+</div>
+
+<p>
+When the SWIGTYPE "typecheck" typemaps use the <tt>SWIG_TYPECHECK_POINTER</tt> precedence level,
+SWIG converts the type to a pointer equivalent type and then uses the equivalent type to detect if it can be disambiguated in an overloaded method in the target language.
+In our example above, the equivalent types for <tt>X const &amp;</tt>, <tt>X &amp;</tt> and <tt>X *</tt> are all <tt>X *</tt>.
+As they are the same, they cannot be disambiguated and so just the first overloaded method is chosen.
+</p>
+
+<p>
+The automatic conversion to equivalent types and subsequent type comparison is triggered via the use of the special <tt>SWIG_TYPECHECK_POINTER</tt> precedence level
+and works for types passed by value, pointer and reference.
+Alas, there are more ways to overload a method that also need handling.
+C++ smart pointers are such a type which can be disambiguated by a C++ compiler but not automatically by SWIG.
+SWIG does not automatically know that a smart pointer has an equivalent type, but it can be told manually.
+Just specify the 'equivalent' attribute in the "typecheck" typemap with a pointer to the underlying type.
+</p>
+
+<div class="code">
+<pre>
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="X *") MySmartPtr&lt;X&gt; " ... "
+
+void m(X &amp;r);            // equivalent: void m(X *r);
+void m(MySmartPtr&lt;X&gt; s); // equivalent: void m(X *s);
+</pre>
+</div>
+
+<p>
+Now SWIG will detect the two types are equivalent and generate valid code by wrapping just the first overloaded method.
+You can of course choose which method to wrap by ignoring one of them with <tt>%ignore</tt>.
+Otherwise both can be wrapped by removing the overloading name ambiguity by renaming one of them with <tt>%rename</tt>.
+</p>
+
+<p>
+The 'equivalent' attribute is used in the implementation for the <a href="Library.html#Library_std_shared_ptr">shared_ptr smart pointer</a> library.
+</p>
 
 <H2><a name="Typemaps_nn48">11.14 More about %apply and %clear</a></H2>
 

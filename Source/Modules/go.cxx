@@ -615,6 +615,12 @@ private:
 
     Language::top(n);
 
+    if (directorsEnabled()) {
+      // Insert director runtime into the f_runtime file (make it occur before %header section)
+      Swig_insert_file("director_common.swg", f_c_runtime);
+      Swig_insert_file("director.swg", f_c_runtime);
+    }
+
     Delete(go_imports);
 
     // Write out definitions for the types not defined by SWIG.
@@ -3857,12 +3863,11 @@ private:
     String *cxx_director_name = NewString("SwigDirector_");
     Append(cxx_director_name, class_name);
 
-    String *decl = Swig_method_decl(NULL, Getattr(n, "decl"),
-				    cxx_director_name, first_parm, 0, 0);
+    String *decl = Swig_method_decl(NULL, Getattr(n, "decl"), cxx_director_name, first_parm, 0);
     Printv(f_c_directors_h, "  ", decl, ";\n", NULL);
     Delete(decl);
 
-    decl = Swig_method_decl(NULL, Getattr(n, "decl"), cxx_director_name, first_parm, 0, 0);
+    decl = Swig_method_decl(NULL, Getattr(n, "decl"), cxx_director_name, first_parm, 0);
     Printv(f_c_directors, cxx_director_name, "::", decl, "\n", NULL);
     Delete(decl);
 
@@ -4587,7 +4592,7 @@ private:
 	  Append(upcall_method_name, overname);
 	}
 	SwigType *rtype = Getattr(n, "classDirectorMethods:type");
-	String *upcall_decl = Swig_method_decl(rtype, Getattr(n, "decl"), upcall_method_name, parms, 0, 0);
+	String *upcall_decl = Swig_method_decl(rtype, Getattr(n, "decl"), upcall_method_name, parms, 0);
 	Printv(f_c_directors_h, "  ", upcall_decl, " {\n", NULL);
 	Delete(upcall_decl);
 
@@ -5035,13 +5040,13 @@ private:
       // Declare the method for the director class.
 
       SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-      String *decl = Swig_method_decl(rtype, Getattr(n, "decl"), Getattr(n, "name"), parms, 0, 0);
+      String *decl = Swig_method_decl(rtype, Getattr(n, "decl"), Getattr(n, "name"), parms, 0);
       Printv(f_c_directors_h, "  virtual ", decl, NULL);
       Delete(decl);
 
       String *qname = NewString("");
       Printv(qname, "SwigDirector_", class_name, "::", Getattr(n, "name"), NULL);
-      decl = Swig_method_decl(rtype, Getattr(n, "decl"), qname, parms, 0, 0);
+      decl = Swig_method_decl(rtype, Getattr(n, "decl"), qname, parms, 0);
       Printv(w->def, decl, NULL);
       Delete(decl);
       Delete(qname);

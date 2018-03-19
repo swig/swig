@@ -10,13 +10,13 @@ endif
 
 LANGUAGE     = python
 PYTHON       = $(PYBIN)
-PEP8         = @PEP8@
-PEP8_FLAGS   = --ignore=E30,E402,E501,E731,W291,W391
+PYCODESTYLE       = @PYCODESTYLE@
+PYCODESTYLE_FLAGS = --ignore=E30,E402,E501,E731,W291,W391
 
 #*_runme.py for Python 2.x, *_runme3.py for Python 3.x
 PY2SCRIPTSUFFIX = _runme.py
 PY3SCRIPTSUFFIX = _runme3.py
-PY2TO3       = 2to3 -x import
+PY2TO3       = @PY2TO3@ -x import
 
 ifeq (,$(PY3))
   SCRIPTSUFFIX = $(PY2SCRIPTSUFFIX)
@@ -70,6 +70,7 @@ CPP_TEST_CASES += \
 	python_pythoncode \
 	python_richcompare \
 	python_strict_unicode \
+	python_threads \
 	simutry \
 	std_containers \
 	swigobject \
@@ -81,6 +82,10 @@ CPP_TEST_CASES += \
 
 CPP11_TEST_CASES = \
 	cpp11_hash_tables \
+	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_nullptr_in_containers \
+	cpp11_shared_ptr_overload \
+	cpp11_shared_ptr_upcast \
 
 C_TEST_CASES += \
 	file_test \
@@ -136,12 +141,12 @@ py_runme  = $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 py2_runme = $(SCRIPTPREFIX)$*$(PY2SCRIPTSUFFIX)
 py3_runme = $(SCRIPTPREFIX)$*$(PY3SCRIPTSUFFIX)
 
-ifneq (,$(PEP8))
-check_pep8 = $(COMPILETOOL) $(PEP8) $(PEP8_FLAGS) $(SCRIPTPREFIX)$*.py
+ifneq (,$(PYCODESTYLE))
+check_pep8 = $(COMPILETOOL) $(PYCODESTYLE) $(PYCODESTYLE_FLAGS) $(SCRIPTPREFIX)$*.py
 
 check_pep8_multi_cpp = \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
-	  $(COMPILETOOL) $(PEP8) $(PEP8_FLAGS) $$f.py; \
+	  $(COMPILETOOL) $(PYCODESTYLE) $(PYCODESTYLE_FLAGS) $$f.py; \
 	done
 endif
 

@@ -6521,12 +6521,14 @@ string that cannot be completely decoded as UTF-8:
 <div class="code"><pre>
 %module example
 
-%include &lt;std_string.i&gt;
-
 %inline %{
 
-const char* non_utf8_c_str(void) {
+const char * non_utf8_c_str(void) {
   return "h\xe9llo w\xc3\xb6rld";
+}
+
+void instring(const char *s) {
+  ...
 }
 
 %}
@@ -6589,6 +6591,20 @@ in Python 3 code.
 For more details about the <tt>surrogateescape</tt> error handler, please see
 <a href="https://www.python.org/dev/peps/pep-0383/">PEP 383</a>.
 </p>
+
+<p>
+When Python 3 strings are passed to the C/C++ layer, they are expected to be valid UTF8 Unicode strings too.
+For example, when the <tt>instring</tt> method above is wrapped and called, any invalid UTF8 Unicode code strings
+will result in a TypeError because the attempted conversion fails:
+</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; example.instring('h\xe9llo')
+&gt;&gt;&gt; example.instring('h\udce9llo')
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+TypeError: in method 'instring', argument 1 of type 'char const *'
+</pre></div>
 
 <p>
 In some cases, users may wish to instead handle all byte strings as bytes

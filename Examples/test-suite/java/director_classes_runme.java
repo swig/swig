@@ -16,6 +16,7 @@ Expected output if PrintDebug enabled:
 Base - Val(444.555)
 Base - Ref(444.555)
 Base - Ptr(444.555)
+Base - ConstPtrRef(444.555)
 Base - FullyOverloaded(int 10)
 Base - FullyOverloaded(bool 1)
 Base - SemiOverloaded(int -678)
@@ -26,6 +27,7 @@ Base - DefaultParms(10, 1.1)
 Derived - Val(444.555)
 Derived - Ref(444.555)
 Derived - Ptr(444.555)
+Derived - ConstPtrRef(444.555)
 Derived - FullyOverloaded(int 10)
 Derived - FullyOverloaded(bool 1)
 Derived - SemiOverloaded(int -678)
@@ -36,6 +38,7 @@ Derived - DefaultParms(10, 1.1)
 JavaDerived - Val(444.555)
 JavaDerived - Ref(444.555)
 JavaDerived - Ptr(444.555)
+JavaDerived - ConstPtrRef(444.555)
 JavaDerived - FullyOverloaded(int 10)
 JavaDerived - FullyOverloaded(bool True)
 JavaDerived - SemiOverloaded(-678)
@@ -67,7 +70,7 @@ public class director_classes_runme {
 
   void run()
   {
-    if (director_classes.getPrintDebug()) System.out.println("------------ Start ------------ ");
+    if (director_classes.getPrintDebug()) System.out.println("------------ Start ------------");
 
     Caller myCaller = new Caller();
 
@@ -96,7 +99,7 @@ public class director_classes_runme {
       myBase.delete();
     }
 
-    if (director_classes.getPrintDebug()) System.out.println("------------ Finish ------------ ");
+    if (director_classes.getPrintDebug()) System.out.println("------------ Finish ------------");
   }
 
   void makeCalls(Caller myCaller, Base myBase)
@@ -111,6 +114,7 @@ public class director_classes_runme {
     if (myCaller.ValCall(dh).getVal() != dh.getVal()) throw new RuntimeException("failed");
     if (myCaller.RefCall(dh).getVal() != dh.getVal()) throw new RuntimeException("failed");
     if (myCaller.PtrCall(dh).getVal() != dh.getVal()) throw new RuntimeException("failed");
+    if (myCaller.ConstPtrRefCall(dh).getVal() != dh.getVal()) throw new RuntimeException("failed");
 
     // Fully overloaded method test (all methods in base class are overloaded)
     if (!myCaller.FullyOverloadedCall(10).equals(baseSimpleName + "::FullyOverloaded(int)")) {
@@ -168,6 +172,11 @@ class JavaDerived extends Base
   public DoubleHolder Ptr(DoubleHolder x)
   {
     if (director_classes.getPrintDebug()) System.out.println("JavaDerived - Ptr(" + x.getVal() + ")");
+    return x;
+  }
+  public DoubleHolder ConstPtrRef(DoubleHolder x)
+  {
+    if (director_classes.getPrintDebug()) System.out.println("JavaDerived - ConstPtrRef(" + x.getVal() + ")");
     return x;
   }
   public String FullyOverloaded(int x)

@@ -864,9 +864,8 @@ SwigType *SwigType_pop_function_qualifiers(SwigType *t) {
       Delete(qualifiers);
     }
     qualifiers = qual;
-    c = Char(t);
   }
-  assert(strncmp(c, "f(", 2) == 0);
+  assert(Strncmp(t, "f(", 2) == 0);
 
   return qualifiers;
 }

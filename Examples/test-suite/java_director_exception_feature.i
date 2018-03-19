@@ -42,7 +42,6 @@
 %feature("director:except") MyNS::Foo::ping {
   jthrowable $error = jenv->ExceptionOccurred();
   if ($error) {
-    jenv->ExceptionClear();  // clear java exception since mapping to c++ exception
     if (Swig::ExceptionMatches(jenv,$error,"$packagepath/MyJavaException1")) {
       throw 1;
     } else if (Swig::ExceptionMatches(jenv,$error,"$packagepath/MyJavaException2")) {
@@ -71,7 +70,6 @@
 %feature("director:except") MyNS::Foo::pong %{
   jthrowable $error = jenv->ExceptionOccurred();
   if ($error) {
-    jenv->ExceptionClear();
     $directorthrowshandlers
     throw ::MyNS::Unexpected(Swig::JavaExceptionMessage(jenv,$error).message());
   }
@@ -121,7 +119,10 @@
 %feature("director:except") MyNS::Foo::genericpong {
   jthrowable $error = jenv->ExceptionOccurred();
   if ($error) {
-    jenv->ExceptionClear();
+    if (Swig::ExceptionMatches(jenv,$error,"UnconstructableException")) {
+      // Purposefully test NULL
+      throw Swig::DirectorException(jenv, NULL);
+    }
     throw Swig::DirectorException(jenv,$error);
   }
 }
@@ -131,9 +132,10 @@
 %}
 
 %feature ("except",throws="Exception")  MyNS::Bar::genericpong %{
-  try { $action }
-  catch (Swig::DirectorException & direxcp) {
-    direxcp.raiseJavaException(jenv);  // jenv always available in JNI code
+  try {
+    $action
+  } catch (Swig::DirectorException & direxcp) {
+    direxcp.throwException(jenv);  // jenv always available in JNI code
     return $null;
   }
 %}

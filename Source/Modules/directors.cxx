@@ -15,12 +15,12 @@
 
 #include "swigmod.h"
 
-/* Swig_csuperclass_call()
+/* -----------------------------------------------------------------------------
+ * Swig_csuperclass_call()
  *
  * Generates a fully qualified method call, including the full parameter list.
  * e.g. "base::method(i, j)"
- *
- */
+ * ----------------------------------------------------------------------------- */
 
 String *Swig_csuperclass_call(String *base, String *method, ParmList *l) {
   String *call = NewString("");
@@ -44,12 +44,12 @@ String *Swig_csuperclass_call(String *base, String *method, ParmList *l) {
   return call;
 }
 
-/* Swig_class_declaration()
+/* -----------------------------------------------------------------------------
+ * Swig_class_declaration()
  *
  * Generate the start of a class/struct declaration.
  * e.g. "class myclass"
- *
- */
+ * ----------------------------------------------------------------------------- */
 
 String *Swig_class_declaration(Node *n, String *name) {
   if (!name) {
@@ -61,18 +61,22 @@ String *Swig_class_declaration(Node *n, String *name) {
   return result;
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_class_name()
+ * ----------------------------------------------------------------------------- */
+
 String *Swig_class_name(Node *n) {
   String *name;
   name = Copy(Getattr(n, "sym:name"));
   return name;
 }
 
-/* Swig_director_declaration()
+/* -----------------------------------------------------------------------------
+ * Swig_director_declaration()
  *
  * Generate the full director class declaration, complete with base classes.
  * e.g. "class SwigDirector_myclass : public myclass, public Swig::Director {"
- *
- */
+ * ----------------------------------------------------------------------------- */
 
 String *Swig_director_declaration(Node *n) {
   String *classname = Swig_class_name(n);
@@ -86,6 +90,10 @@ String *Swig_director_declaration(Node *n) {
   return declaration;
 }
 
+
+/* -----------------------------------------------------------------------------
+ * Swig_method_call()
+ * ----------------------------------------------------------------------------- */
 
 String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms) {
   String *func;
@@ -115,153 +123,67 @@ String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms) {
   return func;
 }
 
-/* Swig_method_decl
+/* -----------------------------------------------------------------------------
+ * Swig_method_decl()
  *
- * Misnamed and misappropriated!  Taken from SWIG's type string manipulation utilities
- * and modified to generate full (or partial) type qualifiers for method declarations,
- * local variable declarations, and return value casting.  More importantly, it merges
- * parameter type information with actual parameter names to produce a complete method
- * declaration that fully mirrors the original method declaration.
- *
- * There is almost certainly a saner way to do this.
- *
- * This function needs to be cleaned up and possibly split into several smaller 
- * functions.  For instance, attaching default names to parameters should be done in a 
- * separate function.
- *
- */
+ * Return a stringified version of a C/C++ declaration.
+ * ----------------------------------------------------------------------------- */
 
-String *Swig_method_decl(SwigType *rettype, SwigType *decl, const_String_or_char_ptr id, List *args, int strip, int values) {
-  String *result;
-  List *elements;
-  String *element = 0, *nextelement;
-  int is_const = 0;
-  int nelements, i;
-  int is_func = 0;
+String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_String_or_char_ptr id, List *args, int default_args) {
+  String *result = NewString("");
+  bool conversion_operator = Strstr(id, "operator ") != 0 && !return_base_type;
+
+  Parm *parm = args;
   int arg_idx = 0;
-
-  if (id) {
-    result = NewString(Char(id));
-  } else {
-    result = NewString("");
-  }
-
-  elements = SwigType_split(decl);
-  nelements = Len(elements);
-  if (nelements > 0) {
-    element = Getitem(elements, 0);
-  }
-  for (i = 0; i < nelements; i++) {
-    if (i < (nelements - 1)) {
-      nextelement = Getitem(elements, i + 1);
-    } else {
-      nextelement = 0;
+  while (parm) {
+    String *type = Getattr(parm, "type");
+    String *name = Getattr(parm, "name");
+    if (!name && Cmp(type, "void")) {
+      name = NewString("");
+      Printf(name, "arg%d", arg_idx++);
+      Setattr(parm, "name", name);
     }
-    if (SwigType_isqualifier(element)) {
-      int skip = 0;
-      DOH *q = 0;
-      if (!strip) {
-	q = SwigType_parm(element);
-	if (!Cmp(q, "const")) {
-	  is_const = 1;
-	  is_func = SwigType_isfunction(nextelement);
-	  if (is_func)
-	    skip = 1;
-	  skip = 1;
-	}
-	if (!skip) {
-	  Insert(result, 0, " ");
-	  Insert(result, 0, q);
-	}
-	Delete(q);
-      }
-    } else if (SwigType_isfunction(element)) {
-      Parm *parm;
-      String *p;
-      Append(result, "(");
-      parm = args;
-      while (parm != 0) {
-	String *type = Getattr(parm, "type");
-	String *name = Getattr(parm, "name");
-	if (!name && Cmp(type, "void")) {
-	  name = NewString("");
-	  Printf(name, "arg%d", arg_idx++);
-	  Setattr(parm, "name", name);
-	}
-	if (!name) {
-	  name = NewString("");
-	}
-	p = SwigType_str(type, name);
-	Append(result, p);
-	String *value = Getattr(parm, "value");
-	if (values && (value != 0)) {
-	  Printf(result, " = %s", value);
-	}
-	parm = nextSibling(parm);
-	if (parm != 0)
-	  Append(result, ", ");
-      }
-      Append(result, ")");
-    } else if (rettype) { // This check is intended for conversion operators to a pointer/reference which needs the pointer/reference ignoring in the declaration
-      if (SwigType_ispointer(element)) {
-	Insert(result, 0, "*");
-	if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
-	  Insert(result, 0, "(");
-	  Append(result, ")");
-	}
-      } else if (SwigType_ismemberpointer(element)) {
-	String *q;
-	q = SwigType_parm(element);
-	Insert(result, 0, "::*");
-	Insert(result, 0, q);
-	if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
-	  Insert(result, 0, "(");
-	  Append(result, ")");
-	}
-	Delete(q);
-      } else if (SwigType_isreference(element)) {
-	Insert(result, 0, "&");
-      } else if (SwigType_isarray(element)) {
-	DOH *size;
-	Append(result, "[");
-	size = SwigType_parm(element);
-	Append(result, size);
-	Append(result, "]");
-	Delete(size);
-      } else {
-	if (Strcmp(element, "v(...)") == 0) {
-	  Insert(result, 0, "...");
-	} else {
-	  String *bs = SwigType_namestr(element);
-	  Insert(result, 0, " ");
-	  Insert(result, 0, bs);
-	  Delete(bs);
-	}
-      }
-    }
-    element = nextelement;
+    parm = nextSibling(parm);
   }
 
-  Delete(elements);
+  String *rettype = Copy(decl);
+  String *quals = SwigType_pop_function_qualifiers(rettype);
+  String *qualifiers = 0;
+  if (quals)
+    qualifiers = SwigType_str(quals, 0);
 
-  if (is_const) {
-    if (is_func) {
-      Append(result, " ");
-      Append(result, "const");
-    } else {
-      Insert(result, 0, "const ");
-    }
-  }
+  String *popped_decl = SwigType_pop_function(rettype);
+  if (return_base_type)
+    Append(rettype, return_base_type);
 
-  Chop(result);
-
-  if (rettype) {
-    Insert(result, 0, " ");
+  if (!conversion_operator) {
+    SwigType *rettype_stripped = SwigType_strip_qualifiers(rettype);
     String *rtype = SwigType_str(rettype, 0);
-    Insert(result, 0, rtype);
+    Append(result, rtype);
+    if (SwigType_issimple(rettype_stripped) && return_base_type)
+      Append(result, " ");
     Delete(rtype);
+    Delete(rettype_stripped);
   }
 
+  if (id)
+    Append(result, id);
+
+  String *args_string = default_args ? ParmList_str_defaultargs(args) : ParmList_str(args);
+  Printv(result, "(", args_string, ")", NIL);
+
+  if (qualifiers)
+    Printv(result, " ", qualifiers, NIL);
+
+  // Reformat result to how it has been historically
+  Replaceall(result, ",", ", ");
+  Replaceall(result, "=", " = ");
+
+  Delete(args_string);
+  Delete(popped_decl);
+  Delete(qualifiers);
+  Delete(quals);
+  Delete(rettype);
   return result;
 }
 
@@ -272,6 +194,7 @@ String *Swig_method_decl(SwigType *rettype, SwigType *decl, const_String_or_char
  * to add an extra dynamic_cast to call the public C++ wrapper in the director class. 
  * Also for non-static protected members when the allprotected option is on.
  * ----------------------------------------------------------------------------- */
+
 void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f) {
   // TODO: why is the storage element removed in staticmemberfunctionHandler ??
   if ((!is_public(n) && (is_member_director(n) || GetFlag(n, "explicitcall"))) || 
@@ -290,13 +213,13 @@ void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f) {
   }
 }
 
-/* ------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Swig_director_parms_fixup()
  *
  * For each parameter in the C++ member function, copy the parameter name
  * to its "lname"; this ensures that Swig_typemap_attach_parms() will do
  * the right thing when it sees strings like "$1" in "directorin" typemaps.
- * ------------------------------------------------------------ */
+ * ----------------------------------------------------------------------------- */
 
 void Swig_director_parms_fixup(ParmList *parms) {
   Parm *p;

@@ -159,6 +159,10 @@ is equivalent to: \n\
 \n\
   $ swig -Wall -python interface.i \n\
 \n\
+Arguments may also be passed in a file, separated by whitespace. For example:\n\
+\n\
+  $ echo \"-Wall -python interface.i\" > args.txt\n\
+  $ swig @args.txt\n\
 \n";
 
 // Local variables

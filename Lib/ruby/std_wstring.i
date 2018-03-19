@@ -45,6 +45,8 @@ static rb_encoding *swig_ruby_internal_encoding;
   swig_ruby_internal_encoding = rb_enc_find( SWIG_RUBY_INTERNAL_ENCODING );
 }
 
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) std::basic_string<wchar_t>;
+
 %include <rubywstrings.swg>
 %include <typemaps/std_wstring.swg>
 

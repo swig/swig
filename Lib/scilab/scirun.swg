@@ -446,36 +446,81 @@ int SWIG_this(SWIG_GatewayParameters) {
 extern "C"
 #endif
 int SWIG_ptr(SWIG_GatewayParameters) {
-  void *ptrValue = NULL;
-  double dValue = 0;
-  if (SwigScilabPtrToObject(pvApiCtx, 1, &ptrValue, NULL, 0, fname) == SWIG_OK) {
-    SWIG_Scilab_SetOutputPosition(1);
-    return SWIG_Scilab_SetOutput(pvApiCtx,
-      SwigScilabPtrFromObject(pvApiCtx, 1, ptrValue, NULL, 0, NULL));
-  }
-  else {
-    int *piAddr;
-    SciErr sciErr = getVarAddressFromPosition(pvApiCtx, 1, &piAddr);
-    if(sciErr.iErr) {
+  if (SWIG_NbInputArgument(pvApiCtx) > 0) {
+    SciErr sciErr;
+    int *piAddrVar1 = NULL;
+    int iTypeVar1 = 0;
+    char *pstInputPtrTypeName = NULL;
+    char *pstOutputMListTypeName = NULL;
+    if (SWIG_NbInputArgument(pvApiCtx) > 2) {
+      int *piAddrVar2 = NULL;
+      int *piAddrVar3 = NULL;
+      sciErr = getVarAddressFromPosition(pvApiCtx, 2, &piAddrVar2);
+      if (sciErr.iErr) {
+        printError(&sciErr, 0);
+        return SWIG_ERROR;
+      }
+      if (getAllocatedSingleString(pvApiCtx, piAddrVar2, &pstInputPtrTypeName)) {
+        return SWIG_ERROR;
+      }
+      sciErr = getVarAddressFromPosition(pvApiCtx, 3, &piAddrVar3);
+      if (sciErr.iErr) {
+        printError(&sciErr, 0);
+        return SWIG_ERROR;
+      }
+      if (getAllocatedSingleString(pvApiCtx, piAddrVar3, &pstOutputMListTypeName)) {
+        return SWIG_ERROR;
+      }
+    }
+
+    sciErr = getVarAddressFromPosition(pvApiCtx, 1, &piAddrVar1);
+    if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
-    if (getScalarDouble(pvApiCtx, piAddr, &dValue) == 0) {
-      if (dValue != (uintptr_t)dValue) {
-        Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a pointer.\n"), fname, 1);
-        return SWIG_ValueError;
+    sciErr = getVarType(pvApiCtx, piAddrVar1, &iTypeVar1);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+
+    if ((iTypeVar1 == sci_pointer) || (iTypeVar1 == sci_mlist)) {
+      void *ptrValue = NULL;
+      if (SwigScilabPtrToObject(pvApiCtx, 1, &ptrValue, SWIG_Scilab_TypeQuery(pstInputPtrTypeName), 0, (char *) "SWIG_ptr") == SWIG_OK) {
+        SWIG_Scilab_SetOutputPosition(1);
+        return SWIG_Scilab_SetOutput(pvApiCtx,
+          SwigScilabPtrFromObject(pvApiCtx, 1, ptrValue, SWIG_Scilab_TypeQuery(pstInputPtrTypeName), 0, pstOutputMListTypeName));
       }
-      if ((dValue < 0) || (dValue > ULONG_MAX)) {
-        Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a pointer.\n"), fname, 1);
-        return SWIG_OverflowError;
+      else {
+        return SWIG_ERROR;
       }
-      SWIG_Scilab_SetOutputPosition(1);
-      return SWIG_Scilab_SetOutput(pvApiCtx,
-        SwigScilabPtrFromObject(pvApiCtx, 1, (void *) (uintptr_t)dValue, NULL, 0, NULL));
+    }
+    else if (iTypeVar1 == sci_matrix) {
+      double dValue = 0;
+      if (getScalarDouble(pvApiCtx, piAddrVar1, &dValue) == 0) {
+        if (dValue != (uintptr_t)dValue) {
+          Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a pointer.\n"), fname, 1);
+          return SWIG_ValueError;
+        }
+        if ((dValue < 0) || (dValue > ULONG_MAX)) {
+          Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a pointer.\n"), fname, 1);
+          return SWIG_OverflowError;
+        }
+        SWIG_Scilab_SetOutputPosition(1);
+        return SWIG_Scilab_SetOutput(pvApiCtx,
+          SwigScilabPtrFromObject(pvApiCtx, 1, (void *) (uintptr_t)dValue, SWIG_Scilab_TypeQuery(pstInputPtrTypeName), 0, pstOutputMListTypeName));
+      }
+      else {
+        return SWIG_TypeError;
+      }
     }
     else {
-      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A pointer or a double expected.\n"), "SWIG_ptr", 1);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A mlist, pointer or a double expected.\n"), (char *) "SWIG_ptr", 1);
       return SWIG_TypeError;
     }
+  }
+  else {
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: A mlist, pointer, or a double expected.\n"), "SWIG_ptr", 1);
+    return SWIG_TypeError;
   }
 }

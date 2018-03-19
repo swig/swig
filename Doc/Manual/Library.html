@@ -35,6 +35,7 @@
 <ul>
 <li><a href="#Library_shared_ptr_basics">shared_ptr basics</a>
 <li><a href="#Library_shared_ptr_inheritance">shared_ptr and inheritance</a>
+<li><a href="#Library_shared_ptr_overloading">shared_ptr and method overloading</a>
 <li><a href="#Library_shared_ptr_templates">shared_ptr and templates</a>
 <li><a href="#Library_shared_ptr_directors">shared_ptr and directors</a>
 </ul>
@@ -419,11 +420,11 @@ Now, in a scripting language, you might write this:
 
 <div class="targetlang">
 <pre>
-a = new_doubleArray(10)             # Create an array
+a = new_doubleArray(10)               # Create an array
 for i in range(0, 10):
-    doubleArray_setitem(a, i, 2*i)  # Set a value
-print_array(a)                      # Pass to C
-delete_doubleArray(a)               # Destroy array
+    doubleArray_setitem(a, i, 2 * i)  # Set a value
+print_array(a)                        # Pass to C
+delete_doubleArray(a)                 # Destroy array
 </pre>
 </div>
 
@@ -486,7 +487,7 @@ Allows you to do this:
 import example
 c = example.doubleArray(10)  # Create double[10]
 for i in range(0, 10):
-    c[i] = 2*i               # Assign values
+    c[i] = 2 * i             # Assign values
 example.print_array(c)       # Pass to C
 </pre>
 </div>
@@ -502,6 +503,7 @@ you should consider using a special array object rather than a bare pointer.
 <p>
 <b>Note:</b> <tt>%array_functions()</tt> and <tt>%array_class()</tt> should not be
 used with types of <tt>char</tt> or <tt>char *</tt>.
+SWIG's default handling of these types is to handle them as character strings and the two macros do not do enough to change this.
 </p>
 
 <H3><a name="Library_nn6">9.2.3 cmalloc.i</a></H3>
@@ -1474,7 +1476,7 @@ In the target language:
 <div class="targetlang">
 <pre>
 x = my_struct();
-x.foo="Hello World";      # assign with string
+x.foo = "Hello World";    # assign with string
 print x.foo;              # print as string
 </pre>
 </div>
@@ -1921,7 +1923,30 @@ Adding the missing <tt>%shared_ptr</tt> macros will fix this:
 </pre>
 </div>
 
-<H4><a name="Library_shared_ptr_templates">9.4.4.3 shared_ptr and templates</a></H4>
+<H4><a name="Library_shared_ptr_overloading">9.4.4.3 shared_ptr and method overloading</a></H4>
+
+
+<p>
+A C++ compiler can disambiguate a method overloaded by a shared_ptr and one using the raw underlying type.
+For example, either one of these methods can be called in C++:
+</p>
+
+<div class="code">
+<pre>
+int age(std::shared_ptr&lt;GrandParent&gt; num);
+int age(GrandParent&amp; num);
+</pre>
+</div>
+
+<p>
+When wrapped by SWIG, disambiguation is not possible using the overloaded names as there is just one equivalent type (<tt>GrandParent</tt>) in the target language.
+SWIG will choose to wrap just the first method by default.
+<a href="SWIGPlus.html#SWIGPlus_nn25">Ambiguity in overloading</a> discusses ways to control which method(s) gets wrapped using <tt>%ignore</tt> or <tt>%rename</tt>.
+For the interested reader, SWIG detects that they are equivalent types via the <a href=Typemaps.html#Typemaps_typecheck_pointer>typecheck typemaps</a> in the shared_ptr library.
+</p>
+
+<H4><a name="Library_shared_ptr_templates">9.4.4.4 shared_ptr and templates</a></H4>
+
 
 <p>
 The <tt>%shared_ptr</tt> macro should be used for all the required instantiations
@@ -1962,13 +1987,11 @@ The SWIG code below shows the required ordering:
 </pre>
 </div>
 
-<H4><a name="Library_shared_ptr_directors">9.4.4.4 shared_ptr and directors</a></H4>
+<H4><a name="Library_shared_ptr_directors">9.4.4.5 shared_ptr and directors</a></H4>
 
 
 <p>
-There is somewhat limited support for <tt>%shared_ptr</tt> and the director feature
-and the degrees of success varies among the different target languages.
-Please help to improve this support by providing patches with improvements.
+The languages that support shared_ptr also have support for using shared_ptr with directors.
 </p>
 
 

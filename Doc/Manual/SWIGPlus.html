@@ -72,6 +72,11 @@
 <li><a href="#SWIGPlus_nn35">Using declarations and inheritance</a>
 <li><a href="#SWIGPlus_nested_classes">Nested classes</a>
 <li><a href="#SWIGPlus_const">A brief rant about const-correctness</a>
+<li><a href="#SWIGPlus_target_language_callbacks">Callbacks to the target language</a>
+<ul>
+<li><a href="#SWIGPlus_director_classes_introduction">Introduction to director classes</a>
+<li><a href="#SWIGPlus_directors_for_function_pointers">Using directors and target language callbacks</a>
+</ul>
 <li><a href="#SWIGPlus_nn42">Where to go for more information</a>
 </ul>
 </div>
@@ -80,7 +85,10 @@
 
 
 <p>
-This chapter describes SWIG's support for wrapping C++.  As a prerequisite,
+This chapter describes SWIG's support for wrapping C++.
+It is mostly concerned about C++ as defined by the C++ 98 and 03 standards.
+For C++ 11 features please read the <a href="CPlusPlus11.html">SWIG and C++11</a> chapter.
+As a prerequisite,
 you should first read the chapter <a href="SWIG.html#SWIG">SWIG Basics</a> to see
 how SWIG wraps ANSI C.  Support for C++ builds upon ANSI C
 wrapping and that material will be useful in understanding this chapter.
@@ -3144,7 +3152,7 @@ redundant and will simply result in code bloat).
 </p>
 
 <p>
-The template provide to <tt>%template</tt> for instantiation must be the actual template and not a typedef to a template.
+The template provided to <tt>%template</tt> for instantiation must be the actual template and not a typedef to a template.
 </p>
 
 <div class="code">
@@ -4622,7 +4630,7 @@ The next section details a way of simulating an exception specification or repla
 Exceptions are automatically handled for methods with an exception specification.
 Similar handling can be achieved for methods without exception specifications through the <tt>%catches</tt> feature.
 It is also possible to replace any declared exception specification using the <tt>%catches</tt> feature.
-In fact, <tt>%catches</tt> uses the same <a href="Typemaps.html#throws_typemap">"throws" typemaps</a> that SWIG uses for exception specifications in handling exceptions.
+In fact, <tt>%catches</tt> uses the same <a href="Typemaps.html#Typemaps_throws_typemap">"throws" typemaps</a> that SWIG uses for exception specifications in handling exceptions.
 The <tt>%catches</tt> feature must contain a list of possible types that can be thrown.
 For each type that is in the list, SWIG will generate a catch handler, in the same way that it would for types declared in the exception specification.
 Note that the list can also include the catch all specification "...".
@@ -5385,7 +5393,152 @@ using another tool if maintaining constness is the most important part
 of your project.
 </p>
 
-<H2><a name="SWIGPlus_nn42">6.29 Where to go for more information</a></H2>
+<H2><a name="SWIGPlus_target_language_callbacks">6.29 Callbacks to the target language</a></H2>
+
+
+<p>
+C/C++ function pointers are often used for callbacks and this is discussed in the 
+<a href="SWIG.html#SWIG_nn30">Pointers to functions and callbacks</a> section.
+The callback techniques described therein provide a way to control callbacks to a C/C++ function but not callbacks into the target language.
+The techniques described below show how the director feature can be used to support callbacks from C/C++ to the target language.
+</p>
+
+<H3><a name="SWIGPlus_director_classes_introduction">6.29.1 Introduction to director classes</a></H3>
+
+
+<p>
+The director feature enables the ability for a target language class to derive from a wrapped C++ class.
+The target language can override virtual methods of a wrapped C++ class, thereby supporting cross-language polymorphism.
+Code can 'call up' from C++ into the target language by simply calling a virtual method overridden in a derived class in the target language.
+The wrapped C++ classes that have this ability are termed 'director' classes.
+The director feature is documented individually in each target language and the reader should locate and read this to obtain a full understanding of directors.
+</p>
+
+<H3><a name="SWIGPlus_directors_for_function_pointers">6.29.2 Using directors and target language callbacks</a></H3>
+
+
+<p>
+SWIG's primary goal is to make it possible to call C/C++ code from a target language, however, the director feature enables the reverse.
+While there isn't simple direct support for calling target language code from C, the director feature makes this possible.
+It does require some work and additional wrapper code to be provided by the user.
+The additional code required must be C++ and not C code and hence may introduce a small dependency on C++ if using a pure C project.
+In a nutshell, the user must create a C++ base class and turn it into a director class.
+A virtual method in the director base class is required.
+SWIG generates the code to call up into the target language when wrapping the director virtual method.
+</p>
+
+<p>
+Let's look at some details next.
+Consider the same function pointer for a callback called <tt>binary_op</tt> from the
+<a href="SWIG.html#SWIG_nn30">Pointers to functions and callbacks</a> section.
+For completeness, the code required for the module and director feature is also shown:
+</p>
+
+<div class="code"><pre>
+%module(directors="1") example
+
+%{
+int binary_op(int a, int b, int (*op)(int, int)) {
+  return op(a, b);
+}
+%}
+</pre></div>
+
+<p>
+The goal is to have a target language function that gets called by <tt>binary_op</tt>.
+The target language function should have the equivalent signature as the C/C++ function pointer <tt>int (*op)(int, int)</tt>.
+As we are using directors, we need a C++ virtual method with this signature, so let's
+define the C++ class and pure virtual method first and make it a director class via the
+director feature:
+</p>
+
+<div class="code"><pre>
+%feature("director") BinaryOp;
+
+%inline %{
+struct BinaryOp {
+  virtual int handle(int a, int b) = 0;
+  virtual ~BinaryOp() {}
+};
+%}
+</pre></div>
+
+<p>
+The following <tt>handler_helper</tt> function and <tt>binary_op_wrapper</tt> function completes the code needed in the
+C++/SWIG layer. The <tt>binary_op_wrapper</tt> function is wrapped by SWIG and is very similar to the <tt>binary_op</tt> function,
+however, it takes a pointer to the director base class <tt>BinaryOp</tt> instead of a C/C++ function pointer.
+</p>
+
+<div class="code"><pre>
+%{
+static BinaryOp *handler_ptr = NULL;
+static int handler_helper(int a, int b) {
+  // Make the call up to the target language when handler_ptr
+  // is an instance of a target language director class
+  return handler_ptr-&gt;handle(a, b);
+}
+// If desired, handler_ptr above could be changed to a thread-local variable in order to make thread-safe
+%}
+
+%inline %{
+int binary_op_wrapper(int a, int b, BinaryOp *handler) {
+  handler_ptr = handler;
+  int result = binary_op(a, b, &amp;handler_helper);
+  handler = NULL;
+  return result;
+}
+%}
+</pre></div>
+
+<p>
+On the target language side, we need to derive a class from <tt>BinaryOp</tt> and override the
+<tt>handle</tt> method. In Python this could be as simple as:
+</p>
+
+<div class="targetlang">
+<pre>
+import example
+
+# PythonBinaryOp class is defined and derived from C++ class BinaryOp
+class PythonBinaryOp(example.BinaryOp):
+
+    # Define Python class 'constructor'
+    def __init__(self):
+        # Call C++ base class constructor
+        example.BinaryOp.__init__(self)
+
+    # Override C++ method: virtual int handle(int a, int b) = 0;
+    def handle(self, a, b):
+        # Return the product
+        return a * b
+</pre>
+</div>
+
+<p>
+For this to work from Python, an instance of the <tt>PythonBinaryOp</tt> class is created
+and then passed to <tt>binary_op_wrapper</tt>. The net result is the <tt>binary_op</tt>
+function will in turn be called which will call <tt>handler_helper</tt> which will call
+the virtual <tt>handle</tt> method, that is, the Python method <tt>handle</tt> in the PythonBinaryOp class. The result will be the product of 10 and 20 and make its way back to Python and hence
+200 will be printed with the following code:
+</p>
+
+<div class="targetlang">
+<pre>
+handler = PythonBinaryOp()
+result = example.binary_op_wrapper(10, 20, handler)
+print result
+</pre>
+</div>
+
+<p>
+This has thus demonstrated a C/C++ function pointer calling back into a target language function.
+The code could be made a little more user friendly by using <tt>%rename</tt> to provide the
+original <tt>binary_op</tt> name from the target language instead of <tt>binary_op_wrapper</tt>.
+A C++ functor base class and Python functor class
+could also be used instead, but these are left as exercises for the reader.
+</p>
+
+<H2><a name="SWIGPlus_nn42">6.30 Where to go for more information</a></H2>
 
 
 <p>

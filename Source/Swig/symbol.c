@@ -210,9 +210,10 @@ void Swig_symbol_print_tables_summary(void) {
  * symbol_print_symbols()
  * ----------------------------------------------------------------------------- */
 
-static void symbol_print_symbols(const char *symboltabletype) {
+static void symbol_print_symbols(const char *symboltabletype, const char *nextSibling) {
   Node *table = symtabs;
   Iterator ki = First(table);
+  int show_pointers = 0;
   while (ki.key) {
     String *k = ki.key;
     Printf(stdout, "===================================================\n");
@@ -222,10 +223,20 @@ static void symbol_print_symbols(const char *symboltabletype) {
       Iterator it = First(symtab);
       while (it.key) {
 	String *symname = it.key;
-	Printf(stdout, "  %s (%s)\n", symname, nodeType(it.item));
-	/*
-	Printf(stdout, "  %s - %p (%s)\n", symname, it.item, Getattr(it.item, "name"));
-	*/
+	Printf(stdout, "  %s (%s)", symname, nodeType(it.item));
+        if (show_pointers)
+	  Printf(stdout, " %p", it.item);
+	Printf(stdout, "\n");
+	{
+	  Node *sibling = Getattr(it.item, nextSibling);
+	  while (sibling) {
+	    Printf(stdout, "  %s (%s)", symname, nodeType(sibling));
+	    if (show_pointers)
+	      Printf(stdout, " %p", sibling);
+	    Printf(stdout, "\n");
+	    sibling = Getattr(sibling, nextSibling);
+	  }
+	}
 	it = Next(it);
       }
     }
@@ -241,7 +252,7 @@ static void symbol_print_symbols(const char *symboltabletype) {
 
 void Swig_symbol_print_symbols(void) {
   Printf(stdout, "SYMBOLS start  =======================================\n");
-  symbol_print_symbols("symtab");
+  symbol_print_symbols("symtab", "sym:nextSibling");
   Printf(stdout, "SYMBOLS finish =======================================\n");
 }
 
@@ -253,7 +264,7 @@ void Swig_symbol_print_symbols(void) {
 
 void Swig_symbol_print_csymbols(void) {
   Printf(stdout, "CSYMBOLS start  =======================================\n");
-  symbol_print_symbols("csymtab");
+  symbol_print_symbols("csymtab", "csym:nextSibling");
   Printf(stdout, "CSYMBOLS finish =======================================\n");
 }
 
@@ -690,7 +701,7 @@ void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
  * ----------------------------------------------------------------------------- */
 
 Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
-  Hash *c, *cn, *cl = 0;
+  Hash *c, *cl = 0;
   SwigType *decl, *ndecl;
   String *cstorage, *nstorage;
   int nt = 0, ct = 0;
@@ -756,10 +767,9 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
        (1) A conflict between a class/enum and a typedef declaration is okay.
        In this case, the symbol table entry is set to the class/enum declaration
        itself, not the typedef.   
-
        (2) A conflict between namespaces is okay--namespaces are open
-
        (3) Otherwise, overloading is only allowed for functions
+       (4) This special case is okay: a class template instantiated with same name as the template's name
      */
 
     /* Check for namespaces */
@@ -777,6 +787,25 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
       Setattr(n, "sym:previousSibling", pcl);
       return n;
     }
+
+    /* Special case: class template instantiated with same name as the template's name eg: %template(X) X<int>; */
+    if (Equal(nodeType(c), "template")) {
+      String *nt1 = Getattr(c, "templatetype");
+      String *nt2 = nodeType(n);
+      if (Equal(nt1, "class") && Equal(nt1, nt2)) {
+	if (Getattr(n, "template")) {
+	  /* Finally check that another %template with same name doesn't already exist */
+	  if (!Getattr(c, "sym:nextSibling")) {
+	    Setattr(c, "sym:nextSibling", n);
+	    Setattr(n, "sym:symtab", current_symtab);
+	    Setattr(n, "sym:name", symname);
+	    Setattr(n, "sym:previousSibling", c);
+	    return n;
+	  }
+	}
+      }
+    }
+
     if (Getattr(n, "allows_typedef"))
       nt = 1;
     if (Getattr(c, "allows_typedef"))
@@ -857,7 +886,7 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
       String *nt = Getattr(n, "nodeType");
       int n_template = Equal(nt, "template") && Checkattr(n, "templatetype", "cdecl");
       int n_plain_cdecl = Equal(nt, "cdecl");
-      cn = c;
+      Node *cn = c;
       pn = 0;
       while (cn) {
 	decl = Getattr(cn, "decl");
