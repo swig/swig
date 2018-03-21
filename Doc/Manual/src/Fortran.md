@@ -1,12 +1,16 @@
+---
+title: "SWIG and Fortran"
+author: "Seth R Johnson"
+header-includes:
+  - \hypersetup{colorlinks=false,
+            allbordercolors={0 0 0},
+            pdfborderstyle={/S/U/W 1}}
+...
 <!--
-This document is formatted with [Github-flavored
-Markdown](https://github.github.com/gfm/)
-
 Run with:
 
-pandoc --from=gfm+smart --no-highlight \
--M title:"SWIG and Fortran" -M author:"Seth R Johnson" \
---toc --standalone -H style.css -o ../Fortran.html Fortran.md
+pandoc --from=markdown --no-highlight \
+    --toc --standalone -H style.css -o ../Fortran.html Fortran.md
 python pandoc2swigman.py
 git add -p ../Fortran.html
 
@@ -99,6 +103,7 @@ presents some equivalent concepts and names in the two languages:
 C and C++ have different rules for identifiers (i.e. variable names, function
 names, class names) than Fortran. The following restrictions apply to Fortran
 that do not apply to C and C++:
+
 - Names are **case insensitive**
 - Names may not begin with an underscore
 - Names may be no longer than 63 characters
@@ -189,6 +194,7 @@ end module forexample
 The above contrived example uses different names for the `%module` declaration,
 the interface `.i` file, and the wrapped C header `.h` file to illustrate how
 these inputs affect the output file names and properties:
+
 - The `%module forexample` declaration in the SWIG interface file resulted in
   the file names `forexample.f90` and the name in `module forexample`.
 - The file name `example.i` resulted in the C wrapper file by default being
@@ -198,6 +204,7 @@ these inputs affect the output file names and properties:
 - The `%include` command in the `.i` file directed SWIG to parse the header
   file `cexample.h` and generate an interface for the function declaration that
   it discovered.
+
 The typical convention is to keep these names
 consistent: almost without exception, the module name `%module forexample`
 should be reflected in the file name as `forexample.i`.
@@ -460,20 +467,22 @@ char* to_string(float f);
 ```
 
 The Fortran-to-C string translation performs the following steps:
-1. Allocates a character array of `len(string) + 1`
-2. Copies the string contents into that array and sets the final character to
-   `C_NULL_CHAR`
-3. Saves the C pointer to the character array using `C_LOC` and the size to a
-   small `SwigArrayWrapper` struct
-4. Passes this struct to the C wrapper code, which uses the data pointer.
+
+ 1. Allocates a character array of `len(string) + 1`
+ 2. Copies the string contents into that array and sets the final character to
+    `C_NULL_CHAR`
+ 3. Saves the C pointer to the character array using `C_LOC` and the size to a
+    small `SwigArrayWrapper` struct
+ 4. Passes this struct to the C wrapper code, which uses the data pointer.
 
 The C-to-Fortran string translation is similar:
-1. Use `strlen` to save the string length to `SwigArrayWrapper.size`, and save
-   the pointer to the data; return this struct to Fortran
-2. Call `C_F_POINTER` to reinterpret the opaque C pointer as a character array
-3. Allocate a new string with a length determined by the `size` member
-4. Copy the character array to the new string
-5. If the `%newobject` feature applies, call the C-bound `free` function.
+
+ 1. Use `strlen` to save the string length to `SwigArrayWrapper.size`, and save
+    the pointer to the data; return this struct to Fortran
+ 2. Call `C_F_POINTER` to reinterpret the opaque C pointer as a character array
+ 3. Allocate a new string with a length determined by the `size` member
+ 4. Copy the character array to the new string
+ 5. If the `%newobject` feature applies, call the C-bound `free` function.
 
 The intermediate step of allocating and copying an array is required not only
 to add a null terminator but also because the Fortran 2003's interoperability
@@ -1356,6 +1365,7 @@ ratified, support for `FINAL` is patchy and unreliable.
 Our solution to this limitation is to have the `Foo` proxy class store not only
 a pointer to the C data but also a state enumeration `self%swigdata%mem` that
 describes memory ownership. The enumeration needs to have at least three options:
+
 - The memory is *owned* by the proxy class (and must be deleted when calling
   `release()`);
 - The proxy class is a *reference* to memory owned by C/C++ (returned by either
