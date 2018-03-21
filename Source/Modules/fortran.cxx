@@ -566,8 +566,6 @@ int FORTRAN::top(Node *n) {
 
   // Tweak substitution code
   Swig_name_register("wrapper", "swigc_%f");
-  Swig_name_register("set", "set_%n%v");
-  Swig_name_register("get", "get_%n%v");
 
   d_warned_fclassname = NewHash();
   d_overloads = NewHash();
@@ -807,9 +805,9 @@ int FORTRAN::functionWrapper(Node *n) {
     // We're wrapping a variable or member variable: construct a custom
     // name.
     if (Getattr(n, "varset") || Getattr(n, "memberset")) {
-      fsymname = Swig_name_set(getNSpace(), varname);
+      fsymname = NewStringf("set_%s%s", getNSpace(), varname);
     } else if (Getattr(n, "varget") || Getattr(n, "memberget")) {
-      fsymname = Swig_name_get(getNSpace(), varname);
+      fsymname = NewStringf("get_%s%s", getNSpace(), varname);
     } else {
       ASSERT_OR_PRINT_NODE(0, n);
     }
@@ -1982,7 +1980,10 @@ int FORTRAN::globalvariableHandler(Node *n) {
   if (GetFlag(n, "feature:fortran:parameter")) {
     this->constantWrapper(n);
   } else {
+    String *fsymname = Copy(Getattr(n, "sym:name"));
+    Setattr(n, "fortran:variable", fsymname);
     Language::globalvariableHandler(n);
+    Delete(fsymname);
   }
   return SWIG_OK;
 }

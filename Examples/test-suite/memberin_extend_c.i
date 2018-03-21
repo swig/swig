@@ -1,17 +1,5 @@
 %module memberin_extend_c
 
-#ifdef SWIGFORTRAN
-%inline %{
-#define GETTER(CLS, VALUE) get_ ## CLS ## _ ## VALUE
-#define SETTER(CLS, VALUE) set_ ## CLS ## _ ## VALUE
-%}
-#else
-%inline %{
-#define GETTER(CLS, VALUE) CLS ## _ ## VALUE ## _get
-#define SETTER(CLS, VALUE) CLS ## _ ## VALUE ## _set
-%}
-#endif
-
 /* Example from the Manual, section 5.5.6: "Adding member functions to C structures" */
 
 %{
@@ -38,12 +26,12 @@ void make_upper(char *name) {
 
 /* Specific implementation of set/get functions forcing capitalization */
 
-char *GETTER(Person, name)(Person *p) {
+char *Person_name_get(Person *p) {
   make_upper(p->name);
   return p->name;
 }
 
-void SETTER(Person, name)(Person *p, char *val) {
+void Person_name_set(Person *p, char *val) {
   strncpy(p->name,val,50);
   make_upper(p->name);
 }

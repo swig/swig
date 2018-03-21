@@ -2,19 +2,6 @@
 
 // Tests %extend for variables
 
-#ifdef SWIGFORTRAN
-%inline %{
-#define GETTER(CLS, VALUE) get_ ## CLS ## _ ## VALUE
-#define SETTER(CLS, VALUE) set_ ## CLS ## _ ## VALUE
-%}
-#else
-%inline %{
-#define GETTER(CLS, VALUE) CLS ## _ ## VALUE ## _get
-#define SETTER(CLS, VALUE) CLS ## _ ## VALUE ## _set
-%}
-#endif
-
-
 %inline %{
 class ExtendMe {
   double var;
@@ -37,10 +24,10 @@ public:
 
 %{
 // If possible, all language modules should use this naming format for consistency
-void SETTER(ExtendMe,ExtendVar)(ExtendMe *thisptr, double value) {
+void ExtendMe_ExtendVar_set(ExtendMe *thisptr, double value) {
   thisptr->set(value);
 }
-double GETTER(ExtendMe,ExtendVar)(ExtendMe *thisptr) {
+double ExtendMe_ExtendVar_get(ExtendMe *thisptr) {
   double value = 0;
   thisptr->get(value);
   return value;
@@ -49,7 +36,7 @@ double GETTER(ExtendMe,ExtendVar)(ExtendMe *thisptr) {
 
 
 %{
-  class Foo
+  class Foo 
   {
   };
 %}
@@ -69,27 +56,27 @@ class Foo {
         static const int StaticConstInt;
         static int StaticInt;
     }
-};
-
+}; 
+  
 %{
   int globalVariable = 1111;
 
-  void SETTER(Foo,StaticInt)(int value) {
+  void Foo_StaticInt_set(int value) {
     globalVariable = value;
   }
 
-  int GETTER(Foo,StaticInt)() {
+  int Foo_StaticInt_get() {
     return globalVariable;
   }
 
-  int GETTER(Foo,StaticConstInt)() {
+  int Foo_StaticConstInt_get() {
     static int var = 2222;
     return var;
   }
 %}
 
 %inline {
-  namespace ns1
+  namespace ns1 
   {
     struct Bar
     {
@@ -99,18 +86,18 @@ class Foo {
 }
 
 %{
-  int GETTER(ns1_Bar,x)(ns1::Bar *self) {
+  int ns1_Bar_x_get(ns1::Bar *self) {
     return 1;
   }
 
-  void SETTER(ns1_Bar,x)(ns1::Bar *self, int x) {
+  void ns1_Bar_x_set(ns1::Bar *self, int x) {
   }
 %}
-
-%extend ns1::Bar
+  
+%extend ns1::Bar 
 {
   int x;
 }
 
 
-
+  
