@@ -8,7 +8,7 @@ open $BUILDDIR/${NAME}.f90 $BUILDDIR/${NAME}_wrap.${EXT}
 FILES="../${NAME}.i"
 for LANG in python java; do
   TEMPF=../python/${NAME}_runme.py 
-  test -f TEMPF && FILES="${TEMPF} ${FILES}"
+  test -f ${TEMPF} && FILES="${TEMPF} ${FILES}"
 done
 open $FILES
 open ${NAME}_runme.f90

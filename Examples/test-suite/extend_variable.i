@@ -36,7 +36,7 @@ double ExtendMe_ExtendVar_get(ExtendMe *thisptr) {
 
 
 %{
-  class Foo 
+  class Foo
   {
   };
 %}
@@ -45,6 +45,9 @@ double ExtendMe_ExtendVar_get(ExtendMe *thisptr) {
 %javaconst(1) AllBarOne;
 #elif SWIGCSHARP
 %csconst(1) AllBarOne;
+#elif SWIGFORTRAN
+%noparameter Bar;
+%parameter AllBarOne;
 #endif
 
 
@@ -56,8 +59,8 @@ class Foo {
         static const int StaticConstInt;
         static int StaticInt;
     }
-}; 
-  
+};
+
 %{
   int globalVariable = 1111;
 
@@ -76,7 +79,7 @@ class Foo {
 %}
 
 %inline {
-  namespace ns1 
+  namespace ns1
   {
     struct Bar
     {
@@ -93,11 +96,11 @@ class Foo {
   void ns1_Bar_x_set(ns1::Bar *self, int x) {
   }
 %}
-  
-%extend ns1::Bar 
+
+%extend ns1::Bar
 {
   int x;
 }
 
 
-  
+
