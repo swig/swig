@@ -22,6 +22,7 @@ CPP_TEST_CASES = \
 	li_std_stack \
 	li_std_wstring \
 	primitive_types \
+	ruby_alias_method \
 	ruby_keywords \
 	ruby_minherit_shared_ptr \
 	ruby_naming \
@@ -44,6 +45,8 @@ CPP11_TEST_CASES = \
 
 C_TEST_CASES += \
 	li_cstring \
+	ruby_alias_global_function \
+	ruby_alias_module_function \
 	ruby_manual_proxy \
 
 include $(srcdir)/../common.mk
@@ -52,6 +55,7 @@ include $(srcdir)/../common.mk
 SWIGOPT += -w801 -noautorename -features autodoc=4
 
 # Custom tests - tests with additional commandline options
+ruby_alias_global_function.ctest: SWIGOPT += -globalmodule
 ruby_naming.cpptest: SWIGOPT += -autorename
 
 # Rules for the different types of tests
