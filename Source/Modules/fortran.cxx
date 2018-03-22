@@ -779,8 +779,8 @@ int FORTRAN::functionWrapper(Node *n) {
       fname = Copy(symname);
     }
   } else {
-    // BIND(C): name is preserved, no wrapper or proxy function is generated
-    wname = Copy(symname);
+    // BIND(C): use *original* name for wrapper, symname for fortran binding
+    wname = Copy(Getattr(n, "name"));
     imname = Copy(symname);
     fname = NULL;
   }
@@ -819,13 +819,13 @@ int FORTRAN::functionWrapper(Node *n) {
       ASSERT_OR_PRINT_NODE(0, n);
     }
   } else {
-    // Get manually-set fsymname and make a copy
-    fsymname = Getattr(n, "fortran:name");
-    if (!fsymname) {
-      // Alias defaults to symname
-      fsymname = symname;
+    if (String *manual_fsymname = Getattr(n, "fortran:name")) {
+      // Get manually-set fsymname and make a copy
+      fsymname = Copy(manual_fsymname);
+    } else {
+      // Create Fortran-friendly symname
+      fsymname = Copy(symname);
     }
-    fsymname = Copy(fsymname);
   }
 
   // >>> GENERATE WRAPPER CODE
@@ -1477,9 +1477,6 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   // Output argument output and cleanup code
   Printv(ffunc->code, "  end ", f_func_type, NULL);
 
-  // Apply standard SWIG substitutions
-  Replaceall(ffunc->code, "$symname", Getattr(n, "sym:name"));
-
   // Write the C++ function into the wrapper code file
   Wrapper_print(ffunc, f_fwrapper);
 
@@ -1511,9 +1508,9 @@ void FORTRAN::assignmentWrapper(Node *n) {
 
   // Create overloaded aliased name
   String *generic = NewString("assignment(=)");
-  String *fname = NewStringf("swigf_assignment_%s", Getattr(n, "sym:name"));
-  String *imname = NewStringf("swigc_assignment_%s", Getattr(n, "sym:name"));
-  String *wname = NewStringf("_wrap_assign_%s", Getattr(n, "sym:name"));
+  String *fname = NewStringf("swigf_assignment_%s",  symname);
+  String *imname = NewStringf("swigc_assignment_%s", symname);
+  String *wname = NewStringf("_wrap_assign_%s",      symname);
 
   // Add self-assignment to method overload list
   List *overloads = this->get_method_overloads(generic);
@@ -1644,9 +1641,7 @@ void FORTRAN::write_docstring(Node *n, String *dest) {
 String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool setter)  const {
   String *name = Getattr(p, "name");
   if (name) {
-    if (Strstr(name, "::"))
-
-    {
+    if (Strstr(name, "::")) {
       // Name has qualifiers (probably a static variable setter)
       // so replace it with something simple
       name = NewStringf("value%d", arg_num);
@@ -1664,14 +1659,12 @@ String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool setter)  
   Delete(oldname);
   oldname = NULL;
 
-  // XXX: the older symbolScopeLookup function is not const-correct
-  FORTRAN* mthis = const_cast<FORTRAN*>(this);
-
   // If the parameter name is in the fortran scope, or in the
   // forward-declared classes, mangle it
+  FORTRAN* mthis = const_cast<FORTRAN*>(this);
   Hash *symtab = mthis->symbolScopeLookup("fortran");
   Hash *fwdsymtab = mthis->symbolScopeLookup("fortran_fwd");
-  String *origname = name;                                 // save pointer to unmangled name
+  String *origname = name; // save pointer to unmangled name
   while (Getattr(symtab, name) || Getattr(fwdsymtab, name)) {
     // Rename
     Delete(oldname);
@@ -1905,42 +1898,21 @@ int FORTRAN::memberfunctionHandler(Node *n) {
     return SWIG_NOWRAP;
   }
 
-  // If the function name starts with two underscores, modify it
-  String *symname = Getattr(n, "sym:name");
-  String *fsymname = Getattr(n, "fortran:name");
-
-  if (!fsymname) {
-    if (strncmp(Char(symname), "__", 2) == 0) {
-      // For now, just delete the leading underscores
-      fsymname = NewString(Char(symname) + 2);
-    } else {
-      // Preserve original member name
-      fsymname = Copy(symname);
-    }
-    Setattr(n, "fortran:name", fsymname);
-  } else {
-    fsymname = Copy(fsymname);
-  }
-
   String *class_symname = Getattr(getCurrentClass(), "sym:name");
   ASSERT_OR_PRINT_NODE(class_symname, n);
 
   // Create a private procedure name that gets bound to the Fortan TYPE
-  String *fwrapname = NewStringf("swigf_%s_%s", class_symname, fsymname);
+  String *fwrapname = NewStringf("swigf_%s_%s", class_symname, Getattr(n, "sym:name"));
   Setattr(n, "fortran:fname", fwrapname);
+  Delete(fwrapname);
 
-  if (String *generic_name = Getattr(n, "feature:fortran:generic")) {
-    List *overloads = this->get_method_overloads(generic_name);
-    Append(overloads, fsymname);
-  }
+  // Preserve original function name
+  Setattr(n, "fortran:name", Getattr(n, "sym:name"));
 
   // Set as a member variable unless it's a constructor
   if (!is_node_constructor(n)) {
     SetFlag(n, "fortran:ismember");
   }
-
-  Delete(fwrapname);
-  Delete(fsymname);
 
   Language::memberfunctionHandler(n);
 

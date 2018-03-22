@@ -26,11 +26,11 @@
 %namewarn(%warningmsg(SWIGWARN_LANG_IDENTIFIER, "Fortran identifiers may not begin with underscores or numerals"),
           rename="f%s", regextarget=1) "^[_0-9]+.*[^_]+$";
 
-/* We define a macro for Fortran keywords, but you can use keywords as
- * identifiers with no problem (yes, `integer :: if` is valid), thus we don't
- * warn about it.
- */
+/* We could define a macro for Fortran keywords, but since you can use
+ * keywords as identifiers with no problem (yes, `integer :: if` is valid),
+ * we don't bother.
 #define FORTRANKW(x) %keywordwarn("'" `x` "' is a Fortran keyword") `x`;
+ */
 
 /* However, we probably do want to warn about overriding intrinsic functions; 
  * some versions of GCC will write a compiler warning on top of that.
