@@ -703,12 +703,15 @@ and instantiated with
 might a symbolic name `bar_dbl
 -->
 
-SWIG will generate a wrapper function in the C++ file named `swigc_$symname`,
-where `$symname` is replaced with the symname. A corresponding private `BIND(C)`
-interface statement will be generated in the Fortran interface module. This
+SWIG will generate a C-linkage wrapper function in the C++ file named
+`_wrap_$symname`, where `$symname` is replaced with the symname. This
 wrapper function is responsible for converting the function's arguments
 and return value to and from Fortran-compatible datatypes and calling the C++
 function. It also implements other optional features such as exception handling.
+
+SWIG then creates an `interface` declaration `swigc_$symname`, with `bind(C, name='_wrap_$symname')`. 
+interface statement that aliases that wrapper symbol to `swigc_$symname` will
+be generated in the Fortran interface module.
 
 In the Fortran module, SWIG generates a public procedure `$symname`
 that translates native Fortran data types to and from the C interface

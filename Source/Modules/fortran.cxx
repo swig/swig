@@ -564,9 +564,6 @@ int FORTRAN::top(Node *n) {
   f_fwrapper = NewStringEmpty();
   Swig_register_filebyname("fwrapper", f_fwrapper);
 
-  // Tweak substitution code
-  Swig_name_register("wrapper", "swigc_%f");
-
   d_warned_fclassname = NewHash();
   d_overloads = NewHash();
 
@@ -766,39 +763,49 @@ int FORTRAN::functionWrapper(Node *n) {
   String *symname = Getattr(n, "sym:name");
   String *fsymname = NULL;                                 // Fortran public function name alias
   String *fname = NULL;                                    // Fortran proxy function name
-  String *wname = NULL;                                    // SWIG wrapper function name
+  String *imname = NULL;                                   // Fortran interface function name
+  String *wname = NULL;                                    // SWIG C wrapper function name
 
   if (!is_cbound) {
     // Usual case: generate a unique wrapper name
     wname = Swig_name_wrapper(symname);
+    imname = NewStringf("swigc_%s", symname);
+    if (String *private_fname = Getattr(n, "fortran:fname")) {
+      // Create "private" fortran wrapper function class name that will
+      // be bound to a class
+      fname = Copy(private_fname);
+    } else {
+      // Use actual symbolic function name
+      fname = Copy(symname);
+    }
   } else {
-    // BIND(C): name is preserved
+    // BIND(C): name is preserved, no wrapper or proxy function is generated
     wname = Copy(symname);
+    imname = Copy(symname);
+    fname = NULL;
   }
 
-  if (String *private_fname = Getattr(n, "fortran:fname")) {
-    // Create "private" fortran wrapper function class name that will
-    // be bound to a class
-    ASSERT_OR_PRINT_NODE(!is_cbound, n);
-    fname = Copy(private_fname);
-  } else {
-    // Use actual symbolic function name
-    fname = Copy(symname);
-  }
-
-  // Add suffix if the function is overloaded
+  // Add suffix if the function is overloaded (can't overload C bound functions)
   bool is_overloaded = Getattr(n, "sym:overloaded");
   if (is_overloaded) {
+    ASSERT_OR_PRINT_NODE(!is_cbound, n);
     String *overload_ext = Getattr(n, "sym:overname");
     Append(wname, overload_ext);
+    Append(imname, overload_ext);
     Append(fname, overload_ext);
   }
 
   Setattr(n, "wrap:name", wname);
-  Setattr(n, "wrap:fname", fname);
+  Setattr(n, "wrap:imname", imname);
+  if (!is_cbound) {
+    Setattr(n, "wrap:fname", fname);
+  }
 
+  // Add the interface subroutine name to the current scope
+  if (add_fsymbol(imname, n) == SWIG_NOWRAP)
+    return SWIG_NOWRAP;
   // Add the fortran subroutine name to the current scope
-  if (add_fsymbol(fname, n) == SWIG_NOWRAP)
+  if (fname && add_fsymbol(fname, n) == SWIG_NOWRAP)
     return SWIG_NOWRAP;
 
   if (String *varname = Getattr(n, "fortran:variable")) {
@@ -900,7 +907,7 @@ int FORTRAN::functionWrapper(Node *n) {
 
     Printv(f_ftypes, "  procedure", qualifiers, " :: ", fsymname, " => ", fname, "\n", NULL);
     Delete(qualifiers);
-  } else if (Strcmp(fsymname, fname) != 0) {
+  } else if (fname && Strcmp(fsymname, fname) != 0) {
     // The function name is aliased, either by 'fortran:fname' or an
     // overload. Append this function name to the list of overloaded names
     // for the symbol. 'public' access specification gets added later.
@@ -916,6 +923,7 @@ int FORTRAN::functionWrapper(Node *n) {
   }
 
   Delete(fname);
+  Delete(imname);
   Delete(wname);
   Delete(fsymname);
   return SWIG_OK;
@@ -1129,10 +1137,6 @@ int FORTRAN::cfuncWrapper(Node *n) {
  * This is the Fortran equivalent of the cfuncWrapper's declaration.
  */
 int FORTRAN::imfuncWrapper(Node *n) {
-  // Name of the C wrapper function
-  String *wname = Getattr(n, "wrap:name");
-  String *cpp_return_type = Getattr(n, "type");
-
   Wrapper *imfunc = NewFortranWrapper();
 
   const char *tmtype = "imtype";
@@ -1146,6 +1150,8 @@ int FORTRAN::imfuncWrapper(Node *n) {
 
   // >>> RETURN VALUES
 
+  String *cpp_return_type = Getattr(n, "type");
+
   // Attach typemap for return value
   String *im_return_str = attach_typemap(tmtype, n, warning_flag);
 
@@ -1153,7 +1159,7 @@ int FORTRAN::imfuncWrapper(Node *n) {
   const bool is_imsubroutine = (Len(im_return_str) == 0);
   const char *im_func_type = (is_imsubroutine ? "subroutine" : "function");
 
-  Printv(imfunc->def, im_func_type, " ", wname, "(", NULL);
+  Printv(imfunc->def, im_func_type, " ", Getattr(n, "wrap:imname"), "(", NULL);
 
   // Hash of import statements needed for the interface code
   Hash *imimport_hash = NewHash();
@@ -1213,7 +1219,7 @@ int FORTRAN::imfuncWrapper(Node *n) {
   Printv(imfunc->def,
          ") &\n"
          "    bind(C, name=\"",
-         wname,
+         Getattr(n, "wrap:name"),
          "\")",
          NULL);
 
@@ -1282,7 +1288,7 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   } else {
     Printv(fcall, "call ", NULL);
   }
-  Printv(fcall, Getattr(n, "wrap:name"), "(", NULL);
+  Printv(fcall, Getattr(n, "wrap:imname"), "(", NULL);
 
   const char *swig_result_name = "";
   const bool is_fsubroutine = (Len(f_return_str) == 0);
@@ -1506,7 +1512,8 @@ void FORTRAN::assignmentWrapper(Node *n) {
   // Create overloaded aliased name
   String *generic = NewString("assignment(=)");
   String *fname = NewStringf("swigf_assignment_%s", Getattr(n, "sym:name"));
-  String *wrapname = NewStringf("swigc_assignment_%s", Getattr(n, "sym:name"));
+  String *imname = NewStringf("swigc_assignment_%s", Getattr(n, "sym:name"));
+  String *wname = NewStringf("_wrap_assign_%s", Getattr(n, "sym:name"));
 
   // Add self-assignment to method overload list
   List *overloads = this->get_method_overloads(generic);
@@ -1529,7 +1536,7 @@ void FORTRAN::assignmentWrapper(Node *n) {
          symname,
          "), intent(in) :: other\n"
          "   call ",
-         wrapname,
+         imname,
          "(self%swigdata, other%swigdata)\n"
          "  end subroutine\n",
          NULL);
@@ -1537,10 +1544,10 @@ void FORTRAN::assignmentWrapper(Node *n) {
   // Add interface code
   Printv(f_finterfaces,
          "  subroutine ",
-         wrapname,
+         imname,
          "(self, other) &\n"
          "     bind(C, name=\"",
-         wrapname,
+         wname,
          "\")\n"
          "   use, intrinsic :: ISO_C_BINDING\n"
          "   import :: SwigClassWrapper\n"
@@ -1572,7 +1579,7 @@ void FORTRAN::assignmentWrapper(Node *n) {
   Wrapper *cfunc = NewWrapper();
   Printv(cfunc->def,
          "SWIGEXPORT void ",
-         wrapname,
+         wname,
          "("
          "SwigClassWrapper * self, "
          "SwigClassWrapper const * other) {\n",
@@ -1600,7 +1607,8 @@ void FORTRAN::assignmentWrapper(Node *n) {
   Delete(flags);
   Delete(generic);
   Delete(fname);
-  Delete(wrapname);
+  Delete(imname);
+  Delete(wname);
   Delete(classtype);
   DelWrapper(cfunc);
 }
@@ -2220,16 +2228,16 @@ int FORTRAN::constantWrapper(Node *n) {
   } else {
     /*! Add to public fortran code:
          *
-         *   IMTYPE, protected, bind(C, name="swigc_SYMNAME") :: SYMNAME
+         *   IMTYPE, protected, bind(C, name="swig_SYMNAME") :: SYMNAME
          *
          * Add to wrapper code:
          *
          *   {const_CTYPE = SwigType_add_qualifier(CTYPE, "const")}
-         *   {SwigType_str(const_CTYPE, swigc_SYMNAME) = VALUE;}
+         *   {SwigType_str(const_CTYPE, swig_SYMNAME) = VALUE;}
          */
     Swig_save("constantWrapper", n, "wrap:name", "lname", NULL);
 
-    // SYMNAME -> swigc_SYMNAME
+    // SYMNAME -> swig_SYMNAME
     String *wname = Swig_name_wrapper(symname);
     Setattr(n, "wrap:name", wname);
 
