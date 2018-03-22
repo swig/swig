@@ -115,7 +115,7 @@ namespace Swig {
     VALUE swig_error;
     std::string swig_msg;
   protected:
-    DirectorException(VALUE error) : swig_error(error) {
+    DirectorException(VALUE error, int s = 0) : swig_error(error), status(s) {
     }
 
     DirectorException(VALUE error, const char *hdr, const char *msg ="") : swig_error(error), swig_msg(hdr) {
@@ -151,6 +151,8 @@ namespace Swig {
     const char *what() const throw() {
       return swig_msg.c_str();
     }
+
+    int status;
   };
 
   /* unknown exception handler  */
@@ -213,8 +215,8 @@ namespace Swig {
   /* Any Ruby exception that occurs during a director method call */
   class DirectorMethodException : public DirectorException {
   public:
-    DirectorMethodException(VALUE error)
-      : DirectorException(error) {
+    DirectorMethodException(VALUE error, int s = 0)
+      : DirectorException(error, s) {
     }
 
     DirectorMethodException(const char *msg = "")

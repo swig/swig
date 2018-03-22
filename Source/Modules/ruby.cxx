@@ -2982,7 +2982,6 @@ public:
 
     String *bodyName = NewStringf("%s_%s_body", className, methodName);
     String *rescueName = NewStringf("%s_%s_rescue", className, methodName);
-    String *depthCountName = NewStringf("%s_%s_call_depth", className, methodName);
 
     // Check for an exception typemap of some kind
     String *tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0);
@@ -2991,27 +2990,20 @@ public:
     }
 
     if ((tm != 0) && (Len(tm) > 0) && (Strcmp(tm, "1") != 0)) {
-      // Declare a global to hold the depth count
       if (!Getattr(n, "sym:nextSibling")) {
-	Printf(body->def, "static int %s = 0;\n", depthCountName);
-
 	// Function body
 	Printf(body->def, "VALUE %s(VALUE data) {\n", bodyName);
 	Wrapper_add_localv(body, "args", "Swig::body_args *", "args", "= reinterpret_cast<Swig::body_args *>(data)", NIL);
 	Wrapper_add_localv(body, Swig_cresult_name(), "VALUE", Swig_cresult_name(), "= Qnil", NIL);
-	Printf(body->code, "%s++;\n", depthCountName);
 	Printv(body->code, Swig_cresult_name(), " = rb_funcall2(args->recv, args->id, args->argc, args->argv);\n", NIL);
-	Printf(body->code, "%s--;\n", depthCountName);
 	Printv(body->code, "return ", Swig_cresult_name(), ";\n", NIL);
 	Printv(body->code, "}", NIL);
 
 	// Exception handler
-	Printf(rescue->def, "VALUE %s(VALUE args, VALUE error) {\n", rescueName);
+	Printf(rescue->def, "VALUE %s(VALUE args, VALUE error, int status) {\n", rescueName);
 	Replaceall(tm, "$error", "error");
-	Printf(rescue->code, "%s--;\n", depthCountName);
-	Printf(rescue->code, "if (%s == 0) ", depthCountName);
+	Replaceall(tm, "$status", "status");
 	Printv(rescue->code, Str(tm), "\n", NIL);
-	Printv(rescue->code, "rb_exc_raise(error);\n", NIL);
 	Printv(rescue->code, "return Qnil;\n", NIL);
 	Printv(rescue->code, "}", NIL);
       }
@@ -3023,7 +3015,8 @@ public:
       Printf(w->code, "args.id = rb_intern(\"%s\");\n", methodName);
       Printf(w->code, "args.argc = %d;\n", argc);
       if (argc > 0) {
-	Printf(w->code, "args.argv = new VALUE[%d];\n", argc);
+	Printf(w->code, "VALUE argv_buf[%d];\n", argc);
+	Printf(w->code, "args.argv = argv_buf;\n");
 	for (int i = 0; i < argc; i++) {
 	  Printf(w->code, "args.argv[%d] = obj%d;\n", i, i);
 	}
@@ -3034,11 +3027,9 @@ public:
       if ( initstack ) Printf(w->code, "SWIG_RELEASE_STACK;\n");
       Printf(w->code, "if (status) {\n");
       Printf(w->code, "VALUE lastErr = rb_gv_get(\"$!\");\n");
-      Printf(w->code, "%s(reinterpret_cast<VALUE>(&args), lastErr);\n", rescueName);
+      Printf(w->code, "%s(reinterpret_cast<VALUE>(&args), lastErr, status);\n", rescueName);
       Printf(w->code, "}\n");
-      if (argc > 0) {
-	Printv(w->code, "delete [] args.argv;\n", NIL);
-      }
+
       // Dump wrapper code
       Wrapper_print(body, f_directors_helpers);
       Wrapper_print(rescue, f_directors_helpers);
@@ -3054,7 +3045,6 @@ public:
     // Clean up
     Delete(bodyName);
     Delete(rescueName);
-    Delete(depthCountName);
     DelWrapper(body);
     DelWrapper(rescue);
   }
