@@ -37,8 +37,17 @@
  *
  * These are *DISABLED BY DEFAULT* via the "EXTRA_WARNINGS" in main.cxx.
  * To enable them, run SWIG with '-Wextra' or '-w+321'
+ *
+ * Since there's significant overhead in checking all these names against
+ * every identifier, and the warnings aren't enabled by
+ * default, we disable checking. You can re-enable by defining 
+ * FORTRAN_WARN_INTRINSICS.
  */
+#ifdef FORTRAN_WARN_INTRINSICS
 #define FORTRANFN(x) %namewarn(%warningmsg(SWIGWARN_PARSE_BUILTIN_NAME, "'" `x` "' may shadow a Fortran intrinsic"), sourcefmt="%(lower)s", %$isfunction, %$not %$ismember) `x`;
+#else
+#define FORTRANFN(x)
+#endif
 
 /* This list of intrinsic procedures is from
  * https://gcc.gnu.org/onlinedocs/gfortran/Intrinsic-Procedures.html
@@ -324,8 +333,6 @@ FORTRANFN(unpack)
 FORTRANFN(verify)
 FORTRANFN(xor)
 
-#undef FORTRANKW
 #undef FORTRANFN
-
 
 /* vim: set ts=2 sw=2 sts=2 tw=129 : */
