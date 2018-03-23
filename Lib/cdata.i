@@ -4,6 +4,8 @@
  * SWIG library file containing macros for manipulating raw C data as strings.
  * ----------------------------------------------------------------------------- */
 
+%include <swigfragments.swg>
+
 %{
 typedef struct SWIGCDATA {
     char *data;

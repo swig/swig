@@ -7,6 +7,10 @@
 %varargs(int mode = 0) Foo::statictest(const char*fmt, ...);
 %varargs(2, int mode = 0) test_plenty(const char*fmt, ...);
 
+%{
+#include <string.h>
+%}
+
 %inline %{
 char *test(const char *fmt, ...) {
   return (char *) fmt;
