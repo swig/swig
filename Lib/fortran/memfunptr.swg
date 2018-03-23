@@ -17,7 +17,7 @@
 // pointers (which according to the standard CANNOT be converted to a pointer).
 // encountered. Its syntax is exactly like static_cast.
 // Note that the <string.h> fragment imports size_t into the global namespace.
-%fragment("swig::brute_cast", "runtime", fragment="<string.h>") %{
+%fragment("swig::brute_cast", "header", fragment="<string.h>") %{
 template<typename Dst, typename Src>
 SWIGINTERN void SWIG_opaque_memcpy(Dst* dst, const Src* src) {
   const size_t MINSIZE

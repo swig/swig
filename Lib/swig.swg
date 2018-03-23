@@ -442,10 +442,6 @@ namespace std {
  * Default char * and C array typemaps
  * ----------------------------------------------------------------------------- */
 
-%fragment("<string.h>", "runtime") %{
-#include <string.h>
-%}
-
 /* Set up the typemap for handling new return strings */
 
 #ifdef __cplusplus
