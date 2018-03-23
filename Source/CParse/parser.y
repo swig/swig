@@ -2878,6 +2878,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             String *nname = NewStringf("__dummy_%d__", cnt++);
                             Swig_cparse_template_expand(templnode,nname,temparms,tscope);
                             Setattr(templnode,"sym:name",nname);
+                            SetFlag(templnode,"hidden");
 			    Delete(nname);
                             Setattr(templnode,"feature:onlychildren", "typemap,typemapitem,typemapcopy,typedef,types,fragment");
 			    if ($3) {
