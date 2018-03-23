@@ -69,3 +69,20 @@ namespace std
 #endif
   double bar(double native, bool boolean) { return 1.0; }
 }
+
+// Test that anonymous template instantiations are ignored from
+// %rename/%namewarn
+%namewarn(%warningmsg(SWIGWARN_LANG_IDENTIFIER, "incorrectly warning about non-wrapped instantiated template"), error=1) "__dummy_0__";
+%inline %{
+template<typename T> struct Foo {
+    typedef T value_type;
+};
+%}
+%template() Foo<int>;
+
+// But they should still generate the correct typemaps etc
+%inline %{
+int double_an_int(Foo<int>::value_type v) {
+    return v * 2;
+}
+%}
