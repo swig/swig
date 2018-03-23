@@ -1049,8 +1049,8 @@ static void name_nameobj_add(Hash *name_hash, List *name_list, String *prefix, S
     }
   }
 
-  if (!nname || !Len(nname) || Getattr(nameobj, "fullname") ||	/* any of these options trigger a 'list' nameobj */
-      Getattr(nameobj, "sourcefmt") || Getattr(nameobj, "matchlist") || Getattr(nameobj, "regextarget")) {
+  if (!nname || !Len(nname) || Getattr(nameobj, "fullname") || /* any of these options trigger a 'list' nameobj */
+      Getattr(nameobj, "sourcefmt") || Getattr(nameobj, "matchlist") || Getattr(nameobj, "regextarget") || Getattr(nameobj, "prefixtarget")) {
     if (decl)
       Setattr(nameobj, "decl", decl);
     if (nname && Len(nname))
@@ -1136,6 +1136,14 @@ static int name_regexmatch_value(Node *n, String *pattern, String *s) {
 
 #endif /* HAVE_PCRE/!HAVE_PCRE */
 
+static int name_prefixmatch_value(String *prefix, String *value) {
+  const char *p = Char(prefix);
+  const char *v = Char(value);
+  int len_prefix = Len(prefix);
+  int result = strncmp(p, v, len_prefix);
+  return (result == 0);
+}
+
 static int name_match_value(String *mvalue, String *value) {
 #if defined(SWIG_USE_SIMPLE_MATCHOR)
   int match = 0;
@@ -1176,9 +1184,9 @@ static int name_match_nameobj(Hash *rn, Node *n) {
       List *lattr = Getattr(mi, "attrlist");
       String *nval = get_lattr(n, lattr);
       int notmatch = GetFlag(mi, "notmatch");
-      int regexmatch = GetFlag(mi, "regexmatch");
       match = 0;
       if (nval) {
+	int regexmatch = GetFlag(mi, "regexmatch");
 	String *kwval = Getattr(mi, "value");
 	match = regexmatch ? name_regexmatch_value(n, kwval, nval)
 	    : name_match_value(kwval, nval);
@@ -1221,6 +1229,7 @@ static Hash *name_nameobj_lget(List *namelist, Node *n, String *prefix, String *
 	  String *sname = 0;
 	  int fullname = GetFlag(rn, "fullname");
 	  int regextarget = GetFlag(rn, "regextarget");
+	  int prefixtarget = !regextarget && GetFlag(rn, "prefixtarget");
 	  if (sfmt) {
 	    if (fullname && prefix) {
 	      String *pname = NewStringf("%s::%s", prefix, name);
@@ -1238,7 +1247,8 @@ static Hash *name_nameobj_lget(List *namelist, Node *n, String *prefix, String *
 	    }
 	  }
 	  match = regextarget ? name_regexmatch_value(n, tname, sname)
-	    : name_match_value(tname, sname);
+	    : prefixtarget ? name_prefixmatch_value( tname, sname)
+            : name_match_value(tname, sname);
 	  Delete(sname);
 	} else {
 	  /* Applying the renaming rule may fail if it contains a %(regex)s expression that doesn't match the given name. */
@@ -1267,7 +1277,7 @@ static Hash *name_nameobj_lget(List *namelist, Node *n, String *prefix, String *
  * ----------------------------------------------------------------------------- */
 
 void Swig_name_namewarn_add(String *prefix, String *name, SwigType *decl, Hash *namewrn) {
-  const char *namewrn_keys[] = { "rename", "error", "fullname", "sourcefmt", "targetfmt", "regextarget", 0 };
+  const char *namewrn_keys[] = { "rename", "error", "fullname", "sourcefmt", "targetfmt", "regextarget", "prefixtarget", 0 };
   name_object_attach_keys(namewrn_keys, namewrn);
   name_nameobj_add(name_namewarn_hash(), name_namewarn_list(), prefix, name, decl, namewrn);
 }
@@ -1343,7 +1353,7 @@ void Swig_name_rename_add(String *prefix, String *name, SwigType *decl, Hash *ne
 
   ParmList *declparms = declaratorparms;
 
-  const char *rename_keys[] = { "fullname", "sourcefmt", "targetfmt", "continue", "regextarget", 0 };
+  const char *rename_keys[] = { "fullname", "sourcefmt", "targetfmt", "continue", "regextarget", "prefixtarget", 0 };
   name_object_attach_keys(rename_keys, newname);
 
   /* Add the name */
@@ -1425,7 +1435,7 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
 
   /* very specific hack for template constructors/destructors */
 #ifdef SWIG_DEBUG
-  Printf(stdout, "Swig_name_make: looking for %s %s %s %s\n", prefix, name, decl, oldname);
+  Printf(stdout, "Swig_name_make: looking for '%s' '%s' '%s' '%s'\n", prefix, name, decl, oldname);
 #endif
 
   if (name && n && SwigType_istemplate(name)) {
@@ -1507,7 +1517,7 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
 	result = apply_rename(rename, fullname, prefix, name);
 	if ((msg) && (Len(msg))) {
 	  if (!Getmeta(nname, "already_warned")) {
-	    String* suffix = 0;
+	    String *suffix = 0;
 	    if (Strcmp(result, "$ignore") == 0) {
 	      suffix = NewStringf(": ignoring '%s'\n", name);
 	    } else if (Strcmp(result, name) != 0) {

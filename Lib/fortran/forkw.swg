@@ -24,7 +24,7 @@
    classes, exclude identifiers that also end with _.
  */
 %namewarn(%warningmsg(SWIGWARN_LANG_IDENTIFIER, "Fortran identifiers may not begin with underscores or numerals"),
-          rename="f%s", regextarget=1) "^[_0-9]+.*[^_]+$";
+          rename="f%s", prefixtarget=1) "_";
 
 /* We could define a macro for Fortran keywords, but since you can use
  * keywords as identifiers with no problem (yes, `integer :: if` is valid),
