@@ -28,6 +28,13 @@
     $1 = $1_ltype(static_cast<T*>($input->data));
     $2 = $input->size;
   }
+
+  %typemap(check, noblock=1) SWIGTMARGS__ {
+    if ((thrust::raw_pointer_cast($1) == NULL) && ($2 != 0)) {
+      SWIG_exception_impl("$decl", SWIG_TypeError, \
+                          "Encountered null device pointer", return $null); \
+    }
+  }
 #undef SWIGTMARGS__
 
 %enddef

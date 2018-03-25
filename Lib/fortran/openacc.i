@@ -48,14 +48,6 @@ end type
     $typemap(imtype, VTYPE), dimension(:)
   }
 
-  // acc_deviceptr returns null if the device data isn't present
-  %typemap(check, noblock=1) CPPTYPE {
-    if ($2 && !thrust::raw_pointer_cast($1)) {
-      SWIG_exception_impl("$decl", SWIG_TypeError, \
-                          "Array is not present on device", return $null); \
-    }
-  }
-
 %enddef
 
 

@@ -1,15 +1,7 @@
 /* -------------------------------------------------------------------------
  * cuda.i
  *
- * CUDA Fortran/C interoperability. Assumes a typedef "HAVE_CUDA" is
- * defined in the target code -- add
-
-     %insert("runtime") %{
-     #include "myconfig.h"
-     %}
-
- * in your code to guarantee that HAVE_CUDA is set correctly.
- *
+ * CUDA Fortran/C interoperability.
  * ------------------------------------------------------------------------- */
 
 #ifdef SWIG_FORTRAN_OPENACC
@@ -18,15 +10,22 @@
 #define SWIG_FORTRAN_CUDA
 
 %{
-#ifdef HAVE_CUDA
 #include <cuda_runtime.h>
-#endif
 %}
 
-#define __host__
+%include <forarray.swg>
 
-// Load CUDA extensions?
+// Load CUDA types
 %fragment("f_use_cudafor", "fmodule") %{ use cudafor %}
+
+// Add array wrapper to Fortran types when used
+%fragment("SwigDevArrayWrapper_f", "fpublic", noblock=1,
+          fragment="f_use_openacc") {
+type, bind(C) :: SwigDevArrayWrapper
+  type(C_DEVPTR), public :: data = C_NULL_DEVPTR
+  integer(C_SIZE_T), public :: size = 0
+end type
+}
 
 %define FORT_DEVICEPTR_TYPEMAP(VTYPE, CPPTYPE...)
 
@@ -36,15 +35,19 @@
          fragment="SwigArrayWrapper_uninitialized") CPPTYPE {
     SwigArrayWrapper*
   }
-  //
   %typemap(imtype, import="SwigDevArrayWrapper", fragment="SwigDevArrayWrapper_f") CPPTYPE
     "type(SwigDevArrayWrapper)"
 
+  // Fortran pointer has
   %typemap(ftype, noblock=1) CPPTYPE {
     $typemap(imtype, VTYPE), device, dimension(:), intent(inout)
   }
 
-%enddef
+  %typemap(fin, noblock=1, fragment="f_use_cudafor") CPPTYPE {
+    $1%data = acc_deviceptr($input)
+    $1%size = size($input)
+  }
 
+%enddef
 
 /* vim: set ts=2 sw=2 sts=2 tw=129 : */
