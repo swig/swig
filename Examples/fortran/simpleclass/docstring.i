@@ -85,4 +85,4 @@ Pass class as a parameter. ";
 
 Get a color name. ";
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

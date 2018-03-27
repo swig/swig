@@ -14,4 +14,4 @@ program fortran_enums_runme
   ! Foxtrot = 2 ! ERROR: Foxtrot is PROTECTED
 end program
 
-! vim: set ts=2 sw=2 sts=2 tw=129 :
+

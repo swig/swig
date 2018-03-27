@@ -35,4 +35,4 @@ CTYPE SWIG_null_struct_ ## CTYPE() {
     "type(C_PTR)"
 %enddef
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

@@ -35,4 +35,4 @@ struct assignment_flags<std::pair<T, const U>, Flags> {
 }
 %}
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

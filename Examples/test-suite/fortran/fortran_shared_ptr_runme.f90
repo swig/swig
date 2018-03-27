@@ -32,4 +32,4 @@ program fortran_shared_ptr_runme
   call f2%release() ! Further calls to release() are allowable null-ops
 end program
 
-! vim: set ts=2 sw=2 sts=2 tw=129 :
+

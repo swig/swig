@@ -222,4 +222,4 @@ FORT_COPY_TYPEMAPS_AND_DECL(const char *, const std::string & NATIVE)
 }
 #endif
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

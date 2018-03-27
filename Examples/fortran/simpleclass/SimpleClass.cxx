@@ -91,4 +91,4 @@ void print_struct(const BasicStruct &s) {
   cout << "Struct " << &s << " has foo=" << s.foo << ", bar=" << s.bar << endl;
 }
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

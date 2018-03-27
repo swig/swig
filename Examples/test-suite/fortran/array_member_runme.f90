@@ -33,4 +33,4 @@ program array_member_runme
   end do
 end program
 
-! vim: set ts=2 sw=2 sts=2 tw=129 :
+

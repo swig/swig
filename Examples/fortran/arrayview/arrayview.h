@@ -71,4 +71,4 @@ void print_array(std::pair<const T *, size_t> view) {
 #endif                                 // arrayview_arrayview_hh
 
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

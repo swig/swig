@@ -40,4 +40,4 @@ $2 = $input->size;
 #undef SWIGTMARGS__
 #undef SWIGTMCARGS__
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

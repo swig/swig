@@ -58,4 +58,4 @@ subroutine test_usage()
   write(0, *) "Return-by-value vector:", local_vec
 end subroutine
 end program
-! vim: set ts=2 sw=2 sts=2 tw=129 :
+

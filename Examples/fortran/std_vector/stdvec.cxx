@@ -37,4 +37,4 @@ template void print_vec(const std::vector<double> &);
 template void print_view(std::pair<const double *, size_t>);
 
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

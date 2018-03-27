@@ -10,4 +10,4 @@ public:
 
 template<typename T>
 void print_thing(const Thing<T> &t);
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

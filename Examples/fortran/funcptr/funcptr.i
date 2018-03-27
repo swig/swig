@@ -14,4 +14,4 @@ extern int  do_op(int a, int b, int (*op)(int, int));
 
 extern int (*funcvar)(int,int);
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

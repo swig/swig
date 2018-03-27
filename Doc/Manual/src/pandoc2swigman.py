@@ -1,10 +1,6 @@
-###############################################################################
-# File  : pandoc2swigman.py
-# Author: Seth R Johnson
-# Date  : Mon Feb 19 15:51:49 2018
-#
-# Convert Pandoc-generated HTML to SWIG html
-###############################################################################
+# -*- coding: utf-8 -*-
+"""Convert Pandoc-generated HTML to SWIG html"""
+
 from __future__ import (division, absolute_import, print_function, )
 #-----------------------------------------------------------------------------#
 import os
@@ -81,7 +77,3 @@ def main():
 if __name__ == '__main__':
     #main()
     swiggify("../Fortran.html")
-
-###############################################################################
-# end of pandoc2swigman.py
-###############################################################################

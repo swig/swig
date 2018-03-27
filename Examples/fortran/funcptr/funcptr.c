@@ -17,4 +17,4 @@ int mul(int a, int b) {
 }
 
 int (*funcvar)(int, int) = add;
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

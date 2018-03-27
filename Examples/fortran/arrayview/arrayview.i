@@ -26,4 +26,4 @@ TEMPLATE_ALGORITHMS(float)
 TEMPLATE_ALGORITHMS(double)
 
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

@@ -21,4 +21,4 @@ FORT_FUND_TYPEMAP(int_fast64_t, "integer(C_INT_FAST64_T)")
 
 FORT_FUND_TYPEMAP(intmax_t, "integer(C_INTMAX_T)")
 FORT_FUND_TYPEMAP(intptr_t, "integer(C_INTPTR_T)")
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

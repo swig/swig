@@ -363,44 +363,44 @@ String *add_explicit_scope(String *s) {
 }
 
 /* ------------------------------------------------------------------------- */
-}                                 // end anonymous namespace
+} // end anonymous namespace
 
 class FORTRAN : public Language {
 private:
   // >>> OUTPUT FILES
 
   // Injected into .cxx file
-  String *f_begin;                                   //!< Very beginning of output file
-  String *f_runtime;                                 //!< SWIG runtime code
-  String *f_header;                                  //!< Declarations and inclusions from .i
-  String *f_wrapper;                                 //!< C++ Wrapper code
-  String *f_init;                                    //!< C++ initalization functions
+  String *f_begin;   //!< Very beginning of output file
+  String *f_runtime; //!< SWIG runtime code
+  String *f_header;  //!< Declarations and inclusions from .i
+  String *f_wrapper; //!< C++ Wrapper code
+  String *f_init;    //!< C++ initalization functions
 
   // Injected into module file
-  String *f_fbegin;                                      //!< Very beginning of output file
-  String *f_fmodule;                                     //!< Fortran "module" and "use" directives
-  String *f_fpublic;                                     //!< List of public interface functions and mapping
-  String *f_fparams;                                     //!< Generated enumeration/param types
-  String *f_ftypes;                                      //!< Generated class types
-  String *f_finterfaces;                                 //!< Fortran interface declarations to SWIG functions
-  String *f_fwrapper;                                    //!< Fortran subroutine wrapper functions
+  String *f_fbegin;      //!< Very beginning of output file
+  String *f_fmodule;     //!< Fortran "module" and "use" directives
+  String *f_fpublic;     //!< List of public interface functions and mapping
+  String *f_fparams;     //!< Generated enumeration/param types
+  String *f_ftypes;      //!< Generated class types
+  String *f_finterfaces; //!< Fortran interface declarations to SWIG functions
+  String *f_fwrapper;    //!< Fortran subroutine wrapper functions
 
   // Keep track of "No $fclassname replacement
   Hash *d_warned_fclassname;
 
   // Module-wide procedure interfaces
-  Hash *d_overloads;                                 //!< Overloaded subroutine -> overload names
+  Hash *d_overloads; //!< Overloaded subroutine -> overload names
 
   // Current class parameters
-  Hash *d_method_overloads;                                 //!< Overloaded subroutine -> overload names
-  List *d_constructors;                                 //!< Overloaded subroutine -> overload names
+  Hash *d_method_overloads; //!< Overloaded subroutine -> overload names
+  List *d_constructors;     //!< Overloaded subroutine -> overload names
 
   // Inside of the 'enum' definitions
-  List *d_enum_public;                                 //!< List of enumerator values
+  List *d_enum_public; //!< List of enumerator values
 
   // >>> CONFIGURE OPTIONS
 
-  String *d_fext;                                 //!< Fortran file extension
+  String *d_fext; //!< Fortran file extension
 
 public:
   virtual void main(int argc, char *argv[]);
@@ -441,7 +441,7 @@ private:
   void replace_fspecial_impl(SwigType *classnametype, String *tm, const char *classnamespecialvariable, bool is_enum);
 
   // Add lowercase symbol (fortran)
-  int add_fsymbol(String *s, Node *n, int warning=WARN_FORTRAN_NAME_CONFLICT);
+  int add_fsymbol(String *s, Node *n, int warning = WARN_FORTRAN_NAME_CONFLICT);
   // Make a unique symbolic name
   String *make_unique_symname(Node *n);
   // Get overloads of the given named method
@@ -712,7 +712,7 @@ void FORTRAN::write_module(String *filename) {
 int FORTRAN::moduleDirective(Node *n) {
   String *modname = Swig_string_lower(Getattr(n, "name"));
   int success = this->add_fsymbol(modname, n, WARN_NONE);
-  
+
   if (ImportMode) {
     // This %module directive is inside another module being %imported
     Printv(f_fmodule, " use ", modname, "\n", NULL);
@@ -761,10 +761,10 @@ int FORTRAN::functionWrapper(Node *n) {
   // >>> SET UP WRAPPER NAME
 
   String *symname = Getattr(n, "sym:name");
-  String *fsymname = NULL;                                 // Fortran public function name alias
-  String *fname = NULL;                                    // Fortran proxy function name
-  String *imname = NULL;                                   // Fortran interface function name
-  String *wname = NULL;                                    // SWIG C wrapper function name
+  String *fsymname = NULL; // Fortran public function name alias
+  String *fname = NULL;    // Fortran proxy function name
+  String *imname = NULL;   // Fortran interface function name
+  String *wname = NULL;    // SWIG C wrapper function name
 
   if (!is_cbound) {
     // Usual case: generate a unique wrapper name
@@ -1428,12 +1428,12 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   // Get the typemap for output argument conversion
   Parm *temp = NewParm(cpp_return_type, Getattr(n, "name"), n);
   Setattr(temp, "lname", "fresult"); // Replaces $1
-  String* fbody = attach_typemap("fout", temp, WARN_FORTRAN_TYPEMAP_FOUT_UNDEF);
+  String *fbody = attach_typemap("fout", temp, WARN_FORTRAN_TYPEMAP_FOUT_UNDEF);
   if (bad_fortran_dims(temp, "fout")) {
     return SWIG_NOWRAP;
   }
 
-  String* fparm = attach_typemap("foutdecl", temp, WARN_NONE);
+  String *fparm = attach_typemap("foutdecl", temp, WARN_NONE);
   Delete(temp);
   Chop(fbody);
 
@@ -1447,8 +1447,7 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   // conversion code
   if (Len(fbody) > 0) {
     Replaceall(fbody, "$result", swig_result_name);
-    Replaceall(fbody, "$owner", (GetFlag(n, "feature:new")
-                                 ? ".true." : ".false."));
+    Replaceall(fbody, "$owner", (GetFlag(n, "feature:new") ? ".true." : ".false."));
     this->replace_fclassname(cpp_return_type, fbody);
     Printv(ffunc->code, fbody, "\n", NULL);
   }
@@ -1508,9 +1507,9 @@ void FORTRAN::assignmentWrapper(Node *n) {
 
   // Create overloaded aliased name
   String *generic = NewString("assignment(=)");
-  String *fname = NewStringf("swigf_assignment_%s",  symname);
+  String *fname = NewStringf("swigf_assignment_%s", symname);
   String *imname = NewStringf("swigc_assignment_%s", symname);
-  String *wname = NewStringf("_wrap_assign_%s",      symname);
+  String *wname = NewStringf("_wrap_assign_%s", symname);
 
   // Add self-assignment to method overload list
   List *overloads = this->get_method_overloads(generic);
@@ -1638,7 +1637,7 @@ void FORTRAN::write_docstring(Node *n, String *dest) {
 /* -------------------------------------------------------------------------
  * \brief Create a friendly parameter name
  */
-String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool setter)  const {
+String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool setter) const {
   String *name = Getattr(p, "name");
   if (name) {
     if (Strstr(name, "::")) {
@@ -1661,7 +1660,7 @@ String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool setter)  
 
   // If the parameter name is in the fortran scope, or in the
   // forward-declared classes, mangle it
-  FORTRAN* mthis = const_cast<FORTRAN*>(this);
+  FORTRAN *mthis = const_cast<FORTRAN *>(this);
   Hash *symtab = mthis->symbolScopeLookup("fortran");
   Hash *fwdsymtab = mthis->symbolScopeLookup("fortran_fwd");
   String *origname = name; // save pointer to unmangled name
@@ -2497,4 +2496,4 @@ List *FORTRAN::get_method_overloads(String *generic) {
 extern "C" Language *swig_fortran(void) {
   return new FORTRAN();
 }
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

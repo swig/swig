@@ -31,4 +31,4 @@
 #define SWIG_contract_assert(EXPR, MSG) \
  if (!(EXPR)) { SWIG_exception_impl("$decl", SWIG_ValueError, MSG, return $null); } 
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

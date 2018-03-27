@@ -1,5 +1,6 @@
 ---
 BasedOnStyle:  Mozilla
+AlignConsecutiveAssignments: false
 AlignEscapedNewlines: DontAlign
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
@@ -20,7 +21,7 @@ BraceWrapping:
   SplitEmptyRecord: false
   SplitEmptyNamespace: true
 BreakBeforeBraces: Custom
-BreakBeforeBinaryOperators: All
+BreakBeforeBinaryOperators: None
 BreakBeforeInheritanceComma: false
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: false
@@ -29,13 +30,16 @@ BreakStringLiterals: true
 ColumnLimit:     160
 ConstructorInitializerIndentWidth: 2
 ContinuationIndentWidth: 2
-IndentCaseLabels: true
+IndentCaseLabels: false
 IndentWidth:     2
 PointerAlignment: Right
 ReflowComments:  false 
 SortIncludes:    false 
 SortUsingDeclarations: false   
-SpacesBeforeTrailingComments: 33
+SpaceAfterCStyleCast: true
+SpacesBeforeTrailingComments: 4
 Standard:        Cpp03
+TabWidth: 8
+UseTab: Always
 ...
 

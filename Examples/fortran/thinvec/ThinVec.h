@@ -61,4 +61,4 @@ void print_offbyone(const ThinVec<int> &INDICES);
 #endif                                 // thinvec_ThinVec_hh
 
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

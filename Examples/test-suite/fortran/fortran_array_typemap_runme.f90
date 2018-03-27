@@ -17,4 +17,4 @@ program fortran_array_typemap_runme
   ASSERT(accum(int_values) == 2 * 4)
 end program
 
-! vim: set ts=2 sw=2 sts=2 tw=129 :
+

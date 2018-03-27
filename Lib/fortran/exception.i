@@ -161,4 +161,4 @@ SWIGEXPORT void SWIG_check_unhandled_exception_impl(const char* decl) {
 /* If not being imported, add the implementation of the exception macros */
 %fragment("SWIG_exception");
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

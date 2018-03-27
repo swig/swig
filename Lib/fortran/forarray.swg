@@ -106,4 +106,4 @@ end subroutine
     call c_f_pointer($1%data, $result, [$1%size])
   }
 %enddef
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

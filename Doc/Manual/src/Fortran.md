@@ -1,6 +1,5 @@
 ---
 title: "SWIG and Fortran"
-author: "Seth R Johnson"
 header-includes:
   - \hypersetup{colorlinks=false,
             allbordercolors={0 0 0},

@@ -399,4 +399,4 @@ FORT_FUND_TYPEMAP(unsigned long long, "integer(C_LONG_LONG)");
   ""
 %typemap(typecheck) char* = SWIGTYPE;
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

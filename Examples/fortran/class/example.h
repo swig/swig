@@ -45,4 +45,4 @@ public:
 
 // Function takes the base class and calls virtual functions
 double surface_to_volume(const Shape &s);
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

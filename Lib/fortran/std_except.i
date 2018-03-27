@@ -55,4 +55,4 @@ namespace std {
   %std_exception_map(runtime_error   , SWIG_RuntimeError);
   %std_exception_map(underflow_error , SWIG_OverflowError);
 }
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

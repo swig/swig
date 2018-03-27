@@ -617,4 +617,4 @@ FORT_COPY_TYPEMAPS(const SWIGTYPE*,
   "type(C_PTR)"
 
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

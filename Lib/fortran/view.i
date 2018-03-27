@@ -41,4 +41,4 @@
   %template() std::pair<const CTYPE*, std::size_t>;
 %enddef
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

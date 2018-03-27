@@ -53,4 +53,4 @@ template void print_vec<double>(const ThinVec<double> &);
 template void print_vec<int>(const ThinVec<int> &);
 
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

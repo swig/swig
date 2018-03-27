@@ -22,4 +22,4 @@ int use_count(const std::shared_ptr<Foo> *f) {
 }
 %}
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

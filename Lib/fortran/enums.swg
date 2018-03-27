@@ -51,4 +51,4 @@ FORT_SIMPLE_TYPEMAP(enum SWIGTYPE, int, "integer(C_INT)");
 #endif
 
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

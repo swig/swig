@@ -150,3 +150,14 @@ beautify-file:
 	indent -kr --honour-newlines --line-length160 --indent-level2 --braces-on-func-def-line --leave-optional-blank-lines $(SWIGTYPEDEFS) $(INDENTFILE) -o $(INDENTFILE).tmp;
 	cat $(INDENTFILE).tmp | sed -e 's/const const /const /' > $(INDENTFILE);
 	rm $(INDENTFILE).tmp;
+
+format:
+	(sources=`find $(SOURCE_DIR) -name "*.c" -or -name "*.h" -or -name "*.cxx"` && \
+	for file in $$sources; do \
+	  $(MAKE) format-file INDENTFILE=$$file; \
+	done; )
+
+format-file:
+	test -n "$(INDENTFILE)" || (echo INDENTFILE not defined && exit 1;)
+	test -e $(INDENTFILE) || (echo File does not exist: $(INDENTFILE) && exit 1;)
+	clang-format -i $(INDENTFILE)

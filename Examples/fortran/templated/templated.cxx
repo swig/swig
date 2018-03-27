@@ -22,4 +22,4 @@ template class Thing<int>;
 template class Thing<double>;
 template void print_thing<int>(const Thing<int> &);
 template void print_thing<double>(const Thing<double> &);
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

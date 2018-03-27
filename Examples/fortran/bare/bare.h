@@ -83,4 +83,4 @@ extern int global_counter;
 #endif                                 // barefunctions_bare_hh
 
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

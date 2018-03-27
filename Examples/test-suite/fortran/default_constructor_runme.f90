@@ -12,4 +12,4 @@ program default_constructor_runme
   call ginstance%destroy(ginstance)
 end program
 
-! vim: set ts=2 sw=2 sts=2 tw=129 :
+

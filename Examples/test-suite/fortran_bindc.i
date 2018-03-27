@@ -89,4 +89,4 @@ extern "C" const int my_const_global_int = 9;
 #endif
 %}
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

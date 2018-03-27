@@ -138,4 +138,4 @@ FORT_COPY_TYPEMAPS(SWIGTYPE (CLASS::*),
          fragment="SwigOpaqueMemFunPtr_f") SWIGTYPE (CLASS::*), SWIGTYPE (CLASS::* const)
   "type(SwigOpaqueMemFunPtr)"
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

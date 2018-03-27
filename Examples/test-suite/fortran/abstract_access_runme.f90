@@ -12,4 +12,4 @@ program abstract_access_runme
   if (basecls%do_x() /= 1) stop 1
 end program
 
-! vim: set ts=2 sw=2 sts=2 tw=129 :
+

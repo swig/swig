@@ -80,4 +80,4 @@ SimpleClass(double a, double b)
 %template(action) SimpleClass::action<int>;
 
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

@@ -47,4 +47,4 @@ Sphere::Sphere(double r) : radius(r) {
 double Sphere::volume() const {
   return 4 * M_PI / 3 * radius * radius * radius;
 }
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

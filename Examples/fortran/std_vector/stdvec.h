@@ -45,4 +45,4 @@ const std::vector<T> &get_vec(const std::vector<T> &inp) {
 #endif                                 // std_vector_stdvec_hh
 
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

@@ -17,4 +17,4 @@
 FORT_COPY_TYPEMAPS_AND_DECL(const std::string &NATIVE, const std::string &);
 FORT_COPY_TYPEMAPS_AND_DECL(std::string NATIVE, std::string);
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+

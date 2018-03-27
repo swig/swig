@@ -23,4 +23,4 @@ std::string reversed_str(const std::string &input) {
 }
 
 
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
+
