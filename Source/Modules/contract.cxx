@@ -287,21 +287,13 @@ int Contracts::emit_contract(Node *n, int method) {
   Setattr(n, "contract:rules", contracts);
   Setattr(n, "contract:messages", messages);
 
-  /* Okay.  Generate the contract runtime code by running through the preprocessor to expand whatever `SWIG_contract_assert`
-   * macro the target language may have defined.*/
+  /* Okay.  Generate the contract runtime code. */
+
   if ((c = Getattr(contracts, "require:"))) {
-    String *newstr = NewStringf("SWIG_contract_assert(%s, \"Contract violation: require: %s\");\n", c, Getattr(messages, "require:"));
-    Seek(newstr, 0, SEEK_SET);
-    String *parsedstr = Preprocessor_parse(newstr);
-    Setattr(n, "contract:preassert", parsedstr);
-    Delete(newstr);
+    Setattr(n, "contract:preassert", NewStringf("SWIG_contract_assert(%s, \"Contract violation: require: %s\");\n", c, Getattr(messages, "require:")));
   }
   if ((c = Getattr(contracts, "ensure:"))) {
-    String *newstr = NewStringf("SWIG_contract_assert(%s, \"Contract violation: ensure: %s\");\n", c, Getattr(messages, "ensure:"));
-    Seek(newstr, 0, SEEK_SET);
-    String *parsedstr = Preprocessor_parse(newstr);
-    Setattr(n, "contract:postassert", parsedstr);
-    Delete(newstr);
+    Setattr(n, "contract:postassert", NewStringf("SWIG_contract_assert(%s, \"Contract violation: ensure: %s\");\n", c, Getattr(messages, "ensure:")));
   }
   return SWIG_OK;
 }
