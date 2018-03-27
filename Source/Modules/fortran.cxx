@@ -1959,6 +1959,10 @@ int FORTRAN::membervariableHandler(Node *n) {
 int FORTRAN::globalvariableHandler(Node *n) {
   if (GetFlag(n, "feature:fortran:parameter")) {
     this->constantWrapper(n);
+  } else if (is_bindc(n)) {
+    Swig_error(input_file, line_number,
+               "Can't wrap '%s': %%bindc support for global variables is not yet implemented\n",
+               SwigType_namestr(Getattr(n, "sym:name")));
   } else {
     String *fsymname = Copy(Getattr(n, "sym:name"));
     Setattr(n, "fortran:variable", fsymname);

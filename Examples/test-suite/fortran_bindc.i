@@ -15,6 +15,15 @@
 %bindc get_cptr;
 %bindc get_handle;
 
+// Bind some global variables
+%bindc my_global_int;
+%bindc my_const_global_int;
+
+// XXX: currently C-bound globals are not implemented.
+// See https://github.com/sethrj/swig/issues/73
+%ignore my_global_int;
+%ignore my_const_global_int;
+
 %inline %{
 
 typedef double (*BinaryOp)(double x, double y);
@@ -66,8 +75,17 @@ SimpleStruct* get_ptr() { return &global_struct; }
 const SimpleStruct* get_cptr() { return &global_struct; }
 SimpleStruct** get_handle() { return &global_struct_ptr; }
 
+int my_global_int;
+extern const int my_const_global_int;
+
 #ifdef __cplusplus
 }
+#endif
+%}
+
+%{
+#ifdef __cplusplus
+extern "C" const int my_const_global_int = 9;
 #endif
 %}
 

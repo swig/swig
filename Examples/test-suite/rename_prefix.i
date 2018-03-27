@@ -2,6 +2,7 @@
 
 #ifdef SWIGFORTRAN
 %bindc "";
+%nobindc should_not_match_or_error;
 #endif
 
 // Test renaming of identifiers with a prefix.
@@ -25,3 +26,9 @@ void badprefix_badb() {}
 void badprefixnot() {}
 %}
 
+%namewarn(%warningmsg(SWIGWARN_LANG_IDENTIFIER, "Worse prefix"),
+          rename="%(strip:[worseprefix_])s", error=1) "worseprefix_";
+
+%inline %{
+int should_not_match_or_error;
+%}
