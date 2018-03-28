@@ -1511,7 +1511,7 @@ void FORTRAN::assignmentWrapper(Node *n) {
   if (!classtype) {
     classtype = Getattr(n, "classtype");
   }
-  if (CPlusPlus && Strstr(classtype, "::") != 0) {
+  if (CPlusPlus && !Swig_scopename_check(classtype)) {
     // Explicitly scope classname
     classtype = NewStringf("::%s", classtype);
   } else {
