@@ -1657,7 +1657,7 @@ String *FORTRAN::makeParameterName(Node *, Parm *p, int arg_num, bool) const {
     name = Swig_string_lower(name);
   } else {
     // Invalid name; replace with something simple
-    name = NewStringf("arg", arg_num);
+    name = NewStringf("arg%d", arg_num);
   }
   String *origname = name;
 
