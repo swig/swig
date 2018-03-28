@@ -861,7 +861,7 @@ int FORTRAN::functionWrapper(Node *n) {
       if (SwigType_isvarargs(Getattr(p, "type"))) {
         Swig_warning(WARN_LANG_NATIVE_UNIMPL, Getfile(p), Getline(p),
                      "C-bound variable arguments (in function '%s') are not implemented in Fortran.\n",
-                     SwigType_namestr(symname));
+                     symname);
         return SWIG_NOWRAP;
       }
       // Use C arguments
@@ -946,7 +946,7 @@ int FORTRAN::cfuncWrapper(Node *n) {
   if (!c_return_type) {
     Swig_error(input_file, line_number,
                "Failed to parse 'ctype' typemap return value of '%s'\n",
-               SwigType_namestr(symname));
+               symname);
     return SWIG_NOWRAP;
   }
   const bool is_csubroutine = (Strcmp(c_return_type, "void") == 0);
@@ -997,7 +997,7 @@ int FORTRAN::cfuncWrapper(Node *n) {
       // We don't understand varargs
       Swig_warning(WARN_LANG_NATIVE_UNIMPL, Getfile(p), Getline(p),
                    "Variable arguments (in function '%s') are not implemented in Fortran.\n",
-                   SwigType_namestr(Getattr(n, "sym:name")));
+                   Getattr(n, "sym:name"));
       continue;
     }
 
@@ -1013,7 +1013,7 @@ int FORTRAN::cfuncWrapper(Node *n) {
     if (!parsed_tm) {
       Swig_error(input_file, line_number,
                  "Failed to parse 'ctype' typemap for argument '%s' of '%s'\n",
-                 SwigType_str(Getattr(p, "type"), Getattr(p, "name")), SwigType_namestr(symname));
+                 SwigType_str(Getattr(p, "type"), Getattr(p, "name")), symname);
       return SWIG_NOWRAP;
     }
     String *carg = SwigType_str(parsed_tm, imname);
@@ -1361,12 +1361,12 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   int i = 0;
   List *ffunc_arglist = NewList();
   List *fcall_arglist = NewList();
-  for (Iterator it = First(cparmlist); it.item; it = Next(it), ++i) {
+  for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
     Parm *p = it.item;
     String *cpptype = Getattr(p, "type");
 
     // Add parameter name to declaration list
-    String *farg = this->makeParameterName(n, p, i);
+    String *farg = this->makeParameterName(n, p, i++);
     Setattr(p, "fname", farg);
     Append(ffunc_arglist, farg);
 
@@ -1466,7 +1466,7 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
 
   // Insert Fortran cleanup code
   String *fcleanup = NewStringEmpty();
-  for (Iterator it = First(cparmlist); it.item; it = Next(it), ++i) {
+  for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
     Parm *p = it.item;
     if (String *tm = Getattr(p, "tmap:ffreearg")) {
       Chop(tm);
@@ -1687,7 +1687,7 @@ int FORTRAN::classDeclaration(Node *n) {
   if (!GetFlag(n, "feature:onlychildren")) {
     if (ImportMode) {
       // Add the class to the symbol table since it's not being wrapped
-      add_fsymbol(Getattr(n, "sym:name"), n);
+      add_fsymbol(symname, n);
     }
     if (is_bindc(n)) {
       // Prevent default constructors, destructors, etc.
@@ -1721,8 +1721,8 @@ int FORTRAN::classHandler(Node *n) {
       // Another base class exists
       Swig_warning(WARN_FORTRAN_MULTIPLE_INHERITANCE, Getfile(b), Getline(b),
                    "Multiple inheritance is not supported in Fortran. Ignoring base class %s for %s",
-                   SwigType_namestr(Getattr(b, "sym:name")),
-                   SwigType_namestr(Getattr(n, "sym:name")));
+                   Getattr(b, "sym:name"),
+                   Getattr(n, "sym:name"));
     }
   }
 
@@ -1731,7 +1731,7 @@ int FORTRAN::classHandler(Node *n) {
     // Disallow inheritance for BIND(C) types
     Swig_error(input_file, line_number,
                "Struct '%s' has the 'bindc' feature set, so it cannot use inheritance.\n",
-               SwigType_namestr(symname));
+               symname);
     return SWIG_NOWRAP;
   }
 
@@ -1754,9 +1754,7 @@ int FORTRAN::classHandler(Node *n) {
     if (!basename) {
       String *fdata = this->attach_class_typemap("fdata", WARN_NONE);
       if (!fdata) {
-        Swig_error(input_file, line_number,
-                   "Class '%s' has no '%s' typemap defined\n",
-                   SwigType_namestr(symname), "fdata");
+        Swig_error(input_file, line_number, "Class '%s' has no '%s' typemap defined\n", symname, "fdata");
         return SWIG_NOWRAP;
       }
       Chop(fdata);
@@ -1855,7 +1853,7 @@ int FORTRAN::destructorHandler(Node *n) {
   if (!fdis) {
     Swig_error(input_file, line_number,
                "Class '%s' has no '%s' typemap defined\n",
-               SwigType_namestr(Getattr(classnode, "sym:name")), "fdestructor");
+               Getattr(classnode, "sym:name"), "fdestructor");
     return SWIG_NOWRAP;
   }
   Replaceall(fdis, "$input", "self");
@@ -1898,7 +1896,7 @@ int FORTRAN::memberfunctionHandler(Node *n) {
     String *class_symname = Getattr(getCurrentClass(), "sym:name");
     Swig_error(input_file, line_number,
                "Struct '%s' has the 'bindc' feature set, so it cannot have member functions\n",
-               SwigType_namestr(class_symname));
+               class_symname);
     return SWIG_NOWRAP;
   }
 
@@ -1939,7 +1937,7 @@ int FORTRAN::membervariableHandler(Node *n) {
       String *class_symname = Getattr(getCurrentClass(), "sym:name");
       Swig_error(input_file, line_number,
                  "Struct '%s' has the 'bindc' feature set, but member variable '%s' (type '%s') has no 'bindc' typemap defined\n",
-                 SwigType_namestr(class_symname), symname, SwigType_namestr(datatype));
+                 class_symname, symname, SwigType_namestr(datatype));
       return SWIG_NOWRAP;
     }
     this->replace_fclassname(datatype, bindc_typestr);
@@ -1966,7 +1964,7 @@ int FORTRAN::globalvariableHandler(Node *n) {
   } else if (is_bindc(n)) {
     Swig_error(input_file, line_number,
                "Can't wrap '%s': %%bindc support for global variables is not yet implemented\n",
-               SwigType_namestr(Getattr(n, "sym:name")));
+               Getattr(n, "sym:name"));
   } else {
     String *fsymname = Copy(Getattr(n, "sym:name"));
     Setattr(n, "fortran:variable", fsymname);
