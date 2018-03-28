@@ -4,6 +4,19 @@
 
 %fortran_bindc_struct(MyStruct);
 
+// Without this line, SWIG should raise an error rather than propagating the
+// invalid name into the Fortran code.
+%rename(FooClass) _Foo;
+
+// Without *this* line, the f_a accessors on Bar will override the _a accessors
+// on _Foo, causing Fortran to fail because the argument names of the two
+// setters ('arg' and 'f_a') are different.
+%rename(f_a_bar) Bar::f_a;
+
+// Without *these* renames, f_x and f_y will appear as duplicates in MyStruct.
+%rename(m_x) MyStruct::_x;
+%rename(m_y) MyStruct::_y;
+
 %inline %{
 // Forward-declare and operate on pointer
 class _Foo;
@@ -15,6 +28,7 @@ class _Foo {
     int _a;
     int _b;
     int _get_a_doubled() const { return _a * 2; }
+    int _get_a_doubled(int two) const { return _a * two; }
 };
 
 class Bar : public _Foo {
@@ -31,13 +45,6 @@ struct MyStruct {
     float _x;
     float _y;
     float _z;
-/*
- * DANGER: the following variables would be ignored, causing the C-bound struct
- * to not match the Fortran definition. The same effect could be achieved with
- * %ignore MyStruct::f_x; .
- *
- * TODO: check all member variables of a bind-c struct to make sure they're not ignored
- */
     float f_x;
     float f_y;
 };
@@ -46,8 +53,7 @@ float get_mystruct_y(const MyStruct* ms) { return ms->_y; }
 }
 %}
 
-%warnfilter(SWIGWARN_PARSE_REDEFINED) f_MyEnum;
-%warnfilter(SWIGWARN_PARSE_REDEFINED) f_MYVAL;
+%warnfilter(SWIGWARN_FORTRAN_NAME_CONFLICT) f_MyEnum;
 
 // NOTE: these will be ignored because the previous enum will be renamed.
 // This behavior is consistent with the other SWIG target languages.
@@ -61,3 +67,13 @@ enum f_MyEnum {
 extern "C" int _cboundfunc(const int* _x) { return *_x + 1; }
 
 %}
+
+// This class is poorly named, but the symname is OK.
+%inline %{
+template<class T>
+class _fubar {
+  _fubar() { /* */ }
+};
+%}
+
+%template(foobar) _fubar<int>;

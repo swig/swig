@@ -10,17 +10,10 @@
 %warnfilter(SWIGWARN_PARSE_KEYWORD) write; // 'write' is a fortran keyword, just warn
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) _123_leading_underscore; // leading underscores and numbers are illegal in fortran
 
-#ifdef SWIGFORTRAN
-// Disallow renaming of language keywords to invalid fortran identifiers
-%rename("delegate_") delegate;
-%rename("pass_") pass;
-%rename("alias_") alias;
-#else
 // Silence warning for renamed identifiers
 %warnfilter(SWIGWARN_LANG_IDENTIFIER,SWIGWARN_PARSE_KEYWORD) delegate;
 %warnfilter(SWIGWARN_LANG_IDENTIFIER,SWIGWARN_PARSE_KEYWORD) pass;
 %warnfilter(SWIGWARN_LANG_IDENTIFIER,SWIGWARN_PARSE_KEYWORD) alias;
-#endif
 
 %inline %{
 const char * clone() { return "clone"; }

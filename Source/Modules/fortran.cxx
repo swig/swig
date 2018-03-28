@@ -233,6 +233,20 @@ String *get_symname_or_name(Node *n) {
 }
 
 /* -------------------------------------------------------------------------
+ * \brief Whether a name is a valid fortran identifier
+ */
+bool is_valid_identifier(String *name) {
+  const char *c = Char(name);
+  if (*c == '_') {
+    return false;
+  }
+  if (Len(name) > 63) {
+    return false;
+  }
+  return true;
+}
+
+/* -------------------------------------------------------------------------
  * \brief Get/attach and return a typemap to the given node.
  *
  * If 'ext' is non-null, then after binding/searchinbg, a search will be made
@@ -350,19 +364,6 @@ SwigType *parse_typemap(const_String_or_char_ptr tmname, const_String_or_char_pt
 }
 
 /* ------------------------------------------------------------------------- */
-String *add_explicit_scope(String *s) {
-  if (!CPlusPlus) {
-    return s;
-  }
-  if (!Strstr(s, "::")) {
-    String *temp = NewStringf("::%s", s);
-    Delete(s);
-    s = temp;
-  }
-  return s;
-}
-
-/* ------------------------------------------------------------------------- */
 } // end anonymous namespace
 
 class FORTRAN : public Language {
@@ -442,7 +443,9 @@ private:
 
   // Add lowercase symbol (fortran)
   int add_fsymbol(String *s, Node *n, int warning = WARN_FORTRAN_NAME_CONFLICT);
-  // Make a unique symbolic name
+  // Create a Fortran-compatible identifier from the give symname
+  String *make_fname(String *name, int warning = WARN_LANG_IDENTIFIER);
+  // Create a unique symbolic name
   String *make_unique_symname(Node *n);
   // Get overloads of the given named method
   List *get_method_overloads(String *generic);
@@ -771,17 +774,17 @@ int FORTRAN::functionWrapper(Node *n) {
     wname = Swig_name_wrapper(symname);
     imname = NewStringf("swigc_%s", symname);
     if (String *private_fname = Getattr(n, "fortran:fname")) {
-      // Create "private" fortran wrapper function class name that will
-      // be bound to a class
+      // Create "private" fortran wrapper function class (swigf_xx) name that will be bound to a class
       fname = Copy(private_fname);
+      ASSERT_OR_PRINT_NODE(is_valid_identifier(fname), n);
     } else {
       // Use actual symbolic function name
-      fname = Copy(symname);
+      fname = make_fname(symname);
     }
   } else {
     // BIND(C): use *original* name for wrapper, symname for fortran binding
     wname = Copy(Getattr(n, "name"));
-    imname = Copy(symname);
+    imname = make_fname(symname, WARN_NONE);
     fname = NULL;
   }
 
@@ -824,7 +827,7 @@ int FORTRAN::functionWrapper(Node *n) {
       fsymname = Copy(manual_fsymname);
     } else {
       // Create Fortran-friendly symname
-      fsymname = Copy(symname);
+      fsymname = make_fname(symname);
     }
   }
 
@@ -1508,7 +1511,12 @@ void FORTRAN::assignmentWrapper(Node *n) {
   if (!classtype) {
     classtype = Getattr(n, "classtype");
   }
-  classtype = add_explicit_scope(Copy(classtype));
+  if (CPlusPlus && Strstr(classtype, "::") != 0) {
+    // Explicitly scope classname
+    classtype = NewStringf("::%s", classtype);
+  } else {
+    classtype = Copy(classtype);
+  }
 
   // Create overloaded aliased name
   String *generic = NewString("assignment(=)");
@@ -1642,38 +1650,27 @@ void FORTRAN::write_docstring(Node *n, String *dest) {
 /* -------------------------------------------------------------------------
  * \brief Create a friendly parameter name
  */
-String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool setter) const {
+String *FORTRAN::makeParameterName(Node *, Parm *p, int arg_num, bool) const {
   String *name = Getattr(p, "name");
-  if (name) {
-    if (Strstr(name, "::")) {
-      // Name has qualifiers (probably a static variable setter)
-      // so replace it with something simple
-      name = NewStringf("value%d", arg_num);
-    } else {
-      name = Swig_name_make(p, 0, name, 0, 0);
-    }
+  if (name && is_valid_identifier(name) && !Strstr(name, "::")) {
+    // Valid fortran name; convert to lowercase
+    name = Swig_string_lower(name);
   } else {
-    // The general function which replaces arguments whose
-    // names clash with keywords with (less useful) "argN".
-    name = Language::makeParameterName(n, p, arg_num, setter);
+    // Invalid name; replace with something simple
+    name = NewStringf("arg", arg_num);
   }
-  // Fortran parameters will all be lowercase
-  String *oldname = name;
-  name = Swig_string_lower(oldname);
-  Delete(oldname);
-  oldname = NULL;
+  String *origname = name;
 
   // If the parameter name is in the fortran scope, or in the
   // forward-declared classes, mangle it
   FORTRAN *mthis = const_cast<FORTRAN *>(this);
   Hash *symtab = mthis->symbolScopeLookup("fortran");
   Hash *fwdsymtab = mthis->symbolScopeLookup("fortran_fwd");
-  String *origname = name; // save pointer to unmangled name
   while (Getattr(symtab, name) || Getattr(fwdsymtab, name)) {
     // Rename
-    Delete(oldname);
-    oldname = name;
+    String* prevname = name;
     name = NewStringf("%s%d", origname, arg_num++);
+    Delete(prevname);
   }
   return name;
 }
@@ -1685,6 +1682,13 @@ String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool setter) c
  */
 int FORTRAN::classDeclaration(Node *n) {
   if (!GetFlag(n, "feature:onlychildren")) {
+    String *symname = Getattr(n, "sym:name");
+    if (!is_valid_identifier(symname)) {
+      Swig_error(input_file, line_number,
+                 "The symname '%s' is not a valid Fortran identifier. You must %rename this class.\n",
+                 symname);
+      return SWIG_NOWRAP;
+    }
     if (ImportMode) {
       // Add the class to the symbol table since it's not being wrapped
       add_fsymbol(symname, n);
@@ -1908,8 +1912,8 @@ int FORTRAN::memberfunctionHandler(Node *n) {
   Setattr(n, "fortran:fname", fwrapname);
   Delete(fwrapname);
 
-  // Preserve original function name
-  Setattr(n, "fortran:name", Getattr(n, "sym:name"));
+  // Save original member function name, mangled to a valid fortran name
+  Setattr(n, "fortran:name", make_fname(Getattr(n, "sym:name")));
 
   // Set as a member variable unless it's a constructor
   if (!is_node_constructor(n)) {
@@ -1925,10 +1929,10 @@ int FORTRAN::memberfunctionHandler(Node *n) {
  * \brief Process member variables.
  */
 int FORTRAN::membervariableHandler(Node *n) {
+  String *fsymname = make_fname(Getattr(n, "sym:name"));
   if (is_basic_struct()) {
     // Write the type for the class member
     String *bindc_typestr = attach_typemap("bindc", n, WARN_TYPEMAP_UNDEF);
-    String *symname = Getattr(n, "sym:name");
     SwigType *datatype = Getattr(n, "type");
 
     if (!bindc_typestr) {
@@ -1937,20 +1941,19 @@ int FORTRAN::membervariableHandler(Node *n) {
       String *class_symname = Getattr(getCurrentClass(), "sym:name");
       Swig_error(input_file, line_number,
                  "Struct '%s' has the 'bindc' feature set, but member variable '%s' (type '%s') has no 'bindc' typemap defined\n",
-                 class_symname, symname, SwigType_namestr(datatype));
+                 class_symname, fsymname, SwigType_namestr(datatype));
       return SWIG_NOWRAP;
     }
     this->replace_fclassname(datatype, bindc_typestr);
 
-    Printv(f_ftypes, "  ", bindc_typestr, ", public :: ", symname, "\n", NULL);
+    Printv(f_ftypes, "  ", bindc_typestr, ", public :: ", fsymname, "\n", NULL);
+    Delete(fsymname);
   } else {
     // Create getter and/or setter functions, first preserving
     // the original member variable name
-    String *fsymname = Copy(Getattr(n, "sym:name"));
     Setattr(n, "fortran:variable", fsymname);
     SetFlag(n, "fortran:ismember");
     Language::membervariableHandler(n);
-    Delete(fsymname);
   }
   return SWIG_OK;
 }
@@ -1979,7 +1982,7 @@ int FORTRAN::globalvariableHandler(Node *n) {
  */
 int FORTRAN::staticmemberfunctionHandler(Node *n) {
   // Preserve original function name
-  Setattr(n, "fortran:name", Getattr(n, "sym:name"));
+  Setattr(n, "fortran:name", make_fname(Getattr(n, "sym:name")));
 
   // Add 'nopass' procedure qualifier
   Setattr(n, "fortran:procedure", "nopass");
@@ -2031,11 +2034,13 @@ int FORTRAN::enumDeclaration(Node *n) {
     // enum {FOO=0, BAR=1} foo;
   } else if (Node *classnode = getCurrentClass()) {
     // Scope the enum since it's in a class
-    enum_name = NewStringf("%s_%s", Getattr(classnode, "sym:name"), symname);
+    String *tempname = NewStringf("%s_%s", Getattr(classnode, "sym:name"), symname);
+    enum_name = make_fname(tempname);
+    Delete(tempname);
     // Save the alias name
     Setattr(n, "fortran:name", enum_name);
   } else {
-    enum_name = Copy(symname);
+    enum_name = make_fname(Getattr(n, "sym:name"));
   }
 
   // Make sure the enum name isn't a duplicate
@@ -2278,8 +2283,8 @@ int FORTRAN::constantWrapper(Node *n) {
  */
 int FORTRAN::classforwardDeclaration(Node *n) {
   // Add symbolic name to the forward declaration symbol table
-  String *symname = Getattr(n, "sym:name");
-  if (symname) {
+  
+  if (String *symname = Getattr(n, "sym:name")) {
     String *lower = Swig_string_lower(symname);
 
     const char scope[] = "fortran_fwd";
@@ -2434,10 +2439,36 @@ int FORTRAN::add_fsymbol(String *s, Node *n, int warn) {
 }
 
 /* -------------------------------------------------------------------------
+ * \brief Change a symname to a valid Fortran identifier, warn if changing
+ *
+ * \return the requested key
+ */
+String *FORTRAN::make_fname(String *name, int warning) {
+  String* result = NULL;
+  if (!is_valid_identifier(name)) {
+    result = NewStringf("f%s", name);
+    if (warning != WARN_NONE && !Getmeta(name, "already_warned")) {
+      Swig_warning(warning, input_file, line_number,
+                   "Fortran identifiers may not begin with underscores or numerals: renaming '%s' => '%s'\n",
+                   name, result);
+      Setmeta(name, "already_warned", "1");
+    }
+  } else {
+    result = Copy(name);
+  }
+  if (Len(name) >= 64) {
+    Swig_error(input_file, line_number,
+               "Fortran identifiers may not be more than 63 characters: please %rename '%s'\n",
+               name);
+  }
+  return result;
+}
+
+/* -------------------------------------------------------------------------
  * \brief Make a unique fortran symbol name by appending numbers.
  */
 String *FORTRAN::make_unique_symname(Node *n) {
-  String *symname = Getattr(n, "sym:name");
+  String *symname = make_fname(Getattr(n, "sym:name"));
 
   // Since enum values are in the same namespace as everything else in the
   // module, make sure they're not duplicated with the scope
@@ -2446,16 +2477,12 @@ String *FORTRAN::make_unique_symname(Node *n) {
 
   // Lower-cased name for scope checking
   String *orig_lower = Swig_string_lower(symname);
-  String *lower = orig_lower;
+  String *lower = Copy(orig_lower);
 
   int i = 0;
   while (Getattr(symtab, lower) || Getattr(fwdsymtab, lower)) {
-    // Duplicate symbol!
-    if (i != 0)
-      Delete(lower);
-
-    // Check with an extra number
     ++i;
+    Delete(lower);
     lower = NewStringf("%s%d", orig_lower, i);
   }
   if (i != 0) {
@@ -2464,15 +2491,16 @@ String *FORTRAN::make_unique_symname(Node *n) {
     Swig_warning(WARN_FORTRAN_NAME_CONFLICT, input_file, line_number,
                  "Renaming duplicate %s '%s' (Fortran name '%s')  to '%s'\n",
                  nodeType(n), symname, lower, newname);
+    Delete(symname);
     symname = newname;
-    // Replace symname and decrement reference counter
-    Setattr(n, "sym:name", newname);
-    Delete(newname);
+    // Replace symname
+    Setattr(n, "sym:name", symname);
   }
 
   // Add lowercase name to symbol table
   Setattr(symtab, lower, n);
-  Delete(lower);
+  Delete(orig_lower);
+  // XXX do we call Delete(lower);
 
   return symname;
 }

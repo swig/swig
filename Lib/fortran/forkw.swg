@@ -19,13 +19,6 @@
              rename="release_") "*::release";
 #endif
 
-/* Prevent identifiers from having a leading underscore.
-   Since SWIG uses "__dummy_%d__" internally for %template()-instantiated
-   classes, exclude identifiers that also end with _.
- */
-%namewarn(%warningmsg(SWIGWARN_LANG_IDENTIFIER, "Fortran identifiers may not begin with underscores or numerals"),
-          rename="f%s", prefixtarget=1) "_";
-
 /* We could define a macro for Fortran keywords, but since you can use
  * keywords as identifiers with no problem (yes, `integer :: if` is valid),
  * we don't bother.
