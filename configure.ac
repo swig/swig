@@ -2700,14 +2700,14 @@ AC_SUBST(GOOPT)
 AC_SUBST(GCCGOOPT)
 AC_SUBST(GOVERSIONOPTION)
 
-#----------------------------------------------------------------
+#---------------------------------------------------------------
 # Look for Fortran
-#----------------------------------------------------------------
+#---------------------------------------------------------------
 
 AC_ARG_WITH(fortran,
-  AS_HELP_STRING([--without-fortran], [Disable Fortran])
-  AS_HELP_STRING([--with-fortran=path], [Set location of Fortran compiler]), \
-    [FORTRAN="$withval"], [FORTRAN="$alllang_default"])
+AS_HELP_STRING([--without-fortran], [Disable Fortran])
+AS_HELP_STRING([--with-fortran=path], [Set location of Fortran compiler]),
+[FORTRAN="$withval"], [FORTRAN="$alllang_default"])
 
 if test x"${FORTRAN}" = xno; then
   AC_MSG_NOTICE([Disabling Fortran])
