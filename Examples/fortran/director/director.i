@@ -8,6 +8,8 @@
 #include "director.h"
 %}
 
+%rename(JoinerBase) join::Joiner;
+
 // Wrap the included functions both as procedures *and* as directors
 %include "director.h"
 
@@ -19,14 +21,14 @@ SwigArrayWrapper swigd_Joiner_join_default(void* farg1);
 }
 %}
 
-%fortranprepend FortranJoiner::~FortranJoiner() %{
+%fortranprepend Joiner::~Joiner() %{
   type(C_PTR) :: fself_ptr
-  type(FortranJoinerWrapper), pointer :: handle
-  fself_ptr = swigc_FortranJoiner_fhandle(self%swigdata)
+  type(JoinerHandle), pointer :: handle
+  fself_ptr = swigc_Joiner_fhandle(self%swigdata)
   call c_f_pointer(cptr=fself_ptr, fptr=handle)
 %}
 
-%fortranappend FortranJoiner::~FortranJoiner() %{
+%fortranappend Joiner::~Joiner() %{
   ! Release the allocated handle
   deallocate(handle)
 %}
@@ -36,18 +38,19 @@ SwigArrayWrapper swigd_Joiner_join_default(void* farg1);
 %}
 
 %inline %{
-  class FortranJoiner : public Joiner {
+  class Joiner : public join::Joiner {
+    using Base = join::Joiner;
     // Pointer to polymorphic fortran pointer
     void* fhandle_;
     // Which functions are overridden
     std::bitset<1> overridden_;
    public:
-    FortranJoiner() : fhandle_(NULL) { /* * */ }
+    Joiner() : fhandle_(NULL) { /* * */ }
 
     virtual std::string transform(const std::string& str) const {
       /* construct "this" pointer */
       SwigClassWrapper self;
-      self.ptr = const_cast<FortranJoiner*>(this);
+      self.ptr = const_cast<Joiner*>(this);
       self.mem = SWIG_CREF; // since this function is const
 
       /* convert str -> array wrapper */
@@ -65,10 +68,10 @@ SwigArrayWrapper swigd_Joiner_join_default(void* farg1);
     }
 
     virtual std::string join_default() const {
-      if (!overridden_[0]) return Joiner::join_default();
+      if (!overridden_[0]) return Base::join_default();
       /* construct "this" pointer */
       SwigClassWrapper self;
-      self.ptr = const_cast<FortranJoiner*>(this);
+      self.ptr = const_cast<Joiner*>(this);
       self.mem = SWIG_CREF; // since this function is const
 
       /* convert str -> array wrapper */
@@ -89,24 +92,24 @@ SwigArrayWrapper swigd_Joiner_join_default(void* farg1);
 %}
 
 %insert("ftypes") %{
-  type :: FortranJoinerWrapper
-    class(FortranJoiner), pointer :: data
+  type :: JoinerHandle
+    class(Joiner), pointer :: data
   end type
 %}
 
 %insert("fpublic") %{
-public :: init_FortranJoiner
+public :: init_Joiner
 %}
 
 %insert("fwrapper") %{
 ! Convert a ISO-C class pointer struct into a user Fortran native pointer
 subroutine c_f_pointer_Joiner(clswrap, fptr)
   type(SwigClassWrapper), intent(in) :: clswrap
-  class(FortranJoiner), pointer, intent(out) :: fptr
-  type(FortranJoinerWrapper), pointer :: handle
+  class(Joiner), pointer, intent(out) :: fptr
+  type(JoinerHandle), pointer :: handle
   type(C_PTR) :: fself_ptr
   ! Convert C handle to fortran pointer
-  fself_ptr = swigc_FortranJoiner_fhandle(clswrap)
+  fself_ptr = swigc_Joiner_fhandle(clswrap)
   ! *** NOTE *** : gfortran 5 through 7 falsely claim the next line is not standards compliant. Since 'handle' is a scalar and
   ! not an array it should be OK, but TS29113 explicitly removes the interoperability requirement for fptr.
   ! Error: TS 29113/TS 18508: Noninteroperable array FPTR at (1) to C_F_POINTER: Expression is a noninteroperable derived type
@@ -127,7 +130,7 @@ function swigd_Joiner_transform(farg1, farg2) &
   type(SwigClassWrapper), intent(in) :: farg1
   type(SwigArrayWrapper), intent(in) :: farg2
   type(SwigArrayWrapper) :: fresult
-  class(FortranJoiner), pointer :: self
+  class(Joiner), pointer :: self
   character(kind=C_CHAR, len=:), allocatable :: s
   character(kind=C_CHAR, len=:), allocatable :: swig_result
   character(kind=C_CHAR), dimension(:), allocatable, save :: fresult_chars
@@ -152,7 +155,7 @@ function swigd_Joiner_join_default(farg1) &
   implicit none
   type(SwigClassWrapper), intent(in) :: farg1
   type(SwigArrayWrapper) :: fresult
-  class(FortranJoiner), pointer :: self
+  class(Joiner), pointer :: self
   character(kind=C_CHAR, len=:), allocatable :: swig_result
   character(kind=C_CHAR), dimension(:), allocatable, save :: fresult_chars
 
@@ -163,13 +166,13 @@ function swigd_Joiner_join_default(farg1) &
   call SWIG_string_to_chararray(swig_result, fresult_chars, fresult)
 end function
 
-subroutine init_FortranJoiner(self)
-  class(FortranJoiner), target :: self
-  type(FortranJoinerWrapper), pointer :: handle
+subroutine init_Joiner(self)
+  class(Joiner), target :: self
+  type(JoinerHandle), pointer :: handle
   allocate(handle)
   handle%data => self
-  self%swigdata = swigc_new_FortranJoiner()
-  call swigc_FortranJoiner_init(self%swigdata, c_loc(handle))
+  self%swigdata = swigc_new_Joiner()
+  call swigc_Joiner_init(self%swigdata, c_loc(handle))
 end subroutine
 %}
 

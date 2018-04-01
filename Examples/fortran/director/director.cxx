@@ -3,6 +3,8 @@
 
 #include <sstream>
 
+namespace join {
+
 // Default destructor
 Joiner::~Joiner() { /* * */ }
 
@@ -53,4 +55,5 @@ std::string join_default(const Joiner& j) {
   return j.join_default();
 }
 
+}
 /* vim: set ts=2 sw=2 sts=2 tw=129 : */

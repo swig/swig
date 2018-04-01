@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 
+namespace join {
 class Joiner {
  public:
   virtual ~Joiner() = 0;
@@ -40,4 +41,5 @@ std::string join_with_commas(const Joiner& j);
 
 std::string join_default(const Joiner& j);
 
+}
 /* vim: set ts=2 sw=2 sts=2 tw=129 : */

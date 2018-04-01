@@ -2,16 +2,16 @@ module my_joiners
   use director
   use, intrinsic :: ISO_C_BINDING
   implicit none
-  type, extends(FortranJoiner) :: SingleJoiner
+  type, extends(Joiner) :: SingleJoiner
   contains
     procedure :: transform => transform_enquote_single
   end type
-  type, extends(FortranJoiner) :: BracketJoiner
+  type, extends(Joiner) :: BracketJoiner
   contains
     procedure :: transform => transform_bracket
     procedure :: join_default => join_default_bracket
   end type
-  type, extends(FortranJoiner) :: ArbitraryJoiner
+  type, extends(Joiner) :: ArbitraryJoiner
     character(kind=C_CHAR, len=1) :: ch = '"'
   contains
     procedure :: transform => arb_transform
@@ -66,10 +66,10 @@ subroutine test_subclass
   use my_joiners
   use director
   implicit none
-  class(FortranJoiner), allocatable :: join
+  class(Joiner), allocatable :: join
 
   ! NOTE: because we're not calling any C functions here, we don't actually
-  ! have to call init_FortranJoiner
+  ! have to call init_Joiner
 
   write(*,*) "test_subclass"
   allocate(join, source=SingleJoiner())
@@ -90,7 +90,7 @@ subroutine test_transform
   use, intrinsic :: ISO_C_BINDING
   implicit none
   character(kind=C_CHAR, len=:), allocatable :: str 
-  class(Joiner), allocatable :: join
+  class(JoinerBase), allocatable :: join
 
   write(*,*) "test_transform"
 
@@ -111,14 +111,14 @@ subroutine test_actual
   use, intrinsic :: ISO_C_BINDING
   implicit none
   character(kind=C_CHAR, len=:), allocatable :: str 
-  class(FortranJoiner), allocatable :: join
+  class(Joiner), allocatable :: join
 
   write(*,*) "test_actual"
 
   ! -- SingleJoiner --
 
   allocate(join, source=SingleJoiner())
-  call init_FortranJoiner(join)
+  call init_Joiner(join)
   call join%append_several()
   str = join%join(", and ")
   write(0,*) "Transformed: " // str
@@ -136,7 +136,7 @@ subroutine test_actual
   ! -- BracketJoiner --
 
   allocate(join, source=BracketJoiner())
-  call init_FortranJoiner(join)
+  call init_Joiner(join)
   call join%swig_override(0)
   call join%append_several()
 
@@ -153,7 +153,7 @@ subroutine test_actual
   ! -- ArbitraryJoiner --
 
   allocate(join, source=ArbitraryJoiner())
-  call init_FortranJoiner(join)
+  call init_Joiner(join)
   call join%append_several()
   str = join%join(", and ")
   write(0,*) "Transformed: " // str
