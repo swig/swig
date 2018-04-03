@@ -42,7 +42,10 @@
  *  override the in/out/ctype below)
  */
 
-%typemap(ftype) ALL_SWIGSP__ "$typemap(ftype, " #TYPE ")"
+%typemap(ftype, out={$typemap(ftype, TYPE)}, noblock=1) ALL_SWIGSP__
+  {$typemap(ftype, TYPE*)}
+%typemap(ftype, out={$typemap(ftype, TYPE)}, noblock=1) CONST_ALL_SWIGSP__
+  {$typemap(ftype, const TYPE*)}
 
 /* -------------------------------------------------------------------------
  * C types: we wrap the *shared pointer* as the value type. The 'in' type is
