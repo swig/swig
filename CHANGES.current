@@ -147,7 +147,7 @@ Version 4.0.0 (in progress)
 	    https://sourceforge.net/p/swig/bugs/826/
 
 2017-10-06: wsfulton
-            [Python] Issue #1108. Fix platorm inconsistency in Python default argument handling.
+            [Python] Issue #1108. Fix platform inconsistency in Python default argument handling.
             32 bit and 64 bit compiled versions of SWIG generated different Python files
             when default arguments were outside the range of 32 bit signed integers.
             The default arguments specified in Python are now only those that are in the
