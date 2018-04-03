@@ -3704,7 +3704,7 @@ value: </p>
 <pre>%typemap(in) (int nattributes, const char **names, const int *values)
   (VALUE keys_arr, int i, VALUE key, VALUE val) {
     Check_Type($input, T_HASH);
-    <b>$1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));</b>
+    <b>$1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, Qnil));</b>
 }</pre>
 </div>
 
@@ -3717,7 +3717,7 @@ the keys and values from the hash: </p>
 <pre>%typemap(in) (int nattributes, const char **names, const int *values)
   (VALUE keys_arr, int i, VALUE key, VALUE val) {
     Check_Type($input, T_HASH);
-    $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));
+    $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, Qnil));
     <b>$2 = NULL;
     $3 = NULL;
     if ($1 &gt; 0) {
@@ -3736,13 +3736,13 @@ of the keys) and then start looping over the elements in that array: </p>
 <pre>%typemap(in) (int nattributes, const char **names, const int *values)
   (VALUE keys_arr, int i, VALUE key, VALUE val) {
     Check_Type($input, T_HASH);
-    $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));
+    $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, Qnil));
     $2 = NULL;
     $3 = NULL;
     if ($1 &gt; 0) {
       $2 = (char **) malloc($1*sizeof(char *));
       $3 = (int *) malloc($1*sizeof(int));
-      <b>keys_arr = rb_funcall($input, rb_intern("keys"), 0, NULL);
+      <b>keys_arr = rb_funcall($input, rb_intern("keys"), 0, Qnil);
       for (i = 0; i &lt; $1; i++) {
       }</b>
     }
@@ -3758,13 +3758,13 @@ corresponding to that key in the hash: </p>
 <pre>%typemap(in) (int nattributes, const char **names, const int *values)
   (VALUE keys_arr, int i, VALUE key, VALUE val) {
     Check_Type($input, T_HASH);
-    $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));
+    $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, Qnil));
     $2 = NULL;
     $3 = NULL;
     if ($1 &gt; 0) {
       $2 = (char **) malloc($1*sizeof(char *));
       $3 = (int *) malloc($1*sizeof(int));
-      keys_arr = rb_funcall($input, rb_intern("keys"), 0, NULL);
+      keys_arr = rb_funcall($input, rb_intern("keys"), 0, Qnil);
       for (i = 0; i &lt; $1; i++) {
         <b>key = rb_ary_entry(keys_arr, i);
         val = rb_hash_aref($input, key);</b>
@@ -3781,13 +3781,13 @@ value is a <tt>Fixnum</tt>: </p>
 <pre>%typemap(in) (int nattributes, const char **names, const int *values)
   (VALUE keys_arr, int i, VALUE key, VALUE val) {
     Check_Type($input, T_HASH);
-    $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));
+    $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, Qnil));
     $2 = NULL;
     $3 = NULL;
     if ($1 &gt; 0) {
       $2 = (char **) malloc($1*sizeof(char *));
       $3 = (int *) malloc($1*sizeof(int));
-      keys_arr = rb_funcall($input, rb_intern("keys"), 0, NULL);
+      keys_arr = rb_funcall($input, rb_intern("keys"), 0, Qnil);
       for (i = 0; i &lt; $1; i++) {
         key = rb_ary_entry(keys_arr, i);
         val = rb_hash_aref($input, key);
@@ -3805,13 +3805,13 @@ equivalents and store them in our local C arrays: </p>
 <pre>%typemap(in) (int nattributes, const char **names, const int *values)
   (VALUE keys_arr, int i, VALUE key, VALUE val) {
   Check_Type($input, T_HASH);
-  $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));
+  $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, Qnil));
   $2 = NULL;
   $3 = NULL;
   if ($1 &gt; 0) {
     $2 = (char **) malloc($1*sizeof(char *));
     $3 = (int *) malloc($1*sizeof(int));
-    keys_arr = rb_funcall($input, rb_intern("keys"), 0, NULL);
+    keys_arr = rb_funcall($input, rb_intern("keys"), 0, Qnil);
     for (i = 0; i &lt; $1; i++) {
       key = rb_ary_entry(keys_arr, i);
       val = rb_hash_aref($input, key);

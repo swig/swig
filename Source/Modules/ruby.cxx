@@ -3046,7 +3046,7 @@ public:
       if (argc > 0) {
 	Printf(w->code, "%s = rb_funcall(swig_get_self(), rb_intern(\"%s\"), %d%s);\n", Swig_cresult_name(), methodName, argc, args);
       } else {
-	Printf(w->code, "%s = rb_funcall(swig_get_self(), rb_intern(\"%s\"), 0, NULL);\n", Swig_cresult_name(), methodName);
+	Printf(w->code, "%s = rb_funcall(swig_get_self(), rb_intern(\"%s\"), 0, Qnil);\n", Swig_cresult_name(), methodName);
       }
       if ( initstack ) Printf(w->code, "SWIG_RELEASE_STACK;\n");
     }
