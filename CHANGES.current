@@ -7,6 +7,73 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-04-03: olly
+	    [Ruby] Fix to pass Qnil instead of NULL to rb_funcall(), which silences GCC
+	    -Wconversion-null warning (on by default with recent GCC).
+
+2018-03-09: fultonwi
+            [Java] #1184 Fix swigReleaseOwnership() and swigTakeOwnership() regression
+            for non-director classes. Restores a dynamic_cast which was previously removed.
+
+2018-03-07: llongi
+	    Github PR #1166 - Fix preprocessor handling of macros with commas
+	    in a // comment.
+
+2018-02-18: JPEWdev
+            Patch #1164 - Add support for a command-line options file, also sometimes
+            called a response file. This is useful if the command-line options exceed
+            the system command-line length limit. To use, put the command-line options
+            into a file, then provide the file name prefixed with @, for example using
+            a file called args.txt:
+
+              swig @args.txt
+
+2018-02-11: wsfulton
+            [Javascript] #1187 Fix compilation error wrapping std::complex via
+            std_complex.i.
+
+2018-01-30: smarchetto
+            [Scilab] add type name argument in SWIG_ptr() function to cast from pointer adress to typed pointers
+
+2018-01-16: wsfulton
+            Expressions following a preprocessor directive must now be separated by whitespace
+            or non-numeric characters. This syntax change makes the SWIG preprocessor work like
+            the C preprocessor in this area.
+
+            For example, the following code used be accepted as valid syntax:
+              #if1
+              #define ABC 123
+              #endif
+
+            Now you get an error:
+              example.h:1: Error: Unknown SWIG preprocessor directive: if1 (if this is a block of
+              target language code, delimit it with %{ and %})
+              example.h:3: Error: Extraneous #endif.
+
+            The following is the correct syntax:
+              #if 1
+              #define ABC 123
+              #endif
+
+            The following of course also works:
+              #if(1)
+              #define ABC 123
+              #endif
+
+2018-01-15: wsfulton
+            Fix issue #1183. Floating point exception evaluating preprocessor expressions
+            resulting in division by zero.
+
+2018-01-14: wsfulton
+            Fix issue #1172. Seg fault parsing invalid exponents in the preprocessor.
+
+2018-01-12: Liryna
+            [C#] Patch #1128. Add ToArray function to std::vector wrappers.
+
+2018-01-12: wsfulton
+            [Java] Fix issue #1156. Add missing throws clause for interfaces when using the
+            %interface family of macros.
+
 2018-01-05: wsfulton
             Fix default arguments using expressions containing -> syntax error. Problem reported on
             swig-user mailing list.
@@ -32,7 +99,7 @@ Version 4.0.0 (in progress)
 	    should make the generated code work with PHP 7.2.0.
 
 2017-12-04: wsfulton
-            [Python] Add missing checks for failures in calls to PyUnicode_AsUTF8String. Previously a 
+            [Python] Add missing checks for failures in calls to PyUnicode_AsUTF8String. Previously a
             seg fault could occur when passing invalid UTF8 strings (low surrogates), eg passing
             u"\udcff" to the C layer (Python 3).
 
@@ -84,7 +151,7 @@ Version 4.0.0 (in progress)
 	    https://sourceforge.net/p/swig/bugs/826/
 
 2017-10-06: wsfulton
-            [Python] Issue #1108. Fix platorm inconsistency in Python default argument handling.
+            [Python] Issue #1108. Fix platform inconsistency in Python default argument handling.
             32 bit and 64 bit compiled versions of SWIG generated different Python files
             when default arguments were outside the range of 32 bit signed integers.
             The default arguments specified in Python are now only those that are in the
@@ -111,7 +178,7 @@ Version 4.0.0 (in progress)
             language as the C++ template name, for example, this is now possible:
 
               template<typename T> struct X { ... };
-              %template(X) X<int>; 
+              %template(X) X<int>;
 
 2017-09-23: wsfulton
             Issue #1098. Fix overloading of shared_ptr with underlying pointer types, eg:

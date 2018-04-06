@@ -2019,37 +2019,50 @@ public class Container : global::System.IDisposable {
   // Ensure that the GC doesn't collect any Element set from C#
   // as the underlying C++ class stores a shallow copy
   private Element elementReference;
-  private global::System.Runtime.InteropServices.HandleRef getCPtrAndAddReference(Element element) {
-    elementReference = element;
-    return Element.getCPtr(element);
-  }
 
   public void setElement(Element e) {
-    examplePINVOKE.Container_setElement(swigCPtr, getCPtrAndAddReference(e));
+    examplePINVOKE.Container_setElement(swigCPtr, Element.getCPtr(e));
+    elementReference = e;
   }
 }
 </pre>
 </div>
 
 <p>
-The following typemaps will generate the desired code.
-The 'csin' typemap matches the input parameter type for the <tt>setElement</tt> method.
-The 'cscode' typemap simply adds in the specified code into the C# proxy class.
+The following typemaps can be used to generate this code:
 </p>
 
 <div class="code">
 <pre>
-%typemap(csin) Element *e "getCPtrAndAddReference($csinput)"
-
 %typemap(cscode) Container %{
   // Ensure that the GC doesn't collect any Element set from C#
   // as the underlying C++ class stores a shallow copy
   private Element elementReference;
-  private global::System.Runtime.InteropServices.HandleRef getCPtrAndAddReference(Element element) {
-    elementReference = element;
-    return Element.getCPtr(element);
-  }
 %}
+
+%typemap(csin,
+         post="      elementReference = $csinput;"
+         ) Element *e "Element.getCPtr($csinput)"
+</pre>
+</div>
+
+<p>
+The 'cscode' typemap simply adds in the specified code into the C# proxy class.
+The 'csin' typemap matches the input parameter type and name for the <tt>setElement</tt> method and
+the 'post' typemap attribute allows adding code after the PInvoke call.
+The 'post' code is generated into a finally block after the PInvoke call so the resulting code isn't quite
+as mentioned earlier, <tt>setElement</tt> is actually:
+</p>
+
+<div class="code">
+<pre>
+  public void setElement(Element e) {
+    try {
+      examplePINVOKE.Container_setElement(swigCPtr, Element.getCPtr(e));
+    } finally {
+      elementReference = e;
+    }
+  }
 </pre>
 </div>
 

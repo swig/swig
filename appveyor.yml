@@ -22,8 +22,7 @@ environment:
     PY3: 1
   - SWIGLANG: python
     OSVARIANT: cygwin
-  - SWIGLANG: python
-    OSVARIANT: mingw
+  - OSVARIANT: mingw
 
 install:
 - date /T & time /T
@@ -85,8 +84,6 @@ install:
 - bash -c "which $CXX"
 - bash -c "$CC --version | head -n 1"
 - bash -c "$CXX --version | head -n 1"
-- bash -c "which python"
-- bash -c "python -V"
 - bash -c "make --version | head -n 2"
 - pwd
 - echo MAKEJOBS=%MAKEJOBS%
@@ -105,9 +102,9 @@ test_script:
 - .\swig.exe -version
 - if not "%OSVARIANT%"=="" CCache\ccache-swig -V
 - bash -c "file ./swig.exe"
-- bash -c "make check-%SWIGLANG%-version"
-- bash -c "time make -k check-%SWIGLANG%-examples %CHECK_OPTIONS%"
-- bash -c "time make -k check-%SWIGLANG%-test-suite -j%MAKEJOBS% %CHECK_OPTIONS%"
+- if not "%SWIGLANG%"=="" bash -c "make check-%SWIGLANG%-version %CHECK_OPTIONS%"
+- if not "%SWIGLANG%"=="" bash -c "time make -k check-%SWIGLANG%-examples %CHECK_OPTIONS%"
+- if not "%SWIGLANG%"=="" bash -c "time make -k check-%SWIGLANG%-test-suite -j%MAKEJOBS% %CHECK_OPTIONS%"
 
 # Do not build on tags (GitHub only)
 skip_tags: true

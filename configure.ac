@@ -28,8 +28,6 @@ AH_BOTTOM([
 dnl Check for programs that a user requires to build SWIG
 AC_PROG_CC
 AC_PROG_CXX
-AC_EXEEXT
-AC_OBJEXT
 AM_PROG_CC_C_O  # Needed for subdir-objects in AUTOMAKE_OPTIONS
 
 AC_COMPILE_WARNINGS # Increase warning levels

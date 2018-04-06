@@ -2544,8 +2544,6 @@ public:
 
     Printf(imcall, ")");
     Printf(function_code, ")");
-    if (is_interface)
-      Printf(interface_class_code, ");\n");
 
     // Transform return type used in JNI function (in intermediary class) to type used in Java wrapper function (in proxy class)
     if ((tm = Swig_typemap_lookup("javaout", n, "", 0))) {
@@ -2603,6 +2601,11 @@ public:
       Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, "No javaout typemap defined for %s\n", SwigType_str(t, 0));
     }
 
+    if (is_interface) {
+      Printf(interface_class_code, ")");
+      generateThrowsClause(n, interface_class_code);
+      Printf(interface_class_code, ";\n");
+    }
     generateThrowsClause(n, function_code);
     Printf(function_code, " %s\n\n", tm ? (const String *) tm : empty_string);
     Printv(proxy_class_code, function_code, NIL);
@@ -3760,15 +3763,16 @@ public:
         Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", smartptr, smartptr);
         Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
         Printf(code_wrap->code, "  // Avoids using smart pointer specific API.\n");
-        Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
-    }
-    else {
+        Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
+    } else {
         Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
-        Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj);\n", dirClassName, dirClassName);
+        Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName);
     }
 
     Printf(code_wrap->code, "  (void)jcls;\n");
-    Printf(code_wrap->code, "  director->swig_java_change_ownership(jenv, jself, jtake_or_release ? true : false);\n");
+    Printf(code_wrap->code, "  if (director) {\n");
+    Printf(code_wrap->code, "    director->swig_java_change_ownership(jenv, jself, jtake_or_release ? true : false);\n");
+    Printf(code_wrap->code, "  }\n");
     Printf(code_wrap->code, "}\n");
 
     Wrapper_print(code_wrap, f_wrappers);

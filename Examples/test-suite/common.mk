@@ -194,6 +194,7 @@ CPP_TEST_CASES += \
 	director_nspace_director_name_collision \
 	director_overload \
 	director_overload2 \
+	director_ownership \
 	director_pass_by_value \
 	director_primitives \
 	director_property \
