@@ -1316,7 +1316,13 @@ public:
 	Iterator alias = First(aliases);
 	while (alias.item) {
 	  if (Len(alias.item) > 0) {
-	    if (multipleInheritance) {
+	    if (current == NO_CPP) {
+	      if (useGlobalModule) {
+	        Printv(f_init, tab4, "rb_define_alias(rb_cObject, \"", alias.item, "\", \"", iname, "\");\n", NIL);
+	      } else {
+	        Printv(f_init, tab4, "rb_define_alias(rb_singleton_class(", modvar, "), \"", alias.item, "\", \"", iname, "\");\n", NIL);
+	      }
+	    } else if (multipleInheritance) {
 	      Printv(klass->init, tab4, "rb_define_alias(", klass->mImpl, ", \"", alias.item, "\", \"", iname, "\");\n", NIL);
 	    } else {
 	      Printv(klass->init, tab4, "rb_define_alias(", klass->vname, ", \"", alias.item, "\", \"", iname, "\");\n", NIL);
