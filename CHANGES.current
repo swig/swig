@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-04-07: goatshriek
+            [Ruby] #1213 Fix ruby %alias directive for global C/C++ functions.
+
 2018-04-03: olly
 	    [Ruby] Fix to pass Qnil instead of NULL to rb_funcall(), which silences GCC
 	    -Wconversion-null warning (on by default with recent GCC).
