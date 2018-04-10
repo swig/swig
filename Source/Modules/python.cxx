@@ -2449,6 +2449,7 @@ public:
     } else {
       Printv(f_dest, tab4 "return ", funcCall(name, callParms), "\n", NIL);
     }
+    Printv(f_dest, "\n\n");
 
     if (!have_addtofunc(n)) {
       /* If there is no addtofunc directive then just assign from the extension module (for speed up) */
