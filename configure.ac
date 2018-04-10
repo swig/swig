@@ -1550,7 +1550,7 @@ else
 
   # check for include files
   AC_MSG_CHECKING(for V8 Javascript v8.h)
-  AC_ARG_WITH(jsv8inc, [  --with-jsv8inc=path     Set location of Javascript v8 include directory], [JSV8INCDIR="$withval"])
+  AC_ARG_WITH(jsv8inc, [  --with-jsv8inc=path     Set location of Javascript v8 include directory], [JSV8INCDIR="$withval"], [JSV8INCDIR=])
 
   # if not include dir is specified we try to find
   if test -z "$JSV8INCDIR"; then
