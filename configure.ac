@@ -1492,7 +1492,7 @@ else
 
   # check for include files
   AC_MSG_CHECKING(for JavaScriptCore/JavaScript.h)
-  AC_ARG_WITH(jscoreinc, [  --with-jscinc=path      Set location of Javascript include directory], [JSCOREINCDIR="$withval"], [JSCOREINCDIR=])
+  AC_ARG_WITH(jscoreinc, [  --with-jscoreinc=path      Set location of Javascript include directory], [JSCOREINCDIR="$withval"], [JSCOREINCDIR=])
 
   JSCOREVERSION=
 
@@ -1526,7 +1526,7 @@ else
   fi
 
   # check for JavaScriptCore/Webkit libraries
-  AC_ARG_WITH(jscorelib,[  --with-jsclib=path      Set location of the JavaScriptCore/Webkit library directory],[JSCORELIB="-L$withval"], [JSCORELIB=])
+  AC_ARG_WITH(jscorelib,[  --with-jscorelib=path      Set location of the JavaScriptCore/Webkit library directory],[JSCORELIB="-L$withval"], [JSCORELIB=])
 
   if test -z "$JSCORELIB" -a -n "$PKGCONFIG"; then
     AC_MSG_CHECKING(for JavaScriptCore/Webkit library)
