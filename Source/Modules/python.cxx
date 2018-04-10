@@ -926,7 +926,7 @@ public:
       {
 	// Python-2.2 object hack
 	Printv(f_shadow,
-	       "\n", "def _swig_setattr_nondynamic(self, class_type, name, value, static=1):\n",
+	       "\n\n", "def _swig_setattr_nondynamic(self, class_type, name, value, static=1):\n",
 	       tab4, "if (name == \"thisown\"):\n", tab8, "return self.this.own(value)\n",
 	       tab4, "if (name == \"this\"):\n", tab8, "if type(value).__name__ == 'SwigPyObject':\n", tab4, tab8, "self.__dict__[name] = value\n",
 #ifdef USE_THISOWN
@@ -963,7 +963,7 @@ public:
 	Printv(f_shadow,
 	        "\n", "def _swig_repr(self):\n",
 	       tab4, "try:\n", tab8, "strthis = \"proxy of \" + self.this.__repr__()\n",
-	       tab4, "except __builtin__.Exception:\n", tab8, "strthis = \"\"\n", tab4, "return \"<%s.%s; %s >\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n", NIL);
+	       tab4, "except __builtin__.Exception:\n", tab8, "strthis = \"\"\n", tab4, "return \"<%s.%s; %s >\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n\n", NIL);
 
 	if (!classic && !modern) {
 	  Printv(f_shadow,
