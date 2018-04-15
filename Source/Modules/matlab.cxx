@@ -2428,7 +2428,7 @@ void MATLAB::wrapConstructor(int gw_ind, String *symname, String *fullname, Node
       Printf(f_wrap_m, "%s\n", matlabprepend(n));
     Printf(f_wrap_m, "        tmp = %s(%d, varargin{:});\n", mex_name, gw_ind);
     Printf(f_wrap_m, "        self.swigPtr = tmp.swigPtr;\n");
-    Printf(f_wrap_m, "        tmp.swigPtr = [];\n");
+    Printf(f_wrap_m, "        tmp.SwigClear();\n");
     if (have_matlabappend(n))
       Printf(f_wrap_m, "%s\n", matlabappend(n));
   }
@@ -2457,7 +2457,7 @@ void MATLAB::wrapConstructorDirector(int gw_ind, String *symname, String *fullna
     Printf(f_wrap_m, "          tmp = %s(%d, self, varargin{:});\n", mex_name, gw_ind);
     Printf(f_wrap_m, "        end\n");
     Printf(f_wrap_m, "        self.swigPtr = tmp.swigPtr;\n");
-    Printf(f_wrap_m, "        tmp.swigPtr = [];\n");
+    Printf(f_wrap_m, "        tmp.SwigClear();\n");
     if (have_matlabappend(n))
       Printf(f_wrap_m, "%s\n", matlabappend(n));
   }
@@ -2529,7 +2529,7 @@ int MATLAB::destructorHandler(Node *n) {
   // This is important for MATLAB as for class hierarchies, it calls delete for
   // each class in the hierarchy. This isn't the case for C++ which only calls the
   // destructor of the "leaf-class", which should take care of deleting everything.
-  Printf(f_wrap_m, "        self.swigPtr=[];\n");
+  Printf(f_wrap_m, "        self.SwigClear();\n");
   Printf(f_wrap_m, "      end\n");
   Printf(f_wrap_m, "    end\n");
 
@@ -2758,6 +2758,9 @@ void MATLAB::createSwigRef() {
   Printf(f_wrap_m, "    end\n");
   Printf(f_wrap_m, "    function SwigSet(self,ptr)\n");
   Printf(f_wrap_m, "        self.swigPtr = ptr;\n");
+  Printf(f_wrap_m, "    end\n");
+  Printf(f_wrap_m, "    function SwigClear(self)\n");
+  Printf(f_wrap_m, "        self.swigPtr = [];\n");
   Printf(f_wrap_m, "    end\n");
   Printf(f_wrap_m, "    function ptr = SwigGet(self)\n");
   Printf(f_wrap_m, "        ptr = self.swigPtr;\n");
