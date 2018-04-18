@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-04-18: olly
+	    [Python] Suppress new pycodestyle warning:
+	    E252 missing whitespace around parameter equals
+
 2018-04-07: goatshriek
             [Ruby] #1213 Fix ruby %alias directive for global C/C++ functions.
 
