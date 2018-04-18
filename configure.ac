@@ -1704,13 +1704,20 @@ else
   fi
   if test -n "$GUILE_CONFIG" ; then
     if test x"$GUILE" = xyes; then
-      AC_MSG_CHECKING([for guile bindir])
-      guile_bindir="`$GUILE_CONFIG info bindir`"
-      AC_MSG_RESULT([$guile_bindir])
-      GUILE=$guile_bindir/guile
-      if ! test -f "$GUILE" ; then
-	GUILE=
-        AC_PATH_PROG(GUILE, guile)
+      AC_MSG_CHECKING([for guile executable])
+      if $GUILE_CONFIG info guile > /dev/null 2>&1; then
+        GUILE="`$GUILE_CONFIG info guile`"
+        AC_MSG_RESULT([$GUILE])
+      else
+        AC_MSG_RESULT([not in guile-config, constructing path])
+        AC_MSG_CHECKING([for guile bindir])
+        guile_bindir="`$GUILE_CONFIG info bindir`"
+        AC_MSG_RESULT([$guile_bindir])
+        GUILE=$guile_bindir/guile
+        if ! test -f "$GUILE" ; then
+          GUILE=
+          AC_PATH_PROG(GUILE, guile)
+        fi
       fi
     fi
 
