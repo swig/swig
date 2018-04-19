@@ -36,11 +36,25 @@
 
 %include <std_except.i>
 
-%fragment("container_owner_attribute", "header") {
-  PyObject* container_owner_attribute() {
-    static PyObject* name = SWIG_Python_str_FromChar("__owner");
-    return name;
+%fragment("reference_container_owner", "header") {
+namespace swig {
+  /**
+   * Call to add a back-reference to the owning object when returning a 
+   * reference from a container.  Will only set the reference if <code>child</code> 
+   * is a SWIG wrapper object that does not own the pointer.
+   *
+   * @return if the reference was set or not
+   */
+  bool reference_container_owner(PyObject* child, PyObject* owner) {
+    static PyObject* attr = SWIG_Python_str_FromChar("__owner");
+    SwigPyObject* swigThis = SWIG_Python_GetSwigThis(child);
+    if (swigThis && (swigThis->own & SWIG_POINTER_OWN) != SWIG_POINTER_OWN) {
+      PyObject_GenericSetAttr(child, attr, owner);
+      return true;
+    }
+    return false;
   }
+}
 }
 
 %fragment(SWIG_Traits_frag(swig::SwigPtr_PyObject),"header",fragment="StdTraits") {
@@ -774,15 +788,8 @@ namespace swig
       return self->size();
     }
 
-    %typemap(ret, fragment="container_owner_attribute") value_type& {
-      PyObject* swigThis = PyObject_GetAttrString($result, "this");
-      PyErr_Clear();
-      if (swigThis && SwigPyObject_Check(swigThis) && 
-          (reinterpret_cast<SwigPyObject*>(swigThis)->own & SWIG_POINTER_OWN) != SWIG_POINTER_OWN) {
-        // try to store reference to parent
-        PyObject_GenericSetAttr($result, container_owner_attribute(), $self);
-      }
-      Py_XDECREF(swigThis);
+    %typemap(ret, fragment="reference_container_owner") value_type& {
+      swig::reference_container_owner($result, $self);
     }
   }
 %enddef
