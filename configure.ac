@@ -1705,19 +1705,20 @@ else
   if test -n "$GUILE_CONFIG" ; then
     if test x"$GUILE" = xyes; then
       AC_MSG_CHECKING([for guile executable])
-      if $GUILE_CONFIG info guile > /dev/null 2>&1; then
-        GUILE="`$GUILE_CONFIG info guile`"
+      # Try extracting it via guile-config first. If it's defined there it's the most reliable result
+      GUILE="`$GUILE_CONFIG info guile 2>/dev/null`"
+      if test -n "$GUILE";  then
         AC_MSG_RESULT([$GUILE])
       else
         AC_MSG_RESULT([not in guile-config, constructing path])
         AC_MSG_CHECKING([for guile bindir])
         guile_bindir="`$GUILE_CONFIG info bindir`"
         AC_MSG_RESULT([$guile_bindir])
-        GUILE=$guile_bindir/guile
-        if ! test -f "$GUILE" ; then
-          GUILE=
-          AC_PATH_PROG(GUILE, guile)
-        fi
+        GUILE="$guile_bindir/guile"
+      fi
+      if ! test -f "$GUILE" ; then
+        GUILE=
+        AC_PATH_PROG(GUILE, guile)
       fi
     fi
 
