@@ -49,7 +49,7 @@ namespace swig {
     static PyObject* attr = SWIG_Python_str_FromChar("__owner");
     SwigPyObject* swigThis = SWIG_Python_GetSwigThis(child);
     if (swigThis && (swigThis->own & SWIG_POINTER_OWN) != SWIG_POINTER_OWN) {
-      PyObject_GenericSetAttr(child, attr, owner);
+      PyObject_SetAttr(child, attr, owner);
       return true;
     }
     return false;
