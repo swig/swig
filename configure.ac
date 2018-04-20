@@ -1720,11 +1720,12 @@ else
         GUILE=
         AC_PATH_PROG(GUILE, guile)
       fi
+      if test -z "$GUILE" ; then
+        AC_MSG_WARN([no suitable guile executable found. Disabling Guile])
+      fi
     fi
 
-    if ! test -f "$GUILE" ; then
-      AC_MSG_WARN([no suitable guile executable found. Disabling Guile])
-    else
+    if test -n "$GUILE" ; then
       AC_MSG_CHECKING([for guile version])
       guile_version=`$GUILE -c '(display (effective-version))'`
       AC_MSG_RESULT([$guile_version])
@@ -1737,7 +1738,7 @@ else
       fi
     fi
 
-    if test -f "$GUILE" ; then
+    if test -n "$GUILE" ; then
       # Test if guile-config and guile versions match. They should.
       gc_version="`$GUILE_CONFIG --version 2>&1 | sed '1 s/.* //;q'`"
       g_version="`$GUILE --version | sed '1 s/.* //;q'`"
@@ -1747,7 +1748,7 @@ else
       fi
     fi
 
-    if test -f "$GUILE" ; then
+    if test -n "$GUILE" ; then
       if test -z "$GUILE_CFLAGS" ; then
         AC_MSG_CHECKING([for guile compile flags])
         GUILE_CFLAGS="`$GUILE_CONFIG compile`" # Note that this can sometimes be empty
