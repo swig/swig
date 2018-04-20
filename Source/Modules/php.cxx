@@ -372,8 +372,13 @@ public:
     Printf(s_header, "int error_code;\n");
     Printf(s_header, "ZEND_END_MODULE_GLOBALS(%s)\n", module);
     Printf(s_header, "ZEND_DECLARE_MODULE_GLOBALS(%s)\n", module);
-    Printf(s_header, "#define SWIG_ErrorMsg() ZEND_MODULE_GLOBALS_ACCESSOR(%s, error_msg)\n", module);
-    Printf(s_header, "#define SWIG_ErrorCode() ZEND_MODULE_GLOBALS_ACCESSOR(%s, error_code)\n", module);
+    Printf(s_header, "#ifdef ZTS\n");
+    Printf(s_header, "#define SWIG_ErrorMsg() TSRMG(%s_globals_id, zend_%s_globals *, error_msg )\n", module, module);
+    Printf(s_header, "#define SWIG_ErrorCode() TSRMG(%s_globals_id, zend_%s_globals *, error_code )\n", module, module);
+    Printf(s_header, "#else\n");
+    Printf(s_header, "#define SWIG_ErrorMsg() (%s_globals.error_msg)\n", module);
+    Printf(s_header, "#define SWIG_ErrorCode() (%s_globals.error_code)\n", module);
+    Printf(s_header, "#endif\n\n");
 
     /* The following can't go in Lib/php/phprun.swg as it uses SWIG_ErrorMsg(), etc
      * which has to be dynamically generated as it depends on the module name.
