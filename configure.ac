@@ -1704,17 +1704,28 @@ else
   fi
   if test -n "$GUILE_CONFIG" ; then
     if test x"$GUILE" = xyes; then
-      AC_MSG_CHECKING([for guile bindir])
-      guile_bindir="`$GUILE_CONFIG info bindir`"
-      AC_MSG_RESULT([$guile_bindir])
-      GUILE=$guile_bindir/guile
+      AC_MSG_CHECKING([for guile executable])
+      # Try extracting it via guile-config first. If it's defined there it's the most reliable result
+      GUILE="`$GUILE_CONFIG info guile 2>/dev/null`"
+      if test -n "$GUILE";  then
+        AC_MSG_RESULT([$GUILE])
+      else
+        AC_MSG_RESULT([not found via guile-config - constructing path])
+        AC_MSG_CHECKING([for guile bindir])
+        guile_bindir="`$GUILE_CONFIG info bindir`"
+        AC_MSG_RESULT([$guile_bindir])
+        GUILE="$guile_bindir/guile"
+      fi
       if ! test -f "$GUILE" ; then
-	GUILE=
+        GUILE=
         AC_PATH_PROG(GUILE, guile)
+      fi
+      if test -z "$GUILE" ; then
+        AC_MSG_WARN([no suitable guile executable found. Disabling Guile])
       fi
     fi
 
-    if test -f "$GUILE" ; then
+    if test -n "$GUILE" ; then
       AC_MSG_CHECKING([for guile version])
       guile_version=`$GUILE -c '(display (effective-version))'`
       AC_MSG_RESULT([$guile_version])
@@ -1722,20 +1733,33 @@ else
       guile_good_version=`$GUILE -c '(if (>= (string->number (effective-version)) 1.8) (display "yes") (display "no"))'`
       AC_MSG_RESULT([$guile_good_version])
       if test x"$guile_good_version" != xyes ; then
+        AC_MSG_WARN([at least guile version 1.8 is required. Disabling Guile])
         GUILE=
       fi
     fi
 
-    if test -z "$GUILE_CFLAGS" ; then
-      AC_MSG_CHECKING([for guile compile flags])
-      GUILE_CFLAGS="`$GUILE_CONFIG compile`" # Note that this can sometimes be empty
-      AC_MSG_RESULT([$GUILE_CFLAGS])
+    if test -n "$GUILE" ; then
+      # Test if guile-config and guile versions match. They should.
+      gc_version="`$GUILE_CONFIG --version 2>&1 | sed '1 s/.* //;q'`"
+      g_version="`$GUILE --version | sed '1 s/.* //;q'`"
+      if test "$gc_version" != "$g_version"; then
+        AC_MSG_WARN([different versions reported by $GUILE_CONFIG ($gc_version) and $GUILE ($g_version). Disabling Guile])
+        GUILE=
+      fi
     fi
 
-    if test -z "$GUILE_LIBS" ; then
-      AC_MSG_CHECKING([for guile link flags])
-      GUILE_LIBS="`$GUILE_CONFIG link`"
-      AC_MSG_RESULT([$GUILE_LIBS])
+    if test -n "$GUILE" ; then
+      if test -z "$GUILE_CFLAGS" ; then
+        AC_MSG_CHECKING([for guile compile flags])
+        GUILE_CFLAGS="`$GUILE_CONFIG compile`" # Note that this can sometimes be empty
+        AC_MSG_RESULT([$GUILE_CFLAGS])
+      fi
+
+      if test -z "$GUILE_LIBS" ; then
+        AC_MSG_CHECKING([for guile link flags])
+        GUILE_LIBS="`$GUILE_CONFIG link`"
+        AC_MSG_RESULT([$GUILE_LIBS])
+      fi
     fi
   fi
 fi
