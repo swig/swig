@@ -2608,7 +2608,7 @@ else
     GOVERSIONOPTION=version
     go_version=$($GO $GOVERSIONOPTION | sed -e 's/go version //')
     case "$go_version" in
-    go1 | go1.[[01234]]*)
+    go1 | go1.[[01234]] | go1.[[01234]].*)
       GOC=$(sh -c "$(go env) && echo \$GOCHAR")c
       ;;
     *)
@@ -2617,7 +2617,7 @@ else
     esac
     AC_MSG_CHECKING([whether go version is too old])
     case $go_version in
-    go1.1* | go1.0* | go1 )
+    go1.1.* | go1.1 | go1.0 | go1.0.* | go1 )
       AC_MSG_RESULT([yes - minimum version is 1.2])
       GO=
       GOOPT="-intgosize 32"
@@ -2635,13 +2635,13 @@ else
       ;;
     esac
     case $go_version in
-    go1.0* | go1 | go1.1*)
+    go1.0 | go1.0.* | go1 | go1.1 | go1.1.*)
       GOOPT="$GOOPT -use-shlib"
       ;;
-    go1.2*)
+    go1.2 | go1.2.*)
       GO12=true
       ;;
-    go1.3* | go1.4*)
+    go1.3 | go1.3.* | go1.4 | go1.4.*)
       GO13=true
       ;;
     *)
