@@ -338,10 +338,6 @@ matrix:
       env: SWIGLANG=tcl
 
   allow_failures:
-    # Started failing after upgrade from Guile 2.0.14 to Guile 2.2.0
-    - compiler: clang
-      os: osx
-      env: SWIGLANG=guile
     # Lots of failing tests currently
     - compiler: gcc
       os: linux

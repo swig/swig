@@ -335,7 +335,7 @@ else
 endif
 
 PYCODESTYLE       = @PYCODESTYLE@
-PYCODESTYLE_FLAGS = --ignore=E402,E501,E30,W291,W391
+PYCODESTYLE_FLAGS = --ignore=E252,E30,E402,E501,E731,W291,W391
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module

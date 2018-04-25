@@ -24,6 +24,8 @@ scm_module_variable (SCM module, SCM sym)
   return scm_sym2var (sym, scm_module_lookup_closure (module), SCM_BOOL_F);
 }
 
+#define scm_to_utf8_string scm_to_locale_string
+#define scm_from_utf8_string scm_from_locale_string
 #endif
 
 #if SCM_MAJOR_VERSION >= 2
@@ -40,10 +42,6 @@ typedef struct swig_guile_clientdata {
   SCM goops_class;
 } swig_guile_clientdata;
 
-#if SCM_MAJOR_VERSION <= 2
-#define scm_to_utf8_string scm_to_locale_string
-#define scm_from_utf8_string scm_from_locale_string
-#endif
 #define SWIG_scm2str(s) \
   SWIG_Guile_scm2newstr(s, NULL)
 #define SWIG_str02scm(str) \
