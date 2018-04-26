@@ -55,12 +55,13 @@ that provide access to arbitrarily complicated C/C++ data and functions. The
 conversion may be as simple as casting one integer type to another, or as
 complicated as allocating a piece of memory and calling a function to encode a
 complex object. These
-interface functions, which are namespaced with a `swigc_` prefix,
+interface functions, which are namespaced with a `_wrap` prefix,
 translate the C/C++ data (classes, enumerations) into simple ANSI C types
 (integers, structs).
 
 The C function signature of those interfaces is translated to private
-`interface` declarations in the Fortran module to `bind(C)` functions. These
+`interface` declarations (with a `swigc_` prefix rather than `_wrap`) in the
+Fortran module to `bind(C)` functions. These
 interfaces use only data types compatible with Fortran 2003's `ISO_C_BINDING`
 features. Those bound interface functions are called by SWIG-generated Fortran
 wrapper code that converts C-compatible data types to native Fortran
@@ -96,6 +97,7 @@ presents some equivalent concepts and names in the two languages:
 | fundamental type                 | intrinsic type              |
 | derived type                     | extended type               |
 | function parameters              | dummy arguments             |
+| `constexpr` variable             | `parameter` statement       |
 
 ## Identifiers
 
@@ -252,9 +254,6 @@ by."
 <img src="fortran-data.png" alt="SWIG python data flow" height="504"
 width="352"/>
 
-We provide CMake modules and commands to simplify this process; again, see the
-example directories for usage instructions.
-
 <!-- ###################################################################### -->
 
 # Basic Fortran/C data type interoperability
@@ -320,7 +319,7 @@ datatypes. In part this is because intentionally out-of-range values (e.g.,
 `static_cast<size_t>(-1)`) are often used as sentinels.
 
 A more complete set of typemaps for the full set of integer types available in
-`<stdint.h>` can be used by `%include <cstdint>`.
+`<stdint.i>` can be used by `%include <cstdint>`.
 
 ### Boolean/logical values
 
@@ -345,9 +344,9 @@ it to the particular function or argument you need:
 ```swig
 typedef char NativeChar;
 FORT_FUND_TYPEMAP(NativeChar, "character(C_CHAR)")
-%apply NativeChar* { char * get_my_char_ptr };
+%apply NativeChar * { char *get_my_char_ptr };
 
-char* get_my_char_ptr();
+char *get_my_char_ptr();
 ```
 
 ## Pointers and references
@@ -355,7 +354,7 @@ char* get_my_char_ptr();
 C pointers and mutable references are treated as Fortran pointers. Suppose a C
 function that returns a pointer to an array element at a given index:
 ```c
-double* get_array_element(int x);
+double *get_array_element(int x);
 ```
 
 This generates the following Fortran interface:
@@ -386,7 +385,7 @@ not be *assigned*; the *pointer assignment* operator `=>` must be used.
 Mutable references are treated identically. However, *const* references to
 fundamental types are treated as values:
 ```c++
-const double& get_const_array_element(int x);
+const double &get_const_array_element(int x);
 ```
 will generate
 ```fortran
@@ -460,9 +459,9 @@ If a function `char* to_string(float f);` emits a `malloc`'d string value,
 and the output is to be wrapped by SWIG, use the `%newobject` feature to
 avoid memory leaks:
 ```swig
-%apply const char* NATIVE { char* to_string };
+%apply const char *NATIVE { char *to_string };
 %newobject to_string;
-char* to_string(float f);
+char *to_string(float f);
 ```
 
 The Fortran-to-C string translation performs the following steps:
@@ -548,9 +547,9 @@ difference between a `struct` and a `class` is the default
 *access specifier*: `public` for `struct` and `private` for `class`. As with
 the rest of SWIG, only public methods and data are wrapped.
 
-Unlike many other SWIG target languages, the Fortran-wrapped classes are
-*strongly typed*: the compiler enforces type checking between data types and
-function arguments.
+Like the other SWIG strongly typed target languages, the compiler enforces type
+checking between data types and function arguments in the SWIG-generated
+Fortran code.
 
 ## Ignored or unimplemented forward-declared classes
 
@@ -560,6 +559,8 @@ called `SwigUnknownClass` will be generated and used as a placeholder for the
 argument or return value. These could theoretically be passed between wrapped
 SWIG functions, although no type checking will be performed to ensure that the
 unknown classes are the correct types.
+
+This behavior will change soon to enforce type safety.
 
 ## Enumerations
 
@@ -573,10 +574,10 @@ generated wrappers, SWIG generates an additional enumeration with the C class
 name and a dummy value of `-1`. The enumeration generated from the C code
 ```c
 enum MyEnum {
-    RED = 0,
-    GREEN,
-    BLUE,
-    BLACK = -1
+  RED = 0,
+  GREEN,
+  BLUE,
+  BLACK = -1
 };
 ```
 looks like:
@@ -594,6 +595,7 @@ These enumerators are treated as standard C integers in the C wrapper code
 code. In the Fortran wrapper code, procedures that use the enumeration use the
 type `integer(kind(MyEnum))` to clearly indicate what enum type is required.
 
+
 Some C++ enumeration definitions cannot be natively interpreted by a Fortran
 compiler (e.g. `FOO = 0x12,` or `BAR = sizeof(int),`), so these are defined in
 the C++ wrapper code and _bound_ in the Fortran wrapper code:
@@ -605,6 +607,41 @@ The `%enumerator` and `%noenumerator` directives can be used to explicitly
 enable and disable treatment of a C++ `enum` as a Fortran enumerator. Disabling
 the enumerator feature causes the value to be wrapped as externally-bound C
 integers.
+
+If an enumeration type has not been defined but is used in a function
+signature, a placeholder `SwigUnknownEnum` enumerator will be generated and
+used instead.
+
+Class-scoped enumerations are prefixed with the class name:
+```c++
+struct MyStruct {
+  enum Foo {
+    Bar = 0
+  };
+};
+```
+generates
+```fortran
+enum, bind(c)
+ enumerator :: MyStruct_Foo = -1
+ enumerator :: MyStruct_Bar = 0
+end enum
+```
+
+If using C++11, `enum class` will scope the enumerations by the enum class's
+name:
+```c++
+enum class Foo {
+  Bar = 0
+};
+```
+becomes
+```fortran
+enum, bind(c)
+ enumerator :: Foo = -1
+ enumerator :: Foo_Bar = 0
+end enum
+```
 
 ## Function pointers
 
@@ -651,7 +688,7 @@ through the Fortran/C interface but currently have no special meaning or
 operations in generated Fortran code.
 
 ```c
-double** get_handle();
+double **get_handle();
 ```
 becomes
 ```fortran
@@ -740,9 +777,9 @@ with a function that returns anything else: generic interfaces must be either
 all subroutines or all functions. Use SWIG's `%ignore` statement to hide one or
 the other:
 ```swig
+%ignore cannot_overload(int x);
 void cannot_overload(int x);
 int  cannot_overload(int x, int y);
-%ignore cannot_overload(int x);
 ```
 
 ## Global variables
@@ -920,14 +957,14 @@ directive:
 ```swig
 %apply const char* NATIVE { const char* };
 ```
-or to the output of a specific function such as `const char* get_foo_string(int
+or to the output of a specific function such as `const char *get_foo_string(int
 i);`
 with
 ```swig
-%apply const char* NATIVE { get_foo_string };
+%apply const char *NATIVE { get_foo_string };
 ```
 
-## Std::string
+## The std::string class
 
 A special set of typemaps is provided that transparently converts native Fortran
 character strings to and from `std::string` classes. It operates essentially
@@ -935,9 +972,9 @@ like the [byte strings](#byte-strings) described above: it can transparently
 convert strings of data, even those with embedded null characters, to and from
 Fortran. This typemap is provided in `<std_string.i>`.
 
-## Std::vector
+## std::vector
 
-The C `std::vector` class is included with its basic methods. Several typemaps
+The C++ `std::vector` class is included with its basic methods. Several typemaps
 are included alongside it that allow for seamless interoperability with Fortran
 arrays (with some performance penalty from extra memory allocations and
 copies). To instantiate wrappers for `std::vector<double>` as a class
@@ -1013,7 +1050,7 @@ class Foo {
 public:
   explicit Foo(int val) {}
   ~Foo() {}
-  const Foo *my_raw_ptr() const { return this; }
+  const Foo &my_raw_ref() const { return *this; }
 };
 
 int use_count(const std::shared_ptr<Foo> *f) {
@@ -1042,7 +1079,7 @@ program main
   ASSERT(use_count(f1) == 1)
   ASSERT(use_count(f2) == 1)
 
-  f1 = f2%my_raw_ptr() ! Return a non-shared pointer
+  f1 = f2%my_raw_ref() ! Return a non-shared pointer
                        ! and call the destructor of C++ object 1
   ASSERT(use_count(f2) == 1)
 
@@ -1091,8 +1128,8 @@ and references](#pointers-and-references) for cautions on functions returning
 pointers, but in short, the wrapper code
 ```swig
 #include <view.i>
-ADD_VIEW(double)
-std::pair<double*, size_t> get_array_ptr();
+%fortran_view(double)
+std::pair<double *, size_t> get_array_ptr();
 ```
 is usable in Fortran as
 ```fortran
@@ -1109,13 +1146,13 @@ applies it to a function `as_array_ptr`.
 %include <forarray.swg>
 
 // Convert a reference-to-vector return value into a array view.
-FORT_ARRAYPTR_TYPEMAP(double, std::vector<double>& NATIVE)
-%typemap(out) std::vector<double>& NATIVE %{
+FORT_ARRAYPTR_TYPEMAP(double, std::vector<double> &NATIVE)
+%typemap(out) std::vector<double> &NATIVE %{
   $result.data = $1->empty() ? NULL : $1->data();
   $result.size = $1->size();
 %}
 
-%apply std::vector<double>& NATIVE { std::vector<double>& as_array_ptr };
+%apply std::vector<double> &NATIVE { std::vector<double> &as_array_ptr };
 ```
 
 ## MPI compatibility
@@ -1196,7 +1233,7 @@ end type
 The proxy classes that SWIG creates, and how it translates different C++ class
 features to Fortran, are the topic of this section.
 
-## Constructors and Destructors
+## Constructors
 
 In C++, the allocation and initialization of a class instance is (almost
 without exception) performed effectively simultaneously using a constructor.
@@ -1215,6 +1252,25 @@ g = Foo(123)
 call f%do_something()
 call g%do_something_else()
 ```
+
+The "constructor" wrapper provided by SWIG performs identically to the
+constructor in C++. One consequence is that C-like `struct` classes, and
+other classes with member data that isn't initialized in the constructor, will
+*not* have its data initialized on construction. Thus the following is
+undefined behavior for `struct Foo { int val; };`:
+```fortran
+type(Foo) :: f
+f = Foo()
+write (*,*) f%get_val()
+```
+
+This is exactly analogous to the same undefined behavior in C++:
+```c++
+Foo *f = new Foo();
+cout << f.val << endl;
+```
+
+## Destructors
 
 Even though the Fortran 2003 standard specifies when local variables become
 *undefined* (and are *finalized* if they have a `FINAL` subroutine), support
@@ -1236,7 +1292,7 @@ clean up local or dynamic variables, the call to `release()` can be replaced by
 adding a `FINAL` procedure. The SWIG Fortran interface can generate this
 procedure, which will call the C++ destructor:
 ```swig
-%feature("final") Foo;
+%feature("fortran:final") Foo;
 %include "Foo.h"
 ```
 **However**, this feature is relatively untested and its behavior could be
@@ -1290,8 +1346,8 @@ the interface to an instance and its data is:
 ```fortran
 type(Foo) :: f
 f = Foo()
-call food%set_val(123)
-value = food%get_val()
+call f%set_val(123)
+value = f%get_val()
 ```
 
 ## Inheritance
@@ -1311,8 +1367,8 @@ if a particular casting operation is needed a small inline function can be
 created that should suffice:
 ```swig
 %inline %{
-Derived& base_to_derived(Base& b) {
-    return dynamic_cast<Derived&>(b);
+Derived &base_to_derived(Base &b) {
+    return dynamic_cast<Derived &>(b);
 }
 %}
 ```
@@ -1521,10 +1577,10 @@ Often the *output* value of a function is a different type (e.g. simply an
 `int` instead of `int*`). The `out` keyword allows this to be overridden:
 ```swig
 %typemap(ctype, out="int") int
-  "const int*"
+  "const int *"
 ```
 The `imtype` is used both as a dummy argument *and* as a temporary variable in
-the fortran conversion code. Because these also may have different signatures,
+the Fortran conversion code. Because these also may have different signatures,
 an `in` keyword allows the dummy argument to differ from the temporary:
 ```swig
 %typemap(imtype, in="integer(C_INT), intent(in)") int
@@ -1562,7 +1618,7 @@ is a way to declare a temporary variable `tempval` in the C wrapper code. The
 same feature is emulated in the special typemaps `findecl` and `foutdecl`,
 which are inserted into the variable declaration blocks when the corresponding
 types are used. If `findecl` allocates a temporary variable, the `ffrearg`
-typemap (analogous to the `freearg` typemap for C `in` arguments) can be used
+typemap (analogous to the `ffreearg` typemap for C `in` arguments) can be used
 to deallocate it.
 
 An example for returning a native `allocatable` Fortran string from a C++
@@ -1574,14 +1630,14 @@ copy the result into a Fortran string.
 "character(kind=C_CHAR, len=*), target"
 
 // Fortran proxy translation code: temporary variables for output
-%typemap(foutdecl) const std::string&
+%typemap(foutdecl) const std::string &
 %{
  integer(kind=C_SIZE_T) :: $1_i
  character(kind=C_CHAR), dimension(:), pointer :: $1_chars
 %}
 
 // Fortran proxy translation code: convert from imtype $1 to ftype $result
-%typemap(fout) const std::string&
+%typemap(fout) const std::string &
 %{
   call c_f_pointer($1%data, $1_chars, [$1%size])
   allocate(character(kind=C_CHAR, len=$1%size) :: $result)
@@ -1606,10 +1662,10 @@ type-bound procedure. The special token `$action` is replaced by the call to
 the C wrapper for the destructor. Currently, all classes have the same
 destructor action but this may change.
 
-## Fragments
+## Code insertion blocks
 
 The `%insert(section) %{ ...code... %}` directive can be used to inject code
-directly into the C/C++ wrapper file as well as the Fortran module file. The
+directly into the C/C++ wrapper file (see [code insertion blocks]("SWIG.html#SWIG_nn42")) as well as the Fortran module file. The
 Fortran module uses several additional sections that can be used to insert
 arbitrary extensions to the module. For example, if an `%insert` directive is
 embedded within a class `%extend`, new type-bound procedures can be manually
@@ -1724,10 +1780,10 @@ a separate typemap `bindc` that translates the member data to Fortran type
 members. For example, the basic `int` mappings are defined (using macros) as:
 
 ```swig
-%typemap(bindc) int      "integer(C_INT)"
-%typemap(bindc) int*     "type(C_PTR)"
-%typemap(bindc) int[ANY] "integer(C_INT), dimension($1_dim0)"
-%typemap(bindc) int[] = int*;
+%typemap(bindc) int       "integer(C_INT)"
+%typemap(bindc) int *     "type(C_PTR)"
+%typemap(bindc) int [ANY] "integer(C_INT), dimension($1_dim0)"
+%typemap(bindc) int [] = int *;
 ```
 
 The `bindc` typemap is used when wrapping global constants as well.

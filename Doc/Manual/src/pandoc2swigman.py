@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
-"""Convert Pandoc-generated HTML to SWIG html"""
+"""Convert Pandoc-generated HTML to SWIG html
 
-from __future__ import (division, absolute_import, print_function, )
+Requires Python 3.x"""
 #-----------------------------------------------------------------------------#
+from html.entities import codepoint2name
 import os
 import re
 from exnihiloenv.rewriter import ReWriter
+from string import printable
 ###############################################################################
 
 RE_HEADER = re.compile(r'^<h(\d) id="([^"]+)">(.*)</h(\d)>$')
-RE_PRE    = re.compile(r'^<pre class="(\w+)">')
+RE_PRE    = re.compile(r'^<pre class="([^"]+)">')
 RE_LINK   = re.compile(r'<a href="#([^"]+)">')
 
 NEW_HEADER = '<H{lev:d}><a name="{link}">{title}</a></H{lev:d}>\n'
@@ -17,10 +19,15 @@ NEW_HEADER = '<H{lev:d}><a name="{link}">{title}</a></H{lev:d}>\n'
 SELECTOR = {
         'fortran': "targetlang",
         'swig':    "code",
+        'cpp':     "code",
         'c++':     "code",
         'c':       "code",
         'sh':      "shell",
         }
+
+NONASCII_TO_HTML = {}
+for k in set(codepoint2name) - set(ord(x) for x in printable):
+    NONASCII_TO_HTML[k] = "&" + codepoint2name[k] + ";"
 
 def convert_link(link):
     return "Fortran_" + link.replace("-","_")
@@ -35,6 +42,8 @@ def swiggify(path):
 
         in_code = False
         for line in oldf:
+            # Convert special characters to HTML &foo; characters
+            line = line.translate(NONASCII_TO_HTML)
             if in_code:
                 if "</pre>" in line:
                     line += "</div>\n\n"

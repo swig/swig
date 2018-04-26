@@ -1865,7 +1865,7 @@ int FORTRAN::destructorHandler(Node *n) {
 
   SetFlag(n, "fortran:ismember");
 
-  if (Getattr(classnode, "feature:final")) {
+  if (Getattr(classnode, "feature:fortran:final")) {
     // Create 'final' name wrapper
     String *classname = Getattr(classnode, "sym:name");
     String *fname = NewStringf("swigf_final_%s", classname);

@@ -19,7 +19,7 @@
 // Note that the <string.h> fragment imports size_t into the global namespace.
 %fragment("swig::brute_cast", "header", fragment="<string.h>") %{
 template<typename Dst, typename Src>
-SWIGINTERN void SWIG_opaque_memcpy(Dst* dst, const Src* src) {
+SWIGINTERN void SWIG_opaque_memcpy(Dst *dst, const Src *src) {
   const size_t MINSIZE
     = (sizeof(Dst) < sizeof(Src) ? sizeof(Dst) : sizeof(Src));
   const size_t MAXSIZE
@@ -38,7 +38,7 @@ template<typename Target>
 class brute_cast_impl {
  public:
   template<typename Source>
-    brute_cast_impl(const Source& src_fwd) {
+    brute_cast_impl(const Source &src_fwd) {
       SWIG_opaque_memcpy(&d_result, &src_fwd);
     }
   Target operator() () const { return d_result; }
@@ -51,12 +51,12 @@ class brute_cast_impl<Target&> {
  public:
   template<typename Source>
     brute_cast_impl(Source& src_ref) {
-      Source* src_ptr = &src_ref;
+      Source *src_ptr = &src_ref;
       SWIG_opaque_memcpy(&d_result, &src_ptr);
     }
-  Target& operator() () const { return *d_result; }
+  Target &operator() () const { return *d_result; }
  private:
-  Target* d_result;
+  Target *d_result;
 };
 
 template<class Target, class Source>
