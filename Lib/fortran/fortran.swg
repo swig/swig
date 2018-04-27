@@ -20,10 +20,10 @@
    %fortranprepend : Add code at the beginning of a proxy function
    %fortranappend  : Add code at the end of a proxy function
 
-   %parameter : Force a global constant to be treated as a compile-time value
-           (value MUST be interpretable by Fortran)
-   %enumerator : Force an enum to be treated as a compile-time Fortran enum
-           (enum values MUST be interpretable by Fortran)
+   %fortranconst : Force a global constant to be treated as a compile-time value
+                   (value MUST be interpretable by Fortran), or force an enum to
+                   be treated as a compile-time Fortran enum (enum values MUST be
+                   interpretable by Fortran)
    %bindc : Generate *interfaces only*, no wrapper code, for a function
  */
 #define %fortranbegin         %insert("fbegin")
@@ -35,14 +35,9 @@
 #define %fortranappend        %feature("fortran:append")
 #define %clearfortranappend   %feature("fortran:append","")
 
-
-#define %parameter      %feature("fortran:parameter")
-#define %noparameter    %feature("fortran:parameter","0")
-#define %clearparameter %feature("fortran:parameter","")
-
-#define %enumerator      %feature("fortran:enumerator")
-#define %noenumerator    %feature("fortran:enumerator","0")
-#define %clearenumerator %feature("fortran:enumerator","")
+#define %fortranconst      %feature("fortran:const","1")
+#define %nofortranconst    %feature("fortran:const","0")
+#define %clearfortranconst %feature("fortran:const","")
 
 #define %bindc      %feature("fortran:bindc")
 #define %nobindc    %feature("fortran:bindc", "0")

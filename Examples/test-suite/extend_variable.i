@@ -46,8 +46,7 @@ double ExtendMe_ExtendVar_get(ExtendMe *thisptr) {
 #elif SWIGCSHARP
 %csconst(1) AllBarOne;
 #elif SWIGFORTRAN
-%noparameter Bar;
-%parameter AllBarOne;
+%fortranconst AllBarOne;
 #endif
 
 

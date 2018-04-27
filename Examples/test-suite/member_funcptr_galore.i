@@ -96,7 +96,7 @@ double (Space::Shape::*abcvar)(Thing<short>, Thing< const Space::Shape * >[]) = 
 %constant double (Space::Shape::*AREAPT_CONST)(Space::Shape &, int & (FunkSpace::Funktions::*)(const int &, int) const) = &Space::Shape::area_const;
 %constant double (Space::Shape::*PERIMPT)(Thing<short>, Thing< const Space::Shape * >[]) = &Space::Shape::abc;
 #ifdef SWIGFORTRAN
-%noparameter NULLPT;
+%nofortranconst NULLPT;
 #endif
 %constant double (Space::Shape::*NULLPT)(void) = 0;
 

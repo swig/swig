@@ -120,7 +120,7 @@ PerimeterFunc_td perimetervar_td = &Shape::perimeter;
 /* Prevent the '0' from being wrapped like a compile-time constant.
  * Alternatively, use nullptr.
  */
-%noparameter NULLPT;
+%nofortranconst NULLPT;
 #endif
 
 /* Some constants */

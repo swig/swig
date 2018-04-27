@@ -141,7 +141,7 @@ bool bad_fortran_dims(Node *n, const char *tmap_name) {
  * \brief Determine whether to wrap an enum as a value.
  */
 bool is_native_enum(Node *n) {
-  String *enum_feature = Getattr(n, "feature:fortran:enumerator");
+  String *enum_feature = Getattr(n, "feature:fortran:const");
   if (!enum_feature) {
     // Determine from enum values
     for (Node *c = firstChild(n); c; c = nextSibling(c)) {
@@ -159,7 +159,7 @@ bool is_native_enum(Node *n) {
     // User forced it not to be a native enum
     return false;
   } else {
-    // "feature:fortran:enumerator" was set as a flag
+    // %fortranconst was set as a flag
     return true;
   }
 }
@@ -168,7 +168,7 @@ bool is_native_enum(Node *n) {
  * \brief Determine whether to wrap an enum as a value.
  */
 bool is_native_parameter(Node *n) {
-  String *param_feature = Getattr(n, "feature:fortran:parameter");
+  String *param_feature = Getattr(n, "feature:fortran:const");
   if (!param_feature) {
     // No user override given
     String *value = Getattr(n, "value");
@@ -1962,7 +1962,7 @@ int FORTRAN::membervariableHandler(Node *n) {
  * \brief Process static member functions.
  */
 int FORTRAN::globalvariableHandler(Node *n) {
-  if (GetFlag(n, "feature:fortran:parameter")) {
+  if (GetFlag(n, "feature:fortran:const")) {
     this->constantWrapper(n);
   } else if (is_bindc(n)) {
     Swig_error(input_file, line_number,
@@ -2117,6 +2117,10 @@ int FORTRAN::constantWrapper(Node *n) {
   String *nodetype = nodeType(n);
   String *symname = Getattr(n, "sym:name");
   String *value = Getattr(n, "rawval");
+
+  if (String *override_value = Getattr(n, "feature:fortran:constvalue")) {
+    value = override_value;
+  }
 
   if (Strcmp(nodetype, "enumitem") == 0) {
     // Make unique enum values for the user

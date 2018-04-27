@@ -5,7 +5,7 @@ program fortran_enums_runme
   use ISO_C_BINDING
   implicit none
   integer :: my_array(Charlie) ! OK because Charlie has constant shaope
-  integer :: enum_name_array(ExternEnum + 4) ! OK: ExternEnum is parameter
+  integer :: enum_name_array(NativeEnum + 4) ! OK: NativeEnum is parameter
   ! integer :: cannot_do_this(Foxtrot) ! ERROR: Foxtrot is externally defined
 
   if (size(my_array) /= 2) stop 1

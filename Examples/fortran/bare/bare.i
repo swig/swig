@@ -15,7 +15,7 @@
 %constant int wrapped_const = 0xdeadbeef;
 
 // Force a constant to be a compile-time native fortran parameter
-%parameter approx_pi;
+%fortranconst approx_pi;
 
 #ifdef SWIGFORTRAN
 %include <typemaps.i>

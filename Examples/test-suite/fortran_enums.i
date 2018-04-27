@@ -1,7 +1,7 @@
 %module fortran_enums
 
-//%enumerator NativeEnum;
-%noenumerator ExternEnum;
+//%fortranconst NativeEnum;
+%nofortranconst ExternEnum;
 
 %inline %{
 typedef enum {

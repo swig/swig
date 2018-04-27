@@ -603,10 +603,10 @@ the C++ wrapper code and _bound_ in the Fortran wrapper code:
 integer(C_INT), protected, public, &
    bind(C, name="swigc_FOO") :: FOO
 ```
-The `%enumerator` and `%noenumerator` directives can be used to explicitly
-enable and disable treatment of a C++ `enum` as a Fortran enumerator. Disabling
-the enumerator feature causes the value to be wrapped as externally-bound C
-integers.
+The `%fortranconst`  can be used to explicitly
+enable and disable treatment of a C++ `enum` as a Fortran enumerator; the
+`%nofortranconst` directive forces the values to be wrapped as externally-bound
+C integers.
 
 If an enumeration type has not been defined but is used in a function
 signature, a placeholder `SwigUnknownEnum` enumerator will be generated and
@@ -825,9 +825,9 @@ integer(C_INT), bind(C, name="global_counter_c") :: global_counter_c
 
 Global constant variables (whether declared in C++ headers with `const` or in
 a SWIG wrapper with `%constant`) of native types can be wrapped as Fortran
-parameters:
+"parameters" (compile-time values):
 ```swig
-%parameter approx_pi;
+%fortranconst approx_pi;
 const double approx_pi = 3.1416;
 ```
 will be translated to
@@ -836,7 +836,7 @@ will be translated to
 ```
 If the variable is defined in the header file and is a simple integer, this
 feature will be enabled by default. It can be explicitly enabled or disabled
-using the `%parameter` and `%noparameter` directives.
+using the `%fortranconst` and `%nofortranconst` directives.
 
 Global constants that have the feature disabled will be wrapped as a
 `protected, public, bind(C)` value with the value defined in the C wrapper code.
