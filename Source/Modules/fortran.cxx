@@ -2453,7 +2453,7 @@ String *FORTRAN::make_fname(String *name, int warning) {
     result = NewStringf("f%s", name);
     if (warning != WARN_NONE && !Getmeta(name, "already_warned")) {
       Swig_warning(warning, input_file, line_number,
-                   "Fortran identifiers may not begin with underscores or numerals: renaming '%s' => '%s'\n",
+                   "Fortran identifiers may not begin with underscores or numerals: renaming '%s' to '%s'\n",
                    name, result);
       Setmeta(name, "already_warned", "1");
     }
