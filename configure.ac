@@ -186,19 +186,19 @@ then
                 if test "$with_next_framework" ; then
 		    LDSHARED="$LDSHARED \$(LDLIBRARY)"
 		fi ;;
-	*-*-linux*) LDSHARED="gcc -shared";;
+	*-*-linux*) LDSHARED="$CC -shared";;
 	*-*-dgux*) LDSHARED="ld -G";;
-	*-*-freebsd3*) LDSHARED="gcc -shared";;
+	*-*-freebsd3*) LDSHARED="$CC -shared";;
 	*-*-freebsd* | *-*-openbsd*) LDSHARED="ld -Bshareable";;
 	*-*-netbsd*)
 		if [[ "`$CC -dM -E - </dev/null | grep __ELF__`" != "" ]]
 		then
-			LDSHARED="cc -shared"
+			LDSHARED="$CC -shared"
 		else
 			LDSHARED="ld -Bshareable"
 		fi;;
-	*-sco-sysv*) LDSHARED="cc -G -KPIC -Ki486 -belf -Wl,-Bexport";;
-	*-*-darwin*) LDSHARED="cc -bundle -undefined suppress -flat_namespace";;
+	*-sco-sysv*) LDSHARED="$CC -G -KPIC -Ki486 -belf -Wl,-Bexport";;
+	*-*-darwin*) LDSHARED="$CC -bundle -undefined suppress -flat_namespace";;
 	*)	LDSHARED="ld";;
 	esac
 fi
