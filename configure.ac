@@ -904,7 +904,8 @@ fi
 AC_ARG_WITH(2to3, AS_HELP_STRING([--with-2to3=path], [Set location of Python 2to3 tool]), [PY2TO3BIN="$withval"], [PY2TO3BIN="yes"])
 if test -n "$PYTHON3"; then
   if test "x$PY2TO3BIN" = xyes; then
-    AC_CHECK_PROGS(PY2TO3, 2to3)
+    py3to2=`echo $PYTHON3 | sed -e "s/python/2to3-/"`
+    AC_CHECK_PROGS(PY2TO3, $py3to2 2to3)
   else
     PY2TO3="$PY2TO3BIN"
   fi
