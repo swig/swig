@@ -1384,7 +1384,7 @@ public:
 	// Wrap C/C++ enums with constant integers or use the typesafe enum pattern
 	SwigType *typemap_lookup_type = parent_name ? parent_name : NewString("enum ");
 	Setattr(n, "type", typemap_lookup_type);
-	const String *tm = typemapLookup(n, "cstype", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF);
+	const String *tm = typemapLookup(n, "cstype", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF);
 
 	String *return_type = Copy(tm);
 	substituteClassname(typemap_lookup_type, return_type);
@@ -2205,37 +2205,6 @@ public:
 	  Append(old_proxy_class_code, "  ");
 	Append(old_proxy_class_code, "}\n\n");
 	--nesting_depth;
-      }
-
-      /* Output the downcast method, if necessary. Note: There's no other really
-         good place to put this code, since Abstract Base Classes (ABCs) can and should have 
-         downcasts, making the constructorHandler() a bad place (because ABCs don't get to
-         have constructors emitted.) */
-      if (GetFlag(n, "feature:csdowncast")) {
-	String *downcast_method = Swig_name_member(getNSpace(), proxy_class_name, "SWIGDowncast");
-	String *wname = Swig_name_wrapper(downcast_method);
-
-	String *norm_name = SwigType_namestr(Getattr(n, "name"));
-
-	Printf(imclass_class_code, "  public final static native %s %s(long cPtrBase, boolean cMemoryOwn);\n", proxy_class_name, downcast_method);
-
-	Wrapper *dcast_wrap = NewWrapper();
-
-	Printf(dcast_wrap->def, "SWIGEXPORT jobject SWIGSTDCALL %s(JNIEnv *jenv, jclass jcls, jlong jCPtrBase, jboolean cMemoryOwn) {", wname);
-	Printf(dcast_wrap->code, "  Swig::Director *director = (Swig::Director *) 0;\n");
-	Printf(dcast_wrap->code, "  jobject jresult = (jobject) 0;\n");
-	Printf(dcast_wrap->code, "  %s *obj = *((%s **)&jCPtrBase);\n", norm_name, norm_name);
-	Printf(dcast_wrap->code, "  if (obj) director = dynamic_cast<Swig::Director *>(obj);\n");
-	Printf(dcast_wrap->code, "  if (director) jresult = director->swig_get_self(jenv);\n");
-	Printf(dcast_wrap->code, "  return jresult;\n");
-	Printf(dcast_wrap->code, "}\n");
-
-	Wrapper_print(dcast_wrap, f_wrappers);
-	DelWrapper(dcast_wrap);
-
-	Delete(norm_name);
-	Delete(wname);
-	Delete(downcast_method);
       }
 
       if (f_interface) {
@@ -3734,16 +3703,13 @@ public:
       Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", smartptr, smartptr);
       Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
       Printf(code_wrap->code, "  // Avoids using smart pointer specific API.\n");
-      Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
-    }
-    else {
+      Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
+    } else {
       Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", norm_name, norm_name);
-      Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName);
+      Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj);\n", dirClassName, dirClassName);
     }
 
-    // TODO: if statement not needed?? - Java too
-    Printf(code_wrap->code, "  if (director) {\n");
-    Printf(code_wrap->code, "    director->swig_connect_director(");
+    Printf(code_wrap->code, "  director->swig_connect_director(");
 
     for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
       UpcallData *udata = Getitem(dmethods_seq, i);
@@ -3760,7 +3726,6 @@ public:
     Printf(code_wrap->def, ") {\n");
     Printf(code_wrap->code, ");\n");
     Printf(imclass_class_code, ");\n");
-    Printf(code_wrap->code, "  }\n");
     Printf(code_wrap->code, "}\n");
 
     Wrapper_print(code_wrap, f_wrappers);
@@ -3826,7 +3791,7 @@ public:
 
     qualified_return = SwigType_rcaststr(returntype, "c_result");
 
-    if (!is_void && !ignored_method) {
+    if (!is_void && (!ignored_method || pure_virtual)) {
       if (!SwigType_isclass(returntype)) {
 	if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
 	  String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
@@ -3846,15 +3811,17 @@ public:
 	    /* If returning a reference, initialize the pointer to a sane
 	       default - if a C# exception occurs, then the pointer returns
 	       something other than a NULL-initialized reference. */
-	    String *non_ref_type = Copy(returntype);
+	    SwigType *noref_type = SwigType_del_reference(Copy(returntype));
+	    String *noref_ltype = SwigType_lstr(noref_type, 0);
+	    String *return_ltype = SwigType_lstr(returntype, 0);
 
-	    /* Remove reference and const qualifiers */
-	    Replaceall(non_ref_type, "r.", "");
-	    Replaceall(non_ref_type, "q(const).", "");
-	    Wrapper_add_localv(w, "result_default", "static", SwigType_str(non_ref_type, "result_default"), "=", SwigType_str(non_ref_type, "()"), NIL);
-	    Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= &result_default", NIL);
-
-	    Delete(non_ref_type);
+	    Wrapper_add_localv(w, "result_default", "static", noref_ltype, "result_default", NIL);
+	    Wrapper_add_localv(w, "c_result", return_ltype, "c_result", NIL);
+	    Printf(w->code, "result_default = SwigValueInit< %s >();\n", noref_ltype);
+	    Printf(w->code, "c_result = &result_default;\n");
+	    Delete(return_ltype);
+	    Delete(noref_ltype);
+	    Delete(noref_type);
 	  }
 
 	  Delete(base_typename);
@@ -3916,7 +3883,7 @@ public:
     Swig_typemap_attach_parms("ctype", l, 0);
     Swig_typemap_attach_parms("imtype", l, 0);
     Swig_typemap_attach_parms("cstype", l, 0);
-    Swig_typemap_attach_parms("directorin", l, 0);
+    Swig_typemap_attach_parms("directorin", l, w);
     Swig_typemap_attach_parms("csdirectorin", l, 0);
     Swig_typemap_attach_parms("directorargout", l, w);
 
@@ -3935,7 +3902,11 @@ public:
       }
       Delete(super_call);
     } else {
-      Printf(w->code, " throw Swig::DirectorPureVirtualException(\"%s::%s\");\n", SwigType_namestr(c_classname), SwigType_namestr(name));
+      Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"%s::%s\");\n", SwigType_namestr(c_classname), SwigType_namestr(name));
+      if (!is_void)
+	Printf(w->code, "return %s;", qualified_return);
+      else if (!ignored_method)
+	Printf(w->code, "return;\n");
     }
 
     if (!ignored_method)
@@ -4093,15 +4064,19 @@ public:
     /* header declaration, start wrapper definition */
     String *target;
     SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-    target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
     Printf(w->def, "%s", target);
     Delete(qualified_name);
     Delete(target);
-    target = Swig_method_decl(rtype, decl, name, l, 0, 1);
+    target = Swig_method_decl(rtype, decl, name, l, 1);
     Printf(declaration, "    virtual %s", target);
     Delete(target);
 
     // Add any exception specifications to the methods in the director class
+    if (Getattr(n, "noexcept")) {
+      Append(w->def, " noexcept");
+      Append(declaration, " noexcept");
+    }
     ParmList *throw_parm_list = NULL;
     if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
       int gencomma = 0;
@@ -4310,7 +4285,7 @@ public:
       /* constructor */
       {
 	String *basetype = Getattr(parent, "classtype");
-	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 0);
+	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0);
 	String *call = Swig_csuperclass_call(0, basetype, superparms);
 
 	Printf(f_directors, "%s::%s : %s, %s {\n", dirclassname, target, call, Getattr(parent, "director:ctor"));
@@ -4323,7 +4298,7 @@ public:
 
       /* constructor header */
       {
-	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 1);
+	String *target = Swig_method_decl(0, decl, dirclassname, parms, 1);
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }
@@ -4419,7 +4394,10 @@ public:
     String *dirclassname = directorClassName(current_class);
     Wrapper *w = NewWrapper();
 
-    if (Getattr(n, "throw")) {
+    if (Getattr(n, "noexcept")) {
+      Printf(f_directors_h, "    virtual ~%s() noexcept;\n", dirclassname);
+      Printf(w->def, "%s::~%s() noexcept {\n", dirclassname, dirclassname);
+    } else if (Getattr(n, "throw")) {
       Printf(f_directors_h, "    virtual ~%s() throw ();\n", dirclassname);
       Printf(w->def, "%s::~%s() throw () {\n", dirclassname, dirclassname);
     } else {

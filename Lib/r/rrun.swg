@@ -213,17 +213,15 @@ R_SWIG_ReferenceFinalizer(SEXP el)
   return;
 }
 
-typedef enum {R_SWIG_EXTERNAL, R_SWIG_OWNER } R_SWIG_Owner;
-
 SWIGRUNTIME SEXP
-SWIG_MakePtr(void *ptr, const char *typeName, R_SWIG_Owner owner)
+SWIG_MakePtr(void *ptr, const char *typeName, int flags)
 {
   SEXP external, r_obj;
 
   Rf_protect(external = R_MakeExternalPtr(ptr, Rf_install(typeName), R_NilValue));
   Rf_protect(r_obj = NEW_OBJECT(MAKE_CLASS((char *) typeName)));
 
-  if(owner)
+  if (flags & SWIG_POINTER_OWN)
     R_RegisterCFinalizer(external, R_SWIG_ReferenceFinalizer);
 
   r_obj = SET_SLOT(r_obj, Rf_mkString((char *) "ref"), external);
@@ -262,7 +260,11 @@ AddOutputArgToReturn(int pos, SEXP value, const char *name, SEXP output)
 /* Create a new pointer object */
 SWIGRUNTIMEINLINE SEXP
 SWIG_R_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
-  SEXP rptr = R_MakeExternalPtr(ptr, 
+  SEXP rptr;
+  if (!ptr) {
+     return R_NilValue;
+  }
+  rptr = R_MakeExternalPtr(ptr, 
   R_MakeExternalPtr(type, R_NilValue, R_NilValue), R_NilValue); 
   SET_S4_OBJECT(rptr);
   return rptr;
@@ -350,7 +352,7 @@ SWIG_R_NewPackedObj(void *ptr, size_t sz, swig_type_info *type) {
   return ptr ? RSwigPacked_New((void *) ptr, sz, type) : R_NilValue;
 }
 
-/* Convert a packed value value */
+/* Convert a packed pointer value */
 
 SWIGRUNTIME int
 SWIG_R_ConvertPacked(SEXP obj, void *ptr, size_t sz, swig_type_info *ty) {

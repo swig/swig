@@ -54,6 +54,14 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 }
 }
 
+%fragment("SWIG_JavaIntFromSize_t", "header") {
+/* Check for overflow converting to Java int (always signed 32-bit) from (unsigned variable-bit) size_t */
+SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
+  static const jint JINT_MAX = 0x7FFFFFFF;
+  return (size > (size_t)JINT_MAX) ? -1 : (jint)size;
+}
+}
+
 /* Primitive types */
 %typemap(jni) bool,               const bool &               "jboolean"
 %typemap(jni) char,               const char &               "jchar"
@@ -102,6 +110,21 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(jstype) float,              const float &              "float"
 %typemap(jstype) double,             const double &             "double"
 %typemap(jstype) void                                           "void"
+
+%typemap(jboxtype) bool,               const bool &               "Boolean"
+%typemap(jboxtype) char,               const char &               "Character"
+%typemap(jboxtype) signed char,        const signed char &        "Byte"
+%typemap(jboxtype) unsigned char,      const unsigned char &      "Short"
+%typemap(jboxtype) short,              const short &              "Short"
+%typemap(jboxtype) unsigned short,     const unsigned short &     "Integer"
+%typemap(jboxtype) int,                const int &                "Integer"
+%typemap(jboxtype) unsigned int,       const unsigned int &       "Long"
+%typemap(jboxtype) long,               const long &               "Integer"
+%typemap(jboxtype) unsigned long,      const unsigned long &      "Long"
+%typemap(jboxtype) long long,          const long long &          "Long"
+%typemap(jboxtype) unsigned long long, const unsigned long long & "java.math.BigInteger"
+%typemap(jboxtype) float,              const float &              "Float"
+%typemap(jboxtype) double,             const double &             "Double"
 
 %typemap(jni) char *, char *&, char[ANY], char[]               "jstring"
 %typemap(jtype) char *, char *&, char[ANY], char[]               "String"
@@ -172,6 +195,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(jni) SWIGTYPE "jlong"
 %typemap(jtype) SWIGTYPE "long"
 %typemap(jstype) SWIGTYPE "$&javaclassname"
+%typemap(jboxtype) SWIGTYPE "$typemap(jstype, $1_type)"
 
 %typemap(jni) SWIGTYPE [] "jlong"
 %typemap(jtype) SWIGTYPE [] "long"
@@ -1027,6 +1051,14 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %{ SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1);
    return $null; %}
 
+/* For methods to raise/throw the original Java exception thrown in a director method */
+%typemap(throws) Swig::DirectorException
+%{  $1.throwException(jenv);
+    return $null; %}
+
+/* Java to C++ DirectorException should already be handled. Suppress warning and do nothing in the
+   event a user specifies a global: %catches(Swig::DirectorException); */
+%typemap(directorthrows) Swig::DirectorException ""
 
 /* Typemaps for code generation in proxy classes and Java type wrapper classes */
 
@@ -1149,6 +1181,14 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
    $1 = ($1_ltype)&temp; %}
 %typemap(out) SWIGTYPE *const&
 %{ *($1_ltype)&$result = *$1; %} 
+%typemap(directorin,descriptor="L$packagepath/$*javaclassname;") SWIGTYPE *const&
+%{ *(($1_ltype)&$input) = ($*1_ltype) $1; %}
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) SWIGTYPE *const&
+%{ static $*1_ltype swig_temp;
+   swig_temp = *($1_ltype)&$input;
+   $result = &swig_temp; %}
+%typemap(javadirectorin) SWIGTYPE *const& "($jniinput == 0) ? null : new $*javaclassname($jniinput, false)"
+%typemap(javadirectorout) SWIGTYPE *const& "$*javaclassname.getCPtr($javacall)"
 
 /* Typemaps used for the generation of proxy and type wrapper class code */
 %typemap(javabase)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
@@ -1260,7 +1300,7 @@ SWIG_JAVABODY_TYPEWRAPPER(protected, protected, protected, SWIGTYPE)
  */
 
 %define SWIG_PROXY_CONSTRUCTOR(OWNERSHIP, WEAKREF, TYPENAME...)
-%typemap(javaconstruct,directorconnect="\n    $imclassname.$javaclazznamedirector_connect(this, swigCPtr, swigCMemOwn, WEAKREF);") TYPENAME {
+%typemap(javaconstruct,directorconnect="\n    $imclassname.$javaclazznamedirector_connect(this, swigCPtr, OWNERSHIP, WEAKREF);") TYPENAME {
     this($imcall, OWNERSHIP);$directorconnect
   }
 %enddef

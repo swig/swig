@@ -1118,27 +1118,29 @@ static int look(Scanner *s) {
       break;
     case 82:
       if ((c = nextchar(s)) == 0) {
-	retract(s, 1);
-	return SWIG_TOKEN_INT;
+	Swig_error(cparse_file, cparse_start_line, "Exponent does not have any digits\n");
+	return SWIG_TOKEN_ERROR;
       }
       if ((isdigit(c)) || (c == '-') || (c == '+'))
 	state = 86;
       else {
 	retract(s, 2);
-	return (SWIG_TOKEN_INT);
+	Swig_error(cparse_file, cparse_start_line, "Exponent does not have any digits\n");
+	return SWIG_TOKEN_ERROR;
       }
       break;
     case 820:
       /* Like case 82, but we've seen a decimal point. */
       if ((c = nextchar(s)) == 0) {
-	retract(s, 1);
-	return SWIG_TOKEN_DOUBLE;
+	Swig_error(cparse_file, cparse_start_line, "Exponent does not have any digits\n");
+	return SWIG_TOKEN_ERROR;
       }
       if ((isdigit(c)) || (c == '-') || (c == '+'))
 	state = 86;
       else {
 	retract(s, 2);
-	return (SWIG_TOKEN_DOUBLE);
+	Swig_error(cparse_file, cparse_start_line, "Exponent does not have any digits\n");
+	return SWIG_TOKEN_ERROR;
       }
       break;
     case 83:

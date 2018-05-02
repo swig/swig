@@ -13,6 +13,7 @@ struct SomeStruct {
   auto addAlternateMemberPtrConstParm(int x, int (SomeStruct::*mp)(int, int) const) const -> int;
 
   virtual auto addFinal(int x, int y) const noexcept -> int final { return x + y; }
+  virtual ~SomeStruct() = default;
 };
  
 int SomeStruct::addNormal(int x, int y) { return x + y; }

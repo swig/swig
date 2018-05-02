@@ -393,10 +393,10 @@ SwigPyStaticVar_new_getset(PyTypeObject *type, PyGetSetDef *getset) {
 
 SWIGINTERN void
 SwigPyBuiltin_InitBases (PyTypeObject *type, PyTypeObject **bases) {
-  int base_count = 0;
+  Py_ssize_t base_count = 0;
   PyTypeObject **b;
   PyObject *tuple;
-  int i;
+  Py_ssize_t i;
 
   if (!bases[0]) {
     bases[0] = SwigPyObject_type();

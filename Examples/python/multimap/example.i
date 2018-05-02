@@ -39,7 +39,11 @@ extern int    gcd(int x, int y);
 %#if PY_VERSION_HEX >= 0x03000000
     {
       PyObject *utf8str = PyUnicode_AsUTF8String(s);
-      const char *cstr = PyBytes_AsString(utf8str);
+      const char *cstr;
+      if (!utf8str) {
+        SWIG_fail;
+      }
+      cstr = PyBytes_AsString(utf8str);
       $2[i] = strdup(cstr);
       Py_DECREF(utf8str);
     }
@@ -72,6 +76,9 @@ extern int gcdmain(int argc, char *argv[]);
     SWIG_fail;
   }
   utf8str = PyUnicode_AsUTF8String($input);
+  if (!utf8str) {
+    SWIG_fail;
+  }
   PyBytes_AsStringAndSize(utf8str, &cstr, &len);
   $1 = strncpy((char *)malloc(len+1), cstr, (size_t)len);
   $2 = (int)len;
@@ -105,6 +112,9 @@ extern int count(char *bytes, int len, char c);
   char *cstr;
   Py_ssize_t len;
   PyObject *utf8str = PyUnicode_AsUTF8String($input);
+  if (!utf8str) {
+    SWIG_fail;
+  }
   PyBytes_AsStringAndSize(utf8str, &cstr, &len);
   $1 = strncpy((char *)malloc(len+1), cstr, (size_t)len);
   $2 = (int)len;

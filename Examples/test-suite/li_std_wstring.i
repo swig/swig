@@ -78,6 +78,10 @@ std::wstring& test_reference_out() {
    return x;
 }
 
+bool test_equal_abc(const std::wstring &s) {
+  return L"abc" == s;
+}
+
 #if defined(_MSC_VER)
   #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
 #endif

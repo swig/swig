@@ -58,6 +58,7 @@
   class IndexReader{
   public:
     virtual void norms() = 0;
+    virtual ~IndexReader() {}
   };
 
   class MultiReader : public IndexReader {

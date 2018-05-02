@@ -18,7 +18,7 @@ struct NoExceptClass {
   NoExceptClass(const NoExceptClass&) noexcept {}
   NoExceptClass(NoExceptClass&&) noexcept {}
   NoExceptClass& operator=(const NoExceptClass&) noexcept { return *this; }
-  ~NoExceptClass() noexcept {}
+  virtual ~NoExceptClass() noexcept {}
 
   void noex0() noexcept {}
   void noex1() noexcept(sizeof(int) == 4) {}

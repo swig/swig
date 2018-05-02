@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[3.0.13],[http://www.swig.org])
+AC_INIT([swig],[4.0.0],[http://www.swig.org])
 
 dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
 dnl     definition below can be removed
@@ -28,8 +28,6 @@ AH_BOTTOM([
 dnl Check for programs that a user requires to build SWIG
 AC_PROG_CC
 AC_PROG_CXX
-AC_EXEEXT
-AC_OBJEXT
 AM_PROG_CC_C_O  # Needed for subdir-objects in AUTOMAKE_OPTIONS
 
 AC_COMPILE_WARNINGS # Increase warning levels
@@ -280,7 +278,7 @@ fi
 AC_MSG_RESULT($RPATH)
 
 # LINKFORSHARED are the flags passed to the $(CC) command that links
-# the a few executables -- this is only needed for a few systems
+# a few executables -- this is only needed for a few systems
 
 AC_MSG_CHECKING(LINKFORSHARED)
 if test -z "$LINKFORSHARED"
@@ -895,11 +893,23 @@ else
 fi
 
 if test -n "$PYINCLUDE" || test -n "$PY3INCLUDE" ; then
-  AC_CHECK_PROGS(PEP8, pep8)
-  if test -n "$PEP8"; then
-    AC_MSG_CHECKING(pep8 version)
-    pep8_version=`$PEP8 --version 2>/dev/null`
-    AC_MSG_RESULT($pep8_version)
+  AC_CHECK_PROGS(PYCODESTYLE, pycodestyle)
+  if test -n "$PYCODESTYLE"; then
+    AC_MSG_CHECKING(pycodestyle version)
+    pycodestyle_version=`$PYCODESTYLE --version 2>/dev/null`
+    AC_MSG_RESULT($pycodestyle_version)
+  fi
+fi
+
+AC_ARG_WITH(2to3, AS_HELP_STRING([--with-2to3=path], [Set location of Python 2to3 tool]), [PY2TO3BIN="$withval"], [PY2TO3BIN="yes"])
+if test -n "$PYTHON3"; then
+  if test "x$PY2TO3BIN" = xyes; then
+    AC_CHECK_PROGS(PY2TO3, 2to3)
+  else
+    PY2TO3="$PY2TO3BIN"
+  fi
+  if test -z "$PY2TO3"; then
+    PYTHON3=
   fi
 fi
 
@@ -1482,7 +1492,7 @@ else
 
   # check for include files
   AC_MSG_CHECKING(for JavaScriptCore/JavaScript.h)
-  AC_ARG_WITH(jscoreinc, [  --with-jscinc=path      Set location of Javascript include directory], [JSCOREINCDIR="$withval"], [JSCOREINCDIR=])
+  AC_ARG_WITH(jscoreinc, [  --with-jscoreinc=path      Set location of Javascript include directory], [JSCOREINCDIR="$withval"], [JSCOREINCDIR=])
 
   JSCOREVERSION=
 
@@ -1516,7 +1526,7 @@ else
   fi
 
   # check for JavaScriptCore/Webkit libraries
-  AC_ARG_WITH(jscorelib,[  --with-jsclib=path      Set location of the JavaScriptCore/Webkit library directory],[JSCORELIB="-L$withval"], [JSCORELIB=])
+  AC_ARG_WITH(jscorelib,[  --with-jscorelib=path      Set location of the JavaScriptCore/Webkit library directory],[JSCORELIB="-L$withval"], [JSCORELIB=])
 
   if test -z "$JSCORELIB" -a -n "$PKGCONFIG"; then
     AC_MSG_CHECKING(for JavaScriptCore/Webkit library)
@@ -1540,7 +1550,7 @@ else
 
   # check for include files
   AC_MSG_CHECKING(for V8 Javascript v8.h)
-  AC_ARG_WITH(jsv8inc, [  --with-jsv8inc=path     Set location of Javascript v8 include directory], [JSV8INCDIR="$withval"])
+  AC_ARG_WITH(jsv8inc, [  --with-jsv8inc=path     Set location of Javascript v8 include directory], [JSV8INCDIR="$withval"], [JSV8INCDIR=])
 
   # if not include dir is specified we try to find
   if test -z "$JSV8INCDIR"; then
@@ -1624,34 +1634,6 @@ AC_SUBST(NODEJS)
 AC_SUBST(NODEGYP)
 
 #----------------------------------------------------------------
-# Look for gcj
-#----------------------------------------------------------------
-
-AC_ARG_WITH(gcj, AS_HELP_STRING([--without-gcj], [Disable GCJ])
-AS_HELP_STRING([--with-gcj=path], [Set location of gcj executable]),[GCJBIN="$withval"], [GCJBIN="$alllang_default"])
-AC_ARG_WITH(gcjh, [  --with-gcjh=path        Set location of gcjh executable],[GCJHBIN="$withval"], [GCJHBIN=])
-
-# First, check for "--without-gcj" or "--with-gcj=no".
-if test x"${GCJBIN}" = xno; then
-  AC_MSG_NOTICE([Disabling GCJ])
-else
-  if test "x$GCJBIN" = xyes; then
-    AC_CHECK_PROGS(GCJ, gcj)
-  else
-    GCJ="$GCJBIN"
-  fi
-
-  if test -z "$GCJCBIN"; then
-    AC_CHECK_PROGS(GCJH, gcjh)
-  else
-    GCJH="$GCJHBIN"
-  fi
-fi
-
-AC_SUBST(GCJ)
-AC_SUBST(GCJH)
-
-#----------------------------------------------------------------
 # Look for Android
 #----------------------------------------------------------------
 
@@ -1722,17 +1704,28 @@ else
   fi
   if test -n "$GUILE_CONFIG" ; then
     if test x"$GUILE" = xyes; then
-      AC_MSG_CHECKING([for guile bindir])
-      guile_bindir="`$GUILE_CONFIG info bindir`"
-      AC_MSG_RESULT([$guile_bindir])
-      GUILE=$guile_bindir/guile
+      AC_MSG_CHECKING([for guile executable])
+      # Try extracting it via guile-config first. If it's defined there it's the most reliable result
+      GUILE="`$GUILE_CONFIG info guile 2>/dev/null`"
+      if test -n "$GUILE";  then
+        AC_MSG_RESULT([$GUILE])
+      else
+        AC_MSG_RESULT([not found via guile-config - constructing path])
+        AC_MSG_CHECKING([for guile bindir])
+        guile_bindir="`$GUILE_CONFIG info bindir`"
+        AC_MSG_RESULT([$guile_bindir])
+        GUILE="$guile_bindir/guile"
+      fi
       if ! test -f "$GUILE" ; then
-	GUILE=
+        GUILE=
         AC_PATH_PROG(GUILE, guile)
+      fi
+      if test -z "$GUILE" ; then
+        AC_MSG_WARN([no suitable guile executable found. Disabling Guile])
       fi
     fi
 
-    if test -f "$GUILE" ; then
+    if test -n "$GUILE" ; then
       AC_MSG_CHECKING([for guile version])
       guile_version=`$GUILE -c '(display (effective-version))'`
       AC_MSG_RESULT([$guile_version])
@@ -1740,20 +1733,33 @@ else
       guile_good_version=`$GUILE -c '(if (>= (string->number (effective-version)) 1.8) (display "yes") (display "no"))'`
       AC_MSG_RESULT([$guile_good_version])
       if test x"$guile_good_version" != xyes ; then
+        AC_MSG_WARN([at least guile version 1.8 is required. Disabling Guile])
         GUILE=
       fi
     fi
 
-    if test -z "$GUILE_CFLAGS" ; then
-      AC_MSG_CHECKING([for guile compile flags])
-      GUILE_CFLAGS="`$GUILE_CONFIG compile`" # Note that this can sometimes be empty
-      AC_MSG_RESULT([$GUILE_CFLAGS])
+    if test -n "$GUILE" ; then
+      # Test if guile-config and guile versions match. They should.
+      gc_version="`$GUILE_CONFIG --version 2>&1 | sed '1 s/.* //;q'`"
+      g_version="`$GUILE --version | sed '1 s/.* //;q'`"
+      if test "$gc_version" != "$g_version"; then
+        AC_MSG_WARN([different versions reported by $GUILE_CONFIG ($gc_version) and $GUILE ($g_version). Disabling Guile])
+        GUILE=
+      fi
     fi
 
-    if test -z "$GUILE_LIBS" ; then
-      AC_MSG_CHECKING([for guile link flags])
-      GUILE_LIBS="`$GUILE_CONFIG link`"
-      AC_MSG_RESULT([$GUILE_LIBS])
+    if test -n "$GUILE" ; then
+      if test -z "$GUILE_CFLAGS" ; then
+        AC_MSG_CHECKING([for guile compile flags])
+        GUILE_CFLAGS="`$GUILE_CONFIG compile`" # Note that this can sometimes be empty
+        AC_MSG_RESULT([$GUILE_CFLAGS])
+      fi
+
+      if test -z "$GUILE_LIBS" ; then
+        AC_MSG_CHECKING([for guile link flags])
+        GUILE_LIBS="`$GUILE_CONFIG link`"
+        AC_MSG_RESULT([$GUILE_LIBS])
+      fi
     fi
   fi
 fi
@@ -2267,14 +2273,14 @@ else
 if test -z "$CSHARPCOMPILERBIN" ; then
   case $host in
   *-*-cygwin* | *-*-mingw*)
-    # prefer Mono gmcs (.NET 2.0) over mcs (.NET 1.1) - note mcs-1.2.3 has major pinvoke bug
-    AC_CHECK_PROGS(CSHARPCOMPILER, csc mono-csc gmcs mcs cscc)
+    # prefer unified Mono mcs compiler (not to be confused with the ancient .NET 1 mcs) over older/alternative names.
+    AC_CHECK_PROGS(CSHARPCOMPILER, csc mcs mono-csc gmcs cscc)
     if test -n "$CSHARPCOMPILER" && test "$CSHARPCOMPILER" = "csc" ; then
       AC_MSG_CHECKING(whether csc is the Microsoft CSharp compiler)
       csc 2>/dev/null | grep "C#" > /dev/null || CSHARPCOMPILER=""
       if test -z "$CSHARPCOMPILER" ; then
         AC_MSG_RESULT(no)
-        AC_CHECK_PROGS(CSHARPCOMPILER, mono-csc gmcs mcs cscc)
+        AC_CHECK_PROGS(CSHARPCOMPILER, mcs mono-csc gmcs cscc)
       else
         AC_MSG_RESULT(yes)
       fi
@@ -2602,7 +2608,7 @@ else
     GOVERSIONOPTION=version
     go_version=$($GO $GOVERSIONOPTION | sed -e 's/go version //')
     case "$go_version" in
-    go1 | go1.[[01234]]*)
+    go1 | go1.[[01234]] | go1.[[01234]].*)
       GOC=$(sh -c "$(go env) && echo \$GOCHAR")c
       ;;
     *)
@@ -2611,7 +2617,7 @@ else
     esac
     AC_MSG_CHECKING([whether go version is too old])
     case $go_version in
-    go1.1* | go1.0* | go1 )
+    go1.1.* | go1.1 | go1.0 | go1.0.* | go1 )
       AC_MSG_RESULT([yes - minimum version is 1.2])
       GO=
       GOOPT="-intgosize 32"
@@ -2629,13 +2635,13 @@ else
       ;;
     esac
     case $go_version in
-    go1.0* | go1 | go1.1*)
+    go1.0 | go1.0.* | go1 | go1.1 | go1.1.*)
       GOOPT="$GOOPT -use-shlib"
       ;;
-    go1.2*)
+    go1.2 | go1.2.*)
       GO12=true
       ;;
-    go1.3* | go1.4*)
+    go1.3 | go1.3.* | go1.4 | go1.4.*)
       GO13=true
       ;;
     *)
@@ -2946,16 +2952,6 @@ AC_SUBST(SKIP_D)
 #----------------------------------------------------------------
 # Additional language dependencies
 #----------------------------------------------------------------
-SKIP_GCJ=
-if test -z "$GCJ" || test -z "$GCJH" ; then
-  SKIP_GCJ="1"
-else
-  if test "$GCC" != yes; then
-    SKIP_GCJ="1"
-  fi
-fi
-AC_SUBST(SKIP_GCJ)
-
 
 SKIP_ANDROID=
 if test -z "$ANDROID" || test -z "$ADB" || test -z "$ANT" || test -z "$NDKBUILD" ; then

@@ -4,4 +4,5 @@ sys.path.insert(0, 'path1')
 
 from brave import robin
 
-assert(robin.run() == "AWAY!")
+if not(robin.run() == "AWAY!"):
+    raise RuntimeError("test failed")

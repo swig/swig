@@ -538,7 +538,7 @@ SwigPyObject_dealloc(PyObject *v)
       PyObject *res;
 
       /* PyObject_CallFunction() has the potential to silently drop
-         the active active exception.  In cases of unnamed temporary
+         the active exception.  In cases of unnamed temporary
          variable or where we just finished iterating over a generator
          StopIteration will be active right now, and this needs to
          remain true upon return from SwigPyObject_dealloc.  So save
@@ -1308,7 +1308,7 @@ SWIG_Python_ConvertFunctionPtr(PyObject *obj, void **ptr, swig_type_info *ty) {
   }
 }
 
-/* Convert a packed value value */
+/* Convert a packed pointer value */
 
 SWIGRUNTIME int
 SWIG_Python_ConvertPacked(PyObject *obj, void *ptr, size_t sz, swig_type_info *ty) {
@@ -1672,14 +1672,16 @@ SWIG_Python_AddErrMesg(const char* mesg, int infront)
     PyObject *traceback = 0;
     PyErr_Fetch(&type, &value, &traceback);
     if (value) {
-      char *tmp;
       PyObject *old_str = PyObject_Str(value);
+      const char *tmp = SWIG_Python_str_AsChar(old_str);
+      if (!tmp)
+        tmp = "Invalid error message";
       Py_XINCREF(type);
       PyErr_Clear();
       if (infront) {
-	PyErr_Format(type, "%s %s", mesg, tmp = SWIG_Python_str_AsChar(old_str));
+	PyErr_Format(type, "%s %s", mesg, tmp);
       } else {
-	PyErr_Format(type, "%s %s", tmp = SWIG_Python_str_AsChar(old_str), mesg);
+	PyErr_Format(type, "%s %s", tmp, mesg);
       }
       SWIG_Python_str_DelForPy3(tmp);
       Py_DECREF(old_str);
@@ -1805,6 +1807,8 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
       Py_INCREF(name);
     } else {
       encoded_name = PyUnicode_AsUTF8String(name);
+      if (!encoded_name)
+        return -1;
     }
     PyErr_Format(PyExc_AttributeError, "'%.100s' object has no attribute '%.200s'", tp->tp_name, PyString_AsString(encoded_name));
     Py_DECREF(encoded_name);

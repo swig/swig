@@ -20,7 +20,18 @@ CPP_TEST_CASES += \
 	r_double_delete \
 	r_overload_array \
 	r_sexp \
-        r_overload_comma
+        r_overload_comma \
+	r_use_isnull
+
+# These tests are failing because enums currently cannot handle
+# arithmetic expressions
+
+FAILING_CPP_TESTS = \
+	enum_thorough \
+	preproc_constants
+
+FAILING_C_TESTS = \
+	preproc_constants_c
 
 include $(srcdir)/../common.mk
 

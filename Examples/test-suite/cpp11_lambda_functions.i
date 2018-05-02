@@ -26,6 +26,16 @@
 %warnfilter(SWIGWARN_CPP11_LAMBDA) Space1::lambda19;
 %warnfilter(SWIGWARN_CPP11_LAMBDA) Space1::Space2::lambda20;
 
+%{
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
+#endif
+%}
+
 %inline %{
 /* Defined lambda function with return value. */
 auto lambda1 = [](int x, int y) -> int { return x+y; };
@@ -105,3 +115,11 @@ int lambda102 = [] (int a, int b) mutable { return a + b; }(1, 2);
 void lambda_init(int = ([=]{ return 0; })());
 %}
 
+%{
+#if defined(_MSC_VER)
+  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic pop
+#endif
+%}

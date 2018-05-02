@@ -19,7 +19,6 @@
 %rename(Foos) Foo;
 #endif
 
-#ifndef SWIG_NO_OVERLOAD
 %immutable Spam::type;
 
 %inline %{
@@ -176,8 +175,6 @@ long long ll(long long ull) { return ull; }
 %include cmalloc.i
 %malloc(void);
 %free(void);
-
-#endif
 
 
 %inline {  

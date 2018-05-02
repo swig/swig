@@ -607,6 +607,34 @@ static List *find_args(String *s, int ismacro, String *macro_name) {
 	skip_tochar(s, '\'', str);
 	c = Getc(s);
 	continue;
+      } else if (c == '/') {
+        /* Ensure comments are ignored by eating up the characters */
+        c = Getc(s);
+        /* Handle / * ... * / type comments (multi-line) */
+        if (c == '*') {
+          while ((c = Getc(s)) != EOF) {
+            if (c == '*') {
+              c = Getc(s);
+              if (c == '/' || c == EOF)
+                break;
+            }
+          }
+          c = Getc(s);
+          continue;
+        }
+        /* Handle // ... type comments (single-line) */
+        if (c == '/') {
+          while ((c = Getc(s)) != EOF) {
+            if (c == '\n') {
+                break;
+            }
+          }
+          c = Getc(s);
+          continue;
+        }
+        /* ensure char is available in the stream as this was not a comment*/
+        Ungetc(c, s);
+        c = '/';
       }
       if ((c == ',') && (level == 0))
 	break;
@@ -623,13 +651,8 @@ static List *find_args(String *s, int ismacro, String *macro_name) {
       goto unterm;
     }
     Chop(str);
-    if (Len(args) || Len(str))
-      Append(args, str);
+    Append(args, str);
     Delete(str);
-
-    /*    if (Len(str) && (c != ')'))
-       Append(args,str); */
-
     if (c == ')')
       return args;
     c = Getc(s);
@@ -800,11 +823,24 @@ static String *expand_macro(String *name, List *args, String *line_file) {
       Delete(vararg);
     }
   }
+
+  if (args && margs && Len(margs) == 0 && Len(args) == 1 && Len(Getitem(args, 0)) == 0) {
+    /* FOO() can invoke a macro defined as FOO(X) as well as one defined FOO().
+     *
+     * Handle this by removing the only argument if it's empty and the macro
+     * expects no arguments.
+     *
+     * We don't need to worry about varargs here - a varargs macro will always have
+     * Len(margs) >= 1, since the varargs are put in the final macro argument.
+     */
+    Delitem(args, 0);
+  }
+
   /* If there are arguments, see if they match what we were given */
-  if (args && (margs) && (Len(margs) != Len(args))) {
-    if (Len(margs) > (1 + isvarargs))
+  if (args && (!margs || Len(margs) != Len(args))) {
+    if (margs && Len(margs) > (1 + isvarargs))
       Swig_error(macro_start_file, macro_start_line, "Macro '%s' expects %d arguments\n", name, Len(margs) - isvarargs);
-    else if (Len(margs) == (1 + isvarargs))
+    else if (margs && Len(margs) == (1 + isvarargs))
       Swig_error(macro_start_file, macro_start_line, "Macro '%s' expects 1 argument\n", name);
     else
       Swig_error(macro_start_file, macro_start_line, "Macro '%s' expects no arguments\n", name);
@@ -813,7 +849,7 @@ static String *expand_macro(String *name, List *args, String *line_file) {
   }
 
   /* If the macro expects arguments, but none were supplied, we leave it in place */
-  if (!args && (margs) && Len(margs) > 0) {
+  if (!args && margs) {
     macro_level--;
     return NewString(name);
   }
@@ -905,19 +941,21 @@ static String *expand_macro(String *name, List *args, String *line_file) {
 	namelen = Len(aname);
 	a = strstr(s, name);
 	while (a) {
-	  char ca = a[namelen + 1];
+	  char ca = a[namelen];
 	  if (!isidchar((int) ca)) {
 	    /* Matched the entire vararg name, not just a prefix */
-	    t = a - 1;
-	    if (*t == '\002') {
-	      t--;
-	      while (t >= s) {
-		if (isspace((int) *t))
-		  t--;
-		else if (*t == ',') {
-		  *t = ' ';
-		} else
-		  break;
+	    if (a > s) {
+	      t = a - 1;
+	      if (*t == '\002') {
+		t--;
+		while (t >= s) {
+		  if (isspace((int) *t))
+		    t--;
+		  else if (*t == ',') {
+		    *t = ' ';
+		  } else
+		    break;
+		}
 	      }
 	    }
 	  }
@@ -1139,10 +1177,6 @@ static DOH *Preprocessor_replace(DOH *s) {
 	    args = find_args(s, 1, id);
 	    macro_additional_lines = Getline(s) - line;
 	    assert(macro_additional_lines >= 0);
-	    if (!Len(args)) {
-	      Delete(args);
-	      args = 0;
-	    }
 	  } else {
 	    args = 0;
 	  }
@@ -1431,7 +1465,7 @@ String *Preprocessor_parse(String *s) {
       break;
 
     case 41:			/* Build up the name of the preprocessor directive */
-      if ((isspace(c) || (!isalpha(c)))) {
+      if ((isspace(c) || (!isidchar(c)))) {
 	Clear(value);
 	Clear(comment);
 	if (c == '\n') {

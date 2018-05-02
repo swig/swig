@@ -16,6 +16,12 @@ CPP_TEST_CASES += \
 	octave_cell_deref\
 	octave_dim
 
+CPP11_TEST_CASES += \
+	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_nullptr_in_containers \
+	cpp11_shared_ptr_overload \
+	cpp11_shared_ptr_upcast \
+
 CPP_TEST_BROKEN += \
 	implicittest \
 	li_implicit \

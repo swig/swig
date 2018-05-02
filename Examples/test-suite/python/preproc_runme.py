@@ -14,3 +14,6 @@ if 2 * preproc.one != preproc.two:
 
 if preproc.methodX(99) != 199:
     raise RuntimeError
+
+t1 = preproc.tcxMessageTest()
+t2 = preproc.tcxMessageBug()
