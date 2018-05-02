@@ -54,7 +54,16 @@ matrix:
       dist: trusty
     - compiler: gcc
       os: linux
-      env: SWIGLANG=javascript ENGINE=node
+      env: SWIGLANG=javascript ENGINE=node VER=4
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=javascript ENGINE=node VER=6
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=javascript ENGINE=node VER=8
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=javascript ENGINE=node VER=10
     - compiler: gcc
       os: linux
       env: SWIGLANG=javascript ENGINE=jsc
