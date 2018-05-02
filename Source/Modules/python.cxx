@@ -927,16 +927,16 @@ public:
 	// Python-2.2 object hack
 	Printv(f_shadow,
 	       "\n", "def _swig_setattr_nondynamic(self, class_type, name, value, static=1):\n",
-	       tab4, "if (name == \"thisown\"):\n", tab8, "return self.this.own(value)\n",
-	       tab4, "if (name == \"this\"):\n", tab8, "if type(value).__name__ == 'SwigPyObject':\n", tab4, tab8, "self.__dict__[name] = value\n",
+	       tab4, "if name == \"thisown\":\n", tab8, "return self.this.own(value)\n",
+	       tab4, "if name == \"this\":\n", tab8, "if type(value).__name__ == 'SwigPyObject':\n", tab4, tab8, "self.__dict__[name] = value\n",
 #ifdef USE_THISOWN
 	       tab4, tab8, "if hasattr(value,\"thisown\"):\n", tab8, tab8, "self.__dict__[\"thisown\"] = value.thisown\n", tab4, tab8, "del value.thisown\n",
 #endif
 	       tab4, tab8, "return\n", tab4, "method = class_type.__swig_setmethods__.get(name, None)\n", tab4, "if method:\n", tab4, tab4, "return method(self, value)\n",
 #ifdef USE_THISOWN
-	       tab4, "if (not static) or (name == \"thisown\"):\n",
+	       tab4, "if not static or name == \"thisown\":\n",
 #else
-	       tab4, "if (not static):\n",
+	       tab4, "if not static:\n",
 #endif
 	       NIL);
 	if (!classic) {
@@ -955,7 +955,7 @@ public:
 
 	Printv(f_shadow,
 	       "\n", "def _swig_getattr(self, class_type, name):\n",
-	       tab4, "if (name == \"thisown\"):\n", tab8, "return self.this.own()\n",
+	       tab4, "if name == \"thisown\":\n", tab8, "return self.this.own()\n",
 	       tab4, "method = class_type.__swig_getmethods__.get(name, None)\n",
 	       tab4, "if method:\n", tab8, "return method(self)\n",
 	       tab4, "raise AttributeError(\"'%s' object has no attribute '%s'\" % (class_type.__name__, name))\n\n", NIL);
@@ -978,7 +978,7 @@ public:
 #ifdef USE_THISOWN
 	       tab4, tab4, "if hasattr(self, name) or (name in (\"this\", \"thisown\")):\n",
 #else
-	       tab4, tab4, "if (name == \"thisown\"):\n", tab8, tab4, "return self.this.own(value)\n", tab4, tab4, "if hasattr(self, name) or (name == \"this\"):\n",
+	       tab4, tab4, "if name == \"thisown\":\n", tab8, tab4, "return self.this.own(value)\n", tab4, tab4, "if hasattr(self, name) or (name == \"this\"):\n",
 #endif
 	       tab4, tab4, tab4, "set(self, name, value)\n",
 	       tab4, tab4, "else:\n",
