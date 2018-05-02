@@ -37,7 +37,8 @@ case "$SWIGLANG" in
 	"javascript")
 		case "$ENGINE" in
 			"node")
-				travis_retry sudo apt-get install -qq nodejs node-gyp
+				curl -sL https://deb.nodesource.com/setup_${VER}.x | sudo -E bash -
+				travis_retry sudo apt-get install -y nodejs
 				;;
 			"jsc")
 				travis_retry sudo apt-get install -qq libwebkitgtk-dev
