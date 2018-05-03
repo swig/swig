@@ -141,15 +141,15 @@ static int String_cmp(DOH *so1, DOH *so2) {
 static int String_equal(DOH *so1, DOH *so2) {
   String *s1 = (String *) ObjData(so1);
   String *s2 = (String *) ObjData(so2);
-  register int len = s1->len;
+  int len = s1->len;
   if (len != s2->len) {
     return 0;
   } else {
-    register char *c1 = s1->str;
-    register char *c2 = s2->str;
+    char *c1 = s1->str;
+    char *c2 = s2->str;
 #if 0
-    register int mlen = len >> 2;
-    register int i = mlen;
+    int mlen = len >> 2;
+    int i = mlen;
     for (; i; --i) {
       if (*(c1++) != *(c2++))
 	return 0;
@@ -180,11 +180,11 @@ static int String_hash(DOH *so) {
   if (s->hashkey >= 0) {
     return s->hashkey;
   } else {
-    register char *c = s->str;
-    register unsigned int len = s->len > 50 ? 50 : s->len;
-    register unsigned int h = 0;
-    register unsigned int mlen = len >> 2;
-    register unsigned int i = mlen;
+    char *c = s->str;
+    unsigned int len = s->len > 50 ? 50 : s->len;
+    unsigned int h = 0;
+    unsigned int mlen = len >> 2;
+    unsigned int i = mlen;
     for (; i; --i) {
       h = (h << 5) + *(c++);
       h = (h << 5) + *(c++);
@@ -463,9 +463,9 @@ static int String_seek(DOH *so, long offset, int whence) {
 
   {
 #if 0
-    register int sp = s->sp;
-    register char *tc = s->str;
-    register int len = s->len;
+    int sp = s->sp;
+    char *tc = s->str;
+    int len = s->len;
     while (sp != nsp) {
       int prev = sp + inc;
       if (prev >= 0 && prev <= len && tc[prev] == '\n')
@@ -473,8 +473,8 @@ static int String_seek(DOH *so, long offset, int whence) {
       sp += inc;
     }
 #else
-    register int sp = s->sp;
-    register char *tc = s->str;
+    int sp = s->sp;
+    char *tc = s->str;
     if (inc > 0) {
       while (sp != nsp) {
 	if (tc[++sp] == '\n')
@@ -508,12 +508,12 @@ static long String_tell(DOH *so) {
 
 static int String_putc(DOH *so, int ch) {
   String *s = (String *) ObjData(so);
-  register int len = s->len;
-  register int sp = s->sp;
+  int len = s->len;
+  int sp = s->sp;
   s->hashkey = -1;
   if (sp >= len) {
-    register int maxsize = s->maxsize;
-    register char *tc = s->str;
+    int maxsize = s->maxsize;
+    char *tc = s->str;
     if (len > (maxsize - 2)) {
       maxsize *= 2;
       tc = (char *) DohRealloc(tc, maxsize);
@@ -679,7 +679,7 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
   int noquote = 0;
   char *c, *s, *t, *first;
   char *q, *q2;
-  register char *base;
+  char *base;
   int i;
 
   /* Figure out if anything gets replaced */
