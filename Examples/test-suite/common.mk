@@ -352,7 +352,6 @@ CPP_TEST_CASES += \
 	redefined_not \
 	refcount \
 	reference_global_vars \
-	register_par \
 	rename1 \
 	rename2 \
 	rename3 \
@@ -672,6 +671,7 @@ C_TEST_CASES += \
 	preproc_defined \
 	preproc_include \
 	preproc_line_file \
+	register_par \
 	ret_by_value \
 	simple_array \
 	sizeof_pointer \
