@@ -11,12 +11,6 @@
 #define PACKAGESLASH "java_director_exception_feature_nspacePackage/"
 %}
 
-// throw is invalid in C++17 and later, only SWIG to use it
-#define TESTCASE_THROW(TYPES...) throw(TYPES)
-%{
-#define TESTCASE_THROW(TYPES...)
-%}
-
 %include <std_string.i>
 
 // DEFINE exceptions in header section using std::runtime_error
@@ -178,6 +172,18 @@ namespace MyNS {
 %catches(MyNS::Exception1,MyNS::Exception2,MyNS::Unexpected) MyNS::Foo::pong;
 %catches(MyNS::Exception1,MyNS::Exception2,MyNS::Unexpected) MyNS::Bar::pong;
 
+%{
+// throw is deprecated in C++11 and invalid in C++17 and later
+#if defined(__cplusplus) && __cplusplus >= 201103L
+#define throw(TYPES...)
+#else
+#define throw(TYPES...) throw(TYPES)
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+#endif
+%}
+
 %inline %{
 
 namespace MyNS {
@@ -187,7 +193,7 @@ public:
   virtual ~Foo() {}
   // ping java implementation throws a java Exception1 or an Exception2 if excp is 1 or 2.
   // pong java implementation throws Exception1,Exception2,Unexpected,NullPointerException for 1,2,3,4
-  virtual std::string ping(int excp) TESTCASE_THROW(int,MyNS::Exception2) = 0;
+  virtual std::string ping(int excp) throw(int,MyNS::Exception2) = 0;
   virtual std::string pong(int excp) /* throws MyNS::Exception1 MyNS::Exception2 MyNS::Unexpected) */ = 0;
   virtual std::string genericpong(int excp) /* unspecified throws - exception is always DirectorException in C++, translated back to whatever thrown in java */ = 0;
 };
@@ -198,7 +204,7 @@ public:
 class Bar {
 public:
   Bar(Foo* d) { delegate=d; }
-  virtual std::string ping(int excp) TESTCASE_THROW(int,MyNS::Exception2)
+  virtual std::string ping(int excp) throw(int,MyNS::Exception2)
   {
     return delegate->ping(excp);
   }
