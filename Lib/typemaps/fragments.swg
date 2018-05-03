@@ -102,7 +102,7 @@
 /* isfinite() is a macro for C99 */
 # if defined(isfinite)
 #  define SWIG_isfinite(X) (isfinite(X))
-# elif defined __cplusplus && __cplusplus >= 201103L
+# elif defined(__cplusplus) && __cplusplus >= 201103L
 /* Use a template so that this works whether isfinite() is std::isfinite() or
  * in the global namespace.  The reality seems to vary between compiler
  * versions.
