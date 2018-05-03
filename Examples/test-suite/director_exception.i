@@ -3,18 +3,6 @@
 %warnfilter(SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) return_const_char_star;
 
 %{
-// throw is deprecated in C++11 and invalid in C++17 and later
-#if defined(__cplusplus) && __cplusplus >= 201103L
-#define throw(TYPES...)
-#else
-#define throw(TYPES...) throw(TYPES)
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#endif
-%}
-
-%{
 #include <string>
 
 // define dummy director exception classes to prevent spurious errors 
@@ -126,6 +114,18 @@ Foo *launder(Foo *f) {
 
 %feature("director") Bar;
 %feature("director") ReturnAllTypes;
+
+%{
+// throw is deprecated in C++11 and invalid in C++17 and later
+#if defined(__cplusplus) && __cplusplus >= 201103L
+#define throw(TYPES...)
+#else
+#define throw(TYPES...) throw(TYPES)
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+#endif
+%}
 
 %inline %{
   struct Exception1
