@@ -51,7 +51,7 @@ namespace Swig {
   public:
     static void raise(const char *msg) {
       // ... todo
-      throw(DirectorException());
+      throw DirectorException();
     }
 
     static void raise(const octave_value &ov, const char *msg) {
@@ -64,7 +64,7 @@ namespace Swig {
   public:
     static void raise(const char *msg) {
       // ... todo
-      throw(DirectorTypeMismatchException());
+      throw DirectorTypeMismatchException();
     }
 
     static void raise(const octave_value &ov, const char *msg) {
@@ -77,7 +77,7 @@ namespace Swig {
   public:
     static void raise(const char *msg) {
       // ... todo
-      throw(DirectorPureVirtualException());
+      throw DirectorPureVirtualException();
     }
 
     static void raise(const octave_value &ov, const char *msg) {
