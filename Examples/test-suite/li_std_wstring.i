@@ -3,6 +3,12 @@
 %include <std_wstring.i>
 
 
+// throw is invalid in C++17 and later, only SWIG to use it
+#define TESTCASE_THROW(TYPES...) throw(TYPES)
+%{
+#define TESTCASE_THROW(TYPES...)
+%}
+
 %inline %{
 
 struct A : std::wstring 
@@ -82,26 +88,11 @@ bool test_equal_abc(const std::wstring &s) {
   return L"abc" == s;
 }
 
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
-#endif
-
-void test_throw() throw(std::wstring){
+void test_throw() TESTCASE_THROW(std::wstring){
   static std::wstring x = L"x";
   
   throw x;
 }
-
-#if defined(_MSC_VER)
-  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic pop
-#endif
 
 #ifdef SWIGPYTHON_BUILTIN
 bool is_python_builtin() { return true; }

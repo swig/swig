@@ -26,14 +26,10 @@
 %warnfilter(SWIGWARN_CPP11_LAMBDA) Space1::lambda19;
 %warnfilter(SWIGWARN_CPP11_LAMBDA) Space1::Space2::lambda20;
 
+// throw is invalid in C++17 and later, only SWIG to use it
+#define TESTCASE_THROW(TYPES...) throw(TYPES)
 %{
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
-#endif
+#define TESTCASE_THROW(TYPES...)
 %}
 
 %inline %{
@@ -61,22 +57,22 @@ void fn() {
 }
 auto lambda6 = [] (int a, int b) mutable { return a + b; };
 auto lambda7 = [] (int x, int y) -> int { return x+y; };
-auto lambda8 = [] (int x, int y) throw() -> int { return x+y; };
-auto lambda9 = [] (int x, int y) mutable throw() -> int { return x+y; };
-auto lambda10 = [] (int x, int y) throw(int) { return x+y; };
-auto lambda11 = [] (int x, int y) mutable throw(int) { return x+y; };
+auto lambda8 = [] (int x, int y) TESTCASE_THROW() -> int { return x+y; };
+auto lambda9 = [] (int x, int y) mutable TESTCASE_THROW() -> int { return x+y; };
+auto lambda10 = [] (int x, int y) TESTCASE_THROW(int) { return x+y; };
+auto lambda11 = [] (int x, int y) mutable TESTCASE_THROW(int) { return x+y; };
 auto lambda12 = [] (int a, int b) { return a + b; }(1, 2);
 auto lambda13 = [] (int a, int b) mutable { return a + b; }(1, 2);
-auto lambda14 = [] () throw () {};
-auto lambda15 = [] () mutable throw () {};
+auto lambda14 = [] () TESTCASE_THROW() {};
+auto lambda15 = [] () mutable TESTCASE_THROW() {};
 auto lambda16 = [] { return thing; };
 auto lambda17 = [] { return thing; }();
-constexpr auto lambda18 = [] (int x, int y) mutable throw(int) { return x+y; };
+constexpr auto lambda18 = [] (int x, int y) mutable TESTCASE_THROW(int) { return x+y; };
 
 namespace Space1 {
-  constexpr auto lambda19 = [] (int x, int y) mutable throw(int) { return x+y; };
+  constexpr auto lambda19 = [] (int x, int y) mutable TESTCASE_THROW(int) { return x+y; };
   namespace Space2 {
-    constexpr auto lambda20 = [] (int x, int y) mutable throw(int) { return x+y; };
+    constexpr auto lambda20 = [] (int x, int y) mutable TESTCASE_THROW(int) { return x+y; };
   }
 }
 
@@ -115,11 +111,3 @@ int lambda102 = [] (int a, int b) mutable { return a + b; }(1, 2);
 void lambda_init(int = ([=]{ return 0; })());
 %}
 
-%{
-#if defined(_MSC_VER)
-  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic pop
-#endif
-%}

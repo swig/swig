@@ -4,13 +4,14 @@
 
 %{
 #if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
   #pragma warning(disable: 4146) // unary minus operator applied to unsigned type, result still unsigned
 #endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
-#endif
+%}
+
+// throw is invalid in C++17 and later, only SWIG to use it
+#define TESTCASE_THROW(TYPES...) throw(TYPES)
+%{
+#define TESTCASE_THROW(TYPES...)
 %}
 
 %include <std_string.i>
@@ -203,18 +204,18 @@
 
 // Default parameters with exception specifications
 %inline %{
-void exceptionspec(int a = -1) throw (int, const char*) {
+void exceptionspec(int a = -1) TESTCASE_THROW(int, const char*) {
   if (a == -1)
     throw "ciao";
   else
     throw a;
 }
 struct Except {
-  Except(bool throwException, int a = -1) throw (int) {
+  Except(bool throwException, int a = -1) TESTCASE_THROW(int) {
     if (throwException)
       throw a;
   }
-  void exspec(int a = 0) throw (int, const char*) {
+  void exspec(int a = 0) TESTCASE_THROW(int, const char*) {
     ::exceptionspec(a);
   }
 };
@@ -326,11 +327,3 @@ struct CDA {
 };
 %}
 
-%{
-#if defined(_MSC_VER)
-  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic pop
-#endif
-%}

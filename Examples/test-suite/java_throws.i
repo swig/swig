@@ -2,6 +2,12 @@
 
 %module java_throws
 
+// throw is invalid in C++17 and later, only SWIG to use it
+#define TESTCASE_THROW(TYPES...) throw(TYPES)
+%{
+#define TESTCASE_THROW(TYPES...)
+%}
+
 // Exceptions are chosen at random but are ones which have to have a try catch block to compile
 %typemap(in, throws="	 ClassNotFoundException") int num { 
     $1 = (int)$input;
@@ -39,22 +45,7 @@ short full_of_exceptions(int num) {
     return $null;
 }
 %inline %{
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
-#endif
-
-bool throw_spec_function(int value) throw (int) { throw (int)0; }
-
-#if defined(_MSC_VER)
-  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic pop
-#endif
+bool throw_spec_function(int value) TESTCASE_THROW(int) { throw (int)0; }
 %}
 
 %catches(int) catches_function(int value);

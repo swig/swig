@@ -4,20 +4,18 @@
 
 %module(threads="1") threads_exception
 
+// throw is invalid in C++17 and later, only SWIG to use it
+#define TESTCASE_THROW(TYPES...) throw(TYPES)
+%{
+#define TESTCASE_THROW(TYPES...)
+%}
+
 %{
 struct A {};
 %}
 
 %inline %{
 #include <string>
-
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
-#endif
 
 class Exc {
 public:
@@ -32,24 +30,24 @@ public:
 
 class Test {
 public:
-  int simple() throw(int) {
+  int simple() TESTCASE_THROW(int) {
       throw(37);
       return 1;
   }
-  int message() throw(const char *) {
+  int message() TESTCASE_THROW(const char *) {
       throw("I died.");
       return 1;
   }
-  int hosed() throw(Exc) {
+  int hosed() TESTCASE_THROW(Exc) {
       throw(Exc(42,"Hosed"));
       return 1;
   } 
-  int unknown() throw(A*) {
+  int unknown() TESTCASE_THROW(A*) {
       static A a;
       throw &a;
       return 1;
   }
-  int multi(int x) throw(int, const char *, Exc) {
+  int multi(int x) TESTCASE_THROW(int, const char *, Exc) {
      if (x == 1) throw(37);
      if (x == 2) throw("Bleah!");
      if (x == 3) throw(Exc(42,"No-go-diggy-die"));
@@ -61,12 +59,5 @@ public:
 bool is_python_builtin() { return true; }
 #else
 bool is_python_builtin() { return false; }
-#endif
-
-#if defined(_MSC_VER)
-  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic pop
 #endif
 %}

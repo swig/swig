@@ -3,17 +3,19 @@
 %warnfilter(SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) return_const_char_star;
 
 %{
-
+// throw is deprecated in C++11 and invalid in C++17 and later
+#if defined(__cplusplus) && __cplusplus >= 201103L
+#define throw(TYPES...)
+#else
+#define throw(TYPES...) throw(TYPES)
 #if defined(_MSC_VER)
   #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
 #endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
 #endif
+%}
 
+%{
 #include <string>
-
 
 // define dummy director exception classes to prevent spurious errors 
 // in target languages that do not support directors.
@@ -137,16 +139,16 @@ Foo *launder(Foo *f) {
   class Base 
   {
   public:
-    virtual ~Base() throw () {}
+    virtual ~Base() throw() {}
   };
   
 
   class Bar : public Base
   {
   public:
-    virtual std::string ping() throw (Exception1, Exception2&) { return "Bar::ping()"; }
-    virtual std::string pong() throw (Unknown1, int, Unknown2&) { return "Bar::pong();" + ping(); }
-    virtual std::string pang() throw () { return "Bar::pang()"; }
+    virtual std::string ping() throw(Exception1, Exception2&) { return "Bar::ping()"; }
+    virtual std::string pong() throw(Unknown1, int, Unknown2&) { return "Bar::pong();" + ping(); }
+    virtual std::string pang() throw() { return "Bar::pang()"; }
   };
   
   // Class to allow regression testing SWIG/PHP not checking if an exception
