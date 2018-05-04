@@ -67,12 +67,17 @@ auto lambda14 = [] () TESTCASE_THROW() {};
 auto lambda15 = [] () mutable TESTCASE_THROW() {};
 auto lambda16 = [] { return thing; };
 auto lambda17 = [] { return thing; }();
-constexpr auto lambda18 = [] (int x, int y) mutable TESTCASE_THROW(int) { return x+y; };
+#if defined(SWIG) || (defined(__cplusplus) && __cplusplus >= 201703L)
+#define CONSTEXPR constexpr
+#else
+#define CONSTEXPR
+#endif
+CONSTEXPR auto lambda18 = [] (int x, int y) mutable TESTCASE_THROW(int) { return x+y; };
 
 namespace Space1 {
-  constexpr auto lambda19 = [] (int x, int y) mutable TESTCASE_THROW(int) { return x+y; };
+  CONSTEXPR auto lambda19 = [] (int x, int y) mutable TESTCASE_THROW(int) { return x+y; };
   namespace Space2 {
-    constexpr auto lambda20 = [] (int x, int y) mutable TESTCASE_THROW(int) { return x+y; };
+    CONSTEXPR auto lambda20 = [] (int x, int y) mutable TESTCASE_THROW(int) { return x+y; };
   }
 }
 
