@@ -1,9 +1,9 @@
 %module csharp_exceptions
 
 // throw is invalid in C++17 and later, only SWIG to use it
-#define TESTCASE_THROW(TYPES...) throw(TYPES)
+#define TESTCASE_THROW1(T1) throw(T1)
 %{
-#define TESTCASE_THROW(TYPES...)
+#define TESTCASE_THROW1(T1)
 %}
 
 %include <exception.i>
@@ -48,10 +48,10 @@ void ThrowByReference()                                 { throw Ex("ThrowByRefer
 // %csnothrowexception
 void NoThrowException()                                 { throw Ex("NoThrowException"); }
 // exception specifications
-void ExceptionSpecificationValue() TESTCASE_THROW(Ex)            { throw Ex("ExceptionSpecificationValue"); }
-void ExceptionSpecificationReference() TESTCASE_THROW(Ex&)       { throw Ex("ExceptionSpecificationReference"); }
-void ExceptionSpecificationString() TESTCASE_THROW(const char *) { throw "ExceptionSpecificationString"; }
-void ExceptionSpecificationInteger() TESTCASE_THROW(int)         { throw 20; }
+void ExceptionSpecificationValue() TESTCASE_THROW1(Ex)            { throw Ex("ExceptionSpecificationValue"); }
+void ExceptionSpecificationReference() TESTCASE_THROW1(Ex&)       { throw Ex("ExceptionSpecificationReference"); }
+void ExceptionSpecificationString() TESTCASE_THROW1(const char *) { throw "ExceptionSpecificationString"; }
+void ExceptionSpecificationInteger() TESTCASE_THROW1(int)         { throw 20; }
 %}
 
 // test exceptions in the default typemaps
@@ -65,15 +65,15 @@ void NullValue(Ex e) {}
 // enums
 %inline %{
 enum TestEnum {TestEnumItem};
-void ExceptionSpecificationEnumValue() TESTCASE_THROW(TestEnum) { throw TestEnumItem; }
-void ExceptionSpecificationEnumReference() TESTCASE_THROW(TestEnum&) { throw TestEnumItem; }
+void ExceptionSpecificationEnumValue() TESTCASE_THROW1(TestEnum) { throw TestEnumItem; }
+void ExceptionSpecificationEnumReference() TESTCASE_THROW1(TestEnum&) { throw TestEnumItem; }
 %}
 
 // std::string
 %include <std_string.i>
 %inline %{
-void ExceptionSpecificationStdStringValue() TESTCASE_THROW(std::string) { throw std::string("ExceptionSpecificationStdStringValue"); }
-void ExceptionSpecificationStdStringReference() TESTCASE_THROW(const std::string&) { throw std::string("ExceptionSpecificationStdStringReference"); }
+void ExceptionSpecificationStdStringValue() TESTCASE_THROW1(std::string) { throw std::string("ExceptionSpecificationStdStringValue"); }
+void ExceptionSpecificationStdStringReference() TESTCASE_THROW1(const std::string&) { throw std::string("ExceptionSpecificationStdStringReference"); }
 void NullStdStringValue(std::string s) {}
 void NullStdStringReference(std::string &s) {}
 %}
@@ -105,7 +105,7 @@ void MemoryLeakCheck() {
 %inline %{
 struct constructor {
   constructor(std::string s) {}
-  constructor() TESTCASE_THROW(int) { throw 10; }
+  constructor() TESTCASE_THROW1(int) { throw 10; }
 };
 %}
 

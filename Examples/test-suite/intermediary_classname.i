@@ -5,9 +5,9 @@
 %warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR);
 
 // throw is invalid in C++17 and later, only SWIG to use it
-#define TESTCASE_THROW(TYPES...) throw(TYPES)
+#define TESTCASE_THROW2(T1, T2) throw(T1, T2)
 %{
-#define TESTCASE_THROW(TYPES...)
+#define TESTCASE_THROW2(T1, T2)
 %}
 
 // change the access to the intermediary class for testing purposes
@@ -67,7 +67,7 @@ public:
   virtual Base& m1(Base &b) { return b; }
   virtual Base* m2(Base *b) { return b; }
 //  virtual Base m3(Base b) { return b; }
-  void throwspec() TESTCASE_THROW(int, Base) {}
+  void throwspec() TESTCASE_THROW2(int, Base) {}
 };
 %}
 

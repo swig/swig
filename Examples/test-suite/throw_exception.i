@@ -1,9 +1,11 @@
 %module throw_exception
 
 // throw is invalid in C++17 and later, only SWIG to use it
-#define TESTCASE_THROW(TYPES...) throw(TYPES)
+#define TESTCASE_THROW1(T1) throw(T1)
+#define TESTCASE_THROW3(T1, T2, T3) throw(T1, T2, T3)
 %{
-#define TESTCASE_THROW(TYPES...)
+#define TESTCASE_THROW1(T1)
+#define TESTCASE_THROW3(T1, T2, T3)
 %}
 
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) Namespace::enum1;
@@ -30,45 +32,45 @@ namespace Namespace {
 }
 class Foo {
 public:
-    void test_int() TESTCASE_THROW(int) {
+    void test_int() TESTCASE_THROW1(int) {
       throw 37;
     }
-    void test_msg() TESTCASE_THROW(const char *) {
+    void test_msg() TESTCASE_THROW1(const char *) {
       throw "Dead";
     }
-    void test_cls() TESTCASE_THROW(CError) {
+    void test_cls() TESTCASE_THROW1(CError) {
       throw CError();
     }	
-    void test_cls_ptr() TESTCASE_THROW(CError *) {
+    void test_cls_ptr() TESTCASE_THROW1(CError *) {
       static CError StaticError;
       throw &StaticError;
     }	
-    void test_cls_ref() TESTCASE_THROW(CError &) {
+    void test_cls_ref() TESTCASE_THROW1(CError &) {
       static CError StaticError;
       throw StaticError;
     }	
-    void test_cls_td() TESTCASE_THROW(Namespace::ErrorTypedef) {
+    void test_cls_td() TESTCASE_THROW1(Namespace::ErrorTypedef) {
       throw CError();
     }	
-    void test_cls_ptr_td() TESTCASE_THROW(Namespace::ErrorPtr) {
+    void test_cls_ptr_td() TESTCASE_THROW1(Namespace::ErrorPtr) {
       static CError StaticError;
       throw &StaticError;
     }	
-    void test_cls_ref_td() TESTCASE_THROW(Namespace::ErrorRef) {
+    void test_cls_ref_td() TESTCASE_THROW1(Namespace::ErrorRef) {
       static CError StaticError;
       throw StaticError;
     }	
-    void test_array() TESTCASE_THROW(Namespace::IntArray) {
+    void test_array() TESTCASE_THROW1(Namespace::IntArray) {
       static Namespace::IntArray array;
       for (int i=0; i<10; i++) {
         array[i] = i;
       }
       throw array;
     }	
-    void test_enum() TESTCASE_THROW(Namespace::EnumTest) {
+    void test_enum() TESTCASE_THROW1(Namespace::EnumTest) {
       throw Namespace::enum2;
     }	
-    void test_multi(int x) TESTCASE_THROW(int, const char *, CError) {
+    void test_multi(int x) TESTCASE_THROW3(int, const char *, CError) {
       if (x == 1) throw 37;
       if (x == 2) throw "Dead";
       if (x == 3) throw CError();

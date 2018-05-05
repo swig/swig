@@ -7,9 +7,9 @@
 %warnfilter(SWIGWARN_PARSE_KEYWORD) override; // 'override' is a C# keyword, renaming to '_override'
 
 // throw is invalid in C++17 and later, only SWIG to use it
-#define TESTCASE_THROW(TYPES...) throw(TYPES)
+#define TESTCASE_THROW1(T1) throw(T1)
 %{
-#define TESTCASE_THROW(TYPES...)
+#define TESTCASE_THROW1(T1)
 %}
 
 %inline %{
@@ -39,8 +39,8 @@ struct Derived /*final*/ : Base {
   virtual void finaloverride2() override final {}
   virtual void finaloverride3() noexcept override final {}
   virtual void finaloverride4() const noexcept override final {}
-  virtual void finaloverride5() TESTCASE_THROW(int) override final {}
-  virtual void finaloverride6() const TESTCASE_THROW(int) override final {}
+  virtual void finaloverride5() TESTCASE_THROW1(int) override final {}
+  virtual void finaloverride6() const TESTCASE_THROW1(int) override final {}
   virtual ~Derived() override final {}
 };
 void Derived::override2() const noexcept {}

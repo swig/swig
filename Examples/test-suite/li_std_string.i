@@ -7,9 +7,9 @@
 #endif
 
 // throw is invalid in C++17 and later, only SWIG to use it
-#define TESTCASE_THROW(TYPES...) throw(TYPES)
+#define TESTCASE_THROW1(T1) throw(T1)
 %{
-#define TESTCASE_THROW(TYPES...)
+#define TESTCASE_THROW1(T1)
 %}
 
 %inline %{
@@ -54,21 +54,21 @@ void test_reference_inout(std::string &inout) {
   inout += inout;
 }
 
-void test_throw() TESTCASE_THROW(std::string){
+void test_throw() TESTCASE_THROW1(std::string){
   static std::string x = "test_throw message";
   throw x;
 }
 
-void test_const_reference_throw() TESTCASE_THROW(const std::string &){
+void test_const_reference_throw() TESTCASE_THROW1(const std::string &){
   static std::string x = "test_const_reference_throw message";
   throw x;
 }
 
-void test_pointer_throw() TESTCASE_THROW(std::string *) {
+void test_pointer_throw() TESTCASE_THROW1(std::string *) {
   throw new std::string("foo");
 }
 
-void test_const_pointer_throw() TESTCASE_THROW(const std::string *) {
+void test_const_pointer_throw() TESTCASE_THROW1(const std::string *) {
   throw new std::string("foo");
 }
 %}

@@ -3,9 +3,9 @@
 %module java_throws
 
 // throw is invalid in C++17 and later, only SWIG to use it
-#define TESTCASE_THROW(TYPES...) throw(TYPES)
+#define TESTCASE_THROW1(T1) throw(T1)
 %{
-#define TESTCASE_THROW(TYPES...)
+#define TESTCASE_THROW1(T1)
 %}
 
 // Exceptions are chosen at random but are ones which have to have a try catch block to compile
@@ -45,7 +45,7 @@ short full_of_exceptions(int num) {
     return $null;
 }
 %inline %{
-bool throw_spec_function(int value) TESTCASE_THROW(int) { throw (int)0; }
+bool throw_spec_function(int value) TESTCASE_THROW1(int) { throw (int)0; }
 %}
 
 %catches(int) catches_function(int value);

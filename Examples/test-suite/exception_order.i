@@ -13,9 +13,9 @@
 %include "exception.i"
 
 // throw is invalid in C++17 and later, only SWIG to use it
-#define TESTCASE_THROW(TYPES...) throw(TYPES)
+#define TESTCASE_THROW1(T1) throw(T1)
 %{
-#define TESTCASE_THROW(TYPES...)
+#define TESTCASE_THROW1(T1)
 %}
 
 /* 
@@ -99,16 +99,16 @@
     int efoovar;
 
     /* caught by the user's throw definition */
-    int foo() TESTCASE_THROW(E1)
+    int foo() TESTCASE_THROW1(E1)
     {
       throw E1();
-      return 0;     
+      return 0;
     }
-    
-    int bar() TESTCASE_THROW(E2)
+
+    int bar() TESTCASE_THROW1(E2)
     {
       throw E2();
-      return 0;     
+      return 0;
     }
     
     /* caught by %postexception */

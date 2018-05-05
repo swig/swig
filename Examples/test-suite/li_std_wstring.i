@@ -4,9 +4,9 @@
 
 
 // throw is invalid in C++17 and later, only SWIG to use it
-#define TESTCASE_THROW(TYPES...) throw(TYPES)
+#define TESTCASE_THROW1(T1) throw(T1)
 %{
-#define TESTCASE_THROW(TYPES...)
+#define TESTCASE_THROW1(T1)
 %}
 
 %inline %{
@@ -88,7 +88,7 @@ bool test_equal_abc(const std::wstring &s) {
   return L"abc" == s;
 }
 
-void test_throw() TESTCASE_THROW(std::wstring){
+void test_throw() TESTCASE_THROW1(std::wstring){
   static std::wstring x = L"x";
   
   throw x;

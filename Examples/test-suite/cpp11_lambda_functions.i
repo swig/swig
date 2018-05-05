@@ -27,9 +27,11 @@
 %warnfilter(SWIGWARN_CPP11_LAMBDA) Space1::Space2::lambda20;
 
 // throw is invalid in C++17 and later, only SWIG to use it
-#define TESTCASE_THROW(TYPES...) throw(TYPES)
+#define TESTCASE_THROW0() throw()
+#define TESTCASE_THROW1(T1) throw(T1)
 %{
-#define TESTCASE_THROW(TYPES...)
+#define TESTCASE_THROW0()
+#define TESTCASE_THROW1(T1)
 %}
 
 %inline %{
@@ -57,14 +59,14 @@ void fn() {
 }
 auto lambda6 = [] (int a, int b) mutable { return a + b; };
 auto lambda7 = [] (int x, int y) -> int { return x+y; };
-auto lambda8 = [] (int x, int y) TESTCASE_THROW() -> int { return x+y; };
-auto lambda9 = [] (int x, int y) mutable TESTCASE_THROW() -> int { return x+y; };
-auto lambda10 = [] (int x, int y) TESTCASE_THROW(int) { return x+y; };
-auto lambda11 = [] (int x, int y) mutable TESTCASE_THROW(int) { return x+y; };
+auto lambda8 = [] (int x, int y) TESTCASE_THROW0() -> int { return x+y; };
+auto lambda9 = [] (int x, int y) mutable TESTCASE_THROW0() -> int { return x+y; };
+auto lambda10 = [] (int x, int y) TESTCASE_THROW1(int) { return x+y; };
+auto lambda11 = [] (int x, int y) mutable TESTCASE_THROW1(int) { return x+y; };
 auto lambda12 = [] (int a, int b) { return a + b; }(1, 2);
 auto lambda13 = [] (int a, int b) mutable { return a + b; }(1, 2);
-auto lambda14 = [] () TESTCASE_THROW() {};
-auto lambda15 = [] () mutable TESTCASE_THROW() {};
+auto lambda14 = [] () TESTCASE_THROW0() {};
+auto lambda15 = [] () mutable TESTCASE_THROW0() {};
 auto lambda16 = [] { return thing; };
 auto lambda17 = [] { return thing; }();
 #if defined(SWIG) || (defined(__cplusplus) && __cplusplus >= 201703L)
@@ -72,12 +74,12 @@ auto lambda17 = [] { return thing; }();
 #else
 #define CONSTEXPR
 #endif
-CONSTEXPR auto lambda18 = [] (int x, int y) mutable TESTCASE_THROW(int) { return x+y; };
+CONSTEXPR auto lambda18 = [] (int x, int y) mutable TESTCASE_THROW1(int) { return x+y; };
 
 namespace Space1 {
-  CONSTEXPR auto lambda19 = [] (int x, int y) mutable TESTCASE_THROW(int) { return x+y; };
+  CONSTEXPR auto lambda19 = [] (int x, int y) mutable TESTCASE_THROW1(int) { return x+y; };
   namespace Space2 {
-    CONSTEXPR auto lambda20 = [] (int x, int y) mutable TESTCASE_THROW(int) { return x+y; };
+    CONSTEXPR auto lambda20 = [] (int x, int y) mutable TESTCASE_THROW1(int) { return x+y; };
   }
 }
 

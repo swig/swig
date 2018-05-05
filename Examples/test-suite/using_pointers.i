@@ -5,9 +5,9 @@
 #endif
 
 // throw is invalid in C++17 and later, only SWIG to use it
-#define TESTCASE_THROW(TYPES...) throw(TYPES)
+#define TESTCASE_THROW2(T1, T2) throw(T1, T2)
 %{
-#define TESTCASE_THROW(TYPES...)
+#define TESTCASE_THROW2(T1, T2)
 %}
 
 %inline %{
@@ -16,7 +16,7 @@
     int x;
     virtual ~Foo() { }
     virtual Foo* blah() { return this; }
-    virtual Foo* exception_spec(int what_to_throw) TESTCASE_THROW(int, const char *) {
+    virtual Foo* exception_spec(int what_to_throw) TESTCASE_THROW2(int, const char *) {
       int num = 10;
       const char *str = "exception message";
       if (what_to_throw == 1) throw num;

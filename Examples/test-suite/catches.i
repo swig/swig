@@ -1,9 +1,9 @@
 %module catches
 
 // throw is invalid in C++17 and later, only SWIG to use it
-#define TESTCASE_THROW(TYPES...) throw(TYPES)
+#define TESTCASE_THROW3(T1, T2, T3) throw(T1, T2, T3)
 %{
-#define TESTCASE_THROW(TYPES...)
+#define TESTCASE_THROW3(T1, T2, T3)
 %}
 
 %include <exception.i> // for throws(...) typemap
@@ -23,7 +23,7 @@ void test_catches(int i) {
     throw ThreeException();
   }
 }
-void test_exception_specification(int i) TESTCASE_THROW(int, const char *, const ThreeException&) {
+void test_exception_specification(int i) TESTCASE_THROW3(int, const char *, const ThreeException&) {
   test_catches(i);
 }
 void test_catches_all(int i) {

@@ -9,9 +9,11 @@
 %}
 
 // throw is invalid in C++17 and later, only SWIG to use it
-#define TESTCASE_THROW(TYPES...) throw(TYPES)
+#define TESTCASE_THROW1(T1) throw(T1)
+#define TESTCASE_THROW2(T1, T2) throw(T1, T2)
 %{
-#define TESTCASE_THROW(TYPES...)
+#define TESTCASE_THROW1(T1)
+#define TESTCASE_THROW2(T1, T2)
 %}
 
 %include <std_string.i>
@@ -204,18 +206,18 @@
 
 // Default parameters with exception specifications
 %inline %{
-void exceptionspec(int a = -1) TESTCASE_THROW(int, const char*) {
+void exceptionspec(int a = -1) TESTCASE_THROW2(int, const char*) {
   if (a == -1)
     throw "ciao";
   else
     throw a;
 }
 struct Except {
-  Except(bool throwException, int a = -1) TESTCASE_THROW(int) {
+  Except(bool throwException, int a = -1) TESTCASE_THROW1(int) {
     if (throwException)
       throw a;
   }
-  void exspec(int a = 0) TESTCASE_THROW(int, const char*) {
+  void exspec(int a = 0) TESTCASE_THROW2(int, const char*) {
     ::exceptionspec(a);
   }
 };
