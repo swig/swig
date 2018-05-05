@@ -168,9 +168,9 @@ namespace MyNS {
 %{
 // throw is deprecated in C++11 and invalid in C++17 and later
 #if defined(__cplusplus) && __cplusplus >= 201103L
-#define throw(TYPES...)
+#define throw(TYPE1, TYPE2)
 #else
-#define throw(TYPES...) throw(TYPES)
+#define throw(TYPE1, TYPE2) throw(TYPE1, TYPE2)
 #if defined(_MSC_VER)
   #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
 #endif
@@ -189,7 +189,7 @@ public:
   virtual std::string ping(int excp) throw(int,MyNS::Exception2) = 0;
   virtual std::string pong(int excp) /* throws MyNS::Exception1 MyNS::Exception2 MyNS::Unexpected) */ = 0;
   virtual std::string genericpong(int excp) /* unspecified throws - exception is always DirectorException in C++, translated back to whatever thrown in java */ = 0;
-  virtual std::string directorthrows_warning(int excp) throw(double) { return std::string(); }
+  virtual std::string directorthrows_warning(int excp) throw(int,double) { return std::string(); }
 };
 
 // Make a bar from a foo, so a call to Java Bar
