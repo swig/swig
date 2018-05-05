@@ -183,6 +183,7 @@ CPP_TEST_CASES += \
 	director_enum \
 	director_exception \
 	director_exception_catches \
+	director_exception_nothrow \
 	director_extend \
 	director_finalizer \
 	director_frob \
