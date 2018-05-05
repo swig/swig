@@ -2151,8 +2151,8 @@ int Language::classDirectorDestructor(Node *n) {
   File *f_directors = Swig_filebyname("director");
   File *f_directors_h = Swig_filebyname("director_h");
   if (Getattr(n, "throw")) {
-    Printf(f_directors_h, "    virtual ~%s() throw ();\n", DirectorClassName);
-    Printf(f_directors, "%s::~%s() throw () {\n}\n\n", DirectorClassName, DirectorClassName);
+    Printf(f_directors_h, "    virtual ~%s() throw();\n", DirectorClassName);
+    Printf(f_directors, "%s::~%s() throw() {\n}\n\n", DirectorClassName, DirectorClassName);
   } else {
     Printf(f_directors_h, "    virtual ~%s();\n", DirectorClassName);
     Printf(f_directors, "%s::~%s() {\n}\n\n", DirectorClassName, DirectorClassName);
