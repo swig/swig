@@ -114,7 +114,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
       }
 
       void doAdd(jint index, const value_type& value) throw (std::out_of_range) {
-        const jint size = static_cast<std::vector< CTYPE >::size_type>(self->size());
+        jint size = static_cast<jint>(self->size());
         if (0 <= index && index <= size) {
           self->insert(self->begin() + index, value);
         } else {
@@ -123,7 +123,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
       }
 
       value_type doRemove(jint index) throw (std::out_of_range) {
-        const jint size = static_cast<std::vector< CTYPE >::size_type>(self->size());
+        jint size = static_cast<jint>(self->size());
         if (0 <= index && index < size) {
           CTYPE const old_value = (*self)[index];
           self->erase(self->begin() + index);
@@ -134,7 +134,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
       }
 
       CREF_TYPE doGet(jint index) throw (std::out_of_range) {
-        const jint size = static_cast<std::vector< CTYPE >::size_type>(self->size());
+        jint size = static_cast<jint>(self->size());
         if (index >= 0 && index < size)
           return (*self)[index];
         else
@@ -142,7 +142,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
       }
 
       value_type doSet(jint index, const value_type& value) throw (std::out_of_range) {
-        const jint size = static_cast<std::vector< CTYPE >::size_type>(self->size());
+        jint size = static_cast<jint>(self->size());
         if (index >= 0 && index < size) {
           CTYPE const old_value = (*self)[index];
           (*self)[index] = value;
@@ -153,7 +153,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
       }
 
       void doRemoveRange(jint fromIndex, jint toIndex) throw (std::out_of_range) {
-        const jint size = static_cast<std::vector< CTYPE >::size_type>(self->size());
+        jint size = static_cast<jint>(self->size());
         if (0 <= fromIndex && fromIndex <= toIndex && toIndex <= size) {
           self->erase(self->begin() + fromIndex, self->begin() + toIndex);
         } else {
