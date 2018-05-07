@@ -103,6 +103,7 @@
  * would that be easier to use than a few simple string operations? 
  * ----------------------------------------------------------------------------- */
 
+extern int MaxTypeNameLength;
 
 SwigType *NewSwigType(int t) {
   switch (t) {
@@ -1250,6 +1251,15 @@ static String *manglestr_default(const SwigType *s) {
 }
 #endif
 
+unsigned long string_hash(char *str)
+{
+  unsigned long hash = 5381;
+  int c;
+  while (c = *str++)
+    hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+  return hash;
+}
+
 String *SwigType_manglestr(const SwigType *s) {
 #if 0
   /* Debugging checks to ensure a proper SwigType is passed in and not a stringified type */
@@ -1259,7 +1269,18 @@ String *SwigType_manglestr(const SwigType *s) {
   else if (Strstr(s, "*") || Strstr(s, "&") || Strstr(s, "["))
     Printf(stderr, "SwigType_manglestr error: %s\n", s);
 #endif
-  return manglestr_default(s);
+  String* tmp = manglestr_default(s);
+  if (MaxTypeNameLength > 0 && Len(tmp)>MaxTypeNameLength)
+  {	
+    String* result = NewStringWithSize(tmp,MaxTypeNameLength-8);
+    String* t = NewStringf("%08x", string_hash(Char(tmp)));
+    Append(result, t);
+    Delete(t);
+    Delete(tmp);
+    return result;
+  }
+  else
+  return tmp;
 }
 
 /* -----------------------------------------------------------------------------

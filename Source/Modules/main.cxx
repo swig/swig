@@ -36,6 +36,7 @@ int Verbose = 0;
 int AddExtern = 0;
 int NoExcept = 0;
 int SwigRuntime = 0;		// 0 = no option, 1 = -runtime, 2 = -noruntime
+int MaxTypeNameLength = 0;
 
 /* Suppress warning messages for private inheritance, preprocessor evaluation etc...
    WARN_PP_EVALUATION                           202
@@ -127,6 +128,7 @@ static const char *usage3 = (const char *) "\
      -nofastdispatch - Disable fast dispatch mode (default)\n\
      -nopreprocess   - Skip the preprocessor step\n\
      -notemplatereduce - Disable reduction of the typedefs in templates\n\
+     -short-types <n> - Shorten mangled descriptor type names to max length [n], n=100 if omitted. [n] must be >= 8.\n\
 ";
 
 static const char *usage4 = (const char *) "\
@@ -847,7 +849,23 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-browse") == 0) {
 	browse = 1;
 	Swig_mark_arg(i);
-      } else if ((strcmp(argv[i], "-debug-typedef") == 0) || (strcmp(argv[i], "-dump_typedef") == 0)) {
+      } else if (strcmp(argv[i], "-short-types") == 0) {
+        Swig_mark_arg(i);
+        if (argv[i + 1]) {
+          MaxTypeNameLength = atoi(argv[i + 1]);
+          if (MaxTypeNameLength != 0) {
+            if (MaxTypeNameLength >= 8) {
+              Swig_mark_arg(i + 1);
+            } else {
+              Swig_arg_error();
+            }
+          } else {
+          	MaxTypeNameLength = 100;
+          }
+        } else {
+          MaxTypeNameLength = 100;
+        }
+	} else if ((strcmp(argv[i], "-debug-typedef") == 0) || (strcmp(argv[i], "-dump_typedef") == 0)) {
 	dump_typedef = 1;
 	Swig_mark_arg(i);
       } else if ((strcmp(argv[i], "-debug-classes") == 0) || (strcmp(argv[i], "-dump_classes") == 0)) {
