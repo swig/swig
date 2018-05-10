@@ -383,7 +383,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
         return dim_vector(1,1);
 
       // Return value should be cell or matrix of integers
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+      if (out.iscell()) {
+#else
       if (out.is_cell()) {
+#endif
         const Cell & c=out.cell_value();
         int ndim = c.rows();
         if (ndim==1 && c.columns()!=1) ndim = c.columns();
@@ -1238,7 +1242,13 @@ namespace Swig {
   }
 
   SWIGRUNTIME octave_swig_type *swig_value_deref(octave_value ov) {
-    if (ov.is_cell() && ov.rows() == 1 && ov.columns() == 1)
+    if (
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+      ov.iscell()
+#else
+      ov.is_cell()
+#endif
+      && ov.rows() == 1 && ov.columns() == 1)
       ov = ov.cell_value()(0);
     return swig_value_deref(*ov.internal_rep());
   }
@@ -1357,7 +1367,13 @@ SWIGRUNTIME octave_value SWIG_Octave_NewPointerObj(void *ptr, swig_type_info *ty
 }
 
 SWIGRUNTIME int SWIG_Octave_ConvertPtrAndOwn(octave_value ov, void **ptr, swig_type_info *type, int flags, int *own) {
-  if (ov.is_cell() && ov.rows() == 1 && ov.columns() == 1)
+    if (
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+      ov.iscell()
+#else
+      ov.is_cell()
+#endif
+      && ov.rows() == 1 && ov.columns() == 1)
     ov = ov.cell_value()(0);
   if (!ov.is_defined() ||
       (ov.is_matrix_type() && ov.rows() == 0 && ov.columns() == 0) ) {

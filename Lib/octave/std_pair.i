@@ -38,7 +38,13 @@
       }
 
       static int asval(const octave_value& obj, std::pair<T,U> *val) {
-	if (obj.is_cell()) {
+	if (
+%#if SWIG_OCTAVE_PREREQ(4,4,0)
+          obj.iscell()
+%#else
+          obj.is_cell()
+%#endif
+        ) {
 	  Cell c=obj.cell_value();
 	  if (c.numel()<2) {
 	    error("pair from Cell array requires at least two elements");
@@ -96,7 +102,13 @@
       }
 
       static int asptr(const octave_value& obj, std::pair<T,U> **val) {
-	if (obj.is_cell()) {
+	if (
+%#if SWIG_OCTAVE_PREREQ(4,4,0)
+          obj.iscell()
+%#else
+          obj.is_cell()
+%#endif
+        ) {
 	  Cell c=obj.cell_value();
 	  if (c.numel()<2) {
 	    error("pair from Cell array requires at least two elements");
