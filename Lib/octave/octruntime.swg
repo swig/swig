@@ -375,7 +375,12 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
     SWIG_InitializeModule(0);
     SWIG_PropagateClientData();
 
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+    octave::call_stack& stack = octave::interpreter::the_interpreter()->get_call_stack();
+    octave_function *me = stack.current();
+#else
     octave_function *me = octave_call_stack::current();
+#endif
 
     if (!SWIG_Octave_InstallFunction(me, "subclass")) {
       return octave_value_list();
