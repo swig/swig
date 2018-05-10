@@ -320,6 +320,8 @@ static const char *const SWIG_name_usage = "-*- texinfo -*- \n\
 Loads the SWIG-generated module `" SWIG_name_d "'.\n\
 @end deftypefn";
 
+void __swig_atexit__(void) { ::_Exit(0); }
+
 DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
 
   static octave_swig_type* module_ns = 0;
@@ -330,7 +332,9 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
   // version 3.4.*, but reappeared in 4.2.*, so turn on for all versions after 3.2.*.
   // can be turned off with macro definition.
 #ifndef SWIG_OCTAVE_NO_SEGFAULT_HACK
-#if SWIG_OCTAVE_PREREQ(3,2,0)
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+  atexit(__swig_atexit__);
+#elif SWIG_OCTAVE_PREREQ(3,2,0)
   octave_exit = ::_Exit;
 #endif
 #endif
