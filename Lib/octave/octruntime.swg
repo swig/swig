@@ -170,7 +170,7 @@ SWIGINTERN bool SWIG_Octave_InstallFunction(octave_function *octloadfcn, std::st
     frame.protect_var(discard_error_messages);          discard_error_messages = true;
     frame.protect_var(discard_warning_messages);        discard_warning_messages = true;
 #else
-    unwind_protect::begin_frame("SWIG_Octave_LoadModule");
+    unwind_protect::begin_frame("SWIG_Octave_InstallFunction");
     unwind_protect_int(error_state);                    error_state = 0;
     unwind_protect_int(warning_state);                  warning_state = 0;
     unwind_protect_bool(discard_error_messages);        discard_error_messages = true;
