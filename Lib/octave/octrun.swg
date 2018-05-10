@@ -405,7 +405,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
           if (error_state) return dim_vector(1,1);
         }
         return d;
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+      } else if (out.is_matrix_type() || out.isnumeric() ) {
+#else
       } else if (out.is_matrix_type() || out.is_numeric_type() ) {
+#endif
         if (out.rows()==1 || out.columns()==1) {
            Array<int> a = out.int_vector_value();
            if (error_state) return dim_vector(1,1);
