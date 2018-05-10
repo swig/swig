@@ -447,10 +447,12 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
       }
     }
 
-#if !SWIG_OCTAVE_PREREQ(3,2,0)
-    mlock(me->name());
-#else
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+    octave::interpreter::the_interpreter()->mlock();
+#elif SWIG_OCTAVE_PREREQ(3,2,0)
     mlock();
+#else
+    mlock(me->name());
 #endif
 
   }
