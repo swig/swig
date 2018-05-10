@@ -15,6 +15,10 @@
 #include "swigmod.h"
 #include "cparse.h"
 
+#define R_MEMBER_NORMAL 0
+#define R_MEMBER_SET 1
+#define R_MEMBER_GET 2
+
 static String* replaceInitialDash(const String *name)
 {
   String *retval;
@@ -415,9 +419,15 @@ protected:
 
 
   int processing_class_member_function;
-  List *class_member_functions;
-  List *class_member_set_functions;
-
+  // List *class_member_functions;
+  // List *class_member_set_functions;
+  // Spread out the lists so that they are simpler to process
+  // by storing the type of the method (i.e. set, get or nothing)
+  // and having separate lists for name, membername and wrapper
+  List *class_member_function_types;
+  List *class_member_function_names;
+  List *class_member_function_membernames;
+  List *class_member_function_wrappernames;
   /* */
   Hash *ClassMemberTable;
   Hash *ClassMethodsTable;
@@ -474,8 +484,12 @@ R::R() :
   member_name(0),
   class_name(0),
   processing_class_member_function(0),
-  class_member_functions(0),
-  class_member_set_functions(0),
+  // class_member_functions(0),
+  // class_member_set_functions(0),
+  class_member_function_types(0),
+  class_member_function_names(0),
+  class_member_function_wrappernames(0),
+  class_member_function_membernames(0),
   ClassMemberTable(0),
   ClassMethodsTable(0),
   SClassDefs(0),
@@ -1031,6 +1045,11 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
       The other pairs are  member name and the name of the R function to access it.
  out - the stream where we write the code.
 ********************************************************************/
+//int R::OutputMemberReferenceMethod(String *className, int isSet,  //
+//				   might not need to pass isSet any more
+//				   List *memberList, List *nameList,
+//				   List *typeList, File *out) 
+
 int R::OutputMemberReferenceMethod(String *className, int isSet,
 				   List *el, File *out) {
   int numMems = Len(el), j;
@@ -1091,6 +1110,7 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
       char *ptr = Char(dup);
       ptr = &ptr[Len(dup) - 3];
 
+      // Check the type here instead of the name
       if (!strcmp(ptr, "get")) {
 	Printf(f->code, "%s'%s'", first ? "" : ", ", item);
 	first = 0;
@@ -1310,6 +1330,7 @@ int R::variableWrapper(Node *n) {
 
 void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
 		    int isSet) {
+#if 0
   if(isSet < 0) {
     int n = Len(name);
     char *ptr = Char(name);
@@ -1317,7 +1338,7 @@ void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
       isSet = Strcmp(NewString(&ptr[n-4]), "_set") == 0;
     }
   }
-
+/// RJB
   List *l = isSet ? class_member_set_functions : class_member_functions;
 
   if(!l) {
@@ -1334,6 +1355,20 @@ void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
   String *tmp = NewString("");
   Wrapper_print(wrapper, tmp);
   Append(l, tmp);
+#endif
+  if (!class_member_function_names) {
+    class_member_function_names = NewList();
+    class_member_function_membernames = NewList();
+    class_member_function_wrappernames = NewList();
+    class_member_function_types = NewList();
+  }
+  Append(class_member_function_types, isSet);
+  Append(class_member_function_names, name);
+  Append(class_member_function_membernames, memberName);
+  
+  String *tmp = NewString("");
+  Wrapper_print(wrapper, tmp);
+  Append(class_member_function_wrappernames, tmp);
   // if we could put the wrapper in directly:       Append(l, Copy(sfun));
   if (debugMode)
     Printf(stdout, "Adding accessor: %s (%s) => %s\n", memberName, name, tmp);
@@ -2235,7 +2270,13 @@ int R::functionWrapper(Node *n) {
      Would like to be able to do this so that we can potentially insert
   */
   if(processing_member_access_function || processing_class_member_function) {
-    addAccessor(member_name, sfun, iname);
+    int method_type(R_MEMBER_NORMAL);
+    if (GetFlag("memberset", n)) {
+      method_type = R_MEMBER_SET;
+    } else if (GetFlag("memberget", n)) {
+      method_type = R_MEMBER_GET;
+    }
+    addAccessor(member_name, sfun, iname, method_type);
   }
 
   if (Getattr(n, "sym:overloaded") &&
@@ -2428,19 +2469,37 @@ int R::classDeclaration(Node *n) {
 
 
   // OutputArrayMethod(name, class_member_functions, sfile);
+#if 0
+  // RJB - this bit will need to change
   if (class_member_functions)
     OutputMemberReferenceMethod(name, 0, class_member_functions, sfile);
   if (class_member_set_functions)
     OutputMemberReferenceMethod(name, 1, class_member_set_functions, sfile);
+#else
+  // filter the class_member_lists by type, then call
+  // OutputMemberReferenceMethod
+  
+#endif
+  
+  // if(class_member_functions) {
+  //   Delete(class_member_functions);
+  //   class_member_functions = NULL;
+  // }
+  // if(class_member_set_functions) {
+  //   Delete(class_member_set_functions);
+  //   class_member_set_functions = NULL;
+  // }
 
-  if(class_member_functions) {
-    Delete(class_member_functions);
-    class_member_functions = NULL;
-  }
-  if(class_member_set_functions) {
-    Delete(class_member_set_functions);
-    class_member_set_functions = NULL;
-  }
+  if (class_member_function_types) {
+    Delete(class_member_function_types);
+    class_member_function_types = NULL;
+    Delete(class_member_function_names);
+    class_member_function_names = NULL;
+    Delete(class_member_function_membernames);
+    class_member_function_membernames = NULL;
+    Delete(class_member_function_wrappernames);
+    class_member_function_wrappernames = NULL;
+   }
   if (Getattr(n, "has_destructor")) {
     Printf(sfile, "setMethod('delete', '_p%s', function(obj) {delete%s(obj)})\n",
 	   getRClassName(Getattr(n, "name")),
