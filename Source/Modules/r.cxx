@@ -15,10 +15,6 @@
 #include "swigmod.h"
 #include "cparse.h"
 
-#define R_MEMBER_NORMAL 0
-#define R_MEMBER_SET 1
-#define R_MEMBER_GET 2
-
 static String* replaceInitialDash(const String *name)
 {
   String *retval;
@@ -337,7 +333,10 @@ protected:
   int generateCopyRoutines(Node *n);
   int DumpCode(Node *n);
 
-  int OutputMemberReferenceMethod(String *className, int isSet, List *el, File *out);
+  //int OutputMemberReferenceMethod(String *className, int isSet, List *el, File *out);
+  int OutputMemberReferenceMethod(String *className, int isSet,  
+                                  List *memberList, List *nameList,
+                                  List *typeList, File *out);
   int OutputArrayMethod(String *className, List *el, File *out);
   int OutputClassMemberTable(Hash *tb, File *out);
   int OutputClassMethodsTable(File *out);
@@ -386,7 +385,7 @@ protected:
 
 
   void addAccessor(String *memberName, Wrapper *f,
-		   String *name, int isSet = -1);
+		   String *name, String *methodSetGet);
 
   static int getFunctionPointerNumArgs(Node *n, SwigType *tt);
 
@@ -417,6 +416,9 @@ protected:
   String *member_name;
   String *class_name;
 
+  String *R_MEMBER_NORMAL;
+  String *R_MEMBER_SET;
+  String *R_MEMBER_GET;
 
   int processing_class_member_function;
   // List *class_member_functions;
@@ -483,13 +485,16 @@ R::R() :
   processing_member_access_function(0),
   member_name(0),
   class_name(0),
+  R_MEMBER_NORMAL(NewString("normal")),
+  R_MEMBER_SET(NewString("set")),
+  R_MEMBER_GET(NewString("get")),
   processing_class_member_function(0),
   // class_member_functions(0),
   // class_member_set_functions(0),
   class_member_function_types(0),
   class_member_function_names(0),
-  class_member_function_wrappernames(0),
   class_member_function_membernames(0),
+  class_member_function_wrappernames(0),
   ClassMemberTable(0),
   ClassMethodsTable(0),
   SClassDefs(0),
@@ -1022,7 +1027,7 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
     }
 
     //        OutputArrayMethod(className, el, out);  
-    OutputMemberReferenceMethod(className, isSet, el, out);
+    //OutputMemberReferenceMethod(className, isSet, el, out);
 
     if(outputNamespaceInfo)
       Printf(s_namespace, "\"%s\"%s", className, i < n-1 ? "," : "");
@@ -1045,14 +1050,10 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
       The other pairs are  member name and the name of the R function to access it.
  out - the stream where we write the code.
 ********************************************************************/
-//int R::OutputMemberReferenceMethod(String *className, int isSet,  //
-//				   might not need to pass isSet any more
-//				   List *memberList, List *nameList,
-//				   List *typeList, File *out) 
-
-int R::OutputMemberReferenceMethod(String *className, int isSet,
-				   List *el, File *out) {
-  int numMems = Len(el), j;
+int R::OutputMemberReferenceMethod(String *className, int isSet,  
+				   List *memberList, List *nameList,
+				   List *typeList, File *out) {
+  int numMems = Len(memberList), j;
   int varaccessor = 0;
   if (numMems == 0)
     return SWIG_OK;
@@ -1067,13 +1068,20 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
 
   Node *itemList = NewHash();
   bool has_prev = false;
-  for(j = 0; j < numMems; j+=3) {
-    String *item = Getitem(el, j);
-    String *dup = Getitem(el, j + 1);
-    char *ptr = Char(dup);
-    ptr = &ptr[Len(dup) - 3];
+  for(j = 0; j < numMems; j++) {
+    String *item = Getitem(memberList, j);
+    String *dup = Getitem(nameList, j);
+    String *setgetmethod = Getitem(typeList, j);
 
-    if (!strcmp(ptr, "get"))
+    // skip this one if it isn't a set method but we're
+    // creating a modification method
+    if (isSet && (setgetmethod != R_MEMBER_SET))
+      continue;
+    // skip the set methods when creating accessor methods
+    if ((!isSet) && (setgetmethod == R_MEMBER_SET))
+      continue;
+
+    if ((!isSet) && (setgetmethod == R_MEMBER_GET))
       varaccessor++;
 
     if (Getattr(itemList, item))
@@ -1103,17 +1111,15 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
 
   if (!isSet && varaccessor > 0) {
     Printf(f->code, "%svaccessors = c(", tab8);
-    int first = 1;
-    for(j = 0; j < numMems; j+=3) {
-      String *item = Getitem(el, j);
-      String *dup = Getitem(el, j + 1);
-      char *ptr = Char(dup);
-      ptr = &ptr[Len(dup) - 3];
+    bool first = true;
+    for(j = 0; j < numMems; j++) {
+      String *item = Getitem(memberList, j);
+      String *setgetmethod = Getitem(typeList, j);
 
       // Check the type here instead of the name
-      if (!strcmp(ptr, "get")) {
+      if (setgetmethod == R_MEMBER_GET) {
 	Printf(f->code, "%s'%s'", first ? "" : ", ", item);
-	first = 0;
+	first = false;
       }
     }
     Printf(f->code, ");\n");
@@ -1329,7 +1335,7 @@ int R::variableWrapper(Node *n) {
 
 
 void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
-		    int isSet) {
+		    String *methodSetGet) {
 #if 0
   if(isSet < 0) {
     int n = Len(name);
@@ -1362,7 +1368,7 @@ void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
     class_member_function_wrappernames = NewList();
     class_member_function_types = NewList();
   }
-  Append(class_member_function_types, isSet);
+  Append(class_member_function_types, methodSetGet);
   Append(class_member_function_names, name);
   Append(class_member_function_membernames, memberName);
   
@@ -1828,10 +1834,10 @@ int R::functionWrapper(Node *n) {
     /* Add the name of this member to a list for this class_name.
        We will dump all these at the end. */
 
-    int n = Len(iname);
+    int nlen = Len(iname);
     char *ptr = Char(iname);
     bool isSet(0);
-    if (n > 4) isSet = Strcmp(NewString(&ptr[n-4]), "_set") == 0;
+    if (nlen > 4) isSet = Strcmp(NewString(&ptr[nlen-4]), "_set") == 0;
 
 
     String *tmp = NewString("");
@@ -2270,10 +2276,10 @@ int R::functionWrapper(Node *n) {
      Would like to be able to do this so that we can potentially insert
   */
   if(processing_member_access_function || processing_class_member_function) {
-    int method_type(R_MEMBER_NORMAL);
-    if (GetFlag("memberset", n)) {
+    String *method_type = R_MEMBER_NORMAL;
+    if (GetFlag(n, "memberset")) {
       method_type = R_MEMBER_SET;
-    } else if (GetFlag("memberget", n)) {
+    } else if (GetFlag(n, "memberget")) {
       method_type = R_MEMBER_GET;
     }
     addAccessor(member_name, sfun, iname, method_type);
@@ -2476,9 +2482,20 @@ int R::classDeclaration(Node *n) {
   if (class_member_set_functions)
     OutputMemberReferenceMethod(name, 1, class_member_set_functions, sfile);
 #else
-  // filter the class_member_lists by type, then call
-  // OutputMemberReferenceMethod
-  
+  if (class_member_function_types) {
+    // count the number of set methods
+    unsigned setcount = 0;
+    Iterator ItType;
+    for (ItType = First(class_member_function_types) ; ItType.item; ItType = Next(ItType)) {
+      if (ItType.item == R_MEMBER_SET) ++setcount;
+    }
+    if (Len(class_member_function_types) - setcount > 0) {
+      OutputMemberReferenceMethod(name, 0, class_member_function_membernames, class_member_function_names, class_member_function_types, sfile);
+    }
+    if (setcount > 0) {
+      OutputMemberReferenceMethod(name, 1, class_member_function_membernames, class_member_function_names, class_member_function_types, sfile);
+    }
+ }
 #endif
   
   // if(class_member_functions) {
