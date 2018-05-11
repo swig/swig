@@ -18,7 +18,11 @@ SWIGINTERNINLINE octave_value
 SWIGINTERN int
 SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
 {
+%#if SWIG_OCTAVE_PREREQ(4,4,0)
+  if (!ov.islogical())
+%#else
   if (!ov.is_bool_type())
+%#endif
     return SWIG_ERROR;
   if (val)
     *val = ov.bool_value();
