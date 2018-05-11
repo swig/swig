@@ -1279,12 +1279,24 @@ SWIGRUNTIME octave_value swig_unary_op_##name(const octave_base_value &x) { \
 SWIGRUNTIME octave_value swig_binary_op_##name(const octave_base_value&lhs,const octave_base_value &rhs) { \
   return octave_swig_type::dispatch_binary_op(lhs,rhs,#name); \
 }
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+#define swigreg_unary_op(name) \
+if (!octave_value_typeinfo::lookup_unary_op(octave_value::op_##name,tid)) \
+typeinfo.register_unary_op(octave_value::op_##name,tid,swig_unary_op_##name);
+#else
 #define swigreg_unary_op(name) \
 if (!octave_value_typeinfo::lookup_unary_op(octave_value::op_##name,tid)) \
 octave_value_typeinfo::register_unary_op(octave_value::op_##name,tid,swig_unary_op_##name);
+#endif
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+#define swigreg_binary_op(name) \
+if (!octave_value_typeinfo::lookup_binary_op(octave_value::op_##name,tid1,tid2)) \
+typeinfo.register_binary_op(octave_value::op_##name,tid1,tid2,swig_binary_op_##name);
+#else
 #define swigreg_binary_op(name) \
 if (!octave_value_typeinfo::lookup_binary_op(octave_value::op_##name,tid1,tid2)) \
 octave_value_typeinfo::register_binary_op(octave_value::op_##name,tid1,tid2,swig_binary_op_##name);
+#endif
 
   swig_unary_op(not);
   swig_unary_op(uplus);
@@ -1318,6 +1330,9 @@ octave_value_typeinfo::register_binary_op(octave_value::op_##name,tid1,tid2,swig
   swig_binary_op(el_or);
 
   SWIGRUNTIME void SWIG_InstallUnaryOps(int tid) {
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+    octave::type_info& typeinfo = octave::interpreter::the_interpreter()->get_type_info();
+#endif
     swigreg_unary_op(not);
     swigreg_unary_op(uplus);
     swigreg_unary_op(uminus);
@@ -1327,6 +1342,9 @@ octave_value_typeinfo::register_binary_op(octave_value::op_##name,tid1,tid2,swig
     swigreg_unary_op(decr);
   }
   SWIGRUNTIME void SWIG_InstallBinaryOps(int tid1, int tid2) {
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+    octave::type_info& typeinfo = octave::interpreter::the_interpreter()->get_type_info();
+#endif
     swigreg_binary_op(add);
     swigreg_binary_op(sub);
     swigreg_binary_op(mul);
