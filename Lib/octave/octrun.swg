@@ -151,6 +151,67 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     const swig_type_info **base;
   };
 
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+  // in Octave 4.4 behaviour of octave_builtin() appears to have changed and 'self' argument is no longer passed
+  // to function (maybe because this is now a 'method'??) so need to create our own octave_function subclass
+#define SWIG_OCTAVE_BOUND_FUNC(func, args) octave_value(new octave_swig_bound_func(func, args))
+  class octave_swig_bound_func : public octave_function {
+  public:
+
+    octave_swig_bound_func(void) : octave_function(), method(0), first_args()
+      { }
+
+    octave_swig_bound_func(octave_function* _method, octave_value_list _first_args)
+      : octave_function("", ""), method(_method), first_args(_first_args)
+      { }
+
+    octave_swig_bound_func(const octave_swig_bound_func& f) = delete;
+
+    octave_swig_bound_func& operator= (const octave_swig_bound_func& f) = delete;
+
+    ~octave_swig_bound_func(void) = default;
+
+    bool is_function(void) const { return true; }
+
+    octave_function* function_value(bool = false) { return this; }
+
+    octave_value_list call(octave::tree_evaluator& tw, int nargout = 0, const octave_value_list& args = octave_value_list()) {
+      octave_value_list all_args;
+      all_args.append(first_args);
+      all_args.append(args);
+      return method->call(tw, nargout, all_args);
+    }
+
+    octave_value subsref(const std::string &ops, const std::list < octave_value_list > &idx) {
+      octave_value_list ovl = subsref(ops, idx, 1);
+      return ovl.length() ? ovl(0) : octave_value();
+    }
+
+    octave_value_list subsref(const std::string &ops, const std::list < octave_value_list > &idx, int nargout) {
+      assert(ops.size() > 0);
+      assert(ops.size() == idx.size());
+      if (ops != "(")
+        error("invalid function call");
+      octave::tree_evaluator& tw = octave::interpreter::the_interpreter()->get_evaluator();
+      return call(tw, nargout, *idx.begin());
+    }
+
+  protected:
+
+    octave_function* method;
+    octave_value_list first_args;
+
+    std::set<std::string> dispatch_classes;
+
+  private:
+
+    DECLARE_OV_TYPEID_FUNCTIONS_AND_DATA
+  };
+  DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(octave_swig_bound_func, "octave_swig_bound_func", "octave_swig_bound_func");
+#else
+#define SWIG_OCTAVE_BOUND_FUNC(func, args) octave_value(func)
+#endif
+
   // octave_swig_type plays the role of both the shadow class and the class 
   // representation within Octave, since there is no support for classes.
   //
@@ -323,13 +384,17 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     }
 
     octave_value_list member_deref(member_value_pair *m, const octave_value_list &args) {
-      if (m->second.is_defined())
-	return m->second;
-      else if (m->first) {
+      if (m->second.is_defined()) {
+        if (m->second.is_function() || m->second.is_function_handle()) {
+          return SWIG_OCTAVE_BOUND_FUNC(m->second.function_value(), args);
+        } else {
+          return m->second;
+        }
+      } else if (m->first) {
 	if (m->first->get_method)
 	  return m->first->get_method(args, 1);
 	else if (m->first->method)
-	  return octave_value(new octave_builtin(m->first->method));
+          return SWIG_OCTAVE_BOUND_FUNC(new octave_builtin(m->first->method), args);
       }
       error("undefined member");
       return octave_value_list();
@@ -860,7 +925,14 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       octave_function *fcn = is_valid_function(symbol, std::string(), false);
       if (!fcn)
 	return false;
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+      octave::tree_evaluator& tw = octave::interpreter::the_interpreter()->get_evaluator();
+      octave_value_list retval = fcn->call(tw, 1, args);
+      if (retval.length() == 1)
+        ret = retval(0);
+#else
       ret = fcn->do_multi_index_op(1, args)(0);
+#endif
       return true;
     }
 

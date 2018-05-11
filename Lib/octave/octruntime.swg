@@ -370,8 +370,38 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
 #endif
 #endif
 
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+    {
+      octave::type_info& typeinfo = octave::interpreter::the_interpreter()->get_type_info();
+      string_vector types = typeinfo.installed_type_names();
+      bool register_octave_swig_ref = true;
+      bool register_octave_swig_packed = true;
+      bool register_octave_swig_bound_func = true;
+      for (int i = 0; i < types.numel(); ++i) {
+        if (types(i) == octave_swig_ref::static_type_name()) {
+          register_octave_swig_ref = false;
+        }
+        if (types(i) == octave_swig_packed::static_type_name()) {
+          register_octave_swig_packed = false;
+        }
+        if (types(i) == octave_swig_bound_func::static_type_name()) {
+          register_octave_swig_bound_func = false;
+        }
+      }
+      if (register_octave_swig_ref) {
+        octave_swig_ref::register_type();
+      }
+      if (register_octave_swig_packed) {
+        octave_swig_packed::register_type();
+      }
+      if (register_octave_swig_bound_func) {
+        octave_swig_bound_func::register_type();
+      }
+    }
+#else
     octave_swig_ref::register_type();
     octave_swig_packed::register_type();
+#endif
     SWIG_InitializeModule(0);
     SWIG_PropagateClientData();
 
