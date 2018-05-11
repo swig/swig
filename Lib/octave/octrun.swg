@@ -484,8 +484,12 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       }
       types.insert(types.end(), rhs.types.begin(), rhs.types.end());
       members.insert(rhs.members.begin(), rhs.members.end());
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+      assign(rhs.swig_type_name(), rhs.as_value());
+#else
       rhs.types.clear();
       rhs.members.clear();
+#endif
     }
 
     typedef member_map::const_iterator swig_member_const_iterator;
