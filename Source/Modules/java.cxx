@@ -1987,8 +1987,15 @@ public:
 	Replaceall(destruct, "$jnicall", destructor_call);
       else
 	Replaceall(destruct, "$jnicall", "throw new UnsupportedOperationException(\"C++ destructor does not have public access\")");
-      if (*Char(destruct))
-	Printv(proxy_class_def, "\n  ", destruct_methodmodifiers, " void ", destruct_methodname, "()", destructor_throws_clause, " ", destruct, "\n", NIL);
+      if (*Char(destruct)) {
+	Printv(proxy_class_def, "\n  ", NIL);
+	const String *methodmods = Getattr(n, "destructmethodmodifiers");
+	if (methodmods)
+	  Printv(proxy_class_def, methodmods, NIL);
+	else
+	  Printv(proxy_class_def, destruct_methodmodifiers, NIL);
+	Printv(proxy_class_def, " void ", destruct_methodname, "()", destructor_throws_clause, " ", destruct, "\n", NIL);
+      }
     }
     if (*Char(interface_upcasts))
       Printv(proxy_class_def, interface_upcasts, NIL);
@@ -2830,6 +2837,9 @@ public:
     if (proxy_flag) {
       Printv(destructor_call, full_imclass_name, ".", Swig_name_destroy(getNSpace(), symname), "(swigCPtr)", NIL);
       generateThrowsClause(n, destructor_throws_clause);
+      const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
+      if (methodmods)
+	Setattr(getCurrentClass(), "destructmethodmodifiers", methodmods);
     }
     return SWIG_OK;
   }

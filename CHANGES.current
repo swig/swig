@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-05-11: wsfulton
+            [C#, D, Java] Add support so that the %csmethodmodifiers, %dmethodmodifiers,
+            %javamethodmodifiers can modify the method modifiers for the destructor wrappers
+            in the proxy class: dispose, Dispose, delete. With this feature, it is now possible
+            to make a C# proxy class sealed, eg when wrapping a class X, the virtual method modifiers
+            can be removed using:
+
+              %typemap(csclassmodifiers) X "public sealed class"
+              %csmethodmodifiers X::~X "public /*virtual*/";
+
 2018-04-18: olly
 	    [Python] Suppress new pycodestyle warning:
 	    E252 missing whitespace around parameter equals

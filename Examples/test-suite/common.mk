@@ -170,6 +170,7 @@ CPP_TEST_CASES += \
 	defvalue_constructor \
 	derived_byvalue \
 	derived_nested \
+	destructor_methodmodifiers \
 	destructor_reprotected \
 	director_abstract \
 	director_alternating \

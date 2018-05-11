@@ -6560,6 +6560,8 @@ used for all proxy classes except those which have a base class
 <br>
 Note that the <tt>delete()</tt> method name is configurable and is specified by the <tt>methodname</tt> attribute.
 The method modifiers are also configurable via the <tt>methodmodifiers</tt> attribute.
+If a <tt>%javamethodmodifiers</tt> is attached to the class' destructor,
+it will be used in preference to the <tt>methodmodifiers</tt> typemap attribute for the class.
 </div>
 
 <p><tt>%typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized")</tt></p>
@@ -6571,6 +6573,8 @@ same as "javadestruct" but only used for derived proxy classes
 <br>
 Note that the <tt>delete()</tt> method name is configurable and is specified by the <tt>methodname</tt> attribute.
 The method modifiers are also configurable via the <tt>methodmodifiers</tt> attribute.
+If a <tt>%javamethodmodifiers</tt> is attached to the class' destructor,
+it will be used in preference to the <tt>methodmodifiers</tt> typemap attribute for the class.
 </div>
 
 <p><tt>%typemap(javaimports)</tt></p>

@@ -1298,7 +1298,12 @@ public:
   virtual int destructorHandler(Node *n) {
     Language::destructorHandler(n);
     String *symname = Getattr(n, "sym:name");
+
     Printv(destructor_call, im_dmodule_fq_name, ".", Swig_name_destroy(getNSpace(),symname), "(cast(void*)swigCPtr)", NIL);
+    const String *methodmods = Getattr(n, "feature:d:methodmodifiers");
+    if (methodmods)
+      Setattr(getCurrentClass(), "destructmethodmodifiers", methodmods);
+
     return SWIG_OK;
   }
 
@@ -3312,9 +3317,13 @@ private:
       }
 
       if (*Char(dispose_code)) {
-	Printv(body, "\n", dispose_methodmodifiers,
-	  (derived ? " override" : ""), " void ", dispose_methodname, "() ",
-	  dispose_code, "\n", NIL);
+	Printv(body, "\n", NIL);
+	const String *methodmods = Getattr(n, "destructmethodmodifiers");
+	if (methodmods)
+	  Printv(body, methodmods, NIL);
+	else
+	  Printv(body, dispose_methodmodifiers, (derived ? " override" : ""), NIL);
+	Printv(body, " void ", dispose_methodname, "() ", dispose_code, "\n", NIL);
       }
     }
 
