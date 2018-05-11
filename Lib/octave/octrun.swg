@@ -1504,14 +1504,30 @@ SWIGRUNTIMEINLINE void SWIG_Octave_SetConstant(octave_swig_type *module_ns, cons
 }
 
 SWIGRUNTIMEINLINE octave_value SWIG_Octave_GetGlobalValue(std::string name) {
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+  octave::symbol_table& symtab = octave::interpreter::the_interpreter()->get_symbol_table();
+  return symtab.global_varval(name);
+#else
   return get_global_value(name, true);
+#endif
 }
 
 SWIGRUNTIME void SWIG_Octave_SetGlobalValue(std::string name, const octave_value& value) {
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+  octave::symbol_table& symtab = octave::interpreter::the_interpreter()->get_symbol_table();
+  symtab.global_assign(name, value);
+#else
   set_global_value(name, value);
+#endif
 }
 
 SWIGRUNTIME void SWIG_Octave_LinkGlobalValue(std::string name) {
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+  octave::symbol_table& symtab = octave::interpreter::the_interpreter()->get_symbol_table();
+  octave::symbol_scope symscope = octave::interpreter::the_interpreter()->get_current_scope();
+  symscope.assign(name, symtab.global_varval(name));
+  symscope.mark_global(name);
+#else
 #if !SWIG_OCTAVE_PREREQ(3,2,0)
   link_to_global_variable(curr_sym_tab->lookup(name, true));
 #else
@@ -1519,6 +1535,7 @@ SWIGRUNTIME void SWIG_Octave_LinkGlobalValue(std::string name) {
   symbol_table::varref(name);
 #endif
   symbol_table::mark_global(name);
+#endif
 #endif
 }
 
