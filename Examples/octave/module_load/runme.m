@@ -5,60 +5,70 @@ endif
 
 # load module
 clear all;
+assert(exist("swigexample") == 3);
 swigexample;
+assert(isglobal("swigexample"));
 assert(cvar.ivar == ifunc);
-assert(exist("swigexample","var"));
 clear all
+assert(exist("swigexample") == 3);
 swigexample;
+assert(isglobal("swigexample"));
 assert(cvar.ivar == ifunc);
-assert(exist("swigexample","var"));
 clear all
 
 # load module in a function globally before base context
 clear all;
 function testme_1
+  assert(exist("swigexample") == 3);
   swigexample;
+  assert(isglobal("swigexample"));
   assert(cvar.ivar == ifunc);
-  assert(exist("swigexample","var"));
 endfunction
 testme_1
 testme_1
+assert(exist("swigexample") == 3);
 swigexample;
+assert(isglobal("swigexample"));
 assert(cvar.ivar == ifunc);
-assert(exist("swigexample","var"));
 clear all
 function testme_2
+  assert(exist("swigexample") == 3);
   swigexample;
+  assert(isglobal("swigexample"));
   assert(cvar.ivar == ifunc);
-  assert(exist("swigexample","var"));
 endfunction
 testme_2
 testme_2
+assert(exist("swigexample") == 3);
 swigexample;
+assert(isglobal("swigexample"));
 assert(cvar.ivar == ifunc);
-assert(exist("swigexample","var"));
 clear all
 
 # load module in a function globally after base context
 clear all;
+assert(exist("swigexample") == 3);
 swigexample;
+assert(isglobal("swigexample"));
 assert(cvar.ivar == ifunc);
-assert(exist("swigexample","var"));
 function testme_3
+  assert(exist("swigexample") == 3);
   swigexample;
+  assert(isglobal("swigexample"));
   assert(cvar.ivar == ifunc);
-  assert(exist("swigexample","var"));
 endfunction
 testme_3
 testme_3
 clear all
+assert(exist("swigexample") == 3);
 swigexample;
+assert(isglobal("swigexample"));
 assert(cvar.ivar == ifunc);
-assert(exist("swigexample","var"));
 function testme_4
+  assert(exist("swigexample") == 3);
   swigexample;
+  assert(isglobal("swigexample"));
   assert(cvar.ivar == ifunc);
-  assert(exist("swigexample","var"));
 endfunction
 testme_4
 testme_4
@@ -71,13 +81,16 @@ endif
 
 # load module with no cvar
 clear all;
+who;
+assert(exist("swigexample2") == 3);
 swigexample2;
+assert(isglobal("swigexample2"));
 assert(swigexample2.ivar == ifunc);
-assert(exist("swigexample2","var"));
-assert(!isglobal("cvar"))
+assert(!exist("cvar", "var"));
 clear all
+assert(exist("swigexample2") == 3);
 swigexample2;
+assert(isglobal("swigexample2"));
 assert(swigexample2.ivar == ifunc);
-assert(exist("swigexample2","var"));
-assert(!isglobal("cvar"))
+assert(!exist("cvar", "var"));
 clear all
