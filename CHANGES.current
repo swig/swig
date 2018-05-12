@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-05-12: kwwette
+            [Octave] add support for version 4.4
+            - Should not introduce any user-visible incompatibilities
+
 2018-05-11: wsfulton
             [C#, D, Java] Add support so that the %csmethodmodifiers, %dmethodmodifiers,
             %javamethodmodifiers can modify the method modifiers for the destructor wrappers
