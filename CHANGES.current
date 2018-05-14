@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-05-14: wsfulton
+            Issue #1251 Add support for C++17 nested namespace definitions,
+            for example:
+              namespace A::B { ... }
+
 2018-05-11: wsfulton
             [C#, D, Java] Add support so that the %csmethodmodifiers, %dmethodmodifiers,
             %javamethodmodifiers can modify the method modifiers for the destructor wrappers
