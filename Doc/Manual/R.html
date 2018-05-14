@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="R">37 SWIG and R</a></H1>
+<H1><a name="R">38 SWIG and R</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -34,7 +34,7 @@ compile and run an R interface to QuantLib running on Mandriva Linux
 with gcc. The R bindings also work on Microsoft Windows using Visual C++.
 </p>
 
-<H2><a name="R_nn2">37.1 Bugs</a></H2>
+<H2><a name="R_nn2">38.1 Bugs</a></H2>
 
 
 <p>
@@ -46,7 +46,7 @@ Currently the following features are not implemented or broken:
 <li>C Array wrappings
 </ul>
 
-<H2><a name="R_nn3">37.2 Using R and SWIG</a></H2>
+<H2><a name="R_nn3">38.2 Using R and SWIG</a></H2>
 
 
 <p>
@@ -137,7 +137,7 @@ Error in .Call("R_swig_fact", s_arg1, as.logical(.copy), PACKAGE = "example") :
 <li>Make sure the architecture of the shared library(x64 for instance), matches the architecture of the R program you want to load your shared library into
 </ul>
 
-<H2><a name="R_nn4">37.3 Precompiling large R files</a></H2>
+<H2><a name="R_nn4">38.3 Precompiling large R files</a></H2>
 
 
 In cases where the R file is large, one make save a lot of loading
@@ -155,7 +155,7 @@ will save a large amount of loading time.
 
 
 
-<H2><a name="R_nn5">37.4 General policy</a></H2>
+<H2><a name="R_nn5">38.4 General policy</a></H2>
 
 
 <p>
@@ -164,7 +164,7 @@ wrapping over the underlying functions and rely on the R type system
 to provide R syntax.
 </p>
 
-<H2><a name="R_language_conventions">37.5 Language conventions</a></H2>
+<H2><a name="R_language_conventions">38.5 Language conventions</a></H2>
 
 
 <p>
@@ -173,7 +173,7 @@ and [ are overloaded to allow for R syntax (one based indices and
 slices)
 </p>
 
-<H2><a name="R_nn6">37.6 C++ classes</a></H2>
+<H2><a name="R_nn6">38.6 C++ classes</a></H2>
 
 
 <p>
@@ -185,7 +185,7 @@ keep track of the pointer object which removes the necessity for a lot
 of the proxy class baggage you see in other languages.
 </p>
 
-<H2><a name="R_nn7">37.7 Enumerations</a></H2>
+<H2><a name="R_nn7">38.7 Enumerations</a></H2>
 
 
 <p>
