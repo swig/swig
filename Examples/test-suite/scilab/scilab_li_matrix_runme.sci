@@ -2,7 +2,7 @@
 
 exec("swigtest.start", -1);
 
-// test matrix passed as output argument from fonction
+// test matrix passed as output argument from function
 function test_outMatrix(func, valueType, expectedOutMatrix)
   funcName = msprintf("out%s%s", valueType, func);
   cmd = msprintf("outMatrix = %s();", funcName);
@@ -13,7 +13,7 @@ function test_outMatrix(func, valueType, expectedOutMatrix)
   checkequal(outMatrix, expectedOutMatrix, funcName);
 endfunction
 
-// test matrix passed as input argument of fonction
+// test matrix passed as input argument of function
 function test_inMatrix(func, valueType, inMatrix, expectedInValue)
   funcName = msprintf("in%s%s", valueType, func);
   cmd = msprintf("inValue = %s(inMatrix);", funcName);
@@ -24,7 +24,7 @@ function test_inMatrix(func, valueType, inMatrix, expectedInValue)
   checkequal(inValue, expectedInValue, funcName);
 endfunction
 
-// test matrixes passed as input and output arguments of fonction
+// test matrixes passed as input and output arguments of function
 function test_inoutMatrix(func, valueType, inoutMatrix, expectedInoutMatrix)
   funcName = msprintf("inout%s%s", valueType, func);
   cmd = msprintf("inoutMatrix = %s(inoutMatrix);", funcName);

@@ -42,7 +42,7 @@ short			SIOUXHandleOneEvent _ANSI_ARGS_((EventRecord *event));
  *
  * MacintoshInit --
  *
- *	This procedure calls Mac specific initilization calls.  Most of
+ *	This procedure calls Mac specific initialization calls.  Most of
  *	these calls must be made as soon as possible in the startup
  *	process.
  *
@@ -64,7 +64,7 @@ MacintoshInit()
 
     /*
      * Tk needs us to set the qd pointer it uses.  This is needed
-     * so Tk doesn't have to assume the availablity of the qd global
+     * so Tk doesn't have to assume the availiblity of the qd global
      * variable.  Which in turn allows Tk to be used in code resources.
      */
     tcl_macQdPtr = &qd;
@@ -124,7 +124,7 @@ MacintoshInit()
  *
  * SetupMainInterp --
  *
- *	This procedure calls initalization routines require a Tcl 
+ *	This procedure calls initialization routines require a Tcl 
  *	interp as an argument.  This call effectively makes the passed
  *	iterpreter the "main" interpreter for the application.
  *
@@ -133,7 +133,7 @@ MacintoshInit()
  *	application should probably fail.
  *
  * Side effects:
- *	More initilization.
+ *	More initialization.
  *
  *----------------------------------------------------------------------
  */

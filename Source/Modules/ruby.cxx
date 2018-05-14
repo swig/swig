@@ -436,7 +436,7 @@ private:
 
   String *make_autodoc(Node *n, autodoc_t ad_type) {
     int extended = 0;
-    // If the function is overloaded then this funciton is called
+    // If the function is overloaded then this function is called
     // for the last one.  Rewind to the first so the docstrings are
     // in order.
     while (Getattr(n, "sym:previousSibling"))

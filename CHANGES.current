@@ -67,7 +67,7 @@ Version 4.0.0 (in progress)
             std_complex.i.
 
 2018-01-30: smarchetto
-            [Scilab] add type name argument in SWIG_ptr() function to cast from pointer adress to typed pointers
+            [Scilab] add type name argument in SWIG_ptr() function to cast from pointer address to typed pointers
 
 2018-01-16: wsfulton
             Expressions following a preprocessor directive must now be separated by whitespace
@@ -201,7 +201,7 @@ Version 4.0.0 (in progress)
 
 2017-10-01: joequant
             allow R package names with docs
-	    allowing mulitple get accessors in R
+	    allowing multiple get accessors in R
 	    fix smrt-pointer and NAMESPACE support
 	    constructors now returning smart pointers (if class
 	    declared as such)

@@ -188,7 +188,7 @@ extern "C" {
   extern SwigType *SwigType_remove_global_scope_prefix(const SwigType *t);
   extern SwigType *SwigType_alttype(const SwigType *t, int ltmap);
 
-/* --- Type-system managment --- */
+/* --- Type-system management --- */
   extern void SwigType_typesystem_init(void);
   extern int SwigType_typedef(const SwigType *type, const_String_or_char_ptr name);
   extern int SwigType_typedef_class(const_String_or_char_ptr name);

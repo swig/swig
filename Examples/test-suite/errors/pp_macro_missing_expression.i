@@ -1,4 +1,4 @@
-// Test "Missing identifier for ..." errrors
+// Test "Missing identifier for ..." errors
 %module xxx
 
 #ifdef

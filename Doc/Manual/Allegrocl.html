@@ -610,7 +610,7 @@ char *xxx();
 
 
   <p>
-    In the case of overloaded functions, mulitple layers are
+    In the case of overloaded functions, multiple layers are
     generated. First, all the overloads for a given name are separated
     out into groups based on arity, and are wrapped in
     defmethods. Each method calls a distinct wrapper function, but are
@@ -1239,7 +1239,7 @@ int zzz(A *inst = 0);  /* return inst-&gt;x + inst-&gt;y */
       We resolve this issue, by noting synonym relationships between
       types while generating the interface. A Primary type is selected
       (more on this below) from the candidate list of synonyms. For
-      all other synonyms, intead of generating a distinct CLOS class
+      all other synonyms, instead of generating a distinct CLOS class
       definition, we generate a form that expands to:
     </p>
       <div class="targetlang">

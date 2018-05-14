@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------------
  * sciiterators.swg
  *
- * Users can derive form the SciSwigIterator to implemet their
+ * Users can derive form the SciSwigIterator to implement their
  * own iterators. As an example (real one since we use it for STL/STD
  * containers), the template SwigSciIterator_T does the
  * implementation for generic C++ iterators.

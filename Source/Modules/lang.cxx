@@ -3781,7 +3781,7 @@ int Language::abstractClassTest(Node *n) {
     if (dirabstract) {
       if (is_public(dirabstract)) {
 	Swig_warning(WARN_LANG_DIRECTOR_ABSTRACT, Getfile(n), Getline(n),
-		     "Director class '%s' is abstract, abstract method '%s' is not accesible, maybe due to multiple inheritance or 'nodirector' feature\n",
+		     "Director class '%s' is abstract, abstract method '%s' is not accessible, maybe due to multiple inheritance or 'nodirector' feature\n",
 		     SwigType_namestr(Getattr(n, "name")), Getattr(dirabstract, "name"));
       } else {
 	Swig_warning(WARN_LANG_DIRECTOR_ABSTRACT, Getfile(n), Getline(n),

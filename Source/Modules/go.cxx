@@ -5940,7 +5940,7 @@ private:
    *
    * Given a C/C++ name, return a name in Go which will be exported.
    * If the first character is an upper case letter, this returns a
-   * copy of its argment.  If the first character is a lower case
+   * copy of its argument.  If the first character is a lower case
    * letter, this forces it to upper case.  Otherwise, this prepends
    * 'X'.
    * ---------------------------------------------------------------------- */

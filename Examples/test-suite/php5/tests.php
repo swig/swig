@@ -119,7 +119,7 @@ class check {
       $parents[]=$c;
       $c=strtolower(get_parent_class($c));
     }
-    if ($c!=$b) return check::fail("Class $a does not inherit from class $b\nHierachy:\n  %s\n",join("\n  ",$parents));
+    if ($c!=$b) return check::fail("Class $a does not inherit from class $b\nHierarchy:\n  %s\n",join("\n  ",$parents));
     return TRUE;
   }
 

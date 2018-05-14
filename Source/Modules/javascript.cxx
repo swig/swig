@@ -994,7 +994,7 @@ int JSEmitter::emitDtor(Node *n) {
 
      Also, there is a problem where destructor_action is always true for me, even when not requesting %extend as above.
      So this code doesn't actually quite work as I expect. The end result is that the code still works because
-     destructor_action calls free like the original template. The one caveat is the string in destructor_action casts to char* which is wierd.
+     destructor_action calls free like the original template. The one caveat is the string in destructor_action casts to char* which is weird.
      I think there is a deeper underlying SWIG issue because I don't think it should be char*. However, it doesn't really matter for free.
 
      Maybe the fix for the destructor_action always true problem is that this is supposed to be embedded in the if(Extend) block above.
@@ -1125,7 +1125,7 @@ int JSEmitter::emitConstant(Node *n) {
   Template t_getter(getTemplate("js_getter"));
 
   // call the variable methods as a constants are
-  // registred in same way
+  // registered in same way
   enterVariable(n);
   state.variable(GETTER, wname);
   // TODO: why do we need this?
@@ -2428,7 +2428,7 @@ Template & Template::trim() {
 /* -----------------------------------------------------------------------------
  * Template&  Template::replace(const String* pattern, const String* repl) :
  *
- *  replaces all occurences of a given pattern with a given replacement.
+ *  replaces all occurrences of a given pattern with a given replacement.
  *
  *  - pattern:  the pattern to be replaced
  *  - repl:     the replacement string

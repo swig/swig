@@ -471,7 +471,7 @@ The most Go idiomatic way to manage the memory for some C++ class is to call
 <tt><a href="https://golang.org/doc/effective_go.html#defer">defer</a></tt> of
 the <tt>DeleteClassName</tt> call.  Using <tt>defer</tt> ensures that the memory
 of the C++ object is freed as soon as the function containing the <tt>defer</tt>
-statement returns.  Furthemore <tt>defer</tt> works great for short-lived
+statement returns.  Furthermore <tt>defer</tt> works great for short-lived
 objects and fits nicely C++'s RAII idiom.  Example:
 </p>
 <div class="code">
@@ -512,7 +512,7 @@ func main() {
 
 <p>
 Using <tt>defer</tt> has limitations though, especially when it comes to
-long-lived C++ objects whichs lifetimes are hard to predict.  For such C++
+long-lived C++ objects whose lifetimes are hard to predict.  For such C++
 objects a common technique is to store the C++ object into a Go object, and to
 use the Go function <tt>runtime.SetFinalizer</tt> to add a finalizer which frees
 the C++ object when the Go object is freed.  It is strongly recommended  to read
@@ -788,7 +788,7 @@ DirectorInterface</tt> are a subset of the public and protected virtual methods
 of the C++ class.  If the <tt>DirectorInterface</tt> contains a method with a
 matching signature to a virtual method of the C++ class then the virtual C++
 method will be overwritten with the Go method.  As Go doesn't support protected
-methods all overriden protected virtual C++ methods will be public in Go.
+methods all overridden protected virtual C++ methods will be public in Go.
 </p>
 
 <p>
@@ -941,7 +941,7 @@ methods of the <tt>FooBarAbstract</tt> C++ class by means of embedding.  The
 public <tt>FooBarGo</tt> interface type includes the <tt>FooBarAbstract</tt>
 interface and hence <tt>FooBarGo</tt> can be used as a drop in replacement for
 <tt>FooBarAbstract</tt> while the reverse isn't possible and would raise a
-compile time error.  Furthemore the constructor and destructor functions <tt>
+compile time error.  Furthermore the constructor and destructor functions <tt>
 NewFooBarGo</tt> and <tt>DeleteFooBarGo</tt> take care of all the director
 specifics and to the user the class appears as any other SWIG wrapped C++
 class.
@@ -1054,7 +1054,7 @@ type overwrittenMethodsOnFooBarAbstract struct {
   fb FooBarAbstract
 
   // If additional constructor arguments have been given they are typically
-  // stored here so that the overriden methods can use them.
+  // stored here so that the overridden methods can use them.
 }
 
 func (om *overwrittenMethodsOnFooBarAbstract) Foo() string {
@@ -1081,7 +1081,7 @@ func NewFooBarGo() FooBarGo {
   // The memory of the FooBarAbstract director object instance can be
   // automatically freed once the FooBarGo instance is garbage collected by
   // uncommenting the following line.  Please make sure to understand the
-  // runtime.SetFinalizer specific gotchas before doing this.  Furthemore
+  // runtime.SetFinalizer specific gotchas before doing this.  Furthermore
   // DeleteFooBarGo should be deleted if a finalizer is in use or the fooBarGo
   // struct needs additional data to prevent double deletion.
   // runtime.SetFinalizer(fbgs, FooBarGo.deleteFooBarAbstract)

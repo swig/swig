@@ -7,7 +7,7 @@ require "threads_exception.php";
 check::functions(array(test_simple,test_message,test_hosed,test_unknown,test_multi,is_python_builtin));
 // Check classes.
 check::classes(array(Exc,Test,threads_exception));
-// Chek globals.
+// Check globals.
 check::globals(array(exc_code,exc_msg));
 
 $t = new Test();

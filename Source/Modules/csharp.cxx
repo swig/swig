@@ -68,8 +68,8 @@ class CSHARP:public Language {
   String *module_baseclass;	//inheritance for module class from %pragma
   String *imclass_interfaces;	//interfaces for intermediary class class from %pragma
   String *module_interfaces;	//interfaces for module class from %pragma
-  String *imclass_class_modifiers;	//class modifiers for intermediary class overriden by %pragma
-  String *module_class_modifiers;	//class modifiers for module class overriden by %pragma
+  String *imclass_class_modifiers;	//class modifiers for intermediary class overridden by %pragma
+  String *module_class_modifiers;	//class modifiers for module class overridden by %pragma
   String *upcasts_code;		//C++ casts for inheritance hierarchies C++ code
   String *imclass_cppcasts_code;	//C++ casts up inheritance hierarchies intermediary class code
   String *director_callback_typedefs;	// Director function pointer typedefs for callbacks
