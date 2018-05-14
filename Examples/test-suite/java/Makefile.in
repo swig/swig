@@ -59,6 +59,7 @@ JAVA_PACKAGEOPT = -package $(JAVA_PACKAGE)
 SWIGOPT += $(JAVA_PACKAGEOPT)
 
 # Custom tests - tests with additional commandline options
+cpp17_nspace_nested_namespaces.%: JAVA_PACKAGE = $*Package
 director_nspace.%: JAVA_PACKAGE = $*Package
 director_nspace_director_name_collision.%: JAVA_PACKAGE = $*Package
 java_director_exception_feature_nspace.%: JAVA_PACKAGE = $*Package
