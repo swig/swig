@@ -162,6 +162,8 @@ CPP_TEST_CASES += \
 	cpp_nodefault \
 	cpp_static \
 	cpp_typedef \
+	cpp17_nested_namespaces \
+	cpp17_nspace_nested_namespaces \
 	curiously_recurring_template_pattern \
 	default_args \
 	default_arg_expressions \
