@@ -68,10 +68,22 @@ public:
 };
 %}
 
+//////////////////////////
+// Variadic usage //
+//////////////////////////
+%inline %{
+template <typename... H>
+int Abcd(MultiInherit<H ...> &h) {
+    return h.InstanceMethod();
+}
+%}
+
 
 // TODO
 //%template (MultiInherit0) MultiInherit<>;
 %template (MultiInherit1) MultiInherit<A>;
 // TODO
 %template (MultiInherit2) MultiInherit<A,B>;
+
+%template (Abcd2) Abcd<A,B>;
 

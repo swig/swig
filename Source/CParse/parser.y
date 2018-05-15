@@ -2783,7 +2783,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           Swig_error(cparse_file, cparse_line, "Too many template parameters. Maximum of %d.\n", ParmList_len(tparms));
                         } else if (nnisclass && !specialized && ((ParmList_len($7) < (ParmList_numrequired(tparms) - (variadic?1:0))))) { /* Variadic parameter is optional */
                           Swig_error(cparse_file, cparse_line, "Not enough template parameters specified. %d required.\n", (ParmList_numrequired(tparms)-(variadic?1:0)) );
-                        } else if (!nnisclass && ((ParmList_len($7) != ParmList_len(tparms)))) {
+                        } else if (!nnisclass && ((ParmList_len($7) != ParmList_len(tparms)) && !variadic)) {
                           /* must be an overloaded templated method - ignore it as it is overloaded with a different number of template parameters */
                           nn = Getattr(nn,"sym:nextSibling"); /* repeat for overloaded templated functions */
                           continue;
@@ -4994,7 +4994,6 @@ parm           : rawtype parameter_declarator {
 		     Setattr($$,"value",$2.defarg);
 		   }
 		}
-
                 | TEMPLATE LESSTHAN cpptype GREATERTHAN cpptype idcolon def_args {
                   $$ = NewParmWithoutFileLineInfo(NewStringf("template<class> %s %s", $5,$6), 0);
 		  Setfile($$,cparse_file);
@@ -5145,6 +5144,11 @@ parameter_declarator : declarator def_args {
               $$.id = 0;
 	      $$.defarg = $1.rawval ? $1.rawval : $1.val;
             }
+            |  ellipsis {
+   	      $$.type = 0;
+              $$.id = 0;
+              $$.defarg = 0;
+	    }
 	    /* Member function pointers with qualifiers. eg.
 	      int f(short (Funcs::*parm)(bool) const); */
 	    | direct_declarator LPAREN parms RPAREN cv_ref_qualifier {
