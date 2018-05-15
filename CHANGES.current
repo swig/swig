@@ -8,6 +8,10 @@ Version 4.0.0 (in progress)
 ===========================
 
 2018-05-15: wsfulton
+            [C#, D, Java] Fix lookup of csconstruct, dconstruct and javaconstruct typemaps.
+            The C++ namespace was previously ignored when looking up the typemap.
+
+2018-05-15: wsfulton
             [Javascript] Fix generated C++ code when using %nspace on namespaces that are more
             than two levels deep.
 
