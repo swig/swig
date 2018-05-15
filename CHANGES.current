@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-05-15: wsfulton
+            [Javascript] Fix generated C++ code when using %nspace on namespaces that are more
+            than two levels deep.
+
 2018-05-14: wsfulton
             Issue #1251 Add support for C++17 nested namespace definitions,
             for example:
