@@ -4,7 +4,7 @@
   the complex Constructor method, and the Real and Imag complex
   accessor methods.
 
-  See the std_complex.i and ccomplex.i for concret examples.
+  See the std_complex.i and ccomplex.i for concrete examples.
 */
 
 /* the common from converter */

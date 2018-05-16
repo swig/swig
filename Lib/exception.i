@@ -12,14 +12,17 @@
 %insert("runtime") "swigerrors.swg"
 
 
-#ifdef SWIGPHP
+#ifdef SWIGPHP5
 %{
-#if PHP_MAJOR_VERSION < 5
-# define SWIG_exception(code, msg) { zend_error(E_ERROR, msg); }
-#else
-# include "zend_exceptions.h"
-# define SWIG_exception(code, msg) { zend_throw_exception(NULL, (char*)msg, code TSRMLS_CC); }
+#include "zend_exceptions.h"
+#define SWIG_exception(code, msg) do { zend_throw_exception(NULL, (char*)msg, code TSRMLS_CC); goto thrown; } while (0)
+%}
 #endif
+
+#ifdef SWIGPHP7
+%{
+#include "zend_exceptions.h"
+#define SWIG_exception(code, msg) do { zend_throw_exception(NULL, (char*)msg, code); goto thrown; } while (0)
 %}
 #endif
 
@@ -28,7 +31,7 @@
   SWIGINTERN void SWIG_exception_ (int code, const char *msg,
                                const char *subr) {
 #define ERROR(scmerr)					\
-	scm_error(gh_symbol2scm((char *) (scmerr)),	\
+	scm_error(scm_from_locale_string((char *) (scmerr)),	\
 		  (char *) subr, (char *) msg,		\
 		  SCM_EOL, SCM_BOOL_F)
 #define MAP(swigerr, scmerr)			\
@@ -262,6 +265,7 @@ SWIGINTERN void SWIG_DThrowException(int code, const char *msg) {
   }
 */
 %{
+#include <typeinfo>
 #include <stdexcept>
 %}
 %define SWIG_CATCH_STDEXCEPT
@@ -278,6 +282,8 @@ SWIGINTERN void SWIG_DThrowException(int code, const char *msg) {
     SWIG_exception(SWIG_IndexError, e.what() );
   } catch (std::runtime_error& e) {
     SWIG_exception(SWIG_RuntimeError, e.what() );
+  } catch (std::bad_cast& e) {
+    SWIG_exception(SWIG_TypeError, e.what() );
   } catch (std::exception& e) {
     SWIG_exception(SWIG_SystemError, e.what() );
   }

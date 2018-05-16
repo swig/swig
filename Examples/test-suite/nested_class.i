@@ -1,5 +1,33 @@
 %module nested_class
 
+
+#if defined(SWIGSCILAB)
+%rename(Out) Outer;
+%rename(InSt1) InnerStruct1;
+%rename(InCls1) InnerClass1;
+%rename(InCls2) InnerClass2;
+%rename(InClas3Inst) InnerClass3Instance;
+%rename(InSt3Inst) InnerStruct3Instance;
+%rename(InCls4Type) InnerClass4Typedef;
+%rename(InSt4Type) InnerStruct4Typedef;
+%rename(InCls5Type) InnerClass5Typedef;
+%rename(InSt5Type) InnerStruct5Typedef;
+%rename(InMul) InnerMultiple;
+%rename(InMulDrv) InnerMultipleDerived;
+%rename(MulInst1) MultipleInstance1;
+%rename(MulInst2) MultipleInstance2;
+%rename(MulInst3) MultipleInstance3;
+%rename(MulInst4) MultipleInstance4;
+%rename(MulDrvInst1) MultipleDerivedInstance1;
+%rename(MulDrvInst2) MultipleDerivedInstance2;
+%rename(MulDrvInst3) MultipleDerivedInstance3;
+%rename(MulDrvInst4) MultipleDerivedInstance4;
+%rename(MulInstAnnDrv1) MultipleInstanceAnonDerived1;
+%rename(MulInstAnnDrv2) MultipleInstanceAnonDerived2;
+%rename(MulInstAnnDrv3) MultipleInstanceAnonDerived3;
+%rename(MulInstAnnDrv4) MultipleInstanceAnonDerived4;
+#endif
+
 #pragma SWIG nowarn=SWIGWARN_PARSE_UNNAMED_NESTED_CLASS
 %warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerStruct1;
 %warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerClass1;
@@ -21,6 +49,16 @@
 %warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer2::IgnoreMe;
 
 %inline %{
+
+#if __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
+/* ISO C++ prohibits anonymous structs [-Werror=pedantic] */
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+
+namespace bar {
+    int foo() { return 0; }
+}
+
 struct Outer {
   typedef int Integer;
   ///////////////////////////////////////////
@@ -39,7 +77,7 @@ struct Outer {
   };
 
   ///////////////////////////////////////////
-#ifdef SWIG
+#if defined(__GNUC__) || defined(_MSC_VER) || defined(SWIG)
 /* some compilers do not accept these */
   class {
   public:
@@ -49,6 +87,9 @@ struct Outer {
   struct {
     Integer b;
   };
+#else
+  Integer a;
+  Integer b;
 #endif
 
   union {
@@ -92,9 +133,15 @@ struct Outer {
     Integer x;
   } InnerClass4Typedef;
 
+#ifdef _MSC_VER
+  int Outer::foo(){ return 1; } // should correctly ignore qualification here (#508)
+#endif
+
   typedef struct {
     Integer x;
   } InnerStruct4Typedef;
+
+  friend int bar::foo(); // should parse correctly (#508)
 
   typedef union {
     Integer x;
@@ -154,7 +201,7 @@ struct Outer {
     Integer xx;
   } MultipleInstanceAnonDerived1, MultipleInstanceAnonDerived2, *MultipleInstanceAnonDerived3, MultipleInstanceAnonDerived4[2];
 
-#ifdef SWIG
+#if defined(__GNUC__) || defined(_MSC_VER) || defined(SWIG)
 /* some compilers do not accept these */
   struct : public InnerMultiple {
     Integer xx;
@@ -164,6 +211,9 @@ struct Outer {
   public:
     Integer yy;
   };
+#else
+  Integer xx;
+  Integer yy;
 #endif
 
   ///////////////////////////////////////////
@@ -187,10 +237,16 @@ struct Outer {
   ///////////////////////////////////////////
   typedef struct InnerSameName {
     Integer x;
+		struct InnerSameName2 {};
   } InnerSameName;
 
   InnerSameName* makeInnerSameName() { return 0; }
 };
+#if defined(SWIGCSHARP) || defined (SWIGJAVA)
+// place a class with the same name as in Outer in global scope, to test language symbol table
+class InnerSameName {};
+class InnerSameName2 {};
+#endif
 %}
 
 // Ignore nested struct instance

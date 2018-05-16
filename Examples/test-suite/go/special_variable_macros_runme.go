@@ -16,6 +16,9 @@ func main() {
 	if special_variable_macros.TestMary(name) != "SWIGTYPE_p_NameWrap" {
 		panic("test failed")
 	}
+	if special_variable_macros.TestJames(name) != "SWIGTYPE_Name" {
+		panic("test failed")
+	}
 	if special_variable_macros.TestJim(name) != "multiname num" {
 		panic("test failed")
 	}

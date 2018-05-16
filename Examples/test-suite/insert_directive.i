@@ -27,12 +27,14 @@ int inserted_header2(int i) { return inserted_header1(i); }
 int inserted_header3(int i) { return inserted_header2(i); }
 %}
 
+%header "insert_directive.h"
+
 %wrapper %{
 // %inserted code %wrapper
-int inserted_wrapper(int i) { return inserted_header3(i); }
+int inserted_wrapper(int i) { return inserted_header4(i); }
 %}
 
 %init %{
 // %inserted code %init
-int inserted_init_value = inserted_wrapper(0);
+int SWIGUNUSED inserted_init_value = inserted_wrapper(0);
 %}

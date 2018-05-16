@@ -1,8 +1,8 @@
 //
 // embed.i
 // SWIG file embedding the Python interpreter in something else.
-// This file is based on Python-1.5.  It will not work with
-// earlier versions.
+// This file is deprecated and no longer actively maintained, but it still
+// seems to work with Python 2.7.  Status with Python 3 is unknown.
 //
 // This file makes it possible to extend Python and all of its
 // built-in functions without having to hack its setup script.
@@ -24,13 +24,8 @@ present in your current Python executable (including any special
 purpose modules you have enabled such as Tkinter).   Thus, you
 may need to provide additional link libraries when compiling.
 
-This library file only works with Python 1.5.  A version 
-compatible with Python 1.4 is available as embed14.i and
-a Python1.3 version is available as embed13.i.    As far as
-I know, this module is C++ safe.
+As far as I know, this module is C++ safe.
 %}
-#else
-%echo "embed.i : Using Python 1.5"
 #endif
 
 %wrapper %{
@@ -51,12 +46,12 @@ extern "C" {
 #endif
 #include <config.c>
 
-#undef _PyImport_Inittab 
+#undef _PyImport_Inittab
 
 /* Now define our own version of it.
    Hopefully someone does not have more than 1000 built-in modules */
 
-struct _inittab SWIG_Import_Inittab[1000];       
+struct _inittab SWIG_Import_Inittab[1000];
 
 static int  swig_num_modules = 0;
 
@@ -68,18 +63,18 @@ static void swig_add_module(char *name, void (*initfunc)()) {
 	swig_num_modules++;
 	SWIG_Import_Inittab[swig_num_modules].name = (char *) 0;
 	SWIG_Import_Inittab[swig_num_modules].initfunc = 0;
-}				
+}
 
-/* Function to add all of Python's build in modules to our interpreter */
+/* Function to add all of Python's built-in modules to our interpreter */
 
 static void swig_add_builtin() {
 	int i = 0;
 	while (swig_inittab[i].name) {
 		swig_add_module(swig_inittab[i].name, swig_inittab[i].initfunc);
-  	        i++;
- 	}
+		i++;
+	}
 #ifdef SWIGMODINIT
-	SWIGMODINIT	
+	SWIGMODINIT
 #endif
 	/* Add SWIG builtin function */
 	swig_add_module(SWIG_name, SWIG_init);
@@ -109,7 +104,3 @@ main(int argc, char **argv) {
 }
 
 %}
-
-
-  
-

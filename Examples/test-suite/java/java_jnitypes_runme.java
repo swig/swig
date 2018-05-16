@@ -51,7 +51,6 @@ public class java_jnitypes_runme {
   }
 
   public static void testFailed(String str) {
-      System.err.println(str + " test failed");
-      System.exit(1);
+      throw new RuntimeException(str + " test failed");
   }
 }

@@ -29,4 +29,3 @@ template<class T> class vector {
   }
 #endif
 };
-

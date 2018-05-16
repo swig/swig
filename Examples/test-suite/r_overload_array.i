@@ -1,7 +1,8 @@
 %module r_overload_array
-%include "stl.i"
-# this tests the situation in which there is a scalar function
-# corresponding with a vector one
+
+%include <stl.i>
+// this tests the situation in which there is a scalar function
+// corresponding with a vector one
 
 %inline %{
 class Foo {

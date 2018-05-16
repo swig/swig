@@ -1,0 +1,6 @@
+:EOF: Error: Exponent does not have any digits
+pp_invalid_exponents.i:3: Warning 202: Could not evaluate expression '123e'
+pp_invalid_exponents.i:3: Warning 202: Error: 'Syntax error'
+:EOF: Error: Exponent does not have any digits
+pp_invalid_exponents.i:6: Warning 202: Could not evaluate expression '456.e'
+pp_invalid_exponents.i:6: Warning 202: Error: 'Syntax error'

@@ -204,9 +204,6 @@ private:
   String *proxy_class_name;
   String *variable_name;	//Name of a variable being wrapped
   String *variable_type;	//Type of this variable
-  String *enumeration_name;	//Name of the current enumeration type
-  Hash *enumeration_items;	//and its members
-  int enumeration_max;
   Hash *enumeration_coll;	//Collection of all enumerations.
   /* The items are nodes with members:
      "items"  - hash of with key 'itemname' and content 'itemvalue'
@@ -268,9 +265,6 @@ MODULA3():
       proxy_class_name(NULL),
       variable_name(NULL),
       variable_type(NULL),
-      enumeration_name(NULL),
-      enumeration_items(NULL),
-      enumeration_max(0),
       enumeration_coll(NULL),
       constant_values(NULL),
       constantfilename(NULL),
@@ -964,9 +958,7 @@ MODULA3():
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIGMODULA3\n");
-    Printf(f_runtime, "\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGMODULA3\n#define SWIGMODULA3\n#endif\n\n");
 
     Swig_name_register("wrapper", "Modula3_%f");
     if (old_variable_names) {
@@ -1413,24 +1405,11 @@ MODULA3():
       }
     }
 
-    if (Cmp(nodeType(n), "constant") == 0) {
-      // Wrapping a constant hack
-      Swig_save("functionWrapper", n, "wrap:action", NIL);
-
-      // below based on Swig_VargetToFunction()
-      SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
-      Setattr(n, "wrap:action", NewStringf("%s = (%s)(%s);", Swig_cresult_name(), SwigType_lstr(ty, 0), Getattr(n, "value")));
-    }
-
     Setattr(n, "wrap:name", wname);
 
     // Now write code to make the function call
     if (!native_function_flag) {
       String *actioncode = emit_action(n);
-
-      if (Cmp(nodeType(n), "constant") == 0) {
-        Swig_restore(n);
-      }
 
       /* Return value if necessary  */
       String *tm;
@@ -1783,19 +1762,6 @@ MODULA3():
       Printf(m3wrap_intf.f, "%s = %s;\n", name, value);
     }
   }
-
-#if 0
-  void generateEnumerationItem(const String *name, const String *value, int numvalue) {
-    String *oldsymname = Getattr(enumeration_items, value);
-    if (oldsymname != NIL) {
-      Swig_warning(WARN_MODULA3_BAD_ENUMERATION, input_file, line_number, "The value <%s> is already assigned to <%s>.\n", value, oldsymname);
-    }
-    Setattr(enumeration_items, value, name);
-    if (enumeration_max < numvalue) {
-      enumeration_max = numvalue;
-    }
-  }
-#endif
 
   void emitEnumeration(File *file, String *name, Node *n) {
     Printf(file, "%s = {", name);
@@ -2210,20 +2176,24 @@ MODULA3():
 
     /* Deal with inheritance */
     List *baselist = Getattr(n, "bases");
-    if (baselist != NIL) {
+    if (baselist) {
       Iterator base = First(baselist);
-      if (base.item) {
-	c_baseclassname = Getattr(base.item, "name");
-	baseclass = Copy(getProxyName(c_baseclassname));
-	if (baseclass) {
-	  c_baseclass = SwigType_namestr(Getattr(base.item, "name"));
+      while (base.item) {
+	if (!GetFlag(base.item, "feature:ignore")) {
+	  String *baseclassname = Getattr(base.item, "name");
+	  if (!c_baseclassname) {
+	    c_baseclassname = baseclassname;
+	    baseclass = Copy(getProxyName(baseclassname));
+	    if (baseclass)
+	      c_baseclass = SwigType_namestr(baseclassname);
+	  } else {
+	    /* Warn about multiple inheritance for additional base class(es) */
+	    String *proxyclassname = Getattr(n, "classtypeobj");
+	    Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
+		"Warning for %s, base %s ignored. Multiple inheritance is not supported in Modula 3.\n", SwigType_namestr(proxyclassname), SwigType_namestr(baseclassname));
+	  }
 	}
 	base = Next(base);
-	if (base.item != NIL) {
-	  Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-	      "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n",
-	      name, Getattr(base.item, "name"));
-	}
       }
     }
 
@@ -2235,7 +2205,7 @@ MODULA3():
     const String *pure_baseclass = typemapLookup(n, "m3base", name, WARN_NONE);
     if (hasContent(pure_baseclass) && hasContent(baseclass)) {
       Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-		   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n", name, pure_baseclass);
+		   "Warning for %s, base %s ignored. Multiple inheritance is not supported in Modula 3.\n", name, pure_baseclass);
     }
     // Pure Modula 3 interfaces
     const String *pure_interfaces = typemapLookup(n, derived ? "m3interfaces_derived" : "m3interfaces",
@@ -2465,7 +2435,7 @@ MODULA3():
 	      base = Next(base);
 	      if (base.item) {
 		Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-		    "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n",
+		    "Warning for %s, base %s ignored. Multiple inheritance is not supported in Modula 3.\n",
 		    proxy_class_name, Getattr(base.item, "name"));
 	      }
 	    }
@@ -3641,35 +3611,6 @@ MODULA3():
   }
 
   /* -----------------------------------------------------------------------------
-   * makeParameterName()
-   *
-   * Inputs: 
-   *   n - Node
-   *   p - parameter node
-   *   arg_num - parameter argument number
-   * Return:
-   *   arg - a unique parameter name
-   * ----------------------------------------------------------------------------- */
-
-  String *makeParameterName(Node *n, Parm *p, int arg_num) {
-
-    // Use C parameter name unless it is a duplicate or an empty parameter name
-    String *pn = Getattr(p, "name");
-    int count = 0;
-    ParmList *plist = Getattr(n, "parms");
-    while (plist) {
-      if ((Cmp(pn, Getattr(plist, "name")) == 0))
-	count++;
-      plist = nextSibling(plist);
-    }
-    String *arg = (!pn || (count > 1)) ? NewStringf("arg%d",
-						    arg_num) : Copy(Getattr(p,
-									    "name"));
-
-    return arg;
-  }
-
-  /* -----------------------------------------------------------------------------
    * attachParameterNames()
    *
    * Inputs: 
@@ -3975,7 +3916,7 @@ extern "C" Language *swig_modula3(void) {
  * Static member variables
  * ----------------------------------------------------------------------------- */
 
-const char *MODULA3::usage = (char *) "\
+const char *MODULA3::usage = "\
 Modula 3 Options (available with -modula3)\n\
      -generateconst <file>   - Generate code for computing numeric values of constants\n\
      -generaterename <file>  - Generate suggestions for %rename\n\

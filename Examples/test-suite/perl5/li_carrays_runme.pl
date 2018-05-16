@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Test::More tests => 38;
+use Test::More tests => 34;
 BEGIN { use_ok('li_carrays') }
 require_ok('li_carrays');
 
@@ -23,7 +23,7 @@ require_ok('li_carrays');
 
 {
   # global array variable
-  my $length = 5;
+  my $length = 3;
   my $xyArrayPointer = $li_carrays::globalXYArray;
   my $xyArray = li_carrays::XYArray::frompointer($xyArrayPointer);
   for (my $i=0; $i<$length; $i++) {

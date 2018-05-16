@@ -21,7 +21,7 @@ UVW Bar::static_member_variable;
 %}
 
 
-// Now test the allowexcept feature by making the usual $action uncompileable and ensuring the %exception is picked up
+// Now test the allowexcept feature by making the usual $action uncompilable and ensuring the %exception is picked up
 
 struct XYZ {
 };

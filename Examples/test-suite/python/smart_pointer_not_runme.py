@@ -13,7 +13,7 @@ except:
 
 try:
     x = s.x
-    print "Error! s.x"    
+    print "Error! s.x"
 except:
     pass
 
@@ -25,13 +25,13 @@ except:
 
 try:
     x = b.getx()
-    print "Error! b.getx()"    
+    print "Error! b.getx()"
 except:
     pass
 
 try:
     x = s.getx()
-    print "Error! s.getx()"        
+    print "Error! s.getx()"
 except:
     pass
 

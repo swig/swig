@@ -1,0 +1,3 @@
+cpp_nested_namespace_alias.i:18: Warning 308: Namespace alias 'AAlias' not allowed here. Assuming 'A'
+cpp_nested_namespace_alias.i:27: Warning 308: Namespace alias 'BAlias' not allowed here. Assuming 'B'
+cpp_nested_namespace_alias.i:32: Warning 308: Namespace alias 'ABAlias' not allowed here. Assuming 'B'

@@ -1,5 +1,5 @@
 //
-// std::map
+// std::multimap
 //
 
 %include <std_map.i>
@@ -41,15 +41,15 @@
 
 
 namespace std {
-  template<class _Key, class _Tp, class _Compare = std::less<_Key >,
-	   class _Alloc = allocator<std::pair<const _Key, _Tp > > >
+  template<class _Key, class _Tp, class _Compare = std::less< _Key >,
+	   class _Alloc = allocator<std::pair< const _Key, _Tp > > >
   class multimap {
   public:
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
     typedef _Key key_type;
     typedef _Tp mapped_type;
-    typedef std::pair<const _Key, _Tp> value_type;
+    typedef std::pair< const _Key, _Tp > value_type;
 
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
@@ -60,11 +60,25 @@ namespace std {
     %traits_swigtype(_Key);
     %traits_swigtype(_Tp);	    
 
-    %fragment(SWIG_Traits_frag(std::multimap<_Key, _Tp, _Compare, _Alloc >), "header",
-	      fragment=SWIG_Traits_frag(std::pair<_Key, _Tp >),
+    %fragment(SWIG_Traits_frag(std::pair< _Key, _Tp >), "header",
+	      fragment=SWIG_Traits_frag(_Key),
+	      fragment=SWIG_Traits_frag(_Tp),
+	      fragment="StdPairTraits") {
+      namespace swig {
+	template <>  struct traits<std::pair< _Key, _Tp > > {
+	  typedef pointer_category category;
+	  static const char* type_name() {
+	    return "std::pair<" #_Key "," #_Tp " >";
+	  }
+	};
+      }
+    }
+
+    %fragment(SWIG_Traits_frag(std::multimap< _Key, _Tp, _Compare, _Alloc >), "header",
+	      fragment=SWIG_Traits_frag(std::pair< _Key, _Tp >),
 	      fragment="StdMultimapTraits") {
       namespace swig {
-	template <>  struct traits<std::multimap<_Key, _Tp, _Compare, _Alloc > > {
+	template <>  struct traits<std::multimap< _Key, _Tp, _Compare, _Alloc > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
 	    return "std::multimap<" #_Key "," #_Tp "," #_Compare "," #_Alloc " >";
@@ -73,13 +87,13 @@ namespace std {
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_MULTIMAP, std::multimap<_Key, _Tp, _Compare, _Alloc >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_MULTIMAP, std::multimap< _Key, _Tp, _Compare, _Alloc >);
   
     multimap( const _Compare& );
 
 #ifdef %swig_multimap_methods
     // Add swig/language extra methods
-    %swig_multimap_methods(std::multimap<_Key, _Tp, _Compare, _Alloc >);
+    %swig_multimap_methods(std::multimap< _Key, _Tp, _Compare, _Alloc >);
 #endif
 
     %std_multimap_methods(multimap);

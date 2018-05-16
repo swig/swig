@@ -21,7 +21,7 @@
 %{
 static TYPE *new_##NAME(int nelements) { %}
 #ifdef __cplusplus
-%{  return new TYPE[nelements]; %}
+%{  return new TYPE[nelements](); %}
 #else
 %{  return (TYPE *) calloc(nelements,sizeof(TYPE)); %}
 #endif
@@ -78,7 +78,7 @@ typedef struct {} NAME;
 %extend NAME {
 #ifdef __cplusplus
   NAME(int nelements) {
-    return new TYPE[nelements];
+    return new TYPE[nelements]();
   }
   ~NAME() {
     delete [] self;

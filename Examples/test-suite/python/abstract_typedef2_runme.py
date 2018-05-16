@@ -1,8 +1,3 @@
-from  abstract_typedef2 import *
+from abstract_typedef2 import *
 
 a = A_UF()
-  
-
-
-
-

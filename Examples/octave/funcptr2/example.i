@@ -1,5 +1,8 @@
 /* File : example.i */
-%module example
+%module swigexample
+
+%feature("autodoc", 1);
+
 %{
 #include "example.h"
 %}
@@ -15,4 +18,3 @@ int mul(int, int);
 %nocallback;
 
 extern int (*funcvar)(int,int);
-

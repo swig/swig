@@ -38,6 +38,7 @@ extern void   appendChild(Node *node, Node *child);
 extern void   prependChild(Node *node, Node *child);
 extern void   removeNode(Node *node);
 extern Node  *copyNode(Node *node);
+extern void   appendSibling(Node *node, Node *child);
 
 /* Node restoration/restore functions */
 

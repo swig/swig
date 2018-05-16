@@ -2,10 +2,10 @@
 
 %module namespace_template
 
-%warnfilter(SWIGWARN_RUBY_WRONG_NAME) vector<int>;            /* Ruby, wrong class name */
-%warnfilter(SWIGWARN_RUBY_WRONG_NAME) test2::vector<short>;   /* Ruby, wrong class name */
-%warnfilter(SWIGWARN_RUBY_WRONG_NAME) test3::vector<long>;    /* Ruby, wrong class name */
-%warnfilter(SWIGWARN_RUBY_WRONG_NAME) vector<test4::Integer>; /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) test::vector<int>;        /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) test::vector<short>;      /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) test::vector<long>;       /* Ruby, wrong class name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) test::vector<test::Char>; /* Ruby, wrong class name */
 
 %{
 #ifdef max
@@ -23,20 +23,9 @@ namespace test {
            char * blah(T x) {
               return (char *) "vector::blah";
            }
+           void vectoruse(vector<T> a, test::vector<T> b) {}
    }; 
 }
-
-namespace test2 {
-   using namespace test;
-}
-
-namespace test3 {
-   using test::max;
-   using test::vector;
-}
-
-using namespace test2;
-namespace T4 = test;
 %}
 
 namespace test {
@@ -48,6 +37,7 @@ namespace test {
            char * blah(T x) {
               return (char *) "vector::blah";
            }
+           void vectoruse(vector<T> a, test::vector<T> b) {}
    }; 
 }
 
@@ -55,30 +45,26 @@ using namespace test;
 %template(maxint) max<int>;
 %template(vectorint) vector<int>;
 
-namespace test2 {
-   using namespace test;
+namespace test {
    %template(maxshort) max<short>;
    %template(vectorshort) vector<short>;
 }
 
-namespace test3 {
-   using test::max;
-   using test::vector;
+namespace test {
    %template(maxlong) max<long>;
    %template(vectorlong) vector<long>;
 }
 
 %inline %{
 
-namespace test4 {
-   using namespace test;
-   typedef int Integer;
+namespace test {
+   typedef char Char;
 }
 
 %}
 
-namespace test4 {
-   %template(maxInteger) max<Integer>;
-   %template(vectorInteger) vector<Integer>;
+namespace test {
+   %template(maxchar) max<Char>;
+   %template(vectorchar) vector<Char>;
 }
 

@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-// Ruby 1.9 changed the file name of this header
+/* Ruby 1.9 changed the file name of this header */
 #ifdef HAVE_RUBY_IO_H
 #include "ruby/io.h"
 #else

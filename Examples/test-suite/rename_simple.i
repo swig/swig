@@ -11,6 +11,7 @@
 
 %inline %{
 struct OldStruct {
+  enum { ONE = 1, TWO, THREE };
   OldStruct() : OldInstanceVariable(111) {}
   int OldInstanceVariable;
   int OldInstanceMethod() { return 222; }

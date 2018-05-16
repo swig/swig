@@ -3,6 +3,7 @@
 */
 
 #define RKW(x) %keywordwarn("'" `x` "' is a R keyword, renaming to '_" `x`"'", rename="_%s")  `x`
+#define RSWIGKW(x) %keywordwarn("'" `x` "' is a SWIG R reserved parameter name, renaming to '_" `x`"'", rename="_%s")  `x`
 
 /*
   Warnings for R reserved words taken from
@@ -29,4 +30,7 @@ RKW(NA_real_);
 RKW(NA_complex_);
 RKW(NA_character_);
 
+RSWIGKW(self);
+
 #undef RKW
+#undef RSWIGKW

@@ -39,7 +39,7 @@ import java.lang.*; // for Exception
 // Create a new getCPtr() function which takes Java null and is public
 // Make the pointer constructor public
 %typemap(javabody) Farewell * %{
-  private long swigCPtr;
+  private transient long swigCPtr;
 
   public $javaclassname(long cPtr, boolean bFutureUse) {
     swigCPtr = cPtr;

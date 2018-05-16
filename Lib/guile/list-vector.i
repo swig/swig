@@ -61,12 +61,12 @@
        (size_t VECTORLENINPUT, C_TYPE *VECTORINPUT)
      {
        SCM_VALIDATE_VECTOR($argnum, $input);
-       $1 = gh_vector_length($input);
+       $1 = scm_c_vector_length($input);
        if ($1 > 0) {
 	 $1_ltype i;
 	 $2 = (C_TYPE *) SWIG_malloc(sizeof(C_TYPE) * $1);
 	 for (i = 0; i<$1; i++) {
-	   SCM swig_scm_value = gh_vector_ref($input, gh_int2scm(i));
+	   SCM swig_scm_value = scm_vector_ref($input, scm_from_long(i));
 	   $2[i] = SCM_TO_C_EXPR;
 	 }
        }
@@ -78,15 +78,15 @@
        (size_t LISTLENINPUT, C_TYPE *LISTINPUT)
      {
        SCM_VALIDATE_LIST($argnum, $input);
-       $1 = gh_length($input);
+       $1 = scm_to_ulong(scm_length($input));
        if ($1 > 0) {
 	 $1_ltype i;
 	 SCM rest;
 	 $2 = (C_TYPE *) SWIG_malloc(sizeof(C_TYPE) * $1);
 	 for (i = 0, rest = $input;
 	      i<$1;
-	      i++, rest = gh_cdr(rest)) {
-	   SCM swig_scm_value = gh_car(rest);
+	      i++, rest = SCM_CDR(rest)) {
+	   SCM swig_scm_value = SCM_CAR(rest);
 	   $2[i] = SCM_TO_C_EXPR;
 	 }
        }
@@ -140,12 +140,12 @@
 	  (size_t *VECTORLENOUTPUT, C_TYPE **VECTOROUTPUT)
      {
        $*1_ltype i;
-       SCM res = gh_make_vector(gh_int2scm(*$1),
+       SCM res = scm_make_vector(scm_from_long(*$1),
 				SCM_BOOL_F);
        for (i = 0; i<*$1; i++) {
 	 C_TYPE swig_c_value = (*$2)[i];
 	 SCM elt = C_TO_SCM_EXPR;
-	 gh_vector_set_x(res, gh_int2scm(i), elt);
+	 scm_vector_set_x(res, scm_from_long(i), elt);
        }
        SWIG_APPEND_VALUE(res);
      }
@@ -159,7 +159,7 @@
        for (i = ((int)(*$1)) - 1; i>=0; i--) {
          C_TYPE swig_c_value = (*$2)[i];
 	 SCM elt = C_TO_SCM_EXPR;
-	 res = gh_cons(elt, res);
+	 res = scm_cons(elt, res);
        }
        SWIG_APPEND_VALUE(res);
      }
@@ -200,21 +200,21 @@
 
 /* We use the macro to define typemaps for some standard types. */
 
-TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(bool, gh_scm2bool, gh_bool2scm, boolean);
-TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(char, gh_scm2char, gh_char2scm, char);
-TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(unsigned char, gh_scm2char, gh_char2scm, char);
-TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(int, gh_scm2int, gh_int2scm, integer);
-TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(short, gh_scm2int, gh_int2scm, integer);
-TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(long, gh_scm2long, gh_long2scm, integer);
-TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(ptrdiff_t, gh_scm2long, gh_long2scm, integer);
-TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(unsigned int, gh_scm2ulong, gh_ulong2scm, integer);
-TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(unsigned short, gh_scm2ulong, gh_ulong2scm, integer);
-TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(unsigned long, gh_scm2ulong, gh_ulong2scm, integer);
-TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(size_t, gh_scm2ulong, gh_ulong2scm, integer);
-TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(float, gh_scm2double, gh_double2scm, real);
-TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(double, gh_scm2double, gh_double2scm, real);
-TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(char *, SWIG_scm2str, gh_str02scm, string);
-TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string);
+TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(bool, scm_is_true, scm_from_bool, boolean);
+TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(char, SCM_CHAR, SCM_MAKE_CHAR, char);
+TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(unsigned char, SCM_CHAR, SCM_MAKE_CHAR, char);
+TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(int, scm_to_int, scm_from_long, integer);
+TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(short, scm_to_int, scm_from_long, integer);
+TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(long, scm_to_long, scm_from_long, integer);
+TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(ptrdiff_t, scm_to_long, scm_from_long, integer);
+TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(unsigned int, scm_to_ulong, scm_from_ulong, integer);
+TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(unsigned short, scm_to_ulong, scm_from_ulong, integer);
+TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(unsigned long, scm_to_ulong, scm_from_ulong, integer);
+TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(size_t, scm_to_ulong, scm_from_ulong, integer);
+TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(float, scm_to_double, scm_from_double, real);
+TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(double, scm_to_double, scm_from_double, real);
+TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(char *, SWIG_scm2str, SWIG_str02scm, string);
+TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, SWIG_str02scm, string);
 
 /* For the char *, free all strings after converting */
 
@@ -312,13 +312,13 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string
 		  const C_TYPE *PARALLEL_VECTORINPUT
      {
        SCM_VALIDATE_VECTOR($argnum, $input);
-       *_global_vector_length = gh_vector_length($input);
+       *_global_vector_length = scm_c_vector_length($input);
        if (*_global_vector_length > 0) {
 	 int i;
 	 $1 = (C_TYPE *) SWIG_malloc(sizeof(C_TYPE)
 			       * (*_global_vector_length));
 	 for (i = 0; i<*_global_vector_length; i++) {
-	   SCM swig_scm_value = gh_vector_ref($input, gh_int2scm(i));
+	   SCM swig_scm_value = scm_vector_ref($input, scm_from_long(i));
 	   $1[i] = SCM_TO_C_EXPR;
 	 }
        }
@@ -330,7 +330,7 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string
 		  const C_TYPE *PARALLEL_LISTINPUT
      {
        SCM_VALIDATE_LIST($argnum, $input);
-       *_global_list_length = gh_length($input);
+       *_global_list_length = scm_to_ulong(scm_length($input));
        if (*_global_list_length > 0) {
 	 int i;
 	 SCM rest;
@@ -338,8 +338,8 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string
 			       * (*_global_list_length));
 	 for (i = 0, rest = $input;
 	      i<*_global_list_length;
-	      i++, rest = gh_cdr(rest)) {
-	   SCM swig_scm_value = gh_car(rest);
+	      i++, rest = SCM_CDR(rest)) {
+	   SCM swig_scm_value = SCM_CAR(rest);
 	   $1[i] = SCM_TO_C_EXPR;
 	 }
        }
@@ -391,12 +391,12 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string
 		      C_TYPE **PARALLEL_VECTOROUTPUT
      {
        int i;
-       SCM res = gh_make_vector(gh_int2scm(_global_arraylentemp),
+       SCM res = scm_make_vector(scm_from_long(_global_arraylentemp),
 				SCM_BOOL_F);
        for (i = 0; i<_global_arraylentemp; i++) {
          C_TYPE swig_c_value = (*$1)[i];
 	 SCM elt = C_TO_SCM_EXPR;
-	 gh_vector_set_x(res, gh_int2scm(i), elt);
+	 scm_vector_set_x(res, scm_from_long(i), elt);
        }
        SWIG_APPEND_VALUE(res);
      }
@@ -410,7 +410,7 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string
          for (i = _global_arraylentemp - 1; i>=0; i--) {
 	   C_TYPE swig_c_value = (*$1)[i];	 
 	   SCM elt = C_TO_SCM_EXPR;
-	   res = gh_cons(elt, res);
+	   res = scm_cons(elt, res);
          }
        }
        SWIG_APPEND_VALUE(res);
@@ -449,21 +449,21 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string
 
 /* We use the macro to define typemaps for some standard types. */
 
-TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(bool, gh_scm2bool, gh_bool2scm, boolean);
-TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(char, gh_scm2char, gh_char2scm, char);
-TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(unsigned char, gh_scm2char, gh_char2scm, char);
-TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(int, gh_scm2int, gh_int2scm, integer);
-TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(short, gh_scm2int, gh_int2scm, integer);
-TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(long, gh_scm2long, gh_long2scm, integer);
-TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(ptrdiff_t, gh_scm2long, gh_long2scm, integer);
-TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(unsigned int, gh_scm2ulong, gh_ulong2scm, integer);
-TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(unsigned short, gh_scm2ulong, gh_ulong2scm, integer);
-TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(unsigned long, gh_scm2ulong, gh_ulong2scm, integer);
-TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(size_t, gh_scm2ulong, gh_ulong2scm, integer);
-TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(float, gh_scm2double, gh_double2scm, real);
-TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(double, gh_scm2double, gh_double2scm, real);
-TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(char *, SWIG_scm2str, gh_str02scm, string);
-TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string);
+TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(bool, scm_is_true, scm_from_bool, boolean);
+TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(char, SCM_CHAR, SCM_MAKE_CHAR, char);
+TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(unsigned char, SCM_CHAR, SCM_MAKE_CHAR, char);
+TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(int, scm_to_int, scm_from_long, integer);
+TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(short, scm_to_int, scm_from_long, integer);
+TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(long, scm_to_long, scm_from_long, integer);
+TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(ptrdiff_t, scm_to_long, scm_from_long, integer);
+TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(unsigned int, scm_to_ulong, scm_from_ulong, integer);
+TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(unsigned short, scm_to_ulong, scm_from_ulong, integer);
+TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(unsigned long, scm_to_ulong, scm_from_ulong, integer);
+TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(size_t, scm_to_ulong, scm_from_ulong, integer);
+TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(float, scm_to_double, scm_from_double, real);
+TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(double, scm_to_double, scm_from_double, real);
+TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(char *, SWIG_scm2str, SWIG_str02scm, string);
+TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, SWIG_str02scm, string);
 
 %typemap(freearg) char **PARALLEL_LISTINPUT, char **PARALLEL_VECTORINPUT,
     const char **PARALLEL_LISTINPUT, const char **PARALLEL_VECTORINPUT

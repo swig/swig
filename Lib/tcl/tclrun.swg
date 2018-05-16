@@ -67,6 +67,12 @@
 #define SWIG_GetConstant        SWIG_GetConstantObj
 #define SWIG_Tcl_GetConstant    SWIG_Tcl_GetConstantObj
 
+#if TCL_MAJOR_VERSION >= 8 && TCL_MINOR_VERSION >= 5
+#define SWIG_TCL_HASHTABLE_INIT {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#else
+#define SWIG_TCL_HASHTABLE_INIT {0}
+#endif
+
 #include "assert.h"
 
 #ifdef __cplusplus
@@ -193,7 +199,7 @@ SWIG_Tcl_PointerTypeFromString(char *c) {
   return c;
 }
 
-/* Convert a packed value value */
+/* Convert a packed pointer value */
 SWIGRUNTIME int
 SWIG_Tcl_ConvertPacked(Tcl_Interp *SWIGUNUSEDPARM(interp) , Tcl_Obj *obj, void *ptr, int sz, swig_type_info *ty) {
   swig_cast_info *tc;
@@ -219,15 +225,14 @@ SWIG_Tcl_ConvertPacked(Tcl_Interp *SWIGUNUSEDPARM(interp) , Tcl_Obj *obj, void *
 
 /* Take a pointer and convert it to a string */
 SWIGRUNTIME void
-SWIG_Tcl_MakePtr(char *c, void *ptr, swig_type_info *ty, int flags) {
+SWIG_Tcl_MakePtr(char *c, void *ptr, swig_type_info *ty, int SWIGUNUSEDPARM(flags)) {
   if (ptr) {
     *(c++) = '_';
     c = SWIG_PackData(c,&ptr,sizeof(void *));
     strcpy(c,ty->name);
   } else {
-    strcpy(c,(char *)"NULL");
+    strcpy(c,"NULL");
   }
-  flags = 0;
 }
 
 /* Create a new pointer object */
@@ -281,14 +286,15 @@ SWIG_Tcl_SetModule(Tcl_Interp *interp, swig_module_info *module) {
 }
 
 /* -----------------------------------------------------------------------------*
- *  Object auxiliars
+ *  Object auxiliaries
  * -----------------------------------------------------------------------------*/
 
 
 SWIGRUNTIME void
 SWIG_Tcl_ObjectDelete(ClientData clientData) {
   swig_instance *si = (swig_instance *) clientData;
-  if ((si) && (si->destroy) && (SWIG_Disown(si->thisvalue))) {
+  if (!si) return;
+  if (si->destroy && SWIG_Disown(si->thisvalue)) {
     if (si->classptr->destructor) {
       (si->classptr->destructor)(si->thisvalue);
     }
@@ -338,7 +344,6 @@ SWIG_Tcl_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   }
   cls_stack[cls_stack_top] = inst->classptr;
   cls_stack_bi[cls_stack_top] = -1;
-  cls = inst->classptr;
   while (1) {
     Tcl_HashEntry* hashentry;
     bi = cls_stack_bi[cls_stack_top];

@@ -1,8 +1,10 @@
 import director_unroll
 
+
 class MyFoo(director_unroll.Foo):
-	def ping(self):
-		return "MyFoo::ping()"
+
+    def ping(self):
+        return "MyFoo::ping()"
 
 
 a = MyFoo()
@@ -14,6 +16,5 @@ c = b.get()
 
 
 if not (a.this == c.this):
-	print a, c
-	raise RuntimeError
-
+    print a, c
+    raise RuntimeError

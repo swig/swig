@@ -13,7 +13,7 @@
   template<typename t_item, typename t2> class list_impl_t {};
 
   template<typename t_item, template<typename> class t_alloc = pfc::alloc_fast >
-    class list_t : public list_impl_t<t_item,pfc::array_t<t_item,t_alloc> > { 
+    class list_tt : public list_impl_t<t_item,pfc::array_t<t_item,t_alloc> > {
   public:
     t_item item;
 //    typename t_alloc<t_item>::alloc_type allotype; // SWIG can't handle this yet
@@ -32,8 +32,8 @@ void TestInstantiations() {
 %}
 
 %template(ListImplFastBool) list_impl_t<bool, pfc::array_t<bool, pfc::alloc_fast> >;
-%template(ListFastBool) list_t<bool, pfc::alloc_fast>;
+%template(ListFastBool) list_tt<bool, pfc::alloc_fast>;
 
 %template(ListImplFastDouble) list_impl_t<double, pfc::array_t<double, pfc::alloc_fast> >;
-%template(ListDefaultDouble) list_t<double>;
+%template(ListDefaultDouble) list_tt<double>;
 

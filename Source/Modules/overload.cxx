@@ -26,6 +26,7 @@ struct Overloaded {
   int argc;			/* Argument count                     */
   ParmList *parms;		/* Parameters used for overload check */
   int error;			/* Ambiguity error                    */
+  bool implicitconv_function;	/* For ordering implicitconv functions*/
 };
 
 static int fast_dispatch_mode = 0;
@@ -38,6 +39,32 @@ void Wrapper_fast_dispatch_mode_set(int flag) {
 
 void Wrapper_cast_dispatch_mode_set(int flag) {
   cast_dispatch_mode = flag;
+}
+
+/* -----------------------------------------------------------------------------
+ * mark_implicitconv_function()
+ *
+ * Mark function if it contains an implicitconv type in the parameter list
+ * ----------------------------------------------------------------------------- */
+static void mark_implicitconv_function(Overloaded& onode) {
+  Parm *parms = onode.parms;
+  if (parms) {
+    bool is_implicitconv_function = false;
+    Parm *p = parms;
+    while (p) {
+      if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+	p = Getattr(p, "tmap:in:next");
+	continue;
+      }
+      if (GetFlag(p, "implicitconv")) {
+	is_implicitconv_function = true;
+	break;
+      }
+      p = nextSibling(p);
+    }
+    if (is_implicitconv_function)
+      onode.implicitconv_function = true;
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -85,6 +112,9 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
       nodes[nnodes].parms = Getattr(c, "wrap:parms");
       nodes[nnodes].argc = emit_num_required(nodes[nnodes].parms);
       nodes[nnodes].error = 0;
+      nodes[nnodes].implicitconv_function = false;
+
+      mark_implicitconv_function(nodes[nnodes]);
       nnodes++;
     }
     c = Getattr(c, "sym:nextSibling");
@@ -128,12 +158,12 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 	    String *t2 = Getattr(p2, "tmap:typecheck:precedence");
 	    if ((!t1) && (!nodes[i].error)) {
 	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[i].n), Getline(nodes[i].n),
-			   "Overloaded method %s not supported (no type checking rule for '%s').\n",
+			   "Overloaded method %s not supported (incomplete type checking rule - no precedence level in typecheck typemap for '%s').\n",
 			   Swig_name_decl(nodes[i].n), SwigType_str(Getattr(p1, "type"), 0));
 	      nodes[i].error = 1;
 	    } else if ((!t2) && (!nodes[j].error)) {
 	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[j].n), Getline(nodes[j].n),
-			   "Overloaded method %s not supported (no type checking rule for '%s').\n",
+			   "Overloaded method %s not supported (incomplete type checking rule - no precedence level in typecheck typemap for '%s').\n",
 			   Swig_name_decl(nodes[j].n), SwigType_str(Getattr(p2, "type"), 0));
 	      nodes[j].error = 1;
 	    }
@@ -155,7 +185,8 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 	      nodes[j] = t;
 	      break;
 	    } else if ((differ == 0) && (Strcmp(t1, "0") == 0)) {
-	      t1 = Getattr(p1, "ltype");
+	      t1 = Getattr(p1, "equivtype");
+	      t1 = t1 ? t1 : Getattr(p1, "ltype");
 	      if (!t1) {
 		t1 = SwigType_ltype(Getattr(p1, "type"));
 		if (Getattr(p1, "tmap:typecheck:SWIGTYPE")) {
@@ -163,7 +194,8 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 		}
 		Setattr(p1, "ltype", t1);
 	      }
-	      t2 = Getattr(p2, "ltype");
+	      t2 = Getattr(p2, "equivtype");
+	      t2 = t2 ? t2 : Getattr(p2, "ltype");
 	      if (!t2) {
 		t2 = SwigType_ltype(Getattr(p2, "type"));
 		if (Getattr(p2, "tmap:typecheck:SWIGTYPE")) {
@@ -201,9 +233,21 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 	  }
 	  if (!differ) {
 	    /* See if declarations differ by const only */
-	    String *d1 = Getattr(nodes[i].n, "decl");
-	    String *d2 = Getattr(nodes[j].n, "decl");
-	    if (d1 && d2) {
+	    String *decl1 = Getattr(nodes[i].n, "decl");
+	    String *decl2 = Getattr(nodes[j].n, "decl");
+	    if (decl1 && decl2) {
+	      /* Remove ref-qualifiers. Note that rvalue ref-qualifiers are already ignored and 
+	       * it is illegal to overload a function with and without ref-qualifiers. So with
+	       * all the combinations of ref-qualifiers and cv-qualifiers, we just detect 
+	       * the cv-qualifier (const) overloading. */
+	      String *d1 = Copy(decl1);
+	      String *d2 = Copy(decl2);
+	      if (SwigType_isreference(d1) || SwigType_isrvalue_reference(d1)) {
+		Delete(SwigType_pop(d1));
+	      }
+	      if (SwigType_isreference(d2) || SwigType_isrvalue_reference(d2)) {
+		Delete(SwigType_pop(d2));
+	      }
 	      String *dq1 = Copy(d1);
 	      String *dq2 = Copy(d2);
 	      if (SwigType_isconst(d1)) {
@@ -287,12 +331,30 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
   List *result = NewList();
   {
     int i;
+    int argc_changed_index = -1;
     for (i = 0; i < nnodes; i++) {
       if (nodes[i].error)
 	Setattr(nodes[i].n, "overload:ignore", "1");
       Append(result, nodes[i].n);
-      //      Printf(stdout,"[ %d ] %s\n", i, ParmList_errorstr(nodes[i].parms));
-      //      Swig_print_node(nodes[i].n);
+      // Printf(stdout,"[ %d ] %d    %s\n", i, nodes[i].implicitconv_function, ParmList_errorstr(nodes[i].parms));
+      // Swig_print_node(nodes[i].n);
+      if (i == nnodes-1 || nodes[i].argc != nodes[i+1].argc) {
+	if (argc_changed_index+2 < nnodes && (nodes[argc_changed_index+1].argc == nodes[argc_changed_index+2].argc)) {
+	  // Add additional implicitconv functions in same order as already ranked.
+	  // Consider overloaded functions by argument count... only add additional implicitconv functions if
+	  // the number of functions with the same arg count > 1, ie, only if overloaded by same argument count.
+	  int j;
+	  for (j = argc_changed_index + 1; j <= i; j++) {
+	    if (nodes[j].implicitconv_function) {
+	      SetFlag(nodes[j].n, "implicitconvtypecheckoff");
+	      Append(result, nodes[j].n);
+	      // Printf(stdout,"[ %d ] %d +  %s\n", j, nodes[j].implicitconv_function, ParmList_errorstr(nodes[j].parms));
+	      // Swig_print_node(nodes[j].n);
+	    }
+	  }
+	}
+	argc_changed_index = i;
+      }
     }
   }
   return result;
@@ -302,20 +364,22 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 //  * print_typecheck()
 //  * ----------------------------------------------------------------------------- */
 
-static bool print_typecheck(String *f, int j, Parm *pj) {
+static bool print_typecheck(String *f, int j, Parm *pj, bool implicitconvtypecheckoff) {
   char tmp[256];
   sprintf(tmp, Char(argv_template_string), j);
   String *tm = Getattr(pj, "tmap:typecheck");
   if (tm) {
+    tm = Copy(tm);
     Replaceid(tm, Getattr(pj, "lname"), "_v");
     String *conv = Getattr(pj, "implicitconv");
-    if (conv) {
+    if (conv && !implicitconvtypecheckoff) {
       Replaceall(tm, "$implicitconv", conv);
     } else {
       Replaceall(tm, "$implicitconv", "0");
     }
     Replaceall(tm, "$input", tmp);
     Printv(f, tm, "\n", NIL);
+    Delete(tm);
     return true;
   } else
     return false;
@@ -383,6 +447,7 @@ String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *
     int fn = 0;
     Node *ni = Getitem(dispatch, i);
     Parm *pi = Getattr(ni, "wrap:parms");
+    bool implicitconvtypecheckoff = GetFlag(ni, "implicitconvtypecheckoff") != 0;
     int num_required = emit_num_required(pi);
     int num_arguments = emit_num_arguments(pi);
     if (num_arguments > *maxargs)
@@ -426,6 +491,7 @@ String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *
 
 	String *tm = Getattr(pj, "tmap:typecheck");
 	if (tm) {
+	  tm = Copy(tm);
 	  /* normalise for comparison later */
 	  Replaceid(tm, Getattr(pj, "lname"), "_v");
 
@@ -478,13 +544,14 @@ String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *
 	    String *tmp = NewStringf(argv_template_string, j);
 
 	    String *conv = Getattr(pj, "implicitconv");
-	    if (conv) {
+	    if (conv && !implicitconvtypecheckoff) {
 	      Replaceall(tm, "$implicitconv", conv);
 	    } else {
 	      Replaceall(tm, "$implicitconv", "0");
 	    }
 	    Replaceall(tm, "$input", tmp);
 	    Printv(f, "{\n", tm, "}\n", NIL);
+	    Delete(tm);
 	    fn = i + 1;
 	    Printf(f, "if (!_v) goto check_%d;\n", fn);
 	    Printf(f, "_ranki += _v*_pi;\n");
@@ -524,6 +591,9 @@ String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *
     if (fn)
       Printf(f, "check_%d:\n\n", fn);
 
+    if (implicitconvtypecheckoff)
+      Delattr(ni, "implicitconvtypecheckoff");
+
     Delete(lfmt);
     Delete(coll);
   }
@@ -557,6 +627,7 @@ String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *
     int fn = 0;
     Node *ni = Getitem(dispatch, i);
     Parm *pi = Getattr(ni, "wrap:parms");
+    bool implicitconvtypecheckoff = GetFlag(ni, "implicitconvtypecheckoff") != 0;
     int num_required = emit_num_required(pi);
     int num_arguments = emit_num_arguments(pi);
     if (num_arguments > *maxargs)
@@ -596,6 +667,7 @@ String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *
 
 	String *tm = Getattr(pj, "tmap:typecheck");
 	if (tm) {
+	  tm = Copy(tm);
 	  /* normalise for comparison later */
 	  Replaceid(tm, Getattr(pj, "lname"), "_v");
 
@@ -649,13 +721,14 @@ String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *
 	    String *tmp = NewStringf(argv_template_string, j);
 
 	    String *conv = Getattr(pj, "implicitconv");
-	    if (conv) {
+	    if (conv && !implicitconvtypecheckoff) {
 	      Replaceall(tm, "$implicitconv", conv);
 	    } else {
 	      Replaceall(tm, "$implicitconv", "0");
 	    }
 	    Replaceall(tm, "$input", tmp);
 	    Printv(f, "{\n", tm, "}\n", NIL);
+	    Delete(tm);
 	    fn = i + 1;
 	    Printf(f, "if (!_v) goto check_%d;\n", fn);
 	  }
@@ -687,6 +760,9 @@ String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *
     if (fn)
       Printf(f, "check_%d:\n\n", fn);
 
+    if (implicitconvtypecheckoff)
+      Delattr(ni, "implicitconvtypecheckoff");
+
     Delete(lfmt);
     Delete(coll);
   }
@@ -715,6 +791,7 @@ String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxar
   for (i = 0; i < nfunc; i++) {
     Node *ni = Getitem(dispatch, i);
     Parm *pi = Getattr(ni, "wrap:parms");
+    bool implicitconvtypecheckoff = GetFlag(ni, "implicitconvtypecheckoff") != 0;
     int num_required = emit_num_required(pi);
     int num_arguments = emit_num_arguments(pi);
     if (GetFlag(n, "wrap:this")) {
@@ -749,7 +826,7 @@ String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxar
 	Printf(f, "}\n");
 	Delete(lfmt);
       }
-      if (print_typecheck(f, (GetFlag(n, "wrap:this") ? j + 1 : j), pj)) {
+      if (print_typecheck(f, (GetFlag(n, "wrap:this") ? j + 1 : j), pj, implicitconvtypecheckoff)) {
 	Printf(f, "if (_v) {\n");
 	num_braces++;
       }
@@ -773,6 +850,8 @@ String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxar
     for ( /* empty */ ; num_braces > 0; num_braces--)
       Printf(f, "}\n");
     Printf(f, "}\n");		/* braces closes "if" for this method */
+    if (implicitconvtypecheckoff)
+      Delattr(ni, "implicitconvtypecheckoff");
   }
   Delete(dispatch);
   return f;

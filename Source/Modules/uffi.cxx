@@ -15,7 +15,7 @@
 
 #include "swigmod.h"
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 UFFI Options (available with -uffi)\n\
      -identifier-converter <type or funcname> - \n\
                        Specifies the type of conversion to do on C identifiers\n\
@@ -363,23 +363,24 @@ int UFFI::classHandler(Node *n) {
   for (c = firstChild(n); c; c = nextSibling(c)) {
     SwigType *type = Getattr(c, "type");
     SwigType *decl = Getattr(c, "decl");
-    type = Copy(type);
-    SwigType_push(type, decl);
-    String *lisp_type;
+    if (type) {
+      type = Copy(type);
+      SwigType_push(type, decl);
+      String *lisp_type;
 
-    if (Strcmp(nodeType(c), "cdecl")) {
-      Printf(stderr, "Structure %s has a slot that we can't deal with.\n", name);
-      Printf(stderr, "nodeType: %s, name: %s, type: %s\n", nodeType(c), Getattr(c, "name"), Getattr(c, "type"));
-      SWIG_exit(EXIT_FAILURE);
+      if (Strcmp(nodeType(c), "cdecl")) {
+	Printf(stderr, "Structure %s has a slot that we can't deal with.\n", name);
+	Printf(stderr, "nodeType: %s, name: %s, type: %s\n", nodeType(c), Getattr(c, "name"), Getattr(c, "type"));
+	SWIG_exit(EXIT_FAILURE);
+      }
+
+      /* Printf(stdout, "Converting %s in %s\n", type, name); */
+      lisp_type = get_ffi_type(n, type, Getattr(c, "sym:name"));
+
+      Printf(f_cl, "  (#.(%s \"%s\" :type :slot) %s)\n", identifier_converter, Getattr(c, "sym:name"), lisp_type);
+
+      Delete(lisp_type);
     }
-
-
-    /* Printf(stdout, "Converting %s in %s\n", type, name); */
-    lisp_type = get_ffi_type(n, type, Getattr(c, "sym:name"));
-
-    Printf(f_cl, "  (#.(%s \"%s\" :type :slot) %s)\n", identifier_converter, Getattr(c, "sym:name"), lisp_type);
-
-    Delete(lisp_type);
   }
 
   // Language::classHandler(n);

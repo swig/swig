@@ -4,7 +4,7 @@
 ;; The SWIG modules have "passive" Linkage, i.e., they don't generate
 ;; Guile modules (namespaces) but simply put all the bindings into the
 ;; current module.  That's enough for such a simple test.
-(dynamic-call "scm_init_li_typemaps_module" (dynamic-link "./libli_typemaps.so"))
+(dynamic-call "scm_init_li_typemaps_module" (dynamic-link "./libli_typemaps"))
 (load "../schemerunme/li_typemaps.scm")
 
 (let ((lst (inoutr-int2 3 -2)))

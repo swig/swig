@@ -38,3 +38,9 @@ unsigned long long ull;
 
 #define lconst5 987654321LL
 #define lconst6 987654321ULL
+
+%inline %{
+long long UnsignedToSigned(unsigned long long ull) {
+  return (long long)ull;
+}
+%}

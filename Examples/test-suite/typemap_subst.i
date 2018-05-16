@@ -27,12 +27,14 @@
     (void)c;
     (void)d;
     (void)e;
+    (void)f;
   }
   { /* Test locals */
     basetemp.member = 0;
     startemp = &basetemp;
     temp = &startemp;
     amptemp = &temp;
+    (void)amptemp;
   }
   { /* Test descriptors */
     void *desc = $descriptor;

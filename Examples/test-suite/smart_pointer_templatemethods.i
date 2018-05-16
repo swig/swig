@@ -45,7 +45,7 @@ public:
 %template(QueryInterfaceObjct) Objct::QueryInterface<Objct>;
 #endif
 
-}; // namespace
+} // namespace
  
 %}
 

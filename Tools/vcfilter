@@ -2,9 +2,9 @@
 
 # This is a simple utility for Cygwin/Mingw which is useful when running the SWIG
 # test-suite through Visual Studio. If the output from the test-suite is piped
-# through this utility, it will filter the junk that the compiler generates.
+# through this utility, it will filter the junk that the compiler outputs to stdout.
 # Typical usage: make check | vcfilter
 
 # dos2unix needed for ^ and $ to work.
-2>&1 dos2unix | grep -v "\.cxx$" | grep -v "\.c$" | grep -v "^   Creating library" | grep -v "^Generating Code"
+2>&1 dos2unix | grep -v -e "\.cxx$" -e "\.c$" -e "^   Creating library" -e "^Generating Code"
 

@@ -1,14 +1,17 @@
-# file: runme.m
+# do not dump Octave core
+if exist("crash_dumps_octave_core", "builtin")
+  crash_dumps_octave_core(0);
+endif
 
 # This file illustrates the manipulation of C++ references in Octave
 
-example
+swigexample
 
 # ----- Object creation -----
 
 printf("Creating some objects:\n");
-a = example.Vector(3,4,5)
-b = example.Vector(10,11,12)
+a = swigexample.Vector(3,4,5)
+b = swigexample.Vector(10,11,12)
 
 printf("    Created %s\n",a.cprint());
 printf("    Created %s\n",b.cprint());
@@ -17,12 +20,12 @@ printf("    Created %s\n",b.cprint());
 
 # This calls the wrapper we placed around
 #
-#      operator+(const Vector &a, const Vector &) 
+#      operator+(const Vector &a, const Vector &)
 #
 # It returns a new allocated object.
 
 printf("Adding a+b\n");
-c = example.addv(a,b);
+c = swigexample.addv(a,b);
 printf("    a+b = %s\n", c.cprint());
 
 clear c
@@ -31,7 +34,7 @@ clear c
 
 # Note: Using the high-level interface here
 printf("Creating an array of vectors\n");
-va = example.VectorArray(10)
+va = swigexample.VectorArray(10)
 
 # ----- Set some values in the array -----
 
@@ -39,7 +42,7 @@ va = example.VectorArray(10)
 va.set(0,a);
 va.set(1,b);
 
-va.set(2,example.addv(a,b))
+va.set(2,swigexample.addv(a,b))
 
 # Get some values from the array
 
@@ -60,4 +63,3 @@ printf("Cleaning up\n");
 clear va
 clear a
 clear b
-

@@ -93,7 +93,7 @@ struct OverAfter {
 // %extend overrides the class definition
 %extend Override {
   int over(int a) { return a*a; } // SWIG should give a warning then choose this one over the real one
-  int overload(int a) { return a*a; } // Similarly, but this one generated uncompileable code in SWIG-1.3.22
+  int overload(int a) { return a*a; } // Similarly, but this one generated uncompilable code in SWIG-1.3.22
 }
 %inline %{
 struct Override {

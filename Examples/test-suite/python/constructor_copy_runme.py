@@ -1,7 +1,7 @@
 from constructor_copy import *
 
-f1 = Foo1(3);
-f11 = Foo1(f1);
+f1 = Foo1(3)
+f11 = Foo1(f1)
 
 
 if f1.x != f11.x:
@@ -24,7 +24,7 @@ bc = Bari(bi)
 
 if (bi.x != bc.x):
     raise RuntimeError
-    
+
 
 bd = Bard(5)
 try:
@@ -35,4 +35,3 @@ except:
 
 if not good:
     raise RuntimeError
-

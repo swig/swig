@@ -18,7 +18,7 @@
 #define SWIG_FROM_CALL_ARGS  SWIG_PERL_CALL_ARGS_1
 
 
-/* Include fundamental fragemt definitions */
+/* Include fundamental fragment definitions */
 %include <typemaps/fragments.swg>
 
 /* Look for user fragments file. */
@@ -35,9 +35,9 @@
  *  Unified typemap section
  * ------------------------------------------------------------ */
 
-/* No director supported in Perl */
-#ifdef SWIG_DIRECTOR_TYPEMAPS
-#undef SWIG_DIRECTOR_TYPEMAPS
+/* director support in Perl is experimental */
+#ifndef SWIG_DIRECTOR_TYPEMAPS
+#define SWIG_DIRECTOR_TYPEMAPS
 #endif
 
 
@@ -71,6 +71,10 @@
 /* raise exception */
 %define %raise(obj, type, desc) sv_setsv(get_sv("@", GV_ADD), obj); SWIG_fail %enddef
 
+/* For directors to raise/throw the original exception */
+%typemap(throws) Swig::DirectorException
+%{ sv_setsv(ERRSV, $1.getNative()); SWIG_fail; %}
+
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>
 
@@ -82,6 +86,9 @@
     "sv_setiv(SvRV($result),PTR2IV($1));"; 
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE &
+    "sv_setiv(SvRV($result),PTR2IV(&$1));"; 
+
+%typemap(varout,type="$1_descriptor") SWIGTYPE &&
     "sv_setiv(SvRV($result),PTR2IV(&$1));"; 
 
 %typemap(varout,type="$&1_descriptor") SWIGTYPE

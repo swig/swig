@@ -267,6 +267,7 @@ char *find_executable(const char *name, const char *exclude_name)
 		}
 		free(fname);
 	}
+	free(path);
 
 	return NULL;
 #endif

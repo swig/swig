@@ -2,6 +2,12 @@
 
 %module java_throws
 
+// throw is invalid in C++17 and later, only SWIG to use it
+#define TESTCASE_THROW1(T1) throw(T1)
+%{
+#define TESTCASE_THROW1(T1)
+%}
+
 // Exceptions are chosen at random but are ones which have to have a try catch block to compile
 %typemap(in, throws="	 ClassNotFoundException") int num { 
     $1 = (int)$input;
@@ -39,13 +45,7 @@ short full_of_exceptions(int num) {
     return $null;
 }
 %inline %{
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-bool throw_spec_function(int value) throw (int) { throw (int)0; }
-#if defined(_MSC_VER)
-  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
+bool throw_spec_function(int value) TESTCASE_THROW1(int) { throw (int)0; }
 %}
 
 %catches(int) catches_function(int value);
@@ -122,6 +122,24 @@ JAVAEXCEPTION(FeatureTest::staticMethod)
         }
         void method() {
             throw MyException("no message");
+        }
+    };
+%}
+
+%include <swiginterface.i>
+%interface_impl(InterfaceTest);
+JAVAEXCEPTION(imethod)
+
+%inline %{
+    struct InterfaceTest {
+        virtual void imethod(bool raise) = 0;
+        virtual ~InterfaceTest() {}
+    };
+
+    struct InterfaceTestImpl : InterfaceTest {
+        void imethod(bool raise) {
+            if (raise)
+                throw MyException("raise message");
         }
     };
 %}

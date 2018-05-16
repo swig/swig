@@ -67,6 +67,8 @@ char * typemaps instead:
 
 %typemap(out) TYPE *INPUT, TYPE &INPUT ""
 
+%typemap(goout) TYPE *INPUT, TYPE &INPUT ""
+
 %typemap(freearg) TYPE *INPUT, TYPE &INPUT ""
 
 %typemap(argout) TYPE *INPUT, TYPE &INPUT ""
@@ -166,6 +168,8 @@ char * typemaps instead:
 }
 
 %typemap(out) TYPE *OUTPUT, TYPE &OUTPUT ""
+
+%typemap(goout) TYPE *INPUT, TYPE &INPUT ""
 
 %typemap(freearg) TYPE *OUTPUT, TYPE &OUTPUT ""
 
@@ -267,6 +271,8 @@ char * typemaps instead:
 }
 
 %typemap(out) TYPE *INOUT, TYPE &INOUT ""
+
+%typemap(goout) TYPE *INOUT, TYPE &INOUT ""
 
 %typemap(freearg) TYPE *INOUT, TYPE &INOUT ""
 

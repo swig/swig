@@ -21,6 +21,16 @@ extern "C"
 Integer do_op(Integer x, Integer y, Integer (*op)(Integer, Integer)) {
     return (*op)(x,y);
 }
+
+typedef int (*FnPtr_int_td)(int, int);
+int do_op_typedef_int(int x, int y, FnPtr_int_td op) {
+    return (*op)(x,y);
+}
+
+typedef Integer (*FnPtr_Integer_td)(Integer, Integer);
+Integer do_op_typedef_Integer(Integer x, Integer y, FnPtr_Integer_td op) {
+    return (*op)(x,y);
+}
 %}
 
 %constant int     addf(int x, int y);

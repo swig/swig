@@ -102,8 +102,24 @@ ANOTHER_MACRO(int)
 void another_macro_checking(void) {
   struct Defined d;
   d.defined = 10;
+  (void)d;
   thing(10);
   stuff(10);
   bumpf(10);
 }
 %}
+
+/* Check that unknown preprocessor directives are ignored inside an inactive
+ * conditional (github issue #394).
+ */
+#ifdef APPLE_OPENGL
+# import <OpenGLES/ES1/gl.h>
+#endif
+#ifdef AAA
+# define B
+#else
+# wibble wibble
+#endif
+#if 0
+# wobble wobble
+#endif

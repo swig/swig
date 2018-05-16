@@ -5,12 +5,12 @@ if getconstTC().num != 33:
     raise RuntimeError
 
 # primitive reference variables
-cvar.var_bool = createref_bool(0)
-if value_bool(cvar.var_bool) != 0:
+cvar.var_bool = createref_bool(False)
+if value_bool(cvar.var_bool) != False:
     raise RuntimeError
 
-cvar.var_bool = createref_bool(1)
-if value_bool(cvar.var_bool) != 1:
+cvar.var_bool = createref_bool(True)
+if value_bool(cvar.var_bool) != True:
     raise RuntimeError
 
 cvar.var_char = createref_char('w')
@@ -71,4 +71,3 @@ if value_double(cvar.var_double) != 10.5:
 cvar.var_TestClass = createref_TestClass(TestClass(20))
 if value_TestClass(cvar.var_TestClass).num != 20:
     raise RuntimeError
-

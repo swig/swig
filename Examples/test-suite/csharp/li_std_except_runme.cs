@@ -7,6 +7,7 @@ public class li_std_except_runme {
 
   public static void Main() {
     Test test = new Test();
+    try { test.throw_bad_cast(); throw new Exception("throw_bad_cast failed"); } catch (InvalidCastException) {}
     try { test.throw_bad_exception(); throw new Exception("throw_bad_exception failed"); } catch (ApplicationException) {}
     try { test.throw_domain_error(); throw new Exception("throw_domain_error failed"); } catch (ApplicationException) {}
     try { test.throw_exception(); throw new Exception("throw_exception failed"); } catch (ApplicationException) {}

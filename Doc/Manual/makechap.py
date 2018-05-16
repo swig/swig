@@ -21,7 +21,7 @@ import string
 ###############################################################################
 
 # Regexs for <a name="..."></a>
-alink = re.compile(r"<a *name *= *\"(.*)\"></a>", re.IGNORECASE)
+alink = re.compile(r"<a *name *= *\"(.*)\">.*</a>", re.IGNORECASE)
 heading = re.compile(r"(_nn\d)", re.IGNORECASE)
 
 def getheadingname(m):
@@ -37,6 +37,19 @@ def getheadingname(m):
         # We can create a new heading / change the existing heading
         headingname = "%s_nn%d" % (filenamebase, nameindex)
     return headingname
+
+# Return heading - 1.1. Introduction in the examples below:
+# old style example: <H2><a name="Preface_nn2"></a>1.1 Introduction</H2>
+# new style example: <H2><a name="Preface_nn2">1.1 Introduction</a></H2>
+def getheadingtext(m, s):
+    prevheadingtext_newstyle = m.group(2)
+    prevheadingtext_oldstyle = m.group(3)
+    if len(prevheadingtext_oldstyle) == 0 and len(prevheadingtext_newstyle) == 0:
+        raise RuntimeError("No heading text in line:\n%s" % s)
+    if len(prevheadingtext_oldstyle) > 0 and len(prevheadingtext_newstyle) > 0:
+        raise RuntimeError("Two heading texts, only one should be specified in line:\n%s" % s)
+    prevheadingtext = prevheadingtext_oldstyle if len(prevheadingtext_oldstyle) > 0 else prevheadingtext_newstyle
+    return prevheadingtext
 
 ###############################################################################
 # Main program
@@ -59,11 +72,11 @@ name = ""
 
 # Regexs for <h1>,... <h5> sections
 
-h1 = re.compile(r".*?<H1>(<a.*a>)*[\d\.\s]*(.*?)</H1>", re.IGNORECASE)
-h2 = re.compile(r".*?<H2>(<a.*a>)*[\d\.\s]*(.*?)</H2>", re.IGNORECASE)
-h3 = re.compile(r".*?<H3>(<a.*a>)*[\d\.\s]*(.*?)</H3>", re.IGNORECASE)
-h4 = re.compile(r".*?<H4>(<a.*a>)*[\d\.\s]*(.*?)</H4>", re.IGNORECASE)
-h5 = re.compile(r".*?<H5>(<a.*a>)*[\d\.\s]*(.*?)</H5>", re.IGNORECASE)
+h1 = re.compile(r".*?<H1>(<a.*?>\s*[\d\s]*(.*?)</a>)*[\d\s]*(.*?)</H1>", re.IGNORECASE)
+h2 = re.compile(r".*?<H2>(<a.*?>\s*[\d\.\s]*(.*?)</a>)*[\d\.\s]*(.*?)</H2>", re.IGNORECASE)
+h3 = re.compile(r".*?<H3>(<a.*?>\s*[\d\.\s]*(.*?)</a>)*[\d\.\s]*(.*?)</H3>", re.IGNORECASE)
+h4 = re.compile(r".*?<H4>(<a.*?>\s*[\d\.\s]*(.*?)</a>)*[\d\.\s]*(.*?)</H4>", re.IGNORECASE)
+h5 = re.compile(r".*?<H5>(<a.*?>\s*[\d\.\s]*(.*?)</a>)*[\d\.\s]*(.*?)</H5>", re.IGNORECASE)
 
 data = open(filename).read()            # Read data
 open(filename+".bak","w").write(data)   # Make backup
@@ -95,10 +108,10 @@ for s in lines:
     
     m = h1.match(s)
     if m:
-        prevheadingtext = m.group(2)
+        prevheadingtext = getheadingtext(m, s)
         nameindex += 1
         headingname = getheadingname(m)
-        result.append("""<H1><a name="%s"></a>%d %s</H1>""" % (headingname,num,prevheadingtext))
+        result.append("""<H1><a name="%s">%d %s</a></H1>""" % (headingname,num,prevheadingtext))
         result.append("@INDEX@")
         section = 0
         subsection = 0
@@ -109,11 +122,11 @@ for s in lines:
         continue
     m = h2.match(s)
     if m:
-        prevheadingtext = m.group(2)
+        prevheadingtext = getheadingtext(m, s)
         nameindex += 1
         section += 1
         headingname = getheadingname(m)
-        result.append("""<H2><a name="%s"></a>%d.%d %s</H2>""" % (headingname,num,section, prevheadingtext))
+        result.append("""<H2><a name="%s">%d.%d %s</a></H2>""" % (headingname,num,section, prevheadingtext))
 
         if subsubsubsection:
             index += "</ul>\n"
@@ -132,11 +145,11 @@ for s in lines:
         continue
     m = h3.match(s)
     if m:
-        prevheadingtext = m.group(2)
+        prevheadingtext = getheadingtext(m, s)
         nameindex += 1
         subsection += 1
         headingname = getheadingname(m)
-        result.append("""<H3><a name="%s"></a>%d.%d.%d %s</H3>""" % (headingname,num,section, subsection, prevheadingtext))
+        result.append("""<H3><a name="%s">%d.%d.%d %s</a></H3>""" % (headingname,num,section, subsection, prevheadingtext))
 
         if subsubsubsection:
             index += "</ul>\n"
@@ -151,12 +164,12 @@ for s in lines:
         continue
     m = h4.match(s)
     if m:
-        prevheadingtext = m.group(2)
+        prevheadingtext = getheadingtext(m, s)
         nameindex += 1
         subsubsection += 1
 
         headingname = getheadingname(m)
-        result.append("""<H4><a name="%s"></a>%d.%d.%d.%d %s</H4>""" % (headingname,num,section, subsection, subsubsection, prevheadingtext))
+        result.append("""<H4><a name="%s">%d.%d.%d.%d %s</a></H4>""" % (headingname,num,section, subsection, subsubsection, prevheadingtext))
 
         if subsubsubsection:
             index += "</ul>\n"
@@ -169,11 +182,11 @@ for s in lines:
         continue
     m = h5.match(s)
     if m:
-        prevheadingtext = m.group(2)
+        prevheadingtext = getheadingtext(m, s)
         nameindex += 1
         subsubsubsection += 1
         headingname = getheadingname(m)
-        result.append("""<H5><a name="%s"></a>%d.%d.%d.%d.%d %s</H5>""" % (headingname,num,section, subsection, subsubsection, subsubsubsection, prevheadingtext))
+        result.append("""<H5><a name="%s">%d.%d.%d.%d.%d %s</a></H5>""" % (headingname,num,section, subsection, subsubsection, subsubsubsection, prevheadingtext))
 
         if subsubsubsection == 1:
             index += "<ul>\n"

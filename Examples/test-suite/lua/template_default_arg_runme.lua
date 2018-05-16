@@ -3,6 +3,7 @@ import("template_default_arg")	-- import code
 --for k,v in pairs(template_default_arg) do _G[k]=v end -- move to global
 
 helloInt = template_default_arg.Hello_int()
+assert(template_default_arg.Hello_int_hi ~= nil)
 helloInt:foo(template_default_arg.Hello_int_hi)
 
 x = template_default_arg.X_int()

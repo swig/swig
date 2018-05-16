@@ -78,6 +78,15 @@ namespace Space {
   };
 }
 
+%exception Space::ABC::operator ABC %{
+#if defined(__clang__)
+  // Workaround for: warning: conversion function converting 'Space::ABC' to itself will never be used
+  result = *arg1;
+#else
+  $action
+#endif
+%}
+
 namespace Space {
 // non-templated class using itself in method and operator
 class ABC {
@@ -90,7 +99,10 @@ class ABC {
 
     void method(ABC a) const {}
     void method(Klass k) const {}
+#if !defined(__clang__)
+    // Workaround for: warning: conversion function converting 'Space::ABC' to itself will never be used
     operator ABC() const { ABC a; return a; }
+#endif
     operator Klass() const { Klass k; return k; }
 };
 }

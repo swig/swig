@@ -1,5 +1,9 @@
 %module array_member
 
+#if defined(SWIGSCILAB)
+%rename(RayPkt) RayPacketData;
+#endif
+
 %inline %{
 
 typedef struct Foo {

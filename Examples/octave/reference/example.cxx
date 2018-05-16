@@ -19,7 +19,7 @@ Vector operator+(const Vector &a, const Vector &b) {
 
 char *Vector::print() {
   static char temp[512];
-  sprintf(temp,"Vector %p (%g,%g,%g)", this, x,y,z);
+  sprintf(temp,"Vector %p (%g,%g,%g)", (void *)this, x,y,z);
   return temp;
 }
 
@@ -43,4 +43,3 @@ Vector &VectorArray::operator[](int index) {
 int VectorArray::size() {
   return maxsize;
 }
-

@@ -96,61 +96,50 @@
  * common fragments 
  * ------------------------------------------------------------ */
 
-/* Default compiler options for gcc allow long_long but not LLONG_MAX. 
- * Define SWIG_NO_LLONG_MAX if this added limits support is not wanted. */
-%fragment("<limits.h>","header") %{
-#include <limits.h>
-#if !defined(SWIG_NO_LLONG_MAX)
-# if !defined(LLONG_MAX) && defined(__GNUC__) && defined (__LONG_LONG_MAX__)
-#   define LLONG_MAX __LONG_LONG_MAX__
-#   define LLONG_MIN (-LLONG_MAX - 1LL)
-#   define ULLONG_MAX (LLONG_MAX * 2ULL + 1ULL)
+%fragment("SWIG_isfinite","header",fragment="<math.h>,<float.h>") %{
+/* Getting isfinite working pre C99 across multiple platforms is non-trivial. Users can provide SWIG_isfinite on older platforms. */
+#ifndef SWIG_isfinite
+/* isfinite() is a macro for C99 */
+# if defined(isfinite)
+#  define SWIG_isfinite(X) (isfinite(X))
+# elif defined(__cplusplus) && __cplusplus >= 201103L
+/* Use a template so that this works whether isfinite() is std::isfinite() or
+ * in the global namespace.  The reality seems to vary between compiler
+ * versions.
+ *
+ * Make sure namespace std exists to avoid compiler warnings.
+ *
+ * extern "C++" is required as this fragment can end up inside an extern "C" { } block
+ */
+namespace std { }
+extern "C++" template<typename T>
+inline int SWIG_isfinite_func(T x) {
+  using namespace std;
+  return isfinite(x);
+}
+#  define SWIG_isfinite(X) (SWIG_isfinite_func(X))
+# elif defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 2))
+#  define SWIG_isfinite(X) (__builtin_isfinite(X))
+# elif defined(__clang__) && defined(__has_builtin)
+#  if __has_builtin(__builtin_isfinite)
+#   define SWIG_isfinite(X) (__builtin_isfinite(X))
+#  endif
+# elif defined(_MSC_VER)
+#  define SWIG_isfinite(X) (_finite(X))
+# elif defined(__sun) && defined(__SVR4)
+#  include <ieeefp.h>
+#  define SWIG_isfinite(X) (finite(X))
 # endif
 #endif
 %}
 
-%fragment("<math.h>","header") %{
-#include <math.h>
-%}
-
-%fragment("<wchar.h>","header") %{
-#include <wchar.h>
-#include <limits.h>
-#ifndef WCHAR_MIN
-#  define WCHAR_MIN 0
+%fragment("SWIG_Float_Overflow_Check","header",fragment="<float.h>,SWIG_isfinite") %{
+/* Accept infinite as a valid float value unless we are unable to check if a value is finite */
+#ifdef SWIG_isfinite
+# define SWIG_Float_Overflow_Check(X) ((X < -FLT_MAX || X > FLT_MAX) && SWIG_isfinite(X))
+#else
+# define SWIG_Float_Overflow_Check(X) ((X < -FLT_MAX || X > FLT_MAX))
 #endif
-#ifndef WCHAR_MAX
-#  define WCHAR_MAX 65535
-#endif
-%}
-
-%fragment("<float.h>","header") %{
-#include <float.h>
-%}
-
-%fragment("<stdio.h>","header") %{
-#include <stdio.h>
-#if defined(_MSC_VER) || defined(__BORLANDC__) || defined(_WATCOM)
-# ifndef snprintf
-#  define snprintf _snprintf
-# endif
-#endif
-%}
-
-%fragment("<stdlib.h>","header") %{
-#include <stdlib.h>
-#ifdef _MSC_VER
-# ifndef strtoull
-#  define strtoull _strtoui64
-# endif
-# ifndef strtoll
-#  define strtoll _strtoi64
-# endif
-#endif
-%}
-
-%fragment("<stddef.h>", "header")  %{
-  #include <stddef.h>
 %}
 
 /* -----------------------------------------------------------------------------
@@ -213,11 +202,18 @@ SWIG_AsVal_dec(Type)(SWIG_Object obj, Type *val)
 %enddef
 
 
-/* Macro for 'double' derived types */
+/* Macro for floating point derived types (original macro) */
 
 %define %numeric_double(Type, Frag, Min, Max)
 %numeric_type_from(Type, double)
 %numeric_signed_type_asval(Type, double, Frag , Min, Max)
+%enddef
+
+/* Macro for floating point derived types */
+
+%define %numeric_float(Type, Frag, OverflowCond)
+%numeric_type_from(Type, double)
+%numeric_type_asval(Type, double, Frag, OverflowCond)
 %enddef
 
 

@@ -9,5 +9,5 @@ if b.test() != 3:
 if b.ftest1(1) != 1:
     raise RuntimeError
 
-if b.ftest2(2,3) != 2:
+if b.ftest2(2, 3) != 2:
     raise RuntimeError

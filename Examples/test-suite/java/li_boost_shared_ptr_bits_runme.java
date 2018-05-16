@@ -23,5 +23,12 @@ public class li_boost_shared_ptr_bits_runme {
 
     HiddenDestructor hidden = HiddenDestructor.create();
     hidden.delete();
+
+    HiddenPrivateDestructor hiddenPrivate = HiddenPrivateDestructor.create();
+    if (HiddenPrivateDestructor.getDeleteCount() != 0)
+      throw new RuntimeException("Count should be zero");
+    hiddenPrivate.delete();
+    if (HiddenPrivateDestructor.getDeleteCount() != 1)
+      throw new RuntimeException("Count should be one");
   }
 }

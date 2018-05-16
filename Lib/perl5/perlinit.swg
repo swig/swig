@@ -21,13 +21,14 @@ SWIGEXPORT void SWIG_init (CV *cv, CPerlObj *);
 
 %init %{
 
-#ifdef __cplusplus
+#if defined(__cplusplus) && ! defined(XSPROTO)
 extern "C"
 #endif
 
 XS(SWIG_init) {
     dXSARGS;
     int i;
+    (void)items;
 
     SWIG_InitializeModule(0);
 

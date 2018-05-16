@@ -1,9 +1,9 @@
-/* embed2.c some more test for an embeded interpreter
+/* embed2.c some more tests for an embedded interpreter
  
 This will go a bit further as it will pass values to and from the lua code.
 It uses less of the SWIG code, and more of the raw lua API's
  
-What it will do is load the wrappered lib, load runme.lua and then call some functions.
+What it will do is load the wrapped lib, load runme.lua and then call some functions.
 To make life easier, all the printf's have either [C] or [Lua] at the start
 so you can see where they are coming from.
  
@@ -24,6 +24,7 @@ We will be using the luaL_dostring()/lua_dostring() function to call into lua
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <lua.h>
 #include <lauxlib.h>
@@ -31,13 +32,16 @@ We will be using the luaL_dostring()/lua_dostring() function to call into lua
 #include <stdarg.h>
 #include <string.h>
 
+#if LUA_VERSION_NUM > 501
+#define lua_open luaL_newstate
+#endif
 
-/* the SWIG wrappered library */
+/* the SWIG wrapped library */
 extern int luaopen_example(lua_State*L);
 
 /* This is an example of how to call the Lua function
     int add(int,int) 
-  its very tedious, but gives you an idea of the issues involded.
+  its very tedious, but gives you an idea of the issues involved.
   (look below for a better idea)
 */
 int call_add(lua_State *L,int a,int b,int* res) {
@@ -46,11 +50,10 @@ int call_add(lua_State *L,int a,int b,int* res) {
   push a, push b, call 'add' check & return res
   */
   top=lua_gettop(L);  /* for later */
-  lua_pushstring(L, "add");                                  /* function name */
-  lua_gettable(L, LUA_GLOBALSINDEX);               /* function to be called */
+  lua_getglobal(L, "add");               /* function to be called */
   if (!lua_isfunction(L,-1)) {
     printf("[C] error: cannot find function 'add'\n");
-    lua_settop(L,top);  // reset
+    lua_settop(L,top);
     return 0;
   }
   lua_pushnumber(L,a);
@@ -58,25 +61,25 @@ int call_add(lua_State *L,int a,int b,int* res) {
   if (lua_pcall(L, 2, 1, 0) != 0)  /* call function with 2 arguments and 1 result */
   {
     printf("[C] error running function `add': %s\n",lua_tostring(L, -1));
-    lua_settop(L,top);  // reset
+    lua_settop(L,top);
     return 0;
   }
-  // check results
+  /* check results */
   if (!lua_isnumber(L,-1)) {
     printf("[C] error: returned value is not a number\n");
-    lua_settop(L,top);  // reset
+    lua_settop(L,top);
     return 0;
   }
   *res=(int)lua_tonumber(L,-1);
   lua_settop(L,top);  /* reset stack */
-  return 1;   // ok
+  return 1;
 }
 
 /* This is a variargs call function for calling from C into Lua.
 Original Code from Programming in Lua (PIL) by Roberto Ierusalimschy
 ISBN 85-903798-1-7 
 http://www.lua.org/pil/25.3.html
-This has been modified slightly to make it compile, and its still a bit rough.
+This has been modified slightly to make it compile, and it's still a bit rough.
 But it gives the idea of how to make it work.
 */
 int call_va (lua_State *L,const char *func, const char *sig, ...) {
@@ -187,20 +190,24 @@ int main(int argc,char* argv[]) {
   luaopen_example(L);
   printf("[C] all looks ok\n");
   printf("\n");
-  printf("[C] lets load the file 'runme.lua'\n");
+  if (argc != 2 || argv[1] == NULL || strlen(argv[1]) == 0) {
+    printf("[C] ERROR: no lua file given on command line\n");
+    exit(3);
+  }
+  printf("[C] let's load the file '%s'\n", argv[1]);
   printf("[C] any lua code in this file will be executed\n");
-  if (luaL_loadfile(L, "runme.lua") || lua_pcall(L, 0, 0, 0)) {
+  if (luaL_loadfile(L, argv[1]) || lua_pcall(L, 0, 0, 0)) {
     printf("[C] ERROR: cannot run lua file: %s",lua_tostring(L, -1));
     exit(3);
   }
   printf("[C] We are now back in C, all looks ok\n");
   printf("\n");
-  printf("[C] lets call the Lua function 'add(1,1)'\n");
+  printf("[C] let's call the Lua function 'add(1,1)'\n");
   printf("[C] using the C function 'call_add'\n");
   ok=call_add(L,1,1,&res);
   printf("[C] the function returned %d with value %d\n",ok,res);
   printf("\n");
-  printf("[C] lets do this rather easier\n");
+  printf("[C] let's do this rather easier\n");
   printf("[C] we will call the same Lua function using a generic C function 'call_va'\n");
   ok=call_va(L,"add","ii>i",1,1,&res);
   printf("[C] the function returned %d with value %d\n",ok,res);

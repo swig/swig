@@ -1,19 +1,22 @@
-# file: runme.m
+# do not dump Octave core
+if exist("crash_dumps_octave_core", "builtin")
+  crash_dumps_octave_core(0);
+endif
 
 # This file illustrates the proxy class C++ interface generated
 # by SWIG.
 
-example 
+swigexample
 
 # ----- Object creation -----
 
 printf("Creating some objects:\n");
-c = example.Circle(10)
-s = example.Square(10)
+c = swigexample.Circle(10)
+s = swigexample.Square(10)
 
 # ----- Access a static member -----
 
-printf("\nA total of %i shapes were created\n", example.Shape.nshapes);
+printf("\nA total of %i shapes were created\n", swigexample.Shape.nshapes);
 
 # ----- Member data access -----
 
@@ -46,7 +49,5 @@ printf("\nGuess I'll clean up now\n");
 clear c
 clear s
 
-printf("%i shapes remain\n", example.Shape.nshapes);
+printf("%i shapes remain\n", swigexample.Shape.nshapes);
 printf("Goodbye\n");
-
-

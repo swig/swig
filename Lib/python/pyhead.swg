@@ -38,14 +38,16 @@ SWIGINTERN char*
 SWIG_Python_str_AsChar(PyObject *str)
 {
 #if PY_VERSION_HEX >= 0x03000000
-  char *cstr;
-  char *newstr;
-  Py_ssize_t len;
+  char *newstr = 0;
   str = PyUnicode_AsUTF8String(str);
-  PyBytes_AsStringAndSize(str, &cstr, &len);
-  newstr = (char *) malloc(len+1);
-  memcpy(newstr, cstr, len+1);
-  Py_XDECREF(str);
+  if (str) {
+    char *cstr;
+    Py_ssize_t len;
+    PyBytes_AsStringAndSize(str, &cstr, &len);
+    newstr = (char *) malloc(len+1);
+    memcpy(newstr, cstr, len+1);
+    Py_XDECREF(str);
+  }
   return newstr;
 #else
   return PyString_AsString(str);
@@ -97,10 +99,6 @@ PyString_FromFormat(const char *fmt, ...) {
 }
 #endif
 
-/* Add PyObject_Del for old Pythons */
-#if PY_VERSION_HEX < 0x01060000
-# define PyObject_Del(op) PyMem_DEL((op))
-#endif
 #ifndef PyObject_DEL
 # define PyObject_DEL PyObject_Del
 #endif
@@ -215,4 +213,5 @@ typedef destructor freefunc;
 #if PY_VERSION_HEX < 0x03020000
 #define PyDescr_TYPE(x) (((PyDescrObject *)(x))->d_type)
 #define PyDescr_NAME(x) (((PyDescrObject *)(x))->d_name)
+#define Py_hash_t long
 #endif

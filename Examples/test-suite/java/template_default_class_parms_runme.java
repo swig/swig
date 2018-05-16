@@ -45,6 +45,11 @@ public class template_default_class_parms_runme {
       foo.setTType(a);
       a = foo.method(a);
     }
+
+    {
+      MapDefaults md = new MapDefaults();
+      md.test_func(10, 20, new DefaultNodeType());
+    }
   }
 }
 

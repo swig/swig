@@ -3,9 +3,14 @@
 // strip the wx prefix from all identifiers except those starting with wxEVT
 %rename("%(regex:/wx(?!EVT)(.*)/\\1/)s") "";
 
-// Replace "Set" and "Get" prefixes with "put" and "get" respectively.
-%rename("%(regex:/^Set(.*)/put\\1/)s", %$isfunction) "";
-%rename("%(regex:/^Get(.*)/get\\1/)s", %$isfunction) "";
+// Change "{Set,Get}Foo" naming convention to "{put,get}_foo" one.
+%rename("%(regex:/^Set(.*)/put_\\l\\1/)s", %$isfunction) "";
+%rename("%(regex:/^Get(.*)/get_\\l\\1/)s", %$isfunction) "";
+
+// Make some words stand out (unfortunately we don't have "global" flag): we
+// use \U to capitalize the second capture group and then \E to preserve the
+// case of the rest.
+%rename("%(regex:/(.*?)(nsa)(.*?)\\2(.*?)\\2(.*?)\\2(.*)/\\1\\U\\2\\E\\3\\U\\2\\E\\4\\U\\2\\E\\5\\U\\2\\E\\6/)s") "";
 
 %inline %{
 
@@ -27,5 +32,7 @@ class wxEVTSomeEvent {
 
 class xUnchangedName {
 };
+
+inline int StartInsaneAndUnsavoryTransatlanticRansack() { return 42; }
 
 %}

@@ -22,8 +22,7 @@ public class dynamic_cast_runme {
     // Note it is possible to downcast y with a Java cast.
     String a = dynamic_cast.do_test((Bar)y);
     if (!a.equals("Bar::test")) {
-        System.err.println("Failed!");
-        System.exit(1);
+        throw new RuntimeException("Failed!");
     }
   }
 }

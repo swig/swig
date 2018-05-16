@@ -8,6 +8,11 @@
 
 %include "std_string.i"
 
+#ifdef SWIGSCILAB
+%rename(ProcBase) ProtectedBase;
+%rename(PubBase) PublicBase;
+#endif
+
 %feature("director") PublicBase;
 %feature("director") ProtectedBase;
 

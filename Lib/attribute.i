@@ -11,7 +11,7 @@
 #define %attribute_exception(code,msg) printf("%s\n",msg)
 
 #ifndef %arg
-#define %arg(x) x
+#define %arg(x...) x
 #endif
 
 #ifndef %mangle

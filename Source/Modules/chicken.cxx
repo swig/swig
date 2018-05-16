@@ -15,7 +15,7 @@
 
 #include <ctype.h>
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 \
 CHICKEN Options (available with -chicken)\n\
      -closprefix <prefix>   - Prepend <prefix> to all clos identifiers\n\
@@ -29,7 +29,7 @@ CHICKEN Options (available with -chicken)\n\
 \n";
 
 static char *module = 0;
-static char *chicken_path = (char *) "chicken";
+static const char *chicken_path = "chicken";
 static int num_methods = 0;
 
 static File *f_begin = 0;
@@ -222,8 +222,7 @@ int CHICKEN::top(Node *n) {
 
   Swig_banner(f_begin);
 
-  Printf(f_runtime, "\n");
-  Printf(f_runtime, "#define SWIGCHICKEN\n");
+  Printf(f_runtime, "\n\n#ifndef SWIGCHICKEN\n#define SWIGCHICKEN\n#endif\n\n");
 
   if (no_collection)
     Printf(f_runtime, "#define SWIG_CHICKEN_NO_COLLECTION 1\n");
@@ -620,7 +619,7 @@ int CHICKEN::functionWrapper(Node *n) {
       if (in_class)
 	clos_name = NewString(member_name);
       else
-	clos_name = chickenNameMapping(scmname, (char *) "");
+	clos_name = chickenNameMapping(scmname, "");
 
       if (!any_specialized_arg) {
 	method_def = NewString("");
@@ -775,7 +774,7 @@ int CHICKEN::variableWrapper(Node *n) {
       if (in_class)
 	clos_name = NewString(member_name);
       else
-	clos_name = chickenNameMapping(scmname, (char *) "");
+	clos_name = chickenNameMapping(scmname, "");
 
       Node *class_node = classLookup(t);
       String *clos_code = Getattr(n, "tmap:varin:closcode");
@@ -942,7 +941,7 @@ int CHICKEN::constantWrapper(Node *n) {
       if (in_class)
 	clos_name = NewString(member_name);
       else
-	clos_name = chickenNameMapping(scmname, (char *) "");
+	clos_name = chickenNameMapping(scmname, "");
       if (GetFlag(n, "feature:constasvar")) {
 	Printv(clos_methods, "(define ", clos_name, " (", chickenPrimitiveName(scmname), "))\n", NIL);
 	Printv(scm_const_defs, "(set! ", scmname, " (", scmname, "))\n", NIL);
@@ -1372,7 +1371,7 @@ void CHICKEN::dispatchFunction(Node *n) {
       } else if (in_class)
 	clos_name = NewString(member_name);
       else
-	clos_name = chickenNameMapping(scmname, (char *) "");
+	clos_name = chickenNameMapping(scmname, "");
 
       Iterator f;
       List *prev = 0;

@@ -2,7 +2,7 @@
 %module nspace
 
 // nspace feature only supported by these languages
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGLUA) || defined(SWIGJAVASCRIPT)
 
 #if defined(SWIGJAVA)
 SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
@@ -10,6 +10,7 @@ SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
 
 %nspace;
 %nonspace Outer::Inner2::NoNSpacePlease;
+%nonspace Outer::Inner2::NoNSpacePlease::ReallyNoNSpaceEnum;
 
 %copyctor;
 %ignore Outer::Inner2::Color::Color();
@@ -67,7 +68,12 @@ namespace Outer {
                   const Outer::Inner2::Color& col2c) {}
     }; // Color
     int Color::staticMemberVariable = 0;
-    class NoNSpacePlease {};
+    class NoNSpacePlease {
+      public:
+        enum NoNSpaceEnum { NoNspace1 = 1, NoNspace2 = 10 };
+        enum ReallyNoNSpaceEnum { ReallyNoNspace1 = 1, ReallyNoNspace2 = 10 };
+        static int noNspaceStaticFunc() { return 10; }
+    };
   } // Inner2
 
   // Derived class
@@ -104,6 +110,6 @@ void test_classes(Outer::SomeClass c, Outer::Inner2::Color cc) {}
 %}
 
 #else
-#warning nspace feature not yet supported in this target language
+//#warning nspace feature not yet supported in this target language
 #endif
 

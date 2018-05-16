@@ -1,7 +1,7 @@
 %module python_nondynamic
 
 /*
- Use the %pythonnondynamic directuve to make the wrapped class a
+ Use the %pythonnondynamic directive to make the wrapped class a
  nondynamic one, ie, a python class that doesn't dynamically add new
  attributes.  Hence, for the class
 

@@ -1,4 +1,4 @@
-%module(docstring="hello") autodoc
+%module(docstring="hello.") autodoc
 
 %feature("autodoc");
 
@@ -27,7 +27,7 @@
 %feature("autodoc","2") A::variable_c; // extended
 %feature("autodoc","3") A::variable_d; // extended + types
 
-%feature("autodoc","just a string") A::funk; // names
+%feature("autodoc","just a string.") A::funk; // names
 
 %inline {
 
@@ -133,3 +133,18 @@ typedef int Integer;
 void banana(S *a, const struct tagS *b, int c, Integer d) {}
 %}
 
+// Check docs for a template type
+%inline %{
+template<typename X> struct T {
+  T inout(T t) { return t; }
+};
+%}
+%template(TInteger) T<int>;
+
+%inline %{
+#ifdef SWIGPYTHON_BUILTIN
+bool is_python_builtin() { return true; }
+#else
+bool is_python_builtin() { return false; }
+#endif
+%}

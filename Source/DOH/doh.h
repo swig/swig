@@ -336,6 +336,12 @@ extern DOHList *DohSplit(DOHFile * input, char ch, int nsplits);
 extern DOHList *DohSplitLines(DOHFile * input);
 extern DOH *DohNone;
 
+/* Helper union for converting between function and object pointers. */
+typedef union DohFuncPtr {
+  void* p;
+  DOH *(*func)(DOH *);
+} DohFuncPtr_t;
+
 extern void DohMemoryDebug(void);
 
 #ifndef DOH_LONG_NAMES

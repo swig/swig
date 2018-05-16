@@ -1,6 +1,7 @@
 This directory contains examples for Guile.
 
 constants   -- handling #define and %constant literals
+class       -- classic c++ class example
 matrix      -- a very simple Matrix example
 multimap    -- typemaps with multiple sub-types
 multivalue  -- using the %values_as_list directive

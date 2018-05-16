@@ -2,7 +2,7 @@ import sys
 from langobj import *
 
 
-x ="hello"
+x = "hello"
 rx = sys.getrefcount(x)
 v = identity(x)
 rv = sys.getrefcount(v)

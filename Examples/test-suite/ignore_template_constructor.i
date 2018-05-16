@@ -1,10 +1,16 @@
 %module ignore_template_constructor
 %include std_vector.i
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGPERL) || defined(SWIGRUBY) 
+#if defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGPERL) || defined(SWIGRUBY)
 #define SWIG_GOOD_VECTOR
 %ignore std::vector<Flow>::vector(size_type);
 %ignore std::vector<Flow>::resize(size_type);
+#endif
+
+#if defined(SWIGJAVA)
+#define SWIG_GOOD_VECTOR
+%ignore std::vector<Flow>::vector(jint);
+%ignore std::vector<Flow>::resize(jint);
 #endif
 
 #if defined(SWIGTCL) || defined(SWIGPERL)
@@ -17,9 +23,10 @@
 #if defined(SWIG_GOOD_VECTOR)
 %inline %{
 class Flow {
-  Flow() {}
+double x;
+ Flow():x(0.0) {}
 public:
-  Flow(double d) {}
+ Flow(double d) : x(d) {}
 };
 %}
 
@@ -28,9 +35,10 @@ public:
 
 %inline %{
 class Flow {
+double x;
 public:
-  Flow() {}
-  Flow(double d) {}
+ Flow(): x(0.0) {}
+ Flow(double d) : x(d) {}
 };
 %}
 

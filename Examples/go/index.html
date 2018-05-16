@@ -23,6 +23,7 @@ certain C declarations are turned into constants.
 <li><a href="template/index.html">template</a>. C++ templates.
 <li><a href="callback/index.html">callback</a>. C++ callbacks using directors.
 <li><a href="extend/index.html">extend</a>. Polymorphism using directors.
+<li><a href="director/index.html">director</a>. Example how to utilize the director feature.
 </ul>
 
 <h2>Compilation Issues</h2>
@@ -37,20 +38,23 @@ certain C declarations are turned into constants.
 </blockquote>
 
 <li>On Unix the compilation of examples is done using the
-file <tt>Example/Makefile</tt>.  This makefile performs a manual
-module compilation which is platform specific.  When using
-the <tt>6g</tt> or <tt>8g</tt> compiler, the steps look like this
+file <tt>Example/Makefile</tt>.  Normally builds are done simply
+using <tt>go build</tt>.  For testing purposes this makefile performs
+a manual module compilation that is platform specific.  When using
+the <tt>gc</tt> compiler, the steps look approximately like this
 (GNU/Linux):
 
 <blockquote>
 <pre>
-% swig -go interface.i
-% gcc -fpic -c interface_wrap.c
-% gcc -shared interface_wrap.o $(OBJS) -o interfacemodule.so 
-% 6g interface.go
-% 6c interface_gc.c
-% gopack grc interface.a interface.6 interface_gc.6
-% 6l program.6
+% swig -go -cgo interface.i
+% mkdir -p gopath/src/interface
+% cp interface_wrap.c interface_wrap.h interface.go gopath/src/interface
+% GOPATH=`pwd`/gopath
+% export GOPATH
+% cd gopath/src/interface
+% go build
+% go tool compile $(SRCDIR)/runme.go
+% go tool link -o runme runme.o
 </pre>
 </blockquote>
 
@@ -58,10 +62,15 @@ the <tt>6g</tt> or <tt>8g</tt> compiler, the steps look like this
 
 <blockquote>
 <pre>
-% swig -go interface.i
-% gcc -c interface_wrap.c
-% gccgo -c interface.go
-% gccgo program.o interface.o interface_wrap.o
+% swig -go -cgo interface.i
+% mkdir -p gopath/src/interface
+% cp interface_wrap.c interface_wrap.h interface.go gopath/src/interface
+% GOPATH=`pwd`/gopath
+% export GOPATH
+% cd gopath/src/interface
+% go build
+% gccgo -c $(SRCDIR)/runme.go
+% gccgo -o runme runme.o interface.a
 </pre>
 </blockquote
 
@@ -76,14 +85,14 @@ The examples have been extensively tested on the following platforms:
 </ul>
 
 All of the examples were last tested with the following configuration
-(10 May 2010):
+(5 August 2015):
 
 <ul>
-<li>Ubuntu Hardy
-<li>gcc-4.2.4
+<li>Ubuntu Trusty
+<li>gcc-4.8.4
 </ul>
 
-Your mileage may vary.  If you experience a problem, please let us know by 
+Your mileage may vary.  If you experience a problem, please let us know by
 contacting us on the <a href="http://www.swig.org/mail.html">mailing lists</a>.
 </body>
 </html>

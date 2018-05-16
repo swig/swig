@@ -144,9 +144,6 @@ end
 f = F.new
 
 # This should work fine
-ff = FFF.new
-
-# This should work fine
 g = G.new
 
 # This should work fine

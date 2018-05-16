@@ -1,7 +1,7 @@
 director_detect 
 
-global MyBar=@(val=2) \
-    subclass(director_detect.Bar(),'val',val,@get_value,@get_class,@just_do_it,@clone);
+global MyBar=@(val=2) subclass(director_detect.Bar(),'val',val,@get_value,@get_class,@just_do_it,@clone);
+
 function val=get_value(self)
     self.val = self.val + 1;
     val = self.val;

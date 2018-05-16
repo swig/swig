@@ -6,6 +6,11 @@
 %apply std::string& INOUT { std::string &inout }
 #endif
 
+// throw is invalid in C++17 and later, only SWIG to use it
+#define TESTCASE_THROW1(T1) throw(T1)
+%{
+#define TESTCASE_THROW1(T1)
+%}
 
 %inline %{
 
@@ -49,32 +54,23 @@ void test_reference_inout(std::string &inout) {
   inout += inout;
 }
 
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-
-void test_throw() throw(std::string){
+void test_throw() TESTCASE_THROW1(std::string){
   static std::string x = "test_throw message";
   throw x;
 }
 
-void test_const_reference_throw() throw(const std::string &){
+void test_const_reference_throw() TESTCASE_THROW1(const std::string &){
   static std::string x = "test_const_reference_throw message";
   throw x;
 }
 
-void test_pointer_throw() throw(std::string *) {
+void test_pointer_throw() TESTCASE_THROW1(std::string *) {
   throw new std::string("foo");
 }
 
-void test_const_pointer_throw() throw(const std::string *) {
+void test_const_pointer_throw() TESTCASE_THROW1(const std::string *) {
   throw new std::string("foo");
 }
-
-#if defined(_MSC_VER)
-  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-
 %}
 
 /* Old way, now std::string is a %naturalvar by default
@@ -82,6 +78,16 @@ void test_const_pointer_throw() throw(const std::string *) {
                             std::string *MemberString2, 
                             std::string *Structure::StaticMemberString2 };
 */
+
+#ifdef SWIGSCILAB
+%rename(St) MemberString;
+%rename(Str) MemberString;
+%rename(Str2) MemberString2;
+%rename(StaticStr) StaticMemberString;
+%rename(StaticStr2) StaticMemberString2;
+%rename(ConstStr) ConstMemberString;
+%rename(ConstStaticStr) ConstStaticMemberString;
+#endif
 
 %inline %{
 std::string GlobalString;
@@ -144,6 +150,5 @@ public:
   const char *get_null(const char *a) {
     return a == 0 ? a : "non-null";
   }
-
-
 %}
+

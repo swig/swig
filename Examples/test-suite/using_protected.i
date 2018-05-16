@@ -6,6 +6,7 @@ protected:
   int x;
   int blah(int xx) { return xx; }
   virtual int vmethod(int xx) { return xx; }
+  virtual ~Foo() {}
 };
 
 class FooBar : public Foo {

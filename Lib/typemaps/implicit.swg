@@ -1,5 +1,5 @@
 /*
-  The %implict macro allows a SwigType (Class) to be accepted
+  The %implicit macro allows a SwigType (Class) to be accepted
   as an input parameter and use its implicit constructors when needed.
 
   For example:
@@ -73,8 +73,8 @@ namespace swig {
   typedef Type value_type;
   static int asptr(SWIG_Object obj, value_type **val) { 
     Type *vptr;
-    static swig_type_info* desc = SWIG_TypeQuery("Type *");
-    int res = SWIG_ConvertPtr(obj, (void **)&vptr, desc, 0);
+    static swig_type_info* descriptor = SWIG_TypeQuery("Type *");
+    int res = descriptor ? SWIG_ConvertPtr(obj, (void **)&vptr, descriptor, 0) : SWIG_ERROR;
     if (SWIG_IsOK(res)) {
       if (val) *val = vptr;
       return res;
@@ -109,8 +109,8 @@ namespace swig {
   typedef Type value_type;
   static int asptr(SWIG_Object obj, value_type **val) { 
     Type *vptr;
-    static swig_type_info* desc = SWIG_TypeQuery("Type *");
-    int res = SWIG_ConvertPtr(obj, (void **)&vptr, desc, 0);
+    static swig_type_info* descriptor = SWIG_TypeQuery("Type *");
+    int res = descriptor ? SWIG_ConvertPtr(obj, (void **)&vptr, descriptor, 0) : SWIG_ERROR;
     if (SWIG_IsOK(res)) {
       if (val) *val = vptr;
       return res;
@@ -147,8 +147,8 @@ namespace swig {
   typedef Type value_type;
   static int asptr(SWIG_Object obj, value_type **val) { 
     Type *vptr;
-    static swig_type_info* desc = SWIG_TypeQuery("Type *");
-    int res = SWIG_ConvertPtr(obj, (void **)&vptr, desc, 0);
+    static swig_type_info* descriptor = SWIG_TypeQuery("Type *");
+    int res = descriptor ? SWIG_ConvertPtr(obj, (void **)&vptr, descriptor, 0) : SWIG_ERROR;
     if (SWIG_IsOK(res)) {
       if (val) *val = vptr;
       return SWIG_OLDOBJ;
@@ -188,8 +188,8 @@ namespace swig {
     typedef Type value_type;
     static int asptr(SWIG_Object obj, value_type **val) { 
     Type *vptr;
-    static swig_type_info* desc = SWIG_TypeQuery("Type *");
-    int res = SWIG_ConvertPtr(obj, (void **)&vptr, desc, 0);
+    static swig_type_info* descriptor = SWIG_TypeQuery("Type *");
+    int res = descriptor ? SWIG_ConvertPtr(obj, (void **)&vptr, descriptor, 0) : SWIG_ERROR;
     if (SWIG_IsOK(res)) {
       if (val) *val = vptr;
       return res;

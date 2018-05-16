@@ -1,22 +1,7 @@
-TOP        = ../..
-SWIG       = $(TOP)/../preinst-swig
-SRCS       = example.c
-TARGET     = example
-INTERFACE  = example.i
+SRCS     = example.c
+TARGET   = swigexample
+SWIGOPT  = -module swigexample
+TARGET2  = swigexample2
+SWIGOPT2 = -module swigexample2 -globals .
 
-all::
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	TARGET='$(TARGET)' SWIGOPT='-module $$(TARGET)' INTERFACE='$(INTERFACE)' octave
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	TARGET='$(TARGET)2' SWIGOPT='-module $$(TARGET) -globals .' INTERFACE='$(INTERFACE)' octave
-
-static::
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	TARGET='myoctave' INTERFACE='$(INTERFACE)' octave_static
-
-clean::
-	$(MAKE) -f $(TOP)/Makefile octave_clean
-	rm -f $(TARGET).m
-
-check: all
-	$(MAKE) -f $(TOP)/Makefile octave_run
+include $(SRCDIR)../example.mk

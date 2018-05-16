@@ -1,9 +1,9 @@
 package main
 
 import (
+	"./constover"
 	"fmt"
 	"os"
-	"./constover"
 )
 
 func main() {

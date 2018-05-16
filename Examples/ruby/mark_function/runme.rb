@@ -9,7 +9,7 @@ begin
   zoo.add_animal(tiger1)
   
   # unset variables to force gc
-  tiger = nil
+  tiger1 = nil
 end
 
 GC.start
@@ -20,4 +20,4 @@ tiger2 = zoo.get_animal(0)
 # Call a method to verify the animal is still valid and not gc'ed
 if tiger2.get_name != "tiger1"
     raise RuntimeError, "Wrong animal name"
-end	  
+end

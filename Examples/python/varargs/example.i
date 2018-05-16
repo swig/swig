@@ -32,9 +32,6 @@ int printf(const char *fmt, ...);
 }
 #endif
 
-/* Typemap just to make the example work */
-%typemap(in) FILE * "$1 = PyFile_AsFile($input);";
-
 int fprintf(FILE *, const char *fmt, ...);
 
 /* Here is somewhat different example.  A variable length argument
@@ -48,6 +45,13 @@ int fprintf(FILE *, const char *fmt, ...);
 %varargs(20, char *x = NULL) printv;
 
 %inline %{
+
+/* In Python 2 we could use PyFile_AsFile for converting Python sys.stdout to C's stdout.
+   This API disappeared in Python 3, so instead we use a helper function to get stdout */
+FILE * stdout_stream(void) {
+  return stdout;
+}
+
 void printv(char *s, ...) {
     va_list ap;
     char *x;

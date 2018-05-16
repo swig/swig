@@ -14,18 +14,19 @@ See the lua code for how they are called
 
 // this adds some lua code directly into the module
 // warning: you need the example. prefix if you want it added into the module
-// addmittedly this code is a bit tedious, but its a one off effort
+// admittedly this code is a bit tedious, but its a one off effort
 %luacode {
 function example.sort_int2(t)
- local len=table.maxn(t) -- the len
+-- local len=table.maxn(t) -- the len - maxn deprecated in 5.3
+ local len=0; for _ in pairs(t) do len=len+1 end
  local arr=example.new_int(len)
  for i=1,len do
-  example.int_setitem(arr,i-1,t[i]) -- note: C index is one less then lua indea
+  example.int_setitem(arr,i-1,t[i]) -- note: C index is one less then lua index
  end
  example.sort_int(arr,len) -- call the fn
  -- copy back
  for i=1,len do
-  t[i]=example.int_getitem(arr,i-1) -- note: C index is one less then lua indea
+  t[i]=example.int_getitem(arr,i-1) -- note: C index is one less then lua index
  end
  example.delete_int(arr) -- must delete it
 end

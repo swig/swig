@@ -1,5 +1,10 @@
 // bool typemaps check
 %module bools
+
+#if defined(SWIGSCILAB)
+%rename(BoolSt) BoolStructure;
+#endif
+
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK);                   /* memory leak when setting a ptr/ref variable */
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) constbool;         /* Ruby, wrong class name */
 

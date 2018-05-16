@@ -12,10 +12,10 @@
 
 %include "exception.i"
 
+// throw is invalid in C++17 and later, only SWIG to use it
+#define TESTCASE_THROW1(T1) throw(T1)
 %{
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
+#define TESTCASE_THROW1(T1)
 %}
 
 /* 
@@ -23,7 +23,17 @@
    user's throw declarations.
 */
 
-#if defined(SWIGUTL)
+#if defined(SWIGOCTAVE)
+%exception {
+  try {
+    $action
+  }
+  SWIG_RETHROW_OCTAVE_EXCEPTIONS
+  catch(...) {
+    SWIG_exception(SWIG_RuntimeError,"postcatch unknown");
+  }
+}
+#elif defined(SWIGUTL)
 %exception {
   try {
     $action
@@ -89,16 +99,16 @@
     int efoovar;
 
     /* caught by the user's throw definition */
-    int foo() throw(E1) 
+    int foo() TESTCASE_THROW1(E1)
     {
       throw E1();
-      return 0;     
+      return 0;
     }
-    
-    int bar() throw(E2)
+
+    int bar() TESTCASE_THROW1(E2)
     {
       throw E2();
-      return 0;     
+      return 0;
     }
     
     /* caught by %postexception */
@@ -125,7 +135,15 @@
     }
   };
   int A::sfoovar = 1;
+
+#ifdef SWIGPYTHON_BUILTIN
+bool is_python_builtin() { return true; }
+#else
+bool is_python_builtin() { return false; }
+#endif
+
 %}
 
 %template(ET_i) ET<int>;
 %template(ET_d) ET<double>;
+

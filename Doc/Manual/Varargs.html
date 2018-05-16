@@ -1,12 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>Variable Length Arguments</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Varargs"></a>13 Variable Length Arguments</H1>
+<H1><a name="Varargs">15 Variable Length Arguments</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -42,7 +43,7 @@ added in SWIG-1.3.12.  Most other wrapper generation tools have
 wisely chosen to avoid this issue.
 </p>
 
-<H2><a name="Varargs_nn2"></a>13.1 Introduction</H2>
+<H2><a name="Varargs_nn2">15.1 Introduction</a></H2>
 
 
 <p>
@@ -94,7 +95,7 @@ int execlp(const char *path, const char *arg1, ...);
 ...
 
 /* Example */
-execlp("ls","ls","-l",NULL);
+execlp("ls", "ls", "-l", NULL);
 </pre>
 </div>
 
@@ -125,21 +126,21 @@ example:
 <div class="code">
 <pre>
 List make_list(const char *s, ...) {
-    va_list ap;
-    List    x;
-    ...
-    va_start(ap, s);
-    while (s) {
-       x.append(s);
-       s = va_arg(ap, const char *);
-    }
-    va_end(ap);
-    return x;
+  va_list ap;
+  List    x;
+  ...
+  va_start(ap, s);
+  while (s) {
+    x.append(s);
+    s = va_arg(ap, const char *);
+  }
+  va_end(ap);
+  return x;
 }
 </pre>
 </div>
 
-<H2><a name="Varargs_nn3"></a>13.2 The Problem</H2>
+<H2><a name="Varargs_nn3">15.2 The Problem</a></H2>
 
 
 <p>
@@ -187,12 +188,12 @@ In contrast, suppose you attempted to make some kind of wrapper around
 <div class="code">
 <pre>
 int wrap_printf(const char *fmt, ...) {
-   va_list ap;
-   va_start(ap,fmt);
-   ...
-   printf(fmt,ap);
-   ...
-   va_end(ap);
+  va_list ap;
+  va_start(ap, fmt);
+  ...
+  printf(fmt, ap);
+  ...
+  va_end(ap);
 };
 </pre>
 </div>
@@ -232,7 +233,7 @@ can also support real varargs wrapping (with stack-frame manipulation) if you
 are willing to get hands dirty.  Keep reading.
 </p>
 
-<H2><a name="Varargs_nn4"></a>13.3 Default varargs support</H2>
+<H2><a name="Varargs_nn4">15.3 Default varargs support</a></H2>
 
 
 <p>
@@ -301,7 +302,7 @@ Read on for further solutions.
 </p>
 
 
-<H2><a name="Varargs_nn5"></a>13.4 Argument replacement using %varargs</H2>
+<H2><a name="Varargs_nn5">15.4 Argument replacement using %varargs</a></H2>
 
 
 <p>
@@ -398,7 +399,7 @@ int execlp(const char *path, const char *arg, ...);
 </div>
 
 <p>
-Note that <tt>str3</tt> is the name of the last argument, as we have used <tt>%vargars</tt> with 3.
+Note that <tt>str3</tt> is the name of the last argument, as we have used <tt>%varargs</tt> with 3.
 Now <tt>execlp("a", "b", "c", "d", "e")</tt> will result in an error as one too many arguments has been passed,
 as now only 2 additional 'str' arguments can be passed with the 3rd one always using the specified default <tt>NULL</tt>.
 </p>
@@ -412,7 +413,7 @@ mixed argument types such as <tt>printf()</tt>.  Providing general purpose
 wrappers to such functions presents special problems (covered shortly).  
 </p>
 
-<H2><a name="Varargs_nn6"></a>13.5 Varargs and typemaps</H2>
+<H2><a name="Varargs_nn6">15.5 Varargs and typemaps</a></H2>
 
 
 <p>
@@ -422,8 +423,8 @@ Variable length arguments may be used in typemap specifications.  For example:
 <div class="code">
 <pre>
 %typemap(in) (...) {
-    // Get variable length arguments (somehow)
-    ...
+  // Get variable length arguments (somehow)
+  ...
 }
 
 %typemap(in) (const char *fmt, ...) {
@@ -470,15 +471,15 @@ like this:
 <div class="code">
 <pre>
 wrap_printf() {
-   char *arg1;
-   void *arg2;
-   int   result;
+  char *arg1;
+  void *arg2;
+  int   result;
 
-   arg1 = "%s";
-   arg2 = (void *) PyString_AsString(arg2obj);
-   ...
-   result = printf(arg1,arg2);
-   ...
+  arg1 = "%s";
+  arg2 = (void *) PyString_AsString(arg2obj);
+  ...
+  result = printf(arg1, arg2);
+  ...
 }
 </pre>
 </div>
@@ -509,14 +510,14 @@ like this:
 
 <div class="code">
 <pre>
-%typemap(in) (...)(char *args[10]) {
+%typemap(in) (...)(char *vargs[10]) {
   int i;
   int argc;
-  for (i = 0; i &lt; 10; i++) args[i] = 0;
+  for (i = 0; i &lt; 10; i++) vargs[i] = 0;
   argc = PyTuple_Size(varargs);
   if (argc &gt; 10) {
     PyErr_SetString(PyExc_ValueError, "Too many arguments");
-    return NULL;
+    SWIG_fail;
   }
   for (i = 0; i &lt; argc; i++) {
     PyObject *pyobj = PyTuple_GetItem(varargs, i);
@@ -524,35 +525,50 @@ like this:
 %#if PY_VERSION_HEX&gt;=0x03000000
     PyObject *pystr;
     if (!PyUnicode_Check(pyobj)) {
-       PyErr_SetString(PyExc_ValueError, "Expected a string");
-       return NULL;
+      PyErr_SetString(PyExc_ValueError, "Expected a string");
+      SWIG_fail;
     }
     pystr = PyUnicode_AsUTF8String(pyobj);
-    str = PyBytes_AsString(pystr);
-    Py_XDECREF(pystr);
+    if (!pystr) {
+      SWIG_fail;
+    }
+    str = strdup(PyBytes_AsString(pystr));
+    Py_DECREF(pystr);
 %#else  
     if (!PyString_Check(pyobj)) {
-       PyErr_SetString(PyExc_ValueError, "Expected a string");
-       return NULL;
+      PyErr_SetString(PyExc_ValueError, "Expected a string");
+      SWIG_fail;
     }
     str = PyString_AsString(pyobj);
 %#endif
-    args[i] = str;
+    vargs[i] = str;
   }
-  $1 = (void *) args;
+  $1 = (void *)vargs;
+}
+
+%typemap(freearg) (...) {
+%#if PY_VERSION_HEX&gt;=0x03000000
+  int i;
+  for (i = 0; i &lt; 10; i++) {
+    free(vargs$argnum[i]);
+  }
+%#endif
 }
 </pre>
 </div>
 
 <p>
-In this typemap, the special variable <tt>varargs</tt> is a tuple
+In the 'in' typemap, the special variable <tt>varargs</tt> is a tuple
 holding all of the extra arguments passed (this is specific to the
 Python module).  The typemap then pulls this apart and sticks the
 values into the array of strings <tt>args</tt>.  Then, the array is
 assigned to <tt>$1</tt> (recall that this is the <tt>void *</tt>
 variable corresponding to <tt>(...)</tt>).  However, this assignment
 is only half of the picture----clearly this alone is not enough to
-make the function work.  To patch everything up, you have to rewrite the
+make the function work.  The 'freearg' typemap cleans up memory
+allocated in the 'in' typemap; this code is generated to be called
+after the <tt>execlp</tt> function is called. To patch everything
+up, you have to rewrite the
 underlying action code using the <tt>%feature</tt> directive like
 this:
 </p>
@@ -560,9 +576,9 @@ this:
 <div class="code">
 <pre>
 %feature("action") execlp {
-   char *args = (char **) arg3;
-   result = execlp(arg1, arg2, args[0], args[1], args[2], args[3], args[4],
-                   args[5],args[6],args[7],args[8],args[9], NULL);
+  char **vargs = (char **) arg3;
+  result = execlp(arg1, arg2, vargs[0], vargs[1], vargs[2], vargs[3], vargs[4],
+                  vargs[5], vargs[6], vargs[7], vargs[8], vargs[9], NULL);
 }
 
 int execlp(const char *path, const char *arg, ...);
@@ -577,7 +593,7 @@ really want to elevate your guru status and increase your job
 security, continue to the next section.
 </p>
 
-<H2><a name="Varargs_nn7"></a>13.6 Varargs wrapping with libffi</H2>
+<H2><a name="Varargs_nn7">15.6 Varargs wrapping with libffi</a></H2>
 
 
 <p>
@@ -593,7 +609,7 @@ you need to bring out some bigger guns.
 <p>
 One way to do this is to use a special purpose library such as libffi
 (<a
-href="http://sources.redhat.com/libffi/">http://sources.redhat.com/libffi</a>).
+href="http://www.sourceware.org/libffi/">http://www.sourceware.org/libffi/</a>).
 libffi is a library that allows you to dynamically construct
 call-stacks and invoke procedures in a relatively platform independent
 manner.  Details about the library can be found in the libffi
@@ -613,23 +629,23 @@ example. For example:
    of strings */
 
 %typemap(in) (...) {
-   char **argv;
-   int    argc;
-   int    i;
+  char **argv;
+  int    argc;
+  int    i;
 
-   argc = PyTuple_Size(varargs);
-   argv = (char **) malloc(sizeof(char *)*(argc+1));
-   for (i = 0; i &lt; argc; i++) {
-      PyObject *o = PyTuple_GetItem(varargs,i);
-      if (!PyString_Check(o)) {
-          PyErr_SetString(PyExc_ValueError,"Expected a string");
-	  free(argv);
-          return NULL;
-      }
-      argv[i] = PyString_AsString(o);
-   }
-   argv[i] = NULL;
-   $1 = (void *) argv;
+  argc = PyTuple_Size(varargs);
+  argv = (char **) malloc(sizeof(char *)*(argc+1));
+  for (i = 0; i &lt; argc; i++) {
+    PyObject *o = PyTuple_GetItem(varargs, i);
+    if (!PyString_Check(o)) {
+      free(argv);
+      PyErr_SetString(PyExc_ValueError, "Expected a string");
+      SWIG_fail;
+    }
+    argv[i] = PyString_AsString(o);
+  }
+  argv[i] = NULL;
+  $1 = (void *) argv;
 }
 
 /* Rewrite the function call, using libffi */    
@@ -663,11 +679,11 @@ example. For example:
                    &amp;ffi_type_uint, types) == FFI_OK) {
     ffi_call(&amp;cif, (void (*)()) execlp, &amp;result, values);
   } else {
-    PyErr_SetString(PyExc_RuntimeError, "Whoa!!!!!");
     free(types);
     free(values);
     free(arg3);
-    return NULL;
+    PyErr_SetString(PyExc_RuntimeError, "Whoa!!!!!");
+    SWIG_fail;
   }
   free(types);
   free(values);
@@ -720,7 +736,7 @@ As a more extreme example of libffi, here is some code that attempts to wrap <tt
   argc = PyTuple_Size(varargs);
   argv = (vtype *) malloc(argc*sizeof(vtype));
   for (i = 0; i &lt; argc; i++) {
-    PyObject *o = PyTuple_GetItem(varargs,i);
+    PyObject *o = PyTuple_GetItem(varargs, i);
     if (PyInt_Check(o)) {
       argv[i].type = VT_INT;
       argv[i].val.ivalue = PyInt_AsLong(o);
@@ -731,8 +747,8 @@ As a more extreme example of libffi, here is some code that attempts to wrap <tt
       argv[i].type = VT_POINTER;
       argv[i].val.pvalue = (void *) PyString_AsString(o);
     } else {
-      PyErr_SetString(PyExc_ValueError,"Unsupported argument type");
       free(argv);
+      PyErr_SetString(PyExc_ValueError, "Unsupported argument type");
       return NULL;
     }
   }
@@ -780,11 +796,11 @@ As a more extreme example of libffi, here is some code that attempts to wrap <tt
                    &amp;ffi_type_uint, types) == FFI_OK) {
     ffi_call(&amp;cif, (void (*)()) printf, &amp;result, values);
   } else {
-    PyErr_SetString(PyExc_RuntimeError, "Whoa!!!!!");
     free(types);
     free(values);
     free(args);
-    return NULL;
+    PyErr_SetString(PyExc_RuntimeError, "Whoa!!!!!");
+    SWIG_fail;
   }
   free(types);
   free(values);
@@ -829,7 +845,7 @@ provide an argument number for the first extra argument.  This can be used to in
 values.   Please consult the chapter on each language module for more details.
 </p>
 
-<H2><a name="Varargs_nn8"></a>13.7 Wrapping of va_list</H2>
+<H2><a name="Varargs_nn8">15.7 Wrapping of va_list</a></H2>
 
 
 <p>
@@ -883,7 +899,7 @@ int my_vprintf(const char *fmt, ...) {
 </pre>
 </div>
 
-<H2><a name="Varargs_nn9"></a>13.8 C++ Issues</H2>
+<H2><a name="Varargs_nn9">15.8 C++ Issues</a></H2>
 
 
 <p>
@@ -899,12 +915,12 @@ and it fully supports classes much like the <tt>%rename</tt> directive.  For exa
 
 class Foo {
 public:
-     virtual void bar(char *arg, ...);   // gets varargs above
+  virtual void bar(char *arg, ...);   // gets varargs above
 };
 
 class Spam: public Foo {
 public:
-     virtual void bar(char *arg, ...);   // gets varargs above
+  virtual void bar(char *arg, ...);   // gets varargs above
 };
 </pre>
 </div>
@@ -939,9 +955,9 @@ are placed in <tt>arg2</tt>, <tt>arg3</tt>, and so forth.  For example:
 <div class="code">
 <pre>
 %feature("action") Foo::bar {
-   ...
-   result = arg1-&gt;bar(arg2, arg3, etc.);
-   ...
+  ...
+  result = arg1-&gt;bar(arg2, arg3, etc.);
+  ...
 }
 </pre>
 </div>
@@ -952,7 +968,7 @@ design or to provide an alternative interface using a helper function than it is
 fully general wrapper to a varargs C++ member function.
 </p>
 
-<H2><a name="Varargs_nn10"></a>13.9 Discussion</H2>
+<H2><a name="Varargs_nn10">15.9 Discussion</a></H2>
 
 
 <p>
@@ -974,10 +990,10 @@ you might structure your interface like this:
 <div class="code">
 <pre>
 %typemap(const char *fmt, ...) {
-   ...
+  ...
 }
 %feature("action") traceprintf {
-   ...
+  ...
 }
 
 /* Include some header file with traceprintf in it */
@@ -998,7 +1014,7 @@ to control this:
 <pre>
 #ifdef USE_LIBFFI
 %feature("action") printf {
-   ...
+  ...
 }
 #endif
 #ifdef USE_OTHERFFI

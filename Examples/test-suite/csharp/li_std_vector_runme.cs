@@ -82,17 +82,6 @@ public class li_std_vector_runme {
       } catch (ArgumentException) {
       }
     }
-#if SWIG_DOTNET_1
-    {
-      // runtime check that 2D arrays fail
-      double[,] outputarray = new double[collectionSize,collectionSize];
-      try {
-        vect.CopyTo(outputarray);
-        throw new Exception("CopyTo (5a) test failed");
-      } catch (ArgumentException) {
-      }
-    }
-#endif
     {
       StructVector inputvector = new StructVector();
       int arrayLen = 10;
@@ -132,7 +121,7 @@ public class li_std_vector_runme {
       throw new Exception("Contains test 4 failed");
 
     {
-      // ICollection constructor
+      // IEnumerable constructor
       double[] doubleArray = new double[] { 0.0, 11.1, 22.2, 33.3, 44.4, 55.5, 33.3 };
       DoubleVector dv = new DoubleVector(doubleArray);
       if (doubleArray.Length != dv.Count)
@@ -188,6 +177,17 @@ public class li_std_vector_runme {
         if (doubleArray[i] != dvCopy[i])
           throw new Exception("Copy constructor failed, index:" + i);
       }
+      if (dvCopy.Count != doubleArray.Length)
+        throw new Exception("Copy constructor lengths mismatch");
+
+      // ToArray test
+      double[] dvArray = dv.ToArray();
+      for (int i=0; i<doubleArray.Length; i++) {
+        if (doubleArray[i] != dvArray[i])
+          throw new Exception("ToArray failed, index:" + i);
+      }
+      if (dvArray.Length != doubleArray.Length)
+        throw new Exception("ToArray lengths mismatch");
     }
     {
       // Repeat() test
@@ -208,7 +208,6 @@ public class li_std_vector_runme {
              throw new Exception("Repeat (1) test failed");
         }
       }
-#if !SWIG_DOTNET_1
       {
         System.Collections.Generic.IEnumerator<double> myEnumerator = dv.GetEnumerator();
         while ( myEnumerator.MoveNext() ) {
@@ -216,7 +215,6 @@ public class li_std_vector_runme {
              throw new Exception("Repeat (2) test failed");
         }
       }
-#endif
     }
 
     {
@@ -632,6 +630,55 @@ public class li_std_vector_runme {
       }
     }
 
+    // Test construction
+    {
+      string[] one_two_three = new string[] { "one", "two", "three" };
+
+      // Test construction from array
+      {
+        string[] collection = one_two_three;
+        check123(new StringVector(collection));
+      }
+
+      // Test construction from IEnumerable
+      {
+        global::System.Collections.IEnumerable collection = one_two_three;
+        check123(new StringVector(collection));
+      }
+
+      // Test construction from IEnumerable<>
+      {
+        global::System.Collections.Generic.IEnumerable<string> collection = one_two_three;
+        check123(new StringVector(collection));
+      }
+
+      // Test construction from IList<>
+      {
+        global::System.Collections.Generic.IList<string> collection = one_two_three;
+        check123(new StringVector(collection));
+      }
+
+      // Test construction from ICollection
+      {
+        global::System.Collections.ICollection collection = one_two_three;
+        check123(new StringVector(collection));
+      }
+
+      // Test construction from ICollection<>
+      {
+        global::System.Collections.Generic.ICollection<string> collection = new global::System.Collections.Generic.List<string>(one_two_three);
+        check123(new StringVector(collection));
+      }
+    }
+
+  }
+
+  private static void check123(StringVector stringv) {
+    string concatenated = "";
+    foreach (string s in stringv)
+      concatenated = concatenated + s;
+    if (concatenated != "onetwothree")
+      throw new Exception("concatenated string failed: " + concatenated);
   }
 
 }

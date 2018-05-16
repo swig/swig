@@ -8,6 +8,7 @@
 %apply char **STRING_ARRAY { char **languages };
 %apply char *BYTE { char *chars };
 %apply char **STRING_OUT { char **string_ptr };
+%apply unsigned char *NIOBUFFER { unsigned char *buf };
 %typemap(freearg) char **languages "" // don't delete memory when setting global variable
 
 %{
@@ -47,5 +48,8 @@ void char_ptr_ptr_out(char **string_ptr) {
     *string_ptr = ret;
 }
 
+void niobuffer_fill_hello(unsigned char *buf) {
+        sprintf ((char*)buf,"hello");
+}
 %}
 

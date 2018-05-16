@@ -68,7 +68,7 @@ void Swig_print_node(Node *obj) {
   Node *cobj;
 
   print_indent(0);
-  Printf(stdout, "+++ %s ----------------------------------------\n", nodeType(obj));
+  Printf(stdout, "+++ %s - %p ----------------------------------------\n", nodeType(obj), obj);
   ki = First(obj);
   while (ki.key) {
     String *k = ki.key;
@@ -168,6 +168,24 @@ void prependChild(Node *node, Node *chd) {
   while (chd) {
     set_parentNode(chd, node);
     chd = nextSibling(chd);
+  }
+}
+
+void appendSibling(Node *node, Node *chd) {
+  Node *parent;
+  Node *lc = node;
+  while (nextSibling(lc))
+    lc = nextSibling(lc);
+  set_nextSibling(lc, chd);
+  set_previousSibling(chd, lc);
+  parent = parentNode(node);
+  if (parent) {
+    while (chd) {
+      lc = chd;
+      set_parentNode(chd, parent);
+      chd = nextSibling(chd);
+    }
+    set_lastChild(parent, lc);
   }
 }
 

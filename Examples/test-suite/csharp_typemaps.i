@@ -77,24 +77,24 @@ public:
 Number quadruple(Number n) {
     n.Value *= 4;
     return n;
-};
+}
 Number times8(const Number& num) {
     Number n(num);
     n.Value *= 8;
     return n;
-};
+}
 Number times12(const Number* num) {
     Number n(*num);
     n.Value *= 12;
     return n;
-};
+}
 %}
 
 // Test $csinput expansion
 %typemap(csvarin, excode=SWIGEXCODE2) int %{
     set {
       if ($csinput < 0)
-        throw new ApplicationException("number too small!");
+        throw new global::System.ApplicationException("number too small!");
       $imcall;$excode
     } %}
 

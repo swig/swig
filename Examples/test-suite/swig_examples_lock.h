@@ -43,6 +43,7 @@ class CriticalSection {
 public:
   CriticalSection() {
     pthread_mutexattr_t mutexattr;
+    pthread_mutexattr_init(&mutexattr);
     pthread_mutexattr_settype(&mutexattr, PTHREAD_MUTEX_RECURSIVE_NP);
     pthread_mutex_init(&mutex_, &mutexattr);
     pthread_mutexattr_destroy(&mutexattr);

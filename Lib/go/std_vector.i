@@ -59,7 +59,7 @@ namespace std {
         %rename(add) push_back;
         void push_back(const value_type& x);
         %extend {
-            const_reference get(int i) throw (std::out_of_range) {
+            bool get(int i) throw (std::out_of_range) {
                 int size = int(self->size());
                 if (i>=0 && i<size)
                     return (*self)[i];

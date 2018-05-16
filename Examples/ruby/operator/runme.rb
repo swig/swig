@@ -3,8 +3,8 @@ require 'example'
 
 include Example
 
-a = Complex.new(2, 3)
-b = Complex.new(-5, 10)
+a = Example::Complex.new(2, 3)
+b = Example::Complex.new(-5, 10)
 
 puts "a   = #{a}"
 puts "b   = #{b}"
@@ -15,7 +15,7 @@ puts "a*b = #{a*b}"
 puts "a-c = #{a-c}"
 
 # This should invoke Complex's copy constructor
-e = Complex.new(a-c)
+e = Example::Complex.new(a-c)
 e = a - c
 puts "e   = #{e}"
 

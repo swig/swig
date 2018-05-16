@@ -70,7 +70,7 @@ function b()
     t:message()
 end
 print [[
-Now lets call function a()
+Now let's call function a()
  which calls b() 
  which calls into C++
  which will throw an exception!]]
@@ -80,7 +80,7 @@ if ok then
 else
     print("  call failed with error:",res)
 end
-print "Now lets do the same using xpcall(a,debug.traceback)"
+print "Now let's do the same using xpcall(a,debug.traceback)"
 ok,res=xpcall(a,debug.traceback)
 if ok then 
     print "  that worked! Funny"

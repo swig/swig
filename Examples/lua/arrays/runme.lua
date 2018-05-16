@@ -25,7 +25,7 @@ math.randomseed(0)  -- init random
 
 
 --[[ version 1: passing a C array to the code
-lets test call sort_int()
+let's test call sort_int()
 this requires a C array, so is the hardest to use]]
 ARRAY_SIZE=10
 arr=example.new_int(ARRAY_SIZE)

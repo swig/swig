@@ -12,7 +12,7 @@
   and then include this file.
 
   Typically you will create a 'mytypemaps.swg' file in each target
-  languge, where you will have the following sections:
+  language, where you will have the following sections:
 
     === mytypemaps.swg ===
 

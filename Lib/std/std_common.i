@@ -23,11 +23,9 @@
 // Common code for supporting the C++ std namespace
 //
 
-%{
-#include <string>
-#include <stdexcept>
-#include <stddef.h>
-%}
+%fragment("<string>");
+%fragment("<stdexcept>");
+%fragment("<stddef.h>");
 
 
 %fragment("StdIteratorTraits","header",fragment="<stddef.h>") %{
@@ -73,8 +71,8 @@ namespace std {
 #endif
 %}
 
-%fragment("StdTraitsCommon","header") %{
-namespace swig {  
+%fragment("StdTraitsCommon","header",fragment="<string>") %{
+namespace swig {
   template <class Type>
   struct noconst_traits {
     typedef Type noconst_type;
@@ -88,7 +86,7 @@ namespace swig {
   /*
     type categories
   */
-  struct pointer_category { };  
+  struct pointer_category { };
   struct value_category { };
 
   /*
@@ -101,12 +99,25 @@ namespace swig {
     return traits<typename noconst_traits<Type >::noconst_type >::type_name();
   }
 
-  template <class Type> 
-  struct traits_info {
+  template <class Type> struct traits_info {
     static swig_type_info *type_query(std::string name) {
       name += " *";
       return SWIG_TypeQuery(name.c_str());
-    }    
+    }
+    static swig_type_info *type_info() {
+      static swig_type_info *info = type_query(type_name<Type>());
+      return info;
+    }
+  };
+
+  /*
+    Partial specialization for pointers (traits_info)
+  */
+  template <class Type> struct traits_info<Type *> {
+    static swig_type_info *type_query(std::string name) {
+      name += " *";
+      return SWIG_TypeQuery(name.c_str());
+    }
     static swig_type_info *type_info() {
       static swig_type_info *info = type_query(type_name<Type>());
       return info;
@@ -119,7 +130,7 @@ namespace swig {
   }
 
   /*
-    Partial specialization for pointers
+    Partial specialization for pointers (traits)
   */
   template <class Type> struct traits <Type *> {
     typedef pointer_category category;
@@ -127,22 +138,22 @@ namespace swig {
       std::string ptrname = name;
       ptrname += " *";
       return ptrname;
-    }    
+    }
     static const char* type_name() {
       static std::string name = make_ptr_name(swig::type_name<Type>());
       return name.c_str();
     }
   };
 
-  template <class Type, class Category> 
+  template <class Type, class Category>
   struct traits_as { };
- 
-  template <class Type, class Category> 
+
+  template <class Type, class Category>
   struct traits_check { };
 
 }
 %}
- 
+
 /*
   Generate the traits for a swigtype
 */
@@ -150,7 +161,7 @@ namespace swig {
 %define %traits_swigtype(Type...)
 %fragment(SWIG_Traits_frag(Type),"header",fragment="StdTraits") {
   namespace swig {
-    template <>  struct traits<Type > {
+    template <>  struct traits< Type > {
       typedef pointer_category category;
       static const char* type_name() { return  #Type; }
     };
@@ -166,7 +177,7 @@ namespace swig {
 
 %define %typemap_traits(Code,Type...)
   %typemaps_asvalfrom(%arg(Code),
-		     %arg(swig::asval<Type >),
+		     %arg(swig::asval< Type >),
 		     %arg(swig::from),
 		     %arg(SWIG_Traits_frag(Type)),
 		     %arg(SWIG_Traits_frag(Type)),
@@ -196,10 +207,10 @@ namespace swig {
   bool operator == (const Type& v) {
     return *self == v;
   }
-  
+
   bool operator != (const Type& v) {
     return *self != v;
-  }  
+  }
 }
 
 %enddef
@@ -213,7 +224,7 @@ namespace swig {
   bool operator > (const Type& v) {
     return *self > v;
   }
-  
+
   bool operator < (const Type& v) {
     return *self < v;
   }

@@ -34,7 +34,7 @@ struct Foo {
    Foo() : x(0), xp(&x), y(0), yp(&y), access(0) { }
    int getx() const { return x; }
    void setx(int x_) { x = x_; }
-   static void stat() {}
+   static void statMethod() {}
 };
 %}
 

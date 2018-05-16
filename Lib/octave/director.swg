@@ -1,5 +1,13 @@
+/* -----------------------------------------------------------------------------
+ * director.swg
+ *
+ * This file contains support for director classes so that Octave proxy
+ * methods can be called from C++.
+ * ----------------------------------------------------------------------------- */
 
 # define SWIG_DIRECTOR_CAST(ARG) dynamic_cast<Swig::Director *>(ARG)
+
+#include <exception>
 
 namespace Swig {
 
@@ -38,10 +46,12 @@ namespace Swig {
     }
   };
 
-  struct DirectorTypeMismatchException {
+  // Base class for director exceptions.
+  class DirectorException : public std::exception {
+  public:
     static void raise(const char *msg) {
       // ... todo
-      throw(DirectorTypeMismatchException());
+      throw DirectorException();
     }
 
     static void raise(const octave_value &ov, const char *msg) {
@@ -50,10 +60,11 @@ namespace Swig {
     }
   };
 
-  struct DirectorPureVirtualException {
+  class DirectorTypeMismatchException : public DirectorException {
+  public:
     static void raise(const char *msg) {
       // ... todo
-      throw(DirectorPureVirtualException());
+      throw DirectorTypeMismatchException();
     }
 
     static void raise(const octave_value &ov, const char *msg) {
@@ -62,7 +73,20 @@ namespace Swig {
     }
   };
 
-  SWIGINTERN rtdir_map* get_rtdir_map() {
+  class DirectorPureVirtualException : public DirectorException {
+  public:
+    static void raise(const char *msg) {
+      // ... todo
+      throw DirectorPureVirtualException();
+    }
+
+    static void raise(const octave_value &ov, const char *msg) {
+      // ... todo
+      raise(msg);
+    }
+  };
+
+  SWIGINTERN rtdir_map *get_rtdir_map() {
     static swig_module_info *module = 0;
     if (!module)
       module = SWIG_GetModule(0);
@@ -74,19 +98,19 @@ namespace Swig {
   }
 
   SWIGINTERNINLINE void set_rtdir(void *vptr, Director *d) {
-    rtdir_map* rm = get_rtdir_map();
+    rtdir_map *rm = get_rtdir_map();
     if (rm)
       (*rm)[vptr] = d;
   }
 
   SWIGINTERNINLINE void erase_rtdir(void *vptr) {
-    rtdir_map* rm = get_rtdir_map();
+    rtdir_map *rm = get_rtdir_map();
     if (rm)
       (*rm).erase(vptr);
   }
 
   SWIGINTERNINLINE Director *get_rtdir(void *vptr) {
-    rtdir_map* rm = get_rtdir_map();
+    rtdir_map *rm = get_rtdir_map();
     if (!rm)
       return 0;
     rtdir_map::const_iterator pos = rm->find(vptr);

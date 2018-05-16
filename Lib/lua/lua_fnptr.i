@@ -103,7 +103,6 @@ void swiglua_ref_clear(SWIGLUA_REF* pref){
 }
 
 void swiglua_ref_set(SWIGLUA_REF* pref,lua_State* L,int idx){
-//	swiglua_ref_clear(pref); /* just in case */
 	pref->L=L;
 	lua_pushvalue(L,idx);                 /* copy obj to top */
 	pref->ref=luaL_ref(L,LUA_REGISTRYINDEX); /* remove obj from top & put into registry */

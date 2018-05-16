@@ -24,6 +24,10 @@ void main() {
     throw new Exception("test failed");
   }
 
+  if (testJames(name) != "SWIGTYPE_Name") {
+    throw new Exception("test failed");
+  }
+
   if (testJim(name) != "multiname num") {
     throw new Exception("test failed");
   }

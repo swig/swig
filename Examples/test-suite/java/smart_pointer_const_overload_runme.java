@@ -41,7 +41,7 @@ public class smart_pointer_const_overload_runme {
     Assert(f.getAccess() == MUTABLE_ACCESS);
       
     // Test static method
-    b.stat();
+    b.statMethod();
 
     Assert(f.getAccess() == CONST_ACCESS);
 

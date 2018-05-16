@@ -83,6 +83,25 @@ public class java_lib_various_runme {
       if (byjove[i] != b[i])
         throw new RuntimeException("By jove, it failed: [" + new String(b) + "]");
     }
+
+    // NIOBUFFER typemap check
+      java.nio.ByteBuffer buf = java.nio.ByteBuffer.allocateDirect(10); 
+      java_lib_various.niobuffer_fill_hello(buf);
+      if (
+	(char)buf.get(0) != 'h' ||
+	(char)buf.get(1) != 'e' ||
+	(char)buf.get(2) != 'l' ||
+	(char)buf.get(3) != 'l' ||
+	(char)buf.get(4) != 'o'
+      )
+        throw new RuntimeException(
+          "nio test failed: " + 
+          (char)buf.get(0) + 
+          (char)buf.get(1) + 
+          (char)buf.get(2) + 
+          (char)buf.get(3) + 
+          (char)buf.get(4)
+        );
   }
 
 }

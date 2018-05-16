@@ -156,7 +156,7 @@ namespace ns
   class Example3
   {
   protected:
-    /* the default constructor is always emitter, even when protected,
+    /* the default constructor is always emitted, even when protected,
         having another public constructor, and 'dirprot' is not used.
         This is just for Java compatibility */
     Example3()

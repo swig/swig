@@ -7,6 +7,7 @@
 /* shadow code */
 #define %shadow      %insert("shadow")
 #define %pythoncode  %insert("python")
+#define %pythonbegin %insert("pythonbegin")
 
 
 /* ------------------------------------------------------------------------- */
@@ -182,7 +183,6 @@ These methods "may be called" if needed.
 
 #define %pythonappend         %feature("pythonappend") 
 #define %clearpythonappend    %feature("pythonappend","")
-
 
 
 /* ------------------------------------------------------------------------- */

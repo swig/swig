@@ -108,3 +108,35 @@ const std::vector<const Struct *> & vecstructconstptr(const std::vector<const St
   std::vector< swig::LANGUAGE_OBJ > LanguageVector; 
 }
 #endif
+
+
+// Test that the digraph <::aa::Holder> is not generated
+%include <std_vector.i>
+
+%inline %{
+namespace aa {
+  struct Holder {
+    Holder(int n = 0) : number(n) {}
+    int number;
+  };
+}
+%}
+
+#if !defined(SWIGOCTAVE)
+// To fix: something different in Octave is preventing this from working
+%template(VectorTest) std::vector< ::aa::Holder >;
+
+%inline %{
+std::vector< ::aa::Holder > vec1(std::vector< ::aa::Holder > x) { return x; }
+%}
+#endif
+
+// exercising vectors of strings
+%inline %{
+std::vector<std::string> RevStringVec (const std::vector<std::string> &In)
+  {
+    std::vector<std::string> result(In);
+    std::reverse(result.begin(), result.end());
+    return(result);
+  }
+%}

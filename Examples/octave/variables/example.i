@@ -1,5 +1,8 @@
 /* File : example.i */
-%module example
+%module swigexample
+
+%feature("autodoc", 1);
+
 %{
 #include "example.h"
 %}
@@ -50,4 +53,3 @@ extern Point *new_Point(int x, int y);
 extern char  *Point_print(Point *p);
 extern void  pt_print();
 %}
-

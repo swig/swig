@@ -11,8 +11,7 @@ zip=
 
 # options for configure
 extraconfigureoptions=
-compileflags="-O2"
-extracompileflags=
+compileflags="-O2 -Wall -Wextra"
 
 if test x$1 != x; then
     version=$1
@@ -43,20 +42,37 @@ else
     if test x$zip = x; then
       zip=zip
     fi
-    extraconfigureoptions="--host=i586-mingw32msvc --build=i686-linux"
+    echo "Checking that mingw 32-bit gcc is installed/available"
+    if test -n "`which i686-w64-mingw32-gcc`" ; then
+      i686-w64-mingw32-gcc --version || exit 1
+      i686-w64-mingw32-g++ --version || exit 1
+      extraconfigureoptions="--host=i686-w64-mingw32 --build=i686-linux"
+      # Statically link so that libstdc++-6.dll and libgcc_s_sjlj-1.dll don't have to be shipped
+      compileflags="$compileflags -static-libgcc -static-libstdc++"
+    elif test -n "`which i586-mingw32msvc-gcc`" ; then
+      i586-mingw32msvc-gcc --version || exit 1
+      i586-mingw32msvc-g++ --version || exit 1
+      extraconfigureoptions="--host=i586-mingw32msvc --build=i686-linux"
+    else
+      echo "Could not detect mingw gcc - please install mingw-w64 package."
+      exit 1;
+    fi
   else 
     if test "$cygwin"; then
       echo "Building native Windows executable on Cygwin"
       if test x$zip = x; then
         zip=zip
       fi
-      compileflags="-O2 -mno-cygwin"
+      compileflags="$compileflags -mno-cygwin"
     else
       echo "Unknown platform. Requires either Linux or MinGW."
       exit 1;
     fi
   fi
 fi
+
+export CFLAGS="$compileflags"
+export CXXFLAGS="$compileflags"
 
 swigbasename=swig-$version
 swigwinbasename=swigwin-$version
@@ -86,10 +102,10 @@ if test -f "$tarball"; then
       tar -zxf ../$tarball
       cd $swigbasename
       (cd ../.. && cp $pcre_tarball $builddir/$swigbasename)
-      echo Running: Tools/pcre-build.sh $extraconfigureoptions CFLAGS="$compileflags" CXXFLAGS="$compileflags"
-      ./Tools/pcre-build.sh $extraconfigureoptions CFLAGS="$compileflags" CXXFLAGS="$compileflags" || exit 1
-      echo Running: ./configure $extraconfigureoptions CFLAGS="$compileflags" CXXFLAGS="$compileflags"
-      ./configure $extraconfigureoptions CFLAGS="$compileflags" CXXFLAGS="$compileflags" || exit 1
+      echo Running: Tools/pcre-build.sh $extraconfigureoptions
+      ./Tools/pcre-build.sh $extraconfigureoptions
+      echo Running: ./configure $extraconfigureoptions --without-alllang
+      ./configure $extraconfigureoptions --without-alllang
       echo "Compiling (quietly)..."
       make > build.log
       echo "Simple check to see if swig.exe runs..."

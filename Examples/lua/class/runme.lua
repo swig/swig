@@ -53,7 +53,6 @@ print("\nGuess I'll clean up now")
 -- Note: this invokes the virtual destructor
 c=nil
 s=nil
-s = 3
 
 -- call gc to make sure they are collected
 collectgarbage()

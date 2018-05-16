@@ -1,4 +1,6 @@
-(define x "hello")
+; The test string has some non-ascii characters added
+; because our guile wrappers had bugs in that area
+(define x "hello - æææ")
 
 (if (not (string=? (test-value x) x))
   (begin (error "Error 1") (exit 1)))

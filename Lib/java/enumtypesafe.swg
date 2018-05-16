@@ -64,7 +64,6 @@
 %typemap(javacode)           enum SWIGTYPE ""
 %typemap(javaimports)        enum SWIGTYPE ""
 %typemap(javainterfaces)     enum SWIGTYPE ""
-%typemap(javabody)           enum SWIGTYPE ""
 
 /*
  * The swigToEnum method is used to find the Java enum from a C++ enum integer value. The default one here takes 

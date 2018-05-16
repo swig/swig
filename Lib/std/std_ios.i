@@ -242,17 +242,19 @@ namespace std {
     // 27.4.5.1  basic_ios constructors
     basic_ios();
   private:
-    ios_base(const ios_base&);
+    basic_ios(const basic_ios&);
 
-    ios_base& 
-    operator=(const ios_base&);
+    basic_ios&
+    operator=(const basic_ios&);
   };
   
 }
 
 namespace std {
+  typedef basic_ios<char> ios;
   %template(ios) basic_ios<char>;
 #if defined(SWIG_WCHAR)
+ typedef basic_ios<wchar_t> wios;
   %template(wios) basic_ios<wchar_t>;
 #endif
 }

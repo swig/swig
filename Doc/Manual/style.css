@@ -32,6 +32,7 @@ div.code {
   margin-left: 4em;
   margin-right: 4em;
   background-color: #F0FFFF;
+  font-family: "Courier New", Courier, "Courier 10 Pitch", monospace;
 }
 
 div.targetlang {
@@ -41,8 +42,8 @@ div.targetlang {
   margin-left: 4em;
   margin-right: 4em;
   background-color: #d7f6bb;
+  font-family: "Courier New", Courier, "Courier 10 Pitch", monospace;
 }
-
 
 div.shell {
   border-style: solid; 
@@ -51,6 +52,7 @@ div.shell {
   margin-left: 4em;
   margin-right: 4em;
   background-color: #DCDCDC;
+  font-family: "Courier New", Courier, "Courier 10 Pitch", monospace;
 }
 
 div.diagram {
@@ -60,6 +62,7 @@ div.diagram {
   margin-left: 4em;
   margin-right: 4em;
   background-color: #FFEBCD;
+  font-family: "Courier New", Courier, "Courier 10 Pitch", monospace;
 }
 
 ul li p {
@@ -82,3 +85,8 @@ div.indent p {
   margin-right: 0;
 }
 
+pre, code, tt {
+  font-family: "Courier New", Courier, "Courier 10 Pitch", monospace;
+}
+
+body { font-family: serif; }

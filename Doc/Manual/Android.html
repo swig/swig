@@ -1,11 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>SWIG and Android</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 <body bgcolor="#FFFFFF">
-<H1><a name="Android"></a>18 SWIG and Android</H1>
+<H1><a name="Android">20 SWIG and Android</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -30,24 +31,24 @@ This chapter describes SWIG's support of Android.
 
 
 
-<H2><a name="Android_overview"></a>18.1 Overview</H2>
+<H2><a name="Android_overview">20.1 Overview</a></H2>
 
 
 <p>
 The Android chapter is fairly short as support for Android is the same as for Java, where the Java Native Interface (JNI) is
 used to call from Android Java into C or C++ compiled code.
-Everything in the <a href="Java.html">Java chapter</a> applies to generating code for access from Android Java code.
+Everything in the <a href="Java.html#Java">Java chapter</a> applies to generating code for access from Android Java code.
 This chapter contains a few Android specific notes and examples.
 </p>
 
-<H2><a name="Android_examples"></a>18.2 Android examples</H2>
+<H2><a name="Android_examples">20.2 Android examples</a></H2>
 
 
-<H3><a name="Android_examples_intro"></a>18.2.1 Examples introduction</H3>
+<H3><a name="Android_examples_intro">20.2.1 Examples introduction</a></H3>
 
 
 <p>
-The examples require the <a href="http://developer.android.com/sdk/index.html">Android SDK</a> and <a href="http://developer.android.com/sdk/ndk/index.html">Android NDK</a> which can be installed as per instructions in the links.
+The examples require the <a href="http://developer.android.com/sdk/index.html">Android SDK</a> and <a href="http://developer.android.com/tools/sdk/ndk/index.html">Android NDK</a> which can be installed as per instructions in the links.
 The Eclipse version is not required for these examples as just the command line tools are used (shown for Linux as the host, but Windows will be very similar, if not identical in most places).
 Add the SDK tools and NDK tools to your path and create a directory somewhere for your Android projects (adjust PATH as necessary to where you installed the tools):
 </p>
@@ -56,7 +57,7 @@ Add the SDK tools and NDK tools to your path and create a directory somewhere fo
 <pre>
 $ export PATH=$HOME/android/android-sdk-linux_x86/tools:$HOME/android/android-sdk-linux_x86/platform-tools:$HOME/android/android-ndk-r6b:$PATH
 $ mkdir AndroidApps 
-$ cd AnrdoidApps
+$ cd AndroidApps
 </pre>
 </div>
 
@@ -76,7 +77,7 @@ $ android list targets
 The following examples are shipped with SWIG under the Examples/android directory and include a Makefile to build and install each example.
 </p>
 
-<H3><a name="Android_example_simple"></a>18.2.2 Simple C example</H3>
+<H3><a name="Android_example_simple">20.2.2 Simple C example</a></H3>
 
 
 <p>
@@ -209,7 +210,7 @@ When complete your device should be listed in those attached, something like:
 <pre>
 $ adb devices
 List of devices attached 
-A32-6DBE0001-9FF80000-015D62C3-02018028	device
+A32-6DBE0001-9FF80000-015D62C3-02018028 device
 </pre>
 </div>
 
@@ -221,7 +222,7 @@ This means you are now ready to install the application...
 <pre>
 $ adb install bin/SwigSimple-debug.apk 
 95 KB/s (4834 bytes in 0.049s)
-	pkg: /data/local/tmp/SwigSimple-debug.apk
+        pkg: /data/local/tmp/SwigSimple-debug.apk
 Success
 </pre>
 </div>
@@ -353,7 +354,7 @@ Modify the <tt>nativeCall</tt> method in <tt>src/org/swig/simple/SwigSimple.java
       
       int x = 42;
       int y = 105;
-      int g = example.gcd(x,y);
+      int g = example.gcd(x, y);
       outputText.append("The greatest common divisor of " + x + " and " + y + " is " + g + "\n");
 
       // Manipulate the Foo global variable
@@ -398,7 +399,7 @@ Run the app again and this time you will see the output pictured below, showing 
 <center><img src="android-simple.png" alt="Android screenshot of SwigSimple example"></center>
 
 
-<H3><a name="Android_example_class"></a>18.2.3 C++ class example</H3>
+<H3><a name="Android_example_class">20.2.3 C++ class example</a></H3>
 
 
 <p>
@@ -408,7 +409,7 @@ All the steps required to compile and use a simple hierarchy of classes for shap
 
 <p>
 First create an Android project called <tt>SwigClass</tt> in a subdirectory called <tt>class</tt>.
-The steps below create and build a the JNI C++ app.
+The steps below create and build the JNI C++ app.
 Adjust the <tt>--target</tt> id as mentioned earlier in the <a href="Android.html#Android_examples_intro">Examples introduction</a>.
 </p>
 
@@ -435,11 +436,11 @@ public:
   }
   virtual ~Shape() {
     nshapes--;
-  };
+  }
   double  x, y;   
   void    move(double dx, double dy);
-  virtual double area(void) = 0;
-  virtual double perimeter(void) = 0;
+  virtual double area() = 0;
+  virtual double perimeter() = 0;
   static  int nshapes;
 };
 
@@ -447,18 +448,18 @@ class Circle : public Shape {
 private:
   double radius;
 public:
-  Circle(double r) : radius(r) { };
-  virtual double area(void);
-  virtual double perimeter(void);
+  Circle(double r) : radius(r) { }
+  virtual double area();
+  virtual double perimeter();
 };
 
 class Square : public Shape {
 private:
   double width;
 public:
-  Square(double w) : width(w) { };
-  virtual double area(void);
-  virtual double perimeter(void);
+  Square(double w) : width(w) { }
+  virtual double area();
+  virtual double perimeter();
 };
 </pre>
 </div>
@@ -482,19 +483,19 @@ void Shape::move(double dx, double dy) {
 
 int Shape::nshapes = 0;
 
-double Circle::area(void) {
+double Circle::area() {
   return M_PI*radius*radius;
 }
 
-double Circle::perimeter(void) {
+double Circle::perimeter() {
   return 2*M_PI*radius;
 }
 
-double Square::area(void) {
+double Square::area() {
   return width*width;
 }
 
-double Square::perimeter(void) {
+double Square::perimeter() {
   return 4*width;
 }
 </pre>
@@ -660,7 +661,7 @@ public class SwigClass extends Activity
       // ----- Call some methods -----
 
       outputText.append( "\nHere are some properties of the shapes:\n" );
-      Shape[] shapes = {c,s};
+      Shape[] shapes = {c, s};
       for (int i=0; i&lt;shapes.length; i++)
       {
         outputText.append( "   " + shapes[i].toString() + "\n" );
@@ -746,7 +747,7 @@ Run the app to see the result of calling the C++ code from Java:
 
 <center><img src="android-class.png" alt="Android screenshot of SwigClass example"></center>
 
-<H3><a name="Android_examples_other"></a>18.2.4 Other examples</H3>
+<H3><a name="Android_examples_other">20.2.4 Other examples</a></H3>
 
 
 <p>
@@ -758,7 +759,7 @@ Note that the 'extend' example is demonstrates the directors feature.
 Normally C++ exception handling and the STL is not available by default in the version of g++ shipped with Android, but this example turns these features on as described in the next section.
 </p>
 
-<H2><a name="Android_stl"></a>18.3 C++ STL</H2>
+<H2><a name="Android_stl">20.3 C++ STL</a></H2>
 
 
 <p>

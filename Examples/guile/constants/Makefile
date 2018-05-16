@@ -1,17 +1,17 @@
-SRCS   = 
-TARGET = my-guile
-IFILE  = example.i
-MKDIR  = ..
+TOP        = ../..
+SWIGEXE    = $(TOP)/../swig
+SWIG_LIB_DIR = $(TOP)/../$(TOP_BUILDDIR_TO_TOP_SRCDIR)Lib
+SRCS       =
+TARGET     = my-guile
+INTERFACE  = example.i
 
-all::
-	$(MAKE) -f $(MKDIR)/Makefile		\
-		SRCS='$(SRCS)'			\
-		TARGET=$(TARGET)		\
-		IFILE=$(IFILE)			\
-	    sub-all
+check: build
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='$(TARGET)' guile_augmented_run
 
-clean::
-	$(MAKE) -f $(MKDIR)/Makefile TARGET='$(TARGET)' guile_clean
+build:
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
+	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' guile_augmented
 
-check: all
-	./my-guile -s constants.scm
+clean:
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='$(TARGET)' guile_clean

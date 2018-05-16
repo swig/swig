@@ -163,7 +163,8 @@ static FILE *Swig_open_file(const_String_or_char_ptr name, int sysfile, int use_
   String *filename;
   List *spath = 0;
   char *cname;
-  int i, ilen;
+  int i, ilen, nbytes;
+  char bom[3];
 
   if (!directories)
     directories = NewList();
@@ -191,6 +192,14 @@ static FILE *Swig_open_file(const_String_or_char_ptr name, int sysfile, int use_
   if (f) {
     Delete(lastpath);
     lastpath = filename;
+
+    /* Skip the UTF-8 BOM if it's present */
+    nbytes = (int)fread(bom, 1, 3, f);
+    if (nbytes == 3 && bom[0] == (char)0xEF && bom[1] == (char)0xBB && bom[2] == (char)0xBF) {
+      /* skip */
+    } else {
+      fseek(f, 0, SEEK_SET);
+    }
   }
   return f;
 }
@@ -282,6 +291,7 @@ int Swig_insert_file(const_String_or_char_ptr filename, File *outfile) {
   while ((nbytes = Read(f, buffer, 4096)) > 0) {
     Write(outfile, buffer, nbytes);
   }
+  fclose(f);
   return 0;
 }
 
@@ -360,7 +370,7 @@ String *Swig_file_filename(const_String_or_char_ptr filename) {
 String *Swig_file_dirname(const_String_or_char_ptr filename) {
   const char *delim = SWIG_FILE_DELIMITER;
   const char *c = strrchr(Char(filename), *delim);
-  return c ? NewStringWithSize(filename, c - Char(filename) + 1) : NewString("");
+  return c ? NewStringWithSize(filename, (int)(c - Char(filename) + 1)) : NewString("");
 }
 
 /*

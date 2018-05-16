@@ -1,5 +1,7 @@
 /* File : example.i */
-%module example
+%module swigexample
+
+%feature("autodoc", 1);
 
 %{
 #include "example.h"
@@ -14,4 +16,3 @@
 %template(maxdouble) max<double>;
 %template(vecint) vector<int>;
 %template(vecdouble) vector<double>;
-

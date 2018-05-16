@@ -23,20 +23,27 @@ public:
   virtual ~Foo() {}
   virtual std::string ping() { return "Foo::ping()"; }
   virtual std::string pong() { return "Foo::pong();" + ping(); }
-  virtual std::string fooBar(FooBar* fooBarPtr) { return fooBarPtr->FooBarDo(); }
+  virtual std::string upcall(FooBar* fooBarPtr) { return fooBarPtr->FooBarDo(); }
   virtual Foo makeFoo() { return Foo(); }
   virtual FooBar makeFooBar() { return FooBar(); }
 
+  static std::string callPong(Foo &foo) { return foo.pong(); }
+  static std::string callUpcall(Foo &foo, FooBar* fooBarPtr) { return foo.upcall(fooBarPtr); }
   static Foo* get_self(Foo *self_) {return self_;}
 };
 
 %}
 
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY)
+#define SHARED_PTR_WRAPPERS_IMPLEMENTED
+#endif
+
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
+
 %include <std_string.i>
 %include <boost_shared_ptr.i>
 
 %shared_ptr(Foo)
-
 %feature("director") Foo;
 
 class FooBar {
@@ -55,9 +62,21 @@ public:
   virtual ~Foo();
   virtual std::string ping();
   virtual std::string pong();
-  virtual std::string fooBar(FooBar* fooBarPtr);
+  virtual std::string upcall(FooBar* fooBarPtr);
   virtual Foo makeFoo();
   virtual FooBar makeFooBar();
  
+  static std::string callPong(Foo &foo);
+  static std::string callUpcall(Foo &foo, FooBar* fooBarPtr);
   static Foo* get_self(Foo *self_);
 };
+
+%shared_ptr(FooDerived)
+%feature("director") FooDerived;
+
+%inline %{
+struct FooDerived : Foo {
+};
+%}
+#endif
+

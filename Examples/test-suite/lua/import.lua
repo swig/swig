@@ -1,7 +1,7 @@
 -- import
 -- the lua 5.0 loading mechanism is rather poor & relies upon the loadlib() fn
 -- the lua 5.1 loading mechanism is simplicity itself
--- for now we need a bridge which will use the correct verion
+-- for now we need a bridge which will use the correct version
 
 function import_5_0(name)
 	-- imports the file into the program
@@ -13,7 +13,7 @@ function import_5_0(name)
 	local lib=loadlib(name..'.dll','luaopen_'..name) or loadlib(name..'.so','luaopen_'..name)
 	assert(lib,"error loading module:"..name)
 	
-	lib() -- execute the function: initalising the lib
+	lib() -- execute the function: initialising the lib
 	assert(rawget(_G,name)~=nil,"no module table found")
 end
 

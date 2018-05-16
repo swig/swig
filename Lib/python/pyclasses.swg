@@ -72,27 +72,35 @@ namespace swig {
 
     SwigPtr_PyObject(const SwigPtr_PyObject& item) : _obj(item._obj)
     {
+      SWIG_PYTHON_THREAD_BEGIN_BLOCK;
       Py_XINCREF(_obj);      
+      SWIG_PYTHON_THREAD_END_BLOCK;
     }
     
     SwigPtr_PyObject(PyObject *obj, bool initial_ref = true) :_obj(obj)
     {
       if (initial_ref) {
+        SWIG_PYTHON_THREAD_BEGIN_BLOCK;
         Py_XINCREF(_obj);
+        SWIG_PYTHON_THREAD_END_BLOCK;
       }
     }
     
     SwigPtr_PyObject & operator=(const SwigPtr_PyObject& item) 
     {
+      SWIG_PYTHON_THREAD_BEGIN_BLOCK;
       Py_XINCREF(item._obj);
       Py_XDECREF(_obj);
       _obj = item._obj;
+      SWIG_PYTHON_THREAD_END_BLOCK;
       return *this;      
     }
     
     ~SwigPtr_PyObject() 
     {
+      SWIG_PYTHON_THREAD_BEGIN_BLOCK;
       Py_XDECREF(_obj);
+      SWIG_PYTHON_THREAD_END_BLOCK;
     }
     
     operator PyObject *() const

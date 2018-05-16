@@ -1,12 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>SWIG and Tcl</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Tcl"></a>37 SWIG and Tcl</H1>
+<H1><a name="Tcl">41 SWIG and Tcl</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -83,7 +84,7 @@ Tcl 8.0 or a later release.   Earlier releases of SWIG supported Tcl 7.x, but
 this is no longer supported.
 </p>
 
-<H2><a name="Tcl_nn2"></a>37.1 Preliminaries</H2>
+<H2><a name="Tcl_nn2">41.1 Preliminaries</a></H2>
 
 
 <p>
@@ -109,7 +110,7 @@ build a Tcl extension module.  To finish building the module, you
 need to compile this file and link it with the rest of your program.
 </p>
 
-<H3><a name="Tcl_nn3"></a>37.1.1 Getting the right header files</H3>
+<H3><a name="Tcl_nn3">41.1.1 Getting the right header files</a></H3>
 
 
 <p>
@@ -127,7 +128,7 @@ this is the case, you should probably make a symbolic link so that <tt>tcl.h</tt
 header file.
 </p>
 
-<H3><a name="Tcl_nn4"></a>37.1.2 Compiling a dynamic module</H3>
+<H3><a name="Tcl_nn4">41.1.2 Compiling a dynamic module</a></H3>
 
 
 <p>
@@ -139,8 +140,8 @@ using commands like this (shown for Linux):
 
 <div class="code"><pre>
 $ swig -tcl example.i
-$ gcc -c example.c
-$ gcc -c example_wrap.c -I/usr/local/include
+$ gcc -fPIC -c example.c
+$ gcc -fPIC -c example_wrap.c -I/usr/local/include
 $ gcc -shared example.o example_wrap.o -o example.so
 </pre></div>
 
@@ -150,7 +151,7 @@ SWIG tries to guess the right options when it is installed.  Therefore,
 you may want to start with one of the examples in the <tt>SWIG/Examples/tcl</tt> 
 directory.   If that doesn't work, you will need to read the man-pages for
 your compiler and linker to get the right set of options.  You might also
-check the <a href="http://www.dabeaz.com/cgi-bin/wiki.pl">SWIG Wiki</a> for
+check the <a href="https://github.com/swig/swig/wiki">SWIG Wiki</a> for
 additional information.
 </p>
 
@@ -160,10 +161,10 @@ of the module.  If the name of your SWIG module is "<tt>example</tt>", the
 name of the corresponding object file should be
 "<tt>example.so</tt>".
 The name of the module is specified using the <tt>%module</tt> directive or the 
-<tt> -module</tt> command line option.
+ <tt>-module</tt> command line option.
 </p>
 
-<H3><a name="Tcl_nn5"></a>37.1.3 Static linking</H3>
+<H3><a name="Tcl_nn5">41.1.3 Static linking</a></H3>
 
 
 <p>
@@ -207,8 +208,8 @@ $ swig -tcl example.i
 $ gcc example.c example_wrap.c \
         -Xlinker -export-dynamic \
         -DHAVE_CONFIG_H -I/usr/local/include/ \
-	-L/usr/local/lib -ltcl -lm -ldl \
-	-o mytclsh
+        -L/usr/local/lib -ltcl -lm -ldl \
+        -o mytclsh
 
 </pre></div>
 
@@ -229,7 +230,7 @@ minimal in most situations (and quite frankly not worth the extra
 hassle in the opinion of this author). 
 </p>
 
-<H3><a name="Tcl_nn6"></a>37.1.4 Using your module</H3>
+<H3><a name="Tcl_nn6">41.1.4 Using your module</a></H3>
 
 
 <p>
@@ -357,7 +358,7 @@ to the default system configuration (this requires root access and you will need
 the man pages). 
 </p>
 
-<H3><a name="Tcl_nn7"></a>37.1.5 Compilation of C++ extensions</H3>
+<H3><a name="Tcl_nn7">41.1.5 Compilation of C++ extensions</a></H3>
 
 
 <p>
@@ -374,8 +375,8 @@ compiler.  For example:
 
 <div class="code"><pre>
 % swig -c++ -tcl example.i
-% g++ -c example.cxx
-% g++ -c example_wrap.cxx -I/usr/local/include
+% g++ -fPIC -c example.cxx
+% g++ -fPIC -c example_wrap.cxx -I/usr/local/include
 % g++ -shared example.o example_wrap.o -o example.so
 </pre></div>
 
@@ -387,8 +388,8 @@ Solaris, you often need to add an extra library <tt>-lCrun</tt> like this:
 
 <div class="code"><pre>
 % swig -c++ -tcl example.i
-% CC -c example.cxx
-% CC -c example_wrap.cxx -I/usr/local/include
+% CC -KPIC -c example.cxx
+% CC -KPIC -c example_wrap.cxx -I/usr/local/include
 % CC -G example.o example_wrap.o -L/opt/SUNWspro/lib -o example.so -lCrun
 </pre></div>
 
@@ -440,7 +441,7 @@ erratic program behavior.   If working with lots of software components, you
 might want to investigate using a more formal standard such as COM.
 </p>
 
-<H3><a name="Tcl_nn8"></a>37.1.6 Compiling for 64-bit platforms</H3>
+<H3><a name="Tcl_nn8">41.1.6 Compiling for 64-bit platforms</a></H3>
 
 
 <p>
@@ -467,7 +468,7 @@ also introduce problems on platforms that support more than one
 linking standard (e.g., -o32 and -n32 on Irix).
 </p>
 
-<H3><a name="Tcl_nn9"></a>37.1.7 Setting a package prefix</H3>
+<H3><a name="Tcl_nn9">41.1.7 Setting a package prefix</a></H3>
 
 
 <p>
@@ -486,7 +487,7 @@ option will append the prefix to the name when creating a command and
 call it "<tt>Foo_bar</tt>".
 </p>
 
-<H3><a name="Tcl_nn10"></a>37.1.8 Using namespaces</H3>
+<H3><a name="Tcl_nn10">41.1.8 Using namespaces</a></H3>
 
 
 <p>
@@ -504,11 +505,11 @@ name, but you can override it using the <tt>-prefix</tt> option.
 </p>
 
 <p>
-When the<tt> -namespace</tt> option is used, objects in the module
+When the <tt>-namespace</tt> option is used, objects in the module
 are always accessed with the namespace name such as <tt>Foo::bar</tt>.
 </p>
 
-<H2><a name="Tcl_nn11"></a>37.2 Building Tcl/Tk Extensions under Windows 95/NT</H2>
+<H2><a name="Tcl_nn11">41.2 Building Tcl/Tk Extensions under Windows 95/NT</a></H2>
 
 
 <p>
@@ -519,7 +520,7 @@ covers the process of using SWIG with Microsoft Visual C++.
 although the procedure may be similar with other compilers.
 </p>
 
-<H3><a name="Tcl_nn12"></a>37.2.1 Running SWIG from Developer Studio</H3>
+<H3><a name="Tcl_nn12">41.2.1 Running SWIG from Developer Studio</a></H3>
 
 
 <p>
@@ -577,7 +578,7 @@ MSDOS &gt; tclsh80
 %
 </pre></div>
 
-<H3><a name="Tcl_nn13"></a>37.2.2 Using NMAKE</H3>
+<H3><a name="Tcl_nn13">41.2.2 Using NMAKE</a></H3>
 
 
 <p>
@@ -625,11 +626,11 @@ CFLAGS    = /Z7 /Od /c /nologo
 TCL_INCLUDES  = -Id:\tcl8.0a2\generic -Id:\tcl8.0a2\win
 TCLLIB        = d:\tcl8.0a2\win\tcl80.lib
 
-tcl::
-	..\..\swig -tcl -o $(WRAPFILE) $(INTERFACE)
-	$(CC) $(CFLAGS) $(TCL_INCLUDES) $(SRCS) $(WRAPFILE)
-	set LIB=$(TOOLS)\lib
-	$(LINK) $(LOPT) -out:example.dll $(LIBS) $(TCLLIB) example.obj example_wrap.obj
+tcl:
+        ..\..\swig -tcl -o $(WRAPFILE) $(INTERFACE)
+        $(CC) $(CFLAGS) $(TCL_INCLUDES) $(SRCS) $(WRAPFILE)
+        set LIB=$(TOOLS)\lib
+        $(LINK) $(LOPT) -out:example.dll $(LIBS) $(TCLLIB) example.obj example_wrap.obj
 
 </pre></div>
 
@@ -640,7 +641,7 @@ to get you started.  With a little practice, you'll be making lots of
 Tcl extensions.
 </p>
 
-<H2><a name="Tcl_nn14"></a>37.3 A tour of basic C/C++ wrapping</H2>
+<H2><a name="Tcl_nn14">41.3 A tour of basic C/C++ wrapping</a></H2>
 
 
 <p>
@@ -651,7 +652,7 @@ classes.  This section briefly covers the essential aspects of this
 wrapping.
 </p>
 
-<H3><a name="Tcl_nn15"></a>37.3.1 Modules</H3>
+<H3><a name="Tcl_nn15">41.3.1 Modules</a></H3>
 
 
 <p>
@@ -685,7 +686,7 @@ To fix this, supply an extra argument to <tt>load</tt> like this:
 </pre>
 </div>
 
-<H3><a name="Tcl_nn16"></a>37.3.2 Functions</H3>
+<H3><a name="Tcl_nn16">41.3.2 Functions</a></H3>
 
 
 <p>
@@ -710,7 +711,7 @@ like you think it does:
 %
 </pre></div>
 
-<H3><a name="Tcl_nn17"></a>37.3.3 Global variables</H3>
+<H3><a name="Tcl_nn17">41.3.3 Global variables</a></H3>
 
 
 <p>
@@ -790,7 +791,7 @@ extern char *path;      // Read-only (due to %immutable)
 </pre>
 </div>
 
-<H3><a name="Tcl_nn18"></a>37.3.4 Constants and enums</H3>
+<H3><a name="Tcl_nn18">41.3.4 Constants and enums</a></H3>
 
 
 <p>
@@ -836,8 +837,8 @@ access constants in procedure bodies.  For example:
 <div class="code">
 <pre>
 proc blah {} {
-   global FOO
-   bar $FOO
+  global FOO
+  bar $FOO
 }
 </pre>
 </div>
@@ -864,7 +865,7 @@ its actual value or a symbolic identifier name.  For example:
 <div class="code">
 <pre>
 proc blah {} {
-   bar FOO
+  bar FOO
 }
 </pre>
 </div>
@@ -874,7 +875,7 @@ When an identifier name is given, it is used to perform an implicit hash-table l
 conversion.  This allows the <tt>global</tt> statement to be omitted.
 </p>
 
-<H3><a name="Tcl_nn19"></a>37.3.5 Pointers</H3>
+<H3><a name="Tcl_nn19">41.3.5 Pointers</a></H3>
 
 
 <p>
@@ -948,16 +949,16 @@ example:
 %inline %{
 /* C-style cast */
 Bar *FooToBar(Foo *f) {
-   return (Bar *) f;
+  return (Bar *) f;
 }
 
 /* C++-style cast */
 Foo *BarToFoo(Bar *b) {
-   return dynamic_cast&lt;Foo*&gt;(b);
+  return dynamic_cast&lt;Foo*&gt;(b);
 }
 
 Foo *IncrFoo(Foo *f, int i) {
-    return f+i;
+  return f+i;
 }
 %}
 </pre>
@@ -970,7 +971,7 @@ C-style cast may return a bogus result whereas as the C++-style cast will return
 <tt>None</tt> if the conversion can't be performed.
 </p>
 
-<H3><a name="Tcl_nn20"></a>37.3.6 Structures</H3>
+<H3><a name="Tcl_nn20">41.3.6 Structures</a></H3>
 
 
 <p>
@@ -980,7 +981,7 @@ This provides a very natural interface.  For example,
 
 <div class="code"><pre>
 struct Vector {
-	double x,y,z;
+  double x, y, z;
 };
 
 </pre></div>
@@ -1027,12 +1028,12 @@ can also be forced to be read-only using the <tt>%immutable</tt> directive. For 
 <div class="code">
 <pre>
 struct Foo {
-   ...
-   %immutable;
-   int x;        /* Read-only members */
-   char *name;
-   %mutable;
-   ...
+  ...
+  %immutable;
+  int x;        /* Read-only members */
+  char *name;
+  %mutable;
+  ...
 };
 </pre>
 </div>
@@ -1053,7 +1054,7 @@ example, consider this:
 <div class="code">
 <pre>
 struct Bar {
-    int  x[16];
+  int  x[16];
 };
 </pre>
 </div>
@@ -1099,11 +1100,11 @@ pointer.  For example, suppose you have two structures like this:
 <div class="code">
 <pre>
 struct Foo {
-   int a;
+  int a;
 };
 
 struct Bar {
-   Foo f;
+  Foo f;
 };
 </pre>
 </div>
@@ -1252,7 +1253,7 @@ Note: Tcl only destroys the underlying object if it has ownership.  See the
 memory management section that appears shortly.
 </p>
 
-<H3><a name="Tcl_nn21"></a>37.3.7 C++ classes</H3>
+<H3><a name="Tcl_nn21">41.3.7 C++ classes</a></H3>
 
 
 <p>
@@ -1283,7 +1284,7 @@ you can use it in Tcl like this:
 % x insert Lager
 % x get 1
 Stout
-% puts [l cget -length]
+% puts [x cget -length]
 3
 %
 </pre></div>
@@ -1301,9 +1302,8 @@ To illustrate, suppose you have a class like this:
 <pre>
 class Spam {
 public:
-   static void foo();
-   static int bar;
-
+  static void foo();
+  static int bar;
 };
 </pre>
 </div>
@@ -1319,7 +1319,7 @@ In Tcl, the static member is accessed as follows:
 </pre>
 </div>
 
-<H3><a name="Tcl_nn22"></a>37.3.8 C++ inheritance</H3>
+<H3><a name="Tcl_nn22">41.3.8 C++ inheritance</a></H3>
 
 
 <p>
@@ -1368,7 +1368,7 @@ For instance:
 It is safe to use multiple inheritance with SWIG.
 </p>
 
-<H3><a name="Tcl_nn23"></a>37.3.9 Pointers, references, values, and arrays</H3>
+<H3><a name="Tcl_nn23">41.3.9 Pointers, references, values, and arrays</a></H3>
 
 
 <p>
@@ -1422,7 +1422,7 @@ to hold the result and a pointer is returned (Tcl will release this memory
 when the return value is garbage collected).
 </p>
 
-<H3><a name="Tcl_nn24"></a>37.3.10 C++ overloaded functions</H3>
+<H3><a name="Tcl_nn24">41.3.10 C++ overloaded functions</a></H3>
 
 
 <p>
@@ -1456,9 +1456,9 @@ Similarly, if you have a class like this,
 <pre>
 class Foo {
 public:
-    Foo();
-    Foo(const Foo &amp;);
-    ...
+  Foo();
+  Foo(const Foo &amp;);
+  ...
 };
 </pre>
 </div>
@@ -1545,7 +1545,7 @@ first declaration takes precedence.
 Please refer to the "SWIG and C++" chapter for more information about overloading. 
 </p>
 
-<H3><a name="Tcl_nn25"></a>37.3.11 C++ operators</H3>
+<H3><a name="Tcl_nn25">41.3.11 C++ operators</a></H3>
 
 
 <p>
@@ -1647,7 +1647,7 @@ There are ways to make this operator appear as part of the class using the <tt>%
 Keep reading.
 </p>
 
-<H3><a name="Tcl_nn26"></a>37.3.12 C++ namespaces</H3>
+<H3><a name="Tcl_nn26">41.3.12 C++ namespaces</a></H3>
 
 
 <p>
@@ -1661,10 +1661,10 @@ submodules or packages.  For example, if you have a file like this,
 %module example
 
 namespace foo {
-   int fact(int n);
-   struct Vector {
-       double x,y,z;
-   };
+  int fact(int n);
+  struct Vector {
+    double x, y, z;
+  };
 };
 </pre>
 </div>
@@ -1693,11 +1693,11 @@ For example:
 %rename(Bar_spam) Bar::spam;
 
 namespace Foo {
-    int spam();
+  int spam();
 }
 
 namespace Bar {
-    int spam();
+  int spam();
 }
 </pre>
 </div>
@@ -1711,7 +1711,7 @@ utilizes thousands of small deeply nested namespaces each with
 identical symbol names, well, then you get what you deserve.
 </p>
 
-<H3><a name="Tcl_nn27"></a>37.3.13 C++ templates</H3>
+<H3><a name="Tcl_nn27">41.3.13 C++ templates</a></H3>
 
 
 <p>
@@ -1730,16 +1730,16 @@ For example:
 
 template&lt;class T1, class T2&gt;
 struct pair {
-   typedef T1 first_type;
-   typedef T2 second_type;
-   T1 first;
-   T2 second;
-   pair();
-   pair(const T1&amp;, const T2&amp;);
+  typedef T1 first_type;
+  typedef T2 second_type;
+  T1 first;
+  T2 second;
+  pair();
+  pair(const T1&amp;, const T2&amp;);
   ~pair();
 };
 
-%template(pairii) pair&lt;int,int&gt;;
+%template(pairii) pair&lt;int, int&gt;;
 </pre>
 </div>
 
@@ -1763,7 +1763,7 @@ More details can be found in the <a href="SWIGPlus.html#SWIGPlus">SWIG and C++</
 examples will appear later.
 </p>
 
-<H3><a name="Tcl_nn28"></a>37.3.14 C++ Smart Pointers</H3>
+<H3><a name="Tcl_nn28">41.3.14 C++ Smart Pointers</a></H3>
 
 
 <p>
@@ -1775,9 +1775,9 @@ that implements <tt>operator-&gt;()</tt> like this:
 <div class="code">
 <pre>
 template&lt;class T&gt; class SmartPtr {
-   ...
-   T *operator-&gt;();
-   ...
+  ...
+  T *operator-&gt;();
+  ...
 }
 </pre>
 </div>
@@ -1790,8 +1790,8 @@ Then, if you have a class like this,
 <pre>
 class Foo {
 public:
-     int x;
-     int bar();
+  int x;
+  int bar();
 };
 </pre>
 </div>
@@ -1847,7 +1847,7 @@ simply use the <tt>__deref__()</tt> method.  For example:
 </pre>
 </div>
 
-<H2><a name="Tcl_nn29"></a>37.4 Further details on the Tcl class interface</H2>
+<H2><a name="Tcl_nn29">41.4 Further details on the Tcl class interface</a></H2>
 
 
 <p>
@@ -1860,7 +1860,7 @@ of low-level details were omitted.  This section provides a brief overview
 of how the proxy classes work.
 </p>
 
-<H3><a name="Tcl_nn30"></a>37.4.1 Proxy classes</H3>
+<H3><a name="Tcl_nn30">41.4.1 Proxy classes</a></H3>
 
 
 <p>
@@ -1873,9 +1873,9 @@ have a class like this
 <pre>
 class Foo {
 public:
-     int x;
-     int spam(int);
-     ...
+  int x;
+  int spam(int);
+  ...
 </pre>
 </div>
 
@@ -1886,19 +1886,19 @@ then SWIG transforms it into a set of low-level procedural wrappers. For example
 <div class="code">
 <pre>
 Foo *new_Foo() {
-    return new Foo();
+  return new Foo();
 }
 void delete_Foo(Foo *f) {
-    delete f;
+  delete f;
 }
 int Foo_x_get(Foo *f) {
-    return f-&gt;x;
+  return f-&gt;x;
 }
 void Foo_x_set(Foo *f, int value) {
-    f-&gt;x = value;
+  f-&gt;x = value;
 }
 int Foo_spam(Foo *f, int arg1) {
-    return f-&gt;spam(arg1);
+  return f-&gt;spam(arg1);
 }
 </pre>
 </div>
@@ -1925,7 +1925,7 @@ function.   This allows objects to be encapsulated objects that look a lot like 
 as shown in the last section.
 </p>
 
-<H3><a name="Tcl_nn31"></a>37.4.2 Memory management</H3>
+<H3><a name="Tcl_nn31">41.4.2 Memory management</a></H3>
 
 
 <p>
@@ -1945,8 +1945,8 @@ ownership of the result.  For example:
 <pre>
 class Foo {
 public:
-    Foo();
-    Foo bar();
+  Foo();
+  Foo bar();
 };
 </pre>
 </div>
@@ -1975,9 +1975,9 @@ they came from.  Therefore, the ownership is set to zero.  For example:
 <pre>
 class Foo {
 public:
-    ...
-    Foo *spam();
-    ...
+  ...
+  Foo *spam();
+  ...
 };
 </pre>
 </div>
@@ -2011,8 +2011,8 @@ or global variable.  For example, consider this interface:
 %module example
 
 struct Foo {
-    int  value;
-    Foo  *next;
+  int  value;
+  Foo  *next;
 };
 
 Foo *head = 0;
@@ -2064,10 +2064,10 @@ change the ownership of an object.  For instance, consider code like this:
 <div class="code">
 <pre>
 class Node {
-   Object *value;
+  Object *value;
 public:
-   void set_value(Object *v) { value = v; }
-   ...
+  void set_value(Object *v) { value = v; }
+  ...
 };
 </pre>
 </div>
@@ -2113,7 +2113,7 @@ typemaps--an advanced topic discussed later.
 </p>
 
 
-<H2><a name="Tcl_nn32"></a>37.5 Input and output parameters</H2>
+<H2><a name="Tcl_nn32">41.5 Input and output parameters</a></H2>
 
 
 <p>
@@ -2124,7 +2124,7 @@ example:
 <div class="code">
 <pre>
 void add(int x, int y, int *result) {
-   *result = x + y;
+  *result = x + y;
 }
 </pre>
 </div>
@@ -2136,7 +2136,7 @@ or perhaps
 <div class="code">
 <pre>
 int sub(int *x, int *y) {
-   return *x+*y;
+  return *x+*y;
 }
 </pre>
 </div>
@@ -2197,7 +2197,7 @@ If a function mutates one of its parameters like this,
 <div class="code">
 <pre>
 void negate(int *x) {
-   *x = -(*x);
+  *x = -(*x);
 }
 </pre>
 </div>
@@ -2301,7 +2301,7 @@ set c  [lindex $dim 1]
 </pre>
 </div>
 
-<H2><a name="Tcl_nn33"></a>37.6 Exception handling </H2>
+<H2><a name="Tcl_nn33">41.6 Exception handling </a></H2>
 
 
 <p>
@@ -2327,7 +2327,7 @@ class DoubleArray {
     }
     // Destroy an array
     ~DoubleArray() {
-       delete ptr;
+      delete ptr;
     }
     // Return the length of the array
     int   length() {
@@ -2365,7 +2365,7 @@ Tcl extension by specifying the following in an interface file :
     $action                // Gets substituted by actual function call
   }
   catch (RangeError) {
-    Tcl_SetStringObj(tcl_result,"Array index out-of-bounds");
+    Tcl_SetResult(interp, (char *)"Array index out-of-bounds", TCL_STATIC);
     return TCL_ERROR;
   }
 }
@@ -2384,7 +2384,7 @@ exception handler to only apply to specific methods like this:
     $action
   }
   catch (RangeError) {
-    Tcl_SetStringObj(tcl_result,"Array index out-of-bounds");
+    Tcl_SetResult(interp, (char *)"Array index out-of-bounds", TCL_STATIC);
     return TCL_ERROR;
   }
 }
@@ -2394,7 +2394,7 @@ exception handler to only apply to specific methods like this:
     $action
   }
   catch (RangeError) {
-    Tcl_SetStringObj(tcl_result,"Array index out-of-bounds");
+    Tcl_SetResult(interp, (char *)"Array index out-of-bounds", TCL_STATIC);
     return TCL_ERROR;
   }
 }
@@ -2419,7 +2419,7 @@ For example:
     $action
   }
   catch (RangeError) {
-    Tcl_SetStringObj(tcl_result,"Array index out-of-bounds");
+    Tcl_SetResult(interp, (char *)"Array index out-of-bounds", TCL_STATIC);
     return TCL_ERROR;
   }
 }
@@ -2435,7 +2435,7 @@ Since SWIG's exception handling is user-definable, you are not limited to C++ ex
 See the chapter on "<a href="Customization.html#Customization">Customization Features</a>" for more examples.
 </p>
 
-<H2><a name="Tcl_nn34"></a>37.7 Typemaps</H2>
+<H2><a name="Tcl_nn34">41.7 Typemaps</a></H2>
 
 
 <p>
@@ -2452,7 +2452,7 @@ Typemaps are only used if you want to change some aspect of the primitive
 C-Tcl interface.
 </p>
 
-<H3><a name="Tcl_nn35"></a>37.7.1 What is a typemap?</H3>
+<H3><a name="Tcl_nn35">41.7.1 What is a typemap?</a></H3>
 
 
 <p>
@@ -2465,8 +2465,9 @@ you might define a typemap like this:
 %module example
 
 %typemap(in) int {
-        if (Tcl_GetIntFromObj(interp,$input,&amp;$1) == TCL_ERROR) return TCL_ERROR;
-	printf("Received an integer : %d\n",$1);
+  if (Tcl_GetIntFromObj(interp, $input, &amp;$1) == TCL_ERROR)
+    return TCL_ERROR;
+  printf("Received an integer : %d\n", $1);
 }
 %inline %{
 extern int fact(int n);
@@ -2503,8 +2504,9 @@ You can refine this by supplying an optional parameter name.  For example:
 %module example
 
 %typemap(in) int n {
-        if (Tcl_GetIntFromObj(interp,$input,&amp;$1) == TCL_ERROR) return TCL_ERROR;
-	printf("n = %d\n",$1);
+  if (Tcl_GetIntFromObj(interp, $input, &amp;$1) == TCL_ERROR)
+    return TCL_ERROR;
+  printf("n = %d\n", $1);
 }
 %inline %{
 extern int fact(int n);
@@ -2526,8 +2528,9 @@ the typemap system follows <tt>typedef</tt> declarations.  For example:
 <div class="code">
 <pre>
 %typemap(in) int n {
-        if (Tcl_GetIntFromObj(interp,$input,&amp;$1) == TCL_ERROR) return TCL_ERROR;
-	printf("n = %d\n",$1);
+  if (Tcl_GetIntFromObj(interp, $input, &amp;$1) == TCL_ERROR)
+    return TCL_ERROR;
+  printf("n = %d\n", $1);
 }
 %inline %{
 typedef int Integer;
@@ -2549,7 +2552,7 @@ Typemaps can also be defined for groups of consecutive arguments.  For example:
 <div class="code">
 <pre>
 %typemap(in) (char *str, int len) {
-    $1 = Tcl_GetStringFromObj($input,&amp;$2);
+    $1 = Tcl_GetStringFromObj($input, &amp;$2);
 };
 
 int count(char c, char *str, int len);
@@ -2569,7 +2572,7 @@ parameter is omitted):
 </pre>
 </div>
 
-<H3><a name="Tcl_nn36"></a>37.7.2 Tcl typemaps</H3>
+<H3><a name="Tcl_nn36">41.7.2 Tcl typemaps</a></H3>
 
 
 <p>
@@ -2582,7 +2585,7 @@ like this:
 <div class="code">
 <pre>
 %typemap(out) int {
-    Tcl_SetObjResult(interp,Tcl_NewIntObj($1));
+  Tcl_SetObjResult(interp, Tcl_NewIntObj($1));
 }
 </pre>
 </div>
@@ -2707,7 +2710,7 @@ Initialize an argument to a value before any conversions occur.
 Examples of these methods will appear shortly.
 </p>
 
-<H3><a name="Tcl_nn37"></a>37.7.3 Typemap variables</H3>
+<H3><a name="Tcl_nn37">41.7.3 Typemap variables</a></H3>
 
 
 <p>
@@ -2778,7 +2781,7 @@ properly assigned.
 The Tcl name of the wrapper function being created.
 </div>
 
-<H3><a name="Tcl_nn38"></a>37.7.4 Converting  a Tcl list to a char ** </H3>
+<H3><a name="Tcl_nn38">41.7.4 Converting  a Tcl list to a char ** </a></H3>
 
 
 <p>
@@ -2793,36 +2796,36 @@ used as a <tt>char **</tt> object.
 
 // This tells SWIG to treat char ** as a special case
 %typemap(in) char ** {
-     Tcl_Obj **listobjv;
-     int       nitems;
-     int       i;
-     if (Tcl_ListObjGetElements(interp, $input, &amp;nitems, &amp;listobjv) == TCL_ERROR) {
-        return TCL_ERROR;
-     }
-     $1 = (char **) malloc((nitems+1)*sizeof(char *));
-     for (i = 0; i &lt; nitems; i++) {
-        $1[i] = Tcl_GetStringFromObj(listobjv[i],0);
-     }
-     $1[i] = 0;
+  Tcl_Obj **listobjv;
+  int       nitems;
+  int       i;
+  if (Tcl_ListObjGetElements(interp, $input, &amp;nitems, &amp;listobjv) == TCL_ERROR) {
+    return TCL_ERROR;
+  }
+  $1 = (char **) malloc((nitems+1)*sizeof(char *));
+  for (i = 0; i &lt; nitems; i++) {
+    $1[i] = Tcl_GetStringFromObj(listobjv[i], 0);
+  }
+  $1[i] = 0;
 }
 
 // This gives SWIG some cleanup code that will get called after the function call
 %typemap(freearg) char ** {
-     if ($1) {
-        free($1);
-     }
+  if ($1) {
+    free($1);
+  }
 }
 
 // Now a test functions
 %inline %{
-int print_args(char **argv) {
+  int print_args(char **argv) {
     int i = 0;
     while (argv[i]) {
-         printf("argv[%d] = %s\n", i,argv[i]);
-         i++;
+      printf("argv[%d] = %s\n", i, argv[i]);
+      i++;
     }
     return i;
-}
+  }
 %}
 %include "tclsh.i"
 
@@ -2840,7 +2843,7 @@ argv[2] = Larry
 3
 </pre></div>
 
-<H3><a name="Tcl_nn39"></a>37.7.5 Returning values in arguments</H3>
+<H3><a name="Tcl_nn39">41.7.5 Returning values in arguments</a></H3>
 
 
 <p>
@@ -2851,21 +2854,21 @@ function argument. For example :
 <div class="code"><pre>
 // A typemap defining how to return an argument by appending it to the result
 %typemap(argout) double *outvalue {
-     Tcl_Obj *o = Tcl_NewDoubleObj($1);
-     Tcl_ListObjAppendElement(interp,$result,o);
+  Tcl_Obj *o = Tcl_NewDoubleObj($1);
+  Tcl_ListObjAppendElement(interp, $result, o);
 }
 
 // A typemap telling SWIG to ignore an argument for input
 // However, we still need to pass a pointer to the C function
-%typemap(in,numinputs=0) double *outvalue (double temp) {
-     $1 = &amp;temp;
+%typemap(in, numinputs=0) double *outvalue (double temp) {
+  $1 = &amp;temp;
 }
 
 // Now a function returning two values
 int mypow(double a, double b, double *outvalue) {
-        if ((a &lt; 0) || (b &lt; 0)) return -1;
-        *outvalue = pow(a,b);
-        return 0;
+  if ((a &lt; 0) || (b &lt; 0)) return -1;
+  *outvalue = pow(a, b);
+  return 0;
 };
 </pre></div>
 
@@ -2882,7 +2885,7 @@ result, a Tcl function using these typemaps will work like this :
 %
 </pre></div>
 
-<H3><a name="Tcl_nn40"></a>37.7.6 Useful functions</H3>
+<H3><a name="Tcl_nn40">41.7.6 Useful functions</a></H3>
 
 
 <p>
@@ -2921,7 +2924,6 @@ int       Tcl_GetDoubleFromObj(Tcl_Interp *, Tcl_Obj *o, double *dp);
 <div class="code">
 <pre>
 Tcl_Obj  *Tcl_NewStringObj(char *str, int len);
-void      Tcl_SetStringObj(Tcl_Obj *obj, char *str, int len);
 char     *Tcl_GetStringFromObj(Tcl_Obj *obj, int *len);
 void      Tcl_AppendToObj(Tcl_Obj *obj, char *str, int len);
 </pre>
@@ -2959,7 +2961,7 @@ int      Tcl_IsShared(Tcl_Obj *obj);
 </pre>
 </div>
 
-<H3><a name="Tcl_nn41"></a>37.7.7 Standard  typemaps</H3>
+<H3><a name="Tcl_nn41">41.7.7 Standard  typemaps</a></H3>
 
 
 <p>
@@ -2976,10 +2978,10 @@ work)
 <div class="code">
 <pre>
 %typemap(in) int, short, long {
-   int temp;
-   if (Tcl_GetIntFromObj(interp, $input, &amp;temp) == TCL_ERROR)
-      return TCL_ERROR;
-   $1 = ($1_ltype) temp;
+  int temp;
+  if (Tcl_GetIntFromObj(interp, $input, &amp;temp) == TCL_ERROR)
+    return TCL_ERROR;
+  $1 = ($1_ltype) temp;
 }
 </pre>
 </div>
@@ -2989,7 +2991,7 @@ work)
 <div class="code">
 <pre>
 %typemap(out) int, short, long {
-   Tcl_SetIntObj($result,(int) $1);
+  Tcl_SetIntObj($result, (int) $1);
 }
 </pre>
 </div>
@@ -3001,10 +3003,10 @@ work)
 <div class="code">
 <pre>
 %typemap(in) float, double {
-   double temp;
-   if (Tcl_GetDoubleFromObj(interp, $input, &amp;temp) == TCL_ERROR)
-       return TCL_ERROR;
-   $1 = ($1_ltype) temp;
+  double temp;
+  if (Tcl_GetDoubleFromObj(interp, $input, &amp;temp) == TCL_ERROR)
+    return TCL_ERROR;
+  $1 = ($1_ltype) temp;
 }
 </pre>
 </div>
@@ -3014,7 +3016,7 @@ work)
 <div class="code">
 <pre>
 %typemap(out) float, double {
-   Tcl_SetDoubleObj($result, $1);
+  Tcl_SetDoubleObj($result, $1);
 }
 </pre>
 </div>
@@ -3026,9 +3028,8 @@ work)
 <div class="code">
 <pre>
 %typemap(in) char * {
-   int len;
-   $1 = Tcl_GetStringFromObj(interp, &amp;len);
-   }
+  int len;
+  $1 = Tcl_GetStringFromObj(interp, &amp;len);
 }
 </pre>
 </div>
@@ -3037,13 +3038,14 @@ work)
 
 <div class="code">
 <pre>
-%typemap(out) char * {
-   Tcl_SetStringObj($result,$1);
+%typemap(out, noblock=1, fragment="SWIG_FromCharPtr") char *, const char * {
+  Tcl_SetObjResult(interp, SWIG_FromCharPtr((const char *)$1));
 }
+
 </pre>
 </div>
 
-<H3><a name="Tcl_nn42"></a>37.7.8 Pointer handling</H3>
+<H3><a name="Tcl_nn42">41.7.8 Pointer handling</a></H3>
 
 
 <p>
@@ -3086,7 +3088,9 @@ is usually accessed as follows:
 <div class="indent">
 <pre>
 Foo *f;
-if (SWIG_ConvertPtr($input, (void **) &amp;f, SWIGTYPE_p_Foo, 0) == -1) return NULL;
+if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;f, SWIGTYPE_p_Foo, 0))) {
+  SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo");
+}
 
 Tcl_Obj *;
 obj = SWIG_NewPointerObj(f, SWIGTYPE_p_Foo, 0);
@@ -3101,7 +3105,9 @@ variable <tt>$1_descriptor</tt>.  For example:
 <div class="indent">
 <pre>
 %typemap(in) Foo * {
-   if ((SWIG_ConvertPtr($input,(void **) &amp;$1, $1_descriptor,0)) == -1) return NULL;
+  if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;$1, $1_descriptor, 0))) {
+    SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo");
+  }
 }
 </pre>
 </div>
@@ -3114,12 +3120,14 @@ For example:
 <div class="indent">
 <pre>
 %typemap(in) Foo * {
-   if ((SWIG_ConvertPtr($input,(void **) &amp;$1, $descriptor(Foo *), 0)) == -1) return NULL;
+  if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;$1, $descriptor(Foo *), 0))) {
+    SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo");
+  }
 }
 </pre>
 </div>
 
-<H2><a name="Tcl_nn43"></a>37.8 Turning a SWIG module into a Tcl Package.</H2>
+<H2><a name="Tcl_nn43">41.8 Turning a SWIG module into a Tcl Package.</a></H2>
 
 
 <p>
@@ -3153,8 +3161,8 @@ subdirectory which has the same name as the package. For example :
 
 <div class="code"><pre>
 ./example/
-	   pkgIndex.tcl           # The file created by pkg_mkIndex
-	   example.so             # The SWIG generated module
+           pkgIndex.tcl           # The file created by pkg_mkIndex
+           example.so             # The SWIG generated module
 </pre></div>
 
 <p>
@@ -3191,7 +3199,7 @@ As a final note, most SWIG examples do not yet use the
 to use the <tt>load</tt> command instead.
 </p>
 
-<H2><a name="Tcl_nn44"></a>37.9 Building new kinds of Tcl interfaces (in Tcl)</H2>
+<H2><a name="Tcl_nn44">41.9 Building new kinds of Tcl interfaces (in Tcl)</a></H2>
 
 
 <p>
@@ -3207,28 +3215,28 @@ helper functions to access arrays :
 
 %inline %{
 double *new_double(int size) {
-        return (double *) malloc(size*sizeof(double));
+  return (double *) malloc(size*sizeof(double));
 }
 void delete_double(double *a) {
-        free(a);
+  free(a);
 }
 double get_double(double *a, int index) {
-        return a[index];
+  return a[index];
 }
 void set_double(double *a, int index, double val) {
-        a[index] = val;
+  a[index] = val;
 }
 int *new_int(int size) {
-        return (int *) malloc(size*sizeof(int));
+  return (int *) malloc(size*sizeof(int));
 }
 void delete_int(int *a) {
-        free(a);
+  free(a);
 }
 int get_int(int *a, int index) {
-        return a[index];
+  return a[index];
 }
 int set_int(int *a, int index, int val) {
-        a[index] = val;
+  a[index] = val;
 }
 %}
 
@@ -3264,14 +3272,14 @@ Our script allows easy array access as follows :
 <div class="code"><pre>
 set a [Array double 100]                   ;# Create a double [100]
 for {set i 0} {$i &lt; 100} {incr i 1} {      ;# Clear the array
-	$a set $i 0.0
+        $a set $i 0.0
 }
 $a set 3 3.1455                            ;# Set an individual element
 set b [$a get 10]                          ;# Retrieve an element
 
 set ia [Array int 50]                      ;# Create an int[50]
 for {set i 0} {$i &lt; 50} {incr i 1} {       ;# Clear it
-	$ia set $i 0
+        $ia set $i 0
 }
 $ia set 3 7                                ;# Set an individual element
 set ib [$ia get 10]                        ;# Get an individual element
@@ -3290,7 +3298,7 @@ danger of blowing something up (although it is easily accomplished
 with an out of bounds array access).
 </p>
 
-<H3><a name="Tcl_nn45"></a>37.9.1 Proxy classes</H3>
+<H3><a name="Tcl_nn45">41.9.1 Proxy classes</a></H3>
 
 
 <p>
@@ -3411,7 +3419,7 @@ short, but clever Tcl script can be combined with SWIG to do many
 interesting things.
 </p>
 
-<H2><a name="Tcl_nn46"></a>37.10 Tcl/Tk Stubs</H2>
+<H2><a name="Tcl_nn46">41.10 Tcl/Tk Stubs</a></H2>
 
 
 <p>

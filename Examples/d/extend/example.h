@@ -14,7 +14,7 @@ public:
 	virtual std::string getTitle() { return getPosition() + " " + getName(); }
 	virtual std::string getName() { return name; }
 	virtual std::string getPosition() const { return "Employee"; }
-	virtual ~Employee() { printf("~Employee() @ %p\n", this); }
+	virtual ~Employee() { printf("~Employee() @ %p\n", (void *)this); }
 };
 
 

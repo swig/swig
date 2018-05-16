@@ -15,11 +15,11 @@
 
 #include <ctype.h>
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 Ocaml Options (available with -ocaml)\n\
      -oldvarnames    - Old intermediary method names for variable wrappers\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
-     -suffix <name>  - Change .cxx to something else\n\
+     -suffix <name>  - Deprecated alias for general option -cppext\n\
      -where          - Emit library location\n\
 \n";
 
@@ -29,7 +29,7 @@ static int const_enum = 0;
 static int static_member_function = 0;
 static int generate_sizeof = 0;
 static String *prefix = 0;
-static char *ocaml_path = (char *) "ocaml";
+static const char *ocaml_path = "ocaml";
 static bool old_variable_names = false;
 static String *classname = 0;
 static String *module = 0;
@@ -114,6 +114,7 @@ public:
 	  }
 	} else if (strcmp(argv[i], "-suffix") == 0) {
 	  if (argv[i + 1]) {
+	    Printf(stderr, "swig: warning: -suffix option deprecated.  SWIG 3.0.4 and later provide a -cppext option which should be used instead.\n");
 	    SWIG_config_cppext(argv[i + 1]);
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
@@ -268,8 +269,8 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIGOCAML\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGOCAML\n#define SWIGOCAML\n#endif\n\n");
+
     Printf(f_runtime, "#define SWIG_MODULE \"%s\"\n", module);
     /* Module name */
     Printf(f_mlbody, "let module_name = \"%s\"\n", module);
@@ -324,6 +325,7 @@ public:
 
     if (directorsEnabled()) {
       // Insert director runtime into the f_runtime file (make it occur before %header section)
+      Swig_insert_file("director_common.swg", f_runtime);
       Swig_insert_file("director.swg", f_runtime);
     }
 
@@ -618,9 +620,9 @@ public:
     }
 
     /* if the object is a director, and the method call originated from its
-     * underlying python object, resolve the call by going up the c++ 
-     * inheritance chain.  otherwise try to resolve the method in python.  
-     * without this check an infinite loop is set up between the director and 
+     * underlying ocaml object, resolve the call by going up the c++ 
+     * inheritance chain.  otherwise try to resolve the method in ocaml.
+     * without this check an infinite loop is set up between the director and
      * shadow class method calls.
      */
 
@@ -674,6 +676,14 @@ public:
 	Printv(f->code, tm, "\n", NIL);
       }
     }
+
+    /* See if there is any return cleanup code */
+    if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
+      Printf(f->code, "%s\n", tm);
+      Delete(tm);
+    }
+
     // Free any memory allocated by the function being wrapped..
 
     if ((tm = Swig_typemap_lookup("swig_result", n, Swig_cresult_name(), 0))) {
@@ -988,7 +998,7 @@ public:
       find_marker += strlen("(*Stream:");
 
       if (next) {
-	int num_chars = next - find_marker;
+	int num_chars = (int)(next - find_marker);
 	String *stream_name = NewString(find_marker);
 	Delslice(stream_name, num_chars, Len(stream_name));
 	File *fout = Swig_filebyname(stream_name);
@@ -999,7 +1009,7 @@ public:
 	  if (!following)
 	    following = next + strlen(next);
 	  String *chunk = NewString(next);
-	  Delslice(chunk, following - next, Len(chunk));
+	  Delslice(chunk, (int)(following - next), Len(chunk));
 	  Printv(fout, chunk, NIL);
 	}
       }
@@ -1285,6 +1295,9 @@ public:
    * typedef enum and enum are handled.  I need to produce consistent names,
    * which means looking up and registering by typedef and enum name. */
   int enumDeclaration(Node *n) {
+    if (getCurrentClass() && (cplus_mode != PUBLIC))
+      return SWIG_NOWRAP;
+
     String *name = Getattr(n, "name");
     if (name) {
       String *oname = NewString(name);
@@ -1350,9 +1363,6 @@ public:
 
   /*
    * Modified polymorphism code for Ocaml language module.
-   * Original:
-   * C++/Python polymorphism demo code, copyright (C) 2002 Mark Rose 
-   * <mrose@stm.lbl.gov>
    *
    * TODO
    *
@@ -1406,12 +1416,12 @@ public:
     String *pclassname = NewStringf("SwigDirector_%s", classname);
     String *qualified_name = NewStringf("%s::%s", pclassname, name);
     SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-    target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
     Printf(w->def, "%s {", target);
     Delete(qualified_name);
     Delete(target);
     /* header declaration */
-    target = Swig_method_decl(rtype, decl, name, l, 0, 1);
+    target = Swig_method_decl(rtype, decl, name, l, 1);
     Printf(declaration, "    virtual %s;", target);
     Delete(target);
 
@@ -1419,9 +1429,19 @@ public:
      * if the return value is a reference or const reference, a specialized typemap must
      * handle it, including declaration of c_result ($result).
      */
-    if (!is_void) {
-      if (!(ignored_method && !pure_virtual)) {
-	Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), NIL);
+    if (!is_void && (!ignored_method || pure_virtual)) {
+      if (!SwigType_isclass(returntype)) {
+	if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
+	  String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
+	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
+	  Delete(construct_result);
+	} else {
+	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
+	}
+      } else {
+	String *cres = SwigType_lstr(returntype, "c_result");
+	Printf(w->code, "%s;\n", cres);
+	Delete(cres);
       }
     }
 
@@ -1443,7 +1463,7 @@ public:
       Swig_director_parms_fixup(l);
 
       Swig_typemap_attach_parms("in", l, 0);
-      Swig_typemap_attach_parms("directorin", l, 0);
+      Swig_typemap_attach_parms("directorin", l, w);
       Swig_typemap_attach_parms("directorargout", l, w);
 
       Parm *p;
@@ -1503,7 +1523,7 @@ public:
 	    /* if necessary, cast away const since Python doesn't support it! */
 	    if (SwigType_isconst(nptype)) {
 	      nonconst = NewStringf("nc_tmp_%s", pname);
-	      String *nonconst_i = NewStringf("= const_cast<%s>(%s)", SwigType_lstr(ptype, 0), ppname);
+	      String *nonconst_i = NewStringf("= const_cast< %s >(%s)", SwigType_lstr(ptype, 0), ppname);
 	      Wrapper_add_localv(w, nonconst, SwigType_lstr(ptype, 0), nonconst, nonconst_i, NIL);
 	      Delete(nonconst_i);
 	      Swig_warning(WARN_LANG_DISCARD_CONST, input_file, line_number,
@@ -1582,8 +1602,6 @@ public:
 
       String *cleanup = NewString("");
       String *outarg = NewString("");
-
-      idx = 0;
 
       tm = Swig_typemap_lookup("directorout", n, "c_result", w);
       if (tm != 0) {
@@ -1698,7 +1716,7 @@ public:
 	Wrapper *w = NewWrapper();
 	String *call;
 	String *basetype = Getattr(parent, "classtype");
-	String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
+	String *target = Swig_method_decl(0, decl, classname, parms, 0);
 	call = Swig_csuperclass_call(0, basetype, superparms);
 	Printf(w->def, "%s::%s: %s, Swig::Director(self) { }", classname, target, call);
 	Delete(target);
@@ -1709,7 +1727,7 @@ public:
 
       /* constructor header */
       {
-	String *target = Swig_method_decl(0, decl, classname, parms, 0, 1);
+	String *target = Swig_method_decl(0, decl, classname, parms, 1);
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }
@@ -1742,7 +1760,6 @@ public:
     p = NewParm(type, NewString("self"), n);
     q = Copy(p);
     set_nextSibling(p, parms);
-    parms = p;
 
     {
       Wrapper *w = NewWrapper();

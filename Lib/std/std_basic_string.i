@@ -3,10 +3,7 @@
 %include <std_alloc.i>
 %include <std_char_traits.i>
 
-
-%{
-#include <string>
-%}
+%fragment("<string>");
 
 namespace std
 {
@@ -203,7 +200,7 @@ namespace std {
 
 #ifdef %swig_basic_string
     // Add swig/language extra methods
-    %swig_basic_string(std::basic_string<_CharT, _Traits, _Alloc >);
+    %swig_basic_string(std::basic_string< _CharT, _Traits, _Alloc >);
 #endif
 
 #ifdef SWIG_EXPORT_ITERATOR_METHODS
@@ -241,19 +238,19 @@ namespace std {
     %newobject __radd__;
     %extend {
 
-      std::basic_string<_CharT,_Traits,_Alloc >* __add__(const basic_string& v) {
-	std::basic_string<_CharT,_Traits,_Alloc >* res = new std::basic_string<_CharT,_Traits,_Alloc >(*self);
+      std::basic_string< _CharT,_Traits,_Alloc >* __add__(const basic_string& v) {
+	std::basic_string< _CharT,_Traits,_Alloc >* res = new std::basic_string< _CharT,_Traits,_Alloc >(*self);
 	*res += v;      
 	return res;
       }
       
-      std::basic_string<_CharT,_Traits,_Alloc >* __radd__(const basic_string& v) {
-	std::basic_string<_CharT,_Traits,_Alloc >* res = new std::basic_string<_CharT,_Traits,_Alloc >(v);
+      std::basic_string< _CharT,_Traits,_Alloc >* __radd__(const basic_string& v) {
+	std::basic_string< _CharT,_Traits,_Alloc >* res = new std::basic_string< _CharT,_Traits,_Alloc >(v);
 	*res += *self;      
 	return res;
       }
       
-      std::basic_string<_CharT,_Traits,_Alloc > __str__() {
+      std::basic_string< _CharT,_Traits,_Alloc > __str__() {
 	return *self;
       }
 

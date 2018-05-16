@@ -12,9 +12,11 @@
   size_type count(const key_type& x) const;
 
 #ifdef SWIG_EXPORT_ITERATOR_METHODS
-//  iterator insert(iterator position, const value_type& x);
-  void erase(iterator position);
-  void erase(iterator first, iterator last);
+%extend {
+  // %extend wrapper used for differing definitions of these methods introduced in C++11
+  void erase(iterator position) { $self->erase(position); }
+  void erase(iterator first, iterator last) { $self->erase(first, last); }
+}
 
   iterator find(const key_type& x);
   iterator lower_bound(const key_type& x);
@@ -55,23 +57,23 @@
 
 %{
 #include <map>
-#include <algorithm>
-#include <stdexcept>
 %}
+%fragment("<algorithm>");
+%fragment("<stdexcept>");
 
 // exported class
 
 namespace std {
 
   template<class _Key, class _Tp, class _Compare = std::less<_Key >,
-	   class _Alloc = allocator<std::pair<const _Key, _Tp > > >
+	   class _Alloc = allocator<std::pair< const _Key, _Tp > > >
   class map {
   public:
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
     typedef _Key key_type;
     typedef _Tp mapped_type;
-    typedef std::pair<const _Key, _Tp> value_type;
+    typedef std::pair< const _Key, _Tp > value_type;
 
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
@@ -96,11 +98,11 @@ namespace std {
       }
     }
 
-    %fragment(SWIG_Traits_frag(std::map<_Key, _Tp, _Compare, _Alloc >), "header",
-	      fragment=SWIG_Traits_frag(std::pair<_Key, _Tp >),
+    %fragment(SWIG_Traits_frag(std::map< _Key, _Tp, _Compare, _Alloc >), "header",
+	      fragment=SWIG_Traits_frag(std::pair< _Key, _Tp >),
 	      fragment="StdMapTraits") {
       namespace swig {
-	template <>  struct traits<std::map<_Key, _Tp, _Compare, _Alloc > > {
+	template <>  struct traits<std::map< _Key, _Tp, _Compare, _Alloc > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
 	    return "std::map<" #_Key "," #_Tp "," #_Compare "," #_Alloc " >";
@@ -109,13 +111,13 @@ namespace std {
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_MAP, std::map<_Key, _Tp, _Compare, _Alloc >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_MAP, std::map< _Key, _Tp, _Compare, _Alloc >);
 
     map( const _Compare& );
 
 #ifdef %swig_map_methods
     // Add swig/language extra methods
-    %swig_map_methods(std::map<_Key, _Tp, _Compare, _Alloc >);
+    %swig_map_methods(std::map< _Key, _Tp, _Compare, _Alloc >);
 #endif
   
     %std_map_methods(map);

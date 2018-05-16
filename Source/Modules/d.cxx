@@ -472,8 +472,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIGD\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGD\n#define SWIGD\n#endif\n\n");
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
@@ -508,6 +507,7 @@ public:
 
     if (directorsEnabled()) {
       // Insert director runtime into the f_runtime file (before %header section).
+      Swig_insert_file("director_common.swg", f_runtime);
       Swig_insert_file("director.swg", f_runtime);
     }
 
@@ -568,8 +568,7 @@ public:
 	writeTypeWrapperClass(swig_type.key, swig_type.item);
       }
 
-      // Add the proxy functions (and classes, if they are not written to a
-      // seperate file).
+      // Add the proxy functions (and classes, if they are not written to a separate file).
       replaceModuleVariables(proxy_dmodule_code);
       Printv(proxy_d_file, proxy_dmodule_code, NIL);
 
@@ -718,9 +717,20 @@ public:
    * D::insertDirective()
    * --------------------------------------------------------------------------- */
   virtual int insertDirective(Node *n) {
+    int ret = SWIG_OK;
     String *code = Getattr(n, "code");
+    String *section = Getattr(n, "section");
     replaceModuleVariables(code);
-    return Language::insertDirective(n);
+
+    if (!ImportMode && (Cmp(section, "proxycode") == 0)) {
+      if (proxy_class_body_code) {
+	Swig_typemap_replace_embedded_typemap(code, n);
+	Printv(proxy_class_body_code, code, NIL);
+      }
+    } else {
+      ret = Language::insertDirective(n);
+    }
+    return ret;
   }
 
   /* ---------------------------------------------------------------------------
@@ -804,23 +814,23 @@ public:
     // Emit each enum item.
     Language::enumDeclaration(n);
 
-    if (!GetFlag(n, "nonempty")) {
-      // Do not wrap empty enums; the resulting D code would be illegal.
-      Delete(proxy_enum_code);
-      return SWIG_NOWRAP;
-    }
-
-    // Finish the enum.
-    if (typemap_lookup_type) {
-      Printv(proxy_enum_code,
-	lookupCodeTypemap(n, "dcode", typemap_lookup_type, WARN_NONE), // Extra D code
-	"\n}\n", NIL);
+    if (GetFlag(n, "nonempty")) {
+      // Finish the enum.
+      if (typemap_lookup_type) {
+	Printv(proxy_enum_code,
+	  lookupCodeTypemap(n, "dcode", typemap_lookup_type, WARN_NONE), // Extra D code
+	  "\n}\n", NIL);
+      } else {
+	// Handle anonymous enums.
+	Printv(proxy_enum_code, "\n}\n", NIL);
+      }
+      Replaceall(proxy_enum_code, "$dclassname", symname);
     } else {
-      // Handle anonymous enums.
-      Printv(proxy_enum_code, "\n}\n", NIL);
+      // D enum declarations must have at least one member to be legal, so emit
+      // an alias to int instead (their ctype/imtype is always int).
+      Delete(proxy_enum_code);
+      proxy_enum_code = NewStringf("\nalias int %s;\n", symname);
     }
-
-    Replaceall(proxy_enum_code, "$dclassname", symname);
 
     const String* imports =
       lookupCodeTypemap(n, "dimports", typemap_lookup_type, WARN_NONE);
@@ -911,7 +921,7 @@ public:
       const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
       Setattr(n, "enumvalue", val);
     } else if (swigtype == T_CHAR) {
-      String *val = NewStringf("'%s'", Getattr(n, "enumvalue"));
+      String *val = NewStringf("'%(escape)s'", Getattr(n, "enumvalue"));
       Setattr(n, "enumvalue", val);
       Delete(val);
     }
@@ -1288,7 +1298,12 @@ public:
   virtual int destructorHandler(Node *n) {
     Language::destructorHandler(n);
     String *symname = Getattr(n, "sym:name");
+
     Printv(destructor_call, im_dmodule_fq_name, ".", Swig_name_destroy(getNSpace(),symname), "(cast(void*)swigCPtr)", NIL);
+    const String *methodmods = Getattr(n, "feature:d:methodmodifiers");
+    if (methodmods)
+      Setattr(getCurrentClass(), "destructmethodmodifiers", methodmods);
+
     return SWIG_OK;
   }
 
@@ -1399,7 +1414,7 @@ public:
       // generates a getter function (which is the same as a read only property
       // in D) which retrieves the value via by calling the C wrapper.
       // Note that this is only called for global constants, static member
-      // constants are already handeled in staticmemberfunctionHandler().
+      // constants are already handled in staticmemberfunctionHandler().
 
       Swig_save("constantWrapper", n, "value", NIL);
       Swig_save("constantWrapper", n, "tmap:ctype:out", "tmap:imtype:out", "tmap:dtype:out", "tmap:out:null", "tmap:imtype:outattributes", "tmap:dtype:outattributes", NIL);
@@ -1424,6 +1439,7 @@ public:
 
     String *constants_code = NewString("");
     SwigType *t = Getattr(n, "type");
+    SwigType *valuetype = Getattr(n, "valuetype");
     ParmList *l = Getattr(n, "parms");
 
     // Attach the non-standard typemaps to the parameter list.
@@ -1471,16 +1487,21 @@ public:
       Printf(constants_code, "%s;\n", override_value);
     } else {
       // Just take the value from the C definition and hope it compiles in D.
-      String* value = Getattr(n, "wrappedasconstant") ?
-	Getattr(n, "staticmembervariableHandler:value") : Getattr(n, "value");
-
-      // Add the stripped quotes back in.
-      if (SwigType_type(t) == T_STRING) {
-	Printf(constants_code, "\"%s\";\n", value);
-      } else if (SwigType_type(t) == T_CHAR) {
-	Printf(constants_code, "\'%s\';\n", value);
+      if (Getattr(n, "wrappedasconstant")) {
+	if (SwigType_type(valuetype) == T_CHAR)
+          Printf(constants_code, "\'%(escape)s\';\n", Getattr(n, "staticmembervariableHandler:value"));
+	else
+          Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
       } else {
-	Printf(constants_code, "%s;\n", value);
+	// Add the stripped quotes back in.
+	String* value = Getattr(n, "value");
+	if (SwigType_type(t) == T_STRING) {
+	  Printf(constants_code, "\"%s\";\n", value);
+	} else if (SwigType_type(t) == T_CHAR) {
+	  Printf(constants_code, "\'%s\';\n", value);
+	} else {
+	  Printf(constants_code, "%s;\n", value);
+	}
       }
     }
 
@@ -1702,20 +1723,9 @@ public:
     String *null_attribute = 0;
     // Now write code to make the function call
     if (!native_function_flag) {
-      if (Cmp(nodeType(n), "constant") == 0) {
-	// Wrapping a constant hack
-	Swig_save("functionWrapper", n, "wrap:action", NIL);
-
-	// below based on Swig_VargetToFunction()
-	SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
-	Setattr(n, "wrap:action", NewStringf("%s = (%s) %s;", Swig_cresult_name(), SwigType_lstr(ty, 0), Getattr(n, "value")));
-      }
 
       Swig_director_emit_dynamic_cast(n, f);
       String *actioncode = emit_action(n);
-
-      if (Cmp(nodeType(n), "constant") == 0)
-	Swig_restore(n);
 
       /* Return value if necessary  */
       if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
@@ -1970,7 +1980,7 @@ public:
 
     qualified_return = SwigType_rcaststr(returntype, "c_result");
 
-    if (!is_void && !ignored_method) {
+    if (!is_void && (!ignored_method || pure_virtual)) {
       if (!SwigType_isclass(returntype)) {
 	if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
 	  String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
@@ -1990,15 +2000,17 @@ public:
 	    /* If returning a reference, initialize the pointer to a sane
 	       default - if a D exception occurs, then the pointer returns
 	       something other than a NULL-initialized reference. */
-	    String *non_ref_type = Copy(returntype);
+	    SwigType *noref_type = SwigType_del_reference(Copy(returntype));
+	    String *noref_ltype = SwigType_lstr(noref_type, 0);
+	    String *return_ltype = SwigType_lstr(returntype, 0);
 
-	    /* Remove reference and const qualifiers */
-	    Replaceall(non_ref_type, "r.", "");
-	    Replaceall(non_ref_type, "q(const).", "");
-	    Wrapper_add_localv(w, "result_default", "static", SwigType_str(non_ref_type, "result_default"), "=", SwigType_str(non_ref_type, "()"), NIL);
-	    Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= &result_default", NIL);
-
-	    Delete(non_ref_type);
+	    Wrapper_add_localv(w, "result_default", "static", noref_ltype, "result_default", NIL);
+	    Wrapper_add_localv(w, "c_result", return_ltype, "c_result", NIL);
+	    Printf(w->code, "result_default = SwigValueInit< %s >();\n", noref_ltype);
+	    Printf(w->code, "c_result = &result_default;\n");
+	    Delete(return_ltype);
+	    Delete(noref_ltype);
+	    Delete(noref_type);
 	  }
 
 	  Delete(base_typename);
@@ -2053,7 +2065,7 @@ public:
     Swig_typemap_attach_parms("ctype", l, 0);
     Swig_typemap_attach_parms("imtype", l, 0);
     Swig_typemap_attach_parms("dtype", l, 0);
-    Swig_typemap_attach_parms("directorin", l, 0);
+    Swig_typemap_attach_parms("directorin", l, w);
     Swig_typemap_attach_parms("ddirectorin", l, 0);
     Swig_typemap_attach_parms("directorargout", l, w);
 
@@ -2072,7 +2084,11 @@ public:
       }
       Delete(super_call);
     } else {
-      Printf(w->code, " throw Swig::DirectorPureVirtualException(\"%s::%s\");\n", SwigType_namestr(c_classname), SwigType_namestr(name));
+      Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"%s::%s\");\n", SwigType_namestr(c_classname), SwigType_namestr(name));
+      if (!is_void)
+	Printf(w->code, "return %s;", qualified_return);
+      else if (!ignored_method)
+	Printf(w->code, "return;\n");
     }
 
     if (!ignored_method)
@@ -2203,15 +2219,19 @@ public:
     /* header declaration, start wrapper definition */
     String *target;
     SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-    target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
     Printf(w->def, "%s", target);
     Delete(qualified_name);
     Delete(target);
-    target = Swig_method_decl(rtype, decl, name, l, 0, 1);
+    target = Swig_method_decl(rtype, decl, name, l, 1);
     Printf(declaration, "    virtual %s", target);
     Delete(target);
 
     // Add any exception specifications to the methods in the director class
+    if (Getattr(n, "noexcept")) {
+      Append(w->def, " noexcept");
+      Append(declaration, " noexcept");
+    }
     ParmList *throw_parm_list = NULL;
     if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
       int gencomma = 0;
@@ -2423,7 +2443,7 @@ public:
       /* constructor */
       {
 	String *basetype = Getattr(parent, "classtype");
-	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 0);
+	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0);
 	String *call = Swig_csuperclass_call(0, basetype, superparms);
 	String *classtype = SwigType_namestr(Getattr(n, "name"));
 
@@ -2438,7 +2458,7 @@ public:
 
       /* constructor header */
       {
-	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 1);
+	String *target = Swig_method_decl(0, decl, dirclassname, parms, 1);
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }
@@ -2478,9 +2498,12 @@ public:
     String *dirclassname = directorClassName(current_class);
     Wrapper *w = NewWrapper();
 
-    if (Getattr(n, "throw")) {
-      Printf(f_directors_h, "    virtual ~%s() throw ();\n", dirclassname);
-      Printf(w->def, "%s::~%s() throw () {\n", dirclassname, dirclassname);
+    if (Getattr(n, "noexcept")) {
+      Printf(f_directors_h, "    virtual ~%s() noexcept;\n", dirclassname);
+      Printf(w->def, "%s::~%s() noexcept {\n", dirclassname, dirclassname);
+    } else if (Getattr(n, "throw")) {
+      Printf(f_directors_h, "    virtual ~%s() throw();\n", dirclassname);
+      Printf(w->def, "%s::~%s() throw() {\n", dirclassname, dirclassname);
     } else {
       Printf(f_directors_h, "    virtual ~%s();\n", dirclassname);
       Printf(w->def, "%s::~%s() {\n", dirclassname, dirclassname);
@@ -2595,7 +2618,7 @@ private:
     const_String_or_char_ptr wrapper_function_name) {
 
     // TODO: Add support for static linking here.
-    Printf(im_dmodule_code, "extern(C) %s function%s %s;\n", return_type,
+    Printf(im_dmodule_code, "SwigExternC!(%s function%s) %s;\n", return_type,
       parameters, d_name);
     Printv(wrapper_loader_bind_code, wrapper_loader_bind_command, NIL);
     Replaceall(wrapper_loader_bind_code, "$function", d_name);
@@ -2851,7 +2874,7 @@ private:
       // polymorphic call or an explicit method call. Needed to prevent infinite
       // recursion when calling director methods.
       Node *explicit_n = Getattr(n, "explicitcallnode");
-      if (explicit_n) {
+      if (explicit_n && Swig_directorclass(getCurrentClass())) {
 	String *ex_overloaded_name = getOverloadedName(explicit_n);
 	String *ex_intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, ex_overloaded_name);
 
@@ -3135,28 +3158,23 @@ private:
       List *baselist = Getattr(n, "bases");
       if (baselist) {
 	Iterator base = First(baselist);
-	while (base.item && GetFlag(base.item, "feature:ignore")) {
-	  base = Next(base);
-	}
-	if (base.item) {
-	  basenode = base.item;
-	  c_baseclassname = Getattr(base.item, "name");
-	  basename = createProxyName(c_baseclassname);
-	  if (basename)
-	    c_baseclass = SwigType_namestr(Getattr(base.item, "name"));
-	  base = Next(base);
-	  /* Warn about multiple inheritance for additional base class(es) */
-	  while (base.item) {
-	    if (GetFlag(base.item, "feature:ignore")) {
-	      base = Next(base);
-	      continue;
+	while (base.item) {
+	  if (!GetFlag(base.item, "feature:ignore")) {
+	    String *baseclassname = Getattr(base.item, "name");
+	    if (!c_baseclassname) {
+	      basenode = base.item;
+	      c_baseclassname = baseclassname;
+	      basename = createProxyName(c_baseclassname);
+	      if (basename)
+		c_baseclass = SwigType_namestr(baseclassname);
+	    } else {
+	      /* Warn about multiple inheritance for additional base class(es) */
+	      String *proxyclassname = Getattr(n, "classtypeobj");
+	      Swig_warning(WARN_D_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
+		  "Base %s of class %s ignored: multiple inheritance is not supported in D.\n", SwigType_namestr(baseclassname), SwigType_namestr(proxyclassname));
 	    }
-	    String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
-	    String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
-	    Swig_warning(WARN_D_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-	      "Base %s of class %s ignored: multiple inheritance is not supported in D.\n", baseclassname, proxyclassname);
-	    base = Next(base);
 	  }
+	  base = Next(base);
 	}
       }
     }
@@ -3181,7 +3199,7 @@ private:
       }
     } else if (basename && Len(pure_baseclass) > 0) {
       Swig_warning(WARN_D_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-	"Warning for %s proxy: Base class %s ignored. Multiple inheritance is not supported in D. "
+	"Warning for %s, base class %s ignored. Multiple inheritance is not supported in D. "
 	"Perhaps you need one of the 'replace' or 'notderived' attributes in the dbase typemap?\n", typemap_lookup_type, pure_baseclass);
     }
 
@@ -3299,9 +3317,13 @@ private:
       }
 
       if (*Char(dispose_code)) {
-	Printv(body, "\n", dispose_methodmodifiers,
-	  (derived ? " override" : ""), " void ", dispose_methodname, "() ",
-	  dispose_code, "\n", NIL);
+	Printv(body, "\n", NIL);
+	const String *methodmods = Getattr(n, "destructmethodmodifiers");
+	if (methodmods)
+	  Printv(body, methodmods, NIL);
+	else
+	  Printv(body, dispose_methodmodifiers, (derived ? " override" : ""), NIL);
+	Printv(body, " void ", dispose_methodname, "() ", dispose_code, "\n", NIL);
       }
     }
 
@@ -3340,45 +3362,33 @@ private:
   /* ---------------------------------------------------------------------------
    * D::writeClassUpcast()
    * --------------------------------------------------------------------------- */
-  void writeClassUpcast(Node *n, const String* d_class_name,
-    String* c_class_name, String* c_base_name) {
+  void writeClassUpcast(Node *n, const String* d_class_name, String* c_class_name, String* c_base_name) {
 
-    String *smartptr = Getattr(n, "feature:smartptr");
-    String *upcast_name = Swig_name_member(getNSpace(), d_class_name,
-      (smartptr != 0 ? "SmartPtrUpcast" : "Upcast"));
-
+    SwigType *smart = Swig_cparse_smartptr(n);
+    String *upcast_name = Swig_name_member(getNSpace(), d_class_name, (smart != 0 ? "SmartPtrUpcast" : "Upcast"));
     String *upcast_wrapper_name = Swig_name_wrapper(upcast_name);
 
     writeImDModuleFunction(upcast_name, "void*", "(void* objectRef)",
       upcast_wrapper_name);
 
-    if (smartptr) {
-      SwigType *spt = Swig_cparse_type(smartptr);
-      if (spt) {
-	SwigType *smart = SwigType_typedef_resolve_all(spt);
-	Delete(spt);
-	SwigType *bsmart = Copy(smart);
-	SwigType *rclassname = SwigType_typedef_resolve_all(c_class_name);
-	SwigType *rbaseclass = SwigType_typedef_resolve_all(c_base_name);
-	Replaceall(bsmart, rclassname, rbaseclass);
-	Delete(rclassname);
-	Delete(rbaseclass);
-	String *smartnamestr = SwigType_namestr(smart);
-	String *bsmartnamestr = SwigType_namestr(bsmart);
-	Printv(upcasts_code,
-	  "SWIGEXPORT ", bsmartnamestr, " * ", upcast_wrapper_name,
-	    "(", smartnamestr, " *objectRef) {\n",
-	  "    return objectRef ? new ", bsmartnamestr, "(*objectRef) : 0;\n"
-	  "}\n",
-	  "\n", NIL);
-	Delete(bsmartnamestr);
-	Delete(smartnamestr);
-	Delete(bsmart);
-      } else {
-	Swig_error(Getfile(n), Getline(n),
-	  "Invalid type (%s) in 'smartptr' feature for class %s.\n",
-	  smartptr, c_class_name);
-      }
+    if (smart) {
+      SwigType *bsmart = Copy(smart);
+      SwigType *rclassname = SwigType_typedef_resolve_all(c_class_name);
+      SwigType *rbaseclass = SwigType_typedef_resolve_all(c_base_name);
+      Replaceall(bsmart, rclassname, rbaseclass);
+      Delete(rclassname);
+      Delete(rbaseclass);
+      String *smartnamestr = SwigType_namestr(smart);
+      String *bsmartnamestr = SwigType_namestr(bsmart);
+      Printv(upcasts_code,
+	"SWIGEXPORT ", bsmartnamestr, " * ", upcast_wrapper_name,
+	  "(", smartnamestr, " *objectRef) {\n",
+	"    return objectRef ? new ", bsmartnamestr, "(*objectRef) : 0;\n"
+	"}\n",
+	"\n", NIL);
+      Delete(bsmartnamestr);
+      Delete(smartnamestr);
+      Delete(bsmart);
     } else {
       Printv(upcasts_code,
 	"SWIGEXPORT ", c_base_name, " * ", upcast_wrapper_name,
@@ -3393,6 +3403,7 @@ private:
 
     Delete(upcast_name);
     Delete(upcast_wrapper_name);
+    Delete(smart);
   }
 
   /* ---------------------------------------------------------------------------
@@ -3567,10 +3578,9 @@ private:
     Printf(code_wrap->def, "SWIGEXPORT void D_%s(void *objarg, void *dobj", connect_name);
 
     Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", norm_name, norm_name);
-    Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName);
+    Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj);\n", dirClassName, dirClassName);
 
-    Printf(code_wrap->code, "  if (director) {\n");
-    Printf(code_wrap->code, "    director->swig_connect_director(dobj");
+    Printf(code_wrap->code, "  director->swig_connect_director(dobj");
 
     for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
       UpcallData *udata = Getitem(dmethods_seq, i);
@@ -3584,7 +3594,6 @@ private:
     Printf(code_wrap->def, ") {\n");
     Printf(code_wrap->code, ");\n");
     Printf(im_dmodule_code, ") %s;\n", connect_name);
-    Printf(code_wrap->code, "  }\n");
     Printf(code_wrap->code, "}\n");
 
     Wrapper_print(code_wrap, f_wrappers);
@@ -3602,7 +3611,7 @@ private:
    * package if one is set.
    *
    * This is only used for dependencies created in generated code, user-
-   * (i.e. typemap-) specified import statements are handeled seperately.
+   * (i.e. typemap-) specified import statements are handled separately.
    * --------------------------------------------------------------------------- */
   void requireDType(const String *nspace, const String *symname) {
     String *dmodule = createModuleName(nspace, symname);
@@ -3704,23 +3713,14 @@ private:
   UpcallData *addUpcallMethod(String *imclass_method, String *class_method,
     String *decl, String *overloaded_name, String *return_type, String *param_list) {
 
-    UpcallData *udata;
-    String *class_methodidx;
-    Hash *new_udata;
     String *key = NewStringf("%s|%s", imclass_method, decl);
 
     ++curr_class_dmethod;
 
-    /* Do we know about this director class already? */
-    if ((udata = Getattr(dmethods_table, key))) {
-      Delete(key);
-      return Getattr(udata, "methodoff");
-    }
-
-    class_methodidx = NewStringf("%d", n_dmethods - first_class_dmethod);
+    String *class_methodidx = NewStringf("%d", n_dmethods - first_class_dmethod);
     n_dmethods++;
 
-    new_udata = NewHash();
+    Hash *new_udata = NewHash();
     Append(dmethods_seq, new_udata);
     Setattr(dmethods_table, key, new_udata);
 
@@ -3752,7 +3752,7 @@ private:
       String *nspace = getNSpace();
       if (nspace) {
 	// Check the root package/outermost namespace (a class A in module
-	// A.B leads to problems if another module A.C is also imported)…
+	// A.B leads to problems if another module A.C is also imported)
 	if (Len(package) > 0) {
 	  String *dotless_package = NewStringWithSize(package, Len(package) - 1);
 	  if (Cmp(class_name, dotless_package) == 0) {
@@ -4063,10 +4063,10 @@ private:
     // TODO: Fix const-correctness of methods called in here and make type const.
 
     // We make use of the fact that this function is called at least once for
-    // every type encountered which is written to a seperate file, which allows
+    // every type encountered which is written to a separate file, which allows
     // us to handle imports here.
     // When working in split proxy module mode, each generated proxy class/enum
-    // is written to a seperate module. This requires us to add a corresponding
+    // is written to a separate module. This requires us to add a corresponding
     // import when a type is used in another generated module. If we are not
     // working in split proxy module mode, this is not relevant and the
     // generated module name is discarded.
@@ -4075,35 +4075,39 @@ private:
     if (SwigType_isenum(type)) {
       // RESEARCH: Make sure that we really cannot get here for anonymous enums.
       Node *n = enumLookup(type);
-      String *enum_name = Getattr(n, "sym:name");
+      if (n) {
+	String *enum_name = Getattr(n, "sym:name");
 
-      Node *p = parentNode(n);
-      if (p && !Strcmp(nodeType(p), "class")) {
-	// This is a nested enum.
-	String *parent_name = Getattr(p, "sym:name");
-	String *nspace = Getattr(p, "sym:nspace");
+	Node *p = parentNode(n);
+	if (p && !Strcmp(nodeType(p), "class")) {
+	  // This is a nested enum.
+	  String *parent_name = Getattr(p, "sym:name");
+	  String *nspace = Getattr(p, "sym:nspace");
 
-	// An enum nested in a class is not written to a seperate module (this
-	// would not even be possible in D), so just import the parent.
-	requireDType(nspace, parent_name);
+	  // An enum nested in a class is not written to a separate module (this
+	  // would not even be possible in D), so just import the parent.
+	  requireDType(nspace, parent_name);
 
-	String *module = createModuleName(nspace, parent_name);
-	if (inProxyModule(module)) {
-	  type_name = NewStringf("%s.%s", parent_name, enum_name);
+	  String *module = createModuleName(nspace, parent_name);
+	  if (inProxyModule(module)) {
+	    type_name = NewStringf("%s.%s", parent_name, enum_name);
+	  } else {
+	    type_name = NewStringf("%s%s.%s.%s", package, module, parent_name, enum_name);
+	  }
 	} else {
-	  type_name = NewStringf("%s%s.%s.%s", package, module, parent_name, enum_name);
+	  // A non-nested enum is written to a separate module, import it.
+	  String *nspace = Getattr(n, "sym:nspace");
+	  requireDType(nspace, enum_name);
+
+	  String *module = createModuleName(nspace, enum_name);
+	  if (inProxyModule(module)) {
+	    type_name = Copy(enum_name);
+	  } else {
+	    type_name = NewStringf("%s%s.%s", package, module, enum_name);
+	  }
 	}
       } else {
-	// A non-nested enum is written to a seperate module, import it.
-	String *nspace = Getattr(n, "sym:nspace");
-	requireDType(nspace, enum_name);
-
-	String *module = createModuleName(nspace, enum_name);
-	if (inProxyModule(module)) {
-	  type_name = Copy(enum_name);
-	} else {
-	  type_name = NewStringf("%s%s.%s", package, module, enum_name);
-	}
+	type_name = NewStringf("int");
       }
     } else {
       Node *n = classLookup(type);
@@ -4305,40 +4309,8 @@ private:
     return proxyname;
   }
 
-  /* ---------------------------------------------------------------------------
-   * D::makeParameterName()
-   *
-   * Inputs:
-   *   n - Node
-   *   p - parameter node
-   *   arg_num - parameter argument number
-   *   setter  - set this flag when wrapping variables
-   * Return:
-   *   arg - a unique parameter name
-   * --------------------------------------------------------------------------- */
   String *makeParameterName(Node *n, Parm *p, int arg_num, bool setter) const {
-    String *arg = 0;
-    String *pn = Getattr(p, "name");
-
-    // Use C parameter name unless it is a duplicate or an empty parameter name
-    int count = 0;
-    ParmList *plist = Getattr(n, "parms");
-    while (plist) {
-      if ((Cmp(pn, Getattr(plist, "name")) == 0))
-	count++;
-      plist = nextSibling(plist);
-    }
-    String *wrn = pn ? Swig_name_warning(p, 0, pn, 0) : 0;
-    arg = (!pn || (count > 1) || wrn) ? NewStringf("arg%d", arg_num) : Copy(pn);
-
-    if (setter && Cmp(arg, "self") != 0) {
-      // In theory, we could use the normal parameter name for setter functions.
-      // Unfortunately, it is set to "Class::VariableName" for static public
-      // members by the parser, which is not legal D syntax. Thus, we just force
-      // it to "value".
-      Delete(arg);
-      arg = NewString("value");
-    }
+    String *arg = Language::makeParameterName(n, p, arg_num, setter);
 
     if (split_proxy_dmodule && Strncmp(arg, package, Len(arg)) == 0) {
       // If we are in split proxy mode and the argument is named like the target
@@ -4655,7 +4627,7 @@ extern "C" Language *swig_d(void) {
 /* -----------------------------------------------------------------------------
  * Usage information displayed at the command line.
  * ----------------------------------------------------------------------------- */
-const char *D::usage = (char *) "\
+const char *D::usage = "\
 D Options (available with -d)\n\
      -d2                  - Generate code for D2/Phobos (default: D1/Tango)\n\
      -package <pkg>       - Write generated D modules into package <pkg>\n\

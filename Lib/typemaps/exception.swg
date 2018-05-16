@@ -52,9 +52,9 @@
     }
   }
 */
-%{
-#include <stdexcept>
-%}
+
+%fragment("<stdexcept>");
+
 %define SWIG_CATCH_STDEXCEPT
   /* catching std::exception  */
   catch (std::invalid_argument& e) {

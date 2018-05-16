@@ -13,6 +13,7 @@
   $9 = &temp9;
   $10 = &temp10;   // the code generated for this was arg20 = &temp10; and arg20 does not exist.
   int $10_ptr = 0; // Was arg20_ptr
+  (void)$10_ptr;
 }
 
 %inline %{

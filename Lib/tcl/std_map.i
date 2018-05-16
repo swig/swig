@@ -1,7 +1,5 @@
 //
 // SWIG typemaps for std::map
-// Luigi Ballabio
-// Jan. 2003
 //
 // Common implementation
 
@@ -13,9 +11,9 @@
 
 %{
 #include <map>
-#include <algorithm>
-#include <stdexcept>
 %}
+%fragment("<algorithm>");
+%fragment("<stdexcept>");
 
 // exported class
 

@@ -6,5 +6,4 @@ m = malloc(256)
 memmove(m, s)
 ss = cdata(m, 7)
 if ss != "ABC abc":
-  raise "failed"
-
+    raise "failed"

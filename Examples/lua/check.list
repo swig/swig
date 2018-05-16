@@ -11,6 +11,7 @@ funcptr3
 functest
 functor
 import
+nspace
 owner
 pointer
 simple

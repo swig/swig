@@ -1,0 +1,2 @@
+cpp_raw_string_termination.i:3: Error: Unterminated raw string, started with R"ABC( is not terminated by )ABC"
+cpp_raw_string_termination.i:3: Error: Syntax error in input(1).

@@ -60,3 +60,20 @@ int product3(const std::pair<int, int> *p) {
 
 %}
 
+// Test that the digraph <::aa::Holder> is not generated for stl containers
+%include <std_pair.i>
+
+%inline %{
+namespace aa {
+  struct Holder {
+    Holder(int n = 0) : number(n) {}
+    int number;
+  };
+}
+%}
+
+%template(PairTest) std::pair< ::aa::Holder, int >;
+
+%inline %{
+std::pair< ::aa::Holder, int > pair1(std::pair< ::aa::Holder, int > x) { return x; }
+%}

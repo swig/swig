@@ -4,6 +4,10 @@
 
 %insert(init) "swiginit.swg"
 
+#if defined(SWIGPYTHON_BUILTIN)
+%fragment("<stddef.h>"); // For offsetof
+#endif
+
 %init %{
 
 #ifdef __cplusplus
@@ -80,10 +84,10 @@ swig_varlink_str(swig_varlinkobject *v) {
 
 SWIGINTERN int
 swig_varlink_print(swig_varlinkobject *v, FILE *fp, int SWIGUNUSEDPARM(flags)) {
-  char *tmp;
   PyObject *str = swig_varlink_str(v);
+  const char *tmp = SWIG_Python_str_AsChar(str);
   fprintf(fp,"Swig global variables ");
-  fprintf(fp,"%s\n", tmp = SWIG_Python_str_AsChar(str));
+  fprintf(fp,"%s\n", tmp ? tmp : "Invalid global variable");
   SWIG_Python_str_DelForPy3(tmp);
   Py_DECREF(str);
   return 0;
@@ -112,7 +116,7 @@ swig_varlink_getattr(swig_varlinkobject *v, char *n) {
     var = var->next;
   }
   if (res == NULL && !PyErr_Occurred()) {
-    PyErr_SetString(PyExc_NameError,"Unknown C global variable");
+    PyErr_Format(PyExc_AttributeError, "Unknown C global variable '%s'", n);
   }
   return res;
 }
@@ -129,7 +133,7 @@ swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p) {
     var = var->next;
   }
   if (res == 1 && !PyErr_Occurred()) {
-    PyErr_SetString(PyExc_NameError,"Unknown C global variable");
+    PyErr_Format(PyExc_AttributeError, "Unknown C global variable '%s'", n);
   }
   return res;
 }
@@ -141,7 +145,6 @@ swig_varlink_type(void) {
   static int type_init = 0;
   if (!type_init) {
     const PyTypeObject tmp = {
-      /* PyObject header changed in Python 3 */
 #if PY_VERSION_HEX >= 0x03000000
       PyVarObject_HEAD_INIT(NULL, 0)
 #else
@@ -179,10 +182,19 @@ swig_varlink_type(void) {
       0,                                  /* tp_del */
 #endif
 #if PY_VERSION_HEX >= 0x02060000
-      0,                                  /* tp_version */
+      0,                                  /* tp_version_tag */
+#endif
+#if PY_VERSION_HEX >= 0x03040000
+      0,                                  /* tp_finalize */
 #endif
 #ifdef COUNT_ALLOCS
-      0,0,0,0                             /* tp_alloc -> tp_next */
+      0,                                  /* tp_allocs */
+      0,                                  /* tp_frees */
+      0,                                  /* tp_maxalloc */
+#if PY_VERSION_HEX >= 0x02050000
+      0,                                  /* tp_prev */
+#endif
+      0                                   /* tp_next */
 #endif
     };
     varlink_type = tmp;
@@ -271,7 +283,9 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
   size_t i;
   for (i = 0; methods[i].ml_name; ++i) {
     const char *c = methods[i].ml_doc;
-    if (c && (c = strstr(c, "swig_ptr: "))) {
+    if (!c) continue;
+    c = strstr(c, "swig_ptr: ");
+    if (c) {
       int j;
       swig_const_info *ci = 0;
       const char *name = c + 10;
@@ -292,9 +306,9 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
 	  char *ndoc = (char*)malloc(ldoc + lptr + 10);
 	  if (ndoc) {
 	    char *buff = ndoc;
-	    strncpy(buff, methods[i].ml_doc, ldoc);
+	    memcpy(buff, methods[i].ml_doc, ldoc);
 	    buff += ldoc;
-	    strncpy(buff, "swig_ptr: ", 10);
+	    memcpy(buff, "swig_ptr: ", 10);
 	    buff += 10;
 	    SWIG_PackVoidPtr(buff, ptr, ty->name, lptr);
 	    methods[i].ml_doc = ndoc;
@@ -360,17 +374,18 @@ SWIG_init(void) {
   static PyGetSetDef thisown_getset_def = {
     (char *)"thisown", SwigPyBuiltin_GetterClosure, SwigPyBuiltin_SetterClosure, NULL, &thisown_getset_closure
   };
-  PyObject *metatype_args;
   PyTypeObject *builtin_pytype;
   int builtin_base_count;
   swig_type_info *builtin_basetype;
   PyObject *tuple;
   PyGetSetDescrObject *static_getset;
   PyTypeObject *metatype;
+  PyTypeObject *swigpyobject;
   SwigPyClientData *cd;
   PyObject *public_interface, *public_symbol;
   PyObject *this_descr;
   PyObject *thisown_descr;
+  PyObject *self = 0;
   int i;
 
   (void)builtin_pytype;
@@ -378,15 +393,11 @@ SWIG_init(void) {
   (void)builtin_basetype;
   (void)tuple;
   (void)static_getset;
+  (void)self;
 
-  /* metatype is used to implement static member variables. */
-  metatype_args = Py_BuildValue("(s(O){})", "SwigPyObjectType", &PyType_Type);
-  assert(metatype_args);
-  metatype = (PyTypeObject *) PyType_Type.tp_call((PyObject *) &PyType_Type, metatype_args, NULL);
+  /* Metaclass is used to implement static member variables */
+  metatype = SwigPyObjectType();
   assert(metatype);
-  Py_DECREF(metatype_args);
-  metatype->tp_setattro = (setattrofunc) &SwigPyObjectType_setattro;
-  assert(PyType_Ready(metatype) >= 0);
 #endif
 
   /* Fix SwigMethods to carry the callback ptrs when needed */
@@ -397,19 +408,22 @@ SWIG_init(void) {
 #else
   m = Py_InitModule((char *) SWIG_name, SwigMethods);
 #endif
+
   md = d = PyModule_GetDict(m);
   (void)md;
 
   SWIG_InitializeModule(0);
 
 #ifdef SWIGPYTHON_BUILTIN
+  swigpyobject = SwigPyObject_TypeOnce();
+
   SwigPyObject_stype = SWIG_MangledTypeQuery("_p_SwigPyObject");
   assert(SwigPyObject_stype);
   cd = (SwigPyClientData*) SwigPyObject_stype->clientdata;
   if (!cd) {
     SwigPyObject_stype->clientdata = &SwigPyObject_clientdata;
-    SwigPyObject_clientdata.pytype = SwigPyObject_TypeOnce();
-  } else if (SwigPyObject_TypeOnce()->tp_basicsize != cd->pytype->tp_basicsize) {
+    SwigPyObject_clientdata.pytype = swigpyobject;
+  } else if (swigpyobject->tp_basicsize != cd->pytype->tp_basicsize) {
     PyErr_SetString(PyExc_RuntimeError, "Import error: attempted to load two incompatible swig-generated modules.");
 # if PY_VERSION_HEX >= 0x03000000
     return NULL;

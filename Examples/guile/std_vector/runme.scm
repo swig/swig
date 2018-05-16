@@ -1,6 +1,5 @@
-;; run with mzscheme -r example.scm
 
-(use-modules (example))
+(load-extension "./libexample" "scm_init_example_module")
 
 ; repeatedly invoke a procedure with v and an index as arguments
 (define (with-vector v proc size-proc)
@@ -52,3 +51,4 @@
 (print-DoubleVector v)
 (delete-DoubleVector v)
 
+(exit 0)

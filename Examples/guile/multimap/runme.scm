@@ -1,6 +1,6 @@
 ;;; Test out some multi-argument typemaps
 
-(use-modules (example))
+(load-extension "./libexample" "scm_init_example_module")
 
 ; Call the GCD function
 
@@ -27,4 +27,4 @@
 (display (capitalize "hello world"))
 (newline)
 
-
+(exit 0)

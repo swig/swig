@@ -74,14 +74,19 @@ extern int count(char *bytes, int len, char c);
 %}
 
 /* Return the mutated string as a modified element in the array. */
-%typemap(argout) (char *str, int len)
+%typemap(argout,fragment="AllocateString") (char *str, int len)
 %{
   {
     _gostring_ *a;
 
     a = (_gostring_*) $input.array;
-    a[0] = _swig_makegostring($1, $2);
+    a[0] = Swig_AllocateString($1, $2);
   }
+%}
+
+%typemap(goargout,fragment="CopyString") (char *str, int len)
+%{
+	$input[0] = swigCopyString($input[0])
 %}
 
 %typemap(freearg) (char *str, int len)

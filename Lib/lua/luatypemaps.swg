@@ -68,7 +68,11 @@ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
 // and const refs
 %typemap(in,checkfn="lua_isnumber") const enum SWIGTYPE &($basetype temp)
 %{ temp=($basetype)(int)lua_tonumber(L,$input); $1=&temp;%}
+%typemap(in,checkfn="lua_isnumber") const enum SWIGTYPE &&($basetype temp)
+%{ temp=($basetype)(int)lua_tonumber(L,$input); $1=&temp;%}
 %typemap(out) const enum SWIGTYPE &
+%{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
+%typemap(out) const enum SWIGTYPE &&
 %{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
 
 
@@ -118,14 +122,14 @@ SWIGINTERN int SWIG_lua_isnilstring(lua_State *L, int idx) {
 %{$1 = (lua_tostring(L, $input))[0];%}
 
 %typemap(out) char
-%{  lua_pushfstring(L,"%c",$1); SWIG_arg++;%}
+%{  lua_pushlstring(L, &$1, 1); SWIG_arg++;%}
 
 // by const ref
 %typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") const char& (char temp)
 %{temp = (lua_tostring(L, $input))[0]; $1=&temp;%}
 
 %typemap(out) const char&
-%{  lua_pushfstring(L,"%c",*$1); SWIG_arg++;%}
+%{  lua_pushlstring(L, $1, 1); SWIG_arg++;%}
 
 // pointers and references
 // under SWIG rules, it is ok, to have a pass in a lua nil,
@@ -147,8 +151,17 @@ SWIGINTERN int SWIG_lua_isnilstring(lua_State *L, int idx) {
   }
 %}
 
+%typemap(in,checkfn="lua_isuserdata") SWIGTYPE&&
+%{
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,$input,(void**)&$1,$descriptor,$disown))){
+    SWIG_fail_ptr("$symname",$argnum,$descriptor);
+  }
+%}
+
 // out is simple
 %typemap(out) SWIGTYPE*,SWIGTYPE&
+%{SWIG_NewPointerObj(L,$1,$descriptor,$owner); SWIG_arg++; %}
+%typemap(out) SWIGTYPE*,SWIGTYPE&&
 %{SWIG_NewPointerObj(L,$1,$descriptor,$owner); SWIG_arg++; %}
 
 // dynamic casts
@@ -222,7 +235,6 @@ $1=($1_ltype)&temp;%}
 // so the standard wrapping cannot be done
 // nor can you cast a member function pointer to a void* (obviously)
 // therefore a special wrapping functions SWIG_ConvertMember() & SWIG_NewMemberObj() were written
-#ifdef __cplusplus
 %typemap(in,checkfn="lua_isuserdata") SWIGTYPE (CLASS::*)
 %{
   if (!SWIG_IsOK(SWIG_ConvertMember(L,$input,(void*)(&$1),sizeof($type),$descriptor)))
@@ -233,7 +245,6 @@ $1=($1_ltype)&temp;%}
 %{ 
   SWIG_NewMemberObj(L,(void*)(&$1),sizeof($type),$descriptor); SWIG_arg++; 
 %}
-#endif
 
 
 // void (must be empty without the SWIG_arg++)
@@ -284,7 +295,7 @@ parameters match which function
  	 const unsigned int &, const unsigned short &, const unsigned long &,
 	 const signed char&, const unsigned char&,
 	 const long long &, const unsigned long long &,
-	 enum SWIGTYPE,	const enum SWIGTYPE&,
+	 enum SWIGTYPE,	const enum SWIGTYPE&, const enum SWIGTYPE &&,
 	 float, double, const float &, const double&
 {
   $1 = lua_isnumber(L,$input);
@@ -315,6 +326,15 @@ parameters match which function
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE & {
+  void *ptr;
+  if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $1_descriptor, 0)) {
+    $1 = 0;
+  } else {
+    $1 = 1;
+  }
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE && {
   void *ptr;
   if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $1_descriptor, 0)) {
     $1 = 0;
@@ -360,9 +380,12 @@ parameters match which function
 
 // Array reference typemaps
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+%apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }
+%apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
+%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
 // size_t (which is just a unsigned long)
 %apply unsigned long { size_t };
