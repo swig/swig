@@ -553,7 +553,7 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       emitter = swig_javascript_create_V8Emitter();
       Preprocessor_define("SWIG_JAVASCRIPT_V8 1", 0);
       SWIG_library_directory("javascript/v8");
-      // V8 API is C++, so output must be C++ compatibile even when wrapping C code
+      // V8 API is C++, so output must be C++ compatible even when wrapping C code
       if (!cparse_cplusplus) {
 	Swig_cparse_cplusplusout(1);
       }
@@ -2038,7 +2038,7 @@ int V8Emitter::exitClass(Node *n) {
 	.pretty_print(f_init_inheritance);
     Delete(base_name_mangled);
   }
-  //  emit registeration of class template
+  //  emit registration of class template
   Template t_register = getTemplate("jsv8_register_class");
   t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsname", state.clazz(NAME))

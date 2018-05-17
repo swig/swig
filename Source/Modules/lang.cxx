@@ -3521,7 +3521,7 @@ int Language::need_nonpublic_ctor(Node *n) {
 
      Note: given all the complications here, I am always in favor to
      always enable 'dirprot', since is the C++ idea of protected
-     members, and use %ignore for the method you don't whan to add in
+     members, and use %ignore for the method you don't want to add in
      the director class.
    */
   if (directorsEnabled()) {

@@ -2110,7 +2110,7 @@ public:
       // variable in resulting file
       getCArraysHash(0);
     }
-    // Because we cant access directly 'symtabs', instead we access
+    // Because we can't directly access 'symtabs', instead we access
     // top-level scope and look on all scope pseudo-symbols in it.
     Hash *top_scope = symbolScopeLookup("");
     assert(top_scope);
@@ -2193,7 +2193,7 @@ public:
 
   String *luaCurrentSymbolNSpace() {
     String *scope = 0;
-    // If ouside class, than NSpace is used.
+    // If outside class, than NSpace is used.
     // If inside class, but current[NO_CPP], then this is friend function. It belongs to NSpace
     if (!getCurrentClass() || current[NO_CPP]) {
       scope = getNSpace();

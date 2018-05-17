@@ -139,7 +139,7 @@ public:
     SWIG_typemap_lang("octave");
     allow_overloading();
 
-    // Octave API is C++, so output must be C++ compatibile even when wrapping C code
+    // Octave API is C++, so output must be C++ compatible even when wrapping C code
     if (!cparse_cplusplus)
       Swig_cparse_cplusplusout(1);
   }
