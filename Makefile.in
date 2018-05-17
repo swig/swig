@@ -583,9 +583,9 @@ srcrpm:
 # version 1.10 for our case of not having a top level Makefile.am. Until then we
 # can fetch them manually and will have to commit them to Git.
 configfiles:
-	wget ftp://ftp.gnu.org/pub/gnu/config/config.guess -O Tools/config/config.guess
+	wget 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess' -O Tools/config/config.guess
 	chmod a+x Tools/config/config.guess
-	wget ftp://ftp.gnu.org/pub/gnu/config/config.sub -O Tools/config/config.sub
+	wget 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub' -O Tools/config/config.sub
 	chmod a+x Tools/config/config.sub
 
 # Regenerate Makefile if Makefile.in or config.status have changed.

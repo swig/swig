@@ -20,28 +20,11 @@
    the header file, the enqueue method throws FullError and
    the dequeue method throws EmptyError.  Since we don't
    want to define an exception handler for everything, we
-   simply write a handler each method individually.
+   simply write a handler for each method individually.
 
    Note: the *::enqueue syntax means that we simply define
    the handler for any class with this method defined.
 */
-
-/*
-  First we need to 'disable' the default swig throw mechanism for the
-  FullError class. We do this by rethrowing the exception.
-
-  Note that this is necessary since the class appears in a throw
-  declaration:
-
-
-    void enqueue(T x) throw(FullError);
-
-  hence, swig recognizes it as an exception class and it will generate
-  the necessary code to catch it and rethrow it to the python side.
-   
-*/
-%typemap(throws) FullError "(void)$1; throw;";
-
 
 %exception *::enqueue {
    try {
@@ -76,7 +59,7 @@
 */
 
 /*
-  Now, the EmpytError doesn't appear in a throw declaration, and hence
+  Now, the EmptyError doesn't appear in a throw declaration, and hence
   we need to 'mark' it as an exception class. In python, classes that 
   are used as exception are 'special', and need to be wrapped as
   'classic' ones.

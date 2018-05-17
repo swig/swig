@@ -22,8 +22,7 @@ environment:
     PY3: 1
   - SWIGLANG: python
     OSVARIANT: cygwin
-  - SWIGLANG: python
-    OSVARIANT: mingw
+  - OSVARIANT: mingw
 
 install:
 - date /T & time /T
@@ -85,18 +84,16 @@ install:
 - bash -c "which $CXX"
 - bash -c "$CC --version | head -n 1"
 - bash -c "$CXX --version | head -n 1"
-- bash -c "which python"
-- bash -c "python -V"
 - bash -c "make --version | head -n 2"
 - pwd
 - echo MAKEJOBS=%MAKEJOBS%
 - uname -a
 
 build_script:
-- set CCCL_OPTIONS=--cccl-muffle /W3
+- set CCCL_OPTIONS=--cccl-muffle /W3 /EHsc
 - set CHECK_OPTIONS=CSHARPOPTIONS=-platform:%Platform%
   # Open dummy file descriptor to fix error on cygwin: ./configure: line 560: 0: Bad file descriptor
-- if "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure --disable-dependency-tracking --disable-ccache CC=$CC CXX=$CXX CFLAGS='-O2' CXXFLAGS='-O2' LDFLAGS='--cccl-link /LTCG' PCRE_CFLAGS='-I%PCRE_ROOT%/include -DPCRE_STATIC' PCRE_LIBS='-L%PCRE_ROOT%/lib/v110/%PCRE_PLATFORM%/Release/static/utf8 -lpcre8' --without-perl5 --without-go --with-boost=C:/Libraries/boost || cat config.log"
+- if "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure --disable-dependency-tracking --disable-ccache CC=$CC CXX=$CXX CFLAGS='-O2' CXXFLAGS='-O2' LDFLAGS='--cccl-link /LTCG' PCRE_CFLAGS='-I%PCRE_ROOT%/include -DPCRE_STATIC' PCRE_LIBS='-L%PCRE_ROOT%/lib/v110/%PCRE_PLATFORM%/Release/static/utf8 -lpcre8' --without-perl5 --without-go --with-boost=C:/Libraries/boost_1_67_0 || cat config.log"
 - if not "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure CC=%CC% CXX=%CXX% --without-alllang --with-$SWIGLANG --enable-cpp11-testing || cat config.log"
 - bash -c "time make -s -j%MAKEJOBS%"
 
@@ -105,9 +102,9 @@ test_script:
 - .\swig.exe -version
 - if not "%OSVARIANT%"=="" CCache\ccache-swig -V
 - bash -c "file ./swig.exe"
-- bash -c "make check-%SWIGLANG%-version"
-- bash -c "time make -k check-%SWIGLANG%-examples %CHECK_OPTIONS%"
-- bash -c "time make -k check-%SWIGLANG%-test-suite -j%MAKEJOBS% %CHECK_OPTIONS%"
+- if not "%SWIGLANG%"=="" bash -c "make check-%SWIGLANG%-version %CHECK_OPTIONS%"
+- if not "%SWIGLANG%"=="" bash -c "time make -k check-%SWIGLANG%-examples %CHECK_OPTIONS%"
+- if not "%SWIGLANG%"=="" bash -c "time make -k check-%SWIGLANG%-test-suite -j%MAKEJOBS% %CHECK_OPTIONS%"
 
 # Do not build on tags (GitHub only)
 skip_tags: true

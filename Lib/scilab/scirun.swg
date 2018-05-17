@@ -49,8 +49,13 @@ static char *SWIG_Scilab_GetFuncName(void) {
 static void SWIG_Scilab_SetFuncName(char *funcName) {
   if (SwigFuncName != NULL) {
     free(SwigFuncName);
+    SwigFuncName = NULL;
   }
-  SwigFuncName = strdup(funcName);
+  if (funcName) {
+    SwigFuncName = (char *)malloc(strlen(funcName) + 1);
+    if (SwigFuncName)
+      strcpy(SwigFuncName, funcName);
+  }
 }
 
 /* Api context management functions */

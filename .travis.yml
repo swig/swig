@@ -96,6 +96,11 @@ matrix:
       dist: trusty
     - compiler: gcc
       os: linux
+      env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.4 CPP11=1
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=perl5
       sudo: required
       dist: trusty
@@ -297,6 +302,18 @@ matrix:
       env: SWIGLANG=python SWIG_CC=gcc-7 SWIG_CXX=g++-7 CPP14=1
       sudo: required
       dist: trusty
+    - os: linux
+      env: SWIGLANG=csharp SWIG_CC=gcc-8 SWIG_CXX=g++-8 CPP17=1
+      sudo: required
+      dist: trusty
+    - os: linux
+      env: SWIGLANG=java SWIG_CC=gcc-8 SWIG_CXX=g++-8 CPP17=1
+      sudo: required
+      dist: trusty
+    - os: linux
+      env: SWIGLANG=python SWIG_CC=gcc-8 SWIG_CXX=g++-8 CPP17=1 PY3=3 VER=3.6
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: osx
       env: SWIGLANG=
@@ -338,14 +355,16 @@ matrix:
       env: SWIGLANG=tcl
 
   allow_failures:
-    # Started failing after upgrade from Guile 2.0.14 to Guile 2.2.0
-    - compiler: clang
-      os: osx
-      env: SWIGLANG=guile
     # Lots of failing tests currently
     - compiler: gcc
       os: linux
       env: SWIGLANG=ocaml
+      sudo: required
+      dist: trusty
+    # Sometimes hits the Travis 50 minute time limit
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.4 CPP11=1
       sudo: required
       dist: trusty
     # Not quite working yet
@@ -367,7 +386,7 @@ install:
   - if test "$TRAVIS_OS_NAME" = "osx"; then source Tools/travis-osx-install.sh; fi
   - if test -n "$CPP11"; then CONFIGOPTS+=(--enable-cpp11-testing --without-maximum-compile-warnings "CXXFLAGS=-std=c++11 -Wall -Wextra" "CFLAGS=-std=c11 -Wall -Wextra") && export CSTD=c11 && export CPPSTD=c++11; fi
   - if test -n "$CPP14"; then CONFIGOPTS+=(--enable-cpp11-testing --without-maximum-compile-warnings "CXXFLAGS=-std=c++14 -Wall -Wextra" "CFLAGS=-std=c11 -Wall -Wextra") && export CSTD=c11 && export CPPSTD=c++14; fi
-  - if test -n "$CPP17"; then CONFIGOPTS+=(--enable-cpp11-testing --without-maximum-compile-warnings "CXXFLAGS=-std=c++17 -Wall -Wextra" "CFLAGS=-std=c11 -Wall -Wextra") && export CSTD=c11 && export CPPSTD=c++17; fi
+  - if test -n "$CPP17"; then CONFIGOPTS+=(--enable-cpp11-testing --without-maximum-compile-warnings "CXXFLAGS=-std=c++17 -Wall -Wextra" "CFLAGS=-std=c17 -Wall -Wextra") && export CSTD=c17 && export CPPSTD=c++17; fi
   - ls -la $(which $CC)
   - ls -la $(which $CXX)
   - $CC --version

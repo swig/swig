@@ -33,6 +33,7 @@ static bool js_template_enable_debug = false;
 #define GETTER "getter"
 #define SETTER "setter"
 #define PARENT "parent"
+#define PARENT_MANGLED "parent_mangled"
 #define CTOR "ctor"
 #define CTOR_WRAPPERS "ctor_wrappers"
 #define CTOR_DISPATCHERS "ctor_dispatchers"
@@ -262,7 +263,7 @@ protected:
 
   virtual int createNamespace(String *scope);
 
-  virtual Hash *createNamespaceEntry(const char *name, const char *parent);
+  virtual Hash *createNamespaceEntry(const char *name, const char *parent, const char *parent_mangled);
 
   virtual int emitNamespaces() = 0;
 
@@ -664,7 +665,7 @@ int JSEmitter::initialize(Node * /*n */ ) {
     Delete(namespaces);
   }
   namespaces = NewHash();
-  Hash *global_namespace = createNamespaceEntry("exports", 0);
+  Hash *global_namespace = createNamespaceEntry("exports", 0, 0);
 
   Setattr(namespaces, "::", global_namespace);
   current_namespace = global_namespace;
@@ -1428,19 +1429,20 @@ int JSEmitter::createNamespace(String *scope) {
   }
   assert(parent_namespace != 0);
 
-  Hash *new_namespace = createNamespaceEntry(Char(scope), Char(Getattr(parent_namespace, "name")));
+  Hash *new_namespace = createNamespaceEntry(Char(scope), Char(Getattr(parent_namespace, "name")), Char(Getattr(parent_namespace, "name_mangled")));
   Setattr(namespaces, scope, new_namespace);
 
   Delete(parent_scope);
   return SWIG_OK;
 }
 
-Hash *JSEmitter::createNamespaceEntry(const char *_name, const char *parent) {
+Hash *JSEmitter::createNamespaceEntry(const char *_name, const char *parent, const char *parent_mangled) {
   Hash *entry = NewHash();
   String *name = NewString(_name);
   Setattr(entry, NAME, Swig_scopename_last(name));
   Setattr(entry, NAME_MANGLED, Swig_name_mangle(name));
   Setattr(entry, PARENT, NewString(parent));
+  Setattr(entry, PARENT_MANGLED, NewString(parent_mangled));
 
   Delete(name);
   return entry;
@@ -1467,7 +1469,7 @@ protected:
   virtual int enterClass(Node *n);
   virtual int exitClass(Node *n);
   virtual void marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static);
-  virtual Hash *createNamespaceEntry(const char *name, const char *parent);
+  virtual Hash *createNamespaceEntry(const char *name, const char *parent, const char *parent_mangled);
   virtual int emitNamespaces();
 
 private:
@@ -1773,8 +1775,8 @@ int JSCEmitter::exitClass(Node *n) {
   return SWIG_OK;
 }
 
-Hash *JSCEmitter::createNamespaceEntry(const char *name, const char *parent) {
-  Hash *entry = JSEmitter::createNamespaceEntry(name, parent);
+Hash *JSCEmitter::createNamespaceEntry(const char *name, const char *parent, const char *parent_mangled) {
+  Hash *entry = JSEmitter::createNamespaceEntry(name, parent, parent_mangled);
   Setattr(entry, "functions", NewString(""));
   Setattr(entry, "values", NewString(""));
   return entry;
@@ -1786,8 +1788,7 @@ int JSCEmitter::emitNamespaces() {
     Hash *entry = it.item;
     String *name = Getattr(entry, NAME);
     String *name_mangled = Getattr(entry, NAME_MANGLED);
-    String *parent = Getattr(entry, PARENT);
-    String *parent_mangled = Swig_name_mangle(parent);
+    String *parent_mangled = Getattr(entry, PARENT_MANGLED);
     String *functions = Getattr(entry, "functions");
     String *variables = Getattr(entry, "values");
 
@@ -2206,7 +2207,7 @@ int V8Emitter::emitNamespaces() {
     String *name = Getattr(entry, NAME);
     String *name_mangled = Getattr(entry, NAME_MANGLED);
     String *parent = Getattr(entry, PARENT);
-    String *parent_mangled = Swig_name_mangle(parent);
+    String *parent_mangled = Getattr(entry, PARENT_MANGLED);
 
     bool do_create = true;
     bool do_register = true;

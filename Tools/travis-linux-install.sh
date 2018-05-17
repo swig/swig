@@ -17,6 +17,10 @@ elif [[ "$CC" == gcc-7 ]]; then
 	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 	travis_retry sudo apt-get -qq update
 	travis_retry sudo apt-get install -qq g++-7
+elif [[ "$CC" == gcc-8 ]]; then
+	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+	travis_retry sudo apt-get -qq update
+	travis_retry sudo apt-get install -qq g++-8
 fi
 
 travis_retry sudo apt-get -qq install libboost-dev

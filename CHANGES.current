@@ -7,6 +7,44 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-05-15: kwwette
+            [Octave] add support for version 4.4
+            - Should not introduce any user-visible incompatibilities
+
+2018-05-15: wsfulton
+            [C#, D, Java] Fix lookup of csconstruct, dconstruct and javaconstruct typemaps.
+            The C++ namespace was previously ignored when looking up the typemap.
+
+2018-05-15: wsfulton
+            [Javascript] Fix generated C++ code when using %nspace on namespaces that are more
+            than two levels deep.
+
+2018-05-14: wsfulton
+            Issue #1251 Add support for C++17 nested namespace definitions,
+            for example:
+              namespace A::B { ... }
+
+2018-05-11: wsfulton
+            [C#, D, Java] Add support so that the %csmethodmodifiers, %dmethodmodifiers,
+            %javamethodmodifiers can modify the method modifiers for the destructor wrappers
+            in the proxy class: dispose, Dispose, delete. With this feature, it is now possible
+            to make a C# proxy class sealed, eg when wrapping a class X, the virtual method modifiers
+            can be removed using:
+
+              %typemap(csclassmodifiers) X "public sealed class"
+              %csmethodmodifiers X::~X "public /*virtual*/";
+
+2018-04-18: olly
+	    [Python] Suppress new pycodestyle warning:
+	    E252 missing whitespace around parameter equals
+
+2018-04-07: goatshriek
+            [Ruby] #1213 Fix ruby %alias directive for global C/C++ functions.
+
+2018-04-03: olly
+	    [Ruby] Fix to pass Qnil instead of NULL to rb_funcall(), which silences GCC
+	    -Wconversion-null warning (on by default with recent GCC).
+
 2018-03-09: fultonwi
             [Java] #1184 Fix swigReleaseOwnership() and swigTakeOwnership() regression
             for non-director classes. Restores a dynamic_cast which was previously removed.
@@ -147,7 +185,7 @@ Version 4.0.0 (in progress)
 	    https://sourceforge.net/p/swig/bugs/826/
 
 2017-10-06: wsfulton
-            [Python] Issue #1108. Fix platorm inconsistency in Python default argument handling.
+            [Python] Issue #1108. Fix platform inconsistency in Python default argument handling.
             32 bit and 64 bit compiled versions of SWIG generated different Python files
             when default arguments were outside the range of 32 bit signed integers.
             The default arguments specified in Python are now only those that are in the

@@ -43,7 +43,7 @@
 }
 
 %typemap(throws, noblock=1) char, char& {
-  char obj[1];
+  char obj[2];
   sprintf(obj, "%c", (char)$1);
   SWIG_Scilab_Raise_Ex(obj, "$type", $descriptor);
 }

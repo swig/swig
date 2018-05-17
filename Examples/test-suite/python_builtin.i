@@ -2,14 +2,12 @@
 
 %module python_builtin
 
+// throw is invalid in C++17 and later, only SWIG to use it
+#define TESTCASE_THROW1(T1) throw(T1)
+#define TESTCASE_THROW2(T1, T2) throw(T1, T2)
 %{
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
-#endif
+#define TESTCASE_THROW1(T1)
+#define TESTCASE_THROW2(T1, T2)
 %}
 
 %inline %{
@@ -196,13 +194,13 @@ void Dealloc2Destroyer(PyObject *v) {
       return size;
     }
 
-    int __getitem__(Py_ssize_t n) throw (std::out_of_range) {
+    int __getitem__(Py_ssize_t n) TESTCASE_THROW1(std::out_of_range) {
       if (n >= (int)size)
         throw std::out_of_range("Index too large");
       return numbers[n];
     }
 
-    SimpleArray __getitem__(PySliceObject *slice) throw (std::out_of_range, std::invalid_argument) {
+    SimpleArray __getitem__(PySliceObject *slice) TESTCASE_THROW2(std::out_of_range, std::invalid_argument) {
       if (!PySlice_Check(slice))
         throw std::invalid_argument("Slice object expected");
       Py_ssize_t i, j, step;
@@ -228,11 +226,3 @@ void Dealloc2Destroyer(PyObject *v) {
   };
 %}
 
-%{
-#if defined(_MSC_VER)
-  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic pop
-#endif
-%}

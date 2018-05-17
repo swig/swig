@@ -186,19 +186,19 @@ then
                 if test "$with_next_framework" ; then
 		    LDSHARED="$LDSHARED \$(LDLIBRARY)"
 		fi ;;
-	*-*-linux*) LDSHARED="gcc -shared";;
+	*-*-linux*) LDSHARED="$CC -shared";;
 	*-*-dgux*) LDSHARED="ld -G";;
-	*-*-freebsd3*) LDSHARED="gcc -shared";;
+	*-*-freebsd3*) LDSHARED="$CC -shared";;
 	*-*-freebsd* | *-*-openbsd*) LDSHARED="ld -Bshareable";;
 	*-*-netbsd*)
 		if [[ "`$CC -dM -E - </dev/null | grep __ELF__`" != "" ]]
 		then
-			LDSHARED="cc -shared"
+			LDSHARED="$CC -shared"
 		else
 			LDSHARED="ld -Bshareable"
 		fi;;
-	*-sco-sysv*) LDSHARED="cc -G -KPIC -Ki486 -belf -Wl,-Bexport";;
-	*-*-darwin*) LDSHARED="cc -bundle -undefined suppress -flat_namespace";;
+	*-sco-sysv*) LDSHARED="$CC -G -KPIC -Ki486 -belf -Wl,-Bexport";;
+	*-*-darwin*) LDSHARED="$CC -bundle -undefined suppress -flat_namespace";;
 	*)	LDSHARED="ld";;
 	esac
 fi
@@ -904,7 +904,8 @@ fi
 AC_ARG_WITH(2to3, AS_HELP_STRING([--with-2to3=path], [Set location of Python 2to3 tool]), [PY2TO3BIN="$withval"], [PY2TO3BIN="yes"])
 if test -n "$PYTHON3"; then
   if test "x$PY2TO3BIN" = xyes; then
-    AC_CHECK_PROGS(PY2TO3, 2to3)
+    py3to2=`echo $PYTHON3 | sed -e "s/python/2to3-/"`
+    AC_CHECK_PROGS(PY2TO3, $py3to2 2to3)
   else
     PY2TO3="$PY2TO3BIN"
   fi
@@ -1502,7 +1503,7 @@ else
 
   # check for include files
   AC_MSG_CHECKING(for JavaScriptCore/JavaScript.h)
-  AC_ARG_WITH(jscoreinc, [  --with-jscinc=path      Set location of Javascript include directory], [JSCOREINCDIR="$withval"], [JSCOREINCDIR=])
+  AC_ARG_WITH(jscoreinc, [  --with-jscoreinc=path      Set location of Javascript include directory], [JSCOREINCDIR="$withval"], [JSCOREINCDIR=])
 
   JSCOREVERSION=
 
@@ -1536,7 +1537,7 @@ else
   fi
 
   # check for JavaScriptCore/Webkit libraries
-  AC_ARG_WITH(jscorelib,[  --with-jsclib=path      Set location of the JavaScriptCore/Webkit library directory],[JSCORELIB="-L$withval"], [JSCORELIB=])
+  AC_ARG_WITH(jscorelib,[  --with-jscorelib=path      Set location of the JavaScriptCore/Webkit library directory],[JSCORELIB="-L$withval"], [JSCORELIB=])
 
   if test -z "$JSCORELIB" -a -n "$PKGCONFIG"; then
     AC_MSG_CHECKING(for JavaScriptCore/Webkit library)
@@ -1560,7 +1561,7 @@ else
 
   # check for include files
   AC_MSG_CHECKING(for V8 Javascript v8.h)
-  AC_ARG_WITH(jsv8inc, [  --with-jsv8inc=path     Set location of Javascript v8 include directory], [JSV8INCDIR="$withval"])
+  AC_ARG_WITH(jsv8inc, [  --with-jsv8inc=path     Set location of Javascript v8 include directory], [JSV8INCDIR="$withval"], [JSV8INCDIR=])
 
   # if not include dir is specified we try to find
   if test -z "$JSV8INCDIR"; then
@@ -1714,17 +1715,28 @@ else
   fi
   if test -n "$GUILE_CONFIG" ; then
     if test x"$GUILE" = xyes; then
-      AC_MSG_CHECKING([for guile bindir])
-      guile_bindir="`$GUILE_CONFIG info bindir`"
-      AC_MSG_RESULT([$guile_bindir])
-      GUILE=$guile_bindir/guile
+      AC_MSG_CHECKING([for guile executable])
+      # Try extracting it via guile-config first. If it's defined there it's the most reliable result
+      GUILE="`$GUILE_CONFIG info guile 2>/dev/null`"
+      if test -n "$GUILE";  then
+        AC_MSG_RESULT([$GUILE])
+      else
+        AC_MSG_RESULT([not found via guile-config - constructing path])
+        AC_MSG_CHECKING([for guile bindir])
+        guile_bindir="`$GUILE_CONFIG info bindir`"
+        AC_MSG_RESULT([$guile_bindir])
+        GUILE="$guile_bindir/guile"
+      fi
       if ! test -f "$GUILE" ; then
-	GUILE=
+        GUILE=
         AC_PATH_PROG(GUILE, guile)
+      fi
+      if test -z "$GUILE" ; then
+        AC_MSG_WARN([no suitable guile executable found. Disabling Guile])
       fi
     fi
 
-    if test -f "$GUILE" ; then
+    if test -n "$GUILE" ; then
       AC_MSG_CHECKING([for guile version])
       guile_version=`$GUILE -c '(display (effective-version))'`
       AC_MSG_RESULT([$guile_version])
@@ -1732,20 +1744,33 @@ else
       guile_good_version=`$GUILE -c '(if (>= (string->number (effective-version)) 1.8) (display "yes") (display "no"))'`
       AC_MSG_RESULT([$guile_good_version])
       if test x"$guile_good_version" != xyes ; then
+        AC_MSG_WARN([at least guile version 1.8 is required. Disabling Guile])
         GUILE=
       fi
     fi
 
-    if test -z "$GUILE_CFLAGS" ; then
-      AC_MSG_CHECKING([for guile compile flags])
-      GUILE_CFLAGS="`$GUILE_CONFIG compile`" # Note that this can sometimes be empty
-      AC_MSG_RESULT([$GUILE_CFLAGS])
+    if test -n "$GUILE" ; then
+      # Test if guile-config and guile versions match. They should.
+      gc_version="`$GUILE_CONFIG --version 2>&1 | sed '1 s/.* //;q'`"
+      g_version="`$GUILE --version | sed '1 s/.* //;q'`"
+      if test "$gc_version" != "$g_version"; then
+        AC_MSG_WARN([different versions reported by $GUILE_CONFIG ($gc_version) and $GUILE ($g_version). Disabling Guile])
+        GUILE=
+      fi
     fi
 
-    if test -z "$GUILE_LIBS" ; then
-      AC_MSG_CHECKING([for guile link flags])
-      GUILE_LIBS="`$GUILE_CONFIG link`"
-      AC_MSG_RESULT([$GUILE_LIBS])
+    if test -n "$GUILE" ; then
+      if test -z "$GUILE_CFLAGS" ; then
+        AC_MSG_CHECKING([for guile compile flags])
+        GUILE_CFLAGS="`$GUILE_CONFIG compile`" # Note that this can sometimes be empty
+        AC_MSG_RESULT([$GUILE_CFLAGS])
+      fi
+
+      if test -z "$GUILE_LIBS" ; then
+        AC_MSG_CHECKING([for guile link flags])
+        GUILE_LIBS="`$GUILE_CONFIG link`"
+        AC_MSG_RESULT([$GUILE_LIBS])
+      fi
     fi
   fi
 fi
@@ -2594,7 +2619,7 @@ else
     GOVERSIONOPTION=version
     go_version=$($GO $GOVERSIONOPTION | sed -e 's/go version //')
     case "$go_version" in
-    go1 | go1.[[01234]]*)
+    go1 | go1.[[01234]] | go1.[[01234]].*)
       GOC=$(sh -c "$(go env) && echo \$GOCHAR")c
       ;;
     *)
@@ -2603,7 +2628,7 @@ else
     esac
     AC_MSG_CHECKING([whether go version is too old])
     case $go_version in
-    go1.1* | go1.0* | go1 )
+    go1.1.* | go1.1 | go1.0 | go1.0.* | go1 )
       AC_MSG_RESULT([yes - minimum version is 1.2])
       GO=
       GOOPT="-intgosize 32"
@@ -2621,13 +2646,13 @@ else
       ;;
     esac
     case $go_version in
-    go1.0* | go1 | go1.1*)
+    go1.0 | go1.0.* | go1 | go1.1 | go1.1.*)
       GOOPT="$GOOPT -use-shlib"
       ;;
-    go1.2*)
+    go1.2 | go1.2.*)
       GO12=true
       ;;
-    go1.3* | go1.4*)
+    go1.3 | go1.3.* | go1.4 | go1.4.*)
       GO13=true
       ;;
     *)

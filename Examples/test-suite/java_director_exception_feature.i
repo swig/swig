@@ -4,16 +4,6 @@
 
 %warnfilter(SWIGWARN_TYPEMAP_DIRECTORTHROWS_UNDEF) MyNS::Foo::directorthrows_warning;
 
-%{
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
-#endif
-%}
-
 %include <std_string.i>
 
 // DEFINE exceptions in header section using std::runtime_error
@@ -175,6 +165,18 @@ namespace MyNS {
 %catches(MyNS::Exception1,MyNS::Exception2,MyNS::Unexpected) MyNS::Foo::pong;
 %catches(MyNS::Exception1,MyNS::Exception2,MyNS::Unexpected) MyNS::Bar::pong;
 
+%{
+// throw is deprecated in C++11 and invalid in C++17 and later
+#if defined(__cplusplus) && __cplusplus >= 201103L
+#define throw(TYPE1, TYPE2)
+#else
+#define throw(TYPE1, TYPE2) throw(TYPE1, TYPE2)
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+#endif
+%}
+
 %inline %{
 
 namespace MyNS {
@@ -187,7 +189,7 @@ public:
   virtual std::string ping(int excp) throw(int,MyNS::Exception2) = 0;
   virtual std::string pong(int excp) /* throws MyNS::Exception1 MyNS::Exception2 MyNS::Unexpected) */ = 0;
   virtual std::string genericpong(int excp) /* unspecified throws - exception is always DirectorException in C++, translated back to whatever thrown in java */ = 0;
-  virtual std::string directorthrows_warning(int excp) throw(double) { return std::string(); }
+  virtual std::string directorthrows_warning(int excp) throw(int,double) { return std::string(); }
 };
 
 // Make a bar from a foo, so a call to Java Bar

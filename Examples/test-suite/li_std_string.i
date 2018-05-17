@@ -6,16 +6,11 @@
 %apply std::string& INOUT { std::string &inout }
 #endif
 
+// throw is invalid in C++17 and later, only SWIG to use it
+#define TESTCASE_THROW1(T1) throw(T1)
 %{
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
-#endif
+#define TESTCASE_THROW1(T1)
 %}
-
 
 %inline %{
 
@@ -59,28 +54,23 @@ void test_reference_inout(std::string &inout) {
   inout += inout;
 }
 
-void test_throw() throw(std::string){
+void test_throw() TESTCASE_THROW1(std::string){
   static std::string x = "test_throw message";
   throw x;
 }
 
-void test_const_reference_throw() throw(const std::string &){
+void test_const_reference_throw() TESTCASE_THROW1(const std::string &){
   static std::string x = "test_const_reference_throw message";
   throw x;
 }
 
-void test_pointer_throw() throw(std::string *) {
+void test_pointer_throw() TESTCASE_THROW1(std::string *) {
   throw new std::string("foo");
 }
 
-void test_const_pointer_throw() throw(const std::string *) {
+void test_const_pointer_throw() TESTCASE_THROW1(const std::string *) {
   throw new std::string("foo");
 }
-
-#if defined(_MSC_VER)
-  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-
 %}
 
 /* Old way, now std::string is a %naturalvar by default
@@ -162,11 +152,3 @@ public:
   }
 %}
 
-%{
-#if defined(_MSC_VER)
-  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic pop
-#endif
-%}

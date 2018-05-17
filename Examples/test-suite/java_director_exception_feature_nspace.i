@@ -11,16 +11,6 @@
 #define PACKAGESLASH "java_director_exception_feature_nspacePackage/"
 %}
 
-%{
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
-#endif
-%}
-
 %include <std_string.i>
 
 // DEFINE exceptions in header section using std::runtime_error
@@ -181,6 +171,18 @@ namespace MyNS {
 //   actual interface being wrapped does use them.
 %catches(MyNS::Exception1,MyNS::Exception2,MyNS::Unexpected) MyNS::Foo::pong;
 %catches(MyNS::Exception1,MyNS::Exception2,MyNS::Unexpected) MyNS::Bar::pong;
+
+%{
+// throw is deprecated in C++11 and invalid in C++17 and later
+#if defined(__cplusplus) && __cplusplus >= 201103L
+#define throw(TYPE1, TYPE2)
+#else
+#define throw(TYPE1, TYPE2) throw(TYPE1, TYPE2)
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+#endif
+%}
 
 %inline %{
 

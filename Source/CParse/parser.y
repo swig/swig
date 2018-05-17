@@ -4465,32 +4465,61 @@ cpp_using_decl : USING idcolon SEMI {
 
 cpp_namespace_decl : NAMESPACE idcolon LBRACE { 
                 Hash *h;
-                $1 = Swig_symbol_current();
-		h = Swig_symbol_clookup($2,0);
-		if (h && ($1 == Getattr(h,"sym:symtab")) && (Strcmp(nodeType(h),"namespace") == 0)) {
-		  if (Getattr(h,"alias")) {
-		    h = Getattr(h,"namespace");
-		    Swig_warning(WARN_PARSE_NAMESPACE_ALIAS, cparse_file, cparse_line, "Namespace alias '%s' not allowed here. Assuming '%s'\n",
-				 $2, Getattr(h,"name"));
-		    $2 = Getattr(h,"name");
+		Node *parent_ns = 0;
+		List *scopes = Swig_scopename_tolist($2);
+		int ilen = Len(scopes);
+		int i;
+
+/*
+Printf(stdout, "==== Namespace %s creation...\n", $2);
+*/
+		$<node>$ = 0;
+		for (i = 0; i < ilen; i++) {
+		  Node *ns = new_node("namespace");
+		  Symtab *current_symtab = Swig_symbol_current();
+		  String *scopename = Getitem(scopes, i);
+		  Setattr(ns, "name", scopename);
+		  $<node>$ = ns;
+		  if (parent_ns)
+		    appendChild(parent_ns, ns);
+		  parent_ns = ns;
+		  h = Swig_symbol_clookup(scopename, 0);
+		  if (h && (current_symtab == Getattr(h, "sym:symtab")) && (Strcmp(nodeType(h), "namespace") == 0)) {
+/*
+Printf(stdout, "  Scope %s [found C++17 style]\n", scopename);
+*/
+		    if (Getattr(h, "alias")) {
+		      h = Getattr(h, "namespace");
+		      Swig_warning(WARN_PARSE_NAMESPACE_ALIAS, cparse_file, cparse_line, "Namespace alias '%s' not allowed here. Assuming '%s'\n",
+				   scopename, Getattr(h, "name"));
+		      scopename = Getattr(h, "name");
+		    }
+		    Swig_symbol_setscope(Getattr(h, "symtab"));
+		  } else {
+/*
+Printf(stdout, "  Scope %s [creating single scope C++17 style]\n", scopename);
+*/
+		    h = Swig_symbol_newscope();
+		    Swig_symbol_setscopename(scopename);
 		  }
-		  Swig_symbol_setscope(Getattr(h,"symtab"));
-		} else {
-		  Swig_symbol_newscope();
-		  Swig_symbol_setscopename($2);
+		  Delete(Namespaceprefix);
+		  Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		}
-		Delete(Namespaceprefix);
-		Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		Delete(scopes);
              } interface RBRACE {
-                Node *n = $5;
-		set_nodeType(n,"namespace");
-		Setattr(n,"name",$2);
-                Setattr(n,"symtab", Swig_symbol_popscope());
-		Swig_symbol_setscope($1);
-		$$ = n;
-		Delete(Namespaceprefix);
-		Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		add_symbols($$);
+		Node *n = $<node>4;
+		Node *top_ns = 0;
+		do {
+		  Setattr(n, "symtab", Swig_symbol_popscope());
+		  Delete(Namespaceprefix);
+		  Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		  add_symbols(n);
+		  top_ns = n;
+		  n = parentNode(n);
+		} while(n);
+		appendChild($<node>4, firstChild($5));
+		Delete($5);
+		$$ = top_ns;
              } 
              | NAMESPACE LBRACE {
 	       Hash *h;

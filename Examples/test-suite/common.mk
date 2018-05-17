@@ -162,6 +162,8 @@ CPP_TEST_CASES += \
 	cpp_nodefault \
 	cpp_static \
 	cpp_typedef \
+	cpp17_nested_namespaces \
+	cpp17_nspace_nested_namespaces \
 	curiously_recurring_template_pattern \
 	default_args \
 	default_arg_expressions \
@@ -170,6 +172,7 @@ CPP_TEST_CASES += \
 	defvalue_constructor \
 	derived_byvalue \
 	derived_nested \
+	destructor_methodmodifiers \
 	destructor_reprotected \
 	director_abstract \
 	director_alternating \
@@ -183,6 +186,7 @@ CPP_TEST_CASES += \
 	director_enum \
 	director_exception \
 	director_exception_catches \
+	director_exception_nothrow \
 	director_extend \
 	director_finalizer \
 	director_frob \
@@ -352,7 +356,6 @@ CPP_TEST_CASES += \
 	redefined_not \
 	refcount \
 	reference_global_vars \
-	register_par \
 	rename1 \
 	rename2 \
 	rename3 \
@@ -695,6 +698,7 @@ C_TEST_CASES += \
 	preproc_defined \
 	preproc_include \
 	preproc_line_file \
+	register_par \
 	ret_by_value \
 	simple_array \
 	sizeof_pointer \

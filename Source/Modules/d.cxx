@@ -1227,8 +1227,9 @@ public:
 
     // Insert the dconstructor typemap (replacing $directorconnect as needed).
     Hash *attributes = NewHash();
+    String *typemap_lookup_type = Getattr(getCurrentClass(), "classtypeobj");
     String *construct_tm = Copy(lookupCodeTypemap(n, "dconstructor",
-      Getattr(n, "name"), WARN_D_TYPEMAP_DCONSTRUCTOR_UNDEF, attributes));
+      typemap_lookup_type, WARN_D_TYPEMAP_DCONSTRUCTOR_UNDEF, attributes));
     if (construct_tm) {
       const bool use_director = (parentNode(n) && Swig_directorclass(n));
       if (!use_director) {
@@ -1298,7 +1299,12 @@ public:
   virtual int destructorHandler(Node *n) {
     Language::destructorHandler(n);
     String *symname = Getattr(n, "sym:name");
+
     Printv(destructor_call, im_dmodule_fq_name, ".", Swig_name_destroy(getNSpace(),symname), "(cast(void*)swigCPtr)", NIL);
+    const String *methodmods = Getattr(n, "feature:d:methodmodifiers");
+    if (methodmods)
+      Setattr(getCurrentClass(), "destructmethodmodifiers", methodmods);
+
     return SWIG_OK;
   }
 
@@ -2497,8 +2503,8 @@ public:
       Printf(f_directors_h, "    virtual ~%s() noexcept;\n", dirclassname);
       Printf(w->def, "%s::~%s() noexcept {\n", dirclassname, dirclassname);
     } else if (Getattr(n, "throw")) {
-      Printf(f_directors_h, "    virtual ~%s() throw ();\n", dirclassname);
-      Printf(w->def, "%s::~%s() throw () {\n", dirclassname, dirclassname);
+      Printf(f_directors_h, "    virtual ~%s() throw();\n", dirclassname);
+      Printf(w->def, "%s::~%s() throw() {\n", dirclassname, dirclassname);
     } else {
       Printf(f_directors_h, "    virtual ~%s();\n", dirclassname);
       Printf(w->def, "%s::~%s() {\n", dirclassname, dirclassname);
@@ -3312,9 +3318,13 @@ private:
       }
 
       if (*Char(dispose_code)) {
-	Printv(body, "\n", dispose_methodmodifiers,
-	  (derived ? " override" : ""), " void ", dispose_methodname, "() ",
-	  dispose_code, "\n", NIL);
+	Printv(body, "\n", NIL);
+	const String *methodmods = Getattr(n, "destructmethodmodifiers");
+	if (methodmods)
+	  Printv(body, methodmods, NIL);
+	else
+	  Printv(body, dispose_methodmodifiers, (derived ? " override" : ""), NIL);
+	Printv(body, " void ", dispose_methodname, "() ", dispose_code, "\n", NIL);
       }
     }
 

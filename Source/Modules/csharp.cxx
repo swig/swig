@@ -1910,9 +1910,15 @@ public:
 	Replaceall(destruct, "$imcall", destructor_call);
       else
 	Replaceall(destruct, "$imcall", "throw new global::System.MethodAccessException(\"C++ destructor does not have public access\")");
-      if (*Char(destruct))
-	Printv(proxy_class_def, "\n  ", destruct_methodmodifiers, " ", derived ? "override" : "virtual", " void ", destruct_methodname, "() ", destruct, "\n",
-	       NIL);
+      if (*Char(destruct)) {
+	Printv(proxy_class_def, "\n  ", NIL);
+	const String *methodmods = Getattr(n, "destructmethodmodifiers");
+	if (methodmods)
+	  Printv(proxy_class_def, methodmods, NIL);
+	else
+	  Printv(proxy_class_def, destruct_methodmodifiers, " ", derived ? "override" : "virtual", NIL);
+	Printv(proxy_class_def, " void ", destruct_methodname, "() ", destruct, "\n", NIL);
+      }
     }
     if (*Char(interface_upcasts))
       Printv(proxy_class_def, interface_upcasts, NIL);
@@ -2782,7 +2788,8 @@ public:
 
       /* Insert the csconstruct typemap, doing the replacement for $directorconnect, as needed */
       Hash *attributes = NewHash();
-      String *construct_tm = Copy(typemapLookup(n, "csconstruct", Getattr(n, "name"),
+      String *typemap_lookup_type = Getattr(getCurrentClass(), "classtypeobj");
+      String *construct_tm = Copy(typemapLookup(n, "csconstruct", typemap_lookup_type,
 						WARN_CSHARP_TYPEMAP_CSCONSTRUCT_UNDEF, attributes));
       if (construct_tm) {
 	if (!feature_director) {
@@ -2860,7 +2867,11 @@ public:
 
     if (proxy_flag) {
       Printv(destructor_call, full_imclass_name, ".", Swig_name_destroy(getNSpace(), symname), "(swigCPtr)", NIL);
+      const String *methodmods = Getattr(n, "feature:cs:methodmodifiers");
+      if (methodmods)
+	Setattr(getCurrentClass(), "destructmethodmodifiers", methodmods);
     }
+
     return SWIG_OK;
   }
 
@@ -4398,8 +4409,8 @@ public:
       Printf(f_directors_h, "    virtual ~%s() noexcept;\n", dirclassname);
       Printf(w->def, "%s::~%s() noexcept {\n", dirclassname, dirclassname);
     } else if (Getattr(n, "throw")) {
-      Printf(f_directors_h, "    virtual ~%s() throw ();\n", dirclassname);
-      Printf(w->def, "%s::~%s() throw () {\n", dirclassname, dirclassname);
+      Printf(f_directors_h, "    virtual ~%s() throw();\n", dirclassname);
+      Printf(w->def, "%s::~%s() throw() {\n", dirclassname, dirclassname);
     } else {
       Printf(f_directors_h, "    virtual ~%s();\n", dirclassname);
       Printf(w->def, "%s::~%s() {\n", dirclassname, dirclassname);

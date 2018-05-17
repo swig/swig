@@ -4,6 +4,12 @@
 
 %warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR);
 
+// throw is invalid in C++17 and later, only SWIG to use it
+#define TESTCASE_THROW2(T1, T2) throw(T1, T2)
+%{
+#define TESTCASE_THROW2(T1, T2)
+%}
+
 // change the access to the intermediary class for testing purposes
 %pragma(java) jniclassclassmodifiers="public class";
 %pragma(csharp) imclassclassmodifiers="public class";
@@ -41,14 +47,6 @@ template<class T> class vector {
   void testconst(const T x) { }
 };
 
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
-#endif
-
 class Base {
 public:
   Base() : mVectInt(0) {}
@@ -69,14 +67,8 @@ public:
   virtual Base& m1(Base &b) { return b; }
   virtual Base* m2(Base *b) { return b; }
 //  virtual Base m3(Base b) { return b; }
-  void throwspec() throw (int, Base) {}
+  void throwspec() TESTCASE_THROW2(int, Base) {}
 };
-#if defined(_MSC_VER)
-  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic pop
-#endif
 %}
 
 %template(maxint) maximum<int>;
