@@ -1227,8 +1227,9 @@ public:
 
     // Insert the dconstructor typemap (replacing $directorconnect as needed).
     Hash *attributes = NewHash();
+    String *typemap_lookup_type = Getattr(getCurrentClass(), "classtypeobj");
     String *construct_tm = Copy(lookupCodeTypemap(n, "dconstructor",
-      Getattr(n, "name"), WARN_D_TYPEMAP_DCONSTRUCTOR_UNDEF, attributes));
+      typemap_lookup_type, WARN_D_TYPEMAP_DCONSTRUCTOR_UNDEF, attributes));
     if (construct_tm) {
       const bool use_director = (parentNode(n) && Swig_directorclass(n));
       if (!use_director) {
