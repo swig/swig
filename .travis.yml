@@ -361,6 +361,12 @@ matrix:
       env: SWIGLANG=ocaml
       sudo: required
       dist: trusty
+    # Sometimes hits the Travis 50 minute time limit
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.4 CPP11=1
+      sudo: required
+      dist: trusty
     # Not quite working yet
     - compiler: gcc
       os: linux
