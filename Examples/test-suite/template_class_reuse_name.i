@@ -26,7 +26,7 @@ namespace Space {
 %template(Bool4False) Space::Bool4<false>;
 
 
-// Forward declarated templates
+// Forward declared templates
 %inline %{
 namespace Space {
   template <bool B> struct BoolForward1;

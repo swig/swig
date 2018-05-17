@@ -51,7 +51,7 @@ swigexample.print_vars();
 
 printf("\nNow I'm going to try and modify some read only variables\n");
 
-printf("     Tring to set 'path'\n");
+printf("     Trying to set 'path'\n");
 try
     swigexample.cvar.path = "Whoa!";
     printf("Hey, what's going on?!?! This shouldn't work\n");

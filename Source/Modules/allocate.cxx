@@ -504,7 +504,7 @@ class Allocate:public Dispatcher {
 
        in emit.cxx
 
-       and is either constructued from the "feature:catches" feature
+       and is either constructed from the "feature:catches" feature
        or copied from the node "throws" list.
      */
     String *scatchlist = Getattr(n, "feature:catches");

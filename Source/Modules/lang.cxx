@@ -3521,7 +3521,7 @@ int Language::need_nonpublic_ctor(Node *n) {
 
      Note: given all the complications here, I am always in favor to
      always enable 'dirprot', since is the C++ idea of protected
-     members, and use %ignore for the method you don't whan to add in
+     members, and use %ignore for the method you don't want to add in
      the director class.
    */
   if (directorsEnabled()) {
@@ -3781,7 +3781,7 @@ int Language::abstractClassTest(Node *n) {
     if (dirabstract) {
       if (is_public(dirabstract)) {
 	Swig_warning(WARN_LANG_DIRECTOR_ABSTRACT, Getfile(n), Getline(n),
-		     "Director class '%s' is abstract, abstract method '%s' is not accesible, maybe due to multiple inheritance or 'nodirector' feature\n",
+		     "Director class '%s' is abstract, abstract method '%s' is not accessible, maybe due to multiple inheritance or 'nodirector' feature\n",
 		     SwigType_namestr(Getattr(n, "name")), Getattr(dirabstract, "name"));
       } else {
 	Swig_warning(WARN_LANG_DIRECTOR_ABSTRACT, Getfile(n), Getline(n),

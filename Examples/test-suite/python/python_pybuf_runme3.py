@@ -6,7 +6,7 @@ import sys
 if len(sys.argv) >= 2 and sys.argv[1] == "benchmark":
     # run the benchmark
     import time
-    k = 1000000  # number of times to excute the functions
+    k = 1000000  # number of times to execute the functions
 
     t = time.time()
     a = bytearray(b'hello world')

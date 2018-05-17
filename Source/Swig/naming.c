@@ -1055,7 +1055,7 @@ static void name_nameobj_add(Hash *name_hash, List *name_list, String *prefix, S
       Setattr(nameobj, "decl", decl);
     if (nname && Len(nname))
       Setattr(nameobj, "targetname", nname);
-    /* put the new nameobj at the beginnig of the list, such that the
+    /* put the new nameobj at the beginning of the list, such that the
        last inserted rule take precedence */
     Insert(name_list, 0, nameobj);
   } else {

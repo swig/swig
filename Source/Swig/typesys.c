@@ -570,7 +570,7 @@ static SwigType *_typedef_resolve(Typetab *s, String *base, int look_parent) {
   List *inherit;
   Typetab *parent;
 
-  /* if (!s) return 0; *//* now is checked bellow */
+  /* if (!s) return 0; *//* now is checked below */
   /* Printf(stdout,"Typetab %s : %s\n", Getattr(s,"name"), base);  */
 
   if (!Getmark(s)) {

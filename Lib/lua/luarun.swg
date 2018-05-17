@@ -181,7 +181,7 @@ typedef struct swig_elua_entry {
 
 /* Push the string STR on the Lua stack, like lua_pushstring, but
    prefixed with the location of the innermost Lua call-point
-   (as formated by luaL_where).  */
+   (as formatted by luaL_where).  */
 SWIGRUNTIME void
 SWIG_Lua_pusherrstring (lua_State *L, const char *str)
 {
@@ -192,7 +192,7 @@ SWIG_Lua_pusherrstring (lua_State *L, const char *str)
 
 /* Push a formatted string generated from FMT and following args on
    the Lua stack, like lua_pushfstring, but prefixed with the
-   location of the innermost Lua call-point (as formated by luaL_where).  */
+   location of the innermost Lua call-point (as formatted by luaL_where).  */
 SWIGRUNTIME void
 SWIG_Lua_pushferrstring (lua_State *L, const char *fmt, ...)
 {
@@ -289,7 +289,7 @@ to tell the two structures apart within SWIG, other than by looking at the type
 typedef struct {
   swig_type_info   *type;
   int     own;  /* 1 if owned & must be destroyed */
-  char data[1];       /* arbitary amount of data */    
+  char data[1];       /* arbitrary amount of data */    
 } swig_lua_rawdata;
 
 /* Common SWIG API */
