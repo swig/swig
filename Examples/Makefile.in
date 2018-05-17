@@ -463,7 +463,7 @@ octave_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 octave_run:
-	OCTAVE_HISTFILE=/dev/null $(RUNTOOL) $(OCTAVE) $(OCTAVE_SCRIPT) $(RUNPIPE)
+	env OCTAVE_PATH= OCTAVE_HISTFILE=/dev/null $(RUNTOOL) $(OCTAVE) $(OCTAVE_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
