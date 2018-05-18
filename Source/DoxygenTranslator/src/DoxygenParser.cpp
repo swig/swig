@@ -138,7 +138,7 @@ DoxygenParser::commandBelongs(const std::string &theCommand)
   }
 
   // Check if this command is defined as an alias.
-  if (String* const alias = Getattr(m_node, ("feature:doxygen:alias:" + theCommand).c_str())) {
+  if (Getattr(m_node, ("feature:doxygen:alias:" + theCommand).c_str())) {
     return COMMAND_ALIAS;
   }
 
