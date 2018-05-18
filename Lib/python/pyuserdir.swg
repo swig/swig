@@ -163,7 +163,7 @@ These methods "may be called" if needed.
 
 /* ------------------------------------------------------------------------- */
 /*
-  Enable keywords paramaters
+  Enable keywords parameters
 */
 
 #define %kwargs      %feature("kwargs") 

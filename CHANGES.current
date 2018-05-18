@@ -7,6 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-05-15: kwwette
+            [Octave] add support for version 4.4
+            - Should not introduce any user-visible incompatibilities
+
+2018-05-15: wsfulton
+            [C#, D, Java] Fix lookup of csconstruct, dconstruct and javaconstruct typemaps.
+            The C++ namespace was previously ignored when looking up the typemap.
+
+2018-05-15: wsfulton
+            [Javascript] Fix generated C++ code when using %nspace on namespaces that are more
+            than two levels deep.
+
 2018-05-14: wsfulton
             Issue #1251 Add support for C++17 nested namespace definitions,
             for example:
@@ -55,7 +67,7 @@ Version 4.0.0 (in progress)
             std_complex.i.
 
 2018-01-30: smarchetto
-            [Scilab] add type name argument in SWIG_ptr() function to cast from pointer adress to typed pointers
+            [Scilab] add type name argument in SWIG_ptr() function to cast from pointer address to typed pointers
 
 2018-01-16: wsfulton
             Expressions following a preprocessor directive must now be separated by whitespace
@@ -189,7 +201,7 @@ Version 4.0.0 (in progress)
 
 2017-10-01: joequant
             allow R package names with docs
-	    allowing mulitple get accessors in R
+	    allowing multiple get accessors in R
 	    fix smrt-pointer and NAMESPACE support
 	    constructors now returning smart pointers (if class
 	    declared as such)

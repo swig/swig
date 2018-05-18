@@ -6,7 +6,7 @@ function checkerror(ierr, cmd)
   if ierr <> 0 then swigtesterror("error " + string(ierr) + " in """ + cmd + """"); end
 endfunction
 
-// test container of pointers returned from fonction (expected a list)
+// test container of pointers returned from function (expected a list)
 function [classAPtr_list, classAPtr1, classAPtr2] = testCreateContainerPtr(container, value1, value2)
   classAPtr1 = new_ClassA(value1);
   classAPtr2 = new_ClassA(value2);
@@ -57,7 +57,7 @@ endfunction
 //     computed on the container
 function testContainerType(container, value_type, value1, value2, ..
   expected_returned_container, expected_accumulate_value)
-  // test container of basic type returned from fonction
+  // test container of basic type returned from function
   func = msprintf("ret_%s_%s", value_type, container);
   if value_type == "string" then
     cmd = msprintf("c = %s(''%s'', ''%s'');", func, value1, value2);

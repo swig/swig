@@ -512,7 +512,7 @@ static void add_symbols(Node *n) {
 	SetFlag(n, "feature:ignore");
       }
       if (!GetFlag(n, "feature:ignore") && Strcmp(symname,"$ignore") == 0) {
-	/* Add feature:ignore if the symbol was explicitely ignored, regardless of visibility */
+	/* Add feature:ignore if the symbol was explicitly ignored, regardless of visibility */
 	SetFlag(n, "feature:ignore");
       }
     } else {
@@ -3789,7 +3789,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		       if ($9) {
 			 appendSibling($$, $9);
 		       }
-		     } else if (!SwigType_istemplate(ty) && template_parameters == 0) { /* for tempalte we need the class itself */
+		     } else if (!SwigType_istemplate(ty) && template_parameters == 0) { /* for template we need the class itself */
 		       $$ = $9;
 		     }
 		   } else {

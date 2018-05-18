@@ -72,8 +72,8 @@ class JAVA:public Language {
   String *module_baseclass;	//inheritance for module class from %pragma
   String *imclass_interfaces;	//interfaces for intermediary class class from %pragma
   String *module_interfaces;	//interfaces for module class from %pragma
-  String *imclass_class_modifiers;	//class modifiers for intermediary class overriden by %pragma
-  String *module_class_modifiers;	//class modifiers for module class overriden by %pragma
+  String *imclass_class_modifiers;	//class modifiers for intermediary class overridden by %pragma
+  String *module_class_modifiers;	//class modifiers for module class overridden by %pragma
   String *upcasts_code;		//C++ casts for inheritance hierarchies C++ code
   String *imclass_cppcasts_code;	//C++ casts up inheritance hierarchies intermediary class code
   String *imclass_directors;	// Intermediate class director code
@@ -168,7 +168,7 @@ public:
   /* -----------------------------------------------------------------------------
    * constructIntermediateClassName()
    *
-   * Construct the fully qualified name of the intermidiate class and set
+   * Construct the fully qualified name of the intermediate class and set
    * the full_imclass_name attribute accordingly.
    * ----------------------------------------------------------------------------- */
   void constructIntermediateClassName(Node *n) {
@@ -2767,7 +2767,8 @@ public:
 
       /* Insert the javaconstruct typemap, doing the replacement for $directorconnect, as needed */
       Hash *attributes = NewHash();
-      String *construct_tm = Copy(typemapLookup(n, "javaconstruct", Getattr(n, "name"),
+      String *typemap_lookup_type = Getattr(getCurrentClass(), "classtypeobj");
+      String *construct_tm = Copy(typemapLookup(n, "javaconstruct", typemap_lookup_type,
 						WARN_JAVA_TYPEMAP_JAVACONSTRUCT_UNDEF, attributes));
       if (construct_tm) {
 	if (!feature_director) {

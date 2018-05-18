@@ -463,7 +463,7 @@ octave_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 octave_run:
-	OCTAVE_HISTFILE=/dev/null $(RUNTOOL) $(OCTAVE) $(OCTAVE_SCRIPT) $(RUNPIPE)
+	env OCTAVE_PATH= OCTAVE_HISTFILE=/dev/null $(RUNTOOL) $(OCTAVE) $(OCTAVE_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -671,7 +671,7 @@ javascript_build: $(SRCDIR_SRCS)
 javascript_build_cpp: $(SRCDIR_SRCS)
 ifeq (node,$(JSENGINE))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
-	$(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+	MAKEFLAGS= $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
 else
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)

@@ -31,7 +31,7 @@
 	  SwigVar_PyObject items = PyObject_CallMethod(obj,(char *)"items",NULL);
 %#if PY_VERSION_HEX >= 0x03000000
           /* In Python 3.x the ".items()" method return a dict_items object */
-          items = PySequence_Fast(items, ".items() havn't returned a sequence!");
+          items = PySequence_Fast(items, ".items() haven't returned a sequence!");
 %#endif
 	  res = traits_asptr_stdseq<std::unordered_map<K,T>, std::pair<K, T> >::asptr(items, val);
 	} else {

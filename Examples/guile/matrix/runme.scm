@@ -12,7 +12,7 @@
 ;;; Explanation: The three lines at the beginning of this script are
 ;;; telling the kernel to load the enhanced guile interpreter named
 ;;; "matrix"; to execute the function "do-test" (-e option) after loading
-;;; this script (-s option). There are a lot more options wich allow for
+;;; this script (-s option). There are a lot more options which allow for
 ;;; even finer tuning. SEE ALSO: Section "Guile Scripts" in the "Guile
 ;;; reference manual -- Part I: Preliminaries".
 ;;;

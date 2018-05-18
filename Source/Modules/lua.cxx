@@ -141,7 +141,7 @@ private:
   // This variable holds the name of the current class in Lua. Usually it is
   // the same as C++ class name, but rename directives can change it.
   String *proxy_class_name;
-  // This is a so calld fully qualified symname - the above proxy class name
+  // This is a so called fully qualified symname - the above proxy class name
   // prepended with class namespace. If class Lua name is the same as class C++ name,
   // then it is basically C++ fully qualified name with colons replaced with dots.
   String *full_proxy_class_name;	
@@ -1359,7 +1359,7 @@ public:
     String *rt = Copy(getClassType());
     SwigType_add_pointer(rt);
 
-    // Adding class to apropriate namespace
+    // Adding class to appropriate namespace
     registerClass(nspace, wrap_class_name);
     Hash *nspaceHash = getCArraysHash(nspace);
 
@@ -1461,7 +1461,7 @@ public:
     assert(proxy_class_name);
     assert(full_proxy_class_name);
     
-    // Then print class isntance part
+    // Then print class instance part
     Printv(f_wrappers, "static swig_lua_class *swig_", mangled_full_proxy_class_name, "_bases[] = {", base_class, "0};\n", NIL);
     Delete(base_class);
     Printv(f_wrappers, "static const char *swig_", mangled_full_proxy_class_name, "_base_names[] = {", base_class_names, "0};\n", NIL);
@@ -2110,7 +2110,7 @@ public:
       // variable in resulting file
       getCArraysHash(0);
     }
-    // Because we cant access directly 'symtabs', instead we access
+    // Because we can't directly access 'symtabs', instead we access
     // top-level scope and look on all scope pseudo-symbols in it.
     Hash *top_scope = symbolScopeLookup("");
     assert(top_scope);
@@ -2193,7 +2193,7 @@ public:
 
   String *luaCurrentSymbolNSpace() {
     String *scope = 0;
-    // If ouside class, than NSpace is used.
+    // If outside class, than NSpace is used.
     // If inside class, but current[NO_CPP], then this is friend function. It belongs to NSpace
     if (!getCurrentClass() || current[NO_CPP]) {
       scope = getNSpace();

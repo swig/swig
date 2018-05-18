@@ -765,7 +765,7 @@ public:
 
 
   /* ------------------------------------------------------------
-   * validIdentifer()
+   * validIdentifier()
    * ------------------------------------------------------------ */
 
   virtual int validIdentifier(String *s) {

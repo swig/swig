@@ -109,11 +109,11 @@ SWIGINTERN void SWIG_V8_Raise(const char *msg) {
   Note: There are two contexts for handling errors.
   A static V8ErrorHandler is used in not overloaded methods.
   For overloaded methods the throwing type checking mechanism is used
-  during dispatching. As V8 exceptions can not be resetted properly
+  during dispatching. As V8 exceptions can not be reset properly
   the trick is to use a dynamic ErrorHandler with same local name as the global
   one.
 
-  - See defintion of SWIG_Error above.
+  - See definition of SWIG_Error above.
   - See code templates 'JS_function_dispatcher', 'JS_functionwrapper_overload',
     and 'JS_function_dispatch_case' in javascriptcode.swg
 

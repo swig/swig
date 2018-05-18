@@ -29,7 +29,7 @@ CPP_STD_TEST_CASES += \
 
 include $(srcdir)/../common.mk
 
-# Overriden variables
+# Overridden variables
 SRCDIR = ../$(srcdir)/
 
 # Local variables

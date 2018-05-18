@@ -3,7 +3,7 @@
  *
  * Implement a C++ 'output' iterator for Ruby.
  *
- * Users can derive form the Iterator to implemet their
+ * Users can derive form the Iterator to implement their
  * own iterators. As an example (real one since we use it for STL/STD
  * containers), the template Iterator_T does the
  * implementation for generic C++ iterators.

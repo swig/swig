@@ -567,7 +567,11 @@ namespace swig {
 	  if (seq) *seq = p;
 	  return SWIG_OLDOBJ;
 	}
+%#if SWIG_OCTAVE_PREREQ(4,4,0)
+      } else if (obj.iscell()) {
+%#else
       } else if (obj.is_cell()) {
+%#endif
 	try {
 	  OctSequence_Cont<value_type> octseq(obj);
 	  if (seq) {
