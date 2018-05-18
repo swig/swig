@@ -254,12 +254,8 @@ SwigPyStaticVar_Type(void) {
       0,                                        /* tp_cache */
       0,                                        /* tp_subclasses */
       0,                                        /* tp_weaklist */
-#if PY_VERSION_HEX >= 0x02030000
       0,                                        /* tp_del */
-#endif
-#if PY_VERSION_HEX >= 0x02060000
       0,                                        /* tp_version_tag */
-#endif
 #if PY_VERSION_HEX >= 0x03040000
       0,                                        /* tp_finalize */
 #endif
@@ -267,20 +263,14 @@ SwigPyStaticVar_Type(void) {
       0,                                        /* tp_allocs */
       0,                                        /* tp_frees */
       0,                                        /* tp_maxalloc */
-#if PY_VERSION_HEX >= 0x02050000
       0,                                        /* tp_prev */
-#endif
       0                                         /* tp_next */
 #endif
     };
     staticvar_type = tmp;
     type_init = 1;
-#if PY_VERSION_HEX < 0x02020000
-    staticvar_type.ob_type = &PyType_Type;
-#else
     if (PyType_Ready(&staticvar_type) < 0)
       return NULL;
-#endif
   }
   return &staticvar_type;
 }
@@ -342,12 +332,8 @@ SwigPyObjectType(void) {
       0,                                        /* tp_cache */
       0,                                        /* tp_subclasses */
       0,                                        /* tp_weaklist */
-#if PY_VERSION_HEX >= 0x02030000
       0,                                        /* tp_del */
-#endif
-#if PY_VERSION_HEX >= 0x02060000
       0,                                        /* tp_version_tag */
-#endif
 #if PY_VERSION_HEX >= 0x03040000
       0,                                        /* tp_finalize */
 #endif
@@ -355,21 +341,15 @@ SwigPyObjectType(void) {
       0,                                        /* tp_allocs */
       0,                                        /* tp_frees */
       0,                                        /* tp_maxalloc */
-#if PY_VERSION_HEX >= 0x02050000
       0,                                        /* tp_prev */
-#endif
       0                                         /* tp_next */
 #endif
     };
     swigpyobjecttype_type = tmp;
     type_init = 1;
     swigpyobjecttype_type.tp_base = &PyType_Type;
-#if PY_VERSION_HEX < 0x02020000
-    swigpyobjecttype_type.ob_type = &PyType_Type;
-#else
     if (PyType_Ready(&swigpyobjecttype_type) < 0)
       return NULL;
-#endif
   }
   return &swigpyobjecttype_type;
 }

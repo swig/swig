@@ -175,15 +175,9 @@ swig_varlink_type(void) {
       0,                                  /* tp_clear */
       0,                                  /* tp_richcompare */
       0,                                  /* tp_weaklistoffset */
-#if PY_VERSION_HEX >= 0x02020000
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, /* tp_iter -> tp_weaklist */
-#endif
-#if PY_VERSION_HEX >= 0x02030000
       0,                                  /* tp_del */
-#endif
-#if PY_VERSION_HEX >= 0x02060000
       0,                                  /* tp_version_tag */
-#endif
 #if PY_VERSION_HEX >= 0x03040000
       0,                                  /* tp_finalize */
 #endif
@@ -191,20 +185,14 @@ swig_varlink_type(void) {
       0,                                  /* tp_allocs */
       0,                                  /* tp_frees */
       0,                                  /* tp_maxalloc */
-#if PY_VERSION_HEX >= 0x02050000
       0,                                  /* tp_prev */
-#endif
       0                                   /* tp_next */
 #endif
     };
     varlink_type = tmp;
     type_init = 1;
-#if PY_VERSION_HEX < 0x02020000
-    varlink_type.ob_type = &PyType_Type;
-#else
     if (PyType_Ready(&varlink_type) < 0)
       return NULL;
-#endif
   }
   return &varlink_type;
 }

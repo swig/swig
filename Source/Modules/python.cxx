@@ -755,30 +755,6 @@ public:
 
     Printf(f_runtime, "\n");
 
-    Printf(f_header, "#if (PY_VERSION_HEX <= 0x02000000)\n");
-    Printf(f_header, "# if !defined(SWIG_PYTHON_CLASSIC)\n");
-    Printf(f_header, "#  error \"This python version requires swig to be run with the '-classic' option\"\n");
-    Printf(f_header, "# endif\n");
-    Printf(f_header, "#endif\n");
-
-    if (modern) {
-      Printf(f_header, "#if (PY_VERSION_HEX <= 0x02020000)\n");
-      Printf(f_header, "# error \"This python version requires swig to be run with the '-nomodern' option\"\n");
-      Printf(f_header, "#endif\n");
-    }
-
-    if (modernargs) {
-      Printf(f_header, "#if (PY_VERSION_HEX <= 0x02020000)\n");
-      Printf(f_header, "# error \"This python version requires swig to be run with the '-nomodernargs' option\"\n");
-      Printf(f_header, "#endif\n");
-    }
-
-    if (fastunpack) {
-      Printf(f_header, "#ifndef METH_O\n");
-      Printf(f_header, "# error \"This python version requires swig to be run with the '-nofastunpack' option\"\n");
-      Printf(f_header, "#endif\n");
-    }
-
     if (fastquery) {
       Printf(f_header, "#ifdef SWIG_TypeQuery\n");
       Printf(f_header, "# undef SWIG_TypeQuery\n");
@@ -863,9 +839,7 @@ public:
        * import, and there is thus no guarantee that the C-extension is on
        * sys.path.  Relative imports must be explicitly specified from 2.6.0
        * onwards (implicit relative imports will raise a DeprecationWarning
-       * in 2.6, and fail in 2.7 onwards), but the relative import syntax
-       * isn't available in python 2.4 or earlier, so we have to write some
-       * code conditional on the python version.
+       * in 2.6, and fail in 2.7 onwards).
        *
        * For python 2.7.0 and newer, first determine the shadow wrappers package
        * based on the __name__ it was given by the importer that loaded it.
@@ -907,7 +881,7 @@ public:
       Printf(default_import_code, tab4 "%s = swig_import_helper()\n", module);
       Printv(default_import_code, tab4, "del swig_import_helper\n", NULL);
       Printv(default_import_code, "else:\n", NULL);
-      Printf(default_import_code, tab4 "import %s\n", module);
+      Printv(default_import_code, tab4, "raise RuntimeError('Python 2.6 or later required')\n", NULL);
 
       if (builtin) {
         /*
@@ -938,10 +912,6 @@ public:
       /* Delete the _swig_python_version_info symbol since we don't use it elsewhere in the
        * module. */
       Printv(default_import_code, "del _swig_python_version_info\n\n", NULL);
-
-      if (modern || !classic) {
-	Printv(f_shadow, "try:\n", tab4, "_swig_property = property\n", "except NameError:\n", tab4, "pass  # Python < 2.2 doesn't have 'property'.\n\n", NULL);
-      }
 
       /* Need builtins to qualify names like Exception that might also be
          defined in this module (try both Python 3 and Python 2 names) */
@@ -1012,9 +982,7 @@ public:
       }
 
       if (directorsEnabled()) {
-	// Try loading weakref.proxy, which is only available in Python 2.1 and higher
-	Printv(f_shadow,
-	       "try:\n", tab4, "import weakref\n", tab4, "weakref_proxy = weakref.proxy\n", "except __builtin__.Exception:\n", tab4, "weakref_proxy = lambda x: x\n", "\n\n", NIL);
+	Printv(f_shadow, "import weakref\n\n", NIL);
       }
     }
     // Include some information in the code
@@ -3961,7 +3929,7 @@ public:
 	Printv(f_shadow, tab8, "self.this.disown()\n", NIL);
 #endif
 	Printv(f_shadow, tab8, module, ".", mrename, "(self)\n", NIL);
-	Printv(f_shadow, tab8, "return weakref_proxy(self)\n", NIL);
+	Printv(f_shadow, tab8, "return weakref.proxy(self)\n", NIL);
 	Delete(mrename);
       }
     }
@@ -4253,9 +4221,7 @@ public:
     printSlot(f, getSlot(n, "feature:python:tp_subclasses"), "tp_subclasses", "PyObject *");
     printSlot(f, getSlot(n, "feature:python:tp_weaklist"), "tp_weaklist", "PyObject *");
     printSlot(f, getSlot(n, "feature:python:tp_del"), "tp_del", "destructor");
-    Printv(f, "#if PY_VERSION_HEX >= 0x02060000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_version_tag"), "tp_version_tag", "int");
-    Printv(f, "#endif\n", NIL);
     Printv(f, "#if PY_VERSION_HEX >= 0x03040000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_finalize"), "tp_finalize", "destructor");
     Printv(f, "#endif\n", NIL);
@@ -4263,9 +4229,7 @@ public:
     printSlot(f, getSlot(n, "feature:python:tp_allocs"), "tp_allocs", "Py_ssize_t");
     printSlot(f, getSlot(n, "feature:python:tp_frees"), "tp_frees", "Py_ssize_t");
     printSlot(f, getSlot(n, "feature:python:tp_maxalloc"), "tp_maxalloc", "Py_ssize_t");
-    Printv(f, "#if PY_VERSION_HEX >= 0x02050000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_prev"), "tp_prev");
-    Printv(f, "#endif\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_next"), "tp_next");
     Printv(f, "#endif\n", NIL);
     Printf(f, "  },\n");
@@ -4331,9 +4295,7 @@ public:
     printSlot(f, getSlot(n, "feature:python:nb_divide"), "nb_true_divide", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_inplace_floor_divide"), "nb_inplace_floor_divide", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_inplace_divide"), "nb_inplace_true_divide", "binaryfunc");
-    Printv(f, "#if PY_VERSION_HEX >= 0x02050000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:nb_index"), "nb_index", "unaryfunc");
-    Printv(f, "#endif\n", NIL);
     Printv(f, "#if PY_VERSION_HEX >= 0x03050000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:nb_matrix_multiply"), "nb_matrix_multiply", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_inplace_matrix_multiply"), "nb_inplace_matrix_multiply", "binaryfunc");
@@ -4377,10 +4339,8 @@ public:
     printSlot(f, getSlot(n, "feature:python:bf_getsegcount"), "bf_getsegcount", "segcountproc");
     printSlot(f, getSlot(n, "feature:python:bf_getcharbuffer"), "bf_getcharbuffer", "charbufferproc");
     Printv(f, "#endif\n", NIL);
-    Printv(f, "#if PY_VERSION_HEX >= 0x02060000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:bf_getbuffer"), "bf_getbuffer", "getbufferproc");
     printSlot(f, getSlot(n, "feature:python:bf_releasebuffer"), "bf_releasebuffer", "releasebufferproc");
-    Printv(f, "#endif\n", NIL);
     Printf(f, "  },\n");
 
     // PyObject *ht_name, *ht_slots, *ht_qualname;
@@ -4590,7 +4550,7 @@ public:
 
 	  Printv(f_shadow, tab4, "__getattr__ = lambda self, name: _swig_getattr(self, ", class_name, ", name)\n", NIL);
 	} else {
-	  Printv(f_shadow, tab4, "thisown = _swig_property(lambda x: x.this.own(), ", "lambda x, v: x.this.own(v), doc='The membership flag')\n", NIL);
+	  Printv(f_shadow, tab4, "thisown = property(lambda x: x.this.own(), ", "lambda x, v: x.this.own(v), doc='The membership flag')\n", NIL);
 	  /* Add static attribute */
 	  if (GetFlag(n, "feature:python:nondynamic")) {
 	    Printv(f_shadow_file,
@@ -5182,7 +5142,7 @@ public:
       if (!classic) {
 	if (!modern)
 	  Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
-	Printv(f_shadow, tab4, symname, " = _swig_property(", module, ".", getname, NIL);
+	Printv(f_shadow, tab4, symname, " = property(", module, ".", getname, NIL);
 	if (assignable)
 	  Printv(f_shadow, ", ", module, ".", setname, NIL);
 	Printv(f_shadow, ")\n", NIL);
@@ -5256,7 +5216,7 @@ public:
 	if (!classic && !builtin) {
 	  if (!modern)
 	    Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
-	  Printv(f_shadow, tab4, symname, " = _swig_property(", module, ".", getname, NIL);
+	  Printv(f_shadow, tab4, symname, " = property(", module, ".", getname, NIL);
 	  if (assignable)
 	    Printv(f_shadow, ", ", module, ".", setname, NIL);
 	  Printv(f_shadow, ")\n", NIL);
