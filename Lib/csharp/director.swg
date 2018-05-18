@@ -46,5 +46,8 @@ namespace Swig {
       throw DirectorPureVirtualException(msg);
     }
   };
+
+  /* Represents a GCHandle to a callback */
+  typedef void* GCHandle;
 }
 

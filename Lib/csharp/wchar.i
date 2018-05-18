@@ -19,16 +19,26 @@ static SWIG_CSharpWStringHelperCallback SWIG_csharp_wstring_callback = NULL;
 
 %pragma(csharp) imclasscode=%{
   protected class SWIGWStringHelper {
-    [MonoNativeFunctionWrapper]
-
-    [MonoNativeFunctionWrapper]
+%}
+#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
+%pragma(csharp) imclasscode=%{
+    [$imclassname.MonoNativeFunctionWrapper]
+%}
+#endif
+%pragma(csharp) imclasscode=%{
     public delegate string SWIGWStringDelegate(global::System.IntPtr message);
     static SWIGWStringDelegate wstringDelegate = new SWIGWStringDelegate(CreateWString);
 
     [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="SWIGRegisterWStringCallback_$module")]
     public static extern void SWIGRegisterWStringCallback_$module(SWIGWStringDelegate wstringDelegate);
 
-    [MonoPInvokeCallback(typeof(SWIGWStringDelegate))]
+%}
+#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
+%pragma(csharp) imclasscode=%{
+    [$imclassname.MonoPInvokeCallback(typeof(SWIGWStringDelegate))]
+%}
+#endif
+%pragma(csharp) imclasscode=%{
     static string CreateWString([global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]global::System.IntPtr cString) {
       return global::System.Runtime.InteropServices.Marshal.PtrToStringUni(cString);
     }
