@@ -10,16 +10,8 @@ def check(got, expected, expected_builtin=None, skip=False):
             expect = expected_builtin
         comment_verifier.check(got, expect)
 
-def is_new_style_class(cls):
-    return hasattr(cls, "__class__")
-
 def is_fastproxy(module):
     return "new_instancemethod" in module
-
-if not is_new_style_class(A):
-    # Missing static methods make this hard to test... skip if -classic is
-    # used!
-    sys.exit(0)
 
 if is_fastproxy(dir()):
     # Detect when -fastproxy is specified and skip test as it changes the function names making it

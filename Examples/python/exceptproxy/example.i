@@ -59,15 +59,15 @@
 */
 
 /*
-  Now, the EmptyError doesn't appear in a throw declaration, and hence
-  we need to 'mark' it as an exception class. In python, classes that 
-  are used as exception are 'special', and need to be wrapped as
-  'classic' ones.
+  Python classes that are used as exceptions need to be subclasses of the
+  "Exception" class, and so SWIG needs to know which wrapped classes may be
+  used in this way.  You can explicitly tell SWIG this by using
+  %exceptionclass.  SWIG will implicitly set this feature for classes which
+  appear in a throw declaration, but it's not a problem to explicitly
+  mark such classes as well.
 
-  This is a python issue, and if you don't mark the class, you will
-  see 'interesting' behaviours at the python side.
-  
-
+  This is a Python requirement - if you fail to mark such classes with
+  %exceptionclass you may see 'interesting' behaviour on the Python side.
 */
 %exceptionclass EmptyError;
 %exceptionclass FullError;

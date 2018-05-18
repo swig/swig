@@ -172,11 +172,6 @@ matrix:
       env: SWIGLANG=python SWIG_FEATURES=-O
       sudo: required
       dist: trusty
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=python SWIG_FEATURES=-classic
-      sudo: required
-      dist: trusty
 #    - compiler: gcc
 #      os: linux
 #      env: SWIGLANG=r

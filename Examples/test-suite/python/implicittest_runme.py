@@ -6,9 +6,6 @@ def check(a, b):
         raise RuntimeError(str(a) + " does not equal " + str(b))
 
 
-def is_new_style_class(cls):
-    return hasattr(cls, "__class__")
-
 #### Class ####
 
 # No implicit conversion
@@ -45,17 +42,13 @@ check(2, A_int(1.0).get())
 check(3, A_int(B()).get())
 check(4, A_int("hello").get())
 
-if is_new_style_class(A_int):
-    A_int_static = A_int
-else:
-    A_int_static = A_int(0)
-check(1, A_int_static.sget(1))
-check(2, A_int_static.sget(1.0))
-check(3, A_int_static.sget(B()))
+check(1, A_int.sget(1))
+check(2, A_int.sget(1.0))
+check(3, A_int.sget(B()))
 
 # explicit constructor:
 try:
-    check(4, A_int_static.sget("hello"))
+    check(4, A_int.sget("hello"))
     raise RuntimeError
 except TypeError:
     pass

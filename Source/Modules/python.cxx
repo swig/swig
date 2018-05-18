@@ -66,7 +66,6 @@ static String *methods;
 static String *class_name;
 static String *shadow_indent = 0;
 static int in_class = 0;
-static int classic = 0;
 static int modern = 0;
 static int new_repr = 1;
 static int no_header_file = 0;
@@ -124,7 +123,6 @@ Python Options (available with -python)\n\
      -buildnone      - Use Py_BuildValue(" ") to obtain Py_None (default in Windows)\n\
      -builtin        - Create new python built-in types, rather than proxy classes, for better performance\n\
      -castmode       - Enable the casting mode, which allows implicit cast between types in python\n\
-     -classic        - Use classic classes only\n\
      -classptr       - Generate shadow 'ClassPtr' as in older swig versions\n\
      -cppcast        - Enable C++ casting operators (default) \n\
      -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch \n\
@@ -393,10 +391,8 @@ public:
 	  SWIG_cparse_set_compact_default_args(1);
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-classic") == 0) {
-	  classic = 1;
-	  modernargs = 0;
-	  modern = 0;
-	  Swig_mark_arg(i);
+	  Printf(stderr, "*** %s is no longer supported.\n", argv[i]);
+	  SWIG_exit(EXIT_FAILURE);
 	} else if (strcmp(argv[i], "-cppcast") == 0) {
 	  cppcast = 1;
 	  Swig_mark_arg(i);
@@ -510,7 +506,6 @@ public:
 	  proxydel = 0;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-modern") == 0) {
-	  classic = 0;
 	  modern = 1;
 	  modernargs = 1;
 	  Swig_mark_arg(i);
@@ -527,7 +522,6 @@ public:
 	  no_header_file = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-O") == 0) {
-	  classic = 0;
 	  modern = 1;
 	  safecstrings = 0;
 	  buildnone = 0;
@@ -560,11 +554,6 @@ public:
 	}
 
       }
-    }
-
-    if (py3) {
-      /* force disable features that not compatible with Python 3.x */
-      classic = 0;
     }
 
     if (cppcast) {
@@ -745,10 +734,6 @@ public:
       Printf(f_runtime, "#define SWIG_PYTHON_EXTRA_NATIVE_CONTAINERS\n");
     }
 
-    if (classic) {
-      Printf(f_runtime, "#define SWIG_PYTHON_CLASSIC\n");
-    }
-
     if (builtin) {
       Printf(f_runtime, "#define SWIGPYTHON_BUILTIN\n");
     }
@@ -916,14 +901,12 @@ public:
 	       tab4, "if not static:\n",
 #endif
 	       NIL);
-	if (!classic) {
-	  if (!modern)
-	    Printv(f_shadow, tab4, tab4, "if _newclass:\n", tab4, NIL);
-	  Printv(f_shadow, tab4, tab4, "object.__setattr__(self, name, value)\n", NIL);
-	  if (!modern)
-	    Printv(f_shadow, tab4, tab4, "else:\n", tab4, NIL);
-	}
-	if (classic || !modern)
+	if (!modern)
+	  Printv(f_shadow, tab4, tab4, "if _newclass:\n", tab4, NIL);
+	Printv(f_shadow, tab4, tab4, "object.__setattr__(self, name, value)\n", NIL);
+	if (!modern)
+	  Printv(f_shadow, tab4, tab4, "else:\n", tab4, NIL);
+	if (!modern)
 	  Printv(f_shadow, tab4, tab4, "self.__dict__[name] = value\n", NIL);
 	Printv(f_shadow,
 	       tab4, "else:\n",
@@ -942,7 +925,7 @@ public:
 	       tab4, "try:\n", tab8, "strthis = \"proxy of \" + self.this.__repr__()\n",
 	       tab4, "except __builtin__.Exception:\n", tab8, "strthis = \"\"\n", tab4, "return \"<%s.%s; %s >\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n", NIL);
 
-	if (!classic && !modern) {
+	if (!modern) {
 	  Printv(f_shadow,
 		 "try:\n",
 		 tab4, "_object = object\n", tab4, "_newclass = 1\n",
@@ -1030,7 +1013,7 @@ public:
 
     if (shadow) {
       Swig_banner_target_lang(f_shadow_py, "#");
-      if (!modern && !classic) {
+      if (!modern) {
 	Printv(f_shadow, "# This file is compatible with both classic and new-style classes.\n", NIL);
       }
       if (Len(f_shadow_begin) > 0)
@@ -4391,7 +4374,6 @@ public:
   }
 
   virtual int classHandler(Node *n) {
-    int oldclassic = classic;
     int oldmodern = modern;
     File *f_shadow_file = f_shadow;
     Node *base_node = NULL;
@@ -4403,15 +4385,12 @@ public:
       have_repr = 0;
 
       if (GetFlag(n, "feature:classic")) {
-	classic = 1;
 	modern = 0;
       }
       if (GetFlag(n, "feature:modern")) {
-	classic = 0;
 	modern = 1;
       }
       if (GetFlag(n, "feature:exceptionclass")) {
-	classic = 1;
 	modern = 0;
       }
 
@@ -4495,11 +4474,10 @@ public:
 	if (Len(base_class)) {
 	  Printf(f_shadow, "(%s)", base_class);
 	} else {
-	  if (!classic) {
-	    Printf(f_shadow, modern ? "(object)" : "(_object)");
-	  }
 	  if (GetFlag(n, "feature:exceptionclass")) {
 	    Printf(f_shadow, "(Exception)");
+	  } else {
+	    Printf(f_shadow, modern ? "(object)" : "(_object)");
 	  }
 	}
 
@@ -4680,7 +4658,6 @@ public:
       Clear(builtin_methods);
     }
 
-    classic = oldclassic;
     modern = oldmodern;
 
     /* Restore shadow file back to original version */
@@ -4880,15 +4857,12 @@ public:
 	}
 	Printv(f_shadow, tab4, symname, " = staticmethod(", symname, ")\n", NIL);
       } else {
-	if (!classic) {
-	  if (!modern)
-	    Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
-	  Printv(f_shadow, tab4, symname, " = staticmethod(", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname),
-		 ")\n", NIL);
-	}
-	if (classic || !modern) {
-	  if (!classic)
-	    Printv(f_shadow, tab4, "else:\n", tab4, NIL);
+	if (!modern)
+	  Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
+	Printv(f_shadow, tab4, symname, " = staticmethod(", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname),
+	       ")\n", NIL);
+	if (!modern) {
+	  Printv(f_shadow, tab4, "else:\n", tab4, NIL);
 	  Printv(f_shadow, tab4, symname, " = ", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname), "\n", NIL);
 	}
       }
@@ -5120,14 +5094,12 @@ public:
 	}
 	Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", getname, "\n", NIL);
       }
-      if (!classic) {
-	if (!modern)
-	  Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
-	Printv(f_shadow, tab4, symname, " = property(", module, ".", getname, NIL);
-	if (assignable)
-	  Printv(f_shadow, ", ", module, ".", setname, NIL);
-	Printv(f_shadow, ")\n", NIL);
-      }
+      if (!modern)
+	Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
+      Printv(f_shadow, tab4, symname, " = property(", module, ".", getname, NIL);
+      if (assignable)
+	Printv(f_shadow, ", ", module, ".", setname, NIL);
+      Printv(f_shadow, ")\n", NIL);
       Delete(mname);
       Delete(setname);
       Delete(getname);
@@ -5194,7 +5166,7 @@ public:
 	  }
 	  Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", getname, "\n", NIL);
 	}
-	if (!classic && !builtin) {
+	if (!builtin) {
 	  if (!modern)
 	    Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
 	  Printv(f_shadow, tab4, symname, " = property(", module, ".", getname, NIL);
