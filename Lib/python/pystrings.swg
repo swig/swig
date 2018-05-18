@@ -137,11 +137,7 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 %#if defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
       return PyBytes_FromStringAndSize(carray, %numeric_cast(size, Py_ssize_t));
 %#else
-%#if PY_VERSION_HEX >= 0x03010000
       return PyUnicode_DecodeUTF8(carray, %numeric_cast(size, Py_ssize_t), "surrogateescape");
-%#else
-      return PyUnicode_FromStringAndSize(carray, %numeric_cast(size, Py_ssize_t));
-%#endif
 %#endif
 %#else
       return PyString_FromStringAndSize(carray, %numeric_cast(size, Py_ssize_t));
