@@ -13,16 +13,10 @@
 
 #if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
 %pragma(csharp) imclasscode=%{
-  /// For Xamarin.iOS MonoTouch.MonoPInvokeCallback functionality
-  /// This attribute can be defined in any assembly for Xamarin.iOS to use it.
+  /// For Mono AOT platforms compatibility
+  /// This attribute can be defined in any assembly for Mono AOT to use it.
   public class MonoPInvokeCallbackAttribute : global::System.Attribute {
     public MonoPInvokeCallbackAttribute(global::System.Type t) {
-    }
-  }
-  /// For Xamarin.iOS MonoTouch.MonoNativeFunctionWrapper functionality
-  /// This attribute can be defined in any assembly for Xamarin.iOS to use it.
-  public class MonoNativeFunctionWrapperAttribute : global::System.Attribute {
-    public MonoNativeFunctionWrapperAttribute() {
     }
   }
 %}
@@ -145,22 +139,8 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
 %}
 
 %pragma(csharp) imclasscode=%{
-  protected class SWIGExceptionHelper {%}
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
-%pragma(csharp) imclasscode=%{
-    [$imclassname.MonoNativeFunctionWrapper]
-%}
-#endif
-%pragma(csharp) imclasscode=%{
+  protected class SWIGExceptionHelper {
     public delegate void ExceptionDelegate(string message); 
-
-%}
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
-%pragma(csharp) imclasscode=%{
-    [$imclassname.MonoNativeFunctionWrapper]
-%}
-#endif
-%pragma(csharp) imclasscode=%{
     public delegate void ExceptionArgumentDelegate(string message, string paramName);
 
     static ExceptionDelegate applicationDelegate = new ExceptionDelegate(SetPendingApplicationException);
@@ -429,13 +409,6 @@ static SWIG_CSharpStringHelperCallback SWIG_csharp_string_callback = NULL;
 
 %pragma(csharp) imclasscode=%{
   protected class SWIGStringHelper {
-%}
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
-%pragma(csharp) imclasscode=%{
-    [$imclassname.MonoNativeFunctionWrapper]
-%}
-#endif
-%pragma(csharp) imclasscode=%{
     public delegate string SWIGStringDelegate(string message);
     static SWIGStringDelegate stringDelegate = new SWIGStringDelegate(CreateString);
 

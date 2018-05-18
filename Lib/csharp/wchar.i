@@ -19,13 +19,6 @@ static SWIG_CSharpWStringHelperCallback SWIG_csharp_wstring_callback = NULL;
 
 %pragma(csharp) imclasscode=%{
   protected class SWIGWStringHelper {
-%}
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
-%pragma(csharp) imclasscode=%{
-    [$imclassname.MonoNativeFunctionWrapper]
-%}
-#endif
-%pragma(csharp) imclasscode=%{
     public delegate string SWIGWStringDelegate(global::System.IntPtr message);
     static SWIGWStringDelegate wstringDelegate = new SWIGWStringDelegate(CreateWString);
 

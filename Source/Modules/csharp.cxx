@@ -3930,7 +3930,6 @@ public:
       if (mono_aot_compatibility_flag && !ignored_method) {
 	Printf(callback_mono_aot_def, "\n  [%s.MonoPInvokeCallback(typeof(SwigDelegate%s_%s_Dispatcher))]\n", imclass_name, classname, methid);
 	Printf(callback_mono_aot_def, "  private static %s SwigDirector%s_Dispatcher(", tm, overloaded_name);
-	Printf(director_mono_aot_delegate_definitions, "  [%s.MonoNativeFunctionWrapper]\n", imclass_name);
       }
       Printf(callback_def, "  private %s SwigDirector%s(", tm, overloaded_name);
       if (!ignored_method) {
