@@ -90,7 +90,6 @@ static int nobuildnone = 0;
 static int safecstrings = 0;
 static int dirvtable = 0;
 static int doxygen = 0;
-static int proxydel = 1;
 static int fastunpack = 0;
 static int fastproxy = 0;
 static int fastquery = 0;
@@ -154,7 +153,6 @@ static const char *usage3 = "\
      -noolddefs      - Don't emit the old method definitions even when using fastproxy (default) \n\
      -nooutputtuple  - Use a PyList for appending output values (default) \n\
      -noproxy        - Don't generate proxy classes \n\
-     -noproxydel     - Don't generate the redundant __del__ method \n\
      -noproxyimport  - Don't insert proxy import statements derived from the %import directive \n\
      -nortti         - Disable the use of the native C++ RTTI with directors\n\
      -nosafecstrings - Avoid extra strings copies when possible (default)\n\
@@ -162,12 +160,11 @@ static const char *usage3 = "\
      -olddefs        - Keep the old method definitions even when using fastproxy\n\
      -oldrepr        - Use shorter and old version of __repr__ in proxy classes\n\
      -outputtuple    - Use a PyTuple for outputs instead of a PyList (use carefully with legacy interfaces) \n\
-     -proxydel       - Generate a __del__ method even though it is now redundant (default) \n\
      -relativeimport - Use relative python imports \n\
      -safecstrings   - Use safer (but slower) C string mapping, generating copies from Python -> C/C++\n\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options: \n\
-                         -fastdispatch -nosafecstrings -fvirtual -noproxydel\n\
+                         -fastdispatch -nosafecstrings -fvirtual\n\
                          -fastproxy -fastinit -fastunpack -fastquery -nobuildnone\n\
      -py3            - Generate code with Python 3 specific features:\n\
                          Function annotation \n\
@@ -483,13 +480,6 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-noaliasobj0") == 0) {
 	  aliasobj0 = 0;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-proxydel") == 0) {
-	  proxydel = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-noproxydel") == 0) {
-	  proxydel = 0;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-noh") == 0) {
 	  no_header_file = 1;
 	  Swig_mark_arg(i);
@@ -503,7 +493,6 @@ public:
 	  buildnone = 0;
 	  nobuildnone = 1;
 	  classptr = 0;
-	  proxydel = 0;
 	  fastunpack = 1;
 	  fastproxy = 1;
 	  fastinit = 1;
@@ -527,11 +516,13 @@ public:
 	  relativeimport = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-modern") == 0 ||
-		   strcmp(argv[i], "-modernargs") == 0) {
+		   strcmp(argv[i], "-modernargs") == 0 ||
+		   strcmp(argv[i], "-noproxydel") == 0) {
 	  Printf(stderr, "Option %s is now always on.\n", argv[i]);
 	} else if (strcmp(argv[i], "-classic") == 0 ||
 		   strcmp(argv[i], "-nomodern") == 0 ||
-		   strcmp(argv[i], "-nomodernargs") == 0) {
+		   strcmp(argv[i], "-nomodernargs") == 0 ||
+		   strcmp(argv[i], "-proxydel") == 0) {
 	  Printf(stderr, "*** %s is no longer supported.\n", argv[i]);
 	  SWIG_exit(EXIT_FAILURE);
 	}
@@ -4954,9 +4945,6 @@ public:
       } else {
 	Printv(f_shadow, tab4, "__swig_destroy__ = ", module, ".", Swig_name_destroy(NSPACE_TODO, symname), "\n", NIL);
 	if (!have_pythonprepend(n) && !have_pythonappend(n)) {
-	  if (proxydel) {
-	    Printv(f_shadow, tab4, "def __del__(self):\n", tab8, "return None\n", NIL);
-	  }
 	  return SWIG_OK;
 	}
 	Printv(f_shadow, tab4, "def __del__(self):\n", NIL);
