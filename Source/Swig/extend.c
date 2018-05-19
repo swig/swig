@@ -17,20 +17,6 @@
 static Hash *extendhash = 0;     /* Hash table of added methods */
 
 /* -----------------------------------------------------------------------------
- * new_node()
- *
- * Create an empty parse node, setting file and line number information
- * ----------------------------------------------------------------------------- */
-
-static Node *new_node(const_String_or_char_ptr tag) {
-  Node *n = NewHash();
-  set_nodeType(n,tag);
-  Setfile(n,cparse_file);
-  Setline(n,cparse_line);
-  return n;
-}
-
-/* -----------------------------------------------------------------------------
  * Swig_extend_hash()
  *
  * Access the extend hash
@@ -120,10 +106,10 @@ void Swig_extend_append_previous(Node *cls, Node *am) {
     set_nextSibling(n,0);
     /* typemaps and fragments need to be prepended */
     if (((Cmp(nodeType(n),"typemap") == 0) || (Cmp(nodeType(n),"fragment") == 0)))  {
-      if (!pe) pe = new_node("extend");
+      if (!pe) pe = Swig_cparse_new_node("extend");
       appendChild(pe, n);
     } else {
-      if (!ae) ae = new_node("extend");
+      if (!ae) ae = Swig_cparse_new_node("extend");
       appendChild(ae, n);
     }    
     n = ne;

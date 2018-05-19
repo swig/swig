@@ -83,10 +83,7 @@ static void yyerror (const char *e) {
 }
 
 static Node *new_node(const_String_or_char_ptr tag) {
-  Node *n = NewHash();
-  set_nodeType(n,tag);
-  Setfile(n,cparse_file);
-  Setline(n,cparse_line);
+  Node *n = Swig_cparse_new_node(tag);
   /* Remember the previous node in case it will need a post-comment */
   previousNode = currentNode;
   currentNode = n;
