@@ -5668,7 +5668,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 
     /*
      * Python method may return a simple object, or a tuple.
-     * for in/out aruments, we have to extract the appropriate PyObjects from the tuple,
+     * for in/out arguments, we have to extract the appropriate PyObjects from the tuple,
      * then marshal everything back to C/C++ (return value and output arguments).
      *
      */
