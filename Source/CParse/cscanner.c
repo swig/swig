@@ -53,50 +53,52 @@ static int rename_active = 0;
 /* Doxygen comments scanning */
 int scan_doxygen_comments = 0;
 
-int isStructuralDoxygen(String *s){
-	static const char* const structuralTags[] = {
-	  "addtogroup",
-	  "callgraph",
-	  "callergraph",
-	  "category",
-	  "def",
-	  "defgroup",
-	  "dir",
-	  "example",
-	  "file",
-	  "headerfile",
-	  "internal",
-	  "mainpage",
-	  "name",
-	  "nosubgrouping",
-	  "overload",
-	  "package",
-	  "page",
-	  "protocol",
-	  "relates",
-	  "relatesalso",
-	  "showinitializer",
-	  "weakgroup",
-	};
+int isStructuralDoxygen(String *s) {
+  static const char* const structuralTags[] = {
+    "addtogroup",
+    "callgraph",
+    "callergraph",
+    "category",
+    "def",
+    "defgroup",
+    "dir",
+    "example",
+    "file",
+    "headerfile",
+    "internal",
+    "mainpage",
+    "name",
+    "nosubgrouping",
+    "overload",
+    "package",
+    "page",
+    "protocol",
+    "relates",
+    "relatesalso",
+    "showinitializer",
+    "weakgroup",
+  };
 
-	unsigned n;
-	char *slashPointer = Strchr(s, '\\');
-	char *atPointer = Strchr(s,'@');
-	if (slashPointer == NULL && atPointer == NULL) return 0;
-	else if( slashPointer == NULL) slashPointer = atPointer;
+  unsigned n;
+  char *slashPointer = Strchr(s, '\\');
+  char *atPointer = Strchr(s,'@');
+  if (slashPointer == NULL && atPointer == NULL)
+    return 0;
+  else if(slashPointer == NULL)
+    slashPointer = atPointer;
 
-	slashPointer++; /* skip backslash or at sign */
+  slashPointer++; /* skip backslash or at sign */
 
-	for (n = 0; n < sizeof(structuralTags)/sizeof(structuralTags[0]); n++) {
-	  const size_t len = strlen(structuralTags[n]);
-	  if (strncmp(slashPointer, structuralTags[n], len) == 0) {
-	    /* Take care to avoid false positives with prefixes of other tags. */
-	    if (slashPointer[len] == '\0' || isspace(slashPointer[len]))
-	      return 1;
-	  }
-	}
+  for (n = 0; n < sizeof(structuralTags)/sizeof(structuralTags[0]); n++) {
+    const size_t len = strlen(structuralTags[n]);
+    if (strncmp(slashPointer, structuralTags[n], len) == 0) {
+      /* Take care to avoid false positives with prefixes of other tags. */
+      if (slashPointer[len] == '\0' || isspace(slashPointer[len]))
+	return 1;
+    }
+  }
 
-	return 0;
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -427,7 +429,7 @@ static int yylook(void) {
 	do {
 	  String *cmt = Scanner_text(scan);
 	  char *loc = Char(cmt);
-	  if ((strncmp(loc,"/*@SWIG",7) == 0) && (loc[Len(cmt)-3] == '@')) {
+	  if ((strncmp(loc, "/*@SWIG", 7) == 0) && (loc[Len(cmt)-3] == '@')) {
 	    Scanner_locator(scan, cmt);
 	  }
 	  if (scan_doxygen_comments) { /* else just skip this node, to avoid crashes in parser module*/
@@ -437,9 +439,7 @@ static int yylook(void) {
 	    if (Len(cmt) > 3 && loc[0] == '/' &&
 		((loc[1] == '/' && ((loc[2] == '/' && loc[3] != '/') || loc[2] == '!')) ||
 		 (loc[1] == '*' && ((loc[2] == '*' && loc[3] != '*') || loc[2] == '!')))) {
-	      comment_kind_t this_comment = loc[3] == '<' ? DOX_COMMENT_POST
-							  : DOX_COMMENT_PRE;
-
+	      comment_kind_t this_comment = loc[3] == '<' ? DOX_COMMENT_POST : DOX_COMMENT_PRE;
 	      if (existing_comment != DOX_COMMENT_NONE && this_comment != existing_comment) {
 		/* We can't concatenate together Doxygen pre- and post-comments. */
 		break;

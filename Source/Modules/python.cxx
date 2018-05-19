@@ -1688,14 +1688,16 @@ public:
 
   /* ------------------------------------------------------------
    * build_combined_docstring()
-   *    Build the full docstring which may be a combination of the
-   *    explicit docstring and autodoc string or, if none of them
-   *    is specified, obtained by translating Doxygen comment to
-   *    Python.
    *
-   *    Return new string to be deleted by caller (never NIL but
-   *    may be empty if there is no docstring).
+   * Build the full docstring which may be a combination of the
+   * explicit docstring and autodoc string or, if none of them
+   * is specified, obtained by translating Doxygen comment to
+   * Python.
+   *
+   * Return new string to be deleted by caller (never NIL but
+   * may be empty if there is no docstring).
    * ------------------------------------------------------------ */
+
   String *build_combined_docstring(Node *n, autodoc_t ad_type, const String *indent = "") {
     String *docstr = Getattr(n, "feature:docstring");
     if (docstr && Len(docstr)) {
@@ -1708,14 +1710,14 @@ public:
     }
 
     if (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc")) {
-      String* autodoc = make_autodoc(n, ad_type);
+      String *autodoc = make_autodoc(n, ad_type);
       if (autodoc && Len(autodoc) > 0) {
 	if (docstr && Len(docstr)) {
 	  Append(autodoc, "\n");
 	  Append(autodoc, docstr);
 	}
 
-	String* tmp = autodoc;
+	String *tmp = autodoc;
 	autodoc = docstr;
 	docstr = tmp;
       }
@@ -1751,8 +1753,7 @@ public:
     //      """
     //
     // otherwise, put it all on a single line
-    if (Strchr(docstr, '\n'))
-    {
+    if (Strchr(docstr, '\n')) {
       String *tmp = NewString("");
       Append(tmp, "\n");
       Append(tmp, indent_docstring(docstr, indent));
@@ -3728,7 +3729,7 @@ public:
       }
 
       if (f_s) {
-	if(needs_swigconstant(n)) {
+	if (needs_swigconstant(n)) {
 	  Printv(f_s, "\n",NIL);
 	  Printv(f_s, module, ".", iname, "_swigconstant(",module,")\n", NIL);
 	}

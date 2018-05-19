@@ -590,10 +590,10 @@ public:
 
       if (module_imports)
 	Printf(f_module, "%s\n", module_imports);
-      
-      if (doxygen && doxygenTranslator->hasDocumentation(n)){
-	String *doxygen_comments=doxygenTranslator->getDocumentation(n);
-	if(comment_creation_chatter)
+
+      if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+	String *doxygen_comments = doxygenTranslator->getDocumentation(n);
+	if (comment_creation_chatter)
 	  Printf(f_module, "/* This was generated from top() */");
 	Printv(f_module, Char(doxygen_comments), NIL);
 	Delete(doxygen_comments);
@@ -1019,7 +1019,7 @@ public:
       Delete(c_param_type);
       Delete(arg);
     }
-    
+
     Printv(f->code, nondir_args, NIL);
     Delete(nondir_args);
 
@@ -1274,15 +1274,14 @@ public:
       EnumFeature enum_feature = decodeEnumFeature(n);
       String *typemap_lookup_type = Getattr(n, "name");
 
-      if (doxygen && doxygenTranslator->hasDocumentation(n)){
-        String *doxygen_comments=doxygenTranslator->getDocumentation(n);
-        if(comment_creation_chatter) {
+      if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+        String *doxygen_comments = doxygenTranslator->getDocumentation(n);
+        if (comment_creation_chatter) {
           Printf(enum_code, "/* This was generated from enumDeclaration() */");
         }
         Printv(enum_code, Char(doxygen_comments), NIL);
         Delete(doxygen_comments);
       }
-
 
       if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
 	// Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper Java enum
@@ -1306,18 +1305,16 @@ public:
 	  Replaceall(enum_code, "$static ", "");
 	Delete(scope);
       } else {
-	//translate and write javadoc comment for the enum itself if flagged
-	if (doxygen && doxygenTranslator->hasDocumentation(n)){
-	  String *doxygen_comments=doxygenTranslator->getDocumentation(n);
-	  if(comment_creation_chatter)
+	// Translate and write javadoc comment for the enum itself if flagged
+	if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+	  String *doxygen_comments = doxygenTranslator->getDocumentation(n);
+	  if (comment_creation_chatter)
 	    Printf(constants_code, "/* This was generated from enumDeclaration() */");
-	  Printf(constants_code, "/* Comment for enum %s */\n",
-		 Getattr(n, "unnamedinstance") ? "" : symname);
+	  Printf(constants_code, "/* Comment for enum %s */\n", Getattr(n, "unnamedinstance") ? "" : symname);
 	  Printf(constants_code, Char(doxygen_comments));
 	  Printf(constants_code, "\n");
 	  Delete(doxygen_comments);
-	}
-	else if (symname && !Getattr(n, "unnamedinstance"))
+	} else if (symname && !Getattr(n, "unnamedinstance"))
 	  Printf(constants_code, "  // %s \n", symname);
       }
 
@@ -1430,7 +1427,7 @@ public:
       tmpValue = NewString(name);
     // Note that this is used in enumValue() amongst other places
     Setattr(n, "value", tmpValue);
-    
+
     // Deal with enum values that are not int
     int swigtype = SwigType_type(Getattr(n, "type"));
     if (swigtype == T_BOOL) {
@@ -1472,10 +1469,10 @@ public:
       if (!addSymbol(symname, n, scope))
 	return SWIG_ERROR;
       
-      //translate and write javadoc comment if flagged
-      if (doxygen && doxygenTranslator->hasDocumentation(n)){
-	String *doxygen_comments=doxygenTranslator->getDocumentation(n);
-	if(comment_creation_chatter)
+      // Translate and write javadoc comment if flagged
+      if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+	String *doxygen_comments = doxygenTranslator->getDocumentation(n);
+	if (comment_creation_chatter)
 	  Printf(enum_code, "/* This was generated from enumvalueDeclaration() */");
 	Printv(enum_code, Char(doxygen_comments), NIL);
 	Delete(doxygen_comments);
@@ -1557,13 +1554,12 @@ public:
     String *tm;
     String *return_type = NewString("");
     String *constants_code = NewString("");
-    
     Swig_save("constantWrapper", n, "value", NIL);
 
-    //translate and write javadoc comment if flagged
-    if (doxygen && doxygenTranslator->hasDocumentation(n)){
-      String *doxygen_comments=doxygenTranslator->getDocumentation(n);
-      if(comment_creation_chatter)
+    // Translate and write javadoc comment if flagged
+    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+      String *doxygen_comments = doxygenTranslator->getDocumentation(n);
+      if (comment_creation_chatter)
 	Printf(constants_code, "/* This was generated from constantWrapper() */");
       Printv(constants_code, Char(doxygen_comments), NIL);
       Delete(doxygen_comments);
@@ -2008,11 +2004,11 @@ public:
 
     // Pure Java interfaces
     const String *pure_interfaces = typemapLookup(n, "javainterfaces", typemap_lookup_type, WARN_NONE);
-    
-    //translate and write javadoc comment if flagged
-    if (doxygen && doxygenTranslator->hasDocumentation(n)){
-      String *doxygen_comments=doxygenTranslator->getDocumentation(n);
-      if(comment_creation_chatter)
+
+    // Translate and write javadoc comment if flagged
+    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+      String *doxygen_comments = doxygenTranslator->getDocumentation(n);
+      if (comment_creation_chatter)
 	Printf(proxy_class_def, "/* This was generated from emitProxyClassDefAndCPPCasts() */");
       Printv(proxy_class_def, Char(doxygen_comments), NIL);
       Delete(doxygen_comments);
@@ -2021,7 +2017,6 @@ public:
     if (*Char(interface_list) && *Char(pure_interfaces))
       Append(interface_list, ", ");
     Append(interface_list, pure_interfaces);
-
     // Start writing the proxy class
     if (!has_outerclass) // Import statements
       Printv(proxy_class_def, typemapLookup(n, "javaimports", typemap_lookup_type, WARN_NONE),"\n", NIL);
@@ -2506,11 +2501,11 @@ public:
       // For wrapping member variables (Javabean setter)
       setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), Swig_name_member(0, getClassPrefix(), variable_name))) == 0);
     }
-    
-    //translate and write javadoc comment if flagged
-    if (doxygen && doxygenTranslator->hasDocumentation(n)){
-      String *doxygen_comments=doxygenTranslator->getDocumentation(n);
-      if(comment_creation_chatter)
+
+    // Translate and write javadoc comment if flagged
+    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+      String *doxygen_comments = doxygenTranslator->getDocumentation(n);
+      if (comment_creation_chatter)
 	Printf(function_code, "/* This was generated from proxyclassfunctionhandler() */");
       Printv(function_code, Char(doxygen_comments), NIL);
       Delete(doxygen_comments);
@@ -2750,16 +2745,16 @@ public:
 
       tm = Getattr(n, "tmap:jtype"); // typemaps were attached earlier to the node
       Printf(im_return_type, "%s", tm);
-      
-      //translate and write javadoc comment if flagged
-    if (doxygen && doxygenTranslator->hasDocumentation(n)){
-      String *doxygen_comments=doxygenTranslator->getDocumentation(n);
-	if(comment_creation_chatter)
+
+    // Translate and write javadoc comment if flagged
+    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+      String *doxygen_comments = doxygenTranslator->getDocumentation(n);
+	if (comment_creation_chatter)
 	  Printf(function_code, "/* This was generated from constructionhandler() */");
 	Printv(function_code, Char(doxygen_comments), NIL);
 	Delete(doxygen_comments);
       }
-	    
+
       Printf(function_code, "  %s %s(", methodmods, proxy_class_name);
       Printf(helper_code, "  static private %s SwigConstruct%s(", im_return_type, proxy_class_name);
 
@@ -3024,11 +3019,11 @@ public:
     bool setter_flag = false;
     String *pre_code = NewString("");
     String *post_code = NewString("");
-    
-    // translate and write javadoc comment if flagged
-    if (doxygen && doxygenTranslator->hasDocumentation(n)){
-      String *doxygen_comments=doxygenTranslator->getDocumentation(n);
-      if(comment_creation_chatter)
+
+    // Translate and write javadoc comment if flagged
+    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+      String *doxygen_comments = doxygenTranslator->getDocumentation(n);
+      if (comment_creation_chatter)
 	Printf(function_code, "/* This was generated from moduleClassFunctionHandler() */");
       Printv(function_code, doxygen_comments, NIL);
       Delete(doxygen_comments);
@@ -3514,7 +3509,6 @@ public:
     const String *pure_baseclass = typemapLookup(n, "javabase", type, WARN_NONE);
     const String *pure_interfaces = typemapLookup(n, "javainterfaces", type, WARN_NONE);
 
-    
     // Emit the class
     Printv(swigtype, typemapLookup(n, "javaimports", type, WARN_NONE),	// Import statements
 	   "\n", typemapLookup(n, "javaclassmodifiers", type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
@@ -4993,4 +4987,3 @@ Java Options (available with -java)\n\
      -oldvarnames    - Old intermediary method names for variable wrappers\n\
      -package <name> - Set name of the Java package to <name>\n\
 \n";
-

@@ -1723,8 +1723,8 @@ program        :  interface {
 interface      : interface declaration {  
                    /* add declaration to end of linked list (the declaration isn't always a single declaration, sometimes it is a linked list itself) */
                    if (currentDeclComment != NULL) {
-                       set_comment($2, currentDeclComment);
-                       currentDeclComment = NULL;
+		     set_comment($2, currentDeclComment);
+		     currentDeclComment = NULL;
                    }                                      
                    appendChild($1,$2);
                    $$ = $1;
@@ -1736,7 +1736,7 @@ interface      : interface declaration {
                | interface DOXYGENPOSTSTRING {
                    Node *node = lastChild($1);
                    if (node) {
-                       set_comment(node, $2);
+                     set_comment(node, $2);
                    }
                    $$ = $1;
                }
@@ -5048,7 +5048,11 @@ rawparms          : parm ptail {
                   set_nextSibling($1,$2);
                   $$ = $1;
 		}
-               | empty { $$ = 0; previousNode = currentNode; currentNode=0; }
+               | empty {
+		  $$ = 0;
+		  previousNode = currentNode;
+		  currentNode=0;
+	       }
                ;
 
 ptail          : COMMA parm ptail {
@@ -5057,7 +5061,7 @@ ptail          : COMMA parm ptail {
                 }
 	       | COMMA DOXYGENPOSTSTRING parm ptail {
 		 set_comment(previousNode, $2);
-                 set_nextSibling($3,$4);
+                 set_nextSibling($3, $4);
 		 $$ = $3;
                }
                | empty { $$ = 0; }
