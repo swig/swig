@@ -3,9 +3,6 @@
 # This is a simple speed benchmark suite for std containers,
 # to verify their O(n) performance.
 # It is not part of the standard tests.
-#
-# License::   SWIG
-#
 
 
 require 'benchmark'
