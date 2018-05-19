@@ -29,8 +29,6 @@
 
    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/252158
 
- and works for modern (-modern) and plain python.
-
 */
 
 
