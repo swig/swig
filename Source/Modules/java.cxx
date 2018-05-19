@@ -81,7 +81,6 @@ class JAVA:public Language {
   String *imclass_cppcasts_code;	//C++ casts up inheritance hierarchies intermediary class code
   String *imclass_directors;	// Intermediate class director code
   String *destructor_call;	//C++ destructor call if any
-  String *structuralComments;
   String *destructor_throws_clause;	//C++ destructor throws clause if any
 
   // Director method stuff:
@@ -157,7 +156,6 @@ public:
       imclass_cppcasts_code(NULL),
       imclass_directors(NULL),
       destructor_call(NULL),
-      structuralComments(NULL),
       destructor_throws_clause(NULL),
       dmethods_seq(NULL),
       dmethods_table(NULL),
@@ -448,7 +446,6 @@ public:
     imclass_imports = NewString("");
     imclass_cppcasts_code = NewString("");
     imclass_directors = NewString("");
-    structuralComments = NewString("");
     upcasts_code = NewString("");
     dmethods_seq = NewList();
     dmethods_table = NewHash();
@@ -587,10 +584,7 @@ public:
 
       // Start writing out the module class file
       emitBanner(f_module);
-      //Add any structural comments to the top
-      if(doxygen && structuralComments){
-    	  Printf(f_module, "%s", structuralComments);
-      }
+
       if (package)
 	Printf(f_module, "package %s;\n", package);
 
@@ -735,8 +729,6 @@ public:
     module_imports = NULL;
     Delete(module_class_modifiers);
     module_class_modifiers = NULL;
-    Delete(structuralComments);
-    structuralComments = NULL;
     Delete(imclass_imports);
     imclass_imports = NULL;
     Delete(imclass_cppcasts_code);
@@ -1546,22 +1538,6 @@ public:
     return SWIG_OK;
   }
 
-  /* -----------------------------------------------------------------------
-   * doxygenComment()
-   * Simply translates the doxygen comment and places it into the appropriate
-   * file
-   * ------------------------------------------------------------------------ */
-  virtual int doxygenComment(Node *n){
-    if (doxygen && doxygenTranslator->hasDocumentation(n)){
-      String *doxygen_comments=doxygenTranslator->getDocumentation(n);
-      if(comment_creation_chatter)
-	Printf(structuralComments, "/* This was generated from doxygenComment() */");
-      Printv(structuralComments, Char(doxygen_comments), NIL);
-      Delete(doxygen_comments);
-    }
-    return SWIG_OK;
-  }
-  
   /* -----------------------------------------------------------------------
    * constantWrapper()
    * Used for wrapping constants - #define or %constant.

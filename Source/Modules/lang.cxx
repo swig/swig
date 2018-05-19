@@ -138,9 +138,6 @@ int Dispatcher::emit_one(Node *n) {
     ret = namespaceDeclaration(n);
   } else if (strcmp(tag, "template") == 0) {
     ret = templateDeclaration(n);
-  }
-  else if (strcmp(tag, "doxycomm") == 0) {
-    ret = doxygenComment(n);
   } else if (strcmp(tag, "lambda") == 0) {
     ret = lambdaDeclaration(n);
   }
@@ -307,9 +304,6 @@ int Dispatcher::usingDeclaration(Node *n) {
   return defaultHandler(n);
 }
 int Dispatcher::namespaceDeclaration(Node *n) {
-  return defaultHandler(n);
-}
-int Dispatcher::doxygenComment(Node *n){
   return defaultHandler(n);
 }
 
@@ -2979,18 +2973,6 @@ int Language::usingDeclaration(Node *n) {
 }
 
 /* Stubs. Language modules need to implement these */
-
-/* ----------------------------------------------------------------------
- * Language::doxygenComment()
- * ---------------------------------------------------------------------- */
-int Language::doxygenComment(Node *n){
-	
-  String *comment = Getattr(n, "comment");
-  Printf(stdout, "doxygenComment   : %s\n", comment);
-
-  return SWIG_OK;
-	
-}
 
 /* ----------------------------------------------------------------------
  * Language::constantWrapper()
