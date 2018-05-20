@@ -25,10 +25,7 @@ using std::endl;
 // This constant defines the (only) characters valid inside a Doxygen "word".
 // It includes some unusual ones because of the commands such as \f[, \f{, \f],
 // \f} and \f$.
-static const char* DOXYGEN_WORD_CHARS = "abcdefghijklmnopqrstuvwxyz"
-                                        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                        "0123456789"
-                                        "$[]{}";
+static const char *DOXYGEN_WORD_CHARS = "abcdefghijklmnopqrstuvwxyz" "ABCDEFGHIJKLMNOPQRSTUVWXYZ" "0123456789" "$[]{}";
 
 // Define static class members
 DoxygenParser::DoxyCommandsMap DoxygenParser::doxygenCommands;
@@ -37,18 +34,14 @@ std::set<std::string> DoxygenParser::doxygenSectionIndicators;
 const int TOKENSPERLINE = 8; //change this to change the printing behaviour of the token list
 const std::string END_HTML_TAG_MARK("/");
 
-DoxygenParser::DoxygenParser(bool noisy) :
-    noisy(noisy)
-{
+DoxygenParser::DoxygenParser(bool noisy) : noisy(noisy) {
   fillTables();
 }
 
-DoxygenParser::~DoxygenParser()
-{
+DoxygenParser::~DoxygenParser() {
 }
 
-void DoxygenParser::fillTables()
-{
+void DoxygenParser::fillTables() {
   // run it only once
   if (doxygenCommands.size())
     return;
@@ -98,8 +91,7 @@ void DoxygenParser::fillTables()
     doxygenSectionIndicators.insert(sectionIndicators[i]);
 }
 
-std::string DoxygenParser::stringToLower(const std::string &stringToConvert)
-{
+std::string DoxygenParser::stringToLower(const std::string &stringToConvert) {
 
   string result(stringToConvert.size(), ' ');
 
@@ -110,17 +102,14 @@ std::string DoxygenParser::stringToLower(const std::string &stringToConvert)
   return result;
 }
 
-bool DoxygenParser::isSectionIndicator(const std::string &smallString)
-{
+bool DoxygenParser::isSectionIndicator(const std::string &smallString) {
 
-  std::set<std::string>::iterator it = doxygenSectionIndicators.find(
-      stringToLower(smallString));
+  std::set<std::string>::iterator it = doxygenSectionIndicators.find(stringToLower(smallString));
 
   return it != doxygenSectionIndicators.end();
 }
 
-void DoxygenParser::printTree(const DoxygenEntityList &rootList)
-{
+void DoxygenParser::printTree(const DoxygenEntityList &rootList) {
   DoxygenEntityList::const_iterator p = rootList.begin();
   while (p != rootList.end()) {
     (*p).printEntity(0);
@@ -128,36 +117,29 @@ void DoxygenParser::printTree(const DoxygenEntityList &rootList)
   }
 }
 
-DoxygenParser::DoxyCommandEnum
-DoxygenParser::commandBelongs(const std::string &theCommand)
-{
+DoxygenParser::DoxyCommandEnum DoxygenParser::commandBelongs(const std::string &theCommand) {
   DoxyCommandsMapIt it = doxygenCommands.find(stringToLower(theCommand));
 
   if (it != doxygenCommands.end()) {
     return it->second;
   }
-
   // Check if this command is defined as an alias.
   if (Getattr(m_node, ("feature:doxygen:alias:" + theCommand).c_str())) {
     return COMMAND_ALIAS;
   }
-
   // Check if this command should be ignored.
-  if (String* const ignore = getIgnoreFeature(theCommand)) {
+  if (String *const ignore = getIgnoreFeature(theCommand)) {
     // Check that no value is specified for this feature ("1" is the implicit
     // one given to it by SWIG itself), we may use the value in the future, but
     // for now we only use the attributes.
     if (Strcmp(ignore, "1") != 0) {
       Swig_warning(WARN_PP_UNEXPECTED_TOKENS, m_fileName.c_str(), m_fileLineNo,
-          "Feature \"doxygen:ignore\" value ignored for Doxygen command \"%s\".\n",
-          theCommand.c_str());
+                   "Feature \"doxygen:ignore\" value ignored for Doxygen command \"%s\".\n", theCommand.c_str());
     }
-
     // Also ensure that the matching end command, if any, will be recognized.
     const string endCommand = getIgnoreFeatureEndCommand(theCommand);
     if (!endCommand.empty()) {
-      Setattr(m_node, ("feature:doxygen:ignore:" + endCommand).c_str(),
-          NewString("1"));
+      Setattr(m_node, ("feature:doxygen:ignore:" + endCommand).c_str(), NewString("1"));
     }
 
     return COMMAND_IGNORE;
@@ -166,8 +148,7 @@ DoxygenParser::commandBelongs(const std::string &theCommand)
   return NONE;
 }
 
-std::string DoxygenParser::trim(const std::string &text)
-{
+std::string DoxygenParser::trim(const std::string &text) {
   size_t start = text.find_first_not_of(" \t");
   size_t end = text.find_last_not_of(" \t");
 
@@ -177,8 +158,7 @@ std::string DoxygenParser::trim(const std::string &text)
   return text.substr(start, end - start + 1);
 }
 
-bool DoxygenParser::isEndOfLine()
-{
+bool DoxygenParser::isEndOfLine() {
   if (m_tokenListIt == m_tokenList.end()) {
     return false;
   }
@@ -186,22 +166,19 @@ bool DoxygenParser::isEndOfLine()
   return nextToken.m_tokenType == END_LINE;
 }
 
-void DoxygenParser::skipWhitespaceTokens()
-{
+void DoxygenParser::skipWhitespaceTokens() {
   if (m_tokenListIt == m_tokenList.end()) {
     return;
   }
 
   while (m_tokenListIt != m_tokenList.end()
-      && (m_tokenListIt->m_tokenType == END_LINE
-          || trim(m_tokenListIt->m_tokenString).empty())) {
+         && (m_tokenListIt->m_tokenType == END_LINE || trim(m_tokenListIt->m_tokenString).empty())) {
 
     m_tokenListIt++;
   }
 }
 
-std::string DoxygenParser::getNextToken()
-{
+std::string DoxygenParser::getNextToken() {
 
   if (m_tokenListIt == m_tokenList.end()) {
     return "";
@@ -214,15 +191,14 @@ std::string DoxygenParser::getNextToken()
   return "";
 }
 
-std::string DoxygenParser::getNextWord()
-{
+std::string DoxygenParser::getNextWord() {
 
   /*    if (m_tokenListIt == m_tokenList.end()) {
-   return "";
-   }
+     return "";
+     }
    */
   while (m_tokenListIt != m_tokenList.end()
-      && (m_tokenListIt->m_tokenType == PLAINSTRING)) {
+         && (m_tokenListIt->m_tokenType == PLAINSTRING)) {
     // handle quoted strings as words
     string token = m_tokenListIt->m_tokenString;
     if (token == "\"") {
@@ -251,8 +227,7 @@ std::string DoxygenParser::getNextWord()
   return "";
 }
 
-DoxygenParser::TokenListCIt DoxygenParser::getOneLine(const TokenList &tokList)
-{
+DoxygenParser::TokenListCIt DoxygenParser::getOneLine(const TokenList &tokList) {
 
   TokenListCIt endOfLineIt = m_tokenListIt;
 
@@ -266,8 +241,7 @@ DoxygenParser::TokenListCIt DoxygenParser::getOneLine(const TokenList &tokList)
   return tokList.end();
 }
 
-std::string DoxygenParser::getStringTilCommand(const TokenList & tokList)
-{
+std::string DoxygenParser::getStringTilCommand(const TokenList &tokList) {
 
   if (m_tokenListIt == tokList.end()) {
     return "";
@@ -284,9 +258,7 @@ std::string DoxygenParser::getStringTilCommand(const TokenList & tokList)
   return description;
 }
 
-std::string DoxygenParser::getStringTilEndCommand(
-    const std::string & theCommand, const TokenList & tokList)
-{
+std::string DoxygenParser::getStringTilEndCommand(const std::string &theCommand, const TokenList &tokList) {
 
   if (m_tokenListIt == tokList.end()) {
     return "";
@@ -307,15 +279,12 @@ std::string DoxygenParser::getStringTilEndCommand(
     m_tokenListIt++;
   }
 
-  printListError(WARN_DOXYGEN_COMMAND_EXPECTED,
-      theCommand + " command expected");
+  printListError(WARN_DOXYGEN_COMMAND_EXPECTED, theCommand + " command expected");
 
   return description;
 }
 
-DoxygenParser::TokenListCIt DoxygenParser::getEndOfParagraph(
-    const TokenList & tokList)
-{
+DoxygenParser::TokenListCIt DoxygenParser::getEndOfParagraph(const TokenList &tokList) {
 
   TokenListCIt endOfParagraph = m_tokenListIt;
 
@@ -347,9 +316,7 @@ DoxygenParser::TokenListCIt DoxygenParser::getEndOfParagraph(
   return tokList.end();
 }
 
-DoxygenParser::TokenListCIt DoxygenParser::getEndOfSection(
-    const std::string & theCommand, const TokenList & tokList)
-{
+DoxygenParser::TokenListCIt DoxygenParser::getEndOfSection(const std::string &theCommand, const TokenList &tokList) {
 
   TokenListCIt endOfParagraph = m_tokenListIt;
 
@@ -372,9 +339,7 @@ DoxygenParser::TokenListCIt DoxygenParser::getEndOfSection(
   return tokList.end();
 }
 
-DoxygenParser::TokenListCIt DoxygenParser::getEndCommand(
-    const std::string & theCommand, const TokenList & tokList)
-{
+DoxygenParser::TokenListCIt DoxygenParser::getEndCommand(const std::string &theCommand, const TokenList &tokList) {
 
   TokenListCIt endOfCommand = m_tokenListIt;
 
@@ -390,29 +355,21 @@ DoxygenParser::TokenListCIt DoxygenParser::getEndCommand(
   return tokList.end();
 }
 
-void DoxygenParser::skipEndOfLine()
-{
+void DoxygenParser::skipEndOfLine() {
   if (m_tokenListIt != m_tokenList.end()
       && m_tokenListIt->m_tokenType == END_LINE) {
     m_tokenListIt++;
   }
 }
 
-void
-DoxygenParser::addSimpleCommand(const std::string &theCommand,
-                                DoxygenEntityList &doxyList)
-{
+void DoxygenParser::addSimpleCommand(const std::string &theCommand, DoxygenEntityList &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
 
   doxyList.push_back(DoxygenEntity(theCommand));
 }
 
-void
-DoxygenParser::addCommandWord(const std::string &theCommand,
-                              const TokenList &,
-                              DoxygenEntityList &doxyList)
-{
+void DoxygenParser::addCommandWord(const std::string &theCommand, const TokenList &, DoxygenEntityList &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
 
@@ -427,16 +384,11 @@ DoxygenParser::addCommandWord(const std::string &theCommand,
     aNewList.push_back(DoxygenEntity("plainstd::string", name));
     doxyList.push_back(DoxygenEntity(theCommand, aNewList));
   } else {
-    printListError(WARN_DOXYGEN_COMMAND_ERROR,
-        "No word followed " + theCommand + " command. Not added");
+    printListError(WARN_DOXYGEN_COMMAND_ERROR, "No word followed " + theCommand + " command. Not added");
   }
 }
 
-void
-DoxygenParser::addCommandLine(const std::string &theCommand,
-                              const TokenList &tokList,
-                              DoxygenEntityList &doxyList)
-{
+void DoxygenParser::addCommandLine(const std::string &theCommand, const TokenList &tokList, DoxygenEntityList &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
   TokenListCIt endOfLine = getOneLine(tokList);
@@ -445,11 +397,7 @@ DoxygenParser::addCommandLine(const std::string &theCommand,
   skipEndOfLine();
 }
 
-void
-DoxygenParser::addCommandParagraph(const std::string &theCommand,
-                                   const TokenList &tokList,
-                                   DoxygenEntityList &doxyList)
-{
+void DoxygenParser::addCommandParagraph(const std::string &theCommand, const TokenList &tokList, DoxygenEntityList &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
 
@@ -459,11 +407,7 @@ DoxygenParser::addCommandParagraph(const std::string &theCommand,
   doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 }
 
-void
-DoxygenParser::addCommandEndCommand(const std::string &theCommand,
-                                    const TokenList & tokList,
-                                    DoxygenEntityList &doxyList)
-{
+void DoxygenParser::addCommandEndCommand(const std::string &theCommand, const TokenList &tokList, DoxygenEntityList &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
   TokenListCIt endCommand = getEndCommand("end" + theCommand, tokList);
@@ -477,19 +421,14 @@ DoxygenParser::addCommandEndCommand(const std::string &theCommand,
   doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 }
 
-void
-DoxygenParser::addCommandWordParagraph(const std::string &theCommand,
-                                       const TokenList &tokList,
-                                       DoxygenEntityList &doxyList)
-{
+void DoxygenParser::addCommandWordParagraph(const std::string &theCommand, const TokenList &tokList, DoxygenEntityList &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
 
   std::string name = getNextWord();
 
   if (name.empty()) {
-    printListError(WARN_DOXYGEN_COMMAND_ERROR,
-        "No word followed " + theCommand + " command. Not added");
+    printListError(WARN_DOXYGEN_COMMAND_ERROR, "No word followed " + theCommand + " command. Not added");
     return;
   }
   TokenListCIt endOfParagraph = getEndOfParagraph(tokList);
@@ -499,17 +438,12 @@ DoxygenParser::addCommandWordParagraph(const std::string &theCommand,
   doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 }
 
-void
-DoxygenParser::addCommandWordLine(const std::string &theCommand,
-                                  const TokenList & tokList,
-                                  DoxygenEntityList &doxyList)
-{
+void DoxygenParser::addCommandWordLine(const std::string &theCommand, const TokenList &tokList, DoxygenEntityList &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
   std::string name = getNextWord();
   if (name.empty()) {
-    printListError(WARN_DOXYGEN_COMMAND_ERROR,
-        "No word followed " + theCommand + " command. Not added");
+    printListError(WARN_DOXYGEN_COMMAND_ERROR, "No word followed " + theCommand + " command. Not added");
     return;
   }
 
@@ -521,18 +455,13 @@ DoxygenParser::addCommandWordLine(const std::string &theCommand,
   //else cout << "No line followed " << theCommand <<  " command. Not added" << endl;
 }
 
-void
-DoxygenParser::addCommandWordOWordOWord(const std::string &theCommand,
-                                        const TokenList &,
-                                        DoxygenEntityList &doxyList)
-{
+void DoxygenParser::addCommandWordOWordOWord(const std::string &theCommand, const TokenList &, DoxygenEntityList &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
 
   std::string name = getNextWord();
   if (name.empty()) {
-    printListError(WARN_DOXYGEN_COMMAND_ERROR,
-        "No word followed " + theCommand + " command. Not added");
+    printListError(WARN_DOXYGEN_COMMAND_ERROR, "No word followed " + theCommand + " command. Not added");
     return;
   }
   std::string headerfile = getNextWord();
@@ -546,11 +475,7 @@ DoxygenParser::addCommandWordOWordOWord(const std::string &theCommand,
   doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 }
 
-void
-DoxygenParser::addCommandOWord(const std::string &theCommand,
-                               const TokenList &,
-                               DoxygenEntityList &doxyList)
-{
+void DoxygenParser::addCommandOWord(const std::string &theCommand, const TokenList &, DoxygenEntityList &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
 
@@ -560,23 +485,14 @@ DoxygenParser::addCommandOWord(const std::string &theCommand,
   doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 }
 
-void
-DoxygenParser::addCommandErrorThrow(const std::string &theCommand,
-                                    const TokenList &tokList,
-                                    DoxygenEntityList &)
-{
+void DoxygenParser::addCommandErrorThrow(const std::string &theCommand, const TokenList &tokList, DoxygenEntityList &) {
 
   printListError(WARN_DOXYGEN_COMMAND_ERROR,
-      "Encountered: " + theCommand
-          + "\nThis command should not have been encountered. Behaviour past this may be unpredictable");
+                 "Encountered: " + theCommand + "\nThis command should not have been encountered. Behaviour past this may be unpredictable");
   m_tokenListIt = getOneLine(tokList);
 }
 
-void
-DoxygenParser::addCommandHtml(const std::string &theCommand,
-                              const TokenList &,
-                              DoxygenEntityList &doxyList)
-{
+void DoxygenParser::addCommandHtml(const std::string &theCommand, const TokenList &, DoxygenEntityList &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
 
@@ -584,11 +500,7 @@ DoxygenParser::addCommandHtml(const std::string &theCommand,
   doxyList.push_back(DoxygenEntity(theCommand, htmlTagArgs));
 }
 
-void
-DoxygenParser::addCommandHtmlEntity(const std::string &theCommand,
-                                    const TokenList &,
-                                    DoxygenEntityList &doxyList)
-{
+void DoxygenParser::addCommandHtmlEntity(const std::string &theCommand, const TokenList &, DoxygenEntityList &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
 
@@ -596,11 +508,7 @@ DoxygenParser::addCommandHtmlEntity(const std::string &theCommand,
   doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 }
 
-void
-DoxygenParser::addCommandUnique(const std::string &theCommand,
-                                const TokenList &tokList,
-                                DoxygenEntityList &doxyList)
-{
+void DoxygenParser::addCommandUnique(const std::string &theCommand, const TokenList &tokList, DoxygenEntityList &doxyList) {
 
   static std::map<std::string, std::string> endCommands;
   DoxygenEntityList aNewList;
@@ -616,20 +524,17 @@ DoxygenParser::addCommandUnique(const std::string &theCommand,
       cout << "Parsing " << theCommand << endl;
     std::string key = getNextWord();
     if (key.empty()) {
-      printListError(WARN_DOXYGEN_COMMAND_ERROR,
-          "No key followed " + theCommand + " command. Not added");
+      printListError(WARN_DOXYGEN_COMMAND_ERROR, "No key followed " + theCommand + " command. Not added");
       return;
     }
     std::string heading = getNextWord();
     if (key.empty()) {
-      printListError(WARN_DOXYGEN_COMMAND_ERROR,
-          "No heading followed " + theCommand + " command. Not added");
+      printListError(WARN_DOXYGEN_COMMAND_ERROR, "No heading followed " + theCommand + " command. Not added");
       return;
     }
     std::string title = getNextWord();
     if (title.empty()) {
-      printListError(WARN_DOXYGEN_COMMAND_ERROR,
-          "No title followed " + theCommand + " command. Not added");
+      printListError(WARN_DOXYGEN_COMMAND_ERROR, "No title followed " + theCommand + " command. Not added");
       return;
     }
     TokenListCIt endOfParagraph = getEndOfParagraph(tokList);
@@ -687,8 +592,7 @@ DoxygenParser::addCommandUnique(const std::string &theCommand,
       cout << "Parsing " << theCommand << endl;
     std::string name = getNextWord();
     if (name.empty()) {
-      printListError(WARN_DOXYGEN_COMMAND_ERROR,
-          "No word followed " + theCommand + " command. Not added");
+      printListError(WARN_DOXYGEN_COMMAND_ERROR, "No word followed " + theCommand + " command. Not added");
       return;
     }
     DoxygenEntityList aNewList;
@@ -705,8 +609,7 @@ DoxygenParser::addCommandUnique(const std::string &theCommand,
       cout << "Parsing " << theCommand << endl;
     std::string name = getNextWord();
     if (name.empty()) {
-      printListError(WARN_DOXYGEN_COMMAND_ERROR,
-          "No key followed " + theCommand + " command. Not added");
+      printListError(WARN_DOXYGEN_COMMAND_ERROR, "No key followed " + theCommand + " command. Not added");
       return;
     }
     DoxygenEntityList aNewList;
@@ -719,13 +622,13 @@ DoxygenParser::addCommandUnique(const std::string &theCommand,
     std::string refTitle = getNextWord();
     // If title is following the ref tag, it must be quoted. Otherwise
     // doxy puts link on ref id.
-    if (refTitle.size() > 1  &&  refTitle[0] == '"') {
-        // remove quotes
-        refTitle = refTitle.substr(1, refTitle.size() - 2);
-        aNewList.push_back(DoxygenEntity("plainstd::string", refTitle));
+    if (refTitle.size() > 1 && refTitle[0] == '"') {
+      // remove quotes
+      refTitle = refTitle.substr(1, refTitle.size() - 2);
+      aNewList.push_back(DoxygenEntity("plainstd::string", refTitle));
     } else {
-        // no quoted string is following, so we have to restore iterator
-        m_tokenListIt = tmpIt;
+      // no quoted string is following, so we have to restore iterator
+      m_tokenListIt = tmpIt;
     }
     doxyList.push_back(DoxygenEntity(theCommand, aNewList));
   }
@@ -735,8 +638,7 @@ DoxygenParser::addCommandUnique(const std::string &theCommand,
       cout << "Parsing " << theCommand << endl;
     std::string name = getNextWord();
     if (name.empty()) {
-      printListError(WARN_DOXYGEN_COMMAND_ERROR,
-          "No name followed " + theCommand + " command. Not added");
+      printListError(WARN_DOXYGEN_COMMAND_ERROR, "No name followed " + theCommand + " command. Not added");
       return;
     }
     std::string text = getNextWord();
@@ -754,8 +656,7 @@ DoxygenParser::addCommandUnique(const std::string &theCommand,
   // \f{env}{ ... \f}
   // \f$ ... \f$
   else if (theCommand == "code" || theCommand == "verbatim"
-      || theCommand == "dot" || theCommand == "msc" || theCommand == "f["
-      || theCommand == "f{" || theCommand == "f$") {
+           || theCommand == "dot" || theCommand == "msc" || theCommand == "f[" || theCommand == "f{" || theCommand == "f$") {
     if (!endCommands.size()) {
       // fill in static table of end commands
       endCommands["f["] = "f]";
@@ -784,8 +685,7 @@ DoxygenParser::addCommandUnique(const std::string &theCommand,
       cout << "Parsing " << theCommand << endl;
     std::string file = getNextWord();
     if (file.empty()) {
-      printListError(WARN_DOXYGEN_COMMAND_ERROR,
-          "No file followed " + theCommand + " command. Not added");
+      printListError(WARN_DOXYGEN_COMMAND_ERROR, "No file followed " + theCommand + " command. Not added");
       return;
     }
     std::string caption = getNextWord();
@@ -800,14 +700,12 @@ DoxygenParser::addCommandUnique(const std::string &theCommand,
       cout << "Parsing " << theCommand << endl;
     std::string format = getNextWord();
     if (format.empty()) {
-      printListError(WARN_DOXYGEN_COMMAND_ERROR,
-          "No format followed " + theCommand + " command. Not added");
+      printListError(WARN_DOXYGEN_COMMAND_ERROR, "No format followed " + theCommand + " command. Not added");
       return;
     }
     std::string file = getNextWord();
     if (file.empty()) {
-      printListError(WARN_DOXYGEN_COMMAND_ERROR,
-          "No name followed " + theCommand + " command. Not added");
+      printListError(WARN_DOXYGEN_COMMAND_ERROR, "No name followed " + theCommand + " command. Not added");
       return;
     }
     std::string caption = getNextWord();
@@ -828,9 +726,7 @@ DoxygenParser::addCommandUnique(const std::string &theCommand,
       cout << "Parsing " << theCommand << endl;
     std::string name = getNextWord();
     if (name.empty()) {
-      printListError(WARN_DOXYGEN_COMMAND_ERROR,
-          "There should be at least one word following the '" + theCommand
-              + "' command. Command ignored.");
+      printListError(WARN_DOXYGEN_COMMAND_ERROR, "There should be at least one word following the '" + theCommand + "' command. Command ignored.");
       return;
     }
     DoxygenEntityList aNewList;
@@ -843,20 +739,17 @@ DoxygenParser::addCommandUnique(const std::string &theCommand,
     skipEndOfLine();
   }
   // \if <cond> [\else ...] [\elseif <cond> ...] \endif
-  else if (theCommand == "if" || theCommand == "ifnot" || theCommand == "else"
-      || theCommand == "elseif") {
+  else if (theCommand == "if" || theCommand == "ifnot" || theCommand == "else" || theCommand == "elseif") {
     if (noisy)
       cout << "Parsing " << theCommand << endl;
 
     std::string cond;
     bool skipEndif = false; // if true then we skip endif after parsing block of code
-    bool needsCond = (theCommand == "if" || theCommand == "ifnot"
-        || theCommand == "elseif");
+    bool needsCond = (theCommand == "if" || theCommand == "ifnot" || theCommand == "elseif");
     if (needsCond) {
       cond = getNextWord();
       if (cond.empty()) {
-        printListError(WARN_DOXYGEN_COMMAND_ERROR,
-            "No word followed " + theCommand + " command. Not added");
+        printListError(WARN_DOXYGEN_COMMAND_ERROR, "No word followed " + theCommand + " command. Not added");
         return;
       }
     }
@@ -871,8 +764,7 @@ DoxygenParser::addCommandUnique(const std::string &theCommand,
           nestedCounter++;
         else if (it->m_tokenString == "endif")
           nestedCounter--;
-        if (nestedCounter == 1
-            && (it->m_tokenString == "else" || it->m_tokenString == "elseif")) { // else found
+        if (nestedCounter == 1 && (it->m_tokenString == "else" || it->m_tokenString == "elseif")) { // else found
           endCommand = it;
           break;
         }
@@ -885,8 +777,7 @@ DoxygenParser::addCommandUnique(const std::string &theCommand,
     }
 
     if (endCommand == tokList.end()) {
-      printListError(WARN_DOXYGEN_COMMAND_EXPECTED,
-          "No corresponding endif found");
+      printListError(WARN_DOXYGEN_COMMAND_EXPECTED, "No corresponding endif found");
       return;
     }
 
@@ -900,21 +791,15 @@ DoxygenParser::addCommandUnique(const std::string &theCommand,
   }
 }
 
-void
-DoxygenParser::aliasCommand(const std::string& theCommand,
-                            const TokenList& /* tokList */,
-                            DoxygenEntityList &doxyList)
-{
-  String* const alias = Getattr(m_node, ("feature:doxygen:alias:" + theCommand).c_str());
+void DoxygenParser::aliasCommand(const std::string &theCommand, const TokenList &/* tokList */ , DoxygenEntityList &doxyList) {
+  String *const alias = Getattr(m_node, ("feature:doxygen:alias:" + theCommand).c_str());
   if (!alias)
     return;
 
   doxyList.push_back(DoxygenEntity("plainstd::string", Char(alias)));
 }
 
-String* DoxygenParser::getIgnoreFeature(const std::string& theCommand,
-                                        const char* argument) const
-{
+String *DoxygenParser::getIgnoreFeature(const std::string &theCommand, const char *argument) const {
   string feature_name = "feature:doxygen:ignore:" + theCommand;
   if (argument) {
     feature_name += ':';
@@ -924,13 +809,12 @@ String* DoxygenParser::getIgnoreFeature(const std::string& theCommand,
   return Getattr(m_node, feature_name.c_str());
 }
 
-string DoxygenParser::getIgnoreFeatureEndCommand(const std::string& theCommand) const
-{
+string DoxygenParser::getIgnoreFeatureEndCommand(const std::string &theCommand) const {
   // We may be dealing either with a simple command or with the starting command
   // of a block, as indicated by the value of "range" starting with "end".
   string endCommand;
-  if (String* const range = getIgnoreFeature(theCommand, "range")) {
-    const char* const p = Char(range);
+  if (String *const range = getIgnoreFeature(theCommand, "range")) {
+    const char *const p = Char(range);
     if (strncmp(p, "end", 3) == 0) {
       if (p[3] == ':') {
         // Normally the end command name follows after the colon.
@@ -946,11 +830,7 @@ string DoxygenParser::getIgnoreFeatureEndCommand(const std::string& theCommand) 
   return endCommand;
 }
 
-void
-DoxygenParser::ignoreCommand(const std::string& theCommand,
-                             const TokenList &tokList,
-                             DoxygenEntityList &doxyList)
-{
+void DoxygenParser::ignoreCommand(const std::string &theCommand, const TokenList &tokList, DoxygenEntityList &doxyList) {
   const string endCommand = getIgnoreFeatureEndCommand(theCommand);
   if (!endCommand.empty()) {
     TokenListCIt itEnd = getEndCommand(endCommand, tokList);
@@ -958,7 +838,6 @@ DoxygenParser::ignoreCommand(const std::string& theCommand,
       printListError(WARN_DOXYGEN_COMMAND_EXPECTED, "Expected " + endCommand);
       return;
     }
-
     // If we ignore the command, also ignore any whitespace preceding it as we
     // want to avoid having lines consisting of whitespace only or trailing
     // whitespace in general (at least Python, with its pep8 tool, really
@@ -966,16 +845,14 @@ DoxygenParser::ignoreCommand(const std::string& theCommand,
     if (!doxyList.empty()) {
       DoxygenEntityList::iterator i = doxyList.end();
       --i;
-      if (i->typeOfEntity == "plainstd::string" &&
-          i->data.find_first_not_of(" \t") == std::string::npos) {
+      if (i->typeOfEntity == "plainstd::string" && i->data.find_first_not_of(" \t") == std::string::npos) {
         doxyList.erase(i);
       }
     }
-
     // Determine what to do with the part of the comment between the start and
     // end commands: by default, we simply throw it away, but "contents"
     // attribute may be used to change this.
-    if (String* const contents = getIgnoreFeature(theCommand, "contents")) {
+    if (String *const contents = getIgnoreFeature(theCommand, "contents")) {
       // Currently only "parse" is supported but we may need to add "copy" to
       // handle custom tags which contain text that is supposed to be copied
       // verbatim in the future.
@@ -983,17 +860,14 @@ DoxygenParser::ignoreCommand(const std::string& theCommand,
         DoxygenEntityList aNewList = parse(itEnd, tokList);
         doxyList.splice(doxyList.end(), aNewList);
       } else {
-        Swig_error(m_fileName.c_str(), m_fileLineNo,
-            "Invalid \"doxygen:ignore\" feature \"contents\" attribute \"%s\".\n",
-            Char(contents)
-          );
+        Swig_error(m_fileName.c_str(), m_fileLineNo, "Invalid \"doxygen:ignore\" feature \"contents\" attribute \"%s\".\n", Char(contents));
         return;
       }
     }
 
     m_tokenListIt = itEnd;
     m_tokenListIt++;
-  } else if (String* const range = getIgnoreFeature(theCommand, "range")) {
+  } else if (String *const range = getIgnoreFeature(theCommand, "range")) {
     // Currently we only support "line" but, in principle, we should also
     // support "word" and "paragraph" for consistency with the built-in Doxygen
     // commands which can have either of these three ranges (which are indicated
@@ -1004,20 +878,13 @@ DoxygenParser::ignoreCommand(const std::string& theCommand,
       m_tokenListIt = getOneLine(tokList);
       skipEndOfLine();
     } else {
-      Swig_error(m_fileName.c_str(), m_fileLineNo,
-          "Invalid \"doxygen:ignore\" feature \"range\" attribute \"%s\".\n",
-          Char(range)
-        );
+      Swig_error(m_fileName.c_str(), m_fileLineNo, "Invalid \"doxygen:ignore\" feature \"range\" attribute \"%s\".\n", Char(range));
       return;
     }
   }
 }
 
-void
-DoxygenParser::addCommand(const std::string &commandString,
-                          const TokenList &tokList,
-                          DoxygenEntityList &doxyList)
-{
+void DoxygenParser::addCommand(const std::string &commandString, const TokenList &tokList, DoxygenEntityList &doxyList) {
 
   string theCommand = stringToLower(commandString);
 
@@ -1088,12 +955,9 @@ DoxygenParser::addCommand(const std::string &commandString,
 /**
  * This method converts TokenList to DoxygenEntryList.
  */
-DoxygenEntityList DoxygenParser::parse(TokenListCIt endParsingIndex,
-                                       const TokenList &tokList, bool root)
-{
+DoxygenEntityList DoxygenParser::parse(TokenListCIt endParsingIndex, const TokenList &tokList, bool root) {
   // if we are root, than any strings should be added as 'partofdescription', else as 'plainstd::string'
-  std::string currPlainstringCommandType =
-      root ? "partofdescription" : "plainstd::string";
+  std::string currPlainstringCommandType = root ? "partofdescription" : "plainstd::string";
   DoxygenEntityList aNewList;
 
   while (m_tokenListIt != endParsingIndex) {
@@ -1115,23 +979,17 @@ DoxygenEntityList DoxygenParser::parse(TokenListCIt endParsingIndex,
 
     if (endParsingIndex != tokList.end() && m_tokenListIt == tokList.end()) {
       // this could happen if we can't reach the original endParsingIndex
-      printListError(WARN_DOXYGEN_UNEXPECTED_END_OF_COMMENT,
-          "Unexpected end of comment encountered");
+      printListError(WARN_DOXYGEN_UNEXPECTED_END_OF_COMMENT, "Unexpected end of comment encountered");
       break;
     }
   }
   return aNewList;
 }
 
-DoxygenEntityList DoxygenParser::createTree(Node* node, String* documentation)
-{
+DoxygenEntityList DoxygenParser::createTree(Node *node, String *documentation) {
   m_node = node;
 
-  tokenizeDoxygenComment(
-      Char(documentation),
-      Char(Getfile(documentation)),
-      Getline(documentation)
-    );
+  tokenizeDoxygenComment(Char(documentation), Char(Getfile(documentation)), Getline(documentation));
 
   if (noisy) {
     cout << "---TOKEN LIST---" << endl;
@@ -1151,9 +1009,7 @@ DoxygenEntityList DoxygenParser::createTree(Node* node, String* documentation)
  * Splits 'text' on 'separator' chars. Separator chars are not part of the
  * strings.
  */
-DoxygenParser::StringVector DoxygenParser::split(const std::string &text,
-                                                 char separator)
-{
+DoxygenParser::StringVector DoxygenParser::split(const std::string &text, char separator) {
   StringVector lines;
   size_t prevPos = 0, pos = 0;
 
@@ -1170,8 +1026,7 @@ DoxygenParser::StringVector DoxygenParser::split(const std::string &text,
  * Returns true, if 'c' is one of doxygen comment block start
  * characters: *, /, or !
  */
-bool DoxygenParser::isStartOfDoxyCommentChar(char c)
-{
+bool DoxygenParser::isStartOfDoxyCommentChar(char c) {
   return (strchr("*/!", c) != NULL);
 }
 
@@ -1180,9 +1035,7 @@ bool DoxygenParser::isStartOfDoxyCommentChar(char c)
  * Doxygen commands. In that case true is returned. If the command is not
  * recognized as a doxygen command, it is ignored and false is returned.
  */
-bool DoxygenParser::addDoxyCommand(DoxygenParser::TokenList &tokList,
-                                   const std::string &cmd)
-{
+bool DoxygenParser::addDoxyCommand(DoxygenParser::TokenList &tokList, const std::string &cmd) {
   if (commandBelongs(cmd) != NONE) {
     tokList.push_back(Token(COMMAND, cmd));
     return true;
@@ -1213,17 +1066,14 @@ bool DoxygenParser::addDoxyCommand(DoxygenParser::TokenList &tokList,
  * done, Doxygen commands are ignored. It is used for commands \verbatim,
  * \htmlonly, \f$, \f[, and \f{.
  */
-size_t DoxygenParser::processVerbatimText(size_t pos, const std::string &line)
-{
+size_t DoxygenParser::processVerbatimText(size_t pos, const std::string &line) {
   if (line[pos] == '\\' || line[pos] == '@') { // check for end commands
 
     pos++;
-    size_t endOfWordPos = line.find_first_not_of( DOXYGEN_WORD_CHARS, pos);
+    size_t endOfWordPos = line.find_first_not_of(DOXYGEN_WORD_CHARS, pos);
     string cmd = line.substr(pos, endOfWordPos - pos);
 
-    if (cmd == CMD_END_HTML_ONLY || cmd == CMD_END_VERBATIM
-        || cmd == CMD_END_LATEX_1 || cmd == CMD_END_LATEX_2
-        || cmd == CMD_END_LATEX_3) {
+    if (cmd == CMD_END_HTML_ONLY || cmd == CMD_END_VERBATIM || cmd == CMD_END_LATEX_1 || cmd == CMD_END_LATEX_2 || cmd == CMD_END_LATEX_3) {
 
       m_isVerbatimText = false;
       addDoxyCommand(m_tokenList, cmd);
@@ -1231,8 +1081,8 @@ size_t DoxygenParser::processVerbatimText(size_t pos, const std::string &line)
     } else {
 
       m_tokenList.push_back(Token(PLAINSTRING,
-      // include '\' or '@'
-          line.substr(pos - 1, endOfWordPos - pos + 1)));
+                                  // include '\' or '@'
+                                  line.substr(pos - 1, endOfWordPos - pos + 1)));
     }
 
     pos = endOfWordPos;
@@ -1241,8 +1091,7 @@ size_t DoxygenParser::processVerbatimText(size_t pos, const std::string &line)
 
     // whitespaces are stored as plain strings
     size_t startOfPossibleEndCmd = line.find_first_of("\\@", pos);
-    m_tokenList.push_back(
-        Token(PLAINSTRING, line.substr(pos, startOfPossibleEndCmd - pos)));
+    m_tokenList.push_back(Token(PLAINSTRING, line.substr(pos, startOfPossibleEndCmd - pos)));
     pos = startOfPossibleEndCmd;
   }
 
@@ -1253,8 +1102,7 @@ size_t DoxygenParser::processVerbatimText(size_t pos, const std::string &line)
  * Processes doxy commands for escaped characters: \$ \@ \\ \& \~ \< \> \# \% \" \. \::
  * Handling this separately supports documentation text like \@someText.
  */
-bool DoxygenParser::processEscapedChars(size_t &pos, const std::string &line)
-{
+bool DoxygenParser::processEscapedChars(size_t &pos, const std::string &line) {
   if ((pos + 1) < line.size()) {
 
     // \ and @ with trailing whitespace or quoted get to output as plain string
@@ -1264,7 +1112,6 @@ bool DoxygenParser::processEscapedChars(size_t &pos, const std::string &line)
       pos++;
       return true;
     }
-
     // these chars can be escaped for doxygen
     string escapedChars = "$@\\&~<>#%\".";
     if (escapedChars.find(line[pos + 1]) != string::npos) {
@@ -1273,8 +1120,7 @@ bool DoxygenParser::processEscapedChars(size_t &pos, const std::string &line)
       pos += 2;
       return true;
 
-    } else if ((pos + 2) < line.size() && line[pos + 1] == ':'
-        && line[pos + 2] == ':') {
+    } else if ((pos + 2) < line.size() && line[pos + 1] == ':' && line[pos + 2] == ':') {
 
       // add command \:: - handling this separately supports documentation
       // text like \::someText
@@ -1289,16 +1135,14 @@ bool DoxygenParser::processEscapedChars(size_t &pos, const std::string &line)
 /*
  * Processes word doxygen commands, like \arg, \c, \b, \return, ...
  */
-void DoxygenParser::processWordCommands(size_t &pos, const std::string &line)
-{
+void DoxygenParser::processWordCommands(size_t &pos, const std::string &line) {
   pos++;
   size_t endOfWordPos = line.find_first_not_of(DOXYGEN_WORD_CHARS, pos);
 
   string cmd = line.substr(pos, endOfWordPos - pos);
   addDoxyCommand(m_tokenList, cmd);
 
-  if (cmd == CMD_HTML_ONLY || cmd == CMD_VERBATIM || cmd == CMD_LATEX_1
-      || cmd == CMD_LATEX_2 || cmd == CMD_LATEX_3) {
+  if (cmd == CMD_HTML_ONLY || cmd == CMD_VERBATIM || cmd == CMD_LATEX_1 || cmd == CMD_LATEX_2 || cmd == CMD_LATEX_3) {
 
     m_isVerbatimText = true;
 
@@ -1312,8 +1156,7 @@ void DoxygenParser::processWordCommands(size_t &pos, const std::string &line)
   pos = endOfWordPos;
 }
 
-void DoxygenParser::processHtmlTags(size_t &pos, const std::string &line)
-{
+void DoxygenParser::processHtmlTags(size_t &pos, const std::string &line) {
   bool isEndHtmlTag = false;
   pos++;
   if (line.size() > pos && line[pos] == '/') {
@@ -1329,24 +1172,21 @@ void DoxygenParser::processHtmlTags(size_t &pos, const std::string &line)
   // prepend '<' to distinguish HTML tags from doxygen commands
   if (!cmd.empty() && addDoxyCommand(m_tokenList, '<' + cmd)) {
     // it is a valid HTML command
-    if (line[pos] != '>') { // it should be HTML tag with args,
-                            // for example <A ...>, <IMG ...>, ...
+    if (line[pos] != '>') {
+      // it should be HTML tag with args,
+      // for example <A ...>, <IMG ...>, ...
       if (isEndHtmlTag) {
         m_tokenListIt = m_tokenList.end();
-        printListError(WARN_DOXYGEN_COMMAND_ERROR,
-            "Illegal end HTML tag without '>' found! Tag: " + cmd);
+        printListError(WARN_DOXYGEN_COMMAND_ERROR, "Illegal end HTML tag without '>' found! Tag: " + cmd);
       }
 
       endHtmlPos = line.find(">", pos);
       if (endHtmlPos == string::npos) {
         m_tokenListIt = m_tokenList.end();
-        printListError(WARN_DOXYGEN_COMMAND_ERROR,
-            "HTML tag without '>' found! Tag: " + cmd);
+        printListError(WARN_DOXYGEN_COMMAND_ERROR, "HTML tag without '>' found! Tag: " + cmd);
       }
-
       // add args of HTML command, like link URL, image URL, ...
-      m_tokenList.push_back(
-          Token(PLAINSTRING, line.substr(pos, endHtmlPos - pos)));
+      m_tokenList.push_back(Token(PLAINSTRING, line.substr(pos, endHtmlPos - pos)));
       pos = endHtmlPos;
     } else {
       if (isEndHtmlTag) {
@@ -1368,10 +1208,8 @@ void DoxygenParser::processHtmlTags(size_t &pos, const std::string &line)
   }
 }
 
-void DoxygenParser::processHtmlEntities(size_t &pos, const std::string &line)
-{
-  size_t endOfWordPos = line.find_first_not_of("abcdefghijklmnopqrstuvwxyz",
-      pos + 1);
+void DoxygenParser::processHtmlEntities(size_t &pos, const std::string &line) {
+  size_t endOfWordPos = line.find_first_not_of("abcdefghijklmnopqrstuvwxyz", pos + 1);
 
   if (endOfWordPos != string::npos) {
 
@@ -1379,14 +1217,11 @@ void DoxygenParser::processHtmlEntities(size_t &pos, const std::string &line)
       // if entity is not recognized by Doxygen (not in the list of
       // commands) nothing is added (here and in Doxygen).
       addDoxyCommand(m_tokenList, line.substr(pos, endOfWordPos - pos));
-      endOfWordPos++;  // skip ';'
-
+      endOfWordPos++; // skip ';'
     } else {
-
       // it is not an entity - add entity for ampersand and the rest of string
       addDoxyCommand(m_tokenList, "&amp");
-      m_tokenList.push_back(
-          Token(PLAINSTRING, line.substr(pos + 1, endOfWordPos - pos - 1)));
+      m_tokenList.push_back(Token(PLAINSTRING, line.substr(pos + 1, endOfWordPos - pos - 1)));
     }
   }
   pos = endOfWordPos;
@@ -1395,8 +1230,7 @@ void DoxygenParser::processHtmlEntities(size_t &pos, const std::string &line)
 /*
  * This method processes normal comment, which has to be tokenized.
  */
-size_t DoxygenParser::processNormalComment(size_t pos, const std::string &line)
-{
+size_t DoxygenParser::processNormalComment(size_t pos, const std::string &line) {
   switch (line[pos]) {
   case '\\':
   case '@':
@@ -1407,14 +1241,14 @@ size_t DoxygenParser::processNormalComment(size_t pos, const std::string &line)
     processWordCommands(pos, line);
     break;
 
-  case ' ':  // whitespace
-  case '\t': {
-    // whitespaces are stored as plain strings
-    size_t startOfNextWordPos = line.find_first_not_of(" \t", pos + 1);
-    m_tokenList.push_back(
-        Token(PLAINSTRING, line.substr(pos, startOfNextWordPos - pos)));
-    pos = startOfNextWordPos;
-  }
+  case ' ': // whitespace
+  case '\t':
+    {
+      // whitespaces are stored as plain strings
+      size_t startOfNextWordPos = line.find_first_not_of(" \t", pos + 1);
+      m_tokenList.push_back(Token(PLAINSTRING, line.substr(pos, startOfNextWordPos - pos)));
+      pos = startOfNextWordPos;
+    }
     break;
 
   case '<':
@@ -1434,8 +1268,7 @@ size_t DoxygenParser::processNormalComment(size_t pos, const std::string &line)
     break;
   default:
     m_tokenListIt = m_tokenList.end();
-    printListError(WARN_DOXYGEN_COMMAND_ERROR,
-        std::string("Unknown special character: ") + line[pos]);
+    printListError(WARN_DOXYGEN_COMMAND_ERROR, std::string("Unknown special character: ") + line[pos]);
   }
 
   return pos;
@@ -1445,10 +1278,7 @@ size_t DoxygenParser::processNormalComment(size_t pos, const std::string &line)
  * This is the main method, which tokenizes Doxygen comment to words and
  * doxygen commands.
  */
-void DoxygenParser::tokenizeDoxygenComment(const std::string &doxygenComment,
-                                           const std::string &fileName,
-                                           int fileLine)
-{
+void DoxygenParser::tokenizeDoxygenComment(const std::string &doxygenComment, const std::string &fileName, int fileLine) {
   m_isVerbatimText = false;
   m_isInQuotedString = false;
   m_tokenList.clear();
@@ -1477,7 +1307,6 @@ void DoxygenParser::tokenizeDoxygenComment(const std::string &doxygenComment,
       m_tokenList.push_back(Token(END_LINE, "\n"));
       continue;
     }
-
     // skip sequences of '*', '/', and '!' of any length
     bool isStartOfCommentLineCharFound = false;
     while (pos < line.size() && isStartOfDoxyCommentChar(line[pos])) {
@@ -1489,7 +1318,6 @@ void DoxygenParser::tokenizeDoxygenComment(const std::string &doxygenComment,
       m_tokenList.push_back(Token(END_LINE, "\n"));
       continue;
     }
-
     // if 'isStartOfCommentLineCharFound' then preserve leading spaces, so
     // ' *    comment' gets translated to ' *    comment', not ' * comment'
     // This is important to keep formatting for comments translated to Python.
@@ -1500,7 +1328,6 @@ void DoxygenParser::tokenizeDoxygenComment(const std::string &doxygenComment,
         continue;
       }
     }
-
     // line[pos] may be ' \t' or start of word, it there was no '*', '/' or '!'
     // at beginning of the line. Make sure it points to start of the first word
     // in the line.
@@ -1512,13 +1339,11 @@ void DoxygenParser::tokenizeDoxygenComment(const std::string &doxygenComment,
       }
 
       if (firstWordPos > pos) {
-        m_tokenList.push_back(
-            Token(PLAINSTRING, line.substr(pos, firstWordPos - pos)));
+        m_tokenList.push_back(Token(PLAINSTRING, line.substr(pos, firstWordPos - pos)));
         pos = firstWordPos;
       }
     } else {
-        m_tokenList.push_back(
-            Token(PLAINSTRING, line.substr(0, pos)));
+      m_tokenList.push_back(Token(PLAINSTRING, line.substr(0, pos)));
     }
 
     while (pos != string::npos) {
@@ -1572,12 +1397,10 @@ void DoxygenParser::tokenizeDoxygenComment(const std::string &doxygenComment,
   m_tokenListIt = m_tokenList.begin();
 }
 
-void DoxygenParser::printList()
-{
+void DoxygenParser::printList() {
 
   int tokNo = 0;
-  for (TokenListCIt it = m_tokenList.begin(); it != m_tokenList.end();
-      it++, tokNo++) {
+  for (TokenListCIt it = m_tokenList.begin(); it != m_tokenList.end(); it++, tokNo++) {
 
     cout << it->toString() << " ";
 
@@ -1587,8 +1410,7 @@ void DoxygenParser::printList()
   }
 }
 
-void DoxygenParser::printListError(int warningType, const std::string &message)
-{
+void DoxygenParser::printListError(int warningType, const std::string &message) {
   int curLine = m_fileLineNo;
   for (TokenListCIt it = m_tokenList.begin(); it != m_tokenListIt; it++) {
     if (it->m_tokenType == END_LINE) {
@@ -1596,6 +1418,5 @@ void DoxygenParser::printListError(int warningType, const std::string &message)
     }
   }
 
-  Swig_warning(warningType, m_fileName.c_str(), curLine,
-      "Doxygen parser warning: %s.\n", message.c_str());
+  Swig_warning(warningType, m_fileName.c_str(), curLine, "Doxygen parser warning: %s.\n", message.c_str());
 }

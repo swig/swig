@@ -21,7 +21,9 @@ const char *sectionIndicators[] = {
   "exception", "if", "ifnot", "invariant", "note", "par", "param",
   "tparam", "post", "pre", "remarks", "remark", "result", "return",
   "returns", "retval", "sa", "see", "since", "test", "throw", "throws",
-  "todo", "version", "warning", "xrefitem"};
+  "todo", "version", "warning", "xrefitem"
+};
+
 const int sectionIndicatorsSize = sizeof(sectionIndicators) / sizeof(*sectionIndicators);
 
 /* All of the doxygen commands divided up by how they are parsed */
@@ -31,7 +33,9 @@ const char *simpleCommands[] = {
   "endcond",
   "callgraph", "callergraph", "showinitializer", "hideinitializer", "internal",
   "nosubgrouping", "public", "publicsection", "private", "privatesection",
-  "protected", "protectedsection", "tableofcontents"};
+  "protected", "protectedsection", "tableofcontents"
+};
+
 const int simpleCommandsSize = sizeof(simpleCommands) / sizeof(*simpleCommands);
 
 const char *commandWords[] = {
@@ -39,52 +43,72 @@ const char *commandWords[] = {
   "namespace", "relatesalso", "anchor", "dontinclude", "include",
   "includelineno", "copydoc", "copybrief", "copydetails", "verbinclude",
   "htmlinclude", "extends", "implements", "memberof", "related", "relatedalso",
-  "cite"};
+  "cite"
+};
+
 const int commandWordsSize = sizeof(commandWords) / sizeof(*commandWords);
 
 const char *commandLines[] = {
   "addindex", "fn", "name", "line", "var", "skipline", "typedef", "skip",
-  "until", "property"};
+  "until", "property"
+};
+
 const int commandLinesSize = sizeof(commandLines) / sizeof(*commandLines);
 
 const char *commandParagraph[] = {
   "partofdescription", "result", "return", "returns", "remarks", "remark",
   "since", "test", "sa", "see", "pre", "post", "details", "invariant",
   "deprecated", "date", "note", "warning", "version", "todo", "bug",
-  "attention", "brief", "author", "authors", "copyright", "short"};
+  "attention", "brief", "author", "authors", "copyright", "short"
+};
+
 const int commandParagraphSize = sizeof(commandParagraph) / sizeof(*commandParagraph);
 
 const char *commandEndCommands[] = {
-  CMD_HTML_ONLY, "latexonly", "manonly", "xmlonly", "link", "rtfonly"};
+  CMD_HTML_ONLY, "latexonly", "manonly", "xmlonly", "link", "rtfonly"
+};
+
 const int commandEndCommandsSize = sizeof(commandEndCommands) / sizeof(*commandEndCommands);
 
 const char *commandWordParagraphs[] = {
-  "param", "tparam", "throw", "throws", "retval", "exception", "example"};
+  "param", "tparam", "throw", "throws", "retval", "exception", "example"
+};
+
 const int commandWordParagraphsSize = sizeof(commandWordParagraphs) / sizeof(*commandWordParagraphs);
 
 const char *commandWordLines[] = {
   "page", "subsection", "subsubsection", "section", "paragraph", "defgroup",
-  "snippet", "mainpage"};
+  "snippet", "mainpage"
+};
+
 const int commandWordLinesSize = sizeof(commandWordLines) / sizeof(*commandWordLines);
 
 const char *commandWordOWordOWords[] = {
-  "category", "class", "protocol", "interface", "struct", "union"};
+  "category", "class", "protocol", "interface", "struct", "union"
+};
+
 const int commandWordOWordOWordsSize = sizeof(commandWordOWordOWords) / sizeof(*commandWordOWordOWords);
 
 const char *commandOWords[] = {
-  "dir", "file", "cond"};
+  "dir", "file", "cond"
+};
+
 const int commandOWordsSize = sizeof(commandOWords) / sizeof(*commandOWords);
 
 const char *commandErrorThrowings[] = {
   "annotatedclassstd::list", "classhierarchy", "define", "functionindex", "header",
   "headerfilestd::list", "inherit", "l", "postheader", "endcode", "enddot", "endmsc", "endhtmlonly",
   "endlatexonly", "endmanonly", "endlink", "endverbatim", "endxmlonly", "f]", "f}", "endif", "else",
-  "endrtfonly"};
+  "endrtfonly"
+};
+
 const int commandErrorThrowingsSize = sizeof(commandErrorThrowings) / sizeof(*commandErrorThrowings);
 
 const char *commandUniques[] = {
   "xrefitem", "arg", "ingroup", "par", "headerfile", "overload", "weakgroup", "ref", "subpage", "dotfile", "image", "addtogroup", "li",
-  "if", "ifnot", "elseif", "else", "mscfile", "code", CMD_VERBATIM, "f{", "f[", "f$", "dot", "msc"};
+  "if", "ifnot", "elseif", "else", "mscfile", "code", CMD_VERBATIM, "f{", "f[", "f$", "dot", "msc"
+};
+
 const int commandUniquesSize = sizeof(commandUniques) / sizeof(*commandUniques);
 
 // These HTML commands are transformed when producing output in other formats.
@@ -103,27 +127,30 @@ const int commandHtmlSize = sizeof(commandHtml) / sizeof(*commandHtml);
 
 // Only entities which are translatable to plain text are used here. Others
 // are copied unchanged to output.
-const char *commandHtmlEntities[] = { "&copy", "&trade", "&reg", // (C), (TM), (R)
-  "&lt",  // less-than symbol
-  "&gt",  // greater-than symbol
-  "&amp", // ampersand
-  "&apos", // single quotation mark (straight)
-  "&quot", // double quotation mark (straight)
-  "&lsquo", // left single quotation mark
-  "&rsquo", // right single quotation mark
-  "&ldquo", // left double quotation mark
-  "&rdquo", // right double quotation mark
-  "&ndash", // n-dash (for numeric ranges, e.g. 2–8)
-  "&mdash", // --
-  "&nbsp", //
-  "&times", // x
-  "&minus", // -
-  "&sdot", // .
-  "&sim", // ~
-  "&le", // <=
-  "&ge", // >=
-  "&larr", // <--
-  "&rarr" // -->
+const char *commandHtmlEntities[] = {
+  "&copy",                  // (C)
+  "&trade",                 // (TM)
+  "&reg",                   // (R)
+  "&lt",                    // less-than symbol
+  "&gt",                    // greater-than symbol
+  "&amp",                   // ampersand
+  "&apos",                  // single quotation mark (straight)
+  "&quot",                  // double quotation mark (straight)
+  "&lsquo",                 // left single quotation mark
+  "&rsquo",                 // right single quotation mark
+  "&ldquo",                 // left double quotation mark
+  "&rdquo",                 // right double quotation mark
+  "&ndash",                 // n-dash (for numeric ranges, e.g. 2–8)
+  "&mdash",                 // --
+  "&nbsp",                  //
+  "&times",                 // x
+  "&minus",                 // -
+  "&sdot",                  // .
+  "&sim",                   // ~
+  "&le",                    // <=
+  "&ge",                    // >=
+  "&larr",                  // <--
+  "&rarr"                   // -->
 };
 
 const int commandHtmlEntitiesSize = sizeof(commandHtmlEntities) / sizeof(*commandHtmlEntities);

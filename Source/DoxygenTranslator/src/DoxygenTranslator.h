@@ -78,12 +78,12 @@ protected:
    * Returns the documentation formatted for a target language.
    */
   virtual String *makeDocumentation(Node *node) = 0;
-  
+
   /*
    * Prints the details of a parsed entity list to stdout (for debugging).
    */
   void printTree(const DoxygenEntityList &entityList);
-  
+
 };
 
 #endif

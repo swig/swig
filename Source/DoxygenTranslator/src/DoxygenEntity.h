@@ -20,7 +20,7 @@
 
 class DoxygenEntity;
 
-typedef std::list <DoxygenEntity> DoxygenEntityList;
+typedef std::list<DoxygenEntity> DoxygenEntityList;
 typedef DoxygenEntityList::iterator DoxygenEntityListIt;
 typedef DoxygenEntityList::const_iterator DoxygenEntityListCIt;
 
@@ -37,7 +37,7 @@ public:
 
   DoxygenEntity(const std::string &typeEnt);
   DoxygenEntity(const std::string &typeEnt, const std::string &param1);
-  DoxygenEntity(const std::string & typeEnt, const DoxygenEntityList &entList);
+  DoxygenEntity(const std::string &typeEnt, const DoxygenEntityList &entList);
 
   void printEntity(int level) const;
 };

@@ -14,10 +14,8 @@
 
 #include "DoxygenTranslator.h"
 
-DoxygenTranslator::DoxygenTranslator(int flags) :
-  m_flags(flags),
-  parser((flags & debug_parser) != 0)
-{}
+DoxygenTranslator::DoxygenTranslator(int flags) : m_flags(flags), parser((flags &debug_parser) != 0) {
+}
 
 
 DoxygenTranslator::~DoxygenTranslator() {
@@ -35,11 +33,11 @@ String *DoxygenTranslator::getDoxygenComment(Node *node) {
 
 
 String *DoxygenTranslator::getDocumentation(Node *node) {
-  
+
   if (!hasDocumentation(node)) {
     return NewString("");
   }
-  
+
   return makeDocumentation(node);
 }
 
