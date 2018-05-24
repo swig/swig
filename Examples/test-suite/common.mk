@@ -607,15 +607,16 @@ $(eval HAS_DOXYGEN := $($(LANGUAGE)_HAS_DOXYGEN))
 
 ifdef HAS_DOXYGEN
 DOXYGEN_TEST_CASES += \
-	doxygen_parsing \
 	doxygen_alias \
-	doxygen_ignore \
-	doxygen_basic_translate \
 	doxygen_basic_notranslate \
+	doxygen_basic_translate \
+	doxygen_ignore \
+	doxygen_misc_constructs \
+	doxygen_parsing \
+	doxygen_parsing_enums \
 	doxygen_translate \
 	doxygen_translate_all_tags \
 	doxygen_translate_links \
-	doxygen_misc_constructs \
 
 $(DOXYGEN_TEST_CASES:=.cpptest): SWIGOPT += -doxygen
 
