@@ -4,10 +4,10 @@ import doxygen_translate
 import inspect
 import string
 import sys
-import commentVerifier
+import comment_verifier
 
 
-commentVerifier.check(inspect.getdoc(doxygen_translate.function),
+comment_verifier.check(inspect.getdoc(doxygen_translate.function),
 r"""*Hello*
 
 * some list item
@@ -140,7 +140,7 @@ And here goes simple text"""
 
 
 
-commentVerifier.check(inspect.getdoc(doxygen_translate.htmlFunction),
+comment_verifier.check(inspect.getdoc(doxygen_translate.htmlFunction),
 r"""Test for html tags. See Doxygen doc for list of tags recognized by Doxygen.
 
 This is link ("http://acme.com/index.html")
@@ -224,7 +224,7 @@ Starts a piece of text displayed in a typewriter font.
 <u>underlined \b bold text - doxy commands are ignored inside 'htmlonly' section </u>""")
 
 
-commentVerifier.check(inspect.getdoc(doxygen_translate.htmlTableFunction),
+comment_verifier.check(inspect.getdoc(doxygen_translate.htmlTableFunction),
 r"""The meaning of flags:
 
 :type byFlags: int
@@ -240,7 +240,7 @@ r"""The meaning of flags:
       ``htmlTable...`` functions.""")
 
 
-commentVerifier.check(inspect.getdoc(doxygen_translate.htmlEntitiesFunction),
+comment_verifier.check(inspect.getdoc(doxygen_translate.htmlEntitiesFunction),
 r"""All entities are treated as commands (C)  TM (R)
 should work also<in text
 >

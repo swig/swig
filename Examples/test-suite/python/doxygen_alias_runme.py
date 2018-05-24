@@ -2,9 +2,9 @@
 
 import doxygen_alias
 import inspect
-import commentVerifier
+import comment_verifier
 
-commentVerifier.check(inspect.getdoc(doxygen_alias.make_something),
+comment_verifier.check(inspect.getdoc(doxygen_alias.make_something),
     """\
 A function returning something.
 

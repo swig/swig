@@ -1,5 +1,5 @@
 from autodoc import *
-import commentVerifier
+import comment_verifier
 import inspect
 import sys
 
@@ -8,7 +8,7 @@ def check(got, expected, expected_builtin=None, skip=False):
         expect = expected
         if is_python_builtin() and expected_builtin != None:
             expect = expected_builtin
-        commentVerifier.check(got, expect)
+        comment_verifier.check(got, expect)
 
 def is_new_style_class(cls):
     return hasattr(cls, "__class__")

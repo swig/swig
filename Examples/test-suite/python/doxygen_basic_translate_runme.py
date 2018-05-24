@@ -4,9 +4,9 @@ import doxygen_basic_translate
 import inspect
 import string
 import sys
-import commentVerifier
+import comment_verifier
 
-commentVerifier.check(inspect.getdoc(doxygen_basic_translate.function),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function),
     """\
 Brief description.
 
@@ -19,12 +19,12 @@ Author: Some author
 
 See also: function2"""
 )
-commentVerifier.check(inspect.getdoc(doxygen_basic_translate.function2),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function2),
     """\
 A test of a very very very very very very very very very very very very very very very very
 very very very very very long comment string."""
 )
-commentVerifier.check(inspect.getdoc(doxygen_basic_translate.function3),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function3),
     """*Overload 1:*
 
 A test for overloaded functions
@@ -37,7 +37,7 @@ This is function **one**
 A test for overloaded functions
 This is function **two**"""
 )
-commentVerifier.check(inspect.getdoc(doxygen_basic_translate.function4),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function4),
     """\
 A test of some mixed tag usage
 If: CONDITION {
@@ -56,16 +56,16 @@ Warning: This may not work as expected
 
 }"""
 )
-commentVerifier.check(inspect.getdoc(doxygen_basic_translate.function5),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function5),
     """This is a post comment."""
 )
-commentVerifier.check(inspect.getdoc(doxygen_basic_translate.function6),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function6),
     """\
 Test for default args
 :type a: int
 :param a: Some parameter, default is 42"""
 )
-commentVerifier.check(inspect.getdoc(doxygen_basic_translate.function7),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function7),
     """\
 Test for a parameter with difficult type
 (mostly for python)
@@ -73,7 +73,7 @@ Test for a parameter with difficult type
 :param a: Very strange param"""
 )
 
-commentVerifier.check(inspect.getdoc(doxygen_basic_translate.Atan2),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate.Atan2),
     """\
 Multiple parameters test.
 

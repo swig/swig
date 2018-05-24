@@ -4,9 +4,9 @@ import doxygen_basic_notranslate
 import inspect
 import string
 import sys
-import commentVerifier
+import comment_verifier
 
-commentVerifier.check(inspect.getdoc(doxygen_basic_notranslate.function),
+comment_verifier.check(inspect.getdoc(doxygen_basic_notranslate.function),
     r"""\brief
 Brief description.
 
@@ -16,12 +16,12 @@ The comment text
 \sa function2"""
 )
 
-commentVerifier.check(inspect.getdoc(doxygen_basic_notranslate.function2),
+comment_verifier.check(inspect.getdoc(doxygen_basic_notranslate.function2),
     r"""A test of a very very very very very very very very very very very very very very very very
 very very very very very long comment string."""
 )
 
-commentVerifier.check(inspect.getdoc(doxygen_basic_notranslate.function3),
+comment_verifier.check(inspect.getdoc(doxygen_basic_notranslate.function3),
     r"""*Overload 1:*
 
 A test for overloaded functions
@@ -35,7 +35,7 @@ A test for overloaded functions
 This is function \b two"""
 )
 
-commentVerifier.check(inspect.getdoc(doxygen_basic_notranslate.function4),
+comment_verifier.check(inspect.getdoc(doxygen_basic_notranslate.function4),
     r"""A test of some mixed tag usage
 \if CONDITION
 This \a code fragment shows us something \.
@@ -51,14 +51,14 @@ int main() { while(true); }
 \endcode
 \endif"""
 )
-commentVerifier.check(inspect.getdoc(doxygen_basic_notranslate.function5),
+comment_verifier.check(inspect.getdoc(doxygen_basic_notranslate.function5),
     r"""This is a post comment. """
 )
-commentVerifier.check(inspect.getdoc(doxygen_basic_notranslate.function6),
+comment_verifier.check(inspect.getdoc(doxygen_basic_notranslate.function6),
     r"""Test for default args
 @param a Some parameter, default is 42"""
 )
-commentVerifier.check(inspect.getdoc(doxygen_basic_notranslate.function7),
+comment_verifier.check(inspect.getdoc(doxygen_basic_notranslate.function7),
     r"""Test for a parameter with difficult type
 (mostly for python)
 @param a Very strange param"""

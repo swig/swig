@@ -4,10 +4,10 @@ import doxygen_misc_constructs
 import inspect
 import string
 import sys
-import commentVerifier
+import comment_verifier
 
 
-commentVerifier.check(inspect.getdoc(doxygen_misc_constructs.getAddress),
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.getAddress),
     r"""Returns address of file line.
 
 :type fileName: int
@@ -19,7 +19,7 @@ commentVerifier.check(inspect.getdoc(doxygen_misc_constructs.getAddress),
 
 Connection::getId() """)
 
-commentVerifier.check(inspect.getdoc(doxygen_misc_constructs.CConnectionConfig),
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.CConnectionConfig),
     r"""This class contains information for connection to winIDEA. Its methods
 return reference to self, so we can use it like this:
 
@@ -34,26 +34,26 @@ used for unspecified parameters.
 
 advancedWinIDEALaunching.py Python example.""")
 
-commentVerifier.check(inspect.getdoc(doxygen_misc_constructs.waitTime),
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.waitTime),
     r"""Determines how long the ``isystem.connect`` should wait for running
 instances to respond. Only one of ``lfWaitXXX`` flags from IConnect::ELaunchFlags
 may be specified."""
 )
 
-commentVerifier.check(inspect.getdoc(doxygen_misc_constructs.getConnection),
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.getConnection),
     r"""This function returns connection id."""
 )
 
 
-commentVerifier.check(inspect.getdoc(doxygen_misc_constructs.getFirstLetter),
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.getFirstLetter),
     r''
 )
 
-commentVerifier.check(inspect.getdoc(doxygen_misc_constructs.ClassWithNestedEnum),
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.ClassWithNestedEnum),
     r"""Class description."""
 )
 
-commentVerifier.check(inspect.getdoc(doxygen_misc_constructs.showList),
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.showList),
     r"""An example of a list in a documentation comment.
 
     - The first item of the list.
@@ -66,24 +66,24 @@ commentVerifier.check(inspect.getdoc(doxygen_misc_constructs.showList),
 And this is not a list item any more."""
 )
 
-commentVerifier.check(inspect.getdoc(doxygen_misc_constructs.isNoSpaceValidA),
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.isNoSpaceValidA),
     r"""This comment without space after '*' is valid in Doxygen."""
 )
 
-commentVerifier.check(inspect.getdoc(doxygen_misc_constructs.isNoSpaceValidB),
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.isNoSpaceValidB),
     r""".This comment without space after '*' is valid in Doxygen."""
 )
 
-commentVerifier.check(inspect.getdoc(doxygen_misc_constructs.isNoSpaceValidC),
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.isNoSpaceValidC),
     r''
 )
 
-commentVerifier.check(inspect.getdoc(doxygen_misc_constructs.backslashA),
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.backslashA),
     r"""Backslash following``word`` is a valid doxygen command. Output contains
 'followingword' with 'word' in code font."""
 )
 
-commentVerifier.check(inspect.getdoc(doxygen_misc_constructs.backslashB),
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.backslashB),
     r"""Doxy command without trailing space is ignored - nothing appears
 on output. Standalone \ and '\' get to output.
 Standalone @ and '@' get to output.
@@ -98,7 +98,7 @@ Commands for escaped symbols:
 $ @ \ & ~ < > # % " . :: @text ::text"""
 )
 
-commentVerifier.check(inspect.getdoc(doxygen_misc_constructs.backslashC),
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.backslashC),
     r"""Backslash e at end of *line* froze SWIG
 *with* old comment parser.
 
@@ -107,7 +107,7 @@ See also: MyClass::fun(char,
 )
 
 
-commentVerifier.check(inspect.getdoc(doxygen_misc_constructs.cycle),
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.cycle),
     r"""The next line contains expression:
 
 ['retVal < 10', 'g_counter == 23 && g_mode & 3']

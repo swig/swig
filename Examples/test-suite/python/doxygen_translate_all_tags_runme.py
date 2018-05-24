@@ -4,10 +4,10 @@ import doxygen_translate_all_tags
 import inspect
 import string
 import sys
-import commentVerifier
+import comment_verifier
 
 
-commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func01),
+comment_verifier.check(inspect.getdoc(doxygen_translate_all_tags.func01),
 r"""*Hello*
 
 
@@ -41,7 +41,7 @@ Not everything works right now...
 
      some test code""")
 
-commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func02),
+comment_verifier.check(inspect.getdoc(doxygen_translate_all_tags.func02),
 r"""Conditional comment: SOMECONDITION
 Some conditional comment
 End of conditional comment.
@@ -65,7 +65,7 @@ Deprecated: Now use another function
 This is very large
 and detailed description of some thing""")
 
-commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func03),
+comment_verifier.check(inspect.getdoc(doxygen_translate_all_tags.func03),
 r"""Comment for **func03()**.
 
 
@@ -85,7 +85,7 @@ emphazedWord
 Example: someFile.txt
 Some details on using the example""")
 
-commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func04),
+comment_verifier.check(inspect.getdoc(doxygen_translate_all_tags.func04),
 r""":raises: SuperError
 
 
@@ -116,7 +116,7 @@ r""":raises: SuperError
 
 This will only appear in hmtl""")
 
-commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func05),
+comment_verifier.check(inspect.getdoc(doxygen_translate_all_tags.func05),
 r"""If: ANOTHERCONDITION {
   First part of comment
   If: SECONDCONDITION {
@@ -150,7 +150,7 @@ Image: testImage.bmp("Hello, world!")
 Some text
 describing invariant.""")
 
-commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func06),
+comment_verifier.check(inspect.getdoc(doxygen_translate_all_tags.func06),
 r"""Comment for **func06()**.
 
 
@@ -175,7 +175,7 @@ someMember Some description follows
 
 This will only appear in man""")
 
-commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func07),
+comment_verifier.check(inspect.getdoc(doxygen_translate_all_tags.func07),
 r"""Comment for **func07()**.
 
 
@@ -204,7 +204,7 @@ Maybe even multiline
 :type a: int
 :param a: the first param""")
 
-commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func08),
+comment_verifier.check(inspect.getdoc(doxygen_translate_all_tags.func08),
 r"""Text after anchor.
 
 
@@ -239,7 +239,7 @@ Another remarks section
 :rtype: void
 :return: may return""")
 
-commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func09),
+comment_verifier.check(inspect.getdoc(doxygen_translate_all_tags.func09),
 r"""This will only appear in RTF
 
 
@@ -274,7 +274,7 @@ Since: version 0.0.0.1
 
 :raises: RuntimeError""")
 
-commentVerifier.check(inspect.getdoc(doxygen_translate_all_tags.func10),
+comment_verifier.check(inspect.getdoc(doxygen_translate_all_tags.func10),
 r"""TODO: Some very important task
 
 :type b: float
