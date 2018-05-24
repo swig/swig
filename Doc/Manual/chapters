@@ -13,6 +13,7 @@ Typemaps.html
 Customization.html
 Contract.html
 Varargs.html
+Doxygen.html
 Warnings.html
 Modules.html
 CCache.html
@@ -40,4 +41,3 @@ Ruby.html
 Scilab.html
 Tcl.html
 Extending.html
-Doxygen.html
