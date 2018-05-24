@@ -76,7 +76,6 @@ java_nspacewithoutpackage.%: JAVA_PACKAGEOPT =
 multiple_inheritance_nspace.%: JAVA_PACKAGE = $*Package
 nspace.%: JAVA_PACKAGE = $*Package
 nspace_extend.%: JAVA_PACKAGE = $*Package
-doxygen_misc_constructs.%: INCLUDES = -I../$(srcdir)/..
 
 # Rules for the different types of tests
 %.cpptest:
