@@ -89,6 +89,7 @@ in comments (like unterminated strings or missing ending tags).
 Currently, the whole subset of Doxygen comment styles is supported
 (See <a href="http://www.stack.nl/~dimitri/doxygen/docblocks.html">
 Documenting the code</a>). Here they are:
+</p>
 
 <div class="code"><pre>
 /**
@@ -103,7 +104,6 @@ Documenting the code</a>). Here they are:
 /// Single-line comment
 //! Another single-line comment
 </pre></div>
-</p>
 
 <p>
 Also any of the above with '&lt;' added after comment-starting symbol,
@@ -120,8 +120,8 @@ comments like <i>/*********/</i> or <i>//////////</i>.
 Please note, as SWIG parses the input file by itself with strict grammar,
 there is only a limited support for various cases of comment placement
 in the file.
-<p>
 </p>
+<p>
 Comments can be placed before C/C++ expressions on separate lines:
 </p>
 
@@ -548,10 +548,10 @@ directives</a>):
 <p>
 Here is the list of all Doxygen tags and the description of how they are translated to Javadoc
 </p>
-<div class="diagram"><pre>
-<table border="0">
+<div class="diagram">
+<table border="0" summary="Java Doxygen tags">
 <tr>
-  <th id="Doxygen Tags Java" align="left">Doxygen tags</th>
+  <th align="left">Doxygen tags</th>
 </tr>
 <tr>
 <td>\a</td>
@@ -577,7 +577,6 @@ Here is the list of all Doxygen tags and the description of how they are transla
 <td>\c</td>
 <td>wrapped with &lt;code&gt; html tag</td>
 </tr>
-<tr>
 <tr>
 <td>\cite</td>
 <td>wrapped with &lt;i&gt; html tag</td>
@@ -795,7 +794,7 @@ Here is the list of all Doxygen tags and the description of how they are transla
 <td>prints ::</td>
 </tr>
 </table>
-</pre></div>
+</div>
 
 <H3><a name="Doxygen_unsupported_tags"></a>39.3.3 Unsupported tags</H3>
 
@@ -810,10 +809,10 @@ These are suppressed with their content just printed out (if the tag has any
 sense, typically text content).
 Here is the list of these tags:
 </p>
-<div class="diagram"><pre>
-<table border="0">
+<div class="diagram">
+<table border="0" summary="Unsupported Java Doxygen Tags">
 <tr>
-  <th id="Unsupported Doxygen Tags Java" align="left">Unsupported Doxygen tags</th>
+  <th align="left">Unsupported Doxygen tags</th>
 </tr>
 <tr>
 <td>\addindex</td>
@@ -959,19 +958,19 @@ Here is the list of these tags:
 <td>\category</td>
 </tr>
 </table>
-</pre></div>
+</div>
 
-<p/>
+<p>
 
 If one of the following Doxygen tags appears as the first tag in a
 comment, the whole comment block is ignored:
 <!-- see parser.y, function isStructuralDoxygen() -->
 
 </p>
-<div class="diagram"><pre>
-<table border="0">
+<div class="diagram">
+<table border="0" summary="Ignored Java Doxygen Tags">
 <tr>
-  <th id="Ignored Doxygen Tags" align="left">Ignored Doxygen tags</th>
+  <th align="left">Ignored Doxygen tags</th>
 </tr>
 <tr>
 <td>\addtogroup</td>
@@ -1029,7 +1028,7 @@ comment, the whole comment block is ignored:
 </tr>
 
 </table>
-</pre></div>
+</div>
 
 
 
@@ -1183,10 +1182,10 @@ are not present in generated code, so they have no comment translated for them.
  * &lt;/table&gt;
  */
 </pre></div>
-<p/>
+<p>
 translates to Python as:
-<p/>
-<div class="targetlang"><pre>
+</p>
+<div class="diagram"><pre>
   Animals
   | Column 1 | Column 2 |
   -----------------------
@@ -1194,7 +1193,6 @@ translates to Python as:
   | cat      | mouse    |
   | horse    | parrot   |
 </pre></div>
-</p>
 
 <p>
   <b>Overloaded functions</b>
@@ -1221,10 +1219,10 @@ to do the work.
 <p>
 Here is the list of all Doxygen tags and the description of how they are translated to Pydoc
 </p>
-<div class="diagram"><pre>
-<table border="0">
+<div class="diagram">
+<table border="0" summary="Python Doxygen tags">
 <tr>
-  <th id="Doxygen Tags Python" align="left">Doxygen tags</th>
+  <th align="left">Doxygen tags</th>
 </tr>
 <tr>
 <td>\a</td>
@@ -1427,7 +1425,7 @@ Here is the list of all Doxygen tags and the description of how they are transla
 <td>prints ::</td>
 </tr>
 </table>
-</pre></div>
+</div>
 
 <H3><a name="Doxygen_python_unsupported_tags"></a>39.4.3 Unsupported tags</H3>
 
@@ -1440,10 +1438,10 @@ are suppressed with their content just printed out (if it has any
 sense, typically text content).
 Here is the list of these tags:
 </p>
-<div class="diagram"><pre>
-<table border="0">
+<div class="diagram">
+<table border="0" summary="Unsupported Python Doxygen Tags">
 <tr>
-  <th id="Unsupported Doxygen Tags Python" align="left">Unsupported Doxygen tags</th>
+  <th align="left">Unsupported Doxygen tags</th>
 </tr>
 <tr>
 <td>\addindex</td>
@@ -1611,7 +1609,7 @@ Here is the list of these tags:
 <td>\c</td>
 </tr>
 </table>
-</pre></div>
+</div>
 
 <H3><a name="Doxygen_python_further_details"></a>39.4.4 Further details</H3>
 
@@ -1624,6 +1622,7 @@ TO BE ADDED.
 
 
 <p>
+This section contains information for developers enhancing the Doxygen translator.
 </p>
 
 <H3><a name="Doxygen_translator_design"></a>39.5.1 Doxygen translator design</H3>
