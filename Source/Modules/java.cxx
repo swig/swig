@@ -1373,9 +1373,7 @@ public:
 	  }
 
 	  Printv(f_enum, typemapLookup(n, "javaimports", typemap_lookup_type, WARN_NONE), // Import statements
-		 "\n\n", NIL);
-	  
-	  Printv(f_enum, enum_code, "\n", NIL);
+		 "\n", enum_code, "\n", NIL);
 
 	  Printf(f_enum, "\n");
 	  Delete(f_enum);
@@ -1469,6 +1467,11 @@ public:
       if (!addSymbol(symname, n, scope))
 	return SWIG_ERROR;
       
+      if ((enum_feature == ProperEnum) && parent_name && !unnamedinstance) {
+	if (!GetFlag(n, "firstenumitem"))
+	  Printf(enum_code, ",\n");
+      }
+
       // Translate and write javadoc comment if flagged
       if (doxygen && doxygenTranslator->hasDocumentation(n)) {
 	String *doxygen_comments = doxygenTranslator->getDocumentation(n);
@@ -1481,14 +1484,12 @@ public:
       if ((enum_feature == ProperEnum) && parent_name && !unnamedinstance) {
 	// Wrap (non-anonymous) C/C++ enum with a proper Java enum
 	// Emit the enum item.
-	
 	Printf(enum_code, "  %s", symname);
 	if (Getattr(n, "enumvalue")) {
 	  String *value = enumValue(n);
 	  Printf(enum_code, "(%s)", value);
 	  Delete(value);
 	}
-	Printf(enum_code, ",\n");
       } else {
 	// Wrap C/C++ enums with constant integers or use the typesafe enum pattern
 	SwigType *typemap_lookup_type = parent_name ? parent_name : NewString("enum ");
