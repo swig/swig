@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import doxygen_translate_links
 import inspect
 import string

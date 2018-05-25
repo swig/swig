@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import doxygen_misc_constructs
 import inspect
 import string

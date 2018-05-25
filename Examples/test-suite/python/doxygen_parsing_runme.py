@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import doxygen_parsing
 import inspect
 import string

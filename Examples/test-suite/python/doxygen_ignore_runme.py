@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import doxygen_ignore
 import inspect
 import comment_verifier
