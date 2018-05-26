@@ -1741,7 +1741,7 @@ Searching for "doxygen" in the java.cxx module can give you a good idea of the p
 The basic gist is that anywhere a comment may reside on a node, there needs to be a catch for it in front of where that function, class, or other object is written out to a target language file.
 The other half of extension is building a target documentation language comment generator that handles one blob at a time.
 However, this is relatively simple and nowhere near as complex as the wrapper generating modules in SWIG.
-See DoxygenTranslator/JavaDocConverter.cpp for a good example.
+See Source/Doxygen/javadoc.cxx for a good example.
 The target language module passes the Doxygen Translator the blob to translate, and receives back the translated text.
 </p>
 <p>

@@ -34,6 +34,16 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		DOH/memory.c			\
 		DOH/string.c			\
 		DOH/void.c			\
+		Doxygen/doxyentity.cxx		\
+		Doxygen/doxyentity.h		\
+		Doxygen/doxyparser.cxx		\
+		Doxygen/doxyparser.h		\
+		Doxygen/doxytranslator.cxx	\
+		Doxygen/doxytranslator.h	\
+		Doxygen/javadoc.cxx		\
+		Doxygen/javadoc.h		\
+		Doxygen/pydoc.cxx		\
+		Doxygen/pydoc.h			\
 		Modules/allegrocl.cxx		\
 		Modules/allocate.cxx		\
 		Modules/browser.cxx		\
@@ -91,20 +101,10 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Swig/stype.c			\
 		Swig/symbol.c			\
 		Swig/tree.c			\
-		Swig/typeobj.c			\
 		Swig/typemap.c			\
+		Swig/typeobj.c			\
 		Swig/typesys.c			\
-		Swig/wrapfunc.c			\
-		DoxygenTranslator/src/DoxygenEntity.h\
-		DoxygenTranslator/src/DoxygenEntity.cpp\
-		DoxygenTranslator/src/DoxygenParser.h\
-		DoxygenTranslator/src/DoxygenParser.cpp\
-		DoxygenTranslator/src/DoxygenTranslator.h\
-		DoxygenTranslator/src/DoxygenTranslator.cpp\
-		DoxygenTranslator/src/JavaDocConverter.h\
-		DoxygenTranslator/src/JavaDocConverter.cpp\
-		DoxygenTranslator/src/PyDocConverter.h\
-		DoxygenTranslator/src/PyDocConverter.cpp
+		Swig/wrapfunc.c
 
 bin_PROGRAMS = eswig
 eswig_LDADD   = @SWIGLIBS@

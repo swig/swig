@@ -17,7 +17,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
-#include "../DoxygenTranslator/src/PyDocConverter.h"
+#include "../Doxygen/pydoc.h"
 
 #include <iostream>
 #include <stdint.h>

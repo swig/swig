@@ -6,7 +6,7 @@
  * included with the SWIG source code as distributed by the SWIG developers
  * and at http://www.swig.org/legal.html.
  *
- * PyDocConverter.h
+ * pydoc.h
  *
  * Module to return documentation for nodes formatted for PyDoc
  * ----------------------------------------------------------------------------- */
@@ -17,8 +17,8 @@
 #include <list>
 #include <string>
 #include "swig.h"
-#include "DoxygenEntity.h"
-#include "DoxygenTranslator.h"
+#include "doxyentity.h"
+#include "doxytranslator.h"
 
 #define DOC_STRING_LENGTH         64 // characters per line allowed
 #define DOC_PARAM_STRING_LENGTH   30 // characters reserved for param name / type

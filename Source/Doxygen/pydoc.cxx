@@ -6,13 +6,13 @@
  * included with the SWIG source code as distributed by the SWIG developers
  * and at http://www.swig.org/legal.html.
  *
- * PyDocConverter.cpp
+ * pydoc.cxx
  *
  * Module to return documentation for nodes formatted for PyDoc
  * ----------------------------------------------------------------------------- */
 
-#include "PyDocConverter.h"
-#include "DoxygenParser.h"
+#include "pydoc.h"
+#include "doxyparser.h"
 #include <sstream>
 #include <string>
 #include <vector>

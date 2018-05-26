@@ -6,7 +6,7 @@
  * included with the SWIG source code as distributed by the SWIG developers
  * and at http://www.swig.org/legal.html.
  *
- * DoxygenParser.h
+ * doxyparser.h
  * ----------------------------------------------------------------------------- */
 
 #ifndef DOXYGENPARSER_H_
@@ -19,7 +19,7 @@
 
 #include "swig.h"
 
-#include "DoxygenEntity.h"
+#include "doxyentity.h"
 
 class DoxygenParser {
 private:

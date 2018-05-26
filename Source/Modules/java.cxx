@@ -15,7 +15,7 @@
 #include <limits.h>		// for INT_MAX
 #include "cparse.h"
 #include <ctype.h>
-#include "../DoxygenTranslator/src/JavaDocConverter.h"
+#include "../Doxygen/javadoc.h"
 
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;

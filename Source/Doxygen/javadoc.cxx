@@ -6,15 +6,15 @@
  * included with the SWIG source code as distributed by the SWIG developers
  * and at http://www.swig.org/legal.html.
  *
- * JavaDocConverter.cpp
+ * javadoc.cxx
  * ----------------------------------------------------------------------------- */
 
-#include "JavaDocConverter.h"
-#include "DoxygenParser.h"
+#include "javadoc.h"
+#include "doxyparser.h"
 #include <iostream>
 #include <vector>
 #include <list>
-#include "../../Modules/swigmod.h"
+#include "swigmod.h"
 #define APPROX_LINE_LENGTH 64   // characters per line allowed
 #define TAB_SIZE 8              // current tab size in spaces
 //TODO {@link} {@linkplain} {@docRoot}, and other useful doxy commands that are not a javadoc tag

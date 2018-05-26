@@ -6,7 +6,7 @@
  * included with the SWIG source code as distributed by the SWIG developers
  * and at http://www.swig.org/legal.html.
  *
- * DoxygenTranslator.h
+ * doxytranslator.h
  *
  * Module to return documentation for nodes formatted for various documentation
  * systems.
@@ -16,8 +16,8 @@
 #define DOXYGENTRANSLATOR_H_
 
 #include "swig.h"
-#include "DoxygenEntity.h"
-#include "DoxygenParser.h"
+#include "doxyentity.h"
+#include "doxyparser.h"
 #include <list>
 #include <string>
 

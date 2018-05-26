@@ -6,7 +6,7 @@
  * included with the SWIG source code as distributed by the SWIG developers
  * and at http://www.swig.org/legal.html.
  *
- * JavaDocConverter.h
+ * javadoc.h
  *
  * Module to return documentation for nodes formatted for JavaDoc
  * ----------------------------------------------------------------------------- */
@@ -14,7 +14,7 @@
 #ifndef JAVADOCCONVERTER_H_
 #define JAVADOCCONVERTER_H_
 
-#include "DoxygenTranslator.h"
+#include "doxytranslator.h"
 #include <map>
 
 /*

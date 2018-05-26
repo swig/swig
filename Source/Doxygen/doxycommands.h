@@ -6,7 +6,7 @@
  * included with the SWIG source code as distributed by the SWIG developers
  * and at http://www.swig.org/legal.html.
  *
- * DoxygenCommands.h
+ * doxycommands.h
  *
  * Part of the Doxygen comment translation module of SWIG.
  * ----------------------------------------------------------------------------- */

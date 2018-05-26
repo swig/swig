@@ -321,7 +321,7 @@ make doxygen_tricky_constructs.cpptest -s
 Refactoring
 ===========
 
-All the code in directory _DoxygenTranslator_ should be refactored:
+All the code in directory _Doxygen_ should be refactored:
 -OK- all methods should be class members
 -OK- most static methods should be normal members
 -OK- replace C arrays of strings and sequential searches with STL data

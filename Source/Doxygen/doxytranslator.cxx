@@ -6,13 +6,13 @@
  * included with the SWIG source code as distributed by the SWIG developers
  * and at http://www.swig.org/legal.html.
  *
- * DoxygenTranslator.cpp
+ * doxytranslator.cxx
  *
  * Module to return documentation for nodes formatted for various documentation
  * systems.
  * ----------------------------------------------------------------------------- */
 
-#include "DoxygenTranslator.h"
+#include "doxytranslator.h"
 
 DoxygenTranslator::DoxygenTranslator(int flags) : m_flags(flags), parser((flags &debug_parser) != 0) {
 }

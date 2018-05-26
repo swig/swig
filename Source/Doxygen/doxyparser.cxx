@@ -6,11 +6,11 @@
  * included with the SWIG source code as distributed by the SWIG developers
  * and at http://www.swig.org/legal.html.
  *
- * DoxygenParser.cpp
+ * doxyparser.cxx
  * ----------------------------------------------------------------------------- */
 
-#include "DoxygenParser.h"
-#include "DoxygenCommands.h"
+#include "doxyparser.h"
+#include "doxycommands.h"
 #include "swig.h"
 #include "swigwarn.h"
 
@@ -46,7 +46,7 @@ void DoxygenParser::fillTables() {
   if (doxygenCommands.size())
     return;
 
-  // fill in tables with data from DoxygenCommands.h
+  // fill in tables with data from doxycommands.h
   for (int i = 0; i < simpleCommandsSize; i++)
     doxygenCommands[simpleCommands[i]] = SIMPLECOMMAND;
 

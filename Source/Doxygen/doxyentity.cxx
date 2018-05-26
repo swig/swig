@@ -6,12 +6,12 @@
  * included with the SWIG source code as distributed by the SWIG developers
  * and at http://www.swig.org/legal.html.
  *
- * DoxygenEntity.cpp
+ * doxyentity.cxx
  *
  * Part of the Doxygen comment translation module of SWIG.
  * ----------------------------------------------------------------------------- */
 
-#include "DoxygenEntity.h"
+#include "doxyentity.h"
 #include <iostream>
 
 using std::cout;
