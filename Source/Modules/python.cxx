@@ -17,7 +17,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
-#include "../Doxygen/pydoc.h"
+#include "pydoc.h"
 
 #include <iostream>
 #include <stdint.h>

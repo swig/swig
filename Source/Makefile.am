@@ -13,6 +13,7 @@ AM_CPPFLAGS =	-I$(BUILD_SOURCE_DIR)/Include	\
 		-I$(SOURCE_DIR)/Include		\
 		-I$(SOURCE_DIR)/DOH		\
 		-I$(SOURCE_DIR)/CParse		\
+		-I$(SOURCE_DIR)/Doxygen		\
 		-I$(SOURCE_DIR)/Preprocessor	\
 		-I$(SOURCE_DIR)/Swig		\
 		-I$(SOURCE_DIR)/Modules
