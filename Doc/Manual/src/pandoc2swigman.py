@@ -12,6 +12,7 @@ from string import printable
 
 RE_HEADER = re.compile(r'^<h(\d) id="([^"]+)">(.*)</h(\d)>$')
 RE_PRE    = re.compile(r'^<pre class="([^"]+)">')
+RE_ENDPRE = re.compile(r'</pre>')
 RE_LINK   = re.compile(r'<a href="#([^"]+)">')
 
 NEW_HEADER = '<H{lev:d}><a name="{link}">{title}</a></H{lev:d}>\n'
@@ -44,35 +45,30 @@ def swiggify(path):
         for line in oldf:
             # Convert special characters to HTML &foo; characters
             line = line.translate(NONASCII_TO_HTML)
-            if in_code:
-                if "</pre>" in line:
-                    line += "</div>\n\n"
-                    in_code = False
-                else:
-                    newf.write(line)
-                    continue
 
-            match = RE_HEADER.match(line)
-            if match:
-                (lev, link, title, lev2) = match.groups()
-                lev = int(lev) + 1 # lower the heading level
-                link = convert_link(link)
-                line = NEW_HEADER.format(lev=lev, link=link, title=title)
-                newf.write(line)
-                continue
+            if not in_code:
+                match = RE_PRE.match(line)
+                if match:
+                    code = SELECTOR[match.group(1)]
+                    line = '\n<div class="{}"><pre>{}'.format(
+                        code, line[match.end():])
+                    in_code = True
 
-            match = RE_PRE.match(line)
-            if match:
-                code = SELECTOR[match.group(1)]
-                line = '\n<div class="{}"><pre>{}'.format(
-                    code, line[match.end():])
-                in_code = True
-                newf.write(line)
-                continue
+            if not in_code:
+                match = RE_HEADER.match(line)
+                if match:
+                    (lev, link, title, lev2) = match.groups()
+                    lev = int(lev) + 1 # lower the heading level
+                    link = convert_link(link)
+                    line = NEW_HEADER.format(lev=lev, link=link, title=title)
 
-            line = RE_LINK.sub(repl_link_match, line)
-            line = line.replace("<p>", "\n<p>\n")
-            line = line.replace("</p>", "\n</p>\n")
+                line = RE_LINK.sub(repl_link_match, line)
+                line = line.replace("<p>", "\n<p>\n")
+                line = line.replace("</p>", "\n</p>\n")
+
+            if in_code and line.endswith("</pre>\n"):
+                line = line[:-1] + "</div>\n\n"
+                in_code = False
 
             newf.write(line)
 

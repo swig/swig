@@ -89,7 +89,7 @@ presents some equivalent concepts and names in the two languages:
 |----------------------------------|-----------------------------|
 | struct/class                     | derived type                |
 | function                         | procedure                   |
-| member function                  | type-bound procedure        |
+| virtual member function          | type-bound procedure        |
 | function that returns void       | subroutine                  |
 | function that returns non-void   | function                    |
 | overloaded function              | generic interface           |
@@ -424,7 +424,7 @@ languages' representation of character strings.
 The size of a C string is determined by counting the number of characters until
 a null terminator `\0` is encountered. Shortening a string requires simply
 placing the null terminator earlier in the storage space.
-In contrast, the historical Fortran string is a character array sized at compile
+In contrast, the historical Fortran string is a sequence of characters sized at compile
 time: representing a smaller string at run time is done by filling the
 storage with trailing blanks.
 The Fortran intrinsic `LEN_TRIM` returns the length of a string without
@@ -799,6 +799,8 @@ the other:
 void cannot_overload(int x);
 int  cannot_overload(int x, int y);
 ```
+Without the `%ignore` statement, SWIG will generate Fortran that fails to
+compile.
 
 ## Global variables
 
@@ -918,8 +920,9 @@ void do_it(int i)
 ```
 
 The above code will wrap (by default) *every* function call. (The standard SWIG
-`%allowexception` and `%noallowexception` directives can be used to selectively
-enable or disable exception handling.) Before calling the wrapped function,
+[`%noexception` directive](SWIG.html#Customization_exception) can be used to
+selectively
+disable exception handling.) Before calling the wrapped function,
 the call to `SWIG_check_unhandled_exception` ensures that no previous unhandled
 error exists.  If you wish to wrap only a few functions with only specific
 exceptions, use the ["throws" typemap](SWIG.html#throws_typemap).
@@ -963,24 +966,26 @@ link due to the undefined symbols.
 There are many ways to make C++ data types interact more cleanly with Fortran
 types. For example, it's common for C++ interfaces take a `std::string` when
 they're typically called with string literals: the class can be implicitly
-constructed from a `const char*` but can also accept a `std::string` if needed.
+constructed from a `const char *` but can also accept a `std::string` if needed.
 Since Fortran has no implicit constructors, passing a string argument would
-typically require declaring and instantiating a class for that variable.
+typically require declaring and instantiating a class for that parameter.
 To mitigate this annoyance, special typemaps are provided that
-transparently convert between Fortran types and C++ types.
+transparently convert between Fortran types and C++ types while
 
 Generally, these typemaps are defined as applying to arguments called `NATIVE`;
 they can be applied to *all* arguments regardless of name with the `%apply`
 directive:
 ```swig
-%apply const char* NATIVE { const char* };
+%apply const char *NATIVE { const char * };
 ```
 or to the output of a specific function such as `const char *get_foo_string(int
 i);`
 with
 ```swig
-%apply const char *NATIVE { get_foo_string };
+%apply const char *NATIVE { const char *get_foo_string };
 ```
+
+
 
 ## The std::string class
 
@@ -1333,6 +1338,14 @@ food = Foo()
 call food%do_something()
 value = food%get_something()
 ```
+corresponding to
+```c++
+class Foo {
+  void do_something();
+  int get_something();
+};
+```
+
 Function overloading for derived types is implemented using *generic
 interfaces*. Each overloaded function gets a unique internal symname, and they
 are bound together in a generic interface. For example, if a member function
@@ -1378,7 +1391,8 @@ virtual function call will be dispatched.
 
 Fortran has no mechanism for multiple inheritance, so this SWIG target language
 does not support it. The first base class listed that has not been `%ignore`d
-will be treated as the single parent class.
+will be treated as the single parent class. A warning will be issued for the
+base classes that are *not* used as the parent class.
 
 There is no intrinsic way to `dynamic_cast` to a daughter class, but
 if a particular casting operation is needed a small inline function can be
@@ -1415,9 +1429,21 @@ assignment between Fortran classes must preserve memory association.
 
 Fortran's "dummy argument" for the return result of any function (including
 generic assignment) is `intent(out)`, preventing the previous contents (if any)
-of the assignee from being modified or deallocated.
-At the same time, the assignment operator must behave correctly in both of
-these assignments, which are treated identically by the language:
+of the assignee from being modified or deallocated. In the Fortran-defined
+factory function
+```fortran
+function make_foo() result(fresult)
+  type(Foo) :: fresult
+  call fresult%release() ! always a null-op
+  fresult = Foo(1234)
+end function
+```
+the value of `fresult` at the start of the function is the *default*
+initialized value of `Foo`, and not (for example) the left-hand side of a
+statement when the function's result is used.
+
+The assignment operator must behave correctly in both of
+the following assignments, which are treated identically by the language:
 ```fortran
  type(Foo) :: a, b
  a = make_foo()
@@ -1435,8 +1461,8 @@ memory.
 
 Ideally, as was done in [Rouson's implementation of Fortran shared pointers](https://dx.doi.org/10.1109/MCSE.2012.33), we
 could rely on the `FINAL` operator defined by Fortran 2003 to release the
-temporary's memory. Unfortunately, even 15 years after the standard was
-ratified, support for `FINAL` is patchy and unreliable.
+temporary's memory. Unfortunately, only the very latest compilers (as of 2018,
+14 years after the standard was ratified) have full support for the `FINAL` 
 
 Our solution to this limitation is to have the `Foo` proxy class store not only
 a pointer to the C data but also a state enumeration `self%swigdata%mem` that
