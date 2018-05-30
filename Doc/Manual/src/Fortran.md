@@ -648,32 +648,50 @@ end enum
 It is possible to pass function pointers both from C to Fortran and from
 Fortran to C using SWIG. Currently, function pointer variables
 simply generate opaque `type(C_FUNPTR)` objects, and it is up to the user to
-convert to a Fortran procedure pointer
-using c_f_procpointer:
-```fortran
-subroutine CallIt(cp) bind(c)
-  use, intrinsic :: iso_c_binding
-  type(c_funptr), intent(in) :: cp
-  abstract interface
-    subroutine Add_Int(i) bind(c)
-      import
-      integer(c_int), intent(inout) :: i
-    end subroutine Add_Int
-  end interface
-  procedure(Add_Int), pointer :: fp
-  integer(c_int) :: j
+convert to a Fortran procedure pointer using `c_f_procpointer` and an
+appropriate interface.
 
-  call c_f_procpointer(cp, fp)
-  j = 1
-  call fp(j)
-end subroutine CallIt
+Consider the simple C SWIG input:
+```swig
+%inline %{
+typedef int (*BinaryOp)(int, int);
+
+int do_op(int a, int b, BinaryOp op) {
+  return (*op)(a, b);
+}
+
+int add(int a, int b) {
+  return a + b;
+}
+%}
+
+%constant BinaryOp ADD_FP = add;
 ```
 
-See the `funcptr` example in SWIG for an example of the callback
-functionality in practice.
+This generates a *wrapped* function `add`, which converts integer types and
+passes them through SWIG wrapper functions as pointers, and a *function
+pointer* `add_fp`. The wrapped function pointer is defined as a constant in the
+C wrapper code:
+```c
+SWIGEXPORT SWIGEXTERN BinaryOp const _wrap_ADD_FP = add;
+```
+and made accessible through the Fortran wrapper module as
+```fortran
+ type(C_FUNPTR), protected, public, &
+   bind(C, name="_wrap_ADD_FP") :: ADD_FP
+```
+
+The following Fortran code shows an example of:
+- How to pass the C function pointer to another wrapped function `do_op` that
+  takes a function pointer,
+- How to translate a C function pointer into a Fortran function pointer that
+  can be called directly (using `c_f_procpointer` and an `abstract interface`),
+  and
+- How to translate a Fortran function into a C function pointer, which can then
+  be passed to a SWIG-wrapped function.
 
 Currently function pointers only work with
-user-created C-linkage functions as described below, but we plan to extend
+user-created C-linkage functions, but we plan to extend
 function callbacks so that data can be translated through wrapper functions.
 
 Another planned extension for function pointers is to automatically generate

@@ -25,6 +25,7 @@ C_TEST_CASES = \
 	fortran_bindc_c \
 	fortran_bindc_all \
 	fortran_enums \
+	fortran_funptr \
 
 # C++11 tests: wrapper error
 FAILING_CPP_TESTS += \
