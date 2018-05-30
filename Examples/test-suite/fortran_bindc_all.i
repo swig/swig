@@ -9,10 +9,6 @@
 // Apply the "bindc" feature to everything
 %fortranbindc "1";
 
-%feature("matched_name") DBmrgtree   "! OK     DBmrgtree   ";
-%feature("matched_name") f_DBmrgtree "ERROR  ! f_DBmrgtree ";
-%feature("matched_name") _DBmrgtree  "ERROR  ! _DBmrgtree  ";
-
 // XXX Ideally %ignore should be applied to DBmrgtree...
 %ignore _DBmrgtree;
 // ... because the typemap does
