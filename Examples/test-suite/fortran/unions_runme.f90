@@ -4,12 +4,11 @@ program unions_runme
   use unions
   use ISO_C_BINDING
   implicit none
-  type(SmallStruct) :: small, uni_small, big_smallstruct
-  type(BigStruct) :: big, uni_big
+  type(SmallStruct) :: small
+  type(BigStruct) :: big
   type(EmbeddedUnionTest) :: eut
-  type(EmbeddedUnionTest_uni) :: uni
-  integer(C_INT) :: Jack1, Num1, Num2
-  integer(C_SHORT) :: Jill1, Jill2
+  integer(C_INT) :: Num1
+  ! TODO: Fortran doesn't support nested unions (warning 38)
 
   ! Create new instances of SmallStruct and BigStruct for later use
   small = SmallStruct()
@@ -22,46 +21,13 @@ program unions_runme
   ! Use SmallStruct then BigStruct to setup EmbeddedUnionTest.
   ! Ensure values in EmbeddedUnionTest are set correctly for each.
   eut = EmbeddedUnionTest()
-  uni = eut%get_uni()
 
   ! First check the SmallStruct in EmbeddedUnionTest
   call eut%set_number(1_C_INT)
-  call uni%set_small(small)
-
-  uni_small = uni%get_small()
-  Jill1 = uni_small%get_jill()
-  if (Jill1 /= 200_C_SHORT) then
-    write(0,*) "Runtime test1 failed. eut%uni%small%jill=", Jill1
-    stop 1
-  end if
 
   Num1 = eut%get_number()
   if (Num1 /= 1_C_INT) then
     write(0,*) "Runtime test2 failed. eut%number=", Num1
-    stop 1
-  end if
-
-  ! Secondly check the BigStruct in EmbeddedUnionTest
-  call eut%set_number(2_C_INT)
-  call uni%set_big(big)
-
-  uni_big = uni%get_big()
-  Jack1 = uni_big%get_jack()
-  if (Jack1 /= 300_C_INT) then
-    write(0,*) "Runtime test3 failed. eut%uni%big%jack=", Jack1
-    stop 1
-  end if
-
-  big_smallstruct = uni_big%get_smallstruct()
-  Jill2 = big_smallstruct%get_jill()
-  if (Jill2 /= 200_C_SHORT) then
-    write(0,*) "Runtime test4 failed. eut%uni%big%smallstruct%jill=", Jill2
-    stop 1
-  end if
-
-  Num2 = eut%get_number()
-  if (Num2 /= 2_C_INT) then
-    write(0,*) "Runtime test5 failed. eut%number=", Num2
     stop 1
   end if
 
