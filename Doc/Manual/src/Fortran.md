@@ -1641,7 +1641,7 @@ For example, to pass a class by reference, the Fortran class
 `class(SimpleClass) :: self` is converted to the corresponding C class via the
 stored C pointer using the `fin` typemap, which is expanded to:
 ```fortran
-farg1 = self%swigdata%ptr
+farg1 = self%swigdata%cptr
 ```
 This argument is then passed into the C function call:
 ```fortran
@@ -1649,7 +1649,7 @@ fresult = swigc_make_class(farg1)
 ```
 and the output is translated back via the `fout` typemap, which in this case expands to:
 ```fortran
-swig_result%swigdata%ptr = fresult
+swig_result%swigdata%cptr = fresult
 ```
 
 ### Allocating local Fortran variables in wrapper codes

@@ -1884,7 +1884,7 @@ The <code>fin</code> and <code>fout</code> typemaps are Fortran proxy wrapper co
 </p>
 
 
-<div class="targetlang"><pre><code>farg1 = self%swigdata%ptr</code></pre></div>
+<div class="targetlang"><pre><code>farg1 = self%swigdata%cptr</code></pre></div>
 
 
 <p>
@@ -1900,7 +1900,7 @@ and the output is translated back via the <code>fout</code> typemap, which in th
 </p>
 
 
-<div class="targetlang"><pre><code>swig_result%swigdata%ptr = fresult</code></pre></div>
+<div class="targetlang"><pre><code>swig_result%swigdata%cptr = fresult</code></pre></div>
 
 <H4><a name="Fortran_allocating_local_fortran_variables_in_wrapper_codes">Allocating local Fortran variables in wrapper codes</a></H4>
 

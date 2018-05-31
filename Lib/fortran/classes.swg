@@ -46,7 +46,7 @@ typedef enum {
 %fragment("SwigClassWrapper_decl", "header",
           fragment="SwigMemState") %{
 struct SwigClassWrapper {
-    void* ptr;
+    void* cptr;
     SwigMemState mem;
 };
 %}
@@ -54,7 +54,7 @@ struct SwigClassWrapper {
 %fragment("SwigClassWrapper_decl", "header",
           fragment="SwigMemState") %{
 typedef struct {
-    void* ptr;
+    void* cptr;
     SwigMemState mem;
 } SwigClassWrapper;
 %}
@@ -64,7 +64,7 @@ typedef struct {
           fragment="SwigClassWrapper_decl") %{
 SWIGINTERN SwigClassWrapper SwigClassWrapper_uninitialized() {
     SwigClassWrapper result;
-    result.ptr = NULL;
+    result.cptr = NULL;
     result.mem = SWIG_NULL;
     return result;
 }
@@ -76,7 +76,7 @@ SWIGINTERN SwigClassWrapper SwigClassWrapper_uninitialized() {
 %fragment("SwigClassWrapper_f", "fpublic",
           fragment="SwigMemState_f", noblock=1) %{
 type, bind(C) :: SwigClassWrapper
-  type(C_PTR), public :: ptr = C_NULL_PTR
+  type(C_PTR), public :: cptr = C_NULL_PTR
   integer(C_INT), public :: mem = SWIG_NULL
 end type
 %}
@@ -282,8 +282,8 @@ struct AssignmentTraits {
 template<class T1, class T2, int AFlags>
 SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other) {
   typedef swig::AssignmentTraits<T1, AFlags> Traits_t;
-  T1* pself  = static_cast<T1*>(self->ptr);
-  T2* pother = static_cast<T2*>(other->ptr);
+  T1* pself  = static_cast<T1*>(self->cptr);
+  T2* pother = static_cast<T2*>(other->cptr);
 
   switch (self->mem) {
     case SWIG_NULL:
@@ -291,18 +291,18 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
       switch (other->mem) {
         case SWIG_NULL: /* null op */ break;
         case SWIG_MOVE: /* capture pointer from RHS */
-          self->ptr = other->ptr;
-          other->ptr = NULL;
+          self->cptr = other->cptr;
+          other->cptr = NULL;
           self->mem = SWIG_OWN;
           other->mem = SWIG_NULL;
           break;
         case SWIG_OWN: /* copy from RHS */
-          self->ptr = Traits_t::copy_construct(pother);
+          self->cptr = Traits_t::copy_construct(pother);
           self->mem = SWIG_OWN;
           break;
         case SWIG_REF: /* pointer to RHS */
         case SWIG_CREF:
-          self->ptr = other->ptr;
+          self->cptr = other->cptr;
           self->mem = other->mem;
           break;
       }
@@ -313,14 +313,14 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
         case SWIG_NULL:
           /* Delete LHS */
           Traits_t::destruct(pself);
-          self->ptr = NULL;
+          self->cptr = NULL;
           self->mem = SWIG_NULL;
           break;
         case SWIG_MOVE:
           /* Move RHS into LHS; delete RHS */
           Traits_t::move_assign(pself, pother);
           Traits_t::destruct(pother);
-          other->ptr = NULL;
+          other->cptr = NULL;
           other->mem = SWIG_NULL;
           break;
         case SWIG_OWN:
@@ -341,7 +341,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
       switch (other->mem) {
         case SWIG_NULL:
           /* Remove LHS reference */
-          self->ptr = NULL;
+          self->cptr = NULL;
           self->mem = SWIG_NULL;
           break;
         case SWIG_MOVE:
@@ -349,7 +349,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
            * same. */
           Traits_t::move_assign(pself, pother);
           Traits_t::destruct(pother);
-          other->ptr = NULL;
+          other->cptr = NULL;
           other->mem = SWIG_NULL;
           break;
         case SWIG_OWN:
@@ -364,7 +364,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
       switch (other->mem) {
         case SWIG_NULL:
           /* Remove LHS reference */
-          self->ptr = NULL;
+          self->cptr = NULL;
           self->mem = SWIG_NULL;
         default:
           SWIG_exception_impl("assignment", SWIG_RuntimeError,
@@ -392,8 +392,8 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
           fragment="SwigClassWrapper", fragment="<stdlib.h>",
           fragment="<string.h>") %{
 SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other, size_t size) {
-  void* pself  = self->ptr;
-  void* pother = other->ptr;
+  void* pself  = self->cptr;
+  void* pother = other->cptr;
 
   switch (self->mem) {
     case SWIG_NULL:
@@ -401,20 +401,20 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
       switch (other->mem) {
         case SWIG_NULL: /* null op */ break;
         case SWIG_MOVE: /* capture pointer from RHS */
-          self->ptr = other->ptr;
-          other->ptr = NULL;
+          self->cptr = other->cptr;
+          other->cptr = NULL;
           self->mem = SWIG_OWN;
           other->mem = SWIG_NULL;
           break;
         case SWIG_OWN: /* copy from RHS */
           pself = malloc(size);
           memcpy(pself, pother, size);
-          self->ptr = pself;
+          self->cptr = pself;
           self->mem = SWIG_OWN;
           break;
         case SWIG_REF: /* pointer to RHS */
         case SWIG_CREF:
-          self->ptr = other->ptr;
+          self->cptr = other->cptr;
           self->mem = other->mem;
           break;
       }
@@ -425,14 +425,14 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
         case SWIG_NULL:
           /* Delete LHS */
           free(pself);
-          self->ptr = NULL;
+          self->cptr = NULL;
           self->mem = SWIG_NULL;
           break;
         case SWIG_MOVE:
           /* Move RHS into LHS; delete RHS */
           memcpy(pself, pother, size);
           free(pother);
-          other->ptr = NULL;
+          other->cptr = NULL;
           other->mem = SWIG_NULL;
           break;
         case SWIG_OWN:
@@ -453,7 +453,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
       switch (other->mem) {
         case SWIG_NULL:
           /* Remove LHS reference */
-          self->ptr = NULL;
+          self->cptr = NULL;
           self->mem = SWIG_NULL;
           break;
         case SWIG_MOVE:
@@ -461,7 +461,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
            * same. */
           memcpy(pself, pother, size);
           free(pother);
-          other->ptr = NULL;
+          other->cptr = NULL;
           other->mem = SWIG_NULL;
           break;
         case SWIG_OWN:
@@ -476,7 +476,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
       switch (other->mem) {
         case SWIG_NULL:
           /* Remove LHS reference */
-          self->ptr = NULL;
+          self->cptr = NULL;
           self->mem = SWIG_NULL;
         default:
           SWIG_exception_impl("assignment", SWIG_RuntimeError,
@@ -510,7 +510,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
   if ($input%swigdata%mem == SWIG_OWN) then
     $action
   end if
-  $input%swigdata%ptr = C_NULL_PTR
+  $input%swigdata%cptr = C_NULL_PTR
   $input%swigdata%mem = SWIG_NULL
 }
 
@@ -526,11 +526,11 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
 {const SwigClassWrapper *}
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE {
   SWIG_check_nonnull(*$input, "$1_ltype", "$fclassname", "$decl", return $null);
-  $1 = *%static_cast($input->ptr, $&1_ltype);
+  $1 = *%static_cast($input->cptr, $&1_ltype);
 }
 
 %typemap(out, noblock=1) SWIGTYPE {
-  $result.ptr = %new_copy($1, $1_ltype);
+  $result.cptr = %new_copy($1, $1_ltype);
   $result.mem = SWIG_MOVE;
 }
 
@@ -549,9 +549,9 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
 %typemap(ctype)  SWIGTYPE* = SWIGTYPE;
 %typemap(in, noblock=1, fragment="SWIG_check_mutable") SWIGTYPE*
   {SWIG_check_mutable(*$input, "$1_ltype", "$fclassname", "$decl", return $null);
-  $1 = %static_cast($input->ptr, $1_ltype);}
+  $1 = %static_cast($input->cptr, $1_ltype);}
 %typemap(out, noblock=1) SWIGTYPE*
-  {$result.ptr = $1;
+  {$result.cptr = $1;
    $result.mem = ($owner ? SWIG_MOVE : SWIG_REF);}
 %typemap(imtype) SWIGTYPE* = SWIGTYPE;
 %typemap(ftype, out="type($fclassname)") SWIGTYPE*
@@ -562,10 +562,10 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
 // Raw pointers act mostly like value types (with overrides below)
 %typemap(ctype)  const SWIGTYPE* = SWIGTYPE*;
 %typemap(in, noblock=1) const SWIGTYPE* {
-  $1 = %static_cast($input->ptr, $1_ltype);
+  $1 = %static_cast($input->cptr, $1_ltype);
 }
 %typemap(out, noblock=1) const SWIGTYPE* {
-  $result.ptr = (void*)$1;
+  $result.cptr = (void*)$1;
   $result.mem = SWIG_CREF;
 }
 %typemap(imtype) const SWIGTYPE* = SWIGTYPE*;
@@ -584,22 +584,22 @@ FORT_COPY_TYPEMAPS(const SWIGTYPE*,
 // Check for non-null reference inputs
 %typemap(in, noblock=1, fragment="SWIG_check_mutable_nonnull") SWIGTYPE& {
   SWIG_check_mutable_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
-  $1 = %static_cast($input->ptr, $1_ltype);
+  $1 = %static_cast($input->cptr, $1_ltype);
 }
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") const SWIGTYPE& {
   SWIG_check_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
-  $1 = %static_cast($input->ptr, $1_ltype);
+  $1 = %static_cast($input->cptr, $1_ltype);
 }
 
 // Check for non-null, mutable class input "self"
 %typemap(in, noblock=1, fragment="SWIG_check_mutable_nonnull") SWIGTYPE* self {
   SWIG_check_mutable_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
-  $1 = %static_cast($input->ptr, $1_ltype);
+  $1 = %static_cast($input->cptr, $1_ltype);
 }
 // Check for non-null class input "self"
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") const SWIGTYPE* self {
   SWIG_check_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
-  $1 = %static_cast($input->ptr, $1_ltype);
+  $1 = %static_cast($input->cptr, $1_ltype);
 }
 
 // Structs will generate free/malloc usage via the %free typemap, but SWIG

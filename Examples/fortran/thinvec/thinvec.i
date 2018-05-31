@@ -25,7 +25,7 @@
 %typemap(in, noblock=1) const ThinVec<int>& INDICES (ThinVec<int> tempvec)
 {
     // Original typemap: convert const ThinVec<int>* to thinvec reference
-    $1 = %static_cast($input->ptr, $1_ltype);
+    $1 = %static_cast($input->cptr, $1_ltype);
     // Resize temporary vec
     tempvec.resize($1->size());
     // Copy input vector incremented by one

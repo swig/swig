@@ -42,10 +42,10 @@ end type
 
 // Generate a wrapper function for cstdlib's 'free' memory function
 %fragment("SWIG_free_f", "finterfaces", noblock=1) {
-subroutine SWIG_free(ptr) &
+subroutine SWIG_free(cptr) &
   bind(C, name="free")
  use, intrinsic :: ISO_C_BINDING
- type(C_PTR), value :: ptr
+ type(C_PTR), value :: cptr
 end subroutine
 }
 
