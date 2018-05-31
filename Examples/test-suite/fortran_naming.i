@@ -2,7 +2,7 @@
 
 %warnfilter(SWIGWARN_LANG_IDENTIFIER);
 
-%fortran_bindc_struct(MyStruct);
+%fortranbindc_type(MyStruct);
 
 // Without this line, SWIG should raise an error rather than propagating the
 // invalid name into the Fortran code.

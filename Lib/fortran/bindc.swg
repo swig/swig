@@ -2,15 +2,15 @@
  * bindc.swg
  * ------------------------------------------------------------------------- */
 /*!
- * \def %fortran_bindc_typedef_struct
+ * \def %fortranbindc_type
  * \brief Wrap a struct as BIND(C).
  *
  * In the typical case that you're wrapping 'struct A {};', then use
- * %fortran_bindc_struct .
+ * %fortranbindc_type .
  * ------------------------------------------------------------------------- */
-%define %fortran_bindc_struct(CTYPE)
+%define %fortranbindc_type(CTYPE)
   // Mark the class as being C-bound
-  %bindc CTYPE;
+  %fortranbindc CTYPE;
   // Bound structs act just like fundamental types
   FORT_FUND_TYPEMAP(CTYPE, "type($fclassname)")
 

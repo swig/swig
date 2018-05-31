@@ -1734,7 +1734,7 @@ int FORTRAN::classHandler(Node *n) {
   if (basic_struct && basename) {
     // Disallow inheritance for BIND(C) types
     Swig_error(input_file, line_number,
-               "Struct '%s' has the 'bindc' feature set, so it cannot use inheritance.\n",
+               "Struct '%s' has the 'fortranbindc' feature set, so it cannot use inheritance.\n",
                symname);
     return SWIG_NOWRAP;
   }
@@ -1899,7 +1899,7 @@ int FORTRAN::memberfunctionHandler(Node *n) {
   if (is_basic_struct()) {
     String *class_symname = Getattr(getCurrentClass(), "sym:name");
     Swig_error(input_file, line_number,
-               "Struct '%s' has the 'bindc' feature set, so it cannot have member functions\n",
+               "Struct '%s' has the 'fortranbindc' feature set, so it cannot have member functions\n",
                class_symname);
     return SWIG_NOWRAP;
   }
@@ -1966,7 +1966,7 @@ int FORTRAN::globalvariableHandler(Node *n) {
     this->constantWrapper(n);
   } else if (is_bindc(n)) {
     Swig_error(input_file, line_number,
-               "Can't wrap '%s': %%bindc support for global variables is not yet implemented\n",
+               "Can't wrap '%s': %%fortranbindc support for global variables is not yet implemented\n",
                Getattr(n, "sym:name"));
   } else {
     String *fsymname = Copy(Getattr(n, "sym:name"));

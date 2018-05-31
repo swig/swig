@@ -830,7 +830,7 @@ Although no type conversion is needed for simple integers, other global data
 types would require special wrapper code in these functions.
 
 Currently, global C/Fortran-compatible variables are treated the same as C++
-data, but in the future we plan to expand the `%bindc` feature to directly wrap
+data, but in the future we plan to expand the `%fortranbindc` feature to directly wrap
 ```c++
 extern "C" {
 extern int global_counter_c;
@@ -1788,7 +1788,7 @@ compatible.)
 In certain circumstances, C++ structs can be wrapped natively as Fortran
 `BIND(C)` derived types, so that the underlying data can be shared between C
 and Fortran without any wrapping needed. Structs that are "standard layout" in
-C++ can use the `%bindc` feature to translate
+C++ can use the `%fortranbindc` feature to translate
 ```c++
 struct BasicStruct {
   int foo;
@@ -1808,14 +1808,14 @@ Fortran, unless they bit have fields or use the C99 feature of "flexible array
 members".
 
 Currently the C binding feature for structs must be activated using a special
-macro `%fortran_bindc_struct`:
+macro `%fortranbindc_type`:
 ```swig
-%fortran_bindc_struct(BasicStruct);
+%fortranbindc_type(BasicStruct);
 ```
 
 In C++, these structs must be "standard layout", i.e. compatible with C.
 
-Calling `%fortran_bindc_struct(Foo)` inhibits default constructor/destructor
+Calling `%fortranbindc_type(Foo)` inhibits default constructor/destructor
 generation for the class, and it sets up the necessary type definitions to
 treat the struct as a fundamental type.
 
@@ -1864,7 +1864,7 @@ module thinvec
 ```
 
 This extra typemap trickery should only be needed if you're generating bound
-types without using the `%fortran_bindc_struct` macro.
+types without using the `%fortranbindc_type` macro.
 
 ### Generating direct Fortran interfaces to C functions
 
@@ -1873,7 +1873,7 @@ also possible to specify that a function be directly *bound* and not *wrapped*.
 For this feature to work correctly, all function arguments and return types
 must be inherently Fortran/C interoperable. If using C++, the function must be
 defined using `extern "C"` linkage; and in fact, when SWIG is asked to wrap a
-function with that linkage, it defaults to binding it. Use the `%nobindc
+function with that linkage, it defaults to binding it. Use the `%nofortranbindc
 my_func_name;` feature to suppress this behavior.
 
 The C++ code:

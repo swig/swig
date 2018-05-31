@@ -3,8 +3,8 @@
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) doubleArray; /* Ruby, wrong class name */
 
 #ifdef SWIGFORTRAN
-%fortran_bindc_struct(AB);
-%fortran_bindc_struct(XY);
+%fortranbindc_type(AB);
+%fortranbindc_type(XY);
 #endif
 
 %include <carrays.i>

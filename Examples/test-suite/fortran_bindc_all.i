@@ -5,9 +5,9 @@
 %}
 
 // Give *all* types the struct typemap by default
-%fortran_bindc_struct(SWIGTYPE);
+%fortranbindc_type(SWIGTYPE);
 // Apply the "bindc" feature to everything
-%bindc "1";
+%fortranbindc "1";
 
 %feature("matched_name") DBmrgtree   "! OK     DBmrgtree   ";
 %feature("matched_name") f_DBmrgtree "ERROR  ! f_DBmrgtree ";

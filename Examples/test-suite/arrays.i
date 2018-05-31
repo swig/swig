@@ -83,8 +83,8 @@ cartPosition_t p;
 %ignore oned_hex;
 %ignore oned_enum;
 %ignore twod_enum;
-%bindc oned_unknown;
-%bindc twod_unknown_int;
+%fortranbindc oned_unknown;
+%fortranbindc twod_unknown_int;
 #endif
 
 %inline %{

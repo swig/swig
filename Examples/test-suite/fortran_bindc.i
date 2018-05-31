@@ -5,19 +5,19 @@
 
 // Treat the struct as a native fortran struct rather than as a class with
 // getters/setters.
-%fortran_bindc_struct(OtherStruct);
-%fortran_bindc_struct(SimpleStruct);
-%bindc set_val;
-%bindc set_ptr;
-%bindc get_ptr_arg;
-%bindc get_ptr;
-%bindc get_val;
-%bindc get_cptr;
-%bindc get_handle;
+%fortranbindc_type(OtherStruct);
+%fortranbindc_type(SimpleStruct);
+%fortranbindc set_val;
+%fortranbindc set_ptr;
+%fortranbindc get_ptr_arg;
+%fortranbindc get_ptr;
+%fortranbindc get_val;
+%fortranbindc get_cptr;
+%fortranbindc get_handle;
 
 // Bind some global variables
-%bindc my_global_int;
-%bindc my_const_global_int;
+%fortranbindc my_global_int;
+%fortranbindc my_const_global_int;
 
 // XXX: currently C-bound globals are not implemented.
 // See https://github.com/sethrj/swig/issues/73
@@ -88,5 +88,4 @@ extern const int my_const_global_int;
 extern "C" const int my_const_global_int = 9;
 #endif
 %}
-
 

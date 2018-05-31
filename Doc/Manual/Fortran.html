@@ -1000,7 +1000,7 @@ Although no type conversion is needed for simple integers, other global data typ
 
 
 <p>
-Currently, global C/Fortran-compatible variables are treated the same as C++ data, but in the future we plan to expand the <code>%bindc</code> feature to directly wrap
+Currently, global C/Fortran-compatible variables are treated the same as C++ data, but in the future we plan to expand the <code>%fortranbindc</code> feature to directly wrap
 </p>
 
 
@@ -2139,7 +2139,7 @@ It is sometimes desirable to simply expose C functions and types to Fortran. (Of
 <H4><a name="Fortran_generating_c_bound_fortran_types_from_c_structs">Generating C-bound Fortran types from C structs</a></H4>
 
 <p>
-In certain circumstances, C++ structs can be wrapped natively as Fortran <code>BIND(C)</code> derived types, so that the underlying data can be shared between C and Fortran without any wrapping needed. Structs that are &ldquo;standard layout&rdquo; in C++ can use the <code>%bindc</code> feature to translate
+In certain circumstances, C++ structs can be wrapped natively as Fortran <code>BIND(C)</code> derived types, so that the underlying data can be shared between C and Fortran without any wrapping needed. Structs that are &ldquo;standard layout&rdquo; in C++ can use the <code>%fortranbindc</code> feature to translate
 </p>
 
 
@@ -2166,11 +2166,11 @@ Roughly speaking, standard layout structs have no virtual member functions, inhe
 
 
 <p>
-Currently the C binding feature for structs must be activated using a special macro <code>%fortran_bindc_struct</code>:
+Currently the C binding feature for structs must be activated using a special macro <code>%fortranbindc_type</code>:
 </p>
 
 
-<div class="code"><pre><code>%fortran_bindc_struct(BasicStruct);</code></pre></div>
+<div class="code"><pre><code>%fortranbindc_type(BasicStruct);</code></pre></div>
 
 
 <p>
@@ -2179,7 +2179,7 @@ In C++, these structs must be &ldquo;standard layout&rdquo;, i.e.&nbsp;compatibl
 
 
 <p>
-Calling <code>%fortran_bindc_struct(Foo)</code> inhibits default constructor/destructor generation for the class, and it sets up the necessary type definitions to treat the struct as a fundamental type.
+Calling <code>%fortranbindc_type(Foo)</code> inhibits default constructor/destructor generation for the class, and it sets up the necessary type definitions to treat the struct as a fundamental type.
 </p>
 
 
@@ -2232,13 +2232,13 @@ an <code>import</code> directive will be inserted into the Fortran proxy functio
 
 
 <p>
-This extra typemap trickery should only be needed if you&rsquo;re generating bound types without using the <code>%fortran_bindc_struct</code> macro.
+This extra typemap trickery should only be needed if you&rsquo;re generating bound types without using the <code>%fortranbindc_type</code> macro.
 </p>
 
 <H4><a name="Fortran_generating_direct_fortran_interfaces_to_c_functions">Generating direct Fortran interfaces to C functions</a></H4>
 
 <p>
-In addition to generating functions with translation code, it is also possible to specify that a function be directly <em>bound</em> and not <em>wrapped</em>. For this feature to work correctly, all function arguments and return types must be inherently Fortran/C interoperable. If using C++, the function must be defined using <code>extern &quot;C&quot;</code> linkage; and in fact, when SWIG is asked to wrap a function with that linkage, it defaults to binding it. Use the <code>%nobindc my_func_name;</code> feature to suppress this behavior.
+In addition to generating functions with translation code, it is also possible to specify that a function be directly <em>bound</em> and not <em>wrapped</em>. For this feature to work correctly, all function arguments and return types must be inherently Fortran/C interoperable. If using C++, the function must be defined using <code>extern &quot;C&quot;</code> linkage; and in fact, when SWIG is asked to wrap a function with that linkage, it defaults to binding it. Use the <code>%nofortranbindc my_func_name;</code> feature to suppress this behavior.
 </p>
 
 

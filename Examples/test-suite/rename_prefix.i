@@ -1,8 +1,8 @@
 %module rename_prefix
 
 #ifdef SWIGFORTRAN
-%bindc "";
-%nobindc should_not_match_or_error;
+%fortranbindc "";
+%nofortranbindc should_not_match_or_error;
 #endif
 
 // Test renaming of identifiers with a prefix.

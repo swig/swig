@@ -1,7 +1,7 @@
 /* File : bindc.i */
 %module bindc
 
-%fortran_bindc_struct(Point)
+%fortranbindc_type(Point)
 
 %{
 #include "bindc.h"

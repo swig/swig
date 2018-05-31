@@ -7,7 +7,7 @@
 #ifdef SWIGFORTRAN
 // Treat the struct as a native fortran struct rather than as a class with
 // getters/setters.
-%fortran_bindc_struct(test);
+%fortranbindc_type(test);
 #endif
 
 %inline %{

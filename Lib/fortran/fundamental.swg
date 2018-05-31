@@ -178,7 +178,7 @@ end function
  * compatible, this typemap is more restrictrive than "imtype".
  *
  * Finally, the fundamental type enables *declaring* C functions as pure
- * Fortran interface functions (using the '%bindc' feature) as opposed to
+ * Fortran interface functions (using the '%fortranbindc' feature) as opposed to
  * generating C wrapper code for them.
  */
 %define FORT_FUND_TYPEMAP(CTYPE, FTYPE)

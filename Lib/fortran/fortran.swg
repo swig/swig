@@ -24,7 +24,7 @@
                    (value MUST be interpretable by Fortran), or force an enum to
                    be treated as a compile-time Fortran enum (enum values MUST be
                    interpretable by Fortran)
-   %bindc : Generate *interfaces only*, no wrapper code, for a function
+   %fortranbindc : Generate *interfaces only*, no wrapper code, for a function
  */
 #define %fortranbegin         %insert("fbegin")
 #define %proxycode            %insert("fwrapper")
@@ -39,9 +39,9 @@
 #define %nofortranconst    %feature("fortran:const","0")
 #define %clearfortranconst %feature("fortran:const","")
 
-#define %bindc      %feature("fortran:bindc")
-#define %nobindc    %feature("fortran:bindc", "0")
-#define %clearbindc %feature("fortran:bindc", "")
+#define %fortranbindc      %feature("fortran:bindc")
+#define %nofortranbindc    %feature("fortran:bindc", "0")
+#define %clearfortranbindc %feature("fortran:bindc", "")
 
 /* -------------------------------------------------------------------------
  *
