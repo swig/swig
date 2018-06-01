@@ -209,6 +209,14 @@
 #define WARN_LANG_EXTEND_CONSTRUCTOR  522
 #define WARN_LANG_EXTEND_DESTRUCTOR   523
 
+/* -- Doxygen comments -- */
+
+#define WARN_DOXYGEN_UNKNOWN_COMMAND          560
+#define WARN_DOXYGEN_UNEXPECTED_END_OF_COMMENT  561
+#define WARN_DOXYGEN_COMMAND_EXPECTED         562
+#define WARN_DOXYGEN_UNTERMINATED_STRING      563
+#define WARN_DOXYGEN_COMMAND_ERROR            564
+
 /* -- Reserved (600-799) -- */
 
 /* -- Language module specific warnings (700 - 899) -- */
@@ -240,14 +248,6 @@
 #define WARN_PYTHON_INDENT_MISMATCH           740
 
 /* please leave 740-759 free for Python */
-
-#define WARN_DOXYGEN_UNKNOWN_COMMAND          760
-#define WARN_DOXYGEN_UNEXPECTED_END_OF_COMMENT   761
-#define WARN_DOXYGEN_COMMAND_EXPECTED         762
-#define WARN_DOXYGEN_UNTERMINATED_STRING      763
-#define WARN_DOXYGEN_COMMAND_ERROR            764
-
-/* please leave 760-779 free for Doxygen */
 
 #define WARN_RUBY_WRONG_NAME                  801
 #define WARN_RUBY_MULTIPLE_INHERITANCE        802
