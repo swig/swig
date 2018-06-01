@@ -1052,9 +1052,10 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
     String *item = Getitem(el, j);
     String *dup = Getitem(el, j + 1);
     char *ptr = Char(dup);
-    ptr = &ptr[Len(dup) - 3];
+    int n = Len(dup);
+    ptr = &ptr[n - 3];
 
-    if (!strcmp(ptr, "get"))
+    if ((n > 3) && !strcmp(ptr, "get"))
       varaccessor++;
 
     if (Getattr(itemList, item))
@@ -1311,6 +1312,7 @@ int R::variableWrapper(Node *n) {
 void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
 		    int isSet) {
   if(isSet < 0) {
+    isSet = 0;
     int n = Len(name);
     char *ptr = Char(name);
     if (n>4) {
