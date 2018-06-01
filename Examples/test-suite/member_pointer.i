@@ -5,6 +5,9 @@
 #pragma error_messages (off, badargtype2w) /* Formal argument ... is being passed extern "C" ... */
 #pragma error_messages (off, wbadinit) /* Using extern "C" ... to initialize ... */
 #pragma error_messages (off, wbadasg) /* Assigning extern "C" ... */
+#elif __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
+/* passing NULL into SWIG constant member function wrapper in Fortran raises a warning because it's an int rather than a nullptr_t */
+#pragma GCC diagnostic ignored "-Wconversion-null"
 #endif
 %}
 
