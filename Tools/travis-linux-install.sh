@@ -36,7 +36,19 @@ case "$SWIGLANG" in
 		travis_retry wget http://downloads.dlang.org/releases/2014/dmd_2.066.0-0_amd64.deb
 		travis_retry sudo dpkg -i dmd_2.066.0-0_amd64.deb
 		;;
+	"fortran")
+    case "$CC" in
+      "gcc")   export FC=gfortran ;;
+      "gcc-5") export FC=gfortran-5 ;;
+      "gcc-6") export FC=gfortran-6 ;;
+      "gcc-7") export FC=gfortran-7 ;;
+    esac
+    travis_retry sudo apt-get install -qq $FC
+		;;
 	"go")
+		;;
+	"guile")
+		travis_retry sudo apt-get -qq install guile-2.0-dev
 		;;
 	"javascript")
 		case "$ENGINE" in
@@ -50,9 +62,6 @@ case "$SWIGLANG" in
 				travis_retry sudo apt-get install -qq libv8-dev
 				;;
 		esac
-		;;
-	"guile")
-		travis_retry sudo apt-get -qq install guile-2.0-dev
 		;;
 	"lua")
 		if [[ -z "$VER" ]]; then

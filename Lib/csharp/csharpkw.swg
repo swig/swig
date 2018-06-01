@@ -2,9 +2,9 @@
 #define CSHARP_CSHARPKW_SWG_
 
 /* Warnings for C# keywords */
-#define CSHARPKW(x) %keywordwarn("'" `x` "' is a C# keyword, renaming to '" `x` "_'",rename="%s_")  `x`
+#define CSHARPKW(x) %keywordwarn("'" `x` "' is a C# keyword",rename="%s_")  `x`
 
-#define CSHARPCLASSKW(x) %keywordwarn("'" `x` "' is a special method name used in the C# wrapper classes, class renamed to '" `x` "_'",%$isclass,rename="%s_") `x`
+#define CSHARPCLASSKW(x) %keywordwarn("'" `x` "' is a special method name used in the C# wrapper classes",%$isclass,rename="%s_") `x`
 
 /*
    from

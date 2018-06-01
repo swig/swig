@@ -4,6 +4,12 @@
 
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) test; /* Ruby, wrong class name */
 
+#ifdef SWIGFORTRAN
+// Treat the struct as a native fortran struct rather than as a class with
+// getters/setters.
+%fortranbindc_type(test);
+#endif
+
 %inline %{
 
 typedef struct {

@@ -712,7 +712,7 @@ these methods is described later.
 </p>
 
 <p>
-<em>modifiers</em> is an optional comma separated list of <tt>name="value"</tt> values. 
+<em>modifiers</em> is an optional comma separated list of <tt>name="value"</tt> or <tt>name={value}</tt> values. 
 These are sometimes to attach extra information to a typemap and is often target-language dependent.
 They are also known as typemap attributes.
 </p>
@@ -781,6 +781,7 @@ Here are some examples of valid typemap specifications:
 
 /* Typemap with modifiers */
 %typemap(in, doc="integer") int "$1 = scm_to_int($input);";
+%typemap(in, doc={embedded MACRO will be expanded}) int "$1 = scm_to_int($input);";
 
 /* Typemap applied to patterns of multiple arguments */
 %typemap(in) (char *str, int len),
@@ -1364,6 +1365,7 @@ Below is a list of the typical default types supplied by language modules, showi
 %typemap(in) SWIGTYPE []           { ... unknown sized array handling ...                     };
 %typemap(in) enum SWIGTYPE         { ... default handling for enum values ...                 };
 %typemap(in) const enum SWIGTYPE &amp; { ... default handling for const enum reference values ... };
+%typemap(in) SWIGTYPE (*)(ANY)     { ... default function pointer handling ...                  };
 %typemap(in) SWIGTYPE (CLASS::*)   { ... default pointer member handling ...                  };
 %typemap(in) SWIGTYPE              { ... simple default handling ...                          };
 </pre>
@@ -3960,14 +3962,16 @@ inclusion of the other fragments.
 
 <li>
 <p>
-A typemap can also use more than one fragment, but since the
-syntax is different, you need to specify the dependent fragments in a comma separated
-list. Consider:
+A typemap can also use more than one fragment. You can provide multiple
+"fragment" keywords to the typemap (the same syntax as the <tt>%fragment</tt>
+directive) or specify the dependent fragments in a comma-separated list.
+Consider:
 </p>
 
 <div class="code">
 <pre>
 %typemap(in, fragment="frag1, frag2, frag3") {...}
+%typemap(out, fragment="frag1", fragment="frag2") {...}
 </pre>
 </div>
 

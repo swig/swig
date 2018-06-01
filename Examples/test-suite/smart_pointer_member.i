@@ -1,6 +1,8 @@
 %module smart_pointer_member
 
 %warnfilter(SWIGWARN_GO_NAME_CONFLICT);                       /* Ignoring 'foo' due to Go name ('Foo') conflict with 'Foo' */
+// Fortran is case insensitive: function 'foo' conflicts with class Foo
+%warnfilter(SWIGWARN_FORTRAN_NAME_CONFLICT);
 
 %inline %{
 
@@ -16,7 +18,7 @@
 
     friend int foo(Foo* foo) { return 0;}
   };
-  
+
   class Bar {
     Foo *f;
   public:
@@ -37,13 +39,13 @@
     }
   };
 
-  
-  int get_y(Bar *b) 
+
+  int get_y(Bar *b)
   {
     return (*b)->y;
   }
-  
-  int get_z(Bar *b) 
+
+  int get_z(Bar *b)
   {
     return (*b)->z;
   }

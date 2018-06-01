@@ -14,6 +14,11 @@
 #endif
 %}
 
+// Fortran identifiers can't start with underscore
+#ifdef SWIGFORTRAN
+%rename("str") "__str__";
+#endif
+
 %inline %{
 
 class Foo {

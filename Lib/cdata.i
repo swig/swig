@@ -4,6 +4,8 @@
  * SWIG library file containing macros for manipulating raw C data as strings.
  * ----------------------------------------------------------------------------- */
 
+%include <swigfragments.swg>
+
 %{
 typedef struct SWIGCDATA {
     char *data;
@@ -113,6 +115,8 @@ SWIGCDATA cdata_##NAME(TYPE *ptr, int nelements);
 %rename(cdata) ::cdata_void(void *ptr, int nelements);
 
 %cdata(void);
+
+%fragment("<string.h>");
 
 /* Memory move function. Due to multi-argument typemaps this appears to be wrapped as
 void memmove(void *data, const char *s); */

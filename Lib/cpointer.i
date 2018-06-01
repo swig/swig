@@ -5,6 +5,12 @@
  * pointer objects.
  * ----------------------------------------------------------------------------- */
 
+#ifndef __cplusplus
+// C uses free/calloc/malloc
+%include "swigfragments.swg"
+%fragment("<stdlib.h>");
+#endif
+
 /* -----------------------------------------------------------------------------
  * %pointer_class(type,name)
  *

@@ -1,9 +1,12 @@
-/* 
+/*
 This testcase tests whether the sizeof operator on a pointer is working.
 */
 
 %module sizeof_pointer
 
+#ifdef SWIGFORTRAN
+%warnfilter(SWIGWARN_LANG_IDENTIFIER); /* incompatible array expressions */
+#endif
 
 %inline %{
 

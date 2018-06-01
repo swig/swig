@@ -4,4 +4,5 @@
 // warning.
 %warnfilter(SWIGWARN_PARSE_KEYWORD);
 #endif
+
 %include math.i

@@ -29,6 +29,10 @@
 #include <math.h>
 %}
 
+%fragment("<string.h>", "header") %{
+#include <string.h>
+%}
+
 %fragment("<stddef.h>", "header") %{
 #include <stddef.h>
 %}
@@ -83,4 +87,12 @@
 
 %fragment("<memory>", "header") %{
 #include <memory>
+%}
+
+%fragment("<utility>", "header") %{
+#include <utility>
+%}
+
+%fragment("<cctype>", "header") %{
+#include <cctype>
 %}

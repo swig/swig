@@ -1619,7 +1619,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <decl>     abstract_declarator direct_abstract_declarator ctor_end;
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate idtemplatetemplate stringbrace stringbracesemi;
-%type <str>      string stringnum wstring;
+%type <str>      string stringnum stringnumbrace wstring;
 %type <tparms>   template_parms;
 %type <dtype>    cpp_end cpp_vend;
 %type <intvalue> rename_namewarn;
@@ -2878,6 +2878,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             String *nname = NewStringf("__dummy_%d__", cnt++);
                             Swig_cparse_template_expand(templnode,nname,temparms,tscope);
                             Setattr(templnode,"sym:name",nname);
+                            SetFlag(templnode,"hidden");
 			    Delete(nname);
                             Setattr(templnode,"feature:onlychildren", "typemap,typemapitem,typemapcopy,typedef,types,fragment");
 			    if ($3) {
@@ -7057,12 +7058,12 @@ options        : LPAREN kwargs RPAREN {
 
  
 /* Keyword arguments */
-kwargs         : idstring EQUAL stringnum {
+kwargs         : idstring EQUAL stringnumbrace {
 		 $$ = NewHash();
 		 Setattr($$,"name",$1);
 		 Setattr($$,"value",$3);
                }
-               | idstring EQUAL stringnum COMMA kwargs {
+               | idstring EQUAL stringnumbrace COMMA kwargs {
 		 $$ = NewHash();
 		 Setattr($$,"name",$1);
 		 Setattr($$,"value",$3);
@@ -7090,6 +7091,26 @@ kwargs         : idstring EQUAL stringnum {
 
 stringnum      : string {
 		 $$ = $1;
+               }
+               | exprnum {
+                 $$ = Char($1.val);
+               }
+               ;
+
+stringnumbrace : string {
+		 $$ = $1;
+               }
+               | LBRACE {
+                  /* Assign exact typemap contents */
+		   String *code;
+                   skip_balanced('{','}');
+		   Delitem(scanner_ccode,0);
+		   Delitem(scanner_ccode,DOH_END);
+		   code = Copy(scanner_ccode);
+                  $$ = code;
+               }
+               | HBLOCK {
+	          $$ = $1;
                }
                | exprnum {
                  $$ = Char($1.val);

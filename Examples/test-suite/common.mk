@@ -65,7 +65,6 @@ TARGETSUFFIX =
 SWIGOPT    = -outcurrentdir -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 INCLUDES   = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 LIBS       = -L.
-LIBPREFIX  = lib
 ACTION     = check
 INTERFACEDIR = ../
 SRCDIR     = $(srcdir)/
@@ -103,6 +102,7 @@ C_TEST_BROKEN += \
 # C++ test cases. (Can be run individually using: make testcase.cpptest)
 CPP_TEST_CASES += \
 	abstract_access \
+	abstract_basecast \
 	abstract_inherit \
 	abstract_inherit_ok \
 	abstract_signature \
@@ -215,6 +215,7 @@ CPP_TEST_CASES += \
 	disown \
 	dynamic_cast \
 	empty \
+	enum_callback \
 	enum_ignore \
 	enum_plus \
 	enum_rename \
@@ -504,6 +505,7 @@ CPP_TEST_CASES += \
 	typedef_sizet \
 	typedef_struct_cpp \
 	typedef_typedef \
+	typemap_args \
 	typemap_arrays \
 	typemap_array_qualifiers \
 	typemap_delete \
@@ -676,6 +678,7 @@ C_TEST_CASES += \
 	preproc_include \
 	preproc_line_file \
 	register_par \
+	rename_prefix \
 	ret_by_value \
 	simple_array \
 	sizeof_pointer \

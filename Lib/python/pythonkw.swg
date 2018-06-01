@@ -2,7 +2,7 @@
   Warnings for Python keywords, built-in names and bad names.
 */
 
-#define PYTHONKW(x) %keywordwarn("'" `x` "' is a python keyword, renaming to '_" `x` "'", rename="_%s")  `x`
+#define PYTHONKW(x) %keywordwarn("'" `x` "' is a python keyword", rename="_%s")  `x`
 #define PYTHONBN(x) %builtinwarn("'" `x` "' conflicts with a built-in name in python")  `x`
 
 

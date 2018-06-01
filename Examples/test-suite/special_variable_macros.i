@@ -9,6 +9,8 @@
 #if defined(_MSC_VER)
   #pragma warning(disable: 4996) // 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _strdup. See online help for details.
 #endif
+#include <stdlib.h>
+#include <string.h>
 %}
 
 %ignore Name::operator=;

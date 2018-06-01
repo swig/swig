@@ -3,10 +3,10 @@
  * ----------------------------------------------------------------------------- */
 
 /* Keyword (case insensitive) */
-#define PHPKW(x) %keywordwarn("'" `x` "' is a PHP keyword, renaming to 'c_" `x` "'",sourcefmt="%(lower)s",rename="c_%s") `x`
+#define PHPKW(x) %keywordwarn("'" `x` "' is a PHP keyword",sourcefmt="%(lower)s",rename="c_%s") `x`
 
 /* Class (case insensitive) */
-#define PHPCN(x) %keywordwarn("'" `x` "' is a PHP reserved class name, renaming to 'c_" `x` "'",%$isclass,sourcefmt="%(lower)s",rename="c_%s") `x`
+#define PHPCN(x) %keywordwarn("'" `x` "' is a PHP reserved class name",%$isclass,sourcefmt="%(lower)s",rename="c_%s") `x`
 
 /* Constant (case insensitive) */
 #define PHPBN1a(x) %namewarn(%warningmsg(SWIGWARN_PARSE_BUILTIN_NAME, "enum conflicts with a built-in constant '"`x`"' in PHP"),%$isenumitem,sourcefmt="%(lower)s") `x`
@@ -22,7 +22,7 @@
  PHPBN2a(X); PHPBN2b(X)
 %enddef
 
-#define PHPFN(x) %keywordwarn("'" `x` "' is a PHP built-in function, renaming to 'c_" `x` "'",sourcefmt="%(lower)s",%$isfunction,%$not %$ismember,rename="c_%s") `x`
+#define PHPFN(x) %keywordwarn("'" `x` "' is a PHP built-in function",sourcefmt="%(lower)s",%$isfunction,%$not %$ismember,rename="c_%s") `x`
 
 /* From: http://php.net/manual/en/reserved.keywords.php
  * "You cannot use any of the following words as constants, class names,

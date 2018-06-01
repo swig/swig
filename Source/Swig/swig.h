@@ -157,6 +157,7 @@ extern "C" {
   extern int SwigType_isreference_return(const SwigType *t);
   extern int SwigType_isrvalue_reference(const SwigType *t);
   extern int SwigType_isarray(const SwigType *t);
+  extern int SwigType_isarraypointer(const SwigType *t);
   extern int SwigType_prefix_is_simple_1D_array(const SwigType *t);
   extern int SwigType_isfunction(const SwigType *t);
   extern int SwigType_isqualifier(const SwigType *t);

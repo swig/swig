@@ -1,0 +1,32 @@
+<style type="text/css">
+/* from div.code */
+pre.swig, pre.c, pre.c++ {
+  border-style: solid; 
+  border-width: 1px; 
+  padding: 2pt; 
+  margin-left: 4em;
+  margin-right: 4em;
+  background-color: #F0FFFF;
+  font-family: "Courier New", Courier, "Courier 10 Pitch", monospace;
+}    
+/* from div.targetlang */
+pre.fortran {
+  border-style: solid; 
+  border-width: 1px; 
+  padding: 2pt; 
+  margin-left: 4em;
+  margin-right: 4em;
+  background-color: #d7f6bb;
+  font-family: "Courier New", Courier, "Courier 10 Pitch", monospace;
+}
+/* from div.shell */
+pre.sh {
+  border-style: solid; 
+  border-width: 1px; 
+  padding: 2pt; 
+  margin-left: 4em;
+  margin-right: 4em;
+  background-color: #DCDCDC;
+  font-family: "Courier New", Courier, "Courier 10 Pitch", monospace;
+}
+</style>

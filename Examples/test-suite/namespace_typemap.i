@@ -2,6 +2,7 @@
 %module namespace_typemap
 
 %{
+#include <string.h>
 namespace test {
    /* A minimalistic string class */
    class string_class {

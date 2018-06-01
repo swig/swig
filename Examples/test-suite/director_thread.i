@@ -11,7 +11,6 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <process.h>
-#include <stdio.h>
 #else
 #include <pthread.h>
 #include <signal.h>
@@ -19,6 +18,7 @@
 #endif
 
 #include <assert.h>
+#include <stdio.h>
 #include "swig_examples_lock.h"
 
 class Foo;  

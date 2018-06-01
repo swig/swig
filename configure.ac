@@ -356,8 +356,10 @@ AC_SUBST(PLATCXXFLAGS)
 AC_SUBST(HAVE_CXX11_COMPILER)
 AC_SUBST(LINKFORSHARED)
 
-# This variation is needed on OS-X because there is no (apparent) consistency in shared library naming.
-# Sometimes .bundle works, but sometimes .so is needed.  It depends on the target language
+# This variation is needed on macOS because there is a difference between
+# 'bundles' and 'shared libaries'. The former can only be loaded with dlopen,
+# the latter can be linked at compile time. This is a similar choice between
+# 'MODULE' and 'SHARED' in the CMake ADD_LIBRARY command.
 
 AC_SUBST(PYTHON_SO)
 case $host in
@@ -396,6 +398,12 @@ AC_SUBST(LUA_SO)
 case $host in
    *-*-darwin*) LUA_SO=.so;;
    *) LUA_SO=$SO;;
+esac
+
+AC_SUBST(FORTRAN_SO)
+case $host in
+   *-*-darwin*) FORTRAN_SO=.dylib;;
+   *) FORTRAN_SO=$SO;;
 esac
 
 # Check for specific libraries.   Used for SWIG examples
@@ -2692,6 +2700,56 @@ AC_SUBST(GOOPT)
 AC_SUBST(GCCGOOPT)
 AC_SUBST(GOVERSIONOPTION)
 
+#---------------------------------------------------------------
+# Look for Fortran
+#---------------------------------------------------------------
+
+AC_ARG_WITH(fortran,
+AS_HELP_STRING([--without-fortran], [Disable Fortran])
+AS_HELP_STRING([--with-fortran=path], [Set location of Fortran compiler]),
+[FORTRAN="$withval"], [FORTRAN="$alllang_default"])
+
+if test x"${FORTRAN}" = xno; then
+  AC_MSG_NOTICE([Disabling Fortran])
+  FC=
+else
+  if test -n "$FCFLAGS" && test "x$GCC" = xyes; then
+    # NOTE: unit tests use C preprocessor, so -cpp must be set
+    FCFLAGS="-std=f2003 -Wall -Wimplicit-procedure -Wimplicit-interface"
+  fi
+
+  if test "x$FORTRAN" = xyes; then
+    AC_PROG_FC dnl This command also sets FCFLAGS
+  else
+    FC=$FORTRAN
+    FCFLAGS=$FCFLAGS
+  fi
+
+  if test -n "$FC"; then
+    AC_FC_LIBRARY_LDFLAGS dnl Set up Fortran library flags
+  fi
+
+  # FORTRANLDSHARED is the ld *command* used to create shared library
+  # This must make a dynamic library as opposerd to a bundle.
+  case $host in
+    *-*-darwin*)
+        FORTRANLDSHARED='$(CC) -dynamiclib'
+        FORTRANCXXSHARED='$(CXX) -dynamiclib'
+        ;;
+      *)
+        FORTRANLDSHARED='$(LDSHARED)'
+        FORTRANCXXSHARED='$(CXXSHARED)'
+        ;;
+  esac
+fi
+
+AC_SUBST(FC)
+AC_SUBST(FCFLAGS)
+AC_SUBST(FCLIBS)
+AC_SUBST(FORTRANLDSHARED)
+AC_SUBST(FORTRANCXXSHARED)
+
+
 #----------------------------------------------------------------
 # Look for D
 #----------------------------------------------------------------
@@ -2950,6 +3008,12 @@ if test -z "$DDEFAULTVERSION" ; then
 fi
 AC_SUBST(SKIP_D)
 
+SKIP_FORTRAN=
+if test -z "$FC" ; then
+    SKIP_FORTRAN="1"
+fi
+AC_SUBST(SKIP_FORTRAN)
+
 #----------------------------------------------------------------
 # Additional language dependencies
 #----------------------------------------------------------------
@@ -3039,12 +3103,18 @@ AC_CONFIG_FILES([
     Examples/d/example.mk
     Examples/xml/Makefile
     Examples/test-suite/errors/Makefile
+    Examples/test-suite/allegrocl/Makefile
+    Examples/test-suite/cffi/Makefile
     Examples/test-suite/chicken/Makefile
+    Examples/test-suite/clisp/Makefile
     Examples/test-suite/csharp/Makefile
     Examples/test-suite/d/Makefile
+    Examples/test-suite/fortran/Makefile
+    Examples/test-suite/go/Makefile
     Examples/test-suite/guile/Makefile
     Examples/test-suite/java/Makefile
     Examples/test-suite/javascript/Makefile
+    Examples/test-suite/lua/Makefile
     Examples/test-suite/mzscheme/Makefile
     Examples/test-suite/ocaml/Makefile
     Examples/test-suite/octave/Makefile
@@ -3053,16 +3123,11 @@ AC_CONFIG_FILES([
     Examples/test-suite/php5/Makefile
     Examples/test-suite/pike/Makefile
     Examples/test-suite/python/Makefile
+    Examples/test-suite/r/Makefile
     Examples/test-suite/ruby/Makefile
     Examples/test-suite/scilab/Makefile
     Examples/test-suite/tcl/Makefile
-    Examples/test-suite/lua/Makefile
-    Examples/test-suite/allegrocl/Makefile
-    Examples/test-suite/clisp/Makefile
-    Examples/test-suite/cffi/Makefile
     Examples/test-suite/uffi/Makefile
-    Examples/test-suite/r/Makefile
-    Examples/test-suite/go/Makefile
     Source/Makefile
     Tools/javascript/Makefile
 ])
@@ -3114,6 +3179,7 @@ test -n "$SKIP_CHICKEN"		|| langs="${langs}chicken "
 test -n "$SKIP_CLISP"		|| langs="${langs}clisp "
 test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
 test -n "$SKIP_D"		|| langs="${langs}d "
+test -n "$SKIP_FORTRAN"		|| langs="${langs}fortran "
 test -n "$SKIP_GO"		|| langs="${langs}go "
 test -n "$SKIP_GUILE"		|| langs="${langs}guile "
 test -n "$SKIP_JAVA"		|| langs="${langs}java "
