@@ -311,16 +311,10 @@ String *get_typemap(const_String_or_char_ptr tmname, const_String_or_char_ptr ex
   return result;
 }
 
-/* -------------------------------------------------------------------------
- *! Attach and return a typemap to the given node.
- */
+/* ------------------------------------------------------------------------- */ 
+//! Attach and return a typemap to the given node.
 String *attach_typemap(const_String_or_char_ptr tmname, Node *n, int warning) {
   return get_typemap(tmname, NULL, n, warning, true);
-}
-
-//! Attach and return a typemap (with extension) to the given node.
-String *attach_typemap(const_String_or_char_ptr tmname, const_String_or_char_ptr ext, Node *n, int warning) {
-  return get_typemap(tmname, ext, n, warning, true);
 }
 
 //! Get and return a typemap to the given node.
