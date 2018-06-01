@@ -49,9 +49,35 @@ subroutine SWIG_free(cptr) &
 end subroutine
 }
 
+
 /* -------------------------------------------------------------------------
  * MACROS
  * ------------------------------------------------------------------------- */
+/*!
+ * \def FORT_ARRAYWRAP_TYPEMAP
+ *
+ * Use the \c SwigArrayWrapper for the ISO C binding layer.
+ *
+ * This only defines ctype and imtype; it does not define conversion routines.
+ * We use a macro rather than applying or copying a typedef because this is used 
+ * in both single- and multi-argument typemap matches.
+ */
+%define FORT_ARRAYWRAP_TYPEMAP(CPPTYPE...)
+  // C wrapper type: pointer to templated array wrapper
+  %typemap(ctype, in="SwigArrayWrapper*",
+         null="SwigArrayWrapper_uninitialized()",
+         fragment="SwigArrayWrapper_uninitialized", noblock=1) CPPTYPE
+    {SwigArrayWrapper}
+  
+  // Interface type: fortran equivalent of "ctype"
+  // Since the type is declared in the module, it's necessary to use the
+  // fortran "import" statement to bring it into scope.
+  %typemap(imtype, import="SwigArrayWrapper",
+           fragment="SwigArrayWrapper_f", noblock=1) CPPTYPE
+    {type(SwigArrayWrapper)}
+%enddef
+
+/* ------------------------------------------------------------------------- */
 /*!
  * \def FORT_ARRAYPTR_TYPEMAP
  *
@@ -63,22 +89,11 @@ end subroutine
  * - Fortran in/out
  */
 %define FORT_ARRAYPTR_TYPEMAP(VTYPE, CPPTYPE...)
-  // C wrapper type: pointer to templated array wrapper
-  %typemap(ctype, noblock=1, out="SwigArrayWrapper",
-         null="SwigArrayWrapper_uninitialized()",
-         fragment="SwigArrayWrapper_uninitialized") CPPTYPE {
-    SwigArrayWrapper*
-  }
-  
-  // Interface type: fortran equivalent of "ctype"
-  // Since the type is declared in the module, it's necessary to use the
-  // fortran "import" statement to bring it into scope.
-  %typemap(imtype, import="SwigArrayWrapper", fragment="SwigArrayWrapper_f") CPPTYPE
-    "type(SwigArrayWrapper)"
-  
+  FORT_ARRAYWRAP_TYPEMAP(CPPTYPE)
+
   // Fortran proxy code: input is target 1D array
-  %typemap(ftype, out={$typemap(imtype, VTYPE), dimension(:), pointer}, noblock=1) CPPTYPE {
-    $typemap(imtype, VTYPE), dimension(:), target
+  %typemap(ftype, in={$typemap(imtype, VTYPE), dimension(:), target}, noblock=1) CPPTYPE {
+    $typemap(imtype, VTYPE), dimension(:), pointer
   }
   
   // Fortran proxy translation code: convert from ftype $input to imtype $1

@@ -49,7 +49,7 @@ subroutine test_arrays
   end do
 
   if (is_cplusplus == 0) then
-    ! C assignment: copy xyarr to the  object pointed to by xyarr_ptr (i.e. the global array) . This works because the default assingnment traits do a memcpy,
+    ! C assignment: copy xyarr to the object pointed to by xyarr_ptr (i.e. the global array) . This works because the default assingnment traits do a memcpy,
     ! but the C++ class lacks a copy assignment operator.
     xyarr_ptr = xyarr
     

@@ -35,11 +35,14 @@
 %naturalvar SWIGSP__;
 
 /* -------------------------------------------------------------------------
- * Copy basic settings from non-SP type (i.e. Fortran will see it the same; we
- *  override the in/out/ctype below)
+ * Deferred copy of basic settings from non-SP type (i.e. Fortran will see it the same; we override the in/out/ctype below)
  */
 
-%typemap(ftype) SWIGSP__, SWIGSP__ &, SWIGSP__ *, SWIGSP__ *& "$typemap(ftype, " #TYPE ")"
+%typemap(ftype, out={$typemap(ftype, TYPE)}, noblock=1) SWIGSP__, SWIGSP__ &, SWIGSP__ *, SWIGSP__ *&
+  {$typemap(ftype, TYPE*)}
+%typemap(ftype, out={$typemap(ftype, TYPE)}, noblock=1)
+    const SWIGSP__ &, const SWIGSP__ *, const SWIGSP__ *&
+  {$typemap(ftype, const TYPE*)}
 
 /* -------------------------------------------------------------------------
  * C types: we wrap the *shared pointer* as the value type. The 'in' type is
@@ -47,9 +50,9 @@
  * returned by value.
  */
 
-%typemap(ctype, out="SwigClassWrapper", null="SwigClassWrapper_uninitialized()", noblock=1, fragment="SwigClassWrapper")
+%typemap(ctype, in="const SwigClassWrapper *", null="SwigClassWrapper_uninitialized()", noblock=1, fragment="SwigClassWrapper")
     SWIGSP__, SWIGSP__ &, SWIGSP__ *, SWIGSP__ *&, const SWIGSP__ &, const SWIGSP__ *, const SWIGSP__ *&
-{const SwigClassWrapper *}
+"SwigClassWrapper"
 
 /* -------------------------------------------------------------------------
  * Original class by value: access the 'cptr' member of the input, return a

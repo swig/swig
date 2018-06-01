@@ -112,30 +112,31 @@ end type
 %typemap(ctype, fragment="SwigOpaqueMemFunPtr",
          null="SwigOpaqueMemFunPtr_uninitialized()") SWIGTYPE (CLASS::*)
   "SwigOpaqueMemFunPtr"
+%typemap(imtype, in="type(SwigOpaqueMemFunPtr), intent(in), value",
+         import="SwigOpaqueMemFunPtr",
+         fragment="SwigOpaqueMemFunPtr_f") SWIGTYPE (CLASS::*)
+  "type(SwigOpaqueMemFunPtr)"
+%typemap(ftype, in="type(SwigOpaqueMemFunPtr), intent(in), value",
+         fragment="SwigOpaqueMemFunPtr_f") SWIGTYPE (CLASS::*)
+  "type(SwigOpaqueMemFunPtr)"
+
 %typemap(in, noblock=1, fragment="swig::brute_cast") SWIGTYPE (CLASS::*) {
   $1 = brute_cast<$1_ltype>($input);
 }
 %typemap(out, noblock=1, fragment="swig::brute_cast") SWIGTYPE (CLASS::*) {
   $result = brute_cast<SwigOpaqueMemFunPtr>($1);
 }
-%typemap(imtype, in="type(SwigOpaqueMemFunPtr), intent(in), value",
-         import="SwigOpaqueMemFunPtr",
-         fragment="SwigOpaqueMemFunPtr_f") SWIGTYPE (CLASS::*)
-  "type(SwigOpaqueMemFunPtr)"
-%typemap(ftype, out="type(SwigOpaqueMemFunPtr)",
-         fragment="SwigOpaqueMemFunPtr_f") SWIGTYPE (CLASS::*)
-  "type(SwigOpaqueMemFunPtr), intent(in), value"
 %typemap(fin) SWIGTYPE (CLASS::*)
   "$1 = $input"
 %typemap(fout) SWIGTYPE (CLASS::*)
   "$result = $1"
 
-// Copy to immutable member function pointers
-FORT_COPY_TYPEMAPS(SWIGTYPE (CLASS::*),
-                   SWIGTYPE (CLASS::* const));
-
 %typemap(bindc, in="type(C_FUNPTR), value",
-         fragment="SwigOpaqueMemFunPtr_f") SWIGTYPE (CLASS::*), SWIGTYPE (CLASS::* const)
+         fragment="SwigOpaqueMemFunPtr_f") SWIGTYPE (CLASS::*)
   "type(SwigOpaqueMemFunPtr)"
 
+// The SWIG type system does not check the non-const memfunptr when looking for a const memfunptr. Also apply 
+%apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::* const) };
 
+// I'm not sure this is correct, but it allows member_funcptr_galore to pass.
+%apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::* const &)};

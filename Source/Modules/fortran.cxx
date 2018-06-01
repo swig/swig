@@ -252,7 +252,7 @@ bool is_valid_identifier(String *name) {
  * If 'ext' is non-null, then after binding/searchinbg, a search will be made
  * for the typemap with the given extension. If that's present, it's used
  * instead of the default typemap. (This allows overriding of e.g. 'tmap:ctype'
- * with 'tmap:ctype:out'.)
+ * with 'tmap:ctype:in'.)
  *
  * If 'warning' is WARN_NONE, then if the typemap is not found, the return
  * value will be NULL. Otherwise a mangled typename will be created and saved
@@ -361,6 +361,10 @@ SwigType *parse_typemap(const_String_or_char_ptr tmname, const_String_or_char_pt
   Printv(raw_tm, parsed_type, NULL);
   Delete(parsed_type);
   return raw_tm;
+}
+
+SwigType *parse_typemap(const_String_or_char_ptr tmname, Node *n, int warning) {
+  return parse_typemap(tmname, NULL, n, warning);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -945,7 +949,7 @@ int FORTRAN::cfuncWrapper(Node *n) {
   // Get the SWIG type representation of the C return type, but first the
   // ctype typemap has to be attached
   Swig_typemap_lookup("ctype", n, Getattr(n, "name"), NULL);
-  SwigType *c_return_type = parse_typemap("ctype", "out", n, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
+  SwigType *c_return_type = parse_typemap("ctype", n, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
   if (!c_return_type) {
     Swig_error(input_file, line_number,
                "Failed to parse 'ctype' typemap return value of '%s'\n",
@@ -1012,7 +1016,7 @@ int FORTRAN::cfuncWrapper(Node *n) {
     // Get the user-provided C type string, and convert it to a SWIG
     // internal representation using Swig_cparse_type . Then convert the
     // type and argument name to a valid C expression using SwigType_str.
-    SwigType *parsed_tm = parse_typemap("ctype", NULL, p, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
+    SwigType *parsed_tm = parse_typemap("ctype", "in", p, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
     if (!parsed_tm) {
       Swig_error(input_file, line_number,
                  "Failed to parse 'ctype' typemap for argument '%s' of '%s'\n",
@@ -1176,7 +1180,7 @@ int FORTRAN::imfuncWrapper(Node *n) {
   String *imimport = Getattr(n, tmimportkey);
   if (imimport) {
     this->replace_fclassname(cpp_return_type, imimport);
-    Setattr(imimport_hash, imimport, "1");
+    SetFlag(imimport_hash, imimport);
   }
 
   // >>> FUNCTION PARAMETERS/ARGUMENTS
@@ -1218,7 +1222,7 @@ int FORTRAN::imfuncWrapper(Node *n) {
     String *imimport = Getattr(p, tmimportkey);
     if (imimport) {
       this->replace_fclassname(Getattr(p, "type"), imimport);
-      Setattr(imimport_hash, imimport, "1");
+      SetFlag(imimport_hash, imimport);
     }
   }
 
@@ -1270,12 +1274,12 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
 
   String *f_return_str = NULL;
   if (!f_return_str) {
-    f_return_str = attach_typemap("ftype", "out", n, WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF);
+    f_return_str = attach_typemap("ftype", n, WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF);
   }
   assert(f_return_str);
 
   // Return type for the C call
-  String *im_return_str = get_typemap("imtype", "out", n, WARN_NONE);
+  String *im_return_str = get_typemap("imtype", n, WARN_NONE);
 
   // Check whether the Fortran proxy routine returns a variable, and whether
   // the actual C function does
@@ -1693,10 +1697,10 @@ int FORTRAN::classDeclaration(Node *n) {
       // Add the class to the symbol table since it's not being wrapped
       add_fsymbol(symname, n);
     }
-    if (is_bindc(n)) {
-      // Prevent default constructors, destructors, etc.
-      SetFlag(n, "feature:nodefault");
-    }
+  }
+  if (is_bindc(n)) {
+    // Prevent default constructors, destructors, etc.
+    SetFlag(n, "feature:nodefault");
   }
   return Language::classDeclaration(n);
 }
@@ -2249,7 +2253,7 @@ int FORTRAN::constantWrapper(Node *n) {
 
     // Get type of C value
     Swig_typemap_lookup("ctype", n, symname, NULL);
-    SwigType *c_return_type = parse_typemap("ctype", "out", n, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
+    SwigType *c_return_type = parse_typemap("ctype", n, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
     if (!c_return_type)
       return SWIG_NOWRAP;
 

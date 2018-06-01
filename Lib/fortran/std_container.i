@@ -38,9 +38,9 @@ FORT_ARRAYPTR_TYPEMAP(VTYPE, const ARRTYPE& NATIVE)
   $result.size = $1->size();
 }
 
-%typemap(ftype, out={$typemap(imtype, VTYPE), dimension(:), allocatable}, noblock=1)
+%typemap(ftype, in={$typemap(imtype, VTYPE), dimension(:), target, intent(in)}, noblock=1)
     const ARRTYPE& NATIVE {
-  $typemap(imtype, VTYPE), dimension(:), target, intent(in)
+  $typemap(imtype, VTYPE), dimension(:), allocatable
 }
 
 // Fortran proxy translation code: convert from imtype $1 to ftype $result

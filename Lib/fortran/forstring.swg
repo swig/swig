@@ -70,9 +70,13 @@ end subroutine
  * from Fortran native strings.
  * ------------------------------------------------------------------------- */
 
-// C wrapper type: pointer to templated array wrapper
-%typemap(ctype, out="SwigArrayWrapper", null="SwigArrayWrapper_uninitialized()", fragment="SwigArrayWrapper_uninitialized") const char *
-  "SwigArrayWrapper*"
+FORT_ARRAYWRAP_TYPEMAP(const char*)
+
+// Since we add a final null character in SWIG_chararray_to_string_f, we can
+// just access the data directly.
+%typemap(in, noblock=1) const char * {
+  $1 = %reinterpret_cast($input->data, $1_ltype);
+}
 
 // Copy the output string (if owned) or reference it
 %typemap(out, fragment="<stdlib.h>", fragment="<string.h>", noblock=1) const char * {
@@ -85,18 +89,9 @@ end subroutine
   }
 }
 
-// Since we add a final null character in SWIG_chararray_to_string_f, we can
-// just access the data directly.
-%typemap(in, noblock=1) const char * {
-  $1 = %reinterpret_cast($input->data, $1_ltype);
-}
-
-%typemap(imtype, import="SwigArrayWrapper", fragment="SwigArrayWrapper_f") const char *
-  "type(SwigArrayWrapper)"
-
 // Fortran proxy code: return allocatable string
-%typemap(ftype, out="character(kind=C_CHAR, len=:), allocatable") const char *
-  "character(kind=C_CHAR, len=*), target"
+%typemap(ftype, in="character(kind=C_CHAR, len=*), target") const char *
+  "character(kind=C_CHAR, len=:), allocatable"
 
 %typemap(findecl, match="fin") const char *
   "character(kind=C_CHAR), dimension(:), allocatable, target :: $1_chars"
@@ -112,46 +107,43 @@ end subroutine
   if ($owner) call SWIG_free($1%data)
 }
 
-/* Only copy the typemaps defined above: don't overwrite memberin/globalin */
-FORT_COPY_TYPEMAPS_AND_DECL(const char *,
-                   const char *&, const char [], char*, char *&, char [])
+%apply const char* { char* };
 
 /* -------------------------------------------------------------------------
  * BYTE ARRAY TYPEMAPS
  *
  * Transform (char *STRING, size_t LENGTH) to a byte array.
  * ------------------------------------------------------------------------- */
+%define SWIGTMARGS__  (char *STRING, size_t LENGTH) %enddef
 
-/* C wrapper type: pointer to templated array wrapper */
-%typemap(ctype, noblock=1, null="SwigArrayWrapper_uninitialized()", fragment="SwigArrayWrapper_uninitialized") (char *STRING, size_t LENGTH)
-  "SwigArrayWrapper*"
+/* ISO interface type: pointer to templated array wrapper */
+FORT_ARRAYWRAP_TYPEMAP(SWIGTMARGS__)
 
-%typemap(imtype, import="SwigArrayWrapper", fragment="SwigArrayWrapper_f") (char *STRING, size_t LENGTH)
-  "type(SwigArrayWrapper)"
-
-%typemap(in, noblock=1) (char *STRING, size_t LENGTH) {
+%typemap(in, noblock=1) SWIGTMARGS__ {
   $1 = %reinterpret_cast($input->data, $1_ltype);
   $2 = $input->size;
 }
 
-%typemap(ftype, out="character(kind=C_CHAR, len=:), allocatable") (char *STRING, size_t LENGTH)
-  "character(kind=C_CHAR, len=*), target"
+%typemap(ftype, in="character(kind=C_CHAR, len=*), target") SWIGTMARGS__
+  "character(kind=C_CHAR, len=:), allocatable"
 
-%typemap(findecl, match="fin") (char *STRING, size_t LENGTH)
+%typemap(findecl, match="fin") SWIGTMARGS__
   "character(kind=C_CHAR), dimension(:), allocatable, target :: $1_chars"
 
-%typemap(fin, fragment="SWIG_string_to_chararray_f", noblock=1) (char *STRING, size_t LENGTH) {
+%typemap(fin, fragment="SWIG_string_to_chararray_f", noblock=1) SWIGTMARGS__ {
   call SWIG_string_to_chararray($input, $1_chars, $1)
 }
 
 // Fortran proxy translation code: convert from char array to Fortran string
 %typemap(fout, fragment="SWIG_chararray_to_string_f", noblock=1,
-         fragment="SWIG_free_f") (char *STRING, size_t LENGTH) {
+         fragment="SWIG_free_f") SWIGTMARGS__ {
   call SWIG_chararray_to_string($1, $result)
   if ($owner) call SWIG_free($1%data)
 }
 
-%apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
+%apply SWIGTMARGS__ { (char *STRING, int LENGTH) }
+
+#undef SWIGTMARGS__
 
 /* -------------------------------------------------------------------------
  * STD::STRING TYPEMAPS
@@ -173,8 +165,8 @@ namespace std {
 class string;
 }
 
-// Fortran side treats like regular strings
-FORT_COPY_TYPEMAPS_AND_DECL(const char *, const std::string & NATIVE)
+// Fortran treats like regular strings
+%apply const char * {const std::string & NATIVE};
 
 // Fortran proxy translation code: convert from char array to Fortran string
 %typemap(fout, noblock=1, fragment="SWIG_chararray_to_string_f") const std::string &NATIVE {
@@ -193,10 +185,20 @@ FORT_COPY_TYPEMAPS_AND_DECL(const char *, const std::string & NATIVE)
   $result.size = $1->size();
 }
 
+// BY POINTER
+%apply const std::string &NATIVE { std::string* NATIVE };
+
 // RETURN BY VALUE
 %apply const std::string &NATIVE { std::string NATIVE };
 
 %feature("novaluewrapper") std::string;
+
+%typemap(globalin) std::string NATIVE {
+   $1 = *$input;
+}
+%typemap(memberin) std::string NATIVE {
+   $1 = *$input;
+}
 
 // Copy input data to local string
 %typemap(in, noblock=1) std::string NATIVE {
