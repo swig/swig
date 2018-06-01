@@ -4,8 +4,5 @@
 // warning.
 %warnfilter(SWIGWARN_PARSE_KEYWORD);
 #endif
-#ifdef SWIGFORTRAN
-%warnfilter(SWIGWARN_PARSE_BUILTIN_NAME);
-#endif
 
 %include math.i
