@@ -20,12 +20,9 @@
 
 %define SWIG_SHARED_PTR_TYPEMAPS(CONST, TYPE...)
 /* -------------------------------------------------------------------------
- * Macro shortcuts
+ *
  */
 #define SWIGSP__ SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE >
-#define ALL_TYPE__ CONST TYPE, CONST TYPE &, CONST TYPE *, CONST TYPE *&
-#define ALL_SWIGSP__ SWIGSP__, SWIGSP__ &, SWIGSP__ *, SWIGSP__ *&
-#define CONST_ALL_SWIGSP__ const SWIGSP__ &, const SWIGSP__ *, const SWIGSP__ *&
 
 /* -------------------------------------------------------------------------
  * Shared pointers *always* return either NULL or a newly allocated shared
@@ -42,7 +39,7 @@
  *  override the in/out/ctype below)
  */
 
-%typemap(ftype) ALL_SWIGSP__ "$typemap(ftype, " #TYPE ")"
+%typemap(ftype) SWIGSP__, SWIGSP__ &, SWIGSP__ *, SWIGSP__ *& "$typemap(ftype, " #TYPE ")"
 
 /* -------------------------------------------------------------------------
  * C types: we wrap the *shared pointer* as the value type. The 'in' type is
@@ -51,7 +48,7 @@
  */
 
 %typemap(ctype, out="SwigClassWrapper", null="SwigClassWrapper_uninitialized()", noblock=1, fragment="SwigClassWrapper")
-    ALL_SWIGSP__, CONST_ALL_SWIGSP__
+    SWIGSP__, SWIGSP__ &, SWIGSP__ *, SWIGSP__ *&, const SWIGSP__ &, const SWIGSP__ *, const SWIGSP__ *&
 {const SwigClassWrapper *}
 
 /* -------------------------------------------------------------------------
@@ -75,7 +72,7 @@
  * ------------------------------------------------------------------------- */
 %typemap(in, noblock=1) CONST TYPE * (SWIGSP__* smartarg) {
   smartarg = %static_cast($input->cptr, SWIGSP__*);
-  $1 = smartarg ? %as_mutable(smartarg->get()) : NULL;
+  $1 = smartarg ? %const_cast(smartarg->get(), TYPE*) : NULL;
 }
 
 // The string "SWIG_NO_NULL_DELETER_$owner" is replaced by the macro
@@ -96,7 +93,7 @@
 %typemap(in, noblock=1, fragment="SWIG_check_sp_nonnull") CONST TYPE& (SWIGSP__* smartarg) {
   SWIG_check_sp_nonnull($input, "$1_ltype", "$fclassname", "$decl", return $null)
   smartarg = %static_cast($input->cptr, SWIGSP__*);
-  $1 = %as_mutable(smartarg->get());
+  $1 = %const_cast(smartarg->get(), TYPE*);
 }
 
 // Output value is never null. Because we're allocating a shared pointer, we set the memory ownership to MOVE so that the *SP*
@@ -110,8 +107,8 @@
 /* -------------------------------------------------------------------------
  * SP by value
  * ------------------------------------------------------------------------- */
-%typemap(in, noblock=1) SWIGSP__ {
-  if ($input->cptr) $1 = *%static_cast($input->cptr, SWIGSP__*);
+%typemap(in, noblock=1) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE > {
+  if ($input->cptr) $1 = *%static_cast($input->cptr, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE >*);
 }
 
 %typemap(out, noblock=1) SWIGSP__ {
@@ -176,9 +173,6 @@
  * Clean up macros
  */
 #undef SWIGSP__
-#undef ALL_TYPE__
-#undef ALL_SWIGSP__
-#undef CONST_ALL_SWIGSP__
 
 %enddef
 
