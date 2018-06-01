@@ -89,3 +89,48 @@ extern "C" const int my_const_global_int = 9;
 #endif
 %}
 
+%fortranconst is_cplusplus;
+#ifdef __cplusplus
+%constant int is_cplusplus = 1;
+#else
+%constant int is_cplusplus = 0;
+#endif
+
+%fortranbindc_type(AB);
+%fortranbindc_type(XY);
+
+%include <carrays.i>
+
+%array_functions(int,intArray);
+%array_class(double, doubleArray);
+%array_class(short, shortArray);
+
+%inline %{
+typedef struct {
+  int x;
+  int y;
+} XY;
+XY globalXYArray[3];
+
+typedef struct {
+  int a;
+  int b;
+} AB;
+
+AB globalABArray[3];
+%}
+
+%array_class(XY, XYArray)
+%array_functions(AB, ABArray)
+
+%inline %{
+short sum_array(short x[5]) {
+  short sum = 0;
+  int i;
+  for (i=0; i<5; i++) {
+    sum = sum + x[i];
+  }
+  return sum;
+}
+%}
+

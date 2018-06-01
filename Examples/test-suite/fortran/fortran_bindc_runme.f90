@@ -1,15 +1,24 @@
-! File : li_carrays_runme.f90
+! File : fortran_bindc_runme.f90
 
-program li_carrays_runme
-  use li_carrays
+program fortran_bindc_runme
+  use ISO_C_BINDING
+  implicit none
+
+  call test_arrays
+
+contains
+
+! Test arrays of bound structs and classes
+subroutine test_arrays
+  use fortran_bindc
   use ISO_C_BINDING
   implicit none
   type(XY), pointer :: globalxyarr(:)
+  type(XYArray) :: xyarr
   type(XYArray) :: xyarr_ptr
-  type(XYArray) :: xyarr, xyarr2
   type(XY) :: tempxy
   integer :: i
-  integer(c_short) :: short_array(5) = [ 5, 40, 300, 2000, 10000 ]
+  integer(c_short) :: short_array(5) = [ 5_c_short, 40_c_short, 300_c_short, 2000_c_short, 10000_c_short ]
   integer(c_short) :: summed
 
   ! Get a fortran pointer to the global xy array
@@ -39,16 +48,19 @@ program li_carrays_runme
     call xyarr%setitem(i - 1, tempxy)
   end do
 
-  ! C assignment: copy xyarr to the  object pointed to by xyarr_ptr (i.e. the global array) 
-  xyarr_ptr = xyarr
-  
-  if (globalxyarr(1)%x /= 10) stop 1
-  if (globalxyarr(1)%y /= 11) stop 1
+  if (is_cplusplus == 0) then
+    ! C assignment: copy xyarr to the  object pointed to by xyarr_ptr (i.e. the global array) . This works because the default assingnment traits do a memcpy,
+    ! but the C++ class lacks a copy assignment operator.
+    xyarr_ptr = xyarr
+    
+    if (globalxyarr(1)%x /= 10) stop 1
+    if (globalxyarr(1)%y /= 11) stop 1
+  end if
 
   ! Sum a fortran array using a bound(C) function
   summed = sum_array(short_array)
   if (summed /= 12345) stop 1
 
+end subroutine
 end program
-
 

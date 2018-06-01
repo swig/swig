@@ -23,7 +23,7 @@ CTYPE SWIG_null_struct_ ## CTYPE() {
 }
   }
 
-  %typemap(ctype, out="CTYPE", null={SWIG_null_struct_ ## CTYPE()}, fragment="SWIG_null_struct"{CTYPE}) CTYPE
+  %typemap(ctype, out="CTYPE", null={SWIG_null_struct_ ## CTYPE()}, fragment="SWIG_null_struct"{CTYPE}) CTYPE, const CTYPE&
     "const CTYPE*"
 
   // Interface code has to "import' the class type.
