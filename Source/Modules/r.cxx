@@ -1051,13 +1051,15 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
   for(j = 0; j < numMems; j+=3) {
     String *item = Getitem(el, j);
     String *dup = Getitem(el, j + 1);
-    char *ptr = Char(dup);
     int n = Len(dup);
-    ptr = &ptr[n - 3];
 
-    if ((n > 3) && !strcmp(ptr, "get"))
-      varaccessor++;
-
+    if ((n > 3)) {
+      char *ptr = Char(dup);
+      ptr = &ptr[n - 3];
+      if (!strcmp(ptr, "get")) {
+        varaccessor++;
+      }
+    }
     if (Getattr(itemList, item))
       continue;
     Setattr(itemList, item, "1");
@@ -1089,12 +1091,15 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
     for(j = 0; j < numMems; j+=3) {
       String *item = Getitem(el, j);
       String *dup = Getitem(el, j + 1);
-      char *ptr = Char(dup);
-      ptr = &ptr[Len(dup) - 3];
+      int n = Len(dup);
+      if (n > 3) {
+        char *ptr = Char(dup);
+        ptr = &ptr[Len(dup) - 3];
 
-      if (!strcmp(ptr, "get")) {
-	Printf(f->code, "%s'%s'", first ? "" : ", ", item);
-	first = 0;
+        if (!strcmp(ptr, "get")) {
+          Printf(f->code, "%s'%s'", first ? "" : ", ", item);
+          first = 0;
+        }
       }
     }
     Printf(f->code, ");\n");
@@ -1314,8 +1319,8 @@ void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
   if(isSet < 0) {
     isSet = 0;
     int n = Len(name);
-    char *ptr = Char(name);
     if (n>4) {
+      char *ptr = Char(name);
       isSet = Strcmp(NewString(&ptr[n-4]), "_set") == 0;
     }
   }
