@@ -2399,35 +2399,36 @@ else
 if test "x$LUABIN" = xyes; then
    # We look for a versioned Lua binary first, as there can be
    # multiple versions of Lua installed on some systems (like Debian).
-   # The search order should match the include-file and library search
-   # orders below (a Lua shared library built for one version may not
-   # work with a Lua binary of a different version).
    AC_PATH_PROGS(LUABIN, [lua5.4 lua5.3 lua5.2 lua5.1 lua])
 fi
 
 # check version: we need Lua 5.x
 if test "$LUABIN"; then
   AC_MSG_CHECKING(Lua version)
-  # if version 5.x
-  LUAV5=`$LUABIN -e 'if string.sub(_VERSION,5,5)=="5" then print "1" end'`
-  # if not version 5.0
-  LUAV51=`$LUABIN -e 'if string.sub(_VERSION,5,7)~="5.0" then print "1" end'`
-
-  if test -z "$LUAV5"; then
-    AC_MSG_WARN(Not Lua 5.x, SWIG does not support this version of Lua)
-    LUABIN=""
-  elif test -z "$LUAV51"; then
-    AC_MSG_RESULT(Lua 5.0.x)
+  [LUA_VERSION=`$LUABIN -e 'print(string.match(_VERSION, "%d+[.]%d+"))'`]
+  # For 5.0 and 5.1 header and libraries may be named using 50 or 51.
+  LUA_VERSION_NO_DOTS=
+  if test -n "$LUA_VERSION" ; then
+    AC_MSG_RESULT([Lua $LUA_VERSION.x])
   else
-    AC_MSG_RESULT(Lua 5.1 or later)
+    AC_MSG_RESULT([failed])
   fi
+  case $LUA_VERSION in
+    5.0) LUA_VERSION_NO_DOTS=50 ;;
+    5.1) LUA_VERSION_NO_DOTS=51 ;;
+    5.*) ;;
+    *)
+      AC_MSG_WARN([Not Lua 5.x, SWIG does not support this version of Lua])
+      LUABIN=""
+      ;;
+  esac
 fi
 
 if test "$LUABIN"; then
   AC_MSG_CHECKING(whether Lua dynamic loading is enabled)
   # using Lua to check Lua
   # lua 5.0 & 5.1 have different fn names
-  if test -z "$LUAV51"; then
+  if test "$LUA_VERSION" = "5.0"; then
     LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=loadlib("no_such_lib","") if c~="absent" then print "1" end'`
   else
     LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=package.loadlib("no_such_lib","") if c~="absent" then print "1" end'`
@@ -2456,7 +2457,12 @@ if test "$LUABIN"; then
       # The ordering of the include directories to search should match
       # the ordering of libraries to search in the library test below.
       inc=/usr/include
-      dirs="$inc/lua5.4 $inc/lua5.3 $inc/lua5.2 $inc/lua5.1 $inc/lua51 $inc/lua5.0 $inc/lua50 /usr/local/include"
+      incloc=/usr/local/include
+      dirs="$inc/lua$LUA_VERSION"
+      test -z "$LUA_VERSION_NO_DOTS" || dirs="$dirs $inc/lua$LUA_VERSION_NO_DOTS"
+      dirs="$dirs $incloc/lua$LUA_VERSION"
+      test -z "$LUA_VERSION_NO_DOTS" || dirs="$dirs $incloc/lua$LUA_VERSION_NO_DOTS"
+      dirs="$dirs $incloc"
       for i in $dirs; do
         #echo "$i"
         if test -r $i/lua.h; then
@@ -2479,11 +2485,13 @@ if test "$LUABIN"; then
   if test -n "$LUALIB"; then
     AC_CHECK_FILE($LUALIB/liblua.a,[LUALINK="-L$LUALIB -llua"],[LUABIN=])
   else
-    AC_SEARCH_LIBS(lua_close, [lua lua5.4 lua5.3 lua5.2 lua5.1 lua51 lua5.0 lua50], [LUALINK="-l$ac_lib"],[LUABIN=])
+    libs="lua lua$LUA_VERSION"
+    test -z "$LUA_VERSION_NO_DOTS" || libs="$libs lua$LUA_VERSION_NO_DOTS"
+    AC_SEARCH_LIBS(lua_close, [$libs], [LUALINK="-l$ac_lib"],[LUABIN=])
   fi
 
   # adding lualib for lua 5.0
-  if test -z "$LUAV51"; then # extra for lua 5.0
+  if test "$LUA_VERSION" = "5.0"; then
     LUALINK="$LUALINK -llualib"
   fi
 
