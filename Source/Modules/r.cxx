@@ -289,10 +289,13 @@ protected:
   int OutputMemberReferenceMethod(String *className, int isSet,  
                                   List *memberList, List *nameList,
                                   List *typeList, File *out);
+#if 0
+  // not used
   int OutputArrayMethod(String *className, List *el, File *out);
   int OutputClassMemberTable(Hash *tb, File *out);
   int OutputClassMethodsTable(File *out);
   int OutputClassAccessInfo(Hash *tb, File *out);
+#endif
 
   int defineArrayAccessors(SwigType *type);
 
@@ -908,6 +911,8 @@ int R::DumpCode(Node *n) {
 
 
 
+# if 0
+// not called
 /* -------------------------------------------------------------
  * We may need to do more.... so this is left as a
  * stub for the moment.
@@ -1007,6 +1012,8 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
   return n;
 }
 
+// end not used
+#endif
 /* --------------------------------------------------------------
  * Write the methods for $ or $<- for accessing a member field in an
  * struct or union (or class).
@@ -1149,6 +1156,8 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
   return SWIG_OK;
 }
 
+#if 0
+// not used
 /* -------------------------------------------------------------
  * Write the methods for [ or [<- for accessing a member field in an
  * struct or union (or class).
@@ -1188,6 +1197,7 @@ int R::OutputArrayMethod(String *className, List *el, File *out) {
   return SWIG_OK;
 }
 
+#endif
 
 /* -------------------------------------------------------------
  * Called when a enumeration is to be processed.
