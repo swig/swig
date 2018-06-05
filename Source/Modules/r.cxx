@@ -1053,10 +1053,10 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
     String *dup = Getitem(el, j + 1);
     int n = Len(dup);
 
-    if ((n > 3)) {
+    if ((n > 4)) {
       char *ptr = Char(dup);
-      ptr = &ptr[n - 3];
-      if (!strcmp(ptr, "get")) {
+      ptr = &ptr[n - 4];
+      if (!strcmp(ptr, "_get")) {
         varaccessor++;
       }
     }
@@ -1092,11 +1092,11 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
       String *item = Getitem(el, j);
       String *dup = Getitem(el, j + 1);
       int n = Len(dup);
-      if (n > 3) {
+      if (n > 4) {
         char *ptr = Char(dup);
-        ptr = &ptr[Len(dup) - 3];
+        ptr = &ptr[Len(dup) - 4];
 
-        if (!strcmp(ptr, "get")) {
+        if (!strcmp(ptr, "_get")) {
           Printf(f->code, "%s'%s'", first ? "" : ", ", item);
           first = 0;
         }
