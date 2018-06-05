@@ -399,7 +399,10 @@
 %}
 
 %typemap(doctype) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
-                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >& %{TYPE%}
+                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
+                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
+                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
+  %{TYPE%}
 
 
 %template() SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >;
