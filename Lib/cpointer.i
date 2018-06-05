@@ -114,7 +114,7 @@ static NAME * frompointer(TYPE *t) {
 
 %define %pointer_functions(TYPE,NAME)
 %{
-static TYPE *new_##NAME() { %}
+static TYPE *new_##NAME(void) { %}
 #ifdef __cplusplus
 %{  return new TYPE(); %}
 #else
@@ -149,7 +149,7 @@ static TYPE NAME ##_value(TYPE *obj) {
 }
 %}
 
-TYPE *new_##NAME();
+TYPE *new_##NAME(void);
 TYPE *copy_##NAME(TYPE value);
 void  delete_##NAME(TYPE *obj);
 void  NAME##_assign(TYPE *obj, TYPE value);
