@@ -344,6 +344,10 @@ protected:
 
   static int getFunctionPointerNumArgs(Node *n, SwigType *tt);
 
+  // filtering of class member lists by function type. Used in constructing accessors
+  // are we allowed to use stl style functors to customise this?
+  List* filterMemberList(List *class_member_function_types, List *class_member_other, String *R_MEMBER, bool equal);
+
 protected:
   bool copyStruct;
   bool memoryProfile;
@@ -910,6 +914,30 @@ int R::DumpCode(Node *n) {
 }
 
 
+List *R::filterMemberList(List *class_member_types, 
+                          List *class_member_other, 
+                          String *R_MEMBER, bool equal) {
+  // filters class_member_other based on whether corresponding elements of
+  // class_member_function_types are equal or notequal to R_MEMBER
+  List *CM = NewList();
+  Iterator ftype, other;
+
+  for (ftype = First(class_member_types), other = First(class_member_other);
+       ftype.item; 
+       ftype=Next(ftype), other=Next(other)) {
+    // verbose, clean up later if the overall structure works
+    if (equal) {
+      if (ftype.item == R_MEMBER) {
+        Append(CM, other.item);
+      }
+    } else {
+      if (ftype.item != R_MEMBER) {
+        Append(CM, other.item);
+      }
+    }
+  }
+  return(CM);
+}
 
 # if 0
 // not called
@@ -1049,15 +1077,7 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
     String *dup = Getitem(nameList, j);
     String *setgetmethod = Getitem(typeList, j);
 
-    // skip this one if it isn't a set method but we're
-    // creating a modification method
-    if (isSet && (setgetmethod != R_MEMBER_SET))
-      continue;
-    // skip the set methods when creating accessor methods
-    if ((!isSet) && (setgetmethod == R_MEMBER_SET))
-      continue;
-
-    if ((!isSet) && (setgetmethod == R_MEMBER_GET))
+    if (setgetmethod == R_MEMBER_GET)
       varaccessor++;
 
     if (Getattr(itemList, item))
@@ -2521,18 +2541,36 @@ int R::classDeclaration(Node *n) {
     OutputMemberReferenceMethod(name, 1, class_member_set_functions, sfile);
 #else
   if (class_member_function_types) {
-    // count the number of set methods
-    unsigned setcount = 0;
-    Iterator ItType;
-    for (ItType = First(class_member_function_types) ; ItType.item; ItType = Next(ItType)) {
-      if (ItType.item == R_MEMBER_SET) ++setcount;
+
+    // collect the "set" methods
+    List *class_set_membernames   = filterMemberList(class_member_function_types, 
+                                                     class_member_function_membernames, R_MEMBER_SET, true);
+    List *class_set_functionnames = filterMemberList(class_member_function_types, 
+                                                     class_member_function_names, R_MEMBER_SET, true);
+    // this one isn't used - collecting to keep code simpler
+    List *class_set_functiontypes = filterMemberList(class_member_function_types, 
+                                                     class_member_function_types, R_MEMBER_SET, true);
+
+    // collect the others
+    List *class_other_membernames   = filterMemberList(class_member_function_types, 
+                                                       class_member_function_membernames, R_MEMBER_SET, false);
+    List *class_other_functionnames = filterMemberList(class_member_function_types, 
+                                                       class_member_function_names, R_MEMBER_SET, false);
+    List *class_other_functiontypes = filterMemberList(class_member_function_types, 
+                                                       class_member_function_types, R_MEMBER_SET, false);
+
+    if (Len(class_other_membernames) > 0) {
+      OutputMemberReferenceMethod(name, 0, class_other_membernames, class_other_functionnames, class_other_functiontypes, sfile);
     }
-    if (Len(class_member_function_types) - setcount > 0) {
-      OutputMemberReferenceMethod(name, 0, class_member_function_membernames, class_member_function_names, class_member_function_types, sfile);
+    if (Len(class_set_membernames) > 0) {
+      OutputMemberReferenceMethod(name, 1, class_set_membernames, class_set_functionnames, class_set_functiontypes, sfile);
     }
-    if (setcount > 0) {
-      OutputMemberReferenceMethod(name, 1, class_member_function_membernames, class_member_function_names, class_member_function_types, sfile);
-    }
+    Delete(class_set_membernames);
+    Delete(class_set_functionnames);
+    Delete(class_set_functiontypes);
+    Delete(class_other_membernames);
+    Delete(class_other_functionnames);
+    Delete(class_other_functiontypes);
  }
 #endif
   
