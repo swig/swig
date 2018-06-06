@@ -81,8 +81,7 @@ int SWIG_AsVal_dec(long)(v8::Handle<v8::Value> obj, long* val)
 SWIGINTERNINLINE
 v8::Handle<v8::Value> SWIG_From_dec(unsigned long)(unsigned long value)
 {
-  return (value > LONG_MAX) ?
-    SWIGV8_INTEGER_NEW_UNS(value) : SWIGV8_INTEGER_NEW(%numeric_cast(value,long));
+  return SWIGV8_INTEGER_NEW_UNS(value);
 }
 }
 
