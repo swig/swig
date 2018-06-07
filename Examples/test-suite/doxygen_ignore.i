@@ -36,6 +36,6 @@
 
     @compileroptions This function must be compiled with /EHa when using MSVC.
  */
-int * func() { }
+int * func() { return 0; }
 
 %}
