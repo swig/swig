@@ -75,12 +75,10 @@ SWIG_Python_str_FromChar(const char *c)
 # define PyObject_DEL PyObject_Del
 #endif
 
-#if ((PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION > 6) || \
-     (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION > 0) || \
-     (PY_MAJOR_VERSION > 3))
+// SWIGPY_USE_CAPSULE is no longer used within SWIG itself, but some user
+// interface files check for it.
 # define SWIGPY_USE_CAPSULE
 # define SWIGPY_CAPSULE_NAME ("swig_runtime_data" SWIG_RUNTIME_VERSION ".type_pointer_capsule" SWIG_TYPE_TABLE_NAME)
-#endif
 
 #if PY_VERSION_HEX < 0x03020000
 #define PyDescr_TYPE(x) (((PyDescrObject *)(x))->d_type)
