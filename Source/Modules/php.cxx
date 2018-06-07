@@ -1996,7 +1996,7 @@ done:
       String *type = Getattr(n, "name");
       String *value = Getattr(n, "value");
 
-      if (Strcmp(lang, "php") == 0 || Strcmp(lang, "php4") == 0) {
+      if (Strcmp(lang, "php") == 0) {
 	if (Strcmp(type, "code") == 0) {
 	  if (value) {
 	    Printf(pragma_code, "%s\n", value);
