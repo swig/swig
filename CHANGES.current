@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-06-07: cmfoil, kabbi, Jamie Kirkpatrick, markok314, vadz, wsfulton, Yann Diorcet
+            #170 Doxygen documentation support added. This allows translation of Doxygen comments
+            into JavaDoc and PyDoc documentation. It is enabled via the -doxygen command line
+            option. See the Doxygen.html chapter in the documentation for further information.
+
 2018-06-07: olly
 	    [PHP] We've finally removed support for %pragma(php4) which was
 	    deprecated back in 2008.  Use %pragma(php) instead, which has been

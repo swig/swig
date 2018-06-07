@@ -1244,11 +1244,14 @@ case $host in
     if test -n "$JAVA_HOME"; then
       JAVA_HOME=`cygpath --mixed "$JAVA_HOME"`
     fi
+    dnl Java uses semicolons and not colons as separators in its classes search path under Windows.
+    JAVA_CLASSPATH_SEP=";"
     ;;
   *-*-mingw*)
     if test -n "$JAVA_HOME"; then
       JAVA_HOME=`${srcdir}/Tools/convertpath -u "$JAVA_HOME"`
     fi
+    JAVA_CLASSPATH_SEP=";"
     ;;
   *-*-darwin*)
     dnl Under OS X JAVA_HOME is not set by default, try to use the system default JRE.
@@ -1261,6 +1264,11 @@ case $host in
     if test -r "$JAVA_OSX_STD_INCDIR/jni.h"; then
       JAVA_HOME_INCDIR=$JAVA_OSX_STD_INCDIR
     fi
+    JAVA_CLASSPATH_SEP=":"
+    ;;
+  *)
+    dnl Assume generic Unix.
+    JAVA_CLASSPATH_SEP=":"
     ;;
 esac
 
@@ -1429,9 +1437,11 @@ fi
 # Turned off due to spurious warnings in later versions of openjdk-1.8
 # JAVAFLAGS=-Xcheck:jni
 
+AC_SUBST(JAVA_HOME)
 AC_SUBST(JAVA)
 AC_SUBST(JAVAC)
 AC_SUBST(JAVAINC)
+AC_SUBST(JAVA_CLASSPATH_SEP)
 AC_SUBST(JAVADYNAMICLINKING)
 AC_SUBST(JAVALIBRARYPREFIX)
 AC_SUBST(JAVASO)

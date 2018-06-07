@@ -6,7 +6,10 @@ LANGUAGE     = java
 JAVA         = @JAVA@
 JAVAC        = @JAVAC@
 JAVAFLAGS    = @JAVAFLAGS@
+JAVA_CLASSPATH_SEP = @JAVA_CLASSPATH_SEP@
 SCRIPTSUFFIX = _runme.java
+
+JAVA_HOME ?= @JAVA_HOME@
 
 srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
@@ -49,6 +52,12 @@ CPP11_TEST_CASES = \
 	cpp11_shared_ptr_overload \
 	cpp11_shared_ptr_upcast \
 	cpp11_strongly_typed_enumerations_simple \
+
+DOXYGEN_TEST_CASES := \
+	doxygen_parsing_enums_simple \
+	doxygen_parsing_enums_proper \
+	doxygen_parsing_enums_typesafe \
+	doxygen_parsing_enums_typeunsafe \
 
 include $(srcdir)/../common.mk
 
@@ -95,14 +104,20 @@ setup = \
 	  mkdir $(JAVA_PACKAGE);							  \
 	fi
 
+# Doxygen test cases need to be compiled together with the CommentsParser class
+# which depends on com.sun.javadoc package which is located in this JAR.
+JAVA_CLASSPATH := .
+$(DOXYGEN_TEST_CASES:=.cpptest): JAVA_CLASSPATH := "$(JAVA_HOME)/lib/tools.jar$(JAVA_CLASSPATH_SEP)."
+$(DOXYGEN_TEST_CASES:=.cpptest): DOXYGEN_COMMENT_PARSER := $(srcdir)/CommentParser.java
+
 # Compiles java files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.java appended after the testcase name.
 # Note Java uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows, SHLIB_PATH on HPUX and DYLD_LIBRARY_PATH on Mac OS X.
 run_testcase = \
 	cd $(JAVA_PACKAGE) && $(COMPILETOOL) $(JAVAC) -classpath . `find . -name "*.java"` && cd .. && \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  $(COMPILETOOL) $(JAVAC) -classpath . -d . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
-	  env LD_LIBRARY_PATH="$(JAVA_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(JAVA_PACKAGE):$$PATH" SHLIB_PATH="$(JAVA_PACKAGE):$$SHLIB_PATH" DYLD_LIBRARY_PATH="$(JAVA_PACKAGE):$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) $(JAVAFLAGS) -classpath . $*_runme; \
+	  $(COMPILETOOL) $(JAVAC) -classpath $(JAVA_CLASSPATH) -d . $(DOXYGEN_COMMENT_PARSER) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	  env LD_LIBRARY_PATH="$(JAVA_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(JAVA_PACKAGE):$$PATH" SHLIB_PATH="$(JAVA_PACKAGE):$$SHLIB_PATH" DYLD_LIBRARY_PATH="$(JAVA_PACKAGE):$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) $(JAVAFLAGS) -classpath $(JAVA_CLASSPATH) $*_runme; \
 	fi
 
 # Clean: remove testcase directories

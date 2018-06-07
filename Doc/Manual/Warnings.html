@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Warnings">16 Warning Messages</a></H1>
+<H1><a name="Warnings">17 Warning Messages</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -36,7 +36,7 @@
 
 
 
-<H2><a name="Warnings_nn2">16.1 Introduction</a></H2>
+<H2><a name="Warnings_nn2">17.1 Introduction</a></H2>
 
 
 <p>
@@ -56,7 +56,7 @@ where the generated wrapper code will probably compile, but it may not
 work like you expect.
 </p>
 
-<H2><a name="Warnings_suppression">16.2 Warning message suppression</a></H2>
+<H2><a name="Warnings_suppression">17.2 Warning message suppression</a></H2>
 
 
 <p>
@@ -148,7 +148,7 @@ your interface.  Ignore the warning messages at your own peril.
 </p>
 
 
-<H2><a name="Warnings_nn4">16.3 Enabling extra warnings</a></H2>
+<H2><a name="Warnings_nn4">17.3 Enabling extra warnings</a></H2>
 
 
 <p>
@@ -221,7 +221,7 @@ that is, any warnings suppressed or added in <tt>%warnfilter</tt>, <tt>#pragma S
 or the <tt>-w</tt> option.
 </p>
 
-<H2><a name="Warnings_nn5">16.4 Issuing a warning message</a></H2>
+<H2><a name="Warnings_nn5">17.4 Issuing a warning message</a></H2>
 
 
 <p>
@@ -275,7 +275,7 @@ example.i:24: Warning 901: You are really going to regret this usage of blah * s
 </pre>
 </div>
 
-<H2><a name="Warnings_symbolic_symbols">16.5 Symbolic symbols</a></H2>
+<H2><a name="Warnings_symbolic_symbols">17.5 Symbolic symbols</a></H2>
 
 
 <p>
@@ -310,7 +310,7 @@ or
 </pre>
 </div>
 
-<H2><a name="Warnings_nn6">16.6 Commentary</a></H2>
+<H2><a name="Warnings_nn6">17.6 Commentary</a></H2>
 
 
 <p>
@@ -327,7 +327,7 @@ no obvious recovery.  There is no mechanism for suppressing error
 messages.
 </p>
 
-<H2><a name="Warnings_nn7">16.7 Warnings as errors</a></H2>
+<H2><a name="Warnings_nn7">17.7 Warnings as errors</a></H2>
 
 
 <p>
@@ -336,7 +336,7 @@ option. This will cause SWIG to exit with a non successful exit code if a
 warning is encountered.
 </p>
 
-<H2><a name="Warnings_nn8">16.8 Message output format</a></H2>
+<H2><a name="Warnings_nn8">17.8 Message output format</a></H2>
 
 
 <p>
@@ -355,10 +355,10 @@ $ swig -python -Fmicrosoft example.i
 example.i(4) : Syntax error in input(1).
 </pre></div>
 
-<H2><a name="Warnings_nn9">16.9 Warning number reference</a></H2>
+<H2><a name="Warnings_nn9">17.9 Warning number reference</a></H2>
 
 
-<H3><a name="Warnings_nn10">16.9.1 Deprecated features (100-199)</a></H3>
+<H3><a name="Warnings_nn10">17.9.1 Deprecated features (100-199)</a></H3>
 
 
 <ul>
@@ -386,7 +386,7 @@ example.i(4) : Syntax error in input(1).
 <li>126. The 'nestedworkaround' feature is deprecated.
 </ul>
 
-<H3><a name="Warnings_nn11">16.9.2 Preprocessor (200-299)</a></H3>
+<H3><a name="Warnings_nn11">17.9.2 Preprocessor (200-299)</a></H3>
 
 
 <ul>
@@ -398,7 +398,7 @@ example.i(4) : Syntax error in input(1).
 <li>206. Unexpected tokens after #<em>directive</em> directive.
 </ul>
 
-<H3><a name="Warnings_nn12">16.9.3 C/C++ Parser (300-399)</a></H3>
+<H3><a name="Warnings_nn12">17.9.3 C/C++ Parser (300-399)</a></H3>
 
 
 <ul>
@@ -475,7 +475,7 @@ example.i(4) : Syntax error in input(1).
 <li>395. operator delete[] ignored.
 </ul>
 
-<H3><a name="Warnings_nn13">16.9.4 Types and typemaps (400-499) </a></H3>
+<H3><a name="Warnings_nn13">17.9.4 Types and typemaps (400-499) </a></H3>
 
 
 <ul>
@@ -506,7 +506,7 @@ example.i(4) : Syntax error in input(1).
 
 
 
-<H3><a name="Warnings_nn14">16.9.5 Code generation (500-599)</a></H3>
+<H3><a name="Warnings_nn14">17.9.5 Code generation (500-559)</a></H3>
 
 
 <ul>
@@ -535,7 +535,17 @@ example.i(4) : Syntax error in input(1).
 <li>523. Use of an illegal destructor name '<em>name</em>' in %extend is deprecated, the destructor name should be '<em>name</em>'.
 </ul>
 
-<H3><a name="Warnings_nn15">16.9.6 Language module specific (700-899) </a></H3>
+<H3><a name="Warnings_doxygen">Doxygen comments (560-599)</a></H3>
+
+<ul>
+  <li>560: Unknown Doxygen command: <em>command</em>.</li>
+  <li>561: Unexpected end of Doxygen comment encountered.</li>
+  <li>562: Expected Doxygen command: <em>command</em></li>
+  <li>563: Doxygen HTML error for tag <em>tag</em>: <em>error text</em>.</li>
+  <li>564: Error parsing Doxygen command <em>command</em>: <em>error text</em>. Command ignored."</li>
+</ul>
+
+<H3><a name="Warnings_nn15">17.9.6 Language module specific (700-899) </a></H3>
 
 
 <ul>
@@ -586,14 +596,14 @@ example.i(4) : Syntax error in input(1).
 <li>871. Unrecognized pragma <em>pragma</em>.   (Php).
 </ul>
 
-<H3><a name="Warnings_nn16">16.9.7 User defined (900-999)</a></H3>
+<H3><a name="Warnings_nn16">17.9.7 User defined (900-999)</a></H3>
 
 
 <p>
 These numbers can be used by your own application.
 </p>
 
-<H2><a name="Warnings_nn17">16.10 History</a></H2>
+<H2><a name="Warnings_nn17">17.10 History</a></H2>
 
 
 <p>

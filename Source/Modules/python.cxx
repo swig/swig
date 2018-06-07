@@ -17,6 +17,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
+#include "pydoc.h"
 
 #include <iostream>
 #include <stdint.h>
@@ -90,6 +91,7 @@ static int buildnone = 0;
 static int nobuildnone = 0;
 static int safecstrings = 0;
 static int dirvtable = 0;
+static int doxygen = 0;
 static int proxydel = 1;
 static int fastunpack = 0;
 static int fastproxy = 0;
@@ -111,7 +113,8 @@ enum autodoc_t {
   AUTODOC_DTOR,
   AUTODOC_STATICFUNC,
   AUTODOC_FUNC,
-  AUTODOC_METHOD
+  AUTODOC_METHOD,
+  AUTODOC_CONST
 };
 
 
@@ -125,6 +128,9 @@ Python Options (available with -python)\n\
      -classptr       - Generate shadow 'ClassPtr' as in older swig versions\n\
      -cppcast        - Enable C++ casting operators (default) \n\
      -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch \n\
+     -doxygen        - Convert C++ doxygen comments to pydoc comments in proxy classes \n\
+     -debug-doxygen-parser     - Display doxygen parser module debugging information\n\
+     -debug-doxygen-translator - Display doxygen translator module debugging information\n\
      -extranative    - Return extra native C++ wraps for std containers when possible \n\
      -fastinit       - Use fast init mechanism for classes (default)\n\
      -fastunpack     - Use fast unpack mechanism to parse the argument functions \n\
@@ -261,6 +267,11 @@ public:
     director_multiple_inheritance = 1;
     director_language = 1;
   }
+
+  ~PYTHON() {
+    delete doxygenTranslator;
+  }
+
   /* ------------------------------------------------------------
    * Thread Implementation
    * ------------------------------------------------------------ */
@@ -335,6 +346,8 @@ public:
     int cppcast = 1;
 
     SWIG_library_directory("python");
+
+    int doxygen_translator_flags = 0;
 
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
@@ -425,6 +438,16 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-nodirvtable") == 0) {
 	  dirvtable = 0;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-doxygen") == 0) {
+	  doxygen = 1;
+	  scan_doxygen_comments = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-debug-doxygen-translator") == 0) {
+	  doxygen_translator_flags |= DoxygenTranslator::debug_translator;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-debug-doxygen-parser") == 0) {
+	  doxygen_translator_flags |= DoxygenTranslator::debug_parser;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-fastunpack") == 0) {
 	  fastunpack = 1;
@@ -547,6 +570,9 @@ public:
     if (cppcast) {
       Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
     }
+    
+    if (doxygen)
+      doxygenTranslator = new PyDocConverter(doxygen_translator_flags);
 
     if (!global_name)
       global_name = NewString("cvar");
@@ -1654,7 +1680,89 @@ public:
 
   bool have_docstring(Node *n) {
     String *str = Getattr(n, "feature:docstring");
-    return (str && Len(str) > 0) || (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
+    return ((str && Len(str) > 0)
+	|| (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"))
+	|| (doxygen && doxygenTranslator->hasDocumentation(n))
+      );
+  }
+
+  /* ------------------------------------------------------------
+   * build_combined_docstring()
+   *
+   * Build the full docstring which may be a combination of the
+   * explicit docstring and autodoc string or, if none of them
+   * is specified, obtained by translating Doxygen comment to
+   * Python.
+   *
+   * Return new string to be deleted by caller (never NIL but
+   * may be empty if there is no docstring).
+   * ------------------------------------------------------------ */
+
+  String *build_combined_docstring(Node *n, autodoc_t ad_type, const String *indent = "") {
+    String *docstr = Getattr(n, "feature:docstring");
+    if (docstr && Len(docstr)) {
+      docstr = Copy(docstr);
+      char *t = Char(docstr);
+      if (*t == '{') {
+	Delitem(docstr, 0);
+	Delitem(docstr, DOH_END);
+      }
+    }
+
+    if (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc")) {
+      String *autodoc = make_autodoc(n, ad_type);
+      if (autodoc && Len(autodoc) > 0) {
+	if (docstr && Len(docstr)) {
+	  Append(autodoc, "\n");
+	  Append(autodoc, docstr);
+	}
+
+	String *tmp = autodoc;
+	autodoc = docstr;
+	docstr = tmp;
+      }
+
+      Delete(autodoc);
+    }
+
+    if (!docstr || !Len(docstr)) {
+      if (doxygen) {
+	docstr = Getattr(n, "python:docstring");
+	if (!docstr && doxygenTranslator->hasDocumentation(n)) {
+	  docstr = doxygenTranslator->getDocumentation(n);
+
+	  // Avoid rebuilding it again the next time: notice that we can't do
+	  // this for the combined doc string as autodoc part of it depends on
+	  // the sym:name of the node and it is changed while handling it, so
+	  // the cached results become incorrect. But Doxygen docstring only
+	  // depends on the comment which is not going to change, so we can
+	  // safely cache it.
+	  Setattr(n, "python:docstring", Copy(docstr));
+	}
+      }
+    }
+
+    if (!docstr)
+      docstr = NewString("");
+
+    // If there is more than one line then make docstrings like this:
+    //
+    //      """
+    //      This is line1
+    //      And here is line2 followed by the rest of them
+    //      """
+    //
+    // otherwise, put it all on a single line
+    if (Strchr(docstr, '\n')) {
+      String *tmp = NewString("");
+      Append(tmp, "\n");
+      Append(tmp, indent_docstring(docstr, indent));
+      Append(tmp, indent);
+      Delete(docstr);
+      docstr = tmp;
+    }
+
+    return docstr;
   }
 
   /* ------------------------------------------------------------
@@ -1665,74 +1773,39 @@ public:
    * set then it will build a combined docstring.
    * ------------------------------------------------------------ */
 
-  String *docstring(Node *n, autodoc_t ad_type, const String *indent, bool use_triple = true) {
-    String *str = Getattr(n, "feature:docstring");
-    bool have_ds = (str && Len(str) > 0);
-    bool have_auto = (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
-    const char *triple_double = use_triple ? "\"\"\"" : "";
-    String *autodoc = NULL;
-    String *doc = NULL;
+  String *docstring(Node *n, autodoc_t ad_type, const String *indent) {
+    String *docstr = build_combined_docstring(n, ad_type, indent);
+    if (!Len(docstr))
+      return docstr;
 
-    if (have_ds) {
-      char *t = Char(str);
-      if (*t == '{') {
-	Delitem(str, 0);
-	Delitem(str, DOH_END);
-      }
-    }
+    // Notice that all comments are created as raw strings (prefix "r"),
+    // because '\' is used often in comments, but may break Python module from
+    // loading. For example, in doxy comment one may write path in quotes:
+    //
+    //     This is path to file "C:\x\file.txt"
+    //
+    // Python will not load the module with such comment because of illegal
+    // escape '\x'. '\' may additionally appear in verbatim or htmlonly sections
+    // of doxygen doc, Latex expressions, ...
+    String *doc = NewString("");
+    Append(doc, "r\"\"\"");
+    Append(doc, docstr);
+    Append(doc, "\"\"\"");
+    Delete(docstr);
 
-    if (have_auto) {
-      autodoc = make_autodoc(n, ad_type);
-      have_auto = (autodoc && Len(autodoc) > 0);
-    }
-    // If there is more than one line then make docstrings like this:
-    //
-    //      """
-    //      This is line1
-    //      And here is line2 followed by the rest of them
-    //      """
-    //
-    // otherwise, put it all on a single line
-    //
-    if (have_auto && have_ds) {	// Both autodoc and docstring are present
-      doc = NewString("");
-      Printv(doc, triple_double, "\n",
-	     indent_docstring(autodoc, indent), "\n",
-	     indent_docstring(str, indent), indent, triple_double, NIL);
-    } else if (!have_auto && have_ds) {	// only docstring
-      if (Strchr(str, '\n') == 0) {
-	doc = NewStringf("%s%s%s", triple_double, str, triple_double);
-      } else {
-	doc = NewString("");
-	Printv(doc, triple_double, "\n", indent_docstring(str, indent), indent, triple_double, NIL);
-      }
-    } else if (have_auto && !have_ds) {	// only autodoc
-      if (Strchr(autodoc, '\n') == 0) {
-	doc = NewStringf("%s%s%s", triple_double, autodoc, triple_double);
-      } else {
-	doc = NewString("");
-	Printv(doc, triple_double, "\n", indent_docstring(autodoc, indent), indent, triple_double, NIL);
-      }
-    } else
-      doc = NewString("");
-
-    // Save the generated strings in the parse tree in case they are used later
-    // by post processing tools
-    Setattr(n, "python:docstring", doc);
-    Setattr(n, "python:autodoc", autodoc);
     return doc;
-  }   
+  }
 
   /* ------------------------------------------------------------
    * cdocstring()
    *
    * Get the docstring text as it would appear in C-language
-   * source code.
+   * source code (but without quotes around it).
    * ------------------------------------------------------------ */
 
   String *cdocstring(Node *n, autodoc_t ad_type)
   {
-    String *ds = docstring(n, ad_type, "", false);
+    String *ds = build_combined_docstring(n, ad_type);
     Replaceall(ds, "\\", "\\\\");
     Replaceall(ds, "\"", "\\\"");
     Replaceall(ds, "\n", "\\n\"\n\t\t\"");
@@ -2008,17 +2081,24 @@ public:
 	  break;
 
 	case AUTODOC_METHOD:
-	  String *paramList = make_autodocParmList(n, showTypes);
-	  Printf(doc, "%s(", symname);
-	  if (showTypes)
-	    Printf(doc, "%s ", class_name);
-	  if (Len(paramList))
-	    Printf(doc, "self, %s)", paramList);
-	  else
-	    Printf(doc, "self)");
-	  if (type_str)
-	    Printf(doc, " -> %s", type_str);
+	  {
+	    String *paramList = make_autodocParmList(n, showTypes);
+	    Printf(doc, "%s(", symname);
+	    if (showTypes)
+	      Printf(doc, "%s ", class_name);
+	    if (Len(paramList))
+	      Printf(doc, "self, %s)", paramList);
+	    else
+	      Printf(doc, "self)");
+	    if (type_str)
+	      Printf(doc, " -> %s", type_str);
+	  }
 	  break;
+
+	case AUTODOC_CONST:
+	  // There is no autodoc support for constants currently, this enum
+	  // element only exists to allow calling docstring() with it.
+	  return NULL;
 	}
 	Delete(type_str);
       }
@@ -3641,20 +3721,21 @@ public:
     }
 
     if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER))) {
+      String *f_s;
       if (!in_class) {
-	if(needs_swigconstant(n)) {
-	  Printv(f_shadow, "\n",NIL);
-	  Printv(f_shadow, module, ".", iname, "_swigconstant(",module,")\n", NIL);
-	}
-	Printv(f_shadow, iname, " = ", module, ".", iname, "\n", NIL);
+	f_s = f_shadow;
       } else {
-	if (!(Getattr(n, "feature:python:callback"))) {
-	  if(needs_swigconstant(n)) {
-	    Printv(f_shadow_stubs, "\n",NIL);
-	    Printv(f_shadow_stubs, module, ".", iname, "_swigconstant(", module, ")\n", NIL);
-	  }
-	  Printv(f_shadow_stubs, iname, " = ", module, ".", iname, "\n", NIL);
+	f_s = Getattr(n, "feature:python:callback") ? NIL : f_shadow_stubs;
+      }
+
+      if (f_s) {
+	if (needs_swigconstant(n)) {
+	  Printv(f_s, "\n",NIL);
+	  Printv(f_s, module, ".", iname, "_swigconstant(",module,")\n", NIL);
 	}
+	Printv(f_s, iname, " = ", module, ".", iname, "\n", NIL);
+	if (have_docstring(n))
+	  Printv(f_s, docstring(n, AUTODOC_CONST, tab4), "\n", NIL);
       }
     }
     return SWIG_OK;
@@ -4137,7 +4218,16 @@ public:
     Printv(f, "#else\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_flags", tp_flags), "tp_flags");
     Printv(f, "#endif\n", NIL);
-    printSlot(f, quoted_tp_doc_str, "tp_doc");
+    if (have_docstring(n)) {
+      String *ds = cdocstring(n, AUTODOC_CLASS);
+      String *tp_doc = NewString("");
+      Printf(tp_doc, "\"%s\"", ds);
+      Delete(ds);
+      printSlot(f, tp_doc, "tp_doc");
+      Delete(tp_doc);
+    } else {
+      printSlot(f, quoted_tp_doc_str, "tp_doc");
+    }
     printSlot(f, getSlot(n, "feature:python:tp_traverse"), "tp_traverse", "traverseproc");
     printSlot(f, getSlot(n, "feature:python:tp_clear"), "tp_clear", "inquiry");
     printSlot(f, getSlot(n, "feature:python:tp_richcompare", richcompare_func), "tp_richcompare", "richcmpfunc");
@@ -4473,6 +4563,8 @@ public:
 	}
 
 	Printf(f_shadow, ":\n");
+
+	// write docstrings if requested
 	if (have_docstring(n)) {
 	  String *str = docstring(n, AUTODOC_CLASS, tab4);
 	  if (str && Len(str))
@@ -4703,7 +4795,7 @@ public:
 	String *wname = Swig_name_wrapper(fullname);
 	Setattr(class_members, symname, n);
 	int argcount = Getattr(n, "python:argcount") ? atoi(Char(Getattr(n, "python:argcount"))) : 2;
-	String *ds = have_docstring(n) ? cdocstring(n, AUTODOC_FUNC) : NewString("");
+	String *ds = have_docstring(n) ? cdocstring(n, AUTODOC_METHOD) : NewString("");
 	if (check_kwargs(n)) {
 	  Printf(builtin_methods, "  { \"%s\", (PyCFunction) %s, METH_VARARGS|METH_KEYWORDS, (char *) \"%s\" },\n", symname, wname, ds);
 	} else if (argcount == 0) {
@@ -5218,6 +5310,8 @@ public:
       Swig_restore(n);
     } else if (shadow) {
       Printv(f_shadow, tab4, symname, " = ", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname), "\n", NIL);
+      if (have_docstring(n))
+	Printv(f_shadow, tab4, docstring(n, AUTODOC_CONST, tab4), "\n", NIL);
     }
     return SWIG_OK;
   }
