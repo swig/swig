@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-06-07: olly
+	    [PHP5] Support for PHP5 has been removed.  PHP5 is no longer
+	    actively supported by the PHP developers and security support for
+	    it ends completely at the end of 2018, so it doesn't make sense
+	    to include support for it in the upcoming SWIG 4.0.0 release.
+
 2018-06-06: olly
 	    [Lua] Improve configure probes for Lua headers and libs used in testsuite.
 

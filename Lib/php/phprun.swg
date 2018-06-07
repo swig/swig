@@ -13,7 +13,7 @@ extern "C" {
 #include "php.h"
 
 #if PHP_MAJOR_VERSION != 7
-# error These bindings need PHP7 - to generate PHP5 bindings use: swig -php5
+# error These bindings need PHP7 - to generate PHP5 bindings use: SWIG < 4.0.0 and swig -php5
 #endif
 
 #include "ext/standard/php_string.h"

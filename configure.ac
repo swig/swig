@@ -384,9 +384,6 @@ case $host in
    *) PHP_SO=$SO;;
 esac
 
-AC_SUBST(PHP5_SO)
-PHP5_SO=$PHP_SO
-
 AC_SUBST(MZSCHEME_SO)
 case $host in
    *) MZSCHEME_SO=.so;;
@@ -1944,55 +1941,6 @@ AC_SUBST(RUBYSO)
 AC_SUBST(RUBYDYNAMICLINKING)
 
 #-------------------------------------------------------------------------
-# Look for PHP5
-#-------------------------------------------------------------------------
-
-PHP5BIN=
-
-AC_ARG_WITH(php5, AS_HELP_STRING([--without-php5], [Disable PHP5])
-AS_HELP_STRING([--with-php5=path], [Set location of PHP5 executable]),[ PHP5BIN="$withval"], [PHP5BIN="$alllang_default"])
-
-# First, check for "--without-php5" or "--with-php5=no".
-if test x"${PHP5BIN}" = xno; then
-    AC_MSG_NOTICE([Disabling PHP5])
-    PHP5=
-else
-    if test "x$PHP5BIN" = xyes; then
-      AC_CHECK_PROGS(PHP5, [php5 php])
-    else
-      PHP5=$PHP5BIN
-    fi
-
-    if test -n "$PHP5"; then
-      AC_MSG_CHECKING(for PHP5 header files)
-      dnl /usr/bin/php5 -> /usr/bin/php-config5
-      case $PHP5 in
-        *5)
-          PHP5CONFIG=`echo "$PHP5"|sed 's/5$/-config5/'` ;;
-        *)
-          PHP5CONFIG=$PHP5-config ;;
-      esac
-      php5_version=`$PHP5CONFIG --version 2>/dev/null`
-      case $php5_version in
-      5*)
-        PHP5INC=`$PHP5CONFIG --includes 2>/dev/null`
-        if test -n "$PHP5INC"; then
-          AC_MSG_RESULT($PHP5INC)
-        else
-          AC_MSG_RESULT(not found)
-        fi
-        ;;
-      "")
-        AC_MSG_RESULT([could not find $PHP5CONFIG or obtain PHP5 version from it]) ;;
-      *)
-        AC_MSG_RESULT([found PHP $php_version - not PHP 5]) ;;
-      esac
-    fi
-fi
-AC_SUBST(PHP5)
-AC_SUBST(PHP5INC)
-
-#-------------------------------------------------------------------------
 # Look for PHP7
 #-------------------------------------------------------------------------
 
@@ -2862,13 +2810,6 @@ fi
 AC_SUBST(SKIP_PHP)
 
 
-SKIP_PHP5=
-if test -z "$PHP5" || test -z "$PHP5INC" ; then
-    SKIP_PHP5="1"
-fi
-AC_SUBST(SKIP_PHP5)
-
-
 SKIP_OCAML=
 if test -z "$OCAMLC" ; then
     SKIP_OCAML="1"
@@ -3058,7 +2999,6 @@ AC_CONFIG_FILES([
     Examples/test-suite/octave/Makefile
     Examples/test-suite/perl5/Makefile
     Examples/test-suite/php/Makefile
-    Examples/test-suite/php5/Makefile
     Examples/test-suite/pike/Makefile
     Examples/test-suite/python/Makefile
     Examples/test-suite/ruby/Makefile
@@ -3133,7 +3073,6 @@ test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
 test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "
 test -n "$SKIP_PERL5"		|| langs="${langs}perl5 "
 test -n "$SKIP_PHP"		|| langs="${langs}php "
-test -n "$SKIP_PHP5"		|| langs="${langs}php5 "
 test -n "$SKIP_PIKE"		|| langs="${langs}pike "
 test -n "$SKIP_PYTHON"		|| langs="${langs}python "
 test -n "$SKIP_R"		|| langs="${langs}r "

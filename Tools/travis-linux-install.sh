@@ -84,9 +84,6 @@ case "$SWIGLANG" in
 			travis_retry sudo apt-get -qq install liboctave${VER}-dev
 		fi
 		;;
-	"php5")
-		travis_retry sudo apt-get -qq install php5-cli php5-dev
-		;;
 	"php")
 		travis_retry sudo add-apt-repository -y ppa:ondrej/php
 		travis_retry sudo apt-get -qq update
