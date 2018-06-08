@@ -107,7 +107,6 @@ setup = \
 # Doxygen test cases need to be compiled together with the CommentParser class
 # which depends on com.sun.javadoc package which is located in this JAR.
 CommentParser.class:
-	echo "Compiling $(srcdir)/CommentParser.java"
 	$(COMPILETOOL) $(JAVAC) -classpath $(JAVA_CLASSPATH) -d . $(srcdir)/CommentParser.java
 
 JAVA_CLASSPATH := .
