@@ -104,11 +104,15 @@ setup = \
 	  mkdir $(JAVA_PACKAGE);							  \
 	fi
 
-# Doxygen test cases need to be compiled together with the CommentsParser class
+# Doxygen test cases need to be compiled together with the CommentParser class
 # which depends on com.sun.javadoc package which is located in this JAR.
+CommentParser.class:
+	echo "Compiling $(srcdir)/CommentParser.java"
+	$(COMPILETOOL) $(JAVAC) -classpath $(JAVA_CLASSPATH) -d . $(srcdir)/CommentParser.java
+
 JAVA_CLASSPATH := .
 $(DOXYGEN_TEST_CASES:=.cpptest): JAVA_CLASSPATH := "$(JAVA_HOME)/lib/tools.jar$(JAVA_CLASSPATH_SEP)."
-$(DOXYGEN_TEST_CASES:=.cpptest): DOXYGEN_COMMENT_PARSER := $(srcdir)/CommentParser.java
+$(DOXYGEN_TEST_CASES:=.cpptest): CommentParser.class
 
 # Compiles java files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.java appended after the testcase name.
@@ -116,7 +120,7 @@ $(DOXYGEN_TEST_CASES:=.cpptest): DOXYGEN_COMMENT_PARSER := $(srcdir)/CommentPars
 run_testcase = \
 	cd $(JAVA_PACKAGE) && $(COMPILETOOL) $(JAVAC) -classpath . `find . -name "*.java"` && cd .. && \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  $(COMPILETOOL) $(JAVAC) -classpath $(JAVA_CLASSPATH) -d . $(DOXYGEN_COMMENT_PARSER) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	  $(COMPILETOOL) $(JAVAC) -classpath $(JAVA_CLASSPATH) -d . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
 	  env LD_LIBRARY_PATH="$(JAVA_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(JAVA_PACKAGE):$$PATH" SHLIB_PATH="$(JAVA_PACKAGE):$$SHLIB_PATH" DYLD_LIBRARY_PATH="$(JAVA_PACKAGE):$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) $(JAVAFLAGS) -classpath $(JAVA_CLASSPATH) $*_runme; \
 	fi
 
