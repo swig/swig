@@ -1714,7 +1714,9 @@ tool, for example:
 
     
 <p>
-Runtime tests in Java are implemented using Javadoc doclets in tools.jar in the JDK.
+Runtime tests in Java are implemented using Javadoc doclets. To make that work, you
+should have tools.jar from the JDK in your classpath. Or you should have JAVA_HOME
+environment variable defined and pointing to the JDK location.
 </p>
 <p>
 The Java's comment parsing code (the testing part) is located in commentParser.java.
