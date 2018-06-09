@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-06-09: vadz
+            [Java] Allow exporting std::map using non-default comparison function.
+
 2018-06-08: philippkraft
 	    [Python] Stop exposing <CLASS>_swigregister to Python.  It's not
 	    useful for user Python code to call this, and it just clutters the
