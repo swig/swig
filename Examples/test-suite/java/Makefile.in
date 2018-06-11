@@ -7,9 +7,8 @@ JAVA         = @JAVA@
 JAVAC        = @JAVAC@
 JAVAFLAGS    = @JAVAFLAGS@
 JAVA_CLASSPATH_SEP = @JAVA_CLASSPATH_SEP@
+JAVA_TOOLS_JAR     = @JAVA_TOOLS_JAR@
 SCRIPTSUFFIX = _runme.java
-
-JAVA_HOME ?= @JAVA_HOME@
 
 srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
@@ -110,7 +109,7 @@ CommentParser.class:
 	$(COMPILETOOL) $(JAVAC) -classpath $(JAVA_CLASSPATH) -d . $(srcdir)/CommentParser.java
 
 JAVA_CLASSPATH := .
-$(DOXYGEN_TEST_CASES:=.cpptest): JAVA_CLASSPATH := "$(JAVA_HOME)/lib/tools.jar$(JAVA_CLASSPATH_SEP)."
+$(DOXYGEN_TEST_CASES:=.cpptest): JAVA_CLASSPATH := "$(JAVA_TOOLS_JAR)$(JAVA_CLASSPATH_SEP)."
 $(DOXYGEN_TEST_CASES:=.cpptest): CommentParser.class
 
 # Compiles java files then runs the testcase. A testcase is only run if

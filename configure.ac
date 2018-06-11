@@ -1349,6 +1349,7 @@ if test -z "$JAVAINCDIR" ; then
       if test -r "$d/jni.h" ; then
 	JAVAINCDIR=$d
 	JAVAINC=-I\"$d\"
+	JAVA_HOME_MAYBE="`dirname $d`"
 	break
       fi
     done
@@ -1373,6 +1374,26 @@ else
     AC_MSG_RESULT($JAVAMDDIR)
     JAVAINC="${JAVAINC} ${JAVAMDDIR}"
   fi
+fi
+
+# Auto-detecting JAVA_HOME is not so easy, below will only work up to and including jdk8
+if test -z "$JAVA_HOME" && test -n "$JAVA_HOME_MAYBE" ; then
+  AC_MSG_CHECKING(for java jdk from jni include paths)
+  if test -r "$JAVA_HOME_MAYBE/lib/tools.jar" ; then
+    JAVA_HOME=$JAVA_HOME_MAYBE
+    AC_MSG_RESULT([$JAVA_HOME])
+  else
+    AC_MSG_RESULT(not found)
+  fi
+fi
+
+# Javadoc support required for the Java test-suite is available by default in jdk9+ and in tools.jar in earlier jdk versions
+AC_MSG_CHECKING(for java tools.jar)
+if test -n "$JAVA_HOME" && test -r "$JAVA_HOME/lib/tools.jar" ; then
+  JAVA_TOOLS_JAR="$JAVA_HOME/lib/tools.jar"
+  AC_MSG_RESULT([$JAVA_TOOLS_JAR])
+else
+  AC_MSG_RESULT(not found)
 fi
 
 case $host in
@@ -1437,11 +1458,11 @@ fi
 # Turned off due to spurious warnings in later versions of openjdk-1.8
 # JAVAFLAGS=-Xcheck:jni
 
-AC_SUBST(JAVA_HOME)
 AC_SUBST(JAVA)
 AC_SUBST(JAVAC)
 AC_SUBST(JAVAINC)
 AC_SUBST(JAVA_CLASSPATH_SEP)
+AC_SUBST(JAVA_TOOLS_JAR)
 AC_SUBST(JAVADYNAMICLINKING)
 AC_SUBST(JAVALIBRARYPREFIX)
 AC_SUBST(JAVASO)
