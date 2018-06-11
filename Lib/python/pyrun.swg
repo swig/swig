@@ -445,6 +445,14 @@ SwigPyObject_repr(SwigPyObject *v)
   return repr;  
 }
 
+/* We need a version taking two PyObject* parameters so it's a valid
+ * PyCFunction to use in swigobject_methods[]. */
+static PyObject *
+SwigPyObject_repr2(PyObject *v, PyObject *SWIGUNUSEDPARM(args))
+{
+  return SwigPyObject_repr((SwigPyObject*)v);
+}
+
 SWIGRUNTIME int
 SwigPyObject_compare(SwigPyObject *v, SwigPyObject *w)
 {
@@ -621,12 +629,12 @@ SwigPyObject_own(PyObject *v, PyObject *args)
 
 static PyMethodDef
 swigobject_methods[] = {
-  {"disown",  (PyCFunction)SwigPyObject_disown,  METH_NOARGS,  "releases ownership of the pointer"},
-  {"acquire", (PyCFunction)SwigPyObject_acquire, METH_NOARGS,  "acquires ownership of the pointer"},
-  {"own",     (PyCFunction)SwigPyObject_own,     METH_VARARGS, "returns/sets ownership of the pointer"},
-  {"append",  (PyCFunction)SwigPyObject_append,  METH_O,       "appends another 'this' object"},
-  {"next",    (PyCFunction)SwigPyObject_next,    METH_NOARGS,  "returns the next 'this' object"},
-  {"__repr__",(PyCFunction)SwigPyObject_repr,    METH_NOARGS,  "returns object representation"},
+  {"disown",  SwigPyObject_disown,  METH_NOARGS,  "releases ownership of the pointer"},
+  {"acquire", SwigPyObject_acquire, METH_NOARGS,  "acquires ownership of the pointer"},
+  {"own",     SwigPyObject_own,     METH_VARARGS, "returns/sets ownership of the pointer"},
+  {"append",  SwigPyObject_append,  METH_O,       "appends another 'this' object"},
+  {"next",    SwigPyObject_next,    METH_NOARGS,  "returns the next 'this' object"},
+  {"__repr__",SwigPyObject_repr2,   METH_NOARGS,  "returns object representation"},
   {0, 0, 0, 0}  
 };
 
