@@ -7,6 +7,22 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-06-12: wsfulton
+            [Python] The %pythonabc feature in pyabc.i now uses base classes
+              collections.abc.MutableSequence
+              collections.abc.MutableMapping
+              collections.abc.MutableSet
+            instead of
+              collections.MutableSequence
+              collections.MutableMapping
+              collections.MutableSet
+            as the latter are deprecated in Python 3.7 and are due to be removed in Python 3.8.
+            The classes in collections.abc.* are available from Python 3.3 onwards. If you
+            require support for Python 3.2, then copy the pyabc.i file and modify by removing
+            the few instances of the .abc sub-module.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2018-06-12: olly,wsfulton
             [Python] #701 Remove support for Python versions < 2.7 and 3.0 and 3.1.
 
