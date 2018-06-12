@@ -80,14 +80,14 @@ void SWIG_store_exception(const char* decl, int errcode, const char *msg);
 // Stored exception message
 SWIGINTERN std::string* swig_last_exception_msg = NULL;
 // Inlined error retrieval function
-SWIGINTERN const std::string& SWIG_FORTRAN_ERROR_STR()
+SWIGINTERN const char* SWIG_FORTRAN_ERROR_STR()
 {
     if (!swig_last_exception_msg || swig_last_exception_msg->empty()) {
         SWIG_store_exception("UNKNOWN", SWIG_RuntimeError,
                              "no error string was present");
 
     }
-    return *swig_last_exception_msg;
+    return swig_last_exception_msg->c_str();
 }
 
 extern "C" {
@@ -131,9 +131,8 @@ SWIGEXPORT void SWIG_store_exception(const char *decl,
 }
 
 // Add wrapper code for the error string
-%include <forstring.swg>
-%apply const std::string& NATIVE { const std::string& SWIG_FORTRAN_ERROR_STR};
-const std::string& SWIG_FORTRAN_ERROR_STR();
+%include <forstrings.swg>
+const char* SWIG_FORTRAN_ERROR_STR();
 
 #else
 
