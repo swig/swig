@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-06-12: olly,wsfulton
+            [Python] #701 Remove support for Python versions < 2.7 and 3.0 and 3.1.
+
 2018-06-11: olly
             [Python] Fix new GCC8 warnings in generated code by avoiding casts
             between incompatible function types where possible (when keyword
