@@ -113,7 +113,6 @@ end type
          null="SwigOpaqueMemFunPtr_uninitialized()") SWIGTYPE (CLASS::*)
   "SwigOpaqueMemFunPtr"
 %typemap(imtype, in="type(SwigOpaqueMemFunPtr), intent(in), value",
-         import="SwigOpaqueMemFunPtr",
          fragment="SwigOpaqueMemFunPtr_f") SWIGTYPE (CLASS::*)
   "type(SwigOpaqueMemFunPtr)"
 %typemap(ftype, in="type(SwigOpaqueMemFunPtr), intent(in), value",

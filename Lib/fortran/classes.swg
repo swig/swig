@@ -528,7 +528,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
 %typemap(ctype, in="const SwigClassWrapper *", null="SwigClassWrapper_uninitialized()", noblock=1, fragment="SwigClassWrapper")
     SWIGTYPE
   "SwigClassWrapper"
-%typemap(imtype, import="SwigClassWrapper", fragment="SwigClassWrapper_f")
+%typemap(imtype, fragment="SwigClassWrapper_f")
     SWIGTYPE
   "type(SwigClassWrapper)"
 %typemap(ftype) SWIGTYPE
@@ -611,8 +611,8 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
 %apply SWIGTYPE *const& { const SWIGTYPE *const& };
    
 // C binding for opaque classes for advanced users
-%typemap(bindc, in="type(SwigClassWrapper), value", import="SwigClassWrapper", fragment="SwigClassWrapper_f") SwigClassWrapper
+%typemap(bindc, in="type(SwigClassWrapper), value", fragment="SwigClassWrapper_f") SwigClassWrapper
   "type(SwigClassWrapper)"
-%typemap(bindc, in="type(SwigClassWrapper)", import="SwigClassWrapper", fragment="SwigClassWrapper_f") SwigClassWrapper*
+%typemap(bindc, in="type(SwigClassWrapper)", fragment="SwigClassWrapper_f") SwigClassWrapper*
   "type(C_PTR)"
 

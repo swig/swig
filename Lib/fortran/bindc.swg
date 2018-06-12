@@ -2,24 +2,8 @@
  * bindc.swg
  * ------------------------------------------------------------------------- */
 
-FORT_FUND_TYPEMAP(STRUCT, "type($fclassname)")
-
-// Mostly like fundamental types, BUT:
-//
-// ctype is defined when %type_bindc is called
-// imtype is the actual bound struct
-// bindc needs 'import'
-%typemap(imtype, import="$fclassname") STRUCT
-  "type($fclassname)"
-%typemap(bindc, in="type($fclassname), value", import="$fclassname") STRUCT
-  "type($fclassname)"
-%typemap(ftype) STRUCT
-  "type($fclassname)"
-
-%typemap(bindc, in="type($fclassname), intent(inout)", import="$fclassname") STRUCT*
-  "type(C_PTR)"
-%typemap(bindc, in="type($fclassname), intent(in)", import="$fclassname") const STRUCT*
-  "type(C_PTR)"
+// Declare 'STRUCT' as a fundamental type, except instead of being `integer(C_INT)` it's `type($fclassname)`
+FORT_FUND_TYPEMAP(STRUCT, type($fclassname))
 
 /*!
  * \def %fortranbindc_type
@@ -54,9 +38,5 @@ FORT_FUND_TYPEMAP(STRUCT, "type($fclassname)")
   %typemap(ctype, in={const CLS*}, null={SWIG_null_struct_ ## CLS()}, fragment="SWIG_null_struct"{CLS}, noblock=1) CLS {
     CLS
   }
-  %typemap(ctype, noblock=1) CLS *const & {
-    const CLS*
-  }
-  %apply CLS *const & { const CLS *const & };
 
 %enddef

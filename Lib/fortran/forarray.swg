@@ -67,14 +67,13 @@ end subroutine
   %typemap(ctype, in="SwigArrayWrapper*",
          null="SwigArrayWrapper_uninitialized()",
          fragment="SwigArrayWrapper_uninitialized", noblock=1) CPPTYPE
-    {SwigArrayWrapper}
+    "SwigArrayWrapper"
   
   // Interface type: fortran equivalent of "ctype"
   // Since the type is declared in the module, it's necessary to use the
   // fortran "import" statement to bring it into scope.
-  %typemap(imtype, import="SwigArrayWrapper",
-           fragment="SwigArrayWrapper_f", noblock=1) CPPTYPE
-    {type(SwigArrayWrapper)}
+  %typemap(imtype, fragment="SwigArrayWrapper_f", noblock=1) CPPTYPE
+    "type(SwigArrayWrapper)"
 %enddef
 
 /* ------------------------------------------------------------------------- */

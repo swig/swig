@@ -36,7 +36,7 @@ end type
   FORT_ARRAYWRAP_TYPEMAP(CPPTYPE)
 
   // Override Fortran 'imtype': we want device pointer
-  %typemap(imtype, import="SwigDevArrayWrapper", fragment="SwigDevArrayWrapper_f") CPPTYPE
+  %typemap(imtype, fragment="SwigDevArrayWrapper_f") CPPTYPE
     "type(SwigDevArrayWrapper)"
 
   %typemap(fin, noblock=1, fragment="f_use_openacc") CPPTYPE {

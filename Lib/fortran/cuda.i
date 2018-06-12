@@ -35,7 +35,7 @@ end type
          fragment="SwigArrayWrapper_uninitialized") CPPTYPE {
     SwigArrayWrapper*
   }
-  %typemap(imtype, import="SwigDevArrayWrapper", fragment="SwigDevArrayWrapper_f") CPPTYPE
+  %typemap(imtype, fragment="SwigDevArrayWrapper_f") CPPTYPE
     "type(SwigDevArrayWrapper)"
 
   // Fortran pointer has
