@@ -10,6 +10,8 @@ Version 4.0.0 (in progress)
 2018-06-12: olly,wsfulton
             [Python] #701 Remove support for Python versions < 2.7 and 3.0 and 3.1.
 
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2018-06-11: olly
             [Python] Fix new GCC8 warnings in generated code by avoiding casts
             between incompatible function types where possible (when keyword
@@ -32,11 +34,15 @@ Version 4.0.0 (in progress)
 	    deprecated back in 2008.  Use %pragma(php) instead, which has been
 	    supported since at least 2005.
 
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2018-06-07: olly
 	    [PHP5] Support for PHP5 has been removed.  PHP5 is no longer
 	    actively supported by the PHP developers and security support for
 	    it ends completely at the end of 2018, so it doesn't make sense
 	    to include support for it in the upcoming SWIG 4.0.0 release.
+
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2018-06-06: olly
 	    [Lua] Improve configure probes for Lua headers and libs used in testsuite.
@@ -128,6 +134,8 @@ Version 4.0.0 (in progress)
               #define ABC 123
               #endif
 
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2018-01-15: wsfulton
             Fix issue #1183. Floating point exception evaluating preprocessor expressions
             resulting in division by zero.
@@ -183,6 +191,8 @@ Version 4.0.0 (in progress)
 
             Deprecate Swig::DirectorException::raiseJavaException, please replace usage with
             Swig::DirectorException::throwException.
+
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2017-10-26: wsfulton
             Add support for C++11 ref-qualifiers when using directors.
