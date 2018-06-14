@@ -19,23 +19,19 @@
  */
 %define %thrust_deviceptr(T, PTRTYPE...)
 
-  // Temporary definitions to allow macro to parse correctly
-  %define SWIGTMARGS__  (PTRTYPE DATA, size_t SIZE) %enddef
+  FORT_DEVICEPTR_TYPEMAP(T, %arg((PTRTYPE *DATA, size_t SIZE)))
 
-  FORT_DEVICEPTR_TYPEMAP(T, SWIGTMARGS__)
-
-  %typemap(in, noblock=1) SWIGTMARGS__ {
+  %typemap(in, noblock=1) (PTRTYPE *DATA, size_t SIZE) {
     $1 = $1_ltype(static_cast<T*>($input->data));
     $2 = $input->size;
   }
 
-  %typemap(check, noblock=1) SWIGTMARGS__ {
+  %typemap(check, noblock=1) (PTRTYPE *DATA, size_t SIZE) {
     if ((thrust::raw_pointer_cast($1) == NULL) && ($2 != 0)) {
       SWIG_exception_impl("$decl", SWIG_TypeError, \
                           "Encountered null device pointer", return $null); \
     }
   }
-#undef SWIGTMARGS__
 
 %enddef
 

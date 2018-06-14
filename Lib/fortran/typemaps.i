@@ -14,20 +14,14 @@
  * %apply (SWIGTYPE *DATA, size_t SIZE) { (double *x, int x_length) };
  */
 
-/* Temporary definitions to allow parsing in the FORT_ARRAYPTR_TYPEMAP macro */
-%define SWIGTMARGS__  (SWIGTYPE *DATA, size_t SIZE) %enddef
-
 /* Transform the two-argument typemap into an array pointer */
-FORT_ARRAYPTR_TYPEMAP($*1_ltype, SWIGTMARGS__)
+FORT_ARRAYPTR_TYPEMAP($*1_ltype, %arg((SWIGTYPE *DATA, size_t SIZE)))
 
 /* Transform (SwigArrayWrapper *$input) -> (SWIGTYPE *DATA, size_t SIZE) */
-%typemap(in, noblock=1) SWIGTMARGS__ {
+%typemap(in, noblock=1) (SWIGTYPE *DATA, size_t SIZE) {
 $1 = %static_cast($input->data, $1_ltype);
 $2 = $input->size;
 }
 /* Apply the typemaps to const versions as well */
-%apply SWIGTMARGS__ { (const SWIGTYPE *DATA, size_t SIZE) };
-
-#undef SWIGTMARGS__
-
+%apply (SWIGTYPE *DATA, size_t SIZE) { (const SWIGTYPE *DATA, size_t SIZE) };
 

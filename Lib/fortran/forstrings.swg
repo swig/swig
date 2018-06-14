@@ -113,34 +113,31 @@ FORT_ARRAYWRAP_TYPEMAP(const char*)
  *
  * Note that it's necessary to use a macro for FORT_ARRAYWRAP_TYPEMAP to work correctly.
  * ------------------------------------------------------------------------- */
-%define SWIGTMARGS__  (char *STRING, size_t LENGTH) %enddef
 
 /* ISO interface type: pointer to templated array wrapper */
-FORT_ARRAYWRAP_TYPEMAP(SWIGTMARGS__)
+FORT_ARRAYWRAP_TYPEMAP(%arg((char *STRING, size_t LENGTH)))
 
-%typemap(in, noblock=1) SWIGTMARGS__ {
+%typemap(in, noblock=1) (char *STRING, size_t LENGTH) {
   $1 = %reinterpret_cast($input->data, $1_ltype);
   $2 = $input->size;
 }
 
-%typemap(ftype, in="character(kind=C_CHAR, len=*), target") SWIGTMARGS__
+%typemap(ftype, in="character(kind=C_CHAR, len=*), target") (char *STRING, size_t LENGTH)
   "character(kind=C_CHAR, len=:), allocatable"
 
-%typemap(findecl, match="fin") SWIGTMARGS__
+%typemap(findecl, match="fin") (char *STRING, size_t LENGTH)
   "character(kind=C_CHAR), dimension(:), allocatable, target :: $1_chars"
 
-%typemap(fin, fragment="SWIG_string_to_chararray_f", noblock=1) SWIGTMARGS__ {
+%typemap(fin, fragment="SWIG_string_to_chararray_f", noblock=1) (char *STRING, size_t LENGTH) {
   call SWIG_string_to_chararray($input, $1_chars, $1)
 }
 
 // Fortran proxy translation code: convert from char array to Fortran string
 %typemap(fout, fragment="SWIG_chararray_to_string_f", noblock=1,
-         fragment="SWIG_free_f") SWIGTMARGS__ {
+         fragment="SWIG_free_f") (char *STRING, size_t LENGTH) {
   call SWIG_chararray_to_string($1, $result)
   if ($owner) call SWIG_free($1%data)
 }
 
-%apply SWIGTMARGS__ { (char *STRING, int LENGTH) }
-
-#undef SWIGTMARGS__
+%apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
 
