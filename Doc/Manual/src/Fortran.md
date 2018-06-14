@@ -1202,6 +1202,24 @@ FORT_ARRAYPTR_TYPEMAP(double, const std::vector<double> &)
 Similar code is used in the `ForTrilinos` library to treat `Teuchos::ArrayView`
 return values as Fortran array pointers.
 
+## Integer types
+
+One other note to be made about Fortran interoperability concerns the mismatch
+between default Fortran integers and C++'s `size_type`, which is often used as
+a function argument. The differing `KIND` of the integers requires that users awkwardly
+cast values when passing into function calls:
+```fortran
+call my_vector%resize(INT(n,C_LONG))
+```
+This nuisance can be simply avoided by replacing occurrences of C's size type
+with the native Fortran integer type:
+```swig
+%apply int { std::size_t }
+```
+Note of course that if the native integer type is 32-bit and the long type is
+64-bit, this will prevent any input larger than `0x7fffffff` from being passed
+as an argument.
+
 ## MPI compatibility
 
 When wrapping a C++ library that includes MPI support, and the Fortran
@@ -1230,23 +1248,84 @@ use mpi
 call set_my_comm(MPI_COMM_WORLD)
 ```
 
-## Integer types
+## OpenACC compatibility
 
-One other note to be made about Fortran interoperability concerns the mismatch
-between default Fortran integers and C++'s `size_type`, which is often used as
-a function argument. The differing `KIND` of the integers requires that users awkwardly
-cast values when passing into function calls:
-```fortran
-call my_vector%resize(INT(n,C_LONG))
-```
-This nuisance can be simply avoided by replacing occurrences of C's size type
-with the native Fortran integer type:
+The SWIG Fortran target language supports an experimental ability to wrap CUDA
+kernels using the Thrust C++ interface and use the resulting code with Fortran
+OpenACC kernels. The implementation is designed to avoid the performance
+penalty of copying between the host and device inside the wrapper layer: the
+underlying device data pointer is seamlessly handed off between C++/CUDA and
+Fortran.
+
+Here is an example SWIG module that wraps the `thrust::sort` function to enable
+sorting on-device data using a highly optimized kernel:
 ```swig
-%apply int { std::size_t }
+%module thrustacc;
+
+%include <openacc.i>
+%include <thrust.i>
+
+%{
+#include <thrust/sort.h>
+%}
+
+%inline %{
+template<typename T>
+void swig_thrust_sort(thrust::device_ptr<T> DATA, size_t SIZE) {
+    thrust::sort(DATA, DATA + SIZE);
+}
+%}
+
+%template(sort) swig_thrust_sort<float>;
 ```
-Note of course that if the native integer type is 32-bit and the long type is
-64-bit, this will prevent any input larger than `0x7fffffff` from being passed
-as an argument.
+
+The corresponding test code simply calls the SWIG-generated `sort` function:
+```fortran
+program test_thrustacc
+  use thrustacc
+  implicit none
+  integer, parameter :: n = 64
+  integer :: i
+  integer :: failures = 0
+  real, dimension(:), allocatable :: a
+  real :: mean
+
+  ! Generate N uniform numbers on [0,1)
+  allocate(a(n))
+  call RANDOM_NUMBER(a)
+  write(0,*) a
+
+  !$acc data copy(a)
+    !$acc kernels
+      do i = 1,n
+        a(i) = a(i) * 10
+      end do
+    !$acc end kernels
+    call sort(a)
+  !$acc end data
+
+  write(0,*) a
+
+end program
+```
+
+Note that the ACC `data copy` occurs before the native Fortran ACC kernel and
+after the SWIG-wrapped Thrust kernel, correctly showing that no data movement
+occurs due to SWIG.
+
+In order to build a CUDA-compatible SWIG fortran module,
+it's necessary to have SWIG write a `.cu` output file if it's launching a CUDA
+kernel (e.g. in the case where a Thrust library call is being wrapped for
+OpenACC) using the SWIG command line option `-cppext` to change
+the extension. The necessary flags to pass to the Fortran compiler to use
+OpenACC directives and link against the C++ standard library should be used to
+compile and link the code as well:
+```sh
+swig -c++ -cppext cu -fortran thrustacc.i
+nvcc -c thrustacc_wrap.cu
+ftn -c -acc thrustacc.f90
+ftn -acc -lstdc++ -Minfo test_thrustacc.f90 thrustacc.o thrustacc_wrap.o -o test.exe
+```
 
 <!-- ###################################################################### -->
 
