@@ -18,9 +18,6 @@
  * STD::STRING TYPEMAPS
  *
  * Typemaps for native fortran string conversion.
- *
- * Use:
- *     %apply const std::string& { const std::string& key };
  * ------------------------------------------------------------------------- */
 
 /* Note that this is technically incorrect: string is typedef'd as
@@ -30,7 +27,9 @@ namespace std {
 class string;
 }
 
-// Fortran treats like regular strings
+/* ---- CONST REFERENCE: NATIVE STRING ---- */
+
+// Fortran treats like C strings
 %apply const char * {const std::string &};
 
 // Fortran proxy translation code: convert from char array to Fortran string
@@ -50,7 +49,8 @@ class string;
   $result.size = $1->size();
 }
 
-// RETURN BY VALUE
+/* ---- VALUE: NATIVE STRING ---- */
+
 %apply const std::string & { std::string };
 
 %feature("novaluewrapper") std::string;

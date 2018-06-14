@@ -12,7 +12,6 @@
  * To apply these to a function `void foo(double* x, int x_length);`:
  *
  * %apply (SWIGTYPE *DATA, size_t SIZE) { (double *x, int x_length) };
- *
  */
 
 /* Temporary definitions to allow parsing in the FORT_ARRAYPTR_TYPEMAP macro */

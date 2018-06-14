@@ -85,7 +85,8 @@ end subroutine
  * This defines:
  * - C type interface
  * - IM type interface
- * - Fortran in/out
+ * - FIN/FOUT
+ * - FTYPE array pointer
  */
 %define FORT_ARRAYPTR_TYPEMAP(VTYPE, CPPTYPE...)
   FORT_ARRAYWRAP_TYPEMAP(CPPTYPE)

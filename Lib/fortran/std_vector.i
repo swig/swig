@@ -7,23 +7,27 @@
 %}
 
 /*!
- * This module defines a std::vector class and convenience typemaps.
+ * This module defines a std::vector class and conversion typemaps.
  *
- * Use \code
-  %apply const std::vector<int> NATIVE& { const std::vector<int>& }
- \endcode
- * to wrap all const vector references as native fortran array input/output.
+ * Like the `std/std_vector.i` header, we convert based on the type. Use the %apply directive (with particular argument and/or function names) to change
+ * the behavior.
  *
- * TODO:
- *  - Add initialization/assignment from fortran array
- *  - Extend with return-as-view ?
- *  - Extend with return-allocatable ?
+ * - f(std::vector<T>), f(const std::vector<T>&):
+ *   the parameter is read-only, so we treat natively.
+ * - f(std::vector<T>&), f(std::vector<T>*):
+ *   the parameter may be modified: only a wrapped std::vector can be passed.
+ * - std::vector<T> f(), const std::vector<T>& f():
+ *   the vector is returned by copy; treat natively.
+ * - std::vector<T>& f(), std::vector<T>* f():
+ *   the vector is returned by reference; return a wrapped reference.
+ * - const std::vector<T>* f(), f(const std::vector<T>*):
+ *   for consistency, they expect and return a plain vector pointer.
  *
- * To avoid wrapping std::vector but still instantiate the typemaps that
- * allow native wrapping, use
+ * To avoid wrapping the std::vector class but still use the typemaps,
  * `%template() std::vector<double>` .
  */
 %include "std_container.i"
+%include "typemaps.i"
 
 namespace std {
   template<class _Tp, class _Alloc = std::allocator<_Tp> >
@@ -58,6 +62,14 @@ namespace std {
     const_reference front() const;
     const_reference back() const;
 
+    // Instantiate typemaps for this particular vector
+    %std_native_container(std::vector<_Tp, _Alloc >)
+
+    // Enable view output and input
+    %apply vector<_Tp, _Alloc >& POINTER { vector<_Tp, _Alloc >& view() };
+    %apply (const SWIGTYPE *DATA, ::size_t SIZE)
+    { (const value_type* DATA, size_type SIZE) };
+
     // Extend for Fortran
     %extend{
       // C indexing used here!
@@ -71,18 +83,22 @@ namespace std {
         // TODO: check range
         return (*$self)[index];
       }
-    } // end extend
 
-  // Declare typemaps for using 'NATIVE' wrapping
-  %std_native_container(std::vector<_Tp, _Alloc >)
+      // Assign from another vector
+      void assign(const value_type* DATA, size_type SIZE) {
+        $self->assign(DATA, DATA + SIZE);
+      }
+
+      // Get a mutable view to ourself
+      vector<_Tp, _Alloc >& view() {
+        return *$self;
+      }
+  }
 };
 
 // Specialize on bool
-template<class _Alloc>
-class vector<bool, _Alloc> {
+template<class _Alloc >
+class vector<bool, _Alloc > {
   /* NOT IMPLEMENTED */
 };
-}                                 // end namespace std
-
-
-
+} // end namespace std

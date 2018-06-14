@@ -453,13 +453,12 @@ string on the Fortran side (i.e. any trailing blanks are intentional). Note
 that by using null-terminated strings, if a Fortran string has null characters
 embedded in it, the string will be truncated when read by C. Thus the function
 as written is *not* suitable for passing binary data between C and Fortran.
-(See [byte strings](#byte-strings) for how to do this.)
+See [byte strings](#byte-strings) for how to do this.
 
 If a function `char* to_string(float f);` emits a `malloc`'d string value,
 and the output is to be wrapped by SWIG, use the `%newobject` feature to
 avoid memory leaks:
 ```swig
-%apply const char *NATIVE { char *to_string };
 %newobject to_string;
 char *to_string(float f);
 ```
@@ -491,6 +490,10 @@ be natively passed to C.
 Improved support for the various character typemaps and representations (as in
 the standard SWIG `<cstring.i>` which provides `%cstring_bounded_output`) could
 be implemented in a later version of SWIG.
+
+Finally, note that [a warning on `char *`](#SWIG_nn14) still applies to
+Fortran: if a function taking a `char *` modifies the contents of that string,
+the resulting modification will not have any effect on the Fortran string.
 
 ## Arrays
 
@@ -969,23 +972,8 @@ they're typically called with string literals: the class can be implicitly
 constructed from a `const char *` but can also accept a `std::string` if needed.
 Since Fortran has no implicit constructors, passing a string argument would
 typically require declaring and instantiating a class for that parameter.
-To mitigate this annoyance, special typemaps are provided that
-transparently convert between Fortran types and C++ types while
-
-Generally, these typemaps are defined as applying to arguments called `NATIVE`;
-they can be applied to *all* arguments regardless of name with the `%apply`
-directive:
-```swig
-%apply const char *NATIVE { const char * };
-```
-or to the output of a specific function such as `const char *get_foo_string(int
-i);`
-with
-```swig
-%apply const char *NATIVE { const char *get_foo_string };
-```
-
-
+Instead, like other SWIG languages, Fortran by default integrates "native"
+types such as the built-in string and arrays.
 
 ## The std::string class
 
@@ -995,32 +983,62 @@ like the [byte strings](#byte-strings) described above: it can transparently
 convert strings of data, even those with embedded null characters, to and from
 Fortran. This typemap is provided in `<std_string.i>`.
 
+The default typemaps do not include support for *mutable* string references; by
+default they are treated as unknown class types. To make these references act
+like pass-by-value strings (where changes to the value in one language will
+*not* make changes in the other), use `%apply`:
+```swig
+%include <std_string.i>
+%apply std::string { std::string& }
+```
+
 ## std::vector
 
-The C++ `std::vector` class is included with its basic methods. Several typemaps
-are included alongside it that allow for seamless interoperability with Fortran
-arrays (with some performance penalty from extra memory allocations and
-copies). To instantiate wrappers for `std::vector<double>` as a class
-named `VecDbl`, write
+The C++ `std::vector` class is defined in the `<std_vector.i>` interface file
+along with its basic methods, but the default typemaps treat vectors as
+native Fortran arrays. This behavior is chosen under the assumption that
+methods being wrapped by SWIG are more for providing a setup API than a
+low-level API passing extremely large vectors: there is some memory and
+performance overhead in the translation layer.
+
+If high performance is needed for specific function calls (e.g. if you simply
+need to pass a large vector from one C++ function to another through some
+glue), then you can use the SWIG typemap system to treat a particular function
+as a standard SWIG class:
+```
+%apply const SWIGTYPE& { const std::vector<double>& get_vec,
+                         const std::vector<double>& vec_input };
+```
+
+Values and const references are wrapped as native Fortran arrays. Returning
+either will result in an `allocatable` array, and taking one as an argument
+translates to a 1-D array input in Fortran. To simply instantiate typemaps for
+`std::vector<double>` for native array transformation, write:
+```swig
+%include <std_vector.i>
+%template() std::vector<double>;
+```
+
+If you want to use `std::vector` for its convenience features (dynamically
+changing size, for example), you can instantiate the class:
 ```swig
 %include <std_vector.i>
 %template(VecDbl) std::vector<double>;
 ```
 
-If your code does not use `std::vector` to do any heavy lifting (i.e. your
-vectors are small and not shared), you can choose to transparently convert
-those arguments to and from Fortran arrays. This can be done with:
-```swig
-%include <std_vector.i>
-%template() std::vector<double>;
-%apply const std::vector<double> NATIVE& { const std::vector<double>& }
-%apply std::vector<double> NATIVE { std::vector<double> }
-```
-to allow
-```c++
-std::vector<double> get_values();
-```
-to return a Fortran `real(C_DOUBLE), dimension(:), allocatable` array.
+The built-in `std::vector` wrapper class has a few methods that differ from the
+standard C++ library:
+
+- Instead of `operator[]`, use `set(index, value)` and `get(index)` to get and
+  assign values.
+- The `view()` method returns a Fortran array pointer to the contents of the
+  array (valid until the array changes size).
+- The `assign(arr)` method takes a Fortran array as an input and sets the
+  contents of the vector to that array.
+
+Both `view` and `assign` are very cheap operations for allowing a `std::vector`
+class to interact with native Fortran datatypes.
+
 
 ## Other C++ standard library containers
 
@@ -1028,7 +1046,7 @@ Other useful types such as `std::map`, `std::set`, have no or minimal
 implementation. Contributions to these classes (by changes to
 `swig/Library/fortran/std_{cls}.i`) will be warmly welcomed.
 
-## Smart pointers
+## Shared pointers
 
 Like other target languages, SWIG can generate Fortran wrappers to *smart
 pointers* to C++ objects by modifying the typemaps to that object.
@@ -1143,6 +1161,13 @@ call fill_with_zeros(dbl_values)
 summed = accumulate(int_values)
 ```
 
+## Smart pointers
+
+The general [smart pointer](SWIG.html#SWIGPlus_smart_pointers) functionality,
+where a class provides a custom `operator->` and unary `operator*`, is not yet
+implemented. All C++ `operator` overloads except for assignment are currently
+ignored.
+
 ## Returning array pointers
 
 The `<view.i>` library file provides an alternate means of converting to and from Fortran array pointers. It translates `std::pair<T*, size_t>` input and
@@ -1163,20 +1188,19 @@ arrptr => get_array_ptr()
 Since this library file is so simple, it can be used as a template for creating
 transparent wrappers between Fortran arrays and other C++ data types.  For
 example, the following snippet based on `<view.i>` converts
-a return value of `std::vector<double>& NATIVE` to a Fortran array pointer and
-applies it to a function `as_array_ptr`.
+a return value of `const std::vector<double>&` to a Fortran array pointer:
 ```swig
 %include <forarray.swg>
 
 // Convert a reference-to-vector return value into a array view.
-FORT_ARRAYPTR_TYPEMAP(double, std::vector<double> &NATIVE)
+FORT_ARRAYPTR_TYPEMAP(double, const std::vector<double> &)
 %typemap(out) std::vector<double> &NATIVE %{
-  $result.data = $1->empty() ? NULL : $1->data();
+  $result.data = ($1->empty() ? NULL : &(*$1->begin()));
   $result.size = $1->size();
 %}
-
-%apply std::vector<double> &NATIVE { std::vector<double> &as_array_ptr };
 ```
+Similar code is used in the `ForTrilinos` library to treat `Teuchos::ArrayView`
+return values as Fortran array pointers.
 
 ## MPI compatibility
 
