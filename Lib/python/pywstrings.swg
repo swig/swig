@@ -29,7 +29,11 @@ SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize, int *alloc)
   }
 %#endif
   if (isunicode) {
+%#if PY_VERSION_HEX >= 0x03030000
+    Py_ssize_t len = PyUnicode_GetLength(obj);
+%#else
     Py_ssize_t len = PyUnicode_GetSize(obj);
+%#endif
     if (cptr) {
       Py_ssize_t length;
       *cptr = %new_array(len + 1, wchar_t);

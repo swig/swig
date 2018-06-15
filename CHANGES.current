@@ -16,8 +16,12 @@ Version 4.0.0 (in progress)
 
               instring(b"h\xe9llooo") # Python
 
+2018-06-15: wsfulton
+            [Python] Python 3.7 support: Replace use of deprecated PyUnicode_GetSize with
+            PyUnicode_GetLength to remove deprecated warnings compiling the C/C++ wrappers.
+
 2018-06-12: wsfulton
-            [Python] The %pythonabc feature in pyabc.i now uses base classes
+            [Python] Python 3.7 support: The %pythonabc feature in pyabc.i now uses base classes
               collections.abc.MutableSequence
               collections.abc.MutableMapping
               collections.abc.MutableSet
