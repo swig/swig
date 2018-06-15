@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-06-15: wsfulton
+            [Python] Fix seg fault using Python 2 when passing a Python string, containing
+            invalid utf-8 content, to a wstring or wchar * parameter. A TypeError is thrown instead, eg:
+
+              %include <std_wstring.i>
+              void instring(const std::wstring& s);
+
+              instring(b"h\xe9llooo") # Python
+
 2018-06-12: wsfulton
             [Python] The %pythonabc feature in pyabc.i now uses base classes
               collections.abc.MutableSequence
