@@ -125,6 +125,9 @@ public class doxygen_parsing_runme {
     wantedComments.put("doxygen_parsing.SomeAnotherClass.setClassAttr2(int)",
     		"The class attribute post-comment \n" +
     		"");
+    wantedComments.put("doxygen_parsing.doxygen_parsingConstants.CONSTANT_VALUE",
+    		"The constant comment \n" +
+    		"");
     
     // and ask the parser to check comments for us
     System.exit(parser.check(wantedComments));

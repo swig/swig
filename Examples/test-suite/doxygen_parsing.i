@@ -36,6 +36,11 @@ struct SomeStruct
  */
 int someVar=42;
 
+/**
+ * The constant comment
+ */
+#define CONSTANT_VALUE 4242
+
 class SomeAnotherClass
 {
 public:
