@@ -1306,10 +1306,10 @@ public:
       } else {
 	// Translate and write javadoc comment for the enum itself if flagged
 	if (doxygen && doxygenTranslator->hasDocumentation(n)) {
-	  String *doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
+	  String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
 	  if (comment_creation_chatter)
 	    Printf(constants_code, "/* This was generated from enumDeclaration() */\n");
-	  Printf(constants_code, "/* Comment for enum %s */\n", Getattr(n, "unnamedinstance") ? "" : symname);
+	  Printf(constants_code, "  /* Comment for enum %s */\n", Getattr(n, "unnamedinstance") ? "" : symname);
 	  Printf(constants_code, Char(doxygen_comments));
 	  Printf(constants_code, "\n");
 	  Delete(doxygen_comments);
