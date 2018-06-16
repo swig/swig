@@ -2005,6 +2005,13 @@ public:
     // Pure Java interfaces
     const String *pure_interfaces = typemapLookup(n, "javainterfaces", typemap_lookup_type, WARN_NONE);
 
+    if (*Char(interface_list) && *Char(pure_interfaces))
+      Append(interface_list, ", ");
+    Append(interface_list, pure_interfaces);
+    // Start writing the proxy class
+    if (!has_outerclass) // Import statements
+      Printv(proxy_class_def, typemapLookup(n, "javaimports", typemap_lookup_type, WARN_NONE),"\n", NIL);
+
     // Translate and write javadoc comment if flagged
     if (doxygen && doxygenTranslator->hasDocumentation(n)) {
       String *doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
@@ -2013,14 +2020,8 @@ public:
       Printv(proxy_class_def, Char(doxygen_comments), NIL);
       Delete(doxygen_comments);
     }
-    
-    if (*Char(interface_list) && *Char(pure_interfaces))
-      Append(interface_list, ", ");
-    Append(interface_list, pure_interfaces);
-    // Start writing the proxy class
-    if (!has_outerclass) // Import statements
-      Printv(proxy_class_def, typemapLookup(n, "javaimports", typemap_lookup_type, WARN_NONE),"\n", NIL);
-    else
+
+    if (has_outerclass)
       Printv(proxy_class_def, "static ", NIL); // C++ nested classes correspond to static java classes
     Printv(proxy_class_def, typemapLookup(n, "javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
 	   " $javaclassname",	// Class name and bases
@@ -2510,7 +2511,7 @@ public:
       Printv(function_code, Char(doxygen_comments), NIL);
       Delete(doxygen_comments);
     }
-    
+
     /* Start generating the proxy function */
     const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
     methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
@@ -2518,7 +2519,7 @@ public:
     if (static_flag)
       Printf(function_code, "static ");
     Printf(function_code, "%s %s(", return_type, proxy_function_name);
-    
+
     if (is_interface)
       Printf(interface_class_code, "  %s %s(", return_type, proxy_function_name);
 
