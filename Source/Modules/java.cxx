@@ -1274,16 +1274,16 @@ public:
       EnumFeature enum_feature = decodeEnumFeature(n);
       String *typemap_lookup_type = Getattr(n, "name");
 
-      if (doxygen && doxygenTranslator->hasDocumentation(n)) {
-        String *doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
-        if (comment_creation_chatter)
-          Printf(enum_code, "/* This was generated from enumDeclaration() */\n");
-        Printv(enum_code, Char(doxygen_comments), NIL);
-        Delete(doxygen_comments);
-      }
-
       if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
 	// Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper Java enum
+
+	if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+	  String *doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
+	  if (comment_creation_chatter)
+	    Printf(enum_code, "/* This was generated from enumDeclaration() */\n");
+	  Printv(enum_code, Char(doxygen_comments), NIL);
+	  Delete(doxygen_comments);
+	}
 
 	String *scope = getCurrentScopeName(nspace);
 	if (!addSymbol(symname, n, scope))
