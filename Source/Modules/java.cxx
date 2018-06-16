@@ -592,9 +592,9 @@ public:
 	Printf(f_module, "%s\n", module_imports);
 
       if (doxygen && doxygenTranslator->hasDocumentation(n)) {
-	String *doxygen_comments = doxygenTranslator->getDocumentation(n);
+	String *doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
 	if (comment_creation_chatter)
-	  Printf(f_module, "/* This was generated from top() */");
+	  Printf(f_module, "/* This was generated from top() */\n");
 	Printv(f_module, Char(doxygen_comments), NIL);
 	Delete(doxygen_comments);
       }
@@ -1275,10 +1275,9 @@ public:
       String *typemap_lookup_type = Getattr(n, "name");
 
       if (doxygen && doxygenTranslator->hasDocumentation(n)) {
-        String *doxygen_comments = doxygenTranslator->getDocumentation(n);
-        if (comment_creation_chatter) {
-          Printf(enum_code, "/* This was generated from enumDeclaration() */");
-        }
+        String *doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
+        if (comment_creation_chatter)
+          Printf(enum_code, "/* This was generated from enumDeclaration() */\n");
         Printv(enum_code, Char(doxygen_comments), NIL);
         Delete(doxygen_comments);
       }
@@ -1307,9 +1306,9 @@ public:
       } else {
 	// Translate and write javadoc comment for the enum itself if flagged
 	if (doxygen && doxygenTranslator->hasDocumentation(n)) {
-	  String *doxygen_comments = doxygenTranslator->getDocumentation(n);
+	  String *doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
 	  if (comment_creation_chatter)
-	    Printf(constants_code, "/* This was generated from enumDeclaration() */");
+	    Printf(constants_code, "/* This was generated from enumDeclaration() */\n");
 	  Printf(constants_code, "/* Comment for enum %s */\n", Getattr(n, "unnamedinstance") ? "" : symname);
 	  Printf(constants_code, Char(doxygen_comments));
 	  Printf(constants_code, "\n");
@@ -1474,9 +1473,9 @@ public:
 
       // Translate and write javadoc comment if flagged
       if (doxygen && doxygenTranslator->hasDocumentation(n)) {
-	String *doxygen_comments = doxygenTranslator->getDocumentation(n);
+	String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
 	if (comment_creation_chatter)
-	  Printf(enum_code, "/* This was generated from enumvalueDeclaration() */");
+	  Printf(enum_code, "/* This was generated from enumvalueDeclaration() */\n");
 	Printv(enum_code, Char(doxygen_comments), NIL);
 	Delete(doxygen_comments);
       }
@@ -1559,9 +1558,9 @@ public:
 
     // Translate and write javadoc comment if flagged
     if (doxygen && doxygenTranslator->hasDocumentation(n)) {
-      String *doxygen_comments = doxygenTranslator->getDocumentation(n);
+      String *doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
       if (comment_creation_chatter)
-	Printf(constants_code, "/* This was generated from constantWrapper() */");
+	Printf(constants_code, "/* This was generated from constantWrapper() */\n");
       Printv(constants_code, Char(doxygen_comments), NIL);
       Delete(doxygen_comments);
     }
@@ -2008,9 +2007,9 @@ public:
 
     // Translate and write javadoc comment if flagged
     if (doxygen && doxygenTranslator->hasDocumentation(n)) {
-      String *doxygen_comments = doxygenTranslator->getDocumentation(n);
+      String *doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
       if (comment_creation_chatter)
-	Printf(proxy_class_def, "/* This was generated from emitProxyClassDefAndCPPCasts() */");
+	Printf(proxy_class_def, "/* This was generated from emitProxyClassDefAndCPPCasts() */\n");
       Printv(proxy_class_def, Char(doxygen_comments), NIL);
       Delete(doxygen_comments);
     }
@@ -2505,9 +2504,9 @@ public:
 
     // Translate and write javadoc comment if flagged
     if (doxygen && doxygenTranslator->hasDocumentation(n)) {
-      String *doxygen_comments = doxygenTranslator->getDocumentation(n);
+      String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
       if (comment_creation_chatter)
-	Printf(function_code, "/* This was generated from proxyclassfunctionhandler() */");
+	Printf(function_code, "/* This was generated from proxyclassfunctionhandler() */\n");
       Printv(function_code, Char(doxygen_comments), NIL);
       Delete(doxygen_comments);
     }
@@ -2747,11 +2746,11 @@ public:
       tm = Getattr(n, "tmap:jtype"); // typemaps were attached earlier to the node
       Printf(im_return_type, "%s", tm);
 
-    // Translate and write javadoc comment if flagged
-    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
-      String *doxygen_comments = doxygenTranslator->getDocumentation(n);
+      // Translate and write javadoc comment if flagged
+      if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+	String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
 	if (comment_creation_chatter)
-	  Printf(function_code, "/* This was generated from constructionhandler() */");
+	  Printf(function_code, "/* This was generated from constructionhandler() */\n");
 	Printv(function_code, Char(doxygen_comments), NIL);
 	Delete(doxygen_comments);
       }
@@ -3023,9 +3022,9 @@ public:
 
     // Translate and write javadoc comment if flagged
     if (doxygen && doxygenTranslator->hasDocumentation(n)) {
-      String *doxygen_comments = doxygenTranslator->getDocumentation(n);
+      String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
       if (comment_creation_chatter)
-	Printf(function_code, "/* This was generated from moduleClassFunctionHandler() */");
+	Printf(function_code, "/* This was generated from moduleClassFunctionHandler() */\n");
       Printv(function_code, doxygen_comments, NIL);
       Delete(doxygen_comments);
     }

@@ -795,9 +795,7 @@ String *JavaDocConverter::makeDocumentation(Node *node) {
 
     string translatedStr = indentAndInsertAsterisks(doc);
 
-    String *comment = NewString(translatedStr.c_str());
-    // Append(comment, documentation); Replaceall(comment, "\n", "\n * ");
-    return comment;
+    return NewString(translatedStr.c_str());
   }
 
   DoxygenEntityList entityList = parser.createTree(node, documentation);

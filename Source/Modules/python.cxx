@@ -1678,7 +1678,7 @@ public:
       if (doxygen) {
 	docstr = Getattr(n, "python:docstring");
 	if (!docstr && doxygenTranslator->hasDocumentation(n)) {
-	  docstr = doxygenTranslator->getDocumentation(n);
+	  docstr = doxygenTranslator->getDocumentation(n, 0);
 
 	  // Avoid rebuilding it again the next time: notice that we can't do
 	  // this for the combined doc string as autodoc part of it depends on

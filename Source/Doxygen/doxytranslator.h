@@ -56,7 +56,7 @@ public:
    * Return the documentation for a given node formated for the correct 
    * documentation system.
    */
-  String *getDocumentation(Node *node);
+  String *getDocumentation(Node *node, const_String_or_char_ptr indentationString);
 
   /*
    * Returns truem is the specified node has comment attached.
@@ -84,6 +84,7 @@ protected:
    */
   void printTree(const DoxygenEntityList &entityList);
 
+  void extraIndentation(String *comment, const_String_or_char_ptr indentationString);
 };
 
 #endif

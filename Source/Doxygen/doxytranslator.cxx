@@ -31,14 +31,33 @@ String *DoxygenTranslator::getDoxygenComment(Node *node) {
   return Getattr(node, "doxygen");
 }
 
+/**
+ * Indent all lines in the comment by given indentation string
+ */
+void DoxygenTranslator::extraIndentation(String *comment, const_String_or_char_ptr indentationString) {
+  if (indentationString || Len(indentationString) > 0) {
+    int len = Len(comment);
+    bool trailing_newline = len > 0 && *(Char(comment) + len - 1) == '\n';
+    Insert(comment, 0, indentationString);
+    String *replace = NewStringf("\n%s", indentationString);
+    Replaceall(comment, "\n", replace);
+    if (trailing_newline) {
+      len = Len(comment);
+      Delslice(comment, len - 2, len); // Remove added trailing spaces on last line
+    }
+    Delete(replace);
+  }
+}
 
-String *DoxygenTranslator::getDocumentation(Node *node) {
+String *DoxygenTranslator::getDocumentation(Node *node, const_String_or_char_ptr indentationString) {
 
   if (!hasDocumentation(node)) {
     return NewString("");
   }
 
-  return makeDocumentation(node);
+  String *documentation = makeDocumentation(node);
+  extraIndentation(documentation, indentationString);
+  return documentation;
 }
 
 
