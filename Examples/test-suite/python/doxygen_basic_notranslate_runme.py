@@ -14,6 +14,9 @@ The comment text
 \sa function2"""
 )
 
+comment_verifier.check(inspect.getdoc(doxygen_basic_notranslate.function1),
+    r"""Single line comment """
+)
 comment_verifier.check(inspect.getdoc(doxygen_basic_notranslate.function2),
     r"""A test of a very very very very very very very very very very very very very very very very
 very very very very very long comment string."""

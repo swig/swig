@@ -61,8 +61,7 @@ public class doxygen_basic_notranslate_runme {
     		"  \n" +
     		"");
     wantedComments.put("doxygen_basic_notranslate.doxygen_basic_notranslate.function5(int)",
-    		"  This is a post comment. \n" +
-    		"");
+    		"  This is a post comment. ");
     wantedComments.put("doxygen_basic_notranslate.doxygen_basic_notranslate.function7(doxygen_basic_notranslate.SWIGTYPE_p_p_p_Shape)",
     		" \n" +
     		"  Test for a parameter with difficult type\n" +
@@ -88,6 +87,8 @@ public class doxygen_basic_notranslate_runme {
     		"  @param a Some parameter, default is 42\n" +
     		"  \n" +
     		"");
+    wantedComments.put("doxygen_basic_notranslate.doxygen_basic_notranslate.function1()",
+    		"  Single line comment ");
     wantedComments.put("doxygen_basic_notranslate.doxygen_basic_notranslate.function2()",
     		" \n" +
     		"  A test of a very very very very very very very very very very very very very very very very\n" +

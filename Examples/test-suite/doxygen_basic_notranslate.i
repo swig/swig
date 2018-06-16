@@ -2,6 +2,7 @@
 
 %include "doxygen_basic_translate.h"
 %feature("doxygen:notranslate") function;
+%feature("doxygen:notranslate") function1;
 %feature("doxygen:notranslate") function2;
 %feature("doxygen:notranslate") function3;
 %feature("doxygen:notranslate") function4;
@@ -23,6 +24,11 @@
 int function()
 {
     return 0;
+}
+
+/** Single line comment */
+void function1()
+{
 }
 
 /**
