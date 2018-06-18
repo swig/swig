@@ -612,6 +612,7 @@ DOXYGEN_TEST_CASES += \
 	doxygen_basic_translate \
 	doxygen_ignore \
 	doxygen_misc_constructs \
+	doxygen_nested_class \
 	doxygen_parsing \
 	doxygen_parsing_enums \
 	doxygen_translate \
