@@ -7,6 +7,7 @@
 struct DoxOuter {
   /** DoxOuter constructor */
   DoxOuter() {}
+  /** DoxInner class description */
   struct DoxInner {
     /** DoxInner constructor */
     DoxInner() {}

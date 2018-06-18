@@ -41,6 +41,7 @@ int someVar=42;
  */
 #define CONSTANT_VALUE 4242
 
+/// SomeAnotherClass description
 class SomeAnotherClass
 {
 public:

@@ -26,6 +26,12 @@ public class doxygen_parsing_runme {
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     
+    wantedComments.put("doxygen_parsing.SomeAnotherClass",
+    		" SomeAnotherClass description");
+    wantedComments.put("doxygen_parsing.SomeAnotherClass(int)",
+    		" First overloaded constructor.");
+    wantedComments.put("doxygen_parsing.SomeAnotherClass(java.lang.String)",
+    		" Second overloaded constructor.");
     wantedComments.put("doxygen_parsing.SomeAnotherClass.getClassAttr()",
     		" The class attribute comment \n" +
     		" \n" +

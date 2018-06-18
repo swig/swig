@@ -11,6 +11,8 @@ comment_verifier.check(inspect.getdoc(doxygen_parsing.SomeClass),
     "The class comment")
 comment_verifier.check(inspect.getdoc(doxygen_parsing.SomeStruct),
     "The struct comment")
+comment_verifier.check(inspect.getdoc(doxygen_parsing.SomeAnotherClass),
+    "SomeAnotherClass description")
 
 # There doesn't seem to be any way to specify the doc string for __init__ when
 # using "-builtin" (see http://stackoverflow.com/q/11913492/15275), so skip

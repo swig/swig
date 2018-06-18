@@ -34,6 +34,10 @@ public class CommentParser {
                 if (f.getRawCommentText().length() > 0)
                     m_parsedComments.put(f.qualifiedName(), f.getRawCommentText());
             }
+            for (ConstructorDoc c : classDoc.constructors()) {
+                if (c.getRawCommentText().length() > 0)
+                    m_parsedComments.put(c.toString(), c.getRawCommentText());
+            }
             for (MethodDoc m : classDoc.methods()) {
                 if (m.getRawCommentText().length() > 0)
                     m_parsedComments.put(m.toString(), m.getRawCommentText());

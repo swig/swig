@@ -25,10 +25,12 @@ public class doxygen_nested_class_runme {
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     
-//    wantedComments.put("doxygen_nested_class.DoxOuter.DoxOuter()",
-//    		" DoxOuter constructor ");
-//    wantedComments.put("doxygen_nested_class.DoxOuter.DoxInner.DoxInner()",
-//    		" DoxInner constructor ");
+    wantedComments.put("doxygen_nested_class.DoxOuter()",
+    		" DoxOuter constructor ");
+    wantedComments.put("doxygen_nested_class.DoxOuter.DoxInner",
+    		" DoxInner class description ");
+    wantedComments.put("doxygen_nested_class.DoxOuter.DoxInner()",
+    		" DoxInner constructor ");
     wantedComments.put("doxygen_nested_class.DoxOuter.DoxInner.setDoxInt(int)",
     		" doxInt variable ");
     wantedComments.put("doxygen_nested_class.DoxOuter.DoxInner.getDoxInt()",
