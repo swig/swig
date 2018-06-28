@@ -258,11 +258,24 @@ _SWIG_Py_None(void)
   Py_DECREF(none);
   return none;
 }
-SWIGRUNTIME PyObject * 
+
+static PyObject *SWIG_Py_None_global = 0;
+
+SWIGRUNTIME void SWIG_Py_None_global_Init(void) {
+  SWIG_Py_None_global = _SWIG_Py_None();
+}
+
+SWIGRUNTIME PyObject *
 SWIG_Py_None(void)
 {
-  static PyObject *SWIG_STATIC_POINTER(none) = _SWIG_Py_None();
-  return none;
+  assert(SWIG_Py_None_global);
+  return SWIG_Py_None_global;
+}
+
+#else
+SWIGRUNTIME void SWIG_Py_None_global_Init(void)
+{
+  // Do nothing
 }
 #endif
 
@@ -488,11 +501,21 @@ SwigPyObject_type(void) {
     assert(cd->pytype);
     return cd->pytype;
 }
+
+SWIGRUNTIME void SwigPyObject_type_global_Init(void) {
+  // Do nothing
+}
 #else
+static PyTypeObject *SwigPyObject_type_global = 0;
+
+SWIGRUNTIME void SwigPyObject_type_global_Init(void) {
+  SwigPyObject_type_global = SwigPyObject_TypeOnce();
+}
+
 SWIGRUNTIME PyTypeObject*
 SwigPyObject_type(void) {
-  static PyTypeObject *SWIG_STATIC_POINTER(type) = SwigPyObject_TypeOnce();
-  return type;
+  assert(SwigPyObject_type_global);
+  return SwigPyObject_type_global;
 }
 #endif
 
@@ -836,10 +859,16 @@ SwigPyPacked_compare(SwigPyPacked *v, SwigPyPacked *w)
 
 SWIGRUNTIME PyTypeObject* SwigPyPacked_TypeOnce(void);
 
+static PyTypeObject* SwigPyPacked_type_global = 0;
+
+SWIGRUNTIME void SwigPyPacked_type_global_Init(void) {
+  SwigPyPacked_type_global = SwigPyPacked_TypeOnce();
+}
+
 SWIGRUNTIME PyTypeObject*
 SwigPyPacked_type(void) {
-  static PyTypeObject *SWIG_STATIC_POINTER(type) = SwigPyPacked_TypeOnce();
-  return type;
+  assert(SwigPyPacked_type_global);
+  return SwigPyPacked_type_global;
 }
 
 SWIGRUNTIMEINLINE int
@@ -1438,11 +1467,17 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
   }
 }
 
+static PyObject *SWIG_Python_TypeCache_global = 0;
+
+SWIGRUNTIME void SWIG_Python_TypeCache_global_Init(void) {
+  SWIG_Python_TypeCache_global = PyDict_New();
+}
+
 /* The python cached type query */
 SWIGRUNTIME PyObject *
 SWIG_Python_TypeCache(void) {
-  static PyObject *SWIG_STATIC_POINTER(cache) = PyDict_New();
-  return cache;
+  assert(SWIG_Python_TypeCache_global);
+  return SWIG_Python_TypeCache_global;
 }
 
 SWIGRUNTIME swig_type_info *

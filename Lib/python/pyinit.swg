@@ -431,6 +431,11 @@ SWIG_init(void) {
     SwigPyBuiltin_AddPublicSymbol(public_interface, swig_const_table[i].name);
 #endif
 
+  SWIG_Py_None_global_Init();
+  SwigPyObject_type_global_Init();
+  SwigPyPacked_type_global_Init();
+  SWIG_Python_TypeCache_global_Init();
+
   SWIG_InstallConstants(d,swig_const_table);
 %}
 
