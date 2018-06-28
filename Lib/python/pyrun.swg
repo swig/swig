@@ -259,6 +259,9 @@ _SWIG_Py_None(void)
   return none;
 }
 
+/* This used to be a function-local static variable, but accessing Python
+ * C API from inside a function-local static initializer can lead to deadlocks.
+ * https://github.com/swig/swig/issues/1275 */
 static PyObject *SWIG_Py_None_global = 0;
 
 SWIGRUNTIME void SWIG_Py_None_global_Init(void) {
@@ -506,6 +509,9 @@ SWIGRUNTIME void SwigPyObject_type_global_Init(void) {
   // Do nothing
 }
 #else
+/* This used to be a function-local static variable, but accessing Python
+ * C API from inside a function-local static initializer can lead to deadlocks.
+ * https://github.com/swig/swig/issues/1275 */
 static PyTypeObject *SwigPyObject_type_global = 0;
 
 SWIGRUNTIME void SwigPyObject_type_global_Init(void) {
@@ -859,6 +865,9 @@ SwigPyPacked_compare(SwigPyPacked *v, SwigPyPacked *w)
 
 SWIGRUNTIME PyTypeObject* SwigPyPacked_TypeOnce(void);
 
+/* This used to be a function-local static variable, but accessing Python
+ * C API from inside a function-local static initializer can lead to deadlocks.
+ * https://github.com/swig/swig/issues/1275 */
 static PyTypeObject* SwigPyPacked_type_global = 0;
 
 SWIGRUNTIME void SwigPyPacked_type_global_Init(void) {
@@ -1467,6 +1476,9 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
   }
 }
 
+/* This used to be a function-local static variable, but accessing Python
+ * C API from inside a function-local static initializer can lead to deadlocks.
+ * https://github.com/swig/swig/issues/1275 */
 static PyObject *SWIG_Python_TypeCache_global = 0;
 
 SWIGRUNTIME void SWIG_Python_TypeCache_global_Init(void) {
