@@ -431,7 +431,7 @@ SwigPyObject_repr(SwigPyObject *v)
 
 /* We need a version taking two PyObject* parameters so it's a valid
  * PyCFunction to use in swigobject_methods[]. */
-static PyObject *
+SWIGRUNTIME PyObject *
 SwigPyObject_repr2(PyObject *v, PyObject *SWIGUNUSEDPARM(args))
 {
   return SwigPyObject_repr((SwigPyObject*)v);
