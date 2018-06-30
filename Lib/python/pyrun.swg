@@ -210,16 +210,6 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
 /* A functor is a function object with one single object argument */
 #define SWIG_Python_CallFunctor(functor, obj)	        PyObject_CallFunction(functor, (char*)"O", obj);
 
-/*
-  Helper for static pointer initialization for both C and C++ code, for example
-  static PyObject *SWIG_STATIC_POINTER(MyVar) = NewSomething(...);
-*/
-#ifdef __cplusplus
-#define SWIG_STATIC_POINTER(var)  var
-#else
-#define SWIG_STATIC_POINTER(var)  var = 0; if (!var) var
-#endif
-
 /* -----------------------------------------------------------------------------
  * Pointer declarations
  * ----------------------------------------------------------------------------- */
