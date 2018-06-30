@@ -210,16 +210,6 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
 /* A functor is a function object with one single object argument */
 #define SWIG_Python_CallFunctor(functor, obj)	        PyObject_CallFunction(functor, (char*)"O", obj);
 
-/*
-  Helper for static pointer initialization for both C and C++ code, for example
-  static PyObject *SWIG_STATIC_POINTER(MyVar) = NewSomething(...);
-*/
-#ifdef __cplusplus
-#define SWIG_STATIC_POINTER(var)  var
-#else
-#define SWIG_STATIC_POINTER(var)  var = 0; if (!var) var
-#endif
-
 /* -----------------------------------------------------------------------------
  * Pointer declarations
  * ----------------------------------------------------------------------------- */
@@ -251,26 +241,20 @@ extern "C" {
 #   undef Py_None
 #   define Py_None SWIG_Py_None()
 #  endif
-SWIGRUNTIMEINLINE PyObject * 
-_SWIG_Py_None(void)
-{
-  PyObject *none = Py_BuildValue("");
-  Py_DECREF(none);
-  return none;
-}
-SWIGRUNTIME PyObject * 
-SWIG_Py_None(void)
-{
-  static PyObject *SWIG_STATIC_POINTER(none) = _SWIG_Py_None();
-  return none;
+
+static PyObject *SWIG_Py_None_global = 0;
+
+SWIGRUNTIME PyObject *
+SWIG_Py_None(void) {
+  assert(SWIG_Py_None_global);
+  return SWIG_Py_None_global;
 }
 #endif
 
 /* The python void return value */
 
 SWIGRUNTIMEINLINE PyObject * 
-SWIG_Py_Void(void)
-{
+SWIG_Py_Void(void) {
   PyObject *none = Py_None;
   Py_INCREF(none);
   return none;
@@ -479,6 +463,7 @@ SWIGRUNTIME PyTypeObject* SwigPyObject_TypeOnce(void);
 
 #ifdef SWIGPYTHON_BUILTIN
 static swig_type_info *SwigPyObject_stype = 0;
+
 SWIGRUNTIME PyTypeObject*
 SwigPyObject_type(void) {
     SwigPyClientData *cd;
@@ -489,10 +474,12 @@ SwigPyObject_type(void) {
     return cd->pytype;
 }
 #else
+static PyTypeObject *SwigPyObject_type_global = 0;
+
 SWIGRUNTIME PyTypeObject*
 SwigPyObject_type(void) {
-  static PyTypeObject *SWIG_STATIC_POINTER(type) = SwigPyObject_TypeOnce();
-  return type;
+  assert(SwigPyObject_type_global);
+  return SwigPyObject_type_global;
 }
 #endif
 
@@ -836,10 +823,12 @@ SwigPyPacked_compare(SwigPyPacked *v, SwigPyPacked *w)
 
 SWIGRUNTIME PyTypeObject* SwigPyPacked_TypeOnce(void);
 
+static PyTypeObject* SwigPyPacked_type_global = 0;
+
 SWIGRUNTIME PyTypeObject*
 SwigPyPacked_type(void) {
-  static PyTypeObject *SWIG_STATIC_POINTER(type) = SwigPyPacked_TypeOnce();
-  return type;
+  assert(SwigPyPacked_type_global);
+  return SwigPyPacked_type_global;
 }
 
 SWIGRUNTIMEINLINE int
@@ -976,20 +965,12 @@ SwigPyPacked_UnpackData(PyObject *obj, void *ptr, size_t size)
  * pointers/data manipulation
  * ----------------------------------------------------------------------------- */
 
-SWIGRUNTIMEINLINE PyObject *
-_SWIG_This(void)
-{
-    return SWIG_Python_str_FromChar("this");
-}
-
-static PyObject *swig_this = NULL;
+static PyObject *SWIG_This_global = NULL;
 
 SWIGRUNTIME PyObject *
-SWIG_This(void)
-{
-  if (swig_this == NULL)
-    swig_this = _SWIG_This();
-  return swig_this;
+SWIG_This(void) {
+  assert(SWIG_This_global);
+  return SWIG_This_global;
 }
 
 /* #define SWIG_PYTHON_SLOW_GETSET_THIS */
@@ -1418,7 +1399,7 @@ SWIG_Python_DestroyModule(PyObject *obj)
     }
   }
   Py_DECREF(SWIG_This());
-  swig_this = NULL;
+  SWIG_This_global = NULL;
 }
 
 SWIGRUNTIME void
@@ -1438,11 +1419,13 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
   }
 }
 
+static PyObject *SWIG_Python_TypeCache_global = 0;
+
 /* The python cached type query */
 SWIGRUNTIME PyObject *
 SWIG_Python_TypeCache(void) {
-  static PyObject *SWIG_STATIC_POINTER(cache) = PyDict_New();
-  return cache;
+  assert(SWIG_Python_TypeCache_global);
+  return SWIG_Python_TypeCache_global;
 }
 
 SWIGRUNTIME swig_type_info *

@@ -379,6 +379,14 @@ SWIG_init(void) {
   assert(metatype);
 #endif
 
+#ifdef SWIG_PYTHON_BUILD_NONE
+  SWIG_Py_None_global = Py_BuildValue("");
+  Py_DECREF(SWIG_Py_None_global);
+#endif
+
+  SWIG_This_global = SWIG_Python_str_FromChar("this");
+  SWIG_Python_TypeCache_global = PyDict_New();
+
   /* Fix SwigMethods to carry the callback ptrs when needed */
   SWIG_Python_FixMethods(SwigMethods, swig_const_table, swig_types, swig_type_initial);
 
@@ -429,8 +437,11 @@ SWIG_init(void) {
     SwigPyBuiltin_AddPublicSymbol(public_interface, SwigMethods[i].ml_name);
   for (i = 0; swig_const_table[i].name != 0; ++i)
     SwigPyBuiltin_AddPublicSymbol(public_interface, swig_const_table[i].name);
+#else
+  SwigPyObject_type_global = SwigPyObject_TypeOnce();
 #endif
 
+  SwigPyPacked_type_global = SwigPyPacked_TypeOnce();
   SWIG_InstallConstants(d,swig_const_table);
 %}
 
