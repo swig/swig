@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-06-30: petrmitrichev
+            [Python] #1275 #1279 Remove function-local statics that call Python code
+            in order to avoid deadlocks with multi-threaded usage. These are now
+            file scope static variables and are initialized during module initialization.
+
 2018-06-15: wsfulton
             [Python] Fix seg fault using Python 2 when passing a Python string, containing
             invalid utf-8 content, to a wstring or wchar * parameter. A TypeError is thrown instead, eg:

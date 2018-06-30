@@ -241,42 +241,20 @@ extern "C" {
 #   undef Py_None
 #   define Py_None SWIG_Py_None()
 #  endif
-SWIGRUNTIMEINLINE PyObject * 
-_SWIG_Py_None(void)
-{
-  PyObject *none = Py_BuildValue("");
-  Py_DECREF(none);
-  return none;
-}
 
-/* This used to be a function-local static variable, but accessing Python
- * C API from inside a function-local static initializer can lead to deadlocks.
- * https://github.com/swig/swig/issues/1275 */
 static PyObject *SWIG_Py_None_global = 0;
 
-SWIGRUNTIME void SWIG_Py_None_global_Init(void) {
-  SWIG_Py_None_global = _SWIG_Py_None();
-}
-
 SWIGRUNTIME PyObject *
-SWIG_Py_None(void)
-{
+SWIG_Py_None(void) {
   assert(SWIG_Py_None_global);
   return SWIG_Py_None_global;
-}
-
-#else
-SWIGRUNTIME void SWIG_Py_None_global_Init(void)
-{
-  // Do nothing
 }
 #endif
 
 /* The python void return value */
 
 SWIGRUNTIMEINLINE PyObject * 
-SWIG_Py_Void(void)
-{
+SWIG_Py_Void(void) {
   PyObject *none = Py_None;
   Py_INCREF(none);
   return none;
@@ -485,6 +463,7 @@ SWIGRUNTIME PyTypeObject* SwigPyObject_TypeOnce(void);
 
 #ifdef SWIGPYTHON_BUILTIN
 static swig_type_info *SwigPyObject_stype = 0;
+
 SWIGRUNTIME PyTypeObject*
 SwigPyObject_type(void) {
     SwigPyClientData *cd;
@@ -494,19 +473,8 @@ SwigPyObject_type(void) {
     assert(cd->pytype);
     return cd->pytype;
 }
-
-SWIGRUNTIME void SwigPyObject_type_global_Init(void) {
-  // Do nothing
-}
 #else
-/* This used to be a function-local static variable, but accessing Python
- * C API from inside a function-local static initializer can lead to deadlocks.
- * https://github.com/swig/swig/issues/1275 */
 static PyTypeObject *SwigPyObject_type_global = 0;
-
-SWIGRUNTIME void SwigPyObject_type_global_Init(void) {
-  SwigPyObject_type_global = SwigPyObject_TypeOnce();
-}
 
 SWIGRUNTIME PyTypeObject*
 SwigPyObject_type(void) {
@@ -855,14 +823,7 @@ SwigPyPacked_compare(SwigPyPacked *v, SwigPyPacked *w)
 
 SWIGRUNTIME PyTypeObject* SwigPyPacked_TypeOnce(void);
 
-/* This used to be a function-local static variable, but accessing Python
- * C API from inside a function-local static initializer can lead to deadlocks.
- * https://github.com/swig/swig/issues/1275 */
 static PyTypeObject* SwigPyPacked_type_global = 0;
-
-SWIGRUNTIME void SwigPyPacked_type_global_Init(void) {
-  SwigPyPacked_type_global = SwigPyPacked_TypeOnce();
-}
 
 SWIGRUNTIME PyTypeObject*
 SwigPyPacked_type(void) {
@@ -1004,20 +965,12 @@ SwigPyPacked_UnpackData(PyObject *obj, void *ptr, size_t size)
  * pointers/data manipulation
  * ----------------------------------------------------------------------------- */
 
-SWIGRUNTIMEINLINE PyObject *
-_SWIG_This(void)
-{
-    return SWIG_Python_str_FromChar("this");
-}
-
-static PyObject *swig_this = NULL;
+static PyObject *SWIG_This_global = NULL;
 
 SWIGRUNTIME PyObject *
-SWIG_This(void)
-{
-  if (swig_this == NULL)
-    swig_this = _SWIG_This();
-  return swig_this;
+SWIG_This(void) {
+  assert(SWIG_This_global);
+  return SWIG_This_global;
 }
 
 /* #define SWIG_PYTHON_SLOW_GETSET_THIS */
@@ -1446,7 +1399,7 @@ SWIG_Python_DestroyModule(PyObject *obj)
     }
   }
   Py_DECREF(SWIG_This());
-  swig_this = NULL;
+  SWIG_This_global = NULL;
 }
 
 SWIGRUNTIME void
@@ -1466,14 +1419,7 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
   }
 }
 
-/* This used to be a function-local static variable, but accessing Python
- * C API from inside a function-local static initializer can lead to deadlocks.
- * https://github.com/swig/swig/issues/1275 */
 static PyObject *SWIG_Python_TypeCache_global = 0;
-
-SWIGRUNTIME void SWIG_Python_TypeCache_global_Init(void) {
-  SWIG_Python_TypeCache_global = PyDict_New();
-}
 
 /* The python cached type query */
 SWIGRUNTIME PyObject *
