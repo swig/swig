@@ -855,7 +855,7 @@ public:
        */
       Printv(default_import_code, "def swig_import_helper():\n", NULL);
       Printv(default_import_code, tab4, "import importlib\n", NULL);
-      Printv(default_import_code, tab4, "pkg = __name__.rpartition('.')[0]\n", NULL);
+      Printv(default_import_code, tab4, "pkg = __package__ if __package__ else __name__.rpartition('.')[0]\n", NULL);
       Printf(default_import_code, tab4 "mname = '.'.join((pkg, '%s')).lstrip('.')\n", module);
       Printv(default_import_code, tab4, "try:\n", NULL);
       Printv(default_import_code, tab8, "return importlib.import_module(mname)\n", NULL);
