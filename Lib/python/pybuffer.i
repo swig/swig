@@ -13,9 +13,17 @@
  */
 
 %define %pybuffer_mutable_binary(TYPEMAP, SIZE)
-%typemap(in) (TYPEMAP, SIZE)
-  (int res, Py_ssize_t size = 0, void *buf = 0) {
+%typemap(in) (TYPEMAP, SIZE) {
+  int res; Py_ssize_t size = 0; void *buf = 0;
+%#if PY_VERSION_HEX < 0x03000000
   res = PyObject_AsWriteBuffer($input, &buf, &size);
+%#else
+  Py_buffer view;
+  res = PyObject_GetBuffer($input, &view, PyBUF_WRITABLE);
+  size = view.len;
+  buf = view.buf;
+  PyBuffer_Release(&view);
+%#endif
   if (res<0) {
     PyErr_Clear();
     %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
@@ -39,9 +47,17 @@
  */
 
 %define %pybuffer_mutable_string(TYPEMAP)
-%typemap(in) (TYPEMAP)
-  (int res, Py_ssize_t size = 0, void *buf = 0) {
+%typemap(in) (TYPEMAP) {
+  int res; Py_ssize_t size = 0; void *buf = 0;
+%#if PY_VERSION_HEX < 0x03000000
   res = PyObject_AsWriteBuffer($input, &buf, &size);
+%#else
+  Py_buffer view;
+  res = PyObject_GetBuffer($input, &view, PyBUF_WRITABLE);
+  size = view.len;
+  buf = view.buf;
+  PyBuffer_Release(&view);
+%#endif
   if (res<0) {
     PyErr_Clear();
     %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
@@ -65,9 +81,17 @@
  */
 
 %define %pybuffer_binary(TYPEMAP, SIZE)
-%typemap(in) (TYPEMAP, SIZE)
-  (int res, Py_ssize_t size = 0, const void *buf = 0) {
+%typemap(in) (TYPEMAP, SIZE) {
+  int res; Py_ssize_t size = 0; const void *buf = 0;
+%#if PY_VERSION_HEX < 0x03000000
   res = PyObject_AsReadBuffer($input, &buf, &size);
+%#else
+  Py_buffer view;
+  res = PyObject_GetBuffer($input, &view, PyBUF_CONTIG_RO);
+  size = view.len;
+  buf = view.buf;
+  PyBuffer_Release(&view);
+%#endif
   if (res<0) {
     PyErr_Clear();
     %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
@@ -93,9 +117,17 @@
  */
 
 %define %pybuffer_string(TYPEMAP)
-%typemap(in) (TYPEMAP)
-  (int res, Py_ssize_t size = 0, const void *buf = 0) {
+%typemap(in) (TYPEMAP) {
+  int res; Py_ssize_t size = 0; const void *buf = 0;
+%#if PY_VERSION_HEX < 0x03000000
   res = PyObject_AsReadBuffer($input, &buf, &size);
+%#else
+  Py_buffer view;
+  res = PyObject_GetBuffer($input, &view, PyBUF_CONTIG_RO);
+  size = view.len;
+  buf = view.buf;
+  PyBuffer_Release(&view);
+%#endif
   if (res<0) {
     %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
   }
