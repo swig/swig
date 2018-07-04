@@ -67,6 +67,7 @@ CPP_TEST_CASES += \
 	python_nondynamic \
 	python_overload_simple_cast \
 	python_pickle \
+	python_pybuf \
 	python_pythoncode \
 	python_richcompare \
 	python_strict_unicode \
@@ -78,7 +79,6 @@ CPP_TEST_CASES += \
 
 #	li_std_carray
 #	director_profile
-#	python_pybuf
 
 CPP11_TEST_CASES = \
 	cpp11_hash_tables \
