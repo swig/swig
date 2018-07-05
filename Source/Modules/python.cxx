@@ -3024,7 +3024,7 @@ public:
 	  }
 	}
       } else {
-	Printf(parse_args, "if(!PyArg_UnpackTuple(args,(char *)\"%s\",%d,%d", iname, num_fixed_arguments, tuple_arguments);
+	Printf(parse_args, "if (!PyArg_UnpackTuple(args,(char *)\"%s\",%d,%d", iname, num_fixed_arguments, tuple_arguments);
 	Printv(parse_args, arglist, ")) SWIG_fail;\n", NIL);
       }
     }
@@ -3600,7 +3600,7 @@ public:
     /* Note, that we need special handling for function pointers, as
      * SwigType_base(fptr) does not return the underlying pointer-to-function
      * type but the return-type of function. */
-    if(!SwigType_isfunction(uqtype) && !SwigType_isfunctionpointer(uqtype)) {
+    if (!SwigType_isfunction(uqtype) && !SwigType_isfunctionpointer(uqtype)) {
       SwigType *basetype = SwigType_base(uqtype);
       result = SwigType_isclass(basetype) != 0;
       Delete(basetype);
