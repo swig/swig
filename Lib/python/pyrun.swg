@@ -251,17 +251,15 @@ extern "C" {
 #   undef Py_None
 #   define Py_None SWIG_Py_None()
 #  endif
-SWIGRUNTIMEINLINE PyObject * 
-_SWIG_Py_None(void)
-{
-  PyObject *none = Py_BuildValue("");
-  Py_DECREF(none);
-  return none;
-}
+
 SWIGRUNTIME PyObject * 
 SWIG_Py_None(void)
 {
-  static PyObject *SWIG_STATIC_POINTER(none) = _SWIG_Py_None();
+  static PyObject *none = NULL;
+  if (!none == NULL) {
+    none = Py_BuildValue("");
+    Py_DECREF(none);
+  }
   return none;
 }
 #endif
@@ -976,20 +974,14 @@ SwigPyPacked_UnpackData(PyObject *obj, void *ptr, size_t size)
  * pointers/data manipulation
  * ----------------------------------------------------------------------------- */
 
-SWIGRUNTIMEINLINE PyObject *
-_SWIG_This(void)
-{
-    return SWIG_Python_str_FromChar("this");
-}
-
-static PyObject *swig_this = NULL;
+static PyObject *Swig_This_global = NULL;
 
 SWIGRUNTIME PyObject *
 SWIG_This(void)
 {
-  if (swig_this == NULL)
-    swig_this = _SWIG_This();
-  return swig_this;
+  if (Swig_This_global == NULL)
+    Swig_This_global = SWIG_Python_str_FromChar("this");
+  return Swig_This_global;
 }
 
 /* #define SWIG_PYTHON_SLOW_GETSET_THIS */
@@ -1418,7 +1410,7 @@ SWIG_Python_DestroyModule(PyObject *obj)
     }
   }
   Py_DECREF(SWIG_This());
-  swig_this = NULL;
+  Swig_This_global = NULL;
 }
 
 SWIGRUNTIME void
