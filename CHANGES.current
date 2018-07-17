@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-07-17: petrmitrichev,wsfulton
+            [Python] #1275 #1279 Initialize function-local statics (singletons) that call Python
+            code during Python module initialization in order to avoid deadlocks with subsequent
+            multi-threaded usage.
+
 2018-06-15: wsfulton
             [Python] Fix seg fault using Python 2 when passing a Python string, containing
             invalid utf-8 content, to a wstring or wchar * parameter. A TypeError is thrown instead, eg:

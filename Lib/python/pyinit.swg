@@ -379,6 +379,17 @@ SWIG_init(void) {
   assert(metatype);
 #endif
 
+  /* Create singletons now to avoid potential deadlocks with multi-threaded usage after module initialization */
+#ifdef SWIG_PYTHON_BUILD_NONE
+  SWIG_Py_None();
+#endif
+  SWIG_This();
+  SWIG_Python_TypeCache();
+  SwigPyPacked_type();
+#ifndef SWIGPYTHON_BUILTIN
+  SwigPyObject_type();
+#endif
+
   /* Fix SwigMethods to carry the callback ptrs when needed */
   SWIG_Python_FixMethods(SwigMethods, swig_const_table, swig_types, swig_type_initial);
 
