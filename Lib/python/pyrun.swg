@@ -256,7 +256,7 @@ SWIGRUNTIME PyObject *
 SWIG_Py_None(void)
 {
   static PyObject *none = NULL;
-  if (!none == NULL) {
+  if (!none) {
     none = Py_BuildValue("");
     Py_DECREF(none);
   }
