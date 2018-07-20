@@ -951,15 +951,32 @@ public:
 	}
       }
       if (modern) {
-	Printv(f_shadow,  "\n", "def _swig_setattr_nondynamic_method(set):\n", tab4, "def set_attr(self, name, value):\n",
+	Printv(f_shadow,  "\n", "def _swig_setattr_nondynamic_instance_variable(set):\n",
+	       tab4, "def set_instance_attr(self, name, value):\n",
 #ifdef USE_THISOWN
-	       tab4, tab4, "if hasattr(self, name) or (name in (\"this\", \"thisown\")):\n",
+	       tab4, tab4, "if name in (\"this\", \"thisown\"):\n",
+	       tab4, tab4, tab4, "set(self, name, value)\n",
 #else
-	       tab4, tab4, "if name == \"thisown\":\n", tab8, tab4, "return self.this.own(value)\n", tab4, tab4, "if hasattr(self, name) or (name == \"this\"):\n",
+	       tab4, tab4, "if name == \"thisown\":\n",
+	       tab4, tab4, tab4, "self.this.own(value)\n",
+	       tab4, tab4, "elif name == \"this\":\n",
+	       tab4, tab4, tab4, "set(self, name, value)\n",
 #endif
+	       tab4, tab4, "elif hasattr(self, name) and isinstance(getattr(type(self), name), property):\n",
 	       tab4, tab4, tab4, "set(self, name, value)\n",
 	       tab4, tab4, "else:\n",
-	       tab4, tab4, tab4, "raise AttributeError(\"You cannot add attributes to %s\" % self)\n", tab4, "return set_attr\n\n\n", NIL);
+	       tab4, tab4, tab4, "raise AttributeError(\"You cannot add instance attributes to %s\" % self)\n",
+	       tab4, "return set_instance_attr\n\n", NIL);
+
+	Printv(f_shadow,  "\n", "def _swig_setattr_nondynamic_class_variable(set):\n",
+	       tab4, "def set_class_attr(cls, name, value):\n",
+	       tab4, tab4, "if hasattr(cls, name) and not isinstance(getattr(cls, name), property):\n",
+	       tab4, tab4, tab4, "set(cls, name, value)\n",
+	       tab4, tab4, "else:\n",
+	       tab4, tab4, tab4, "raise AttributeError(\"You cannot add class attributes to %s\" % cls)\n",
+	       tab4, "return set_class_attr\n\n", NIL);
+
+	Printv(f_shadow, "\n", NIL);
       }
 
       if (directorsEnabled()) {
@@ -4535,8 +4552,8 @@ public:
 	  /* Add static attribute */
 	  if (GetFlag(n, "feature:python:nondynamic")) {
 	    Printv(f_shadow_file,
-		   tab4, "__setattr__ = _swig_setattr_nondynamic_method(object.__setattr__)\n",
-		   tab4, "class __metaclass__(type):\n", tab4, tab4, "__setattr__ = _swig_setattr_nondynamic_method(type.__setattr__)\n", NIL);
+		   tab4, "__setattr__ = _swig_setattr_nondynamic_instance_variable(object.__setattr__)\n",
+		   tab4, "class __metaclass__(type):\n", tab4, tab4, "__setattr__ = _swig_setattr_nondynamic_class_variable(type.__setattr__)\n", NIL);
 	  }
 	}
       }
