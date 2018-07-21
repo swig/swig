@@ -51,6 +51,11 @@ matrix:
       dist: trusty
     - compiler: gcc
       os: linux
+      env: SWIGLANG=javascript ENGINE=node
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=javascript ENGINE=node VER=4 CPP11=1
       sudo: required
       dist: trusty
