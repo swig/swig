@@ -51,22 +51,22 @@ matrix:
       dist: trusty
     - compiler: gcc
       os: linux
-      env: SWIGLANG=javascript ENGINE=node VER=4
+      env: SWIGLANG=javascript ENGINE=node VER=4 CPP11=1
       sudo: required
       dist: trusty
     - compiler: gcc
       os: linux
-      env: SWIGLANG=javascript ENGINE=node VER=6
+      env: SWIGLANG=javascript ENGINE=node VER=6 CPP11=1
       sudo: required
       dist: trusty
     - compiler: gcc
       os: linux
-      env: SWIGLANG=javascript ENGINE=node VER=8
+      env: SWIGLANG=javascript ENGINE=node VER=8 CPP11=1
       sudo: required
       dist: trusty
     - compiler: gcc
       os: linux
-      env: SWIGLANG=javascript ENGINE=node VER=10
+      env: SWIGLANG=javascript ENGINE=node VER=10 CPP11=1
       sudo: required
       dist: trusty
     - compiler: gcc
