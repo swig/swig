@@ -6,9 +6,6 @@ def check_unorderable_types(exception):
 #        raise RuntimeError("A TypeError 'unorderable types' exception was expected"), None, sys.exc_info()[2]
     pass # Exception message seems to vary from one version of Python to another
 
-def is_new_style_class(cls):
-    return hasattr(cls, "__class__")
-
 base1 = python_richcompare.BaseClass(1)
 base2 = python_richcompare.BaseClass(2)
 base3 = python_richcompare.BaseClass(3)
@@ -103,39 +100,37 @@ if not (a2 <= b2):
 
 # Check inequalities to other objects
 #-------------------------------------------------------------------------------
-if is_new_style_class(python_richcompare.BaseClass):
-    # Skip testing -classic option
-    if sys.version_info[0:2] < (3, 0):
-        if (base1 < 42):
-            raise RuntimeError("Comparing class to incompatible type, < returned True")
-        if (base1 <= 42):
-            raise RuntimeError("Comparing class to incompatible type, <= returned True")
-        if not (base1 > 42):
-            raise RuntimeError("Comparing class to incompatible type, > returned False")
-        if not (base1 >= 42):
-            raise RuntimeError("Comparing class to incompatible type, >= returned False")
-    else:
-        # Python 3 throws: TypeError: unorderable types
-        try:
-            res = base1 < 42
-            raise RuntimeError("Failed to throw")
-        except TypeError,e:
-            check_unorderable_types(e)
-        try:
-            res = base1 <= 42
-            raise RuntimeError("Failed to throw")
-        except TypeError,e:
-            check_unorderable_types(e)
-        try:
-            res = base1 > 42
-            raise RuntimeError("Failed to throw")
-        except TypeError,e:
-            check_unorderable_types(e)
-        try:
-            res = base1 >= 42
-            raise RuntimeError("Failed to throw")
-        except TypeError,e:
-            check_unorderable_types(e)
+if sys.version_info[0:2] < (3, 0):
+    if (base1 < 42):
+        raise RuntimeError("Comparing class to incompatible type, < returned True")
+    if (base1 <= 42):
+        raise RuntimeError("Comparing class to incompatible type, <= returned True")
+    if not (base1 > 42):
+        raise RuntimeError("Comparing class to incompatible type, > returned False")
+    if not (base1 >= 42):
+        raise RuntimeError("Comparing class to incompatible type, >= returned False")
+else:
+    # Python 3 throws: TypeError: unorderable types
+    try:
+        res = base1 < 42
+        raise RuntimeError("Failed to throw")
+    except TypeError,e:
+        check_unorderable_types(e)
+    try:
+        res = base1 <= 42
+        raise RuntimeError("Failed to throw")
+    except TypeError,e:
+        check_unorderable_types(e)
+    try:
+        res = base1 > 42
+        raise RuntimeError("Failed to throw")
+    except TypeError,e:
+        check_unorderable_types(e)
+    try:
+        res = base1 >= 42
+        raise RuntimeError("Failed to throw")
+    except TypeError,e:
+        check_unorderable_types(e)
 
 # Check inequalities used for ordering
 #-------------------------------------------------------------------------
