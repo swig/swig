@@ -64,7 +64,6 @@ CPP_TEST_CASES += \
 	python_docstring \
 	python_extranative \
 	python_moduleimport \
-	python_nondynamic \
 	python_overload_simple_cast \
 	python_pickle \
 	python_pythoncode \
