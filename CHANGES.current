@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-06-23: wsfulton
+            [Python] #718 Fix pythonnondynamic feature for modern classes
+
+            Fixes nondynamic mode when an instance variable is set with the same
+            name as a class variable in a class derived from a SWIG proxy class.
+            This corner case set an instance variable instead of raising an AttributeError.
+
+            Also fix %pythonnondynamic in Python 3 with -modern. The metaclass
+            containing the implementation was previously not being applied in Python 3.
+
 2018-07-17: petrmitrichev,wsfulton
             [Python] #1275 #1279 Initialize function-local statics (singletons) that call Python
             code during Python module initialization in order to avoid deadlocks with subsequent
