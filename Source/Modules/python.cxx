@@ -171,14 +171,13 @@ static const char *usage3 = "\
      -oldrepr        - Use shorter and old version of __repr__ in proxy classes\n\
      -outputtuple    - Use a PyTuple for outputs instead of a PyList (use carefully with legacy interfaces) \n\
      -proxydel       - Generate a __del__ method even though it is now redundant (default) \n\
+     -py3            - Generate code with Python 3 specific features and syntax\n\
      -relativeimport - Use relative python imports \n\
      -safecstrings   - Use safer (but slower) C string mapping, generating copies from Python -> C/C++\n\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options: \n\
                          -modern -fastdispatch -nosafecstrings -fvirtual -noproxydel \n\
                          -fastproxy -fastinit -fastunpack -fastquery -modernargs -nobuildnone \n\
-     -py3            - Generate code with Python 3 specific features:\n\
-                         Function annotation \n\
 \n";
 
 static String *getSlot(Node *n = NULL, const char *key = NULL, String *default_slot = NULL) {
