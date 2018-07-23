@@ -951,7 +951,8 @@ public:
 	}
       }
       if (modern) {
-	Printv(f_shadow,  "\n", "def _swig_setattr_nondynamic_instance_variable(set):\n",
+	Printv(f_shadow,  "\n",
+	       "def _swig_setattr_nondynamic_instance_variable(set):\n",
 	       tab4, "def set_instance_attr(self, name, value):\n",
 #ifdef USE_THISOWN
 	       tab4, tab4, "if name in (\"this\", \"thisown\"):\n",
@@ -968,13 +969,27 @@ public:
 	       tab4, tab4, tab4, "raise AttributeError(\"You cannot add instance attributes to %s\" % self)\n",
 	       tab4, "return set_instance_attr\n\n", NIL);
 
-	Printv(f_shadow,  "\n", "def _swig_setattr_nondynamic_class_variable(set):\n",
+	Printv(f_shadow,  "\n",
+	       "def _swig_setattr_nondynamic_class_variable(set):\n",
 	       tab4, "def set_class_attr(cls, name, value):\n",
 	       tab4, tab4, "if hasattr(cls, name) and not isinstance(getattr(cls, name), property):\n",
 	       tab4, tab4, tab4, "set(cls, name, value)\n",
 	       tab4, tab4, "else:\n",
 	       tab4, tab4, tab4, "raise AttributeError(\"You cannot add class attributes to %s\" % cls)\n",
 	       tab4, "return set_class_attr\n\n", NIL);
+
+	Printv(f_shadow,  "\n",
+	       "def _swig_add_metaclass(metaclass):\n",
+	       tab4, "\"\"\"Class decorator for adding a metaclass to a SWIG wrapped class - a slimmed down version of six.add_metaclass\"\"\"\n",
+	       tab4, "def wrapper(cls):\n",
+	       tab4, tab4, "return metaclass(cls.__name__, cls.__bases__, cls.__dict__.copy())\n",
+	       tab4, "return wrapper\n\n", NIL);
+
+	Printv(f_shadow,  "\n",
+	       "class _SwigNonDynamicMeta(type):\n",
+	       tab4, "\"\"\"Meta class to enforce nondynamic attributes (no new attributes) for a class\"\"\"\n",
+	       tab4, "__setattr__ = _swig_setattr_nondynamic_class_variable(type.__setattr__)\n",
+	       "\n", NIL);
 
 	Printv(f_shadow, "\n", NIL);
       }
@@ -4507,13 +4522,19 @@ public:
 	  Delete(rname);
 	}
       } else {
+	if (modern && !py3) {
+	  if (GetFlag(n, "feature:python:nondynamic"))
+	    Printv(f_shadow, "@_swig_add_metaclass(_SwigNonDynamicMeta)\n", NIL);
+	}
 	Printv(f_shadow, "class ", class_name, NIL);
 
 	if (Len(base_class)) {
 	  Printf(f_shadow, "(%s)", base_class);
 	} else {
 	  if (!classic) {
-	    Printf(f_shadow, modern ? "(object)" : "(_object)");
+	    Printf(f_shadow, modern ? "(object" : "(_object");
+	    Printf(f_shadow, modern && py3 && GetFlag(n, "feature:python:nondynamic") ? ", metaclass=_SwigNonDynamicMeta" : "", ")");
+	    Printf(f_shadow, ")");
 	  }
 	  if (GetFlag(n, "feature:exceptionclass")) {
 	    Printf(f_shadow, "(Exception)");
@@ -4551,9 +4572,7 @@ public:
 	  Printv(f_shadow, tab4, "thisown = property(lambda x: x.this.own(), ", "lambda x, v: x.this.own(v), doc='The membership flag')\n", NIL);
 	  /* Add static attribute */
 	  if (GetFlag(n, "feature:python:nondynamic")) {
-	    Printv(f_shadow_file,
-		   tab4, "__setattr__ = _swig_setattr_nondynamic_instance_variable(object.__setattr__)\n",
-		   tab4, "class __metaclass__(type):\n", tab4, tab4, "__setattr__ = _swig_setattr_nondynamic_class_variable(type.__setattr__)\n", NIL);
+	    Printv(f_shadow_file, tab4, "__setattr__ = _swig_setattr_nondynamic_instance_variable(object.__setattr__)\n", NIL);
 	  }
 	}
       }
