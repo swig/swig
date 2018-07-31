@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-08-10: wsfulton
+            [Python] #1293 Improve TypeError message inconsistencies between default and fastdispatch
+            mode when handling overloaded C++ functions. Previously the error message did not always
+            display the possible C/C++ prototypes in fastdispatch mode.
+
 2018-07-31: wsfulton
             [Python] #1293 Overloaded C++ function wrappers now raise a TypeError instead
             of NotImplementedError when the types passed are incorrect. This change means

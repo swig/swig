@@ -2578,13 +2578,16 @@ public:
 
     String *tmp = NewString("");
     String *dispatch;
-    const char *dispatch_code = funpack ? "return %s(self, argc, argv);" :
-      (builtin_ctor ? "return %s(self, args, NULL);" : "return %s(self, args);");
+
+    const char *dispatch_call = funpack ? "%s(self, argc, argv);" : (builtin_ctor ? "%s(self, args, NULL);" : "%s(self, args);");
+    String *dispatch_code = NewStringf("return %s", dispatch_call);
 
     if (castmode) {
       dispatch = Swig_overload_dispatch_cast(n, dispatch_code, &maxargs);
     } else {
-      dispatch = Swig_overload_dispatch(n, dispatch_code, &maxargs);
+      String *fastdispatch_code = NewStringf("PyObject *retobj = %s\nif (!SWIG_Python_TypeErrorOccurred(retobj)) return retobj;\nSWIG_fail;", dispatch_call);
+      dispatch = Swig_overload_dispatch(n, dispatch_code, &maxargs, fastdispatch_code);
+      Delete(fastdispatch_code);
     }
 
     /* Generate a dispatch wrapper for all overloaded functions */
@@ -2645,7 +2648,7 @@ public:
 	Delete(fulldecl);
       } while ((sibl = Getattr(sibl, "sym:nextSibling")));
       Append(f->code, "fail:\n");
-      Printf(f->code, "  SWIG_SetErrorMsg(PyExc_TypeError,"
+      Printf(f->code, "  SWIG_Python_RaiseOrModifyTypeError("
 	     "\"Wrong number or type of arguments for overloaded function '%s'.\\n\"" "\n\"  Possible C/C++ prototypes are:\\n\"%s);\n", symname, protoTypes);
       Printf(f->code, "return %s;\n", builtin_ctor ? "-1" : "0");
       Delete(protoTypes);
@@ -2662,6 +2665,7 @@ public:
     }
     DelWrapper(f);
     Delete(dispatch);
+    Delete(dispatch_code);
     Delete(tmp);
     Delete(wname);
   }
