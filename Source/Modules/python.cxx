@@ -2645,7 +2645,7 @@ public:
 	Delete(fulldecl);
       } while ((sibl = Getattr(sibl, "sym:nextSibling")));
       Append(f->code, "fail:\n");
-      Printf(f->code, "  SWIG_SetErrorMsg(PyExc_NotImplementedError,"
+      Printf(f->code, "  SWIG_SetErrorMsg(PyExc_TypeError,"
 	     "\"Wrong number or type of arguments for overloaded function '%s'.\\n\"" "\n\"  Possible C/C++ prototypes are:\\n\"%s);\n", symname, protoTypes);
       Printf(f->code, "return %s;\n", builtin_ctor ? "-1" : "0");
       Delete(protoTypes);

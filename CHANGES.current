@@ -7,6 +7,27 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-07-31: wsfulton
+            [Python] #1293 Overloaded C++ function wrappers now raise a TypeError instead
+            of NotImplementedError when the types passed are incorrect. This change means
+            there is now consistency with non-overloaded function wrappers which have always
+            raised TypeError when the incorrect types are passed. The error message remains
+            the same and is for example now:
+
+              TypeError: Wrong number or type of arguments for overloaded function 'f'.
+                Possible C/C++ prototypes are:
+                  f(int)
+                  f(char const *)
+
+            instead of:
+
+              NotImplementedError: Wrong number or type of arguments for overloaded function 'f'.
+                Possible C/C++ prototypes are:
+                  f(int)
+                  f(char const *)
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2018-06-23: wsfulton
             [Python] #718 Fix pythonnondynamic feature for modern classes
 
