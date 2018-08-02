@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-08-02: furylynx,jacobwgillespie,p2k
+            [Javascript] #1290, #968. Add support for NodeJS versions 2-10.
+
 2018-06-23: wsfulton
             [Python] #718 Fix pythonnondynamic feature for modern classes
 
