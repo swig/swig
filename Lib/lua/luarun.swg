@@ -1084,8 +1084,7 @@ SWIGRUNTIME int SWIG_Lua_class_equal(lua_State *L)
 }
 
 /* populate table at the top of the stack with metamethods that ought to be inherited */
-SWIGINTERN void SWIG_Lua_populate_inheritable_metamethods(lua_State *L)
-{
+SWIGINTERN void SWIG_Lua_populate_inheritable_metamethods(lua_State *L) {
   SWIG_Lua_add_boolean(L, "__add", 1);
   SWIG_Lua_add_boolean(L, "__sub", 1);
   SWIG_Lua_add_boolean(L, "__mul", 1);

@@ -81,6 +81,9 @@ matrix:
       dist: trusty
     - compiler: gcc
       os: linux
+      env: SWIGLANG=javascript ENGINE=duk
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=javascript ENGINE=v8
       sudo: required
       dist: trusty

@@ -125,7 +125,8 @@ public:
    enum JSEngine {
      JavascriptCore,
      V8,
-     NodeJS
+     NodeJS,
+     Duktape
    };
 
    JSEmitter(JSEngine engine);
@@ -288,6 +289,7 @@ protected:
 JSEmitter *swig_javascript_create_JSCEmitter();
 JSEmitter *swig_javascript_create_V8Emitter();
 JSEmitter *swig_javascript_create_NodeJSEmitter();
+JSEmitter *swig_javascript_create_DuktapeEmitter();
 
 /**********************************************************************
  * JAVASCRIPT: SWIG module implementation
@@ -498,6 +500,7 @@ static const char *usage = (char *) "\
 Javascript Options (available with -javascript)\n\
      -jsc                   - creates a JavascriptCore extension \n\
      -v8                    - creates a v8 extension \n\
+     -duk                   - creates a Duktape extension \n\
      -node                  - creates a node.js extension \n\
      -debug-codetemplates   - generates information about the origin of code templates\n";
 
@@ -523,6 +526,13 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       	}
 	Swig_mark_arg(i);
 	engine = JSEmitter::V8;
+      } else if (strcmp(argv[i], "-duk") == 0) {
+        if (engine != -1) {
+      Printf(stderr, ERR_MSG_ONLY_ONE_ENGINE_PLEASE);
+      SWIG_exit(-1);
+        }
+  Swig_mark_arg(i);
+  engine = JSEmitter::Duktape;
       } else if (strcmp(argv[i], "-jsc") == 0) {
       	if (engine != -1) {
 	  Printf(stderr, ERR_MSG_ONLY_ONE_ENGINE_PLEASE);
@@ -566,6 +576,13 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       SWIG_library_directory("javascript/jsc");
       break;
     }
+  case JSEmitter::Duktape:
+    {
+      emitter = swig_javascript_create_DuktapeEmitter();
+      Preprocessor_define("SWIG_JAVASCRIPT_DUK 1", 0);
+      SWIG_library_directory("javascript/duk");
+      break;
+    }
   case JSEmitter::NodeJS:
     {
       emitter = swig_javascript_create_V8Emitter();
@@ -576,7 +593,7 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
     }
   default:
     {
-      Printf(stderr, "SWIG Javascript: Unknown engine. Please specify one of '-jsc', '-v8' or '-node'.\n");
+      Printf(stderr, "SWIG Javascript: Unknown engine. Please specify one of '-jsc', '-v8', '-duk', or '-node'.\n");
       SWIG_exit(-1);
       break;
     }
@@ -1217,7 +1234,7 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
       // handle function overloading
       Template t_dispatch_case = getTemplate("js_function_dispatch_case");
       t_dispatch_case.replace("$jswrapper", siblname)
-	  .replace("$jsargcount", Getattr(sibl, ARGCOUNT));
+                     .replace("$jsargcount", Getattr(sibl, ARGCOUNT));
 
       Append(wrapper->code, t_dispatch_case.str());
     }
@@ -1284,7 +1301,6 @@ String *JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *
 
   return tm;
 }
-
 void JSEmitter::marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, String *actioncode, const String *cresult, bool emitReturnVariable) {
   SwigType *type = Getattr(n, "type");
   String *tm;
@@ -1447,7 +1463,6 @@ Hash *JSEmitter::createNamespaceEntry(const char *_name, const char *parent, con
   Delete(name);
   return entry;
 }
-
 /**********************************************************************
  * JavascriptCore: JSEmitter implementation for JavascriptCore engine
  **********************************************************************/
@@ -1820,6 +1835,430 @@ int JSCEmitter::emitNamespaces() {
 
 JSEmitter *swig_javascript_create_JSCEmitter() {
   return new JSCEmitter();
+}
+
+/**********************************************************************
+ * Duktape: JSEmitter implementation for Duktape engine
+ **********************************************************************/
+
+class DuktapeEmitter:public JSEmitter {
+
+public:
+  DuktapeEmitter();
+  virtual ~ DuktapeEmitter();
+  virtual int initialize(Node *n);
+  virtual int dump(Node *n);
+  virtual int close();
+
+protected:
+  virtual int enterVariable(Node *n);
+  virtual int exitVariable(Node *n);
+  virtual int enterFunction(Node *n);
+  virtual int exitFunction(Node *n);
+  virtual int enterClass(Node *n);
+  virtual int exitClass(Node *n);
+  virtual void marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, String *actioncode, const String *cresult, bool emitReturnVariable);
+  virtual void marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static);
+  virtual Hash *createNamespaceEntry(const char *name, const char *parent);
+  virtual int emitNamespaces();
+
+private:
+
+  String *NULL_STR;
+  String *VETO_SET;
+
+  // output file and major code parts
+  File *f_wrap_cpp;
+  File *f_runtime;
+  File *f_header;
+  File *f_init;
+
+};
+
+DuktapeEmitter::DuktapeEmitter()
+:  JSEmitter(JSEmitter::Duktape), NULL_STR(NewString("NULL")), VETO_SET(NewString("JS_veto_set_variable")), f_wrap_cpp(NULL), f_runtime(NULL), f_header(NULL), f_init(NULL) {
+}
+
+DuktapeEmitter::~DuktapeEmitter() {
+  Delete(NULL_STR);
+  Delete(VETO_SET);
+}
+
+void DuktapeEmitter::marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, String *actioncode, const String *cresult, bool emitReturnVariable) {
+  SwigType *type = Getattr(n, "type");
+  String *tm;
+  Parm *p;
+
+  // adds a declaration for the result variable
+  if (emitReturnVariable)
+    emit_return_variable(n, type, wrapper);
+  // if not given, use default result identifier ('result') for output typemap
+  if (cresult == 0)
+    cresult = defaultResultName;
+
+  tm = Swig_typemap_lookup_out("out", n, cresult, wrapper, actioncode);
+  bool should_own = GetFlag(n, "feature:new") != 0;
+
+  if (tm) {
+    Replaceall(tm, "$objecttype", Swig_scopename_last(SwigType_str(SwigType_strip_qualifiers(type), 0)));
+
+    if (should_own) {
+      Replaceall(tm, "$owner", "SWIG_POINTER_OWN");
+    } else {
+      Replaceall(tm, "$owner", "0");
+    }
+    Append(wrapper->code, tm);
+
+    if (Len(tm) > 0) {
+      Printf(wrapper->code, "\n");
+    }
+  } else {
+    Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), Getattr(n, "name"));
+  }
+
+  if (params) {
+    for (p = params; p;) {
+      if ((tm = Getattr(p, "tmap:argout"))) {
+	Replaceall(tm, "$input", Getattr(p, "emit:input"));
+	Printv(wrapper->code, tm, "\n", NIL);
+	p = Getattr(p, "tmap:argout:next");
+      } else {
+	p = nextSibling(p);
+      }
+    }
+  }
+
+  Replaceall(wrapper->code, "$result", cresult);
+}
+
+/* ---------------------------------------------------------------------
+ * marshalInputArgs()
+ *
+ * Process all of the arguments passed into the argv array
+ * and convert them into C/C++ function arguments using the
+ * supplied typemaps.
+ * --------------------------------------------------------------------- */
+
+void DuktapeEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static) {
+  Parm *p;
+  String *tm;
+
+  // determine an offset index, as members have an extra 'this' argument
+  // except: static members and ctors.
+  int startIdx = 0;
+  if (is_member && !is_static && mode != Ctor) {
+    startIdx = 1;
+  }
+  // store number of arguments for argument checks
+  int num_args = emit_num_arguments(parms) - startIdx;
+  String *argcount = NewString("");
+  Printf(argcount, "%d", num_args);
+  Setattr(n, ARGCOUNT, argcount);
+
+  // process arguments
+  int i = 0;
+  for (p = parms; p; i++) {
+    String *arg = NewString("");
+    String *type = Getattr(p, "type");
+
+    // ignore varargs
+    if (SwigType_isvarargs(type))
+      break;
+
+    switch (mode) {
+    case Getter:
+    case Function:
+      if (startIdx == 1 && i == 0) {
+          Printf(arg, "-1"); /* thisObject is pushed at the start of the function on top of the stack */
+      } else {
+          Printf(arg, "%d", i -  startIdx);
+      }
+      break;
+    case Setter:
+      if (is_member && !is_static && i == 0) {
+        Printf(arg, "-1");
+      } else {
+        Printf(arg, "%d", i - startIdx);
+      }
+      break;
+    case Ctor:
+        Printf(arg, "%d", i);
+      break;
+    default:
+      throw "Illegal state.";
+    }
+    tm = emitInputTypemap(n, p, wrapper, arg);
+    Delete(arg);
+    if (tm) {
+      p = Getattr(p, "tmap:in:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+}
+
+int DuktapeEmitter::initialize(Node *n) {
+
+  JSEmitter::initialize(n);
+
+  /* Get the output file name */
+  String *outfile = Getattr(n, "outfile");
+
+  /* Initialize I/O */
+  f_wrap_cpp = NewFile(outfile, "w", SWIG_output_files());
+  if (!f_wrap_cpp) {
+    FileErrorDisplay(outfile);
+    SWIG_exit(EXIT_FAILURE);
+  }
+
+  /* Initialization of members */
+  f_runtime = NewString("");
+  f_init = NewString("");
+  f_header = NewString("");
+
+  state.globals(CREATE_NAMESPACES, NewString(""));
+  state.globals(REGISTER_NAMESPACES, NewString(""));
+  state.globals(INITIALIZER, NewString(""));
+
+  /* Register file targets with the SWIG file handler */
+  Swig_register_filebyname("begin", f_wrap_cpp);
+  Swig_register_filebyname("header", f_header);
+  Swig_register_filebyname("wrapper", f_wrappers);
+  Swig_register_filebyname("runtime", f_runtime);
+  Swig_register_filebyname("init", f_init);
+
+  Swig_banner(f_wrap_cpp);
+
+  return SWIG_OK;
+}
+
+int DuktapeEmitter::dump(Node *n) {
+  /* Get the module name */
+  String *module = Getattr(n, "name");
+
+  Template initializer_define(getTemplate("js_initializer_define"));
+  initializer_define.replace("$jsname", module).pretty_print(f_header);
+
+  SwigType_emit_type_table(f_runtime, f_wrappers);
+
+  Printv(f_wrap_cpp, f_runtime, "\n", 0);
+  Printv(f_wrap_cpp, f_header, "\n", 0);
+  Printv(f_wrap_cpp, f_wrappers, "\n", 0);
+
+  emitNamespaces();
+
+  // compose the initializer function using a template
+  Template initializer(getTemplate("js_initializer"));
+  initializer.replace("$jsname", module)
+      .replace("$jsregisterclasses", state.globals(INITIALIZER))
+      .replace("$jscreatenamespaces", state.globals(CREATE_NAMESPACES))
+      .replace("$jsregisternamespaces", state.globals(REGISTER_NAMESPACES))
+      .pretty_print(f_init);
+
+  Printv(f_wrap_cpp, f_init, 0);
+
+  return SWIG_OK;
+}
+
+int DuktapeEmitter::close() {
+  Delete(f_runtime);
+  Delete(f_header);
+  Delete(f_wrappers);
+  Delete(f_init);
+  Delete(namespaces);
+  Delete(f_wrap_cpp);
+  return SWIG_OK;
+}
+
+int DuktapeEmitter::enterFunction(Node *n) {
+
+  JSEmitter::enterFunction(n);
+
+  return SWIG_OK;
+}
+
+int DuktapeEmitter::exitFunction(Node *n) {
+  Template t_function = getTemplate("duk_function_declaration");
+
+  bool is_member = GetFlag(n, "ismember") != 0 || GetFlag(n, "feature:extend") != 0;
+  bool is_overloaded = GetFlag(n, "sym:overloaded") != 0;
+
+  // handle overloaded functions
+  if (is_overloaded) {
+    if (!Getattr(n, "sym:nextSibling")) {
+      //state.function(WRAPPER_NAME, Swig_name_wrapper(Getattr(n, "name")));
+      // create dispatcher
+      emitFunctionDispatcher(n, is_member);
+    } else {
+      //don't register wrappers of overloaded functions in function tables
+      return SWIG_OK;
+    }
+  }
+
+  t_function.replace("$jsname", state.function(NAME))
+      .replace("$jswrapper", state.function(WRAPPER_NAME))
+      .replace("$jsargcount", is_overloaded ? "((duk_int_t) (-1))" : Getattr(n, ARGCOUNT));
+
+  if (is_member) {
+    if (GetFlag(state.function(), IS_STATIC)) {
+      t_function.pretty_print(state.clazz(STATIC_FUNCTIONS));
+    } else {
+      t_function.pretty_print(state.clazz(MEMBER_FUNCTIONS));
+    }
+  } else {
+    t_function.pretty_print(Getattr(current_namespace, "functions"));
+  }
+
+  return SWIG_OK;
+}
+
+int DuktapeEmitter::enterVariable(Node *n) {
+  JSEmitter::enterVariable(n);
+  state.variable(GETTER, NULL_STR);
+  state.variable(SETTER, VETO_SET);
+  return SWIG_OK;
+}
+
+int DuktapeEmitter::exitVariable(Node *n) {
+  Template t_variable(getTemplate("duk_variable_declaration"));
+  t_variable.replace("$jsname", state.variable(NAME))
+      .replace("$jsgetter", state.variable(GETTER))
+      .replace("$jssetter", state.variable(SETTER));
+
+  if (GetFlag(n, "ismember")) {
+    if (GetFlag(state.variable(), IS_STATIC)
+	|| Equal(Getattr(n, "nodeType"), "enumitem")) {
+      t_variable.pretty_print(state.clazz(STATIC_VARIABLES));
+    } else {
+      t_variable.pretty_print(state.clazz(MEMBER_VARIABLES));
+    }
+  } else {
+    t_variable.pretty_print(Getattr(current_namespace, "values"));
+  }
+
+  return SWIG_OK;
+}
+
+int DuktapeEmitter::enterClass(Node *n) {
+  JSEmitter::enterClass(n);
+  state.clazz(MEMBER_VARIABLES, NewString(""));
+  state.clazz(MEMBER_FUNCTIONS, NewString(""));
+  state.clazz(STATIC_VARIABLES, NewString(""));
+  state.clazz(STATIC_FUNCTIONS, NewString(""));
+
+  Template t_class_decl = getTemplate("duk_class_declaration");
+  t_class_decl.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .pretty_print(f_wrappers);
+
+  return SWIG_OK;
+}
+
+int DuktapeEmitter::exitClass(Node *n) {
+  Template t_class_tables(getTemplate("duk_class_tables"));
+  t_class_tables.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jsclassvariables", state.clazz(MEMBER_VARIABLES))
+      .replace("$jsclassfunctions", state.clazz(MEMBER_FUNCTIONS))
+      .replace("$jsstaticclassfunctions", state.clazz(STATIC_FUNCTIONS))
+      .replace("$jsstaticclassvariables", state.clazz(STATIC_VARIABLES))
+      .pretty_print(f_wrappers);
+
+  /* adds the ctor wrappers at this position */
+  // Note: this is necessary to avoid extra forward declarations.
+  //Append(f_wrappers, state.clazz(CTOR_WRAPPERS));
+
+  // for abstract classes add a vetoing ctor
+  if (GetFlag(state.clazz(), IS_ABSTRACT)) {
+    Template t_veto_ctor(getTemplate("js_veto_ctor"));
+    t_veto_ctor.replace("$jswrapper", state.clazz(CTOR))
+	    .replace("$jsname", state.clazz(NAME))
+      .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
+	.pretty_print(f_wrappers);
+  }
+
+  /* adds a class template statement to initializer function */
+  Template t_classtemplate(getTemplate("duk_class_definition"));
+
+  /* prepare registration of base class */
+  String *jsclass_inheritance = NewString("");
+  Node *base_class = getBaseClass(n);
+  if (base_class != NULL) {
+    Template t_inherit(getTemplate("duk_class_inherit"));
+    t_inherit.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+	.replace("$jsbaseclassmangled", SwigType_manglestr(Getattr(base_class, "name")))
+	.pretty_print(jsclass_inheritance);
+  } else {
+    Template t_inherit(getTemplate("duk_class_noinherit"));
+    t_inherit.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jsname", state.clazz(NAME))
+      .pretty_print(jsclass_inheritance);
+  }
+
+  t_classtemplate.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
+      .replace("$jsclass_inheritance", jsclass_inheritance)
+      .replace("$jsctor", state.clazz(CTOR))
+      .replace("$jsdtor", state.clazz(DTOR))
+      .pretty_print(state.globals(INITIALIZER));
+  Delete(jsclass_inheritance);
+
+  /* Note: this makes sure that there is a swig_type added for this class */
+  SwigType_remember_clientdata(state.clazz(TYPE_MANGLED), NewString("0"));
+
+  /* adds a class registration statement to initializer function */
+  Template t_registerclass(getTemplate("duk_class_registration"));
+  t_registerclass.replace("$jsname", state.clazz(NAME))
+      .replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jsnspace", Getattr(state.clazz("nspace"), NAME_MANGLED))
+      .pretty_print(state.globals(INITIALIZER));
+
+  return SWIG_OK;
+}
+
+Hash *DuktapeEmitter::createNamespaceEntry(const char *name, const char *parent) {
+  Hash *entry = JSEmitter::createNamespaceEntry(name, parent);
+  Setattr(entry, "functions", NewString(""));
+  Setattr(entry, "values", NewString(""));
+  return entry;
+}
+
+int DuktapeEmitter::emitNamespaces() {
+  Iterator it;
+  for (it = First(namespaces); it.item; it = Next(it)) {
+    Hash *entry = it.item;
+    String *name = Getattr(entry, NAME);
+    String *name_mangled = Getattr(entry, NAME_MANGLED);
+    String *parent = Getattr(entry, PARENT);
+    String *parent_mangled = Swig_name_mangle(parent);
+    String *functions = Getattr(entry, "functions");
+    String *variables = Getattr(entry, "values");
+
+    // skip the global namespace which is given by the application
+
+    Template namespace_definition(getTemplate("duk_nspace_declaration"));
+    namespace_definition.replace("$jsglobalvariables", variables)
+	.replace("$jsglobalfunctions", functions)
+	.replace("$jsnspace", name_mangled)
+	.replace("$jsmangledname", name_mangled)
+	.pretty_print(f_wrap_cpp);
+
+    // Don't register 'exports' as namespace. It is return to the application.
+    if (!Equal("exports", name)) {
+      Template t_createNamespace(getTemplate("duk_nspace_definition"));
+      t_createNamespace.replace("$jsmangledname", name_mangled)
+        .replace("$jsglobalvariables", variables)
+        .replace("$jsglobalfunctions", functions)
+        .replace("$jsnspace", name_mangled)
+        .replace("$jsparent", parent_mangled)
+        .replace("$jsname", name);
+      Append(state.globals(CREATE_NAMESPACES), t_createNamespace.str());
+    }
+  }
+
+  return SWIG_OK;
+}
+
+JSEmitter *swig_javascript_create_DuktapeEmitter() {
+  return new DuktapeEmitter();
 }
 
 /**********************************************************************

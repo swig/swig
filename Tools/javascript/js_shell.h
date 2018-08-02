@@ -12,7 +12,8 @@ class JSShell {
 public:
   enum Engine {
     JSC = 0,
-    V8
+    V8,
+    DUK
   };
 
 public:
