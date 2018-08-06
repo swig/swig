@@ -480,16 +480,23 @@ if test x"${with_tclconfig}" != x ; then
    fi
 fi
 # check in a few common install locations
+dirs="/usr/lib*/ /usr/lib*/tcl*/ /usr/local/lib*/ /usr/local/lib*/tcl*/"
+case $host in
+*-*-darwin*)
+  dirs="/System/Library/Frameworks/Tcl.framework/ $dirs"
+  ;;
+*)
+  ;;
+esac
 if test x"${TCLCONFIG}" = x ; then
-    for i in `ls -d -r /usr/lib*/ 2>/dev/null` \
-	     `ls -d -r /usr/lib*/tcl*/ 2>/dev/null` \
-	     `ls -d -r /usr/local/lib*/ 2>/dev/null` \
-	     `ls -d -r /usr/local/lib*/tcl*/ 2>/dev/null` ; do
-	if test -f $i"tclConfig.sh" ; then
-	    TCLCONFIG=`(cd $i; pwd)`
-	    break
-	fi
+  for d in $dirs ; do
+    for i in `ls -d -r $d 2>/dev/null` ; do
+      if test -f $i"tclConfig.sh" ; then
+        TCLCONFIG=`(cd $i; pwd)`
+        break
+      fi
     done
+  done
 fi
 if test x"${TCLCONFIG}" = x ; then
     AC_MSG_RESULT(no)
