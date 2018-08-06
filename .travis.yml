@@ -370,14 +370,6 @@ matrix:
       env: SWIGLANG=python SWIG_FEATURES=-O
       sudo: required
       dist: trusty
-    # Broken since Travis image moved from Xcode 8.3 to 9.4
-    - compiler: clang
-      os: osx
-      env: SWIGLANG=ruby
-    # Broken since Travis image moved from Xcode 8.3 to 9.4
-    - compiler: clang
-      os: osx
-      env: SWIGLANG=tcl
 
 before_install:
   - date -u
