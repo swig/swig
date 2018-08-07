@@ -530,8 +530,8 @@ SwigPyObject_dealloc(PyObject *v)
          remain true upon return from SwigPyObject_dealloc.  So save
          and restore. */
       
-      PyObject *val = NULL, *type = NULL, *tb = NULL;
-      PyErr_Fetch(&val, &type, &tb);
+      PyObject *type = NULL, *value = NULL, *traceback = NULL;
+      PyErr_Fetch(&type, &value, &traceback);
 
       if (data->delargs) {
         /* we need to create a temporary object to carry the destroy operation */
@@ -546,7 +546,7 @@ SwigPyObject_dealloc(PyObject *v)
       if (!res)
         PyErr_WriteUnraisable(destroy);
 
-      PyErr_Restore(val, type, tb);
+      PyErr_Restore(type, value, traceback);
 
       Py_XDECREF(res);
     } 

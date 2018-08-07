@@ -436,15 +436,15 @@ SwigPyBuiltin_destructor_closure(SwigPyWrapperFunction wrapper, const char *wrap
   Py_XDECREF(sobj->dict);
   if (sobj->own) {
     PyObject *o;
-    PyObject *val = 0, *type = 0, *tb = 0;
-    PyErr_Fetch(&val, &type, &tb);
+    PyObject *type = 0, *value = 0, *traceback = 0;
+    PyErr_Fetch(&type, &value, &traceback);
     o = wrapper(a, NULL);
     if (!o) {
       PyObject *deallocname = PyString_FromString(wrappername);
       PyErr_WriteUnraisable(deallocname);
       Py_DECREF(deallocname);
     }
-    PyErr_Restore(val, type, tb);
+    PyErr_Restore(type, value, traceback);
     Py_XDECREF(o);
   }
   if (PyType_IS_GC(a->ob_type)) {
