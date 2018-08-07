@@ -46,7 +46,7 @@ def get_cxxflags(language, std, compiler):
            "php":"-Werror " + cxx_common,
         "python":"-Werror " + cxx_common,
              "r":"-Werror " + cxx_common,
-          "ruby":"-Werror " + cxx_common + "-Wno-deprecated-declarations", # For Ruby on MacOS Xcode 9.4 misconfiguration defining 'isfinite' to deprecated 'finite'
+          "ruby":"-Werror " + cxx_common + " -Wno-deprecated-declarations", # For Ruby on MacOS Xcode 9.4 misconfiguration defining 'isfinite' to deprecated 'finite'
         "scilab":"-Werror " + cxx_common,
            "tcl":"-Werror " + cxx_common,
     }
