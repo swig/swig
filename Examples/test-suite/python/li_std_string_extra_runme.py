@@ -95,14 +95,18 @@ if li_std_string_extra.test_value_basic_overload(123) != "int":
 
 try:
     li_std_string_extra.test_value_basic_overload([x])
-    raise RuntimeError, "should throw NotImplementedError"
-except NotImplementedError:
+    raise RuntimeError, "should throw TypeError"
+except TypeError as e:
+    if str(e).find("Possible C/C++ prototypes are:") == -1:
+        raise RuntimeError("Incorrect error message text:\n{}".format(e))
     pass
 
 try:
     li_std_string_extra.test_value_basic_overload([123])
-    raise RuntimeError, "should throw NotImplementedError"
-except NotImplementedError:
+    raise RuntimeError, "should throw TypeError"
+except TypeError as e:
+    if str(e).find("Possible C/C++ prototypes are:") == -1:
+        raise RuntimeError("Incorrect error message text:\n{}".format(e))
     pass
 
 # Global variables

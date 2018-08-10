@@ -7,8 +7,34 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-08-10: wsfulton
+            [Python] #1293 Improve TypeError message inconsistencies between default and fastdispatch
+            mode when handling overloaded C++ functions. Previously the error message did not always
+            display the possible C/C++ prototypes in fastdispatch mode.
+
 2018-08-02: furylynx,jacobwgillespie,p2k
             [Javascript] #1290, #968. Add support for NodeJS versions 2-10.
+
+2018-07-31: wsfulton
+            [Python] #1293 Overloaded C++ function wrappers now raise a TypeError instead
+            of NotImplementedError when the types passed are incorrect. This change means
+            there is now consistency with non-overloaded function wrappers which have always
+            raised TypeError when the incorrect types are passed. The error message remains
+            the same and is for example now:
+
+              TypeError: Wrong number or type of arguments for overloaded function 'f'.
+                Possible C/C++ prototypes are:
+                  f(int)
+                  f(char const *)
+
+            instead of:
+
+              NotImplementedError: Wrong number or type of arguments for overloaded function 'f'.
+                Possible C/C++ prototypes are:
+                  f(int)
+                  f(char const *)
+
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2018-06-23: wsfulton
             [Python] #718 Fix pythonnondynamic feature for modern classes
@@ -686,6 +712,7 @@ Version 4.0.0 (in progress)
 2017-05-26: Volker Diels-Grabsch, vadz
             [Java] #842 Extend from java.util.AbstractList<> and implement java.util.RandomAccess for
             std::vector wrappers. This notably allows to iterate over wrapped vectors in a natural way.
+
 2017-05-30: davidcl
             [Scilab] #994 Undefined symbol error when loading in Scilab 6
 

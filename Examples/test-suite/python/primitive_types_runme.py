@@ -549,14 +549,9 @@ def checkOverload(t, name, val, delta, prevval, limit):
             if t.ovr_str(val + delta) == name:
                 raise RuntimeError, "bad " + name + " typemap"
             if val == limit:
-                # Should raise NotImplementedError here since this is the largest integral type
-                raise RuntimeError, "bad " + name + " typemap"
-        except NotImplementedError:
-            # NotImplementedError is expected only if this is the most extreme type
-            if val != limit:
+                # Should raise TypeError here since this is the largest integral type
                 raise RuntimeError, "bad " + name + " typemap"
         except TypeError:
-            # TypeError is raised instead if swig is run with -O or -fastdispatch
             if val != limit:
                 raise RuntimeError, "bad " + name + " typemap"
 

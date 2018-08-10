@@ -442,7 +442,7 @@ String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *
 
   /* Loop over the functions */
 
-  bool emitcheck = 1;
+  bool emitcheck = true;
   for (i = 0; i < nfunc; i++) {
     int fn = 0;
     Node *ni = Getitem(dispatch, i);
@@ -518,7 +518,7 @@ String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *
 		if (tml)
 		  Replaceid(tml, Getattr(pl, "lname"), "_v");
 		if (!tml || Cmp(tm, tml))
-		  emitcheck = 1;
+		  emitcheck = true;
 		//printf("tmap: %s[%d] (%d) => %s\n\n",
 		//       Char(Getattr(nk, "sym:name")),
 		//       l, emitcheck, tml?Char(tml):0);
@@ -610,7 +610,7 @@ String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *
 /*
   Fast dispatch mechanism, provided by  Salvador Fandi~no Garc'ia (#930586).
 */
-String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *maxargs) {
+static String *overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *maxargs, const_String_or_char_ptr fmt_fastdispatch) {
   int i, j;
 
   *maxargs = 1;
@@ -653,6 +653,7 @@ String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *
 
     // printf("overload: %s coll=%d\n", Char(Getattr(n, "sym:name")), Len(coll));
 
+    bool emitcheck = false;
     int num_braces = 0;
     bool test = (Len(coll) > 0 && num_arguments);
     if (test) {
@@ -673,7 +674,7 @@ String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *
 
 	  /* if all the wrappers have the same type check on this
 	     argument we can optimize it out */
-	  bool emitcheck = 0;
+	  emitcheck = false;
 	  for (int k = 0; k < Len(coll) && !emitcheck; k++) {
 	    Node *nk = Getitem(coll, k);
 	    Parm *pk = Getattr(nk, "wrap:parms");
@@ -695,7 +696,7 @@ String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *
 		if (tml)
 		  Replaceid(tml, Getattr(pl, "lname"), "_v");
 		if (!tml || Cmp(tm, tml))
-		  emitcheck = 1;
+		  emitcheck = true;
 		//printf("tmap: %s[%d] (%d) => %s\n\n",
 		//       Char(Getattr(nk, "sym:name")),
 		//       l, emitcheck, tml?Char(tml):0);
@@ -752,8 +753,8 @@ String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *
     for ( /* empty */ ; num_braces > 0; num_braces--)
       Printf(f, "}\n");
 
-
-    String *lfmt = ReplaceFormat(fmt, num_arguments);
+    // The language module may want to generate different code for last overloaded function called (with same number of arguments)
+    String *lfmt = ReplaceFormat(!emitcheck && fmt_fastdispatch ? fmt_fastdispatch : fmt, num_arguments);
     Printf(f, Char(lfmt), Getattr(ni, "wrap:name"));
 
     Printf(f, "}\n");		/* braces closes "if" for this method */
@@ -770,10 +771,10 @@ String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *
   return f;
 }
 
-String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxargs) {
+String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxargs, const_String_or_char_ptr fmt_fastdispatch) {
 
   if (fast_dispatch_mode || GetFlag(n, "feature:fastdispatch")) {
-    return Swig_overload_dispatch_fast(n, fmt, maxargs);
+    return overload_dispatch_fast(n, fmt, maxargs, fmt_fastdispatch);
   }
 
   int i, j;
