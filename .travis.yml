@@ -209,6 +209,11 @@ matrix:
       dist: trusty
     - compiler: gcc
       os: linux
+      env: SWIGLANG=python SWIG_FEATURES=-O PY3=3 VER=3.7
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=python SWIG_FEATURES=-classic
       sudo: required
       dist: trusty
@@ -362,6 +367,12 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.4 CPP11=1
+      sudo: required
+      dist: trusty
+    # Not quite working yet
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=python SWIG_FEATURES=-O PY3=3
       sudo: required
       dist: trusty
 
