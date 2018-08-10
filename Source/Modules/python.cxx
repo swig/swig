@@ -2586,6 +2586,10 @@ public:
       dispatch = Swig_overload_dispatch_cast(n, dispatch_code, &maxargs);
     } else {
       String *fastdispatch_code = NewStringf("PyObject *retobj = %s\nif (!SWIG_Python_TypeErrorOccurred(retobj)) return retobj;\nSWIG_fail;", dispatch_call);
+      if (!CPlusPlus) {
+	Insert(fastdispatch_code, 0, "{\n");
+	Append(fastdispatch_code, "\n}");
+      }
       dispatch = Swig_overload_dispatch(n, dispatch_code, &maxargs, fastdispatch_code);
       Delete(fastdispatch_code);
     }

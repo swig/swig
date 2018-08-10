@@ -87,12 +87,13 @@ SWIG_Python_RaiseOrModifyTypeError(const char *message)
 {
   if (SWIG_Python_TypeErrorOccurred(NULL)) {
     /* Use existing TypeError to preserve stacktrace and enhance with given message */
+    PyObject *newvalue;
     PyObject *type = NULL, *value = NULL, *traceback = NULL;
     PyErr_Fetch(&type, &value, &traceback);
 #if PY_VERSION_HEX >= 0x03000000
-    PyObject *newvalue = PyUnicode_FromFormat("%S\nAdditional Information:\n%s", value, message);
+    newvalue = PyUnicode_FromFormat("%S\nAdditional Information:\n%s", value, message);
 #else
-    PyObject *newvalue = PyString_FromFormat("%s\nAdditional Information:\n%s", PyString_AsString(value), message);
+    newvalue = PyString_FromFormat("%s\nAdditional Information:\n%s", PyString_AsString(value), message);
 #endif
     Py_XDECREF(value);
     PyErr_Restore(type, newvalue, traceback);
