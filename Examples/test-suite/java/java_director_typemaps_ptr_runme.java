@@ -1,13 +1,13 @@
-// Test director reference typemaps in typemaps.i - similar to java_director_typemaps_ptr.i testcase
+// Test director pointer typemaps in typemaps.i - similar to java_director_typemaps.i testcase
 
-import java_director_typemaps.*;
+import java_director_typemaps_ptr.*;
 import java.math.BigInteger;
 
-public class java_director_typemaps_runme {
+public class java_director_typemaps_ptr_runme {
 
   static {
     try {
-      System.loadLibrary("java_director_typemaps");
+      System.loadLibrary("java_director_typemaps_ptr");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);
@@ -16,13 +16,13 @@ public class java_director_typemaps_runme {
 
 
   public static void main(String argv[]) {
-    Quux quux = new java_director_typemaps_MyQuux();
+    Quux quux = new java_director_typemaps_ptr_MyQuux();
     quux.etest();
   }
 }
 
-class java_director_typemaps_MyQuux extends Quux {
-  public java_director_typemaps_MyQuux() {
+class java_director_typemaps_ptr_MyQuux extends Quux {
+  public java_director_typemaps_ptr_MyQuux() {
     super();
   }
 
