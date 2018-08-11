@@ -227,7 +227,7 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
 {
   JNITYPE $1_jvalue;
   JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
-  *$result = ($*1_ltype)$1_jvalue;
+  if ($result) *$result = ($*1_ltype)$1_jvalue;
 }
 
 %typemap(typecheck) TYPE *OUTPUT = TYPECHECKTYPE;
