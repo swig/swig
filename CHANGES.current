@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-08-12: brianhatwood,wsfulton
+            [Java] #1303 #1304 Fix crash in directors when using OUTPUT and INOUT typemaps in typemaps.i and
+            passing NULL pointers in C++ to director method overloaded and implemented in Java.
+
 2018-08-10: wsfulton
             [Python] #1293 Improve TypeError message inconsistencies between default and fastdispatch
             mode when handling overloaded C++ functions. Previously the error message did not always

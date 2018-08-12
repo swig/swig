@@ -344,6 +344,71 @@ public:
     verify(floatarg_inout == 112);
     verify(doublearg_inout == 113);
   }
+
+  void nulltest() {
+    director_method_output(
+       NULL,
+
+       NULL,
+       NULL,
+
+       NULL,
+       NULL,
+
+       NULL,
+       NULL,
+
+       NULL,
+       NULL,
+
+       NULL,
+       // NULL,
+
+       NULL,
+       NULL);
+
+    director_method_inout(
+       NULL,
+
+       NULL,
+       NULL,
+
+       NULL,
+       NULL,
+
+       NULL,
+       NULL,
+
+       NULL,
+       NULL,
+
+       NULL,
+       // NULL,
+
+       NULL,
+       NULL);
+
+    director_method_nameless_args(
+       NULL,
+
+       NULL,
+       NULL,
+
+       NULL,
+       NULL,
+
+       NULL,
+       NULL,
+
+       NULL,
+       NULL,
+
+       NULL,
+       // NULL,
+
+       NULL,
+       NULL);
+  }
 };
 %}
 
