@@ -212,8 +212,16 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
   JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &jvalue);
 }
 
-%typemap(directorin,descriptor=JNIDESC) TYPE &OUTPUT, TYPE *OUTPUT %{
+%typemap(directorin,descriptor=JNIDESC) TYPE &OUTPUT %{
   $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
+  if (!$input) return $null;
+  Swig::LocalRefGuard $1_refguard(jenv, $input); %}
+
+%typemap(directorin,descriptor=JNIDESC) TYPE *OUTPUT %{
+  if ($1) {
+    $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
+    if (!$input) return $null;
+  }
   Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
 %typemap(directorargout, noblock=1) TYPE &OUTPUT
@@ -225,9 +233,11 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
 
 %typemap(directorargout, noblock=1) TYPE *OUTPUT
 {
-  JNITYPE $1_jvalue;
-  JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
-  *$result = ($*1_ltype)$1_jvalue;
+  if ($result) {
+    JNITYPE $1_jvalue;
+    JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+    *$result = ($*1_ltype)$1_jvalue;
+  }
 }
 
 %typemap(typecheck) TYPE *OUTPUT = TYPECHECKTYPE;
@@ -273,9 +283,11 @@ OUTPUT_TYPEMAP(double, jdouble, double, Double, "[D", jdoubleArray);
 
 %typemap(directorargout, noblock=1) bool *OUTPUT
 {
-  jboolean $1_jvalue;
-  JCALL4(GetBooleanArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
-  *$result = $1_jvalue ? true : false;
+  if ($result) {
+    jboolean $1_jvalue;
+    JCALL4(GetBooleanArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+    *$result = $1_jvalue ? true : false;
+  }
 }
 
 
@@ -388,14 +400,18 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 
 %typemap(directorin,descriptor=JNIDESC) TYPE &INOUT %{
   $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
+  if (!$input) return $null;
   JNITYPE $1_jvalue = (JNITYPE)$1;
   JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
   Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
 %typemap(directorin,descriptor=JNIDESC) TYPE *INOUT %{
-  $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
-  JNITYPE $1_jvalue = (JNITYPE)*$1;
-  JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+  if ($1) {
+    $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
+    if (!$input) return $null;
+    JNITYPE $1_jvalue = (JNITYPE)*$1;
+    JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+  }
   Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
 %typemap(directorargout, noblock=1) TYPE &INOUT
@@ -406,8 +422,11 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 
 %typemap(directorargout, noblock=1) TYPE *INOUT
 {
-  JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
-  *$result = ($*1_ltype)$1_jvalue;
+  if ($result) {
+    JNITYPE $1_jvalue;
+    JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+    *$result = ($*1_ltype)$1_jvalue;
+  }
 }
 
 %typemap(typecheck) TYPE *INOUT = TYPECHECKTYPE;
@@ -459,8 +478,11 @@ INOUT_TYPEMAP(double, jdouble, double, Double, "[D", jdoubleArray);
 
 %typemap(directorargout, noblock=1) bool *INOUT
 {
-  JCALL4(GetBooleanArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
-  *$result = $1_jvalue ? true : false;
+  if ($result) {
+    jboolean $1_jvalue;
+    JCALL4(GetBooleanArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+    *$result = $1_jvalue ? true : false;
+  }
 }
 
 
