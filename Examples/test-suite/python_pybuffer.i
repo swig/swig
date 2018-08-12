@@ -1,4 +1,4 @@
-%module python_pybuf
+%module python_pybuffer
 %include <pybuffer.i>
 %include <cstring.i>
 /*functions for the test case*/
