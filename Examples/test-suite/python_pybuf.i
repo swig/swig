@@ -1,6 +1,6 @@
 %module python_pybuf
-%include<pybuffer.i>
-%include<cstring.i>
+%include <pybuffer.i>
+%include <cstring.i>
 /*functions for the test case*/
 %pybuffer_mutable_binary(char *buf1, int len);
 %pybuffer_mutable_string(char *buf2);

@@ -6272,8 +6272,8 @@ For detailed usage of function annotation, see
 
 
 <p>
-Buffer protocols were revised in Python 3. SWIG also gains a series of
-new typemaps to support buffer interfaces. These typemap macros are
+SWIG has a series of
+typemaps to support buffer interfaces. These typemap macros are
 defined in <tt>pybuffer.i</tt>, which must be included in order to use them.
 By using these typemaps, your wrapped function will be able to
 accept any Python object that exposes a suitable buffer interface.
@@ -6398,7 +6398,7 @@ type.
 This macro maps an object's buffer to a pointer <tt>parm</tt> and a
 size <tt>size_parm</tt>. It is similar to
 <tt>%pybuffer_mutable_binary</tt>, except the
-<tt>%pybuffer_binary</tt> an accept both mutable and immutable
+<tt>%pybuffer_binary</tt> can accept both mutable and immutable
 buffers. As a result, the wrapped function should not modify the buffer.
 </p>
 
