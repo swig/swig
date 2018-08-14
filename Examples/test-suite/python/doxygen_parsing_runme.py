@@ -17,7 +17,7 @@ comment_verifier.check(inspect.getdoc(doxygen_parsing.SomeAnotherClass),
 # There doesn't seem to be any way to specify the doc string for __init__ when
 # using "-builtin" (see http://stackoverflow.com/q/11913492/15275), so skip
 # this test in this case.
-if str(os.environ.get('SWIG_FEATURES')).find('-builtin') == -1:
+if not doxygen_parsing.is_python_builtin():
     comment_verifier.check(inspect.getdoc(doxygen_parsing.SomeAnotherClass.__init__),
     r"""*Overload 1:*
 First overloaded constructor.
