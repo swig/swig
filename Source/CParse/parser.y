@@ -3862,6 +3862,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		       while (Getattr(outer, "nested:outer"))
 			 outer = Getattr(outer, "nested:outer");
 		       appendSibling(outer, $$);
+		       Swig_symbol_setscope(cscope); /* declaration goes in the parent scope */
 		       add_symbols($9);
 		       set_scope_to_global();
 		       Delete(Namespaceprefix);
