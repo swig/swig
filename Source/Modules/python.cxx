@@ -825,18 +825,8 @@ public:
       }
 
       Printv(default_import_code, "\nfrom sys import version_info as _swig_python_version_info\n", NULL);
-
-      if (!builtin && fastproxy) {
-	Printv(default_import_code, "if _swig_python_version_info >= (3, 0, 0):\n", NULL);
-	Printf(default_import_code, tab4 "new_instancemethod = lambda func, inst, cls: %s.SWIG_PyInstanceMethod_New(func)\n", module);
-	Printv(default_import_code, "elif _swig_python_version_info >= (2, 7, 0):\n", NULL);
-	Printv(default_import_code, tab4, "from new import instancemethod as new_instancemethod\n", NULL);
-	Printv(default_import_code, "else:\n", NULL);
-	Printv(default_import_code, tab4, "raise RuntimeError('Python 2.7 or later required')\n", NULL);
-      } else {
-	Printv(default_import_code, "if _swig_python_version_info < (2, 7, 0):\n", NULL);
-	Printv(default_import_code, tab4, "raise RuntimeError('Python 2.7 or later required')\n", NULL);
-      }
+      Printv(default_import_code, "if _swig_python_version_info < (2, 7, 0):\n", NULL);
+      Printv(default_import_code, tab4, "raise RuntimeError('Python 2.7 or later required')\n", NULL);
 
       /* Import the C-extension module.  This should be a relative import,
        * since the shadow module may also have been imported by a relative
@@ -896,6 +886,11 @@ public:
       /* Need builtins to qualify names like Exception that might also be
          defined in this module (try both Python 3 and Python 2 names) */
       Printv(f_shadow, "try:\n", tab4, "import builtins as __builtin__\n", "except ImportError:\n", tab4, "import __builtin__\n", NULL);
+
+      if (!builtin && fastproxy) {
+	Printf(f_shadow, "\n");
+	Printf(f_shadow, "_swig_new_instance_method = %s.SWIG_PyInstanceMethod_New\n", module);
+      }
 
       /* if (!modern) */
       /* always needed, a class can be forced to be no-modern, such as an exception */
@@ -4682,8 +4677,19 @@ public:
       }
 
       /* Now emit methods */
-      if (!builtin)
+      if (!builtin) {
 	Printv(f_shadow_file, f_shadow, NIL);
+
+	if (fastproxy) {
+	  Printf(f_shadow_file, "\n");
+	  List *shadow_list = Getattr(n, "shadow_methods");
+	  for (int i = 0; i < Len(shadow_list); ++i) {
+	    String *symname = Getitem(shadow_list, i);
+	    Printf(f_shadow_file, tab4);
+	    Printf(f_shadow_file, "%s = _swig_new_instance_method(%s.%s)\n", symname, module, Swig_name_member(NSPACE_TODO, class_name, symname));
+	  }
+	}
+      }
 
       /* Now the Ptr class */
       if (classptr && !builtin) {
@@ -4691,23 +4697,16 @@ public:
 	if (!modern) {
 	  Printv(f_shadow_file,
 		 tab8, "try:\n", tab8, tab4, "self.this.append(this)\n",
-		 tab8, "except __builtin__.Exception:\n", tab8, tab4, "self.this = this\n", tab8, "self.this.own(0)\n", tab8, "self.__class__ = ", class_name, "\n\n", NIL);
+		 tab8, "except __builtin__.Exception:\n", tab8, tab4, "self.this = this\n", tab8, "self.this.own(0)\n", tab8, "self.__class__ = ", class_name, "\n", NIL);
 	} else {
 	  Printv(f_shadow_file,
 		 tab8, "try:\n", tab8, tab4, "self.this.append(this)\n",
-		 tab8, "except __builtin__.Exception:\n", tab8, tab4, "self.this = this\n", tab8, "self.this.own(0)\n", tab8, "self.__class__ = ", class_name, "\n\n", NIL);
+		 tab8, "except __builtin__.Exception:\n", tab8, tab4, "self.this = this\n", tab8, "self.this.own(0)\n", tab8, "self.__class__ = ", class_name, "\n", NIL);
 	}
       }
 
       if (!builtin) {
-	if (fastproxy) {
-	  List *shadow_list = Getattr(n, "shadow_methods");
-	  for (int i = 0; i < Len(shadow_list); ++i) {
-	    String *symname = Getitem(shadow_list, i);
-	    Printf(f_shadow_file, "%s.%s = new_instancemethod(%s.%s, None, %s)\n", class_name, symname, module, Swig_name_member(NSPACE_TODO, class_name, symname),
-		   class_name);
-	  }
-	}
+	Printf(f_shadow_file, "\n");
 	Printf(f_shadow_file, "# Register %s in %s:\n", class_name, module);
 	Printf(f_shadow_file, "%s.%s_swigregister(%s)\n", module, class_name, class_name);
       }

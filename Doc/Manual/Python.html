@@ -71,6 +71,10 @@
 <li><a href="#Python_nn42">Adding additional Python code</a>
 <li><a href="#Python_nn43">Class extension with %extend</a>
 <li><a href="#Python_nn44">Exception handling with %exception</a>
+<li><a href="#Python_optimization">Optimization options</a>
+<ul>
+<li><a href="#Python_fastproxy">-fastproxy</a>
+</ul>
 </ul>
 <li><a href="#Python_nn45">Tips and techniques</a>
 <ul>
@@ -3796,6 +3800,99 @@ This macro should always be called after setting a Python error in code snippets
 The language-independent <tt>exception.i</tt> library file can also be used
 to raise exceptions.  See the <a href="Library.html#Library">SWIG Library</a> chapter.
 </p>
+
+<H3><a name="Python_optimization">38.6.5 Optimization options</a></H3>
+
+
+<H4><a name="Python_fastproxy">38.6.5.1 -fastproxy</a></H4>
+
+
+<p>
+The <tt>-fastproxy</tt> command line option enables faster method calling as the call is made directly into the C/C++ layer rather than going through a method wrapper.
+</p>
+
+<p>
+Consider wrapping a C++ class:
+</p>
+
+<div class="code">
+<pre>
+struct Go {
+  void callme0() {}
+  void callme4(int a, int b, int c, int d) {}
+  void callme8(double a, double b, double c, double d, double e, double f, double g, double i) {}
+};
+</pre>
+</div>
+
+<p>
+The default generated proxy class is:
+</p>
+
+<div class="targetlang">
+<pre>
+class Go(object):
+    def callme0(self):
+        return _example.Go_callme0(self)
+
+    def callme4(self, a, b, c, d):
+        return _example.Go_callme4(self, a, b, c, d)
+
+    def callme8(self, a, b, c, d, e, f, g, i):
+        return _example.Go_callme8(self, a, b, c, d, e, f, g, i)
+    ...
+</pre>
+</div>
+
+<p>
+The generated code when using <tt>-fastproxy</tt> is:
+</p>
+
+<div class="targetlang">
+<pre>
+%module example
+class Go(_object):
+    callme0 = _swig_new_instance_method(_example.Go_callme0)
+    callme4 = _swig_new_instance_method(_example.Go_callme4)
+    callme8 = _swig_new_instance_method(_example.Go_callme8)
+    ...
+</pre>
+</div>
+
+<p>
+where <tt>_swig_new_instance_method</tt> adds the method to the proxy class via C API calls.
+The overhead calling into C/C++ from Python is reduced slightly using <tt>-fastproxy</tt>.
+Below are some timings in microseconds calling the 3 functions in the example above:
+</p>
+
+<table summary="Python fastproxy performance">
+    <tr>
+        <th>Method name</th>
+        <th>Without -proxy</th>
+        <th>With -proxy</th>
+    </tr>
+    <tr>
+        <td>callme0</td>
+        <td>0.57</td>
+        <td>0.48</td>
+    </tr>
+    <tr>
+        <td>callme4</td>
+        <td>0.64</td>
+        <td>0.54</td>
+    </tr>
+    <tr>
+        <td>callme8</td>
+        <td>0.73</td>
+        <td>0.57</td>
+    </tr>
+</table>
+
+<p>
+Although the <tt>-fastproxy</tt> option results in faster code, the generated proxy code is not as user-friendly
+as docstring/doxygen comments and functions with default values are not visible in the generated python proxy class.
+</p>
+
 
 <H2><a name="Python_nn45">38.7 Tips and techniques</a></H2>
 

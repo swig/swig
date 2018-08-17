@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-08-18: wsfulton
+            [Python] #1310 Re-implement Python -fastproxy option.
+
+            The previous implementation failed with Python 3 and abstract base clases.
+            The new implementation replaces the Python 2 implementation using
+            new.instancemethod with the C API PyMethod_New to match the equivalent Python 3
+            implementation which uses PyInstanceMethod_New.
+
+            The new approach runs slightly faster. See #1310.
+
 2018-08-12: gmazzamuto
             [Python] #1283 Update pybuffer.i library to use new-style Python buffer C API.
 
