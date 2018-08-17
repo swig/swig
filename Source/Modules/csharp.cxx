@@ -78,6 +78,8 @@ class CSHARP:public Language {
   String *director_delegate_definitions;	// Director delegates definitions in proxy class
   String *director_delegate_instances;	// Director delegates member variables in proxy class
   String *director_method_types;	// Director method types
+  String *director_override_status;	// Director overridden method status
+  String *director_override_status_init;	// Director overriden status initialization
   String *director_connect_parms;	// Director delegates parameter list for director connect call
   String *destructor_call;	//C++ destructor call if any
   String *output_file;		// File name for single file mode. If set all generated code will be written to this file
@@ -153,6 +155,8 @@ public:
       director_delegate_definitions(NULL),
       director_delegate_instances(NULL),
       director_method_types(NULL),
+      director_override_status(NULL),
+      director_override_status_init(NULL),
       director_connect_parms(NULL),
       destructor_call(NULL),
       output_file(NULL),
@@ -388,6 +392,8 @@ public:
     module_class_modifiers = NewString("");
     imclass_imports = NewString("");
     imclass_cppcasts_code = NewString("");
+    director_override_status = NewString("");
+    director_override_status_init = NewString("");
     director_connect_parms = NewString("");
     upcasts_code = NewString("");
     dmethods_seq = NewList();
@@ -1866,11 +1872,27 @@ public:
     if (csattributes && *Char(csattributes))
       Printf(proxy_class_def, "%s\n", csattributes);
 
+    attributes = NewHash();
+    String* csbody_tm = Copy(typemapLookup(n, derived ? "csbody_derived" : "csbody", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF, attributes));
+    if (!feature_director) {
+      Replaceall(csbody_tm, "$directorsetup", "");
+    } else {
+      String *setup_attr = Getattr(attributes, derived ? "tmap:csbody_derived:directorsetup" : "tmap:csbody:directorsetup");
+
+      if (setup_attr) {
+        Replaceall(csbody_tm, "$directorsetup", setup_attr);
+      } else {
+        Swig_warning(WARN_CSHARP_NO_DIRECTORCONNECT_ATTR, input_file, line_number, "\"directorsetup\" attribute missing in %s \"%s\" typemap.\n",
+        Getattr(n, "name"), derived ? "csbody_derived" : "csbody");
+        Replaceall(csbody_tm, "$directorsetup", "");
+      }
+    }
+    Delete(attributes);
+
     Printv(proxy_class_def, typemapLookup(n, "csclassmodifiers", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
 	   " $csclassname",	// Class name and base class
 	   (*Char(wanted_base) || *Char(interface_list)) ? " : " : "", wanted_base, (*Char(wanted_base) && *Char(interface_list)) ?	// Interfaces
-	   ", " : "", interface_list, " {", derived ? typemapLookup(n, "csbody_derived", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF) :	// main body of class
-	   typemapLookup(n, "csbody", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF),	// main body of class
+	   ", " : "", interface_list, " {", csbody_tm,	// main body of class
 	   NIL);
 
     // C++ destructor is wrapped by the Dispose method
@@ -1926,15 +1948,19 @@ public:
     if (feature_director) {
       // Generate director connect method
       // put this in classDirectorEnd ???
+      Printf(proxy_class_code, "  private void SwigDirectorSetup() {\n");
+      Printf(proxy_class_code, "    var classType = typeof(%s);\n", proxy_class_name);
+      Printv(proxy_class_code, director_override_status_init, NIL);
+      Printf(proxy_class_code, "  }\n\n");
       Printf(proxy_class_code, "  private void SwigDirectorConnect() {\n");
+      Printf(proxy_class_code, "    SwigDirectorSetup();\n");
 
       int i;
       for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
 	UpcallData *udata = Getitem(dmethods_seq, i);
-	String *method = Getattr(udata, "method");
 	String *methid = Getattr(udata, "class_methodidx");
 	String *overname = Getattr(udata, "overname");
-	Printf(proxy_class_code, "    if (SwigDerivedClassHasMethod(\"%s\", swigMethodTypes%s))\n", method, methid);
+	Printf(proxy_class_code, "    if (swigMethodOverriden%s)\n", methid);
 	Printf(proxy_class_code, "      swigDelegate%s = new SwigDelegate%s_%s(SwigDirector%s);\n", methid, proxy_class_name, methid, overname);
       }
       String *director_connect_method_name = Swig_name_member(getNSpace(), getClassPrefix(), "director_connect");
@@ -1947,36 +1973,6 @@ public:
       Printf(proxy_class_code, ");\n");
       Printf(proxy_class_code, "  }\n");
 
-      if (first_class_dmethod < curr_class_dmethod) {
-	// Only emit if there is at least one director method
-	Printf(proxy_class_code, "\n");
-	Printf(proxy_class_code, "  private bool SwigDerivedClassHasMethod(string methodName, global::System.Type[] methodTypes) {\n");
-	Printf(proxy_class_code,
-	       "    global::System.Reflection.MethodInfo methodInfo = this.GetType().GetMethod(methodName, global::System.Reflection.BindingFlags.Public | global::System.Reflection.BindingFlags.NonPublic | global::System.Reflection.BindingFlags.Instance, null, methodTypes, null);\n");
-	Printf(proxy_class_code, "    bool hasDerivedMethod = methodInfo.DeclaringType.IsSubclassOf(typeof(%s));\n", proxy_class_name);
-	/* Could add this code to cover corner case where the GetMethod() returns a method which allows type
-	 * promotion, eg it will return foo(double), if looking for foo(int).
-	 if (hasDerivedMethod) {
-	 hasDerivedMethod = false;
-	 if (methodInfo != null)
-	 {
-	 hasDerivedMethod = true;
-	 ParameterInfo[] parameterArray1 = methodInfo.GetParameters();
-	 for (int i=0; i<methodTypes.Length; i++)
-	 {
-	 if (parameterArray1[0].ParameterType != methodTypes[0])
-	 {
-	 hasDerivedMethod = false;
-	 break;
-	 }
-	 }
-	 }
-	 }
-	 */
-	Printf(proxy_class_code, "    return hasDerivedMethod;\n");
-	Printf(proxy_class_code, "  }\n");
-      }
-
       if (Len(director_delegate_callback) > 0)
 	Printv(proxy_class_code, director_delegate_callback, NIL);
       if (Len(director_delegate_definitions) > 0)
@@ -1985,6 +1981,10 @@ public:
 	Printv(proxy_class_code, "\n", director_delegate_instances, NIL);
       if (Len(director_method_types) > 0)
 	Printv(proxy_class_code, "\n", director_method_types, NIL);
+      if (Len(director_override_status) > 0)
+	Printv(proxy_class_code, "\n", director_override_status, NIL);
+
+      Printv(proxy_class_code, "\n", NIL);
 
       Delete(director_callback_typedefs);
       director_callback_typedefs = NULL;
@@ -1998,6 +1998,10 @@ public:
       director_delegate_instances = NULL;
       Delete(director_method_types);
       director_method_types = NULL;
+      Delete(director_override_status);
+      director_override_status = NULL;
+      Delete(director_override_status_init);
+      director_override_status_init = NULL;
       Delete(director_connect_parms);
       director_connect_parms = NULL;
       Delete(director_connect_method_name);
@@ -2007,6 +2011,7 @@ public:
     Delete(interface_list);
     Delete(attributes);
     Delete(destruct);
+    Delete(csbody_tm);
 
     // Emit extra user code
     Printv(proxy_class_def, typemapLookup(n, "cscode", typemap_lookup_type, WARN_NONE),	// extra C# code
@@ -2545,9 +2550,9 @@ public:
 	  String *methid = Getattr(udata, "class_methodidx");
 
 	  if (!Cmp(return_type, "void"))
-	    Printf(excode, "if (SwigDerivedClassHasMethod(\"%s\", swigMethodTypes%s)) %s; else %s", proxy_function_name, methid, ex_imcall, imcall);
+	    Printf(excode, "if (swigMethodOverriden%s) %s; else %s", methid, ex_imcall, imcall);
 	  else
-	    Printf(excode, "(SwigDerivedClassHasMethod(\"%s\", swigMethodTypes%s) ? %s : %s)", proxy_function_name, methid, ex_imcall, imcall);
+	    Printf(excode, "(swigMethodOverriden%s ? %s : %s)", methid, ex_imcall, imcall);
 
 	  Clear(imcall);
 	  Printv(imcall, excode, NIL);
@@ -4233,6 +4238,7 @@ public:
       /* Emit the actual upcall through */
       UpcallData *udata = addUpcallMethod(imclass_dmethod, symname, decl, overloaded_name);
       String *methid = Getattr(udata, "class_methodidx");
+      String *method = Getattr(udata, "method");
       Setattr(n, "upcalldata", udata);
       /*
       Printf(stdout, "setting upcalldata, nodeType: %s %s::%s %p\n", nodeType(n), classname, Getattr(n, "name"), n);
@@ -4245,6 +4251,8 @@ public:
       Printf(director_delegate_definitions, " SwigDelegate%s_%s(%s);\n", classname, methid, delegate_parms);
       Printf(director_delegate_instances, "  private SwigDelegate%s_%s swigDelegate%s;\n", classname, methid, methid);
       Printf(director_method_types, "  private static global::System.Type[] swigMethodTypes%s = new global::System.Type[] { %s };\n", methid, proxy_method_types);
+      Printf(director_override_status, "  private bool swigMethodOverriden%s;\n", methid);
+      Printf(director_override_status_init, "    swigMethodOverriden%s = %s.SwigDerivedClassHasMethod(this, \"%s\", classType, swigMethodTypes%s);\n", methid, imclass_name, method, methid);
       Printf(director_connect_parms, "SwigDirector%s%s delegate%s", classname, methid, methid);
     }
 
@@ -4368,6 +4376,8 @@ public:
     director_delegate_definitions = NewString("");
     director_delegate_instances = NewString("");
     director_method_types = NewString("");
+    director_override_status = NewString("");
+    director_override_status_init = NewString("");
     director_connect_parms = NewString("");
 
     return Language::classDirectorInit(n);
@@ -4380,6 +4390,8 @@ public:
     String *old_director_delegate_definitions = director_delegate_definitions;
     String *old_director_delegate_instances = director_delegate_instances;
     String *old_director_method_types = director_method_types;
+    String *old_director_override_status = director_override_status;
+    String *old_director_override_status_init = director_override_status_init;
     String *old_director_connect_parms = director_connect_parms;
 
     int ret = Language::classDeclaration(n);
@@ -4391,6 +4403,8 @@ public:
     director_delegate_definitions = old_director_delegate_definitions;
     director_delegate_instances = old_director_delegate_instances;
     director_method_types = old_director_method_types;
+    director_override_status = old_director_override_status;
+    director_override_status_init = old_director_override_status_init;
     director_connect_parms = old_director_connect_parms;
 
     return ret;

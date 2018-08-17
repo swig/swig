@@ -88,7 +88,7 @@
  * written to possibly optimise this lookup by taking advantage of characteristics peculiar to the targeted enum.
  * The special variable, $enumvalues, is replaced with a comma separated list of all the enum values.
  */
-%typemap(csbody) enum SWIGTYPE %{
+%typemap(csbody, directorsetup="") enum SWIGTYPE %{
   public readonly int swigValue;
 
   public static $csclassname swigToEnum(int swigValue) {

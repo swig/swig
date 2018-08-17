@@ -891,13 +891,13 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 %define SWIG_CSBODY_PROXY(PTRCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...)
 // Proxy classes (base classes, ie, not derived classes)
-%typemap(csbody) TYPE %{
+%typemap(csbody, directorsetup="\n    SwigDirectorSetup();") TYPE %{
   private global::System.Runtime.InteropServices.HandleRef swigCPtr;
   protected bool swigCMemOwn;
 
   PTRCTOR_VISIBILITY $csclassname(global::System.IntPtr cPtr, bool cMemoryOwn) {
     swigCMemOwn = cMemoryOwn;
-    swigCPtr = new global::System.Runtime.InteropServices.HandleRef(this, cPtr);
+    swigCPtr = new global::System.Runtime.InteropServices.HandleRef(this, cPtr);$directorsetup
   }
 
   CPTR_VISIBILITY static global::System.Runtime.InteropServices.HandleRef getCPtr($csclassname obj) {
@@ -906,11 +906,11 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %}
 
 // Derived proxy classes
-%typemap(csbody_derived) TYPE %{
+%typemap(csbody_derived, directorsetup="\n    SwigDirectorSetup();") TYPE %{
   private global::System.Runtime.InteropServices.HandleRef swigCPtr;
 
   PTRCTOR_VISIBILITY $csclassname(global::System.IntPtr cPtr, bool cMemoryOwn) : base($imclassname.$csclazznameSWIGUpcast(cPtr), cMemoryOwn) {
-    swigCPtr = new global::System.Runtime.InteropServices.HandleRef(this, cPtr);
+    swigCPtr = new global::System.Runtime.InteropServices.HandleRef(this, cPtr);$directorsetup
   }
 
   CPTR_VISIBILITY static global::System.Runtime.InteropServices.HandleRef getCPtr($csclassname obj) {
@@ -921,7 +921,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 %define SWIG_CSBODY_TYPEWRAPPER(PTRCTOR_VISIBILITY, DEFAULTCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...)
 // Typewrapper classes
-%typemap(csbody) TYPE *, TYPE &, TYPE &&, TYPE [] %{
+%typemap(csbody, directorsetup="") TYPE *, TYPE &, TYPE &&, TYPE [] %{
   private global::System.Runtime.InteropServices.HandleRef swigCPtr;
 
   PTRCTOR_VISIBILITY $csclassname(global::System.IntPtr cPtr, bool futureUse) {
@@ -937,7 +937,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   }
 %}
 
-%typemap(csbody) TYPE (CLASS::*) %{
+%typemap(csbody, directorsetup="") TYPE (CLASS::*) %{
   private string swigCMemberPtr;
 
   PTRCTOR_VISIBILITY $csclassname(string cMemberPtr, bool futureUse) {
