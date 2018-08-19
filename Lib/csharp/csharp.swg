@@ -891,7 +891,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 %define SWIG_CSBODY_PROXY(PTRCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...)
 // Proxy classes (base classes, ie, not derived classes)
-%typemap(csbody, directorsetup="\n    SwigDirectorSetup();") TYPE %{
+%typemap(csbody, directorsetup="\n    SetupSwigDirector();") TYPE %{
   private global::System.Runtime.InteropServices.HandleRef swigCPtr;
   protected bool swigCMemOwn;
 
@@ -906,7 +906,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %}
 
 // Derived proxy classes
-%typemap(csbody_derived, directorsetup="\n    SwigDirectorSetup();") TYPE %{
+%typemap(csbody_derived, directorsetup="\n    SetupSwigDirector();") TYPE %{
   private global::System.Runtime.InteropServices.HandleRef swigCPtr;
 
   PTRCTOR_VISIBILITY $csclassname(global::System.IntPtr cPtr, bool cMemoryOwn) : base($imclassname.$csclazznameSWIGUpcast(cPtr), cMemoryOwn) {
@@ -965,7 +965,7 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
   }
 %}
 
-%typemap(csconstruct, excode=SWIGEXCODE,directorconnect="\n    SwigDirectorConnect();") SWIGTYPE %{: this($imcall, true) {$excode$directorconnect
+%typemap(csconstruct, excode=SWIGEXCODE,directorconnect="\n    ConnectSwigDirector();") SWIGTYPE %{: this($imcall, true) {$excode$directorconnect
   }
 %}
 

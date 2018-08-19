@@ -121,6 +121,10 @@ public:
   static Bar * call_pmethod(MyClass *myclass, Bar *b) {
     return myclass->pmethod(b);
   }
+
+   // Collisions with generated method names
+   virtual void Connect() { }
+   virtual void Setup() { }
 };
 
 template<class T>

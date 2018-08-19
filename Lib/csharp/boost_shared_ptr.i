@@ -253,7 +253,7 @@
 
 
 // Proxy classes (base classes, ie, not derived classes)
-%typemap(csbody, directorsetup="\n    SwigDirectorSetup();") TYPE %{
+%typemap(csbody, directorsetup="\n    SetupSwigDirector();") TYPE %{
   private global::System.Runtime.InteropServices.HandleRef swigCPtr;
   private bool swigCMemOwnBase;
 
@@ -268,7 +268,7 @@
 %}
 
 // Derived proxy classes
-%typemap(csbody_derived, directorsetup="\n    SwigDirectorSetup();") TYPE %{
+%typemap(csbody_derived, directorsetup="\n    SetupSwigDirector();") TYPE %{
   private global::System.Runtime.InteropServices.HandleRef swigCPtr;
   private bool swigCMemOwnDerived;
 

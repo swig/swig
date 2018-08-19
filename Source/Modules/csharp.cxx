@@ -1948,12 +1948,12 @@ public:
     if (feature_director) {
       // Generate director connect method
       // put this in classDirectorEnd ???
-      Printf(proxy_class_code, "  private void SwigDirectorSetup() {\n");
+      Printf(proxy_class_code, "  private void SetupSwigDirector() {\n");
       Printf(proxy_class_code, "    var classType = typeof(%s);\n", proxy_class_name);
       Printv(proxy_class_code, director_override_status_init, NIL);
       Printf(proxy_class_code, "  }\n\n");
-      Printf(proxy_class_code, "  private void SwigDirectorConnect() {\n");
-      Printf(proxy_class_code, "    SwigDirectorSetup();\n");
+      Printf(proxy_class_code, "  private void ConnectSwigDirector() {\n");
+      Printf(proxy_class_code, "    SetupSwigDirector();\n");
 
       int i;
       for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
