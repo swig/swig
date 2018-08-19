@@ -8,6 +8,9 @@ Version 4.0.0 (in progress)
 ===========================
 
 2018-08-18: wsfulton
+            [Python] #688 Fix makefile recursion when running python test-suite.
+
+2018-08-18: wsfulton
             [Python] #1310 Re-implement Python -fastproxy option.
 
             The previous implementation failed with Python 3 and abstract base clases.

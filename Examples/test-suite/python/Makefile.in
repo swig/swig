@@ -157,6 +157,8 @@ run_testcase = \
 	fi
 
 # Grab runme file ready for running: copied for out of source tree builds, and/or run 2to3
+# Note terminal (double colon) rules creating runme files to fix possible infinite recursion,
+# see https://github.com/swig/swig/pull/688
 ifeq ($(SCRIPTDIR),$(srcdir))
   # in source tree build
   ifeq (,$(PY3))
@@ -167,7 +169,8 @@ ifeq ($(SCRIPTDIR),$(srcdir))
 	  $(MAKE) $(SCRIPTDIR)/$(py_runme); \
 	fi
 
-$(SCRIPTDIR)/$(SCRIPTPREFIX)%$(SCRIPTSUFFIX): $(srcdir)/$(SCRIPTPREFIX)%$(PY2SCRIPTSUFFIX)
+# For converting python 2 tests into Python 3 tests
+$(SCRIPTDIR)/$(SCRIPTPREFIX)%$(SCRIPTSUFFIX):: $(srcdir)/$(SCRIPTPREFIX)%$(PY2SCRIPTSUFFIX)
 	cp $< $@
 	$(PY2TO3) -w $@ >/dev/null 2>&1
 
@@ -180,7 +183,7 @@ else
 	  $(MAKE) $(SCRIPTDIR)/$(py_runme); \
 	fi
 
-$(SCRIPTDIR)/$(SCRIPTPREFIX)%$(SCRIPTSUFFIX): $(srcdir)/$(SCRIPTPREFIX)%$(PY2SCRIPTSUFFIX)
+$(SCRIPTDIR)/$(SCRIPTPREFIX)%$(SCRIPTSUFFIX):: $(srcdir)/$(SCRIPTPREFIX)%$(PY2SCRIPTSUFFIX)
 	cp $< $@
 
   else
@@ -192,10 +195,11 @@ $(SCRIPTDIR)/$(SCRIPTPREFIX)%$(SCRIPTSUFFIX): $(srcdir)/$(SCRIPTPREFIX)%$(PY2SCR
 	fi
 
 # For when there is a _runme3.py instead of a _runme.py, ie a Python 3 only run test
-$(SCRIPTDIR)/$(SCRIPTPREFIX)%$(SCRIPTSUFFIX): $(srcdir)/$(SCRIPTPREFIX)%$(PY3SCRIPTSUFFIX)
+$(SCRIPTDIR)/$(SCRIPTPREFIX)%$(SCRIPTSUFFIX):: $(srcdir)/$(SCRIPTPREFIX)%$(PY3SCRIPTSUFFIX)
 	cp $< $@
 
-$(SCRIPTDIR)/$(SCRIPTPREFIX)%$(SCRIPTSUFFIX): $(srcdir)/$(SCRIPTPREFIX)%$(PY2SCRIPTSUFFIX)
+# For converting python 2 tests into Python 3 tests
+$(SCRIPTDIR)/$(SCRIPTPREFIX)%$(SCRIPTSUFFIX):: $(srcdir)/$(SCRIPTPREFIX)%$(PY2SCRIPTSUFFIX)
 	cp $< $@
 	$(PY2TO3) -w $@ >/dev/null 2>&1
 
