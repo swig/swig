@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-08-20: wkalinin
+            #1305 Fix nested structure symbol tables in C mode to fix member name conflicts
+            in different structs with the same nested struct member name.
+
 2018-08-12: gmazzamuto
             [Python] #1283 Update pybuffer.i library to use new-style Python buffer C API.
 
