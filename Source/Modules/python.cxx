@@ -4676,36 +4676,24 @@ public:
 	builtin_tp_init = 0;
       }
 
-      /* Now emit methods */
       if (!builtin) {
+	/* Now emit methods */
 	Printv(f_shadow_file, f_shadow, NIL);
 
-	if (fastproxy) {
-	  Printf(f_shadow_file, "\n");
-	  List *shadow_list = Getattr(n, "shadow_methods");
-	  for (int i = 0; i < Len(shadow_list); ++i) {
-	    String *symname = Getitem(shadow_list, i);
-	    Printf(f_shadow_file, tab4);
-	    Printf(f_shadow_file, "%s = _swig_new_instance_method(%s.%s)\n", symname, module, Swig_name_member(NSPACE_TODO, class_name, symname));
+	/* Now the Ptr class */
+	if (classptr) {
+	  Printv(f_shadow_file, "\nclass ", class_name, "Ptr(", class_name, "):\n", tab4, "def __init__(self, this):\n", NIL);
+	  if (!modern) {
+	    Printv(f_shadow_file,
+		   tab8, "try:\n", tab8, tab4, "self.this.append(this)\n",
+		   tab8, "except __builtin__.Exception:\n", tab8, tab4, "self.this = this\n", tab8, "self.this.own(0)\n", tab8, "self.__class__ = ", class_name, "\n", NIL);
+	  } else {
+	    Printv(f_shadow_file,
+		   tab8, "try:\n", tab8, tab4, "self.this.append(this)\n",
+		   tab8, "except __builtin__.Exception:\n", tab8, tab4, "self.this = this\n", tab8, "self.this.own(0)\n", tab8, "self.__class__ = ", class_name, "\n", NIL);
 	  }
 	}
-      }
 
-      /* Now the Ptr class */
-      if (classptr && !builtin) {
-	Printv(f_shadow_file, "\nclass ", class_name, "Ptr(", class_name, "):\n", tab4, "def __init__(self, this):\n", NIL);
-	if (!modern) {
-	  Printv(f_shadow_file,
-		 tab8, "try:\n", tab8, tab4, "self.this.append(this)\n",
-		 tab8, "except __builtin__.Exception:\n", tab8, tab4, "self.this = this\n", tab8, "self.this.own(0)\n", tab8, "self.__class__ = ", class_name, "\n", NIL);
-	} else {
-	  Printv(f_shadow_file,
-		 tab8, "try:\n", tab8, tab4, "self.this.append(this)\n",
-		 tab8, "except __builtin__.Exception:\n", tab8, tab4, "self.this = this\n", tab8, "self.this.own(0)\n", tab8, "self.__class__ = ", class_name, "\n", NIL);
-	}
-      }
-
-      if (!builtin) {
 	Printf(f_shadow_file, "\n");
 	Printf(f_shadow_file, "# Register %s in %s:\n", class_name, module);
 	Printf(f_shadow_file, "%s.%s_swigregister(%s)\n", module, class_name, class_name);
@@ -4840,13 +4828,8 @@ public:
 	  }
 	}
 	if (fproxy) {
-	  List *shadow_list = Getattr(getCurrentClass(), "shadow_methods");
-	  if (!shadow_list) {
-	    shadow_list = NewList();
-	    Setattr(getCurrentClass(), "shadow_methods", shadow_list);
-	    Delete(shadow_list);
-	  }
-	  Append(shadow_list, symname);
+	  Printf(f_shadow, tab4);
+	  Printf(f_shadow, "%s = _swig_new_instance_method(%s.%s)\n", symname, module, Swig_name_member(NSPACE_TODO, class_name, symname));
 	}
 	Delete(fullname);
       }
