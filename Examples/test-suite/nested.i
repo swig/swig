@@ -44,42 +44,6 @@ struct OuterStructNamed {
 %}
 
 
-#if !defined(SWIGSCILAB)
-
-%inline %{
-
-struct OuterStructUnnamed {
-  struct {
-    double xx;
-  } inner_struct_unnamed;
-  union {
-    double yy;
-    int zz;
-  } inner_union_unnamed;
-};
-
-typedef struct OuterStruct {
-  union {
-
-    struct outer_nested_struct {
-      union inner_nested_union {
-#define BAD_STYLE 1
-        int red;
-        struct TestStruct green;
-      } InnerNestedUnion;
-
-      struct inner_nested_struct {
-        int blue;
-      } InnerNestedStruct;
-    } OuterNestedStruct;
-
-  } EmbeddedUnion;
-} OuterStruct;
-
-%}
-
-#else
-
 %inline %{
 
 struct OutStUnnamed {
@@ -112,7 +76,6 @@ typedef struct OutSt {
 
 %}
 
-#endif
 
 %inline %{
   typedef struct {
