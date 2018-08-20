@@ -1781,8 +1781,9 @@ void Swig_typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList *p
       String *lname = Getattr(p, "lname");
       SwigType *mtype = Getattr(p, "tmap:match");
       SwigType *matchtype = mtype ? mtype : type;
-
-      typemap_replace_vars(s, locals, matchtype, type, pname, lname, i + 1);
+      SwigType *rpt = SwigType_typedef_resolve_all(matchtype);
+      typemap_replace_vars(s, locals, rpt, type, pname, lname, i + 1);
+      Delete(rpt);
       if (mtype)
 	Delattr(p, "tmap:match");
 

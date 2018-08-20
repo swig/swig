@@ -845,7 +845,8 @@ Node *Swig_cparse_template_locate(String *name, Parm *tparms, Symtab *tscope) {
       n = Swig_symbol_clookup_local(name, 0);
       while (n) {
 	Parm *tparmsfound = Getattr(n, "templateparms");
-	if (ParmList_len(tparms) == ParmList_len(tparmsfound)) {
+        
+	if (ParmList_len(tparms) == ParmList_len(tparmsfound) || Getattr(tparmsfound, "variadic")) {
 	  /* successful match */
 	  break;
 	}

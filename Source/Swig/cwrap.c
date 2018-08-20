@@ -227,17 +227,17 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
   while (p != 0) {
     String *lname = Swig_cparm_name(p, i);
     SwigType *pt = Getattr(p, "type");
+    SwigType *rpt = SwigType_typedef_resolve_all(pt);
     if ((SwigType_type(pt) != T_VOID)) {
       String *local = 0;
-      String *type = Getattr(p, "type");
       /* default values only emitted if in compact default args mode */
       String *pvalue = (compactdefargs) ? Getattr(p, "value") : 0;
 
       /* When using compactdefaultargs, the code generated initialises a variable via a constructor call that accepts the
        * default value as a parameter. The default constructor is not called and therefore SwigValueWrapper is not needed. */
-      SwigType *altty = pvalue ? 0 : SwigType_alttype(type, 0);
+      SwigType *altty = pvalue ? 0 : SwigType_alttype(rpt, 0);
 
-      int tycode = SwigType_type(type);
+      int tycode = SwigType_type(rpt);
       if (tycode == T_REFERENCE) {
 	if (pvalue) {
 	  SwigType *tvalue;
@@ -245,7 +245,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
 	  rvalue = SwigType_typedef_resolve_all(pvalue);
 	  qvalue = SwigType_typedef_qualified(rvalue);
 	  defname = NewStringf("%s_defvalue", lname);
-	  tvalue = Copy(type);
+	  tvalue = Copy(rpt);
 	  SwigType_del_reference(tvalue);
 	  tycode = SwigType_type(tvalue);
 	  if (tycode != T_USER) {
@@ -255,7 +255,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
 	    Delete(lstr);
 	  } else {
 	    /* user type, we copy the reference value */
-	    String *str = SwigType_str(type, defname);
+	    String *str = SwigType_str(rpt, defname);
 	    defvalue = NewStringf("%s = %s", str, qvalue);
 	    Delete(str);
 	  }
@@ -273,7 +273,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
 	  rvalue = SwigType_typedef_resolve_all(pvalue);
 	  qvalue = SwigType_typedef_qualified(rvalue);
 	  defname = NewStringf("%s_defrvalue", lname);
-	  tvalue = Copy(type);
+	  tvalue = Copy(rpt);
 	  SwigType_del_rvalue_reference(tvalue);
 	  tycode = SwigType_type(tvalue);
 	  if (tycode != T_USER) {
@@ -283,7 +283,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
 	    Delete(lstr);
 	  } else {
 	    /* user type, we copy the reference value */
-	    String *str = SwigType_str(type, defname);
+	    String *str = SwigType_str(rpt, defname);
 	    defvalue = NewStringf("%s = %s", str, qvalue);
 	    Delete(str);
 	  }
@@ -298,7 +298,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
 	pvalue = (String *) "0";
       }
       if (!altty) {
-	local = Swig_clocal(pt, lname, pvalue);
+	local = Swig_clocal(rpt, lname, pvalue);
       } else {
 	local = Swig_clocal(altty, lname, pvalue);
 	Delete(altty);
@@ -307,6 +307,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
       Delete(local);
       i++;
     }
+    Delete(rpt);
     Delete(lname);
     p = nextSibling(p);
   }
