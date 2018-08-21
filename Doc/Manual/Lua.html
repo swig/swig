@@ -984,7 +984,7 @@ There are ways to make this operator appear as part of the class using the <tt>%
 Also, be aware that certain operators don't map cleanly to Lua, and some Lua operators don't map cleanly to C++ operators. For instance, overloaded assignment operators don't map to Lua semantics and will be ignored, and C++ doesn't support Lua's concatenation operator (<tt>..</tt>).
 </p>
 <p>
-In order to keep maximum compatibility within the different languages in SWIG, the Lua bindings uses the same set of operator names as python. Although internally it renames the functions to something else (on order to work with Lua).
+In order to keep maximum compatibility within the different languages in SWIG, the Lua bindings uses the same set of operator names as Python. Although internally it renames the functions to something else (on order to work with Lua).
 <p>
 The current list of operators which can be overloaded (and the alternative function names) are:<ul>
 <li><tt>__add__</tt> operator+
