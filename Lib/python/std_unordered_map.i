@@ -5,6 +5,28 @@
 %fragment("StdUnorderedMapTraits","header",fragment="StdSequenceTraits")
 {
   namespace swig {
+    template <class ValueType>
+    struct from_key_oper
+    {
+      typedef const ValueType& argument_type;
+      typedef  PyObject *result_type;
+      result_type operator()(argument_type v) const
+      {
+    return swig::from(v.first);
+      }
+    };
+
+    template <class ValueType>
+    struct from_value_oper
+    {
+      typedef const ValueType& argument_type;
+      typedef  PyObject *result_type;
+      result_type operator()(argument_type v) const
+      {
+    return swig::from(v.second);
+      }
+    };
+    
     template <class SwigPySeq, class K, class T >
     inline void
     assign(const SwigPySeq& swigpyseq, std::unordered_map<K,T > *unordered_map) {
