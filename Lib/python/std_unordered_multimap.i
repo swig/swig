@@ -3,7 +3,7 @@
 */
 %include <std_unordered_map.i>
 
-%fragment("StdUnorderedMultimapTraits","header",fragment="StdSequenceTraits")
+%fragment("StdUnorderedMultimapTraits","header",fragment="StdMapCommonTraits",fragment="StdUnorderedMapForwardIteratorTraits")
 {
   namespace swig {
     template <class SwigPySeq, class K, class T >

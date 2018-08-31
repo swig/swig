@@ -1,8 +1,59 @@
 /*
   Unordered Maps
 */
+%include <std_map.i>
 
-%fragment("StdUnorderedMapTraits","header",fragment="StdSequenceTraits")
+%fragment("StdUnorderedMapForwardIteratorTraits","header")
+{
+  namespace swig {
+    template<class OutIterator, class FromOper, class ValueType = typename OutIterator::value_type>
+    struct SwigPyMapForwardIterator_T : SwigPyForwardIteratorClosed_T<OutIterator, ValueType, FromOper>
+    {
+      SwigPyMapForwardIterator_T(OutIterator curr, OutIterator first, OutIterator last, PyObject *seq)
+	: SwigPyForwardIteratorClosed_T<OutIterator,ValueType,FromOper>(curr, first, last, seq)
+      {
+      }
+    };
+
+
+    template<class OutIterator,
+	     class FromOper = from_key_oper<typename OutIterator::value_type> >
+    struct SwigPyMapKeyForwardIterator_T : SwigPyMapForwardIterator_T<OutIterator, FromOper>
+    {
+      SwigPyMapKeyForwardIterator_T(OutIterator curr, OutIterator first, OutIterator last, PyObject *seq)
+	: SwigPyMapForwardIterator_T<OutIterator, FromOper>(curr, first, last, seq)
+      {
+      }
+    };
+
+    template<typename OutIter>
+    inline SwigPyIterator*
+    make_output_key_forward_iterator(const OutIter& current, const OutIter& begin, const OutIter& end, PyObject *seq = 0)
+    {
+      return new SwigPyMapKeyForwardIterator_T<OutIter>(current, begin, end, seq);
+    }
+
+    template<class OutIterator,
+	     class FromOper = from_value_oper<typename OutIterator::value_type> >
+    struct SwigPyMapValueForwardIterator_T : SwigPyMapForwardIterator_T<OutIterator, FromOper>
+    {
+      SwigPyMapValueForwardIterator_T(OutIterator curr, OutIterator first, OutIterator last, PyObject *seq)
+	: SwigPyMapForwardIterator_T<OutIterator, FromOper>(curr, first, last, seq)
+      {
+      }
+    };
+    
+
+    template<typename OutIter>
+    inline SwigPyIterator*
+    make_output_value_forward_iterator(const OutIter& current, const OutIter& begin, const OutIter& end, PyObject *seq = 0)
+    {
+      return new SwigPyMapValueForwardIterator_T<OutIter>(current, begin, end, seq);
+    }
+  }
+}
+
+%fragment("StdUnorderedMapTraits","header",fragment="StdMapCommonTraits",fragment="StdUnorderedMapForwardIteratorTraits")
 {
   namespace swig {
     template <class SwigPySeq, class K, class T >
@@ -73,51 +124,6 @@
 	}
       }
     };
-
-    template<class OutIterator, class FromOper, class ValueType = typename OutIterator::value_type>
-    struct SwigPyMapForwardIterator_T : SwigPyForwardIteratorClosed_T<OutIterator, ValueType, FromOper>
-    {
-      SwigPyMapForwardIterator_T(OutIterator curr, OutIterator first, OutIterator last, PyObject *seq)
-	: SwigPyForwardIteratorClosed_T<OutIterator,ValueType,FromOper>(curr, first, last, seq)
-      {
-      }
-    };
-
-
-    template<class OutIterator,
-	     class FromOper = from_key_oper<typename OutIterator::value_type> >
-    struct SwigPyMapKeyForwardIterator_T : SwigPyMapForwardIterator_T<OutIterator, FromOper>
-    {
-      SwigPyMapKeyForwardIterator_T(OutIterator curr, OutIterator first, OutIterator last, PyObject *seq)
-	: SwigPyMapForwardIterator_T<OutIterator, FromOper>(curr, first, last, seq)
-      {
-      }
-    };
-
-    template<typename OutIter>
-    inline SwigPyIterator*
-    make_output_key_forward_iterator(const OutIter& current, const OutIter& begin, const OutIter& end, PyObject *seq = 0)
-    {
-      return new SwigPyMapKeyForwardIterator_T<OutIter>(current, begin, end, seq);
-    }
-
-    template<class OutIterator,
-	     class FromOper = from_value_oper<typename OutIterator::value_type> >
-    struct SwigPyMapValueForwardIterator_T : SwigPyMapForwardIterator_T<OutIterator, FromOper>
-    {
-      SwigPyMapValueForwardIterator_T(OutIterator curr, OutIterator first, OutIterator last, PyObject *seq)
-	: SwigPyMapForwardIterator_T<OutIterator, FromOper>(curr, first, last, seq)
-      {
-      }
-    };
-    
-
-    template<typename OutIter>
-    inline SwigPyIterator*
-    make_output_value_forward_iterator(const OutIter& current, const OutIter& begin, const OutIter& end, PyObject *seq = 0)
-    {
-      return new SwigPyMapValueForwardIterator_T<OutIter>(current, begin, end, seq);
-    }
   }
 }
 
