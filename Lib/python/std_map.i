@@ -56,9 +56,9 @@
 
     template<class OutIterator,
 	     class FromOper = from_value_oper<typename OutIterator::value_type> >
-    struct SwigPyMapValueITerator_T : SwigPyMapIterator_T<OutIterator, FromOper>
+    struct SwigPyMapValueIterator_T : SwigPyMapIterator_T<OutIterator, FromOper>
     {
-      SwigPyMapValueITerator_T(OutIterator curr, OutIterator first, OutIterator last, PyObject *seq)
+      SwigPyMapValueIterator_T(OutIterator curr, OutIterator first, OutIterator last, PyObject *seq)
 	: SwigPyMapIterator_T<OutIterator, FromOper>(curr, first, last, seq)
       {
       }
@@ -69,7 +69,7 @@
     inline SwigPyIterator*
     make_output_value_iterator(const OutIter& current, const OutIter& begin, const OutIter& end, PyObject *seq = 0)
     {
-      return new SwigPyMapValueITerator_T<OutIter>(current, begin, end, seq);
+      return new SwigPyMapValueIterator_T<OutIter>(current, begin, end, seq);
     }
   }
 }

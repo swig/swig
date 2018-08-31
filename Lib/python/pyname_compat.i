@@ -34,7 +34,7 @@
 %inline %{
 #define PyMapIterator_T SwigPyMapIterator_T
 #define PyMapKeyIterator_T SwigPyMapKeyIterator_T
-#define PyMapValueIterator_T SwigPyMapValueITerator_T
+#define PyMapValueIterator_T SwigPyMapValueIterator_T
 #define PyObject_ptr SwigPtr_PyObject
 #define PyObject_var SwigVar_PyObject
 #define PyOper SwigPyOper
