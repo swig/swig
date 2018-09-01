@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-09-01: ChristopherHogan
+            [Guile] #1288 Fix garbage collection for guile >= 2.0.12.
+
 2018-08-31: wsfulton
             [Python] #1319 C++11 hash tables support:
               std::unordered_map
