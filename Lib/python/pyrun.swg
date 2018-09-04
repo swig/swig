@@ -290,7 +290,10 @@ SWIGRUNTIMEINLINE int
 SWIG_Python_CheckImplicit(swig_type_info *ty)
 {
   SwigPyClientData *data = (SwigPyClientData *)ty->clientdata;
-  return data ? data->implicitconv : 0;
+  int fail = data ? data->implicitconv : 0;
+  if (fail)
+    PyErr_SetString(PyExc_TypeError, "Implicit conversion is prohibited for explicit constructors.");
+  return fail;
 }
 
 SWIGRUNTIMEINLINE PyObject *
