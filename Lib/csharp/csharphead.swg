@@ -332,3 +332,32 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterStringCallback_$module(SWIG_CSharpString
 
 #define SWIG_contract_assert(nullreturn, expr, msg) if (!(expr)) {SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, msg, ""); return nullreturn; } else
 %}
+
+%pragma(csharp) imclasscode=%{
+    internal static bool SwigDerivedClassHasMethod(object instance, string methodName, global::System.Type classType, global::System.Type[] methodTypes) {
+      global::System.Reflection.MethodInfo methodInfo = instance.GetType().GetMethod(
+          methodName, global::System.Reflection.BindingFlags.Public |
+                      global::System.Reflection.BindingFlags.NonPublic |
+                      global::System.Reflection.BindingFlags.Instance, null, methodTypes, null);
+      bool hasDerivedMethod = methodInfo.IsVirtual && !methodInfo.IsAbstract &&
+                              methodInfo.DeclaringType.IsSubclassOf(classType) &&
+                              methodInfo.DeclaringType != methodInfo.GetBaseDefinition().DeclaringType;
+      /* Could add this code to cover corner case where the GetMethod() returns a method which allows type
+       * promotion, eg it will return foo(double), if looking for foo(int).
+       if (hasDerivedMethod) {
+         hasDerivedMethod = false;
+         if (methodInfo != null) {
+           hasDerivedMethod = true;
+           ParameterInfo[] parameterArray1 = methodInfo.GetParameters();
+           for (int i=0; i<methodTypes.Length; i++) {
+             if (parameterArray1[0].ParameterType != methodTypes[0]) {
+               hasDerivedMethod = false;
+               break;
+             }
+           }
+         }
+       }
+       */
+      return hasDerivedMethod;
+    }
+%}

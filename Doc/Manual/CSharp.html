@@ -1537,6 +1537,7 @@ public class Base : global::System.IDisposable {
   internal Base(global::System.IntPtr cPtr, bool cMemoryOwn) {
     swigCMemOwn = cMemoryOwn;
     swigCPtr = new global::System.Runtime.InteropServices.HandleRef(this, cPtr);
+    SwigDirectorSetup();
   }
 
   internal static global::System.Runtime.InteropServices.HandleRef getCPtr(Base obj) {
@@ -1559,12 +1560,15 @@ public class Base : global::System.IDisposable {
   }
 
   public virtual uint UIntMethod(uint x) {
-    uint ret = examplePINVOKE.Base_UIntMethod(swigCPtr, x);
+    uint ret = (swigMethodOverriden0 ? examplePINVOKE.Base_UIntMethodSwigExplicitBar(swigCPtr, x) : examplePINVOKE.Base_UIntMethod(swigCPtr, x));
     return ret;
   }
 
   public virtual void BaseBoolMethod(Base b, bool flag) {
-    examplePINVOKE.Base_BaseBoolMethod(swigCPtr, Base.getCPtr(b), flag);
+    if (swigMethodOverriden1)
+      examplePINVOKE.Base_BaseBoolMethodSwigExplicitBar(swigCPtr, Base.getCPtr(b), flag);
+    else
+      examplePINVOKE.Base_BaseBoolMethod(swigCPtr, Base.getCPtr(b), flag);
     if (examplePINVOKE.SWIGPendingException.Pending)
       throw examplePINVOKE.SWIGPendingException.Retrieve();
   }
@@ -1573,18 +1577,19 @@ public class Base : global::System.IDisposable {
     SwigDirectorConnect();
   }
 
-  private void SwigDirectorConnect() {
-    if (SwigDerivedClassHasMethod("UIntMethod", swigMethodTypes0))
-      swigDelegate0 = new SwigDelegateBase_0(SwigDirectorUIntMethod);
-    if (SwigDerivedClassHasMethod("BaseBoolMethod", swigMethodTypes1))
-      swigDelegate1 = new SwigDelegateBase_1(SwigDirectorBaseBoolMethod);
-    examplePINVOKE.Base_director_connect(swigCPtr, swigDelegate0, swigDelegate1);
+  private void SwigDirectorSetup() {
+    var classType = typeof(Base);
+    swigMethodOverriden0 = examplePINVOKE.SwigDerivedClassHasMethod(this, "UIntMethod", classType, swigMethodTypes0);
+    swigMethodOverriden1 = examplePINVOKE.SwigDerivedClassHasMethod(this, "BaseBoolMethod", classType, swigMethodTypes1);
   }
 
-  private bool SwigDerivedClassHasMethod(string methodName, global::System.global::System.Type[] methodTypes) {
-    System.Reflection.MethodInfo methodInfo = this.GetType().GetMethod(methodName, methodTypes);
-    bool hasDerivedMethod = methodInfo.DeclaringType.IsSubclassOf(typeof(Base));
-    return hasDerivedMethod;
+  private void SwigDirectorConnect() {
+    SwigDirectorSetup();
+    if (swigMethodOverriden0)
+      swigDelegate0 = new SwigDelegateBase_0(SwigDirectorUIntMethod);
+    if (swigMethodOverriden1)
+      swigDelegate1 = new SwigDelegateBase_1(SwigDirectorBaseBoolMethod);
+    examplePINVOKE.Base_director_connect(swigCPtr, swigDelegate0, swigDelegate1);
   }
 
   private uint SwigDirectorUIntMethod(uint x) {
@@ -1603,6 +1608,9 @@ public class Base : global::System.IDisposable {
 
   private static global::System.Type[] swigMethodTypes0 = new global::System.Type[] { typeof(uint) };
   private static global::System.Type[] swigMethodTypes1 = new global::System.Type[] { typeof(Base), typeof(bool) };
+
+  private bool swigMethodOverriden0;
+  private bool swigMethodOverriden1;
 }
 </pre>
 </div>
