@@ -80,7 +80,7 @@ if python_nondynamic.is_python_builtin():
 else:
     python_nondynamic.C.classvar = 111
 
-if is_python_modern():
+if is_python_modern() and not python_nondynamic.is_python_builtin():
     # Not working with builtin or non-modern :(
     try:
         B.a = 10
