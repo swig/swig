@@ -48,6 +48,8 @@ public class runme
       if (myNewBar == null)
         throw new Exception("non-null pointer marshalling problem");
       myNewBar.x = 10;
+
+      my.testSwigDerivedClassHasMethod();
     }
   }
 }
@@ -68,6 +70,14 @@ class MyOverriddenClass : MyClass {
     if ( expectNull && (b != null) )
       throw new Exception("null not received as expected");
     return b;
+  }
+
+  public bool nonVirtual() {
+    throw new Exception("non-virtual overrides virtual method");
+  }
+
+  public virtual bool nonOverride() {
+    throw new Exception("non-override overrides virtual method");
   }
 }
 

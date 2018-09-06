@@ -65,6 +65,14 @@
 
  %}
 
+ %typemap(cscode) MyClass %{
+   public void testSwigDerivedClassHasMethod() {
+     if (SwigDerivedClassHasMethod("nonVirtual", swigMethodTypes3))
+       throw new global::System.Exception("non-overriding non-virtual method would be when connecting director");
+     if (SwigDerivedClassHasMethod("nonOverride", swigMethodTypes4))
+       throw new global::System.Exception("non-overriding virtual method would be when connecting director");
+   }
+ %}
 
  %feature("director") MyClass;
 
@@ -122,8 +130,16 @@ public:
     return myclass->pmethod(b);
   }
 
-   // Collisions with generated method names
-   virtual void Connect() { }
+  virtual void nonVirtual()
+  {
+  }
+
+  virtual void nonOverride()
+  {
+  }
+
+  // Collisions with generated method names
+  virtual void Connect() { }
 };
 
 template<class T>
