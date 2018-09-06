@@ -1575,9 +1575,9 @@ public class Base : global::System.IDisposable {
 
   private void SwigDirectorConnect() {
     if (SwigDerivedClassHasMethod("UIntMethod", swigMethodTypes0))
-      swigDelegate0 = new SwigDelegateBase_0(SwigDirectorUIntMethod);
+      swigDelegate0 = new SwigDelegateBase_0(SwigDirectorMethodUIntMethod);
     if (SwigDerivedClassHasMethod("BaseBoolMethod", swigMethodTypes1))
-      swigDelegate1 = new SwigDelegateBase_1(SwigDirectorBaseBoolMethod);
+      swigDelegate1 = new SwigDelegateBase_1(SwigDirectorMethodBaseBoolMethod);
     examplePINVOKE.Base_director_connect(swigCPtr, swigDelegate0, swigDelegate1);
   }
 
@@ -1587,11 +1587,11 @@ public class Base : global::System.IDisposable {
     return hasDerivedMethod;
   }
 
-  private uint SwigDirectorUIntMethod(uint x) {
+  private uint SwigDirectorMethodUIntMethod(uint x) {
     return UIntMethod(x);
   }
 
-  private void SwigDirectorBaseBoolMethod(global::System.IntPtr b, bool flag) {
+  private void SwigDirectorMethodBaseBoolMethod(global::System.IntPtr b, bool flag) {
     BaseBoolMethod(new Base(b, false), flag);
   }
 
@@ -1620,9 +1620,9 @@ It uses a support method, <tt>SwigDerivedClassHasMethod()</tt>, which simply use
 BaseBoolMethod, with the list of required parameter types, exists in a subclass.
 If it does not exist, the delegate is not initialised as there is no need for unmanaged code to call back into managed C# code.
 However, if there is an overridden method in any subclass, the delegate is required. 
-It is then initialised to the <tt>SwigDirectorBaseBoolMethod</tt> which in turn will call <tt>BaseBoolMethod</tt> if invoked.
+It is then initialised to the <tt>SwigDirectorMethodBaseBoolMethod</tt> which in turn will call <tt>BaseBoolMethod</tt> if invoked.
 The delegate is not initialised to the <tt>BaseBoolMethod</tt> directly as quite often types will need marshalling from the unmanaged type
-to the managed type in which case an intermediary method (<tt>SwigDirectorBaseBoolMethod</tt>) is required for the marshalling.
+to the managed type in which case an intermediary method (<tt>SwigDirectorMethodBaseBoolMethod</tt>) is required for the marshalling.
 In this case, the C# <tt>Base</tt> class needs to be created from the unmanaged <tt>IntPtr</tt> type.
 </p>
 
@@ -2497,7 +2497,7 @@ The generated proxy class code will then contain the following wrapper for calli
 
 <div class="code"><pre>
 ...
-  private void SwigDirectorsomeCallback(global::System.IntPtr date) {
+  private void SwigDirectorMethodsomeCallback(global::System.IntPtr date) {
     System.DateTime tempdate = new System.DateTime();
     try {
       someCallback(out tempdate);
