@@ -2580,7 +2580,11 @@ public:
     if (castmode) {
       dispatch = Swig_overload_dispatch_cast(n, dispatch_code, &maxargs);
     } else {
-      String *fastdispatch_code = NewStringf("PyObject *retobj = %s\nif (!SWIG_Python_TypeErrorOccurred(retobj)) return retobj;\nSWIG_fail;", dispatch_call);
+      String *fastdispatch_code;
+      if (builtin_ctor)
+	fastdispatch_code = NewStringf("int retval = %s\nif (retval == 0 || !SWIG_Python_TypeErrorOccurred(NULL)) return retval;\nSWIG_fail;", dispatch_call);
+      else
+	fastdispatch_code = NewStringf("PyObject *retobj = %s\nif (!SWIG_Python_TypeErrorOccurred(retobj)) return retobj;\nSWIG_fail;", dispatch_call);
       if (!CPlusPlus) {
 	Insert(fastdispatch_code, 0, "{\n");
 	Append(fastdispatch_code, "\n}");
