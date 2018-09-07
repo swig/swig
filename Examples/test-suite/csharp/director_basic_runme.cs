@@ -72,11 +72,11 @@ class MyOverriddenClass : MyClass {
     return b;
   }
 
-  public bool nonVirtual() {
+  public new bool nonVirtual() {
     throw new Exception("non-virtual overrides virtual method");
   }
 
-  public virtual bool nonOverride() {
+  public new virtual bool nonOverride() {
     throw new Exception("non-override overrides virtual method");
   }
 }
