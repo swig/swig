@@ -1906,7 +1906,7 @@ int R::functionWrapper(Node *n) {
   int nargs;
 
   String *wname = Swig_name_wrapper(iname);
-  Replace(wname, "_wrap", "R_swig", DOH_REPLACE_FIRST);
+
   if(overname)
     Append(wname, overname);
   Setattr(n,"wrap:name", wname);
@@ -2923,6 +2923,9 @@ void R::main(int argc, char *argv[]) {
       Swig_file_debug_set();
     }
     /// copyToR copyToC functions.
+
+    // Register the naming functions
+    Swig_name_register("wrapper", "R_swig_%f");
 
   }
 }
