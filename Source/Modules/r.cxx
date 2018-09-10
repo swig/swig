@@ -1862,11 +1862,7 @@ int R::functionWrapper(Node *n) {
     /* Add the name of this member to a list for this class_name.
        We will dump all these at the end. */
 
-    int nlen = Len(iname);
-    char *ptr = Char(iname);
-    bool isSet(0);
-    if (nlen > 4) isSet = Strcmp(NewString(&ptr[nlen-4]), "_set") == 0;
-
+    bool isSet(GetFlag(n, "memberset"));
 
     String *tmp = NewString("");
     Printf(tmp, "%s_%s", class_name, isSet ? "set" : "get");
