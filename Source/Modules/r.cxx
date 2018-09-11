@@ -1864,8 +1864,11 @@ int R::functionWrapper(Node *n) {
 
     bool isSet(GetFlag(n, "memberset"));
 
-    String *tmp = NewString("");
-    Printf(tmp, "%s_%s", class_name, isSet ? "set" : "get");
+    String *tmp = NewString(isSet ? Swig_name_set(NSPACE_TODO, class_name) : Swig_name_get(NSPACE_TODO, class_name));
+
+    if (debugMode) {
+      Printf(stdout, "functionWrapper TMP: %s\n", tmp);
+    }
 
     List *memList = Getattr(ClassMemberTable, tmp);
     if(!memList) {
