@@ -781,6 +781,8 @@ int R::top(Node *n) {
     Swig_register_filebyname("snamespace", s_namespace);
     Printf(s_namespace, "useDynLib(%s)\n", DllName);
   }
+  // Register the naming functions
+  Swig_name_register("wrapper", "R_swig_%f");
 
   /* Associate the different streams with names so that they can be used in %insert directives by the
      typemap code. */
@@ -1890,10 +1892,6 @@ int R::functionWrapper(Node *n) {
 
     String *tmp = NewString(isSet ? Swig_name_set(NSPACE_TODO, class_name) : Swig_name_get(NSPACE_TODO, class_name));
 
-    if (debugMode) {
-      Printf(stdout, "functionWrapper TMP: %s\n", tmp);
-    }
-
     List *memList = Getattr(ClassMemberTable, tmp);
     if(!memList) {
       memList = NewList();
@@ -2926,9 +2924,6 @@ void R::main(int argc, char *argv[]) {
       Swig_file_debug_set();
     }
     /// copyToR copyToC functions.
-
-    // Register the naming functions
-    Swig_name_register("wrapper", "R_swig_%f");
 
   }
 }
