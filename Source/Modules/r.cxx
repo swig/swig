@@ -288,7 +288,8 @@ public:
 
   int classDeclaration(Node *n);
   int enumDeclaration(Node *n);
-
+  String *enumValue(Node *n);
+  virtual int enumvalueDeclaration(Node *n);
   int membervariableHandler(Node *n);
 
   int typedefHandler(Node *n);
@@ -392,6 +393,8 @@ protected:
 
   // Strings into which we cumulate the generated code that is to be written
   //vto the files.
+  String *enum_values;
+  String *enum_def_calls;
   String *sfile;
   String *f_init;
   String *s_classes;
@@ -456,6 +459,8 @@ R::R() :
   copyStruct(false),
   memoryProfile(false),
   aggressiveGc(false),
+  enum_values(0),
+  enum_def_calls(0),
   sfile(0),
   f_init(0),
   s_classes(0),
@@ -756,6 +761,7 @@ void R::init() {
   s_classes = NewString("");
   s_init = NewString("");
   s_init_routine = NewString("");
+  enum_def_calls = NewString("");
 }
 
 
@@ -878,6 +884,7 @@ int R::DumpCode(Node *n) {
   Printf(scode, "%s\n\n", s_init);
   Printf(scode, "%s\n\n", s_classes);
   Printf(scode, "%s\n", sfile);
+  Printf(scode, "%s\n", enum_def_calls);
 
   Delete(scode);
   String *outfile = Getattr(n,"outfile");
@@ -1198,75 +1205,103 @@ int R::OutputArrayMethod(String *className, List *el, File *out) {
  tdname is the typedef of the enumeration, i.e. giving its name.
 *************************************************************/
 int R::enumDeclaration(Node *n) {
-  if (getCurrentClass() && (cplus_mode != PUBLIC))
-    return SWIG_NOWRAP;
+  if (!ImportMode) {
+    if (getCurrentClass() && (cplus_mode != PUBLIC))
+      return SWIG_NOWRAP;
 
-  String *name = Getattr(n, "name");
-  String *tdname = Getattr(n, "tdname");
+    String *symname = Getattr(n, "sym:name");
 
-  /* Using name if tdname is empty. */
+    // TODO - deal with anonymous enumerations
+    // Previous enum code for R didn't wrap them
+    if (!symname || Getattr(n, "unnamedinstance"))
+      return SWIG_NOWRAP;
 
-  if(Len(tdname) == 0)
-    tdname = name;
+    // create mangled name for the enum
+    // This will have content if the %nspace feature is set on
+    // the input file
+    String *nspace = Getattr(n, "sym:nspace"); // NSpace/getNSpace() only works during Language::enumDeclaration call
+    String * ename;
 
-
-  if(!tdname || Strcmp(tdname, "") == 0) {
+    String *name = Getattr(n, "name");
+    ename = getRClassName(name); 
+    if (debugMode) {
+      Printf(stdout, "enumDeclaration: %s, %s, %s, %s\n", name, symname, nspace, ename);
+    }
+    Delete(name);
+    // set up a call to create the R enum structure. The list of
+    // individual elements will be built in enum_code
+    enum_values=0;
+    // Emit each enum item
     Language::enumDeclaration(n);
-    return SWIG_OK;
+      
+    Printf(enum_def_calls, "defineEnumeration(\"%s\",\n .values=c(%s))\n\n",
+           ename, enum_values);
+    Delete(enum_values);
+    Delete(ename);
+    //Delete(symname);
+  }
+  return SWIG_OK;
+}
+/*************************************************************
+**************************************************************/
+int R::enumvalueDeclaration(Node *n) {
+  if (getCurrentClass() && (cplus_mode != PUBLIC)) {
+    Printf(stdout , "evd: Not public\n");
+    return SWIG_NOWRAP;
   }
 
-  String *mangled_tdname = SwigType_manglestr(tdname);
-  String *scode = NewString("");
+  Swig_require("enumvalueDeclaration", n, "*name", "?value", NIL);
+  String *symname = Getattr(n, "sym:name");
+  String *value = Getattr(n, "value");
+  String *name = Getattr(n, "name");
+  Node   *parent = parentNode(n);
+  String *parent_name = Getattr(parent, "name");
+  String *newsymname = 0;
+  String *tmpValue;
 
-  Printv(scode, "defineEnumeration('", mangled_tdname, "'",
-	 ",\n",  tab8, tab8, tab4, ".values = c(\n", NIL);
-
-  Node *c;
-  int value = -1; // First number is zero
-  for (c = firstChild(n); c; c = nextSibling(c)) {
-    //      const char *tag = Char(nodeType(c));
-    //      if (Strcmp(tag,"cdecl") == 0) {
-    name = Getattr(c, "name");
-    String *val = Getattr(c, "enumvalue");
-    if(val && Char(val)) {
-      int inval;
-      if (!getNumber(val, &inval)) {
-	// Conversion failed - use the string value in val.
-      } else {
-	val = NULL;
-	value = inval;
-      }
-    } else {
-      val = NULL;
-      value++;
-    }
-
-    if (val != NULL) {
-      // This won't work in general, but will at least handle cases like (3)
-      // and 3+7, and when it doesn't work, it'll fail noisly rather than
-      // quietly using the wrong enum value like we used to.
-      if (!Strcmp(val, "true")) {
-	Printf(scode, "%s%s%s'%s' = %s%s\n", tab8, tab8, tab8, name, "TRUE",
-	       nextSibling(c) ? ", " : "");
-      } else if (!Strcmp(val, "false")) {
-	Printf(scode, "%s%s%s'%s' = %s%s\n", tab8, tab8, tab8, name, "FALSE",
-	       nextSibling(c) ? ", " : "");
-      } else {
-	Printf(scode, "%s%s%s'%s' = %s%s\n", tab8, tab8, tab8, name, val,
-	       nextSibling(c) ? ", " : "");
-      }
-    } else {
-      Printf(scode, "%s%s%s'%s' = %d%s\n", tab8, tab8, tab8, name, value,
-	     nextSibling(c) ? ", " : "");
-    }
-    //      }
+  // Strange hack from parent method
+  if (value)
+    tmpValue = NewString(value);
+  else
+    tmpValue = NewString(name);
+  // Note that this is used in enumValue() amongst other places
+  Setattr(n, "value", tmpValue);
+  
+  // Deal with enum values that are not int
+  int swigtype = SwigType_type(Getattr(n, "type"));
+  if (swigtype == T_BOOL) {
+    const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
+    Setattr(n, "enumvalue", val);
+  } else if (swigtype == T_CHAR) {
+    String *val = NewStringf("'%s'", Getattr(n, "enumvalue"));
+    Setattr(n, "enumvalue", val);
+    Delete(val);
   }
 
-  Printv(scode, "))", NIL);
-  Printf(sfile, "%s\n", scode);
+  if (GetFlag(parent, "scopedenum")) {
+    newsymname = Swig_name_member(0, Getattr(parent, "sym:name"), symname);
+    symname = newsymname;
+  }
 
-  Delete(scode);
-  Delete(mangled_tdname);
+  {
+    // Wrap C/C++ enums with constant integers or use the typesafe enum pattern
+    SwigType *typemap_lookup_type = parent_name ? parent_name : NewString("enum ");
+    Setattr(n, "type", typemap_lookup_type);
+    
+    // Simple integer constants
+    // Note these are always generated for anonymous enums, no matter what enum_feature is specified
+    // Code generated is the same for SimpleEnum and TypeunsafeEnum -> the class it is generated into is determined later
+
+    String *value = enumValue(n);
+    if (enum_values) {
+      Printf(enum_values, ",\n\"%s\" = %s", name, value);
+    } else {
+      enum_values=NewString("");
+      Printf(enum_values, "\"%s\" = %s", name, value);
+    }
+
+    Delete(value);
+  }
 
   return SWIG_OK;
 }
@@ -2853,3 +2888,50 @@ String * R::processType(SwigType *t, Node *n, int *nargs) {
 }
 
 /*************************************************************************************/
+  /* -----------------------------------------------------------------------
+   * enumValue()
+   * This method will return a string with an enum value to use in from R when 
+   * setting up an enum variable
+   * ------------------------------------------------------------------------ */
+
+String *R::enumValue(Node *n) {
+  String *symname = Getattr(n, "sym:name");
+  String *value = Getattr(n, "value");
+  String *newsymname = 0;
+
+  Node *parent = parentNode(n);
+  symname = Getattr(n, "sym:name");
+  
+  String *etype = Getattr(parent, "enumtype");
+  // we have to directly call the c wrapper function, as the
+  // R wrapper to the enum is designed to be used after the enum
+  // structures have been created on the R side. This means
+  // that we'll need to construct a .Call expression
+
+  // change the type for variableWrapper
+  Setattr(n, "type", etype);
+
+  if (!getCurrentClass()) {
+    newsymname = Swig_name_member(0, Getattr(parent, "sym:name"), symname);
+
+    // Strange hack to change the name
+    Setattr(n, "name", Getattr(n, "value"));
+    Setattr(n, "sym:name", newsymname);
+    variableWrapper(n);
+    value = Swig_name_get(NSPACE_TODO, newsymname);
+  } else {
+    String *enumClassPrefix = getEnumClassPrefix();
+    newsymname = Swig_name_member(0, enumClassPrefix, symname);
+    Setattr(n, "name", Getattr(n, "value"));
+    Setattr(n, "sym:name", newsymname);
+    variableWrapper(n);
+    value = Swig_name_get(NSPACE_TODO, newsymname);
+  }
+  value = Swig_name_wrapper(value);
+  Replace(value, "_wrap", "R_swig", DOH_REPLACE_FIRST);
+
+  String *valuecall=NewString("");
+  Printv(valuecall, ".Call('", value, "',FALSE, PACKAGE='", Rpackage, "')", NIL);
+  Delete(value);
+  return valuecall;
+}
