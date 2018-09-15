@@ -415,7 +415,7 @@ public:
 	  threads = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-nothreads") == 0) {
-	  /* Turn off thread suppor mode */
+	  /* Turn off thread support mode */
 	  nothreads = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-safecstrings") == 0) {
