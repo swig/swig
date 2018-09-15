@@ -12,8 +12,8 @@ public class doxygen_misc_constructs_runme {
       System.exit(1);
     }
   }
-  
-  public static void main(String argv[]) 
+
+  public static void main(String argv[])
   {
     /*
       Here we are using internal javadoc tool, it accepts the name of the class as paramterer,
@@ -25,7 +25,7 @@ public class doxygen_misc_constructs_runme {
                                        new String[]{"-quiet", "doxygen_misc_constructs"});
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
-    
+
     wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.getConnection()",
     		"\n" +
     		"\n" +
@@ -42,7 +42,7 @@ public class doxygen_misc_constructs_runme {
     		"");
     wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.getG_zipCode()",
     		" Tag endlink must be recognized also when it is the last token\n" +
-    		" in the commment.\n" +
+    		" in the comment.\n" +
     		" \n" +
     		" {@link Connection::getId()  }<br>\n" +
     		" {@link debugIdeTraceProfilerCoverageSample.py Python example.  }\n" +
@@ -50,14 +50,14 @@ public class doxygen_misc_constructs_runme {
     		"");
     wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.setG_zipCode(int)",
     		" Tag endlink must be recognized also when it is the last token\n" +
-    		" in the commment.\n" +
+    		" in the comment.\n" +
     		"\n" +
     		" {@link Connection::getId()  }<br>\n" +
     		" {@link debugIdeTraceProfilerCoverageSample.py Python example.  }\n" +
     		"\n" +
     		"");
     wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.getG_counter()",
-    		" Tag endlink must be recognized also when followed by nonspace charater.\n" +
+    		" Tag endlink must be recognized also when followed by nonspace character.\n" +
     		"\n" +
     		" {@link Connection::getId()  }<br>\n" +
     		"\n" +
@@ -94,7 +94,7 @@ public class doxygen_misc_constructs_runme {
     		"\n" +
     		"");
     wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.setG_counter(char)",
-    		" Tag endlink must be recognized also when followed by nonspace charater.\n" +
+    		" Tag endlink must be recognized also when followed by nonspace character.\n" +
     		"\n" +
     		" {@link Connection::getId()  }<br>\n" +
     		"\n" +
@@ -133,18 +133,18 @@ public class doxygen_misc_constructs_runme {
     		" This comment without space after '*' is valid in Doxygen.\n" +
     		"\n" +
     		"");
- 
+
     wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.isNoSpaceValidB()",
     		" .This comment without space after '*' is valid in Doxygen.\n" +
     		"\n" +
     		"");
- 
+
     wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.backslashA()",
     		" Backslash following<code>word</code> is a valid doxygen command. Output contains\n" +
     		" 'followingword' with 'word' in code font.\n" +
     		"\n" +
     		"");
- 
+
     wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.backslashB()",
                        " Doxy command without trailing space is ignored - nothing appears\n" +
                        " on output. Standalone \\ and '\\' get to output.\n" +
@@ -189,8 +189,8 @@ public class doxygen_misc_constructs_runme {
                 "     </pre>\n" +
                 "\n" +
                 " @param fileName name of the log file\n");
- 
-    
+
+
     // and ask the parser to check comments for us
     System.exit(parser.check(wantedComments));
   }
