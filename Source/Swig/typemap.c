@@ -1625,9 +1625,11 @@ static void typemap_attach_kwargs(Hash *tm, const_String_or_char_ptr tmap_method
   Parm *kw = Getattr(tm, "kwargs");
   typemap_merge_fragment_kwargs(kw);
   while (kw) {
+    String *kwname = Getattr(kw, "name");
     String *value = Copy(Getattr(kw, "value"));
     String *type = Getattr(kw, "type");
     int i;
+    int did_replace;
     Parm *p = firstp;
     /* Expand special variables */
     for (i = 0; i < nmatch; i++) {
@@ -1660,9 +1662,15 @@ static void typemap_attach_kwargs(Hash *tm, const_String_or_char_ptr tmap_method
       Delete(value);
       value = v;
     }
+    /* Warning if the keyword is a duplicate */
     Clear(temp);
-    Printf(temp, "%s:%s", tmap_method, Getattr(kw, "name"));
-    Setattr(firstp, typemap_method_name(temp), value);
+    Printf(temp, "%s:%s", tmap_method, kwname);
+    did_replace = Setattr(firstp, typemap_method_name(temp), value);
+    if (did_replace) {
+      Swig_warning(WARN_TYPEMAP_DUPLICATE_ATTR, Getfile(firstp), Getline(firstp),
+          "Duplicate typemap attribute '%s=%s' overrides previous value\n",
+          kwname, Getattr(kw, "value"));
+    }
     Delete(value);
     kw = nextSibling(kw);
   }
