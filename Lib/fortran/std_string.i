@@ -21,7 +21,8 @@
  * ------------------------------------------------------------------------- */
 
 /* Note that this is technically incorrect: string is typedef'd as
- * basic_string<char,...> . Our definition in std_string.i is simpler, though.
+ * basic_string<char,...> . Our definition in std_string.i is simpler, though,
+ * because that's all we need to inform SWIG..
  */
 namespace std {
 class string;
