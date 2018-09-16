@@ -16,7 +16,7 @@
 %insert("header") %{
 extern "C" {
 /* Fortran BIND(C) function */
-SwigArrayWrapper swigd_Joiner_transform(void* farg1, const SwigArrayWrapper* farg2);
+void swigd_Joiner_transform(SwigArrayWrapper* fresult, SwigClassWrapper* farg1, const SwigArrayWrapper* farg2);
 SwigArrayWrapper swigd_Joiner_join_default(void* farg1);
 }
 %}
@@ -55,12 +55,12 @@ SwigArrayWrapper swigd_Joiner_join_default(void* farg1);
 
       /* convert str -> array wrapper */
       SwigArrayWrapper arg1;
-      SwigArrayWrapper fresult;
       arg1.data = (str.empty() ? NULL : const_cast<char*>(str.c_str()));
       arg1.size = str.size();
 
       /* pass through C fortran interface */
-      fresult = swigd_Joiner_transform(&self, &arg1);
+      SwigArrayWrapper fresult;
+      swigd_Joiner_transform(&fresult, &self, &arg1);
 
       /* convert result back to string */
       char* result = static_cast<char*>(fresult.data);
@@ -122,14 +122,13 @@ end subroutine
 ! Convert SWIG array wrapper to temporary Fortran string, pass to the fortran
 ! cb function, convert back to SWIG array wrapper.
 ! This function must have input/output arguments compatible with ISO C, and it must be marked with "bind(C)"
-function swigd_Joiner_transform(farg1, farg2) &
-    bind(C, name="swigd_Joiner_transform") &
-    result(fresult)
+subroutine swigd_Joiner_transform(fresult, farg1, farg2) &
+    bind(C, name="swigd_Joiner_transform")
   use, intrinsic :: ISO_C_BINDING
   implicit none
+  type(SwigArrayWrapper), intent(out) :: fresult
   type(SwigClassWrapper), intent(in) :: farg1
   type(SwigArrayWrapper), intent(in) :: farg2
-  type(SwigArrayWrapper) :: fresult
   class(Joiner), pointer :: self
   character(kind=C_CHAR, len=:), allocatable :: s
   character(kind=C_CHAR, len=:), allocatable :: swig_result
@@ -146,7 +145,7 @@ function swigd_Joiner_transform(farg1, farg2) &
   ! That's why we include the 'save' attribute on the temporary "fresult_chars".
   ! (Alternatively, we could add a fortran binding for a call to deallocate)
   call SWIG_string_to_chararray(swig_result, fresult_chars, fresult)
-end function
+end subroutine
 
 function swigd_Joiner_join_default(farg1) &
     bind(C, name="swigd_Joiner_join_default") &
