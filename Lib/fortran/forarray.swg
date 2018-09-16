@@ -55,6 +55,9 @@ end subroutine
 /*!
  * \def FORT_ARRAYPTR_TYPEMAP
  *
+ * \param VTYPE scalar value type of the array
+ * \param CPPTYPE C++ typemap name (could be simple scalar, could be type with argument name)
+ *
  * Wrap intermediate data values as array pointers.
  *
  * This defines:

@@ -11,15 +11,10 @@ using std::endl;
  * ------------------------------------------------------------------------- */
 
 template<class T>
-void print_vec(const std::vector<T> &v) {
-  print_view<T>(make_const_view(v));
-}
-
-template<class T>
-void print_view(std::pair<const T *, size_t> view) {
+void print_view(const T* data, std::size_t size) {
   cout << "{";
-  const T *iter = view.first;
-  const T *end = iter + view.second;
+  const T *iter = data;
+  const T *end = data + size;
   if (iter != end) {
     cout << *iter++;
   }
@@ -33,8 +28,7 @@ void print_view(std::pair<const T *, size_t> view) {
  * EXPLICIT INSTANTIATION
  * ------------------------------------------------------------------------- */
 
-template void print_vec(const std::vector<double> &);
-template void print_view(std::pair<const double *, size_t>);
+template void print_view(const double* data, std::size_t size);
 
 
 

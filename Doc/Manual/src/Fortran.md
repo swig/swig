@@ -265,11 +265,11 @@ translation layer between C++ and Fortran and to eliminate potential pitfalls
 of interoperability.
 
 We anticipate that future extensions of Fortran/C interoperability will
-increase the capability of the SWIG wrapper interface. (For example, the
+increase the capability of the SWIG wrapper interface. For example, the
 Fortran [ISO technical specification
 TS29113](https://www.ibm.com/support/knowledgecenter/SSAT4T_15.1.3/com.ibm.xlf1513.lelinux.doc/language_ref/ts29113.html)
-will greatly extend the types of arrays and pointers that can be passed between
-C and Fortran.)
+will greatly expand the types of arrays and pointers that can be passed between
+C and Fortran.
 
 However, many features of C and C++ are outside the scope of Fortran's
 interoperability features.  Even some features that *are* interoperable,such as
