@@ -256,6 +256,7 @@ static void replaceRClass(String *tm, SwigType *type) {
   String *tmp = getRClassName(type);
   String *tmp_base = getRClassName(type, 0);
   String *tmp_ref = getRClassName(type, 1, 1);
+
   Replaceall(tm, "$R_class", tmp);
   Replaceall(tm, "$*R_class", tmp_base);
   Replaceall(tm, "$&R_class", tmp_ref);
@@ -579,7 +580,6 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   for (i = 0; p; p = nextSibling(p), ++i) {
     String *arg = Getattr(p, "name");
     String *lname;
-
     if (!arg && Cmp(Getattr(p, "type"), "void")) {
       lname = NewStringf("arg%d", i+1);
       Setattr(p, "name", lname);
@@ -640,6 +640,9 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
       }
       Replaceall(tm, "$1", name);
       Replaceall(tm, "$result", "r_tmp");
+      if (debugMode) {
+        Printf(stdout, "Calling Replace A: %s\n", Getattr(p,"type"));
+      }
       replaceRClass(tm, Getattr(p,"type"));
       Replaceall(tm,"$owner", "0");
       Delete(lstr);
@@ -785,6 +788,11 @@ int R::cDeclaration(Node *n) {
 ***/
 int R::top(Node *n) {
   String *module = Getattr(n, "name");
+
+  if (debugMode) {
+    Printf(stdout, "<Top> %s\n", module);
+  }
+
   if(!Rpackage)
     Rpackage = Copy(module);
   if(!DllName)
@@ -1225,7 +1233,12 @@ int R::enumDeclaration(Node *n) {
     String *name = Getattr(n, "name");
     ename = getRClassName(name); 
     if (debugMode) {
-      Printf(stdout, "enumDeclaration: %s, %s, %s, %s\n", name, symname, nspace, ename);
+      Node *N = getCurrentClass();
+      String *cl = NewString("");
+      if (N) {
+        cl=getEnumClassPrefix();
+      }
+      Printf(stdout, "enumDeclaration: %s, %s, %s, %s, %s\n", name, symname, nspace, ename, cl);
     }
     Delete(name);
     // set up a call to create the R enum structure. The list of
@@ -1286,6 +1299,9 @@ int R::enumvalueDeclaration(Node *n) {
   {
     // Wrap C/C++ enums with constant integers or use the typesafe enum pattern
     SwigType *typemap_lookup_type = parent_name ? parent_name : NewString("enum ");
+    if (debugMode) {
+      Printf(stdout, "Setting type: %s\n", Copy(typemap_lookup_type));
+    }
     Setattr(n, "type", typemap_lookup_type);
     
     // Simple integer constants
@@ -1311,19 +1327,27 @@ int R::enumvalueDeclaration(Node *n) {
 **************************************************************/
 int R::variableWrapper(Node *n) {
   String *name = Getattr(n, "sym:name");
-
+  if (debugMode) {
+    Printf(stdout, "variableWrapper %s\n", n);
+  }
   processing_variable = 1;
   Language::variableWrapper(n); // Force the emission of the _set and _get function wrappers.
   processing_variable = 0;
 
 
   SwigType *ty = Getattr(n, "type");
+  String *nodeType = nodeType(n);
   int addCopyParam = addCopyParameter(ty);
 
   //XXX
   processType(ty, n);
 
-  if(!SwigType_isconst(ty)) {
+  if (nodeType && !Strcmp(nodeType, "enumitem")) {
+    /* special wrapper for enums - don't want the R _set, _get functions*/
+    if (debugMode) {
+      Printf(stdout, "variableWrapper enum branch\n");
+    }
+  } else if(!SwigType_isconst(ty)) {
     Wrapper *f = NewWrapper();
     Printf(f->def, "%s = \nfunction(value%s)\n{\n",
 	   name, addCopyParam ? ", .copy = FALSE" : "");
@@ -1341,6 +1365,8 @@ int R::variableWrapper(Node *n) {
   return SWIG_OK;
 }
 
+/*************************************************************
+**************************************************************/
 
 void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
 		    int isSet) {
@@ -1787,6 +1813,9 @@ int R::functionWrapper(Node *n) {
       SwigType *resolved =
 	SwigType_typedef_resolve_all(resultType);
       if (expandTypedef(resolved)) {
+        if (debugMode) {
+          Printf(stdout, "Setting type: %s\n", resolved);
+        }
 	Setattr(p, "type", Copy(resolved));
       }
     }
@@ -1799,6 +1828,9 @@ int R::functionWrapper(Node *n) {
       SwigType_istypedef(type)) {
     SwigType *resolved =
       SwigType_typedef_resolve_all(type);
+    if (debugMode)
+      Printf(stdout, "<functionWrapper> resolved %s\n",
+             Copy(unresolved_return_type));
     if (expandTypedef(resolved)) {
       type = Copy(resolved);
       Setattr(n, "type", type);
@@ -2102,14 +2134,12 @@ int R::functionWrapper(Node *n) {
   /* Deal with the explicit return value. */
   if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
     SwigType *retType = Getattr(n, "type");
-    //Printf(stdout, "Return Value for %s, array? %s\n", retType, SwigType_isarray(retType) ? "yes" : "no");
-    /*      if(SwigType_isarray(retType)) {
-	    defineArrayAccessors(retType);
-	    } */
-
-
+    
     Replaceall(tm,"$1", Swig_cresult_name());
     Replaceall(tm,"$result", "r_ans");
+    if (debugMode){
+      Printf(stdout, "Calling replace D: %s, %s, %s\n", retType, n, tm);
+    }
     replaceRClass(tm, retType);
 
     if (GetFlag(n,"feature:new")) {
@@ -2196,6 +2226,9 @@ int R::functionWrapper(Node *n) {
 	Delete(smartname);
       }
     }
+    if (debugMode) {
+      Printf(stdout, "Calling replace B: %s, %s, %s\n", Getattr(n, "type"), Getattr(n, "sym:name"), getNSpace());
+    }
     replaceRClass(tm, Getattr(n, "type"));
     Chop(tm);
   }
@@ -2231,6 +2264,9 @@ int R::functionWrapper(Node *n) {
   tm = Swig_typemap_lookup("rtype", n, "", 0);
   if(tm) {
     SwigType *retType = Getattr(n, "type");
+    if (debugMode) {
+      Printf(stdout, "Calling replace C: %s\n", Copy(retType));
+    }
     replaceRClass(tm, retType);
   }
 
@@ -2469,8 +2505,8 @@ int R::classDeclaration(Node *n) {
   }
   if (Getattr(n, "has_destructor")) {
     Printf(sfile, "setMethod('delete', '_p%s', function(obj) {delete%s(obj)})\n",
-	   getRClassName(Getattr(n, "name")),
-	   getRClassName(Getattr(n, "name")));
+	   getRClassName(name),
+	   getRClassName(name));
 
   }
   if(!opaque && !Strcmp(kind, "struct") && copyStruct) {
@@ -2842,7 +2878,7 @@ String * R::processType(SwigType *t, Node *n, int *nargs) {
 
   SwigType *tmp = Getattr(n, "tdname");
   if (debugMode)
-    Printf(stdout, "processType %s (tdname = %s)\n", Getattr(n, "name"), tmp);
+    Printf(stdout, "processType %s (tdname = %s)(SwigType = %s)\n", Getattr(n, "name"), tmp, Copy(t));
 
   SwigType *td = t;
   if (expandTypedef(t) &&
@@ -2902,6 +2938,7 @@ String *R::enumValue(Node *n) {
   Node *parent = parentNode(n);
   symname = Getattr(n, "sym:name");
   
+  // parent enumtype has namespace mangled in
   String *etype = Getattr(parent, "enumtype");
   // we have to directly call the c wrapper function, as the
   // R wrapper to the enum is designed to be used after the enum
@@ -2909,11 +2946,14 @@ String *R::enumValue(Node *n) {
   // that we'll need to construct a .Call expression
 
   // change the type for variableWrapper
+  if (debugMode) {
+    Printf(stdout, "<enumValue> type set: %s\n", etype);
+  }
+
   Setattr(n, "type", etype);
 
   if (!getCurrentClass()) {
     newsymname = Swig_name_member(0, Getattr(parent, "sym:name"), symname);
-
     // Strange hack to change the name
     Setattr(n, "name", Getattr(n, "value"));
     Setattr(n, "sym:name", newsymname);
