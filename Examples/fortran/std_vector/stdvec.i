@@ -14,6 +14,7 @@
 %include <std_vector.i>
 
 // Replace ULL type with fortran standard integer
+// (needed BEFORE instantiating VecDbl)
 %apply int { std::vector<double>::size_type };
 
 %template(VecDbl) std::vector<double>;
@@ -23,24 +24,11 @@
  * ------------------------------------------------------------------------- */
 
 // Make the "as_array_ptr" return an array pointer
-%apply std::vector<double>& POINTER
-{ std::vector &as_array_ptr<double> };
-
-// Make the "as_array" function return a native allocated fortran array
-%apply const std::vector<double>& NATIVE
-{ const std::vector &as_array<double> };
-
-// Make any vector input argument named "view" accept an array pointer
-%apply const std::vector<double>& POINTER
-{ const std::vector &view };
 
 %include "stdvec.h"
 
 %template(as_array) as_array<double>;
 %template(as_array_ptr) as_array_ptr<double>;
-%template(as_reference) as_reference<double>;
-%template(as_const_reference) as_const_reference<double>;
-
 %template(print_vec) print_vec<double>;
 
 /* -------------------------------------------------------------------------
@@ -59,14 +47,10 @@
  * value in C++
  */
 
-%apply std::vector<double> NATIVE { std::vector make_array };
-
 %inline %{
 std::vector<double> make_array() {
   static const int vals[] = {1,1,2,3,5,8};
   return std::vector<double>(vals, vals + 6);
 }
 %}
-
-
 
