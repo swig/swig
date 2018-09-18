@@ -7,20 +7,23 @@
 %}
 
 /*!
- * This module defines a std::vector class and convenience typemaps.
+ * This module defines a std::vector class and conversion typemaps.
  *
- * Use \code
-  %apply const std::vector<int> NATIVE& { const std::vector<int>& }
- \endcode
- * to wrap all const vector references as native fortran array input/output.
+ * Like the `std/std_vector.i` header, we convert based on the type. Use the %apply directive (with particular argument and/or function names) to change
+ * the behavior.
  *
- * TODO:
- *  - Add initialization/assignment from fortran array
- *  - Extend with return-as-view ?
- *  - Extend with return-allocatable ?
+ * - f(std::vector<T>), f(const std::vector<T>&):
+ *   the parameter is read-only, so we treat natively.
+ * - f(std::vector<T>&), f(std::vector<T>*):
+ *   the parameter may be modified: only a wrapped std::vector can be passed.
+ * - std::vector<T> f(), const std::vector<T>& f():
+ *   the vector is returned by copy; treat natively.
+ * - std::vector<T>& f(), std::vector<T>* f():
+ *   the vector is returned by reference; return a wrapped reference.
+ * - const std::vector<T>* f(), f(const std::vector<T>*):
+ *   for consistency, they expect and return a plain vector pointer.
  *
- * To avoid wrapping std::vector but still instantiate the typemaps that
- * allow native wrapping, use
+ * To avoid wrapping the std::vector class but still use the typemaps,
  * `%template() std::vector<double>` .
  */
 %include "std_container.i"
@@ -59,7 +62,7 @@ namespace std {
     const_reference front() const;
     const_reference back() const;
 
-    // Declare typemaps for using 'NATIVE' wrapping
+    // Instantiate typemaps for this particular vector
     %std_native_container(std::vector<_Tp, _Alloc >)
 
     // Enable view output and input
@@ -98,7 +101,4 @@ template<class _Alloc >
 class vector<bool, _Alloc > {
   /* NOT IMPLEMENTED */
 };
-}                                 // end namespace std
-
-
-
+} // end namespace std

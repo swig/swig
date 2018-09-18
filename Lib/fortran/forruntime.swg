@@ -16,7 +16,7 @@
 %fragment("<stdexcept>");
 %insert(runtime) %{
 #define SWIG_exception_impl(DECL, CODE, MSG, RETURNNULL) \
- { throw std::logic_error("In " DECL ": " MSG); RETURNNULL; }
+ { throw std::logic_error("In " DECL ": " MSG); }
 %}
 #else
 %fragment("<stdio.h>");

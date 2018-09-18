@@ -30,6 +30,7 @@ typedef double (*BinaryOp)(double x, double y);
 
 #ifdef __cplusplus
 struct Foo;
+extern "C" {
 #endif
 
 typedef struct {
@@ -54,15 +55,21 @@ typedef struct {
 %{
   static SimpleStruct global_struct = {0,0,0,0,0,0,{0,0},{0,0,0}};
   static SimpleStruct* global_struct_ptr = 0;
+  static SimpleStruct const* global_struct_const_ptr = 0;
 %}
 
 %inline %{
 
 #ifdef __cplusplus
+} // end extern
+
 void set_ref(const SimpleStruct& s) {global_struct = s; }
 void get_ref_arg(SimpleStruct& s) { s = global_struct; }
 SimpleStruct& get_ref() { return global_struct; }
 const SimpleStruct& get_cref() { return global_struct; }
+
+SimpleStruct * &get_ref_ptr() { return global_struct_ptr; }
+SimpleStruct const* & get_cref_ptr() { return global_struct_const_ptr; }
 
 extern "C" {
 #endif

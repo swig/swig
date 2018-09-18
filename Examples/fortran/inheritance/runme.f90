@@ -57,7 +57,7 @@ program test_inheritance
 contains
 
 function use_base(base) result(foo)
-  class(BaseClass),intent(in) :: base
+  class(BaseClass), intent(in) :: base
   real :: foo
 
   foo = base%foo()

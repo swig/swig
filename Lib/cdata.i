@@ -73,11 +73,31 @@ static jbyteArray SWIG_JavaArrayOutCDATA(JNIEnv *jenv, char *result, jsize sz) {
     return $jnicall;
   }
 
+#elif SWIGFORTRAN
+
+typedef struct SWIGCDATA {
+    char *data;
+    int   len;
+} SWIGCDATA;
+
+%define SWIGTMARGS__ (const void *indata, int inlen) %enddef
+
+/* Transform the two-argument typemap into an array pointer of 'char' */
+FORT_ARRAYPTR_TYPEMAP(char, SWIGTMARGS__)
+
+%typemap(in, noblock=1) SWIGTMARGS__ {
+$1 = %static_cast($input->data, char*);
+$2 = $input->size;
+}
+
+#undef SWIGTMARGS__
+
+
 #endif
 
 
 /* -----------------------------------------------------------------------------
- * %cdata(TYPE [, NAME]) 
+ * %cdata(TYPE [, NAME])
  *
  * Convert raw C data to a binary string.
  * ----------------------------------------------------------------------------- */

@@ -12,32 +12,16 @@
  * To apply these to a function `void foo(double* x, int x_length);`:
  *
  * %apply (SWIGTYPE *DATA, size_t SIZE) { (double *x, int x_length) };
- *
  */
 
-/* Temporary definitions to allow parsing in the FORT_ARRAYPTR_TYPEMAP macro */
-%define SWIGTMARGS__  (      SWIGTYPE *DATA, size_t SIZE) %enddef
-%define SWIGTMCARGS__ (const SWIGTYPE *DATA, size_t SIZE) %enddef
-
 /* Transform the two-argument typemap into an array pointer */
-FORT_ARRAYPTR_TYPEMAP($*1_ltype, SWIGTMARGS__)
-
-/* Apply the typemaps to const int as well */
-%apply SWIGTMARGS__ { SWIGTMCARGS__ };
+FORT_ARRAYPTR_TYPEMAP($*1_ltype, %arg((SWIGTYPE *DATA, size_t SIZE)))
 
 /* Transform (SwigArrayWrapper *$input) -> (SWIGTYPE *DATA, size_t SIZE) */
-%typemap(in, noblock=1) SWIGTMARGS__ {
+%typemap(in, noblock=1) (SWIGTYPE *DATA, size_t SIZE) {
 $1 = %static_cast($input->data, $1_ltype);
 $2 = $input->size;
 }
-
-/* Transform (SwigArrayWrapper *$input) -> (const SWIGTYPE *DATA, size_t SIZE) */
-%typemap(in, noblock=1) SWIGTMCARGS__ {
-$1 = %static_cast($input->data, $1_ltype);
-$2 = $input->size;
-}
-
-#undef SWIGTMARGS__
-#undef SWIGTMCARGS__
-
+/* Apply the typemaps to const versions as well */
+%apply (SWIGTYPE *DATA, size_t SIZE) { (const SWIGTYPE *DATA, size_t SIZE) };
 

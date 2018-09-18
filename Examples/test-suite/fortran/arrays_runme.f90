@@ -14,9 +14,7 @@ subroutine test_arrays
   integer(C_INT) :: i, j, nerrs
 
   test_data(:,:) = -1
-  ! TODO: fix this
-  ! call twod_unknown_int(test_data, size(test_data, 2))
-  call twod_unknown_int(c_loc(test_data), size(test_data, 2))
+  call twod_unknown_int(test_data, size(test_data, 2))
 
   nerrs = 0
   do i = 1,10

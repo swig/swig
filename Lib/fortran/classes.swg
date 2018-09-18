@@ -1,7 +1,11 @@
 /* -------------------------------------------------------------------------
  * classes.swg
+ *
+ * This defines generic SWIGTYPE typemaps for classes.
  * ------------------------------------------------------------------------- */
 %include <typemaps/fragments.swg>
+%include <typemaps/swigmacros.swg>
+
 /* -------------------------------------------------------------------------
  * Memory state enumeration
  * ------------------------------------------------------------------------- */
@@ -521,67 +525,58 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
  * They're copy-assigned when they're passed
  * Returning a class by value is copy-constructed as a new'd pointer
  */
-%typemap(ctype, out="SwigClassWrapper", null="SwigClassWrapper_uninitialized()", noblock=1, fragment="SwigClassWrapper")
+%typemap(ctype, in="const SwigClassWrapper *", null="SwigClassWrapper_uninitialized()", noblock=1, fragment="SwigClassWrapper")
     SWIGTYPE
-{const SwigClassWrapper *}
-%typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE {
-  SWIG_check_nonnull(*$input, "$1_ltype", "$fclassname", "$decl", return $null);
-  $1 = *%static_cast($input->cptr, $&1_ltype);
-}
-
-%typemap(out, noblock=1) SWIGTYPE {
-  $result.cptr = %new_copy($1, $1_ltype);
-  $result.mem = SWIG_MOVE;
-}
-
-// These remaining types apply to ALL generic class pointers.
-%typemap(imtype, import="SwigClassWrapper", fragment="SwigClassWrapper_f")
+  "SwigClassWrapper"
+%typemap(imtype, fragment="SwigClassWrapper_f")
     SWIGTYPE
   "type(SwigClassWrapper)"
 %typemap(ftype) SWIGTYPE
   "type($fclassname)"
+
+%typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE {
+  SWIG_check_nonnull(*$input, "$1_ltype", "$fclassname", "$decl", return $null);
+  $1 = *%static_cast($input->cptr, $&1_ltype);
+}
+%typemap(out, noblock=1) SWIGTYPE {
+  $result.cptr = %new_copy($1, $1_ltype);
+  $result.mem = SWIG_MOVE;
+}
 %typemap(fin) SWIGTYPE
   "$1 = $input%swigdata"
 %typemap(fout) SWIGTYPE
   "$result%swigdata = $1"
 
-// Raw pointers act mostly like value types (with overrides below)
-%typemap(ctype)  SWIGTYPE* = SWIGTYPE;
-%typemap(in, noblock=1, fragment="SWIG_check_mutable") SWIGTYPE*
-  {SWIG_check_mutable(*$input, "$1_ltype", "$fclassname", "$decl", return $null);
-  $1 = %static_cast($input->cptr, $1_ltype);}
-%typemap(out, noblock=1) SWIGTYPE*
-  {$result.cptr = $1;
-   $result.mem = ($owner ? SWIG_MOVE : SWIG_REF);}
-%typemap(imtype) SWIGTYPE* = SWIGTYPE;
-%typemap(ftype, out="type($fclassname)") SWIGTYPE*
-  "class($fclassname), intent(inout)"
-%typemap(fin)    SWIGTYPE* = SWIGTYPE;
-%typemap(fout)   SWIGTYPE* = SWIGTYPE;
+// Raw pointers act mostly like value types, but they don't have to accept the exact type (polymorphic input, non-polymorphic output)
+%apply SWIGTYPE { SWIGTYPE* };
+%typemap(ftype, in="class($fclassname), intent(inout)") SWIGTYPE*
+  "type($fclassname)"
 
-// Raw pointers act mostly like value types (with overrides below)
-%typemap(ctype)  const SWIGTYPE* = SWIGTYPE*;
-%typemap(in, noblock=1) const SWIGTYPE* {
+// Convert mutable pointers
+%typemap(in, noblock=1, fragment="SWIG_check_mutable") SWIGTYPE* {
+  SWIG_check_mutable(*$input, "$1_ltype", "$fclassname", "$decl", return $null);
   $1 = %static_cast($input->cptr, $1_ltype);
 }
-%typemap(out, noblock=1) const SWIGTYPE* {
-  $result.cptr = (void*)$1;
-  $result.mem = SWIG_CREF;
+%typemap(out, noblock=1) SWIGTYPE* {
+  $result.cptr = $1;
+  $result.mem = ($owner ? SWIG_MOVE : SWIG_REF);
 }
-%typemap(imtype) const SWIGTYPE* = SWIGTYPE*;
-%typemap(ftype, out="type($fclassname)") const SWIGTYPE*
-  "class($fclassname), intent(in)"
-%typemap(fin)    const SWIGTYPE* = SWIGTYPE*;
-%typemap(fout)   const SWIGTYPE* = SWIGTYPE*;
 
-// Use const-correct arguments/return values.
-FORT_COPY_TYPEMAPS(SWIGTYPE*,
-                   SWIGTYPE* const, SWIGTYPE&, SWIGTYPE[], SWIGTYPE[ANY]);
-FORT_COPY_TYPEMAPS(const SWIGTYPE*,
-                   const SWIGTYPE* const, const SWIGTYPE&, const SWIGTYPE[],
-                   const SWIGTYPE[ANY]);
+// Immutable pointers to mutable classes
+%apply SWIGTYPE* { SWIGTYPE* const };
 
-// Check for non-null reference inputs
+// Const pointers don't require mutability check; and their intent changes
+%apply SWIGTYPE* { const SWIGTYPE* };
+%typemap(ftype, in="class($fclassname), intent(in)") const SWIGTYPE*
+  "type($fclassname)"
+%typemap(in, noblock=1) const SWIGTYPE*
+  {$1 = %static_cast($input->cptr, $1_ltype);}
+%typemap(out, noblock=1) const SWIGTYPE*
+  {$result.cptr = (void*)$1;
+   $result.mem = SWIG_CREF;}
+
+// Mutable references are treated as mutable pointers, but check for non-null reference inputs
+%apply SWIGTYPE* { SWIGTYPE& };
 %typemap(in, noblock=1, fragment="SWIG_check_mutable_nonnull") SWIGTYPE& {
   SWIG_check_mutable_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
   $1 = %static_cast($input->cptr, $1_ltype);
@@ -592,29 +587,32 @@ FORT_COPY_TYPEMAPS(const SWIGTYPE*,
 }
 
 // Check for non-null, mutable class input "self"
-%typemap(in, noblock=1, fragment="SWIG_check_mutable_nonnull") SWIGTYPE* self {
+%typemap(in, noblock=1, fragment="SWIG_check_mutable_nonnull") SWIGTYPE *self {
   SWIG_check_mutable_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
   $1 = %static_cast($input->cptr, $1_ltype);
 }
 // Check for non-null class input "self"
-%typemap(in, noblock=1, fragment="SWIG_check_nonnull") const SWIGTYPE* self {
+%typemap(in, noblock=1, fragment="SWIG_check_nonnull") const SWIGTYPE *self {
   SWIG_check_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
   $1 = %static_cast($input->cptr, $1_ltype);
 }
 
-// Structs will generate free/malloc usage via the %free typemap, but SWIG
-// doesn't include <stdlib.h> by default. Override the swigtype usage so that
-// downstream code doesn't fail.
-#ifndef __cplusplus
-%include <typemaps/fragments.swg>
-%fragment("<stdlib.h>");
-#endif
+// Treat arrays of classes as opaque pointers
+%apply void * { SWIGTYPE [], SWIGTYPE [ANY] };
+%apply const void * { const SWIGTYPE [], const SWIGTYPE [ANY] };
 
-// C binding for opaque classes
-%typemap(bindc, in="type(SwigClassWrapper), value", import="SwigClassWrapper", fragment="SwigClassWrapper_f") SwigClassWrapper
+// Treat const-references-to-pointers as pointers
+%apply SWIGTYPE * { const SWIGTYPE *const& };
+%typemap(in, noblock=1) SWIGTYPE *const & ($*1_ltype temp)
+  {temp = %static_cast($input->cptr, $*1_ltype);
+   $1 = &temp;}
+
+// Treat const references to const pointers the same way
+%apply SWIGTYPE *const& { const SWIGTYPE *const& };
+   
+// C binding for opaque classes for advanced users
+%typemap(bindc, in="type(SwigClassWrapper), value", fragment="SwigClassWrapper_f") SwigClassWrapper
   "type(SwigClassWrapper)"
-%typemap(bindc, in="type(SwigClassWrapper)", import="SwigClassWrapper", fragment="SwigClassWrapper_f") SwigClassWrapper*
+%typemap(bindc, in="type(SwigClassWrapper)", fragment="SwigClassWrapper_f") SwigClassWrapper*
   "type(C_PTR)"
-
-
 
