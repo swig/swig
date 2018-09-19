@@ -3020,8 +3020,9 @@ public:
 	  }
 	  Printf(parse_args, "if ((nobjs < %d) || (nobjs > %d)) SWIG_fail;\n", num_required, num_arguments);
 	} else {
+	  int is_tp_call = Equal(Getattr(n, "feature:python:slot"), "tp_call");
 	  Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args", builtin_kwargs, ") {", NIL);
-	  if (onearg && !builtin_ctor) {
+	  if (onearg && !builtin_ctor && !is_tp_call) {
 	    Printf(parse_args, "if (!args) SWIG_fail;\n");
 	    Append(parse_args, "swig_obj[0] = args;\n");
 	  } else if (!noargs) {

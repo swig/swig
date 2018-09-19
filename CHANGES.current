@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-09-19: wsfulton
+            [Python] Fix functors (wrapped as __call__) when using -builtin -modern -fastunpack.
+
 2018-09-02: andreas.gaeer,tkrasnukha
             [Python] #1321 Fix assert in PyTuple_GET_SIZE in debug interpreter builds of python-3.7
             when calling tp_new.
