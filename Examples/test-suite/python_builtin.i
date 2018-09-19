@@ -234,7 +234,7 @@ class ANumber {
   int num;
 public:
   ANumber(int d = 0) : num(d) {}
-  ANumber __pow__(const ANumber &other, const ANumber *x) const {
+  ANumber __pow__(const ANumber &other, const ANumber *x = 0) const {
     int val = (int)pow(num, other.num);
     val = x ? val % x->num : val;
     return ANumber(val);
