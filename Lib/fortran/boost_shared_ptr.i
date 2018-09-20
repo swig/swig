@@ -38,9 +38,9 @@
  * Deferred copy of basic settings from non-SP type (i.e. Fortran will see it the same; we override the in/out/ctype below)
  */
 
-%typemap(ftype, out={$typemap(ftype, TYPE)}, noblock=1) SWIGSP__, SWIGSP__ &, SWIGSP__ *, SWIGSP__ *&
+%typemap(ftype, in={$typemap(ftype, TYPE*), intent(INOUT)}, noblock=1) SWIGSP__, SWIGSP__ &, SWIGSP__ *, SWIGSP__ *&
   {$typemap(ftype, TYPE*)}
-%typemap(ftype, out={$typemap(ftype, TYPE)}, noblock=1)
+%typemap(ftype, in={$typemap(ftype, TYPE*), intent(IN)}, noblock=1)
     const SWIGSP__ &, const SWIGSP__ *, const SWIGSP__ *&
   {$typemap(ftype, const TYPE*)}
 

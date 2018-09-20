@@ -216,7 +216,7 @@ end function
   "$typemap(ctype, $*1_ltype)"
 %typemap(imtype, in="$typemap(imtype, $*1_ltype), intent(in)") const FUNDTYPE&
   "$typemap(imtype, $*1_ltype)"
-%typemap(ftype) const FUNDTYPE&
+%typemap(ftype, in={$typemap(ftype, $*1_ltype), intent(in)} ) const FUNDTYPE&
   "$typemap(ftype, $*1_ltype)"
 %typemap(in, noblock=1) const FUNDTYPE& ($*1_ltype temp) {
   temp = %static_cast(*$input, $*1_ltype);
