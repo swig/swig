@@ -23,6 +23,8 @@
  *
  */
 #define SWIGSP__ SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE >
+#define SWIGSP_PTRS__ SWIGSP__ &, SWIGSP__ *
+#define SWIGSP_CPTRS__ const SWIGSP__ &, const SWIGSP__ *
 
 /* -------------------------------------------------------------------------
  * Shared pointers *always* return either NULL or a newly allocated shared
@@ -38,10 +40,9 @@
  * Deferred copy of basic settings from non-SP type (i.e. Fortran will see it the same; we override the in/out/ctype below)
  */
 
-%typemap(ftype, in={$typemap(ftype, TYPE*), intent(INOUT)}, noblock=1) SWIGSP__, SWIGSP__ &, SWIGSP__ *, SWIGSP__ *&
+%typemap(ftype, in={$typemap(ftype, TYPE*)}, noblock=1) SWIGSP__, SWIGSP_PTRS__
   {$typemap(ftype, TYPE*)}
-%typemap(ftype, in={$typemap(ftype, TYPE*), intent(IN)}, noblock=1)
-    const SWIGSP__ &, const SWIGSP__ *, const SWIGSP__ *&
+%typemap(ftype, in={$typemap(ftype, TYPE*)}, noblock=1) SWIGSP_CPTRS__
   {$typemap(ftype, const TYPE*)}
 
 /* -------------------------------------------------------------------------
@@ -51,7 +52,7 @@
  */
 
 %typemap(ctype, in="const SwigClassWrapper *", null="SwigClassWrapper_uninitialized()", noblock=1, fragment="SwigClassWrapper")
-    SWIGSP__, SWIGSP__ &, SWIGSP__ *, SWIGSP__ *&, const SWIGSP__ &, const SWIGSP__ *, const SWIGSP__ *&
+    SWIGSP__, SWIGSP_PTRS__, SWIGSP_CPTRS__
 "SwigClassWrapper"
 
 /* -------------------------------------------------------------------------
@@ -141,7 +142,8 @@
 }
 
 %typemap(out, noblock=1, fragment="SWIG_null_deleter") SWIGSP__ * {
-  $result = ($1 && SWIG_SHARED_PTR_NOT_NULL(*$1)) ? new $*1_ltype(*($1_ltype)$1) : 0;
+  $result.cptr = ($1 && SWIG_SHARED_PTR_NOT_NULL(*$1)) ? new $*1_ltype(*($1_ltype)$1) : 0;
+  $result.mem = SWIG_MOVE;
   if ($owner) delete $1;
 }
 
@@ -176,6 +178,8 @@
  * Clean up macros
  */
 #undef SWIGSP__
+#undef SWIGSP_PTRS__
+#undef SWIGSP_CPTRS__
 
 %enddef
 
