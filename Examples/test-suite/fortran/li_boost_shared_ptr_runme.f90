@@ -26,7 +26,7 @@ subroutine test_ptrs
   write (*,*) overload_smartbyref(k)
 
   write (*,*) use_count(ksub)
-  write (*,*) overload_rawbyval(ksub)
+  write (*,*) overload_smartbyval(ksub)
 
   ! ASSERT(use_count(k) == 1)
 

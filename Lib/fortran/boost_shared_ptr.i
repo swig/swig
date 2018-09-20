@@ -42,7 +42,7 @@
 
 %typemap(ftype, in={$typemap(ftype:in, TYPE*)}, noblock=1) SWIGSP__, SWIGSP_PTRS__
   {$typemap(ftype, TYPE*)}
-%typemap(ftype, in={$typemap(ftype:in, TYPE*)}, noblock=1) SWIGSP_CPTRS__
+%typemap(ftype, in={$typemap(ftype:in, const TYPE*)}, noblock=1) SWIGSP_CPTRS__
   {$typemap(ftype, const TYPE*)}
 
 /* -------------------------------------------------------------------------
