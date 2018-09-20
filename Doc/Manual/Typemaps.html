@@ -2455,6 +2455,14 @@ The result is the following expansion
 </pre>
 </div>
 
+<p>
+The first argument, the typemap method, can look up the keyword argument of a
+typemap by appending a colon and the keyowrd. For example,
+<tt>$typemap(directorin:descriptor, $type)</tt>  would be replaced by <tt>"D"</tt> if <tt>type</tt> is a <tt>double</tt>.
+</p>
+<p>
+<em>New in SWIG 4.1.</em>
+</p>
 
 <H3><a name="Typemaps_special_variable_attributes">14.4.5 Special variables and typemap attributes</a></H3>
 
