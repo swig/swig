@@ -252,6 +252,8 @@ SwigBoost::shared_ptr<Klass>* smartpointerpointerownertest() {
 
 // Provide overloads for Klass and derived classes as some language modules, eg Python, create an extra reference in
 // the marshalling if an upcast to a base class is required.
+// Fortran can't overload class(Derived) with class(Base).
+#ifndef SWIGFORTRAN
 long use_count(const SwigBoost::shared_ptr<Klass3rdDerived>& sptr) {
   return sptr.use_count();
 }
@@ -261,6 +263,7 @@ long use_count(const SwigBoost::shared_ptr<Klass2ndDerived>& sptr) {
 long use_count(const SwigBoost::shared_ptr<KlassDerived>& sptr) {
   return sptr.use_count();
 }
+#endif
 long use_count(const SwigBoost::shared_ptr<Klass>& sptr) {
   return sptr.use_count();
 }
