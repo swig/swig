@@ -94,13 +94,6 @@ CPP_TEST_BROKEN += \
 	template_expr \
 	$(CPP11_TEST_BROKEN)
 
-# Boost requirements
-FAILING_CPP_TESTS += director_smartptr \
-	li_boost_shared_ptr \
-	li_boost_shared_ptr_attribute \
-	li_boost_shared_ptr_bits \
-	li_boost_shared_ptr_director \
-	li_boost_shared_ptr_template \
 
 # Broken C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_BROKEN += \
