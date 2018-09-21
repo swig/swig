@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-09-21: wsfulton
+            [Python] Fix when using -builtin and wrapping std::map, std::set, std::unordered_map or
+            std::unordered_set to ensure __contains__ is called. This is a wrapper for the STL
+            container's find method. Without it, Python will do its own slower sequence search.
+
 2018-09-19: wsfulton
             [Python] Fix functors (wrapped as __call__) when using -builtin -modern -fastunpack.
 

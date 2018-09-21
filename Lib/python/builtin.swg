@@ -635,6 +635,42 @@ SwigPyBuiltin_ssizeobjargproc_closure(SwigPyWrapperFunction wrapper, PyObject *a
   return result;
 }
 
+#define SWIGPY_OBJOBJPROC_CLOSURE(wrapper)			\
+SWIGINTERN int							\
+wrapper##_objobjproc_closure(PyObject *a, PyObject *b) {	\
+  return SwigPyBuiltin_objobjproc_closure(wrapper, a, b);	\
+}
+SWIGINTERN int
+SwigPyBuiltin_objobjproc_closure(SwigPyWrapperFunction wrapper, PyObject *a, PyObject *b) {
+  int result;
+  PyObject *pyresult;
+  PyObject *tuple;
+  tuple = PyTuple_New(1);
+  assert(tuple);
+  PyTuple_SET_ITEM(tuple, 0, b);
+  Py_XINCREF(b);
+  pyresult = wrapper(a, tuple);
+  result = pyresult ? (PyObject_IsTrue(pyresult) ? 1 : 0) : -1;
+  Py_XDECREF(pyresult);
+  Py_DECREF(tuple);
+  return result;
+}
+
+#define SWIGPY_FUNPACK_OBJOBJPROC_CLOSURE(wrapper)			\
+SWIGINTERN int								\
+wrapper##_objobjproc_closure(PyObject *a, PyObject *b) {		\
+  return SwigPyBuiltin_funpack_objobjproc_closure(wrapper, a, b);	\
+}
+SWIGINTERN int
+SwigPyBuiltin_funpack_objobjproc_closure(SwigPyWrapperFunction wrapper, PyObject *a, PyObject *b) {
+  int result;
+  PyObject *pyresult;
+  pyresult = wrapper(a, b);
+  result = pyresult ? (PyObject_IsTrue(pyresult) ? 1 : 0) : -1;
+  Py_XDECREF(pyresult);
+  return result;
+}
+
 #define SWIGPY_OBJOBJARGPROC_CLOSURE(wrapper)					\
 SWIGINTERN int									\
 wrapper##_objobjargproc_closure(PyObject *a, PyObject *b, PyObject *c) {	\

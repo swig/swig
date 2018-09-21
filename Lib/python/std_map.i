@@ -156,6 +156,7 @@
   %feature("python:slot", "mp_length", functype="lenfunc") __len__;
   %feature("python:slot", "mp_subscript", functype="binaryfunc") __getitem__;
   %feature("python:slot", "tp_iter", functype="getiterfunc") key_iterator;
+  %feature("python:slot", "sq_contains", functype="objobjproc") __contains__;
 
   %extend {
     %newobject iterkeys(PyObject **PYTHON_SELF);
@@ -263,7 +264,6 @@
       return itemList;
     }
     
-    // Python 2.2 methods
     bool __contains__(const key_type& key) {
       return self->find(key) != self->end();
     }

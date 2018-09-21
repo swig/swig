@@ -131,6 +131,10 @@
   %swig_sequence_forward_iterator(Map);
   %swig_container_methods(Map)
 
+#if defined(SWIGPYTHON_BUILTIN)
+  %feature("python:slot", "sq_contains", functype="objobjproc") __contains__;
+#endif
+
   %extend {
     mapped_type __getitem__(const key_type& key) const throw (std::out_of_range) {
       Map::const_iterator i = self->find(key);
@@ -204,7 +208,6 @@
       return itemList;
     }
     
-    // Python 2.2 methods
     bool __contains__(const key_type& key) {
       return self->find(key) != self->end();
     }

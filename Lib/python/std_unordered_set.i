@@ -43,6 +43,10 @@
   %swig_sequence_forward_iterator(unordered_set);
   %swig_container_methods(unordered_set);
 
+#if defined(SWIGPYTHON_BUILTIN)
+  %feature("python:slot", "sq_contains", functype="objobjproc") __contains__;
+#endif
+
   %extend  {
      void append(value_type x) {
        self->insert(x);
