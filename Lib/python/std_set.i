@@ -37,10 +37,11 @@
   %swig_container_methods(set);
 
 #if defined(SWIGPYTHON_BUILTIN)
+  %feature("python:slot", "mp_subscript", functype="binaryfunc") __getitem__;
   %feature("python:slot", "sq_contains", functype="objobjproc") __contains__;
 #endif
 
-  %extend  {
+  %extend {
      void append(value_type x) {
        self->insert(x);
      }
@@ -60,8 +61,7 @@
      void discard(value_type x) {
        self->erase(x);
      }
-
-  };
+  }
 %enddef
 
 %include <std/std_set.i>

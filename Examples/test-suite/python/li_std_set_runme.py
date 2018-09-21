@@ -54,6 +54,8 @@ if i.next() != 2:
 if i.next() != 3:
     raise RuntimeError
 
+if si[0] != 1:
+    raise RuntimeError
 
 i = s.begin()
 i.next()
