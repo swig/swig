@@ -581,6 +581,9 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
   SWIG_check_mutable_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
   $1 = %static_cast($input->cptr, $1_ltype);
 }
+
+// Const references are like const pointers; use more restrictive check though
+%apply const SWIGTYPE* { const SWIGTYPE& };
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") const SWIGTYPE& {
   SWIG_check_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
   $1 = %static_cast($input->cptr, $1_ltype);

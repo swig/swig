@@ -2090,6 +2090,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	  Printf(stdout, "Swig_typemap_attach_parms:  embedded\n");
 #endif
 	  if (already_substituting < 10) {
+	    char* found_colon;
 	    already_substituting++;
 	    if ((in_typemap_search_multi == 0) && typemap_search_debug) {
 	      String *dtypemap = NewString(dollar_typemap);
@@ -2097,7 +2098,14 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	      Printf(stdout, "  Containing: %s\n", dtypemap);
 	      Delete(dtypemap);
 	    }
-	    Swig_typemap_attach_parms(tmap_method, to_match_parms, f);
+	    found_colon = Strstr(tmap_method, ":");
+	    if (found_colon) {
+	      String *temp_tmap_method = NewStringWithSize(Char(tmap_method), found_colon - Char(tmap_method));
+	      Swig_typemap_attach_parms(temp_tmap_method, to_match_parms, f);
+	      Delete(temp_tmap_method);
+	    } else {
+	      Swig_typemap_attach_parms(tmap_method, to_match_parms, f);
+	    }
 	    already_substituting--;
 
 	    /* Look for the typemap code */
