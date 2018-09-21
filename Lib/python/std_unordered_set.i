@@ -45,7 +45,9 @@
 
 #if defined(SWIGPYTHON_BUILTIN)
   %feature("python:slot", "sq_contains", functype="objobjproc") __contains__;
+  %feature("python:slot", "mp_subscript", functype="binaryfunc") __getitem__;
 #endif
+
 
   %extend  {
      void append(value_type x) {

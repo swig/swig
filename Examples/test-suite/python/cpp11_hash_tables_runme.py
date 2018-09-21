@@ -38,6 +38,7 @@ for x in [cpp11_hash_tables.SetInt([1]),
 		  cpp11_hash_tables.UnorderedMultiSetInt([1])]:
 
 	swig_assert_equal([e for e in x], [1])
+	swig_assert_equal(x[0], 1)
 
 	swig_assert_equal(1 in x, True)
 	swig_assert_equal(2 in x, False)
