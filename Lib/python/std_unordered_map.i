@@ -78,11 +78,12 @@
       typedef std::unordered_map<K,T> unordered_map_type;
       static int asptr(PyObject *obj, unordered_map_type **val) {
 	int res = SWIG_ERROR;
+	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	if (PyDict_Check(obj)) {
 	  SwigVar_PyObject items = PyObject_CallMethod(obj,(char *)"items",NULL);
 %#if PY_VERSION_HEX >= 0x03000000
-          /* In Python 3.x the ".items()" method return a dict_items object */
-          items = PySequence_Fast(items, ".items() haven't returned a sequence!");
+          /* In Python 3.x the ".items()" method returns a dict_items object */
+          items = PySequence_Fast(items, ".items() didn't return a sequence!");
 %#endif
 	  res = traits_asptr_stdseq<std::unordered_map<K,T>, std::pair<K, T> >::asptr(items, val);
 	} else {
@@ -91,6 +92,7 @@
 	  res = descriptor ? SWIG_ConvertPtr(obj, (void **)&p, descriptor, 0) : SWIG_ERROR;
 	  if (SWIG_IsOK(res) && val)  *val = p;
 	}
+	SWIG_PYTHON_THREAD_END_BLOCK;
 	return res;
       }      
     };
@@ -100,27 +102,32 @@
       typedef std::unordered_map<K,T> unordered_map_type;
       typedef typename unordered_map_type::const_iterator const_iterator;
       typedef typename unordered_map_type::size_type size_type;
-            
-      static PyObject *from(const unordered_map_type& unordered_map) {
+
+      static PyObject *asdict(const unordered_map_type& map) {
+	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+	size_type size = map.size();
+	Py_ssize_t pysize = (size <= (size_type) INT_MAX) ? (Py_ssize_t) size : -1;
+	if (pysize < 0) {
+	  PyErr_SetString(PyExc_OverflowError, "map size not valid in python");
+	  SWIG_PYTHON_THREAD_END_BLOCK;
+	  return NULL;
+	}
+	PyObject *obj = PyDict_New();
+	for (const_iterator i= map.begin(); i!= map.end(); ++i) {
+	  swig::SwigVar_PyObject key = swig::from(i->first);
+	  swig::SwigVar_PyObject val = swig::from(i->second);
+	  PyDict_SetItem(obj, key, val);
+	}
+	SWIG_PYTHON_THREAD_END_BLOCK;
+	return obj;
+      }
+                
+      static PyObject *from(const unordered_map_type& map) {
 	swig_type_info *desc = swig::type_info<unordered_map_type>();
 	if (desc && desc->clientdata) {
-	  return SWIG_InternalNewPointerObj(new unordered_map_type(unordered_map), desc, SWIG_POINTER_OWN);
+	  return SWIG_InternalNewPointerObj(new unordered_map_type(map), desc, SWIG_POINTER_OWN);
 	} else {
-	  size_type size = unordered_map.size();
-	  Py_ssize_t pysize = (size <= (size_type) INT_MAX) ? (Py_ssize_t) size : -1;
-	  if (pysize < 0) {
-	    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-	    PyErr_SetString(PyExc_OverflowError, "unordered_map size not valid in python");
-	    SWIG_PYTHON_THREAD_END_BLOCK;
-	    return NULL;
-	  }
-	  PyObject *obj = PyDict_New();
-	  for (const_iterator i= unordered_map.begin(); i!= unordered_map.end(); ++i) {
-	    swig::SwigVar_PyObject key = swig::from(i->first);
-	    swig::SwigVar_PyObject val = swig::from(i->second);
-	    PyDict_SetItem(obj, key, val);
-	  }
-	  return obj;
+	  return asdict(map);
 	}
       }
     };
@@ -136,14 +143,14 @@
 #endif
 
   %extend {
-    mapped_type __getitem__(const key_type& key) const throw (std::out_of_range) {
+    mapped_type const & __getitem__(const key_type& key) throw (std::out_of_range) {
       Map::const_iterator i = self->find(key);
       if (i != self->end())
 	return i->second;
       else
 	throw std::out_of_range("key not found");
     }
-    
+
     void __delitem__(const key_type& key) throw (std::out_of_range) {
       Map::iterator i = self->find(key);
       if (i != self->end())
@@ -160,8 +167,8 @@
     PyObject* keys() {
       Map::size_type size = self->size();
       Py_ssize_t pysize = (size <= (Map::size_type) INT_MAX) ? (Py_ssize_t) size : -1;
+      SWIG_PYTHON_THREAD_BEGIN_BLOCK;
       if (pysize < 0) {
-	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	PyErr_SetString(PyExc_OverflowError, "unordered_map size not valid in python");
 	SWIG_PYTHON_THREAD_END_BLOCK;
 	return NULL;
@@ -171,14 +178,15 @@
       for (Py_ssize_t j = 0; j < pysize; ++i, ++j) {
 	PyList_SET_ITEM(keyList, j, swig::from(i->first));
       }
+      SWIG_PYTHON_THREAD_END_BLOCK;
       return keyList;
     }
     
     PyObject* values() {
       Map::size_type size = self->size();
       Py_ssize_t pysize = (size <= (Map::size_type) INT_MAX) ? (Py_ssize_t) size : -1;
+      SWIG_PYTHON_THREAD_BEGIN_BLOCK;
       if (pysize < 0) {
-	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	PyErr_SetString(PyExc_OverflowError, "unordered_map size not valid in python");
 	SWIG_PYTHON_THREAD_END_BLOCK;
 	return NULL;
@@ -188,14 +196,15 @@
       for (Py_ssize_t j = 0; j < pysize; ++i, ++j) {
 	PyList_SET_ITEM(valList, j, swig::from(i->second));
       }
+      SWIG_PYTHON_THREAD_END_BLOCK;
       return valList;
     }
     
     PyObject* items() {
       Map::size_type size = self->size();
       Py_ssize_t pysize = (size <= (Map::size_type) INT_MAX) ? (Py_ssize_t) size : -1;
+      SWIG_PYTHON_THREAD_BEGIN_BLOCK;
       if (pysize < 0) {
-	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	PyErr_SetString(PyExc_OverflowError, "unordered_map size not valid in python");
 	SWIG_PYTHON_THREAD_END_BLOCK;
 	return NULL;
@@ -205,6 +214,7 @@
       for (Py_ssize_t j = 0; j < pysize; ++i, ++j) {
 	PyList_SET_ITEM(itemList, j, swig::from(*i));
       }
+      SWIG_PYTHON_THREAD_END_BLOCK;
       return itemList;
     }
     
@@ -249,7 +259,13 @@
     void __setitem__(const key_type& key, const mapped_type& x) throw (std::out_of_range) {
       (*self)[key] = x;
     }
+
+    PyObject* asdict() {
+      return swig::traits_from< Map >::asdict(*self);
+    }
   }
+
+
 %enddef
 
 
