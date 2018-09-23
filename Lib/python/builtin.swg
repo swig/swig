@@ -89,8 +89,8 @@ SwigPyBuiltin_SetterClosure (PyObject *obj, PyObject *val, void *closure) {
   }
   tuple = PyTuple_New(1);
   assert(tuple);
+  Py_INCREF(val);
   PyTuple_SET_ITEM(tuple, 0, val);
-  Py_XINCREF(val);
   result = (*getset->set)(obj, tuple);
   Py_DECREF(tuple);
   Py_XDECREF(result);
@@ -385,8 +385,8 @@ SwigPyBuiltin_InitBases (PyTypeObject *type, PyTypeObject **bases) {
     ++base_count;
   tuple = PyTuple_New(base_count);
   for (i = 0; i < base_count; ++i) {
-    PyTuple_SET_ITEM(tuple, i, (PyObject *)bases[i]);
     Py_INCREF((PyObject *)bases[i]);
+    PyTuple_SET_ITEM(tuple, i, (PyObject *)bases[i]);
   }
   type->tp_bases = tuple;
 }
@@ -489,8 +489,8 @@ SwigPyBuiltin_binaryfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a, PyO
   PyObject *tuple, *result;
   tuple = PyTuple_New(1);
   assert(tuple);
+  Py_INCREF(b);
   PyTuple_SET_ITEM(tuple, 0, b);
-  Py_XINCREF(b);
   result = wrapper(a, tuple);
   Py_DECREF(tuple);
   return result;
@@ -508,10 +508,10 @@ SwigPyBuiltin_ternaryfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a, Py
   PyObject *tuple, *result;
   tuple = PyTuple_New(2);
   assert(tuple);
+  Py_INCREF(b);
   PyTuple_SET_ITEM(tuple, 0, b);
+  Py_INCREF(c);
   PyTuple_SET_ITEM(tuple, 1, c);
-  Py_XINCREF(b);
-  Py_XINCREF(c);
   result = wrapper(a, tuple);
   Py_DECREF(tuple);
   return result;
@@ -574,8 +574,8 @@ SwigPyBuiltin_ssizessizeobjargproc_closure(SwigPyWrapperFunction wrapper, PyObje
   PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));
   PyTuple_SET_ITEM(tuple, 1, _PyLong_FromSsize_t(c));
   if (d) {
-    PyTuple_SET_ITEM(tuple, 2, d);
     Py_INCREF(d);
+    PyTuple_SET_ITEM(tuple, 2, d);
   }
   resultobj = wrapper(a, tuple);
   result = resultobj ? 0 : -1;
@@ -626,8 +626,8 @@ SwigPyBuiltin_ssizeobjargproc_closure(SwigPyWrapperFunction wrapper, PyObject *a
   tuple = PyTuple_New(2);
   assert(tuple);
   PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));
+  Py_INCREF(c);
   PyTuple_SET_ITEM(tuple, 1, c);
-  Py_XINCREF(c);
   resultobj = wrapper(a, tuple);
   result = resultobj ? 0 : -1;
   Py_XDECREF(resultobj);
@@ -647,8 +647,8 @@ SwigPyBuiltin_objobjproc_closure(SwigPyWrapperFunction wrapper, PyObject *a, PyO
   PyObject *tuple;
   tuple = PyTuple_New(1);
   assert(tuple);
+  Py_INCREF(b);
   PyTuple_SET_ITEM(tuple, 0, b);
-  Py_XINCREF(b);
   pyresult = wrapper(a, tuple);
   result = pyresult ? (PyObject_IsTrue(pyresult) ? 1 : 0) : -1;
   Py_XDECREF(pyresult);
@@ -682,11 +682,11 @@ SwigPyBuiltin_objobjargproc_closure(SwigPyWrapperFunction wrapper, PyObject *a, 
   int result;
   tuple = PyTuple_New(c ? 2 : 1);
   assert(tuple);
+  Py_INCREF(b);
   PyTuple_SET_ITEM(tuple, 0, b);
-  Py_XINCREF(b);
   if (c) {
+    Py_INCREF(c);
     PyTuple_SET_ITEM(tuple, 1, c);
-    Py_XINCREF(c);
   }
   resultobj = wrapper(a, tuple);
   result = resultobj ? 0 : -1;
