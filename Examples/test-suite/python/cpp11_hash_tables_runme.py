@@ -34,6 +34,7 @@ for x in [cpp11_hash_tables.MultiMapIntInt({1:7}),
 		  cpp11_hash_tables.UnorderedMultiMapIntInt({1:7})]:
 	x[1] = 9
 	swig_assert_equal(sorted([v for k, v in x.iteritems()]), [7, 9])
+	swig_assert_equal(len(x), 2)
 
 for x in [cpp11_hash_tables.SetInt([1]),
 		  cpp11_hash_tables.MultiSetInt([1]),
@@ -56,3 +57,4 @@ for x in [cpp11_hash_tables.MultiSetInt([1]),
 		  cpp11_hash_tables.UnorderedMultiSetInt([1])]:
 	x.append(1)
 	swig_assert_equal(x.count(1), 2)
+	swig_assert_equal(len(x), 2)

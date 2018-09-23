@@ -49,7 +49,7 @@
 #endif
 
 
-  %extend  {
+  %extend {
      void append(value_type x) {
        self->insert(x);
      }
@@ -61,8 +61,7 @@
      value_type __getitem__(difference_type i) const throw (std::out_of_range) {
        return *(swig::cgetpos(self, i));
      }
-
-  };
+  }
 %enddef
 
 %include <std/std_unordered_set.i>
