@@ -139,7 +139,39 @@
   %swig_container_methods(Map)
 
 #if defined(SWIGPYTHON_BUILTIN)
+  %feature("python:slot", "mp_length", functype="lenfunc") __len__;
+  %feature("python:slot", "mp_subscript", functype="binaryfunc") __getitem__;
+  %feature("python:slot", "tp_iter", functype="getiterfunc") key_iterator;
   %feature("python:slot", "sq_contains", functype="objobjproc") __contains__;
+
+  %extend {
+    %newobject iterkeys(PyObject **PYTHON_SELF);
+    swig::SwigPyIterator* iterkeys(PyObject **PYTHON_SELF) {
+      return swig::make_output_key_forward_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
+    }
+
+    %newobject itervalues(PyObject **PYTHON_SELF);
+    swig::SwigPyIterator* itervalues(PyObject **PYTHON_SELF) {
+      return swig::make_output_value_forward_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
+    }
+
+    %newobject iteritems(PyObject **PYTHON_SELF);
+    swig::SwigPyIterator* iteritems(PyObject **PYTHON_SELF) {
+      return swig::make_output_forward_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
+    }
+  }
+
+#else
+  %extend {
+    %pythoncode %{def __iter__(self):
+    return self.key_iterator()%}
+    %pythoncode %{def iterkeys(self):
+    return self.key_iterator()%}
+    %pythoncode %{def itervalues(self):
+    return self.value_iterator()%}
+    %pythoncode %{def iteritems(self):
+    return self.iterator()%}
+  }
 #endif
 
   %extend {
@@ -231,16 +263,8 @@
     swig::SwigPyIterator* value_iterator(PyObject **PYTHON_SELF) {
       return swig::make_output_value_forward_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
     }
-
-    %pythoncode %{def __iter__(self):
-    return self.key_iterator()%}
-    %pythoncode %{def iterkeys(self):
-    return self.key_iterator()%}
-    %pythoncode %{def itervalues(self):
-    return self.value_iterator()%}
-    %pythoncode %{def iteritems(self):
-    return self.iterator()%}
   }
+
 %enddef
 
 %define %swig_unordered_map_methods(Map...)

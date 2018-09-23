@@ -50,3 +50,20 @@ mii[1] = 2
 
 if mii[1] != 2:
     raise RuntimeError
+
+if mii.keys() != [1]:
+    raise RuntimeError("keys")
+if mii.values() != [2]:
+    raise RuntimeError("values")
+if mii.items() != [(1, 2)]:
+    raise RuntimeError("items")
+
+if [k for k in mii] != [1]:
+    raise RuntimeError("iteration")
+
+if [i for i in mii.iterkeys()] != [1]:
+    raise RuntimeError("iterkeys")
+if [i for i in mii.itervalues()] != [2]:
+    raise RuntimeError("itervalues")
+if [i for i in mii.iteritems()] != [(1, 2)]:
+    raise RuntimeError("iteritems")
