@@ -14,7 +14,7 @@ struct DoxOuter {
     /** doxInt variable */
     int doxInt;
     /** doxShort const variable */
-    static const short doxShort = 1.0;
+    static const short doxShort = 1;
     /** doxMethod description */
     void doxMethod() {}
     /** doxStaticMethod description */
