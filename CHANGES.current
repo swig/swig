@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-09-24: wsfulton
+            [Python] #1319 C++11 hash tables implementation is finished now (including for -builtin):
+              std::unordered_map
+              std::unordered_set
+              std::unordered_multimap
+              std::unordered_multiset
+
 2018-09-21: wsfulton
             [Python] Fix when using -builtin and wrapping std::map, std::set, std::unordered_map or
             std::unordered_set to ensure __contains__ is called. This is a wrapper for the STL
