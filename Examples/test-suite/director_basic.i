@@ -130,12 +130,24 @@ public:
     return myclass->pmethod(b);
   }
 
-  virtual void nonVirtual()
+  virtual int nonVirtual()
   {
+    return 100;
   }
 
-  virtual void nonOverride()
+  virtual int nonOverride()
   {
+    return 101;
+  }
+
+  static int call_nonVirtual(MyClass *myclass)
+  {
+    return myclass->nonVirtual();
+  }
+
+  static int call_nonOverride(MyClass *myclass)
+  {
+    return myclass->nonOverride();
   }
 
   // Collisions with generated method names
