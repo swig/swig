@@ -1951,9 +1951,32 @@ public:
 	// Only emit if there is at least one director method
 	Printf(proxy_class_code, "\n");
 	Printf(proxy_class_code, "  private bool SwigDerivedClassHasMethod(string methodName, global::System.Type[] methodTypes) {\n");
-	Printf(proxy_class_code,
-	       "    global::System.Reflection.MethodInfo methodInfo = this.GetType().GetMethod(methodName, global::System.Reflection.BindingFlags.Public | global::System.Reflection.BindingFlags.NonPublic | global::System.Reflection.BindingFlags.Instance, null, methodTypes, null);\n");
-	Printf(proxy_class_code, "    bool hasDerivedMethod = methodInfo.IsVirtual && methodInfo.DeclaringType.IsSubclassOf(typeof(%s)) && methodInfo.DeclaringType != methodInfo.GetBaseDefinition().DeclaringType;\n", proxy_class_name);
+	Printf(proxy_class_code, "    global::System.Reflection.MethodInfo[] methodInfos = this.GetType().GetMethods(\n");
+	Printf(proxy_class_code, "        global::System.Reflection.BindingFlags.Public | global::System.Reflection.BindingFlags.NonPublic | global::System.Reflection.BindingFlags.Instance);\n");
+	Printf(proxy_class_code, "    foreach (global::System.Reflection.MethodInfo methodInfo in methodInfos) {\n");
+	Printf(proxy_class_code, "      if (methodInfo.DeclaringType == null)\n");
+	Printf(proxy_class_code, "        continue;\n\n");
+	Printf(proxy_class_code, "      if (methodInfo.Name != methodName)\n");
+	Printf(proxy_class_code, "        continue;\n\n");
+	Printf(proxy_class_code, "      var parameters = methodInfo.GetParameters();\n");
+	Printf(proxy_class_code, "      if (parameters.Length != methodTypes.Length)\n");
+	Printf(proxy_class_code, "        continue;\n\n");
+	Printf(proxy_class_code, "      bool parametersMatch = true;\n");
+	Printf(proxy_class_code, "      for (var i = 0; i < parameters.Length; i++) {\n");
+	Printf(proxy_class_code, "        if (parameters[i].ParameterType != methodTypes[i]) {\n");
+	Printf(proxy_class_code, "          parametersMatch = false;\n");
+	Printf(proxy_class_code, "          break;\n");
+	Printf(proxy_class_code, "        }\n");
+	Printf(proxy_class_code, "      }\n\n");
+	Printf(proxy_class_code, "      if (!parametersMatch)\n");
+	Printf(proxy_class_code, "        continue;\n\n");
+	Printf(proxy_class_code, "      if (methodInfo.IsVirtual && (methodInfo.DeclaringType.IsSubclassOf(typeof(%s))) &&\n", proxy_class_name);
+	Printf(proxy_class_code, "        methodInfo.DeclaringType != methodInfo.GetBaseDefinition().DeclaringType) {\n");
+	Printf(proxy_class_code, "        return true;\n");
+	Printf(proxy_class_code, "      }\n");
+	Printf(proxy_class_code, "    }\n\n");
+  Printf(proxy_class_code, "    return false;\n");
+
 	/* Could add this code to cover corner case where the GetMethod() returns a method which allows type
 	 * promotion, eg it will return foo(double), if looking for foo(int).
 	 if (hasDerivedMethod) {
@@ -1973,7 +1996,7 @@ public:
 	 }
 	 }
 	 */
-	Printf(proxy_class_code, "    return hasDerivedMethod;\n");
+	//Printf(proxy_class_code, "    return hasDerivedMethod;\n");
 	Printf(proxy_class_code, "  }\n");
       }
 
