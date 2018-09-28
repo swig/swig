@@ -1484,14 +1484,13 @@ SWIG_Python_AddErrMesg(const char* mesg, int infront)
     if (value) {
       PyObject *old_str = PyObject_Str(value);
       const char *tmp = SWIG_Python_str_AsChar(old_str);
-      if (!tmp)
-        tmp = "Invalid error message";
+      const char *errmesg = tmp ? tmp : "Invalid error message";
       Py_XINCREF(type);
       PyErr_Clear();
       if (infront) {
-	PyErr_Format(type, "%s %s", mesg, tmp);
+	PyErr_Format(type, "%s %s", mesg, errmesg);
       } else {
-	PyErr_Format(type, "%s %s", tmp, mesg);
+	PyErr_Format(type, "%s %s", errmesg, mesg);
       }
       SWIG_Python_str_DelForPy3(tmp);
       Py_DECREF(old_str);
