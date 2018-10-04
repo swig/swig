@@ -6,7 +6,12 @@
  * ----------------------------------------------------------------------------- */
 
 #if defined(DEBUG_DIRECTOR_OWNED) || defined(DEBUG_DIRECTOR_EXCEPTION)
+#include <errno.h>
+#include <string.h>
 #include <iostream>
+#endif
+#if defined(__ANDROID__)
+#include <pthread.h>
 #endif
 
 #include <exception>
@@ -139,12 +144,26 @@ namespace Swig {
         void **jenv = (void **)&jenv_;
 #endif
         env_status = director_->swig_jvm_->GetEnv((void **)&jenv_, JNI_VERSION_1_2);
+        JavaVMAttachArgs args;
+        args.version = JNI_VERSION_1_2;
+        args.group = NULL;
+        args.name = NULL;
+#if defined(__ANDROID__)
+        char thread_name[16];  // MAX_TASK_COMM_LEN=16 is hard-coded in the kernel.
+        if (pthread_getname_np(pthread_self(), thread_name, sizeof(thread_name)) == 0) {
+          args.name = thread_name;
+        } else {
+#if defined(DEBUG_DIRECTOR_OWNED)
+          std::cout << "JNIEnvWrapper: Couldn't get thread name: " << strerror(errno) << std::endl;
+#endif
+        }
+#endif
 #if defined(SWIG_JAVA_ATTACH_CURRENT_THREAD_AS_DAEMON)
         // Attach a daemon thread to the JVM. Useful when the JVM should not wait for
         // the thread to exit upon shutdown. Only for jdk-1.4 and later.
-        director_->swig_jvm_->AttachCurrentThreadAsDaemon(jenv, NULL);
+        director_->swig_jvm_->AttachCurrentThreadAsDaemon(jenv, &args);
 #else
-        director_->swig_jvm_->AttachCurrentThread(jenv, NULL);
+        director_->swig_jvm_->AttachCurrentThread(jenv, &args);
 #endif
       }
       ~JNIEnvWrapper() {
