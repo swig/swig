@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include "pydoc.h"
 
-#include <iostream>
 #include <stdint.h>
 
 #define PYSHADOW_MEMBER  0x2
@@ -2865,11 +2864,13 @@ public:
     int noargs = funpack && (tuple_required == 0 && tuple_arguments == 0);
     int onearg = funpack && (tuple_required == 1 && tuple_arguments == 1);
 
-    if (builtin && funpack && !overname && !builtin_ctor && 
-      !(GetFlag(n, "feature:compactdefaultargs") && (tuple_arguments > tuple_required || varargs))) {
-      String *argattr = NewStringf("%d", tuple_arguments);
-      Setattr(n, "python:argcount", argattr);
-      Delete(argattr);
+    if (builtin && funpack && !overname && !builtin_ctor) {
+      int compactdefargs = ParmList_is_compactdefargs(l);
+      if (!(compactdefargs && (tuple_arguments > tuple_required || varargs))) {
+	String *argattr = NewStringf("%d", tuple_arguments);
+	Setattr(n, "python:argcount", argattr);
+	Delete(argattr);
+      }
     }
 
     /* Generate code for argument marshalling */

@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-10-04: wsfulton
+            [Python] #1126 Fix C default arguments with -builtin and -fastunpack and -modernargs.
+            Problem occurred when there is just one (defaulted) parameter in the parameter list.
+
 2018-09-24: wsfulton
             [Python] #1319 C++11 hash tables implementation is finished now (including for -builtin):
               std::unordered_map
