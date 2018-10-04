@@ -149,6 +149,7 @@ namespace Swig {
         args.group = NULL;
         args.name = NULL;
 #if defined(__ANDROID__)
+#if defined(__ANDROID_API__) && __ANDROID_API__ >= 26
         char thread_name[16];  // MAX_TASK_COMM_LEN=16 is hard-coded in the kernel.
         if (pthread_getname_np(pthread_self(), thread_name, sizeof(thread_name)) == 0) {
           args.name = thread_name;
@@ -157,6 +158,7 @@ namespace Swig {
           std::cout << "JNIEnvWrapper: Couldn't get thread name: " << strerror(errno) << std::endl;
 #endif
         }
+#endif
 #endif
 #if defined(SWIG_JAVA_ATTACH_CURRENT_THREAD_AS_DAEMON)
         // Attach a daemon thread to the JVM. Useful when the JVM should not wait for
