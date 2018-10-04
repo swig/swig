@@ -22,7 +22,9 @@ int foo43(int x) {
 %}
 
 %inline %{
-struct FooStruct {};
+struct FooStruct {
+  int num;
+};
 %}
 %extend FooStruct {
   void no_arg() {}
