@@ -34,7 +34,9 @@ struct FooStruct {
 }
 
 %inline %{
-struct StaticStruct {};
+struct StaticStruct {
+  int snum;
+};
 %}
 %extend StaticStruct {
   static void no_arg() {}
