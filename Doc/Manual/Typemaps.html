@@ -364,7 +364,7 @@ int spam(<b>foo::Number</b> a, <b>foo::Number</b> b);
 <p>
 In this case, the typemap is still applied to the proper arguments even though typenames don't always
 match the text "int".  This ability to track types is a critical part of SWIG--in fact, all
-of the target language modules work merely define a set of typemaps for the basic types.  Yet, it
+of the target language modules work merely define a family of typemaps for the basic types.  Yet, it
 is never necessary to write new typemaps for typenames introduced by <tt>typedef</tt>.
 </p>
 
@@ -431,7 +431,8 @@ be copied and reused.  One way to do this is to use assignment like this:
 </div>
 
 <p>
-A more general form of copying is found in the <tt>%apply</tt> directive like this:
+There is a more powerful way to copy a family of typemaps though.
+Consider the following family of two typemap methods, "in" and "out" for type <tt>int</tt>:
 </p>
 
 <div class="code">
@@ -444,8 +445,29 @@ A more general form of copying is found in the <tt>%apply</tt> directive like th
   /* Return an integer value */
   ...
 }
+</pre>
+</div>
 
-/* Apply all of the integer typemaps to size_t */
+<p>
+Each of the two typemap methods could be copied individually for type <tt>size_t</tt> as follows:
+</p>
+
+<div class="code">
+<pre>
+/* Apply all of the int typemaps to size_t */
+%typemap(in) size_t = int;   
+%typemap(out) size_t = int;   
+</pre>
+</div>
+
+<p>
+A more powerful form of copying is available from the <tt>%apply</tt> directive.
+The code below is identical to the above:
+</p>
+
+<div class="code">
+<pre>
+/* Apply all of the int typemaps to size_t */
 %apply int { size_t };    
 </pre>
 </div>
@@ -916,32 +938,33 @@ The patterns for <tt>%apply</tt> follow the same rules as for <tt>%typemap</tt>.
 
 
 <p>
-A typemap can be deleted by simply defining no code.  For example:
+A particular typemap can be deleted / cleared by simply defining no code.  For example:
 </p>
 
 <div class="code">
 <pre>
-%typemap(in) int;               // Clears typemap for int
-%typemap(in) int, long, short;  // Clears typemap for int, long, short
+%typemap(in) int;                 // Clears the "in" typemap for int
+%typemap(in) int, long, short;    // Clears the "in" typemap for int, long, short
 %typemap(in) int *output;       
 </pre>
 </div>
 
 <p>
-The <tt>%clear</tt> directive clears all typemaps for a given type.
+The above syntax deletes a typemap for just one typemap method - the "in" method in each of the examples above.
+The <tt>%clear</tt> directive is more powerful and will delete / clear a family of typemaps, that is, all the typemap methods for a given type.
 For example:
 </p>
 
 <div class="code">
 <pre>
-%clear int;                     // Removes all types for int
+%clear int;                       // Delete all typemaps ("in", "out", "varin", ...) for int
 %clear int *output, long *output;
 </pre>
 </div>
 
 <p>
 <b>Note:</b> Since SWIG's default behavior is defined by typemaps, clearing a fundamental type like
-<tt>int</tt> will make that type unusable unless you also define a new set of typemaps immediately
+<tt>int</tt> will make that type unusable unless you also define a new family of typemaps immediately
 after the clear operation.
 </p>
 
@@ -2506,7 +2529,7 @@ which then expands to:
 
 
 <p>
-The set of typemaps recognized by a language module may vary.  However,
+The family of typemaps recognized by a language module may vary.  However,
 the following typemap methods are nearly universal:
 </p>
 
@@ -3284,7 +3307,7 @@ The example above also shows a common approach of issuing a warning for an as ye
 
 <p>
 The "out" typemap is the main typemap for return types.
-This typemap supports an optional attribute flag called "optimal", which is for reducing 
+This typemap supports an optional attribute flag called "optimal", which is for reducing the number of
 temporary variables and the amount of generated code, thereby giving the compiler the opportunity to 
 use <i>return value optimization</i> for generating faster executing code.
 It only really makes a difference when returning objects by value and has some limitations on usage,
@@ -4899,8 +4922,8 @@ The 'equivalent' attribute is used in the implementation for the <a href="Librar
 
 <p>
 In order to implement certain kinds of program behavior, it is sometimes necessary to
-write sets of typemaps.  For example, to support output arguments, one often writes
-a set of typemaps like this:
+write a family of typemap methods.  For example, to support output arguments, one often writes
+a family of typemaps like this:
 </p>
 
 <div class="code">
@@ -4916,7 +4939,7 @@ a set of typemaps like this:
 
 <p>
 To make it easier to apply the typemap to different argument types and names, the <tt>%apply</tt> directive
-performs a copy of all typemaps from one type to another.  For example, if you specify this,
+performs a copy of all typemaps from a source type to one or more set of target types.  For example, if you specify this,
 </p>
 
 <div class="code">
@@ -4926,12 +4949,14 @@ performs a copy of all typemaps from one type to another.  For example, if you s
 </div>
 
 <p>
-then all of the <tt>int *OUTPUT</tt> typemaps are copied to <tt>int *retvalue</tt> and <tt>int32 *output</tt>.
+then all of the <tt>int *OUTPUT</tt> (source) typemap methods are copied to <tt>int *retvalue</tt> and <tt>int32 *output</tt> (the targets).
 </p>
 
 <p>
-However, there is a subtle aspect of <tt>%apply</tt> that needs more description.  Namely, <tt>%apply</tt> does not
-overwrite a typemap rule if it is already defined for the target datatype.   This behavior allows you to do two things:
+However, there is a subtle aspect of <tt>%apply</tt> that needs clarification.  
+Namely, if a target contains a typemap method that the source does not,
+the target typemap method is not overwritten / deleted.
+This behavior allows you to do two things:
 </p>
 
 <ul>
@@ -4939,7 +4964,7 @@ overwrite a typemap rule if it is already defined for the target datatype.   Thi
 <tt>%apply</tt> to incorporate the remaining pieces.
 </li>
 
-<li>Sets of different typemaps can be applied to the same datatype using repeated <tt>%apply</tt> directives.
+<li>Different typemaps can be applied to the same datatype using repeated <tt>%apply</tt> directives.
 </li>
 </ul>
 
@@ -4961,6 +4986,10 @@ For example:
   }
 }
 
+%typemap(arginit) int *invalue %{
+  $1 = NULL;
+%}
+
 ...
 %apply int *INPUT     { int *invalue };
 %apply int *POSITIVE  { int *invalue };
@@ -4968,9 +4997,11 @@ For example:
 </div>
 
 <p>
-Since <tt>%apply</tt> does not overwrite or replace any existing rules, the only way to reset behavior is to
-use the <tt>%clear</tt> directive.  <tt>%clear</tt> removes all typemap rules defined for a specific datatype.  For
-example:
+In this example, neither of the two <tt>%apply</tt> directives will overwrite / delete the "arginit" typemap as neither has an "arginit" typemap.
+The result is a family of three relevant typemaps for <tt>int *invalue</tt>.
+Since <tt>%apply</tt> does not overwrite / delete any existing rules, the only way to reset behavior is to
+delete them, such as with the <tt>%clear</tt> directive.
+For example:
 </p>
 
 <div class="code">
@@ -4979,6 +5010,17 @@ example:
 </pre>
 </div>
 
+<p>
+will delete the typemaps for all the typemap methods; namely "in", "check" and "arginit". Alternatively delete each one individually:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in) int *invalue;
+%typemap(check) int *invalue;
+%typemap(arginit) int *invalue;
+</pre>
+</div>
 
 <H2><a name="Typemaps_nn47">12.15 Passing data between typemaps</a></H2>
 
