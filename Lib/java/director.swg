@@ -5,19 +5,51 @@
  * methods can be called from C++.
  * ----------------------------------------------------------------------------- */
 
-#if defined(__ANDROID__)
-#include <sys/prctl.h>
-#endif
-
-#if defined(DEBUG_DIRECTOR_OWNED) || defined(DEBUG_DIRECTOR_EXCEPTION)
-#if defined(__ANDROID__)
-#include <errno.h>
-#include <string.h>
-#endif
+#if defined(DEBUG_DIRECTOR_OWNED) || defined(DEBUG_DIRECTOR_EXCEPTION) || defined(DEBUG_DIRECTOR_THREAD_NAME)
 #include <iostream>
 #endif
 
 #include <exception>
+
+#if defined(SWIG_JAVA_USE_THREAD_NAME)
+
+#if !defined(SWIG_JAVA_GET_THREAD_NAME)
+namespace Swig {
+  SWIGINTERN int GetThreadName(char *name, size_t len);
+}
+
+#if defined(__linux__)
+
+#include <sys/prctl.h>
+SWIGINTERN int Swig::GetThreadName(char *name, size_t len) {
+  (void)len;
+#if defined(PR_GET_NAME)
+  return prctl(PR_GET_NAME, (unsigned long)name, 0, 0, 0);
+#else
+  (void)name;
+  return 1;
+#endif
+}
+
+#elif defined(__unix__)
+
+#include <pthread.h>
+SWIGINTERN int Swig::GetThreadName(char *name, size_t len) {
+  return pthread_getname_np(pthread_self(), name, len);
+}
+
+#else
+
+SWIGINTERN int Swig::GetThreadName(char *name, size_t len) {
+  (void)len;
+  (void)name;
+  return 1;
+}
+#endif
+
+#endif
+
+#endif
 
 namespace Swig {
 
@@ -151,13 +183,14 @@ namespace Swig {
         args.version = JNI_VERSION_1_2;
         args.group = NULL;
         args.name = NULL;
-#if defined(__ANDROID__)
+#if defined(SWIG_JAVA_USE_THREAD_NAME)
         char thread_name[16];  // MAX_TASK_COMM_LEN=16 is hard-coded in the kernel.
-        if (prctl(PR_GET_NAME, (unsigned long)thread_name, 0, 0, 0) == 0) {
+        if (Swig::GetThreadName(thread_name, sizeof(thread_name)) == 0) {
           args.name = thread_name;
+#if defined(DEBUG_DIRECTOR_THREAD_NAME)
+          std::cout << "JNIEnvWrapper: thread name: " << thread_name << std::endl;
         } else {
-#if defined(DEBUG_DIRECTOR_OWNED) || defined(DEBUG_DIRECTOR_EXCEPTION)
-          std::cerr << "JNIEnvWrapper: Couldn't set thread name: " << strerror(errno) << std::endl;
+          std::cout << "JNIEnvWrapper: Couldn't set Java thread name" << std::endl;
 #endif
         }
 #endif
