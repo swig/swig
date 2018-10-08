@@ -50,7 +50,6 @@ PHPKW(do);
 PHPKW(echo); // "Language construct"
 PHPKW(else);
 PHPKW(elseif);
-PHPKW(empty); // "Language construct"
 PHPKW(enddeclare);
 PHPKW(endfor);
 PHPKW(endforeach);
@@ -830,6 +829,7 @@ PHPFN(cosh);
 PHPFN(count);
 PHPFN(current);
 PHPFN(each);
+PHPFN(empty);
 PHPFN(end);
 PHPFN(exp);
 PHPFN(extract);
