@@ -7,8 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
-2018-06-09: vadz
-            [Java] #1274 Allow exporting std::map using non-default comparison function.
+2018-10-09: wsfulton
+	    [D, Go, Guile, Lua, Mzscheme, Ocaml, Perl5, Php, Scilab, Tcl]
+            Allow wrapping of std::map using non-default comparison function.
+
+2018-10-09: vadz
+            [Java] #1274 Allow wrapping of std::map using non-default comparison function.
 
 2018-10-04: wsfulton
             [Python] #1126 Fix C default arguments with -builtin and -fastunpack and -modernargs.
