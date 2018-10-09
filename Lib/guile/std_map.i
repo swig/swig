@@ -107,7 +107,7 @@ namespace std {
         }
         %typemap(out) map< K, T, C > {
             SCM alist = SCM_EOL;
-            for (std::map< K, T, C >::reverse_iterator i=$i.rbegin(); i!=$i.rend(); ++i) {
+            for (std::map< K, T, C >::reverse_iterator i=$1.rbegin(); i!=$1.rend(); ++i) {
                 K* key = new K(i->first);
                 T* val = new T(i->second);
                 SCM k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
