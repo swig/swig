@@ -91,7 +91,6 @@ static int dirvtable = 0;
 static int doxygen = 0;
 static int fastunpack = 0;
 static int fastproxy = 0;
-static int fastquery = 0;
 static int olddefs = 0;
 static int aliasobj0 = 0;
 static int castmode = 0;
@@ -127,7 +126,6 @@ Python Options (available with -python)\n\
      -extranative    - Return extra native C++ wraps for std containers when possible \n\
      -fastunpack     - Use fast unpack mechanism to parse the argument functions \n\
      -fastproxy      - Use fast proxy mechanism for member methods \n\
-     -fastquery      - Use fast query mechanism for types \n\
      -globals <name> - Set <name> used to access C global variable [default: 'cvar']\n\
      -interface <lib>- Set the lib name to <lib>\n\
      -keyword        - Use keyword arguments\n";
@@ -143,7 +141,6 @@ static const char *usage2 = "\
      -noextranative  - Don't use extra native C++ wraps for std containers when possible (default) \n\
      -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions (default) \n\
      -nofastproxy    - Use traditional proxy mechanism for member methods (default) \n\
-     -nofastquery    - Use traditional query mechanism for types (default) \n\
      -noh            - Don't generate the output header file\n";
 static const char *usage3 = "\
      -noolddefs      - Don't emit the old method definitions even when using fastproxy (default) \n\
@@ -162,7 +159,7 @@ static const char *usage3 = "\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options: \n\
                          -fastdispatch -nosafecstrings -fvirtual\n\
-                         -fastproxy -fastunpack -fastquery -nobuildnone\n\
+                         -fastproxy -fastunpack -nobuildnone\n\
 \n";
 
 static String *getSlot(Node *n = NULL, const char *key = NULL, String *default_slot = NULL) {
@@ -442,12 +439,6 @@ public:
 	} else if (strcmp(argv[i], "-nofastproxy") == 0) {
 	  fastproxy = 0;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-fastquery") == 0) {
-	  fastquery = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-nofastquery") == 0) {
-	  fastquery = 0;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-olddefs") == 0) {
 	  olddefs = 1;
 	  Swig_mark_arg(i);
@@ -486,7 +477,6 @@ public:
 	  classptr = 0;
 	  fastunpack = 1;
 	  fastproxy = 1;
-	  fastquery = 1;
 	  Wrapper_fast_dispatch_mode_set(1);
 	  Wrapper_virtual_elimination_mode_set(1);
 	  Swig_mark_arg(i);
@@ -506,16 +496,18 @@ public:
 	  relativeimport = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-fastinit") == 0 ||
+		   strcmp(argv[i], "-fastquery") == 0 ||
 		   strcmp(argv[i], "-modern") == 0 ||
 		   strcmp(argv[i], "-modernargs") == 0 ||
 		   strcmp(argv[i], "-noproxydel") == 0) {
-	  Printf(stderr, "Option %s is now always on.\n", argv[i]);
+	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
 	} else if (strcmp(argv[i], "-classic") == 0 ||
 		   strcmp(argv[i], "-nofastinit") == 0 ||
+		   strcmp(argv[i], "-nofastquery") == 0 ||
 		   strcmp(argv[i], "-nomodern") == 0 ||
 		   strcmp(argv[i], "-nomodernargs") == 0 ||
 		   strcmp(argv[i], "-proxydel") == 0) {
-	  Printf(stderr, "*** %s is no longer supported.\n", argv[i]);
+	  Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
 	  SWIG_exit(EXIT_FAILURE);
 	}
 
@@ -706,12 +698,10 @@ public:
 
     Printf(f_runtime, "\n");
 
-    if (fastquery) {
-      Printf(f_header, "#ifdef SWIG_TypeQuery\n");
-      Printf(f_header, "# undef SWIG_TypeQuery\n");
-      Printf(f_header, "#endif\n");
-      Printf(f_header, "#define SWIG_TypeQuery SWIG_Python_TypeQuery\n");
-    }
+    Printf(f_header, "#ifdef SWIG_TypeQuery\n");
+    Printf(f_header, "# undef SWIG_TypeQuery\n");
+    Printf(f_header, "#endif\n");
+    Printf(f_header, "#define SWIG_TypeQuery SWIG_Python_TypeQuery\n");
 
 
     /* Set module name */
