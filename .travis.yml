@@ -362,6 +362,12 @@ matrix:
       env: SWIGLANG=tcl
 
   allow_failures:
+    # Deprecated functions causing build failure since upgrade from Node v10.11.0 to v10.12.0
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=javascript ENGINE=node VER=10 CPP11=1
+      sudo: required
+      dist: trusty
     # Lots of failing tests currently
     - compiler: gcc
       os: linux
