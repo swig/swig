@@ -380,9 +380,6 @@ SWIG_init(void) {
 #endif
 
   /* Create singletons now to avoid potential deadlocks with multi-threaded usage after module initialization */
-#ifdef SWIG_PYTHON_BUILD_NONE
-  SWIG_Py_None();
-#endif
   SWIG_This();
   SWIG_Python_TypeCache();
   SwigPyPacked_type();

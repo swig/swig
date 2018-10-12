@@ -84,8 +84,6 @@ static int nothreads = 0;
 static int classptr = 0;
 /* Other options */
 static int shadowimport = 1;
-static int buildnone = 0;
-static int nobuildnone = 0;
 static int safecstrings = 0;
 static int dirvtable = 0;
 static int doxygen = 0;
@@ -114,7 +112,6 @@ enum autodoc_t {
 static const char *usage1 = "\
 Python Options (available with -python)\n\
      -aliasobj0      - Alias obj0 when using fastunpack, needed for some old typemaps \n\
-     -buildnone      - Use Py_BuildValue(" ") to obtain Py_None (default in Windows)\n\
      -builtin        - Create new python built-in types, rather than proxy classes, for better performance\n\
      -castmode       - Enable the casting mode, which allows implicit cast between types in python\n\
      -classptr       - Generate shadow 'ClassPtr' as in older swig versions\n\
@@ -133,7 +130,6 @@ static const char *usage2 = "\
      -newrepr        - Use more informative version of __repr__ in proxy classes (default) \n\
      -newvwm         - New value wrapper mode, use only when everything else fails \n\
      -noaliasobj0    - Don't generate an obj0 alias when using fastunpack (default) \n\
-     -nobuildnone    - Access Py_None directly (default in non-Windows systems)\n\
      -nocastmode     - Disable the casting mode (default)\n\
      -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -nodirvtable    - Don't use the virtual table feature, resolve the python method each time (default)\n\
@@ -159,7 +155,7 @@ static const char *usage3 = "\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options: \n\
                          -fastdispatch -nosafecstrings -fvirtual\n\
-                         -fastproxy -fastunpack -nobuildnone\n\
+                         -fastproxy -fastunpack\n\
 \n";
 
 static String *getSlot(Node *n = NULL, const char *key = NULL, String *default_slot = NULL) {
@@ -403,14 +399,6 @@ public:
 	} else if (strcmp(argv[i], "-nosafecstrings") == 0) {
 	  safecstrings = 0;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-buildnone") == 0) {
-	  buildnone = 1;
-	  nobuildnone = 0;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-nobuildnone") == 0) {
-	  buildnone = 0;
-	  nobuildnone = 1;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-dirvtable") == 0) {
 	  dirvtable = 1;
 	  Swig_mark_arg(i);
@@ -472,8 +460,6 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-O") == 0) {
 	  safecstrings = 0;
-	  buildnone = 0;
-	  nobuildnone = 1;
 	  classptr = 0;
 	  fastunpack = 1;
 	  fastproxy = 1;
@@ -501,9 +487,11 @@ public:
 		   strcmp(argv[i], "-modernargs") == 0 ||
 		   strcmp(argv[i], "-noproxydel") == 0) {
 	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
-	} else if (strcmp(argv[i], "-classic") == 0 ||
+	} else if (strcmp(argv[i], "-buildnone") == 0 ||
+		   strcmp(argv[i], "-classic") == 0 ||
 		   strcmp(argv[i], "-nofastinit") == 0 ||
 		   strcmp(argv[i], "-nofastquery") == 0 ||
+		   strcmp(argv[i], "-nobuildnone") == 0 ||
 		   strcmp(argv[i], "-nomodern") == 0 ||
 		   strcmp(argv[i], "-nomodernargs") == 0 ||
 		   strcmp(argv[i], "-proxydel") == 0) {
@@ -659,14 +647,6 @@ public:
 
     if (safecstrings) {
       Printf(f_runtime, "#define SWIG_PYTHON_SAFE_CSTRINGS\n");
-    }
-
-    if (buildnone) {
-      Printf(f_runtime, "#define SWIG_PYTHON_BUILD_NONE\n");
-    }
-
-    if (nobuildnone) {
-      Printf(f_runtime, "#define SWIG_PYTHON_NO_BUILD_NONE\n");
     }
 
     if (!dirvtable) {

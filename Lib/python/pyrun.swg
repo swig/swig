@@ -237,33 +237,6 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
 extern "C" {
 #endif
 
-/*  How to access Py_None */
-#if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
-#  ifndef SWIG_PYTHON_NO_BUILD_NONE
-#    ifndef SWIG_PYTHON_BUILD_NONE
-#      define SWIG_PYTHON_BUILD_NONE
-#    endif
-#  endif
-#endif
-
-#ifdef SWIG_PYTHON_BUILD_NONE
-#  ifdef Py_None
-#   undef Py_None
-#   define Py_None SWIG_Py_None()
-#  endif
-
-SWIGRUNTIME PyObject * 
-SWIG_Py_None(void)
-{
-  static PyObject *none = NULL;
-  if (!none) {
-    none = Py_BuildValue("");
-    Py_DECREF(none);
-  }
-  return none;
-}
-#endif
-
 /* The python void return value */
 
 SWIGRUNTIMEINLINE PyObject * 
