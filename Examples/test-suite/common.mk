@@ -246,6 +246,7 @@ CPP_TEST_CASES += \
 	friends \
 	friends_template \
 	funcptr_cpp \
+	functors \
 	fvirtual \
 	global_namespace \
 	global_ns_arg \
