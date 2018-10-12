@@ -92,7 +92,6 @@ static int doxygen = 0;
 static int fastunpack = 0;
 static int fastproxy = 0;
 static int fastquery = 0;
-static int fastinit = 0;
 static int olddefs = 0;
 static int aliasobj0 = 0;
 static int castmode = 0;
@@ -126,7 +125,6 @@ Python Options (available with -python)\n\
      -debug-doxygen-parser     - Display doxygen parser module debugging information\n\
      -debug-doxygen-translator - Display doxygen translator module debugging information\n\
      -extranative    - Return extra native C++ wraps for std containers when possible \n\
-     -fastinit       - Use fast init mechanism for classes (default)\n\
      -fastunpack     - Use fast unpack mechanism to parse the argument functions \n\
      -fastproxy      - Use fast proxy mechanism for member methods \n\
      -fastquery      - Use fast query mechanism for types \n\
@@ -143,7 +141,6 @@ static const char *usage2 = "\
      -nodirvtable    - Don't use the virtual table feature, resolve the python method each time (default)\n\
      -noexcept       - No automatic exception handling\n\
      -noextranative  - Don't use extra native C++ wraps for std containers when possible (default) \n\
-     -nofastinit     - Use traditional init mechanism for classes \n\
      -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions (default) \n\
      -nofastproxy    - Use traditional proxy mechanism for member methods (default) \n\
      -nofastquery    - Use traditional query mechanism for types (default) \n\
@@ -165,7 +162,7 @@ static const char *usage3 = "\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options: \n\
                          -fastdispatch -nosafecstrings -fvirtual\n\
-                         -fastproxy -fastinit -fastunpack -fastquery -nobuildnone\n\
+                         -fastproxy -fastunpack -fastquery -nobuildnone\n\
 \n";
 
 static String *getSlot(Node *n = NULL, const char *key = NULL, String *default_slot = NULL) {
@@ -451,12 +448,6 @@ public:
 	} else if (strcmp(argv[i], "-nofastquery") == 0) {
 	  fastquery = 0;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-fastinit") == 0) {
-	  fastinit = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-nofastinit") == 0) {
-	  fastinit = 0;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-olddefs") == 0) {
 	  olddefs = 1;
 	  Swig_mark_arg(i);
@@ -495,7 +486,6 @@ public:
 	  classptr = 0;
 	  fastunpack = 1;
 	  fastproxy = 1;
-	  fastinit = 1;
 	  fastquery = 1;
 	  Wrapper_fast_dispatch_mode_set(1);
 	  Wrapper_virtual_elimination_mode_set(1);
@@ -515,11 +505,13 @@ public:
 	} else if (strcmp(argv[i], "-relativeimport") == 0) {
 	  relativeimport = 1;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-modern") == 0 ||
+	} else if (strcmp(argv[i], "-fastinit") == 0 ||
+		   strcmp(argv[i], "-modern") == 0 ||
 		   strcmp(argv[i], "-modernargs") == 0 ||
 		   strcmp(argv[i], "-noproxydel") == 0) {
 	  Printf(stderr, "Option %s is now always on.\n", argv[i]);
 	} else if (strcmp(argv[i], "-classic") == 0 ||
+		   strcmp(argv[i], "-nofastinit") == 0 ||
 		   strcmp(argv[i], "-nomodern") == 0 ||
 		   strcmp(argv[i], "-nomodernargs") == 0 ||
 		   strcmp(argv[i], "-proxydel") == 0) {
@@ -4550,7 +4542,7 @@ public:
 	if (!builtin)
 	  Printv(f_shadow_file, "\n", tab4, "def __init__(self, *args, **kwargs):\n", tab8, "raise AttributeError(\"", "No constructor defined",
 		 (Getattr(n, "abstracts") ? " - class is abstract" : ""), "\")\n", NIL);
-      } else if (fastinit && !builtin) {
+      } else if (!builtin) {
 
 	Printv(f_wrappers, "SWIGINTERN PyObject *", class_name, "_swiginit(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
 	Printv(f_wrappers, "  return SWIG_Python_InitShadowInstance(args);\n", "}\n\n", NIL);
@@ -4892,13 +4884,7 @@ public:
 	      if (have_pythonprepend(n))
 		Printv(f_shadow, indent_pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
 	      Printv(f_shadow, pass_self, NIL);
-	      if (fastinit) {
-		Printv(f_shadow, tab8, module, ".", class_name, "_swiginit(self, ", funcCall(Swig_name_construct(NSPACE_TODO, symname), callParms), ")\n", NIL);
-	      } else {
-		Printv(f_shadow,
-		       tab8, "this = ", funcCall(Swig_name_construct(NSPACE_TODO, symname), callParms), "\n",
-		       tab8, "try:\n", tab8, tab4, "self.this.append(this)\n", tab8, "except __builtin__.Exception:\n", tab8, tab4, "self.this = this\n", NIL);
-	      }
+	      Printv(f_shadow, tab8, module, ".", class_name, "_swiginit(self, ", funcCall(Swig_name_construct(NSPACE_TODO, symname), callParms), ")\n", NIL);
 	      if (have_pythonappend(n))
 		Printv(f_shadow, indent_pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n), "%pythonappend or %feature(\"pythonappend\")"), "\n\n", NIL);
 	      Delete(pass_self);
