@@ -84,7 +84,6 @@ static int nothreads = 0;
 static int classptr = 0;
 /* Other options */
 static int shadowimport = 1;
-static int safecstrings = 0;
 static int dirvtable = 0;
 static int doxygen = 0;
 static int fastunpack = 0;
@@ -144,18 +143,15 @@ static const char *usage3 = "\
      -noproxy        - Don't generate proxy classes \n\
      -noproxyimport  - Don't insert proxy import statements derived from the %import directive \n\
      -nortti         - Disable the use of the native C++ RTTI with directors\n\
-     -nosafecstrings - Avoid extra strings copies when possible (default)\n\
      -nothreads      - Disable thread support for the entire interface\n\
      -olddefs        - Keep the old method definitions even when using fastproxy\n\
      -oldrepr        - Use shorter and old version of __repr__ in proxy classes\n\
      -outputtuple    - Use a PyTuple for outputs instead of a PyList (use carefully with legacy interfaces) \n\
      -py3            - Generate code with Python 3 specific features and syntax\n\
      -relativeimport - Use relative python imports \n\
-     -safecstrings   - Use safer (but slower) C string mapping, generating copies from Python -> C/C++\n\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options: \n\
-                         -fastdispatch -nosafecstrings -fvirtual\n\
-                         -fastproxy -fastunpack\n\
+                         -fastdispatch -fastproxy -fastunpack -fvirtual\n\
 \n";
 
 static String *getSlot(Node *n = NULL, const char *key = NULL, String *default_slot = NULL) {
@@ -393,12 +389,6 @@ public:
 	  /* Turn off thread support mode */
 	  nothreads = 1;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-safecstrings") == 0) {
-	  safecstrings = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-nosafecstrings") == 0) {
-	  safecstrings = 0;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-dirvtable") == 0) {
 	  dirvtable = 1;
 	  Swig_mark_arg(i);
@@ -459,7 +449,6 @@ public:
 	  no_header_file = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-O") == 0) {
-	  safecstrings = 0;
 	  classptr = 0;
 	  fastunpack = 1;
 	  fastproxy = 1;
@@ -485,7 +474,8 @@ public:
 		   strcmp(argv[i], "-fastquery") == 0 ||
 		   strcmp(argv[i], "-modern") == 0 ||
 		   strcmp(argv[i], "-modernargs") == 0 ||
-		   strcmp(argv[i], "-noproxydel") == 0) {
+		   strcmp(argv[i], "-noproxydel") == 0 ||
+		   strcmp(argv[i], "-safecstrings") == 0) {
 	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
 	} else if (strcmp(argv[i], "-buildnone") == 0 ||
 		   strcmp(argv[i], "-classic") == 0 ||
@@ -494,6 +484,7 @@ public:
 		   strcmp(argv[i], "-nobuildnone") == 0 ||
 		   strcmp(argv[i], "-nomodern") == 0 ||
 		   strcmp(argv[i], "-nomodernargs") == 0 ||
+		   strcmp(argv[i], "-nosafecstrings") == 0 ||
 		   strcmp(argv[i], "-proxydel") == 0) {
 	  Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
 	  SWIG_exit(EXIT_FAILURE);
@@ -643,10 +634,6 @@ public:
       Printf(f_runtime, "#define SWIG_PYTHON_NO_THREADS\n");
     } else if (threads) {
       Printf(f_runtime, "#define SWIG_PYTHON_THREADS\n");
-    }
-
-    if (safecstrings) {
-      Printf(f_runtime, "#define SWIG_PYTHON_SAFE_CSTRINGS\n");
     }
 
     if (!dirvtable) {

@@ -38,21 +38,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
 %#endif
     if (cptr) {
       if (alloc) {
-	/* 
-	   In python the user should not be able to modify the inner
-	   string representation. To warranty that, if you define
-	   SWIG_PYTHON_SAFE_CSTRINGS, a new/copy of the python string
-	   buffer is always returned.
-
-	   The default behavior is just to return the pointer value,
-	   so, be careful.
-	*/ 
-%#if defined(SWIG_PYTHON_SAFE_CSTRINGS)
-	if (*alloc != SWIG_OLDOBJ) 
-%#else
-	if (*alloc == SWIG_NEWOBJ) 
-%#endif
-	{
+	if (*alloc == SWIG_NEWOBJ) {
 	  *cptr = %new_copy_array(cstr, len + 1, char);
 	  *alloc = SWIG_NEWOBJ;
 	} else {
