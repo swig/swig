@@ -86,7 +86,7 @@ static int classptr = 0;
 static int shadowimport = 1;
 static int dirvtable = 0;
 static int doxygen = 0;
-static int fastunpack = 0;
+static int fastunpack = 1;
 static int fastproxy = 0;
 static int olddefs = 0;
 static int aliasobj0 = 0;
@@ -120,7 +120,6 @@ Python Options (available with -python)\n\
      -debug-doxygen-parser     - Display doxygen parser module debugging information\n\
      -debug-doxygen-translator - Display doxygen translator module debugging information\n\
      -extranative    - Return extra native C++ wraps for std containers when possible \n\
-     -fastunpack     - Use fast unpack mechanism to parse the argument functions \n\
      -fastproxy      - Use fast proxy mechanism for member methods \n\
      -globals <name> - Set <name> used to access C global variable [default: 'cvar']\n\
      -interface <lib>- Set the lib name to <lib>\n\
@@ -151,7 +150,7 @@ static const char *usage3 = "\
      -relativeimport - Use relative python imports \n\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options: \n\
-                         -fastdispatch -fastproxy -fastunpack -fvirtual\n\
+                         -fastdispatch -fastproxy -fvirtual\n\
 \n";
 
 static String *getSlot(Node *n = NULL, const char *key = NULL, String *default_slot = NULL) {
@@ -405,9 +404,6 @@ public:
 	} else if (strcmp(argv[i], "-debug-doxygen-parser") == 0) {
 	  doxygen_translator_flags |= DoxygenTranslator::debug_parser;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-fastunpack") == 0) {
-	  fastunpack = 1;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-nofastunpack") == 0) {
 	  fastunpack = 0;
 	  Swig_mark_arg(i);
@@ -450,7 +446,6 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-O") == 0) {
 	  classptr = 0;
-	  fastunpack = 1;
 	  fastproxy = 1;
 	  Wrapper_fast_dispatch_mode_set(1);
 	  Wrapper_virtual_elimination_mode_set(1);
@@ -472,6 +467,7 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-fastinit") == 0 ||
 		   strcmp(argv[i], "-fastquery") == 0 ||
+		   strcmp(argv[i], "-fastunpack") == 0 ||
 		   strcmp(argv[i], "-modern") == 0 ||
 		   strcmp(argv[i], "-modernargs") == 0 ||
 		   strcmp(argv[i], "-noproxydel") == 0 ||
@@ -479,9 +475,9 @@ public:
 	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
 	} else if (strcmp(argv[i], "-buildnone") == 0 ||
 		   strcmp(argv[i], "-classic") == 0 ||
+		   strcmp(argv[i], "-nobuildnone") == 0 ||
 		   strcmp(argv[i], "-nofastinit") == 0 ||
 		   strcmp(argv[i], "-nofastquery") == 0 ||
-		   strcmp(argv[i], "-nobuildnone") == 0 ||
 		   strcmp(argv[i], "-nomodern") == 0 ||
 		   strcmp(argv[i], "-nomodernargs") == 0 ||
 		   strcmp(argv[i], "-nosafecstrings") == 0 ||
@@ -2416,7 +2412,7 @@ public:
    * add_method()
    * ------------------------------------------------------------ */
 
-  void add_method(String *name, String *function, int kw, Node *n = 0, int funpack= 0, int num_required= -1, int num_arguments = -1) {
+  void add_method(String *name, String *function, int kw, Node *n = 0, int funpack = 0, int num_required = -1, int num_arguments = -1) {
     if (!kw) {
       if (n && funpack) {
 	if (num_required == 0 && num_arguments == 0) {
