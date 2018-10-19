@@ -89,7 +89,6 @@ static int doxygen = 0;
 static int fastunpack = 1;
 static int fastproxy = 0;
 static int olddefs = 0;
-static int aliasobj0 = 0;
 static int castmode = 0;
 static int extranative = 0;
 static int outputtuple = 0;
@@ -110,7 +109,6 @@ enum autodoc_t {
 
 static const char *usage1 = "\
 Python Options (available with -python)\n\
-     -aliasobj0      - Alias obj0 when using fastunpack, needed for some old typemaps \n\
      -builtin        - Create new python built-in types, rather than proxy classes, for better performance\n\
      -castmode       - Enable the casting mode, which allows implicit cast between types in python\n\
      -classptr       - Generate shadow 'ClassPtr' as in older swig versions\n\
@@ -127,7 +125,6 @@ Python Options (available with -python)\n\
 static const char *usage2 = "\
      -newrepr        - Use more informative version of __repr__ in proxy classes (default) \n\
      -newvwm         - New value wrapper mode, use only when everything else fails \n\
-     -noaliasobj0    - Don't generate an obj0 alias when using fastunpack (default) \n\
      -nocastmode     - Disable the casting mode (default)\n\
      -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -nodirvtable    - Don't use the virtual table feature, resolve the python method each time (default)\n\
@@ -431,11 +428,6 @@ public:
 	} else if (strcmp(argv[i], "-noextranative") == 0) {
 	  extranative = 0;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-aliasobj0") == 0) {
-	  aliasobj0 = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-noaliasobj0") == 0) {
-	  aliasobj0 = 0;
 	} else if (strcmp(argv[i], "-noh") == 0) {
 	  no_header_file = 1;
 	  Swig_mark_arg(i);
@@ -474,7 +466,9 @@ public:
 		   strcmp(argv[i], "-safecstrings") == 0) {
 	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
 	} else if (strcmp(argv[i], "-buildnone") == 0 ||
+		   strcmp(argv[i], "-aliasobj0") == 0 ||
 		   strcmp(argv[i], "-classic") == 0 ||
+		   strcmp(argv[i], "-noaliasobj0") == 0 ||
 		   strcmp(argv[i], "-nobuildnone") == 0 ||
 		   strcmp(argv[i], "-nofastinit") == 0 ||
 		   strcmp(argv[i], "-nofastquery") == 0 ||
@@ -2757,16 +2751,9 @@ public:
 
     /* Generate code for argument marshalling */
     if (funpack) {
-      if (overname) {
-	if (aliasobj0) {
-	  Append(f->code, "#define obj0 (swig_obj[0])\n");
-	}
-      } else if (num_arguments) {
+      if (num_arguments > 0 && !overname) {
 	sprintf(source, "PyObject *swig_obj[%d]", num_arguments);
 	Wrapper_add_localv(f, "swig_obj", source, NIL);
-	if (aliasobj0) {
-	  Append(f->code, "#define obj0 (swig_obj[0])\n");
-	}
       }
     }
 
@@ -3171,16 +3158,6 @@ public:
         Printv(f->code, "  return NULL;\n", NIL);
       }
     }
-
-
-    if (funpack) {
-      if (aliasobj0) {
-	Append(f->code, "#if defined(obj0)\n");
-	Append(f->code, "#undef obj0\n");
-	Append(f->code, "#endif\n");
-      }
-    }
-
 
     Append(f->code, "}\n");
 
