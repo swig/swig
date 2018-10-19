@@ -208,7 +208,7 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
 }
 
 /* A functor is a function object with one single object argument */
-#define SWIG_Python_CallFunctor(functor, obj)	        PyObject_CallFunction(functor, (char*)"O", obj);
+#define SWIG_Python_CallFunctor(functor, obj)	        PyObject_CallFunction(functor, (char *)"O", obj);
 
 /*
   Helper for static pointer initialization for both C and C++ code, for example
@@ -582,23 +582,20 @@ SWIGINTERN PyObject*
 SwigPyObject_own(PyObject *v, PyObject *args)
 {
   PyObject *val = 0;
-  if (!PyArg_UnpackTuple(args, "own", 0, 1, &val)) 
-    {
-      return NULL;
+  if (!PyArg_UnpackTuple(args, "own", 0, 1, &val)) {
+    return NULL;
+  } else {
+    SwigPyObject *sobj = (SwigPyObject *)v;
+    PyObject *obj = PyBool_FromLong(sobj->own);
+    if (val) {
+      if (PyObject_IsTrue(val)) {
+        SwigPyObject_acquire(v,args);
+      } else {
+        SwigPyObject_disown(v,args);
+      }
     } 
-  else
-    {
-      SwigPyObject *sobj = (SwigPyObject *)v;
-      PyObject *obj = PyBool_FromLong(sobj->own);
-      if (val) {
-	if (PyObject_IsTrue(val)) {
-	  SwigPyObject_acquire(v,args);
-	} else {
-	  SwigPyObject_disown(v,args);
-	}
-      } 
-      return obj;
-    }
+    return obj;
+  }
 }
 
 static PyMethodDef
@@ -805,7 +802,7 @@ SwigPyPacked_compare(SwigPyPacked *v, SwigPyPacked *w)
   size_t i = v->size;
   size_t j = w->size;
   int s = (i < j) ? -1 : ((i > j) ? 1 : 0);
-  return s ? s : strncmp((char *)v->pack, (char *)w->pack, 2*v->size);
+  return s ? s : strncmp((const char *)v->pack, (const char *)w->pack, 2*v->size);
 }
 
 SWIGRUNTIME PyTypeObject* SwigPyPacked_TypeOnce(void);

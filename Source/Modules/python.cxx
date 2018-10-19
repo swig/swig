@@ -2437,10 +2437,10 @@ public:
       Append(methods, "NULL");
     } else if (have_docstring(n)) {
       String *ds = cdocstring(n, AUTODOC_FUNC);
-      Printf(methods, "(char *)\"%s\"", ds);
+      Printf(methods, "\"%s\"", ds);
       Delete(ds);
     } else if (Getattr(n, "feature:callback")) {
-      Printf(methods, "(char *)\"swig_ptr: %s\"", Getattr(n, "feature:callback:name"));
+      Printf(methods, "\"swig_ptr: %s\"", Getattr(n, "feature:callback:name"));
     } else {
       Append(methods, "NULL");
     }
@@ -2512,7 +2512,7 @@ public:
 	Append(f->code, "argc++;\n");
     } else {
       String *iname = Getattr(n, "sym:name");
-      Printf(f->code, "if (!(argc = SWIG_Python_UnpackTuple(args,\"%s\",0,%d,argv%s))) SWIG_fail;\n", iname, maxargs, add_self ? "+1" : "");
+      Printf(f->code, "if (!(argc = SWIG_Python_UnpackTuple(args, \"%s\", 0, %d, argv%s))) SWIG_fail;\n", iname, maxargs, add_self ? "+1" : "");
       if (add_self)
 	Append(f->code, "argv[0] = self;\n");
       else
@@ -2722,10 +2722,10 @@ public:
     }
     if (!builtin || !in_class || tuple_arguments > 0) {
       if (!allow_kwargs) {
-	Append(parse_args, "    if (!PyArg_ParseTuple(args,(char *)\"");
+	Append(parse_args, "    if (!PyArg_ParseTuple(args, \"");
       } else {
-	Append(parse_args, "    if (!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)\"");
-	Append(arglist, ",kwnames");
+	Append(parse_args, "    if (!PyArg_ParseTupleAndKeywords(args, kwargs, \"");
+	Append(arglist, ", kwnames");
       }
     }
 
@@ -2815,7 +2815,7 @@ public:
 	sprintf(source, "obj%d", builtin_ctor ? i + 1 : i);
 
       if (parse_from_tuple) {
-	Putc(',', arglist);
+	Printf(arglist, ", ");
 	if (i == num_required)
 	  Putc('|', parse_args);	/* Optional argument separator */
       }
@@ -2823,7 +2823,7 @@ public:
       /* Keyword argument handling */
       if (allow_kwargs && parse_from_tuple) {
 	String *name = makeParameterName(n, p, i + 1);
-	Printf(kwargs, "(char *) \"%s\",", name);
+	Printf(kwargs, " (char *)\"%s\", ", name);
 	Delete(name);
       }
 
@@ -2888,7 +2888,7 @@ public:
     /* finish argument marshalling */
     Append(kwargs, " NULL }");
     if (allow_kwargs) {
-      Printv(f->locals, "  char *  kwnames[] = ", kwargs, ";\n", NIL);
+      Printv(f->locals, "  char * kwnames[] = ", kwargs, ";\n", NIL);
     }
 
     if (builtin && !funpack && in_class && tuple_arguments == 0) {
@@ -2915,13 +2915,13 @@ public:
 	    Printf(parse_args, "if (!args) SWIG_fail;\n");
 	    Append(parse_args, "swig_obj[0] = args;\n");
 	  } else if (!noargs) {
-	    Printf(parse_args, "if (!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,swig_obj)) SWIG_fail;\n", iname, num_fixed_arguments, tuple_arguments);
+	    Printf(parse_args, "if (!SWIG_Python_UnpackTuple(args, \"%s\", %d, %d, swig_obj)) SWIG_fail;\n", iname, num_fixed_arguments, tuple_arguments);
 	  } else if (noargs) {
-	    Printf(parse_args, "if (!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,0)) SWIG_fail;\n", iname, num_fixed_arguments, tuple_arguments);
+	    Printf(parse_args, "if (!SWIG_Python_UnpackTuple(args, \"%s\", %d, %d, 0)) SWIG_fail;\n", iname, num_fixed_arguments, tuple_arguments);
 	  }
 	}
       } else {
-	Printf(parse_args, "if (!PyArg_UnpackTuple(args,(char *)\"%s\",%d,%d", iname, num_fixed_arguments, tuple_arguments);
+	Printf(parse_args, "if (!PyArg_UnpackTuple(args, \"%s\", %d, %d", iname, num_fixed_arguments, tuple_arguments);
 	Printv(parse_args, arglist, ")) SWIG_fail;\n", NIL);
       }
     }
@@ -3381,7 +3381,7 @@ public:
        Python dictionary. */
 
     if (!have_globals) {
-      Printf(f_init, "\t PyDict_SetItemString(md,(char *)\"%s\", SWIG_globals());\n", global_name);
+      Printf(f_init, "\t PyDict_SetItemString(md, \"%s\", SWIG_globals());\n", global_name);
       if (builtin)
 	Printf(f_init, "\t SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", global_name);
       have_globals = 1;
@@ -3469,9 +3469,9 @@ public:
     Wrapper_print(getf, f_wrappers);
 
     /* Now add this to the variable linking mechanism */
-    Printf(f_init, "\t SWIG_addvarlink(SWIG_globals(),(char *)\"%s\",%s, %s);\n", iname, vargetname, varsetname);
+    Printf(f_init, "\t SWIG_addvarlink(SWIG_globals(), \"%s\", %s, %s);\n", iname, vargetname, varsetname);
     if (builtin && shadow && !assignable && !in_class) {
-      Printf(f_init, "\t PyDict_SetItemString(md, (char *)\"%s\", PyObject_GetAttrString(SWIG_globals(), \"%s\"));\n", iname, iname);
+      Printf(f_init, "\t PyDict_SetItemString(md, \"%s\", PyObject_GetAttrString(SWIG_globals(), \"%s\"));\n", iname, iname);
       Printf(f_init, "\t SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", iname);
     }
     Delete(vargetname);
@@ -3564,9 +3564,9 @@ public:
         Printf(f_wrappers, tab2 "PyObject *module;\n", tm);
         Printf(f_wrappers, tab2 "PyObject *d;\n");
 	if (fastunpack) {
-	  Printf(f_wrappers, tab2 "if (!SWIG_Python_UnpackTuple(args,(char *)\"swigconstant\", 1, 1,&module)) return NULL;\n");
+	  Printf(f_wrappers, tab2 "if (!SWIG_Python_UnpackTuple(args, \"swigconstant\", 1, 1, &module)) return NULL;\n");
 	} else {
-	  Printf(f_wrappers, tab2 "if (!PyArg_UnpackTuple(args,(char *)\"swigconstant\", 1, 1,&module)) return NULL;\n");
+	  Printf(f_wrappers, tab2 "if (!PyArg_UnpackTuple(args, \"swigconstant\", 1, 1, &module)) return NULL;\n");
 	}
         Printf(f_wrappers, tab2 "d = PyModule_GetDict(module);\n");
         Printf(f_wrappers, tab2 "if (!d) return NULL;\n");
@@ -3969,7 +3969,7 @@ public:
       String *gspair = NewStringf("%s_%s_getset", symname, memname);
       Printf(f, "static SwigPyGetSet %s = { %s, %s };\n", gspair, getter ? getter : "0", setter ? setter : "0");
       String *entry =
-	  NewStringf("{ (char *) \"%s\", (getter) %s, (setter) %s, (char *)\"%s.%s\", (void *) &%s }\n", memname, getter_closure,
+	  NewStringf("{ (char *)\"%s\", (getter)%s, (setter)%s, (char *)\"%s.%s\", (void *)&%s }\n", memname, getter_closure,
 		     setter_closure, name, memname, gspair);
       if (GetFlag(mgetset, "static")) {
 	Printf(f, "static PyGetSetDef %s_def = %s;\n", gspair, entry);
@@ -4481,9 +4481,9 @@ public:
 	Printv(f_wrappers, "SWIGINTERN PyObject *", class_name, "_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
 	Printv(f_wrappers, "  PyObject *obj;\n", NIL);
 	if (fastunpack) {
-	  Printv(f_wrappers, "  if (!SWIG_Python_UnpackTuple(args,(char *)\"swigregister\", 1, 1,&obj)) return NULL;\n", NIL);
+	  Printv(f_wrappers, "  if (!SWIG_Python_UnpackTuple(args, \"swigregister\", 1, 1, &obj)) return NULL;\n", NIL);
 	} else {
-	  Printv(f_wrappers, "  if (!PyArg_UnpackTuple(args,(char *)\"swigregister\", 1, 1,&obj)) return NULL;\n", NIL);
+	  Printv(f_wrappers, "  if (!PyArg_UnpackTuple(args, \"swigregister\", 1, 1, &obj)) return NULL;\n", NIL);
 	}
 
 	Printv(f_wrappers,
@@ -5018,7 +5018,7 @@ public:
 	  Wrapper_add_local(f, "res", "int res");
 	  if (!funpack) {
 	    Wrapper_add_local(f, "value", "PyObject *value");
-	    Append(f->code, "if (!PyArg_ParseTuple(args,(char *)\"O:set\",&value)) return NULL;\n");
+	    Append(f->code, "if (!PyArg_ParseTuple(args, \"O:set\", &value)) return NULL;\n");
 	  }
 	  Printf(f->code, "res = %s(%s);\n", varsetname, funpack ? "args" : "value");
 	  Append(f->code, "return !res ? SWIG_Py_Void() : NULL;\n");
@@ -5492,11 +5492,11 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       if (use_parse) {
 	Printf(w->code, "swig::SwigVar_PyObject %s = PyObject_CallMethod(swig_get_self(), (char *)\"%s\", (char *)\"(%s)\" %s);\n", Swig_cresult_name(), pyname, parse_args, arglist);
       } else {
-	Printf(w->code, "swig::SwigVar_PyObject swig_method_name = SWIG_Python_str_FromChar((char *)\"%s\");\n", pyname);
+	Printf(w->code, "swig::SwigVar_PyObject swig_method_name = SWIG_Python_str_FromChar(\"%s\");\n", pyname);
 	Printf(w->code, "swig::SwigVar_PyObject %s = PyObject_CallMethodObjArgs(swig_get_self(), (PyObject *) swig_method_name %s, NULL);\n", Swig_cresult_name(), arglist);
       }
     } else {
-      Printf(w->code, "swig::SwigVar_PyObject swig_method_name = SWIG_Python_str_FromChar((char *)\"%s\");\n", pyname);
+      Printf(w->code, "swig::SwigVar_PyObject swig_method_name = SWIG_Python_str_FromChar(\"%s\");\n", pyname);
       Printf(w->code, "swig::SwigVar_PyObject %s = PyObject_CallMethodObjArgs(swig_get_self(), (PyObject *) swig_method_name, NULL);\n", Swig_cresult_name());
     }
     Append(w->code, "#endif\n");

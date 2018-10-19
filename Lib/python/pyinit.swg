@@ -151,7 +151,7 @@ swig_varlink_type(void) {
       PyObject_HEAD_INIT(NULL)
       0,                                  /* ob_size */
 #endif
-      (char *)"swigvarlink",              /* tp_name */
+      "swigvarlink",                      /* tp_name */
       sizeof(swig_varlinkobject),         /* tp_basicsize */
       0,                                  /* tp_itemsize */
       (destructor) swig_varlink_dealloc,  /* tp_dealloc */
@@ -208,7 +208,7 @@ SWIG_Python_newvarlink(void) {
 }
 
 SWIGINTERN void 
-SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int (*set_attr)(PyObject *p)) {
+SWIG_Python_addvarlink(PyObject *p, const char *name, PyObject *(*get_attr)(void), int (*set_attr)(PyObject *p)) {
   swig_varlinkobject *v = (swig_varlinkobject *) p;
   swig_globalvar *gv = (swig_globalvar *) malloc(sizeof(swig_globalvar));
   if (gv) {
@@ -330,7 +330,7 @@ SWIG_init(void) {
 #if PY_VERSION_HEX >= 0x03000000
   static struct PyModuleDef SWIG_module = {
     PyModuleDef_HEAD_INIT,
-    (char *) SWIG_name,
+    SWIG_name,
     NULL,
     -1,
     SwigMethods,
@@ -393,7 +393,7 @@ SWIG_init(void) {
 #if PY_VERSION_HEX >= 0x03000000
   m = PyModule_Create(&SWIG_module);
 #else
-  m = Py_InitModule((char *) SWIG_name, SwigMethods);
+  m = Py_InitModule(SWIG_name, SwigMethods);
 #endif
 
   md = d = PyModule_GetDict(m);
