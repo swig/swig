@@ -65,7 +65,6 @@ static String *methods;
 static String *class_name;
 static String *shadow_indent = 0;
 static int in_class = 0;
-static int new_repr = 1;
 static int no_header_file = 0;
 static int max_bases = 0;
 static int builtin_bases_needed = 0;
@@ -122,7 +121,6 @@ Python Options (available with -python)\n\
      -interface <lib>- Set the lib name to <lib>\n\
      -keyword        - Use keyword arguments\n";
 static const char *usage2 = "\
-     -newrepr        - Use more informative version of __repr__ in proxy classes (default) \n\
      -newvwm         - New value wrapper mode, use only when everything else fails \n\
      -nocastmode     - Disable the casting mode (default)\n\
      -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
@@ -140,7 +138,6 @@ static const char *usage3 = "\
      -nortti         - Disable the use of the native C++ RTTI with directors\n\
      -nothreads      - Disable thread support for the entire interface\n\
      -olddefs        - Keep the old method definitions even when using fastproxy\n\
-     -oldrepr        - Use shorter and old version of __repr__ in proxy classes\n\
      -outputtuple    - Use a PyTuple for outputs instead of a PyList (use carefully with legacy interfaces) \n\
      -py3            - Generate code with Python 3 specific features and syntax\n\
      -relativeimport - Use relative python imports \n\
@@ -343,12 +340,6 @@ public:
 	} else if ((strcmp(argv[i], "-shadow") == 0) || ((strcmp(argv[i], "-proxy") == 0))) {
 	  shadow = 1;
 	  Swig_mark_arg(i);
-	} else if ((strcmp(argv[i], "-new_repr") == 0) || (strcmp(argv[i], "-newrepr") == 0)) {
-	  new_repr = 1;
-	  Swig_mark_arg(i);
-	} else if ((strcmp(argv[i], "-old_repr") == 0) || (strcmp(argv[i], "-oldrepr") == 0)) {
-	  new_repr = 0;
-	  Swig_mark_arg(i);
 	} else if ((strcmp(argv[i], "-noproxy") == 0)) {
 	  shadow = 0;
 	  Swig_mark_arg(i);
@@ -462,8 +453,10 @@ public:
 	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
 	} else if (strcmp(argv[i], "-buildnone") == 0 ||
 		   strcmp(argv[i], "-aliasobj0") == 0 ||
-		   strcmp(argv[i], "-classptr") == 0 ||
 		   strcmp(argv[i], "-classic") == 0 ||
+		   strcmp(argv[i], "-classptr") == 0 ||
+		   strcmp(argv[i], "-new_repr") == 0 ||
+		   strcmp(argv[i], "-newrepr") == 0 ||
 		   strcmp(argv[i], "-noaliasobj0") == 0 ||
 		   strcmp(argv[i], "-nobuildnone") == 0 ||
 		   strcmp(argv[i], "-nofastinit") == 0 ||
@@ -471,6 +464,8 @@ public:
 		   strcmp(argv[i], "-nomodern") == 0 ||
 		   strcmp(argv[i], "-nomodernargs") == 0 ||
 		   strcmp(argv[i], "-nosafecstrings") == 0 ||
+		   strcmp(argv[i], "-old_repr") == 0 ||
+		   strcmp(argv[i], "-oldrepr") == 0 ||
 		   strcmp(argv[i], "-proxydel") == 0) {
 	  Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
 	  SWIG_exit(EXIT_FAILURE);
@@ -4479,11 +4474,7 @@ public:
       if (!have_repr && !builtin) {
 	/* Supply a repr method for this class  */
 	String *rname = SwigType_namestr(real_classname);
-	if (new_repr) {
-	  Printv(f_shadow_file, tab4, "__repr__ = _swig_repr\n", NIL);
-	} else {
-	  Printv(f_shadow_file, tab4, "def __repr__(self):\n", tab8, "return \"<C ", rname, " instance at %p>\" % (self.this,)\n", NIL);
-	}
+	Printv(f_shadow_file, tab4, "__repr__ = _swig_repr\n", NIL);
 	Delete(rname);
       }
 
