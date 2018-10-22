@@ -418,7 +418,7 @@ public:
 	} else if (strcmp(argv[i], "-noh") == 0) {
 	  no_header_file = 1;
 	  Swig_mark_arg(i);
-	} else if ((strcmp(argv[i], "-new_vwm") == 0) || (strcmp(argv[i], "-newvwm") == 0)) {
+	} else if (strcmp(argv[i], "-newvwm") == 0) {
 	  /* Turn on new value wrapper mode */
 	  Swig_value_wrapper_mode(1);
 	  no_header_file = 1;
@@ -456,6 +456,7 @@ public:
 		   strcmp(argv[i], "-classic") == 0 ||
 		   strcmp(argv[i], "-classptr") == 0 ||
 		   strcmp(argv[i], "-new_repr") == 0 ||
+		   strcmp(argv[i], "-new_vwm") == 0 ||
 		   strcmp(argv[i], "-newrepr") == 0 ||
 		   strcmp(argv[i], "-noaliasobj0") == 0 ||
 		   strcmp(argv[i], "-nobuildnone") == 0 ||
