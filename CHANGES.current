@@ -7,8 +7,54 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-10-22: olly,wsfulton
+            [Python] #1261 #1340 Turn on many optimisation options by default and rationalise the
+            number of command line options.
+
+            There were an unnecessary number of command line options and many of these have now
+            been removed in a drive for simplification. Some were needed to support older versions
+            of Python (2.6 and earlier).
+
+            Many of the options could be turned on individually and when using -O. Previously -O
+            resulted in turning on a set of options:
+
+              -modern -fastdispatch -nosafecstrings -fvirtual -noproxydel
+              -fastproxy -fastinit -fastunpack -fastquery -modernargs -nobuildnone
+
+            Now -O results in turning on this reduced set:
+
+              -fastdispatch -fastproxy -fvirtual
+
+            The following options are now on by default, a deprecated warning is displayed if they
+            are used:
+              -fastinit     Class initialisation code done in C/C++ rather than in Python code.
+              -fastquery    Python dictionary used for lookup of types.
+              -fastunpack   Faster unpacking of function arguments in C/C++ wrappers.
+              -modern       Use Python 2.3 features such as object and property.
+              -modernargs   Use Python 2.3 C APIs for unpacking arguments in tuples.
+              -noproxydel   Stop generating a proxy __del__ method for backwards compatiblity.
+              -safecstrings No discernable difference
+
+            The following options have been removed altogether:
+              -buildnone
+              -aliasobj0
+              -noaliasobj0
+              -nobuildnone
+              -nofastinit
+              -nofastquery
+              -nomodern
+              -nomodernargs
+              -nosafecstrings
+              -proxydel
+
+2018-10-22: olly
+            [Python] #1261 Remove command line option no longer needed as Python 2.3 and earlier
+            are no longer supported:
+
+              -classic
+
 2018-10-09: wsfulton
-	    [D, Go, Guile, Lua, Mzscheme, Ocaml, Perl5, Php, Scilab, Tcl]
+            [D, Go, Guile, Lua, Mzscheme, Ocaml, Perl5, Php, Scilab, Tcl]
             Allow wrapping of std::map using non-default comparison function.
 
 2018-10-09: vadz
