@@ -81,7 +81,7 @@ static String *real_classname;
 /* Thread Support */
 static int threads = 0;
 static int nothreads = 0;
-static int classptr = 0;
+
 /* Other options */
 static int shadowimport = 1;
 static int dirvtable = 0;
@@ -111,7 +111,6 @@ static const char *usage1 = "\
 Python Options (available with -python)\n\
      -builtin        - Create new python built-in types, rather than proxy classes, for better performance\n\
      -castmode       - Enable the casting mode, which allows implicit cast between types in python\n\
-     -classptr       - Generate shadow 'ClassPtr' as in older swig versions\n\
      -cppcast        - Enable C++ casting operators (default) \n\
      -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch \n\
      -doxygen        - Convert C++ doxygen comments to pydoc comments in proxy classes \n\
@@ -350,9 +349,6 @@ public:
 	} else if ((strcmp(argv[i], "-old_repr") == 0) || (strcmp(argv[i], "-oldrepr") == 0)) {
 	  new_repr = 0;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-classptr") == 0) {
-	  classptr = 1;
-	  Swig_mark_arg(i);
 	} else if ((strcmp(argv[i], "-noproxy") == 0)) {
 	  shadow = 0;
 	  Swig_mark_arg(i);
@@ -437,7 +433,6 @@ public:
 	  no_header_file = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-O") == 0) {
-	  classptr = 0;
 	  fastproxy = 1;
 	  Wrapper_fast_dispatch_mode_set(1);
 	  Wrapper_virtual_elimination_mode_set(1);
@@ -467,6 +462,7 @@ public:
 	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
 	} else if (strcmp(argv[i], "-buildnone") == 0 ||
 		   strcmp(argv[i], "-aliasobj0") == 0 ||
+		   strcmp(argv[i], "-classptr") == 0 ||
 		   strcmp(argv[i], "-classic") == 0 ||
 		   strcmp(argv[i], "-noaliasobj0") == 0 ||
 		   strcmp(argv[i], "-nobuildnone") == 0 ||
@@ -4502,16 +4498,6 @@ public:
       if (!builtin) {
 	/* Now emit methods */
 	Printv(f_shadow_file, f_shadow, NIL);
-
-	/* Now the Ptr class */
-	if (classptr) {
-	  Printv(f_shadow_file, "\nclass ", class_name, "Ptr(", class_name, "):\n", tab4, "def __init__(self, this):\n", NIL);
-	  Printv(f_shadow_file,
-		 tab8, "try:\n", tab8, tab4, "self.this.append(this)\n",
-		 tab8, "except __builtin__.Exception:\n", tab8, tab4, "self.this = this\n", tab8, "self.this.own(0)\n", tab8, "self.__class__ = ", class_name, "\n", NIL);
-
-	}
-
 	Printf(f_shadow_file, "\n");
 	Printf(f_shadow_file, "# Register %s in %s:\n", class_name, module);
 	Printf(f_shadow_file, "%s.%s_swigregister(%s)\n", module, class_name, class_name);
