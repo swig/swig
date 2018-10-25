@@ -19,8 +19,6 @@ static const char *usage = "\
 Perl5 Options (available with -perl5)\n\
      -compat         - Compatibility mode\n\
      -const          - Wrap constants as constants and not variables (implies -proxy)\n\
-     -cppcast        - Enable C++ casting operators\n\
-     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -nopm           - Do not generate the .pm file\n\
      -noproxy        - Don't create proxy classes\n\
      -proxy          - Create proxy classes\n\
@@ -148,7 +146,6 @@ public:
 
   virtual void main(int argc, char *argv[]) {
     int i = 1;
-    int cppcast = 1;
 
     SWIG_library_directory("perl5");
 
@@ -189,23 +186,20 @@ public:
 	} else if (strcmp(argv[i],"-v") == 0) {
 	    Swig_mark_arg(i);
 	    verbose++;
-	} else if (strcmp(argv[i], "-cppcast") == 0) {
-	  cppcast = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-nocppcast") == 0) {
-	  cppcast = 0;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-compat") == 0) {
 	  compat = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-help") == 0) {
 	  fputs(usage, stdout);
+	} else if (strcmp(argv[i], "-cppcast") == 0) {
+	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-nocppcast") == 0) {
+	  Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
+	  Swig_mark_arg(i);
+	  SWIG_exit(EXIT_FAILURE);
 	}
       }
-    }
-
-    if (cppcast) {
-      Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
     }
 
     Preprocessor_define("SWIGPERL 1", 0);
