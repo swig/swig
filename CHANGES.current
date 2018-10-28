@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-10-29: AlexanderGabriel
+	    [PHP] The following PHP7 reserved keywords are now only renamed by
+	    SWIG when used as function names in the API being wrapper:
+	    __halt_compiler array die echo empty eval exit include include_once
+	    isset list print require require_once return unset
+
 2018-10-22: olly,wsfulton
             [Python] #1261 #1340 Turn on many optimisation options by default and rationalise the
             number of command line options.
