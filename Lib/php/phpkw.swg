@@ -30,10 +30,8 @@
  * could lead to confusion."
  */
 /* Check is case insensitive - these *MUST* be listed in lower case here */
-PHPKW(__halt_compiler);
 PHPKW(abstract);
 PHPKW(and);
-PHPKW(array);
 PHPKW(as);
 PHPKW(break);
 PHPKW(callable);
@@ -45,20 +43,15 @@ PHPKW(const);
 PHPKW(continue);
 PHPKW(declare);
 PHPKW(default);
-PHPKW(die); // "Language construct"
 PHPKW(do);
-PHPKW(echo); // "Language construct"
 PHPKW(else);
 PHPKW(elseif);
-PHPKW(empty); // "Language construct"
 PHPKW(enddeclare);
 PHPKW(endfor);
 PHPKW(endforeach);
 PHPKW(endif);
 PHPKW(endswitch);
 PHPKW(endwhile);
-PHPKW(eval); // "Language construct"
-PHPKW(exit); // "Language construct"
 PHPKW(extends);
 PHPKW(final);
 PHPKW(finally);
@@ -69,29 +62,20 @@ PHPKW(global);
 PHPKW(goto);
 PHPKW(if);
 PHPKW(implements);
-PHPKW(include); // "Language construct"
-PHPKW(include_once); // "Language construct"
 PHPKW(instanceof);
 PHPKW(insteadof);
 PHPKW(interface);
-PHPKW(isset); // "Language construct"
-PHPKW(list); // "Language construct"
 PHPKW(namespace);
 PHPKW(new);
 PHPKW(or);
-PHPKW(print); // "Language construct"
 PHPKW(private);
 PHPKW(protected);
 PHPKW(public);
-PHPKW(require); // "Language construct"
-PHPKW(require_once); // "Language construct"
-PHPKW(return); // "Language construct"
 PHPKW(static);
 PHPKW(switch);
 PHPKW(throw);
 PHPKW(trait);
 PHPKW(try);
-PHPKW(unset); // "Language construct"
 PHPKW(use);
 PHPKW(var);
 PHPKW(while);
@@ -767,7 +751,9 @@ PHPCN(datetime);
 /* Built-in PHP functions (incomplete). */
 /* Includes Array Functions - http://php.net/manual/en/ref.array.php */
 /* Check is case insensitive - these *MUST* be listed in lower case here */
+PHPFN(__halt_compiler);
 PHPFN(acos);
+PHPFN(array);
 PHPFN(array_change_key_case);
 PHPFN(array_chunk);
 PHPFN(array_column);
@@ -829,17 +815,26 @@ PHPFN(cos);
 PHPFN(cosh);
 PHPFN(count);
 PHPFN(current);
+PHPFN(die); // "Language construct"
 PHPFN(each);
+PHPFN(echo); // "Language construct"
+PHPFN(empty);
 PHPFN(end);
+PHPFN(eval); // "Language construct"
+PHPFN(exit); // "Language construct"
 PHPFN(exp);
 PHPFN(extract);
 PHPFN(floor);
 PHPFN(fmod);
 PHPFN(in_array);
+PHPFN(include); // "Language construct"
+PHPFN(include_once); // "Language construct"
+PHPFN(isset); // "Language construct"
 PHPFN(key);
 PHPFN(key_exists);
 PHPFN(krsort);
 PHPFN(ksort);
+PHPFN(list); // "Language construct"
 PHPFN(log);
 PHPFN(log10);
 PHPFN(max);
@@ -850,9 +845,13 @@ PHPFN(next);
 PHPFN(pos);
 PHPFN(pow);
 PHPFN(prev);
+PHPFN(print); // "Language construct"
 PHPFN(range);
 PHPFN(reset);
 PHPFN(rsort);
+PHPFN(require); // "Language construct"
+PHPFN(require_once); // "Language construct"
+PHPFN(return); // "Language construct"
 PHPFN(shuffle);
 PHPFN(sin);
 PHPFN(sinh);
@@ -863,6 +862,7 @@ PHPFN(tan);
 PHPFN(tanh);
 PHPFN(uasort);
 PHPFN(uksort);
+PHPFN(unset); // "Language construct"
 PHPFN(usort);
 
 #undef PHPKW
