@@ -131,10 +131,12 @@ enum autodoc_t {
 static const char *usage = "\
 Ruby Options (available with -ruby)\n\
      -autorename     - Enable renaming of classes and methods to follow Ruby coding standards\n\
+     -cppcast        - Enable C++ casting operators (default)\n\
      -globalmodule   - Wrap everything into the global module\n\
      -initname <name>- Set entry function to Init_<name> (used by `require')\n\
      -minherit       - Attempt to support multiple inheritance\n\
      -noautorename   - Disable renaming of classes and methods (default)\n\
+     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
 ";
 
@@ -842,6 +844,7 @@ public:
   
   virtual void main(int argc, char *argv[]) {
 
+    int cppcast = 1;
     int autorename = 0;
 
     /* Set location of SWIG library */
@@ -880,6 +883,12 @@ public:
 	  multipleInheritance = true;
 	  director_multiple_inheritance = 1;
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-cppcast") == 0) {
+	  cppcast = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-nocppcast") == 0) {
+	  cppcast = 0;
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-autorename") == 0) {
 	  autorename = 1;
 	  Swig_mark_arg(i);
@@ -898,15 +907,13 @@ public:
 	  }
 	} else if (strcmp(argv[i], "-help") == 0) {
 	  Printf(stdout, "%s\n", usage);
-	} else if (strcmp(argv[i], "-cppcast") == 0) {
-	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-nocppcast") == 0) {
-	  Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
-	  Swig_mark_arg(i);
-	  SWIG_exit(EXIT_FAILURE);
 	}
       }
+    }
+
+    if (cppcast) {
+      /* Turn on cppcast mode */
+      Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
     }
 
     if (autorename) {

@@ -110,6 +110,7 @@ static const char *usage1 = "\
 Python Options (available with -python)\n\
      -builtin        - Create new python built-in types, rather than proxy classes, for better performance\n\
      -castmode       - Enable the casting mode, which allows implicit cast between types in python\n\
+     -cppcast        - Enable C++ casting operators (default) \n\
      -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch \n\
      -doxygen        - Convert C++ doxygen comments to pydoc comments in proxy classes \n\
      -debug-doxygen-parser     - Display doxygen parser module debugging information\n\
@@ -122,6 +123,7 @@ Python Options (available with -python)\n\
 static const char *usage2 = "\
      -newvwm         - New value wrapper mode, use only when everything else fails \n\
      -nocastmode     - Disable the casting mode (default)\n\
+     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -nodirvtable    - Don't use the virtual table feature, resolve the python method each time (default)\n\
      -noexcept       - No automatic exception handling\n\
      -noextranative  - Don't use extra native C++ wraps for std containers when possible (default) \n\
@@ -308,6 +310,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual void main(int argc, char *argv[]) {
+    int cppcast = 1;
 
     SWIG_library_directory("python");
 
@@ -346,6 +349,12 @@ public:
 	} else if (strcmp(argv[i], "-keyword") == 0) {
 	  use_kw = 1;
 	  SWIG_cparse_set_compact_default_args(1);
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-cppcast") == 0) {
+	  cppcast = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-nocppcast") == 0) {
+	  cppcast = 0;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-outputtuple") == 0) {
 	  outputtuple = 1;
@@ -434,8 +443,7 @@ public:
 	} else if (strcmp(argv[i], "-relativeimport") == 0) {
 	  relativeimport = 1;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-cppcast") == 0 ||
-		   strcmp(argv[i], "-fastinit") == 0 ||
+	} else if (strcmp(argv[i], "-fastinit") == 0 ||
 		   strcmp(argv[i], "-fastquery") == 0 ||
 		   strcmp(argv[i], "-fastunpack") == 0 ||
 		   strcmp(argv[i], "-modern") == 0 ||
@@ -443,9 +451,8 @@ public:
 		   strcmp(argv[i], "-noproxydel") == 0 ||
 		   strcmp(argv[i], "-safecstrings") == 0) {
 	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-aliasobj0") == 0 ||
-		   strcmp(argv[i], "-buildnone") == 0 ||
+	} else if (strcmp(argv[i], "-buildnone") == 0 ||
+		   strcmp(argv[i], "-aliasobj0") == 0 ||
 		   strcmp(argv[i], "-classic") == 0 ||
 		   strcmp(argv[i], "-classptr") == 0 ||
 		   strcmp(argv[i], "-new_repr") == 0 ||
@@ -453,7 +460,6 @@ public:
 		   strcmp(argv[i], "-newrepr") == 0 ||
 		   strcmp(argv[i], "-noaliasobj0") == 0 ||
 		   strcmp(argv[i], "-nobuildnone") == 0 ||
-		   strcmp(argv[i], "-nocppcast") == 0 ||
 		   strcmp(argv[i], "-nofastinit") == 0 ||
 		   strcmp(argv[i], "-nofastquery") == 0 ||
 		   strcmp(argv[i], "-nomodern") == 0 ||
@@ -463,13 +469,16 @@ public:
 		   strcmp(argv[i], "-oldrepr") == 0 ||
 		   strcmp(argv[i], "-proxydel") == 0) {
 	  Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
-	  Swig_mark_arg(i);
 	  SWIG_exit(EXIT_FAILURE);
 	}
 
       }
     }
 
+    if (cppcast) {
+      Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
+    }
+    
     if (doxygen)
       doxygenTranslator = new PyDocConverter(doxygen_translator_flags);
 

@@ -208,6 +208,7 @@ static void writeListByLine(List *l, File *out, bool quote = 0) {
 static const char *usage = "\
 R Options (available with -r)\n\
      -copystruct      - Emit R code to copy C structs (on by default)\n\
+     -cppcast         - Enable C++ casting operators (default) \n\
      -debug           - Output debug\n\
      -dll <name>      - Name of the DLL (without the .dll or .so suffix).\n\
 	                Default is the module name.\n\
@@ -2694,6 +2695,7 @@ String * R::runtimeCode() {
    Use Swig_mark_arg() to tell SWIG that it is understood and not to throw an error.
 **/
 void R::main(int argc, char *argv[]) {
+  bool cppcast = true;
   init();
   Preprocessor_define("SWIGR 1", 0);
   SWIG_library_directory("r");
@@ -2737,6 +2739,12 @@ void R::main(int argc, char *argv[]) {
     } else if(!strcmp(argv[i], "-debug")) {
       debugMode = true;
       Swig_mark_arg(i);
+    }  else if (!strcmp(argv[i],"-cppcast")) {
+      cppcast = true;
+      Swig_mark_arg(i);
+    } else if (!strcmp(argv[i],"-nocppcast")) {
+      cppcast = false;
+      Swig_mark_arg(i);
     } else if (!strcmp(argv[i],"-copystruct")) {
       copyStruct = true;
       Swig_mark_arg(i);
@@ -2755,13 +2763,10 @@ void R::main(int argc, char *argv[]) {
     } else if (!strcmp(argv[i], "-noaggressivegc")) {
       aggressiveGc = false;
       Swig_mark_arg(i);
-    } else if (strcmp(argv[i], "-cppcast") == 0) {
-      Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
-      Swig_mark_arg(i);
-    } else if (strcmp(argv[i], "-nocppcast") == 0) {
-      Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
-      Swig_mark_arg(i);
-      SWIG_exit(EXIT_FAILURE);
+    }
+
+    if (cppcast) {
+      Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
     }
 
     if (debugMode) {
