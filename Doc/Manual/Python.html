@@ -1480,6 +1480,27 @@ everything works just like you would expect. For example:
 </pre>
 </div>
 
+<p>
+Note that there is a limitation with structs within structs that will cause a problem
+if the outer struct is not a named variable in Python. The following will cause a segfault:
+</p>
+
+<div class="targetlang">
+<pre>
+Bar().f.a = 3
+</pre>
+</div>
+
+<p>
+because the unnamed Python proxy class for <tt>Bar()</tt> has its reference count
+decremented by the Python interpreter after <tt>f</tt> has been obtained from it and
+before <tt>f</tt> is used to obtain <tt>a</tt>.
+This results in the underlying <tt>Bar</tt> instance being deleted, which of course also deletes
+<tt>f</tt> inside it. Hence the pointer to <tt>f</tt> points to deleted
+memory and use of it results in a segfault or some sort of other undefined behaviour.
+</p>
+
+
 <H3><a name="Python_nn20">38.3.7 C++ classes</a></H3>
 
 
