@@ -1081,6 +1081,8 @@ int Language::functionHandler(Node *n) {
       globalfunctionHandler(n);
       InClass = oldInClass;
     } else {
+      // This is a member function, set a flag so the documentation type is correct
+      SetFlag(n, "memberfunction");
       Node *explicit_n = 0;
       if (directorsEnabled() && is_member_director(CurrentClass, n) && !extraDirectorProtectedCPPMethodsRequired()) {
 	bool virtual_but_not_pure_virtual = (!(Cmp(storage, "virtual")) && (Cmp(Getattr(n, "value"), "0") != 0));
@@ -1270,6 +1272,8 @@ int Language::memberfunctionHandler(Node *n) {
   int flags = Getattr(n, "template") ? extendmember | SmartPointer : Extend | SmartPointer | DirectorExtraCall;
   Swig_MethodToFunction(n, NSpace, ClassType, flags, director_type, is_member_director(CurrentClass, n));
   Setattr(n, "sym:name", fname);
+  // Save the original name for use in documentation
+  Setattr(n, "doc:name", symname);
 
   functionWrapper(n);
 
@@ -1330,6 +1334,8 @@ int Language::staticmemberfunctionHandler(Node *n) {
 
   Setattr(n, "name", cname);
   Setattr(n, "sym:name", mrename);
+  // Save the original name for use in documentation
+  Setattr(n, "doc:name", symname);
 
   if (cb) {
     String *cbname = NewStringf(cb, symname);

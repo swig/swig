@@ -10,19 +10,6 @@ def check(got, expected, expected_builtin=None, skip=False):
             expect = expected_builtin
         comment_verifier.check(got, expect)
 
-def is_fastproxy():
-    fastproxy = True
-    try:
-        from autodoc import _swig_new_instance_method
-    except ImportError:
-        fastproxy = False
-    return fastproxy
-
-if is_fastproxy():
-    # Detect when -fastproxy is specified and skip test as it changes the function names making it
-    # hard to test... skip until the number of options are reduced in SWIG-3.1 and autodoc is improved
-    sys.exit(0)
-
 # skip builtin check - the autodoc is missing, but it probably should not be
 skip = True
 
@@ -48,11 +35,9 @@ check(inspect.getdoc(A.func3),
       "hello: int tuple[2]")
 
 check(inspect.getdoc(A.func0default),
-      "func0default(self, e, arg3, hello, f=2) -> int\n"
-      "func0default(self, e, arg3, hello) -> int")
+      "func0default(self, e, arg3, hello, f=2) -> int")
 check(inspect.getdoc(A.func1default),
-      "func1default(A self, A e, short arg3, Tuple hello, double f=2) -> int\n"
-      "func1default(A self, A e, short arg3, Tuple hello) -> int")
+      "func1default(A self, A e, short arg3, Tuple hello, double f=2) -> int")
 check(inspect.getdoc(A.func2default),
       "func2default(self, e, arg3, hello, f=2) -> int\n"
       "\n"
@@ -61,15 +46,7 @@ check(inspect.getdoc(A.func2default),
       "e: A *\n"
       "arg3: short\n"
       "hello: int tuple[2]\n"
-      "f: double\n"
-      "\n"
-      "func2default(self, e, arg3, hello) -> int\n"
-      "\n"
-      "Parameters\n"
-      "----------\n"
-      "e: A *\n"
-      "arg3: short\n"
-      "hello: int tuple[2]")
+      "f: double")
 check(inspect.getdoc(A.func3default),
       "func3default(A self, A e, short arg3, Tuple hello, double f=2) -> int\n"
       "\n"
@@ -78,22 +55,12 @@ check(inspect.getdoc(A.func3default),
       "e: A *\n"
       "arg3: short\n"
       "hello: int tuple[2]\n"
-      "f: double\n"
-      "\n"
-      "func3default(A self, A e, short arg3, Tuple hello) -> int\n"
-      "\n"
-      "Parameters\n"
-      "----------\n"
-      "e: A *\n"
-      "arg3: short\n"
-      "hello: int tuple[2]")
+      "f: double")
 
 check(inspect.getdoc(A.func0static),
-      "func0static(e, arg2, hello, f=2) -> int\n"
-      "func0static(e, arg2, hello) -> int")
+      "func0static(e, arg2, hello, f=2) -> int")
 check(inspect.getdoc(A.func1static),
-      "func1static(A e, short arg2, Tuple hello, double f=2) -> int\n"
-      "func1static(A e, short arg2, Tuple hello) -> int")
+      "func1static(A e, short arg2, Tuple hello, double f=2) -> int")
 check(inspect.getdoc(A.func2static),
       "func2static(e, arg2, hello, f=2) -> int\n"
       "\n"
@@ -102,15 +69,7 @@ check(inspect.getdoc(A.func2static),
       "e: A *\n"
       "arg2: short\n"
       "hello: int tuple[2]\n"
-      "f: double\n"
-      "\n"
-      "func2static(e, arg2, hello) -> int\n"
-      "\n"
-      "Parameters\n"
-      "----------\n"
-      "e: A *\n"
-      "arg2: short\n"
-      "hello: int tuple[2]")
+      "f: double")
 check(inspect.getdoc(A.func3static),
       "func3static(A e, short arg2, Tuple hello, double f=2) -> int\n"
       "\n"
@@ -119,42 +78,20 @@ check(inspect.getdoc(A.func3static),
       "e: A *\n"
       "arg2: short\n"
       "hello: int tuple[2]\n"
-      "f: double\n"
-      "\n"
-      "func3static(A e, short arg2, Tuple hello) -> int\n"
-      "\n"
-      "Parameters\n"
-      "----------\n"
-      "e: A *\n"
-      "arg2: short\n"
-      "hello: int tuple[2]")
+      "f: double")
 
-if sys.version_info[0:2] > (2, 4):
-    # Python 2.4 does not seem to work
-    check(inspect.getdoc(A.variable_a),
-          "A_variable_a_get(self) -> int",
-          "A.variable_a"
-          )
-    check(inspect.getdoc(A.variable_b),
-          "A_variable_b_get(A self) -> int",
-          "A.variable_b"
-          )
-    check(inspect.getdoc(A.variable_c),
-          "A_variable_c_get(self) -> int\n"
-          "\n"
-          "Parameters\n"
-          "----------\n"
-          "self: A *",
-          "A.variable_c"
-        )
-    check(inspect.getdoc(A.variable_d),
-          "A_variable_d_get(A self) -> int\n"
-          "\n"
-          "Parameters\n"
-          "----------\n"
-          "self: A *",
-          "A.variable_d"
-        )
+check(inspect.getdoc(A.variable_a),
+      "A.variable_a"
+      )
+check(inspect.getdoc(A.variable_b),
+      "A.variable_b : int"
+      )
+check(inspect.getdoc(A.variable_c),
+      "A.variable_c"
+    )
+check(inspect.getdoc(A.variable_d),
+      "A.variable_d : int"
+    )
 
 check(inspect.getdoc(B),
       "Proxy of C++ B class.",
@@ -190,8 +127,7 @@ check(inspect.getdoc(B.funk),
       "funk(B self, int c, int d) -> int")
 check(inspect.getdoc(funk), "funk(A e, short arg2, int c, int d) -> int")
 check(inspect.getdoc(funkdefaults),
-      "funkdefaults(A e, short arg2, int c, int d, double f=2) -> int\n"
-      "funkdefaults(A e, short arg2, int c, int d) -> int")
+      "funkdefaults(A e, short arg2, int c, int d, double f=2) -> int")
 
 check(inspect.getdoc(func_input), "func_input(int * INPUT) -> int")
 check(inspect.getdoc(func_output), "func_output() -> int")

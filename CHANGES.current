@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-01-13: ahnolds
+	    [Python] #728 Fixed the handling of autodoc when using -fastproxy
+
 2019-01-22: vadz
             [Ruby, Octave] #1424 Improve autodoc parameter naming.
 
