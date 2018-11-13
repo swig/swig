@@ -90,7 +90,6 @@ static int fastproxy = 0;
 static int olddefs = 0;
 static int castmode = 0;
 static int extranative = 0;
-static int outputtuple = 0;
 static int nortti = 0;
 static int relativeimport = 0;
 
@@ -130,13 +129,11 @@ static const char *usage2 = "\
      -noh            - Don't generate the output header file\n";
 static const char *usage3 = "\
      -noolddefs      - Don't emit the old method definitions even when using fastproxy (default) \n\
-     -nooutputtuple  - Use a PyList for appending output values (default) \n\
      -noproxy        - Don't generate proxy classes \n\
      -noproxyimport  - Don't insert proxy import statements derived from the %import directive \n\
      -nortti         - Disable the use of the native C++ RTTI with directors\n\
      -nothreads      - Disable thread support for the entire interface\n\
      -olddefs        - Keep the old method definitions even when using fastproxy\n\
-     -outputtuple    - Use a PyTuple for outputs instead of a PyList (use carefully with legacy interfaces) \n\
      -py3            - Generate code with Python 3 specific features and syntax\n\
      -relativeimport - Use relative python imports \n\
      -threads        - Add thread support for all the interface\n\
@@ -347,12 +344,6 @@ public:
 	  use_kw = 1;
 	  SWIG_cparse_set_compact_default_args(1);
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-outputtuple") == 0) {
-	  outputtuple = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-nooutputtuple") == 0) {
-	  outputtuple = 0;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-nortti") == 0) {
 	  nortti = 1;
 	  Swig_mark_arg(i);
@@ -458,9 +449,11 @@ public:
 		   strcmp(argv[i], "-nofastquery") == 0 ||
 		   strcmp(argv[i], "-nomodern") == 0 ||
 		   strcmp(argv[i], "-nomodernargs") == 0 ||
+		   strcmp(argv[i], "-nooutputtuple") == 0 ||
 		   strcmp(argv[i], "-nosafecstrings") == 0 ||
 		   strcmp(argv[i], "-old_repr") == 0 ||
 		   strcmp(argv[i], "-oldrepr") == 0 ||
+		   strcmp(argv[i], "-outputtuple") == 0 ||
 		   strcmp(argv[i], "-proxydel") == 0) {
 	  Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
 	  Swig_mark_arg(i);
@@ -530,10 +523,12 @@ public:
 	    extranative = 0;
 	  }
 	  if (Getattr(options, "outputtuple")) {
-	    outputtuple = 1;
+	    Printf(stderr, "Deprecated module option: %s. This option is no longer supported.\n", "outputtuple");
+	    SWIG_exit(EXIT_FAILURE);
 	  }
 	  if (Getattr(options, "nooutputtuple")) {
-	    outputtuple = 0;
+	    Printf(stderr, "Deprecated module option: %s. This option is no longer supported.\n", "nooutputtuple");
+	    SWIG_exit(EXIT_FAILURE);
 	  }
 	  mod_docstring = Getattr(options, "docstring");
 	  package = Getattr(options, "package");
@@ -611,10 +606,6 @@ public:
 
     if (!dirvtable) {
       Printf(f_runtime, "#define SWIG_PYTHON_DIRECTOR_NO_VTABLE\n");
-    }
-
-    if (outputtuple) {
-      Printf(f_runtime, "#define SWIG_PYTHON_OUTPUT_TUPLE\n");
     }
 
     if (nortti) {
