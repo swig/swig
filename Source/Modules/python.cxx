@@ -82,7 +82,6 @@ static int threads = 0;
 static int nothreads = 0;
 
 /* Other options */
-static int shadowimport = 1;
 static int dirvtable = 0;
 static int doxygen = 0;
 static int fastunpack = 1;
@@ -130,7 +129,6 @@ static const char *usage2 = "\
 static const char *usage3 = "\
      -noolddefs      - Don't emit the old method definitions even when using fastproxy (default) \n\
      -noproxy        - Don't generate proxy classes \n\
-     -noproxyimport  - Don't insert proxy import statements derived from the %import directive \n\
      -nortti         - Disable the use of the native C++ RTTI with directors\n\
      -nothreads      - Disable thread support for the entire interface\n\
      -olddefs        - Keep the old method definitions even when using fastproxy\n\
@@ -337,9 +335,6 @@ public:
 	} else if ((strcmp(argv[i], "-noproxy") == 0)) {
 	  shadow = 0;
 	  Swig_mark_arg(i);
-	} else if ((strcmp(argv[i], "-noproxyimport") == 0)) {
-	  shadowimport = 0;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-keyword") == 0) {
 	  use_kw = 1;
 	  SWIG_cparse_set_compact_default_args(1);
@@ -450,6 +445,7 @@ public:
 		   strcmp(argv[i], "-nomodern") == 0 ||
 		   strcmp(argv[i], "-nomodernargs") == 0 ||
 		   strcmp(argv[i], "-nooutputtuple") == 0 ||
+		   strcmp(argv[i], "-noproxyimport") == 0 ||
 		   strcmp(argv[i], "-nosafecstrings") == 0 ||
 		   strcmp(argv[i], "-old_repr") == 0 ||
 		   strcmp(argv[i], "-oldrepr") == 0 ||
@@ -1251,18 +1247,18 @@ public:
 
 	Node *options = Getattr(mod, "options");
 	String *pkg = options ? Getattr(options, "package") : 0;
-	if (shadowimport) {
-	  if (!options || (!Getattr(options, "noshadow") && !Getattr(options, "noproxy"))) {
-	    String *_import = import_directive_string(package, pkg, modname, "_");
-	    if (!GetFlagAttr(f_shadow_imports, _import)) {
-	      String *import = import_directive_string(package, pkg, modname);
-	      Printf(builtin ? f_shadow_after_begin : f_shadow, "%s", import);
-	      Delete(import);
-	      SetFlag(f_shadow_imports, _import);
-	    }
-	    Delete(_import);
+
+	if (!options || (!Getattr(options, "noshadow") && !Getattr(options, "noproxy"))) {
+	  String *_import = import_directive_string(package, pkg, modname, "_");
+	  if (!GetFlagAttr(f_shadow_imports, _import)) {
+	    String *import = import_directive_string(package, pkg, modname);
+	    Printf(builtin ? f_shadow_after_begin : f_shadow, "%s", import);
+	    Delete(import);
+	    SetFlag(f_shadow_imports, _import);
 	  }
+	  Delete(_import);
 	}
+
       }
     }
     return Language::importDirective(n);
