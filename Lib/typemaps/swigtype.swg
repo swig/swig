@@ -669,6 +669,8 @@
 }
 #endif
 
+%apply SWIGTYPE ((*)(ANY)) { SWIGTYPE ((* const)(ANY)) }
+
 %apply SWIGTYPE * { SWIGTYPE *const }
 
 /* ------------------------------------------------------------
