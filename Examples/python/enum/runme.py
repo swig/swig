@@ -28,3 +28,13 @@ f = example.Foo()
 f.enum_test(example.Foo.IMPULSE)
 f.enum_test(example.Foo.WARP)
 f.enum_test(example.Foo.LUDICROUS)
+
+print "\nTesting integer typed enum in class constructor with int overload"
+n = example.SECOND
+b = example.Bar(f,1,n)
+print("The following should say 'SECOND' and 'numeric USED'")
+b.enum_test()
+b2 = example.Bar(f,2,155)
+print("The following should say 'THIRD'(defaulted) and 'numeric NOT USED'")
+b2.enum_test()
+b2.enum_test_cpp();

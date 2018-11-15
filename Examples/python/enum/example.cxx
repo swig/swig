@@ -15,6 +15,23 @@ void Foo::enum_test(speed s) {
   }
 }
 
+void Bar::enum_test() {
+  if (n == FIRST) {
+    printf("FIRST numeric\n");
+  } else if (n == SECOND) {
+    printf("SECOND numeric\n");
+  } else if (n == THIRD) {
+    printf("THIRD numeric\n");
+  } else {
+    printf("Unknown numeric\n");
+  }
+  if (true == numericUsed) {
+    printf("numeric USED\n");
+  } else {
+    printf("numeric NOT USED\n");
+  }
+}
+
 void enum_test(color c, Foo::speed s) {
   if (c == RED) {
     printf("color = RED, ");
