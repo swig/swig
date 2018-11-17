@@ -67,6 +67,9 @@ install:
       $env:MSYSTEM="MINGW$env:MBITS"
       $env:CC="$env:MARCH-w64-mingw32-gcc"
       $env:CXX="$env:MARCH-w64-mingw32-g++"
+      if ($env:MBITS -eq "64" -and $env:SWIGLANG -eq "python") {
+        $env:CHECK_OPTIONS2="CFLAGS+=-DMS_WIN64 CXXFLAGS+=-DMS_WIN64"
+      }
     }
 - if "%OSVARIANT%"=="" bash -c "cd /usr/bin && curl --retry 15 -s -L https://github.com/swig/cccl/archive/cccl-1.0.tar.gz | tar -xz --strip 1 cccl-cccl-1.0/cccl"
 - if "%OSVARIANT%"=="" echo Using Visual Studio %VSVER%.0 at %VSCOMNTOOLS%
