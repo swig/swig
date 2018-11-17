@@ -826,7 +826,8 @@ else
       PY3PREFIX=`($PY3CONFIG --prefix) 2>/dev/null`
       AC_MSG_RESULT($PY3PREFIX)
       AC_MSG_CHECKING(for Python 3.x exec-prefix)
-      PY3EPREFIX=`($PY3CONFIG --exec-prefix) 2>/dev/null`
+      # Piped through xargs to strip trailing whitespace (bug in msys2 + mingw Python)
+      PY3EPREFIX=`($PY3CONFIG --exec-prefix | xargs) 2>/dev/null`
       AC_MSG_RESULT($PY3EPREFIX)
 
       # Note: I could not think of a standard way to get the version string from different versions.
