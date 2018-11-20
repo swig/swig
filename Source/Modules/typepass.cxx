@@ -37,6 +37,7 @@ class TypePass:private Dispatcher {
   String *nssymname;
   Hash *classhash;
   List *normalize;
+  bool class_is_template;
 
   TypePass() :
     inclass(0),
@@ -45,7 +46,8 @@ class TypePass:private Dispatcher {
     nsname(0),
     nssymname(0),
     classhash(0),
-    normalize(0) {
+    normalize(0),
+    class_is_template(false) {
   }
 
   /* Normalize a type. Replaces type with fully qualified version */
@@ -435,7 +437,7 @@ class TypePass:private Dispatcher {
     normalize = NewList();
 
     if (name) {
-      if (SwigType_istemplate(name)) {
+      if (!class_is_template && SwigType_istemplate(name)) {
 	// We need to fully resolve the name and expand default template parameters to make templates work correctly */
 	Node *cn;
 	SwigType *resolved_name = SwigType_typedef_resolve_all(name);
@@ -510,8 +512,9 @@ class TypePass:private Dispatcher {
     SwigType_new_scope(scopename);
     SwigType_attach_symtab(Getattr(n, "symtab"));
 
-    /* Inherit type definitions into the class */
-    if (name && !(GetFlag(n, "nested") && !checkAttribute(n, "access", "public") && 
+    // Inherit type definitions into the class. We don't do this for the templates which can,
+    // and often do, inherit from other, not necessarily instantiated, templates.
+    if (!class_is_template && name && !(GetFlag(n, "nested") && !checkAttribute(n, "access", "public") &&
       (GetFlag(n, "feature:flatnested") || Language::instance()->nestedClassesSupport() == Language::NCS_None))) {
       cplus_inherit_types(n, 0, nname ? nname : (fname ? fname : name));
     }
@@ -565,6 +568,8 @@ class TypePass:private Dispatcher {
       String *rname = SwigType_typedef_resolve_all(name);
       SwigType_typedef_class(rname);
       Delete(rname);
+      save_value<bool> save_class_is_template(class_is_template, true);
+      classDeclaration(n);
     } else if (Strcmp(ttype, "classforward") == 0) {
       String *rname = SwigType_typedef_resolve_all(name);
       SwigType_typedef_class(rname);
