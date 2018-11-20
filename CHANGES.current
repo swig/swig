@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-11-24: vadz
+            #1358 Fix handling of abstract base classes nested inside templates
+
+            Correct detecting of whether a derived class method overrides a pure virtual
+            base class method when both classes are nested inside a template class: this
+            notably didn't work correctly for methods taking parameters of the base class
+            type.
+
 2018-11-22: rupertnash
             [Python] #1282 Make generated module runnable via python -m (PEP 366 conforming)
 
