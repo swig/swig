@@ -166,6 +166,11 @@ static Node *copy_node(Node *n) {
       Setattr(nn, "needs_defaultargs", "1");
       continue;
     }
+    /* same for abstracts, which contains pointers to the source node children, and so will need to be patch too */
+    if (strcmp(ckey,"abstracts") == 0) {
+      SetFlag(nn, "needs_abstracts");
+      continue;
+    }
     /* Looks okay.  Just copy the data using Copy */
     ci = Copy(k.item);
     Setattr(nn, key, ci);
@@ -786,6 +791,22 @@ static List *pure_abstracts(Node *n) {
     n = nextSibling(n);
   }
   return abstracts;
+}
+
+/* Recompute the "abstracts" attribute for the classes in instantiated templates, similarly to update_defaultargs() above. */
+static void update_abstracts(Node *n) {
+  for (; n; n = nextSibling(n)) {
+    Node* const child = firstChild(n);
+    if (!child)
+      continue;
+
+    update_abstracts(child);
+
+    if (Getattr(n, "needs_abstracts")) {
+      Setattr(n, "abstracts", pure_abstracts(child));
+      Delattr(n, "needs_abstracts");
+    }
+  }
 }
 
 /* Make a classname */
@@ -3056,6 +3077,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                       nn = Getattr(nn,"sym:nextSibling"); /* repeat for overloaded templated functions. If a templated class there will never be a sibling. */
                     }
                     update_defaultargs(linkliststart);
+                    update_abstracts(linkliststart);
 		  }
 	          Swig_symbol_setscope(tscope);
 		  Delete(Namespaceprefix);
