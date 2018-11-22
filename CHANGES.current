@@ -7,6 +7,44 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-11-13: wsfulton
+            #1340 Remove -cppcast and -nocppcast command line options (this was an option
+            available to the scripting language targets).
+
+            The -cppcast option is still turned on by default. The -nocppcast option
+            to turn off the use of c++ casts (const_cast, static_cast etc) has been
+            removed. However, defining SWIG_NO_CPLUSPLUS_CAST will still generate C casts
+            instead of C++ casts for C++ wrappers.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2018-11-13: wsfulton
+            [Python] #1340 Remove -outputtuple and -nooutputtuple command line options.
+
+            Both the command line and %module options of the same name have been
+            removed. These were undocumented. The -outputtuple option returned a
+            Python tuple instead of a list, mostly typically in the OUTPUT
+            typemap implementations.
+
+            It unclear why a tuple instead of a list return type is needed and
+            hence this option has been removed as part of the simplification of
+            the SWIG Python command line options for SWIG 4.
+
+2018-11-13: wsfulton
+            [Python] #1340 Remove -noproxyimport command line option.
+
+            This option turned off the insertion of Python import statements
+            derived from a %import directive. For example given:
+
+              %module module_b
+              %import "module_a.i"
+
+            then module_b.py will contain:
+
+              import module_a
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2018-10-29: AlexanderGabriel
 	    [PHP] The following PHP7 reserved keywords are now only renamed by
 	    SWIG when used as function names in the API being wrapper:
@@ -42,16 +80,26 @@ Version 4.0.0 (in progress)
               -safecstrings No discernable difference
 
             The following options have been removed altogether:
-              -buildnone
               -aliasobj0
+              -buildnone
+              -classptr
+              -new_repr
+              -newrepr
               -noaliasobj0
               -nobuildnone
               -nofastinit
               -nofastquery
               -nomodern
               -nomodernargs
+              -nooutputtuple
               -nosafecstrings
+              -old_repr
+              -oldrepr
               -proxydel
+
+            -new_vwm is no longer supported. Use the -newvwm alias instead.
+
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2018-10-22: olly
             [Python] #1261 Remove command line option no longer needed as Python 2.3 and earlier
@@ -116,6 +164,7 @@ Version 4.0.0 (in progress)
             implementation which uses PyInstanceMethod_New.
 
             The new approach runs slightly faster. See #1310.
+
 2018-08-12: gmazzamuto
             [Python] #1283 Update pybuffer.i library to use new-style Python buffer C API.
 
