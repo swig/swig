@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-11-22: rupertnash
+            [Python] #1282 Make generated module runnable via python -m (PEP 366 conforming)
+
+            Previously any SWIG generated modules in a package would fail with an ImportError
+            when using 'python -m'.
+
 2018-11-13: wsfulton
             #1340 Remove -cppcast and -nocppcast command line options (this was an option
             available to the scripting language targets).
