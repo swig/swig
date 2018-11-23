@@ -49,32 +49,31 @@ void Swig_cparse_debug_templates(int x) {
  * template parameters
  * ----------------------------------------------------------------------------- */
 
-static int cparse_template_expand(Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist, List *cpatchlist) {
+static void cparse_template_expand(Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist, List *cpatchlist) {
   static int expanded = 0;
-  int ret;
   String *nodeType;
   if (!n)
-    return 0;
+    return;
   nodeType = nodeType(n);
   if (Getattr(n, "error"))
-    return 0;
+    return;
 
   if (Equal(nodeType, "template")) {
     /* Change the node type back to normal */
     if (!expanded) {
       expanded = 1;
       set_nodeType(n, Getattr(n, "templatetype"));
-      ret = cparse_template_expand(n, tname, rname, templateargs, patchlist, typelist, cpatchlist);
+      cparse_template_expand(n, tname, rname, templateargs, patchlist, typelist, cpatchlist);
       expanded = 0;
-      return ret;
+      return;
     } else {
       /* Called when template appears inside another template */
       /* Member templates */
 
       set_nodeType(n, Getattr(n, "templatetype"));
-      ret = cparse_template_expand(n, tname, rname, templateargs, patchlist, typelist, cpatchlist);
+      cparse_template_expand(n, tname, rname, templateargs, patchlist, typelist, cpatchlist);
       set_nodeType(n, "template");
-      return ret;
+      return;
     }
   } else if (Equal(nodeType, "cdecl")) {
     /* A simple C declaration */
@@ -221,7 +220,6 @@ static int cparse_template_expand(Node *n, String *tname, String *rname, String 
       cn = nextSibling(cn);
     }
   }
-  return 0;
 }
 
 static
