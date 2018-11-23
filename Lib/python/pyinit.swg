@@ -227,7 +227,11 @@ SWIG_Python_addvarlink(PyObject *p, const char *name, PyObject *(*get_attr)(void
 SWIGINTERN PyObject *
 SWIG_globals(void) {
   static PyObject *_SWIG_globals = 0; 
-  if (!_SWIG_globals) _SWIG_globals = SWIG_newvarlink();  
+  if (!_SWIG_globals) {
+    _SWIG_globals = SWIG_newvarlink();
+  } else {
+    Py_INCREF(_SWIG_globals);
+  }
   return _SWIG_globals;
 }
 
@@ -326,7 +330,7 @@ SWIGEXPORT
   void
 #endif
 SWIG_init(void) {
-  PyObject *m, *d, *md;
+  PyObject *m, *d, *md, *globals;
 #if PY_VERSION_HEX >= 0x03000000
   static struct PyModuleDef SWIG_module = {
     PyModuleDef_HEAD_INIT,

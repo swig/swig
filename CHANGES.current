@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-11-23: adr26
+            [Python] #1360 Leak of SWIG var link object
+
+            Fix reference counting on _SWIG_globals to allow var link to be freed on module unload.
+
 2018-11-22: rupertnash
             [Python] #1282 Make generated module runnable via python -m (PEP 366 conforming)
 
