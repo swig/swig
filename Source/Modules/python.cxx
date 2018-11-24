@@ -693,10 +693,6 @@ public:
 	mod_docstring = NULL;
       }
 
-      Printv(default_import_code, "\nfrom sys import version_info as _swig_python_version_info\n", NULL);
-      Printv(default_import_code, "if _swig_python_version_info < (2, 7, 0):\n", NULL);
-      Printv(default_import_code, tab4, "raise RuntimeError('Python 2.7 or later required')\n", NULL);
-
       /* Import the C-extension module.  This should be a relative import,
        * since the shadow module may also have been imported by a relative
        * import, and there is thus no guarantee that the C-extension is on
@@ -747,10 +743,6 @@ public:
         Printv(default_import_code, "else:\n", NULL);
         Printf(default_import_code, tab4 "from %s import *\n", module);
       }
-
-      /* Delete the _swig_python_version_info symbol since we don't use it elsewhere in the
-       * module. */
-      Printv(default_import_code, "del _swig_python_version_info\n\n", NULL);
 
       /* Need builtins to qualify names like Exception that might also be
          defined in this module (try both Python 3 and Python 2 names) */
@@ -910,13 +902,19 @@ public:
 	Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
       if (Len(f_shadow_after_begin) > 0)
       Printv(f_shadow_py, f_shadow_after_begin, "\n", NIL);
+
+      Printv(f_shadow_py, "\nfrom sys import version_info as _swig_python_version_info\n", NULL);
+      Printv(f_shadow_py, "if _swig_python_version_info < (2, 7, 0):\n", NULL);
+      Printv(f_shadow_py, tab4, "raise RuntimeError('Python 2.7 or later required')\n\n", NULL);
+
       if (moduleimport) {
 	Replaceall(moduleimport, "$module", module);
-	Printv(f_shadow_py, "\n", moduleimport, "\n", NIL);
+	Printv(f_shadow_py, moduleimport, "\n", NIL);
       } else {
 	Printv(f_shadow_py, default_import_code, NIL);
       }
-      Printv(f_shadow_py, f_shadow, "\n", NIL);
+
+      Printv(f_shadow_py, "\n", f_shadow, "\n", NIL);
       Printv(f_shadow_py, f_shadow_stubs, "\n", NIL);
       Delete(f_shadow_py);
     }
@@ -1123,14 +1121,12 @@ public:
       Printf(out, "import %s%s%s%s\n", apkg, *Char(apkg) ? "." : "", pfx, mod);
       Delete(apkg);
     } else {
-      Printf(out, "from sys import version_info as _swig_python_version_info\n");
       Printf(out, "if _swig_python_version_info >= (2, 7, 0):\n");
       if (py3_rlen1)
 	Printf(out, tab4 "from . import %.*s\n", py3_rlen1, rpkg);
       Printf(out, tab4 "from .%s import %s%s\n", rpkg, pfx, mod);
       Printf(out, "else:\n");
       Printf(out, tab4 "import %s%s%s%s\n", rpkg, *Char(rpkg) ? "." : "", pfx, mod);
-      Printf(out, "del _swig_python_version_info\n");
       Delete(rpkg);
     }
     return out;
