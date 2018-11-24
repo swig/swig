@@ -331,6 +331,9 @@ SWIGEXPORT
 #endif
 SWIG_init(void) {
   PyObject *m, *d, *md, *globals;
+
+  (void)globals;
+
 #if PY_VERSION_HEX >= 0x03000000
   static struct PyModuleDef SWIG_module = {
     PyModuleDef_HEAD_INIT,
