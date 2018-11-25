@@ -332,8 +332,6 @@ SWIGEXPORT
 SWIG_init(void) {
   PyObject *m, *d, *md, *globals;
 
-  (void)globals;
-
 #if PY_VERSION_HEX >= 0x03000000
   static struct PyModuleDef SWIG_module = {
     PyModuleDef_HEAD_INIT,
@@ -385,6 +383,8 @@ SWIG_init(void) {
   metatype = SwigPyObjectType();
   assert(metatype);
 #endif
+
+  (void)globals;
 
   /* Create singletons now to avoid potential deadlocks with multi-threaded usage after module initialization */
   SWIG_This();
