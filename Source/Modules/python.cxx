@@ -731,7 +731,7 @@ public:
          *     globals()[attr] = getattr(_foo, attr)
          * 
          */
-        Printf(default_import_code, "# pull in all the attributes from %s\n", module);
+        Printf(default_import_code, "\n# Pull in all the attributes from %s\n", module);
         Printv(default_import_code, "if __name__.rpartition('.')[0] != '':\n", NULL);
         Printv(default_import_code, tab4, "if _swig_python_version_info >= (2, 7, 0):\n", NULL);
         Printv(default_import_code, tab8, "try:\n", NULL);
@@ -900,12 +900,13 @@ public:
       Swig_banner_target_lang(f_shadow_py, "#");
       if (Len(f_shadow_begin) > 0)
 	Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
-      if (Len(f_shadow_after_begin) > 0)
-      Printv(f_shadow_py, f_shadow_after_begin, "\n", NIL);
 
       Printv(f_shadow_py, "\nfrom sys import version_info as _swig_python_version_info\n", NULL);
       Printv(f_shadow_py, "if _swig_python_version_info < (2, 7, 0):\n", NULL);
       Printv(f_shadow_py, tab4, "raise RuntimeError('Python 2.7 or later required')\n\n", NULL);
+
+      if (Len(f_shadow_after_begin) > 0)
+	Printv(f_shadow_py, f_shadow_after_begin, "\n", NIL);
 
       if (moduleimport) {
 	Replaceall(moduleimport, "$module", module);
