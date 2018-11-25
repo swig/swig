@@ -733,13 +733,10 @@ public:
          */
         Printf(default_import_code, "\n# Pull in all the attributes from %s\n", module);
         Printv(default_import_code, "if __name__.rpartition('.')[0] != '':\n", NULL);
-        Printv(default_import_code, tab4, "if _swig_python_version_info >= (2, 7, 0):\n", NULL);
-        Printv(default_import_code, tab8, "try:\n", NULL);
-        Printf(default_import_code, tab8 tab4 "from .%s import *\n", module);
-        Printv(default_import_code, tab8 "except ImportError:\n", NULL);
-        Printf(default_import_code, tab8 tab4 "from %s import *\n", module);
-        Printv(default_import_code, tab4, "else:\n", NULL);
-        Printf(default_import_code, tab8 "from %s import *\n", module);
+        Printv(default_import_code, tab4, "try:\n", NULL);
+        Printf(default_import_code, tab4 tab4 "from .%s import *\n", module);
+        Printv(default_import_code, tab4 "except ImportError:\n", NULL);
+        Printf(default_import_code, tab4 tab4 "from %s import *\n", module);
         Printv(default_import_code, "else:\n", NULL);
         Printf(default_import_code, tab4 "from %s import *\n", module);
       }
@@ -1122,12 +1119,9 @@ public:
       Printf(out, "import %s%s%s%s\n", apkg, *Char(apkg) ? "." : "", pfx, mod);
       Delete(apkg);
     } else {
-      Printf(out, "if _swig_python_version_info >= (2, 7, 0):\n");
       if (py3_rlen1)
-	Printf(out, tab4 "from . import %.*s\n", py3_rlen1, rpkg);
-      Printf(out, tab4 "from .%s import %s%s\n", rpkg, pfx, mod);
-      Printf(out, "else:\n");
-      Printf(out, tab4 "import %s%s%s%s\n", rpkg, *Char(rpkg) ? "." : "", pfx, mod);
+	Printf(out, "from . import %.*s\n", py3_rlen1, rpkg);
+      Printf(out, "from .%s import %s%s\n", rpkg, pfx, mod);
       Delete(rpkg);
     }
     return out;
