@@ -2015,7 +2015,12 @@ else
       dnl /usr/bin/php7.0 -> /usr/bin/php-config7.0
       case $PHP in
         *7.*)
-          PHPCONFIG=`echo "$PHP"|sed 's/7\...*$/-config&/'` ;;
+          PHPCONFIG=`echo "$PHP"|sed 's/7\...*$/-config&/'`
+          # try to see if there is php-config in the same directory
+          if test ! -f $PHPCONFIG; then
+            PHPCONFIG=$PHP-config
+          fi
+          ;;
         *)
           PHPCONFIG=$PHP-config ;;
       esac
