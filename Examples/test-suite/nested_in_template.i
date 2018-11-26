@@ -20,13 +20,13 @@ struct OuterTemplate<1>
   struct ConcreteDerived : AbstractBase
   {
     ConcreteDerived() : m_value(0.) {}
-    explicit ConcreteDerived(double value) : m_value(value) {}
+    explicit ConcreteDerived(int value) : m_value(value) {}
 
     virtual bool IsSameAs(const AbstractBase& other) const {
       return m_value == static_cast<const ConcreteDerived&>(other).m_value;
     }
 
-    double m_value;
+    int m_value;
   };
 };
 %}
