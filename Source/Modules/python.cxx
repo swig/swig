@@ -3316,21 +3316,21 @@ public:
     getf = NewWrapper();
     setf = NewWrapper();
 
-    Printf(f_init, "\t globals = SWIG_globals();\n");
-    Printf(f_init, "\t if (!globals) {\n");
-    Printf(f_init, "     PyErr_SetString(PyExc_TypeError, \"Failure to create SWIG globals.\");\n");
-    Printf(f_init, "#if PY_VERSION_HEX >= 0x03000000\n");
-    Printf(f_init, "\t   return NULL;\n");
-    Printf(f_init, "#else\n");
-    Printf(f_init, "\t   return;\n");
-    Printf(f_init, "#endif\n");
-    Printf(f_init, "\t }\n");
-
     /* If this is our first call, add the globals variable to the
        Python dictionary. */
 
     if (!have_globals) {
+      Printf(f_init, "\t globals = SWIG_globals();\n");
+      Printf(f_init, "\t if (!globals) {\n");
+      Printf(f_init, "     PyErr_SetString(PyExc_TypeError, \"Failure to create SWIG globals.\");\n");
+      Printf(f_init, "#if PY_VERSION_HEX >= 0x03000000\n");
+      Printf(f_init, "\t   return NULL;\n");
+      Printf(f_init, "#else\n");
+      Printf(f_init, "\t   return;\n");
+      Printf(f_init, "#endif\n");
+      Printf(f_init, "\t }\n");
       Printf(f_init, "\t PyDict_SetItemString(md, \"%s\", globals);\n", global_name);
+      Printf(f_init, "\t Py_DECREF(globals);\n");
       if (builtin)
 	Printf(f_init, "\t SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", global_name);
       have_globals = 1;
@@ -3418,12 +3418,11 @@ public:
     Wrapper_print(getf, f_wrappers);
 
     /* Now add this to the variable linking mechanism */
-    Printf(f_init, "\t SWIG_addvarlink(globals,\"%s\",%s, %s);\n", iname, vargetname, varsetname);
+    Printf(f_init, "\t SWIG_addvarlink(globals, \"%s\", %s, %s);\n", iname, vargetname, varsetname);
     if (builtin && shadow && !assignable && !in_class) {
-      Printf(f_init, "\t PyDict_SetItemString(md, \"%s\", PyObject_GetAttrString(SWIG_globals(), \"%s\"));\n", iname, iname);
+      Printf(f_init, "\t PyDict_SetItemString(md, \"%s\", PyObject_GetAttrString(globals, \"%s\"));\n", iname, iname);
       Printf(f_init, "\t SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", iname);
     }
-    Printf(f_init, "\t Py_DECREF(globals);\n");
     Delete(vargetname);
     Delete(varsetname);
     Delete(getname);
