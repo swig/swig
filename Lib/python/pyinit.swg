@@ -155,7 +155,7 @@ swig_varlink_type(void) {
       sizeof(swig_varlinkobject),         /* tp_basicsize */
       0,                                  /* tp_itemsize */
       (destructor) swig_varlink_dealloc,  /* tp_dealloc */
-      (printfunc) swig_varlink_print,     /* tp_print */
+      0,                                  /* tp_print */
       (getattrfunc) swig_varlink_getattr, /* tp_getattr */
       (setattrfunc) swig_varlink_setattr, /* tp_setattr */
       0,                                  /* tp_compare */
