@@ -822,7 +822,7 @@ SwigPyPacked_TypeOnce(void) {
       sizeof(SwigPyPacked),                 /* tp_basicsize */
       0,                                    /* tp_itemsize */
       (destructor)SwigPyPacked_dealloc,     /* tp_dealloc */
-      (printfunc)SwigPyPacked_print,        /* tp_print */
+      0,                                    /* tp_print */
       (getattrfunc)0,                       /* tp_getattr */
       (setattrfunc)0,                       /* tp_setattr */
 #if PY_VERSION_HEX>=0x03000000
