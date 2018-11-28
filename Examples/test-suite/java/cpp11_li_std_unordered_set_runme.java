@@ -1,10 +1,10 @@
-import li_std_unordered_set.*;
+import cpp11_li_std_unordered_set.*;
 
-public class li_std_unordered_set_runme {
+public class cpp11_li_std_unordered_set_runme {
 
   static {
     try {
-      System.loadLibrary("li_std_unordered_set");
+      System.loadLibrary("cpp11_li_std_unordered_set");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);

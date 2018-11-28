@@ -1,10 +1,10 @@
-import li_std_unordered_map.*;
+import cpp11_li_std_unordered_map.*;
 
-public class li_std_unordered_map_runme {
+public class cpp11_li_std_unordered_map_runme {
 
   static {
     try {
-      System.loadLibrary("li_std_unordered_map");
+      System.loadLibrary("cpp11_li_std_unordered_map");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);
