@@ -2599,6 +2599,7 @@ public:
 	builtin_self = false;
       else
 	builtin_ctor = true;
+      Delete(mrename);
     }
     bool director_class = (getCurrentClass() && Swig_directorclass(getCurrentClass()));
     bool add_self = builtin_self && (!builtin_ctor || director_class);
@@ -4727,11 +4728,12 @@ public:
 	  Delete(cname);
 	}
 
+	String *subfunc = Swig_name_construct(NSPACE_TODO, symname);
 	if (!have_constructor && handled_as_init) {
 	  if (!builtin) {
 	    if (Getattr(n, "feature:shadow")) {
 	      String *pycode = indent_pythoncode(Getattr(n, "feature:shadow"), tab4, Getfile(n), Getline(n), "%feature(\"shadow\")");
-	      String *pyaction = NewStringf("%s.%s", module, Swig_name_construct(NSPACE_TODO, symname));
+	      String *pyaction = NewStringf("%s.%s", module, subfunc);
 	      Replaceall(pycode, "$action", pyaction);
 	      Delete(pyaction);
 	      Printv(f_shadow, pycode, "\n", NIL);
@@ -4761,7 +4763,7 @@ public:
 	      if (have_pythonprepend(n))
 		Printv(f_shadow, indent_pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
 	      Printv(f_shadow, pass_self, NIL);
-	      Printv(f_shadow, tab8, module, ".", class_name, "_swiginit(self, ", funcCall(Swig_name_construct(NSPACE_TODO, symname), callParms), ")\n", NIL);
+	      Printv(f_shadow, tab8, module, ".", class_name, "_swiginit(self, ", funcCall(subfunc, callParms), ")\n", NIL);
 	      if (have_pythonappend(n))
 		Printv(f_shadow, indent_pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n), "%pythonappend or %feature(\"pythonappend\")"), "\n\n", NIL);
 	      Delete(pass_self);
@@ -4771,39 +4773,36 @@ public:
 	} else {
 	  /* Hmmm. We seem to be creating a different constructor.  We're just going to create a
 	     function for it. */
-	  if (Getattr(n, "feature:shadow")) {
-	    String *pycode = indent_pythoncode(Getattr(n, "feature:shadow"), "", Getfile(n), Getline(n), "%feature(\"shadow\")");
-	    String *pyaction = NewStringf("%s.%s", module, Swig_name_construct(NSPACE_TODO, symname));
-	    Replaceall(pycode, "$action", pyaction);
-	    Delete(pyaction);
-	    Printv(f_shadow_stubs, pycode, "\n", NIL);
-	    Delete(pycode);
-	  } else {
-	    String *parms = make_pyParmList(n, false, false, allow_kwargs);
-	    String *callParms = make_pyParmList(n, false, true, allow_kwargs);
+	  if (!builtin) {
+	    if (Getattr(n, "feature:shadow")) {
+	      String *pycode = indent_pythoncode(Getattr(n, "feature:shadow"), "", Getfile(n), Getline(n), "%feature(\"shadow\")");
+	      String *pyaction = NewStringf("%s.%s", module, subfunc);
+	      Replaceall(pycode, "$action", pyaction);
+	      Delete(pyaction);
+	      Printv(f_shadow_stubs, pycode, "\n", NIL);
+	      Delete(pycode);
+	    } else {
+	      String *parms = make_pyParmList(n, false, false, allow_kwargs);
+	      String *callParms = make_pyParmList(n, false, true, allow_kwargs);
 
-	    Printv(f_shadow_stubs, "\ndef ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-	    if (have_docstring(n))
-	      Printv(f_shadow_stubs, tab4, docstring(n, AUTODOC_CTOR, tab4), "\n", NIL);
-	    if (have_pythonprepend(n))
-	      Printv(f_shadow_stubs, indent_pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
-	    String *subfunc = NULL;
-	    /*
-	       if (builtin)
-	       subfunc = Copy(Getattr(getCurrentClass(), "sym:name"));
-	       else
-	     */
-	    subfunc = Swig_name_construct(NSPACE_TODO, symname);
-	    Printv(f_shadow_stubs, tab4, "val = ", funcCall(subfunc, callParms), "\n", NIL);
+	      Printv(f_shadow_stubs, "\ndef ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
+	      if (have_docstring(n))
+		Printv(f_shadow_stubs, tab4, docstring(n, AUTODOC_CTOR, tab4), "\n", NIL);
+	      if (have_pythonprepend(n))
+		Printv(f_shadow_stubs, indent_pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
+	      Printv(f_shadow_stubs, tab4, "val = ", funcCall(subfunc, callParms), "\n", NIL);
 #ifdef USE_THISOWN
-	    Printv(f_shadow_stubs, tab4, "val.thisown = 1\n", NIL);
+	      Printv(f_shadow_stubs, tab4, "val.thisown = 1\n", NIL);
 #endif
-	    if (have_pythonappend(n))
-	      Printv(f_shadow_stubs, indent_pythoncode(pythonappend(n), tab4, Getfile(n), Getline(n), "%pythonappend or %feature(\"pythonappend\")"), "\n", NIL);
-	    Printv(f_shadow_stubs, tab4, "return val\n", NIL);
-	    Delete(subfunc);
+	      if (have_pythonappend(n))
+		Printv(f_shadow_stubs, indent_pythoncode(pythonappend(n), tab4, Getfile(n), Getline(n), "%pythonappend or %feature(\"pythonappend\")"), "\n", NIL);
+	      Printv(f_shadow_stubs, tab4, "return val\n", NIL);
+	    }
+	  } else {
+	    Printf(f_shadow_stubs, "%s = %s\n", symname, subfunc);
 	  }
 	}
+	Delete(subfunc);
       }
     }
     return SWIG_OK;
