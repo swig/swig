@@ -6137,7 +6137,8 @@ pure Python module uses to find the C/C++ module is as follows:
 
 <ol>
   <li><p>The pure Python module, foo.py, tries to load the C/C++ module, _foo, from the same package foo.py is
-      located in.  The package name is determined from the <tt>__name__</tt>
+      located in.  The package name is determined from the <tt>__package__</tt>
+      attribute if available, see <a href="https://www.python.org/dev/peps/pep-0366/">PEP 366</a>, otherwise it is derived from the <tt>__name__</tt>
       attribute given to foo.py by the Python loader that imported
       foo.py.  If foo.py is not in a package then _foo is loaded
       as a global module.</p>

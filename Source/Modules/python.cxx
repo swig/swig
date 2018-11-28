@@ -701,7 +701,8 @@ public:
 	 * onwards (implicit relative imports raised a DeprecationWarning in 2.6,
 	 * and fail in 2.7 onwards).
 	 *
-	 * First determine the shadow wrappers package based on the __name__ it
+	 * First check for __package__ which is available from 2.6 onwards, see PEP366.
+	 * Next determine the shadow wrappers package based on the __name__ it
 	 * was given by the importer that loaded it.  Then construct a name for
 	 * the module based on the package name and the module name (we know the
 	 * module name).  Use importlib to try and load it.  If an attempt to
