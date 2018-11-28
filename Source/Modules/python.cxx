@@ -693,37 +693,38 @@ public:
 	mod_docstring = NULL;
       }
 
-      /* Import the C-extension module.  This should be a relative import,
-       * since the shadow module may also have been imported by a relative
-       * import, and there is thus no guarantee that the C-extension is on
-       * sys.path.  Relative imports must be explicitly specified from 2.6.0
-       * onwards (implicit relative imports raised a DeprecationWarning in 2.6,
-       * and fail in 2.7 onwards).
-       *
-       * First determine the shadow wrappers package based on the __name__ it
-       * was given by the importer that loaded it.  Then construct a name for
-       * the module based on the package name and the module name (we know the
-       * module name).  Use importlib to try and load it.  If an attempt to
-       * load the module with importlib fails with an ImportError then fallback
-       * and try and load just the module name from the global namespace.
-       */
-      Printv(default_import_code, "def swig_import_helper():\n", NULL);
-      Printv(default_import_code, tab4, "import importlib\n", NULL);
-      Printv(default_import_code, tab4, "pkg = __package__ if __package__ else __name__.rpartition('.')[0]\n", NULL);
-      Printf(default_import_code, tab4 "mname = '.'.join((pkg, '%s')).lstrip('.')\n", module);
-      Printv(default_import_code, tab4, "try:\n", NULL);
-      Printv(default_import_code, tab8, "return importlib.import_module(mname)\n", NULL);
-      Printv(default_import_code, tab4, "except ImportError:\n", NULL);
-      Printf(default_import_code, tab8 "return importlib.import_module('%s')\n", module);
-      Printf(default_import_code, "%s = swig_import_helper()\n", module);
-      Printv(default_import_code, "del swig_import_helper\n", NULL);
-
-      if (builtin) {
+      if (!builtin) {
+	/* Import the C-extension module.  This should be a relative import,
+	 * since the shadow module may also have been imported by a relative
+	 * import, and there is thus no guarantee that the C-extension is on
+	 * sys.path.  Relative imports must be explicitly specified from 2.6.0
+	 * onwards (implicit relative imports raised a DeprecationWarning in 2.6,
+	 * and fail in 2.7 onwards).
+	 *
+	 * First determine the shadow wrappers package based on the __name__ it
+	 * was given by the importer that loaded it.  Then construct a name for
+	 * the module based on the package name and the module name (we know the
+	 * module name).  Use importlib to try and load it.  If an attempt to
+	 * load the module with importlib fails with an ImportError then fallback
+	 * and try and load just the module name from the global namespace.
+	 */
+	Printv(default_import_code, "def swig_import_helper():\n", NULL);
+	Printv(default_import_code, tab4, "import importlib\n", NULL);
+	Printv(default_import_code, tab4, "pkg = __package__ if __package__ else __name__.rpartition('.')[0]\n", NULL);
+	Printf(default_import_code, tab4 "mname = '.'.join((pkg, '%s')).lstrip('.')\n", module);
+	Printv(default_import_code, tab4, "try:\n", NULL);
+	Printv(default_import_code, tab8, "return importlib.import_module(mname)\n", NULL);
+	Printv(default_import_code, tab4, "except ImportError:\n", NULL);
+	Printf(default_import_code, tab8 "return importlib.import_module('%s')\n", module);
+	Printf(default_import_code, "%s = swig_import_helper()\n", module);
+	Printv(default_import_code, "del swig_import_helper\n", NULL);
+      } else {
         /*
          * Pull in all the attributes from the C module.
          *
          * An alternative approach to doing this if/else chain was
-         * proposed by Michael Thon.  Someone braver than I may try it out.
+         * proposed by Michael Thon at https://github.com/swig/swig/issues/691.
+         * Someone braver than I may try it out.
          * I fear some current swig user may depend on some side effect
          * of from _foo import *
          *

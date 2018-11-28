@@ -7,6 +7,31 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-11-28: wsfulton
+            [Python] When using -builtin, the two step C-extension module import is now
+            one step and the wrapped API is only available once and not in an underlying
+            module attribute like it is without -builtin. To understand this, consider a
+            module named 'example' (using: %module example). The C-extension is compiled into
+            a Python module called '_example' and a pure Python module provides the actual
+            API from the module called 'example'. It was previously possible to additionally
+            access the API from the module attribute 'example._example'. The latter was an
+            implementation detail and is no longer available. It shouldn't have been used, but
+            if necessary it can be resurrected using the moduleimport attribute described in the
+            Python chapter of the documentation. If both modules are provided in a Python
+            package, try:
+
+              %module(moduleimport="from . import _example\nfrom ._example import *") example
+            or more generically:
+              %module(moduleimport="from . import $module\nfrom .$module import *") example
+
+            and if both are provided as global modules, try:
+
+              %module(moduleimport="import _example\nfrom _example import *") example
+            or more generically:
+              %module(moduleimport="import $module\nfrom $module import *") example
+
+            The module import code shown will appear in the example.py file.
+
 2018-11-24: vadz
             #1358 Fix handling of abstract base classes nested inside templates
 
