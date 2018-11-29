@@ -693,37 +693,39 @@ public:
 	mod_docstring = NULL;
       }
 
-      /* Import the C-extension module.  This should be a relative import,
-       * since the shadow module may also have been imported by a relative
-       * import, and there is thus no guarantee that the C-extension is on
-       * sys.path.  Relative imports must be explicitly specified from 2.6.0
-       * onwards (implicit relative imports raised a DeprecationWarning in 2.6,
-       * and fail in 2.7 onwards).
-       *
-       * First determine the shadow wrappers package based on the __name__ it
-       * was given by the importer that loaded it.  Then construct a name for
-       * the module based on the package name and the module name (we know the
-       * module name).  Use importlib to try and load it.  If an attempt to
-       * load the module with importlib fails with an ImportError then fallback
-       * and try and load just the module name from the global namespace.
-       */
-      Printv(default_import_code, "def swig_import_helper():\n", NULL);
-      Printv(default_import_code, tab4, "import importlib\n", NULL);
-      Printv(default_import_code, tab4, "pkg = __package__ if __package__ else __name__.rpartition('.')[0]\n", NULL);
-      Printf(default_import_code, tab4 "mname = '.'.join((pkg, '%s')).lstrip('.')\n", module);
-      Printv(default_import_code, tab4, "try:\n", NULL);
-      Printv(default_import_code, tab8, "return importlib.import_module(mname)\n", NULL);
-      Printv(default_import_code, tab4, "except ImportError:\n", NULL);
-      Printf(default_import_code, tab8 "return importlib.import_module('%s')\n", module);
-      Printf(default_import_code, "%s = swig_import_helper()\n", module);
-      Printv(default_import_code, "del swig_import_helper\n", NULL);
-
-      if (builtin) {
+      if (!builtin) {
+	/* Import the C-extension module.  This should be a relative import,
+	 * since the shadow module may also have been imported by a relative
+	 * import, and there is thus no guarantee that the C-extension is on
+	 * sys.path.  Relative imports must be explicitly specified from 2.6.0
+	 * onwards (implicit relative imports raised a DeprecationWarning in 2.6,
+	 * and fail in 2.7 onwards).
+	 *
+	 * First check for __package__ which is available from 2.6 onwards, see PEP366.
+	 * Next determine the shadow wrappers package based on the __name__ it
+	 * was given by the importer that loaded it.  Then construct a name for
+	 * the module based on the package name and the module name (we know the
+	 * module name).  Use importlib to try and load it.  If an attempt to
+	 * load the module with importlib fails with an ImportError then fallback
+	 * and try and load just the module name from the global namespace.
+	 */
+	Printv(default_import_code, "def swig_import_helper():\n", NULL);
+	Printv(default_import_code, tab4, "import importlib\n", NULL);
+	Printv(default_import_code, tab4, "pkg = __package__ if __package__ else __name__.rpartition('.')[0]\n", NULL);
+	Printf(default_import_code, tab4 "mname = '.'.join((pkg, '%s')).lstrip('.')\n", module);
+	Printv(default_import_code, tab4, "try:\n", NULL);
+	Printv(default_import_code, tab8, "return importlib.import_module(mname)\n", NULL);
+	Printv(default_import_code, tab4, "except ImportError:\n", NULL);
+	Printf(default_import_code, tab8 "return importlib.import_module('%s')\n", module);
+	Printf(default_import_code, "%s = swig_import_helper()\n", module);
+	Printv(default_import_code, "del swig_import_helper\n", NULL);
+      } else {
         /*
          * Pull in all the attributes from the C module.
          *
          * An alternative approach to doing this if/else chain was
-         * proposed by Michael Thon.  Someone braver than I may try it out.
+         * proposed by Michael Thon at https://github.com/swig/swig/issues/691.
+         * Someone braver than I may try it out.
          * I fear some current swig user may depend on some side effect
          * of from _foo import *
          *
@@ -2599,6 +2601,7 @@ public:
 	builtin_self = false;
       else
 	builtin_ctor = true;
+      Delete(mrename);
     }
     bool director_class = (getCurrentClass() && Swig_directorclass(getCurrentClass()));
     bool add_self = builtin_self && (!builtin_ctor || director_class);
@@ -4727,11 +4730,12 @@ public:
 	  Delete(cname);
 	}
 
+	String *subfunc = Swig_name_construct(NSPACE_TODO, symname);
 	if (!have_constructor && handled_as_init) {
 	  if (!builtin) {
 	    if (Getattr(n, "feature:shadow")) {
 	      String *pycode = indent_pythoncode(Getattr(n, "feature:shadow"), tab4, Getfile(n), Getline(n), "%feature(\"shadow\")");
-	      String *pyaction = NewStringf("%s.%s", module, Swig_name_construct(NSPACE_TODO, symname));
+	      String *pyaction = NewStringf("%s.%s", module, subfunc);
 	      Replaceall(pycode, "$action", pyaction);
 	      Delete(pyaction);
 	      Printv(f_shadow, pycode, "\n", NIL);
@@ -4761,7 +4765,7 @@ public:
 	      if (have_pythonprepend(n))
 		Printv(f_shadow, indent_pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
 	      Printv(f_shadow, pass_self, NIL);
-	      Printv(f_shadow, tab8, module, ".", class_name, "_swiginit(self, ", funcCall(Swig_name_construct(NSPACE_TODO, symname), callParms), ")\n", NIL);
+	      Printv(f_shadow, tab8, module, ".", class_name, "_swiginit(self, ", funcCall(subfunc, callParms), ")\n", NIL);
 	      if (have_pythonappend(n))
 		Printv(f_shadow, indent_pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n), "%pythonappend or %feature(\"pythonappend\")"), "\n\n", NIL);
 	      Delete(pass_self);
@@ -4771,39 +4775,36 @@ public:
 	} else {
 	  /* Hmmm. We seem to be creating a different constructor.  We're just going to create a
 	     function for it. */
-	  if (Getattr(n, "feature:shadow")) {
-	    String *pycode = indent_pythoncode(Getattr(n, "feature:shadow"), "", Getfile(n), Getline(n), "%feature(\"shadow\")");
-	    String *pyaction = NewStringf("%s.%s", module, Swig_name_construct(NSPACE_TODO, symname));
-	    Replaceall(pycode, "$action", pyaction);
-	    Delete(pyaction);
-	    Printv(f_shadow_stubs, pycode, "\n", NIL);
-	    Delete(pycode);
-	  } else {
-	    String *parms = make_pyParmList(n, false, false, allow_kwargs);
-	    String *callParms = make_pyParmList(n, false, true, allow_kwargs);
+	  if (!builtin) {
+	    if (Getattr(n, "feature:shadow")) {
+	      String *pycode = indent_pythoncode(Getattr(n, "feature:shadow"), "", Getfile(n), Getline(n), "%feature(\"shadow\")");
+	      String *pyaction = NewStringf("%s.%s", module, subfunc);
+	      Replaceall(pycode, "$action", pyaction);
+	      Delete(pyaction);
+	      Printv(f_shadow_stubs, pycode, "\n", NIL);
+	      Delete(pycode);
+	    } else {
+	      String *parms = make_pyParmList(n, false, false, allow_kwargs);
+	      String *callParms = make_pyParmList(n, false, true, allow_kwargs);
 
-	    Printv(f_shadow_stubs, "\ndef ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-	    if (have_docstring(n))
-	      Printv(f_shadow_stubs, tab4, docstring(n, AUTODOC_CTOR, tab4), "\n", NIL);
-	    if (have_pythonprepend(n))
-	      Printv(f_shadow_stubs, indent_pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
-	    String *subfunc = NULL;
-	    /*
-	       if (builtin)
-	       subfunc = Copy(Getattr(getCurrentClass(), "sym:name"));
-	       else
-	     */
-	    subfunc = Swig_name_construct(NSPACE_TODO, symname);
-	    Printv(f_shadow_stubs, tab4, "val = ", funcCall(subfunc, callParms), "\n", NIL);
+	      Printv(f_shadow_stubs, "\ndef ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
+	      if (have_docstring(n))
+		Printv(f_shadow_stubs, tab4, docstring(n, AUTODOC_CTOR, tab4), "\n", NIL);
+	      if (have_pythonprepend(n))
+		Printv(f_shadow_stubs, indent_pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
+	      Printv(f_shadow_stubs, tab4, "val = ", funcCall(subfunc, callParms), "\n", NIL);
 #ifdef USE_THISOWN
-	    Printv(f_shadow_stubs, tab4, "val.thisown = 1\n", NIL);
+	      Printv(f_shadow_stubs, tab4, "val.thisown = 1\n", NIL);
 #endif
-	    if (have_pythonappend(n))
-	      Printv(f_shadow_stubs, indent_pythoncode(pythonappend(n), tab4, Getfile(n), Getline(n), "%pythonappend or %feature(\"pythonappend\")"), "\n", NIL);
-	    Printv(f_shadow_stubs, tab4, "return val\n", NIL);
-	    Delete(subfunc);
+	      if (have_pythonappend(n))
+		Printv(f_shadow_stubs, indent_pythoncode(pythonappend(n), tab4, Getfile(n), Getline(n), "%pythonappend or %feature(\"pythonappend\")"), "\n", NIL);
+	      Printv(f_shadow_stubs, tab4, "return val\n", NIL);
+	    }
+	  } else {
+	    Printf(f_shadow_stubs, "%s = %s\n", symname, subfunc);
 	  }
 	}
+	Delete(subfunc);
       }
     }
     return SWIG_OK;
