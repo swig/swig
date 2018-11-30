@@ -11,30 +11,66 @@ public class li_std_set_runme {
     }
   }
 
+  public static void failTest(int testNum) throws Throwable {
+    throw new RuntimeException("Test failed: " + testNum);
+  }
+
+  public static void checkThat(boolean mustBeTrue, int testNum) throws Throwable {
+    if (!mustBeTrue) failTest(testNum);
+  }
+
   public static void main(String argv[]) throws Throwable
   {
-    StringSet ss = new StringSet();
+    java.util.AbstractSet<String> ss = new StringSet();
 
-    if (!ss.empty()) throw new RuntimeException("Test (1) failed");
-    if (ss.size() != 0) throw new RuntimeException("Test (2) failed");
-    if (ss.has("key")) throw new RuntimeException("Test (3) failed");
-    if (ss.erase("key")) throw new RuntimeException("Test (4) failed");
+    checkThat(ss.isEmpty(), 1);
+    checkThat(!ss.contains("key"), 2);
+    checkThat(!ss.remove("key"), 3);
 
-    if (!ss.insert("key")) throw new RuntimeException("Test (5) failed");
-    if (ss.insert("key")) throw new RuntimeException("Test (6) failed");
-    if (!ss.has("key")) throw new RuntimeException("Test (7) failed");
+    checkThat(ss.add("key"), 4);
+    checkThat(!ss.add("key"), 5);
+    checkThat(ss.contains("key"), 6);
+    checkThat(ss.remove("key"), 7);
+    checkThat(ss.isEmpty(), 8);
+    checkThat(ss.size() == 0, 9);
 
-    if (!ss.erase("key")) throw new RuntimeException("Test (8) failed");
-    if (!ss.empty()) throw new RuntimeException("Test (9) failed");
-    if (ss.size() != 0) throw new RuntimeException("Test (10) failed");
-
-    if (!ss.insert("key1")) throw new RuntimeException("Test (11) failed");
-    if (!ss.insert("key2")) throw new RuntimeException("Test (12) failed");
-    if (!ss.insert("key3")) throw new RuntimeException("Test (13) failed");
-    if (ss.size() != 3) throw new RuntimeException("Test (14) failed");
+    checkThat(ss.add("key1"), 10);
+    checkThat(ss.add("key2"), 11);
+    checkThat(ss.add("key3"), 12);
+    checkThat(ss.size() == 3, 13);
 
     ss.clear();
-    if (!ss.empty()) throw new RuntimeException("Test (15) failed");
-    if (ss.size() != 0) throw new RuntimeException("Test (16) failed");
+    checkThat(ss.isEmpty(), 14);
+    checkThat(ss.size() == 0, 15);
+
+    checkThat(ss.addAll(java.util.Arrays.asList("one", "two", "three")), 16);
+    checkThat(ss.size() == 3, 17);
+    checkThat(ss.contains("one"), 18);
+    checkThat(!ss.contains("four"), 19);
+
+    checkThat(ss.containsAll(java.util.Arrays.asList("one", "two", "three")), 20);
+    checkThat(ss.containsAll(java.util.Arrays.asList("one", "two")), 21);
+    checkThat(!ss.containsAll(java.util.Arrays.asList("one", "two", "four")), 22);
+    checkThat(!ss.containsAll(java.util.Arrays.asList("one", "two", "three", "four")), 23);
+
+    checkThat(!ss.addAll(java.util.Arrays.asList("one", "two", "three")), 24);
+
+    java.util.Set<String> found = new java.util.HashSet<String>();
+    java.util.Iterator<String> itr = ss.iterator();
+    while (itr.hasNext()) {
+      found.add(itr.next());
+    }
+
+    checkThat(ss.containsAll(found), 25);
+    checkThat(found.containsAll(ss), 26);
+
+    java.util.AbstractSet<String> ss2 = new StringSet(ss);
+    checkThat(ss2.containsAll(ss), 27);
+    checkThat(ss.containsAll(ss2), 28);
+
+    checkThat(!ss.removeAll(java.util.Arrays.asList("five", "four")), 29);
+    checkThat(ss.removeAll(found), 30);
+    checkThat(ss.isEmpty(), 31);
+    checkThat(ss.size() == 0, 32);
   }
 }
