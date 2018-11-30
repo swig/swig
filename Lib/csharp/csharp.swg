@@ -970,30 +970,40 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 %}
 
 %typemap(csdestruct, methodname="Dispose", methodmodifiers="public") SWIGTYPE {
+    bool dodelete = false;
     lock(this) {
       if (swigCPtr.Handle != global::System.IntPtr.Zero) {
         if (swigCMemOwn) {
           swigCMemOwn = false;
-          $imcall;
+          dodelete = true;
         }
-        swigCPtr = new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero);
       }
-      global::System.GC.SuppressFinalize(this);
     }
+    if (dodelete)
+    {
+        $imcall;
+    }
+    swigCPtr = new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero);
+    global::System.GC.SuppressFinalize(this);
   }
 
 %typemap(csdestruct_derived, methodname="Dispose", methodmodifiers="public") SWIGTYPE {
+    bool dodelete = false;
     lock(this) {
       if (swigCPtr.Handle != global::System.IntPtr.Zero) {
         if (swigCMemOwn) {
           swigCMemOwn = false;
-          $imcall;
+          dodelete = true;
         }
-        swigCPtr = new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero);
       }
-      global::System.GC.SuppressFinalize(this);
       base.Dispose();
     }
+    if (dodelete)
+    {
+        $imcall;
+    }
+    swigCPtr = new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero);
+    global::System.GC.SuppressFinalize(this);
   }
 
 %typemap(directordisconnect, methodname="swigDirectorDisconnect") SWIGTYPE %{
