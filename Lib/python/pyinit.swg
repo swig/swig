@@ -226,9 +226,10 @@ SWIG_Python_addvarlink(PyObject *p, const char *name, PyObject *(*get_attr)(void
 
 SWIGINTERN PyObject *
 SWIG_globals(void) {
-  static PyObject *_SWIG_globals = 0; 
-  if (!_SWIG_globals) _SWIG_globals = SWIG_newvarlink();  
-  return _SWIG_globals;
+  static PyObject *globals = 0;
+  if (!globals)
+    globals = SWIG_newvarlink();
+  return globals;
 }
 
 /* -----------------------------------------------------------------------------
