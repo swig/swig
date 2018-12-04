@@ -1,6 +1,7 @@
 import sys
 import os
 import shutil
+import subprocess
 import zipfile
 
 
@@ -17,10 +18,10 @@ def copyMods():
         os.mkdir(os.path.join(d, 'brave'))
 
     shutil.copy('robin.py', os.path.join('path1', 'brave'))
-    os.system('cp _robin.* ' + os.path.join('path1', 'brave'))
+    subprocess.check_call('cp _robin.* ' + os.path.join('path1', 'brave'), shell=True)
 
     shutil.copy('robin.py', os.path.join('path2', 'brave'))
-    os.system('cp _robin.* ' + os.path.join('path3', 'brave'))
+    subprocess.check_call('cp _robin.* ' + os.path.join('path3', 'brave'), shell=True)
 
     mkzip()
 
@@ -35,10 +36,10 @@ def main():
     copyMods()
 
     # Run each test with a separate interpreter
-    os.system(sys.executable + " nonpkg.py")
-    os.system(sys.executable + " normal.py")
-    os.system(sys.executable + " split.py")
-    os.system(sys.executable + " zipsplit.py")
+    subprocess.check_call(sys.executable + " nonpkg.py", shell=True)
+    subprocess.check_call(sys.executable + " normal.py", shell=True)
+    subprocess.check_call(sys.executable + " split.py", shell=True)
+    subprocess.check_call(sys.executable + " zipsplit.py", shell=True)
 
 
 if __name__ == "__main__":

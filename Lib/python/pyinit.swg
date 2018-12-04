@@ -226,9 +226,10 @@ SWIG_Python_addvarlink(PyObject *p, const char *name, PyObject *(*get_attr)(void
 
 SWIGINTERN PyObject *
 SWIG_globals(void) {
-  static PyObject *_SWIG_globals = 0; 
-  if (!_SWIG_globals) _SWIG_globals = SWIG_newvarlink();  
-  return _SWIG_globals;
+  static PyObject *globals = 0;
+  if (!globals)
+    globals = SWIG_newvarlink();
+  return globals;
 }
 
 /* -----------------------------------------------------------------------------
@@ -326,7 +327,8 @@ SWIGEXPORT
   void
 #endif
 SWIG_init(void) {
-  PyObject *m, *d, *md;
+  PyObject *m, *d, *md, *globals;
+
 #if PY_VERSION_HEX >= 0x03000000
   static struct PyModuleDef SWIG_module = {
     PyModuleDef_HEAD_INIT,
@@ -378,6 +380,8 @@ SWIG_init(void) {
   metatype = SwigPyObjectType();
   assert(metatype);
 #endif
+
+  (void)globals;
 
   /* Create singletons now to avoid potential deadlocks with multi-threaded usage after module initialization */
   SWIG_This();

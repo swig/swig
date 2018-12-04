@@ -681,18 +681,6 @@ public:
       Swig_register_filebyname("shadow", f_shadow);
       Swig_register_filebyname("python", f_shadow);
 
-      if (mod_docstring) {
-	if (Len(mod_docstring)) {
-	  const char *triple_double = "\"\"\"";
-	  // follow PEP257 rules: https://www.python.org/dev/peps/pep-0257/
-	  // reported by pep257: https://github.com/GreenSteam/pep257
-	  bool multi_line_ds = Strchr(mod_docstring, '\n') != 0;
-	  Printv(f_shadow_after_begin, "\n", triple_double, multi_line_ds ? "\n":"", mod_docstring, multi_line_ds ? "\n":"", triple_double, "\n", NIL);
-	}
-	Delete(mod_docstring);
-	mod_docstring = NULL;
-      }
-
       if (!builtin) {
 	/* Import the C-extension module.  This should be a relative import,
 	 * since the shadow module may also have been imported by a relative
@@ -734,7 +722,7 @@ public:
          * 
          */
         Printf(default_import_code, "\n# Pull in all the attributes from %s\n", module);
-        Printv(default_import_code, "if __name__.rpartition('.')[0] != '':\n", NULL);
+        Printv(default_import_code, "if __package__ or __name__.rpartition('.')[0]:\n", NULL);
         Printv(default_import_code, tab4, "try:\n", NULL);
         Printf(default_import_code, tab4 tab4 "from .%s import *\n", module);
         Printv(default_import_code, tab4 "except ImportError:\n", NULL);
@@ -897,6 +885,19 @@ public:
 
     if (shadow) {
       Swig_banner_target_lang(f_shadow_py, "#");
+
+      if (mod_docstring) {
+	if (Len(mod_docstring)) {
+	  const char *triple_double = "\"\"\"";
+	  // follow PEP257 rules: https://www.python.org/dev/peps/pep-0257/
+	  // reported by pep257: https://github.com/GreenSteam/pep257
+	  bool multi_line_ds = Strchr(mod_docstring, '\n') != 0;
+	  Printv(f_shadow_py, "\n", triple_double, multi_line_ds ? "\n":"", mod_docstring, multi_line_ds ? "\n":"", triple_double, "\n", NIL);
+	}
+	Delete(mod_docstring);
+	mod_docstring = NULL;
+      }
+
       if (Len(f_shadow_begin) > 0)
 	Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
 
@@ -3318,7 +3319,17 @@ public:
        Python dictionary. */
 
     if (!have_globals) {
-      Printf(f_init, "\t PyDict_SetItemString(md, \"%s\", SWIG_globals());\n", global_name);
+      Printf(f_init, "\t globals = SWIG_globals();\n");
+      Printf(f_init, "\t if (!globals) {\n");
+      Printf(f_init, "     PyErr_SetString(PyExc_TypeError, \"Failure to create SWIG globals.\");\n");
+      Printf(f_init, "#if PY_VERSION_HEX >= 0x03000000\n");
+      Printf(f_init, "\t   return NULL;\n");
+      Printf(f_init, "#else\n");
+      Printf(f_init, "\t   return;\n");
+      Printf(f_init, "#endif\n");
+      Printf(f_init, "\t }\n");
+      Printf(f_init, "\t PyDict_SetItemString(md, \"%s\", globals);\n", global_name);
+      Printf(f_init, "\t Py_DECREF(globals);\n");
       if (builtin)
 	Printf(f_init, "\t SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", global_name);
       have_globals = 1;
@@ -3406,9 +3417,9 @@ public:
     Wrapper_print(getf, f_wrappers);
 
     /* Now add this to the variable linking mechanism */
-    Printf(f_init, "\t SWIG_addvarlink(SWIG_globals(), \"%s\", %s, %s);\n", iname, vargetname, varsetname);
+    Printf(f_init, "\t SWIG_addvarlink(globals, \"%s\", %s, %s);\n", iname, vargetname, varsetname);
     if (builtin && shadow && !assignable && !in_class) {
-      Printf(f_init, "\t PyDict_SetItemString(md, \"%s\", PyObject_GetAttrString(SWIG_globals(), \"%s\"));\n", iname, iname);
+      Printf(f_init, "\t PyDict_SetItemString(md, \"%s\", PyObject_GetAttrString(globals, \"%s\"));\n", iname, iname);
       Printf(f_init, "\t SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", iname);
     }
     Delete(vargetname);
