@@ -11,91 +11,92 @@ public class li_std_map_runme {
     }
   }
 
+  public static void failTest(int testNum) throws Throwable {
+    throw new RuntimeException("Test failed: " + testNum);
+  }
+
+  public static void checkThat(boolean mustBeTrue, int testNum) throws Throwable {
+    if (!mustBeTrue) failTest(testNum);
+  }
+
   public static void main(String argv[]) throws Throwable
   {
-    StringIntMap sim = new StringIntMap();
-    IntIntMap iim = new IntIntMap();
+    java.util.AbstractMap<String, Integer> sim = new StringIntMap();
+    java.util.AbstractMap<Integer, Integer> iim = new IntIntMap();
 
-    if (!sim.empty()) throw new RuntimeException("Test (1) failed");
-    if (!iim.empty()) throw new RuntimeException("Test (2) failed");
+    checkThat(sim.isEmpty(), 1);
+    checkThat(iim.isEmpty(), 2);
+    checkThat(sim.size() == 0, 3);
+    checkThat(iim.size() == 0, 4);
 
-    if (sim.size() != 0) throw new RuntimeException("Test (3) failed");
-    if (iim.size() != 0) throw new RuntimeException("Test (4) failed");
+    checkThat(sim.get("key") == null, 5);
+    checkThat(iim.get(1) == null, 6);
 
-    try {
-      sim.get("key");
-      throw new RuntimeException("Test (5) failed");
-    } catch (IndexOutOfBoundsException e) {
-    }
+    checkThat(!sim.containsKey("key"), 7);
+    checkThat(!iim.containsKey(1), 8);
 
-    try {
-      iim.get(1);
-      throw new RuntimeException("Test (6) failed");
-    } catch (IndexOutOfBoundsException e) {
-    }
+    checkThat(sim.put("key", 2) == null, 9);
+    checkThat(iim.put(1, 2) == null, 10);
 
-    sim.set("key", 1);
-    iim.set(1, 1);
+  //   if (sim.size() != 1) throw new RuntimeException("Test (7) failed");
+  //   if (iim.size() != 1) throw new RuntimeException("Test (8) failed");
 
-    if (sim.size() != 1) throw new RuntimeException("Test (7) failed");
-    if (iim.size() != 1) throw new RuntimeException("Test (8) failed");
+  //   sim.remove("key");
+  //   iim.remove(1);
 
-    sim.del("key");
-    iim.del(1);
+  //   if (sim.containsKey("key")) throw new RuntimeException("Test (9) failed");
+  //   if (iim.containsKey(1)) throw new RuntimeException("Test (10) failed");
 
-    if (sim.has_key("key")) throw new RuntimeException("Test (9) failed");
-    if (iim.has_key(1)) throw new RuntimeException("Test (10) failed");
+  //   if (!sim.isEmpty()) throw new RuntimeException("Test (11) failed");
+  //   if (!iim.isEmpty()) throw new RuntimeException("Test (12) failed");
+  //   if (sim.size() != 0) throw new RuntimeException("Test (13) failed");
+  //   if (iim.size() != 0) throw new RuntimeException("Test (14) failed");
 
-    if (!sim.empty()) throw new RuntimeException("Test (11) failed");
-    if (!iim.empty()) throw new RuntimeException("Test (12) failed");
-    if (sim.size() != 0) throw new RuntimeException("Test (13) failed");
-    if (iim.size() != 0) throw new RuntimeException("Test (14) failed");
+  //   try {
+  //     sim.remove("key");
+  //     throw new RuntimeException("Test (15) failed");
+  //   } catch (IndexOutOfBoundsException e) {
+  //   }
 
-    try {
-      sim.del("key");
-      throw new RuntimeException("Test (15) failed");
-    } catch (IndexOutOfBoundsException e) {
-    }
+  //   try {
+  //     iim.remove(1);
+  //     throw new RuntimeException("Test (16) failed");
+  //   } catch (IndexOutOfBoundsException e) {
+  //   }
 
-    try {
-      iim.del(1);
-      throw new RuntimeException("Test (16) failed");
-    } catch (IndexOutOfBoundsException e) {
-    }
+  //   sim.put("key", 1);
+  //   iim.put(1, 1);
 
-    sim.set("key", 1);
-    iim.set(1, 1);
+  //   if (sim.size() != 1) throw new RuntimeException("Test (17) failed");
+  //   if (iim.size() != 1) throw new RuntimeException("Test (18) failed");
 
-    if (sim.size() != 1) throw new RuntimeException("Test (17) failed");
-    if (iim.size() != 1) throw new RuntimeException("Test (18) failed");
+  //   sim.clear();
+  //   iim.clear();
 
-    sim.clear();
-    iim.clear();
+  //   if (sim.containsKey("key")) throw new RuntimeException("Test (19) failed");
+  //   if (iim.containsKey(1)) throw new RuntimeException("Test (20) failed");
 
-    if (sim.has_key("key")) throw new RuntimeException("Test (19) failed");
-    if (iim.has_key(1)) throw new RuntimeException("Test (20) failed");
+  //   if (!sim.isEmpty()) throw new RuntimeException("Test (21) failed");
+  //   if (!iim.isEmpty()) throw new RuntimeException("Test (22) failed");
+  //   if (sim.size() != 0) throw new RuntimeException("Test (23) failed");
+  //   if (iim.size() != 0) throw new RuntimeException("Test (24) failed");
 
-    if (!sim.empty()) throw new RuntimeException("Test (21) failed");
-    if (!iim.empty()) throw new RuntimeException("Test (22) failed");
-    if (sim.size() != 0) throw new RuntimeException("Test (23) failed");
-    if (iim.size() != 0) throw new RuntimeException("Test (24) failed");
+  //   sim.put("key", 1);
+  //   sim.put("key2", 2);
+  //   iim.put(1, 1);
+  //   iim.put(2, 2);
 
-    sim.set("key", 1);
-    sim.set("key2", 2);
-    iim.set(1, 1);
-    iim.set(2, 2);
+  //   if (sim.get("key") != 1) throw new RuntimeException("Test (25) failed");
+  //   if (sim.get("key2") != 2) throw new RuntimeException("Test (26) failed");
+  //   if (iim.get(1) != 1) throw new RuntimeException("Test (27) failed");
+  //   if (iim.get(2) != 2) throw new RuntimeException("Test (28) failed");
 
-    if (sim.get("key") != 1) throw new RuntimeException("Test (25) failed");
-    if (sim.get("key2") != 2) throw new RuntimeException("Test (26) failed");
-    if (iim.get(1) != 1) throw new RuntimeException("Test (27) failed");
-    if (iim.get(2) != 2) throw new RuntimeException("Test (28) failed");
+  //   sim.put("key", 3);
+  //   iim.put(1, 3);
 
-    sim.set("key", 3);
-    iim.set(1, 3);
-
-    if (sim.get("key") != 3) throw new RuntimeException("Test (29) failed");
-    if (sim.get("key2") != 2) throw new RuntimeException("Test (30) failed");
-    if (iim.get(1) != 3) throw new RuntimeException("Test (31) failed");
-    if (iim.get(2) != 2) throw new RuntimeException("Test (32) failed");
+  //   if (sim.get("key") != 3) throw new RuntimeException("Test (29) failed");
+  //   if (sim.get("key2") != 2) throw new RuntimeException("Test (30) failed");
+  //   if (iim.get(1) != 3) throw new RuntimeException("Test (31) failed");
+  //   if (iim.get(2) != 2) throw new RuntimeException("Test (32) failed");
   }
 }
