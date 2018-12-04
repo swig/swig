@@ -12,6 +12,11 @@ Version 4.0.0 (in progress)
 
             Similar to the earlier PEP 366 conforming fix for non-builtin.
 
+2018-11-29: adr26
+            [Python] #1360 Leak of SWIG var link object
+
+            Fix reference counting on _SWIG_globals to allow var link to be freed on module unload.
+
 2018-11-28: wsfulton
             [Python] When using -builtin, the two step C-extension module import is now
             one step and the wrapped API is only available once and not in an underlying
