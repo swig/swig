@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-12-04: wsfulton
+            [Python] #1282 Fix running 'python -m'  when using 'swig -builtin'
+
+            Similar to the earlier PEP 366 conforming fix for non-builtin.
+
 2018-11-28: wsfulton
             [Python] When using -builtin, the two step C-extension module import is now
             one step and the wrapped API is only available once and not in an underlying
@@ -44,7 +49,7 @@ Version 4.0.0 (in progress)
             [Python] #1282 Make generated module runnable via python -m (PEP 366 conforming)
 
             Previously any SWIG generated modules in a package would fail with an ImportError
-            when using 'python -m'.
+            when using 'python -m' for example 'python -m mypkg.mymodule'.
 
 2018-11-13: wsfulton
             #1340 Remove -cppcast and -nocppcast command line options (this was an option

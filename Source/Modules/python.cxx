@@ -734,7 +734,7 @@ public:
          * 
          */
         Printf(default_import_code, "\n# Pull in all the attributes from %s\n", module);
-        Printv(default_import_code, "if __name__.rpartition('.')[0] != '':\n", NULL);
+        Printv(default_import_code, "if __package__ or __name__.rpartition('.')[0]:\n", NULL);
         Printv(default_import_code, tab4, "try:\n", NULL);
         Printf(default_import_code, tab4 tab4 "from .%s import *\n", module);
         Printv(default_import_code, tab4 "except ImportError:\n", NULL);
