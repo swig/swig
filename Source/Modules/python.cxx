@@ -681,18 +681,6 @@ public:
       Swig_register_filebyname("shadow", f_shadow);
       Swig_register_filebyname("python", f_shadow);
 
-      if (mod_docstring) {
-	if (Len(mod_docstring)) {
-	  const char *triple_double = "\"\"\"";
-	  // follow PEP257 rules: https://www.python.org/dev/peps/pep-0257/
-	  // reported by pep257: https://github.com/GreenSteam/pep257
-	  bool multi_line_ds = Strchr(mod_docstring, '\n') != 0;
-	  Printv(f_shadow_after_begin, "\n", triple_double, multi_line_ds ? "\n":"", mod_docstring, multi_line_ds ? "\n":"", triple_double, "\n", NIL);
-	}
-	Delete(mod_docstring);
-	mod_docstring = NULL;
-      }
-
       if (!builtin) {
 	/* Import the C-extension module.  This should be a relative import,
 	 * since the shadow module may also have been imported by a relative
@@ -897,6 +885,19 @@ public:
 
     if (shadow) {
       Swig_banner_target_lang(f_shadow_py, "#");
+
+      if (mod_docstring) {
+	if (Len(mod_docstring)) {
+	  const char *triple_double = "\"\"\"";
+	  // follow PEP257 rules: https://www.python.org/dev/peps/pep-0257/
+	  // reported by pep257: https://github.com/GreenSteam/pep257
+	  bool multi_line_ds = Strchr(mod_docstring, '\n') != 0;
+	  Printv(f_shadow_py, "\n", triple_double, multi_line_ds ? "\n":"", mod_docstring, multi_line_ds ? "\n":"", triple_double, "\n", NIL);
+	}
+	Delete(mod_docstring);
+	mod_docstring = NULL;
+      }
+
       if (Len(f_shadow_begin) > 0)
 	Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
 
