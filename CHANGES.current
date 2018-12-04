@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-12-04: adr26
+            [Python] #1368 AV in tp_print caused by mismatched Python/extension CRT usage
+
+            Remove all use of tp_print, as this API uses a FILE*, which can be
+            mismatched when modules are built with different C libraries from
+            the main python executable.
+
 2018-12-04: wsfulton
             [Python] #1282 Fix running 'python -m'  when using 'swig -builtin'
 
