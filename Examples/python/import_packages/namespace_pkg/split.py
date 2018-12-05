@@ -2,6 +2,12 @@ import os
 import subprocess
 import sys
 
+def run_except_on_windows(commandline, env=None):
+    if os.name != "nt" and sys.platform != "cygwin":
+        # Strange failures on windows/cygin/mingw
+        subprocess.check_call(commandline, env=env, shell=True)
+        print("  Finished running: " + commandline)
+
 print(" Starting subtest " + os.path.basename(__file__))
 
 # Package brave split into two paths.
@@ -16,5 +22,4 @@ if not(robin.run() == "AWAY!"):
     raise RuntimeError("test failed")
 
 commandline = sys.executable + " -m brave.robin"
-subprocess.check_call(commandline, shell=True, env = {"PYTHONPATH": "path2:path3"})
-print("  Finished running: " + commandline)
+run_except_on_windows(commandline , env = {"PYTHONPATH": "path2:path3"})

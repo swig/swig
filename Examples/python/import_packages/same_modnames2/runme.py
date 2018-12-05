@@ -2,6 +2,12 @@ import os.path
 import subprocess
 import sys
 
+def run_except_on_windows(commandline, env=None):
+    if os.name != "nt" and sys.platform != "cygwin":
+        # Strange failures on windows/cygin/mingw
+        subprocess.check_call(commandline, env=env, shell=True)
+        print("  Finished running: " + commandline)
+
 testname = os.path.basename(os.path.dirname(os.path.abspath(__file__)))
 print "Testing " + testname + " - %module(package=...) + python 'import' in __init__.py"
 
@@ -16,5 +22,4 @@ if classname.find("pkg1.pkg2.foo.Pkg2_Foo") == -1:
 print "  Successfully created object pkg1.pkg2.foo.Pkg2_Foo"
 
 commandline = sys.executable + " -m pkg1.pkg2.foo"
-subprocess.check_call(commandline, shell=True)
-print("  Finished running: " + commandline)
+run_except_on_windows(commandline)

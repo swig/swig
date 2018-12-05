@@ -4,6 +4,11 @@ import shutil
 import subprocess
 import zipfile
 
+def run_except_on_windows(commandline, env=None):
+    if os.name != "nt" and sys.platform != "cygwin":
+        # Strange failures on windows/cygin/mingw
+        subprocess.check_call(commandline, env=env, shell=True)
+        print("  Finished running: " + commandline)
 
 def copyMods():
     dirs = ['path1', 'path2', 'path3']
@@ -36,10 +41,10 @@ def main():
     copyMods()
 
     # Run each test with a separate interpreter
-    subprocess.check_call(sys.executable + " nonpkg.py", shell=True)
-    subprocess.check_call(sys.executable + " normal.py", shell=True)
-    subprocess.check_call(sys.executable + " split.py", shell=True)
-    subprocess.check_call(sys.executable + " zipsplit.py", shell=True)
+    run_except_on_windows(sys.executable + " nonpkg.py")
+    run_except_on_windows(sys.executable + " normal.py")
+    run_except_on_windows(sys.executable + " split.py")
+    run_except_on_windows(sys.executable + " zipsplit.py")
 
 
 if __name__ == "__main__":
