@@ -52,7 +52,7 @@ public:
     m_output = &output;
     m_indent = &indent;
 
-    const size_t lastNonSpace = m_output->find_last_not_of(' ');
+    const string::size_type lastNonSpace = m_output->find_last_not_of(' ');
     if (lastNonSpace == string::npos) {
       m_firstLineIndent = m_output->length();
     } else if ((*m_output)[lastNonSpace] == '\n') {
@@ -95,7 +95,7 @@ public:
 private:
   string *m_output;
   string *m_indent;
-  unsigned m_firstLineIndent;
+  string::size_type m_firstLineIndent;
   bool m_initialized;
 
   IndentGuard(const IndentGuard &);
@@ -131,7 +131,7 @@ static size_t determineIndent(const string &s) {
 }
 
 static void trimWhitespace(string &s) {
-  const size_t lastNonSpace = s.find_last_not_of(' ');
+  const string::size_type lastNonSpace = s.find_last_not_of(' ');
   if (lastNonSpace == string::npos)
     s.clear();
   else

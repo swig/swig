@@ -243,10 +243,10 @@ JavaDocConverter::JavaDocConverter(int flags) :
 std::string JavaDocConverter::formatCommand(std::string unformattedLine, int indent) {
   std::string formattedLines;
   return unformattedLine; // currently disabled
-  int lastPosition = 0;
-  int i = 0;
+  std::string::size_type lastPosition = 0;
+  std::string::size_type i = 0;
   int isFirstLine = 1;
-  while (i != -1 && i < (int) unformattedLine.length()) {
+  while (i != std::string::npos && i < unformattedLine.length()) {
     lastPosition = i;
     if (isFirstLine) {
       i += APPROX_LINE_LENGTH;
@@ -256,7 +256,7 @@ std::string JavaDocConverter::formatCommand(std::string unformattedLine, int ind
 
     i = unformattedLine.find(" ", i);
 
-    if (i > 0 && i + 1 < (int) unformattedLine.length()) {
+    if (i > 0 && i + 1 < unformattedLine.length()) {
       if (!isFirstLine)
         for (int j = 0; j < indent; j++) {
           formattedLines.append("\t");
@@ -268,7 +268,7 @@ std::string JavaDocConverter::formatCommand(std::string unformattedLine, int ind
 
     }
   }
-  if (lastPosition < (int) unformattedLine.length()) {
+  if (lastPosition < unformattedLine.length()) {
     if (!isFirstLine) {
       for (int j = 0; j < indent; j++) {
         formattedLines.append("\t");
