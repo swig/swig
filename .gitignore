@@ -152,6 +152,7 @@ Examples/guile/*/my-guile
 Examples/test-suite/java/*/
 Examples/java/*/*.java
 !Examples/java/*/runme.java
+Examples/java/doxygen/javadocs
 
 # Javascript
 Examples/test-suite/javascript/*/
@@ -185,6 +186,8 @@ Examples/python/**/bar.py
 Examples/python/**/base.py
 Examples/python/**/foo.py
 Examples/python/**/spam.py
+Examples/python/**/robin.py
+Examples/python/doxygen/example.html
 
 # R
 Examples/test-suite/r/*.R
