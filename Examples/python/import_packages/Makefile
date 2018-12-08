@@ -8,6 +8,7 @@ import_packages_subdirs = \
 	from_init1 \
 	from_init2 \
 	from_init3 \
+	module_is_init \
 	relativeimport1 \
 	relativeimport2 \
 	relativeimport3 \

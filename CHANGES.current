@@ -61,6 +61,12 @@ Version 4.0.0 (in progress)
             Previously any SWIG generated modules in a package would fail with an ImportError
             when using 'python -m' for example 'python -m mypkg.mymodule'.
 
+            This fix also allows the SWIG generated module to be placed into a directory and
+            then renamed __init__.py to convert the module into a package again. This ability
+            stopped working in swig-3.0.9. However, only Python 2.7 or 3.3 and later work. If
+            Python 3.2 support is needed, use moduleimport in %module to customise the import
+            code.
+
 2018-11-13: wsfulton
             #1340 Remove -cppcast and -nocppcast command line options (this was an option
             available to the scripting language targets).
