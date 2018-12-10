@@ -168,7 +168,7 @@ output values.
                   bool           *OUTPUT, bool &OUTPUT
 {
   if (argvi >= items) {
-    EXTEND(sp,1);
+    EXTEND(sp, argvi+1);
   }
   $result = sv_newmortal();
   sv_setiv($result,(IV) *($1));
@@ -181,7 +181,7 @@ output values.
                   unsigned char  *OUTPUT, unsigned char &OUTPUT
 {
   if (argvi >= items) {
-    EXTEND(sp,1);
+    EXTEND(sp, argvi+1);
   }
   $result = sv_newmortal();
   sv_setuv($result,(UV) *($1));
@@ -194,7 +194,7 @@ output values.
                  double   *OUTPUT, double &OUTPUT
 {
   if (argvi >= items) {
-    EXTEND(sp,1);
+    EXTEND(sp, argvi+1);
   }
   $result = sv_newmortal();
   sv_setnv($result,(double) *($1));
@@ -204,7 +204,7 @@ output values.
 %typemap(argout) long long *OUTPUT, long long &OUTPUT {
     char temp[256];
     if (argvi >= items) {
-	EXTEND(sp,1);
+	EXTEND(sp, argvi+1);
     }
     sprintf(temp,"%lld", (long long)*($1));
     $result = sv_newmortal();
@@ -215,7 +215,7 @@ output values.
 %typemap(argout) unsigned long long *OUTPUT, unsigned long long &OUTPUT {
     char temp[256];
     if (argvi >= items) {
-	EXTEND(sp,1);
+	EXTEND(sp, argvi+1);
     }
     sprintf(temp,"%llu", (unsigned long long)*($1));
     $result = sv_newmortal();
