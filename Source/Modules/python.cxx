@@ -127,11 +127,10 @@ static const char *usage2 = "\
      -nofastproxy    - Use traditional proxy mechanism for member methods (default) \n\
      -noh            - Don't generate the output header file\n";
 static const char *usage3 = "\
-     -noolddefs      - Don't emit the old method definitions even when using fastproxy (default) \n\
      -noproxy        - Don't generate proxy classes \n\
      -nortti         - Disable the use of the native C++ RTTI with directors\n\
      -nothreads      - Disable thread support for the entire interface\n\
-     -olddefs        - Keep the old method definitions even when using fastproxy\n\
+     -olddefs        - Keep the old method definitions when using -fastproxy\n\
      -py3            - Generate code with Python 3 specific features and syntax\n\
      -relativeimport - Use relative python imports \n\
      -threads        - Add thread support for all the interface\n\
@@ -377,9 +376,6 @@ public:
 	} else if (strcmp(argv[i], "-olddefs") == 0) {
 	  olddefs = 1;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-noolddefs") == 0) {
-	  olddefs = 0;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-castmode") == 0) {
 	  castmode = 1;
 	  Swig_mark_arg(i);
@@ -444,6 +440,7 @@ public:
 		   strcmp(argv[i], "-nofastquery") == 0 ||
 		   strcmp(argv[i], "-nomodern") == 0 ||
 		   strcmp(argv[i], "-nomodernargs") == 0 ||
+		   strcmp(argv[i], "-noolddefs") == 0 ||
 		   strcmp(argv[i], "-nooutputtuple") == 0 ||
 		   strcmp(argv[i], "-noproxyimport") == 0 ||
 		   strcmp(argv[i], "-nosafecstrings") == 0 ||
