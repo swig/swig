@@ -13,11 +13,16 @@ Version 4.0.0 (in progress)
             occurred when the nested class' destructor is explicitly specified.
 
 2018-12-04: adr26
-            [Python] #1368 AV in tp_print caused by mismatched Python/extension CRT usage
+            [Python] #1368 #1369 Access Violation in tp_print caused by mismatched Python/extension
+            CRT usage
 
             Remove all use of tp_print, as this API uses a FILE*, which can be
             mismatched when modules are built with different C libraries from
             the main python executable.
+
+            This change also brings consistent output between Python 2 and 3 for the 'cvar' SWIG
+            object (that contains the global variables) and SWIG packed objects (such as callback
+            constants).
 
 2018-12-04: wsfulton
             [Python] #1282 Fix running 'python -m'  when using 'swig -builtin'
