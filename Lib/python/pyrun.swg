@@ -736,20 +736,6 @@ typedef struct {
   size_t size;
 } SwigPyPacked;
 
-SWIGRUNTIME int
-SwigPyPacked_print(SwigPyPacked *v, FILE *fp, int SWIGUNUSEDPARM(flags))
-{
-  char result[SWIG_BUFFER_SIZE];
-  fputs("<Swig Packed ", fp); 
-  if (SWIG_PackDataName(result, v->pack, v->size, 0, sizeof(result))) {
-    fputs("at ", fp); 
-    fputs(result, fp); 
-  }
-  fputs(v->ty->name,fp); 
-  fputs(">", fp);
-  return 0; 
-}
-  
 SWIGRUNTIME PyObject *
 SwigPyPacked_repr(SwigPyPacked *v)
 {

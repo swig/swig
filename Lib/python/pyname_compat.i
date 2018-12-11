@@ -76,7 +76,6 @@
 #define PySwigPacked_UnpackData SwigPyPacked_UnpackData
 #define PySwigPacked_compare SwigPyPacked_compare
 #define PySwigPacked_dealloc SwigPyPacked_dealloc
-#define PySwigPacked_print SwigPyPacked_print
 #define PySwigPacked_repr SwigPyPacked_repr
 #define PySwigPacked_str SwigPyPacked_str
 #define PySwigPacked_type SwigPyPacked_type

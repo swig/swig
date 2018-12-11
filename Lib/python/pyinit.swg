@@ -82,17 +82,6 @@ swig_varlink_str(swig_varlinkobject *v) {
   return str;
 }
 
-SWIGINTERN int
-swig_varlink_print(swig_varlinkobject *v, FILE *fp, int SWIGUNUSEDPARM(flags)) {
-  PyObject *str = swig_varlink_str(v);
-  const char *tmp = SWIG_Python_str_AsChar(str);
-  fprintf(fp,"Swig global variables ");
-  fprintf(fp,"%s\n", tmp ? tmp : "Invalid global variable");
-  SWIG_Python_str_DelForPy3(tmp);
-  Py_DECREF(str);
-  return 0;
-}
-
 SWIGINTERN void
 swig_varlink_dealloc(swig_varlinkobject *v) {
   swig_globalvar *var = v->vars;
