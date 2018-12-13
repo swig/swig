@@ -3,6 +3,18 @@
 set -e # exit on failure (same as -o errexit)
 
 lsb_release -a
+
+# may help with the "Hash sum mismatch" error with "apt-get update"
+sudo bash <<'EOF'
+	function rm_q() {
+		[ -e "$1" ] && rm -f "$@"
+	}
+	rm_q /var/cache/apt/archives/*.deb
+	rm_q /var/cache/apt/archives/partial/*.deb
+	rm_q /var/cache/apt/*.bin
+	find /var/lib/apt/lists -type f -delete
+EOF
+
 travis_retry sudo apt-get -qq update
 
 if [[ "$CC" == gcc-5 ]]; then
