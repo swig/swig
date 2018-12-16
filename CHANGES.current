@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-12-11: tlby
+            [Perl] #1374 repair EXTEND() handling in typemaps
+
 2018-12-06: vadz
             #1359 #1364 Add missing nested class destructor wrapper when the nested class is
             inside a template. Removes associated bogus 'Illegal destructor name' warning. Only
