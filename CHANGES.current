@@ -7,6 +7,28 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-12-16: wsfulton
+            [Python] #848 #1343 The module import logic has changed to stop obfuscating real ImportError
+            problems. Only one import of the low-level C/C++ module from the pure Python module is
+            attempted now. Previously a second import of the low-level C/C++ module was attempted
+            after an ImportError occurred and was done to support 'split modules'. A 'split module' is
+            a configuration where the pure Python module is a module within a Python package and the
+            low-level C/C++ module is a global Python module. Now a 'split module' configuration is
+            no longer supported by default. This configuration can be supported with a simple
+            customization, such as:
+
+              %module(package="mypackage", moduleimport="import $module") foo
+
+            or if using -builtin:
+
+              %module(package="mypackage", moduleimport="from $module import *") foo
+
+            instead of
+
+              %module(package="mypackage") foo
+
+            See the updated Python chapter titled "Location of modules" in the documentation.
+
 2018-12-06: vadz
             #1359 #1364 Add missing nested class destructor wrapper when the nested class is
             inside a template. Removes associated bogus 'Illegal destructor name' warning. Only

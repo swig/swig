@@ -697,35 +697,16 @@ public:
 	Printv(default_import_code, "def swig_import_helper():\n", NULL);
 	Printv(default_import_code, tab4, "import importlib\n", NULL);
 	Printv(default_import_code, tab4, "pkg = __package__ if __package__ else __name__.rpartition('.')[0]\n", NULL);
-	Printf(default_import_code, tab4 "mname = '.'.join((pkg, '%s')).lstrip('.')\n", module);
-	Printv(default_import_code, tab4, "try:\n", NULL);
-	Printv(default_import_code, tab8, "return importlib.import_module(mname)\n", NULL);
-	Printv(default_import_code, tab4, "except ImportError:\n", NULL);
-	Printf(default_import_code, tab8 "return importlib.import_module('%s')\n", module);
-	Printf(default_import_code, "%s = swig_import_helper()\n", module);
+	Printv(default_import_code, tab4, "mname = '.'.join((pkg, '", module, "')).lstrip('.')\n", NULL);
+	Printv(default_import_code, tab4, "return importlib.import_module(mname)\n", NULL);
+	Printv(default_import_code, module, " = swig_import_helper()\n", NULL);
 	Printv(default_import_code, "del swig_import_helper\n", NULL);
       } else {
-        /*
-         * Pull in all the attributes from the C module.
-         *
-         * An alternative approach to doing this if/else chain was
-         * proposed by Michael Thon at https://github.com/swig/swig/issues/691.
-         * Someone braver than I may try it out.
-         * I fear some current swig user may depend on some side effect
-         * of from _foo import *
-         *
-         * for attr in _foo.__all__:
-         *     globals()[attr] = getattr(_foo, attr)
-         * 
-         */
-        Printf(default_import_code, "\n# Pull in all the attributes from %s\n", module);
+        Printv(default_import_code, "# Pull in all the attributes from the low-level C/C++ module\n", NULL);
         Printv(default_import_code, "if __package__ or __name__.rpartition('.')[0]:\n", NULL);
-        Printv(default_import_code, tab4, "try:\n", NULL);
-        Printf(default_import_code, tab4 tab4 "from .%s import *\n", module);
-        Printv(default_import_code, tab4 "except ImportError:\n", NULL);
-        Printf(default_import_code, tab4 tab4 "from %s import *\n", module);
+        Printv(default_import_code, tab4, "from .", module, " import *\n", NULL);
         Printv(default_import_code, "else:\n", NULL);
-        Printf(default_import_code, tab4 "from %s import *\n", module);
+        Printv(default_import_code, tab4, "from ", module, " import *\n", NULL);
       }
 
       /* Need builtins to qualify names like Exception that might also be
