@@ -118,7 +118,6 @@ Python Options (available with -python)\n\
      -interface <mod>- Set low-level C/C++ module name to <mod> (default: module name prefixed by '_')\n\
      -keyword        - Use keyword arguments\n";
 static const char *usage2 = "\
-     -newvwm         - New value wrapper mode, use only when everything else fails\n\
      -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions\n\
      -noh            - Don't generate the output header file\n";
 static const char *usage3 = "\
@@ -376,6 +375,7 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-newvwm") == 0) {
 	  /* Turn on new value wrapper mode */
+	  /* Undocumented option, did have -help text: New value wrapper mode, use only when everything else fails */
 	  Swig_value_wrapper_mode(1);
 	  no_header_file = 1;
 	  Swig_mark_arg(i);
