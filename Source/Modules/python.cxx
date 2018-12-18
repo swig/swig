@@ -119,11 +119,7 @@ Python Options (available with -python)\n\
      -keyword        - Use keyword arguments\n";
 static const char *usage2 = "\
      -newvwm         - New value wrapper mode, use only when everything else fails\n\
-     -nocastmode     - Disable the casting mode (default)\n\
-     -nodirvtable    - Don't use the virtual table feature, resolve the python method each time (default)\n\
-     -noextranative  - Don't use extra native C++ wraps for std containers when possible (default)\n\
-     -nofastproxy    - Use traditional proxy mechanism for member methods (default)\n\
-     -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions (default)\n\
+     -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions\n\
      -noh            - Don't generate the output header file\n";
 static const char *usage3 = "\
      -noproxy        - Don't generate proxy classes\n\
@@ -350,9 +346,6 @@ public:
 	} else if (strcmp(argv[i], "-dirvtable") == 0) {
 	  dirvtable = 1;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-nodirvtable") == 0) {
-	  dirvtable = 0;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-doxygen") == 0) {
 	  doxygen = 1;
 	  scan_doxygen_comments = 1;
@@ -369,23 +362,14 @@ public:
 	} else if (strcmp(argv[i], "-fastproxy") == 0) {
 	  fastproxy = 1;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-nofastproxy") == 0) {
-	  fastproxy = 0;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-olddefs") == 0) {
 	  olddefs = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-castmode") == 0) {
 	  castmode = 1;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-nocastmode") == 0) {
-	  castmode = 0;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-extranative") == 0) {
 	  extranative = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-noextranative") == 0) {
-	  extranative = 0;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-noh") == 0) {
 	  no_header_file = 1;
@@ -434,8 +418,12 @@ public:
 		   strcmp(argv[i], "-newrepr") == 0 ||
 		   strcmp(argv[i], "-noaliasobj0") == 0 ||
 		   strcmp(argv[i], "-nobuildnone") == 0 ||
+		   strcmp(argv[i], "-nocastmode") == 0 ||
 		   strcmp(argv[i], "-nocppcast") == 0 ||
+		   strcmp(argv[i], "-nodirvtable") == 0 ||
+		   strcmp(argv[i], "-noextranative") == 0 ||
 		   strcmp(argv[i], "-nofastinit") == 0 ||
+		   strcmp(argv[i], "-nofastproxy") == 0 ||
 		   strcmp(argv[i], "-nofastquery") == 0 ||
 		   strcmp(argv[i], "-nomodern") == 0 ||
 		   strcmp(argv[i], "-nomodernargs") == 0 ||
@@ -506,13 +494,15 @@ public:
 	    castmode = 1;
 	  }
 	  if (Getattr(options, "nocastmode")) {
-	    castmode = 0;
+	    Printf(stderr, "Deprecated module option: %s. This option is no longer supported.\n", "nocastmode");
+	    SWIG_exit(EXIT_FAILURE);
 	  }
 	  if (Getattr(options, "extranative")) {
 	    extranative = 1;
 	  }
 	  if (Getattr(options, "noextranative")) {
-	    extranative = 0;
+	    Printf(stderr, "Deprecated module option: %s. This option is no longer supported.\n", "noextranative");
+	    SWIG_exit(EXIT_FAILURE);
 	  }
 	  if (Getattr(options, "outputtuple")) {
 	    Printf(stderr, "Deprecated module option: %s. This option is no longer supported.\n", "outputtuple");
