@@ -6282,13 +6282,10 @@ The code is generated into the pure Python module, foo.py, and merely imports th
 
 <div class="targetlang">
 <pre>
-def swig_import_helper():
-    import importlib
-    pkg = __package__ if __package__ else __name__.rpartition('.')[0]
-    mname = '.'.join((pkg, '_foo')).lstrip('.')
-    return importlib.import_module(mname)
-_foo = swig_import_helper()
-del swig_import_helper
+if __package__ or __name__.rpartition('.')[0]:
+    from . import _foo
+else:
+    import _foo
 </pre>
 </div>
 

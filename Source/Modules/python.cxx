@@ -679,28 +679,24 @@ public:
       Swig_register_filebyname("python", f_shadow);
 
       if (!builtin) {
-	/* Import the C-extension module.  This should be a relative import,
+	/* Import the low-level C/C++ module.  This should be a relative import,
 	 * since the shadow module may also have been imported by a relative
-	 * import, and there is thus no guarantee that the C-extension is on
+	 * import, and there is thus no guarantee that the low-level C/C++ module is on
 	 * sys.path.  Relative imports must be explicitly specified from 2.6.0
 	 * onwards (implicit relative imports raised a DeprecationWarning in 2.6,
 	 * and fail in 2.7 onwards).
 	 *
 	 * First check for __package__ which is available from 2.6 onwards, see PEP366.
-	 * Next determine the shadow wrappers package based on the __name__ it
-	 * was given by the importer that loaded it.  Then construct a name for
-	 * the module based on the package name and the module name (we know the
-	 * module name).  Use importlib to try and load it.  If an attempt to
-	 * load the module with importlib fails with an ImportError then fallback
-	 * and try and load just the module name from the global namespace.
+	 * Next try determine the shadow wrapper's package based on the __name__ it
+	 * was given by the importer that loaded it.
+	 * If the module is in a package, load the low-level C/C++ module from the
+	 * same package, otherwise load it as a global module.
 	 */
-	Printv(default_import_code, "def swig_import_helper():\n", NULL);
-	Printv(default_import_code, tab4, "import importlib\n", NULL);
-	Printv(default_import_code, tab4, "pkg = __package__ if __package__ else __name__.rpartition('.')[0]\n", NULL);
-	Printv(default_import_code, tab4, "mname = '.'.join((pkg, '", module, "')).lstrip('.')\n", NULL);
-	Printv(default_import_code, tab4, "return importlib.import_module(mname)\n", NULL);
-	Printv(default_import_code, module, " = swig_import_helper()\n", NULL);
-	Printv(default_import_code, "del swig_import_helper\n", NULL);
+        Printv(default_import_code, "# Import the low-level C/C++ module\n", NULL);
+        Printv(default_import_code, "if __package__ or __name__.rpartition('.')[0]:\n", NULL);
+        Printv(default_import_code, tab4, "from . import ", module, "\n", NULL);
+        Printv(default_import_code, "else:\n", NULL);
+        Printv(default_import_code, tab4, "import ", module, "\n", NULL);
       } else {
         Printv(default_import_code, "# Pull in all the attributes from the low-level C/C++ module\n", NULL);
         Printv(default_import_code, "if __package__ or __name__.rpartition('.')[0]:\n", NULL);
