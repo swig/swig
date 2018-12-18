@@ -693,13 +693,13 @@ public:
 	 * same package, otherwise load it as a global module.
 	 */
         Printv(default_import_code, "# Import the low-level C/C++ module\n", NULL);
-        Printv(default_import_code, "if __package__ or __name__.rpartition('.')[0]:\n", NULL);
+        Printv(default_import_code, "if __package__ or '.' in __name__:\n", NULL);
         Printv(default_import_code, tab4, "from . import ", module, "\n", NULL);
         Printv(default_import_code, "else:\n", NULL);
         Printv(default_import_code, tab4, "import ", module, "\n", NULL);
       } else {
         Printv(default_import_code, "# Pull in all the attributes from the low-level C/C++ module\n", NULL);
-        Printv(default_import_code, "if __package__ or __name__.rpartition('.')[0]:\n", NULL);
+        Printv(default_import_code, "if __package__ or '.' in __name__:\n", NULL);
         Printv(default_import_code, tab4, "from .", module, " import *\n", NULL);
         Printv(default_import_code, "else:\n", NULL);
         Printv(default_import_code, tab4, "from ", module, " import *\n", NULL);
