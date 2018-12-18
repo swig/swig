@@ -184,7 +184,11 @@ Version 4.0.0 (in progress)
               -newrepr
               -noaliasobj0
               -nobuildnone
+              -nocastmode
+              -nodirvtable
+              -noextranative
               -nofastinit
+              -nofastproxy
               -nofastquery
               -nomodern
               -nomodernargs

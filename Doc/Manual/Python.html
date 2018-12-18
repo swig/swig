@@ -21,7 +21,8 @@
 <li><a href="#Python_nn9">Using your module</a>
 <li><a href="#Python_nn10">Compilation of C++ extensions</a>
 <li><a href="#Python_nn11">Compiling for 64-bit platforms</a>
-<li><a href="#Python_nn12">Building Python Extensions under Windows</a>
+<li><a href="#Python_nn12">Building Python extensions under Windows</a>
+<li><a href="#Python_commandline">Additional Python commandline options</a>
 </ul>
 <li><a href="#Python_nn13">A tour of basic C/C++ wrapping</a>
 <ul>
@@ -798,7 +799,7 @@ and -m64 allow you to choose the desired binary format for your Python
 extension.
 </p>
 
-<H3><a name="Python_nn12">38.2.8 Building Python Extensions under Windows</a></H3>
+<H3><a name="Python_nn12">38.2.8 Building Python extensions under Windows</a></H3>
 
 
 <p>
@@ -809,6 +810,7 @@ was built with (the python2.4 and python2.5 distributed by python.org
 are built with Visual Studio 2003), the standard <tt>python setup.py
 build</tt> should just work.
 </p>
+
 
 <p>
 As of python2.5, the distutils support building extensions with MingGW out
@@ -926,6 +928,50 @@ you may want to consult the <a href="https://github.com/swig/swig/wiki">
 SWIG Wiki</a>.
 </p>
 
+
+<H3><a name="Python_commandline">38.2.9 Additional Python commandline options</a></H3>
+
+
+<p>
+The following table lists the additional commandline options available for the Python module. They can also be seen by using:
+</p>
+
+<div class="code"><pre>
+swig -python -help
+</pre></div>
+
+<table summary="Python specific options">
+<tr>
+<th>Python specific options</th>
+</tr>
+
+<tr><td>-builtin        </td><td>Create Python built-in types rather than proxy classes, for better performance</td></tr>
+<tr><td>-castmode       </td><td>Enable the casting mode, which allows implicit cast between types in Python</td></tr>
+<tr><td>-debug-doxygen-parser     </td><td>Display doxygen parser module debugging information</td></tr>
+<tr><td>-debug-doxygen-translator </td><td>Display doxygen translator module debugging information</td></tr>
+<tr><td>-dirvtable      </td><td>Generate a pseudo virtual table for directors for faster dispatch</td></tr>
+<tr><td>-doxygen        </td><td>Convert C++ doxygen comments to pydoc comments in proxy classes</td></tr>
+<tr><td>-extranative    </td><td>Return extra native wrappers for C++ std containers wherever possible</td></tr>
+<tr><td>-fastproxy      </td><td>Use fast proxy mechanism for member methods</td></tr>
+<tr><td>-globals &lt;name&gt; </td><td>Set &lt;name&gt; used to access C global variable (default: 'cvar')</td></tr>
+<tr><td>-interface &lt;mod&gt;</td><td>Set low-level C/C++ module name to &lt;mod&gt; (default: module name prefixed by '_')</td></tr>
+<tr><td>-keyword        </td><td>Use keyword arguments</td></tr>
+<tr><td>-nofastunpack   </td><td>Use traditional UnpackTuple method to parse the argument functions</td></tr>
+<tr><td>-noh            </td><td>Don't generate the output header file</td></tr>
+<tr><td>-noproxy        </td><td>Don't generate proxy classes</td></tr>
+<tr><td>-nortti         </td><td>Disable the use of the native C++ RTTI with directors</td></tr>
+<tr><td>-nothreads      </td><td>Disable thread support for the entire interface</td></tr>
+<tr><td>-olddefs        </td><td>Keep the old method definitions when using -fastproxy</td></tr>
+<tr><td>-py3            </td><td>Generate code with Python 3 specific features and syntax</td></tr>
+<tr><td>-relativeimport </td><td>Use relative Python imports</td></tr>
+<tr><td>-threads        </td><td>Add thread support for all the interface</td></tr>
+<tr><td>-O              </td><td>Enable the following optimization options: -fastdispatch -fastproxy -fvirtual</td></tr>
+
+</table>
+
+<p>
+Many of these options are covered later on and their use should become clearer by the time you have finished reading this section on SWIG and Python.
+</p>
 
 <H2><a name="Python_nn13">38.3 A tour of basic C/C++ wrapping</a></H2>
 
