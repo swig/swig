@@ -106,8 +106,8 @@ enum autodoc_t {
 
 static const char *usage1 = "\
 Python Options (available with -python)\n\
-     -builtin        - Create new python built-in types, rather than proxy classes, for better performance\n\
-     -castmode       - Enable the casting mode, which allows implicit cast between types in python\n\
+     -builtin        - Create Python built-in types rather than proxy classes, for better performance\n\
+     -castmode       - Enable the casting mode, which allows implicit cast between types in Python\n\
      -debug-doxygen-parser     - Display doxygen parser module debugging information\n\
      -debug-doxygen-translator - Display doxygen translator module debugging information\n\
      -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch\n\
@@ -127,7 +127,7 @@ static const char *usage3 = "\
      -nothreads      - Disable thread support for the entire interface\n\
      -olddefs        - Keep the old method definitions when using -fastproxy\n\
      -py3            - Generate code with Python 3 specific features and syntax\n\
-     -relativeimport - Use relative python imports\n\
+     -relativeimport - Use relative Python imports\n\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options:\n\
                          -fastdispatch -fastproxy -fvirtual\n\
