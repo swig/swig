@@ -119,12 +119,13 @@
 <li><a href="#Python_absrelimports">Absolute and relative imports</a>
 <li><a href="#Python_absimport">Enforcing absolute import semantics</a>
 <li><a href="#Python_importfrominit">Importing from __init__.py</a>
-<li><a href="#Python_implicit_namespace_packages">Implicit Namespace Packages</a>
-<li><a href="#Python_package_search">Searching for the wrapper module</a>
+<li><a href="#Python_implicit_namespace_packages">Implicit namespace packages</a>
+<li><a href="#Python_package_search">Location of modules</a>
 <ul>
 <li><a href="#Python_package_search_both_package_modules">Both modules in the same package</a>
-<li><a href="#Python_package_search_wrapper_split">Split modules</a>
 <li><a href="#Python_package_search_both_global_modules">Both modules are global</a>
+<li><a href="#Python_package_search_wrapper_split">Split modules custom configuration</a>
+<li><a href="#Python_custom_module_import">More on customizing the module import code</a>
 <li><a href="#Python_package_search_static">Statically linked C modules</a>
 </ul>
 </ul>
@@ -5686,15 +5687,14 @@ Python3 adds another option for packages with
 namespace packages).  Implicit namespace packages no longer use
 __init__.py files.  SWIG generated Python modules support implicit
 namespace packages.  See
-<a href="#Python_implicit_namespace_packages">36.11.5 Implicit Namespace
-Packages</a> for more information.
+<a href="#Python_implicit_namespace_packages">Implicit namespace
+packages</a> for more information.
 </p>
 
 <p>
-If you place a SWIG generated module into a Python package then there
-are details concerning the way SWIG
-<a href="#Python_package_search">searches for the wrapper module</a>
-that you may want to familiarize yourself with.
+You can place a SWIG generated module into a Python package or keep as a global module,
+details are covered a little later in
+<a href="#Python_package_search">Location of modules</a>.
 </p>
 
 <p>The way Python defines its modules and packages impacts SWIG users. Some
@@ -6040,7 +6040,7 @@ class Bar(pkg3.foo.Foo): pass
 effect (note, that the Python 2 case also needs the <tt>-relativeimport</tt>
 workaround).</p>
 
-<H3><a name="Python_implicit_namespace_packages">38.11.5 Implicit Namespace Packages</a></H3>
+<H3><a name="Python_implicit_namespace_packages">38.11.5 Implicit namespace packages</a></H3>
 
 
 <p> Python 3.3 introduced
@@ -6118,14 +6118,14 @@ zipimporter requires python-3.5.1 or newer to work with subpackages.
 </p>
 
 
-<H3><a name="Python_package_search">38.11.6 Searching for the wrapper module</a></H3>
+<H3><a name="Python_package_search">38.11.6 Location of modules</a></H3>
 
 
 <p>
 When SWIG creates wrappers from an interface file, say foo.i, two Python modules are
 created.  There is a pure Python module (foo.py) and C/C++ code which is
-built and linked into a dynamically (or statically) loaded low-level module _foo
-(see the <a href="Python.html#Python_nn3">Preliminaries section</a> for details).  So, the interface
+compiled and linked into a dynamically (or statically) loaded low-level module _foo
+(see the <a href="#Python_nn3">Preliminaries section</a> for details).  So, the interface
 file really defines two Python modules.   How these two modules are loaded is
 covered next.
 </p>
@@ -6133,28 +6133,165 @@ covered next.
 <p>
 The pure Python module needs to load the C/C++ module in order to call
 the wrapped C/C++ methods.   To do this it must make some assumptions
-about what package the C/C++ module may be located in.  The approach the
-pure Python module uses to find the C/C++ module is as follows:
+about the location of the C/C++ module.
+There are two configurations that are supported by default.
 </p>
 
 <ol>
-  <li><p>The pure Python module, foo.py, tries to load the C/C++ module, _foo, from the same package foo.py is
-      located in.  The package name is determined from the <tt>__package__</tt>
-      attribute if available, see <a href="https://www.python.org/dev/peps/pep-0366/">PEP 366</a>, otherwise it is derived from the <tt>__name__</tt>
-      attribute given to foo.py by the Python loader that imported
-      foo.py.  If foo.py is not in a package then _foo is loaded
-      as a global module.</p>
+  <li><p>Both modules in the same package</p>
   </li>
-  <li><p>If the above import of _foo results in an ImportError
-      being thrown, then foo.py makes a final attempt to load _foo
-    as a global module.</p>
+  <li><p>Both modules are global</p>
   </li>
 </ol>
 
 <p>
-The Python code implementing the loading logic described above is quite complex to handle multiple
-versions of Python, but it can be replaced with custom code.
-This is not recommended unless you understand the full intricacies of importing Python modules.
+Additional configurations are supported but require custom import code.
+</p>
+
+
+<p>
+The following sub-sections look more closely at the two default configurations as well as some customized configurations.
+An input interface file, foo.i, results in the two modules foo.py and _foo.so for each of the configurations.
+</p>
+
+<H4><a name="Python_package_search_both_package_modules">38.11.6.1 Both modules in the same package</a></H4>
+
+
+<p>
+In this configuration, the pure Python module, foo.py, tries to load the C/C++ module, _foo, from the same package foo.py is
+located in.  The package name is determined from the <tt>__package__</tt>
+attribute if available, see <a href="https://www.python.org/dev/peps/pep-0366/">PEP 366</a>. Otherwise it is derived from the <tt>__name__</tt>
+attribute given to foo.py by the Python loader that imported foo.py.
+The interface file for this configuration would contain:
+</p>
+
+<div class="code">
+<pre>
+%module(package="mypackage") foo
+</pre>
+</div>
+
+<p>The location of the files could be as follows:</p>
+<div class="diagram">
+<pre>
+/dir/mypackage/foo.py
+/dir/mypackage/__init__.py
+/dir/mypackage/_foo.so
+</pre>
+</div>
+
+<p>Assuming /dir/ is in PYTHONPATH, the module can be imported using</p>
+
+<div class="targetlang">
+<pre>
+from mypackage import foo
+</pre>
+</div>
+
+
+<H4><a name="Python_package_search_both_global_modules">38.11.6.2 Both modules are global</a></H4>
+
+
+<p>
+In this configuration, there are no packages.
+If foo.py is not in a package, that is, it is a global module, then _foo is loaded
+as a global module.
+The interface file for this configuration would contain:
+</p>
+
+<div class="code">
+<pre>
+%module foo
+</pre>
+</div>
+
+<p>The location of the files could be as follows:</p>
+<div class="diagram">
+<pre>
+/dir/foo.py
+/dir/_foo.so
+</pre>
+</div>
+
+<p>Assuming /dir/ is in PYTHONPATH, the module can be imported using</p>
+
+<div class="targetlang">
+<pre>
+import foo
+</pre>
+</div>
+
+<H4><a name="Python_package_search_wrapper_split">38.11.6.3 Split modules custom configuration</a></H4>
+
+
+<p>In this non-standard 'split module' configuration, the pure Python module is in a package and the low level C/C++ module is global.
+This configuration is not generally recommended and is not supported by default as it needs a custom configuration.
+The module import code customization required is via the <tt>moduleimport</tt> attribute in the <tt>%module</tt> directive.
+The next sub-section elaborates further on this.
+The interface file for this split module configuration would contain:
+</p>
+
+<div class="code">
+<pre>
+%module(package="mypackage", moduleimport="import _foo") foo
+</pre>
+</div>
+
+<p>
+When using <tt>-builtin</tt>, use the following instead (the reasons are also covered shortly in the next sub-section):
+</p>
+
+<div class="code">
+<pre>
+%module(package="mypackage", moduleimport="from _foo import *") foo
+</pre>
+</div>
+
+<p>The location of the files could be as follows:</p>
+<div class="diagram">
+<pre>
+/dir/mypackage/foo.py
+/dir/mypackage/__init__.py
+/dir/_foo.so
+</pre>
+</div>
+
+<p>Assuming /dir/ is in PYTHONPATH, the module can be imported using</p>
+
+<div class="targetlang">
+<pre>
+from mypackage import foo
+</pre>
+</div>
+
+<p>
+<b>Compatibility Note:</b> Versions of SWIG prior to SWIG-4.0.0 supported split modules without the above customization.
+However, this had to be removed as the default import code often led to confusion due to obfuscation of genuine Python <tt>ImportError</tt> problems.
+Using one of the two default configurations is the recommended approach now.
+</p>
+
+
+<H4><a name="Python_custom_module_import">38.11.6.4 More on customizing the module import code</a></H4>
+
+
+<p>
+The Python code implementing the default import logic is shown below. It supports the two configurations described earlier, that is,
+either both modules are in a package or loading both as global modules.
+The code is generated into the pure Python module, foo.py, and merely imports the low-level _foo module.
+</p>
+
+<div class="targetlang">
+<pre>
+if __package__ or '.' in __name__:
+    from . import _foo
+else:
+    import _foo
+</pre>
+</div>
+
+<p>
+This import code implementation is non-trivial but it can be replaced with custom code providing opportunities to make it simpler and/or more flexible.
+This is not normally recommended though unless you have a good understanding of the intricacies of importing Python modules.
 The custom code can be specified by setting the <tt>moduleimport</tt> option of the <tt>%module</tt> directive with the appropriate import code.  For example:
 </p>
 
@@ -6165,8 +6302,33 @@ The custom code can be specified by setting the <tt>moduleimport</tt> option of 
 </div>
 
 <p>
-The special variable <tt>$module</tt> will also be expanded into the low-level C/C++ module name, <tt>_foo</tt> in the case above.
-When you have more than just a line or so then you can retain the easy
+This will replace the default import logic above and generate the following into the pure Python module, foo.py:
+</p>
+
+<div class="targetlang">
+<pre>
+import _foo
+</pre>
+</div>
+
+<p>
+In fact the above is a simplification customization for the configuration where both modules are global;
+it removes the logic for also handling the modules being in a package.
+</p>
+
+<p>
+There is a special variable, <tt>$module</tt>, which is expanded into the low-level C/C++ module name, <tt>_foo</tt> in the case above.
+The identical output would be generated if instead the following had been used:
+</p>
+
+<div class="code">
+<pre>
+%module(moduleimport="import $module") foo
+</pre>
+</div>
+
+<p>
+When you have many lines you can retain the easy
 readability of the <tt>%module</tt> directive by using a macro.  For
 example:
 </p>
@@ -6185,79 +6347,51 @@ print 'Module has loaded'
 </pre>
 </div>
 
-
 <p>
-Now let's consider an example using the SWIG default loading logic.
-Suppose foo.i is compiled into foo.py and _foo.so.  Assuming
-/dir is on PYTHONPATH, then the two modules can be installed and used in the
-following ways:
+This will of course generate the following into the pure Python module:
 </p>
 
-
-<H4><a name="Python_package_search_both_package_modules">38.11.6.1 Both modules in the same package</a></H4>
-
-
-<p>Both modules are in one package:</p>
-<div class="diagram">
+<div class="targetlang">
 <pre>
-/dir/package/foo.py
-/dir/package/__init__.py
-/dir/package/_foo.so
-</pre>
-</div>
-<p>And imported with</p>
-<div class="diagram">
-<pre>
-from package import foo
-</pre>
-</div>
-
-
-<H4><a name="Python_package_search_wrapper_split">38.11.6.2 Split modules</a></H4>
-
-
-<p>The pure Python module is in a package and the C/C++ module is global:</p>
-<div class="diagram">
-<pre>
-/dir/package/foo.py
-/dir/package/__init__.py
-/dir/_foo.so
-</pre>
-</div>
-<p>And imported with</p>
-<div class="diagram">
-<pre>
-from package import foo
-</pre>
-</div>
-
-
-<H4><a name="Python_package_search_both_global_modules">38.11.6.3 Both modules are global</a></H4>
-
-
-<p>Both modules are global:</p>
-<div class="diagram">
-<pre>
-/dir/foo.py
-/dir/_foo.so
-</pre>
-</div>
-<p>And imported with</p>
-<div class="diagram">
-<pre>
-import foo
+print 'Loading low-level module $module'
+import _foo
+print 'Module has loaded'
 </pre>
 </div>
 
 <p>
-If _foo is statically linked into an embedded Python interpreter, then it may or
-may not be in a Python package.  This depends in the exact way the module was
-loaded statically.  The above search order will still be used for statically
-loaded modules.  So, one may place the module either globally or in a package
-as desired.
+When using the <tt>-builtin</tt> option, the link between the pure Python module and the low-level C/C++ module is slightly different as
+all the objects from the low-level module are imported directly into the pure Python module.
+The default import loading code is thus different:
 </p>
 
-<H4><a name="Python_package_search_static">38.11.6.4 Statically linked C modules</a></H4>
+<div class="targetlang">
+<pre>
+if __package__ or '.' in __name__:
+    from ._foo import *
+else:
+    from _foo import *
+</pre>
+</div>
+
+<p>
+Any customizations must import the code in a similar manner.
+The best way to support both with and without <tt>-builtin</tt> is to make use of the <tt>SWIGPYTHON_BUILTIN</tt> macro which is defined when <tt>-builtin</tt> is specified.
+The following will do this for the <a href="#Python_package_search_wrapper_split">split modules</a> case above.
+</p>
+
+
+<div class="code">
+<pre>
+#if defined(SWIGPYTHON_BUILTIN) /* defined when using -builtin */
+%module(package="mypackage", moduleimport="from $module import *") foo
+#else
+%module(package="mypackage", moduleimport="import $module") foo
+#endif
+</pre>
+</div>
+
+<H4><a name="Python_package_search_static">38.11.6.5 Statically linked C modules</a></H4>
 
 
 <p>It is strongly recommended to use dynamically linked modules for the C
@@ -6266,7 +6400,7 @@ If for some reason you still need
 to link the C module of the pair of Python modules generated by SWIG into
 your interpreter, then this section provides some details on how this impacts
 the pure Python modules ability to locate the other part of the pair.
-Please also see the <a href="Python.html#Python_nn8">Static Linking</a> section.
+Please also see the <a href="#Python_nn8">Static Linking</a> section.
 </p>
 
 <p>When Python is extended with C code the Python interpreter needs to be
@@ -6283,7 +6417,7 @@ new SWIG C module exists.
 which would have normally been called when the shared object was dynamically
 loaded.  The specific name of this method is not given here because statically
 linked modules are not encouraged with SWIG
-(<a href="Python.html#Python_nn8">Static Linking</a>).  However one can find this
+(<a href="#Python_nn8">Static Linking</a>).  However one can find this
 init function in the C file generated by SWIG.
 </p>
 
@@ -6306,21 +6440,21 @@ for Python itself.  Links to the relevant sections follow:
 
 <p>There are two keys things to understand.  The first is that in
 Python 2 the init() function returns void.  In Python 3 the init() function
-returns a PyObject * which points to the new module.  Secondly, when
+returns a <tt>PyObject *</tt> which points to the new module.  Secondly, when
 you call the init() method manually, you are the Python importer.  So, you
 determine which package the C module will be located in.
 </p>
 
 <p>So, if you are using Python 3 it is important that you follow what is
 described in the Python documentation linked above.  In particular, you can't
-simply call the init() function generated by SWIG and cast the PyObject
+simply call the init() function generated by SWIG and cast the <tt>PyObject</tt>
 pointer it returns over the side.  If you do then Python 3 will have no
 idea that your C module exists and the pure Python half of your wrapper will
 not be able to find it.  You need to register your module with the Python
 interpreter as described in the Python docs.
 </p>
 
-<p>With Python 2 things are somewhat more simple.  In this case the init function
+<p>With Python 2 things are somewhat more simple.  In this case the init() function
 returns void.  Calling it will register your new C module as a <b>global</b>
 module.  The pure Python part of the SWIG wrapper will be able to find it
 because it tries both the pure Python module it is part of and the global
