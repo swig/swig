@@ -7,6 +7,11 @@
 %module(directors="1") director_thread
 #endif
 
+%begin %{
+#define SWIG_JAVA_USE_THREAD_NAME
+//#define DEBUG_DIRECTOR_THREAD_NAME
+%}
+
 %{
 #ifdef _WIN32
 #include <windows.h>
@@ -89,10 +94,23 @@ extern "C" {
         fprintf(stderr, "pthread_create failed in run()\n");
         assert(0);
       }
+      int setname = pthread_setname_np(thread, "MyThreadName");
+      if (setname != 0) {
+        fprintf(stderr, "pthread_setname_np failed in run()\n");
+        assert(0);
+      }
 %#endif
       MilliSecondSleep(500);
     }
-    
+
+    static bool namedThread() {
+%#ifdef _WIN32
+      return false;
+%#else
+      return true;
+%#endif
+    }
+
     virtual void do_foo() {
       val += 1;
     }
