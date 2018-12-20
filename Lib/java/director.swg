@@ -184,7 +184,7 @@ namespace Swig {
         args.group = NULL;
         args.name = NULL;
 #if defined(SWIG_JAVA_USE_THREAD_NAME)
-        char thread_name[16];  // MAX_TASK_COMM_LEN=16 is hard-coded in the kernel.
+        char thread_name[64];  // MAX_TASK_COMM_LEN=16 is hard-coded in the Linux kernel and MacOS has MAXTHREADNAMESIZE=64.
         if (Swig::GetThreadName(thread_name, sizeof(thread_name)) == 0) {
           args.name = thread_name;
 #if defined(DEBUG_DIRECTOR_THREAD_NAME)
