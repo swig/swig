@@ -1191,12 +1191,16 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
 #if PY_VERSION_HEX >= 0x03000000
     PyObject *empty_args = PyTuple_New(0);
     if (empty_args) {
-      inst = ((PyTypeObject *)data->newargs)->tp_new((PyTypeObject *)data->newargs, empty_args, Py_None);
-      Py_DECREF(empty_args);
-      if (inst) {
-        PyObject_SetAttr(inst, SWIG_This(), swig_this);
-        Py_TYPE(inst)->tp_flags &= ~Py_TPFLAGS_VALID_VERSION_TAG;
+      PyObject *empty_kwargs = PyDict_New();
+      if (empty_kwargs) {
+        inst = ((PyTypeObject *)data->newargs)->tp_new((PyTypeObject *)data->newargs, empty_args, empty_kwargs);
+        Py_DECREF(empty_kwargs);
+        if (inst) {
+          PyObject_SetAttr(inst, SWIG_This(), swig_this);
+          Py_TYPE(inst)->tp_flags &= ~Py_TPFLAGS_VALID_VERSION_TAG;
+        }
       }
+      Py_DECREF(empty_args);
     }
 #else
     PyObject *dict = PyDict_New();

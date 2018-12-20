@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-12-20: chlandsi
+            [Python] #1357. Fix overriding __new__ in Python 3.6.
+
+            Fixes SystemError: Objects/tupleobject.c:81: bad argument to internal function"
+
 2018-12-16: wsfulton
             [Python] #848 #1343 The module import logic has changed to stop obfuscating real ImportError
             problems. Only one import of the low-level C/C++ module from the pure Python module is
