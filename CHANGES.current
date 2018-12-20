@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2018-12-20: chlandsi
+            [Python] #1357. Fix overriding __new__ in Python 3.6.
+
+            Fixes SystemError: Objects/tupleobject.c:81: bad argument to internal function"
+
 2018-10-29: AlexanderGabriel
 	    [PHP] The following PHP7 reserved keywords are now only renamed by
 	    SWIG when used as function names in the API being wrapper:
