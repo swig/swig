@@ -119,7 +119,11 @@ extern "C" {
 %#ifdef _WIN32
       return false;
 %#else
+%#ifdef __APPLE__
+      return false;
+%#else
       return true;
+%#endif
 %#endif
     }
 
