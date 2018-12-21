@@ -94,13 +94,25 @@ extern "C" {
         fprintf(stderr, "pthread_create failed in run()\n");
         assert(0);
       }
-      int setname = pthread_setname_np(thread, "MyThreadName");
+%#endif
+      MilliSecondSleep(500);
+    }
+
+    void setThreadName() {
+%#ifdef _WIN32
+%#else
+
+%#ifdef __APPLE__
+      int setname = pthread_setname_np("MyThreadName");
+%#else
+      int setname = pthread_setname_np(pthread_self(), "MyThreadName");
+%#endif
+
       if (setname != 0) {
         fprintf(stderr, "pthread_setname_np failed in run()\n");
         assert(0);
       }
 %#endif
-      MilliSecondSleep(500);
     }
 
     static bool namedThread() {
@@ -126,6 +138,7 @@ extern "C" {
 #endif
   {
     Foo* f = static_cast<Foo*>(t);
+    f->setThreadName();
     while (!get_thread_terminate()) {
       MilliSecondSleep(50);
       f->do_foo();
