@@ -19,6 +19,8 @@
 #include <stdio.h>
 #else
 #include <pthread.h>
+#include <errno.h>
+#include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
 #endif
@@ -91,7 +93,8 @@ extern "C" {
 %#else
       int create = pthread_create(&thread,NULL,working,this);
       if (create != 0) {
-        fprintf(stderr, "pthread_create failed in run()\n");
+        errno = create;
+        perror("pthread_create in run()");
         assert(0);
       }
 %#endif
@@ -109,7 +112,8 @@ extern "C" {
 %#endif
 
       if (setname != 0) {
-        fprintf(stderr, "pthread_setname_np failed in run()\n");
+        errno = setname;
+        perror("calling pthread_setname_np in setThreadName()");
         assert(0);
       }
 %#endif
@@ -119,11 +123,7 @@ extern "C" {
 %#ifdef _WIN32
       return false;
 %#else
-%#ifdef __APPLE__
-      return false;
-%#else
       return true;
-%#endif
 %#endif
     }
 

@@ -31,7 +31,7 @@ SWIGINTERN int Swig::GetThreadName(char *name, size_t len) {
 #endif
 }
 
-#elif defined(__unix__)
+#elif defined(__unix__) || defined(__APPLE__)
 
 #include <pthread.h>
 SWIGINTERN int Swig::GetThreadName(char *name, size_t len) {
