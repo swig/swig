@@ -3913,13 +3913,13 @@ class Go(object):
 </div>
 
 <p>
-The generated code when using <tt>-fastproxy</tt> is:
+The generated proxy class when using <tt>-fastproxy</tt> is:
 </p>
 
 <div class="targetlang">
 <pre>
 %module example
-class Go(_object):
+class Go(object):
     callme0 = _swig_new_instance_method(_example.Go_callme0)
     callme4 = _swig_new_instance_method(_example.Go_callme4)
     callme8 = _swig_new_instance_method(_example.Go_callme8)
@@ -3930,37 +3930,70 @@ class Go(_object):
 <p>
 where <tt>_swig_new_instance_method</tt> adds the method to the proxy class via C API calls.
 The overhead calling into C/C++ from Python is reduced slightly using <tt>-fastproxy</tt>.
-Below are some timings in microseconds calling the 3 functions in the example above:
+Below are some timings in microseconds calling the 3 functions in the example above.
+Also included in the table for comparison is using the <tt>-builtin</tt> option covered in the
+<a href="#Python_builtin_types">Built-in Types</a>.
 </p>
 
 <table summary="Python fastproxy performance">
     <tr>
         <th>Method name</th>
-        <th>Without -fastproxy</th>
-        <th>With -fastproxy</th>
+        <th>Default</th>
+        <th>-fastproxy</th>
+        <th>-builtin</th>
     </tr>
     <tr>
         <td>callme0</td>
-        <td>0.57</td>
-        <td>0.48</td>
+        <td>0.15</td>
+        <td>0.09</td>
+        <td>0.07</td>
     </tr>
     <tr>
         <td>callme4</td>
-        <td>0.64</td>
-        <td>0.54</td>
+        <td>0.26</td>
+        <td>0.16</td>
+        <td>0.14</td>
     </tr>
     <tr>
         <td>callme8</td>
-        <td>0.73</td>
-        <td>0.57</td>
+        <td>0.32</td>
+        <td>0.20</td>
+        <td>0.17</td>
     </tr>
 </table>
 
 <p>
-Although the <tt>-fastproxy</tt> option results in faster code, the generated proxy code is not as user-friendly
+Although the <tt>-fastproxy</tt> option results in faster code over the default, the generated proxy code is not as user-friendly
 as docstring/doxygen comments and functions with default values are not visible in the generated Python proxy class.
+The <tt>-olddefs</tt> option can rectify this.
 </p>
 
+<p>
+The generated proxy class for the example above when using <tt>-fastproxy -olddefs</tt> is:
+</p>
+
+<div class="targetlang">
+<pre>
+class Go(object):
+    def callme0(self):
+        return _example.Go_callme0(self)
+    callme0 = _swig_new_instance_method(_example.Go_callme0)
+
+    def callme4(self, a, b, c, d):
+        return _example.Go_callme4(self, a, b, c, d)
+    callme4 = _swig_new_instance_method(_example.Go_callme4)
+
+    def callme8(self, a, b, c, d, e, f, g, i):
+        return _example.Go_callme8(self, a, b, c, d, e, f, g, i)
+    callme8 = _swig_new_instance_method(_example.Go_callme8)
+    ...
+</pre>
+</div>
+
+<p>
+The class defines each method in two different ways. The first definition is replaced by the second definition and so the second definition is the one used when the method is called.
+While this possibly provides the best of both worlds, the time to import the module will be slighly slower when the class is defined due to the additional method definitions.
+</p>
 
 <H2><a name="Python_nn45">38.7 Tips and techniques</a></H2>
 
