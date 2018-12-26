@@ -144,7 +144,7 @@
 %define %attribute_custom(Class, AttributeType, AttributeName, GetMethod, SetMethod, GetMethodCall, SetMethodCall)
   %ignore Class::GetMethod();
   %ignore Class::GetMethod() const;
-  #if #SetMethod != #AttributeName
+  #if (#SetMethod != #AttributeName)
     %ignore Class::SetMethod;
   #endif
   %extend Class {
@@ -197,7 +197,7 @@
 // User macros
 
 %define %attribute(Class, AttributeType, AttributeName, GetMethod, SetMethod...)
-  #if #SetMethod != ""
+  #if (#SetMethod != "")
     %attribute_custom(%arg(Class), %arg(AttributeType), AttributeName, GetMethod, SetMethod, self_->GetMethod(), self_->SetMethod(val_))
   #else
     %attribute_readonly(%arg(Class), %arg(AttributeType), AttributeName, GetMethod, self_->GetMethod())
@@ -205,7 +205,7 @@
 %enddef
 
 %define %attribute2(Class, AttributeType, AttributeName, GetMethod, SetMethod...)
-  #if #SetMethod != ""
+  #if (#SetMethod != "")
     %attribute_custom(%arg(Class), %arg(AttributeType), AttributeName, GetMethod, SetMethod, &self_->GetMethod(), self_->SetMethod(*val_))
   #else
     %attribute_readonly(%arg(Class), %arg(AttributeType), AttributeName, GetMethod, &self_->GetMethod())
@@ -213,7 +213,7 @@
 %enddef
 
 %define %attributeref(Class, AttributeType, AttributeName, AccessorMethod...)
-  #if #AccessorMethod != ""
+  #if (#AccessorMethod != "")
     %attribute_custom(%arg(Class), %arg(AttributeType), AttributeName, AccessorMethod, AccessorMethod, self_->AccessorMethod(), self_->AccessorMethod() = val_)
   #else
     %attribute_custom(%arg(Class), %arg(AttributeType), AttributeName, AttributeName, AttributeName, self_->AttributeName(), self_->AttributeName() = val_)
@@ -221,7 +221,7 @@
 %enddef
 
 %define %attribute2ref(Class, AttributeType, AttributeName, AccessorMethod...)
-  #if #AccessorMethod != ""
+  #if (#AccessorMethod != "")
     %attribute_custom(%arg(Class), %arg(AttributeType), AttributeName, AccessorMethod, AccessorMethod, &self_->AccessorMethod(), self_->AccessorMethod() = *val_)
   #else
     %attribute_custom(%arg(Class), %arg(AttributeType), AccessorName, AccessorName, AccessorName, &self_->AccessorName(), self_->AccessorName() = *val_)
@@ -230,7 +230,7 @@
 
 // deprecated (same as %attributeref, but there is an argument order inconsistency)
 %define %attribute_ref(Class, AttributeType, AccessorMethod, AttributeName...)
-  #if #AttributeName != ""
+  #if (#AttributeName != "")
     %attribute_custom(%arg(Class), %arg(AttributeType), AttributeName, AccessorMethod, AccessorMethod, self_->AccessorMethod(), self_->AccessorMethod() = val_)
   #else
     %attribute_custom(%arg(Class), %arg(AttributeType), AccessorMethod, AccessorMethod, AccessorMethod, self_->AccessorMethod(), self_->AccessorMethod() = val_)
@@ -242,11 +242,11 @@
   %{
     #define %mangle(Class) ##_## AttributeName ## _get(self_) new AttributeType(self_->GetMethod())
   %}
-  #if #SetMethod != ""
+  #if (#SetMethod != "")
     %{
       #define %mangle(Class) ##_## AttributeName ## _set(self_, val_) self_->SetMethod(*val_)
     %}
-    #if #SetMethod != #AttributeName
+    #if (#SetMethod != #AttributeName)
       %ignore Class::SetMethod;
     #endif
   #else
@@ -265,11 +265,11 @@
   %{
     #define %mangle(Class) ##_## AttributeName ## _get(self_) *new AttributeType(self_->GetMethod())
   %}
-  #if #SetMethod != ""
+  #if (#SetMethod != "")
     %{
       #define %mangle(Class) ##_## AttributeName ## _set(self_, val_) self_->SetMethod(val_)
     %}
-    #if #SetMethod != #AttributeName
+    #if (#SetMethod != #AttributeName)
       %ignore Class::SetMethod;
     #endif
   #else
