@@ -7,7 +7,6 @@
  * ----------------------------------------------------------------------------- */
 
 %include <std_common.i>
-%include <std_set.i>
 
 // ------------------------------------------------------------------------
 // std::map
@@ -31,9 +30,19 @@
 
 %javamethodmodifiers std::map::sizeImpl "private";
 %javamethodmodifiers std::map::containsImpl "private";
-%javamethodmodifiers std::map::getImpl "private";
-%javamethodmodifiers std::map::putImpl "private";
-%javamethodmodifiers std::map::removeImpl "private";
+%javamethodmodifiers std::map::putUnchecked "private";
+%javamethodmodifiers std::map::removeUnchecked "private";
+%javamethodmodifiers std::map::find "private";
+%javamethodmodifiers std::map::begin "private";
+%javamethodmodifiers std::map::end "private";
+
+%rename(Iterator) std::map::iterator;
+%nodefaultctor std::map::iterator;
+%javamethodmodifiers std::map::iterator::getNextUnchecked "private";
+%javamethodmodifiers std::map::iterator::isNot "private";
+%javamethodmodifiers std::map::iterator::getKey "private";
+%javamethodmodifiers std::map::iterator::getValue "private";
+%javamethodmodifiers std::map::iterator::setValue "private";
 
 namespace std {
 
@@ -48,47 +57,88 @@ template<class KeyType, class ValueType, class Comparator = std::less<KeyType> >
     return sizeImpl();
   }
 
-  public boolean containsKey(Object object) {
-    if (!(object instanceof $typemap(jboxtype, KeyType))) {
+  public boolean containsKey(Object key) {
+    if (!(key instanceof $typemap(jboxtype, KeyType))) {
       return false;
     }
 
-    return containsImpl(($typemap(jboxtype, KeyType))object);
+    return containsImpl(($typemap(jboxtype, KeyType))key);
   }
 
-  public $typemap(jboxtype, ValueType) get(Object object) {
-    if (!(object instanceof $typemap(jboxtype, KeyType))) {
+  public $typemap(jboxtype, ValueType) get(Object key) {
+    if (!(key instanceof $typemap(jboxtype, KeyType))) {
       return null;
     }
 
-    try {
-      getImpl(($typemap(jboxtype, KeyType)) object);
-    } catch (IndexOutOfBoundsException e) {}
+    Iterator itr = find(($typemap(jboxtype, KeyType)) key);
+    if (itr.isNot(end())) {
+      return itr.getValue();
+    }
 
     return null;
   }
 
   public $typemap(jboxtype, ValueType) put($typemap(jboxtype, KeyType) key,
                                            $typemap(jboxtype, ValueType) value) {
-    try {
-      $typemap(jboxtype, ValueType) oldValue = putImpl(key, value);
+    Iterator itr = find(($typemap(jboxtype, KeyType)) key);
+    if (itr.isNot(end())) {
+      $typemap(jboxtype, ValueType) oldValue = itr.getValue();
+      itr.setValue(value);
       return oldValue;
-    } catch (IndexOutOfBoundsException e) {}
-
-    return null;
+    } else {
+      putUnchecked(key, value);
+      return null;
+    }
   }
 
-  public $typemap(jboxtype, ValueType) remove($typemap(jboxtype, KeyType) key) {
-    try {
-      $typemap(jboxtype, ValueType) oldValue = removeImpl(key);
-      return oldValue;
-    } catch (IndexOutOfBoundsException e) {}
+  public $typemap(jboxtype, ValueType) remove(Object key) {
+    if (!(key instanceof $typemap(jboxtype, KeyType))) {
+      return null;
+    }
 
-    return null;
+    Iterator itr = find(($typemap(jboxtype, KeyType)) key);
+    if (itr.isNot(end())) {
+      $typemap(jboxtype, ValueType) oldValue = itr.getValue();
+      removeUnchecked(itr);
+      return oldValue;
+    } else {
+      return null;
+    }
   }
 
   public java.util.Set<Entry<$typemap(jboxtype, KeyType), $typemap(jboxtype, ValueType)>> entrySet() {
-    throw new RuntimeException("Stub");
+    java.util.Set<Entry<$typemap(jboxtype, KeyType), $typemap(jboxtype, ValueType)>> setToReturn =
+        new java.util.HashSet<Entry<$typemap(jboxtype, KeyType), $typemap(jboxtype, ValueType)>>();
+
+    Iterator itr = begin();
+    final Iterator end = end();
+    while(itr.isNot(end)) {
+      setToReturn.add(new Entry<$typemap(jboxtype, KeyType), $typemap(jboxtype, ValueType)>() {
+        private Iterator iterator;
+
+        private Entry<$typemap(jboxtype, KeyType), $typemap(jboxtype, ValueType)> init(Iterator iterator) {
+          this.iterator = iterator;
+          return this;
+        }
+
+        public $typemap(jboxtype, KeyType) getKey() {
+          return iterator.getKey();
+        }
+
+        public $typemap(jboxtype, ValueType) getValue() {
+          return iterator.getValue();
+        }
+
+        public $typemap(jboxtype, ValueType) setValue($typemap(jboxtype, ValueType) newValue) {
+          $typemap(jboxtype, ValueType) oldValue = iterator.getValue();
+          iterator.setValue(newValue);
+          return oldValue;
+        }
+      }.init(itr));
+      itr = itr.getNextUnchecked();
+    }
+
+    return setToReturn;
   }
 %}
 
@@ -96,9 +146,37 @@ template<class KeyType, class ValueType, class Comparator = std::less<KeyType> >
     map();
     map(const map<KeyType, ValueType, Comparator >&);
 
+    struct iterator {
+      %extend {
+        std::map<KeyType, ValueType, Comparator >::iterator getNextUnchecked() {
+          std::map<KeyType, ValueType, Comparator >::iterator copy = (*$self);
+          return ++copy;
+        }
+
+        bool isNot(const iterator other) const {
+          return (*$self != other);
+        }
+
+        KeyType getKey() const {
+          return (*$self)->first;
+        }
+
+        ValueType getValue() const {
+          return (*$self)->second;
+        }
+
+        void setValue(const ValueType& newValue) {
+          (*$self)->second = newValue;
+        }
+      }
+    };
+
     %rename(isEmpty) empty;
     bool empty() const;
     void clear();
+    iterator find(const KeyType&);
+    iterator begin();
+    iterator end();
     %extend {
       %fragment("SWIG_MapSize");
 
@@ -110,36 +188,12 @@ template<class KeyType, class ValueType, class Comparator = std::less<KeyType> >
         return (self->count(key) > 0);
       }
 
-      const ValueType& getImpl(const KeyType& key) throw (std::out_of_range) {
-        std::map<KeyType, ValueType, Comparator >::iterator itr = self->find(key);
-        if (itr != self->end()) {
-          return itr->second;
-        } else {
-          throw std::out_of_range("map::get() - key not found");
-        }
+      void putUnchecked(const KeyType& key, const ValueType& value) {
+        (*self)[key] = value;
       }
 
-      ValueType putImpl(const KeyType& key, const ValueType& value) {
-        std::map<KeyType, ValueType, Comparator >::iterator itr = self->find(key);
-        if (itr != self->end()) {
-          ValueType oldValue = itr->second;
-          itr->second = value;
-          return oldValue;
-        } else {
-          (*self)[key] = value;
-          throw std::out_of_range("map::put() - no existing value for key");
-        }
-      }
-
-      ValueType removeImpl(const KeyType& key) throw (std::out_of_range) {
-        std::map<KeyType, ValueType, Comparator >::iterator itr = self->find(key);
-        if (itr != self->end()) {
-          ValueType oldValue = itr->second;
-          self->erase(itr);
-          return oldValue;
-        } else {
-          throw std::out_of_range("map::remove() - key not found");
-        }
+      void removeUnchecked(const std::map<KeyType, ValueType, Comparator >::iterator itr) {
+        self->erase(itr);
       }
     }
 };

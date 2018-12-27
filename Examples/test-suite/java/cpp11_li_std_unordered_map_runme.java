@@ -11,91 +11,112 @@ public class cpp11_li_std_unordered_map_runme {
     }
   }
 
+  public static void checkThat(boolean mustBeTrue) throws Throwable {
+    if (!mustBeTrue) {
+      // Index [2], since this function is one hop away from main, and [1] is the current method.
+      throw new RuntimeException("Test failed at line number " + Thread.currentThread().getStackTrace()[2].getLineNumber());
+    }
+  }
+
   public static void main(String argv[]) throws Throwable
   {
-    StringIntUnorderedMap sim = new StringIntUnorderedMap();
-    IntIntUnorderedMap iim = new IntIntUnorderedMap();
+    java.util.AbstractMap<String, Integer> sim = new StringIntUnorderedMap();
+    java.util.AbstractMap<Integer, Integer> iim = new IntIntUnorderedMap();
 
-    if (!sim.empty()) throw new RuntimeException("Test (1) failed");
-    if (!iim.empty()) throw new RuntimeException("Test (2) failed");
+    checkThat(sim.isEmpty());
+    checkThat(iim.isEmpty());
+    checkThat(sim.size() == 0);
+    checkThat(iim.size() == 0);
 
-    if (sim.size() != 0) throw new RuntimeException("Test (3) failed");
-    if (iim.size() != 0) throw new RuntimeException("Test (4) failed");
+    checkThat(sim.get("key") == null);
+    checkThat(iim.get(1) == null);
 
-    try {
-      sim.get("key");
-      throw new RuntimeException("Test (5) failed");
-    } catch (IndexOutOfBoundsException e) {
-    }
+    checkThat(!sim.containsKey("key"));
+    checkThat(!iim.containsKey(1));
 
-    try {
-      iim.get(1);
-      throw new RuntimeException("Test (6) failed");
-    } catch (IndexOutOfBoundsException e) {
-    }
+    checkThat(sim.put("key", 2) == null);
+    checkThat(iim.put(1, 2) == null);
 
-    sim.set("key", 1);
-    iim.set(1, 1);
+    checkThat(sim.size() == 1);
+    checkThat(iim.size() == 1);
+    checkThat(!sim.isEmpty());
+    checkThat(!iim.isEmpty());
 
-    if (sim.size() != 1) throw new RuntimeException("Test (7) failed");
-    if (iim.size() != 1) throw new RuntimeException("Test (8) failed");
+    checkThat(sim.get("key") == 2);
+    checkThat(iim.get(1) == 2);
 
-    sim.del("key");
-    iim.del(1);
+    checkThat(sim.remove("key") == 2);
+    checkThat(iim.remove(1) == 2);
 
-    if (sim.has_key("key")) throw new RuntimeException("Test (9) failed");
-    if (iim.has_key(1)) throw new RuntimeException("Test (10) failed");
+    checkThat(sim.isEmpty());
+    checkThat(iim.isEmpty());
+    checkThat(sim.size() == 0);
+    checkThat(iim.size() == 0);
 
-    if (!sim.empty()) throw new RuntimeException("Test (11) failed");
-    if (!iim.empty()) throw new RuntimeException("Test (12) failed");
-    if (sim.size() != 0) throw new RuntimeException("Test (13) failed");
-    if (iim.size() != 0) throw new RuntimeException("Test (14) failed");
+    checkThat(sim.get("key") == null);
+    checkThat(iim.get(1) == null);
 
-    try {
-      sim.del("key");
-      throw new RuntimeException("Test (15) failed");
-    } catch (IndexOutOfBoundsException e) {
-    }
+    checkThat(sim.remove("key") == null);
+    checkThat(iim.remove(1) == null);
 
-    try {
-      iim.del(1);
-      throw new RuntimeException("Test (16) failed");
-    } catch (IndexOutOfBoundsException e) {
-    }
-
-    sim.set("key", 1);
-    iim.set(1, 1);
-
-    if (sim.size() != 1) throw new RuntimeException("Test (17) failed");
-    if (iim.size() != 1) throw new RuntimeException("Test (18) failed");
+    checkThat(sim.put("key", 2) == null);
+    checkThat(iim.put(1, 2) == null);
 
     sim.clear();
     iim.clear();
+    checkThat(sim.isEmpty());
+    checkThat(iim.isEmpty());
 
-    if (sim.has_key("key")) throw new RuntimeException("Test (19) failed");
-    if (iim.has_key(1)) throw new RuntimeException("Test (20) failed");
+    checkThat(sim.put("key1", 1) == null);
+    checkThat(iim.put(1, 1) == null);
+    checkThat(sim.put("key2", 2) == null);
+    checkThat(iim.put(2, 2) == null);
 
-    if (!sim.empty()) throw new RuntimeException("Test (21) failed");
-    if (!iim.empty()) throw new RuntimeException("Test (22) failed");
-    if (sim.size() != 0) throw new RuntimeException("Test (23) failed");
-    if (iim.size() != 0) throw new RuntimeException("Test (24) failed");
+    checkThat(sim.size() == 2);
+    checkThat(iim.size() == 2);
+    checkThat(sim.get("key1") == 1);
+    checkThat(iim.get(1) == 1);
+    checkThat(sim.get("key2") == 2);
+    checkThat(iim.get(2) == 2);
 
-    sim.set("key", 1);
-    sim.set("key2", 2);
-    iim.set(1, 1);
-    iim.set(2, 2);
+    checkThat(sim.put("key1", 3) == 1);
+    checkThat(iim.put(1, 3) == 1);
 
-    if (sim.get("key") != 1) throw new RuntimeException("Test (25) failed");
-    if (sim.get("key2") != 2) throw new RuntimeException("Test (26) failed");
-    if (iim.get(1) != 1) throw new RuntimeException("Test (27) failed");
-    if (iim.get(2) != 2) throw new RuntimeException("Test (28) failed");
+    checkThat(sim.size() == 2);
+    checkThat(iim.size() == 2);
+    checkThat(sim.get("key1") == 3);
+    checkThat(iim.get(1) == 3);
 
-    sim.set("key", 3);
-    iim.set(1, 3);
+    java.util.Set<java.util.Map.Entry<String, Integer>> sim_es = sim.entrySet();
+    java.util.Map<String, Integer> sim_default = new java.util.HashMap<String, Integer>();
+    sim_default.put("key1", 3);
+    sim_default.put("key2", 2);
+    java.util.Set<java.util.Map.Entry<String, Integer>> sim_es_default = sim_default.entrySet();
+    checkThat(sim_es.size() == sim_es_default.size());
+    for (java.util.Map.Entry<String, Integer> entry : sim_es) {
+      checkThat(sim_es_default.contains(entry));
+      checkThat(sim_default.containsKey(entry.getKey()));
+      checkThat(sim_default.containsValue(entry.getValue()));
 
-    if (sim.get("key") != 3) throw new RuntimeException("Test (29) failed");
-    if (sim.get("key2") != 2) throw new RuntimeException("Test (30) failed");
-    if (iim.get(1) != 3) throw new RuntimeException("Test (31) failed");
-    if (iim.get(2) != 2) throw new RuntimeException("Test (32) failed");
+      Integer oldValue = entry.getValue();
+      entry.setValue(oldValue + 1);
+      checkThat(sim.get(entry.getKey()) == (oldValue + 1));
+    }
+
+    java.util.Set<java.util.Map.Entry<Integer, Integer>> iim_es = iim.entrySet();
+    java.util.Map<Integer, Integer> iim_default = new java.util.HashMap<Integer, Integer>();
+    iim_default.put(1, 3);
+    iim_default.put(2, 2);
+    java.util.Set<java.util.Map.Entry<Integer, Integer>> iim_es_default = iim_default.entrySet();
+    checkThat(iim_es.size() == iim_es_default.size());
+    for (java.util.Map.Entry<Integer, Integer> entry : iim_es) {
+      checkThat(iim_es_default.contains(entry));
+      checkThat(iim_default.containsKey(entry.getKey()));
+      checkThat(iim_default.containsValue(entry.getValue()));
+
+      Integer oldValue = entry.getValue();
+      entry.setValue(oldValue + 1);
+      checkThat(iim.get(entry.getKey()) == (oldValue + 1));
+    }
   }
 }

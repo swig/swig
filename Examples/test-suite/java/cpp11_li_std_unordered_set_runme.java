@@ -11,49 +11,48 @@ public class cpp11_li_std_unordered_set_runme {
     }
   }
 
-  public static void failTest(int testNum) throws Throwable {
-    throw new RuntimeException("Test failed: " + testNum);
-  }
-
-  public static void checkThat(boolean mustBeTrue, int testNum) throws Throwable {
-    if (!mustBeTrue) failTest(testNum);
+  public static void checkThat(boolean mustBeTrue) throws Throwable {
+    if (!mustBeTrue) {
+      // Index [2], since this function is one hop away from main, and [1] is the current method.
+      throw new RuntimeException("Test failed at line number " + Thread.currentThread().getStackTrace()[2].getLineNumber());
+    }
   }
 
   public static void main(String argv[]) throws Throwable
   {
     java.util.AbstractSet<String> ss = new StringUnorderedSet();
 
-    checkThat(ss.isEmpty(), 1);
-    checkThat(!ss.contains("key"), 2);
-    checkThat(!ss.remove("key"), 3);
+    checkThat(ss.isEmpty());
+    checkThat(!ss.contains("key"));
+    checkThat(!ss.remove("key"));
 
-    checkThat(ss.add("key"), 4);
-    checkThat(!ss.add("key"), 5);
-    checkThat(ss.contains("key"), 6);
-    checkThat(ss.remove("key"), 7);
-    checkThat(ss.isEmpty(), 8);
-    checkThat(ss.size() == 0, 9);
+    checkThat(ss.add("key"));
+    checkThat(!ss.add("key"));
+    checkThat(ss.contains("key"));
+    checkThat(ss.remove("key"));
+    checkThat(ss.isEmpty());
+    checkThat(ss.size() == 0);
 
-    checkThat(ss.add("key1"), 10);
-    checkThat(ss.add("key2"), 11);
-    checkThat(ss.add("key3"), 12);
-    checkThat(ss.size() == 3, 13);
+    checkThat(ss.add("key1"));
+    checkThat(ss.add("key2"));
+    checkThat(ss.add("key3"));
+    checkThat(ss.size() == 3);
 
     ss.clear();
-    checkThat(ss.isEmpty(), 14);
-    checkThat(ss.size() == 0, 15);
+    checkThat(ss.isEmpty());
+    checkThat(ss.size() == 0);
 
-    checkThat(ss.addAll(java.util.Arrays.asList("one", "two", "three")), 16);
-    checkThat(ss.size() == 3, 17);
-    checkThat(ss.contains("one"), 18);
-    checkThat(!ss.contains("four"), 19);
+    checkThat(ss.addAll(java.util.Arrays.asList("one", "two", "three")));
+    checkThat(ss.size() == 3);
+    checkThat(ss.contains("one"));
+    checkThat(!ss.contains("four"));
 
-    checkThat(ss.containsAll(java.util.Arrays.asList("one", "two", "three")), 20);
-    checkThat(ss.containsAll(java.util.Arrays.asList("one", "two")), 21);
-    checkThat(!ss.containsAll(java.util.Arrays.asList("one", "two", "four")), 22);
-    checkThat(!ss.containsAll(java.util.Arrays.asList("one", "two", "three", "four")), 23);
+    checkThat(ss.containsAll(java.util.Arrays.asList("one", "two", "three")));
+    checkThat(ss.containsAll(java.util.Arrays.asList("one", "two")));
+    checkThat(!ss.containsAll(java.util.Arrays.asList("one", "two", "four")));
+    checkThat(!ss.containsAll(java.util.Arrays.asList("one", "two", "three", "four")));
 
-    checkThat(!ss.addAll(java.util.Arrays.asList("one", "two", "three")), 24);
+    checkThat(!ss.addAll(java.util.Arrays.asList("one", "two", "three")));
 
     java.util.Set<String> found = new java.util.HashSet<String>();
     java.util.Iterator<String> itr = ss.iterator();
@@ -61,16 +60,16 @@ public class cpp11_li_std_unordered_set_runme {
       found.add(itr.next());
     }
 
-    checkThat(ss.containsAll(found), 25);
-    checkThat(found.containsAll(ss), 26);
+    checkThat(ss.containsAll(found));
+    checkThat(found.containsAll(ss));
 
     java.util.AbstractSet<String> ss2 = new StringUnorderedSet(ss);
-    checkThat(ss2.containsAll(ss), 27);
-    checkThat(ss.containsAll(ss2), 28);
+    checkThat(ss2.containsAll(ss));
+    checkThat(ss.containsAll(ss2));
 
-    checkThat(!ss.removeAll(java.util.Arrays.asList("five", "four")), 29);
-    checkThat(ss.removeAll(found), 30);
-    checkThat(ss.isEmpty(), 31);
-    checkThat(ss.size() == 0, 32);
+    checkThat(!ss.removeAll(java.util.Arrays.asList("five", "four")));
+    checkThat(ss.removeAll(found));
+    checkThat(ss.isEmpty());
+    checkThat(ss.size() == 0);
   }
 }
