@@ -7,7 +7,7 @@
 
 %inline %{
 
-  // This typedef triggers an inifinite recursion
+  // This typedef triggers an infinite recursion
   // in the next test1() nd test2() function declarations
 
   typedef std::complex<double> complex;  

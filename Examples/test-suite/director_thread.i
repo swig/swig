@@ -7,6 +7,11 @@
 %module(directors="1") director_thread
 #endif
 
+%begin %{
+#define SWIG_JAVA_USE_THREAD_NAME
+//#define DEBUG_DIRECTOR_THREAD_NAME
+%}
+
 %{
 #ifdef _WIN32
 #include <windows.h>
@@ -14,6 +19,8 @@
 #include <stdio.h>
 #else
 #include <pthread.h>
+#include <errno.h>
+#include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
 #endif
@@ -86,13 +93,40 @@ extern "C" {
 %#else
       int create = pthread_create(&thread,NULL,working,this);
       if (create != 0) {
-        fprintf(stderr, "pthread_create failed in run()\n");
+        errno = create;
+        perror("pthread_create in run()");
         assert(0);
       }
 %#endif
       MilliSecondSleep(500);
     }
-    
+
+    void setThreadName() {
+%#ifdef _WIN32
+%#else
+
+%#ifdef __APPLE__
+      int setname = pthread_setname_np("MyThreadName");
+%#else
+      int setname = pthread_setname_np(pthread_self(), "MyThreadName");
+%#endif
+
+      if (setname != 0) {
+        errno = setname;
+        perror("calling pthread_setname_np in setThreadName()");
+        assert(0);
+      }
+%#endif
+    }
+
+    static bool namedThread() {
+%#ifdef _WIN32
+      return false;
+%#else
+      return true;
+%#endif
+    }
+
     virtual void do_foo() {
       val += 1;
     }
@@ -108,6 +142,7 @@ extern "C" {
 #endif
   {
     Foo* f = static_cast<Foo*>(t);
+    f->setThreadName();
     while (!get_thread_terminate()) {
       MilliSecondSleep(50);
       f->do_foo();

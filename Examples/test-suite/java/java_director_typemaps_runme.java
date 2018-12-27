@@ -1,4 +1,4 @@
-// tests for java/typemaps.i used for directors
+// Test director reference typemaps in typemaps.i - similar to java_director_typemaps_ptr.i testcase
 
 import java_director_typemaps.*;
 import java.math.BigInteger;
@@ -26,7 +26,7 @@ class java_director_typemaps_MyQuux extends Quux {
     super();
   }
 
-  public void director_method_bool_output(
+  public void director_method_output(
       boolean[] bool_arg,
 
       byte[] signed_char_arg,
@@ -62,7 +62,7 @@ class java_director_typemaps_MyQuux extends Quux {
     double_arg[0] = 12;
   }
 
-  public void director_method_bool_inout(
+  public void director_method_inout(
       boolean[] bool_arg,
 
       byte[] signed_char_arg,
@@ -113,7 +113,7 @@ class java_director_typemaps_MyQuux extends Quux {
     double_arg[0] = 112;
   }
 
-  public void director_method_bool_nameless_args(
+  public void director_method_nameless_args(
       boolean[] bool_arg,
 
       byte[] signed_char_arg,

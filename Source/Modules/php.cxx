@@ -12,7 +12,7 @@
  * -----------------------------------------------------------------------------
  */
 
-/* FIXME: PHP5 OO wrapping TODO list:
+/* FIXME: PHP OO wrapping TODO list:
  *
  * Medium term:
  *
@@ -530,7 +530,7 @@ public:
       Printf(s_init, "extern \"C\" {\n");
       Printf(s_init, "#endif\n");
       // We want to write "SWIGEXPORT ZEND_GET_MODULE(%s)" but ZEND_GET_MODULE
-      // in PHP5 has "extern "C" { ... }" around it so we can't do that.
+      // in PHP7 has "extern "C" { ... }" around it so we can't do that.
       Printf(s_init, "SWIGEXPORT zend_module_entry *get_module(void) { return &%s_module_entry; }\n", module);
       Printf(s_init, "#ifdef __cplusplus\n");
       Printf(s_init, "}\n");
@@ -1462,14 +1462,6 @@ public:
       /* We need $this to refer to the current class, so can't allow it
        * to be used as a parameter. */
       Setattr(seen, "this", seen);
-      /* We use $r to store the return value, so disallow that as a parameter
-       * name in case the user uses the "call-time pass-by-reference" feature
-       * (it's deprecated and off by default in PHP5, but we want to be
-       * maximally portable).  Similarly we use $c for the classname or new
-       * stdClass object.
-       */
-      Setattr(seen, "r", seen);
-      Setattr(seen, "c", seen);
 
       for (int argno = 0; argno < max_num_of_arguments; ++argno) {
 	String *&pname = arg_names[argno];
@@ -2004,7 +1996,7 @@ done:
       String *type = Getattr(n, "name");
       String *value = Getattr(n, "value");
 
-      if (Strcmp(lang, "php") == 0 || Strcmp(lang, "php4") == 0) {
+      if (Strcmp(lang, "php") == 0) {
 	if (Strcmp(type, "code") == 0) {
 	  if (value) {
 	    Printf(pragma_code, "%s\n", value);
@@ -2207,7 +2199,6 @@ done:
 	}
 	Printf(s_phpclasses, "\t}\n");
 
-	/* Create __isset for PHP 5.1 and later; PHP 5.0 will just ignore it. */
 	/* __isset() should return true for read-only properties, so check for
 	 * *_get() not *_set(). */
 	Printf(s_phpclasses, "\n\tfunction __isset($var) {\n");
@@ -2869,4 +2860,18 @@ static Language *new_swig_php() {
 
 extern "C" Language *swig_php(void) {
   return new_swig_php();
+}
+
+extern "C" Language *swig_php4(void) {
+  Printf(stderr, "*** -php4 is no longer supported.\n"
+		 "*** Either upgrade to PHP5 or use SWIG 1.3.36 or earlier.\n");
+  SWIG_exit(EXIT_FAILURE);
+  return NULL; // To avoid compiler warnings.
+}
+
+extern "C" Language *swig_php5(void) {
+  Printf(stderr, "*** -php5 is no longer supported.\n"
+		 "*** Either upgrade to PHP7 or use SWIG < 4.0.0.\n");
+  SWIG_exit(EXIT_FAILURE);
+  return NULL; // To avoid compiler warnings.
 }

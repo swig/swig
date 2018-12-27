@@ -17,6 +17,10 @@ elif [[ "$CC" == gcc-7 ]]; then
 	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 	travis_retry sudo apt-get -qq update
 	travis_retry sudo apt-get install -qq g++-7
+elif [[ "$CC" == gcc-8 ]]; then
+	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+	travis_retry sudo apt-get -qq update
+	travis_retry sudo apt-get install -qq g++-8
 fi
 
 travis_retry sudo apt-get -qq install libboost-dev
@@ -37,7 +41,16 @@ case "$SWIGLANG" in
 	"javascript")
 		case "$ENGINE" in
 			"node")
-				travis_retry sudo apt-get install -qq nodejs node-gyp
+				if [[ -z "$VER" ]]; then
+					travis_retry sudo apt-get install -qq nodejs node-gyp
+				else
+					travis_retry wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.33.10/install.sh | bash
+					export NVM_DIR="$HOME/.nvm"
+					[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+					travis_retry nvm install ${VER}
+					nvm use ${VER}
+					travis_retry npm install -g node-gyp
+				fi
 				;;
 			"jsc")
 				travis_retry sudo apt-get install -qq libwebkitgtk-dev
@@ -79,9 +92,6 @@ case "$SWIGLANG" in
 			travis_retry sudo apt-get -qq update
 			travis_retry sudo apt-get -qq install liboctave${VER}-dev
 		fi
-		;;
-	"php5")
-		travis_retry sudo apt-get -qq install php5-cli php5-dev
 		;;
 	"php")
 		travis_retry sudo add-apt-repository -y ppa:ondrej/php

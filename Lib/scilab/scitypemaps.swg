@@ -97,7 +97,7 @@
   if (SWIG_AsVal_dec(Enum)($input, &val) != SWIG_OK) {
     return SWIG_ERROR;
   }
-  $1 = %reinterpret_cast(val, $ltype);
+  $1 = %static_cast(val, $1_ltype);
 }
 
 %typemap(out, fragment=SWIG_From_frag(Enum)) enum SWIGTYPE {

@@ -68,8 +68,8 @@ class CSHARP:public Language {
   String *module_baseclass;	//inheritance for module class from %pragma
   String *imclass_interfaces;	//interfaces for intermediary class class from %pragma
   String *module_interfaces;	//interfaces for module class from %pragma
-  String *imclass_class_modifiers;	//class modifiers for intermediary class overriden by %pragma
-  String *module_class_modifiers;	//class modifiers for module class overriden by %pragma
+  String *imclass_class_modifiers;	//class modifiers for intermediary class overridden by %pragma
+  String *module_class_modifiers;	//class modifiers for module class overridden by %pragma
   String *upcasts_code;		//C++ casts for inheritance hierarchies C++ code
   String *imclass_cppcasts_code;	//C++ casts up inheritance hierarchies intermediary class code
   String *director_callback_typedefs;	// Director function pointer typedefs for callbacks
@@ -1910,9 +1910,15 @@ public:
 	Replaceall(destruct, "$imcall", destructor_call);
       else
 	Replaceall(destruct, "$imcall", "throw new global::System.MethodAccessException(\"C++ destructor does not have public access\")");
-      if (*Char(destruct))
-	Printv(proxy_class_def, "\n  ", destruct_methodmodifiers, " ", derived ? "override" : "virtual", " void ", destruct_methodname, "() ", destruct, "\n",
-	       NIL);
+      if (*Char(destruct)) {
+	Printv(proxy_class_def, "\n  ", NIL);
+	const String *methodmods = Getattr(n, "destructmethodmodifiers");
+	if (methodmods)
+	  Printv(proxy_class_def, methodmods, NIL);
+	else
+	  Printv(proxy_class_def, destruct_methodmodifiers, " ", derived ? "override" : "virtual", NIL);
+	Printv(proxy_class_def, " void ", destruct_methodname, "() ", destruct, "\n", NIL);
+      }
     }
     if (*Char(interface_upcasts))
       Printv(proxy_class_def, interface_upcasts, NIL);
@@ -1929,7 +1935,7 @@ public:
 	String *methid = Getattr(udata, "class_methodidx");
 	String *overname = Getattr(udata, "overname");
 	Printf(proxy_class_code, "    if (SwigDerivedClassHasMethod(\"%s\", swigMethodTypes%s))\n", method, methid);
-	Printf(proxy_class_code, "      swigDelegate%s = new SwigDelegate%s_%s(SwigDirector%s);\n", methid, proxy_class_name, methid, overname);
+	Printf(proxy_class_code, "      swigDelegate%s = new SwigDelegate%s_%s(SwigDirectorMethod%s);\n", methid, proxy_class_name, methid, overname);
       }
       String *director_connect_method_name = Swig_name_member(getNSpace(), getClassPrefix(), "director_connect");
       Printf(proxy_class_code, "    %s.%s(swigCPtr", imclass_name, director_connect_method_name);
@@ -2782,7 +2788,8 @@ public:
 
       /* Insert the csconstruct typemap, doing the replacement for $directorconnect, as needed */
       Hash *attributes = NewHash();
-      String *construct_tm = Copy(typemapLookup(n, "csconstruct", Getattr(n, "name"),
+      String *typemap_lookup_type = Getattr(getCurrentClass(), "classtypeobj");
+      String *construct_tm = Copy(typemapLookup(n, "csconstruct", typemap_lookup_type,
 						WARN_CSHARP_TYPEMAP_CSCONSTRUCT_UNDEF, attributes));
       if (construct_tm) {
 	if (!feature_director) {
@@ -2860,7 +2867,11 @@ public:
 
     if (proxy_flag) {
       Printv(destructor_call, full_imclass_name, ".", Swig_name_destroy(getNSpace(), symname), "(swigCPtr)", NIL);
+      const String *methodmods = Getattr(n, "feature:cs:methodmodifiers");
+      if (methodmods)
+	Setattr(getCurrentClass(), "destructmethodmodifiers", methodmods);
     }
+
     return SWIG_OK;
   }
 
@@ -3853,7 +3864,7 @@ public:
 	  Printf(director_delegate_definitions, "  %s\n", im_directoroutattributes);
       }
 
-      Printf(callback_def, "  private %s SwigDirector%s(", tm, overloaded_name);
+      Printf(callback_def, "  private %s SwigDirectorMethod%s(", tm, overloaded_name);
       if (!ignored_method) {
 	const String *csdirectordelegatemodifiers = Getattr(n, "feature:csdirectordelegatemodifiers");
 	String *modifiers = (csdirectordelegatemodifiers ? NewStringf("%s%s", csdirectordelegatemodifiers, Len(csdirectordelegatemodifiers) > 0 ? " " : "") : NewStringf("public "));
@@ -4398,8 +4409,8 @@ public:
       Printf(f_directors_h, "    virtual ~%s() noexcept;\n", dirclassname);
       Printf(w->def, "%s::~%s() noexcept {\n", dirclassname, dirclassname);
     } else if (Getattr(n, "throw")) {
-      Printf(f_directors_h, "    virtual ~%s() throw ();\n", dirclassname);
-      Printf(w->def, "%s::~%s() throw () {\n", dirclassname, dirclassname);
+      Printf(f_directors_h, "    virtual ~%s() throw();\n", dirclassname);
+      Printf(w->def, "%s::~%s() throw() {\n", dirclassname, dirclassname);
     } else {
       Printf(f_directors_h, "    virtual ~%s();\n", dirclassname);
       Printf(w->def, "%s::~%s() {\n", dirclassname, dirclassname);

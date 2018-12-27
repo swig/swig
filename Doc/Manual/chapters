@@ -5,6 +5,7 @@ Scripting.html
 SWIG.html
 SWIGPlus.html
 CPlusPlus11.html
+CPlusPlus17.html
 Preprocessor.html
 Library.html
 Arguments.html
@@ -12,6 +13,7 @@ Typemaps.html
 Customization.html
 Contract.html
 Varargs.html
+Doxygen.html
 Warnings.html
 Modules.html
 CCache.html

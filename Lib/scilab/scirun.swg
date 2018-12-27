@@ -49,8 +49,13 @@ static char *SWIG_Scilab_GetFuncName(void) {
 static void SWIG_Scilab_SetFuncName(char *funcName) {
   if (SwigFuncName != NULL) {
     free(SwigFuncName);
+    SwigFuncName = NULL;
   }
-  SwigFuncName = strdup(funcName);
+  if (funcName) {
+    SwigFuncName = (char *)malloc(strlen(funcName) + 1);
+    if (SwigFuncName)
+      strcpy(SwigFuncName, funcName);
+  }
 }
 
 /* Api context management functions */
@@ -152,15 +157,15 @@ SWIGRUNTIME void
 SWIG_Scilab_Raise_Ex(const char *obj, const char *type, swig_type_info *descriptor) {
   if (type) {
     if (obj)
-      Scierror(SWIG_SCILAB_ERROR, "SWIG/Scilab: Exception (%s) occured: %s\n", type, obj);
+      Scierror(SWIG_SCILAB_ERROR, "SWIG/Scilab: Exception (%s) occurred: %s\n", type, obj);
     else
-      Scierror(SWIG_SCILAB_ERROR, "SWIG/Scilab: Exception (%s) occured.\n", type);
+      Scierror(SWIG_SCILAB_ERROR, "SWIG/Scilab: Exception (%s) occurred.\n", type);
   }
 }
 
 SWIGRUNTIME void
 SWIG_Scilab_Raise(const int obj, const char *type, swig_type_info *descriptor) {
-  Scierror(SWIG_SCILAB_ERROR, "SWIG/Scilab: Exception (%s) occured.\n", type);
+  Scierror(SWIG_SCILAB_ERROR, "SWIG/Scilab: Exception (%s) occurred.\n", type);
 }
 
 /* Module initialization */

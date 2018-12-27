@@ -139,7 +139,11 @@ SWIGINTERN bool SWIG_Octave_LoadModule(std::string name) {
 #endif
 #if SWIG_OCTAVE_PREREQ(4,2,0)
     try {
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+      octave::feval(name, octave_value_list(), 0);
+#else
       feval(name, octave_value_list(), 0);
+#endif
       retn = true;
     } catch (octave::execution_exception&) { }
 #else
@@ -170,7 +174,7 @@ SWIGINTERN bool SWIG_Octave_InstallFunction(octave_function *octloadfcn, std::st
     frame.protect_var(discard_error_messages);          discard_error_messages = true;
     frame.protect_var(discard_warning_messages);        discard_warning_messages = true;
 #else
-    unwind_protect::begin_frame("SWIG_Octave_LoadModule");
+    unwind_protect::begin_frame("SWIG_Octave_InstallFunction");
     unwind_protect_int(error_state);                    error_state = 0;
     unwind_protect_int(warning_state);                  warning_state = 0;
     unwind_protect_bool(discard_error_messages);        discard_error_messages = true;
@@ -181,7 +185,11 @@ SWIGINTERN bool SWIG_Octave_InstallFunction(octave_function *octloadfcn, std::st
     args.append(octloadfcn->fcn_file_name());
 #if SWIG_OCTAVE_PREREQ(4,2,0)
     try {
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+      octave::feval("autoload", args, 0);
+#else
       feval("autoload", args, 0);
+#endif
       retn = true;
     } catch (octave::execution_exception&) { }
 #else
@@ -312,6 +320,8 @@ static const char *const SWIG_name_usage = "-*- texinfo -*- \n\
 Loads the SWIG-generated module `" SWIG_name_d "'.\n\
 @end deftypefn";
 
+void __swig_atexit__(void) { ::_Exit(0); }
+
 DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
 
   static octave_swig_type* module_ns = 0;
@@ -322,7 +332,9 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
   // version 3.4.*, but reappeared in 4.2.*, so turn on for all versions after 3.2.*.
   // can be turned off with macro definition.
 #ifndef SWIG_OCTAVE_NO_SEGFAULT_HACK
-#if SWIG_OCTAVE_PREREQ(3,2,0)
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+  atexit(__swig_atexit__);
+#elif SWIG_OCTAVE_PREREQ(3,2,0)
   octave_exit = ::_Exit;
 #endif
 #endif
@@ -351,15 +363,54 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
                      "__swig_atexit__; "
                      "atexit(\"__swig_atexit__\", false); "
                      "atexit(\"__swig_atexit__\")");
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+    octave::feval("evalin", eval_args, 0);
+#else
     feval("evalin", eval_args, 0);
 #endif
+#endif
 
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+    {
+      octave::type_info& typeinfo = octave::interpreter::the_interpreter()->get_type_info();
+      string_vector types = typeinfo.installed_type_names();
+      bool register_octave_swig_ref = true;
+      bool register_octave_swig_packed = true;
+      bool register_octave_swig_bound_func = true;
+      for (int i = 0; i < types.numel(); ++i) {
+        if (types(i) == octave_swig_ref::static_type_name()) {
+          register_octave_swig_ref = false;
+        }
+        if (types(i) == octave_swig_packed::static_type_name()) {
+          register_octave_swig_packed = false;
+        }
+        if (types(i) == octave_swig_bound_func::static_type_name()) {
+          register_octave_swig_bound_func = false;
+        }
+      }
+      if (register_octave_swig_ref) {
+        octave_swig_ref::register_type();
+      }
+      if (register_octave_swig_packed) {
+        octave_swig_packed::register_type();
+      }
+      if (register_octave_swig_bound_func) {
+        octave_swig_bound_func::register_type();
+      }
+    }
+#else
     octave_swig_ref::register_type();
     octave_swig_packed::register_type();
+#endif
     SWIG_InitializeModule(0);
     SWIG_PropagateClientData();
 
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+    octave::call_stack& stack = octave::interpreter::the_interpreter()->get_call_stack();
+    octave_function *me = stack.current();
+#else
     octave_function *me = octave_call_stack::current();
+#endif
 
     if (!SWIG_Octave_InstallFunction(me, "subclass")) {
       return octave_value_list();
@@ -426,10 +477,12 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
       }
     }
 
-#if !SWIG_OCTAVE_PREREQ(3,2,0)
-    mlock(me->name());
-#else
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+    octave::interpreter::the_interpreter()->mlock();
+#elif SWIG_OCTAVE_PREREQ(3,2,0)
     mlock();
+#else
+    mlock(me->name());
 #endif
 
   }

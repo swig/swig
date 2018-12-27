@@ -80,7 +80,7 @@
 /* Consttab, needed for callbacks, it should be removed later */
 
 %typemap(consttab) SWIGTYPE ((*)(ANY))
-{ SWIG_PY_POINTER, (char*)"$symname", 0, 0, (void *)($value), &$descriptor }
+{ SWIG_PY_POINTER, "$symname", 0, 0, (void *)($value), &$descriptor }
 %typemap(consttab) SWIGTYPE ((* const)(ANY)) = SWIGTYPE ((*)(ANY));
 
 %typemap(constcode) SWIGTYPE ((*)(ANY)) "";

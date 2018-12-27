@@ -102,7 +102,7 @@
 /* isfinite() is a macro for C99 */
 # if defined(isfinite)
 #  define SWIG_isfinite(X) (isfinite(X))
-# elif defined __cplusplus && __cplusplus >= 201103L
+# elif defined(__cplusplus) && __cplusplus >= 201103L
 /* Use a template so that this works whether isfinite() is std::isfinite() or
  * in the global namespace.  The reality seems to vary between compiler
  * versions.
@@ -118,6 +118,12 @@ inline int SWIG_isfinite_func(T x) {
   return isfinite(x);
 }
 #  define SWIG_isfinite(X) (SWIG_isfinite_func(X))
+# elif defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 2))
+#  define SWIG_isfinite(X) (__builtin_isfinite(X))
+# elif defined(__clang__) && defined(__has_builtin)
+#  if __has_builtin(__builtin_isfinite)
+#   define SWIG_isfinite(X) (__builtin_isfinite(X))
+#  endif
 # elif defined(_MSC_VER)
 #  define SWIG_isfinite(X) (_finite(X))
 # elif defined(__sun) && defined(__SVR4)

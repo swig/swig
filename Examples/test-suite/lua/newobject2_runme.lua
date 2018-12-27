@@ -1,8 +1,8 @@
 require("import")	-- the import fn
 import("newobject2",true)	-- import code
 
-foo1 = newobject2.makeFoo()	-- lua doesnt yet support static fns properly
-assert(newobject2.fooCount() == 1)	-- lua doesnt yet support static fns properly
+foo1 = newobject2.makeFoo()	-- lua doesn't yet support static fns properly
+assert(newobject2.fooCount() == 1)	-- lua doesn't yet support static fns properly
 
 foo2 = newobject2.makeFoo()
 assert(newobject2.fooCount() == 2)

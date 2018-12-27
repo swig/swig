@@ -989,7 +989,7 @@ public:
     // Smart pointer classes do not mirror the inheritance hierarchy of the
     // underlying types, so aliasing the base class methods in is not required
     // for them.
-    // DMD BUG: We have to emit the alias after the last function becasue
+    // DMD BUG: We have to emit the alias after the last function because
     // taking a delegate in the overload checking code fails otherwise
     // (http://d.puremagic.com/issues/show_bug.cgi?id=4860).
     if (!Getattr(n, "sym:nextSibling") && !is_smart_pointer() &&
@@ -1227,8 +1227,9 @@ public:
 
     // Insert the dconstructor typemap (replacing $directorconnect as needed).
     Hash *attributes = NewHash();
+    String *typemap_lookup_type = Getattr(getCurrentClass(), "classtypeobj");
     String *construct_tm = Copy(lookupCodeTypemap(n, "dconstructor",
-      Getattr(n, "name"), WARN_D_TYPEMAP_DCONSTRUCTOR_UNDEF, attributes));
+      typemap_lookup_type, WARN_D_TYPEMAP_DCONSTRUCTOR_UNDEF, attributes));
     if (construct_tm) {
       const bool use_director = (parentNode(n) && Swig_directorclass(n));
       if (!use_director) {
@@ -1298,7 +1299,12 @@ public:
   virtual int destructorHandler(Node *n) {
     Language::destructorHandler(n);
     String *symname = Getattr(n, "sym:name");
+
     Printv(destructor_call, im_dmodule_fq_name, ".", Swig_name_destroy(getNSpace(),symname), "(cast(void*)swigCPtr)", NIL);
+    const String *methodmods = Getattr(n, "feature:d:methodmodifiers");
+    if (methodmods)
+      Setattr(getCurrentClass(), "destructmethodmodifiers", methodmods);
+
     return SWIG_OK;
   }
 
@@ -1476,7 +1482,7 @@ public:
     }
     Delete(attributes);
 
-    // Retrive the override value set via %dconstvalue, if any.
+    // Retrieve the override value set via %dconstvalue, if any.
     String *override_value = Getattr(n, "feature:d:constvalue");
     if (override_value) {
       Printf(constants_code, "%s;\n", override_value);
@@ -2497,8 +2503,8 @@ public:
       Printf(f_directors_h, "    virtual ~%s() noexcept;\n", dirclassname);
       Printf(w->def, "%s::~%s() noexcept {\n", dirclassname, dirclassname);
     } else if (Getattr(n, "throw")) {
-      Printf(f_directors_h, "    virtual ~%s() throw ();\n", dirclassname);
-      Printf(w->def, "%s::~%s() throw () {\n", dirclassname, dirclassname);
+      Printf(f_directors_h, "    virtual ~%s() throw();\n", dirclassname);
+      Printf(w->def, "%s::~%s() throw() {\n", dirclassname, dirclassname);
     } else {
       Printf(f_directors_h, "    virtual ~%s();\n", dirclassname);
       Printf(w->def, "%s::~%s() {\n", dirclassname, dirclassname);
@@ -3312,9 +3318,13 @@ private:
       }
 
       if (*Char(dispose_code)) {
-	Printv(body, "\n", dispose_methodmodifiers,
-	  (derived ? " override" : ""), " void ", dispose_methodname, "() ",
-	  dispose_code, "\n", NIL);
+	Printv(body, "\n", NIL);
+	const String *methodmods = Getattr(n, "destructmethodmodifiers");
+	if (methodmods)
+	  Printv(body, methodmods, NIL);
+	else
+	  Printv(body, dispose_methodmodifiers, (derived ? " override" : ""), NIL);
+	Printv(body, " void ", dispose_methodname, "() ", dispose_code, "\n", NIL);
       }
     }
 
@@ -4343,7 +4353,7 @@ private:
    *
    * Determines whether the class the passed function node belongs to overrides
    * all the overlaods for the passed function node defined somewhere up the
-   * inheritance hierachy.
+   * inheritance hierarchy.
    * --------------------------------------------------------------------------- */
   bool areAllOverloadsOverridden(Node *n) const {
     List *base_list = Getattr(parentNode(n), "bases");
@@ -4368,7 +4378,7 @@ private:
     }
 
     // We try to find at least a single overload which exists in the base class
-    // so we can progress up the inheritance hierachy even if there have been
+    // so we can progress up the inheritance hierarchy even if there have been
     // new overloads introduced after the topmost class.
     Node *base_function = NULL;
     String *symname = Getattr(n, "sym:name");
@@ -4394,7 +4404,7 @@ private:
 	  !(Swig_director_mode() && Swig_director_protected_mode() && Swig_all_protected_mode())) {
 	// If the base class function is »protected« and were are not in
 	// director mode, it is not emitted to the base class and thus we do
-	// not count it. Otherwise, we would run into issues if the visiblity
+	// not count it. Otherwise, we would run into issues if the visibility
 	// of some functions was changed from protected to public in a child
 	// class with the using directive.
 	continue;

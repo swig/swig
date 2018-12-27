@@ -2,7 +2,7 @@
 
 ---- importing ----
 if string.sub(_VERSION,1,7)=='Lua 5.0' then
-	-- lua5.0 doesnt have a nice way to do this
+	-- lua5.0 doesn't have a nice way to do this
 	lib=loadlib('example.dll','luaopen_example') or loadlib('example.so','luaopen_example')
 	assert(lib)()
 else
@@ -48,7 +48,7 @@ else
 end
 
 -- this is a rather strange way to perform the multiple catch of exceptions
-print "calling t:mutli()"
+print "calling t:multi()"
 for i=1,3 do
     ok,res=pcall(function() t:multi(i) end)
     if ok then

@@ -1,4 +1,5 @@
 import li_std_wstring
+import sys
 
 x = u"h"
 
@@ -81,3 +82,25 @@ if b.name != "hello":
 b.a = li_std_wstring.A("hello")
 if b.a != u"hello":
     raise RuntimeError("bad string mapping")
+
+# Byte strings only converted in Python 2
+if sys.version_info[0:2] < (3, 0):
+    x = b"hello there"
+    if li_std_wstring.test_value(x) != x:
+        raise RuntimeError("bad string mapping")
+
+# Invalid utf-8 in a byte string fails in all versions
+x = b"h\xe9llo"
+try:
+    li_std_wstring.test_value(x)
+    raise RuntimeError("TypeError not thrown")
+except TypeError:
+    pass
+
+# Check surrogateescape
+if sys.version_info[0:2] > (3, 1):
+    x = u"h\udce9llo"  # surrogate escaped representation of C char*: "h\xe9llo"
+    if li_std_wstring.non_utf8_c_str() != x:
+        raise RuntimeError("surrogateescape not working")
+    if li_std_wstring.size_wstring(x) != 5 and len(x) != 5:
+        raise RuntimeError("Unexpected length")

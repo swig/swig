@@ -7,16 +7,6 @@
 %rename(TestDir) TestDirector;
 #endif
 
-%{
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
-#endif
-%}
-
 // Ruby constant names
 #pragma SWIG nowarn=SWIGWARN_RUBY_WRONG_NAME
 
@@ -263,14 +253,17 @@ macro(Param<char>,        pfx, paramc)
 macro(size_t,             pfx, sizet)
 %enddef
 
+%define catches_decl(type, pfx, name)
+  %catches(type) pfx##_##name(type x);
+%enddef
 
 /* function passing by value */
 %define val_decl(type, pfx, name)
-  type pfx##_##name(type x) throw (type) { return x; }
+  type pfx##_##name(type x) { return x; }
 %enddef
 /* function passing by ref */
 %define ref_decl(type, pfx, name)
-  const type& pfx##_##name(const type& x) throw (type) { return x; }
+  const type& pfx##_##name(const type& x) { return x; }
 %enddef
 
 /* C++ constant declaration */
@@ -304,6 +297,11 @@ macro(size_t,             pfx, sizet)
 
 
 %test_prim_types(sct_decl, sct)
+
+%test_prim_types(catches_decl, val)
+%test_prim_types(catches_decl, ref)
+%test_prim_types(catches_decl, cct)
+%test_prim_types(catches_decl, var)
 
 %inline {
   %test_prim_types(val_decl, val)
@@ -456,12 +454,12 @@ macro(size_t,             pfx, sizet)
    var_decl(namet, var, namet)
 
 
-   const char* val_namet(namet x) throw(namet)
+   const char* val_namet(namet x)
    {
      return x;
    }
 
-   const char* val_cnamet(const namet x) throw(namet)
+   const char* val_cnamet(const namet x)
    {
      return x;
    }
@@ -469,7 +467,7 @@ macro(size_t,             pfx, sizet)
 #if 0
    /* I have no idea how to define a typemap for 
       const namet&, where namet is a char[ANY]  array */
-   const namet& ref_namet(const namet& x) throw(namet)
+   const namet& ref_namet(const namet& x)
    {
      return x;
    }
@@ -513,12 +511,12 @@ macro(size_t,             pfx, sizet)
      var_namet[0]='h';
    }
 
-   virtual const char* vval_namet(namet x) throw(namet)
+   virtual const char* vval_namet(namet x)
    {
      return x;
    }
 
-   virtual const char* vval_cnamet(const namet x) throw(namet)
+   virtual const char* vval_cnamet(const namet x)
    {
      return x;
    }
@@ -526,7 +524,7 @@ macro(size_t,             pfx, sizet)
 #if 0
    /* I have no idea how to define a typemap for 
       const namet&, where namet is a char[ANY]  array */
-   virtual const namet& vref_namet(const namet& x) throw(namet)
+   virtual const namet& vref_namet(const namet& x)
    {
      return x;
    }
@@ -563,7 +561,7 @@ macro(size_t,             pfx, sizet)
    %test_prim_types_ovr(ovr_decl, ovr)
    
 
-   virtual Test* vtest(Test* t) const throw (Test)
+   virtual Test* vtest(Test* t) const
    {
      return t;
    }

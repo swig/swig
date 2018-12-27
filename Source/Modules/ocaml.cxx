@@ -1592,7 +1592,7 @@ public:
 
       /*
        * Python method may return a simple object, or a tuple.
-       * for in/out aruments, we have to extract the appropriate values from the 
+       * for in/out arguments, we have to extract the appropriate values from the
        * argument list, then marshal everything back to C/C++ (return value and
        * output arguments).
        */

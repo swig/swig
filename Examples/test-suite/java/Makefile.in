@@ -6,6 +6,8 @@ LANGUAGE     = java
 JAVA         = @JAVA@
 JAVAC        = @JAVAC@
 JAVAFLAGS    = @JAVAFLAGS@
+JAVA_CLASSPATH_SEP = @JAVA_CLASSPATH_SEP@
+JAVA_TOOLS_JAR     = @JAVA_TOOLS_JAR@
 SCRIPTSUFFIX = _runme.java
 
 srcdir       = @srcdir@
@@ -29,6 +31,7 @@ CPP_TEST_CASES = \
 	java_director_exception_feature_nspace \
 	java_director_ptrclass \
 	java_director_typemaps \
+	java_director_typemaps_ptr \
 	java_enums \
 	java_jnitypes \
 	java_lib_arrays_dimensionless \
@@ -50,6 +53,12 @@ CPP11_TEST_CASES = \
 	cpp11_shared_ptr_upcast \
 	cpp11_strongly_typed_enumerations_simple \
 
+DOXYGEN_TEST_CASES := \
+	doxygen_parsing_enums_simple \
+	doxygen_parsing_enums_proper \
+	doxygen_parsing_enums_typesafe \
+	doxygen_parsing_enums_typeunsafe \
+
 include $(srcdir)/../common.mk
 
 # Overridden variables here
@@ -59,6 +68,7 @@ JAVA_PACKAGEOPT = -package $(JAVA_PACKAGE)
 SWIGOPT += $(JAVA_PACKAGEOPT)
 
 # Custom tests - tests with additional commandline options
+cpp17_nspace_nested_namespaces.%: JAVA_PACKAGE = $*Package
 director_nspace.%: JAVA_PACKAGE = $*Package
 director_nspace_director_name_collision.%: JAVA_PACKAGE = $*Package
 java_director_exception_feature_nspace.%: JAVA_PACKAGE = $*Package
@@ -94,14 +104,23 @@ setup = \
 	  mkdir $(JAVA_PACKAGE);							  \
 	fi
 
+# Doxygen test cases need to be compiled together with the CommentParser class
+# which depends on com.sun.javadoc package which is located in this JAR.
+CommentParser.class:
+	$(COMPILETOOL) $(JAVAC) -classpath $(JAVA_CLASSPATH) -d . $(srcdir)/CommentParser.java
+
+JAVA_CLASSPATH := .
+$(DOXYGEN_TEST_CASES:=.cpptest): JAVA_CLASSPATH := "$(JAVA_TOOLS_JAR)$(JAVA_CLASSPATH_SEP)."
+$(DOXYGEN_TEST_CASES:=.cpptest): CommentParser.class
+
 # Compiles java files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.java appended after the testcase name.
 # Note Java uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows, SHLIB_PATH on HPUX and DYLD_LIBRARY_PATH on Mac OS X.
 run_testcase = \
 	cd $(JAVA_PACKAGE) && $(COMPILETOOL) $(JAVAC) -classpath . `find . -name "*.java"` && cd .. && \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  $(COMPILETOOL) $(JAVAC) -classpath . -d . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
-	  env LD_LIBRARY_PATH="$(JAVA_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(JAVA_PACKAGE):$$PATH" SHLIB_PATH="$(JAVA_PACKAGE):$$SHLIB_PATH" DYLD_LIBRARY_PATH="$(JAVA_PACKAGE):$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) $(JAVAFLAGS) -classpath . $*_runme; \
+	  $(COMPILETOOL) $(JAVAC) -classpath $(JAVA_CLASSPATH) -d . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	  env LD_LIBRARY_PATH="$(JAVA_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(JAVA_PACKAGE):$$PATH" SHLIB_PATH="$(JAVA_PACKAGE):$$SHLIB_PATH" DYLD_LIBRARY_PATH="$(JAVA_PACKAGE):$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) $(JAVAFLAGS) -classpath $(JAVA_CLASSPATH) $*_runme; \
 	fi
 
 # Clean: remove testcase directories
