@@ -1098,13 +1098,13 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
           }
         }
       }
-    }
-    if (!SWIG_IsOK(res) && obj == Py_None) {
-      if (ptr)
-        *ptr = 0;
-      if (PyErr_Occurred())
-        PyErr_Clear();
-      res = SWIG_OK;
+      if (!SWIG_IsOK(res) && obj == Py_None) {
+        if (ptr)
+          *ptr = 0;
+        if (PyErr_Occurred())
+          PyErr_Clear();
+        res = SWIG_OK;
+      }
     }
   }
   return res;
