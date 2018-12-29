@@ -13,15 +13,7 @@ check(1, A(1).get())
 check(2, A(1.0).get())
 check(3, A(B()).get())
 check(4, A("hello").get())
-try:
-    check(3, A(None).get())
-    raise RuntimeError
-except ValueError:
-    # ValueError: invalid null reference in method 'new_A', argument 1 of type 'B const &'
-    # Arguably A(char *) should be chosen, but there is a bug to do with None passed to methods overloaded by value,
-    # references and pointers to different types, where pointers ought to be
-    # given a slightly higher precedence.
-    pass
+check(4, A(None).get())
 
 check(1, get(1))
 check(2, get(1.0))

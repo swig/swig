@@ -1018,7 +1018,7 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
   if (obj == Py_None && !implicit_conv) {
     if (ptr)
       *ptr = 0;
-    return SWIG_OK;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
 
   res = SWIG_ERROR;
