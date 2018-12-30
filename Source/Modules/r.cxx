@@ -1664,37 +1664,29 @@ void R::dispatchFunction(Node *n) {
 	    Printf(stdout, "<rtypecheck>%s\n", tmcheck);
 	  }
 	  Printf(f->code, "%s(%s)",
-		 j == 0? "" : " && ",
+		 j == 0 ? "" : " && ",
 		 tmcheck);
 	  p = Getattr(p, "tmap:in:next");
 	  continue;
 	}
+	// Below should be migrated into rtypecheck typemaps
 	if (tm) {
-	  if (Strcmp(tm,"numeric")==0) {
-	    Printf(f->code, "%sis.numeric(argv[[%d]])",
-	           j == 0 ? "" : " && ",
-	           j+1);
-	  }
-	  else if (Strcmp(tm,"integer")==0) {
-	    Printf(f->code, "%s(is.integer(argv[[%d]]) || is.numeric(argv[[%d]]))",
-	           j == 0 ? "" : " && ",
-	           j+1, j+1);
-	  }
-	  else if (Strcmp(tm,"character")==0) {
-	    Printf(f->code, "%sis.character(argv[[%d]])",
-	           j == 0 ? "" : " && ",
-	           j+1);
-	  }
-	  else {
-	    Printf(f->code, "%sextends(argtypes[%d], '%s')",
-	           j == 0 ? "" : " && ",
-	           j+1,
-	           tm);
+	  Printf(f->code, "%s", j == 0 ? "" : " && ");
+	  if (Strcmp(tm, "numeric") == 0) {
+	    Printf(f->code, "is.numeric(argv[[%d]])", j+1);
+	  } else if (Strcmp(tm, "integer") == 0) {
+	    Printf(f->code, "(is.integer(argv[[%d]]) || is.numeric(argv[[%d]]))", j+1, j+1);
+	  } else if (Strcmp(tm, "character") == 0) {
+	    Printf(f->code, "is.character(argv[[%d]])", j+1);
+	  } else {
+	    if (SwigType_ispointer(Getattr(p, "type")))
+	      Printf(f->code, "(extends(argtypes[%d], '%s') || is.null(argv[[%d]]))", j+1, tm, j+1);
+	    else
+	      Printf(f->code, "extends(argtypes[%d], '%s')", j+1, tm);
 	  }
 	}
 	if (!SwigType_ispointer(Getattr(p, "type"))) {
-	  Printf(f->code, " && length(argv[[%d]]) == 1",
-	         j+1);
+	  Printf(f->code, " && length(argv[[%d]]) == 1", j+1);
 	}
 	p = Getattr(p, "tmap:in:next");
       }
