@@ -12,6 +12,7 @@
 
 OCAMLKW(and);
 OCAMLKW(as);
+OCAMLKW(asr);
 OCAMLKW(assert);
 OCAMLKW(begin);
 OCAMLKW(class);
@@ -33,13 +34,20 @@ OCAMLKW(in);
 OCAMLKW(include);
 OCAMLKW(inherit);
 OCAMLKW(initializer);
+OCAMLKW(land);
 OCAMLKW(lazy);
 OCAMLKW(let);
+OCAMLKW(lor);
+OCAMLKW(lsl);
+OCAMLKW(lsr);
+OCAMLKW(lxor);
 OCAMLKW(match);
 OCAMLKW(method);
+OCAMLKW(mod);
 OCAMLKW(module);
 OCAMLKW(mutable);
 OCAMLKW(new);
+OCAMLKW(nonrec);
 OCAMLKW(object);
 OCAMLKW(of);
 OCAMLKW(open);
