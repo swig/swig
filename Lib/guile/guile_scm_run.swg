@@ -186,7 +186,7 @@ SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
 
   if (SCM_NULLP(smob)) {
     *result = NULL;
-    return SWIG_OK;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
 #if SCM_MAJOR_VERSION >= 2
   } else if (SCM_POINTER_P(s)) {
     *result = SCM_POINTER_VALUE(s);

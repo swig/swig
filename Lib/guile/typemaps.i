@@ -444,15 +444,21 @@ typedef unsigned long SCM;
   $1 = scm_is_string($input) ? 1 : 0;
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE [] {
   void *ptr;
   int res = SWIG_ConvertPtr($input, &ptr, $1_descriptor, 0);
   $1 = SWIG_CheckState(res);
 }
 
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE &, SWIGTYPE && {
+  void *ptr;
+  int res = SWIG_ConvertPtr($input, &ptr, $1_descriptor, SWIG_POINTER_NO_NULL);
+  $1 = SWIG_CheckState(res);
+}
+
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
   void *ptr;
-  int res = SWIG_ConvertPtr($input, &ptr, $&descriptor, 0);
+  int res = SWIG_ConvertPtr($input, &ptr, $&descriptor, SWIG_POINTER_NO_NULL);
   $1 = SWIG_CheckState(res);
 }
 
