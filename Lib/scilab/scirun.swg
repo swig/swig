@@ -303,7 +303,10 @@ SwigScilabPtrToObject(void *pvApiCtx, int iVar, void **pvObj, swig_type_info *de
 
   if (pvObj) {
     *pvObj = pvPtr;
-    return SWIG_OK;
+    if (pvPtr)
+      return SWIG_OK;
+    else
+      return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
   else {
     return SWIG_ERROR;
