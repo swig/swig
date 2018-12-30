@@ -150,7 +150,7 @@ SWIGRUNTIME int SWIG_JSC_ConvertPtr(JSContextRef context, JSValueRef valRef, voi
   /* special case: JavaScript null => C NULL pointer */
   if(JSValueIsNull(context, valRef)) {
     *ptr=0;
-    return SWIG_OK;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
 
   if(!JSValueIsObject(context, valRef)) {
