@@ -217,7 +217,7 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
       return (*ptr == NULL ? -1 : 0);
     case IS_NULL:
       *ptr = 0;
-      return 0;
+      return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
 
   return -1;
