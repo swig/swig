@@ -6,7 +6,7 @@
 
 /*
   from
-  http://caml.inria.fr/ocaml/htmlman/manual044.html
+  https://caml.inria.fr/pub/docs/manual-ocaml/lex.html
 */
 
 
