@@ -5,6 +5,10 @@
 
 %template(IntPtrVector) std::vector<int *>;
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#endif
+
 %inline %{
 #include <iostream>
 using namespace std;

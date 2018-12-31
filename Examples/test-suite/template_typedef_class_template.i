@@ -1,5 +1,9 @@
 %module template_typedef_class_template
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#endif
+
 %inline %{
 namespace Standard {
   template <class T, class U > struct Pair {

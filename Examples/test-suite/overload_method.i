@@ -1,6 +1,11 @@
 /* This test confirms the fix to sourceforge bug #3478922 for R */
 
 %module overload_method
+
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) method;
+#endif
+
 %inline %{
 class Base
    {
