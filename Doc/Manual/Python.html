@@ -3913,6 +3913,7 @@ class Go(object):
 </div>
 
 <p>
+Each method in the Python class contains a Python proxy method which passes the arguments on to the underlying function in the low-level C/C++ module (_example in this case).
 The generated proxy class when using <tt>-fastproxy</tt> is:
 </p>
 
@@ -3928,7 +3929,12 @@ class Go(object):
 </div>
 
 <p>
-where <tt>_swig_new_instance_method</tt> adds the method to the proxy class via C API calls.
+where <tt>_swig_new_instance_method</tt> adds the method to the proxy class via C API calls for direct access to the underlying function in the low-level C/C++ module.
+Note that for some methods it is not possible to generate the direct access call and so <tt>-fastproxy</tt> is ignored.
+This happens, for example, when adding <a href="#Python_nn42">additional code</a> to Python proxy methods, such as using <tt>%pythonprepend</tt>.
+</p>
+
+<p>
 The overhead calling into C/C++ from Python is reduced slightly using <tt>-fastproxy</tt>.
 Below are some timings in microseconds calling the 3 functions in the example above.
 Also included in the table for comparison is using the <tt>-builtin</tt> option covered in the
@@ -3993,6 +3999,10 @@ class Go(object):
 <p>
 The class defines each method in two different ways. The first definition is replaced by the second definition and so the second definition is the one used when the method is called.
 While this possibly provides the best of both worlds, the time to import the module will be slighly slower when the class is defined due to the additional method definitions.
+</p>
+
+<p>
+The command line options mentioned above also apply to wrapped C/C++ global functions, not just class methods.
 </p>
 
 <H2><a name="Python_nn45">38.7 Tips and techniques</a></H2>

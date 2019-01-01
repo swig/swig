@@ -2144,6 +2144,9 @@ public:
     if (nn)
       n = nn;
 
+    Parm *parms = Getattr(n, "parms");
+    bool varargs = parms ? emit_isvarargs(parms) : 0;
+
     /* We prefer to explicitly list all parameters of the C function in the
        generated Python code as this makes the function more convenient to use,
        however in some cases we must replace the real parameters list with just
@@ -2153,8 +2156,9 @@ public:
 	2. We were explicitly asked to use the "compact" arguments form.
 	3. We were explicitly asked to use default args from C via the "python:cdefaultargs" feature.
 	4. One of the default argument values can't be represented in Python.
+	5. Varargs that haven't been forced to use a fixed number of arguments with %varargs.
      */
-    if (is_real_overloaded(n) || GetFlag(n, "feature:compactdefaultargs") || GetFlag(n, "feature:python:cdefaultargs") || !is_representable_as_pyargs(n)) {
+    if (is_real_overloaded(n) || GetFlag(n, "feature:compactdefaultargs") || GetFlag(n, "feature:python:cdefaultargs") || !is_representable_as_pyargs(n) || varargs) {
       String *parms = NewString("");
       if (in_class)
 	Printf(parms, "self, ");
@@ -2295,21 +2299,28 @@ public:
   void emitFunctionShadowHelper(Node *n, File *f_dest, String *name, int kw) {
     String *parms = make_pyParmList(n, false, false, kw);
     String *callParms = make_pyParmList(n, false, true, kw);
-    /* Make a wrapper function to insert the code into */
-    Printv(f_dest, "\ndef ", name, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-    if (have_docstring(n))
-      Printv(f_dest, tab4, docstring(n, AUTODOC_FUNC, tab4), "\n", NIL);
-    if (have_pythonprepend(n))
-      Printv(f_dest, indent_pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
-    if (have_pythonappend(n)) {
-      Printv(f_dest, tab4 "val = ", funcCall(name, callParms), "\n", NIL);
-      Printv(f_dest, indent_pythoncode(pythonappend(n), tab4, Getfile(n), Getline(n), "%pythonappend or %feature(\"pythonappend\")"), "\n", NIL);
-      Printv(f_dest, tab4 "return val\n", NIL);
-    } else {
-      Printv(f_dest, tab4 "return ", funcCall(name, callParms), "\n", NIL);
+
+    // Callbacks need the C function in order to extract the pointer from the swig_ptr: string
+    bool fast = (fastproxy && !have_addtofunc(n)) || Getattr(n, "feature:callback");
+
+    if (!fast || olddefs) {
+      /* Make a wrapper function to insert the code into */
+      Printv(f_dest, "\n", "def ", name, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
+      if (have_docstring(n))
+	Printv(f_dest, tab4, docstring(n, AUTODOC_FUNC, tab4), "\n", NIL);
+      if (have_pythonprepend(n))
+	Printv(f_dest, indent_pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
+      if (have_pythonappend(n)) {
+	Printv(f_dest, tab4 "val = ", funcCall(name, callParms), "\n", NIL);
+	Printv(f_dest, indent_pythoncode(pythonappend(n), tab4, Getfile(n), Getline(n), "%pythonappend or %feature(\"pythonappend\")"), "\n", NIL);
+	Printv(f_dest, tab4 "return val\n", NIL);
+      } else {
+	Printv(f_dest, tab4 "return ", funcCall(name, callParms), "\n", NIL);
+      }
     }
 
-    if (!have_addtofunc(n)) {
+    // Below may result in a 2nd definition of the method when -olddefs is used. The Python interpreter will use the second definition as it overwrites the first.
+    if (fast) {
       /* If there is no addtofunc directive then just assign from the extension module (for speed up) */
       Printv(f_dest, name, " = ", module, ".", name, "\n", NIL);
     }
