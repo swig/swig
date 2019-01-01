@@ -7,6 +7,10 @@
 %module(directors="1") director_thread
 #endif
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#endif
+
 %begin %{
 #define SWIG_JAVA_USE_THREAD_NAME
 //#define DEBUG_DIRECTOR_THREAD_NAME

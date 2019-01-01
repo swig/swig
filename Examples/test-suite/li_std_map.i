@@ -1,6 +1,10 @@
 %module("templatereduce") li_std_map
 %feature("trackobjects");
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#endif
+
 %inline %{
 namespace another {
 struct map {

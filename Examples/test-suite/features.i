@@ -2,6 +2,10 @@
 
 %warnfilter(SWIGWARN_LANG_IDENTIFIER,SWIGWARN_IGNORE_OPERATOR_PLUSEQ);
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) method;
+#endif
+
 // This testcase checks that %feature is working for templates and non user supplied constructors/destructors and is just generally working
 
 // If the default %exception is used it will not compile. It shouldn't get used.

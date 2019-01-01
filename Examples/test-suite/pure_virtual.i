@@ -12,6 +12,10 @@
 	    SWIGWARN_D_MULTIPLE_INHERITANCE,
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) E; /* C#, D, Java, PHP multiple inheritance */
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) method;
+#endif
+
 %nodefaultctor C;
 %nodefaultdtor C;
 %nodefaultctor E;

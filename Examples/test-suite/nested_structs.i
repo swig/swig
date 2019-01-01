@@ -12,6 +12,10 @@
 
 #endif
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#endif
+
 // bug #491476
 %inline %{
 struct Outer {
