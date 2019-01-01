@@ -368,10 +368,6 @@ matrix:
       env: SWIGLANG=javascript ENGINE=node VER=10 CPP11=1
       sudo: required
       dist: trusty
-    # 'brew upgrade python' failure due to conflicting files: c++
-    - compiler: clang
-      os: osx
-      env: SWIGLANG=python PY3=3
     # Lots of failing tests currently
     - compiler: gcc
       os: linux
