@@ -4,10 +4,6 @@
  * SWIG Configuration File for Ocaml
  * ----------------------------------------------------------------------------- */
 
-%runtime %{
-#define SWIGSTATIC static
-%}
-
 /* Insert common stuff */
 %insert(runtime) "swigrun.swg"
 
