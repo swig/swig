@@ -48,7 +48,7 @@ ml_runme = $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 
 run_testcase = \
 	if [ -f $(srcdir)/$(ml_runme) ]; then \
-		if [ $(srcdir) != $(SCRIPTDIR) ]; then \
+		if [ $(srcdir) != . ]; then \
 			cp $(srcdir)/$(ml_runme) $(ml_runme); \
 		fi ; \
 		$(COMPILETOOL) $(OCAMLC) -c $(ml_runme) && \
@@ -71,7 +71,7 @@ check_quant:
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-SCRIPTDIR = .
+# none!
 
 # Custom tests - tests with additional commandline options
 # none!
