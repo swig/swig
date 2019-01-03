@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-01-03: ZackerySpytz
+            [OCaml] #1386 Fix OCaml out-of-source test-suite
+
 2019-01-01: wsfulton
             [Python] #639 remove duplicate proxy method definitions for global function wrappers.
 
