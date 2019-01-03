@@ -2040,7 +2040,7 @@ AC_SUBST(PHP)
 AC_SUBST(PHPINC)
 
 #----------------------------------------------------------------
-# Look for ocaml
+# Look for OCaml
 #----------------------------------------------------------------
 
 AC_ARG_WITH(ocaml, AS_HELP_STRING([--without-ocaml], [Disable OCaml]), [with_ocaml="$withval"], [with_ocaml="$alllang_default"])
@@ -2055,31 +2055,31 @@ if test x"${with_ocaml}" = xno; then
     AC_MSG_NOTICE([Disabling OCaml])
     OCAMLC=
 else
-    AC_MSG_CHECKING(for Ocaml DL load generator)
+    # OCaml DL load generator
     if test -z "$OCAMLDLGEN"; then
 	AC_CHECK_PROGS(OCAMLDLGEN, ocamldlgen)
     fi
 
-    AC_MSG_CHECKING(for Ocaml package tool)
-	if test -z "$OCAMLFIND"; then
+    # OCaml package tool
+    if test -z "$OCAMLFIND"; then
 	AC_CHECK_PROGS(OCAMLFIND, ocamlfind)
     fi
 
-    AC_MSG_CHECKING(for Ocaml compiler)
-	if test -z "$OCAMLC"; then
+    # OCaml compiler
+    if test -z "$OCAMLC"; then
 	AC_CHECK_PROGS(OCAMLC, ocamlc)
     fi
 
-    AC_MSG_CHECKING(for Ocaml toplevel creator)
+    # OCaml toplevel creator
     if test -z "$OCAMLMKTOP"; then
 	AC_CHECK_PROGS(OCAMLMKTOP, ocamlmktop)
     fi
 
-    AC_MSG_CHECKING(for Ocaml Pre-Processor-Pretty-Printer)
+    # OCaml Pre-Processor-Pretty-Printer
     if test -z "$CAMLP4"; then
 	AC_CHECK_PROGS(CAMLP4, camlp4)
     fi
-fi # Disabling ocaml
+fi
 
 AC_SUBST(OCAMLC)
 AC_SUBST(OCAMLDLGEN)
