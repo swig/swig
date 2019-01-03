@@ -44,15 +44,19 @@ preproc_constants_c \
 string_simple \
 unions \
 
+ml_runme = $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
+
 run_testcase = \
-	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -a \
-	     -f $(top_srcdir)/Examples/test-suite/$*.list ] ; then \
-		$(COMPILETOOL) $(OCAMLC) -c $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
-		$(COMPILETOOL) $(OCAMLC) swig.cmo -custom -g -cc '$(CXX)' -o runme `cat $(top_srcdir)/Examples/test-suite/$(*).list | sed -e 's/\(.*\)/\1_wrap.o \1.cmo/g'`&& $(RUNTOOL) ./runme; \
-	elif [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-		$(COMPILETOOL) $(OCAMLC) -c $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
-		$(COMPILETOOL) $(OCAMLC) swig.cmo -custom -g -cc '$(CXX)' -o runme $(srcdir)/$(*).cmo $(srcdir)/$(*)_runme.cmo $(srcdir)/$(*)_wrap.o && \
-		$(RUNTOOL) ./runme; \
+	if [ -f $(srcdir)/$(ml_runme) ]; then \
+		if [ $(srcdir) != . ]; then \
+			cp $(srcdir)/$(ml_runme) $(ml_runme); \
+		fi ; \
+		$(COMPILETOOL) $(OCAMLC) -c $(ml_runme) && \
+		if [ -f $(top_srcdir)/Examples/test-suite/$*.list ]; then \
+			$(COMPILETOOL) $(OCAMLC) swig.cmo -custom -g -cc '$(CXX)' -o runme `cat $(top_srcdir)/Examples/test-suite/$(*).list | sed -e 's/\(.*\)/\1_wrap.o \1.cmo/g'`&& $(RUNTOOL) ./runme; \
+		else \
+			$(COMPILETOOL) $(OCAMLC) swig.cmo -custom -g -cc '$(CXX)' -o runme $(*).cmo $(*)_runme.cmo $(*)_wrap.o && $(RUNTOOL) ./runme; \
+		fi ; \
 	fi ;
 
 check_quant:
