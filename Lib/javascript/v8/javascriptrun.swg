@@ -347,7 +347,7 @@ SWIGRUNTIME int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void **ptr, swi
   /* special case: JavaScript null => C NULL pointer */
   if(valRef->IsNull()) {
     *ptr=0;
-    return SWIG_OK;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
   if(!valRef->IsObject()) {
     return SWIG_TypeError;

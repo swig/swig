@@ -277,7 +277,7 @@ SWIG_Perl_ConvertPtrAndOwn(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_
     voidptr = INT2PTR(void *,tmp);
   } else if (! SvOK(sv)) {            /* Check for undef */
     *(ptr) = (void *) 0;
-    return SWIG_OK;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   } else if (SvTYPE(sv) == SVt_RV) {  /* Check for NULL pointer */
     if (!SvROK(sv)) {
       /* In Perl 5.12 and later, SVt_RV == SVt_IV, so sv could be a valid integer value.  */
