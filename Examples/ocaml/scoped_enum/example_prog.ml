@@ -1,4 +1,5 @@
 open Swig
 open Example
 
-let _ = _f (match Sys.argv.(1) with "Tag1" -> ``Tag1 | _ -> ``Tag2)
+let arg = if Array.length Sys.argv > 1 then Sys.argv.(1) else "Tag1"
+let _ = _f (match arg with "Tag1" -> ``Tag1 | _ -> ``Tag2)

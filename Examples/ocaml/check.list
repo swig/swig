@@ -1,6 +1,6 @@
 # see top-level Makefile.in
 simple
-std_string
+#std_string
 std_vector
 stl
 argout_ref
