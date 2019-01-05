@@ -8,6 +8,12 @@ Version 4.0.0 (in progress)
 ===========================
 
 2019-01-05: wsfulton
+            #948 #1019 #1273 Fix for C++11 raw strings where the delimiters were mistakenly left
+            in the string contents in situations where the string was copied into generated code.
+            For example, %constant, the "docstring" feature and for C#/Java/D constants turned on
+            with %javaconst/%csconst/%dmanifestconst.
+
+2019-01-05: wsfulton
             [Ruby] #538. Fix Ruby support for %feature("docstring").
 
 2019-01-03: wsfulton
