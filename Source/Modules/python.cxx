@@ -1640,7 +1640,7 @@ public:
    *    func_annotation: Function annotation support
    * ------------------------------------------------------------ */
 
-  String *make_autodocParmList(Node *n, bool showTypes, bool calling = false, bool func_annotation = false) {
+  String *make_autodocParmList(Node *n, bool showTypes, bool calling = false, bool func_annotation = false, bool for_use_in_code = false) {
 
     String *doc = NewString("");
     String *pdocs = 0;
@@ -1694,7 +1694,19 @@ public:
       // Note: the generated name should be consistent with that in kwnames[]
       String *made_name = 0;
       if (!name) {
-	name = made_name = makeParameterName(n, p, arg_num);
+	// Use more readable parameter names for the documentation if this parameter has any name at all.
+	if (!for_use_in_code) {
+	  String* pname = Getattr(p, "name");
+	  if (pname)
+	    made_name = Swig_name_make(p, 0, pname, 0, 0);
+	}
+
+	if (!made_name) {
+	  // But if it doesn't, or if we're going to use it in the code, use the less readable, but guaranteedly unique name built by makeParameterName().
+	  made_name = makeParameterName(n, p, arg_num);
+	}
+
+	name = made_name;
       }
 
       type = type ? type : Getattr(p, "type");
@@ -2170,7 +2182,7 @@ public:
 
     bool funcanno = py3 ? true : false;
     String *params = NewString("");
-    String *_params = make_autodocParmList(n, false, is_calling, funcanno);
+    String *_params = make_autodocParmList(n, false, is_calling, funcanno, true /* for use in the code */);
 
     if (in_class) {
       Printf(params, "self");
