@@ -1154,6 +1154,7 @@ end program
 ```
 
 ## Fortran-to-C array translation
+
 The `<typemaps.i>` library file provides a simple means of passing Fortran
 arrays by reference. It defines a two-argument typemap `(SWIGTYPE *DATA, size_t
 SIZE)` that is wrapped as a single Fortran argument, an array of `SWIGTYPE`

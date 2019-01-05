@@ -48,7 +48,6 @@ std::vector<int> from_value(std::vector<int> inp)
 
 %}
 
-
 /* -------------------------------------------------------------------------
  * Add a special copy-free "view" method that looks directly at a
  * Fortran-owned piece of data

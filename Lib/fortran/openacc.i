@@ -1,15 +1,5 @@
 /* -------------------------------------------------------------------------
  * openacc.i
- *
- * OpenACC Fortran/C interoperability. Assumes a typedef "HAVE_ACC" is
- * defined in the target code -- add
-
-     %insert("runtime") %{
-     #include "myconfig.h"
-     %}
-
- * in your code to guarantee that HAVE_ACC is set correctly.
- *
  * ------------------------------------------------------------------------- */
 #ifdef SWIG_FORTRAN_CUDA
 #error "Can't use both CUDA *and* OpenACC compatibility layers."
@@ -49,6 +39,3 @@ end type
   }
 
 %enddef
-
-
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */
