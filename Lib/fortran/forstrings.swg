@@ -75,15 +75,10 @@ FORT_ARRAYWRAP_TYPEMAP(const char*)
   $1 = %reinterpret_cast($input->data, $1_ltype);
 }
 
-// Copy the output string (if owned) or reference it
+// Save the outgoing string
 %typemap(out, fragment="<stdlib.h>", fragment="<string.h>", noblock=1) const char * {
   $result.size = strlen(%reinterpret_cast($1, const char*));
-  if ($owner) {
-    $result.data = malloc($result.size);
-    memcpy($result.data, $1, $result.size);
-  } else {
-    $result.data = %const_cast($1, $*1_ltype *);
-  }
+  $result.data = %const_cast($1, $*1_ltype *);
 }
 
 // Fortran proxy code: return allocatable string

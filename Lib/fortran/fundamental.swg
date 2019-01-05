@@ -216,7 +216,7 @@ end function
   "$typemap(ctype, $*1_ltype)"
 %typemap(imtype, in="$typemap(imtype, $*1_ltype), intent(in)") const FUNDTYPE&
   "$typemap(imtype, $*1_ltype)"
-%typemap(ftype, in={$typemap(ftype, $*1_ltype), intent(in)} ) const FUNDTYPE&
+%typemap(ftype, in="$typemap(ftype, $*1_ltype), intent(in)" ) const FUNDTYPE&
   "$typemap(ftype, $*1_ltype)"
 %typemap(in, noblock=1) const FUNDTYPE& ($*1_ltype temp) {
   temp = %static_cast(*$input, $*1_ltype);
@@ -333,14 +333,14 @@ FORT_APPLY_TYPEMAPS(FUNDTYPE, UFUNDTYPE)
  * A 'void**' looks like a FUNDTYPE* where FUNDTYPE is 'void*' (aka C_PTR)
  * ------------------------------------------------------------------------- */
 
-%apply void* { SWIGTYPE**};
+%apply void* { SWIGTYPE** };
 %typemap(ftype, in="type(C_PTR), target, intent(inout)") SWIGTYPE**
   "type(C_PTR), pointer"
 %typemap(fin) SWIGTYPE** = FUNDTYPE*;
 %typemap(fout) SWIGTYPE** = FUNDTYPE*;
 %apply SWIGTYPE** { SWIGTYPE*&, SWIGTYPE *const* };
 
-%apply const void* { const SWIGTYPE**};
+%apply const void* { const SWIGTYPE** };
 %typemap(ftype, in="type(C_PTR), target, intent(in)") const SWIGTYPE**
   "type(C_PTR), pointer"
 %typemap(fin) const SWIGTYPE** = const FUNDTYPE*;
