@@ -2089,18 +2089,6 @@ declaration name directly can be preferable and can also be done using
 </div>
 
 <p>
-For even simpler cases where only the literal matching of a prefix is needed,
-the <tt>prefixtarget</tt> flag can be used to match identifiers that begin with
-the string. As an example, this will ignore all classes, variables, etc. that
-begin with the string <tt>impl_</tt>:
-</p>
-<div class="code">
-<pre>
-%rename("$ignore", prefixtarget=1) "impl_";
-</pre>
-</div>
-
-<p>
 Notice that the check is done only against the name of the declaration
 itself, if you need to match the full name of a C++ declaration you
 must use <tt>fullname</tt> attribute:

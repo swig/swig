@@ -678,7 +678,6 @@ C_TEST_CASES += \
 	preproc_include \
 	preproc_line_file \
 	register_par \
-	rename_prefix \
 	ret_by_value \
 	simple_array \
 	sizeof_pointer \
