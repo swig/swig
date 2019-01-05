@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-01-05: wsfulton
+            [Ruby] #538. Fix Ruby support for %feature("docstring").
+
 2019-01-03: wsfulton
             #1202 Fix overloading of non-pointer class types in scripting languages when overloaded
             with a pointer and a NULL scripting language equivalent is used, eg None in Python.

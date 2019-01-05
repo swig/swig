@@ -255,32 +255,22 @@ private:
       autodoc = make_autodoc(n, ad_type);
       have_auto = (autodoc && Len(autodoc) > 0);
     }
-    // If there is more than one line then make docstrings like this:
-    //
-    //      This is line1
-    //      And here is line2 followed by the rest of them
-    //
-    // otherwise, put it all on a single line
-    //
+
+    if (have_auto || have_ds)
+      doc = NewString("/*");
+
     if (have_auto && have_ds) {	// Both autodoc and docstring are present
-      doc = NewString("");
-      Printv(doc, "\n", autodoc, "\n", str, NIL);
+      Printv(doc, "\n", autodoc, "\n", str, "\n", NIL);
     } else if (!have_auto && have_ds) {	// only docstring
-      if (Strchr(str, '\n') == 0) {
-	doc = NewString(str);
-      } else {
-	doc = NewString("");
-	Printv(doc, str, NIL);
-      }
+      Printv(doc, str, NIL);
     } else if (have_auto && !have_ds) {	// only autodoc
-      if (Strchr(autodoc, '\n') == 0) {
-	doc = NewStringf("%s", autodoc);
-      } else {
-	doc = NewString("");
-	Printv(doc, "\n", autodoc, NIL);
-      }
-    } else
+      Printv(doc, "\n", autodoc, "\n", NIL);
+    } else {
       doc = NewString("");
+    }
+
+    if (have_auto || have_ds)
+      Append(doc, "*/\n");
 
     // Save the generated strings in the parse tree in case they are used later
     // by post processing tools
@@ -520,7 +510,7 @@ private:
     last_mode    = ad_type;
     last_autodoc = Copy(methodName);
 
-    String *doc = NewString("/*\n");
+    String *doc = NewString("");
     int counter = 0;
     bool skipAuto = false;
     Node* on = n;
@@ -760,7 +750,6 @@ private:
       n = Getattr(n, "sym:nextSibling");
     }
 
-    Append(doc, "\n*/\n");
     Delete(full_name);
     Delete(class_name);
     Delete(super_names);
