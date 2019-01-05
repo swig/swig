@@ -16,10 +16,12 @@
  *   the parameter is read-only, so we treat natively.
  * - f(std::vector<T>&), f(std::vector<T>*):
  *   the parameter may be modified: only a wrapped std::vector can be passed.
- * - std::vector<T> f(), const std::vector<T>& f():
+ * - std::vector<T> f():
  *   the vector is returned by copy; treat natively.
  * - std::vector<T>& f(), std::vector<T>* f():
- *   the vector is returned by reference; return a wrapped reference.
+ *   the vector is returned by mutable reference; return a wrapped reference.
+ * - const std::vector<T>& f()
+ *   return a native array view to the underlying data.
  * - const std::vector<T>* f(), f(const std::vector<T>*):
  *   for consistency, they expect and return a plain vector pointer.
  *

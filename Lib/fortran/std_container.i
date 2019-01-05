@@ -44,23 +44,6 @@ FORT_ARRAYPTR_TYPEMAP(%arg(ARRTYPE::value_type), ARRTYPE& POINTER)
   $1 = &temparr;
 }
 
-// Declare Fortran type: single-dimension input, allocatable output
-%typemap(ftype, in={$typemap(imtype, ARRTYPE::value_type), dimension(:), target, intent(in)}, noblock=1)
-    const ARRTYPE& {
-  $typemap(imtype, ARRTYPE::value_type), dimension(:), allocatable
-}
-
-// Fortran proxy translation code: convert from imtype $1 to ftype $result
-%typemap(foutdecl, noblock=1, match="fout") const ARRTYPE& {
-  $typemap(imtype, ARRTYPE::value_type), pointer :: $1_view(:)
-}
-
-%typemap(fout, noblock=1) const ARRTYPE& {
-  call c_f_pointer($1%data, $1_view, [$1%size])
-  allocate($result(size($1_view)))
-  $result = $1_view
-}
-
 /* ---- VALUE: NATIVE ARRAY ---- */
 
 %apply const ARRTYPE& { ARRTYPE };
@@ -81,6 +64,17 @@ FORT_ARRAYPTR_TYPEMAP(%arg(ARRTYPE::value_type), ARRTYPE& POINTER)
   } else {
     $result.data = NULL;
   }
+}
+
+// Declare Fortran type: single-dimension input, allocatable output
+%typemap(ftype, in={$typemap(imtype, ARRTYPE::value_type), dimension(:), target, intent(in)}, noblock=1)
+    ARRTYPE {
+  $typemap(imtype, ARRTYPE::value_type), dimension(:), allocatable
+}
+
+// Fortran proxy translation code: convert from imtype $1 to ftype $result
+%typemap(foutdecl, noblock=1, match="fout") ARRTYPE {
+  $typemap(imtype, ARRTYPE::value_type), pointer :: $1_view(:)
 }
 
 // Fortran proxy translation code: copy array contents and free the malloc'd copy
