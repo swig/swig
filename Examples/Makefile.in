@@ -904,13 +904,12 @@ NOLINK ?= false
 OCAMLPP= -pp "camlp4o ./swigp4.cmo"
 OCAMLP4WHERE=`$(COMPILETOOL) @CAMLP4@ -where`
 OCAMLCORE=\
-	rm -rf swig.mli swig.ml swigp4.ml && \
-	$(SWIG) -ocaml -co swig.mli 2>/dev/null &&  \
-	$(SWIG) -ocaml -co swig.ml 2>/dev/null &&  \
-	$(SWIG) -ocaml -co swigp4.ml 2>/dev/null &&  \
-	$(OCC) -c swig.mli &&  \
-	$(OCC) -c swig.ml &&  \
-	$(OCC) -I $(OCAMLP4WHERE) -pp "camlp4o pa_extend.cmo q_MLast.cmo" -c swigp4.ml
+	(test -f swig.mli   || $(SWIG) -ocaml -co swig.mli 2>/dev/null) &&  \
+	(test -f swig.ml    || $(SWIG) -ocaml -co swig.ml 2>/dev/null) &&  \
+	(test -f swigp4.ml  || $(SWIG) -ocaml -co swigp4.ml 2>/dev/null) &&  \
+	(test -f swig.cmi   || $(OCC) -c swig.mli) &&  \
+	(test -f swig.cmo   || $(OCC) -c swig.ml) &&  \
+	(test -f swigp4.cmi || $(OCC) -I $(OCAMLP4WHERE) -pp "camlp4o pa_extend.cmo q_MLast.cmo" -c swigp4.ml)
 
 ocaml_static: $(SRCDIR_SRCS)
 	$(OCAMLCORE)
