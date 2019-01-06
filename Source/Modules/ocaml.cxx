@@ -417,6 +417,29 @@ public:
     return SwigType_isarray(SwigType_typedef_resolve_all(t));
   }
 
+  virtual int membervariableHandler(Node *n) {
+    String *symname = Getattr(n, "sym:name");
+    Language::membervariableHandler(n);
+
+    String *mname = Swig_name_member(NSPACE_TODO, classname, symname);
+    String *getname = Swig_name_get(NSPACE_TODO, mname);
+    String *mangled_getname = mangleNameForCaml(getname);
+    Delete(getname);
+
+    if (!GetFlag(n, "feature:immutable")) {
+      String *setname = Swig_name_set(NSPACE_TODO, mname);
+      String *mangled_setname = mangleNameForCaml(setname);
+      Delete(setname);
+      Printf(f_class_ctors, "    \"[%s]\", (fun args -> " "if args = (C_list [ raw_ptr ]) then _%s args else _%s args) ;\n", symname, mangled_getname, mangled_setname);
+      Delete(mangled_setname);
+    } else {
+      Printf(f_class_ctors, "    \"[%s]\", (fun args -> " "if args = (C_list [ raw_ptr ]) then _%s args else C_void) ;\n", symname, mangled_getname);
+    }
+    Delete(mangled_getname);
+    Delete(mname);
+    return SWIG_OK;
+  }
+
   /* ------------------------------------------------------------
    * functionWrapper()
    * Create a function declaration and register it with the interpreter.
@@ -477,26 +500,12 @@ public:
       Delete(mangled_name_nounder);
     } else if (classmode && in_destructor) {
       Printf(f_class_ctors, "    \"~\", %s ;\n", mangled_name);
-    } else if (classmode && !in_constructor && !in_destructor && !static_member_function) {
+    } else if (classmode && !in_constructor && !in_destructor && !static_member_function &&
+	    !Getattr(n, "membervariableHandler:sym:name")) {
       String *opname = Copy(Getattr(n, "memberfunctionHandler:sym:name"));
 
       Replaceall(opname, "operator ", "");
-
-      if (strstr(Char(mangled_name), "__get__")) {
-	String *set_name = Copy(mangled_name);
-	if (!GetFlag(n, "feature:immutable")) {
-	  Replaceall(set_name, "__get__", "__set__");
-	  Printf(f_class_ctors, "    \"%s\", (fun args -> " "if args = (C_list [ raw_ptr ]) then %s args else %s args) ;\n", opname, mangled_name, set_name);
-	  Delete(set_name);
-	} else {
-	  Printf(f_class_ctors, "    \"%s\", (fun args -> " "if args = (C_list [ raw_ptr ]) then %s args else C_void) ;\n", opname, mangled_name);
-	}
-      } else if (strstr(Char(mangled_name), "__set__")) {
-	;			/* Nothing ... handled by the case above */
-      } else {
-	Printf(f_class_ctors, "    \"%s\", %s ;\n", opname, mangled_name);
-      }
-
+      Printf(f_class_ctors, "    \"%s\", %s ;\n", opname, mangled_name);
       Delete(opname);
     }
 
@@ -1103,7 +1112,7 @@ public:
    */
 
   int classHandler(Node *n) {
-    String *name = Getattr(n, "name");
+    String *name = Getattr(n, "sym:name");
 
     if (!name)
       return SWIG_OK;
