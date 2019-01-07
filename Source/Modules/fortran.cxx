@@ -2120,6 +2120,7 @@ int FORTRAN::constantWrapper(Node *n) {
 
   if (String *override_value = Getattr(n, "feature:fortran:constvalue")) {
     value = override_value;
+    Setattr(n, "feature:fortran:const", "1");
   }
 
   if (Strcmp(nodetype, "enumitem") == 0) {

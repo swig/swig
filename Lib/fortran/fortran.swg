@@ -38,6 +38,7 @@
 #define %fortranconst      %feature("fortran:const","1")
 #define %nofortranconst    %feature("fortran:const","0")
 #define %clearfortranconst %feature("fortran:const","")
+#define %fortranconstvalue(VALUE) %feature("fortran:constvalue",VALUE)
 
 #define %fortranbindc      %feature("fortran:bindc")
 #define %nofortranbindc    %feature("fortran:bindc", "0")
