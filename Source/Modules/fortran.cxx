@@ -268,12 +268,12 @@ String *make_import_string(String *imtype) {
  */
 bool is_valid_identifier(String *name) {
   const char *c = Char(name);
-  if (*c == '_') {
+  if (*c == '_')
     return false;
-  }
-  if (Len(name) > 63) {
+  if (*c >= '0' && *c <= '9')
     return false;
-  }
+  if (Len(name) > 63)
+    return false;
   return true;
 }
 
@@ -1683,7 +1683,7 @@ String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool) const {
   }
 
   name = Getattr(p, "name");
-  if (name && is_valid_identifier(name) && !Strstr(name, "::")) {
+  if (name && Len(name) > 0 && is_valid_identifier(name) && !Strstr(name, "::")) {
     // Valid fortran name; convert to lowercase
     name = Swig_string_lower(name);
   } else {
@@ -1724,7 +1724,6 @@ String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool) const {
       // Try another name and loop again
       String* prevname = name;
       name = NewStringf("%s%d", origname, arg_num++);
-      Delete(prevname);
     }
   }
 
