@@ -91,10 +91,6 @@ FAILING_CPP_TESTS += \
   variable_replacement \
   virtual_poly
 
-# failed to compile fortran
-FAILING_C_TESTS += \
-  preproc
-
 include $(srcdir)/../common.mk
 
 # Rules for the different types of tests
