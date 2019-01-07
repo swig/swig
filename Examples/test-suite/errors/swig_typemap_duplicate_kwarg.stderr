@@ -1,8 +1,0 @@
-swig_typemap_duplicate_kwarg.i:15: Warning 455: Duplicate typemap attribute 'some_kw=0' overrides previous value
-swig_typemap_duplicate_kwarg.i:15: Warning 455: Duplicate typemap attribute 'some_kw=0' overrides previous value
-swig_typemap_duplicate_kwarg.i:15: Warning 455: Duplicate typemap attribute 'numinputs=1' overrides previous value
-swig_typemap_duplicate_kwarg.i:15: Warning 455: Duplicate typemap attribute 'some_kw=1' overrides previous value
-swig_typemap_duplicate_kwarg.i:15: Warning 455: Duplicate typemap attribute 'some_kw=0' overrides previous value
-swig_typemap_duplicate_kwarg.i:15: Warning 455: Duplicate typemap attribute 'numinputs=1' overrides previous value
-swig_typemap_duplicate_kwarg.i:15: Warning 455: Duplicate typemap attribute 'some_kw=1' overrides previous value
-swig_typemap_duplicate_kwarg.i:15: Warning 455: Duplicate typemap attribute 'some_kw=0' overrides previous value

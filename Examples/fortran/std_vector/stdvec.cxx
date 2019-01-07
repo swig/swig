@@ -28,7 +28,7 @@ void print_view(const T* data, std::size_t size) {
  * EXPLICIT INSTANTIATION
  * ------------------------------------------------------------------------- */
 
-template void print_view(const double* data, std::size_t size);
+template void print_view(const int* data, std::size_t size);
 
 
 

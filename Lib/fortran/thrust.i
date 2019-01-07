@@ -68,5 +68,3 @@ class vector {
 %template() thrust::device_ptr<size_t   >;
 %template() thrust::device_ptr<float    >;
 %template() thrust::device_ptr<double   >;
-
-/* vim: set ts=2 sw=2 sts=2 tw=129 : */

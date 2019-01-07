@@ -767,8 +767,7 @@ and return value to and from Fortran-compatible datatypes and calling the C++
 function. It also implements other optional features such as exception handling.
 
 SWIG then creates an `interface` declaration `swigc_$symname`, with `bind(C, name='_wrap_$symname')`. 
-interface statement that aliases that wrapper symbol to `swigc_$symname` will
-be generated in the Fortran interface module.
+
 
 In the Fortran module, SWIG generates a public procedure `$symname`
 that translates native Fortran data types to and from the C interface
@@ -995,8 +994,28 @@ like pass-by-value strings (where changes to the value in one language will
 ## std::vector
 
 The C++ `std::vector` class is defined in the `<std_vector.i>` interface file
-along with its basic methods, but the default typemaps treat vectors as
-native Fortran arrays. This behavior is chosen under the assumption that
+along with its basic methods, but the default typemaps generally treat
+read-only vectors as native Fortran arrays, and mutable vectors as classes. For
+the SWIG input of
+```swig
+%template(vector_int) std::vector<int>;
+```
+the arguments and return values are mapped as follows:
+
+| C++ type                      | Fortran type                                |
+| --------                      | ------------                                |
+| `f(std::vector<int>)`         | `integer(C_INT), dimension(:), target`      |
+| `f(const std::vector<int>&)`  | `integer(C_INT), dimension(:), target`      |
+| `f(std::vector<int>&)`        | `class(vector_int), intent(inout)`          |
+| `f(std::vector<int>*)`        | `class(vector_int), intent(inout)`          |
+| `std::vector<int> f()`        | `integer(C_INT), dimension(:), allocatable` |
+| `const std::vector<int>& f()` | `integer(C_INT), dimension(:), pointer`     |
+| `std::vector<int>& f()`       | `type(VecInt)`                              |
+| `std::vector<int>* f()`       | `type(VecInt)`                              |
+| `const std::vector<int>* f()` | `type(VecInt)`                              |
+
+
+This behavior is chosen under the assumption that
 methods being wrapped by SWIG are more for providing a setup API than a
 low-level API passing extremely large vectors: there is some memory and
 performance overhead in the translation layer.
@@ -1135,6 +1154,7 @@ end program
 ```
 
 ## Fortran-to-C array translation
+
 The `<typemaps.i>` library file provides a simple means of passing Fortran
 arrays by reference. It defines a two-argument typemap `(SWIGTYPE *DATA, size_t
 SIZE)` that is wrapped as a single Fortran argument, an array of `SWIGTYPE`
@@ -1186,20 +1206,8 @@ arrptr => get_array_ptr()
 ```
 
 Since this library file is so simple, it can be used as a template for creating
-transparent wrappers between Fortran arrays and other C++ data types.  For
-example, the following snippet based on `<view.i>` converts
-a return value of `const std::vector<double>&` to a Fortran array pointer:
-```swig
-%include <forarray.swg>
-
-// Convert a reference-to-vector return value into a array view.
-FORT_ARRAYPTR_TYPEMAP(double, const std::vector<double> &)
-%typemap(out) std::vector<double> &NATIVE %{
-  $result.data = ($1->empty() ? NULL : &(*$1->begin()));
-  $result.size = $1->size();
-%}
-```
-Similar code is used in the `ForTrilinos` library to treat `Teuchos::ArrayView`
+transparent wrappers between Fortran arrays and other C++ data types. Similar
+code is used in the `ForTrilinos` library to treat `Teuchos::ArrayView`
 return values as Fortran array pointers.
 
 ## Integer types
