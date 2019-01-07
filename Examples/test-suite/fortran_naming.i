@@ -29,6 +29,10 @@ class _Foo {
     int _b;
     int _get_a_doubled() const { return _a * 2; }
     int _get_a_doubled(int two) const { return _a * two; }
+
+    // Parameter names that are duplicates when lowercase, collide with
+    // other class names, or collide with renamed args
+    int sum(int num, int NuM, int FooClass, int fooclass3, int _bad) { return num + NuM + FooClass + fooclass3 + _bad; }
 };
 
 class Bar : public _Foo {
