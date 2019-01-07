@@ -598,7 +598,6 @@ These enumerators are treated as standard C integers in the C wrapper code
 code. In the Fortran wrapper code, procedures that use the enumeration use the
 type `integer(kind(MyEnum))` to clearly indicate what enum type is required.
 
-
 Some C++ enumeration definitions cannot be natively interpreted by a Fortran
 compiler (e.g. `FOO = 0x12,` or `BAR = sizeof(int),`), so these are defined in
 the C++ wrapper code and _bound_ in the Fortran wrapper code:
@@ -606,10 +605,11 @@ the C++ wrapper code and _bound_ in the Fortran wrapper code:
 integer(C_INT), protected, public, &
    bind(C, name="swigc_FOO") :: FOO
 ```
-The `%fortranconst`  can be used to explicitly
+The `%fortranconst` directive can be used to explicitly
 enable and disable treatment of a C++ `enum` as a Fortran enumerator; the
 `%nofortranconst` directive forces the values to be wrapped as externally-bound
-C integers.
+C integers. See the section on [global constants](#global-constants) for more
+on this directive.
 
 If an enumeration type has not been defined but is used in a function
 signature, a placeholder `SwigUnknownEnum` enumerator will be generated and
@@ -847,21 +847,67 @@ integer(C_INT), bind(C, name="global_counter_c") :: global_counter_c
 
 Global constant variables (whether declared in C++ headers with `const` or in
 a SWIG wrapper with `%constant`) of native types can be wrapped as Fortran
-"parameters" (compile-time values):
+"parameters" (compile-time values), as externally bound constants, or as
+wrapper functions that return the value.
+
+The default behavior is as follows:
+- `%constant`s and fixed-value macros whose values are simple integers (only
+  the characters `0-9`) are wrapped as Fortran `parameter`s.
+- Other `%constant` and macro values are wrapped as externally bound constants.
+- Global constants are wrapped with getter functions.
+- A constant can be forced to be a parameter using the `%fortranconst`
+  directive.
+- A `%constant` or macro can be forced to be an externally bound constant using
+  the `%nofortranconst` directive.
+- A macro whose definition cannot be parsed by Fortran can have its value
+  *replaced* with a simpler expression using the `%fortranconstvalue`
+  directive.
+
+The following example shows the behavior of the various rules above:
 ```swig
-%fortranconst approx_pi;
-const double approx_pi = 3.1416;
+%fortranconst fortranconst_int_global;
+%fortranconst fortranconst_float_global;
+%constant int fortranconst_int_global = 4;
+%constant float fortranconst_float_global = 1.23f;
+
+%constant int constant_int_global = 4;
+%constant float constant_float_global = 1.23f;
+
+%nofortranconst nofortranconst_int_global;
+%nofortranconst nofortranconst_float_global;
+%constant int nofortranconst_int_global = 4;
+%constant float nofortranconst_float_global = 1.23f;
+
+%fortranconstvalue(4) MACRO_HEX_INT;
+
+%inline %{
+#define MACRO_INT 4
+const int extern_const_int = 4;
+#define DEFAULT_MACRO_HEX_INT 0x4
+#define MACRO_HEX_INT 0x4
+%}
 ```
 will be translated to
 ```fortran
- real(C_DOUBLE), parameter, public :: approx_pi = 3.1416_C_DOUBLE
+ public :: get_extern_const_int
+ integer(C_INT), parameter, public :: fortranconst_int_global = 4_C_INT
+ real(C_FLOAT), parameter, public :: fortranconst_float_global = 1.23_C_FLOAT
+ integer(C_INT), parameter, public :: constant_int_global = 4_C_INT
+ real(C_FLOAT), protected, public, &
+   bind(C, name="_wrap_constant_float_global") :: constant_float_global
+ integer(C_INT), protected, public, &
+   bind(C, name="_wrap_nofortranconst_int_global") :: nofortranconst_int_global
+ real(C_FLOAT), protected, public, &
+   bind(C, name="_wrap_nofortranconst_float_global") :: nofortranconst_float_global
+ integer(C_INT), parameter, public :: MACRO_INT = 4_C_INT
+ integer(C_INT), protected, public, &
+   bind(C, name="_wrap_DEFAULT_MACRO_HEX_INT") :: DEFAULT_MACRO_HEX_INT
+ integer(C_INT), parameter, public :: MACRO_HEX_INT = 4_C_INT
 ```
-If the variable is defined in the header file and is a simple integer, this
-feature will be enabled by default. It can be explicitly enabled or disabled
-using the `%fortranconst` and `%nofortranconst` directives.
-
-Global constants that have the feature disabled will be wrapped as a
-`protected, public, bind(C)` value with the value defined in the C wrapper code.
+The symbols marked as `protected, public, bind(C)` have their values defined in
+the C wrapper code, where *any* valid expression can be parsed. The
+`get_extern_const_int` wrapper function is a SWIG-generated getter that returns
+the external value.
 
 ## Classes
 
