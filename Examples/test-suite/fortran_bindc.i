@@ -141,3 +141,25 @@ short sum_array(short x[5]) {
 }
 %}
 
+%fortranbindc oned_unknown;
+%fortranbindc twod_unknown_int;
+
+%inline %{
+#ifdef __cplusplus
+extern "C" {
+#endif
+/* The "bindc" typemap will be used on these for Fortran */
+void oned_unknown(int a[]) { a[0] = 0; }
+void twod_unknown_int(int a[][10], int nj) {
+    int i, j;
+    for (j = 0; j < nj; ++j) {
+        for (i = 0; i < 10; ++i) {
+            a[j][i] = 10 * j + i + 1;
+        }
+    }
+}
+
+#ifdef __cplusplus
+}
+#endif
+%}
