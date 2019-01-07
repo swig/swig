@@ -88,6 +88,10 @@ include $(srcdir)/../common.mk
 # Clean
 %.clean:
 	@rm -f $*.ml $*.mli;
+	@if test $(srcdir) != .; then rm -f $(ml_runme); fi
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' ocaml_clean
+	rm -f clientdata_prop_a.ml clientdata_prop_b.ml import_stl_a.ml import_stl_b.ml
+	rm -f imports_a.ml imports_b.ml mod_a.ml mod_b.ml multi_import_a.ml
+	rm -f multi_import_b.ml packageoption_a.ml packageoption_b.ml packageoption_c.ml

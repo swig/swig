@@ -994,7 +994,7 @@ ocaml_version:
 # -----------------------------------------------------------------
 
 ocaml_clean:
-	rm -f *_wrap* *~ .~* *.cmo *.cmi $(MLFILE) $(MLFILE)i swig.mli swig.cmi swig.ml swig.cmo swigp4.ml swigp4.cmo
+	rm -f *_wrap* *~ .~* *.cmo *.cmi *.mli $(TARGET).ml $(RUNME) $(RUNME)_top swig.ml swigp4.ml
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
 
