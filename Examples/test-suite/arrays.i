@@ -76,17 +76,6 @@ cartPosition_t p;
 
 %}
 
-#ifdef SWIGFORTRAN
-/* Fortran can't handle hex, but it can substitute compile-time constants like
- * the enum into the 'contains' part of the code. HOWEVER, the interface would
- * have to "import" the enums for that to work, which we don't support. */
-%ignore oned_hex;
-%ignore oned_enum;
-%ignore twod_enum;
-%fortranbindc oned_unknown;
-%fortranbindc twod_unknown_int;
-#endif
-
 %inline %{
 enum {TEN = 10};
 void oned_int(int a[10]) { a[0] = 0; }

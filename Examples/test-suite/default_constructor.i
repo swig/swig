@@ -169,7 +169,8 @@ protected:
 
 #ifndef SWIGFORTRAN
 // It's unclear to me what this typedef is trying to do. The result compiles
-// with Python but does not compile in Fortran.
+// with Python but does not compile in Fortran. The OSRSpatialReferenceShadow
+// class is untested in any language.
 typedef void OSRSpatialReferenceShadow;
 #endif
 
