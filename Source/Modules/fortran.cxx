@@ -1721,8 +1721,9 @@ String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool) const {
     }
 
     if (!valid) {
+      if (name != origname)
+        Delete(name);
       // Try another name and loop again
-      String* prevname = name;
       name = NewStringf("%s%d", origname, arg_num++);
     }
   }
