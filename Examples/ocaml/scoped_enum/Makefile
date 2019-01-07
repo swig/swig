@@ -5,7 +5,7 @@ SRCS       =
 TARGET     = example
 INTERFACE  = example.i
 MLFILE     = example.ml
-PROGFILE   = example_prog.ml
+PROGFILE   = runme.ml
 OBJS       =
 
 check: build

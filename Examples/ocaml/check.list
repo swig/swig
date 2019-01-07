@@ -8,3 +8,4 @@ shapes
 contract
 scoped_enum
 string_from_ptr
+strings_test

@@ -4,9 +4,9 @@ SWIG_LIB_DIR = $(TOP)/../$(TOP_BUILDDIR_TO_TOP_SRCDIR)Lib
 SWIGOPT    = -c++
 SRCS       =
 TARGET     = example
-INTERFACE  = foolib.i
-MLFILE     = foolib.ml
-PROGFILE   = example_prog.ml
+INTERFACE  = example.i
+MLFILE     = example.ml
+PROGFILE   = runme.ml
 OBJS       =
 
 check: build

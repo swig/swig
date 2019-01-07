@@ -21,6 +21,7 @@ default_constructor \
 director_binary_string \
 director_enum \
 director_exception \
+director_exception_nothrow \
 director_ignore \
 director_nested \
 director_pass_by_value \
@@ -30,6 +31,7 @@ director_redefined \
 director_string \
 director_using \
 enum_thorough \
+li_windows \
 member_pointer_const \
 minherit \
 nested_directors \
