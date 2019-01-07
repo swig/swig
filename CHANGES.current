@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-01-07: wsfulton
+            #358 Add VOID to windows.i
+
 2019-01-05: wsfulton
             #948 #1019 #1273 Fix for C++11 raw strings where the delimiters were mistakenly left
             in the string contents in situations where the string was copied into generated code.
