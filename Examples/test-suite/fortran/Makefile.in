@@ -65,6 +65,7 @@ FAILING_CPP_TESTS += \
   li_attribute \
   li_attribute_template \
   li_boost_shared_ptr \
+  member_funcptr_galore \
   multiple_inheritance \
   multiple_inheritance_abstract \
   multiple_inheritance_interfaces \
