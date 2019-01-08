@@ -681,7 +681,7 @@ and made accessible through the Fortran wrapper module as
    bind(C, name="_wrap_ADD_FP") :: ADD_FP
 ```
 
-The following Fortran code shows an example of:
+The Fortran code in the "funptr" example demonstrates:
 - How to pass the C function pointer to another wrapped function `do_op` that
   takes a function pointer,
 - How to translate a C function pointer into a Fortran function pointer that
