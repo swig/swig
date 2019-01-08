@@ -1,8 +1,8 @@
 ! File : runme.f90
 #define ASSERT(COND) if (.not. COND) stop 1
 
-program test_inheritance
-  use inheritance
+program test_example
+  use example
 
   type(DerivedA), target :: derived_a
   type(DerivedB), target :: derived_b

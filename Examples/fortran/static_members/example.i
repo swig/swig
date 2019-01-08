@@ -1,9 +1,9 @@
-/* File : static_members.i */
-%module static_members
+/* File : example.i */
+%module example
 
 %{
-#include "static_members.h"
+#include "example.h"
 %}
 
-%include "static_members.h"
+%include "example.h"
 

@@ -1,6 +1,6 @@
-/* File : spdemo.cxx */
+/* File : example.cxx */
 
-#include "spdemo.h"
+#include "example.h"
 
 #include <stdexcept>
 #include <iostream>

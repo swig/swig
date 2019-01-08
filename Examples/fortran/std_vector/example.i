@@ -1,10 +1,10 @@
-/* File : stdvec.i */
+/* File : example.i */
 
-%module stdvec
+%module example
 
 %{
 #include <utility>
-#include "stdvec.h"
+#include "example.h"
 %}
 
 /* -------------------------------------------------------------------------
@@ -70,7 +70,7 @@ FORT_ARRAYPTR_TYPEMAP(double, std::vector<double>& NATIVE)
 // the input typemaps still correspond to the std::vector class.
 %apply const std::vector<double>& NATIVE { const std::vector<double>& get_vec<double> };
 
-%include "stdvec.h"
+%include "example.h"
 
 %template(make_viewdbl) make_view<double>;
 %template(make_const_viewdbl) make_const_view<double>;

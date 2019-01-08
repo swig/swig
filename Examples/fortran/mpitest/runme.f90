@@ -1,7 +1,7 @@
-! File : mpitest_runme.f90
+! File : example_runme.f90
 
-program mpitest_runme
-  use mpitest
+program example_runme
+  use example
   use mpi
   use ISO_C_BINDING
   implicit none

@@ -1,6 +1,6 @@
-/* File : bindc.cxx */
+/* File : example.cxx */
 
-#include "bindc.h"
+#include "example.h"
 
 #include <cstdlib>
 #include <cstring>

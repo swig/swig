@@ -1,9 +1,9 @@
 TOP        = ../..
 SWIGEXE    = $(TOP)/../swig
 SWIG_LIB_DIR = $(TOP)/../$(TOP_BUILDDIR_TO_TOP_SRCDIR)Lib
-CXXSRCS    = static_members.cxx
-TARGET     = static_members
-INTERFACE  = static_members.i
+CXXSRCS    = example.cxx
+TARGET     = example
+INTERFACE  = example.i
 SWIGOPT    =
 FORTRANSRCS = runme.f90
 

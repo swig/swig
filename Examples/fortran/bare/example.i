@@ -1,8 +1,8 @@
-/* File : bare.i */
-%module bare
+/* File : example.i */
+%module example
 
 %{
-#include "bare.h"
+#include "example.h"
 %}
 
 //! A const integer
@@ -28,7 +28,7 @@
 
 #endif
 
-%include "bare.h"
+%include "example.h"
 
 
 

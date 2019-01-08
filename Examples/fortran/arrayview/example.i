@@ -1,9 +1,9 @@
-/* File : arrayview.i */
+/* File : example.i */
 
-%module arrayview
+%module example
 
 %{
-#include "arrayview.h"
+#include "example.h"
 %}
 
 %include <typemaps.i>
@@ -19,7 +19,7 @@
     %template(print_array) print_array< TYPE >;
 %enddef
 
-%include "arrayview.h"
+%include "example.h"
 
 TEMPLATE_ALGORITHMS(int)
 TEMPLATE_ALGORITHMS(float)

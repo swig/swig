@@ -7,7 +7,7 @@ contains
 
 subroutine test_usage()
   use, intrinsic :: ISO_C_BINDING
-  use stdvec, only : make_view => make_const_viewdbl, &
+  use example, only : make_view => make_const_viewdbl, &
     print_view => print_viewdbl, VecDbl, get_vec => get_vecdbl, &
     as_array_ptr, make_array
   implicit none

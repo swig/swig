@@ -1,4 +1,4 @@
-/* File : bindc.h */
+/* File : example.h */
 
 // C-bound struct
 struct Point {

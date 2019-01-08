@@ -1,4 +1,4 @@
-/* File : templated.h */
+/* File : example.h */
 template<typename T>
 class Thing {
   T val_;

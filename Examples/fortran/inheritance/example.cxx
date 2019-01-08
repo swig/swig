@@ -1,5 +1,5 @@
-/* File : inheritance.cxx */
-#include "inheritance.h"
+/* File : example.cxx */
+#include "example.h"
 
 #include <iostream>
 

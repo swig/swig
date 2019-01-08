@@ -1,5 +1,5 @@
-/* File : static_members.cxx */
-#include "static_members.h"
+/* File : example.cxx */
+#include "example.h"
 
 int BaseClass::i = 0;
 

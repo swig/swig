@@ -1,6 +1,6 @@
 ! File : runme.f90
 program main
-  use templated
+  use example
   implicit none
   type(Thing_Int) :: it
   type(Thing_Dbl) :: dt

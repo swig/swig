@@ -1,9 +1,9 @@
-/* File : inheritance.i */
-%module inheritance
+/* File : example.i */
+%module example
 
 %{
-#include "inheritance.h"
+#include "example.h"
 %}
 
-%include "inheritance.h"
+%include "example.h"
 

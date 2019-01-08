@@ -1,14 +1,14 @@
-/* File : bindc.i */
-%module bindc
+/* File : example.i */
+%module example
 
 %fortranbindc_type(Point)
 
 %{
-#include "bindc.h"
+#include "example.h"
 %}
 
 %newobject concat;
 
-%include "bindc.h"
+%include "example.h"
 
 

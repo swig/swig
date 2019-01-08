@@ -1,4 +1,4 @@
-/* File : inheritance.h */
+/* File : example.h */
 #pragma once
 #include <vector>
 

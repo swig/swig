@@ -1,4 +1,4 @@
-/* File : spdemo.h */
+/* File : example.h */
 
 #include <memory>
 

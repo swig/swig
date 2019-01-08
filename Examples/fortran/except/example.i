@@ -1,5 +1,5 @@
-/* File : except.i */
-%module except
+/* File : example.i */
+%module example
 
 /* Rename the error variables */
 #define SWIG_FORTRAN_ERROR_INT ierr_test

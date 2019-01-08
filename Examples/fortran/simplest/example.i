@@ -1,5 +1,5 @@
-/* File : simplest.i */
-%module simplest
+/* File : example.i */
+%module example
 
 %inline {
 int add(int a, int b) {

@@ -1,4 +1,4 @@
-/* File : bare.h */
+/* File : example.h */
 
 #include <cstddef>
 #include <utility>

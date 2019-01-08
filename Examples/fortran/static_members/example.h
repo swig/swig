@@ -1,4 +1,4 @@
-/* File : static_members.h */
+/* File : example.h */
 #include <iostream>
 
 class BaseClass {

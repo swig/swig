@@ -9,7 +9,7 @@ contains
 
 subroutine test_algorithms()
   use, intrinsic :: ISO_C_BINDING
-  use arrayview, only : reverse, sort, find_sorted, print_array
+  use example, only : reverse, sort, find_sorted, print_array
   implicit none
   integer :: i
   integer(C_INT), dimension(6) :: test_data = (/ -1, 1, 3, 3, 5, 7 /)
@@ -36,7 +36,7 @@ end subroutine
 
 subroutine test_matview()
   use, intrinsic :: ISO_C_BINDING
-  use arrayview, only : print_array
+  use example, only : print_array
   implicit none
   real(kind=8), dimension(9) :: arr
   real(kind=8), allocatable, dimension(:) :: alloc
@@ -94,6 +94,6 @@ end subroutine
 end program
 
 !-----------------------------------------------------------------------------!
-! end of arrayview/runme.f90
+! end of example/runme.f90
 !-----------------------------------------------------------------------------!
 

@@ -6,7 +6,7 @@ endif
 
 
 program test_static
-use static_members
+use example
 
 type(BaseClass), target :: v1
 type(BaseClass), target :: v2

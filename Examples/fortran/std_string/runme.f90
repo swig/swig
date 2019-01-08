@@ -3,7 +3,7 @@
 program main
   use ISO_FORTRAN_ENV
   use, intrinsic :: ISO_C_BINDING
-  use stdstr, only : print_str, halved_str, reversed_str
+  use example, only : print_str, halved_str, reversed_str
   implicit none
   character(len=*), parameter :: paramstr = "short string   "
   character(len=*), parameter :: sampletext = "Through the looking glass"
@@ -42,6 +42,6 @@ end program
 
 
 !-----------------------------------------------------------------------------!
-! end of std_string/runme.f90
+! end of example/runme.f90
 !-----------------------------------------------------------------------------!
 

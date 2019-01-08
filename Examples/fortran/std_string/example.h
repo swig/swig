@@ -1,4 +1,4 @@
-/* File : stdstr.h */
+/* File : example.h */
 
 #include <string>
 

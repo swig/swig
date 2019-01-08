@@ -1,10 +1,10 @@
-/* File : templated.i */
-%module "templated"
+/* File : example.i */
+%module "example"
 
 %{
-#include "templated.h"
+#include "example.h"
 %}
-%include "templated.h"
+%include "example.h"
 
 // Note that template instantiation is after the header include
 %template(Thing_Int)  Thing<int>;

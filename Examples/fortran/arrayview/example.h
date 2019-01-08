@@ -1,4 +1,4 @@
-/* File : arrayview.h */
+/* File : example.h */
 
 #include <algorithm>
 #include <iostream>

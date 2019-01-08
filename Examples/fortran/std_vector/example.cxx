@@ -1,6 +1,6 @@
-/* File : stdvec.cxx */
+/* File : example.cxx */
 
-#include "stdvec.h"
+#include "example.h"
 
 #include <iostream>
 using std::cout;

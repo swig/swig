@@ -1,6 +1,6 @@
-/* File: mpitest.i */
+/* File: example.i */
 
-%module mpitest
+%module example
 
 %{
 #define HAVE_MPI

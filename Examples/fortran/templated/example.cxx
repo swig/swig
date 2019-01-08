@@ -1,5 +1,5 @@
-/* File : templated.cxx */
-#include "templated.h"
+/* File : example.cxx */
+#include "example.h"
 
 #include <iostream>
 using std::cout;

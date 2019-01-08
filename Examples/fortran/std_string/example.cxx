@@ -1,6 +1,6 @@
-/* File : stdstr.cxx */
+/* File : example.cxx */
 
-#include "stdstr.h"
+#include "example.h"
 
 #include <algorithm>
 #include <iostream>

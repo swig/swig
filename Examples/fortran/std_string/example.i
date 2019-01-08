@@ -1,14 +1,14 @@
-/* File : stdstr.i */
-%module stdstr
+/* File : example.i */
+%module example
 
 %{
-#include "stdstr.h"
+#include "example.h"
 %}
 
 // Support native string conversions
 %include <std_string.i>
 
-%include "stdstr.h"
+%include "example.h"
 
 
 

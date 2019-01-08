@@ -3,7 +3,7 @@
 program main
   use ISO_FORTRAN_ENV
   use, intrinsic :: ISO_C_BINDING
-  use thinvec, only : print_vec, print_offbyone, Vec => ThinVecInt
+  use example, only : print_vec, print_offbyone, Vec => ThinVecInt
   implicit none
   integer :: i
   type(Vec) :: v
@@ -47,6 +47,6 @@ program main
 end program
 
 !-----------------------------------------------------------------------------!
-! end of thinvec/runme.f90
+! end of example/runme.f90
 !-----------------------------------------------------------------------------!
 

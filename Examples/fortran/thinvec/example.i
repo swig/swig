@@ -1,9 +1,9 @@
-/* File : thinvec.i */
+/* File : example.i */
 %{
 #include "ThinVec.h"
 %}
 
-%module thinvec
+%module example
 
 %include <typemaps.i>
 %fortran_view(int)

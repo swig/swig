@@ -1,14 +1,14 @@
-/* File : spdemo.i */
+/* File : example.i */
 
-%module spdemo
+%module example
 
 %{
-#include "spdemo.h"
+#include "example.h"
 %}
 
 %include <std_shared_ptr.i>
 %shared_ptr(Foo);
-%include "spdemo.h"
+%include "example.h"
 
 
 

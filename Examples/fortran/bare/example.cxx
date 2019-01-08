@@ -1,6 +1,6 @@
-/* File : bare.cxx */
+/* File : example.cxx */
 
-#include "bare.h"
+#include "example.h"
 
 #include <stdexcept>
 #include <iostream>

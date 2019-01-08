@@ -12,7 +12,7 @@ contains
 
 subroutine test_class()
   use ISO_FORTRAN_ENV
-  use spdemo, only : Foo, print_foo => print_crsp
+  use example, only : Foo, print_foo => print_crsp
   implicit none
   type(Foo) :: f, f2, f3
 
@@ -43,7 +43,7 @@ end subroutine
 
 subroutine test_spcopy()
   use ISO_FORTRAN_ENV
-  use spdemo, only : Foo, print_foo => print_crsp, use_count
+  use example, only : Foo, print_foo => print_crsp, use_count
   implicit none
   type(Foo) :: f1, f2
 
@@ -77,6 +77,6 @@ end subroutine
 end program
 
 !-----------------------------------------------------------------------------!
-! end of spdemo/runme.f90
+! end of example/runme.f90
 !-----------------------------------------------------------------------------!
 
