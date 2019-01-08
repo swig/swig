@@ -2062,7 +2062,7 @@ fortran_clean:
 	rm -f *_wrap* *~ $(RUNME) $(RUNME).exe *.mod
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *$(FORTRAN_SO)
-	find . -name *.f90 -and -not -name *_runme.f90 -exec rm {} \;
+	rm -f `find . -name \*.f90 | grep -v $(RUNME).f90`
 
 fortran_version:
 	$(FC) --version
