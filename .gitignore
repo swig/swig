@@ -164,8 +164,8 @@ Examples/test-suite/ocaml/*.cm*
 Examples/test-suite/ocaml/runme
 !Examples/test-suite/ocaml/*runme.ml
 Examples/ocaml/**/example.ml*
-Examples/ocaml/**/example
-Examples/ocaml/**/example_top
+Examples/ocaml/**/runme
+Examples/ocaml/**/runme_top
 Examples/ocaml/**/*.cm*
 Examples/ocaml/**/swig.ml*
 Examples/ocaml/**/swigp4.ml

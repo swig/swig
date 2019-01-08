@@ -1,4 +1,4 @@
-(* example_prog.ml *)
+(* runme.ml *)
 
 open Swig ;;
 open Example ;;
