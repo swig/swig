@@ -1,8 +1,5 @@
 /* File : ThinVec.h */
 
-#ifndef thinvec_ThinVec_hh
-#define thinvec_ThinVec_hh
-
 #include <vector>
 
 template<typename T>
@@ -57,8 +54,4 @@ template<typename T>
 void print_vec(const ThinVec<T> &v);
 
 void print_offbyone(const ThinVec<int> &INDICES);
-
-#endif                                 // thinvec_ThinVec_hh
-
-
 

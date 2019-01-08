@@ -1,8 +1,5 @@
 /* File : bindc.h */
 
-#ifndef bindc_bindc_hh
-#define bindc_bindc_hh
-
 // C-bound struct
 struct Point {
   float x, y, z;
@@ -28,9 +25,3 @@ bool bound_negation(bool v);
 
 /* ------------------------------------------------------------------------- */
 }
-
-/* ------------------------------------------------------------------------- */
-#endif
-
-
-

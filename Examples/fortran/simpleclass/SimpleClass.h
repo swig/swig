@@ -1,21 +1,12 @@
 /* File : SimpleClass.h */
 
-#ifndef simpleclass_SimpleClass_hh
-#define simpleclass_SimpleClass_hh
-
 //! Simple public struct; generate accessors for it
 struct BasicStruct {
   int foo;
   double bar;
 };
 
-//===========================================================================//
-/*!
- * \class SimpleClass
- * \brief Simple test class
- */
-//===========================================================================//
-
+//! Simple test class
 class SimpleClass {
 public:
   typedef int storage_type;
@@ -86,9 +77,4 @@ const_SC_Ref get_class();
 void set_class_by_copy(SimpleClass c);
 
 void print_struct(const BasicStruct &s);
-
-/* ------------------------------------------------------------------------- */
-#endif                                 // simpleclass_SimpleClass_hh
-
-
 

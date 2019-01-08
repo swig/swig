@@ -1,8 +1,5 @@
 /* File : stdvec.h */
 
-#ifndef std_vector_stdvec_hh
-#define std_vector_stdvec_hh
-
 #include <cstddef>
 #include <vector>
 #include <utility>
@@ -40,9 +37,4 @@ template<class T>
 const std::vector<T> &get_vec(const std::vector<T> &inp) {
   return inp;
 }
-
-/* ------------------------------------------------------------------------- */
-#endif                                 // std_vector_stdvec_hh
-
-
 

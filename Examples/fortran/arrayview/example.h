@@ -1,8 +1,5 @@
 /* File : arrayview.h */
 
-#ifndef arrayview_arrayview_hh
-#define arrayview_arrayview_hh
-
 #include <algorithm>
 #include <iostream>
 #include <utility>
@@ -66,9 +63,4 @@ void print_array(std::pair<const T *, size_t> view) {
   }
   cout << "}\n";
 }
-
-/* ------------------------------------------------------------------------- */
-#endif                                 // arrayview_arrayview_hh
-
-
 

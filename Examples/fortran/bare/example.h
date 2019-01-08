@@ -1,8 +1,5 @@
 /* File : bare.h */
 
-#ifndef barefunctions_bare_hh
-#define barefunctions_bare_hh
-
 #include <cstddef>
 #include <utility>
 
@@ -78,9 +75,4 @@ const double approx_twopi = 2 * approx_pi;
 namespace foo {
 extern int global_counter;
 }
-
-/* ------------------------------------------------------------------------- */
-#endif                                 // barefunctions_bare_hh
-
-
 

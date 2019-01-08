@@ -1,8 +1,5 @@
 /* File : spdemo.h */
 
-#ifndef spdemo_spdemo_hh
-#define spdemo_spdemo_hh
-
 #include <memory>
 
 class Foo {
@@ -41,9 +38,4 @@ void print_sp(std::shared_ptr<Foo> f);
 void print_spc(std::shared_ptr<const Foo> f);
 void print_crspc(const std::shared_ptr<const Foo> &f);
 void print_cr(const Foo &f);
-
-/* ------------------------------------------------------------------------- */
-#endif                                 // spdemo_spdemo_hh
-
-
 
