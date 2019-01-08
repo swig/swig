@@ -1322,23 +1322,6 @@ call f%do_something()
 call g%do_something_else()
 ```
 
-The "constructor" wrapper provided by SWIG performs identically to the
-constructor in C++. One consequence is that C-like `struct` classes, and
-other classes with member data that isn't initialized in the constructor, will
-*not* have its data initialized on construction. Thus the following is
-undefined behavior for `struct Foo { int val; };`:
-```fortran
-type(Foo) :: f
-f = Foo()
-write (*,*) f%get_val()
-```
-
-This is exactly analogous to the same undefined behavior in C++:
-```c++
-Foo *f = new Foo();
-cout << f.val << endl;
-```
-
 ## Destructors
 
 Even though the Fortran 2003 standard specifies when local variables become
