@@ -23,6 +23,7 @@ SWIGEXT {
 #include <caml/callback.h>
 #include <caml/fail.h>
 #include <caml/misc.h>
+#include <caml/version.h>
 
 #define caml_array_set swig_caml_array_set
 
@@ -101,9 +102,17 @@ SWIGEXT {
 
 
 #ifndef ARCH_ALIGN_INT64
+#if OCAML_VERSION >= 40300
+#define SWIG_Int64_val(v) (*((int64_t *) SWIG_Data_custom_val(v)))
+#else
 #define SWIG_Int64_val(v) (*((int64 *) SWIG_Data_custom_val(v)))
+#endif
+#else
+#if OCAML_VERSION >= 40300
+CAMLextern int64_t Int64_val(caml_value_t v);
 #else
 CAMLextern int64 Int64_val(caml_value_t v);
+#endif
 #define SWIG_Int64_val(v) Int64_val(v)
 #endif
 
