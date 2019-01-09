@@ -3612,6 +3612,24 @@ The generated C/C++ code should also follow this style as close as possible. How
 should be avoided as unlike the SWIG developers, users will never have consistent tab settings.
 </p>
 
+<p>
+A newer tool, <tt>clang-format</tt>, can be used instead of <tt>indent</tt>. <a href="https://clang.llvm.org/docs/ClangFormat.html">ClangFormat</a> must be
+installed locally via the LLVM toolchain. Below is an example of how to format the emit.cxx file if an in-source build directory is used:
+</p>
+
+<blockquote>
+<pre>
+$ cd Source
+$ make format-file INDENTFILE=Modules/emit.cxx
+</pre>
+</blockquote>
+
+<p>
+Of particular note is indentation is set to 2 spaces and a tab is used instead of 8 spaces.
+The generated C/C++ code should also follow this style as close as possible. However, tabs
+should be avoided as unlike the SWIG developers, users will never have consistent tab settings.
+</p>
+
 <H2><a name="Extending_debugging_options">42.11 Debugging Options</a></H2>
 
 

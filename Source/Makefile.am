@@ -135,9 +135,9 @@ beautify:
 	mkdir $(INDENTBAKSDIR)/Preprocessor
 	mkdir $(INDENTBAKSDIR)/Swig
 	mkdir $(INDENTBAKSDIR)/Include
-	(csources=`find . -name "*.c"` && \
-	hsources=`find . -name "*.h"` && \
-	cxxsources=`find . -name "*.cxx"` && \
+	(csources=`find $(SOURCE_DIR) -name "*.c"` && \
+	hsources=`find $(SOURCE_DIR) -name "*.h"` && \
+	cxxsources=`find $(SOURCE_DIR) -name "*.cxx"` && \
 	for file in $$csources $$hsources $$cxxsources; do \
 	  $(MAKE) beautify-file INDENTFILE=$$file; \
 	done; )
@@ -151,11 +151,18 @@ beautify-file:
 	cat $(INDENTFILE).tmp | sed -e 's/const const /const /' > $(INDENTFILE);
 	rm $(INDENTFILE).tmp;
 
+# Beautify the code using clang-format.
+# This works well on both C and C++ code. It requires the LLVM/Clang tools to be installed.
+# Single files can be beautified with the format-file target, eg: 'make format-file INDENTFILE=chosenfile.c'
+
 format:
-	(sources=`find $(SOURCE_DIR) -name "*.c" -or -name "*.h" -or -name "*.cxx"` && \
-	for file in $$sources; do \
+	(csources=`find $(SOURCE_DIR) -name "*.c"` && \
+	hsources=`find $(SOURCE_DIR) -name "*.h"` && \
+	cxxsources=`find $(SOURCE_DIR) -name "*.cxx"` && \
+	for file in $$csources $$hsources $$cxxsources; do \
 	  $(MAKE) format-file INDENTFILE=$$file; \
 	done; )
+
 
 format-file:
 	test -n "$(INDENTFILE)" || (echo INDENTFILE not defined && exit 1;)
