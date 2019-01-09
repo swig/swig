@@ -138,7 +138,8 @@
 }
 
 %typemap(out, noblock=1, fragment="SWIG_null_deleter") SWIGSP__ * {
-  $result = ($1 && SWIG_SHARED_PTR_NOT_NULL(*$1)) ? new $*1_ltype(*($1_ltype)$1) : 0;
+  $result.cptr = ($1 && SWIG_SHARED_PTR_NOT_NULL(*$1)) ? new $*1_ltype(*($1_ltype)$1) : 0;
+  $result.mem = SWIG_MOVE;
   if ($owner) delete $1;
 }
 

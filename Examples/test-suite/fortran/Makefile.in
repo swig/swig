@@ -17,9 +17,6 @@ top_builddir   = @top_builddir@
 CPP_TEST_CASES = \
 	fortran_bindc
 
-CPP11_TEST_CASES = \
-	fortran_shared_ptr
-
 C_TEST_CASES = \
 	fortran_array_typemap \
 	fortran_bindc_c \
@@ -64,7 +61,6 @@ FAILING_CPP_TESTS += \
   inherit_target_language \
   li_attribute \
   li_attribute_template \
-  li_boost_shared_ptr \
   member_funcptr_galore \
   multiple_inheritance \
   multiple_inheritance_abstract \
