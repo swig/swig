@@ -136,9 +136,10 @@ Examples/d/**/runme
 # Fortran
 *.mod
 Examples/test-suite/fortran/*.f90
-!Examples/test-suite/fortran/*runme.f90
+!Examples/test-suite/fortran/*runme.F90
 Examples/fortran/*/*.f90
 !Examples/fortran/*/*runme.f90
+!Examples/fortran/*/*runme.F90
 
 # Go
 *.[5689]

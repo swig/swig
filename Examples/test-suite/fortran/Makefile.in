@@ -4,7 +4,7 @@
 
 LANGUAGE	= fortran
 FC      	= @FC@
-SCRIPTSUFFIX= _runme.f90
+SCRIPTSUFFIX= _runme.F90
 
 FORTRAN_SO = @FORTRAN_SO@
 FCFLAGS = @FCFLAGS@
@@ -123,6 +123,6 @@ run_testcase = \
 %.clean:
 	@rm -f $*.o $*.a $*_runme.exe
 	@rm -rf $*.dSYM
-	find . -name $*.f90 -and -not -name $*_runme.f90 -exec rm {} \;
+	find . -name $*.f90 -and -not -name $*_runme.F90 -exec rm {} \;
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' fortran_clean

@@ -2714,7 +2714,6 @@ if test x"${FORTRAN}" = xno; then
   FC=
 else
   if test -n "$FCFLAGS" && test "x$GCC" = xyes; then
-    # NOTE: unit tests use C preprocessor, so -cpp must be set
     FCFLAGS="-std=f2003 -Wall -Wimplicit-procedure -Wimplicit-interface"
   fi
 

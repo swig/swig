@@ -5,7 +5,7 @@ CXXSRCS    = example.cxx
 TARGET     = example
 INTERFACE  = example.i
 SWIGOPT    =
-FORTRANSRCS = runme.f90
+FORTRANSRCS = runme.F90
 
 check: build
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' fortran_run

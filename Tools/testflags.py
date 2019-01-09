@@ -77,9 +77,6 @@ def get_fcflags(language, std, compiler):
     # Note: some test cases generate spurious -Wsurprising and
     # -Wmaybe-uninitialized; others warn about shadowing intrinsics; so we
     # don't add -Werror
-    if compiler.startswith('gfortran'):
-        # Enable C preprocessing
-        fcflags.append("-cpp")
     return " ".join(fcflags)
 
 import argparse

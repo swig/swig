@@ -5,7 +5,7 @@ CXXSRCS    = SimpleClass.cxx
 TARGET     = example
 INTERFACE  = simple_class.i
 SWIGOPT    =
-FORTRANSRCS = runme.f90
+FORTRANSRCS = runme.F90
 
 check: build
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' fortran_run
