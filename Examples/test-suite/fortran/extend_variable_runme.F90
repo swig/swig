@@ -1,4 +1,6 @@
-! File : extend_variable_runme.f90
+! File : extend_variable_runme.F90
+
+#include "fassert.h"
 
 program extend_variable_runme
   use extend_variable
@@ -10,15 +12,15 @@ program extend_variable_runme
   ! Test fake member variable
   em = ExtendMe()
   call em%set_ExtendVar(10.0d0)
-  if (em%get_ExtendVar() /= 10.0d0) stop 1
+  ASSERT(em%get_ExtendVar() == 10.0d0)
   call em%release()
 
   ! Test fake static const int ('nopass' means we don't have to create)
-  if (f%get_StaticConstInt() /= 2222) stop 1
+  ASSERT(f%get_StaticConstInt() == 2222)
 
   ! Test extended class constants, both hard-coded and linked
-  if (Foo_Bar /= 42) stop 1
-  if (Foo_AllBarOne /= 4422) stop 1
+  ASSERT(Foo_Bar == 42)
+  ASSERT(Foo_AllBarOne == 4422)
 
 end program
 

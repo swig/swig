@@ -1,4 +1,6 @@
-! File : default_constructor_runme.f90
+! File : default_constructor_runme.F90
+
+#include "fassert.h"
 
 program default_constructor_runme
   use default_constructor
@@ -11,5 +13,4 @@ program default_constructor_runme
   ! Call a static method
   call ginstance%destroy(ginstance)
 end program
-
 

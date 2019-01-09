@@ -1,4 +1,6 @@
-! File : ret_by_value_runme.f90
+! File : ret_by_value_runme.F90
+
+#include "fassert.h"
 
 #include "fassert.h"
 

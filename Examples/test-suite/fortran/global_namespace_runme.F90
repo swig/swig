@@ -1,4 +1,6 @@
-! File : global_namespace_runme.f90
+! File : global_namespace_runme.F90
+
+#include "fassert.h"
 
 program global_namespace_runme
   use global_namespace

@@ -1,4 +1,6 @@
-! File : abstract_access_runme.f90
+! File : abstract_access_runme.F90
+
+#include "fassert.h"
 
 program abstract_access_runme
   use abstract_access
@@ -9,7 +11,6 @@ program abstract_access_runme
   dcls = D()
   basecls => dcls
 
-  if (basecls%do_x() /= 1) stop 1
+  ASSERT(basecls%do_x() == 1)
 end program
-
 

@@ -1,4 +1,6 @@
-! File : unions_runme.f90
+! File : unions_runme.F90
+
+#include "fassert.h"
 
 program unions_runme
   use unions

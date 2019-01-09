@@ -1,4 +1,6 @@
-! File : inctest_runme.f90
+! File : inctest_runme.F90
+
+#include "fassert.h"
 
 program inctest_runme
   use inctest
@@ -15,13 +17,13 @@ program inctest_runme
   bi = B()
   call bi%release()
   
-  if (importtest1(5) /= 15) stop 1
+  ASSERT(importtest1(5) == 15)
 
   ! XXX since importtest2 modifies by reference, we should have to copy it out (so that 'instr' is "white" as well)
   allocate(instr, source="black")
   outstr = importtest2(instr)
   write(*,*) "instr:", instr, " outstr:", outstr
-  if (outstr /= "white") stop 1
+  ASSERT(outstr == "white")
 
 end program
 

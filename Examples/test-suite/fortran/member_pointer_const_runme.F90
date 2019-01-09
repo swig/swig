@@ -1,4 +1,6 @@
-! File : member_pointer_const_runme.f90
+! File : member_pointer_const_runme.F90
+
+#include "fassert.h"
 
 program member_pointer_const_runme
   use member_pointer_const

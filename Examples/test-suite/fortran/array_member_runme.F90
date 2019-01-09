@@ -1,4 +1,6 @@
-! File : array_member_runme.f90
+! File : array_member_runme.F90
+
+#include "fassert.h"
 
 program array_member_runme
   use array_member
@@ -17,7 +19,7 @@ program array_member_runme
   local_data => f%get_data()
   ! In Fortran, loops are inclusive of the range.
   do i = 0, 7
-    if (get_value(local_data(1), i) /= get_value(global_data(1), i)) stop 1
+    ASSERT(get_value(local_data(1), i) == get_value(global_data(1), i))
   end do
 
   do i = 0, 7
@@ -29,8 +31,7 @@ program array_member_runme
 
   ! Now check it
   do i = 0, 7
-    if (get_value(local_data(1), i) /= get_value(global_data(1), i)) stop 1
+    ASSERT(get_value(local_data(1), i) == get_value(global_data(1), i))
   end do
 end program
-
 
