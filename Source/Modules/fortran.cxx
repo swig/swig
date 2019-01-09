@@ -182,6 +182,40 @@ bool is_native_parameter(Node *n) {
 }
 
 /* -------------------------------------------------------------------------
+ * Construct a specifier suffix from a BIND(C) typemap.
+ * 
+ * This returns NULL if the typestr doesn't have a simple KIND, otherwise
+ * returns a newly allocated String with the suffix.
+ */
+String *make_specifier_suffix(String *bindc_typestr) {
+  String *suffix = NULL;
+    // Search for the KIND embedded in `real(C_DOUBLE)` so that we can
+    // append the fortran specifier. This is kind of a hack, but native
+    // parameters should really only be used for the kinds we define in
+    // fortypemaps.swg
+    const char *start = Char(bindc_typestr);
+    const char *stop = start + Len(bindc_typestr);
+    // Search forward for left parens
+    for (; start != stop; ++start) {
+      if (*start == '(') {
+        ++start;
+        break;
+      }
+    }
+    // Search backward for right parens
+    for (; stop != start; --stop) {
+      if (*stop == ')') {
+        break;
+      }
+    }
+
+    if (stop != start) {
+      suffix = NewStringWithSize(start, (int)(stop - start));
+    }
+    return suffix;
+}
+
+/* -------------------------------------------------------------------------
  * \brief Determine whether to wrap a function/class as a c-bound struct.
  */
 bool is_bindc(Node *n) {
@@ -2254,43 +2288,24 @@ int FORTRAN::constantWrapper(Node *n) {
     // Print the enum to the list
     Printv(f_fparams, "  enumerator :: ", symname, " = ", value, "\n", NULL);
   } else if (is_native_parameter(n)) {
-    // Search for the KIND embedded in `integer(C_DOUBLE)` so that we can
-    // append the fortran specifier. This is kind of a hack, but native
-    // parameters should really only be used for the kinds we define in
-    // fortypemaps.swg
-    const char *start = Char(bindc_typestr);
-    const char *stop = start + Len(bindc_typestr);
-    for (; start != stop; ++start) {
-      if (*start == '(') {
-        ++start;
-        break;
-      }
-    }
-    for (; stop != start; --stop) {
-      if (*stop == ')') {
-        break;
-      }
-    }
-
-    if (stop != start) {
-      // Append fortran type specifier; otherwise e.g. 1.000000001 will
-      // be truncated to 1 because fortran will think it's a float
-      String *suffix = NewStringWithSize(start, (int)(stop - start));
+    String *suffix = make_specifier_suffix(bindc_typestr);
+    if (suffix) {
+      // Add specifier such as _C_DOUBLE to the value. Otherwise, for example,
+      // 1.000000001 will be truncated to 1 because fortran will think it's a float.
       Printv(value, "_", suffix, NULL);
       Delete(suffix);
     }
-
     Printv(f_fparams, " ", bindc_typestr, ", parameter, public :: ", symname, " = ", value, "\n", NULL);
   } else {
     /*! Add to public fortran code:
-         *
-         *   IMTYPE, protected, bind(C, name="swig_SYMNAME") :: SYMNAME
-         *
-         * Add to wrapper code:
-         *
-         *   {const_CTYPE = SwigType_add_qualifier(CTYPE, "const")}
-         *   {SwigType_str(const_CTYPE, swig_SYMNAME) = VALUE;}
-         */
+     *
+     *   IMTYPE, protected, bind(C, name="swig_SYMNAME") :: SYMNAME
+     *
+     * Add to wrapper code:
+     *
+     *   {const_CTYPE = SwigType_add_qualifier(CTYPE, "const")}
+     *   {SwigType_str(const_CTYPE, swig_SYMNAME) = VALUE;}
+     */
     Swig_save("constantWrapper", n, "wrap:name", "lname", NULL);
 
     // SYMNAME -> swig_SYMNAME

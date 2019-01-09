@@ -118,9 +118,14 @@ PerimeterFunc_td perimetervar_td = &Shape::perimeter;
 
 #ifdef SWIGFORTRAN
 /* Prevent the '0' from being wrapped like a compile-time constant.
- * Alternatively, use nullptr.
+ *
+ * TODO: this only happens because Fortran tries to wrap simple integers
+ * as parameters by default. Changing to the Java/C# implementation of
+ * "extern by default" would allow us to remove the `%nofortranconst` line.
  */
 %nofortranconst NULLPT;
+// Wrap constant using unique names due to Fortran case insensitivity
+%rename(ARPT) AREAPT;
 #endif
 
 /* Some constants */
