@@ -9,7 +9,7 @@ program main
 contains
 
 subroutine test_simple_class_memory()
-  use simple_class
+  use example
   use ISO_C_BINDING
   implicit none
   type(SimpleClass) :: orig
@@ -69,7 +69,7 @@ subroutine test_simple_class_memory()
 end subroutine
 
 subroutine test_simple_class_actions()
-  use simple_class
+  use example
   use ISO_C_BINDING
   implicit none
   type(SimpleClass) :: sc
@@ -95,7 +95,7 @@ subroutine test_simple_class_actions()
 end subroutine
 
 subroutine test_basic_struct()
-  use simple_class
+  use example
   implicit none
   type(BasicStruct) :: bs
 

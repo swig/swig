@@ -1,6 +1,6 @@
-/* File : SimpleClass.cxx */
+/* File : example.cxx */
 
-#include "SimpleClass.h"
+#include "example.h"
 
 #include <iostream>
 using std::cout;
@@ -90,5 +90,4 @@ const SimpleClass &get_class() {
 void print_struct(const BasicStruct &s) {
   cout << "Struct " << &s << " has foo=" << s.foo << ", bar=" << s.bar << endl;
 }
-
 

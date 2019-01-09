@@ -1,10 +1,8 @@
-/* File : simple_class.i */
-%module(docstring="A simple example module") simple_class
-
-//%include "docstring.i"
+/* File : example.i */
+%module(docstring="A simple example module") example
 
 %{
-#include "SimpleClass.h"
+#include "example.h"
 %}
 
 %{
@@ -73,11 +71,9 @@ SimpleClass(double a, double b)
 }
 }
 
-%include "SimpleClass.h"
+%include "example.h"
 
 // Overloaded templated function instantiation
 %template(action) SimpleClass::action<double>;
 %template(action) SimpleClass::action<int>;
-
-
 
