@@ -1112,12 +1112,13 @@ public:
    */
 
   int classHandler(Node *n) {
-    String *name = Getattr(n, "sym:name");
+    String *name = Getattr(n, "name");
+    classname = Getattr(n, "sym:name");
 
     if (!name)
       return SWIG_OK;
 
-    String *mangled_sym_name = mangleNameForCaml(name);
+    String *mangled_name = mangleNameForCaml(name);
     String *this_class_def = NewString(f_classtemplate);
     String *name_normalized = normalizeTemplatedClassName(name);
     String *old_class_ctors = f_class_ctors;
@@ -1126,7 +1127,6 @@ public:
     bool sizeof_feature = generate_sizeof && isSimpleType(name);
 
 
-    classname = mangled_sym_name;
     classmode = true;
     int rv = Language::classHandler(n);
     classmode = false;
@@ -1134,15 +1134,15 @@ public:
     if (sizeof_feature) {
       Printf(f_wrappers,
 	     "SWIGEXT CAML_VALUE _wrap_%s_sizeof( CAML_VALUE args ) {\n"
-	     "    CAMLparam1(args);\n" "    CAMLreturn(Val_int(sizeof(%s)));\n" "}\n", mangled_sym_name, name_normalized);
+	     "    CAMLparam1(args);\n" "    CAMLreturn(Val_int(sizeof(%s)));\n" "}\n", mangled_name, name_normalized);
 
-      Printf(f_mlbody, "external __%s_sizeof : unit -> int = " "\"_wrap_%s_sizeof\"\n", classname, mangled_sym_name);
+      Printf(f_mlbody, "external __%s_sizeof : unit -> int = " "\"_wrap_%s_sizeof\"\n", mangled_name, mangled_name);
     }
 
 
     /* Insert sizeof operator for concrete classes */
     if (sizeof_feature) {
-      Printv(f_class_ctors, "\"sizeof\" , (fun args -> C_int (__", classname, "_sizeof ())) ;\n", NIL);
+      Printv(f_class_ctors, "\"sizeof\" , (fun args -> C_int (__", mangled_name, "_sizeof ())) ;\n", NIL);
     }
     /* Handle up-casts in a nice way */
     List *baselist = Getattr(n, "bases");
@@ -1161,7 +1161,7 @@ public:
       }
     }
 
-    Replaceall(this_class_def, "$classname", classname);
+    Replaceall(this_class_def, "$classname", mangled_name);
     Replaceall(this_class_def, "$normalized", name_normalized);
     Replaceall(this_class_def, "$realname", name);
     Replaceall(this_class_def, "$baselist", base_classes);
@@ -1174,7 +1174,7 @@ public:
 
     Multiwrite(this_class_def);
 
-    Setattr(n, "ocaml:ctor", classname);
+    Setattr(n, "ocaml:ctor", mangled_name);
 
     return rv;
   }
