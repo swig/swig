@@ -5435,7 +5435,7 @@ that has a <tt>this</tt> attribute.  In addition,
 class object (if applicable).
 </p>
 
-<H3><a name="Python_memory_management_member_variables">36.9.7 Memory management when returning references to member variables</a></H3>
+<H3><a name="Python_memory_management_member_variables">38.9.7 Memory management when returning references to member variables</a></H3>
 
 
 <p>
@@ -5449,9 +5449,11 @@ Consider the following C++ code:
 
 <div class="code">
 <pre>
+#include &lt;iostream&gt;
 struct Wheel {
   int size;
   Wheel(int sz) : size(sz) {}
+  ~Wheel() { std::cout &lt;&lt; "~Wheel" &lt;&lt; std::endl; }
 };
 
 class Bike {
@@ -5474,7 +5476,7 @@ bike = Bike(10)
 wheel = bike.getWheel()
 print("wheel size: {}".format(wheel.size))
 
-del bike # Allow bike to be garbage collected
+del bike  # Allow bike to be garbage collected
 print("wheel size: {}".format(wheel.size))
 </pre>
 </div>
@@ -5486,6 +5488,7 @@ Don't be surprised that if the resulting output gives strange results such as...
 <div class="shell">
 <pre>
 wheel size: 10
+~Wheel
 wheel size: 135019664
 </pre>
 </div>
@@ -5499,64 +5502,98 @@ be added to the <tt>wheel</tt> instance.
     
 <p>
 You can do this by adding the reference when the <tt>getWheel()</tt> method
-is called using one of two approaches:
+is called using one of three approaches:
 </p>
     
 <p>
-The easier, but less optimized, way is to use the typemap-like <tt>%pythonappend</tt> directive 
-(see <a href="#Python_nn42">36.6.2 Adding additional Python code</a>):
+The easier, but less optimized, way is to use the <tt>%pythonappend</tt> directive 
+(see <a href="#Python_nn42">Adding additional Python code</a>):
 </p>
 
 <div class="code">
 <pre>
 %pythonappend getWheel %{
   # val is the Wheel proxy, self is the Bike instance
-  val._bike = self
+  val.__bike_reference = self
 %}
 </pre>
 </div>
 
 <p>
 The code gets appended to the Python code generated for the 
-<tt>Bike::getWheel</tt> function, where we store the <tt>Bike</tt> proxy 
+<tt>Bike::getWheel</tt> wrapper function, where we store the <tt>Bike</tt> proxy 
 instance onto the <tt>Wheel</tt> proxy instance before it is returned to the 
-caller.
+caller as follows.
 </p>
     
+<div class="targetlang">
+<pre>
+class Bike(object):
+    ...
+    def getWheel(self):
+        val = _example.Bike_getWheel(self)
+
+        # val is the Wheel proxy, self is the Bike instance
+        val.__bike_reference = self
+
+        return val
+</pre>
+</div>
+
+
 <p>
 The second option, which performs better and is required if you use the 
 <tt>-builtin</tt> option, is to set the reference in the CPython implementation:
     
 <div class="code">
 <pre>
-%fragment("extra_reference", "header") {
+%extend Wheel {
+// A reference to the parent class is added to ensure the underlying C++
+// object is not deleted while the item is in use
+%typemap(ret) Wheel&amp; getWheel {
+  PyObject *bike_reference_string = SWIG_Python_str_FromChar("__bike_reference");
+  PyObject_SetAttr($result, bike_reference_string, $self);
+  Py_DecRef(bike_reference_string);
+}
+}
+</pre>
+</div>
 
-static PyObject *extra_reference() {
-  static PyObject *extra_reference_string = NULL;
-  if (!extra_reference_string)
-    extra_reference_string = SWIG_Python_str_FromChar("_extra_reference");
-  return extra_reference_string;
+<p>
+The third approach, shown below, is an optimization of the above approach and creates the "__bike_reference" Python string object just once.
+While this looks more complex, it is just a small variation on the above typemap plus a support function
+<tt>bike_reference()</tt> in a fragment called <tt>bike_reference_function</tt>.
+The <tt>bike_reference_init</tt> typemap generates code into the "init" section for an initial call to <tt>bike_reference()</tt> when the module
+is initialized and is done to create the "__bike_reference" Python string singleton in a thread-safe manner.
+</p>
+
+<div class="code">
+<pre>
+%fragment("bike_reference_init", "init") {
+  // Thread-safe initialization - initialize during Python module initialization
+  bike_reference();
+}
+
+%fragment("bike_reference_function", "header", fragment="bike_reference_init") {
+
+static PyObject *bike_reference() {
+  static PyObject *bike_reference_string = SWIG_Python_str_FromChar("__bike_reference");
+  return bike_reference_string;
 }
 
 }
 
 %extend Wheel {
-%typemap(ret, fragment="extra_reference") Wheel& getWheel %{
-  // A reference to the parent class is added to ensure the underlying C++
-  // object is not deleted while the item is in use
-  PyObject_SetAttr($result, extra_reference(), $self);
+// A reference to the parent class is added to ensure the underlying C++
+// object is not deleted while the item is in use
+%typemap(ret, fragment="bike_reference_function") Wheel&amp; getWheel %{
+  PyObject_SetAttr($result, bike_reference(), $self);
 %}
-/* FYI: Alternative approach, but is possibly harder to understand, so suggest above
-%typemap(out, fragment="extra_reference") Wheel& getWheel %{
-  $typemap(out, Wheel &)
-  // A reference to the parent class is added to ensure the underlying C++
-  // object is not deleted while the item is in use
-  PyObject_SetAttr($result, extra_reference(), $self);
-%}
-*/
 }
 </pre>
 </div>
+
+
 
 
 <H2><a name="Python_nn65">38.10 Docstring Features</a></H2>
