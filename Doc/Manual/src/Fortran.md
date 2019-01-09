@@ -494,22 +494,37 @@ be implemented in a later version of SWIG.
 
 ## Arrays
 
-SWIG supports a subset of direct Fortran array translation. If a
-single-dimensional array size is explicitly specified in a C function's
-signature, the corresponding argument will be an explicit-shape Fortran array.
+Unlike other SWIG languages, the Fortran module can wrap explicitly sized
+arrays *directly* rather than treating them as raw pointers. This is because
+Fortran 2003 allows for explicit translation of array sizes between C functions
+and Fortran types. Otherwise, it treats unspecified arrays as the same as
+pointers and references:
+
+| C++ type       | Fortran type                                           |
+| --------       | ------------                                           |
+| `f(int* a)`    | `integer(C_INT), target, intent(inout)`                |
+| `f(int& a)`    | `integer(C_INT), target, intent(inout)`                |
+| `f(int a[10])` | `integer(C_INT), dimension(10), target, intent(inout)` |
+| `f(int a[])`   | `integer(C_INT), target, intent(inout)`                |
+| `int *f()`     | `integer(C_INT), pointer`                              |
+| `int &f()`     | `integer(C_INT), pointer`                              |
 
 One note of caution is that occasionally arrays will be defined using
-nontrivial C
-expressions rather than explicit integers. Even though these can be evaluated
-by C at compile time, the unevaluated expression cannot be propagated into the
-Fortran wrapper code. SWIG checks whether the expression is a combination of
-base-10 numbers and the simple arithmetic expressions `+-*/`; if so, it is
-allowable. Otherwise, a warning is emitted and the array is ignored.
+nontrivial C expressions rather than explicit integers. Even though these can
+be evaluated by C at compile time, the unevaluated expression cannot be
+propagated into the Fortran wrapper code. Only simple integers can be
+automatically wrapped as dimensioned Fortran arrays: other values will cause
+a warning to be emitted and *no wrapper function will be generated*. Use the
+SWIG `%apply` directive to treat the array as an unspecified-dimension array.
 ```c
-int global_data1[8]; /* OK */
-int global_data2[];  /* OK */
-int global_data3[sizeof(int)];  /* WARN AND IGNORE */
+%apply int[] { int y[sizeof(int)] };
+
+void foo(int x[8]);
+void bar(int y[sizeof(int)]);
+void baz(int z[]);
 ```
+
+The wrapping of arrays is likely to change soon (early 2019).
 
 ## Byte strings
 
