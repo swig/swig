@@ -1,5 +1,7 @@
 ! File : ret_by_value_runme.f90
 
+#include "fassert.h"
+
 program ret_by_value_runme
   use ret_by_value
   use ISO_C_BINDING
@@ -11,18 +13,12 @@ program ret_by_value_runme
 
   test_val = get_test()
 
-  int = test_val%myInt
-  short = test_val%myShort
+  int = test_val%get_myInt()
+  short = test_val%get_myShort()
 
-  if(test_val%myInt /= 100_C_INT) then
-    write(*,*)"Wrong value for %myInt", test_val%myInt
-    stop 1
-  endif
+  ASSERT(test_val%get_myInt() == 100_C_INT)
+  ASSERT(test_val%get_myShort() == 200_C_SHORT)
 
-  if(test_val%myShort /= 200_C_SHORT) then
-    write(*,*)"Wrong value for %myShort", test_val%myShort
-    stop 1
-  endif
 end program
 
 
