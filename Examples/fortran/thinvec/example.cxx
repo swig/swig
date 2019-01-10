@@ -1,6 +1,6 @@
-/* File : ThinVec.cxx */
+/* File : example.cxx */
 
-#include "ThinVec.h"
+#include "example.h"
 
 #include <cassert>
 #include <iostream>

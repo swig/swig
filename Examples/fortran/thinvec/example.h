@@ -1,4 +1,4 @@
-/* File : ThinVec.h */
+/* File : example.h */
 
 #include <vector>
 
