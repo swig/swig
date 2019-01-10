@@ -1031,7 +1031,7 @@ constructed from a `const char *` but can also accept a `std::string` if needed.
 Since Fortran has no implicit constructors, passing a string argument would
 typically require declaring and instantiating a class for that parameter.
 To mitigate this annoyance, special typemaps are provided that
-transparently convert between Fortran types and C++ types while
+transparently convert between Fortran types and C++ types.
 
 Generally, these typemaps are defined as applying to arguments called `NATIVE`;
 they can be applied to *all* arguments regardless of name with the `%apply`
@@ -1046,7 +1046,8 @@ with
 %apply const char *NATIVE { const char *get_foo_string };
 ```
 
-
+**NOTE** The `NATIVE` typemap will soon be replaced with a more SWIG-like
+implementation and should not be used at the moment.
 
 ## The std::string class
 
@@ -1463,7 +1464,8 @@ procedure.
 
 ## Memory management
 
-A single Fortran proxy class must be able to act as a value, a pointer, or a reference to a C++ class instance.
+A single Fortran proxy class must be able to act as a value, a pointer, or a
+reference to a C++ class instance.
 When stored as a value, a method must be put in place to deallocate the
 associated memory; if the instance is a reference, that same method cannot
 double-delete the associated memory. Finally, C++ functions
