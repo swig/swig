@@ -268,12 +268,12 @@ String *make_import_string(String *imtype) {
  */
 bool is_valid_identifier(String *name) {
   const char *c = Char(name);
-  if (*c == '_') {
+  if (*c == '_')
     return false;
-  }
-  if (Len(name) > 63) {
+  if (*c >= '0' && *c <= '9')
     return false;
-  }
+  if (Len(name) > 63)
+    return false;
   return true;
 }
 
@@ -1396,7 +1396,6 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
 
     // Add parameter name to declaration list
     String *farg = this->makeParameterName(n, p, i++);
-    Setattr(p, "fname", farg);
     Append(ffunc_arglist, farg);
 
     // Add dummy argument to wrapper body
@@ -1676,9 +1675,15 @@ void FORTRAN::write_docstring(Node *n, String *dest) {
 /* -------------------------------------------------------------------------
  * \brief Create a friendly parameter name
  */
-String *FORTRAN::makeParameterName(Node *, Parm *p, int arg_num, bool) const {
-  String *name = Getattr(p, "name");
-  if (name && is_valid_identifier(name) && !Strstr(name, "::")) {
+String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool) const {
+  String *name = Getattr(p, "fname");
+  if (name) {
+    // Name has already been converted and checked by a previous loop
+    return name;
+  }
+
+  name = Getattr(p, "name");
+  if (name && Len(name) > 0 && is_valid_identifier(name) && !Strstr(name, "::")) {
     // Valid fortran name; convert to lowercase
     name = Swig_string_lower(name);
   } else {
@@ -1687,17 +1692,43 @@ String *FORTRAN::makeParameterName(Node *, Parm *p, int arg_num, bool) const {
   }
   String *origname = name;
 
-  // If the parameter name is in the fortran scope, or in the
-  // forward-declared classes, mangle it
+  // Symbol tables for module and forward-declared class scopes
   FORTRAN *mthis = const_cast<FORTRAN *>(this);
   Hash *symtab = mthis->symbolScopeLookup("fortran");
   Hash *fwdsymtab = mthis->symbolScopeLookup("fortran_fwd");
-  while (Getattr(symtab, name) || Getattr(fwdsymtab, name)) {
-    // Rename
-    String* prevname = name;
-    name = NewStringf("%s%d", origname, arg_num++);
-    Delete(prevname);
+  
+  bool valid = false;
+  while (!valid)
+  {
+    valid = true;
+    if (ParmList *parmlist = Getattr(n, "parms")) {
+      // Check against previously generated names in this parameter list
+      for (Parm *other = parmlist; other; other = nextSibling(other)) {
+        if (other == p)
+          break;
+        String *other_name = Getattr(other, "fname");
+        if (other_name && Strcmp(name, other_name) == 0) {
+          valid = false;
+          break;
+        }
+      }
+    }
+
+    // If the parameter name is in the fortran scope, or in the
+    // forward-declared classes, mangle it
+    if (valid && (Getattr(symtab, name) || Getattr(fwdsymtab, name))) {
+      valid = false;
+    }
+
+    if (!valid) {
+      // Try another name and loop again
+      String* prevname = name;
+      name = NewStringf("%s%d", origname, arg_num++);
+    }
   }
+
+  // Save the name for next time we have to use this parameter
+  Setattr(p, "fname", name);
   return name;
 }
 
