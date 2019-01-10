@@ -32,7 +32,8 @@ FAILING_CPP_TESTS += \
 
 # C++11 tests: link error
 FAILING_CPP_TESTS += \
-  cpp11_default_delete
+  cpp11_default_delete \
+  cpp11_li_std_array
 
 # C++11 tests: fortran error
 FAILING_CPP_TESTS += \
@@ -61,6 +62,7 @@ FAILING_CPP_TESTS += \
   inherit_target_language \
   li_attribute \
   li_attribute_template \
+  li_std_map \
   member_funcptr_galore \
   multiple_inheritance \
   multiple_inheritance_abstract \
