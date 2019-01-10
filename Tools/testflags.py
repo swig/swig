@@ -66,6 +66,10 @@ def get_fcflags(language, std, compiler):
     fcflags = ["-std=" + std, "-Wall", "-Wextra", "-Wimplicit-procedure",
             "-Wimplicit-interface", "-Wno-compare-reals",
             "-ffree-line-length-none"]
+    # The boost version on the systems seems to be compiled as multithreaded
+    # but does not link against the pthread library (and I guess the C++
+    # compiler does?)
+    fcflags.append("-pthread")
     # Note: some test cases generate spurious -Wsurprising and
     # -Wmaybe-uninitialized; others warn about shadowing intrinsics; so we
     # don't add -Werror
