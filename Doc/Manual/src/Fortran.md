@@ -1619,7 +1619,7 @@ memory.
 Ideally, as was done in [Rouson's implementation of Fortran shared pointers](https://dx.doi.org/10.1109/MCSE.2012.33), we
 could rely on the `FINAL` operator defined by Fortran 2003 to release the
 temporary's memory. Unfortunately, only the very latest compilers (as of 2018,
-14 years after the standard was ratified) have full support for the `FINAL` 
+14 years after the standard was ratified) have full support for the `FINAL` keyword.
 
 Our solution to this limitation is to have the `Foo` proxy class store not only
 a pointer to the C data but also a state enumeration `self%swigdata%mem` that
