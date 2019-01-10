@@ -131,12 +131,10 @@ enum autodoc_t {
 static const char *usage = "\
 Ruby Options (available with -ruby)\n\
      -autorename     - Enable renaming of classes and methods to follow Ruby coding standards\n\
-     -cppcast        - Enable C++ casting operators (default)\n\
      -globalmodule   - Wrap everything into the global module\n\
      -initname <name>- Set entry function to Init_<name> (used by `require')\n\
      -minherit       - Attempt to support multiple inheritance\n\
      -noautorename   - Disable renaming of classes and methods (default)\n\
-     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
 ";
 
@@ -257,32 +255,22 @@ private:
       autodoc = make_autodoc(n, ad_type);
       have_auto = (autodoc && Len(autodoc) > 0);
     }
-    // If there is more than one line then make docstrings like this:
-    //
-    //      This is line1
-    //      And here is line2 followed by the rest of them
-    //
-    // otherwise, put it all on a single line
-    //
+
+    if (have_auto || have_ds)
+      doc = NewString("/*");
+
     if (have_auto && have_ds) {	// Both autodoc and docstring are present
-      doc = NewString("");
-      Printv(doc, "\n", autodoc, "\n", str, NIL);
+      Printv(doc, "\n", autodoc, "\n", str, "\n", NIL);
     } else if (!have_auto && have_ds) {	// only docstring
-      if (Strchr(str, '\n') == 0) {
-	doc = NewString(str);
-      } else {
-	doc = NewString("");
-	Printv(doc, str, NIL);
-      }
+      Printv(doc, str, NIL);
     } else if (have_auto && !have_ds) {	// only autodoc
-      if (Strchr(autodoc, '\n') == 0) {
-	doc = NewStringf("%s", autodoc);
-      } else {
-	doc = NewString("");
-	Printv(doc, "\n", autodoc, NIL);
-      }
-    } else
+      Printv(doc, "\n", autodoc, "\n", NIL);
+    } else {
       doc = NewString("");
+    }
+
+    if (have_auto || have_ds)
+      Append(doc, "*/\n");
 
     // Save the generated strings in the parse tree in case they are used later
     // by post processing tools
@@ -522,7 +510,7 @@ private:
     last_mode    = ad_type;
     last_autodoc = Copy(methodName);
 
-    String *doc = NewString("/*\n");
+    String *doc = NewString("");
     int counter = 0;
     bool skipAuto = false;
     Node* on = n;
@@ -762,7 +750,6 @@ private:
       n = Getattr(n, "sym:nextSibling");
     }
 
-    Append(doc, "\n*/\n");
     Delete(full_name);
     Delete(class_name);
     Delete(super_names);
@@ -844,7 +831,6 @@ public:
   
   virtual void main(int argc, char *argv[]) {
 
-    int cppcast = 1;
     int autorename = 0;
 
     /* Set location of SWIG library */
@@ -883,12 +869,6 @@ public:
 	  multipleInheritance = true;
 	  director_multiple_inheritance = 1;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-cppcast") == 0) {
-	  cppcast = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-nocppcast") == 0) {
-	  cppcast = 0;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-autorename") == 0) {
 	  autorename = 1;
 	  Swig_mark_arg(i);
@@ -907,13 +887,15 @@ public:
 	  }
 	} else if (strcmp(argv[i], "-help") == 0) {
 	  Printf(stdout, "%s\n", usage);
+	} else if (strcmp(argv[i], "-cppcast") == 0) {
+	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-nocppcast") == 0) {
+	  Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
+	  Swig_mark_arg(i);
+	  SWIG_exit(EXIT_FAILURE);
 	}
       }
-    }
-
-    if (cppcast) {
-      /* Turn on cppcast mode */
-      Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
     }
 
     if (autorename) {

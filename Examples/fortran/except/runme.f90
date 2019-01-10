@@ -1,6 +1,6 @@
 ! File : runme.f90
 program main
-  use except, only : do_it, do_it_again, ierr => ierr_test, \
+  use example, only : do_it, do_it_again, ierr => ierr_test, \
                      get_serr => get_serr_test
   use downstream, only : throw_error
   implicit none

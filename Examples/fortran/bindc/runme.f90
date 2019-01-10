@@ -2,13 +2,13 @@
 
 program main
   implicit none
-  call test_bindc()
+  call test_example()
   call test_logical()
   call test_strings()
 contains
 
-subroutine test_bindc()
-  use bindc
+subroutine test_example()
+  use example
   use ISO_C_BINDING
   real(kind=C_DOUBLE), dimension(3) :: inp = (/1.0d0, 2.0d0, 3.0d0/)
   type(Point) :: origin
@@ -20,7 +20,7 @@ end subroutine
 
 subroutine test_logical()
   use ISO_C_BINDING
-  use bindc
+  use example
   implicit none
 
   logical(C_BOOL) :: inp, outp
@@ -42,7 +42,7 @@ end subroutine
 
 subroutine test_strings()
   use ISO_C_BINDING
-  use bindc
+  use example
   implicit none
   integer :: i
   character(len=:), allocatable :: str
@@ -57,6 +57,6 @@ end subroutine
 end program
 
 !-----------------------------------------------------------------------------!
-! end of bindc/runme.f90
+! end of example/runme.f90
 !-----------------------------------------------------------------------------!
 

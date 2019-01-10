@@ -1,72 +1,64 @@
 #!/usr/bin/env python
 
 def get_cflags(language, std, compiler):
-    if not std:
+    if std == None or len(std) == 0:
         std = "gnu89"
-    c_common = ["-fdiagnostics-show-option", "-std=" + std, "-Wno-long-long",
-            "-Wreturn-type", "-Wdeclaration-after-statement",
-            "-Wmissing-field-initializers"]
+    c_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wdeclaration-after-statement -Wmissing-field-initializers"
     cflags = {
-        "csharp": ["-Werror"],
-             "d": ["-Werror"],
-       "fortran": ["-Werror"],
-            "go": ["-Werror", "-Wno-declaration-after-statement"],
-         "guile": ["-Werror"],
-          "java": ["-Werror"],
-    "javascript": ["-Werror"],
-           "lua": ["-Werror"],
-        "octave": ["-Werror"],
-         "perl5": ["-Werror"],
-           "php": ["-Werror"],
-          "php5": ["-Werror"],
-        "python": ["-Werror"],
-             "r": ["-Werror"],
-          "ruby": ["-Werror"],
-        "scilab": ["-Werror"],
-           "tcl": ["-Werror"],
+        "csharp":"-Werror " + c_common,
+             "d":"-Werror " + c_common,
+       "fortran":"-Werror " + c_common,
+            "go":"-Werror " + c_common + " -Wno-declaration-after-statement",
+         "guile":"-Werror " + c_common,
+          "java":"-Werror " + c_common,
+    "javascript":"-Werror " + c_common,
+           "lua":"-Werror " + c_common,
+        "octave":"-Werror " + c_common,
+         "perl5":"-Werror " + c_common,
+           "php":"-Werror " + c_common,
+        "python":"-Werror " + c_common,
+             "r":"-Werror " + c_common,
+          "ruby":"-Werror " + c_common,
+        "scilab":"-Werror " + c_common,
+           "tcl":"-Werror " + c_common,
     }
     if compiler == 'clang':
-        cflags["guile"].append("-Wno-attributes") # -Wno-attributes is for clang LLVM 3.5 and bdw-gc < 7.5 used by guile
+        cflags["guile"] += " -Wno-attributes" # -Wno-attributes is for clang LLVM 3.5 and bdw-gc < 7.5 used by guile
 
-    try:
-        flags = cflags[language]
-    except KeyError:
+    if language not in cflags:
         raise RuntimeError("{} is not a supported language".format(language))
-    return " ".join(flags + c_common)
 
+    return cflags[language]
 
 def get_cxxflags(language, std, compiler):
-    if not std:
+    if std == None or len(std) == 0:
         std = "c++98"
-    cxx_common = ["-fdiagnostics-show-option", "-std=" + std, "-Wno-long-long",
-            "-Wreturn-type", "-Wmissing-field-initializers"]
+    cxx_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers"
     cxxflags = {
-        "csharp": ["-Werror"],
-             "d": ["-Werror"],
-       "fortran": ["-Werror"],
-            "go": ["-Werror"],
-         "guile": ["-Werror"],
-          "java": ["-Werror"],
-    "javascript": ["-Werror", "-Wno-error=unused-function"], # Until overload_rename is fixed for node
-           "lua": ["-Werror"],
-        "octave": ["-Werror"],
-         "perl5": ["-Werror"],
-           "php": ["-Werror"],
-          "php5": ["-Werror"],
-        "python": ["-Werror"],
-             "r": ["-Werror"],
-          "ruby": ["-Werror"],
-        "scilab": ["-Werror"],
-           "tcl": ["-Werror"],
+        "csharp":"-Werror " + cxx_common,
+             "d":"-Werror " + cxx_common,
+       "fortran":"-Werror " + cxx_common,
+            "go":"-Werror " + cxx_common,
+         "guile":"-Werror " + cxx_common,
+          "java":"-Werror " + cxx_common,
+    "javascript":"-Werror " + cxx_common + " -Wno-error=unused-function", # Until overload_rename is fixed for node
+           "lua":"-Werror " + cxx_common,
+        "octave":"-Werror " + cxx_common,
+         "perl5":"-Werror " + cxx_common,
+           "php":"-Werror " + cxx_common,
+        "python":"-Werror " + cxx_common,
+             "r":"-Werror " + cxx_common,
+          "ruby":"-Werror " + cxx_common + " -Wno-deprecated-declarations", # For Ruby on MacOS Xcode 9.4 misconfiguration defining 'isfinite' to deprecated 'finite'
+        "scilab":"-Werror " + cxx_common,
+           "tcl":"-Werror " + cxx_common,
     }
     if compiler == 'clang':
-        cxxflags["guile"].append("-Wno-attributes") # -Wno-attributes is for clang LLVM 3.5 and bdw-gc < 7.5 used by guile
+        cxxflags["guile"] += " -Wno-attributes" # -Wno-attributes is for clang LLVM 3.5 and bdw-gc < 7.5 used by guile
 
-    try:
-        flags = cxxflags[language]
-    except KeyError:
+    if language not in cxxflags:
         raise RuntimeError("{} is not a supported language".format(language))
-    return " ".join(flags + cxx_common)
+
+    return cxxflags[language]
 
 def get_fcflags(language, std, compiler):
     if not std:
@@ -77,9 +69,6 @@ def get_fcflags(language, std, compiler):
     # Note: some test cases generate spurious -Wsurprising and
     # -Wmaybe-uninitialized; others warn about shadowing intrinsics; so we
     # don't add -Werror
-    if compiler.startswith('gfortran'):
-        # Enable C preprocessing
-        fcflags.append("-cpp")
     return " ".join(fcflags)
 
 import argparse

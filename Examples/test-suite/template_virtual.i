@@ -1,7 +1,7 @@
 %module template_virtual
 
 // Submitted by Marcelo Matus  
-// assertion emmitted with templates + derivation + pure virtual member
+// assertion emitted with templates + derivation + pure virtual member
 // allocate.cxx:47: int Allocate::is_abstract_inherit(Node*, Node*):
 // Assertion `dn' failed.
  

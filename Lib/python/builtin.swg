@@ -13,12 +13,9 @@ SWIGINTERN Py_hash_t
 SWIG_PyNumber_AsPyHash(PyObject *obj) {
   Py_hash_t result = -1;
 #if PY_VERSION_HEX < 0x03020000
-#if PY_VERSION_HEX < 0x03000000
   if (PyInt_Check(obj))
     result = PyInt_AsLong(obj);
-  else
-#endif
-  if (PyLong_Check(obj))
+  else if (PyLong_Check(obj))
     result = PyLong_AsLong(obj);
 #else
   if (PyNumber_Check(obj))
@@ -92,8 +89,8 @@ SwigPyBuiltin_SetterClosure (PyObject *obj, PyObject *val, void *closure) {
   }
   tuple = PyTuple_New(1);
   assert(tuple);
+  Py_INCREF(val);
   PyTuple_SET_ITEM(tuple, 0, val);
-  Py_XINCREF(val);
   result = (*getset->set)(obj, tuple);
   Py_DECREF(tuple);
   Py_XDECREF(result);
@@ -254,12 +251,8 @@ SwigPyStaticVar_Type(void) {
       0,                                        /* tp_cache */
       0,                                        /* tp_subclasses */
       0,                                        /* tp_weaklist */
-#if PY_VERSION_HEX >= 0x02030000
       0,                                        /* tp_del */
-#endif
-#if PY_VERSION_HEX >= 0x02060000
       0,                                        /* tp_version_tag */
-#endif
 #if PY_VERSION_HEX >= 0x03040000
       0,                                        /* tp_finalize */
 #endif
@@ -267,20 +260,14 @@ SwigPyStaticVar_Type(void) {
       0,                                        /* tp_allocs */
       0,                                        /* tp_frees */
       0,                                        /* tp_maxalloc */
-#if PY_VERSION_HEX >= 0x02050000
       0,                                        /* tp_prev */
-#endif
       0                                         /* tp_next */
 #endif
     };
     staticvar_type = tmp;
     type_init = 1;
-#if PY_VERSION_HEX < 0x02020000
-    staticvar_type.ob_type = &PyType_Type;
-#else
     if (PyType_Ready(&staticvar_type) < 0)
       return NULL;
-#endif
   }
   return &staticvar_type;
 }
@@ -342,12 +329,8 @@ SwigPyObjectType(void) {
       0,                                        /* tp_cache */
       0,                                        /* tp_subclasses */
       0,                                        /* tp_weaklist */
-#if PY_VERSION_HEX >= 0x02030000
       0,                                        /* tp_del */
-#endif
-#if PY_VERSION_HEX >= 0x02060000
       0,                                        /* tp_version_tag */
-#endif
 #if PY_VERSION_HEX >= 0x03040000
       0,                                        /* tp_finalize */
 #endif
@@ -355,21 +338,15 @@ SwigPyObjectType(void) {
       0,                                        /* tp_allocs */
       0,                                        /* tp_frees */
       0,                                        /* tp_maxalloc */
-#if PY_VERSION_HEX >= 0x02050000
       0,                                        /* tp_prev */
-#endif
       0                                         /* tp_next */
 #endif
     };
     swigpyobjecttype_type = tmp;
     type_init = 1;
     swigpyobjecttype_type.tp_base = &PyType_Type;
-#if PY_VERSION_HEX < 0x02020000
-    swigpyobjecttype_type.ob_type = &PyType_Type;
-#else
     if (PyType_Ready(&swigpyobjecttype_type) < 0)
       return NULL;
-#endif
   }
   return &swigpyobjecttype_type;
 }
@@ -408,8 +385,8 @@ SwigPyBuiltin_InitBases (PyTypeObject *type, PyTypeObject **bases) {
     ++base_count;
   tuple = PyTuple_New(base_count);
   for (i = 0; i < base_count; ++i) {
-    PyTuple_SET_ITEM(tuple, i, (PyObject *)bases[i]);
     Py_INCREF((PyObject *)bases[i]);
+    PyTuple_SET_ITEM(tuple, i, (PyObject *)bases[i]);
   }
   type->tp_bases = tuple;
 }
@@ -459,15 +436,15 @@ SwigPyBuiltin_destructor_closure(SwigPyWrapperFunction wrapper, const char *wrap
   Py_XDECREF(sobj->dict);
   if (sobj->own) {
     PyObject *o;
-    PyObject *val = 0, *type = 0, *tb = 0;
-    PyErr_Fetch(&val, &type, &tb);
+    PyObject *type = 0, *value = 0, *traceback = 0;
+    PyErr_Fetch(&type, &value, &traceback);
     o = wrapper(a, NULL);
     if (!o) {
       PyObject *deallocname = PyString_FromString(wrappername);
       PyErr_WriteUnraisable(deallocname);
       Py_DECREF(deallocname);
     }
-    PyErr_Restore(val, type, tb);
+    PyErr_Restore(type, value, traceback);
     Py_XDECREF(o);
   }
   if (PyType_IS_GC(a->ob_type)) {
@@ -512,8 +489,8 @@ SwigPyBuiltin_binaryfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a, PyO
   PyObject *tuple, *result;
   tuple = PyTuple_New(1);
   assert(tuple);
+  Py_INCREF(b);
   PyTuple_SET_ITEM(tuple, 0, b);
-  Py_XINCREF(b);
   result = wrapper(a, tuple);
   Py_DECREF(tuple);
   return result;
@@ -531,10 +508,10 @@ SwigPyBuiltin_ternaryfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a, Py
   PyObject *tuple, *result;
   tuple = PyTuple_New(2);
   assert(tuple);
+  Py_INCREF(b);
   PyTuple_SET_ITEM(tuple, 0, b);
+  Py_INCREF(c);
   PyTuple_SET_ITEM(tuple, 1, c);
-  Py_XINCREF(b);
-  Py_XINCREF(c);
   result = wrapper(a, tuple);
   Py_DECREF(tuple);
   return result;
@@ -597,8 +574,8 @@ SwigPyBuiltin_ssizessizeobjargproc_closure(SwigPyWrapperFunction wrapper, PyObje
   PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));
   PyTuple_SET_ITEM(tuple, 1, _PyLong_FromSsize_t(c));
   if (d) {
-    PyTuple_SET_ITEM(tuple, 2, d);
     Py_INCREF(d);
+    PyTuple_SET_ITEM(tuple, 2, d);
   }
   resultobj = wrapper(a, tuple);
   result = resultobj ? 0 : -1;
@@ -649,12 +626,48 @@ SwigPyBuiltin_ssizeobjargproc_closure(SwigPyWrapperFunction wrapper, PyObject *a
   tuple = PyTuple_New(2);
   assert(tuple);
   PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));
+  Py_INCREF(c);
   PyTuple_SET_ITEM(tuple, 1, c);
-  Py_XINCREF(c);
   resultobj = wrapper(a, tuple);
   result = resultobj ? 0 : -1;
   Py_XDECREF(resultobj);
   Py_DECREF(tuple);
+  return result;
+}
+
+#define SWIGPY_OBJOBJPROC_CLOSURE(wrapper)			\
+SWIGINTERN int							\
+wrapper##_objobjproc_closure(PyObject *a, PyObject *b) {	\
+  return SwigPyBuiltin_objobjproc_closure(wrapper, a, b);	\
+}
+SWIGINTERN int
+SwigPyBuiltin_objobjproc_closure(SwigPyWrapperFunction wrapper, PyObject *a, PyObject *b) {
+  int result;
+  PyObject *pyresult;
+  PyObject *tuple;
+  tuple = PyTuple_New(1);
+  assert(tuple);
+  Py_INCREF(b);
+  PyTuple_SET_ITEM(tuple, 0, b);
+  pyresult = wrapper(a, tuple);
+  result = pyresult ? (PyObject_IsTrue(pyresult) ? 1 : 0) : -1;
+  Py_XDECREF(pyresult);
+  Py_DECREF(tuple);
+  return result;
+}
+
+#define SWIGPY_FUNPACK_OBJOBJPROC_CLOSURE(wrapper)			\
+SWIGINTERN int								\
+wrapper##_objobjproc_closure(PyObject *a, PyObject *b) {		\
+  return SwigPyBuiltin_funpack_objobjproc_closure(wrapper, a, b);	\
+}
+SWIGINTERN int
+SwigPyBuiltin_funpack_objobjproc_closure(SwigPyWrapperFunction wrapper, PyObject *a, PyObject *b) {
+  int result;
+  PyObject *pyresult;
+  pyresult = wrapper(a, b);
+  result = pyresult ? (PyObject_IsTrue(pyresult) ? 1 : 0) : -1;
+  Py_XDECREF(pyresult);
   return result;
 }
 
@@ -669,11 +682,11 @@ SwigPyBuiltin_objobjargproc_closure(SwigPyWrapperFunction wrapper, PyObject *a, 
   int result;
   tuple = PyTuple_New(c ? 2 : 1);
   assert(tuple);
+  Py_INCREF(b);
   PyTuple_SET_ITEM(tuple, 0, b);
-  Py_XINCREF(b);
   if (c) {
+    Py_INCREF(c);
     PyTuple_SET_ITEM(tuple, 1, c);
-    Py_XINCREF(c);
   }
   resultobj = wrapper(a, tuple);
   result = resultobj ? 0 : -1;

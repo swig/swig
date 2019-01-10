@@ -5,6 +5,7 @@
  * ----------------------------------------------------------------------------- */
 
 %runtime "swigrun.swg"  // Common C API type-checking code
+%runtime "swigerrors.swg"    // SWIG errors
 %runtime "phprun.swg"	// PHP runtime functions
 
 %include <phpinit.swg> // PHP initialization routine.
@@ -470,18 +471,24 @@
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE
 {
   void *tmp;
-  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, $&1_descriptor, 0) >= 0);
+  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, $&1_descriptor, SWIG_POINTER_NO_NULL) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER)
              SWIGTYPE *,
              SWIGTYPE [],
-             SWIGTYPE &,
-             SWIGTYPE &&,
              SWIGTYPE *const&
 {
   void *tmp;
   _v = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, 0) >= 0);
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER)
+             SWIGTYPE &,
+             SWIGTYPE &&
+{
+  void *tmp;
+  _v = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, SWIG_POINTER_NO_NULL) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const&

@@ -208,7 +208,6 @@ static void writeListByLine(List *l, File *out, bool quote = 0) {
 static const char *usage = "\
 R Options (available with -r)\n\
      -copystruct      - Emit R code to copy C structs (on by default)\n\
-     -cppcast         - Enable C++ casting operators (default) \n\
      -debug           - Output debug\n\
      -dll <name>      - Name of the DLL (without the .dll or .so suffix).\n\
 	                Default is the module name.\n\
@@ -1665,37 +1664,29 @@ void R::dispatchFunction(Node *n) {
 	    Printf(stdout, "<rtypecheck>%s\n", tmcheck);
 	  }
 	  Printf(f->code, "%s(%s)",
-		 j == 0? "" : " && ",
+		 j == 0 ? "" : " && ",
 		 tmcheck);
 	  p = Getattr(p, "tmap:in:next");
 	  continue;
 	}
+	// Below should be migrated into rtypecheck typemaps
 	if (tm) {
-	  if (Strcmp(tm,"numeric")==0) {
-	    Printf(f->code, "%sis.numeric(argv[[%d]])",
-	           j == 0 ? "" : " && ",
-	           j+1);
-	  }
-	  else if (Strcmp(tm,"integer")==0) {
-	    Printf(f->code, "%s(is.integer(argv[[%d]]) || is.numeric(argv[[%d]]))",
-	           j == 0 ? "" : " && ",
-	           j+1, j+1);
-	  }
-	  else if (Strcmp(tm,"character")==0) {
-	    Printf(f->code, "%sis.character(argv[[%d]])",
-	           j == 0 ? "" : " && ",
-	           j+1);
-	  }
-	  else {
-	    Printf(f->code, "%sextends(argtypes[%d], '%s')",
-	           j == 0 ? "" : " && ",
-	           j+1,
-	           tm);
+	  Printf(f->code, "%s", j == 0 ? "" : " && ");
+	  if (Strcmp(tm, "numeric") == 0) {
+	    Printf(f->code, "is.numeric(argv[[%d]])", j+1);
+	  } else if (Strcmp(tm, "integer") == 0) {
+	    Printf(f->code, "(is.integer(argv[[%d]]) || is.numeric(argv[[%d]]))", j+1, j+1);
+	  } else if (Strcmp(tm, "character") == 0) {
+	    Printf(f->code, "is.character(argv[[%d]])", j+1);
+	  } else {
+	    if (SwigType_ispointer(Getattr(p, "type")))
+	      Printf(f->code, "(extends(argtypes[%d], '%s') || is.null(argv[[%d]]))", j+1, tm, j+1);
+	    else
+	      Printf(f->code, "extends(argtypes[%d], '%s')", j+1, tm);
 	  }
 	}
 	if (!SwigType_ispointer(Getattr(p, "type"))) {
-	  Printf(f->code, " && length(argv[[%d]]) == 1",
-	         j+1);
+	  Printf(f->code, " && length(argv[[%d]]) == 1", j+1);
 	}
 	p = Getattr(p, "tmap:in:next");
       }
@@ -2695,7 +2686,6 @@ String * R::runtimeCode() {
    Use Swig_mark_arg() to tell SWIG that it is understood and not to throw an error.
 **/
 void R::main(int argc, char *argv[]) {
-  bool cppcast = true;
   init();
   Preprocessor_define("SWIGR 1", 0);
   SWIG_library_directory("r");
@@ -2739,12 +2729,6 @@ void R::main(int argc, char *argv[]) {
     } else if(!strcmp(argv[i], "-debug")) {
       debugMode = true;
       Swig_mark_arg(i);
-    }  else if (!strcmp(argv[i],"-cppcast")) {
-      cppcast = true;
-      Swig_mark_arg(i);
-    } else if (!strcmp(argv[i],"-nocppcast")) {
-      cppcast = false;
-      Swig_mark_arg(i);
     } else if (!strcmp(argv[i],"-copystruct")) {
       copyStruct = true;
       Swig_mark_arg(i);
@@ -2763,10 +2747,13 @@ void R::main(int argc, char *argv[]) {
     } else if (!strcmp(argv[i], "-noaggressivegc")) {
       aggressiveGc = false;
       Swig_mark_arg(i);
-    }
-
-    if (cppcast) {
-      Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
+    } else if (strcmp(argv[i], "-cppcast") == 0) {
+      Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
+      Swig_mark_arg(i);
+    } else if (strcmp(argv[i], "-nocppcast") == 0) {
+      Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
+      Swig_mark_arg(i);
+      SWIG_exit(EXIT_FAILURE);
     }
 
     if (debugMode) {

@@ -1,16 +1,8 @@
 import python_strict_unicode
-from sys import version_info
 
-test_bytes   =  'hello \x01world\x99'
-BYTES        =  'BYTES'
+test_bytes   = b'hello \x01world\x99'
+BYTES        = b'BYTES'
 test_unicode = u'h\udce9llo w\u00f6rld'
-
-# Python < 2.6 rejects the b prefix for byte string literals as a SyntaxError,
-# so instead create Python3 bytes objects by encoding unicode strings as
-# latin-1, which maps code points 0-255 directly to the corresponding bytes.
-if version_info[0] >= 3:
-    test_bytes = test_bytes.encode('latin-1')
-    BYTES      = BYTES.encode('latin-1')
 
 # Test that byte string inputs and outputs work as expected
 bdbl = python_strict_unicode.double_str(test_bytes)

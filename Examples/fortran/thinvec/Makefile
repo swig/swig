@@ -1,9 +1,9 @@
 TOP        = ../..
 SWIGEXE    = $(TOP)/../swig
 SWIG_LIB_DIR = $(TOP)/../$(TOP_BUILDDIR_TO_TOP_SRCDIR)Lib
-CXXSRCS    = ThinVec.cxx
-TARGET     = thinvec
-INTERFACE  = thinvec.i
+CXXSRCS    = example.cxx
+TARGET     = example
+INTERFACE  = example.i
 SWIGOPT    =
 FORTRANSRCS = runme.f90
 

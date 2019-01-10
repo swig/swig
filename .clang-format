@@ -37,9 +37,9 @@ ReflowComments:  false
 SortIncludes:    false 
 SortUsingDeclarations: false   
 SpaceAfterCStyleCast: true
-SpacesBeforeTrailingComments: 4
+SpacesBeforeTrailingComments: 1
 Standard:        Cpp03
 TabWidth: 8
-UseTab: Always
+UseTab: Never
 ...
 

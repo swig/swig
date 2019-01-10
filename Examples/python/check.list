@@ -4,6 +4,7 @@ class
 constants
 contract
 docstrings
+doxygen
 enum
 exception
 exceptproxy

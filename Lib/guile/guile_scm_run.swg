@@ -99,6 +99,7 @@ SWIG_Guile_scm2newstr(SCM str, size_t *len) {
 static int swig_initialized = 0;
 static scm_t_bits swig_tag = 0;
 static scm_t_bits swig_collectable_tag = 0;
+static scm_t_bits swig_finalized_tag = 0;
 static scm_t_bits swig_destroyed_tag = 0;
 static scm_t_bits swig_member_function_tag = 0;
 static SCM swig_make_func = SCM_EOL;
@@ -163,7 +164,19 @@ SWIG_Guile_PointerType(SCM object)
   }
   else scm_wrong_type_arg("SWIG-Guile-PointerType", 1, object);
 }
-  
+
+SWIGINTERN int
+SWIG_Guile_IsValidSmob(SCM smob)
+{
+  /* We do not accept smobs representing destroyed pointers, but we have to
+     allow finalized smobs because Guile >= 2.0.12 sets all smob instances
+     to the 'finalized' type before calling their 'free' function. This change
+     was introduced to Guile in commit 8dff3af087c6eaa83ae0d72aa8b22aef5c65d65d */
+  return SCM_SMOB_PREDICATE(swig_tag, smob)
+    || SCM_SMOB_PREDICATE(swig_collectable_tag, smob)
+    || SCM_SMOB_PREDICATE(swig_finalized_tag, smob);
+}
+
 SWIGINTERN int
 SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
 {
@@ -173,14 +186,13 @@ SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
 
   if (SCM_NULLP(smob)) {
     *result = NULL;
-    return SWIG_OK;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
 #if SCM_MAJOR_VERSION >= 2
   } else if (SCM_POINTER_P(s)) {
     *result = SCM_POINTER_VALUE(s);
     return SWIG_OK;
 #endif /* if SCM_MAJOR_VERSION >= 2 */
-  } else if (SCM_SMOB_PREDICATE(swig_tag, smob) || SCM_SMOB_PREDICATE(swig_collectable_tag, smob)) {
-    /* we do not accept smobs representing destroyed pointers */
+  } else if (SWIG_Guile_IsValidSmob(smob)) {
     from = (swig_type_info *) SCM_CELL_WORD_2(smob);
     if (!from) return SWIG_ERROR;
     if (type) {
@@ -239,7 +251,7 @@ SWIG_Guile_MarkPointerNoncollectable(SCM s)
 {
   SCM smob = SWIG_Guile_GetSmob(s);
   if (!SCM_NULLP(smob)) {
-    if (SCM_SMOB_PREDICATE(swig_tag, smob) || SCM_SMOB_PREDICATE(swig_collectable_tag, smob)) {
+    if (SWIG_Guile_IsValidSmob(smob)) {
       SCM_SET_CELL_TYPE(smob, swig_tag);
     }
     else scm_wrong_type_arg(NULL, 0, s);
@@ -252,7 +264,7 @@ SWIG_Guile_MarkPointerDestroyed(SCM s)
 {
   SCM smob = SWIG_Guile_GetSmob(s);
   if (!SCM_NULLP(smob)) {
-    if (SCM_SMOB_PREDICATE(swig_tag, smob) || SCM_SMOB_PREDICATE(swig_collectable_tag, smob)) {
+    if (SWIG_Guile_IsValidSmob(smob)) {
       SCM_SET_CELL_TYPE(smob, swig_destroyed_tag);
     }
     else scm_wrong_type_arg(NULL, 0, s);
@@ -419,6 +431,8 @@ SWIG_Guile_Init ()
     scm_set_smob_print(swig_collectable_tag, print_collectable_swig);
     scm_set_smob_equalp(swig_collectable_tag, equalp_swig);
     scm_set_smob_free(swig_collectable_tag, free_swig);
+    /* For Guile >= 2.0.12. See libguile/smob.c:clear_smobnum */
+    swig_finalized_tag = swig_collectable_tag & ~0xff00;
   }
   if (ensure_smob_tag(swig_module, &swig_destroyed_tag,
 		      "destroyed-swig-pointer", "destroyed-swig-pointer-tag")) {

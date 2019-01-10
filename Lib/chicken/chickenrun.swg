@@ -265,6 +265,7 @@ SWIG_Chicken_ConvertPtr(C_word s, void **result, swig_type_info *type, int flags
 
   if (s == C_SCHEME_FALSE) {
     *result = NULL;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   } else if (C_swig_is_swigpointer(s)) {
     /* try and convert type */
     from = (swig_type_info *) C_block_item(s, 1);

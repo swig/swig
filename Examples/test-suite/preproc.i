@@ -21,6 +21,11 @@
 #endif
 %}
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) method;
+%warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#endif
+
 /* check __cplusplus case */
 %header
 %{

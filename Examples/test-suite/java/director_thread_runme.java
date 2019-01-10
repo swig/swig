@@ -30,6 +30,12 @@ class director_thread_Derived extends Foo {
   }
 
   public void do_foo() {
+    // Not all operating systems can name threads, so only test on those that can
+    if (Foo.namedThread()) {
+      String threadName = Thread.currentThread().getName();
+      if (!threadName.equals("MyThreadName"))
+        throw new RuntimeException("Unexpected thread name: " + threadName);
+    }
     setVal(getVal() - 1);
   }
 }

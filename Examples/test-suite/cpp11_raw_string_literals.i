@@ -59,3 +59,43 @@ const char16_t  *hh =  uR"XXX(I'm a "raw UTF-16" \ string.)XXX";
 const char32_t  *ii =  UR"XXX(I'm a "raw UTF-32" \ string.)XXX";
 %}
 
+// Constants
+#if defined(SWIGJAVA)
+%javaconst(1);
+#elif SWIGCSHARP
+%csconst(1);
+#elif SWIGD
+%dmanifestconst;
+#endif
+
+%inline %{
+#define   jj          ")I'm an \"ascii\" \\ string constant."
+#define   kk     R"XXX()I'm an "ascii" \ string constant.)XXX";
+%}
+
+%constant mm =   R"XXX()I'm an "ascii" \ string constant with multiple
+
+lines.)XXX";
+
+// docstring feature
+%feature("docstring") RawStringDoc::WW "Single line documentation comment"
+%feature("docstring") RawStringDoc::XX %{
+Multi-line
+documentation
+comment
+%}
+%feature("docstring") RawStringDoc::YY R"RRR(Single line "raw string" documentation comment)RRR"
+%feature("docstring") RawStringDoc::ZZ R"FOO(Documentation comment
+
+as a "raw string"
+on multiple lines including a \ backslash)FOO"
+
+%inline %{
+struct RawStringDoc {
+  void WW() {}
+  void XX() {}
+  void YY() {}
+  void ZZ() {}
+};
+%}
+

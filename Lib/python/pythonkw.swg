@@ -14,6 +14,8 @@
 PYTHONKW(and);
 PYTHONKW(as);
 PYTHONKW(assert);
+PYTHONKW(async);
+PYTHONKW(await);
 PYTHONKW(break);
 PYTHONKW(class);
 PYTHONKW(continue);

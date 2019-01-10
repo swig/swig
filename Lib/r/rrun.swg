@@ -278,7 +278,7 @@ SWIG_R_ConvertPtr(SEXP obj, void **ptr, swig_type_info *ty, int flags) {
   if (!obj) return SWIG_ERROR;
   if (obj == R_NilValue) {
     if (ptr) *ptr = NULL;
-    return SWIG_OK;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
 
   vptr = R_ExternalPtrAddr(obj);

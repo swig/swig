@@ -82,17 +82,6 @@ swig_varlink_str(swig_varlinkobject *v) {
   return str;
 }
 
-SWIGINTERN int
-swig_varlink_print(swig_varlinkobject *v, FILE *fp, int SWIGUNUSEDPARM(flags)) {
-  PyObject *str = swig_varlink_str(v);
-  const char *tmp = SWIG_Python_str_AsChar(str);
-  fprintf(fp,"Swig global variables ");
-  fprintf(fp,"%s\n", tmp ? tmp : "Invalid global variable");
-  SWIG_Python_str_DelForPy3(tmp);
-  Py_DECREF(str);
-  return 0;
-}
-
 SWIGINTERN void
 swig_varlink_dealloc(swig_varlinkobject *v) {
   swig_globalvar *var = v->vars;
@@ -151,11 +140,11 @@ swig_varlink_type(void) {
       PyObject_HEAD_INIT(NULL)
       0,                                  /* ob_size */
 #endif
-      (char *)"swigvarlink",              /* tp_name */
+      "swigvarlink",                      /* tp_name */
       sizeof(swig_varlinkobject),         /* tp_basicsize */
       0,                                  /* tp_itemsize */
       (destructor) swig_varlink_dealloc,  /* tp_dealloc */
-      (printfunc) swig_varlink_print,     /* tp_print */
+      0,                                  /* tp_print */
       (getattrfunc) swig_varlink_getattr, /* tp_getattr */
       (setattrfunc) swig_varlink_setattr, /* tp_setattr */
       0,                                  /* tp_compare */
@@ -175,15 +164,9 @@ swig_varlink_type(void) {
       0,                                  /* tp_clear */
       0,                                  /* tp_richcompare */
       0,                                  /* tp_weaklistoffset */
-#if PY_VERSION_HEX >= 0x02020000
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, /* tp_iter -> tp_weaklist */
-#endif
-#if PY_VERSION_HEX >= 0x02030000
       0,                                  /* tp_del */
-#endif
-#if PY_VERSION_HEX >= 0x02060000
       0,                                  /* tp_version_tag */
-#endif
 #if PY_VERSION_HEX >= 0x03040000
       0,                                  /* tp_finalize */
 #endif
@@ -191,20 +174,14 @@ swig_varlink_type(void) {
       0,                                  /* tp_allocs */
       0,                                  /* tp_frees */
       0,                                  /* tp_maxalloc */
-#if PY_VERSION_HEX >= 0x02050000
       0,                                  /* tp_prev */
-#endif
       0                                   /* tp_next */
 #endif
     };
     varlink_type = tmp;
     type_init = 1;
-#if PY_VERSION_HEX < 0x02020000
-    varlink_type.ob_type = &PyType_Type;
-#else
     if (PyType_Ready(&varlink_type) < 0)
       return NULL;
-#endif
   }
   return &varlink_type;
 }
@@ -220,14 +197,14 @@ SWIG_Python_newvarlink(void) {
 }
 
 SWIGINTERN void 
-SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int (*set_attr)(PyObject *p)) {
+SWIG_Python_addvarlink(PyObject *p, const char *name, PyObject *(*get_attr)(void), int (*set_attr)(PyObject *p)) {
   swig_varlinkobject *v = (swig_varlinkobject *) p;
   swig_globalvar *gv = (swig_globalvar *) malloc(sizeof(swig_globalvar));
   if (gv) {
     size_t size = strlen(name)+1;
     gv->name = (char *)malloc(size);
     if (gv->name) {
-      strncpy(gv->name,name,size);
+      memcpy(gv->name, name, size);
       gv->get_attr = get_attr;
       gv->set_attr = set_attr;
       gv->next = v->vars;
@@ -238,9 +215,11 @@ SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int
 
 SWIGINTERN PyObject *
 SWIG_globals(void) {
-  static PyObject *_SWIG_globals = 0; 
-  if (!_SWIG_globals) _SWIG_globals = SWIG_newvarlink();  
-  return _SWIG_globals;
+  static PyObject *globals = 0;
+  if (!globals) {
+    globals = SWIG_newvarlink();
+  }
+  return globals;
 }
 
 /* -----------------------------------------------------------------------------
@@ -338,20 +317,12 @@ SWIGEXPORT
   void
 #endif
 SWIG_init(void) {
-  PyObject *m, *d, *md;
+  PyObject *m, *d, *md, *globals;
+
 #if PY_VERSION_HEX >= 0x03000000
   static struct PyModuleDef SWIG_module = {
-# if PY_VERSION_HEX >= 0x03020000
     PyModuleDef_HEAD_INIT,
-# else
-    {
-      PyObject_HEAD_INIT(NULL)
-      NULL, /* m_init */
-      0,    /* m_index */
-      NULL, /* m_copy */
-    },
-# endif
-    (char *) SWIG_name,
+    SWIG_name,
     NULL,
     -1,
     SwigMethods,
@@ -368,8 +339,8 @@ SWIG_init(void) {
     (char *)"this", &SwigPyBuiltin_ThisClosure, NULL, NULL, NULL
   };
   static SwigPyGetSet thisown_getset_closure = {
-    (PyCFunction) SwigPyObject_own,
-    (PyCFunction) SwigPyObject_own
+    SwigPyObject_own,
+    SwigPyObject_own
   };
   static PyGetSetDef thisown_getset_def = {
     (char *)"thisown", SwigPyBuiltin_GetterClosure, SwigPyBuiltin_SetterClosure, NULL, &thisown_getset_closure
@@ -400,13 +371,23 @@ SWIG_init(void) {
   assert(metatype);
 #endif
 
+  (void)globals;
+
+  /* Create singletons now to avoid potential deadlocks with multi-threaded usage after module initialization */
+  SWIG_This();
+  SWIG_Python_TypeCache();
+  SwigPyPacked_type();
+#ifndef SWIGPYTHON_BUILTIN
+  SwigPyObject_type();
+#endif
+
   /* Fix SwigMethods to carry the callback ptrs when needed */
   SWIG_Python_FixMethods(SwigMethods, swig_const_table, swig_types, swig_type_initial);
 
 #if PY_VERSION_HEX >= 0x03000000
   m = PyModule_Create(&SWIG_module);
 #else
-  m = Py_InitModule((char *) SWIG_name, SwigMethods);
+  m = Py_InitModule(SWIG_name, SwigMethods);
 #endif
 
   md = d = PyModule_GetDict(m);
