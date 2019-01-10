@@ -2268,7 +2268,7 @@ int FORTRAN::constantWrapper(Node *n) {
   ASSERT_OR_PRINT_NODE(value, n);
 
   // Get Fortran data type
-  String *bindc_typestr = attach_typemap("bindc", n, WARN_TYPEMAP_UNDEF);
+  String *bindc_typestr = attach_typemap("bindc", n, WARN_NONE);
   if (!bindc_typestr) {
     Swig_warning(WARN_TYPEMAP_UNDEF, Getfile(n), Getline(n),
                  "The 'bindc' typemap for '%s' is not defined, so the corresponding constant cannot be generated\n",
