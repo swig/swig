@@ -87,6 +87,10 @@ bool is_fortran_intexpr(String *s) {
   if (c == '\0')
     return false;
 
+  // Allow leading negative sign
+  if (c == '-')
+    c = *p++;
+
   // Outer loop over words/tokens
   while (c) {
     // If it's a multi-digit number that starts with 0, it's octal, and thus
@@ -95,11 +99,6 @@ bool is_fortran_intexpr(String *s) {
       return false;
 
     while (c) {
-      if (c == '+' || c == '-' || c == '*' || c == ' ' || c == '/') {
-        c = *p++;
-        break;
-      }
-
       if (!isdigit(c))
         return false;
 
@@ -1750,7 +1749,7 @@ int FORTRAN::classHandler(Node *n) {
       basename = Getattr(b, "sym:name");
     } else {
       // Another base class exists
-      Swig_warning(WARN_FORTRAN_MULTIPLE_INHERITANCE, Getfile(b), Getline(b),
+      Swig_warning(WARN_FORTRAN_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
                    "Multiple inheritance is not supported in Fortran. Ignoring base class %s for %s",
                    Getattr(b, "sym:name"),
                    Getattr(n, "sym:name"));
@@ -2134,6 +2133,7 @@ int FORTRAN::enumDeclaration(Node *n) {
  * as well as values such as
 
      %constant int wrapped_const = (1 << 3) | 1;
+     #define MY_INT 0x123
 
  * that need to be interpreted by the C compiler.
  *
@@ -2147,6 +2147,7 @@ int FORTRAN::constantWrapper(Node *n) {
 
   if (String *override_value = Getattr(n, "feature:fortran:constvalue")) {
     value = override_value;
+    Setattr(n, "feature:fortran:const", "1");
   }
 
   if (Strcmp(nodetype, "enumitem") == 0) {
@@ -2181,6 +2182,15 @@ int FORTRAN::constantWrapper(Node *n) {
     // Symbolic name is already unique
   } else {
     // Not an enum or enumitem
+    if (!is_valid_identifier(symname))
+    {
+      Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number,
+                   "Ignoring constant due to invalid Fortran identifier: "
+                   "please %%rename '%s' '\n",
+                   symname);
+      return SWIG_NOWRAP;
+    }
+    
     if (add_fsymbol(symname, n) == SWIG_NOWRAP)
       return SWIG_NOWRAP;
   }

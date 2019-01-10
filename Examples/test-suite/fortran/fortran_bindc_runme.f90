@@ -5,6 +5,7 @@ program fortran_bindc_runme
   implicit none
 
   call test_arrays
+  call test_twod_unknown_int
 
 contains
 
@@ -62,5 +63,30 @@ subroutine test_arrays
   if (summed /= 12345) stop 1
 
 end subroutine
+
+subroutine test_twod_unknown_int
+  use fortran_bindc
+  use ISO_C_BINDING
+  implicit none
+  integer(C_INT), target :: test_data(10, 3)
+  integer(C_INT) :: i, j, nerrs
+
+  test_data(:,:) = -1
+  call twod_unknown_int(test_data, size(test_data, 2))
+
+  nerrs = 0
+  do i = 1,10
+    do j = 1,3
+      if (test_data(i,j) /= i + 10*(j-1)) nerrs = nerrs + 1
+    end do
+  end do
+
+  if (nerrs /= 0) then
+    write(*,*) nerrs, " bad entries:"
+    write(*,*) test_data
+    stop 1
+  end if
+end subroutine
+
 end program
 

@@ -10,24 +10,17 @@ subroutine test_arrays
   use arrays
   use ISO_C_BINDING
   implicit none
-  integer(C_INT), target :: test_data(10, 3)
-  integer(C_INT) :: i, j, nerrs
+  type(ArrayStruct) :: arr
+  integer(C_INT), dimension(2) :: actual = [ 91, 420 ]
+  integer(C_INT), dimension(:), pointer :: got_arr
+  arr = ArrayStruct()
+  call arr%set_array_i(actual)
 
-  test_data(:,:) = -1
-  call twod_unknown_int(test_data, size(test_data, 2))
+  got_arr => arr%get_array_i()
+  write(0,*) got_arr
 
-  nerrs = 0
-  do i = 1,10
-    do j = 1,3
-      if (test_data(i,j) /= i + 10*(j-1)) nerrs = nerrs + 1
-    end do
-  end do
+  if (any(got_arr /= actual)) stop 1
 
-  if (nerrs /= 0) then
-    write(*,*) nerrs, " bad entries:"
-    write(*,*) test_data
-    stop 1
-  end if
 end subroutine
 
 end program
