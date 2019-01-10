@@ -515,7 +515,6 @@ public:
     // adds local variables
     Wrapper_add_local(f, "args", "CAMLparam1(args)");
     Wrapper_add_local(f, "ret", "SWIG_CAMLlocal2(swig_result,rv)");
-    Wrapper_add_local(f, "_v", "int _v = 0");
     if (isOverloaded) {
       Wrapper_add_local(f, "i", "int i");
       Wrapper_add_local(f, "argc", "int argc = caml_list_length(args)");
@@ -711,7 +710,6 @@ public:
 						  "free(argv);\n" "CAMLreturn(%s(args));\n",
 						  &maxargs);
 
-	Wrapper_add_local(df, "_v", "int _v = 0");
 	Wrapper_add_local(df, "argv", "CAML_VALUE *argv");
 
 	/* Undifferentiate name .. this is the dispatch function */

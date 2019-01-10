@@ -1,7 +1,5 @@
-(* foo_program.ml -- the program using foolib *)
-
 open Swig    (* Give access to the swig library *)
-open Foolib  (* This is the name of your swig output *)
+open Example (* This is the name of your swig output *)
 
 let results = _foo '()  (* Function names are prefixed with _ in order to make
 			   them lex as identifiers in ocaml.  Consider that
