@@ -1,8 +1,19 @@
 /* File : example.i */
 %module dynamic_cast
 
-#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO) && !defined(SWIGD)
+#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO) && !defined(SWIGD) && !defined(SWIGFORTRAN)
 %apply SWIGTYPE *DYNAMIC { Foo * };
+#endif
+
+#if defined(SWIGFORTRAN)
+%typemap(out) Foo *blah (Bar *downcast) {
+    downcast = dynamic_cast<Bar *>($1);
+    $result.cptr = downcast;
+    $result.mem = (!downcast ? SWIG_NULL :
+                    $owner   ? SWIG_MOVE :
+                               SWIG_REF);
+}
+%typemap(ftype) Foo *blah "$typemap(ftype, Foo*)"
 #endif
 
 %inline %{
@@ -10,7 +21,7 @@
 class Foo {
 public:
   virtual ~Foo() { }
-  
+
   virtual Foo *blah() {
     return this;
   }
