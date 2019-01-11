@@ -966,7 +966,7 @@ writing a small exception handler.
   try {
     // Attempt the wrapped function call
     $action
-  } catch (std::exception& e) {
+  } catch (const std::exception& e) {
     SWIG_exception(SWIG_RuntimeError, e.what() );
   } catch (...) {
     SWIG_exception(SWIG_UnknownError, "An unknown exception occurred");

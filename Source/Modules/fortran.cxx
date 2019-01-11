@@ -268,7 +268,7 @@ String *get_symname_or_name(Node *n) {
 /* -------------------------------------------------------------------------
  * \brief Construct any necessary 'import' identifier.
  *
- * When the `imtype` is an actual `type(XXX)`, it's necessary to import the identifier XXX from the module definition scope. This function examines the
+ * When the `imtype` is an actual `type(Foo)`, it's necessary to import the identifier Foo from the module definition scope. This function examines the
  * evaluated `imtype` (could be `imtype:in`, probably has $fclassname replaced)
  */
 String *make_import_string(String *imtype) {
