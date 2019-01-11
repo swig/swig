@@ -155,5 +155,5 @@ let _ = Callback.register "swig_set_type_info" set_type_info
 let class_master_list = Hashtbl.create 20
 let register_class_byname nm co = 
   Hashtbl.replace class_master_list nm (Obj.magic co)
-let create_class nm arg = 
+let create_class nm =
   try (Obj.magic (Hashtbl.find class_master_list nm)) with _ -> raise (NoSuchClass nm)

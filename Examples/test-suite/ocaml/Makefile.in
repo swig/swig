@@ -4,6 +4,7 @@
 
 LANGUAGE     = ocaml
 OCAMLC       = @OCAMLC@
+OCAMLPP      = -pp "camlp4o ./swigp4.cmo"
 VARIANT      = _static
 SCRIPTSUFFIX = _runme.ml
 
@@ -53,7 +54,7 @@ run_testcase = \
 		if [ $(srcdir) != . ]; then \
 			cp $(srcdir)/$(ml_runme) $(ml_runme); \
 		fi ; \
-		$(COMPILETOOL) $(OCAMLC) -c $(ml_runme) && \
+		$(COMPILETOOL) $(OCAMLC) $(OCAMLPP) -c $(ml_runme) && \
 		if [ -f $(top_srcdir)/Examples/test-suite/$*.list ]; then \
 			$(COMPILETOOL) $(OCAMLC) swig.cmo -custom -g -cc '$(CXX)' -o runme `cat $(top_srcdir)/Examples/test-suite/$(*).list | sed -e 's/\(.*\)/\1_wrap.o \1.cmo/g'`&& $(RUNTOOL) ./runme; \
 		else \
