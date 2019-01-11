@@ -12,6 +12,7 @@
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) CLS;
 %enddef
 %warnfilter_multiple_inheritance(AD);
+%warnfilter_multiple_inheritance(EB);
 %warnfilter_multiple_inheritance(GGG);
 %warnfilter_multiple_inheritance(HHH);
 
