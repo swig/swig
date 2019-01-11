@@ -226,3 +226,22 @@ void Dealloc2Destroyer(PyObject *v) {
   };
 %}
 
+// Test 7 mapping to Python's pow
+%pybinoperator(__pow__, ANumber::power, ternaryfunc, nb_power);
+
+%inline %{
+class ANumber {
+  int num;
+public:
+  ANumber(int d = 0) : num(d) {}
+  ANumber __pow__(const ANumber &other, const ANumber *x = 0) const {
+    int val = (int)pow(num, other.num);
+    val = x ? val % x->num : val;
+    return ANumber(val);
+  }
+  int Value() const {
+    return num;
+  }
+};
+%}
+

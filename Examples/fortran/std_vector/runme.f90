@@ -7,7 +7,7 @@ contains
 
 subroutine test_usage()
   use, intrinsic :: ISO_C_BINDING
-  use stdvec
+  use example
   implicit none
   type(VecInt) :: v, vref, vcref
   integer :: i

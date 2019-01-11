@@ -168,9 +168,9 @@ ullmaxd = 9007199254740992.0
 ullmin = 0
 ullmind = 0.0
 if ull(ullmin) != ullmin:
-    raise runtimeerror, "ull(ullmin)"
+    raise RuntimeError, "ull(ullmin)"
 if ull(ullmax) != ullmax:
-    raise runtimeerror, "ull(ullmax)"
+    raise RuntimeError, "ull(ullmax)"
 if ull(ullmind) != ullmind:
     raise RuntimeError, "ull(ullmind)"
 if ull(ullmaxd) != ullmaxd:
@@ -183,9 +183,9 @@ llmin = -9223372036854775808
 llmaxd = 9007199254740992.0
 llmind = -9007199254740992.0
 if ll(llmin) != llmin:
-    raise runtimeerror, "ll(llmin)"
+    raise RuntimeError, "ll(llmin)"
 if ll(llmax) != llmax:
-    raise runtimeerror, "ll(llmax)"
+    raise RuntimeError, "ll(llmax)"
 if ll(llmind) != llmind:
     raise RuntimeError, "ll(llmind)"
 if ll(llmaxd) != llmaxd:

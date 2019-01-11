@@ -1,4 +1,9 @@
 %insert(runtime) %{
+#if defined(__GNUC__) && defined(_WIN32) && !defined(SWIG_PYTHON_NO_HYPOT_WORKAROUND)
+/* Workaround for '::hypot' has not been declared', see https://bugs.python.org/issue11566 */
+# include <math.h>
+#endif
+
 #if defined(_DEBUG) && defined(SWIG_PYTHON_INTERPRETER_NO_DEBUG)
 /* Use debug wrappers with the Python release dll */
 # undef _DEBUG

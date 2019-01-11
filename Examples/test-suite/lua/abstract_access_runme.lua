@@ -6,7 +6,7 @@ local env = _ENV -- Lua 5.2
 if not env then env = getfenv () end -- Lua 5.1
 setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
 
--- trying to instantiate pure virual classes
+-- trying to instantiate pure virtual classes
 -- should fail
 assert(pcall(abstract_access.A)==false)
 assert(pcall(abstract_access.B)==false)

@@ -214,8 +214,8 @@ public:
   virtual Hash* symbolAddScope(const_String_or_char_ptr scope);
   virtual Hash* symbolScopeLookup(const_String_or_char_ptr scope);
   virtual Hash* symbolScopePseudoSymbolLookup(const_String_or_char_ptr scope);
-  virtual Node *classLookup(const SwigType *s) const; /* Class lookup      */
-  virtual Node *enumLookup(SwigType *s);	/* Enum lookup       */
+  static Node *classLookup(const SwigType *s); /* Class lookup      */
+  static Node *enumLookup(SwigType *s);	/* Enum lookup       */
   virtual int abstractClassTest(Node *n);	/* Is class really abstract? */
   virtual int is_assignable(Node *n);	/* Is variable assignable? */
   virtual String *runtimeCode();	/* returns the language specific runtime code */
@@ -342,10 +342,11 @@ protected:
   /* Director language module */
   int director_language;
 
+  /* Used to translate Doxygen comments to target documentation format */
+  class DoxygenTranslator *doxygenTranslator;
+
 private:
   Hash *symtabs; /* symbol tables */
-  Hash *classtypes;
-  Hash *enumtypes;
   int overloading;
   int multiinput;
   int cplus_runtime;
@@ -374,9 +375,8 @@ void emit_mark_varargs(ParmList *l);
 String *emit_action(Node *n);
 int emit_action_code(Node *n, String *wrappercode, String *action);
 void Swig_overload_check(Node *n);
-String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *);
+String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *, const_String_or_char_ptr fmt_fastdispatch = 0);
 String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *);
-String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *);
 List *Swig_overload_rank(Node *n, bool script_lang_wrapping);
 SwigType *cplus_value_type(SwigType *t);
 

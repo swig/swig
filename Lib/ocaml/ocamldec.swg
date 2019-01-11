@@ -113,54 +113,46 @@ CAMLextern int64 Int64_val(caml_value_t v);
 
 #define SWIG_contract_assert(expr, msg) if(!(expr)) {failwith(msg);} else
 
-    SWIGSTATIC int
+    SWIGINTERN int
     SWIG_GetPtr(void *source, void **result, swig_type_info *type, swig_type_info *result_type);
+
+    SWIGINTERN CAML_VALUE caml_list_nth( CAML_VALUE lst, int n );
+    SWIGINTERN CAML_VALUE caml_list_append( CAML_VALUE lst, CAML_VALUE elt );
+    SWIGINTERN int caml_list_length( CAML_VALUE lst );
+    SWIGINTERN CAML_VALUE caml_array_new( int n );
+    SWIGINTERN void caml_array_set( CAML_VALUE arr, int n, CAML_VALUE item );
+    SWIGINTERN CAML_VALUE caml_array_nth( CAML_VALUE arr, int n );
+    SWIGINTERN int caml_array_len( CAML_VALUE arr );
+
+    SWIGINTERN CAML_VALUE caml_val_char( char c );
+    SWIGINTERN CAML_VALUE caml_val_uchar( unsigned char c );
+
+    SWIGINTERN CAML_VALUE caml_val_short( short s );
+    SWIGINTERN CAML_VALUE caml_val_ushort( unsigned short s );
     
-    SWIGSTATIC void *
-    SWIG_MustGetPtr (CAML_VALUE v,  swig_type_info *type);
-    
-    SWIGSTATIC CAML_VALUE _wrap_delete_void( CAML_VALUE );
-    
-    SWIGSTATIC int enum_to_int( char *name, CAML_VALUE v );
-    SWIGSTATIC CAML_VALUE int_to_enum( char *name, int v );
+    SWIGINTERN CAML_VALUE caml_val_int( int x );
+    SWIGINTERN CAML_VALUE caml_val_uint( unsigned int x );
 
-    SWIGSTATIC CAML_VALUE caml_list_nth( CAML_VALUE lst, int n );
-    SWIGSTATIC CAML_VALUE caml_list_append( CAML_VALUE lst, CAML_VALUE elt );
-    SWIGSTATIC int caml_list_length( CAML_VALUE lst );
-    SWIGSTATIC CAML_VALUE caml_array_new( int n );
-    SWIGSTATIC void caml_array_set( CAML_VALUE arr, int n, CAML_VALUE item );
-    SWIGSTATIC CAML_VALUE caml_array_nth( CAML_VALUE arr, int n );
-    SWIGSTATIC int caml_array_len( CAML_VALUE arr );
+    SWIGINTERN CAML_VALUE caml_val_long( long x );
+    SWIGINTERN CAML_VALUE caml_val_ulong( unsigned long x );
 
-    SWIGSTATIC CAML_VALUE caml_val_char( char c );
-    SWIGSTATIC CAML_VALUE caml_val_uchar( unsigned char c );
+    SWIGINTERN CAML_VALUE caml_val_float( float f );
+    SWIGINTERN CAML_VALUE caml_val_double( double d );
 
-    SWIGSTATIC CAML_VALUE caml_val_short( short s );
-    SWIGSTATIC CAML_VALUE caml_val_ushort( unsigned short s );
-    
-    SWIGSTATIC CAML_VALUE caml_val_int( int x );
-    SWIGSTATIC CAML_VALUE caml_val_uint( unsigned int x );
+    SWIGINTERN CAML_VALUE caml_val_ptr( void *p, swig_type_info *descriptor );
 
-    SWIGSTATIC CAML_VALUE caml_val_long( long x );
-    SWIGSTATIC CAML_VALUE caml_val_ulong( unsigned long x );
+    SWIGINTERN CAML_VALUE caml_val_string( const char *str );
+    SWIGINTERN CAML_VALUE caml_val_string_len( const char *str, int len );
 
-    SWIGSTATIC CAML_VALUE caml_val_float( float f );
-    SWIGSTATIC CAML_VALUE caml_val_double( double d );
+    SWIGINTERN long caml_long_val( CAML_VALUE v );
+    SWIGINTERN double caml_double_val( CAML_VALUE v );
 
-    SWIGSTATIC CAML_VALUE caml_val_ptr( void *p, swig_type_info *descriptor );
-
-    SWIGSTATIC CAML_VALUE caml_val_string( const char *str );
-    SWIGSTATIC CAML_VALUE caml_val_string_len( const char *str, int len );
-
-    SWIGSTATIC long caml_long_val( CAML_VALUE v );
-    SWIGSTATIC double caml_double_val( CAML_VALUE v );
-
-    SWIGSTATIC int caml_ptr_val_internal( CAML_VALUE v, void **out,
+    SWIGINTERN int caml_ptr_val_internal( CAML_VALUE v, void **out,
 				      swig_type_info *descriptor );
-    SWIGSTATIC void *caml_ptr_val( CAML_VALUE v, swig_type_info *descriptor );
+    SWIGINTERN void *caml_ptr_val( CAML_VALUE v, swig_type_info *descriptor );
 
-    SWIGSTATIC char *caml_string_val( CAML_VALUE v );
-    SWIGSTATIC int caml_string_len( CAML_VALUE v );
+    SWIGINTERN char *caml_string_val( CAML_VALUE v );
+    SWIGINTERN int caml_string_len( CAML_VALUE v );
 
 #ifdef __cplusplus
 }

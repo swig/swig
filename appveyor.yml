@@ -19,10 +19,17 @@ environment:
   - SWIGLANG: python
     VSVER: 14
     VER: 36
-    PY3: 1
+    PY3: 3
   - SWIGLANG: python
     OSVARIANT: cygwin
-  - OSVARIANT: mingw
+  - SWIGLANG: python
+    OSVARIANT: mingw
+    VER: 27
+  - SWIGLANG: python
+    OSVARIANT: mingw
+    WITHLANG: python
+    VER: 37
+    PY3: 3
 
 install:
 - date /T & time /T
@@ -63,27 +70,35 @@ install:
       $env:CC="gcc"
       $env:CXX="g++"
     } elseif ($env:OSVARIANT -eq "mingw") {
-      $env:PATH="$env:MSYSBIN;$env:MINGWBIN;$env:PATH"
-      $env:MSYSTEM="MINGW$env:MBITS"
-      $env:CC="$env:MARCH-w64-mingw32-gcc"
-      $env:CXX="$env:MARCH-w64-mingw32-g++"
+      # Note mingw setup tests the native Windows Python distribution (not MinGW Python) with gcc
+      $env:PATH="$env:MINGWBIN;$env:MSYSBIN;$env:PATH"
+      $env:MSYSTEM="MINGW$env:MBITS" # This is important for msys2
+      $env:CC="gcc"
+      $env:CXX="g++"
+      if ($env:MBITS -eq "64" -and $env:SWIGLANG -eq "python") {
+        $env:CHECK_OPTIONS2="CFLAGS+=-DMS_WIN64 CXXFLAGS+=-DMS_WIN64"
+      }
     }
 - if "%OSVARIANT%"=="" bash -c "cd /usr/bin && curl --retry 15 -s -L https://github.com/swig/cccl/archive/cccl-1.0.tar.gz | tar -xz --strip 1 cccl-cccl-1.0/cccl"
 - if "%OSVARIANT%"=="" echo Using Visual Studio %VSVER%.0 at %VSCOMNTOOLS%
 - if "%OSVARIANT%"=="" call "%VSCOMNTOOLS%\..\..\VC\vcvarsall.bat" %VCVARS_PLATFORM%
 - if "%OSVARIANT%"=="" Tools\nuget-install.cmd pcre -Verbosity quiet -Version 8.33.0.1 -OutputDirectory C:\pcre
 - if "%OSVARIANT%"=="" set PCRE_ROOT=C:/pcre/pcre.8.33.0.1/build/native
-- if "%OSVARIANT%"=="" set PATH=C:\Python%VER%%LANG_PLATFORM%;%PATH%
+- if not "%OSVARIANT%"=="cygwin" set PATH=C:\Python%VER%%LANG_PLATFORM%;%PATH%
 - if "%OSVARIANT%"=="" bash -c "which cl.exe"
 - if "%OSVARIANT%"=="" bash -c "cl.exe /? 2>&1 | head -n 1"
 - if "%OSVARIANT%"=="" bash -c "which csc.exe"
 - if "%OSVARIANT%"=="" bash -c "csc.exe /? | head -n 1"
 - if "%OSVARIANT%"=="cygwin" %CYGWINSETUP% --quiet-mode --packages python-devel,libpcre-devel,libboost-devel > cygwin-install.txt || bash -c "cat cygwin-install.txt"
 - if "%OSVARIANT%"=="mingw" bash -c "pacman --noconfirm --sync mingw%MBITS%/mingw-w64-%MARCH%-pcre mingw%MBITS%/mingw-w64-%MARCH%-boost"
+- if not "%WITHLANG%"=="" set SWIGWITHLANG==%WITHLANG%
+- if not "%WITHLANG%"=="" where %WITHLANG%
 - bash -c "which $CC"
 - bash -c "which $CXX"
 - bash -c "$CC --version | head -n 1"
 - bash -c "$CXX --version | head -n 1"
+- bash -c "which python"
+- bash -c "python -V"
 - bash -c "make --version | head -n 2"
 - pwd
 - echo MAKEJOBS=%MAKEJOBS%
@@ -94,7 +109,7 @@ build_script:
 - set CHECK_OPTIONS=CSHARPOPTIONS=-platform:%Platform%
   # Open dummy file descriptor to fix error on cygwin: ./configure: line 560: 0: Bad file descriptor
 - if "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure --disable-dependency-tracking --disable-ccache CC=$CC CXX=$CXX CFLAGS='-O2' CXXFLAGS='-O2' LDFLAGS='--cccl-link /LTCG' PCRE_CFLAGS='-I%PCRE_ROOT%/include -DPCRE_STATIC' PCRE_LIBS='-L%PCRE_ROOT%/lib/v110/%PCRE_PLATFORM%/Release/static/utf8 -lpcre8' --without-perl5 --without-go --with-boost=C:/Libraries/boost_1_67_0 || cat config.log"
-- if not "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure CC=%CC% CXX=%CXX% --without-alllang --with-$SWIGLANG --enable-cpp11-testing || cat config.log"
+- if not "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure CC=%CC% CXX=%CXX% --without-alllang --with-$SWIGLANG$PY3$SWIGWITHLANG --enable-cpp11-testing || cat config.log"
 - bash -c "time make -s -j%MAKEJOBS%"
 
 test_script:
@@ -102,9 +117,9 @@ test_script:
 - .\swig.exe -version
 - if not "%OSVARIANT%"=="" CCache\ccache-swig -V
 - bash -c "file ./swig.exe"
-- if not "%SWIGLANG%"=="" bash -c "make check-%SWIGLANG%-version %CHECK_OPTIONS%"
-- if not "%SWIGLANG%"=="" bash -c "time make -k check-%SWIGLANG%-examples %CHECK_OPTIONS%"
-- if not "%SWIGLANG%"=="" bash -c "time make -k check-%SWIGLANG%-test-suite -j%MAKEJOBS% %CHECK_OPTIONS%"
+- bash -c "make check-%SWIGLANG%-version"
+- bash -c "time make -k check-%SWIGLANG%-examples %CHECK_OPTIONS% %CHECK_OPTIONS2%"
+- bash -c "time make -k check-%SWIGLANG%-test-suite -j%MAKEJOBS% %CHECK_OPTIONS% %CHECK_OPTIONS2%"
 
 # Do not build on tags (GitHub only)
 skip_tags: true

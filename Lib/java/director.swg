@@ -5,11 +5,51 @@
  * methods can be called from C++.
  * ----------------------------------------------------------------------------- */
 
-#if defined(DEBUG_DIRECTOR_OWNED) || defined(DEBUG_DIRECTOR_EXCEPTION)
+#if defined(DEBUG_DIRECTOR_OWNED) || defined(DEBUG_DIRECTOR_EXCEPTION) || defined(DEBUG_DIRECTOR_THREAD_NAME)
 #include <iostream>
 #endif
 
 #include <exception>
+
+#if defined(SWIG_JAVA_USE_THREAD_NAME)
+
+#if !defined(SWIG_JAVA_GET_THREAD_NAME)
+namespace Swig {
+  SWIGINTERN int GetThreadName(char *name, size_t len);
+}
+
+#if defined(__linux__)
+
+#include <sys/prctl.h>
+SWIGINTERN int Swig::GetThreadName(char *name, size_t len) {
+  (void)len;
+#if defined(PR_GET_NAME)
+  return prctl(PR_GET_NAME, (unsigned long)name, 0, 0, 0);
+#else
+  (void)name;
+  return 1;
+#endif
+}
+
+#elif defined(__unix__) || defined(__APPLE__)
+
+#include <pthread.h>
+SWIGINTERN int Swig::GetThreadName(char *name, size_t len) {
+  return pthread_getname_np(pthread_self(), name, len);
+}
+
+#else
+
+SWIGINTERN int Swig::GetThreadName(char *name, size_t len) {
+  (void)len;
+  (void)name;
+  return 1;
+}
+#endif
+
+#endif
+
+#endif
 
 namespace Swig {
 
@@ -139,12 +179,27 @@ namespace Swig {
         void **jenv = (void **)&jenv_;
 #endif
         env_status = director_->swig_jvm_->GetEnv((void **)&jenv_, JNI_VERSION_1_2);
+        JavaVMAttachArgs args;
+        args.version = JNI_VERSION_1_2;
+        args.group = NULL;
+        args.name = NULL;
+#if defined(SWIG_JAVA_USE_THREAD_NAME)
+        char thread_name[64];  // MAX_TASK_COMM_LEN=16 is hard-coded in the Linux kernel and MacOS has MAXTHREADNAMESIZE=64.
+        if (Swig::GetThreadName(thread_name, sizeof(thread_name)) == 0) {
+          args.name = thread_name;
+#if defined(DEBUG_DIRECTOR_THREAD_NAME)
+          std::cout << "JNIEnvWrapper: thread name: " << thread_name << std::endl;
+        } else {
+          std::cout << "JNIEnvWrapper: Couldn't set Java thread name" << std::endl;
+#endif
+        }
+#endif
 #if defined(SWIG_JAVA_ATTACH_CURRENT_THREAD_AS_DAEMON)
         // Attach a daemon thread to the JVM. Useful when the JVM should not wait for
         // the thread to exit upon shutdown. Only for jdk-1.4 and later.
-        director_->swig_jvm_->AttachCurrentThreadAsDaemon(jenv, NULL);
+        director_->swig_jvm_->AttachCurrentThreadAsDaemon(jenv, &args);
 #else
-        director_->swig_jvm_->AttachCurrentThread(jenv, NULL);
+        director_->swig_jvm_->AttachCurrentThread(jenv, &args);
 #endif
       }
       ~JNIEnvWrapper() {

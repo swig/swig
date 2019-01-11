@@ -125,7 +125,7 @@ Suppose that we have a SWIG interface file `example.i` with the following
 contents:
 ```swig
 /* File: example.i */
-%module forexample
+%module example
 
 %{
 /* include header */
@@ -196,7 +196,7 @@ The above contrived example uses different names for the `%module` declaration,
 the interface `.i` file, and the wrapped C header `.h` file to illustrate how
 these inputs affect the output file names and properties:
 
-- The `%module forexample` declaration in the SWIG interface file resulted in
+- The `%module example` declaration in the SWIG interface file resulted in
   the file names `forexample.f90` and the name in `module forexample`.
 - The file name `example.i` resulted in the C wrapper file by default being
   named `example_wrap.c`.
@@ -207,7 +207,7 @@ these inputs affect the output file names and properties:
   it discovered.
 
 The typical convention is to keep these names
-consistent: almost without exception, the module name `%module forexample`
+consistent: almost without exception, the module name `%module example`
 should be reflected in the file name as `forexample.i`.
 
 In the generated C wrapper code above, `int swigc_fact(int const *farg1)` is
@@ -497,22 +497,37 @@ the resulting modification will not have any effect on the Fortran string.
 
 ## Arrays
 
-SWIG supports a subset of direct Fortran array translation. If a
-single-dimensional array size is explicitly specified in a C function's
-signature, the corresponding argument will be an explicit-shape Fortran array.
+Unlike other SWIG languages, the Fortran module can wrap explicitly sized
+arrays *directly* rather than treating them as raw pointers. This is because
+Fortran 2003 allows for explicit translation of array sizes between C functions
+and Fortran types. Otherwise, it treats unspecified arrays as the same as
+pointers and references:
+
+| C++ type       | Fortran type                                           |
+| --------       | ------------                                           |
+| `f(int* a)`    | `integer(C_INT), target, intent(inout)`                |
+| `f(int& a)`    | `integer(C_INT), target, intent(inout)`                |
+| `f(int a[10])` | `integer(C_INT), dimension(10), target, intent(inout)` |
+| `f(int a[])`   | `integer(C_INT), target, intent(inout)`                |
+| `int *f()`     | `integer(C_INT), pointer`                              |
+| `int &f()`     | `integer(C_INT), pointer`                              |
 
 One note of caution is that occasionally arrays will be defined using
-nontrivial C
-expressions rather than explicit integers. Even though these can be evaluated
-by C at compile time, the unevaluated expression cannot be propagated into the
-Fortran wrapper code. SWIG checks whether the expression is a combination of
-base-10 numbers and the simple arithmetic expressions `+-*/`; if so, it is
-allowable. Otherwise, a warning is emitted and the array is ignored.
+nontrivial C expressions rather than explicit integers. Even though these can
+be evaluated by C at compile time, the unevaluated expression cannot be
+propagated into the Fortran wrapper code. Only simple integers can be
+automatically wrapped as dimensioned Fortran arrays: other values will cause
+a warning to be emitted and *no wrapper function will be generated*. Use the
+SWIG `%apply` directive to treat the array as an unspecified-dimension array.
 ```c
-int global_data1[8]; /* OK */
-int global_data2[];  /* OK */
-int global_data3[sizeof(int)];  /* WARN AND IGNORE */
+%apply int[] { int y[sizeof(int)] };
+
+void foo(int x[8]);
+void bar(int y[sizeof(int)]);
+void baz(int z[]);
 ```
+
+The wrapping of arrays is likely to change soon (early 2019).
 
 ## Byte strings
 
@@ -684,7 +699,7 @@ and made accessible through the Fortran wrapper module as
    bind(C, name="_wrap_ADD_FP") :: ADD_FP
 ```
 
-The following Fortran code shows an example of:
+The Fortran code in the "funptr" example demonstrates:
 - How to pass the C function pointer to another wrapped function `do_op` that
   takes a function pointer,
 - How to translate a C function pointer into a Fortran function pointer that
@@ -1146,7 +1161,7 @@ shared pointer.
 The following example illustrates the memory management properties of smart
 pointers. The SWIG interface file is
 ```swig
-%module spdemo;
+%module example;
 %include <std_shared_ptr.i>
 %shared_ptr(Foo);
 
@@ -1170,7 +1185,7 @@ and the user code is:
 #define ASSERT(COND) if (.not. (COND)) stop(1)
 program main
   implicit none
-  use spdemo, only : Foo, use_count
+  use example, only : Foo, use_count
   type(Foo) :: f1, f2
 
   ASSERT(use_count(f1) == 0)
@@ -1433,23 +1448,6 @@ call f%do_something()
 call g%do_something_else()
 ```
 
-The "constructor" wrapper provided by SWIG performs identically to the
-constructor in C++. One consequence is that C-like `struct` classes, and
-other classes with member data that isn't initialized in the constructor, will
-*not* have its data initialized on construction. Thus the following is
-undefined behavior for `struct Foo { int val; };`:
-```fortran
-type(Foo) :: f
-f = Foo()
-write (*,*) f%get_val()
-```
-
-This is exactly analogous to the same undefined behavior in C++:
-```c++
-Foo *f = new Foo();
-cout << f.val << endl;
-```
-
 ## Destructors
 
 Even though the Fortran 2003 standard specifies when local variables become
@@ -1576,7 +1574,8 @@ procedure.
 
 ## Memory management
 
-A single Fortran proxy class must be able to act as a value, a pointer, or a reference to a C++ class instance.
+A single Fortran proxy class must be able to act as a value, a pointer, or a
+reference to a C++ class instance.
 When stored as a value, a method must be put in place to deallocate the
 associated memory; if the instance is a reference, that same method cannot
 double-delete the associated memory. Finally, C++ functions

@@ -13,6 +13,7 @@ AM_CPPFLAGS =	-I$(BUILD_SOURCE_DIR)/Include	\
 		-I$(SOURCE_DIR)/Include		\
 		-I$(SOURCE_DIR)/DOH		\
 		-I$(SOURCE_DIR)/CParse		\
+		-I$(SOURCE_DIR)/Doxygen		\
 		-I$(SOURCE_DIR)/Preprocessor	\
 		-I$(SOURCE_DIR)/Swig		\
 		-I$(SOURCE_DIR)/Modules
@@ -34,6 +35,16 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		DOH/memory.c			\
 		DOH/string.c			\
 		DOH/void.c			\
+		Doxygen/doxyentity.cxx		\
+		Doxygen/doxyentity.h		\
+		Doxygen/doxyparser.cxx		\
+		Doxygen/doxyparser.h		\
+		Doxygen/doxytranslator.cxx	\
+		Doxygen/doxytranslator.h	\
+		Doxygen/javadoc.cxx		\
+		Doxygen/javadoc.h		\
+		Doxygen/pydoc.cxx		\
+		Doxygen/pydoc.h			\
 		Modules/allegrocl.cxx		\
 		Modules/allocate.cxx		\
 		Modules/browser.cxx		\
@@ -63,7 +74,6 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/overload.cxx		\
 		Modules/perl5.cxx		\
 		Modules/php.cxx			\
-		Modules/php5.cxx		\
 		Modules/pike.cxx		\
 		Modules/python.cxx		\
 		Modules/r.cxx			\
@@ -92,8 +102,8 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Swig/stype.c			\
 		Swig/symbol.c			\
 		Swig/tree.c			\
-		Swig/typeobj.c			\
 		Swig/typemap.c			\
+		Swig/typeobj.c			\
 		Swig/typesys.c			\
 		Swig/wrapfunc.c
 
@@ -135,9 +145,9 @@ beautify:
 	mkdir $(INDENTBAKSDIR)/Preprocessor
 	mkdir $(INDENTBAKSDIR)/Swig
 	mkdir $(INDENTBAKSDIR)/Include
-	(csources=`find . -name "*.c"` && \
-	hsources=`find . -name "*.h"` && \
-	cxxsources=`find . -name "*.cxx"` && \
+	(csources=`find $(SOURCE_DIR) -name "*.c"` && \
+	hsources=`find $(SOURCE_DIR) -name "*.h"` && \
+	cxxsources=`find $(SOURCE_DIR) -name "*.cxx"` && \
 	for file in $$csources $$hsources $$cxxsources; do \
 	  $(MAKE) beautify-file INDENTFILE=$$file; \
 	done; )
@@ -151,11 +161,18 @@ beautify-file:
 	cat $(INDENTFILE).tmp | sed -e 's/const const /const /' > $(INDENTFILE);
 	rm $(INDENTFILE).tmp;
 
+# Beautify the code using clang-format.
+# This works well on both C and C++ code. It requires the LLVM/Clang tools to be installed.
+# Single files can be beautified with the format-file target, eg: 'make format-file INDENTFILE=chosenfile.c'
+
 format:
-	(sources=`find $(SOURCE_DIR) -name "*.c" -or -name "*.h" -or -name "*.cxx"` && \
-	for file in $$sources; do \
+	(csources=`find $(SOURCE_DIR) -name "*.c"` && \
+	hsources=`find $(SOURCE_DIR) -name "*.h"` && \
+	cxxsources=`find $(SOURCE_DIR) -name "*.cxx"` && \
+	for file in $$csources $$hsources $$cxxsources; do \
 	  $(MAKE) format-file INDENTFILE=$$file; \
 	done; )
+
 
 format-file:
 	test -n "$(INDENTFILE)" || (echo INDENTFILE not defined && exit 1;)

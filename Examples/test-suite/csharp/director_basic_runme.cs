@@ -48,6 +48,36 @@ public class runme
       if (myNewBar == null)
         throw new Exception("non-null pointer marshalling problem");
       myNewBar.x = 10;
+
+      // Low level implementation check
+//      my.testSwigDerivedClassHasMethod();
+
+      // These should not call the C# implementations as they are not overridden
+      int v;
+      v = MyClass.call_nonVirtual(my);
+      if (v != 100) throw new Exception("call_nonVirtual broken() " + v);
+
+      v = MyClass.call_nonOverride(my);
+      if (v != 101) throw new Exception("call_nonOverride broken() " + v);
+
+      // A mix of overridden and non-overridden
+      MyClassEnd myend = new MyClassEnd();
+      MyClass mc = myend;
+
+      v = mc.nonVirtual();
+      if (v != 202) throw new Exception("mc.nonVirtual() broken " + v);
+
+      v = MyClass.call_nonVirtual(mc);
+      if (v != 202) throw new Exception("call_nonVirtual(mc) broken " + v);
+
+      v = MyClass.call_nonVirtual(myend);
+      if (v != 202) throw new Exception("call_nonVirtual(myend) broken" + v);
+
+      v = MyClass.call_nonOverride(mc);
+      if (v != 101) throw new Exception("call_nonOverride(mc) broken" + v);
+
+      v = MyClass.call_nonOverride(myend);
+      if (v != 101) throw new Exception("call_nonOverride(myend) broken" + v);
     }
   }
 }
@@ -68,6 +98,30 @@ class MyOverriddenClass : MyClass {
     if ( expectNull && (b != null) )
       throw new Exception("null not received as expected");
     return b;
+  }
+
+  public new bool nonVirtual() {
+    throw new Exception("non-virtual overrides virtual method");
+  }
+
+  public new virtual bool nonOverride() {
+    throw new Exception("non-override overrides virtual method");
+  }
+}
+
+class MyClassMiddle : MyClass {
+  public override int nonVirtual() {
+    return 202;
+  }
+}
+
+class MyClassEnd : MyClassMiddle {
+  public new bool nonVirtual() {
+    throw new Exception("non-virtual overrides virtual method");
+  }
+
+  public new virtual bool nonOverride() {
+    throw new Exception("non-override overrides virtual method");
   }
 }
 

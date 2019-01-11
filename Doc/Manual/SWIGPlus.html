@@ -5035,19 +5035,19 @@ For example:
 
 <p>
 where the code passed to the "ref" and "unref" features will be
-executed as needed whenever a new object is passed to python, or when
-python tries to release the proxy object instance, respectively. 
+executed as needed whenever a new object is passed to Python, or when
+Python tries to release the proxy object instance, respectively. 
 </p>
 
 <p> 
-On the python side, the use of a reference counted object is no
+On the Python side, the use of a reference counted object is no
 different to any other regular instance:
 </p>
 
 <div class="targetlang">
 <pre>
 def create_A():
-    a = A()         # SWIG ref 'a' - new object is passed to python (count: 1)
+    a = A()         # SWIG ref 'a' - new object is passed to Python (count: 1)
     b1 = B(a)       # C++ ref 'a (count: 2)
     if 1 + 1 == 2:
         b2 = B(a)   # C++ ref 'a' (count: 3)
@@ -5075,8 +5075,8 @@ features:
 
 <p>
 In other words, SWIG will not do anything special when a new object
-is passed to python, and it will always 'delete' the underlying object when
-python releases the proxy instance.
+is passed to Python, and it will always 'delete' the underlying object when
+Python releases the proxy instance.
 </p>
 
 <p>
@@ -5283,7 +5283,7 @@ normal classes.
 </p>
 <p>
 If the target language doesn't support nested classes directly, or the support is not implemented in the
-language module (like for python currently), then the visible nested classes are moved to the same name
+language module (like for Python currently), then the visible nested classes are moved to the same name
 space as the containing class (nesting hierarchy is "flattened"). The same behaviour may be turned on for
 C# and Java by the %feature ("flatnested"); If there is a class with the same name in the outer namespace
 the inner class (or the global one) may be renamed or ignored:

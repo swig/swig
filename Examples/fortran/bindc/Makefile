@@ -1,9 +1,9 @@
 TOP        = ../..
 SWIGEXE    = $(TOP)/../swig
 SWIG_LIB_DIR = $(TOP)/../$(TOP_BUILDDIR_TO_TOP_SRCDIR)Lib
-CXXSRCS    = bindc.cxx
-TARGET     = bindc
-INTERFACE  = bindc.i
+CXXSRCS    = example.cxx
+TARGET     = example
+INTERFACE  = example.i
 SWIGOPT    =
 FORTRANSRCS = runme.f90
 

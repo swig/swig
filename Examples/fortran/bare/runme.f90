@@ -9,7 +9,7 @@ program main
 contains
 
 subroutine test_funcs()
-  use bare
+  use example
   implicit none
   real(kind=8) :: temp
   real(kind=8), pointer :: rptr
@@ -30,7 +30,7 @@ subroutine test_funcs()
 end subroutine test_funcs
 
 subroutine test_enum()
-  use bare
+  use example
   implicit none
   call print_rgb(RED)
   call print_rgb(GREEN)
@@ -43,7 +43,7 @@ subroutine test_enum()
 end subroutine
 
 subroutine test_consts()
-  use bare
+  use example
   use, intrinsic :: ISO_C_BINDING
   implicit none
   write(0, *) "MY_SPECIAL_NUMBERS ", MY_SPECIAL_NUMBERS
@@ -59,6 +59,6 @@ end subroutine test_consts
 end program
 
 !-----------------------------------------------------------------------------!
-! end of barefunctions/runme.f90
+! end of examplefunctions/runme.f90
 !-----------------------------------------------------------------------------!
 

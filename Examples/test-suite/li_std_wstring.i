@@ -94,6 +94,14 @@ void test_throw() TESTCASE_THROW1(std::wstring){
   throw x;
 }
 
+const char * non_utf8_c_str() {
+  return "h\xe9llo";
+}
+
+size_t size_wstring(const std::wstring& s) {
+  return s.size();
+}
+
 #ifdef SWIGPYTHON_BUILTIN
 bool is_python_builtin() { return true; }
 #else

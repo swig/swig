@@ -83,6 +83,7 @@ if is_python_builtin():
   if MyClass.less_than_counts != 6:
     raise RuntimeError("python:compare feature not working")
 
+# Test 6
 sa = SimpleArray(5)
 elements = [x for x in sa]
 if elements != [0, 10, 20, 30, 40]:
@@ -96,3 +97,17 @@ subslice = sa[1:3]
 elements = [x for x in subslice]
 if elements != [10, 20]:
   raise RuntimeError("slice not working")
+
+# Test 7 mapping to Python's pow
+x = ANumber(2)
+y = ANumber(4)
+z = x ** y
+if z.Value() != 16:
+  raise RuntimeError("x ** y wrong")
+z = pow(x, y)
+if z.Value() != 16:
+  raise RuntimeError("pow(x, y) wrong")
+z = ANumber(9)
+z = pow(x, y, z)
+if z.Value() != 7:
+  raise RuntimeError("pow(x, y, z) wrong")

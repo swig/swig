@@ -4,6 +4,10 @@
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#endif
+
 #if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 
 %include <boost_shared_ptr.i>

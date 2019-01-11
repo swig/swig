@@ -4,9 +4,10 @@
 bare
 bindc
 class
+funcptr
 inheritance
+memory_management
 simple
-simpleclass
 static_members
 std_string
 std_vector

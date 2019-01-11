@@ -1,8 +1,14 @@
 import sys
 import os
 import shutil
+import subprocess
 import zipfile
 
+def run_except_on_windows(commandline, env=None):
+    if os.name != "nt" and sys.platform != "cygwin":
+        # Strange failures on windows/cygin/mingw
+        subprocess.check_call(commandline, env=env, shell=True)
+        print("  Finished running: " + commandline)
 
 def copyMods():
     dirs = ['path1', 'path2', 'path3']
@@ -17,10 +23,10 @@ def copyMods():
         os.mkdir(os.path.join(d, 'brave'))
 
     shutil.copy('robin.py', os.path.join('path1', 'brave'))
-    os.system('cp _robin.* ' + os.path.join('path1', 'brave'))
+    subprocess.check_call('cp _robin.* ' + os.path.join('path1', 'brave'), shell=True)
 
     shutil.copy('robin.py', os.path.join('path2', 'brave'))
-    os.system('cp _robin.* ' + os.path.join('path3', 'brave'))
+    subprocess.check_call('cp _robin.* ' + os.path.join('path3', 'brave'), shell=True)
 
     mkzip()
 
@@ -35,10 +41,10 @@ def main():
     copyMods()
 
     # Run each test with a separate interpreter
-    os.system(sys.executable + " nonpkg.py")
-    os.system(sys.executable + " normal.py")
-    os.system(sys.executable + " split.py")
-    os.system(sys.executable + " zipsplit.py")
+    run_except_on_windows(sys.executable + " nonpkg.py")
+    run_except_on_windows(sys.executable + " normal.py")
+    run_except_on_windows(sys.executable + " split.py")
+    run_except_on_windows(sys.executable + " zipsplit.py")
 
 
 if __name__ == "__main__":

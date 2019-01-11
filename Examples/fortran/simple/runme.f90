@@ -1,6 +1,6 @@
 ! File : runme.f90
-program simple_runme
-  use simple
+program example_runme
+  use example
 
   implicit none
 

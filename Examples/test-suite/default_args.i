@@ -2,6 +2,10 @@
 
 %module default_args
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#endif
+
 %{
 #if defined(_MSC_VER)
   #pragma warning(disable: 4146) // unary minus operator applied to unsigned type, result still unsigned

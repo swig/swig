@@ -2,10 +2,6 @@
 # the use of __main__ and the run function
 
 
-def is_new_style_class(cls):
-    return hasattr(cls, "__class__")
-
-
 def run(module_name):
     default_args = __import__(module_name)
     ec = default_args.EnumClass()
@@ -101,10 +97,7 @@ def run(module_name):
     if error:
         raise RuntimeError("Foo::meth ignore is not working")
 
-    if is_new_style_class(default_args.Klass):
-        Klass_inc = default_args.Klass.inc
-    else:
-        Klass_inc = default_args.Klass_inc
+    Klass_inc = default_args.Klass.inc
 
     if Klass_inc(100, default_args.Klass(22)).val != 122:
         raise RuntimeError("Klass::inc failed")

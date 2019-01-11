@@ -64,9 +64,9 @@ CPP_TEST_CASES += \
 	python_docstring \
 	python_extranative \
 	python_moduleimport \
-	python_nondynamic \
 	python_overload_simple_cast \
 	python_pickle \
+	python_pybuffer \
 	python_pythoncode \
 	python_richcompare \
 	python_strict_unicode \
@@ -78,7 +78,6 @@ CPP_TEST_CASES += \
 
 #	li_std_carray
 #	director_profile
-#	python_pybuf
 
 CPP11_TEST_CASES = \
 	cpp11_hash_tables \
@@ -86,6 +85,10 @@ CPP11_TEST_CASES = \
 	cpp11_shared_ptr_nullptr_in_containers \
 	cpp11_shared_ptr_overload \
 	cpp11_shared_ptr_upcast \
+	cpp11_std_unordered_map \
+	cpp11_std_unordered_multimap \
+	cpp11_std_unordered_multiset \
+	cpp11_std_unordered_set \
 
 C_TEST_CASES += \
 	file_test \
@@ -157,19 +160,54 @@ run_testcase = \
 	  $(run_python);\
 	fi
 
-# No copying/conversion needed for in-source-tree Python 2 scripts
-ifeq ($(SCRIPTDIR)|$(SCRIPTSUFFIX),$(srcdir)|$(PY2SCRIPTSUFFIX))
-convert_testcase =
-else
-
-convert_testcase = \
+# Grab runme file ready for running: copied for out of source tree builds, and/or run 2to3
+# Note terminal (double colon) rules creating runme files to fix possible infinite recursion,
+# see https://github.com/swig/swig/pull/688
+ifeq ($(SCRIPTDIR),$(srcdir))
+  # in source tree build
+  ifeq (,$(PY3))
+    convert_testcase =
+  else
+    convert_testcase = \
 	if [ -f $(srcdir)/$(py2_runme) ]; then \
 	  $(MAKE) $(SCRIPTDIR)/$(py_runme); \
 	fi
 
-$(SCRIPTDIR)/$(SCRIPTPREFIX)%$(SCRIPTSUFFIX): $(srcdir)/$(SCRIPTPREFIX)%$(PY2SCRIPTSUFFIX)
-	test x$< = x$@ || cp $< $@ || exit 1
-	test x$(PY3) = x || $(PY2TO3) -w $@ >/dev/null 2>&1 || exit 1
+# For converting python 2 tests into Python 3 tests
+$(SCRIPTDIR)/$(SCRIPTPREFIX)%$(SCRIPTSUFFIX):: $(srcdir)/$(SCRIPTPREFIX)%$(PY2SCRIPTSUFFIX)
+	cp $< $@
+	$(PY2TO3) -w $@ >/dev/null 2>&1
+
+  endif
+else
+  # out of source tree build
+  ifeq (,$(PY3))
+    convert_testcase = \
+	if [ -f $(srcdir)/$(py2_runme) ]; then \
+	  $(MAKE) $(SCRIPTDIR)/$(py_runme); \
+	fi
+
+$(SCRIPTDIR)/$(SCRIPTPREFIX)%$(SCRIPTSUFFIX):: $(srcdir)/$(SCRIPTPREFIX)%$(PY2SCRIPTSUFFIX)
+	cp $< $@
+
+  else
+    convert_testcase = \
+	if [ -f $(srcdir)/$(py2_runme) ]; then \
+	  $(MAKE) $(SCRIPTDIR)/$(py_runme); \
+	elif [ -f $(srcdir)/$(py3_runme) ]; then \
+	  $(MAKE) $(SCRIPTDIR)/$(py3_runme); \
+	fi
+
+# For when there is a _runme3.py instead of a _runme.py, ie a Python 3 only run test
+$(SCRIPTDIR)/$(SCRIPTPREFIX)%$(SCRIPTSUFFIX):: $(srcdir)/$(SCRIPTPREFIX)%$(PY3SCRIPTSUFFIX)
+	cp $< $@
+
+# For converting python 2 tests into Python 3 tests
+$(SCRIPTDIR)/$(SCRIPTPREFIX)%$(SCRIPTSUFFIX):: $(srcdir)/$(SCRIPTPREFIX)%$(PY2SCRIPTSUFFIX)
+	cp $< $@
+	$(PY2TO3) -w $@ >/dev/null 2>&1
+
+  endif
 
 endif
 
@@ -178,7 +216,7 @@ endif
 %.clean:
 	@rm -f $*.py
 	@if test -f $(srcdir)/$(py2_runme); then rm -f $(SCRIPTDIR)/$(py3_runme) $(SCRIPTDIR)/$(py3_runme).bak; fi
-	@if test "x$(SCRIPTDIR)" != "x$(srcdir)"; then rm -f $(SCRIPTDIR)/$(py2_runme); fi
+	@if test "x$(SCRIPTDIR)" != "x$(srcdir)"; then rm -f $(SCRIPTDIR)/$(py_runme); fi
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' python_clean

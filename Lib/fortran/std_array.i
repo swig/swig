@@ -8,14 +8,5 @@
 #endif
 %}
 
-#warning "std::array support is not yet implemented"
-
-namespace std {
-template<class T, size_t N>
-class array {
-public:
-};
-}
-
-
+#error "std::array support is not yet implemented"
 

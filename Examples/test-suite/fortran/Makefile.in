@@ -4,7 +4,7 @@
 
 LANGUAGE	= fortran
 FC      	= @FC@
-SCRIPTSUFFIX= _runme.f90
+SCRIPTSUFFIX= _runme.F90
 
 FORTRAN_SO = @FORTRAN_SO@
 FCFLAGS = @FCFLAGS@
@@ -17,14 +17,10 @@ top_builddir   = @top_builddir@
 CPP_TEST_CASES = \
 	fortran_bindc
 
-CPP11_TEST_CASES = \
-	fortran_shared_ptr
-
 C_TEST_CASES = \
 	fortran_array_typemap \
 	fortran_bindc_c \
 	fortran_bindc_all \
-	fortran_funptr \
 	fortran_global_const
 
 # C++11 tests: wrapper error
@@ -36,7 +32,8 @@ FAILING_CPP_TESTS += \
 
 # C++11 tests: link error
 FAILING_CPP_TESTS += \
-  cpp11_default_delete
+  cpp11_default_delete \
+  cpp11_li_std_array
 
 # C++11 tests: fortran error
 FAILING_CPP_TESTS += \
@@ -64,7 +61,8 @@ FAILING_CPP_TESTS += \
   inherit_target_language \
   li_attribute \
   li_attribute_template \
-  li_boost_shared_ptr \
+  li_std_map \
+  member_funcptr_galore \
   multiple_inheritance \
   multiple_inheritance_abstract \
   multiple_inheritance_interfaces \
@@ -117,6 +115,6 @@ run_testcase = \
 %.clean:
 	@rm -f $*.o $*.a $*_runme.exe
 	@rm -rf $*.dSYM
-	find . -name $*.f90 -and -not -name $*_runme.f90 -exec rm {} \;
+	find . -name $*.f90 -and -not -name $*_runme.F90 -exec rm {} \;
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' fortran_clean

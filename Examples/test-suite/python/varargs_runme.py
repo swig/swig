@@ -30,7 +30,5 @@ if varargs.test_plenty("Hello", 1, 2) != "Hello":
 try:
     varargs.test_plenty("Hello", 1, 2, 3)
     raise RuntimeError
-except NotImplementedError:
-    pass
 except TypeError:
     pass

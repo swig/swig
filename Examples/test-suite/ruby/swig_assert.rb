@@ -21,7 +21,7 @@ end
 
 def swig_assert_simple(a)
   unless a
-    raise SwigRubyError.new("assertion falied.")
+    raise SwigRubyError.new("assertion failed.")
   end
 end
 
