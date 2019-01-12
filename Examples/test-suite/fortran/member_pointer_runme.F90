@@ -1,4 +1,6 @@
-! File : member_pointer_runme.f90
+! File : member_pointer_runme.F90
+
+#include "fassert.h"
 
 program member_pointer_runme
   use member_pointer
@@ -18,25 +20,25 @@ program member_pointer_runme
   ! Call a function that takes a member function pointer and an object
   val = do_op(s, area_memptr)
   write(0,*) "Area:", val
-  if (val /= 100.0d0) stop 1
+  ASSERT(val == 100.0d0)
 
   ! Get a function pointer via a global variable
   area_memptr = get_areavar()
   val = do_op(s, area_memptr)
   write(0,*) "Area:", val
-  if (val /= 100.0d0) stop 1
+  ASSERT(val == 100.0d0)
 
   ! Change the function pointer
   call set_areavar(perim_memptr)
   val = do_op(s, get_areavar())
   write(0,*) "Perimiter:", val
-  if (val /= 40.0d0) stop 1
+  ASSERT(val == 40.0d0)
 
   ! Try the external constants
   perim_memptr = PERIMPT
   val = do_op(s, get_areavar())
   write(0,*) "Perimiter:", val
-  if (val /= 40.0d0) stop 1
+  ASSERT(val == 40.0d0)
 
   write(0,*) "SUCCESS"
 end program

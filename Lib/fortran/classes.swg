@@ -544,8 +544,10 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
 }
 %typemap(fin) SWIGTYPE
   "$1 = $input%swigdata"
+%typemap(findecl, match="fin") SWIGTYPE ""
 %typemap(fout) SWIGTYPE
   "$result%swigdata = $1"
+%typemap(foutdecl, match="fout") SWIGTYPE ""
 
 // Raw pointers act mostly like value types, but they don't have to accept the exact type (polymorphic input, non-polymorphic output)
 %apply SWIGTYPE { SWIGTYPE* };

@@ -1,4 +1,6 @@
-! File : char_binary_runme.f90
+! File : char_binary_runme.F90
+
+#include "fassert.h"
 
 program char_binary_runme
   use char_binary
@@ -10,11 +12,11 @@ program char_binary_runme
   if (len(withnull) /= 4) stop 2
 
   t = Test()
-  if (t%strlen("hile") /= 4) stop 1
-  if (t%ustrlen("hile") /= 4) stop 1
+  ASSERT(t%strlen("hile") == 4)
+  ASSERT(t%ustrlen("hile") == 4)
 
-  if (t%strlen(withnull) /= 4) stop 1
-  if (t%ustrlen(withnull) /= 4) stop 1
+  ASSERT(t%strlen(withnull) == 4)
+  ASSERT(t%ustrlen(withnull) == 4)
 
 end program
 

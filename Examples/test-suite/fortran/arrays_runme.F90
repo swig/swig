@@ -1,4 +1,6 @@
-! File : arrays_runme.f90
+! File : arrays_runme.F90
+
+#include "fassert.h"
 
 program arrays_runme
   implicit none
@@ -24,5 +26,4 @@ subroutine test_arrays
 end subroutine
 
 end program
-
 

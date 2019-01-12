@@ -1,4 +1,6 @@
-! File : imports_runme.f90
+! File : imports_runme.F90
+
+#include "fassert.h"
 
 program imports_runme
   use imports_a

@@ -1,4 +1,6 @@
-! File : default_args_runme.f90
+! File : default_args_runme.F90
+
+#include "fassert.h"
 
 program default_args_runme
   use default_args
@@ -10,9 +12,9 @@ program default_args_runme
 
   ec = EnumClass()
   if (ec%blah() .neqv. .true.) stop 1
-  if (chartest1() /= 'x') stop 1
-  if (chartest2() /= c_null_char) stop 1
-  if (s%staticmethod() /= 60) stop 1
+  ASSERT(chartest1() == 'x')
+  ASSERT(chartest2() == c_null_char)
+  ASSERT(s%staticmethod() == 60)
 
   ! casts1 will return a null char pointer; on GCC at least `c_f_pointer` converts it to a Fortran null pointer, but 
   ! the standard DOES NOT guarantee it becomes a disassociated pointer
@@ -23,5 +25,4 @@ program default_args_runme
   call de%accelerate(EnumClass_SLOW)
 
 end program
-
 

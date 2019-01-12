@@ -320,7 +320,9 @@ FORT_APPLY_TYPEMAPS(FUNDTYPE, UFUNDTYPE)
   $1 = %reinterpret_cast($input, $1_ltype);
 }
 %typemap(fin) void* = FUNDTYPE;
+%typemap(findecl, match="fin") void* "";
 %typemap(fout) void* = FUNDTYPE;
+%typemap(foutdecl, match="fout") void* "";
 
 %apply void* { const void* } ;
 %typemap(in, noblock=1) const void* {

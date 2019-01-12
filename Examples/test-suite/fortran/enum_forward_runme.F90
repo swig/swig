@@ -1,4 +1,6 @@
-! File : enum_forward_runme.f90
+! File : enum_forward_runme.F90
+
+#include "fassert.h"
 
 program enum_forward_runme
   use enum_forward

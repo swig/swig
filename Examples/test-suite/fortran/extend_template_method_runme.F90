@@ -1,4 +1,6 @@
-! File : extend_template_method_runme.f90
+! File : extend_template_method_runme.F90
+
+#include "fassert.h"
 
 program extend_template_method_runme
   use extend_template_method
@@ -11,35 +13,35 @@ program extend_template_method_runme
 
   em = ExtendMe()
   dbl = em%do_stuff_double(1, 1.1d0)
-  if (dbl /= 1.1d0) stop 1
+  ASSERT(dbl == 1.1d0)
   str = em%do_stuff_string(1, "hello there")
-  if (str /= "hello there") stop 1
+  ASSERT(str == "hello there")
 
   dbl = em%do_overloaded_stuff(1.1d0)
-  if (dbl /= 1.1d0) stop 1
+  ASSERT(dbl == 1.1d0)
   str = em%do_overloaded_stuff("hello there")
-  if (str /= "hello there") stop 1
+  ASSERT(str == "hello there")
 
   call em%release()
 
   ! Static method works on unreleased em
-  if (em%static_method(123) /= 123) stop 1
+  ASSERT(em%static_method(123) == 123)
 
   tm = TemplateExtend()
   dbl = tm%do_template_stuff_double(1, 1.1d0)
-  if (dbl /= 1.1d0) stop 1
+  ASSERT(dbl == 1.1d0)
   str = tm%do_template_stuff_string(1, "hello there")
-  if (str /= "hello there") stop 1
+  ASSERT(str == "hello there")
 
   dbl = tm%do_template_overloaded_stuff(1.1d0)
-  if (dbl /= 1.1d0) stop 1
+  ASSERT(dbl == 1.1d0)
   str = tm%do_template_overloaded_stuff("hello there")
-  if (str /= "hello there") stop 1
+  ASSERT(str == "hello there")
 
   call tm%release()
 
   ! Static method works on unreleased em
-  if (tm%static_template_method(123) /= 123) stop 1
+  ASSERT(tm%static_template_method(123) == 123)
 
   tm = TemplateExtend(123)
 
