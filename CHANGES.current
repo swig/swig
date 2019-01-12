@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-01-12: ZackerySpytz
+            [OCaml] #1403 #1194 Fix compilation problems for OCaml >= 4.03.0 due to OCaml using
+            int64_t instead of int64.
+
 2019-01-11: ZackerySpytz
             [OCaml] #1400 Fix getters and setters.
 

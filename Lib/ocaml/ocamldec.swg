@@ -24,6 +24,13 @@ SWIGEXT {
 #include <caml/fail.h>
 #include <caml/misc.h>
 
+#if defined(CAMLassert)
+/* Both this macro and version.h were introduced in version 4.02.0 */
+#include <caml/version.h>
+#else
+#define OCAML_VERSION 0 /* Unknown, but < 40200 */
+#endif
+
 #define caml_array_set swig_caml_array_set
 
 // Adapted from memory.h and mlvalues.h
@@ -101,9 +108,17 @@ SWIGEXT {
 
 
 #ifndef ARCH_ALIGN_INT64
+#if OCAML_VERSION >= 40300
+#define SWIG_Int64_val(v) (*((int64_t *) SWIG_Data_custom_val(v)))
+#else
 #define SWIG_Int64_val(v) (*((int64 *) SWIG_Data_custom_val(v)))
+#endif
+#else
+#if OCAML_VERSION >= 40300
+CAMLextern int64_t Int64_val(caml_value_t v);
 #else
 CAMLextern int64 Int64_val(caml_value_t v);
+#endif
 #define SWIG_Int64_val(v) Int64_val(v)
 #endif
 
