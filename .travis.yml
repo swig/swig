@@ -368,12 +368,6 @@ matrix:
       env: SWIGLANG=javascript ENGINE=node VER=10 CPP11=1
       sudo: required
       dist: trusty
-    # Lots of failing tests currently
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=ocaml
-      sudo: required
-      dist: trusty
     # Sometimes hits the Travis 50 minute time limit
     - compiler: gcc
       os: linux
