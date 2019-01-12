@@ -41,7 +41,7 @@ let _ = Printf.printf "    Square = (%f, %f)\n" (s -> "[x]" () as float) (s -> "
 
 let _ = print_endline "\nHere are some properties of the shapes:"
 
-let _ = List.iter (fun o -> 
+let _ = List.iter (fun o ->
   Printf.printf "    %s\n" (repr o);
   Printf.printf "        area      =  %f\n" (o -> area () as float);
   Printf.printf "        perimeter =  %f\n" (o -> perimeter () as float)
