@@ -96,11 +96,11 @@ swig.cmo:
 swigp4.cmi:
 	env SWIG_LIB=$(SWIG_LIB_DIR) $(SWIGEXE) -ocaml -co swigp4.ml
 	$(OCC) -I $(OCAMLP4WHERE) -pp "camlp4o pa_extend.cmo q_MLast.cmo" -c swigp4.ml
-extra_obs: swig.cmi swig.cmo swigp4.cmi
+extra_objects: swig.cmi swig.cmo swigp4.cmi
 
-$(C_TEST_CASES:=.ctest): extra_obs
-$(CPP_TEST_CASES:=.cpptest): extra_obs
-$(MULTI_CPP_TEST_CASES:=.multicpptest): extra_obs
+$(C_TEST_CASES:=.ctest): extra_objects
+$(CPP_TEST_CASES:=.cpptest): extra_objects
+$(MULTI_CPP_TEST_CASES:=.multicpptest): extra_objects
 
 # Clean
 %.clean:
