@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-01-11: ZackerySpytz
+            [OCaml] #1400 Fix getters and setters.
+
 2019-01-07: wsfulton
             #358 Add VOID to windows.i
 

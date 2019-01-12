@@ -56,6 +56,7 @@ begin
 	  (fun mth arg -> invoke_inner raw_ptr mth arg)
 end
 
+let _ = register_class_byname "$realname" create_$classname_from_ptr
 let _ = Callback.register 
           "create_$normalized_from_ptr"
           create_$classname_from_ptr

@@ -27,7 +27,16 @@
     $result = caml_val_ptr($1,$descriptor);
 }
 
-#ifdef __cplusplus
+%typemap(in) char *& (char *temp) {
+  /* %typemap(in) char *& */
+  temp = (char*)caml_val_ptr($1,$descriptor);
+  $1 = &temp;
+}
+
+%typemap(argout) char *& {
+  /* %typemap(argout) char *& */
+  swig_result =	caml_list_append(swig_result,caml_val_string_len(*$1, strlen(*$1)));
+}
 
 %typemap(in) SWIGTYPE & {
     /* %typemap(in) SWIGTYPE & */
@@ -105,6 +114,8 @@
     $1 = *(($&1_ltype) caml_ptr_val($input,$&1_descriptor)) ;
 }
 
+#ifdef __cplusplus
+
 %typemap(out) SWIGTYPE {
     /* %typemap(out) SWIGTYPE */
     $&1_ltype temp = new $ltype((const $1_ltype &) $1);
@@ -116,22 +127,7 @@
     }
 }
 
-%typemap(in) char *& (char *temp) {
-  /* %typemap(in) char *& */
-  temp = (char*)caml_val_ptr($1,$descriptor);
-  $1 = &temp;
-}
-
-%typemap(argout) char *& {
-  /* %typemap(argout) char *& */
-  swig_result =	caml_list_append(swig_result,caml_val_string_len(*$1, strlen(*$1)));
-}
-
 #else
-
-%typemap(in) SWIGTYPE {
-    $1 = *(($&1_ltype) caml_ptr_val($input,$&1_descriptor)) ;
-}
 
 %typemap(out) SWIGTYPE {
     /* %typemap(out) SWIGTYPE */
@@ -144,9 +140,6 @@
 	$result = caml_val_ptr ((void *)temp,$&1_descriptor);
     }
 }
-
-%apply SWIGTYPE { const SWIGTYPE & };
-%apply SWIGTYPE { const SWIGTYPE && };
 
 #endif
 
