@@ -23,7 +23,13 @@ SWIGEXT {
 #include <caml/callback.h>
 #include <caml/fail.h>
 #include <caml/misc.h>
+
+#if defined(CAMLassert)
+/* Both this macro and version.h were introduced in version 4.02.0 */
 #include <caml/version.h>
+#else
+#define OCAML_VERSION 0 /* Unknown, but < 40200 */
+#endif
 
 #define caml_array_set swig_caml_array_set
 
