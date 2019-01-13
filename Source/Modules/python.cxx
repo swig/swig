@@ -2153,7 +2153,7 @@ public:
    * Generate parameter list for Python functions or methods,
    * reuse make_autodocParmList() to do so.
    * ------------------------------------------------------------ */
-  String *make_pyParmList(Node *n, bool in_class, bool is_calling, int kw) {
+  String *make_pyParmList(Node *n, bool in_class, bool is_calling, int kw, bool has_self_for_count = false) {
     /* Get the original function for a defaultargs copy, 
      * see default_arguments() in parser.y. */
     Node *nn = Getattr(n, "defaultargs");
@@ -2186,7 +2186,7 @@ public:
 
     bool funcanno = py3 ? true : false;
     String *params = NewString("");
-    String *_params = make_autodocParmList(n, false, (in_class? 2 : 1), is_calling, funcanno);
+    String *_params = make_autodocParmList(n, false, ((in_class || has_self_for_count)? 2 : 1), is_calling, funcanno);
 
     if (in_class) {
       Printf(params, "self");
@@ -4785,7 +4785,7 @@ public:
 
 	      String *parms = make_pyParmList(n, true, false, allow_kwargs);
 	      /* Pass 'self' only if using director */
-	      String *callParms = make_pyParmList(n, false, true, allow_kwargs);
+	      String *callParms = make_pyParmList(n, false, true, allow_kwargs, true);
 
 	      if (use_director) {
 		Insert(callParms, 0, "_self, ");
