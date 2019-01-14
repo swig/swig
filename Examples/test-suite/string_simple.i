@@ -1,10 +1,10 @@
 %module string_simple
 
-%newobject copy_string;
+%newobject copy_str;
 
 %inline %{
 #include <string.h>
-const char* copy_string(const char* str) {
+const char* copy_str(const char* str) {
   size_t len = strlen(str);
   char* newstring = (char*) malloc(len + 1);
   strcpy(newstring, str);

@@ -35,7 +35,6 @@ director_using \
 enum_thorough \
 li_windows \
 member_pointer_const \
-minherit \
 nested_directors \
 preproc_constants \
 smart_pointer_inherit \
@@ -44,8 +43,6 @@ typedef_mptr \
 FAILING_C_TESTS = \
 enums \
 preproc_constants_c \
-string_simple \
-unions \
 
 ml_runme = $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 
