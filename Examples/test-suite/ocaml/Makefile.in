@@ -40,7 +40,6 @@ nested_directors \
 preproc_constants \
 smart_pointer_inherit \
 typedef_mptr \
-using_protected \
 
 FAILING_C_TESTS = \
 enums \
