@@ -114,7 +114,7 @@ char **c_charptr_array( const std::vector <std::string > &str_v );
 
   let string_array_to_vector sa = 
     let nv = _new_StringVector C_void in
-      array_to_vector nv (fun x -> C_string x) sa ; nv
+      ignore (array_to_vector nv (fun x -> C_string x) sa) ; nv
 	
   let c_string_array ar = 
     _c_charptr_array (string_array_to_vector ar)
