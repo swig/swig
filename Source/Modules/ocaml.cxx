@@ -905,10 +905,9 @@ public:
   virtual int constantWrapper(Node *n) {
     String *name = Getattr(n, "feature:symname");
     SwigType *type = Getattr(n, "type");
-    String *value = Getattr(n, "value");
+    String *rawval = Getattr(n, "rawval");
+    String *value = rawval ? rawval : Getattr(n, "value");
     SwigType *qname = Getattr(n, "qualified:name");
-    String *rvalue = NewString("");
-    String *temp = 0;
 
     if (qname)
       value = qname;
@@ -920,31 +919,8 @@ public:
     }
     // See if there's a typemap
 
-    Printv(rvalue, value, NIL);
-    if ((SwigType_type(type) == T_CHAR) && (is_a_pointer(type) == 1)) {
-      temp = Copy(rvalue);
-      Clear(rvalue);
-      Printv(rvalue, "\"", temp, "\"", NIL);
-      Delete(temp);
-    }
-    if ((SwigType_type(type) == T_CHAR) && (is_a_pointer(type) == 0)) {
-      temp = Copy(rvalue);
-      Clear(rvalue);
-      Printv(rvalue, "'", temp, "'", NIL);
-      Delete(temp);
-    }
     // Create variable and assign it a value
-
-    Printf(f_header, "static %s = ", SwigType_lstr(type, name));
-    bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
-    if ((SwigType_type(type) == T_STRING)) {
-      Printf(f_header, "\"%s\";\n", value);
-    } else if (SwigType_type(type) == T_CHAR && !is_enum_item) {
-      Printf(f_header, "\'%s\';\n", value);
-    } else {
-      Printf(f_header, "%s;\n", value);
-    }
-
+    Printf(f_header, "static %s = %s;\n", SwigType_lstr(type, name), value);
     SetFlag(n, "feature:immutable");
     variableWrapper(n);
     return SWIG_OK;
