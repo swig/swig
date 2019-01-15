@@ -89,7 +89,7 @@ type _value = c_obj
 	    caml_array_set 
 		($result,
 		 i,
-		 callback(*fromval,caml_val_ptr((void *)&$1[i],$*1_descriptor)));
+		 caml_callback(*fromval,caml_val_ptr((void *)&$1[i],$*1_descriptor)));
 	} else {
 	    caml_array_set
 		($result,
@@ -119,7 +119,7 @@ type _value = c_obj
 	    caml_array_set 
 		($result,
 		 i,
-		 callback2(*caml_named_value(SWIG_MODULE "_int_to_enum"),
+		 caml_callback2(*caml_named_value(SWIG_MODULE "_int_to_enum"),
 			   *caml_named_value("$type_marker"),
 			   Val_int($1[i])));
     }

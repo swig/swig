@@ -62,7 +62,7 @@
     /* %typemap(out) SWIGTYPE & */
     CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *) &$1,$1_descriptor));
+	$result = caml_callback(*fromval,caml_val_ptr((void *) &$1,$1_descriptor));
     } else {
 	$result = caml_val_ptr ((void *) &$1,$1_descriptor);
     }
@@ -72,7 +72,7 @@
     /* %typemap(out) SWIGTYPE && */
     CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *) &$1,$1_descriptor));
+	$result = caml_callback(*fromval,caml_val_ptr((void *) &$1,$1_descriptor));
     } else {
 	$result = caml_val_ptr ((void *) &$1,$1_descriptor);
     }
@@ -84,7 +84,7 @@
     if( fromval ) {
 	swig_result =
 	    caml_list_append(swig_result,
-			     callback(*fromval,caml_val_ptr((void *) $1,
+			     caml_callback(*fromval,caml_val_ptr((void *) $1,
 							    $1_descriptor)));
     } else {
 	swig_result =
@@ -97,7 +97,7 @@
     if( fromval ) {
 	swig_result =
 	    caml_list_append(swig_result,
-			     callback(*fromval,caml_val_ptr((void *) $1,
+			     caml_callback(*fromval,caml_val_ptr((void *) $1,
 							    $1_descriptor)));
     } else {
 	swig_result =
@@ -121,7 +121,7 @@
     $&1_ltype temp = new $ltype((const $1_ltype &) $1);
     CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *)temp,$&1_descriptor));
+	$result = caml_callback(*fromval,caml_val_ptr((void *)temp,$&1_descriptor));
     } else {
 	$result = caml_val_ptr ((void *)temp,$&1_descriptor);
     }
@@ -135,7 +135,7 @@
     CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     memmove( temp, &$1, sizeof( $1_type ) );
     if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *)temp,$&1_descriptor));
+	$result = caml_callback(*fromval,caml_val_ptr((void *)temp,$&1_descriptor));
     } else {
 	$result = caml_val_ptr ((void *)temp,$&1_descriptor);
     }
@@ -234,7 +234,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %typemap(out) ArrayCarrier * {
     CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *)$1,$1_descriptor));
+	$result = caml_callback(*fromval,caml_val_ptr((void *)$1,$1_descriptor));
     } else {
 	$result = caml_val_ptr ((void *)$1,$1_descriptor);
     }
@@ -299,7 +299,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     /* %typemap(how) SWIGTYPE *, SWIGTYPE (CLASS::*) */
     CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *)$1,$1_descriptor));
+	$result = caml_callback(*fromval,caml_val_ptr((void *)$1,$1_descriptor));
     } else {
 	$result = caml_val_ptr ((void *)$1,$1_descriptor);
     }
@@ -321,7 +321,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 %define %swigtype_array_fail(how,msg)
 %typemap(how) SWIGTYPE [] {
-    failwith(msg);
+    caml_failwith(msg);
 }
 %enddef
 
@@ -343,7 +343,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 %define %swig_enum_out(how)
 %typemap(how) enum SWIGTYPE {
-    $result = callback2(*caml_named_value(SWIG_MODULE "_int_to_enum"),*caml_named_value("$type_marker"),Val_int((int)$1));
+    $result = caml_callback2(*caml_named_value(SWIG_MODULE "_int_to_enum"),*caml_named_value("$type_marker"),Val_int((int)$1));
 }
 %enddef
 
