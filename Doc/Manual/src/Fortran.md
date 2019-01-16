@@ -590,7 +590,7 @@ all enumerators in Fortran are anonymous.
 To associate a C enumeration name with the Fortran
 generated wrappers, SWIG generates an integer parameter with the C enumeration
 name. The enumeration generated from the C code
-```c
+```c++
 enum MyEnum {
   RED = 0,
   GREEN,
@@ -614,14 +614,25 @@ code. In the Fortran wrapper code, procedures that use the enumeration use the
 type `integer(MyEnum)` to clearly indicate what enum type is required.
 
 Some C++ enumeration definitions cannot be natively interpreted by a Fortran
-compiler (e.g. `FOO = 0x12,` or `BAR = sizeof(int),`), so these are defined in
-the C++ wrapper code and _bound_ in the Fortran wrapper code:
+compiler, so these are defined in the C++ wrapper code and _bound_ in the
+Fortran wrapper code.
+```c++
+enum MyWeirdEnum {
+  FOO = 0x12,
+  BAR = sizeof(int)
+};
+```
+becomes
 ```fortran
 integer(C_INT), protected, public, &
-   bind(C, name="swigc_FOO") :: FOO
+   bind(C, name="swigc_MyWeirdEnum_FOO") :: FOO
+integer(C_INT), protected, public, &
+   bind(C, name="swigc_MyWeirdEnum_BAR") :: BAR
+integer, parameter :: MyWeirdEnum = C_INT
 ```
+
 The `%fortranconst` directive can be used to explicitly
-enable and disable treatment of a C++ `enum` as a Fortran enumerator; the
+enable treatment of a C++ `enum` as a Fortran enumerator, and the
 `%nofortranconst` directive forces the values to be wrapped as externally-bound
 C integers. See the section on [global constants](#global-constants) for more
 on this directive.
@@ -641,9 +652,9 @@ struct MyStruct {
 generates
 ```fortran
 enum, bind(c)
- enumerator :: MyStruct_Bar = 0
+ enumerator :: MyStruct_Foo_Bar = 0
 end enum
-enumerator :: MyStruct_Foo = -1
+integer, parameter :: MyStruct_Foo = kind(MyStruct_Foo_Bar)
 ```
 
 If using C++11, `enum class` will scope the enumerations by the enum class's
@@ -656,9 +667,9 @@ enum class Foo {
 becomes
 ```fortran
 enum, bind(c)
- enumerator :: Foo = -1
  enumerator :: Foo_Bar = 0
 end enum
+integer, parameter :: Foo = kind(Foo_Bar)
 ```
 
 ## Function pointers
