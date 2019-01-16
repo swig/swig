@@ -1,5 +1,6 @@
 # see top-level Makefile.in
 argout_ref
+callback
 class
 contract
 scoped_enum
