@@ -588,8 +588,8 @@ constants that are guaranteed to be compatible with C enumerators. Unlike C++,
 all enumerators in Fortran are anonymous.
 
 To associate a C enumeration name with the Fortran
-generated wrappers, SWIG generates an additional enumeration with the C class
-name and a dummy value of `-1`. The enumeration generated from the C code
+generated wrappers, SWIG generates an integer parameter with the C enumeration
+name. The enumeration generated from the C code
 ```c
 enum MyEnum {
   RED = 0,
@@ -601,17 +601,17 @@ enum MyEnum {
 looks like:
 ```fortran
  enum, bind(c)
-  enumerator :: MyEnum = -1
   enumerator :: RED = 0
-  enumerator :: GREEN = RED + 1
-  enumerator :: BLUE = GREEN + 1
+  enumerator :: GREEN
+  enumerator :: BLUE
   enumerator :: BLACK = -1
  end enum
+ integer, parameter :: MyEnum = kind(RED)
 ```
  
 These enumerators are treated as standard C integers in the C wrapper code
 code. In the Fortran wrapper code, procedures that use the enumeration use the
-type `integer(kind(MyEnum))` to clearly indicate what enum type is required.
+type `integer(MyEnum)` to clearly indicate what enum type is required.
 
 Some C++ enumeration definitions cannot be natively interpreted by a Fortran
 compiler (e.g. `FOO = 0x12,` or `BAR = sizeof(int),`), so these are defined in
@@ -641,9 +641,9 @@ struct MyStruct {
 generates
 ```fortran
 enum, bind(c)
- enumerator :: MyStruct_Foo = -1
  enumerator :: MyStruct_Bar = 0
 end enum
+enumerator :: MyStruct_Foo = -1
 ```
 
 If using C++11, `enum class` will scope the enumerations by the enum class's
