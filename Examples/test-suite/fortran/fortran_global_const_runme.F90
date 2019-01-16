@@ -42,12 +42,11 @@ subroutine test_enums
   use fortran_global_const
   use ISO_C_BINDING
   implicit none
-  integer(C_INT), dimension(4), parameter :: compiletime_enums &
-    = [ NativeEnum, Alfa, Sierra, Juliet ]
+  integer(NativeEnum), dimension(3), parameter :: compiletime_enums &
+    = [ Alfa, Sierra, Juliet ]
 
-  ASSERT(compiletime_enums(1) == -1)
-  ASSERT(compiletime_enums(2) == 0)
-  ASSERT(compiletime_enums(3) == 1)
+  ASSERT(compiletime_enums(1) == 0)
+  ASSERT(compiletime_enums(2) == 1)
 
   ! Runtime enums
 
