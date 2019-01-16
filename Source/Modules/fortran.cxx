@@ -2158,10 +2158,10 @@ int FORTRAN::enumDeclaration(Node *n) {
     // Create enumerator statement and initialize list of enum values
     d_enum_public = NewList();
     Printv(f_fparams, " enum, bind(c)\n", NULL);
-  }
 
-  // Mark that the enum is available for use as a type
-  SetFlag(n, "fortran:declared");
+    // Mark that the enum is available for use as a type
+    SetFlag(n, "fortran:declared");
+  }
 
   // Emit enum items
   Language::enumDeclaration(n);
