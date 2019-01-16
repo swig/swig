@@ -2154,26 +2154,6 @@ int FORTRAN::enumDeclaration(Node *n) {
     Printv(f_fparams, " enum, bind(c)\n", NULL);
   }
 
-  if (enum_name) {
-    // Print a placeholder enum value so we can use 'kind(ENUM)'
-    Swig_save("enumDeclaration", n, "sym:name", "value", "type", NULL);
-
-    // Type may not be set if this enum is actually a typedef
-    if (!Getattr(n, "type")) {
-      String *type = NewStringf("enum %s", enum_name);
-      Setattr(n, "type", type);
-      Delete(type);
-    }
-
-    // Create placeholder for the enumeration type
-    Setattr(n, "sym:name", enum_name);
-    Setattr(n, "value", "-1");
-    constantWrapper(n);
-
-    Swig_restore(n);
-    Delete(enum_name);
-  }
-
   // Emit enum items
   Language::enumDeclaration(n);
 
@@ -2181,10 +2161,23 @@ int FORTRAN::enumDeclaration(Node *n) {
     // End enumeration
     Printv(f_fparams, " end enum\n", NULL);
 
+    if (enum_name && Len(d_enum_public) > 0) {
+      // Create "kind=" value for the enumeration type
+      Printv(f_fpublic, " public :: ", enum_name, "\n", NULL);
+
+      Printv(f_fparams, " integer, parameter :: ",  enum_name,
+             " = kind(", First(d_enum_public).item, ")\n", NULL);
+
+      // Clean up
+      Delete(enum_name);
+    }
+
     // Make the enum class *and* its values public
     Printv(f_fpublic, " public :: ", NULL);
     print_wrapped_list(f_fpublic, First(d_enum_public), 11);
     Putc('\n', f_fpublic);
+
+    // Clean up
     Delete(d_enum_public);
     d_enum_public = NULL;
   }

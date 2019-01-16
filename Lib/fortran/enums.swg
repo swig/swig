@@ -3,9 +3,7 @@
  * ------------------------------------------------------------------------- */
 
 %fragment("SwigUnknownEnum_f", "fpublic", noblock=1) {
-enum, bind(c)
-  enumerator :: SwigUnknownEnum = -1
-end enum
+integer, parameter :: SwigUnknownEnum = C_INT
 }
 
 /* -------------------------------------------------------------------------
@@ -17,8 +15,8 @@ end enum
 // integer pointers)
 FORT_UNSIGNED_TYPEMAP(int, enum SWIGTYPE)
 
-%typemap(ftype, in="integer(kind($fenumname)), intent(in)") enum SWIGTYPE
-  "integer(kind($fenumname))"
+%typemap(ftype, in="integer($fenumname), intent(in)") enum SWIGTYPE
+  "integer($fenumname)"
 %typemap(out, noblock=1) enum SWIGTYPE {
   $result = %static_cast($1, int);
 }
