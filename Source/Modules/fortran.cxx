@@ -305,6 +305,8 @@ String *make_import_string(String *imtype) {
  */
 bool is_valid_identifier(String *name) {
   const char *c = Char(name);
+  if (*c == '\0')
+    return false;
   if (*c == '_')
     return false;
   if (*c >= '0' && *c <= '9')
@@ -988,6 +990,7 @@ int FORTRAN::functionWrapper(Node *n) {
     Append(overloads, Copy(fname));
   } else {
     //
+    ASSERT_OR_PRINT_NODE(Len(fsymname) > 0, n);
     Printv(f_fpublic, " public :: ", fsymname, "\n", NULL);
   }
 
@@ -1835,6 +1838,7 @@ int FORTRAN::classHandler(Node *n) {
   }
 
   // Make the class publicly accessible
+  ASSERT_OR_PRINT_NODE(Len(symname) > 0, n);
   Printv(f_fpublic, " public :: ", symname, "\n", NULL);
 
   // Write documentation
@@ -2041,6 +2045,7 @@ int FORTRAN::membervariableHandler(Node *n) {
     }
     this->replace_fclassname(datatype, bindc_typestr);
 
+    ASSERT_OR_PRINT_NODE(Len(fsymname) > 0, n);
     Printv(f_ftypes, "  ", bindc_typestr, ", public :: ", fsymname, "\n", NULL);
     Delete(fsymname);
   } else {
@@ -2148,7 +2153,7 @@ int FORTRAN::enumDeclaration(Node *n) {
 
   // Determine whether to add enum as a native fortran enumeration. If false,
   // the values are all wrapped as constants.
-  if (is_native_enum(n)) {
+  if (is_native_enum(n) && firstChild(n)) {
     // Create enumerator statement and initialize list of enum values
     d_enum_public = NewList();
     Printv(f_fparams, " enum, bind(c)\n", NULL);
@@ -2158,10 +2163,12 @@ int FORTRAN::enumDeclaration(Node *n) {
   Language::enumDeclaration(n);
 
   if (d_enum_public) {
+    ASSERT_OR_PRINT_NODE(Len(d_enum_public) > 0, n);
     // End enumeration
     Printv(f_fparams, " end enum\n", NULL);
 
-    if (enum_name && Len(d_enum_public) > 0) {
+    if (enum_name) {
+      ASSERT_OR_PRINT_NODE(Len(enum_name) > 0, n);
       // Create "kind=" value for the enumeration type
       Printv(f_fpublic, " public :: ", enum_name, "\n", NULL);
 
@@ -2271,6 +2278,7 @@ int FORTRAN::constantWrapper(Node *n) {
   }
 
   if (d_enum_public) {
+    ASSERT_OR_PRINT_NODE(Len(symname) > 0, n);
     // We're wrapping a native enumerator: add to the list of enums being
     // built
     Append(d_enum_public, symname);
