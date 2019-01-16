@@ -20,8 +20,8 @@ program enums_runme
   ASSERT(globalinstance1 == 0)
   ASSERT(globalinstance3 == 30)
 
-  ASSERT(iFoo_Phoo == 50)
-  ASSERT(iFoo_Char == IACHAR('a'))
+  ASSERT(Phoo == 50)
+  ASSERT(Char == IACHAR('a'))
 
   ASSERT(slap == 10)
   ASSERT(mine == 11)
