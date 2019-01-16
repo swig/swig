@@ -28,4 +28,3 @@ program enums_runme
   ASSERT(thigh == 12)
 end program
 
-

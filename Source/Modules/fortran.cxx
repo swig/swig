@@ -2178,9 +2178,6 @@ int FORTRAN::enumDeclaration(Node *n) {
 
       Printv(f_fparams, " integer, parameter :: ",  enum_name,
              " = kind(", First(d_enum_public).item, ")\n", NULL);
-
-      // Clean up
-      Delete(enum_name);
     }
 
     // Make the enum class *and* its values public
@@ -2191,7 +2188,18 @@ int FORTRAN::enumDeclaration(Node *n) {
     // Clean up
     Delete(d_enum_public);
     d_enum_public = NULL;
+  } else if (enum_name) {
+    // Create "kind=" value for the enumeration type
+    Printv(f_fpublic, " public :: ", enum_name, "\n", NULL);
+    Printv(f_fparams, " integer, parameter :: ",  enum_name,
+           " = C_INT\n", NULL);
+
+    // Mark that the enum is available for use as a type
+    SetFlag(n, "fortran:declared");
   }
+
+  // Clean up
+  Delete(enum_name);
 
   return SWIG_OK;
 }
