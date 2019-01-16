@@ -148,3 +148,11 @@ bool is_python_builtin() { return true; }
 bool is_python_builtin() { return false; }
 #endif
 %}
+
+// Autodoc Python keywords
+%warnfilter(SWIGWARN_PARSE_KEYWORD) process;
+%feature(autodoc,0) process;
+%feature("compactdefaultargs") process;
+%inline %{
+int process(int from) { return from; }
+%}

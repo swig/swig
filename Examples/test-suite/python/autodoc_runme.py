@@ -202,3 +202,5 @@ check(inspect.getdoc(banana), "banana(S a, S b, int c, Integer d)")
 check(inspect.getdoc(TInteger), "Proxy of C++ T< int > class.", "::T< int >")
 check(inspect.getdoc(TInteger.__init__), "__init__(TInteger self) -> TInteger", None, skip)
 check(inspect.getdoc(TInteger.inout), "inout(TInteger self, TInteger t) -> TInteger")
+
+check(inspect.getdoc(process), "process(_from) -> int")
