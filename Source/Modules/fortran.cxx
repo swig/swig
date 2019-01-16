@@ -2152,12 +2152,15 @@ int FORTRAN::enumDeclaration(Node *n) {
     return SWIG_OK;
 
   // Determine whether to add enum as a native fortran enumeration. If false,
-  // the values are all wrapped as constants.
+  // the values are all wrapped as constants. Only create the list if values are defined.
   if (is_native_enum(n) && firstChild(n)) {
     // Create enumerator statement and initialize list of enum values
     d_enum_public = NewList();
     Printv(f_fparams, " enum, bind(c)\n", NULL);
   }
+
+  // Mark that the enum is available for use as a type
+  SetFlag(n, "fortran:declared");
 
   // Emit enum items
   Language::enumDeclaration(n);
@@ -2460,8 +2463,13 @@ void FORTRAN::replace_fspecial_impl(SwigType *basetype, String *tm, const char *
       // If not, use the symbolic name
       replacementname = Getattr(lookup, "sym:name");
     }
-    // If it's a missing enum, replace with 'unknown'
-    if (GetFlag(lookup, "enumMissing")) {
+    if (is_enum && GetFlag(lookup, "enumMissing")) {
+      // Missing enum with forward declaration
+      replacementname = NULL;
+    }
+
+    if (is_enum && !GetFlag(lookup, "fortran:declared")) {
+      // Enum is defined, but it might not have been instantiated yet
       replacementname = NULL;
     }
   }
