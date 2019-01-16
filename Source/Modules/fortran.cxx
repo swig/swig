@@ -744,11 +744,11 @@ void FORTRAN::write_module(String *filename) {
            NULL);
   }
 
-  if (Len(f_fparams) > 0) {
-    Printv(out, "\n ! PARAMETERS\n", f_fparams, NULL);
-  }
   if (Len(f_ftypes) > 0) {
     Printv(out, "\n ! TYPES\n", f_ftypes, "\n", NULL);
+  }
+  if (Len(f_fparams) > 0) {
+    Printv(out, "\n ! PARAMETERS\n", f_fparams, NULL);
   }
   if (Len(f_finterfaces) > 0) {
     Printv(out,
