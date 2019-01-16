@@ -68,7 +68,7 @@ public:
     director_prot_ctor_code = NewString("");
     Printv(director_prot_ctor_code,
 	   "if ( $comparison ) { /* subclassed */\n",
-	   "  $director_new \n", "} else {\n", "  failwith(\"accessing abstract class or protected constructor\"); \n", "}\n", NIL);
+	   "  $director_new \n", "} else {\n", "  caml_failwith(\"accessing abstract class or protected constructor\"); \n", "}\n", NIL);
     director_multiple_inheritance = 1;
     director_language = 1;
   }
@@ -733,7 +733,7 @@ public:
 	       "argv = (CAML_VALUE *)malloc( argc * sizeof( CAML_VALUE ) );\n"
 	       "for( i = 0; i < argc; i++ ) {\n" "  argv[i] = caml_list_nth(args,i);\n" "}\n", NIL);
 	Printv(df->code, dispatch, "\n", NIL);
-	Printf(df->code, "failwith(\"No matching function for overloaded '%s'\");\n", iname);
+	Printf(df->code, "caml_failwith(\"No matching function for overloaded '%s'\");\n", iname);
 	Printv(df->code, "}\n", NIL);
 	Wrapper_print(df, f_wrappers);
 
@@ -1583,7 +1583,7 @@ public:
       /* pass the method call on to the Python object */
       Printv(w->code,
 	     "swig_result = caml_swig_alloc(1,C_list);\n" "SWIG_Store_field(swig_result,0,args);\n" "args = swig_result;\n" "swig_result = Val_unit;\n", 0);
-      Printf(w->code, "swig_result = " "callback3(*caml_named_value(\"swig_runmethod\")," "swig_get_self(),copy_string(\"%s\"),args);\n", Getattr(n, "name"));
+      Printf(w->code, "swig_result = " "caml_callback3(*caml_named_value(\"swig_runmethod\")," "swig_get_self(),caml_copy_string(\"%s\"),args);\n", Getattr(n, "name"));
       /* exception handling */
       tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0);
       if (!tm) {

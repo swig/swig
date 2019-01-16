@@ -93,7 +93,7 @@ namespace Swig {
       void swig_disown() const {
         if (!swig_disown_flag) {
           swig_disown_flag=true;
-          callback(*caml_named_value("caml_obj_disown"),swig_self);
+          caml_callback(*caml_named_value("caml_obj_disown"),swig_self);
         }
       }
   };
