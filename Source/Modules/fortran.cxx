@@ -145,8 +145,9 @@ bool is_native_enum(Node *n) {
   if (!enum_feature) {
     // Determine from enum values
     for (Node *c = firstChild(n); c; c = nextSibling(c)) {
-      if (Getattr(c, "error") || GetFlag(c, "feature:ignore"))
-        continue;
+      if (Getattr(c, "error") || GetFlag(c, "feature:ignore")) {
+        return false;
+      }
 
       String *enum_value = Getattr(c, "enumvalue");
       if (enum_value && !is_fortran_intexpr(enum_value)) {
