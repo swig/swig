@@ -7,6 +7,41 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-01-16: wsfulton
+            Python static method wrapper changes
+
+            - Static method wrappers were using the 'fastproxy' approach by default.
+              This is inconsistent with instance method wrappers. The fastproxy approach
+              is now turned off by default to be consistent with instance methods.
+              Static method wrappers can now also be controlled using the -fastproxy and
+              -olddefs options.
+
+              Example:
+
+                struct Klass {
+                  static int statmethod(int a = 2);
+                };
+
+              generates by default:
+
+              class Klass(object):
+                  ...
+                  @staticmethod
+                  def statmethod(a=2):
+                      return _example.Klass_statmethod(a)
+
+              instead of the following (which can be restored by using -fastproxy):
+
+                class Klass(object):
+                  ...
+                  statmethod = staticmethod(_example.Klass_statmethod)
+
+
+- Modernise wrappers for static methods to use decorator syntax - @staticmethod.
+
+- Add missing runtime test for static class methods and using the actual class method.
+
+
 2019-01-12: ZackerySpytz
             [OCaml] #1403 #1194 Fix compilation problems for OCaml >= 4.03.0 due to OCaml using
             int64_t instead of int64.

@@ -4637,10 +4637,12 @@ public:
     }
 
     if (shadow) {
-      if (!Getattr(n, "feature:python:callback") && have_addtofunc(n)) {
+      bool fast = (fastproxy && !have_addtofunc(n)) || Getattr(n, "feature:callback");
+      if (!fast || olddefs) {
 	int kw = (check_kwargs(n) && !Getattr(n, "sym:overloaded")) ? 1 : 0;
 	String *parms = make_pyParmList(n, false, false, kw);
 	String *callParms = make_pyParmList(n, false, true, kw);
+	Printv(f_shadow, "\n", tab4, "@staticmethod", NIL);
 	Printv(f_shadow, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
 	if (have_docstring(n))
 	  Printv(f_shadow, tab8, docstring(n, AUTODOC_STATICFUNC, tab8), "\n", NIL);
@@ -4649,12 +4651,14 @@ public:
 	if (have_pythonappend(n)) {
 	  Printv(f_shadow, tab8, "val = ", funcCall(Swig_name_member(NSPACE_TODO, class_name, symname), callParms), "\n", NIL);
 	  Printv(f_shadow, indent_pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n), "%pythonappend or %feature(\"pythonappend\")"), "\n", NIL);
-	  Printv(f_shadow, tab8, "return val\n\n", NIL);
+	  Printv(f_shadow, tab8, "return val\n", NIL);
 	} else {
-	  Printv(f_shadow, tab8, "return ", funcCall(Swig_name_member(NSPACE_TODO, class_name, symname), callParms), "\n\n", NIL);
+	  Printv(f_shadow, tab8, "return ", funcCall(Swig_name_member(NSPACE_TODO, class_name, symname), callParms), "\n", NIL);
 	}
-	Printv(f_shadow, tab4, symname, " = staticmethod(", symname, ")\n", NIL);
-      } else {
+      }
+
+      // Below may result in a 2nd definition of the method when -olddefs is used. The Python interpreter will use the second definition as it overwrites the first.
+      if (fast) {
 	Printv(f_shadow, tab4, symname, " = staticmethod(", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname),
 	       ")\n", NIL);
       }
