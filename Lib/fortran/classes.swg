@@ -293,7 +293,8 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
     case SWIG_NULL:
       /* LHS is unassigned */
       switch (other->mem) {
-        case SWIG_NULL: /* null op */ break;
+        case SWIG_NULL: /* null op */
+          break;
         case SWIG_MOVE: /* capture pointer from RHS */
           self->cptr = other->cptr;
           other->cptr = NULL;
@@ -370,6 +371,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
           /* Remove LHS reference */
           self->cptr = NULL;
           self->mem = SWIG_NULL;
+          break;
         default:
           SWIG_exception_impl("assignment", SWIG_RuntimeError,
               "Cannot assign to a const reference", return);
@@ -403,7 +405,8 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
     case SWIG_NULL:
       /* LHS is unassigned */
       switch (other->mem) {
-        case SWIG_NULL: /* null op */ break;
+        case SWIG_NULL: /* null op */
+          break;
         case SWIG_MOVE: /* capture pointer from RHS */
           self->cptr = other->cptr;
           other->cptr = NULL;
@@ -482,6 +485,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
           /* Remove LHS reference */
           self->cptr = NULL;
           self->mem = SWIG_NULL;
+          break;
         default:
           SWIG_exception_impl("assignment", SWIG_RuntimeError,
               "Cannot assign to a const reference", return);
