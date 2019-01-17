@@ -524,15 +524,6 @@ public:
     // adds local variables
     Wrapper_add_local(f, "args", "CAMLparam1(args)");
     Wrapper_add_local(f, "ret", "SWIG_CAMLlocal2(swig_result,rv)");
-    if (isOverloaded) {
-      Wrapper_add_local(f, "i", "int i");
-      Wrapper_add_local(f, "argc", "int argc = caml_list_length(args)");
-      Wrapper_add_local(f, "argv", "CAML_VALUE *argv");
-
-      Printv(f->code,
-	     "argv = (CAML_VALUE *)malloc( argc * sizeof( CAML_VALUE ) );\n"
-	     "for( i = 0; i < argc; i++ ) {\n" "  argv[i] = caml_list_nth(args,i);\n" "}\n", NIL);
-    }
     d = SwigType_typedef_qualified(d);
     emit_parameter_variables(l, f);
 
@@ -701,8 +692,6 @@ public:
     // Wrap things up (in a manner of speaking)
 
     Printv(f->code, tab4, "swig_result = caml_list_append(swig_result,rv);\n", NIL);
-    if (isOverloaded)
-      Printv(f->code, "free(argv);\n", NIL);
     Printv(f->code, tab4, "CAMLreturn(swig_result);\n", NIL);
     Printv(f->code, "}\n", NIL);
 
