@@ -733,7 +733,18 @@ public:
 	       "argv = (CAML_VALUE *)malloc( argc * sizeof( CAML_VALUE ) );\n"
 	       "for( i = 0; i < argc; i++ ) {\n" "  argv[i] = caml_list_nth(args,i);\n" "}\n", NIL);
 	Printv(df->code, dispatch, "\n", NIL);
-	Printf(df->code, "caml_failwith(\"No matching function for overloaded '%s'\");\n", iname);
+	Node *sibl = n;
+	while (Getattr(sibl, "sym:previousSibling"))
+	  sibl = Getattr(sibl, "sym:previousSibling");
+	String *protoTypes = NewString("");
+	do {
+	  String *fulldecl = Swig_name_decl(sibl);
+	  Printf(protoTypes, "\n\"    %s\\n\"", fulldecl);
+	  Delete(fulldecl);
+	} while ((sibl = Getattr(sibl, "sym:nextSibling")));
+	Printf(df->code, "caml_failwith(\"Wrong number or type of arguments for overloaded function '%s'.\\n\""
+	       "\n\"  Possible C/C++ prototypes are:\\n\"%s);\n", iname, protoTypes);
+	Delete(protoTypes);
 	Printv(df->code, "}\n", NIL);
 	Wrapper_print(df, f_wrappers);
 
