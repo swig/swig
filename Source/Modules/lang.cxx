@@ -3602,7 +3602,7 @@ String *Language::makeParameterName(Node *n, Parm *p, int arg_num, bool setter) 
   String *arg = 0;
   String *pn = Getattr(p, "name");
 
-  // Use C parameter name unless it is a duplicate or an empty parameter name
+  // Check if parameter name is a duplicate.
   int count = 0;
   ParmList *plist = Getattr(n, "parms");
   while (plist) {
@@ -3610,8 +3610,14 @@ String *Language::makeParameterName(Node *n, Parm *p, int arg_num, bool setter) 
       count++;
     plist = nextSibling(plist);
   }
-  String *wrn = pn ? Swig_name_warning(p, 0, pn, 0) : 0;
-  arg = (!pn || (count > 1) || wrn) ? NewStringf("arg%d", arg_num) : Copy(pn);
+
+  // If the parameter has no name at all or has a non-unique name, replace it with "argN".
+  if (!pn || count > 1) {
+    arg = NewStringf("arg%d", arg_num);
+  } else {
+    // Otherwise, try to use the original C name, but modify it if necessary to avoid conflicting with the language keywords.
+    arg = Swig_name_make(p, 0, pn, 0, 0);
+  }
 
   if (setter && Cmp(arg, "self") != 0) {
     // Some languages (C#) insist on calling the input variable "value" while

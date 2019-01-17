@@ -4,6 +4,8 @@
 
 %module keyword_rename
 
+%feature("kwargs");
+
 #pragma SWIG nowarn=SWIGWARN_PARSE_KEYWORD
 
 %inline %{

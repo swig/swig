@@ -1591,21 +1591,6 @@ public:
     return ds;
   }
 
-  virtual String *makeParameterName(Node *n, Parm *p, int arg_num, bool = false) const {
-    // For the keyword arguments, we want to preserve the names as much as possible,
-    // so we only minimally rename them in Swig_name_make(), e.g. replacing "keyword"
-    // with "_keyword" if they have any name at all.
-    if (check_kwargs(n)) {
-      String *name = Getattr(p, "name");
-      if (name)
-	return Swig_name_make(p, 0, name, 0, 0);
-    }
-
-    // For the other cases use the general function which replaces arguments whose
-    // names clash with keywords with (less useful) "argN".
-    return Language::makeParameterName(n, p, arg_num);
-  }
-
   /* -----------------------------------------------------------------------------
    * addMissingParameterNames()
    *
