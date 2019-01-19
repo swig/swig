@@ -2343,7 +2343,10 @@ public:
 	Printf(methods, "\t { \"%s\", %s, METH_VARARGS, ", name, function);
       }
     } else {
-      Printf(methods, "\t { \"%s\", (PyCFunction)%s, METH_VARARGS|METH_KEYWORDS, ", name, function);
+      // Cast via void(*)(void) to suppress GCC -Wcast-function-type warning.
+      // Python should always call the function correctly, but the Python C API
+      // requires us to store it in function pointer of a different type.
+      Printf(methods, "\t { \"%s\", (PyCFunction)(void(*)(void))%s, METH_VARARGS|METH_KEYWORDS, ", name, function);
     }
 
     if (!n) {
@@ -4503,7 +4506,11 @@ public:
 	int argcount = Getattr(n, "python:argcount") ? atoi(Char(Getattr(n, "python:argcount"))) : 2;
 	String *ds = have_docstring(n) ? cdocstring(n, AUTODOC_METHOD) : NewString("");
 	if (check_kwargs(n)) {
-	  Printf(builtin_methods, "  { \"%s\", (PyCFunction)%s, METH_VARARGS|METH_KEYWORDS, \"%s\" },\n", symname, wname, ds);
+	  // Cast via void(*)(void) to suppress GCC -Wcast-function-type
+	  // warning.  Python should always call the function correctly, but
+	  // the Python C API requires us to store it in function pointer of a
+	  // different type.
+	  Printf(builtin_methods, "  { \"%s\", (PyCFunction)(void(*)(void))%s, METH_VARARGS|METH_KEYWORDS, \"%s\" },\n", symname, wname, ds);
 	} else if (argcount == 0) {
 	  Printf(builtin_methods, "  { \"%s\", %s, METH_NOARGS, \"%s\" },\n", symname, wname, ds);
 	} else if (argcount == 1) {
@@ -4603,12 +4610,15 @@ public:
 	  Append(pyflags, "METH_O");
 	else
 	  Append(pyflags, "METH_VARARGS");
+	// Cast via void(*)(void) to suppress GCC -Wcast-function-type warning.
+	// Python should always call the function correctly, but the Python C
+	// API requires us to store it in function pointer of a different type.
 	if (have_docstring(n)) {
 	  String *ds = cdocstring(n, AUTODOC_STATICFUNC);
-	  Printf(builtin_methods, "  { \"%s\", (PyCFunction)%s, %s, \"%s\" },\n", symname, wname, pyflags, ds);
+	  Printf(builtin_methods, "  { \"%s\", (PyCFunction)(void(*)(void))%s, %s, \"%s\" },\n", symname, wname, pyflags, ds);
 	  Delete(ds);
 	} else {
-	  Printf(builtin_methods, "  { \"%s\", (PyCFunction)%s, %s, \"\" },\n", symname, wname, pyflags);
+	  Printf(builtin_methods, "  { \"%s\", (PyCFunction)(void(*)(void))%s, %s, \"\" },\n", symname, wname, pyflags);
 	}
 	Delete(fullname);
 	Delete(wname);

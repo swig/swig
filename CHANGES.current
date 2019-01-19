@@ -468,10 +468,9 @@ Version 4.0.0 (in progress)
 
 2018-06-11: olly
             [Python] Fix new GCC8 warnings in generated code by avoiding casts
-            between incompatible function types where possible (when keyword
-            args are in use, it is not possible to avoid such warnings as they
-            are inherent in the design of Python's C API in that particular
-            case).  Fixes #1259.
+            between incompatible function types where possible, and by
+            suppressing the warning when it's due to the design of Python's C
+            API.  Fixes #1259.
 
 2018-06-08: philippkraft
 	    [Python] Stop exposing <CLASS>_swigregister to Python.  It's not
