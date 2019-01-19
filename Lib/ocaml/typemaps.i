@@ -198,7 +198,6 @@
 %enddef
 
 SIMPLE_MAP(bool, caml_val_bool, caml_long_val);
-SIMPLE_MAP(oc_bool, caml_val_bool, caml_long_val);
 SIMPLE_MAP(char, caml_val_char, caml_long_val);
 SIMPLE_MAP(signed char, caml_val_char, caml_long_val);
 SIMPLE_MAP(unsigned char, caml_val_uchar, caml_long_val);
