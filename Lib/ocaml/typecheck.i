@@ -78,7 +78,7 @@
   }
 }
 
-%typecheck(SWIG_TYPECHECK_INTEGER) bool, oc_bool, BOOL, const bool &, const oc_bool &, const BOOL & {
+%typecheck(SWIG_TYPECHECK_BOOL) bool, const bool & {
   if( !Is_block($input) ) $1 = 0;
   else {
       switch( SWIG_Tag_val($input) ) {
