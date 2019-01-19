@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-01-19: vadz
+            #1272, #1421 When a function's parameter is a keyword, the name of the paramater is
+            no longer simply changed to argN, where N is the argument number. Instead the
+            parameter name is changed to the renaming rules for keywords that normally apply to
+            symbols such as classes/functions etc. Note that unlike other symbol renaming,
+            parameter renaming does not issue a warning when the parameter is renamed. This
+            change only affects languages where the parameter names are actually used, for example,
+            Java function parameter lists in the proxy class or Python documentation comments.
+
 2019-01-18: wsfulton
             #1420 Fix gdb debugger functions 'swigprint' and 'locswigprint' from swig.gdb to
             work with newer versions of gdb-8. Fixes errors when debugging SWIG source with gdb:

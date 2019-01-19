@@ -203,4 +203,7 @@ check(inspect.getdoc(TInteger), "Proxy of C++ T< int > class.", "::T< int >")
 check(inspect.getdoc(TInteger.__init__), "__init__(TInteger self) -> TInteger", None, skip)
 check(inspect.getdoc(TInteger.inout), "inout(TInteger self, TInteger t) -> TInteger")
 
-check(inspect.getdoc(process), "process(_from) -> int")
+check(inspect.getdoc(process), "process(int _from, int _in, int var) -> int")
+check(inspect.getdoc(process2), "process2(int _from=0, int _in=1, int var=2) -> int")
+check(inspect.getdoc(process3), "process3(int _from, int _in, int var) -> int")
+check(inspect.getdoc(process4), "process4(int _from=0, int _in=1, int var=2) -> int")
