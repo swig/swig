@@ -1,5 +1,7 @@
 %module(docstring="hello.") autodoc
 
+%warnfilter(SWIGWARN_PARSE_KEYWORD) inout;
+
 %feature("autodoc");
 
 // special typemap and its docs
