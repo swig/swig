@@ -9,6 +9,8 @@ program fortran_naming_runme
   integer(C_INT) :: test_int
   type(FooClass) :: myfoo
   type(MyStruct) :: struct
+  type(SWIGTYPE_OpaqueStruct) :: opaque
+  type(SWIGTYPE_DeclaredStruct) :: declared
 
   myfoo = FooClass()
   call myfoo%release()
@@ -24,6 +26,15 @@ program fortran_naming_runme
 
   ! The first enum _MYVAL should have priority over the later one
   ASSERT(f_MYVAL == 1) 
+
+  opaque = make_opaque(123)
+  ASSERT(get_opaque_value(opaque) == 123)
+
+  declared = make_declared(254)
+  ASSERT(get_declared_value(declared) == 254)
+
+  ! This will NOT work because of type safety for the unknown types
+  ! ASSERT(get_opaque_value(declared) == 254)
 
 end program
 

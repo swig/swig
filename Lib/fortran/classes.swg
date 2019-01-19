@@ -85,18 +85,6 @@ type, bind(C) :: SwigClassWrapper
 end type
 %}
 
-/* Unknown class support.
- *
- * This is inserted via the fortran.cxx module when unknown classes and enums
- * are encountered.
- */
-%fragment("SwigUnknownClass_f", "fpublic", noblock=1,
-          fragment="SwigClassWrapper_f") %{
-type :: SwigUnknownClass
-  type(SwigClassWrapper), public :: swigdata
-end type
-%}
-
 /* -------------------------------------------------------------------------
  * Runtime check for mutable argument
  * ------------------------------------------------------------------------- */

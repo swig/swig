@@ -455,8 +455,8 @@ private:
   String *f_finterfaces; //!< Fortran interface declarations to SWIG functions
   String *f_fwrapper;    //!< Fortran subroutine wrapper functions
 
-  // Keep track of "No $fclassname replacement
-  Hash *d_warned_fclassname;
+  // Keep track of anonymous classes and enums
+  Hash *d_mangled_type;
 
   // Module-wide procedure interfaces
   Hash *d_overloads; //!< Overloaded subroutine -> overload names
@@ -493,7 +493,7 @@ public:
   virtual String *makeParameterName(Node *n, Parm *p, int arg_num, bool is_setter = false) const;
   virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm);
 
-  FORTRAN() : d_warned_fclassname(NULL), d_overloads(NULL), d_method_overloads(NULL), d_constructors(NULL), d_enum_public(NULL) {}
+  FORTRAN() : d_overloads(NULL), d_method_overloads(NULL), d_constructors(NULL), d_enum_public(NULL) {}
 
 private:
   int cfuncWrapper(Node *n);
@@ -508,7 +508,7 @@ private:
   String *attach_class_typemap(const_String_or_char_ptr tmname, int warning);
 
   bool replace_fclassname(SwigType *type, String *tm);
-  void replace_fspecial_impl(SwigType *classnametype, String *tm, const char *classnamespecialvariable, bool is_enum);
+  String *get_fclassname(SwigType *classnametype, bool is_enum);
 
   // Add lowercase symbol (fortran)
   int add_fsymbol(String *s, Node *n, int warning = WARN_FORTRAN_NAME_CONFLICT);
@@ -636,7 +636,7 @@ int FORTRAN::top(Node *n) {
   f_fwrapper = NewStringEmpty();
   Swig_register_filebyname("fwrapper", f_fwrapper);
 
-  d_warned_fclassname = NewHash();
+  d_mangled_type = NewHash();
   d_overloads = NewHash();
 
   // Declare scopes: fortran types and forward-declared types
@@ -653,6 +653,7 @@ int FORTRAN::top(Node *n) {
   write_module(Getattr(n, "fortran:outfile"));
 
   // Clean up files and other data
+  Delete(d_mangled_type);
   Delete(d_overloads);
   Delete(f_fwrapper);
   Delete(f_finterfaces);
@@ -2427,8 +2428,6 @@ String *FORTRAN::attach_class_typemap(const_String_or_char_ptr tmname, int warni
 
 /* -------------------------------------------------------------------------
  * \brief Substitute special '$fXXXXX' in typemaps.
- *
- * This is currently only used for '$fclassname'
  */
 bool FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
   assert(intype);
@@ -2436,12 +2435,18 @@ bool FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
   SwigType *basetype = SwigType_base(intype);
 
   if (Strstr(tm, "$fclassname")) {
-    replace_fspecial_impl(basetype, tm, "$fclassname", false);
-    substitution_performed = true;
+    String *repl = get_fclassname(basetype, false);
+    if (repl) {
+      Replaceall(tm,  "$fclassname", repl);
+      substitution_performed = true;
+    }
   }
   if (Strstr(tm, "$fenumname")) {
-    replace_fspecial_impl(basetype, tm, "$fenumname", true);
-    substitution_performed = true;
+    String *repl = get_fclassname(basetype, true);
+    if (repl) {
+      Replaceall(tm,  "$fenumname", repl);
+      substitution_performed = true;
+    }
   }
 
 #if 0
@@ -2460,51 +2465,58 @@ bool FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
 
 /* ------------------------------------------------------------------------- */
 
-void FORTRAN::replace_fspecial_impl(SwigType *basetype, String *tm, const char *classnamespecialvariable, bool is_enum) {
+String *FORTRAN::get_fclassname(SwigType *basetype, bool is_enum) {
   String *replacementname = NULL;
-  String *alloc_string = NULL;
-  Node *lookup = (is_enum ? enumLookup(basetype) : classLookup(basetype));
+  Node *n = (is_enum ? this->enumLookup(basetype) : this->classLookup(basetype));
 
-  if (lookup) {
+  if (n) {
     // Check first to see if there's a fortran symbolic name on the node
-    replacementname = Getattr(lookup, "fortran:name");
+    replacementname = Getattr(n, "fortran:name");
     if (!replacementname) {
       // If not, use the symbolic name
-      replacementname = Getattr(lookup, "sym:name");
+      replacementname = Getattr(n, "sym:name");
     }
-    if (is_enum && GetFlag(lookup, "enumMissing")) {
+    if (is_enum && GetFlag(n, "enumMissing")) {
       // Missing enum with forward declaration
       replacementname = NULL;
     }
 
-    if (is_enum && !GetFlag(lookup, "fortran:declared")) {
+    if (is_enum && !GetFlag(n, "fortran:declared")) {
       // Enum is defined, but it might not have been instantiated yet
       replacementname = NULL;
     }
+  } else {
+    // Create a node so we can insert into the fortran symbol table
+    n = NewHash();
+    set_nodeType(n, "classforward");
+    Setattr(n, "name", basetype);
   }
 
   if (!replacementname) {
+    replacementname = Getattr(d_mangled_type, basetype);
     // No class/enum type or symname was found
-    if (!GetFlag(d_warned_fclassname, basetype)) {
+    if (!replacementname) {
       // First time encountered with this particular class
-      Swig_warning(WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF, input_file, line_number,
-                   "No %s '$fclassname' replacement found for %s\n",
-                   is_enum ? "enum" : "class",
-                   SwigType_str(basetype, 0));
-      SetFlag(d_warned_fclassname, basetype);
+      replacementname = NewStringf("SWIGTYPE%s", SwigType_manglestr(basetype));
+      if (add_fsymbol(replacementname, n) != SWIG_NOWRAP) {
+        if (is_enum) {
+          Replace(replacementname, "enum ", "", DOH_REPLACE_ANY);
+          Printv(f_fparams, "integer, parameter, public :: ", replacementname, " = C_INT\n", NULL);
+        } else {
+          // XXX: This ideally would look up the "fdata" typemap.
+          String *fragname = NewString("SwigClassWrapper_f");
+          Swig_fragment_emit(fragname);
+          Delete(fragname);
+          Printv(f_ftypes, " type, public :: ", replacementname, "\n", 
+                 "  type(SwigClassWrapper), public :: swigdata\n",
+                 " end type\n",
+                 NULL);
+        }
+      }
+      Setattr(d_mangled_type, basetype, replacementname);
     }
-    // Replace with a placeholder class
-    alloc_string = NewString(is_enum ? "SwigUnknownEnum" : "SwigUnknownClass");
-    // Emit the fragment that defines the class (forfragments.swg)
-    String *fragment_string = NewStringf("%s_f", alloc_string);
-    Swig_fragment_emit(fragment_string);
-    Delete(fragment_string);
-
-    // Return the replacement name
-    replacementname = alloc_string;
   }
-  Replaceall(tm, classnamespecialvariable, replacementname);
-  Delete(alloc_string);
+  return replacementname;
 }
 
 /* ------------------------------------------------------------------------- */
