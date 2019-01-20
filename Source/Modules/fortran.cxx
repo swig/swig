@@ -1916,7 +1916,7 @@ int FORTRAN::classHandler(Node *n) {
   if (d_constructors && (Len(d_constructors) > 0)) {
     Printf(f_ftypes, " interface %s\n", symname);
     for (Iterator it = First(d_constructors); it.item; it = Next(it)) {
-      Printf(f_ftypes, "  procedure %s\n", it.item);
+      Printf(f_ftypes, "  module procedure %s\n", it.item);
     }
     Printf(f_ftypes, " end interface\n");
     Setattr(n, "fortran:constructors", d_constructors);
