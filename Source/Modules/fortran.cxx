@@ -2424,7 +2424,8 @@ String *FORTRAN::attach_class_typemap(const_String_or_char_ptr tmname, int warni
 bool FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
   assert(intype);
   bool substitution_performed = false;
-  SwigType *basetype = SwigType_base(intype);
+  SwigType *resolvedtype = SwigType_typedef_resolve_all(intype);
+  SwigType *basetype = SwigType_base(resolvedtype);
 
   if (Strstr(tm, "$fclassname")) {
     String *repl = get_fclassname(basetype, false);
@@ -2450,6 +2451,7 @@ bool FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
            tm);
 #endif
 
+  Delete(resolvedtype);
   Delete(basetype);
 
   return substitution_performed;
@@ -2508,6 +2510,7 @@ String *FORTRAN::get_fclassname(SwigType *basetype, bool is_enum) {
       Setattr(d_mangled_type, basetype, replacementname);
     }
   }
+
   return replacementname;
 }
 
