@@ -1821,7 +1821,8 @@ int FORTRAN::classHandler(Node *n) {
   }
 
   ASSERT_OR_PRINT_NODE(!f_class, n);
-  f_class = NewStringEmpty();
+  ASSERT_OR_PRINT_NODE(Getattr(n, "kind") && Getattr(n, "classtype"), n);
+  f_class = NewStringf(" ! %s %s\n", Getattr(n, "kind"), Getattr(n, "classtype"));
 
   // Write documentation
   this->write_docstring(n, f_class);
@@ -2136,6 +2137,14 @@ int FORTRAN::enumDeclaration(Node *n) {
   // Don't generate wrappers if we're in import mode, but make sure the symbol renaming above is still performed
   if (ImportMode)
     return SWIG_OK;
+
+  if (String *name = Getattr(n, "name")) {
+    Printv(f_fdecl, " ! ", NULL);
+    if (String *storage = Getattr(n, "storage")) {
+      Printv(f_fdecl, storage, " ", NULL);
+    }
+    Printv(f_fdecl, Getattr(n, "enumkey"), " ", name, "\n", NULL);
+  }
 
   // Determine whether to add enum as a native fortran enumeration. If false,
   // the values are all wrapped as constants. Only create the list if values are defined.
