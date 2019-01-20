@@ -449,7 +449,6 @@ private:
   // Injected into module file
   String *f_fbegin;      //!< Very beginning of output file
   String *f_fmodule;     //!< Fortran "module" and "use" directives
-  String *f_fpublic;     //!< List of public interface functions and mapping
   String *f_fparams;     //!< Generated enumeration/param types
   String *f_ftypes;      //!< Generated class types
   String *f_finterfaces; //!< Fortran interface declarations to SWIG functions
@@ -616,10 +615,6 @@ int FORTRAN::top(Node *n) {
   f_fmodule = NewStringEmpty();
   Swig_register_filebyname("fmodule", f_fmodule);
 
-  // Public interface functions
-  f_fpublic = NewStringEmpty();
-  Swig_register_filebyname("fpublic", f_fpublic);
-
   // Enums and parameters
   f_fparams = NewStringEmpty();
   Swig_register_filebyname("fparams", f_fparams);
@@ -658,7 +653,6 @@ int FORTRAN::top(Node *n) {
   Delete(f_fwrapper);
   Delete(f_finterfaces);
   Delete(f_ftypes);
-  Delete(f_fpublic);
   Delete(f_fmodule);
   Delete(f_init);
   Delete(f_wrapper);
@@ -726,8 +720,8 @@ void FORTRAN::write_module(String *filename) {
          " implicit none\n"
          " private\n",
          NULL);
-  if (Len(f_fpublic) > 0 || Len(d_overloads) > 0) {
-    Printv(out, "\n ! PUBLIC METHODS AND TYPES\n", f_fpublic, NULL);
+  if (Len(d_overloads) > 0) {
+    Printv(out, "\n ! OVERLOADS\n", NULL);
   }
 
   // Write overloads and renamed module procedures
@@ -751,11 +745,11 @@ void FORTRAN::write_module(String *filename) {
            NULL);
   }
 
-  if (Len(f_ftypes) > 0) {
-    Printv(out, "\n ! TYPES\n", f_ftypes, "\n", NULL);
-  }
   if (Len(f_fparams) > 0) {
     Printv(out, "\n ! PARAMETERS\n", f_fparams, NULL);
+  }
+  if (Len(f_ftypes) > 0) {
+    Printv(out, "\n ! TYPES\n", f_ftypes, "\n", NULL);
   }
   if (Len(f_finterfaces) > 0) {
     Printv(out,
@@ -991,9 +985,8 @@ int FORTRAN::functionWrapper(Node *n) {
     }
     Append(overloads, Copy(fname));
   } else {
-    //
     ASSERT_OR_PRINT_NODE(Len(fsymname) > 0, n);
-    Printv(f_fpublic, " public :: ", fsymname, "\n", NULL);
+    Printv(f_fparams, " public :: ", fsymname, "\n", NULL);
   }
 
   Delete(fname);
@@ -1839,10 +1832,6 @@ int FORTRAN::classHandler(Node *n) {
     return SWIG_NOWRAP;
   }
 
-  // Make the class publicly accessible
-  ASSERT_OR_PRINT_NODE(Len(symname) > 0, n);
-  Printv(f_fpublic, " public :: ", symname, "\n", NULL);
-
   // Write documentation
   this->write_docstring(n, f_ftypes);
 
@@ -1853,7 +1842,7 @@ int FORTRAN::classHandler(Node *n) {
   } else if (basic_struct) {
     Printv(f_ftypes, ", bind(C)", NULL);
   }
-  Printv(f_ftypes, " :: ", symname, "\n", NULL);
+  Printv(f_ftypes, ", public :: ", symname, "\n", NULL);
 
   if (!basic_struct) {
     if (!basename) {
@@ -2175,24 +2164,21 @@ int FORTRAN::enumDeclaration(Node *n) {
     if (enum_name) {
       ASSERT_OR_PRINT_NODE(Len(enum_name) > 0, n);
       // Create "kind=" value for the enumeration type
-      Printv(f_fpublic, " public :: ", enum_name, "\n", NULL);
-
-      Printv(f_fparams, " integer, parameter :: ",  enum_name,
+      Printv(f_fparams, " integer, parameter, public :: ",  enum_name,
              " = kind(", First(d_enum_public).item, ")\n", NULL);
     }
 
-    // Make the enum class *and* its values public
-    Printv(f_fpublic, " public :: ", NULL);
-    print_wrapped_list(f_fpublic, First(d_enum_public), 11);
-    Putc('\n', f_fpublic);
+    // Make the enum values public
+    Printv(f_fparams, " public :: ", NULL);
+    print_wrapped_list(f_fparams, First(d_enum_public), 11);
+    Putc('\n', f_fparams);
 
     // Clean up
     Delete(d_enum_public);
     d_enum_public = NULL;
   } else if (enum_name) {
     // Create "kind=" value for the enumeration type
-    Printv(f_fpublic, " public :: ", enum_name, "\n", NULL);
-    Printv(f_fparams, " integer, parameter :: ",  enum_name,
+    Printv(f_fparams, " integer, parameter, public :: ",  enum_name,
            " = C_INT\n", NULL);
 
     // Mark that the enum is available for use as a type

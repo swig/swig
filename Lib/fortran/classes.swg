@@ -31,7 +31,7 @@ typedef enum {
 %}
 #endif
 
-%fragment("SwigMemState_f", "fpublic") %{
+%fragment("SwigMemState_f", "fparams") %{
  enum, bind(c)
   enumerator :: SWIG_NULL = 0
   enumerator :: SWIG_OWN
@@ -77,12 +77,12 @@ SWIGINTERN SwigClassWrapper SwigClassWrapper_uninitialized() {
 // Fortran declaration of the class wrapper above. Note that we declare the
 // enum as a C_INT instead of `integer(SwigMemState)` to avoid a warning
 // in GCC. The types will still be interoperable.
-%fragment("SwigClassWrapper_f", "fpublic",
+%fragment("SwigClassWrapper_f", "fparams",
           fragment="SwigMemState_f", noblock=1) %{
-type, bind(C) :: SwigClassWrapper
+ type, bind(C) :: SwigClassWrapper
   type(C_PTR), public :: cptr = C_NULL_PTR
   integer(C_INT), public :: mem = SWIG_NULL
-end type
+ end type
 %}
 
 /* -------------------------------------------------------------------------

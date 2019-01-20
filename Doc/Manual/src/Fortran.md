@@ -1900,7 +1900,6 @@ added to the derived type.
 <tbody>
 <tr><td><code>fbegin     </code></td><td>Code before the `module` statement </td></tr>
 <tr><td><code>fmodule    </code></td><td>Start of module:                   </td></tr>
-<tr><td><code>fpublic    </code></td><td>Public interface functions         </td></tr>
 <tr><td><code>fparams    </code></td><td>Enums and parameters               </td></tr>
 <tr><td><code>ftypes     </code></td><td>Fortran classes                    </td></tr>
 <tr><td><code>finterfaces</code></td><td>Fortran class constructors         </td></tr>
