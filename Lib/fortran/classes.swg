@@ -31,16 +31,15 @@ typedef enum {
 %}
 #endif
 
-%fragment("SwigMemState_f", "fparams") %{
- enum, bind(c)
+%fragment("SwigMemState_f", "fdecl", noblock=1)
+{ enum, bind(c)
   enumerator :: SWIG_NULL = 0
   enumerator :: SWIG_OWN
   enumerator :: SWIG_MOVE
   enumerator :: SWIG_REF
   enumerator :: SWIG_CREF
  end enum
- integer, parameter :: SwigMemState = kind(SWIG_NULL)
-%}
+ integer, parameter :: SwigMemState = kind(SWIG_NULL)}
 
 /* -------------------------------------------------------------------------
  * Wrapper struct that holds a C pointer and memory state
@@ -77,13 +76,12 @@ SWIGINTERN SwigClassWrapper SwigClassWrapper_uninitialized() {
 // Fortran declaration of the class wrapper above. Note that we declare the
 // enum as a C_INT instead of `integer(SwigMemState)` to avoid a warning
 // in GCC. The types will still be interoperable.
-%fragment("SwigClassWrapper_f", "fparams",
-          fragment="SwigMemState_f", noblock=1) %{
- type, bind(C) :: SwigClassWrapper
+%fragment("SwigClassWrapper_f", "fdecl",
+          fragment="SwigMemState_f", noblock=1)
+{ type, bind(C) :: SwigClassWrapper
   type(C_PTR), public :: cptr = C_NULL_PTR
   integer(C_INT), public :: mem = SWIG_NULL
- end type
-%}
+ end type}
 
 /* -------------------------------------------------------------------------
  * Runtime check for mutable argument

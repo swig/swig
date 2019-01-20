@@ -8,7 +8,7 @@
   For example, if you want to replace how the Fortran logical type is converted
   to the SWIG integer type, you could add:
 
-    %fragment("SWIG_logical_to_int_f", "fwrapper",
+    %fragment("SWIG_logical_to_int_f", "fsubprograms",
               noblock="1") {
     function SWIG_logical_to_int(inp) &
         result(out)

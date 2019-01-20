@@ -12,7 +12,7 @@
 /* Return fortran allocatable array from assumed-length character string. Put a
  * null character *after* the string for compatibility with const char*.
  */
-%fragment("SWIG_string_to_chararray_f", "fwrapper", fragment="SwigArrayWrapper_f", noblock=1) {
+%fragment("SWIG_string_to_chararray_f", "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1) {
 subroutine SWIG_string_to_chararray(string, chars, wrap)
   use, intrinsic :: ISO_C_BINDING
   character(kind=C_CHAR, len=*), intent(IN) :: string
@@ -32,7 +32,7 @@ end subroutine
 }
 
 // Copy string to character array
-%fragment("SWIG_restore_chararray_f", "fwrapper", fragment="SwigArrayWrapper_f", noblock=1) {
+%fragment("SWIG_restore_chararray_f", "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1) {
 subroutine SWIG_restore_chararray(chars, string)
   use, intrinsic :: ISO_C_BINDING
   character(kind=C_CHAR), dimension(:), intent(IN) :: chars
@@ -45,7 +45,7 @@ end subroutine
 }
 
 // Return fortran allocatable string from character array
-%fragment("SWIG_chararray_to_string_f", "fwrapper", fragment="SwigArrayWrapper_f", noblock=1) {
+%fragment("SWIG_chararray_to_string_f", "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1) {
 subroutine SWIG_chararray_to_string(wrap, string)
   use, intrinsic :: ISO_C_BINDING
   type(SwigArrayWrapper), intent(IN) :: wrap

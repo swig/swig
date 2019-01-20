@@ -1876,9 +1876,13 @@ destructor action but this may change.
 ## Code insertion blocks
 
 The `%insert(section) %{ ...code... %}` directive can be used to inject code
-directly into the C/C++ wrapper file (see [code insertion blocks]("SWIG.html#SWIG_nn42")) as well as the Fortran module file. The
+directly into the C/C++ wrapper file (see [code insertion blocks]("SWIG.html#SWIG_nn42"))
+as well as the Fortran module file. The
 Fortran module uses several additional sections that can be used to insert
-arbitrary extensions to the module. For example, if an `%insert` directive is
+arbitrary extensions to the module. These section names are based off the
+Fortran standard's specification and naming of the components of a module.
+XXX
+For example, if an `%insert` directive is
 embedded within a class `%extend`, new type-bound procedures can be manually
 added to the derived type.
 
@@ -1899,11 +1903,10 @@ added to the derived type.
 </thead>
 <tbody>
 <tr><td><code>fbegin     </code></td><td>Code before the `module` statement </td></tr>
-<tr><td><code>fmodule    </code></td><td>Start of module:                   </td></tr>
-<tr><td><code>fparams    </code></td><td>Enums and parameters               </td></tr>
-<tr><td><code>ftypes     </code></td><td>Fortran classes                    </td></tr>
-<tr><td><code>finterfaces</code></td><td>Fortran class constructors         </td></tr>
-<tr><td><code>fwrapper   </code></td><td>Fortran subroutines (proxy code)   </td></tr>
+<tr><td><code>fuse       </code></td><td>"use" statements                   </td></tr>
+<tr><td><code>fdecl      </code></td><td>Module declarations                </td></tr>
+<tr><td><code>finterfaces</code></td><td>Procedure interfaces for C code    </td></tr>
+<tr><td><code>fsubprograms</code></td><td>Fortran module subprograms        </td></tr>
 </tbody>
 </table>
 
@@ -1929,20 +1932,18 @@ The generated Fortran module looks like:
 {fbegin}
 module [MODULE_NAME]
  use, intrinsic :: ISO_C_BINDING
- {fmodule}
+ {fuse}
  implicit none
  private
- {fpublic}
- ! module generic interfaces
- {fparams}
- {ftypes}
+ {fdecl}
 interface
  {finterfaces}
 end interface
 contains
- {fwrapper}
+ {fsubprograms}
 end module
 ```
+
 ## Direct C binding
 
 It is sometimes desirable to simply expose C functions and types to Fortran.
