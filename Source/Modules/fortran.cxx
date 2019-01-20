@@ -1772,7 +1772,8 @@ int FORTRAN::classDeclaration(Node *n) {
     }
     if (ImportMode) {
       // Add the class to the symbol table since it's not being wrapped
-      add_fsymbol(symname, n);
+      if (add_fsymbol(symname, n) == SWIG_NOWRAP)
+        return SWIG_NOWRAP;
     }
   }
   if (is_bindc(n)) {
@@ -2529,6 +2530,12 @@ void FORTRAN::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
  */
 int FORTRAN::add_fsymbol(String *s, Node *n, int warn) {
   assert(s);
+  if (!is_valid_identifier(s)) {
+    Swig_error(input_file, line_number,
+               "The name '%s' is not a valid Fortran identifier. You must %rename this class.\n",
+               s);
+    return SWIG_NOWRAP;
+  }
   const char scope[] = "fortran";
   String *lower = Swig_string_lower(s);
   Node *existing = this->symbolLookup(lower, scope);
@@ -2544,6 +2551,8 @@ int FORTRAN::add_fsymbol(String *s, Node *n, int warn) {
     Delete(lower);
     return SWIG_NOWRAP;
   }
+
+  
 
   int success = this->addSymbol(lower, n, scope);
   assert(success);
