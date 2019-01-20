@@ -1715,9 +1715,19 @@ public:
       // Write default value
       if (value && !calling) {
 	String *new_value = convertValue(value, Getattr(p, "type"));
+	if (new_value) {
+	  value = new_value;
+	} else {
+	  // Even if the value is not representable in the target language, still use it in the documentaiton, for compatibility with the previous SWIG versions
+	  // and because it can still be useful to see the C++ expression there.
+	  Node *lookup = Swig_symbol_clookup(value, 0);
+	  if (lookup)
+	    value = Getattr(lookup, "sym:name");
+	}
+	Printf(doc, "=%s", value);
+
 	if (new_value)
-	  Printf(doc, "=%s", new_value);
-	Delete(new_value);
+	  Delete(new_value);
       }
       Delete(type_str);
       Delete(made_name);
