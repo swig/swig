@@ -973,7 +973,6 @@ int FORTRAN::functionWrapper(Node *n) {
     Append(overloads, Copy(fname));
   } else {
     ASSERT_OR_PRINT_NODE(Len(fsymname) > 0, n);
-    ASSERT_OR_PRINT_NODE(!f_class, n);
     Printv(f_fdecl, " public :: ", fsymname, "\n", NULL);
   }
 
