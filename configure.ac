@@ -2728,7 +2728,7 @@ void main() {
 _ACEOF
       rm -f conftest.$ac_objext
       AS_IF(
-        [_AC_DO_STDERR($D1COMPILER conftest.$ac_ext) && test ! -s conftest.err && test -s conftest.$ac_objext],
+        [$D1COMPILER conftest.$ac_ext 2>&AS_MESSAGE_LOG_FD && test ! -s conftest.err && test -s conftest.$ac_objext],
         [AC_MSG_RESULT([yes])],
         [_AC_MSG_LOG_CONFTEST AC_MSG_RESULT([no])
         D1COMPILER=]
@@ -2751,7 +2751,7 @@ void main() {
 _ACEOF
       rm -f conftest.$ac_objext
       AS_IF(
-        [_AC_DO_STDERR($D2COMPILER conftest.$ac_ext) && test ! -s conftest.err && test -s conftest.$ac_objext],
+        [$D2COMPILER conftest.$ac_ext 2>&AS_MESSAGE_LOG_FD && test ! -s conftest.err && test -s conftest.$ac_objext],
         [AC_MSG_RESULT([yes])],
         [_AC_MSG_LOG_CONFTEST AC_MSG_RESULT([no])
         D2COMPILER=]
