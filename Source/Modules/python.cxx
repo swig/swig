@@ -5011,9 +5011,11 @@ public:
 	Delete(pycode);
       }
     } else if (!ImportMode && (Cmp(section, "pythonbegin") == 0)) {
-      String *pycode = indent_pythoncode(code, "", Getfile(n), Getline(n), "%pythonbegin or %insert(\"pythonbegin\") block");
-      Printv(f_shadow_begin, pycode, NIL);
-      Delete(pycode);
+      if (shadow) {
+	String *pycode = indent_pythoncode(code, "", Getfile(n), Getline(n), "%pythonbegin or %insert(\"pythonbegin\") block");
+	Printv(f_shadow_begin, pycode, NIL);
+	Delete(pycode);
+      }
     } else {
       Language::insertDirective(n);
     }
