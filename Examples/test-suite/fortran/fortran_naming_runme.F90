@@ -36,6 +36,11 @@ program fortran_naming_runme
   ! This will NOT work because of type safety for the unknown types
   ! ASSERT(get_opaque_value(declared) == 254)
 
+  ! Check renamed hashed values
+  ASSERT(sixty_four_characters_is_way_too_long_for_fortran_or1WCLW74S7A5 == 64)
+  ASSERT(fleading_underscore_with_sixty_three_characters_to_be22KBA0EUA4 == 63)
+  ASSERT(f_leading_underscore_with_sixty_two_characters_not_quite_tricky == 62)
+
 end program
 
 

@@ -304,7 +304,7 @@ String *make_import_string(String *imtype) {
 /* -------------------------------------------------------------------------
  * \brief Whether a name is a valid fortran identifier
  */
-bool is_valid_identifier(String *name) {
+bool is_valid_identifier(const_String_or_char_ptr name) {
   const char *c = Char(name);
   if (*c == '\0')
     return false;
@@ -2246,19 +2246,8 @@ int FORTRAN::constantWrapper(Node *n) {
     // But we're wrapping the enumeration type as a fictional value
     value = Getattr(n, "value");
   } else {
-    // Not an enum or enumitem
-    if (!is_valid_identifier(symname))
-    {
-      Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number,
-                   "Ignoring constant due to invalid Fortran identifier: "
-                   "please %%rename '%s'\n",
-                   symname);
-      return SWIG_NOWRAP;
-    }
-    
-    if (add_fsymbol(symname, n) == SWIG_NOWRAP)
-      return SWIG_NOWRAP;
-
+    // Make unique enum values for the user
+    symname = this->make_unique_symname(n);
     if (!value) {
       value = Getattr(n, "value");
     }
@@ -2491,7 +2480,9 @@ String *FORTRAN::get_fclassname(SwigType *basetype, bool is_enum) {
     // No class/enum type or symname was found
     if (!replacementname) {
       // First time encountered with this particular class
-      replacementname = NewStringf("SWIGTYPE%s", SwigType_manglestr(basetype));
+      String *tempname = NewStringf("SWIGTYPE%s", SwigType_manglestr(basetype));
+      replacementname = this->make_fname(tempname, WARN_NONE);
+      Delete(tempname);
       if (add_fsymbol(replacementname, n) != SWIG_NOWRAP) {
         if (is_enum) {
           Replace(replacementname, "enum ", "", DOH_REPLACE_ANY);
@@ -2562,11 +2553,41 @@ int FORTRAN::add_fsymbol(String *s, Node *n, int warn) {
 /* -------------------------------------------------------------------------
  * \brief Change a symname to a valid Fortran identifier, warn if changing
  *
+ * The maximum length of a Fortran identifier is 63 characters, according
+ * to the Fortran standard.
+ *
  * \return the requested key
  */
 String *FORTRAN::make_fname(String *name, int warning) {
   String* result = NULL;
-  if (!is_valid_identifier(name)) {
+  if (Len(name) >= 63) {
+    result = NewStringWithSize(name, 63);
+    unsigned long hash = 5381;
+    for (const char *src = Char(name) + 63 - 8; *src != '\0'; ++src) {
+      hash = ((hash << 5) + hash) + *src;
+    }
+    // Replace the last chars with the hash encoded into 0-10 + A-Z
+    char *dst = Char(result) + 63;
+    while (hash > 0) {
+      unsigned long rem = hash % 36;
+      hash = hash / 36;
+      *dst-- = (rem < 10 ? '0' + rem : ('A' + rem - 10));
+    }
+
+    if (!is_valid_identifier(result)) {
+      // Result starts with something weird; replace first letter with 'f'
+      String *tmpresult = NewStringf("f%s", Char(result) + 1);
+      Delete(result);
+      result = tmpresult;
+    }
+
+    if (warning != WARN_NONE && !Getmeta(name, "already_warned")) {
+      Swig_warning(warning, input_file, line_number,
+                   "Fortran identifiers may be no longer than 64 characters: renaming '%s' to '%s'\n",
+                   name, result);
+      Setmeta(name, "already_warned", "1");
+    }
+  } else if (!is_valid_identifier(name)) {
     result = NewStringf("f%s", name);
     if (warning != WARN_NONE && !Getmeta(name, "already_warned")) {
       Swig_warning(warning, input_file, line_number,
@@ -2576,11 +2597,6 @@ String *FORTRAN::make_fname(String *name, int warning) {
     }
   } else {
     result = Copy(name);
-  }
-  if (Len(name) >= 64) {
-    Swig_error(input_file, line_number,
-               "Fortran identifiers may not be more than 63 characters: please %rename '%s'\n",
-               name);
   }
   return result;
 }

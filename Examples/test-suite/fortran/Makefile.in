@@ -47,7 +47,6 @@ endif
 
 # Failed during SWIG
 FAILING_CPP_TESTS += \
-  template_typemaps_typedef2 \
   template_typedef_inherit
 
 # Failed to compiler wrapper
