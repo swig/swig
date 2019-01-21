@@ -290,13 +290,14 @@ private:
    *   The "lname" attribute in each parameter in plist will be contain a parameter name
    * ----------------------------------------------------------------------------- */
 
-  void addMissingParameterNames(ParmList *plist, int arg_offset) {
+  void addMissingParameterNames(Node* n, ParmList *plist, int arg_offset) {
     Parm *p = plist;
     int i = arg_offset;
     while (p) {
       if (!Getattr(p, "lname")) {
-	String *pname = Swig_cparm_name(p, i);
-	Delete(pname);
+	String *name = makeParameterName(n, p, i);
+	Setattr(p, "lname", name);
+	Delete(name);
       }
       i++;
       p = nextSibling(p);
@@ -315,10 +316,10 @@ private:
     Parm *p;
     Parm *pnext;
     int lines = 0;
-    int start_arg_num = is_wrapping_class() ? 1 : 0;
+    int arg_num = is_wrapping_class() ? 1 : 0;
     const int maxwidth = 80;
 
-    addMissingParameterNames(plist, start_arg_num); // for $1_name substitutions done in Swig_typemap_attach_parms
+    addMissingParameterNames(n, plist, arg_num); // for $1_name substitutions done in Swig_typemap_attach_parms
 
     Swig_typemap_attach_parms("in", plist, 0);
     Swig_typemap_attach_parms("doc", plist, 0);
@@ -328,7 +329,7 @@ private:
       return doc;
     }
 
-    for (p = plist; p; p = pnext) {
+    for (p = plist; p; p = pnext, arg_num++) {
 
       String *tm = Getattr(p, "tmap:in");
       if (tm) {
@@ -351,9 +352,10 @@ private:
       }
 
       // Note: the generated name should be consistent with that in kwnames[]
-      name = name ? name : Getattr(p, "name");
-      name = name ? name : Getattr(p, "lname");
-      name = Swig_name_make(p, 0, name, 0, 0); // rename parameter if a keyword
+      String *made_name = 0;
+      if (!name) {
+	name = made_name = makeParameterName(n, p, arg_num);
+      }
 
       type = type ? type : Getattr(p, "type");
       value = value ? value : Getattr(p, "value");
@@ -404,7 +406,7 @@ private:
 	Printf(doc, "=%s", value);
       }
       Delete(type_str);
-      Delete(name);
+      Delete(made_name);
     }
     if (pdocs)
       Setattr(n, "feature:pdocs", pdocs);
