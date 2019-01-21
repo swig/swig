@@ -45,10 +45,6 @@ ifneq (,$(HAVE_CXX11_COMPILER))
 FAILING_CPP_TESTS += private_assign
 endif
 
-# Failed during SWIG
-FAILING_CPP_TESTS += \
-  template_typedef_inherit
-
 # Failed to compiler wrapper
 FAILING_CPP_TESTS += \
   li_attribute_template

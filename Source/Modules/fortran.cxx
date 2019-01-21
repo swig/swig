@@ -823,6 +823,13 @@ int FORTRAN::functionWrapper(Node *n) {
     // Usual case: generate a unique wrapper name
     wname = Swig_name_wrapper(symname);
     imname = NewStringf("swigc_%s", symname);
+    if (Len(imname) > 63) {
+      // Name needs to be shortened
+      String *shortname = this->make_fname(imname, WARN_NONE);
+      Delete(imname);
+      imname = shortname;
+    }
+
     if (String *private_fname = Getattr(n, "fortran:fname")) {
       // Create "private" fortran wrapper function class (swigf_xx) name that will be bound to a class
       fname = Copy(private_fname);
@@ -1571,6 +1578,14 @@ void FORTRAN::assignmentWrapper(Node *n) {
   String *imname = NewStringf("swigc_assignment_%s", symname);
   String *wname = NewStringf("_wrap_assign_%s", symname);
 
+  if (Len(fname) >= 63) {
+    String *temp = this->make_fname(fname, WARN_NONE);
+    Delete(fname);
+    Delete(imname);
+    fname = temp;
+    imname = NewStringf("swigc%s", Char(temp) + 5);
+  }
+
   // Add self-assignment to method overload list
   List *overloads = this->get_method_overloads(generic);
   Append(overloads, fname);
@@ -1765,7 +1780,7 @@ int FORTRAN::classDeclaration(Node *n) {
     String *symname = Getattr(n, "sym:name");
     if (!is_valid_identifier(symname)) {
       Swig_error(input_file, line_number,
-                 "The symname '%s' is not a valid Fortran identifier. You must %rename this class.\n",
+                 "The symname '%s' is not a valid Fortran identifier. You must %%rename this class.\n",
                  symname);
       return SWIG_NOWRAP;
     }
@@ -1995,6 +2010,13 @@ int FORTRAN::memberfunctionHandler(Node *n) {
 
   // Create a private procedure name that gets bound to the Fortan TYPE
   String *fwrapname = NewStringf("swigf_%s_%s", class_symname, Getattr(n, "sym:name"));
+  if (Len(fwrapname) > 63) {
+    // Name needs to be shortened
+    String *shortname = this->make_fname(fwrapname, WARN_NONE);
+    Delete(fwrapname);
+    fwrapname = shortname;
+  }
+
   Setattr(n, "fortran:fname", fwrapname);
   Delete(fwrapname);
 
@@ -2522,8 +2544,8 @@ int FORTRAN::add_fsymbol(String *s, Node *n, int warn) {
   assert(s);
   if (!is_valid_identifier(s)) {
     Swig_error(input_file, line_number,
-               "The name '%s' is not a valid Fortran identifier. You must %rename this class.\n",
-               s);
+               "The name '%s' is not a valid Fortran identifier. You must %%rename this %s.\n",
+               s, nodeType(n));
     return SWIG_NOWRAP;
   }
   const char scope[] = "fortran";
