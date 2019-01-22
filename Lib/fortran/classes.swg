@@ -12,7 +12,7 @@
 #ifdef __cplusplus
 %fragment("SwigMemState", "header") %{
 enum SwigMemState {
-    SWIG_NULL = 0,
+    SWIG_NULL,
     SWIG_OWN,
     SWIG_MOVE,
     SWIG_REF,
@@ -22,7 +22,7 @@ enum SwigMemState {
 #else
 %fragment("SwigMemState", "header") %{
 typedef enum {
-    SWIG_NULL = 0,
+    SWIG_NULL,
     SWIG_OWN,
     SWIG_MOVE,
     SWIG_REF,
@@ -33,7 +33,7 @@ typedef enum {
 
 %fragment("SwigMemState_f", "fdecl", noblock=1)
 { enum, bind(c)
-  enumerator :: SWIG_NULL = 0
+  enumerator :: SWIG_NULL
   enumerator :: SWIG_OWN
   enumerator :: SWIG_MOVE
   enumerator :: SWIG_REF
