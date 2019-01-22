@@ -544,6 +544,10 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
 %typemap(ftype, in="class($fclassname), intent(inout)") SWIGTYPE*
   "type($fclassname)"
 
+// Use C pointers as placeholders for class pointers by default; this will
+// propagate to const pointers and arrays
+%typemap(bindc) SWIGTYPE* = void*;
+
 // Convert mutable pointers
 %typemap(in, noblock=1, fragment="SWIG_check_mutable") SWIGTYPE* {
   SWIG_check_mutable(*$input, "$1_ltype", "$fclassname", "$decl", return $null);
