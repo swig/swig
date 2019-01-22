@@ -19,24 +19,11 @@
              rename="release_") "*::release";
 #endif
 
-/* We could define a macro for Fortran keywords, but since you can use
- * keywords as identifiers with no problem (yes, `integer :: if` is valid),
- * we don't bother.
-#define FORTRANKW(x) %keywordwarn("'" `x` "' is a Fortran keyword") `x`;
- */
-
-#define FORTRANFN(x) %namewarn(%warningmsg(SWIGWARN_FORTRAN_NAME_CONFLICT, "'" `x` "' is a Fortran intrinsic", rename="%s_"))  `x`;
-
 /* However, it's bad to override some common intrinsic functions that will be
  * generated in the f90 module: e.g. naming your module 'kind' will prevent the
  * actual 'kind' intrinsic from being used in that module (it will give an
  * error).
  */
-FORTRANFN(kind)
-FORTRANFN(c_f_pointer)
-FORTRANFN(c_loc)
-FORTRANFN(len)
-
 /* However, we may want to warn about overriding intrinsic functions,
  * though some versions of GCC will emit a compiler warning on top of that.
  *
@@ -48,12 +35,16 @@ FORTRANFN(len)
  * default, we disable checking. You can re-enable by defining 
  * FORTRAN_WARN_INTRINSICS.
  */
-#undef FORTRANFN
 #ifdef FORTRAN_WARN_INTRINSICS
 #define FORTRANFN(x) %namewarn(%warningmsg(SWIGWARN_PARSE_BUILTIN_NAME, "'" `x` "' may shadow a Fortran intrinsic"), sourcefmt="%(lower)s", %$isfunction, %$not %$ismember) `x`;
 #else
 #define FORTRANFN(x)
 #endif
+
+FORTRANFN(kind)
+FORTRANFN(c_f_pointer)
+FORTRANFN(c_loc)
+FORTRANFN(len)
 
 /* This list of intrinsic procedures is from
  * https://gcc.gnu.org/onlinedocs/gfortran/Intrinsic-Procedures.html
@@ -219,7 +210,6 @@ FORTRANFN(kill)
 FORTRANFN(lbound)
 FORTRANFN(lcobound)
 FORTRANFN(leadz)
-FORTRANFN(len)
 FORTRANFN(len_trim)
 FORTRANFN(lge)
 FORTRANFN(lgt)

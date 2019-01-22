@@ -763,9 +763,7 @@ void FORTRAN::write_module(String *filename) {
  * \brief Process a %module
  */
 int FORTRAN::moduleDirective(Node *n) {
-  String *lower = Swig_string_lower(Getattr(n, "name"));
-  String *modname = Swig_name_make(n, NULL, lower, lower, lower);
-  Delete(lower);
+  String *modname = Swig_string_lower(Getattr(n, "name"));
 
   int success = this->add_fsymbol(modname, n, WARN_NONE);
 
