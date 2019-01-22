@@ -9,7 +9,6 @@ type _value = c_obj
 %define %array_tmap_out(type,what,out_f)
 %typemap(type) what [ANY] {
     int i;
-    /* $*1_type */
     $result = caml_array_new($1_dim0);
     for( i = 0; i < $1_dim0; i++ ) {
 	caml_array_set($result,i,out_f($1[i]));
@@ -20,7 +19,6 @@ type _value = c_obj
 %define %array_tmap_in(type,what,in_f)
 %typemap(type) what [ANY] {
     int i;
-    /* $*1_type */
     $1 = ($*1_type *)malloc( $1_size );
     for( i = 0; i < $1_dim0 && i < caml_array_len($input); i++ ) {
 	$1[i] = in_f(caml_array_nth($input,i));
@@ -57,7 +55,6 @@ type _value = c_obj
 %typemap(in) SWIGTYPE [] {
     int i;
 
-    /* $*1_type */
     $1 = new $*1_type [$1_dim0];
     for( i = 0; i < $1_dim0 && i < caml_array_len($input); i++ ) {
 	$1[i] = *(($*1_ltype *) 
@@ -69,7 +66,6 @@ type _value = c_obj
 %typemap(in) SWIGTYPE [] {
     int i;
 
-    /* $*1_type */
     $1 = ($*1_type *)malloc( $1_size );
     for( i = 0; i < $1_dim0 && i < caml_array_len($input); i++ ) {
 	$1[i] = *(($*1_ltype)
@@ -102,7 +98,6 @@ type _value = c_obj
 %typemap(in) enum SWIGTYPE [] {
     int i;
 
-    /* $*1_type */
     $1 = ($*1_type *)malloc( $1_size );
     for( i = 0; i < $1_dim0 && i < caml_array_len($input); i++ ) {
 	$1[i] = ($type)

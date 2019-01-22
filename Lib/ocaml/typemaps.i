@@ -28,38 +28,31 @@
 }
 
 %typemap(in) char *& (char *temp) {
-  /* %typemap(in) char *& */
   temp = (char*)caml_val_ptr($1,$descriptor);
   $1 = &temp;
 }
 
 %typemap(argout) char *& {
-  /* %typemap(argout) char *& */
   swig_result =	caml_list_append(swig_result,caml_val_string_len(*$1, strlen(*$1)));
 }
 
 %typemap(in) SWIGTYPE & {
-    /* %typemap(in) SWIGTYPE & */
     $1 = ($ltype) caml_ptr_val($input,$1_descriptor);
 }
 
 %typemap(in) SWIGTYPE && {
-    /* %typemap(in) SWIGTYPE && */
     $1 = ($ltype) caml_ptr_val($input,$1_descriptor);
 }
 
 %typemap(varin) SWIGTYPE & {
-    /* %typemap(varin) SWIGTYPE & */
     $1 = *(($ltype) caml_ptr_val($input,$1_descriptor));
 }
 
 %typemap(varin) SWIGTYPE && {
-    /* %typemap(varin) SWIGTYPE && */
     $1 = *(($ltype) caml_ptr_val($input,$1_descriptor));
 }
 
 %typemap(out) SWIGTYPE & {
-    /* %typemap(out) SWIGTYPE & */
     CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
 	$result = caml_callback(*fromval,caml_val_ptr((void *) &$1,$1_descriptor));
@@ -69,7 +62,6 @@
 }
 
 %typemap(out) SWIGTYPE && {
-    /* %typemap(out) SWIGTYPE && */
     CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
 	$result = caml_callback(*fromval,caml_val_ptr((void *) &$1,$1_descriptor));
@@ -117,7 +109,6 @@
 #ifdef __cplusplus
 
 %typemap(out) SWIGTYPE {
-    /* %typemap(out) SWIGTYPE */
     $&1_ltype temp = new $ltype((const $1_ltype &) $1);
     CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
@@ -130,7 +121,6 @@
 #else
 
 %typemap(out) SWIGTYPE {
-    /* %typemap(out) SWIGTYPE */
     void *temp = calloc(1,sizeof($ltype));
     CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     memmove( temp, &$1, sizeof( $1_type ) );
@@ -179,14 +169,12 @@
     $result = C_TO_MZ($1);
 }
 %typemap(varout) C_NAME & {
-    /* %typemap(varout) C_NAME & (generic) */
     $result = C_TO_MZ($1);
 }
 %typemap(argout) C_NAME *OUTPUT {
     swig_result = caml_list_append(swig_result,C_TO_MZ((long)*$1));
 }
 %typemap(out) C_NAME & {
-    /* %typemap(out) C_NAME & (generic) */
     $result = C_TO_MZ(*$1);
 }
 %typemap(argout) C_NAME & {
@@ -247,15 +235,12 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 %define %char_ptr_in(how)
 %typemap(how)  char *, signed char *, unsigned char * {
-    /* %typemap(how) char * ... */
     $1 = ($ltype)caml_string_val($input);
 }
 /* Again work around the empty array bound bug */
 %typemap(how) char [ANY], signed char [ANY], unsigned char [ANY] {
-    /* %typemap(how) char [ANY] ... */
     char *temp = caml_string_val($input);
     strcpy((char *)$1,temp); 
-    /* strncpy would be better but we might not have an array size */
 }
 %enddef
 
@@ -283,11 +268,9 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 %define %swigtype_ptr_in(how)
 %typemap(how) SWIGTYPE * {
-    /* %typemap(how) SWIGTYPE * */
     $1 = ($ltype)caml_ptr_val($input,$1_descriptor);
 }
 %typemap(how) SWIGTYPE (CLASS::*) {
-    /* %typemap(how) SWIGTYPE (CLASS::*) */
     void *v = caml_ptr_val($input,$1_descriptor);
     memcpy(& $1, &v, sizeof(v));
 }
@@ -295,7 +278,6 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 %define %swigtype_ptr_out(how)
 %typemap(out) SWIGTYPE * {
-    /* %typemap(how) SWIGTYPE *, SWIGTYPE (CLASS::*) */
     CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
 	$result = caml_callback(*fromval,caml_val_ptr((void *)$1,$1_descriptor));
@@ -304,7 +286,6 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     }
 }
 %typemap(how) SWIGTYPE (CLASS::*) {
-    /* %typemap(how) SWIGTYPE *, SWIGTYPE (CLASS::*) */
     void *v;
     memcpy(&v,& $1, sizeof(void *));
     $result = caml_val_ptr (v,$1_descriptor);
