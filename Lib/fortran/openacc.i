@@ -9,15 +9,16 @@
 %include <forarray.swg>
 
 // Load openacc types
-%fragment("f_use_openacc", "fmodule") %{ use openacc %}
+%fragment("f_use_openacc", "fuse") %{ use openacc
+%}
 
 // Add array wrapper to Fortran types when used
-%fragment("SwigDevArrayWrapper_f", "fpublic", noblock=1,
+%fragment("SwigDevArrayWrapper_f", "fdecl", noblock=1,
           fragment="f_use_openacc") {
-type, bind(C) :: SwigDevArrayWrapper
+ type, bind(C) :: SwigDevArrayWrapper
   type(C_DEVPTR), public :: data = C_NULL_DEVPTR
   integer(C_SIZE_T), public :: size = 0
-end type
+ end type
 }
 
 %define FORT_DEVICEPTR_TYPEMAP(VTYPE, CPPTYPE...)

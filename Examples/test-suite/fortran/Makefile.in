@@ -45,10 +45,13 @@ ifneq (,$(HAVE_CXX11_COMPILER))
 FAILING_CPP_TESTS += private_assign
 endif
 
+# Failed to compiler wrapper
+FAILING_CPP_TESTS += \
+  li_attribute_template
+
 # Failed to compile fortran
 FAILING_CPP_TESTS += \
   abstract_signature \
-  arrays \
   contract \
   director_classes \
   director_default \
@@ -57,8 +60,8 @@ FAILING_CPP_TESTS += \
   extend_default \
   fvirtual \
   inherit_target_language \
+  kind \
   li_attribute \
-  li_attribute_template \
   li_std_map \
   member_funcptr_galore \
   multiple_inheritance \
@@ -76,9 +79,7 @@ FAILING_CPP_TESTS += \
   overload_simple \
   overload_subtype \
   smart_pointer_template_defaults_overload \
-  template_extend_overload \
   template_methods \
-  template_typedef_inherit \
   using_composition \
   using_extend \
   using_inherit \

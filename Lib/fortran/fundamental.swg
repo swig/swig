@@ -26,7 +26,7 @@ using std::ptrdiff_t;
  * FRAGMENTS
  * ------------------------------------------------------------------------- */
 /* Convert Fortran logical values to and from C-bound integers */
-%fragment("SWIG_logical_to_int_f", "fwrapper", noblock=1) {
+%fragment("SWIG_logical_to_int_f", "fsubprograms", noblock=1) {
 function SWIG_logical_to_int(inp) &
     result(out)
   use, intrinsic :: ISO_C_BINDING
@@ -40,7 +40,7 @@ function SWIG_logical_to_int(inp) &
 end function
 }
 
-%fragment("SWIG_int_to_logical_f", "fwrapper", noblock=1) {
+%fragment("SWIG_int_to_logical_f", "fsubprograms", noblock=1) {
 function SWIG_int_to_logical(inp) &
     result(out)
   use, intrinsic :: ISO_C_BINDING

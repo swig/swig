@@ -12,7 +12,7 @@
 #ifdef __cplusplus
 %fragment("SwigMemState", "header") %{
 enum SwigMemState {
-    SWIG_NULL = 0,
+    SWIG_NULL,
     SWIG_OWN,
     SWIG_MOVE,
     SWIG_REF,
@@ -22,7 +22,7 @@ enum SwigMemState {
 #else
 %fragment("SwigMemState", "header") %{
 typedef enum {
-    SWIG_NULL = 0,
+    SWIG_NULL,
     SWIG_OWN,
     SWIG_MOVE,
     SWIG_REF,
@@ -31,16 +31,15 @@ typedef enum {
 %}
 #endif
 
-%fragment("SwigMemState_f", "fpublic") %{
- enum, bind(c)
-  enumerator :: SwigMemState = -1
-  enumerator :: SWIG_NULL = 0
+%fragment("SwigMemState_f", "fdecl", noblock=1)
+{ enum, bind(c)
+  enumerator :: SWIG_NULL
   enumerator :: SWIG_OWN
   enumerator :: SWIG_MOVE
   enumerator :: SWIG_REF
   enumerator :: SWIG_CREF
  end enum
-%}
+ integer, parameter :: SwigMemState = kind(SWIG_NULL)}
 
 /* -------------------------------------------------------------------------
  * Wrapper struct that holds a C pointer and memory state
@@ -75,27 +74,14 @@ SWIGINTERN SwigClassWrapper SwigClassWrapper_uninitialized() {
 %}
 
 // Fortran declaration of the class wrapper above. Note that we declare the
-// enum as a C_INT instead of `integer(kind(SwigMemState))` to avoid a warning
+// enum as a C_INT instead of `integer(SwigMemState)` to avoid a warning
 // in GCC. The types will still be interoperable.
-%fragment("SwigClassWrapper_f", "fpublic",
-          fragment="SwigMemState_f", noblock=1) %{
-type, bind(C) :: SwigClassWrapper
+%fragment("SwigClassWrapper_f", "fdecl",
+          fragment="SwigMemState_f", noblock=1)
+{ type, bind(C) :: SwigClassWrapper
   type(C_PTR), public :: cptr = C_NULL_PTR
   integer(C_INT), public :: mem = SWIG_NULL
-end type
-%}
-
-/* Unknown class support.
- *
- * This is inserted via the fortran.cxx module when unknown classes and enums
- * are encountered.
- */
-%fragment("SwigUnknownClass_f", "fpublic", noblock=1,
-          fragment="SwigClassWrapper_f") %{
-type :: SwigUnknownClass
-  type(SwigClassWrapper), public :: swigdata
-end type
-%}
+ end type}
 
 /* -------------------------------------------------------------------------
  * Runtime check for mutable argument

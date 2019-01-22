@@ -99,11 +99,10 @@ SWIGINTERN SwigOpaqueMemFunPtr SwigOpaqueMemFunPtr_uninitialized() {
 // This fragment is inserted by the fortran.cxx code when an unknown class is
 // encountered. Note for this to compile and not crash, the size of 'data' should
 // be the same size as in SwigOpaqueMemFunPtr. 
-%fragment("SwigOpaqueMemFunPtr_f", "fpublic", noblock=1, fragment="SwigOpaqueMemFunPtr") {
-type, public, bind(C) :: SwigOpaqueMemFunPtr
+%fragment("SwigOpaqueMemFunPtr_f", "fdecl", noblock=1, fragment="SwigOpaqueMemFunPtr")
+{ type, public, bind(C) :: SwigOpaqueMemFunPtr
   integer(C_SIGNED_CHAR), dimension(SWIG_MEMFUNPTR_SIZE), public :: data
-end type
-}
+ end type}
 
 /* -------------------------------------------------------------------------
  * TYPEMAPS

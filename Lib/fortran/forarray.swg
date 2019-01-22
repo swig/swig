@@ -33,22 +33,19 @@ SWIGINTERN SwigArrayWrapper SwigArrayWrapper_uninitialized() {
 %}
 
 // Add array wrapper to Fortran types when used
-%fragment("SwigArrayWrapper_f", "fpublic", noblock=1) {
-type, bind(C) :: SwigArrayWrapper
+%fragment("SwigArrayWrapper_f", "fdecl", noblock=1)
+{ type, bind(C) :: SwigArrayWrapper
   type(C_PTR), public :: data = C_NULL_PTR
   integer(C_SIZE_T), public :: size = 0
-end type
-}
+ end type}
 
 // Generate a wrapper function for cstdlib's 'free' memory function
-%fragment("SWIG_free_f", "finterfaces", noblock=1) {
-subroutine SWIG_free(cptr) &
+%fragment("SWIG_free_f", "finterfaces", noblock=1)
+{ subroutine SWIG_free(cptr) &
   bind(C, name="free")
  use, intrinsic :: ISO_C_BINDING
  type(C_PTR), value :: cptr
-end subroutine
-}
-
+end subroutine}
 
 /* -------------------------------------------------------------------------
  * MACROS

@@ -72,6 +72,15 @@ extern "C" int _cboundfunc(const int* _x) { return *_x + 1; }
 
 %}
 
+// This name is too long
+%constant int sixty_four_characters_is_way_too_long_for_fortran_or_punch_cards = 64;
+// This name shows that you can't simply truncate
+%constant int sixty_four_characters_is_way_too_long_for_fortran_or_punch_cardss = 65;
+
+// This name is the maximum length but starts with an underscore
+%constant int _leading_underscore_with_sixty_three_characters_to_be_so_tricky = 63;
+%constant int _leading_underscore_with_sixty_two_characters_not_quite_tricky = 62;
+
 // This class is poorly named, but the symname is OK.
 %inline %{
 template<class T>
@@ -81,3 +90,25 @@ class _fubar {
 %}
 
 %template(foobar) _fubar<int>;
+
+// Check type-safe forward declarations
+%{
+struct OpaqueStruct { int i; };
+struct DeclaredStruct { int i; };
+struct DelayedStruct { int i; };
+enum Foo { GOOD, BAD };
+%}
+
+struct DeclaredStruct;
+enum Foo;
+
+%inline %{
+  int get_opaque_value(const OpaqueStruct& o) { return o.i; }
+  OpaqueStruct make_opaque(int i) { OpaqueStruct os; os.i = i; return os; }
+  int get_declared_value(const DeclaredStruct& o) { return o.i; }
+  DeclaredStruct make_declared(int i) { DeclaredStruct o; o.i = i; return o; }
+  int get_value(Foo f) { return static_cast<int>(f); }
+  DelayedStruct make_delayed(int i) { DelayedStruct o; o.i = i; return o; }
+%}
+
+struct DelayedStruct { int i; };

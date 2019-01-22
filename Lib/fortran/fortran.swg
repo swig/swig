@@ -14,8 +14,8 @@
 
    %proxycode : Insert Fortran code directly into the `contains` portion of a
      module. Note that to make the code accessible you will have to add it to the
-     type declartion if appropriate (using `%insert("ftypes")`) or declare it
-     as a public module subroutine (using `%insert("fpublic")`).
+     type declartion if appropriate (using `%insert("fdecl")`) or declare it
+     as a public module subroutine.
 
    %fortranprepend : Add code at the beginning of a proxy function
    %fortranappend  : Add code at the end of a proxy function
@@ -27,7 +27,7 @@
    %fortranbindc : Generate *interfaces only*, no wrapper code, for a function
  */
 #define %fortranbegin         %insert("fbegin")
-#define %proxycode            %insert("fwrapper")
+#define %proxycode            %insert("fsubprograms")
 
 #define %fortranprepend       %feature("fortran:prepend")
 #define %clearfortranprepend  %feature("fortran:prepend","")

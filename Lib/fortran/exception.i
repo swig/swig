@@ -25,7 +25,7 @@
  *
  * This is added to the module *only* if the file is %included, not %imported.
  * ------------------------------------------------------------------------- */
-%insert("fparams") {
+%insert("fdecl") {
  integer(C_INT), bind(C), public :: SWIG_FORTRAN_ERROR_INT
 }
 
