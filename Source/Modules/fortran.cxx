@@ -171,9 +171,8 @@ bool is_native_enum(Node *n) {
 bool is_native_parameter(Node *n) {
   String *param_feature = Getattr(n, "feature:fortran:const");
   if (!param_feature) {
-    // No user override given
-    String *value = Getattr(n, "value");
-    return is_fortran_intexpr(value);
+    // Default to not wrapping natively
+    return false;
   } else if (Strcmp(param_feature, "0") == 0) {
     // Not a native param
     return false;

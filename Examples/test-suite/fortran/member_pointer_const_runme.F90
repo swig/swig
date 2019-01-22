@@ -37,7 +37,7 @@ program member_pointer_const_runme
   val = do_op(s, get_areavar())
   call check("Square perimimter", 40.0_C_DOUBLE, val)
 
-  write(0,*) "SUCCESS"
+  write(0,*) "Successfully completed member_pointer_const test"
 
 contains
 
