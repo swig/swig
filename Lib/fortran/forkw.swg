@@ -25,8 +25,20 @@
 #define FORTRANKW(x) %keywordwarn("'" `x` "' is a Fortran keyword") `x`;
  */
 
-/* However, we probably do want to warn about overriding intrinsic functions; 
- * some versions of GCC will write a compiler warning on top of that.
+#define FORTRANFN(x) %namewarn(%warningmsg(SWIGWARN_FORTRAN_NAME_CONFLICT, "'" `x` "' is a Fortran intrinsic", rename="%s_"))  `x`;
+
+/* However, it's bad to override some common intrinsic functions that will be
+ * generated in the f90 module: e.g. naming your module 'kind' will prevent the
+ * actual 'kind' intrinsic from being used in that module (it will give an
+ * error).
+ */
+FORTRANFN(kind)
+FORTRANFN(c_f_pointer)
+FORTRANFN(c_loc)
+FORTRANFN(len)
+
+/* However, we may want to warn about overriding intrinsic functions,
+ * though some versions of GCC will emit a compiler warning on top of that.
  *
  * These are *DISABLED BY DEFAULT* via the "EXTRA_WARNINGS" in main.cxx.
  * To enable them, run SWIG with '-Wextra' or '-w+321'
@@ -36,6 +48,7 @@
  * default, we disable checking. You can re-enable by defining 
  * FORTRAN_WARN_INTRINSICS.
  */
+#undef FORTRANFN
 #ifdef FORTRAN_WARN_INTRINSICS
 #define FORTRANFN(x) %namewarn(%warningmsg(SWIGWARN_PARSE_BUILTIN_NAME, "'" `x` "' may shadow a Fortran intrinsic"), sourcefmt="%(lower)s", %$isfunction, %$not %$ismember) `x`;
 #else
@@ -96,10 +109,8 @@ FORTRANFN(ble)
 FORTRANFN(blt)
 FORTRANFN(btest)
 FORTRANFN(c_associated)
-FORTRANFN(c_f_pointer)
 FORTRANFN(c_f_procpointer)
 FORTRANFN(c_funloc)
-FORTRANFN(c_loc)
 FORTRANFN(c_sizeof)
 FORTRANFN(ceiling)
 FORTRANFN(char)
@@ -205,7 +216,6 @@ FORTRANFN(ishftc)
 FORTRANFN(isnan)
 FORTRANFN(itime)
 FORTRANFN(kill)
-FORTRANFN(kind)
 FORTRANFN(lbound)
 FORTRANFN(lcobound)
 FORTRANFN(leadz)
