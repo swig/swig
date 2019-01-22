@@ -207,3 +207,5 @@ check(inspect.getdoc(process), "process(int _from, int _in, int var) -> int")
 check(inspect.getdoc(process2), "process2(int _from=0, int _in=1, int var=2) -> int")
 check(inspect.getdoc(process3), "process3(int _from, int _in, int var) -> int")
 check(inspect.getdoc(process4), "process4(int _from=0, int _in=1, int var=2) -> int")
+
+check(inspect.getdoc(process_complex_defval), "process_complex_defval(val=PROCESS_DEFAULT_VALUE, factor=some_type(-1)) -> int")
