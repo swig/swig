@@ -889,6 +889,20 @@ int FORTRAN::functionWrapper(Node *n) {
     }
   }
 
+  if (Node *class_node = this->getCurrentClass()) {
+    String *lower_func = Swig_string_lower(fsymname);
+    String *symname_cls = Getattr(class_node, "sym:name");
+    String *lower_cls = Swig_string_lower(symname_cls);
+    if (Strcmp(lower_func, lower_cls) == 0) {
+      Swig_warning(WARN_FORTRAN_NAME_CONFLICT, input_file, line_number,
+                   "Ignoring '%s' due to Fortran name ('%s') conflict with '%s'\n",
+                   symname, lower_func, symname_cls);
+      return SWIG_NOWRAP;
+    }
+    Delete(lower_cls);
+    Delete(lower_func);
+  }
+
   // >>> GENERATE WRAPPER CODE
 
   if (!is_cbound) {
