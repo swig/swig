@@ -2584,9 +2584,11 @@ String *FORTRAN::make_fname(String *name, int warning) {
   String* result = NULL;
   if (Len(name) >= 63) {
     result = NewStringWithSize(name, 63);
-    unsigned long hash = 5381;
+    unsigned int hash = 5381;
+    // Hash truncated characters *AND* characters that might be replaced by the hash
+    // (2**8 / (10 + 26)) =~ 7.1, so backtrack 8 chars
     for (const char *src = Char(name) + 63 - 8; *src != '\0'; ++src) {
-      hash = ((hash << 5) + hash) + *src;
+      hash = (hash * 33 + *src) & 0xffffffffu;
     }
     // Replace the last chars with the hash encoded into 0-10 + A-Z
     char *dst = Char(result) + 63;
