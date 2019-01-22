@@ -130,8 +130,8 @@
       };
     %} 
 
-  The %attributestring also works for class types that have %naturalvar turned
-  on and so is also useful for shared_ptr which has %naturalvar turned on in %shared_ptr.
+  The %attributestring works ONLY for class types that have %naturalvar turned
+  on. It is therefore also useful for shared_ptr which has %naturalvar turned on in %shared_ptr.
 
 */
 
