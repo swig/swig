@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-01-22: vadz
+            [Ruby, Octave] #1424 Improve autodoc parameter naming.
+
+2019-01-22: vadz
+            [Python] #1423 Always include default parameter values in autodoc strings.
+
 2019-01-19: vadz
             #1272, #1421 When a function's parameter is a keyword, the name of the paramater is
             no longer simply changed to argN, where N is the argument number. Instead the
