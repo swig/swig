@@ -45,10 +45,6 @@ ifneq (,$(HAVE_CXX11_COMPILER))
 FAILING_CPP_TESTS += private_assign
 endif
 
-# Failed to compiler wrapper
-FAILING_CPP_TESTS += \
-  li_attribute_template
-
 # Failed to compile fortran
 FAILING_CPP_TESTS += \
   abstract_signature \
@@ -61,9 +57,7 @@ FAILING_CPP_TESTS += \
   fvirtual \
   inherit_target_language \
   kind \
-  li_attribute \
   li_std_map \
-  member_funcptr_galore \
   multiple_inheritance \
   multiple_inheritance_abstract \
   multiple_inheritance_interfaces \

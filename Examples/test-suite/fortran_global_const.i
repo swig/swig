@@ -5,6 +5,7 @@
 %constant int fortranconst_int_global = 4;
 %constant float fortranconst_float_global = 1.23f;
 
+// Neither of these is wrapped as native constants (disabled by default)
 %constant int constant_int_global = 4;
 %constant float constant_float_global = 1.23f;
 
@@ -18,7 +19,6 @@
 %inline %{
 #define MACRO_INT 4
 const int extern_const_int = 4;
-#define DEFAULT_MACRO_HEX_INT 0x4
 #define MACRO_HEX_INT 0x4
 %}
 

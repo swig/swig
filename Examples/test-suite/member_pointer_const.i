@@ -116,18 +116,6 @@ double (Shape::*perimetervar)(void) const = &Shape::perimeter;
 PerimeterFunc_td perimetervar_td = &Shape::perimeter;
 %}
 
-#ifdef SWIGFORTRAN
-/* Prevent the '0' from being wrapped like a compile-time constant.
- *
- * TODO: this only happens because Fortran tries to wrap simple integers
- * as parameters by default. Changing to the Java/C# implementation of
- * "extern by default" would allow us to remove the `%nofortranconst` line.
- */
-%nofortranconst NULLPT;
-// Wrap constant using unique names due to Fortran case insensitivity
-%rename(ARPT) AREAPT;
-#endif
-
 /* Some constants */
 %constant double (Shape::*AREAPT)(void) const = &Shape::area;
 %constant double (Shape::*PERIMPT)(void) const = &Shape::perimeter;

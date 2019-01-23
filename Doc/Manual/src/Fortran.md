@@ -877,14 +877,10 @@ a SWIG wrapper with `%constant`) of native types can be wrapped as Fortran
 wrapper functions that return the value.
 
 The default behavior is as follows:
-- `%constant`s and fixed-value macros whose values are simple integers (only
-  the characters `0-9`) are wrapped as Fortran `parameter`s.
-- Other `%constant` and macro values are wrapped as externally bound constants.
+- `%constant` and macro values are wrapped as externally bound values.
 - Global constants are wrapped with getter functions.
-- A constant can be forced to be a parameter using the `%fortranconst`
-  directive.
-- A `%constant` or macro can be forced to be an externally bound constant using
-  the `%nofortranconst` directive.
+- A constant can be forced to be a Fortran compile-time constant `parameter`
+  using the `%fortranconst` directive.
 - A macro whose definition cannot be parsed by Fortran can have its value
   *replaced* with a simpler expression using the `%fortranconstvalue`
   directive.
@@ -899,17 +895,11 @@ The following example shows the behavior of the various rules above:
 %constant int constant_int_global = 4;
 %constant float constant_float_global = 1.23f;
 
-%nofortranconst nofortranconst_int_global;
-%nofortranconst nofortranconst_float_global;
-%constant int nofortranconst_int_global = 4;
-%constant float nofortranconst_float_global = 1.23f;
-
 %fortranconstvalue(4) MACRO_HEX_INT;
 
 %inline %{
 #define MACRO_INT 4
 const int extern_const_int = 4;
-#define DEFAULT_MACRO_HEX_INT 0x4
 #define MACRO_HEX_INT 0x4
 %}
 ```
@@ -918,16 +908,12 @@ will be translated to
  public :: get_extern_const_int
  integer(C_INT), parameter, public :: fortranconst_int_global = 4_C_INT
  real(C_FLOAT), parameter, public :: fortranconst_float_global = 1.23_C_FLOAT
- integer(C_INT), parameter, public :: constant_int_global = 4_C_INT
+ integer(C_INT), protected, public, &
+   bind(C, name="_wrap_constant_int_global") :: constant_int_global
  real(C_FLOAT), protected, public, &
    bind(C, name="_wrap_constant_float_global") :: constant_float_global
  integer(C_INT), protected, public, &
-   bind(C, name="_wrap_nofortranconst_int_global") :: nofortranconst_int_global
- real(C_FLOAT), protected, public, &
-   bind(C, name="_wrap_nofortranconst_float_global") :: nofortranconst_float_global
- integer(C_INT), parameter, public :: MACRO_INT = 4_C_INT
- integer(C_INT), protected, public, &
-   bind(C, name="_wrap_DEFAULT_MACRO_HEX_INT") :: DEFAULT_MACRO_HEX_INT
+   bind(C, name="_wrap_MACRO_INT") :: MACRO_INT
  integer(C_INT), parameter, public :: MACRO_HEX_INT = 4_C_INT
 ```
 The symbols marked as `protected, public, bind(C)` have their values defined in

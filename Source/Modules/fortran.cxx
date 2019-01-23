@@ -171,9 +171,8 @@ bool is_native_enum(Node *n) {
 bool is_native_parameter(Node *n) {
   String *param_feature = Getattr(n, "feature:fortran:const");
   if (!param_feature) {
-    // No user override given
-    String *value = Getattr(n, "value");
-    return is_fortran_intexpr(value);
+    // Default to not wrapping natively
+    return false;
   } else if (Strcmp(param_feature, "0") == 0) {
     // Not a native param
     return false;
@@ -887,6 +886,20 @@ int FORTRAN::functionWrapper(Node *n) {
       // Create Fortran-friendly symname
       fsymname = make_fname(symname);
     }
+  }
+
+  if (Node *class_node = this->getCurrentClass()) {
+    String *lower_func = Swig_string_lower(fsymname);
+    String *symname_cls = Getattr(class_node, "sym:name");
+    String *lower_cls = Swig_string_lower(symname_cls);
+    if (Strcmp(lower_func, lower_cls) == 0) {
+      Swig_warning(WARN_FORTRAN_NAME_CONFLICT, input_file, line_number,
+                   "Ignoring '%s' due to Fortran name ('%s') conflict with '%s'\n",
+                   symname, lower_func, symname_cls);
+      return SWIG_NOWRAP;
+    }
+    Delete(lower_cls);
+    Delete(lower_func);
   }
 
   // >>> GENERATE WRAPPER CODE

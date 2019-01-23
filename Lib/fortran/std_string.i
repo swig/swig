@@ -20,6 +20,8 @@
  * Typemaps for native fortran string conversion.
  * ------------------------------------------------------------------------- */
 
+%naturalvar string;
+
 /* Note that this is technically incorrect: string is typedef'd as
  * basic_string<char,...> . Our definition in std_string.i is simpler, though,
  * because that's all we need to inform SWIG..
@@ -53,8 +55,6 @@ class string;
 /* ---- VALUE: NATIVE STRING ---- */
 
 %apply const std::string & { std::string };
-
-%feature("novaluewrapper") std::string;
 
 %typemap(globalin) std::string {
    $1 = *$input;
