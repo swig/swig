@@ -36,8 +36,17 @@
 
 %include <std_except.i>
 
-%fragment("reference_container_owner", "header") {
+%fragment("container_owner_attribute_init", "init") {
+  // thread safe initialization
+  swig::container_owner_attribute();
+}
+%fragment("reference_container_owner", "header", fragment="container_owner_attribute_init") {
 namespace swig {
+  PyObject* container_owner_attribute() {
+    static PyObject* attr = SWIG_Python_str_FromChar("__owner");
+    return attr;
+  }
+
   /**
    * Call to add a back-reference to the owning object when returning a 
    * reference from a container.  Will only set the reference if <code>child</code> 
@@ -46,10 +55,9 @@ namespace swig {
    * @return if the reference was set or not
    */
   bool reference_container_owner(PyObject* child, PyObject* owner) {
-    static PyObject* attr = SWIG_Python_str_FromChar("__owner");
     SwigPyObject* swigThis = SWIG_Python_GetSwigThis(child);
     if (swigThis && (swigThis->own & SWIG_POINTER_OWN) != SWIG_POINTER_OWN) {
-      PyObject_SetAttr(child, attr, owner);
+      PyObject_SetAttr(child, container_owner_attribute(), owner);
       return true;
     }
     return false;
