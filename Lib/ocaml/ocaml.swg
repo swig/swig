@@ -381,7 +381,7 @@ extern "C" {
 			     caml_copy_string(name)));
     }
 
-    SWIGINTERN long caml_long_val_full( CAML_VALUE v, char *name ) {
+    SWIGINTERN long caml_long_val_full( CAML_VALUE v, const char *name ) {
 	CAMLparam1(v);
 	if( !Is_block(v) ) return 0;
 

@@ -920,7 +920,7 @@ public:
     // See if there's a typemap
 
     // Create variable and assign it a value
-    Printf(f_header, "static %s = %s;\n", SwigType_lstr(type, name), value);
+    Printf(f_header, "static %s = %s;\n", SwigType_str(type, name), value);
     SetFlag(n, "feature:immutable");
     variableWrapper(n);
     return SWIG_OK;
