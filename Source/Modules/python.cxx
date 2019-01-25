@@ -1606,8 +1606,8 @@ public:
    * set then it will build a combined docstring.
    * ------------------------------------------------------------ */
 
-  String *docstring(Node *n, autodoc_t ad_type, const String *indent) {
-    String *docstr = build_combined_docstring(n, ad_type, indent);
+  String *docstring(Node *n, autodoc_t ad_type, const String *indent, bool low_level = false) {
+    String *docstr = build_combined_docstring(n, ad_type, indent, low_level);
     if (!Len(docstr))
       return docstr;
 
@@ -1948,14 +1948,15 @@ public:
 	  return NULL;
 	case AUTODOC_VAR:
 	  // Variables can also be documented (e.g. through the property() function in python)
-	  Printf(doc, "%s.%s", class_name, symname);
-	  String *type = Getattr(n, "tmap:doc:type");
-	  if (! type)
-	    type = Getattr(n, "membervariableHandler:type");
-	  if (! type)
-	    type = Getattr(n, "type");
-	  if (showTypes)
+	  Printf(doc, "%s", symname);
+	  if (showTypes) {
+	    String *type = Getattr(n, "tmap:doc:type");
+	    if (! type)
+	      type = Getattr(n, "membervariableHandler:type");
+	    if (! type)
+	      type = Getattr(n, "type");
 	    Printf(doc, " : %s", type);
+	  }
 	  break;
 	}
 	Delete(type_str);
@@ -2391,7 +2392,7 @@ public:
       /* Make a wrapper function to insert the code into */
       Printv(f_dest, "\n", "def ", name, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
       if (have_docstring(n))
-	Printv(f_dest, tab4, docstring(n, AUTODOC_FUNC, tab4), "\n", NIL);
+	Printv(f_dest, tab4, docstring(n, AUTODOC_FUNC, tab4, true), "\n", NIL);
       if (have_pythonprepend(n))
 	Printv(f_dest, indent_pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
       if (have_pythonappend(n)) {
@@ -3301,7 +3302,7 @@ public:
       }
       Setattr(h, "getter", "SwigPyObject_get___dict__");
       if (! Getattr(h, "doc")) {
-	Setattr(n, "doc:name", Getattr(n, "name"));
+	Setattr(n, "doc:high:name", Getattr(n, "name"));
 	Setattr(h, "doc", cdocstring(n, AUTODOC_VAR));
       }
     }
@@ -3319,7 +3320,7 @@ public:
       Setattr(h, "getter", wrapper_name);
       Delattr(n, "memberget");
       if (! Getattr(h, "doc")) {
-	Setattr(n, "doc:name", Getattr(n, "name"));
+	Setattr(n, "doc:high:name", Getattr(n, "name"));
 	Setattr(h, "doc", cdocstring(n, AUTODOC_VAR));
       }
     }
@@ -3336,7 +3337,7 @@ public:
       Setattr(h, "setter", wrapper_name);
       Delattr(n, "memberset");
       if (! Getattr(h, "doc")) {
-	Setattr(n, "doc:name", Getattr(n, "name"));
+	Setattr(n, "doc:high:name", Getattr(n, "name"));
 	Setattr(h, "doc", cdocstring(n, AUTODOC_VAR));
       }
     }
