@@ -131,7 +131,7 @@ SWIGEXPORT void SWIG_store_exception(const char *decl,
 }
 
 // Add wrapper code for the error string
-%include <forstrings.swg>
+%include <fortranstrings.swg>
 const char* SWIG_FORTRAN_ERROR_STR();
 
 #else

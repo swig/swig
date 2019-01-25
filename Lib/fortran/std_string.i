@@ -9,7 +9,7 @@
  *
  * ------------------------------------------------------------------------- */
 
-%include <forstrings.swg>
+%include <fortranstrings.swg>
 
 // Include std::string header
 %fragment("<string>");

@@ -1,10 +1,10 @@
 /* -------------------------------------------------------------------------
- * forstrings.swg
+ * fortranstrings.swg
  *
  * C-string typemaps for native fortran conversion.
  * ------------------------------------------------------------------------- */
 
-%include <forarray.swg>
+%include <fortranarray.swg>
 
 /* -------------------------------------------------------------------------
  * FRAGMENTS

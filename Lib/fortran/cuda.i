@@ -13,7 +13,7 @@
 #include <cuda_runtime.h>
 %}
 
-%include <forarray.swg>
+%include <fortranarray.swg>
 
 // Load CUDA types
 %fragment("f_use_cudafor", "fuse") %{ use cudafor

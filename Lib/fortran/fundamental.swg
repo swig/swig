@@ -230,7 +230,7 @@ end function
 %typemap(ftype, in="$typemap(ftype, $*1_ltype), dimension(*), target, intent(inout)", checkdim=1) FUNDTYPE[]
   "$typemap(ftype, $*1_ltype), dimension(:), pointer"
 %typemap(fin, checkdim=1) FUNDTYPE[]
-  "$1 = c_loc($input(1))" // (1): see forarray.swg
+  "$1 = c_loc($input(1))" // (1): see fortranarray.swg
 %typemap(fout, checkdim=1) FUNDTYPE[]
   "call c_f_pointer($1, $result, [1])"
  

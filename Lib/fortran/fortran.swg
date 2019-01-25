@@ -69,17 +69,17 @@
  */
 
 /* FRAGMENT OVERRIDES */
-%include "forfragments.swg"
+%include "fortranfragments.swg"
 
 /* RUNTIME AND KEYWORDS */
-%include "forruntime.swg"
-%include "forkw.swg"
+%include "fortranruntime.swg"
+%include "fortrankw.swg"
 
 /* TYPEMAPS */
 %include "fundamental.swg"
 %include "classes.swg"
 %include "enums.swg"
-%include "forstrings.swg"
+%include "fortranstrings.swg"
 %include "bindc.swg"
 
 #ifdef __cplusplus

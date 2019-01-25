@@ -19,7 +19,7 @@
 %include <chicken/chickenkw.swg>
 %include <csharp/csharpkw.swg>
 %include <d/dkw.swg>
-%include <fortran/forkw.swg>
+%include <fortran/fortrankw.swg>
 %include <go/gokw.swg>
 %include <java/javakw.swg>
 %include <lua/luakw.swg>

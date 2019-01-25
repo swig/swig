@@ -6,7 +6,7 @@
 #endif
 #define SWIG_FORTRAN_OPENACC
 
-%include <forarray.swg>
+%include <fortranarray.swg>
 
 // Load openacc types
 %fragment("f_use_openacc", "fuse") %{ use openacc

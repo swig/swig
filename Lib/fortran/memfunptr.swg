@@ -4,7 +4,9 @@
 
 /* The size of the opaque object that stores the member function pointer.
  *
- * This could be overridden by generating a config.h file with the actual maximum function pointer size and %include-ing that configure file in a local forfragments.swg file. */
+ * This could be overridden by generating a config.h file with the actual
+ * maximum function pointer size and %include-ing that configure file in
+ * a local fortranfragments.swg file. */
 #ifndef SWIG_MEMFUNPTR_SIZE
 %define SWIG_MEMFUNPTR_SIZE 32 %enddef
 #endif
