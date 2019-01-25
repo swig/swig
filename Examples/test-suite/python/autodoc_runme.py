@@ -191,37 +191,27 @@ check(inspect.getdoc(A.variable_c),
       "A.variable_c"
       )
 check(inspect.getdoc(_autodoc.A_variable_c_set),
-      "A_variable_c_set(self, variable_c) -> int\n"
+      "A_variable_c_set(self, variable_c)\n"
       "\n"
       "Parameters\n"
       "----------\n"
-      "self: A *\n"
       "variable_c: int"
       )
 check(inspect.getdoc(_autodoc.A_variable_c_get),
-      "A_variable_c_get(self) -> int\n"
-      "\n"
-      "Parameters\n"
-      "----------\n"
-      "self: A *"
+      "A_variable_c_get(self) -> int"
       )
 check(inspect.getdoc(A.variable_d),
       "A.variable_d : int"
       )
 check(inspect.getdoc(_autodoc.A_variable_d_set),
-      "A_variable_d_set(A self, int variable_d) -> int\n"
+      "A_variable_d_set(A self, int variable_d)\n"
       "\n"
       "Parameters\n"
       "----------\n"
-      "self: A *\n"
       "variable_d: int"
       )
 check(inspect.getdoc(_autodoc.A_variable_d_get),
-      "A_variable_d_get(self) -> int\n"
-      "\n"
-      "Parameters\n"
-      "----------\n"
-      "self: A *"
+      "A_variable_d_get(A self) -> int"
       )
 
 check(inspect.getdoc(B),

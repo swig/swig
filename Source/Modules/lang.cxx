@@ -1272,8 +1272,9 @@ int Language::memberfunctionHandler(Node *n) {
   int flags = Getattr(n, "template") ? extendmember | SmartPointer : Extend | SmartPointer | DirectorExtraCall;
   Swig_MethodToFunction(n, NSpace, ClassType, flags, director_type, is_member_director(CurrentClass, n));
   Setattr(n, "sym:name", fname);
-  // Save the original name for use in documentation
-  Setattr(n, "doc:name", symname);
+  /* Explicitly save low-level and high-level documentation names */
+  Setattr(n, "doc:low:name", fname);
+  Setattr(n, "doc:high:name", symname);
 
   functionWrapper(n);
 
@@ -1334,8 +1335,9 @@ int Language::staticmemberfunctionHandler(Node *n) {
 
   Setattr(n, "name", cname);
   Setattr(n, "sym:name", mrename);
-  // Save the original name for use in documentation
-  Setattr(n, "doc:name", symname);
+  /* Explicitly save low-level and high-level documentation names */
+  Setattr(n, "doc:low:name", mrename);
+  Setattr(n, "doc:high:name", symname);
 
   if (cb) {
     String *cbname = NewStringf(cb, symname);

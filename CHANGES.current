@@ -12,8 +12,8 @@ Version 4.0.0 (in progress)
 
             #728 Fixed the handling of autodoc when using -fastproxy.
 
-            Added documentation to wrapped member variables using the propery(... doc="...")
-            construct.
+            #1367 Added documentation to wrapped member variables using the
+            propery(... doc="...") construct.
 
             Only show a single documentation entry for functions with default arguments when
             using autodoc.
