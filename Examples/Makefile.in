@@ -899,7 +899,7 @@ mzscheme_clean:
 OCC=$(COMPILETOOL) @OCAMLC@
 OCAMLDLGEN=$(COMPILETOOL) @OCAMLDLGEN@
 OCAMLFIND=$(COMPILETOOL) @OCAMLFIND@
-OCAMLMKTOP=$(COMPILETOOL) @OCAMLMKTOP@ $(SWIGWHERE)
+OCAMLMKTOP=$(COMPILETOOL) @OCAMLMKTOP@
 NOLINK ?= false
 OCAMLPP= -pp "camlp4o ./swigp4.cmo"
 OCAMLP4WHERE=`$(COMPILETOOL) @CAMLP4@ -where`
@@ -939,7 +939,7 @@ ocaml_static_toplevel: $(SRCDIR_SRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
 	$(OCC) -w -U -g -c $(INTERFACE:%.i=%.ml)
 	test -z "$(PROGFILE)" || $(OCC) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
-	$(NOLINK) || $(OCAMLMKTOP) swig.cmo -I $(OCAMLP4WHERE) camlp4o.cma swigp4.cmo -g -ccopt -g -cclib -g -custom -o $(RUNME)_top $(INTERFACE:%.i=%.cmo) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) -cclib "$(LIBS)"
+	$(NOLINK) || $(OCAMLMKTOP) swig.cmo -I $(OCAMLP4WHERE) dynlink.cma camlp4o.cma swigp4.cmo -cclib "$(LIBS)" -g -ccopt -g -cclib -g -custom -o $(RUNME)_top $(INTERFACE:%.i=%.cmo) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS)
 
 ocaml_static_cpp: $(SRCDIR_SRCS)
 	$(OCAMLCORE)
@@ -959,7 +959,7 @@ ocaml_static_cpp_toplevel: $(SRCDIR_SRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
 	$(OCC) -w -U -g -c $(INTERFACE:%.i=%.ml)
 	test -z "$(PROGFILE)" || $(OCC) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
-	$(NOLINK) || $(OCAMLMKTOP) swig.cmo -I $(OCAMLP4WHERE) dynlink.cma camlp4o.cma swigp4.cmo -g -ccopt -g -cclib -g -custom -o $(RUNME)_top $(INTERFACE:%.i=%.cmo) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) -cclib "$(LIBS)" -cc '$(CXX)'
+	$(NOLINK) || $(OCAMLMKTOP) -cc '$(CXX) $(CPPFLAGS)' swig.cmo -I $(OCAMLP4WHERE) dynlink.cma camlp4o.cma swigp4.cmo -cclib "$(LIBS)" -g -ccopt -g -cclib -g -custom -o $(RUNME)_top $(INTERFACE:%.i=%.cmo) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS)
 
 ocaml_dynamic_cpp: $(SRCDIR_SRCS)
 	$(OCAMLCORE)
