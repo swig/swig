@@ -1571,6 +1571,11 @@ public:
 	  // depends on the comment which is not going to change, so we can
 	  // safely cache it.
 	  Setattr(n, "python:docstring", Copy(docstr));
+	} else {
+	  // Must copy here since if the docstring is multi-line, the String*
+	  // here will get Deleted below, which is bad if it is a pointer to
+	  // the cached object!
+	  docstr = Copy(docstr);
 	}
       }
     }

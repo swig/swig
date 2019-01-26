@@ -18,6 +18,9 @@ Version 4.0.0 (in progress)
             Only show a single documentation entry for functions with default arguments when
             using autodoc.
 
+            Fixed a bug where a cached doxygen docstring could be deleted while still in use,
+            causing swig to segfault.
+
 2019-01-22: vadz
             [Ruby, Octave] #1424 Improve autodoc parameter naming.
 
