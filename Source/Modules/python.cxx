@@ -1810,6 +1810,7 @@ public:
 
   String *make_autodoc(Node *n, autodoc_t ad_type, bool low_level = false) {
     int extended = 0;
+    bool first_func = true;
     // If the function is overloaded then this function is called
     // for the last one.  Rewind to the first so the docstrings are
     // in order.
@@ -1861,6 +1862,9 @@ public:
 	  continue;
 	}
 
+	if (! first_func)
+	  Append(doc, "\n");
+
 	if (type) {
 	  if (Strcmp(type, "void") == 0) {
 	    type_str = NULL;
@@ -1873,6 +1877,13 @@ public:
 	/* Treat the low-level C API functions for getting/setting variables as methods for documentation purposes */
 	String *kind = Getattr(n, "kind");
 	if (kind && Strcmp(kind, "variable") == 0) {
+	  if (ad_type == AUTODOC_FUNC) {
+	    ad_type = AUTODOC_METHOD;
+	  }
+	}
+	/* Treat destructors as methods for documentation purposes */
+	String *nodeType = Getattr(n, "nodeType");
+	if (nodeType && Strcmp(nodeType, "destructor") == 0) {
 	  if (ad_type == AUTODOC_FUNC) {
 	    ad_type = AUTODOC_METHOD;
 	  }
@@ -1980,7 +1991,7 @@ public:
       // if it's overloaded then get the next decl and loop around again
       n = Getattr(n, "sym:nextSibling");
       if (n)
-	Append(doc, "\n");
+	first_func = false;
     }
 
     return doc;

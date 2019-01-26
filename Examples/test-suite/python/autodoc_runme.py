@@ -205,7 +205,9 @@ if not is_python_builtin():
           )
     check(inspect.getdoc(_autodoc.A_variable_d_get), "A_variable_d_get(A self) -> int")
     check(inspect.getdoc(_autodoc.new_C), "new_C(a, b, h) -> C")
+    check(inspect.getdoc(_autodoc.delete_C), "delete_C(self)")
     check(inspect.getdoc(_autodoc.new_D), "new_D(int a, int b, Hola h) -> D")
+    check(inspect.getdoc(_autodoc.delete_D), "delete_D(D self)")
     check(inspect.getdoc(_autodoc.new_E),
           "new_E(a, b, h) -> E\n"
           "\n"
@@ -215,6 +217,7 @@ if not is_python_builtin():
           "b: another special comment for parameter b\n"
           "h: enum Hola"
           )
+    check(inspect.getdoc(_autodoc.delete_E), "delete_E(self)")
     check(inspect.getdoc(_autodoc.new_F),
           "new_F(int a, int b, Hola h) -> F\n"
           "\n"
@@ -224,6 +227,7 @@ if not is_python_builtin():
           "b: another special comment for parameter b\n"
           "h: enum Hola"
           )
+    check(inspect.getdoc(_autodoc.delete_F), "delete_F(F self)")
     check(inspect.getdoc(_autodoc.B_funk), "B_funk(B self, int c, int d) -> int")
     check(inspect.getdoc(_autodoc.TInteger_inout), "TInteger_inout(TInteger self, TInteger t) -> TInteger")
 

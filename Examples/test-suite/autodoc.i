@@ -76,6 +76,10 @@
 %feature("autodoc","1") D::D(int a, int b, Hola h); // names + types
 %feature("autodoc","2") E::E(int a, int b, Hola h); // extended
 %feature("autodoc","3") F::F(int a, int b, Hola h); // extended + types
+%feature("autodoc","0") C::~C(); // names
+%feature("autodoc","1") D::~D(); // names + types
+%feature("autodoc","2") E::~E(); // extended
+%feature("autodoc","3") F::~F(); // extended + types
 
 %inline {
   
