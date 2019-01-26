@@ -704,7 +704,7 @@ public:
       if (!builtin && fastproxy) {
 	Printf(f_shadow, "\n");
 	Printf(f_shadow, "_swig_new_instance_method = %s.SWIG_PyInstanceMethod_New\n", module);
-	Printf(f_shadow, "_swig_new_static_method   = %s.SWIG_PyStaticMethod_New\n", module);
+	Printf(f_shadow, "_swig_new_static_method = %s.SWIG_PyStaticMethod_New\n", module);
       }
 
       {
