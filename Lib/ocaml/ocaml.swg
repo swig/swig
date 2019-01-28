@@ -507,7 +507,7 @@ extern "C" {
     SWIGINTERN int caml_string_len( CAML_VALUE v ) {
 	switch( SWIG_Tag_val(v) ) {
 	case C_string:
-	    return string_length(SWIG_Field(v,0));
+	    return caml_string_length(SWIG_Field(v,0));
 	default:
 	    return strlen((char *)caml_ptr_val(v,0));
 	}
