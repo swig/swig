@@ -64,8 +64,13 @@
 <li><a href="#Extending_running_test_suite">Running the test-suite</a>
 </ul>
 <li><a href="#Extending_nn43">Documentation</a>
-<li><a href="#Extending_prerequisites">Prerequisites for adding a new language module to the SWIG distribution</a>
 <li><a href="#Extending_coding_style_guidelines">Coding style guidelines</a>
+<li><a href="#Extending_language_status">Target language status</a>
+<ul>
+<li><a href="#Extending_supported_status">Supported status</a>
+<li><a href="#Extending_experimental_status">Experimental status</a>
+</ul>
+<li><a href="#Extending_prerequisites">Prerequisites for adding a new language module to the SWIG distribution</a>
 </ul>
 <li><a href="#Extending_debugging_options">Debugging Options</a>
 <li><a href="#Extending_nn46">Guide to parse tree nodes</a>
@@ -3531,64 +3536,7 @@ Some topics that you'll want to be sure to address include:
      if available.
 </ul>
 
-<H3><a name="Extending_prerequisites">43.10.14 Prerequisites for adding a new language module to the SWIG distribution</a></H3>
-
-
-<p>
-If you wish for a new language module to be distributed with SWIG,
-which we encourage for all popular languages, there are a few requirements.
-While we appreciate that getting all aspects of a new language working
-won't happen at the outset, there are a set of minimum requirements before
-a module can be committed into the official Github repository for distribution with future
-versions of SWIG. The following are really a summary of this whole section with
-details being outlined earlier on.
-</p>
-
-<ol>
-  <li>
-  Demonstrate basic C code working by porting the "simple" example including
-  a runtime test, see for example <tt>Examples/python/simple</tt>.
-  </li>
-  <li>
-  Demonstrate basic C++ code working by porting the "class" example including
-  a runtime test, see for example <tt>Examples/python/class</tt>.
-  </li>
-  <li>
-  Modify <tt>configure.ac</tt>, <tt>Makefile.in</tt> and <tt>Examples/Makefile.in</tt> to run
-  these examples. Please make sure that if the new language is not
-  installed properly on a box, <tt>make -k check</tt> should still work by
-  skipping the tests and examples for the new language module.
-  </li>
-  <li>
-  Get the test-suite running for the new language (<tt>make check-[lang]-test-suite</tt>).
-  While the test-suite tests many corner cases,
-  we'd expect the majority of it to work by compiling the generated code
-  correctly as most of the corner cases are covered in the SWIG core. Get
-  at least one C and one C++ runtime test running in the test-suite.
-  </li>
-  <li>
-  Provide a chapter in the html documentation on the basics of using
-  the language module.
-  </li>
-  <li>
-  Ensure your source code is formatted according to the <a href="#Extending_coding_style_guidelines">coding style guidelines</a>.
-  </li>
-  <li>
-  Finally, email the SWIG developers with a patch and a demonstration of
-  commitment to maintaining the language module,
-  certainly in the short term and ideally long term.
-  </li>
-</ol>
-
-<p>
-Once accepted into the official Git repository, development efforts should concentrate on
-getting the entire test-suite to work with plenty of runtime tests.
-Runtime tests should be for existing testcases and new test cases 
-should be added should there be an area not already covered by 
-the existing tests.
-</p>
-
-<H3><a name="Extending_coding_style_guidelines">43.10.15 Coding style guidelines</a></H3>
+<H3><a name="Extending_coding_style_guidelines">43.10.14 Coding style guidelines</a></H3>
 
 
 <p>
@@ -3611,6 +3559,192 @@ Of particular note is indentation is set to 2 spaces and a tab is used instead o
 The generated C/C++ code should also follow this style as close as possible. However, tabs
 should be avoided as unlike the SWIG developers, users will never have consistent tab settings.
 </p>
+
+
+<H3><a name="Extending_language_status">43.10.15 Target language status</a></H3>
+
+
+<p>
+Target languages are given a status of either 'Supported' or 'Experimental' depending on their maturity as broadly outlined in
+the <a href="Introduction.html#Introduction_target_languages">Target language introduction</a>.
+This section provides more details on how this status is given.
+</p>
+
+<H4><a name="Extending_supported_status">43.10.15.1 Supported status</a></H4>
+
+
+<p>
+A target language is given the 'Supported' status when
+</p>
+
+<ul>
+<li>
+  It is in a mature, well functioning state.
+</li>
+<li>
+  It has its own comprehensive chapter in the documentation.
+  The level of documentation should be comprehensive and match the standard of the other mature modules.
+  Python and Java are good references.</li>
+<li>
+  It passes all of the main SWIG test-suite.
+  The main test-suite is defined by the tests in the C_TEST_CASES, CPP_TEST_CASES and MULTI_CPP_TEST_CASES lists in Examples/test-suite/common.mk.
+  The tests in CPP11_TEST_CASES will also be required in the near future.
+</li>
+<li>
+  The test-suite must also include at least twenty wide-ranging runtime tests.
+  The most mature languages have a few hundred runtime tests.
+  Note that porting runtime tests from another language module is a quick and easy way to achieve this.
+</li>
+<li>
+  It supports the vast majority of SWIG features.
+  Some more advanced features, such as, directors, full nested class support and target language namespaces (nspace) may be unimplemented.
+  A few support libraries may be missing, for example, a small number of STL libraries.</li>
+<li>
+  It provides strong backwards compatibility between releases.
+  Each point release must aim to be fully backwards compatible.
+  A point release version is the 3rd version digit, so each of the x.y.* versions should be backwards compatible.
+  Backwards compatibility breakages can occur in a new major or minor version if absolutely necessary and if documented.
+  A major or minor version is the first or second digit in the three digit version.
+</li>
+<li>
+  Fixing unintended regressions in the Supported languages will be given higher priority over experimental languages by the core SWIG developers.
+</li>
+<li>
+  Examples must be available and run successfully.
+</li>
+<li>
+  The examples and test-suite must be fully functioning on the Travis Continuous Integration platform.
+</li>
+</ul>
+
+<H4><a name="Extending_experimental_status">43.10.15.2 Experimental status</a></H4>
+
+
+<p>
+A target language is given the 'Experimental' status when
+</p>
+
+<ul>
+<li>
+  It is of sub-standard quality, failing to meet the above 'Standard' status.
+</li>
+<li>
+  It is somewhere between the mid to mature stage of development.
+</li>
+<li>
+  It is in need of help to finish development.
+</li>
+</ul>
+
+<p>
+Some minimum requirements and notes about languages with the 'Experimental' status:
+</p>
+
+<ul>
+<li>
+  Will at least implement basic functionality - support wrapping C functions and simple C++ classes and templates.
+</li>
+<li>
+  Have its own documentation chapter containing a reasonable level of detail.
+  The documentation must provide enough basic functionality for a user to get started.
+</li>
+<li>
+  Have fully functional examples of basic functionality (the simple and class examples).
+</li>
+<li>
+  The test-suite must be implemented and include some runtime tests for wrapped C and C++ tests.
+</li>
+<li>
+  Failing tests must be put into one of the FAILING_CPP_TESTS or FAILING_C_TESTS lists in the test-suite.
+  This will ensure the test-suite can be superficially made to pass by ignoring failing tests.
+  The number of tests in these lists should be no greater than half of the number of tests in the full test-suite.
+</li>
+<li>
+  The examples and test-suite must also be fully functioning on the Travis Continuous Integration platform.
+  However, experimental languages will be set as 'allow_failures'.
+  This means that pull requests and normal development commits will not break the entire Travis build should an experimental language fail.
+</li>
+<li>
+  Any new failed tests will be fixed on a 'best effort' basis by core developers with no promises made.
+</li>
+<li>
+  If a language module has an official maintainer, then the maintainer will be requested to focus on fixing test-suite regressions and commit to migrating the module to become a 'Standard' module.
+</li>
+<li>
+  If a module does not have an official maintainer, then, as maintenance will be on a 'best efforts' basis by the core maintainers, no guarantees will be provided from one release to the next and regressions may creep in.
+</li>
+<li>
+  Experimental target languages will have a (suppressible) warning explaining the Experimental sub-standard status and encourage users to help improve it.
+</li>
+<li>
+  No backwards compatibility is guaranteed as the module is effectively 'in development'.
+  If a language module has an official maintainer, then a backwards compatibility guarantee may be provided at the maintainer's discretion and should be documented as such.
+</li>
+</ul>
+
+<H3><a name="Extending_prerequisites">43.10.16 Prerequisites for adding a new language module to the SWIG distribution</a></H3>
+
+
+<p>
+New target language modules can be included in SWIG and contributions are encouraged for popular languages.
+In order to be considered for inclusion, a language must at a minimum fit the 'Experimental' status described above.
+</p>
+
+<p>
+Below are some practical steps that should help meet these requirements.
+</p>
+
+<ol>
+  <li>
+  The "simple" example needs to be working to demonstrate basic C code wrappers.
+  Port the example from another language, such as from <tt>Examples/python/simple</tt>.
+  </li>
+  <li>
+  The "class" example needs to be working to demonstrate basic C++ code wrappers.
+  Port the example from another language, such as from <tt>Examples/python/class</tt>.
+  </li>
+  <li>
+  Modify <tt>configure.ac</tt>, <tt>Makefile.in</tt> and <tt>Examples/Makefile.in</tt> to run
+  these examples. Please make sure that if the new language is not
+  installed properly on a box, <tt>make -k check</tt> should still work by
+  skipping the tests and examples for the new language module.
+  </li>
+  <li>
+  Copying an existing language module and adapting the source for it is likely to be the most efficient
+  approach to fully developing a new module as a numbe of corner cases are covered in the existing implementations.
+  The most advanced scripting languages are Python and Ruby.
+  The most advanced compiled target languages are Java and C#.
+  </li>
+  <li>
+  Get the <a href="#Extending_running_test_suite">test-suite</a> running for the new language (<tt>make check-[lang]-test-suite</tt>).
+  While the test-suite tests many corner cases,
+  we'd expect the majority of it to work without much effort once the generated code is compiling
+  correctly for basic functionality as most of the corner cases are covered in the SWIG core. Aim to first get
+  one C and one C++ runtime test running in the test-suite.
+  Adding further runtime tests should be a lot easier afterwards by porting existing runtime tests from another language module.
+  </li>
+  <li>
+  The structure and contents of the html documentation chapter can be copied and adapted from one of the other language modules.
+  </li>
+  <li>
+  Source code can be formatted correctly using the info in the <a href="#Extending_coding_style_guidelines">coding style guidelines</a> section.
+  </li>
+  <li>
+  When ready, post a patch on Github, join the swig-devel mailing list and email the SWIG developers with a demonstration of
+  commitment to maintaining the language module,
+  certainly in the short term and ideally long term.
+  </li>
+</ol>
+
+<p>
+Once accepted into the official Git repository, development efforts should concentrate on
+getting the entire test-suite to work
+in order to migrate the language module to the 'Supported' status.
+Runtime tests should be added for existing testcases and new test cases 
+can be added should there be an area not already covered by 
+the existing tests.
+</p>
+
 
 <H2><a name="Extending_debugging_options">43.11 Debugging Options</a></H2>
 
