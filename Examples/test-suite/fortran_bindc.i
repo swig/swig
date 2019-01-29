@@ -5,8 +5,8 @@
 
 // Treat the struct as a native fortran struct rather than as a class with
 // getters/setters.
-%fortranbindc_type(OtherStruct);
-%fortranbindc_type(SimpleStruct);
+%fortran_struct(OtherStruct);
+%fortran_struct(SimpleStruct);
 %fortranbindc set_val;
 %fortranbindc set_ptr;
 %fortranbindc get_ptr_arg;
@@ -103,8 +103,8 @@ extern "C" const int my_const_global_int = 9;
 %constant int is_cplusplus = 0;
 #endif
 
-%fortranbindc_type(AB);
-%fortranbindc_type(XY);
+%fortran_struct(AB);
+%fortran_struct(XY);
 
 %include <carrays.i>
 

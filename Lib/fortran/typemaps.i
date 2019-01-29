@@ -15,7 +15,7 @@
  */
 
 /* Transform the two-argument typemap into an array pointer */
-FORT_ARRAYPTR_TYPEMAP($*1_ltype, %arg((SWIGTYPE *DATA, size_t SIZE)))
+%fortran_array_pointer($*1_ltype, %arg((SWIGTYPE *DATA, size_t SIZE)))
 
 /* Transform (SwigArrayWrapper *$input) -> (SWIGTYPE *DATA, size_t SIZE) */
 %typemap(in, noblock=1) (SWIGTYPE *DATA, size_t SIZE) {

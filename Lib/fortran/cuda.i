@@ -28,7 +28,7 @@
  end type
 }
 
-%define FORT_DEVICEPTR_TYPEMAP(VTYPE, CPPTYPE...)
+%define %fortran_deviceptr(VTYPE, CPPTYPE...)
 
   // C wrapper type: pointer to array wrapper
   %typemap(ctype, noblock=1, out="SwigArrayWrapper",

@@ -1,7 +1,7 @@
 /* File : example.i */
 %module example
 
-%fortranbindc_type(Point)
+%fortran_struct(Point)
 
 %{
 #include "example.h"

@@ -21,10 +21,10 @@
  end type
 }
 
-%define FORT_DEVICEPTR_TYPEMAP(VTYPE, CPPTYPE...)
+%define %fortran_deviceptr(VTYPE, CPPTYPE...)
 
   // Use array type for C interface
-  FORT_ARRAYWRAP_TYPEMAP(CPPTYPE)
+  %fortran_array(CPPTYPE)
 
   // Override Fortran 'imtype': we want device pointer
   %typemap(imtype, fragment="SwigDevArrayWrapper_f") CPPTYPE

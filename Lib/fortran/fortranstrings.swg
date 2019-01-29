@@ -67,7 +67,7 @@ end subroutine
  * from Fortran native strings.
  * ------------------------------------------------------------------------- */
 
-FORT_ARRAYWRAP_TYPEMAP(const char*)
+%fortran_array(const char*)
 
 // Since we add a final null character in SWIG_chararray_to_string_f, we can
 // just access the data directly.
@@ -106,11 +106,11 @@ FORT_ARRAYWRAP_TYPEMAP(const char*)
  *
  * Transform (char *STRING, size_t LENGTH) to a byte array.
  *
- * Note that it's necessary to use a macro for FORT_ARRAYWRAP_TYPEMAP to work correctly.
+ * Note that it's necessary to use a macro for %fortran_array to work correctly.
  * ------------------------------------------------------------------------- */
 
 /* ISO interface type: pointer to templated array wrapper */
-FORT_ARRAYWRAP_TYPEMAP(%arg((char *STRING, size_t LENGTH)))
+%fortran_array(%arg((char *STRING, size_t LENGTH)))
 
 %typemap(in, noblock=1) (char *STRING, size_t LENGTH) {
   $1 = %reinterpret_cast($input->data, $1_ltype);

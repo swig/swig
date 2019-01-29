@@ -26,7 +26,7 @@
 
 // Define ctype, imtype, ftype to create Fortran array pointers; we want to
 // reuse this type definition for the "view" accessor of a vector
-FORT_ARRAYPTR_TYPEMAP(%arg(ARRTYPE::value_type), ARRTYPE& POINTER)
+%fortran_array_pointer(%arg(ARRTYPE::value_type), ARRTYPE& POINTER)
 
 // "Pointer"-like treatment for the vector (used by the `view()` std::vector accessor and inherited by `const ARRTYPE&`)
 %typemap(out, noblock=1) ARRTYPE& POINTER {

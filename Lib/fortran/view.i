@@ -12,7 +12,7 @@
 %define %fortran_view(CTYPE)
   %include <std_pair.i>
 
-  FORT_ARRAYPTR_TYPEMAP(CTYPE, std::pair<CTYPE*, std::size_t >)
+  %fortran_array_pointer(CTYPE, std::pair<CTYPE*, std::size_t >)
 
   %apply std::pair<CTYPE*, std::size_t> { std::pair<const CTYPE*, std::size_t> }
 

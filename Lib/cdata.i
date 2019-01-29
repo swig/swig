@@ -73,17 +73,13 @@ typedef struct SWIGCDATA {
     int   len;
 } SWIGCDATA;
 
-%define SWIGTMARGS__ (const void *indata, int inlen) %enddef
-
 /* Transform the two-argument typemap into an array pointer of 'char' */
-FORT_ARRAYPTR_TYPEMAP(char, SWIGTMARGS__)
+%fortran_array_pointer(char, %arg((const void *indata, int inlen)) )
 
-%typemap(in, noblock=1) SWIGTMARGS__ {
+%typemap(in, noblock=1) (const void *indata, int inlen) {
 $1 = %static_cast($input->data, char*);
 $2 = $input->size;
 }
-
-#undef SWIGTMARGS__
 
 
 #endif
