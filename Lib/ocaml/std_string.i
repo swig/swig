@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 %}
-  
+
 %include <exception.i>
 %include <std_vector.i>
 
@@ -23,10 +23,10 @@ namespace std {
 
 %naturalvar string;
 %naturalvar wstring;
-  
+
 class string;
 class wstring;
-  
+
 /* Overloading check */
 %typemap(in) string {
   /* %typemap(in) string */
@@ -36,18 +36,7 @@ class wstring;
     SWIG_exception(SWIG_TypeError, "string expected");
 }
 
-%typemap(in) const string & ($*1_ltype temp) {
-  /* %typemap(in) const string & */
-  if (caml_ptr_check($input)) {
-    temp.assign((char *)caml_ptr_val($input,0), caml_string_len($input));
-    $1 = &temp;
-  } else {
-    SWIG_exception(SWIG_TypeError, "string expected");
-  }
-}
-
-%typemap(in) string & ($*1_ltype temp) {
-  /* %typemap(in) string & */
+%typemap(in) string & ($*1_ltype temp), const string & ($*1_ltype temp) {
   if (caml_ptr_check($input)) {
     temp.assign((char *)caml_ptr_val($input,0), caml_string_len($input));
     $1 = &temp;
@@ -70,9 +59,8 @@ class wstring;
   delete temp;
 }
 
-%typemap(argout) string & {
-  /* %typemap(argout) string & */
-  swig_result =	caml_list_append(swig_result,caml_val_string_len((*$1).c_str(), (*$1).size()));
+%typemap(out) string &, const string & {
+    $result = caml_val_string_len((*$1).c_str(), (*$1).size());
 }
 
 %typemap(directorout) string {
@@ -89,6 +77,8 @@ class wstring;
   /* %typemap(out) string * */
 	$result = caml_val_string_len((*$1).c_str(),(*$1).size());
 }
+
+%typemap(typecheck) string, string &, const string & = char *;
 }
 
 #ifdef ENABLE_CHARPTR_ARRAY
