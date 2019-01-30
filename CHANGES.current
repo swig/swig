@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-01-31: olly
+	    SWIG now requires a target language to be specified instead of
+	    defaulting to wrapping for Tcl.  Specifying swig --help without
+	    a target language now just shows the generic help.  The -nolang
+	    option has been removed.
+
 2019-01-28: ZackerySpytz
             [OCaml] #1429 Remove support for OCaml versions < 3.12.0.
 

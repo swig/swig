@@ -106,10 +106,6 @@ static swig_module modules[] = {
 #include <SIOUX.h>
 #endif
 
-#ifndef SWIG_LANG
-#define SWIG_LANG "-python"
-#endif
-
 //-----------------------------------------------------------------
 // main()
 //
@@ -262,9 +258,6 @@ int main(int margc, char **margv) {
       if (fac) {
 	dl = (fac) ();
 	Swig_mark_arg(i);
-      } else if (strcmp(argv[i], "-nolang") == 0) {
-	dl = new Language;
-	Swig_mark_arg(i);
       } else if ((strcmp(argv[i], "-help") == 0) || (strcmp(argv[i], "--help") == 0)) {
 	if (strcmp(argv[i], "--help") == 0)
 	  strcpy(argv[i], "-help");
@@ -276,12 +269,6 @@ int main(int margc, char **margv) {
 	}
 	// Swig_mark_arg not called as the general -help options also need to be displayed later on
       }
-    }
-  }
-  if (!dl) {
-    fac = Swig_find_module(SWIG_LANG);
-    if (fac) {
-      dl = (fac) ();
     }
   }
 
