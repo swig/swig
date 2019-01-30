@@ -16,9 +16,6 @@ AM_INIT_AUTOMAKE
 
 dnl Some extra defines for the config file
 AH_BOTTOM([
-/* Default language */
-#define SWIG_LANG               "-tcl"
-
 /* Deal with attempt by Microsoft to deprecate C standard runtime functions */
 #if defined(_MSC_VER)
 # define _CRT_SECURE_NO_DEPRECATE
