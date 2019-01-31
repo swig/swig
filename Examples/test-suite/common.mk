@@ -314,6 +314,7 @@ CPP_TEST_CASES += \
 	namespace_virtual_method \
 	nspace \
 	nspace_extend \
+	native_directive \
 	naturalvar \
 	naturalvar_more \
 	naturalvar_onoff \
