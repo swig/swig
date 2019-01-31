@@ -142,7 +142,7 @@ Use <tt>ocamlc</tt> or <tt>ocamlopt</tt> to compile your SWIG interface like:
 
 <div class="code">
 <pre>
-% swig -ocaml -co swig.mli ; swig -ocaml co swig.ml
+% swig -ocaml -co swig.mli ; swig -ocaml -co swig.ml
 % ocamlc -c swig.mli ; ocamlc -c swig.ml
 % ocamlc -c -ccopt "-I/usr/include/foo" example_wrap.c
 % ocamlc -c example.mli
@@ -336,7 +336,7 @@ appended.  Upon return to caml space, the fnhelper function
 beautifies the result.  A list containing a single item degrades to
 only that item (i.e. [ C_int 3 ] -&gt; C_int 3), and a list
 containing more than one item is wrapped in C_list (i.e. [ C_char
-'a' ; C_char 'b' -&gt; C_list [ C_char 'a' ; C_char b
+'a' ; C_char 'b' ] -&gt; C_list [ C_char 'a' ; C_char 'b'
 ]).  This is in order to make return values easier to handle
 when functions have only one return value, such as constructors,
 and operators.  In addition, string, pointer, and object
@@ -660,7 +660,7 @@ module.
 </p>
 
 <div class="code"><pre>
-bash-2.05a$ ./example_top
+bash-2.05a$ ./runme_top
         Objective Caml version 3.06
 
         Camlp4 Parsing version 3.06
@@ -835,7 +835,7 @@ an overloaded class.  This example is contained in Examples/ocaml/shapes.
 
 
 <table border="1" bgcolor="#dddddd" summary="Director usage example">
-<tr><th><center>example_prog.ml</center>
+<tr><th><center>runme.ml</center>
 </th></tr>
 <tr><td><pre>
 open Swig
@@ -854,13 +854,15 @@ let triangle_class pts ob meth args =
            | _ -&gt; raise (Failure "cover needs two double arguments."))
     | _ -&gt; (invoke ob) meth args ;;
 
+...
+
 let triangle =
   new_derived_object
     new_shape
-    (triangle_class ((0.0, 0.0), (0.5, 1.0), (1.0, 0.0)))
+    (triangle_class ((0.0, 0.0), (0.5, 1.0), (1.0, 0.6)))
     '() ;;
 
-let _ = _draw_shape_coverage '(triangle, C_int 60, C_int 20) ;;
+let _ = _draw_shape_coverage '(triangle, 60, 20) ;;
 </pre></td></tr>
 </table>
 
