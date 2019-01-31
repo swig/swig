@@ -167,6 +167,12 @@ public:
     return declaration;
   }
 
+  void emitBanner(File *f) {
+    Printf(f, "(* ----------------------------------------------------------------------------\n");
+    Swig_banner_target_lang(f, " *");
+    Printf(f, " * ---------------------------------------------------------------------------- *)\n\n");
+  }
+
   /* ------------------------------------------------------------
    * top()
    *
@@ -310,6 +316,8 @@ public:
       FileErrorDisplay(mlifilen);
       SWIG_exit(EXIT_FAILURE);
     }
+    emitBanner(f_mlout);
+    emitBanner(f_mliout);
 
     Language::top(n);
 
@@ -470,6 +478,8 @@ public:
     int destructor = (!Cmp(nodeType, "destructor"));
     String *overname = 0;
     bool isOverloaded = Getattr(n, "sym:overloaded") ? true : false;
+    // For overloaded functions, only the dispatch function needs to be exposed in the ml and mli files.
+    bool expose_func = !isOverloaded || !Getattr(n, "sym:nextSibling");
 
     // Make a wrapper name for this
     String *wname = Swig_name_wrapper(iname);
@@ -493,7 +503,7 @@ public:
     Printv(proc_name, "_", iname, NIL);
     String *mangled_name = mangleNameForCaml(proc_name);
 
-    if (classmode && in_constructor) {	// Emit constructor for object
+    if (classmode && in_constructor && expose_func) { // Emit constructor for object
       String *mangled_name_nounder = NewString((char *) (Char(mangled_name)) + 1);
       Printf(f_class_ctors_end, "let %s clst = _%s clst\n", mangled_name_nounder, mangled_name_nounder);
       Printf(f_mlibody, "val %s : c_obj -> c_obj\n", mangled_name_nounder);
@@ -501,7 +511,7 @@ public:
     } else if (classmode && in_destructor) {
       Printf(f_class_ctors, "    \"~\", %s ;\n", mangled_name);
     } else if (classmode && !in_constructor && !in_destructor && !static_member_function &&
-	    !Getattr(n, "membervariableHandler:sym:name")) {
+	    !Getattr(n, "membervariableHandler:sym:name") && expose_func) {
       String *opname = Copy(Getattr(n, "memberfunctionHandler:sym:name"));
 
       Replaceall(opname, "operator ", "");
@@ -742,15 +752,16 @@ public:
       }
     }
 
-    Printf(f_mlbody,
-	   "external %s_f : c_obj list -> c_obj list = \"%s\" ;;\n"
-	   "let %s arg = match %s_f (fnhelper arg) with\n"
-	   "  [] -> C_void\n"
-	   "| [x] -> (if %s then Gc.finalise \n"
-	   "  (fun x -> ignore ((invoke x) \"~\" C_void)) x) ; x\n"
-	   "| lst -> C_list lst ;;\n", mangled_name, wname, mangled_name, mangled_name, newobj ? "true" : "false");
+    if (expose_func)
+      Printf(f_mlbody,
+	     "external %s_f : c_obj list -> c_obj list = \"%s\" ;;\n"
+	     "let %s arg = match %s_f (fnhelper arg) with\n"
+	     "  [] -> C_void\n"
+	     "| [x] -> (if %s then Gc.finalise \n"
+	     "  (fun x -> ignore ((invoke x) \"~\" C_void)) x) ; x\n"
+	     "| lst -> C_list lst ;;\n", mangled_name, wname, mangled_name, mangled_name, newobj ? "true" : "false");
 
-    if (!classmode || in_constructor || in_destructor || static_member_function)
+    if ((!classmode || in_constructor || in_destructor || static_member_function) && expose_func)
       Printf(f_mlibody, "val %s : c_obj -> c_obj\n", mangled_name);
 
     Delete(proc_name);
