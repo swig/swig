@@ -16,6 +16,7 @@ SWIGEXT {
 #endif
 #define value caml_value_t
 #define CAML_VALUE caml_value_t
+#define CAML_NAME_SPACE
 #include <caml/alloc.h>
 #include <caml/custom.h>
 #include <caml/mlvalues.h>
