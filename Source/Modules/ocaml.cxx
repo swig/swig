@@ -768,10 +768,11 @@ public:
    * variableWrapper()
    *
    * Create a link to a C variable.
-   * This creates a single function _wrap_swig_var_varname().
+   * This creates a single function _wrap_varname().
    * This function takes a single optional argument.   If supplied, it means
    * we are setting this variable to some value.  If omitted, it means we are
-   * simply evaluating this variable.  In the set case we return C_void.
+   * simply evaluating this variable.  We return the value of the variable
+   * in both cases.
    *
    * symname is the name of the variable with respect to C.  This 
    * may need to differ from the original name in the case of enums.
@@ -787,9 +788,6 @@ public:
 
     String *proc_name = NewString("");
     String *tm;
-    String *tm2 = NewString("");
-    String *argnum = NewString("0");
-    String *arg = NewString("SWIG_Field(args,0)");
     Wrapper *f;
 
     if (!name) {
@@ -809,14 +807,16 @@ public:
     // evaluation function names
     String *var_name = Swig_name_wrapper(iname);
 
-    // Build the name for scheme.
+    // Build the name for OCaml.
     Printv(proc_name, iname, NIL);
     Setattr(n, "wrap:name", proc_name);
 
     Printf(f->def, "SWIGEXT CAML_VALUE %s(CAML_VALUE args) {\n", var_name);
     // Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NIL);
 
-    Wrapper_add_local(f, "swig_result", "CAML_VALUE swig_result");
+    Wrapper_add_local(f, "args", "CAMLparam1(args)");
+    Wrapper_add_local(f, "swig_result", "SWIG_CAMLlocal1(swig_result)");
+    Printf(f->code, "swig_result = Val_unit;\n");
 
     if (!GetFlag(n, "feature:immutable")) {
       /* Check for a setting of the variable value */
@@ -825,13 +825,12 @@ public:
 	Replaceall(tm, "$source", "args");
 	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "args");
-	/* Printv(f->code, tm, "\n",NIL); */
 	emit_action_code(n, f->code, tm);
       } else if ((tm = Swig_typemap_lookup("in", n, name, 0))) {
 	Replaceall(tm, "$source", "args");
 	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "args");
-	Printv(f->code, tm, "\n", NIL);
+	emit_action_code(n, f->code, tm);
       } else {
 	throw_unhandled_ocaml_type_error(t, "varin/in");
       }
@@ -849,12 +848,12 @@ public:
       Replaceall(tm, "$source", name);
       Replaceall(tm, "$target", "swig_result");
       Replaceall(tm, "$result", "swig_result");
-      Printf(f->code, "%s\n", tm);
+      emit_action_code(n, f->code, tm);
     } else {
       throw_unhandled_ocaml_type_error(t, "varout/out");
     }
 
-    Printf(f->code, "\nreturn swig_result;\n");
+    Printf(f->code, "\nCAMLreturn(swig_result);\n");
     Printf(f->code, "}\n");
 
     Wrapper_print(f, f_wrappers);
@@ -875,9 +874,6 @@ public:
 
     Delete(var_name);
     Delete(proc_name);
-    Delete(argnum);
-    Delete(arg);
-    Delete(tm2);
     DelWrapper(f);
     return SWIG_OK;
   }

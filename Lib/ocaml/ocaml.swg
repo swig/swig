@@ -35,8 +35,8 @@ extern "C" {
     SWIG_Cast (void *source, swig_type_info *source_type,
 	       void **ptr, swig_type_info *dest_type)
     {
-	if( !source ) { // Special case for NULL.  This is a popular question
-	    // for other modules on the list, so I want an easy way out...
+	if( !source ) { /* Special case for NULL.  This is a popular question
+	     for other modules on the list, so I want an easy way out... */
 	    *ptr = 0;
 	    return 0;
 	}

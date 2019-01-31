@@ -33,7 +33,7 @@ SWIGEXT {
 
 #define caml_array_set swig_caml_array_set
 
-// Adapted from memory.h and mlvalues.h
+/* Adapted from memory.h and mlvalues.h */
 
 #define SWIG_CAMLlocal1(x) \
   caml_value_t x = 0; \

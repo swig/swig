@@ -29,7 +29,6 @@ class wstring;
   
 /* Overloading check */
 %typemap(in) string {
-  /* %typemap(in) string */
   if (caml_ptr_check($input))
     $1.assign((char *)caml_ptr_val($input,0), caml_string_len($input));
   else
@@ -37,7 +36,6 @@ class wstring;
 }
 
 %typemap(in) const string & ($*1_ltype temp) {
-  /* %typemap(in) const string & */
   if (caml_ptr_check($input)) {
     temp.assign((char *)caml_ptr_val($input,0), caml_string_len($input));
     $1 = &temp;
@@ -47,7 +45,6 @@ class wstring;
 }
 
 %typemap(in) string & ($*1_ltype temp) {
-  /* %typemap(in) string & */
   if (caml_ptr_check($input)) {
     temp.assign((char *)caml_ptr_val($input,0), caml_string_len($input));
     $1 = &temp;
@@ -57,7 +54,6 @@ class wstring;
 }
 
 %typemap(in) string * ($*1_ltype *temp) {
-  /* %typemap(in) string * */
   if (caml_ptr_check($input)) {
     temp = new $*1_ltype((char *)caml_ptr_val($input,0), caml_string_len($input));
     $1 = temp;
@@ -71,22 +67,18 @@ class wstring;
 }
 
 %typemap(argout) string & {
-  /* %typemap(argout) string & */
   swig_result =	caml_list_append(swig_result,caml_val_string_len((*$1).c_str(), (*$1).size()));
 }
 
 %typemap(directorout) string {
-  /* %typemap(directorout) string */
 	$result.assign((char *)caml_ptr_val($input,0), caml_string_len($input));
 }
 
 %typemap(out) string {
-  /* %typemap(out) string */
   $result = caml_val_string_len($1.c_str(),$1.size());
 }
 
 %typemap(out) string * {
-  /* %typemap(out) string * */
 	$result = caml_val_string_len((*$1).c_str(),(*$1).size());
 }
 }
