@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-01-28: ZackerySpytz
+            [OCaml] #1429 Remove support for OCaml versions < 3.12.0.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2019-01-22: vadz
             [Ruby, Octave] #1424 Improve autodoc parameter naming.
 

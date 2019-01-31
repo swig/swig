@@ -19,7 +19,7 @@ void takes_char_ptr( char *p ) {
     cout << "takes_char_ptr( \"" << p << "\" );" << endl;
 }
 
-char *gives_char_ptr() {
+const char *gives_const_char_ptr() {
     return "foo";
 }
 
@@ -28,8 +28,8 @@ void takes_and_gives_std_string( std::string &inout ) {
     inout.insert( inout.end(), ']' );
 }
 
-void takes_and_gives_char_ptr( char *&inout ) {
-    char *pout = strchr( inout, '.' );
+void takes_and_gives_const_char_ptr( const char *&inout ) {
+    const char *pout = strchr( inout, '.' );
     if( pout ) inout = pout + 1;
     else inout = "foo";
 }
