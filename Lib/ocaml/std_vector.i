@@ -71,7 +71,7 @@ namespace std {
   
   let array_to_vector v argcons array = 
     for i = 0 to (Array.length array) - 1 do
-	(invoke v) "set" (C_list [ C_int i ; (argcons array.(i)) ])
+	ignore ((invoke v) "set" (C_list [ C_int i ; (argcons array.(i)) ]))
     done ;
     v
     

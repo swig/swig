@@ -131,7 +131,7 @@ SWIGINTERN void SWIG_JavaException(JNIEnv *jenv, int code, const char *msg) {
 SWIGINTERN void SWIG_exception_(int code, const char *msg) {
   char msg_buf[OCAML_MSG_BUF_LEN];
   sprintf( msg_buf, "Exception(%d): %s\n", code, msg );
-  failwith( msg_buf );
+  caml_failwith( msg_buf );
 }
 #define SWIG_exception(a,b) SWIG_exception_((a),(b))
 %}

@@ -1477,7 +1477,7 @@ SWIGRUNTIME int SWIG_Octave_ConvertPtrAndOwn(octave_value ov, void **ptr, swig_t
       (ov.is_matrix_type() && ov.rows() == 0 && ov.columns() == 0) ) {
     if (ptr)
       *ptr = 0;
-    return SWIG_OK;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
   if (ov.type_id() != octave_swig_ref::static_type_id())
     return SWIG_ERROR;

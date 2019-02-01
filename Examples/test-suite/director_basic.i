@@ -1,5 +1,9 @@
 %module(directors="1") director_basic
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) method;
+#endif
+
 %warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) MyClass::pmethod;
 
  %{

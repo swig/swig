@@ -12,6 +12,7 @@ def get_cflags(language, std, compiler):
           "java":"-Werror " + c_common,
     "javascript":"-Werror " + c_common,
            "lua":"-Werror " + c_common,
+         "ocaml":"-Werror " + c_common,
         "octave":"-Werror " + c_common,
          "perl5":"-Werror " + c_common,
            "php":"-Werror " + c_common,
@@ -41,6 +42,7 @@ def get_cxxflags(language, std, compiler):
           "java":"-Werror " + cxx_common,
     "javascript":"-Werror " + cxx_common + " -Wno-error=unused-function", # Until overload_rename is fixed for node
            "lua":"-Werror " + cxx_common,
+         "ocaml":"-Werror " + cxx_common,
         "octave":"-Werror " + cxx_common,
          "perl5":"-Werror " + cxx_common,
            "php":"-Werror " + cxx_common,

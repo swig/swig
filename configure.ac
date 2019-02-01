@@ -16,9 +16,6 @@ AM_INIT_AUTOMAKE
 
 dnl Some extra defines for the config file
 AH_BOTTOM([
-/* Default language */
-#define SWIG_LANG               "-tcl"
-
 /* Deal with attempt by Microsoft to deprecate C standard runtime functions */
 #if defined(_MSC_VER)
 # define _CRT_SECURE_NO_DEPRECATE
@@ -2040,7 +2037,7 @@ AC_SUBST(PHP)
 AC_SUBST(PHPINC)
 
 #----------------------------------------------------------------
-# Look for ocaml
+# Look for OCaml
 #----------------------------------------------------------------
 
 AC_ARG_WITH(ocaml, AS_HELP_STRING([--without-ocaml], [Disable OCaml]), [with_ocaml="$withval"], [with_ocaml="$alllang_default"])
@@ -2055,31 +2052,31 @@ if test x"${with_ocaml}" = xno; then
     AC_MSG_NOTICE([Disabling OCaml])
     OCAMLC=
 else
-    AC_MSG_CHECKING(for Ocaml DL load generator)
+    # OCaml DL load generator
     if test -z "$OCAMLDLGEN"; then
 	AC_CHECK_PROGS(OCAMLDLGEN, ocamldlgen)
     fi
 
-    AC_MSG_CHECKING(for Ocaml package tool)
-	if test -z "$OCAMLFIND"; then
+    # OCaml package tool
+    if test -z "$OCAMLFIND"; then
 	AC_CHECK_PROGS(OCAMLFIND, ocamlfind)
     fi
 
-    AC_MSG_CHECKING(for Ocaml compiler)
-	if test -z "$OCAMLC"; then
+    # OCaml compiler
+    if test -z "$OCAMLC"; then
 	AC_CHECK_PROGS(OCAMLC, ocamlc)
     fi
 
-    AC_MSG_CHECKING(for Ocaml toplevel creator)
+    # OCaml toplevel creator
     if test -z "$OCAMLMKTOP"; then
 	AC_CHECK_PROGS(OCAMLMKTOP, ocamlmktop)
     fi
 
-    AC_MSG_CHECKING(for Ocaml Pre-Processor-Pretty-Printer)
+    # OCaml Pre-Processor-Pretty-Printer
     if test -z "$CAMLP4"; then
 	AC_CHECK_PROGS(CAMLP4, camlp4)
     fi
-fi # Disabling ocaml
+fi
 
 AC_SUBST(OCAMLC)
 AC_SUBST(OCAMLDLGEN)
@@ -2728,7 +2725,7 @@ void main() {
 _ACEOF
       rm -f conftest.$ac_objext
       AS_IF(
-        [_AC_DO_STDERR($D1COMPILER conftest.$ac_ext) && test ! -s conftest.err && test -s conftest.$ac_objext],
+        [$D1COMPILER conftest.$ac_ext 2>&AS_MESSAGE_LOG_FD && test ! -s conftest.err && test -s conftest.$ac_objext],
         [AC_MSG_RESULT([yes])],
         [_AC_MSG_LOG_CONFTEST AC_MSG_RESULT([no])
         D1COMPILER=]
@@ -2751,7 +2748,7 @@ void main() {
 _ACEOF
       rm -f conftest.$ac_objext
       AS_IF(
-        [_AC_DO_STDERR($D2COMPILER conftest.$ac_ext) && test ! -s conftest.err && test -s conftest.$ac_objext],
+        [$D2COMPILER conftest.$ac_ext 2>&AS_MESSAGE_LOG_FD && test ! -s conftest.err && test -s conftest.$ac_objext],
         [AC_MSG_RESULT([yes])],
         [_AC_MSG_LOG_CONFTEST AC_MSG_RESULT([no])
         D2COMPILER=]

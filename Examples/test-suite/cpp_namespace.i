@@ -2,6 +2,10 @@
 
 %module cpp_namespace
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) method;
+#endif
+
 %inline %{
   typedef int Bad;
 

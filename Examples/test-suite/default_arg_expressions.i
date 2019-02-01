@@ -1,5 +1,9 @@
 %module default_arg_expressions
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#endif
+
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) ptr;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) UsdGeomTokensPtr;
 %immutable UsdGeomTokens;

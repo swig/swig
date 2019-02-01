@@ -255,32 +255,22 @@ private:
       autodoc = make_autodoc(n, ad_type);
       have_auto = (autodoc && Len(autodoc) > 0);
     }
-    // If there is more than one line then make docstrings like this:
-    //
-    //      This is line1
-    //      And here is line2 followed by the rest of them
-    //
-    // otherwise, put it all on a single line
-    //
+
+    if (have_auto || have_ds)
+      doc = NewString("/*");
+
     if (have_auto && have_ds) {	// Both autodoc and docstring are present
-      doc = NewString("");
-      Printv(doc, "\n", autodoc, "\n", str, NIL);
+      Printv(doc, "\n", autodoc, "\n", str, "\n", NIL);
     } else if (!have_auto && have_ds) {	// only docstring
-      if (Strchr(str, '\n') == 0) {
-	doc = NewString(str);
-      } else {
-	doc = NewString("");
-	Printv(doc, str, NIL);
-      }
+      Printv(doc, str, NIL);
     } else if (have_auto && !have_ds) {	// only autodoc
-      if (Strchr(autodoc, '\n') == 0) {
-	doc = NewStringf("%s", autodoc);
-      } else {
-	doc = NewString("");
-	Printv(doc, "\n", autodoc, NIL);
-      }
-    } else
+      Printv(doc, "\n", autodoc, "\n", NIL);
+    } else {
       doc = NewString("");
+    }
+
+    if (have_auto || have_ds)
+      Append(doc, "*/\n");
 
     // Save the generated strings in the parse tree in case they are used later
     // by post processing tools
@@ -300,13 +290,14 @@ private:
    *   The "lname" attribute in each parameter in plist will be contain a parameter name
    * ----------------------------------------------------------------------------- */
 
-  void addMissingParameterNames(ParmList *plist, int arg_offset) {
+  void addMissingParameterNames(Node* n, ParmList *plist, int arg_offset) {
     Parm *p = plist;
     int i = arg_offset;
     while (p) {
       if (!Getattr(p, "lname")) {
-	String *pname = Swig_cparm_name(p, i);
-	Delete(pname);
+	String *name = makeParameterName(n, p, i);
+	Setattr(p, "lname", name);
+	Delete(name);
       }
       i++;
       p = nextSibling(p);
@@ -325,10 +316,10 @@ private:
     Parm *p;
     Parm *pnext;
     int lines = 0;
-    int start_arg_num = is_wrapping_class() ? 1 : 0;
+    int arg_num = is_wrapping_class() ? 1 : 0;
     const int maxwidth = 80;
 
-    addMissingParameterNames(plist, start_arg_num); // for $1_name substitutions done in Swig_typemap_attach_parms
+    addMissingParameterNames(n, plist, arg_num); // for $1_name substitutions done in Swig_typemap_attach_parms
 
     Swig_typemap_attach_parms("in", plist, 0);
     Swig_typemap_attach_parms("doc", plist, 0);
@@ -338,7 +329,7 @@ private:
       return doc;
     }
 
-    for (p = plist; p; p = pnext) {
+    for (p = plist; p; p = pnext, arg_num++) {
 
       String *tm = Getattr(p, "tmap:in");
       if (tm) {
@@ -361,9 +352,10 @@ private:
       }
 
       // Note: the generated name should be consistent with that in kwnames[]
-      name = name ? name : Getattr(p, "name");
-      name = name ? name : Getattr(p, "lname");
-      name = Swig_name_make(p, 0, name, 0, 0); // rename parameter if a keyword
+      String *made_name = 0;
+      if (!name) {
+	name = made_name = makeParameterName(n, p, arg_num);
+      }
 
       type = type ? type : Getattr(p, "type");
       value = value ? value : Getattr(p, "value");
@@ -414,7 +406,7 @@ private:
 	Printf(doc, "=%s", value);
       }
       Delete(type_str);
-      Delete(name);
+      Delete(made_name);
     }
     if (pdocs)
       Setattr(n, "feature:pdocs", pdocs);
@@ -520,7 +512,7 @@ private:
     last_mode    = ad_type;
     last_autodoc = Copy(methodName);
 
-    String *doc = NewString("/*\n");
+    String *doc = NewString("");
     int counter = 0;
     bool skipAuto = false;
     Node* on = n;
@@ -760,7 +752,6 @@ private:
       n = Getattr(n, "sym:nextSibling");
     }
 
-    Append(doc, "\n*/\n");
     Delete(full_name);
     Delete(class_name);
     Delete(super_names);

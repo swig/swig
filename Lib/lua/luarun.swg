@@ -1765,7 +1765,12 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State *L,int index,void **ptr,swig_type
 {
   swig_lua_userdata *usr;
   swig_cast_info *cast;
-  if (lua_isnil(L,index)){*ptr=0; return SWIG_OK;}    /* special case: lua nil => NULL pointer */
+  /* special case: lua nil => NULL pointer */
+  if (lua_isnil(L,index))
+  {
+    *ptr=0;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
+  }
   usr=(swig_lua_userdata*)lua_touserdata(L,index);  /* get data */
   if (usr)
   {

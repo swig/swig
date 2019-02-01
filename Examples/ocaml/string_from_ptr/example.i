@@ -1,4 +1,4 @@
-%module foolib
+%module example
 %{
 static int foo( char **buf ) {
   *buf = "string from c";

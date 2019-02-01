@@ -43,7 +43,7 @@ Foo* get_foo() {return new Foo();}
 %}
 
 %pythoncode %{
-    print_debug = True
+    print_debug = False
 %}
 
 %extend Foo {

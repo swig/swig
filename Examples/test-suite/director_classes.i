@@ -5,6 +5,10 @@
 %warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) Base::Ptr;
 %warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) Base::ConstPtrRef;
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#endif
+
 %module(directors="1") director_classes
 
 %feature("director") Base;

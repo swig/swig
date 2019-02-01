@@ -890,7 +890,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // Initialize the preprocessor
   Preprocessor_init();
 
-  lang = l;
+  // Set lang to a dummy value if no target language was specified so we
+  // can process options enough to handle -version, etc.
+  lang = l ? l : new Language;
 
   // Set up some default symbols (available in both SWIG interface files
   // and C files)
@@ -923,9 +925,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   Wrapper_director_protected_mode_set(1);
 
   // Inform the parser if the nested classes should be ignored unless explicitly told otherwise via feature:flatnested
-  ignore_nested_classes = l->nestedClassesSupport() == Language::NCS_Unknown ? 1 : 0;
+  ignore_nested_classes = lang->nestedClassesSupport() == Language::NCS_Unknown ? 1 : 0;
 
-  kwargs_supported = l->kwargsSupport() ? 1 : 0;
+  kwargs_supported = lang->kwargsSupport() ? 1 : 0;
 
   // Create Library search directories
 
@@ -959,6 +961,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // Define the __cplusplus symbol
   if (CPlusPlus)
     Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
+
+  if (!l) {
+    Printf(stderr, "No target language specified\n");
+    return 1;
+  }
 
   // Parse language dependent options
   lang->main(argc, argv);
