@@ -7,6 +7,20 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-02-02: ahnolds
+	    [Python] Documentation enhancements for Python:
+
+            #728 Fixed the handling of autodoc when using -fastproxy.
+
+            #1367 Added documentation to wrapped member variables using the
+            property(... doc="...") construct.
+
+            Only show a single documentation entry for functions with default arguments when
+            using autodoc.
+
+            Fixed a bug where a cached doxygen docstring could be deleted while still in use,
+            causing swig to segfault.
+
 2019-01-31: olly
 	    SWIG now requires a target language to be specified instead of
 	    defaulting to wrapping for Tcl.  Specifying swig --help without
