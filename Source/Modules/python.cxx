@@ -4029,9 +4029,7 @@ public:
       String *doc = Getattr(mgetset, "doc");
       if (!doc)
 	doc = NewStringf("%s.%s", name, memname);
-      String *entry =
-	  NewStringf("{ (char *)\"%s\", (getter)%s, (setter)%s, (char *)\"%s\", (void *)&%s }\n", memname, getter_closure,
-		     setter_closure, doc, gspair);
+      String *entry = NewStringf("{ (char *)\"%s\", %s, %s, (char *)\"%s\", &%s }", memname, getter_closure, setter_closure, doc, gspair);
       if (GetFlag(mgetset, "static")) {
 	Printf(f, "static PyGetSetDef %s_def = %s;\n", gspair, entry);
 	Printf(f_init, "static_getset = SwigPyStaticVar_new_getset(metatype, &%s_def);\n", gspair);
@@ -4043,7 +4041,7 @@ public:
       Delete(gspair);
       Delete(entry);
     }
-    Printv(f, getset_def, "    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */\n", "};\n\n", NIL);
+    Printv(f, getset_def, "    { NULL, NULL, NULL, NULL, NULL } /* Sentinel */\n", "};\n\n", NIL);
 
     // Rich compare function
     Hash *richcompare = Getattr(n, "python:richcompare");
