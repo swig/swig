@@ -28,24 +28,18 @@ typedef struct swig_const_info {
  * Function to find the method definition with the correct docstring for the
  * proxy module as opposed to the low-level API
  * ----------------------------------------------------------------------------- */
-PyMethodDef* getProxyDoc(const char* name);
+SWIGRUNTIME PyMethodDef *SWIG_PythonGetProxyDoc(const char *name);
 
 /* -----------------------------------------------------------------------------
  * Wrapper of PyInstanceMethod_New() used in Python 3
  * It is exported to the generated module, used for -fastproxy
  * ----------------------------------------------------------------------------- */
-SWIGRUNTIME PyObject* SWIG_PyInstanceMethod_New(PyObject *SWIGUNUSEDPARM(self), PyObject *func)
-{
+SWIGRUNTIME PyObject *SWIG_PyInstanceMethod_New(PyObject *SWIGUNUSEDPARM(self), PyObject *func) {
   if (PyCFunction_Check(func)) {
-    /* Unpack the existing PyCFunction */
-    PyMethodDef* ml = ((PyCFunctionObject*) func)->m_ml;
-    PyObject* self = ((PyCFunctionObject*) func)->m_self;
-    PyObject* module = ((PyCFunctionObject*) func)->m_module;
-    /* Use the copy with the modified docstring if available */
-    ml = getProxyDoc(ml->ml_name);
-    if (ml != NULL) {
-      func = PyCFunction_NewEx(ml, self, module);
-    }
+    PyCFunctionObject *funcobj = (PyCFunctionObject *)func;
+    PyMethodDef *ml = SWIG_PythonGetProxyDoc(funcobj->m_ml->ml_name);
+    if (ml)
+      func = PyCFunction_NewEx(ml, funcobj->m_self, funcobj->m_module);
   }
 #if PY_VERSION_HEX >= 0x03000000
   return PyInstanceMethod_New(func);
@@ -58,18 +52,12 @@ SWIGRUNTIME PyObject* SWIG_PyInstanceMethod_New(PyObject *SWIGUNUSEDPARM(self), 
  * Wrapper of PyStaticMethod_New()
  * It is exported to the generated module, used for -fastproxy
  * ----------------------------------------------------------------------------- */
-SWIGRUNTIME PyObject* SWIG_PyStaticMethod_New(PyObject *SWIGUNUSEDPARM(self), PyObject *func)
-{
+SWIGRUNTIME PyObject *SWIG_PyStaticMethod_New(PyObject *SWIGUNUSEDPARM(self), PyObject *func) {
   if (PyCFunction_Check(func)) {
-    /* Unpack the existing PyCFunction */
-    PyMethodDef* ml = ((PyCFunctionObject*) func)->m_ml;
-    PyObject* self = ((PyCFunctionObject*) func)->m_self;
-    PyObject* module = ((PyCFunctionObject*) func)->m_module;
-    /* Use the copy with the modified docstring if available */
-    ml = getProxyDoc(ml->ml_name);
-    if (ml != NULL) {
-      func = PyCFunction_NewEx(ml, self, module);
-    }
+    PyCFunctionObject *funcobj = (PyCFunctionObject *)func;
+    PyMethodDef *ml = SWIG_PythonGetProxyDoc(funcobj->m_ml->ml_name);
+    if (ml)
+      func = PyCFunction_NewEx(ml, funcobj->m_self, funcobj->m_module);
   }
   return PyStaticMethod_New(func);
 }

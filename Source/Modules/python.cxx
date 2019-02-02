@@ -835,7 +835,7 @@ public:
     Printf(f_wrappers, "%s\n", methods_proxydocs);
 
     /* Need to define the function to find the proxy documentation after the proxy docs themselves */
-    Printv(f_wrappers, "PyMethodDef* getProxyDoc(const char* name)\n",
+    Printv(f_wrappers, "SWIGRUNTIME PyMethodDef *SWIG_PythonGetProxyDoc(const char *name)\n",
 	   "{\n",
 	   "  /* Find the function in the modified method table */\n",
 	   "  size_t offset = 0;\n",
@@ -848,11 +848,7 @@ public:
 	   "    offset++;\n",
 	   "  }\n",
 	   "  /* Use the copy with the modified docstring if available */\n",
-	   "  if (found == 1) {\n",
-	   "    return &SwigMethods_proxydocs[offset];\n",
-	   "  } else {\n",
-	   "    return NULL;\n",
-	   "  }\n",
+	   "  return found ? &SwigMethods_proxydocs[offset] : NULL;\n",
 	   "}\n", NIL);
 
     if (builtin) {
