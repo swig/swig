@@ -2170,9 +2170,11 @@ int FORTRAN::enumDeclaration(Node *n) {
   if (enum_name && (add_fsymbol(enum_name, n) == SWIG_NOWRAP))
     return SWIG_NOWRAP;
 
-  // Don't generate wrappers if we're in import mode, but make sure the symbol renaming above is still performed
-  if (ImportMode)
+  if (ImportMode) {
+    // Don't generate wrappers if we're in import mode, but make sure the symbol renaming above is still performed. Also make sure to mark that the enum is available for use as a type
+    SetFlag(n, "fortran:declared");
     return SWIG_OK;
+  }
 
   if (String *name = Getattr(n, "name")) {
     Printv(f_fdecl, " ! ", NULL);
