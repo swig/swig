@@ -722,12 +722,12 @@ C_TEST_CASES += \
 # Multi-module C++ test cases . (Can be run individually using make testcase.multicpptest)
 MULTI_CPP_TEST_CASES += \
 	clientdata_prop \
-	imports \
 	import_stl \
-	packageoption \
+	imports \
 	mod \
-	template_typedef_import \
 	multi_import \
+	packageoption \
+	template_typedef_import \
 
 # Custom tests - tests with additional commandline options
 wallkw.cpptest: SWIGOPT += -Wallkw
