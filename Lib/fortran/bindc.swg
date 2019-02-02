@@ -2,22 +2,23 @@
  * bindc.swg
  * ------------------------------------------------------------------------- */
 
-// Declare 'STRUCT' as a fundamental type, except instead of being `integer(C_INT)` it's `type($fclassname)`
-FORT_FUND_TYPEMAP(STRUCT, type($fclassname))
+// Declare a generic `FORTRAN_STRUCT_TYPE` as a native type.
+// Rather than being an intrinsic type `integer(C_INT)` it's a derived type `type($fclassname)`
+%fortran_intrinsic(FORTRAN_STRUCT_TYPE, type($fclassname))
 
 /*!
- * \def %fortranbindc_type
+ * \def %fortran_struct
  * \brief Wrap a struct as BIND(C).
  *
  * The typemap lookup is as follows for a struct Foo being wrapped, using the example of ctype.
- *  1. `Foo *` is %applied from `STRUCT *` via `FORT_APPLY_TYPEMAPS` below.
- *  2. `STRUCT *` is %applied from `FUNDTYPE *` via `FORT_FUND_TYPEMAP` above.
- *  3. `FUNDTYPE *` has the typemap of `"$typemap(ctype, $*1_ltype)*"`, which evaulates
+ *  1. `Foo *` is %applied from `FORTRAN_STRUCT_TYPE *` via `%fortran_apply_typemaps` below.
+ *  2. `FORTRAN_STRUCT_TYPE *` is %applied from `FORTRAN_INTRINSIC_TYPE *` via `%fortran_intrinsic` above.
+ *  3. `FORTRAN_INTRINSIC_TYPE *` has the typemap of `"$typemap(ctype, $*1_ltype)*"`, which evaulates
  *     to `$typemap(ctype, Foo)*`.
- *  4. `Foo` (value) is %applied from `STRUCT` in the explicit `%apply` below.
- *  5. The `STRUCT` value ctype is copied from the `FUNDTYPE` type via `FORT_FUND_TYPEMAP`.
+ *  4. `Foo` (value) is %applied from `FORTRAN_STRUCT_TYPE` in the explicit `%apply` below.
+ *  5. The `FORTRAN_STRUCT_TYPE` value ctype is copied from the `FORTRAN_INTRINSIC_TYPE` type via `%fortran_intrinsic`.
  * ------------------------------------------------------------------------- */
-%define %fortranbindc_type(CLS)
+%define %fortran_struct(CLS)
   // Mark the class as being C-bound
   %fortranbindc CLS;
 
@@ -31,8 +32,8 @@ FORT_FUND_TYPEMAP(STRUCT, type($fclassname))
   }
 
   // Apply basic typemaps
-  %apply STRUCT { CLS };
-  FORT_APPLY_TYPEMAPS(STRUCT, CLS)
+  %apply FORTRAN_STRUCT_TYPE { CLS };
+  %fortran_apply_typemaps(FORTRAN_STRUCT_TYPE, CLS)
 
   // Set up C type
   %typemap(ctype, in={const CLS*}, null={SWIG_null_struct_ ## CLS()}, fragment="SWIG_null_struct"{CLS}, noblock=1) CLS {

@@ -6,7 +6,7 @@
  * using OpenACC, then include <openacc.i> first.
  *
  * ------------------------------------------------------------------------- */
-#if !defined(FORT_DEVICEPTR_TYPEMAP)
+#if !defined(%fortran_deviceptr)
 #error "Either <cuda.i> or <openacc.i> must be included before <thrust.i>"
 #endif
 
@@ -19,7 +19,7 @@
  */
 %define %thrust_deviceptr(T, PTRTYPE...)
 
-  FORT_DEVICEPTR_TYPEMAP(T, %arg((PTRTYPE *DATA, size_t SIZE)))
+  %fortran_deviceptr(T, %arg((PTRTYPE *DATA, size_t SIZE)))
 
   %typemap(in, noblock=1) (PTRTYPE *DATA, size_t SIZE) {
     $1 = $1_ltype(static_cast<T*>($input->data));

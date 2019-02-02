@@ -5,7 +5,7 @@
 %}
 
 // Give *all* types the struct typemap by default
-%fortranbindc_type(SWIGTYPE);
+%fortran_struct(SWIGTYPE);
 // Apply the "bindc" feature to everything
 %fortranbindc "1";
 

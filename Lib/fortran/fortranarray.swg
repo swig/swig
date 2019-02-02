@@ -51,7 +51,7 @@ end subroutine}
  * MACROS
  * ------------------------------------------------------------------------- */
 /*!
- * \def FORT_ARRAYWRAP_TYPEMAP
+ * \def %fortran_array
  *
  * Use the \c SwigArrayWrapper for the ISO C binding layer.
  *
@@ -59,7 +59,7 @@ end subroutine}
  * We use a macro rather than applying or copying a typedef because this is used 
  * in both single- and multi-argument typemap matches.
  */
-%define FORT_ARRAYWRAP_TYPEMAP(CPPTYPE...)
+%define %fortran_array(CPPTYPE...)
   // C wrapper type: pointer to templated array wrapper
   %typemap(ctype, in="SwigArrayWrapper*",
          null="SwigArrayWrapper_uninitialized()",
@@ -75,7 +75,7 @@ end subroutine}
 
 /* ------------------------------------------------------------------------- */
 /*!
- * \def FORT_ARRAYPTR_TYPEMAP
+ * \def %fortran_array_pointer
  *
  * Wrap intermediate data values as array pointers.
  *
@@ -85,8 +85,8 @@ end subroutine}
  * - FIN/FOUT
  * - FTYPE array pointer
  */
-%define FORT_ARRAYPTR_TYPEMAP(VTYPE, CPPTYPE...)
-  FORT_ARRAYWRAP_TYPEMAP(CPPTYPE)
+%define %fortran_array_pointer(VTYPE, CPPTYPE...)
+  %fortran_array(CPPTYPE)
 
   // Fortran proxy code: input is target 1D array
   %typemap(ftype, in={$typemap(imtype, VTYPE), dimension(:), target}, noblock=1) CPPTYPE {

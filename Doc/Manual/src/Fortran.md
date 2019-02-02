@@ -94,7 +94,7 @@ presents some equivalent concepts and names in the two languages:
 | function that returns non-void   | function                    |
 | overloaded function              | generic interface           |
 | floating point number            | real                        |
-| fundamental type                 | intrinsic type              |
+| arithmetic type                  | intrinsic type              |
 | derived type                     | extended type               |
 | function parameters              | dummy arguments             |
 | `constexpr` variable             | `parameter` statement       |
@@ -279,10 +279,10 @@ extend the
 Fortran/C++ mapping as much as possible, keeping in mind that Fortran and C are
 inherently different languages.
 
-## Fundamental types
+## Arithmetic types
 
 SWIG maps ISO C types to Fortran types using the `ISO_C_BINDING` intrinsic
-module. The fundamental types fully supported by C, Fortran, and SWIG are:
+module. The data types fully supported by C, Fortran, and SWIG are:
 
 | C type          |   Fortran type          |
 |-----------------|-------------------------|
@@ -296,7 +296,7 @@ module. The fundamental types fully supported by C, Fortran, and SWIG are:
 | `double`        | `real(C_DOUBLE)`        |
 | `char`          | `character(C_CHAR)`     |
 
-Pointers and references to the fundamental types are returned as scalar Fortran
+Pointers and references to these basic types are returned as scalar Fortran
 pointers.
 
 Note that because the C return value does not contain any information about the
@@ -337,13 +337,13 @@ booleans between the two languages.
 
 Since `char*`, `const char[]`, etc. typically signify character strings in C
 and C++, the default behavior of these is to convert to native Fortran
-strings (see the [Strings](#strings) section). To restore the "fundamental"
-behavior of a character type -- i.e., you want to make a `char *` return result
-map to `character(C_CHAR), pointer` -- you can call an internal macro and apply
-it to the particular function or argument you need:
+strings (see the [Strings](#strings) section). To restore the "arithmetic"
+behavior of a character type -- i.e., you want to make a `char *` returned by
+a C function into a Fortran `character(C_CHAR), pointer` -- you can call an
+internal macro and apply it to the particular function or argument you need:
 ```swig
 typedef char NativeChar;
-FORT_FUND_TYPEMAP(NativeChar, "character(C_CHAR)")
+%fortranintrinsic(NativeChar, character(C_CHAR))
 %apply NativeChar * { char *get_my_char_ptr };
 
 char *get_my_char_ptr();
@@ -383,7 +383,7 @@ Note, and this is **very important**, that a function returning a pointer must
 not be *assigned*; the *pointer assignment* operator `=>` must be used.
 
 Mutable references are treated identically. However, *const* references to
-fundamental types are treated as values:
+primitive arithmetic types are treated as values:
 ```c++
 const double &get_const_array_element(int x);
 ```
@@ -1761,9 +1761,9 @@ To pass Fortran-2003 compatible `BIND("C")` or `ISO_C_BINDING` types between
 C++ and Fortran, you
 must declare a compatible `ctype` and `imtype`. The `ctype` is the C datatype
 used by the wrapper and intermediate layer, and `imtype` is the equivalent
-Fortran datatype. These datatypes generally must be either fundamental types or
-structs of fundamental types. For example, as described in the [Fundamental
-types](#fundamental-types) section, the `int` C type is compatible with
+Fortran datatype. These datatypes generally must be either arithmetic types or
+structs of such types. For example, as described in the [Arithmetic
+types](#arithmetic-types) section, the `int` C type is compatible with
 `integer(C_INT)` Fortran type. However, because Fortran prefers to pass data as
 pointers, SWIG defines `int*` as the `ctype` for `int`. Otherwise the `imtype`
 would have to be `integer(C_INT), value`.
@@ -1960,17 +1960,17 @@ inheritance, or C++-like member data. All structs in C are compatible with
 Fortran, unless they bit have fields or use the C99 feature of "flexible array
 members".
 
-Currently the C binding feature for structs must be activated using a special
-macro `%fortranbindc_type`:
+The C binding feature for structs must be activated using a special
+macro `%fortran_struct`:
 ```swig
-%fortranbindc_type(BasicStruct);
+%fortran_struct(BasicStruct);
 ```
 
 In C++, these structs must be "standard layout", i.e. compatible with C.
 
-Calling `%fortranbindc_type(Foo)` inhibits default constructor/destructor
+Calling `%fortran_struct(Foo)` inhibits default constructor/destructor
 generation for the class, and it sets up the necessary type definitions to
-treat the struct as a fundamental type.
+treat the struct as a native type.
 
 Every member of the struct must be `BIND(C)` compatible. This is enforced with
 a separate typemap `bindc` that translates the member data to Fortran type
@@ -2017,7 +2017,7 @@ module thinvec
 ```
 
 This extra typemap trickery should only be needed if you're generating bound
-types without using the `%fortranbindc_type` macro.
+types without using the `%fortran_struct` macro.
 
 ### Generating direct Fortran interfaces to C functions
 
