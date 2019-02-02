@@ -1848,7 +1848,7 @@ public:
 
       if (!skipAuto) {
 	/* Check if a documentation name was given for either the low-level C API or high-level Python shadow API */
-	String *symname = Getattr(n, low_level? "doc:low:name" : "doc:high:name");
+	String *symname = Getattr(n, low_level ? "doc:low:name" : "doc:high:name");
 	if (!symname) {
 	  symname = Getattr(n, "sym:name");
 	}
@@ -1862,7 +1862,7 @@ public:
 	  continue;
 	}
 
-	if (! first_func)
+	if (!first_func)
 	  Append(doc, "\n");
 
 	if (type) {
@@ -1967,9 +1967,9 @@ public:
 	  Printf(doc, "%s", symname);
 	  if (showTypes) {
 	    String *type = Getattr(n, "tmap:doc:type");
-	    if (! type)
+	    if (!type)
 	      type = Getattr(n, "membervariableHandler:type");
-	    if (! type)
+	    if (!type)
 	      type = Getattr(n, "type");
 	    Printf(doc, " : %s", type);
 	  }
@@ -3317,7 +3317,7 @@ public:
         Delete(h);
       }
       Setattr(h, "getter", "SwigPyObject_get___dict__");
-      if (! Getattr(h, "doc")) {
+      if (!Getattr(h, "doc")) {
 	Setattr(n, "doc:high:name", Getattr(n, "name"));
 	Setattr(h, "doc", cdocstring(n, AUTODOC_VAR));
       }
@@ -3335,7 +3335,7 @@ public:
       }
       Setattr(h, "getter", wrapper_name);
       Delattr(n, "memberget");
-      if (! Getattr(h, "doc")) {
+      if (!Getattr(h, "doc")) {
 	Setattr(n, "doc:high:name", Getattr(n, "name"));
 	Setattr(h, "doc", cdocstring(n, AUTODOC_VAR));
       }
@@ -3352,7 +3352,7 @@ public:
       }
       Setattr(h, "setter", wrapper_name);
       Delattr(n, "memberset");
-      if (! Getattr(h, "doc")) {
+      if (!Getattr(h, "doc")) {
 	Setattr(n, "doc:high:name", Getattr(n, "name"));
 	Setattr(h, "doc", cdocstring(n, AUTODOC_VAR));
       }
@@ -4030,12 +4030,9 @@ public:
       const char *setter_closure = setter ? funpack ? "SwigPyBuiltin_FunpackSetterClosure" : "SwigPyBuiltin_SetterClosure" : "0";
       String *gspair = NewStringf("%s_%s_getset", symname, memname);
       Printf(f, "static SwigPyGetSet %s = { %s, %s };\n", gspair, getter ? getter : "0", setter ? setter : "0");
-      String *doc;
-      if (Getattr(mgetset, "doc")) {
-	doc = Getattr(mgetset, "doc");
-      } else {
+      String *doc = Getattr(mgetset, "doc");
+      if (!doc)
 	doc = NewStringf("%s.%s", name, memname);
-      }
       String *entry =
 	  NewStringf("{ (char *)\"%s\", (getter)%s, (setter)%s, (char *)\"%s\", (void *)&%s }\n", memname, getter_closure,
 		     setter_closure, doc, gspair);
