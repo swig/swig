@@ -468,7 +468,7 @@ check-maintainer-clean: maintainer-clean
 
 $(srcdir)/Lib/swigwarn.swg: $(srcdir)/Source/Include/swigwarn.h
 	mkdir -p Lib
-	echo "/* SWIG warning codes */" > $@
+	echo "/* SWIG warning codes - generated from swigwarn.h - do not edit */" > $@
 	cat $? | grep "^#define WARN\|/\*.*\*/\|^[ \t]*$$" | sed 's/^#define \(WARN.*[0-9][0-9]*\)\(.*\)$$/%define SWIG\1 %enddef\2/' >> $@
 
 #####################################################################

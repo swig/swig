@@ -459,7 +459,7 @@ static void SWIG_dump_runtime() {
   SWIG_exit(EXIT_SUCCESS);
 }
 
-void SWIG_getoptions(int argc, char *argv[]) {
+static void getoptions(int argc, char *argv[]) {
   int i;
   // Get options
   for (i = 1; i < argc; i++) {
@@ -878,7 +878,7 @@ void SWIG_getoptions(int argc, char *argv[]) {
   }
 }
 
-int SWIG_main(int argc, char *argv[], Language *l) {
+int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
   char *c;
 
   /* Initialize the SWIG core */
@@ -892,7 +892,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   // Set lang to a dummy value if no target language was specified so we
   // can process options enough to handle -version, etc.
-  lang = l ? l : new Language;
+  lang = tlm ? tlm->fac() : new Language;
 
   // Set up some default symbols (available in both SWIG interface files
   // and C files)
@@ -956,13 +956,13 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   /* Check for SWIG_FEATURES environment variable */
 
-  SWIG_getoptions(argc, argv);
+  getoptions(argc, argv);
 
   // Define the __cplusplus symbol
   if (CPlusPlus)
     Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
 
-  if (!l) {
+  if (!tlm) {
     Printf(stderr, "No target language specified\n");
     return 1;
   }
@@ -1311,6 +1311,13 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
 	// Check the extension for a c/c++ file.  If so, we're going to declare everything we see as "extern"
 	ForceExtern = check_extension(input_file);
+
+	if (tlm->status == Experimental) {
+	  Swig_warning(WARN_LANG_EXPERIMENTAL, "SWIG", 1, "Experimental target language. "
+	    "Target language %s specified by %s is an experimental language. "
+	    "Please read about SWIG experimental languages, http://swig.org/Doc4.0/Introduction.html#Introduction_experimental_status.\n",
+	    tlm->help ? tlm->help : "", tlm->name);
+	}
 
 	lang->top(top);
 
