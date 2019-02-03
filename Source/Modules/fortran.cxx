@@ -1058,6 +1058,15 @@ int FORTRAN::cfuncWrapper(Node *n) {
   emit_mark_varargs(parmlist);
   Setattr(n, "wrap:parms", parmlist);
 
+  if (Getattr(n, "sym:overloaded")) {
+    // After emitting parameters, check for invalid overloads
+    Swig_overload_check(n);
+    if (Getattr(n, "overload:ignore")) {
+      DelWrapper(cfunc);
+      return SWIG_NOWRAP;
+    }
+  }
+
   // Create a list of parameters wrapped by the intermediate function
   List *cparmlist = NewList();
 
