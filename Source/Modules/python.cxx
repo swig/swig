@@ -1637,8 +1637,7 @@ public:
    * source code (but without quotes around it).
    * ------------------------------------------------------------ */
 
-  String *cdocstring(Node *n, autodoc_t ad_type, bool low_level = false)
-  {
+  String *cdocstring(Node *n, autodoc_t ad_type, bool low_level = false) {
     String *ds = build_combined_docstring(n, ad_type, "", low_level);
     Replaceall(ds, "\\", "\\\\");
     Replaceall(ds, "\"", "\\\"");
@@ -2478,6 +2477,7 @@ public:
       Printf(methods, "\"%s\"", ds);
       if (fastproxy) {
 	/* In the fastproxy case, we must also record the high-level docstring for use in the Python shadow API */
+	Delete(ds);
         ds = cdocstring(n, Getattr(n, "memberfunction") ? AUTODOC_METHOD : AUTODOC_FUNC);
 	Printf(methods_proxydocs, "\"%s\"", ds);
       }
@@ -3333,7 +3333,9 @@ public:
       Delattr(n, "memberget");
       if (!Getattr(h, "doc")) {
 	Setattr(n, "doc:high:name", Getattr(n, "name"));
-	Setattr(h, "doc", cdocstring(n, AUTODOC_VAR));
+	String *ds = cdocstring(n, AUTODOC_VAR);
+	Setattr(h, "doc", ds);
+	Delete(ds);
       }
     }
     if (builtin_setter) {
@@ -3350,7 +3352,9 @@ public:
       Delattr(n, "memberset");
       if (!Getattr(h, "doc")) {
 	Setattr(n, "doc:high:name", Getattr(n, "name"));
-	Setattr(h, "doc", cdocstring(n, AUTODOC_VAR));
+	String *ds = cdocstring(n, AUTODOC_VAR);
+	Setattr(h, "doc", ds);
+	Delete(ds);
       }
     }
 
@@ -4448,9 +4452,9 @@ public:
 
       if (builtin) {
 	if (have_docstring(n)) {
-	  String *str = cdocstring(n, AUTODOC_CLASS);
-	  Setattr(n, "feature:python:tp_doc", str);
-	  Delete(str);
+	  String *ds = cdocstring(n, AUTODOC_CLASS);
+	  Setattr(n, "feature:python:tp_doc", ds);
+	  Delete(ds);
 	} else {
 	  String *name = Getattr(n, "name");
 	  String *rname = add_explicit_scope(SwigType_namestr(name));
