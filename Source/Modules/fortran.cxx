@@ -1058,6 +1058,15 @@ int FORTRAN::cfuncWrapper(Node *n) {
   emit_mark_varargs(parmlist);
   Setattr(n, "wrap:parms", parmlist);
 
+  if (Getattr(n, "sym:overloaded")) {
+    // After emitting parameters, check for invalid overloads
+    Swig_overload_check(n);
+    if (Getattr(n, "overload:ignore")) {
+      DelWrapper(cfunc);
+      return SWIG_NOWRAP;
+    }
+  }
+
   // Create a list of parameters wrapped by the intermediate function
   List *cparmlist = NewList();
 
@@ -1405,7 +1414,6 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   Swig_typemap_attach_parms("ftype", parmlist, ffunc);
   Swig_typemap_attach_parms("fin", parmlist, ffunc);
   Swig_typemap_attach_parms("findecl", parmlist, ffunc);
-  Swig_typemap_attach_parms("ffreearg", parmlist, ffunc);
 
   // Restore parameter names
   for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
@@ -1535,20 +1543,6 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
     Printv(ffunc->code, append, "\n", NULL);
   }
 
-  // Insert Fortran cleanup code
-  String *fcleanup = NewStringEmpty();
-  for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
-    Parm *p = it.item;
-    if (String *tm = Getattr(p, "tmap:ffreearg")) {
-      Chop(tm);
-      Replaceall(tm, "$input", Getattr(p, "fname"));
-      Printv(fcleanup, tm, "\n", NULL);
-    }
-  }
-  if (Len(fcleanup) > 0) {
-    Printv(ffunc->code, fcleanup, "\n", NULL);
-  }
-
   // Output argument output and cleanup code
   Printv(ffunc->code, "  end ", f_func_type, NULL);
 
@@ -1556,7 +1550,6 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   Wrapper_print(ffunc, f_fsubprograms);
 
   DelWrapper(ffunc);
-  Delete(fcleanup);
   Delete(fcall);
   Delete(fargs);
   return SWIG_OK;
@@ -2170,9 +2163,11 @@ int FORTRAN::enumDeclaration(Node *n) {
   if (enum_name && (add_fsymbol(enum_name, n) == SWIG_NOWRAP))
     return SWIG_NOWRAP;
 
-  // Don't generate wrappers if we're in import mode, but make sure the symbol renaming above is still performed
-  if (ImportMode)
+  if (ImportMode) {
+    // Don't generate wrappers if we're in import mode, but make sure the symbol renaming above is still performed. Also make sure to mark that the enum is available for use as a type
+    SetFlag(n, "fortran:declared");
     return SWIG_OK;
+  }
 
   if (String *name = Getattr(n, "name")) {
     Printv(f_fdecl, " ! ", NULL);
