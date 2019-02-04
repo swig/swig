@@ -97,7 +97,7 @@ static const char *usage2 = (const char *) "\
      -Fmicrosoft     - Display error/warning messages in Microsoft format\n\
      -Fstandard      - Display error/warning messages in commonly used format\n\
      -fvirtual       - Compile in virtual elimination mode\n\
-     -help           - This output\n\
+     -help           - Display help\n\
      -I-             - Don't search the current directory\n\
      -I<dir>         - Look for SWIG files in directory <dir>\n\
      -ignoremissing  - Ignore missing include files\n\
@@ -130,14 +130,14 @@ static const char *usage3 = (const char *) "\
 ";
 
 static const char *usage4 = (const char *) "\
-     -O              - Enable the optimization options: \n\
-                        -fastdispatch -fvirtual \n\
+     -O              - Enable the optimization options:\n\
+                        -fastdispatch -fvirtual\n\
      -o <outfile>    - Set name of C/C++ output file to <outfile>\n\
      -oh <headfile>  - Set name of C++ output header file for directors to <headfile>\n\
      -outcurrentdir  - Set default output dir to current dir instead of input file's path\n\
      -outdir <dir>   - Set language specific files output directory to <dir>\n\
      -pcreversion    - Display PCRE version information\n\
-     -small          - Compile in virtual elimination & compact mode\n\
+     -small          - Compile in virtual elimination and compact mode\n\
      -swiglib        - Report location of SWIG library and exit\n\
      -templatereduce - Reduce all the typedefs in templates\n\
      -v              - Run in verbose mode\n\
@@ -155,9 +155,9 @@ Options can also be defined using the SWIG_FEATURES environment variable, for ex
   $ export SWIG_FEATURES\n\
   $ swig -python interface.i\n\
 \n\
-is equivalent to: \n\
+is equivalent to:\n\
 \n\
-  $ swig -Wall -python interface.i \n\
+  $ swig -Wall -python interface.i\n\
 \n\
 Arguments may also be passed in a file, separated by whitespace. For example:\n\
 \n\
