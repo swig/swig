@@ -12,7 +12,7 @@ generates the wrapper code needed to make C and C++ code accessible
 from other programming languages including Perl, Python, Tcl, Ruby,
 PHP, C#, Go, Java, Javascript, Lua, Scheme (Guile, MzScheme, CHICKEN),
 D, Ocaml, Octave, R, Scilab, Common Lisp (CLISP,
-Allegro CL, CFFI, UFFI).  SWIG can also export its parse tree in
+Allegro CL, CFFI).  SWIG can also export its parse tree in
 the form of XML and Lisp s-expressions.  Major applications of SWIG
 include generation of scripting language extension modules, rapid
 prototyping, testing, and user interface development for large

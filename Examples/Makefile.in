@@ -1468,46 +1468,6 @@ cffi_clean:
 	rm -f *.@OBJEXT@ *@SO@
 
 ##################################################################
-#####                      UFFI                             ######
-##################################################################
-
-UFFI = @UFFIBIN@
-UFFI_SCRIPT=$(RUNME).lisp
-
-uffi: $(SRCDIR_SRCS)
-	$(SWIG) -uffi $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-#	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(INCLUDES) $(SRCDIR_SRCS)
-#	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
-uffi_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -uffi $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-#	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES)
-#	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
-# -----------------------------------------------------------------
-# Run UFFI example
-# -----------------------------------------------------------------
-
-uffi_run:
-	$(RUNTOOL) $(UFFI) -batch -s $(UFFI_SCRIPT) $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-uffi_version:
-	$(UFFI) --version
-
-# -----------------------------------------------------------------
-# Cleaning the UFFI examples
-# -----------------------------------------------------------------
-
-uffi_clean:
-	rm -f *_wrap* *~ .~*
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@
-
-##################################################################
 #####                      R                                ######
 ##################################################################
 

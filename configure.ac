@@ -2846,12 +2846,6 @@ SKIP_CFFI=
 #fi
 AC_SUBST(SKIP_CFFI)
 
-SKIP_UFFI=
-#if test -z "$UFFIBIN" ; then
-    SKIP_UFFI="1"
-#fi
-AC_SUBST(SKIP_UFFI)
-
 SKIP_SCILAB=
 if test -z "$SCILAB"; then
     SKIP_SCILAB="1"
@@ -2978,7 +2972,6 @@ AC_CONFIG_FILES([
     Examples/test-suite/allegrocl/Makefile
     Examples/test-suite/clisp/Makefile
     Examples/test-suite/cffi/Makefile
-    Examples/test-suite/uffi/Makefile
     Examples/test-suite/r/Makefile
     Examples/test-suite/go/Makefile
     Source/Makefile
@@ -3047,7 +3040,6 @@ test -n "$SKIP_R"		|| langs="${langs}r "
 test -n "$SKIP_RUBY"		|| langs="${langs}ruby "
 test -n "$SKIP_SCILAB"		|| langs="${langs}scilab "
 test -n "$SKIP_TCL"		|| langs="${langs}tcl "
-test -n "$SKIP_UFFI"		|| langs="${langs}uffi "
 
 echo "
 The SWIG test-suite and examples are configured for the following languages:

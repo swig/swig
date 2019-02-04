@@ -79,7 +79,6 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/swigmain.cxx		\
 		Modules/tcl8.cxx		\
 		Modules/typepass.cxx		\
-		Modules/uffi.cxx		\
 		Modules/utils.cxx		\
 		Modules/xml.cxx			\
 		Preprocessor/cpp.c		\

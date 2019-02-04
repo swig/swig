@@ -24,7 +24,6 @@
 <li><a href="#Lisp_nn9">Additional Commandline Options </a>
 <li><a href="#Lisp_nn10">Details on CLISP bindings</a>
 </ul>
-<li><a href="#Lisp_nn11">UFFI </a>
 </ul>
 </div>
 <!-- INDEX -->
@@ -39,7 +38,7 @@
       There are more than 9 different implementations of common lisp which
       are available, all have different foreign function
       interfaces. SWIG currently supports only the Allegro Common
-      Lisp, Common Foreign Function Interface(CFFI), CLisp and UFFI
+      Lisp, Common Foreign Function Interface(CFFI), CLisp
       foreign function interfaces.  
 </p>
 <H2><a name="Lisp_nn2">29.1 Allegro Common Lisp</a></H2>
@@ -56,8 +55,8 @@
 
 <p>
       CFFI, the Common Foreign Function Interface, is a portable foreign
-      function interface for ANSI Common Lisp systems, similar in
-      spirit to UFFI. Unlike UFFI, CFFI requires only a small set of
+      function interface for ANSI Common Lisp systems.
+      CFFI requires only a small set of
       low-level functionality from the Lisp implementation, such as
       calling a foreign function by name, allocating foreign memory,
       and dereferencing pointers.  
@@ -808,9 +807,6 @@ struct bar {
 (defconstant max 1000)
 
 </pre></div>
-
-<H2><a name="Lisp_nn11">29.4 UFFI </a></H2>
-
 
 </body>
 </html>
