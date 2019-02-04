@@ -48,7 +48,6 @@ extern "C" {
   Language *swig_r(void);
   Language *swig_ruby(void);
   Language *swig_scilab(void);
-  Language *swig_sexp(void);
   Language *swig_tcl(void);
   Language *swig_xml(void);
 }
@@ -84,7 +83,7 @@ static TargetLanguageModule modules[] = {
   {"-r", swig_r, "R (aka GNU S)", Supported},
   {"-ruby", swig_ruby, "Ruby", Supported},
   {"-scilab", swig_scilab, "Scilab", Supported},
-  {"-sexp", swig_sexp, "Lisp S-Expressions", Supported},
+  {"-sexp", NULL, "Lisp S-Expressions", Disabled},
   {"-tcl", swig_tcl, "Tcl", Supported},
   {"-tcl8", swig_tcl, NULL, Supported},
   {"-uffi", NULL, "Common Lisp / UFFI", Disabled},

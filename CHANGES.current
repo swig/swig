@@ -8,6 +8,10 @@ Version 4.0.0 (in progress)
 ===========================
 
 2019-02-04: wsfulton
+	    [S-EXP] #1447 Common Lisp S-Exp has been disabled as a target language in SWIG as part of a
+            clean up to remove target languages that have been neglected/not functional.
+
+2019-02-04: wsfulton
 	    [UFFI] #1447 Common Lisp UFFI has been disabled as a target language in SWIG as part of a
             clean up to remove target languages that have been neglected/not functional.
 
