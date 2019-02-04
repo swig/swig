@@ -1228,38 +1228,38 @@ int R::enumDeclaration(Node *n) {
     // This will have content if the %nspace feature is set on
     // the input file
     String *nspace = Getattr(n, "sym:nspace"); // NSpace/getNSpace() only works during Language::enumDeclaration call
-    String * ename;
+    String *ename;
 
     String *name = Getattr(n, "name");
     ename = getRClassName(name); 
     if (debugMode) {
-      Node *N = getCurrentClass();
+      Node *current_class = getCurrentClass();
       String *cl = NewString("");
-      if (N) {
-        cl=getEnumClassPrefix();
+      if (current_class) {
+        cl = getEnumClassPrefix();
       }
       Printf(stdout, "enumDeclaration: %s, %s, %s, %s, %s\n", name, symname, nspace, ename, cl);
     }
     Delete(name);
     // set up a call to create the R enum structure. The list of
     // individual elements will be built in enum_code
-    enum_values=0;
+    enum_values = 0;
     // Emit each enum item
     Language::enumDeclaration(n);
       
-    Printf(enum_def_calls, "defineEnumeration(\"%s\",\n .values=c(%s))\n\n",
-           ename, enum_values);
+    Printf(enum_def_calls, "defineEnumeration(\"%s\",\n .values=c(%s))\n\n", ename, enum_values);
     Delete(enum_values);
     Delete(ename);
     //Delete(symname);
   }
   return SWIG_OK;
 }
+
 /*************************************************************
 **************************************************************/
 int R::enumvalueDeclaration(Node *n) {
   if (getCurrentClass() && (cplus_mode != PUBLIC)) {
-    Printf(stdout , "evd: Not public\n");
+    Printf(stdout, "evd: Not public\n");
     return SWIG_NOWRAP;
   }
 
@@ -1267,7 +1267,7 @@ int R::enumvalueDeclaration(Node *n) {
   String *symname = Getattr(n, "sym:name");
   String *value = Getattr(n, "value");
   String *name = Getattr(n, "name");
-  Node   *parent = parentNode(n);
+  Node *parent = parentNode(n);
   String *parent_name = Getattr(parent, "name");
   String *newsymname = 0;
   String *tmpValue;
@@ -1312,7 +1312,7 @@ int R::enumvalueDeclaration(Node *n) {
     if (enum_values) {
       Printf(enum_values, ",\n\"%s\" = %s", name, value);
     } else {
-      enum_values=NewString("");
+      enum_values = NewString("");
       Printf(enum_values, "\"%s\" = %s", name, value);
     }
 
@@ -1324,6 +1324,9 @@ int R::enumvalueDeclaration(Node *n) {
 
 
 /*************************************************************
+Create accessor functions for variables.
+Does not create equivalent wrappers for enumerations,
+which are handled differently
 **************************************************************/
 int R::variableWrapper(Node *n) {
   String *name = Getattr(n, "sym:name");
@@ -1366,6 +1369,10 @@ int R::variableWrapper(Node *n) {
 }
 
 /*************************************************************
+Creates accessor functions for class members.
+
+ToDo - this version depends on naming conventions and needs
+to be replaced.
 **************************************************************/
 
 void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
@@ -1829,20 +1836,17 @@ int R::functionWrapper(Node *n) {
     SwigType *resolved =
       SwigType_typedef_resolve_all(type);
     if (debugMode)
-      Printf(stdout, "<functionWrapper> resolved %s\n",
-             Copy(unresolved_return_type));
+      Printf(stdout, "<functionWrapper> resolved %s\n", Copy(unresolved_return_type));
     if (expandTypedef(resolved)) {
       type = Copy(resolved);
       Setattr(n, "type", type);
     }
   }
   if (debugMode)
-    Printf(stdout, "<functionWrapper> unresolved_return_type %s\n",
-	   unresolved_return_type);
+    Printf(stdout, "<functionWrapper> unresolved_return_type %s\n", unresolved_return_type);
   if(processing_member_access_function) {
     if (debugMode)
-      Printf(stdout, "<functionWrapper memberAccess> '%s' '%s' '%s' '%s'\n",
-	     fname, iname, member_name, class_name);
+      Printf(stdout, "<functionWrapper memberAccess> '%s' '%s' '%s' '%s'\n", fname, iname, member_name, class_name);
 
     if(opaqueClassDeclaration)
       return SWIG_OK;
@@ -2504,9 +2508,7 @@ int R::classDeclaration(Node *n) {
     class_member_set_functions = NULL;
   }
   if (Getattr(n, "has_destructor")) {
-    Printf(sfile, "setMethod('delete', '_p%s', function(obj) {delete%s(obj)})\n",
-	   getRClassName(name),
-	   getRClassName(name));
+    Printf(sfile, "setMethod('delete', '_p%s', function(obj) {delete%s(obj)})\n", getRClassName(name), getRClassName(name));
 
   }
   if(!opaque && !Strcmp(kind, "struct") && copyStruct) {
