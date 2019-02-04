@@ -2888,9 +2888,6 @@ else
 fi
 AC_SUBST(SKIP_CSHARP)
 
-SKIP_MODULA3="1" # Always skipped!
-AC_SUBST(SKIP_MODULA3)
-
 SKIP_LUA=
 # we need LUABIN & dynamic loading
 if test -z "$LUABIN" || test -z "$LUADYNAMICLOADLIB"; then
@@ -3114,7 +3111,6 @@ test -n "$SKIP_GUILE"		|| langs="${langs}guile "
 test -n "$SKIP_JAVA"		|| langs="${langs}java "
 test -n "$SKIP_JAVASCRIPT"	|| langs="${langs}javascript "
 test -n "$SKIP_LUA"		|| langs="${langs}lua "
-test -n "$SKIP_MODULA3"		|| langs="${langs}modula3 "
 test -n "$SKIP_MZSCHEME"	|| langs="${langs}mzscheme "
 test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
 test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "

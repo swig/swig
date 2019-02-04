@@ -37,7 +37,6 @@ extern "C" {
   Language *swig_java(void);
   Language *swig_javascript(void);
   Language *swig_lua(void);
-  Language *swig_modula3(void);
   Language *swig_mzscheme(void);
   Language *swig_ocaml(void);
   Language *swig_octave(void);
@@ -72,7 +71,7 @@ static TargetLanguageModule modules[] = {
   {"-java", swig_java, "Java", Supported},
   {"-javascript", swig_javascript, "Javascript", Supported},
   {"-lua", swig_lua, "Lua", Supported},
-  {"-modula3", swig_modula3, "Modula 3", Supported},
+  {"-modula3", NULL, "Modula 3", Disabled},
   {"-mzscheme", swig_mzscheme, "Mzscheme", Supported},
   {"-ocaml", swig_ocaml, "Ocaml", Supported},
   {"-octave", swig_octave, "Octave", Supported},
