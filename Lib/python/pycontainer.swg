@@ -48,28 +48,32 @@ namespace swig {
     return attr;
   }
 
-  // By default, do not add the back-reference (for value types)
-  // Specialization below will check the reference for pointer types.
-  template <typename Type>
-  bool reference_container_owner(PyObject* child, PyObject* owner)
-  { return false; }
+  template <typename T>
+  struct container_owner {
+    // By default, do not add the back-reference (for value types)
+    // Specialization below will check the reference for pointer types.
+    static bool reference(PyObject* child, PyObject* owner)
+    { return false; }
+  };
 
-  /**
-   * Call to add a back-reference to the owning object when returning a 
-   * reference from a container.  Will only set the reference if <code>child</code> 
-   * is a SWIG wrapper object that does not own the pointer.
-   *
-   * @return if the reference was set or not
-   */
   template <>
-  bool reference_container_owner<swig::pointer_category>(PyObject* child, PyObject* owner) {
-    SwigPyObject* swigThis = SWIG_Python_GetSwigThis(child);
-    if (swigThis && (swigThis->own & SWIG_POINTER_OWN) != SWIG_POINTER_OWN) {
-      PyObject_SetAttr(child, container_owner_attribute(), owner);
-      return true;
+  struct container_owner<swig::pointer_category> {  
+    /**
+     * Call to add a back-reference to the owning object when returning a 
+     * reference from a container.  Will only set the reference if <code>child</code> 
+     * is a SWIG wrapper object that does not own the pointer.
+     *
+     * @return if the reference was set or not
+     */
+    static bool reference(PyObject* child, PyObject* owner) {
+      SwigPyObject* swigThis = SWIG_Python_GetSwigThis(child);
+      if (swigThis && (swigThis->own & SWIG_POINTER_OWN) != SWIG_POINTER_OWN) {
+        PyObject_SetAttr(child, container_owner_attribute(), owner);
+        return true;
+      }
+      return false;
     }
-    return false;
-  }
+  };
 }
 }
 
@@ -804,8 +808,8 @@ namespace swig
       return self->size();
     }
 
-    %typemap(ret, fragment="reference_container_owner") value_type& {
-      swig::reference_container_owner<swig::traits<$*1_ltype>::category>($result, $self);
+    %typemap(ret, fragment="reference_container_owner", noblock=1) value_type& {
+      (void)swig::container_owner<swig::traits<$*1_ltype>::category>::reference($result, $self);
     }
   }
 %enddef
