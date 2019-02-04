@@ -63,8 +63,6 @@
  *
  * findecl    : declare any variables used in converting an input value
  *              ($1_temp)
- * ffreearg   : clean up any variables used to convert an input value
- *              ($1, $result)
  * foutdecl   : declare any temporary variables used to convert output values
  */
 

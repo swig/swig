@@ -1414,7 +1414,6 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   Swig_typemap_attach_parms("ftype", parmlist, ffunc);
   Swig_typemap_attach_parms("fin", parmlist, ffunc);
   Swig_typemap_attach_parms("findecl", parmlist, ffunc);
-  Swig_typemap_attach_parms("ffreearg", parmlist, ffunc);
 
   // Restore parameter names
   for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
@@ -1544,20 +1543,6 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
     Printv(ffunc->code, append, "\n", NULL);
   }
 
-  // Insert Fortran cleanup code
-  String *fcleanup = NewStringEmpty();
-  for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
-    Parm *p = it.item;
-    if (String *tm = Getattr(p, "tmap:ffreearg")) {
-      Chop(tm);
-      Replaceall(tm, "$input", Getattr(p, "fname"));
-      Printv(fcleanup, tm, "\n", NULL);
-    }
-  }
-  if (Len(fcleanup) > 0) {
-    Printv(ffunc->code, fcleanup, "\n", NULL);
-  }
-
   // Output argument output and cleanup code
   Printv(ffunc->code, "  end ", f_func_type, NULL);
 
@@ -1565,7 +1550,6 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   Wrapper_print(ffunc, f_fsubprograms);
 
   DelWrapper(ffunc);
-  Delete(fcleanup);
   Delete(fcall);
   Delete(fargs);
   return SWIG_OK;
