@@ -109,6 +109,17 @@
 
 #endif
 
+%typemap(directorin) SWIGTYPE {
+    $&ltype temp = new $ltype((const $ltype &)$1);
+    swig_result = SWIG_Ocaml_ptr_to_val("create_$ltype_from_ptr", (void *)temp, $&1_descriptor);
+    args = caml_list_append(args, swig_result);
+}
+
+%typemap(directorin) SWIGTYPE *, SWIGTYPE [], SWIGTYPE &, SWIGTYPE && {
+    swig_result = SWIG_Ocaml_ptr_to_val("create_$ltype_from_ptr", (void *)&$1, $&1_descriptor);
+    args = caml_list_append(args, swig_result);
+}
+
 /* The SIMPLE_MAP macro below defines the whole set of typemaps needed
    for simple types. */
 

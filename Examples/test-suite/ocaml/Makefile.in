@@ -21,7 +21,6 @@ cpp_enum \
 default_constructor \
 director_binary_string \
 director_enum \
-director_pass_by_value \
 director_primitives \
 director_redefined \
 director_string \
