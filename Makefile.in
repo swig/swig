@@ -73,7 +73,6 @@ skip-chicken	= test -n "@SKIP_CHICKEN@"
 skip-csharp	= test -n "@SKIP_CSHARP@"
 skip-lua    	= test -n "@SKIP_LUA@"
 skip-allegrocl  = test -n "@SKIP_ALLEGROCL@"
-skip-clisp	= test -n "@SKIP_CLISP@"
 skip-cffi	= test -n "@SKIP_CFFI@"
 skip-r		= test -n "@SKIP_R@"
 skip-scilab     = test -n "@SKIP_SCILAB@"
@@ -117,7 +116,6 @@ check-aliveness:
 	@$(skip-chicken)  || ./$(TARGET) -chicken    -help
 	@$(skip-csharp)   || ./$(TARGET) -csharp     -help
 	@$(skip-allegrocl)|| ./$(TARGET) -allegrocl  -help
-	@$(skip-clisp)    || ./$(TARGET) -clisp      -help
 	@$(skip-cffi)     || ./$(TARGET) -cffi       -help
 	@$(skip-lua)      || ./$(TARGET) -lua        -help
 	@$(skip-r) 	  || ./$(TARGET) -r          -help
@@ -147,7 +145,6 @@ check-versions:					\
 	check-csharp-version			\
 	check-lua-version			\
 	check-allegrocl-version			\
-	check-clisp-version			\
 	check-cffi-version			\
 	check-r-version				\
 	check-scilab-version			\
@@ -184,7 +181,6 @@ check-examples:					\
 	check-csharp-examples                   \
 	check-lua-examples			\
 	check-allegrocl-examples		\
-	check-clisp-examples			\
 	check-cffi-examples			\
 	check-r-examples			\
 	check-scilab-examples			\
@@ -207,7 +203,6 @@ chicken_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/chicken/check.list)
 csharp_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/csharp/check.list)
 lua_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/lua/check.list)
 allegrocl_examples :=
-clisp_examples     :=
 cffi_examples      :=
 r_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/r/check.list)
 scilab_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/scilab/check.list)
@@ -251,7 +246,6 @@ check-test-suite:				\
 	check-csharp-test-suite			\
 	check-lua-test-suite			\
 	check-allegrocl-test-suite		\
-	check-clisp-test-suite			\
 	check-cffi-test-suite			\
 	check-chicken-test-suite		\
 	check-r-test-suite			\
@@ -302,7 +296,6 @@ all-test-suite:					\
 	all-csharp-test-suite			\
 	all-lua-test-suite			\
 	all-allegrocl-test-suite		\
-	all-clisp-test-suite			\
 	all-cffi-test-suite			\
 	all-chicken-test-suite			\
 	all-r-test-suite			\
@@ -329,7 +322,6 @@ broken-test-suite:				\
 	broken-csharp-test-suite		\
 	broken-lua-test-suite			\
 	broken-allegrocl-test-suite		\
-	broken-clisp-test-suite			\
 	broken-cffi-test-suite			\
 	broken-chicken-test-suite		\
 	broken-r-test-suite			\
@@ -468,7 +460,7 @@ install-main:
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
 lib-languages = typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
-	chicken csharp allegrocl clisp lua cffi r go d javascript javascript/jsc \
+	chicken csharp allegrocl lua cffi r go d javascript javascript/jsc \
 	javascript/v8 scilab xml
 
 lib-modules = std
