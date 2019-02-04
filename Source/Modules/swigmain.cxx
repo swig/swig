@@ -44,7 +44,6 @@ extern "C" {
   Language *swig_php(void);
   Language *swig_php4(void);
   Language *swig_php5(void);
-  Language *swig_pike(void);
   Language *swig_python(void);
   Language *swig_r(void);
   Language *swig_ruby(void);
@@ -81,7 +80,7 @@ static TargetLanguageModule modules[] = {
   {"-php4", swig_php4, NULL, Supported},
   {"-php5", swig_php5, NULL, Supported},
   {"-php7", swig_php, "PHP7", Supported},
-  {"-pike", swig_pike, "Pike", Supported},
+  {"-pike", NULL, "Pike", Disabled},
   {"-python", swig_python, "Python", Supported},
   {"-r", swig_r, "R (aka GNU S)", Supported},
   {"-ruby", swig_ruby, "Ruby", Supported},

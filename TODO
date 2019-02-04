@@ -275,18 +275,6 @@ Mzscheme
 
 **     Add shadow class support for the Swindle system. 
 
-Pike
-----
-
-*      Decide how to handle global variables (probably using something
-       like the Python module's cvar). Affects Examples/pike/simple.
-
-*      Decide how to handle static class member functions and member
-       variables.
-
-*      Should investigate the possibility of generating .cmod files
-       in addition to straight C/C++ code for extensions.
-
 Common Lisp
 -----------
 

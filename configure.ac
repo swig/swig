@@ -2085,72 +2085,6 @@ AC_SUBST(OCAMLMKTOP)
 AC_SUBST(CAMLP4)
 
 #----------------------------------------------------------------
-# Look for Pike
-#----------------------------------------------------------------
-
-# Identify the name of the Pike executable
-# Priority: configure option, automatic search
-PIKEBIN=
-AC_ARG_WITH(pike, AS_HELP_STRING([--without-pike], [Disable Pike])
-AS_HELP_STRING([--with-pike=path], [Set location of Pike executable]),[PIKEBIN="$withval"], [PIKEBIN="$alllang_default"])
-
-# First, check for "--without-pike" or "--with-pike=no".
-if test x"${PIKEBIN}" = xno; then
-    AC_MSG_NOTICE([Disabling Pike])
-    PIKEBIN=
-else
-
-if test "x$PIKEBIN" = xyes; then
-	AC_CHECK_PROGS(PIKE, pike pike7.8 pike7.6 pike7.4 pike7.2)
-else
-	PIKE="$PIKEBIN"
-fi
-
-
-# Check for pike-config
-# Priority: configure option, guessed from $PIKE, search from list
-AC_ARG_WITH(pike-config, AS_HELP_STRING([--with-pike-config=path],
-  	[Set location of pike-config script]),
-  [PIKECONFIG="$withval"], [PIKECONFIG=""])
-
-if test -z "$PIKECONFIG" -a -n "$PIKE"; then
-	AC_CHECK_PROGS(PIKECONFIG, $PIKE-config pike-config \
-		pike7.6-config pike7.4-config pike7.2-config)
-fi
-
-# Check for a --with-pikeincl option to configure
-# Priority: configure option, info from $PIKECONFIG, guessed by pike script
-AC_ARG_WITH(pikeincl, AS_HELP_STRING([--with-pikeincl=path],
-	[Set location of Pike include directory]),
-  [PIKEINCLUDE="-I$withval"], [PIKEINCLUDE=])
-
-if test -n "$PIKE"; then
-      AC_MSG_CHECKING([for Pike header files])
-      if test -z "$PIKEINCLUDE" -a -n "$PIKECONFIG"; then
-        PIKEINCLUDE=`$PIKECONFIG --cflags`
-      fi
-      if test -z "$PIKEINCLUDE" -a -n "$PIKE"; then
-        PIKEINCLUDE=`$PIKE -x cflags`
-        if test -z "$PIKEINCLUDE"; then
-          PIKEPATH=`which $PIKE`
-          PIKEINCLUDE=`$PIKE Tools/check-include-path.pike $PIKEPATH`
-          PIKEINCLUDE="-I$PIKEINCLUDE"
-        fi
-      fi
-
-      if test -z "$PIKEINCLUDE"; then
-        AC_MSG_RESULT(not found)
-      else
-        AC_MSG_RESULT($PIKEINCLUDE)
-      fi
-fi
-fi
-
-AC_SUBST(PIKEINCLUDE)
-AC_SUBST(PIKECCDLFLAGS)		dnl XXX: where is this used/defined?
-AC_SUBST(PIKEDYNAMICLINKING)	dnl XXX: where is this used/defined?
-
-#----------------------------------------------------------------
 # Look for CHICKEN
 #----------------------------------------------------------------
 
@@ -2864,13 +2798,6 @@ fi
 AC_SUBST(SKIP_OCAML)
 
 
-SKIP_PIKE=
-if test -z "$PIKE" || test -z "$PIKEINCLUDE" ; then
-    SKIP_PIKE="1"
-fi
-AC_SUBST(SKIP_PIKE)
-
-
 SKIP_CHICKEN=
 if test -z "$CHICKEN_CSC" || test -z "$CHICKEN"; then
     SKIP_CHICKEN="1"
@@ -3043,7 +2970,6 @@ AC_CONFIG_FILES([
     Examples/test-suite/octave/Makefile
     Examples/test-suite/perl5/Makefile
     Examples/test-suite/php/Makefile
-    Examples/test-suite/pike/Makefile
     Examples/test-suite/python/Makefile
     Examples/test-suite/ruby/Makefile
     Examples/test-suite/scilab/Makefile
@@ -3116,7 +3042,6 @@ test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
 test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "
 test -n "$SKIP_PERL5"		|| langs="${langs}perl5 "
 test -n "$SKIP_PHP"		|| langs="${langs}php "
-test -n "$SKIP_PIKE"		|| langs="${langs}pike "
 test -n "$SKIP_PYTHON"		|| langs="${langs}python "
 test -n "$SKIP_R"		|| langs="${langs}r "
 test -n "$SKIP_RUBY"		|| langs="${langs}ruby "

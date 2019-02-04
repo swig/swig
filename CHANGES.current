@@ -8,6 +8,10 @@ Version 4.0.0 (in progress)
 ===========================
 
 2019-02-04: wsfulton
+	    [Pike] #1447 Pike has been disabled as a target language in SWIG as part of a
+            clean up to remove target languages that have been neglected/not functional.
+
+2019-02-04: wsfulton
 	    [Modula3] #1447 Modula3 has been disabled as a target language in SWIG as part of a
             clean up to remove target languages that have been neglected/not functional.
 
