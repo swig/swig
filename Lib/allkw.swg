@@ -16,7 +16,6 @@
   
 */
 
-%include <chicken/chickenkw.swg>
 %include <csharp/csharpkw.swg>
 %include <d/dkw.swg>
 %include <go/gokw.swg>

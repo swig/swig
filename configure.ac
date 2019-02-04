@@ -2085,108 +2085,6 @@ AC_SUBST(OCAMLMKTOP)
 AC_SUBST(CAMLP4)
 
 #----------------------------------------------------------------
-# Look for CHICKEN
-#----------------------------------------------------------------
-
-CHICKEN=
-CHICKEN_CONFIG=
-CHICKENHOME=
-CHICKENOPTS=
-CHICKENLIB=
-
-
-AC_ARG_WITH(chicken, AS_HELP_STRING([--without-chicken], [Disable CHICKEN])
-AS_HELP_STRING([--with-chicken=path], [Set location of CHICKEN executable]),[ CHICKENBIN="$withval"], [CHICKENBIN="$alllang_default"])
-
-# First, check for "--without-chicken" or "--with-chicken=no".
-if test x"${CHICKENBIN}" = xno; then
-AC_MSG_NOTICE([Disabling CHICKEN])
-else
-
-if test "x$CHICKENBIN" = xyes; then
-AC_CHECK_PROGS(CHICKEN, chicken)
-else
-CHICKEN="$CHICKENBIN"
-fi
-
-AC_ARG_WITH(chickencsc,[  --with-chickencsc=path  Set location of csc executable],[ CHICKEN_CSC="$withval"], [CHICKEN_CSC=])
-
-if test -z "$CHICKEN_CSC"; then
-  AC_CHECK_PROGS(CHICKEN_CSC, csc)
-  # Both the Microsoft C# compiler and chicken have an executable called csc, so check that this csc is really the chicken one
-  if test -n "$CHICKEN_CSC" ; then
-    AC_MSG_CHECKING(whether csc is the chicken compiler)
-    $CHICKEN_CSC -version 2>/dev/null | grep "chicken" > /dev/null || CHICKEN_CSC=""
-    if test -z "$CHICKEN_CSC"; then
-      AC_MSG_RESULT(no)
-    else
-      AC_MSG_RESULT(yes)
-    fi
-  fi
-fi
-
-AC_ARG_WITH(chickencsi,[  --with-chickencsi=path  Set location of csi executable],[ CHICKEN_CSI="$withval"], [CHICKEN_CSI=])
-
-if test -z "$CHICKEN_CSI"; then
-AC_CHECK_PROGS(CHICKEN_CSI, csi)
-fi
-
-if test -n "$CHICKEN_CSC" ; then
-
-  AC_ARG_WITH(chickenopts,[  --with-chickenopts=args Set compiler options for static CHICKEN generated code],[
-	CHICKENOPTS="$withval"], [CHICKENOPTS=])
-  AC_ARG_WITH(chickensharedlib,[  --with-chickensharedlib=args    Set linker options for shared CHICKEN generated code],[
-	CHICKENSHAREDLIB="$withval"], [CHICKENSHAREDLIB=])
-  AC_ARG_WITH(chickenlib,[  --with-chickenlib=args  Set linker options for static CHICKEN generated code],[
-	CHICKENLIB="$withval"], [CHICKENLIB=])
-
-  AC_MSG_CHECKING(for compiler options for static CHICKEN generated code)
-  if test -z "$CHICKENOPTS"; then
-        CHICKENOPTS="`$CHICKEN_CSC -cflags`"
-  else
-        CHICKENOPTS="`$CHICKEN_CSC -cflags` $CHICKENOPTS"
-  fi
-  if test -z "$CHICKENOPTS"; then
-        AC_MSG_RESULT(not found)
-  else
-        AC_MSG_RESULT($CHICKENOPTS)
-  fi
-
-  AC_MSG_CHECKING(for linker options for shared CHICKEN generated code)
-  if test -z "$CHICKENSHAREDLIB"; then
-        CHICKENSHAREDLIB="`$CHICKEN_CSC -shared -libs`"
-  else
-        CHICKENSHAREDLIB="`$CHICKEN_CSC -shared -libs` $CHICKENSHAREDLIB"
-  fi
-  if test -z "$CHICKENSHAREDLIB"; then
-  	AC_MSG_RESULT(not found)
-  else
-        AC_MSG_RESULT($CHICKENSHAREDLIB)
-  fi
-
-  AC_MSG_CHECKING(for linker options for static CHICKEN generated code)
-  if test -z "$CHICKENLIB"; then
-        CHICKENLIB="`$CHICKEN_CSC -libs`"
-  else
-        CHICKENLIB="`$CHICKEN_CSC -libs` $CHICKENLIB"
-  fi
-  if test -z "$CHICKENLIB"; then
-  	AC_MSG_RESULT(not found)
-  else
-        AC_MSG_RESULT($CHICKENLIB)
-  fi
-
-fi # have CHICKEN_CONFIG
-fi # Check for --without-chicken
-
-AC_SUBST(CHICKEN)
-AC_SUBST(CHICKEN_CSC)
-AC_SUBST(CHICKEN_CSI)
-AC_SUBST(CHICKENOPTS)
-AC_SUBST(CHICKENLIB)
-AC_SUBST(CHICKENSHAREDLIB)
-
-#----------------------------------------------------------------
 # Look for C#
 #----------------------------------------------------------------
 
@@ -2775,13 +2673,6 @@ fi
 AC_SUBST(SKIP_OCAML)
 
 
-SKIP_CHICKEN=
-if test -z "$CHICKEN_CSC" || test -z "$CHICKEN"; then
-    SKIP_CHICKEN="1"
-fi
-AC_SUBST(SKIP_CHICKEN)
-
-
 SKIP_CSHARP=
 if test -z "$CSHARPCOMPILER" ; then
     SKIP_CSHARP="1"
@@ -2924,7 +2815,6 @@ AC_CONFIG_FILES([
     Examples/d/example.mk
     Examples/xml/Makefile
     Examples/test-suite/errors/Makefile
-    Examples/test-suite/chicken/Makefile
     Examples/test-suite/csharp/Makefile
     Examples/test-suite/d/Makefile
     Examples/test-suite/guile/Makefile
@@ -2991,7 +2881,6 @@ AC_OUTPUT
 langs=""
 test -n "$SKIP_ALLEGROCL"	|| langs="${langs}allegrocl "
 test -n "$SKIP_CFFI"		|| langs="${langs}cffi "
-test -n "$SKIP_CHICKEN"		|| langs="${langs}chicken "
 test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
 test -n "$SKIP_D"		|| langs="${langs}d "
 test -n "$SKIP_GO"		|| langs="${langs}go "

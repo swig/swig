@@ -28,7 +28,6 @@
 extern "C" {
   Language *swig_allegrocl(void);
   Language *swig_cffi(void);
-  Language *swig_chicken(void);
   Language *swig_csharp(void);
   Language *swig_d(void);
   Language *swig_go(void);
@@ -57,7 +56,7 @@ extern "C" {
 
 static TargetLanguageModule modules[] = {
   {"-allegrocl", swig_allegrocl, "ALLEGROCL", Supported},
-  {"-chicken", swig_chicken, "CHICKEN", Supported},
+  {"-chicken", NULL, "CHICKEN", Disabled},
   {"-clisp", NULL, "CLISP", Disabled},
   {"-cffi", swig_cffi, "CFFI", Supported},
   {"-csharp", swig_csharp, "C#", Supported},

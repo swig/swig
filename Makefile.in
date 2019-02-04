@@ -69,7 +69,6 @@ skip-ruby	= test -n "@SKIP_RUBY@"
 skip-php	= test -n "@SKIP_PHP@"
 skip-ocaml      = test -n "@SKIP_OCAML@"
 skip-octave     = test -n "@SKIP_OCTAVE@"
-skip-chicken	= test -n "@SKIP_CHICKEN@"
 skip-csharp	= test -n "@SKIP_CSHARP@"
 skip-lua    	= test -n "@SKIP_LUA@"
 skip-allegrocl  = test -n "@SKIP_ALLEGROCL@"
@@ -113,7 +112,6 @@ check-aliveness:
 	@$(skip-ocaml)    || ./$(TARGET) -ocaml      -help
 	@$(skip-octave)   || ./$(TARGET) -octave     -help
 	@$(skip-php)      || ./$(TARGET) -php7       -help
-	@$(skip-chicken)  || ./$(TARGET) -chicken    -help
 	@$(skip-csharp)   || ./$(TARGET) -csharp     -help
 	@$(skip-allegrocl)|| ./$(TARGET) -allegrocl  -help
 	@$(skip-cffi)     || ./$(TARGET) -cffi       -help
@@ -141,7 +139,6 @@ check-versions:					\
 	check-ocaml-version			\
 	check-octave-version			\
 	check-php-version			\
-	check-chicken-version			\
 	check-csharp-version			\
 	check-lua-version			\
 	check-allegrocl-version			\
@@ -177,7 +174,6 @@ check-examples:					\
 	check-ocaml-examples			\
 	check-octave-examples			\
 	check-php-examples			\
-	check-chicken-examples                  \
 	check-csharp-examples                   \
 	check-lua-examples			\
 	check-allegrocl-examples		\
@@ -199,7 +195,6 @@ ruby_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/ruby/check.list)
 ocaml_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/ocaml/check.list)
 octave_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/octave/check.list)
 php_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/php/check.list)
-chicken_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/chicken/check.list)
 csharp_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/csharp/check.list)
 lua_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/lua/check.list)
 allegrocl_examples :=
@@ -247,7 +242,6 @@ check-test-suite:				\
 	check-lua-test-suite			\
 	check-allegrocl-test-suite		\
 	check-cffi-test-suite			\
-	check-chicken-test-suite		\
 	check-r-test-suite			\
 	check-scilab-test-suite			\
 	check-go-test-suite			\
@@ -297,7 +291,6 @@ all-test-suite:					\
 	all-lua-test-suite			\
 	all-allegrocl-test-suite		\
 	all-cffi-test-suite			\
-	all-chicken-test-suite			\
 	all-r-test-suite			\
 	all-scilab-test-suite   		\
 	all-go-test-suite			\
@@ -323,7 +316,6 @@ broken-test-suite:				\
 	broken-lua-test-suite			\
 	broken-allegrocl-test-suite		\
 	broken-cffi-test-suite			\
-	broken-chicken-test-suite		\
 	broken-r-test-suite			\
 	broken-scilab-test-suite           	\
 	broken-go-test-suite			\
@@ -460,7 +452,7 @@ install-main:
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
 lib-languages = typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
-	chicken csharp allegrocl lua cffi r go d javascript javascript/jsc \
+	csharp allegrocl lua cffi r go d javascript javascript/jsc \
 	javascript/v8 scilab xml
 
 lib-modules = std
