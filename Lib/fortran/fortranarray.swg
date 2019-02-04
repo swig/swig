@@ -108,14 +108,23 @@ end subroutine}
   }
   
   %typemap(fin, noblock=1) CPPTYPE {
-    $1_view => $input(1)
-    $1%data = c_loc($1_view)
-    $1%size = size($input)
+    if (size($input) > 0) then
+      $1_view => $input(1)
+      $1%data = c_loc($1_view)
+      $1%size = size($input)
+    else
+      $1%data = c_null_ptr
+      $1%size = 0
+    end if
   }
   
   // Fortran proxy translation code: convert from imtype 1 to ftype $result
   %typemap(fout, noblock=1) CPPTYPE {
-    call c_f_pointer($1%data, $result, [$1%size])
+    if ($1%size > 0) then
+      call c_f_pointer($1%data, $result, [$1%size])
+    else
+      $result => NULL()
+    endif
   }
 %enddef
 

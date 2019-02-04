@@ -40,7 +40,7 @@ subroutine SWIG_restore_chararray(chars, string)
   integer :: i
   do i=1, len(string)
     string(i:i) = chars(i)
-  enddo
+  end do
 end subroutine
 }
 
@@ -56,7 +56,7 @@ subroutine SWIG_chararray_to_string(wrap, string)
   allocate(character(kind=C_CHAR, len=wrap%size) :: string)
   do i=1, wrap%size
     string(i:i) = chars(i)
-  enddo
+  end do
 end subroutine
 }
 
