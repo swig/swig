@@ -8,6 +8,10 @@ Version 4.0.0 (in progress)
 ===========================
 
 2019-02-04: wsfulton
+	    [CFFI] #1447 Common Lisp CFFI has been disabled as a target language in SWIG as part of a
+            clean up to remove target languages that have been neglected/not functional.
+
+2019-02-04: wsfulton
 	    [Allegrocl] #1447 Allegro Common Lisp has been disabled as a target language in SWIG as part of a
             clean up to remove target languages that have been neglected/not functional.
 

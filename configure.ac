@@ -2673,12 +2673,6 @@ if test -z "$RBIN" ; then
 fi
 AC_SUBST(SKIP_R)
 
-SKIP_CFFI=
-#if test -z "$CFFIBIN" ; then
-    SKIP_CFFI="1"
-#fi
-AC_SUBST(SKIP_CFFI)
-
 SKIP_SCILAB=
 if test -z "$SCILAB"; then
     SKIP_SCILAB="1"
@@ -2801,7 +2795,6 @@ AC_CONFIG_FILES([
     Examples/test-suite/scilab/Makefile
     Examples/test-suite/tcl/Makefile
     Examples/test-suite/lua/Makefile
-    Examples/test-suite/cffi/Makefile
     Examples/test-suite/r/Makefile
     Examples/test-suite/go/Makefile
     Source/Makefile
@@ -2849,7 +2842,6 @@ EOF
 AC_OUTPUT
 
 langs=""
-test -n "$SKIP_CFFI"		|| langs="${langs}cffi "
 test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
 test -n "$SKIP_D"		|| langs="${langs}d "
 test -n "$SKIP_GO"		|| langs="${langs}go "
