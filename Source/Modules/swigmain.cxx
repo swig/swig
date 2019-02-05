@@ -38,8 +38,6 @@ extern "C" {
   Language *swig_octave(void);
   Language *swig_perl5(void);
   Language *swig_php(void);
-  Language *swig_php4(void);
-  Language *swig_php5(void);
   Language *swig_python(void);
   Language *swig_r(void);
   Language *swig_ruby(void);
@@ -71,8 +69,8 @@ static TargetLanguageModule modules[] = {
   {"-perl", swig_perl5, "Perl", Supported},
   {"-perl5", swig_perl5, NULL, Supported},
   {"-php", swig_php, NULL, Supported},
-  {"-php4", swig_php4, NULL, Supported},
-  {"-php5", swig_php5, NULL, Supported},
+  {"-php4", NULL, "PHP4", Disabled},
+  {"-php5", NULL, "PHP5", Disabled},
   {"-php7", swig_php, "PHP7", Supported},
   {"-pike", NULL, "Pike", Disabled},
   {"-python", swig_python, "Python", Supported},

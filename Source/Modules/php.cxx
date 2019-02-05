@@ -2861,17 +2861,3 @@ static Language *new_swig_php() {
 extern "C" Language *swig_php(void) {
   return new_swig_php();
 }
-
-extern "C" Language *swig_php4(void) {
-  Printf(stderr, "*** -php4 is no longer supported.\n"
-		 "*** Either upgrade to PHP5 or use SWIG 1.3.36 or earlier.\n");
-  SWIG_exit(EXIT_FAILURE);
-  return NULL; // To avoid compiler warnings.
-}
-
-extern "C" Language *swig_php5(void) {
-  Printf(stderr, "*** -php5 is no longer supported.\n"
-		 "*** Either upgrade to PHP7 or use SWIG < 4.0.0.\n");
-  SWIG_exit(EXIT_FAILURE);
-  return NULL; // To avoid compiler warnings.
-}
