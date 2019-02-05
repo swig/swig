@@ -134,6 +134,7 @@ class set {
   public:
 
     struct iterator {
+      %typemap(javaclassmodifiers) iterator "protected class"
       %extend {
         void incrementUnchecked() {
           ++(*$self);
@@ -148,6 +149,11 @@ class set {
         }
       }
     };
+
+    typedef KeyType key_type;
+    typedef KeyType value_type;
+    typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
 
     set();
     set(const set<KeyType>&);
