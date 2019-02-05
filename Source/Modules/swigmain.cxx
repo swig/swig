@@ -26,7 +26,6 @@
    can be dynamically loaded in future versions. */
 
 extern "C" {
-  Language *swig_allegrocl(void);
   Language *swig_cffi(void);
   Language *swig_csharp(void);
   Language *swig_d(void);
@@ -55,7 +54,7 @@ extern "C" {
    list sorted alphabetically. */
 
 static TargetLanguageModule modules[] = {
-  {"-allegrocl", swig_allegrocl, "ALLEGROCL", Supported},
+  {"-allegrocl", NULL, "ALLEGROCL", Disabled},
   {"-chicken", NULL, "CHICKEN", Disabled},
   {"-clisp", NULL, "CLISP", Disabled},
   {"-cffi", swig_cffi, "CFFI", Supported},

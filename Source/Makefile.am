@@ -45,7 +45,6 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Doxygen/javadoc.h		\
 		Doxygen/pydoc.cxx		\
 		Doxygen/pydoc.h			\
-		Modules/allegrocl.cxx		\
 		Modules/allocate.cxx		\
 		Modules/browser.cxx		\
 		Modules/cffi.cxx		\

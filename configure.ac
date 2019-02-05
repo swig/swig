@@ -2333,29 +2333,6 @@ AC_SUBST(LUALINK)
 AC_SUBST(LUABIN)
 
 #----------------------------------------------------------------
-# Look for Allegro Common Lisp
-#----------------------------------------------------------------
-
-ALLEGROCLBIN=
-
-AC_ARG_WITH(allegrocl, AS_HELP_STRING([--without-allegrocl], [Disable Allegro CL])
-AS_HELP_STRING([--with-allegrocl=path], [Set location of Allegro CL executable (alisp)]),[ ALLEGROCLBIN="$withval"], [ALLEGROCLBIN="$alllang_default"])
-
-# First, check for "--without-allegrocl" or "--with-allegrocl=no".
-if test x"${ALLEGROCLBIN}" = xno; then
-AC_MSG_NOTICE([Disabling Allegro CL])
-ALLEGROCLBIN=
-else
-
-# can we find allegrocl?
-if test "x$ALLEGROCLBIN" = xyes; then
-   AC_PATH_PROG(ALLEGROCLBIN, alisp)
-fi
-fi
-
-AC_SUBST(ALLEGROCLBIN)
-
-#----------------------------------------------------------------
 # Look for GNU R
 #----------------------------------------------------------------
 
@@ -2690,12 +2667,6 @@ if test -z "$LUABIN" || test -z "$LUADYNAMICLOADLIB"; then
 fi
 AC_SUBST(SKIP_LUA)
 
-SKIP_ALLEGROCL=
-if test -z "$ALLEGROCLBIN" ; then
-    SKIP_ALLEGROCL="1"
-fi
-AC_SUBST(SKIP_ALLEGROCL)
-
 SKIP_R=
 if test -z "$RBIN" ; then
     SKIP_R="1"
@@ -2830,7 +2801,6 @@ AC_CONFIG_FILES([
     Examples/test-suite/scilab/Makefile
     Examples/test-suite/tcl/Makefile
     Examples/test-suite/lua/Makefile
-    Examples/test-suite/allegrocl/Makefile
     Examples/test-suite/cffi/Makefile
     Examples/test-suite/r/Makefile
     Examples/test-suite/go/Makefile
@@ -2879,7 +2849,6 @@ EOF
 AC_OUTPUT
 
 langs=""
-test -n "$SKIP_ALLEGROCL"	|| langs="${langs}allegrocl "
 test -n "$SKIP_CFFI"		|| langs="${langs}cffi "
 test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
 test -n "$SKIP_D"		|| langs="${langs}d "
