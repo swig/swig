@@ -3,7 +3,6 @@
  * ------------------------------------------------------------------------- */
 
 %include <fortranarray.swg>
-%include <view.i>
 
 /* -------------------------------------------------------------------------
  * Enable seamless translation of consecutive pointer/size arguments to Fortran
