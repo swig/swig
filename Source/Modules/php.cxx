@@ -43,7 +43,7 @@
 #include <errno.h>
 
 static const char *usage = "\
-PHP Options (available with -php7)\n\
+PHP 7 Options (available with -php7)\n\
      -noproxy         - Don't generate proxy classes.\n\
      -prefix <prefix> - Prepend <prefix> to all class names in PHP wrappers\n\
 \n";
