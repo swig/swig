@@ -47,6 +47,9 @@ wstring         aa =  L"Wide string";
 const char     *bb = u8"UTF-8 string";
 const char16_t *cc =  u"UTF-16 string";
 const char32_t *dd =  U"UTF-32 string";
+// New char literals
+char16_t uchar = u'a';
+char32_t Uchar = U'b';
 %}
 
 /* Raw string literals */

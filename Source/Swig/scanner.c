@@ -938,6 +938,10 @@ static int look(Scanner *s) {
 	retract(s, 1);
 	state = 1000;
       }
+      else if (c == '\'') { /* Definitely u, U or L char */
+	retract(s, 1);
+	state = 77;
+      }
       else if (c == 'R') { /* Possibly CUSTOM DELIMITER u, U, L string */
 	state = 73;
       }
