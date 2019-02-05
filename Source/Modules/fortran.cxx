@@ -1414,6 +1414,7 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   Swig_typemap_attach_parms("ftype", parmlist, ffunc);
   Swig_typemap_attach_parms("fin", parmlist, ffunc);
   Swig_typemap_attach_parms("findecl", parmlist, ffunc);
+  Swig_typemap_attach_parms("fargout", parmlist, ffunc);
 
   // Restore parameter names
   for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
@@ -1534,6 +1535,18 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
     Replaceall(fbody, "$owner", (GetFlag(n, "feature:new") ? ".true." : ".false."));
     this->replace_fclassname(return_cpptype, fbody);
     Printv(ffunc->code, fbody, "\n", NULL);
+  }
+
+  // Add post-call conversion routines for input arguments
+  for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
+    Parm *p = it.item;
+    if (String *tm = Getattr(p, "tmap:fargout")) {
+      Chop(tm);
+      Replaceall(tm, "$result", swig_result_name);
+      Replaceall(tm, "$input", Getattr(p, "fname"));
+      Replaceall(tm, "$1", Getattr(p, "imname"));
+      Printv(ffunc->code, tm, "\n", NULL);
+    }
   }
 
   // Optional "append" proxy code

@@ -21,7 +21,7 @@ subroutine test_arrays
   got_arr => arr%get_array_i()
   write(0,*) got_arr
 
-  if (any(got_arr /= actual)) stop 1
+  ASSERT(all(got_arr == actual))
 
 end subroutine
 

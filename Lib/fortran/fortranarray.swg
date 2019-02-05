@@ -128,3 +128,56 @@ end subroutine}
   }
 %enddef
 
+/* ------------------------------------------------------------------------- */
+/*!
+ * \def %fortran_array_pointer_and_ref
+ *
+ * Convert a C++ input argument to an array pointer.
+ *
+ * For example, the function
+ * \code
+   void f(double** data, size_t* size);
+   \endcode
+ * would take a Fortran array pointer as an (INOUT) argument.
+ *
+ * This defines:
+ * - C type interface
+ * - IM type interface
+ * - FIN
+ * - FTYPE array pointer
+ *
+ * which means you still must define the C++ <--> C conversions elsewhere.
+ *
+ * This should be called *before* the in/argout typemaps.
+ */
+%define %fortran_array_handle(VTYPE, CPPTYPE...)
+
+  // Input arguments for pointer-by-ref are the same
+  %typemap(ftype, in={$typemap(imtype, VTYPE), dimension(:), pointer, intent(inout)}, noblock=1) CPPTYPE& {
+    $typemap(imtype, VTYPE), dimension(:), pointer
+  }
+  %typemap(fin, noblock=1) CPPTYPE& {
+    if (size($input) > 0) then
+      $1%data = c_loc($input)
+      $1%size = size($input)
+    else
+      $1%data = c_null_ptr
+      $1%size = 0
+    end if
+  }
+  %typemap(imtype) CPPTYPE& = CPPTYPE;
+  %typemap(ctype) CPPTYPE& = CPPTYPE;
+  %typemap(in) CPPTYPE& "#error: no 'in' typemap defined for $1_type"
+  %typemap(argout) CPPTYPE& "#error: no 'argout' typemap defined for $1_type"
+
+  // Update the resulting Fortran pointer.
+  %typemap(fargout, noblock=1) CPPTYPE& {
+    if ($1%size > 0) then
+      call c_f_pointer($1%data, $input, [$1%size])
+    else
+      $input => NULL()
+    endif
+  }
+  
+%enddef
+
