@@ -59,6 +59,6 @@ template<class T> struct Foo {};
   void this_works(Foo<int> f) {}
   void this_also_works(const Foo<int>& f) {}
   void this_also_also_works(Foo<double> f) {}
-  void this_fails(const Foo<double>& f) {}
+  void this_used_to_fail(const Foo<double>& f) {}
 %}
 
