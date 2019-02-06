@@ -27,7 +27,6 @@ CPP_TEST_CASES += \
 # arithmetic expressions
 
 FAILING_CPP_TESTS = \
-	enum_thorough \
 	preproc_constants
 
 FAILING_C_TESTS = \
