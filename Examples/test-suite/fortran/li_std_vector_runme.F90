@@ -9,7 +9,6 @@ program li_std_vector_runme
   call test_strings
 contains
 subroutine test_strings
-  use arrays
   implicit none
   type(StringVector) :: strings!, reversed
 
