@@ -108,14 +108,72 @@ end subroutine}
   }
   
   %typemap(fin, noblock=1) CPPTYPE {
-    $1_view => $input(1)
-    $1%data = c_loc($1_view)
-    $1%size = size($input)
+    if (size($input) > 0) then
+      $1_view => $input(1)
+      $1%data = c_loc($1_view)
+      $1%size = size($input)
+    else
+      $1%data = c_null_ptr
+      $1%size = 0
+    end if
   }
   
   // Fortran proxy translation code: convert from imtype 1 to ftype $result
   %typemap(fout, noblock=1) CPPTYPE {
-    call c_f_pointer($1%data, $result, [$1%size])
+    if ($1%size > 0) then
+      call c_f_pointer($1%data, $result, [$1%size])
+    else
+      $result => NULL()
+    endif
+  }
+%enddef
+
+/* ------------------------------------------------------------------------- */
+/*!
+ * \def %fortran_array_pointer_and_ref
+ *
+ * Convert a C++ input argument to an array pointer.
+ *
+ * For example, the function
+ * \code
+   void f(double** data, size_t* size);
+   \endcode
+ * would take a Fortran array pointer as an (INOUT) argument.
+ *
+ * This defines:
+ * - C type interface
+ * - IM type interface
+ * - FIN
+ * - FTYPE array pointer
+ *
+ * which means you still must define the C++ <--> C conversions elsewhere.
+ * Make sure to add the `match="in"` keyword to the `argout` typemap.
+ */
+%define %fortran_array_handle(VTYPE, CPPTYPE...)
+
+  // Input arguments for pointer-by-ref are the same
+  %typemap(ftype, in={$typemap(imtype, VTYPE), dimension(:), pointer, intent(inout)}, noblock=1) CPPTYPE& {
+    $typemap(imtype, VTYPE), dimension(:), pointer
+  }
+  %typemap(fin, match="ftype", noblock=1) CPPTYPE& {
+    if (size($input) > 0) then
+      $1%data = c_loc($input)
+      $1%size = size($input)
+    else
+      $1%data = c_null_ptr
+      $1%size = 0
+    end if
+  }
+  %typemap(imtype) CPPTYPE& = CPPTYPE;
+  %typemap(ctype) CPPTYPE& = CPPTYPE;
+
+  // Update the resulting Fortran pointer.
+  %typemap(fargout, match="argout", noblock=1) CPPTYPE& {
+    if ($1%size > 0) then
+      call c_f_pointer($1%data, $input, [$1%size])
+    else
+      $input => NULL()
+    endif
   }
 %enddef
 

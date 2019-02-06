@@ -79,10 +79,14 @@
 
 // Fortran proxy translation code: copy array contents and free the malloc'd copy
 %typemap(fout, fragment="SWIG_free_f", noblock=1) ARRTYPE {
-  call c_f_pointer($1%data, $1_view, [$1%size])
-  allocate($result(size($1_view)))
-  $result = $1_view
-  call SWIG_free($1%data)
+  if ($1%size > 0) then
+    call c_f_pointer($1%data, $1_view, [$1%size])
+    allocate($result(size($1_view)))
+    $result = $1_view
+    call SWIG_free($1%data)
+  else
+    allocate($result(0))
+  endif
 }
 
 /* ---- MUTABLE REFERENCE: CLASS OBJECT ---- */

@@ -1246,27 +1246,32 @@ where a class provides a custom `operator->` and unary `operator*`, is not yet
 implemented. All C++ `operator` overloads except for assignment are currently
 ignored.
 
-## Returning array pointers
+## Array pointers
 
-The `<view.i>` library file provides an alternate means of converting to and from Fortran array pointers. It translates `std::pair<T*, size_t>` input and
-output values to and from Fortran array pointers. See the section on [pointers
-and references](#pointers-and-references) for cautions on functions returning
-pointers, but in short, the wrapper code
+The `<std_span.i>` library file provides an example of interacting directly
+with Fortran array pointers. The `std::span` class is proposed for C++20, so
+this file serves mostly as an example of array translation for other
+scientific software libraries that use functionally equivalent classes: storing
+a simple non-owning reference to a contiguous array of data.
+
+Returning a `std::span<T>` yields a Fortran array pointer, and taking a
+*reference* to a span allows a Fortran array pointer to be set.
 ```swig
-#include <view.i>
-%fortran_view(double)
-std::pair<double *, size_t> get_array_ptr();
+#include <std_span.i>
+%template() std::span<int>;
+std::span<int> get_array_ptr();
+void set_array_ptr(std::span<int>& arr);
+void increment(std::span<int> arr);
 ```
 is usable in Fortran as
 ```fortran
-real(C_DOUBLE), pointer :: arrptr(:)
+integer(C_INT), pointer :: arrptr(:)
 arrptr => get_array_ptr()
+call set_array_ptr(arrptr)
+call increment(arrptr)
 ```
-
-Since this library file is so simple, it can be used as a template for creating
-transparent wrappers between Fortran arrays and other C++ data types. Similar
-code is used in the `ForTrilinos` library to treat `Teuchos::ArrayView`
-return values as Fortran array pointers.
+See the section on [pointers and references](#pointers-and-references) for
+cautions on functions returning pointers.
 
 ## Integer types
 
