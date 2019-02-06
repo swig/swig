@@ -51,6 +51,11 @@ void increment_and_disassociate(std::span<int>& dst) {
     ptr[i]++;
   dst = std::span<int>();
 }
+
+const std::span<const int>& const_ref(const std::span<const int>& src) {
+  return src;
+}
+
 %}
 
 

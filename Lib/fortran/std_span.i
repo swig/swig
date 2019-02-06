@@ -8,6 +8,8 @@
  */
 namespace std
 {
+%naturalvar span;
+
 template<class _Tp, int _Ex = -1>
 class span
 {
@@ -19,6 +21,7 @@ class span
   index_type size();
 
   %fortran_array_pointer(_Tp, std::span<_Tp, _Ex >)
+  %apply std::span<_Tp, _Ex > { const std::span<_Tp, _Ex >& };
   %fortran_array_handle(_Tp, std::span<_Tp, _Ex >)
 
   %typemap(in, noblock=1) std::span<_Tp, _Ex > {

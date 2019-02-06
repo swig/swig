@@ -12,8 +12,8 @@ subroutine test_std_span
   use fortran_std_span
   use ISO_C_BINDING
   implicit none
-  integer(C_INT), dimension(:), pointer :: ptr => NULL()
-  integer(C_INT), dimension(:), pointer :: local_ptr => NULL()
+  integer(C_INT), dimension(:), pointer :: ptr => null()
+  integer(C_INT), dimension(:), pointer :: local_ptr => null()
   integer(C_INT), dimension(3) :: expected = [1, 2, 3]
   integer(C_INT), dimension(:), allocatable, target :: values
 
@@ -47,6 +47,12 @@ subroutine test_std_span
   call increment_and_disassociate(ptr)
   ASSERT(values(4) == 9)
   ASSERT(.not. associated(ptr))
+
+  ! Make one pointer point to another
+  ptr => null()
+  local_ptr => values
+  ptr => const_ref(local_ptr)
+  ASSERT(associated(ptr, local_ptr))
 
 end subroutine
 
