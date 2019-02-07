@@ -439,9 +439,8 @@ public:
       sprintf(temp, "%d", numargs);
       if (exporting_destructor) {
 	Printf(init_func_def, "SWIG_TypeClientData(SWIGTYPE%s, (void *) %s);\n", swigtype_ptr, wname);
-      } else {
-	Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),menv);\n", proc_name, wname, proc_name, numreq, numargs);
       }
+      Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),menv);\n", proc_name, wname, proc_name, numreq, numargs);
     } else {
       if (!Getattr(n, "sym:nextSibling")) {
 	/* Emit overloading dispatch function */
