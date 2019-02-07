@@ -156,7 +156,7 @@ end subroutine}
     $typemap(imtype, VTYPE), dimension(:), pointer
   }
   %typemap(fin, match="ftype", noblock=1) CPPTYPE& {
-    if (size($input) > 0) then
+    if (associated($input) .and. size($input) > 0) then
       $1%data = c_loc($input)
       $1%size = size($input)
     else
