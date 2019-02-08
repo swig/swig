@@ -962,11 +962,6 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
   if (CPlusPlus)
     Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
 
-  if (!tlm) {
-    Printf(stderr, "No target language specified\n");
-    return 1;
-  }
-
   // Parse language dependent options
   lang->main(argc, argv);
 
@@ -974,6 +969,12 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
     Printf(stdout, "\nNote: 'swig -<lang> -help' displays options for a specific target language.\n\n");
     SWIG_exit(EXIT_SUCCESS);	// Exit if we're in help mode
   }
+
+  if (!tlm) {
+    Printf(stderr, "No target language specified\n");
+    return 1;
+  }
+
   // Check all of the options to make sure we're cool.
   // Don't check for an input file if -external-runtime is passed
   Swig_check_options(external_runtime ? 0 : 1);
