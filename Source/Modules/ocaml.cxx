@@ -1394,8 +1394,7 @@ public:
 	pure_virtual = true;
       }
     }
-
-    Wrapper_add_local(w, "swig_result", "CAMLparam0();\n" "SWIG_CAMLlocal2(swig_result,args)");
+    Printf(w->locals, "CAMLparam0();\n");
 
     /* determine if the method returns a pointer */
     is_pointer = SwigType_ispointer_return(decl);
@@ -1469,16 +1468,18 @@ public:
 
     if (ignored_method) {
       if (!pure_virtual) {
-	if (!is_void)
-	  Printf(w->code, "return ");
 	String *super_call = Swig_method_call(super, l);
-	Printf(w->code, "%s;\n", super_call);
+	if (is_void)
+	  Printf(w->code, "%s;\n", super_call);
+	else
+	  Printf(w->code, "CAMLreturn_type(%s);\n", super_call);
 	Delete(super_call);
       } else {
 	Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
 	       SwigType_namestr(name));
       }
     } else {
+      Wrapper_add_local(w, "swig_result", "SWIG_CAMLlocal2(swig_result, args)");
       /* attach typemaps to arguments (C/C++ -> Ocaml) */
       String *arglist = NewString("");
 
@@ -1673,6 +1674,8 @@ public:
 	  Printf(w->code, "CAMLreturn_type(*c_result);\n");
 	}
       }
+    } else {
+      Printf(w->code, "CAMLreturn0;\n");
     }
 
     Printf(w->code, "}\n");
