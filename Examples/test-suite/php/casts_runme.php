@@ -10,7 +10,7 @@ check::classes(array('A','B'));
 // now new vars
 check::globals(array());
 
-# Make sure $b inherites hello() from class A
+# Make sure $b inherits hello() from class A
 $b=new B();
 $b->hello();
 
