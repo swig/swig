@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-02-09: olly
+	    [PHP] A renamed constructor is now wrapped as a static method in
+	    PHP.
+
 2019-02-08: olly
 	    [PHP] Don't generate code which references $r when $r hasn't been
 	    defined.  This could happen in overloaded methods which returned
