@@ -36,7 +36,7 @@ extern "C" {
 #ifdef ZEND_CONSTANT_SET_FLAGS
 # define SWIG_ZEND_CONSTANT_SET_FLAGS ZEND_CONSTANT_SET_FLAGS
 #else
-# define SWIG_ZEND_CONSTANT_SET_FLAGS(C, F, N) do { (C).flags = (F); (C).module_number = (N); } while (0)
+# define SWIG_ZEND_CONSTANT_SET_FLAGS(C, F, N) do { (C)->flags = (F); (C)->module_number = (N); } while (0)
 #endif
 
 #ifdef __cplusplus
