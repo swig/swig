@@ -32,6 +32,13 @@ extern "C" {
     REGISTER_STRINGL_CONSTANT(#N, &swig_char, 1, CONST_CS | CONST_PERSISTENT);\
 } while (0)
 
+/* ZEND_CONSTANT_SET_FLAGS is new in PHP 7.3. */
+#ifdef ZEND_CONSTANT_SET_FLAGS
+# define SWIG_ZEND_CONSTANT_SET_FLAGS ZEND_CONSTANT_SET_FLAGS
+#else
+# define SWIG_ZEND_CONSTANT_SET_FLAGS(C, F, N) do { (C).flags = (F); (C).module_number = (N); } while (0)
+#endif
+
 #ifdef __cplusplus
 }
 #endif
