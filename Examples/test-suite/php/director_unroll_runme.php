@@ -4,9 +4,9 @@ require "tests.php";
 require "director_unroll.php";
 
 // No new functions
-check::functions(array(foo_ping,foo_pong));
+check::functions(array('foo_ping','foo_pong'));
 // No new classes
-check::classes(array(Foo,Bar));
+check::classes(array('Foo','Bar'));
 
 class MyFoo extends Foo {
   function ping() {

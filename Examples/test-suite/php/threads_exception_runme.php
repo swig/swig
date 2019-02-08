@@ -4,9 +4,9 @@ require "tests.php";
 require "threads_exception.php";
 
 // Check functions
-check::functions(array(test_simple,test_message,test_hosed,test_unknown,test_multi,is_python_builtin));
+check::functions(array('test_simple','test_message','test_hosed','test_unknown','test_multi','is_python_builtin'));
 // Check classes.
-check::classes(array(Exc,Test,threads_exception));
+check::classes(array('Exc','Test','threads_exception'));
 
 $t = new Test();
 try {

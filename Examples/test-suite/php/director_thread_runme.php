@@ -8,9 +8,9 @@ require "director_thread.php";
 exit(0);
 
 // No new functions
-check::functions(array(millisecondsleep,foo_stop,foo_run,foo_do_foo));
+check::functions(array('millisecondsleep','foo_stop','foo_run','foo_do_foo'));
 // No new classes
-check::classes(array(director_thread,Foo));
+check::classes(array('director_thread','Foo'));
 
 class Derived extends Foo {
   function do_foo() {

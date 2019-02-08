@@ -3,11 +3,11 @@ require "tests.php";
 require "li_carrays.php";
 
 // Check functions.
-check::functions(array(new_intarray,delete_intarray,intarray_getitem,intarray_setitem,doublearray_getitem,doublearray_setitem,doublearray_cast,doublearray_frompointer,xyarray_getitem,xyarray_setitem,xyarray_cast,xyarray_frompointer,delete_abarray,abarray_getitem,abarray_setitem,shortarray_getitem,shortarray_setitem,shortarray_cast,shortarray_frompointer,sum_array));
+check::functions(array('new_intarray','delete_intarray','intarray_getitem','intarray_setitem','doublearray_getitem','doublearray_setitem','doublearray_cast','doublearray_frompointer','xyarray_getitem','xyarray_setitem','xyarray_cast','xyarray_frompointer','delete_abarray','abarray_getitem','abarray_setitem','shortarray_getitem','shortarray_setitem','shortarray_cast','shortarray_frompointer','sum_array'));
 
 // Check classes.
 // NB An "li_carrays" class is created as a mock namespace.
-check::classes(array(li_carrays,doubleArray,AB,XY,XYArray,shortArray));
+check::classes(array('li_carrays','doubleArray','AB','XY','XYArray','shortArray'));
 
 $d = new doubleArray(10);
 
