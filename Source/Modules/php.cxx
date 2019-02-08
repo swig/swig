@@ -43,7 +43,7 @@
 #include <errno.h>
 
 static const char *usage = "\
-PHP Options (available with -php7)\n\
+PHP 7 Options (available with -php7)\n\
      -noproxy         - Don't generate proxy classes.\n\
      -prefix <prefix> - Prepend <prefix> to all class names in PHP wrappers\n\
 \n";
@@ -979,7 +979,7 @@ public:
     /* Insert argument output code */
     bool hasargout = false;
     for (i = 0, p = l; p; i++) {
-      if ((tm = Getattr(p, "tmap:argout"))) {
+      if ((tm = Getattr(p, "tmap:argout")) && Len(tm)) {
 	hasargout = true;
 	Replaceall(tm, "$source", Getattr(p, "lname"));
 	//      Replaceall(tm,"$input",Getattr(p,"lname"));
@@ -2860,18 +2860,4 @@ static Language *new_swig_php() {
 
 extern "C" Language *swig_php(void) {
   return new_swig_php();
-}
-
-extern "C" Language *swig_php4(void) {
-  Printf(stderr, "*** -php4 is no longer supported.\n"
-		 "*** Either upgrade to PHP5 or use SWIG 1.3.36 or earlier.\n");
-  SWIG_exit(EXIT_FAILURE);
-  return NULL; // To avoid compiler warnings.
-}
-
-extern "C" Language *swig_php5(void) {
-  Printf(stderr, "*** -php5 is no longer supported.\n"
-		 "*** Either upgrade to PHP7 or use SWIG < 4.0.0.\n");
-  SWIG_exit(EXIT_FAILURE);
-  return NULL; // To avoid compiler warnings.
 }

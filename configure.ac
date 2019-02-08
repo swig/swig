@@ -2002,7 +2002,7 @@ if test x"${PHPBIN}" = xno; then
     PHP=
 else
     if test "x$PHPBIN" = xyes; then
-      AC_CHECK_PROGS(PHP, [php7.1 php7.0 php])
+      AC_CHECK_PROGS(PHP, [php7.3 php7.2 php7.1 php7.0 php])
     else
       PHP=$PHPBIN
     fi
@@ -2083,174 +2083,6 @@ AC_SUBST(OCAMLDLGEN)
 AC_SUBST(OCAMLFIND)
 AC_SUBST(OCAMLMKTOP)
 AC_SUBST(CAMLP4)
-
-#----------------------------------------------------------------
-# Look for Pike
-#----------------------------------------------------------------
-
-# Identify the name of the Pike executable
-# Priority: configure option, automatic search
-PIKEBIN=
-AC_ARG_WITH(pike, AS_HELP_STRING([--without-pike], [Disable Pike])
-AS_HELP_STRING([--with-pike=path], [Set location of Pike executable]),[PIKEBIN="$withval"], [PIKEBIN="$alllang_default"])
-
-# First, check for "--without-pike" or "--with-pike=no".
-if test x"${PIKEBIN}" = xno; then
-    AC_MSG_NOTICE([Disabling Pike])
-    PIKEBIN=
-else
-
-if test "x$PIKEBIN" = xyes; then
-	AC_CHECK_PROGS(PIKE, pike pike7.8 pike7.6 pike7.4 pike7.2)
-else
-	PIKE="$PIKEBIN"
-fi
-
-
-# Check for pike-config
-# Priority: configure option, guessed from $PIKE, search from list
-AC_ARG_WITH(pike-config, AS_HELP_STRING([--with-pike-config=path],
-  	[Set location of pike-config script]),
-  [PIKECONFIG="$withval"], [PIKECONFIG=""])
-
-if test -z "$PIKECONFIG" -a -n "$PIKE"; then
-	AC_CHECK_PROGS(PIKECONFIG, $PIKE-config pike-config \
-		pike7.6-config pike7.4-config pike7.2-config)
-fi
-
-# Check for a --with-pikeincl option to configure
-# Priority: configure option, info from $PIKECONFIG, guessed by pike script
-AC_ARG_WITH(pikeincl, AS_HELP_STRING([--with-pikeincl=path],
-	[Set location of Pike include directory]),
-  [PIKEINCLUDE="-I$withval"], [PIKEINCLUDE=])
-
-if test -n "$PIKE"; then
-      AC_MSG_CHECKING([for Pike header files])
-      if test -z "$PIKEINCLUDE" -a -n "$PIKECONFIG"; then
-        PIKEINCLUDE=`$PIKECONFIG --cflags`
-      fi
-      if test -z "$PIKEINCLUDE" -a -n "$PIKE"; then
-        PIKEINCLUDE=`$PIKE -x cflags`
-        if test -z "$PIKEINCLUDE"; then
-          PIKEPATH=`which $PIKE`
-          PIKEINCLUDE=`$PIKE Tools/check-include-path.pike $PIKEPATH`
-          PIKEINCLUDE="-I$PIKEINCLUDE"
-        fi
-      fi
-
-      if test -z "$PIKEINCLUDE"; then
-        AC_MSG_RESULT(not found)
-      else
-        AC_MSG_RESULT($PIKEINCLUDE)
-      fi
-fi
-fi
-
-AC_SUBST(PIKEINCLUDE)
-AC_SUBST(PIKECCDLFLAGS)		dnl XXX: where is this used/defined?
-AC_SUBST(PIKEDYNAMICLINKING)	dnl XXX: where is this used/defined?
-
-#----------------------------------------------------------------
-# Look for CHICKEN
-#----------------------------------------------------------------
-
-CHICKEN=
-CHICKEN_CONFIG=
-CHICKENHOME=
-CHICKENOPTS=
-CHICKENLIB=
-
-
-AC_ARG_WITH(chicken, AS_HELP_STRING([--without-chicken], [Disable CHICKEN])
-AS_HELP_STRING([--with-chicken=path], [Set location of CHICKEN executable]),[ CHICKENBIN="$withval"], [CHICKENBIN="$alllang_default"])
-
-# First, check for "--without-chicken" or "--with-chicken=no".
-if test x"${CHICKENBIN}" = xno; then
-AC_MSG_NOTICE([Disabling CHICKEN])
-else
-
-if test "x$CHICKENBIN" = xyes; then
-AC_CHECK_PROGS(CHICKEN, chicken)
-else
-CHICKEN="$CHICKENBIN"
-fi
-
-AC_ARG_WITH(chickencsc,[  --with-chickencsc=path  Set location of csc executable],[ CHICKEN_CSC="$withval"], [CHICKEN_CSC=])
-
-if test -z "$CHICKEN_CSC"; then
-  AC_CHECK_PROGS(CHICKEN_CSC, csc)
-  # Both the Microsoft C# compiler and chicken have an executable called csc, so check that this csc is really the chicken one
-  if test -n "$CHICKEN_CSC" ; then
-    AC_MSG_CHECKING(whether csc is the chicken compiler)
-    $CHICKEN_CSC -version 2>/dev/null | grep "chicken" > /dev/null || CHICKEN_CSC=""
-    if test -z "$CHICKEN_CSC"; then
-      AC_MSG_RESULT(no)
-    else
-      AC_MSG_RESULT(yes)
-    fi
-  fi
-fi
-
-AC_ARG_WITH(chickencsi,[  --with-chickencsi=path  Set location of csi executable],[ CHICKEN_CSI="$withval"], [CHICKEN_CSI=])
-
-if test -z "$CHICKEN_CSI"; then
-AC_CHECK_PROGS(CHICKEN_CSI, csi)
-fi
-
-if test -n "$CHICKEN_CSC" ; then
-
-  AC_ARG_WITH(chickenopts,[  --with-chickenopts=args Set compiler options for static CHICKEN generated code],[
-	CHICKENOPTS="$withval"], [CHICKENOPTS=])
-  AC_ARG_WITH(chickensharedlib,[  --with-chickensharedlib=args    Set linker options for shared CHICKEN generated code],[
-	CHICKENSHAREDLIB="$withval"], [CHICKENSHAREDLIB=])
-  AC_ARG_WITH(chickenlib,[  --with-chickenlib=args  Set linker options for static CHICKEN generated code],[
-	CHICKENLIB="$withval"], [CHICKENLIB=])
-
-  AC_MSG_CHECKING(for compiler options for static CHICKEN generated code)
-  if test -z "$CHICKENOPTS"; then
-        CHICKENOPTS="`$CHICKEN_CSC -cflags`"
-  else
-        CHICKENOPTS="`$CHICKEN_CSC -cflags` $CHICKENOPTS"
-  fi
-  if test -z "$CHICKENOPTS"; then
-        AC_MSG_RESULT(not found)
-  else
-        AC_MSG_RESULT($CHICKENOPTS)
-  fi
-
-  AC_MSG_CHECKING(for linker options for shared CHICKEN generated code)
-  if test -z "$CHICKENSHAREDLIB"; then
-        CHICKENSHAREDLIB="`$CHICKEN_CSC -shared -libs`"
-  else
-        CHICKENSHAREDLIB="`$CHICKEN_CSC -shared -libs` $CHICKENSHAREDLIB"
-  fi
-  if test -z "$CHICKENSHAREDLIB"; then
-  	AC_MSG_RESULT(not found)
-  else
-        AC_MSG_RESULT($CHICKENSHAREDLIB)
-  fi
-
-  AC_MSG_CHECKING(for linker options for static CHICKEN generated code)
-  if test -z "$CHICKENLIB"; then
-        CHICKENLIB="`$CHICKEN_CSC -libs`"
-  else
-        CHICKENLIB="`$CHICKEN_CSC -libs` $CHICKENLIB"
-  fi
-  if test -z "$CHICKENLIB"; then
-  	AC_MSG_RESULT(not found)
-  else
-        AC_MSG_RESULT($CHICKENLIB)
-  fi
-
-fi # have CHICKEN_CONFIG
-fi # Check for --without-chicken
-
-AC_SUBST(CHICKEN)
-AC_SUBST(CHICKEN_CSC)
-AC_SUBST(CHICKEN_CSI)
-AC_SUBST(CHICKENOPTS)
-AC_SUBST(CHICKENLIB)
-AC_SUBST(CHICKENSHAREDLIB)
 
 #----------------------------------------------------------------
 # Look for C#
@@ -2499,52 +2331,6 @@ AC_SUBST(LUADYNAMICLINKING)
 AC_SUBST(LUAFLAGS)
 AC_SUBST(LUALINK)
 AC_SUBST(LUABIN)
-
-#----------------------------------------------------------------
-# Look for Allegro Common Lisp
-#----------------------------------------------------------------
-
-ALLEGROCLBIN=
-
-AC_ARG_WITH(allegrocl, AS_HELP_STRING([--without-allegrocl], [Disable Allegro CL])
-AS_HELP_STRING([--with-allegrocl=path], [Set location of Allegro CL executable (alisp)]),[ ALLEGROCLBIN="$withval"], [ALLEGROCLBIN="$alllang_default"])
-
-# First, check for "--without-allegrocl" or "--with-allegrocl=no".
-if test x"${ALLEGROCLBIN}" = xno; then
-AC_MSG_NOTICE([Disabling Allegro CL])
-ALLEGROCLBIN=
-else
-
-# can we find allegrocl?
-if test "x$ALLEGROCLBIN" = xyes; then
-   AC_PATH_PROG(ALLEGROCLBIN, alisp)
-fi
-fi
-
-AC_SUBST(ALLEGROCLBIN)
-
-#----------------------------------------------------------------
-# Look for GNU CLISP
-#----------------------------------------------------------------
-
-CLISPBIN=
-
-AC_ARG_WITH(clisp, AS_HELP_STRING([--without-clisp], [Disable CLISP])
-AS_HELP_STRING([--with-clisp=path], [Set location of CLISP executable (clisp)]),[ CLISPBIN="$withval"], [CLISPBIN="$alllang_default"])
-
-# First, check for "--without-clisp" or "--with-clisp=no".
-if test x"${CLISPBIN}" = xno; then
-AC_MSG_NOTICE([Disabling CLISP])
-CLISPBIN=
-else
-
-# can we find clisp?
-if test "x$CLISPBIN" = xyes; then
-   AC_PATH_PROG(CLISPBIN, clisp)
-fi
-fi
-
-AC_SUBST(CLISPBIN)
 
 #----------------------------------------------------------------
 # Look for GNU R
@@ -2864,20 +2650,6 @@ fi
 AC_SUBST(SKIP_OCAML)
 
 
-SKIP_PIKE=
-if test -z "$PIKE" || test -z "$PIKEINCLUDE" ; then
-    SKIP_PIKE="1"
-fi
-AC_SUBST(SKIP_PIKE)
-
-
-SKIP_CHICKEN=
-if test -z "$CHICKEN_CSC" || test -z "$CHICKEN"; then
-    SKIP_CHICKEN="1"
-fi
-AC_SUBST(SKIP_CHICKEN)
-
-
 SKIP_CSHARP=
 if test -z "$CSHARPCOMPILER" ; then
     SKIP_CSHARP="1"
@@ -2888,9 +2660,6 @@ else
 fi
 AC_SUBST(SKIP_CSHARP)
 
-SKIP_MODULA3="1" # Always skipped!
-AC_SUBST(SKIP_MODULA3)
-
 SKIP_LUA=
 # we need LUABIN & dynamic loading
 if test -z "$LUABIN" || test -z "$LUADYNAMICLOADLIB"; then
@@ -2898,35 +2667,11 @@ if test -z "$LUABIN" || test -z "$LUADYNAMICLOADLIB"; then
 fi
 AC_SUBST(SKIP_LUA)
 
-SKIP_ALLEGROCL=
-if test -z "$ALLEGROCLBIN" ; then
-    SKIP_ALLEGROCL="1"
-fi
-AC_SUBST(SKIP_ALLEGROCL)
-
-SKIP_CLISP=
-if test -z "$CLISPBIN" ; then
-    SKIP_CLISP="1"
-fi
-AC_SUBST(SKIP_CLISP)
-
 SKIP_R=
 if test -z "$RBIN" ; then
     SKIP_R="1"
 fi
 AC_SUBST(SKIP_R)
-
-SKIP_CFFI=
-#if test -z "$CFFIBIN" ; then
-    SKIP_CFFI="1"
-#fi
-AC_SUBST(SKIP_CFFI)
-
-SKIP_UFFI=
-#if test -z "$UFFIBIN" ; then
-    SKIP_UFFI="1"
-#fi
-AC_SUBST(SKIP_UFFI)
 
 SKIP_SCILAB=
 if test -z "$SCILAB"; then
@@ -3035,7 +2780,6 @@ AC_CONFIG_FILES([
     Examples/d/example.mk
     Examples/xml/Makefile
     Examples/test-suite/errors/Makefile
-    Examples/test-suite/chicken/Makefile
     Examples/test-suite/csharp/Makefile
     Examples/test-suite/d/Makefile
     Examples/test-suite/guile/Makefile
@@ -3046,16 +2790,11 @@ AC_CONFIG_FILES([
     Examples/test-suite/octave/Makefile
     Examples/test-suite/perl5/Makefile
     Examples/test-suite/php/Makefile
-    Examples/test-suite/pike/Makefile
     Examples/test-suite/python/Makefile
     Examples/test-suite/ruby/Makefile
     Examples/test-suite/scilab/Makefile
     Examples/test-suite/tcl/Makefile
     Examples/test-suite/lua/Makefile
-    Examples/test-suite/allegrocl/Makefile
-    Examples/test-suite/clisp/Makefile
-    Examples/test-suite/cffi/Makefile
-    Examples/test-suite/uffi/Makefile
     Examples/test-suite/r/Makefile
     Examples/test-suite/go/Makefile
     Source/Makefile
@@ -3103,10 +2842,6 @@ EOF
 AC_OUTPUT
 
 langs=""
-test -n "$SKIP_ALLEGROCL"	|| langs="${langs}allegrocl "
-test -n "$SKIP_CFFI"		|| langs="${langs}cffi "
-test -n "$SKIP_CHICKEN"		|| langs="${langs}chicken "
-test -n "$SKIP_CLISP"		|| langs="${langs}clisp "
 test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
 test -n "$SKIP_D"		|| langs="${langs}d "
 test -n "$SKIP_GO"		|| langs="${langs}go "
@@ -3114,19 +2849,16 @@ test -n "$SKIP_GUILE"		|| langs="${langs}guile "
 test -n "$SKIP_JAVA"		|| langs="${langs}java "
 test -n "$SKIP_JAVASCRIPT"	|| langs="${langs}javascript "
 test -n "$SKIP_LUA"		|| langs="${langs}lua "
-test -n "$SKIP_MODULA3"		|| langs="${langs}modula3 "
 test -n "$SKIP_MZSCHEME"	|| langs="${langs}mzscheme "
 test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
 test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "
 test -n "$SKIP_PERL5"		|| langs="${langs}perl5 "
 test -n "$SKIP_PHP"		|| langs="${langs}php "
-test -n "$SKIP_PIKE"		|| langs="${langs}pike "
 test -n "$SKIP_PYTHON"		|| langs="${langs}python "
 test -n "$SKIP_R"		|| langs="${langs}r "
 test -n "$SKIP_RUBY"		|| langs="${langs}ruby "
 test -n "$SKIP_SCILAB"		|| langs="${langs}scilab "
 test -n "$SKIP_TCL"		|| langs="${langs}tcl "
-test -n "$SKIP_UFFI"		|| langs="${langs}uffi "
 
 echo "
 The SWIG test-suite and examples are configured for the following languages:

@@ -7,6 +7,61 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-02-08: olly
+	    [PHP] Don't generate code which references $r when $r hasn't been
+	    defined.  This could happen in overloaded methods which returned
+	    void and took at least one const std::string& parameter.
+
+2019-02-08: olly
+	    [PHP] The generated code is now compatible with PHP 7.3, and the
+	    testsuite now runs cleanly with this version too.
+
+2019-02-04: wsfulton
+	    [CFFI] #1447 Common Lisp CFFI has been disabled as a target language in SWIG as part of a
+            clean up to remove target languages that have been neglected/not functional.
+
+2019-02-04: wsfulton
+	    [Allegrocl] #1447 Allegro Common Lisp has been disabled as a target language in SWIG as part of a
+            clean up to remove target languages that have been neglected/not functional.
+
+2019-02-04: wsfulton
+	    [Chicken] #1447 CHICKEN has been disabled as a target language in SWIG as part of a
+            clean up to remove target languages that have been neglected/not functional.
+
+2019-02-04: wsfulton
+	    [CLISP] #1447 GNU Common Lisp has been disabled as a target language in SWIG as part of a
+            clean up to remove target languages that have been neglected/not functional.
+
+2019-02-04: wsfulton
+	    [S-EXP] #1447 Common Lisp S-Exp has been disabled as a target language in SWIG as part of a
+            clean up to remove target languages that have been neglected/not functional.
+
+2019-02-04: wsfulton
+	    [UFFI] #1447 Common Lisp UFFI has been disabled as a target language in SWIG as part of a
+            clean up to remove target languages that have been neglected/not functional.
+
+2019-02-04: wsfulton
+	    [Pike] #1447 Pike has been disabled as a target language in SWIG as part of a
+            clean up to remove target languages that have been neglected/not functional.
+
+2019-02-04: wsfulton
+	    [Modula3] #1447 Modula3 has been disabled as a target language in SWIG as part of a
+            clean up to remove target languages that have been neglected/not functional.
+
+2019-02-02: ahnolds
+	    [Python] Documentation enhancements for Python:
+
+            #728 Fixed the handling of autodoc when using -fastproxy.
+
+            #1367 Added documentation to wrapped member variables using the
+            property(... doc="...") construct.
+
+            Only show a single documentation entry for functions with default arguments when
+            using autodoc.
+
+            Fixed a bug where a cached doxygen docstring could be deleted while still in use,
+            causing swig to segfault.
+
 2019-01-31: olly
 	    SWIG now requires a target language to be specified instead of
 	    defaulting to wrapping for Tcl.  Specifying swig --help without

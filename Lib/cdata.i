@@ -21,14 +21,6 @@ typedef struct SWIGCDATA {
 }
 %typemap(in) (const void *indata, int inlen) = (char *STRING, int LENGTH);
 
-#elif SWIGCHICKEN
-
-%typemap(out) SWIGCDATA {
-  C_word *string_space = C_alloc(C_SIZEOF_STRING($1.len));
-  $result = C_string(&string_space, $1.len, $1.data);
-}
-%typemap(in) (const void *indata, int inlen) = (char *STRING, int LENGTH);
-
 #elif SWIGPHP7
 
 %typemap(out) SWIGCDATA {

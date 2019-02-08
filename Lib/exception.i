@@ -138,22 +138,6 @@ SWIGINTERN void SWIG_exception_(int code, const char *msg) {
 #endif
 
 
-#ifdef SWIGCHICKEN
-%{
-SWIGINTERN void SWIG_exception_(int code, const char *msg) {
-  C_word *a;
-  C_word scmmsg;
-  C_word list;
-
-  a = C_alloc (C_SIZEOF_STRING (strlen (msg)) + C_SIZEOF_LIST(2));
-  scmmsg = C_string2 (&a, (char *) msg);
-  list = C_list(&a, 2, C_fix(code), scmmsg);
-  SWIG_ThrowException(list);
-}
-#define SWIG_exception(a,b) SWIG_exception_((a),(b))
-%}
-#endif
-
 #ifdef SWIGCSHARP
 %{
 SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
