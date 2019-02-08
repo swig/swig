@@ -8,6 +8,11 @@ Version 4.0.0 (in progress)
 ===========================
 
 2019-02-08: olly
+	    [PHP] Don't generate code which references $r when $r hasn't been
+	    defined.  This could happen in overloaded methods which returned
+	    void and took at least one const std::string& parameter.
+
+2019-02-08: olly
 	    [PHP] The generated code is now compatible with PHP 7.3, and the
 	    testsuite now runs cleanly with this version too.
 

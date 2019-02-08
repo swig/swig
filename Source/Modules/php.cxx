@@ -979,7 +979,7 @@ public:
     /* Insert argument output code */
     bool hasargout = false;
     for (i = 0, p = l; p; i++) {
-      if ((tm = Getattr(p, "tmap:argout"))) {
+      if ((tm = Getattr(p, "tmap:argout")) && Len(tm)) {
 	hasargout = true;
 	Replaceall(tm, "$source", Getattr(p, "lname"));
 	//      Replaceall(tm,"$input",Getattr(p,"lname"));
