@@ -4,9 +4,9 @@ require "tests.php";
 require "casts.php";
 
 // No new functions
-check::functions(array(new_a,a_hello,new_b));
+check::functions(array('new_a','a_hello','new_b'));
 // No new classes
-check::classes(array(A,B));
+check::classes(array('A','B'));
 // now new vars
 check::globals(array());
 

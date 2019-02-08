@@ -31,8 +31,8 @@ class check {
       $extra=array();
       $extrags=array();
       $df=get_defined_functions();
-      $df=array_flip($df[internal]);
-      foreach($_original_functions[internal] as $func) unset($df[$func]);
+      $df=array_flip($df['internal']);
+      foreach($_original_functions['internal'] as $func) unset($df[$func]);
       // Now chop out any get/set accessors
       foreach(array_keys($df) as $func)
         if ((self::GETSET && preg_match('/_[gs]et$/', $func)) ||

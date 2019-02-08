@@ -3,7 +3,7 @@
 require "tests.php";
 require "argout.php";
 
-check::functions(array(incp,incr,inctr,new_intp,copy_intp,delete_intp,intp_assign,intp_value,voidhandle,handle));
+check::functions(array('incp','incr','inctr','new_intp','copy_intp','delete_intp','intp_assign','intp_value','voidhandle','handle'));
 
 $ip=copy_intp(42);
 check::equal(42,incp($ip),"42==incp($ip)");
