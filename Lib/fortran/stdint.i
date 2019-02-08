@@ -1,8 +1,11 @@
 /* -------------------------------------------------------------------------
  * stdint.i
  * ------------------------------------------------------------------------- */
+%{
+#include <stdint.h>
+%}
+
 %include <fundamental.swg>
-%include <../stdint.i>
 
 %fortran_intrinsic(int8_t,  integer(C_INT8_T))
 %fortran_intrinsic(int16_t, integer(C_INT16_T))
