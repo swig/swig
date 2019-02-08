@@ -31,7 +31,9 @@ check::is_a($spam,"spam");
 check::equal(1,$spam->_foo,"1==spam->_foo");
 check::equal(2,$spam->_bar,"2==spam->_bar");
 // multiple inheritance not supported in PHP
+set_error_handler(NULL, 0); // Don't complain that _baz is unknown.
 check::equal(null,$spam->_baz,"null==spam->_baz");
+restore_error_handler();
 check::equal(4,$spam->_spam,"4==spam->_spam");
 
 check::done();

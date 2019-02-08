@@ -1,5 +1,16 @@
 <?php
 
+function die_on_error($errno, $errstr, $file, $line) {
+    if ($file !== Null) {
+        print $file;
+        if ($line !== Null) print ":$line";
+        print ": ";
+    }
+    print "$errstr\n";
+    exit(1);
+}
+set_error_handler("die_on_error", -1);
+
 $_original_functions=get_defined_functions();
 $_original_globals=1;
 $_original_classes=get_declared_classes();

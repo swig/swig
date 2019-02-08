@@ -3,17 +3,6 @@
 require "tests.php";
 require "li_std_string.php";
 
-function die_on_error($errno, $errstr, $file, $line) {
-    if ($file !== Null) {
-        print $file;
-        if ($line !== Null) print ":$line";
-        print ": ";
-    }
-    print "$errstr\n";
-    exit(1);
-}
-set_error_handler("die_on_error", -1);
-
 // Global variables
 //$s="initial string";
 //check::equal(GlobalString2_get() ,"global string 2", "GlobalString2 test 1");
