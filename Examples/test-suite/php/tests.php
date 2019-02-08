@@ -82,6 +82,7 @@ class check {
   static function classmethods($classname,$methods) {
     if (is_object($classname)) $classname=get_class($classname);
     $classmethods=array_flip(get_class_methods($classname));
+    $message=NULL;
     $missing=array();
     $extra=array();
     foreach($methods as $method) {
