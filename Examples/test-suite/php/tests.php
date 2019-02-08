@@ -105,7 +105,7 @@ class check {
     else $_GLOBALS[$var]=$value;
   }
 
-  static function &get($var) {
+  static function get($var) {
     $func=$var."_get";
     if (self::GETSET) return $func();
     else return $_GLOBALS[$var];
