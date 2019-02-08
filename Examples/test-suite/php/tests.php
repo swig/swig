@@ -10,7 +10,7 @@ class check {
   // Used to filter out get/set global functions to fake vars...
   const GETSET = 1;
 
-  function get_extra_classes($ref=FALSE) {
+  static function get_extra_classes($ref=FALSE) {
     static $extra;
     global $_original_classes;
     if ($ref===FALSE) $f=$_original_classes;
@@ -22,7 +22,7 @@ class check {
     return $extra;
   }
 
-  function get_extra_functions($ref=FALSE,$gs=false) {
+  static function get_extra_functions($ref=FALSE,$gs=false) {
     static $extra;
     static $extrags; // for get/setters
     global $_original_functions;
@@ -46,7 +46,7 @@ class check {
     return $extra;
   }
 
-  function get_extra_globals($ref=FALSE) {
+  static function get_extra_globals($ref=FALSE) {
     static $extra;
     global $_original_globals;
     if (! is_array($extra)) {
@@ -72,14 +72,14 @@ class check {
     return $extra;
   }
 
-  function classname($string,$object) {
+  static function classname($string,$object) {
     if (!is_object($object))
       return check::fail("The second argument is a " . gettype($object) . ", not an object.");
     if (strtolower($string)!=strtolower($classname=get_class($object))) return check::fail("Object: \$object is of class %s not class %s",$classname,$string);
     return TRUE;
   }
 
-  function classmethods($classname,$methods) {
+  static function classmethods($classname,$methods) {
     if (is_object($classname)) $classname=get_class($classname);
     $classmethods=array_flip(get_class_methods($classname));
     $missing=array();
@@ -98,19 +98,19 @@ class check {
     return TRUE;
   }
 
-  function set($var,$value) {
+  static function set($var,$value) {
     $func=$var."_set";
     if (self::GETSET) $func($value);
     else $_GLOBALS[$var]=$value;
   }
 
-  function &get($var) {
+  static function &get($var) {
     $func=$var."_get";
     if (self::GETSET) return $func();
     else return $_GLOBALS[$var];
   }
 
-  function is_a($a,$b) {
+  static function is_a($a,$b) {
     if (is_object($a)) $a=strtolower(get_class($a));
     if (is_object($b)) $a=strtolower(get_class($b));
     $parents=array();
@@ -123,7 +123,7 @@ class check {
     return TRUE;
   }
 
-  function classparent($a,$b) {
+  static function classparent($a,$b) {
     if (is_object($a)) $a=get_class($a);
     if (is_object($b)) $a=get_class($b);
     $parent=get_parent_class($a);
@@ -132,7 +132,7 @@ class check {
     return TRUE;
   }
 
-  function classes($classes) {
+  static function classes($classes) {
     if (! is_array($classes)) $classes=array($classes);
     $message=array();
     $missing=array();
@@ -148,7 +148,7 @@ class check {
     return TRUE;    
   }
 
-  function functions($functions) {
+  static function functions($functions) {
     if (! is_array($functions)) $functions=array($functions);
     $message=array();
     $missing=array();
@@ -165,7 +165,7 @@ class check {
     return TRUE;    
   }
 
-  function globals($globals) {
+  static function globals($globals) {
     if (! is_array($globals)) $globals=array($globals);
     $message=array();
     $missing=array();
@@ -187,30 +187,30 @@ class check {
 
   }
 
-  function functionref($a,$type,$message) {
+  static function functionref($a,$type,$message) {
     if (! preg_match("/^_[a-f0-9]+$type$/i", $a))
       return check::fail($message);
     return TRUE;
   }
 
-  function equal($a,$b,$message) {
+  static function equal($a,$b,$message) {
     if (! ($a===$b)) return check::fail($message . ": '$a'!=='$b'");
     return TRUE;
   }
 
-  function resource($a,$b,$message) {
+  static function resource($a,$b,$message) {
     $resource=trim(check::var_dump($a));
     if (! preg_match("/^resource\([0-9]+\) of type \($b\)/i", $resource))
       return check::fail($message);
     return TRUE;
   }
 
-  function isnull($a,$message) {
+  static function isnull($a,$message) {
     $value=trim(check::var_dump($a));
     return check::equal($value,"NULL",$message);
   }
 
-  function var_dump($arg) {
+  static function var_dump($arg) {
     ob_start();
     var_dump($arg);
     $result=ob_get_contents();
@@ -218,19 +218,19 @@ class check {
     return $result;
   }
 
-  function fail($pattern) {
+  static function fail($pattern) {
     $args=func_get_args();
     print("Failed on: ".call_user_func_array("sprintf",$args)."\n");
     exit(1);
   }
 
-  function warn($pattern) {
+  static function warn($pattern) {
     $args=func_get_args();
     print("Warning on: ".call_user_func_array("sprintf",$args)."\n");
     return FALSE;
   }
 
-  function done() {
+  static function done() {
 #    print $_SERVER[argv][0]." ok\n";
   }
 }
