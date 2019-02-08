@@ -1,15 +1,15 @@
 <?php
 
-// do we have true global vars or just GETSET functions?
-// Used to filter out get/set global functions to fake vars...
-define(GETSET,1);
-
 $_original_functions=get_defined_functions();
 $_original_globals=1;
 $_original_classes=get_declared_classes();
 $_original_globals=array_keys($GLOBALS);
 
 class check {
+  // do we have true global vars or just GETSET functions?
+  // Used to filter out get/set global functions to fake vars...
+  const GETSET = 1;
+
   function get_extra_classes($ref=FALSE) {
     static $extra;
     global $_original_classes;
@@ -31,11 +31,11 @@ class check {
       $extra=array();
       $extrags=array();
       $df=get_defined_functions();
-      $df=array_flip($df[internal]);
-      foreach($_original_functions[internal] as $func) unset($df[$func]);
+      $df=array_flip($df['internal']);
+      foreach($_original_functions['internal'] as $func) unset($df[$func]);
       // Now chop out any get/set accessors
       foreach(array_keys($df) as $func)
-        if ((GETSET && preg_match('/_[gs]et$/', $func)) ||
+        if ((self::GETSET && preg_match('/_[gs]et$/', $func)) ||
             preg_match('/^new_/', $func) ||
             preg_match('/_(alter|get)_newobject$/', $func))
           $extrags[]=$func;
@@ -50,7 +50,7 @@ class check {
     static $extra;
     global $_original_globals;
     if (! is_array($extra)) {
-      if (GETSET) {
+      if (self::GETSET) {
         $_extra=array();
         foreach(check::get_extra_functions(false,1) as $global) {
           if (preg_match('/^(.*)_[sg]et$/', $global, $match))
@@ -100,13 +100,13 @@ class check {
 
   function set($var,$value) {
     $func=$var."_set";
-    if (GETSET) $func($value);
+    if (self::GETSET) $func($value);
     else $_GLOBALS[$var]=$value;
   }
 
   function &get($var) {
     $func=$var."_get";
-    if (GETSET) return $func();
+    if (self::GETSET) return $func();
     else return $_GLOBALS[$var];
   }
 
@@ -171,7 +171,7 @@ class check {
     $missing=array();
     $extra=array_flip(check::get_extra_globals());
     foreach ($globals as $glob) {
-      if (GETSET) {
+      if (self::GETSET) {
         if (! isset($extra[$glob])) $missing[]=$glob;
         else unset($extra[$glob]);
       } else {
