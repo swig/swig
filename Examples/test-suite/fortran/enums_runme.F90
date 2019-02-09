@@ -6,7 +6,7 @@ program enums_runme
   use enums
   use ISO_C_BINDING
   implicit none
-  integer(kind(foo1)) :: foo1_val
+  integer(foo1) :: foo1_val
 
   foo1_val = CSP_ITERATION_FWD 
   ASSERT(CSP_ITERATION_FWD == 0)

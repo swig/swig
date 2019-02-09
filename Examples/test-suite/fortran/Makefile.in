@@ -58,7 +58,6 @@ FAILING_CPP_TESTS += \
   fvirtual \
   inherit_target_language \
   kind \
-  li_attribute \
   li_std_map \
   multiple_inheritance \
   multiple_inheritance_abstract \
