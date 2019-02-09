@@ -762,14 +762,15 @@ public:
       }
     }
 
-    if (expose_func)
-      Printf(f_mlbody,
-	     "external %s_f : c_obj list -> c_obj list = \"%s\" ;;\n"
-	     "let %s arg = match %s_f (fnhelper arg) with\n"
-	     "  [] -> C_void\n"
+    if (expose_func) {
+      Printf(f_mlbody, "external %s_f : c_obj list -> c_obj list = \"%s\" ;;\n", mangled_name, wname);
+      Printf(f_mlbody, "let %s arg = match %s_f (%s(fnhelper arg)) with\n", mangled_name, mangled_name,
+	     in_constructor && Swig_directorclass(getCurrentClass()) ? "director_core_helper " : "");
+      Printf(f_mlbody, "  [] -> C_void\n"
 	     "| [x] -> (if %s then Gc.finalise \n"
 	     "  (fun x -> ignore ((invoke x) \"~\" C_void)) x) ; x\n"
-	     "| lst -> C_list lst ;;\n", mangled_name, wname, mangled_name, mangled_name, newobj ? "true" : "false");
+	     "| lst -> C_list lst ;;\n", newobj ? "true" : "false");
+    }
 
     if ((!classmode || in_constructor || in_destructor || static_member_function) && expose_func)
       Printf(f_mlibody, "val %s : c_obj -> c_obj\n", mangled_name);
