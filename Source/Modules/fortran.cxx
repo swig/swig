@@ -252,6 +252,21 @@ bool needs_typedef(String *s) {
 }
 
 /* -------------------------------------------------------------------------
+ * Get or create a list 
+ *
+ * This only applies while a class is being wrapped to methods in that particular class.
+ */
+List *get_default_list(Node *n, String *key) {
+  assert(n);
+  List *result = Getattr(n, key);
+  if (!result) {
+    result = NewList();
+    Setattr(n, key, result);
+  }
+  return result;
+}
+
+/* -------------------------------------------------------------------------
  * \brief Get some name attached to the node.
  *
  * This is for user feedback only.
@@ -312,6 +327,99 @@ bool is_valid_identifier(const_String_or_char_ptr name) {
   return true;
 }
 
+/* -------------------------------------------------------------------------
+ * \brief Make a string shorter by hashing its end.
+ *
+ * Requires input to be longer than 63 chars.
+ * Returns new'd string.
+ */
+String *shorten_identifier(String *inp, int warning = WARN_NONE) {
+  assert(Len(inp) > 63);
+  String *result = NewStringWithSize(inp, 63);
+  unsigned int hash = 5381;
+  // Hash truncated characters *AND* characters that might be replaced by the hash
+  // (2**8 / (10 + 26)) =~ 7.1, so backtrack 8 chars
+  for (const char *src = Char(inp) + 63 - 8; *src != '\0'; ++src) {
+    hash = (hash * 33 + *src) & 0xffffffffu;
+  }
+  // Replace the last chars with the hash encoded into 0-10 + A-Z
+  char *dst = Char(result) + 63;
+  while (hash > 0) {
+    unsigned long rem = hash % 36;
+    hash = hash / 36;
+    *dst-- = (rem < 10 ? '0' + rem : ('A' + rem - 10));
+  }
+
+  if (warning != WARN_NONE && !Getmeta(inp, "already_warned")) {
+    Swig_warning(warning, input_file, line_number, "Fortran identifiers may be no longer than 64 characters: renaming '%s' to '%s'\n", inp, result);
+    Setmeta(inp, "already_warned", "1");
+  }
+  return result;
+}
+
+/* -------------------------------------------------------------------------
+ * \brief If a string is too long, shorten it. Otherwise leave it.
+ *
+ * This should only be used for strings whose beginnings are valid fortran
+ * identifiers -- e.g. strings that we construct.
+ *
+ * *assumes ownership of input and returns new'd value*
+ */
+String *ensure_short(String *str, int warning = WARN_NONE) {
+  if (Len(str) > 63) {
+    String *shortened = shorten_identifier(str, warning);
+    assert(is_valid_identifier(shortened));
+    Delete(str);
+    str = shortened;
+  }
+  return str;
+}
+
+/* -------------------------------------------------------------------------
+ * \brief Change a symname to a valid Fortran identifier, warn if changing
+ *
+ * The maximum length of a Fortran identifier is 63 characters, according
+ * to the Fortran standard.
+ *
+ * \return new'd valid identifier name
+ */
+String *make_fname(String *name, int warning = WARN_LANG_IDENTIFIER) {
+  assert(name);
+  String* result = NULL;
+
+  // Move underscores and leading digits to the end of the string
+  const char *start = Char(name);
+  const char *c = start;
+  const char *stop = start + Len(name);
+  while (c != stop && (*c == '_' || (*c >= '0' && *c <= '9'))) {
+    ++c;
+  }
+  if (c != start) {
+    // Move invalid characters to the back of the string
+    if (c == stop) {
+      // No valid characters, e.g. _1234; prepend an 'f'
+      result = NewString("f");
+    } else {
+      result = NewStringWithSize(c, (int)(stop - c));
+    }
+    String *tail = NewStringWithSize(start, (int)(c - start));
+    Printv(result, tail, NULL);
+    Delete(tail);
+
+    if (warning != WARN_NONE && !Getmeta(name, "already_warned")) {
+      Swig_warning(warning, input_file, line_number,
+                   "Fortran identifiers may not begin with underscores or numerals: renaming '%s' to '%s'\n",
+                   name, result);
+    }
+    Setmeta(name, "already_warned", "1");
+  }
+
+  // The beginning of the string is set up; now capture and shorten if too long
+  result = ensure_short(result ? result : Copy(name), warning);
+  
+  assert(is_valid_identifier(result));
+  return result;
+}
 /* -------------------------------------------------------------------------
  * \brief Get/attach and return a typemap to the given node.
  *
@@ -492,6 +600,7 @@ public:
 
 private:
   int cfuncWrapper(Node *n);
+  int bindcfuncWrapper(Node *n);
   int imfuncWrapper(Node *n);
   int proxyfuncWrapper(Node *n);
   void assignmentWrapper(Node *n);
@@ -507,14 +616,10 @@ private:
 
   // Add lowercase symbol (fortran)
   int add_fsymbol(String *s, Node *n, int warning = WARN_FORTRAN_NAME_CONFLICT);
-  // Create a Fortran-compatible identifier from the give symname
-  String *make_fname(String *name, int warning = WARN_LANG_IDENTIFIER);
   // Create a unique symbolic name
   String *make_unique_symname(Node *n);
-  // Get overloads of the given named method
-  List *get_method_overloads(String *generic);
   // Whether the current class is a BIND(C) struct
-  bool is_basic_struct() const { return d_method_overloads == NULL; }
+  bool is_bindc_struct() const { assert(this->getCurrentClass()); return d_method_overloads == NULL; }
 };
 
 /* -------------------------------------------------------------------------
@@ -803,7 +908,7 @@ int FORTRAN::moduleDirective(Node *n) {
  *  - static functions
  */
 int FORTRAN::functionWrapper(Node *n) {
-  const bool is_cbound = is_bindc(n);
+  const bool bindc = is_bindc(n);
   const bool is_member_function = GetFlag(n, "fortran:ismember");
 
   // >>> SET UP WRAPPER NAME
@@ -814,16 +919,10 @@ int FORTRAN::functionWrapper(Node *n) {
   String *imname = NULL;   // Fortran interface function name
   String *wname = NULL;    // SWIG C wrapper function name
 
-  if (!is_cbound) {
+  if (!bindc) {
     // Usual case: generate a unique wrapper name
     wname = Swig_name_wrapper(symname);
-    imname = NewStringf("swigc_%s", symname);
-    if (Len(imname) > 63) {
-      // Name needs to be shortened
-      String *shortname = this->make_fname(imname, WARN_NONE);
-      Delete(imname);
-      imname = shortname;
-    }
+    imname = ensure_short(NewStringf("swigc_%s", symname));
 
     if (String *private_fname = Getattr(n, "fortran:fname")) {
       // Create "private" fortran wrapper function class (swigf_xx) name that will be bound to a class
@@ -843,7 +942,7 @@ int FORTRAN::functionWrapper(Node *n) {
   // Add suffix if the function is overloaded (can't overload C bound functions)
   bool is_overloaded = Getattr(n, "sym:overloaded");
   if (is_overloaded) {
-    ASSERT_OR_PRINT_NODE(!is_cbound, n);
+    ASSERT_OR_PRINT_NODE(!bindc, n);
     String *overload_ext = Getattr(n, "sym:overname");
     Append(wname, overload_ext);
     Append(imname, overload_ext);
@@ -852,7 +951,7 @@ int FORTRAN::functionWrapper(Node *n) {
 
   Setattr(n, "wrap:name", wname);
   Setattr(n, "wrap:imname", imname);
-  if (!is_cbound) {
+  if (!bindc) {
     Setattr(n, "wrap:fname", fname);
   }
 
@@ -899,8 +998,9 @@ int FORTRAN::functionWrapper(Node *n) {
 
   // >>> GENERATE WRAPPER CODE
 
-  if (!is_cbound) {
-    // Typical function wrapping
+  if (!bindc) {
+    // Typical function wrapping: generate C, interface, and proxy wrappers.
+    // If something fails, error out early.
     if (this->cfuncWrapper(n) == SWIG_NOWRAP)
       return SWIG_NOWRAP;
     if (this->imfuncWrapper(n) == SWIG_NOWRAP)
@@ -908,40 +1008,9 @@ int FORTRAN::functionWrapper(Node *n) {
     if (this->proxyfuncWrapper(n) == SWIG_NOWRAP)
       return SWIG_NOWRAP;
   } else {
-    // Simply binding a function for Fortran
-    if (CPlusPlus && !Swig_storage_isexternc(n)) {
-      Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number,
-                   "The function '%s' appears not to be defined with external "
-                   "C linkage (extern \"C\"). Link errors may result.\n",
-                   symname);
-    }
-
-    // Emit all of the local variables for holding arguments.
-    ParmList *parmlist = Getattr(n, "parms");
-    Swig_typemap_attach_parms("bindc", parmlist, NULL);
-    emit_attach_parmmaps(parmlist, NULL);
-    Setattr(n, "wrap:parms", parmlist);
-
-    // Create a list of parameters wrapped by the intermediate function
-    List *cparmlist = NewList();
-    int i = 0;
-    for (Parm *p = parmlist; p; p = nextSibling(p), ++i) {
-      // Check for varargs
-      if (SwigType_isvarargs(Getattr(p, "type"))) {
-        Swig_warning(WARN_LANG_NATIVE_UNIMPL, Getfile(p), Getline(p),
-                     "C-bound variable arguments (in function '%s') are not implemented in Fortran.\n",
-                     symname);
-        return SWIG_NOWRAP;
-      }
-      // Use C arguments
-      String *imname = this->makeParameterName(n, p, i);
-      Setattr(p, "imname", imname);
-      Append(cparmlist, p);
-    }
-
-    // Save list of wrapped parms for im declaration and proxy
-    Setattr(n, "wrap:cparms", cparmlist);
-
+    // C-bound function: set up bindc-type paramneters
+    if (this->bindcfuncWrapper(n) == SWIG_NOWRAP)
+      return SWIG_NOWRAP;
     if (this->imfuncWrapper(n) == SWIG_NOWRAP)
       return SWIG_NOWRAP;
   }
@@ -951,7 +1020,8 @@ int FORTRAN::functionWrapper(Node *n) {
   if (GetFlag(n, "fortran:private")) {
     /* private function; don't generate interface */
   } else if (is_member_function) {
-    ASSERT_OR_PRINT_NODE(!is_basic_struct(), n);
+    // Wrapping a member function
+    ASSERT_OR_PRINT_NODE(!this->is_bindc_struct(), n);
     ASSERT_OR_PRINT_NODE(f_class, n);
     String *qualifiers = NewStringEmpty();
 
@@ -963,7 +1033,7 @@ int FORTRAN::functionWrapper(Node *n) {
       Append(fsymname, Getattr(n, "sym:overname"));
 
       // Add name to method overload list
-      List *overloads = this->get_method_overloads(generic);
+      List *overloads = get_default_list(d_method_overloads, generic);
       Append(overloads, fsymname);
 
       // Make the procedure private
@@ -1212,6 +1282,49 @@ int FORTRAN::cfuncWrapper(Node *n) {
   Delete(cleanup);
   Delete(c_return_str);
   DelWrapper(cfunc);
+  return SWIG_OK;
+}
+
+
+/* -------------------------------------------------------------------------
+ * \brief Generate Fortran interface code
+ *
+ * This is the Fortran equivalent of the cfuncWrapper's declaration.
+ */
+int FORTRAN::bindcfuncWrapper(Node *n) {
+  // Simply binding a function for Fortran
+  if (CPlusPlus && !Swig_storage_isexternc(n)) {
+    Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number,
+                 "The function '%s' appears not to be defined with external "
+                 "C linkage (extern \"C\"). Link errors may result.\n",
+                 Getattr(n, "sym:name"));
+  }
+
+  // Emit all of the local variables for holding arguments.
+  ParmList *parmlist = Getattr(n, "parms");
+  Swig_typemap_attach_parms("bindc", parmlist, NULL);
+  emit_attach_parmmaps(parmlist, NULL);
+  Setattr(n, "wrap:parms", parmlist);
+
+  // Create a list of parameters wrapped by the intermediate function
+  List *cparmlist = NewList();
+  int i = 0;
+  for (Parm *p = parmlist; p; p = nextSibling(p), ++i) {
+    // Check for varargs
+    if (SwigType_isvarargs(Getattr(p, "type"))) {
+      Swig_warning(WARN_LANG_NATIVE_UNIMPL, Getfile(p), Getline(p),
+                   "C-bound variable arguments (in function '%s') are not implemented in Fortran.\n",
+                   Getattr(n, "sym:name"));
+      return SWIG_NOWRAP;
+    }
+    // Use C arguments
+    String *imname = this->makeParameterName(n, p, i);
+    Setattr(p, "imname", imname);
+    Append(cparmlist, p);
+  }
+
+  // Save list of wrapped parms for im declaration and proxy
+  Setattr(n, "wrap:cparms", cparmlist);
   return SWIG_OK;
 }
 
@@ -1573,7 +1686,7 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
  * Here 'n' is the class node.
  */
 void FORTRAN::assignmentWrapper(Node *n) {
-  ASSERT_OR_PRINT_NODE(!is_basic_struct(), n);
+  ASSERT_OR_PRINT_NODE(!this->is_bindc_struct(), n);
 
   String *symname = Getattr(n, "fortran:name");
   String *classtype = Getattr(n, "feature:smartptr");
@@ -1594,7 +1707,7 @@ void FORTRAN::assignmentWrapper(Node *n) {
   String *wname = NewStringf("_wrap_assign_%s", symname);
 
   if (Len(fname) >= 63) {
-    String *temp = this->make_fname(fname, WARN_NONE);
+    String *temp = make_fname(fname, WARN_NONE);
     Delete(fname);
     Delete(imname);
     fname = temp;
@@ -1602,7 +1715,7 @@ void FORTRAN::assignmentWrapper(Node *n) {
   }
 
   // Add self-assignment to method overload list
-  List *overloads = this->get_method_overloads(generic);
+  List *overloads = get_default_list(d_method_overloads, generic);
   Append(overloads, fname);
 
   // Define the method
@@ -1832,11 +1945,11 @@ int FORTRAN::classHandler(Node *n) {
     }
   }
 
-  const bool basic_struct = is_bindc(n);
-  if (basic_struct && basename) {
+  const bool bindc = is_bindc(n);
+  if (bindc && basename) {
     // Disallow inheritance for BIND(C) types
     Swig_error(input_file, line_number,
-               "Struct '%s' has the 'fortranbindc' feature set, so it cannot use inheritance.\n",
+               "Struct '%s' uses the '%%fortran_bindc_struct' feature, so it cannot use inheritance.\n",
                symname);
     return SWIG_NOWRAP;
   }
@@ -1852,12 +1965,12 @@ int FORTRAN::classHandler(Node *n) {
   Printv(f_class, " type", NULL);
   if (basename) {
     Printv(f_class, ", extends(", basename, ")", NULL);
-  } else if (basic_struct) {
+  } else if (bindc) {
     Printv(f_class, ", bind(C)", NULL);
   }
   Printv(f_class, ", public :: ", symname, "\n", NULL);
 
-  if (!basic_struct) {
+  if (!bindc) {
     if (!basename) {
       String *fdata = this->attach_class_typemap("fdata", WARN_NONE);
       if (!fdata) {
@@ -1882,12 +1995,12 @@ int FORTRAN::classHandler(Node *n) {
     d_constructors = NewList();
   }
 
-  assert(basic_struct == this->is_basic_struct());
+  assert(bindc == this->is_bindc_struct());
 
   // Emit class members
   Language::classHandler(n);
 
-  if (!basic_struct) {
+  if (!bindc) {
     this->assignmentWrapper(n);
 
     // Write overloads
@@ -2003,7 +2116,7 @@ int FORTRAN::destructorHandler(Node *n) {
  * \brief Process member functions.
  */
 int FORTRAN::memberfunctionHandler(Node *n) {
-  if (is_basic_struct()) {
+  if (this->is_bindc_struct()) {
     String *class_symname = Getattr(getCurrentClass(), "sym:name");
     Swig_error(input_file, line_number,
                "Struct '%s' has the 'fortranbindc' feature set, so it cannot have member functions\n",
@@ -2015,14 +2128,7 @@ int FORTRAN::memberfunctionHandler(Node *n) {
   ASSERT_OR_PRINT_NODE(class_symname, n);
 
   // Create a private procedure name that gets bound to the Fortan TYPE
-  String *fwrapname = NewStringf("swigf_%s_%s", class_symname, Getattr(n, "sym:name"));
-  if (Len(fwrapname) > 63) {
-    // Name needs to be shortened
-    String *shortname = this->make_fname(fwrapname, WARN_NONE);
-    Delete(fwrapname);
-    fwrapname = shortname;
-  }
-
+  String *fwrapname = ensure_short(NewStringf("swigf_%s_%s", class_symname, Getattr(n, "sym:name")));
   Setattr(n, "fortran:fname", fwrapname);
   Delete(fwrapname);
 
@@ -2044,7 +2150,7 @@ int FORTRAN::memberfunctionHandler(Node *n) {
  */
 int FORTRAN::membervariableHandler(Node *n) {
   String *fsymname = make_fname(Getattr(n, "sym:name"));
-  if (is_basic_struct()) {
+  if (this->is_bindc_struct()) {
     // Write the type for the class member
     String *bindc_typestr = attach_typemap("bindc", n, WARN_TYPEMAP_UNDEF);
     SwigType *datatype = Getattr(n, "type");
@@ -2517,7 +2623,7 @@ String *FORTRAN::get_fclassname(SwigType *basetype, bool is_enum) {
     if (!replacementname) {
       // First time encountered with this particular class
       String *tempname = NewStringf("SWIGTYPE%s", SwigType_manglestr(basetype));
-      replacementname = this->make_fname(tempname, WARN_NONE);
+      replacementname = make_fname(tempname, WARN_NONE);
       Delete(tempname);
       if (add_fsymbol(replacementname, n) != SWIG_NOWRAP) {
         if (is_enum) {
@@ -2584,83 +2690,6 @@ int FORTRAN::add_fsymbol(String *s, Node *n, int warn) {
 }
 
 /* -------------------------------------------------------------------------
- * \brief Change a symname to a valid Fortran identifier, warn if changing
- *
- * The maximum length of a Fortran identifier is 63 characters, according
- * to the Fortran standard.
- *
- * \return new'd valid identifier name
- */
-String *FORTRAN::make_fname(String *name, int warning) {
-  assert(name);
-  String* result = NULL;
-
-  // Move underscores and leading digits to the end of the string
-  const char *start = Char(name);
-  const char *c = start;
-  const char *stop = start + Len(name);
-  while (c != stop && (*c == '_' || (*c >= '0' && *c <= '9'))) {
-    ++c;
-  }
-  if (c != start) {
-    // Move invalid characters to the back of the string
-    if (c == stop) {
-      // No valid characters, e.g. _1234; prepend an 'f'
-      result = NewString("f");
-    } else {
-      result = NewStringWithSize(c, (int)(stop - c));
-    }
-    String *tail = NewStringWithSize(start, (int)(c - start));
-    Printv(result, tail, NULL);
-    Delete(tail);
-
-    if (warning != WARN_NONE && !Getmeta(name, "already_warned")) {
-      Swig_warning(warning, input_file, line_number,
-                   "Fortran identifiers may not begin with underscores or numerals: renaming '%s' to '%s'\n",
-                   name, result);
-    }
-    Setmeta(name, "already_warned", "1");
-  }
-
-  if (Len(name) > 63) {
-    // Shorten too-long identifiers
-    String *tmpresult = result;
-    if (result) {
-      name = result;
-    }
-    result = NewStringWithSize(name, 63);
-    unsigned int hash = 5381;
-    // Hash truncated characters *AND* characters that might be replaced by the hash
-    // (2**8 / (10 + 26)) =~ 7.1, so backtrack 8 chars
-    for (const char *src = Char(name) + 63 - 8; *src != '\0'; ++src) {
-      hash = (hash * 33 + *src) & 0xffffffffu;
-    }
-    // Replace the last chars with the hash encoded into 0-10 + A-Z
-    char *dst = Char(result) + 63;
-    while (hash > 0) {
-      unsigned long rem = hash % 36;
-      hash = hash / 36;
-      *dst-- = (rem < 10 ? '0' + rem : ('A' + rem - 10));
-    }
-
-    if (warning != WARN_NONE && !Getmeta(name, "already_warned")) {
-      Swig_warning(warning, input_file, line_number,
-                   "Fortran identifiers may be no longer than 64 characters: renaming '%s' to '%s'\n",
-                   name, result);
-      Setmeta(name, "already_warned", "1");
-    }
-    Delete(tmpresult);
-  }
-  
-  if (!result) {
-    result = Copy(name);
-  }
-  
-  assert(is_valid_identifier(result));
-  return result;
-}
-
-/* -------------------------------------------------------------------------
  * \brief Make a unique fortran symbol name by appending numbers.
  */
 String *FORTRAN::make_unique_symname(Node *n) {
@@ -2700,21 +2729,6 @@ String *FORTRAN::make_unique_symname(Node *n) {
   Delete(lower);
 
   return symname;
-}
-
-/* -------------------------------------------------------------------------
- * Get the list of overloaded methods for the current 'generic' name.
- *
- * This only applies while a class is being wrapped to methods in that particular class.
- */
-List *FORTRAN::get_method_overloads(String *generic) {
-  assert(d_method_overloads);
-  List *overloads = Getattr(d_method_overloads, generic);
-  if (!overloads) {
-    overloads = NewList();
-    Setattr(d_method_overloads, generic, overloads);
-  }
-  return overloads;
 }
 
 /* -------------------------------------------------------------------------
