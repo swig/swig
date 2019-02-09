@@ -909,13 +909,13 @@ int FORTRAN::moduleDirective(Node *n) {
  */
 int FORTRAN::functionWrapper(Node *n) {
   const bool bindc = is_bindc(n);
-  const bool is_member_function = GetFlag(n, "fortran:ismember");
+  const bool member = GetFlag(n, "fortran:ismember");
 
   // >>> SET UP WRAPPER NAME
 
   String *symname = Getattr(n, "sym:name");
-  String *fsymname = NULL; // Fortran public function name alias
-  String *fname = NULL;    // Fortran proxy function name
+  String *fsymname = NULL; // Fortran name alias (or member function name)
+  String *fname = NULL;    // Fortran proxy function name; null if bind(C)
   String *imname = NULL;   // Fortran interface function name
   String *wname = NULL;    // SWIG C wrapper function name
 
@@ -928,63 +928,68 @@ int FORTRAN::functionWrapper(Node *n) {
       // Create "private" fortran wrapper function class (swigf_xx) name that will be bound to a class
       fname = Copy(private_fname);
       ASSERT_OR_PRINT_NODE(is_valid_identifier(fname), n);
+    } else if (String *varname = Getattr(n, "fortran:variable")) {
+      const char* prefix = (GetFlag(n, "memberset") || GetFlag(n, "varset")) ? "set" : "get";
+      fname = ensure_short(NewStringf("%s_%s", prefix, varname));
+      
+      if (member) {
+        // We're wrapping a static/member variable. The getter/setter name is an alias to the class-namespaced proxy function.
+        fsymname = fname;
+        fname = ensure_short(NewStringf("swigf_%s", symname));
+      }
     } else {
-      // Use actual symbolic function name
-      fname = make_fname(symname);
+      // Default: use symbolic function name
+      fname = make_fname(symname, WARN_NONE);
     }
   } else {
-    // BIND(C): use *original* name for wrapper, symname for fortran binding
+    // BIND(C): use *original* C function name to generate the interface to, and create an acceptable
+    // Fortran identifier based on whatever renames have been requested.
     wname = Copy(Getattr(n, "name"));
     imname = make_fname(symname, WARN_NONE);
     fname = NULL;
   }
 
+  if (String *manual_name = Getattr(n, "fortran:name")) {
+    // Override the fsymname name for this function
+    assert(!fsymname);
+    fsymname = Copy(manual_name);
+  }
+
   // Add suffix if the function is overloaded (can't overload C bound functions)
-  bool is_overloaded = Getattr(n, "sym:overloaded");
-  if (is_overloaded) {
+  String *overload_ext = (Getattr(n, "sym:overloaded") ? Getattr(n, "sym:overname") : NULL);
+  if (overload_ext) {
     ASSERT_OR_PRINT_NODE(!bindc, n);
-    String *overload_ext = Getattr(n, "sym:overname");
     Append(wname, overload_ext);
     Append(imname, overload_ext);
+    if (!fsymname) {
+      // Overloaded functions become fsymname 
+      fsymname = fname;
+      fname = ensure_short(NewStringf("swigf_%s", symname));
+    }
     Append(fname, overload_ext);
   }
 
-  Setattr(n, "wrap:name", wname);
-  Setattr(n, "wrap:imname", imname);
-  if (!bindc) {
-    Setattr(n, "wrap:fname", fname);
-  }
-
-  // Add the interface subroutine name to the current scope
+  // Add the interface subroutine name to the module scope
   if (add_fsymbol(imname, n) == SWIG_NOWRAP)
     return SWIG_NOWRAP;
-  // Add the fortran subroutine name to the current scope
+  // Add the fortran subroutine name to the module scope
   if (fname && add_fsymbol(fname, n) == SWIG_NOWRAP)
     return SWIG_NOWRAP;
 
-  if (String *varname = Getattr(n, "fortran:variable")) {
-    // We're wrapping a variable or member variable: construct a custom
-    // name.
-    if (Getattr(n, "varset") || Getattr(n, "memberset")) {
-      fsymname = NewStringf("set_%s%s", getNSpace(), varname);
-    } else if (Getattr(n, "varget") || Getattr(n, "memberget")) {
-      fsymname = NewStringf("get_%s%s", getNSpace(), varname);
-    } else {
-      ASSERT_OR_PRINT_NODE(0, n);
-    }
-  } else {
-    if (String *manual_fsymname = Getattr(n, "fortran:name")) {
-      // Get manually-set fsymname and make a copy
-      fsymname = Copy(manual_fsymname);
-    } else {
-      // Create Fortran-friendly symname
-      fsymname = make_fname(symname);
-    }
+  // Save wrapper names
+  Setattr(n, "wrap:name", wname);
+  Setattr(n, "wrap:imname", imname);
+  if (fname) {
+    Setattr(n, "wrap:fname", fname);
+  }
+  if (fsymname) {
+    Setattr(n, "wrap:fsymname", fsymname);
   }
 
-  if (Node *class_node = this->getCurrentClass()) {
+  if (member) {
+    // Ignore functions whose name is the same as the parent class
     String *lower_func = Swig_string_lower(fsymname);
-    String *symname_cls = Getattr(class_node, "sym:name");
+    String *symname_cls = Getattr(this->getCurrentClass(), "sym:name");
     String *lower_cls = Swig_string_lower(symname_cls);
     if (Strcmp(lower_func, lower_cls) == 0) {
       Swig_warning(WARN_FORTRAN_NAME_CONFLICT, input_file, line_number,
@@ -1018,48 +1023,51 @@ int FORTRAN::functionWrapper(Node *n) {
   // >>> GENERATE CODE FOR MODULE INTERFACE
 
   if (GetFlag(n, "fortran:private")) {
-    /* private function; don't generate interface */
-  } else if (is_member_function) {
+    // Hidden function (currently, only constructors that become module procedures)
+  } else if (member) {
     // Wrapping a member function
     ASSERT_OR_PRINT_NODE(!this->is_bindc_struct(), n);
     ASSERT_OR_PRINT_NODE(f_class, n);
+    ASSERT_OR_PRINT_NODE(fname, n);
+    ASSERT_OR_PRINT_NODE(fsymname, n);
+
     String *qualifiers = NewStringEmpty();
 
-    if (is_overloaded) {
-      // Overload the procedure name; the name exposed by the module is
-      // the "generic"
-      String *generic = fsymname;
-      fsymname = Copy(fsymname);
-      Append(fsymname, Getattr(n, "sym:overname"));
-
-      // Add name to method overload list
-      List *overloads = get_default_list(d_method_overloads, generic);
-      Append(overloads, fsymname);
-
-      // Make the procedure private
+    if (overload_ext) {
       Append(qualifiers, ", private");
-      Delete(generic);
     }
     if (String *extra_quals = Getattr(n, "fortran:procedure")) {
-      // Add qualifiers like "static" for static functions
       Printv(qualifiers, ", ", extra_quals, NULL);
     }
+      
+    Printv(f_class, "  procedure", qualifiers, " :: ", NULL);
+    
+    if (!overload_ext) {
+      // Declare procedure name, aliasing the private mangled function name
+      // Add qualifiers like "static" for static functions
+      Printv(f_class, fsymname, " => ", fname, "\n", NULL);
+    } else {
+      // Add name to method overload list
+      List *overloads = get_default_list(d_method_overloads, fsymname);
+      Append(overloads, fname);
 
-    Printv(f_class, "  procedure", qualifiers, " :: ", fsymname, " => ", fname, "\n", NULL);
-    Delete(qualifiers);
-  } else if (fname && Strcmp(fsymname, fname) != 0) {
-    // The function name is aliased, either by 'fortran:fname' or an
-    // overload. Append this function name to the list of overloaded names
-    // for the symbol. 'public' access specification gets added later.
-    List *overloads = Getattr(d_overloads, fsymname);
-    if (!overloads) {
-      overloads = NewList();
-      Setattr(d_overloads, fsymname, overloads);
+      // Declare a private procedure
+      Printv(f_class, fname, "\n", NULL);
     }
-    Append(overloads, Copy(fname));
+  } else if (fsymname) {
+    // The module function name is aliased, and perhaps overloaded.
+    // Append this function name to the list of overloaded names
+    // for the symbol. The 'public' access specification gets added later.
+    List *overloads = get_default_list(d_overloads, fsymname);
+    Append(overloads, fname);
+  } else if (bindc) {
+    // Expose the interface function 
+    ASSERT_OR_PRINT_NODE(imname && Len(imname) > 0, n);
+    Printv(f_fdecl, " public :: ", imname, "\n", NULL);
   } else {
-    ASSERT_OR_PRINT_NODE(Len(fsymname) > 0, n);
-    Printv(f_fdecl, " public :: ", fsymname, "\n", NULL);
+    // Expose the proxy function 
+    ASSERT_OR_PRINT_NODE(fname && Len(fname) > 0, n);
+    Printv(f_fdecl, " public :: ", fname, "\n", NULL);
   }
 
   Delete(fname);
@@ -1701,7 +1709,7 @@ void FORTRAN::assignmentWrapper(Node *n) {
   }
 
   // Create overloaded aliased name
-  String *generic = NewString("assignment(=)");
+  String *fsymname = NewString("assignment(=)");
   String *fname = NewStringf("swigf_assignment_%s", symname);
   String *imname = NewStringf("swigc_assignment_%s", symname);
   String *wname = NewStringf("_wrap_assign_%s", symname);
@@ -1715,7 +1723,7 @@ void FORTRAN::assignmentWrapper(Node *n) {
   }
 
   // Add self-assignment to method overload list
-  List *overloads = get_default_list(d_method_overloads, generic);
+  List *overloads = get_default_list(d_method_overloads, fsymname);
   Append(overloads, fname);
 
   // Define the method
@@ -1804,7 +1812,7 @@ void FORTRAN::assignmentWrapper(Node *n) {
 
   Delete(fragname);
   Delete(flags);
-  Delete(generic);
+  Delete(fsymname);
   Delete(fname);
   Delete(imname);
   Delete(wname);
@@ -1955,6 +1963,8 @@ int FORTRAN::classHandler(Node *n) {
   }
 
   ASSERT_OR_PRINT_NODE(!f_class, n);
+  f_class = NewStringEmpty();
+
   ASSERT_OR_PRINT_NODE(Getattr(n, "kind") && Getattr(n, "classtype"), n);
   f_class = NewStringf(" ! %s %s\n", Getattr(n, "kind"), Getattr(n, "classtype"));
   
@@ -2114,6 +2124,8 @@ int FORTRAN::destructorHandler(Node *n) {
 
 /* -------------------------------------------------------------------------
  * \brief Process member functions.
+ *
+ * This is *NOT* called when generating get/set wrappers for membervariableHandler.
  */
 int FORTRAN::memberfunctionHandler(Node *n) {
   if (this->is_bindc_struct()) {
