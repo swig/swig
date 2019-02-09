@@ -61,10 +61,8 @@ valuewrapper_opaque \
 FAILING_C_TESTS = \
 enums \
 integers \
-name \
 preproc_constants_c \
 preproc_line_file \
-unions \
 
 FAILING_MULTI_CPP_TESTS = \
 multi_import \
