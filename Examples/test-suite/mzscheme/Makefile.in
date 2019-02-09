@@ -72,7 +72,7 @@ multi_import \
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-# none!
+SWIGOPT += -w524 # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
 
 # Custom tests - tests with additional commandline options
 # none!
