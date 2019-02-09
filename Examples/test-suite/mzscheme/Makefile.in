@@ -12,7 +12,6 @@ top_builddir = @top_builddir@
 
 FAILING_CPP_TESTS = \
 allowexcept \
-allprotected \
 apply_strings \
 arrays_dimensionless \
 arrays_global \
@@ -21,42 +20,30 @@ class_scope_weird \
 constant_pointers \
 cpp_basic \
 cpp_enum \
-cpp_namespace \
-cpp_static \
 curiously_recurring_template_pattern \
 default_arg_expressions \
-default_args \
 default_constructor \
 derived_nested \
 director_ignore \
 enum_thorough \
-enum_var \
-exception_order \
 extend \
-extend_constructor_destructor \
-extern_c \
 friends \
 global_scope_types \
-global_vars \
-grouping \
 inherit_member \
 li_attribute \
 li_attribute_template \
 li_boost_shared_ptr \
-li_boost_shared_ptr_bits \
 li_std_combinations \
 li_std_map \
 li_std_pair \
 li_std_pair_using \
 li_std_string \
 li_std_vector \
-li_swigtype_inout \
 li_windows \
 member_funcptr_galore \
 member_pointer \
 member_pointer_const \
 memberin_extend \
-namespace_class \
 namespace_spaces \
 naturalvar \
 naturalvar_more \
@@ -64,24 +51,14 @@ nested_class \
 nested_template_base \
 ordering \
 preproc_constants \
-rename_predicates \
-rename_simple \
 samename \
-smart_pointer_const_overload \
-smart_pointer_member \
-smart_pointer_template_const_overload \
-static_const_member_2 \
-swig_exception \
 template_default2 \
 template_specialization_defarg \
-template_static \
 template_typemaps \
 typemap_variables \
 valuewrapper_opaque \
 
 FAILING_C_TESTS = \
-c_delete \
-enum_missing \
 enums \
 integers \
 name \

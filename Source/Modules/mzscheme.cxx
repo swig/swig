@@ -527,7 +527,7 @@ public:
 	  Replaceall(tm, "$source", "argv[0]");
 	  Replaceall(tm, "$target", name);
 	  Replaceall(tm, "$input", "argv[0]");
-	  /* Printv(f->code, tm, "\n",NIL); */
+	  Replaceall(tm, "$argnum", "1");
 	  emit_action_code(n, f->code, tm);
 	} else {
 	  throw_unhandled_mzscheme_type_error(t);
