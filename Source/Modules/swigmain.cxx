@@ -69,7 +69,6 @@ static TargetLanguageModule modules[] = {
   {"-perl", swig_perl5, NULL, Supported},
   {"-perl5", swig_perl5, "Perl 5", Supported},
   {"-php", swig_php, NULL, Supported},
-  {"-php4", NULL, "PHP 4", Disabled},
   {"-php5", NULL, "PHP 5", Disabled},
   {"-php7", swig_php, "PHP 7", Supported},
   {"-pike", NULL, "Pike", Disabled},
