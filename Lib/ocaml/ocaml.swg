@@ -579,6 +579,19 @@ extern "C" {
 	}	
     }
 
+    SWIGINTERN CAML_VALUE SWIG_Ocaml_ptr_to_val(const char *name, void *ptr, swig_type_info *descriptor) {
+        CAMLparam0();
+        SWIG_CAMLlocal1(result);
+
+        CAML_VALUE *fromval = caml_named_value(name);
+        if (fromval) {
+            result = caml_callback(*fromval, caml_val_ptr(ptr, descriptor));
+        } else {
+            result = caml_val_ptr(ptr, descriptor);
+        }
+        CAMLreturn(result);
+    }
+
     static swig_module_info *SWIG_Ocaml_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
       CAML_VALUE pointer;
 
