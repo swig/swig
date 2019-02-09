@@ -24,6 +24,5 @@ subroutine test_arrays
   if (any(got_arr /= actual)) stop 1
 
 end subroutine
-
 end program
 

@@ -39,8 +39,6 @@ program member_pointer_runme
   val = do_op(s, get_areavar())
   write(0,*) "Perimiter:", val
   ASSERT(val == 40.0d0)
-
-  write(0,*) "SUCCESS"
 end program
 
 

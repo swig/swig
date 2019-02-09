@@ -15,7 +15,8 @@ top_srcdir     = @top_srcdir@
 top_builddir   = @top_builddir@
 
 CPP_TEST_CASES = \
-	fortran_bindc
+	fortran_bindc \
+	fortran_naming
 
 C_TEST_CASES = \
 	fortran_array_typemap \
@@ -57,6 +58,7 @@ FAILING_CPP_TESTS += \
   fvirtual \
   inherit_target_language \
   kind \
+  li_attribute \
   li_std_map \
   multiple_inheritance \
   multiple_inheritance_abstract \

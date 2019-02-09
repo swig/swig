@@ -37,8 +37,6 @@ program member_pointer_const_runme
   val = do_op(s, get_areavar())
   call check("Square perimimter", 40.0_C_DOUBLE, val)
 
-  write(0,*) "Successfully completed member_pointer_const test"
-
 contains
 
   subroutine check(what, expected, actual)
@@ -52,5 +50,3 @@ contains
   end subroutine check
 
 end program
-
-! vim: set ts=2 sw=2 sts=2 tw=129 :

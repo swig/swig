@@ -4,10 +4,6 @@
 
 %fortran_struct(MyStruct);
 
-// Without this line, SWIG should raise an error rather than propagating the
-// invalid name into the Fortran code.
-%rename(FooClass) _Foo;
-
 // Without *this* line, the f_a accessors on Bar will override the _a accessors
 // on _Foo, causing Fortran to fail because the argument names of the two
 // setters ('arg' and 'f_a') are different.
@@ -40,9 +36,16 @@ class Bar : public _Foo {
     int f_a;
 };
 
-enum _MyEnum {
-    _MYVAL = 1,
+struct HasEnum {
+  enum _Underscores {
+      _AREBAD = 1,
+  };
 };
+
+HasEnum::_Underscores get_embedded_enum_value(HasEnum::_Underscores e) { return e; }
+
+
+#define _123 123
 
 extern "C" {
 struct MyStruct {
@@ -57,18 +60,31 @@ float get_mystruct_y(const MyStruct* ms) { return ms->_y; }
 }
 %}
 
-%warnfilter(SWIGWARN_FORTRAN_NAME_CONFLICT) f_MyEnum;
+// Forward-declare enum for SWIG: this is *not* valid C++.
+enum _MyEnum;
+// Declare the function as well
+//int get_enum_value(_MyEnum e);
+
+%inline %{
+// Define enum and function
+enum _MyEnum {
+    _MYVAL = 1,
+};
+int get_enum_value(_MyEnum e) { return static_cast<int>(e); }
+%}
+
+%warnfilter(SWIGWARN_FORTRAN_NAME_CONFLICT) MyEnum_;
 
 // NOTE: these will be ignored because the previous enum will be renamed.
 // This behavior is consistent with the other SWIG target languages.
 %inline %{
-enum f_MyEnum {
-    f_MYVAL = 2
+enum MyEnum_ {
+    MYVAL_ = 2
 };
 
 // Even though the Fortran identifier must be renamed, the function it's
 // bound to cannot.
-extern "C" int _cboundfunc(const int* _x) { return *_x + 1; }
+extern "C" int _0cboundfunc(const int* _x) { return *_x + 1; }
 
 %}
 
@@ -78,8 +94,8 @@ extern "C" int _cboundfunc(const int* _x) { return *_x + 1; }
 %constant int sixty_four_characters_is_way_too_long_for_fortran_or_punch_cardss = 65;
 
 // This name is the maximum length but starts with an underscore
-%constant int _leading_underscore_with_sixty_three_characters_to_be_so_tricky = 63;
-%constant int _leading_underscore_with_sixty_two_characters_not_quite_tricky = 62;
+%constant int _leading_underscore_with_sixty_four_characters_is_just_darn_long = 64;
+%constant int _leading_underscore_with_sixty_three_characters_might_be_tricky = 63;
 
 // This class is poorly named, but the symname is OK.
 %inline %{
@@ -112,3 +128,27 @@ enum Foo;
 %}
 
 struct DelayedStruct { int i; };
+
+// Test with namespaces, and duplicates
+
+%inline %{
+namespace ns {
+// Forward-declare and operate on pointer
+class _Foo;
+class _Unused;
+} // end namespace ns
+
+namespace ns {
+_Foo* identity_ptr(_Foo* f) { return f; }
+
+// Define the class
+class _Foo {
+};
+
+// Define enum and function
+enum _MyEnum {
+    _MYVAL = 3,
+};
+int get_enum_value(_MyEnum e) { return static_cast<int>(e); }
+} // end namespace ns
+%}

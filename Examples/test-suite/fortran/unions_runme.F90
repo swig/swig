@@ -28,13 +28,5 @@ program unions_runme
   call eut%set_number(1_C_INT)
 
   Num1 = eut%get_number()
-  if (Num1 /= 1_C_INT) then
-    write(0,*) "Runtime test2 failed. eut%number=", Num1
-    stop 1
-  end if
-
-  print*, "SUCCESS!"
-
+  ASSERT(Num1 == 1_C_INT)
 end program
-
-! vim: set ts=2 sw=2 sts=2 tw=129 :

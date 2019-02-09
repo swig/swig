@@ -33,7 +33,7 @@ typedef enum {
 
 %fragment("SwigMemState_f", "fdecl", noblock=1)
 { enum, bind(c)
-  enumerator :: SWIG_NULL
+  enumerator :: SWIG_NULL = 0
   enumerator :: SWIG_OWN
   enumerator :: SWIG_MOVE
   enumerator :: SWIG_REF

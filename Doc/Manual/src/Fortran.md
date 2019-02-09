@@ -105,19 +105,21 @@ C and C++ have different rules for identifiers (i.e. variable names, function
 names, class names) than Fortran. The following restrictions apply to Fortran
 that do not apply to C and C++:
 
-- Names are **case insensitive**
 - Names may not begin with an underscore
 - Names may be no longer than 63 characters
+- Names are **case insensitive**
 
-SWIG automatically renames identifiers that start with a leading underscore. It
-keeps a symbol table of publicly accessible Fortran identifiers (as their
-lower-cased, renamed versions) and warns about and ignores duplicate names.
+The Fortran SWIG module implements three mitigation techniques for naming. 
+First, it automatically moves leading underscores (and any following integers)
+to the end of the name. Second, it replaces the tails of long identifiers with
+a hashed value of the removed characters. Finally, it keeps a separate symbol
+table of publicly accessible Fortran identifiers (after their transformations,
+and after transforming them to lower case), and it will warn and rename duplicate
+symbols.
 
-There is also no "namespace" concept in Fortran 2003 aside from defining
-procedures and types in separate modules. (Fortran 2008 supports submodules, but
-these are more akin to private namespaces inside a translation unit in C++.)
+Fortran 2003 has no analog of C++ namespaces, which are ignored by SWIG.
 Keep in mind that the flexible `%rename` directive can be used to adjust the
-symbolic names created in SWIG.
+generated wrapper names.
 
 ## Running SWIG
 
@@ -1212,7 +1214,6 @@ end program
 ```
 
 ## Fortran-to-C array translation
-
 The `<typemaps.i>` library file provides a simple means of passing Fortran
 arrays by reference. It defines a two-argument typemap `(SWIGTYPE *DATA, size_t
 SIZE)` that is wrapped as a single Fortran argument, an array of `SWIGTYPE`
@@ -1391,7 +1392,24 @@ swig -c++ -cppext cu -fortran thrustacc.i
 nvcc -c thrustacc_wrap.cu
 ftn -c -acc thrustacc.f90
 ftn -acc -lstdc++ -Minfo test_thrustacc.f90 thrustacc.o thrustacc_wrap.o -o test.exe
+
+## Integer types
+
+One other note to be made about Fortran interoperability concerns the mismatch
+between default Fortran integers and C++'s `size_type`, which is often used as
+a function argument. The differing `KIND` of the integers requires that users awkwardly
+cast values when passing into function calls:
+```fortran
+call my_vector%resize(INT(n,C_LONG))
 ```
+This nuisance can be simply avoided by replacing occurrences of C's size type
+with the native Fortran integer type:
+```swig
+%apply int { std::size_t }
+```
+Note of course that if the native integer type is 32-bit and the long type is
+64-bit, this will prevent any input larger than `0x7fffffff` from being passed
+as an argument.
 
 <!-- ###################################################################### -->
 
@@ -1867,10 +1885,6 @@ as well as the Fortran module file. The
 Fortran module uses several additional sections that can be used to insert
 arbitrary extensions to the module. These section names are based off the
 Fortran standard's specification and naming of the components of a module.
-XXX
-For example, if an `%insert` directive is
-embedded within a class `%extend`, new type-bound procedures can be manually
-added to the derived type.
 
 <table>
 <thead>

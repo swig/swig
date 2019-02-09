@@ -40,9 +40,7 @@
  * Deferred copy of basic settings from non-SP type (i.e. Fortran will see it the same; we override the in/out/ctype below)
  */
 
-%typemap(ftype, in={$typemap(ftype:in, TYPE*)}, noblock=1) SWIGSP__, SWIGSP_PTRS__
-  {$typemap(ftype, TYPE*)}
-%typemap(ftype, in={$typemap(ftype:in, const TYPE*)}, noblock=1) SWIGSP_CPTRS__
+%typemap(ftype, in={$typemap(ftype:in, TYPE*)}, noblock=1) SWIGSP_CPTRS__
   {$typemap(ftype, const TYPE*)}
 
 /* -------------------------------------------------------------------------
