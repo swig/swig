@@ -451,27 +451,28 @@ extern "C" {
 	CAMLparam1(v);
 	void *outptr = NULL;
         swig_type_info *outdescr = NULL;
+        static CAML_VALUE *func_val = NULL;
 
 	if( v == Val_unit ) {
 	    *out = 0;
-	    CAMLreturn(0);
+	    CAMLreturn_type(0);
 	}
 	if( !Is_block(v) ) return -1;
 	switch( SWIG_Tag_val(v) ) {
 	case C_int:
 	    if( !caml_long_val( v ) ) {
 		*out = 0;
-		CAMLreturn(0);
+		CAMLreturn_type(0);
 	    } else {
 		*out = 0;
-		CAMLreturn(1);
+		CAMLreturn_type(1);
 	    }
 	    break;
 	case C_obj:
-	    CAMLreturn
-		(caml_ptr_val_internal
-		 (caml_callback(*caml_named_value("caml_obj_ptr"),v),
-		  out,descriptor));
+	    if (!func_val) {
+	        func_val = caml_named_value("caml_obj_ptr");
+	    }
+	    CAMLreturn_type(caml_ptr_val_internal(caml_callback(*func_val, v), out, descriptor));
 	case C_string:
 	    outptr = (void *)String_val(SWIG_Field(v,0));
 	    break;
@@ -481,11 +482,11 @@ extern "C" {
 	    break;
 	default:
 	    *out = 0;
-	    CAMLreturn(1);
+	    CAMLreturn_type(1);
 	    break;
 	}
-	
-	CAMLreturn(SWIG_GetPtr(outptr,out,outdescr,descriptor));
+
+	CAMLreturn_type(SWIG_GetPtr(outptr, out, outdescr, descriptor));
     }
 
     SWIGINTERN void *caml_ptr_val( CAML_VALUE v, swig_type_info *descriptor ) {

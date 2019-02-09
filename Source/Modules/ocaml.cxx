@@ -1605,10 +1605,12 @@ public:
       /* wrap complex arguments to values */
       Printv(w->code, wrap_args, NIL);
 
-      /* pass the method call on to the Python object */
+      /* pass the method call on to the OCaml object */
       Printv(w->code,
 	     "swig_result = caml_swig_alloc(1,C_list);\n" "SWIG_Store_field(swig_result,0,args);\n" "args = swig_result;\n" "swig_result = Val_unit;\n", 0);
-      Printf(w->code, "swig_result = " "caml_callback3(*caml_named_value(\"swig_runmethod\")," "swig_get_self(),caml_copy_string(\"%s\"),args);\n", Getattr(n, "name"));
+      Printf(w->code, "static CAML_VALUE *swig_ocaml_func_val = NULL;\n" "if (!swig_ocaml_func_val) {\n");
+      Printf(w->code, "  swig_ocaml_func_val = caml_named_value(\"swig_runmethod\");\n  }\n");
+      Printf(w->code, "swig_result = caml_callback3(*swig_ocaml_func_val,swig_get_self(),caml_copy_string(\"%s\"),args);\n", Getattr(n, "name"));
       /* exception handling */
       tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0);
       if (!tm) {
