@@ -219,26 +219,22 @@ String *make_specifier_suffix(String *bindc_typestr) {
 }
 
 /* -------------------------------------------------------------------------
- * \brief Determine whether to wrap a function/class as a c-bound struct.
+ * \brief Determine whether to wrap a function/class as a c-bound struct
+ * or function.
  */
 bool is_bindc(Node *n) {
-  String *bindc_feature = Getattr(n, "feature:fortran:bindc");
-  if (!bindc_feature) {
-    // No user override given: if it's marked as extern(C) storage, default
-    // to binding it.
+  bool result = GetFlag(n, "feature:fortran:bindc");
+  if (result && CPlusPlus) {
     String *kind = Getattr(n, "kind");
-    if (!kind || Strcmp(kind, "function") != 0 || GetFlag(n, "ismember")) {
-      // Not a function
-      return false;
+    if (kind && Strcmp(kind, "function") == 0 && !Swig_storage_isexternc(n)) {
+      Swig_error(input_file,
+                 line_number,
+                 "The C++ function '%s' is not defined with external "
+                 "C linkage (extern \"C\"), but it is marked with %%fortran_bindc.\n",
+                 Getattr(n, "sym:name"));
     }
-    return Swig_storage_isexternc(n);
-  } else if (Strcmp(bindc_feature, "0") == 0) {
-    // Not a native param
-    return false;
-  } else {
-    // Value specified and isn't "0"
-    return true;
   }
+  return result;
 }
 
 /* -------------------------------------------------------------------------
