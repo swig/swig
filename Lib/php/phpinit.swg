@@ -7,7 +7,7 @@
 
 %init %{
 SWIG_php_minit {
-    SWIG_InitializeModule(0);
+    SWIG_InitializeModule((void*)&module_number);
 %}
 
 %fragment("swig_php_init_member_ptr2", "header") %{
