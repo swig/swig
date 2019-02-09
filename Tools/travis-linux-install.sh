@@ -72,6 +72,9 @@ case "$SWIGLANG" in
 			travis_retry sudo apt-get -qq install lua${VER} liblua${VER}-dev
 		fi
 		;;
+	"mzscheme")
+		travis_retry sudo apt-get -qq install racket
+		;;
 	"ocaml")
 		# configure also looks for ocamldlgen, but this isn't packaged.  But it isn't used by default so this doesn't matter.
 		travis_retry sudo apt-get -qq install ocaml ocaml-findlib
