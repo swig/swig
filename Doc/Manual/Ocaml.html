@@ -53,6 +53,10 @@
 </ul>
 <li><a href="#Ocaml_nn31">Exceptions</a>
 </ul>
+<li><a href="#Ocaml_nn32">Documentation Features</a>
+<ul>
+<li><a href="#Ocaml_nn33">Module docstring</a>
+</ul>
 </ul>
 </div>
 <!-- INDEX -->
@@ -991,6 +995,47 @@ Catching exceptions is now supported using SWIG's %exception feature.  A simple
 but not too useful example is provided by the throw_exception testcase in
 Examples/test-suite.  You can provide your own exceptions, too.
 </p>
+
+<H2><a name="Ocaml_nn32">33.3 Documentation Features</a></H2>
+
+
+<p>
+The features described in this section can be used to generate documentation
+comments (colloquially referred to as "docstrings") that can be read by
+<a href="https://caml.inria.fr/pub/docs/manual-ocaml/ocamldoc.html">OCamldoc</a>.
+</p>
+
+<H3><a name="Ocaml_nn33">33.3.1 Module docstring</a></H3>
+
+
+<p>
+The first documentation comment of an <tt>mli</tt> file is the comment
+associated with the entire module.  SWIG supports this by setting an
+option of the <tt>%module</tt> directive.  For example:
+</p>
+
+<div class="code">
+<pre>
+%module(docstring="This is the example module's docstring") example
+</pre>
+</div>
+
+<p>
+When you have more than just a line or so, you can retain the
+readability of the <tt>%module</tt> directive by using a macro.  For
+example:
+</p>
+
+<div class="code">
+<pre>
+%define DOCSTRING
+"The `XmlResource` class allows program resources defining menus,
+controls on a panel, etc. to be loaded from an XML file."
+%enddef
+
+%module(docstring=DOCSTRING) xrc
+</pre>
+</div>
 
 </body>
 </html>
