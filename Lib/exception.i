@@ -127,13 +127,44 @@ SWIGINTERN void SWIG_JavaException(JNIEnv *jenv, int code, const char *msg) {
 
 #ifdef SWIGOCAML
 %{
-#define OCAML_MSG_BUF_LEN 1024
-SWIGINTERN void SWIG_exception_(int code, const char *msg) {
-  char msg_buf[OCAML_MSG_BUF_LEN];
-  sprintf( msg_buf, "Exception(%d): %s\n", code, msg );
-  caml_failwith( msg_buf );
+SWIGINTERN void SWIG_OCamlException(int code, const char *msg) {
+  CAMLparam0();
+
+  SWIG_OCamlExceptionCodes exception_code = SWIG_OCamlUnknownError;
+  switch (code) {
+  case SWIG_DivisionByZero:
+    exception_code = SWIG_OCamlArithmeticException;
+    break;
+  case SWIG_IndexError:
+    exception_code = SWIG_OCamlIndexOutOfBoundsException;
+    break;
+  case SWIG_IOError:
+  case SWIG_SystemError:
+    exception_code = SWIG_OCamlSystemException;
+    break;
+  case SWIG_MemoryError:
+    exception_code = SWIG_OCamlOutOfMemoryError;
+    break;
+  case SWIG_OverflowError:
+    exception_code = SWIG_OCamlOverflowException;
+    break;
+  case SWIG_RuntimeError:
+    exception_code = SWIG_OCamlRuntimeException;
+    break;
+  case SWIG_SyntaxError:
+  case SWIG_TypeError:
+  case SWIG_ValueError:
+    exception_code = SWIG_OCamlIllegalArgumentException;
+    break;
+  case SWIG_UnknownError:
+  default:
+    exception_code = SWIG_OCamlUnknownError;
+    break;
+  }
+  SWIG_OCamlThrowException(exception_code, msg);
+  CAMLreturn0;
 }
-#define SWIG_exception(a,b) SWIG_exception_((a),(b))
+#define SWIG_exception(code, msg) SWIG_OCamlException(code, msg)
 %}
 #endif
 

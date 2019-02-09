@@ -163,19 +163,16 @@
                   unsigned int, 
                   unsigned long, 
                   unsigned short {
-  SWIG_exception($1,"Thrown exception from C++ (int)");
+  char error_msg[256];
+  sprintf(error_msg, "C++ $1_type exception thrown, value: %d", $1);
+  SWIG_OCamlThrowException(SWIG_OCamlRuntimeException, error_msg);
 }
 
-%typemap(throws) SWIGTYPE CLASS {
-  $&1_ltype temp = new $1_ltype($1);
-  SWIG_exception((int)temp,"Thrown exception from C++ (object)");
-}
-
-%typemap(throws) SWIGTYPE {
+%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY] {
   (void)$1;
-  SWIG_exception(0,"Thrown exception from C++ (unknown)");
+  SWIG_OCamlThrowException(SWIG_OCamlRuntimeException, "C++ $1_type exception thrown");
 }
 
 %typemap(throws) char * {
-  SWIG_exception(0,$1);
+  SWIG_OCamlThrowException(SWIG_OCamlRuntimeException, $1);
 }
