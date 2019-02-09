@@ -63,7 +63,7 @@ static TargetLanguageModule modules[] = {
   {"-javascript", swig_javascript, "Javascript", Supported},
   {"-lua", swig_lua, "Lua", Supported},
   {"-modula3", NULL, "Modula 3", Disabled},
-  {"-mzscheme", swig_mzscheme, "Mzscheme", Supported},
+  {"-mzscheme", swig_mzscheme, "MzScheme/Racket", Experimental},
   {"-ocaml", swig_ocaml, "Ocaml", Supported},
   {"-octave", swig_octave, "Octave", Supported},
   {"-perl", swig_perl5, NULL, Supported},
