@@ -910,6 +910,7 @@ int FORTRAN::moduleDirective(Node *n) {
 int FORTRAN::functionWrapper(Node *n) {
   const bool bindc = is_bindc(n);
   const bool member = GetFlag(n, "fortran:ismember");
+  bool generic = false;
 
   // >>> SET UP WRAPPER NAME
 
@@ -949,15 +950,19 @@ int FORTRAN::functionWrapper(Node *n) {
     fname = NULL;
   }
 
-  if (String *manual_name = Getattr(n, "fortran:name")) {
+  if (String *manual_name = Getattr(n, "feature:fortran:generic")) {
+    // Override the fsymname name for this function
+    assert(!fsymname);
+    fsymname = Copy(manual_name);
+    generic = true;
+  } else if (String *manual_name = Getattr(n, "fortran:name")) {
     // Override the fsymname name for this function
     assert(!fsymname);
     fsymname = Copy(manual_name);
   }
 
   // Add suffix if the function is overloaded (can't overload C bound functions)
-  String *overload_ext = (Getattr(n, "sym:overloaded") ? Getattr(n, "sym:overname") : NULL);
-  if (overload_ext) {
+  if (String *overload_ext = (Getattr(n, "sym:overloaded") ? Getattr(n, "sym:overname") : NULL)) {
     ASSERT_OR_PRINT_NODE(!bindc, n);
     Append(wname, overload_ext);
     Append(imname, overload_ext);
@@ -967,6 +972,7 @@ int FORTRAN::functionWrapper(Node *n) {
       fname = ensure_short(NewStringf("swigf_%s", symname));
     }
     Append(fname, overload_ext);
+    generic = true;
   }
 
   // Add the interface subroutine name to the module scope
@@ -1033,7 +1039,7 @@ int FORTRAN::functionWrapper(Node *n) {
 
     String *qualifiers = NewStringEmpty();
 
-    if (overload_ext) {
+    if (generic) {
       Append(qualifiers, ", private");
     }
     if (String *extra_quals = Getattr(n, "fortran:procedure")) {
@@ -1042,7 +1048,7 @@ int FORTRAN::functionWrapper(Node *n) {
       
     Printv(f_class, "  procedure", qualifiers, " :: ", NULL);
     
-    if (!overload_ext) {
+    if (!generic) {
       // Declare procedure name, aliasing the private mangled function name
       // Add qualifiers like "static" for static functions
       Printv(f_class, fsymname, " => ", fname, "\n", NULL);
