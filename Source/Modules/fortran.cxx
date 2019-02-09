@@ -1846,8 +1846,9 @@ int FORTRAN::classHandler(Node *n) {
   }
 
   ASSERT_OR_PRINT_NODE(!f_class, n);
-  f_class = NewStringEmpty();
-
+  ASSERT_OR_PRINT_NODE(Getattr(n, "kind") && Getattr(n, "classtype"), n);
+  f_class = NewStringf(" ! %s %s\n", Getattr(n, "kind"), Getattr(n, "classtype"));
+  
   // Write documentation
   this->write_docstring(n, f_class);
 
