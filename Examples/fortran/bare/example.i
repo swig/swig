@@ -18,10 +18,6 @@
 %fortranconst approx_pi;
 
 #ifdef SWIGFORTRAN
-%include <typemaps.i>
-
-// Instantiate array pointer conversion for doubles from pair<double*,size_t>
-%fortran_view(double)
 
 // Ignore one of the functions that can't be overloaded correctly
 %ignore cannot_overload(int);

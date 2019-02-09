@@ -1057,6 +1057,15 @@ int FORTRAN::cfuncWrapper(Node *n) {
   emit_mark_varargs(parmlist);
   Setattr(n, "wrap:parms", parmlist);
 
+  if (Getattr(n, "sym:overloaded")) {
+    // After emitting parameters, check for invalid overloads
+    Swig_overload_check(n);
+    if (Getattr(n, "overload:ignore")) {
+      DelWrapper(cfunc);
+      return SWIG_NOWRAP;
+    }
+  }
+
   // Create a list of parameters wrapped by the intermediate function
   List *cparmlist = NewList();
 
@@ -1404,7 +1413,7 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   Swig_typemap_attach_parms("ftype", parmlist, ffunc);
   Swig_typemap_attach_parms("fin", parmlist, ffunc);
   Swig_typemap_attach_parms("findecl", parmlist, ffunc);
-  Swig_typemap_attach_parms("ffreearg", parmlist, ffunc);
+  Swig_typemap_attach_parms("fargout", parmlist, ffunc);
 
   // Restore parameter names
   for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
@@ -1527,25 +1536,23 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
     Printv(ffunc->code, fbody, "\n", NULL);
   }
 
+  // Add post-call conversion routines for input arguments
+  for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
+    Parm *p = it.item;
+    if (String *tm = Getattr(p, "tmap:fargout")) {
+      Chop(tm);
+      Replaceall(tm, "$result", swig_result_name);
+      Replaceall(tm, "$input", Getattr(p, "fname"));
+      Replaceall(tm, "$1", Getattr(p, "imname"));
+      Printv(ffunc->code, tm, "\n", NULL);
+    }
+  }
+
   // Optional "append" proxy code
   String *append = Getattr(n, "feature:fortran:append");
   if (append) {
     Chop(append);
     Printv(ffunc->code, append, "\n", NULL);
-  }
-
-  // Insert Fortran cleanup code
-  String *fcleanup = NewStringEmpty();
-  for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
-    Parm *p = it.item;
-    if (String *tm = Getattr(p, "tmap:ffreearg")) {
-      Chop(tm);
-      Replaceall(tm, "$input", Getattr(p, "fname"));
-      Printv(fcleanup, tm, "\n", NULL);
-    }
-  }
-  if (Len(fcleanup) > 0) {
-    Printv(ffunc->code, fcleanup, "\n", NULL);
   }
 
   // Output argument output and cleanup code
@@ -1555,7 +1562,6 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   Wrapper_print(ffunc, f_fsubprograms);
 
   DelWrapper(ffunc);
-  Delete(fcleanup);
   Delete(fcall);
   Delete(fargs);
   return SWIG_OK;
@@ -2162,10 +2168,11 @@ int FORTRAN::enumDeclaration(Node *n) {
       return SWIG_NOWRAP;
   }
 
-  // Make sure the enum name isn't a duplicate
-  // Don't generate wrappers if we're in import mode, but make sure the symbol renaming above is still performed
-  if (ImportMode)
+  if (ImportMode) {
+    // Don't generate wrappers if we're in import mode, but make sure the symbol renaming above is still performed. Also make sure to mark that the enum is available for use as a type
+    SetFlag(n, "fortran:declared");
     return SWIG_OK;
+  }
 
   if (String *name = Getattr(n, "name")) {
     Printv(f_fdecl, " ! ", NULL);
@@ -2646,7 +2653,7 @@ String *FORTRAN::make_fname(String *name, int warning) {
       Setmeta(name, "already_warned", "1");
     }
     Delete(tmpresult);
-  } 
+  }
   
   if (!result) {
     result = Copy(name);

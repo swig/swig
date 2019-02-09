@@ -5,12 +5,23 @@
 
 %module example
 
-%include <typemaps.i>
-%fortran_view(int)
-%fortran_view(double)
-
 // Ignore return of types we don't understand (to prevent a warning)
 %ignore ThinVec::data() const;
+
+// Wrap the 'view' types in ThinVec as array pointers
+%include <fortranarray.swg>
+
+%define %thinvec_views(CPPTYPE)
+%fortran_array_pointer(CPPTYPE, std::pair<CPPTYPE*, std::size_t>)
+%typemap(in, noblock=1) std::pair<CPPTYPE*, std::size_t> {
+  $1 = $1_type(static_cast<CPPTYPE*>($input->data), $input->size);
+}
+%typemap(out, noblock=1) std::pair<CPPTYPE*, std::size_t> {
+  $result.data = $1.first;
+  $result.size = $1.second;
+}
+%apply std::pair<CPPTYPE*, std::size_t> { std::pair<const CPPTYPE*, std::size_t> }
+%enddef
 
 /* -------------------------------------------------------------------------
  * Note: since we use %const_cast and %static_cast, which are SWIG-defined
@@ -42,6 +53,10 @@
 
 // Load the thinvec class definition
 %include "example.h"
+
+// Set up typemaps for "views"
+%thinvec_views(double)
+%thinvec_views(int)
 
 // Instantiate classes
 %template(ThinVecDbl) ThinVec<double>;
