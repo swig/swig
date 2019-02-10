@@ -1594,12 +1594,14 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
     // >>> F PROXY CONVERSION
 
     String *fin = get_typemap("fin", p, WARN_TYPEMAP_IN_UNDEF);
-    Replaceall(fin, "$input", farg);
-    Printv(ffunc->code, fin, "\n", NULL);
+    if (Len(fin) > 0) {
+      Replaceall(fin, "$input", farg);
+      Printv(ffunc->code, fin, "\n", NULL);
+    }
 
     // Add any needed temporary variables
     String *findecl = get_typemap("findecl", p, WARN_NONE);
-    if (findecl) {
+    if (findecl && Len(findecl) > 0) {
       Chop(findecl);
       Printv(fargs, findecl, "\n", NULL);
     }
@@ -1651,7 +1653,7 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   Delete(temp);
   Chop(fbody);
 
-  if (fparm) {
+  if (fparm && Len(fparm) > 0) {
     Chop(fparm);
     // Write fortran output parameters after dummy argument
     Printv(ffunc->def, "\n", fparm, NULL);
@@ -1669,7 +1671,8 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   // Add post-call conversion routines for input arguments
   for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
     Parm *p = it.item;
-    if (String *tm = Getattr(p, "tmap:fargout")) {
+    String *tm = Getattr(p, "tmap:fargout");
+    if (tm && Len(tm) > 0) {
       Chop(tm);
       Replaceall(tm, "$result", swig_result_name);
       Replaceall(tm, "$input", Getattr(p, "fname"));
