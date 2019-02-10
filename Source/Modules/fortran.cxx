@@ -535,6 +535,14 @@ SwigType *parse_typemap(const_String_or_char_ptr tmname, Node *n, int warning) {
   return parse_typemap(tmname, NULL, n, warning);
 }
 
+//---------------------------------------------------------------------------//
+// Swig_fragment_emit can't be called with a const char* argument.
+void emit_fragment(const char *name) {
+  String *temp = NewString(name);
+  Swig_fragment_emit(temp);
+  Delete(temp);
+}
+
 /* ------------------------------------------------------------------------- */
 } // end anonymous namespace
 
@@ -608,8 +616,6 @@ private:
 
   void write_wrapper(String *filename);
   void write_module(String *filename);
-
-  String *attach_class_typemap(const_String_or_char_ptr tmname, int warning);
 
   bool replace_fclassname(SwigType *type, String *tm);
   String *get_fclassname(SwigType *classnametype, bool is_enum);
@@ -994,6 +1000,7 @@ int FORTRAN::functionWrapper(Node *n) {
 
   if (member) {
     // Ignore functions whose name is the same as the parent class
+    // TODO: use SWIG scoping functions instead
     String *lower_func = Swig_string_lower(fsymname);
     String *symname_cls = Getattr(this->getCurrentClass(), "sym:name");
     String *lower_cls = Swig_string_lower(symname_cls);
@@ -1813,10 +1820,8 @@ void FORTRAN::assignmentWrapper(Node *n) {
   Wrapper_print(cfunc, f_wrapper);
 
   // Insert assignment fragment
-  String *fragname = NewString("SWIG_assign");
-  Swig_fragment_emit(fragname);
+  emit_fragment("SWIG_assign");
 
-  Delete(fragname);
   Delete(flags);
   Delete(fsymname);
   Delete(fname);
@@ -1988,19 +1993,11 @@ int FORTRAN::classHandler(Node *n) {
 
   if (!bindc) {
     if (!basename) {
-      String *fdata = this->attach_class_typemap("fdata", WARN_NONE);
-      if (!fdata) {
-        Swig_error(input_file, line_number, "Class '%s' has no '%s' typemap defined\n", symname, "fdata");
-        return SWIG_NOWRAP;
-      }
-      Chop(fdata);
       // Insert the class data if this doesn't inherit from anything
+      emit_fragment("SwigClassWrapper_f");
       Printv(f_class,
-             "  ",
-             fdata,
-             "\n",
+             "  type(SwigClassWrapper), public :: swigdata\n",
              NULL);
-      Delete(fdata);
     }
     Printv(f_class, " contains\n", NULL);
 
@@ -2086,21 +2083,16 @@ int FORTRAN::constructorHandler(Node *n) {
 int FORTRAN::destructorHandler(Node *n) {
   Setattr(n, "fortran:name", "release");
 
-  Node *classnode = getCurrentClass();
-
   // Handle ownership semantics by wrapping the destructor action
-  String *fdis = this->attach_class_typemap("fdestructor", WARN_NONE);
-  if (!fdis) {
-    Swig_error(input_file, line_number,
-               "Class '%s' has no '%s' typemap defined\n",
-               Getattr(classnode, "sym:name"), "fdestructor");
-    return SWIG_NOWRAP;
-  }
+  String *fdis = NewString("if ($input%swigdata%mem == SWIG_OWN) then\n"
+                           "  $action\n"
+                           "end if\n"
+                           "$input%swigdata%cptr = C_NULL_PTR\n"
+                           "$input%swigdata%mem = SWIG_NULL\n");
   Replaceall(fdis, "$input", "self");
   Setattr(n, "feature:shadow", fdis);
-
   SetFlag(n, "fortran:ismember");
-
+  Delete(fdis);
 
   return Language::destructorHandler(n);
 }
@@ -2111,16 +2103,15 @@ int FORTRAN::destructorHandler(Node *n) {
  * This is *NOT* called when generating get/set wrappers for membervariableHandler.
  */
 int FORTRAN::memberfunctionHandler(Node *n) {
+  String *class_symname = Getattr(this->getCurrentClass(), "sym:name");
+  ASSERT_OR_PRINT_NODE(class_symname, n);
+
   if (this->is_bindc_struct()) {
-    String *class_symname = Getattr(getCurrentClass(), "sym:name");
     Swig_error(input_file, line_number,
                "Struct '%s' has the 'fortranbindc' feature set, so it cannot have member functions\n",
                class_symname);
     return SWIG_NOWRAP;
   }
-
-  String *class_symname = Getattr(getCurrentClass(), "sym:name");
-  ASSERT_OR_PRINT_NODE(class_symname, n);
 
   // Create a private procedure name that gets bound to the Fortan TYPE
   String *fwrapname = ensure_short(NewStringf("swigf_%s_%s", class_symname, Getattr(n, "sym:name")));
@@ -2153,7 +2144,7 @@ int FORTRAN::membervariableHandler(Node *n) {
     if (!bindc_typestr) {
       // In order for the struct's data to correspond to the C-aligned
       // data, an interface type MUST be specified!
-      String *class_symname = Getattr(getCurrentClass(), "sym:name");
+      String *class_symname = Getattr(this->getCurrentClass(), "sym:name");
       Swig_error(input_file, line_number,
                  "Struct '%s' has the 'bindc' feature set, but member variable '%s' (type '%s') has no 'bindc' typemap defined\n",
                  class_symname, fsymname, SwigType_namestr(datatype));
@@ -2248,7 +2239,7 @@ int FORTRAN::enumDeclaration(Node *n) {
   } else if (Strstr(symname, "$unnamed") != NULL) {
     // Anonymous enum VALUE
     // enum {FOO=0, BAR=1} foo;
-  } else if (Node *classnode = getCurrentClass()) {
+  } else if (Node *classnode = this->getCurrentClass()) {
     // Scope the enum since it's in a class
     String *tempname = NewStringf("%s_%s", Getattr(classnode, "sym:name"), symname);
     enum_name = make_fname(tempname);
@@ -2531,28 +2522,6 @@ int FORTRAN::enumforwardDeclaration(Node *n) {
 /* -------------------------------------------------------------------------
  * HELPER FUNCTIONS
  * ------------------------------------------------------------------------- */
-/*!
- * \brief Attach and return a typemap belonging to the current class.
- *
- * This is used by things like `fdata`.
- */
-String *FORTRAN::attach_class_typemap(const_String_or_char_ptr tmname, int warning) {
-  assert(this->is_wrapping_class());
-  String *class_type = this->getClassType();
-  Node *class_node = this->getCurrentClass();
-
-  String *temp_name = NewString("temp_class");
-  Parm *temp = NewParm(class_type, temp_name, class_node);
-  String *result = attach_typemap(tmname, temp, warning);
-  Delete(temp_name);
-  Delete(temp);
-
-  if (result) {
-    this->replace_fclassname(class_type, result);
-  }
-
-  return result;
-}
 
 /* -------------------------------------------------------------------------
  * \brief Substitute special '$fXXXXX' in typemaps.
@@ -2625,11 +2594,10 @@ String *FORTRAN::get_fclassname(SwigType *basetype, bool is_enum) {
           Replace(replacementname, "enum ", "", DOH_REPLACE_ANY);
           Printv(f_fdecl, "integer, parameter, public :: ", replacementname, " = C_INT\n", NULL);
         } else {
-          // XXX: This ideally would look up the "fdata" typemap.
-          String *fragname = NewString("SwigClassWrapper_f");
-          Swig_fragment_emit(fragname);
-          Delete(fragname);
-          Printv(f_fdecl, " type, public :: ", replacementname, "\n", 
+          // TODO: replace with this->classHandler(n);
+          emit_fragment("SwigClassWrapper_f");
+          Printv(f_fdecl,
+                 " type, public :: ", replacementname, "\n", 
                  "  type(SwigClassWrapper), public :: swigdata\n",
                  " end type\n",
                  NULL);

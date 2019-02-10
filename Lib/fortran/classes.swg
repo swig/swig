@@ -492,23 +492,6 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
 #endif
 
 /* -------------------------------------------------------------------------
- * CLASS DEFINITION
- * ------------------------------------------------------------------------- */
-
-// Data owned by the base class instance
-%typemap(fdata, fragment="SwigClassWrapper_f") SWIGTYPE
-  "type(SwigClassWrapper), public :: swigdata"
-
-// Call destructor if the data is owned; then clear the pointer
-%typemap(fdestructor, noblock=1) SWIGTYPE {
-  if ($input%swigdata%mem == SWIG_OWN) then
-    $action
-  end if
-  $input%swigdata%cptr = C_NULL_PTR
-  $input%swigdata%mem = SWIG_NULL
-}
-
-/* -------------------------------------------------------------------------
  * CLASS TYPEMAPS
  *
  * Classes accepted by value are passed as const reference.
