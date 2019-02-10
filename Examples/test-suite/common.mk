@@ -162,6 +162,7 @@ CPP_TEST_CASES += \
 	cpp_nodefault \
 	cpp_static \
 	cpp_typedef \
+	cpp14_binary_integer_literals \
 	cpp17_nested_namespaces \
 	cpp17_nspace_nested_namespaces \
 	cpp17_u8_char_literals \
