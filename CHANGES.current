@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-02-10: sethrj
+	    #1452 Fix %apply for anonymous template instantiations
+
 2019-02-09: olly
 	    [PHP] Fix access to already released memory during PHP module
 	    shutdown, which often didn't cause visible problems, but could
