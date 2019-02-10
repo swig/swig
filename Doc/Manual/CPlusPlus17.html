@@ -32,6 +32,10 @@ There isn't much in C++17 that affects SWIG, however, work has only just begun o
 C++17 support.
 </p>
 
+<p>
+<b>Compatibility note:</b> SWIG-4.0.0 is the first version to support any C++17 features.
+</p>
+
 <H2><a name="CPlusPlus17_core_language_changes">8.2 Core language changes</a></H2>
 
 
@@ -67,9 +71,19 @@ namespace A {
 </pre>
 </div>
 
+<H3><a name="CPlusPlus17_u8_char_literals">8.2.2 UTF-8 character literals</a></H3>
+
 <p>
-<b>Compatibility note:</b> SWIG-4.0.0 was the first version to support nested namespace definitions.
+C++17 added UTF-8 (u8) character literals.
+These are of type char.
+Example:
 </p>
+
+<div class="code">
+<pre>
+char a = u8'a';
+</pre>
+</div>
 
 <H2><a name="CPlusPlus17_standard_library_changes">8.3 Standard library changes</a></H2>
 
