@@ -10,6 +10,7 @@ program cpp_basic_runme
 
   ! Create
   a = Foo(123)
+  ASSERT(a%func1(3) == 2 * 3 * 123)
   ! Copy
   b = a
   ASSERT(b%func1(3) == 2 * 3 * 123)

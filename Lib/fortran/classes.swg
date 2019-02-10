@@ -492,7 +492,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, const SwigClassWrapper*
 %typemap(imtype, fragment="SwigClassWrapper_f")
     SWIGTYPE
   "type(SwigClassWrapper)"
-%typemap(ftype) SWIGTYPE
+%typemap(ftype, in="type($fclassname), intent(in)") SWIGTYPE
   "type($fclassname)"
 
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE {
@@ -512,7 +512,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, const SwigClassWrapper*
 
 // Raw pointers act mostly like value types, but they don't have to accept the exact type (polymorphic input, non-polymorphic output)
 %apply SWIGTYPE { SWIGTYPE* };
-%typemap(ftype, in="class($fclassname), intent(inout)") SWIGTYPE*
+%typemap(ftype, in="class($fclassname), intent(in)") SWIGTYPE*
   "type($fclassname)"
 
 // Use C pointers as placeholders for class pointers by default; this will
@@ -534,8 +534,6 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, const SwigClassWrapper*
 
 // Const pointers don't require mutability check; and their intent changes
 %apply SWIGTYPE* { const SWIGTYPE* };
-%typemap(ftype, in="class($fclassname), intent(in)") const SWIGTYPE*
-  "type($fclassname)"
 %typemap(in, noblock=1) const SWIGTYPE*
   {$1 = %static_cast($input->cptr, $1_ltype);}
 %typemap(out, noblock=1) const SWIGTYPE*
@@ -586,3 +584,22 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, const SwigClassWrapper*
 %typemap(bindc, in="type(SwigClassWrapper)", fragment="SwigClassWrapper_f") SwigClassWrapper*
   "type(C_PTR)"
 
+/*---------------------------------------------------------------------------
+ * Special class typedefs for assignment, destruction
+ */
+%typemap(ftype, in="class($fclassname), intent(inout)") SWIGTYPE *MUTABLE_SELF
+  "type($fclassname)"
+%typemap(ctype, fragment="SwigClassWrapper") SWIGTYPE *MUTABLE_SELF
+  "SwigClassWrapper *"
+%typemap(imtype, in="type(SwigClassWrapper), intent(inout)", fragment="SwigClassWrapper_f") SWIGTYPE *MUTABLE_SELF
+  "type(SwigClassWrapper)"
+%typemap(fargout, noblock=1) SWIGTYPE *MUTABLE_SELF {
+  $input%swigdata = $1
+}
+
+%apply SWIGTYPE *MUTABLE_SELF { SWIGTYPE *ASSIGNMENT_SELF };
+%typemap(in) SWIGTYPE *ASSIGNMENT_SELF "(void)sizeof($1);";
+
+%typemap(ftype, in="type($fclassname), intent(in)") const SWIGTYPE *ASSIGNMENT_OTHER
+  "type($fclassname)"
+%typemap(in) const SWIGTYPE *ASSIGNMENT_OTHER = SWIGTYPE *ASSIGNMENT_SELF;

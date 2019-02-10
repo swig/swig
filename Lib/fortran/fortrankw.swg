@@ -9,6 +9,7 @@
 %enddef
 
 // Rename *operators* to *generics*
+%fortran_operator(op_assign__, "assignment(=)",      *::operator=)
 %fortran_operator(op_add__,    "operator(+)",        *::operator+)
 %fortran_operator(op_sub__,    "operator(-)",        *::operator-)
 %fortran_operator(op_mul__,    "operator(*)",        *::operator*)
