@@ -2101,29 +2101,6 @@ int FORTRAN::destructorHandler(Node *n) {
 
   SetFlag(n, "fortran:ismember");
 
-  if (Getattr(classnode, "feature:fortran:final")) {
-    // Create 'final' name wrapper
-    String *classname = Getattr(classnode, "sym:name");
-    String *fname = NewStringf("swigf_final_%s", classname);
-    if (add_fsymbol(fname, n) != SWIG_NOWRAP) {
-      // Add the 'final' subroutine to the methods
-      Printv(f_class, "  final :: ", fname, "\n", NULL);
-
-      // Add the 'final' implementation
-      Printv(f_fsubprograms,
-             "  subroutine ",
-             fname,
-             "(self)\n"
-             "   use, intrinsic :: ISO_C_BINDING\n"
-             "   type(",
-             classname,
-             ") :: self\n",
-             fdis,
-             "  end subroutine\n",
-             NULL);
-    }
-    Delete(fname);
-  }
 
   return Language::destructorHandler(n);
 }

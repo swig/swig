@@ -1485,17 +1485,6 @@ class instance is no longer needed. It will free memory if appropriate and
 reset the C pointer to `NULL`. Calling `release` on an uninitialized variable
 (or a variable that has been released) is a null-op.
 
-Because Fortran 2003 does specify support for a special `FINAL` procedure to
-clean up local or dynamic variables, the call to `release()` can be replaced by
-adding a `FINAL` procedure. The SWIG Fortran interface can generate this
-procedure, which will call the C++ destructor:
-```swig
-%feature("fortran:final") Foo;
-%include "Foo.h"
-```
-**However**, this feature is relatively untested and its behavior could be
-compiler-dependent, so extreme caution is recommended when enabling it.
-
 ## Member functions
 
 SWIG generates unique, private procedure names (generally
