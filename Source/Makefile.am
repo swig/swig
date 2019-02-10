@@ -45,12 +45,8 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Doxygen/javadoc.h		\
 		Doxygen/pydoc.cxx		\
 		Doxygen/pydoc.h			\
-		Modules/allegrocl.cxx		\
 		Modules/allocate.cxx		\
 		Modules/browser.cxx		\
-		Modules/cffi.cxx		\
-		Modules/chicken.cxx		\
-		Modules/clisp.cxx		\
 		Modules/contract.cxx		\
 		Modules/csharp.cxx		\
 		Modules/d.cxx			\
@@ -64,25 +60,20 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/lang.cxx		\
 		Modules/lua.cxx			\
 		Modules/main.cxx		\
-		Modules/modula3.cxx		\
-		Modules/module.cxx		\
 		Modules/mzscheme.cxx		\
-		Modules/nested.cxx  \
+		Modules/nested.cxx		\
 		Modules/ocaml.cxx		\
 		Modules/octave.cxx		\
 		Modules/overload.cxx		\
 		Modules/perl5.cxx		\
 		Modules/php.cxx			\
-		Modules/pike.cxx		\
 		Modules/python.cxx		\
 		Modules/r.cxx			\
 		Modules/ruby.cxx		\
-		Modules/s-exp.cxx		\
 		Modules/scilab.cxx		\
 		Modules/swigmain.cxx		\
 		Modules/tcl8.cxx		\
 		Modules/typepass.cxx		\
-		Modules/uffi.cxx		\
 		Modules/utils.cxx		\
 		Modules/xml.cxx			\
 		Preprocessor/cpp.c		\
@@ -132,7 +123,7 @@ distclean-local:
 # swig executable as a way of checking before and after the 'beautifying'.
 # Single files can be beautified with the beautify-file target, eg: 'make beautify-file INDENTFILE=chosenfile.c'
 
-SWIGTYPEDEFS=-T bool -T File -T DohObjInfo -T Parm -T Language -T List -T Typetab -T ModuleFactory -T ErrorMessageFormat -T Symtab -T Hash -T Scanner -T String -T DohBase -T Node -T String_or_char -T SwigType -T Dispatcher -T Wrapper -T DohStringMethods -T DohFileMethods -T DohListMethods -T DohHashMethods -T DOH -T DohIterator -T ParmList -T FILE -T HashNode -T DOHObj_or_char -T DOHFile -T DOHString -T DOHString_or_char -T UpcallData
+SWIGTYPEDEFS=-T bool -T File -T DohObjInfo -T Parm -T Language -T List -T TargetLanguageModule -T Typetab -T ModuleFactory -T ErrorMessageFormat -T Symtab -T Hash -T Scanner -T String -T DohBase -T Node -T String_or_char -T SwigType -T Dispatcher -T Wrapper -T DohStringMethods -T DohFileMethods -T DohListMethods -T DohHashMethods -T DOH -T DohIterator -T ParmList -T FILE -T HashNode -T DOHObj_or_char -T DOHFile -T DOHString -T DOHString_or_char -T UpcallData
 INDENTBAKSDIR=../IndentBaks
 
 beautify:

@@ -16,7 +16,7 @@
 #include <ctype.h>
 
 static const char *usage = "\
-Perl5 Options (available with -perl5)\n\
+Perl 5 Options (available with -perl5)\n\
      -compat         - Compatibility mode\n\
      -const          - Wrap constants as constants and not variables (implies -proxy)\n\
      -nopm           - Do not generate the .pm file\n\

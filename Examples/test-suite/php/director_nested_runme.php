@@ -4,9 +4,9 @@ require "tests.php";
 require "director_nested.php";
 
 // No new functions
-check::functions(array(foo_int_advance,foo_int_do_advance,bar_step,bar_do_advance,bar_do_step,foobar_int_get_value,foobar_int_get_name,foobar_int_name,foobar_int_get_self,foobar_int_do_advance,foobar_int_do_step));
+check::functions(array('foo_int_advance','foo_int_do_advance','bar_step','bar_do_advance','bar_do_step','foobar_int_get_value','foobar_int_get_name','foobar_int_name','foobar_int_get_self','foobar_int_do_advance','foobar_int_do_step'));
 // No new classes
-check::classes(array(Foo_int,Bar,FooBar_int));
+check::classes(array('Foo_int','Bar','FooBar_int'));
 // now new vars
 check::globals(array());
 

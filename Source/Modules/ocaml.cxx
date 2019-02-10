@@ -167,6 +167,12 @@ public:
     return declaration;
   }
 
+  void emitBanner(File *f) {
+    Printf(f, "(* ----------------------------------------------------------------------------\n");
+    Swig_banner_target_lang(f, " *");
+    Printf(f, " * ---------------------------------------------------------------------------- *)\n\n");
+  }
+
   /* ------------------------------------------------------------
    * top()
    *
@@ -196,6 +202,7 @@ public:
      * use %module(directors="1") modulename at the start of the 
      * interface file to enable director generation.
      */
+    String *mod_docstring = NULL;
     {
       Node *module = Getattr(n, "module");
       if (module) {
@@ -210,6 +217,7 @@ public:
 	  if (Getattr(options, "sizeof")) {
 	    generate_sizeof = 1;
 	  }
+	  mod_docstring = Getattr(options, "docstring");
 	}
       }
     }
@@ -310,8 +318,18 @@ public:
       FileErrorDisplay(mlifilen);
       SWIG_exit(EXIT_FAILURE);
     }
+    emitBanner(f_mlout);
+    emitBanner(f_mliout);
 
     Language::top(n);
+
+    if (mod_docstring) {
+      if (Len(mod_docstring)) {
+	Printv(f_mliout, "(** ", mod_docstring, " *)\n", NIL);
+      }
+      Delete(mod_docstring);
+      mod_docstring = NULL;
+    }
 
     Printf(f_enum_to_int, ") | _ -> (C_int (get_int v))\n" "let _ = Callback.register \"%s_enum_to_int\" enum_to_int\n", module);
     Printf(f_mlibody, "val enum_to_int : c_enum_type -> c_obj -> Swig.c_obj\n");
@@ -470,6 +488,8 @@ public:
     int destructor = (!Cmp(nodeType, "destructor"));
     String *overname = 0;
     bool isOverloaded = Getattr(n, "sym:overloaded") ? true : false;
+    // For overloaded functions, only the dispatch function needs to be exposed in the ml and mli files.
+    bool expose_func = !isOverloaded || !Getattr(n, "sym:nextSibling");
 
     // Make a wrapper name for this
     String *wname = Swig_name_wrapper(iname);
@@ -493,7 +513,7 @@ public:
     Printv(proc_name, "_", iname, NIL);
     String *mangled_name = mangleNameForCaml(proc_name);
 
-    if (classmode && in_constructor) {	// Emit constructor for object
+    if (classmode && in_constructor && expose_func) { // Emit constructor for object
       String *mangled_name_nounder = NewString((char *) (Char(mangled_name)) + 1);
       Printf(f_class_ctors_end, "let %s clst = _%s clst\n", mangled_name_nounder, mangled_name_nounder);
       Printf(f_mlibody, "val %s : c_obj -> c_obj\n", mangled_name_nounder);
@@ -501,7 +521,7 @@ public:
     } else if (classmode && in_destructor) {
       Printf(f_class_ctors, "    \"~\", %s ;\n", mangled_name);
     } else if (classmode && !in_constructor && !in_destructor && !static_member_function &&
-	    !Getattr(n, "membervariableHandler:sym:name")) {
+	    !Getattr(n, "membervariableHandler:sym:name") && expose_func) {
       String *opname = Copy(Getattr(n, "memberfunctionHandler:sym:name"));
 
       Replaceall(opname, "operator ", "");
@@ -742,15 +762,17 @@ public:
       }
     }
 
-    Printf(f_mlbody,
-	   "external %s_f : c_obj list -> c_obj list = \"%s\" ;;\n"
-	   "let %s arg = match %s_f (fnhelper arg) with\n"
-	   "  [] -> C_void\n"
-	   "| [x] -> (if %s then Gc.finalise \n"
-	   "  (fun x -> ignore ((invoke x) \"~\" C_void)) x) ; x\n"
-	   "| lst -> C_list lst ;;\n", mangled_name, wname, mangled_name, mangled_name, newobj ? "true" : "false");
+    if (expose_func) {
+      Printf(f_mlbody, "external %s_f : c_obj list -> c_obj list = \"%s\" ;;\n", mangled_name, wname);
+      Printf(f_mlbody, "let %s arg = match %s_f (%s(fnhelper arg)) with\n", mangled_name, mangled_name,
+	     in_constructor && Swig_directorclass(getCurrentClass()) ? "director_core_helper " : "");
+      Printf(f_mlbody, "  [] -> C_void\n"
+	     "| [x] -> (if %s then Gc.finalise \n"
+	     "  (fun x -> ignore ((invoke x) \"~\" C_void)) x) ; x\n"
+	     "| lst -> C_list lst ;;\n", newobj ? "true" : "false");
+    }
 
-    if (!classmode || in_constructor || in_destructor || static_member_function)
+    if ((!classmode || in_constructor || in_destructor || static_member_function) && expose_func)
       Printf(f_mlibody, "val %s : c_obj -> c_obj\n", mangled_name);
 
     Delete(proc_name);
@@ -768,10 +790,11 @@ public:
    * variableWrapper()
    *
    * Create a link to a C variable.
-   * This creates a single function _wrap_swig_var_varname().
+   * This creates a single function _wrap_varname().
    * This function takes a single optional argument.   If supplied, it means
    * we are setting this variable to some value.  If omitted, it means we are
-   * simply evaluating this variable.  In the set case we return C_void.
+   * simply evaluating this variable.  We return the value of the variable
+   * in both cases.
    *
    * symname is the name of the variable with respect to C.  This 
    * may need to differ from the original name in the case of enums.
@@ -787,9 +810,6 @@ public:
 
     String *proc_name = NewString("");
     String *tm;
-    String *tm2 = NewString("");
-    String *argnum = NewString("0");
-    String *arg = NewString("SWIG_Field(args,0)");
     Wrapper *f;
 
     if (!name) {
@@ -809,14 +829,16 @@ public:
     // evaluation function names
     String *var_name = Swig_name_wrapper(iname);
 
-    // Build the name for scheme.
+    // Build the name for OCaml.
     Printv(proc_name, iname, NIL);
     Setattr(n, "wrap:name", proc_name);
 
     Printf(f->def, "SWIGEXT CAML_VALUE %s(CAML_VALUE args) {\n", var_name);
     // Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NIL);
 
-    Wrapper_add_local(f, "swig_result", "CAML_VALUE swig_result");
+    Wrapper_add_local(f, "args", "CAMLparam1(args)");
+    Wrapper_add_local(f, "swig_result", "SWIG_CAMLlocal1(swig_result)");
+    Printf(f->code, "swig_result = Val_unit;\n");
 
     if (!GetFlag(n, "feature:immutable")) {
       /* Check for a setting of the variable value */
@@ -825,13 +847,12 @@ public:
 	Replaceall(tm, "$source", "args");
 	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "args");
-	/* Printv(f->code, tm, "\n",NIL); */
 	emit_action_code(n, f->code, tm);
       } else if ((tm = Swig_typemap_lookup("in", n, name, 0))) {
 	Replaceall(tm, "$source", "args");
 	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "args");
-	Printv(f->code, tm, "\n", NIL);
+	emit_action_code(n, f->code, tm);
       } else {
 	throw_unhandled_ocaml_type_error(t, "varin/in");
       }
@@ -849,12 +870,12 @@ public:
       Replaceall(tm, "$source", name);
       Replaceall(tm, "$target", "swig_result");
       Replaceall(tm, "$result", "swig_result");
-      Printf(f->code, "%s\n", tm);
+      emit_action_code(n, f->code, tm);
     } else {
       throw_unhandled_ocaml_type_error(t, "varout/out");
     }
 
-    Printf(f->code, "\nreturn swig_result;\n");
+    Printf(f->code, "\nCAMLreturn(swig_result);\n");
     Printf(f->code, "}\n");
 
     Wrapper_print(f, f_wrappers);
@@ -875,9 +896,6 @@ public:
 
     Delete(var_name);
     Delete(proc_name);
-    Delete(argnum);
-    Delete(arg);
-    Delete(tm2);
     DelWrapper(f);
     return SWIG_OK;
   }
@@ -920,7 +938,7 @@ public:
     // See if there's a typemap
 
     // Create variable and assign it a value
-    Printf(f_header, "static %s = %s;\n", SwigType_lstr(type, name), value);
+    Printf(f_header, "static %s = %s;\n", SwigType_str(type, name), value);
     SetFlag(n, "feature:immutable");
     variableWrapper(n);
     return SWIG_OK;
@@ -1387,8 +1405,7 @@ public:
 	pure_virtual = true;
       }
     }
-
-    Wrapper_add_local(w, "swig_result", "CAMLparam0();\n" "SWIG_CAMLlocal2(swig_result,args)");
+    Printf(w->locals, "CAMLparam0();\n");
 
     /* determine if the method returns a pointer */
     is_pointer = SwigType_ispointer_return(decl);
@@ -1400,14 +1417,46 @@ public:
     String *qualified_name = NewStringf("%s::%s", pclassname, name);
     SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
     target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
-    Printf(w->def, "%s {", target);
+    Printf(w->def, "%s", target);
     Delete(qualified_name);
     Delete(target);
     /* header declaration */
     target = Swig_method_decl(rtype, decl, name, l, 1);
-    Printf(declaration, "    virtual %s;", target);
+    Printf(declaration, "    virtual %s", target);
     Delete(target);
 
+    // Get any exception classes in the throws typemap
+    if (Getattr(n, "noexcept")) {
+      Append(w->def, " noexcept");
+      Append(declaration, " noexcept");
+    }
+    ParmList *throw_parm_list = 0;
+    if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
+      Parm *p;
+      int gencomma = 0;
+
+      Append(w->def, " throw(");
+      Append(declaration, " throw(");
+
+      if (throw_parm_list)
+	Swig_typemap_attach_parms("throws", throw_parm_list, 0);
+      for (p = throw_parm_list; p; p = nextSibling(p)) {
+	if (Getattr(p, "tmap:throws")) {
+	  if (gencomma++) {
+	    Append(w->def, ", ");
+	    Append(declaration, ", ");
+	  }
+	  String *str = SwigType_str(Getattr(p, "type"), 0);
+	  Append(w->def, str);
+	  Append(declaration, str);
+	  Delete(str);
+	}
+      }
+      Append(w->def, ")");
+      Append(declaration, ")");
+    }
+    Append(w->def, " {");
+    Append(declaration, ";\n");
     /* declare method return value 
      * if the return value is a reference or const reference, a specialized typemap must
      * handle it, including declaration of c_result ($result).
@@ -1430,16 +1479,18 @@ public:
 
     if (ignored_method) {
       if (!pure_virtual) {
-	if (!is_void)
-	  Printf(w->code, "return ");
 	String *super_call = Swig_method_call(super, l);
-	Printf(w->code, "%s;\n", super_call);
+	if (is_void)
+	  Printf(w->code, "%s;\n", super_call);
+	else
+	  Printf(w->code, "CAMLreturn_type(%s);\n", super_call);
 	Delete(super_call);
       } else {
 	Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
 	       SwigType_namestr(name));
       }
     } else {
+      Wrapper_add_local(w, "swig_result", "SWIG_CAMLlocal2(swig_result, args)");
       /* attach typemaps to arguments (C/C++ -> Ocaml) */
       String *arglist = NewString("");
 
@@ -1556,10 +1607,12 @@ public:
       /* wrap complex arguments to values */
       Printv(w->code, wrap_args, NIL);
 
-      /* pass the method call on to the Python object */
+      /* pass the method call on to the OCaml object */
       Printv(w->code,
 	     "swig_result = caml_swig_alloc(1,C_list);\n" "SWIG_Store_field(swig_result,0,args);\n" "args = swig_result;\n" "swig_result = Val_unit;\n", 0);
-      Printf(w->code, "swig_result = " "caml_callback3(*caml_named_value(\"swig_runmethod\")," "swig_get_self(),caml_copy_string(\"%s\"),args);\n", Getattr(n, "name"));
+      Printf(w->code, "static CAML_VALUE *swig_ocaml_func_val = NULL;\n" "if (!swig_ocaml_func_val) {\n");
+      Printf(w->code, "  swig_ocaml_func_val = caml_named_value(\"swig_runmethod\");\n  }\n");
+      Printf(w->code, "swig_result = caml_callback3(*swig_ocaml_func_val,swig_get_self(),caml_copy_string(\"%s\"),args);\n", Getattr(n, "name"));
       /* exception handling */
       tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0);
       if (!tm) {
@@ -1634,6 +1687,8 @@ public:
 	  Printf(w->code, "CAMLreturn_type(*c_result);\n");
 	}
       }
+    } else {
+      Printf(w->code, "CAMLreturn0;\n");
     }
 
     Printf(w->code, "}\n");

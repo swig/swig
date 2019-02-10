@@ -1,8 +1,15 @@
 <?php
 
-// do we have true global vars or just GETSET functions?
-// Used to filter out get/set global functions to fake vars...
-define(GETSET,1);
+function die_on_error($errno, $errstr, $file, $line) {
+    if ($file !== Null) {
+        print $file;
+        if ($line !== Null) print ":$line";
+        print ": ";
+    }
+    print "$errstr\n";
+    exit(1);
+}
+set_error_handler("die_on_error", -1);
 
 $_original_functions=get_defined_functions();
 $_original_globals=1;
@@ -10,7 +17,11 @@ $_original_classes=get_declared_classes();
 $_original_globals=array_keys($GLOBALS);
 
 class check {
-  function get_extra_classes($ref=FALSE) {
+  // do we have true global vars or just GETSET functions?
+  // Used to filter out get/set global functions to fake vars...
+  const GETSET = 1;
+
+  static function get_extra_classes($ref=FALSE) {
     static $extra;
     global $_original_classes;
     if ($ref===FALSE) $f=$_original_classes;
@@ -22,7 +33,7 @@ class check {
     return $extra;
   }
 
-  function get_extra_functions($ref=FALSE,$gs=false) {
+  static function get_extra_functions($ref=FALSE,$gs=false) {
     static $extra;
     static $extrags; // for get/setters
     global $_original_functions;
@@ -31,11 +42,11 @@ class check {
       $extra=array();
       $extrags=array();
       $df=get_defined_functions();
-      $df=array_flip($df[internal]);
-      foreach($_original_functions[internal] as $func) unset($df[$func]);
+      $df=array_flip($df['internal']);
+      foreach($_original_functions['internal'] as $func) unset($df[$func]);
       // Now chop out any get/set accessors
       foreach(array_keys($df) as $func)
-        if ((GETSET && preg_match('/_[gs]et$/', $func)) ||
+        if ((self::GETSET && preg_match('/_[gs]et$/', $func)) ||
             preg_match('/^new_/', $func) ||
             preg_match('/_(alter|get)_newobject$/', $func))
           $extrags[]=$func;
@@ -46,11 +57,11 @@ class check {
     return $extra;
   }
 
-  function get_extra_globals($ref=FALSE) {
+  static function get_extra_globals($ref=FALSE) {
     static $extra;
     global $_original_globals;
     if (! is_array($extra)) {
-      if (GETSET) {
+      if (self::GETSET) {
         $_extra=array();
         foreach(check::get_extra_functions(false,1) as $global) {
           if (preg_match('/^(.*)_[sg]et$/', $global, $match))
@@ -72,16 +83,17 @@ class check {
     return $extra;
   }
 
-  function classname($string,$object) {
+  static function classname($string,$object) {
     if (!is_object($object))
       return check::fail("The second argument is a " . gettype($object) . ", not an object.");
     if (strtolower($string)!=strtolower($classname=get_class($object))) return check::fail("Object: \$object is of class %s not class %s",$classname,$string);
     return TRUE;
   }
 
-  function classmethods($classname,$methods) {
+  static function classmethods($classname,$methods) {
     if (is_object($classname)) $classname=get_class($classname);
     $classmethods=array_flip(get_class_methods($classname));
+    $message=NULL;
     $missing=array();
     $extra=array();
     foreach($methods as $method) {
@@ -98,19 +110,19 @@ class check {
     return TRUE;
   }
 
-  function set($var,$value) {
+  static function set($var,$value) {
     $func=$var."_set";
-    if (GETSET) $func($value);
+    if (self::GETSET) $func($value);
     else $_GLOBALS[$var]=$value;
   }
 
-  function &get($var) {
+  static function get($var) {
     $func=$var."_get";
-    if (GETSET) return $func();
+    if (self::GETSET) return $func();
     else return $_GLOBALS[$var];
   }
 
-  function is_a($a,$b) {
+  static function is_a($a,$b) {
     if (is_object($a)) $a=strtolower(get_class($a));
     if (is_object($b)) $a=strtolower(get_class($b));
     $parents=array();
@@ -123,7 +135,7 @@ class check {
     return TRUE;
   }
 
-  function classparent($a,$b) {
+  static function classparent($a,$b) {
     if (is_object($a)) $a=get_class($a);
     if (is_object($b)) $a=get_class($b);
     $parent=get_parent_class($a);
@@ -132,7 +144,7 @@ class check {
     return TRUE;
   }
 
-  function classes($classes) {
+  static function classes($classes) {
     if (! is_array($classes)) $classes=array($classes);
     $message=array();
     $missing=array();
@@ -148,7 +160,7 @@ class check {
     return TRUE;    
   }
 
-  function functions($functions) {
+  static function functions($functions) {
     if (! is_array($functions)) $functions=array($functions);
     $message=array();
     $missing=array();
@@ -165,13 +177,13 @@ class check {
     return TRUE;    
   }
 
-  function globals($globals) {
+  static function globals($globals) {
     if (! is_array($globals)) $globals=array($globals);
     $message=array();
     $missing=array();
     $extra=array_flip(check::get_extra_globals());
     foreach ($globals as $glob) {
-      if (GETSET) {
+      if (self::GETSET) {
         if (! isset($extra[$glob])) $missing[]=$glob;
         else unset($extra[$glob]);
       } else {
@@ -187,30 +199,30 @@ class check {
 
   }
 
-  function functionref($a,$type,$message) {
+  static function functionref($a,$type,$message) {
     if (! preg_match("/^_[a-f0-9]+$type$/i", $a))
       return check::fail($message);
     return TRUE;
   }
 
-  function equal($a,$b,$message) {
+  static function equal($a,$b,$message) {
     if (! ($a===$b)) return check::fail($message . ": '$a'!=='$b'");
     return TRUE;
   }
 
-  function resource($a,$b,$message) {
+  static function resource($a,$b,$message) {
     $resource=trim(check::var_dump($a));
     if (! preg_match("/^resource\([0-9]+\) of type \($b\)/i", $resource))
       return check::fail($message);
     return TRUE;
   }
 
-  function isnull($a,$message) {
+  static function isnull($a,$message) {
     $value=trim(check::var_dump($a));
     return check::equal($value,"NULL",$message);
   }
 
-  function var_dump($arg) {
+  static function var_dump($arg) {
     ob_start();
     var_dump($arg);
     $result=ob_get_contents();
@@ -218,19 +230,19 @@ class check {
     return $result;
   }
 
-  function fail($pattern) {
+  static function fail($pattern) {
     $args=func_get_args();
     print("Failed on: ".call_user_func_array("sprintf",$args)."\n");
     exit(1);
   }
 
-  function warn($pattern) {
+  static function warn($pattern) {
     $args=func_get_args();
     print("Warning on: ".call_user_func_array("sprintf",$args)."\n");
     return FALSE;
   }
 
-  function done() {
+  static function done() {
 #    print $_SERVER[argv][0]." ok\n";
   }
 }

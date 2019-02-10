@@ -4,10 +4,8 @@ Version: 4.0.0 (in progress)
 
 Tagline: SWIG is a compiler that integrates C and C++ with languages
          including Perl, Python, Tcl, Ruby, PHP, Java, C#, D, Go, Lua,
-         Octave, R, Scheme (Guile, MzScheme/Racket, CHICKEN), Scilab,
-         Ocaml, Modula-3, Common Lisp (CLISP, Allegro CL, CFFI, UFFI)
-         and Pike. SWIG can also export its parse tree into XML and
-         Lisp s-expressions.
+         Octave, R, Scheme (Guile, MzScheme/Racket), Scilab, Ocaml.
+         SWIG can also export its parse tree into XML.
 
 SWIG reads annotated C/C++ header files and creates wrapper code (glue
 code) in order to make the corresponding C/C++ libraries available to

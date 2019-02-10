@@ -14,7 +14,6 @@ top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
 FAILING_CPP_TESTS = \
-allowexcept \
 allprotected \
 apply_signed_char \
 apply_strings \
@@ -22,23 +21,14 @@ cpp_enum \
 default_constructor \
 director_binary_string \
 director_enum \
-director_exception \
-director_exception_nothrow \
-director_ignore \
-director_nested \
-director_pass_by_value \
 director_primitives \
-director_protected \
 director_redefined \
 director_string \
-director_using \
 enum_thorough \
 li_windows \
 member_pointer_const \
-nested_directors \
 preproc_constants \
 smart_pointer_inherit \
-typedef_mptr \
 
 FAILING_C_TESTS = \
 enums \

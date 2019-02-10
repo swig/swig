@@ -43,7 +43,7 @@
 #include <errno.h>
 
 static const char *usage = "\
-PHP Options (available with -php7)\n\
+PHP 7 Options (available with -php7)\n\
      -noproxy         - Don't generate proxy classes.\n\
      -prefix <prefix> - Prepend <prefix> to all class names in PHP wrappers\n\
 \n";
@@ -979,7 +979,7 @@ public:
     /* Insert argument output code */
     bool hasargout = false;
     for (i = 0, p = l; p; i++) {
-      if ((tm = Getattr(p, "tmap:argout"))) {
+      if ((tm = Getattr(p, "tmap:argout")) && Len(tm)) {
 	hasargout = true;
 	Replaceall(tm, "$source", Getattr(p, "lname"));
 	//      Replaceall(tm,"$input",Getattr(p,"lname"));
@@ -1096,11 +1096,11 @@ public:
       if (constructor) {
 	class_has_ctor = true;
 	// Skip the Foo:: prefix.
-	char *ptr = strrchr(GetChar(Swig_methodclass(n), "sym:name"), ':');
+	char *ptr = strrchr(GetChar(current_class, "sym:name"), ':');
 	if (ptr) {
 	  ptr++;
 	} else {
-	  ptr = GetChar(Swig_methodclass(n), "sym:name");
+	  ptr = GetChar(current_class, "sym:name");
 	}
 	if (strcmp(ptr, GetChar(n, "constructorHandler:sym:name")) == 0) {
 	  methodname = "__construct";
@@ -1509,7 +1509,7 @@ public:
 	      Replaceall(value, "$", "\\$");
 	    }
 	    Printf(args, "$%s=%s", arg_names[i], value);
-	  } else if (constructor && i >= 1 && i < min_num_of_arguments) {
+	  } else if (constructor && strcmp(methodname, "__construct") == 0 && i >= 1 && i < min_num_of_arguments) {
 	    // We need to be able to call __construct($resource).
 	    Printf(args, "$%s=null", arg_names[i]);
 	  } else {
@@ -1667,20 +1667,33 @@ public:
 	}
 
 	if (constructor) {
-	  const char * arg0;
+	  // Discriminate between the PHP constructor and a C++ constructor
+	  // renamed to become a factory function in PHP.
+	  bool php_constructor = (strcmp(methodname, "__construct") == 0);
+	  const char * arg0 = NULL;
 	  if (max_num_of_arguments > 0) {
 	    arg0 = Char(arg_names[0]);
-	  } else {
+	  } else if (php_constructor) {
+	    // The PHP constructor needs to be able to wrap a resource, but a
+	    // renamed constructor doesn't.
 	    arg0 = "res";
 	    Delete(args);
 	    args = NewString("$res=null");
 	  }
 	  String *mangled_type = SwigType_manglestr(Getattr(n, "type"));
+	  if (!php_constructor) {
+	    // A renamed constructor should be a static method.
+	    Append(acc, "static ");
+	  }
 	  Printf(output, "\t%sfunction %s(%s) {\n", acc, methodname, args);
-	  Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) === '%s') {\n", arg0, arg0, mangled_type);
-	  Printf(output, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg0);
-	  Printf(output, "\t\t\treturn;\n");
-	  Printf(output, "\t\t}\n");
+	  if (php_constructor) {
+	    // The PHP constructor needs to be able to wrap a resource, but a
+	    // renamed constructor doesn't.
+	    Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) === '%s') {\n", arg0, arg0, mangled_type);
+	    Printf(output, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg0);
+	    Printf(output, "\t\t\treturn;\n");
+	    Printf(output, "\t\t}\n");
+	  }
 	} else {
 	  Printf(output, "\t%sfunction %s(%s) {\n", acc, methodname, args);
 	}
@@ -2860,18 +2873,4 @@ static Language *new_swig_php() {
 
 extern "C" Language *swig_php(void) {
   return new_swig_php();
-}
-
-extern "C" Language *swig_php4(void) {
-  Printf(stderr, "*** -php4 is no longer supported.\n"
-		 "*** Either upgrade to PHP5 or use SWIG 1.3.36 or earlier.\n");
-  SWIG_exit(EXIT_FAILURE);
-  return NULL; // To avoid compiler warnings.
-}
-
-extern "C" Language *swig_php5(void) {
-  Printf(stderr, "*** -php5 is no longer supported.\n"
-		 "*** Either upgrade to PHP7 or use SWIG < 4.0.0.\n");
-  SWIG_exit(EXIT_FAILURE);
-  return NULL; // To avoid compiler warnings.
 }

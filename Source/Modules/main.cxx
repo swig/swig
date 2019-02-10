@@ -97,7 +97,7 @@ static const char *usage2 = (const char *) "\
      -Fmicrosoft     - Display error/warning messages in Microsoft format\n\
      -Fstandard      - Display error/warning messages in commonly used format\n\
      -fvirtual       - Compile in virtual elimination mode\n\
-     -help           - This output\n\
+     -help           - Display help\n\
      -I-             - Don't search the current directory\n\
      -I<dir>         - Look for SWIG files in directory <dir>\n\
      -ignoremissing  - Ignore missing include files\n\
@@ -130,14 +130,14 @@ static const char *usage3 = (const char *) "\
 ";
 
 static const char *usage4 = (const char *) "\
-     -O              - Enable the optimization options: \n\
-                        -fastdispatch -fvirtual \n\
+     -O              - Enable the optimization options:\n\
+                        -fastdispatch -fvirtual\n\
      -o <outfile>    - Set name of C/C++ output file to <outfile>\n\
      -oh <headfile>  - Set name of C++ output header file for directors to <headfile>\n\
      -outcurrentdir  - Set default output dir to current dir instead of input file's path\n\
      -outdir <dir>   - Set language specific files output directory to <dir>\n\
      -pcreversion    - Display PCRE version information\n\
-     -small          - Compile in virtual elimination & compact mode\n\
+     -small          - Compile in virtual elimination and compact mode\n\
      -swiglib        - Report location of SWIG library and exit\n\
      -templatereduce - Reduce all the typedefs in templates\n\
      -v              - Run in verbose mode\n\
@@ -155,9 +155,9 @@ Options can also be defined using the SWIG_FEATURES environment variable, for ex
   $ export SWIG_FEATURES\n\
   $ swig -python interface.i\n\
 \n\
-is equivalent to: \n\
+is equivalent to:\n\
 \n\
-  $ swig -Wall -python interface.i \n\
+  $ swig -Wall -python interface.i\n\
 \n\
 Arguments may also be passed in a file, separated by whitespace. For example:\n\
 \n\
@@ -459,7 +459,7 @@ static void SWIG_dump_runtime() {
   SWIG_exit(EXIT_SUCCESS);
 }
 
-void SWIG_getoptions(int argc, char *argv[]) {
+static void getoptions(int argc, char *argv[]) {
   int i;
   // Get options
   for (i = 1; i < argc; i++) {
@@ -878,7 +878,7 @@ void SWIG_getoptions(int argc, char *argv[]) {
   }
 }
 
-int SWIG_main(int argc, char *argv[], Language *l) {
+int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
   char *c;
 
   /* Initialize the SWIG core */
@@ -890,7 +890,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // Initialize the preprocessor
   Preprocessor_init();
 
-  lang = l;
+  // Set lang to a dummy value if no target language was specified so we
+  // can process options enough to handle -version, etc.
+  lang = tlm ? tlm->fac() : new Language;
 
   // Set up some default symbols (available in both SWIG interface files
   // and C files)
@@ -923,9 +925,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   Wrapper_director_protected_mode_set(1);
 
   // Inform the parser if the nested classes should be ignored unless explicitly told otherwise via feature:flatnested
-  ignore_nested_classes = l->nestedClassesSupport() == Language::NCS_Unknown ? 1 : 0;
+  ignore_nested_classes = lang->nestedClassesSupport() == Language::NCS_Unknown ? 1 : 0;
 
-  kwargs_supported = l->kwargsSupport() ? 1 : 0;
+  kwargs_supported = lang->kwargsSupport() ? 1 : 0;
 
   // Create Library search directories
 
@@ -954,7 +956,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   /* Check for SWIG_FEATURES environment variable */
 
-  SWIG_getoptions(argc, argv);
+  getoptions(argc, argv);
 
   // Define the __cplusplus symbol
   if (CPlusPlus)
@@ -967,6 +969,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     Printf(stdout, "\nNote: 'swig -<lang> -help' displays options for a specific target language.\n\n");
     SWIG_exit(EXIT_SUCCESS);	// Exit if we're in help mode
   }
+
+  if (!tlm) {
+    Printf(stderr, "No target language specified\n");
+    return 1;
+  }
+
   // Check all of the options to make sure we're cool.
   // Don't check for an input file if -external-runtime is passed
   Swig_check_options(external_runtime ? 0 : 1);
@@ -1304,6 +1312,13 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
 	// Check the extension for a c/c++ file.  If so, we're going to declare everything we see as "extern"
 	ForceExtern = check_extension(input_file);
+
+	if (tlm->status == Experimental) {
+	  Swig_warning(WARN_LANG_EXPERIMENTAL, "SWIG", 1, "Experimental target language. "
+	    "Target language %s specified by %s is an experimental language. "
+	    "Please read about SWIG experimental languages, http://swig.org/Doc4.0/Introduction.html#Introduction_experimental_status.\n",
+	    tlm->help ? tlm->help : "", tlm->name);
+	}
 
 	lang->top(top);
 

@@ -16,6 +16,7 @@ SWIGEXT {
 #endif
 #define value caml_value_t
 #define CAML_VALUE caml_value_t
+#define CAML_NAME_SPACE
 #include <caml/alloc.h>
 #include <caml/custom.h>
 #include <caml/mlvalues.h>
@@ -33,7 +34,7 @@ SWIGEXT {
 
 #define caml_array_set swig_caml_array_set
 
-// Adapted from memory.h and mlvalues.h
+/* Adapted from memory.h and mlvalues.h */
 
 #define SWIG_CAMLlocal1(x) \
   caml_value_t x = 0; \
@@ -126,7 +127,44 @@ CAMLextern int64 Int64_val(caml_value_t v);
 #define SWIG_GetModule(clientdata) SWIG_Ocaml_GetModule(clientdata)
 #define SWIG_SetModule(clientdata, pointer) SWIG_Ocaml_SetModule(pointer)
 
-#define SWIG_contract_assert(expr, msg) if(!(expr)) {caml_failwith(msg);} else
+typedef enum {
+  SWIG_OCamlArithmeticException,
+  SWIG_OCamlDirectorPureVirtual,
+  SWIG_OCamlOutOfMemoryError,
+  SWIG_OCamlOverflowException,
+  SWIG_OCamlIllegalArgumentException,
+  SWIG_OCamlIndexOutOfBoundsException,
+  SWIG_OCamlRuntimeException,
+  SWIG_OCamlSystemException,
+  SWIG_OCamlUnknownError
+} SWIG_OCamlExceptionCodes;
+
+SWIGINTERN void SWIG_OCamlThrowException(SWIG_OCamlExceptionCodes code, const char *msg) {
+  CAMLparam0();
+  SWIG_CAMLlocal1(str);
+
+  switch (code) {
+  case SWIG_OCamlIllegalArgumentException:
+    caml_invalid_argument(msg);
+    break;
+  case SWIG_OCamlSystemException:
+    str = caml_copy_string(msg);
+    caml_raise_sys_error(str);
+    break;
+  case SWIG_OCamlArithmeticException:
+  case SWIG_OCamlIndexOutOfBoundsException:
+  case SWIG_OCamlOutOfMemoryError:
+  case SWIG_OCamlOverflowException:
+  case SWIG_OCamlRuntimeException:
+  case SWIG_OCamlUnknownError:
+  default:
+    caml_failwith(msg);
+    break;
+  }
+  CAMLreturn0;
+}
+
+#define SWIG_contract_assert(expr, msg) if(!(expr)) {SWIG_OCamlThrowException(SWIG_OCamlRuntimeException, msg);}
 
     SWIGINTERN int
     SWIG_GetPtr(void *source, void **result, swig_type_info *type, swig_type_info *result_type);

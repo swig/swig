@@ -11,7 +11,7 @@ OBJS       = example.o
 check: build
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='$(TARGET)' ocaml_run
 
-build: static
+build: static toplevel
 
 static:
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
@@ -20,7 +20,7 @@ static:
 	PROGFILE='$(PROGFILE)' OBJS='$(OBJS)' \
 	ocaml_static_cpp
 
-static_top:
+toplevel:
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' \
