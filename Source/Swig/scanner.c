@@ -938,10 +938,14 @@ static int look(Scanner *s) {
 	retract(s, 1);
 	state = 1000;
       }
+      else if (c == '\'') { /* Definitely u, U or L char */
+	retract(s, 1);
+	state = 77;
+      }
       else if (c == 'R') { /* Possibly CUSTOM DELIMITER u, U, L string */
 	state = 73;
       }
-      else if (c == '8') { /* Possibly u8 string */
+      else if (c == '8') { /* Possibly u8 string/char */
 	state = 71;
       }
       else {
@@ -961,13 +965,17 @@ static int look(Scanner *s) {
       }
       break;
     
-    case 71:			/* Possibly u8 string */
+    case 71:			/* Possibly u8 string/char */
       if ((c = nextchar(s)) == 0) {
 	state = 76;
       }
       else if (c=='\"') {
 	retract(s, 1); /* Definitely u8 string */
 	state = 1000;
+      }
+      else if (c=='\'') {
+	retract(s, 1); /* Definitely u8 char */
+	state = 77;
       }
       else if (c=='R') {
 	state = 74; /* Possibly CUSTOM DELIMITER u8 string */

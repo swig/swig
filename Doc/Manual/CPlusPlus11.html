@@ -714,6 +714,22 @@ const int SIZE = sizeof...(ClassName&lt;int, int&gt;);
 In the above example <tt>SIZE</tt> is of course wrapped as a constant.
 </p>
 
+<H3><a name="CPlusPlus11_new_char_literals">7.2.19 New character literals</a></H3>
+
+<p>
+C++11 adds support for UCS-2 and UCS-4 character literals.
+These character literals are preceded by either 'u' or 'U'.
+</p>
+
+<div class="code"><pre>
+char16_t a = u'a';
+char32_t b = U'b';
+</pre></div>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.0.0 was the first version to support these Universal Coded Character Set (UCS) character literals.
+</p>
+
 <H3><a name="CPlusPlus11_new_string_literals">7.2.19 New string literals</a></H3>
 
 

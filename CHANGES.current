@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-02-10: ZackerySpytz
+	    #1450 Add support for C++11 UCS-2 and UCS-4 character literals. Also add support for
+            C++17 UTF8 character literals.
+
 2019-02-10: wsfulton
 	    [MzScheme] #1437 MzScheme/Racket is now an 'Experimental' language. The examples work
             and a large portion of the test-suite is also working.
