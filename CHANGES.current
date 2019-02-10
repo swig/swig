@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-02-10: wsfulton
+	    [MzScheme] #1437 MzScheme/Racket is now an 'Experimental' language. The examples work
+            and a large portion of the test-suite is also working.
+
+2019-02-10: wsfulton
+	    [MzScheme] Destructor wrappers were not being generated.
+
+2019-02-10: wsfulton
+	    [MzScheme] Static variable wrappers fixed - $argnum was not expanded.
+
 2019-02-10: sethrj
 	    #1452 Fix %apply for anonymous template instantiations
 
@@ -623,7 +633,7 @@ Version 4.0.0 (in progress)
 	    [Ruby] Fix to pass Qnil instead of NULL to rb_funcall(), which silences GCC
 	    -Wconversion-null warning (on by default with recent GCC).
 
-2018-03-09: fultonwi
+2018-03-09: wsfulton
             [Java] #1184 Fix swigReleaseOwnership() and swigTakeOwnership() regression
             for non-director classes. Restores a dynamic_cast which was previously removed.
 
