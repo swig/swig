@@ -149,8 +149,8 @@
 	if (SWIG_ConvertPtr(&$input, (void **) &$1, 0, 0) < 0) {
 	  /* Allow NULL from php for void* */
 	  if (Z_ISNULL($input)) $1=0;
-	  else
-            SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
+	else
+	  SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
 	}
 %}
 
