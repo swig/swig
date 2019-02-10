@@ -270,7 +270,7 @@ struct AssignmentTraits {
 
 %fragment("SWIG_assign_impl", "header", fragment="SwigClassWrapper", fragment="swig::AssignmentTraits") %{
 template<class T1, class T2, int AFlags>
-SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other) {
+SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, const SwigClassWrapper* other) {
   typedef swig::AssignmentTraits<T1, AFlags> Traits_t;
   T1* pself  = static_cast<T1*>(self->cptr);
   T2* pother = static_cast<T2*>(other->cptr);
@@ -283,9 +283,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
           break;
         case SWIG_MOVE: /* capture pointer from RHS */
           self->cptr = other->cptr;
-          other->cptr = NULL;
           self->mem = SWIG_OWN;
-          other->mem = SWIG_NULL;
           break;
         case SWIG_OWN: /* copy from RHS */
           self->cptr = Traits_t::copy_construct(pother);
@@ -311,8 +309,6 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
           /* Move RHS into LHS; delete RHS */
           Traits_t::move_assign(pself, pother);
           Traits_t::destruct(pother);
-          other->cptr = NULL;
-          other->mem = SWIG_NULL;
           break;
         case SWIG_OWN:
         case SWIG_REF:
@@ -340,8 +336,6 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
            * same. */
           Traits_t::move_assign(pself, pother);
           Traits_t::destruct(pother);
-          other->cptr = NULL;
-          other->mem = SWIG_NULL;
           break;
         case SWIG_OWN:
         case SWIG_REF:
@@ -383,7 +377,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
 %fragment("SWIG_assign_impl", "header",
           fragment="SwigClassWrapper", fragment="<stdlib.h>",
           fragment="<string.h>") %{
-SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other, size_t size) {
+SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, const SwigClassWrapper* other, size_t size) {
   void* pself  = self->cptr;
   void* pother = other->cptr;
 
@@ -395,9 +389,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
           break;
         case SWIG_MOVE: /* capture pointer from RHS */
           self->cptr = other->cptr;
-          other->cptr = NULL;
           self->mem = SWIG_OWN;
-          other->mem = SWIG_NULL;
           break;
         case SWIG_OWN: /* copy from RHS */
           pself = malloc(size);
@@ -425,8 +417,6 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
           /* Move RHS into LHS; delete RHS */
           memcpy(pself, pother, size);
           free(pother);
-          other->cptr = NULL;
-          other->mem = SWIG_NULL;
           break;
         case SWIG_OWN:
         case SWIG_REF:
@@ -454,8 +444,6 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
            * same. */
           memcpy(pself, pother, size);
           free(pother);
-          other->cptr = NULL;
-          other->mem = SWIG_NULL;
           break;
         case SWIG_OWN:
         case SWIG_REF:
