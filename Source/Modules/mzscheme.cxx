@@ -454,6 +454,7 @@ public:
 	Printv(df->def, "static Scheme_Object *\n", dname, "(int argc, Scheme_Object **argv) {", NIL);
 	Printv(df->code, dispatch, "\n", NIL);
 	Printf(df->code, "scheme_signal_error(\"No matching function for overloaded '%s'\");\n", iname);
+	Printf(df->code, "return NULL;\n", iname);
 	Printv(df->code, "}\n", NIL);
 	Wrapper_print(df, f_wrappers);
 	Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),menv);\n", proc_name, dname, proc_name, 0, maxargs);
