@@ -101,6 +101,11 @@ matrix:
       dist: trusty
     - compiler: gcc
       os: linux
+      env: SWIGLANG=ocaml VER=4.06.0
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=octave SWIGJOBS=-j2 # 3.8
       sudo: required
       dist: trusty

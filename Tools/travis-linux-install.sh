@@ -74,7 +74,16 @@ case "$SWIGLANG" in
 		;;
 	"ocaml")
 		# configure also looks for ocamldlgen, but this isn't packaged.  But it isn't used by default so this doesn't matter.
-		travis_retry sudo apt-get -qq install ocaml ocaml-findlib
+		if [[ -z "$VER" ]]; then
+			travis_retry sudo apt-get -qq install ocaml ocaml-findlib
+		else
+			travis_retry sudo apt-get -qq install opam
+			opam init -a
+			eval `opam config env`
+			opam switch $VER
+			eval `opam config env`
+			opam install camlp4 -y
+		fi
 		;;
 	"octave")
 		if [[ -z "$VER" ]]; then
