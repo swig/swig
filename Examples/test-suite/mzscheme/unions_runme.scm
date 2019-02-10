@@ -25,13 +25,15 @@
   (if (not (= Jill1 200))
       (begin
 	(display "Runtime test 1 failed.")
-	(exit 1))))
+	(exit 1))
+      (void)))
 
 (let ((Num1 (EmbeddedUnionTest-number-get eut)))
   (if (not (= Num1 1))
       (begin
 	(display "Runtime test 2 failed.")
-	(exit 1))))
+	(exit 1))
+      (void)))
 
 ;; that should do
 

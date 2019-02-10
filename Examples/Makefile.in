@@ -813,7 +813,7 @@ MZSCHEME = mzscheme
 MZC = @MZC@
 MZDYNOBJ = @MZDYNOBJ@
 MZSCHEME_SO = @MZSCHEME_SO@
-MZSCHEME_SCRIPT = $(RUNME).scm
+MZSCHEME_SCRIPT = $(SRCDIR)$(RUNME).scm
 
 # ----------------------------------------------------------------
 # Build a C/C++ dynamically loadable module
@@ -821,12 +821,12 @@ MZSCHEME_SCRIPT = $(RUNME).scm
 
 mzscheme: $(SRCDIR_SRCS)
 	$(SWIG) -mzscheme $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(COMPILETOOL) $(MZC) `echo $(INCLUDES) | sed 's/-I/++ccf -I/g'` --cc $(ISRCS) $(SRCDIR_SRCS)
+	$(COMPILETOOL) $(MZC) `echo $(CPPFLAGS) $(INCLUDES) | sed 's/-I/++ccf -I/g'` --cc $(ISRCS) $(SRCDIR_SRCS)
 	$(COMPILETOOL) $(MZC) --ld $(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS)
 
 mzscheme_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -mzscheme -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(COMPILETOOL) $(MZC) `echo $(INCLUDES) | sed 's/-I/++ccf -I/g'` --cc $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
+	$(COMPILETOOL) $(MZC) `echo $(CPPFLAGS) $(INCLUDES) | sed 's/-I/++ccf -I/g'` --cc $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
 	$(CXXSHARED) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $(LIBPREFIX)$(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS) $(MZDYNOBJ) $(CPP_DLLIBS)
 
 # -----------------------------------------------------------------
