@@ -5,12 +5,12 @@ let _ =
   assert (_test_value '("Fee") as string = "Fee");
   try
     ignore (_test_value '(None)); assert false
-  with Failure _ -> ()
+  with Invalid_argument _ -> ()
 
   assert (_test_const_reference '("Fee") as string = "Fee");
   try
     ignore (_test_const_reference '(None)); assert false
-  with Failure _ -> ()
+  with Invalid_argument _ -> ()
 
   let stringPtr = _test_pointer_out '() in
   ignore (_test_pointer '(stringPtr));
@@ -21,10 +21,10 @@ let _ =
 
   try
     ignore (_test_throw '()); assert false
-  with Failure _ -> ()
+  with Failure s -> assert (s = "test_throw message")
   try
     ignore (_test_const_reference_throw '()); assert false
-  with Failure _ -> ()
+  with Failure s -> assert (s = "test_const_reference_throw message")
   assert (_GlobalString2 '() as string = "global string 2");
   let s = C_string "initial string" in
   ignore (_GlobalString2 '(s));

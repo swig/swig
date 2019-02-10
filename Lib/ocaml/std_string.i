@@ -4,13 +4,6 @@
  * SWIG typemaps for std::string
  * ----------------------------------------------------------------------------- */
 
-// ------------------------------------------------------------------------
-// std::string is typemapped by value
-// This can prevent exporting methods which return a string
-// in order for the user to modify it.
-// However, I think I'll wait until someone asks for it...
-// ------------------------------------------------------------------------
-
 %{
 #include <string>
 #include <vector>
@@ -35,7 +28,7 @@ class wstring;
     SWIG_exception(SWIG_TypeError, "string expected");
 }
 
-%typemap(in) string & ($*1_ltype temp), const string & ($*1_ltype temp) {
+%typemap(in) const string & ($*1_ltype temp) {
   if (caml_ptr_check($input)) {
     temp.assign((char *)caml_ptr_val($input,0), caml_string_len($input));
     $1 = &temp;
@@ -57,7 +50,7 @@ class wstring;
   delete temp;
 }
 
-%typemap(out) string &, const string & {
+%typemap(out) const string & {
     $result = caml_val_string_len((*$1).c_str(), (*$1).size());
 }
 
@@ -78,7 +71,20 @@ class wstring;
 	$result = caml_val_string_len((*$1).c_str(),(*$1).size());
 }
 
-%typemap(typecheck) string, string &, const string & = char *;
+%typemap(in) string &INPUT = const string &;
+%typemap(in, numinputs=0) string &OUTPUT ($*1_ltype temp)
+%{ $1 = &temp; %}
+%typemap(argout) string &OUTPUT {
+    swig_result = caml_list_append(swig_result, caml_val_string_len((*$1).c_str(), (*$1).size()));
+}
+%typemap(in) string &INOUT = const string &;
+%typemap(argout) string &INOUT = string &OUTPUT;
+
+%typemap(typecheck) string, const string & = char *;
+
+%typemap(throws) string, const string & {
+    SWIG_OCamlThrowException(SWIG_OCamlRuntimeException, $1.c_str());
+}
 }
 
 #ifdef ENABLE_CHARPTR_ARRAY
