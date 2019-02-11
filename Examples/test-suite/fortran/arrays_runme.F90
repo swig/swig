@@ -24,6 +24,5 @@ subroutine test_arrays
   ASSERT(all(got_arr == actual))
 
 end subroutine
-
 end program
 

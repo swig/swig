@@ -2,10 +2,6 @@
 
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) X::_FooImpl;	/* Ruby, wrong class name */
 
-#ifdef SWIGFORTRAN
-%rename(FooImpl) X::_FooImpl;   /* Fortran CANNOT have class names with leading underscores */
-#endif
-
 %inline %{
 
 namespace X {
