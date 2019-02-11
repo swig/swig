@@ -47,6 +47,12 @@ Version 4.0.0 (in progress)
 	    [PHP] The generated code is now compatible with PHP 7.3, and the
 	    testsuite now runs cleanly with this version too.
 
+2019-02-05: wsfulton
+            #1437 SWIG now classifies the status of target languages into either 'Experimental' or
+            'Supported'. This status is provided to indicate the level of maturity to expect when using
+            a particular target language as not all target languages are fully developed. Details are
+            in the Introduction.html chapter of the documentation.
+
 2019-02-04: wsfulton
 	    [CFFI] #1447 Common Lisp CFFI has been disabled as a target language in SWIG as part of a
             clean up to remove target languages that have been neglected/not functional.
