@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Modules">18 Working with Modules</a></H1>
+<H1><a name="Modules">19 Working with Modules</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -24,7 +24,7 @@
 
 
 
-<H2><a name="Modules_introduction">18.1 Modules Introduction</a></H2>
+<H2><a name="Modules_introduction">19.1 Modules Introduction</a></H2>
 
 
 <p>
@@ -78,7 +78,7 @@ where you want to create a collection of modules.
 Each module in the collection is created via separate invocations of SWIG.
 </p>
 
-<H2><a name="Modules_nn1">18.2 Basics</a></H2>
+<H2><a name="Modules_nn1">19.2 Basics</a></H2>
 
 
 <p>
@@ -177,7 +177,7 @@ in parallel from multiple threads as SWIG provides no locking - for more on that
 issue, read on.
 </p>
 
-<H2><a name="Modules_nn2">18.3 The SWIG runtime code</a></H2>
+<H2><a name="Modules_nn2">19.3 The SWIG runtime code</a></H2>
 
 
 <p>
@@ -243,7 +243,7 @@ can peacefully coexist. So the type structures are separated by the
 is empty. Only modules compiled with the same pair will share type information.
 </p>
 
-<H2><a name="Modules_external_run_time">18.4 External access to the runtime</a></H2>
+<H2><a name="Modules_external_run_time">19.4 External access to the runtime</a></H2>
 
 
 <p>As described in <a href="Typemaps.html#Typemaps_runtime_type_checker">The run-time type checker</a>,
@@ -282,7 +282,7 @@ SWIG_TYPE_TABLE to be the same as the module whose types you are trying to
 access.
 </p>
 
-<H2><a name="Modules_nn4">18.5 A word of caution about static libraries</a></H2>
+<H2><a name="Modules_nn4">19.5 A word of caution about static libraries</a></H2>
 
 
 <p>
@@ -293,7 +293,7 @@ into it. This is very often <b>NOT</b> what you want and it can lead to unexpect
 behavior. When working with dynamically loadable modules, you should try to work exclusively with shared libraries.
 </p>
 
-<H2><a name="Modules_nn5">18.6 References</a></H2>
+<H2><a name="Modules_nn5">19.6 References</a></H2>
 
 
 <p>
@@ -301,7 +301,7 @@ Due to the complexity of working with shared libraries and multiple modules, it 
 an outside reference.  John Levine's "Linkers and Loaders" is highly recommended.
 </p>
 
-<H2><a name="Modules_nn6">18.7 Reducing the wrapper file size</a></H2>
+<H2><a name="Modules_nn6">19.7 Reducing the wrapper file size</a></H2>
 
 
 <p>
