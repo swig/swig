@@ -603,3 +603,9 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, const SwigClassWrapper*
 %typemap(ftype, in="type($fclassname), intent(in)") const SWIGTYPE &ASSIGNMENT_OTHER
   "type($fclassname)"
 %typemap(in) const SWIGTYPE &ASSIGNMENT_OTHER = SWIGTYPE *ASSIGNMENT_SELF;
+
+#ifdef __cplusplus
+// Ignore return types on all assignment
+%apply void { SWIGTYPE &operator= };
+%typemap(out) SWIGTYPE &operator= "(void)sizeof($1);"
+#endif

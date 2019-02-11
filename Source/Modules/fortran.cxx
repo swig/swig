@@ -1720,48 +1720,70 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
  */
 void FORTRAN::add_assignment_operator(Node *classn) {
   ASSERT_OR_PRINT_NODE(Strcmp(nodeType(classn), "class") == 0 && !this->is_bindc_struct(), classn);
-  SwigType *class_type = Getattr(classn, "classtype");
-  ASSERT_OR_PRINT_NODE(class_type, classn);
-
-  // Create new node representing this assignment function
-  Node *n = NewHash();
-  set_nodeType(n, "cdecl");
-  Setfile(n, Getfile(classn));
-  Setline(n, Getline(classn));
+  SwigType *classtype = Getattr(classn, "classtype");
+  ASSERT_OR_PRINT_NODE(classtype, classn);
   
   // Parameter: "const Class&"; "self" gets added automatically later
-  SwigType *argtype = NewStringf("r.q(const).%s", class_type);
+  SwigType *argtype = NewStringf("r.q(const).%s", classtype);
   // Function declaration
   String *decl = NewStringf("f(%s).", argtype);
-  
   String *name = NewString("operator =");
-  String *symname = Swig_name_make(n, Getattr(classn, "name"), name, decl, Getattr(classn, "sym:name"));
-  if (Strcmp(symname, "$ignore") == 0) {
-    return;
+
+  // Modify assignment operators, and see if self-assignment is defined
+  Node *n = NULL;
+  for (Node *child = firstChild(classn); child; child = nextSibling(child)) {
+    String *cname = Getattr(child, "name");
+    if (cname && Equal(name, cname)) {
+      // Found an assignment operator
+      String *cdecl = Getattr(child, "decl");
+      if (cdecl && Strstr(cdecl, decl) == Char(cdecl)) {
+        // Found self-assignment operator
+        n = child;
+      } else {
+        // Different assignment operator: make sure class is *inout*
+        Setattr(child, "fortran:rename_self", "ASSIGNMENT_SELF"); // Use INOUT for class handle
+        // XXX: if unassigned, create?? Or just insert assertion?
+      }
+    }
   }
 
+  if (!n) {
+    // Create new node representing self-assignment function
+    n = NewHash();
+    set_nodeType(n, "cdecl");
+    Setfile(n, Getfile(classn));
+    Setline(n, Getline(classn));
+
+    String *symname = Swig_name_make(n, Getattr(classn, "name"), name, decl, Getattr(classn, "sym:name"));
+    if (Strcmp(symname, "$ignore") == 0) {
+      Delete(n);
+      return;
+    }
+
+    Setattr(n, "name", name);
+    Setattr(n, "sym:name", symname);
+    Setattr(n, "feature:fortran:generic", "assignment(=)");
+    Setattr(n, "kind", "function");
+    Setattr(n, "access", "public");
+    Setattr(n, "type", "void"); // Returns nothing
+    Setattr(n, "decl", decl);
+
+    // Set symbol table
+    Symtab *class_scope = Swig_symbol_setscope(Getattr(classn, "symtab"));
+    Node *added = Swig_symbol_add(symname, n);
+    Swig_features_get(Swig_cparse_features(), Swig_symbol_qualifiedscopename(NULL), name, decl, n);
+    Swig_symbol_setscope(class_scope);
+    ASSERT_OR_PRINT_NODE(added == n, n);
+
+    // Added to symbol table. Add as a daughter of our class.
+    appendChild(classn, n);
+    Delete(symname);
+  }
+
+  // Change parameters so that the correct self/other are used
   Parm *parms = NewParm(argtype, "ASSIGNMENT_OTHER", classn);
-  Delete(argtype);
-  
-  Setattr(n, "name", name);
-  Setattr(n, "sym:name", symname);
-  Setattr(n, "feature:fortran:generic", "assignment(=)");
-  Setattr(n, "kind", "function");
-  Setattr(n, "access", "public");
-  Setattr(n, "type", "void"); // Returns nothing
-  Setattr(n, "decl", decl);
   Setattr(n, "parms", parms);
   Setattr(n, "fortran:rename_self", "ASSIGNMENT_SELF"); // Use INOUT for class handle
-
-  // Set symbol table
-  Symtab *class_scope = Swig_symbol_setscope(Getattr(classn, "symtab"));
-  Node *added = Swig_symbol_add(symname, n);
-  Swig_features_get(Swig_cparse_features(), Swig_symbol_qualifiedscopename(NULL), name, decl, n);
-  Swig_symbol_setscope(class_scope);
-
-  ASSERT_OR_PRINT_NODE(added == n, n);
-  // Added to symbol table. Add as a daughter of our class.
-  appendChild(classn, n);
 
   // Determine construction flags. These are ignored if C++11 is being used
   // to compile the wrapper. If 'default_destructor' is not set, the class probably has a private or protected destructor.
@@ -1783,14 +1805,10 @@ void FORTRAN::add_assignment_operator(Node *classn) {
   }
 
   // Define action code
-  String *classtype = Getattr(classn, "classtype");
-  ASSERT_OR_PRINT_NODE(classtype, classn);
-  String *code = NewStringEmpty();
-  Printv(code,
-         "typedef ", classtype, " swig_lhs_classtype;\n"
-         "SWIG_assign(swig_lhs_classtype, farg1, swig_lhs_classtype, farg2,\n"
-         "            ", flags, ");",
-         NULL);
+  String *code = NewStringf("typedef %s swig_lhs_classtype;\n"
+                            "SWIG_assign(swig_lhs_classtype, farg1, swig_lhs_classtype, farg2, %s);",
+                            classtype,
+                            flags);
   Setattr(n, "feature:action", code);
 
   // Insert assignment fragment
@@ -1799,9 +1817,9 @@ void FORTRAN::add_assignment_operator(Node *classn) {
   Delete(code);
   Delete(flags);
   Delete(parms);
-  Delete(decl);
-  Delete(symname);
   Delete(name);
+  Delete(decl);
+  Delete(argtype);
 }
 
 /* -------------------------------------------------------------------------
@@ -1964,6 +1982,7 @@ int FORTRAN::classHandler(Node *n) {
   }
   Printv(f_class, ", public :: ", symname, "\n", NULL);
 
+  int saved_classlen = 0;
   if (!bindc) {
     if (!basename) {
       // Insert the class data if this doesn't inherit from anything
@@ -1972,20 +1991,18 @@ int FORTRAN::classHandler(Node *n) {
              "  type(SwigClassWrapper), public :: swigdata\n",
              NULL);
     }
-    Printv(f_class, " contains\n", NULL);
 
     // Initialize output strings that will be added by 'functionHandler'.
     d_method_overloads = NewHash();
 
     // Constructors
     d_constructors = NewList();
-  }
 
-  assert(bindc == this->is_bindc_struct());
-
-  if (!bindc) {
     // Add an assignment function to the class node
     this->add_assignment_operator(n);
+
+    Printv(f_class, " contains\n", NULL);
+    saved_classlen = Len(f_class);
   }
 
   // Emit class members
@@ -2003,6 +2020,12 @@ int FORTRAN::classHandler(Node *n) {
       print_wrapped_list(f_class, First(kv.item), line_length);
       Printv(f_class, "\n", NULL);
     }
+  }
+
+  if (saved_classlen == Len(f_class)) {
+    // No class members were added, so we must delete the last line
+    Seek(f_class, 10, SEEK_END);
+    // TODO: print warning?
   }
 
   // Close out the type
