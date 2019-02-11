@@ -395,6 +395,11 @@ matrix:
       env: SWIGLANG=mzscheme
       sudo: required
       dist: trusty
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=ocaml
+      sudo: required
+      dist: trusty
 
 before_install:
   - date -u

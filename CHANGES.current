@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-02-11: wsfulton
+            [OCaml] #1437 OCaml has been give the 'Experimental' language status. The examples work
+            and most of the test-suite is also working, so it is quite close to being a 'Supported' language.
+
 2019-02-10: ZackerySpytz
 	    #1450 Add support for C++11 UCS-2 and UCS-4 character literals. Also add support for
             C++17 UTF8 character literals.

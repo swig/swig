@@ -25,7 +25,6 @@ Guile.html
 Java.html
 Javascript.html
 Lua.html
-Ocaml.html
 Octave.html
 Perl5.html
 Php.html
@@ -35,4 +34,5 @@ Ruby.html
 Scilab.html
 Tcl.html
 Mzscheme.html
+Ocaml.html
 Extending.html
