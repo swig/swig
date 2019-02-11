@@ -1248,11 +1248,13 @@ int FORTRAN::cfuncWrapper(Node *n) {
   // Generate code to return the value
   String *return_cpptype = Getattr(n, "type");
   if (String *code = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), cfunc, actioncode)) {
-    // Output typemap is defined; emit the function call and result
-    // conversion code
-    Replaceall(code, "$result", "fresult");
-    Replaceall(code, "$owner", (GetFlag(n, "feature:new") ? "1" : "0"));
-    Printv(cfunc->code, code, "\n", NULL);
+    if (Len(code) > 0) {
+      // Output typemap is defined; emit the function call and result
+      // conversion code
+      Replaceall(code, "$result", "fresult");
+      Replaceall(code, "$owner", (GetFlag(n, "feature:new") ? "1" : "0"));
+      Printv(cfunc->code, code, "\n", NULL);
+    }
   } else {
     // XXX this should probably raise an error
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
@@ -1721,27 +1723,27 @@ void FORTRAN::add_assignment_operator(Node *classn) {
   SwigType *class_type = Getattr(classn, "classtype");
   ASSERT_OR_PRINT_NODE(class_type, classn);
 
+  // Create new node representing this assignment function
   Node *n = NewHash();
   set_nodeType(n, "cdecl");
+  Setfile(n, Getfile(classn));
+  Setline(n, Getline(classn));
   
-  // Name and symname: assignment
-  String *symname = NewString("op_assign__");
-  // Parameters: "other"; "self" gets added automatically
-  ParmList *parms = NULL;
-  {
-    SwigType *argtype = Copy(class_type);
-    SwigType_add_qualifier(argtype, "const");
-    SwigType_add_pointer(argtype);
-    Parm *p = NewParm(argtype, "ASSIGNMENT_OTHER", classn);
-    parms = p;
-    Delete(argtype);
+  // Parameter: "const Class&"; "self" gets added automatically later
+  SwigType *argtype = NewStringf("r.q(const).%s", class_type);
+  // Function declaration
+  String *decl = NewStringf("f(%s).", argtype);
+  
+  String *name = NewString("operator =");
+  String *symname = Swig_name_make(n, Getattr(classn, "name"), name, decl, Getattr(classn, "sym:name"));
+  if (Strcmp(symname, "$ignore") == 0) {
+    return;
   }
 
-  // Define function signature from parms
-  String *decl = NewStringEmpty();
-  SwigType_add_function(decl, parms);
+  Parm *parms = NewParm(argtype, "ASSIGNMENT_OTHER", classn);
+  Delete(argtype);
   
-  Setattr(n, "name", symname);
+  Setattr(n, "name", name);
   Setattr(n, "sym:name", symname);
   Setattr(n, "feature:fortran:generic", "assignment(=)");
   Setattr(n, "kind", "function");
@@ -1754,7 +1756,7 @@ void FORTRAN::add_assignment_operator(Node *classn) {
   // Set symbol table
   Symtab *class_scope = Swig_symbol_setscope(Getattr(classn, "symtab"));
   Node *added = Swig_symbol_add(symname, n);
-  Swig_features_get(Swig_cparse_features(), Swig_symbol_qualifiedscopename(NULL), symname, decl, n);
+  Swig_features_get(Swig_cparse_features(), Swig_symbol_qualifiedscopename(NULL), name, decl, n);
   Swig_symbol_setscope(class_scope);
 
   ASSERT_OR_PRINT_NODE(added == n, n);
@@ -1786,9 +1788,8 @@ void FORTRAN::add_assignment_operator(Node *classn) {
   String *code = NewStringEmpty();
   Printv(code,
          "typedef ", classtype, " swig_lhs_classtype;\n"
-         "SWIG_assign(swig_lhs_classtype, farg1,\n"
-         "            swig_lhs_classtype, farg2,\n"
-         "            ", flags, ");\n",
+         "SWIG_assign(swig_lhs_classtype, farg1, swig_lhs_classtype, farg2,\n"
+         "            ", flags, ");",
          NULL);
   Setattr(n, "feature:action", code);
 
@@ -1797,8 +1798,10 @@ void FORTRAN::add_assignment_operator(Node *classn) {
 
   Delete(code);
   Delete(flags);
+  Delete(parms);
   Delete(decl);
   Delete(symname);
+  Delete(name);
 }
 
 /* -------------------------------------------------------------------------
