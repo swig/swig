@@ -56,6 +56,7 @@ FAILING_CPP_TESTS += \
   director_overload2 \
   extend_default \
   fvirtual \
+  global_scope_types \
   inherit_target_language \
   kind \
   li_std_map \

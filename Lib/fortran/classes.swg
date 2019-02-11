@@ -604,12 +604,6 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, const SwigClassWrapper*
   "type($fclassname)"
 %typemap(in) const SWIGTYPE &ASSIGNMENT_OTHER = SWIGTYPE *ASSIGNMENT_SELF;
 
-#ifdef __cplusplus
-// Ignore return types on all assignment
-%apply void { SWIGTYPE &operator= };
-%typemap(out) SWIGTYPE &operator= "(void)sizeof($1);"
-#endif
-
 %apply SWIGTYPE *MUTABLE_SELF { SWIGTYPE *DESTRUCTOR_SELF };
 %typemap(in) SWIGTYPE *DESTRUCTOR_SELF "(void)sizeof($1);";
 %typemap(fargout, noblock=1) SWIGTYPE *DESTRUCTOR_SELF {

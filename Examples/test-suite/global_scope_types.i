@@ -3,10 +3,6 @@
 // no constructor/destructor wrappers as they do not use global scope operator which we are trying to test here
 %nodefaultctor Dingaling;
 %nodefaultdtor Dingaling;
-#ifdef SWIGFORTRAN
-// For consistency, Fortran assignment doesn't use global scope operator either
-%ignore *::operator=;
-#endif
 
 %inline %{
 struct Dingaling {};

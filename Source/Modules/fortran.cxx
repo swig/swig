@@ -1755,36 +1755,38 @@ void FORTRAN::add_assignment_operator(Node *classn) {
     Setline(n, Getline(classn));
 
     String *symname = Swig_name_make(n, Getattr(classn, "name"), name, decl, Getattr(classn, "sym:name"));
-    if (Strcmp(symname, "$ignore") == 0) {
-      Delete(n);
-      return;
-    }
-    if (!CPlusPlus) {
+    if (!CPlusPlus || Strcmp(symname, "$ignore") == 0) {
       // Rename for C will turn 'symname' into the class name. If the
-      // operator wasn't ignored, rename to a private 'swig_assign'
+      // operator wasn't ignored, rename it
       Delete(symname);
-      symname = NewString("SWIG_assignment");
+      symname = NewString("op_assign__");
     }
 
     Setattr(n, "name", name);
     Setattr(n, "sym:name", symname);
-    Setattr(n, "feature:fortran:generic", "assignment(=)");
     Setattr(n, "kind", "function");
-    Setattr(n, "access", "public");
-    Setattr(n, "type", "void"); // Returns nothing
-    Setattr(n, "decl", decl);
 
-    // Set symbol table
-    Symtab *class_scope = Swig_symbol_setscope(Getattr(classn, "symtab"));
+    // Set symbol table and apply features based on the function name.
+    Symtab *prev_scope = Swig_symbol_setscope(Getattr(classn, "symtab"));
     Node *added = Swig_symbol_add(symname, n);
     Swig_features_get(Swig_cparse_features(), Swig_symbol_qualifiedscopename(NULL), name, decl, n);
-    Swig_symbol_setscope(class_scope);
+    Swig_symbol_setscope(prev_scope);
     ASSERT_OR_PRINT_NODE(added == n, n);
 
-    // Added to symbol table. Add as a daughter of our class.
+    // Add the 'public' node, then the new constructor.
     appendChild(classn, n);
+
     Delete(symname);
+  } else if (GetFlag(n, "feature:ignore")) {
+    // Assignment function is *REQUIRED* since we're effectively implementing *pointer* assignment rather than the underlying class's assignment.
+    Setattr(n, "sym:name", "op_assign__");
+    UnsetFlag(n, "feature:ignore");
   }
+
+  // Make sure the function declaration is public, returning void, and accepting just a const reference
+  Setattr(n, "access", "public");
+  Setattr(n, "type", "void"); // Returns nothing
+  Setattr(n, "decl", decl);
 
   // Change parameters so that the correct self/other are used
   Parm *parms = NewParm(argtype, "ASSIGNMENT_OTHER", classn);
@@ -1808,6 +1810,12 @@ void FORTRAN::add_assignment_operator(Node *classn) {
       // We don't know. Let C++11 figure it out, or the user can specialize
       // the `swig::AssignmentTraits` class on the type.
     }
+  }
+
+  if (String *smartptr_type = Getattr(classn, "feature:smartptr")) {
+    // We're actually assigning a *smart* pointer. Modify as a smart pointer rather than
+    // as the wrapped class type.
+    classtype = smartptr_type;
   }
 
   // Define action code
@@ -2026,12 +2034,6 @@ int FORTRAN::classHandler(Node *n) {
       print_wrapped_list(f_class, First(kv.item), line_length);
       Printv(f_class, "\n", NULL);
     }
-  }
-
-  if (saved_classlen == Len(f_class)) {
-    // No class members were added, so we must delete the last line
-    Seek(f_class, 10, SEEK_END);
-    // TODO: print warning?
   }
 
   // Close out the type
