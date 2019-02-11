@@ -1759,6 +1759,12 @@ void FORTRAN::add_assignment_operator(Node *classn) {
       Delete(n);
       return;
     }
+    if (!CPlusPlus) {
+      // Rename for C will turn 'symname' into the class name. If the
+      // operator wasn't ignored, rename to a private 'swig_assign'
+      Delete(symname);
+      symname = NewString("SWIG_assignment");
+    }
 
     Setattr(n, "name", name);
     Setattr(n, "sym:name", symname);
