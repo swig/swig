@@ -78,8 +78,7 @@ template<class KeyType, class MappedType > class unordered_map {
     return null;
   }
 
-  public $typemap(jboxtype, MappedType) put($typemap(jboxtype, KeyType) key,
-                                           $typemap(jboxtype, MappedType) value) {
+  public $typemap(jboxtype, MappedType) put($typemap(jboxtype, KeyType) key, $typemap(jboxtype, MappedType) value) {
     Iterator itr = find(($typemap(jboxtype, KeyType)) key);
     if (itr.isNot(end())) {
       $typemap(jboxtype, MappedType) oldValue = itr.getValue();

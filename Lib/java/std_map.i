@@ -78,8 +78,7 @@ template<class KeyType, class MappedType, class Comparator = std::less<KeyType> 
     return null;
   }
 
-  public $typemap(jboxtype, MappedType) put($typemap(jboxtype, KeyType) key,
-                                           $typemap(jboxtype, MappedType) value) {
+  public $typemap(jboxtype, MappedType) put($typemap(jboxtype, KeyType) key, $typemap(jboxtype, MappedType) value) {
     Iterator itr = find(($typemap(jboxtype, KeyType)) key);
     if (itr.isNot(end())) {
       $typemap(jboxtype, MappedType) oldValue = itr.getValue();
