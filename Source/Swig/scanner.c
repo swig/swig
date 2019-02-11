@@ -1162,6 +1162,8 @@ static int look(Scanner *s) {
 	state = 84;
       else if ((c == 'x') || (c == 'X'))
 	state = 85;
+      else if ((c == 'b') || (c == 'B'))
+	state = 850;
       else if (c == '.')
 	state = 81;
       else if ((c == 'l') || (c == 'L')) {
@@ -1194,6 +1196,21 @@ static int look(Scanner *s) {
 	return SWIG_TOKEN_INT;
       if (isxdigit(c))
 	state = 85;
+      else if ((c == 'l') || (c == 'L')) {
+	state = 87;
+      } else if ((c == 'u') || (c == 'U')) {
+	state = 88;
+      } else {
+	retract(s, 1);
+	return SWIG_TOKEN_INT;
+      }
+      break;
+    case 850:
+      /* This is a binary number */
+      if ((c = nextchar(s)) == 0)
+	return SWIG_TOKEN_INT;
+      if ((c == '0') || (c == '1'))
+	state = 850;
       else if ((c == 'l') || (c == 'L')) {
 	state = 87;
       } else if ((c == 'u') || (c == 'U')) {
