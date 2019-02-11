@@ -2083,16 +2083,14 @@ int FORTRAN::destructorHandler(Node *n) {
   // Handle ownership semantics by wrapping the destructor action
   String *fdis = NewString("if ($input%swigdata%mem == SWIG_OWN) then\n"
                            "  $action\n"
-                           "end if\n"
-                           "$input%swigdata%cptr = C_NULL_PTR\n"
-                           "$input%swigdata%mem = SWIG_NULL\n");
-  Replaceall(fdis, "$input", "mutable_self");
+                           "end if\n");
+  Replaceall(fdis, "$input", "destructor_self");
   // Make the destructor a member function called 'release'
   Setattr(n, "feature:shadow", fdis);
   Setattr(n, "fortran:name", "release");
   SetFlag(n, "fortran:ismember");
-  // Use a custom typemap: input must be mutable
-  Setattr(n, "fortran:rename_self", "MUTABLE_SELF");
+  // Use a custom typemap: input must be mutable and clean up properly
+  Setattr(n, "fortran:rename_self", "DESTRUCTOR_SELF");
 
   return Language::destructorHandler(n);
 }
