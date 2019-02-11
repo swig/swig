@@ -2104,7 +2104,6 @@ int FORTRAN::destructorHandler(Node *n) {
  */
 int FORTRAN::memberfunctionHandler(Node *n) {
   String *class_symname = Getattr(this->getCurrentClass(), "sym:name");
-  ASSERT_OR_PRINT_NODE(class_symname, n);
 
   if (this->is_bindc_struct()) {
     Swig_error(input_file, line_number,
@@ -2188,8 +2187,20 @@ int FORTRAN::globalvariableHandler(Node *n) {
  * \brief Process static member functions.
  */
 int FORTRAN::staticmemberfunctionHandler(Node *n) {
+  String *class_symname = Getattr(getCurrentClass(), "sym:name");
+  if (this->is_bindc_struct()) {
+    Swig_error(input_file, line_number,
+               "Struct '%s' has the 'fortranbindc' feature set, so it cannot have static member functions\n",
+               class_symname);
+    return SWIG_NOWRAP;
+  }
+
   // Preserve original function name
   Setattr(n, "fortran:name", make_fname(Getattr(n, "sym:name")));
+
+  // Create a private procedure name that gets bound to the Fortan TYPE
+  String *fwrapname = ensure_short(NewStringf("swigf_%s_%s", class_symname, Getattr(n, "sym:name")));
+  Setattr(n, "fortran:fname", fwrapname);
 
   // Add 'nopass' procedure qualifier
   Setattr(n, "fortran:procedure", "nopass");
