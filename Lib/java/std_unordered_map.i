@@ -112,7 +112,7 @@ template<class KeyType, class MappedType > class unordered_map {
 
     Iterator itr = begin();
     final Iterator end = end();
-    while(itr.isNot(end)) {
+    while (itr.isNot(end)) {
       setToReturn.add(new Entry<$typemap(jboxtype, KeyType), $typemap(jboxtype, MappedType)>() {
         private Iterator iterator;
 
@@ -159,7 +159,7 @@ template<class KeyType, class MappedType > class unordered_map {
           return ++copy;
         }
 
-        bool isNot(const iterator other) const {
+        bool isNot(iterator other) const {
           return (*$self != other);
         }
 

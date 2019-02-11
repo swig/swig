@@ -112,7 +112,7 @@ template<class KeyType, class MappedType, class Comparator = std::less<KeyType> 
 
     Iterator itr = begin();
     final Iterator end = end();
-    while(itr.isNot(end)) {
+    while (itr.isNot(end)) {
       setToReturn.add(new Entry<$typemap(jboxtype, KeyType), $typemap(jboxtype, MappedType)>() {
         private Iterator iterator;
 

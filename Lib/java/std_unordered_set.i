@@ -43,12 +43,12 @@
 
 namespace std {
 
-template <class KeyType>
+template <class T>
 class unordered_set {
 
-%typemap(javabase) std::unordered_set<KeyType> "java.util.AbstractSet<$typemap(jboxtype, KeyType)>"
+%typemap(javabase) std::unordered_set<T> "java.util.AbstractSet<$typemap(jboxtype, T)>"
 %proxycode %{
-  public $javaclassname(java.util.Collection<? extends $typemap(jboxtype, KeyType)> collection) {
+  public $javaclassname(java.util.Collection<? extends $typemap(jboxtype, T)> collection) {
     this();
     addAll(collection);
   }
@@ -57,34 +57,34 @@ class unordered_set {
     return sizeImpl();
   }
 
-  public boolean addAll(java.util.Collection<? extends $typemap(jboxtype, KeyType)> collection) {
+  public boolean addAll(java.util.Collection<? extends $typemap(jboxtype, T)> collection) {
     boolean didAddElement = false;
     for (Object object : collection) {
-      didAddElement |= add(($typemap(jboxtype, KeyType))object);
+      didAddElement |= add(($typemap(jboxtype, T))object);
     }
 
     return didAddElement;
   }
 
-  public java.util.Iterator<$typemap(jboxtype, KeyType)> iterator() {
-    return new java.util.Iterator<$typemap(jboxtype, KeyType)>() {
+  public java.util.Iterator<$typemap(jboxtype, T)> iterator() {
+    return new java.util.Iterator<$typemap(jboxtype, T)>() {
       private Iterator curr;
       private Iterator end;
 
-      private java.util.Iterator<$typemap(jboxtype, KeyType)> init() {
+      private java.util.Iterator<$typemap(jboxtype, T)> init() {
         curr = $javaclassname.this.begin();
         end = $javaclassname.this.end();
         return this;
       }
 
-      public $typemap(jboxtype, KeyType) next() {
+      public $typemap(jboxtype, T) next() {
         if (!hasNext()) {
           throw new java.util.NoSuchElementException();
         }
 
         // Save the current position, increment it,
         // then return the value at the position before the increment.
-        final $typemap(jboxtype, KeyType) currValue = curr.derefUnchecked();
+        final $typemap(jboxtype, T) currValue = curr.derefUnchecked();
         curr.incrementUnchecked();
         return currValue;
       }
@@ -106,11 +106,11 @@ class unordered_set {
   }
 
   public boolean contains(Object object) {
-    if (!(object instanceof $typemap(jboxtype, KeyType))) {
+    if (!(object instanceof $typemap(jboxtype, T))) {
       return false;
     }
 
-    return containsImpl(($typemap(jboxtype, KeyType))object);
+    return containsImpl(($typemap(jboxtype, T))object);
   }
 
   public boolean removeAll(java.util.Collection<?> collection) {
@@ -123,11 +123,11 @@ class unordered_set {
   }
 
   public boolean remove(Object object) {
-    if (!(object instanceof $typemap(jboxtype, KeyType))) {
+    if (!(object instanceof $typemap(jboxtype, T))) {
       return false;
     }
 
-    return removeImpl(($typemap(jboxtype, KeyType))object);
+    return removeImpl(($typemap(jboxtype, T))object);
   }
 %}
 
@@ -140,23 +140,23 @@ class unordered_set {
           ++(*$self);
         }
 
-        KeyType derefUnchecked() const {
+        T derefUnchecked() const {
           return **$self;
         }
 
-        bool isNot(const iterator other) const {
+        bool isNot(iterator other) const {
           return (*$self != other);
         }
       }
     };
 
-    typedef KeyType key_type;
-    typedef KeyType value_type;
+    typedef T key_type;
+    typedef T value_type;
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
 
     unordered_set();
-    unordered_set(const unordered_set<KeyType>&);
+    unordered_set(const unordered_set<T>&);
 
     %rename(isEmpty) empty;
     bool empty() const;
@@ -168,17 +168,17 @@ class unordered_set {
       %fragment("SWIG_UnorderedSetSize");
 
       // Returns whether item was inserted.
-      bool add(const KeyType& key) {
+      bool add(const T& key) {
         return self->insert(key).second;
       }
 
       // Returns whether set contains key.
-      bool containsImpl(const KeyType& key) {
+      bool containsImpl(const T& key) {
         return (self->count(key) > 0);
       }
 
       // Returns whether the item was erased.
-      bool removeImpl(const KeyType& key) {
+      bool removeImpl(const T& key) {
         return (self->erase(key) > 0);
       }
 
@@ -192,4 +192,4 @@ class unordered_set {
     }
 };
 
-}  // namespace std
+}
