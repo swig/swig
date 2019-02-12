@@ -115,6 +115,10 @@ namespace std {
                     $1 = 0;
             }
         }
+
+        typedef T first_type;
+        typedef U second_type;
+
         pair();
         pair(T first, U second);
         pair(const pair& p);
