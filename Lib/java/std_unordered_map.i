@@ -146,6 +146,11 @@ template<class KeyType, class MappedType > class unordered_map {
     typedef ptrdiff_t difference_type;
     typedef KeyType key_type;
     typedef MappedType mapped_type;
+    typedef std::pair< const KeyType, MappedType > value_type;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
+    typedef value_type& reference;
+    typedef const value_type& const_reference;
 
     unordered_map();
     unordered_map(const unordered_map<KeyType, MappedType >&);

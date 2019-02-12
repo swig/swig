@@ -146,7 +146,12 @@ template<class KeyType, class MappedType, class Comparator = std::less<KeyType> 
     typedef ptrdiff_t difference_type;
     typedef KeyType key_type;
     typedef MappedType mapped_type;
+    typedef std::pair< const KeyType, MappedType > value_type;
     typedef Compare key_compare;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
+    typedef value_type& reference;
+    typedef const value_type& const_reference;
 
     map();
     map(const map<KeyType, MappedType, Comparator >&);
