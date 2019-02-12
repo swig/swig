@@ -15,7 +15,7 @@ subroutine test_ownership
   use cpp_basic
   use ISO_C_BINDING
   implicit none
-  type(Foo) :: a, b
+  type(Foo) :: a, b, c
 
   ASSERT(.not. c_associated(a%swigdata%cptr))
   ASSERT(a%swigdata%mem == 0)
@@ -28,10 +28,18 @@ subroutine test_ownership
   ASSERT(c_associated(b%swigdata%cptr))
   ASSERT(b%swigdata%mem == 4) ! SWIG_CREF
 
+  ! Copy reference
+  c = b
+  ASSERT(c_associated(c%swigdata%cptr))
+  ASSERT(c%swigdata%mem == b%swigdata%mem)
+
   ! Release reference, but don't deallocate a
   call b%release()
   ASSERT(.not. c_associated(b%swigdata%cptr))
   ASSERT(b%swigdata%mem == 0)
+
+  ! C reference should still point to a's data
+  ASSERT(c_associated(c%swigdata%cptr, a%swigdata%cptr))
 
   call a%release()
   ASSERT(.not. c_associated(a%swigdata%cptr))

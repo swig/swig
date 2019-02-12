@@ -35,6 +35,13 @@ program li_boost_shared_ptr_runme
 
   call f1%release() ! Clear the raw pointer (does not deallocate)
   ASSERT(use_count(f1) == 0)
+
+  ! Copy-construct the underlying object
+  f1 = Klass(f2)
+  ASSERT(use_count(f1) == 1)
+  ASSERT(use_count(f2) == 1)
+  call f1%release()
+
   call f2%release() ! Destroy the last existing shared pointer
                     ! which then destroys the C++ object 2
   ASSERT(use_count(f2) == 0)
