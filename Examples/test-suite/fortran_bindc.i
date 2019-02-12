@@ -47,8 +47,8 @@ typedef struct {
   const char* s;
   OtherStruct o;
   float p[3];
-  // Foo f // uncommenting will produce an error in Fortran since 'Foo' is a
-  // class and not POD
+  /* Foo f // uncommenting will produce an error in Fortran since 'Foo' is a
+   class and not POD */
 } SimpleStruct;
 %}
 
@@ -81,6 +81,7 @@ SimpleStruct get_val() { return global_struct; }
 SimpleStruct* get_ptr() { return &global_struct; }
 const SimpleStruct* get_cptr() { return &global_struct; }
 SimpleStruct** get_handle() { return &global_struct_ptr; }
+SimpleStruct const** get_chandle() { return &global_struct_const_ptr; }
 
 int my_global_int;
 extern const int my_const_global_int;

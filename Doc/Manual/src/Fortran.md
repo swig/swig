@@ -1485,17 +1485,6 @@ class instance is no longer needed. It will free memory if appropriate and
 reset the C pointer to `NULL`. Calling `release` on an uninitialized variable
 (or a variable that has been released) is a null-op.
 
-Because Fortran 2003 does specify support for a special `FINAL` procedure to
-clean up local or dynamic variables, the call to `release()` can be replaced by
-adding a `FINAL` procedure. The SWIG Fortran interface can generate this
-procedure, which will call the C++ destructor:
-```swig
-%feature("fortran:final") Foo;
-%include "Foo.h"
-```
-**However**, this feature is relatively untested and its behavior could be
-compiler-dependent, so extreme caution is recommended when enabling it.
-
 ## Member functions
 
 SWIG generates unique, private procedure names (generally
@@ -1952,15 +1941,49 @@ end module
 ## Direct C binding
 
 It is sometimes desirable to simply expose C functions and types to Fortran.
-(Of course, this may be done only when the data types involved are ISO-C
-compatible.)
+This, for example, is one way to wrap C libraries with minimal overhead.
+
+### Generating direct Fortran interfaces to C functions
+
+In addition to generating functions with translation code, it is
+also possible to specify that a function be directly *bound* and not *wrapped*.
+For this feature to work correctly, all function arguments and return types
+must be inherently Fortran/C interoperable, and the function must be either in
+C code or given C linkage via a C++ `extern "C"` block.
+The `%fortranbindc` and `%nofortranbindc` features can enable or disable the
+binding feature.
+
+The SWIG code:
+```swig
+%fortranbindc print_sphere;
+extern "C" {
+// These functions are simply bound, not wrapped.
+void print_sphere(const double origin[3], const double* radius);
+}
+```
+is translated to
+```fortran
+subroutine print_sphere(origin, radius) &
+    bind(C, name="print_sphere")
+  use, intrinsic :: ISO_C_BINDING
+  real(C_DOUBLE), dimension(3), intent(in) :: origin
+  real(C_DOUBLE), intent(in) :: radius
+end subroutine
+```
+
+To bind *all* functions as native C interfaces, use
+```swig
+%fortranbindc;
+```
+This is often useful when coupled with the `%fortranconst` directive (see
+the [enumerations](#enumerations) section).
 
 ### Generating C-bound Fortran types from C structs
 
 In certain circumstances, C++ structs can be wrapped natively as Fortran
 `BIND(C)` derived types, so that the underlying data can be shared between C
 and Fortran without any wrapping needed. Structs that are "standard layout" in
-C++ can use the `%fortranbindc` feature to translate
+C++ can use the `%fortran_struct` feature to translate
 ```c++
 struct BasicStruct {
   int foo;
@@ -2037,34 +2060,6 @@ module thinvec
 
 This extra typemap trickery should only be needed if you're generating bound
 types without using the `%fortran_struct` macro.
-
-### Generating direct Fortran interfaces to C functions
-
-In addition to generating functions with translation code, it is
-also possible to specify that a function be directly *bound* and not *wrapped*.
-For this feature to work correctly, all function arguments and return types
-must be inherently Fortran/C interoperable. If using C++, the function must be
-defined using `extern "C"` linkage; and in fact, when SWIG is asked to wrap a
-function with that linkage, it defaults to binding it. Use the `%nofortranbindc
-my_func_name;` feature to suppress this behavior.
-
-The C++ code:
-```c++
-extern "C" {
-// These functions are simply bound, not wrapped.
-void print_sphere(const double origin[3], const double* radius);
-}
-```
-is automatically translated into
-```fortran
-subroutine print_sphere(origin, radius) &
-    bind(C, name="print_sphere")
-  use, intrinsic :: ISO_C_BINDING
-  real(C_DOUBLE), dimension(3), intent(in) :: origin
-  real(C_DOUBLE), intent(in) :: radius
-end subroutine
-```
-
 
 ## Known Issues
 

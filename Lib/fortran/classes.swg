@@ -270,7 +270,7 @@ struct AssignmentTraits {
 
 %fragment("SWIG_assign_impl", "header", fragment="SwigClassWrapper", fragment="swig::AssignmentTraits") %{
 template<class T1, class T2, int AFlags>
-SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other) {
+SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, const SwigClassWrapper* other) {
   typedef swig::AssignmentTraits<T1, AFlags> Traits_t;
   T1* pself  = static_cast<T1*>(self->cptr);
   T2* pother = static_cast<T2*>(other->cptr);
@@ -283,9 +283,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
           break;
         case SWIG_MOVE: /* capture pointer from RHS */
           self->cptr = other->cptr;
-          other->cptr = NULL;
           self->mem = SWIG_OWN;
-          other->mem = SWIG_NULL;
           break;
         case SWIG_OWN: /* copy from RHS */
           self->cptr = Traits_t::copy_construct(pother);
@@ -311,8 +309,6 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
           /* Move RHS into LHS; delete RHS */
           Traits_t::move_assign(pself, pother);
           Traits_t::destruct(pother);
-          other->cptr = NULL;
-          other->mem = SWIG_NULL;
           break;
         case SWIG_OWN:
         case SWIG_REF:
@@ -340,8 +336,6 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
            * same. */
           Traits_t::move_assign(pself, pother);
           Traits_t::destruct(pother);
-          other->cptr = NULL;
-          other->mem = SWIG_NULL;
           break;
         case SWIG_OWN:
         case SWIG_REF:
@@ -372,7 +366,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
 %fragment("SWIG_assign", "runtime",
           fragment="SWIG_assign_impl") %{
 #define SWIG_assign(LEFTTYPE, LEFT, RIGHTTYPE, RIGHT, FLAGS) \
-    SWIG_assign_impl<LEFTTYPE , RIGHTTYPE, swig::assignment_flags<LEFTTYPE, FLAGS >::value >(LEFT, RIGHT);
+    SWIG_assign_impl<LEFTTYPE, RIGHTTYPE, swig::assignment_flags<LEFTTYPE, FLAGS >::value >(LEFT, RIGHT);
 %}
 
 /* -------------------------------------------------------------------------
@@ -383,7 +377,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
 %fragment("SWIG_assign_impl", "header",
           fragment="SwigClassWrapper", fragment="<stdlib.h>",
           fragment="<string.h>") %{
-SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other, size_t size) {
+SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, const SwigClassWrapper* other, size_t size) {
   void* pself  = self->cptr;
   void* pother = other->cptr;
 
@@ -395,9 +389,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
           break;
         case SWIG_MOVE: /* capture pointer from RHS */
           self->cptr = other->cptr;
-          other->cptr = NULL;
           self->mem = SWIG_OWN;
-          other->mem = SWIG_NULL;
           break;
         case SWIG_OWN: /* copy from RHS */
           pself = malloc(size);
@@ -425,8 +417,6 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
           /* Move RHS into LHS; delete RHS */
           memcpy(pself, pother, size);
           free(pother);
-          other->cptr = NULL;
-          other->mem = SWIG_NULL;
           break;
         case SWIG_OWN:
         case SWIG_REF:
@@ -454,8 +444,6 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
            * same. */
           memcpy(pself, pother, size);
           free(pother);
-          other->cptr = NULL;
-          other->mem = SWIG_NULL;
           break;
         case SWIG_OWN:
         case SWIG_REF:
@@ -492,23 +480,6 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
 #endif
 
 /* -------------------------------------------------------------------------
- * CLASS DEFINITION
- * ------------------------------------------------------------------------- */
-
-// Data owned by the base class instance
-%typemap(fdata, fragment="SwigClassWrapper_f") SWIGTYPE
-  "type(SwigClassWrapper), public :: swigdata"
-
-// Call destructor if the data is owned; then clear the pointer
-%typemap(fdestructor, noblock=1) SWIGTYPE {
-  if ($input%swigdata%mem == SWIG_OWN) then
-    $action
-  end if
-  $input%swigdata%cptr = C_NULL_PTR
-  $input%swigdata%mem = SWIG_NULL
-}
-
-/* -------------------------------------------------------------------------
  * CLASS TYPEMAPS
  *
  * Classes accepted by value are passed as const reference.
@@ -521,7 +492,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
 %typemap(imtype, fragment="SwigClassWrapper_f")
     SWIGTYPE
   "type(SwigClassWrapper)"
-%typemap(ftype) SWIGTYPE
+%typemap(ftype, in="type($fclassname), intent(in)") SWIGTYPE
   "type($fclassname)"
 
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE {
@@ -541,7 +512,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
 
 // Raw pointers act mostly like value types, but they don't have to accept the exact type (polymorphic input, non-polymorphic output)
 %apply SWIGTYPE { SWIGTYPE* };
-%typemap(ftype, in="class($fclassname), intent(inout)") SWIGTYPE*
+%typemap(ftype, in="class($fclassname), intent(in)") SWIGTYPE*
   "type($fclassname)"
 
 // Use C pointers as placeholders for class pointers by default; this will
@@ -563,8 +534,6 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
 
 // Const pointers don't require mutability check; and their intent changes
 %apply SWIGTYPE* { const SWIGTYPE* };
-%typemap(ftype, in="class($fclassname), intent(in)") const SWIGTYPE*
-  "type($fclassname)"
 %typemap(in, noblock=1) const SWIGTYPE*
   {$1 = %static_cast($input->cptr, $1_ltype);}
 %typemap(out, noblock=1) const SWIGTYPE*
@@ -614,4 +583,32 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper* other
   "type(SwigClassWrapper)"
 %typemap(bindc, in="type(SwigClassWrapper)", fragment="SwigClassWrapper_f") SwigClassWrapper*
   "type(C_PTR)"
+
+/*---------------------------------------------------------------------------
+ * Special class typedefs for assignment, destruction
+ */
+%typemap(ftype, in="class($fclassname), intent(inout)") SWIGTYPE *MUTABLE_SELF
+  "type($fclassname)"
+%typemap(ctype, fragment="SwigClassWrapper") SWIGTYPE *MUTABLE_SELF
+  "SwigClassWrapper *"
+%typemap(imtype, in="type(SwigClassWrapper), intent(inout)", fragment="SwigClassWrapper_f") SWIGTYPE *MUTABLE_SELF
+  "type(SwigClassWrapper)"
+%typemap(fargout, noblock=1) SWIGTYPE *MUTABLE_SELF {
+  $input%swigdata = $1
+}
+
+%apply SWIGTYPE *MUTABLE_SELF { SWIGTYPE *ASSIGNMENT_SELF };
+%typemap(in) SWIGTYPE *ASSIGNMENT_SELF "(void)sizeof($1);";
+
+%typemap(ftype, in="type($fclassname), intent(in)") const SWIGTYPE &ASSIGNMENT_OTHER
+  "type($fclassname)"
+%typemap(in) const SWIGTYPE &ASSIGNMENT_OTHER = SWIGTYPE *ASSIGNMENT_SELF;
+
+%apply SWIGTYPE *MUTABLE_SELF { SWIGTYPE *DESTRUCTOR_SELF };
+%typemap(in) SWIGTYPE *DESTRUCTOR_SELF "(void)sizeof($input);";
+%typemap(fargout, noblock=1) SWIGTYPE *DESTRUCTOR_SELF {
+  $input%swigdata%cptr = C_NULL_PTR
+  $input%swigdata%mem = SWIG_NULL
+}
+
 

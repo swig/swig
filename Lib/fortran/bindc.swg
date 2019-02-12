@@ -5,6 +5,9 @@
 // Declare a generic `FORTRAN_STRUCT_TYPE` as a native type.
 // Rather than being an intrinsic type `integer(C_INT)` it's a derived type `type($fclassname)`
 %fortran_intrinsic(FORTRAN_STRUCT_TYPE, type($fclassname))
+// Avoid 'C99 forbids casting nonscalar type 'XY' to the same type'
+%typemap(in) FORTRAN_STRUCT_TYPE "$1 = *$input;"
+%typemap(out) FORTRAN_STRUCT_TYPE "$result = $1;"
 
 /*!
  * \def %fortran_struct

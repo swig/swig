@@ -3,16 +3,30 @@
  * ------------------------------------------------------------------------- */
 
 #ifdef __cplusplus
-/* Give special names to special operations
-%rename(__ptr__)    *::operator->;
-%rename(__deref__)  *::operator*();
-%ignore *::operator*() const;
-%rename(__assign__) *::operator=;
-%rename(__eq__) *::operator==;
-*/
-%ignore *::operator->;
-%ignore *::operator*();
-%ignore *::operator=;
+%define %fortran_operator(FSYMNAME, GENERIC_SPEC, OPERATOR)
+%rename(FSYMNAME) OPERATOR;
+%feature("fortran:generic", GENERIC_SPEC) OPERATOR;
+%enddef
+
+// Rename *operators* to *generics*
+%fortran_operator(op_assign__, "assignment(=)",      *::operator=)
+%fortran_operator(op_add__,    "operator(+)",        *::operator+)
+%fortran_operator(op_sub__,    "operator(-)",        *::operator-)
+%fortran_operator(op_mul__,    "operator(*)",        *::operator*)
+%fortran_operator(op_mod__,    "operator(.mod.)",    *::operator%)
+%fortran_operator(op_lshift__, "operator(.lshift.)", *::operator<<)
+%fortran_operator(op_rshift__, "operator(.rshift.)", *::operator>>)
+%fortran_operator(op_and__,    "operator(.and.)",    *::operator&)
+%fortran_operator(op_or__,     "operator(.or.)",     *::operator|)
+%fortran_operator(op_xor__,    "operator(.xor.)",    *::operator^)
+%fortran_operator(op_lt__,     "operator(.lt.)",     *::operator<)
+%fortran_operator(op_le__,     "operator(.le.)",     *::operator<=)
+%fortran_operator(op_gt__,     "operator(.gt.)",     *::operator>)
+%fortran_operator(op_ge__,     "operator(.ge.)",     *::operator>=)
+%fortran_operator(op_eq__,     "operator(.eq.)",     *::operator==)
+%fortran_operator(op_ne__,     "operator(.ne.)",     *::operator!=)
+%fortran_operator(op_ptr__,    "operator(.ptr.)",    *::operator->)
+%fortran_operator(op_deref__,  "operator(.deref.)",  *::operator*())
 
 /* Rename member functions that conflict with our special ones */
 %keywordwarn("'release' is reserved for SWIG destructors",

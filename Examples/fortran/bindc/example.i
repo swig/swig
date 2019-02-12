@@ -2,6 +2,9 @@
 %module example
 
 %fortran_struct(Point)
+%fortranbindc make_point;
+%fortranbindc print_sphere;
+%fortranbindc bound_negation;
 
 %{
 #include "example.h"
