@@ -142,7 +142,7 @@ static void SwigPHP_emit_resource_registrations() {
 
   ki = First(zend_types);
   if (ki.key)
-    Printf(s_oinit, "\n/* Register resource destructors for pointer types */\n");
+    Printf(s_oinit, "\n  /* Register resource destructors for pointer types */\n");
   while (ki.key) {
     DOH *key = ki.key;
     Node *class_node = ki.item;
@@ -180,11 +180,11 @@ static void SwigPHP_emit_resource_registrations() {
     Printf(s_vdecl, "static int le_swig_%s=0; /* handle for %s */\n", key, human_name);
 
     // register with php
-    Printf(s_oinit, "le_swig_%s=zend_register_list_destructors_ex"
+    Printf(s_oinit, "  le_swig_%s=zend_register_list_destructors_ex"
 		    "(%s, NULL, SWIGTYPE%s->name, module_number);\n", key, rsrc_dtor_name, key);
 
     // store php type in class struct
-    Printf(s_oinit, "SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n", key, key);
+    Printf(s_oinit, "  SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n", key, key);
 
     Delete(rsrc_dtor_name);
 
@@ -272,8 +272,8 @@ public:
     /* subsections of the init section */
     s_vinit = NewStringEmpty();
     s_vdecl = NewString("/* vdecl subsection */\n");
-    s_cinit = NewString("/* cinit subsection */\n");
-    s_oinit = NewString("/* oinit subsection */\n");
+    s_cinit = NewString("  /* cinit subsection */\n");
+    s_oinit = NewString("  /* oinit subsection */\n");
     pragma_phpinfo = NewStringEmpty();
     s_phpclasses = NewString("/* PHP Proxy Classes */\n");
     f_directors_h = NewStringEmpty();
@@ -364,7 +364,7 @@ public:
 
     /* Initialize the rest of the module */
 
-    Printf(s_oinit, "ZEND_INIT_MODULE_GLOBALS(%s, %s_init_globals, NULL);\n", module, module);
+    Printf(s_oinit, "  ZEND_INIT_MODULE_GLOBALS(%s, %s_init_globals, NULL);\n", module, module);
 
     /* start the header section */
     Printf(s_header, "ZEND_BEGIN_MODULE_GLOBALS(%s)\n", module);
@@ -549,17 +549,17 @@ public:
 
     //    Printv(s_init,s_resourcetypes,NIL);
     /* We need this after all classes written out by ::top */
-    Printf(s_oinit, "CG(active_class_entry) = NULL;\n");
-    Printf(s_oinit, "/* end oinit subsection */\n");
+    Printf(s_oinit, "  CG(active_class_entry) = NULL;\n");
+    Printf(s_oinit, "  /* end oinit subsection */\n");
     Printf(s_init, "%s\n", s_oinit);
 
     /* Constants generated during top call */
-    Printf(s_cinit, "/* end cinit subsection */\n");
+    Printf(s_cinit, "  /* end cinit subsection */\n");
     Printf(s_init, "%s\n", s_cinit);
     Clear(s_cinit);
     Delete(s_cinit);
 
-    Printf(s_init, "    return SUCCESS;\n");
+    Printf(s_init, "  return SUCCESS;\n");
     Printf(s_init, "}\n\n");
 
     // Now do REQUEST init which holds any user specified %rinit, and also vinit
@@ -577,15 +577,15 @@ public:
       if (Len(s_vinit) > 0) {
 	/* finish our init section which will have been used by class wrappers */
 	Printv(s_init,
-	       "/* vinit subsection */\n",
+	       "  /* vinit subsection */\n",
 	       s_vinit, "\n"
-	       "/* end vinit subsection */\n",
+	       "  /* end vinit subsection */\n",
 	       NIL);
 	Clear(s_vinit);
       }
       Delete(s_vinit);
 
-      Printf(s_init, "    return SUCCESS;\n");
+      Printf(s_init, "  return SUCCESS;\n");
       Printf(s_init, "}\n\n");
     }
 
@@ -598,7 +598,7 @@ public:
 		     "/* shutdown section */\n"
 		     "{\n",
 		     s_shutdown,
-		     "    return SUCCESS;\n"
+		     "  return SUCCESS;\n"
 		     "}\n\n", NIL);
     }
 

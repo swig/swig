@@ -7259,12 +7259,12 @@ will not be able to run any other threads, even if the wrapped C/C++ code is wai
         <p>
         The <tt>threads</tt> module option in the *.i template file:
         </p>
-        <div class="code"><pre>%feature("nothread") method;</pre></div>
+        <div class="code"><pre>%module("threads"=1)</pre></div>
       </li>
     </ul>
   </li>
   <li><p>You can disable thread support for a given method:</p>
-    <div class="code"><pre>%module("threads"=1)</pre></div>
+    <div class="code"><pre>%feature("nothread") method;</pre></div>
       or
       <div class="code"><pre>%nothread method;</pre></div>
   </li>

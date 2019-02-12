@@ -1888,7 +1888,7 @@ like this:
 <pre>
 %typemap(out) int {
   $result = sv_newmortal();
-  set_setiv($result, (IV) $1);
+  sv_setiv($result, (IV) $1);
   argvi++;
 }
 </pre>
