@@ -37,6 +37,6 @@ namespace std {
   };
 
   template <class T, class U >
-  pair<T,U> make_pair(const T&,const U&);
+  pair<T,U> make_pair(const T& t,const U& u);
 
 }

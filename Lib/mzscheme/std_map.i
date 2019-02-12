@@ -222,7 +222,7 @@ namespace std {
         typedef K key_type;
         typedef T mapped_type;
         map();
-        map(const map< K, T, C > &);
+        map(const map< K, T, C >& other);
         
         unsigned int size() const;
         bool empty() const;
@@ -442,7 +442,7 @@ namespace std {
         %rename("has-key?") has_key;
       public:
         map();
-        map(const map< K, T, C > &);
+        map(const map< K, T, C >& other);
         
         unsigned int size() const;
         bool empty() const;
@@ -654,7 +654,7 @@ namespace std {
         %rename("has-key?") has_key;
       public:
         map();
-        map(const map< K, T, C > &);
+        map(const map< K, T, C >& other);
         
         unsigned int size() const;
         bool empty() const;
@@ -866,7 +866,7 @@ namespace std {
         %rename("has-key?") has_key;
       public:
         map();
-        map(const map< K, T, C > &);
+        map(const map< K, T, C >& other);
         
         unsigned int size() const;
         bool empty() const;

@@ -153,7 +153,7 @@ template<class KeyType, class MappedType > class unordered_map {
     typedef const value_type& const_reference;
 
     unordered_map();
-    unordered_map(const unordered_map<KeyType, MappedType >&);
+    unordered_map(const unordered_map<KeyType, MappedType >& other);
 
     struct iterator {
       %typemap(javaclassmodifiers) iterator "protected class"
@@ -184,7 +184,7 @@ template<class KeyType, class MappedType > class unordered_map {
     %rename(isEmpty) empty;
     bool empty() const;
     void clear();
-    iterator find(const KeyType&);
+    iterator find(const KeyType& key);
     iterator begin();
     iterator end();
     %extend {

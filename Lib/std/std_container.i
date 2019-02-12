@@ -11,7 +11,7 @@
 %define %std_container_methods_non_resizable(container...)
 
   container();
-  container(const container&);
+  container(const container& other);
 
   bool empty() const;
   size_type size() const;

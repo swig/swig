@@ -31,9 +31,9 @@ namespace std
 
       allocator() throw();
       
-      allocator(const allocator&) throw();
+      allocator(const allocator& other) throw();
       template<typename _Tp1>
-        allocator(const allocator<_Tp1>&) throw();
+        allocator(const allocator<_Tp1>& other) throw();
       ~allocator() throw();
       
 

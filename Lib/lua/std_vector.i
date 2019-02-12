@@ -27,7 +27,7 @@ namespace std {
       public:
         vector();
         vector(unsigned int);
-        vector(const vector&);
+        vector(const vector& other);
         vector(unsigned int,T);
         unsigned int size() const;
         unsigned int max_size() const;

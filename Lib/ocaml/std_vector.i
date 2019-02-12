@@ -43,7 +43,7 @@ namespace std {
     public:
         vector(unsigned int size = 0);
         vector(unsigned int size, const T& value);
-        vector(const vector<T>&);
+        vector(const vector<T>& other);
         unsigned int size() const;
         bool empty() const;
         void clear();

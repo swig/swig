@@ -113,7 +113,7 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_TYPECHECK_MAP, std::map< _Key, _Tp, _Compare, _Alloc >);
 
-    map( const _Compare& );
+    map(const _Compare& other);
 
 #ifdef %swig_map_methods
     // Add swig/language extra methods

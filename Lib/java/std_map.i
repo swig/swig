@@ -154,7 +154,7 @@ template<class KeyType, class MappedType, class Comparator = std::less<KeyType> 
     typedef const value_type& const_reference;
 
     map();
-    map(const map<KeyType, MappedType, Comparator >&);
+    map(const map<KeyType, MappedType, Comparator >& other);
 
     struct iterator {
       %typemap(javaclassmodifiers) iterator "protected class"
@@ -185,7 +185,7 @@ template<class KeyType, class MappedType, class Comparator = std::less<KeyType> 
     %rename(isEmpty) empty;
     bool empty() const;
     void clear();
-    iterator find(const KeyType&);
+    iterator find(const KeyType& key);
     iterator begin();
     iterator end();
     %extend {

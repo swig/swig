@@ -89,7 +89,7 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_TYPECHECK_MULTIMAP, std::multimap< _Key, _Tp, _Compare, _Alloc >);
   
-    multimap( const _Compare& );
+    multimap(const _Compare& other);
 
 #ifdef %swig_multimap_methods
     // Add swig/language extra methods

@@ -943,7 +943,7 @@ namespace swig
 	  }
 
       } 
-      catch( const std::invalid_argument & )
+      catch(const std::invalid_argument &)
 	{
 	  rb_raise( rb_eArgError, "%s",
 		    Ruby_Format_TypeError( "", 
@@ -970,7 +970,7 @@ namespace swig
 	    Sequence::value_type val = swig::as<Sequence::value_type>( elem );
 	    $self->insert( start, val );
 	  }
-	  catch( const std::invalid_argument & )
+	  catch(const std::invalid_argument &)
 	    {
 	      rb_raise( rb_eArgError, "%s",
 			Ruby_Format_TypeError( "", 
