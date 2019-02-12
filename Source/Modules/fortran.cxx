@@ -1819,16 +1819,25 @@ void FORTRAN::add_assignment_operator(Node *classn) {
   }
 
   // Define action code
-  String *code = NewStringf("typedef %s swig_lhs_classtype;\n"
-                            "SWIG_assign(swig_lhs_classtype, farg1, swig_lhs_classtype, farg2, %s);",
-                            classtype,
-                            flags);
+  String *code = NULL;
+  if (CPlusPlus) {
+    code = NewStringf("typedef %s swig_lhs_classtype;\n", classtype);
+    classtype = NewString("swig_lhs_classtype");
+  } else {
+    code = NewStringEmpty();
+    classtype = Copy(classtype);
+  }
+
+  Printf(code, "SWIG_assign(%s, farg1, %s, farg2, %s);",
+         classtype, classtype,
+         flags);
   Setattr(n, "feature:action", code);
 
   // Insert assignment fragment
   Setattr(n, "feature:fragment", "SWIG_assign");
 
   Delete(code);
+  Delete(classtype);
   Delete(flags);
   Delete(parms);
   Delete(name);
