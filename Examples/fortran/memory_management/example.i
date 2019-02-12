@@ -41,7 +41,7 @@ void print_pointer(int msg, const SimpleClass* ptr)
     call print_pointer(0, self)
 %}
 %fortranprepend SimpleClass::~SimpleClass %{
-    call print_pointer(1, destructor_self)
+    call print_pointer(1, self)
 %}
 
 %feature("docstring") SimpleClass %{

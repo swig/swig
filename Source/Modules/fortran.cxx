@@ -1019,8 +1019,10 @@ int FORTRAN::functionWrapper(Node *n) {
   if (member) {
     if (String *selfname = Getattr(n, "fortran:rename_self")) {
       // Modify the first parameter name so that custom types will match
+      // But pre-calculate the original name so that user-facing argument names match
       Parm *first_parm = Getattr(n, "parms");
-      ASSERT_OR_PRINT_NODE(Strcmp(Getattr(first_parm, "name"), "self") == 0, first_parm);
+      ASSERT_OR_PRINT_NODE(first_parm, n);
+      this->makeParameterName(n, first_parm, 0);
       Setattr(first_parm, "name", selfname);
     }
   }
@@ -1742,7 +1744,6 @@ void FORTRAN::add_assignment_operator(Node *classn) {
       } else {
         // Different assignment operator: make sure class is *inout*
         Setattr(child, "fortran:rename_self", "ASSIGNMENT_SELF"); // Use INOUT for class handle
-        // XXX: if unassigned, create?? Or just insert assertion?
       }
     }
   }
@@ -1788,9 +1789,11 @@ void FORTRAN::add_assignment_operator(Node *classn) {
   Setattr(n, "type", "void"); // Returns nothing
   Setattr(n, "decl", decl);
 
-  // Change parameters so that the correct self/other are used
-  Parm *parms = NewParm(argtype, "ASSIGNMENT_OTHER", classn);
-  Setattr(n, "parms", parms);
+  // Change parameters so that the correct self/other are used for typemap matching
+  Parm *other_parm = NewParm(argtype, "other", classn);
+  this->makeParameterName(n, other_parm, 0);
+  Setattr(other_parm, "name", "ASSIGNMENT_OTHER");
+  Setattr(n, "parms", other_parm);
   Setattr(n, "fortran:rename_self", "ASSIGNMENT_SELF"); // Use INOUT for class handle
 
   // Determine construction flags. These are ignored if C++11 is being used
@@ -1839,7 +1842,7 @@ void FORTRAN::add_assignment_operator(Node *classn) {
   Delete(code);
   Delete(classtype);
   Delete(flags);
-  Delete(parms);
+  Delete(other_parm);
   Delete(name);
   Delete(decl);
   Delete(argtype);
@@ -2098,10 +2101,9 @@ int FORTRAN::constructorHandler(Node *n) {
  */
 int FORTRAN::destructorHandler(Node *n) {
   // Handle ownership semantics by wrapping the destructor action
-  String *fdis = NewString("if ($input%swigdata%mem == SWIG_OWN) then\n"
+  String *fdis = NewString("if (self%swigdata%mem == SWIG_OWN) then\n"
                            "  $action\n"
                            "end if\n");
-  Replaceall(fdis, "$input", "destructor_self");
   // Make the destructor a member function called 'release'
   Setattr(n, "feature:shadow", fdis);
   Setattr(n, "fortran:name", "release");
