@@ -218,6 +218,12 @@ namespace std {
         typedef ptrdiff_t difference_type;
         typedef K key_type;
         typedef T mapped_type;
+        typedef std::pair< const K, T > value_type;
+        typedef value_type* pointer;
+        typedef const value_type* const_pointer;
+        typedef value_type& reference;
+        typedef const value_type& const_reference;
+
         map();
         map(const map< K, T, C >& other);
         
@@ -434,6 +440,16 @@ namespace std {
         %rename("delete!") __delitem__;
         %rename("has-key?") has_key;
       public:
+        typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef K key_type;
+        typedef T mapped_type;
+        typedef std::pair< const K, T > value_type;
+        typedef value_type* pointer;
+        typedef const value_type* const_pointer;
+        typedef value_type& reference;
+        typedef const value_type& const_reference;
+
         map();
         map(const map< K, T, C >& other);
         
@@ -640,6 +656,16 @@ namespace std {
         %rename("delete!") __delitem__;
         %rename("has-key?") has_key;
       public:
+        typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef K key_type;
+        typedef T mapped_type;
+        typedef std::pair< const K, T > value_type;
+        typedef value_type* pointer;
+        typedef const value_type* const_pointer;
+        typedef value_type& reference;
+        typedef const value_type& const_reference;
+
         map();
         map(const map< K, T, C >& other);
         
@@ -848,6 +874,16 @@ namespace std {
         %rename("delete!") __delitem__;
         %rename("has-key?") has_key;
       public:
+        typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef K key_type;
+        typedef T mapped_type;
+        typedef std::pair< const K, T > value_type;
+        typedef value_type* pointer;
+        typedef const value_type* const_pointer;
+        typedef value_type& reference;
+        typedef const value_type& const_reference;
+
         map();
         map(const map< K, T, C >& other);
         
