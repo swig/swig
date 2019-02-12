@@ -1,10 +1,10 @@
-import cpp11_li_std_unordered_set.*;
+import cpp11_std_unordered_set.*;
 
-public class cpp11_li_std_unordered_set_runme {
+public class cpp11_std_unordered_set_runme {
 
   static {
     try {
-      System.loadLibrary("cpp11_li_std_unordered_set");
+      System.loadLibrary("cpp11_std_unordered_set");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);
@@ -20,7 +20,7 @@ public class cpp11_li_std_unordered_set_runme {
 
   public static void main(String argv[]) throws Throwable
   {
-    java.util.AbstractSet<String> ss = new StringUnorderedSet();
+    java.util.AbstractSet<String> ss = new UnorderedSetString();
 
     checkThat(ss.isEmpty());
     checkThat(!ss.contains("key"));
@@ -63,7 +63,7 @@ public class cpp11_li_std_unordered_set_runme {
     checkThat(ss.containsAll(found));
     checkThat(found.containsAll(ss));
 
-    java.util.AbstractSet<String> ss2 = new StringUnorderedSet(ss);
+    java.util.AbstractSet<String> ss2 = new UnorderedSetString(ss);
     checkThat(ss2.containsAll(ss));
     checkThat(ss.containsAll(ss2));
 
