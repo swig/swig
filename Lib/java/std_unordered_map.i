@@ -1,19 +1,19 @@
 /* -----------------------------------------------------------------------------
- * std_map.i
+ * std_unordered_map.i
  *
- * SWIG typemaps for std::map
- * The Java proxy class extends java.util.AbstractMap. The std::map
+ * SWIG typemaps for std::unordered_map
+ * The Java proxy class extends java.util.AbstractMap. The std::unordered_map
  * container looks and feels much like a java.util.HashMap from Java.
  * ----------------------------------------------------------------------------- */
 
 %include <std_common.i>
 
 // ------------------------------------------------------------------------
-// std::map
+// std::unordered_map
 // ------------------------------------------------------------------------
 
 %{
-#include <map>
+#include <unordered_map>
 #include <stdexcept>
 %}
 
@@ -28,27 +28,27 @@
   }
 }
 
-%javamethodmodifiers std::map::sizeImpl "private";
-%javamethodmodifiers std::map::containsImpl "private";
-%javamethodmodifiers std::map::putUnchecked "private";
-%javamethodmodifiers std::map::removeUnchecked "private";
-%javamethodmodifiers std::map::find "private";
-%javamethodmodifiers std::map::begin "private";
-%javamethodmodifiers std::map::end "private";
+%javamethodmodifiers std::unordered_map::sizeImpl "private";
+%javamethodmodifiers std::unordered_map::containsImpl "private";
+%javamethodmodifiers std::unordered_map::putUnchecked "private";
+%javamethodmodifiers std::unordered_map::removeUnchecked "private";
+%javamethodmodifiers std::unordered_map::find "private";
+%javamethodmodifiers std::unordered_map::begin "private";
+%javamethodmodifiers std::unordered_map::end "private";
 
-%rename(Iterator) std::map::iterator;
-%nodefaultctor std::map::iterator;
-%javamethodmodifiers std::map::iterator::getNextUnchecked "private";
-%javamethodmodifiers std::map::iterator::isNot "private";
-%javamethodmodifiers std::map::iterator::getKey "private";
-%javamethodmodifiers std::map::iterator::getValue "private";
-%javamethodmodifiers std::map::iterator::setValue "private";
+%rename(Iterator) std::unordered_map::iterator;
+%nodefaultctor std::unordered_map::iterator;
+%javamethodmodifiers std::unordered_map::iterator::getNextUnchecked "private";
+%javamethodmodifiers std::unordered_map::iterator::isNot "private";
+%javamethodmodifiers std::unordered_map::iterator::getKey "private";
+%javamethodmodifiers std::unordered_map::iterator::getValue "private";
+%javamethodmodifiers std::unordered_map::iterator::setValue "private";
 
 namespace std {
 
-template<class KeyType, class MappedType, class Comparator = std::less<KeyType> > class map {
+template<class KeyType, class MappedType > class unordered_map {
 
-%typemap(javabase) std::map<KeyType, MappedType, Comparator>
+%typemap(javabase) std::unordered_map<KeyType, MappedType>
     "java.util.AbstractMap<$typemap(jboxtype, KeyType), $typemap(jboxtype, MappedType)>"
 
 %proxycode %{
@@ -147,20 +147,19 @@ template<class KeyType, class MappedType, class Comparator = std::less<KeyType> 
     typedef KeyType key_type;
     typedef MappedType mapped_type;
     typedef std::pair< const KeyType, MappedType > value_type;
-    typedef Compare key_compare;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type& reference;
     typedef const value_type& const_reference;
 
-    map();
-    map(const map<KeyType, MappedType, Comparator >&);
+    unordered_map();
+    unordered_map(const unordered_map<KeyType, MappedType >&);
 
     struct iterator {
       %typemap(javaclassmodifiers) iterator "protected class"
       %extend {
-        std::map<KeyType, MappedType, Comparator >::iterator getNextUnchecked() {
-          std::map<KeyType, MappedType, Comparator >::iterator copy = (*$self);
+        std::unordered_map<KeyType, MappedType >::iterator getNextUnchecked() {
+          std::unordered_map<KeyType, MappedType >::iterator copy = (*$self);
           return ++copy;
         }
 
@@ -203,23 +202,10 @@ template<class KeyType, class MappedType, class Comparator = std::less<KeyType> 
         (*self)[key] = value;
       }
 
-      void removeUnchecked(const std::map<KeyType, MappedType, Comparator >::iterator itr) {
+      void removeUnchecked(const std::unordered_map<KeyType, MappedType >::iterator itr) {
         self->erase(itr);
       }
     }
 };
-
-// Legacy macros (deprecated)
-%define specialize_std_map_on_key(K,CHECK,CONVERT_FROM,CONVERT_TO)
-#warning "specialize_std_map_on_key ignored - macro is deprecated and no longer necessary"
-%enddef
-
-%define specialize_std_map_on_value(T,CHECK,CONVERT_FROM,CONVERT_TO)
-#warning "specialize_std_map_on_value ignored - macro is deprecated and no longer necessary"
-%enddef
-
-%define specialize_std_map_on_both(K,CHECK_K,CONVERT_K_FROM,CONVERT_K_TO, T,CHECK_T,CONVERT_T_FROM,CONVERT_T_TO)
-#warning "specialize_std_map_on_both ignored - macro is deprecated and no longer necessary"
-%enddef
 
 }
