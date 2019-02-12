@@ -8,8 +8,9 @@ program li_boost_shared_ptr_runme
   implicit none
   type(Klass) :: f1, f2
   integer(c_int) :: orig_total_count
+  integer(c_int) :: memory_leak
 
-  call set_debug_shared(.true.)
+  !call set_debug_shared(.true.)
 
   ! The getTotal_count function is static, so 'f2' doesn't have to be allocated
   orig_total_count = f1%getTotal_count()
@@ -40,11 +41,12 @@ program li_boost_shared_ptr_runme
 
   call f2%release() ! Further calls to release() are allowable null-ops
 
-  ! Create a temporary shared pointer that's passed into a function;
-  ! the wrapper code should 'delete' it since its memory state is SWIG_MOVE
+  ! Create a temporary shared pointer that's passed into a function
+  ! THIS LEAKS MEMORY!
   ASSERT(use_count(Klass()) == 1)
+  memory_leak = 1
 
   ! The getTotal_count function is static, so 'f2' doesn't have to be allocated
-  ASSERT(f2%getTotal_count() == orig_total_count)
+  ASSERT(f2%getTotal_count() == orig_total_count + memory_leak)
 end program
 

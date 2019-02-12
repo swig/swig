@@ -59,14 +59,10 @@
  * Original class by value: access the 'cptr' member of the input, return a
  * SP-owned copy of the obtained value.
  * ------------------------------------------------------------------------- */
-%typemap(in, noblock=1, fragment="SWIG_check_sp_nonnull") CONST TYPE (
-  SWIGSP__* smartarg) {
+%typemap(in, noblock=1, fragment="SWIG_check_sp_nonnull") CONST TYPE ($&1_type argp = 0) {
   SWIG_check_sp_nonnull($input, "$1_ltype", "$fclassname", "$decl", return $null)
-  smartarg = %static_cast($input->cptr, SWIGSP__*);
-  $1 = **smartarg;
-}
-%typemap(argout, noblock=1, match="in") CONST TYPE {
-  if ($input->mem == SWIG_MOVE) delete smartarg$argnum;
+  argp = $input->cptr ? %static_cast($input->cptr, SWIGSP__*)->get() : NULL;
+  $1 = *argp;
 }
 %typemap(out, noblock=1) CONST TYPE {
  $result.cptr = new SWIGSP__(%new_copy($1, $1_basetype));
@@ -82,7 +78,6 @@
   smartarg = %static_cast($input->cptr, SWIGSP__*);
   $1 = smartarg ? %const_cast(smartarg->get(), TYPE*) : NULL;
 }
-%typemap(argout) CONST TYPE * = CONST TYPE;
 
 // The string "SWIG_NO_NULL_DELETER_$owner" is replaced by the macro
 // SWIG_NO_NULL_DELETER_1 if a raw pointer is being emitted via %newobject
@@ -104,7 +99,6 @@
   smartarg = %static_cast($input->cptr, SWIGSP__*);
   $1 = %const_cast(smartarg->get(), TYPE*);
 }
-%typemap(argout) CONST TYPE & = CONST TYPE;
 
 // Output value is never null. Because we're allocating a shared pointer, we set the memory ownership to MOVE so that the *SP*
 // will be properly deallocated. But we also must use a null deleter so that when the SP is deleted the corresponding memory
@@ -117,12 +111,9 @@
 /* -------------------------------------------------------------------------
  * SP by value
  * ------------------------------------------------------------------------- */
-%typemap(in, noblock=1) SWIGSP__ (SWIGSP__* smartarg) {
-  SWIG_check_sp_nonnull($input, "$1_ltype", "$fclassname", "$decl", return $null)
-  smartarg = %static_cast($input->cptr, SWIGSP__*);
-  $1 = *smartarg;
+%typemap(in, noblock=1) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE > {
+  if ($input->cptr) $1 = *%static_cast($input->cptr, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE >*);
 }
-%typemap(argout) SWIGSP__ = CONST TYPE;
 
 %typemap(out, noblock=1) SWIGSP__ {
   $result.cptr = %new_copy($1, SWIGSP__);
@@ -132,12 +123,9 @@
 /* -------------------------------------------------------------------------
  * SP by reference
  * ------------------------------------------------------------------------- */
-%typemap(in, noblock=1) SWIGSP__& (SWIGSP__* smartarg, $*1_ltype tempnull) {
-  smartarg = %static_cast($input->cptr, $1_ltype);
-  $1 = smartarg ? smartarg : &tempnull;
+%typemap(in, noblock=1) SWIGSP__& ($*1_ltype tempnull) {
+  $1 = $input->cptr ? %static_cast($input->cptr, $1_ltype) : &tempnull;
 }
-%typemap(argout) SWIGSP__& = CONST TYPE;
-%typemap(argout) const SWIGTYPE & ""
 
 %typemap(out, noblock=1) SWIGSP__& {
   $result.cptr = SWIG_SHARED_PTR_NOT_NULL(*$1) ? new $*1_ltype(*$1) : 0;
@@ -149,10 +137,9 @@
  *
  * Make sure that the SP* is allocated.
  * ------------------------------------------------------------------------- */
-%typemap(in, noblock=1) SWIGSP__ * (SWIGSP__* smartarg) {
-  smartarg = %static_cast($input->cptr, $1_ltype);
+%typemap(in, noblock=1) SWIGSP__ * ($*1_ltype tempnull) {
+  $1 = $input->cptr ? %static_cast($input->cptr, $1_ltype) : &tempnull;
 }
-%typemap(argout) SWIGSP__ * = CONST TYPE;
 
 %typemap(out, noblock=1, fragment="SWIG_null_deleter") SWIGSP__ * {
   $result.cptr = ($1 && SWIG_SHARED_PTR_NOT_NULL(*$1)) ? new $*1_ltype(*($1_ltype)$1) : 0;
@@ -181,10 +168,6 @@
 
 %feature("unref") TYPE
 %{ (void)$self; delete smart$self; %}
-
-// Fix override of assignment operator
-%typemap(argout) TYPE *ASSIGNMENT_SELF "";
-%typemap(argout) const TYPE &ASSIGNMENT_OTHER "";
 
 /* -------------------------------------------------------------------------
  * Instantiate shared pointer

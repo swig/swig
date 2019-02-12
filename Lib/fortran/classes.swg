@@ -528,10 +528,6 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, const SwigClassWrapper*
   $result.cptr = $1;
   $result.mem = ($owner ? SWIG_MOVE : SWIG_REF);
 }
-// Free memory if the input was constructed as a temporary
-%typemap(argout, noblock=1, match="in") SWIGTYPE* {
-  if ($input->mem == SWIG_MOVE) delete $1;
-}
 
 // Immutable pointers to mutable classes
 %apply SWIGTYPE* { SWIGTYPE* const };
@@ -603,12 +599,10 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, const SwigClassWrapper*
 
 %apply SWIGTYPE *MUTABLE_SELF { SWIGTYPE *ASSIGNMENT_SELF };
 %typemap(in) SWIGTYPE *ASSIGNMENT_SELF "(void)sizeof($1);";
-%typemap(argout, match="in") SWIGTYPE *ASSIGNMENT_SELF "";
 
 %typemap(ftype, in="type($fclassname), intent(in)") const SWIGTYPE &ASSIGNMENT_OTHER
   "type($fclassname)"
 %typemap(in) const SWIGTYPE &ASSIGNMENT_OTHER = SWIGTYPE *ASSIGNMENT_SELF;
-%typemap(argout, match="in") const SWIGTYPE &ASSIGNMENT_OTHER "";
 
 %apply SWIGTYPE *MUTABLE_SELF { SWIGTYPE *DESTRUCTOR_SELF };
 %typemap(in) SWIGTYPE *DESTRUCTOR_SELF "(void)sizeof($input);";
