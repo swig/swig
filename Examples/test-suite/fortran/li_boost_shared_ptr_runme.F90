@@ -4,11 +4,20 @@
 
 program li_boost_shared_ptr_runme
   use li_boost_shared_ptr
+  use ISO_C_BINDING
   implicit none
   type(Klass) :: f1, f2
+  integer(c_int) :: orig_total_count
 
+  call set_debug_shared(.true.)
+
+  ! The getTotal_count function is static, so 'f2' doesn't have to be allocated
+  orig_total_count = f1%getTotal_count()
+  
   ASSERT(use_count(f1) == 0)
+  ASSERT(f1%getTotal_count() == orig_total_count)
   f1 = Klass() ! Construct
+  ASSERT(f1%getTotal_count() == orig_total_count + 1)
   ASSERT(use_count(f1) == 1)
   f2 = f1 ! Copy shared pointer, not underlying object
   ASSERT(use_count(f1) == 2)
@@ -30,5 +39,12 @@ program li_boost_shared_ptr_runme
   ASSERT(use_count(f2) == 0)
 
   call f2%release() ! Further calls to release() are allowable null-ops
+
+  ! Create a temporary shared pointer that's passed into a function;
+  ! the wrapper code should 'delete' it since its memory state is SWIG_MOVE
+  ASSERT(use_count(Klass()) == 1)
+
+  ! The getTotal_count function is static, so 'f2' doesn't have to be allocated
+  ASSERT(f2%getTotal_count() == orig_total_count)
 end program
 
