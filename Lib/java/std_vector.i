@@ -23,7 +23,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
 }
 }
 
-%define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CTYPE, CREF_TYPE)
+%define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CTYPE, CONST_REFERENCE)
 %typemap(javabase) std::vector< CTYPE > "java.util.AbstractList<$typemap(jboxtype, CTYPE)>"
 %typemap(javainterfaces) std::vector< CTYPE > "java.util.RandomAccess"
 %proxycode %{
@@ -79,10 +79,10 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
     typedef CTYPE value_type;
-    typedef CTYPE &reference;
-    typedef CREF_TYPE const_reference;
     typedef CTYPE *pointer;
     typedef CTYPE const *const_pointer;
+    typedef CTYPE &reference;
+    typedef CONST_REFERENCE const_reference;
 
     vector();
     vector(const vector &other);
@@ -133,7 +133,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
         }
       }
 
-      CREF_TYPE doGet(jint index) throw (std::out_of_range) {
+      CONST_REFERENCE doGet(jint index) throw (std::out_of_range) {
         jint size = static_cast<jint>(self->size());
         if (index >= 0 && index < size)
           return (*self)[index];

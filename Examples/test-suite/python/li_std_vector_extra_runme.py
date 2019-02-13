@@ -173,3 +173,11 @@ if extractConstShort(vcs[0]) != 111:
 
 if extractConstShort(vcs[1]) != 222:
     raise RuntimeError
+
+for p in vcs[0:1]:
+    if extractConstShort2(p) != 111:
+        raise RuntimeError
+
+for p in vcs[1:2]:
+    if extractConstShort2(p) != 222:
+        raise RuntimeError

@@ -25,6 +25,14 @@ namespace std {
 	template<class T>
     class vector {
       public:
+        typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef T value_type;
+        typedef value_type* pointer;
+        typedef const value_type* const_pointer;
+        typedef value_type& reference;
+        typedef const value_type& const_reference;
+
         vector();
         vector(unsigned int);
         vector(const vector& other);

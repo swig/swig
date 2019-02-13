@@ -201,8 +201,13 @@
 
   public:
     typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
     typedef CTYPE value_type;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
+    typedef value_type& reference;
     typedef CONST_REFERENCE const_reference;
+
     %rename(Clear) clear;
     void clear();
     %rename(Add) push_back;

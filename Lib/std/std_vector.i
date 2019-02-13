@@ -64,8 +64,8 @@ namespace std {
     typedef _Tp value_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
-    typedef _Tp& reference;
-    typedef const _Tp& const_reference;
+    typedef value_type& reference;
+    typedef const value_type& const_reference;
     typedef _Alloc allocator_type;
 
     %traits_swigtype(_Tp);
@@ -101,13 +101,13 @@ namespace std {
   template<class _Tp, class _Alloc >
   class vector< _Tp*, _Alloc > {
   public:
-    typedef size_t size_type;    
+    typedef size_t size_type;
     typedef ptrdiff_t difference_type;
     typedef _Tp* value_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
-    typedef value_type reference;
-    typedef value_type const_reference;
+    typedef value_type& reference;
+    typedef const value_type& const_reference;
     typedef _Alloc allocator_type;
 
     %traits_swigtype(_Tp);
@@ -141,13 +141,13 @@ namespace std {
   template<class _Tp, class _Alloc >
   class vector< _Tp const *, _Alloc > {
   public:
-    typedef size_t size_type;    
+    typedef size_t size_type;
     typedef ptrdiff_t difference_type;
     typedef _Tp const * value_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
-    typedef value_type reference;
-    typedef value_type const_reference;
+    typedef value_type& reference;
+    typedef const value_type& const_reference;
     typedef _Alloc allocator_type;
 
     %traits_swigtype(_Tp);
@@ -182,13 +182,13 @@ namespace std {
   template<class _Alloc > 
   class vector<bool,_Alloc > {
   public:
-    typedef size_t size_type;    
+    typedef size_t size_type;
     typedef ptrdiff_t difference_type;
     typedef bool value_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
-    typedef value_type reference;
-    typedef value_type const_reference;
+    typedef value_type& reference;
+    typedef bool const_reference;
     typedef _Alloc allocator_type;
 
     %traits_swigtype(bool);
