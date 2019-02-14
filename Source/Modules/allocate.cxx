@@ -835,9 +835,10 @@ Allocate():
       /* Copy assignment */
       bool deleted = GetFlag(n, "deleted");
       bool is_private = (cplus_mode != PUBLIC);
+      bool ignored = GetFlag(n, "feature:ignore");
       if (!deleted) 
         Setattr(inclass, "allocate:has_assign", "1");
-      if (is_private || deleted)
+      if (is_private || deleted || ignored)
         Setattr(inclass, "allocate:noassign", "1");
     } else if (Strcmp(name, "operator new") == 0) {
       bool deleted = GetFlag(n, "deleted");
