@@ -46,10 +46,10 @@
 
 namespace std {
 
-template<class KeyType, class MappedType, class Comparator = std::less<KeyType> > class map {
+template<class K, class T, class C = std::less< K> > class map {
 
-%typemap(javabase) std::map<KeyType, MappedType, Comparator>
-    "java.util.AbstractMap<$typemap(jboxtype, KeyType), $typemap(jboxtype, MappedType)>"
+%typemap(javabase) std::map< K, T, C >
+    "java.util.AbstractMap<$typemap(jboxtype, K), $typemap(jboxtype, T)>"
 
 %proxycode %{
 
@@ -58,19 +58,19 @@ template<class KeyType, class MappedType, class Comparator = std::less<KeyType> 
   }
 
   public boolean containsKey(Object key) {
-    if (!(key instanceof $typemap(jboxtype, KeyType))) {
+    if (!(key instanceof $typemap(jboxtype, K))) {
       return false;
     }
 
-    return containsImpl(($typemap(jboxtype, KeyType))key);
+    return containsImpl(($typemap(jboxtype, K))key);
   }
 
-  public $typemap(jboxtype, MappedType) get(Object key) {
-    if (!(key instanceof $typemap(jboxtype, KeyType))) {
+  public $typemap(jboxtype, T) get(Object key) {
+    if (!(key instanceof $typemap(jboxtype, K))) {
       return null;
     }
 
-    Iterator itr = find(($typemap(jboxtype, KeyType)) key);
+    Iterator itr = find(($typemap(jboxtype, K)) key);
     if (itr.isNot(end())) {
       return itr.getValue();
     }
@@ -78,10 +78,10 @@ template<class KeyType, class MappedType, class Comparator = std::less<KeyType> 
     return null;
   }
 
-  public $typemap(jboxtype, MappedType) put($typemap(jboxtype, KeyType) key, $typemap(jboxtype, MappedType) value) {
-    Iterator itr = find(($typemap(jboxtype, KeyType)) key);
+  public $typemap(jboxtype, T) put($typemap(jboxtype, K) key, $typemap(jboxtype, T) value) {
+    Iterator itr = find(($typemap(jboxtype, K)) key);
     if (itr.isNot(end())) {
-      $typemap(jboxtype, MappedType) oldValue = itr.getValue();
+      $typemap(jboxtype, T) oldValue = itr.getValue();
       itr.setValue(value);
       return oldValue;
     } else {
@@ -90,14 +90,14 @@ template<class KeyType, class MappedType, class Comparator = std::less<KeyType> 
     }
   }
 
-  public $typemap(jboxtype, MappedType) remove(Object key) {
-    if (!(key instanceof $typemap(jboxtype, KeyType))) {
+  public $typemap(jboxtype, T) remove(Object key) {
+    if (!(key instanceof $typemap(jboxtype, K))) {
       return null;
     }
 
-    Iterator itr = find(($typemap(jboxtype, KeyType)) key);
+    Iterator itr = find(($typemap(jboxtype, K)) key);
     if (itr.isNot(end())) {
-      $typemap(jboxtype, MappedType) oldValue = itr.getValue();
+      $typemap(jboxtype, T) oldValue = itr.getValue();
       removeUnchecked(itr);
       return oldValue;
     } else {
@@ -105,31 +105,31 @@ template<class KeyType, class MappedType, class Comparator = std::less<KeyType> 
     }
   }
 
-  public java.util.Set<Entry<$typemap(jboxtype, KeyType), $typemap(jboxtype, MappedType)>> entrySet() {
-    java.util.Set<Entry<$typemap(jboxtype, KeyType), $typemap(jboxtype, MappedType)>> setToReturn =
-        new java.util.HashSet<Entry<$typemap(jboxtype, KeyType), $typemap(jboxtype, MappedType)>>();
+  public java.util.Set<Entry<$typemap(jboxtype, K), $typemap(jboxtype, T)>> entrySet() {
+    java.util.Set<Entry<$typemap(jboxtype, K), $typemap(jboxtype, T)>> setToReturn =
+        new java.util.HashSet<Entry<$typemap(jboxtype, K), $typemap(jboxtype, T)>>();
 
     Iterator itr = begin();
     final Iterator end = end();
     while (itr.isNot(end)) {
-      setToReturn.add(new Entry<$typemap(jboxtype, KeyType), $typemap(jboxtype, MappedType)>() {
+      setToReturn.add(new Entry<$typemap(jboxtype, K), $typemap(jboxtype, T)>() {
         private Iterator iterator;
 
-        private Entry<$typemap(jboxtype, KeyType), $typemap(jboxtype, MappedType)> init(Iterator iterator) {
+        private Entry<$typemap(jboxtype, K), $typemap(jboxtype, T)> init(Iterator iterator) {
           this.iterator = iterator;
           return this;
         }
 
-        public $typemap(jboxtype, KeyType) getKey() {
+        public $typemap(jboxtype, K) getKey() {
           return iterator.getKey();
         }
 
-        public $typemap(jboxtype, MappedType) getValue() {
+        public $typemap(jboxtype, T) getValue() {
           return iterator.getValue();
         }
 
-        public $typemap(jboxtype, MappedType) setValue($typemap(jboxtype, MappedType) newValue) {
-          $typemap(jboxtype, MappedType) oldValue = iterator.getValue();
+        public $typemap(jboxtype, T) setValue($typemap(jboxtype, T) newValue) {
+          $typemap(jboxtype, T) oldValue = iterator.getValue();
           iterator.setValue(newValue);
           return oldValue;
         }
@@ -144,9 +144,9 @@ template<class KeyType, class MappedType, class Comparator = std::less<KeyType> 
   public:
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
-    typedef KeyType key_type;
-    typedef MappedType mapped_type;
-    typedef std::pair< const KeyType, MappedType > value_type;
+    typedef K key_type;
+    typedef T mapped_type;
+    typedef std::pair< const K, T > value_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type& reference;
@@ -158,8 +158,8 @@ template<class KeyType, class MappedType, class Comparator = std::less<KeyType> 
     struct iterator {
       %typemap(javaclassmodifiers) iterator "protected class"
       %extend {
-        std::map<KeyType, MappedType, Comparator >::iterator getNextUnchecked() {
-          std::map<KeyType, MappedType, Comparator >::iterator copy = (*$self);
+        std::map< K, T, C >::iterator getNextUnchecked() {
+          std::map< K, T, C >::iterator copy = (*$self);
           return ++copy;
         }
 
@@ -167,15 +167,15 @@ template<class KeyType, class MappedType, class Comparator = std::less<KeyType> 
           return (*$self != other);
         }
 
-        KeyType getKey() const {
+        K getKey() const {
           return (*$self)->first;
         }
 
-        MappedType getValue() const {
+        T getValue() const {
           return (*$self)->second;
         }
 
-        void setValue(const MappedType& newValue) {
+        void setValue(const T& newValue) {
           (*$self)->second = newValue;
         }
       }
@@ -184,7 +184,7 @@ template<class KeyType, class MappedType, class Comparator = std::less<KeyType> 
     %rename(isEmpty) empty;
     bool empty() const;
     void clear();
-    iterator find(const KeyType& key);
+    iterator find(const K& key);
     iterator begin();
     iterator end();
     %extend {
@@ -194,15 +194,15 @@ template<class KeyType, class MappedType, class Comparator = std::less<KeyType> 
         return SWIG_MapSize(self->size());
       }
 
-      bool containsImpl(const KeyType& key) {
+      bool containsImpl(const K& key) {
         return (self->count(key) > 0);
       }
 
-      void putUnchecked(const KeyType& key, const MappedType& value) {
+      void putUnchecked(const K& key, const T& value) {
         (*self)[key] = value;
       }
 
-      void removeUnchecked(const std::map<KeyType, MappedType, Comparator >::iterator itr) {
+      void removeUnchecked(const std::map< K, T, C >::iterator itr) {
         self->erase(itr);
       }
     }
