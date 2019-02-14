@@ -199,7 +199,8 @@ namespace std {
 
         vector(unsigned int size = 0);
         vector(unsigned int size, const T& value);
-        vector(const vector<T>& other);
+        vector(const vector& other);
+
         %rename(length) size;
         unsigned int size() const;
         %rename("empty?") empty;
@@ -383,7 +384,8 @@ namespace std {
 
         vector(unsigned int size = 0);
         vector(unsigned int size, const T& value);
-        vector(const vector<T>& other);
+        vector(const vector& other);
+
         %rename(length) size;
         unsigned int size() const;
         %rename("empty?") empty;

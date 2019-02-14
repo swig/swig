@@ -225,7 +225,7 @@ namespace std {
         typedef const value_type& const_reference;
 
         map();
-        map(const map< K, T, C >& other);
+        map(const map& other);
         
         unsigned int size() const;
         bool empty() const;
@@ -451,7 +451,7 @@ namespace std {
         typedef const value_type& const_reference;
 
         map();
-        map(const map< K, T, C >& other);
+        map(const map& other);
         
         unsigned int size() const;
         bool empty() const;
@@ -667,7 +667,7 @@ namespace std {
         typedef const value_type& const_reference;
 
         map();
-        map(const map< K, T, C >& other);
+        map(const map& other);
         
         unsigned int size() const;
         bool empty() const;
@@ -885,7 +885,7 @@ namespace std {
         typedef const value_type& const_reference;
 
         map();
-        map(const map< K, T, C >& other);
+        map(const map& other);
         
         unsigned int size() const;
         bool empty() const;

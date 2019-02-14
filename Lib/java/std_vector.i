@@ -86,6 +86,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
 
     vector();
     vector(const vector &other);
+
     size_type capacity() const;
     void reserve(size_type n) throw (std::length_error);
     %rename(isEmpty) empty;

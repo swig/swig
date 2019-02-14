@@ -116,8 +116,10 @@ public void capacity(size_t value) {
     size_type size() const;
     size_type capacity() const;
     void reserve(size_type n) throw (std::length_error);
+
     vector();
     vector(const vector &other);
+
     %extend {
       vector(size_type capacity) throw (std::length_error) {
         std::vector< CTYPE >* pv = 0;
@@ -461,8 +463,10 @@ int opApply(int delegate(ref size_t index, ref $typemap(dtype, CTYPE) value) dg)
     size_type size() const;
     size_type capacity() const;
     void reserve(size_type n) throw (std::length_error);
+
     vector();
     vector(const vector &other);
+
     %extend {
       vector(size_type capacity) throw (std::length_error) {
         std::vector< CTYPE >* pv = 0;

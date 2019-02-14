@@ -153,7 +153,7 @@ template<class KeyType, class MappedType > class unordered_map {
     typedef const value_type& const_reference;
 
     unordered_map();
-    unordered_map(const unordered_map<KeyType, MappedType >& other);
+    unordered_map(const unordered_map& other);
 
     struct iterator {
       %typemap(javaclassmodifiers) iterator "protected class"

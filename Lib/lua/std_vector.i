@@ -37,6 +37,7 @@ namespace std {
         vector(unsigned int);
         vector(const vector& other);
         vector(unsigned int,T);
+
         unsigned int size() const;
         unsigned int max_size() const;
         bool empty() const;

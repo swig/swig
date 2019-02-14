@@ -160,7 +160,7 @@ class unordered_set {
     typedef const value_type& const_reference;
 
     unordered_set();
-    unordered_set(const unordered_set<T>& other);
+    unordered_set(const unordered_set& other);
 
     %rename(isEmpty) empty;
     bool empty() const;

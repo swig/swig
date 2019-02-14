@@ -29,9 +29,8 @@ namespace std {
 
 	list();
 	list(unsigned int size, const T& value = T());
-	list(const list<T>& other);
+	list(const list& other);
 
-	~list();
 	void assign(unsigned int n, const T& value);
 	void swap(list<T> &x);
 

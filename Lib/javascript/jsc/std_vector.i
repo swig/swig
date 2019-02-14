@@ -23,6 +23,8 @@ namespace std {
 
         vector();
         vector(size_type n);
+        vector(const vector& other);
+
         size_type size() const;
         size_type capacity() const;
         void reserve(size_type n);
@@ -60,9 +62,10 @@ namespace std {
         typedef value_type& reference;
         typedef bool const_reference;
 
-
         vector();
         vector(size_type n);
+        vector(const vector& other);
+
         size_type size() const;
         size_type capacity() const;
         void reserve(size_type n);

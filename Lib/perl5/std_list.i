@@ -197,7 +197,7 @@ namespace std {
         typedef const value_type& const_reference;
 
         list();
-        list(const list<T>& other);
+        list(const list& other);
 
         unsigned int size() const;
         bool empty() const;
@@ -350,7 +350,7 @@ namespace std {
         typedef const value_type& const_reference;
 
         list();
-        list(const list<T>& other);
+        list(const list& other);
 
         unsigned int size() const;
         bool empty() const;

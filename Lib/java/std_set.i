@@ -160,7 +160,7 @@ class set {
     typedef const value_type& const_reference;
 
     set();
-    set(const set<T>& other);
+    set(const set& other);
 
     %rename(isEmpty) empty;
     bool empty() const;

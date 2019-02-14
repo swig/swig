@@ -217,8 +217,10 @@
     void reserve(size_type n);
     %newobject GetRange(int index, int count);
     %newobject Repeat(CTYPE const& value, int count);
+
     vector();
     vector(const vector &other);
+
     %extend {
       vector(int capacity) throw (std::out_of_range) {
         std::vector< CTYPE >* pv = 0;

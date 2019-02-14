@@ -221,7 +221,7 @@
     typedef const value_type& const_reference;
 
     map();
-    map(const map< K, T, C > &other);
+    map(const map& other);
     size_type size() const;
     bool empty() const;
     %rename(Clear) clear;

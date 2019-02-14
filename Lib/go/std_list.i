@@ -21,6 +21,8 @@ namespace std {
     typedef const value_type& const_reference;
 
     list();
+    list(const list& other);
+
     size_type size() const;
     bool empty() const;
     %rename(isEmpty) empty;

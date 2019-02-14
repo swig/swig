@@ -51,7 +51,8 @@ namespace std {
 
         vector(unsigned int size = 0);
         vector(unsigned int size, const T& value);
-        vector(const vector<T>& other);
+        vector(const vector& other);
+
         unsigned int size() const;
         bool empty() const;
         void clear();

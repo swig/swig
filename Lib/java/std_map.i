@@ -153,7 +153,7 @@ template<class KeyType, class MappedType, class Comparator = std::less<KeyType> 
     typedef const value_type& const_reference;
 
     map();
-    map(const map<KeyType, MappedType, Comparator >& other);
+    map(const map& other);
 
     struct iterator {
       %typemap(javaclassmodifiers) iterator "protected class"
