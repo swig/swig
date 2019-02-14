@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * std_vector.i
+ * std_list.i
  * ----------------------------------------------------------------------------- */
 
 %{
@@ -9,7 +9,7 @@
 
 namespace std {
 
-  template<class T, class Alloc = allocator<T> >
+  template<class T>
   class list {
   public:
     typedef size_t size_type;
@@ -19,7 +19,6 @@ namespace std {
     typedef const value_type* const_pointer;
     typedef value_type& reference;
     typedef const value_type& const_reference;
-    typedef Alloc allocator_type;
 
     list();
     size_type size() const;
