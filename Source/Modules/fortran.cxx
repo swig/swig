@@ -1827,13 +1827,7 @@ void FORTRAN::add_assignment_operator(Node *classn) {
     Printv(flags, " | swig::IS_COPY_CONSTR", NULL);
   }
   if (!GetFlag(classn, "allocate:noassign")) {
-    if (GetFlag(classn, "allocate:has_assign")) {
-      Printv(flags, " | swig::IS_COPY_ASSIGN", NULL);
-    } else {
-      // Otherwise, the class might be default assignable, or it might not.
-      // We don't know. Let C++11 figure it out, or the user can specialize
-      // the `swig::AssignmentTraits` class on the type.
-    }
+    Printv(flags, " | swig::IS_COPY_ASSIGN", NULL);
   }
 
   if (String *smartptr_type = Getattr(classn, "feature:smartptr")) {

@@ -11,7 +11,7 @@ This testcase primarily test constant pointers, eg int* const.  Only a getter is
 
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK);                   /* memory leak when setting a ptr/ref variable */
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG);               /* Setting a pointer/reference variable may leak memory. */
- 
+
 
 %inline %{
 
@@ -53,8 +53,6 @@ public:
     int* array_member1[ARRAY_SIZE];
     ParametersTest* array_member2[ARRAY_SIZE];
     MemberVariablesTest() : member3(NULL), member4(NULL) {}
-private:
-  MemberVariablesTest& operator=(const MemberVariablesTest&);
 };
 void foofunction(const int *const i) {}
 
@@ -80,8 +78,6 @@ public:
     void ret8(int*const& a) {}
     int*const& ret9() {return GlobalIntPtr;}
     ReturnValuesTest() : int3(NULL) {}
-private:
-  ReturnValuesTest& operator=(const ReturnValuesTest&);
 };
 
 const int* globalRet1() {return &GlobalInt;}
@@ -97,7 +93,7 @@ int* const globalRet2() {return &GlobalInt;}
 %}
 
 
-%inline 
+%inline
 {
   typedef const A* Acptr;
 
@@ -112,9 +108,7 @@ int* const globalRet2() {return &GlobalInt;}
     A a;
     A* ap;
     const A* cap;
-    Acptr acptr;  
-  private:
-    B& operator=(const B&);
+    Acptr acptr;
   };
 
   const B* bar(const B* b) {
@@ -138,13 +132,13 @@ static int **wxEVT_COMMAND_BUTTON_CLICKEDpp = &wxEVT_COMMAND_BUTTON_CLICKEDp;
 
 char lang1[16] = "Hello";
 char *langs[] ={ lang1 };
- 
-     
+
+
 %}
 
 
 %inline {
-#define EWXWEXPORT_VAR 
+#define EWXWEXPORT_VAR
 
   const int* wxEVENT_COMMAND_BUTTON_CLICKEDr = (int*) &wxEVT_COMMAND_BUTTON_CLICKEDv;
   const int* wxEVENT_COMMAND_BUTTON_CLICKEDp = (int*) *wxEVT_COMMAND_BUTTON_CLICKEDpp;
