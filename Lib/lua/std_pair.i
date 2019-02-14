@@ -15,12 +15,12 @@ namespace std {
 
     pair();
     pair(T first, U second);
-    pair(const pair& p);
+    pair(const pair& other);
 
     T first;
     U second;
   };
 
   template <class T, class U >
-  pair<T,U> make_pair(const T& t,const U& u);
+  pair<T,U> make_pair(const T& first, const U& second);
 }

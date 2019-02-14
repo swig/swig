@@ -22,9 +22,9 @@ namespace std {
 
     pair();
     pair(T first, U second);
-    pair(const pair& p);
+    pair(const pair& other);
 
-    template <class U1, class U2> pair(const pair<U1, U2> &p);
+    template <class U1, class U2> pair(const pair<U1, U2> &other);
 
     T first;
     U second;
