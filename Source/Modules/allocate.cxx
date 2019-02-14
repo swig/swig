@@ -779,6 +779,15 @@ Allocate():
 
       if (Swig_storage_isstatic(n)) {
 	Setattr(n, "cplus:staticbase", inclass);
+      } else if (Cmp(Getattr(n, "kind"), "variable") == 0) {
+        /* Check member variable to determine whether assignment is valid */
+        if (GetFlag(n, "feature:immutable")) {
+          /* Can't assign a class with an immutable member variable */
+	  Setattr(inclass, "allocate:noassign", "1");
+        } else if (SwigType_isreference(Getattr(n, "type"))) {
+          /* Can't assign a class with reference member data */
+	  Setattr(inclass, "allocate:noassign", "1");
+        }
       }
 
       String *name = Getattr(n, "name");

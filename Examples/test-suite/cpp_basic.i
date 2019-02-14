@@ -74,8 +74,10 @@ class Bar {
     Foo *testFoo(int a, Foo *f) {
       return new Foo(2 * a + (f ? f->num : 0) + fval.num);
     }
+/* Const member data means this class can't be assigned.
 private:
     Bar& operator=(const Bar&);
+*/
 };
 
 %}
