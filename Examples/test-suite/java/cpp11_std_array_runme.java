@@ -1,10 +1,10 @@
-import cpp11_li_std_array.*;
+import cpp11_std_array.*;
 
-public class cpp11_li_std_array_runme {
+public class cpp11_std_array_runme {
 
   static {
     try {
-        System.loadLibrary("cpp11_li_std_array");
+        System.loadLibrary("cpp11_std_array");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);
@@ -43,24 +43,24 @@ public class cpp11_li_std_array_runme {
     compareContainers(ai, vals);
 
     // Check return
-    compareContainers(cpp11_li_std_array.arrayOutVal(), new int[] {-2, -1, 0, 0, 1, 2});
-    compareContainers(cpp11_li_std_array.arrayOutConstRef(), new int[] {-2, -1, 0, 0, 1, 2});
-    compareContainers(cpp11_li_std_array.arrayOutRef(), new int[] {-2, -1, 0, 0, 1, 2});
-    compareContainers(cpp11_li_std_array.arrayOutPtr(), new int[] {-2, -1, 0, 0, 1, 2});
+    compareContainers(cpp11_std_array.arrayOutVal(), new int[] {-2, -1, 0, 0, 1, 2});
+    compareContainers(cpp11_std_array.arrayOutConstRef(), new int[] {-2, -1, 0, 0, 1, 2});
+    compareContainers(cpp11_std_array.arrayOutRef(), new int[] {-2, -1, 0, 0, 1, 2});
+    compareContainers(cpp11_std_array.arrayOutPtr(), new int[] {-2, -1, 0, 0, 1, 2});
 
     // Check passing arguments
-    ai = cpp11_li_std_array.arrayInVal(ToArray6(new int[] {9, 8, 7, 6, 5, 4}));
+    ai = cpp11_std_array.arrayInVal(ToArray6(new int[] {9, 8, 7, 6, 5, 4}));
     compareContainers(ai, new int[] {90, 80, 70, 60, 50, 40});
 
-    ai = cpp11_li_std_array.arrayInConstRef(ToArray6(new int[] {9, 8, 7, 6, 5, 4}));
-    compareContainers(ai, new int[] {90, 80, 70, 60, 50, 40});
-
-    ai = new ArrayInt6(ToArray6(new int[] {9, 8, 7, 6, 5, 4}));
-    cpp11_li_std_array.arrayInRef(ai);
+    ai = cpp11_std_array.arrayInConstRef(ToArray6(new int[] {9, 8, 7, 6, 5, 4}));
     compareContainers(ai, new int[] {90, 80, 70, 60, 50, 40});
 
     ai = new ArrayInt6(ToArray6(new int[] {9, 8, 7, 6, 5, 4}));
-    cpp11_li_std_array.arrayInPtr(ai);
+    cpp11_std_array.arrayInRef(ai);
+    compareContainers(ai, new int[] {90, 80, 70, 60, 50, 40});
+
+    ai = new ArrayInt6(ToArray6(new int[] {9, 8, 7, 6, 5, 4}));
+    cpp11_std_array.arrayInPtr(ai);
     compareContainers(ai, new int[] {90, 80, 70, 60, 50, 40});
 
     // fill

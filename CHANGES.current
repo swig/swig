@@ -7,6 +7,44 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-02-14: wsfulton
+            Add some missing copy constructors into STL containers.
+
+2019-02-14: bkotzz
+            [Java] #1356 Add STL containers:
+              std::unordered_map
+              std::unordered_set
+              std::set
+
+2019-02-14: bkotzz
+            [Java] #1356 std::map wrappers have been modified. Now the Java proxy class
+            extends java.util.AbstractMap. The std::map container looks and feels much like
+            a java.util.HashMap from Java.
+
+            A few members have changed their names. If the old method signatures are needed,
+            then copy std_map.i from swig-3.0.12 and use that instead. Alternatively,
+            add the old missing methods to the new methods by using the following %proxycode:
+
+              %extend std::map {
+              %proxycode %{
+                // Old API
+                public boolean empty() {
+                  return isEmpty();
+                }
+                public void set($typemap(jboxtype, K) key, $typemap(jboxtype, T) x) {
+                  put(key, x);
+                }
+                public void del($typemap(jboxtype, K) key) {
+                  remove(key);
+                }
+                public boolean has_key($typemap(jboxtype, K) key) {
+                  return containsKey(key);
+                }
+              %}
+              }
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2019-02-13: ZackerySpytz
             #1469 Add support for C++17 hexadecimal floating literals.
 

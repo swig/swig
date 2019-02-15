@@ -129,6 +129,7 @@ std::vector<std::string>  vecStr(std::vector<std::string> v) {
   double *makeDoublePtr(double v) { return new double(v); }
   int extractInt(int *p) { return *p; }
   short extractConstShort(const short *p) { return *p; }
+  short extractConstShort2(std::vector<const short *>::value_type p) { return *p; }
 %}
 
 %template(pyvector) std::vector<swig::SwigPtr_PyObject>; 

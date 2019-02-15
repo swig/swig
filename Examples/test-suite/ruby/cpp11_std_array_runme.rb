@@ -9,9 +9,9 @@
 
 require 'swig_assert'
 
-require 'cpp11_li_std_array'
+require 'cpp11_std_array'
 
-include Cpp11_li_std_array
+include Cpp11_std_array
 
 
 def failed(a, b, msg)

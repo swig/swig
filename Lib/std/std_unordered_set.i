@@ -8,7 +8,7 @@
 // Unordered Set
 %define %std_unordered_set_methods_common(unordered_set...)
   unordered_set();
-  unordered_set( const unordered_set& );
+  unordered_set(const unordered_set& other);
 
   bool empty() const;
   size_type size() const;
