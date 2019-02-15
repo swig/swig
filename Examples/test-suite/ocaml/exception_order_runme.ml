@@ -5,7 +5,7 @@ let a = new_A '()
 
 let check meth args expected =
   try
-    ignore ((invoke a) meth (C_list [ args ])); assert false
+    ignore ((invoke a) meth (args)); assert false
   with Failure msg -> assert (msg = expected)
 
 let _ =

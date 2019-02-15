@@ -5,7 +5,7 @@ let x = new_Foo '()
 
 let check meth args expected =
   try
-    let _ = ((invoke x) meth (C_list [ args ])) in assert false
+    let _ = ((invoke x) meth (args)) in assert false
   with Failure msg -> assert (msg = expected)
 
 let _ =
