@@ -45,6 +45,9 @@ Version 4.0.0 (in progress)
 
             *** POTENTIAL INCOMPATIBILITY ***
 
+2019-02-13: ZackerySpytz
+            #1469 Add support for C++17 hexadecimal floating literals.
+
 2019-02-11: wsfulton
             [OCaml] #1437 OCaml has been give the 'Experimental' language status. The examples work
             and most of the test-suite is also working, so it is quite close to being a 'Supported' language.
