@@ -244,7 +244,7 @@ bool is_bindc(Node *n) {
  * require the variable to be embedded in the middle of the array and thus
  * require special treatment.
  */
-bool needs_typedef(String *s) {
+bool return_type_needs_typedef(String *s) {
   String *strprefix = SwigType_prefix(s);
   bool result = (Strstr(strprefix, "p.a(") || Strstr(strprefix, "p.f(") || Strstr(strprefix, "p.m("));
   Delete(strprefix);
@@ -788,13 +788,11 @@ void FORTRAN::write_wrapper(String *filename) {
   Dump(f_header, out);
 
   // Write wrapper code
-  Printf(out, "#ifdef __cplusplus\n");
-  Printf(out, "extern \"C\" {\n");
-  Printf(out, "#endif\n");
+  if (CPlusPlus)
+    Printf(out, "extern \"C\" {\n");
   Dump(f_wrapper, out);
-  Printf(out, "#ifdef __cplusplus\n");
-  Printf(out, "}\n");
-  Printf(out, "#endif\n");
+  if (CPlusPlus)
+    Printf(out, "} // extern\n");
 
   // Write initialization code
   Wrapper_pretty_print(f_init, out);
@@ -1126,7 +1124,7 @@ int FORTRAN::cfuncWrapper(Node *n) {
   const bool is_csubroutine = (Strcmp(c_return_type, "void") == 0);
 
   String *c_return_str = NULL;
-  if (needs_typedef(c_return_type)) {
+  if (return_type_needs_typedef(c_return_type)) {
     // For these types (where the name is the middle of the expression rather than at the right side,
     // i.e. void (*func)() instead of int func, we either have to add a new typedef OR wrap the
     // entire function in parens. The former is easier.
