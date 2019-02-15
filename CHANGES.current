@@ -56,8 +56,8 @@ Version 4.0.0 (in progress)
 	    #1464 Add support for C++14 binary integer literals.
 
 2019-02-10: ZackerySpytz
-	    #1450 Add support for C++11 UCS-2 and UCS-4 character literals. Also add support for
-            C++17 UTF8 character literals.
+	    #1450 Add support for C++11 UCS-2 and UCS-4 character literals. Also, add support for
+            C++17 UTF-8 character literals.
 
 2019-02-10: wsfulton
 	    [MzScheme] #1437 MzScheme/Racket is now an 'Experimental' language. The examples work
@@ -214,7 +214,7 @@ Version 4.0.0 (in progress)
             int64_t instead of int64.
 
 2019-01-11: ZackerySpytz
-            [OCaml] #1400 Fix getters and setters.
+            [OCaml] #1400 Fix the getters and setters of non-static member variables.
 
 2019-01-07: wsfulton
             #358 Add VOID to windows.i
@@ -236,7 +236,7 @@ Version 4.0.0 (in progress)
             prevent accepting a conversion to a NULL pointer.
 
 2019-01-03: ZackerySpytz
-            [OCaml] #1386 Fix OCaml out-of-source test-suite
+            [OCaml] #1386 Fix the OCaml examples and test suite for out-of-source builds.
 
 2019-01-01: wsfulton
             [Python] #639 remove duplicate proxy method definitions for global function wrappers.

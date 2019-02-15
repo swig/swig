@@ -991,9 +991,88 @@ values will read zero, and struct or object returns have undefined results.
 
 
 <p>
-Catching exceptions is now supported using SWIG's %exception feature.  A simple
-but not too useful example is provided by the throw_exception testcase in
-Examples/test-suite.  You can provide your own exceptions, too.
+If an error occurs in a C or C++ function, you may want to convert that error into an OCaml
+exception.  To do this, you can use the <tt>%exception</tt> directive.  The <tt>%exception</tt>
+directive simply lets you rewrite part of the generated wrapper code to include an error check.
+It is detailed in full in the <a href="Customization.html#Customization_exception">Exception handling with %exception</a> section.
+</p>
+
+<p>
+In C, a function often indicates an error by returning a status code (e.g. a negative number
+or a NULL pointer).  Here is a simple example of how you might handle that:
+</p>
+
+<div class="code">
+<pre>
+%exception malloc {
+  $action
+  if (result == NULL) {
+    caml_failwith("Not enough memory");
+  }
+}
+void *malloc(size_t nbytes);
+</pre>
+</div>
+
+<p>
+In OCaml:
+</p>
+
+<div class="code">
+<pre>
+# let a = _malloc (C_int 20000000000);;
+Exception: Failure "Not enough memory".
+#
+</pre>
+</div>
+
+<p>
+If a library provides some kind of general error handling framework, you can also use
+that.  For example:
+</p>
+
+<div class="code">
+<pre>
+%exception {
+  $action
+  if (err_occurred()) {
+    caml_failwith(err_message());
+  }
+}
+</pre>
+</div>
+
+<p>
+If no declaration name is given to <tt>%exception</tt>, it is applied to all wrapper functions.
+<tt>$action</tt> is a SWIG special variable and is replaced by the C/C++ function call being wrapped.
+</p>
+
+<p>
+C++ exceptions are also easy to handle.  We can catch a C++ exception and rethrow it as
+an OCaml exception like this:
+</p>
+
+<div class="code">
+<pre>
+%exception getitem {
+  try {
+    $action
+  } catch (std::out_of_range &amp;e) {
+    caml_failwith(e.what());
+  }
+}
+
+class FooClass {
+  public:
+    int getitem(int index);      // Exception handling added
+    ...
+};
+</pre>
+</div>
+
+<p>
+The language-independent <tt>exception.i</tt> library file can also be used
+to raise exceptions.  See the <a href="Library.html#Library">SWIG Library</a> chapter.
 </p>
 
 <H2><a name="Ocaml_nn32">38.3 Documentation Features</a></H2>
