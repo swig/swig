@@ -459,15 +459,6 @@ extern "C" {
 	}
 	if( !Is_block(v) ) return -1;
 	switch( SWIG_Tag_val(v) ) {
-	case C_int:
-	    if( !caml_long_val( v ) ) {
-		*out = 0;
-		CAMLreturn_type(0);
-	    } else {
-		*out = 0;
-		CAMLreturn_type(1);
-	    }
-	    break;
 	case C_obj:
 	    if (!func_val) {
 	        func_val = caml_named_value("caml_obj_ptr");
