@@ -305,6 +305,11 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     $2 = ($2_ltype) caml_string_len($input);
 }
 
+%typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
+    swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **)&$1);
+    $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", (void *)$1, ty);
+}
+
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
 %apply SWIGTYPE && { SWIGTYPE ((&)[ANY]) }
