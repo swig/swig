@@ -18,7 +18,7 @@ let _ = print_endline "----------------------------------------"
 let callback = new_Callback '()
 let _ = caller -> "setCallback" (callback)
 let _ = caller -> "call" ()
-let _ = caller -> "delCallback" (0)
+let _ = caller -> "delCallback" ()
 
 let _ = print_endline "\nAdding and calling an OCaml callback"
 let _ = print_endline "------------------------------------"
@@ -26,5 +26,5 @@ let _ = print_endline "------------------------------------"
 let callback = new_derived_object new_Callback (new_OCamlCallback) '()
 let _  = caller -> "setCallback" (callback)
 let _  = caller -> "call" ()
-let _  = caller -> "delCallback" (0)
+let _  = caller -> "delCallback" ()
 let _  = print_endline "\nOCaml exit"
