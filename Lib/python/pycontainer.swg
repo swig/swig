@@ -44,7 +44,7 @@
 %fragment("reference_container_owner", "header", fragment="container_owner_attribute_init") {
 namespace swig {
   PyObject* container_owner_attribute() {
-    static PyObject* attr = SWIG_Python_str_FromChar("__owner");
+    static PyObject* attr = SWIG_Python_str_FromChar("__swig_container");
     return attr;
   }
 
@@ -52,18 +52,19 @@ namespace swig {
   struct container_owner {
     // By default, do not add the back-reference (for value types)
     // Specialization below will check the reference for pointer types.
-    static bool reference(PyObject* child, PyObject* owner)
-    { return false; }
+    static bool reference(PyObject* child, PyObject* owner) {
+      return false;
+    }
   };
 
   template <>
   struct container_owner<swig::pointer_category> {  
-    /**
+    /*
      * Call to add a back-reference to the owning object when returning a 
-     * reference from a container.  Will only set the reference if <code>child</code> 
+     * reference from a container.  Will only set the reference if child
      * is a SWIG wrapper object that does not own the pointer.
      *
-     * @return if the reference was set or not
+     * returns whether the reference was set or not
      */
     static bool reference(PyObject* child, PyObject* owner) {
       SwigPyObject* swigThis = SWIG_Python_GetSwigThis(child);
