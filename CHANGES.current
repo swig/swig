@@ -7,6 +7,24 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-02-16: wsfulton
+            Fix parser error containing multiple #define statements inside an enum.
+
+            The second #define fails to parse:
+
+              enum FooEnum {
+                ENUM1 = 0,
+                ENUM2 = 1,
+
+              #define MACRO_DEF1 "Hello"
+              #define MACRO_DEF2 "World!"
+
+                ENUM3 = 2,
+                ENUM4 = 3,
+              };
+
+            Bug mentioned at https://sourceforge.net/p/swig/patches/333/
+
 2019-02-14: wsfulton
             Add some missing copy constructors into STL containers.
 

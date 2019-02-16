@@ -6342,8 +6342,12 @@ ename          :  identifier { $$ = $1; }
 	       |  empty { $$ = (char *) 0;}
 	       ;
 
-optional_ignored_define
-		: constant_directive
+constant_directives : constant_directive
+		| constant_directive constant_directives
+		;
+
+optional_ignored_defines
+		: constant_directives
 		| empty
 		;
 
@@ -6364,7 +6368,7 @@ enumlist	: enumlist_item optional_ignored_define_after_comma {
 		  Setattr($2,"_last",NULL);
 		  $$ = $1;
 		}
-		| optional_ignored_define {
+		| optional_ignored_defines {
 		  $$ = 0;
 		}
 		;
@@ -6380,7 +6384,7 @@ enumlist_tail	: COMMA enumlist_item {
 		}
 		;
 
-enumlist_item	: optional_ignored_define edecl_with_dox optional_ignored_define {
+enumlist_item	: optional_ignored_defines edecl_with_dox optional_ignored_defines {
 		  $$ = $2;
 		}
 		;
