@@ -439,8 +439,8 @@ DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType
     rn = name_object_get(namehash, name, decl, ncdecl);
   }
   if (!rn && Swig_scopename_check(name)) {
-    String *nprefix = NewStringEmpty();
-    String *nlast = NewStringEmpty();
+    String *nprefix = 0;
+    String *nlast = 0;
     Swig_scopename_split(name, &nprefix, &nlast);
     rn = name_object_get(namehash, nlast, decl, ncdecl);
     Delete(nlast);
@@ -579,8 +579,8 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
   if (name && SwigType_istemplate(name)) {
     String *nodetype = nodeType(node);
     if (nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor"))) {
-      String *nprefix = NewStringEmpty();
-      String *nlast = NewStringEmpty();
+      String *nprefix = 0;
+      String *nlast = 0;
       String *tprefix;
       Swig_scopename_split(name, &nprefix, &nlast);
       tprefix = SwigType_templateprefix(nlast);
@@ -1434,8 +1434,8 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
   if (name && n && SwigType_istemplate(name)) {
     String *nodetype = nodeType(n);
     if (nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor"))) {
-      String *nprefix = NewStringEmpty();
-      String *nlast = NewStringEmpty();
+      String *nprefix = 0;
+      String *nlast = 0;
       String *tprefix;
       Swig_scopename_split(name, &nprefix, &nlast);
       tprefix = SwigType_templateprefix(nlast);
@@ -1659,12 +1659,13 @@ String *Swig_name_str(Node *n) {
   if (SwigType_istemplate(name)) {
     String *nodetype = nodeType(n);
     if (nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor"))) {
-      String *nprefix = NewStringEmpty();
-      String *nlast = NewStringEmpty();
+      String *nprefix = 0;
+      String *nlast = 0;
       String *tprefix;
       Swig_scopename_split(name, &nprefix, &nlast);
       tprefix = SwigType_templateprefix(nlast);
       Delete(nlast);
+      Delete(nprefix);
       Delete(name);
       name = tprefix;
     }
