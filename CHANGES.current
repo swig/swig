@@ -7,6 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-02-17: wsfulton
+            Fix typemap matching to expand template parameters when the name contains
+            template parameters. In the %typemap below the type is T and the name is X<T>::make
+            and the name now expands correctly to X< int >::make
+
+              template<typename T> struct X {
+                %typemap(out) T X<T>::make "..."
+                T make();
+              };
+
+              %template(Xint) X<int>;
+
 2019-02-16: wsfulton
             Fix parser error containing multiple #define statements inside an enum.
 
