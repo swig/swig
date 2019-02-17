@@ -560,6 +560,7 @@ CPP_TEST_CASES += \
 
 # C++11 test cases.
 CPP11_TEST_CASES += \
+	cpp11_alias_nested_template_scoping \
 	cpp11_alignment \
 	cpp11_alternate_function_syntax \
 	cpp11_constexpr \
@@ -575,7 +576,6 @@ CPP11_TEST_CASES += \
 	cpp11_initializer_list \
 	cpp11_initializer_list_extend \
 	cpp11_lambda_functions \
-	cpp11_std_array \
 	cpp11_noexcept \
 	cpp11_null_pointer_constant \
 	cpp11_raw_string_literals \
@@ -588,6 +588,7 @@ CPP11_TEST_CASES += \
 	cpp11_rvalue_reference3 \
 	cpp11_sizeof_object \
 	cpp11_static_assert \
+	cpp11_std_array \
 	cpp11_strongly_typed_enumerations \
 	cpp11_thread_local \
 	cpp11_template_double_brackets \
