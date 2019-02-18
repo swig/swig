@@ -52,7 +52,7 @@ namespace swig {
   struct container_owner {
     // By default, do not add the back-reference (for value types)
     // Specialization below will check the reference for pointer types.
-    static bool reference(PyObject* child, PyObject* owner) {
+    static bool back_reference(PyObject* child, PyObject* owner) {
       return false;
     }
   };
@@ -66,7 +66,7 @@ namespace swig {
      *
      * returns whether the reference was set or not
      */
-    static bool reference(PyObject* child, PyObject* owner) {
+    static bool back_reference(PyObject* child, PyObject* owner) {
       SwigPyObject* swigThis = SWIG_Python_GetSwigThis(child);
       if (swigThis && (swigThis->own & SWIG_POINTER_OWN) != SWIG_POINTER_OWN) {
         PyObject_SetAttr(child, container_owner_attribute(), owner);
@@ -809,8 +809,10 @@ namespace swig
       return self->size();
     }
 
-    %typemap(ret, fragment="reference_container_owner", noblock=1) value_type& {
-      (void)swig::container_owner<swig::traits<$*1_ltype>::category>::reference($result, $self);
+    // Although __getitem__, front, back actually use a const value_type& return type, the typemaps below
+    // use non-const so that they can be easily overridden by users if necessary.
+    %typemap(ret, fragment="reference_container_owner", noblock=1) value_type& __getitem__, value_type& front, value_type& back {
+      (void)swig::container_owner<swig::traits<$*1_ltype>::category>::back_reference($result, $self);
     }
   }
 %enddef
