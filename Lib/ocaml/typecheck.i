@@ -135,23 +135,41 @@
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] {
-  void *ptr;
-  $1 = !caml_ptr_val_internal($input, &ptr,$descriptor);
+  if (!Is_block($input) || !(SWIG_Tag_val($input) == C_obj || SWIG_Tag_val($input) == C_ptr)) {
+    $1 = 0;
+  } else {
+    void *ptr;
+    $1 = !caml_ptr_val_internal($input, &ptr, $descriptor);
+  }
 }
-
-#if 0
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
-  void *ptr;
-  $1 = !caml_ptr_val_internal($input, &ptr, $&1_descriptor);
+  swig_type_info *typeinfo;
+  if (!Is_block($input)) {
+    $1 = 0;
+  } else {
+    switch (SWIG_Tag_val($input)) {
+      case C_obj: {
+        void *ptr;
+        $1 = !caml_ptr_val_internal($input, &ptr, $&1_descriptor);
+        break;
+      }
+      case C_ptr: {
+        typeinfo = (swig_type_info *)SWIG_Int64_val(SWIG_Field($input, 1));
+        $1 = SWIG_TypeCheck("$1_type", typeinfo) != NULL;
+        break;
+      }
+      default: $1 = 0; break;
+    }
+  }
 }
-
-#endif
 
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
   void *ptr;
   $1 = !caml_ptr_val_internal($input, &ptr, 0);
 }
+
+%typecheck(SWIG_TYPECHECK_SWIGOBJECT) CAML_VALUE "$1 = 1;"
 
 /* ------------------------------------------------------------
  * Exception handling
