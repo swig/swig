@@ -5452,7 +5452,7 @@ Consider the following C++ code:
 #include &lt;iostream&gt;
 struct Wheel {
   int size;
-  Wheel(int sz) : size(sz) {}
+  Wheel(int sz = 0) : size(sz) {}
   ~Wheel() { std::cout &lt;&lt; "~Wheel" &lt;&lt; std::endl; }
 };
 
