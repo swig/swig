@@ -647,6 +647,7 @@ CPP_STD_TEST_CASES += \
 	li_std_pair_using \
 	li_std_string \
 	li_std_vector \
+	li_std_vector_back_reference \
 	li_std_vector_enum \
 	li_std_vector_member_var\
 	li_std_vector_ptr \
