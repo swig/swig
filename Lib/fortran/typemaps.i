@@ -21,6 +21,12 @@
 $1 = %static_cast($input->data, $1_ltype);
 $2 = $input->size;
 }
+
 /* Apply the typemaps to const versions as well */
 %apply (SWIGTYPE *DATA, size_t SIZE) { (const SWIGTYPE *DATA, size_t SIZE) };
+
+/* Add 'intent(in)' for const arrays */
+%typemap(ftype, in={$typemap(imtype, $*1_ltype), dimension(:), intent(in), target}, noblock=1) (const SWIGTYPE *DATA, size_t SIZE) {
+  $typemap(imtype, $*1_ltype), dimension(:), pointer
+}
 

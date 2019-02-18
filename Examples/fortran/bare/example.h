@@ -42,7 +42,7 @@ inline double can_overload(double x) {
 enum RgbEnum {
   RED = 0,
   GREEN = 0x4,
-  BLUE = (1 << 10),
+  BLUE = (1 << 10)
 };
 
 //! An enumeration that uses native wrapping
