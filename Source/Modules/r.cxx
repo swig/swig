@@ -65,11 +65,11 @@ static String * getRTypeName(SwigType *t, int *outCount = NULL) {
   */
 }
 
-/*********************
- Tries to get the name of the R class corresponding  to the given type
-  e.g. struct A * is ARef,  struct A**  is  ARefRef.
-  Now handles arrays, i.e. struct A[2]
-****************/
+/* --------------------------------------------------------------
+ * Tries to get the name of the R class corresponding  to the given type
+ * e.g. struct A * is ARef,  struct A**  is  ARefRef.
+ * Now handles arrays, i.e. struct A[2]
+ * --------------------------------------------------------------*/
 
 static String *getRClassName(String *retType, int /*addRef*/ = 1, int upRef=0) {
   String *tmp = NewString("");
@@ -131,11 +131,12 @@ static String *getRClassName(String *retType, int /*addRef*/ = 1, int upRef=0) {
 */
 }
 
-/*********************
- Tries to get the name of the R class corresponding  to the given type
-  e.g. struct A * is ARef,  struct A**  is  ARefRef.
-  Now handles arrays, i.e. struct A[2]
-****************/
+/* --------------------------------------------------------------
+ * Tries to get the name of the R class corresponding  to the given type
+ * e.g. struct A * is ARef,  struct A**  is  ARefRef.
+ * Now handles arrays, i.e. struct A[2]
+ * --------------------------------------------------------------*/
+
 
 static String * getRClassNameCopyStruct(String *retType, int addRef) {
   String *tmp = NewString("");
@@ -188,12 +189,13 @@ static String * getRClassNameCopyStruct(String *retType, int addRef) {
 }
 
 
-/*********************************
-  Write the elements of a list to the File*, one element per line.
-  If quote  is true, surround the element with "element".
-  This takes care of inserting a tab in front of each line and also
-  a comma after each element, except the last one.
-**********************************/
+/* -------------------------------------------------------------
+ * Write the elements of a list to the File*, one element per line.
+ * If quote  is true, surround the element with "element".
+ * This takes care of inserting a tab in front of each line and also
+ * a comma after each element, except the last one.
+ * --------------------------------------------------------------*/
+
 
 static void writeListByLine(List *l, File *out, bool quote = 0) {
   int i, n = Len(l);
@@ -222,9 +224,10 @@ R Options (available with -r)\n\
 
 
 
-/************
- Display the help for this module on the screen/console.
-*************/
+/* -------------------------------------------------------------
+ * Display the help for this module on the screen/console.
+ * --------------------------------------------------------------*/
+
 static void showUsage() {
   fputs(usage, stdout);
 }
@@ -238,10 +241,11 @@ static bool expandTypedef(SwigType *t) {
 }
 
 
-/*****
-      Determine whether  we should add a .copy argument to the S function
-      that wraps/interfaces to the routine that returns the given type.
-*****/
+/* -------------------------------------------------------------
+ * Determine whether  we should add a .copy argument to the S function
+ * that wraps/interfaces to the routine that returns the given type.
+ * --------------------------------------------------------------*/
+
 static int addCopyParameter(SwigType *type) {
   int ok = 0;
   ok = Strncmp(type, "struct ", 7) == 0 || Strncmp(type, "p.struct ", 9) == 0;
@@ -541,9 +545,10 @@ void R::addSMethodInfo(String *name, String *argType, int nargs) {
   }
 }
 
-/*
-  Returns the name of the new routine.
-*/
+/* ----------------------------------------
+ * Returns the name of the new routine.
+ * ------------------------------------------ */
+
 String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   String *funName = SwigType_manglestr(t);
 
@@ -780,12 +785,12 @@ int R::cDeclaration(Node *n) {
 #endif
 
 
-/**
-   Method from Language that is called to start the entire
-   processing off, i.e. the generation of the code.
-   It is called after the input has been read and parsed.
-   Here we open the output streams and generate the code.
-***/
+/* -------------------------------------------------------------
+ *  Method from Language that is called to start the entire
+ *  processing off, i.e. the generation of the code.
+ *  It is called after the input has been read and parsed.
+ *  Here we open the output streams and generate the code.
+ * ------------------------------------------------------------- */
 int R::top(Node *n) {
   String *module = Getattr(n, "name");
 
@@ -867,9 +872,9 @@ int R::top(Node *n) {
 }
 
 
-/*****************************************************
-  Write the generated code  to the .S and the .c files.
-****************************************************/
+/* -------------------------------------------------------------
+ * Write the generated code  to the .S and the .c files.
+ * ------------------------------------------------------------- */
 int R::DumpCode(Node *n) {
   String *output_filename = NewString("");
 
@@ -937,22 +942,23 @@ int R::DumpCode(Node *n) {
 
 
 
-/*
-  We may need to do more.... so this is left as a
-  stub for the moment.
-*/
+/* -------------------------------------------------------------
+ * We may need to do more.... so this is left as a
+ * stub for the moment.
+ * -------------------------------------------------------------*/
 int R::OutputClassAccessInfo(Hash *tb, File *out) {
   int n = OutputClassMemberTable(tb, out);
   OutputClassMethodsTable(out);
   return n;
 }
 
-/************************************************************************
-  Currently this just writes the information collected about the
-  different methods of the C++ classes that have been processed
-  to the console.
-  This will be used later to define S4 generics and methods.
-**************************************************************************/
+/* -------------------------------------------------------------
+ * Currently this just writes the information collected about the
+ * different methods of the C++ classes that have been processed
+ * to the console.
+ * This will be used later to define S4 generics and methods.
+ * --------------------------------------------------------------*/
+
 int R::OutputClassMethodsTable(File *) {
   Hash *tb = ClassMethodsTable;
 
@@ -981,20 +987,21 @@ int R::OutputClassMethodsTable(File *) {
 }
 
 
-/*
-  Iterate over the <class name>_set and <>_get
-  elements and generate the $ and $<- functions
-  that provide constrained access to the member
-  fields in these elements.
+/* --------------------------------------------------------------
+ * Iterate over the <class name>_set and <>_get
+ * elements and generate the $ and $<- functions
+ * that provide constrained access to the member
+ * fields in these elements.
 
-  tb - a hash table that is built up in functionWrapper
-  as we process each membervalueHandler.
-  The entries are indexed by <class name>_set and
-  <class_name>_get. Each entry is a List *.
+ * tb - a hash table that is built up in functionWrapper
+ * as we process each membervalueHandler.
+ * The entries are indexed by <class name>_set and
+ * <class_name>_get. Each entry is a List *.
 
-  out - the stram where the code is to be written. This is the S
-  code stream as we generate only S code here..
-*/
+ * out - the stram where the code is to be written. This is the S
+ * code stream as we generate only S code here.
+ * --------------------------------------------------------------*/
+
 int R::OutputClassMemberTable(Hash *tb, File *out) {
   List *keys = Keys(tb), *el;
 
@@ -1034,17 +1041,18 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
   return n;
 }
 
-/*******************************************************************
- Write the methods for $ or $<- for accessing a member field in an
- struct or union (or class).
- className - the name of the struct or union (e.g. Bar for struct Bar)
- isSet - a logical value indicating whether the method is for
-	   modifying ($<-) or accessing ($) the member field.
- el - a list of length  2 * # accessible member elements  + 1.
-      The first element is the name of the class.
-      The other pairs are  member name and the name of the R function to access it.
- out - the stream where we write the code.
-********************************************************************/
+/* --------------------------------------------------------------
+ * Write the methods for $ or $<- for accessing a member field in an
+ * struct or union (or class).
+ * className - the name of the struct or union (e.g. Bar for struct Bar)
+ * isSet - a logical value indicating whether the method is for
+ *	   modifying ($<-) or accessing ($) the member field.
+ * el - a list of length  2 * # accessible member elements  + 1.
+ *     The first element is the name of the class.
+ *     The other pairs are  member name and the name of the R function to access it.
+ * out - the stream where we write the code.
+ * --------------------------------------------------------------*/
+
 int R::OutputMemberReferenceMethod(String *className, int isSet,
 				   List *el, File *out) {
   int numMems = Len(el), j;
@@ -1168,15 +1176,16 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
   return SWIG_OK;
 }
 
-/*******************************************************************
- Write the methods for [ or [<- for accessing a member field in an
- struct or union (or class).
- className - the name of the struct or union (e.g. Bar for struct Bar)
- el - a list of length  2 * # accessible member elements  + 1.
-      The first element is the name of the class.
-      The other pairs are  member name and the name of the R function to access it.
- out - the stream where we write the code.
-********************************************************************/
+/* -------------------------------------------------------------
+ * Write the methods for [ or [<- for accessing a member field in an
+ * struct or union (or class).
+ * className - the name of the struct or union (e.g. Bar for struct Bar)
+ * el - a list of length  2 * # accessible member elements  + 1.
+ *     The first element is the name of the class.
+ *     The other pairs are  member name and the name of the R function to access it.
+ * out - the stream where we write the code.
+ * --------------------------------------------------------------*/
+
 int R::OutputArrayMethod(String *className, List *el, File *out) {
   int numMems = Len(el), j;
 
@@ -1207,11 +1216,12 @@ int R::OutputArrayMethod(String *className, List *el, File *out) {
 }
 
 
-/************************************************************
- Called when a enumeration is to be processed.
- We want to call the R function defineEnumeration().
- tdname is the typedef of the enumeration, i.e. giving its name.
-*************************************************************/
+/* -------------------------------------------------------------
+ * Called when a enumeration is to be processed.
+ * We want to call the R function defineEnumeration().
+ * tdname is the typedef of the enumeration, i.e. giving its name.
+ * --------------------------------------------------------------*/
+
 int R::enumDeclaration(Node *n) {
   if (!ImportMode) {
     if (getCurrentClass() && (cplus_mode != PUBLIC))
@@ -1255,8 +1265,9 @@ int R::enumDeclaration(Node *n) {
   return SWIG_OK;
 }
 
-/*************************************************************
-**************************************************************/
+/* -------------------------------------------------------------
+* --------------------------------------------------------------*/
+
 int R::enumvalueDeclaration(Node *n) {
   if (getCurrentClass() && (cplus_mode != PUBLIC)) {
     Printf(stdout, "evd: Not public\n");
@@ -1323,11 +1334,12 @@ int R::enumvalueDeclaration(Node *n) {
 }
 
 
-/*************************************************************
-Create accessor functions for variables.
-Does not create equivalent wrappers for enumerations,
-which are handled differently
-**************************************************************/
+/* -------------------------------------------------------------
+ * Create accessor functions for variables.
+ * Does not create equivalent wrappers for enumerations,
+ * which are handled differently
+ * --------------------------------------------------------------*/
+
 int R::variableWrapper(Node *n) {
   String *name = Getattr(n, "sym:name");
   if (debugMode) {
@@ -1368,12 +1380,12 @@ int R::variableWrapper(Node *n) {
   return SWIG_OK;
 }
 
-/*************************************************************
-Creates accessor functions for class members.
+/* -------------------------------------------------------------
+ * Creates accessor functions for class members.
 
-ToDo - this version depends on naming conventions and needs
-to be replaced.
-**************************************************************/
+ * ToDo - this version depends on naming conventions and needs
+ * to be replaced.
+ * --------------------------------------------------------------*/
 
 void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
 		    int isSet) {
@@ -1776,9 +1788,10 @@ void R::dispatchFunction(Node *n) {
   DelWrapper(f);
 }
 
-/******************************************************************
+/*--------------------------------------------------------------
 
-*******************************************************************/
+* --------------------------------------------------------------*/
+
 int R::functionWrapper(Node *n) {
   String *fname = Getattr(n, "name");
   String *iname = Getattr(n, "sym:name");
@@ -2329,15 +2342,16 @@ int R::constantWrapper(Node *n) {
   return SWIG_OK;
 }
 
-/*****************************************************
- Add the specified routine name to the collection of
- generated routines that are called from R functions.
- This is used to register the routines with R for
- resolving symbols.
+/*--------------------------------------------------------------
+ * Add the specified routine name to the collection of
+ * generated routines that are called from R functions.
+ * This is used to register the routines with R for
+ * resolving symbols.
 
- rname - the name of the routine
- nargs - the number of arguments it expects.
-******************************************************/
+ * rname - the name of the routine
+ * nargs - the number of arguments it expects.
+ * --------------------------------------------------------------*/
+
 int R::addRegistrationRoutine(String *rname, int nargs) {
   if(!registrationTable)
     registrationTable = NewHash();
@@ -2350,11 +2364,12 @@ int R::addRegistrationRoutine(String *rname, int nargs) {
   return SWIG_OK;
 }
 
-/*****************************************************
- Write the registration information to an array and
- create the initialization routine for registering
- these.
-******************************************************/
+/* -------------------------------------------------------------
+ * Write the registration information to an array and
+ * create the initialization routine for registering
+ * these.
+ * --------------------------------------------------------------*/
+
 int R::outputRegistrationRoutines(File *out) {
   int i, n;
   if(!registrationTable)
@@ -2397,11 +2412,11 @@ int R::outputRegistrationRoutines(File *out) {
 
 
 
-/****************************************************************************
-  Process a struct, union or class declaration in the source code,
-  or an anonymous typedef struct
+/* -------------------------------------------------------------
+ * Process a struct, union or class declaration in the source code,
+ * or an anonymous typedef struct
+ * --------------------------------------------------------------*/
 
-*****************************************************************************/
 //XXX What do we need to do here -
 // Define an S4 class to refer to this.
 
@@ -2582,12 +2597,13 @@ int R::classDeclaration(Node *n) {
 
 
 
-/***************************************************************
- Create the C routines that copy an S object of the class given
- by the given struct definition in Node *n to the C value
- and also the routine that goes from the C routine to an object
- of this S class.
-****************************************************************/
+/* -------------------------------------------------------------
+ * Create the C routines that copy an S object of the class given
+ * by the given struct definition in Node *n to the C value
+ * and also the routine that goes from the C routine to an object
+ * of this S class.
+ * --------------------------------------------------------------*/
+
 /*XXX
   Clean up the toCRef - make certain the names are correct for the types, etc.
   in all cases.
@@ -2682,13 +2698,14 @@ int R::generateCopyRoutines(Node *n) {
 
 
 
-/*****
-      Called when there is a typedef to be invoked.
+/* -------------------------------------------------------------
+ *  Called when there is a typedef to be invoked.
+ *
+ *  XXX Needs to be enhanced or split to handle the case where we have a
+ *  typedef within a classDeclaration emission because the struct/union/etc.
+ *  is anonymous.
+ * --------------------------------------------------------------*/
 
-      XXX Needs to be enhanced or split to handle the case where we have a
-      typedef within a classDeclaration emission because the struct/union/etc.
-      is anonymous.
-******/
 int R::typedefHandler(Node *n) {
   SwigType *tp = Getattr(n, "type");
   String *type = Getattr(n, "type");
@@ -2712,12 +2729,13 @@ int R::typedefHandler(Node *n) {
 
 
 
-/*********************
-  Called when processing a field in a "class", i.e. struct, union or
-  actual class.  We set a state variable so that we can correctly
-  interpret the resulting functionWrapper() call and understand that
-  it is for a field element.
-**********************/
+/* --------------------------------------------------------------
+ * Called when processing a field in a "class", i.e. struct, union or
+ * actual class.  We set a state variable so that we can correctly
+ * interpret the resulting functionWrapper() call and understand that
+ * it is for a field element.
+ * --------------------------------------------------------------*/
+
 int R::membervariableHandler(Node *n) {
   SwigType *t = Getattr(n, "type");
   processType(t, n, NULL);
@@ -2752,12 +2770,14 @@ String * R::runtimeCode() {
 }
 
 
-/**
-   Called when SWIG wants to initialize this
-   We initialize anythin we want here.
-   Most importantly, tell SWIG where to find the files (e.g. r.swg) for this module.
-   Use Swig_mark_arg() to tell SWIG that it is understood and not to throw an error.
-**/
+/* -----------------------------------------------------------------------
+ * Called when SWIG wants to initialize this
+ * We initialize anythin we want here.
+ * Most importantly, tell SWIG where to find the files (e.g. r.swg) for this module.
+ * Use Swig_mark_arg() to tell SWIG that it is understood and not to
+ * throw an error.
+ * --------------------------------------------------------------*/
+
 void R::main(int argc, char *argv[]) {
   init();
   Preprocessor_define("SWIGR 1", 0);
@@ -2840,10 +2860,10 @@ void R::main(int argc, char *argv[]) {
   }
 }
 
-/*
-  Could make this work for String or File and then just store the resulting string
-  rather than the collection of arguments and argc.
-*/
+/* -----------------------------------------------------------------------
+ * Could make this work for String or File and then just store the resulting string
+ * rather than the collection of arguments and argc.
+ * ----------------------------------------------------------------------- */
 int R::outputCommandLineArguments(File *out)
 {
   if(Argc < 1 || !Argv || !Argv[0])
@@ -2869,11 +2889,10 @@ Language *swig_r(void) {
 
 
 
-/*************************************************************************************/
 
-/*
-  Needs to be reworked.
-*/
+/* -----------------------------------------------------------------------
+ * Needs to be reworked.
+ *----------------------------------------------------------------------- */
 String * R::processType(SwigType *t, Node *n, int *nargs) {
   //XXX Need to handle typedefs, e.g.
   //  a type which is a typedef  to a function pointer.
@@ -2925,12 +2944,12 @@ String * R::processType(SwigType *t, Node *n, int *nargs) {
     return NULL;
 }
 
-/*************************************************************************************/
-  /* -----------------------------------------------------------------------
-   * enumValue()
-   * This method will return a string with an enum value to use in from R when 
-   * setting up an enum variable
-   * ------------------------------------------------------------------------ */
+
+/* -----------------------------------------------------------------------
+ * enumValue()
+ * This method will return a string with an enum value to use in from R when 
+ * setting up an enum variable
+ * ------------------------------------------------------------------------ */
 
 String *R::enumValue(Node *n) {
   String *symname = Getattr(n, "sym:name");
