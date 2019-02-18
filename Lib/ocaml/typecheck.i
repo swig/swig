@@ -72,7 +72,8 @@
   long, signed long, unsigned long,
   long long, signed long long, unsigned long long,
   const long &, const signed long &, const unsigned long &,
-  const long long &, const signed long long &, const unsigned long long &
+  const long long &, const signed long long &, const unsigned long long &,
+  size_t, const size_t &
 {
   if( !Is_block($input) ) $1 = 0;
   else {

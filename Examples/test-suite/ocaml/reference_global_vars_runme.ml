@@ -22,7 +22,7 @@ let _ =
 
   let _ = _var_short (_createref_short (C_short 10)) in
   assert (_value_short (_var_short '()) as int = 10);
-  
+
   let _ = _var_unsigned_short (_createref_unsigned_short (C_ushort 10)) in
   assert (_value_unsigned_short (_var_unsigned_short '()) as int = 10);
 
