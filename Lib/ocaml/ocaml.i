@@ -33,10 +33,6 @@
 
 %insert(classtemplate) "class.swg"
 
-/* Definitions */
-#define SWIG_malloc(size) swig_malloc(size, FUNC_NAME)
-#define SWIG_free(mem) free(mem)
-
 /* Read in standard typemaps. */
 %include <swig.swg>
 %include <typemaps.i>

@@ -142,13 +142,6 @@
 %typemap(directorout) C_NAME {
     $1 = OCAML_TO_C($input);
 }
-%typemap(in) C_NAME *INPUT ($*1_ltype temp) {
-    temp = ($*1_ltype) OCAML_TO_C($input);
-    $1 = &temp;
-}
-%typemap(in,numinputs=0) C_NAME *OUTPUT ($*1_ltype temp) {
-    $1 = &temp;
-}
 /* Out */
 %typemap(out) C_NAME {
     $result = C_TO_OCAML($1);
@@ -158,9 +151,6 @@
 }
 %typemap(varout) C_NAME & {
     $result = C_TO_OCAML($1);
-}
-%typemap(argout) C_NAME *OUTPUT {
-    swig_result = caml_list_append(swig_result, C_TO_OCAML((long)*$1));
 }
 %typemap(out) C_NAME & {
     $result = C_TO_OCAML(*$1);
