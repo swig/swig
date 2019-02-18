@@ -36,6 +36,48 @@
 
 %include <std_except.i>
 
+%fragment("container_owner_attribute_init", "init") {
+  // thread safe initialization
+  swig::container_owner_attribute();
+}
+
+%fragment("reference_container_owner", "header", fragment="container_owner_attribute_init") {
+namespace swig {
+  PyObject* container_owner_attribute() {
+    static PyObject* attr = SWIG_Python_str_FromChar("__swig_container");
+    return attr;
+  }
+
+  template <typename T>
+  struct container_owner {
+    // By default, do not add the back-reference (for value types)
+    // Specialization below will check the reference for pointer types.
+    static bool reference(PyObject* child, PyObject* owner) {
+      return false;
+    }
+  };
+
+  template <>
+  struct container_owner<swig::pointer_category> {  
+    /*
+     * Call to add a back-reference to the owning object when returning a 
+     * reference from a container.  Will only set the reference if child
+     * is a SWIG wrapper object that does not own the pointer.
+     *
+     * returns whether the reference was set or not
+     */
+    static bool reference(PyObject* child, PyObject* owner) {
+      SwigPyObject* swigThis = SWIG_Python_GetSwigThis(child);
+      if (swigThis && (swigThis->own & SWIG_POINTER_OWN) != SWIG_POINTER_OWN) {
+        PyObject_SetAttr(child, container_owner_attribute(), owner);
+        return true;
+      }
+      return false;
+    }
+  };
+}
+}
+
 %fragment(SWIG_Traits_frag(swig::SwigPtr_PyObject),"header",fragment="StdTraits") {
 namespace swig {
   template <>  struct traits<SwigPtr_PyObject > {
@@ -765,6 +807,10 @@ namespace swig
 
     size_type __len__() const {
       return self->size();
+    }
+
+    %typemap(ret, fragment="reference_container_owner", noblock=1) value_type& {
+      (void)swig::container_owner<swig::traits<$*1_ltype>::category>::reference($result, $self);
     }
   }
 %enddef
