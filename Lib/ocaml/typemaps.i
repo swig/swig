@@ -132,11 +132,11 @@
 %typemap(varin) C_NAME {
     $1 = OCAML_TO_C($input);
 }
-%typemap(in) C_NAME & ($*1_ltype temp) {
+%typemap(in) const C_NAME & ($*1_ltype temp) {
     temp = ($*1_ltype) OCAML_TO_C($input);
     $1 = &temp;
 }
-%typemap(varin) C_NAME & {
+%typemap(varin) const C_NAME & {
     $1 = OCAML_TO_C($input);
 }
 %typemap(directorout) C_NAME {
@@ -149,10 +149,10 @@
 %typemap(varout) C_NAME {
     $result = C_TO_OCAML($1);
 }
-%typemap(varout) C_NAME & {
+%typemap(varout) const C_NAME & {
     $result = C_TO_OCAML($1);
 }
-%typemap(out) C_NAME & {
+%typemap(out) const C_NAME & {
     $result = C_TO_OCAML(*$1);
 }
 %typemap(directorin) C_NAME {

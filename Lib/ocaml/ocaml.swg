@@ -62,7 +62,7 @@ extern "C" {
 		    SWIG_TypeCheckStruct(source_type, dest_type );
 #ifdef TYPE_CAST_VERBOSE
 		fprintf( stderr, "Typecheck -> %s\n",
-			 tc ? tc->str : "<none>" );
+			 tc ? tc->type->str : "<none>" );
 #endif
 		if( tc ) {
 		    int newmemory = 0;

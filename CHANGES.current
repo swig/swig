@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-02-18: jakecobb
+            [Python] #945 #1234 Elements in std::vector memory access fix.
+
+            Accessing an element in a std::vector obtains a reference to the element via an
+            iterator pointing to the element in the container. If the vector is garbage collected,
+            the SWIG wrapper containing the pointer to the element becomes invalid. The fix is
+            to obtain a back-reference to the container by the wrapper to the element in the Python
+            layer to prevent the garbage collector from destroying the underlying container.
+
 2019-02-17: wsfulton
             Fix typemap matching to expand template parameters when the name contains
             template parameters. In the %typemap below the type is T and the name is X<T>::make
