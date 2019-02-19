@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * typemaps.i
+ * ocaml.swg
  *
  * The Ocaml module handles all types uniformly via typemaps. Here
  * are the definitions.

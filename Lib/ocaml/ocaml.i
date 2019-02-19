@@ -35,7 +35,7 @@
 
 /* Read in standard typemaps. */
 %include <swig.swg>
-%include <typemaps.i>
+%include <ocaml.swg>
 %include <typecheck.i>
 %include <exception.i>
 %include <preamble.swg>
