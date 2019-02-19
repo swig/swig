@@ -24,6 +24,7 @@ SWIGEXT {
 #include <caml/callback.h>
 #include <caml/fail.h>
 #include <caml/misc.h>
+#include <caml/threads.h>
 
 #if defined(CAMLassert)
 /* Both this macro and version.h were introduced in version 4.02.0 */
