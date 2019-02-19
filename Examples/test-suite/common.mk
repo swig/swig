@@ -707,6 +707,7 @@ C_TEST_CASES += \
 	preproc \
 	preproc_constants_c \
 	preproc_defined \
+	preproc_gcc_output \
 	preproc_include \
 	preproc_line_file \
 	register_par \
