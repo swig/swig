@@ -8,7 +8,7 @@
 %insert(runtime) "swigrun.swg"
 
 /* Include headers */
-%insert(runtime) "ocamldec.swg"
+%insert(runtime) "ocamlrundec.swg"
 
 /* Type registration */
 %insert(init) "swiginit.swg"
@@ -28,7 +28,7 @@
 %}
 
 /*#ifndef SWIG_NOINCLUDE*/
-%insert(runtime) "ocaml.swg"
+%insert(runtime) "ocamlrun.swg"
 /*#endif*/
 
 %insert(classtemplate) "class.swg"
