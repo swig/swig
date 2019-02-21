@@ -65,7 +65,7 @@ void CheckRetTypemapUsed() {
   };
 }
 
-#ifdef SWIGCSHARP
+#if defined(SWIGCSHARP) || defined(SWIGFORTRAN)
 #define TYPEMAP_OUT_INIT $result = 0;
 #else
 #define TYPEMAP_OUT_INIT
