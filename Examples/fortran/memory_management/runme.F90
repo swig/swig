@@ -1,6 +1,8 @@
 ! File : runme.f90
 
-#define ASSERT(COND) if (.not. (COND)) stop 1
+#define ASSERT(COND) \
+if(.not.(COND))then;print*,"Failure:",__LINE__;stop 1;endif
+
 program main
   implicit none
   call test_simple_class_memory()
@@ -18,13 +20,17 @@ subroutine test_simple_class_memory()
   type(SimpleClass) :: constref
   type(SimpleClass) :: unassigned
 
+  ASSERT(use_count() == 1) ! 'static' global
   write(0, *) "Constructing..."
   orig = SimpleClass()
+  ASSERT(orig%swigdata%mem == 1)
+  ASSERT(use_count() == 2)
   call orig%set(1)
 
   ! Copy construct
   write(0, *) "Copying class "
   copied = orig
+  ASSERT(use_count() == 3)
   write(0, *) "Orig/copied: ", orig%id(), "/", copied%id()
   ASSERT(orig%id() == 1)
   ASSERT(copied%id() == 12)
@@ -32,6 +38,7 @@ subroutine test_simple_class_memory()
   ! Assign to an already-created instance
   assigned = SimpleClass(3.0d0)
   ASSERT(assigned%id() == 3)
+  ASSERT(use_count() == 4)
   call orig%set(1234)
   write(0, *) "Assigning"
   assigned = orig
@@ -47,25 +54,31 @@ subroutine test_simple_class_memory()
   ! Get the 'static'-duration class by const reference
   write(0, *) "Getting by const reference"
   constref = get_class()
+  ASSERT(use_count() == 4)
   ASSERT(constref%get() == 0)
   ! Calling a non-const function of a const reference will raise an error
   ! call constref%double_it()
 
   ! Release created
   write(0, *) "Releasing orig"
+  ASSERT(orig%swigdata%mem == 1)
   call orig%release()
+  ASSERT(use_count() == 3)
   ! Release copy constructed
   write(0, *) "Releasing copied"
   call copied%release()
+  ASSERT(use_count() == 2)
   ! Release assigned
   write(0, *) "Releasing assigned"
   call assigned%release()
+  ASSERT(use_count() == 1)
   ! Release global const reference
   write(0, *) "Releasing const reference"
   call constref%release()
   ! Release a pointer in its null state
   write(0, *) "Releasing unassigned"
   call unassigned%release()
+  ASSERT(use_count() == 1) ! 'static' global
 end subroutine
 
 subroutine test_simple_class_actions()

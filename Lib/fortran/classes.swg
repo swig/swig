@@ -600,12 +600,11 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, const SwigClassWrapper*
 %apply SWIGTYPE *MUTABLE_SELF { SWIGTYPE *ASSIGNMENT_SELF };
 %typemap(in) SWIGTYPE *ASSIGNMENT_SELF "(void)sizeof($1);";
 
-%typemap(ftype, in="type($fclassname), intent(in)") const SWIGTYPE &ASSIGNMENT_OTHER
+%typemap(ftype, in="type($fclassname), intent(in)") SWIGTYPE &ASSIGNMENT_OTHER
   "type($fclassname)"
-%typemap(in) const SWIGTYPE &ASSIGNMENT_OTHER = SWIGTYPE *ASSIGNMENT_SELF;
+%typemap(in) SWIGTYPE &ASSIGNMENT_OTHER = SWIGTYPE *ASSIGNMENT_SELF;
 
 %apply SWIGTYPE *MUTABLE_SELF { SWIGTYPE *DESTRUCTOR_SELF };
-%typemap(in) SWIGTYPE *DESTRUCTOR_SELF "(void)sizeof($input);";
 %typemap(fargout, noblock=1) SWIGTYPE *DESTRUCTOR_SELF {
   $input%swigdata%cptr = C_NULL_PTR
   $input%swigdata%mem = SWIG_NULL

@@ -63,6 +63,11 @@ void print_value(const SimpleClass &c) {
 }
 
 /* ------------------------------------------------------------------------- */
+int use_count() {
+  return g_counter;
+}
+
+/* ------------------------------------------------------------------------- */
 void dumb_copy(SimpleClass c) {
   cout << "Copied: ";
   print_value(c);
