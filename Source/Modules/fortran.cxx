@@ -1726,8 +1726,8 @@ void FORTRAN::add_assignment_operator(Node *classn) {
   SwigType *classtype = Getattr(classn, "classtypeobj");
   ASSERT_OR_PRINT_NODE(classname && classtype, classn);
   
-  // Parameter: specially named "Class&"; "self" gets added automatically later
-  SwigType *argtype = NewStringf("r.%s", classtype);
+  // Parameter: "const Class&"; "self" gets added automatically later
+  SwigType *argtype = NewStringf("r.q(const).%s", classtype);
   // Function declaration
   String *decl = NewStringf("f(%s).", argtype);
   String *name = NewString("operator =");
@@ -1790,7 +1790,11 @@ void FORTRAN::add_assignment_operator(Node *classn) {
   Setattr(n, "type", "void"); // Returns nothing
   Setattr(n, "decl", decl);
 
-  // Change parameters so that the correct self/other are used for typemap matching
+  // Change parameters so that the correct self/other are used for typemap matching.
+  // Notably, 'other' should be treated as a *MUTABLE* reference for type matching.
+  Delete(argtype);
+  argtype = NewStringf("r.%s", classtype);
+  
   Parm *other_parm = NewParm(argtype, "other", classn);
   this->makeParameterName(n, other_parm, 0);
   Setattr(other_parm, "name", "ASSIGNMENT_OTHER");
