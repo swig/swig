@@ -51,6 +51,9 @@ template<class K, class T, class C = std::less< K> > class map {
 %typemap(javabase) std::map< K, T, C >
     "java.util.AbstractMap<$typemap(jboxtype, K), $typemap(jboxtype, T)>"
 
+%typemap(javaimports) std::map< K, T, C >
+    "import java.lang.Object;"
+
 %proxycode %{
 
   public int size() {
