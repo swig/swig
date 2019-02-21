@@ -1726,8 +1726,8 @@ void FORTRAN::add_assignment_operator(Node *classn) {
   SwigType *classtype = Getattr(classn, "classtypeobj");
   ASSERT_OR_PRINT_NODE(classname && classtype, classn);
   
-  // Parameter: "const Class&"; "self" gets added automatically later
-  SwigType *argtype = NewStringf("r.q(const).%s", classtype);
+  // Parameter: specially named "Class&"; "self" gets added automatically later
+  SwigType *argtype = NewStringf("r.%s", classtype);
   // Function declaration
   String *decl = NewStringf("f(%s).", argtype);
   String *name = NewString("operator =");
