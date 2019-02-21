@@ -1722,8 +1722,9 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
  */
 void FORTRAN::add_assignment_operator(Node *classn) {
   ASSERT_OR_PRINT_NODE(Strcmp(nodeType(classn), "class") == 0 && !this->is_bindc_struct(), classn);
-  SwigType *classtype = Getattr(classn, "classtype");
-  ASSERT_OR_PRINT_NODE(classtype, classn);
+  String *classname = Getattr(classn, "classtype");
+  SwigType *classtype = Getattr(classn, "classtypeobj");
+  ASSERT_OR_PRINT_NODE(classname && classtype, classn);
   
   // Parameter: "const Class&"; "self" gets added automatically later
   SwigType *argtype = NewStringf("r.q(const).%s", classtype);
@@ -1818,21 +1819,21 @@ void FORTRAN::add_assignment_operator(Node *classn) {
   if (String *smartptr_type = Getattr(classn, "feature:smartptr")) {
     // We're actually assigning a *smart* pointer. Modify as a smart pointer rather than
     // as the wrapped class type.
-    classtype = smartptr_type;
+    classname = smartptr_type;
   }
 
   // Define action code
   String *code = NULL;
   if (CPlusPlus) {
-    code = NewStringf("typedef %s swig_lhs_classtype;\n", classtype);
-    classtype = NewString("swig_lhs_classtype");
+    code = NewStringf("typedef %s swig_lhs_classtype;\n", classname);
+    classname = NewString("swig_lhs_classtype");
   } else {
     code = NewStringEmpty();
-    classtype = Copy(classtype);
+    classname = Copy(classname);
   }
 
   Printf(code, "SWIG_assign(%s, farg1, %s, farg2, %s);",
-         classtype, classtype,
+         classname, classname,
          flags);
   Setattr(n, "feature:action", code);
 
@@ -1841,6 +1842,7 @@ void FORTRAN::add_assignment_operator(Node *classn) {
 
   Delete(code);
   Delete(classtype);
+  Delete(classname);
   Delete(flags);
   Delete(other_parm);
   Delete(name);
