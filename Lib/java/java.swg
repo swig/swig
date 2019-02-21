@@ -1273,6 +1273,7 @@ SWIG_JAVABODY_PROXY(protected, protected, SWIGTYPE)
 SWIG_JAVABODY_TYPEWRAPPER(protected, protected, protected, SWIGTYPE)
 
 %typemap(javafinalize) SWIGTYPE %{
+  @SuppressWarnings("deprecation")
   protected void finalize() {
     delete();
   }
