@@ -63,6 +63,8 @@ typedef const SimpleClass &const_SC_Ref;
 
 //! Free function
 void print_value(const_SC_Ref c);
+//! Number of instantiated classes
+int use_count();
 
 //! Return by new pointer
 SC_Ptr emit_class(SimpleClass::storage_type val);
