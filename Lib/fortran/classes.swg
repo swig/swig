@@ -605,7 +605,6 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, const SwigClassWrapper*
 %typemap(in) const SWIGTYPE &ASSIGNMENT_OTHER = SWIGTYPE *ASSIGNMENT_SELF;
 
 %apply SWIGTYPE *MUTABLE_SELF { SWIGTYPE *DESTRUCTOR_SELF };
-%typemap(in) SWIGTYPE *DESTRUCTOR_SELF "(void)sizeof($input);";
 %typemap(fargout, noblock=1) SWIGTYPE *DESTRUCTOR_SELF {
   $input%swigdata%cptr = C_NULL_PTR
   $input%swigdata%mem = SWIG_NULL
