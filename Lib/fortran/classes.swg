@@ -286,7 +286,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper other)
 %typemap(imtype, fragment="SwigClassWrapper_f")
     SWIGTYPE
   "type(SwigClassWrapper)"
-%typemap(ftype, in="type($fclassname), intent(in)") SWIGTYPE
+%typemap(ftype, in="type($fclassname), intent(in)", nofortransubroutine=1) SWIGTYPE
   "type($fclassname)"
 
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE {
@@ -309,7 +309,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper other)
 // Raw pointers act mostly like value types, but they don't have to accept the exact type (polymorphic input, non-polymorphic output). Intent is 'in' because
 // we're not modifying the pointer or memory status.
 %apply SWIGTYPE { SWIGTYPE* };
-%typemap(ftype, in="class($fclassname), intent(in)") SWIGTYPE*
+%typemap(ftype, in="class($fclassname), intent(in)", nofortransubroutine=1) SWIGTYPE*
   "type($fclassname)"
 %typemap(in, noblock=1, fragment="SWIG_check_mutable") SWIGTYPE* {
   SWIG_check_mutable(*$input, "$1_ltype", "$fclassname", "$decl", return $null);
@@ -389,7 +389,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper other)
   $1 = %static_cast($input->cptr, $1_ltype);
 }
 
-%typemap(ftype, in="class($fclassname), intent(inout)") SWIGTYPE *MUTABLE_SELF
+%typemap(ftype, in="class($fclassname), intent(inout)", nofortransubroutine=1) SWIGTYPE *MUTABLE_SELF
   "type($fclassname)"
 %typemap(ctype, fragment="SwigClassWrapper") SWIGTYPE *MUTABLE_SELF
   "SwigClassWrapper *"
@@ -402,7 +402,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper other)
 %apply SWIGTYPE *MUTABLE_SELF { SWIGTYPE *ASSIGNMENT_SELF };
 %typemap(in) SWIGTYPE *ASSIGNMENT_SELF "(void)sizeof($1);";
 
-%typemap(ftype, in="type($fclassname), intent(in)") SWIGTYPE &ASSIGNMENT_OTHER
+%typemap(ftype, in="type($fclassname), intent(in)", nofortransubroutine=1) SWIGTYPE &ASSIGNMENT_OTHER
   "type($fclassname)"
 %typemap(in) SWIGTYPE &ASSIGNMENT_OTHER = SWIGTYPE *ASSIGNMENT_SELF;
 

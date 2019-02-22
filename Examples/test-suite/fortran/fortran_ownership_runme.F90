@@ -50,8 +50,8 @@ subroutine test_standard
   ASSERT(get_foo_counter() == 2)
   ASSERT(c%get_val() == 4) ! The reference is changed as well
 
-  ! Construct by reference
-  call make_foo_subroutine(5, b)
+  ! NOTE: returning class by intent(out) is *disabled*
+  b = make_foo_subroutine(5)
   ASSERT(btest(b%swigdata%cmemflags, swig_cmem_own_bit))
   ASSERT(.not. btest(b%swigdata%cmemflags, swig_cmem_rvalue_bit))
   ASSERT(get_foo_counter() == 3)
@@ -62,15 +62,16 @@ subroutine test_standard
   ASSERT(.not. btest(b%swigdata%cmemflags, swig_cmem_rvalue_bit))
   ASSERT(get_foo_counter() == 3)
 
-  ! XXX: leaks memory
-  call make_foo_subroutine(6, b)
-  num_leaks = num_leaks + 1
-  ASSERT(get_foo_counter() == 3 + num_leaks)
-
-  ! XXX: also leaks memory
-  call make_foo_subroutine(6)
-  num_leaks = num_leaks + 1
-  ASSERT(get_foo_counter() == 3 + num_leaks)
+  ! NOTE: returning class by intent(out) is *disabled*, so these no longer leak
+!  ! XXX: leaks memory
+!  call make_foo_subroutine(6, b)
+!  num_leaks = num_leaks + 1
+!  ASSERT(get_foo_counter() == 3 + num_leaks)
+!
+!  ! XXX: also leaks memory
+!  call make_foo_subroutine(6)
+!  num_leaks = num_leaks + 1
+!  ASSERT(get_foo_counter() == 3 + num_leaks)
 
   ! XXX: *also* leaks
   val = get_value(Foo(7))

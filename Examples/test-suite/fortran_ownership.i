@@ -7,7 +7,9 @@
 %immutable foo_counter;
 %immutable bar_counter;
 
+// We aren't allowed to return a class via func-to-subroutine conversion, but we're going to test it and hide the warning
 %fortransubroutine make_foo_subroutine;
+%warnfilter(SWIGWARN_FORTRAN_NO_SUBROUTINE) make_foo_subroutine;
 
 %include <boost_shared_ptr.i>
 %shared_ptr(Bar)

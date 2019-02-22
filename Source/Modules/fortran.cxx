@@ -1486,12 +1486,7 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
 
   // >>> FUNCTION RETURN VALUES
 
-  String *fargs = NewStringEmpty();
-
-  String *return_ftype = NULL;
-  if (!return_ftype) {
-    return_ftype = attach_typemap("ftype", n, WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF);
-  }
+  String *return_ftype = attach_typemap("ftype", n, WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF);
   assert(return_ftype);
 
   // Return type for the C call
@@ -1518,7 +1513,13 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   }
   Printv(fcall, Getattr(n, "wrap:imname"), "(", NULL);
 
-  const bool func_to_subroutine = !is_imsubroutine && GetFlag(n, "feature:fortran:subroutine");
+  bool func_to_subroutine = !is_imsubroutine && GetFlag(n, "feature:fortran:subroutine");
+  if (func_to_subroutine && GetFlag(n, "tmap:ftype:nofortransubroutine")) {
+      Swig_warning(WARN_FORTRAN_NO_SUBROUTINE, Getfile(n), Getline(n),
+                   "The given type '%s' cannot be converted from a function result to an optional subroutine argument" ,
+                   return_cpptype);
+      func_to_subroutine = false;
+  }
   const bool is_fsubroutine = (Len(return_ftype) == 0) || func_to_subroutine;
 
   String *swig_result_name = NULL;
@@ -1529,6 +1530,8 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
       swig_result_name = NewString("swig_result");
     }
   }
+
+  String *fargs = NewStringEmpty();
   if (!is_fsubroutine && !func_to_subroutine) {
     // Add dummy variable for Fortran proxy return
     Printv(fargs, return_ftype, " :: ", swig_result_name, "\n", NULL);
