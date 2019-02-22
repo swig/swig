@@ -19,6 +19,8 @@ subroutine test_simple_class_memory()
   type(SimpleClass) :: assigned
   type(SimpleClass) :: constref
   type(SimpleClass) :: unassigned
+  type(SimpleClass) :: createref
+  integer :: leak_count = 0
 
   ASSERT(use_count() == 1) ! 'static' global
   write(0, *) "Constructing..."
@@ -36,12 +38,12 @@ subroutine test_simple_class_memory()
   ASSERT(copied%id() == 12)
 
   ! Assign to an already-created instance
-  call assigned%assign(SimpleClass(3.0d0))
+  assigned = SimpleClass(3.0d0)
   ASSERT(assigned%id() == 3)
   ASSERT(use_count() == 4)
   call orig%set(1234)
   write(0, *) "Assigning"
-  assigned = orig
+  call assigned%assign(orig)
   ! IDs should not have changed
   write(0, *) "Orig/assigned IDs:", orig%id(), assigned%id()
   ASSERT(orig%id() == 1)
@@ -58,30 +60,50 @@ subroutine test_simple_class_memory()
   ASSERT(constref%get() == 0)
   ! Calling a non-const function of a const reference will raise an error
   ! call constref%double_it()
+  
+  ! Create via a function that is transformed to a subroutine
+  call make_class(3, createref)
+  ASSERT(use_count() == 5)
+  ASSERT(createref%get() == 3)
 
   ! This will leak memory
   call print_value(SimpleClass(5.0d0))
+  leak_count = leak_count + 1
+  ASSERT(use_count() == 5 + leak_count)
+
+  ! This will also leak memory: we don't capture the return result
+  call make_class(4)
+  leak_count = leak_count + 1
+  ASSERT(use_count() == 5 + leak_count)
+
+  ! This will *also* leak memory: 'createref' is intent(out) and its pointer
+  ! isn't released when it's assigned in this manner
+  call make_class(5, createref)
+  leak_count = leak_count + 1
+  ASSERT(use_count() == 5 + leak_count)
+  call createref%release()
+  ASSERT(use_count() == 4 + leak_count)
 
   ! Release created
   write(0, *) "Releasing orig"
   ASSERT(orig%swigdata%cmemflags == 1)
   call orig%release()
-  ASSERT(use_count() == 3)
+  ASSERT(use_count() == 3 + leak_count)
   ! Release copy constructed
   write(0, *) "Releasing copied"
   call copied%release()
-  ASSERT(use_count() == 2)
+  ASSERT(use_count() == 2 + leak_count)
   ! Release assigned
   write(0, *) "Releasing assigned"
   call assigned%release()
-  ASSERT(use_count() == 1)
+  ASSERT(use_count() == 1 + leak_count)
   ! Release global const reference
   write(0, *) "Releasing const reference"
   call constref%release()
   ! Release a pointer in its null state
   write(0, *) "Releasing unassigned"
   call unassigned%release()
-  ASSERT(use_count() == 1) ! 'static' global
+  ASSERT(use_count() == 1 + leak_count) ! 'static' global
 end subroutine
 
 subroutine test_simple_class_actions()

@@ -31,19 +31,18 @@ void print_pointer(int msg, const SimpleClass* ptr)
 // Allow assignment
 %rename("assign") *::operator=;
 
-/*
- * Note: this used to be: \code
-    write(0, "(a, z16)") "F Constructed ", self%swigptr
- * \endcode
- *
- * but printing pointers is not standards-compliant.
- */
+// Change 'make_class' to set by reference
+%fortransubroutine make_class;
 
 %fortranappend SimpleClass::SimpleClass %{
     call print_pointer(0, self)
 %}
 %fortranprepend SimpleClass::~SimpleClass %{
     call print_pointer(1, self)
+%}
+%fortranprepend SimpleClass::operator= %{
+    call print_pointer(2, rhs)
+    call print_pointer(3, self)
 %}
 
 %feature("docstring") SimpleClass %{

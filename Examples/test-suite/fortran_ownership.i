@@ -4,25 +4,40 @@
 #include "boost/shared_ptr.hpp"
 %}
 
-%copyctor Foo;
-%copyctor Bar;
+%immutable foo_counter;
+%immutable bar_counter;
+
+%fortransubroutine make_foo_subroutine;
 
 %include <boost_shared_ptr.i>
 %shared_ptr(Bar)
 
 %inline %{
+
+static int foo_counter = 0;
+static int bar_counter = 0;
+
 struct Foo {
     int val;
-    /* constructor: */
-    Foo(int val_) : val(val_) {}
+
+    Foo(int val_) : val(val_) { ++foo_counter; }
+    Foo(const Foo& other) : val(other.val) { ++foo_counter; }
+    ~Foo() { --foo_counter; }
 };
 
 Foo& reference(Foo& other) { return other; }
+const Foo& const_reference(const Foo& other) { return other; }
+Foo make_foo(int val) { return Foo(val); }
+Foo make_foo_subroutine(int val) { return Foo(val); }
+
+int get_value(const Foo& other) { return other.val; }
 
 struct Bar {
     int val;
-    /* constructor: */
-    Bar(int val_) : val(val_) {}
+
+    Bar(int val_) : val(val_) { ++bar_counter; }
+    Bar(const Bar& other) : val(other.val) { ++bar_counter; }
+    ~Bar() { --bar_counter; }
 };
 
 boost::shared_ptr<Bar> share(boost::shared_ptr<Bar> other) { return other; }

@@ -304,16 +304,13 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper other)
   "$result%swigdata = $1"
 %typemap(foutdecl, match="fout") SWIGTYPE ""
 
-// Raw pointers act mostly like value types, but they don't have to accept the exact type (polymorphic input, non-polymorphic output)
+// >>> POINTER
+
+// Raw pointers act mostly like value types, but they don't have to accept the exact type (polymorphic input, non-polymorphic output). Intent is 'in' because
+// we're not modifying the pointer or memory status.
 %apply SWIGTYPE { SWIGTYPE* };
 %typemap(ftype, in="class($fclassname), intent(in)") SWIGTYPE*
   "type($fclassname)"
-
-// Use C pointers as placeholders for class pointers by default; this will
-// propagate to const pointers and arrays
-%typemap(bindc) SWIGTYPE* = void*;
-
-// Convert mutable pointers
 %typemap(in, noblock=1, fragment="SWIG_check_mutable") SWIGTYPE* {
   SWIG_check_mutable(*$input, "$1_ltype", "$fclassname", "$decl", return $null);
   $1 = %static_cast($input->cptr, $1_ltype);
@@ -322,6 +319,9 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper other)
   $result.cptr = $1;
   $result.cmemflags = SWIG_MEM_RVALUE | ($owner ? SWIG_MEM_OWN : 0);
 }
+%typemap(bindc) SWIGTYPE* "void*";
+
+// >>> CONST POINTER
 
 // Immutable pointers to mutable classes
 %apply SWIGTYPE* { SWIGTYPE* const };
@@ -335,12 +335,16 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper other)
   $result.cmemflags = SWIG_MEM_RVALUE | ($owner ? SWIG_MEM_OWN : 0) | SWIG_MEM_CONST;
 }
 
+// >>> REFERENCE
+
 // Mutable references are treated as mutable pointers, but check for non-null reference inputs
 %apply SWIGTYPE* { SWIGTYPE& };
 %typemap(in, noblock=1, fragment="SWIG_check_mutable_nonnull") SWIGTYPE& {
   SWIG_check_mutable_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
   $1 = %static_cast($input->cptr, $1_ltype);
 }
+
+// >>> CONST REFERENCE
 
 // Const references are like const pointers; use more restrictive check though
 %apply const SWIGTYPE* { const SWIGTYPE& };
@@ -349,16 +353,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper other)
   $1 = %static_cast($input->cptr, $1_ltype);
 }
 
-// Check for non-null, mutable class input "self"
-%typemap(in, noblock=1, fragment="SWIG_check_mutable_nonnull") SWIGTYPE *self {
-  SWIG_check_mutable_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
-  $1 = %static_cast($input->cptr, $1_ltype);
-}
-// Check for non-null class input "self"
-%typemap(in, noblock=1, fragment="SWIG_check_nonnull") const SWIGTYPE *self {
-  SWIG_check_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
-  $1 = %static_cast($input->cptr, $1_ltype);
-}
+// >>> OTHERS
 
 // Treat arrays of classes as opaque pointers
 %apply void * { SWIGTYPE [], SWIGTYPE [ANY] };
@@ -380,8 +375,20 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper other)
   "type(C_PTR)"
 
 /*---------------------------------------------------------------------------
- * Special class typedefs for assignment, destruction
+ * Special class typedefs for self, assignment, destruction
  */
+
+// Check for non-null, mutable class input "self"
+%typemap(in, noblock=1, fragment="SWIG_check_mutable_nonnull") SWIGTYPE *self {
+  SWIG_check_mutable_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
+  $1 = %static_cast($input->cptr, $1_ltype);
+}
+// Check for non-null class input "self"
+%typemap(in, noblock=1, fragment="SWIG_check_nonnull") const SWIGTYPE *self {
+  SWIG_check_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
+  $1 = %static_cast($input->cptr, $1_ltype);
+}
+
 %typemap(ftype, in="class($fclassname), intent(inout)") SWIGTYPE *MUTABLE_SELF
   "type($fclassname)"
 %typemap(ctype, fragment="SwigClassWrapper") SWIGTYPE *MUTABLE_SELF
