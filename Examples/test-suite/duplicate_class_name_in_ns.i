@@ -11,11 +11,11 @@ namespace A
 namespace B
 {
     template<typename T, typename U>
-        class Foo : public A::Foo {
+    class Foo : public A::Foo {
     public:
         Foo(){};
         int foo();
     };
-    
+
     %template(B) Foo<int, double>;
 }

@@ -383,7 +383,7 @@ String *Swig_symbol_qualified_language_scopename(Symtab *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_add_usingclass()()
+ * Swig_symbol_add_using()
  * ----------------------------------------------------------------------------- */
 
 void Swig_symbol_add_using(String * name, String * uname, Node * n) {

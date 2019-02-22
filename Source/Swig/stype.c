@@ -1310,7 +1310,7 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep, String *sc
 	      Putc(',', nt);
 	  }
 	  tsuffix = SwigType_templatesuffix(e);
-	  SwigType_typename_replace(tsuffix, pat, rep);
+	  SwigType_typename_replace(tsuffix, pat, rep, scopename);
 	  Printf(nt, ")>%s", tsuffix);
 	  Delete(tsuffix);
 	  Clear(e);
@@ -1332,13 +1332,13 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep, String *sc
 	  assert(!first);
 	}
 
-	Clear(e);
 	if( ! scopename || Strstr(scopename, first) ) {
+	  Clear(e);
 	  if (first)
 	    SwigType_typename_replace(first, pat, rep, scopename);
 	  SwigType_typename_replace(rest, pat, rep, scopename);
 	  Printv(e, first ? first : "", "::", rest, NIL);
-	}
+        }
 	Delete(first);
 	Delete(rest);
       }
