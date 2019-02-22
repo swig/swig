@@ -16,7 +16,8 @@ top_builddir   = @top_builddir@
 
 CPP_TEST_CASES = \
 	fortran_bindc \
-	fortran_naming
+	fortran_naming \
+	fortran_subroutine
 
 C_TEST_CASES = \
 	fortran_array_typemap \

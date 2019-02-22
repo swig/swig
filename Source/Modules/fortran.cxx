@@ -1503,7 +1503,7 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   // the actual C function does
 
   // Replace any instance of $fclassname in return type
-  String *return_cpptype = Getattr(n, "type");
+  SwigType *return_cpptype = Getattr(n, "type");
   this->replace_fclassname(return_cpptype, return_ftype);
   this->replace_fclassname(return_cpptype, return_imtype);
 
@@ -1520,14 +1520,18 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   }
   Printv(fcall, Getattr(n, "wrap:imname"), "(", NULL);
 
-  const char *swig_result_name = "";
-  const bool is_fsubroutine = (Len(return_ftype) == 0);
-  if (!is_fsubroutine) {
+  const bool func_to_subroutine = !is_imsubroutine && GetFlag(n, "feature:fortran:subroutine");
+  const bool is_fsubroutine = (Len(return_ftype) == 0) || func_to_subroutine;
+
+  String *swig_result_name = NULL;
+  if (!is_fsubroutine || func_to_subroutine) {
     if (String *fresult_override = Getattr(n, "wrap:fresult")) {
-      swig_result_name = Char(fresult_override);
+      swig_result_name = fresult_override;
     } else {
-      swig_result_name = "swig_result";
+      swig_result_name = NewString("swig_result");
     }
+  }
+  if (!is_fsubroutine && !func_to_subroutine) {
     // Add dummy variable for Fortran proxy return
     Printv(fargs, return_ftype, " :: ", swig_result_name, "\n", NULL);
   }
@@ -1624,6 +1628,13 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
     Delete(farg);
   }
 
+  if (func_to_subroutine) {
+    assert(swig_result_name);
+    Append(ffunc_arglist, swig_result_name);
+
+    Printv(fargs, return_ftype, ", intent(out), optional :: ", swig_result_name, "\n", NULL);
+  }
+
   // END FUNCTION DEFINITION
   print_wrapped_list(ffunc->def, First(ffunc_arglist), Len(ffunc->def));
   Printv(ffunc->def, ")", NULL);
@@ -1677,9 +1688,15 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   // Output typemap is defined; emit the function call and result
   // conversion code
   if (Len(fbody) > 0) {
+    if (func_to_subroutine) {
+      Insert(fbody, 0, "if (present($result)) then\n");
+    }
     Replaceall(fbody, "$result", swig_result_name);
     Replaceall(fbody, "$owner", (GetFlag(n, "feature:new") ? ".true." : ".false."));
     this->replace_fclassname(return_cpptype, fbody);
+    if (func_to_subroutine) {
+      Printv(fbody, "\nendif\n", NULL);
+    }
     Printv(ffunc->code, fbody, "\n", NULL);
   }
 
@@ -1712,6 +1729,7 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   DelWrapper(ffunc);
   Delete(fcall);
   Delete(fargs);
+  Delete(swig_result_name);
   return SWIG_OK;
 }
 

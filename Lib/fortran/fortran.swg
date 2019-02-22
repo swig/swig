@@ -25,6 +25,7 @@
                    be treated as a compile-time Fortran enum (enum values MUST be
                    interpretable by Fortran)
    %fortranbindc : Generate *interfaces only*, no wrapper code, for a function
+   %fortransubroutine : Change a function to a subroutine with optional return parameter.
  */
 #define %fortranbegin         %insert("fbegin")
 #define %proxycode            %insert("fsubprograms")
@@ -43,6 +44,10 @@
 #define %fortranbindc      %feature("fortran:bindc")
 #define %nofortranbindc    %feature("fortran:bindc", "0")
 #define %clearfortranbindc %feature("fortran:bindc", "")
+
+#define %fortransubroutine      %feature("fortran:subroutine")
+#define %nofortransubroutine    %feature("fortran:subroutine", "0")
+#define %clearfortransubroutine %feature("fortran:subroutine", "")
 
 /* -------------------------------------------------------------------------
  *
