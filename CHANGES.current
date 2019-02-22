@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-02-22: tamuratak
+            #984 Add support for RTypedData introduced in Ruby 1.9.3.
+
 2019-02-21: wsfulton
             #1240 Suppress Java 9 deprecation warnings on finalize method.
 
