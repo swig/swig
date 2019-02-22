@@ -31,6 +31,15 @@
 /* Rename member functions that conflict with our special ones */
 %keywordwarn("'release' is reserved for SWIG destructors",
              rename="release_") "*::release";
+
+#ifdef SWIGFORTRAN
+/* Always treat return values from assignment as optional, since it's usually
+ * idiomatic to `return *this;` as a reference that is often ignored by the
+ * calling code. Making the function a subroutine means being able to use "call" 
+ * instead of having to capture the result into a dummy variable.
+ */
+%fortransubroutine *::operator=;
+#endif
 #endif
 
 /* However, it's bad to override some common intrinsic functions that will be
