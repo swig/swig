@@ -553,6 +553,7 @@ private:
   // Injected into .cxx file
   String *f_begin;   //!< Very beginning of output file
   String *f_runtime; //!< SWIG runtime code
+  String *f_policies;//!< AssignmentType flags for each class 
   String *f_header;  //!< Declarations and inclusions from .i
   String *f_wrapper; //!< C++ Wrapper code
   String *f_init;    //!< C++ initalization functions
@@ -702,6 +703,8 @@ int FORTRAN::top(Node *n) {
   f_runtime = NewStringEmpty();
   Swig_register_filebyname("runtime", f_runtime);
 
+  f_policies = NewStringEmpty();
+
   // header code (after run time)
   f_header = NewStringEmpty();
   Swig_register_filebyname("header", f_header);
@@ -752,8 +755,8 @@ int FORTRAN::top(Node *n) {
   write_module(Getattr(n, "fortran:outfile"));
 
   // Clean up files and other data
-  Delete(d_mangled_type);
   Delete(d_overloads);
+  Delete(d_mangled_type);
   Delete(f_fsubprograms);
   Delete(f_finterfaces);
   Delete(f_fdecl);
@@ -761,6 +764,7 @@ int FORTRAN::top(Node *n) {
   Delete(f_init);
   Delete(f_wrapper);
   Delete(f_header);
+  Delete(f_policies);
   Delete(f_runtime);
   Delete(f_fbegin);
   Delete(f_begin);
@@ -785,6 +789,7 @@ void FORTRAN::write_wrapper(String *filename) {
   // Write three different levels of output
   Dump(f_begin, out);
   Dump(f_runtime, out);
+  Dump(f_policies, out);
   Dump(f_header, out);
 
   // Write wrapper code
@@ -1741,9 +1746,6 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
  */
 void FORTRAN::add_assignment_operator(Node *classn) {
   ASSERT_OR_PRINT_NODE(Strcmp(nodeType(classn), "class") == 0 && !this->is_bindc_struct(), classn);
-  String *classname = Getattr(classn, "classtype");
-  SwigType *classtype = Getattr(classn, "classtypeobj");
-  ASSERT_OR_PRINT_NODE(classname && classtype, classn);
 
   // Create new node representing self-assignment function
   Node *n = NewHash();
@@ -1769,6 +1771,7 @@ void FORTRAN::add_assignment_operator(Node *classn) {
   Setattr(n, "access", "public");
 
   // Function declaration: takes const reference to class, returns nothing
+  SwigType *classtype = Getattr(classn, "classtypeobj");
   String *decl = NewStringf("f(r.q(const).%s).", classtype);
   Setattr(n, "decl", decl);
   Setattr(n, "type", "void");
@@ -1782,27 +1785,22 @@ void FORTRAN::add_assignment_operator(Node *classn) {
   Setattr(n, "parms", other_parm);
   Setattr(n, "fortran:rename_self", "ASSIGNMENT_SELF"); // Use INOUT for class handle
 
-  // Determine construction flags.
-  const char *policy = "swig::ASSIGNMENT_DEFAULT";
+  // Get C++ class name
+  String *classname = Getattr(classn, "classtype");
   if (String *smartptr_type = Getattr(classn, "feature:smartptr")) {
     // The pointed-to data is actually SP<CLASS>, not CLASS.
     classname = smartptr_type;
-    policy = "swig::ASSIGNMENT_SMARTPTR";
-  } else if (!GetFlag(classn, "allocate:default_destructor")) {
-    // Destructor is private
-    policy = "swig::ASSIGNMENT_NODESTRUCT";
   }
+  // Determine construction flags.
+  String *policystr = Getattr(classn, "fortran:policy");
 
   // Define action code
   String *code = NULL;
   if (CPlusPlus) {
-    code = NewStringf("typedef %s swig_lhs_classtype;\n", classname);
-    classname = NewString("swig_lhs_classtype");
+    code = NewStringf("SWIG_assign<%s, %s>(farg1, *farg2);\n", classname, policystr);
   } else {
-    code = NewStringEmpty();
-    classname = Copy(classname);
+    code = NewStringf("SWIG_assign(farg1, *farg2);\n");
   }
-  Printf(code, "SWIG_assign(%s, %s, farg1, *farg2);", classname, policy);
   Setattr(n, "feature:action", code);
 
   // Insert assignment fragment
@@ -1813,7 +1811,6 @@ void FORTRAN::add_assignment_operator(Node *classn) {
   
   Delete(code);
   Delete(classtype);
-  Delete(classname);
   Delete(other_parm);
   Delete(symname);
   Delete(name);
@@ -1980,6 +1977,25 @@ int FORTRAN::classHandler(Node *n) {
     Printv(f_class, ", bind(C)", NULL);
   }
   Printv(f_class, ", public :: ", symname, "\n", NULL);
+
+  // Define policy
+  if (CPlusPlus)
+  {
+    SwigType *name = Getattr(n, "name");
+    ASSERT_OR_PRINT_NODE(name, n);
+    String *policystr = SwigType_manglestr(name);
+    Insert(policystr, 0, "SWIGPOLICY");
+    Setattr(n, "fortran:policy", policystr);
+
+    // Define policies for the class
+    const char *policy = "swig::ASSIGNMENT_DEFAULT";
+    if (String *smartptr_type = Getattr(n, "feature:smartptr")) {
+      policy = "swig::ASSIGNMENT_SMARTPTR";
+    } else if (!GetFlag(n, "allocate:default_destructor")) {
+      policy = "swig::ASSIGNMENT_NODESTRUCT";
+    }
+    Printv(f_policies, "#define ", policystr, " ", policy, "\n", NULL);
+  }
 
   int saved_classlen = 0;
   if (!bindc) {

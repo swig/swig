@@ -109,15 +109,18 @@ SWIGINTERN SwigClassWrapper SwigClassWrapper_uninitialized() {
  * ------------------------------------------------------------------------- */
 
 #ifdef __cplusplus
-%fragment("SWIG_assign_impl", "header", fragment="SwigClassWrapper") %{
+%fragment("SWIG_assignment_type", "runtime") %{
 namespace swig {
-
 enum AssignmentType {
   ASSIGNMENT_DEFAULT,
   ASSIGNMENT_NODESTRUCT,
   ASSIGNMENT_SMARTPTR
 };
+}
+%}
 
+%fragment("SWIG_destructor_policy", "header", fragment="SwigClassWrapper", fragment="SWIG_assignment_type") %{
+namespace swig {
 
 template<class T, AssignmentType A>
 struct DestructorPolicy {
@@ -132,6 +135,11 @@ struct DestructorPolicy<T, ASSIGNMENT_NODESTRUCT> {
     SWIG_exception_impl("assignment", SWIG_TypeError, "Invalid assignment: class type has private destructor", return SwigClassWrapper_uninitialized());
   }
 };
+}
+%}
+
+%fragment("SWIG_assign", "header", fragment="SWIG_destructor_policy") %{
+namespace swig {
 
 template<class T, AssignmentType A>
 struct AssignmentPolicy {
@@ -191,7 +199,7 @@ struct AssignmentPolicy<T, ASSIGNMENT_SMARTPTR> {
 } // end namespace swig
 
 template<class T, swig::AssignmentType A>
-SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper other) {
+SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
   typedef swig::AssignmentPolicy<T, A> Policy_t;
 
   if (self->cptr == NULL) {
@@ -218,21 +226,15 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper other)
 }
 %}
 
-// Assignment: left = right
-%fragment("SWIG_assign", "runtime", fragment="SWIG_assign_impl") %{
-#define SWIG_assign(TYPE, POLICY, LEFT, RIGHT) \
-    SWIG_assign_impl<TYPE, POLICY>(LEFT, RIGHT);
-%}
-
 /* -------------------------------------------------------------------------
  * Assignment: C implementation
  * ------------------------------------------------------------------------- */
 #else
 
-%fragment("SWIG_assign_impl", "header",
+%fragment("SWIG_assign", "header",
           fragment="SwigClassWrapper", fragment="<stdlib.h>",
           fragment="<string.h>") %{
-SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper other) {
+SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
   if (self->cptr == NULL) {
     /* LHS is unassigned */
     if (other.cmemflags & SWIG_MEM_RVALUE) {
