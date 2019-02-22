@@ -7,7 +7,9 @@
 %fortransubroutine already_a_subroutine;
 %fortransubroutine make_foo;
 
+// Note: feature has to be disabled even though the function is renamed
 %rename(get_val) *::val() const;
+%nofortransubroutine *::val() const;
 
 %inline %{
 

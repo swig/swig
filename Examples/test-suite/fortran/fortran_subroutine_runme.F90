@@ -17,10 +17,22 @@ subroutine test_cls
   use ISO_C_BINDING
   implicit none
   type(FooInt) :: f
-  integer(C_INT) :: i
+  integer(C_INT) :: ierr
 
   f = FooInt()
-  call f%val(3)
+  call f%val(2)
+  call f%treble(ierr)
+  ASSERT(ierr == 0)
+  call f%treble()
+  ASSERT(f%get_val() == 2 * 3 * 3)
+  call f%val(-4)
+  call f%treble(ierr)
+  ASSERT(ierr == 1)
+  ASSERT(f%get_val() == -4)
+
+  call make_foo(3, f)
+  call make_foo(4) ! TODO: leaks memory
+  call make_foo(5, f) ! TODO: leaks memory of existing 'f'
 
 end subroutine
 
@@ -29,7 +41,7 @@ subroutine test_free
   use fortran_subroutine
   use ISO_C_BINDING
   implicit none
-  integer(C_INT) :: i = 3, j = 4, k = -1
+  integer(C_INT) :: j = 4, k = -1
 
   ! Multiply and obtain return value
   call multiply(2, 4, k)
