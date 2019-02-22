@@ -9,9 +9,7 @@
 %typemap(out) Foo *blah (Bar *downcast) {
     downcast = dynamic_cast<Bar *>($1);
     $result.cptr = downcast;
-    $result.mem = (!downcast ? SWIG_NULL :
-                    $owner   ? SWIG_MOVE :
-                               SWIG_REF);
+    $result.cmemflags = SWIG_MEM_RVALUE | ($owner ? SWIG_MEM_OWN : 0);
 }
 %typemap(ftype) Foo *blah "$typemap(ftype, Foo*)"
 #endif

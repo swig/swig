@@ -1157,61 +1157,6 @@ the code can embed a non-owning reference to the data in a shared pointer. In
 other words, it is OK to return `const Foo&` even when `Foo` is wrapped as a
 shared pointer.
 
-The following example illustrates the memory management properties of smart
-pointers. The SWIG interface file is
-```swig
-%module example;
-%include <std_shared_ptr.i>
-%shared_ptr(Foo);
-
-%inline %{
-#include <memory>
-class Foo {
-public:
-  explicit Foo(int val) {}
-  ~Foo() {}
-  const Foo &my_raw_ref() const { return *this; }
-};
-
-int use_count(const std::shared_ptr<Foo> *f) {
-  if (!f) return 0;
-  return f->use_count();
-}
-%}
-```
-and the user code is:
-```fortran
-#define ASSERT(COND) if (.not. (COND)) stop(1)
-program main
-  implicit none
-  use example, only : Foo, use_count
-  type(Foo) :: f1, f2
-
-  ASSERT(use_count(f1) == 0)
-  f1 = Foo(1) ! Construct
-  ASSERT(use_count(f1) == 1)
-  f2 = f1 ! Copy shared pointer, not underlying object
-  ASSERT(use_count(f1) == 2)
-  ASSERT(use_count(f2) == 2)
-
-  f2 = Foo(2) ! Create a new object, assigning the *shared pointer*
-                     ! but not replacing the underlying object.
-  ASSERT(use_count(f1) == 1)
-  ASSERT(use_count(f2) == 1)
-
-  f1 = f2%my_raw_ref() ! Return a non-shared pointer
-                       ! and call the destructor of C++ object 1
-  ASSERT(use_count(f2) == 1)
-
-  call f1%release() ! Clear the raw pointer (does not deallocate)
-  ASSERT(use_count(f1) == 0)
-  call f2%release() ! Destroy the last existing shared pointer
-                    ! which then destroys the C++ object 2
-  ASSERT(use_count(f2) == 0)
-
-  call f2%release() ! Further calls to release() are allowable null-ops
-end program
-```
 
 ## Fortran-to-C array translation
 The `<typemaps.i>` library file provides a simple means of passing Fortran

@@ -23,20 +23,20 @@ subroutine test_simple_class_memory()
   ASSERT(use_count() == 1) ! 'static' global
   write(0, *) "Constructing..."
   orig = SimpleClass()
-  ASSERT(orig%swigdata%mem == 1)
+  ASSERT(orig%swigdata%cmemflags == 1)
   ASSERT(use_count() == 2)
   call orig%set(1)
 
   ! Copy construct
   write(0, *) "Copying class "
-  copied = orig
+  copied = SimpleClass(orig)
   ASSERT(use_count() == 3)
   write(0, *) "Orig/copied: ", orig%id(), "/", copied%id()
   ASSERT(orig%id() == 1)
   ASSERT(copied%id() == 12)
 
   ! Assign to an already-created instance
-  assigned = SimpleClass(3.0d0)
+  call assigned%assign(SimpleClass(3.0d0))
   ASSERT(assigned%id() == 3)
   ASSERT(use_count() == 4)
   call orig%set(1234)
@@ -59,9 +59,12 @@ subroutine test_simple_class_memory()
   ! Calling a non-const function of a const reference will raise an error
   ! call constref%double_it()
 
+  ! This will leak memory
+  call print_value(SimpleClass(5.0d0))
+
   ! Release created
   write(0, *) "Releasing orig"
-  ASSERT(orig%swigdata%mem == 1)
+  ASSERT(orig%swigdata%cmemflags == 1)
   call orig%release()
   ASSERT(use_count() == 3)
   ! Release copy constructed

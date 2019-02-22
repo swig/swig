@@ -11,7 +11,7 @@ program smart_pointer_simple_runme
 
   f = Foo()
   b = Bar(f)
-  call b%set_x(3)
+  call f%set_x(3)
   ASSERT(b%get_x() == 3)
   fref = .ptr. b
 

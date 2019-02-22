@@ -18,16 +18,16 @@ subroutine test_assignment
   real(C_FLOAT), dimension(4) :: nums = [1., 2., 4., 8.]
 
   ASSERT(.not. c_associated(a%swigdata%cptr))
-  ASSERT(a%swigdata%mem == 0)
+  ASSERT(a%swigdata%cmemflags == 0)
 
   ! Create
   a = Array4f(nums)
-  ASSERT(a%swigdata%mem == 1) ! SWIG_OWN
+  ASSERT(a%swigdata%cmemflags == 1) ! SWIG_MEM_OWN
   ! Copy-construct
   b = a
   ASSERT(c_associated(b%swigdata%cptr))
   ASSERT(.not. c_associated(b%swigdata%cptr, a%swigdata%cptr))
-  ASSERT(b%swigdata%mem == 1) ! SWIG_OWN
+  ASSERT(b%swigdata%cmemflags == 1) ! SWIG_MEM_OWN
   ! Assign (TODO): assignment isn't found in class definition
   !b = a
   ! Assign from function result

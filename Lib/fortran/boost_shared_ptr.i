@@ -9,13 +9,17 @@
 #endif
 
 // Runtime check for a class wrapper not being const.
-%fragment("SWIG_check_sp_nonnull", "runtime") %{
+%fragment("SWIG_check_sp_nonnull", "runtime", fragment="SwigMemState") %{
 #define SWIG_check_sp_nonnull(INPUT, TYPENAME, FNAME, FUNCNAME, RETURNNULL) \
   if (!(INPUT)) { \
     SWIG_exception_impl(FUNCNAME, SWIG_TypeError, \
                         "Cannot pass null " TYPENAME " (class " FNAME ") " \
                         "as a reference", RETURNNULL); \
   }
+
+#define SWIG_constsp_mem_flags SWIG_MEM_CONST
+#define SWIG_sp_mem_flags 0
+
 %}
 
 %define SWIG_SHARED_PTR_TYPEMAPS(CONST, TYPE...)
@@ -66,13 +70,12 @@
 }
 %typemap(out, noblock=1) CONST TYPE {
  $result.cptr = new SWIGSP__(%new_copy($1, $1_basetype));
- $result.mem = SWIG_MOVE;
+ $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE | SWIG_ ## CONST ## sp_mem_flags;
 }
 
 /* -------------------------------------------------------------------------
  * Original class by pointer. Note that the deleter is determined by the owner
- * mem, but the shared pointer instance itself is in a "moving" mem
- * regardless.
+ * cmemflags, but the result is always a new self-owned shared pointer.
  * ------------------------------------------------------------------------- */
 %typemap(in, noblock=1) CONST TYPE * (SWIGSP__* smartarg) {
   smartarg = %static_cast($input->cptr, SWIGSP__*);
@@ -88,7 +91,7 @@
 //   destroyed).
 %typemap(out, noblock=1, fragment="SWIG_null_deleter") CONST TYPE * {
   $result.cptr = $1 ? new SWIGSP__($1 SWIG_NO_NULL_DELETER_$owner) : NULL;
-  $result.mem = SWIG_MOVE;
+  $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE | SWIG_ ## CONST ## sp_mem_flags;
 }
 
 /* -------------------------------------------------------------------------
@@ -105,7 +108,7 @@
 // will not be.
 %typemap(out) CONST TYPE& {
   $result.cptr = new SWIGSP__($1 SWIG_NO_NULL_DELETER_0);
-  $result.mem = SWIG_MOVE;
+  $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE | SWIG_ ## CONST ## sp_mem_flags;
 }
 
 /* -------------------------------------------------------------------------
@@ -117,7 +120,7 @@
 
 %typemap(out, noblock=1) SWIGSP__ {
   $result.cptr = %new_copy($1, SWIGSP__);
-  $result.mem = SWIG_MOVE;
+  $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE | SWIG_ ## CONST ## sp_mem_flags;
 }
 
 /* -------------------------------------------------------------------------
@@ -128,23 +131,20 @@
 }
 
 %typemap(out, noblock=1) SWIGSP__& {
-  $result.cptr = SWIG_SHARED_PTR_NOT_NULL(*$1) ? new $*1_ltype(*$1) : 0;
-  $result.mem = SWIG_MOVE;
+  $result.cptr = SWIG_SHARED_PTR_NOT_NULL(*$1) ? %new_copy(*$1, SWIGSP__) : 0;
+  $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE | SWIG_ ## CONST ## sp_mem_flags;
 }
 
 /* -------------------------------------------------------------------------
  * SP by pointer
- *
- * Make sure that the SP* is allocated.
  * ------------------------------------------------------------------------- */
 %typemap(in, noblock=1) SWIGSP__ * ($*1_ltype tempnull) {
   $1 = $input->cptr ? %static_cast($input->cptr, $1_ltype) : &tempnull;
 }
 
 %typemap(out, noblock=1, fragment="SWIG_null_deleter") SWIGSP__ * {
-  $result.cptr = ($1 && SWIG_SHARED_PTR_NOT_NULL(*$1)) ? new $*1_ltype(*($1_ltype)$1) : 0;
-  $result.mem = SWIG_MOVE;
-  if ($owner) delete $1;
+  $result.cptr = ($1 && SWIG_SHARED_PTR_NOT_NULL(*$1)) ? %new_copy(*$1, SWIGSP__) : 0;
+  $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE | SWIG_ ## CONST ## sp_mem_flags;
 }
 
 /* -------------------------------------------------------------------------

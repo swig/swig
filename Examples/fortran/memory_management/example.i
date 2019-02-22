@@ -28,6 +28,8 @@ void print_pointer(int msg, const SimpleClass* ptr)
 }
 %}
 
+// Allow assignment
+%rename("assign") *::operator=;
 
 /*
  * Note: this used to be: \code
@@ -55,8 +57,6 @@ void SimpleClass::double_it()
 
 Multiply the value by 2.
 %};
-
-%ignore SimpleClass::operator=;
 
 %feature("new") emit_class;
 %feature("new") SimpleClass::EmitSimpleClass;

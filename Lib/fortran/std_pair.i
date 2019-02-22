@@ -18,21 +18,3 @@ struct pair {
 };
 
 }
-
-%fragment("swig::AssignmentFlags");
-
-/* Prevent assignment for pairs of const values */
-%{
-namespace swig {
-template<class T, class U, int Flags>
-struct assignment_flags<std::pair<const T, U>, Flags> {
-  enum { value = IS_DESTR | IS_COPY_CONSTR };
-};
-template<class T, class U, int Flags>
-struct assignment_flags<std::pair<T, const U>, Flags> {
-  enum { value = IS_DESTR | IS_COPY_CONSTR };
-};
-}
-%}
-
-
