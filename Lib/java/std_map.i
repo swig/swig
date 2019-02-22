@@ -51,16 +51,13 @@ template<class K, class T, class C = std::less< K> > class map {
 %typemap(javabase) std::map< K, T, C >
     "java.util.AbstractMap<$typemap(jboxtype, K), $typemap(jboxtype, T)>"
 
-%typemap(javaimports) std::map< K, T, C >
-    "import java.lang.Object;"
-
 %proxycode %{
 
   public int size() {
     return sizeImpl();
   }
 
-  public boolean containsKey(Object key) {
+  public boolean containsKey(java.lang.Object key) {
     if (!(key instanceof $typemap(jboxtype, K))) {
       return false;
     }
@@ -68,7 +65,7 @@ template<class K, class T, class C = std::less< K> > class map {
     return containsImpl(($typemap(jboxtype, K))key);
   }
 
-  public $typemap(jboxtype, T) get(Object key) {
+  public $typemap(jboxtype, T) get(java.lang.Object key) {
     if (!(key instanceof $typemap(jboxtype, K))) {
       return null;
     }
@@ -93,7 +90,7 @@ template<class K, class T, class C = std::less< K> > class map {
     }
   }
 
-  public $typemap(jboxtype, T) remove(Object key) {
+  public $typemap(jboxtype, T) remove(java.lang.Object key) {
     if (!(key instanceof $typemap(jboxtype, K))) {
       return null;
     }

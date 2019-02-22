@@ -57,7 +57,7 @@ template<class K, class T> class unordered_map {
     return sizeImpl();
   }
 
-  public boolean containsKey(Object key) {
+  public boolean containsKey(java.lang.Object key) {
     if (!(key instanceof $typemap(jboxtype, K))) {
       return false;
     }
@@ -65,7 +65,7 @@ template<class K, class T> class unordered_map {
     return containsImpl(($typemap(jboxtype, K))key);
   }
 
-  public $typemap(jboxtype, T) get(Object key) {
+  public $typemap(jboxtype, T) get(java.lang.Object key) {
     if (!(key instanceof $typemap(jboxtype, K))) {
       return null;
     }
@@ -90,7 +90,7 @@ template<class K, class T> class unordered_map {
     }
   }
 
-  public $typemap(jboxtype, T) remove(Object key) {
+  public $typemap(jboxtype, T) remove(java.lang.Object key) {
     if (!(key instanceof $typemap(jboxtype, K))) {
       return null;
     }
