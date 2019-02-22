@@ -295,7 +295,7 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper other)
 }
 %typemap(out, noblock=1) SWIGTYPE {
   $result.cptr = %new_copy($1, $1_ltype);
-  $result.cmemflags = SWIG_MEM_RVALUE | ($owner ? SWIG_MEM_OWN : 0);
+  $result.cmemflags = SWIG_MEM_RVALUE | SWIG_MEM_OWN;
 }
 %typemap(fin) SWIGTYPE
   "$1 = $input%swigdata"
