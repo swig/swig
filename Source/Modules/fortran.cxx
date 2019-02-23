@@ -376,6 +376,30 @@ String *ensure_short(String *str, int warning = WARN_NONE) {
 }
 
 /* -------------------------------------------------------------------------
+ * \brief If a string is too long, shorten it. Otherwise leave it.
+ *
+ * This should only be used for strings whose beginnings are valid fortran
+ * identifiers -- e.g. strings that we construct.
+ *
+ * *assumes ownership of input and returns new'd value*
+ */
+String *proxy_name_construct(String *nspace, const_String_or_char_ptr classname, const_String_or_char_ptr symname) {
+  String *result;
+  if (nspace && classname) {
+    result = NewStringf("swigf_%s_%s_%s", nspace, classname, symname);
+  } else if (nspace || classname) {
+    result = NewStringf("swigf_%s_%s", nspace ? nspace : classname, symname);
+  } else {
+    result = NewStringf("swigf_%s", symname);
+  }
+  return ensure_short(result);
+}
+
+String *proxy_name_construct(String *nspace, const_String_or_char_ptr symname) {
+  return proxy_name_construct(nspace, NULL, symname);
+}
+
+/* -------------------------------------------------------------------------
  * \brief Change a symname to a valid Fortran identifier, warn if changing
  *
  * The maximum length of a Fortran identifier is 63 characters, according
@@ -944,7 +968,7 @@ int FORTRAN::functionWrapper(Node *n) {
       if (member) {
         // We're wrapping a static/member variable. The getter/setter name is an alias to the class-namespaced proxy function.
         fsymname = fname;
-        fname = ensure_short(NewStringf("swigf_%s", symname));
+        fname = proxy_name_construct(this->getNSpace(), Getattr(n, "sym:name"));
       }
     } else {
       // Default: use symbolic function name
@@ -977,7 +1001,7 @@ int FORTRAN::functionWrapper(Node *n) {
     if (!fsymname) {
       // Overloaded functions become fsymname 
       fsymname = fname;
-      fname = ensure_short(NewStringf("swigf_%s", symname));
+      fname = proxy_name_construct(this->getNSpace(), symname);
     }
     Append(fname, overload_ext);
     generic = true;
@@ -2106,8 +2130,10 @@ int FORTRAN::classHandler(Node *n) {
  * \brief Extra stuff for constructors.
  */
 int FORTRAN::constructorHandler(Node *n) {
-  Node *classn = getCurrentClass();
-  ASSERT_OR_PRINT_NODE(classn, n);
+  // Add swigf_ to constructor name
+  String *fname = proxy_name_construct(this->getNSpace(), "create", Getattr(n, "sym:name"));
+  Setattr(n, "fortran:fname", fname);
+  Delete(fname);
 
   // Override the result variable name
   Setattr(n, "wrap:fresult", "self");
@@ -2132,6 +2158,12 @@ int FORTRAN::destructorHandler(Node *n) {
   Setattr(n, "feature:shadow", fdis);
   Setattr(n, "fortran:name", "release");
   SetFlag(n, "fortran:ismember");
+
+  // Add swigf_ to constructor name
+  String *fname = proxy_name_construct(this->getNSpace(), "release", Getattr(n, "sym:name"));
+  Setattr(n, "fortran:fname", fname);
+  Delete(fname);
+
   // Use a custom typemap: input must be mutable and clean up properly
   Setattr(n, "fortran:rename_self", "DESTRUCTOR_SELF");
 
@@ -2154,7 +2186,7 @@ int FORTRAN::memberfunctionHandler(Node *n) {
   }
 
   // Create a private procedure name that gets bound to the Fortan TYPE
-  String *fwrapname = ensure_short(NewStringf("swigf_%s_%s", class_symname, Getattr(n, "sym:name")));
+  String *fwrapname = proxy_name_construct(this->getNSpace(), class_symname,Getattr(n, "sym:name"));
   Setattr(n, "fortran:fname", fwrapname);
   Delete(fwrapname);
 
@@ -2240,7 +2272,8 @@ int FORTRAN::staticmemberfunctionHandler(Node *n) {
   Setattr(n, "fortran:name", make_fname(Getattr(n, "sym:name")));
 
   // Create a private procedure name that gets bound to the Fortan TYPE
-  String *fwrapname = ensure_short(NewStringf("swigf_%s_%s", class_symname, Getattr(n, "sym:name")));
+  String *fwrapname = proxy_name_construct(this->getNSpace(), class_symname,Getattr(n, "sym:name"));
+  
   Setattr(n, "fortran:fname", fwrapname);
 
   // Add 'nopass' procedure qualifier
