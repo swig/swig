@@ -1383,12 +1383,12 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 %apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
 /* String & length */
-%typemap(jni)     (char *STRING, size_t LENGTH) "jbyteArray"
-%typemap(jtype)   (char *STRING, size_t LENGTH) "byte[]"
-%typemap(jstype)  (char *STRING, size_t LENGTH) "byte[]"
-%typemap(javain)  (char *STRING, size_t LENGTH) "$javainput"
-%typemap(freearg) (char *STRING, size_t LENGTH) ""
-%typemap(in)      (char *STRING, size_t LENGTH) {
+%typemap(jni)     (const char *STRING, size_t LENGTH) "jbyteArray"
+%typemap(jtype)   (const char *STRING, size_t LENGTH) "byte[]"
+%typemap(jstype)  (const char *STRING, size_t LENGTH) "byte[]"
+%typemap(javain)  (const char *STRING, size_t LENGTH) "$javainput"
+%typemap(freearg) (const char *STRING, size_t LENGTH) ""
+%typemap(in)      (const char *STRING, size_t LENGTH) {
   if ($input) {
     $1 = ($1_ltype) JCALL2(GetByteArrayElements, jenv, $input, 0);
     $2 = ($2_type) JCALL1(GetArrayLength, jenv, $input);
@@ -1397,10 +1397,10 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
     $2 = 0;
   }
 }
-%typemap(argout)  (char *STRING, size_t LENGTH) {
-  if ($input) JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, 0);
+%typemap(argout)  (const char *STRING, size_t LENGTH) {
+  if ($input) JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, JNI_ABORT);
 }
-%typemap(directorin, descriptor="[B", noblock=1) (char *STRING, size_t LENGTH) {
+%typemap(directorin, descriptor="[B", noblock=1) (const char *STRING, size_t LENGTH) {
   $input = 0;
   if ($1) {
     $input = JCALL1(NewByteArray, jenv, (jsize)$2);
@@ -1409,9 +1409,14 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
   }
   Swig::LocalRefGuard $1_refguard(jenv, $input);
 }
+%typemap(javadirectorin, descriptor="[B") (const char *STRING, size_t LENGTH) "$jniinput"
+%apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
+/* Enable write-back for non-const version */
+%typemap(argout)  (char *STRING, size_t LENGTH) {
+  if ($input) JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, 0);
+}
 %typemap(directorargout, noblock=1) (char *STRING, size_t LENGTH)
 { if ($input && $1) JCALL4(GetByteArrayRegion, jenv, $input, 0, (jsize)$2, (jbyte *)$1); }
-%typemap(javadirectorin, descriptor="[B") (char *STRING, size_t LENGTH) "$jniinput"
 %apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
 
 /* java keywords */
