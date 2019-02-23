@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-02-23: gtbX
+            [Java] #1035 Add (const char *STRING, size_t LENGTH) typemaps in addition to the non-const
+            typemaps (char *STRING, size_t LENGTH) which does not attempt to write back to the const
+            string.
+
 2019-02-22: tamuratak
             #984 Add support for RTypedData introduced in Ruby 1.9.3.
 
