@@ -160,7 +160,7 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 %typemap(jtype) jfloat        "float"
 %typemap(jtype) jdouble       "double"
 %typemap(jtype) jstring       "String"
-%typemap(jtype) jobject       "Object"
+%typemap(jtype) jobject       "java.lang.Object"
 %typemap(jtype) jbooleanArray "boolean[]"
 %typemap(jtype) jcharArray    "char[]"
 %typemap(jtype) jbyteArray    "byte[]"
@@ -169,7 +169,7 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 %typemap(jtype) jlongArray    "long[]"
 %typemap(jtype) jfloatArray   "float[]"
 %typemap(jtype) jdoubleArray  "double[]"
-%typemap(jtype) jobjectArray  "Object[]"
+%typemap(jtype) jobjectArray  "java.lang.Object[]"
 
 %typemap(jstype) jboolean      "boolean"
 %typemap(jstype) jchar         "char"
@@ -180,7 +180,7 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 %typemap(jstype) jfloat        "float"
 %typemap(jstype) jdouble       "double"
 %typemap(jstype) jstring       "String"
-%typemap(jstype) jobject       "Object"
+%typemap(jstype) jobject       "java.lang.Object"
 %typemap(jstype) jbooleanArray "boolean[]"
 %typemap(jstype) jcharArray    "char[]"
 %typemap(jstype) jbyteArray    "byte[]"
@@ -189,7 +189,7 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 %typemap(jstype) jlongArray    "long[]"
 %typemap(jstype) jfloatArray   "float[]"
 %typemap(jstype) jdoubleArray  "double[]"
-%typemap(jstype) jobjectArray  "Object[]"
+%typemap(jstype) jobjectArray  "java.lang.Object[]"
 
 /* Non primitive types */
 %typemap(jni) SWIGTYPE "jlong"
