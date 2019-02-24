@@ -22,14 +22,11 @@ subroutine test_assignment
 
   ! Create
   a = Array4f(nums)
-  ASSERT(a%swigdata%cmemflags == 1) ! SWIG_MEM_OWN
-  ! Copy-construct
+  ASSERT(btest(a%swigdata%cmemflags, swig_cmem_own_bit)) ! SWIG_MEM_OWN
+  ! Reference
   b = a
-  ASSERT(c_associated(b%swigdata%cptr))
-  ASSERT(.not. c_associated(b%swigdata%cptr, a%swigdata%cptr))
-  ASSERT(b%swigdata%cmemflags == 1) ! SWIG_MEM_OWN
-  ! Assign (TODO): assignment isn't found in class definition
-  !b = a
+  ASSERT(c_associated(b%swigdata%cptr, a%swigdata%cptr))
+  ASSERT(.not. btest(b%swigdata%cmemflags, swig_cmem_own_bit)) ! SWIG_MEM_OWN
   ! Assign from function result
   a = empty
   a = make_array4f(nums)
