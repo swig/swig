@@ -752,7 +752,7 @@ public:
 	Printv(df->code,
 	       "argv = (CAML_VALUE *)malloc( argc * sizeof( CAML_VALUE ) );\n"
 	       "for( i = 0; i < argc; i++ ) {\n" "  argv[i] = caml_list_nth(args,i);\n" "}\n", NIL);
-	Printv(df->code, dispatch, "\n", NIL);
+	Printv(df->code, dispatch, "\nfree(argv);\n", NIL);
 	Node *sibl = n;
 	while (Getattr(sibl, "sym:previousSibling"))
 	  sibl = Getattr(sibl, "sym:previousSibling");

@@ -43,7 +43,7 @@ namespace std {
     this();
     java.util.ListIterator<$typemap(jboxtype, T)> it = listIterator(0);
     // Special case the "copy constructor" here to avoid lots of cross-language calls
-    for (Object o : c) {
+    for (java.lang.Object o : c) {
       it.add(($typemap(jboxtype, T))o);
     }
   }
