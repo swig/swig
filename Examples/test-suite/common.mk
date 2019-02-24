@@ -571,6 +571,7 @@ CPP11_TEST_CASES += \
 	cpp11_director_enums \
 	cpp11_directors \
 	cpp11_explicit_conversion_operators \
+	cpp11_final_directors \
 	cpp11_final_override \
 	cpp11_function_objects \
 	cpp11_inheriting_constructors \
