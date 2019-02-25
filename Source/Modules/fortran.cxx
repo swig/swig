@@ -244,7 +244,7 @@ bool is_bindc(Node *n) {
  * require the variable to be embedded in the middle of the array and thus
  * require special treatment.
  */
-bool needs_typedef(String *s) {
+bool return_type_needs_typedef(String *s) {
   String *strprefix = SwigType_prefix(s);
   bool result = (Strstr(strprefix, "p.a(") || Strstr(strprefix, "p.f(") || Strstr(strprefix, "p.m("));
   Delete(strprefix);
@@ -577,6 +577,7 @@ private:
   // Injected into .cxx file
   String *f_begin;   //!< Very beginning of output file
   String *f_runtime; //!< SWIG runtime code
+  String *f_policies;//!< AssignmentType flags for each class 
   String *f_header;  //!< Declarations and inclusions from .i
   String *f_wrapper; //!< C++ Wrapper code
   String *f_init;    //!< C++ initalization functions
@@ -726,6 +727,8 @@ int FORTRAN::top(Node *n) {
   f_runtime = NewStringEmpty();
   Swig_register_filebyname("runtime", f_runtime);
 
+  f_policies = NewStringEmpty();
+
   // header code (after run time)
   f_header = NewStringEmpty();
   Swig_register_filebyname("header", f_header);
@@ -776,8 +779,8 @@ int FORTRAN::top(Node *n) {
   write_module(Getattr(n, "fortran:outfile"));
 
   // Clean up files and other data
-  Delete(d_mangled_type);
   Delete(d_overloads);
+  Delete(d_mangled_type);
   Delete(f_fsubprograms);
   Delete(f_finterfaces);
   Delete(f_fdecl);
@@ -785,6 +788,7 @@ int FORTRAN::top(Node *n) {
   Delete(f_init);
   Delete(f_wrapper);
   Delete(f_header);
+  Delete(f_policies);
   Delete(f_runtime);
   Delete(f_fbegin);
   Delete(f_begin);
@@ -809,16 +813,15 @@ void FORTRAN::write_wrapper(String *filename) {
   // Write three different levels of output
   Dump(f_begin, out);
   Dump(f_runtime, out);
+  Dump(f_policies, out);
   Dump(f_header, out);
 
   // Write wrapper code
-  Printf(out, "#ifdef __cplusplus\n");
-  Printf(out, "extern \"C\" {\n");
-  Printf(out, "#endif\n");
+  if (CPlusPlus)
+    Printf(out, "extern \"C\" {\n");
   Dump(f_wrapper, out);
-  Printf(out, "#ifdef __cplusplus\n");
-  Printf(out, "}\n");
-  Printf(out, "#endif\n");
+  if (CPlusPlus)
+    Printf(out, "} // extern\n");
 
   // Write initialization code
   Wrapper_pretty_print(f_init, out);
@@ -1150,7 +1153,7 @@ int FORTRAN::cfuncWrapper(Node *n) {
   const bool is_csubroutine = (Strcmp(c_return_type, "void") == 0);
 
   String *c_return_str = NULL;
-  if (needs_typedef(c_return_type)) {
+  if (return_type_needs_typedef(c_return_type)) {
     // For these types (where the name is the middle of the expression rather than at the right side,
     // i.e. void (*func)() instead of int func, we either have to add a new typedef OR wrap the
     // entire function in parens. The former is easier.
@@ -1512,12 +1515,7 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
 
   // >>> FUNCTION RETURN VALUES
 
-  String *fargs = NewStringEmpty();
-
-  String *return_ftype = NULL;
-  if (!return_ftype) {
-    return_ftype = attach_typemap("ftype", n, WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF);
-  }
+  String *return_ftype = attach_typemap("ftype", n, WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF);
   assert(return_ftype);
 
   // Return type for the C call
@@ -1544,7 +1542,13 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   }
   Printv(fcall, Getattr(n, "wrap:imname"), "(", NULL);
 
-  const bool func_to_subroutine = !is_imsubroutine && GetFlag(n, "feature:fortran:subroutine");
+  bool func_to_subroutine = !is_imsubroutine && GetFlag(n, "feature:fortran:subroutine");
+  if (func_to_subroutine && GetFlag(n, "tmap:ftype:nofortransubroutine")) {
+      Swig_warning(WARN_FORTRAN_NO_SUBROUTINE, Getfile(n), Getline(n),
+                   "The given type '%s' cannot be converted from a function result to an optional subroutine argument" ,
+                   return_cpptype);
+      func_to_subroutine = false;
+  }
   const bool is_fsubroutine = (Len(return_ftype) == 0) || func_to_subroutine;
 
   String *swig_result_name = NULL;
@@ -1555,6 +1559,8 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
       swig_result_name = NewString("swig_result");
     }
   }
+
+  String *fargs = NewStringEmpty();
   if (!is_fsubroutine && !func_to_subroutine) {
     // Add dummy variable for Fortran proxy return
     Printv(fargs, return_ftype, " :: ", swig_result_name, "\n", NULL);
@@ -1764,133 +1770,73 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
  */
 void FORTRAN::add_assignment_operator(Node *classn) {
   ASSERT_OR_PRINT_NODE(Strcmp(nodeType(classn), "class") == 0 && !this->is_bindc_struct(), classn);
-  String *classname = Getattr(classn, "classtype");
-  SwigType *classtype = Getattr(classn, "classtypeobj");
-  ASSERT_OR_PRINT_NODE(classname && classtype, classn);
-  
-  // Parameter: "const Class&"; "self" gets added automatically later
-  SwigType *argtype = NewStringf("r.q(const).%s", classtype);
-  // Function declaration
-  String *decl = NewStringf("f(%s).", argtype);
+
+  // Create new node representing self-assignment function
+  Node *n = NewHash();
+  set_nodeType(n, "cdecl");
+  Setfile(n, Getfile(classn));
+  Setline(n, Getline(classn));
+
   String *name = NewString("operator =");
+  String *symname = NewString("op_assign__");
 
-  // Modify assignment operators, and see if self-assignment is defined
-  Node *n = NULL;
-  for (Node *child = firstChild(classn); child; child = nextSibling(child)) {
-    String *cname = Getattr(child, "name");
-    if (cname && Equal(name, cname)) {
-      // Found an assignment operator
-      String *cdecl = Getattr(child, "decl");
-      if (cdecl && Strstr(cdecl, decl) == Char(cdecl)) {
-        // Found self-assignment operator
-        n = child;
-      } else {
-        // Different assignment operator: make sure class is *inout*
-        Setattr(child, "fortran:rename_self", "ASSIGNMENT_SELF"); // Use INOUT for class handle
-      }
-    }
-  }
+  Setattr(n, "kind", "function");
+  Setattr(n, "name", name);
+  Setattr(n, "sym:name", symname);
+  Setattr(n, "feature:fortran:generic", "assignment(=)");
 
-  if (!n) {
-    // Create new node representing self-assignment function
-    n = NewHash();
-    set_nodeType(n, "cdecl");
-    Setfile(n, Getfile(classn));
-    Setline(n, Getline(classn));
+  // Add to the class's symbol table
+  Symtab *prev_scope = Swig_symbol_setscope(Getattr(classn, "symtab"));
+  Node *added = Swig_symbol_add(symname, n);
+  Swig_symbol_setscope(prev_scope);
+  ASSERT_OR_PRINT_NODE(added == n, n);
 
-    String *symname = Swig_name_make(n, Getattr(classn, "name"), name, decl, Getattr(classn, "sym:name"));
-    if (!CPlusPlus || Strcmp(symname, "$ignore") == 0) {
-      // Rename for C will turn 'symname' into the class name. If the
-      // operator wasn't ignored, rename it
-      Delete(symname);
-      symname = NewString("op_assign__");
-    }
-
-    Setattr(n, "name", name);
-    Setattr(n, "sym:name", symname);
-    Setattr(n, "kind", "function");
-
-    // Set symbol table and apply features based on the function name.
-    Symtab *prev_scope = Swig_symbol_setscope(Getattr(classn, "symtab"));
-    Node *added = Swig_symbol_add(symname, n);
-    Swig_features_get(Swig_cparse_features(), Swig_symbol_qualifiedscopename(NULL), name, decl, n);
-    Swig_symbol_setscope(prev_scope);
-    ASSERT_OR_PRINT_NODE(added == n, n);
-
-    // Add the 'public' node, then the new constructor.
-    appendChild(classn, n);
-
-    Delete(symname);
-  } else if (GetFlag(n, "feature:ignore")) {
-    // Assignment function is *REQUIRED* since we're effectively implementing *pointer* assignment rather than the underlying class's assignment.
-    Setattr(n, "sym:name", "op_assign__");
-    UnsetFlag(n, "feature:ignore");
-  }
-
-  // Make sure the function declaration is public, returning void, and accepting just a const reference
+  // Make sure the function declaration is public
   Setattr(n, "access", "public");
-  Setattr(n, "type", "void"); // Returns nothing
-  Setattr(n, "decl", decl);
 
+  // Function declaration: takes const reference to class, returns nothing
+  SwigType *classtype = Getattr(classn, "classtypeobj");
+  String *decl = NewStringf("f(r.q(const).%s).", classtype);
+  Setattr(n, "decl", decl);
+  Setattr(n, "type", "void");
+  
   // Change parameters so that the correct self/other are used for typemap matching.
   // Notably, 'other' should be treated as a *MUTABLE* reference for type matching.
-  Delete(argtype);
-  argtype = NewStringf("r.%s", classtype);
-  
+  String *argtype = NewStringf("r.%s", classtype);
   Parm *other_parm = NewParm(argtype, "other", classn);
   this->makeParameterName(n, other_parm, 0);
   Setattr(other_parm, "name", "ASSIGNMENT_OTHER");
   Setattr(n, "parms", other_parm);
   Setattr(n, "fortran:rename_self", "ASSIGNMENT_SELF"); // Use INOUT for class handle
 
-  // Determine construction flags. These are ignored if C++11 is being used
-  // to compile the wrapper. If 'default_destructor' is not set, the class probably has a private or protected destructor.
-  String *flags = NewString("0");
-  if (GetFlag(classn, "allocate:default_destructor")) {
-    Printv(flags, " | swig::IS_DESTR", NULL);
-  }
-  if (!Abstract && GetFlag(classn, "allocate:copy_constructor")) {
-    Printv(flags, " | swig::IS_COPY_CONSTR", NULL);
-  }
-  if (!GetFlag(classn, "allocate:noassign")) {
-    if (GetFlag(classn, "allocate:has_assign")) {
-      Printv(flags, " | swig::IS_COPY_ASSIGN", NULL);
-    } else {
-      // Otherwise, the class might be default assignable, or it might not.
-      // We don't know. Let C++11 figure it out, or the user can specialize
-      // the `swig::AssignmentTraits` class on the type.
-    }
-  }
-
+  // Get C++ class name
+  String *classname = Getattr(classn, "classtype");
   if (String *smartptr_type = Getattr(classn, "feature:smartptr")) {
-    // We're actually assigning a *smart* pointer. Modify as a smart pointer rather than
-    // as the wrapped class type.
+    // The pointed-to data is actually SP<CLASS>, not CLASS.
     classname = smartptr_type;
   }
+  // Determine construction flags.
+  String *policystr = Getattr(classn, "fortran:policy");
 
   // Define action code
   String *code = NULL;
   if (CPlusPlus) {
-    code = NewStringf("typedef %s swig_lhs_classtype;\n", classname);
-    classname = NewString("swig_lhs_classtype");
+    code = NewStringf("SWIG_assign<%s, %s>(farg1, *farg2);\n", classname, policystr);
   } else {
-    code = NewStringEmpty();
-    classname = Copy(classname);
+    code = NewStringf("SWIG_assign(farg1, *farg2);\n");
   }
-
-  Printf(code, "SWIG_assign(%s, farg1, %s, farg2, %s);",
-         classname, classname,
-         flags);
   Setattr(n, "feature:action", code);
 
   // Insert assignment fragment
   Setattr(n, "feature:fragment", "SWIG_assign");
 
+  // Add the new assignment operator to the class's definition.
+  appendChild(classn, n);
+  
   Delete(code);
   Delete(classtype);
-  Delete(classname);
-  Delete(flags);
   Delete(other_parm);
+  Delete(symname);
   Delete(name);
   Delete(decl);
   Delete(argtype);
@@ -2056,6 +2002,25 @@ int FORTRAN::classHandler(Node *n) {
   }
   Printv(f_class, ", public :: ", symname, "\n", NULL);
 
+  // Define policy
+  if (CPlusPlus)
+  {
+    SwigType *name = Getattr(n, "name");
+    ASSERT_OR_PRINT_NODE(name, n);
+    String *policystr = SwigType_manglestr(name);
+    Insert(policystr, 0, "SWIGPOLICY");
+    Setattr(n, "fortran:policy", policystr);
+
+    // Define policies for the class
+    const char *policy = "swig::ASSIGNMENT_DEFAULT";
+    if (String *smartptr_type = Getattr(n, "feature:smartptr")) {
+      policy = "swig::ASSIGNMENT_SMARTPTR";
+    } else if (!GetFlag(n, "allocate:default_destructor")) {
+      policy = "swig::ASSIGNMENT_NODESTRUCT";
+    }
+    Printv(f_policies, "#define ", policystr, " ", policy, "\n", NULL);
+  }
+
   int saved_classlen = 0;
   if (!bindc) {
     if (!basename) {
@@ -2150,12 +2115,7 @@ int FORTRAN::constructorHandler(Node *n) {
  * \brief Handle extra destructor stuff.
  */
 int FORTRAN::destructorHandler(Node *n) {
-  // Handle ownership semantics by wrapping the destructor action
-  String *fdis = NewString("if (self%swigdata%mem == SWIG_OWN) then\n"
-                           "  $action\n"
-                           "end if\n");
   // Make the destructor a member function called 'release'
-  Setattr(n, "feature:shadow", fdis);
   Setattr(n, "fortran:name", "release");
   SetFlag(n, "fortran:ismember");
 
@@ -2166,6 +2126,13 @@ int FORTRAN::destructorHandler(Node *n) {
 
   // Use a custom typemap: input must be mutable and clean up properly
   Setattr(n, "fortran:rename_self", "DESTRUCTOR_SELF");
+  // Wrap the proxy action so it only 'delete's if it owns
+  Setattr(n, "feature:shadow",
+          "if (btest(farg1%cmemflags, swig_cmem_own_bit)) then\n"
+          "  $action\n"
+          "endif\n"
+          "farg1%cptr = C_NULL_PTR\n"
+          "farg1%cmemflags = 0\n");
 
   return Language::destructorHandler(n);
 }

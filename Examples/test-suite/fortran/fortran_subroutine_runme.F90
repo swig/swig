@@ -30,9 +30,9 @@ subroutine test_cls
   ASSERT(ierr == 1)
   ASSERT(f%get_val() == -4)
 
-  call make_foo(3, f)
-  call make_foo(4) ! TODO: leaks memory
-  call make_foo(5, f) ! TODO: leaks memory of existing 'f'
+  ! Note: automatically prevented from becoming a subroutine
+  f = make_foo(3)
+  call f%release()
 
 end subroutine
 

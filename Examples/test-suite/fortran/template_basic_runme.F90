@@ -20,11 +20,11 @@ subroutine test_assignment
   type(vecint) :: a, b, empty
 
   ASSERT(.not. c_associated(a%swigdata%cptr))
-  ASSERT(a%swigdata%mem == 0)
+  ASSERT(a%swigdata%cmemflags == 0)
 
   ! Create
   a = vecint(3)
-  ASSERT(a%swigdata%mem == 1) ! SWIG_OWN
+  ASSERT(a%swigdata%cmemflags == 1) ! SWIG_MEM_OWN
   ! Copy
   b = a
   ! Assign null, deleting object

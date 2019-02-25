@@ -20,21 +20,32 @@ program li_boost_shared_ptr_runme
   f1 = Klass() ! Construct
   ASSERT(f1%getTotal_count() == orig_total_count + 1)
   ASSERT(use_count(f1) == 1)
-  f2 = f1 ! Copy shared pointer, not underlying object
+  f2 = smartpointertest(f1) ! Copy shared pointer, not underlying object
   ASSERT(use_count(f1) == 2)
   ASSERT(use_count(f2) == 2)
+  ! They should be individual shared pointers
+  ASSERT(.not. c_associated(f1%swigdata%cptr, f2%swigdata%cptr))
+  f2 = f1 ! Copy shared pointer
+  ! They should be individual shared pointers
+  ASSERT(.not. c_associated(f1%swigdata%cptr, f2%swigdata%cptr))
+  ASSERT(use_count(f2) == 2)
 
-  f2 = Klass() ! Create a new object, assigning the *shared pointer*
-               ! but not replacing the underlying object.
+  f2 = Klass() ! Create a new object, bind to f2
   ASSERT(use_count(f1) == 1)
   ASSERT(use_count(f2) == 1)
 
   f1 = pointertest(f2) ! Return a non-shared pointer
-                       ! and call the destructor of C++ object 1
   ASSERT(use_count(f2) == 1)
 
   call f1%release() ! Clear the raw pointer (does not deallocate)
   ASSERT(use_count(f1) == 0)
+
+  ! Copy-construct the underlying object
+  f1 = Klass(f2)
+  ASSERT(use_count(f1) == 1)
+  ASSERT(use_count(f2) == 1)
+  call f1%release()
+
   call f2%release() ! Destroy the last existing shared pointer
                     ! which then destroys the C++ object 2
   ASSERT(use_count(f2) == 0)

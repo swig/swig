@@ -20,7 +20,7 @@ import java.lang.*; // for Exception
 %typemap(javainterfaces) NS::Greeting "EventListener";
 %typemap(javacode) NS::Greeting %{
   public static final long serialVersionUID = 0x52151000; // Suppress ecj warning
-  // Pure Java code generated using %typemap(javacode) 
+  // Pure Java code generated using %typemap(javacode)
   public void sayhello() {
     hello();
   }
@@ -119,8 +119,6 @@ public:
   void const_member_method(const ConstWithout *p) const {}
   const ConstWithout * const_var;
   const ConstWithout * const var_const;
-private:
-  ConstWithout& operator=(const ConstWithout &);
 };
 const ConstWithout * global_constwithout = 0;
 void global_method_constwithout(const ConstWithout *p) {}

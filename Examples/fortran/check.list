@@ -6,7 +6,6 @@ bindc
 class
 funcptr
 inheritance
-memory_management
 simple
 static_members
 std_string

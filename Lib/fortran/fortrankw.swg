@@ -9,7 +9,6 @@
 %enddef
 
 // Rename *operators* to *generics*
-%fortran_operator(op_assign__, "assignment(=)",      *::operator=)
 %fortran_operator(op_add__,    "operator(+)",        *::operator+)
 %fortran_operator(op_sub__,    "operator(-)",        *::operator-)
 %fortran_operator(op_mul__,    "operator(*)",        *::operator*)
@@ -27,6 +26,9 @@
 %fortran_operator(op_ne__,     "operator(.ne.)",     *::operator!=)
 %fortran_operator(op_ptr__,    "operator(.ptr.)",    *::operator->)
 %fortran_operator(op_deref__,  "operator(.deref.)",  *::operator*())
+
+// Do *not* rename assignment by default
+// %fortran_operator(op_assign__, "assignment(=)",      *::operator=)
 
 /* Rename member functions that conflict with our special ones */
 %keywordwarn("'release' is reserved for SWIG destructors",

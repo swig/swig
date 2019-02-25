@@ -257,6 +257,7 @@
 #define WARN_FORTRAN_TYPEMAP_FOUT_UNDEF     764
 #define WARN_FORTRAN_MULTIPLE_INHERITANCE   765
 #define WARN_FORTRAN_NAME_CONFLICT          770
+#define WARN_FORTRAN_NO_SUBROUTINE          771
 
 /* please leave 760-779 free for Fortran */
 

@@ -11,6 +11,9 @@
 %rename(get_val) *::val() const;
 %nofortransubroutine *::val() const;
 
+// Since make_foo returns a class, it is prohibited from turning into a subroutine
+%warnfilter(SWIGWARN_FORTRAN_NO_SUBROUTINE) make_foo;
+
 %inline %{
 
 template<class T>
@@ -29,7 +32,6 @@ class Foo {
   }
 };
 
-// Ownership/move flag must be set properly here!
 Foo<int> make_foo(int val) {
   Foo<int> result;
   result.val(val);

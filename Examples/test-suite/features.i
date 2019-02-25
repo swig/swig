@@ -16,11 +16,6 @@
 %exception Simple::Simple() "$action /*Simple::Simple*/";
 %exception Simple::~Simple() "$action /*Simple::~Simple*/";
 
-#ifdef SWIGFORTRAN
-// SWIG-Fortran automatically supplies assignment operator; exclude from exception
-%exception *::operator= "$action /* operator= */"
-#endif
-
 %inline %{
 class Simple {};
 %}
