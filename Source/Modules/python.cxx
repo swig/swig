@@ -2187,7 +2187,7 @@ public:
    * is_real_overloaded()
    *
    * Check if the function is overloaded, but not just have some
-   * siblings generated due to the original function have 
+   * siblings generated due to the original function having
    * default arguments.
    * ------------------------------------------------------------ */
   bool is_real_overloaded(Node *n) {
@@ -2689,7 +2689,6 @@ public:
     bool add_self = builtin_self && (!builtin_ctor || director_class);
     bool builtin_getter = (builtin && GetFlag(n, "memberget"));
     bool builtin_setter = (builtin && GetFlag(n, "memberset") && !builtin_getter);
-    bool over_varargs = false;
     char const *self_param = builtin ? "self" : "SWIGUNUSEDPARM(self)";
     char const *wrap_return = builtin_ctor ? "int " : "PyObject *";
     String *linkage = NewString("SWIGINTERN ");
@@ -2765,22 +2764,7 @@ public:
       }
     }
 
-    if (overname) {
-      String *over_varargs_attr = Getattr(n, "python:overvarargs");
-      if (!over_varargs_attr) {
-	for (Node *sibling = n; sibling; sibling = Getattr(sibling, "sym:nextSibling")) {
-	  if (emit_isvarargs(Getattr(sibling, "parms"))) {
-	    over_varargs = true;
-	    break;
-	  }
-	}
-	over_varargs_attr = NewString(over_varargs ? "1" : "0");
-	for (Node *sibling = n; sibling; sibling = Getattr(sibling, "sym:nextSibling"))
-	  Setattr(sibling, "python:overvarargs", over_varargs_attr);
-      }
-      if (Strcmp(over_varargs_attr, "0") != 0)
-	over_varargs = true;
-    }
+    bool over_varargs = emit_isvarargs_function(n);
 
     int funpack = fastunpack && !varargs && !over_varargs && !allow_kwargs;
     int noargs = funpack && (tuple_required == 0 && tuple_arguments == 0);

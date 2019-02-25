@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-02-25: wsfulton
+            [Python] Fix compile errors wrapping overloaded functions/constructors where a vararg
+            function is declared after a non-vararg function.
+
 2019-02-23: zphensley42
             Use fully qualified name 'java.lang.Object' instead of 'Object' in generated code to
             avoid clashes with wrapped C++ classes called 'Object'.
