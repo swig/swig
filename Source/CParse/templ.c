@@ -376,11 +376,20 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	  sz = Len(typelist);
 	  for (i = 0; i < sz; i++) {
 	    String *s = Getitem(typelist, i);
-	    /*      Replace(s,name,value, DOH_REPLACE_ID); */
-	    /*      Printf(stdout,"name = '%s', value = '%s', tbase = '%s', iname='%s' s = '%s' --> ", name, dvalue, tbase, iname, s); */
-	    SwigType_typename_replace(s, name, dvalue, scopename);
-	    SwigType_typename_replace(s, tbase, iname, scopename);
-	    /*      Printf(stdout,"'%s'\n", s); */
+	    /*
+	      The approach of 'trivially' replacing template arguments is kind of fragile.
+	      In particular if types with similar name in different namespaces appear.
+	      We will not replace template args if a type/class exists with the same
+	      name which is not a template.
+	    */
+	    Node * __n = Swig_symbol_clookup(s, 0);
+	    String * __nn = __n ? Getattr(__n, "sym:name") : 0;
+	    String * nn = __nn ? Getattr(n, "sym:name") : 0;
+	    int __eq = __nn && nn ? Strcmp(nn, __nn) : 1;
+	    if(__eq!=0 || Getattr(__n, "templatetype")) {
+	      SwigType_typename_replace(s, name, dvalue, 0);
+	      SwigType_typename_replace(s, tbase, iname, 0);
+	    }
 	  }
 
 	  tmp = NewStringf("#%s", name);
@@ -409,7 +418,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       sz = Len(typelist);
       for (i = 0; i < sz; i++) {
 	String *s = Getitem(typelist, i);
-	SwigType_typename_replace(s, tbase, iname, scopename);
+	SwigType_typename_replace(s, tbase, iname, 0);
       }
     }
   }
