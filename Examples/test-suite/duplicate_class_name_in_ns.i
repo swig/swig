@@ -1,9 +1,18 @@
 %module duplicate_class_name_in_ns
 
+%rename(XA) A::X;
+%rename(XB) B::X;
+
 %inline %{
 
 namespace A
 {
+    class X
+    {
+    public:
+        X(){};
+    };
+
     template<typename T>
     class Foo
     {
@@ -27,6 +36,14 @@ namespace A
 
 namespace B
 {
+    // non-template derived from non-template
+    class X : public A::X
+    {
+    public:
+        X(){};
+        A::X do_x(){return A::X();}
+    };
+
     // template derived from template with different template args
     template<typename T, typename U>
     class Foo : public A::Foo<U>
@@ -35,7 +52,6 @@ namespace B
         Foo(){};
         A::Foo<U> do_foo(){return A::Foo<U>();}
     };
-
 
     // template derived from non-template
     template<typename T, typename U>
@@ -65,6 +81,7 @@ namespace B
 %template(BBaz) B::Baz<double>;
 
 %inline %{
+    A::X get_a_x() {B::X x; return x.do_x();}
     A::Foo<double> get_a_foo() {B::Foo<int, double> x; return x.do_foo();}
     A::Bar get_a_bar() {B::Bar<int, double> x; return x.do_bar();}
     A::Baz<double> get_a_baz() {B::Baz<double> x; return x.do_baz();}
