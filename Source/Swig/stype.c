@@ -1268,7 +1268,7 @@ String *SwigType_manglestr(const SwigType *s) {
  * Replaces a typename in a type with something else.  Needed for templates.
  * ----------------------------------------------------------------------------- */
 
-void SwigType_typename_replace(SwigType *t, String *pat, String *rep, String *scopename) {
+void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
   String *nt;
   int i, ilen;
   List *elem;
@@ -1304,13 +1304,13 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep, String *sc
 	  Append(nt, "<(");
 	  jlen = Len(tparms);
 	  for (j = 0; j < jlen; j++) {
-	    SwigType_typename_replace(Getitem(tparms, j), pat, rep, scopename);
+	    SwigType_typename_replace(Getitem(tparms, j), pat, rep);
 	    Append(nt, Getitem(tparms, j));
 	    if (j < (jlen - 1))
 	      Putc(',', nt);
 	  }
 	  tsuffix = SwigType_templatesuffix(e);
-	  SwigType_typename_replace(tsuffix, pat, rep, scopename);
+	  SwigType_typename_replace(tsuffix, pat, rep);
 	  Printf(nt, ")>%s", tsuffix);
 	  Delete(tsuffix);
 	  Clear(e);
@@ -1332,13 +1332,12 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep, String *sc
 	  assert(!first);
 	}
 
-	if( ! scopename || Strstr(scopename, first) ) {
-	  Clear(e);
-	  if (first)
-	    SwigType_typename_replace(first, pat, rep, scopename);
-	  SwigType_typename_replace(rest, pat, rep, scopename);
-	  Printv(e, first ? first : "", "::", rest, NIL);
-        }
+	Clear(e);
+	if (first)
+	  SwigType_typename_replace(first, pat, rep);
+	SwigType_typename_replace(rest, pat, rep);
+	Printv(e, first ? first : "", "::", rest, NIL);
+
 	Delete(first);
 	Delete(rest);
       }
@@ -1349,7 +1348,7 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep, String *sc
       Append(e, "f(");
       jlen = Len(fparms);
       for (j = 0; j < jlen; j++) {
-	SwigType_typename_replace(Getitem(fparms, j), pat, rep, scopename);
+	SwigType_typename_replace(Getitem(fparms, j), pat, rep);
 	Append(e, Getitem(fparms, j));
 	if (j < (jlen - 1))
 	  Putc(',', e);

@@ -184,7 +184,7 @@ extern "C" {
   extern SwigType *SwigType_array_type(const SwigType *t);
   extern SwigType *SwigType_default_create(const SwigType *ty);
   extern SwigType *SwigType_default_deduce(const SwigType *t);
-  extern void SwigType_typename_replace(SwigType *t, String *pat, String *rep, String * scope);
+  extern void SwigType_typename_replace(SwigType *t, String *pat, String *rep);
   extern SwigType *SwigType_remove_global_scope_prefix(const SwigType *t);
   extern SwigType *SwigType_alttype(const SwigType *t, int ltmap);
 

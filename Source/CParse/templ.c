@@ -258,12 +258,6 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   String *tname;
   String *iname;
   String *tbase;
-  String *scopename = 0;
-  String *tmp = tscope ? Getattr(tscope, "name") : 0;
-  if (tmp) {
-    scopename = Swig_scopename_last(Str(tmp));
-  }
-
   patchlist = NewList();
   cpatchlist = NewList();
   typelist = NewList();
@@ -387,8 +381,8 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	    String * nn = __nn ? Getattr(n, "sym:name") : 0;
 	    int __eq = __nn && nn ? Strcmp(nn, __nn) : 1;
 	    if(__eq!=0 || Getattr(__n, "templatetype")) {
-	      SwigType_typename_replace(s, name, dvalue, 0);
-	      SwigType_typename_replace(s, tbase, iname, 0);
+	      SwigType_typename_replace(s, name, dvalue);
+	      SwigType_typename_replace(s, tbase, iname);
 	    }
 	  }
 
@@ -418,7 +412,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       sz = Len(typelist);
       for (i = 0; i < sz; i++) {
 	String *s = Getitem(typelist, i);
-	SwigType_typename_replace(s, tbase, iname, 0);
+	SwigType_typename_replace(s, tbase, iname);
       }
     }
   }
@@ -442,7 +436,6 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   Delete(tbase);
   Delete(tname);
   Delete(templateargs);
-  Delete(scopename);
 
   /*  set_nodeType(n,"template"); */
   return 0;
