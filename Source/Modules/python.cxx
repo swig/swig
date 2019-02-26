@@ -5527,8 +5527,6 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     Printf(w->code, "const size_t swig_method_index = %d;\n", director_method_index++);
     Printf(w->code, "const char *const swig_method_name = \"%s\";\n", pyname);
 
-    Swig_cresult_name_set("_swig_director_result_");
-
     Append(w->code, "PyObject *method = swig_get_method(swig_method_index, swig_method_name);\n");
     if (Len(parse_args) > 0) {
       if (use_parse) {

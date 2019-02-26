@@ -1337,7 +1337,6 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	  SwigType_typename_replace(first, pat, rep);
 	SwigType_typename_replace(rest, pat, rep);
 	Printv(e, first ? first : "", "::", rest, NIL);
-
 	Delete(first);
 	Delete(rest);
       }
