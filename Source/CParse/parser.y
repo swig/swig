@@ -4443,11 +4443,12 @@ templateparameterstail : COMMA templateparameter templateparameterstail {
 /* Namespace support */
 
 cpp_using_decl : USING idcolon SEMI {
-                  String *uname = Swig_symbol_type_qualify($2,0);
+		  String *uname = Swig_symbol_type_qualify($2,0);
 		  String *name = Swig_scopename_last($2);
-                  $$ = new_node("using");
+		  $$ = new_node("using");
 		  Setattr($$,"uname",uname);
 		  Setattr($$,"name", name);
+		  Swig_symbol_add_using(name, uname, $$);
 		  Delete(uname);
 		  Delete(name);
 		  add_symbols($$);
