@@ -26,8 +26,10 @@ contains
   function acc_deviceptr(data) &
     result(devptr)
     integer(C_INT), dimension(:), target :: data
+    integer(C_INT), pointer :: iptr
     type(C_DEVPTR) :: devptr
-    devptr%p = c_loc(data(1))
+    iptr => data(1)
+    devptr%p = c_loc(iptr)
   end function
 end module
 %}
