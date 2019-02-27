@@ -1,6 +1,5 @@
 %module fortran_openacc
 
-// Mock 'thrust'
 %{
 #include <numeric>
 %}
