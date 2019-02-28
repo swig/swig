@@ -329,6 +329,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 
     if (tp) {
       Symtab *tsdecl = Getattr(n, "sym:symtab");
+      String *tsname = Getattr(n, "sym:name");
       while (p && tp) {
 	String *name, *value, *valuestr, *tmp, *tmpr;
 	int sz, i;
@@ -376,11 +377,9 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	      We will not replace template args if a type/class exists with the same
 	      name which is not a template.
 	    */
-	    Node * __n = Swig_symbol_clookup(s, 0);
-	    String * __nn = __n ? Getattr(__n, "sym:name") : 0;
-	    String * nn = __nn ? Getattr(n, "sym:name") : 0;
-	    int __eq = __nn && nn ? Strcmp(nn, __nn) : 1;
-	    if(__eq!=0 || Getattr(__n, "templatetype")) {
+	    Node * tynode = Swig_symbol_clookup(s, 0);
+	    String *tyname  = tynode ? Getattr(tynode, "sym:name") : 0;
+	    if (!tyname || !tsname || !Equal(tyname, tsname) || Getattr(tynode, "templatetype")) {
 	      SwigType_typename_replace(s, name, dvalue);
 	      SwigType_typename_replace(s, tbase, iname);
 	    }
