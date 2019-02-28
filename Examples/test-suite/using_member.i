@@ -6,17 +6,15 @@
 %inline %{
 namespace interface1
 {
-    class A
+    struct A
     {
-    public:
         int get(int) {return 10;}
     };
 }
 using interface1::A;
 
-class B : public A
+struct B : public A
 {
- public:
     using A::get;
     int get(double) {return 20;}
 };

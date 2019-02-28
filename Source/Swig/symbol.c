@@ -384,12 +384,15 @@ String *Swig_symbol_qualified_language_scopename(Symtab *n) {
 
 /* -----------------------------------------------------------------------------
  * Swig_symbol_add_using()
+ *
+ * Adds a node to the C symbol table for a using declaration.
+ * Used for using-declarations within classes/structs.
  * ----------------------------------------------------------------------------- */
 
 void Swig_symbol_add_using(String * name, String * uname, Node * n) {
   Hash *h;
-  h = Swig_symbol_clookup(uname,0);
-  if (h && checkAttribute(h, "kind", "class")) {
+  h = Swig_symbol_clookup(uname, 0);
+  if (h && (checkAttribute(h, "kind", "class") || checkAttribute(h, "kind", "struct"))) {
     String *qcurrent = Swig_symbol_qualifiedscopename(0);
     if (qcurrent) {
 	Append(qcurrent, "::");
