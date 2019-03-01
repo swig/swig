@@ -7,6 +7,30 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-02-28: wsfulton
+            [Java] std::vector improvements for types that do not have a default constructor.
+
+            The std::vector wrappers have been changed to work by default for elements that are
+            not default insertable, i.e. have no default constructor. This has been achieved by
+            not wrapping:
+
+              vector(size_type n);
+
+            Previously the above had to be ignored via %ignore.
+
+            If the above constructor is still required it can be added back in again via %extend:
+
+              %extend std::vector {
+                vector(size_type count) { return new std::vector< T >(count); }
+              }
+
+            Alternatively, the following wrapped constructor could be used as it provides near-enough
+            equivalent functionality:
+
+              vector(jint count, const value_type& value);
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2019-02-25: wsfulton
             [Python] Fix compile errors wrapping overloaded functions/constructors where a vararg
             function is declared after a non-vararg function.

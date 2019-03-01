@@ -198,11 +198,6 @@ namespace std {
 
     %extend {
       %fragment("SWIG_ListSize");
-      list(jint count) throw (std::out_of_range) {
-        if (count < 0)
-          throw std::out_of_range("list count must be positive");
-        return new std::list<T>(static_cast<std::list<T>::size_type>(count));
-      }
 
       list(jint count, const T &value) throw (std::out_of_range) {
         if (count < 0)

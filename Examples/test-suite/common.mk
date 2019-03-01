@@ -407,6 +407,7 @@ CPP_TEST_CASES += \
 	static_array_member \
 	static_const_member \
 	static_const_member_2 \
+	stl_no_default_constructor \
 	string_constants \
 	struct_initialization_cpp \
 	struct_value \
