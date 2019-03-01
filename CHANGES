@@ -939,8 +939,8 @@ Version 4.0.0 (27 Apr 2019)
             returning pointers by reference.
 
 2017-12-08: olly
-	    [PHP] Use ZEND_MODULE_GLOBALS_ACCESSOR to access globals - this
-	    should make the generated code work with PHP 7.2.0.
+	    [PHP] Use ZEND_MODULE_GLOBALS_ACCESSOR to access globals so the
+	    generated code builds when PHP was built with ZTS enabled.
 
 2017-12-04: wsfulton
             [Python] Add missing checks for failures in calls to PyUnicode_AsUTF8String. Previously a
