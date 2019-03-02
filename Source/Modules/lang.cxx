@@ -2200,7 +2200,9 @@ int Language::classDirector(Node *n) {
     Node *nodeType = Getattr(ni, "nodeType");
     if (Cmp(nodeType, "destructor") == 0 && GetFlag(ni, "final")) {
       String *classtype = Getattr(n, "classtype");
+      SWIG_WARN_NODE_BEGIN(ni);
       Swig_warning(WARN_LANG_DIRECTOR_FINAL, input_file, line_number, "Destructor of director base class %s is marked as final.\n", classtype);
+      SWIG_WARN_NODE_END(ni);
       Delete(vtable);
       Delete(using_protected_members_code);
       return SWIG_OK;
