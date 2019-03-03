@@ -785,7 +785,9 @@ In order to override virtual methods on a C++ class with Go methods the
 <tt>NewDirectorClassName</tt> constructor functions receives a
 <tt>DirectorInterface</tt> argument.  The methods in the <tt>
 DirectorInterface</tt> are a subset of the public and protected virtual methods
-of the C++ class.  If the <tt>DirectorInterface</tt> contains a method with a
+of the C++ class.
+Virtual methods that have a final specifier are unsurprisingly excluded.
+If the <tt>DirectorInterface</tt> contains a method with a
 matching signature to a virtual method of the C++ class then the virtual C++
 method will be overwritten with the Go method.  As Go doesn't support protected
 methods all overridden protected virtual C++ methods will be public in Go.
