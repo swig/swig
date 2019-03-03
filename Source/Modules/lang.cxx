@@ -2203,7 +2203,7 @@ int Language::classDirector(Node *n) {
     if (Cmp(nodeType, "destructor") == 0 && GetFlag(ni, "final")) {
       String *classtype = Getattr(n, "classtype");
       SWIG_WARN_NODE_BEGIN(ni);
-      Swig_warning(WARN_LANG_DIRECTOR_FINAL, input_file, line_number, "Destructor of director base class %s is marked as final.\n", classtype);
+      Swig_warning(WARN_LANG_DIRECTOR_FINAL, input_file, line_number, "Destructor %s is final, %s cannot be a director class.\n", Swig_name_decl(ni), classtype);
       SWIG_WARN_NODE_END(ni);
       SetFlag(n, "feature:nodirector");
       Delete(vtable);
