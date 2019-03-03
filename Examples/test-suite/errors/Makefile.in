@@ -24,11 +24,11 @@ SWIG_LIB_SET = @SWIG_LIB_SET@
 SWIGINVOKE   = $(SWIG_LIB_SET) $(SWIGTOOL) $(SWIGEXE)
 
 # All .i files with prefix 'cpp_' will be treated as C++ input and remaining .i files as C input
-ALL_ERROR_TEST_CASES := $(patsubst %.i,%, $(notdir $(wildcard $(srcdir)/*.i)))
-CPP_ERROR_TEST_CASES := $(filter cpp_%, $(ALL_ERROR_TEST_CASES))
-C_ERROR_TEST_CASES := $(filter-out $(CPP_ERROR_TEST_CASES), $(ALL_ERROR_TEST_CASES))
-DOXYGEN_ERROR_TEST_CASES := $(filter doxygen_%, $(C_ERROR_TEST_CASES))
-C_ERROR_TEST_CASES := $(filter-out $(DOXYGEN_ERROR_TEST_CASES), $(C_ERROR_TEST_CASES))
+ALL_ERROR_TEST_CASES := $(sort $(patsubst %.i,%, $(notdir $(wildcard $(srcdir)/*.i))))
+CPP_ERROR_TEST_CASES := $(sort $(filter cpp_%, $(ALL_ERROR_TEST_CASES)))
+C_ERROR_TEST_CASES := $(sort $(filter-out $(CPP_ERROR_TEST_CASES), $(ALL_ERROR_TEST_CASES)))
+DOXYGEN_ERROR_TEST_CASES := $(sort $(filter doxygen_%, $(C_ERROR_TEST_CASES)))
+C_ERROR_TEST_CASES := $(sort $(filter-out $(DOXYGEN_ERROR_TEST_CASES), $(C_ERROR_TEST_CASES)))
 
 # Always use C++ for Doxygen tests, there doesn't seem to be any need to
 # distinguish between C and C++ Doxygen tests.
