@@ -5,6 +5,9 @@
 program fortran_ownership_runme
   use ISO_C_BINDING
   implicit none
+  integer, parameter :: swig_cmem_own_bit = 0
+  integer, parameter :: swig_cmem_rvalue_bit = 1
+  integer, parameter :: swig_cmem_const_bit = 2
 
   call test_standard
   call test_shared

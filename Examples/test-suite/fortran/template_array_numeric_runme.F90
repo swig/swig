@@ -6,6 +6,7 @@ program template_array_numeric_runme
   use template_array_numeric
   use ISO_C_BINDING
   implicit none
+  integer, parameter :: swig_cmem_own_bit = 0
 
   call test_assignment
 
