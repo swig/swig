@@ -2,17 +2,23 @@
 # Makefile for Fortran test-suite
 #######################################################################
 
-LANGUAGE	= fortran
-FC      	= @FC@
-SCRIPTSUFFIX= _runme.F90
+LANGUAGE     = fortran
+SCRIPTSUFFIX = _runme.F90
+FORTRAN_SO   = @FORTRAN_SO@
 
-FORTRAN_SO = @FORTRAN_SO@
-FCFLAGS = @FCFLAGS@
-CCSHARED=	@CCSHARED@
+CC           = @CC@
+CXX          = @CXX@
+FC           = @FC@
+CCSHARED     = @CCSHARED@
+LDSHARED     = @LDSHARED@
+CXXSHARED    = @CXXSHARED@
+@TRYLINKINGWITHCXX@
+FCFLAGS      = @FCFLAGS@
+CXXFLAGS     = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@
 
-srcdir         = @srcdir@
-top_srcdir     = @top_srcdir@
-top_builddir   = @top_builddir@
+srcdir       = @srcdir@
+top_srcdir   = @top_srcdir@
+top_builddir = @top_builddir@
 
 CPP_TEST_CASES = \
 	fortran_bindc \
@@ -83,22 +89,38 @@ FAILING_CPP_TESTS += \
   variable_replacement \
   virtual_poly
 
+# Link errors
+FAILING_MULTI_CPP_TESTS += \
+  clientdata_prop \
+  import_stl \
+  template_typedef_import
+
 include $(srcdir)/../common.mk
 
 # Rules for the different types of tests
 %.cpptest:
 	$(setup)
-	+$(swig_and_compile_cpp)
+	+$(swig_and_compile_cpp) NOLINK=false
 	$(run_testcase)
 
 %.ctest:
 	$(setup)
-	+$(swig_and_compile_c)
+	+$(swig_and_compile_c) NOLINK=false
 	$(run_testcase)
 
 %.multicpptest:
 	$(setup)
-	@echo "*** Fortran multi tests are disabled; skipping '$*'"
+	+$(swig_and_compile_multi_cpp)
+	+$(link_multi_cpp)
+	$(run_testcase)
+
+# Compiles a multiple-module library
+link_multi_cpp = \
+        for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
+          ALL_OBJS="$${ALL_OBJS} $${f}_wrap.o $${f}_fort.o" ; \
+        done ; \
+        @FORTRANCXXSHARED@ $(CXXFLAGS) $(LDFLAGS) $$ALL_OBJS \
+		$(FCLIBS) -o $(LIBPREFIX)$*$(FORTRAN_SO)
 
 # Runs the testcase.
 run_testcase = \

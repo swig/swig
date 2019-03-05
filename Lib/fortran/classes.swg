@@ -28,9 +28,9 @@ enum {
 #endif
 
 %fragment("SwigMemState_f", "fdecl", noblock=1) {
- integer, parameter, public :: swig_cmem_own_bit = 0
- integer, parameter, public :: swig_cmem_rvalue_bit = 1
- integer, parameter, public :: swig_cmem_const_bit = 2}
+ integer, parameter :: swig_cmem_own_bit = 0
+ integer, parameter :: swig_cmem_rvalue_bit = 1
+ integer, parameter :: swig_cmem_const_bit = 2}
 
 /* -------------------------------------------------------------------------
  * Wrapper struct that holds a C pointer and memory state
