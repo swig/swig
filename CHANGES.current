@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (27 Apr 2019)
 ===========================
 
+2019-04-06: tlby
+            [Perl] Fully qualify aliases in pm file.
+
 2019-04-24: vadz
             #1517 Fix crash if "@return" Doxygen tag was used on a node without any return type.
 

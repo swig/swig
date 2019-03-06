@@ -1072,7 +1072,7 @@ public:
 	       "tie %__", iname, "_hash,\"", is_shadow(t), "\", $",
 	       cmodule, "::", iname, ";\n", "$", iname, "= \\%__", iname, "_hash;\n", "bless $", iname, ", ", is_shadow(t), ";\n", NIL);
       } else {
-	Printv(var_stubs, "*", iname, " = *", cmodule, "::", iname, ";\n", NIL);
+	Printv(var_stubs, "*", module, "::", iname, " = *", cmodule, "::", iname, ";\n", NIL);
       }
     }
     if (export_all)
@@ -1142,10 +1142,10 @@ public:
 	       "tie %__", iname, "_hash,\"", is_shadow(type), "\", $",
 	       cmodule, "::", iname, ";\n", "$", iname, "= \\%__", iname, "_hash;\n", "bless $", iname, ", ", is_shadow(type), ";\n", NIL);
       } else if (do_constants) {
-	Printv(const_stubs, "sub ", name, " () { $", cmodule, "::", name, " }\n", NIL);
+	Printv(const_stubs, "sub ", module, "::", name, " () { $", cmodule, "::", name, " }\n", NIL);
 	num_consts++;
       } else {
-	Printv(var_stubs, "*", iname, " = *", cmodule, "::", iname, ";\n", NIL);
+	Printv(var_stubs, "*", module, "::", iname, " = *", cmodule, "::", iname, ";\n", NIL);
       }
     }
     if (export_all) {
