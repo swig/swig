@@ -74,61 +74,37 @@ static String * getRTypeName(SwigType *t, int *outCount = NULL) {
 static String *getRClassName(String *retType, int /*addRef*/ = 1, int upRef=0) {
   String *tmp = NewString("");
   SwigType *resolved = SwigType_typedef_resolve_all(retType);
-  char *retName = Char(SwigType_manglestr(resolved));
   if (upRef) {
-    Printf(tmp, "_p%s", retName);
-  } else{
-    Insert(tmp, 0, retName);
-  }
-
-  return tmp;
-/*
-#if 1
-  List *l = SwigType_split(retType);
-  int n = Len(l);
-  if(!l || n == 0) {
-#ifdef R_SWIG_VERBOSE
-    if (debugMode)
-      Printf(stdout, "SwigType_split return an empty list for %s\n",
-             retType);
-#endif
-    return(tmp);
-  }
-
-
-  String *el = Getitem(l, n-1);
-  char *ptr = Char(el);
-  if(strncmp(ptr, "struct ", 7) == 0)
-    ptr += 7;
-
-  Printf(tmp, "%s", ptr);
-
-  if(addRef) {
-    for(int i = 0; i < n; i++) {
-      if(Strcmp(Getitem(l, i), "p.") == 0 ||
-         Strncmp(Getitem(l, i), "a(", 2) == 0)
-        Printf(tmp, "Ref");
-    }
-  }
-
-#else
-  char *retName = Char(SwigType_manglestr(retType));
-  if(!retName)
-    return(tmp);
-
-  if(addRef) {
-    while(retName && strlen(retName) > 1 && strncmp(retName, "_p", 2) == 0)  {
-      retName += 2;
-      Printf(tmp, "Ref");
-    }
-  }
-  if(retName[0] == '_')
-    retName ++;
+    SwigType_add_pointer(resolved);
+  } 
+  char *retName = Char(SwigType_manglestr(resolved));
   Insert(tmp, 0, retName);
-#endif
-
   return tmp;
-*/
+}
+/* --------------------------------------------------------------
+ * Tries to get the resolved name, with options of adding
+ * or removing a layer of references. Take care not
+ * to request both
+ * --------------------------------------------------------------*/
+
+static String *getRClassName2(String *retType, int deRef=0, int upRef=0) {
+  SwigType *resolved = SwigType_typedef_resolve_all(retType);
+  int ispointer = SwigType_ispointer(resolved);
+  int isreference = SwigType_isreference(resolved);
+  if (upRef) {
+    SwigType_add_pointer(resolved);
+  }
+  if (deRef) {
+    if (ispointer) {
+      SwigType_del_pointer(resolved);
+    }
+    if (isreference) {
+      SwigType_del_reference(resolved);
+    }
+  } 
+  String *tmp = NewString("");
+  Insert(tmp, 0, Char(SwigType_manglestr(resolved)));
+  return(tmp);
 }
 
 /* --------------------------------------------------------------
@@ -257,10 +233,9 @@ static int addCopyParameter(SwigType *type) {
 }
 
 static void replaceRClass(String *tm, SwigType *type) {
-  String *tmp = getRClassName(type);
-  String *tmp_base = getRClassName(type, 0);
-  String *tmp_ref = getRClassName(type, 1, 1);
-
+  String *tmp = getRClassName2(type, 0, 0);
+  String *tmp_base = getRClassName2(type, 1, 0);
+  String *tmp_ref = getRClassName2(type, 0, 1);
   Replaceall(tm, "$R_class", tmp);
   Replaceall(tm, "$*R_class", tmp_base);
   Replaceall(tm, "$&R_class", tmp_ref);

@@ -51,9 +51,8 @@ unittest(v, s$speedTest3(v))
 unittest(v, s$speedTest4(v))
 unittest(v, s$speedTest5(v))
 unittest(v, s$speedTest6(v))
-# Not handling enum references - probably needs a typemap
-# unittest(v, s$speedTest7(v))
-# unittest(v, s$speedTest8(v))
+unittest(v, s$speedTest7(v))
+unittest(v, s$speedTest8(v))
 
 ## speedTest methods not in the class
 
@@ -62,7 +61,7 @@ unittest(v, speedTest2(v))
 unittest(v, speedTest3(v))
 unittest(v, speedTest4(v))
 # enum reference
-# unittest(v, speedTest5(v))
+unittest(v, speedTest5(v))
 
 ## member access
 s <- SpeedClass()
@@ -132,7 +131,7 @@ unittest(g, tt$scientistsTestG(g))
 unittest(g, tt$scientistsTestH(g))
 unittest(g, tt$scientistsTestI(g))
 # enum reference
-#unittest(g, tt$scientistsTestJ(g))
+unittest(g, tt$scientistsTestJ(g))
 
 
 unittest(g, scientistsTest1(g))
@@ -143,7 +142,7 @@ unittest(g, scientistsTest5(g))
 unittest(g, scientistsTest6(g))
 unittest(g, scientistsTest7(g))
 ## enum reference
-## unittest(g, scientistsTest8(g))
+unittest(g, scientistsTest8(g))
 
 tt <- TClassInt()
 b <- "bell"
@@ -331,7 +330,7 @@ unittest(b, hairTest9(b))
 unittest(b, hairTestA(b))
 unittest(b, hairTestB(b))
 ## enum reference
-##unittest(b, hairTestC(b))
+unittest(b, hairTestC(b))
 unittest(b, hairTestA1(b))
 unittest(b, hairTestA2(b))
 unittest(b, hairTestA3(b))
@@ -344,7 +343,7 @@ unittest(b, hairTestA9(b))
 unittest(b, hairTestAA(b))
 unittest(b, hairTestAB(b))
 ## enum reference
-## unittest(b, hairTestAC(b))
+unittest(b, hairTestAC(b))
 
 unittest(b, hairTestB1(b))
 unittest(b, hairTestB2(b))
@@ -358,7 +357,7 @@ unittest(b, hairTestB9(b))
 unittest(b, hairTestBA(b))
 unittest(b, hairTestBB(b))
 ## enum reference
-## unittest(b, hairTestBC(b))
+unittest(b, hairTestBC(b))
 
 f <- FirStruct()
 b <- "blonde"
