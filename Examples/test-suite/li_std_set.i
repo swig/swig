@@ -15,15 +15,15 @@
 %include <std_set.i>
 %include <std_vector.i>
 
-// Use language macros since Java doesn't have multiset support (yet)
+// Use language macros since Java and C# don't have multiset support (yet)
 // and uses different naming conventions.
 #if defined(SWIGRUBY) || defined(SWIGPYTHON)
     %include <std_multiset.i>
     %template(set_int) std::multiset<int>;
     %template(v_int) std::vector<int>;
     %template(set_string) std::set<std::string>;
-#elif defined(SWIGJAVA)
-	%template(StringSet) std::set<std::string>;
+#elif defined(SWIGJAVA) || defined(SWIGCSHARP)
+    %template(StringSet) std::set<std::string>;
 #endif
 
 #if defined(SWIGRUBY)
