@@ -51,7 +51,7 @@ SWIGRUNTIME octave_value SWIG_Error(int code, const char *msg) {
   octave_value type(SWIG_ErrorType(code));
   std::string r = msg;
   r += " (" + type.string_value() + ")";
-  error(r.c_str());
+  error("%s", r.c_str());
   return octave_value(r);
 }
 
@@ -840,7 +840,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       const std::string opname = std::string("__") + octave_base_value::get_umap_name(umap) + std::string("__");
       octave_value ret;
       if (!dispatch_unary_op(opname, ret)) {
-        error((opname + std::string(" method not found")).c_str());
+        error("%s", (opname + std::string(" method not found")).c_str());
         return octave_value();
       }
       return ret;

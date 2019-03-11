@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-03-11: dirteat,opoplawski
+            [Octave] Fix compilation errors in Octave 5.1.
+
+              error: format not a string literal and no format arguments [-Werror=format-security]
+
 2019-02-28: wsfulton
             [Java] std::vector improvements for types that do not have a default constructor.
 
