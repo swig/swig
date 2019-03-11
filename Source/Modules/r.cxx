@@ -66,28 +66,12 @@ static String * getRTypeName(SwigType *t, int *outCount = NULL) {
 }
 
 /* --------------------------------------------------------------
- * Tries to get the name of the R class corresponding  to the given type
- * e.g. struct A * is ARef,  struct A**  is  ARefRef.
- * Now handles arrays, i.e. struct A[2]
- * --------------------------------------------------------------*/
-
-static String *getRClassName(String *retType, int /*addRef*/ = 1, int upRef=0) {
-  String *tmp = NewString("");
-  SwigType *resolved = SwigType_typedef_resolve_all(retType);
-  if (upRef) {
-    SwigType_add_pointer(resolved);
-  } 
-  char *retName = Char(SwigType_manglestr(resolved));
-  Insert(tmp, 0, retName);
-  return tmp;
-}
-/* --------------------------------------------------------------
  * Tries to get the resolved name, with options of adding
  * or removing a layer of references. Take care not
  * to request both
  * --------------------------------------------------------------*/
 
-static String *getRClassName2(String *retType, int deRef=0, int upRef=0) {
+static String *getRClassName(String *retType, int deRef=0, int upRef=0) {
   SwigType *resolved = SwigType_typedef_resolve_all(retType);
   int ispointer = SwigType_ispointer(resolved);
   int isreference = SwigType_isreference(resolved);
@@ -233,9 +217,9 @@ static int addCopyParameter(SwigType *type) {
 }
 
 static void replaceRClass(String *tm, SwigType *type) {
-  String *tmp = getRClassName2(type, 0, 0);
-  String *tmp_base = getRClassName2(type, 1, 0);
-  String *tmp_ref = getRClassName2(type, 0, 1);
+  String *tmp = getRClassName(type, 0, 0);
+  String *tmp_base = getRClassName(type, 1, 0);
+  String *tmp_ref = getRClassName(type, 0, 1);
   Replaceall(tm, "$R_class", tmp);
   Replaceall(tm, "$*R_class", tmp_base);
   Replaceall(tm, "$&R_class", tmp_ref);
