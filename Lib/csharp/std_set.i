@@ -1,9 +1,13 @@
 /* -----------------------------------------------------------------------------
- * std_map.i
+ * std_set.i
  *
- * SWIG typemaps for std::set<T>
+ * SWIG typemaps for std::set<T>.
  *
- * The C# wrapper is made to look and feel like a C# System.Collections.Generic.HashSet<>.
+ * Note that ISet<> used here requires .NET 4 or later.
+ *
+ * The C# wrapper implements ISet<> interface and shares performance
+ * characteristics of C# System.Collections.Generic.SortedSet<> class, but
+ * doesn't provide quite all of its methods.
  * ----------------------------------------------------------------------------- */
 
 %{
