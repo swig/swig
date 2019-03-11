@@ -2224,7 +2224,7 @@ public:
       n = nn;
 
     Parm *parms = Getattr(n, "parms");
-    bool varargs = parms ? emit_isvarargs(parms) : 0;
+    int varargs = parms ? emit_isvarargs(parms) : 0;
 
     /* We prefer to explicitly list all parameters of the C function in the
        generated Python code as this makes the function more convenient to use,
