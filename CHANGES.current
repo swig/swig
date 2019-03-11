@@ -10,9 +10,6 @@ Version 4.0.0 (in progress)
 2019-03-12: vadz
             [C#] Add std::set<> typemaps.
 
-            Not all methods of System.Collections.Generic.ISet are implemented yet, but all the
-            basic methods, including elements access and iteration, are.
-
 2019-03-11: dirteat,opoplawski
             [Octave] Fix compilation errors in Octave 5.1.
 

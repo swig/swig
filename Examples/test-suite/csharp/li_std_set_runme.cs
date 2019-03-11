@@ -51,5 +51,39 @@ public class runme
 
         ss.Clear();
         checkThat(ss.Count == 0, "is empty after Clear()");
+
+        // Check set-theoretic methods.
+        checkThat(new StringSet().SetEquals(new StringSet()), "SetEquals() works for empty sets");
+        checkThat(new StringSet{"foo"}.SetEquals(new StringSet{"foo"}), "SetEquals() works for non-empty sets");
+        checkThat(!new StringSet{"foo"}.SetEquals(new[] {"bar"}), "SetEquals() doesn't always return true");
+
+        ss = new StringSet{"foo", "bar", "baz"};
+        ss.ExceptWith(new[] {"baz", "quux"});
+        checkThat(ss.SetEquals(new[] {"foo", "bar"}), "ExceptWith works");
+
+        ss = new StringSet{"foo", "bar", "baz"};
+        ss.IntersectWith(new[] {"baz", "quux"});
+        checkThat(ss.SetEquals(new[] {"baz"}), "IntersectWith works");
+
+        checkThat(ss.IsProperSubsetOf(new[] {"bar", "baz"}), "IsProperSubsetOf works");
+        checkThat(!ss.IsProperSubsetOf(new[] {"baz"}), "!IsProperSubsetOf works");
+        checkThat(ss.IsSubsetOf(new[] {"bar", "baz"}), "IsSubsetOf works");
+        checkThat(!ss.IsSubsetOf(new[] {"bar"}), "!IsSubsetOf works");
+
+        ss = new StringSet{"foo", "bar", "baz"};
+        checkThat(ss.IsProperSupersetOf(new[] {"bar"}), "IsProperSupersetOf works");
+        checkThat(!ss.IsProperSupersetOf(new[] {"quux"}), "IsProperSupersetOf works");
+        checkThat(ss.IsSupersetOf(new[] {"foo", "bar", "baz"}), "IsProperSupersetOf works");
+        checkThat(!ss.IsSupersetOf(new[] {"foo", "bar", "baz", "quux"}), "IsProperSupersetOf works");
+
+        checkThat(ss.Overlaps(new[] {"foo"}), "Overlaps works");
+        checkThat(!ss.Overlaps(new[] {"moo"}), "!Overlaps works");
+
+        ss.SymmetricExceptWith(new[] {"baz", "quux"});
+        checkThat(ss.SetEquals(new[] {"foo", "bar", "quux"}), "SymmetricExceptWith works");
+
+        ss = new StringSet{"foo", "bar", "baz"};
+        ss.UnionWith(new[] {"baz", "quux"});
+        checkThat(ss.SetEquals(new[] {"foo", "bar", "baz", "quux"}), "UnionWith works");
     }
 }
