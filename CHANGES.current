@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-03-12: vadz
+            [C#] Add std::set<> typemaps.
+
 2019-03-11: dirteat,opoplawski
             [Octave] Fix compilation errors in Octave 5.1.
 
