@@ -74,20 +74,22 @@
 
 namespace std {
 
-  template <class _Key, class _Hash = std::hash< _Key >,
+  template <class _Key,
+            class _Hash = std::hash< _Key >,
             class _Compare = std::equal_to< _Key >,
-	    class _Alloc = allocator< _Key > >
+            class _Alloc = allocator< _Key > >
   class unordered_set {
   public:
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
-    typedef _Hash hasher;
     typedef _Key value_type;
     typedef _Key key_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type& reference;
     typedef const value_type& const_reference;
+    typedef _Hash hasher;
+    typedef _Compare key_equal;
     typedef _Alloc allocator_type;
 
     %traits_swigtype(_Key);
