@@ -56,9 +56,9 @@
 %fragment("StdUnorderedMapTraits","header",fragment="StdMapCommonTraits",fragment="StdUnorderedMapForwardIteratorTraits")
 {
   namespace swig {
-    template <class SwigPySeq, class K, class T, class Hash, class Compare, class Alloc >
+    template <class SwigPySeq, class K, class T, class Hash, class Compare, class Alloc>
     inline void
-    assign(const SwigPySeq& swigpyseq, std::unordered_map<K,T,Hash,Compare,Alloc > *unordered_map) {
+    assign(const SwigPySeq& swigpyseq, std::unordered_map<K,T,Hash,Compare,Alloc> *unordered_map) {
       typedef typename std::unordered_map<K,T,Hash,Compare,Alloc>::value_type value_type;
       typename SwigPySeq::const_iterator it = swigpyseq.begin();
       for (;it != swigpyseq.end(); ++it) {
@@ -97,7 +97,7 @@
       }      
     };
       
-    template <class K, class T, class Hash, class Compare, class Alloc >
+    template <class K, class T, class Hash, class Compare, class Alloc>
     struct traits_from<std::unordered_map<K,T,Hash,Compare,Alloc> >  {
       typedef std::unordered_map<K,T,Hash,Compare,Alloc> unordered_map_type;
       typedef typename unordered_map_type::const_iterator const_iterator;
