@@ -5,9 +5,9 @@
 %fragment("StdUnorderedSetTraits","header",fragment="StdSequenceTraits")
 %{
   namespace swig {
-    template <class SwigPySeq, class T> 
+    template <class SwigPySeq, class Key> 
     inline void 
-    assign(const SwigPySeq& swigpyseq, std::unordered_set<T>* seq) {
+    assign(const SwigPySeq& swigpyseq, std::unordered_set<Key>* seq) {
       // seq->insert(swigpyseq.begin(), swigpyseq.end()); // not used as not always implemented
       typedef typename SwigPySeq::value_type value_type;
       typename SwigPySeq::const_iterator it = swigpyseq.begin();
@@ -16,24 +16,24 @@
       }
     }
 
-    template <class T>
-    struct traits_reserve<std::unordered_set<T> >  {
-      static void reserve(std::unordered_set<T> &seq, typename std::unordered_set<T>::size_type n) {
+    template <class Key>
+    struct traits_reserve<std::unordered_set<Key> >  {
+      static void reserve(std::unordered_set<Key> &seq, typename std::unordered_set<Key>::size_type n) {
         seq.reserve(n);
       }
     };
 
-    template <class T>
-    struct traits_asptr<std::unordered_set<T> >  {
-      static int asptr(PyObject *obj, std::unordered_set<T> **s) {
-	return traits_asptr_stdseq<std::unordered_set<T> >::asptr(obj, s);
+    template <class Key>
+    struct traits_asptr<std::unordered_set<Key> >  {
+      static int asptr(PyObject *obj, std::unordered_set<Key> **s) {
+	return traits_asptr_stdseq<std::unordered_set<Key> >::asptr(obj, s);
       }
     };
 
-    template <class T>
-    struct traits_from<std::unordered_set<T> > {
-      static PyObject *from(const std::unordered_set<T>& vec) {
-	return traits_from_stdseq<std::unordered_set<T> >::from(vec);
+    template <class Key>
+    struct traits_from<std::unordered_set<Key> > {
+      static PyObject *from(const std::unordered_set<Key>& vec) {
+	return traits_from_stdseq<std::unordered_set<Key> >::from(vec);
       }
     };
   }

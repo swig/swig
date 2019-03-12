@@ -7,9 +7,9 @@
 %fragment("StdUnorderedMultisetTraits","header",fragment="StdUnorderedSetTraits")
 %{
   namespace swig {
-    template <class RubySeq, class T>
+    template <class RubySeq, class Key>
     inline void
-    assign(const RubySeq& rubyseq, std::unordered_multiset<T>* seq) {
+    assign(const RubySeq& rubyseq, std::unordered_multiset<Key>* seq) {
       // seq->insert(rubyseq.begin(), rubyseq.end()); // not used as not always implemented
       typedef typename RubySeq::value_type value_type;
       typename RubySeq::const_iterator it = rubyseq.begin();
@@ -18,17 +18,17 @@
       }
     }
 
-    template <class T>
-    struct traits_asptr<std::unordered_multiset<T> >  {
-      static int asptr(VALUE obj, std::unordered_multiset<T> **m) {
-	return traits_asptr_stdseq<std::unordered_multiset<T> >::asptr(obj, m);
+    template <class Key>
+    struct traits_asptr<std::unordered_multiset<Key> >  {
+      static int asptr(VALUE obj, std::unordered_multiset<Key> **m) {
+	return traits_asptr_stdseq<std::unordered_multiset<Key> >::asptr(obj, m);
       }
     };
 
-    template <class T>
-    struct traits_from<std::unordered_multiset<T> > {
-      static VALUE from(const std::unordered_multiset<T>& vec) {
-	return traits_from_stdseq<std::unordered_multiset<T> >::from(vec);
+    template <class Key>
+    struct traits_from<std::unordered_multiset<Key> > {
+      static VALUE from(const std::unordered_multiset<Key>& vec) {
+	return traits_from_stdseq<std::unordered_multiset<Key> >::from(vec);
       }
     };
   }

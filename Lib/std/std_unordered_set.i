@@ -50,19 +50,19 @@
 // const declarations are used to guess the intent of the function being
 // exported; therefore, the following rationale is applied:
 // 
-//   -- f(std::unordered_set<T>), f(const std::unordered_set<T>&):
+//   -- f(std::unordered_set<Key>), f(const std::unordered_set<Key>&):
 //      the parameter being read-only, either a sequence or a
-//      previously wrapped std::unordered_set<T> can be passed.
-//   -- f(std::unordered_set<T>&), f(std::unordered_set<T>*):
+//      previously wrapped std::unordered_set<Key> can be passed.
+//   -- f(std::unordered_set<Key>&), f(std::unordered_set<Key>*):
 //      the parameter may be modified; therefore, only a wrapped std::unordered_set
 //      can be passed.
-//   -- std::unordered_set<T> f(), const std::unordered_set<T>& f():
-//      the unordered_set is returned by copy; therefore, a sequence of T:s 
+//   -- std::unordered_set<Key> f(), const std::unordered_set<Key>& f():
+//      the unordered_set is returned by copy; therefore, a sequence of Key:s 
 //      is returned which is most easily used in other functions
-//   -- std::unordered_set<T>& f(), std::unordered_set<T>* f():
+//   -- std::unordered_set<Key>& f(), std::unordered_set<Key>* f():
 //      the unordered_set is returned by reference; therefore, a wrapped std::unordered_set
 //      is returned
-//   -- const std::unordered_set<T>* f(), f(const std::unordered_set<T>*):
+//   -- const std::unordered_set<Key>* f(), f(const std::unordered_set<Key>*):
 //      for consistency, they expect and return a plain unordered_set pointer.
 // ------------------------------------------------------------------------
 
