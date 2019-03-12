@@ -43,7 +43,13 @@
   %swig_sequence_forward_iterator(unordered_set);
   %swig_container_methods(unordered_set);
 
-  %extend  {
+#if defined(SWIGPYTHON_BUILTIN)
+  %feature("python:slot", "sq_contains", functype="objobjproc") __contains__;
+  %feature("python:slot", "mp_subscript", functype="binaryfunc") __getitem__;
+#endif
+
+
+  %extend {
      void append(value_type x) {
        self->insert(x);
      }
@@ -55,8 +61,7 @@
      value_type __getitem__(difference_type i) const throw (std::out_of_range) {
        return *(swig::cgetpos(self, i));
      }
-
-  };
+  }
 %enddef
 
 %include <std/std_unordered_set.i>

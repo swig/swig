@@ -188,7 +188,9 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
       p = lp;
       while (p) {
 	if (SwigType_isvarargs(Getattr(p, "type"))) {
+	  // Mark the head of the ParmList that it has varargs
 	  Setattr(l, "emit:varargs", lp);
+//Printf(stdout, "setting emit:varargs %s ... %s +++ %s\n", Getattr(l, "emit:varargs"), Getattr(l, "type"), Getattr(p, "type"));
 	  break;
 	}
 	p = nextSibling(p);
@@ -329,7 +331,8 @@ int emit_num_required(ParmList *parms) {
 /* -----------------------------------------------------------------------------
  * emit_isvarargs()
  *
- * Checks if a function is a varargs function
+ * Checks if a ParmList is a parameter list containing varargs.
+ * This function requires emit_attach_parmmaps to have been called beforehand.
  * ----------------------------------------------------------------------------- */
 
 int emit_isvarargs(ParmList *p) {
@@ -338,6 +341,28 @@ int emit_isvarargs(ParmList *p) {
   if (Getattr(p, "emit:varargs"))
     return 1;
   return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * emit_isvarargs_function()
+ *
+ * Checks for varargs in a function/constructor (can be overloaded)
+ * ----------------------------------------------------------------------------- */
+
+bool emit_isvarargs_function(Node *n) {
+  bool has_varargs = false;
+  Node *over = Getattr(n, "sym:overloaded");
+  if (over) {
+    for (Node *sibling = over; sibling; sibling = Getattr(sibling, "sym:nextSibling")) {
+      if (ParmList_has_varargs(Getattr(sibling, "parms"))) {
+	has_varargs = true;
+	break;
+      }
+    }
+  } else {
+    has_varargs = ParmList_has_varargs(Getattr(n, "parms")) ? true : false;
+  }
+  return has_varargs;
 }
 
 /* -----------------------------------------------------------------------------
@@ -483,29 +508,29 @@ String *emit_action(Node *n) {
   if (catchlist) {
     int unknown_catch = 0;
     int has_varargs = 0;
-    Printf(eaction, "} ");
+    Printf(eaction, "}");
     for (Parm *ep = catchlist; ep; ep = nextSibling(ep)) {
       String *em = Swig_typemap_lookup("throws", ep, "_e", 0);
       if (em) {
         SwigType *et = Getattr(ep, "type");
         SwigType *etr = SwigType_typedef_resolve_all(et);
         if (SwigType_isreference(etr) || SwigType_ispointer(etr) || SwigType_isarray(etr)) {
-          Printf(eaction, "catch(%s) {", SwigType_str(et, "_e"));
+          Printf(eaction, " catch(%s) {", SwigType_str(et, "_e"));
         } else if (SwigType_isvarargs(etr)) {
-          Printf(eaction, "catch(...) {");
+          Printf(eaction, " catch(...) {");
           has_varargs = 1;
         } else {
-          Printf(eaction, "catch(%s) {", SwigType_str(et, "&_e"));
+          Printf(eaction, " catch(%s) {", SwigType_str(et, "&_e"));
         }
         Printv(eaction, em, "\n", NIL);
-        Printf(eaction, "}\n");
+        Printf(eaction, "}");
       } else {
 	Swig_warning(WARN_TYPEMAP_THROW, Getfile(n), Getline(n), "No 'throws' typemap defined for exception type '%s'\n", SwigType_str(Getattr(ep, "type"), 0));
         unknown_catch = 1;
       }
     }
     if (unknown_catch && !has_varargs) {
-      Printf(eaction, "catch(...) { throw; }\n");
+      Printf(eaction, " catch(...) {\nthrow;\n}");
     }
   }
 

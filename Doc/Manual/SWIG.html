@@ -103,65 +103,150 @@ To run SWIG, use the <tt>swig</tt> command with options and a filename like this
 </p>
 
 <div class="shell"><pre>
-swig [ <em>options</em> ] filename
+swig [ options ] filename
 </pre></div>
 
 <p>
 where <tt>filename</tt> is a SWIG interface file or a C/C++ header file.
-Below is a subset of <em>options</em> that can be used.
+Full help can be seen by running <tt>swig -help</tt>.
+Below is the common set of options that can be used.
 Additional options are also defined for each target language.  A full list
-can be obtained by typing <tt>swig -help</tt> or <tt>swig
-<em>-&lt;lang&gt;</em> -help</tt> for language <em>&lt;lang&gt;</em> specific options.
+can be obtained by running <tt>swig
+<em>-&lt;lang&gt;</em> -help</tt> for language <em>&lt;lang&gt;</em> specific options,
+for example, <tt>swig -ruby -help</tt> for Ruby.
 </p>
 
 <div class="shell"><pre>
--allegrocl            Generate ALLEGROCL wrappers
--chicken              Generate CHICKEN wrappers
--clisp                Generate CLISP wrappers
--cffi                 Generate CFFI wrappers
--csharp               Generate C# wrappers
--d                    Generate D wrappers
--go                   Generate Go wrappers
--guile                Generate Guile wrappers
--java                 Generate Java wrappers
--javascript           Generate Javascript wrappers
--lua                  Generate Lua wrappers
--modula3              Generate Modula 3 wrappers
--mzscheme             Generate Mzscheme wrappers
--ocaml                Generate Ocaml wrappers
--octave               Generate Octave wrappers
--perl                 Generate Perl wrappers
--php5                 Generate PHP5 wrappers
--php7                 Generate PHP7 wrappers
--pike                 Generate Pike wrappers
--python               Generate Python wrappers
--r                    Generate R (aka GNU S) wrappers
--ruby                 Generate Ruby wrappers
--scilab               Generate Scilab wrappers
--sexp                 Generate Lisp S-Expressions wrappers
--tcl                  Generate Tcl wrappers
--uffi                 Generate Common Lisp / UFFI wrappers
--xml                  Generate XML wrappers
+Supported Target Language Options
+     -csharp         - Generate C# wrappers
+     -d              - Generate D wrappers
+     -go             - Generate Go wrappers
+     -guile          - Generate Guile wrappers
+     -java           - Generate Java wrappers
+     -javascript     - Generate Javascript wrappers
+     -lua            - Generate Lua wrappers
+     -octave         - Generate Octave wrappers
+     -perl5          - Generate Perl 5 wrappers
+     -php7           - Generate PHP 7 wrappers
+     -python         - Generate Python wrappers
+     -r              - Generate R (aka GNU S) wrappers
+     -ruby           - Generate Ruby wrappers
+     -scilab         - Generate Scilab wrappers
+     -tcl8           - Generate Tcl 8 wrappers
+     -xml            - Generate XML wrappers
 
--c++                  Enable C++ processing
--cppext <em>ext</em>           Change file extension of C++ generated files to <em>ext</em>
-                      (default is cxx, except for PHP5 which uses cpp)
--D<em>symbol</em>              Define a preprocessor symbol
--Fmicrosoft           Display error/warning messages in Microsoft format
--Fstandard            Display error/warning messages in commonly used format
--help                 Display all options
--I<em>dir</em>                 Add a directory to the file include path
--l<em>ifile</em>               Include SWIG library file &lt;ifile&gt;
--module <em>name</em>          Set the name of the SWIG module
--o <em>outfile</em>            Set name of C/C++ output file to &lt;outfile&gt;
--oh <em>headfile</em>          Set name of C++ output header file for directors to &lt;headfile&gt;
--outcurrentdir        Set default output dir to current dir instead of input file's path
--outdir <em>dir</em>           Set language specific files output directory
--pcreversion          Display PCRE version information
--swiglib              Report location of SWIG library and exit
--version              Display SWIG version number
+Experimental Target Language Options
+     -mzscheme       - Generate MzScheme/Racket wrappers
+     -ocaml          - Generate OCaml wrappers
 
+General Options
+     -addextern      - Add extra extern declarations
+     -c++            - Enable C++ processing
+     -co &lt;file&gt;      - Check &lt;file&gt; out of the SWIG library
+     -copyctor       - Automatically generate copy constructors wherever possible
+     -cpperraswarn   - Treat the preprocessor #error statement as #warning (default)
+     -cppext &lt;ext&gt;   - Change file extension of generated C++ files to &lt;ext&gt;
+                       (default is cxx)
+     -copyright      - Display copyright notices
+     -debug-classes  - Display information about the classes found in the interface
+     -debug-module &lt;n&gt;- Display module parse tree at stages 1-4, &lt;n&gt; is a csv list of stages
+     -debug-symtabs  - Display symbol tables information
+     -debug-symbols  - Display target language symbols in the symbol tables
+     -debug-csymbols - Display C symbols in the symbol tables
+     -debug-lsymbols - Display target language layer symbols
+     -debug-tags     - Display information about the tags found in the interface
+     -debug-template - Display information for debugging templates
+     -debug-top &lt;n&gt;  - Display entire parse tree at stages 1-4, &lt;n&gt; is a csv list of stages
+     -debug-typedef  - Display information about the types and typedefs in the interface
+     -debug-typemap  - Display typemap debugging information
+     -debug-tmsearch - Display typemap search debugging information
+     -debug-tmused   - Display typemaps used debugging information
+     -directors      - Turn on director mode for all the classes, mainly for testing
+     -dirprot        - Turn on wrapping of protected members for director classes (default)
+     -D&lt;symbol&gt;      - Define a symbol &lt;symbol&gt; (for conditional compilation)
+     -E              - Preprocess only, does not generate wrapper code
+     -external-runtime [file] - Export the SWIG runtime stack
+     -fakeversion &lt;v&gt;- Make SWIG fake the program version number to &lt;v&gt;
+     -fcompact       - Compile in compact mode
+     -features &lt;list&gt;- Set global features, where &lt;list&gt; is a comma separated list of
+                       features, eg -features directors,autodoc=1
+                       If no explicit value is given to the feature, a default of 1 is used
+     -fastdispatch   - Enable fast dispatch mode to produce faster overload dispatcher code
+     -Fmicrosoft     - Display error/warning messages in Microsoft format
+     -Fstandard      - Display error/warning messages in commonly used format
+     -fvirtual       - Compile in virtual elimination mode
+     -help           - Display help
+     -I-             - Don't search the current directory
+     -I&lt;dir&gt;         - Look for SWIG files in directory &lt;dir&gt;
+     -ignoremissing  - Ignore missing include files
+     -importall      - Follow all #include statements as imports
+     -includeall     - Follow all #include statements
+     -l&lt;ifile&gt;       - Include SWIG library file &lt;ifile&gt;
+     -macroerrors    - Report errors inside macros
+     -makedefault    - Create default constructors/destructors (the default)
+     -M              - List all dependencies
+     -MD             - Is equivalent to `-M -MF &lt;file&gt;', except `-E' is not implied
+     -MF &lt;file&gt;      - Generate dependencies into &lt;file&gt; and continue generating wrappers
+     -MM             - List dependencies, but omit files in SWIG library
+     -MMD            - Like `-MD', but omit files in SWIG library
+     -module &lt;name&gt;  - Set module name to &lt;name&gt;
+     -MP             - Generate phony targets for all dependencies
+     -MT &lt;target&gt;    - Set the target of the rule emitted by dependency generation
+     -nocontract     - Turn off contract checking
+     -nocpperraswarn - Do not treat the preprocessor #error statement as #warning
+     -nodefault      - Do not generate default constructors nor default destructors
+     -nodefaultctor  - Do not generate implicit default constructors
+     -nodefaultdtor  - Do not generate implicit default destructors
+     -nodirprot      - Do not wrap director protected members
+     -noexcept       - Do not wrap exception specifiers
+     -nofastdispatch - Disable fast dispatch mode (default)
+     -nopreprocess   - Skip the preprocessor step
+     -notemplatereduce - Disable reduction of the typedefs in templates
+     -O              - Enable the optimization options:
+                        -fastdispatch -fvirtual
+     -o &lt;outfile&gt;    - Set name of C/C++ output file to &lt;outfile&gt;
+     -oh &lt;headfile&gt;  - Set name of C++ output header file for directors to &lt;headfile&gt;
+     -outcurrentdir  - Set default output dir to current dir instead of input file's path
+     -outdir &lt;dir&gt;   - Set language specific files output directory to &lt;dir&gt;
+     -pcreversion    - Display PCRE version information
+     -small          - Compile in virtual elimination and compact mode
+     -swiglib        - Report location of SWIG library and exit
+     -templatereduce - Reduce all the typedefs in templates
+     -v              - Run in verbose mode
+     -version        - Display SWIG version number
+     -Wall           - Remove all warning suppression, also implies -Wextra
+     -Wallkw         - Enable keyword warnings for all the supported languages
+     -Werror         - Treat warnings as errors
+     -Wextra         - Adds the following additional warnings: 202,309,403,405,512,321,322
+     -w&lt;list&gt;        - Suppress/add warning messages, eg -w401,+321 - see Warnings.html
+     -xmlout &lt;file&gt;  - Write XML version of the parse tree to &lt;file&gt; after normal processing
 </pre></div>
+
+<p>
+Arguments may also be passed in a command-line options file (also known as a
+response file) which is useful if they exceed the system command line length
+limit. To do this, put the arguments in a file, then provide the file name
+prefixed with <tt>@</tt> like so:
+</p>
+
+<div class="shell"><pre>
+swig @<em>file</em>
+</pre></div>
+
+<p>
+The options read from the file are inserted in place of the file option. If the
+file does not exist, or cannot be read, then the option will be treated
+literally and not removed.
+</p>
+
+<p>
+Options in the file are separated by whitespace. A whitespace character may be
+included in an option by surrounding the entire option in either single or
+double quotes. Any character (including a backslash) may be included by
+prefixing the character to be included with a backslash. The file may itself
+contain additional <tt>@file</tt> options; any such options will be processed
+recursively.
+</p>
 
 <H3><a name="SWIG_nn3">5.1.1 Input format</a></H3>
 
@@ -2177,7 +2262,7 @@ in the C++ chapter for further details.
 <p>
 Occasionally, a C library may include functions that expect to receive
 pointers to functions--possibly to serve as callbacks. SWIG
-provides full support for function pointers provided that the callback
+provides full support for function pointers when the callback
 functions are defined in C and not in the target language.  For example,
 consider a function like this:
 </p>
@@ -2321,7 +2406,9 @@ And now, a final note about function pointer support.  Although SWIG
 does not normally allow callback functions to be written in the target language, this
 can be accomplished with the use of typemaps and other advanced SWIG features.
 See the <a href="Typemaps.html#Typemaps">Typemaps chapter</a> for more about typemaps
-and individual target language chapters for more on callbacks and the 'director' feature.
+and individual target language chapters for more on callbacks.
+The 'director' feature can be used to make callbacks from C/C++ into the target language,
+see <a href="SWIGPlus.html#SWIGPlus_target_language_callbacks">Callbacks to the target language</a>.
 </p>
 
 <H2><a name="SWIG_nn31">5.5 Structures and unions</a></H2>

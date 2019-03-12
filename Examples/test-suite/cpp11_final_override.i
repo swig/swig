@@ -6,14 +6,10 @@
 %warnfilter(SWIGWARN_PARSE_KEYWORD) final; // 'final' is a java keyword, renaming to '_final'
 %warnfilter(SWIGWARN_PARSE_KEYWORD) override; // 'override' is a C# keyword, renaming to '_override'
 
+// throw is invalid in C++17 and later, only SWIG to use it
+#define TESTCASE_THROW1(T1) throw(T1)
 %{
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wdeprecated" // dynamic exception specifications are deprecated in C++11
-#endif
+#define TESTCASE_THROW1(T1)
 %}
 
 %inline %{
@@ -43,8 +39,8 @@ struct Derived /*final*/ : Base {
   virtual void finaloverride2() override final {}
   virtual void finaloverride3() noexcept override final {}
   virtual void finaloverride4() const noexcept override final {}
-  virtual void finaloverride5() throw(int) override final {}
-  virtual void finaloverride6() const throw(int) override final {}
+  virtual void finaloverride5() TESTCASE_THROW1(int) override final {}
+  virtual void finaloverride6() const TESTCASE_THROW1(int) override final {}
   virtual ~Derived() override final {}
 };
 void Derived::override2() const noexcept {}
@@ -142,11 +138,3 @@ void DerivedNoVirtualStruct::ef() {}
 DerivedNoVirtualStruct::~DerivedNoVirtualStruct() {}
 %}
 
-%{
-#if defined(_MSC_VER)
-  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic pop
-#endif
-%}

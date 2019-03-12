@@ -20,3 +20,34 @@ int foo43(int x) {
   return x;
 }
 %}
+
+%inline %{
+struct FooStruct {
+  int num;
+};
+%}
+%extend FooStruct {
+  void no_arg() {}
+  void one_req(int *required) {}
+  void one_opt(int *optional = NULL) {}
+  void two_arg(int *required, int *optional = NULL) {}
+}
+
+%inline %{
+struct StaticStruct {
+  int snum;
+};
+%}
+%extend StaticStruct {
+  static void no_arg() {}
+  static void one_req(int *required) {}
+  static void one_opt(int *optional = NULL) {}
+  static void two_arg(int *required, int *optional = NULL) {}
+}
+
+%{
+void global_opts1(int *optional) {}
+void global_opts2(int *required, int *optional) {}
+%}
+void global_opts1(int *optional = NULL) {}
+void global_opts2(int *required, int *optional = NULL) {}

@@ -26,7 +26,7 @@ $container->addShape($s);
 print "\nA total of " . Shape::nshapes() . " shapes were created\n";
 
 # ----- Delete by the old references -----
-# This should not truely delete the shapes because they are now owned
+# This should not truly delete the shapes because they are now owned
 # by the ShapeContainer.
 
 print "Delete the old references.";
@@ -38,7 +38,7 @@ $s = NULL;
 print "\nA total of " . Shape::nshapes() . " shapes remain\n";
 
 # ----- Delete by the container -----
-# This should truely delete the shapes
+# This should truly delete the shapes
 
 print "Delete the container.";
 $container = NULL;

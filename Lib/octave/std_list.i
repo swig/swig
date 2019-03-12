@@ -12,7 +12,7 @@
 
     template <class T>
     struct traits_from<std::list<T> > {
-      static octave_value *from(const std::list<T> & vec) {
+      static octave_value *from(const std::list<T>& vec) {
 	return traits_from_stdseq<std::list<T> >::from(vec);
       }
     };

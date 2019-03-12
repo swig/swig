@@ -114,6 +114,12 @@
       array.SetValue(getitemcopy(index+i), arrayIndex+i);
   }
 
+  public $typemap(cstype, CTYPE)[] ToArray() {
+    $typemap(cstype, CTYPE)[] array = new $typemap(cstype, CTYPE)[this.Count];
+    this.CopyTo(array);
+    return array;
+  }
+
   global::System.Collections.Generic.IEnumerator<$typemap(cstype, CTYPE)> global::System.Collections.Generic.IEnumerable<$typemap(cstype, CTYPE)>.GetEnumerator() {
     return new $csclassnameEnumerator(this);
   }
@@ -195,8 +201,13 @@
 
   public:
     typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
     typedef CTYPE value_type;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
+    typedef value_type& reference;
     typedef CONST_REFERENCE const_reference;
+
     %rename(Clear) clear;
     void clear();
     %rename(Add) push_back;
@@ -206,8 +217,10 @@
     void reserve(size_type n);
     %newobject GetRange(int index, int count);
     %newobject Repeat(CTYPE const& value, int count);
+
     vector();
     vector(const vector &other);
+
     %extend {
       vector(int capacity) throw (std::out_of_range) {
         std::vector< CTYPE >* pv = 0;

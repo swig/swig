@@ -7,6 +7,4 @@
 #define ENABLE_STRING_VECTOR
 %include stl.i
 
-%feature("director");
-
 %include example.h

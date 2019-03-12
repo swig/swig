@@ -19,10 +19,8 @@ static String *op_prefix   = 0;
 
 static const char *usage = "\
 Octave Options (available with -octave)\n\
-     -cppcast        - Enable C++ casting operators (default)\n\
      -globals <name> - Set <name> used to access C global variables [default: 'cvar']\n\
                        Use '.' to load C global variables into module namespace\n\
-     -nocppcast      - Disable C++ casting operators\n\
      -opprefix <str> - Prefix <str> for global operator functions [default: 'op_']\n\
 \n";
 
@@ -92,8 +90,7 @@ public:
   }
 
   virtual void main(int argc, char *argv[]) {
-    int cppcast = 1;
-      
+
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
         if (strcmp(argv[i], "-help") == 0) {
@@ -116,12 +113,13 @@ public:
           } else {
             Swig_arg_error();
           }
-        } else if (strcmp(argv[i], "-cppcast") == 0) {
- 	  cppcast = 1;
- 	  Swig_mark_arg(i);
- 	} else if (strcmp(argv[i], "-nocppcast") == 0) {
- 	  cppcast = 0;
- 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-cppcast") == 0) {
+	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-nocppcast") == 0) {
+	  Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
+	  Swig_mark_arg(i);
+	  SWIG_exit(EXIT_FAILURE);
         }
       }
     }
@@ -130,8 +128,6 @@ public:
       global_name = NewString("cvar");
     if (!op_prefix)
       op_prefix = NewString("op_");
-    if(cppcast)
-      Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
 
     SWIG_library_directory("octave");
     Preprocessor_define("SWIGOCTAVE 1", 0);
@@ -139,7 +135,7 @@ public:
     SWIG_typemap_lang("octave");
     allow_overloading();
 
-    // Octave API is C++, so output must be C++ compatibile even when wrapping C code
+    // Octave API is C++, so output must be C++ compatible even when wrapping C code
     if (!cparse_cplusplus)
       Swig_cparse_cplusplusout(1);
   }
@@ -422,13 +418,14 @@ public:
    *   The "lname" attribute in each parameter in plist will be contain a parameter name
    * ----------------------------------------------------------------------------- */
 
-  void addMissingParameterNames(ParmList *plist, int arg_offset) {
+  void addMissingParameterNames(Node* n, ParmList *plist, int arg_offset) {
     Parm *p = plist;
     int i = arg_offset;
     while (p) {
       if (!Getattr(p, "lname")) {
-        String *pname = Swig_cparm_name(p, i);
-        Delete(pname);
+	String *name = makeParameterName(n, p, i);
+	Setattr(p, "lname", name);
+	Delete(name);
       }
       i++;
       p = nextSibling(p);
@@ -440,14 +437,14 @@ public:
     ParmList *plist = CopyParmList(Getattr(n, "parms"));
     Parm *p;
     Parm *pnext;
-    int start_arg_num = is_wrapping_class() ? 1 : 0;
+    int arg_num = is_wrapping_class() ? 1 : 0;
 
-    addMissingParameterNames(plist, start_arg_num); // for $1_name substitutions done in Swig_typemap_attach_parms
+    addMissingParameterNames(n, plist, arg_num); // for $1_name substitutions done in Swig_typemap_attach_parms
 
     Swig_typemap_attach_parms("in", plist, 0);
     Swig_typemap_attach_parms("doc", plist, 0);
 
-    for (p = plist; p; p = pnext) {
+    for (p = plist; p; p = pnext, arg_num++) {
 
       String *tm = Getattr(p, "tmap:in");
       if (tm) {
@@ -469,9 +466,10 @@ public:
         value = Getattr(p, "tmap:doc:value");
       }
 
-      name = name ? name : Getattr(p, "name");
-      name = name ? name : Getattr(p, "lname");
-      name = Swig_name_make(p, 0, name, 0, 0); // rename parameter if a keyword
+      String *made_name = 0;
+      if (!name) {
+	name = made_name = makeParameterName(n, p, arg_num);
+      }
 
       type = type ? type : Getattr(p, "type");
       value = value ? value : Getattr(p, "value");
@@ -507,7 +505,7 @@ public:
 
       Delete(type_str);
       Delete(tex_name);
-      Delete(name);
+      Delete(made_name);
     }
     if (pdocs)
       Setattr(n, "feature:pdocs", pdocs);

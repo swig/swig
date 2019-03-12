@@ -19,6 +19,10 @@
 %rename(Foos) Foo;
 #endif
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) type;
+#endif
+
 %immutable Spam::type;
 
 %inline %{

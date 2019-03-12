@@ -306,15 +306,15 @@ namespace std
 
   template<typename _CharT, typename _Traits = char_traits<_CharT> >
   std::basic_ostream<_CharT, _Traits>& 
-  endl(std::basic_ostream<_CharT, _Traits>&);
+  endl(std::basic_ostream<_CharT, _Traits>& value);
 
   template<typename _CharT, typename _Traits = char_traits<_CharT> >
   std::basic_ostream<_CharT, _Traits>& 
-  ends(std::basic_ostream<_CharT, _Traits>&);
+  ends(std::basic_ostream<_CharT, _Traits>& value);
 
   template<typename _CharT, typename _Traits = char_traits<_CharT> >
   std::basic_ostream<_CharT, _Traits>& 
-  flush(std::basic_ostream<_CharT, _Traits>&);
+  flush(std::basic_ostream<_CharT, _Traits>& value);
 }
 
 namespace std {

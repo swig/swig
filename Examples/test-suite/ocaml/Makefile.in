@@ -3,7 +3,9 @@
 #######################################################################
 
 LANGUAGE     = ocaml
-OCAMLC       = @OCAMLC@
+OCAMLP4WHERE =`$(COMPILETOOL) @CAMLP4@ -where`
+OCC          =$(COMPILETOOL) @OCAMLC@
+OCAMLPP      = -pp "camlp4o ./swigp4.cmo"
 VARIANT      = _static
 SCRIPTSUFFIX = _runme.ml
 
@@ -12,7 +14,6 @@ top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
 FAILING_CPP_TESTS = \
-allowexcept \
 allprotected \
 apply_signed_char \
 apply_strings \
@@ -20,89 +21,80 @@ cpp_enum \
 default_constructor \
 director_binary_string \
 director_enum \
-director_exception \
-director_ignore \
-director_nested \
-director_pass_by_value \
 director_primitives \
-director_protected \
 director_redefined \
 director_string \
-director_using \
 enum_thorough \
+li_windows \
 member_pointer_const \
-minherit \
-nested_directors \
 preproc_constants \
 smart_pointer_inherit \
-typedef_mptr \
-using_protected \
 
 FAILING_C_TESTS = \
 enums \
 preproc_constants_c \
-string_simple \
-unions \
+
+ml_runme = $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 
 run_testcase = \
-	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -a \
-	     -f $(top_srcdir)/Examples/test-suite/$*.list ] ; then \
-		$(COMPILETOOL) $(OCAMLC) -c $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
-		$(COMPILETOOL) $(OCAMLC) swig.cmo -custom -g -cc '$(CXX)' -o runme `cat $(top_srcdir)/Examples/test-suite/$(*).list | sed -e 's/\(.*\)/\1_wrap.o \1.cmo/g'`&& $(RUNTOOL) ./runme; \
-	elif [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-		$(COMPILETOOL) $(OCAMLC) -c $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
-		$(COMPILETOOL) $(OCAMLC) swig.cmo -custom -g -cc '$(CXX)' -o runme $(srcdir)/$(*).cmo $(srcdir)/$(*)_runme.cmo $(srcdir)/$(*)_wrap.o && \
-		$(RUNTOOL) ./runme; \
+	if [ -f $(srcdir)/$(ml_runme) ]; then \
+		if [ $(srcdir) != . ]; then \
+			cp $(srcdir)/$(ml_runme) $(ml_runme); \
+		fi ; \
+		$(OCC) $(OCAMLPP) -c $(ml_runme) && \
+		if [ -f $(top_srcdir)/Examples/test-suite/$*.list ]; then \
+			$(OCC) swig.cmo -custom -g -cc '$(CXX)' -o $*_runme `cat $(top_srcdir)/Examples/test-suite/$(*).list | sed -e 's/\(.*\)/\1_wrap.o \1.cmo/g'`&& $(RUNTOOL) ./$*_runme; \
+		else \
+			$(OCC) swig.cmo -custom -g -cc '$(CXX)' -o $*_runme $(*).cmo $(*)_runme.cmo $(*)_wrap.o && $(RUNTOOL) ./$*_runme; \
+		fi ; \
 	fi ;
-
-check_quant:
-	: > testing
-	: > success
-	$(MAKE) check
-	echo "Failed:" > results
-	diff testing success | sed 's/^< //p;d' >> results
-	echo "Success:" >> results
-	cat success >> results
 
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-# none!
+SWIGOPT += -w524 # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
 
 # Custom tests - tests with additional commandline options
 # none!
 
 # Rules for the different types of tests
 %.cpptest:
-	echo $@ >> testing
 	$(setup)
 	+$(swig_and_compile_cpp)
 	$(run_testcase)
-	if [ -f $(@:%.cpptest=%_wrap.o) ] ; then \
-		echo $@ >> success ; \
-	fi
 
 %.ctest:
-	echo $@ >> testing
 	$(setup)
 	+$(swig_and_compile_c)
 	$(run_testcase)
-	if [ -f $(@:%.ctest=%_wrap.o) ] ; then \
-		echo $@ >> success ; \
-	fi
 
 %.multicpptest:
-	echo $@ >> testing
 	+$(swig_and_compile_multi_cpp)
 	$(setup)
 	$(run_testcase)
-	if [ -f $(@:%.multicpptest=%_runtime_wrap.o) ] ; then \
-		echo $@ >> success ; \
-	fi
+
+swig.cmi:
+	env SWIG_LIB=$(SWIG_LIB_DIR) $(SWIGEXE) -ocaml -co swig.mli
+	$(OCC) -c swig.mli
+swig.cmo:
+	env SWIG_LIB=$(SWIG_LIB_DIR) $(SWIGEXE) -ocaml -co swig.ml
+	$(OCC) -c swig.ml
+swigp4.cmi:
+	env SWIG_LIB=$(SWIG_LIB_DIR) $(SWIGEXE) -ocaml -co swigp4.ml
+	$(OCC) -I $(OCAMLP4WHERE) -pp "camlp4o pa_extend.cmo q_MLast.cmo" -c swigp4.ml
+extra_objects: swig.cmi swig.cmo swigp4.cmi
+
+$(C_TEST_CASES:=.ctest): extra_objects
+$(CPP_TEST_CASES:=.cpptest): extra_objects
+$(MULTI_CPP_TEST_CASES:=.multicpptest): extra_objects
 
 # Clean
 %.clean:
-	@rm -f $*.ml $*.mli;
+	@rm -f $*.ml $*.mli $*_runme;
+	@if test $(srcdir) != .; then rm -f $(ml_runme); fi
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' ocaml_clean
+	rm -f clientdata_prop_a.ml clientdata_prop_b.ml import_stl_a.ml import_stl_b.ml
+	rm -f imports_a.ml imports_b.ml mod_a.ml mod_b.ml multi_import_a.ml
+	rm -f multi_import_b.ml packageoption_a.ml packageoption_b.ml packageoption_c.ml

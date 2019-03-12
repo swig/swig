@@ -8,3 +8,6 @@ if call3(ADD_BY_REFERENCE, 14, 15) != 29:
     raise RuntimeError
 if call1(ADD_BY_VALUE_C, 2, 3) != 5:
     raise RuntimeError
+
+if callconst1(ADD_BY_VALUE_C, 2, 3) != 5:
+    raise RuntimeError

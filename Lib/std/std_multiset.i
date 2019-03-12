@@ -71,7 +71,7 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_TYPECHECK_MULTISET, std::multiset< _Key, _Compare, _Alloc >);
 
-    multiset( const _Compare& );
+    multiset(const _Compare& other);
 
 #ifdef %swig_multiset_methods
     // Add swig/language extra methods

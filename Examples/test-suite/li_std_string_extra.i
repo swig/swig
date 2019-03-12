@@ -49,6 +49,14 @@ std::basic_string<char,std::char_traits<char>,std::allocator<char> > test_value_
    return x;
 }
 
+std::basic_string<char,std::char_traits<char>,std::allocator<char> > test_value_basic_overload(std::basic_string<char,std::char_traits<char>,std::allocator<char> > x) {
+   return x;
+}
+
+std::basic_string<char,std::char_traits<char>,std::allocator<char> > test_value_basic_overload(int) {
+   return "int";
+}
+
 #ifdef SWIGPYTHON_BUILTIN
 bool is_python_builtin() { return true; }
 #else

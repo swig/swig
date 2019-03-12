@@ -260,7 +260,11 @@ AddOutputArgToReturn(int pos, SEXP value, const char *name, SEXP output)
 /* Create a new pointer object */
 SWIGRUNTIMEINLINE SEXP
 SWIG_R_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
-  SEXP rptr = R_MakeExternalPtr(ptr, 
+  SEXP rptr;
+  if (!ptr) {
+     return R_NilValue;
+  }
+  rptr = R_MakeExternalPtr(ptr, 
   R_MakeExternalPtr(type, R_NilValue, R_NilValue), R_NilValue); 
   SET_S4_OBJECT(rptr);
   return rptr;
@@ -274,7 +278,7 @@ SWIG_R_ConvertPtr(SEXP obj, void **ptr, swig_type_info *ty, int flags) {
   if (!obj) return SWIG_ERROR;
   if (obj == R_NilValue) {
     if (ptr) *ptr = NULL;
-    return SWIG_OK;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
 
   vptr = R_ExternalPtrAddr(obj);

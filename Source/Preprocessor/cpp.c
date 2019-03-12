@@ -109,6 +109,19 @@ static String *cpp_include(const_String_or_char_ptr fn, int sysfile) {
   return s;
 }
 
+static int is_digits(const String *str) {
+  const char *s = Char(str);
+  int isdigits = (*s != 0);
+  while (*s) {
+    if (!isdigit(*s)) {
+      isdigits = 0;
+      break;
+    }
+    s++;
+  }
+  return isdigits;
+}
+
 List *Preprocessor_depend(void) {
   return dependencies;
 }
@@ -610,11 +623,22 @@ static List *find_args(String *s, int ismacro, String *macro_name) {
       } else if (c == '/') {
         /* Ensure comments are ignored by eating up the characters */
         c = Getc(s);
+        /* Handle / * ... * / type comments (multi-line) */
         if (c == '*') {
           while ((c = Getc(s)) != EOF) {
             if (c == '*') {
               c = Getc(s);
               if (c == '/' || c == EOF)
+                break;
+            }
+          }
+          c = Getc(s);
+          continue;
+        }
+        /* Handle // ... type comments (single-line) */
+        if (c == '/') {
+          while ((c = Getc(s)) != EOF) {
+            if (c == '\n') {
                 break;
             }
           }
@@ -930,19 +954,21 @@ static String *expand_macro(String *name, List *args, String *line_file) {
 	namelen = Len(aname);
 	a = strstr(s, name);
 	while (a) {
-	  char ca = a[namelen + 1];
+	  char ca = a[namelen];
 	  if (!isidchar((int) ca)) {
 	    /* Matched the entire vararg name, not just a prefix */
-	    t = a - 1;
-	    if (*t == '\002') {
-	      t--;
-	      while (t >= s) {
-		if (isspace((int) *t))
-		  t--;
-		else if (*t == ',') {
-		  *t = ' ';
-		} else
-		  break;
+	    if (a > s) {
+	      t = a - 1;
+	      if (*t == '\002') {
+		t--;
+		while (t >= s) {
+		  if (isspace((int) *t))
+		    t--;
+		  else if (*t == ',') {
+		    *t = ' ';
+		  } else
+		    break;
+		}
 	      }
 	    }
 	  }
@@ -1452,7 +1478,7 @@ String *Preprocessor_parse(String *s) {
       break;
 
     case 41:			/* Build up the name of the preprocessor directive */
-      if ((isspace(c) || (!isalpha(c)))) {
+      if ((isspace(c) || (!isidchar(c)))) {
 	Clear(value);
 	Clear(comment);
 	if (c == '\n') {
@@ -1471,7 +1497,7 @@ String *Preprocessor_parse(String *s) {
       Putc(c, id);
       break;
 
-    case 42:			/* Strip any leading space before preprocessor value */
+    case 42:			/* Strip any leading space after the preprocessor directive (before preprocessor value) */
       if (isspace(c)) {
 	if (c == '\n') {
 	  Ungetc(c, s);
@@ -1791,6 +1817,8 @@ String *Preprocessor_parse(String *s) {
 	Swig_error(Getfile(s), Getline(id), "cpp debug: level = %d, startlevel = %d\n", level, start_level);
       } else if (Equal(id, "")) {
 	/* Null directive */
+      } else if (is_digits(id)) {
+	/* A gcc linemarker of the form '# linenum filename flags' (resulting from running gcc -E) */
       } else {
 	/* Ignore unknown preprocessor directives which are inside an inactive
 	 * conditional (github issue #394). */

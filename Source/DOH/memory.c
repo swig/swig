@@ -81,8 +81,8 @@ static void InitPools() {
  * ---------------------------------------------------------------------- */
 
 int DohCheck(const DOH *ptr) {
-  register Pool *p = Pools;
-  register char *cptr = (char *) ptr;
+  Pool *p = Pools;
+  char *cptr = (char *) ptr;
   while (p) {
     if ((cptr >= p->pbeg) && (cptr < p->pend)) {
 #ifdef DOH_DEBUG_MEMORY_POOLS

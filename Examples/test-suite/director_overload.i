@@ -1,5 +1,9 @@
 %module(directors="1") director_overload
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) method;
+#endif
+
 %feature("director");
 
 #ifdef SWIGPYTHON

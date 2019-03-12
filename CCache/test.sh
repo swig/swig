@@ -451,14 +451,16 @@ swigtests
 
 if test -z "$NOSOFTLINKSTEST"; then
   testsuite="link"
-  ln -s $CCACHE $COMPILER
-  CCACHE_COMPILE="./$COMPILER"
+  compilername=`basename $COMPILER`
+  ln -s $CCACHE ./$compilername
+  CCACHE_COMPILE="./$compilername"
   basetests
-  rm "./$COMPILER"
-  ln -s $CCACHE $SWIG
-  CCACHE_COMPILE="./$SWIG"
+  rm "./$compilername"
+  compilername=`basename $SWIG`
+  ln -s $CCACHE ./$compilername
+  CCACHE_COMPILE="./$compilername"
   swigtests
-  rm "./$SWIG"
+  rm "./$compilername"
 else
   echo "skipping testsuite link"
 fi

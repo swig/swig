@@ -152,10 +152,23 @@ Examples/guile/*/my-guile
 Examples/test-suite/java/*/
 Examples/java/*/*.java
 !Examples/java/*/runme.java
+Examples/java/doxygen/javadocs
 
 # Javascript
 Examples/test-suite/javascript/*/
 *.gyp
+
+# OCaml
+Examples/test-suite/ocaml/*.ml*
+Examples/test-suite/ocaml/*.cm*
+Examples/test-suite/ocaml/*_runme
+!Examples/test-suite/ocaml/*runme.ml
+Examples/ocaml/**/example.ml*
+Examples/ocaml/**/runme
+Examples/ocaml/**/runme_top
+Examples/ocaml/**/*.cm*
+Examples/ocaml/**/swig.ml*
+Examples/ocaml/**/swigp4.ml
 
 # Octave
 swigexample*.oct
@@ -180,11 +193,16 @@ Examples/php/*/example.php
 /__pycache__/
 Examples/test-suite/python/*.py
 !Examples/test-suite/python/*runme.py
-Examples/python/*/example.py
 Examples/python/**/bar.py
 Examples/python/**/base.py
+Examples/python/**/example.py
 Examples/python/**/foo.py
+Examples/python/**/robin.py
+Examples/python/**/runme3.py
 Examples/python/**/spam.py
+Examples/python/import_packages/module_is_init/pkg1/__init__.py
+Examples/python/import_packages/namespace_pkg/path4.zip
+Examples/python/doxygen/example.html
 
 # R
 Examples/test-suite/r/*.R

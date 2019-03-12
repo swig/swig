@@ -32,6 +32,7 @@
 <li><a href="#CPlusPlus11_alias_templates">Type alias and alias templates</a>
 <li><a href="#CPlusPlus11_unrestricted_unions">Unrestricted unions</a>
 <li><a href="#CPlusPlus11_variadic_templates">Variadic templates</a>
+<li><a href="#CPlusPlus11_new_char_literals">New character literals</a>
 <li><a href="#CPlusPlus11_new_string_literals">New string literals</a>
 <li><a href="#CPlusPlus11_user_defined_literals">User-defined literals</a>
 <li><a href="#CPlusPlus11_thread_local_storage">Thread-local storage</a>
@@ -714,7 +715,24 @@ const int SIZE = sizeof...(ClassName&lt;int, int&gt;);
 In the above example <tt>SIZE</tt> is of course wrapped as a constant.
 </p>
 
-<H3><a name="CPlusPlus11_new_string_literals">7.2.19 New string literals</a></H3>
+<H3><a name="CPlusPlus11_new_char_literals">7.2.19 New character literals</a></H3>
+
+
+<p>
+C++11 adds support for UCS-2 and UCS-4 character literals.
+These character literals are preceded by either 'u' or 'U'.
+</p>
+
+<div class="code"><pre>
+char16_t a = u'a';
+char32_t b = U'b';
+</pre></div>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.0.0 was the first version to support these Universal Coded Character Set (UCS) character literals.
+</p>
+
+<H3><a name="CPlusPlus11_new_string_literals">7.2.20 New string literals</a></H3>
 
 
 <p>SWIG supports wide string and Unicode string constants and raw string literals.</p>
@@ -744,7 +762,7 @@ Note: There is a bug currently where SWIG's preprocessor incorrectly parses an o
 inside raw string literals.
 </p>
 
-<H3><a name="CPlusPlus11_user_defined_literals">7.2.20 User-defined literals</a></H3>
+<H3><a name="CPlusPlus11_user_defined_literals">7.2.21 User-defined literals</a></H3>
 
 
 <p>
@@ -811,7 +829,7 @@ OutputType var2 = 1234_suffix;
 OutputType var3 = 3.1416_suffix;
 </pre></div>
 
-<H3><a name="CPlusPlus11_thread_local_storage">7.2.21 Thread-local storage</a></H3>
+<H3><a name="CPlusPlus11_thread_local_storage">7.2.22 Thread-local storage</a></H3>
 
 
 <p>SWIG correctly parses the <tt>thread_local</tt> keyword. For example, variables
@@ -831,7 +849,7 @@ A variable will be thread local if accessed from different threads from the targ
 same way that it will be thread local if accessed from C++ code.
 </p>
 
-<H3><a name="CPlusPlus11_defaulted_deleted">7.2.22 Explicitly defaulted functions and deleted functions</a></H3>
+<H3><a name="CPlusPlus11_defaulted_deleted">7.2.23 Explicitly defaulted functions and deleted functions</a></H3>
 
 
 <p>SWIG handles explicitly defaulted functions, that is, <tt>= default</tt> added to a function declaration. Deleted definitions, which are also called deleted functions, have <tt>= delete</tt> added to the function declaration.
@@ -869,12 +887,12 @@ This is a C++ compile time check and SWIG does not make any attempt to detect if
 so in this case it is entirely possible to pass an int instead of a double to <tt>f</tt> from Java, Python etc.
 </p>
 
-<H3><a name="CPlusPlus11_type_long_long_int">7.2.23 Type long long int</a></H3>
+<H3><a name="CPlusPlus11_type_long_long_int">7.2.24 Type long long int</a></H3>
 
 
 <p>SWIG correctly parses and uses the new <tt>long long</tt> type already introduced in C99 some time ago.</p>
 
-<H3><a name="CPlusPlus11_static_assertions">7.2.24 Static assertions</a></H3>
+<H3><a name="CPlusPlus11_static_assertions">7.2.25 Static assertions</a></H3>
 
 
 <p>
@@ -890,7 +908,7 @@ struct Check {
 };
 </pre></div>
 
-<H3><a name="CPlusPlus11_sizeof">7.2.25 Allow sizeof to work on members of classes without an explicit object</a></H3>
+<H3><a name="CPlusPlus11_sizeof">7.2.26 Allow sizeof to work on members of classes without an explicit object</a></H3>
 
 
 <p>
@@ -911,7 +929,7 @@ const int SIZE = sizeof(A::member); // does not work with C++03. Okay with C++11
 8
 </pre></div>
 
-<H3><a name="CPlusPlus11_noexcept">7.2.26 Exception specifications and noexcept</a></H3>
+<H3><a name="CPlusPlus11_noexcept">7.2.27 Exception specifications and noexcept</a></H3>
 
 
 <p>
@@ -927,7 +945,7 @@ int noex2(int) noexcept(true);
 int noex3(int, bool) noexcept(false);
 </pre></div>
 
-<H3><a name="CPlusPlus11_alignment">7.2.27 Control and query object alignment</a></H3>
+<H3><a name="CPlusPlus11_alignment">7.2.28 Control and query object alignment</a></H3>
 
 
 <p>
@@ -959,7 +977,7 @@ Use the preprocessor to work around this for now:
 </pre></div>
 
 
-<H3><a name="CPlusPlus11_attributes">7.2.28 Attributes</a></H3>
+<H3><a name="CPlusPlus11_attributes">7.2.29 Attributes</a></H3>
 
 
 <p>
@@ -973,7 +991,7 @@ int [[attr1]] i [[attr2, attr3]];
 </pre></div>
 
 
-<H3><a name="CPlusPlus11_ref_qualifiers">7.2.29 Methods with ref-qualifiers</a></H3>
+<H3><a name="CPlusPlus11_ref_qualifiers">7.2.30 Methods with ref-qualifiers</a></H3>
 
 
 <p>

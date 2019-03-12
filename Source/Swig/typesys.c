@@ -570,7 +570,7 @@ static SwigType *_typedef_resolve(Typetab *s, String *base, int look_parent) {
   List *inherit;
   Typetab *parent;
 
-  /* if (!s) return 0; *//* now is checked bellow */
+  /* if (!s) return 0; *//* now is checked below */
   /* Printf(stdout,"Typetab %s : %s\n", Getattr(s,"name"), base);  */
 
   if (!Getmark(s)) {
@@ -839,10 +839,8 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
       newtype = 1;
       type = template_parameters_resolve(base);
     }
-    if (namebase)
-      Delete(namebase);
-    if (nameprefix)
-      Delete(nameprefix);
+    Delete(namebase);
+    Delete(nameprefix);
   } else {
     if (SwigType_isfunction(base)) {
       List *parms;
@@ -1542,7 +1540,7 @@ SwigType *SwigType_alttype(const SwigType *t, int local_tmap) {
 	}
       } else {
 	if (SwigType_issimple(td) && SwigType_istemplate(td)) {
-	  use_wrapper = !n || !GetFlag(n, "feature:novaluewrapper");
+	  use_wrapper = 1;
 	}
       }
     }

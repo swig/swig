@@ -25,6 +25,10 @@
 %typemap(out) Integer2 { /* do nothing */ }
 #endif
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#endif
+
 %{
   typedef int Integer1;
 %}

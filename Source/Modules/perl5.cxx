@@ -16,11 +16,9 @@
 #include <ctype.h>
 
 static const char *usage = "\
-Perl5 Options (available with -perl5)\n\
+Perl 5 Options (available with -perl5)\n\
      -compat         - Compatibility mode\n\
      -const          - Wrap constants as constants and not variables (implies -proxy)\n\
-     -cppcast        - Enable C++ casting operators\n\
-     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -nopm           - Do not generate the .pm file\n\
      -noproxy        - Don't create proxy classes\n\
      -proxy          - Create proxy classes\n\
@@ -148,7 +146,6 @@ public:
 
   virtual void main(int argc, char *argv[]) {
     int i = 1;
-    int cppcast = 1;
 
     SWIG_library_directory("perl5");
 
@@ -189,23 +186,20 @@ public:
 	} else if (strcmp(argv[i],"-v") == 0) {
 	    Swig_mark_arg(i);
 	    verbose++;
-	} else if (strcmp(argv[i], "-cppcast") == 0) {
-	  cppcast = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-nocppcast") == 0) {
-	  cppcast = 0;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-compat") == 0) {
 	  compat = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-help") == 0) {
 	  fputs(usage, stdout);
+	} else if (strcmp(argv[i], "-cppcast") == 0) {
+	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-nocppcast") == 0) {
+	  Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
+	  Swig_mark_arg(i);
+	  SWIG_exit(EXIT_FAILURE);
 	}
       }
-    }
-
-    if (cppcast) {
-      Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
     }
 
     Preprocessor_define("SWIGPERL 1", 0);
@@ -898,6 +892,15 @@ public:
     if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
       Replaceall(tm, "$source", Swig_cresult_name());
       Printf(f->code, "%s\n", tm);
+    }
+
+    if (director_method) {
+      if ((tm = Swig_typemap_lookup("directorfree", n, Swig_cresult_name(), 0))) {
+	Replaceall(tm, "$input", Swig_cresult_name());
+	Replaceall(tm, "$result", "ST(argvi)");
+	Printf(f->code, "%s\n", tm);
+	Delete(tm);
+      }
     }
 
     Printv(f->code, "XSRETURN(argvi);\n", "fail:\n", cleanup, "SWIG_croak_null();\n" "}\n" "}\n", NIL);
@@ -2129,27 +2132,26 @@ public:
      * if the return value is a reference or const reference, a specialized typemap must
      * handle it, including declaration of c_result ($result).
      */
-    if (!is_void) {
-      if (!ignored_method || pure_virtual) {
-	if (!SwigType_isclass(returntype)) {
-	  if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
-	    String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
-	    Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
-	    Delete(construct_result);
-	  } else {
-	    Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
-	  }
+    if (!is_void && (!ignored_method || pure_virtual)) {
+      if (!SwigType_isclass(returntype)) {
+	if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
+	  String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
+	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
+	  Delete(construct_result);
 	} else {
-	  String *cres = SwigType_lstr(returntype, "c_result");
-	  Printf(w->code, "%s;\n", cres);
-	  Delete(cres);
+	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
 	}
+      } else {
+	String *cres = SwigType_lstr(returntype, "c_result");
+	Printf(w->code, "%s;\n", cres);
+	Delete(cres);
       }
-      if (!ignored_method) {
-	String *pres = NewStringf("SV *%s", Swig_cresult_name());
-	Wrapper_add_local(w, Swig_cresult_name(), pres);
-	Delete(pres);
-      }
+    }
+
+    if (!is_void && !ignored_method) {
+      String *pres = NewStringf("SV *%s", Swig_cresult_name());
+      Wrapper_add_local(w, Swig_cresult_name(), pres);
+      Delete(pres);
     }
 
     if (ignored_method) {
@@ -2346,7 +2348,7 @@ public:
 
       /*
        * Python method may return a simple object, or a tuple.
-       * for in/out aruments, we have to extract the appropriate PyObjects from the tuple,
+       * for in/out arguments, we have to extract the appropriate PyObjects from the tuple,
        * then marshal everything back to C/C++ (return value and output arguments).
        *
        */
@@ -2504,8 +2506,8 @@ public:
       Printf(f_directors_h, "    virtual ~%s() noexcept;\n", DirectorClassName);
       Printf(f_directors, "%s::~%s() noexcept {%s}\n\n", DirectorClassName, DirectorClassName, body);
     } else if (Getattr(n, "throw")) {
-      Printf(f_directors_h, "    virtual ~%s() throw ();\n", DirectorClassName);
-      Printf(f_directors, "%s::~%s() throw () {%s}\n\n", DirectorClassName, DirectorClassName, body);
+      Printf(f_directors_h, "    virtual ~%s() throw();\n", DirectorClassName);
+      Printf(f_directors, "%s::~%s() throw() {%s}\n\n", DirectorClassName, DirectorClassName, body);
     } else {
       Printf(f_directors_h, "    virtual ~%s();\n", DirectorClassName);
       Printf(f_directors, "%s::~%s() {%s}\n\n", DirectorClassName, DirectorClassName, body);

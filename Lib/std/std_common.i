@@ -5,7 +5,7 @@
 //
 //#define SWIG_STD_MODERN_STL
 //
-// Use this to deactive the previous definition, when using gcc-2.95
+// Use this to deactivate the previous definition, when using gcc-2.95
 // or similar old compilers.
 //
 //#define SWIG_STD_NOMODERN_STL

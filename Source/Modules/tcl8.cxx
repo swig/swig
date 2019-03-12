@@ -15,7 +15,7 @@
 #include "cparse.h"
 
 static const char *usage = "\
-Tcl 8 Options (available with -tcl)\n\
+Tcl 8 Options (available with -tcl8)\n\
      -itcl           - Enable ITcl support\n\
      -nosafe         - Leave out SafeInit module function.\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
@@ -76,7 +76,6 @@ public:
    * ------------------------------------------------------------ */
 
   virtual void main(int argc, char *argv[]) {
-    int cppcast = 1;
 
      SWIG_library_directory("tcl");
 
@@ -106,20 +105,17 @@ public:
 	} else if (strcmp(argv[i], "-nosafe") == 0) {
 	  nosafe = 1;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-cppcast") == 0) {
-	  cppcast = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-nocppcast") == 0) {
-	  cppcast = 0;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-help") == 0) {
 	  fputs(usage, stdout);
+	} else if (strcmp(argv[i], "-cppcast") == 0) {
+	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-nocppcast") == 0) {
+	  Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
+	  Swig_mark_arg(i);
+	  SWIG_exit(EXIT_FAILURE);
 	}
       }
-    }
-
-    if (cppcast) {
-      Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
     }
 
     Preprocessor_define("SWIGTCL 1", 0);

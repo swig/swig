@@ -523,7 +523,7 @@ String *Swig_string_ucase(String *s) {
   /* We insert a underscore when:
      1. Lower case char followed by upper case char
      getFoo > get_foo; getFOo > get_foo; GETFOO > getfoo
-     2. Number proceded by char and not end of string
+     2. Number preceded by char and not end of string
      get2D > get_2d; get22D > get_22d; GET2D > get_2d
      but:
      asFloat2 > as_float2
@@ -1483,6 +1483,17 @@ String *Swig_pcre_version(void) {
 }
 
 #endif
+
+/* ------------------------------------------------------------
+ * Swig_is_generated_overload()
+ * Check if the function is an automatically generated
+ * overload created because a method has default parameters. 
+ * ------------------------------------------------------------ */
+int Swig_is_generated_overload(Node *n) {
+  Node *base_method = Getattr(n, "sym:overloaded");
+  Node *default_args = Getattr(n, "defaultargs");
+  return ((base_method != NULL) && (default_args != NULL) && (base_method == default_args));
+}
 
 /* -----------------------------------------------------------------------------
  * Swig_init()

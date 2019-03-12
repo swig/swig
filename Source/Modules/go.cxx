@@ -615,6 +615,12 @@ private:
 
     Language::top(n);
 
+    if (directorsEnabled()) {
+      // Insert director runtime into the f_runtime file (make it occur before %header section)
+      Swig_insert_file("director_common.swg", f_c_runtime);
+      Swig_insert_file("director.swg", f_c_runtime);
+    }
+
     Delete(go_imports);
 
     // Write out definitions for the types not defined by SWIG.
@@ -5934,7 +5940,7 @@ private:
    *
    * Given a C/C++ name, return a name in Go which will be exported.
    * If the first character is an upper case letter, this returns a
-   * copy of its argment.  If the first character is a lower case
+   * copy of its argument.  If the first character is a lower case
    * letter, this forces it to upper case.  Otherwise, this prepends
    * 'X'.
    * ---------------------------------------------------------------------- */

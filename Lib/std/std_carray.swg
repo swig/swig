@@ -28,8 +28,8 @@ namespace std {
     
     carray() { }
     
-    carray(const carray& c) {
-      std::copy(c.v, c.v + size(), v);
+    carray(const carray& other) {
+      std::copy(other.v, other.v + size(), v);
     }
     
     template <class _Iterator>

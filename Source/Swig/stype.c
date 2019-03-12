@@ -1310,6 +1310,7 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	      Putc(',', nt);
 	  }
 	  tsuffix = SwigType_templatesuffix(e);
+	  SwigType_typename_replace(tsuffix, pat, rep);
 	  Printf(nt, ")>%s", tsuffix);
 	  Delete(tsuffix);
 	  Clear(e);
@@ -1318,13 +1319,24 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	  Delete(tparms);
 	}
       } else if (Swig_scopename_check(e)) {
-	String *first, *rest;
-	first = Swig_scopename_first(e);
-	rest = Swig_scopename_suffix(e);
-	SwigType_typename_replace(rest, pat, rep);
-	SwigType_typename_replace(first, pat, rep);
+	String *first = 0;
+	String *rest = 0;
+	Swig_scopename_split(e, &first, &rest);
+
+	/* Swig_scopename_split doesn't handle :: prefix very well ... could do with a rework */
+	if (Strncmp(rest, "::", 2) == 0) {
+	  String *tmp = NewString(Char(rest) + 2);
+	  Clear(rest);
+	  Printv(rest, tmp, NIL);
+	  Delete(tmp);
+	  assert(!first);
+	}
+
 	Clear(e);
-	Printv(e, first, "::", rest, NIL);
+	if (first)
+	  SwigType_typename_replace(first, pat, rep);
+	SwigType_typename_replace(rest, pat, rep);
+	Printv(e, first ? first : "", "::", rest, NIL);
 	Delete(first);
 	Delete(rest);
       }

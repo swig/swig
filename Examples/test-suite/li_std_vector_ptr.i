@@ -5,12 +5,29 @@
 
 %template(IntPtrVector) std::vector<int *>;
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#endif
+
 %inline %{
 #include <iostream>
 using namespace std;
 int* makeIntPtr(int v) {
   return new int(v);
 }
+std::vector<int *>::value_type makeIntPtr2(int v) {
+  return new int(v);
+}
+int getIntValue(int *p) {
+  return *p;
+}
+int getIntValue2(std::vector<int *>::const_reference p) {
+  return *p;
+}
+int getIntValue3(std::vector<int *>::reference p) {
+  return *p;
+}
+
 double* makeDoublePtr(double v) {
   return new double(v);
 }

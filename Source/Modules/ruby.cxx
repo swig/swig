@@ -131,12 +131,10 @@ enum autodoc_t {
 static const char *usage = "\
 Ruby Options (available with -ruby)\n\
      -autorename     - Enable renaming of classes and methods to follow Ruby coding standards\n\
-     -cppcast        - Enable C++ casting operators (default)\n\
      -globalmodule   - Wrap everything into the global module\n\
      -initname <name>- Set entry function to Init_<name> (used by `require')\n\
      -minherit       - Attempt to support multiple inheritance\n\
      -noautorename   - Disable renaming of classes and methods (default)\n\
-     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
 ";
 
@@ -257,32 +255,22 @@ private:
       autodoc = make_autodoc(n, ad_type);
       have_auto = (autodoc && Len(autodoc) > 0);
     }
-    // If there is more than one line then make docstrings like this:
-    //
-    //      This is line1
-    //      And here is line2 followed by the rest of them
-    //
-    // otherwise, put it all on a single line
-    //
+
+    if (have_auto || have_ds)
+      doc = NewString("/*");
+
     if (have_auto && have_ds) {	// Both autodoc and docstring are present
-      doc = NewString("");
-      Printv(doc, "\n", autodoc, "\n", str, NIL);
+      Printv(doc, "\n", autodoc, "\n", str, "\n", NIL);
     } else if (!have_auto && have_ds) {	// only docstring
-      if (Strchr(str, '\n') == 0) {
-	doc = NewString(str);
-      } else {
-	doc = NewString("");
-	Printv(doc, str, NIL);
-      }
+      Printv(doc, str, NIL);
     } else if (have_auto && !have_ds) {	// only autodoc
-      if (Strchr(autodoc, '\n') == 0) {
-	doc = NewStringf("%s", autodoc);
-      } else {
-	doc = NewString("");
-	Printv(doc, "\n", autodoc, NIL);
-      }
-    } else
+      Printv(doc, "\n", autodoc, "\n", NIL);
+    } else {
       doc = NewString("");
+    }
+
+    if (have_auto || have_ds)
+      Append(doc, "*/\n");
 
     // Save the generated strings in the parse tree in case they are used later
     // by post processing tools
@@ -302,13 +290,14 @@ private:
    *   The "lname" attribute in each parameter in plist will be contain a parameter name
    * ----------------------------------------------------------------------------- */
 
-  void addMissingParameterNames(ParmList *plist, int arg_offset) {
+  void addMissingParameterNames(Node* n, ParmList *plist, int arg_offset) {
     Parm *p = plist;
     int i = arg_offset;
     while (p) {
       if (!Getattr(p, "lname")) {
-	String *pname = Swig_cparm_name(p, i);
-	Delete(pname);
+	String *name = makeParameterName(n, p, i);
+	Setattr(p, "lname", name);
+	Delete(name);
       }
       i++;
       p = nextSibling(p);
@@ -327,10 +316,10 @@ private:
     Parm *p;
     Parm *pnext;
     int lines = 0;
-    int start_arg_num = is_wrapping_class() ? 1 : 0;
+    int arg_num = is_wrapping_class() ? 1 : 0;
     const int maxwidth = 80;
 
-    addMissingParameterNames(plist, start_arg_num); // for $1_name substitutions done in Swig_typemap_attach_parms
+    addMissingParameterNames(n, plist, arg_num); // for $1_name substitutions done in Swig_typemap_attach_parms
 
     Swig_typemap_attach_parms("in", plist, 0);
     Swig_typemap_attach_parms("doc", plist, 0);
@@ -340,7 +329,7 @@ private:
       return doc;
     }
 
-    for (p = plist; p; p = pnext) {
+    for (p = plist; p; p = pnext, arg_num++) {
 
       String *tm = Getattr(p, "tmap:in");
       if (tm) {
@@ -363,9 +352,10 @@ private:
       }
 
       // Note: the generated name should be consistent with that in kwnames[]
-      name = name ? name : Getattr(p, "name");
-      name = name ? name : Getattr(p, "lname");
-      name = Swig_name_make(p, 0, name, 0, 0); // rename parameter if a keyword
+      String *made_name = 0;
+      if (!name) {
+	name = made_name = makeParameterName(n, p, arg_num);
+      }
 
       type = type ? type : Getattr(p, "type");
       value = value ? value : Getattr(p, "value");
@@ -416,7 +406,7 @@ private:
 	Printf(doc, "=%s", value);
       }
       Delete(type_str);
-      Delete(name);
+      Delete(made_name);
     }
     if (pdocs)
       Setattr(n, "feature:pdocs", pdocs);
@@ -436,7 +426,7 @@ private:
 
   String *make_autodoc(Node *n, autodoc_t ad_type) {
     int extended = 0;
-    // If the function is overloaded then this funciton is called
+    // If the function is overloaded then this function is called
     // for the last one.  Rewind to the first so the docstrings are
     // in order.
     while (Getattr(n, "sym:previousSibling"))
@@ -522,7 +512,7 @@ private:
     last_mode    = ad_type;
     last_autodoc = Copy(methodName);
 
-    String *doc = NewString("/*\n");
+    String *doc = NewString("");
     int counter = 0;
     bool skipAuto = false;
     Node* on = n;
@@ -762,7 +752,6 @@ private:
       n = Getattr(n, "sym:nextSibling");
     }
 
-    Append(doc, "\n*/\n");
     Delete(full_name);
     Delete(class_name);
     Delete(super_names);
@@ -844,7 +833,6 @@ public:
   
   virtual void main(int argc, char *argv[]) {
 
-    int cppcast = 1;
     int autorename = 0;
 
     /* Set location of SWIG library */
@@ -883,12 +871,6 @@ public:
 	  multipleInheritance = true;
 	  director_multiple_inheritance = 1;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-cppcast") == 0) {
-	  cppcast = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-nocppcast") == 0) {
-	  cppcast = 0;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-autorename") == 0) {
 	  autorename = 1;
 	  Swig_mark_arg(i);
@@ -907,13 +889,15 @@ public:
 	  }
 	} else if (strcmp(argv[i], "-help") == 0) {
 	  Printf(stdout, "%s\n", usage);
+	} else if (strcmp(argv[i], "-cppcast") == 0) {
+	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-nocppcast") == 0) {
+	  Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
+	  Swig_mark_arg(i);
+	  SWIG_exit(EXIT_FAILURE);
 	}
       }
-    }
-
-    if (cppcast) {
-      /* Turn on cppcast mode */
-      Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
     }
 
     if (autorename) {
@@ -1316,7 +1300,13 @@ public:
 	Iterator alias = First(aliases);
 	while (alias.item) {
 	  if (Len(alias.item) > 0) {
-	    if (multipleInheritance) {
+	    if (current == NO_CPP) {
+	      if (useGlobalModule) {
+	        Printv(f_init, tab4, "rb_define_alias(rb_cObject, \"", alias.item, "\", \"", iname, "\");\n", NIL);
+	      } else {
+	        Printv(f_init, tab4, "rb_define_alias(rb_singleton_class(", modvar, "), \"", alias.item, "\", \"", iname, "\");\n", NIL);
+	      }
+	    } else if (multipleInheritance) {
 	      Printv(klass->init, tab4, "rb_define_alias(", klass->mImpl, ", \"", alias.item, "\", \"", iname, "\");\n", NIL);
 	    } else {
 	      Printv(klass->init, tab4, "rb_define_alias(", klass->vname, ", \"", alias.item, "\", \"", iname, "\");\n", NIL);
@@ -3046,7 +3036,7 @@ public:
       if (argc > 0) {
 	Printf(w->code, "%s = rb_funcall(swig_get_self(), rb_intern(\"%s\"), %d%s);\n", Swig_cresult_name(), methodName, argc, args);
       } else {
-	Printf(w->code, "%s = rb_funcall(swig_get_self(), rb_intern(\"%s\"), 0, NULL);\n", Swig_cresult_name(), methodName);
+	Printf(w->code, "%s = rb_funcall(swig_get_self(), rb_intern(\"%s\"), 0, Qnil);\n", Swig_cresult_name(), methodName);
       }
       if ( initstack ) Printf(w->code, "SWIG_RELEASE_STACK;\n");
     }

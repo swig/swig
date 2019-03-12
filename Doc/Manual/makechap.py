@@ -44,6 +44,8 @@ def getheadingname(m):
 def getheadingtext(m, s):
     prevheadingtext_newstyle = m.group(2)
     prevheadingtext_oldstyle = m.group(3)
+    if prevheadingtext_oldstyle is None or prevheadingtext_newstyle is None:
+        raise RuntimeError("Ill-formed heading in line:\n%s" % s)
     if len(prevheadingtext_oldstyle) == 0 and len(prevheadingtext_newstyle) == 0:
         raise RuntimeError("No heading text in line:\n%s" % s)
     if len(prevheadingtext_oldstyle) > 0 and len(prevheadingtext_newstyle) > 0:
@@ -72,7 +74,7 @@ name = ""
 
 # Regexs for <h1>,... <h5> sections
 
-h1 = re.compile(r".*?<H1>(<a.*?>\s*[\d\s]*(.*?)</a>)*[\d\s]*(.*?)</H1>", re.IGNORECASE)
+h1 = re.compile(r".*?<H1>(<a.*?>\s*[\d\.\s]*(.*?)</a>)*[\d\.\s]*(.*?)</H1>", re.IGNORECASE)
 h2 = re.compile(r".*?<H2>(<a.*?>\s*[\d\.\s]*(.*?)</a>)*[\d\.\s]*(.*?)</H2>", re.IGNORECASE)
 h3 = re.compile(r".*?<H3>(<a.*?>\s*[\d\.\s]*(.*?)</a>)*[\d\.\s]*(.*?)</H3>", re.IGNORECASE)
 h4 = re.compile(r".*?<H4>(<a.*?>\s*[\d\.\s]*(.*?)</a>)*[\d\.\s]*(.*?)</H4>", re.IGNORECASE)

@@ -2,6 +2,10 @@
 
 // %constant and struct
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#endif
+
 %inline %{
 #if defined(_MSC_VER)
   #pragma warning(disable : 4190) // warning C4190: 'result' has C-linkage specified, but returns UDT 'Type1' which is incompatible with C

@@ -31,7 +31,7 @@
     %as_voidptrptr(a)        	 reinterpret_cast<void **>(a)
 
   or their C unsafe versions. In C++ we use the safe version unless
-  SWIG_NO_CPLUSPLUS_CAST is defined (usually via the -nocppcast swig flag).
+  SWIG_NO_CPLUSPLUS_CAST is defined
 
 
   Memory allocation:
@@ -123,14 +123,7 @@ nocppval
  * Casting operators
  * ----------------------------------------------------------------------------- */
 
-#if defined(SWIG_NO_CPLUSPLUS_CAST)
-/* Disable 'modern' cplusplus casting operators */
-# if defined(SWIG_CPLUSPLUS_CAST)
-#   undef SWIG_CPLUSPLUS_CAST
-# endif
-#endif
-
-#if defined(__cplusplus) && defined(SWIG_CPLUSPLUS_CAST)
+#if defined(__cplusplus) && !defined(SWIG_NO_CPLUSPLUS_CAST)
 # define %const_cast(a,Type...)       const_cast< Type >(a)
 # define %static_cast(a,Type...)      static_cast< Type >(a)
 # define %reinterpret_cast(a,Type...) reinterpret_cast< Type >(a)

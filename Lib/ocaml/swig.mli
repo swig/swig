@@ -30,6 +30,7 @@ exception NoSuchClass of string
 
 val invoke : ('a c_obj_t) -> (string -> 'a c_obj_t -> 'a c_obj_t)
 val fnhelper : 'a c_obj_t -> 'a c_obj_t list
+val director_core_helper : 'a c_obj_t list -> 'a c_obj_t list
 
 val get_int : 'a c_obj_t -> int
 val get_float : 'a c_obj_t -> float

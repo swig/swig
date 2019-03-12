@@ -11,8 +11,9 @@
 #include <chicken.h>
 %}
 
-%insert(runtime) "swigrun.swg";            // Common C API type-checking code
-%insert(runtime) "chickenrun.swg";      // CHICKEN run-time code
+%insert(runtime) "swigrun.swg"          // Common C API type-checking code
+%insert(runtime) "swigerrors.swg"       // SWIG errors
+%insert(runtime) "chickenrun.swg"       // CHICKEN run-time code
 
 /* -----------------------------------------------------------------------------
  *                          standard typemaps
@@ -617,7 +618,7 @@ $result = C_SCHEME_UNDEFINED;
   $1 = C_swig_is_string ($input);
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE [] {
   void *ptr;
   $1 = !SWIG_ConvertPtr($input, &ptr, $1_descriptor, 0);
 }
@@ -630,33 +631,30 @@ $result = C_SCHEME_UNDEFINED;
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE &
 {
   void *ptr = 0;
-  if (SWIG_ConvertPtr($input, &ptr, $descriptor, 0)) {
-    /* error */
+  if (SWIG_ConvertPtr($input, &ptr, $descriptor, SWIG_POINTER_NO_NULL)) {
     $1 = 0;
   } else {
-    $1 = (ptr != 0);
+    $1 = 1;
   }
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE &&
 {
   void *ptr = 0;
-  if (SWIG_ConvertPtr($input, &ptr, $descriptor, 0)) {
-    /* error */
+  if (SWIG_ConvertPtr($input, &ptr, $descriptor, SWIG_POINTER_NO_NULL)) {
     $1 = 0;
   } else {
-    $1 = (ptr != 0);
+    $1 = 1;
   }
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE 
 {
   void *ptr = 0;
-  if (SWIG_ConvertPtr($input, &ptr, $&descriptor, 0)) {
-    /* error */
+  if (SWIG_ConvertPtr($input, &ptr, $&descriptor, SWIG_POINTER_NO_NULL)) {
     $1 = 0;
   } else {
-    $1 = (ptr != 0);
+    $1 = 1;
   }
 }
 

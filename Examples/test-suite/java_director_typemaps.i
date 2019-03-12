@@ -1,4 +1,5 @@
 %module(directors="1") java_director_typemaps
+// Test director reference typemaps in typemaps.i - similar to java_director_typemaps_ptr.i testcase
 
 %feature("director", assumeoverride=1) Quux;
 
@@ -75,7 +76,7 @@ public:
   Quux() {}
   virtual ~Quux() {}
 
-  virtual void director_method_bool_output(
+  virtual void director_method_output(
     bool& boolarg_output,
 
     signed char& signed_chararg_output,
@@ -117,7 +118,7 @@ public:
     doublearg_output = 50;
   }
 
-  virtual void director_method_bool_inout(
+  virtual void director_method_inout(
     bool& boolarg_inout,
 
     signed char& signed_chararg_inout,
@@ -159,7 +160,7 @@ public:
     doublearg_inout = 50;
   }
 
-  virtual void director_method_bool_nameless_args(
+  virtual void director_method_nameless_args(
     bool& ,
 
     signed char& ,
@@ -203,7 +204,7 @@ public:
     float floatarg_inout = 150;
     double doublearg_inout = 150;
 
-    director_method_bool_output(
+    director_method_output(
        boolarg_inout,
 
        signed_chararg_inout,
@@ -263,7 +264,7 @@ public:
     floatarg_inout = 101;
     doublearg_inout = 101;
 
-    director_method_bool_inout(
+    director_method_inout(
        boolarg_inout,
 
        signed_chararg_inout,
@@ -303,7 +304,7 @@ public:
     verify(floatarg_inout == 111);
     verify(doublearg_inout == 112);
 
-    director_method_bool_nameless_args(
+    director_method_nameless_args(
        boolarg_inout,
 
        signed_chararg_inout,
