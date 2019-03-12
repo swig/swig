@@ -8,7 +8,7 @@ Version 4.0.0 (in progress)
 ===========================
 
 2019-03-12: vadz
-            [C#] Add std::set<> typemaps.
+            [C#] #1495 Add std_set.i for std::set support.
 
 2019-03-11: dirteat,opoplawski
             [Octave] Fix compilation errors in Octave 5.1.
