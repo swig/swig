@@ -1,4 +1,7 @@
-%module("nocastmode") li_implicit
+%module li_implicit
+
+// Tests nocastmode
+
 #pragma SWIG nowarn=SWIGWARN_PP_CPP_WARNING
 %include implicit.i
 

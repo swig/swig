@@ -6,7 +6,7 @@ if count(u"ab\0ab\0ab\0", 0) != 3:
 if test1() != u"Hello World":
     raise RuntimeError
 
-if test2() != u" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_":
+if test2() != u" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_":
     raise RuntimeError
 
 if test3("hello") != u"hello-suffix":
@@ -24,5 +24,5 @@ if test6(10) != u'xxxxx':
 if test7() != u"Hello world!":
     raise RuntimeError
 
-if test8() != u" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_":
+if test8() != u" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_":
     raise RuntimeError

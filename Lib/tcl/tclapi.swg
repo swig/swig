@@ -16,7 +16,7 @@ extern "C" {
 /* Constant information structure */
 typedef struct swig_const_info {
     int type;
-    char *name;
+    const char *name;
     long lvalue;
     double dvalue;
     void   *pvalue;

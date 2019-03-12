@@ -1,5 +1,9 @@
 %module extend
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) method;
+#endif
+
 %extend Base {
   ~Base() {
     delete $self; 

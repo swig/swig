@@ -23,8 +23,11 @@
        SWIG_fail;
     }
     pystr = PyUnicode_AsUTF8String(pyobj);
+    if (!pystr) {
+      SWIG_fail;
+    }
     str = strdup(PyBytes_AsString(pystr));
-    Py_XDECREF(pystr);
+    Py_DECREF(pystr);
 %#else  
     if (!PyString_Check(pyobj)) {
        PyErr_SetString(PyExc_ValueError, "Expected a string");

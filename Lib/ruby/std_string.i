@@ -1,7 +1,5 @@
 
-%warnfilter(801) std::string;  // wrong class name
-%warnfilter(378) std::basic_string::operator!=;
-
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) std::basic_string<char>;
 
 AUTODOC(substr, "Return a portion of the String");
 

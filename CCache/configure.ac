@@ -7,6 +7,7 @@ AC_CONFIG_SRCDIR([ccache.h])
 AC_MSG_NOTICE([Configuring ccache])
 
 AC_CONFIG_HEADER(config.h)
+AC_CONFIG_FILES([config_win32.h])
 
 dnl Checks for programs.
 AC_PROG_CC
@@ -14,6 +15,20 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_ARG_PROGRAM # for program_transform_name
 
+AC_SUBST(PROGRAM_NAME)
+if test "x$program_prefix" != "xNONE" -a "x$program_prefix" != "x" 
+then
+	PROGRAM_NAME="$program_prefix$PACKAGE_NAME"
+else
+	PROGRAM_NAME="$PACKAGE_NAME"
+fi
+if test "x$program_suffix" != "xNONE" -a "x$program_suffix" != "x" 
+then
+	PROGRAM_NAME="$PROGRAM_NAME$program_suffix"
+fi
+
+AC_DEFINE_UNQUOTED(PROGRAM_NAME, "$PROGRAM_NAME", [Define my program name])
+   
 AC_DEFINE([_GNU_SOURCE], 1,
           [Define _GNU_SOURCE so that we get all necessary prototypes])
 

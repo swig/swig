@@ -41,7 +41,7 @@
   }
 %}
 
-#define %swig_unordered_multiset_methods(Set...) %swig_set_methods(Set)
+#define %swig_unordered_multiset_methods(Set...) %swig_unordered_set_methods(Set)
 
 
 

@@ -126,19 +126,28 @@ public class java_director_exception_feature_nspace_runme {
 	  try {  b.genericpong(1); fail("No exception thrown in genericpong(1)"); }
           catch (MyJavaException1 e) {
               failif( ! java_director_exception_feature_nspace_Consts.GENERICPONGEXCP1.equals(e.getMessage()), "Expected exception has unexpected message: '" + e.getMessage() + "'");
+              StackTraceElement[] st = e.getStackTrace();
+              failif( st.length != 5, "Stack length is only " + st.length);
+              failif( ! st[0].toString().startsWith("java_director_exception_feature_nspace_MyFooDirectorImpl.genericpong(java_director_exception_feature_nspace_runme.java:"), "Incorrect top of stack: " + st[0]);
           }
 	  try {  b.genericpong(2); fail("No exception thrown in genericpong(2)");}
           catch (java_director_exception_feature_nspace_NewCheckedException e) {
               failif( ! java_director_exception_feature_nspace_Consts.GENERICPONGEXCP2.equals(e.getMessage()),  "Expected exception has unexpected message: '" + e.getMessage() + "'");
+              StackTraceElement[] st = e.getStackTrace();
+              failif( st.length != 5, "Stack length is only " + st.length);
+              failif( ! st[0].toString().startsWith("java_director_exception_feature_nspace_MyFooDirectorImpl.genericpong(java_director_exception_feature_nspace_runme.java:"), "Incorrect top of stack: " + st[0]);
           }
 	  try {  b.genericpong(3); fail("No exception thrown in genericpong(3)");}
           catch (java_director_exception_feature_nspace_NewUncheckedException e) {
               failif( ! java_director_exception_feature_nspace_Consts.GENERICPONGEXCP3.equals(e.getMessage()),  "Expected exception has unexpected message: '" + e.getMessage() + "'");
+              StackTraceElement[] st = e.getStackTrace();
+              failif( st.length != 5, "Stack length is only " + st.length);
+              failif( ! st[0].toString().startsWith("java_director_exception_feature_nspace_MyFooDirectorImpl.genericpong(java_director_exception_feature_nspace_runme.java:"), "Incorrect top of stack: " + st[0]);
           }
 	  try {  b.genericpong(4); fail("No exception thrown in genericpong(4)");}
           catch (RuntimeException e) {
-              failif ( e.getClass() != RuntimeException.class, "Exception " + e + " is not exactly RumtimeException");
-              failif( ! java_director_exception_feature_nspace_Consts.GENERICPONGEXCP4.equals(e.getMessage()),  "Expected exception has unexpected message: '" + e.getMessage() + "'");
+              failif ( e.getClass() != RuntimeException.class, "Exception " + e + " is not exactly RuntimeException");
+              failif( ! "Unspecified DirectorException message".equals(e.getMessage()),  "Expected exception has unexpected message: '" + e.getMessage() + "'");
           }
       }
       catch (Exception e) {

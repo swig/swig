@@ -104,15 +104,22 @@ public void capacity(size_t value) {
 
   public:
     typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
     typedef CTYPE value_type;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
+    typedef value_type& reference;
     typedef CONST_REFERENCE const_reference;
+
     void clear();
     void push_back(CTYPE const& x);
     size_type size() const;
     size_type capacity() const;
     void reserve(size_type n) throw (std::length_error);
+
     vector();
     vector(const vector &other);
+
     %extend {
       vector(size_type capacity) throw (std::length_error) {
         std::vector< CTYPE >* pv = 0;
@@ -165,11 +172,11 @@ public void capacity(size_t value) {
     // generation issue when using const pointers as vector elements (like
     // std::vector< const int* >).
     %extend {
-      void setElement(size_type index, CTYPE const& val) throw (std::out_of_range) {
+      void setElement(size_type index, CTYPE const& value) throw (std::out_of_range) {
         if ((index < 0) || ($self->size() <= index)) {
           throw std::out_of_range("Tried to set value of element with invalid index.");
         }
-        (*$self)[index] = val;
+        (*$self)[index] = value;
       }
     }
 
@@ -442,8 +449,13 @@ int opApply(int delegate(ref size_t index, ref $typemap(dtype, CTYPE) value) dg)
 
   public:
     typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
     typedef CTYPE value_type;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
+    typedef value_type& reference;
     typedef CONST_REFERENCE const_reference;
+
     bool empty() const;
     void clear();
     void push_back(CTYPE const& x);
@@ -451,8 +463,10 @@ int opApply(int delegate(ref size_t index, ref $typemap(dtype, CTYPE) value) dg)
     size_type size() const;
     size_type capacity() const;
     void reserve(size_type n) throw (std::length_error);
+
     vector();
     vector(const vector &other);
+
     %extend {
       vector(size_type capacity) throw (std::length_error) {
         std::vector< CTYPE >* pv = 0;
@@ -517,11 +531,11 @@ int opApply(int delegate(ref size_t index, ref $typemap(dtype, CTYPE) value) dg)
     // generation issue when using const pointers as vector elements (like
     // std::vector< const int* >).
     %extend {
-      void setElement(size_type index, CTYPE const& val) throw (std::out_of_range) {
+      void setElement(size_type index, CTYPE const& value) throw (std::out_of_range) {
         if ((index < 0) || ($self->size() <= index)) {
           throw std::out_of_range("Tried to set value of element with invalid index.");
         }
-        (*$self)[index] = val;
+        (*$self)[index] = value;
       }
     }
 

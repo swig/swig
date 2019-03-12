@@ -74,12 +74,12 @@ namespace Swig {
     public:
       /* wrap a ocaml object. */
       Director(CAML_VALUE self) : swig_self(self), swig_disown_flag(false) {
-        register_global_root(&swig_self);
+        caml_register_global_root(&swig_self);
       }
 
       /* discard our reference at destruction */
       virtual ~Director() {
-        remove_global_root(&swig_self);
+        caml_remove_global_root(&swig_self);
         swig_disown();
         // Disown is safe here because we're just divorcing a reference that points to us.
       }
@@ -93,7 +93,7 @@ namespace Swig {
       void swig_disown() const {
         if (!swig_disown_flag) {
           swig_disown_flag=true;
-          callback(*caml_named_value("caml_obj_disown"),swig_self);
+          caml_callback(*caml_named_value("caml_obj_disown"),swig_self);
         }
       }
   };

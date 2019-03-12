@@ -125,7 +125,8 @@ SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *interp, const char *c, void **ptr, swi
   /* Pointer values must start with leading underscore */
   while (*c != '_') {
     *ptr = (void *) 0;
-    if (strcmp(c,"NULL") == 0) return SWIG_OK;
+    if (strcmp(c,"NULL") == 0)
+      return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
 
     /* Empty string: not a pointer */
     if (*c == 0) return SWIG_ERROR; 
@@ -199,7 +200,7 @@ SWIG_Tcl_PointerTypeFromString(char *c) {
   return c;
 }
 
-/* Convert a packed value value */
+/* Convert a packed pointer value */
 SWIGRUNTIME int
 SWIG_Tcl_ConvertPacked(Tcl_Interp *SWIGUNUSEDPARM(interp) , Tcl_Obj *obj, void *ptr, int sz, swig_type_info *ty) {
   swig_cast_info *tc;

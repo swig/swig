@@ -5,9 +5,9 @@
  * C# implementation
  * The C# wrapper is made to look and feel like a C# System.Collections.Generic.List<> collection.
  *
- * Note that IEnumerable<> is implemented in the proxy class which is useful for using LINQ with 
+ * Note that IEnumerable<> is implemented in the proxy class which is useful for using LINQ with
  * C++ std::vector wrappers. The IList<> interface is also implemented to provide enhanced functionality
- * whenever we are confident that the required C++ operator== is available. This is the case for when 
+ * whenever we are confident that the required C++ operator== is available. This is the case for when
  * T is a primitive type or a pointer. If T does define an operator==, then use the SWIG_STD_VECTOR_ENHANCED
  * macro to obtain this enhanced functionality, for example:
  *
@@ -33,14 +33,14 @@
       this.Add(element);
     }
   }
-  
+
   public $csclassname(global::System.Collections.Generic.IEnumerable<$typemap(cstype, CTYPE)> c) : this() {
     if (c == null)
       throw new global::System.ArgumentNullException("c");
     foreach ($typemap(cstype, CTYPE) element in c) {
       this.Add(element);
     }
-  }  
+  }
 
   public bool IsFixedSize {
     get {
@@ -112,6 +112,12 @@
       throw new global::System.ArgumentException("Number of elements to copy is too large.");
     for (int i=0; i<count; i++)
       array.SetValue(getitemcopy(index+i), arrayIndex+i);
+  }
+
+  public $typemap(cstype, CTYPE)[] ToArray() {
+    $typemap(cstype, CTYPE)[] array = new $typemap(cstype, CTYPE)[this.Count];
+    this.CopyTo(array);
+    return array;
   }
 
   global::System.Collections.Generic.IEnumerator<$typemap(cstype, CTYPE)> global::System.Collections.Generic.IEnumerable<$typemap(cstype, CTYPE)>.GetEnumerator() {
@@ -195,8 +201,13 @@
 
   public:
     typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
     typedef CTYPE value_type;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
+    typedef value_type& reference;
     typedef CONST_REFERENCE const_reference;
+
     %rename(Clear) clear;
     void clear();
     %rename(Add) push_back;
@@ -206,8 +217,10 @@
     void reserve(size_type n);
     %newobject GetRange(int index, int count);
     %newobject Repeat(CTYPE const& value, int count);
+
     vector();
     vector(const vector &other);
+
     %extend {
       vector(int capacity) throw (std::out_of_range) {
         std::vector< CTYPE >* pv = 0;
@@ -231,9 +244,9 @@
         else
           throw std::out_of_range("index");
       }
-      void setitem(int index, CTYPE const& val) throw (std::out_of_range) {
+      void setitem(int index, CTYPE const& value) throw (std::out_of_range) {
         if (index>=0 && index<(int)$self->size())
-          (*$self)[index] = val;
+          (*$self)[index] = value;
         else
           throw std::out_of_range("index");
       }
@@ -332,7 +345,7 @@
         std::vector< CTYPE >::iterator it = std::find($self->begin(), $self->end(), value);
         if (it != $self->end()) {
           $self->erase(it);
-	  return true;
+          return true;
         }
         return false;
       }

@@ -31,7 +31,13 @@ struct Containing {
   Thing *const&& member_rvalue_ref_ptr3 = 0;
   Thing const*const &&member_rvalue_ref_ptr4 = 0;
 
-  Containing() : member_rvalue_ref(Thing()) {}
+  Containing(Thing&&r, Thing*&& r1, Thing const*&& r2, Thing *const&& r3, Thing const*const && r4) :
+    member_rvalue_ref(std::move(r)), 
+    member_rvalue_ref_ptr1(std::move(r1)),
+    member_rvalue_ref_ptr2(std::move(r2)),
+    member_rvalue_ref_ptr3(std::move(r3)),
+    member_rvalue_ref_ptr4(std::move(r4))
+    {}
 };
 %}
 
@@ -62,6 +68,12 @@ struct IntContaining {
   int *const&& member_rvalue_ref_ptr3 = 0;
   int const*const &&member_rvalue_ref_ptr4 = 0;
 
-  IntContaining() : member_rvalue_ref(55) {}
+  IntContaining(int&& r, int*&& r1, int const*&& r2, int *const&& r3, int const*const && r4) :
+    member_rvalue_ref(std::move(r)),
+    member_rvalue_ref_ptr1(std::move(r1)),
+    member_rvalue_ref_ptr2(std::move(r2)),
+    member_rvalue_ref_ptr3(std::move(r3)),
+    member_rvalue_ref_ptr4(std::move(r4))
+    {}
 };
 %}

@@ -44,7 +44,7 @@ example.print_vars();
 
 console.log("\nNow I'm going to try and modify some read only variables");
 
-console.log("Tring to set 'path'");
+console.log("Trying to set 'path'");
 try{
     example.path = "Whoa!";
     console.log("Hey, what's going on?!?! This shouldn't work");

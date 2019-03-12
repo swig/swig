@@ -15,7 +15,7 @@ define swigprint
     else
         set $expand_count = -1
     end
-    Printf "%s\n", Swig_to_string($arg0, $expand_count)
+    printf "%s\n", Swig_to_string($arg0, $expand_count)
 end
 document swigprint
 Displays any SWIG DOH object
@@ -31,7 +31,7 @@ define locswigprint
     else
         set $expand_count = -1
     end
-    Printf "%s\n", Swig_to_string_with_location($arg0, $expand_count)
+    printf "%s\n", Swig_to_string_with_location($arg0, $expand_count)
 end
 document locswigprint
 Displays any SWIG DOH object prefixed with file and line location

@@ -152,19 +152,26 @@ string &, std::string &
 %typemap(scoerceout) SEXP %{ %}
 
 %typemap(scoerceout) SWIGTYPE
-  %{ $result <- new("$&R_class", ref=$result); %}
+  %{ $result <- if (is.null($result)) $result
+  else new("$&R_class", ref=$result); %}
  
 %typemap(scoerceout) SWIGTYPE &
-  %{ $result <- new("$R_class", ref=$result) ; %}
+  %{ $result <- if (is.null($result)) $result
+  else new("$R_class", ref=$result); %}
+
  
 %typemap(scoerceout) SWIGTYPE &&
-  %{ $result <- new("$R_class", ref=$result) ; %}
+  %{ $result <- if (is.null($result)) $result
+  else new("$R_class", ref=$result); %}
  
 %typemap(scoerceout) SWIGTYPE *
-  %{ $result <- new("$R_class", ref=$result) ; %}
+  %{ $result <- if (is.null($result)) $result
+  else new("$R_class", ref=$result); %}
+
  
 %typemap(scoerceout) SWIGTYPE *const
-  %{ $result <- new("$R_class", ref=$result) ; %}
+  %{ $result <- if (is.null($result)) $result
+  else new("$R_class", ref=$result); %}
 
 
 /* Override the SWIGTYPE * above. */

@@ -29,8 +29,6 @@
 
    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/252158
 
- and works for modern (-modern) and plain python.
-
 */
 
 
@@ -54,5 +52,14 @@
     int b;
   };
 
+  int retrieve_A_a(const struct A* self) { return self->a; }
+  int retrieve_A_b(const struct A* self) { return self->b; }
+%}
+%inline %{
+#ifdef SWIGPYTHON_BUILTIN
+int is_python_builtin() { return 1; }
+#else
+int is_python_builtin() { return 0; }
+#endif
 %}
 

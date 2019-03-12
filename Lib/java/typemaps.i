@@ -212,22 +212,32 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
   JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &jvalue);
 }
 
-%typemap(directorin,descriptor=JNIDESC) TYPE &OUTPUT, TYPE *OUTPUT %{
+%typemap(directorin,descriptor=JNIDESC) TYPE &OUTPUT %{
   $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
+  if (!$input) return $null;
+  Swig::LocalRefGuard $1_refguard(jenv, $input); %}
+
+%typemap(directorin,descriptor=JNIDESC) TYPE *OUTPUT %{
+  if ($1) {
+    $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
+    if (!$input) return $null;
+  }
   Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
 %typemap(directorargout, noblock=1) TYPE &OUTPUT
 {
   JNITYPE $1_jvalue;
   JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
-  $result = $1_jvalue;
+  $result = ($*1_ltype)$1_jvalue;
 }
 
 %typemap(directorargout, noblock=1) TYPE *OUTPUT
 {
-  JNITYPE $1_jvalue;
-  JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
-  *$result = $1_jvalue;
+  if ($result) {
+    JNITYPE $1_jvalue;
+    JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+    *$result = ($*1_ltype)$1_jvalue;
+  }
 }
 
 %typemap(typecheck) TYPE *OUTPUT = TYPECHECKTYPE;
@@ -263,6 +273,23 @@ OUTPUT_TYPEMAP(double, jdouble, double, Double, "[D", jdoubleArray);
   temp = false;
   $1 = &temp; 
 }
+
+%typemap(directorargout, noblock=1) bool &OUTPUT
+{
+  jboolean $1_jvalue;
+  JCALL4(GetBooleanArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+  $result = $1_jvalue ? true : false;
+}
+
+%typemap(directorargout, noblock=1) bool *OUTPUT
+{
+  if ($result) {
+    jboolean $1_jvalue;
+    JCALL4(GetBooleanArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+    *$result = $1_jvalue ? true : false;
+  }
+}
+
 
 /* Convert to BigInteger - byte array holds number in 2's complement big endian format */
 /* Use first element in BigInteger array for output */
@@ -373,26 +400,33 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 
 %typemap(directorin,descriptor=JNIDESC) TYPE &INOUT %{
   $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
+  if (!$input) return $null;
   JNITYPE $1_jvalue = (JNITYPE)$1;
   JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
   Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
 %typemap(directorin,descriptor=JNIDESC) TYPE *INOUT %{
-  $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
-  JNITYPE $1_jvalue = (JNITYPE)*$1;
-  JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+  if ($1) {
+    $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
+    if (!$input) return $null;
+    JNITYPE $1_jvalue = (JNITYPE)*$1;
+    JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+  }
   Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
 %typemap(directorargout, noblock=1) TYPE &INOUT
 {
   JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
-  $result = $1_jvalue;
+  $result = ($*1_ltype)$1_jvalue;
 }
 
 %typemap(directorargout, noblock=1) TYPE *INOUT
 {
-  JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
-  *$result = $1_jvalue;
+  if ($result) {
+    JNITYPE $1_jvalue;
+    JCALL4(Get##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+    *$result = ($*1_ltype)$1_jvalue;
+  }
 }
 
 %typemap(typecheck) TYPE *INOUT = TYPECHECKTYPE;
@@ -435,6 +469,22 @@ INOUT_TYPEMAP(double, jdouble, double, Double, "[D", jdoubleArray);
   *jbtemp$argnum = btemp$argnum ? (jboolean)1 : (jboolean)0;
   JCALL3(ReleaseBooleanArrayElements, jenv, $input , (jboolean *)jbtemp$argnum, 0);
 }
+
+%typemap(directorargout, noblock=1) bool &INOUT
+{
+  JCALL4(GetBooleanArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+  $result = $1_jvalue ? true : false;
+}
+
+%typemap(directorargout, noblock=1) bool *INOUT
+{
+  if ($result) {
+    jboolean $1_jvalue;
+    JCALL4(GetBooleanArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+    *$result = $1_jvalue ? true : false;
+  }
+}
+
 
 /* Override the typemap in the INOUT_TYPEMAP macro for unsigned long long */
 %typemap(in) unsigned long long *INOUT ($*1_ltype temp), unsigned long long &INOUT ($*1_ltype temp) { 

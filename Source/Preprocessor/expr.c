@@ -188,12 +188,22 @@ static int reduce_op() {
       sp--;
       break;
     case SWIG_TOKEN_SLASH:
-      stack[sp - 2].value = stack[sp - 2].value / stack[sp].value;
-      sp -= 2;
+      if (stack[sp].value != 0) {
+	stack[sp - 2].value = stack[sp - 2].value / stack[sp].value;
+	sp -= 2;
+      } else {
+	errmsg = "Division by zero in expression";
+	return 0;
+      }
       break;
     case SWIG_TOKEN_PERCENT:
-      stack[sp - 2].value = stack[sp - 2].value % stack[sp].value;
-      sp -= 2;
+      if (stack[sp].value != 0) {
+	stack[sp - 2].value = stack[sp - 2].value % stack[sp].value;
+	sp -= 2;
+      } else {
+	errmsg = "Modulo by zero in expression";
+	return 0;
+      }
       break;
     case SWIG_TOKEN_LSHIFT:
       stack[sp - 2].value = stack[sp - 2].value << stack[sp].value;
@@ -309,6 +319,10 @@ int Preprocessor_expr(DOH *s, int *error) {
 	stack[sp].value = 0;
 	stack[sp].svalue = 0;
 	stack[sp].op = EXPR_VALUE;
+      } else if ((token == SWIG_TOKEN_FLOAT) || (token == SWIG_TOKEN_DOUBLE)) {
+	errmsg = "Floating point constant in preprocessor expression";
+	*error = 1;
+	return 0;
       } else
 	goto syntax_error;
       break;

@@ -523,7 +523,7 @@ String *Swig_string_ucase(String *s) {
   /* We insert a underscore when:
      1. Lower case char followed by upper case char
      getFoo > get_foo; getFOo > get_foo; GETFOO > getfoo
-     2. Number proceded by char and not end of string
+     2. Number preceded by char and not end of string
      get2D > get_2d; get22D > get_22d; GET2D > get_2d
      but:
      asFloat2 > as_float2
@@ -823,10 +823,11 @@ String *Swig_string_emangle(String *s) {
 
 
 /* -----------------------------------------------------------------------------
- * Swig_scopename_prefix()
+ * Swig_scopename_split()
  *
- * Take a qualified name like "A::B::C" and return the scope name.
- * In this case, "A::B".   Returns NULL if there is no base.
+ * Take a qualified name like "A::B::C" and splits off the last name.
+ * In this case, returns "C" as last and "A::B" as prefix.
+ * Always returns non NULL for last, but prefix may be NULL if there is no prefix.
  * ----------------------------------------------------------------------------- */
 
 void Swig_scopename_split(const String *s, String **rprefix, String **rlast) {
@@ -882,6 +883,12 @@ void Swig_scopename_split(const String *s, String **rprefix, String **rlast) {
   }
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_scopename_prefix()
+ *
+ * Take a qualified name like "A::B::C" and return the scope name.
+ * In this case, "A::B".   Returns NULL if there is no base.
+ * ----------------------------------------------------------------------------- */
 
 String *Swig_scopename_prefix(const String *s) {
   char *tmp = Char(s);
@@ -1065,6 +1072,31 @@ String *Swig_scopename_suffix(const String *s) {
   } else {
     return 0;
   }
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_scopename_tolist()
+ *
+ * Take a qualified scope name like "A::B::C" and convert it to a list.
+ * In this case, return a list of 3 elements "A", "B", "C".
+ * Returns an empty list if the input is empty.
+ * ----------------------------------------------------------------------------- */
+
+List *Swig_scopename_tolist(const String *s) {
+  List *scopes = NewList();
+  String *name = Len(s) == 0 ? 0 : NewString(s);
+
+  while (name) {
+    String *last = 0;
+    String *prefix = 0;
+    Swig_scopename_split(name, &prefix, &last);
+    Insert(scopes, 0, last);
+    Delete(last);
+    Delete(name);
+    name = prefix;
+  }
+  Delete(name);
+  return scopes;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1451,6 +1483,17 @@ String *Swig_pcre_version(void) {
 }
 
 #endif
+
+/* ------------------------------------------------------------
+ * Swig_is_generated_overload()
+ * Check if the function is an automatically generated
+ * overload created because a method has default parameters. 
+ * ------------------------------------------------------------ */
+int Swig_is_generated_overload(Node *n) {
+  Node *base_method = Getattr(n, "sym:overloaded");
+  Node *default_args = Getattr(n, "defaultargs");
+  return ((base_method != NULL) && (default_args != NULL) && (base_method == default_args));
+}
 
 /* -----------------------------------------------------------------------------
  * Swig_init()

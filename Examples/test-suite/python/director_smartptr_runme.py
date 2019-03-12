@@ -15,6 +15,20 @@ class director_smartptr_MyBarFoo(Foo):
   def makeFoo(self):
     return Foo()
 
+class director_smartptr_MyBarFooDerived(FooDerived):
+
+  def ping(self):
+    return "director_smartptr_MyBarFooDerived.ping()"
+
+  def pong(self):
+    return "director_smartptr_MyBarFooDerived.pong();" + self.ping()
+
+  def upcall(self, fooBarPtr):
+    return "overrideDerived;" + fooBarPtr.FooBarDo()
+
+  def makeFoo(self):
+    return Foo()
+
 def check(got, expected):
   if (got != expected):
     raise RuntimeError, "Failed, got: " + got + " expected: " + expected
@@ -35,3 +49,8 @@ myFoo2 = Foo().makeFoo()
 check(myFoo2.pong(), "Foo::pong();Foo::ping()")
 check(Foo.callPong(myFoo2), "Foo::pong();Foo::ping()")
 check(myFoo2.upcall(FooBar()), "Bar::Foo2::Foo2Bar()")
+
+myBarFooDerived = director_smartptr_MyBarFooDerived()
+check(myBarFooDerived.ping(), "director_smartptr_MyBarFooDerived.ping()")
+check(FooDerived.callPong(myBarFooDerived), "director_smartptr_MyBarFooDerived.pong();director_smartptr_MyBarFooDerived.ping()")
+check(FooDerived.callUpcall(myBarFooDerived, fooBar), "overrideDerived;Bar::Foo2::Foo2Bar()")

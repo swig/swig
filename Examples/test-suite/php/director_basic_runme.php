@@ -4,11 +4,11 @@ require "tests.php";
 require "director_basic.php";
 
 // No new functions
-check::functions(array(foo_ping,foo_pong,foo_get_self,a_f,a_rg,a1_ff,myclass_method,myclass_vmethod,myclass_pmethod,myclass_cmethod,myclass_get_self,myclass_call_pmethod,myclasst_i_method));
+check::functions(array('foo_ping','foo_pong','foo_get_self','a_f','a_rg','a1_ff','myclass_method','myclass_vmethod','myclass_pmethod','myclass_cmethod','myclass_get_self','myclass_call_pmethod','myclasst_i_method','myclass_nonvirtual','myclass_nonoverride','myclass_call_nonvirtual','myclass_call_nonoverride','myclass_connect'));
 // No new classes
-check::classes(array(Foo,A,A1,Bar,MyClass,MyClassT_i));
+check::classes(array('Foo','A','A1','Bar','MyClass','MyClassT_i'));
 // now new vars
-check::globals(array(bar_x));
+check::globals(array('bar_x'));
 
 class PhpFoo extends Foo {
   function ping() {
