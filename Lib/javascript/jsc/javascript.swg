@@ -4,7 +4,10 @@
  * Javascript typemaps
  * ----------------------------------------------------------------------------- */
 
-%include <typemaps/swigmacros.swg>
+/* ------------------------------------------------------------
+ *  Inner macros
+ * ------------------------------------------------------------ */
+%include <javascriptmacros.swg>
 
 %include <javascripttypemaps.swg>
 

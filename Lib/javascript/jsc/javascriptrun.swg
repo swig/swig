@@ -113,7 +113,7 @@ SWIGRUNTIME JSClassDefinition _SwigObject_objectDefinition;
 SWIGRUNTIME JSClassRef _SwigObject_classRef;
 
 
-SWIGRUNTIME int SWIG_JSC_ConvertInstancePtr(JSContextRef context, JSObjectRef objRef, void** ptr, swig_type_info *info, int flags) {
+SWIGRUNTIME int SWIG_JSC_ConvertInstancePtr(JSContextRef context, JSObjectRef objRef, void** ptr, swig_type_info *info, int flags, int*own) {
   SwigPrivData *cdata;
 
   cdata = (SwigPrivData *) JSObjectGetPrivate(objRef);
@@ -133,10 +133,17 @@ SWIGRUNTIME int SWIG_JSC_ConvertInstancePtr(JSContextRef context, JSObjectRef ob
     if(!type_valid) {
       return SWIG_TypeError;
     }
+    {
+      int newmemory = 0;
+      *ptr = SWIG_TypeCast(t,cdata->swigCObject,&newmemory);
+      if (newmemory == SWIG_CAST_NEW_MEMORY) {
+        if (own)
+          *own = *own | SWIG_CAST_NEW_MEMORY;
+      }
+    }
+  } else {
+    *ptr = cdata->swigCObject;
   }
-
-  *ptr = cdata->swigCObject;
-
   if(flags & SWIG_POINTER_DISOWN) {
     cdata->swigCMemOwn = false;
   }
@@ -144,7 +151,7 @@ SWIGRUNTIME int SWIG_JSC_ConvertInstancePtr(JSContextRef context, JSObjectRef ob
   return SWIG_OK;
 }
 
-SWIGRUNTIME int SWIG_JSC_ConvertPtr(JSContextRef context, JSValueRef valRef, void** ptr, swig_type_info *info, int flags) {
+SWIGRUNTIME int SWIG_JSC_ConvertPtr(JSContextRef context, JSValueRef valRef, void** ptr, swig_type_info *info, int flags, int *own) {
   JSObjectRef objRef;
 
   /* special case: JavaScript null => C NULL pointer */
@@ -162,7 +169,7 @@ SWIGRUNTIME int SWIG_JSC_ConvertPtr(JSContextRef context, JSValueRef valRef, voi
     return SWIG_ERROR;
   }
 
-  return SWIG_JSC_ConvertInstancePtr(context, objRef, ptr, info, flags);
+  return SWIG_JSC_ConvertInstancePtr(context, objRef, ptr, info, flags, own);
 }
 
 SWIGRUNTIME JSObjectRef SWIG_JSC_NewPointerObj(JSContextRef context, void *ptr, swig_type_info *info, int flags) {
@@ -196,13 +203,14 @@ SWIGRUNTIME JSObjectRef SWIG_JSC_NewPointerObj(JSContextRef context, void *ptr, 
   return result;
 }
 
-#define SWIG_ConvertPtr(obj, ptr, info, flags)    SWIG_JSC_ConvertPtr(context, obj, ptr, info, flags)
+#define SWIG_ConvertPtr(obj, ptr, info, flags)    SWIG_JSC_ConvertPtr(context, obj, ptr, info, flags, 0)
+#define SWIG_ConvertPtrAndOwn(obj,pptr,type,flags, own)  SWIG_JSC_ConvertPtr(context, obj, pptr, type, flags, own)
 #define SWIG_NewPointerObj(ptr, info, flags)      SWIG_JSC_NewPointerObj(context, ptr, info, flags)
 
 #define SWIG_ConvertInstance(obj, pptr, type, flags)    SWIG_JSC_ConvertInstancePtr(context, obj, pptr, type, flags)
 #define SWIG_NewInstanceObj(thisvalue, type, flags)     SWIG_JSC_NewPointerObj(context, thisvalue, type, flags)
 
-#define SWIG_ConvertFunctionPtr(obj, pptr, type)        SWIG_JSC_ConvertPtr(context, obj, pptr, type, 0)
+#define SWIG_ConvertFunctionPtr(obj, pptr, type)        SWIG_JSC_ConvertPtr(context, obj, pptr, type, 0, 0)
 #define SWIG_NewFunctionPtrObj(ptr, type)               SWIG_JSC_NewPointerObj(context, ptr, type, 0)
 
 /* ----------------------------------------------------------------------------
