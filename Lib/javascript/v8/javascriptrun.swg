@@ -91,6 +91,32 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_SET_CLASS_TEMPL(class_templ, class) class_templ.Reset(v8::Isolate::GetCurrent(), class);
 #endif
 
+#ifdef NODE_VERSION
+#if NODE_VERSION_AT_LEAST(10, 12, 0)
+#define SWIG_NODE_AT_LEAST_1012
+#endif
+#endif
+
+//Necessary to check Node.js version because V8 API changes are backported in Node.js
+#if (defined(NODE_VERSION) && !defined(SWIG_NODE_AT_LEAST_1012)) || \
+    (!defined(NODE_VERSION) && (V8_MAJOR_VERSION-0) < 7)
+#define SWIGV8_TO_OBJECT(handle) (handle)->ToObject()
+#define SWIGV8_TO_STRING(handle) (handle)->ToString()
+#define SWIGV8_NUMBER_VALUE(handle) (handle)->NumberValue()
+#define SWIGV8_INTEGER_VALUE(handle) (handle)->IntegerValue()
+#define SWIGV8_BOOLEAN_VALUE(handle) (handle)->BooleanValue()
+#define SWIGV8_WRITE_UTF8(handle, buffer, len) (handle)->WriteUtf8(buffer, len)
+#define SWIGV8_UTF8_LENGTH(handle) (handle)->Utf8Length()
+#else
+#define SWIGV8_TO_OBJECT(handle) (handle)->ToObject(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()
+#define SWIGV8_TO_STRING(handle) (handle)->ToString(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()
+#define SWIGV8_NUMBER_VALUE(handle) (handle)->NumberValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
+#define SWIGV8_INTEGER_VALUE(handle) (handle)->IntegerValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
+#define SWIGV8_BOOLEAN_VALUE(handle) (handle)->BooleanValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
+#define SWIGV8_WRITE_UTF8(handle, buffer, len) (handle)->WriteUtf8(v8::Isolate::GetCurrent(), buffer, len)
+#define SWIGV8_UTF8_LENGTH(handle) (handle)->Utf8Length(v8::Isolate::GetCurrent())
+#endif
+
 /* ---------------------------------------------------------------------------
  * Error handling
  *
@@ -258,7 +284,7 @@ SWIGRUNTIME int SWIG_V8_GetInstancePtr(v8::Handle<v8::Value> valRef, void **ptr)
   if(!valRef->IsObject()) {
     return SWIG_TypeError;
   }
-  v8::Handle<v8::Object> objRef = valRef->ToObject();
+  v8::Handle<v8::Object> objRef = SWIGV8_TO_OBJECT(valRef);
 
   if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
 
@@ -352,7 +378,7 @@ SWIGRUNTIME int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void **ptr, swi
   if(!valRef->IsObject()) {
     return SWIG_TypeError;
   }
-  v8::Handle<v8::Object> objRef = valRef->ToObject();
+  v8::Handle<v8::Object> objRef = SWIGV8_TO_OBJECT(valRef);
   return SWIG_V8_ConvertInstancePtr(objRef, ptr, info, flags);
 }
 
@@ -479,7 +505,7 @@ SWIGRUNTIMEINLINE
 int SwigV8Packed_Check(v8::Handle<v8::Value> valRef) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Object> objRef = valRef->ToObject();
+  v8::Handle<v8::Object> objRef = SWIGV8_TO_OBJECT(valRef);
   if(objRef->InternalFieldCount() < 1) return false;
 #if (V8_MAJOR_VERSION-0) < 5
   v8::Handle<v8::Value> flag = objRef->GetHiddenValue(SWIGV8_STRING_NEW("__swig__packed_data__"));
@@ -489,7 +515,7 @@ int SwigV8Packed_Check(v8::Handle<v8::Value> valRef) {
   if (!objRef->GetPrivate(SWIGV8_CURRENT_CONTEXT(), privateKey).ToLocal(&flag))
     return false;
 #endif
-  return (flag->IsBoolean() && flag->BooleanValue());
+  return (flag->IsBoolean() && SWIGV8_BOOLEAN_VALUE(flag));
 }
 
 SWIGRUNTIME
@@ -499,7 +525,7 @@ swig_type_info *SwigV8Packed_UnpackData(v8::Handle<v8::Value> valRef, void *ptr,
     
     SwigV8PackedData *sobj;
 
-    v8::Handle<v8::Object> objRef = valRef->ToObject();
+    v8::Handle<v8::Object> objRef = SWIGV8_TO_OBJECT(valRef);
 
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031511)
     v8::Handle<v8::Value> cdataRef = objRef->GetInternalField(0);

@@ -44,6 +44,8 @@
 #ifdef BUILDING_NODE_EXTENSION
 %insert("runtime") %{
 #include <node.h>
+//Older version of node.h does not include this
+#include <node_version.h>
 %}
 #endif
 
