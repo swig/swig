@@ -226,18 +226,6 @@ static void replaceRClass(String *tm, SwigType *type) {
   Delete(tmp); Delete(tmp_base); Delete(tmp_ref);
 }
 
-static bool getNumber(String *value, int* result) {
-  if(Char(value)) {
-    // Check the conversion processed the whole of value by having %c at
-    // the end of the format, and checking that only the first value is
-    // converted.  We don't want to convert "3+7" -> 3.
-    char dummy;
-    if (sscanf(Char(value), "%i%c", result, &dummy) == 1)
-      return true;
-  }
-  return false;
-}
-
 class R : public Language {
 public:
   R();
