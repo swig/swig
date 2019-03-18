@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-03-18: richardbeare
+            [R] #1328 Non-trivial enums are working now. The enum values are now obtained from
+            the C/C++ layer. const reference enums and C++11 enum classes are also now working.
+
 2019-03-14: mochizk
             [Javascript] #1500 Fix compilation errors due to deprecating V8 API in Node.js.
             New V8 API is used if node.js >= v10.12, or if V8 >= v7.0.
