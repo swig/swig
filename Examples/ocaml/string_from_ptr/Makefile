@@ -19,7 +19,7 @@ static:
 	PROGFILE='$(PROGFILE)' OBJS='$(OBJS)' \
 	ocaml_static
 
-toplevel:
+toplevel: static
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' \
