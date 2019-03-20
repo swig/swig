@@ -2426,7 +2426,7 @@ public:
   void add_method(String *name, String *function, int kw, Node *n = 0, int funpack = 0, int num_required = -1, int num_arguments = -1) {
     String * meth_str = NewString("");
     if (!kw) {
-      if (n && funpack) {
+      if (funpack) {
 	if (num_required == 0 && num_arguments == 0) {
 	  Printf(meth_str, "\t { \"%s\", %s, METH_NOARGS, ", name, function);
 	} else if (num_required == 1 && num_arguments == 1) {
