@@ -3592,11 +3592,7 @@ public:
         Printf(f_wrappers, "SWIGINTERN PyObject *%s_swigconstant(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", iname);
         Printf(f_wrappers, tab2 "PyObject *module;\n", tm);
         Printf(f_wrappers, tab2 "PyObject *d;\n");
-	if (fastunpack) {
-	  Printf(f_wrappers, tab2 "if (!SWIG_Python_UnpackTuple(args, \"swigconstant\", 1, 1, &module)) return NULL;\n");
-	} else {
-	  Printf(f_wrappers, tab2 "if (!PyArg_UnpackTuple(args, \"swigconstant\", 1, 1, &module)) return NULL;\n");
-	}
+	Printf(f_wrappers, tab2 "if (!SWIG_Python_UnpackTuple(args, \"swigconstant\", 1, 1, &module)) return NULL;\n");
         Printf(f_wrappers, tab2 "d = PyModule_GetDict(module);\n");
         Printf(f_wrappers, tab2 "if (!d) return NULL;\n");
         Printf(f_wrappers, tab2 "%s\n", tm);
@@ -3605,7 +3601,7 @@ public:
 
         // Register the method in SwigMethods array
 	String *cname = NewStringf("%s_swigconstant", iname);
-	add_method(cname, cname, 0);
+	add_method(cname, cname, 0, 0, 1, 1, 1);
 	Delete(cname);
       } else {
         Printf(f_init, "%s\n", tm);
