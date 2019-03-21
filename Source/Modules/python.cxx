@@ -4510,16 +4510,12 @@ public:
       } else {
 	Printv(f_wrappers, "SWIGINTERN PyObject *", class_name, "_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
 	Printv(f_wrappers, "  PyObject *obj;\n", NIL);
-	if (fastunpack) {
-	  Printv(f_wrappers, "  if (!SWIG_Python_UnpackTuple(args, \"swigregister\", 1, 1, &obj)) return NULL;\n", NIL);
-	} else {
-	  Printv(f_wrappers, "  if (!PyArg_UnpackTuple(args, \"swigregister\", 1, 1, &obj)) return NULL;\n", NIL);
-	}
+	Printv(f_wrappers, "  if (!SWIG_Python_UnpackTuple(args, \"swigregister\", 1, 1, &obj)) return NULL;\n", NIL);
 
 	Printv(f_wrappers,
 	       "  SWIG_TypeNewClientData(SWIGTYPE", SwigType_manglestr(ct), ", SWIG_NewClientData(obj));\n", "  return SWIG_Py_Void();\n", "}\n\n", NIL);
 	String *cname = NewStringf("%s_swigregister", class_name);
-	add_method(cname, cname, 0);
+	add_method(cname, cname, 0, 0, 1, 1, 1);
 	Delete(cname);
       }
       Delete(smart);
