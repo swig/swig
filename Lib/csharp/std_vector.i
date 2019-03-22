@@ -13,18 +13,13 @@
  *
  *   SWIG_STD_VECTOR_ENHANCED(SomeNamespace::Klass)
  *   %template(VectKlass) std::vector<SomeNamespace::Klass>;
- *
- * Warning: heavy macro usage in this file. Use swig -E to get a sane view on the real file contents!
  * ----------------------------------------------------------------------------- */
-
-// Warning: Use the typemaps here in the expectation that the macros they are in will change name.
-
 
 %include <std_common.i>
 
 // MACRO for use within the std::vector class body
 %define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CSINTERFACE, CONST_REFERENCE, CTYPE...)
-%typemap(csinterfaces) std::vector< CTYPE > "global::System.IDisposable, global::System.Collections.IEnumerable\n    , global::System.Collections.Generic.CSINTERFACE<$typemap(cstype, CTYPE)>\n";
+%typemap(csinterfaces) std::vector< CTYPE > "global::System.IDisposable, global::System.Collections.IEnumerable, global::System.Collections.Generic.CSINTERFACE<$typemap(cstype, CTYPE)>\n";
 %proxycode %{
   public $csclassname(global::System.Collections.IEnumerable c) : this() {
     if (c == null)

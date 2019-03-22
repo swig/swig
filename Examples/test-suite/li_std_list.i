@@ -38,7 +38,6 @@ struct Struct {
   double num;
   Struct() : num(0.0) {}
   Struct(double d) : num(d) {}
-  bool operator==(const Struct &other) { return (num == other.num); }
 };
 
 const std::list<Struct> & CopyContainerStruct(const std::list<Struct> & container) { return container; }

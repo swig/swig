@@ -5,11 +5,21 @@
  * C# implementation
  * The C# wrapper is made to look and feel like a C# System.Collections.Generic.LinkedList<> collection.
  *
+ * Note that IEnumerable<> is implemented in the proxy class which is useful for using LINQ with
+ * C++ std::list wrappers. The ICollection<> interface is also implemented to provide enhanced functionality
+ * whenever we are confident that the required C++ operator== is available. This is the case for when
+ * T is a primitive type or a pointer. If T does define an operator==, then use the SWIG_STD_LIST_ENHANCED
+ * macro to obtain this enhanced functionality, for example:
+ *
+ *   SWIG_STD_LIST_ENHANCED(SomeNamespace::Klass)
+ *   %template(ListKlass) std::list<SomeNamespace::Klass>;
  * ----------------------------------------------------------------------------- */
 
 %include <std_common.i>
-%define SWIG_STD_LIST_MINIMUM_INTERNAL(CONST_REFERENCE, CTYPE...)
-%typemap(csinterfaces) std::list< CTYPE > "global::System.Collections.Generic.ICollection<$typemap(cstype, CTYPE)>, global::System.Collections.Generic.IEnumerable<$typemap(cstype, CTYPE)>, global::System.Collections.IEnumerable, global::System.IDisposable"
+
+// MACRO for use within the std::list class body
+%define SWIG_STD_LIST_MINIMUM_INTERNAL(CSINTERFACE, CTYPE...)
+%typemap(csinterfaces) std::list< CTYPE > "global::System.IDisposable, global::System.Collections.IEnumerable, global::System.Collections.Generic.CSINTERFACE<$typemap(cstype, CTYPE)>\n";
 %proxycode %{
   public $csclassname(global::System.Collections.IEnumerable c) : this() {
     if (c == null)
@@ -120,25 +130,9 @@
     AddLast(value);
   }
 
-  public bool Remove($typemap(cstype, CTYPE) value) {
-    var node = Find(value);
-    if (node == null)
-      return false;
-    Remove(node);
-    return true;
-  }
-
   public void Remove($csclassnameNode node) {
     ValidateNode(node);
     eraseIter(node.iter);
-  }
-
-  public $csclassnameNode Find($typemap(cstype, CTYPE) value) {
-    System.IntPtr tmp = find(value);
-    if (tmp != System.IntPtr.Zero) {
-      return new $csclassnameNode(tmp, this);
-    }
-    return null;
   }
 
   public void CopyTo($typemap(cstype, CTYPE)[] array, int index) {
@@ -257,9 +251,9 @@
       inlist = false;
     }
 
-    internal $csclassnameNode(System.IntPtr _iter, $csclassname _list) {
-      list = _list;
-      iter = _iter;
+    internal $csclassnameNode(System.IntPtr iter, $csclassname list) {
+      this.list = list;
+      this.iter = iter;
       inlist = true;
     }
 
@@ -343,8 +337,13 @@
 
 public:
   typedef size_t size_type;
+  typedef ptrdiff_t difference_type;
   typedef CTYPE value_type;
-  typedef CONST_REFERENCE const_reference;
+  typedef value_type* pointer;
+  typedef const value_type* const_pointer;
+  typedef value_type& reference;
+  typedef const value_type& const_reference;
+
   void push_front(CTYPE const& x);
   void push_back(CTYPE const& x);
   %rename(RemoveFirst) pop_front;
@@ -355,7 +354,7 @@ public:
   %rename(Clear) clear;
   void clear();
   %extend {
-    CONST_REFERENCE getItem(void *iter) {
+    const_reference getItem(void *iter) {
       std::list< CTYPE >::iterator it = *reinterpret_cast<std::list< CTYPE >::iterator*>(iter);
       return *it;
     }
@@ -403,14 +402,6 @@ public:
       return newit;
     }
 
-    void *find(CTYPE const& value) {
-      if (std::find($self->begin(), $self->end(), value) != $self->end()) {
-        void* it = reinterpret_cast<void *>(new std::list< CTYPE >::iterator(std::find($self->begin(), $self->end(), value)));
-        return it;
-      }
-      return NULL;
-    }
-
     void eraseIter(void *iter) {
       std::list< CTYPE >::iterator it = *reinterpret_cast<std::list< CTYPE >::iterator*>(iter);
       $self->erase(it);
@@ -428,27 +419,59 @@ public:
       std::list< CTYPE >::iterator it2 = *reinterpret_cast<std::list< CTYPE >::iterator*>(iter2);
       return it1 == it2;
     }
+  }
+%enddef
 
+// Extra methods added to the collection class if operator== is defined for the class being wrapped
+// The class will then implement ICollection<>, which adds extra functionality
+%define SWIG_STD_LIST_EXTRA_OP_EQUALS_EQUALS(CTYPE...)
+  %extend {
     bool Contains(CTYPE const& value) {
       return std::find($self->begin(), $self->end(), value) != $self->end();
     }
+
+    bool Remove(CTYPE const& value) {
+      std::list< CTYPE >::iterator it = std::find($self->begin(), $self->end(), value);
+      if (it != $self->end()) {
+        $self->erase(it);
+        return true;
+      }
+      return false;
+    }
+
+    void *find(CTYPE const& value) {
+      if (std::find($self->begin(), $self->end(), value) != $self->end()) {
+        void* it = reinterpret_cast<void *>(new std::list< CTYPE >::iterator(std::find($self->begin(), $self->end(), value)));
+        return it;
+      }
+      return NULL;
+    }
   }
+%proxycode %{
+  public $csclassnameNode Find($typemap(cstype, CTYPE) value) {
+    System.IntPtr tmp = find(value);
+    if (tmp != System.IntPtr.Zero) {
+      return new $csclassnameNode(tmp, this);
+    }
+    return null;
+  }
+%}
 %enddef
 
 %apply void *VOID_INT_PTR { void *iter1, void *iter2, void *iter, void *find, void *insertNode, void *getPrevIter, void *getNextIter, void *getFirstIter, void *getLastIter }
 
+// Macros for std::list class specializations/enhancements
 %define SWIG_STD_LIST_ENHANCED(CTYPE...)
 namespace std {
   template<> class list< CTYPE > {
-    SWIG_STD_LIST_MINIMUM_INTERNAL(%arg(CTYPE const&), %arg(CTYPE));
+    SWIG_STD_LIST_MINIMUM_INTERNAL(ICollection, %arg(CTYPE));
+    SWIG_STD_LIST_EXTRA_OP_EQUALS_EQUALS(CTYPE)
   };
 }
 %enddef
 
 
-
 %{
-#include <iostream>
 #include <list>
 #include <algorithm>
 #include <stdexcept>
@@ -467,17 +490,34 @@ namespace std {
 %csmethodmodifiers std::list::deleteIter "private"
 
 namespace std {
+  // primary (unspecialized) class template for std::list
+  // does not require operator== to be defined
   template<class T>
   class list {
-    SWIG_STD_LIST_MINIMUM_INTERNAL(T const&, T)
+    SWIG_STD_LIST_MINIMUM_INTERNAL(IEnumerable, T)
   };
+  // specialization for pointers
   template<class T>
-  class list<T *>
-  {
-    SWIG_STD_LIST_MINIMUM_INTERNAL(T *const&, T *)
-  };
-  template<>
-  class list<bool> {
-    SWIG_STD_LIST_MINIMUM_INTERNAL(bool, bool)
+  class list<T *> {
+    SWIG_STD_LIST_MINIMUM_INTERNAL(ICollection, T *)
+    SWIG_STD_LIST_EXTRA_OP_EQUALS_EQUALS(T *)
   };
 }
+
+// template specializations for std::list
+// these provide extra collections methods as operator== is defined
+SWIG_STD_LIST_ENHANCED(char)
+SWIG_STD_LIST_ENHANCED(signed char)
+SWIG_STD_LIST_ENHANCED(unsigned char)
+SWIG_STD_LIST_ENHANCED(short)
+SWIG_STD_LIST_ENHANCED(unsigned short)
+SWIG_STD_LIST_ENHANCED(int)
+SWIG_STD_LIST_ENHANCED(unsigned int)
+SWIG_STD_LIST_ENHANCED(long)
+SWIG_STD_LIST_ENHANCED(unsigned long)
+SWIG_STD_LIST_ENHANCED(long long)
+SWIG_STD_LIST_ENHANCED(unsigned long long)
+SWIG_STD_LIST_ENHANCED(float)
+SWIG_STD_LIST_ENHANCED(double)
+SWIG_STD_LIST_ENHANCED(std::string) // also requires a %include <std_string.i>
+SWIG_STD_LIST_ENHANCED(std::wstring) // also requires a %include <std_wstring.i>
