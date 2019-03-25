@@ -20,6 +20,9 @@
 // MACRO for use within the std::list class body
 %define SWIG_STD_LIST_MINIMUM_INTERNAL(CSINTERFACE, CTYPE...)
 %typemap(csinterfaces) std::list< CTYPE > "global::System.IDisposable, global::System.Collections.IEnumerable, global::System.Collections.Generic.CSINTERFACE<$typemap(cstype, CTYPE)>\n";
+
+%apply void *VOID_INT_PTR { std::list< CTYPE >::iterator * };
+
 %proxycode %{
   public $csclassname(global::System.Collections.IEnumerable c) : this() {
     if (c == null)
@@ -288,7 +291,7 @@
       }
     }
 
-    public static bool operator== ($csclassnameNode node1, $csclassnameNode node2) {
+    public static bool operator==($csclassnameNode node1, $csclassnameNode node2) {
       if (object.ReferenceEquals(node1, null) && object.ReferenceEquals(node2, null))
         return true;
       if (object.ReferenceEquals(node1, null) || object.ReferenceEquals(node2, null))
@@ -296,7 +299,7 @@
       return node1.Equals(node2);
     }
 
-    public static bool operator!= ($csclassnameNode node1, $csclassnameNode node2) {
+    public static bool operator!=($csclassnameNode node1, $csclassnameNode node2) {
       if (node1 == null && node2 == null)
         return false;
       if (node1 == null || node2 == null)
@@ -344,6 +347,8 @@ public:
   typedef value_type& reference;
   typedef const value_type& const_reference;
 
+  class iterator;
+
   void push_front(CTYPE const& x);
   void push_back(CTYPE const& x);
   %rename(RemoveFirst) pop_front;
@@ -354,69 +359,63 @@ public:
   %rename(Clear) clear;
   void clear();
   %extend {
-    const_reference getItem(void *iter) {
-      std::list< CTYPE >::iterator it = *reinterpret_cast<std::list< CTYPE >::iterator*>(iter);
-      return *it;
+    const_reference getItem(iterator *iter) {
+      return **iter;
     }
 
-    void setItem(void *iter, CTYPE const& val) {
-      std::list< CTYPE >::iterator* it = reinterpret_cast<std::list< CTYPE >::iterator*>(iter);
-      *(*it) = val;
+    void setItem(iterator *iter, CTYPE const& val) {
+      *(*iter) = val;
     }
 
-    void *getFirstIter() {
+    iterator *getFirstIter() {
       if ($self->size() == 0)
         return NULL;
-      std::list< CTYPE >::iterator* it = new std::list< CTYPE >::iterator($self->begin());
-      return reinterpret_cast<void *>(it);
+      return new std::list< CTYPE >::iterator($self->begin());
     }
 
-    void *getLastIter() {
+    iterator *getLastIter() {
       if ($self->size() == 0)
         return NULL;
-      std::list< CTYPE >::iterator* it = new std::list< CTYPE >::iterator(--$self->end());
-      return reinterpret_cast<void *>(it);
+      return new std::list< CTYPE >::iterator(--$self->end());
     }
 
-    void *getNextIter(void *iter) {
-      std::list< CTYPE >::iterator it = *(reinterpret_cast<std::list< CTYPE >::iterator *>(iter));
+    iterator *getNextIter(iterator *iter) {
+      std::list< CTYPE >::iterator it = *iter;
       if (std::distance(it, --$self->end()) != 0) {
         std::list< CTYPE >::iterator* itnext = new std::list< CTYPE >::iterator(++it);
-        return reinterpret_cast<void *>(itnext);
+        return itnext;
       }
       return NULL;
     }
 
-    void *getPrevIter(void *iter) {
-      std::list< CTYPE >::iterator it = *(reinterpret_cast<std::list< CTYPE >::iterator *>(iter));
+    iterator *getPrevIter(iterator *iter) {
+      std::list< CTYPE >::iterator it = *iter;
       if (std::distance($self->begin(), it) != 0) {
         std::list< CTYPE >::iterator* itprev = new std::list< CTYPE >::iterator(--it);
-        return reinterpret_cast<void *>(itprev);
+        return itprev;
       }
       return NULL;
     }
 
-    void *insertNode(void *iter, CTYPE const& value) {
-      std::list< CTYPE >::iterator it = $self->insert(*(reinterpret_cast<std::list< CTYPE >::iterator *>(iter)), value);
-      void* newit = reinterpret_cast<void *>(new std::list< CTYPE >::iterator(it));
-      return newit;
+    iterator *insertNode(iterator *iter, CTYPE const& value) {
+      std::list< CTYPE >::iterator it = $self->insert(*iter, value);
+      return new std::list< CTYPE >::iterator(it);
     }
 
-    void eraseIter(void *iter) {
-      std::list< CTYPE >::iterator it = *reinterpret_cast<std::list< CTYPE >::iterator*>(iter);
+    void eraseIter(iterator *iter) {
+      std::list< CTYPE >::iterator it = *iter;
       $self->erase(it);
     }
 
-    void deleteIter(void *iter) {
-      std::list< CTYPE >::iterator* it = reinterpret_cast<std::list< CTYPE >::iterator*>(iter);
-      delete it;
+    void deleteIter(iterator *iter) {
+      delete iter;
     }
 
-    bool equals(void *iter1, void *iter2) {
+    bool equals(iterator *iter1, iterator *iter2) {
       if (iter1 == NULL && iter2 == NULL)
         return true;
-      std::list< CTYPE >::iterator it1 = *reinterpret_cast<std::list< CTYPE >::iterator*>(iter1);
-      std::list< CTYPE >::iterator it2 = *reinterpret_cast<std::list< CTYPE >::iterator*>(iter2);
+      std::list< CTYPE >::iterator it1 = *iter1;
+      std::list< CTYPE >::iterator it2 = *iter2;
       return it1 == it2;
     }
   }
@@ -439,10 +438,9 @@ public:
       return false;
     }
 
-    void *find(CTYPE const& value) {
+    iterator *find(CTYPE const& value) {
       if (std::find($self->begin(), $self->end(), value) != $self->end()) {
-        void* it = reinterpret_cast<void *>(new std::list< CTYPE >::iterator(std::find($self->begin(), $self->end(), value)));
-        return it;
+        return new std::list< CTYPE >::iterator(std::find($self->begin(), $self->end(), value));
       }
       return NULL;
     }
@@ -457,8 +455,6 @@ public:
   }
 %}
 %enddef
-
-%apply void *VOID_INT_PTR { void *iter1, void *iter2, void *iter, void *find, void *insertNode, void *getPrevIter, void *getNextIter, void *getFirstIter, void *getLastIter }
 
 // Macros for std::list class specializations/enhancements
 %define SWIG_STD_LIST_ENHANCED(CTYPE...)

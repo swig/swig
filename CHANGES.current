@@ -7,6 +7,19 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-03-25: Liryna
+            [C#] #1143 Add std_list.i for std::list support.
+            The C# std::list<T> wrappers are made to look and feel like a C# 
+            System.Collections.Generic.LinkedList<> collection.
+            The IEnumerable<> interface is implemented in the proxy class.
+            The ICollection<> interface can also be implemented to provide enhanced functionality
+            whenever a C++ operator== is available. This is the case for when T is a
+            primitive type or a pointer. If T does define an operator==, then use the
+            SWIG_STD_LIST_ENHANCED macro to obtain this enhanced functionality, for example:
+
+              SWIG_STD_LIST_ENHANCED(SomeNamespace::Klass)
+              %template(ListKlass) std::list<SomeNamespace::Klass>;
+
 2019-03-18: richardbeare
             [R] #1328 Non-trivial enums are working now. The enum values are now obtained from
             the C/C++ layer. const reference enums and C++11 enum classes are also now working.
