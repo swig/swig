@@ -13,7 +13,7 @@ struct NoDefaultCtor {
 %template(VectorNoDefaultCtor) std::vector<NoDefaultCtor>;
 #endif
 
-#if defined(SWIGJAVA)
+#if defined(SWIGJAVA) || defined(SWIGJAVA)
 %include <std_list.i>
 %template(ListNoDefaultCtor) std::list<NoDefaultCtor>;
 #endif
