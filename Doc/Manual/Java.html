@@ -6552,7 +6552,7 @@ As there can only be one "javacode" typemap per class, also consider using the
 and offers nearly identical functionality.
 </div>
 
-<p><tt>%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized")</tt> <br></p>
+<p><tt>%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized", parameters="")</tt> <br></p>
 <div class="indent">
 destructor wrapper - the <tt>delete()</tt> method (proxy classes only),
 used for all proxy classes except those which have a base class
@@ -6563,9 +6563,10 @@ Note that the <tt>delete()</tt> method name is configurable and is specified by 
 The method modifiers are also configurable via the <tt>methodmodifiers</tt> attribute.
 If a <tt>%javamethodmodifiers</tt> is attached to the class' destructor,
 it will be used in preference to the <tt>methodmodifiers</tt> typemap attribute for the class.
+The <tt>delete</tt> method's parameters declaration can be provided in the optional <tt>parameters</tt> typemap attribute.
 </div>
 
-<p><tt>%typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized")</tt></p>
+<p><tt>%typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized", parameters="")</tt></p>
 <div class="indent">
 destructor wrapper - the <tt>delete()</tt> method (proxy classes only),
 same as "javadestruct" but only used for derived proxy classes
@@ -6576,6 +6577,7 @@ Note that the <tt>delete()</tt> method name is configurable and is specified by 
 The method modifiers are also configurable via the <tt>methodmodifiers</tt> attribute.
 If a <tt>%javamethodmodifiers</tt> is attached to the class' destructor,
 it will be used in preference to the <tt>methodmodifiers</tt> typemap attribute for the class.
+The <tt>delete</tt> method's parameters declaration can be provided in the optional <tt>parameters</tt> typemap attribute.
 </div>
 
 <p><tt>%typemap(javaimports)</tt></p>

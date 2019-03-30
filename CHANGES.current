@@ -8,6 +8,12 @@ Version 4.0.0 (in progress)
 ===========================
 
 2019-03-30: wsfulton
+            [Java, D] Add the parameters typemap attribute to the javadestruct,
+            javadestruct_derived, ddispose, ddispose_derived typemaps to mirror enhanced
+            flexibility in the csdisposing and csdisposing_derived (C#) typemaps. If provided
+            the contents are generated as the delete/dispose method's parameters declaration.
+
+2019-03-30: wsfulton
             [C#] #421 Fix CA1063 warning by implementing the recommended Dispose methods for
             the IDisposable interface. Previously just the Dispose() method was generated.
             Now the Dispose() and Dispose(bool disposing) methods are generated.
