@@ -7,6 +7,21 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-03-30: wsfulton
+            [C#] #421 Fix CA1063 warning by implementing the recommended Dispose methods for
+            the IDisposable interface. Previously just the Dispose() method was generated.
+            Now the Dispose() and Dispose(bool disposing) methods are generated.
+            Changes are required if custom "csfinalize", "csdestruct" or "csdestruct_derived"
+            typemaps are being used. Details in #421 on Github. SWIG will error out if one of
+            the "csfinalize, "csdestruct" or "csdestruct_derived" typemaps are found. Example
+            error message:
+
+              foo.h:60: Error: A deprecated csfinalize typemap was found for Foo, please remove
+              it and replace all csdestruct, csdestruct_derived and csfinalize typemaps by the
+              csdispose, csdispose_derived, csdisposing and csdisposing_derived typemaps.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2019-03-25: Liryna
             [C#] #1143 Add std_list.i for std::list support.
             The C# std::list<T> wrappers are made to look and feel like a C# 
