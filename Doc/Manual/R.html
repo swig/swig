@@ -209,6 +209,7 @@ defineEnumeration("_colour",
 
 </pre></div>
 
+<p>
 which will create an environment named <tt>.__E___colour</tt>. The enumeration
 values are initialised via calls to C/C++ code, allowing complex
 values for enumerations to be used. Calls to the C/C++ code require
@@ -225,7 +226,7 @@ appropriate environments and thus translate between characters
 and integers.
 
 The relevant functions, for debugging purposes, are <tt>enumToInteger</tt> and
-</tt>enumFromInteger</tt>.
+<tt>enumFromInteger</tt>.
 
 Anonymous enumerations are ignored by the binding generation process,
 leaving no way of accessing the value of anonymous enumerations from R
