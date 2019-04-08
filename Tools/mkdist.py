@@ -9,27 +9,31 @@ import os
 import subprocess
 
 def failed():
-  print "mkdist.py failed to complete"
-  sys.exit(2)
+    print "mkdist.py failed to complete"
+    sys.exit(2)
 
+import argparse
+parser = argparse.ArgumentParser(description="Build a SWIG distribution tarball swig-x.y.z.tar.gz")
+parser.add_argument("version", help="version string in format x.y.z")
+parser.add_argument("-b", "--branch", required=False, default="master", help="git branch name to create tarball from [master]")
+parser.add_argument("-f", "--force-tag", required=False, action="store_true", help="force tag (replace git tag if it already exists)")
+parser.add_argument("-s", "--skip-checks", required=False, action="store_true", help="skip checks (that local and remote repos are in sync)")
+args = parser.parse_args()
 
-try:
-   version = sys.argv[1]
-   dirname = "swig-" + version
-   branch = sys.argv[2]
-except:
-   print "Usage: mkdist.py version branch, where version should be x.y.z and branch is normally 'master'"
-   sys.exit(1)
+version = args.version
+branch = args.branch
+dirname = "swig-" + version
+force_tag = args.force_tag
+skip_checks = args.skip_checks
 
 if sys.version_info[0:2] < (2, 7):
-   print "Error: Python 2.7 is required"
-   sys.exit(3)
-
+     print "Error: Python 2.7 is required"
+     sys.exit(3)
 
 # Check name matches normal unix conventions
 if string.lower(dirname) != dirname:
-  print "directory name ("+dirname+") should be in lowercase"
-  sys.exit(3)
+    print "directory name ("+dirname+") should be in lowercase"
+    sys.exit(3)
 
 # If directory and tarball exist, remove it
 print "Removing ", dirname
@@ -43,36 +47,40 @@ os.system("rm -f "+dirname+".tar")
 
 # Grab the code from git
 
-print "Checking git repository is in sync with remote repository"
+print "Checking there are no local changes in git repo"
 os.system("git remote update origin") == 0 or failed()
 command = ["git", "status", "--porcelain", "-uno"]
 out = subprocess.check_output(command)
 if out.strip() != "":
-  print "Local git repository has modifications"
-  print " ".join(command)
-  print out
-  sys.exit(3)
+    print "Local git repository has modifications"
+    print " ".join(command)
+    print out
+    sys.exit(3)
 
-command = ["git", "log", "--oneline", branch + "..origin/" + branch]
-out = subprocess.check_output(command)
-if out.strip() != "":
-  print "Remote repository has additional modifications to local repository"
-  print " ".join(command)
-  print out
-  sys.exit(3)
+if not skip_checks:
+    print "Checking git repository is in sync with remote repository"
+    command = ["git", "log", "--oneline", branch + "..origin/" + branch]
+    out = subprocess.check_output(command)
+    if out.strip() != "":
+        print "Remote repository has additional modifications to local repository"
+        print " ".join(command)
+        print out
+        sys.exit(3)
 
-command = ["git", "log", "--oneline", "origin/" + branch + ".." + branch]
-out = subprocess.check_output(command)
-if out.strip() != "":
-  print "Local repository has modifications not pushed to the remote repository"
-  print "These should be pushed and checked that they pass Continuous Integration testing before continuing"
-  print " ".join(command)
-  print out
-  sys.exit(3)
+    command = ["git", "log", "--oneline", "origin/" + branch + ".." + branch]
+    out = subprocess.check_output(command)
+    if out.strip() != "":
+        print "Local repository has modifications not pushed to the remote repository"
+        print "These should be pushed and checked that they pass Continuous Integration testing before continuing"
+        print " ".join(command)
+        print out
+        sys.exit(3)
 
 print "Tagging release"
 tag = "'rel-" + version + "'"
-os.system("git tag -a -m " + tag + " " + tag) == 0 or failed()
+force = "-f " if force_tag else ""
+print("force {}".format(force))
+os.system("git tag -a -m " + tag + " " + force + tag) == 0 or failed()
 
 outdir = os.path.basename(os.getcwd()) + "/" + dirname + "/"
 print "Grabbing tagged release git repository using 'git archive' into " + outdir
