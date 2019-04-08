@@ -1094,7 +1094,7 @@ CSHARPCFLAGS = @CSHARPCFLAGS@
 CSHARPFLAGS =
 CSHARPOPTIONS =
 CSHARPSO = @CSHARPSO@
-CSHARP_RUNME = $(CSHARPCILINTERPRETER) $(CSHARPCILINTERPRETER_FLAGS) ./$(RUNME).exe
+CSHARP_RUNME = ./$(RUNME).exe
 
 # ----------------------------------------------------------------
 # Build a CSharp dynamically loadable module (C)
@@ -1132,7 +1132,7 @@ csharp_compile: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 csharp_run:
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(CSHARP_RUNME) $(RUNPIPE)
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(CSHARPCILINTERPRETER) $(CSHARPCILINTERPRETER_FLAGS) $(CSHARP_RUNME) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
