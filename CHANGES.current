@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-04-09: wsfulton
+            [C#] Fix FxCop warning CA2002 in SWIGPendingException - a lock on a reference of
+            type 'Type'.
+
 2019-03-30: wsfulton
             [Java, D] Add the parameters typemap attribute to the javadestruct,
             javadestruct_derived, ddispose, ddispose_derived typemaps to mirror enhanced
