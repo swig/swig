@@ -30,8 +30,10 @@ static void add_parms(ParmList *p, List *patchlist, List *typelist) {
   while (p) {
     SwigType *ty = Getattr(p, "type");
     SwigType *val = Getattr(p, "value");
+    SwigType *name = Getattr(p, "name");
     Append(typelist, ty);
     Append(typelist, val);
+    Append(typelist, name);
     Append(patchlist, val);
     p = nextSibling(p);
   }

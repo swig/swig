@@ -44,6 +44,13 @@ let _ = Callback.register "swig_runmethod" invoke
 let fnhelper arg =
   match arg with C_list l -> l | C_void -> [] | _ -> [ arg ]
 
+let director_core_helper fnargs =
+  try
+    match List.hd fnargs with
+      | C_director_core (o,r) -> fnargs
+      | _ -> C_void :: fnargs
+  with Failure _ -> C_void :: fnargs
+
 let rec get_int x = 
   match x with
       C_bool b -> if b then 1 else 0

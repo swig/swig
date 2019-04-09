@@ -839,10 +839,8 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
       newtype = 1;
       type = template_parameters_resolve(base);
     }
-    if (namebase)
-      Delete(namebase);
-    if (nameprefix)
-      Delete(nameprefix);
+    Delete(namebase);
+    Delete(nameprefix);
   } else {
     if (SwigType_isfunction(base)) {
       List *parms;

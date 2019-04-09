@@ -1,5 +1,16 @@
 <?php
 
+function die_on_error($errno, $errstr, $file, $line) {
+    if ($file !== Null) {
+        print $file;
+        if ($line !== Null) print ":$line";
+        print ": ";
+    }
+    print "$errstr\n";
+    exit(1);
+}
+set_error_handler("die_on_error", -1);
+
 $_original_functions=get_defined_functions();
 $_original_globals=1;
 $_original_classes=get_declared_classes();
@@ -82,6 +93,7 @@ class check {
   static function classmethods($classname,$methods) {
     if (is_object($classname)) $classname=get_class($classname);
     $classmethods=array_flip(get_class_methods($classname));
+    $message=NULL;
     $missing=array();
     $extra=array();
     foreach($methods as $method) {
@@ -104,7 +116,7 @@ class check {
     else $_GLOBALS[$var]=$value;
   }
 
-  static function &get($var) {
+  static function get($var) {
     $func=$var."_get";
     if (self::GETSET) return $func();
     else return $_GLOBALS[$var];

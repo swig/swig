@@ -7,6 +7,224 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-03-30: wsfulton
+            [Java, D] Add the parameters typemap attribute to the javadestruct,
+            javadestruct_derived, ddispose, ddispose_derived typemaps to mirror enhanced
+            flexibility in the csdisposing and csdisposing_derived (C#) typemaps. If provided
+            the contents are generated as the delete/dispose method's parameters declaration.
+
+2019-03-30: wsfulton
+            [C#] #421 Fix CA1063 warning by implementing the recommended Dispose methods for
+            the IDisposable interface. Previously just the Dispose() method was generated.
+            Now the Dispose() and Dispose(bool disposing) methods are generated.
+            Changes are required if custom "csfinalize", "csdestruct" or "csdestruct_derived"
+            typemaps are being used. Details in #421 on Github. SWIG will error out if one of
+            the "csfinalize, "csdestruct" or "csdestruct_derived" typemaps are found. Example
+            error message:
+
+              foo.h:60: Error: A deprecated csfinalize typemap was found for Foo, please remove
+              it and replace all csdestruct, csdestruct_derived and csfinalize typemaps by the
+              csdispose, csdispose_derived, csdisposing and csdisposing_derived typemaps.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2019-03-25: Liryna
+            [C#] #1143 Add std_list.i for std::list support.
+            The C# std::list<T> wrappers are made to look and feel like a C# 
+            System.Collections.Generic.LinkedList<> collection.
+            The IEnumerable<> interface is implemented in the proxy class.
+            The ICollection<> interface can also be implemented to provide enhanced functionality
+            whenever a C++ operator== is available. This is the case for when T is a
+            primitive type or a pointer. If T does define an operator==, then use the
+            SWIG_STD_LIST_ENHANCED macro to obtain this enhanced functionality, for example:
+
+              SWIG_STD_LIST_ENHANCED(SomeNamespace::Klass)
+              %template(ListKlass) std::list<SomeNamespace::Klass>;
+
+2019-03-18: richardbeare
+            [R] #1328 Non-trivial enums are working now. The enum values are now obtained from
+            the C/C++ layer. const reference enums and C++11 enum classes are also now working.
+
+2019-03-14: mochizk
+            [Javascript] #1500 Fix compilation errors due to deprecating V8 API in Node.js.
+            New V8 API is used if node.js >= v10.12, or if V8 >= v7.0.
+
+2019-03-12: vadz
+            [C#] #1495 Add std_set.i for std::set support.
+
+2019-03-11: dirteat,opoplawski
+            [Octave] Fix compilation errors in Octave 5.1.
+
+              error: format not a string literal and no format arguments [-Werror=format-security]
+
+2019-02-28: wsfulton
+            [Java] std::vector improvements for types that do not have a default constructor.
+
+            The std::vector wrappers have been changed to work by default for elements that are
+            not default insertable, i.e. have no default constructor. This has been achieved by
+            not wrapping:
+
+              vector(size_type n);
+
+            Previously the above had to be ignored via %ignore.
+
+            If the above constructor is still required it can be added back in again via %extend:
+
+              %extend std::vector {
+                vector(size_type count) { return new std::vector< T >(count); }
+              }
+
+            Alternatively, the following wrapped constructor could be used as it provides near-enough
+            equivalent functionality:
+
+              vector(jint count, const value_type& value);
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2019-02-25: wsfulton
+            [Python] Fix compile errors wrapping overloaded functions/constructors where a vararg
+            function is declared after a non-vararg function.
+
+2019-02-23: zphensley42
+            Use fully qualified name 'java.lang.Object' instead of 'Object' in generated code to
+            avoid clashes with wrapped C++ classes called 'Object'.
+
+2019-02-23: gtbX
+            [Java] #1035 Add (const char *STRING, size_t LENGTH) typemaps in addition to the non-const
+            typemaps (char *STRING, size_t LENGTH) which does not attempt to write back to the const
+            string.
+
+2019-02-22: tamuratak
+            #984 Add support for RTypedData introduced in Ruby 1.9.3.
+
+2019-02-22: ZackerySpytz
+            #1483 Fix compilation failures when a director class has final methods.
+
+2019-02-21: wsfulton
+            #1240 Suppress Java 9 deprecation warnings on finalize method.
+
+2019-02-21: ZackerySpytz
+            #1480 Fix some rejections of valid floating-point literals.
+
+2019-02-19: wsfulton
+            #1475 Fix regression parsing gcc preprocessor linemarkers in the form:
+
+            # linenum filename flags 
+
+2019-02-18: jakecobb
+            [Python] #945 #1234 Elements in std::vector memory access fix.
+
+            Accessing an element in a std::vector obtains a reference to the element via an
+            iterator pointing to the element in the container. If the vector is garbage collected,
+            the SWIG wrapper containing the pointer to the element becomes invalid. The fix is
+            to obtain a back-reference to the container by the wrapper to the element in the Python
+            layer to prevent the garbage collector from destroying the underlying container.
+
+2019-02-17: wsfulton
+            Fix typemap matching to expand template parameters when the name contains
+            template parameters. In the %typemap below the type is T and the name is X<T>::make
+            and the name now expands correctly to X< int >::make
+
+              template<typename T> struct X {
+                %typemap(out) T X<T>::make "..."
+                T make();
+              };
+
+              %template(Xint) X<int>;
+
+2019-02-16: wsfulton
+            Fix parser error containing multiple #define statements inside an enum.
+
+            The second #define fails to parse:
+
+              enum FooEnum {
+                ENUM1 = 0,
+                ENUM2 = 1,
+
+              #define MACRO_DEF1 "Hello"
+              #define MACRO_DEF2 "World!"
+
+                ENUM3 = 2,
+                ENUM4 = 3,
+              };
+
+            Bug mentioned at https://sourceforge.net/p/swig/patches/333/
+
+2019-02-14: wsfulton
+            Add some missing copy constructors into STL containers.
+
+2019-02-14: bkotzz
+            [Java] #1356 Add STL containers:
+              std::unordered_map
+              std::unordered_set
+              std::set
+
+2019-02-14: bkotzz
+            [Java] #1356 std::map wrappers have been modified. Now the Java proxy class
+            extends java.util.AbstractMap. The std::map container looks and feels much like
+            a java.util.HashMap from Java.
+
+            A few members have changed their names. If the old method signatures are needed,
+            then copy std_map.i from swig-3.0.12 and use that instead. Alternatively,
+            add the old missing methods to the new methods by using the following %proxycode:
+
+              %extend std::map {
+              %proxycode %{
+                // Old API
+                public boolean empty() {
+                  return isEmpty();
+                }
+                public void set($typemap(jboxtype, K) key, $typemap(jboxtype, T) x) {
+                  put(key, x);
+                }
+                public void del($typemap(jboxtype, K) key) {
+                  remove(key);
+                }
+                public boolean has_key($typemap(jboxtype, K) key) {
+                  return containsKey(key);
+                }
+              %}
+              }
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2019-02-13: ZackerySpytz
+            #1469 Add support for C++17 hexadecimal floating literals.
+
+2019-02-11: wsfulton
+            [OCaml] #1437 OCaml has been give the 'Experimental' language status. The examples work
+            and most of the test-suite is also working, so it is quite close to being a 'Supported' language.
+
+2019-02-10: ZackerySpytz
+	    #1464 Add support for C++14 binary integer literals.
+
+2019-02-10: ZackerySpytz
+	    #1450 Add support for C++11 UCS-2 and UCS-4 character literals. Also, add support for
+            C++17 UTF-8 character literals.
+
+2019-02-10: wsfulton
+	    [MzScheme] #1437 MzScheme/Racket is now an 'Experimental' language. The examples work
+            and a large portion of the test-suite is also working.
+
+2019-02-10: wsfulton
+	    [MzScheme] Destructor wrappers were not being generated.
+
+2019-02-10: wsfulton
+	    [MzScheme] Static variable wrappers fixed - $argnum was not expanded.
+
+2019-02-10: sethrj
+	    #1452 Fix %apply for anonymous template instantiations
+
+2019-02-09: olly
+	    [PHP] Fix access to already released memory during PHP module
+	    shutdown, which often didn't cause visible problems, but could
+	    result in segmentation faults, bus errors, etc.  Fixes #1170,
+	    reported by Jitka Plesníková.
+
+2019-02-09: olly
+	    [PHP] A renamed constructor is now wrapped as a static method in
+	    PHP.
+
 2019-02-08: olly
 	    [PHP] Don't generate code which references $r when $r hasn't been
 	    defined.  This could happen in overloaded methods which returned
@@ -15,6 +233,12 @@ Version 4.0.0 (in progress)
 2019-02-08: olly
 	    [PHP] The generated code is now compatible with PHP 7.3, and the
 	    testsuite now runs cleanly with this version too.
+
+2019-02-05: wsfulton
+            #1437 SWIG now classifies the status of target languages into either 'Experimental' or
+            'Supported'. This status is provided to indicate the level of maturity to expect when using
+            a particular target language as not all target languages are fully developed. Details are
+            in the Introduction.html chapter of the documentation.
 
 2019-02-04: wsfulton
 	    [CFFI] #1447 Common Lisp CFFI has been disabled as a target language in SWIG as part of a
@@ -133,7 +357,7 @@ Version 4.0.0 (in progress)
             int64_t instead of int64.
 
 2019-01-11: ZackerySpytz
-            [OCaml] #1400 Fix getters and setters.
+            [OCaml] #1400 Fix the getters and setters of non-static member variables.
 
 2019-01-07: wsfulton
             #358 Add VOID to windows.i
@@ -155,7 +379,7 @@ Version 4.0.0 (in progress)
             prevent accepting a conversion to a NULL pointer.
 
 2019-01-03: ZackerySpytz
-            [OCaml] #1386 Fix OCaml out-of-source test-suite
+            [OCaml] #1386 Fix the OCaml examples and test suite for out-of-source builds.
 
 2019-01-01: wsfulton
             [Python] #639 remove duplicate proxy method definitions for global function wrappers.
@@ -610,7 +834,7 @@ Version 4.0.0 (in progress)
 	    [Ruby] Fix to pass Qnil instead of NULL to rb_funcall(), which silences GCC
 	    -Wconversion-null warning (on by default with recent GCC).
 
-2018-03-09: fultonwi
+2018-03-09: wsfulton
             [Java] #1184 Fix swigReleaseOwnership() and swigTakeOwnership() regression
             for non-director classes. Restores a dynamic_cast which was previously removed.
 

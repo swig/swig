@@ -1,4 +1,4 @@
-%module cpp11_li_std_array
+%module cpp11_std_array
 
 #if defined(SWIGPYTHON) || defined(SWIGRUBY) || defined(SWIGJAVA) || defined(SWIGCSHARP)
 

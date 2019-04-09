@@ -6,25 +6,25 @@
 %fragment("StdUnorderedMultimapTraits","header",fragment="StdMapCommonTraits")
 {
   namespace swig {
-    template <class RubySeq, class K, class T >
+    template <class RubySeq, class K, class T, class Hash, class Compare, class Alloc>
     inline void
-    assign(const RubySeq& rubyseq, std::unordered_multimap<K,T > *multimap) {
-      typedef typename std::unordered_multimap<K,T>::value_type value_type;
+    assign(const RubySeq& rubyseq, std::unordered_multimap<K,T,Hash,Compare,Alloc> *multimap) {
+      typedef typename std::unordered_multimap<K,T,Hash,Compare,Alloc>::value_type value_type;
       typename RubySeq::const_iterator it = rubyseq.begin();
       for (;it != rubyseq.end(); ++it) {
 	multimap->insert(value_type(it->first, it->second));
       }
     }
 
-    template <class K, class T>
-    struct traits_asptr<std::unordered_multimap<K,T> >  {
-      typedef std::unordered_multimap<K,T> multimap_type;
-      static int asptr(VALUE obj, std::unordered_multimap<K,T> **val) {
+    template <class K, class T, class Hash, class Compare, class Alloc>
+    struct traits_asptr<std::unordered_multimap<K,T,Hash,Compare,Alloc> >  {
+      typedef std::unordered_multimap<K,T,Hash,Compare,Alloc> multimap_type;
+      static int asptr(VALUE obj, std::unordered_multimap<K,T,Hash,Compare,Alloc> **val) {
 	int res = SWIG_ERROR;
 	if ( TYPE(obj) == T_HASH ) {
 	  static ID id_to_a = rb_intern("to_a");
 	  VALUE items = rb_funcall(obj, id_to_a, 0);
-	  return traits_asptr_stdseq<std::unordered_multimap<K,T>, std::pair<K, T> >::asptr(items, val);
+	  return traits_asptr_stdseq<std::unordered_multimap<K,T,Hash,Compare,Alloc>, std::pair<K, T> >::asptr(items, val);
 	} else {
 	  multimap_type *p;
 	  res = SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<multimap_type>(),0);
@@ -34,9 +34,9 @@
       }
     };
 
-    template <class K, class T >
-    struct traits_from<std::unordered_multimap<K,T> >  {
-      typedef std::unordered_multimap<K,T> multimap_type;
+    template <class K, class T, class Hash, class Compare, class Alloc>
+    struct traits_from<std::unordered_multimap<K,T,Hash,Compare,Alloc> >  {
+      typedef std::unordered_multimap<K,T,Hash,Compare,Alloc> multimap_type;
       typedef typename multimap_type::const_iterator const_iterator;
       typedef typename multimap_type::size_type size_type;
 

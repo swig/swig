@@ -8,7 +8,7 @@
 // Set
 %define %std_set_methods_common(set...)
   set();
-  set( const set& );
+  set(const set& other);
 
   bool empty() const;
   size_type size() const;
@@ -110,7 +110,7 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_TYPECHECK_SET, std::set< _Key, _Compare, _Alloc >);
 
-    set( const _Compare& );
+    set(const _Compare& other);
 
 #ifdef %swig_set_methods
     // Add swig/language extra methods

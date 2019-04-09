@@ -142,7 +142,7 @@ static void SwigPHP_emit_resource_registrations() {
 
   ki = First(zend_types);
   if (ki.key)
-    Printf(s_oinit, "\n/* Register resource destructors for pointer types */\n");
+    Printf(s_oinit, "\n  /* Register resource destructors for pointer types */\n");
   while (ki.key) {
     DOH *key = ki.key;
     Node *class_node = ki.item;
@@ -180,11 +180,11 @@ static void SwigPHP_emit_resource_registrations() {
     Printf(s_vdecl, "static int le_swig_%s=0; /* handle for %s */\n", key, human_name);
 
     // register with php
-    Printf(s_oinit, "le_swig_%s=zend_register_list_destructors_ex"
+    Printf(s_oinit, "  le_swig_%s=zend_register_list_destructors_ex"
 		    "(%s, NULL, SWIGTYPE%s->name, module_number);\n", key, rsrc_dtor_name, key);
 
     // store php type in class struct
-    Printf(s_oinit, "SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n", key, key);
+    Printf(s_oinit, "  SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n", key, key);
 
     Delete(rsrc_dtor_name);
 
@@ -272,8 +272,8 @@ public:
     /* subsections of the init section */
     s_vinit = NewStringEmpty();
     s_vdecl = NewString("/* vdecl subsection */\n");
-    s_cinit = NewString("/* cinit subsection */\n");
-    s_oinit = NewString("/* oinit subsection */\n");
+    s_cinit = NewString("  /* cinit subsection */\n");
+    s_oinit = NewString("  /* oinit subsection */\n");
     pragma_phpinfo = NewStringEmpty();
     s_phpclasses = NewString("/* PHP Proxy Classes */\n");
     f_directors_h = NewStringEmpty();
@@ -364,7 +364,7 @@ public:
 
     /* Initialize the rest of the module */
 
-    Printf(s_oinit, "ZEND_INIT_MODULE_GLOBALS(%s, %s_init_globals, NULL);\n", module, module);
+    Printf(s_oinit, "  ZEND_INIT_MODULE_GLOBALS(%s, %s_init_globals, NULL);\n", module, module);
 
     /* start the header section */
     Printf(s_header, "ZEND_BEGIN_MODULE_GLOBALS(%s)\n", module);
@@ -549,17 +549,17 @@ public:
 
     //    Printv(s_init,s_resourcetypes,NIL);
     /* We need this after all classes written out by ::top */
-    Printf(s_oinit, "CG(active_class_entry) = NULL;\n");
-    Printf(s_oinit, "/* end oinit subsection */\n");
+    Printf(s_oinit, "  CG(active_class_entry) = NULL;\n");
+    Printf(s_oinit, "  /* end oinit subsection */\n");
     Printf(s_init, "%s\n", s_oinit);
 
     /* Constants generated during top call */
-    Printf(s_cinit, "/* end cinit subsection */\n");
+    Printf(s_cinit, "  /* end cinit subsection */\n");
     Printf(s_init, "%s\n", s_cinit);
     Clear(s_cinit);
     Delete(s_cinit);
 
-    Printf(s_init, "    return SUCCESS;\n");
+    Printf(s_init, "  return SUCCESS;\n");
     Printf(s_init, "}\n\n");
 
     // Now do REQUEST init which holds any user specified %rinit, and also vinit
@@ -577,15 +577,15 @@ public:
       if (Len(s_vinit) > 0) {
 	/* finish our init section which will have been used by class wrappers */
 	Printv(s_init,
-	       "/* vinit subsection */\n",
+	       "  /* vinit subsection */\n",
 	       s_vinit, "\n"
-	       "/* end vinit subsection */\n",
+	       "  /* end vinit subsection */\n",
 	       NIL);
 	Clear(s_vinit);
       }
       Delete(s_vinit);
 
-      Printf(s_init, "    return SUCCESS;\n");
+      Printf(s_init, "  return SUCCESS;\n");
       Printf(s_init, "}\n\n");
     }
 
@@ -598,7 +598,7 @@ public:
 		     "/* shutdown section */\n"
 		     "{\n",
 		     s_shutdown,
-		     "    return SUCCESS;\n"
+		     "  return SUCCESS;\n"
 		     "}\n\n", NIL);
     }
 
@@ -1096,11 +1096,11 @@ public:
       if (constructor) {
 	class_has_ctor = true;
 	// Skip the Foo:: prefix.
-	char *ptr = strrchr(GetChar(Swig_methodclass(n), "sym:name"), ':');
+	char *ptr = strrchr(GetChar(current_class, "sym:name"), ':');
 	if (ptr) {
 	  ptr++;
 	} else {
-	  ptr = GetChar(Swig_methodclass(n), "sym:name");
+	  ptr = GetChar(current_class, "sym:name");
 	}
 	if (strcmp(ptr, GetChar(n, "constructorHandler:sym:name")) == 0) {
 	  methodname = "__construct";
@@ -1509,7 +1509,7 @@ public:
 	      Replaceall(value, "$", "\\$");
 	    }
 	    Printf(args, "$%s=%s", arg_names[i], value);
-	  } else if (constructor && i >= 1 && i < min_num_of_arguments) {
+	  } else if (constructor && strcmp(methodname, "__construct") == 0 && i >= 1 && i < min_num_of_arguments) {
 	    // We need to be able to call __construct($resource).
 	    Printf(args, "$%s=null", arg_names[i]);
 	  } else {
@@ -1667,20 +1667,33 @@ public:
 	}
 
 	if (constructor) {
-	  const char * arg0;
+	  // Discriminate between the PHP constructor and a C++ constructor
+	  // renamed to become a factory function in PHP.
+	  bool php_constructor = (strcmp(methodname, "__construct") == 0);
+	  const char * arg0 = NULL;
 	  if (max_num_of_arguments > 0) {
 	    arg0 = Char(arg_names[0]);
-	  } else {
+	  } else if (php_constructor) {
+	    // The PHP constructor needs to be able to wrap a resource, but a
+	    // renamed constructor doesn't.
 	    arg0 = "res";
 	    Delete(args);
 	    args = NewString("$res=null");
 	  }
 	  String *mangled_type = SwigType_manglestr(Getattr(n, "type"));
+	  if (!php_constructor) {
+	    // A renamed constructor should be a static method.
+	    Append(acc, "static ");
+	  }
 	  Printf(output, "\t%sfunction %s(%s) {\n", acc, methodname, args);
-	  Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) === '%s') {\n", arg0, arg0, mangled_type);
-	  Printf(output, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg0);
-	  Printf(output, "\t\t\treturn;\n");
-	  Printf(output, "\t\t}\n");
+	  if (php_constructor) {
+	    // The PHP constructor needs to be able to wrap a resource, but a
+	    // renamed constructor doesn't.
+	    Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) === '%s') {\n", arg0, arg0, mangled_type);
+	    Printf(output, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg0);
+	    Printf(output, "\t\t\treturn;\n");
+	    Printf(output, "\t\t}\n");
+	  }
 	} else {
 	  Printf(output, "\t%sfunction %s(%s) {\n", acc, methodname, args);
 	}

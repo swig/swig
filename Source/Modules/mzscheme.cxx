@@ -17,12 +17,10 @@
 
 static const char *usage = "\
 Mzscheme Options (available with -mzscheme)\n\
-     -declaremodule                         - Create extension that declares a module\n\
-     -dynamic-load <library>,[library,...]  - Do not link with these libraries, dynamic load\n\
-                                              them\n\
-     -noinit                                - Do not emit scheme_initialize, scheme_reload,\n\
-                                              scheme_module_name functions\n\
-     -prefix <name>                         - Set a prefix <name> to be prepended to all names\n\
+     -declaremodule                - Create extension that declares a module\n\
+     -dynamic-load <lib>,[lib,...] - Do not link with these libraries, dynamic load them\n\
+     -noinit                       - Do not emit module initialization code\n\
+     -prefix <name>                - Set a prefix <name> to be prepended to all names\n\
 ";
 
 static String *fieldnames_tab = 0;
@@ -439,9 +437,8 @@ public:
       sprintf(temp, "%d", numargs);
       if (exporting_destructor) {
 	Printf(init_func_def, "SWIG_TypeClientData(SWIGTYPE%s, (void *) %s);\n", swigtype_ptr, wname);
-      } else {
-	Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),menv);\n", proc_name, wname, proc_name, numreq, numargs);
       }
+      Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),menv);\n", proc_name, wname, proc_name, numreq, numargs);
     } else {
       if (!Getattr(n, "sym:nextSibling")) {
 	/* Emit overloading dispatch function */
@@ -457,6 +454,7 @@ public:
 	Printv(df->def, "static Scheme_Object *\n", dname, "(int argc, Scheme_Object **argv) {", NIL);
 	Printv(df->code, dispatch, "\n", NIL);
 	Printf(df->code, "scheme_signal_error(\"No matching function for overloaded '%s'\");\n", iname);
+	Printf(df->code, "return NULL;\n", iname);
 	Printv(df->code, "}\n", NIL);
 	Wrapper_print(df, f_wrappers);
 	Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),menv);\n", proc_name, dname, proc_name, 0, maxargs);
@@ -528,7 +526,7 @@ public:
 	  Replaceall(tm, "$source", "argv[0]");
 	  Replaceall(tm, "$target", name);
 	  Replaceall(tm, "$input", "argv[0]");
-	  /* Printv(f->code, tm, "\n",NIL); */
+	  Replaceall(tm, "$argnum", "1");
 	  emit_action_code(n, f->code, tm);
 	} else {
 	  throw_unhandled_mzscheme_type_error(t);

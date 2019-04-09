@@ -202,6 +202,7 @@ public:
      * use %module(directors="1") modulename at the start of the 
      * interface file to enable director generation.
      */
+    String *mod_docstring = NULL;
     {
       Node *module = Getattr(n, "module");
       if (module) {
@@ -216,6 +217,7 @@ public:
 	  if (Getattr(options, "sizeof")) {
 	    generate_sizeof = 1;
 	  }
+	  mod_docstring = Getattr(options, "docstring");
 	}
       }
     }
@@ -320,6 +322,14 @@ public:
     emitBanner(f_mliout);
 
     Language::top(n);
+
+    if (mod_docstring) {
+      if (Len(mod_docstring)) {
+	Printv(f_mliout, "(** ", mod_docstring, " *)\n", NIL);
+      }
+      Delete(mod_docstring);
+      mod_docstring = NULL;
+    }
 
     Printf(f_enum_to_int, ") | _ -> (C_int (get_int v))\n" "let _ = Callback.register \"%s_enum_to_int\" enum_to_int\n", module);
     Printf(f_mlibody, "val enum_to_int : c_enum_type -> c_obj -> Swig.c_obj\n");
@@ -543,7 +553,18 @@ public:
 
     numargs = emit_num_arguments(l);
     numreq = emit_num_required(l);
-
+    if (!isOverloaded) {
+      if (numargs > 0) {
+	if (numreq > 0) {
+	  Printf(f->code, "if (caml_list_length(args) < %d || caml_list_length(args) > %d) {\n", numreq, numargs);
+	} else {
+	  Printf(f->code, "if (caml_list_length(args) > %d) {\n", numargs);
+	}
+	Printf(f->code, "caml_invalid_argument(\"Incorrect number of arguments passed to '%s'\");\n}\n", iname);
+      } else {
+	Printf(f->code, "if (caml_list_length(args) > 0) caml_invalid_argument(\"'%s' takes no arguments\");\n", iname);
+      }
+    }
     Printf(f->code, "swig_result = Val_unit;\n");
 
     // Now write code to extract the parameters (this is super ugly)
@@ -731,7 +752,7 @@ public:
 	Printv(df->code,
 	       "argv = (CAML_VALUE *)malloc( argc * sizeof( CAML_VALUE ) );\n"
 	       "for( i = 0; i < argc; i++ ) {\n" "  argv[i] = caml_list_nth(args,i);\n" "}\n", NIL);
-	Printv(df->code, dispatch, "\n", NIL);
+	Printv(df->code, dispatch, "\nfree(argv);\n", NIL);
 	Node *sibl = n;
 	while (Getattr(sibl, "sym:previousSibling"))
 	  sibl = Getattr(sibl, "sym:previousSibling");
@@ -752,14 +773,15 @@ public:
       }
     }
 
-    if (expose_func)
-      Printf(f_mlbody,
-	     "external %s_f : c_obj list -> c_obj list = \"%s\" ;;\n"
-	     "let %s arg = match %s_f (fnhelper arg) with\n"
-	     "  [] -> C_void\n"
+    if (expose_func) {
+      Printf(f_mlbody, "external %s_f : c_obj list -> c_obj list = \"%s\" ;;\n", mangled_name, wname);
+      Printf(f_mlbody, "let %s arg = match %s_f (%s(fnhelper arg)) with\n", mangled_name, mangled_name,
+	     in_constructor && Swig_directorclass(getCurrentClass()) ? "director_core_helper " : "");
+      Printf(f_mlbody, "  [] -> C_void\n"
 	     "| [x] -> (if %s then Gc.finalise \n"
 	     "  (fun x -> ignore ((invoke x) \"~\" C_void)) x) ; x\n"
-	     "| lst -> C_list lst ;;\n", mangled_name, wname, mangled_name, mangled_name, newobj ? "true" : "false");
+	     "| lst -> C_list lst ;;\n", newobj ? "true" : "false");
+    }
 
     if ((!classmode || in_constructor || in_destructor || static_member_function) && expose_func)
       Printf(f_mlibody, "val %s : c_obj -> c_obj\n", mangled_name);
@@ -1394,8 +1416,7 @@ public:
 	pure_virtual = true;
       }
     }
-
-    Wrapper_add_local(w, "swig_result", "CAMLparam0();\n" "SWIG_CAMLlocal2(swig_result,args)");
+    Printf(w->locals, "CAMLparam0();\n");
 
     /* determine if the method returns a pointer */
     is_pointer = SwigType_ispointer_return(decl);
@@ -1469,16 +1490,18 @@ public:
 
     if (ignored_method) {
       if (!pure_virtual) {
-	if (!is_void)
-	  Printf(w->code, "return ");
 	String *super_call = Swig_method_call(super, l);
-	Printf(w->code, "%s;\n", super_call);
+	if (is_void)
+	  Printf(w->code, "%s;\n", super_call);
+	else
+	  Printf(w->code, "CAMLreturn_type(%s);\n", super_call);
 	Delete(super_call);
       } else {
 	Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
 	       SwigType_namestr(name));
       }
     } else {
+      Wrapper_add_local(w, "swig_result", "SWIG_CAMLlocal2(swig_result, args)");
       /* attach typemaps to arguments (C/C++ -> Ocaml) */
       String *arglist = NewString("");
 
@@ -1595,10 +1618,12 @@ public:
       /* wrap complex arguments to values */
       Printv(w->code, wrap_args, NIL);
 
-      /* pass the method call on to the Python object */
+      /* pass the method call on to the OCaml object */
       Printv(w->code,
 	     "swig_result = caml_swig_alloc(1,C_list);\n" "SWIG_Store_field(swig_result,0,args);\n" "args = swig_result;\n" "swig_result = Val_unit;\n", 0);
-      Printf(w->code, "swig_result = " "caml_callback3(*caml_named_value(\"swig_runmethod\")," "swig_get_self(),caml_copy_string(\"%s\"),args);\n", Getattr(n, "name"));
+      Printf(w->code, "static CAML_VALUE *swig_ocaml_func_val = NULL;\n" "if (!swig_ocaml_func_val) {\n");
+      Printf(w->code, "  swig_ocaml_func_val = caml_named_value(\"swig_runmethod\");\n  }\n");
+      Printf(w->code, "swig_result = caml_callback3(*swig_ocaml_func_val,swig_get_self(),caml_copy_string(\"%s\"),args);\n", Getattr(n, "name"));
       /* exception handling */
       tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0);
       if (!tm) {
@@ -1673,6 +1698,8 @@ public:
 	  Printf(w->code, "CAMLreturn_type(*c_result);\n");
 	}
       }
+    } else {
+      Printf(w->code, "CAMLreturn0;\n");
     }
 
     Printf(w->code, "}\n");

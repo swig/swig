@@ -19,7 +19,7 @@ struct OuterTemplate<1>
 
   struct ConcreteDerived : AbstractBase
   {
-    ConcreteDerived() : m_value(0.) {}
+    ConcreteDerived() : m_value(0) {}
     explicit ConcreteDerived(int value) : m_value(value) {}
 
     virtual bool IsSameAs(const AbstractBase& other) const {

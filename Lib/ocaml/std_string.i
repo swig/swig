@@ -70,6 +70,11 @@ class wstring;
   swig_result =	caml_list_append(swig_result,caml_val_string_len((*$1).c_str(), (*$1).size()));
 }
 
+%typemap(directorin) string {
+    swig_result = caml_val_string_len($1.c_str(), $1.size());
+    args = caml_list_append(args, swig_result);
+}
+
 %typemap(directorout) string {
 	$result.assign((char *)caml_ptr_val($input,0), caml_string_len($input));
 }
@@ -81,6 +86,7 @@ class wstring;
 %typemap(out) string * {
 	$result = caml_val_string_len((*$1).c_str(),(*$1).size());
 }
+%typemap(typecheck) string, const string & = char *;
 }
 
 #ifdef ENABLE_CHARPTR_ARRAY

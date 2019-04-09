@@ -48,13 +48,13 @@ public class li_std_vector_runme {
     } catch (java.util.NoSuchElementException e) {
     }
 
-    if (v1.remove(new Integer(123))) throw new RuntimeException("v1 test (13) failed");
-    if (!v1.remove(new Integer(456))) throw new RuntimeException("v1 test (14) failed");
+    if (v1.remove(Integer.valueOf(123))) throw new RuntimeException("v1 test (13) failed");
+    if (!v1.remove(Integer.valueOf(456))) throw new RuntimeException("v1 test (14) failed");
     if (!v1.isEmpty()) throw new RuntimeException("v1 test (15) failed");
     if (v1.size() != 0) throw new RuntimeException("v1 test (16) failed");
-    if (v1.remove(new Integer(456))) throw new RuntimeException("v1 test (17) failed");
+    if (v1.remove(Integer.valueOf(456))) throw new RuntimeException("v1 test (17) failed");
 
-    if (new IntVector(3).size() != 3) throw new RuntimeException("constructor initial size test failed");
+    if (new IntVector(3, 0).size() != 3) throw new RuntimeException("constructor initial size test failed");
     for (int n : new IntVector(10, 999))
       if (n != 999) throw new RuntimeException("constructor initialization with value failed");
     for (int n : new IntVector(new IntVector(10, 999)))
@@ -137,7 +137,7 @@ public class li_std_vector_runme {
     v9.add(60);
     v9.add(70);
     if (v9.size() != 7) throw new RuntimeException("v9 test (1) failed");
-    if (!v9.remove(new Integer(60))) throw new RuntimeException("v9 test (2) failed");
+    if (!v9.remove(Integer.valueOf(60))) throw new RuntimeException("v9 test (2) failed");
     if (v9.size() != 6) throw new RuntimeException("v9 test (3) failed");
 
     IntVector v10 = new IntVector(java.util.Arrays.asList(10, 20, 30, 40, 50));

@@ -1,0 +1,4 @@
+pp_unknowndirective3.i:10: Error: Unknown SWIG preprocessor directive: a1 (if this is a block of target language code, delimit it with %{ and %})
+pp_unknowndirective3.i:11: Error: Unknown SWIG preprocessor directive: 1b (if this is a block of target language code, delimit it with %{ and %})
+pp_unknowndirective3.i:12: Error: Unknown SWIG preprocessor directive: 1c1 (if this is a block of target language code, delimit it with %{ and %})
+pp_unknowndirective3.i:13: Error: Unknown SWIG preprocessor directive: d1d (if this is a block of target language code, delimit it with %{ and %})

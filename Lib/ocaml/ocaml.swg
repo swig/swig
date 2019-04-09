@@ -62,7 +62,7 @@ extern "C" {
 		    SWIG_TypeCheckStruct(source_type, dest_type );
 #ifdef TYPE_CAST_VERBOSE
 		fprintf( stderr, "Typecheck -> %s\n",
-			 tc ? tc->str : "<none>" );
+			 tc ? tc->type->str : "<none>" );
 #endif
 		if( tc ) {
 		    int newmemory = 0;
@@ -451,27 +451,19 @@ extern "C" {
 	CAMLparam1(v);
 	void *outptr = NULL;
         swig_type_info *outdescr = NULL;
+        static CAML_VALUE *func_val = NULL;
 
 	if( v == Val_unit ) {
 	    *out = 0;
-	    CAMLreturn(0);
+	    CAMLreturn_type(0);
 	}
 	if( !Is_block(v) ) return -1;
 	switch( SWIG_Tag_val(v) ) {
-	case C_int:
-	    if( !caml_long_val( v ) ) {
-		*out = 0;
-		CAMLreturn(0);
-	    } else {
-		*out = 0;
-		CAMLreturn(1);
-	    }
-	    break;
 	case C_obj:
-	    CAMLreturn
-		(caml_ptr_val_internal
-		 (caml_callback(*caml_named_value("caml_obj_ptr"),v),
-		  out,descriptor));
+	    if (!func_val) {
+	        func_val = caml_named_value("caml_obj_ptr");
+	    }
+	    CAMLreturn_type(caml_ptr_val_internal(caml_callback(*func_val, v), out, descriptor));
 	case C_string:
 	    outptr = (void *)String_val(SWIG_Field(v,0));
 	    break;
@@ -481,11 +473,11 @@ extern "C" {
 	    break;
 	default:
 	    *out = 0;
-	    CAMLreturn(1);
+	    CAMLreturn_type(1);
 	    break;
 	}
-	
-	CAMLreturn(SWIG_GetPtr(outptr,out,outdescr,descriptor));
+
+	CAMLreturn_type(SWIG_GetPtr(outptr, out, outdescr, descriptor));
     }
 
     SWIGINTERN void *caml_ptr_val( CAML_VALUE v, swig_type_info *descriptor ) {
@@ -576,6 +568,19 @@ extern "C" {
 	default:
 	    CAMLreturn(0);
 	}	
+    }
+
+    SWIGINTERN CAML_VALUE SWIG_Ocaml_ptr_to_val(const char *name, void *ptr, swig_type_info *descriptor) {
+        CAMLparam0();
+        SWIG_CAMLlocal1(result);
+
+        CAML_VALUE *fromval = caml_named_value(name);
+        if (fromval) {
+            result = caml_callback(*fromval, caml_val_ptr(ptr, descriptor));
+        } else {
+            result = caml_val_ptr(ptr, descriptor);
+        }
+        CAMLreturn(result);
     }
 
     static swig_module_info *SWIG_Ocaml_GetModule(void *SWIGUNUSEDPARM(clientdata)) {

@@ -21,7 +21,6 @@ cpp_enum \
 default_constructor \
 director_binary_string \
 director_enum \
-director_pass_by_value \
 director_primitives \
 director_redefined \
 director_string \
@@ -30,7 +29,6 @@ li_windows \
 member_pointer_const \
 preproc_constants \
 smart_pointer_inherit \
-typedef_mptr \
 
 FAILING_C_TESTS = \
 enums \
@@ -54,7 +52,7 @@ run_testcase = \
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-# none!
+SWIGOPT += -w524 # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
 
 # Custom tests - tests with additional commandline options
 # none!

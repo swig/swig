@@ -183,6 +183,7 @@ try {
 
 // Need to handle the checked exception in NoExceptTest.delete()
 %typemap(javafinalize) SWIGTYPE %{
+  @SuppressWarnings("deprecation")
   protected void finalize() {
     try {
       delete();

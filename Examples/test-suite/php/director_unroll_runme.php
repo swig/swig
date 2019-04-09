@@ -23,7 +23,10 @@ $b = new Bar();
 $b->set($a);
 $c = $b->get();
 
-check::equal($a->this, $c->this, "this failed");
+// FIXME: This doesn't work for checking that they wrap the same C++ object
+// because the two objects have different PHP resources, and we can't easily
+// look inside those resources to see which C++ objects they refer to.
+//check::equal($a->_cPtr, $c->_cPtr, "_cPtr check failed");
 
 check::done();
 ?>

@@ -19,6 +19,13 @@ public class li_std_auto_ptr_runme {
         if (Klass.getTotal_count() != 2)
             throw new Exception("number of objects should be 2");
 
+        using (Klass k3 = li_std_auto_ptr.makeKlassAutoPtr("second")) {
+          if (Klass.getTotal_count() != 3)
+            throw new Exception("number of objects should be 3");
+        }
+        if (Klass.getTotal_count() != 2)
+            throw new Exception("number of objects should be 2");
+
         k1 = null;
         {
           int countdown = 500;

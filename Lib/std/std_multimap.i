@@ -50,7 +50,6 @@ namespace std {
     typedef _Key key_type;
     typedef _Tp mapped_type;
     typedef std::pair< const _Key, _Tp > value_type;
-
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type& reference;
@@ -89,7 +88,7 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_TYPECHECK_MULTIMAP, std::multimap< _Key, _Tp, _Compare, _Alloc >);
   
-    multimap( const _Compare& );
+    multimap(const _Compare& other);
 
 #ifdef %swig_multimap_methods
     // Add swig/language extra methods

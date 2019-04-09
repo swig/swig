@@ -9,4 +9,3 @@ check::equal('1.5',(new ReflectionExtension('php_pragma'))->getVersion(),"1.5==v
 check::done();
 
 ?>
-

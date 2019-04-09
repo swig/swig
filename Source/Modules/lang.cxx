@@ -1894,6 +1894,8 @@ int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_
     }
     if (!checkAttribute(nn, "storage", "virtual"))
       continue;
+    if (GetFlag(nn, "final"))
+      continue;
     /* we need to add methods(cdecl) and destructor (to check for throw decl) */
     int is_destructor = (Cmp(nodeType, "destructor") == 0);
     if ((Cmp(nodeType, "cdecl") == 0) || is_destructor) {
@@ -2109,7 +2111,7 @@ int Language::classDirectorMethods(Node *n) {
     Node *item = Getitem(vtable, i);
     String *method = Getattr(item, "methodNode");
     String *fqdname = Getattr(item, "fqdname");
-    if (GetFlag(method, "feature:nodirector"))
+    if (GetFlag(method, "feature:nodirector") || GetFlag(method, "final"))
       continue;
 
     String *wrn = Getattr(method, "feature:warnfilter");
@@ -2198,6 +2200,16 @@ int Language::classDirector(Node *n) {
   String *using_protected_members_code = NewString("");
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     Node *nodeType = Getattr(ni, "nodeType");
+    if (Cmp(nodeType, "destructor") == 0 && GetFlag(ni, "final")) {
+      String *classtype = Getattr(n, "classtype");
+      SWIG_WARN_NODE_BEGIN(ni);
+      Swig_warning(WARN_LANG_DIRECTOR_FINAL, input_file, line_number, "Destructor %s is final, %s cannot be a director class.\n", Swig_name_decl(ni), classtype);
+      SWIG_WARN_NODE_END(ni);
+      SetFlag(n, "feature:nodirector");
+      Delete(vtable);
+      Delete(using_protected_members_code);
+      return SWIG_OK;
+    }
     bool cdeclaration = (Cmp(nodeType, "cdecl") == 0);
     if (cdeclaration && !GetFlag(ni, "feature:ignore")) {
       if (isNonVirtualProtectedAccess(ni)) {

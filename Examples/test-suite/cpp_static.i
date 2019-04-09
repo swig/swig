@@ -10,6 +10,7 @@ Tests Sourceforge bug #444748.
 class StaticMemberTest {
 public:
   static int static_int;
+  static int grab_int() { return static_int; }
 };
 
 class StaticFunctionTest {
@@ -28,10 +29,12 @@ int StaticMemberTest::static_int = 99;
 %inline %{
 struct StaticBase {
   static int statty;
+  static int grab_statty_base() { return statty; }
   virtual ~StaticBase() {}
 };
 struct StaticDerived : StaticBase {
   static int statty;
+  static int grab_statty_derived() { return statty; }
 };
 %}
 

@@ -1,8 +1,8 @@
 // This test tests all the methods in the C# collection wrapper
 using System;
-using cpp11_li_std_arrayNamespace;
+using cpp11_std_arrayNamespace;
 
-public class cpp11_li_std_array_runme
+public class cpp11_std_array_runme
 {
     private static ArrayInt6 ToArray6(int[] a)
     {
@@ -37,24 +37,24 @@ public class cpp11_li_std_array_runme
         compareContainers(ai, vals);
 
         // Check return
-        compareContainers(cpp11_li_std_array.arrayOutVal(), new int[] { -2, -1, 0, 0, 1, 2 });
-        compareContainers(cpp11_li_std_array.arrayOutConstRef(), new int[] { -2, -1, 0, 0, 1, 2 });
-        compareContainers(cpp11_li_std_array.arrayOutRef(), new int[] { -2, -1, 0, 0, 1, 2 });
-        compareContainers(cpp11_li_std_array.arrayOutPtr(), new int[] { -2, -1, 0, 0, 1, 2 });
+        compareContainers(cpp11_std_array.arrayOutVal(), new int[] { -2, -1, 0, 0, 1, 2 });
+        compareContainers(cpp11_std_array.arrayOutConstRef(), new int[] { -2, -1, 0, 0, 1, 2 });
+        compareContainers(cpp11_std_array.arrayOutRef(), new int[] { -2, -1, 0, 0, 1, 2 });
+        compareContainers(cpp11_std_array.arrayOutPtr(), new int[] { -2, -1, 0, 0, 1, 2 });
 
         // Check passing arguments
-        ai = cpp11_li_std_array.arrayInVal(ToArray6(new int[] { 9, 8, 7, 6, 5, 4 }));
+        ai = cpp11_std_array.arrayInVal(ToArray6(new int[] { 9, 8, 7, 6, 5, 4 }));
         compareContainers(ai, new int[] { 90, 80, 70, 60, 50, 40 });
 
-        ai = cpp11_li_std_array.arrayInConstRef(ToArray6(new int[] { 9, 8, 7, 6, 5, 4 }));
-        compareContainers(ai, new int[] { 90, 80, 70, 60, 50, 40 });
-
-        ai = new ArrayInt6(ToArray6(new int[] { 9, 8, 7, 6, 5, 4 }));
-        cpp11_li_std_array.arrayInRef(ai);
+        ai = cpp11_std_array.arrayInConstRef(ToArray6(new int[] { 9, 8, 7, 6, 5, 4 }));
         compareContainers(ai, new int[] { 90, 80, 70, 60, 50, 40 });
 
         ai = new ArrayInt6(ToArray6(new int[] { 9, 8, 7, 6, 5, 4 }));
-        cpp11_li_std_array.arrayInPtr(ai);
+        cpp11_std_array.arrayInRef(ai);
+        compareContainers(ai, new int[] { 90, 80, 70, 60, 50, 40 });
+
+        ai = new ArrayInt6(ToArray6(new int[] { 9, 8, 7, 6, 5, 4 }));
+        cpp11_std_array.arrayInPtr(ai);
         compareContainers(ai, new int[] { 90, 80, 70, 60, 50, 40 });
 
         // fill

@@ -96,6 +96,11 @@ matrix:
       dist: trusty
     - compiler: gcc
       os: linux
+      env: SWIGLANG=mzscheme
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=ocaml
       sudo: required
       dist: trusty
@@ -372,16 +377,21 @@ matrix:
       env: SWIGLANG=tcl
 
   allow_failures:
-    # Deprecated functions causing build failure since upgrade from Node v10.11.0 to v10.12.0
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=javascript ENGINE=node VER=10 CPP11=1
-      sudo: required
-      dist: trusty
     # Sometimes hits the Travis 50 minute time limit
     - compiler: gcc
       os: linux
       env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.4 CPP11=1
+      sudo: required
+      dist: trusty
+    # Experimental languages
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=mzscheme
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=ocaml
       sudo: required
       dist: trusty
 

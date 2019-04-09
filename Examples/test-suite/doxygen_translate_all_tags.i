@@ -1,5 +1,9 @@
 %module doxygen_translate_all_tags
 
+#if defined(SWIGJAVA)
+%javamethodmodifiers func02 "@Deprecated\npublic"
+#endif
+
 %inline %{
 
 /**

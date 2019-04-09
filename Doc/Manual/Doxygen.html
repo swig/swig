@@ -5,7 +5,7 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body bgcolor="#FFFFFF">
-<H1><a name="Doxygen">16 SWIG and Doxygen Translation</a></H1>
+<H1><a name="Doxygen">17 SWIG and Doxygen Translation</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -57,7 +57,7 @@ documentation language.  Currently only Javadoc and Pydoc is
 supported.
 </p>
 
-<H2><a name="Doxygen_translation_overview">16.1 Doxygen translation overview</a></H2>
+<H2><a name="Doxygen_translation_overview">17.1 Doxygen translation overview</a></H2>
 
 
 <p>
@@ -73,7 +73,7 @@ a <a href="http://code.google.com/soc/2008/">Google Summer of
 Code</a> proposal from Summer 2008.  
 </p>
 
-<H2><a name="Doxygen_file_preparation">16.2 Preparations</a></H2>
+<H2><a name="Doxygen_file_preparation">17.2 Preparations</a></H2>
 
 
 <p>
@@ -189,7 +189,7 @@ where the comments for a code item are not put directly before or after the code
 These structural commands are stripped out by SWIG and are not assigned to anything.
 </p>
 
-<H3><a name="Doxygen_running_swig">16.2.1 Enabling Doxygen translation</a></H3>
+<H3><a name="Doxygen_running_swig">17.2.1 Enabling Doxygen translation</a></H3>
 
 
 <p>
@@ -198,7 +198,7 @@ enabled using the command line <tt>-doxygen</tt> switch for the languages that
 do support it (currently Java and Python).
 </p>
 
-<H3><a name="Doxygen_features">16.2.2 Doxygen-specific %feature directives</a></H3>
+<H3><a name="Doxygen_features">17.2.2 Doxygen-specific %feature directives</a></H3>
 
 
 <p>
@@ -206,7 +206,7 @@ Translation of Doxygen comments is influenced by the following <a
 href="Customization.html#Customization_features">%feature directives</a>:
 </p>
 
-<H4><a name="Doxygen_notranslate">16.2.2.1 doxygen:notranslate</a></H4>
+<H4><a name="Doxygen_notranslate">17.2.2.1 doxygen:notranslate</a></H4>
 
 
 <p>
@@ -218,7 +218,7 @@ instead of the corresponding language tool (<tt>javadoc</tt>, <tt>sphinx</tt>,
 </p>
 
 
-<H4><a name="Doxygen_alias">16.2.2.2 doxygen:alias:&lt;command-name&gt;</a></H4>
+<H4><a name="Doxygen_alias">17.2.2.2 doxygen:alias:&lt;command-name&gt;</a></H4>
 
 
 <p>
@@ -265,7 +265,7 @@ wrappers of the C++ API.
 </p>
 
 
-<H4><a name="Doxygen_ignore">16.2.2.3 doxygen:ignore:&lt;command-name&gt;</a></H4>
+<H4><a name="Doxygen_ignore">17.2.2.3 doxygen:ignore:&lt;command-name&gt;</a></H4>
 
 
 <p>
@@ -416,7 +416,7 @@ def func():
 </pre></div>
 
 
-<H4><a name="Doxygen_nolinktranslate">16.2.2.4 doxygen:nolinktranslate</a></H4>
+<H4><a name="Doxygen_nolinktranslate">17.2.2.4 doxygen:nolinktranslate</a></H4>
 
 
 <p>
@@ -425,7 +425,7 @@ This is only applicable to Java at the moment.
 </p>
 
 
-<H4><a name="Doxygen_nostripparams">16.2.2.5 doxygen:nostripparams</a></H4>
+<H4><a name="Doxygen_nostripparams">17.2.2.5 doxygen:nostripparams</a></H4>
 
 
 <p>
@@ -435,14 +435,14 @@ This is only applicable to Java at the moment.
 </p>
 
 
-<H3><a name="Doxygen_additional_options">16.2.3 Additional command line options</a></H3>
+<H3><a name="Doxygen_additional_options">17.2.3 Additional command line options</a></H3>
 
 
 <p>
 ALSO TO BE ADDED (Javadoc auto brief?)
 </p>
 
-<H2><a name="Doxygen_to_javadoc">16.3 Doxygen to Javadoc</a></H2>
+<H2><a name="Doxygen_to_javadoc">17.3 Doxygen to Javadoc</a></H2>
 
 
 <p>
@@ -451,7 +451,7 @@ automatically placed in the correct locations in the resulting module
 and proxy files.
 </p>
 
-<H3><a name="Doxygen_basic_example">16.3.1 Basic example</a></H3>
+<H3><a name="Doxygen_basic_example">17.3.1 Basic example</a></H3>
 
 
 <p>
@@ -558,7 +558,7 @@ Javadoc translator features summary
 directives</a>):
 </p>
 
-<H3><a name="Doxygen_javadoc_tags">16.3.2 Javadoc tags</a></H3>
+<H3><a name="Doxygen_javadoc_tags">17.3.2 Javadoc tags</a></H3>
 
 
 <p>
@@ -812,7 +812,7 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </table>
 </div>
 
-<H3><a name="Doxygen_unsupported_tags">16.3.3 Unsupported tags</a></H3>
+<H3><a name="Doxygen_unsupported_tags">17.3.3 Unsupported tags</a></H3>
 
 
 <p>
@@ -1048,14 +1048,14 @@ comment, the whole comment block is ignored:
 
 
 
-<H3><a name="Doxygen_further_details">16.3.4 Further details</a></H3>
+<H3><a name="Doxygen_further_details">17.3.4 Further details</a></H3>
 
 
 <p>
 TO BE ADDED.
 </p>
 
-<H2><a name="Doxygen_to_pydoc">16.4 Doxygen to Pydoc</a></H2>
+<H2><a name="Doxygen_to_pydoc">17.4 Doxygen to Pydoc</a></H2>
 
 
 <p>
@@ -1066,7 +1066,7 @@ Doxygen or Javadoc, so most of Doxygen commands are translated by merely
 copying the appropriate command text.
 </p>
 
-<H3><a name="Doxygen_python_basic_example">16.4.1 Basic example</a></H3>
+<H3><a name="Doxygen_python_basic_example">17.4.1 Basic example</a></H3>
 
 
 <p>
@@ -1229,7 +1229,7 @@ docs</a>), you may want to use some tool like doxypy
 to do the work.
 </p>
 
-<H3><a name="Doxygen_pydoc_tags">16.4.2 Pydoc translator</a></H3>
+<H3><a name="Doxygen_pydoc_tags">17.4.2 Pydoc translator</a></H3>
 
 
 <p>
@@ -1443,7 +1443,7 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </table>
 </div>
 
-<H3><a name="Doxygen_python_unsupported_tags">16.4.3 Unsupported tags</a></H3>
+<H3><a name="Doxygen_python_unsupported_tags">17.4.3 Unsupported tags</a></H3>
 
 
 <p>
@@ -1627,21 +1627,21 @@ Here is the list of these tags:
 </table>
 </div>
 
-<H3><a name="Doxygen_python_further_details">16.4.4 Further details</a></H3>
+<H3><a name="Doxygen_python_further_details">17.4.4 Further details</a></H3>
 
 
 <p>
 TO BE ADDED.
 </p>
 
-<H2><a name="Doxygen_developer_details">16.5 Developer information</a></H2>
+<H2><a name="Doxygen_developer_details">17.5 Developer information</a></H2>
 
 
 <p>
 This section contains information for developers enhancing the Doxygen translator.
 </p>
 
-<H3><a name="Doxygen_translator_design">16.5.1 Doxygen translator design</a></H3>
+<H3><a name="Doxygen_translator_design">17.5.1 Doxygen translator design</a></H3>
 
 
 <p>
@@ -1667,7 +1667,7 @@ class for translation into the target documentation language.  For
 example, <tt>JavaDocConverter</tt> is the Javadoc module class.
 </p>
 
-<H3><a name="Doxygen_debugging_commands">16.5.2 Debugging the Doxygen parser and translator</a></H3>
+<H3><a name="Doxygen_debugging_commands">17.5.2 Debugging the Doxygen parser and translator</a></H3>
 
 
 <p>
@@ -1680,7 +1680,7 @@ detailed debug information printing.
   -debug-doxygen-translator - Display Doxygen translator module debugging information
 </pre></div>
 
-<H3><a name="Doxygen_tests">16.5.3 Tests</a></H3>
+<H3><a name="Doxygen_tests">17.5.3 Tests</a></H3>
 
 
 <p>
@@ -1732,7 +1732,7 @@ Runtime tests in Python are just plain string comparisons of the __doc__
 properties.
 </p>
 
-<H2><a name="Doxygen_language_extension">16.6 Extending to other languages</a></H2>
+<H2><a name="Doxygen_language_extension">17.6 Extending to other languages</a></H2>
 
 
 <p>

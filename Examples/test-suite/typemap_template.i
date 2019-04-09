@@ -27,7 +27,7 @@ template<typename T> struct TemplateTest1 {
 %template(TTint) TemplateTest1< int >;
 
 %inline %{
-  void extratest(const TemplateTest1< YY > &t, 
+  void extratest(const TemplateTest1< YY > &t,
                  const TemplateTest1< ZZ > &tt,
                  const TemplateTest1< int > &ttt)
   {}
@@ -38,3 +38,27 @@ template<typename T> struct TemplateTest1 {
 %inline %{
   void wasbug(TemplateTest1< int >::Double wbug) {}
 %}
+
+/* Test bug where the %apply directive was ignored inside anonymous template
+ * instantiations */
+
+template<class T>
+struct Foo {
+  %typemap(in) Foo<T> ""
+  %apply Foo<T> { const Foo<T> & }
+};
+
+%{
+template<class T> struct Foo {};
+%}
+
+%template(Foo_int) Foo<int>;
+%template() Foo<double>;
+
+%inline %{
+  void this_works(Foo<int> f) {}
+  void this_also_works(const Foo<int>& f) {}
+  void this_also_also_works(Foo<double> f) {}
+  void this_used_to_fail(const Foo<double>& f) {}
+%}
+

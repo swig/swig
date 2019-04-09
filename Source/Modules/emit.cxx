@@ -188,7 +188,9 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
       p = lp;
       while (p) {
 	if (SwigType_isvarargs(Getattr(p, "type"))) {
+	  // Mark the head of the ParmList that it has varargs
 	  Setattr(l, "emit:varargs", lp);
+//Printf(stdout, "setting emit:varargs %s ... %s +++ %s\n", Getattr(l, "emit:varargs"), Getattr(l, "type"), Getattr(p, "type"));
 	  break;
 	}
 	p = nextSibling(p);
@@ -329,7 +331,8 @@ int emit_num_required(ParmList *parms) {
 /* -----------------------------------------------------------------------------
  * emit_isvarargs()
  *
- * Checks if a function is a varargs function
+ * Checks if a ParmList is a parameter list containing varargs.
+ * This function requires emit_attach_parmmaps to have been called beforehand.
  * ----------------------------------------------------------------------------- */
 
 int emit_isvarargs(ParmList *p) {
@@ -338,6 +341,28 @@ int emit_isvarargs(ParmList *p) {
   if (Getattr(p, "emit:varargs"))
     return 1;
   return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * emit_isvarargs_function()
+ *
+ * Checks for varargs in a function/constructor (can be overloaded)
+ * ----------------------------------------------------------------------------- */
+
+bool emit_isvarargs_function(Node *n) {
+  bool has_varargs = false;
+  Node *over = Getattr(n, "sym:overloaded");
+  if (over) {
+    for (Node *sibling = over; sibling; sibling = Getattr(sibling, "sym:nextSibling")) {
+      if (ParmList_has_varargs(Getattr(sibling, "parms"))) {
+	has_varargs = true;
+	break;
+      }
+    }
+  } else {
+    has_varargs = ParmList_has_varargs(Getattr(n, "parms")) ? true : false;
+  }
+  return has_varargs;
 }
 
 /* -----------------------------------------------------------------------------

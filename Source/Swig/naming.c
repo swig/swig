@@ -439,8 +439,8 @@ DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType
     rn = name_object_get(namehash, name, decl, ncdecl);
   }
   if (!rn && Swig_scopename_check(name)) {
-    String *nprefix = NewStringEmpty();
-    String *nlast = NewStringEmpty();
+    String *nprefix = 0;
+    String *nlast = 0;
     Swig_scopename_split(name, &nprefix, &nlast);
     rn = name_object_get(namehash, nlast, decl, ncdecl);
     Delete(nlast);
@@ -579,8 +579,8 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
   if (name && SwigType_istemplate(name)) {
     String *nodetype = nodeType(node);
     if (nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor"))) {
-      String *nprefix = NewStringEmpty();
-      String *nlast = NewStringEmpty();
+      String *nprefix = 0;
+      String *nlast = 0;
       String *tprefix;
       Swig_scopename_split(name, &nprefix, &nlast);
       tprefix = SwigType_templateprefix(nlast);
@@ -1377,12 +1377,15 @@ void Swig_name_rename_add(String *prefix, String *name, SwigType *decl, Hash *ne
 }
 
 
-/* Create a name applying rename/namewarn if needed */
-static String *apply_rename(String *newname, int fullname, String *prefix, String *name) {
+/* Create a name for the given node applying rename/namewarn if needed */
+static String *apply_rename(Node* n, String *newname, int fullname, String *prefix, String *name) {
   String *result = 0;
   if (newname && Len(newname)) {
     if (Strcmp(newname, "$ignore") == 0) {
-      result = Copy(newname);
+      /* $ignore doesn't apply to parameters and while it's rare to explicitly write %ignore directives for them they could be caught by a wildcard ignore using
+         regex match, just ignore the attempt to ignore them in this case */
+      if (!Equal(nodeType(n), "parm"))
+	result = Copy(newname);
     } else {
       char *cnewname = Char(newname);
       if (cnewname) {
@@ -1431,8 +1434,8 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
   if (name && n && SwigType_istemplate(name)) {
     String *nodetype = nodeType(n);
     if (nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor"))) {
-      String *nprefix = NewStringEmpty();
-      String *nlast = NewStringEmpty();
+      String *nprefix = 0;
+      String *nlast = 0;
       String *tprefix;
       Swig_scopename_split(name, &nprefix, &nlast);
       tprefix = SwigType_templateprefix(nlast);
@@ -1480,7 +1483,7 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
     if (rn) {
       String *newname = Getattr(rn, "name");
       int fullname = GetFlag(rn, "fullname");
-      result = apply_rename(newname, fullname, prefix, name);
+      result = apply_rename(n, newname, fullname, prefix, name);
     }
     if (result && !Equal(result, name)) {
       /* operators in C++ allow aliases, we look for them */
@@ -1504,7 +1507,7 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
 	int fullname = GetFlag(wrn, "fullname");
 	if (result)
 	  Delete(result);
-	result = apply_rename(rename, fullname, prefix, name);
+	result = apply_rename(n, rename, fullname, prefix, name);
 	if ((msg) && (Len(msg))) {
 	  if (!Getmeta(nname, "already_warned")) {
 	    if (n) {
@@ -1656,12 +1659,13 @@ String *Swig_name_str(Node *n) {
   if (SwigType_istemplate(name)) {
     String *nodetype = nodeType(n);
     if (nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor"))) {
-      String *nprefix = NewStringEmpty();
-      String *nlast = NewStringEmpty();
+      String *nprefix = 0;
+      String *nlast = 0;
       String *tprefix;
       Swig_scopename_split(name, &nprefix, &nlast);
       tprefix = SwigType_templateprefix(nlast);
       Delete(nlast);
+      Delete(nprefix);
       Delete(name);
       name = tprefix;
     }

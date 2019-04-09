@@ -1,4 +1,4 @@
-from cpp11_li_std_array import *
+from cpp11_std_array import *
 import sys
 
 
