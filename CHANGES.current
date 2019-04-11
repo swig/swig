@@ -18,7 +18,7 @@ Version 4.0.0 (in progress)
             the contents are generated as the delete/dispose method's parameters declaration.
 
 2019-03-30: wsfulton
-            [C#] #421 Fix CA1063 warning by implementing the recommended Dispose methods for
+            [C#] #421 Fix FxCop warning CA1063 by implementing the recommended Dispose methods for
             the IDisposable interface. Previously just the Dispose() method was generated.
             Now the Dispose() and Dispose(bool disposing) methods are generated.
             Changes are required if custom "csfinalize", "csdestruct" or "csdestruct_derived"
@@ -99,13 +99,13 @@ Version 4.0.0 (in progress)
             string.
 
 2019-02-22: tamuratak
-            #984 Add support for RTypedData introduced in Ruby 1.9.3.
+            [Ruby] #984 Add support for RTypedData introduced in Ruby 1.9.3.
 
 2019-02-22: ZackerySpytz
             #1483 Fix compilation failures when a director class has final methods.
 
 2019-02-21: wsfulton
-            #1240 Suppress Java 9 deprecation warnings on finalize method.
+            [Java] #1240 Suppress Java 9 deprecation warnings on finalize method.
 
 2019-02-21: ZackerySpytz
             #1480 Fix some rejections of valid floating-point literals.
@@ -933,7 +933,7 @@ Version 4.0.0 (in progress)
             u"\udcff" to the C layer (Python 3).
 
 2017-11-24: joequant
-	    Fix #1124 and return R_NilValue for null pointers
+	    [R] Fix #1124 and return R_NilValue for null pointers
 
 2017-11-29: wsfulton
             [Java] director exception handling improvements.
@@ -978,7 +978,7 @@ Version 4.0.0 (in progress)
 
 2017-10-07: olly
 	    Fix preprocessor handling of empty macro arguments to match that of
-	    C/C++ compilers.  Fixes https://github.com/swig/swig/pull/1111 and
+	    C/C++ compilers.  Fixes issue #1111 and
 	    https://sourceforge.net/p/swig/bugs/826/
 
 2017-10-06: wsfulton
@@ -999,7 +999,7 @@ Version 4.0.0 (in progress)
 2017-10-01: joequant
             allow R package names with docs
 	    allowing multiple get accessors in R
-	    fix smrt-pointer and NAMESPACE support
+	    fix smart-pointer and NAMESPACE support
 	    constructors now returning smart pointers (if class
 	    declared as such)
 	    smart-pointer classes deriving from parent smart-pointers
@@ -1259,8 +1259,7 @@ Version 4.0.0 (in progress)
 
 2017-08-05: olly
 	    [C++11] Allow static_assert at the top level (and disallow it right
-	    after template<T>).  Fixes https://github.com/swig/swig/issues/1031
-	    reported by Artem V L.
+	    after template<T>).  Fixes issue 1031 reported by Artem V L.
 
 2017-08-02: wsfulton
             Fix incorrectly shown warning when an empty template instantiation was used on a
@@ -1364,8 +1363,7 @@ Version 4.0.0 (in progress)
 2017-06-13: olly
 	    [Perl] Fix testsuite to work without . in @INC - it was removed in
 	    Perl 5.26 for security reasons, and has also been removed from
-	    older versions in some distros.  Fixes
-	    https://github.com/swig/swig/issues/997 reported by lfam.
+	    older versions in some distros.  Fixes #997 reported by lfam.
 
 2017-06-03: wsfulton
             Fix %import on a file containing a file scope %fragment forced inclusion to not
