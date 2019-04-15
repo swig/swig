@@ -29,21 +29,18 @@ namespace Space {
 %rename(tMethodXYZ2) templateXYZ(XYZ<int>);
 %rename(opT2) operator int();
 %rename(opNotXYZ2) operator NotXYZ<int>() const;
-%rename(opXYZ2) operator XYZ<int>() const;
 
 %rename(tMethod3) templateT(Space::Klass i);
 %rename(tMethodNotXYZ3) templateNotXYZ(NotXYZ<Space::Klass>);
 %rename(tMethodXYZ3) templateXYZ(XYZ<Space::Klass>);
 %rename(opT3) operator Space::Klass();
 %rename(opNotXYZ3) operator NotXYZ<Space::Klass>() const;
-%rename(opXYZ3) operator XYZ<Space::Klass>() const;
 
 %rename(tMethod4) templateT(Space::Enu i);
 %rename(tMethodNotXYZ4) templateNotXYZ(NotXYZ<Space::Enu>);
 %rename(tMethodXYZ4) templateXYZ(XYZ<Space::Enu>);
 %rename(opT4) operator Space::Enu();
 %rename(opNotXYZ4) operator NotXYZ<Space::Enu>() const;
-%rename(opXYZ4) operator XYZ<Space::Enu>() const;
 
 namespace Space {
   using namespace AnotherSpace;
@@ -60,7 +57,6 @@ namespace Space {
     %rename(tMethodXYZ1) templateXYZ(XYZ<T>);
     %rename(opT1) operator T();
     %rename(opNotXYZ1) operator NotXYZ<T>() const;
-    %rename(opXYZ1) operator XYZ<T>() const;
 
     NotXYZ<int> *m_int;
     T m_t;
@@ -74,7 +70,6 @@ namespace Space {
     void templateXYZ(XYZ<T> i) {}
     operator T() { return m_t; }
     operator NotXYZ<T>() const { return m_notxyz; }
-    operator XYZ<T>() const { XYZ<T> xyz; return xyz; }
   };
 }
 
@@ -93,16 +88,13 @@ class ABC {
   public:
 
     %rename(methodABC) method(ABC a) const;
-    %rename(opABC) operator ABC() const;
+    %rename(opABC) operator ABC*() const;
     %rename(methodKlass) method(Klass k) const;
     %rename(opKlass) operator Klass() const;
 
     void method(ABC a) const {}
     void method(Klass k) const {}
-#if !defined(__clang__)
-    // Workaround for: warning: conversion function converting 'Space::ABC' to itself will never be used
-    operator ABC() const { ABC a; return a; }
-#endif
+    operator ABC*() const { return new ABC(); }
     operator Klass() const { Klass k; return k; }
 };
 }

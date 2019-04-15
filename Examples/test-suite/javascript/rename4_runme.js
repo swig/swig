@@ -10,7 +10,6 @@ function part1() {
   xyz.tMethod2(0);
   xyz.tMethodNotXYZ2(notxyz);
   xyz.opNotXYZ2();
-  xyz.opXYZ2();
 }
 
 function part2() {
@@ -23,7 +22,6 @@ function part2() {
   xyz.tMethod1(0);
   xyz.tMethodNotXYZ1(notxyz);
   xyz.opNotXYZ1();
-  xyz.opXYZ1();
 }
 
 function part3(){
@@ -36,7 +34,6 @@ function part3(){
   xyz.tMethod3(new rename.Klass());
   xyz.tMethodNotXYZ3(notxyz);
   xyz.opNotXYZ3();
-  xyz.opXYZ3();
 }
 
 function part4() {
@@ -49,7 +46,6 @@ function part4() {
   xyz.tMethod4(rename.En1);
   xyz.tMethodNotXYZ4(notxyz);
   xyz.opNotXYZ4();
-  xyz.opXYZ4();
 }
 
 function part5() {
