@@ -89,3 +89,9 @@ linkchecker2:
 	cp *.png linkchecker-tmp
 	(cd linkchecker-tmp && linkchecker --config=../linkchecker.config -F text --no-warnings SWIGDocumentation.html)
 
+# Simple check for relative links (there shouldn't be any), they don't translate properly creating the .pdf doc
+# with wkhtmltopdf. For example, href="SWIG.html" needs to be href="SWIG.html#SWIG"
+linkchecker3:
+	@echo "The following list should just contain SWIGDocumentation.html and SWIGDocumentation.pdf,"
+	@echo "as all links should have an anchor (with a #) or be a full url beginning http."
+	grep 'href="' *.html | sed -e 's/.*href="\(.*\)">.*$$/\1/' | grep -v "#" | grep -v "^http" | grep -v "^style.css"
