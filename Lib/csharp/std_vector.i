@@ -233,15 +233,15 @@
         else
           throw std::out_of_range("index");
       }
-      CONST_REFERENCE getitem(int index) throw (std::out_of_range) {
+      const_reference getitem(int index) throw (std::out_of_range) {
         if (index>=0 && index<(int)$self->size())
           return (*$self)[index];
         else
           throw std::out_of_range("index");
       }
-      void setitem(int index, CTYPE const& value) throw (std::out_of_range) {
+      void setitem(int index, CTYPE const& val) throw (std::out_of_range) {
         if (index>=0 && index<(int)$self->size())
-          (*$self)[index] = value;
+          (*$self)[index] = val;
         else
           throw std::out_of_range("index");
       }
@@ -351,7 +351,7 @@
 %define SWIG_STD_VECTOR_ENHANCED(CTYPE...)
 namespace std {
   template<> class vector< CTYPE > {
-    SWIG_STD_VECTOR_MINIMUM_INTERNAL(IList, %arg(CTYPE const&), %arg(CTYPE))
+    SWIG_STD_VECTOR_MINIMUM_INTERNAL(IList, const value_type&, %arg(CTYPE))
     SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(CTYPE)
   };
 }
@@ -384,11 +384,11 @@ namespace std {
   // primary (unspecialized) class template for std::vector
   // does not require operator== to be defined
   template<class T> class vector {
-    SWIG_STD_VECTOR_MINIMUM_INTERNAL(IEnumerable, T const&, T)
+    SWIG_STD_VECTOR_MINIMUM_INTERNAL(IEnumerable, const value_type&, T)
   };
   // specialization for pointers
   template<class T> class vector<T *> {
-    SWIG_STD_VECTOR_MINIMUM_INTERNAL(IList, T *const&, T *)
+    SWIG_STD_VECTOR_MINIMUM_INTERNAL(IList, const value_type&, T *)
     SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(T *)
   };
   // bool is specialized in the C++ standard - const_reference in particular
