@@ -2078,7 +2078,7 @@ public:
 	  Printv(proxy_class_def, methodmods, NIL);
 	else
 	  Printv(proxy_class_def, destruct_methodmodifiers, NIL);
-	Printv(proxy_class_def, " void ", destruct_methodname, "(", destruct_parameters, ") ", destructor_throws_clause, " ", destruct, "\n", NIL);
+	Printv(proxy_class_def, " void ", destruct_methodname, "(", destruct_parameters, ")", destructor_throws_clause, " ", destruct, "\n", NIL);
       }
     }
     if (*Char(interface_upcasts))
