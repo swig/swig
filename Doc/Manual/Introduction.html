@@ -163,7 +163,7 @@ This ability to interface C/C++ to many different target languages is one of SWI
 
 <p>
 SWIG is very broadly composed of two components.
-A core component creates a parse tree from the input C/C++ and SWIG directives (extensions to C/C++).
+A core component creates a parse tree from the input ISO C/C++ and SWIG directives (extensions to the C/C++ standards).
 The parse tree is then passed to a second component, one of the target language modules for generating code specific to a higher level language.
 SWIG supports many different target languages.
 These target languages are given a status of either Supported or Experimental.
@@ -273,7 +273,7 @@ extern int    my_mod(int n, int m);
 </pre></div>
 
 <p>
-The interface file contains ANSI C function prototypes and variable
+The interface file contains ISO C function prototypes and variable
 declarations.  The <tt>%module</tt> directive defines the name of the
 module that will be created by SWIG.  The <tt>%{ %}</tt> block
 provides a location for inserting additional code, such as C header
@@ -400,7 +400,7 @@ major features include:
 
 <ul>
 <li>Full C99 preprocessing.
-<li>All ANSI C and C++ datatypes.
+<li>All ISO C and C++ datatypes.
 <li>Functions, variables, and constants.
 <li>Classes.
 <li>Single and multiple inheritance.
@@ -531,7 +531,7 @@ to work with complicated and unusual C/C++ applications.
 Ironically, the freedom that SWIG provides is countered by an
 extremely conservative approach to code generation. At its core, SWIG
 tries to distill even the most advanced C++ code down to a small
-well-defined set of interface building techniques based on ANSI C
+well-defined set of interface building techniques based on ISO C
 programming.  Because of this, you will find that SWIG interfaces can
 be easily compiled by virtually every C/C++ compiler and that they can
 be used on any platform.  Again, this is an important part of staying out 

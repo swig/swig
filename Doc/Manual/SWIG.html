@@ -88,7 +88,7 @@
 
 <p>
 This chapter describes the basic operation of SWIG, the structure of its
-input files, and how it handles standard ANSI C declarations.  C++ support is
+input files, and how it handles standard ISO C declarations.  C++ support is
 described in the next chapter.  However, C++ programmers should still read this
 chapter to understand the basics.
 Specific details about each target language are described in later
@@ -252,7 +252,7 @@ recursively.
 
 
 <p>
-As input, SWIG expects a file containing ANSI C/C++ declarations and
+As input, SWIG expects a file containing ISO C/C++ declarations and
 special SWIG directives.  More often than not, this is a special SWIG
 interface file which is usually denoted with a special <tt>.i</tt> or
 <tt>.swg</tt> suffix.  In certain cases, SWIG can be used directly on
@@ -270,7 +270,7 @@ The most common format of a SWIG interface is as follows:
 %{
 #include "myheader.h"
 %}
-// Now list ANSI C/C++ declarations
+// Now list ISO C/C++ declarations
 int foo;
 int bar(int x);
 ...
@@ -2242,7 +2242,7 @@ used in Tcl as follows :</p>
 </pre></div>
 
 <p>
-Although the ANSI C standard does not allow default arguments, default
+Although the ISO C standard does not allow default arguments, default
 arguments specified in a SWIG interface work with both C and C++.
 </p>
 
@@ -2415,7 +2415,7 @@ see <a href="SWIGPlus.html#SWIGPlus_target_language_callbacks">Callbacks to the 
 
 
 <p>
-This section describes the behavior of SWIG when processing ANSI C structures and union declarations.  Extensions to
+This section describes the behavior of SWIG when processing ISO C structures and union declarations.  Extensions to
 handle C++ are described in the next section.
 </p>
 
@@ -3469,7 +3469,7 @@ interface to your program.
 SWIG's <tt>%include</tt> directive to process an entire C
 source/header file. 
 
-<li>Make sure everything in the interface file uses ANSI C/C++ syntax.
+<li>Make sure everything in the interface file uses ISO C/C++ syntax.
 
 <li>Make sure all necessary `<tt>typedef</tt>' declarations and
 type-information is available in the interface file. 

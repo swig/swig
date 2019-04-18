@@ -93,7 +93,7 @@ For additions to the original C++ standard, please read the
 <a href="CPlusPlus17.html#CPlusPlus17">SWIG and C++17</a> chapters.
 As a prerequisite,
 you should first read the chapter <a href="SWIG.html#SWIG">SWIG Basics</a> to see
-how SWIG wraps ANSI C.  Support for C++ builds upon ANSI C
+how SWIG wraps ISO C.  Support for C++ builds upon ISO C
 wrapping and that material will be useful in understanding this chapter.
 </p>
 
@@ -144,7 +144,7 @@ yourself in the foot.  You will just have to be careful.
 
 <p>
 To wrap C++, SWIG uses a layered approach to code generation.  
-At the lowest level, SWIG generates a collection of procedural ANSI-C style
+At the lowest level, SWIG generates a collection of procedural ISO C style
 wrappers.   These wrappers take care of basic type conversion,
 type checking, error handling, and other low-level details of the C++ binding.
 These wrappers are also sufficient to bind C++ into any target language
