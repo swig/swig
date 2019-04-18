@@ -1390,6 +1390,35 @@ Version 4.0.0 (in progress)
 2017-05-26: Volker Diels-Grabsch, vadz
             [Java] #842 Extend from java.util.AbstractList<> and implement java.util.RandomAccess for
             std::vector wrappers. This notably allows to iterate over wrapped vectors in a natural way.
+            Note that boxed types are now used in the Java layer when wrapping vector of C primitive
+            types, for example. This may introduce some subtle incompatibilities due to some
+            differences in how Java converts boxed types and unboxed types. For example,
+
+              int i=0;
+              double d1 = i; // ok
+              Double d2 = i; // error: incompatible types: int cannot be converted to Double
+
+            This can be a problem when calling the add and set functions. A suggested backwards
+            compatible workaround is to use something like (shown for std::vector<double>:
+
+              #if defined(SWIGJAVA)
+              // Add in old api that uses non-boxed types
+              %extend std::vector<double> {
+              %proxycode %{
+                public void add(double x) {
+                  add(Double.valueOf(x));
+                }
+                public void set(int i, double val) {
+                  set(i, Double.valueOf(val));
+                }
+              %}
+              }
+              #endif
+
+              %include "std_vector.i"
+              %template(VectorDouble) std::vector<double>;
+
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2017-05-30: davidcl
             [Scilab] #994 Undefined symbol error when loading in Scilab 6
