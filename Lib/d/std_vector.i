@@ -135,7 +135,7 @@ public void capacity(size_t value) {
         return $self->capacity() - $self->size();
       }
 
-      CONST_REFERENCE remove() throw (std::out_of_range) {
+      const_reference remove() throw (std::out_of_range) {
         if ($self->empty()) {
           throw std::out_of_range("Tried to remove last element from empty vector.");
         }
@@ -145,7 +145,7 @@ public void capacity(size_t value) {
         return value;
       }
 
-      CONST_REFERENCE remove(size_type index) throw (std::out_of_range) {
+      const_reference remove(size_type index) throw (std::out_of_range) {
         if (index >= $self->size()) {
           throw std::out_of_range("Tried to remove element with invalid index.");
         }
@@ -160,7 +160,7 @@ public void capacity(size_t value) {
     // Wrappers for setting/getting items with the possibly thrown exception
     // specified (important for SWIG wrapper generation).
     %extend {
-      CONST_REFERENCE getElement(size_type index) throw (std::out_of_range) {
+      const_reference getElement(size_type index) throw (std::out_of_range) {
         if ((index < 0) || ($self->size() <= index)) {
           throw std::out_of_range("Tried to get value of element with invalid index.");
         }
@@ -172,11 +172,11 @@ public void capacity(size_t value) {
     // generation issue when using const pointers as vector elements (like
     // std::vector< const int* >).
     %extend {
-      void setElement(size_type index, CTYPE const& value) throw (std::out_of_range) {
+      void setElement(size_type index, CTYPE const& val) throw (std::out_of_range) {
         if ((index < 0) || ($self->size() <= index)) {
           throw std::out_of_range("Tried to set value of element with invalid index.");
         }
-        (*$self)[index] = value;
+        (*$self)[index] = val;
       }
     }
 
@@ -478,7 +478,7 @@ int opApply(int delegate(ref size_t index, ref $typemap(dtype, CTYPE) value) dg)
         return pv;
       }
 
-      CONST_REFERENCE remove() throw (std::out_of_range) {
+      const_reference remove() throw (std::out_of_range) {
         if ($self->empty()) {
           throw std::out_of_range("Tried to remove last element from empty vector.");
         }
@@ -488,7 +488,7 @@ int opApply(int delegate(ref size_t index, ref $typemap(dtype, CTYPE) value) dg)
         return value;
       }
 
-      CONST_REFERENCE remove(size_type index) throw (std::out_of_range) {
+      const_reference remove(size_type index) throw (std::out_of_range) {
         if (index >= $self->size()) {
           throw std::out_of_range("Tried to remove element with invalid index.");
         }
@@ -520,7 +520,7 @@ int opApply(int delegate(ref size_t index, ref $typemap(dtype, CTYPE) value) dg)
     // Wrappers for setting/getting items with the possibly thrown exception
     // specified (important for SWIG wrapper generation).
     %extend {
-      CONST_REFERENCE getElement(size_type index) throw (std::out_of_range) {
+      const_reference getElement(size_type index) throw (std::out_of_range) {
         if ((index < 0) || ($self->size() <= index)) {
           throw std::out_of_range("Tried to get value of element with invalid index.");
         }
@@ -531,11 +531,11 @@ int opApply(int delegate(ref size_t index, ref $typemap(dtype, CTYPE) value) dg)
     // generation issue when using const pointers as vector elements (like
     // std::vector< const int* >).
     %extend {
-      void setElement(size_type index, CTYPE const& value) throw (std::out_of_range) {
+      void setElement(size_type index, CTYPE const& val) throw (std::out_of_range) {
         if ((index < 0) || ($self->size() <= index)) {
           throw std::out_of_range("Tried to set value of element with invalid index.");
         }
-        (*$self)[index] = value;
+        (*$self)[index] = val;
       }
     }
 
@@ -558,7 +558,7 @@ int opApply(int delegate(ref size_t index, ref $typemap(dtype, CTYPE) value) dg)
 %define SWIG_STD_VECTOR_ENHANCED(CTYPE...)
 namespace std {
   template<> class vector<CTYPE > {
-    SWIG_STD_VECTOR_MINIMUM_INTERNAL(%arg(CTYPE const&), %arg(CTYPE))
+    SWIG_STD_VECTOR_MINIMUM_INTERNAL(const value_type&, %arg(CTYPE))
     SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(CTYPE)
   };
 }
@@ -573,11 +573,11 @@ namespace std {
   // primary (unspecialized) class template for std::vector
   // does not require operator== to be defined
   template<class T> class vector {
-    SWIG_STD_VECTOR_MINIMUM_INTERNAL(T const&, T)
+    SWIG_STD_VECTOR_MINIMUM_INTERNAL(const value_type&, T)
   };
   // specializations for pointers
   template<class T> class vector<T *> {
-    SWIG_STD_VECTOR_MINIMUM_INTERNAL(T *const&, T *)
+    SWIG_STD_VECTOR_MINIMUM_INTERNAL(const value_type&, T *)
     SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(T *)
   };
   // bool is a bit different in the C++ standard - const_reference in particular
