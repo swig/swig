@@ -47,6 +47,10 @@ public class doxygen_parsing_enums_simple_runme {
     		" The comment for the first item \n" +
     		" \n" +
     		"");
+    wantedComments.put("doxygen_parsing_enums_simple.doxygen_parsing_enums_simpleConstants.SOME_ITEM_100",
+    		"Post comment after comma.");
+    wantedComments.put("doxygen_parsing_enums_simple.doxygen_parsing_enums_simpleConstants.SOME_ITEM_200",
+    		"Post comment after last comma.");
     
     // and ask the parser to check comments for us
     System.exit(parser.check(wantedComments));
