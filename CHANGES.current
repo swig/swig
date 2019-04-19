@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-04-19: pbecherer
+            [Tcl] Fix Visual Studio 2015 and later compilation errors due to snprintf macro
+            definition.
+
 2019-04-09: wsfulton
             [C#] Fix FxCop warning CA2002 in SWIGPendingException - a lock on a reference of
             type 'Type'.
