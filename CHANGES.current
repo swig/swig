@@ -8,7 +8,7 @@ Version 4.0.0 (in progress)
 ===========================
 
 2019-04-19: pbecherer
-            [Tcl] Fix Visual Studio 2015 and later compilation errors due to snprintf macro
+            [Tcl] #1508 Fix Visual Studio 2015 and later compilation errors due to snprintf macro
             definition.
 
 2019-04-09: wsfulton
