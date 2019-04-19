@@ -199,7 +199,7 @@ class GO:public Language {
 public:
   GO():package(NULL),
      module(NULL),
-     cgo_flag(false),
+     cgo_flag(true),
      gccgo_flag(false),
      go_prefix(NULL),
      prefix_option(NULL),
@@ -269,6 +269,9 @@ private:
 	} else if (strcmp(argv[i], "-cgo") == 0) {
 	  Swig_mark_arg(i);
 	  cgo_flag = true;
+	} else if (strcmp(argv[i], "-no-cgo") == 0) {
+	  Swig_mark_arg(i);
+	  cgo_flag = false;
 	} else if (strcmp(argv[i], "-gccgo") == 0) {
 	  Swig_mark_arg(i);
 	  gccgo_flag = true;
@@ -6979,6 +6982,7 @@ extern "C" Language *swig_go(void) {
 const char * const GO::usage = "\
 Go Options (available with -go)\n\
      -cgo                - Generate cgo input files\n\
+     -no-cgo             - Do not generate cgo input files\n\
      -gccgo              - Generate code for gccgo rather than 6g/8g\n\
      -go-pkgpath <p>     - Like gccgo -fgo-pkgpath option\n\
      -go-prefix <p>      - Like gccgo -fgo-prefix option\n\
