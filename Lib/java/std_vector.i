@@ -129,7 +129,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
         }
       }
 
-      const_reference doGet(jint index) throw (std::out_of_range) {
+      CONST_REFERENCE doGet(jint index) throw (std::out_of_range) {
         jint size = static_cast<jint>(self->size());
         if (index >= 0 && index < size)
           return (*self)[index];
