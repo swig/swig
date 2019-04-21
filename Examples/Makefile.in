@@ -1468,7 +1468,7 @@ GOGCCOBJS = $(GOSRCS:.go=.@OBJEXT@)
 # ----------------------------------------------------------------
 
 go_nocgo: $(SRCDIR_SRCS)
-	$(SWIG) -go $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(SWIG) -go -no-cgo $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	if $(GO12) || $(GO13) || $(GO15) || $(GOGCC); then \
 	  $(CC) -g -c $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES); \
 	else \
@@ -1504,7 +1504,7 @@ go_nocgo: $(SRCDIR_SRCS)
 	fi
 
 go: $(SRCDIR_SRCS)
-	$(SWIG) -go -cgo $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(SWIG) -go $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	@mkdir gopath 2>/dev/null || true
 	@mkdir gopath/src 2>/dev/null || true
 	@mkdir gopath/src/$(INTERFACE:.i=) 2>/dev/null || true
@@ -1548,7 +1548,7 @@ go: $(SRCDIR_SRCS)
 # ----------------------------------------------------------------
 
 go_cpp_nocgo: $(SRCDIR_SRCS)
-	$(SWIG) -go -c++ $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(SWIG) -go -c++ -no-cgo $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	if $(GO12) || $(GO13) || $(GO15) || $(GOGCC); then \
 	  if test -n "$(SRCDIR_CXXSRCS)$(SRCDIR_SRCS)"; then \
 	    $(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_CXXSRCS) $(SRCDIR_SRCS) $(INCLUDES); \
@@ -1596,7 +1596,7 @@ go_cpp_nocgo: $(SRCDIR_SRCS)
 	fi
 
 go_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -go -c++ -cgo $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(SWIG) -go -c++ $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	@mkdir gopath 2>/dev/null || true
 	@mkdir gopath/src 2>/dev/null || true
 	@mkdir gopath/src/$(INTERFACE:.i=) 2>/dev/null || true

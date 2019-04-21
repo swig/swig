@@ -1113,11 +1113,10 @@ Typesafe enums have their advantages over using plain integers in that they can 
 However, there are limitations. For example, they cannot be used in switch statements and serialization is an issue.
 Please look at the following references for further information: 
 
-http://java.sun.com/developer/Books/shiftintojava/page1.html#replaceenums
 <a href="http://java.sun.com/developer/Books/shiftintojava/page1.html#replaceenums">Replace Enums with Classes</a> in <i>Effective Java Programming</i> on the Sun website,
-<a href="http://www.javaworld.com/javaworld/jw-07-1997/jw-07-enumerated.html">Create enumerated constants in Java</a> JavaWorld article,
-<a href="http://www.javaworld.com/javaworld/javatips/jw-javatip133.html">Java Tip 133: More on typesafe enums</a> and
-<a href="http://www.javaworld.com/javaworld/javatips/jw-javatip122.html">Java Tip 122: Beware of Java typesafe enumerations</a> JavaWorld tips.
+<a href="https://www.javaworld.com/article/2076970/create-enumerated-constants-in-java.html">Create enumerated constants in Java</a> JavaWorld article,
+<a href="https://www.javaworld.com/article/2077499/java-tip-133--more-on-typesafe-enums.html">Java Tip 133: More on typesafe enums</a> and
+<a href="https://www.javaworld.com/article/2077487/java-tip-122--beware-of-java-typesafe-enumerations.html">Java Tip 122: Beware of Java typesafe enumerations</a> JavaWorld tips.
 </p>
 
 <p>
@@ -2763,7 +2762,7 @@ The <tt>finalize()</tt> method calls <tt>delete()</tt> which frees any malloc'd 
 The idea is for <tt>delete()</tt> to be called when you have finished with the C/C++ object. 
 Ideally you need not call <tt>delete()</tt>, but rather leave it to the garbage collector to call it from the finalizer. 
 When a program exits, the garbage collector does not guarantee to call all finalizers. 
-An insight into the reasoning behind this can be obtained from <a href="http://www.hpl.hp.com/techreports/2002/HPL-2002-335.html">Hans Boehm's Destructors, Finalizers, and Synchronization</a> paper.
+An insight into the reasoning behind this can be obtained from <a href="https://www.hpl.hp.com/techreports/2002/HPL-2002-335.html">Hans Boehm's Destructors, Finalizers, and Synchronization</a> paper.
 Depending on what the finalizers do and which operating system you use, this may or may not be a problem. 
 </p>
 
@@ -2787,7 +2786,7 @@ Call the <tt>System.runFinalizersOnExit(true)</tt> or <tt>Runtime.getRuntime().r
 This method is inherently unsafe. It may result in finalizers being called on live objects while other threads are concurrently manipulating those objects, resulting in erratic behavior or deadlock.
 </i></div> 
 <p>In many cases you will be lucky and find that it works, but it is not to be advocated. 
-Have a look at <a href="http://www.oracle.com/technetwork/java/index.html">Java web site</a> and search for <tt>runFinalizersOnExit</tt>.
+Have a look at <a href="https://www.oracle.com/technetwork/java/index.html">Java web site</a> and search for <tt>runFinalizersOnExit</tt>.
 </p></li>
 
 <li><p>
@@ -5645,7 +5644,7 @@ This section describes how you can modify SWIG's default wrapping behavior
 for various C/C++ datatypes using the <tt>%typemap</tt> directive.   
 You are advised to be familiar with the material in the "<a href="Typemaps.html#Typemaps">Typemaps</a>" chapter.
 While not absolutely essential knowledge, this section assumes some familiarity with the Java Native Interface (JNI). 
-JNI documentation can be consulted either online at <a href="http://java.sun.com">Sun's Java web site</a> or from a good JNI book. 
+JNI documentation can be consulted either online at <a href="https://www.oracle.com/technetwork/java/index.html">the Java web site</a> or from a good JNI book. 
 The following two books are recommended:</p>
 
 <ul>

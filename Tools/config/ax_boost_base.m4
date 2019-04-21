@@ -181,8 +181,7 @@ AC_DEFUN([_AX_BOOST_BASE_RUNDETECT],[
         AC_MSG_RESULT(yes)
     succeeded=yes
     found_system=yes
-        ],[
-        ])
+        ],[])
     AC_LANG_POP([C++])
 
 
@@ -276,8 +275,7 @@ AC_DEFUN([_AX_BOOST_BASE_RUNDETECT],[
             AC_MSG_RESULT(yes)
         succeeded=yes
         found_system=yes
-            ],[
-            ])
+            ],[])
         AC_LANG_POP([C++])
     fi
 

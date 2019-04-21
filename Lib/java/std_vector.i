@@ -105,14 +105,14 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
         return SWIG_VectorSize(self->size());
       }
 
-      void doAdd(const value_type& value) {
-        self->push_back(value);
+      void doAdd(const value_type& x) {
+        self->push_back(x);
       }
 
-      void doAdd(jint index, const value_type& value) throw (std::out_of_range) {
+      void doAdd(jint index, const value_type& x) throw (std::out_of_range) {
         jint size = static_cast<jint>(self->size());
         if (0 <= index && index <= size) {
-          self->insert(self->begin() + index, value);
+          self->insert(self->begin() + index, x);
         } else {
           throw std::out_of_range("vector index out of range");
         }
@@ -137,11 +137,11 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
           throw std::out_of_range("vector index out of range");
       }
 
-      value_type doSet(jint index, const value_type& value) throw (std::out_of_range) {
+      value_type doSet(jint index, const value_type& val) throw (std::out_of_range) {
         jint size = static_cast<jint>(self->size());
         if (index >= 0 && index < size) {
           CTYPE const old_value = (*self)[index];
-          (*self)[index] = value;
+          (*self)[index] = val;
           return old_value;
         }
         else
@@ -169,7 +169,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
 namespace std {
 
     template<class T> class vector {
-        SWIG_STD_VECTOR_MINIMUM_INTERNAL(T, const T&)
+        SWIG_STD_VECTOR_MINIMUM_INTERNAL(T, const value_type&)
     };
 
     // bool specialization

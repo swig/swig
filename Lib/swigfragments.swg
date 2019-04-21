@@ -35,7 +35,7 @@
 
 %fragment("<stdio.h>", "header") %{
 #include <stdio.h>
-#if defined(_MSC_VER) || defined(__BORLANDC__) || defined(_WATCOM)
+#if (defined(_MSC_VER) && (_MSC_VER < 1900)) || defined(__BORLANDC__) || defined(_WATCOM)
 # ifndef snprintf
 #  define snprintf _snprintf
 # endif
