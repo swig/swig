@@ -677,6 +677,14 @@ public:
       Append(f->code, "upcall = (director);\n");
     }
 
+    if (!director_method && GetFlagAttr(n, "feature:thread")) {
+      String *preaction = NewString("\ncaml_release_runtime_system();\n");
+      Setattr(n, "wrap:preaction", preaction);
+
+      String *postaction = NewString("\ncaml_acquire_runtime_system();\n");
+      Setattr(n, "wrap:postaction", postaction);
+   }
+
     // Now write code to make the function call
     Swig_director_emit_dynamic_cast(n, f);
     String *actioncode = emit_action(n);

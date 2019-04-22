@@ -57,6 +57,7 @@
 <ul>
 <li><a href="#Ocaml_nn33">Module docstring</a>
 </ul>
+<li><a href="#Ocaml_nn34">%feature("thread")</a>
 </ul>
 </div>
 <!-- INDEX -->
@@ -1115,6 +1116,19 @@ controls on a panel, etc. to be loaded from an XML file."
 %module(docstring=DOCSTRING) xrc
 </pre>
 </div>
+
+<H2><a name="Ocaml_nn34">38.4 %feature("thread")</a></H2>
+
+
+<p>
+When the thread feature is applied to a function, the OCaml master lock is
+released just before the function is called. The master lock is re-acquired immediately
+after the function returns. This feature should only be used by
+multithreaded applications for long-running functions or potentially blocking IO
+operations. See the
+<a href="https://caml.inria.fr/pub/docs/manual-ocaml/intfc.html#sec478">OCaml reference manual</a>
+for more details.
+</p>
 
 </body>
 </html>
