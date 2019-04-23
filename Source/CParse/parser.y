@@ -3133,8 +3133,7 @@ c_declaration   : c_decl {
 		    Setattr($$,"name",$2);
 		    appendChild($$,n);
 		    while (n) {
-		      SwigType *decl = Getattr(n,"decl");
-		      if (SwigType_isfunction(decl) && !Equal(Getattr(n, "storage"), "typedef")) {
+		      if (!Equal(Getattr(n, "storage"), "typedef")) {
 			Setattr(n,"storage","externc");
 		      }
 		      n = nextSibling(n);
