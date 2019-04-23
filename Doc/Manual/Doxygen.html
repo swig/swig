@@ -71,7 +71,7 @@ and Pydoc for the SWIG Java and Python modules.
 Other extensions could be added at a later date.
 The Doxygen Translation module originally started as
 a <a href="https://developers.google.com/open-source/gsoc/2008/">Google Summer of
-Code</a> proposal from Summer 2008.
+Code</a> proposal from Summer 2008.  
 </p>
 
 <H2><a name="Doxygen_file_preparation">17.2 Preparations</a></H2>
@@ -166,7 +166,7 @@ and in some special cases, like function parameter comments:
 
 <div class="code"><pre>
 void someFunction(
-         int a ///&lt; Some parameter
+         int a ///&lt; Some parameter 
      );
 </pre></div>
 
@@ -443,7 +443,6 @@ This is only applicable to Java at the moment.
 ALSO TO BE ADDED (Javadoc auto brief?)
 </p>
 
-
 <H2><a name="Doxygen_to_javadoc">17.3 Doxygen to Javadoc</a></H2>
 
 
@@ -487,9 +486,9 @@ Simply running SWIG should result in the following code being present in Shapes.
 <div class="targetlang"><pre>
 
 /**
- * This is describing class Shape
- * @author Bob
- *
+ * This is describing class Shape 
+ * @author Bob 
+ * 
  */
 
 public class Shape {
@@ -497,35 +496,35 @@ public class Shape {
 ...
 
 /**
- * Important Variables
+ * Important Variables 
  */
   public void setX(double value) {
     ShapesJNI.Shape_x_set(swigCPtr, this, value);
   }
 
 /**
- * Important Variables
+ * Important Variables 
  */
   public double getX() {
     return ShapesJNI.Shape_x_get(swigCPtr, this);
   }
 
 /**
- * Moves the Shape
+ * Moves the Shape 
  */
   public void move(double dx, double dy) {
     ShapesJNI.Shape_move(swigCPtr, this, dx, dy);
   }
 
 /**
- * @return the area
+ * @return the area 
  */
   public double area() {
     return ShapesJNI.Shape_area(swigCPtr, this);
   }
 
 /**
- * @return the perimeter
+ * @return the perimeter 
  */
   public double perimeter() {
     return ShapesJNI.Shape_perimeter(swigCPtr, this);
@@ -547,7 +546,7 @@ The Javadoc translator will handle most of the tags conversions (see the
 table below). It will also automatically translate link-objects
 params, in \see and \link...\endlink commands. For example,
 'someFunction(std::string)' will be converted to
-'someFunction(String)'.  If
+'someFunction(String)'.  If 
 you don't want such behaviour, you could turn this off by using the
 'doxygen:nolinktranslate' feature. Also all '\param' and '\tparam'
 commands are stripped out, if the specified parameter is not present in
@@ -1105,31 +1104,31 @@ Simply running SWIG should result in the following code being present in Shapes.
 
 class Shape(_object):
     """
-    This is describing class Shape
+    This is describing class Shape 
     Authors:
-    Bob
+    Bob 
 
     """
-
+    
     ...
-
+    
     def move(self, *args):
         """
-        Moves the Shape
+        Moves the Shape 
         """
         return _Shapes.Shape_move(self, *args)
 
     def area(self):
         """
         Return:
-        the area
+        the area 
         """
         return _Shapes.Shape_area(self)
 
     def perimeter(self):
         """
         Return:
-        the perimeter
+        the perimeter 
         """
         return _Shapes.Shape_perimeter(self)
 </pre></div>
@@ -1776,7 +1775,7 @@ tool, for example:
   Examples/test-suite/java $ kdiff3 expected.txt got.txt
 </pre></div>
 
-
+    
 <p>
 Runtime tests in Java are implemented using Javadoc doclets. To make that work, you
 should have tools.jar from the JDK in your classpath. Or you should have JAVA_HOME
