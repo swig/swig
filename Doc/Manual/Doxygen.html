@@ -23,6 +23,7 @@
 </ul>
 <li><a href="#Doxygen_additional_options">Additional command line options</a>
 </ul>
+<li><a href="#Doxygen_troubleshooting">Troubleshooting</a>
 <li><a href="#Doxygen_to_javadoc">Doxygen to Javadoc</a>
 <ul>
 <li><a href="#Doxygen_basic_example">Basic example</a>
@@ -70,7 +71,7 @@ and Pydoc for the SWIG Java and Python modules.
 Other extensions could be added at a later date.
 The Doxygen Translation module originally started as
 a <a href="https://developers.google.com/open-source/gsoc/2008/">Google Summer of
-Code</a> proposal from Summer 2008.  
+Code</a> proposal from Summer 2008.
 </p>
 
 <H2><a name="Doxygen_file_preparation">17.2 Preparations</a></H2>
@@ -165,7 +166,7 @@ and in some special cases, like function parameter comments:
 
 <div class="code"><pre>
 void someFunction(
-         int a ///&lt; Some parameter 
+         int a ///&lt; Some parameter
      );
 </pre></div>
 
@@ -442,6 +443,108 @@ This is only applicable to Java at the moment.
 ALSO TO BE ADDED (Javadoc auto brief?)
 </p>
 
+
+<H2><a name="Doxygen_troubleshooting">17.3 Troubleshooting</a></H2>
+
+
+<p>
+When running SWIG with command line switch <tt>-doxygen</tt>, it may happen
+that SWIG will fail to parse the code, which is valid C++ code and
+is parsed without problems without the switch. The problem is,
+that Doxygen comments are not tokens (C/C++ compiler actually never
+sees them) and that they can appear anywhere in the code. That's why it is
+practically impossible to handle all corner cases with parser.
+However, these problems can usually be avoided by minor changes in the
+code or comment. Known problems and solutions are shown in this section.
+</p>
+
+
+<p>
+Recommended approach is to first run SWIG without command line
+switch <tt>-doxygen</tt>. When it successfully processes the code,
+include the switch and fix problems with Doxygen comments.
+</p>
+
+<H3><a name="troubleshooting_enums">17.3.1 Enums</a></H3>
+
+
+<p>
+In C/C++ the comma after the last enum item is optional, but when
+<tt>-doxygen</tt> switch is used the comma must <i>not</i> be present
+if followed by Doxygen post-comment. For example, this snippet will
+cause <tt>Error: Syntax error in input(3).</tt>:
+</p>
+
+<div class="code"><pre>
+/**
+ * Comments after enum items.
+ */
+enum SomeEnum
+{
+  SOME_ITEM_100, ///< Post comment for the first item
+  SOME_ITEM_200<font color='#ff0000'>,</font> ///< Comma after enum item causes error.
+};
+</pre></div>
+
+
+<p>
+Solution: remove the comma after the last enum item:
+</p>
+
+<div class="code"><pre>
+/**
+ * Comments after enum items.
+ */
+enum SomeEnum
+{
+  SOME_ITEM_100, ///< Post comment for the first item
+  SOME_ITEM_200  ///< OK.
+};
+</pre></div>
+
+
+
+
+<H3><a name="troubleshooting_ifndef">17.3.2 Conditional compilation</a></H3>
+
+
+<p>
+  Inserting of conditional compilation preprocessor directive between
+  Doxygen comment and commented item may also break parsing:
+</p>
+
+
+<div class="code"><pre>
+class A {
+  /**
+   * Some func.
+   */
+  <font color='#ff0000'>#ifndef SWIG</font>
+  void myfunc()
+  {
+  }
+  #endif
+};
+</pre></div>
+
+<p>
+  Solution is to move the directive above comment:
+</p>
+
+<div class="code"><pre>
+class A {
+  <font color='#00d000'>#ifndef SWIG</font>
+  /**
+   * Some func.
+   */
+  void myfunc()
+  {
+  }
+  #endif
+};
+</pre></div>
+
+
 <H2><a name="Doxygen_to_javadoc">17.3 Doxygen to Javadoc</a></H2>
 
 
@@ -485,9 +588,9 @@ Simply running SWIG should result in the following code being present in Shapes.
 <div class="targetlang"><pre>
 
 /**
- * This is describing class Shape 
- * @author Bob 
- * 
+ * This is describing class Shape
+ * @author Bob
+ *
  */
 
 public class Shape {
@@ -495,35 +598,35 @@ public class Shape {
 ...
 
 /**
- * Important Variables 
+ * Important Variables
  */
   public void setX(double value) {
     ShapesJNI.Shape_x_set(swigCPtr, this, value);
   }
 
 /**
- * Important Variables 
+ * Important Variables
  */
   public double getX() {
     return ShapesJNI.Shape_x_get(swigCPtr, this);
   }
 
 /**
- * Moves the Shape 
+ * Moves the Shape
  */
   public void move(double dx, double dy) {
     ShapesJNI.Shape_move(swigCPtr, this, dx, dy);
   }
 
 /**
- * @return the area 
+ * @return the area
  */
   public double area() {
     return ShapesJNI.Shape_area(swigCPtr, this);
   }
 
 /**
- * @return the perimeter 
+ * @return the perimeter
  */
   public double perimeter() {
     return ShapesJNI.Shape_perimeter(swigCPtr, this);
@@ -545,7 +648,7 @@ The Javadoc translator will handle most of the tags conversions (see the
 table below). It will also automatically translate link-objects
 params, in \see and \link...\endlink commands. For example,
 'someFunction(std::string)' will be converted to
-'someFunction(String)'.  If 
+'someFunction(String)'.  If
 you don't want such behaviour, you could turn this off by using the
 'doxygen:nolinktranslate' feature. Also all '\param' and '\tparam'
 commands are stripped out, if the specified parameter is not present in
@@ -1103,31 +1206,31 @@ Simply running SWIG should result in the following code being present in Shapes.
 
 class Shape(_object):
     """
-    This is describing class Shape 
+    This is describing class Shape
     Authors:
-    Bob 
+    Bob
 
     """
-    
+
     ...
-    
+
     def move(self, *args):
         """
-        Moves the Shape 
+        Moves the Shape
         """
         return _Shapes.Shape_move(self, *args)
 
     def area(self):
         """
         Return:
-        the area 
+        the area
         """
         return _Shapes.Shape_area(self)
 
     def perimeter(self):
         """
         Return:
-        the perimeter 
+        the perimeter
         """
         return _Shapes.Shape_perimeter(self)
 </pre></div>
@@ -1712,7 +1815,7 @@ tool, for example:
   Examples/test-suite/java $ kdiff3 expected.txt got.txt
 </pre></div>
 
-    
+
 <p>
 Runtime tests in Java are implemented using Javadoc doclets. To make that work, you
 should have tools.jar from the JDK in your classpath. Or you should have JAVA_HOME
