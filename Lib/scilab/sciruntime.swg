@@ -25,12 +25,14 @@ SWIG_Scilab_SetModule(swig_module_info *swig_module) {
 SWIGRUNTIME swig_type_info *
 SWIG_Scilab_TypeQuery(const char *name) {
   if (SWIG_Module_Initialized()) {
-    return SWIG_TypeQuery(name);
+    if (name) {
+      return SWIG_TypeQuery(name);
+    }
   }
   else {
     SWIG_Error(SWIG_RuntimeError, "the module is not initialized");
-    return NULL;
   }
+  return NULL;
 }
 %}
 

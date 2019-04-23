@@ -23,10 +23,10 @@ public class template_partial_specialization_typedef_runme {
     new G().g();
     new H().h();
 
-    new I().i();
     new J().j();
     new K().k();
-    new L().l();
+    new M().m();
+    new N().n();
 
     new BB().b();
     new BBB().b();

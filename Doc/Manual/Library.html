@@ -7,31 +7,38 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Library">9 SWIG library</a></H1>
+<H1><a name="Library">11 SWIG library</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
 <li><a href="#Library_nn2">The %include directive and library search path</a>
-<li><a href="#Library_nn3">C Arrays and Pointers</a>
+<li><a href="#Library_nn3">C arrays and pointers</a>
 <ul>
 <li><a href="#Library_nn4">cpointer.i</a>
 <li><a href="#Library_carrays">carrays.i</a>
 <li><a href="#Library_nn6">cmalloc.i</a>
 <li><a href="#Library_nn7">cdata.i</a>
 </ul>
-<li><a href="#Library_nn8">C String Handling</a>
+<li><a href="#Library_nn8">C string handling</a>
 <ul>
 <li><a href="#Library_nn9">Default string handling</a>
 <li><a href="#Library_nn10">Passing binary data</a>
 <li><a href="#Library_nn11">Using %newobject to release memory</a>
 <li><a href="#Library_nn12">cstring.i</a>
 </ul>
-<li><a href="#Library_stl_cpp_library">STL/C++ Library</a>
+<li><a href="#Library_stl_cpp_library">STL/C++ library</a>
 <ul>
 <li><a href="#Library_std_string">std::string</a>
 <li><a href="#Library_std_vector">std::vector</a>
 <li><a href="#Library_stl_exceptions">STL exceptions</a>
 <li><a href="#Library_std_shared_ptr">shared_ptr smart pointer</a>
+<ul>
+<li><a href="#Library_shared_ptr_basics">shared_ptr basics</a>
+<li><a href="#Library_shared_ptr_inheritance">shared_ptr and inheritance</a>
+<li><a href="#Library_shared_ptr_overloading">shared_ptr and method overloading</a>
+<li><a href="#Library_shared_ptr_templates">shared_ptr and templates</a>
+<li><a href="#Library_shared_ptr_directors">shared_ptr and directors</a>
+</ul>
 <li><a href="#Library_std_auto_ptr">auto_ptr smart pointer</a>
 </ul>
 <li><a href="#Library_nn16">Utility Libraries</a>
@@ -60,7 +67,7 @@ Alternative libraries provide similar functionality.  Please read this chapter
 carefully if you used the old libraries.
 </p>
 
-<H2><a name="Library_nn2">9.1 The %include directive and library search path</a></H2>
+<H2><a name="Library_nn2">11.1 The %include directive and library search path</a></H2>
 
 
 <p>
@@ -92,7 +99,7 @@ Set the environment variable to hold an alternative library directory.
 The directories that are searched are displayed when using <tt>-verbose</tt> commandline option.
 </p>
 
-<H2><a name="Library_nn3">9.2 C Arrays and Pointers</a></H2>
+<H2><a name="Library_nn3">11.2 C arrays and pointers</a></H2>
 
 
 <p>
@@ -104,7 +111,7 @@ pointers as class-like objects.   Since these functions provide direct access to
 memory, their use is potentially unsafe and you should exercise caution.
 </p>
 
-<H3><a name="Library_nn4">9.2.1 cpointer.i</a></H3>
+<H3><a name="Library_nn4">11.2.1 cpointer.i</a></H3>
 
 
 <p>
@@ -320,7 +327,7 @@ In this example,  the function <tt>int_to_uint()</tt> would be used to cast type
 <b>Note:</b> When working with simple pointers, typemaps can often be used to provide more seamless operation.
 </p>
 
-<H3><a name="Library_carrays">9.2.2 carrays.i</a></H3>
+<H3><a name="Library_carrays">11.2.2 carrays.i</a></H3>
 
 
 <p>
@@ -411,13 +418,13 @@ void print_array(double x[10]);
 Now, in a scripting language, you might write this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
-a = new_doubleArray(10)             # Create an array
+a = new_doubleArray(10)               # Create an array
 for i in range(0, 10):
-    doubleArray_setitem(a, i, 2*i)  # Set a value
-print_array(a)                      # Pass to C
-delete_doubleArray(a)               # Destroy array
+    doubleArray_setitem(a, i, 2 * i)  # Set a value
+print_array(a)                        # Pass to C
+delete_doubleArray(a)                 # Destroy array
 </pre>
 </div>
 
@@ -475,12 +482,12 @@ void print_array(double x[10]);
 Allows you to do this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 import example
 c = example.doubleArray(10)  # Create double[10]
 for i in range(0, 10):
-    c[i] = 2*i               # Assign values
+    c[i] = 2 * i             # Assign values
 example.print_array(c)       # Pass to C
 </pre>
 </div>
@@ -496,9 +503,10 @@ you should consider using a special array object rather than a bare pointer.
 <p>
 <b>Note:</b> <tt>%array_functions()</tt> and <tt>%array_class()</tt> should not be
 used with types of <tt>char</tt> or <tt>char *</tt>.
+SWIG's default handling of these types is to handle them as character strings and the two macros do not do enough to change this.
 </p>
 
-<H3><a name="Library_nn6">9.2.3 cmalloc.i</a></H3>
+<H3><a name="Library_nn6">11.2.3 cmalloc.i</a></H3>
 
 
 <p>
@@ -659,7 +667,7 @@ Now, in a script:
 </pre>
 </div>
 
-<H3><a name="Library_nn7">9.2.4 cdata.i</a></H3>
+<H3><a name="Library_nn7">11.2.4 cdata.i</a></H3>
 
 
 <p>
@@ -761,7 +769,7 @@ char *cdata_<em>name</em>(type* ptr, int nitems)
 Clearly they are unsafe.
 </p>
 
-<H2><a name="Library_nn8">9.3 C String Handling</a></H2>
+<H2><a name="Library_nn8">11.3 C string handling</a></H2>
 
 
 <p>
@@ -781,7 +789,7 @@ morality.  The modules in this section provide basic functionality
 for manipulating raw C strings.
 </p>
 
-<H3><a name="Library_nn9">9.3.1 Default string handling</a></H3>
+<H3><a name="Library_nn9">11.3.1 Default string handling</a></H3>
 
 
 <p>
@@ -801,7 +809,7 @@ target language.  In other words, if you were using a language like Tcl,
 and you wrote this,
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 % foo Hello
 </pre>
@@ -822,7 +830,7 @@ interpreter and lead to a crash).  Furthermore, the default behavior does
 not work well with binary data. Instead, strings are assumed to be NULL-terminated.
 </p>
 
-<H3><a name="Library_nn10">9.3.2 Passing binary data</a></H3>
+<H3><a name="Library_nn10">11.3.2 Passing binary data</a></H3>
 
 
 <p>
@@ -852,7 +860,7 @@ size_t parity(char *str, size_t len, size_t initial);
 Now, in the target language, you can use binary string data like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; s = "H\x00\x15eg\x09\x20"
 &gt;&gt;&gt; parity(s, 0)
@@ -864,7 +872,7 @@ In the wrapper function, the passed string will be expanded to a pointer and len
 The <tt>(char *STRING, int LENGTH)</tt> multi-argument typemap is also available in addition to <tt>(char *STRING, size_t LENGTH)</tt>.
 </p>
 
-<H3><a name="Library_nn11">9.3.3 Using %newobject to release memory</a></H3>
+<H3><a name="Library_nn11">11.3.3 Using %newobject to release memory</a></H3>
 
 
 <p>
@@ -905,7 +913,7 @@ however, you may need to provide your own "newfree" typemap for other types.
 See <a href="Customization.html#Customization_ownership">Object ownership and %newobject</a> for more details.
 </p>
 
-<H3><a name="Library_nn12">9.3.4 cstring.i</a></H3>
+<H3><a name="Library_nn12">11.3.4 cstring.i</a></H3>
 
 
 <p>
@@ -1357,7 +1365,7 @@ to accomplish this in SWIG.  This library provides support for a few common tech
 </li>
 
 <li>If used in C++, this library uses <tt>new</tt> and <tt>delete []</tt> for memory
-allocation.  If using ANSI C, the library uses <tt>malloc()</tt> and <tt>free()</tt>.
+allocation.  If using C, the library uses <tt>malloc()</tt> and <tt>free()</tt>.
 </li>
 
 <li>Rather than manipulating <tt>char *</tt> directly, you might consider using a special string
@@ -1365,7 +1373,7 @@ structure or class instead.
 </li>
 </ul>
 
-<H2><a name="Library_stl_cpp_library">9.4 STL/C++ Library</a></H2>
+<H2><a name="Library_stl_cpp_library">11.4 STL/C++ library</a></H2>
 
 
 <p>
@@ -1385,16 +1393,24 @@ The following table shows which C++ classes are supported and the equivalent SWI
 <td><b>SWIG Interface library file</b></td>
 </tr>
 
+<tr> <td>std::array (C++11)</td>           <td>array</td>             <td>std_array.i</td> </tr>
 <tr> <td>std::auto_ptr</td>           <td>memory</td>             <td>std_auto_ptr.i</td> </tr>
+<tr> <td>std::complex</td>           <td>complex</td>             <td>std_complex.i</td> </tr>
 <tr> <td>std::deque</td>           <td>deque</td>             <td>std_deque.i</td> </tr>
 <tr> <td>std::list</td>           <td>list</td>             <td>std_list.i</td> </tr>
 <tr> <td>std::map</td>           <td>map</td>             <td>std_map.i</td> </tr>
+<tr> <td>std::multimap (C++11)</td>           <td>multimap</td>             <td>std_multimap.i</td> </tr>
+<tr> <td>std::multiset (C++11)</td>           <td>multiset</td>             <td>std_multiset.i</td> </tr>
 <tr> <td>std::pair</td>           <td>utility</td>             <td>std_pair.i</td> </tr>
 <tr> <td>std::set</td>           <td>set</td>             <td>std_set.i</td> </tr>
 <tr> <td>std::string</td>           <td>string</td>             <td>std_string.i</td> </tr>
+<tr> <td>std::unordered_map (C++11)</td>           <td>unordered_map</td>             <td>std_unordered_map.i</td> </tr>
+<tr> <td>std::unordered_multimap (C++11)</td>           <td>unordered_multimap</td>             <td>std_unordered_multimap.i</td> </tr>
+<tr> <td>std::unordered_multiset (C++11)</td>           <td>unordered_multiset</td>             <td>std_unordered_multiset.i</td> </tr>
+<tr> <td>std::unordered_set (C++11)</td>           <td>unordered_set</td>             <td>std_unordered_set.i</td> </tr>
 <tr> <td>std::vector</td>           <td>vector</td>             <td>std_vector.i</td> </tr>
-<tr> <td>std::array</td>           <td>array (C++11)</td>             <td>std_array.i</td> </tr>
-<tr> <td>std::shared_ptr</td>           <td>shared_ptr (C++11)</td>             <td>std_shared_ptr.i</td> </tr>
+<tr> <td>std::wstring</td>           <td>wstring</td>             <td>std_wstring.i</td> </tr>
+<tr> <td>std::shared_ptr (C++11)</td>           <td>shared_ptr</td>             <td>std_shared_ptr.i</td> </tr>
 
 </table>
 
@@ -1404,7 +1420,7 @@ Please look for the library files in the appropriate language library directory.
 </p>
 
 
-<H3><a name="Library_std_string">9.4.1 std::string</a></H3>
+<H3><a name="Library_std_string">11.4.1 std::string</a></H3>
 
 
 <p>
@@ -1460,7 +1476,7 @@ In the target language:
 <div class="targetlang">
 <pre>
 x = my_struct();
-x.foo="Hello World";      # assign with string
+x.foo = "Hello World";    # assign with string
 print x.foo;              # print as string
 </pre>
 </div>
@@ -1488,7 +1504,7 @@ void foo(string s, const String &amp;t);     // std_string typemaps still applie
 </pre>
 </div>
 
-<H3><a name="Library_std_vector">9.4.2 std::vector</a></H3>
+<H3><a name="Library_std_vector">11.4.2 std::vector</a></H3>
 
 
 <p>
@@ -1667,7 +1683,7 @@ if you want to make their head explode.
 details and the public API exposed to the interpreter vary.
 </p>
 
-<H3><a name="Library_stl_exceptions">9.4.3 STL exceptions</a></H3>
+<H3><a name="Library_stl_exceptions">11.4.3 STL exceptions</a></H3>
 
 
 <p>
@@ -1717,7 +1733,10 @@ The <tt>%exception</tt> directive can be used by placing the following code befo
 Any thrown STL exceptions will then be gracefully handled instead of causing a crash.
 </p>
 
-<H3><a name="Library_std_shared_ptr">9.4.4 shared_ptr smart pointer</a></H3>
+<H3><a name="Library_std_shared_ptr">11.4.4 shared_ptr smart pointer</a></H3>
+
+
+<H4><a name="Library_shared_ptr_basics">11.4.4.1 shared_ptr basics</a></H4>
 
 
 <p>
@@ -1813,8 +1832,11 @@ System.out.println(val1 + " " + val2);
 </pre>
 </div>
 
+<H4><a name="Library_shared_ptr_inheritance">11.4.4.2 shared_ptr and inheritance</a></H4>
+
+
 <p>
-This shared_ptr library works quite differently to SWIG's normal, but somewhat limited, 
+The shared_ptr library works quite differently to SWIG's normal, but somewhat limited, 
 <a href="SWIGPlus.html#SWIGPlus_smart_pointers">smart pointer handling</a>.
 The shared_ptr library does not generate extra wrappers, just for smart pointer handling, in addition to the proxy class.
 The normal proxy class including inheritance relationships is generated as usual.
@@ -1892,7 +1914,7 @@ Adding the missing <tt>%shared_ptr</tt> macros will fix this:
 
 <div class="code">
 <pre>
-%include "boost_shared_ptr.i"
+%include &lt;boost_shared_ptr.i&gt;
 %shared_ptr(GrandParent);
 %shared_ptr(Parent);
 %shared_ptr(Child);
@@ -1901,14 +1923,79 @@ Adding the missing <tt>%shared_ptr</tt> macros will fix this:
 </pre>
 </div>
 
+<H4><a name="Library_shared_ptr_overloading">11.4.4.3 shared_ptr and method overloading</a></H4>
+
+
 <p>
-<b>Note:</b> There is somewhat limited support for <tt>%shared_ptr</tt> and the director feature
-and the degrees of success varies among the different target languages.
-Please help to improve this support by providing patches with improvements.
+A C++ compiler can disambiguate a method overloaded by a shared_ptr and one using the raw underlying type.
+For example, either one of these methods can be called in C++:
+</p>
+
+<div class="code">
+<pre>
+int age(std::shared_ptr&lt;GrandParent&gt; num);
+int age(GrandParent&amp; num);
+</pre>
+</div>
+
+<p>
+When wrapped by SWIG, disambiguation is not possible using the overloaded names as there is just one equivalent type (<tt>GrandParent</tt>) in the target language.
+SWIG will choose to wrap just the first method by default.
+<a href="SWIGPlus.html#SWIGPlus_nn25">Ambiguity in overloading</a> discusses ways to control which method(s) gets wrapped using <tt>%ignore</tt> or <tt>%rename</tt>.
+For the interested reader, SWIG detects that they are equivalent types via the <a href=Typemaps.html#Typemaps_typecheck_pointer>typecheck typemaps</a> in the shared_ptr library.
+</p>
+
+<H4><a name="Library_shared_ptr_templates">11.4.4.4 shared_ptr and templates</a></H4>
+
+
+<p>
+The <tt>%shared_ptr</tt> macro should be used for all the required instantiations
+of the template before each of the <tt>%template</tt> instantiations.
+For example, consider <tt>number.h</tt> containing the following illustrative template:
+</p>
+
+<div class="code">
+<pre>
+#include &lt;memory&gt;
+
+template&lt;int N&gt; struct Number {
+  int num;
+  Number() : num(N) {}
+  static std::shared_ptr&lt;Number&lt;N&gt;&gt; make() { return std::make_shared&lt;Number&lt;N&gt;&gt;(); }
+};
+</pre>
+</div>
+
+<p>
+The SWIG code below shows the required ordering:
+</p>
+
+<div class="code">
+<pre>
+%include &lt;std_shared_ptr.i&gt;
+
+%shared_ptr(Number&lt;10&gt;);
+%shared_ptr(Number&lt;42&gt;);
+
+%{
+  #include "number.h"
+%}
+%include "number.h"
+
+%template(Number10) Number&lt;10&gt;;
+%template(Number42) Number&lt;42&gt;;
+</pre>
+</div>
+
+<H4><a name="Library_shared_ptr_directors">11.4.4.5 shared_ptr and directors</a></H4>
+
+
+<p>
+The languages that support shared_ptr also have support for using shared_ptr with directors.
 </p>
 
 
-<H3><a name="Library_std_auto_ptr">9.4.5 auto_ptr smart pointer</a></H3>
+<H3><a name="Library_std_auto_ptr">11.4.5 auto_ptr smart pointer</a></H3>
 
 
 <p>
@@ -1957,10 +2044,10 @@ int value = k.getValue();
 </pre>
 </div>
 
-<H2><a name="Library_nn16">9.5 Utility Libraries</a></H2>
+<H2><a name="Library_nn16">11.5 Utility Libraries</a></H2>
 
 
-<H3><a name="Library_nn17">9.5.1 exception.i</a></H3>
+<H3><a name="Library_nn17">11.5.1 exception.i</a></H3>
 
 
 <p>

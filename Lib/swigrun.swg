@@ -43,6 +43,7 @@
 /* Flags for pointer conversions */
 #define SWIG_POINTER_DISOWN        0x1
 #define SWIG_CAST_NEW_MEMORY       0x2
+#define SWIG_POINTER_NO_NULL       0x4
 
 /* Flags for new pointer objects */
 #define SWIG_POINTER_OWN           0x1

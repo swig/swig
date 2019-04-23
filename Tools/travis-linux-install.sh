@@ -13,6 +13,14 @@ elif [[ "$CC" == gcc-6 ]]; then
 	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 	travis_retry sudo apt-get -qq update
 	travis_retry sudo apt-get install -qq g++-6
+elif [[ "$CC" == gcc-7 ]]; then
+	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+	travis_retry sudo apt-get -qq update
+	travis_retry sudo apt-get install -qq g++-7
+elif [[ "$CC" == gcc-8 ]]; then
+	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+	travis_retry sudo apt-get -qq update
+	travis_retry sudo apt-get install -qq g++-8
 fi
 
 travis_retry sudo apt-get -qq install libboost-dev
@@ -33,10 +41,16 @@ case "$SWIGLANG" in
 	"javascript")
 		case "$ENGINE" in
 			"node")
-				travis_retry sudo add-apt-repository -y ppa:chris-lea/node.js
-				travis_retry sudo apt-get -qq update
-				travis_retry sudo apt-get install -qq nodejs rlwrap
-				travis_retry sudo npm install -g node-gyp
+				if [[ -z "$VER" ]]; then
+					travis_retry sudo apt-get install -qq nodejs node-gyp
+				else
+					travis_retry wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.33.10/install.sh | bash
+					export NVM_DIR="$HOME/.nvm"
+					[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+					travis_retry nvm install ${VER}
+					nvm use ${VER}
+					travis_retry npm install -g node-gyp
+				fi
 				;;
 			"jsc")
 				travis_retry sudo apt-get install -qq libwebkitgtk-dev
@@ -58,6 +72,9 @@ case "$SWIGLANG" in
 			travis_retry sudo apt-get -qq install lua${VER} liblua${VER}-dev
 		fi
 		;;
+	"mzscheme")
+		travis_retry sudo apt-get -qq install racket
+		;;
 	"ocaml")
 		# configure also looks for ocamldlgen, but this isn't packaged.  But it isn't used by default so this doesn't matter.
 		travis_retry sudo apt-get -qq install ocaml ocaml-findlib
@@ -66,13 +83,18 @@ case "$SWIGLANG" in
 		if [[ -z "$VER" ]]; then
 			travis_retry sudo apt-get -qq install liboctave-dev
 		else
+			# Travis adds external PPAs which contain newer versions of packages
+			# than in baseline trusty. These newer packages prevent some of the
+			# Octave packages in ppa:kwwette/octave, which rely on the older
+			# packages in trusty, from installing. To prevent these kind of
+			# interactions arising, clean out all external PPAs added by Travis
+			# before installing Octave
+			sudo rm -rf /etc/apt/sources.list.d/*
+			travis_retry sudo apt-get -qq update
 			travis_retry sudo add-apt-repository -y ppa:kwwette/octaves
 			travis_retry sudo apt-get -qq update
 			travis_retry sudo apt-get -qq install liboctave${VER}-dev
 		fi
-		;;
-	"php5")
-		travis_retry sudo apt-get -qq install php5-cli php5-dev
 		;;
 	"php")
 		travis_retry sudo add-apt-repository -y ppa:ondrej/php
@@ -80,13 +102,13 @@ case "$SWIGLANG" in
 		travis_retry sudo apt-get -qq install php$VER-cli php$VER-dev
 		;;
 	"python")
-		pip install pep8
+		pip install --user pycodestyle
 		if [[ "$PY3" ]]; then
 			travis_retry sudo apt-get install -qq python3-dev
 		fi
 		WITHLANG=$SWIGLANG$PY3
 		if [[ "$VER" ]]; then
-			travis_retry sudo add-apt-repository -y ppa:fkrull/deadsnakes
+			travis_retry sudo add-apt-repository -y ppa:deadsnakes/ppa
 			travis_retry sudo apt-get -qq update
 			travis_retry sudo apt-get -qq install python${VER}-dev
 			WITHLANG=$SWIGLANG$PY3=$SWIGLANG$VER

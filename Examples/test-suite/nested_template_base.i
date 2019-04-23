@@ -1,5 +1,9 @@
 %module nested_template_base
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#endif
+
 %inline %{
   template <class T> class OuterT {
     public:

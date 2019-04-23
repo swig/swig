@@ -27,46 +27,37 @@
     $result = caml_val_ptr($1,$descriptor);
 }
 
-#ifdef __cplusplus
+%typemap(in) char *& (char *temp) {
+  temp = (char*)caml_val_ptr($1,$descriptor);
+  $1 = &temp;
+}
+
+%typemap(argout) char *& {
+  swig_result =	caml_list_append(swig_result,caml_val_string_len(*$1, strlen(*$1)));
+}
 
 %typemap(in) SWIGTYPE & {
-    /* %typemap(in) SWIGTYPE & */
     $1 = ($ltype) caml_ptr_val($input,$1_descriptor);
 }
 
 %typemap(in) SWIGTYPE && {
-    /* %typemap(in) SWIGTYPE && */
     $1 = ($ltype) caml_ptr_val($input,$1_descriptor);
 }
 
 %typemap(varin) SWIGTYPE & {
-    /* %typemap(varin) SWIGTYPE & */
     $1 = *(($ltype) caml_ptr_val($input,$1_descriptor));
 }
 
 %typemap(varin) SWIGTYPE && {
-    /* %typemap(varin) SWIGTYPE && */
     $1 = *(($ltype) caml_ptr_val($input,$1_descriptor));
 }
 
-%typemap(out) SWIGTYPE & {
-    /* %typemap(out) SWIGTYPE & */
-    CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
-    if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *) &$1,$1_descriptor));
-    } else {
-	$result = caml_val_ptr ((void *) &$1,$1_descriptor);
-    }
+%typemap(varout) SWIGTYPE &, SWIGTYPE && {
+    $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", (void *)&$1, $1_descriptor);
 }
 
-%typemap(out) SWIGTYPE && {
-    /* %typemap(out) SWIGTYPE && */
-    CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
-    if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *) &$1,$1_descriptor));
-    } else {
-	$result = caml_val_ptr ((void *) &$1,$1_descriptor);
-    }
+%typemap(out) SWIGTYPE &, SWIGTYPE && {
+    $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", (void *)$1, $1_descriptor);
 }
 
 #if 0
@@ -75,7 +66,7 @@
     if( fromval ) {
 	swig_result =
 	    caml_list_append(swig_result,
-			     callback(*fromval,caml_val_ptr((void *) $1,
+			     caml_callback(*fromval,caml_val_ptr((void *) $1,
 							    $1_descriptor)));
     } else {
 	swig_result =
@@ -88,7 +79,7 @@
     if( fromval ) {
 	swig_result =
 	    caml_list_append(swig_result,
-			     callback(*fromval,caml_val_ptr((void *) $1,
+			     caml_callback(*fromval,caml_val_ptr((void *) $1,
 							    $1_descriptor)));
     } else {
 	swig_result =
@@ -98,81 +89,61 @@
 }
 #endif
 
-%typemap(argout) const SWIGTYPE & { }
-%typemap(argout) const SWIGTYPE && { }
-
 %typemap(in) SWIGTYPE {
     $1 = *(($&1_ltype) caml_ptr_val($input,$&1_descriptor)) ;
 }
 
+#ifdef __cplusplus
+
 %typemap(out) SWIGTYPE {
-    /* %typemap(out) SWIGTYPE */
     $&1_ltype temp = new $ltype((const $1_ltype &) $1);
-    CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
-    if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *)temp,$&1_descriptor));
-    } else {
-	$result = caml_val_ptr ((void *)temp,$&1_descriptor);
-    }
-}
-
-%typemap(in) char *& (char *temp) {
-  /* %typemap(in) char *& */
-  temp = (char*)caml_val_ptr($1,$descriptor);
-  $1 = &temp;
-}
-
-%typemap(argout) char *& {
-  /* %typemap(argout) char *& */
-  swig_result =	caml_list_append(swig_result,caml_val_string_len(*$1, strlen(*$1)));
+    $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", (void *)temp, $&1_descriptor);
 }
 
 #else
 
-%typemap(in) SWIGTYPE {
-    $1 = *(($&1_ltype) caml_ptr_val($input,$&1_descriptor)) ;
-}
-
 %typemap(out) SWIGTYPE {
-    /* %typemap(out) SWIGTYPE */
     void *temp = calloc(1,sizeof($ltype));
-    CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
-    memmove( temp, &$1, sizeof( $1_type ) );
-    if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *)temp,$&1_descriptor));
-    } else {
-	$result = caml_val_ptr ((void *)temp,$&1_descriptor);
-    }
+    memmove(temp, &$1, sizeof($1_type));
+    $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", temp, $&1_descriptor);
 }
-
-%apply SWIGTYPE { const SWIGTYPE & };
-%apply SWIGTYPE { const SWIGTYPE && };
 
 #endif
+
+%typemap(directorin) SWIGTYPE {
+    $&ltype temp = new $ltype((const $ltype &)$1);
+    swig_result = SWIG_Ocaml_ptr_to_val("create_$ltype_from_ptr", (void *)temp, $&1_descriptor);
+    args = caml_list_append(args, swig_result);
+}
+
+%typemap(directorin) SWIGTYPE *, SWIGTYPE [], SWIGTYPE &, SWIGTYPE && {
+    swig_result = SWIG_Ocaml_ptr_to_val("create_$ltype_from_ptr", (void *)&$1, $&1_descriptor);
+    args = caml_list_append(args, swig_result);
+}
 
 /* The SIMPLE_MAP macro below defines the whole set of typemaps needed
    for simple types. */
 
-%define SIMPLE_MAP(C_NAME, C_TO_MZ, MZ_TO_C)
+%define SIMPLE_MAP(C_NAME, C_TO_OCAML, OCAML_TO_C)
 /* In */
 %typemap(in) C_NAME {
-    $1 = MZ_TO_C($input);
+    $1 = OCAML_TO_C($input);
 }
 %typemap(varin) C_NAME {
-    $1 = MZ_TO_C($input);
+    $1 = OCAML_TO_C($input);
 }
-%typemap(in) C_NAME & ($*1_ltype temp) {
-    temp = ($*1_ltype) MZ_TO_C($input);
+%typemap(in) const C_NAME & ($*1_ltype temp) {
+    temp = ($*1_ltype) OCAML_TO_C($input);
     $1 = &temp;
 }
-%typemap(varin) C_NAME & {
-    $1 = MZ_TO_C($input);
+%typemap(varin) const C_NAME & {
+    $1 = OCAML_TO_C($input);
 }
 %typemap(directorout) C_NAME {
-    $1 = MZ_TO_C($input);
+    $1 = OCAML_TO_C($input);
 }
 %typemap(in) C_NAME *INPUT ($*1_ltype temp) {
-    temp = ($*1_ltype) MZ_TO_C($input);
+    temp = ($*1_ltype) OCAML_TO_C($input);
     $1 = &temp;
 }
 %typemap(in,numinputs=0) C_NAME *OUTPUT ($*1_ltype temp) {
@@ -180,32 +151,26 @@
 }
 /* Out */
 %typemap(out) C_NAME {
-    $result = C_TO_MZ($1);
+    $result = C_TO_OCAML($1);
 }
 %typemap(varout) C_NAME {
-    $result = C_TO_MZ($1);
+    $result = C_TO_OCAML($1);
 }
-%typemap(varout) C_NAME & {
-    /* %typemap(varout) C_NAME & (generic) */
-    $result = C_TO_MZ($1);
+%typemap(varout) const C_NAME & {
+    $result = C_TO_OCAML($1);
 }
 %typemap(argout) C_NAME *OUTPUT {
-    swig_result = caml_list_append(swig_result,C_TO_MZ((long)*$1));
+    swig_result = caml_list_append(swig_result, C_TO_OCAML((long)*$1));
 }
-%typemap(out) C_NAME & {
-    /* %typemap(out) C_NAME & (generic) */
-    $result = C_TO_MZ(*$1);
-}
-%typemap(argout) C_NAME & {
-    swig_result = caml_list_append(swig_result,C_TO_MZ((long)*$1));
+%typemap(out) const C_NAME & {
+    $result = C_TO_OCAML(*$1);
 }
 %typemap(directorin) C_NAME {
-    args = caml_list_append(args,C_TO_MZ($1));
+    args = caml_list_append(args, C_TO_OCAML($1));
 }
 %enddef
 
 SIMPLE_MAP(bool, caml_val_bool, caml_long_val);
-SIMPLE_MAP(oc_bool, caml_val_bool, caml_long_val);
 SIMPLE_MAP(char, caml_val_char, caml_long_val);
 SIMPLE_MAP(signed char, caml_val_char, caml_long_val);
 SIMPLE_MAP(unsigned char, caml_val_uchar, caml_long_val);
@@ -229,23 +194,8 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 /* Pass through value */
 
-%typemap (in) value,caml::value,CAML_VALUE "$1=$input;";
-%typemap (out) value,caml::value,CAML_VALUE "$result=$1;";
-
-/* Arrays */
-
-%typemap(in) ArrayCarrier * {
-    $1 = ($ltype)caml_ptr_val($input,$1_descriptor);
-}
-
-%typemap(out) ArrayCarrier * {
-    CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
-    if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *)$1,$1_descriptor));
-    } else {
-	$result = caml_val_ptr ((void *)$1,$1_descriptor);
-    }
-}
+%typemap (in) CAML_VALUE "$1=$input;";
+%typemap (out) CAML_VALUE "$result=$1;";
 
 #if 0
 %include <carray.i>
@@ -255,15 +205,12 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 %define %char_ptr_in(how)
 %typemap(how)  char *, signed char *, unsigned char * {
-    /* %typemap(how) char * ... */
     $1 = ($ltype)caml_string_val($input);
 }
 /* Again work around the empty array bound bug */
 %typemap(how) char [ANY], signed char [ANY], unsigned char [ANY] {
-    /* %typemap(how) char [ANY] ... */
     char *temp = caml_string_val($input);
     strcpy((char *)$1,temp); 
-    /* strncpy would be better but we might not have an array size */
 }
 %enddef
 
@@ -291,28 +238,20 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 %define %swigtype_ptr_in(how)
 %typemap(how) SWIGTYPE * {
-    /* %typemap(how) SWIGTYPE * */
     $1 = ($ltype)caml_ptr_val($input,$1_descriptor);
 }
 %typemap(how) SWIGTYPE (CLASS::*) {
-    /* %typemap(how) SWIGTYPE (CLASS::*) */
     void *v = caml_ptr_val($input,$1_descriptor);
     memcpy(& $1, &v, sizeof(v));
 }
 %enddef
 
-%define %swigtype_ptr_out(how)
 %typemap(out) SWIGTYPE * {
-    /* %typemap(how) SWIGTYPE *, SWIGTYPE (CLASS::*) */
-    CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
-    if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *)$1,$1_descriptor));
-    } else {
-	$result = caml_val_ptr ((void *)$1,$1_descriptor);
-    }
+    $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", (void *)$1, $1_descriptor);
 }
+
+%define %swigtype_ptr_out(how)
 %typemap(how) SWIGTYPE (CLASS::*) {
-    /* %typemap(how) SWIGTYPE *, SWIGTYPE (CLASS::*) */
     void *v;
     memcpy(&v,& $1, sizeof(void *));
     $result = caml_val_ptr (v,$1_descriptor);
@@ -328,7 +267,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 %define %swigtype_array_fail(how,msg)
 %typemap(how) SWIGTYPE [] {
-    failwith(msg);
+    caml_failwith(msg);
 }
 %enddef
 
@@ -350,7 +289,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 %define %swig_enum_out(how)
 %typemap(how) enum SWIGTYPE {
-    $result = callback2(*caml_named_value(SWIG_MODULE "_int_to_enum"),*caml_named_value("$type_marker"),Val_int((int)$1));
+    $result = caml_callback2(*caml_named_value(SWIG_MODULE "_int_to_enum"),*caml_named_value("$type_marker"),Val_int((int)$1));
 }
 %enddef
 
@@ -361,6 +300,15 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %swig_enum_out(varout)
 %swig_enum_out(directorin)
 
+%typemap(in) (char *STRING, int LENGTH), (char *STRING, size_t LENGTH) {
+    $1 = ($1_ltype) caml_string_val($input);
+    $2 = ($2_ltype) caml_string_len($input);
+}
+
+%typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
+    swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **)&$1);
+    $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", (void *)$1, ty);
+}
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
@@ -368,4 +316,6 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }
+%apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
+%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 

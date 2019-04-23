@@ -199,7 +199,7 @@ class GO:public Language {
 public:
   GO():package(NULL),
      module(NULL),
-     cgo_flag(false),
+     cgo_flag(true),
      gccgo_flag(false),
      go_prefix(NULL),
      prefix_option(NULL),
@@ -269,6 +269,9 @@ private:
 	} else if (strcmp(argv[i], "-cgo") == 0) {
 	  Swig_mark_arg(i);
 	  cgo_flag = true;
+	} else if (strcmp(argv[i], "-no-cgo") == 0) {
+	  Swig_mark_arg(i);
+	  cgo_flag = false;
 	} else if (strcmp(argv[i], "-gccgo") == 0) {
 	  Swig_mark_arg(i);
 	  gccgo_flag = true;
@@ -614,6 +617,12 @@ private:
     // Emit code.
 
     Language::top(n);
+
+    if (directorsEnabled()) {
+      // Insert director runtime into the f_runtime file (make it occur before %header section)
+      Swig_insert_file("director_common.swg", f_c_runtime);
+      Swig_insert_file("director.swg", f_c_runtime);
+    }
 
     Delete(go_imports);
 
@@ -990,7 +999,7 @@ private:
    * overname: The overload string for overloaded function.
    * wname: The SWIG wrapped name--the name of the C function.
    * base: A list of the names of base classes, in the case where this
-   *       is is a vritual method not defined in the current class.
+   *       is a virtual method not defined in the current class.
    * parms: The parameters.
    * result: The result type.
    * is_static: Whether this is a static method or member.
@@ -2806,17 +2815,25 @@ private:
       return SWIG_NOWRAP;
     }
 
-    String *get = NewString("");
-    Printv(get, Swig_cresult_name(), " = ", NULL);
-
     String *rawval = Getattr(n, "rawval");
     if (rawval && Len(rawval)) {
-      if (SwigType_type(type) == T_STRING) {
-        Printv(get, "(char *)", NULL);
+      // Based on Swig_VargetToFunction
+      String *nname = NewStringf("(%s)", rawval);
+      String *call;
+      if (SwigType_isclass(type)) {
+	call = NewStringf("%s", nname);
+      } else {
+	call = SwigType_lcaststr(type, nname);
       }
-
-      Printv(get, rawval, NULL);
+      String *cres = Swig_cresult(type, Swig_cresult_name(), call);
+      Setattr(n, "wrap:action", cres);
+      Delete(nname);
+      Delete(call);
+      Delete(cres);
     } else {
+      String *get = NewString("");
+      Printv(get, Swig_cresult_name(), " = ", NULL);
+
       char quote;
       if (Getattr(n, "wrappedasconstant")) {
         quote = '\0';
@@ -2838,11 +2855,12 @@ private:
       if (quote != '\0') {
         Printf(get, "%c", quote);
       }
+
+      Printv(get, ";\n", NULL);
+
+      Setattr(n, "wrap:action", get);
+      Delete(get);
     }
-
-    Printv(get, ";\n", NULL);
-
-    Setattr(n, "wrap:action", get);
 
     String *sname = Copy(symname);
     if (class_name) {
@@ -3848,12 +3866,11 @@ private:
     String *cxx_director_name = NewString("SwigDirector_");
     Append(cxx_director_name, class_name);
 
-    String *decl = Swig_method_decl(NULL, Getattr(n, "decl"),
-				    cxx_director_name, first_parm, 0, 0);
+    String *decl = Swig_method_decl(NULL, Getattr(n, "decl"), cxx_director_name, first_parm, 0);
     Printv(f_c_directors_h, "  ", decl, ";\n", NULL);
     Delete(decl);
 
-    decl = Swig_method_decl(NULL, Getattr(n, "decl"), cxx_director_name, first_parm, 0, 0);
+    decl = Swig_method_decl(NULL, Getattr(n, "decl"), cxx_director_name, first_parm, 0);
     Printv(f_c_directors, cxx_director_name, "::", decl, "\n", NULL);
     Delete(decl);
 
@@ -4578,7 +4595,7 @@ private:
 	  Append(upcall_method_name, overname);
 	}
 	SwigType *rtype = Getattr(n, "classDirectorMethods:type");
-	String *upcall_decl = Swig_method_decl(rtype, Getattr(n, "decl"), upcall_method_name, parms, 0, 0);
+	String *upcall_decl = Swig_method_decl(rtype, Getattr(n, "decl"), upcall_method_name, parms, 0);
 	Printv(f_c_directors_h, "  ", upcall_decl, " {\n", NULL);
 	Delete(upcall_decl);
 
@@ -5026,13 +5043,13 @@ private:
       // Declare the method for the director class.
 
       SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-      String *decl = Swig_method_decl(rtype, Getattr(n, "decl"), Getattr(n, "name"), parms, 0, 0);
+      String *decl = Swig_method_decl(rtype, Getattr(n, "decl"), Getattr(n, "name"), parms, 0);
       Printv(f_c_directors_h, "  virtual ", decl, NULL);
       Delete(decl);
 
       String *qname = NewString("");
       Printv(qname, "SwigDirector_", class_name, "::", Getattr(n, "name"), NULL);
-      decl = Swig_method_decl(rtype, Getattr(n, "decl"), qname, parms, 0, 0);
+      decl = Swig_method_decl(rtype, Getattr(n, "decl"), qname, parms, 0);
       Printv(w->def, decl, NULL);
       Delete(decl);
       Delete(qname);
@@ -5049,7 +5066,19 @@ private:
       Printv(w->def, " {\n", NULL);
 
       if (SwigType_type(result) != T_VOID) {
-	Wrapper_add_local(w, "c_result", SwigType_lstr(result, "c_result"));
+	if (!SwigType_isclass(result)) {
+	  if (!(SwigType_ispointer(result) || SwigType_isreference(result))) {
+	    String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(result, 0));
+	    Wrapper_add_localv(w, "c_result", SwigType_lstr(result, "c_result"), construct_result, NIL);
+	    Delete(construct_result);
+	  } else {
+	    Wrapper_add_localv(w, "c_result", SwigType_lstr(result, "c_result"), "= 0", NIL);
+	  }
+	} else {
+	  String *cres = SwigType_lstr(result, "c_result");
+	  Printf(w->code, "%s;\n", cres);
+	  Delete(cres);
+	}
       }
 
       if (!is_ignored) {
@@ -5483,6 +5512,8 @@ private:
    *--------------------------------------------------------------------*/
 
   String *buildThrow(Node *n) {
+    if (Getattr(n, "noexcept"))
+      return NewString("noexcept");
     ParmList *throw_parm_list = Getattr(n, "throws");
     if (!throw_parm_list && !Getattr(n, "throw"))
       return NULL;
@@ -5912,7 +5943,7 @@ private:
    *
    * Given a C/C++ name, return a name in Go which will be exported.
    * If the first character is an upper case letter, this returns a
-   * copy of its argment.  If the first character is a lower case
+   * copy of its argument.  If the first character is a lower case
    * letter, this forces it to upper case.  Otherwise, this prepends
    * 'X'.
    * ---------------------------------------------------------------------- */
@@ -6232,9 +6263,9 @@ private:
 	Setattr(undefined_enum_types, t, ret);
 	Delete(tt);
       }
-    } else if (SwigType_isfunctionpointer(type) || SwigType_isfunction(type)) {
+    } else if (SwigType_isfunctionpointer(t) || SwigType_isfunction(t)) {
       ret = NewString("_swig_fnptr");
-    } else if (SwigType_ismemberpointer(type)) {
+    } else if (SwigType_ismemberpointer(t)) {
       ret = NewString("_swig_memberptr");
     } else if (SwigType_issimple(t)) {
       Node *cn = classLookup(t);
@@ -6951,6 +6982,7 @@ extern "C" Language *swig_go(void) {
 const char * const GO::usage = "\
 Go Options (available with -go)\n\
      -cgo                - Generate cgo input files\n\
+     -no-cgo             - Do not generate cgo input files\n\
      -gccgo              - Generate code for gccgo rather than 6g/8g\n\
      -go-pkgpath <p>     - Like gccgo -fgo-pkgpath option\n\
      -go-prefix <p>      - Like gccgo -fgo-prefix option\n\

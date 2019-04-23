@@ -129,7 +129,7 @@
 /* 
  * char *BYTE typemaps. 
  * These are input typemaps for mapping a Java byte[] array to a C char array.
- * Note that as a Java array is used and thus passeed by reference, the C routine 
+ * Note that as a Java array is used and thus passed by reference, the C routine 
  * can return data to Java via the parameter.
  *
  * Example usage wrapping:

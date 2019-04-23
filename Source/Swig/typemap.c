@@ -61,13 +61,44 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 
 static Hash *typemaps;
 
+/* -----------------------------------------------------------------------------
+ * typemap_identifier_fix()
+ *
+ * Create a type that can be used as a hash key lookup independent of the various
+ * ways a template parameter list can be defined. This is achieved by fully
+ * resolving the template parameters.
+ *
+ * This is a copy and modification of feature_identifier_fix in parser.y.
+ * ----------------------------------------------------------------------------- */
+
+static SwigType *typemap_identifier_fix(const SwigType *s) {
+  String *tp = SwigType_istemplate_templateprefix(s);
+  if (tp) {
+    String *ts, *ta, *tq, *tr;
+    ts = SwigType_templatesuffix(s);
+    ta = SwigType_templateargs(s);
+    tq = Swig_symbol_type_qualify(ta, 0);
+    tr = SwigType_typedef_resolve_all(ta);
+    Append(tp,tr);
+    Append(tp,ts);
+    Delete(ts);
+    Delete(ta);
+    Delete(tq);
+    Delete(tr);
+    return tp;
+  } else {
+    return NewString(s);
+  }
+}
+
 static Hash *get_typemap(const SwigType *type) {
   Hash *tm = 0;
   SwigType *dtype = 0;
   SwigType *hashtype;
 
   if (SwigType_istemplate(type)) {
-    String *ty = Swig_symbol_template_deftype(type, 0);
+    SwigType *rty = typemap_identifier_fix(type);
+    String *ty = Swig_symbol_template_deftype(rty, 0);
     dtype = Swig_symbol_type_qualify(ty, 0);
     type = dtype;
     Delete(ty);
@@ -88,7 +119,7 @@ static void set_typemap(const SwigType *type, Hash **tmhash) {
   Hash *new_tm = 0;
   assert(*tmhash == 0);
   if (SwigType_istemplate(type)) {
-    SwigType *rty = SwigType_typedef_resolve_all(type);
+    SwigType *rty = typemap_identifier_fix(type);
     String *ty = Swig_symbol_template_deftype(rty, 0);
     String *tyq = Swig_symbol_type_qualify(ty, 0);
     hashtype = SwigType_remove_global_scope_prefix(tyq);
@@ -733,6 +764,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
       SwigType *oldctype = ctype;
       ctype = SwigType_typedef_resolve(ctype_unstripped);
       Delete(oldctype);
+      Delete(ctype_unstripped);
       ctype_unstripped = Copy(ctype);
     }
   }

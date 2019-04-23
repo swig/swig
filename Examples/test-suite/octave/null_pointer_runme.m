@@ -5,4 +5,4 @@ endif
 
 null_pointer;
 
-assert(func([]));
+assert(funk([]));

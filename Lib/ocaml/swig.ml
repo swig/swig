@@ -44,6 +44,13 @@ let _ = Callback.register "swig_runmethod" invoke
 let fnhelper arg =
   match arg with C_list l -> l | C_void -> [] | _ -> [ arg ]
 
+let director_core_helper fnargs =
+  try
+    match List.hd fnargs with
+      | C_director_core (o,r) -> fnargs
+      | _ -> C_void :: fnargs
+  with Failure _ -> C_void :: fnargs
+
 let rec get_int x = 
   match x with
       C_bool b -> if b then 1 else 0
@@ -155,5 +162,5 @@ let _ = Callback.register "swig_set_type_info" set_type_info
 let class_master_list = Hashtbl.create 20
 let register_class_byname nm co = 
   Hashtbl.replace class_master_list nm (Obj.magic co)
-let create_class nm arg = 
-  try (Obj.magic (Hashtbl.find class_master_list nm)) arg with _ -> raise (NoSuchClass nm)
+let create_class nm =
+  try (Obj.magic (Hashtbl.find class_master_list nm)) with _ -> raise (NoSuchClass nm)

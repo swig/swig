@@ -174,7 +174,7 @@
     bool empty() const;
 
     %rename(Fill) fill;
-    void fill(const value_type& val);
+    void fill(const value_type& value);
 
     %rename(Swap) swap;
     void swap(array& other);

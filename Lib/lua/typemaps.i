@@ -182,7 +182,7 @@ TYPE* SWIG_get_NAME_num_array_var(lua_State* L, int index, int* size);
 	// writes a table to Lua with all the specified numbers
 void SWIG_write_NAME_num_array(lua_State* L,TYPE *array,int size);
 	// read the specified table, and fills the array with numbers
-	// returns 1 of ok (only fails if it doesnt find numbers)
+	// returns 1 of ok (only fails if it doesn't find numbers)
 	// helper fn (called by SWIG_get_NAME_num_array_*() fns)
 int SWIG_read_NAME_num_array(lua_State* L,int index,TYPE *array,int size);
 

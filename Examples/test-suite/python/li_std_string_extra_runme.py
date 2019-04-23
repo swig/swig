@@ -87,6 +87,28 @@ if li_std_string_extra.test_value_basic2(x) != x:
 if li_std_string_extra.test_value_basic3(x) != x:
     raise RuntimeError, "bad string mapping"
 
+if li_std_string_extra.test_value_basic_overload(x) != x:
+    raise RuntimeError, "bad overload string"
+
+if li_std_string_extra.test_value_basic_overload(123) != "int":
+    raise RuntimeError, "bad overload int"
+
+try:
+    li_std_string_extra.test_value_basic_overload([x])
+    raise RuntimeError, "should throw TypeError"
+except TypeError as e:
+    if str(e).find("Possible C/C++ prototypes are:") == -1:
+        raise RuntimeError("Incorrect error message text:\n{}".format(e))
+    pass
+
+try:
+    li_std_string_extra.test_value_basic_overload([123])
+    raise RuntimeError, "should throw TypeError"
+except TypeError as e:
+    if str(e).find("Possible C/C++ prototypes are:") == -1:
+        raise RuntimeError("Incorrect error message text:\n{}".format(e))
+    pass
+
 # Global variables
 s = "initial string"
 if li_std_string_extra.cvar.GlobalString2 != "global string 2":

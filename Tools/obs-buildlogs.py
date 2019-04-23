@@ -15,7 +15,7 @@ def download():
   for line in repos.stdout:
     command = ['osc', 'buildlog', '--last'] + line.split()
     filename = "-".join(line.split()) + ".log"
-    print "Downloading logs using: {}".format(" ".join(command))
+    print("Downloading logs using: {}".format(" ".join(command)))
     buildlog = subprocess.Popen(command, stdout=subprocess.PIPE)
 
     print("Writing log to {}".format(filename))

@@ -24,7 +24,6 @@ public class rename1_runme {
       xyz.tMethod2(0);
       xyz.tMethodNotXYZ2(notxyz);
       xyz.opNotXYZ2();
-      xyz.opXYZ2();
     }
     {
       XYZDouble xyz = new XYZDouble();
@@ -36,7 +35,6 @@ public class rename1_runme {
       xyz.tMethod1(0);
       xyz.tMethodNotXYZ1(notxyz);
       xyz.opNotXYZ1();
-      xyz.opXYZ1();
     }
     {
       XYZKlass xyz = new XYZKlass();
@@ -48,7 +46,6 @@ public class rename1_runme {
       xyz.tMethod3(new Klass());
       xyz.tMethodNotXYZ3(notxyz);
       xyz.opNotXYZ3();
-      xyz.opXYZ3();
     }
     {
       XYZEnu xyz = new XYZEnu();
@@ -60,7 +57,6 @@ public class rename1_runme {
       xyz.tMethod4(Enu.En1);
       xyz.tMethodNotXYZ4(notxyz);
       xyz.opNotXYZ4();
-      xyz.opXYZ4();
     }
     {
       ABC abc = new ABC();

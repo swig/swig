@@ -65,7 +65,7 @@ if (!$@) {
 }
 print "     get error for 'status'\n";
 
-print "     Tring to set 'path'\n";
+print "     Trying to set 'path'\n";
 eval { $example::path = "Whoa!";};
 if (!$@) {
     die("path");

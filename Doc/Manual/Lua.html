@@ -77,7 +77,7 @@
 
 
 <p>
-Lua is an extension programming language designed to support general procedural programming with data description facilities. It also offers good support for object-oriented programming, functional programming, and data-driven programming. Lua is intended to be used as a powerful, light-weight configuration language for any program that needs one. Lua is implemented as a library, written in clean C (that is, in the common subset of ANSI C and C++). It's also a <em>really</em> tiny language, less than 6000 lines of code, which compiles to &lt;100 kilobytes of binary code. It can be found at <a href="http://www.lua.org">http://www.lua.org</a>
+Lua is an extension programming language designed to support general procedural programming with data description facilities. It also offers good support for object-oriented programming, functional programming, and data-driven programming. Lua is intended to be used as a powerful, light-weight configuration language for any program that needs one. Lua is implemented as a library, written in clean C (that is, in the common subset of ISO C and C++). It's also a <em>really</em> tiny language, less than 6000 lines of code, which compiles to &lt;100 kilobytes of binary code. It can be found at <a href="http://www.lua.org">http://www.lua.org</a>
 </p>
 <p>
 eLua stands for Embedded Lua (can be thought of as a flavor of Lua) and offers the full implementation of the Lua programming language to the embedded world, extending it with specific features for efficient and portable software embedded development. eLua runs on smaller devices like microcontrollers and provides the full features of the regular Lua desktop version. More information on eLua can be found here: <a href="http://www.eluaproject.net">http://www.eluaproject.net</a>
@@ -984,7 +984,7 @@ There are ways to make this operator appear as part of the class using the <tt>%
 Also, be aware that certain operators don't map cleanly to Lua, and some Lua operators don't map cleanly to C++ operators. For instance, overloaded assignment operators don't map to Lua semantics and will be ignored, and C++ doesn't support Lua's concatenation operator (<tt>..</tt>).
 </p>
 <p>
-In order to keep maximum compatibility within the different languages in SWIG, the Lua bindings uses the same set of operator names as python. Although internally it renames the functions to something else (on order to work with Lua).
+In order to keep maximum compatibility within the different languages in SWIG, the Lua bindings uses the same set of operator names as Python. Although internally it renames the functions to something else (on order to work with Lua).
 <p>
 The current list of operators which can be overloaded (and the alternative function names) are:<ul>
 <li><tt>__add__</tt> operator+
@@ -1008,11 +1008,10 @@ The following operators cannot be overloaded (mainly because they are not suppor
 <p>
 SWIG also accepts the <tt>__str__()</tt> member function which converts an object to a string. This function should return a const char*, preferably to static memory. This will be used for the <tt>print()</tt> and <tt>tostring()</tt> functions in Lua. Assuming the complex class has a function
 </p>
-<div class="code"><pre>const char* __str__()
-{
-        static char buffer[255];
-        sprintf(buffer, "Complex(%g, %g)", this-&gt;re(), this-&gt;im());
-        return buffer;
+<div class="code"><pre>const char* __str__() {
+  static char buffer[255];
+  sprintf(buffer, "Complex(%g, %g)", this-&gt;re(), this-&gt;im());
+  return buffer;
 }
 </pre></div>
 <p>
@@ -1031,11 +1030,10 @@ Complex(10, 12)
 <p>
 It is also possible to overload the operator<tt>[]</tt>, but currently this cannot be automatically performed. To overload the operator<tt>[]</tt> you need to provide two functions, <tt>__getitem__()</tt> and <tt>__setitem__()</tt>
 </p>
-<div class="code"><pre>class Complex
-{
-        //....
-        double __getitem__(int i)const; // i is the index, returns the data
-        void __setitem__(int i, double d); // i is the index, d is the data
+<div class="code"><pre>class Complex {
+  //....
+  double __getitem__(int i)const; // i is the index, returns the data
+  void __setitem__(int i, double d); // i is the index, d is the data
 };
 </pre></div>
 <p>

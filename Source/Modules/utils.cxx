@@ -59,7 +59,7 @@ int is_non_virtual_protected_access(Node *n) {
     // When vtable is empty, the director class does not get emitted, so a check for an empty vtable should be done.
     // However, vtable is set in Language and so is not yet set when methods in Typepass call clean_overloaded()
     // which calls is_non_virtual_protected_access. So commented out below.
-    // Moving the director vtable creation into into Typepass should solve this problem.
+    // Moving the director vtable creation into Typepass should solve this problem.
     if (is_member_director_helper(parentNode, n) /* && Getattr(parentNode, "vtable")*/)
       result = 1;
   }

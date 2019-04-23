@@ -1,0 +1,20 @@
+cpp_invalid_qualifiers.i:5: Error: Destructor ~A() const cannot have a qualifier.
+cpp_invalid_qualifiers.i:8: Error: Destructor ~B() const cannot have a qualifier.
+cpp_invalid_qualifiers.i:11: Error: Destructor ~C() & cannot have a qualifier.
+cpp_invalid_qualifiers.i:14: Error: Destructor ~D() & cannot have a qualifier.
+cpp_invalid_qualifiers.i:17: Error: Destructor ~E() && cannot have a qualifier.
+cpp_invalid_qualifiers.i:20: Error: Destructor ~F() && cannot have a qualifier.
+cpp_invalid_qualifiers.i:24: Error: Constructor cannot have a qualifier.
+cpp_invalid_qualifiers.i:25: Error: Constructor cannot have a qualifier.
+cpp_invalid_qualifiers.i:28: Error: Constructor cannot have a qualifier.
+cpp_invalid_qualifiers.i:29: Error: Constructor cannot have a qualifier.
+cpp_invalid_qualifiers.i:32: Error: Constructor cannot have a qualifier.
+cpp_invalid_qualifiers.i:33: Error: Constructor cannot have a qualifier.
+cpp_invalid_qualifiers.i:37: Error: Static function m1() const cannot have a qualifier.
+cpp_invalid_qualifiers.i:38: Error: Static function m2() & cannot have a qualifier.
+cpp_invalid_qualifiers.i:39: Error: Static function m3() && cannot have a qualifier.
+cpp_invalid_qualifiers.i:39: Warning 405: Method with rvalue ref-qualifier m3() && ignored.
+cpp_invalid_qualifiers.i:40: Error: Static function m4() const cannot have a qualifier.
+cpp_invalid_qualifiers.i:41: Error: Static function m5() & cannot have a qualifier.
+cpp_invalid_qualifiers.i:42: Error: Static function m6() && cannot have a qualifier.
+cpp_invalid_qualifiers.i:42: Warning 405: Method with rvalue ref-qualifier m6() && ignored.

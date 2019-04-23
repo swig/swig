@@ -17,20 +17,20 @@ public:
 };
 
 struct A1 {
-  void func(int i) {}
+  void funk(int i) {}
   A1() = default;
   ~A1() = default;
-  void func(double i) = delete;  /* Don't cast double to int. Compiler returns an error */
+  void funk(double i) = delete;  /* Don't cast double to int. Compiler returns an error */
 private:
   A1(const A1&);
 };
 A1::A1(const A1&) = default;
 
 struct A2 {
-  void func(int i) {}
+  void funk(int i) {}
   virtual void fff(int) = delete;
   virtual ~A2() = default;
-  template<class T> void func(T) = delete;
+  template<class T> void funk(T) = delete;
 };
 
 struct trivial {

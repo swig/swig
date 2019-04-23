@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 29;
+use Test::More tests => 32;
 BEGIN { use_ok 'director_classes' }
 require_ok 'director_classes';
 
@@ -10,6 +10,7 @@ require_ok 'director_classes';
   sub Val { $_[1] }
   sub Ref { $_[1] }
   sub Ptr { $_[1] }
+  sub ConstPtrRef { $_[1] }
   sub FullyOverloaded {
     my $rv = shift->SUPER::FullyOverloaded(@_);
     $rv =~ s/Base/__PACKAGE__/sge;
@@ -45,6 +46,7 @@ sub makeCalls { my($caller, $base) = @_;
   is($caller->ValCall($dh)->{val}, $dh->{val}, "$bname.Val");
   is($caller->RefCall($dh)->{val}, $dh->{val}, "$bname.Ref");
   is($caller->PtrCall($dh)->{val}, $dh->{val}, "$bname.Ptr");
+  is($caller->ConstPtrRefCall($dh)->{val}, $dh->{val}, "$bname.ConstPtrRef");
   is($caller->FullyOverloadedCall(1),
       "${bname}::FullyOverloaded(int)",
       "$bname.FullyOverloaded(int)");

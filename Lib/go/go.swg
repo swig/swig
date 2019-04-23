@@ -341,8 +341,6 @@
 %typemap(directorout) SWIGTYPE *
 %{ $result = *($&1_ltype)&$input; %}
 
-%apply SWIGTYPE * { SWIGTYPE *const }
-
 /* Pointer references.  */
 
 %typemap(gotype) SWIGTYPE *const&
@@ -381,6 +379,11 @@
 
 %typemap(directorout) SWIGTYPE &
 %{ *($&1_ltype)&$result = $input; %}
+
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *const&
+%{ static $*1_ltype swig_temp;
+   swig_temp = *($1_ltype)&$input;
+   $result = &swig_temp; %}
 
 %typemap(gotype) SWIGTYPE &&
 %{$gotypename%}
@@ -691,6 +694,10 @@
     SWIGTYPE [],
     SWIGTYPE (CLASS::*)
     ""
+
+%apply SWIGTYPE * { SWIGTYPE *const }
+%apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
+%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
 /* Go keywords.  */
 %include <gokw.swg>

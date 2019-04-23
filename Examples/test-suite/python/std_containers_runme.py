@@ -69,6 +69,15 @@ for k in map:
     if map[k] != imap[k]:
         raise RuntimeError, "bad map"
 
+# Test __contains__ (required for 'x in y' to work)
+if not imap.__contains__('hello'):
+    raise RuntimeError("hello imap.__contains__")
+if 'hello' not in imap:
+    raise RuntimeError("hello not in imap")
+if imap.__contains__('oops'):
+    raise RuntimeError("oops imap.__contains__")
+if 'oops' in imap:
+    raise RuntimeError("oops in imap")
 
 mapc = {}
 c1 = std_containers.C()
@@ -114,3 +123,14 @@ for i in s:
     if i != j:
         raise RuntimeError
     j = j + 1
+
+# Test __contains__ (required for 'x in y' to work)
+if not s.__contains__(3):
+    raise RuntimeError("3 s.__contains__")
+if 3 not in s:
+    raise RuntimeError("3 not in s")
+if s.__contains__(-1):
+    raise RuntimeError("-1 s.__contains__")
+if -1 in s:
+    raise RuntimeError("-1 in s")
+

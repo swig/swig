@@ -20,8 +20,10 @@ extern "C++" thread_local int ecpptval;
 
 thread_local int ThreadLocals::stval = 11;
 thread_local int ThreadLocals::tsval = 22;
+#if !defined(_MSC_VER)
 thread_local const int ThreadLocals::stcval88;
 thread_local const int ThreadLocals::tscval99;
+#endif
 %}
 
 %{

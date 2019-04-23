@@ -202,8 +202,8 @@ namespace swig
       //      swig::SwigVar_PyObject item = OctSequence_GetItem(_seq, _index);
       octave_value item; // * todo
       try {
-	return swig::as<T>(item, true);
-      } catch (std::exception& e) {
+	return swig::as<T>(item);
+      } catch (const std::exception& e) {
 	char msg[1024];
 	sprintf(msg, "in sequence element %d ", _index);
 	if (!Octave_Error_Occurred()) {
@@ -567,7 +567,11 @@ namespace swig {
 	  if (seq) *seq = p;
 	  return SWIG_OLDOBJ;
 	}
+%#if SWIG_OCTAVE_PREREQ(4,4,0)
+      } else if (obj.iscell()) {
+%#else
       } else if (obj.is_cell()) {
+%#endif
 	try {
 	  OctSequence_Cont<value_type> octseq(obj);
 	  if (seq) {

@@ -136,7 +136,7 @@
 
 %typemap(varin) SWIGTYPE []
 {
-  if($1) {
+  if ($1) {
     zval *z_var = zend_hash_str_find(&EG(symbol_table), "$1", sizeof("$1") - 1);
     SWIG_SetPointerZval(z_var, (void*)$1, $1_descriptor, $owner);
   }
@@ -144,15 +144,15 @@
 
 %typemap(varin) char [ANY]
 {
- zval **z_var;
- char *s1;
+  zval **z_var;
+  char *s1;
 
- zend_hash_str_find(&EG(symbol_table), "$1", sizeof("$1") - 1, (void**)&z_var);
- s1 = Z_STRVAL_P(z_var);
- if ((s1 == NULL) || ($1 == NULL) || strcmp(s1, $1)) {
-   if (s1)
-     strncpy($1, s1, $1_dim0);
- }
+  zend_hash_str_find(&EG(symbol_table), "$1", sizeof("$1") - 1, (void**)&z_var);
+  s1 = Z_STRVAL_P(z_var);
+  if ((s1 == NULL) || ($1 == NULL) || strcmp(s1, $1)) {
+    if (s1)
+      strncpy($1, s1, $1_dim0);
+  }
 }
 
 %typemap(varin) SWIGTYPE
@@ -166,7 +166,6 @@
   }
 
   $1 = *($&1_ltype)_temp;
-
 }
 
 %typemap(varin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&
@@ -245,7 +244,7 @@
       (z_var)->value.str.val = 0;
       (z_var)->value.str.len = 0;
     }
- }
+  }
 }
 
 %typemap(varout) SWIGTYPE

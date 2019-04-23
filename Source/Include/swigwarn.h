@@ -18,6 +18,8 @@
  * Even though symbolic constants are used in the SWIG source, this is
  * not always the case in SWIG interface files.  Do not change the
  * numbers in this file.
+ *
+ * This file is used as the input for generating Lib/swigwarn.swg.
  * ----------------------------------------------------------------------------- */
 
 #ifndef SWIGWARN_H_
@@ -153,6 +155,7 @@
 #define WARN_TYPE_INCOMPLETE          402
 #define WARN_TYPE_ABSTRACT            403
 #define WARN_TYPE_REDEFINED           404
+#define WARN_TYPE_RVALUE_REF_QUALIFIER_IGNORED 405
 
 #define WARN_TYPEMAP_SOURCETARGET     450
 #define WARN_TYPEMAP_CHARLEAK         451
@@ -207,6 +210,17 @@
 #define WARN_LANG_ILLEGAL_DESTRUCTOR  521
 #define WARN_LANG_EXTEND_CONSTRUCTOR  522
 #define WARN_LANG_EXTEND_DESTRUCTOR   523
+#define WARN_LANG_EXPERIMENTAL        524
+#define WARN_LANG_DIRECTOR_FINAL      525
+
+/* -- Doxygen comments -- */
+
+#define WARN_DOXYGEN_UNKNOWN_COMMAND          560
+#define WARN_DOXYGEN_UNEXPECTED_END_OF_COMMENT  561
+#define WARN_DOXYGEN_COMMAND_EXPECTED         562
+#define WARN_DOXYGEN_HTML_ERROR               563
+#define WARN_DOXYGEN_COMMAND_ERROR            564
+#define WARN_DOXYGEN_UNKNOWN_CHARACTER        565
 
 /* -- Reserved (600-799) -- */
 

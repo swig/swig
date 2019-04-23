@@ -16,7 +16,7 @@ and check to see if types Foo and Bar are registered with it
 (Bar should be & Foo should not)
 
 Note: Though both the modules exist and are loaded, they are not linked together,
-as they are connected to seperate lua interpreters.
+as they are connected to separate lua interpreters.
 
 When the third lua state loads both example.i and example2.i,
 the two modules are now linked together, and all can now find

@@ -28,6 +28,7 @@ extern "C" {
   extern int cparse_cplusplusout;
   extern int cparse_start_line;
   extern String *cparse_unknown_directive;
+  extern int scan_doxygen_comments;
 
   extern void Swig_cparse_cplusplus(int);
   extern void Swig_cparse_cplusplusout(int);
@@ -61,7 +62,7 @@ extern "C" {
   extern void cparse_normalize_void(Node *);
   extern Parm *Swig_cparse_parm(String *s);
   extern ParmList *Swig_cparse_parms(String *s, Node *file_line_node);
-  extern Node *new_node(const_String_or_char_ptr tag);
+  extern Node *Swig_cparse_new_node(const_String_or_char_ptr tag);
 
 /* templ.c */
   extern int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *tscope);

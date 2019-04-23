@@ -67,18 +67,10 @@ skip-guile	= test -n "@SKIP_GUILE@"
 skip-mzscheme	= test -n "@SKIP_MZSCHEME@"
 skip-ruby	= test -n "@SKIP_RUBY@"
 skip-php	= test -n "@SKIP_PHP@"
-skip-php5	= test -n "@SKIP_PHP5@"
 skip-ocaml      = test -n "@SKIP_OCAML@"
 skip-octave     = test -n "@SKIP_OCTAVE@"
-skip-pike       = test -n "@SKIP_PIKE@"
-skip-chicken	= test -n "@SKIP_CHICKEN@"
 skip-csharp	= test -n "@SKIP_CSHARP@"
-skip-modula3	= test -n "@SKIP_MODULA3@"
 skip-lua    	= test -n "@SKIP_LUA@"
-skip-allegrocl  = test -n "@SKIP_ALLEGROCL@"
-skip-clisp	= test -n "@SKIP_CLISP@"
-skip-cffi	= test -n "@SKIP_CFFI@"
-skip-uffi	= test -n "@SKIP_UFFI@"
 skip-r		= test -n "@SKIP_R@"
 skip-scilab     = test -n "@SKIP_SCILAB@"
 skip-go		= test -n "@SKIP_GO@"
@@ -86,7 +78,6 @@ skip-d		= test -n "@SKIP_D@"
 skip-javascript	= test -n "@SKIP_JAVASCRIPT@"
 
 # Additional dependencies for some tests
-skip-gcj        = test -n "@SKIP_GCJ@"
 skip-android    = test -n "@SKIP_ANDROID@"
 
 # Special errors test-case
@@ -119,15 +110,7 @@ check-aliveness:
 	@$(skip-ocaml)    || ./$(TARGET) -ocaml      -help
 	@$(skip-octave)   || ./$(TARGET) -octave     -help
 	@$(skip-php)      || ./$(TARGET) -php7       -help
-	@$(skip-php5)     || ./$(TARGET) -php5       -help
-	@$(skip-pike)     || ./$(TARGET) -pike       -help
-	@$(skip-chicken)  || ./$(TARGET) -chicken    -help
 	@$(skip-csharp)   || ./$(TARGET) -csharp     -help
-	@$(skip-modula3)  || ./$(TARGET) -modula3    -help
-	@$(skip-allegrocl)|| ./$(TARGET) -allegrocl  -help
-	@$(skip-clisp)    || ./$(TARGET) -clisp      -help
-	@$(skip-uffi)     || ./$(TARGET) -uffi       -help
-	@$(skip-cffi)     || ./$(TARGET) -cffi       -help
 	@$(skip-lua)      || ./$(TARGET) -lua        -help
 	@$(skip-r) 	  || ./$(TARGET) -r          -help
 	@$(skip-scilab)   || ./$(TARGET) -scilab     -help
@@ -152,16 +135,8 @@ check-versions:					\
 	check-ocaml-version			\
 	check-octave-version			\
 	check-php-version			\
-	check-php5-version			\
-	check-pike-version			\
-	check-chicken-version			\
 	check-csharp-version			\
-	check-modula3-version			\
 	check-lua-version			\
-	check-allegrocl-version			\
-	check-clisp-version			\
-	check-uffi-version			\
-	check-cffi-version			\
 	check-r-version				\
 	check-scilab-version			\
 	check-go-version			\
@@ -193,16 +168,8 @@ check-examples:					\
 	check-ocaml-examples			\
 	check-octave-examples			\
 	check-php-examples			\
-	check-php5-examples			\
-	check-pike-examples			\
-	check-chicken-examples                  \
 	check-csharp-examples                   \
-	check-modula3-examples                  \
 	check-lua-examples			\
-	check-allegrocl-examples		\
-	check-clisp-examples			\
-	check-uffi-examples			\
-	check-cffi-examples			\
 	check-r-examples			\
 	check-scilab-examples			\
 	check-go-examples			\
@@ -220,16 +187,8 @@ ruby_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/ruby/check.list)
 ocaml_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/ocaml/check.list)
 octave_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/octave/check.list)
 php_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/php/check.list)
-php5_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/php5/check.list)
-pike_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/pike/check.list)
-chicken_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/chicken/check.list)
 csharp_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/csharp/check.list)
-modula3_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/modula3/check.list)
 lua_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/lua/check.list)
-allegrocl_examples :=
-clisp_examples     :=
-uffi_examples      :=
-cffi_examples      :=
 r_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/r/check.list)
 scilab_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/scilab/check.list)
 go_examples        :=$(shell sed '/^\#/d' $(srcdir)/Examples/go/check.list)
@@ -256,16 +215,6 @@ check-%-examples :
 	@echo $(ACTION)ing Examples/$(LANGUAGE)/$*
 	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) $(FLAGS) $(ACTION) RUNPIPE=$(RUNPIPE))
 
-# gcj individual example
-java.actionexample:
-	@cd Examples && $(MAKE) Makefile
-	@if $(skip-gcj); then					\
-	  echo "skipping Examples/$(LANGUAGE)/java $(ACTION) (gcj test)";	\
-	else							\
-	  echo $(ACTION)ing Examples/$(LANGUAGE)/java;		\
-	  (cd Examples/$(LANGUAGE)/java && $(MAKE) $(FLAGS) $(ACTION) RUNPIPE=$(RUNPIPE)) \
-	fi
-
 # Checks testcases in the test-suite excluding those which are known to be broken
 check-test-suite:				\
 	check-errors-test-suite			\
@@ -279,16 +228,8 @@ check-test-suite:				\
 	check-ocaml-test-suite			\
 	check-octave-test-suite			\
 	check-php-test-suite			\
-	check-php5-test-suite			\
-	check-pike-test-suite			\
 	check-csharp-test-suite			\
-	check-modula3-test-suite		\
 	check-lua-test-suite			\
-	check-allegrocl-test-suite		\
-	check-clisp-test-suite			\
-	check-uffi-test-suite			\
-	check-cffi-test-suite			\
-	check-chicken-test-suite		\
 	check-r-test-suite			\
 	check-scilab-test-suite			\
 	check-go-test-suite			\
@@ -334,16 +275,8 @@ all-test-suite:					\
 	all-ocaml-test-suite			\
 	all-octave-test-suite			\
 	all-php-test-suite			\
-	all-php5-test-suite			\
-	all-pike-test-suite			\
 	all-csharp-test-suite			\
-	all-modula3-test-suite			\
 	all-lua-test-suite			\
-	all-allegrocl-test-suite		\
-	all-clisp-test-suite			\
-	all-uffi-test-suite			\
-	all-cffi-test-suite			\
-	all-chicken-test-suite			\
 	all-r-test-suite			\
 	all-scilab-test-suite   		\
 	all-go-test-suite			\
@@ -365,16 +298,8 @@ broken-test-suite:				\
 	broken-ocaml-test-suite			\
 	broken-octave-test-suite		\
 	broken-php-test-suite			\
-	broken-php5-test-suite			\
-	broken-pike-test-suite			\
 	broken-csharp-test-suite		\
-	broken-modula3-test-suite		\
 	broken-lua-test-suite			\
-	broken-allegrocl-test-suite		\
-	broken-clisp-test-suite			\
-	broken-uffi-test-suite			\
-	broken-cffi-test-suite			\
-	broken-chicken-test-suite		\
 	broken-r-test-suite			\
 	broken-scilab-test-suite           	\
 	broken-go-test-suite			\
@@ -487,7 +412,7 @@ check-maintainer-clean: maintainer-clean
 
 $(srcdir)/Lib/swigwarn.swg: $(srcdir)/Source/Include/swigwarn.h
 	mkdir -p Lib
-	echo "/* SWIG warning codes */" > $@
+	echo "/* SWIG warning codes - generated from swigwarn.h - do not edit */" > $@
 	cat $? | grep "^#define WARN\|/\*.*\*/\|^[ \t]*$$" | sed 's/^#define \(WARN.*[0-9][0-9]*\)\(.*\)$$/%define SWIG\1 %enddef\2/' >> $@
 
 #####################################################################
@@ -510,9 +435,9 @@ install-main:
 	@echo "Installing $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@"
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
-lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php php5 ocaml octave \
-	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r go d javascript javascript/jsc \
-	javascript/v8 scilab
+lib-languages = typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
+	csharp lua r go d javascript javascript/jsc \
+	javascript/v8 scilab xml
 
 lib-modules = std
 
@@ -594,9 +519,9 @@ srcrpm:
 # version 1.10 for our case of not having a top level Makefile.am. Until then we
 # can fetch them manually and will have to commit them to Git.
 configfiles:
-	wget ftp://ftp.gnu.org/pub/gnu/config/config.guess -O Tools/config/config.guess
+	wget 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess' -O Tools/config/config.guess
 	chmod a+x Tools/config/config.guess
-	wget ftp://ftp.gnu.org/pub/gnu/config/config.sub -O Tools/config/config.sub
+	wget 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub' -O Tools/config/config.sub
 	chmod a+x Tools/config/config.sub
 
 # Regenerate Makefile if Makefile.in or config.status have changed.

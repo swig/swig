@@ -33,7 +33,7 @@
 // We do not use »override« attribute for generated dispose() methods to stay
 // somewhat compatible to Phobos and older Tango versions where Object.dispose()
 // does not exist.
-%typemap(ddispose, methodname="dispose", methodmodifiers="public") SWIGTYPE {
+%typemap(ddispose, methodname="dispose", methodmodifiers="public", parameters="") SWIGTYPE {
   synchronized(this) {
     if (swigCPtr !is null) {
       if (swigCMemOwn) {
@@ -45,7 +45,7 @@
   }
 }
 
-%typemap(ddispose_derived, methodname="dispose", methodmodifiers="public") SWIGTYPE {
+%typemap(ddispose_derived, methodname="dispose", methodmodifiers="public", parameters="") SWIGTYPE {
   synchronized(this) {
     if (swigCPtr !is null) {
       if (swigCMemOwn) {
