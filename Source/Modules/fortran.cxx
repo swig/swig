@@ -230,7 +230,7 @@ bool is_bindc(Node *n) {
       Swig_error(input_file,
                  line_number,
                  "The C++ function '%s' is not defined with external "
-                 "C linkage (extern \"C\"), but it is marked with %%fortran_bindc.\n",
+                 "C linkage (extern \"C\"), but it is marked with %%fortranbindc.\n",
                  Getattr(n, "sym:name"));
     }
   }
@@ -1979,7 +1979,7 @@ int FORTRAN::classHandler(Node *n) {
   if (bindc && basename) {
     // Disallow inheritance for BIND(C) types
     Swig_error(input_file, line_number,
-               "Struct '%s' uses the '%%fortran_bindc_struct' feature, so it cannot use inheritance.\n",
+               "Struct '%s' uses the '%%fortranbindc' feature, so it cannot use inheritance.\n",
                symname);
     return SWIG_NOWRAP;
   }
@@ -2185,7 +2185,7 @@ int FORTRAN::membervariableHandler(Node *n) {
       // data, an interface type MUST be specified!
       String *class_symname = Getattr(this->getCurrentClass(), "sym:name");
       Swig_error(input_file, line_number,
-                 "Struct '%s' has the 'bindc' feature set, but member variable '%s' (type '%s') has no 'bindc' typemap defined\n",
+                 "Struct '%s' has the 'fortranbindc' feature set, but member variable '%s' (type '%s') has no 'bindc' typemap defined\n",
                  class_symname, fsymname, SwigType_namestr(datatype));
       return SWIG_NOWRAP;
     }
@@ -2211,9 +2211,15 @@ int FORTRAN::globalvariableHandler(Node *n) {
   if (GetFlag(n, "feature:fortran:const")) {
     this->constantWrapper(n);
   } else if (is_bindc(n)) {
-    Swig_error(input_file, line_number,
-               "Can't wrap '%s': %%fortranbindc support for global variables is not yet implemented\n",
-               Getattr(n, "sym:name"));
+    String *type = Getattr(n, "type");
+    if (type && strncmp(Char(type), "q(const)", 8) == 0) { 
+      // Treat bindc global const as a non-parameter constant
+      this->constantWrapper(n);
+    } else {
+      Swig_error(input_file, line_number,
+             "Can't wrap '%s': %%fortranbindc support for non-const global variables is not yet implemented\n",
+             Getattr(n, "sym:name"));
+    }
   } else {
     String *fsymname = Copy(Getattr(n, "sym:name"));
     Setattr(n, "fortran:variable", fsymname);
@@ -2430,8 +2436,6 @@ int FORTRAN::constantWrapper(Node *n) {
     }
   }
 
-  ASSERT_OR_PRINT_NODE(value || d_enum_public, n);
-
   // Get Fortran data type
   String *bindc_typestr = attach_typemap("bindc", n, WARN_NONE);
   if (!bindc_typestr) {
@@ -2478,29 +2482,6 @@ int FORTRAN::constantWrapper(Node *n) {
      */
     Swig_save("constantWrapper", n, "wrap:name", "lname", NULL);
 
-    // SYMNAME -> swig_SYMNAME
-    String *wname = Swig_name_wrapper(symname);
-    Setattr(n, "wrap:name", wname);
-
-    // Set the value to replace $1 with in the 'out' typemap
-    Setattr(n, "lname", value);
-
-    // Get conversion to C type from native c++ type, *AFTER* changing
-    // lname and wrap:name
-    String *cwrap_code = attach_typemap("out", n, WARN_TYPEMAP_OUT_UNDEF);
-    if (!cwrap_code)
-      return SWIG_NOWRAP;
-
-    if (Strstr(cwrap_code, "\n")) {
-      // There's a newline in the output code, indicating it's
-      // nontrivial.
-      Swig_warning(WARN_LANG_NATIVE_UNIMPL, input_file, line_number,
-                   "The 'out' typemap for '%s' is too complex to wrap as a %%constant variable. This will be implemented later\n",
-                   symname);
-
-      return SWIG_NOWRAP;
-    }
-
     // Get type of C value
     Swig_typemap_lookup("ctype", n, symname, NULL);
     SwigType *c_return_type = parse_typemap("ctype", n, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
@@ -2509,11 +2490,49 @@ int FORTRAN::constantWrapper(Node *n) {
 
     // Add a const to the return type
     SwigType_add_qualifier(c_return_type, "const");
-    String *declstring = SwigType_str(c_return_type, wname);
+    
+    String *wname;
+    if (value) {
+      // SYMNAME -> swig_SYMNAME
+      wname = Swig_name_wrapper(symname);
+      Setattr(n, "wrap:name", wname);
 
-    // Write SWIG code
-    Replaceall(cwrap_code, "$result", declstring);
-    Printv(f_wrapper, "SWIGEXPORT SWIGEXTERN ", cwrap_code, "\n\n", NULL);
+      // Set the value to replace $1 with in the 'out' typemap
+      Setattr(n, "lname", value);
+
+      // Get conversion to C type from native c++ type, *AFTER* changing
+      // lname and wrap:name
+      String *cwrap_code = attach_typemap("out", n, WARN_TYPEMAP_OUT_UNDEF);
+      if (!cwrap_code)
+        return SWIG_NOWRAP;
+
+      if (Strstr(cwrap_code, "\n")) {
+        // There's a newline in the output code, indicating it's
+        // nontrivial.
+        Swig_warning(WARN_LANG_NATIVE_UNIMPL, input_file, line_number,
+                     "The 'out' typemap for '%s' is too complex to wrap as a %%constant variable. This will be implemented later\n",
+                     symname);
+
+        return SWIG_NOWRAP;
+      }
+
+      // Write SWIG code
+      String *declstring = SwigType_str(c_return_type, wname);
+      Replaceall(cwrap_code, "$result", declstring);
+      Printv(f_wrapper, "SWIGEXPORT SWIGEXTERN ", cwrap_code, "\n\n", NULL);
+      Delete(declstring);
+    } else if (CPlusPlus && !Swig_storage_isexternc(n)) {
+      ASSERT_OR_PRINT_NODE(Swig_storage_isexternc(n), n);
+      Swig_error(input_file,
+                 line_number,
+                 "The C++ const global '%s' is not defined with external "
+                 "C linkage (extern \"C\"), but it is marked with %%fortranbindc.\n",
+                 Getattr(n, "sym:name"));
+      wname = NULL;
+    } else {
+      // Bind directly to the symbol
+      wname = Copy(symname);
+    }
 
     // Replace fclassname if needed
     this->replace_fclassname(c_return_type, bindc_typestr);
@@ -2526,7 +2545,6 @@ int FORTRAN::constantWrapper(Node *n) {
            NULL);
 
     Swig_restore(n);
-    Delete(declstring);
     Delete(wname);
   }
 
