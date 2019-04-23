@@ -6,10 +6,22 @@ program fortran_bindc_runme
   use ISO_C_BINDING
   implicit none
 
+  call test_globals
   call test_arrays
   call test_twod_unknown_int
 
 contains
+
+! Test global data
+subroutine test_globals
+  use fortran_bindc
+  use ISO_C_BINDING
+  implicit none
+
+  ASSERT(my_const_global_int == 9)
+  ! Uncommenting the following line should cause a compile error
+  ! my_const_global_int = 4
+end subroutine
 
 ! Test arrays of bound structs and classes
 subroutine test_arrays

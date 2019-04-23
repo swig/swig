@@ -22,7 +22,6 @@
 // XXX: currently C-bound globals are not implemented.
 // See https://github.com/sethrj/swig/issues/73
 %ignore my_global_int;
-%ignore my_const_global_int;
 
 %inline %{
 
