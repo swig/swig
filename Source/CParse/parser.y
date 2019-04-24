@@ -1650,7 +1650,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 
 /* C declarations */
 %type <node>     c_declaration c_decl c_decl_tail c_enum_key c_enum_inherit c_enum_decl c_enum_forward_decl c_constructor_decl;
-%type <node>     enumlist enumlist_tail enumlist_item edecl_with_dox edecl;
+%type <node>     enumlist enumlist_item edecl_with_dox edecl;
 
 /* C++ declarations */
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl cpp_alternate_rettype;
@@ -6374,36 +6374,35 @@ optional_ignored_defines
 		| empty
 		;
 
-optional_ignored_define_after_comma
-		: empty
-		| COMMA
-		| COMMA constant_directive
-		;
-
 /* Enum lists - any #define macros (constant directives) within the enum list are ignored. Trailing commas accepted. */
-enumlist	: enumlist_item optional_ignored_define_after_comma {
+enumlist	: enumlist_item {
 		  Setattr($1,"_last",$1);
 		  $$ = $1;
 		}
-		| enumlist_item enumlist_tail optional_ignored_define_after_comma {
-		  set_nextSibling($1, $2);
-		  Setattr($1,"_last",Getattr($2,"_last"));
-		  Setattr($2,"_last",NULL);
+		| enumlist_item DOXYGENPOSTSTRING {
+		  Setattr($1,"_last",$1);
+		  set_comment($1, $2);
+		  $$ = $1;
+		}
+		| enumlist_item COMMA enumlist {
+		  if ($3) {
+		    set_nextSibling($1, $3);
+		    Setattr($1,"_last",Getattr($3,"_last"));
+		    Setattr($3,"_last",NULL);
+		  }
+		  $$ = $1;
+		}
+		| enumlist_item COMMA DOXYGENPOSTSTRING enumlist {
+		  if ($4) {
+		    set_nextSibling($1, $4);
+		    Setattr($1,"_last",Getattr($4,"_last"));
+		    Setattr($4,"_last",NULL);
+		  }
+		  set_comment($1, $3);
 		  $$ = $1;
 		}
 		| optional_ignored_defines {
 		  $$ = 0;
-		}
-		;
-
-enumlist_tail	: COMMA enumlist_item {
-		  Setattr($2,"_last",$2);
-		  $$ = $2;
-		}
-		| enumlist_tail COMMA enumlist_item {
-		  set_nextSibling(Getattr($1,"_last"), $3);
-		  Setattr($1,"_last",$3);
-		  $$ = $1;
 		}
 		;
 
@@ -6418,19 +6417,6 @@ edecl_with_dox	: edecl {
 		| DOXYGENSTRING edecl {
 		  $$ = $2;
 		  set_comment($2, $1);
-		}
-		| edecl DOXYGENPOSTSTRING {
-		  $$ = $1;
-		  set_comment($1, $2);
-		}
-		| DOXYGENPOSTSTRING edecl {
-		  $$ = $2;
-		  set_comment(previousNode, $1);
-		}
-		| DOXYGENPOSTSTRING edecl DOXYGENPOSTSTRING {
-		  $$ = $2;
-		  set_comment(previousNode, $1);
-		  set_comment($2, $3);
 		}
 		;
 

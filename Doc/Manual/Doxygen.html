@@ -37,6 +37,10 @@
 <li><a href="#Doxygen_python_unsupported_tags">Unsupported tags</a>
 <li><a href="#Doxygen_python_further_details">Further details</a>
 </ul>
+<li><a href="#Doxygen_troubleshooting">Troubleshooting</a>
+<ul>
+<li><a href="#troubleshooting_ifndef">Problem with conditional compilation</a>
+</ul>
 <li><a href="#Doxygen_developer_details">Developer information</a>
 <ul>
 <li><a href="#Doxygen_translator_design">Doxygen translator design</a>
@@ -194,7 +198,7 @@ These structural commands are stripped out by SWIG and are not assigned to anyth
 
 <p>
 Doxygen comments translation is disabled by default and needs to be explicitly
-enabled using the command line <tt>-doxygen</tt> switch for the languages that
+enabled using the command line <tt>-doxygen</tt> option for the languages that
 do support it (currently Java and Python).
 </p>
 
@@ -1634,14 +1638,76 @@ Here is the list of these tags:
 TO BE ADDED.
 </p>
 
-<H2><a name="Doxygen_developer_details">17.5 Developer information</a></H2>
+<H2><a name="Doxygen_troubleshooting">17.5 Troubleshooting</a></H2>
+
+
+<p>
+When running SWIG with command line option <tt>-doxygen</tt>, it may happen
+that SWIG will fail to parse the code, which is valid C++ code and
+is parsed without problems without the option. The problem is,
+that Doxygen comments are not tokens (the C/C++ compiler actually never
+sees them) and that they can appear anywhere in the code. That's why it is
+practically impossible to handle all corner cases with the parser.
+However, these problems can usually be avoided by minor changes in the
+code or comment. Known problems and solutions are shown in this section.
+</p>
+
+
+<p>
+Recommended approach is to first run SWIG without command line
+option <tt>-doxygen</tt>. When it successfully processes the code,
+include the option and fix problems with Doxygen comments.
+</p>
+
+
+<H3><a name="troubleshooting_ifndef">17.5.1 Problem with conditional compilation</a></H3>
+
+
+<p>
+  Inserting a conditional compilation preprocessor directive between a
+  Doxygen comment and a commented item may break parsing:
+</p>
+
+
+<div class="code"><pre>
+class A {
+  /**
+   * Some func.
+   */
+  <font color='#ff0000'>#ifndef SWIG</font>
+  void myfunc()
+  {
+  }
+  #endif
+};
+</pre></div>
+
+<p>
+  The solution is to move the directive above the comment:
+</p>
+
+<div class="code"><pre>
+class A {
+  <font color='#00d000'>#ifndef SWIG</font>
+  /**
+   * Some func.
+   */
+  void myfunc()
+  {
+  }
+  #endif
+};
+</pre></div>
+
+
+<H2><a name="Doxygen_developer_details">17.6 Developer information</a></H2>
 
 
 <p>
 This section contains information for developers enhancing the Doxygen translator.
 </p>
 
-<H3><a name="Doxygen_translator_design">17.5.1 Doxygen translator design</a></H3>
+<H3><a name="Doxygen_translator_design">17.6.1 Doxygen translator design</a></H3>
 
 
 <p>
@@ -1667,11 +1733,11 @@ class for translation into the target documentation language.  For
 example, <tt>JavaDocConverter</tt> is the Javadoc module class.
 </p>
 
-<H3><a name="Doxygen_debugging_commands">17.5.2 Debugging the Doxygen parser and translator</a></H3>
+<H3><a name="Doxygen_debugging_commands">17.6.2 Debugging the Doxygen parser and translator</a></H3>
 
 
 <p>
-There are two handy command line switches, that enable lots of
+There are two handy command line options, that enable lots of
 detailed debug information printing.
 </p>
 
@@ -1680,7 +1746,7 @@ detailed debug information printing.
   -debug-doxygen-translator - Display Doxygen translator module debugging information
 </pre></div>
 
-<H3><a name="Doxygen_tests">17.5.3 Tests</a></H3>
+<H3><a name="Doxygen_tests">17.6.3 Tests</a></H3>
 
 
 <p>
@@ -1732,7 +1798,7 @@ Runtime tests in Python are just plain string comparisons of the __doc__
 properties.
 </p>
 
-<H2><a name="Doxygen_language_extension">17.6 Extending to other languages</a></H2>
+<H2><a name="Doxygen_language_extension">17.7 Extending to other languages</a></H2>
 
 
 <p>

@@ -477,7 +477,7 @@ Exception in thread "main" java.lang.UnsatisfiedLinkError: exampleJNI.gcd(II)I
 <p>
 where <tt>gcd</tt> is the missing JNI function that SWIG generated into the wrapper file.
 Also make sure you pass all of the required libraries to the linker.  
-The <tt>java -verbose:jni</tt> commandline switch is also a great way to get more information on unresolved symbols.
+The <tt>java -verbose:jni</tt> commandline option is also a great way to get more information on unresolved symbols.
 One last piece of advice is to beware of the common faux pas of having more than one native library version in your path.
 </p>
 
@@ -645,7 +645,7 @@ java::
 <p>
 To build the DLL and compile the java code, run NMAKE (you may need to run <tt>vcvars32</tt> first). 
 This is a pretty simplistic Makefile, but hopefully its enough to get you started.
-Of course you may want to make changes for it to work for C++ by adding in the -c++ command line switch for swig and replacing .c with .cxx.
+Of course you may want to make changes for it to work for C++ by adding in the -c++ command line option for swig and replacing .c with .cxx.
 </p>
 
 
