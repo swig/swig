@@ -501,7 +501,7 @@ MATLAB_SCRIPT   = $(SRCDIR)$(RUNME)
 # ----------------------------------------------------------------
 
 matlab: $(SRCDIR_SRCS)
-	$(SWIG) -matlab $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(SWIG) -matlab -w524 $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 ifdef MATLAB_MEX
 		$(COMPILETOOL) "$(MATLAB_MEX)" -g CFLAGS='$$CFLAGS $(CFLAGS)' $(ISRCS) $(SRCDIR_SRCS) \
 			$(SRCDIR_CSRCS) $(INCLUDES) $(LIBS) -output $(TARGET)MEX
@@ -517,7 +517,7 @@ endif
 # -----------------------------------------------------------------
 
 matlab_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -matlab $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(SWIG) -c++ -matlab -w524 $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 ifdef MATLAB_MEX
 		$(COMPILETOOL) "$(MATLAB_MEX)" -g $(CPPFLAGS) CXXFLAGS='$$CXXFLAGS $(CXXFLAGS)' $(ICXXSRCS) \
 			$(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(LIBS) -output $(TARGET)MEX
