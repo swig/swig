@@ -195,7 +195,7 @@ These structural commands are stripped out by SWIG and are not assigned to anyth
 
 <p>
 Doxygen comments translation is disabled by default and needs to be explicitly
-enabled using the command line <tt>-doxygen</tt> switch for the languages that
+enabled using the command line <tt>-doxygen</tt> option for the languages that
 do support it (currently Java and Python).
 </p>
 
@@ -1639,12 +1639,12 @@ TO BE ADDED.
 
 
 <p>
-When running SWIG with command line switch <tt>-doxygen</tt>, it may happen
+When running SWIG with command line option <tt>-doxygen</tt>, it may happen
 that SWIG will fail to parse the code, which is valid C++ code and
-is parsed without problems without the switch. The problem is,
-that Doxygen comments are not tokens (C/C++ compiler actually never
+is parsed without problems without the option. The problem is,
+that Doxygen comments are not tokens (the C/C++ compiler actually never
 sees them) and that they can appear anywhere in the code. That's why it is
-practically impossible to handle all corner cases with parser.
+practically impossible to handle all corner cases with the parser.
 However, these problems can usually be avoided by minor changes in the
 code or comment. Known problems and solutions are shown in this section.
 </p>
@@ -1652,8 +1652,8 @@ code or comment. Known problems and solutions are shown in this section.
 
 <p>
 Recommended approach is to first run SWIG without command line
-switch <tt>-doxygen</tt>. When it successfully processes the code,
-include the switch and fix problems with Doxygen comments.
+option <tt>-doxygen</tt>. When it successfully processes the code,
+include the option and fix problems with Doxygen comments.
 </p>
 
 
@@ -1661,8 +1661,8 @@ include the switch and fix problems with Doxygen comments.
 
 
 <p>
-  Inserting conditional compilation preprocessor directive between
-  Doxygen comment and commented item may break parsing:
+  Inserting a conditional compilation preprocessor directive between a
+  Doxygen comment and a commented item may break parsing:
 </p>
 
 
@@ -1680,7 +1680,7 @@ class A {
 </pre></div>
 
 <p>
-  Solution is to move the directive above comment:
+  The solution is to move the directive above the comment:
 </p>
 
 <div class="code"><pre>
@@ -1734,7 +1734,7 @@ example, <tt>JavaDocConverter</tt> is the Javadoc module class.
 
 
 <p>
-There are two handy command line switches, that enable lots of
+There are two handy command line options, that enable lots of
 detailed debug information printing.
 </p>
 

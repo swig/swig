@@ -56,7 +56,7 @@
 <H2><a name="D_command_line_invocation">23.2 Command line invocation</a></H2>
 
 
-<p>To activate the D module, pass the <tt>-d</tt> option to SWIG at the command line. The same standard command line switches as with any other language module are available, plus the following D specific ones:</p>
+<p>To activate the D module, pass the <tt>-d</tt> option to SWIG at the command line. The same standard command line options as with any other language module are available, plus the following D specific ones:</p>
 
 <dl>
   <dt><tt>-d2</tt></dt>
@@ -66,8 +66,8 @@
 
   <dt><a name="D_splitproxy"></a><tt>-splitproxy</tt></dt>
   <dd>
-    <p>By default, SWIG generates two D modules: the <em>proxy</em> module, named like the source module (either specified via the <tt>%module</tt> directive or via the <tt>module</tt> command line switch), which contains all the proxy classes, functions, enums, etc., and the <em>intermediary</em> module (named like the proxy module, but suffixed with <tt>_im</tt>), which contains all the <tt>extern(C)</tt> function declarations and other private parts only used internally by the proxy module.</p>
-    <p>If the split proxy mode is enabled by passing this switch at the command line, all proxy classes and enums are emitted to their own D module instead. The main proxy module only contains free functions and constants in this case.</p>
+    <p>By default, SWIG generates two D modules: the <em>proxy</em> module, named like the source module (either specified via the <tt>%module</tt> directive or via the <tt>module</tt> command line option), which contains all the proxy classes, functions, enums, etc., and the <em>intermediary</em> module (named like the proxy module, but suffixed with <tt>_im</tt>), which contains all the <tt>extern(C)</tt> function declarations and other private parts only used internally by the proxy module.</p>
+    <p>If the split proxy mode is enabled by passing this option at the command line, all proxy classes and enums are emitted to their own D module instead. The main proxy module only contains free functions and constants in this case.</p>
   </dd>
 
   <dt><tt>-package &lt;pkg&gt;</tt></dt>
@@ -77,7 +77,7 @@
 
   <dt><tt>-wrapperlibrary &lt;wl&gt;</tt></dt>
   <dd>
-    <p>The code SWIG generates to dynamically load the C/C++ wrapper layer looks for a library called <tt>$module_wrap</tt> by default. With this switch, you can override the name of the file the wrapper code loads at runtime (the <tt>lib</tt> prefix and the suffix for shared libraries are appended automatically, depending on the OS).</p>
+    <p>The code SWIG generates to dynamically load the C/C++ wrapper layer looks for a library called <tt>$module_wrap</tt> by default. With this option, you can override the name of the file the wrapper code loads at runtime (the <tt>lib</tt> prefix and the suffix for shared libraries are appended automatically, depending on the OS).</p>
     <p>This might especially be useful if you want to invoke SWIG several times on separate modules, but compile the resulting code into a single shared library.</p>
   </dd>
 </dl>
