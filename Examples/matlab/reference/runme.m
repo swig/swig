@@ -5,8 +5,8 @@
 % ----- Object creation -----
 
 disp(sprintf('Creating some objects:'))
-a = swigexample.Vector(3,4,5)
-b = swigexample.Vector(10,11,12)
+a = example.Vector(3,4,5)
+b = example.Vector(10,11,12)
 
 disp(sprintf('    Created %s',a.cprint()))
 disp(sprintf('    Created %s',b.cprint()))
@@ -20,7 +20,7 @@ disp(sprintf('    Created %s',b.cprint()))
 % It returns a new allocated object.
 
 disp(sprintf('Adding a+b'))
-c = swigexample.addv(a,b);
+c = example.addv(a,b);
 disp(sprintf('    a+b = %s\n', c.cprint()))
 
 clear c
@@ -29,7 +29,7 @@ clear c
 
 % Note: Using the high-level interface here
 disp(sprintf('Creating an array of vectors'))
-va = swigexample.VectorArray(10)
+va = example.VectorArray(10)
 
 % ----- Set some values in the array -----
 
@@ -37,7 +37,7 @@ va = swigexample.VectorArray(10)
 va.set(0,a);
 va.set(1,b);
 
-va.set(2,swigexample.addv(a,b))
+va.set(2,example.addv(a,b))
 
 % Get some values from the array
 

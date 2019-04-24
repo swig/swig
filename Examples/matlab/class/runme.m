@@ -6,13 +6,13 @@
 % ----- Object creation -----
 
 disp('Creating some objects:')
-c = swigexample.Circle(10);
-s = swigexample.Square(10);
-u = swigexample.CircleInscribedInSquare(10);
+c = example.Circle(10);
+s = example.Square(10);
+u = example.CircleInscribedInSquare(10);
 
 % ----- Access a static member -----
 
-disp(sprintf('A total of %i shapes were created', swigexample.Shape.nshapes));
+disp(sprintf('A total of %i shapes were created', example.Shape.nshapes));
 
 % ----- Member data access -----
 
@@ -57,5 +57,5 @@ clear c
 clear s
 clear u
 
-disp(sprintf('%i shapes remain', swigexample.Shape.nshapes));
+disp(sprintf('%i shapes remain', example.Shape.nshapes));
 disp('Goodbye')

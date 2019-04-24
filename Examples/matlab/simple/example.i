@@ -1,5 +1,5 @@
 /* File : example.i */
-%module swigexample
+%module example
 
 %inline %{
 extern int    gcd(int x, int y);
