@@ -50,7 +50,7 @@ run_testcase = \
 	    end; \
 	  exit(0)" ; \
 	 env LD_LIBRARY_PATH=".:$$LD_LIBRARY_PATH" MATLABPATH="$(srcdir):$(SCRIPTDIR):$$MATLAB_PATH" \
-	 $(RUNTOOL) "$(MATLAB)" $(MATLAB_OPTS) $(MATLAB_EXEC) "$$RUNSCRIPT"  $(RUNPIPE); \
+	 $(RUNTOOL) "$(MATLAB)" $(MATLAB_OPTS) $(MATLAB_EXEC) "$$RUNSCRIPT" \>/dev/null; \
 	 if [ $$? -ne 0 ] ; then \
 	   echo "   $* failed" $(RUNPIPE) ; \
 	 else \
