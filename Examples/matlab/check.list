@@ -2,7 +2,7 @@
 #class
 constants
 #contract
-#enum
+enum
 #funcptr
 #funcptr2
 #modules

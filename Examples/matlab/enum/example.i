@@ -1,5 +1,5 @@
 /* File : example.i */
-%module swigexample
+%module example
 
 %{
 #include "example.h"
