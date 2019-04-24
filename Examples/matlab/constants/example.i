@@ -1,5 +1,5 @@
 /* File : example.i */
-%module swigexample
+%module example
 
 %{
 #include <complex>
@@ -27,6 +27,7 @@
 
 /* The following directives also produce constants */
 
-%constant int iconst = 37;
-%constant double fconst = 3.14;
-%constant std::complex<double> cxconst(3.14,-3);
+%constant int iconst3 = 37;
+%constant double fconst3 = 3.14;
+/* The following line is commented because of this warning message in SWIG 4.0.0: example.i:32: Warning 305: Bad constant value (ignored). */
+/*%constant std::complex<double> cxconst(3.14,-3); */
