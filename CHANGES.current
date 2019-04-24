@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-04-19: ianlancetaylor
+            [Go] #1055 When generating Go code, make -cgo the default. Add new -no-cgo option
+            to disable the default.
+
 2019-04-19: pbecherer
             [Tcl] #1508 Fix Visual Studio 2015 and later compilation errors due to snprintf macro
             definition.
