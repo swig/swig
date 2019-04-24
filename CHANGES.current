@@ -7,8 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.0 (in progress)
 ===========================
 
+2019-04-24: vadz
+            #1517 Fix crash if "@return" Doxygen tag was used on a node without any return type.
+
+2019-04-24: vadz
+            #1515 Fix parsing of enums with trailing comma when using -doxygen.
+
+2019-04-19: ianlancetaylor
+            [Go] #1055 When generating Go code, make -cgo the default. Add new -no-cgo option
+            to disable the default.
+
 2019-04-19: pbecherer
-            [Tcl] Fix Visual Studio 2015 and later compilation errors due to snprintf macro
+            [Tcl] #1508 Fix Visual Studio 2015 and later compilation errors due to snprintf macro
             definition.
 
 2019-04-09: wsfulton
