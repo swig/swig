@@ -55,6 +55,10 @@ public class doxygen_parsing_enums_typeunsafe_runme {
     wantedComments.put("doxygen_parsing_enums_typeunsafe.SomeAnotherEnum2.SOME_ITEM_10",
     		"Post comment for the first item \n" +
     		"");
+    wantedComments.put("doxygen_parsing_enums_typeunsafe.SomeEnumWithTrailingComma.SOME_ITEM_100",
+    		"Post comment after comma.");
+    wantedComments.put("doxygen_parsing_enums_typeunsafe.SomeEnumWithTrailingComma.SOME_ITEM_200",
+    		"Post comment after last comma.");
     
     // and ask the parser to check comments for us
     System.exit(parser.check(wantedComments));
