@@ -160,10 +160,9 @@ Examples/test-suite/javascript/*/
 
 # Matlab
 *.mex*
-Examples/test-suite/matlab/[+]*/
-Examples/test-suite/matlab/*setup.m
-Examples/test-suite/matlab/SwigRef.m
-Examples/test-suite/matlab/SwigMem.m
+Examples/matlab/*/[+]*/
+Examples/matlab/*/*setup.m
+Examples/matlab/*/Swig*.m
 
 # OCaml
 Examples/test-suite/ocaml/*.ml*
