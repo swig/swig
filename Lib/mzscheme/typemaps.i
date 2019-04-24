@@ -329,7 +329,7 @@ REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
   $1 = (SCHEME_STRINGP($input)) ? 1 : 0;
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE [] {
   void *ptr;
   if (SWIG_ConvertPtr($input, (void **) &ptr, $1_descriptor, 0)) {
     $1 = 0;
@@ -338,9 +338,18 @@ REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
   }
 }
 
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE &, SWIGTYPE && {
+  void *ptr;
+  if (SWIG_ConvertPtr($input, (void **) &ptr, $1_descriptor, SWIG_POINTER_NO_NULL)) {
+    $1 = 0;
+  } else {
+    $1 = 1;
+  }
+}
+
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
   void *ptr;
-  if (SWIG_ConvertPtr($input, (void **) &ptr, $&1_descriptor, 0)) {
+  if (SWIG_ConvertPtr($input, (void **) &ptr, $&1_descriptor, SWIG_POINTER_NO_NULL)) {
     $1 = 0;
   } else {
     $1 = 1;

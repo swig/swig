@@ -14,7 +14,7 @@
 /* Constants created by %constant or #define are UPPER_CASE */
 %rename("%(uppercase)s", %$isconstant) "";
 
-/* SWIG only considers static class members with inline intializers
+/* SWIG only considers static class members with inline initializers
 	 to be constants.  For examples of what is and isn't considered
 	 a constant by SWIG see naming.i in the Ruby test suite. */
 %rename("%(uppercase)s", %$ismember, %$isvariable,%$isimmutable,%$isstatic,%$hasvalue,%$hasconsttype) ""; 

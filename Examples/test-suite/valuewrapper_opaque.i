@@ -4,6 +4,10 @@
  *  Opaque types
  */
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) method;
+#endif
+
 %feature("valuewrapper") C;
 class C;
 

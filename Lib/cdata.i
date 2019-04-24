@@ -21,18 +21,10 @@ typedef struct SWIGCDATA {
 }
 %typemap(in) (const void *indata, int inlen) = (char *STRING, int LENGTH);
 
-#elif SWIGCHICKEN
+#elif SWIGPHP7
 
 %typemap(out) SWIGCDATA {
-  C_word *string_space = C_alloc(C_SIZEOF_STRING($1.len));
-  $result = C_string(&string_space, $1.len, $1.data);
-}
-%typemap(in) (const void *indata, int inlen) = (char *STRING, int LENGTH);
-
-#elif SWIGPHP
-
-%typemap(out) SWIGCDATA {
-  ZVAL_STRINGL($result, $1.data, $1.len, 1);
+  ZVAL_STRINGL($result, $1.data, $1.len);
 }
 %typemap(in) (const void *indata, int inlen) = (char *STRING, int LENGTH);
 
@@ -64,8 +56,6 @@ static jbyteArray SWIG_JavaArrayOutCDATA(JNIEnv *jenv, char *result, jsize sz) {
     return $jnicall;
   }
 
-#else
-%echo "cdata.i module not supported."
 #endif
 
 

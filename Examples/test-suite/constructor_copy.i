@@ -73,10 +73,16 @@ public:
 
 %include "std_vector.i"
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGR) || defined(SWIGOCTAVE) || defined(SWIGMATLAB) || defined(SWIGRUBY) || defined(SWIGJAVASCRIPT) || defined(SWIGSCILAB)
+#if defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGR) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGJAVASCRIPT) || defined(SWIGSCILAB)
 #define SWIG_GOOD_VECTOR
 %ignore std::vector<Space::Flow>::vector(size_type);
 %ignore std::vector<Space::Flow>::resize(size_type);
+#endif
+
+#if defined(SWIGJAVA)
+#define SWIG_GOOD_VECTOR
+%ignore std::vector<Space::Flow>::vector(jint);
+%ignore std::vector<Space::Flow>::resize(jint);
 #endif
 
 #if defined(SWIGTCL) || defined(SWIGPERL)
@@ -157,3 +163,4 @@ namespace Space1 {
 %}
 
 %template(Total_i) Space1::Space2::TotalReturnSwap_T<int>;
+

@@ -32,6 +32,7 @@ static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef ctorObject,
     size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
     SWIG_exception(SWIG_ERROR, "Class $jsname can not be instantiated");
+fail:
     return 0;
 }
 %}
@@ -387,7 +388,7 @@ static JSStaticFunction $jsmangledname_functions[] = {
  * jsc_nspace_declaration:  template for a namespace declaration
  *   - $jsnspace:           mangled name of the namespace
  *   - $jsglobalvariables:  list of variable entries
- *   - $jsglobalfunctions:  list if fuction entries
+ *   - $jsglobalfunctions:  list of function entries
  * ----------------------------------------------------------------------------- */
 %fragment ("jsc_nspace_declaration", "templates")
 %{

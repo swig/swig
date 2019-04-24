@@ -108,5 +108,5 @@ PairSubclass::data_t plus1(PairSubclass::const_ref_data_t x) { return x + 1; }
 using callback_t = int(*)(int);
 
 callback_t get_callback() { return mult2; }
-int call(callback_t func, int param) { return func(param); }
+int call(callback_t funk, int param) { return funk(param); }
 %}

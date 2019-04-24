@@ -4,7 +4,7 @@
  * ---------------------------------------------------------------------------*/
 
 #define SWIG_Error(code, msg)     SWIG_JSC_exception(context, exception, code, msg)
-#define SWIG_exception(code, msg) SWIG_JSC_exception(context, exception, code, msg)
+#define SWIG_exception(code, msg) do { SWIG_JSC_exception(context, exception, code, msg); SWIG_fail; } while (0)
 #define SWIG_fail                 goto fail
 
 SWIGRUNTIME void SWIG_Javascript_Raise(JSContextRef context, JSValueRef *exception, const char* type) {
@@ -150,7 +150,7 @@ SWIGRUNTIME int SWIG_JSC_ConvertPtr(JSContextRef context, JSValueRef valRef, voi
   /* special case: JavaScript null => C NULL pointer */
   if(JSValueIsNull(context, valRef)) {
     *ptr=0;
-    return SWIG_OK;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
 
   if(!JSValueIsObject(context, valRef)) {

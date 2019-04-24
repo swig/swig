@@ -36,7 +36,7 @@ void main() {
   static assert(is(char[] == typeof(CONST_STRING2())));
 
   static assert(is(int == typeof(INT_AND_BOOL())));
-//    static assert(is(int == typeof(INT_AND_CHAR())));
+  static assert(is(int == typeof(INT_AND_CHAR())));
   static assert(is(int == typeof(INT_AND_INT())));
   static assert(is(uint == typeof(INT_AND_UINT())));
   static assert(is(c_long == typeof(INT_AND_LONG())));
@@ -61,4 +61,7 @@ void main() {
   static assert(is(int == typeof(EXPR_LAND())));
   static assert(is(int == typeof(EXPR_LOR())));
   static assert(is(double == typeof(EXPR_CONDITIONAL())));
+  static assert(is(double == typeof(EXPR_MIXED1())));
+  static assert(is(int == typeof(EXPR_WCHAR_MAX())));
+  static assert(is(int == typeof(EXPR_WCHAR_MIN())));
 }

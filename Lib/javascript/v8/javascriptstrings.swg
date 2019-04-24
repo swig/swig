@@ -7,11 +7,11 @@ SWIGINTERN int
 SWIG_AsCharPtrAndSize(v8::Handle<v8::Value> valRef, char** cptr, size_t* psize, int *alloc)
 {
   if(valRef->IsString()) {
-    v8::Handle<v8::String> js_str = valRef->ToString();
+    v8::Handle<v8::String> js_str = SWIGV8_TO_STRING(valRef);
 
-    size_t len = js_str->Utf8Length() + 1;
+    size_t len = SWIGV8_UTF8_LENGTH(js_str) + 1;
     char* cstr = new char[len];
-    js_str->WriteUtf8(cstr, len);
+    SWIGV8_WRITE_UTF8(js_str, cstr, len);
     
     if(alloc) *alloc = SWIG_NEWOBJ;
     if(psize) *psize = len;
@@ -20,7 +20,7 @@ SWIG_AsCharPtrAndSize(v8::Handle<v8::Value> valRef, char** cptr, size_t* psize, 
     return SWIG_OK;
   } else {
     if(valRef->IsObject()) {
-      v8::Handle<v8::Object> obj = valRef->ToObject();
+      v8::Handle<v8::Object> obj = SWIGV8_TO_OBJECT(valRef);
       // try if the object is a wrapped char[]
       swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
       if (pchar_descriptor) {

@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Ocaml">31 SWIG and Ocaml</a></H1>
+<H1><a name="Ocaml">38 SWIG and OCaml</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -47,11 +47,15 @@
 <li><a href="#Ocaml_nn25">Director Usage Example</a>
 <li><a href="#Ocaml_nn26">Creating director objects</a>
 <li><a href="#Ocaml_nn27">Typemaps for directors, directorin, directorout, directorargout</a>
-<li><a href="#Ocaml_nn28">typemap</a>
+<li><a href="#Ocaml_nn28">directorin typemap</a>
 <li><a href="#Ocaml_nn29">directorout typemap</a>
 <li><a href="#Ocaml_nn30">directorargout typemap</a>
 </ul>
 <li><a href="#Ocaml_nn31">Exceptions</a>
+</ul>
+<li><a href="#Ocaml_nn32">Documentation Features</a>
+<ul>
+<li><a href="#Ocaml_nn33">Module docstring</a>
 </ul>
 </ul>
 </div>
@@ -84,13 +88,13 @@ If you're not familiar with the Objective Caml language, you can visit
 <a href="http://ocaml.org/">The Ocaml Website</a>.
 </p>
 
-<H2><a name="Ocaml_nn2">31.1 Preliminaries</a></H2>
+<H2><a name="Ocaml_nn2">38.1 Preliminaries</a></H2>
 
 
 <p>
-SWIG 3.0 works with Ocaml 3.08.3 and above.  Given the choice,
+SWIG is compatible with OCaml 3.12.0 and above.  Given the choice,
 you should use the latest stable release.  The SWIG Ocaml module has
-been tested on Linux (x86,PPC,Sparc) and Cygwin on Windows.  The
+been tested on Linux (x86, PPC, Sparc) and Cygwin on Windows.  The
 best way to determine whether your system will work is to compile the
 examples and test-suite which come with SWIG.  You can do this by running
 <tt>make check</tt> from the SWIG root directory after installing SWIG.
@@ -102,7 +106,7 @@ file Examples/Makefile illustrate how to compile and link SWIG modules that
 will be loaded dynamically.  This has only been tested on Linux so far.
 </p>
 
-<H3><a name="Ocaml_nn3">31.1.1 Running SWIG</a></H3>
+<H3><a name="Ocaml_nn3">38.1.1 Running SWIG</a></H3>
 
 
 <p>
@@ -125,7 +129,7 @@ you will compile the file <tt>example_wrap.c</tt> with <tt>ocamlc</tt> or
 the resulting .ml and .mli files as well, and do the final link with -custom
 (not needed for native link).</p>
 
-<H3><a name="Ocaml_nn4">31.1.2 Compiling the code</a></H3>
+<H3><a name="Ocaml_nn4">38.1.2 Compiling the code</a></H3>
 
 
 <p>
@@ -142,7 +146,7 @@ Use <tt>ocamlc</tt> or <tt>ocamlopt</tt> to compile your SWIG interface like:
 
 <div class="code">
 <pre>
-% swig -ocaml -co swig.mli ; swig -ocaml co swig.ml
+% swig -ocaml -co swig.mli ; swig -ocaml -co swig.ml
 % ocamlc -c swig.mli ; ocamlc -c swig.ml
 % ocamlc -c -ccopt "-I/usr/include/foo" example_wrap.c
 % ocamlc -c example.mli
@@ -162,7 +166,7 @@ in C++ mode, you must:</p>
 </pre>
 </div>
 
-<H3><a name="Ocaml_nn5">31.1.3 The camlp4 module</a></H3>
+<H3><a name="Ocaml_nn5">38.1.3 The camlp4 module</a></H3>
 
 
 <p>
@@ -238,7 +242,7 @@ let b = C_string (getenv "PATH")
 </td></tr>
 </table>
 
-<H3><a name="Ocaml_nn6">31.1.4 Using your module</a></H3>
+<H3><a name="Ocaml_nn6">38.1.4 Using your module</a></H3>
 
 
 <p>
@@ -252,7 +256,7 @@ option to build your functions into the primitive list. This
 option is not needed when you build native code.
 </p>
 
-<H3><a name="Ocaml_nn7">31.1.5 Compilation problems and compiling with C++</a></H3>
+<H3><a name="Ocaml_nn7">38.1.5 Compilation problems and compiling with C++</a></H3>
 
 
 <p>
@@ -263,7 +267,7 @@ liberal with pointer types may not compile under the C++ compiler.
 Most code meant to be compiled as C++ will not have problems.
 </p>
 
-<H2><a name="Ocaml_nn8">31.2 The low-level Ocaml/C interface</a></H2>
+<H2><a name="Ocaml_nn8">38.2 The low-level Ocaml/C interface</a></H2>
 
 
 <p>
@@ -327,7 +331,7 @@ A few functions exist which generate and return these:
 Because of this style, a typemap can return any kind of value it
 wants from a function.  This enables out typemaps and inout typemaps
 to work well.  The one thing to remember about outputting values
-is that you must append them to the return list with swig_result = caml_list_append(swig_result,v).
+is that you must append them to the return list with swig_result = caml_list_append(swig_result, v).
 </p>
 
 <p>
@@ -336,7 +340,7 @@ appended.  Upon return to caml space, the fnhelper function
 beautifies the result.  A list containing a single item degrades to
 only that item (i.e. [ C_int 3 ] -&gt; C_int 3), and a list
 containing more than one item is wrapped in C_list (i.e. [ C_char
-'a' ; C_char 'b' -&gt; C_list [ C_char 'a' ; C_char b
+'a' ; C_char 'b' ] -&gt; C_list [ C_char 'a' ; C_char 'b'
 ]).  This is in order to make return values easier to handle
 when functions have only one return value, such as constructors,
 and operators.  In addition, string, pointer, and object
@@ -363,7 +367,7 @@ value items pass through directly, but you must make your own type
 signature for a function that uses value in this way.
 </p>
 
-<H3><a name="Ocaml_nn9">31.2.1 The generated module</a></H3>
+<H3><a name="Ocaml_nn9">38.2.1 The generated module</a></H3>
 
 
 <p>
@@ -397,7 +401,7 @@ it describes the output SWIG will generate for class definitions.
 </td></tr>
 </table>
 
-<H3><a name="Ocaml_nn10">31.2.2 Enums</a></H3>
+<H3><a name="Ocaml_nn10">38.2.2 Enums</a></H3>
 
 
 <p>
@@ -460,7 +464,7 @@ val x : Enum_test.c_obj = C_enum `a
 </pre>
 </div>
 
-<H4><a name="Ocaml_nn11">31.2.2.1 Enum typing in Ocaml</a></H4>
+<H4><a name="Ocaml_nn11">38.2.2.1 Enum typing in Ocaml</a></H4>
 
 
 <p>
@@ -473,10 +477,10 @@ functions imported from different modules.  You must convert values to master
 values using the swig_val function before sharing them with another module.
 </p>
 
-<H3><a name="Ocaml_nn12">31.2.3 Arrays</a></H3>
+<H3><a name="Ocaml_nn12">38.2.3 Arrays</a></H3>
 
 
-<H4><a name="Ocaml_nn13">31.2.3.1 Simple types of bounded arrays</a></H4>
+<H4><a name="Ocaml_nn13">38.2.3.1 Simple types of bounded arrays</a></H4>
 
 
 <p>
@@ -497,7 +501,7 @@ arrays of simple types with known bounds in your code, but this only works
 for arrays whose bounds are completely specified.
 </p>
 
-<H4><a name="Ocaml_nn14">31.2.3.2 Complex and unbounded arrays</a></H4>
+<H4><a name="Ocaml_nn14">38.2.3.2 Complex and unbounded arrays</a></H4>
 
 
 <p>
@@ -505,12 +509,12 @@ Unfortunately, unbounded arrays and pointers can't be handled in a
 completely general way by SWIG, because the end-condition of such an
 array can't be predicted.  In some cases, it will be by consent
 (e.g. an array of four or more chars), sometimes by explicit length
-(char *buffer, int len), and sometimes by sentinel value (0,-1,etc.).
+(char *buffer, int len), and sometimes by sentinel value (0, -1, etc.).
 SWIG can't predict which of these methods will be used in the array,
 so you have to specify it for yourself in the form of a typemap.
 </p>
 
-<H4><a name="Ocaml_nn15">31.2.3.3 Using an object</a></H4>
+<H4><a name="Ocaml_nn15">38.2.3.3 Using an object</a></H4>
 
 
 <p>
@@ -524,7 +528,7 @@ Consider writing an object when the ending condition of your array is complex,
 such as using a required sentinel, etc.
 </p>
 
-<H4><a name="Ocaml_nn16">31.2.3.4 Example typemap for a function taking float * and int</a></H4>
+<H4><a name="Ocaml_nn16">38.2.3.4 Example typemap for a function taking float * and int</a></H4>
 
 
 <p>
@@ -560,7 +564,7 @@ void printfloats( float *tab, int len ) {
   $2 = caml_array_len($input);
   $1 = ($*1_type *)malloc( $2 * sizeof( float ) );
   for( i = 0; i &lt; $2; i++ ) {
-    $1[i] = caml_double_val(caml_array_nth($input,i));
+    $1[i] = caml_double_val(caml_array_nth($input, i));
   }
 }
 
@@ -575,7 +579,7 @@ void printfloats( float *tab, int len );
 </pre></td></tr></table>
 
 
-<H3><a name="Ocaml_nn17">31.2.4 C++ Classes</a></H3>
+<H3><a name="Ocaml_nn17">38.2.4 C++ Classes</a></H3>
 
 
 <p>
@@ -618,7 +622,7 @@ the underlying pointer, so using create_[x]_from_ptr alters the
 returned value for the same object.
 </p>
 
-<H4><a name="Ocaml_nn18">31.2.4.1 STL vector and string Example</a></H4>
+<H4><a name="Ocaml_nn18">38.2.4.1 STL vector and string Example</a></H4>
 
 
 <p>
@@ -660,7 +664,7 @@ module.
 </p>
 
 <div class="code"><pre>
-bash-2.05a$ ./example_top
+bash-2.05a$ ./runme_top
         Objective Caml version 3.06
 
         Camlp4 Parsing version 3.06
@@ -684,7 +688,7 @@ C_list
 - : Example.c_obj = C_void
 # x '[1] ;;
 - : Example.c_obj = C_string "bar"
-# x -&gt; set (1,"spam") ;;
+# x -&gt; set (1, "spam") ;;
 - : Example.c_obj = C_void
 # x '[1] ;;
 - : Example.c_obj = C_string "spam"
@@ -698,7 +702,7 @@ baz
 #
 </pre></div>
 
-<H4><a name="Ocaml_nn19">31.2.4.2 C++ Class Example</a></H4>
+<H4><a name="Ocaml_nn19">38.2.4.2 C++ Class Example</a></H4>
 
 
 <p>
@@ -728,7 +732,7 @@ public:
 };
 </pre></td></tr></table>
 
-<H4><a name="Ocaml_nn20">31.2.4.3 Compiling the example</a></H4>
+<H4><a name="Ocaml_nn20">38.2.4.3 Compiling the example</a></H4>
 
 
 <div class="code"><pre>
@@ -746,7 +750,7 @@ bash-2.05a$ ocamlmktop -custom swig.cmo -I `camlp4 -where` \
   -L$QTPATH/lib -cclib -lqt
 </pre></div>
 
-<H4><a name="Ocaml_nn21">31.2.4.4 Sample Session</a></H4>
+<H4><a name="Ocaml_nn21">38.2.4.4 Sample Session</a></H4>
 
 
 <div class="code"><pre>
@@ -757,11 +761,11 @@ bash-2.05a$ ./qt_top
 
 # open Swig ;;
 # open Qt ;;
-# let a = new_QApplication '(0,0) ;;
+# let a = new_QApplication '(0, 0) ;;
 val a : Qt.c_obj = C_obj &lt;fun&gt;
-# let hello = new_QPushButton '("hi",0) ;;
+# let hello = new_QPushButton '("hi", 0) ;;
 val hello : Qt.c_obj = C_obj &lt;fun&gt;
-# hello -&gt; resize (100,30) ;;
+# hello -&gt; resize (100, 30) ;;
 - : Qt.c_obj = C_void
 # hello -&gt; show () ;;
 - : Qt.c_obj = C_void
@@ -773,10 +777,10 @@ Assuming you have a working installation of QT, you will see a window
 containing the string "hi" in a button.
 </p>
 
-<H3><a name="Ocaml_nn22">31.2.5 Director Classes</a></H3>
+<H3><a name="Ocaml_nn22">38.2.5 Director Classes</a></H3>
 
 
-<H4><a name="Ocaml_nn23">31.2.5.1 Director Introduction</a></H4>
+<H4><a name="Ocaml_nn23">38.2.5.1 Director Introduction</a></H4>
 
 
 <p>
@@ -803,7 +807,7 @@ class foo {
 };
 </pre></div>
 
-<H4><a name="Ocaml_nn24">31.2.5.2 Overriding Methods in Ocaml</a></H4>
+<H4><a name="Ocaml_nn24">38.2.5.2 Overriding Methods in Ocaml</a></H4>
 
 
 <p>
@@ -831,11 +835,11 @@ In this example, I'll examine the objective caml code involved in providing
 an overloaded class.  This example is contained in Examples/ocaml/shapes.
 </p>
 
-<H4><a name="Ocaml_nn25">31.2.5.3 Director Usage Example</a></H4>
+<H4><a name="Ocaml_nn25">38.2.5.3 Director Usage Example</a></H4>
 
 
 <table border="1" bgcolor="#dddddd" summary="Director usage example">
-<tr><th><center>example_prog.ml</center>
+<tr><th><center>runme.ml</center>
 </th></tr>
 <tr><td><pre>
 open Swig
@@ -854,13 +858,15 @@ let triangle_class pts ob meth args =
            | _ -&gt; raise (Failure "cover needs two double arguments."))
     | _ -&gt; (invoke ob) meth args ;;
 
+...
+
 let triangle =
   new_derived_object
     new_shape
-    (triangle_class ((0.0,0.0),(0.5,1.0),(1.0,0.0)))
+    (triangle_class ((0.0, 0.0), (0.5, 1.0), (1.0, 0.6)))
     '() ;;
 
-let _ = _draw_shape_coverage '(triangle, C_int 60, C_int 20) ;;
+let _ = _draw_shape_coverage '(triangle, 60, 20) ;;
 </pre></td></tr>
 </table>
 
@@ -890,7 +896,7 @@ in a more effortless style in ocaml, while leaving the "engine" part of the
 program in C++.
 </p>
 
-<H4><a name="Ocaml_nn26">31.2.5.4 Creating director objects</a></H4>
+<H4><a name="Ocaml_nn26">38.2.5.4 Creating director objects</a></H4>
 
 
 <p>
@@ -901,7 +907,7 @@ The definition of the actual object triangle can be described this way:
 let triangle =
   new_derived_object
     new_shape
-    (triangle_class ((0.0,0.0),(0.5,1.0),(1.0,0.0)))
+    (triangle_class ((0.0, 0.0), (0.5, 1.0), (1.0, 0.0)))
     '()
 </pre></div>
 
@@ -931,7 +937,7 @@ object from causing a core dump, as long as the object is destroyed
 properly.
 </p>
 
-<H4><a name="Ocaml_nn27">31.2.5.5 Typemaps for directors, directorin, directorout, directorargout</a></H4>
+<H4><a name="Ocaml_nn27">38.2.5.5 Typemaps for directors, directorin, directorout, directorargout</a></H4>
 
 
 <p>
@@ -942,7 +948,7 @@ well as a function return value in the same way you provide function arguments,
 and to receive arguments the same way you normally receive function returns.
 </p>
 
-<H4><a name="Ocaml_nn28">31.2.5.6 typemap</a></H4>
+<H4><a name="Ocaml_nn28">38.2.5.6 directorin typemap</a></H4>
 
 
 <p>
@@ -953,7 +959,7 @@ code receives when you are called.  In general, a simple <tt>directorin</tt> typ
 can use the same body as a simple <tt>out</tt> typemap.
 </p>
 
-<H4><a name="Ocaml_nn29">31.2.5.7 directorout typemap</a></H4>
+<H4><a name="Ocaml_nn29">38.2.5.7 directorout typemap</a></H4>
 
 
 <p>
@@ -964,7 +970,7 @@ for the same type, except when there are special requirements for object
 ownership, etc.
 </p>
 
-<H4><a name="Ocaml_nn30">31.2.5.8 directorargout typemap</a></H4>
+<H4><a name="Ocaml_nn30">38.2.5.8 directorargout typemap</a></H4>
 
 
 <p>
@@ -981,14 +987,134 @@ In the event that you don't specify all of the necessary values, integral
 values will read zero, and struct or object returns have undefined results.
 </p>
 
-<H3><a name="Ocaml_nn31">31.2.6 Exceptions</a></H3>
+<H3><a name="Ocaml_nn31">38.2.6 Exceptions</a></H3>
 
 
 <p>
-Catching exceptions is now supported using SWIG's %exception feature.  A simple
-but not too useful example is provided by the throw_exception testcase in
-Examples/test-suite.  You can provide your own exceptions, too.
+If an error occurs in a C or C++ function, you may want to convert that error into an OCaml
+exception.  To do this, you can use the <tt>%exception</tt> directive.  The <tt>%exception</tt>
+directive simply lets you rewrite part of the generated wrapper code to include an error check.
+It is detailed in full in the <a href="Customization.html#Customization_exception">Exception handling with %exception</a> section.
 </p>
+
+<p>
+In C, a function often indicates an error by returning a status code (e.g. a negative number
+or a NULL pointer).  Here is a simple example of how you might handle that:
+</p>
+
+<div class="code">
+<pre>
+%exception malloc {
+  $action
+  if (result == NULL) {
+    caml_failwith("Not enough memory");
+  }
+}
+void *malloc(size_t nbytes);
+</pre>
+</div>
+
+<p>
+In OCaml:
+</p>
+
+<div class="code">
+<pre>
+# let a = _malloc (C_int 20000000000);;
+Exception: Failure "Not enough memory".
+#
+</pre>
+</div>
+
+<p>
+If a library provides some kind of general error handling framework, you can also use
+that.  For example:
+</p>
+
+<div class="code">
+<pre>
+%exception {
+  $action
+  if (err_occurred()) {
+    caml_failwith(err_message());
+  }
+}
+</pre>
+</div>
+
+<p>
+If no declaration name is given to <tt>%exception</tt>, it is applied to all wrapper functions.
+<tt>$action</tt> is a SWIG special variable and is replaced by the C/C++ function call being wrapped.
+</p>
+
+<p>
+C++ exceptions are also easy to handle.  We can catch a C++ exception and rethrow it as
+an OCaml exception like this:
+</p>
+
+<div class="code">
+<pre>
+%exception getitem {
+  try {
+    $action
+  } catch (std::out_of_range &amp;e) {
+    caml_failwith(e.what());
+  }
+}
+
+class FooClass {
+  public:
+    int getitem(int index);      // Exception handling added
+    ...
+};
+</pre>
+</div>
+
+<p>
+The language-independent <tt>exception.i</tt> library file can also be used
+to raise exceptions.  See the <a href="Library.html#Library">SWIG Library</a> chapter.
+</p>
+
+<H2><a name="Ocaml_nn32">38.3 Documentation Features</a></H2>
+
+
+<p>
+The features described in this section can be used to generate documentation
+comments (colloquially referred to as "docstrings") that can be read by
+<a href="https://caml.inria.fr/pub/docs/manual-ocaml/ocamldoc.html">OCamldoc</a>.
+</p>
+
+<H3><a name="Ocaml_nn33">38.3.1 Module docstring</a></H3>
+
+
+<p>
+The first documentation comment of an <tt>mli</tt> file is the comment
+associated with the entire module.  SWIG supports this by setting an
+option of the <tt>%module</tt> directive.  For example:
+</p>
+
+<div class="code">
+<pre>
+%module(docstring="This is the example module's docstring") example
+</pre>
+</div>
+
+<p>
+When you have more than just a line or so, you can retain the
+readability of the <tt>%module</tt> directive by using a macro.  For
+example:
+</p>
+
+<div class="code">
+<pre>
+%define DOCSTRING
+"The `XmlResource` class allows program resources defining menus,
+controls on a panel, etc. to be loaded from an XML file."
+%enddef
+
+%module(docstring=DOCSTRING) xrc
+</pre>
+</div>
 
 </body>
 </html>

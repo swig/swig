@@ -93,6 +93,28 @@ public class java_throws_runme {
       if (!pass)
         throw new RuntimeException("Test 6 failed");
 
+      // Interface function
+      pass = false;
+      try {
+        InterfaceTestImpl iti = new InterfaceTestImpl();
+        iti.imethod(true);
+      }
+      catch (MyException e) { pass = true; }
+
+      if (!pass)
+        throw new RuntimeException("Test interface 1 failed");
+
+      pass = false;
+      try {
+        InterfaceTestImpl iti = new InterfaceTestImpl();
+        iti.imethod(false);
+        pass = true;
+      }
+      catch (MyException e) { pass = false; }
+
+      if (!pass)
+        throw new RuntimeException("Test interface 2 failed");
+
       // Global function
       pass = false;
       try {

@@ -4,9 +4,9 @@ require "tests.php";
 require "prefix.php";
 
 // No new functions
-check::functions(array(foo_get_self));
+check::functions(array('foo_get_self'));
 // No new classes
-check::classes(array(ProjectFoo));
+check::classes(array('ProjectFoo'));
 // now new vars
 check::globals(array());
 

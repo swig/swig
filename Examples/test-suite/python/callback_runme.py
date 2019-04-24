@@ -13,6 +13,10 @@ if foobar(3, _callback.foo) != foo(3):
 if foobar(3, foo) != foo(3):
     raise RuntimeError
 
+# Needs some more work for -builtin
+# if foobar(3, A.bar) != A.bar(3):
+#     raise RuntimeError
+
 if foobar(3, A_bar) != A_bar(3):
     raise RuntimeError
 

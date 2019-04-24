@@ -91,6 +91,9 @@
 #ifndef RSTRUCT_PTR
 # define RSTRUCT_PTR(x) RSTRUCT(x)->ptr
 #endif
+#ifndef RTYPEDDATA_P
+# define RTYPEDDATA_P(x) (TYPE(x) != T_DATA)
+#endif
 
 
 

@@ -12,7 +12,13 @@
 
 %inline %{
 
-typedef enum {
+#if __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
+/* for anonymous enums */
+/* dereferencing type-punned pointer will break strict-aliasing rules [-Werror=strict-aliasing] */
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
+
+typedef enum { 
     CSP_ITERATION_FWD,
     CSP_ITERATION_BWD = 11
 } foo1;
@@ -28,7 +34,7 @@ bar1(foo1 x) {}
 void
 bar2(enum foo2 x) {}
 
-void
+void 
 bar3(foo3 x) {}
 
 enum sad { boo, hoo = 5 };
@@ -55,7 +61,7 @@ typedef struct _Foo {
 
 %}
 
-
+  
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) _iFoo;
 
 #ifdef SWIGD
@@ -65,31 +71,24 @@ typedef struct _Foo {
 
 #ifndef __cplusplus
 %inline %{
-typedef struct _iFoo
-{
-    enum {
+typedef struct _iFoo 
+{ 
+    enum { 
       Phoo = +50,
       Char = 'a'
     } e;
-} iFoo;
+} iFoo; 
 %}
 #else
 %inline %{
-struct iFoo
-{
-    enum {
+struct iFoo 
+{ 
+    enum { 
       Phoo = +50,
       Char = 'a'
-    };
-};
+    }; 
+}; 
 %}
-#endif
-
-/* MATLAB/Octave not (always) case sensitive */
-#ifdef SWIGMATLAB
-%rename(slap_) slap;
-%rename(mine_) mine;
-%rename(thigh_) thigh;
 #endif
 
 // enum declaration and initialization
@@ -106,3 +105,4 @@ enum ContainYourself {
   thigh
 } Slap = slap, Mine = mine, Thigh = thigh, *pThigh = &Thigh, arrayContainYourself[3] = {slap, mine, thigh};
 %}
+

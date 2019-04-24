@@ -25,7 +25,7 @@ IntDeque_push_back(intDeque, 6);
 avg = average(intDeque);
 checkequal(avg, 4.0, "average(intDeque)");
 
-// half shoud return a deque with elements half of the input elements
+// half should return a deque with elements half of the input elements
 RealDeque_clear(realDeque);
 RealDeque_push_front(realDeque, 2.0);
 RealDeque_push_front(realDeque, 4.0);

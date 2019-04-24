@@ -50,7 +50,7 @@ extern void         Scanner_locator(Scanner *, String *loc);
 #define   SWIG_TOKEN_COLON        12       /* : */
 #define   SWIG_TOKEN_DCOLON       13       /* :: */
 #define   SWIG_TOKEN_DCOLONSTAR   14       /* ::* */
-#define   SWIG_TOKEN_ID           15       /* identifer */
+#define   SWIG_TOKEN_ID           15       /* identifier */
 #define   SWIG_TOKEN_FLOAT        16       /* 3.1415F */
 #define   SWIG_TOKEN_DOUBLE       17       /* 3.1415 */
 #define   SWIG_TOKEN_INT          18       /* 314 */

@@ -5,7 +5,7 @@
 //
 //#define SWIG_STD_MODERN_STL
 //
-// Use this to deactive the previous definition, when using gcc-2.95
+// Use this to deactivate the previous definition, when using gcc-2.95
 // or similar old compilers.
 //
 //#define SWIG_STD_NOMODERN_STL
@@ -99,8 +99,21 @@ namespace swig {
     return traits<typename noconst_traits<Type >::noconst_type >::type_name();
   }
 
-  template <class Type>
-  struct traits_info {
+  template <class Type> struct traits_info {
+    static swig_type_info *type_query(std::string name) {
+      name += " *";
+      return SWIG_TypeQuery(name.c_str());
+    }
+    static swig_type_info *type_info() {
+      static swig_type_info *info = type_query(type_name<Type>());
+      return info;
+    }
+  };
+
+  /*
+    Partial specialization for pointers (traits_info)
+  */
+  template <class Type> struct traits_info<Type *> {
     static swig_type_info *type_query(std::string name) {
       name += " *";
       return SWIG_TypeQuery(name.c_str());
@@ -117,7 +130,7 @@ namespace swig {
   }
 
   /*
-    Partial specialization for pointers
+    Partial specialization for pointers (traits)
   */
   template <class Type> struct traits <Type *> {
     typedef pointer_category category;

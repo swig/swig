@@ -19,6 +19,7 @@ Active SWIG Developers:
  Oliver Buchtala (oliver.buchtala@gmail.com)              (Javascript)
  Neha Narang (narangneha03@gmail.com)                     (Javascript)
  Simon Marchetto (simon.marchetto@scilab-enterprises.com) (Scilab)
+ Zackery Spytz (zspytz@gmail.com)                         (OCaml, SWIG core)
 
 Past SWIG developers and major contributors include:
  Dave Beazley (dave-swig@dabeaz.com)                      (SWIG core, Python, Tcl, Perl)
@@ -28,7 +29,7 @@ Past SWIG developers and major contributors include:
  Mikel Bancroft (mikel@franz.com)                         (Allegro CL)
  Surendra Singhi (efuzzyone@netscape.net)                 (CLISP, CFFI)
  Marcelo Matus (mmatus@acms.arizona.edu)                  (SWIG core, Python, UTL[python,perl,tcl,ruby])
- Art Yerkes (ayerkes@speakeasy.net)                       (Ocaml)
+ Art Yerkes (ayerkes@speakeasy.net)                       (OCaml)
  Lyle Johnson (lyle@users.sourceforge.net)                (Ruby)
  Charlie Savage (cfis@interserv.com)                      (Ruby)
  Thien-Thi Nguyen (ttn@glug.org)                          (build/test/misc)
@@ -62,7 +63,8 @@ Past SWIG developers and major contributors include:
  John Lenz                                                (Guile, MzScheme updates, Chicken module, runtime system)
  Baozeng Ding  <sploving1@163.com>                        (Scilab)
  Ian Lance Taylor                                         (Go)
- Vadim Zeitlin                                            (PCRE, Python)
+ Dmitry Kabak (userdima@gmail.com)                        (Doxygen)
+ Vadim Zeitlin                                            (PCRE, Python, Doxygen)
  Stefan Zager (szager@gmail.com)                          (Python)
  Vincent Couvert                                          (Scilab)
  Sylvestre Ledru                                          (Scilab)

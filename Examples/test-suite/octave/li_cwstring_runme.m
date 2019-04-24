@@ -1,3 +1,8 @@
+# do not dump Octave core
+if exist("crash_dumps_octave_core", "builtin")
+  crash_dumps_octave_core(0);
+endif
+
 li_cwstring
 
 if (count("ab\0ab\0ab\0", 0) != 3)

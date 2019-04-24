@@ -90,12 +90,11 @@
 
   %extend {
     VALUE __getitem__(const key_type& key) const {
-      MultiMap::const_iterator i = self->find(key);
-      if ( i != self->end() )
+      std::pair<MultiMap::const_iterator, MultiMap::const_iterator > r = $self->equal_range(key);
+      if ( r.first != r.second )
 	{
-	  MultiMap::const_iterator e = $self->upper_bound(key);
 	  VALUE ary = rb_ary_new();
-	  for ( ; i != e; ++i )
+	  for (MultiMap::const_iterator i = r.first ; i != r.second; ++i )
 	    {
 	      rb_ary_push( ary, swig::from<MultiMap::mapped_type>( i->second ) );
 	    }

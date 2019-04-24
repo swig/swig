@@ -314,7 +314,7 @@
   }
 %}
 
-%typemap(csdestruct, methodname="Dispose", methodmodifiers="public") TYPE {
+%typemap(csdisposing, methodname="Dispose", methodmodifiers="protected", parameters="bool disposing") TYPE {
     lock(this) {
       if (swigCPtr.Handle != global::System.IntPtr.Zero) {
         if (swigCMemOwnBase) {
@@ -323,11 +323,10 @@
         }
         swigCPtr = new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero);
       }
-      global::System.GC.SuppressFinalize(this);
     }
   }
 
-%typemap(csdestruct_derived, methodname="Dispose", methodmodifiers="public") TYPE {
+%typemap(csdisposing_derived, methodname="Dispose", methodmodifiers="protected", parameters="bool disposing") TYPE {
     lock(this) {
       if (swigCPtr.Handle != global::System.IntPtr.Zero) {
         if (swigCMemOwnDerived) {
@@ -336,8 +335,7 @@
         }
         swigCPtr = new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero);
       }
-      global::System.GC.SuppressFinalize(this);
-      base.Dispose();
+      base.Dispose(disposing);
     }
   }
 
@@ -473,7 +471,7 @@
   }
 %}
 
-%typemap(csdestruct, methodname="Dispose", methodmodifiers="public") TYPE {
+%typemap(csdisposing, methodname="Dispose", methodmodifiers="protected", parameters="bool disposing") TYPE {
     lock(this) {
       if (swigCPtr.Handle != global::System.IntPtr.Zero) {
         if (swigCMemOwnBase) {
@@ -482,11 +480,10 @@
         }
         swigCPtr = new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero);
       }
-      global::System.GC.SuppressFinalize(this);
     }
   }
 
-%typemap(csdestruct_derived, methodname="Dispose", methodmodifiers="public") TYPE {
+%typemap(csdisposing_derived, methodname="Dispose", methodmodifiers="protected", parameters="bool disposing") TYPE {
     lock(this) {
       if (swigCPtr.Handle != global::System.IntPtr.Zero) {
         if (swigCMemOwnDerived) {
@@ -495,8 +492,7 @@
         }
         swigCPtr = new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero);
       }
-      global::System.GC.SuppressFinalize(this);
-      base.Dispose();
+      base.Dispose(disposing);
     }
   }
 
@@ -505,6 +501,17 @@
 %typemap(imtype, nopgcpp="1") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > swigSharedPtrUpcast "global::System.Runtime.InteropServices.HandleRef"
 %typemap(imtype, nopgcpp="1") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > swigSharedPtrUpcast "global::System.Runtime.InteropServices.HandleRef"
 
+// Typecheck typemaps
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *")
+  TYPE CONST,
+  TYPE CONST &,
+  TYPE CONST *,
+  TYPE *CONST&,
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
+  ""
 
 %template() SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >;
 %enddef

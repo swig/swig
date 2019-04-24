@@ -76,7 +76,7 @@ public class runme {
     System.out.println( "     Trying to set 'status'" );
     try {
         Method m = example.class.getDeclaredMethod("setStatus", new Class[] {Integer.class});
-        m.invoke(example.class, new Object[] {new Integer(0)} );
+        m.invoke(example.class, new Object[] {Integer.valueOf(0)} );
         System.out.println( "Hey, what's going on?!?! This shouldn't work" );
     }
     catch (NoSuchMethodException e) {

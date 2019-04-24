@@ -56,4 +56,12 @@
 (if (!= (TestClass-num-get (value-TestClass (var-TestClass))) 20)
   (begin (display "Runtime test 13 failed.\n") (exit 1)))
 
+; Test garbage collection on guile >= 2.0.12
+(if (or (and (string=? (major-version) "2")
+             (string=? (minor-version) "0")
+             (string>=? (micro-version) "12"))
+        (and (string>=? (major-version) "2")
+             (string>=? (minor-version) "1")))
+    (gc))
+
 (exit 0)

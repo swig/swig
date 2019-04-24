@@ -1,5 +1,9 @@
 %module derived_byvalue
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) method;
+#endif
+
 %inline %{
 
 struct Foo {

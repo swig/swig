@@ -4,6 +4,7 @@ class
 constants
 contract
 docstrings
+doxygen
 enum
 exception
 exceptproxy
@@ -14,7 +15,6 @@ functor
 import
 import_template
 import_packages
-java
 #libffi
 multimap
 operator

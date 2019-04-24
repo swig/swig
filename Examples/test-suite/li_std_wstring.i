@@ -3,6 +3,12 @@
 %include <std_wstring.i>
 
 
+// throw is invalid in C++17 and later, only SWIG to use it
+#define TESTCASE_THROW1(T1) throw(T1)
+%{
+#define TESTCASE_THROW1(T1)
+%}
+
 %inline %{
 
 struct A : std::wstring 
@@ -78,19 +84,23 @@ std::wstring& test_reference_out() {
    return x;
 }
 
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
+bool test_equal_abc(const std::wstring &s) {
+  return L"abc" == s;
+}
 
-void test_throw() throw(std::wstring){
+void test_throw() TESTCASE_THROW1(std::wstring){
   static std::wstring x = L"x";
   
   throw x;
 }
 
-#if defined(_MSC_VER)
-  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
+const char * non_utf8_c_str() {
+  return "h\xe9llo";
+}
+
+size_t size_wstring(const std::wstring& s) {
+  return s.size();
+}
 
 #ifdef SWIGPYTHON_BUILTIN
 bool is_python_builtin() { return true; }

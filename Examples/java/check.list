@@ -2,6 +2,7 @@
 callback
 class
 constants
+doxygen
 enum
 extend
 funcptr

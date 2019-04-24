@@ -20,7 +20,12 @@ fi
 PATH="`echo $PATH | \
  sed -e 's!:/usr\(/local\)*/lib\([0-9]\)*/ccache\(/\)*!!g'`"
 
-CCACHE=../ccache-swig
+if test -n "$CCACHE"; then
+ CCACHE="$CCACHE"
+else
+ CCACHE=../ccache-swig
+fi
+
 TESTDIR=test.$$
 
 test_failed() {
@@ -406,6 +411,10 @@ swigtests() {
 # main program
 rm -rf $TESTDIR
 mkdir $TESTDIR
+if test -n "$CCACHE_PROG"; then
+  ln -s $CCACHE $TESTDIR/$CCACHE_PROG
+  CCACHE=./$CCACHE_PROG
+fi
 cd $TESTDIR || exit 1
 
 unset CCACHE_DIR
@@ -442,14 +451,16 @@ swigtests
 
 if test -z "$NOSOFTLINKSTEST"; then
   testsuite="link"
-  ln -s $CCACHE $COMPILER
-  CCACHE_COMPILE="./$COMPILER"
+  compilername=`basename $COMPILER`
+  ln -s $CCACHE ./$compilername
+  CCACHE_COMPILE="./$compilername"
   basetests
-  rm "./$COMPILER"
-  ln -s $CCACHE $SWIG
-  CCACHE_COMPILE="./$SWIG"
+  rm "./$compilername"
+  compilername=`basename $SWIG`
+  ln -s $CCACHE ./$compilername
+  CCACHE_COMPILE="./$compilername"
   swigtests
-  rm "./$SWIG"
+  rm "./$compilername"
 else
   echo "skipping testsuite link"
 fi

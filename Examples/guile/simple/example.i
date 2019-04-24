@@ -5,10 +5,8 @@
 %}
 
 %inline %{
-extern double My_variable;
-extern int    fact(int);
-extern int    mod(int n, int m);
-extern char  *get_time();
+extern int    gcd(int x, int y);
+extern double Foo;
 %}
 
 %include guile/guilemain.i

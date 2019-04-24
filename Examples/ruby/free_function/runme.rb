@@ -39,7 +39,11 @@ GC.start
 # C++ object
 ok = false
 begin
-  puts tiger2.get_name
+  # Let's stress the GC a bit, a single pass might not be enough.
+  10.times {
+    GC.start
+    puts tiger2.get_name
+  }
 rescue ObjectPreviouslyDeleted => error
   ok = true
 end

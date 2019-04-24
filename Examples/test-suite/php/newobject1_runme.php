@@ -4,9 +4,9 @@ require "tests.php";
 require "newobject1.php";
 
 // No new functions
-check::functions(array(foo_makefoo,foo_makemore,foo_foocount));
+check::functions(array('foo_makefoo','foo_makemore','foo_foocount'));
 // No new classes
-check::classes(array(Foo));
+check::classes(array('Foo'));
 // now new vars
 check::globals(array());
 

@@ -4,9 +4,9 @@ require "tests.php";
 require "director_detect.php";
 
 // No new functions
-check::functions(array(foo_cloner,foo_get_value,foo_get_class,foo_just_do_it,bar_baseclass,bar_cloner,bar_get_value,bar_get_class,bar_just_do_it));
+check::functions(array('foo_cloner','foo_get_value','foo_get_class','foo_just_do_it','bar_baseclass','bar_cloner','bar_get_value','bar_get_class','bar_just_do_it'));
 // No new classes
-check::classes(array(A,Foo,Bar));
+check::classes(array('A','Foo','Bar'));
 // now new vars
 check::globals(array());
 

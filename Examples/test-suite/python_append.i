@@ -17,11 +17,11 @@ def clearstaticpath():
     staticfuncpath = None
 %}
 
-%pythonappend Test::func %{
+%pythonappend Test::funk %{
 funcpath = os.path.dirname(funcpath)
 %}
 
-%pythonprepend Test::func %{
+%pythonprepend Test::funk %{
 global funcpath
 funcpath = mypath
 %}
@@ -46,7 +46,7 @@ import os.path
 class Test {
 public:
   static void static_func() {};
-  void func() {};
+  void funk() {};
 };
 
 #ifdef SWIGPYTHON_BUILTIN

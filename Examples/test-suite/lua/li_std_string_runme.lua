@@ -32,8 +32,8 @@ assert(is_std_string(cobj) and cobj:c_str()=="x")	-- check type & value
 
 test_const_pointer(cobj)
 
--- this shouldnt work, but it does
--- swig doesnt appear to diff between const object ptrs & object ptrs very well
+-- this shouldn't work, but it does
+-- swig doesn't appear to diff between const object ptrs & object ptrs very well
 test_pointer(cobj)	-- this wants an non const object (give it a const one!)
 
 -- refs are also wrappered as ptrs (unless the correct typemaps are applied)

@@ -19,11 +19,12 @@
  * a new std_except.i file in the target library directory.
  * ----------------------------------------------------------------------------- */
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGGUILE) || defined(SWIGUTL) || defined(SWIGD)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGGUILE) || defined(SWIGUTL) || defined(SWIGD) || defined(SWIGOCAML)
 #error "This version of std_except.i should not be used"
 #endif
 
 %{
+#include <typeinfo>
 #include <stdexcept>
 %}
 
@@ -40,6 +41,7 @@
 %enddef
 
 namespace std {
+  %std_exception_map(bad_cast,           SWIG_TypeError);
   %std_exception_map(bad_exception,      SWIG_SystemError);
   %std_exception_map(domain_error,       SWIG_ValueError);
   %std_exception_map(exception,          SWIG_SystemError);

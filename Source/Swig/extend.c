@@ -106,10 +106,10 @@ void Swig_extend_append_previous(Node *cls, Node *am) {
     set_nextSibling(n,0);
     /* typemaps and fragments need to be prepended */
     if (((Cmp(nodeType(n),"typemap") == 0) || (Cmp(nodeType(n),"fragment") == 0)))  {
-      if (!pe) pe = new_node("extend");
+      if (!pe) pe = Swig_cparse_new_node("extend");
       appendChild(pe, n);
     } else {
-      if (!ae) ae = new_node("extend");
+      if (!ae) ae = Swig_cparse_new_node("extend");
       appendChild(ae, n);
     }    
     n = ne;
