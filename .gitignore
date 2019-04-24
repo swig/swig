@@ -160,8 +160,9 @@ Examples/test-suite/javascript/*/
 
 # Matlab
 *.mex*
+Examples/test-suite/matlab/[+]*/
+Examples/test-suite/matlab/Swig*.m
 Examples/matlab/*/[+]*/
-Examples/matlab/*/*setup.m
 Examples/matlab/*/Swig*.m
 
 # OCaml
