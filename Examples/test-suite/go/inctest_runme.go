@@ -1,6 +1,6 @@
 package main
 
-import "./inctest"
+import "inctest"
 
 func main() {
 	inctest.NewA()

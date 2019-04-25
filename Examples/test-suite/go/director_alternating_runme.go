@@ -1,6 +1,6 @@
 package main
 
-import . "./director_alternating"
+import . "director_alternating"
 
 func main() {
 	id := GetBar().Id()

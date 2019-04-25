@@ -1,6 +1,6 @@
 package main
 
-import "./varargs_overload"
+import "varargs_overload"
 
 func main() {
 	if varargs_overload.Vararg_over1("Hello") != "Hello" {

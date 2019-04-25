@@ -1,6 +1,6 @@
 package main
 
-import "./return_const_value"
+import "return_const_value"
 
 func main() {
 	p := return_const_value.Foo_ptrGetPtr()

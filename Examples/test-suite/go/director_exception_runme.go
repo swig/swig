@@ -1,6 +1,6 @@
 package main
 
-import . "./director_exception"
+import . "director_exception"
 
 type Exception struct {
 	msg string

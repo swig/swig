@@ -1,6 +1,6 @@
 package main
 
-import . "./arrays_global"
+import . "arrays_global"
 
 func main() {
 	SetArray_i(GetArray_const_i())

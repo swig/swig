@@ -1,6 +1,6 @@
 package main
 
-import . "./using_private"
+import . "using_private"
 
 func main() {
 	f := NewFooBar()

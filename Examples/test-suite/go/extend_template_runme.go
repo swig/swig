@@ -1,6 +1,6 @@
 package main
 
-import "./extend_template"
+import "extend_template"
 
 func main() {
 	f := extend_template.NewFoo_0()

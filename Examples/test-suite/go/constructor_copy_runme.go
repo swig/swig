@@ -1,6 +1,6 @@
 package main
 
-import . "./constructor_copy"
+import . "constructor_copy"
 
 func main() {
 	f1 := NewFoo1(3)

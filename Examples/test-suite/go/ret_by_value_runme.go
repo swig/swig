@@ -1,6 +1,6 @@
 package main
 
-import "./ret_by_value"
+import "ret_by_value"
 
 func main() {
 	a := ret_by_value.Get_test()

@@ -1,6 +1,6 @@
 package main
 
-import . "./virtual_derivation"
+import . "virtual_derivation"
 
 // very innocent example
 
