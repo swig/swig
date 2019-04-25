@@ -1,4 +1,4 @@
-var arrays_global = require("arrays_global");
+var arrays_global = require("./arrays_global");
 
 arrays_global.array_i = arrays_global.array_const_i;
 
@@ -16,3 +16,5 @@ arrays_global.BeginString_FIX44f;
 arrays_global.test_a("hello","hi","chello","chi");
 
 arrays_global.test_b("1234567","hi");
+
+process.exit(0);

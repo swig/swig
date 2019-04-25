@@ -1,4 +1,4 @@
-var ret_by_value = require("ret_by_value");
+var ret_by_value = require("./ret_by_value");
 
 a = ret_by_value.get_test();
 if (a.myInt != 100)
@@ -6,3 +6,5 @@ if (a.myInt != 100)
 
 if (a.myShort != 200)
     throw "RuntimeError";
+
+process.exit(0);

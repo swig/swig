@@ -1,4 +1,4 @@
-var abstract_inherit = require("abstract_inherit");
+var abstract_inherit = require("./abstract_inherit");
 
 // Shouldn't be able to instantiate any of these classes
 // since none of them implements the pure virtual function
@@ -38,3 +38,5 @@ try {
 if (!caughtException) {
   throw new Error("Spam should be instantiated as it is abstract");
 }
+
+process.exit(0);

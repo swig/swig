@@ -1,4 +1,4 @@
-var struct_value = require("struct_value");
+var struct_value = require("./struct_value");
 
 b = new struct_value.Bar();
 
@@ -9,3 +9,5 @@ throw "RuntimeError";
 b.b.x = 3;
 if (b.b.x != 3)
 throw "RuntimeError"
+
+process.exit(0);

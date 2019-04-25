@@ -1,4 +1,4 @@
-var nspace_extend = require("nspace_extend");
+var nspace_extend = require("./nspace_extend");
 
 // constructors and destructors
 var color1 = new nspace_extend.Outer.Inner1.Color();
@@ -25,3 +25,5 @@ created = nspace_extend.Outer.Inner2.Color.create();
 var col1 = new nspace_extend.Outer.Inner1.Color();
 var col2 = nspace_extend.Outer.Inner2.Color.create();
 col2.colors(col1, col1, col2, col2, col2);
+
+process.exit(0);

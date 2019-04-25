@@ -1,4 +1,4 @@
-var array_member = require("array_member");
+var array_member = require("./array_member");
 
 var f = new array_member.Foo();
 f.data = array_member.global_data;
@@ -20,3 +20,5 @@ for (var i=0; i<8; i++){
     throw "Bad array assignment (2)";
   }
 }
+
+process.exit(0);

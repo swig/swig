@@ -1,4 +1,4 @@
-var rename_scope = require("rename_scope");
+var rename_scope = require("./rename_scope");
 
 var a = new rename_scope.Natural_UP();
 var b = new rename_scope.Natural_BP();
@@ -15,3 +15,5 @@ var f = rename_scope.equals;
 if (f === undefined) {
   throw new Error("Equality operator has not been renamed.");
 }
+
+process.exit(0);

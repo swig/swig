@@ -16,6 +16,17 @@ top_builddir = @top_builddir@
 SWIGEXE   = $(top_builddir)/swig
 SWIG_LIB_DIR = $(top_srcdir)/Lib
 
+ifeq (electron, $(ENGINE))
+NODE_DISTURL    = --disturl=https://electronjs.org/headers
+NODE_RUNTIME    = --runtime=electron
+NODE_ABI_TARGET = --target=${ELECTRON_VER}
+ENGINE          =
+NODEJS          = electron
+else
+NODE_DISTURL =
+NODE_RUNTIME =
+endif
+
 ifneq (, $(ENGINE))
 	JSENGINE=$(ENGINE)
 else
@@ -66,14 +77,14 @@ ifeq (node,$(JSENGINE))
 		$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' \
 		SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 		SWIGOPT='-javascript $(SWIGOPT) -o $*_wrap.cxx $(srcdir)/../$*.i' swiginvoke && \
-		MAKEFLAGS= $(COMPILETOOL) $(NODEGYP) --loglevel=silent --directory $* configure build 1>>/dev/null
+		MAKEFLAGS= $(COMPILETOOL) $(NODEGYP) $(NODE_ABI_TARGET) $(NODE_DISTURL) $(NODE_RUNTIME) --loglevel=silent --directory $* configure build 1>>/dev/null
 
 	swig_and_compile_cpp = \
 		$(setup_node) && \
 		$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' \
 		SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 		SWIGOPT='-c++ -javascript $(SWIGOPT) $(srcdir)/../$*.i' swiginvoke && \
-		MAKEFLAGS= $(COMPILETOOL) $(NODEGYP) --loglevel=silent --directory $* configure build 1>>/dev/null
+		MAKEFLAGS= $(COMPILETOOL) $(NODEGYP) $(NODE_ABI_TARGET) $(NODE_DISTURL) $(NODE_RUNTIME) --loglevel=silent --directory $* configure build 1>>/dev/null
 
 	run_testcase = \
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \

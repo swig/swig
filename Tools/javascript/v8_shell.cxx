@@ -9,7 +9,7 @@
 
 #include "js_shell.h"
 
-typedef int (*V8ExtensionInitializer) (v8::Handle<v8::Object> module);
+typedef int (*V8ExtensionInitializer) (v8::Local<v8::Object> module);
 
 // Note: these typedefs and defines are used to deal with  v8 API changes since version 3.19.00
 
@@ -87,7 +87,7 @@ protected:
 
 private:
 
-  v8::Handle<v8::Value> Import(const std::string &moduleName);
+  v8::Local<v8::Value> Import(const std::string &moduleName);
 
   SwigV8Context CreateShellContext();
 
@@ -135,7 +135,7 @@ bool V8Shell::RunScript(const std::string &scriptPath) {
 
   // Store a pointer to this shell for later use
 
-  v8::Handle<v8::Object> global = context->Global();
+  v8::Local<v8::Object> global = context->Global();
   v8::Local<v8::External> __shell__ = SWIGV8_EXTERNAL_NEW((void*) (long) this);
 
   global->SetHiddenValue(SWIGV8_STRING_NEW("__shell__"), __shell__);
@@ -215,7 +215,7 @@ bool V8Shell::ExecuteScript(const std::string &source, const std::string &name) 
   SWIGV8_HANDLESCOPE();
 
   v8::TryCatch try_catch;
-  v8::Handle<v8::Script> script = v8::Script::Compile(SWIGV8_STRING_NEW(source.c_str()), SWIGV8_STRING_NEW(name.c_str()));
+  v8::Local<v8::Script> script = v8::Script::Compile(SWIGV8_STRING_NEW(source.c_str()), SWIGV8_STRING_NEW(name.c_str()));
 
   // Stop if script is empty
   if (script.IsEmpty()) {
@@ -224,7 +224,7 @@ bool V8Shell::ExecuteScript(const std::string &source, const std::string &name) 
     return false;
   }
 
-  v8::Handle<v8::Value> result = script->Run();
+  v8::Local<v8::Value> result = script->Run();
 
   // Print errors that happened during execution.
   if (try_catch.HasCaught()) {
@@ -241,7 +241,7 @@ bool V8Shell::DisposeEngine() {
 
 SwigV8Context V8Shell::CreateShellContext() {
   // Create a template for the global object.
-  v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
+  v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
 
   // Bind global functions
   global->Set(SWIGV8_STRING_NEW("print"), SWIGV8_FUNCTEMPLATE_NEW(V8Shell::Print));
@@ -258,7 +258,7 @@ SwigV8Context V8Shell::CreateShellContext() {
 #endif
 }
 
-v8::Handle<v8::Value> V8Shell::Import(const std::string &module_path)
+v8::Local<v8::Value> V8Shell::Import(const std::string &module_path)
 {
   SWIGV8_HANDLESCOPE_ESC();
 
@@ -319,7 +319,7 @@ SwigV8ReturnValue V8Shell::Require(const SwigV8Arguments &args) {
   v8::Local<v8::External> __shell__ = v8::Local<v8::External>::Cast(hidden);
   V8Shell *_this = (V8Shell *) (long) __shell__->Value();
 
-  v8::Handle<v8::Value> module = _this->Import(moduleName);
+  v8::Local<v8::Value> module = _this->Import(moduleName);
 
   SWIGV8_RETURN(module);
 }
@@ -345,7 +345,7 @@ void V8Shell::ReportException(v8::TryCatch *try_catch) {
 
   v8::String::Utf8Value exception(try_catch->Exception());
   const char *exception_string = V8Shell::ToCString(exception);
-  v8::Handle<v8::Message> message = try_catch->Message();
+  v8::Local<v8::Message> message = try_catch->Message();
   if (message.IsEmpty()) {
     // V8 didn't provide any extra information about this error; just
     // print the exception.

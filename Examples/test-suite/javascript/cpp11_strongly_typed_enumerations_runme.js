@@ -1,4 +1,4 @@
-var cpp11_strongly_typed_enumerations = require("cpp11_strongly_typed_enumerations");
+var cpp11_strongly_typed_enumerations = require("./cpp11_strongly_typed_enumerations");
 
 function enumCheck(actual, expected) {
   if (actual != expected) {
@@ -163,3 +163,5 @@ enumCheck(class1.class1Test2(cpp11_strongly_typed_enumerations.Class1.Enum12_Val
 enumCheck(cpp11_strongly_typed_enumerations.globalTest1(cpp11_strongly_typed_enumerations.Enum1_Val5a), 13);
 enumCheck(cpp11_strongly_typed_enumerations.globalTest2(cpp11_strongly_typed_enumerations.Class1.Enum12_Val5c), 1121);
 //enumCheck(globalTest3(cpp11_strongly_typed_enumerations.Class1.Struct1_Enum12_Val5f), 3121);
+
+process.exit(0);

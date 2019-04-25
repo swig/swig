@@ -1,4 +1,4 @@
-var complextest = require("complextest");
+var complextest = require("./complextest");
 
 a = [-1,2];
 
@@ -29,3 +29,5 @@ v.add(1);
 // TODO: how to check validity?
 complextest.CopyHalf(v);
 complextest.CopyHalfRef(v);
+
+process.exit(0);

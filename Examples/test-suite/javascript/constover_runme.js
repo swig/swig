@@ -1,4 +1,4 @@
-var constover = require("constover");
+var constover = require("./constover");
 
 p = constover.test("test");
 if (p != "test") {
@@ -31,3 +31,5 @@ p = f.test_pconstm("test");
 if (p != "test_pconstmethod") {
     throw "member-test_pconstm failed!";
 }
+
+process.exit(0);

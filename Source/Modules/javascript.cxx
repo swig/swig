@@ -548,7 +548,7 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       	}
 	Swig_mark_arg(i);
 	engine = JSEmitter::JavascriptCore;
-      } else if (strcmp(argv[i], "-node") == 0) {
+      } else if ((strcmp(argv[i], "-node") == 0) || (strcmp(argv[i], "-electron") == 0)) {
       	if (engine != -1) {
 	  Printf(stderr, ERR_MSG_ONLY_ONE_ENGINE_PLEASE);
 	  SWIG_exit(-1);
@@ -594,7 +594,7 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
     }
   default:
     {
-      Printf(stderr, "SWIG Javascript: Unknown engine. Please specify one of '-jsc', '-v8' or '-node'.\n");
+      Printf(stderr, "SWIG Javascript: Unknown engine. Please specify one of '-jsc', '-v8' or '-node/-electron'.\n");
       SWIG_exit(-1);
       break;
     }

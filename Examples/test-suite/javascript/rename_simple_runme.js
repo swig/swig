@@ -1,4 +1,4 @@
-var rename_simple = require("rename_simple");
+var rename_simple = require("./rename_simple");
 var NewStruct = rename_simple.NewStruct;
 
 var s = new NewStruct();
@@ -48,3 +48,5 @@ rename_simple.NewGlobalVariable = 6666;
 if (rename_simple.NewGlobalVariable !== 6666) {
   throw new Error("rename_simple.NewGlobalVariable: Expected 6666, was " + rename_simple.NewGlobalVariable);
 }
+
+process.exit(0);

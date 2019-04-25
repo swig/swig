@@ -1,4 +1,4 @@
-var cpp_enum = require("cpp_enum");
+var cpp_enum = require("./cpp_enum");
 
 var f = new cpp_enum.Foo()
 
@@ -26,3 +26,5 @@ if(cpp_enum.Foo.hi != cpp_enum.Hello){
   throw "Error";
 }
 
+
+process.exit(0);

@@ -1,4 +1,4 @@
-var cpp_namespace = require("cpp_namespace");
+var cpp_namespace = require("./cpp_namespace");
 
 var n = cpp_namespace.fact(4);
 if (n != 24){
@@ -45,3 +45,5 @@ if (cpp_namespace.do_method3(t4,40) != "Test4::method"){
 if (cpp_namespace.do_method3(t5,40) != "Test5::method"){
     throw ("Bad return value error!");
 }
+
+process.exit(0);

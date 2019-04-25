@@ -1,4 +1,4 @@
-var nspace = require("nspace");
+var nspace = require("./nspace");
 
 var color1 = new nspace.Outer.Inner1.Color();
 var color = new nspace.Outer.Inner1.Color(color1);
@@ -74,3 +74,5 @@ var blue3 = new nspace.Outer.Inner3.Blue();
 blue3.blueInstanceMethod();
 var blue4 = new nspace.Outer.Inner4.Blue();
 blue4.blueInstanceMethod();
+
+process.exit(0);

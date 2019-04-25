@@ -1,4 +1,4 @@
-var disown = require("disown");
+var disown = require("./disown");
 
 var a = new disown.A();
 var tmp = a.thisown;
@@ -20,3 +20,5 @@ b.acquire(a);
 if (a.thisown) {
   throw new Error("Failed.");
 }
+
+process.exit(0);

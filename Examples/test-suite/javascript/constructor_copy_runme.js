@@ -1,4 +1,4 @@
-var constructor_copy = require("constructor_copy");
+var constructor_copy = require("./constructor_copy");
 
 f1 = new constructor_copy.Foo1(3);
 f11 = new constructor_copy.Foo1(f1);
@@ -40,3 +40,5 @@ try {
 if (good == 0) {
   throw "Error: should not allow calling copy ctor for Bard";
 }
+
+process.exit(0);

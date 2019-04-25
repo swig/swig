@@ -1,4 +1,4 @@
-var preproc_include = require("preproc_include");
+var preproc_include = require("./preproc_include");
 
 if (preproc_include.multiply10(10) != 100)
   throw "RuntimeError";
@@ -21,3 +21,5 @@ if (preproc_include.multiply60(10) != 600)
 if (preproc_include.multiply70(10) != 700)
   throw "RuntimeError";
 
+
+process.exit(0);

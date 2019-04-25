@@ -33,7 +33,7 @@ case "$SWIGLANG" in
 		;;
 	"javascript")
 		case "$ENGINE" in
-			"node")
+			"node"|"electron")
 				travis_retry wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.33.10/install.sh | bash
 				export NVM_DIR="$HOME/.nvm"
 				[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
@@ -45,6 +45,11 @@ case "$SWIGLANG" in
 				else
 					travis_retry npm install -g node-gyp
 				fi
+
+				if [ ! -z "$ELECTRON_VER" ] ; then
+					travis_retry npm install -g electron@$ELECTRON_VER
+				fi
+
 				;;
 			"jsc")
 				travis_retry sudo apt-get install -qq libwebkitgtk-dev

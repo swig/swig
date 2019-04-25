@@ -1,4 +1,4 @@
-var native_directive = require("native_directive");
+var native_directive = require("./native_directive");
 
 (function main() {
   var s = "abc.DEF-123";
@@ -7,3 +7,5 @@ var native_directive = require("native_directive");
   if (native_directive.CountAlphaCharacters(s) !== 6)
     throw "CountAlphaCharacters failed";
 })();
+
+process.exit(0);

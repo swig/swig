@@ -1,4 +1,4 @@
-var rename = require("rename3");
+var rename = require("./rename3");
 
 function part1() {
   var xyz = new rename.XYZInt();
@@ -62,3 +62,5 @@ part2();
 part3();
 part4();
 part5();
+
+process.exit(0);

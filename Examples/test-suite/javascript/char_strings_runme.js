@@ -1,4 +1,4 @@
-var char_strings = require("char_strings");
+var char_strings = require("./char_strings");
 
 var assertIsEqual = function(expected, actual) {
   if (expected !== actual) {
@@ -9,3 +9,5 @@ var assertIsEqual = function(expected, actual) {
 assertIsEqual("hi there", char_strings.CharPingPong("hi there"));
 assertIsEqual("hi there", char_strings.CharArrayPingPong("hi there"));
 assertIsEqual("hi there", char_strings.CharArrayDimsPingPong("hi there"));
+
+process.exit(0);

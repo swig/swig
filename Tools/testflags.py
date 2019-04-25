@@ -41,7 +41,10 @@ def get_cxxflags(language, std, compiler):
             "go":"-Werror " + cxx_common,
          "guile":"-Werror " + cxx_common,
           "java":"-Werror " + cxx_common,
-    "javascript":"-Werror " + cxx_common + " -Wno-error=unused-function", # Until overload_rename is fixed for node
+    "javascript":"-Werror " + cxx_common +
+                 " -Wno-error=unused-function" + # Until overload_rename is fixed for node
+                 " -Wno-error=unused-result -Wno-unused-result", # Until proper update of latest NodeJS / V8
+                 # " -Wno-error=cast-function-type" + Only in GCC 8.x+
            "lua":"-Werror " + cxx_common,
       "mzscheme":"-Werror " + cxx_common,
          "ocaml":"-Werror " + cxx_common,

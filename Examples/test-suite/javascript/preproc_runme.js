@@ -1,4 +1,4 @@
-var preproc = require("preproc");
+var preproc = require("./preproc");
 
 if (preproc.endif != 1)
   throw "RuntimeError";
@@ -12,3 +12,5 @@ if (preproc.defined != 1)
 if (2*preproc.one != preproc.two)
   throw "RuntimeError";
 
+
+process.exit(0);

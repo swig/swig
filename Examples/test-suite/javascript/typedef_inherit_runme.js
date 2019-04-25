@@ -1,4 +1,4 @@
-var typedef_inherit = require("typedef_inherit");
+var typedef_inherit = require("./typedef_inherit");
 
 a = new typedef_inherit.Foo();
 b = new typedef_inherit.Bar();
@@ -21,3 +21,5 @@ if (x != "Spam::blah")
 x = typedef_inherit.do_blah2(d);
 if (x != "Grok::blah")
     print ("Whoa! Bad return" + x);
+
+process.exit(0);

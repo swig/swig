@@ -114,6 +114,41 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
+      env: SWIGLANG=javascript ENGINE=node VER=12.8.1 CPP11=1
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=javascript ENGINE=node VER=12.10.0 CPP11=1
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=javascript ENGINE=node VER=12.14.1 CPP11=1
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=javascript ENGINE=node VER=13.1.0 CPP11=1
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=javascript ENGINE=node VER=13.6.0 CPP11=1
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=javascript ENGINE=electron VER=12.14.1 ELECTRON_VER=7.0.1 CPP11=1
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=javascript ENGINE=electron VER=12.14.1 ELECTRON_VER=7.1.8 CPP11=1
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=javascript ENGINE=jsc
       sudo: required
       dist: xenial

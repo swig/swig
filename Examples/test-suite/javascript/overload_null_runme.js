@@ -1,6 +1,6 @@
 // There are no typecheck typemaps in Javascript yet, so most of this test
 // does not actually worked - the check functions have thus been commented out.
-var overload_null = require("overload_null");
+var overload_null = require("./overload_null");
 
 var check = function(expected, actual) {
   if (expected !== actual) {
@@ -47,3 +47,5 @@ check(20, o.byval2forwardptr(x));
 check(21, o.byval1forwardref(x));
 
 check(22, o.byval2forwardref(x));
+
+process.exit(0);

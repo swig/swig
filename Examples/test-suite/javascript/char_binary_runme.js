@@ -1,4 +1,4 @@
-var char_binary = require("char_binary");
+var char_binary = require("./char_binary");
 
 var t = new char_binary.Test();
 if (t.strlen('hile') != 4) {
@@ -46,3 +46,5 @@ if (char_binary.var_namet != "hola") {
   throw("bad pointer case (2)");
 }
 char_binary.delete_pchar(pc);
+
+process.exit(0);

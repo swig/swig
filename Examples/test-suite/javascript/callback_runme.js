@@ -1,4 +1,4 @@
-var callback = require("callback");
+var callback = require("./callback");
 
 if (callback.foo(2) !== 2) {
   throw new Error("Failed.");
@@ -28,3 +28,5 @@ var a = new callback.A();
 if (callback.foobarm(3, a, callback.A.foom_cb_ptr) != a.foom(3)) {
   throw new Error("Failed.");
 }
+
+process.exit(0);
