@@ -31,14 +31,19 @@ matrix:
       dist: trusty
     - compiler: gcc
       os: linux
-      env: SWIGLANG=go
+      env: SWIGLANG=go VER=1.3
       sudo: required
-      dist: trusty
+      dist: xenial
     - compiler: gcc
       os: linux
-      env: SWIGLANG=go VER=1.5
+      env: SWIGLANG=go VER=1.8
       sudo: required
-      dist: trusty
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=go VER=1.12
+      sudo: required
+      dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=guile

@@ -37,6 +37,9 @@ case "$SWIGLANG" in
 		travis_retry sudo dpkg -i dmd_2.066.0-0_amd64.deb
 		;;
 	"go")
+		if [[ "$VER" ]]; then
+		  eval "$(gimme ${VER}.x)"
+		fi
 		;;
 	"javascript")
 		case "$ENGINE" in
