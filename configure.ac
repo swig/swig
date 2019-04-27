@@ -1114,7 +1114,10 @@ if test -n "$OCTAVE"; then
 
    AC_MSG_CHECKING([for Octave linker flags])
    OCTAVE_LDFLAGS=
-   for var in RDYNAMIC_FLAG LFLAGS RLD_FLAG OCTAVE_LIBS LIBS; do
+   for var in OCTLIBDIR; do
+     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "-L`env - ${mkoctfile} -p ${var}`
+   done
+   for var in RDYNAMIC_FLAG RLD_FLAG OCTAVE_LIBS LIBS; do
      OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`env - ${mkoctfile} -p ${var}`
    done
    AC_MSG_RESULT([$OCTAVE_LDFLAGS])
