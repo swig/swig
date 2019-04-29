@@ -2044,6 +2044,16 @@ if test x"${with_ocaml}" = xno; then
     AC_MSG_NOTICE([Disabling OCaml])
     OCAMLC=
 else
+    # OCaml compiler
+    if test -z "$OCAMLC"; then
+	AC_CHECK_PROGS(OCAMLC, ocamlc)
+    fi
+
+    # OCaml Pre-Processor-Pretty-Printer
+    if test -z "$CAMLP4"; then
+	AC_CHECK_PROGS(CAMLP4, camlp4)
+    fi
+
     # OCaml DL load generator
     if test -z "$OCAMLDLGEN"; then
 	AC_CHECK_PROGS(OCAMLDLGEN, ocamldlgen)
@@ -2054,27 +2064,17 @@ else
 	AC_CHECK_PROGS(OCAMLFIND, ocamlfind)
     fi
 
-    # OCaml compiler
-    if test -z "$OCAMLC"; then
-	AC_CHECK_PROGS(OCAMLC, ocamlc)
-    fi
-
     # OCaml toplevel creator
     if test -z "$OCAMLMKTOP"; then
 	AC_CHECK_PROGS(OCAMLMKTOP, ocamlmktop)
     fi
-
-    # OCaml Pre-Processor-Pretty-Printer
-    if test -z "$CAMLP4"; then
-	AC_CHECK_PROGS(CAMLP4, camlp4)
-    fi
 fi
 
 AC_SUBST(OCAMLC)
+AC_SUBST(CAMLP4)
 AC_SUBST(OCAMLDLGEN)
 AC_SUBST(OCAMLFIND)
 AC_SUBST(OCAMLMKTOP)
-AC_SUBST(CAMLP4)
 
 #----------------------------------------------------------------
 # Look for C#
@@ -2636,7 +2636,7 @@ AC_SUBST(SKIP_PHP)
 
 
 SKIP_OCAML=
-if test -z "$OCAMLC" ; then
+if test -z "$OCAMLC" || test -z "$CAMLP4" ; then
     SKIP_OCAML="1"
 fi
 AC_SUBST(SKIP_OCAML)
