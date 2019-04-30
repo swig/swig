@@ -336,20 +336,20 @@ end function
  * A 'void**' looks like a FORTRAN_INTRINSIC_TYPE* where FORTRAN_INTRINSIC_TYPE is 'void*' (aka C_PTR)
  * ------------------------------------------------------------------------- */
 
-%apply void* { SWIGTYPE** };
-%typemap(ftype, in="type(C_PTR), target, intent(inout)") SWIGTYPE**
+%apply void* { void** };
+%typemap(ftype, in="type(C_PTR), target, intent(inout)") void**
   "type(C_PTR), pointer"
-%typemap(fin) SWIGTYPE** = FORTRAN_INTRINSIC_TYPE*;
-%typemap(fout) SWIGTYPE** = FORTRAN_INTRINSIC_TYPE*;
-%apply SWIGTYPE** { SWIGTYPE*&, SWIGTYPE *const* };
+%typemap(fin) void** = FORTRAN_INTRINSIC_TYPE*;
+%typemap(fout) void** = FORTRAN_INTRINSIC_TYPE*;
+%apply void** { void*&, void *const* };
 
-%apply const void* { const SWIGTYPE** };
-%typemap(ftype, in="type(C_PTR), target, intent(in)") const SWIGTYPE**
+%apply const void* { const void** };
+%typemap(ftype, in="type(C_PTR), target, intent(in)") const void**
   "type(C_PTR), pointer"
-%typemap(fin) const SWIGTYPE** = const FORTRAN_INTRINSIC_TYPE*;
-%typemap(fout) const SWIGTYPE** = const FORTRAN_INTRINSIC_TYPE*;
-%apply const SWIGTYPE** { const SWIGTYPE*&, const SWIGTYPE *const*,
-SWIGTYPE ** const, SWIGTYPE **const &};
+%typemap(fin) const void** = const FORTRAN_INTRINSIC_TYPE*;
+%typemap(fout) const void** = const FORTRAN_INTRINSIC_TYPE*;
+%apply const void** { const void*&, const void *const*,
+void ** const, void **const &};
 
 /* -------------------------------------------------------------------------
  * FUNDAMENTAL TYPES
