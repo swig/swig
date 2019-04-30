@@ -182,83 +182,6 @@ bool is_native_parameter(Node *n) {
   }
 }
 
-/* ------------------------------------------------------------------------- */
-
-bool is_wrapped_type(SwigType *input_type) {
-  static Hash *cached_classes = NewHash();
-  static String *is_wrapped = NewString("wrapped");
-  static String *not_wrapped = NewString("not wrapped");
-
-  assert(input_type);
-
-  // Check cache first
-  String *cache_hit = Getattr(cached_classes, input_type);
-  if (cache_hit) {
-    return Equal(cache_hit, is_wrapped);
-  }
-
-  SwigType *basetype = SwigType_base(input_type);
-
-  // Look through symbol table
-  Node *classn = NULL;
-  Node *classfwd = NULL;
-  Symtab *symtab = NULL;
-
-  while (!classn) {
-    classn = Swig_symbol_clookup(basetype, symtab);
-    if (!classn)
-      break;
-
-    String *nodetype = nodeType(classn);
-    if (Strcmp(nodetype, "class") == 0)
-      break;
-    if (Strcmp(nodetype, "classforward") == 0)
-      classfwd = classn;
-
-    // Loop over items in the symbol table
-    Node *orig_classn = classn;
-    for (; classn != NULL; classn = Getattr(classn, "csym:nextSibling")) {
-      if (Strcmp(nodeType(classn), "class") == 0)
-        break;
-      if (Strcmp(nodetype, "classforward") == 0)
-        classfwd = classn;
-    }
-    if (classn)
-      break;
-
-    // Load parent class/namespace's symbol table for next loop
-    Node *parent = parentNode(orig_classn);
-    if (!parent)
-      break;
-
-    Symtab *parent_symtab = Getattr(parent, "sym:symtab");
-    if (!parent_symtab || parent_symtab == symtab) {
-      break;
-    }
-    symtab = parent_symtab;
-  }
-
-  // Wrap by default
-  String *key = Copy(input_type);
-  bool result = true;
-
-  if (!classn && classfwd) {
-    // No class, but there's a forward declaration
-    result = false;
-  }
-
-  if (classn && (GetFlag(classn, "feature:ignore") || Getattr(classn, "feature:onlychildren"))) {
-    // Class is there but ignored
-    result = false;
-  }
-  
-  // Save in cache
-  Setattr(cached_classes, key, result ? is_wrapped : not_wrapped);
-  Delete(key);
-  Delete(basetype);
-  return result;
-}
-
 /* -------------------------------------------------------------------------
  * Construct a specifier suffix from a BIND(C) typemap.
  * 
@@ -714,6 +637,8 @@ private:
   String *get_fortran_name(Node *n, String *symname = NULL);
   String *get_fclassname(SwigType *classnametype);
   String *get_fenumname(SwigType *classnametype);
+  bool is_wrapped_class(Node *n);
+  
 
   // Add lowercase symbol (fortran) to the module's namespace
   int add_fsymbol(String *s, Node *n);
@@ -1411,11 +1336,11 @@ int FORTRAN::cfuncWrapper(Node *n) {
 
   if (GetFlag(n, "feature:fortran:onlywrapped")) {
     // Check return type
-    if (!is_wrapped_type(Getattr(n, "type"))) {
+    if (!this->is_wrapped_class(n)) {
       return SWIG_NOWRAP;
     }
     for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
-      if (!is_wrapped_type(Getattr(it.item, "type"))) {
+      if (!this->is_wrapped_class(it.item)) {
         return SWIG_NOWRAP;
       }
     }
@@ -3060,7 +2985,7 @@ String *FORTRAN::get_fclassname(SwigType *classnametype) {
       }
     }
   }
-    
+
   return replacementname;
 }
 
@@ -3092,6 +3017,59 @@ String *FORTRAN::get_fenumname(SwigType *classnametype) {
   }
 
   return replacementname;
+}
+
+/* ------------------------------------------------------------------------- */
+
+bool FORTRAN::is_wrapped_class(Node *n) {
+  static Hash *cached_classes = NewHash();
+  static String *is_wrapped = NewString("is wrapped");
+  static String *not_wrapped = NewString("not wrapped");
+
+  assert(n);
+
+  SwigType *intype = Getattr(n, "type");
+
+  // Check cache first
+  String *cache_hit = Getattr(cached_classes, intype);
+  if (cache_hit) {
+    Printf(stdout, "is_wrapped_class(%s) cache hit -> %s\n", intype, cache_hit);
+    return Equal(cache_hit, is_wrapped);
+  }
+
+  SwigType *resolvedtype = SwigType_typedef_resolve_all(intype);
+  SwigType *strippedtype = SwigType_strip_qualifiers(resolvedtype);
+
+  String *tm = attach_typemap("ftype", n, WARN_NONE);
+
+  bool result;
+  if (!tm) {
+    // Somehow there's no ftype; allow it to be wrapped so the error is handled later
+    result = true;
+  } else if (Strstr(tm, "$fclassname")) {
+    result = (this->classLookup(strippedtype) != NULL);
+  } else if (Strstr(tm, "$*fclassname")) {
+    SwigType_pop(strippedtype);
+    result = Len(strippedtype) > 0 && (this->classLookup(strippedtype) != NULL);
+  } else if (Strstr(tm, "$fclassname")) {
+    SwigType_add_pointer(strippedtype);
+    result = (this->classLookup(strippedtype) != NULL);
+  } else if (Strstr(tm, "$fenumname")) {
+    // True if the enum is declared
+    Node *clsnode = this->enumLookup(strippedtype);
+    result = clsnode && !GetFlag(clsnode, "enumMissing") && GetFlag(clsnode, "fortran:declared");
+  } else {
+    // Type doesn't resolve to something that expects a class name
+    result = true;
+  }
+
+  Printf(stdout, "is_wrapped_class(%s) -> %s\n", intype, result ? is_wrapped : not_wrapped);
+
+  // Save in cache
+  Setattr(cached_classes, intype, result  ? is_wrapped : not_wrapped);
+  Delete(resolvedtype);
+  Delete(strippedtype);
+  return result;
 }
 
 /* -------------------------------------------------------------------------

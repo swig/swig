@@ -1,6 +1,7 @@
 %module fortran_onlywrapped
 
 %ignore Unloved;
+%ignore UnlovedTemplate;
 %ignore Unknown;
 
 %fortranonlywrapped should_not_be_wrapped;
@@ -29,6 +30,7 @@ struct Normal;
 struct Unloved {};
 struct Normal {};
 struct ForwardDeclared;
+template<class T> struct UnlovedTemplate {};
 
 Unloved* should_not_be_wrapped() { return NULL; }
 Unloved* should_be_wrapped() { return NULL; }
@@ -43,13 +45,7 @@ void also_overloaded(Normal*) {}
 
 void nowrap_also(Unloved **nowrap) {(void)sizeof(nowrap);}
 
-#if 0
-// NOTE: the following does *not* work because 'Unknown' isn't known to be a
-// class.  It could be a typedef to `int` for all we know. The only way to know
-// it's going to generate a SWIGTYPE_ placeholder class is if the typemaps
-// resolve it to $fclassname.
 void nowrap_also(Unknown *nowrap) {(void)sizeof(nowrap);}
-#endif
 
 struct HasUnloved {
   int an_integer;
@@ -58,6 +54,12 @@ struct HasUnloved {
 
 class WeHaveOverloads {
  public:
+  void overloaded(Unloved *nowrap) {(void)sizeof(nowrap);}
+  void overloaded(UnlovedTemplate<int> *nowrap) {(void)sizeof(nowrap);}
+  void overloaded(Normal*) {}
+  void overloaded(ForwardDeclared *nowrap) {(void)sizeof(nowrap);}
+  void overloaded(int) {}
+
   WeHaveOverloads(Unloved *nowrap) {(void)sizeof(nowrap);}
   WeHaveOverloads(int) {}
 };
