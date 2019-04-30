@@ -182,6 +182,83 @@ bool is_native_parameter(Node *n) {
   }
 }
 
+/* ------------------------------------------------------------------------- */
+
+bool is_wrapped_type(SwigType *input_type) {
+  static Hash *cached_classes = NewHash();
+  static String *is_wrapped = NewString("wrapped");
+  static String *not_wrapped = NewString("not wrapped");
+
+  assert(input_type);
+
+  // Check cache first
+  String *cache_hit = Getattr(cached_classes, input_type);
+  if (cache_hit) {
+    return Equal(cache_hit, is_wrapped);
+  }
+
+  SwigType *basetype = SwigType_base(input_type);
+
+  // Look through symbol table
+  Node *classn = NULL;
+  Node *classfwd = NULL;
+  Symtab *symtab = NULL;
+
+  while (!classn) {
+    classn = Swig_symbol_clookup(basetype, symtab);
+    if (!classn)
+      break;
+
+    String *nodetype = nodeType(classn);
+    if (Strcmp(nodetype, "class") == 0)
+      break;
+    if (Strcmp(nodetype, "classforward") == 0)
+      classfwd = classn;
+
+    // Loop over items in the symbol table
+    Node *orig_classn = classn;
+    for (; classn != NULL; classn = Getattr(classn, "csym:nextSibling")) {
+      if (Strcmp(nodeType(classn), "class") == 0)
+        break;
+      if (Strcmp(nodetype, "classforward") == 0)
+        classfwd = classn;
+    }
+    if (classn)
+      break;
+
+    // Load parent class/namespace's symbol table for next loop
+    Node *parent = parentNode(orig_classn);
+    if (!parent)
+      break;
+
+    Symtab *parent_symtab = Getattr(parent, "sym:symtab");
+    if (!parent_symtab || parent_symtab == symtab) {
+      break;
+    }
+    symtab = parent_symtab;
+  }
+
+  // Wrap by default
+  String *key = Copy(input_type);
+  bool result = true;
+
+  if (!classn && classfwd) {
+    // No class, but there's a forward declaration
+    result = false;
+  }
+
+  if (classn && (GetFlag(classn, "feature:ignore") || Getattr(classn, "feature:onlychildren"))) {
+    // Class is there but ignored
+    result = false;
+  }
+  
+  // Save in cache
+  Setattr(cached_classes, key, result ? is_wrapped : not_wrapped);
+  Delete(key);
+  Delete(basetype);
+  return result;
+}
+
 /* -------------------------------------------------------------------------
  * Construct a specifier suffix from a BIND(C) typemap.
  * 
@@ -1243,6 +1320,7 @@ int FORTRAN::cfuncWrapper(Node *n) {
                symname);
     return SWIG_NOWRAP;
   }
+
   const bool is_csubroutine = (Strcmp(c_return_type, "void") == 0);
 
   String *c_return_str = NULL;
@@ -1310,16 +1388,16 @@ int FORTRAN::cfuncWrapper(Node *n) {
     Append(cparmlist, p);
 
     // Get the user-provided C type string, and convert it to a SWIG
-    // internal representation using Swig_cparse_type . Then convert the
-    // type and argument name to a valid C expression using SwigType_str.
-    SwigType *parsed_tm = parse_typemap("ctype", "in", p, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
-    if (!parsed_tm) {
+    // internal representation using Swig_cparse_type
+    SwigType *ctype = parse_typemap("ctype", "in", p, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
+    if (!ctype) {
       Swig_error(input_file, line_number,
                  "Failed to parse 'ctype' typemap for argument '%s' of '%s'\n",
                  SwigType_str(Getattr(p, "type"), Getattr(p, "name")), symname);
       return SWIG_NOWRAP;
     }
-    String *carg = SwigType_str(parsed_tm, imname);
+    // Convert the type and argument name to a valid C expression
+    String *carg = SwigType_str(ctype, imname);
     Printv(cfunc->def, prepend_comma, carg, NULL);
     Delete(carg);
 
@@ -1333,6 +1411,20 @@ int FORTRAN::cfuncWrapper(Node *n) {
   // END FUNCTION DEFINITION
   Printv(cfunc->def, ") {", NULL);
 
+  // >>> CHECK FOR MISSING TYPES
+
+  if (GetFlag(n, "feature:fortran:onlywrapped")) {
+    // Check return type
+    if (!is_wrapped_type(Getattr(n, "type"))) {
+      return SWIG_NOWRAP;
+    }
+    for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
+      if (!is_wrapped_type(Getattr(it.item, "type"))) {
+        return SWIG_NOWRAP;
+      }
+    }
+  }
+  
   // >>> ADDITIONAL WRAPPER CODE
 
   String *cleanup = NewStringEmpty();
@@ -2873,7 +2965,6 @@ int FORTRAN::constantWrapper(Node *n) {
 /* -------------------------------------------------------------------------
  * HELPER FUNCTIONS
  * ------------------------------------------------------------------------- */
-
 /* -------------------------------------------------------------------------
  * \brief Substitute special '$fXXXXX' in typemaps.
  */
