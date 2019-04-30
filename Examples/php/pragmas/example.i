@@ -21,7 +21,7 @@
   zend_printf("This was %%rshutdown\n");
 }
 
-%pragma(php) include="include.php";
+%pragma(php) include="./include.php";
 
 %pragma(php) code="
 # This code is inserted into example.php
