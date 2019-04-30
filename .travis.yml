@@ -111,14 +111,9 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
-      env: SWIGLANG=octave SWIGJOBS=-j2 # 3.8
+      env: SWIGLANG=octave SWIGJOBS=-j2
       sudo: required
       dist: xenial
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.0
-      sudo: required
-      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.2 CPP11=1
