@@ -8,6 +8,7 @@
 %fortranonlywrapped also_overloaded;
 %fortranonlywrapped nowrap_also;
 %fortranonlywrapped HasUnloved::sad_pointer;
+%fortranonlywrapped WeHaveOverloads::WeHaveOverloads;
 
 %typemap(in) SWIGTYPE *nowrap {
 %#error "This shouldn't be wrapped"
@@ -53,6 +54,12 @@ void nowrap_also(Unknown *nowrap) {(void)sizeof(nowrap);}
 struct HasUnloved {
   int an_integer;
   Unloved* sad_pointer;
+};
+
+class WeHaveOverloads {
+ public:
+  WeHaveOverloads(Unloved *nowrap) {(void)sizeof(nowrap);}
+  WeHaveOverloads(int) {}
 };
 
 %}

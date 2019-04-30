@@ -1209,17 +1209,13 @@ int FORTRAN::functionWrapper(Node *n) {
   if (!bindc) {
     // Typical function wrapping: generate C, interface, and proxy wrappers.
     // If something fails, error out early.
-    if (this->cfuncWrapper(n) == SWIG_NOWRAP)
+    if (this->cfuncWrapper(n) == SWIG_NOWRAP || this->imfuncWrapper(n) == SWIG_NOWRAP || this->proxyfuncWrapper(n) == SWIG_NOWRAP) {
+      SetFlag(n, "fortran:ignore");
       return SWIG_NOWRAP;
-    if (this->imfuncWrapper(n) == SWIG_NOWRAP)
-      return SWIG_NOWRAP;
-    if (this->proxyfuncWrapper(n) == SWIG_NOWRAP)
-      return SWIG_NOWRAP;
+    }
   } else {
-    // C-bound function: set up bindc-type paramneters
-    if (this->bindcfuncWrapper(n) == SWIG_NOWRAP)
-      return SWIG_NOWRAP;
-    if (this->imfuncWrapper(n) == SWIG_NOWRAP)
+    // C-bound function: set up bindc-type parameters
+    if (this->bindcfuncWrapper(n) == SWIG_NOWRAP || this->imfuncWrapper(n) == SWIG_NOWRAP)
       return SWIG_NOWRAP;
   }
 
@@ -2451,8 +2447,9 @@ int FORTRAN::constructorHandler(Node *n) {
   SetFlag(n, "fortran:private");
 
   Language::constructorHandler(n);
-
-  Append(d_constructors, Getattr(n, "wrap:fname"));
+  if (!GetFlag(n, "fortran:ignore")) {
+    Append(d_constructors, Getattr(n, "wrap:fname"));
+  }
   return SWIG_OK;
 }
 
