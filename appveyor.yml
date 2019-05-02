@@ -118,6 +118,7 @@ test_script:
 - if not "%OSVARIANT%"=="" CCache\ccache-swig -V
 - bash -c "file ./swig.exe"
 - bash -c "make check-%SWIGLANG%-version"
+- bash -c "make check-%SWIGLANG%-enabled"
 - bash -c "time make -k check-%SWIGLANG%-examples %CHECK_OPTIONS% %CHECK_OPTIONS2%"
 - bash -c "time make -k check-%SWIGLANG%-test-suite -j%MAKEJOBS% %CHECK_OPTIONS% %CHECK_OPTIONS2%"
 
