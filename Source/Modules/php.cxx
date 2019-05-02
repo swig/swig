@@ -676,7 +676,7 @@ public:
       Delete(s_fakeoowrappers);
       s_fakeoowrappers = NULL;
     }
-    Printf(f_phpcode, "%s\n?>\n", s_phpclasses);
+    Printf(f_phpcode, "%s\n", s_phpclasses);
     Delete(f_phpcode);
 
     return SWIG_OK;
