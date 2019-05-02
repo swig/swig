@@ -45,6 +45,7 @@ struct HasEnum {
 HasEnum::_Underscores get_embedded_enum_value(HasEnum::_Underscores e) { return e; }
 
 
+// Test constant wrapping
 #define _123 123
 
 extern "C" {

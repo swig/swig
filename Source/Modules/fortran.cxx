@@ -405,6 +405,8 @@ String *proxy_name_construct(String *nspace, const_String_or_char_ptr symname) {
  * The maximum length of a Fortran identifier is 63 characters, according
  * to the Fortran standard.
  *
+ * This name is *not* guaranteed to be unique!
+ *
  * \return new'd valid identifier name
  */
 String *make_fname(String *name, int warning = WARN_LANG_IDENTIFIER) {
@@ -444,6 +446,7 @@ String *make_fname(String *name, int warning = WARN_LANG_IDENTIFIER) {
   assert(is_valid_identifier(result));
   return result;
 }
+
 /* -------------------------------------------------------------------------
  * \brief Get/attach and return a typemap to the given node.
  *
@@ -636,21 +639,21 @@ private:
   int bindcfuncWrapper(Node *n);
   int imfuncWrapper(Node *n);
   int proxyfuncWrapper(Node *n);
+
+  void add_assignment_operator(Node *n);
   void write_docstring(Node *n, String *dest);
 
   void write_wrapper(String *filename);
   void write_module(String *filename);
 
-  bool replace_fclassname(SwigType *type, String *tm);
-  String *get_fclassname(SwigType *classnametype, bool is_enum);
-
-  // Add an assignment operator to a class node
-  void add_assignment_operator(Node *n);
+  void replace_fclassname(SwigType *type, String *tm);
+  String *get_fortran_name(Node *n, String *symname = NULL);
+  String *get_fclassname(SwigType *classnametype);
+  String *get_fenumname(SwigType *classnametype);
+  String *create_mangled_name(SwigType *classnametype, Node *n);
 
   // Add lowercase symbol (fortran)
   int add_fsymbol(String *s, Node *n, int warning = WARN_FORTRAN_NAME_CONFLICT);
-  // Create a unique symbolic name
-  String *make_unique_symname(Node *n);
   // Whether the current class is a BIND(C) struct
   bool is_bindc_struct() const { assert(this->getCurrentClass()); return d_method_overloads == NULL; }
 };
@@ -1927,6 +1930,14 @@ String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool) const {
   return name;
 }
 
+/* ------------------------------------------------------------------------- */
+
+void FORTRAN::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
+  (void)method;
+  SwigType *type = Getattr(parm, "type");
+  this->replace_fclassname(type, tm);
+}
+
 /* -------------------------------------------------------------------------
  * \brief Process a class declaration.
  *
@@ -1934,12 +1945,8 @@ String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool) const {
  */
 int FORTRAN::classDeclaration(Node *n) {
   if (!GetFlag(n, "feature:onlychildren")) {
-    // Create unique name and add to symbol table
-    if (!Getattr(n, "fortran:name")) {
-      String *fsymname = this->make_unique_symname(n);
-      Setattr(n, "fortran:name", fsymname);
-      Delete(fsymname);
-    }
+    // Set up Fortran proxy name
+    get_fortran_name(n);
   }
   if (is_bindc(n)) {
     // Prevent default constructors, destructors, etc.
@@ -2297,21 +2304,13 @@ int FORTRAN::enumDeclaration(Node *n) {
   } else if (Strstr(symname, "$unnamed") != NULL) {
     // Anonymous enum VALUE
     // enum {FOO=0, BAR=1} foo;
-  } else if (Node *classnode = this->getCurrentClass()) {
-    // Scope the enum since it's in a class
-    String *tempname = NewStringf("%s_%s", Getattr(classnode, "sym:name"), symname);
-    enum_name = make_fname(tempname);
-    Delete(tempname);
-    // Save the alias name
-    Setattr(n, "fortran:name", enum_name);
-    // Add to symbol table
-    if (add_fsymbol(enum_name, n) == SWIG_NOWRAP)
-      return SWIG_NOWRAP;
-  } else if (String *fortranname = Getattr(n, "fortran:name")) {
-    enum_name = Copy(fortranname);
   } else {
-    enum_name = make_fname(symname);
-    if (add_fsymbol(enum_name, n) == SWIG_NOWRAP)
+    if (Node *classnode = this->getCurrentClass()) {
+      // Scope the enum since it's in a class
+      symname = NewStringf("%s_%s", Getattr(classnode, "sym:name"), symname);
+    }
+    enum_name = this->get_fortran_name(n, symname);
+    if (!enum_name)
       return SWIG_NOWRAP;
   }
 
@@ -2397,7 +2396,7 @@ int FORTRAN::enumDeclaration(Node *n) {
  */
 int FORTRAN::constantWrapper(Node *n) {
   String *nodetype = nodeType(n);
-  String *symname = Getattr(n, "sym:name");
+  String *fsymname = this->get_fortran_name(n);
   String *value = Getattr(n, "rawval");
 
   if (String *override_value = Getattr(n, "feature:fortran:constvalue")) {
@@ -2406,9 +2405,6 @@ int FORTRAN::constantWrapper(Node *n) {
   }
 
   if (Strcmp(nodetype, "enumitem") == 0) {
-    // Make unique enum values for the user
-    symname = this->make_unique_symname(n);
-
     // Set type from the parent enumeration
     String *t = Getattr(parentNode(n), "enumtype");
     Setattr(n, "type", t);
@@ -2428,12 +2424,8 @@ int FORTRAN::constantWrapper(Node *n) {
     ASSERT_OR_PRINT_NODE(!value, n);
     // But we're wrapping the enumeration type as a fictional value
     value = Getattr(n, "value");
-  } else {
-    // Make unique enum values for the user
-    symname = this->make_unique_symname(n);
-    if (!value) {
-      value = Getattr(n, "value");
-    }
+  } else if (!value) {
+    value = Getattr(n, "value");
   }
 
   // Get Fortran data type
@@ -2451,12 +2443,12 @@ int FORTRAN::constantWrapper(Node *n) {
   }
 
   if (d_enum_public) {
-    ASSERT_OR_PRINT_NODE(Len(symname) > 0, n);
+    ASSERT_OR_PRINT_NODE(Len(fsymname) > 0, n);
     // We're wrapping a native enumerator: add to the list of enums being
     // built
-    Append(d_enum_public, symname);
+    Append(d_enum_public, fsymname);
     // Print the enum to the list
-    Printv(f_fdecl, "  enumerator :: ", symname, NULL);
+    Printv(f_fdecl, "  enumerator :: ", fsymname, NULL);
     if (value) {
       Printv(f_fdecl, " = ", value, NULL);
     }
@@ -2469,17 +2461,18 @@ int FORTRAN::constantWrapper(Node *n) {
       Printv(value, "_", suffix, NULL);
       Delete(suffix);
     }
-    Printv(f_fdecl, " ", bindc_typestr, ", parameter, public :: ", symname, " = ", value, "\n", NULL);
+    Printv(f_fdecl, " ", bindc_typestr, ", parameter, public :: ", fsymname, " = ", value, "\n", NULL);
   } else {
     /*! Add to public fortran code:
      *
-     *   IMTYPE, protected, bind(C, name="swig_SYMNAME") :: SYMNAME
+     *   IMTYPE, protected, bind(C, name="swig_SYMNAME") :: FSYMNAME
      *
      * Add to wrapper code:
      *
      *   {const_CTYPE = SwigType_add_qualifier(CTYPE, "const")}
      *   {SwigType_str(const_CTYPE, swig_SYMNAME) = VALUE;}
      */
+    String *symname = Getattr(n, "sym:name");
     Swig_save("constantWrapper", n, "wrap:name", "lname", NULL);
 
     // Get type of C value
@@ -2491,7 +2484,7 @@ int FORTRAN::constantWrapper(Node *n) {
     // Add a const to the return type
     SwigType_add_qualifier(c_return_type, "const");
     
-    String *wname;
+    String *wname = NULL;
     if (value) {
       // SYMNAME -> swig_SYMNAME
       wname = Swig_name_wrapper(symname);
@@ -2528,7 +2521,6 @@ int FORTRAN::constantWrapper(Node *n) {
                  "The C++ const global '%s' is not defined with external "
                  "C linkage (extern \"C\"), but it is marked with %%fortranbindc.\n",
                  Getattr(n, "sym:name"));
-      wname = NULL;
     } else {
       // Bind directly to the symbol
       wname = Copy(symname);
@@ -2541,7 +2533,7 @@ int FORTRAN::constantWrapper(Node *n) {
     Printv(f_fdecl, " ", bindc_typestr, ", protected, public, &\n",
            "   bind(C, name=\"", wname, "\") :: ",
            (Len(wname) > 60 ? "&\n    " : ""),
-           symname, "\n",
+           fsymname, "\n",
            NULL);
 
     Swig_restore(n);
@@ -2556,33 +2548,23 @@ int FORTRAN::constantWrapper(Node *n) {
  */
 int FORTRAN::classforwardDeclaration(Node *n) {
   // Get the class *definition* corresponding to this declaration, if any.
-  Node *classn = Swig_symbol_clookup(Getattr(n, "name"), Getattr(n, "sym:symtab"));
-  if (classn) {
-    if (!Getattr(classn, "fortran:name") && Getattr(classn, "sym:name")) {
-      // Rename the class *now* before any function has a chance to reference its type
-      String *fsymname = this->make_unique_symname(classn);
-      Setattr(classn, "fortran:name", fsymname);
-      Delete(fsymname);
-    }
+  if (Node *classn = Swig_symbol_clookup(Getattr(n, "name"), Getattr(n, "sym:symtab"))) {
+    // Set up Fortran proxy name *now* before any function has a chance to reference its type
+    get_fortran_name(classn);
   }
 
   return Language::classforwardDeclaration(n);
 }
 
 /* -------------------------------------------------------------------------
- * \brief Handle a forward declaration of a class.
+ * \brief Handle a forward declaration of an enum
  */
 int FORTRAN::enumforwardDeclaration(Node *n) {
   if (String *name = Getattr(n, "name")) {
     // Get the class *definition* corresponding to this declaration, if any.
-    Node *enumn = Swig_symbol_clookup(name, Getattr(n, "sym:symtab"));
-    if (enumn) {
-      if (!Getattr(enumn, "fortran:name") && Getattr(enumn, "sym:name")) {
-        // Rename the class *now* before any function has a chance to reference its type
-        String *fsymname = this->make_unique_symname(enumn);
-        Setattr(enumn, "fortran:name", fsymname);
-        Delete(fsymname);
-      }
+    if (Node *enumn = Swig_symbol_clookup(name, Getattr(n, "sym:symtab"))) {
+      // Set up Fortran proxy name *now* before any function has a chance to reference its type
+      get_fortran_name(enumn);
     }
   }
 
@@ -2596,84 +2578,120 @@ int FORTRAN::enumforwardDeclaration(Node *n) {
 /* -------------------------------------------------------------------------
  * \brief Substitute special '$fXXXXX' in typemaps.
  */
-bool FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
+void FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
   assert(intype);
-  bool substitution_performed = false;
   SwigType *resolvedtype = SwigType_typedef_resolve_all(intype);
   SwigType *basetype = SwigType_base(resolvedtype);
 
   if (Strstr(tm, "$fclassname")) {
-    String *repl = get_fclassname(basetype, false);
-    if (repl) {
-      Replaceall(tm,  "$fclassname", repl);
-      substitution_performed = true;
+    if (String *repl = this->get_fclassname(basetype)) {
+      Replaceall(tm, "$fclassname", repl);
     }
   }
   if (Strstr(tm, "$fenumname")) {
-    String *repl = get_fclassname(basetype, true);
-    if (repl) {
-      Replaceall(tm,  "$fenumname", repl);
-      substitution_performed = true;
+    if (String *repl = this->get_fenumname(basetype)) {
+      Replaceall(tm, "$fenumname", repl);
     }
   }
 
   Delete(resolvedtype);
   Delete(basetype);
+}
 
-  return substitution_performed;
+/* -------------------------------------------------------------------------
+ * \brief Get (creating if necessary) the 'fortran:name' of a class or enum.
+ *
+ * This is the symbolic name of the *proxy* class or enum *in Fortran*. It's
+ * guaranteed to be a proper Fortran identifier.
+ *
+ * If the given node has no sym:name (???? perhaps anonymous struct or %template() class?)
+ * then the result is NULL.
+ */
+String *FORTRAN::get_fortran_name(Node *n, String *symname) {
+  String *fsymname = Getattr(n, "fortran:name");
+  if (!fsymname) {
+    // Create fortran identifier from symname
+    if (!symname) {
+      symname = Getattr(n, "sym:name");
+    }
+    ASSERT_OR_PRINT_NODE(symname, n);
+    fsymname = make_fname(symname);
+    
+    // Check for duplicates in this scope
+    Hash *symtab = this->symbolScopeLookup("fortran");
+    String *orig_lower = Swig_string_lower(fsymname);
+    String *lower = Copy(orig_lower);
+
+    int i = 0;
+    while (Getattr(symtab, lower)) {
+      ++i;
+      Delete(lower);
+      lower = NewStringf("%s%d", orig_lower, i);
+    }
+    if (i != 0) {
+      // Warn that name has changed
+      String *newname = NewStringf("%s%d", fsymname, i);
+      Swig_warning(WARN_FORTRAN_NAME_CONFLICT, input_file, line_number,
+                   "Renaming duplicate %s '%s' (Fortran name '%s')  to '%s'\n",
+                   nodeType(n), symname, lower, newname);
+      Delete(fsymname);
+      fsymname = newname;
+      Printf(stdout, "Fortran symbol table:\n");
+      Swig_print_node(symtab);
+    } else {
+      Printf(stdout, "Fsymname was already unique: %s -> %s\n",
+             Getattr(n, "sym:name"),
+             symname);
+    }
+      
+    // Add lowercase name to symbol table
+    Setattr(symtab, lower, n);
+    
+    Setattr(n, "fortran:name", fsymname);
+    Printf(stdout, "Created fsymname: %s -> %s\n",
+           Getattr(n, "sym:name"),
+           Getattr(n, "fortran:name"));
+
+    Delete(orig_lower);
+    Delete(lower);
+  } else {
+    Printf(stdout, "Fsymname already existed: %s -> %s\n",
+           Getattr(n, "sym:name"),
+           Getattr(n, "fortran:name"));
+  }
+
+  return fsymname;
 }
 
 /* ------------------------------------------------------------------------- */
 
-String *FORTRAN::get_fclassname(SwigType *basetype, bool is_enum) {
+String *FORTRAN::get_fclassname(SwigType *classnametype) {
   String *replacementname = NULL;
-  Node *n = (is_enum ? this->enumLookup(basetype) : this->classLookup(basetype));
+  Node *n = this->classLookup(classnametype);
 
   if (n) {
-    // Check first to see if there's a fortran symbolic name on the node
-    replacementname = Getattr(n, "fortran:name");
-    if (!replacementname) {
-      // If not, use the symbolic name
-      replacementname = Getattr(n, "sym:name");
-    }
-    if (is_enum && GetFlag(n, "enumMissing")) {
-      // Missing enum with forward declaration
-      replacementname = NULL;
-    }
-    if (is_enum && !GetFlag(n, "fortran:declared")) {
-      // Enum is defined, but it might not have been instantiated yet
-      replacementname = NULL;
-    }
+    replacementname = this->get_fortran_name(n);
   } else {
     // Create a node so we can insert into the fortran symbol table
     n = NewHash();
     set_nodeType(n, "classforward");
-    Setattr(n, "name", basetype);
+    Setattr(n, "name", classnametype);
   }
 
   if (!replacementname) {
-    replacementname = Getattr(d_mangled_type, basetype);
-    // No class/enum type or symname was found
-    if (!replacementname) {
-      // First time encountered with this particular class
-      String *tempname = NewStringf("SWIGTYPE%s", SwigType_manglestr(basetype));
-      replacementname = make_fname(tempname, WARN_NONE);
-      Delete(tempname);
-      if (add_fsymbol(replacementname, n) != SWIG_NOWRAP) {
-        if (is_enum) {
-          Replace(replacementname, "enum ", "", DOH_REPLACE_ANY);
-          Printv(f_fdecl, "integer, parameter, public :: ", replacementname, " = C_INT\n", NULL);
-        } else {
-          // TODO: replace with this->classHandler(n);
-          emit_fragment("SwigClassWrapper_f");
-          Printv(f_fdecl,
-                 " type, public :: ", replacementname, "\n", 
-                 "  type(SwigClassWrapper), public :: swigdata\n",
-                 " end type\n",
-                 NULL);
-        }
-      }
-      Setattr(d_mangled_type, basetype, replacementname);
+    // Check for existing mangled name
+    replacementname = Getattr(d_mangled_type, classnametype);
+  }
+  if (!replacementname) {
+    // First time encountering this particular class
+    replacementname = this->create_mangled_name(classnametype, n);
+    if (replacementname) {
+      emit_fragment("SwigClassWrapper_f");
+      Printv(f_fdecl,
+             " type, public :: ", replacementname, "\n", 
+             "  type(SwigClassWrapper), public :: swigdata\n",
+             " end type\n",
+             NULL);
     }
   }
 
@@ -2682,10 +2700,59 @@ String *FORTRAN::get_fclassname(SwigType *basetype, bool is_enum) {
 
 /* ------------------------------------------------------------------------- */
 
-void FORTRAN::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
-  (void)method;
-  SwigType *type = Getattr(parm, "type");
-  this->replace_fclassname(type, tm);
+String *FORTRAN::get_fenumname(SwigType *classnametype) {
+  String *replacementname = NULL;
+  Node *n = this->enumLookup(classnametype);
+
+  // The enum name is only available if the 'missing' flag isn't set and we've marked the enum as 'declared'
+  if (n && !GetFlag(n, "enumMissing") && GetFlag(n, "fortran:declared")) {
+    replacementname = this->get_fortran_name(n);
+  } else {
+    // Create a node so we can insert into the fortran symbol table
+    n = NewHash();
+    set_nodeType(n, "enumforward");
+    Setattr(n, "name", classnametype);
+  }
+
+  if (!replacementname) {
+    // Check for existing mangled name
+    replacementname = Getattr(d_mangled_type, classnametype);
+  }
+  if (!replacementname) {
+    // First time encountering this particular enum
+    replacementname = this->create_mangled_name(classnametype, n);
+    if (replacementname) {
+      Replace(replacementname, "enum ", "", DOH_REPLACE_ANY);
+      Printv(f_fdecl, "integer, parameter, public :: ", replacementname, " = C_INT\n", NULL);
+    }
+  }
+
+  return replacementname;
+}
+
+/* -------------------------------------------------------------------------
+ * \brief Create a mangled SWIGTYPEMyClassName for Fortran proxy code.
+ *
+ * This saves the mangled name in the `d_mangled_type` cache.
+ *
+ * Return NULL if the name conflicts.
+ */
+String *FORTRAN::create_mangled_name(SwigType *classnametype, Node *n) {
+  // Create mangled SWIGTYPE_p_FooBar
+  String *mangled = SwigType_manglestr(classnametype);
+  String *tempname = NewStringf("SWIGTYPE%s", mangled);
+  Delete(mangled);
+  String *replacementname = make_fname(tempname, WARN_NONE);
+  Delete(tempname);
+
+  // Cache the mangled name
+  Setattr(d_mangled_type, classnametype, replacementname);
+
+  // Try to add the mangled name; reset to NULL if it's a duplicate
+  if (this->add_fsymbol(replacementname, n) == SWIG_NOWRAP) {
+    replacementname = NULL;
+  }
+  return replacementname;
 }
 
 /* -------------------------------------------------------------------------
@@ -2720,48 +2787,6 @@ int FORTRAN::add_fsymbol(String *s, Node *n, int warn) {
   assert(success);
   Delete(lower);
   return SWIG_OK;
-}
-
-/* -------------------------------------------------------------------------
- * \brief Make a unique fortran symbol name by appending numbers.
- */
-String *FORTRAN::make_unique_symname(Node *n) {
-  String *symname = Getattr(n, "sym:name");
-  assert(symname);
-  symname = make_fname(symname);
-
-  // Since enum values are in the same namespace as everything else in the
-  // module, make sure they're not duplicated with the scope
-  Hash *symtab = this->symbolScopeLookup("fortran");
-
-  // Lower-cased name for scope checking
-  String *orig_lower = Swig_string_lower(symname);
-  String *lower = Copy(orig_lower);
-
-  int i = 0;
-  while (Getattr(symtab, lower)) {
-    ++i;
-    Delete(lower);
-    lower = NewStringf("%s%d", orig_lower, i);
-  }
-  if (i != 0) {
-    // Warn that name has changed
-    String *newname = NewStringf("%s%d", symname, i);
-    Swig_warning(WARN_FORTRAN_NAME_CONFLICT, input_file, line_number,
-                 "Renaming duplicate %s '%s' (Fortran name '%s')  to '%s'\n",
-                 nodeType(n), symname, lower, newname);
-    Delete(symname);
-    symname = newname;
-    // Replace symname
-    Setattr(n, "sym:name", symname);
-  }
-
-  // Add lowercase name to symbol table
-  Setattr(symtab, lower, n);
-  Delete(orig_lower);
-  Delete(lower);
-
-  return symname;
 }
 
 /* -------------------------------------------------------------------------
