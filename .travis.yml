@@ -16,10 +16,6 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG= GCC=4.5
-      sudo: required
-      dist: xenial
-    - os: linux
       env: SWIGLANG= GCC=4.6
       sudo: required
       dist: xenial
@@ -29,6 +25,10 @@ matrix:
       dist: xenial
     - os: linux
       env: SWIGLANG= GCC=4.8
+      sudo: required
+      dist: xenial
+    - os: linux
+      env: SWIGLANG= GCC=4.9
       sudo: required
       dist: xenial
     - os: linux
