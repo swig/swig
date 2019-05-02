@@ -7,11 +7,12 @@
 	    SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
 	    SWIGWARN_D_MULTIPLE_INHERITANCE,
+	    SWIGWARN_FORTRAN_MULTIPLE_INHERITANCE,
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) spam;	// Ruby, wrong class name - C# & Java, PHP multiple inheritance
 
 %inline %{
 
-class foo { 
+class foo {
   public:
     int _foo;
     foo() : _foo(1) {}
