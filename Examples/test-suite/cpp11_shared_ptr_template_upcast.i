@@ -68,9 +68,9 @@ public:
 };
 
 /*
-    Contrived for this case (but valid for others, such as if Printable was to be a interface/abstract base class).
-    Virtual inheritance exposes whether SWIGSmartPtrUpcast generated a correctly typed shared pointer of the upcasted class type - if the pointer type is incorrect, this will result in 
-    a segmentation fault (on Windows, this could manifest as undefined behavior) when trying to access any member inherited from T through a shared_ptr<Printable<T> >.
+    Virtual inheritance is contrived for this case, but exposes whether SWIGSmartPtrUpcast generated a correctly typed shared pointer of the upcasted class type -
+    if the pointer type is incorrect, this will result in a segmentation fault (on Windows, this could manifest as undefined behavior) when trying to access members 
+    inherited from T through a shared_ptr<Printable<T> >.
 */
 template <class T> class Printable : virtual public T {
 public:
