@@ -12,11 +12,35 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG= GCC=5 CPP11=1
+      env: SWIGLANG= GCC=4.4
+      sudo: required
+      dist: xenial
+    - os: linux
+      env: SWIGLANG= GCC=4.5
+      sudo: required
+      dist: xenial
+    - os: linux
+      env: SWIGLANG= GCC=4.6
+      sudo: required
+      dist: xenial
+    - os: linux
+      env: SWIGLANG= GCC=4.7
+      sudo: required
+      dist: xenial
+    - os: linux
+      env: SWIGLANG= GCC=4.8
       sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG= GCC=6
+      sudo: required
+      dist: xenial
+    - os: linux
+      env: SWIGLANG= GCC=7
+      sudo: required
+      dist: xenial
+    - os: linux
+      env: SWIGLANG= GCC=8
       sudo: required
       dist: xenial
     - compiler: gcc
