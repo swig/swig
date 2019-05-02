@@ -267,19 +267,6 @@ List *get_default_list(Node *n, String *key) {
 }
 
 /* -------------------------------------------------------------------------
- * \brief Get some name attached to the node.
- *
- * This is for user feedback only.
- */
-String *get_symname_or_name(Node *n) {
-  String *s = Getattr(n, "sym:name");
-  if (!s) {
-    s = Getattr(n, "name");
-  }
-  return s;
-}
-
-/* -------------------------------------------------------------------------
  * \brief Construct any necessary 'import' identifier.
  *
  * When the `imtype` is an actual `type(Foo)`, it's necessary to import the identifier Foo from the module definition scope. This function examines the
@@ -626,8 +613,6 @@ public:
   virtual int staticmembervariableHandler(Node *n);
   virtual int enumDeclaration(Node *n);
   virtual int constantWrapper(Node *n);
-  virtual int classforwardDeclaration(Node *n);
-  virtual int enumforwardDeclaration(Node *n);
 
   virtual String *makeParameterName(Node *n, Parm *p, int arg_num, bool is_setter = false) const;
   virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm);
@@ -653,7 +638,7 @@ private:
   String *create_mangled_name(SwigType *classnametype, Node *n);
 
   // Add lowercase symbol (fortran)
-  int add_fsymbol(String *s, Node *n, int warning = WARN_FORTRAN_NAME_CONFLICT);
+  int add_fsymbol(String *s, Node *n);
   // Whether the current class is a BIND(C) struct
   bool is_bindc_struct() const { assert(this->getCurrentClass()); return d_method_overloads == NULL; }
 };
@@ -769,11 +754,29 @@ int FORTRAN::top(Node *n) {
   d_mangled_type = NewHash();
   d_overloads = NewHash();
 
-  // Declare scopes: fortran types and forward-declared types
-  this->symbolAddScope("fortran");
+  // >>> PROCESS
 
+  // Add module to proxy symbol table
+  Node *module = Getattr(n, "module");
+  String *modname = Swig_string_lower(Getattr(module, "name"));
+  this->add_fsymbol(modname, module);
+
+  // Note that documentation is a daughter node labeled "docstring";
+  // to unify the doc string processing we just set it as a feature attribute 
+  if (Node *options = Getattr(module, "options")) {
+    if (String *docstring = Getattr(options, "docstring")) {
+      Setattr(module, "feature:docstring", docstring);
+      this->write_docstring(module, f_fuse);
+    }
+  }
+
+  // Write module title
+  Printv(f_fuse, "module ", modname, "\n use, intrinsic :: ISO_C_BINDING\n", NULL);
+  
   // Emit all other wrapper code
   Language::top(n);
+
+  // >>> OUTPUT
 
   // Write C++ wrapper file
   write_wrapper(Getattr(n, "outfile"));
@@ -901,39 +904,13 @@ void FORTRAN::write_module(String *filename) {
  * \brief Process a %module
  */
 int FORTRAN::moduleDirective(Node *n) {
-  String *modname = Swig_string_lower(Getattr(n, "name"));
-  int success = this->add_fsymbol(modname, n, WARN_NONE);
-
   if (ImportMode) {
     // This %module directive is inside another module being %imported
+    String *modname = Swig_string_lower(Getattr(n, "name"));
     Printv(f_fuse, " use ", modname, "\n", NULL);
-    success = SWIG_OK;
-  } else if (success) {
-    // This is the first time the `%module` directive is seen. (Note that
-    // other `%module` directives may be present, but they're
-    // given the same name as the main module and should be ignored.
-    // Write documentation if given. Note that it's simply labeled "docstring"
-    // and in a daughter node; to unify the doc string processing we just set
-    // it as a feature attribute on the module.
-    Node *options = Getattr(n, "options");
-    if (options) {
-      String *docstring = Getattr(options, "docstring");
-      if (docstring) {
-        Setattr(n, "feature:docstring", docstring);
-        this->write_docstring(n, f_fuse);
-      }
-    }
-
-    Printv(f_fuse,
-           "module ",
-           modname,
-           "\n"
-           " use, intrinsic :: ISO_C_BINDING\n",
-           NULL);
+    Delete(modname);
   }
-
-  Delete(modname);
-  return success;
+  return SWIG_OK;
 }
 
 /* -------------------------------------------------------------------------
@@ -1892,7 +1869,7 @@ String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool) const {
 
   // Symbol tables for module and forward-declared class scopes
   FORTRAN *mthis = const_cast<FORTRAN *>(this);
-  Hash *symtab = mthis->symbolScopeLookup("fortran");
+  Hash *symtab = mthis->symbolScopeLookup(NULL);
   
   bool valid = false;
   while (!valid)
@@ -1959,9 +1936,11 @@ int FORTRAN::classDeclaration(Node *n) {
  * \brief Process classes.
  */
 int FORTRAN::classHandler(Node *n) {
-  // Add the class name or warn if it's a duplicate
-  String *symname = Getattr(n, "fortran:name");
-  ASSERT_OR_PRINT_NODE(symname, n);
+  String *fsymname = Getattr(n, "fortran:name");
+  if (!fsymname) {
+    // Class has been ignored
+    return SWIG_NOWRAP;
+  }
   String *basename = NULL;
 
   // Iterate through the base classes. If no bases are set (null pointer sent
@@ -1987,7 +1966,7 @@ int FORTRAN::classHandler(Node *n) {
     // Disallow inheritance for BIND(C) types
     Swig_error(input_file, line_number,
                "Struct '%s' uses the '%%fortranbindc' feature, so it cannot use inheritance.\n",
-               symname);
+               fsymname);
     return SWIG_NOWRAP;
   }
 
@@ -2007,7 +1986,7 @@ int FORTRAN::classHandler(Node *n) {
   } else if (bindc) {
     Printv(f_class, ", bind(C)", NULL);
   }
-  Printv(f_class, ", public :: ", symname, "\n", NULL);
+  Printv(f_class, ", public :: ", fsymname, "\n", NULL);
 
   // Define policy
   if (CPlusPlus)
@@ -2028,7 +2007,6 @@ int FORTRAN::classHandler(Node *n) {
     Printv(f_policies, "#define ", policystr, " ", policy, "\n", NULL);
   }
 
-  int saved_classlen = 0;
   if (!bindc) {
     if (!basename) {
       // Insert the class data if this doesn't inherit from anything
@@ -2047,8 +2025,8 @@ int FORTRAN::classHandler(Node *n) {
     // Add an assignment function to the class node
     this->add_assignment_operator(n);
 
+    // Assignment operator means we're guaranteed to have at least one method, so it's OK to unconditionally put 'contains'
     Printv(f_class, " contains\n", NULL);
-    saved_classlen = Len(f_class);
   }
 
   // Emit class members
@@ -2069,7 +2047,7 @@ int FORTRAN::classHandler(Node *n) {
   }
 
   // Close out the type
-  Printf(f_class, " end type %s\n", symname);
+  Printf(f_class, " end type %s\n", fsymname);
 
   // Save overloads as a node attribute for debugging
   if (d_method_overloads) {
@@ -2085,7 +2063,7 @@ int FORTRAN::classHandler(Node *n) {
 
   // Print constructor interfaces
   if (d_constructors && (Len(d_constructors) > 0)) {
-    Printf(f_fdecl, " interface %s\n", symname);
+    Printf(f_fdecl, " interface %s\n", fsymname);
     for (Iterator it = First(d_constructors); it.item; it = Next(it)) {
       Printf(f_fdecl, "  module procedure %s\n", it.item);
     }
@@ -2340,10 +2318,13 @@ int FORTRAN::enumDeclaration(Node *n) {
   }
 
   // Emit enum items
-  Language::enumDeclaration(n);
+  int result = Language::enumDeclaration(n);
 
   if (d_enum_public) {
-    ASSERT_OR_PRINT_NODE(Len(d_enum_public) > 0, n);
+    if (Len(d_enum_public) == 0) {
+      // Wrapping failed: possible errors in 
+      result = SWIG_ERROR;
+    }
     // End enumeration
     Printv(f_fdecl, " end enum\n", NULL);
 
@@ -2395,9 +2376,17 @@ int FORTRAN::enumDeclaration(Node *n) {
  * memberconstantHandler)
  */
 int FORTRAN::constantWrapper(Node *n) {
+  // Save some properties that get temporarily changed
+  Swig_save("constantWrapper", n, "wrap:name", "lname", "fortran:name", NULL);
+
   String *nodetype = nodeType(n);
   String *fsymname = this->get_fortran_name(n);
   String *value = Getattr(n, "rawval");
+
+  if (!fsymname) {
+    // Symbol is a duplicate
+    return SWIG_NOWRAP;
+  }
 
   if (String *override_value = Getattr(n, "feature:fortran:constvalue")) {
     value = override_value;
@@ -2473,7 +2462,6 @@ int FORTRAN::constantWrapper(Node *n) {
      *   {SwigType_str(const_CTYPE, swig_SYMNAME) = VALUE;}
      */
     String *symname = Getattr(n, "sym:name");
-    Swig_save("constantWrapper", n, "wrap:name", "lname", NULL);
 
     // Get type of C value
     Swig_typemap_lookup("ctype", n, symname, NULL);
@@ -2535,40 +2523,11 @@ int FORTRAN::constantWrapper(Node *n) {
            (Len(wname) > 60 ? "&\n    " : ""),
            fsymname, "\n",
            NULL);
-
-    Swig_restore(n);
     Delete(wname);
   }
 
+  Swig_restore(n);
   return SWIG_OK;
-}
-
-/* -------------------------------------------------------------------------
- * \brief Handle a forward declaration of a class.
- */
-int FORTRAN::classforwardDeclaration(Node *n) {
-  // Get the class *definition* corresponding to this declaration, if any.
-  if (Node *classn = Swig_symbol_clookup(Getattr(n, "name"), Getattr(n, "sym:symtab"))) {
-    // Set up Fortran proxy name *now* before any function has a chance to reference its type
-    get_fortran_name(classn);
-  }
-
-  return Language::classforwardDeclaration(n);
-}
-
-/* -------------------------------------------------------------------------
- * \brief Handle a forward declaration of an enum
- */
-int FORTRAN::enumforwardDeclaration(Node *n) {
-  if (String *name = Getattr(n, "name")) {
-    // Get the class *definition* corresponding to this declaration, if any.
-    if (Node *enumn = Swig_symbol_clookup(name, Getattr(n, "sym:symtab"))) {
-      // Set up Fortran proxy name *now* before any function has a chance to reference its type
-      get_fortran_name(enumn);
-    }
-  }
-
-  return Language::enumforwardDeclaration(n);
 }
 
 /* -------------------------------------------------------------------------
@@ -2604,8 +2563,7 @@ void FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
  * This is the symbolic name of the *proxy* class or enum *in Fortran*. It's
  * guaranteed to be a proper Fortran identifier.
  *
- * If the given node has no sym:name (???? perhaps anonymous struct or %template() class?)
- * then the result is NULL.
+ * If the resulting symbol already exists (SWIG error), we return NULL.
  */
 String *FORTRAN::get_fortran_name(Node *n, String *symname) {
   String *fsymname = Getattr(n, "fortran:name");
@@ -2617,47 +2575,11 @@ String *FORTRAN::get_fortran_name(Node *n, String *symname) {
     ASSERT_OR_PRINT_NODE(symname, n);
     fsymname = make_fname(symname);
     
-    // Check for duplicates in this scope
-    Hash *symtab = this->symbolScopeLookup("fortran");
-    String *orig_lower = Swig_string_lower(fsymname);
-    String *lower = Copy(orig_lower);
-
-    int i = 0;
-    while (Getattr(symtab, lower)) {
-      ++i;
-      Delete(lower);
-      lower = NewStringf("%s%d", orig_lower, i);
-    }
-    if (i != 0) {
-      // Warn that name has changed
-      String *newname = NewStringf("%s%d", fsymname, i);
-      Swig_warning(WARN_FORTRAN_NAME_CONFLICT, input_file, line_number,
-                   "Renaming duplicate %s '%s' (Fortran name '%s')  to '%s'\n",
-                   nodeType(n), symname, lower, newname);
-      Delete(fsymname);
-      fsymname = newname;
-      Printf(stdout, "Fortran symbol table:\n");
-      Swig_print_node(symtab);
+    if (this->add_fsymbol(fsymname, n) == SWIG_NOWRAP) {
+      fsymname = NULL;
     } else {
-      Printf(stdout, "Fsymname was already unique: %s -> %s\n",
-             Getattr(n, "sym:name"),
-             symname);
+      Setattr(n, "fortran:name", fsymname);
     }
-      
-    // Add lowercase name to symbol table
-    Setattr(symtab, lower, n);
-    
-    Setattr(n, "fortran:name", fsymname);
-    Printf(stdout, "Created fsymname: %s -> %s\n",
-           Getattr(n, "sym:name"),
-           Getattr(n, "fortran:name"));
-
-    Delete(orig_lower);
-    Delete(lower);
-  } else {
-    Printf(stdout, "Fsymname already existed: %s -> %s\n",
-           Getattr(n, "sym:name"),
-           Getattr(n, "fortran:name"));
   }
 
   return fsymname;
@@ -2672,26 +2594,23 @@ String *FORTRAN::get_fclassname(SwigType *classnametype) {
   if (n) {
     replacementname = this->get_fortran_name(n);
   } else {
-    // Create a node so we can insert into the fortran symbol table
-    n = NewHash();
-    set_nodeType(n, "classforward");
-    Setattr(n, "name", classnametype);
-  }
-
-  if (!replacementname) {
     // Check for existing mangled name
     replacementname = Getattr(d_mangled_type, classnametype);
-  }
-  if (!replacementname) {
-    // First time encountering this particular class
-    replacementname = this->create_mangled_name(classnametype, n);
-    if (replacementname) {
-      emit_fragment("SwigClassWrapper_f");
-      Printv(f_fdecl,
-             " type, public :: ", replacementname, "\n", 
-             "  type(SwigClassWrapper), public :: swigdata\n",
-             " end type\n",
-             NULL);
+    if (!replacementname) {
+      // First time encountering this particular class
+      // Create a node so we can insert into the fortran symbol table
+      n = NewHash();
+      set_nodeType(n, "classforward");
+      Setattr(n, "name", classnametype);
+      replacementname = this->create_mangled_name(classnametype, n);
+      if (replacementname) {
+        emit_fragment("SwigClassWrapper_f");
+        Printv(f_fdecl,
+               " type, public :: ", replacementname, "\n", 
+               "  type(SwigClassWrapper), public :: swigdata\n",
+               " end type\n",
+               NULL);
+      }
     }
   }
 
@@ -2708,22 +2627,21 @@ String *FORTRAN::get_fenumname(SwigType *classnametype) {
   if (n && !GetFlag(n, "enumMissing") && GetFlag(n, "fortran:declared")) {
     replacementname = this->get_fortran_name(n);
   } else {
+    // Check for existing mangled name
+    replacementname = Getattr(d_mangled_type, classnametype);
+
     // Create a node so we can insert into the fortran symbol table
     n = NewHash();
     set_nodeType(n, "enumforward");
     Setattr(n, "name", classnametype);
-  }
 
-  if (!replacementname) {
-    // Check for existing mangled name
-    replacementname = Getattr(d_mangled_type, classnametype);
-  }
-  if (!replacementname) {
-    // First time encountering this particular enum
-    replacementname = this->create_mangled_name(classnametype, n);
-    if (replacementname) {
-      Replace(replacementname, "enum ", "", DOH_REPLACE_ANY);
-      Printv(f_fdecl, "integer, parameter, public :: ", replacementname, " = C_INT\n", NULL);
+    if (!replacementname) {
+      // First time encountering this particular enum
+      replacementname = this->create_mangled_name(classnametype, n);
+      if (replacementname) {
+        Replace(replacementname, "enum ", "", DOH_REPLACE_ANY);
+        Printv(f_fdecl, "integer, parameter, public :: ", replacementname, " = C_INT\n", NULL);
+      }
     }
   }
 
@@ -2760,8 +2678,13 @@ String *FORTRAN::create_mangled_name(SwigType *classnametype, Node *n) {
  *
  * Return SWIG_NOWRAP if the name conflicts.
  */
-int FORTRAN::add_fsymbol(String *s, Node *n, int warn) {
+int FORTRAN::add_fsymbol(String *s, Node *n) {
   assert(s);
+  if (GetFlag(n, "fortran:error_symbol")) {
+    // Already warned about this symbol being a duplicate
+    return SWIG_ERROR;
+  }
+
   if (!is_valid_identifier(s)) {
     Swig_error(input_file, line_number,
                "The name '%s' is not a valid Fortran identifier. You must %%rename this %s.\n",
@@ -2769,24 +2692,14 @@ int FORTRAN::add_fsymbol(String *s, Node *n, int warn) {
     return SWIG_NOWRAP;
   }
   String *lower = Swig_string_lower(s);
-  Node *existing = this->symbolLookup(lower, "fortran");
-
-  if (existing) {
-    if (warn != WARN_NONE) {
-      String *n1 = get_symname_or_name(n);
-      String *n2 = get_symname_or_name(existing);
-      Swig_warning(warn, input_file, line_number,
-                   "Ignoring '%s' due to Fortran name ('%s') conflict with '%s'\n",
-                   n1, lower, n2);
-    }
-    Delete(lower);
-    return SWIG_NOWRAP;
+  int result = this->addSymbol(lower, n);
+  if (result == SWIG_ERROR) {
+    // Don't warn about the symbol if we encounter it again 
+    SetFlag(n, "fortran:error_symbol");
   }
 
-  int success = this->addSymbol(lower, n, "fortran");
-  assert(success);
   Delete(lower);
-  return SWIG_OK;
+  return result;
 }
 
 /* -------------------------------------------------------------------------

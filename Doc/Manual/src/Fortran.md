@@ -109,17 +109,17 @@ that do not apply to C and C++:
 - Names may be no longer than 63 characters
 - Names are **case insensitive**
 
-The Fortran SWIG module implements three mitigation techniques for naming. 
+The Fortran SWIG module implements two mitigation techniques for naming. 
 First, it automatically moves leading underscores (and any following integers)
 to the end of the name. Second, it replaces the tails of long identifiers with
-a hashed value of the removed characters. Finally, it keeps a separate symbol
-table of publicly accessible Fortran identifiers (after their transformations,
-and after transforming them to lower case), and it will warn and rename duplicate
-symbols.
+a hashed value of the removed characters. If the result is a duplicate of an
+existing Fortran symbol, then SWIG will raise an error and inform you of the
+conflicting name and where it was previously used. 
+The flexible `%rename` directive can be used to resolve conflicting wrapper
+names.
 
-Fortran 2003 has no analog of C++ namespaces, which are ignored by SWIG.
-Keep in mind that the flexible `%rename` directive can be used to adjust the
-generated wrapper names.
+Finally, Fortran 2003 has no analog of C++ namespaces: all wrapped symbols are
+placed in the Fortran module's "global" namespace.
 
 ## Running SWIG
 
