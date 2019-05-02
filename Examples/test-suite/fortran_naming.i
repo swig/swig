@@ -82,10 +82,24 @@ int get_enum_value(_MyEnum e) { return static_cast<int>(e); }
 #ifdef SWIGFORTRAN
 %rename(MyEnum2) MyEnum_;
 %rename(MYVAL2) MYVAL_;
+%fortranconst AlsoOmitted;
 #endif
+
 %inline %{
 enum MyEnum_ {
     MYVAL_ = 2
+};
+
+enum Omitted {
+  ZERO,
+  OMITTED,
+  TWO
+};
+
+enum AlsoOmitted {
+  ALSOZERO,
+  ALSOOMITTED,
+  ALSOTWO
 };
 
 // Even though the Fortran identifier must be renamed, the function it's
