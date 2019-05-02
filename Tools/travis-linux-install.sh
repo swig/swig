@@ -1,26 +1,16 @@
 #!/bin/bash
 
+# Install Linux packages where the version has been overidden in .travis.yml
+
 set -e # exit on failure (same as -o errexit)
 
 lsb_release -a
 travis_retry sudo apt-get -qq update
 
-if [[ "$CC" == gcc-5 ]]; then
+if [[ -n "$GCC" ]]; then
 	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 	travis_retry sudo apt-get -qq update
-	travis_retry sudo apt-get install -qq g++-5
-elif [[ "$CC" == gcc-6 ]]; then
-	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-	travis_retry sudo apt-get -qq update
-	travis_retry sudo apt-get install -qq g++-6
-elif [[ "$CC" == gcc-7 ]]; then
-	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-	travis_retry sudo apt-get -qq update
-	travis_retry sudo apt-get install -qq g++-7
-elif [[ "$CC" == gcc-8 ]]; then
-	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-	travis_retry sudo apt-get -qq update
-	travis_retry sudo apt-get install -qq g++-8
+	travis_retry sudo apt-get install -qq g++-$GCC
 fi
 
 travis_retry sudo apt-get -qq install libboost-dev

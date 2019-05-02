@@ -12,11 +12,11 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG= SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      env: SWIGLANG= GCC=5 CPP11=1
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG= SWIG_CC=gcc-6 SWIG_CXX=g++-6
+      env: SWIGLANG= GCC=6
       sudo: required
       dist: xenial
     - compiler: gcc
@@ -195,11 +195,11 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=python SWIG_FEATURES=-builtin SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP11=1
+      env: SWIGLANG=python SWIG_FEATURES=-builtin GCC=6 CPP11=1
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=python SWIG_FEATURES=-builtin SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP11=1 PY3=3 VER=3.7
+      env: SWIGLANG=python SWIG_FEATURES=-builtin GCC=6 CPP11=1 PY3=3 VER=3.7
       sudo: required
       dist: xenial
     - compiler: gcc
@@ -268,19 +268,19 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=csharp SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      env: SWIGLANG=csharp GCC=5 CPP11=1
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=go SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      env: SWIGLANG=go GCC=5 CPP11=1
       sudo: required
       dist: trusty
     - os: linux
-      env: SWIGLANG=java SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      env: SWIGLANG=java GCC=5 CPP11=1
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=python SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      env: SWIGLANG=python GCC=5 CPP11=1
       sudo: required
       dist: xenial
     - os: linux
@@ -288,55 +288,55 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=ruby SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      env: SWIGLANG=ruby GCC=5 CPP11=1
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=tcl SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      env: SWIGLANG=tcl GCC=5 CPP11=1
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=csharp SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
+      env: SWIGLANG=csharp GCC=6 CPP14=1
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=go SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
+      env: SWIGLANG=go GCC=6 CPP14=1
       sudo: required
       dist: trusty
     - os: linux
-      env: SWIGLANG=java SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
+      env: SWIGLANG=java GCC=6 CPP14=1
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=python SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
+      env: SWIGLANG=python GCC=6 CPP14=1
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=ruby SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
+      env: SWIGLANG=ruby GCC=6 CPP14=1
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=tcl SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
+      env: SWIGLANG=tcl GCC=6 CPP14=1
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=java SWIG_CC=gcc-7 SWIG_CXX=g++-7 CPP14=1
+      env: SWIGLANG=java GCC=7 CPP14=1
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=python SWIG_CC=gcc-7 SWIG_CXX=g++-7 CPP14=1
+      env: SWIGLANG=python GCC=7 CPP14=1
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=csharp SWIG_CC=gcc-8 SWIG_CXX=g++-8 CPP17=1
+      env: SWIGLANG=csharp GCC=8 CPP17=1
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=java SWIG_CC=gcc-8 SWIG_CXX=g++-8 CPP17=1
+      env: SWIGLANG=java GCC=8 CPP17=1
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=python SWIG_CC=gcc-8 SWIG_CXX=g++-8 CPP17=1 PY3=3 VER=3.7
+      env: SWIGLANG=python GCC=8 CPP17=1 PY3=3 VER=3.7
       sudo: required
       dist: xenial
     - compiler: gcc
@@ -400,9 +400,8 @@ before_install:
   - uname -a
   - if test "$TRAVIS_OS_NAME" = "linux"; then lscpu && cat /proc/cpuinfo | grep "model name" && cat /proc/meminfo | grep MemTotal; fi
   - if test "$TRAVIS_OS_NAME" = "osx"; then sysctl -a | grep brand_string; fi
-    # Travis overrides CC environment with compiler predefined values
-  - if test -n "$SWIG_CC"; then export CC="$SWIG_CC"; fi
-  - if test -n "$SWIG_CXX"; then export CXX="$SWIG_CXX"; fi
+  # Travis overrides CC environment with compiler predefined values
+  - if test -n "$GCC"; then export CC="gcc-$GCC" && export CXX="g++-$GCC"; fi
 install:
   - if test "$TRAVIS_OS_NAME" = "linux"; then source Tools/travis-linux-install.sh; fi
   - if test "$TRAVIS_OS_NAME" = "osx"; then source Tools/travis-osx-install.sh; fi
