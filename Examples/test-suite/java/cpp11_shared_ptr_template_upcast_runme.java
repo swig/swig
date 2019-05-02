@@ -1,7 +1,6 @@
-
-// This is the cpp11_shared_ptr_template_upcast runtime testcase. It checks that SWIG generates the appropriate, upcasted shared_ptr type for a template instantiation deriving from a base class.
-// In this case, the expected behavior is that given a cptr (underlying type shared_ptr<Printable<Derived> >), PrintableDerived_SWIGSmartPtrUpcast returns a cptr 
-// (underlying type std::shared_ptr< Derived >).
+// This is the cpp11_shared_ptr_template_upcast runtime testcase. It checks that SWIG generates the appropriate upcasted shared_ptr type for a template instantiation deriving from a base class.
+// For this case, the expected behavior is: given a cptr with underlying type shared_ptr<Printable<Derived> >, PrintableDerived_SWIGSmartPtrUpcast returns a cptr with 
+// underlying type std::shared_ptr< Derived >, where Printable<Derived> inherits from Derived.
 
 import cpp11_shared_ptr_template_upcast.*;
 

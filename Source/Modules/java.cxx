@@ -1893,8 +1893,6 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void upcastsCode(SwigType *smart, String *upcast_method_name, String *c_classname, String *c_baseclass) {
-    Swig_warning(0, NULL, NULL, "******************************************\n");
-    Swig_warning(0, NULL, NULL, "Smart: %s, Class name: '%s', baseclass: '%s' \n", smart, c_classname, c_baseclass);
     String *jniname = makeValidJniName(upcast_method_name);
     String *wname = Swig_name_wrapper(jniname);
     Printf(imclass_cppcasts_code, "  public final static native long %s(long jarg1);\n", upcast_method_name);
@@ -1903,21 +1901,12 @@ public:
       String *bsmartnamestr = SwigType_namestr(smart);
 
       SwigType *rclassname = SwigType_typedef_resolve_all(c_classname);
-      Swig_warning(0, NULL, NULL, "SwigType_typedef_resolve_all - c_classname(%s): '%s'\n", c_classname, rclassname);
-
       SwigType *rbaseclass = SwigType_typedef_resolve_all(c_baseclass);
-      Swig_warning(0, NULL, NULL, "SwigType_typedef_resolve_all - c_baseclass(%s): '%s'\n", c_baseclass, rbaseclass);
 
-      Swig_warning(0, NULL, NULL, "Replaceall - PRE(%s, %s, %s)\n", bsmartnamestr, rclassname, rbaseclass);
       Replaceall(bsmartnamestr, rclassname, rbaseclass);
-      Swig_warning(0, NULL, NULL, "Replaceall - POST(%s, %s, %s)\n", bsmartnamestr, rclassname, rbaseclass);
 
       Delete(rclassname);
       Delete(rbaseclass);
-      //String *smartnamestr = SwigType_namestr(smart);
-      //String *bsmartnamestr = SwigType_namestr(bsmart);
-      Swig_warning(0, NULL, NULL, "bsmartnamestr: '%s', smartnamestr: '%s' \n", bsmartnamestr, smartnamestr);
-
 
       Printv(upcasts_code,
 	  "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
@@ -1941,7 +1930,6 @@ public:
 	  "    return baseptr;\n"
 	  "}\n", "\n", NIL);
     }
-    Swig_warning(0, NULL, NULL, "******************************************\n");
 
     Delete(wname);
     Delete(jniname);
