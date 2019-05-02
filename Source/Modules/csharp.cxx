@@ -1758,21 +1758,22 @@ public:
     Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
 
     if (smart) {
-      SwigType *bsmart = Copy(smart);
+      String *smartnamestr = SwigType_namestr(smart);
+      String *bsmartnamestr = SwigType_namestr(smart);
+
       SwigType *rclassname = SwigType_typedef_resolve_all(c_classname);
       SwigType *rbaseclass = SwigType_typedef_resolve_all(c_baseclass);
-      Replaceall(bsmart, rclassname, rbaseclass);
+      Replaceall(bsmartnamestr, rclassname, rbaseclass);
+
       Delete(rclassname);
       Delete(rbaseclass);
-      String *smartnamestr = SwigType_namestr(smart);
-      String *bsmartnamestr = SwigType_namestr(bsmart);
+
       Printv(upcasts_code,
 	  "SWIGEXPORT ", bsmartnamestr, " * SWIGSTDCALL ", wname, "(", smartnamestr, " *jarg1) {\n",
 	  "    return jarg1 ? new ", bsmartnamestr, "(*jarg1) : 0;\n"
 	  "}\n", "\n", NIL);
       Delete(bsmartnamestr);
       Delete(smartnamestr);
-      Delete(bsmart);
     } else {
       Printv(upcasts_code,
 	  "SWIGEXPORT ", c_baseclass, " * SWIGSTDCALL ", wname, "(", c_classname, " *jarg1) {\n",
