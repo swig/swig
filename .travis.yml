@@ -292,19 +292,19 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=csharp GCC=5 CPP11=1
+      env: SWIGLANG=csharp CPP11=1
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=go GCC=5 CPP11=1
+      env: SWIGLANG=go CPP11=1
       sudo: required
       dist: trusty
     - os: linux
-      env: SWIGLANG=java GCC=5 CPP11=1
+      env: SWIGLANG=java CPP11=1
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=python GCC=5 CPP11=1
+      env: SWIGLANG=python CPP11=1
       sudo: required
       dist: xenial
     - os: linux
@@ -312,11 +312,11 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=ruby GCC=5 CPP11=1
+      env: SWIGLANG=ruby CPP11=1
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=tcl GCC=5 CPP11=1
+      env: SWIGLANG=tcl CPP11=1
       sudo: required
       dist: xenial
     - os: linux
