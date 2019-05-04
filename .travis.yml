@@ -296,7 +296,7 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=go CPP11=1
+      env: SWIGLANG=go VER=1.6 CPP11=1
       sudo: required
       dist: trusty
     - os: linux
