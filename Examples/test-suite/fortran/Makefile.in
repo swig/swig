@@ -55,7 +55,6 @@ endif
 
 # Failed to compile fortran
 FAILING_CPP_TESTS += \
-  abstract_signature \
   contract \
   director_classes \
   director_default \

@@ -637,7 +637,7 @@ private:
   String *get_fenumname(SwigType *classnametype);
   String *create_mangled_name(SwigType *classnametype, Node *n);
 
-  // Add lowercase symbol (fortran)
+  // Add lowercase symbol (fortran) to the module's namespace
   int add_fsymbol(String *s, Node *n);
   // Whether the current class is a BIND(C) struct
   bool is_bindc_struct() const { assert(this->getCurrentClass()); return d_method_overloads == NULL; }
@@ -755,6 +755,13 @@ int FORTRAN::top(Node *n) {
   d_overloads = NewHash();
 
   // >>> PROCESS
+
+  // Add standard SWIG classes, fragments
+  Node *fragment_hash = NewHash();
+  String *clsname = NewString("SwigClassWrapper");
+  this->add_fsymbol(clsname, fragment_hash);
+  Delete(fragment_hash);
+  Delete(clsname);
 
   // Add module to proxy symbol table
   Node *module = Getattr(n, "module");
@@ -990,6 +997,94 @@ int FORTRAN::functionWrapper(Node *n) {
     generic = true;
   }
 
+  // Check for conflicts with other member functions in parent classes:
+  // - If the lowercase/renamed function name is the same as any other class
+  //   function (or base class's function), print a warning and ignore it.
+  // - If the function shadows another function, the signature must match
+  //   exactly: if the parent is 'generic', this one must be as well. If it's a
+  //   subroutine, same deal. 
+  if (member) {
+    String *lower_symname = Swig_string_lower(fsymname);
+    Symtab *fsymtab = Getattr(this->getCurrentClass(), "fortran:symtab");
+    Node *overriding = NULL;
+
+    // Check against lowercase name conflicts
+    for (Symtab *st = fsymtab; st; st = parentNode(st)) {
+      Node *other = Getattr(st, lower_symname);
+      if (!other) {
+        continue;
+      }
+      String *other_fsymname = Getattr(other, "wrap:fsymname");
+      if (other_fsymname && !Equal(other_fsymname, fsymname)) {
+        Swig_warning(WARN_FORTRAN_NAME_CONFLICT, input_file, line_number,
+                     "Ignoring '%s' due to name conflict with '%s'\n",
+                     fsymname, other_fsymname);
+        Swig_warning(WARN_FORTRAN_NAME_CONFLICT, Getfile(other), Getline(other),
+                     "Previous declaration of '%s'\n",
+                     Getattr(other, "sym:name"));
+        return SWIG_NOWRAP;
+      } else if (st != fsymtab) {
+        overriding = other;
+      }
+    }
+
+    // Check for shadowing/hiding base class function
+    if (Node *other = Getattr(n, "hides")) {
+      Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, input_file, line_number,
+                   "Ignoring '%s' because it shadows a base class function '%s'\n",
+                   fsymname, Getattr(other, "fortran:name"));
+      Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, Getfile(other), Getline(other),
+                   "Previous declaration of '%s'\n",
+                   Getattr(other, "sym:name"));
+      return SWIG_NOWRAP;
+    }
+
+    // Check for different return type
+    if (Node *other = Getattr(n, "covariant")) {
+      Swig_warning(WARN_FORTRAN_COVARIANT_RET, input_file, line_number,
+                   "Ignoring '%s' because the base class function '%s' has a different return type\n",
+                   fsymname, Getattr(other, "fortran:name"));
+      Swig_warning(WARN_FORTRAN_COVARIANT_RET, Getfile(other), Getline(other),
+                   "Previous declaration of '%s'\n",
+                   Getattr(other, "sym:name"));
+      return SWIG_NOWRAP;
+    }
+    
+    if (Node *other = overriding) {
+      // Same name as a base class function; either implementing it or
+      // overloading it.
+      // The saved "overide" attribute is for an actual C++ function overriding
+      // a virtual support, which is more specific than fortran's overriding
+      // behavior.
+      if (Getattr(other, "fortran:generic")) {
+        // Parent class's function is generic, so must we be too
+        generic = true;
+      } else if (generic) {
+        // We're generic but the parent is not!!
+        Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, input_file, line_number,
+                     "Ignoring generic '%s' it cannot override a specific binding '%s' with the same name\n",
+                     fsymname, Getattr(other, "fortran:name"));
+        Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, Getfile(other), Getline(other),
+                     "Previous declaration of '%s'\n",
+                     Getattr(other, "sym:name"));
+        return SWIG_NOWRAP;
+      }
+      if (String *other_sub = Getattr(other, "fortran:subroutine")) {
+        // Parent class's function is a subroutine, so must we be too
+        Setattr(n, "fortran:subroutine", other_sub);
+      }
+    }
+
+    // Add name to the symtab
+    Setattr(fsymtab, lower_symname, n);
+
+    Delete(lower_symname);
+  }
+
+  if (generic) {
+    Setattr(n, "fortran:generic", fsymname);
+  }
+
   // Add the interface subroutine name to the module scope
   if (add_fsymbol(imname, n) == SWIG_NOWRAP)
     return SWIG_NOWRAP;
@@ -1005,22 +1100,6 @@ int FORTRAN::functionWrapper(Node *n) {
   }
   if (fsymname) {
     Setattr(n, "wrap:fsymname", fsymname);
-  }
-
-  if (member) {
-    // Ignore functions whose name is the same as the parent class
-    // TODO: use SWIG scoping functions instead
-    String *lower_func = Swig_string_lower(fsymname);
-    String *symname_cls = Getattr(this->getCurrentClass(), "sym:name");
-    String *lower_cls = Swig_string_lower(symname_cls);
-    if (Strcmp(lower_func, lower_cls) == 0) {
-      Swig_warning(WARN_FORTRAN_NAME_CONFLICT, input_file, line_number,
-                   "Ignoring '%s' due to Fortran name ('%s') conflict with '%s'\n",
-                   symname, lower_func, symname_cls);
-      return SWIG_NOWRAP;
-    }
-    Delete(lower_cls);
-    Delete(lower_func);
   }
 
   if (member) {
@@ -1522,7 +1601,8 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   }
   Printv(fcall, Getattr(n, "wrap:imname"), "(", NULL);
 
-  bool func_to_subroutine = !is_imsubroutine && GetFlag(n, "feature:fortran:subroutine");
+  bool func_to_subroutine = !is_imsubroutine && (GetFlag(n, "feature:fortran:subroutine")
+                                                 || Getattr(n, "fortran:subroutine"));
   if (func_to_subroutine && GetFlag(n, "tmap:ftype:nofortransubroutine")) {
       Swig_warning(WARN_FORTRAN_NO_SUBROUTINE, Getfile(n), Getline(n),
                    "The given type '%s' cannot be converted from a function result to an optional subroutine argument" ,
@@ -1544,6 +1624,10 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   if (!is_fsubroutine && !func_to_subroutine) {
     // Add dummy variable for Fortran proxy return
     Printv(fargs, return_ftype, " :: ", swig_result_name, "\n", NULL);
+  }
+
+  if (is_fsubroutine) {
+    Setattr(n, "fortran:subroutine", Getattr(n, "fortran:name"));
   }
 
   // >>> FUNCTION NAME
@@ -1922,26 +2006,32 @@ void FORTRAN::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
  */
 int FORTRAN::classDeclaration(Node *n) {
   if (!GetFlag(n, "feature:onlychildren")) {
-    // Set up Fortran proxy name
-    get_fortran_name(n);
+    // Set up Fortran proxy name, adding to symbol table (even if the class is being imported)
+    String *name = get_fortran_name(n);
+    // Return if it's a duplicate
+    if (!name)
+      return SWIG_NOWRAP;
   }
   if (is_bindc(n)) {
     // Prevent default constructors, destructors, etc.
     SetFlag(n, "feature:nodefault");
   } 
+
   return Language::classDeclaration(n);
 }
 
 /* -------------------------------------------------------------------------
- * \brief Process classes.
+ * \brief Generate wrappers for a class.
  */
 int FORTRAN::classHandler(Node *n) {
   String *fsymname = Getattr(n, "fortran:name");
-  if (!fsymname) {
-    // Class has been ignored
-    return SWIG_NOWRAP;
-  }
   String *basename = NULL;
+  assert(fsymname);
+
+  // Build symbol table
+  Node *fsymtab = NewHash();
+  Setattr(fsymtab, Swig_string_lower(fsymname), n);
+  Setattr(n, "fortran:symtab", fsymtab);
 
   // Iterate through the base classes. If no bases are set (null pointer sent
   // to `First`), the loop will be skipped and baseclass be NULL.
@@ -1952,6 +2042,8 @@ int FORTRAN::classHandler(Node *n) {
     if (!basename) {
       // First class that was encountered
       basename = Getattr(b, "fortran:name");
+      // Add the symbol table as a child
+      appendChild(Getattr(b, "fortran:symtab"), fsymtab);
     } else {
       // Another base class exists
       Swig_warning(WARN_FORTRAN_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
@@ -2575,7 +2667,7 @@ String *FORTRAN::get_fortran_name(Node *n, String *symname) {
     ASSERT_OR_PRINT_NODE(symname, n);
     fsymname = make_fname(symname);
     
-    if (this->add_fsymbol(fsymname, n) == SWIG_NOWRAP) {
+    if (this->add_fsymbol(fsymname, n) == SWIG_ERROR) {
       fsymname = NULL;
     } else {
       Setattr(n, "fortran:name", fsymname);
@@ -2692,7 +2784,7 @@ int FORTRAN::add_fsymbol(String *s, Node *n) {
     return SWIG_NOWRAP;
   }
   String *lower = Swig_string_lower(s);
-  int result = this->addSymbol(lower, n);
+  int result = this->addSymbol(lower, n, NULL);
   if (result == SWIG_ERROR) {
     // Don't warn about the symbol if we encounter it again 
     SetFlag(n, "fortran:error_symbol");
