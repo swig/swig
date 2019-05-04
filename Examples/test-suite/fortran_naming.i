@@ -7,7 +7,7 @@
 // Without *this* line, the f_a accessors on Bar will override the _a accessors
 // on _Foo, causing Fortran to fail because the argument names of the two
 // setters ('arg' and 'f_a') are different.
-%rename(f_a_bar) Bar::f_a;
+%rename(a_bar_) Bar::a_;
 
 // Without *these* renames, f_x and f_y will appear as duplicates in MyStruct.
 %rename(m_x) MyStruct::_x;
@@ -33,7 +33,7 @@ class _Foo {
 
 class Bar : public _Foo {
   public:
-    int f_a;
+    int a_;
 };
 
 struct HasEnum {
@@ -52,8 +52,8 @@ struct MyStruct {
     float _x;
     float _y;
     float _z;
-    float f_x;
-    float f_y;
+    float x_;
+    float y_;
 };
 
 float get_mystruct_y(const MyStruct* ms) { return ms->_y; }
