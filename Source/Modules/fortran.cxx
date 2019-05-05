@@ -1004,13 +1004,13 @@ int FORTRAN::functionWrapper(Node *n) {
   //   exactly: if the parent is 'generic', this one must be as well. If it's a
   //   subroutine, same deal. 
   if (member) {
-    String *lower_symname = Swig_string_lower(fsymname);
+    String *lower_fsymname = Swig_string_lower(fsymname);
     Symtab *fsymtab = Getattr(this->getCurrentClass(), "fortran:symtab");
     Node *overriding = NULL;
 
     // Check against lowercase name conflicts
     for (Symtab *st = fsymtab; st; st = parentNode(st)) {
-      Node *other = Getattr(st, lower_symname);
+      Node *other = Getattr(st, lower_fsymname);
       if (!other) {
         continue;
       }
@@ -1076,9 +1076,9 @@ int FORTRAN::functionWrapper(Node *n) {
     }
 
     // Add name to the symtab
-    Setattr(fsymtab, lower_symname, n);
+    Setattr(fsymtab, lower_fsymname, n);
 
-    Delete(lower_symname);
+    Delete(lower_fsymname);
   }
 
   if (generic) {
@@ -2007,7 +2007,7 @@ void FORTRAN::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
 int FORTRAN::classDeclaration(Node *n) {
   if (!GetFlag(n, "feature:onlychildren")) {
     // Set up Fortran proxy name, adding to symbol table (even if the class is being imported)
-    String *name = get_fortran_name(n);
+    String *name = this->get_fortran_name(n);
     // Return if it's a duplicate
     if (!name)
       return SWIG_NOWRAP;
@@ -2366,8 +2366,9 @@ int FORTRAN::enumDeclaration(Node *n) {
     return SWIG_NOWRAP;
   }
 
-  String *enum_name = NULL;
+  String *fsymname = NULL;
   String *symname = Getattr(n, "sym:name");
+  Symtab *fsymtab = NULL;
   if (!symname) {
     // Anonymous enum TYPE:
     // enum {FOO=0, BAR=1};
@@ -2378,14 +2379,28 @@ int FORTRAN::enumDeclaration(Node *n) {
     if (Node *classnode = this->getCurrentClass()) {
       // Scope the enum since it's in a class
       symname = NewStringf("%s_%s", Getattr(classnode, "sym:name"), symname);
+      fsymtab = Getattr(classnode, "fortran:symtab");
     }
-    enum_name = this->get_fortran_name(n, symname);
-    if (!enum_name)
+    fsymname = this->get_fortran_name(n, symname);
+    Setattr(n, "fortran:name", fsymname);
+    if (!fsymname)
       return SWIG_NOWRAP;
   }
 
+  if (!fsymtab) {
+    fsymtab = NewHash();
+    if (fsymname) {
+      String *lower_fsymname = Swig_string_lower(fsymname);
+      Setattr(fsymtab, lower_fsymname, n);
+      Delete(lower_fsymname);
+    }
+  }
+  Setattr(n, "fortran:symtab", fsymtab);
+
   if (ImportMode) {
-    // Don't generate wrappers if we're in import mode, but make sure the symbol renaming above is still performed. Also make sure to mark that the enum is available for use as a type
+    // Don't generate wrappers if we're in import mode, but make sure the
+    // symbol renaming above is still performed. Also make sure to mark that
+    // the enum is available for use as a type
     SetFlag(n, "fortran:declared");
     return SWIG_OK;
   }
@@ -2400,7 +2415,46 @@ int FORTRAN::enumDeclaration(Node *n) {
 
   // Determine whether to add enum as a native fortran enumeration. If false,
   // the values are all wrapped as constants. Only create the list if values are defined.
-  if (is_native_enum(n) && firstChild(n)) {
+  bool is_native = is_native_enum(n) && firstChild(n);
+
+  // Check all enum values
+  for (Node *c = firstChild(n); c; c = nextSibling(c)) {
+    if (Getattr(c, "error") || GetFlag(c, "feature:ignore")) {
+      // We're not wrapping
+      continue;
+    }
+    
+    bool ignore_child = false;
+    String *child_fsymname = make_fname(Getattr(c, "sym:name"), WARN_NONE);
+    String *lower_fsymname = Swig_string_lower(child_fsymname);
+    
+    for (Symtab *st = fsymtab; st; st = parentNode(st)) {
+      Node *other = Getattr(st, lower_fsymname);
+      if (!other) {
+        continue;
+      }
+      Swig_warning(WARN_FORTRAN_NAME_CONFLICT, Getfile(c), Getline(c),
+                   "Ignoring '%s' due to name conflict with '%s'\n",
+                   child_fsymname, Getattr(other, "fortran:name"));
+      Swig_warning(WARN_FORTRAN_NAME_CONFLICT, Getfile(other), Getline(other),
+                   "Previous declaration of '%s'\n",
+                   Getattr(other, "sym:name"));
+
+      ignore_child = true;
+      is_native = false;
+      break;
+    }
+    if (ignore_child) {
+      SetFlag(c, "feature:ignore");
+    } else {
+      Setattr(c, "fortran:name", child_fsymname);
+    }
+    // Add enum name to the symtab
+    Setattr(fsymtab, lower_fsymname, n);
+    Delete(lower_fsymname);
+  }
+
+  if (is_native) {
     // Create enumerator statement and initialize list of enum values
     d_enum_public = NewList();
     Printv(f_fdecl, " enum, bind(c)\n", NULL);
@@ -2414,16 +2468,16 @@ int FORTRAN::enumDeclaration(Node *n) {
 
   if (d_enum_public) {
     if (Len(d_enum_public) == 0) {
-      // Wrapping failed: possible errors in 
+      // Wrapping failed: possible errors in one of the enums
       result = SWIG_ERROR;
     }
     // End enumeration
     Printv(f_fdecl, " end enum\n", NULL);
 
-    if (enum_name) {
-      ASSERT_OR_PRINT_NODE(Len(enum_name) > 0, n);
+    if (fsymname) {
+      ASSERT_OR_PRINT_NODE(Len(fsymname) > 0, n);
       // Create "kind=" value for the enumeration type
-      Printv(f_fdecl, " integer, parameter, public :: ",  enum_name,
+      Printv(f_fdecl, " integer, parameter, public :: ",  fsymname,
              " = kind(", First(d_enum_public).item, ")\n", NULL);
     }
 
@@ -2435,9 +2489,9 @@ int FORTRAN::enumDeclaration(Node *n) {
     // Clean up
     Delete(d_enum_public);
     d_enum_public = NULL;
-  } else if (enum_name) {
+  } else if (fsymname) {
     // Create "kind=" value for the enumeration type
-    Printv(f_fdecl, " integer, parameter, public :: ",  enum_name,
+    Printv(f_fdecl, " integer, parameter, public :: ",  fsymname,
            " = C_INT\n", NULL);
 
     // Mark that the enum is available for use as a type
@@ -2445,7 +2499,7 @@ int FORTRAN::enumDeclaration(Node *n) {
   }
 
   // Clean up
-  Delete(enum_name);
+  Delete(fsymname);
 
   return SWIG_OK;
 }
@@ -2472,41 +2526,37 @@ int FORTRAN::constantWrapper(Node *n) {
   Swig_save("constantWrapper", n, "wrap:name", "lname", "fortran:name", NULL);
 
   String *nodetype = nodeType(n);
-  String *fsymname = this->get_fortran_name(n);
-  String *value = Getattr(n, "rawval");
-
-  if (!fsymname) {
-    // Symbol is a duplicate
-    return SWIG_NOWRAP;
-  }
+  String *value = NULL;
 
   if (String *override_value = Getattr(n, "feature:fortran:constvalue")) {
     value = override_value;
     Setattr(n, "feature:fortran:const", "1");
+  } else {
+    value = Getattr(n, "rawvalue");
   }
 
+  String *fsymname = this->get_fortran_name(n);
+  
   if (Strcmp(nodetype, "enumitem") == 0) {
     // Set type from the parent enumeration
+    // XXX why??
     String *t = Getattr(parentNode(n), "enumtype");
     Setattr(n, "type", t);
 
-    if (!value) {
-      if (d_enum_public) {
-        // We are wrapping an enumeration in Fortran. Get the enum value if
-        // present; if not, Fortran enums take the same value as C enums.
-        value = Getattr(n, "enumvalue");
-      } else {
-        // Wrapping as a constant
-        value = Getattr(n, "value");
-      }
+    if (!value && d_enum_public) {
+      // We are wrapping a native Fortran bind(C) enum. Get the enum value if
+      // present; if not, Fortran enums take the same value as C enums.
+      value = Getattr(n, "enumvalue");
     }
-  } else if (Strcmp(nodetype, "enum") == 0) {
-    // Symbolic name is already unique
-    ASSERT_OR_PRINT_NODE(!value, n);
-    // But we're wrapping the enumeration type as a fictional value
+  }
+  if (!value) {
     value = Getattr(n, "value");
-  } else if (!value) {
-    value = Getattr(n, "value");
+  }
+
+  if (this->add_fsymbol(fsymname, n) == SWIG_ERROR) {
+    return SWIG_NOWRAP;
+  } else {
+    Setattr(n, "fortran:name", fsymname);
   }
 
   // Get Fortran data type
