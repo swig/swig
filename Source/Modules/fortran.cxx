@@ -1056,21 +1056,27 @@ int FORTRAN::functionWrapper(Node *n) {
     if (Node *other = overriding) {
       // Same name as a base class function; either implementing it or
       // overloading it.
-      // The saved "overide" attribute is for an actual C++ function overriding
+      // The saved "override" attribute is for an actual C++ function overriding
       // a virtual support, which is more specific than fortran's overriding
-      // behavior.
+      // behavior. Needed for abstract_signature.
       if (Getattr(other, "fortran:generic")) {
         // Parent class's function is generic, so must we be too
         generic = true;
       } else if (generic) {
         // We're generic but the parent is not!!
-        Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, input_file, line_number,
-                     "Ignoring generic '%s' it cannot override a specific binding '%s' with the same name\n",
-                     fsymname, Getattr(other, "fortran:name"));
-        Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, Getfile(other), Getline(other),
-                     "Previous declaration of '%s'\n",
-                     Getattr(other, "sym:name"));
-        return SWIG_NOWRAP;
+        Node *overridden = Getattr(n, "override");
+        if (overridden == other) {
+          // Allow the original overridden method to go through
+          generic = false;
+        } else {
+          Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, input_file, line_number,
+                       "Ignoring generic '%s': it cannot override a specific binding '%s' with the same name\n",
+                       fsymname, Getattr(other, "fortran:name"));
+          Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, Getfile(other), Getline(other),
+                       "Previous declaration of '%s'\n",
+                       Getattr(other, "sym:name"));
+          return SWIG_NOWRAP;
+        }
       }
       if (String *other_sub = Getattr(other, "fortran:subroutine")) {
         // Parent class's function is a subroutine, so must we be too
