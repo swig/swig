@@ -1017,10 +1017,10 @@ int FORTRAN::functionWrapper(Node *n) {
         }
         if (!Equal(other_fsymname, fsymname)) {
           // It's actually a different identifier
-          Swig_warning(WARN_FORTRAN_NAME_CONFLICT, input_file, line_number,
+          Swig_warning(WARN_FORTRAN_NAME_COLLISION, input_file, line_number,
                        "Ignoring '%s' due to name conflict with '%s'\n",
                        fsymname, other_fsymname);
-          Swig_warning(WARN_FORTRAN_NAME_CONFLICT, Getfile(other), Getline(other),
+          Swig_warning(WARN_FORTRAN_NAME_COLLISION, Getfile(other), Getline(other),
                        "Previous declaration of '%s'\n",
                        Getattr(other, "sym:name"));
           return SWIG_NOWRAP;
@@ -2452,10 +2452,10 @@ int FORTRAN::enumDeclaration(Node *n) {
     for (Symtab *st = fsymtab; st; st = parentNode(st)) {
       Node *other = Getattr(st, lower_fsymname);
       if (other) {
-        Swig_warning(WARN_FORTRAN_NAME_CONFLICT, Getfile(c), Getline(c),
+        Swig_warning(WARN_FORTRAN_NAME_COLLISION, Getfile(c), Getline(c),
                      "Ignoring '%s' due to name conflict with '%s' in '%s'\n",
                      child_fsymname, Getattr(other, "fortran:name"), Getattr(st, "fortran:name"));
-        Swig_warning(WARN_FORTRAN_NAME_CONFLICT, Getfile(other), Getline(other),
+        Swig_warning(WARN_FORTRAN_NAME_COLLISION, Getfile(other), Getline(other),
                      "Previous declaration of '%s'\n",
                      Getattr(other, "sym:name"));
 
