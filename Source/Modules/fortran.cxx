@@ -1010,21 +1010,24 @@ int FORTRAN::functionWrapper(Node *n) {
 
     // Check against lowercase name conflicts
     for (Symtab *st = fsymtab; st; st = parentNode(st)) {
-      Node *other = Getattr(st, lower_fsymname);
-      if (!other) {
-        continue;
-      }
-      String *other_fsymname = Getattr(other, "wrap:fsymname");
-      if (other_fsymname && !Equal(other_fsymname, fsymname)) {
-        Swig_warning(WARN_FORTRAN_NAME_CONFLICT, input_file, line_number,
-                     "Ignoring '%s' due to name conflict with '%s'\n",
-                     fsymname, other_fsymname);
-        Swig_warning(WARN_FORTRAN_NAME_CONFLICT, Getfile(other), Getline(other),
-                     "Previous declaration of '%s'\n",
-                     Getattr(other, "sym:name"));
-        return SWIG_NOWRAP;
-      } else if (st != fsymtab) {
-        overriding = other;
+      if (Node *other = Getattr(st, lower_fsymname)) {
+        String *other_fsymname = Getattr(other, "wrap:fsymname");
+        if (!other_fsymname) {
+          other_fsymname = Getattr(other, "fortran:name");
+        }
+        if (!Equal(other_fsymname, fsymname)) {
+          // It's actually a different identifier
+          Swig_warning(WARN_FORTRAN_NAME_CONFLICT, input_file, line_number,
+                       "Ignoring '%s' due to name conflict with '%s'\n",
+                       fsymname, other_fsymname);
+          Swig_warning(WARN_FORTRAN_NAME_CONFLICT, Getfile(other), Getline(other),
+                       "Previous declaration of '%s'\n",
+                       Getattr(other, "sym:name"));
+          return SWIG_NOWRAP;
+        } else if (st != fsymtab) {
+          // Same function but in a base class
+          overriding = other;
+        }
       }
     }
 
@@ -1099,6 +1102,8 @@ int FORTRAN::functionWrapper(Node *n) {
     Setattr(n, "wrap:fname", fname);
   }
   if (fsymname) {
+    // Note: since this node may be used to generate multiple functions (e.g.
+    // 'set' and 'get'), do *not* save as 'fortran:name'.
     Setattr(n, "wrap:fsymname", fsymname);
   }
 
@@ -2025,12 +2030,15 @@ int FORTRAN::classDeclaration(Node *n) {
  */
 int FORTRAN::classHandler(Node *n) {
   String *fsymname = Getattr(n, "fortran:name");
-  String *basename = NULL;
+  String *base_fsymname = NULL;
   assert(fsymname);
 
   // Build symbol table
-  Node *fsymtab = NewHash();
-  Setattr(fsymtab, Swig_string_lower(fsymname), n);
+  Symtab *fsymtab = NewHash();
+  Node *base_fsymtab = NULL;
+  String *lower_fsymname = Swig_string_lower(fsymname);
+  Setattr(fsymtab, lower_fsymname, n);
+  Setattr(fsymtab, "fortran:name", fsymname);
   Setattr(n, "fortran:symtab", fsymtab);
 
   // Iterate through the base classes. If no bases are set (null pointer sent
@@ -2039,11 +2047,12 @@ int FORTRAN::classHandler(Node *n) {
     Node *b = base.item;
     if (GetFlag(b, "feature:ignore"))
       continue;
-    if (!basename) {
+    if (!base_fsymname) {
       // First class that was encountered
-      basename = Getattr(b, "fortran:name");
+      base_fsymname = Getattr(b, "fortran:name");
+      base_fsymtab = Getattr(b, "fortran:symtab");
       // Add the symbol table as a child
-      appendChild(Getattr(b, "fortran:symtab"), fsymtab);
+      appendChild(base_fsymtab, fsymtab);
     } else {
       // Another base class exists
       Swig_warning(WARN_FORTRAN_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
@@ -2053,8 +2062,19 @@ int FORTRAN::classHandler(Node *n) {
     }
   }
 
+  // See if this class conflicts with methods in base class
+  for (Symtab *st = base_fsymtab; st; st = parentNode(st)) {
+    if (Node *other = Getattr(st, lower_fsymname)) {
+      Swig_error(input_file, line_number,
+                 "Class '%s' has the same Fortran name as an inherited class function '%s'\n",
+                 fsymname, Getattr(other, "fortran:name"));
+      Swig_error(Getfile(other), Getline(other), "Previous declaration of '%s'\n",
+                 Getattr(other, "sym:name"));
+    }
+  }
+
   const bool bindc = is_bindc(n);
-  if (bindc && basename) {
+  if (bindc && base_fsymname) {
     // Disallow inheritance for BIND(C) types
     Swig_error(input_file, line_number,
                "Struct '%s' uses the '%%fortranbindc' feature, so it cannot use inheritance.\n",
@@ -2073,8 +2093,8 @@ int FORTRAN::classHandler(Node *n) {
 
   // Declare class
   Printv(f_class, " type", NULL);
-  if (basename) {
-    Printv(f_class, ", extends(", basename, ")", NULL);
+  if (base_fsymname) {
+    Printv(f_class, ", extends(", base_fsymname, ")", NULL);
   } else if (bindc) {
     Printv(f_class, ", bind(C)", NULL);
   }
@@ -2100,7 +2120,7 @@ int FORTRAN::classHandler(Node *n) {
   }
 
   if (!bindc) {
-    if (!basename) {
+    if (!base_fsymname) {
       // Insert the class data if this doesn't inherit from anything
       emit_fragment("SwigClassWrapper_f");
       Printv(f_class,
@@ -2392,6 +2412,7 @@ int FORTRAN::enumDeclaration(Node *n) {
     if (fsymname) {
       String *lower_fsymname = Swig_string_lower(fsymname);
       Setattr(fsymtab, lower_fsymname, n);
+      Setattr(fsymtab, "fortran:name", fsymname);
       Delete(lower_fsymname);
     }
   }
@@ -2430,19 +2451,18 @@ int FORTRAN::enumDeclaration(Node *n) {
     
     for (Symtab *st = fsymtab; st; st = parentNode(st)) {
       Node *other = Getattr(st, lower_fsymname);
-      if (!other) {
-        continue;
-      }
-      Swig_warning(WARN_FORTRAN_NAME_CONFLICT, Getfile(c), Getline(c),
-                   "Ignoring '%s' due to name conflict with '%s'\n",
-                   child_fsymname, Getattr(other, "fortran:name"));
-      Swig_warning(WARN_FORTRAN_NAME_CONFLICT, Getfile(other), Getline(other),
-                   "Previous declaration of '%s'\n",
-                   Getattr(other, "sym:name"));
+      if (other) {
+        Swig_warning(WARN_FORTRAN_NAME_CONFLICT, Getfile(c), Getline(c),
+                     "Ignoring '%s' due to name conflict with '%s' in '%s'\n",
+                     child_fsymname, Getattr(other, "fortran:name"), Getattr(st, "fortran:name"));
+        Swig_warning(WARN_FORTRAN_NAME_CONFLICT, Getfile(other), Getline(other),
+                     "Previous declaration of '%s'\n",
+                     Getattr(other, "sym:name"));
 
-      ignore_child = true;
-      is_native = false;
-      break;
+        ignore_child = true;
+        is_native = false;
+        break;
+      }
     }
     if (ignore_child) {
       SetFlag(c, "feature:ignore");
@@ -2532,7 +2552,7 @@ int FORTRAN::constantWrapper(Node *n) {
     value = override_value;
     Setattr(n, "feature:fortran:const", "1");
   } else {
-    value = Getattr(n, "rawvalue");
+    value = Getattr(n, "rawval");
   }
 
   String *fsymname = this->get_fortran_name(n);
@@ -2543,13 +2563,16 @@ int FORTRAN::constantWrapper(Node *n) {
     String *t = Getattr(parentNode(n), "enumtype");
     Setattr(n, "type", t);
 
-    if (!value && d_enum_public) {
-      // We are wrapping a native Fortran bind(C) enum. Get the enum value if
-      // present; if not, Fortran enums take the same value as C enums.
-      value = Getattr(n, "enumvalue");
+    if (!value) {
+      if (d_enum_public) {
+        // We are wrapping a native Fortran bind(C) enum. Get the enum value if
+        // present; if not, Fortran enums take the same value as C enums.
+        value = Getattr(n, "enumvalue");
+      } else {
+        value = Getattr(n, "value");
+      }
     }
-  }
-  if (!value) {
+  } else if (!value) {
     value = Getattr(n, "value");
   }
 
