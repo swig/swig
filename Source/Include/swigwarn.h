@@ -260,6 +260,8 @@
 #define WARN_FORTRAN_OVERLOAD_SHADOW        771
 #define WARN_FORTRAN_COVARIANT_RET          772
 #define WARN_FORTRAN_NO_SUBROUTINE          773
+#define WARN_FORTRAN_AUTO_SUBROUTINE        774
+#define WARN_FORTRAN_ARGUMENT_NAME          775
 
 /* please leave 760-779 free for Fortran */
 

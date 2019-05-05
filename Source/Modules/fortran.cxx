@@ -1078,10 +1078,6 @@ int FORTRAN::functionWrapper(Node *n) {
           return SWIG_NOWRAP;
         }
       }
-      if (String *other_sub = Getattr(other, "fortran:subroutine")) {
-        // Parent class's function is a subroutine, so must we be too
-        Setattr(n, "fortran:subroutine", other_sub);
-      }
     }
 
     // Add name to the symtab
@@ -1583,6 +1579,9 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   // Write documentation
   this->write_docstring(n, f_fsubprograms);
 
+  // If overriding another virtual function, that other function
+  Node *overridden = Getattr(n, "override");
+  
   // >>> FUNCTION RETURN VALUES
 
   String *return_ftype = attach_typemap("ftype", n, WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF);
@@ -1612,22 +1611,31 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   }
   Printv(fcall, Getattr(n, "wrap:imname"), "(", NULL);
 
-  bool func_to_subroutine = !is_imsubroutine && (GetFlag(n, "feature:fortran:subroutine")
-                                                 || Getattr(n, "fortran:subroutine"));
+  bool func_to_subroutine = !is_imsubroutine && GetFlag(n, "feature:fortran:subroutine");
+  bool is_parent_subroutine = overridden && Getattr(overridden, "fortran:subroutine");
   if (func_to_subroutine && GetFlag(n, "tmap:ftype:nofortransubroutine")) {
       Swig_warning(WARN_FORTRAN_NO_SUBROUTINE, Getfile(n), Getline(n),
-                   "The given type '%s' cannot be converted from a function result to an optional subroutine argument" ,
+                   "The given type '%s' cannot be converted from a function result to an optional subroutine argument",
                    return_cpptype);
       func_to_subroutine = false;
+      if (is_parent_subroutine) {
+        Swig_warning(WARN_FORTRAN_NO_SUBROUTINE, Getfile(overridden), Getline(overridden),
+                     "Overriden function declared here");
+        return SWIG_NOWRAP;
+      }
   }
   const bool is_fsubroutine = (Len(return_ftype) == 0) || func_to_subroutine;
 
   String *swig_result_name = NULL;
   if (!is_fsubroutine || func_to_subroutine) {
-    if (String *fresult_override = Getattr(n, "wrap:fresult")) {
+    if (overridden) {
+      swig_result_name = Getattr(overridden, "wrap:fresult");
+      ASSERT_OR_PRINT_NODE(swig_result_name, n);
+    } else if (String *fresult_override = Getattr(n, "wrap:fresult")) {
       swig_result_name = fresult_override;
     } else {
       swig_result_name = NewString("swig_result");
+      Setattr(n, "wrap:fresult", swig_result_name);
     }
   }
 
@@ -1644,7 +1652,8 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   // >>> FUNCTION NAME
 
   const char *f_func_type = (is_fsubroutine ? "subroutine" : "function");
-  Printv(ffunc->def, f_func_type, " ", Getattr(n, "wrap:fname"), "(", NULL);
+  String *fsymname = Getattr(n, "wrap:fname");
+  Printv(ffunc->def, f_func_type, " ", fsymname, "(", NULL);
 
   // >>> FUNCTION PARAMETERS/ARGUMENTS
 
@@ -1692,6 +1701,17 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
     Printv(ffunc->code, prepend, "\n", NULL);
   }
 
+  // Fortran requires that an overriding procedure has exactly the same dummy
+  // argument names. We want to change and warn if they're different. If the
+  // *number* is different (weird typemap applied to either just the parent or
+  // just the daughter function) then we have to give up.
+  List *parent_arglist = NULL;
+  Iterator parent_arg;
+  if (overridden) {
+    parent_arglist = Getattr(overridden, "fortran:fargs");
+    parent_arg = First(parent_arglist);
+  }
+
   int i = 0;
   List *ffunc_arglist = NewList();
   List *fcall_arglist = NewList();
@@ -1701,6 +1721,25 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
 
     // Add parameter name to declaration list
     String *farg = this->makeParameterName(n, p, i++);
+    if (parent_arglist) {
+      if (!parent_arg.item) {
+        Swig_error(input_file, line_number,
+                   "Function '%s' has a different number of Fortran arguments from the function it overrides\n",
+                   fsymname);
+        Swig_error(Getfile(overridden), Getline(overridden), "Base class function declared here\n");
+        return SWIG_ERROR;
+      }
+      if (Strcmp(farg, parent_arg.item) != 0) {
+        Swig_warning(WARN_FORTRAN_ARGUMENT_NAME, Getfile(n), Getline(n),
+                     "Changing argument name '%s' to '%s' to match the overridden function '%s'\n",
+                     farg,
+                     parent_arg.item,
+                     fsymname);
+        Delete(farg);
+        farg = Copy(parent_arg.item);
+      }
+      parent_arg = Next(parent_arg);
+    }
     Append(ffunc_arglist, farg);
 
     // Add dummy argument to wrapper body
@@ -1747,6 +1786,12 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
     Setattr(n, "fname", swig_result_name);
     Printv(ffunc->def, " &\n     result(", swig_result_name, ")", NULL);
   }
+
+  if (Cmp(Getattr(n, "storage"), "virtual") == 0) {
+    // Save argument names so that potentially overridden classes 
+    Setattr(n, "fortran:fargs", ffunc_arglist);
+  }
+
   Delete(ffunc_arglist);
   
   // END FUNCTION DEFINITION
