@@ -1006,7 +1006,7 @@ int FORTRAN::functionWrapper(Node *n) {
   if (member) {
     String *lower_fsymname = Swig_string_lower(fsymname);
     Symtab *fsymtab = Getattr(this->getCurrentClass(), "fortran:symtab");
-    Node *overriding = NULL;
+    Node *overload_base = NULL;
 
     // Check against lowercase name conflicts
     for (Symtab *st = fsymtab; st; st = parentNode(st)) {
@@ -1026,7 +1026,7 @@ int FORTRAN::functionWrapper(Node *n) {
           return SWIG_NOWRAP;
         } else if (st != fsymtab) {
           // Same function but in a base class
-          overriding = other;
+          overload_base = other;
         }
       }
     }
@@ -1053,31 +1053,32 @@ int FORTRAN::functionWrapper(Node *n) {
       return SWIG_NOWRAP;
     }
     
-    if (Node *other = overriding) {
+    Node *overridden = Getattr(n, "override");
+    if (overridden && Getattr(overridden, "fortran:generic")) {
+      // The base class's method is wrapped and it's generic. Do *not*
+      // generate a wrapper for this function since it would be ambiguous
+      // with the base class.
+      return SWIG_NOWRAP;
+    }
+    
+    if (Node *other = overload_base) {
       // Same name as a base class function; either implementing it or
       // overloading it.
-      // The saved "override" attribute is for an actual C++ function overriding
-      // a virtual support, which is more specific than fortran's overriding
-      // behavior. Needed for abstract_signature.
       if (Getattr(other, "fortran:generic")) {
         // Parent class's function is generic, so must we be too
         generic = true;
       } else if (generic) {
-        // We're generic but the parent is not!!
-        Node *overridden = Getattr(n, "override");
-        if (overridden == other) {
-          // Allow the original overridden method to go through
-          generic = false;
-        } else {
-          Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, input_file, line_number,
-                       "Ignoring generic '%s': it cannot override a specific binding '%s' with the same name\n",
-                       fsymname, Getattr(other, "fortran:name"));
-          Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, Getfile(other), Getline(other),
-                       "Previous declaration of '%s'\n",
-                       Getattr(other, "sym:name"));
-          return SWIG_NOWRAP;
-        }
+        Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, input_file, line_number,
+                     "Ignoring generic '%s': it cannot override a specific binding '%s' with the same name\n",
+                     fsymname, Getattr(other, "fortran:name"));
+        Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, Getfile(other), Getline(other),
+                     "Previous declaration of '%s'\n",
+                     Getattr(other, "sym:name"));
+        return SWIG_NOWRAP;
       }
+      // Mark the function as overriding in Fortran, even though it may not be
+      // overriding in C++
+      Setattr(n, "fortran:override", other);
     }
 
     // Add name to the symtab
@@ -1580,7 +1581,6 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   this->write_docstring(n, f_fsubprograms);
 
   // If overriding another virtual function, that other function
-  Node *overridden = Getattr(n, "override");
   
   // >>> FUNCTION RETURN VALUES
 
@@ -1611,42 +1611,103 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   }
   Printv(fcall, Getattr(n, "wrap:imname"), "(", NULL);
 
+  // See whether to convert to a subroutine. Overriding daughter must match
+  // parent, and overloaded functions much all match.
+  bool is_fsubroutine = (Len(return_ftype) == 0);
   bool func_to_subroutine = !is_imsubroutine && GetFlag(n, "feature:fortran:subroutine");
-  bool is_parent_subroutine = overridden && Getattr(overridden, "fortran:subroutine");
-  if (func_to_subroutine && GetFlag(n, "tmap:ftype:nofortransubroutine")) {
-      Swig_warning(WARN_FORTRAN_NO_SUBROUTINE, Getfile(n), Getline(n),
-                   "The given type '%s' cannot be converted from a function result to an optional subroutine argument",
-                   return_cpptype);
-      func_to_subroutine = false;
-      if (is_parent_subroutine) {
-        Swig_warning(WARN_FORTRAN_NO_SUBROUTINE, Getfile(overridden), Getline(overridden),
-                     "Overriden function declared here");
-        return SWIG_NOWRAP;
-      }
+  Node *conflicting_subroutine = NULL;
+
+  Node *overridden = Getattr(n, "fortran:override");
+  if (overridden) {
+    bool is_parent_subroutine = Getattr(overridden, "fortran:subroutine");
+    if (!is_parent_subroutine && is_fsubroutine) {
+      conflicting_subroutine = overridden;
+    } else if (is_parent_subroutine && !is_fsubroutine) {
+      // The parent function was a subroutine but this one isn't. (Perhaps the
+      // conversion feature was applied only to the parent class, or a weird
+      // typemap is in play?)
+      Swig_warning(WARN_FORTRAN_AUTO_SUBROUTINE, Getfile(n), Getline(n),
+                   "Fortran subroutine cannot be a generic with a Fortran function: applying "
+                   "%%fortransubroutine\n");
+      Swig_warning(WARN_FORTRAN_AUTO_SUBROUTINE, Getfile(overridden), Getline(overridden),
+                   "Previous function declared here\n");
+      func_to_subroutine = true;
+    }
   }
-  const bool is_fsubroutine = (Len(return_ftype) == 0) || func_to_subroutine;
+
+  if (Node *overload = Getattr(n, "sym:overloaded")) {
+    if (overload != n) {
+      bool is_sibling_fsubroutine = Getattr(overload, "fortran:subroutine");
+      if (!is_sibling_fsubroutine && is_fsubroutine) {
+        conflicting_subroutine = overload;
+      } else if (is_sibling_fsubroutine && !is_fsubroutine) {
+        // The original instance of the overloaded function is a subroutine but
+        // this one isn't; automatically apply the feature.
+        Swig_warning(WARN_FORTRAN_AUTO_SUBROUTINE, Getfile(n), Getline(n),
+                     "Fortran subroutine cannot be a generic with a Fortran function: applying "
+                     "%%fortransubroutine\n");
+        Swig_warning(WARN_FORTRAN_AUTO_SUBROUTINE, Getfile(overload), Getline(overload),
+                     "Previous function declared here\n");
+        func_to_subroutine = true;
+      }
+    }
+  }
+
+  // Mark as a subroutine if it's naturally a subroutine or is being converted;
+  // but mark it as a function if it's not being wrapped because it looks like
+  // a subroutine. This allows later non-void functions to correctly wrapped as
+  // functions.
+  is_fsubroutine = (is_fsubroutine || func_to_subroutine) && !conflicting_subroutine;
+
+  if (is_fsubroutine) {
+    // Before possibly returning, save whether we're a subroutine in case of other overloads
+    Setattr(n, "fortran:subroutine", n);
+  }
+
+  if (conflicting_subroutine) {
+    // An already-wrapped overloaded function already has been declared as
+    // a Fortran function.
+    Swig_warning(WARN_FORTRAN_AUTO_SUBROUTINE, Getfile(n), Getline(n),
+                 "Fortran type-bound 'subroutine' conflicts with Fortran type-bound 'function': ignoring\n");
+    Swig_warning(WARN_FORTRAN_AUTO_SUBROUTINE, Getfile(conflicting_subroutine), Getline(conflicting_subroutine),
+                 "Other procedure declared here\n");
+    return SWIG_NOWRAP;
+  }
+
+  if (func_to_subroutine && GetFlag(n, "tmap:ftype:nofortransubroutine")) {
+    Swig_warning(WARN_FORTRAN_NO_SUBROUTINE, Getfile(n), Getline(n),
+                 "The given type '%s' cannot be converted from a function result to an optional subroutine argument\n",
+                 return_cpptype);
+    func_to_subroutine = false;
+    is_fsubroutine = false;
+    if (!GetFlag(n, "feature:fortran:subroutine")) {
+      // Feature was *automatically* set, so it will generate invalid Fortran
+      // unless we exit now
+      return SWIG_NOWRAP;
+    }
+  }
 
   String *swig_result_name = NULL;
   if (!is_fsubroutine || func_to_subroutine) {
+    // Return dummy argument name for function, or `intent(out), optional` name
+    // for the function-to-subroutine case
     if (overridden) {
       swig_result_name = Getattr(overridden, "wrap:fresult");
-      ASSERT_OR_PRINT_NODE(swig_result_name, n);
-    } else if (String *fresult_override = Getattr(n, "wrap:fresult")) {
-      swig_result_name = fresult_override;
-    } else {
+    }
+    if (!swig_result_name) {
+      swig_result_name = Getattr(n, "wrap:fresult");
+    }
+    if (!swig_result_name) {
       swig_result_name = NewString("swig_result");
-      Setattr(n, "wrap:fresult", swig_result_name);
+    } else {
+      swig_result_name = Copy(swig_result_name);
     }
   }
 
   String *fargs = NewStringEmpty();
-  if (!is_fsubroutine && !func_to_subroutine) {
+  if (!is_fsubroutine) {
     // Add dummy variable for Fortran proxy return
     Printv(fargs, return_ftype, " :: ", swig_result_name, "\n", NULL);
-  }
-
-  if (is_fsubroutine) {
-    Setattr(n, "fortran:subroutine", Getattr(n, "fortran:name"));
   }
 
   // >>> FUNCTION NAME
