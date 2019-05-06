@@ -2,7 +2,7 @@
 
 %rename("anothername_cls") "anothername";
 
-#if !(defined(SWIGCSHARP) || defined(SWIGJAVA) || defined(SWIGD))
+#if !(defined(SWIGCSHARP) || defined(SWIGJAVA) || defined(SWIGD) || defined(SWIGFORTRAN))
 /* NOTE: this class has the same name as the module. */
 class samename {
  public:
