@@ -114,9 +114,15 @@ First, it automatically moves leading underscores (and any following integers)
 to the end of the name. Second, it replaces the tails of long identifiers with
 a hashed value of the removed characters. If the result is a duplicate of an
 existing Fortran symbol, then SWIG will raise an error and inform you of the
-conflicting name and where it was previously used. 
-The flexible `%rename` directive can be used to resolve conflicting wrapper
-names.
+conflicting name and where it was previously used. This behavior mirrors that
+of Java and other statically typed languages.
+
+For class member functions and enumerations, symbol conflicts will not error
+out but rather ignore the conflicting symbol and print a warning. This reduces
+the amount of manual intervention needed to build a working SWIG wrapper and
+reflects the behavior of the Go language wrappers. Whether or not a Fortran
+name conflict raises an error, the flexible `%rename` directive can be used to
+resolve conflicting wrapper names.
 
 Finally, Fortran 2003 has no analog of C++ namespaces: all wrapped symbols are
 placed in the Fortran module's "global" namespace.
