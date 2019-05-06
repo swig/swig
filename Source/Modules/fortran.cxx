@@ -2125,17 +2125,55 @@ void FORTRAN::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
  * The superclass calls classHandler.
  */
 int FORTRAN::classDeclaration(Node *n) {
+  String *fsymname = NULL;
+
   if (!GetFlag(n, "feature:onlychildren")) {
     // Set up Fortran proxy name, adding to symbol table (even if the class is being imported)
-    String *name = this->get_fortran_name(n);
+    fsymname = this->get_fortran_name(n);
     // Return if it's a duplicate
-    if (!name)
+    if (!fsymname)
       return SWIG_NOWRAP;
   }
   if (is_bindc(n)) {
     // Prevent default constructors, destructors, etc.
     SetFlag(n, "feature:nodefault");
   } 
+
+  // Build symbol table here, even if class is being imported
+  Symtab *fsymtab = NewHash();
+  Setattr(n, "fortran:symtab", fsymtab);
+
+  String *lower_fsymname = NULL;
+  if (fsymname) {
+    lower_fsymname = Swig_string_lower(fsymname);
+    Setattr(fsymtab, lower_fsymname, n);
+    Setattr(fsymtab, "fortran:name", fsymname);
+  }
+
+  // Add the base class's symbol table as a parent.
+  Symtab *base_fsymtab = NULL;
+  for (Iterator base = First(Getattr(n, "bases")); base.item; base = Next(base)) {
+    Node *b = base.item;
+    if (GetFlag(b, "feature:ignore"))
+      continue;
+    base_fsymtab = Getattr(b, "fortran:symtab");
+    ASSERT_OR_PRINT_NODE(base_fsymtab, b);
+    appendChild(base_fsymtab, fsymtab);
+  }
+
+  // See if this class conflicts with methods in base class
+  if (lower_fsymname) {
+    for (Symtab *st = base_fsymtab; st; st = parentNode(st)) {
+      if (Node *other = Getattr(st, lower_fsymname)) {
+        Swig_error(input_file, line_number,
+                   "Class '%s' has the same Fortran name as an inherited class function '%s'\n",
+                   fsymname, Getattr(other, "fortran:name"));
+        Swig_error(Getfile(other), Getline(other), "Previous declaration of '%s'\n",
+                   Getattr(other, "sym:name"));
+        return SWIG_NOWRAP;
+      }
+    }
+  }
 
   return Language::classDeclaration(n);
 }
@@ -2146,15 +2184,6 @@ int FORTRAN::classDeclaration(Node *n) {
 int FORTRAN::classHandler(Node *n) {
   String *fsymname = Getattr(n, "fortran:name");
   String *base_fsymname = NULL;
-  assert(fsymname);
-
-  // Build symbol table
-  Symtab *fsymtab = NewHash();
-  Node *base_fsymtab = NULL;
-  String *lower_fsymname = Swig_string_lower(fsymname);
-  Setattr(fsymtab, lower_fsymname, n);
-  Setattr(fsymtab, "fortran:name", fsymname);
-  Setattr(n, "fortran:symtab", fsymtab);
 
   // Iterate through the base classes. If no bases are set (null pointer sent
   // to `First`), the loop will be skipped and baseclass be NULL.
@@ -2165,26 +2194,12 @@ int FORTRAN::classHandler(Node *n) {
     if (!base_fsymname) {
       // First class that was encountered
       base_fsymname = Getattr(b, "fortran:name");
-      base_fsymtab = Getattr(b, "fortran:symtab");
-      // Add the symbol table as a child
-      appendChild(base_fsymtab, fsymtab);
     } else {
       // Another base class exists
       Swig_warning(WARN_FORTRAN_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
                    "Multiple inheritance is not supported in Fortran. Ignoring base class %s for %s\n",
                    Getattr(b, "sym:name"),
                    Getattr(n, "sym:name"));
-    }
-  }
-
-  // See if this class conflicts with methods in base class
-  for (Symtab *st = base_fsymtab; st; st = parentNode(st)) {
-    if (Node *other = Getattr(st, lower_fsymname)) {
-      Swig_error(input_file, line_number,
-                 "Class '%s' has the same Fortran name as an inherited class function '%s'\n",
-                 fsymname, Getattr(other, "fortran:name"));
-      Swig_error(Getfile(other), Getline(other), "Previous declaration of '%s'\n",
-                 Getattr(other, "sym:name"));
     }
   }
 
@@ -2968,7 +2983,7 @@ String *FORTRAN::create_mangled_name(SwigType *classnametype, Node *n) {
  * Return SWIG_NOWRAP if the name conflicts.
  */
 int FORTRAN::add_fsymbol(String *s, Node *n) {
-  assert(s);
+  ASSERT_OR_PRINT_NODE(s, n);
   if (GetFlag(n, "fortran:error_symbol")) {
     // Already warned about this symbol being a duplicate
     return SWIG_ERROR;
