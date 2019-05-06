@@ -1031,15 +1031,18 @@ int FORTRAN::functionWrapper(Node *n) {
       }
     }
 
-    // Check for shadowing/hiding base class function
+    // Check for shadowing/hiding base class function. Allow non-generic
+    // functions to shadow base class functions.
     if (Node *other = Getattr(n, "hides")) {
-      Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, input_file, line_number,
-                   "Ignoring '%s' because it shadows a base class function '%s'\n",
-                   fsymname, Getattr(other, "fortran:name"));
-      Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, Getfile(other), Getline(other),
-                   "Previous declaration of '%s'\n",
-                   Getattr(other, "sym:name"));
-      return SWIG_NOWRAP;
+      if (Getattr(other, "fortran:generic")) {
+        Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, input_file, line_number,
+                     "Ignoring '%s' because it shadows a generic base class function '%s'\n",
+                     fsymname, Getattr(other, "fortran:name"));
+        Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, Getfile(other), Getline(other),
+                     "Previous declaration of '%s'\n",
+                     Getattr(other, "sym:name"));
+        return SWIG_NOWRAP;
+      }
     }
 
     // Check for different return type

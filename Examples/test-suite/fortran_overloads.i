@@ -1,4 +1,4 @@
-%module derp
+%module fortran_overloads
 
 %inline %{
 
@@ -8,21 +8,21 @@ public:
  int func(int a) { return a; }
  virtual int func(int a, int b) { return a + b; }
  void func(int, int, int) {} // !! Can't overload subroutine with functions
- void sub(int *x) { *x = 0; }
+ void sub(int *x) { *x = 123; }
 };
 
 class DerivedOverloads : public Base {
  public:
-  double func(double, double) {return 0.0;}
+  double func(double, double) {return 1.0;}
   virtual int func(int x, int y) { return x - y; } // !! different parameter names
-  void sub(int *x) { *x = 1; } // overrides, won't apply if called as base class
+  void sub(int *x) { *x = 456; } // overrides, won't apply if called as base class
 };
 
 class DerivedDerived : public DerivedOverloads {
   virtual int func(int a, int b) { return a + a - b; }
 };
 
-const Base* base_ptr(const Base* b) {
+Base* base_ptr(Base* b) {
   return b;
 }
 
@@ -41,8 +41,8 @@ class DerivedNotGeneric : public Base {
 
 class LowercaseIssues : public Base {
  public:
-  int fUnC() { return 0; }
-  int funC(int) { return 1; }
+  int fUnC() { return 2; }
+  int funC(int) { return 3; }
 };
 
 %}
