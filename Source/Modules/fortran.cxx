@@ -2503,6 +2503,7 @@ int FORTRAN::enumDeclaration(Node *n) {
 
   String *fsymname = NULL;
   String *symname = Getattr(n, "sym:name");
+  String *class_symname = NULL;
   Symtab *fsymtab = NULL;
   if (!symname) {
     // Anonymous enum TYPE:
@@ -2513,11 +2514,11 @@ int FORTRAN::enumDeclaration(Node *n) {
   } else {
     if (Node *classnode = this->getCurrentClass()) {
       // Scope the enum since it's in a class
-      symname = NewStringf("%s_%s", Getattr(classnode, "sym:name"), symname);
+      class_symname = Getattr(classnode, "sym:name");
       fsymtab = Getattr(classnode, "fortran:symtab");
+      symname = NewStringf("%s_%s", class_symname, symname);
     }
     fsymname = this->get_fortran_name(n, symname);
-    Setattr(n, "fortran:name", fsymname);
     if (!fsymname)
       return SWIG_NOWRAP;
   }
@@ -2553,15 +2554,20 @@ int FORTRAN::enumDeclaration(Node *n) {
   // the values are all wrapped as constants. Only create the list if values are defined.
   bool is_native = is_native_enum(n) && firstChild(n);
 
-  // Check all enum values
+  // Check all enum values and update their names
   for (Node *c = firstChild(n); c; c = nextSibling(c)) {
     if (Getattr(c, "error") || GetFlag(c, "feature:ignore")) {
       // We're not wrapping
       continue;
     }
+
+    String *child_symname = Getattr(c, "sym:name");
+    if (class_symname) {
+      child_symname = NewStringf("%s_%s", class_symname, child_symname);
+    }
     
     bool ignore_child = false;
-    String *child_fsymname = make_fname(Getattr(c, "sym:name"), WARN_NONE);
+    String *child_fsymname = make_fname(child_symname, WARN_NONE);
     String *lower_fsymname = Swig_string_lower(child_fsymname);
     
     for (Symtab *st = fsymtab; st; st = parentNode(st)) {
