@@ -2528,12 +2528,12 @@ int FORTRAN::enumDeclaration(Node *n) {
 
   if (!fsymtab) {
     fsymtab = NewHash();
-    if (fsymname) {
-      String *lower_fsymname = Swig_string_lower(fsymname);
-      Setattr(fsymtab, lower_fsymname, n);
-      Setattr(fsymtab, "fortran:name", fsymname);
-      Delete(lower_fsymname);
-    }
+  }
+  if (fsymname) {
+    String *lower_fsymname = Swig_string_lower(fsymname);
+    Setattr(fsymtab, "fortran:name", fsymname);
+    Setattr(fsymtab, lower_fsymname, n);
+    Delete(lower_fsymname);
   }
   Setattr(n, "fortran:symtab", fsymtab);
 
