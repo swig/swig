@@ -1015,7 +1015,7 @@ int FORTRAN::functionWrapper(Node *n) {
         if (!other_fsymname) {
           other_fsymname = Getattr(other, "fortran:name");
         }
-        if (!Equal(other_fsymname, fsymname)) {
+        if (other_fsymname && !Equal(other_fsymname, fsymname)) {
           // It's actually a different identifier
           Swig_warning(WARN_FORTRAN_NAME_COLLISION, input_file, line_number,
                        "Ignoring '%s' due to name conflict with '%s'\n",
@@ -1191,6 +1191,15 @@ int FORTRAN::functionWrapper(Node *n) {
     // Expose the proxy function 
     ASSERT_OR_PRINT_NODE(fname && Len(fname) > 0, n);
     Printv(f_fdecl, " public :: ", fname, "\n", NULL);
+  }
+
+  if (Getattr(n, "fortran:variable") && !Getattr(n, "feature:immutable")) {
+    // This variable has both a getter and setter, so the node will be reused
+    // (generating two different functions). Avoid name conflicts by deleting
+    // `fortran:name`.
+    Delattr(n, "fortran:name");
+    Delattr(n, "wrap:fsymname");
+    Delattr(n, "fortran:subroutine");
   }
 
   Delete(fname);
@@ -1623,6 +1632,11 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   Node *overridden = Getattr(n, "fortran:override");
   if (overridden) {
     bool is_parent_subroutine = Getattr(overridden, "fortran:subroutine");
+    if (Getattr(n, "fortran:variable") && Getattr(overridden, "fortran:variable")) {
+      // Since variables can get wrapped twice (for getters and setters), pretend
+      // that the parent procedure is like this one
+      is_parent_subroutine = is_fsubroutine;
+    }
     if (!is_parent_subroutine && is_fsubroutine) {
       conflicting_subroutine = overridden;
     } else if (is_parent_subroutine && !is_fsubroutine) {
@@ -2694,8 +2708,6 @@ int FORTRAN::constantWrapper(Node *n) {
     value = Getattr(n, "rawval");
   }
 
-  String *fsymname = this->get_fortran_name(n);
-  
   if (Strcmp(nodetype, "enumitem") == 0) {
     // Set type from the parent enumeration
     // XXX why??
@@ -2715,10 +2727,9 @@ int FORTRAN::constantWrapper(Node *n) {
     value = Getattr(n, "value");
   }
 
-  if (this->add_fsymbol(fsymname, n) == SWIG_ERROR) {
+  String *fsymname = this->get_fortran_name(n);
+  if (!fsymname) {
     return SWIG_NOWRAP;
-  } else {
-    Setattr(n, "fortran:name", fsymname);
   }
 
   // Get Fortran data type
