@@ -2501,10 +2501,16 @@ int FORTRAN::enumDeclaration(Node *n) {
     return SWIG_NOWRAP;
   }
 
-  String *fsymname = NULL;
-  String *symname = Getattr(n, "sym:name");
   String *class_symname = NULL;
   Symtab *fsymtab = NULL;
+  if (Node *classnode = this->getCurrentClass()) {
+    // Scope the enum since it's in a class
+    class_symname = Getattr(classnode, "sym:name");
+    fsymtab = Getattr(classnode, "fortran:symtab");
+  }
+
+  String *fsymname = NULL;
+  String *symname = Getattr(n, "sym:name");
   if (!symname) {
     // Anonymous enum TYPE:
     // enum {FOO=0, BAR=1};
@@ -2512,10 +2518,7 @@ int FORTRAN::enumDeclaration(Node *n) {
     // Anonymous enum VALUE
     // enum {FOO=0, BAR=1} foo;
   } else {
-    if (Node *classnode = this->getCurrentClass()) {
-      // Scope the enum since it's in a class
-      class_symname = Getattr(classnode, "sym:name");
-      fsymtab = Getattr(classnode, "fortran:symtab");
+    if (class_symname) {
       symname = NewStringf("%s_%s", class_symname, symname);
     }
     fsymname = this->get_fortran_name(n, symname);
