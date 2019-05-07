@@ -252,21 +252,6 @@ bool return_type_needs_typedef(String *s) {
 }
 
 /* -------------------------------------------------------------------------
- * Get or create a list 
- *
- * This only applies while a class is being wrapped to methods in that particular class.
- */
-List *get_default_list(Node *n, String *key) {
-  assert(n);
-  List *result = Getattr(n, key);
-  if (!result) {
-    result = NewList();
-    Setattr(n, key, result);
-  }
-  return result;
-}
-
-/* -------------------------------------------------------------------------
  * \brief Construct any necessary 'import' identifier.
  *
  * When the `imtype` is an actual `type(Foo)`, it's necessary to import the identifier Foo from the module definition scope. This function examines the
@@ -1171,7 +1156,11 @@ int FORTRAN::functionWrapper(Node *n) {
       Printv(f_class, fsymname, " => ", fname, "\n", NULL);
     } else {
       // Add name to method overload list
-      List *overloads = get_default_list(d_method_overloads, fsymname);
+      List *overloads = Getattr(d_method_overloads, fsymname);
+      if (!overloads) {
+        overloads = NewList();
+        Setattr(d_method_overloads, fsymname, overloads);
+      }
       Append(overloads, fname);
 
       // Declare a private procedure
@@ -1181,7 +1170,14 @@ int FORTRAN::functionWrapper(Node *n) {
     // The module function name is aliased, and perhaps overloaded.
     // Append this function name to the list of overloaded names
     // for the symbol. The 'public' access specification gets added later.
-    List *overloads = get_default_list(d_overloads, fsymname);
+    List *overloads = Getattr(d_overloads, fsymname);
+    if (!overloads) {
+      // If this is the first overload, make sure the symname is added to the global scope
+      if (add_fsymbol(fsymname, n) == SWIG_NOWRAP)
+        return SWIG_NOWRAP;
+      overloads = NewList();
+      Setattr(d_overloads, fsymname, overloads);
+    }
     Append(overloads, fname);
   } else if (bindc) {
     // Expose the interface function 
@@ -1590,10 +1586,8 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   Wrapper *ffunc = NewFortranWrapper();
 
   // Write documentation
-  this->write_docstring(n, f_fsubprograms);
+  this->write_docstring(n, ffunc->def);
 
-  // If overriding another virtual function, that other function
-  
   // >>> FUNCTION RETURN VALUES
 
   String *return_ftype = attach_typemap("ftype", n, WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF);
