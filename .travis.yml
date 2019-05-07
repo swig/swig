@@ -401,6 +401,12 @@ matrix:
       env: SWIGLANG=tcl
 
   allow_failures:
+    # certificate error on trusty
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=php VER=7.2
+      sudo: required
+      dist: trusty
     # Sometimes hits the Travis 50 minute time limit
     - compiler: gcc
       os: linux
