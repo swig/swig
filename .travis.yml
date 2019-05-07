@@ -285,7 +285,7 @@ matrix:
       os: linux
       env: SWIGLANG=scilab
       sudo: required
-      dist: trusty
+      dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=tcl
