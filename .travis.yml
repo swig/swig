@@ -167,7 +167,7 @@ matrix:
       os: linux
       env: SWIGLANG=php VER=7.2
       sudo: required
-      dist: trusty
+      dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=php VER=7.3
@@ -401,12 +401,12 @@ matrix:
       env: SWIGLANG=tcl
 
   allow_failures:
-    # certificate error on trusty
+    # seg fault in director_basic testcase
     - compiler: gcc
       os: linux
       env: SWIGLANG=php VER=7.2
       sudo: required
-      dist: trusty
+      dist: xenial
     # Sometimes hits the Travis 50 minute time limit
     - compiler: gcc
       os: linux
