@@ -680,6 +680,23 @@ end enum
 integer, parameter :: Foo = kind(Foo_Bar)
 ```
 
+and
+```c++
+class Cls {
+  public:
+    enum class Foo {
+      Bar = 0
+    };
+};
+```
+becomes
+```fortran
+enum, bind(c)
+ enumerator :: Cls_Foo_Bar = 0
+end enum
+integer, parameter :: Cls_Foo = kind(Cls_Foo_Bar)
+```
+
 ## Function pointers
 
 It is possible to pass function pointers both from C to Fortran and from

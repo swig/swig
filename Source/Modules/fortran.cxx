@@ -2532,8 +2532,9 @@ int FORTRAN::enumDeclaration(Node *n) {
     fsymtab = Getattr(classnode, "fortran:symtab");
   }
 
-  String *fsymname = NULL;
   String *symname = Getattr(n, "sym:name");
+  String *scope_prefix = NULL;
+  String *fsymname = NULL;
   if (!symname) {
     // Anonymous enum TYPE:
     // enum {FOO=0, BAR=1};
@@ -2541,12 +2542,23 @@ int FORTRAN::enumDeclaration(Node *n) {
     // Anonymous enum VALUE
     // enum {FOO=0, BAR=1} foo;
   } else {
-    if (class_symname) {
-      symname = NewStringf("%s_%s", class_symname, symname);
-    }
-    fsymname = this->get_fortran_name(n, symname);
+    // Get symname for this enum, prepending with embedded class name if needed
+    String *scoped_symname = class_symname ? NewStringf("%s_%s", class_symname, symname) : Copy(symname);
+
+    fsymname = this->get_fortran_name(n, scoped_symname);
+    Delete(scoped_symname);
     if (!fsymname)
       return SWIG_NOWRAP;
+  }
+
+  // Set up scoping prefixes for enum values
+  String *enum_class = Strcmp(Getattr(n, "enumkey"), "enum") != 0 ? symname : NULL; 
+  if (class_symname && enum_class) {
+    scope_prefix = NewStringf("%s_%s", class_symname, enum_class);
+  } else if (enum_class) {
+    scope_prefix = Copy(enum_class);
+  } else if (class_symname) {
+    scope_prefix = Copy(class_symname);
   }
 
   if (!fsymtab) {
@@ -2588,8 +2600,8 @@ int FORTRAN::enumDeclaration(Node *n) {
     }
 
     String *child_symname = Getattr(c, "sym:name");
-    if (class_symname) {
-      child_symname = NewStringf("%s_%s", class_symname, child_symname);
+    if (scope_prefix) {
+      child_symname = NewStringf("%s_%s", scope_prefix, child_symname);
     }
     
     bool ignore_child = false;
@@ -2667,6 +2679,7 @@ int FORTRAN::enumDeclaration(Node *n) {
 
   // Clean up
   Delete(fsymname);
+  Delete(scope_prefix);
 
   return SWIG_OK;
 }
