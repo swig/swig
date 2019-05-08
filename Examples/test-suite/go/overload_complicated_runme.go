@@ -1,6 +1,6 @@
 package main
 
-import . "./overload_complicated"
+import . "overload_complicated"
 
 func main() {
 	var pInt *int

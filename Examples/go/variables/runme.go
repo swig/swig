@@ -3,8 +3,9 @@
 package main
 
 import (
-	"./example"
 	"fmt"
+
+	"example"
 )
 
 func main() {

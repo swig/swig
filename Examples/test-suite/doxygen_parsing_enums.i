@@ -32,4 +32,9 @@
 		SOME_ITEM_30  ///< Post comment for the third item
 	};
 
+	enum SomeEnumWithTrailingComma
+	{
+		SOME_ITEM_100, ///< Post comment after comma.
+		SOME_ITEM_200, ///< Post comment after last comma.
+	};
 %}

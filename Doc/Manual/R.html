@@ -189,9 +189,49 @@ of the proxy class baggage you see in other languages.
 
 
 <p>
-enumerations are characters which are then converted back and forth to
-ints before calling the C routines. All of the enumeration code is
-done in R.
+R doesn't have a native enumeration type. Enumerations are represented
+as character strings in R, with calls to R functions that convert back
+and forth between integers.
+
+The details of enumeration names and contents are stored in hidden R
+environments, which are named according the the enumeration name - for
+example, an enumeration colour:
+<div class="code"><pre>
+enum colour { red=-1, blue, green = 10 };
+</pre></div>
+
+will be initialized by the following call in R:
+<div class="code"><pre>
+defineEnumeration("_colour",
+ .values=c("red" = .Call('R_swig_colour_red_get',FALSE, PACKAGE='enum_thorough'),
+"blue" = .Call('R_swig_colour_blue_get',FALSE, PACKAGE='enum_thorough'),
+"green" = .Call('R_swig_colour_green_get',FALSE, PACKAGE='enum_thorough')))
+
+</pre></div>
+
+<p>
+which will create an environment named <tt>.__E___colour</tt>. The enumeration
+values are initialised via calls to C/C++ code, allowing complex
+values for enumerations to be used. Calls to the C/C++ code require
+the compiled library to be loaded, so a  <tt>delayedAssign</tt> is employed
+within <tt>defineEnumeration</tt> in order to allow the code to be easily used in R
+packages.
+
+The user typically does not need to access the enumeration lookup
+functions or know the name of the enumeration type used by
+R. Attributes containing the type information are attached by swig to
+functions requiring enumeration arguments or returning enumeration
+values, and those attributes are used to identify and access the
+appropriate environments and thus translate between characters
+and integers.
+
+The relevant functions, for debugging purposes, are <tt>enumToInteger</tt> and
+<tt>enumFromInteger</tt>.
+
+Anonymous enumerations are ignored by the binding generation process,
+leaving no way of accessing the value of anonymous enumerations from R
+code.
+
 </p>
 
 </body>

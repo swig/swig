@@ -477,7 +477,7 @@ Exception in thread "main" java.lang.UnsatisfiedLinkError: exampleJNI.gcd(II)I
 <p>
 where <tt>gcd</tt> is the missing JNI function that SWIG generated into the wrapper file.
 Also make sure you pass all of the required libraries to the linker.  
-The <tt>java -verbose:jni</tt> commandline switch is also a great way to get more information on unresolved symbols.
+The <tt>java -verbose:jni</tt> commandline option is also a great way to get more information on unresolved symbols.
 One last piece of advice is to beware of the common faux pas of having more than one native library version in your path.
 </p>
 
@@ -645,7 +645,7 @@ java::
 <p>
 To build the DLL and compile the java code, run NMAKE (you may need to run <tt>vcvars32</tt> first). 
 This is a pretty simplistic Makefile, but hopefully its enough to get you started.
-Of course you may want to make changes for it to work for C++ by adding in the -c++ command line switch for swig and replacing .c with .cxx.
+Of course you may want to make changes for it to work for C++ by adding in the -c++ command line option for swig and replacing .c with .cxx.
 </p>
 
 
@@ -1113,11 +1113,10 @@ Typesafe enums have their advantages over using plain integers in that they can 
 However, there are limitations. For example, they cannot be used in switch statements and serialization is an issue.
 Please look at the following references for further information: 
 
-http://java.sun.com/developer/Books/shiftintojava/page1.html#replaceenums
 <a href="http://java.sun.com/developer/Books/shiftintojava/page1.html#replaceenums">Replace Enums with Classes</a> in <i>Effective Java Programming</i> on the Sun website,
-<a href="http://www.javaworld.com/javaworld/jw-07-1997/jw-07-enumerated.html">Create enumerated constants in Java</a> JavaWorld article,
-<a href="http://www.javaworld.com/javaworld/javatips/jw-javatip133.html">Java Tip 133: More on typesafe enums</a> and
-<a href="http://www.javaworld.com/javaworld/javatips/jw-javatip122.html">Java Tip 122: Beware of Java typesafe enumerations</a> JavaWorld tips.
+<a href="https://www.javaworld.com/article/2076970/create-enumerated-constants-in-java.html">Create enumerated constants in Java</a> JavaWorld article,
+<a href="https://www.javaworld.com/article/2077499/java-tip-133--more-on-typesafe-enums.html">Java Tip 133: More on typesafe enums</a> and
+<a href="https://www.javaworld.com/article/2077487/java-tip-122--beware-of-java-typesafe-enumerations.html">Java Tip 122: Beware of Java typesafe enumerations</a> JavaWorld tips.
 </p>
 
 <p>
@@ -2763,7 +2762,7 @@ The <tt>finalize()</tt> method calls <tt>delete()</tt> which frees any malloc'd 
 The idea is for <tt>delete()</tt> to be called when you have finished with the C/C++ object. 
 Ideally you need not call <tt>delete()</tt>, but rather leave it to the garbage collector to call it from the finalizer. 
 When a program exits, the garbage collector does not guarantee to call all finalizers. 
-An insight into the reasoning behind this can be obtained from <a href="http://www.hpl.hp.com/techreports/2002/HPL-2002-335.html">Hans Boehm's Destructors, Finalizers, and Synchronization</a> paper.
+An insight into the reasoning behind this can be obtained from <a href="https://www.hpl.hp.com/techreports/2002/HPL-2002-335.html">Hans Boehm's Destructors, Finalizers, and Synchronization</a> paper.
 Depending on what the finalizers do and which operating system you use, this may or may not be a problem. 
 </p>
 
@@ -2787,7 +2786,7 @@ Call the <tt>System.runFinalizersOnExit(true)</tt> or <tt>Runtime.getRuntime().r
 This method is inherently unsafe. It may result in finalizers being called on live objects while other threads are concurrently manipulating those objects, resulting in erratic behavior or deadlock.
 </i></div> 
 <p>In many cases you will be lucky and find that it works, but it is not to be advocated. 
-Have a look at <a href="http://www.oracle.com/technetwork/java/index.html">Java web site</a> and search for <tt>runFinalizersOnExit</tt>.
+Have a look at <a href="https://www.oracle.com/technetwork/java/index.html">Java web site</a> and search for <tt>runFinalizersOnExit</tt>.
 </p></li>
 
 <li><p>
@@ -3629,7 +3628,7 @@ The %feature directive can be applied globally, to specific classes, and to spec
 // generate directors for all classes that have virtual methods
 %feature("director");         
 
-// generate directors for all virtual methods in class Foo
+// generate directors for the virtual methods in class Foo
 %feature("director") Foo;      
 </pre>
 </div>
@@ -3647,7 +3646,7 @@ So for example,
 </div>
 
 <p>
-will generate directors for all virtual methods of class Foo except bar().  
+will generate directors for the virtual methods of class Foo except bar().  
 </p>
 
 <p>
@@ -3683,7 +3682,8 @@ The director classes store a pointer to their underlying Java proxy classes.
 <p>
 For simplicity let's ignore the <tt>Swig::Director</tt> class and refer to the original C++ class as the director's base class.
 By default, a director class extends all virtual methods in the inheritance chain of its base class (see the preceding section for how to modify this behavior).
-Thus all virtual method calls, whether they originate in C++ or in Java via proxy classes, eventually end up in at the implementation in the director class.
+Virtual methods that have a final specifier are unsurprisingly excluded.
+Thus the virtual method calls, whether they originate in C++ or in Java via proxy classes, eventually end up in at the implementation in the director class.
 The job of the director methods is to route these method calls to the appropriate place in the inheritance chain.
 By "appropriate place" we mean the method that would have been called if the C++ base class and its Java derived classes were seamlessly integrated.
 That seamless integration is exactly what the director classes provide, transparently skipping over all the messy JNI glue code that binds the two languages together.
@@ -5644,7 +5644,7 @@ This section describes how you can modify SWIG's default wrapping behavior
 for various C/C++ datatypes using the <tt>%typemap</tt> directive.   
 You are advised to be familiar with the material in the "<a href="Typemaps.html#Typemaps">Typemaps</a>" chapter.
 While not absolutely essential knowledge, this section assumes some familiarity with the Java Native Interface (JNI). 
-JNI documentation can be consulted either online at <a href="http://java.sun.com">Sun's Java web site</a> or from a good JNI book. 
+JNI documentation can be consulted either online at <a href="https://www.oracle.com/technetwork/java/index.html">the Java web site</a> or from a good JNI book. 
 The following two books are recommended:</p>
 
 <ul>
@@ -6551,7 +6551,7 @@ As there can only be one "javacode" typemap per class, also consider using the
 and offers nearly identical functionality.
 </div>
 
-<p><tt>%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized")</tt> <br></p>
+<p><tt>%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized", parameters="")</tt> <br></p>
 <div class="indent">
 destructor wrapper - the <tt>delete()</tt> method (proxy classes only),
 used for all proxy classes except those which have a base class
@@ -6562,9 +6562,10 @@ Note that the <tt>delete()</tt> method name is configurable and is specified by 
 The method modifiers are also configurable via the <tt>methodmodifiers</tt> attribute.
 If a <tt>%javamethodmodifiers</tt> is attached to the class' destructor,
 it will be used in preference to the <tt>methodmodifiers</tt> typemap attribute for the class.
+The <tt>delete</tt> method's parameters declaration can be provided in the optional <tt>parameters</tt> typemap attribute.
 </div>
 
-<p><tt>%typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized")</tt></p>
+<p><tt>%typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized", parameters="")</tt></p>
 <div class="indent">
 destructor wrapper - the <tt>delete()</tt> method (proxy classes only),
 same as "javadestruct" but only used for derived proxy classes
@@ -6575,6 +6576,7 @@ Note that the <tt>delete()</tt> method name is configurable and is specified by 
 The method modifiers are also configurable via the <tt>methodmodifiers</tt> attribute.
 If a <tt>%javamethodmodifiers</tt> is attached to the class' destructor,
 it will be used in preference to the <tt>methodmodifiers</tt> typemap attribute for the class.
+The <tt>delete</tt> method's parameters declaration can be provided in the optional <tt>parameters</tt> typemap attribute.
 </div>
 
 <p><tt>%typemap(javaimports)</tt></p>

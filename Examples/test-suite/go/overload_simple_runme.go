@@ -1,6 +1,6 @@
 package main
 
-import . "./overload_simple"
+import . "overload_simple"
 
 func main() {
 	if Foo(3) != "foo:int" {

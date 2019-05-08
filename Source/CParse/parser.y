@@ -1552,6 +1552,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     Parm   *throws;
     String *throwf;
     String *nexcept;
+    String *final;
   } dtype;
   struct {
     const char *type;
@@ -1567,6 +1568,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     ParmList  *throws;
     String    *throwf;
     String    *nexcept;
+    String    *final;
   } decl;
   Parm         *tparms;
   struct {
@@ -1648,7 +1650,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 
 /* C declarations */
 %type <node>     c_declaration c_decl c_decl_tail c_enum_key c_enum_inherit c_enum_decl c_enum_forward_decl c_constructor_decl;
-%type <node>     enumlist enumlist_tail enumlist_item edecl_with_dox edecl;
+%type <node>     enumlist enumlist_item edecl_with_dox edecl;
 
 /* C++ declarations */
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl cpp_alternate_rettype;
@@ -3189,6 +3191,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$,"throws",$4.throws);
 	      Setattr($$,"throw",$4.throwf);
 	      Setattr($$,"noexcept",$4.nexcept);
+	      Setattr($$,"final",$4.final);
 	      if ($5.val && $5.type) {
 		/* store initializer type as it might be different to the declared type */
 		SwigType *valuetype = NewSwigType($5.type);
@@ -3266,6 +3269,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$,"throws",$4.throws);
 	      Setattr($$,"throw",$4.throwf);
 	      Setattr($$,"noexcept",$4.nexcept);
+	      Setattr($$,"final",$4.final);
 	      if (!$9) {
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
@@ -3330,6 +3334,7 @@ c_decl_tail    : SEMI {
 		 Setattr($$,"throws",$3.throws);
 		 Setattr($$,"throw",$3.throwf);
 		 Setattr($$,"noexcept",$3.nexcept);
+		 Setattr($$,"final",$3.final);
 		 if ($4.bitfield) {
 		   Setattr($$,"bitfield", $4.bitfield);
 		 }
@@ -3638,6 +3643,7 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 			Setattr($$,"throws",$6.throws);
 			Setattr($$,"throw",$6.throwf);
 			Setattr($$,"noexcept",$6.nexcept);
+			Setattr($$,"final",$6.final);
 			err = 0;
 		      }
 		    }
@@ -4704,6 +4710,7 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		Setattr($$,"throws",$6.throws);
 		Setattr($$,"throw",$6.throwf);
 		Setattr($$,"noexcept",$6.nexcept);
+		Setattr($$,"final",$6.final);
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
 		  Setattr($$,"code",code);
@@ -4740,6 +4747,7 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 	       Setattr($$,"throws",$6.throws);
 	       Setattr($$,"throw",$6.throwf);
 	       Setattr($$,"noexcept",$6.nexcept);
+	       Setattr($$,"final",$6.final);
 	       if ($6.val)
 	         Setattr($$,"value",$6.val);
 	       if ($6.qualifier)
@@ -4760,6 +4768,7 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 		Setattr($$,"throws",$7.throws);
 		Setattr($$,"throw",$7.throwf);
 		Setattr($$,"noexcept",$7.nexcept);
+		Setattr($$,"final",$7.final);
 		if ($7.val)
 		  Setattr($$,"value",$7.val);
 		if (Len(scanner_ccode)) {
@@ -4941,6 +4950,7 @@ cpp_end        : cpp_const SEMI {
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
 		    $$.nexcept = $1.nexcept;
+		    $$.final = $1.final;
                }
                | cpp_const EQUAL default_delete SEMI {
 	            Clear(scanner_ccode);
@@ -4951,6 +4961,7 @@ cpp_end        : cpp_const SEMI {
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
 		    $$.nexcept = $1.nexcept;
+		    $$.final = $1.final;
                }
                | cpp_const LBRACE { 
 		    skip_balanced('{','}'); 
@@ -4961,6 +4972,7 @@ cpp_end        : cpp_const SEMI {
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
 		    $$.nexcept = $1.nexcept;
+		    $$.final = $1.final;
 	       }
                ;
 
@@ -4973,6 +4985,7 @@ cpp_vend       : cpp_const SEMI {
                      $$.throws = $1.throws;
                      $$.throwf = $1.throwf;
                      $$.nexcept = $1.nexcept;
+                     $$.final = $1.final;
                 }
                | cpp_const EQUAL definetype SEMI { 
                      Clear(scanner_ccode);
@@ -4982,7 +4995,8 @@ cpp_vend       : cpp_const SEMI {
                      $$.bitfield = 0;
                      $$.throws = $1.throws; 
                      $$.throwf = $1.throwf; 
-                     $$.nexcept = $1.nexcept; 
+                     $$.nexcept = $1.nexcept;
+                     $$.final = $1.final;
                }
                | cpp_const LBRACE { 
                      skip_balanced('{','}');
@@ -4992,7 +5006,8 @@ cpp_vend       : cpp_const SEMI {
                      $$.bitfield = 0;
                      $$.throws = $1.throws; 
                      $$.throwf = $1.throwf; 
-                     $$.nexcept = $1.nexcept; 
+                     $$.nexcept = $1.nexcept;
+                     $$.final = $1.final;
                }
                ;
 
@@ -5210,6 +5225,7 @@ def_args       : EQUAL definetype {
 		    $$.throws = 0;
 		    $$.throwf = 0;
 		    $$.nexcept = 0;
+		    $$.final = 0;
 		  }
                }
                | EQUAL definetype LBRACKET expr RBRACKET { 
@@ -5223,6 +5239,7 @@ def_args       : EQUAL definetype {
 		    $$.throws = 0;
 		    $$.throwf = 0;
 		    $$.nexcept = 0;
+		    $$.final = 0;
 		  } else {
 		    $$.val = NewStringf("%s[%s]",$2.val,$4.val); 
 		  }		  
@@ -5236,6 +5253,7 @@ def_args       : EQUAL definetype {
 		 $$.throws = 0;
 		 $$.throwf = 0;
 		 $$.nexcept = 0;
+		 $$.final = 0;
 	       }
                | COLON expr { 
 		 $$.val = 0;
@@ -5245,6 +5263,7 @@ def_args       : EQUAL definetype {
 		 $$.throws = 0;
 		 $$.throwf = 0;
 		 $$.nexcept = 0;
+		 $$.final = 0;
 	       }
                | empty {
                  $$.val = 0;
@@ -5254,6 +5273,7 @@ def_args       : EQUAL definetype {
 		 $$.throws = 0;
 		 $$.throwf = 0;
 		 $$.nexcept = 0;
+		 $$.final = 0;
                }
                ;
 
@@ -6293,6 +6313,7 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		   $$.throws = 0;
 		   $$.throwf = 0;
 		   $$.nexcept = 0;
+		   $$.final = 0;
 		   scanner_ignore_typedef();
                 }
                 | default_delete {
@@ -6319,6 +6340,7 @@ deleted_definition : DELETE_KW {
 		  $$.throws = 0;
 		  $$.throwf = 0;
 		  $$.nexcept = 0;
+		  $$.final = 0;
 		}
 		;
 
@@ -6333,6 +6355,7 @@ explicit_default : DEFAULT {
 		  $$.throws = 0;
 		  $$.throwf = 0;
 		  $$.nexcept = 0;
+		  $$.final = 0;
 		}
 		;
 
@@ -6351,36 +6374,35 @@ optional_ignored_defines
 		| empty
 		;
 
-optional_ignored_define_after_comma
-		: empty
-		| COMMA
-		| COMMA constant_directive
-		;
-
 /* Enum lists - any #define macros (constant directives) within the enum list are ignored. Trailing commas accepted. */
-enumlist	: enumlist_item optional_ignored_define_after_comma {
+enumlist	: enumlist_item {
 		  Setattr($1,"_last",$1);
 		  $$ = $1;
 		}
-		| enumlist_item enumlist_tail optional_ignored_define_after_comma {
-		  set_nextSibling($1, $2);
-		  Setattr($1,"_last",Getattr($2,"_last"));
-		  Setattr($2,"_last",NULL);
+		| enumlist_item DOXYGENPOSTSTRING {
+		  Setattr($1,"_last",$1);
+		  set_comment($1, $2);
+		  $$ = $1;
+		}
+		| enumlist_item COMMA enumlist {
+		  if ($3) {
+		    set_nextSibling($1, $3);
+		    Setattr($1,"_last",Getattr($3,"_last"));
+		    Setattr($3,"_last",NULL);
+		  }
+		  $$ = $1;
+		}
+		| enumlist_item COMMA DOXYGENPOSTSTRING enumlist {
+		  if ($4) {
+		    set_nextSibling($1, $4);
+		    Setattr($1,"_last",Getattr($4,"_last"));
+		    Setattr($4,"_last",NULL);
+		  }
+		  set_comment($1, $3);
 		  $$ = $1;
 		}
 		| optional_ignored_defines {
 		  $$ = 0;
-		}
-		;
-
-enumlist_tail	: COMMA enumlist_item {
-		  Setattr($2,"_last",$2);
-		  $$ = $2;
-		}
-		| enumlist_tail COMMA enumlist_item {
-		  set_nextSibling(Getattr($1,"_last"), $3);
-		  Setattr($1,"_last",$3);
-		  $$ = $1;
 		}
 		;
 
@@ -6395,19 +6417,6 @@ edecl_with_dox	: edecl {
 		| DOXYGENSTRING edecl {
 		  $$ = $2;
 		  set_comment($2, $1);
-		}
-		| edecl DOXYGENPOSTSTRING {
-		  $$ = $1;
-		  set_comment($1, $2);
-		}
-		| DOXYGENPOSTSTRING edecl {
-		  $$ = $2;
-		  set_comment(previousNode, $1);
-		}
-		| DOXYGENPOSTSTRING edecl DOXYGENPOSTSTRING {
-		  $$ = $2;
-		  set_comment(previousNode, $1);
-		  set_comment($2, $3);
 		}
 		;
 
@@ -6525,6 +6534,7 @@ valexpr        : exprnum {
 		  $$.throws = 0;
 		  $$.throwf = 0;
 		  $$.nexcept = 0;
+		  $$.final = 0;
 	       }
                | WCHARCONST {
 		  $$.val = NewString($1);
@@ -6538,6 +6548,7 @@ valexpr        : exprnum {
 		  $$.throws = 0;
 		  $$.throwf = 0;
 		  $$.nexcept = 0;
+		  $$.final = 0;
 	       }
 
 /* grouping */
@@ -6892,18 +6903,18 @@ virt_specifier_seq : OVERRIDE {
                    $$ = 0;
 	       }
 	       | FINAL {
-                   $$ = 0;
+                   $$ = NewString("1");
 	       }
 	       | FINAL OVERRIDE {
-                   $$ = 0;
+                   $$ = NewString("1");
 	       }
 	       | OVERRIDE FINAL {
-                   $$ = 0;
+                   $$ = NewString("1");
 	       }
                ;
 
 virt_specifier_seq_opt : virt_specifier_seq {
-                   $$ = 0;
+                   $$ = $1;
                }
                | empty {
                    $$ = 0;
@@ -6914,31 +6925,37 @@ exception_specification : THROW LPAREN parms RPAREN {
                     $$.throws = $3;
                     $$.throwf = NewString("1");
                     $$.nexcept = 0;
+                    $$.final = 0;
 	       }
 	       | NOEXCEPT {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = NewString("true");
+                    $$.final = 0;
 	       }
 	       | virt_specifier_seq {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = 0;
+                    $$.final = $1;
 	       }
 	       | THROW LPAREN parms RPAREN virt_specifier_seq {
                     $$.throws = $3;
                     $$.throwf = NewString("1");
                     $$.nexcept = 0;
+                    $$.final = $5;
 	       }
 	       | NOEXCEPT virt_specifier_seq {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = NewString("true");
+                    $$.final = $2;
 	       }
 	       | NOEXCEPT LPAREN expr RPAREN {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = $3.val;
+                    $$.final = 0;
 	       }
 	       ;	
 
@@ -6946,6 +6963,7 @@ qualifiers_exception_specification : cv_ref_qualifier {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = 0;
+                    $$.final = 0;
                     $$.qualifier = $1.qualifier;
                     $$.refqualifier = $1.refqualifier;
                }
@@ -6968,6 +6986,7 @@ cpp_const      : qualifiers_exception_specification {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = 0;
+                    $$.final = 0;
                     $$.qualifier = 0;
                     $$.refqualifier = 0;
                }
@@ -6980,6 +6999,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
 		    $$.nexcept = $1.nexcept;
+		    $$.final = $1.final;
                     if ($1.qualifier)
                       Swig_error(cparse_file, cparse_line, "Constructor cannot have a qualifier.\n");
                }
@@ -6990,6 +7010,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.throws = $1.throws;
                     $$.throwf = $1.throwf;
                     $$.nexcept = $1.nexcept;
+                    $$.final = $1.final;
                     if ($1.qualifier)
                       Swig_error(cparse_file, cparse_line, "Constructor cannot have a qualifier.\n");
                }
@@ -7001,6 +7022,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
 		    $$.throws = 0;
 		    $$.throwf = 0;
 		    $$.nexcept = 0;
+		    $$.final = 0;
                }
                | LPAREN parms RPAREN LBRACE {
                     skip_balanced('{','}'); 
@@ -7010,6 +7032,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = 0;
+                    $$.final = 0;
                }
                | EQUAL definetype SEMI { 
                     $$.have_parms = 0; 
@@ -7017,6 +7040,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = 0;
+                    $$.final = 0;
                }
                | exception_specification EQUAL default_delete SEMI {
                     $$.have_parms = 0;
@@ -7024,6 +7048,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.throws = $1.throws;
                     $$.throwf = $1.throwf;
                     $$.nexcept = $1.nexcept;
+                    $$.final = $1.final;
                     if ($1.qualifier)
                       Swig_error(cparse_file, cparse_line, "Constructor cannot have a qualifier.\n");
                }

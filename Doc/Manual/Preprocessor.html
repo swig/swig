@@ -138,7 +138,7 @@ In addition, SWIG defines the following set of standard C/C++ macros:
 <pre>
 __LINE__                        Current line number
 __FILE__                        Current file name
-__STDC__                        Defined to indicate ANSI C
+__STDC__                        Defined to indicate ISO C
 __cplusplus                     Defined when -c++ option used
 </pre>
 </div>
@@ -180,9 +180,9 @@ More complex macros can be defined in the standard way. For example:
 <pre>
 #define EXTERN extern
 #ifdef __STDC__
-#define _ANSI(args)   (args)
+#define ISOC_(args)   (args)
 #else
-#define _ANSI(args) ()
+#define ISOC_(args) ()
 #endif
 </pre>
 </div>
@@ -458,7 +458,7 @@ would generate
 
 <p>
 Like many compilers, SWIG supports a <tt>-E</tt> command line option to display the output from the preprocessor.
-When the <tt>-E</tt> switch is used, SWIG will not generate any wrappers.
+When the <tt>-E</tt> option is used, SWIG will not generate any wrappers.
 Instead the results after the preprocessor has run are displayed.
 This might be useful as an aid to debugging and viewing the results of macro expansions.
 </p>

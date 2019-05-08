@@ -64,15 +64,15 @@ The wrapper code implementation uses C# and the Platform Invoke (PInvoke) interf
 The PInvoke interface has been chosen over Microsoft's Managed C++ interface as it is portable to both Microsoft Windows and non-Microsoft platforms.
 PInvoke is part of the ECMA/ISO C# specification.
 It is also better suited for robust production environments due to the Managed C++ flaw called the
-<a href="http://msdn.microsoft.com/en-us/library/aa290048(VS.71).aspx">Mixed DLL Loading Problem</a>.
+<a href="https://msdn.microsoft.com/en-us/ie/aa290048(v=vs.94)">Mixed DLL Loading Problem</a>.
 SWIG C# works equally well on non-Microsoft operating systems such as Linux, Solaris and Apple Mac using
-<a href="http://www.mono-project.com/Main_Page">Mono</a> and <a href="http://www.dotgnu.org/pnet.html">Portable.NET</a>.
+<a href="https://www.mono-project.com/Main_Page/">Mono</a> and <a href="http://www.dotgnu.org/pnet.html">Portable.NET</a>.
 </p>
 
 <p>
 To get the most out of this chapter an understanding of interop is required.
-The <a href="http://msdn.microsoft.com">Microsoft Developer Network (MSDN)</a> has a good reference guide in a section titled "Interop Marshaling".
-Monodoc, available from the Mono project, has a very useful section titled <a href="http://www.mono-project.com/docs/advanced/pinvoke/">Interop with native libraries</a>.
+The <a href="https://msdn.microsoft.com">Microsoft Developer Network (MSDN)</a> has a good reference guide in a section titled "Interop Marshaling".
+Monodoc, available from the Mono project, has a very useful section titled <a href="https://www.mono-project.com/docs/advanced/pinvoke/">Interop with native libraries</a>.
 </p>
 
 <H3><a name="CSharp_introduction_swig2_compatibility">22.1.1 SWIG 2 Compatibility</a></H3>
@@ -232,8 +232,8 @@ javacode                    -&gt; cscode
 javaimports                 -&gt; csimports
 javabody                    -&gt; csbody
 javafinalize                -&gt; csfinalize
-javadestruct                -&gt; csdestruct
-javadestruct_derived        -&gt; csdestruct_derived
+javadestruct                -&gt; csdisposing and csdispose
+javadestruct_derived        -&gt; csdisposing_derived and csdispose_derived
 javainterfacecode           -&gt; csinterfacecode
 </pre></div>
 
@@ -643,7 +643,7 @@ passing a direct reference as described in the next section.
 
 <p>
 For more information on the subject, see  the
-<a href="http://msdn.microsoft.com/en-us/library/z6cfh6e6(VS.80).aspx">Default Marshaling for Arrays</a> article
+<a href="https://docs.microsoft.com/en-us/dotnet/framework/interop/default-marshaling-for-arrays">Default Marshaling for Arrays</a> article
 on MSDN.
 </p>
 
@@ -763,7 +763,7 @@ another thread may produce enough garbage to trigger garbage collection.
 </p>
 
 <p>
-For more information, see the <a href="http://msdn.microsoft.com/en-us/library/f58wzh21(VS.80).aspx">fixed statement</a> in the C# language reference.
+For more information, see the <a href="https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/fixed-statement">fixed statement</a> in the C# language reference.
 </p>
 
 

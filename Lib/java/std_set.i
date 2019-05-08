@@ -59,7 +59,7 @@ class set {
 
   public boolean addAll(java.util.Collection<? extends $typemap(jboxtype, T)> collection) {
     boolean didAddElement = false;
-    for (Object object : collection) {
+    for (java.lang.Object object : collection) {
       didAddElement |= add(($typemap(jboxtype, T))object);
     }
 
@@ -96,7 +96,7 @@ class set {
   }
 
   public boolean containsAll(java.util.Collection<?> collection) {
-    for (Object object : collection) {
+    for (java.lang.Object object : collection) {
       if (!contains(object)) {
         return false;
       }
@@ -105,7 +105,7 @@ class set {
     return true;
   }
 
-  public boolean contains(Object object) {
+  public boolean contains(java.lang.Object object) {
     if (!(object instanceof $typemap(jboxtype, T))) {
       return false;
     }
@@ -115,14 +115,14 @@ class set {
 
   public boolean removeAll(java.util.Collection<?> collection) {
     boolean didRemoveElement = false;
-    for (Object object : collection) {
+    for (java.lang.Object object : collection) {
       didRemoveElement |= remove(object);
     }
 
     return didRemoveElement;
   }
 
-  public boolean remove(Object object) {
+  public boolean remove(java.lang.Object object) {
     if (!(object instanceof $typemap(jboxtype, T))) {
       return false;
     }
@@ -152,8 +152,8 @@ class set {
 
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
-    typedef T value_type;
     typedef T key_type;
+    typedef T value_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type& reference;

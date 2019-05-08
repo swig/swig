@@ -1,6 +1,6 @@
 package main
 
-import . "./disown"
+import . "disown"
 
 func main() {
 	a := NewA()

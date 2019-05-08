@@ -1,7 +1,7 @@
 package main
 
-import "multi_import_a"
-import "multi_import_b"
+import "swigtests/multi_import_a"
+import "swigtests/multi_import_b"
 
 func main() {
 	x := multi_import_b.NewXXX()

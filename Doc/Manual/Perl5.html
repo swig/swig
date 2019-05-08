@@ -3070,7 +3070,7 @@ globally, to specific classes, and to specific methods, like this:
 // generate directors for all classes that have virtual methods
 %feature("director");         
 
-// generate directors for all virtual methods in class Foo
+// generate directors for the virtual methods in class Foo
 %feature("director") Foo;      
 </pre>
 </div>
@@ -3088,7 +3088,7 @@ directors for specific classes or methods.  So for example,
 </div>
 
 <p>
-will generate directors for all virtual methods of class Foo except
+will generate directors for the virtual methods of class Foo except
 bar().  
 </p>
 
@@ -3153,7 +3153,8 @@ For simplicity let's ignore the <tt>Swig::Director</tt> class and refer to the
 original C++ class as the director's base class. By default, a director
 class extends all virtual methods in the inheritance chain of its base
 class (see the preceding section for how to modify this behavior).
-Thus all virtual method calls, whether they originate in C++ or in
+Virtual methods that have a final specifier are unsurprisingly excluded.
+Thus the virtual method calls, whether they originate in C++ or in
 Perl via proxy classes, eventually end up in at the implementation in
 the director class. The job of the director methods is to route these
 method calls to the appropriate place in the inheritance chain. By

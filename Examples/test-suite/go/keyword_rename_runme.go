@@ -1,6 +1,6 @@
 package main
 
-import "./keyword_rename"
+import "keyword_rename"
 
 func main() {
 	keyword_rename.Xgo(1)

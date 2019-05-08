@@ -407,6 +407,7 @@ CPP_TEST_CASES += \
 	static_array_member \
 	static_const_member \
 	static_const_member_2 \
+	stl_no_default_constructor \
 	string_constants \
 	struct_initialization_cpp \
 	struct_value \
@@ -571,6 +572,7 @@ CPP11_TEST_CASES += \
 	cpp11_director_enums \
 	cpp11_directors \
 	cpp11_explicit_conversion_operators \
+	cpp11_final_directors \
 	cpp11_final_override \
 	cpp11_function_objects \
 	cpp11_inheriting_constructors \
@@ -707,6 +709,7 @@ C_TEST_CASES += \
 	preproc \
 	preproc_constants_c \
 	preproc_defined \
+	preproc_gcc_output \
 	preproc_include \
 	preproc_line_file \
 	register_par \

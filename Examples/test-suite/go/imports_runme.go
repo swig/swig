@@ -2,8 +2,8 @@
 
 package main
 
-import "imports_b"
-import "imports_a"
+import "swigtests/imports_b"
+import "swigtests/imports_a"
 
 func main() {
 	x := imports_b.NewB()

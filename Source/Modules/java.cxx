@@ -2035,16 +2035,19 @@ public:
     String *destruct = NewString("");
     const String *tm = NULL;
     attributes = NewHash();
-    String *destruct_methodname = NULL;
-    String *destruct_methodmodifiers = NULL;
+    const String *destruct_methodname = NULL;
+    const String *destruct_methodmodifiers = NULL;
+    const String *destruct_parameters = NULL;
     if (derived) {
       tm = typemapLookup(n, "javadestruct_derived", typemap_lookup_type, WARN_NONE, attributes);
       destruct_methodname = Getattr(attributes, "tmap:javadestruct_derived:methodname");
       destruct_methodmodifiers = Getattr(attributes, "tmap:javadestruct_derived:methodmodifiers");
+      destruct_parameters = Getattr(attributes, "tmap:javadestruct_derived:parameters");
     } else {
       tm = typemapLookup(n, "javadestruct", typemap_lookup_type, WARN_NONE, attributes);
       destruct_methodname = Getattr(attributes, "tmap:javadestruct:methodname");
       destruct_methodmodifiers = Getattr(attributes, "tmap:javadestruct:methodmodifiers");
+      destruct_parameters = Getattr(attributes, "tmap:javadestruct:parameters");
     }
     if (tm && *Char(tm)) {
       if (!destruct_methodname) {
@@ -2053,6 +2056,8 @@ public:
       if (!destruct_methodmodifiers) {
 	Swig_error(Getfile(n), Getline(n), "No methodmodifiers attribute defined in javadestruct%s typemap for %s.\n", (derived ? "_derived" : ""), proxy_class_name);
       }
+      if (!destruct_parameters)
+	destruct_parameters = empty_string;
     }
     // Emit the finalize and delete methods
     if (tm) {
@@ -2073,7 +2078,7 @@ public:
 	  Printv(proxy_class_def, methodmods, NIL);
 	else
 	  Printv(proxy_class_def, destruct_methodmodifiers, NIL);
-	Printv(proxy_class_def, " void ", destruct_methodname, "()", destructor_throws_clause, " ", destruct, "\n", NIL);
+	Printv(proxy_class_def, " void ", destruct_methodname, "(", destruct_parameters, ")", destructor_throws_clause, " ", destruct, "\n", NIL);
       }
     }
     if (*Char(interface_upcasts))

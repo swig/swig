@@ -3274,17 +3274,20 @@ private:
     // attribute called »methodname«.
     const String *tm = NULL;
 
-    String *dispose_methodname;
-    String *dispose_methodmodifiers;
+    const String *dispose_methodname;
+    const String *dispose_methodmodifiers;
+    const String *dispose_parameters;
     attributes = NewHash();
     if (derived) {
       tm = lookupCodeTypemap(n, "ddispose_derived", typemap_lookup_type, WARN_NONE, attributes);
       dispose_methodname = Getattr(attributes, "tmap:ddispose_derived:methodname");
       dispose_methodmodifiers = Getattr(attributes, "tmap:ddispose_derived:methodmodifiers");
+      dispose_parameters = Getattr(attributes, "tmap:ddispose_derived:parameters");
     } else {
       tm = lookupCodeTypemap(n, "ddispose", typemap_lookup_type, WARN_NONE, attributes);
       dispose_methodname = Getattr(attributes, "tmap:ddispose:methodname");
       dispose_methodmodifiers = Getattr(attributes, "tmap:ddispose:methodmodifiers");
+      dispose_parameters = Getattr(attributes, "tmap:ddispose:parameters");
     }
 
     if (tm && *Char(tm)) {
@@ -3298,6 +3301,8 @@ private:
 	  "No methodmodifiers attribute defined in ddispose%s typemap for %s.\n",
 	  (derived ? "_derived" : ""), proxy_class_name);
       }
+      if (!dispose_parameters)
+	dispose_parameters = empty_string;
     }
 
     if (tm) {
@@ -3324,7 +3329,7 @@ private:
 	  Printv(body, methodmods, NIL);
 	else
 	  Printv(body, dispose_methodmodifiers, (derived ? " override" : ""), NIL);
-	Printv(body, " void ", dispose_methodname, "() ", dispose_code, "\n", NIL);
+	Printv(body, " void ", dispose_methodname, "(", dispose_parameters, ") ", dispose_code, "\n", NIL);
       }
     }
 

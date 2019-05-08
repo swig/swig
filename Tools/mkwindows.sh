@@ -9,6 +9,8 @@
 # path to zip program
 zip=
 
+wine=
+
 # options for configure
 extraconfigureoptions=
 compileflags="-O2 -Wall -Wextra"
@@ -41,6 +43,11 @@ else
     echo "Building native Windows executable on Linux"
     if test x$zip = x; then
       zip=zip
+      wine=$(which wine)
+    fi
+    if test x$wine = x; then
+      echo "Could not detect wine - please install wine-stable package."
+      exit 1;
     fi
     echo "Checking that mingw 32-bit gcc is installed/available"
     if test -n "`which i686-w64-mingw32-gcc`" ; then
@@ -109,9 +116,9 @@ if test -f "$tarball"; then
       echo "Compiling (quietly)..."
       make > build.log
       echo "Simple check to see if swig.exe runs..."
-      env LD_LIBRARY_PATH= PATH= ./swig.exe -version || exit 1
+      env LD_LIBRARY_PATH= PATH= $wine ./swig.exe -version || exit 1
       echo "Simple check to see if ccache-swig.exe runs..."
-      env LD_LIBRARY_PATH= PATH= ./CCache/ccache-swig.exe -V || exit 1
+      env LD_LIBRARY_PATH= PATH= $wine ./CCache/ccache-swig.exe -V || exit 1
       echo "Creating $swigwinbasename.zip..."
       cd ..
       cp $swigbasename/swig.exe $swigwinbasename

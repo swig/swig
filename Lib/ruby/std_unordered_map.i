@@ -6,25 +6,25 @@
 %fragment("StdUnorderedMapTraits","header",fragment="StdMapCommonTraits")
 {
   namespace swig {
-    template <class RubySeq, class K, class T >
+    template <class RubySeq, class K, class T, class Hash, class Compare, class Alloc>
     inline void
-    assign(const RubySeq& rubyseq, std::unordered_map<K,T > *map) {
-      typedef typename std::unordered_map<K,T>::value_type value_type;
+    assign(const RubySeq& rubyseq, std::unordered_map<K,T,Hash,Compare,Alloc> *map) {
+      typedef typename std::unordered_map<K,T,Hash,Compare,Alloc>::value_type value_type;
       typename RubySeq::const_iterator it = rubyseq.begin();
       for (;it != rubyseq.end(); ++it) {
 	map->insert(value_type(it->first, it->second));
       }
     }
 
-    template <class K, class T>
-    struct traits_asptr<std::unordered_map<K,T> >  {
-      typedef std::unordered_map<K,T> map_type;
+    template <class K, class T, class Hash, class Compare, class Alloc>
+    struct traits_asptr<std::unordered_map<K,T,Hash,Compare,Alloc> >  {
+      typedef std::unordered_map<K,T,Hash,Compare,Alloc> map_type;
       static int asptr(VALUE obj, map_type **val) {
 	int res = SWIG_ERROR;
 	if (TYPE(obj) == T_HASH) {
 	  static ID id_to_a = rb_intern("to_a");
 	  VALUE items = rb_funcall(obj, id_to_a, 0);
-	  res = traits_asptr_stdseq<std::unordered_map<K,T>, std::pair<K, T> >::asptr(items, val);
+	  res = traits_asptr_stdseq<std::unordered_map<K,T,Hash,Compare,Alloc>, std::pair<K, T> >::asptr(items, val);
 	} else {
 	  map_type *p;
 	  swig_type_info *descriptor = swig::type_info<map_type>();
@@ -35,9 +35,9 @@
       }
     };
 
-    template <class K, class T >
-    struct traits_from<std::unordered_map<K,T> >  {
-      typedef std::unordered_map<K,T> map_type;
+    template <class K, class T, class Hash, class Compare, class Alloc>
+    struct traits_from<std::unordered_map<K,T,Hash,Compare,Alloc> >  {
+      typedef std::unordered_map<K,T,Hash,Compare,Alloc> map_type;
       typedef typename map_type::const_iterator const_iterator;
       typedef typename map_type::size_type size_type;
 

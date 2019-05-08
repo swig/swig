@@ -8,6 +8,22 @@
 %fragment("<stddef.h>"); // For offsetof
 #endif
 
+%insert(runtime) %{
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Method creation and docstring support functions */
+
+SWIGINTERN PyMethodDef *SWIG_PythonGetProxyDoc(const char *name);
+SWIGINTERN PyObject *SWIG_PyInstanceMethod_New(PyObject *SWIGUNUSEDPARM(self), PyObject *func);
+SWIGINTERN PyObject *SWIG_PyStaticMethod_New(PyObject *SWIGUNUSEDPARM(self), PyObject *func);
+
+#ifdef __cplusplus
+}
+#endif
+%}
+
 %init %{
 
 #ifdef __cplusplus

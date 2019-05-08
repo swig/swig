@@ -1,6 +1,6 @@
 package main
 
-import "./abstract_virtual"
+import "abstract_virtual"
 
 func main() {
 	abstract_virtual.NewD()

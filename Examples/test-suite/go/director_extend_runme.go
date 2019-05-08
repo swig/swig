@@ -5,7 +5,7 @@
 
 package main
 
-import . "./director_extend"
+import . "director_extend"
 
 func main() {
 	m := NewSpObject()

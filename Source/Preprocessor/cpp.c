@@ -109,6 +109,19 @@ static String *cpp_include(const_String_or_char_ptr fn, int sysfile) {
   return s;
 }
 
+static int is_digits(const String *str) {
+  const char *s = Char(str);
+  int isdigits = (*s != 0);
+  while (*s) {
+    if (!isdigit(*s)) {
+      isdigits = 0;
+      break;
+    }
+    s++;
+  }
+  return isdigits;
+}
+
 List *Preprocessor_depend(void) {
   return dependencies;
 }
@@ -1484,7 +1497,7 @@ String *Preprocessor_parse(String *s) {
       Putc(c, id);
       break;
 
-    case 42:			/* Strip any leading space before preprocessor value */
+    case 42:			/* Strip any leading space after the preprocessor directive (before preprocessor value) */
       if (isspace(c)) {
 	if (c == '\n') {
 	  Ungetc(c, s);
@@ -1804,6 +1817,8 @@ String *Preprocessor_parse(String *s) {
 	Swig_error(Getfile(s), Getline(id), "cpp debug: level = %d, startlevel = %d\n", level, start_level);
       } else if (Equal(id, "")) {
 	/* Null directive */
+      } else if (is_digits(id)) {
+	/* A gcc linemarker of the form '# linenum filename flags' (resulting from running gcc -E) */
       } else {
 	/* Ignore unknown preprocessor directives which are inside an inactive
 	 * conditional (github issue #394). */

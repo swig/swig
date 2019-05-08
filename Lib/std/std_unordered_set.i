@@ -50,19 +50,19 @@
 // const declarations are used to guess the intent of the function being
 // exported; therefore, the following rationale is applied:
 // 
-//   -- f(std::unordered_set<T>), f(const std::unordered_set<T>&):
+//   -- f(std::unordered_set<Key>), f(const std::unordered_set<Key>&):
 //      the parameter being read-only, either a sequence or a
-//      previously wrapped std::unordered_set<T> can be passed.
-//   -- f(std::unordered_set<T>&), f(std::unordered_set<T>*):
+//      previously wrapped std::unordered_set<Key> can be passed.
+//   -- f(std::unordered_set<Key>&), f(std::unordered_set<Key>*):
 //      the parameter may be modified; therefore, only a wrapped std::unordered_set
 //      can be passed.
-//   -- std::unordered_set<T> f(), const std::unordered_set<T>& f():
-//      the unordered_set is returned by copy; therefore, a sequence of T:s 
+//   -- std::unordered_set<Key> f(), const std::unordered_set<Key>& f():
+//      the unordered_set is returned by copy; therefore, a sequence of Key:s 
 //      is returned which is most easily used in other functions
-//   -- std::unordered_set<T>& f(), std::unordered_set<T>* f():
+//   -- std::unordered_set<Key>& f(), std::unordered_set<Key>* f():
 //      the unordered_set is returned by reference; therefore, a wrapped std::unordered_set
 //      is returned
-//   -- const std::unordered_set<T>* f(), f(const std::unordered_set<T>*):
+//   -- const std::unordered_set<Key>* f(), f(const std::unordered_set<Key>*):
 //      for consistency, they expect and return a plain unordered_set pointer.
 // ------------------------------------------------------------------------
 
@@ -74,20 +74,22 @@
 
 namespace std {
 
-  template <class _Key, class _Hash = std::hash< _Key >,
+  template <class _Key,
+            class _Hash = std::hash< _Key >,
             class _Compare = std::equal_to< _Key >,
-	    class _Alloc = allocator< _Key > >
+            class _Alloc = allocator< _Key > >
   class unordered_set {
   public:
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
-    typedef _Hash hasher;
     typedef _Key value_type;
     typedef _Key key_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type& reference;
     typedef const value_type& const_reference;
+    typedef _Hash hasher;
+    typedef _Compare key_equal;
     typedef _Alloc allocator_type;
 
     %traits_swigtype(_Key);

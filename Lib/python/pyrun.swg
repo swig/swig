@@ -213,12 +213,6 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
 extern "C" {
 #endif
 
-/* Method creation and docstring support functions */
-
-SWIGINTERN PyMethodDef *SWIG_PythonGetProxyDoc(const char *name);
-SWIGINTERN PyObject *SWIG_PyInstanceMethod_New(PyObject *SWIGUNUSEDPARM(self), PyObject *func);
-SWIGINTERN PyObject *SWIG_PyStaticMethod_New(PyObject *SWIGUNUSEDPARM(self), PyObject *func);
-
 /* The python void return value */
 
 SWIGRUNTIMEINLINE PyObject * 

@@ -1,6 +1,6 @@
 package main
 
-import . "./overload_copy"
+import . "overload_copy"
 
 func main() {
 	f := NewFoo()

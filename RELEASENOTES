@@ -7,6 +7,35 @@ Release Notes
 Detailed release notes are available with the release and are also
 published on the SWIG web site at http://swig.org/release.html.
 
+SWIG-4.0.0 summary:
+- Support for Doxygen documentation comments which are parsed and
+  converted into JavaDoc or PyDoc comments.
+- STL wrappers improved for C#, Java and Ruby.
+- C++11 STL containers added for Java, Python and Ruby.
+- Improved support for parsing C++11 and C++14 code.
+- Various fixes for shared_ptr.
+- Various C preprocessor corner case fixes.
+- Corner case fixes for member function pointers.
+- Python module overhaul by simplifying the generated code and turning
+  most optimizations on by default.
+- %template improvements wrt scoping to align with C++ explicit
+  template instantiations.
+- Added support for a command-line options file (sometimes called a
+  response file).
+- Numerous enhancements and fixes for all supported target languages.
+- SWIG now classifies the status of target languages into either
+  'Experimental' or 'Supported' to indicate the expected maturity
+  level.
+- Support for CFFI, Allegrocl, Chicken, CLISP, S-EXP, UFFI, Pike,
+  Modula3 has been removed.
+- Octave 4.4-5.1 support added.
+- PHP5 support removed, PHP7 is now the supported PHP version.
+- Minimum Python version required is now 2.7, 3.2-3.7 are the only
+  other versions supported.
+- Added support for Javascript NodeJS versions 2-10.
+- OCaml support is much improved and updated, minimum OCaml version
+  required is now 3.12.0.
+
 SWIG-3.0.12 summary:
 - Add support for Octave-4.2.
 - Enhance %extend to support template functions.

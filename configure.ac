@@ -2,11 +2,8 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[4.0.0],[http://www.swig.org])
-
-dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
-dnl     definition below can be removed
-AC_PREREQ(2.58)
+AC_INIT([swig],[4.0.1],[http://www.swig.org])
+AC_PREREQ(2.60)
 
 AC_CONFIG_SRCDIR([Source/Swig/swig.h])
 AC_CONFIG_AUX_DIR([Tools/config])
@@ -44,11 +41,6 @@ AC_CHECK_FUNC(popen, AC_DEFINE(HAVE_POPEN, 1, [Define if popen is available]), A
 fi
 
 dnl PCRE
-
-dnl AX_PATH_GENERIC() relies on AC_PROG_SED() but it is defined only in
-dnl autoconf 2.60 so trivially predefine it ourselves for the older versions
-m4_ifdef([AC_PROG_SED],, [AC_DEFUN([AC_PROG_SED], [AC_PATH_PROG([SED], sed)])])
-
 AC_ARG_WITH([pcre],
   [AS_HELP_STRING([--without-pcre],
                   [Disable support for regular expressions using PCRE])],
@@ -2052,6 +2044,16 @@ if test x"${with_ocaml}" = xno; then
     AC_MSG_NOTICE([Disabling OCaml])
     OCAMLC=
 else
+    # OCaml compiler
+    if test -z "$OCAMLC"; then
+	AC_CHECK_PROGS(OCAMLC, ocamlc)
+    fi
+
+    # OCaml Pre-Processor-Pretty-Printer
+    if test -z "$CAMLP4"; then
+	AC_CHECK_PROGS(CAMLP4, camlp4)
+    fi
+
     # OCaml DL load generator
     if test -z "$OCAMLDLGEN"; then
 	AC_CHECK_PROGS(OCAMLDLGEN, ocamldlgen)
@@ -2062,27 +2064,17 @@ else
 	AC_CHECK_PROGS(OCAMLFIND, ocamlfind)
     fi
 
-    # OCaml compiler
-    if test -z "$OCAMLC"; then
-	AC_CHECK_PROGS(OCAMLC, ocamlc)
-    fi
-
     # OCaml toplevel creator
     if test -z "$OCAMLMKTOP"; then
 	AC_CHECK_PROGS(OCAMLMKTOP, ocamlmktop)
     fi
-
-    # OCaml Pre-Processor-Pretty-Printer
-    if test -z "$CAMLP4"; then
-	AC_CHECK_PROGS(CAMLP4, camlp4)
-    fi
 fi
 
 AC_SUBST(OCAMLC)
+AC_SUBST(CAMLP4)
 AC_SUBST(OCAMLDLGEN)
 AC_SUBST(OCAMLFIND)
 AC_SUBST(OCAMLMKTOP)
-AC_SUBST(CAMLP4)
 
 #----------------------------------------------------------------
 # Look for C#
@@ -2644,7 +2636,7 @@ AC_SUBST(SKIP_PHP)
 
 
 SKIP_OCAML=
-if test -z "$OCAMLC" ; then
+if test -z "$OCAMLC" || test -z "$CAMLP4" ; then
     SKIP_OCAML="1"
 fi
 AC_SUBST(SKIP_OCAML)

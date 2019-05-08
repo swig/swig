@@ -1,6 +1,6 @@
 package main
 
-import . "./naturalvar"
+import . "naturalvar"
 
 func main() {
 	f := NewFoo()

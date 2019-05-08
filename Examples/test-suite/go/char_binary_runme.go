@@ -1,6 +1,6 @@
 package main
 
-import . "./char_binary"
+import . "char_binary"
 
 func main() {
 	t := NewTest()

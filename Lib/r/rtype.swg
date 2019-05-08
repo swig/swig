@@ -16,6 +16,7 @@
 %typemap("rtype") enum SWIGTYPE *   "character";
 %typemap("rtype") enum SWIGTYPE *const   "character";
 %typemap("rtype") enum SWIGTYPE &  "character";
+%typemap("rtype") const enum SWIGTYPE &  "character";
 %typemap("rtype") enum SWIGTYPE &&  "character";
 %typemap("rtype") SWIGTYPE * "$R_class";
 %typemap("rtype") SWIGTYPE *const "$R_class";
@@ -86,9 +87,7 @@
 %typemap(scoercein) enum SWIGTYPE 
   %{  $input = enumToInteger($input, "$R_class"); %}
 %typemap(scoercein) enum SWIGTYPE &
-  %{  $input = enumToInteger($input, "$R_class"); %}
-%typemap(scoercein) enum SWIGTYPE &&
-  %{  $input = enumToInteger($input, "$R_class"); %}
+  %{  $input = enumToInteger($input, "$*R_class"); %}
 %typemap(scoercein) enum SWIGTYPE *
   %{  $input = enumToInteger($input, "$R_class"); %}
 %typemap(scoercein) enum SWIGTYPE *const
@@ -138,7 +137,7 @@ string &, std::string &
   %{  $result = enumFromInteger($result, "$R_class"); %}
 
 %typemap(scoerceout) enum SWIGTYPE &
-  %{  $result = enumFromInteger($result, "$R_class"); %}
+  %{  $result = enumFromInteger($result, "$*R_class"); %}
 
 %typemap(scoerceout) enum SWIGTYPE &&
   %{  $result = enumFromInteger($result, "$R_class"); %}

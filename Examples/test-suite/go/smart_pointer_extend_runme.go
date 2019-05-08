@@ -1,6 +1,6 @@
 package main
 
-import . "./smart_pointer_extend"
+import . "smart_pointer_extend"
 
 func main() {
 	f := NewFoo()

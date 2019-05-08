@@ -1,6 +1,6 @@
 package main
 
-import "./overload_extend_c"
+import "overload_extend_c"
 
 func main() {
 	f := overload_extend_c.NewFoo()

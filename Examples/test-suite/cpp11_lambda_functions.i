@@ -43,14 +43,17 @@ auto lambda1 = [](int x, int y) -> int { return x+y; };
    single statement "return expr;". */
 auto lambda2 = [](int x, int y) { return x+y; };
 
-auto lambda3 = [&](int x, int y) { return x+y; };
-auto lambda4 = [=](int x, int y) { return x+y; };
 int thing = 0;
 #ifdef SWIG
-// Not strictly correct as captured variables should have non-automatic storage duration, ie shouldn't capture globals. gcc-4.7 warns about this, but we check that SWIG can parse this anyway.
+// This is not strictly legal: non-local lambda expression cannot have a capture-default
+// gcc-4.7 warns about this and gcc-9 gives an error, but we check that SWIG can parse this anyway.
+auto lambda3 = [&](int x, int y) { return x+y; };
+auto lambda4 = [=](int x, int y) { return x+y; };
 auto lambda5 = [=,&thing]() { return thing; };
 #else
-auto lambda5 = [=]() { return thing; };
+auto lambda3 = [](int x, int y) { return x+y; };
+auto lambda4 = [](int x, int y) { return x+y; };
+auto lambda5 = []() { return thing; };
 #endif
 
 void fn() {
@@ -115,6 +118,6 @@ int runLambdaInline() {
 // TODO
 int(*lambda101notauto)(int, int) = [] (int a, int b) { return a + b; };
 int lambda102 = [] (int a, int b) mutable { return a + b; }(1, 2);
-void lambda_init(int = ([=]{ return 0; })());
+void lambda_init(int = ([]{ return 0; })());
 %}
 

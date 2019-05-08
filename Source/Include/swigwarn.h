@@ -211,6 +211,7 @@
 #define WARN_LANG_EXTEND_CONSTRUCTOR  522
 #define WARN_LANG_EXTEND_DESTRUCTOR   523
 #define WARN_LANG_EXPERIMENTAL        524
+#define WARN_LANG_DIRECTOR_FINAL      525
 
 /* -- Doxygen comments -- */
 

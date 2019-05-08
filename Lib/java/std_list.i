@@ -43,7 +43,7 @@ namespace std {
     this();
     java.util.ListIterator<$typemap(jboxtype, T)> it = listIterator(0);
     // Special case the "copy constructor" here to avoid lots of cross-language calls
-    for (Object o : c) {
+    for (java.lang.Object o : c) {
       it.add(($typemap(jboxtype, T))o);
     }
   }
@@ -198,11 +198,6 @@ namespace std {
 
     %extend {
       %fragment("SWIG_ListSize");
-      list(jint count) throw (std::out_of_range) {
-        if (count < 0)
-          throw std::out_of_range("list count must be positive");
-        return new std::list<T>(static_cast<std::list<T>::size_type>(count));
-      }
 
       list(jint count, const T &value) throw (std::out_of_range) {
         if (count < 0)

@@ -336,8 +336,13 @@ static std::string getPyDocType(Node *n, const_String_or_char_ptr lname = "") {
   std::string type;
 
   String *s = Swig_typemap_lookup("doctype", n, lname, 0);
+  if (!s) {
+    if (String *t = Getattr(n, "type"))
+      s = SwigType_str(t, "");
+  }
+
   if (!s)
-    s = SwigType_str(Getattr(n, "type"), "");
+    return type;
 
   if (Language::classLookup(s)) {
     // In Python C++ namespaces are flattened, so remove all but last component

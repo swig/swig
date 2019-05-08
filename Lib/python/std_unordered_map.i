@@ -56,26 +56,26 @@
 %fragment("StdUnorderedMapTraits","header",fragment="StdMapCommonTraits",fragment="StdUnorderedMapForwardIteratorTraits")
 {
   namespace swig {
-    template <class SwigPySeq, class K, class T >
+    template <class SwigPySeq, class K, class T, class Hash, class Compare, class Alloc>
     inline void
-    assign(const SwigPySeq& swigpyseq, std::unordered_map<K,T > *unordered_map) {
-      typedef typename std::unordered_map<K,T>::value_type value_type;
+    assign(const SwigPySeq& swigpyseq, std::unordered_map<K,T,Hash,Compare,Alloc> *unordered_map) {
+      typedef typename std::unordered_map<K,T,Hash,Compare,Alloc>::value_type value_type;
       typename SwigPySeq::const_iterator it = swigpyseq.begin();
       for (;it != swigpyseq.end(); ++it) {
 	unordered_map->insert(value_type(it->first, it->second));
       }
     }
 
-    template <class K, class T>
-    struct traits_reserve<std::unordered_map<K,T> > {
-      static void reserve(std::unordered_map<K,T> &seq, typename std::unordered_map<K,T>::size_type n) {
+    template <class K, class T, class Hash, class Compare, class Alloc>
+    struct traits_reserve<std::unordered_map<K,T,Hash,Compare,Alloc> > {
+      static void reserve(std::unordered_map<K,T,Hash,Compare,Alloc> &seq, typename std::unordered_map<K,T,Hash,Compare,Alloc>::size_type n) {
         seq.reserve(n);
       }
     };
 
-    template <class K, class T>
-    struct traits_asptr<std::unordered_map<K,T> >  {
-      typedef std::unordered_map<K,T> unordered_map_type;
+    template <class K, class T, class Hash, class Compare, class Alloc>
+    struct traits_asptr<std::unordered_map<K,T,Hash,Compare,Alloc> >  {
+      typedef std::unordered_map<K,T,Hash,Compare,Alloc> unordered_map_type;
       static int asptr(PyObject *obj, unordered_map_type **val) {
 	int res = SWIG_ERROR;
 	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
@@ -85,7 +85,7 @@
           /* In Python 3.x the ".items()" method returns a dict_items object */
           items = PySequence_Fast(items, ".items() didn't return a sequence!");
 %#endif
-	  res = traits_asptr_stdseq<std::unordered_map<K,T>, std::pair<K, T> >::asptr(items, val);
+	  res = traits_asptr_stdseq<std::unordered_map<K,T,Hash,Compare,Alloc>, std::pair<K, T> >::asptr(items, val);
 	} else {
 	  unordered_map_type *p;
 	  swig_type_info *descriptor = swig::type_info<unordered_map_type>();
@@ -97,9 +97,9 @@
       }      
     };
       
-    template <class K, class T >
-    struct traits_from<std::unordered_map<K,T> >  {
-      typedef std::unordered_map<K,T> unordered_map_type;
+    template <class K, class T, class Hash, class Compare, class Alloc>
+    struct traits_from<std::unordered_map<K,T,Hash,Compare,Alloc> >  {
+      typedef std::unordered_map<K,T,Hash,Compare,Alloc> unordered_map_type;
       typedef typename unordered_map_type::const_iterator const_iterator;
       typedef typename unordered_map_type::size_type size_type;
 
