@@ -18,7 +18,7 @@
 %interface(Space::CBase2)
 #endif
 
-#if defined(SWIGD)
+#if defined(SWIGD) || defined(SWIGFORTRAN)
 // Missing multiple inheritance support results in incorrect use of override
 %ignore CBase1;
 %ignore CBase2;

@@ -3,6 +3,7 @@
 
 %warnfilter(SWIGWARN_RUBY_MULTIPLE_INHERITANCE,
 	    SWIGWARN_D_MULTIPLE_INHERITANCE,
+	    SWIGWARN_FORTRAN_MULTIPLE_INHERITANCE,
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE); /* languages not supporting multiple inheritance or %interface */
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
@@ -12,7 +13,7 @@
 %interface_impl(Space::CBase2)
 #endif
 
-#if defined(SWIGD)
+#if defined(SWIGD) || defined(SWIGFORTRAN)
 // Missing multiple inheritance support results in incorrect use of override
 %ignore CBase1;
 %ignore CBase2;

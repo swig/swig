@@ -44,6 +44,13 @@ program fortran_naming_runme
   ASSERT(leading_underscore_with_sixty_four_characters_is_just_darnIR2OS == 64)
   ASSERT(leading_underscore_with_sixty_three_characters_might_be_tricky_ == 63)
 
+  ! Check elided enum
+  ASSERT(Zero == 0)
+  ASSERT(Two == 2)
+
+  ASSERT(AlsoZero == 0)
+  ASSERT(AlsoTwo == 2)
+
 end program
 
 

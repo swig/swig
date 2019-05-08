@@ -2,12 +2,14 @@
 
 %warnfilter(SWIGWARN_LANG_IDENTIFIER);
 
+#ifdef SWIGFORTRAN
 %fortran_struct(MyStruct);
+#endif
 
 // Without *this* line, the f_a accessors on Bar will override the _a accessors
 // on _Foo, causing Fortran to fail because the argument names of the two
 // setters ('arg' and 'f_a') are different.
-%rename(f_a_bar) Bar::f_a;
+%rename(a_bar_) Bar::a_;
 
 // Without *these* renames, f_x and f_y will appear as duplicates in MyStruct.
 %rename(m_x) MyStruct::_x;
@@ -33,7 +35,7 @@ class _Foo {
 
 class Bar : public _Foo {
   public:
-    int f_a;
+    int a_;
 };
 
 struct HasEnum {
@@ -45,6 +47,7 @@ struct HasEnum {
 HasEnum::_Underscores get_embedded_enum_value(HasEnum::_Underscores e) { return e; }
 
 
+// Test constant wrapping
 #define _123 123
 
 extern "C" {
@@ -52,8 +55,8 @@ struct MyStruct {
     float _x;
     float _y;
     float _z;
-    float f_x;
-    float f_y;
+    float x_;
+    float y_;
 };
 
 float get_mystruct_y(const MyStruct* ms) { return ms->_y; }
@@ -75,11 +78,28 @@ int get_enum_value(_MyEnum e) { return static_cast<int>(e); }
 
 %warnfilter(SWIGWARN_FORTRAN_NAME_CONFLICT) MyEnum_;
 
-// NOTE: these will be ignored because the previous enum will be renamed.
-// This behavior is consistent with the other SWIG target languages.
+// NOTE: rename must be performed since the `_MyEnum` above was automatically renamed to `MyEnum_`
+#ifdef SWIGFORTRAN
+%rename(MyEnum2) MyEnum_;
+%rename(MYVAL2) MYVAL_;
+%fortranconst AlsoOmitted;
+#endif
+
 %inline %{
 enum MyEnum_ {
     MYVAL_ = 2
+};
+
+enum Omitted {
+  ZERO,
+  OMITTED,
+  TWO
+};
+
+enum AlsoOmitted {
+  ALSOZERO,
+  ALSOOMITTED,
+  ALSOTWO
 };
 
 // Even though the Fortran identifier must be renamed, the function it's
@@ -130,6 +150,11 @@ enum Foo;
 struct DelayedStruct { int i; };
 
 // Test with namespaces, and duplicates
+%rename ns::identity_ptr ns_identity_ptr;
+%rename ns::_Foo _ns_Foo;
+%rename ns::_MyEnum _ns_MyEnum;
+%rename ns::_MYVAL _ns_MYVAL;
+%rename ns::get_enum_value ns_get_enum_value;
 
 %inline %{
 namespace ns {
