@@ -268,19 +268,44 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
-      env: SWIGLANG=ruby VER=1.9.3
+      env: SWIGLANG=ruby VER=1.9
       sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
-      env: SWIGLANG=ruby VER=2.0.0
+      env: SWIGLANG=ruby VER=2.0
       sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
-      env: SWIGLANG=ruby VER=2.3.0
+      env: SWIGLANG=ruby VER=2.1
       sudo: required
-      dist: trusty
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=ruby VER=2.2
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=ruby VER=2.3
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=ruby VER=2.4
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=ruby VER=2.5
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=ruby VER=2.6
+      sudo: required
+      dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=scilab
