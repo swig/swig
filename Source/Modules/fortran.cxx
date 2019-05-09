@@ -3041,7 +3041,6 @@ bool FORTRAN::is_wrapped_class(Node *n) {
   // Check cache first
   String *cache_hit = Getattr(cached_classes, intype);
   if (cache_hit) {
-    Printf(stdout, "is_wrapped_class(%s) cache hit -> %s\n", intype, cache_hit);
     return Equal(cache_hit, is_wrapped);
   }
 
@@ -3070,8 +3069,6 @@ bool FORTRAN::is_wrapped_class(Node *n) {
     // Type doesn't resolve to something that expects a class name
     result = true;
   }
-
-  Printf(stdout, "is_wrapped_class(%s) -> %s\n", intype, result ? is_wrapped : not_wrapped);
 
   // Save in cache
   Setattr(cached_classes, intype, result  ? is_wrapped : not_wrapped);
