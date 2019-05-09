@@ -1047,22 +1047,24 @@ int FORTRAN::functionWrapper(Node *n) {
     }
 
     // Check for different return type
-    if (Node *other = Getattr(n, "covariant")) {
-      Swig_warning(WARN_FORTRAN_COVARIANT_RET, input_file, line_number,
-                   "Ignoring '%s' because the base class function '%s' has a different return type\n",
-                   fsymname, Getattr(other, "fortran:name"));
-      Swig_warning(WARN_FORTRAN_COVARIANT_RET, Getfile(other), Getline(other),
-                   "Previous declaration of '%s'\n",
-                   Getattr(other, "sym:name"));
-      return SWIG_NOWRAP;
-    }
+    if (Node *other = Getattr(n, "override")) {
+      if (SwigType *covar = Getattr(n, "covariant")) {
+        Swig_warning(WARN_FORTRAN_COVARIANT_RET, input_file, line_number,
+                     "Ignoring '%s' because the base class function '%s' has a different return type '%s'\n",
+                     fsymname, Getattr(other, "fortran:name"),
+                     SwigType_str(covar, NULL));
+        Swig_warning(WARN_FORTRAN_COVARIANT_RET, Getfile(other), Getline(other),
+                     "Previous declaration of '%s'\n",
+                     Getattr(other, "sym:name"));
+        return SWIG_NOWRAP;
+      }
     
-    Node *overridden = Getattr(n, "override");
-    if (overridden && Getattr(overridden, "fortran:generic")) {
-      // The base class's method is wrapped and it's generic. Do *not*
-      // generate a wrapper for this function since it would be ambiguous
-      // with the base class.
-      return SWIG_NOWRAP;
+      if (Getattr(other, "fortran:generic")) {
+        // The base class's method is wrapped and it's generic. Do *not*
+        // generate a wrapper for this function since it would be ambiguous
+        // with the base class.
+        return SWIG_NOWRAP;
+      }
     }
     
     if (Node *other = overload_base) {
@@ -1379,7 +1381,7 @@ int FORTRAN::cfuncWrapper(Node *n) {
     // XXX this should probably raise an error
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
                  "Unable to use return type %s in function %s.\n",
-                 SwigType_str(return_cpptype, 0), Getattr(n, "name"));
+                 SwigType_str(return_cpptype, NULL), Getattr(n, "name"));
   }
   emit_return_variable(n, return_cpptype, cfunc);
 
