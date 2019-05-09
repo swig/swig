@@ -288,11 +288,11 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 %typemap(imtype, fragment="SwigClassWrapper_f")
     SWIGTYPE
   "type(SwigClassWrapper)"
-%typemap(ftype, in="type($fclassname), intent(in)", nofortransubroutine=1) SWIGTYPE
-  "type($fclassname)"
+%typemap(ftype, in="type($&fclassname), intent(in)", nofortransubroutine=1) SWIGTYPE
+  "type($&fclassname)"
 
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE {
-  SWIG_check_nonnull(*$input, "$1_ltype", "$fclassname", "$decl", return $null);
+  SWIG_check_nonnull(*$input, "$1_ltype", "$&fclassname", "$decl", return $null);
   $1 = *%static_cast($input->cptr, $&1_ltype);
 }
 %typemap(out, noblock=1) SWIGTYPE {
@@ -321,7 +321,7 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
   $result.cptr = $1;
   $result.cmemflags = SWIG_MEM_RVALUE | ($owner ? SWIG_MEM_OWN : 0);
 }
-%typemap(bindc) SWIGTYPE* "void*";
+%typemap(bindc) SWIGTYPE* "type(C_PTR)";
 
 // >>> CONST POINTER
 
@@ -358,18 +358,17 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 // >>> OTHERS
 
 // Treat arrays of classes as opaque pointers
-%apply void * { SWIGTYPE [], SWIGTYPE [ANY] };
-%apply const void * { const SWIGTYPE [], const SWIGTYPE [ANY] };
+%apply SWIGTYPE* { SWIGTYPE [], SWIGTYPE [ANY] };
+%apply SWIGTYPE* { const SWIGTYPE [], const SWIGTYPE [ANY] };
 
 // Treat const-references-to-pointers as pointers
+%typemap(ftype, in="class($*fclassname), intent(inout)", nofortransubroutine=1) SWIGTYPE *MUTABLE_SELF
+  "type($*fclassname)"
 %apply SWIGTYPE * { const SWIGTYPE *const& };
 %typemap(in, noblock=1) SWIGTYPE *const & ($*1_ltype temp)
   {temp = %static_cast($input->cptr, $*1_ltype);
    $1 = &temp;}
 
-// Treat const references to const pointers the same way
-%apply SWIGTYPE *const& { const SWIGTYPE *const& };
-   
 // C binding for opaque classes for advanced users
 %typemap(bindc, in="type(SwigClassWrapper), value", fragment="SwigClassWrapper_f") SwigClassWrapper
   "type(SwigClassWrapper)"
@@ -382,12 +381,12 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 
 // Check for non-null, mutable class input "self"
 %typemap(in, noblock=1, fragment="SWIG_check_mutable_nonnull") SWIGTYPE *self {
-  SWIG_check_mutable_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
+  SWIG_check_mutable_nonnull(*$input, "$1_type", "$*fclassname", "$decl", return $null);
   $1 = %static_cast($input->cptr, $1_ltype);
 }
 // Check for non-null class input "self"
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") const SWIGTYPE *self {
-  SWIG_check_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
+  SWIG_check_nonnull(*$input, "$1_type", "$*fclassname", "$decl", return $null);
   $1 = %static_cast($input->cptr, $1_ltype);
 }
 

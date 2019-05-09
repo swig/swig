@@ -97,7 +97,7 @@ end function
   %typemap(fin) CTYPE = FORTRAN_INTRINSIC_TYPE;
   %typemap(fout) CTYPE = FORTRAN_INTRINSIC_TYPE;
 
-  // XXX I'd like to do this as FORTRAN_INTRINSIC_TYPE, but because $1_basetype doesn't work properly, and there's no way to do `$**1_ltype`, we have to explicitly add
+  // XXX I'd like to do this as FORTRAN_INTRINSIC_TYPE, but because $1_basetype doesn't work as expected, and there's no way to do `$**1_ltype`, we have to explicitly add
   // these here.
   %typemap(ftype, in={FTYPE, target, intent(inout)}, noblock=1) CTYPE *const & {
     FTYPE, pointer

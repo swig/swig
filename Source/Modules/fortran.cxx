@@ -2406,7 +2406,7 @@ int FORTRAN::memberfunctionHandler(Node *n) {
   }
 
   // Create a private procedure name that gets bound to the Fortan TYPE
-  String *fwrapname = proxy_name_construct(this->getNSpace(), class_symname,Getattr(n, "sym:name"));
+  String *fwrapname = proxy_name_construct(this->getNSpace(), class_symname, Getattr(n, "sym:name"));
   Setattr(n, "fortran:fname", fwrapname);
   Delete(fwrapname);
 
@@ -2972,7 +2972,7 @@ String *FORTRAN::get_fclassname(SwigType *classnametype) {
       }
     }
   }
-
+    
   return replacementname;
 }
 
