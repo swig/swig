@@ -637,6 +637,8 @@ private:
   String *get_fortran_name(Node *n, String *symname = NULL);
   String *get_fclassname(SwigType *classnametype);
   String *get_fenumname(SwigType *classnametype);
+  bool is_wrapped_class(Node *n);
+  
 
   // Add lowercase symbol (fortran) to the module's namespace
   int add_fsymbol(String *s, Node *n);
@@ -1024,6 +1026,7 @@ int FORTRAN::functionWrapper(Node *n) {
           Swig_warning(WARN_FORTRAN_NAME_COLLISION, Getfile(other), Getline(other),
                        "Previous declaration of '%s'\n",
                        Getattr(other, "sym:name"));
+          SetFlag(n, "fortran:ignore");
           return SWIG_NOWRAP;
         } else if (st != fsymtab) {
           // Same function but in a base class
@@ -1042,6 +1045,7 @@ int FORTRAN::functionWrapper(Node *n) {
         Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, Getfile(other), Getline(other),
                      "Previous declaration of '%s'\n",
                      Getattr(other, "sym:name"));
+        SetFlag(n, "fortran:ignore");
         return SWIG_NOWRAP;
       }
     }
@@ -1056,6 +1060,7 @@ int FORTRAN::functionWrapper(Node *n) {
         Swig_warning(WARN_FORTRAN_COVARIANT_RET, Getfile(other), Getline(other),
                      "Previous declaration of '%s'\n",
                      Getattr(other, "sym:name"));
+        SetFlag(n, "fortran:ignore");
         return SWIG_NOWRAP;
       }
     
@@ -1063,6 +1068,7 @@ int FORTRAN::functionWrapper(Node *n) {
         // The base class's method is wrapped and it's generic. Do *not*
         // generate a wrapper for this function since it would be ambiguous
         // with the base class.
+        SetFlag(n, "fortran:ignore");
         return SWIG_NOWRAP;
       }
     }
@@ -1080,6 +1086,7 @@ int FORTRAN::functionWrapper(Node *n) {
         Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, Getfile(other), Getline(other),
                      "Previous declaration of '%s'\n",
                      Getattr(other, "sym:name"));
+        SetFlag(n, "fortran:ignore");
         return SWIG_NOWRAP;
       }
       // Mark the function as overriding in Fortran, even though it may not be
@@ -1132,17 +1139,13 @@ int FORTRAN::functionWrapper(Node *n) {
   if (!bindc) {
     // Typical function wrapping: generate C, interface, and proxy wrappers.
     // If something fails, error out early.
-    if (this->cfuncWrapper(n) == SWIG_NOWRAP)
+    if (this->cfuncWrapper(n) == SWIG_NOWRAP || this->imfuncWrapper(n) == SWIG_NOWRAP || this->proxyfuncWrapper(n) == SWIG_NOWRAP) {
+      SetFlag(n, "fortran:ignore");
       return SWIG_NOWRAP;
-    if (this->imfuncWrapper(n) == SWIG_NOWRAP)
-      return SWIG_NOWRAP;
-    if (this->proxyfuncWrapper(n) == SWIG_NOWRAP)
-      return SWIG_NOWRAP;
+    }
   } else {
-    // C-bound function: set up bindc-type paramneters
-    if (this->bindcfuncWrapper(n) == SWIG_NOWRAP)
-      return SWIG_NOWRAP;
-    if (this->imfuncWrapper(n) == SWIG_NOWRAP)
+    // C-bound function: set up bindc-type parameters
+    if (this->bindcfuncWrapper(n) == SWIG_NOWRAP || this->imfuncWrapper(n) == SWIG_NOWRAP)
       return SWIG_NOWRAP;
   }
 
@@ -1243,6 +1246,7 @@ int FORTRAN::cfuncWrapper(Node *n) {
                symname);
     return SWIG_NOWRAP;
   }
+
   const bool is_csubroutine = (Strcmp(c_return_type, "void") == 0);
 
   String *c_return_str = NULL;
@@ -1310,16 +1314,16 @@ int FORTRAN::cfuncWrapper(Node *n) {
     Append(cparmlist, p);
 
     // Get the user-provided C type string, and convert it to a SWIG
-    // internal representation using Swig_cparse_type . Then convert the
-    // type and argument name to a valid C expression using SwigType_str.
-    SwigType *parsed_tm = parse_typemap("ctype", "in", p, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
-    if (!parsed_tm) {
+    // internal representation using Swig_cparse_type
+    SwigType *ctype = parse_typemap("ctype", "in", p, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
+    if (!ctype) {
       Swig_error(input_file, line_number,
                  "Failed to parse 'ctype' typemap for argument '%s' of '%s'\n",
                  SwigType_str(Getattr(p, "type"), Getattr(p, "name")), symname);
       return SWIG_NOWRAP;
     }
-    String *carg = SwigType_str(parsed_tm, imname);
+    // Convert the type and argument name to a valid C expression
+    String *carg = SwigType_str(ctype, imname);
     Printv(cfunc->def, prepend_comma, carg, NULL);
     Delete(carg);
 
@@ -1333,6 +1337,20 @@ int FORTRAN::cfuncWrapper(Node *n) {
   // END FUNCTION DEFINITION
   Printv(cfunc->def, ") {", NULL);
 
+  // >>> CHECK FOR MISSING TYPES
+
+  if (GetFlag(n, "feature:fortran:onlywrapped")) {
+    // Check return type
+    if (!this->is_wrapped_class(n)) {
+      return SWIG_NOWRAP;
+    }
+    for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
+      if (!this->is_wrapped_class(it.item)) {
+        return SWIG_NOWRAP;
+      }
+    }
+  }
+  
   // >>> ADDITIONAL WRAPPER CODE
 
   String *cleanup = NewStringEmpty();
@@ -1665,7 +1683,10 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   }
 
   if (Node *overload = Getattr(n, "sym:overloaded")) {
-    if (overload != n) {
+    while (overload && GetFlag(overload, "fortran:ignore")) {
+      overload = Getattr(overload, "sym:nextSibling");
+    }
+    if (overload && overload != n) {
       bool is_sibling_fsubroutine = Getattr(overload, "fortran:subroutine");
       if (!is_sibling_fsubroutine && is_fsubroutine) {
         conflicting_subroutine = overload;
@@ -2359,8 +2380,9 @@ int FORTRAN::constructorHandler(Node *n) {
   SetFlag(n, "fortran:private");
 
   Language::constructorHandler(n);
-
-  Append(d_constructors, Getattr(n, "wrap:fname"));
+  if (!GetFlag(n, "fortran:ignore")) {
+    Append(d_constructors, Getattr(n, "wrap:fname"));
+  }
   return SWIG_OK;
 }
 
@@ -2873,7 +2895,6 @@ int FORTRAN::constantWrapper(Node *n) {
 /* -------------------------------------------------------------------------
  * HELPER FUNCTIONS
  * ------------------------------------------------------------------------- */
-
 /* -------------------------------------------------------------------------
  * \brief Substitute special '$fXXXXX' in typemaps.
  */
@@ -2972,7 +2993,7 @@ String *FORTRAN::get_fclassname(SwigType *classnametype) {
       }
     }
   }
-    
+
   return replacementname;
 }
 
@@ -3004,6 +3025,56 @@ String *FORTRAN::get_fenumname(SwigType *classnametype) {
   }
 
   return replacementname;
+}
+
+/* ------------------------------------------------------------------------- */
+
+bool FORTRAN::is_wrapped_class(Node *n) {
+  static Hash *cached_classes = NewHash();
+  static String *is_wrapped = NewString("is wrapped");
+  static String *not_wrapped = NewString("not wrapped");
+
+  assert(n);
+
+  SwigType *intype = Getattr(n, "type");
+
+  // Check cache first
+  String *cache_hit = Getattr(cached_classes, intype);
+  if (cache_hit) {
+    return Equal(cache_hit, is_wrapped);
+  }
+
+  SwigType *resolvedtype = SwigType_typedef_resolve_all(intype);
+  SwigType *strippedtype = SwigType_strip_qualifiers(resolvedtype);
+
+  String *tm = attach_typemap("ftype", n, WARN_NONE);
+
+  bool result;
+  if (!tm) {
+    // Somehow there's no ftype; allow it to be wrapped so the error is handled later
+    result = true;
+  } else if (Strstr(tm, "$fclassname")) {
+    result = (this->classLookup(strippedtype) != NULL);
+  } else if (Strstr(tm, "$*fclassname")) {
+    SwigType_pop(strippedtype);
+    result = Len(strippedtype) > 0 && (this->classLookup(strippedtype) != NULL);
+  } else if (Strstr(tm, "$fclassname")) {
+    SwigType_add_pointer(strippedtype);
+    result = (this->classLookup(strippedtype) != NULL);
+  } else if (Strstr(tm, "$fenumname")) {
+    // True if the enum is declared
+    Node *clsnode = this->enumLookup(strippedtype);
+    result = clsnode && !GetFlag(clsnode, "enumMissing") && GetFlag(clsnode, "fortran:declared");
+  } else {
+    // Type doesn't resolve to something that expects a class name
+    result = true;
+  }
+
+  // Save in cache
+  Setattr(cached_classes, intype, result  ? is_wrapped : not_wrapped);
+  Delete(resolvedtype);
+  Delete(strippedtype);
+  return result;
 }
 
 /* -------------------------------------------------------------------------

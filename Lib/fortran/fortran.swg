@@ -26,6 +26,7 @@
                    interpretable by Fortran)
    %fortranbindc : Generate *interfaces only*, no wrapper code, for a function
    %fortransubroutine : Change a function to a subroutine with optional return parameter.
+   %fortranonlywrapped : Ignore a function or type if any of its arguments or members have  types.
  */
 #define %fortranbegin         %insert("fbegin")
 #define %proxycode            %insert("fsubprograms")
@@ -48,6 +49,10 @@
 #define %fortransubroutine      %feature("fortran:subroutine")
 #define %nofortransubroutine    %feature("fortran:subroutine", "0")
 #define %clearfortransubroutine %feature("fortran:subroutine", "")
+
+#define %fortranonlywrapped      %feature("fortran:onlywrapped")
+#define %nofortranonlywrapped    %feature("fortran:onlywrapped", "0")
+#define %clearfortranonlywrapped %feature("fortran:onlywrapped", "")
 
 /* -------------------------------------------------------------------------
  *

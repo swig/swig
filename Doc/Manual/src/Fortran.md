@@ -577,17 +577,6 @@ Like the other SWIG strongly typed target languages, the compiler enforces type
 checking between data types and function arguments in the SWIG-generated
 Fortran code.
 
-## Ignored or unimplemented forward-declared classes
-
-Some functions may include references or pointers to classes that are not
-wrapped by Fortran proxy functions. In these cases, an opaque derived type
-called `SwigUnknownClass` will be generated and used as a placeholder for the
-argument or return value. These could theoretically be passed between wrapped
-SWIG functions, although no type checking will be performed to ensure that the
-unknown classes are the correct types.
-
-This behavior will change soon to enforce type safety.
-
 ## Enumerations
 
 Fortran 2003 implements C enumerations using the `ENUM, BIND(C)` statement.
@@ -2028,6 +2017,44 @@ module thinvec
 
 This extra typemap trickery should only be needed if you're generating bound
 types without using the `%fortran_struct` macro.
+
+## Ignored or unwrapped class types
+
+Some functions may include references or pointers to classes that are not
+wrapped by SWIG. In these cases, an opaque derived type
+prefaced with `SWIGTYPE_` will be generated and used as a placeholder for the
+argument or return value.
+
+Typically when wrapping C++ libraries for Fortran, it's desirable to expose
+only a subset of the library's functionality and classes. However, even if a
+class is ignored, functions that use the class will still be wrapped using
+the opaque derived type, so it's typical to %ignore such functions where
+possible to minimize the clutter in the Fortran library's interface.
+The `%fortranonlywrapped` feature is designed to help.
+
+When applied to an identifier, it will ignore any function that accepts or
+returns a class that's explicitly ignored or is forward-declared but not
+defined. For example, the following input
+```swig
+%ignore Ignored;
+class ForwardDeclared;
+
+void overloaded(Ignored i);
+void overloaded(ForwardDeclared f);
+void overloaded(int i);
+```
+will generate a single Fortran wrapper function, for the one that accepts an
+integer argument.
+
+Like any other feature, it can be applied globally and disabled on a
+case-by-case basis:
+```swig
+%fortranonlywrapped;
+%nofortranonlywrapped should_be_wrapped;
+
+void not_wrapped(UnknownType*);
+void should_be_wrapped(UnknownType*);
+```
 
 ## Known Issues
 
