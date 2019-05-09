@@ -21,11 +21,11 @@
   zend_printf("This was %%rshutdown\n");
 }
 
-%pragma(php) include="./include.php";
+%pragma(php) include="include.php";
 
 %pragma(php) code="
 # This code is inserted into example.php
-echo \"this was php code\\n\";
+echo \"This was php code\\n\";
 "
 %pragma(php) version="1.5"
 
