@@ -298,7 +298,7 @@ matrix:
     - os: linux
       env: SWIGLANG=go VER=1.6 CPP11=1
       sudo: required
-      dist: trusty
+      dist: xenial
     - os: linux
       env: SWIGLANG=java CPP11=1
       sudo: required
@@ -324,9 +324,9 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=go GCC=6 CPP14=1
+      env: SWIGLANG=go VER=1.6 GCC=6 CPP14=1
       sudo: required
-      dist: trusty
+      dist: xenial
     - os: linux
       env: SWIGLANG=java GCC=6 CPP14=1
       sudo: required
