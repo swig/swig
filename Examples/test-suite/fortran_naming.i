@@ -138,13 +138,56 @@ enum Foo { GOOD, BAD };
 struct DeclaredStruct;
 enum Foo;
 
+%ignore IgnoredStruct;
+
 %inline %{
-  int get_opaque_value(const OpaqueStruct& o) { return o.i; }
-  OpaqueStruct make_opaque(int i) { OpaqueStruct os; os.i = i; return os; }
-  int get_declared_value(const DeclaredStruct& o) { return o.i; }
-  DeclaredStruct make_declared(int i) { DeclaredStruct o; o.i = i; return o; }
+struct IgnoredStruct { int i; };
+template<class T>
+struct TemplatedStruct { T i; };
+%}
+
+%template() TemplatedStruct<int>;
+
+%inline %{
+  OpaqueStruct make_opaque_value(int i) {
+    OpaqueStruct os;
+    os.i = i;
+    return os;
+  }
+  int get_opaque_value(OpaqueStruct o) { return o.i; }
+  OpaqueStruct *get_opaque_ptr(OpaqueStruct * o) { return o; }
+  const OpaqueStruct *get_opaque_cptr(const OpaqueStruct *o) { return o; }
+  OpaqueStruct &get_opaque_ref(OpaqueStruct & o) { return o; }
+  const OpaqueStruct &get_opaque_cref(const OpaqueStruct &o) { return o; }
+  OpaqueStruct const ** get_opaque_handle() {
+    static const OpaqueStruct* os = NULL;
+    return &os;
+  }
+
+  int get_declared_value(const DeclaredStruct &o) { return o.i; }
+  DeclaredStruct make_declared(int i) {
+    DeclaredStruct o;
+    o.i = i;
+    return o;
+  }
+  int get_ignored_value(const IgnoredStruct &o) { return o.i; }
+  IgnoredStruct make_ignored(int i) {
+    IgnoredStruct o;
+    o.i = i;
+    return o;
+  }
+  int get_templated_value(const TemplatedStruct<int> &o) { return o.i; }
+  TemplatedStruct<int> make_templated(int i) {
+    TemplatedStruct<int> o;
+    o.i = i;
+    return o;
+  }
   int get_value(Foo f) { return static_cast<int>(f); }
-  DelayedStruct make_delayed(int i) { DelayedStruct o; o.i = i; return o; }
+  DelayedStruct make_delayed(int i) {
+    DelayedStruct o;
+    o.i = i;
+    return o;
+  }
 %}
 
 struct DelayedStruct { int i; };

@@ -70,6 +70,8 @@ const SimpleStruct& get_cref() { return global_struct; }
 SimpleStruct * &get_ref_ptr() { return global_struct_ptr; }
 SimpleStruct const* & get_cref_ptr() { return global_struct_const_ptr; }
 
+void set_val_cpp(SimpleStruct s) { global_struct = s; }
+
 extern "C" {
 #endif
 

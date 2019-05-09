@@ -420,6 +420,23 @@ String *make_fname(String *name, int warning = WARN_LANG_IDENTIFIER) {
 }
 
 /* -------------------------------------------------------------------------
+ * \brief Create a mangled SWIGTYPEMyClassName for Fortran proxy code.
+ */
+String *create_mangled_fname(SwigType *classnametype) {
+  // Memoize mangled names
+  static Hash *mangled_type_cache = NewHash();
+  String *result = Getattr(mangled_type_cache, classnametype);
+  if (!result) {
+    // Create mangled SWIGTYPE_p_FooBar
+    String *mangled = SwigType_manglestr(classnametype);
+    Insert(mangled, 0, "SWIGTYPE");
+    result = make_fname(mangled, WARN_NONE);
+    Delete(mangled);
+  }
+  return result;
+}
+
+/* -------------------------------------------------------------------------
  * \brief Get/attach and return a typemap to the given node.
  *
  * If 'ext' is non-null, then after binding/searchinbg, a search will be made
@@ -459,7 +476,7 @@ String *get_typemap(const_String_or_char_ptr tmname, const_String_or_char_ptr ex
     }
     Swig_warning(warning, Getfile(n), Getline(n),
                  "No '%s' typemap defined for %s\n",
-                 tmname, SwigType_str(type, 0));
+                 tmname, SwigType_str(type, NULL));
 
     String *tmap_match_key = NewStringf("tmap:%s:match_type", tmname);
     Setattr(n, tmap_match_key, "SWIGTYPE");
@@ -565,7 +582,7 @@ private:
   String *f_fsubprograms;    //!< Fortran subroutine wrapper functions
 
   // Keep track of anonymous classes and enums
-  Hash *d_mangled_type;
+  Hash *d_emitted_mangled;
 
   // Module-wide procedure interfaces
   Hash *d_overloads; //!< Overloaded subroutine -> overload names
@@ -602,7 +619,7 @@ public:
   virtual String *makeParameterName(Node *n, Parm *p, int arg_num, bool is_setter = false) const;
   virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm);
 
-  FORTRAN() : d_mangled_type(NULL), d_overloads(NULL), f_class(NULL), d_method_overloads(NULL), d_constructors(NULL), d_enum_public(NULL) {}
+  FORTRAN() : d_emitted_mangled(NULL), d_overloads(NULL), f_class(NULL), d_method_overloads(NULL), d_constructors(NULL), d_enum_public(NULL) {}
 
 private:
   int cfuncWrapper(Node *n);
@@ -620,7 +637,6 @@ private:
   String *get_fortran_name(Node *n, String *symname = NULL);
   String *get_fclassname(SwigType *classnametype);
   String *get_fenumname(SwigType *classnametype);
-  String *create_mangled_name(SwigType *classnametype, Node *n);
 
   // Add lowercase symbol (fortran) to the module's namespace
   int add_fsymbol(String *s, Node *n);
@@ -736,7 +752,7 @@ int FORTRAN::top(Node *n) {
   f_fsubprograms = NewStringEmpty();
   Swig_register_filebyname("fsubprograms", f_fsubprograms);
 
-  d_mangled_type = NewHash();
+  d_emitted_mangled = NewHash();
   d_overloads = NewHash();
 
   // >>> PROCESS
@@ -778,7 +794,7 @@ int FORTRAN::top(Node *n) {
 
   // Clean up files and other data
   Delete(d_overloads);
-  Delete(d_mangled_type);
+  Delete(d_emitted_mangled);
   Delete(f_fsubprograms);
   Delete(f_finterfaces);
   Delete(f_fdecl);
@@ -1031,22 +1047,24 @@ int FORTRAN::functionWrapper(Node *n) {
     }
 
     // Check for different return type
-    if (Node *other = Getattr(n, "covariant")) {
-      Swig_warning(WARN_FORTRAN_COVARIANT_RET, input_file, line_number,
-                   "Ignoring '%s' because the base class function '%s' has a different return type\n",
-                   fsymname, Getattr(other, "fortran:name"));
-      Swig_warning(WARN_FORTRAN_COVARIANT_RET, Getfile(other), Getline(other),
-                   "Previous declaration of '%s'\n",
-                   Getattr(other, "sym:name"));
-      return SWIG_NOWRAP;
-    }
+    if (Node *other = Getattr(n, "override")) {
+      if (SwigType *covar = Getattr(n, "covariant")) {
+        Swig_warning(WARN_FORTRAN_COVARIANT_RET, input_file, line_number,
+                     "Ignoring '%s' because the base class function '%s' has a different return type '%s'\n",
+                     fsymname, Getattr(other, "fortran:name"),
+                     SwigType_str(covar, NULL));
+        Swig_warning(WARN_FORTRAN_COVARIANT_RET, Getfile(other), Getline(other),
+                     "Previous declaration of '%s'\n",
+                     Getattr(other, "sym:name"));
+        return SWIG_NOWRAP;
+      }
     
-    Node *overridden = Getattr(n, "override");
-    if (overridden && Getattr(overridden, "fortran:generic")) {
-      // The base class's method is wrapped and it's generic. Do *not*
-      // generate a wrapper for this function since it would be ambiguous
-      // with the base class.
-      return SWIG_NOWRAP;
+      if (Getattr(other, "fortran:generic")) {
+        // The base class's method is wrapped and it's generic. Do *not*
+        // generate a wrapper for this function since it would be ambiguous
+        // with the base class.
+        return SWIG_NOWRAP;
+      }
     }
     
     if (Node *other = overload_base) {
@@ -1363,7 +1381,7 @@ int FORTRAN::cfuncWrapper(Node *n) {
     // XXX this should probably raise an error
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
                  "Unable to use return type %s in function %s.\n",
-                 SwigType_str(return_cpptype, 0), Getattr(n, "name"));
+                 SwigType_str(return_cpptype, NULL), Getattr(n, "name"));
   }
   emit_return_variable(n, return_cpptype, cfunc);
 
@@ -2388,7 +2406,7 @@ int FORTRAN::memberfunctionHandler(Node *n) {
   }
 
   // Create a private procedure name that gets bound to the Fortan TYPE
-  String *fwrapname = proxy_name_construct(this->getNSpace(), class_symname,Getattr(n, "sym:name"));
+  String *fwrapname = proxy_name_construct(this->getNSpace(), class_symname, Getattr(n, "sym:name"));
   Setattr(n, "fortran:fname", fwrapname);
   Delete(fwrapname);
 
@@ -2862,21 +2880,39 @@ int FORTRAN::constantWrapper(Node *n) {
 void FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
   assert(intype);
   SwigType *resolvedtype = SwigType_typedef_resolve_all(intype);
-  SwigType *basetype = SwigType_base(resolvedtype);
+  SwigType *strippedtype = SwigType_strip_qualifiers(resolvedtype);
 
   if (Strstr(tm, "$fclassname")) {
-    if (String *repl = this->get_fclassname(basetype)) {
+    if (String *repl = this->get_fclassname(strippedtype)) {
       Replaceall(tm, "$fclassname", repl);
     }
   }
+  if (Strstr(tm, "$*fclassname")) {
+    String *repltype = Copy(strippedtype);
+    Delete(SwigType_pop(repltype));
+    if (Len(repltype) > 0) {
+      if (String *repl = this->get_fclassname(repltype)) {
+        Replaceall(tm, "$*fclassname", repl);
+      }
+    }
+    Delete(repltype);
+  }
+  if (Strstr(tm, "$&fclassname")) {
+    String *repltype = Copy(strippedtype);
+    SwigType_add_pointer(repltype);
+    if (String *repl = this->get_fclassname(repltype)) {
+      Replaceall(tm, "$&fclassname", repl);
+    }
+    Delete(repltype);
+  }
   if (Strstr(tm, "$fenumname")) {
-    if (String *repl = this->get_fenumname(basetype)) {
+    if (String *repl = this->get_fenumname(strippedtype)) {
       Replaceall(tm, "$fenumname", repl);
     }
   }
 
   Delete(resolvedtype);
-  Delete(basetype);
+  Delete(strippedtype);
 }
 
 /* -------------------------------------------------------------------------
@@ -2916,26 +2952,27 @@ String *FORTRAN::get_fclassname(SwigType *classnametype) {
   if (n) {
     replacementname = this->get_fortran_name(n);
   } else {
-    // Check for existing mangled name
-    replacementname = Getattr(d_mangled_type, classnametype);
-    if (!replacementname) {
-      // First time encountering this particular class
+    replacementname = create_mangled_fname(classnametype);
+
+    if (!Getattr(d_emitted_mangled, replacementname)) {
+      // First time encountering this particular mangled type
       // Create a node so we can insert into the fortran symbol table
       n = NewHash();
       set_nodeType(n, "classforward");
       Setattr(n, "name", classnametype);
-      replacementname = this->create_mangled_name(classnametype, n);
-      if (replacementname) {
+
+      if (this->add_fsymbol(replacementname, n) != SWIG_NOWRAP) {
         emit_fragment("SwigClassWrapper_f");
         Printv(f_fdecl,
                " type, public :: ", replacementname, "\n", 
                "  type(SwigClassWrapper), public :: swigdata\n",
                " end type\n",
                NULL);
+        Setattr(d_emitted_mangled, replacementname, n);
       }
     }
   }
-
+    
   return replacementname;
 }
 
@@ -2949,49 +2986,23 @@ String *FORTRAN::get_fenumname(SwigType *classnametype) {
   if (n && !GetFlag(n, "enumMissing") && GetFlag(n, "fortran:declared")) {
     replacementname = this->get_fortran_name(n);
   } else {
-    // Check for existing mangled name
-    replacementname = Getattr(d_mangled_type, classnametype);
+    replacementname = create_mangled_fname(classnametype);
 
-    // Create a node so we can insert into the fortran symbol table
-    n = NewHash();
-    set_nodeType(n, "enumforward");
-    Setattr(n, "name", classnametype);
+    if (!Getattr(d_emitted_mangled, replacementname)) {
+      // First time encountering this particular mangled type
+      // Create a node so we can insert into the fortran symbol table
+      n = NewHash();
+      set_nodeType(n, "enumforward");
+      Setattr(n, "name", classnametype);
 
-    if (!replacementname) {
-      // First time encountering this particular enum
-      replacementname = this->create_mangled_name(classnametype, n);
-      if (replacementname) {
+      if (this->add_fsymbol(replacementname, n) != SWIG_NOWRAP) {
         Replace(replacementname, "enum ", "", DOH_REPLACE_ANY);
         Printv(f_fdecl, "integer, parameter, public :: ", replacementname, " = C_INT\n", NULL);
+        Setattr(d_emitted_mangled, replacementname, n);
       }
     }
   }
 
-  return replacementname;
-}
-
-/* -------------------------------------------------------------------------
- * \brief Create a mangled SWIGTYPEMyClassName for Fortran proxy code.
- *
- * This saves the mangled name in the `d_mangled_type` cache.
- *
- * Return NULL if the name conflicts.
- */
-String *FORTRAN::create_mangled_name(SwigType *classnametype, Node *n) {
-  // Create mangled SWIGTYPE_p_FooBar
-  String *mangled = SwigType_manglestr(classnametype);
-  String *tempname = NewStringf("SWIGTYPE%s", mangled);
-  Delete(mangled);
-  String *replacementname = make_fname(tempname, WARN_NONE);
-  Delete(tempname);
-
-  // Cache the mangled name
-  Setattr(d_mangled_type, classnametype, replacementname);
-
-  // Try to add the mangled name; reset to NULL if it's a duplicate
-  if (this->add_fsymbol(replacementname, n) == SWIG_NOWRAP) {
-    replacementname = NULL;
-  }
   return replacementname;
 }
 
