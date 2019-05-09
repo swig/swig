@@ -7,15 +7,27 @@
 #include <cstring>
 #include <string>
 
+
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
-#    define V8_RETURN(val) return scope.Close(val)
+  typedef v8::Handle<v8::Value> V8ReturnValue;
+  typedef v8::Arguments V8Arguments;
+# define V8_RETURN(val) return scope.Close(val)
 #else
-#    define V8_RETURN(val) args.GetReturnValue().Set(val); return
+  typedef void V8ReturnValue;
+  typedef v8::FunctionCallbackInfo<v8::Value> V8Arguments;
+# define V8_RETURN(val) args.GetReturnValue().Set(val); return
 #endif
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032318)
 #    define V8_UNDEFINED() v8::Undefined()
 #else
 #    define V8_UNDEFINED() v8::Undefined(v8::Isolate::GetCurrent())
+#endif
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032117)
+#    define V8_HANDLESCOPE() v8::HandleScope scope
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032224)
+#    define V8_HANDLESCOPE() v8::HandleScope scope(v8::Isolate::GetCurrent());
+#else
+#    define V8_HANDLESCOPE() v8::HandleScope scope(v8::Isolate::GetCurrent());
 #endif
 
 
@@ -44,8 +56,8 @@ static void work_async(uv_work_t* request) {
 
 // send async result back to node's thread
 static void work_complete(uv_work_t* request, int status) {
+    V8_HANDLESCOPE();
     v8::Isolate* iso = v8::Isolate::GetCurrent();
-    v8::HandleScope scope(iso);
     worker_packet* packet = static_cast<worker_packet*>(request->data);
     const int argc = 1;
     v8::Handle<v8::Value> argv[] = {
@@ -58,7 +70,7 @@ static void work_complete(uv_work_t* request, int status) {
 }
 
 
-static void entry(const v8::FunctionCallbackInfo<v8::Value>& args) {
+static void entry(const V8Arguments& args) {
     v8::Isolate* iso = v8::Isolate::GetCurrent();
     v8::Local<v8::Value> value = args[0];
     if (!value->IsFunction()) {
@@ -76,8 +88,8 @@ static void entry(const v8::FunctionCallbackInfo<v8::Value>& args) {
 }
 
 
-void JavaScript_exampleV8_callback_function(const v8::Arguments& args) {
-    v8::HandleScope scope
+V8ReturnValue JavaScript_exampleV8_callback_function(const V8Arguments& args) {
+    V8_HANDLESCOPE();
 	if (args.Length() != 1) {
         V8_ErrorHandler.error((-1), "Illegal number of arguments.");
         V8_RETURN(V8_UNDEFINED());
