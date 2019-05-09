@@ -12,10 +12,10 @@
 %fortranonlywrapped WeHaveOverloads::WeHaveOverloads;
 
 %typemap(in) SWIGTYPE *nowrap {
-%#error "This shouldn't be wrapped"
+%#error "$1_type shouldn't be wrapped"
 }
 %typemap(out) SWIGTYPE *should_not_be_wrapped {
-%#error "This shouldn't be wrapped"
+%#error "$1_type shouldn't be wrapped"
 }
 %apply SWIGTYPE *nowrap { Unloved **nowrap };
 

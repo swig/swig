@@ -1026,6 +1026,7 @@ int FORTRAN::functionWrapper(Node *n) {
           Swig_warning(WARN_FORTRAN_NAME_COLLISION, Getfile(other), Getline(other),
                        "Previous declaration of '%s'\n",
                        Getattr(other, "sym:name"));
+          SetFlag(n, "fortran:ignore");
           return SWIG_NOWRAP;
         } else if (st != fsymtab) {
           // Same function but in a base class
@@ -1044,6 +1045,7 @@ int FORTRAN::functionWrapper(Node *n) {
         Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, Getfile(other), Getline(other),
                      "Previous declaration of '%s'\n",
                      Getattr(other, "sym:name"));
+        SetFlag(n, "fortran:ignore");
         return SWIG_NOWRAP;
       }
     }
@@ -1058,6 +1060,7 @@ int FORTRAN::functionWrapper(Node *n) {
         Swig_warning(WARN_FORTRAN_COVARIANT_RET, Getfile(other), Getline(other),
                      "Previous declaration of '%s'\n",
                      Getattr(other, "sym:name"));
+        SetFlag(n, "fortran:ignore");
         return SWIG_NOWRAP;
       }
     
@@ -1065,6 +1068,7 @@ int FORTRAN::functionWrapper(Node *n) {
         // The base class's method is wrapped and it's generic. Do *not*
         // generate a wrapper for this function since it would be ambiguous
         // with the base class.
+        SetFlag(n, "fortran:ignore");
         return SWIG_NOWRAP;
       }
     }
@@ -1082,6 +1086,7 @@ int FORTRAN::functionWrapper(Node *n) {
         Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, Getfile(other), Getline(other),
                      "Previous declaration of '%s'\n",
                      Getattr(other, "sym:name"));
+        SetFlag(n, "fortran:ignore");
         return SWIG_NOWRAP;
       }
       // Mark the function as overriding in Fortran, even though it may not be
@@ -1678,7 +1683,10 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   }
 
   if (Node *overload = Getattr(n, "sym:overloaded")) {
-    if (overload != n) {
+    while (overload && GetFlag(overload, "fortran:ignore")) {
+      overload = Getattr(overload, "sym:nextSibling");
+    }
+    if (overload && overload != n) {
       bool is_sibling_fsubroutine = Getattr(overload, "fortran:subroutine");
       if (!is_sibling_fsubroutine && is_fsubroutine) {
         conflicting_subroutine = overload;

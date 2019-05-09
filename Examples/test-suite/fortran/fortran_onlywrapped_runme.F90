@@ -6,7 +6,7 @@ program fortran_onlywrapped_runme
   use fortran_onlywrapped
   use ISO_C_BINDING
   implicit none
-  type(SWIGTYPE_Unloved) :: blah
+  type(SWIGTYPE_p_Unloved) :: blah
   type(Normal) :: norm
 
   blah = should_be_wrapped()
