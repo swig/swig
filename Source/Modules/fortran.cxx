@@ -622,10 +622,10 @@ public:
   FORTRAN() : d_emitted_mangled(NULL), d_overloads(NULL), f_class(NULL), d_method_overloads(NULL), d_constructors(NULL), d_enum_public(NULL) {}
 
 private:
-  int cfuncWrapper(Node *n);
-  int bindcfuncWrapper(Node *n);
-  int imfuncWrapper(Node *n);
-  int proxyfuncWrapper(Node *n);
+  Wrapper *cfuncWrapper(Node *n);
+  int bindcfuncHandler(Node *n);
+  Wrapper *imfuncWrapper(Node *n);
+  Wrapper *proxyfuncWrapper(Node *n);
 
   void add_assignment_operator(Node *n);
   void write_docstring(Node *n, String *dest);
@@ -1136,17 +1136,35 @@ int FORTRAN::functionWrapper(Node *n) {
 
   // >>> GENERATE WRAPPER CODE
 
+  int result = SWIG_NOWRAP;
   if (!bindc) {
-    // Typical function wrapping: generate C, interface, and proxy wrappers.
-    // If something fails, error out early.
-    if (this->cfuncWrapper(n) == SWIG_NOWRAP || this->imfuncWrapper(n) == SWIG_NOWRAP || this->proxyfuncWrapper(n) == SWIG_NOWRAP) {
-      SetFlag(n, "fortran:ignore");
-      return SWIG_NOWRAP;
+    Wrapper *cfunc = this->cfuncWrapper(n);
+    Wrapper *imfunc = cfunc ? this->imfuncWrapper(n) : NULL;
+    Wrapper *ffunc = imfunc ? this->proxyfuncWrapper(n) : NULL;
+    if (ffunc) {
+      Wrapper_print(cfunc, f_wrapper);
+      Wrapper_print(imfunc, f_finterfaces);
+      Wrapper_print(ffunc, f_fsubprograms);
+      result = SWIG_OK;
     }
+
+    DelWrapper(cfunc);
+    DelWrapper(imfunc);
+    DelWrapper(ffunc);
   } else {
-    // C-bound function: set up bindc-type parameters
-    if (this->bindcfuncWrapper(n) == SWIG_NOWRAP || this->imfuncWrapper(n) == SWIG_NOWRAP)
-      return SWIG_NOWRAP;
+    // C-bound function: set up bindc-type parameters and generate intermediate interface
+    if (this->bindcfuncHandler(n) == SWIG_OK) {
+      if (Wrapper *imfunc = this->imfuncWrapper(n)) {
+        Wrapper_print(imfunc, f_finterfaces);
+        DelWrapper(imfunc);
+        result = SWIG_OK;
+      }
+    }
+  }
+
+  if (result != SWIG_OK) {
+    SetFlag(n, "fortran:ignore");
+    return result;
   }
 
   // >>> GENERATE CODE FOR MODULE INTERFACE
@@ -1229,7 +1247,7 @@ int FORTRAN::functionWrapper(Node *n) {
 /* -------------------------------------------------------------------------
  * \brief Generate C/C++ wrapping code
  */
-int FORTRAN::cfuncWrapper(Node *n) {
+Wrapper * FORTRAN::cfuncWrapper(Node *n) {
   String *symname = Getattr(n, "sym:name");
 
   Wrapper *cfunc = NewWrapper();
@@ -1244,7 +1262,7 @@ int FORTRAN::cfuncWrapper(Node *n) {
     Swig_error(input_file, line_number,
                "Failed to parse 'ctype' typemap return value of '%s'\n",
                symname);
-    return SWIG_NOWRAP;
+    return NULL;
   }
 
   const bool is_csubroutine = (Strcmp(c_return_type, "void") == 0);
@@ -1286,7 +1304,7 @@ int FORTRAN::cfuncWrapper(Node *n) {
     Swig_overload_check(n);
     if (Getattr(n, "overload:ignore")) {
       DelWrapper(cfunc);
-      return SWIG_NOWRAP;
+      return NULL;
     }
   }
 
@@ -1320,7 +1338,7 @@ int FORTRAN::cfuncWrapper(Node *n) {
       Swig_error(input_file, line_number,
                  "Failed to parse 'ctype' typemap for argument '%s' of '%s'\n",
                  SwigType_str(Getattr(p, "type"), Getattr(p, "name")), symname);
-      return SWIG_NOWRAP;
+      return NULL;
     }
     // Convert the type and argument name to a valid C expression
     String *carg = SwigType_str(ctype, imname);
@@ -1342,11 +1360,13 @@ int FORTRAN::cfuncWrapper(Node *n) {
   if (GetFlag(n, "feature:fortran:onlywrapped")) {
     // Check return type
     if (!this->is_wrapped_class(n)) {
-      return SWIG_NOWRAP;
+      DelWrapper(cfunc);
+      return NULL;
     }
     for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
       if (!this->is_wrapped_class(it.item)) {
-        return SWIG_NOWRAP;
+        DelWrapper(cfunc);
+        return NULL;
       }
     }
   }
@@ -1449,23 +1469,21 @@ int FORTRAN::cfuncWrapper(Node *n) {
   }
 
   // Write the C++ function into the wrapper code file
-  Wrapper_print(cfunc, f_wrapper);
 
   Delete(cparmlist);
   Delete(outarg);
   Delete(cleanup);
   Delete(c_return_str);
-  DelWrapper(cfunc);
-  return SWIG_OK;
+
+  return cfunc;
 }
 
-
 /* -------------------------------------------------------------------------
- * \brief Generate Fortran interface code
+ * \brief Set up parameters for intermediate function wrapping.
  *
- * This is the Fortran equivalent of the cfuncWrapper's declaration.
+ * This is the Fortran equivalent of the cfuncWrapper's declaration, but it doesn't.
  */
-int FORTRAN::bindcfuncWrapper(Node *n) {
+int FORTRAN::bindcfuncHandler(Node *n) {
   // Simply binding a function for Fortran
   if (CPlusPlus && !Swig_storage_isexternc(n)) {
     Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number,
@@ -1507,7 +1525,7 @@ int FORTRAN::bindcfuncWrapper(Node *n) {
  *
  * This is the Fortran equivalent of the cfuncWrapper's declaration.
  */
-int FORTRAN::imfuncWrapper(Node *n) {
+Wrapper *FORTRAN::imfuncWrapper(Node *n) {
   Wrapper *imfunc = NewFortranWrapper();
 
   const char *tmtype = "imtype";
@@ -1572,7 +1590,8 @@ int FORTRAN::imfuncWrapper(Node *n) {
 
     // Check for bad dimension parameters
     if (bad_fortran_dims(p, tmtype)) {
-      return SWIG_NOWRAP;
+      DelWrapper(imfunc);
+      return NULL;
     }
 
     // Include import statements if present; needed for actual structs
@@ -1605,12 +1624,8 @@ int FORTRAN::imfuncWrapper(Node *n) {
   }
   Printv(imfunc->code, imlocals, "\n  end ", im_func_type, NULL);
 
-  // Write the C++ function into the wrapper code file
-  Wrapper_print(imfunc, f_finterfaces);
-
-  DelWrapper(imfunc);
   Delete(imimport_hash);
-  return SWIG_OK;
+  return imfunc;
 }
 
 /* -------------------------------------------------------------------------
@@ -1618,7 +1633,7 @@ int FORTRAN::imfuncWrapper(Node *n) {
  *
  * This is for the native Fortran interaction.
  */
-int FORTRAN::proxyfuncWrapper(Node *n) {
+Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
   Wrapper *ffunc = NewFortranWrapper();
 
   // Write documentation
@@ -1721,7 +1736,8 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
                  "Fortran type-bound 'subroutine' conflicts with Fortran type-bound 'function': ignoring\n");
     Swig_warning(WARN_FORTRAN_AUTO_SUBROUTINE, Getfile(conflicting_subroutine), Getline(conflicting_subroutine),
                  "Other procedure declared here\n");
-    return SWIG_NOWRAP;
+    DelWrapper(ffunc);
+    return NULL;
   }
 
   if (func_to_subroutine && GetFlag(n, "tmap:ftype:nofortransubroutine")) {
@@ -1733,7 +1749,8 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
     if (!GetFlag(n, "feature:fortran:subroutine")) {
       // Feature was *automatically* set, so it will generate invalid Fortran
       // unless we exit now
-      return SWIG_NOWRAP;
+      DelWrapper(ffunc);
+      return NULL;
     }
   }
 
@@ -1838,7 +1855,7 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
                    "Function '%s' has a different number of Fortran arguments from the function it overrides\n",
                    fsymname);
         Swig_error(Getfile(overridden), Getline(overridden), "Base class function declared here\n");
-        return SWIG_ERROR;
+        return NULL;
       }
       if (Strcmp(farg, parent_arg.item) != 0) {
         Swig_warning(WARN_FORTRAN_ARGUMENT_NAME, Getfile(n), Getline(n),
@@ -1859,7 +1876,8 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
     Printv(fargs, "   ", ftype, " :: ", farg, "\n", NULL);
 
     if (bad_fortran_dims(p, "ftype")) {
-      return SWIG_NOWRAP;
+      DelWrapper(ffunc);
+      return NULL;
     }
 
     // Add this argument to the intermediate call function
@@ -1933,7 +1951,8 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   Setattr(temp, "lname", "fresult"); // Replaces $1
   String *fbody = attach_typemap("fout", temp, WARN_FORTRAN_TYPEMAP_FOUT_UNDEF);
   if (bad_fortran_dims(temp, "fout")) {
-    return SWIG_NOWRAP;
+    DelWrapper(ffunc);
+    return NULL;
   }
 
   String *fparm = attach_typemap("foutdecl", temp, WARN_NONE);
@@ -1985,13 +2004,10 @@ int FORTRAN::proxyfuncWrapper(Node *n) {
   Printv(ffunc->code, "  end ", f_func_type, NULL);
 
   // Write the C++ function into the wrapper code file
-  Wrapper_print(ffunc, f_fsubprograms);
-
-  DelWrapper(ffunc);
   Delete(fcall);
   Delete(fargs);
   Delete(swig_result_name);
-  return SWIG_OK;
+  return ffunc;
 }
 
 /* -------------------------------------------------------------------------
