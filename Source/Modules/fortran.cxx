@@ -2092,7 +2092,7 @@ void FORTRAN::write_docstring(Node *n, String *dest) {
 
   for (; it.item; it = Next(it)) {
     // Chop(it.item);
-    Printv(dest, "! ", it.item, "\n", NULL);
+    Printv(dest, "!> ", it.item, "\n", NULL);
   }
 
   Delete(lines);
