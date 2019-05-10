@@ -1148,9 +1148,12 @@ int FORTRAN::functionWrapper(Node *n) {
       result = SWIG_OK;
     }
 
-    DelWrapper(cfunc);
-    DelWrapper(imfunc);
-    DelWrapper(ffunc);
+    if (cfunc)
+      DelWrapper(cfunc);
+    if (imfunc)
+      DelWrapper(imfunc);
+    if (ffunc)
+      DelWrapper(ffunc);
   } else {
     // C-bound function: set up bindc-type parameters and generate intermediate interface
     if (this->bindcfuncHandler(n) == SWIG_OK) {
