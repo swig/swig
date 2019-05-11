@@ -1058,23 +1058,33 @@ if test -n "$OCTAVE"; then
    AS_IF([test "x`${OCTAVE} --version 2>/dev/null | sed -n -e '1p' | sed -n -e '/Octave, version/p'`" != x],[
       AC_MSG_RESULT([yes])
    ],[
-      AC_MSG_NOTICE([no, disabling Octave])
+      AC_MSG_NOTICE([no])
       OCTAVE=
    ])
 fi
 
 # Check for required Octave helper program "mkoctfile"
 if test -n "$OCTAVE"; then
-   AC_MSG_CHECKING([for mkoctfile])
-   mkoctfile=["`echo $OCTAVE | sed -e 's|[a-z][a-z-]*$|mkoctfile|;t;s|[a-z][a-z-]*\(-[0-9][0-9.+]*\)$|mkoctfile\1|;t'`"]
-   AC_MSG_RESULT([${mkoctfile}])
-   AC_MSG_CHECKING([if ${mkoctfile} works])
-   AS_IF([test "x`${mkoctfile} --version 2>/dev/null | sed -n -e '1p' | sed -n -e '/mkoctfile, version/p'`" != x],[
+  AC_MSG_CHECKING([for mkoctfile])
+  version_suffix=["`echo $OCTAVE | sed -e 's|.*\(-[0-9][0-9.]*\)$|\1|'`"]
+  case $version_suffix in
+    -*) ;;
+    *) version_suffix="" ;;
+  esac
+  octave_directory=`dirname $OCTAVE`
+  if test "$octave_directory" = "." ; then
+    mkoctfile="mkoctfile${version_suffix}"
+  else
+    mkoctfile="${octave_directory}/mkoctfile${version_suffix}"
+  fi
+  AC_MSG_RESULT([${mkoctfile}])
+  AC_MSG_CHECKING([if ${mkoctfile} works])
+  AS_IF([test "x`${mkoctfile} --version 2>/dev/null | sed -n -e '1p' | sed -n -e '/mkoctfile, version/p'`" != x],[
       AC_MSG_RESULT([yes])
-   ],[
-      AC_MSG_NOTICE([no, disabling Octave])
+    ],[
+      AC_MSG_RESULT([no])
       OCTAVE=
-   ])
+    ])
 fi
 
 # Check for Octave preprocessor/compiler/linker flags
