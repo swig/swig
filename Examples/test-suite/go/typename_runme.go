@@ -1,6 +1,6 @@
 package main
 
-import "./typename"
+import "typename"
 
 func main() {
 	f := typename.NewFoo()

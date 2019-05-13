@@ -1,6 +1,6 @@
 package main
 
-import . "./using_composition"
+import . "using_composition"
 
 func main() {
 	f := NewFooBar()

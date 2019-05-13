@@ -1,6 +1,6 @@
 package main
 
-import . "./struct_initialization"
+import . "struct_initialization"
 
 func main() {
 	if GetInstanceC1().GetX() != 10 {

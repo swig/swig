@@ -1,6 +1,6 @@
 package main
 
-import . "./using_inherit"
+import . "using_inherit"
 
 func main() {
 	b := NewBar()

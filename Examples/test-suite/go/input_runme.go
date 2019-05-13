@@ -1,6 +1,6 @@
 package main
 
-import . "./input"
+import . "input"
 
 func main() {
 	f := NewFoo()

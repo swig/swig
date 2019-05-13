@@ -1,6 +1,6 @@
 package main
 
-import "./virtual_poly"
+import "virtual_poly"
 
 func main() {
 	d := virtual_poly.NewNDouble(3.5)

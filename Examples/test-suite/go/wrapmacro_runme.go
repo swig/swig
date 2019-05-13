@@ -1,6 +1,6 @@
 package main
 
-import "./wrapmacro"
+import "wrapmacro"
 
 func main() {
 	a := 2

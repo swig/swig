@@ -1,6 +1,6 @@
 package main
 
-import . "./fvirtual"
+import . "fvirtual"
 
 func main() {
 	sw := NewNodeSwitch()

@@ -1527,7 +1527,8 @@ GOPACK = `if $(GO1) ; then echo go tool pack; else echo gopack; fi`
 
 GOPACKAGE = $(notdir $(INTERFACE:.i=.a))
 
-GOPATHDIR = gopath/src/$(INTERFACE:.i=)
+GOPATHPARENTDIR = gopath/$(GOMOD)/src
+GOPATHDIR = $(GOPATHPARENTDIR)/$(INTERFACE:.i=)
 
 GOOBJEXT = `if $(GO15); then echo o; else echo $(GOC:c=); fi`
 GOGCOBJS = $(GOSRCS:.go=.$(GOOBJEXT))
@@ -1536,6 +1537,16 @@ GOGCCOBJS = $(GOSRCS:.go=.@OBJEXT@)
 # ----------------------------------------------------------------
 # Build a Go module (C)
 # ----------------------------------------------------------------
+
+$(GOPATHPARENTDIR)/go.mod:
+	@mkdir gopath 2>/dev/null || true
+	@mkdir gopath/$(GOMOD) 2>/dev/null || true
+	@mkdir gopath/$(GOMOD)/src 2>/dev/null || true
+	@mkdir $(GOPATHDIR) 2>/dev/null || true
+	echo "module swigtests" > $(GOPATHDIR)/go.mod
+	echo "" >> $(GOPATHDIR)/go.mod
+	echo "go 1.12" >> $(GOPATHDIR)/go.mod
+	mv -f $(GOPATHDIR)/go.mod $(GOPATHPARENTDIR)/go.mod
 
 go_nocgo: $(SRCDIR_SRCS)
 	$(SWIG) -go -no-cgo $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
@@ -1573,11 +1584,12 @@ go_nocgo: $(SRCDIR_SRCS)
 	  fi; \
 	fi
 
-go: $(SRCDIR_SRCS)
-	$(SWIG) -go $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+go: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
+	$(SWIG) -go -import-prefix swigtests $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	@mkdir gopath 2>/dev/null || true
-	@mkdir gopath/src 2>/dev/null || true
-	@mkdir gopath/src/$(INTERFACE:.i=) 2>/dev/null || true
+	@mkdir gopath/$(GOMOD) 2>/dev/null || true
+	@mkdir gopath/$(GOMOD)/src 2>/dev/null || true
+	@mkdir $(GOPATHDIR) 2>/dev/null || true
 	rm -f $(GOPATHDIR)/*
 	cp $(ISRCS) $(GOPATHDIR)/
 	if test -f $(IWRAP:.i=.h); then \
@@ -1587,7 +1599,7 @@ go: $(SRCDIR_SRCS)
 	  cp $(SRCDIR_SRCS) $(GOPATHDIR)/; \
 	fi
 	cp $(GOSRCS) $(GOPATHDIR)/
-	GOPATH=`pwd`/gopath; \
+	GOPATH=`pwd`/gopath/$(GOMOD); \
 	export GOPATH; \
 	CGO_CPPFLAGS="$(CPPFLAGS) $(INCLUDES) -I `cd $(SRCDIR) && pwd` -I `pwd`"; \
 	export CGO_CPPFLAGS; \
@@ -1596,17 +1608,16 @@ go: $(SRCDIR_SRCS)
 	CGO_LDFLAGS="$(LDFLAGS) -lm"; \
 	export CGO_LDFLAGS; \
 	(cd $(GOPATHDIR)/ && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o $(GOPACKAGE))
-	cp $(GOPATHDIR)/$(GOPACKAGE) $(dir $(INTERFACE))/$(GOPACKAGE)
 	if $(GOGCC); then \
-	  cp $(dir $(INTERFACE))/$(GOPACKAGE) $(dir $(INTERFACE))/$(GOPACKAGE:.a=.gox); \
+	  cp $(GOPATHDIR)/$(GOPACKAGE) $(GOPATHDIR)/$(GOPACKAGE:.a=.gox); \
 	fi
 	if test -f $(SRCDIR)$(RUNME).go; then \
 	  if $(GOGCC) ; then \
-	    $(COMPILETOOL) $(GCCGO) -c -g $(SRCDIR)$(RUNME).go; \
-	    $(COMPILETOOL) $(GCCGO) -o $(RUNME) $(RUNME).@OBJEXT@ $(dir $(INTERFACE))/$(GOPACKAGE); \
+	    $(COMPILETOOL) $(GCCGO) -c -g -I $(GOPATHDIR) $(SRCDIR)$(RUNME).go; \
+	    $(COMPILETOOL) $(GCCGO) -o $(RUNME) $(RUNME).@OBJEXT@ $(GOPATHDIR)/$(GOPACKAGE); \
 	  elif $(GO12) || $(GO13) || $(GO15); then \
-	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -o $(RUNME).$(GOOBJEXT) $(SRCDIR)$(RUNME).go; \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld "$(CC)" -extldflags "$(CFLAGS) $(LDFLAGS)" -o $(RUNME) $(RUNME).$(GOOBJEXT); \
+	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I $(GOPATHDIR) -o $(RUNME).$(GOOBJEXT) $(SRCDIR)$(RUNME).go; \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L $(GOPATHDIR) -linkmode external -extld "$(CC)" -extldflags "$(CFLAGS) $(LDFLAGS)" -o $(RUNME) $(RUNME).$(GOOBJEXT); \
 	  else \
 	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $(RUNME) $(RUNME).$(GOOBJEXT); \
@@ -1665,11 +1676,12 @@ go_cpp_nocgo: $(SRCDIR_SRCS)
 	  fi; \
 	fi
 
-go_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -go -c++ $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+go_cpp: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
+	$(SWIG) -go -c++ -import-prefix swigtests $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	@mkdir gopath 2>/dev/null || true
-	@mkdir gopath/src 2>/dev/null || true
-	@mkdir gopath/src/$(INTERFACE:.i=) 2>/dev/null || true
+	@mkdir gopath/$(GOMOD) 2>/dev/null || true
+	@mkdir gopath/$(GOMOD)/src 2>/dev/null || true
+	@mkdir $(GOPATHDIR) 2>/dev/null || true
 	rm -f $(GOPATHDIR)/*
 	cp $(ICXXSRCS) $(GOPATHDIR)/
 	if test -f $(IWRAP:.i=.h); then \
@@ -1682,7 +1694,7 @@ go_cpp: $(SRCDIR_SRCS)
 	  cp $(SRCDIR_SRCS) $(GOPATHDIR)/; \
 	fi
 	cp $(GOSRCS) $(GOPATHDIR)/
-	GOPATH=`pwd`/gopath; \
+	GOPATH=`pwd`/gopath/$(GOMOD); \
 	export GOPATH; \
 	CGO_CPPFLAGS="$(CPPFLAGS) $(INCLUDES) -I `cd $(SRCDIR) && pwd` -I `pwd`"; \
 	export CGO_CPPFLAGS; \
@@ -1693,17 +1705,16 @@ go_cpp: $(SRCDIR_SRCS)
 	CGO_LDFLAGS="$(LDFLAGS) -lm"; \
 	export CGO_LDFLAGS; \
 	(cd $(GOPATHDIR) && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o $(GOPACKAGE))
-	cp $(GOPATHDIR)/$(GOPACKAGE) $(dir $(INTERFACE))/$(GOPACKAGE)
 	if $(GOGCC); then \
-	  cp $(dir $(INTERFACE))/$(GOPACKAGE) $(dir $(INTERFACE))/$(GOPACKAGE:.a=.gox); \
+	  cp $(GOPATHDIR)/$(GOPACKAGE) $(GOPATHDIR)/$(GOPACKAGE:.a=.gox); \
 	fi
 	if test -f $(SRCDIR)$(RUNME).go; then \
 	  if $(GOGCC) ; then \
-	    $(COMPILETOOL) $(GCCGO) -g -c $(SRCDIR)$(RUNME).go; \
-	    $(COMPILETOOL) $(GCCGO) -o $(RUNME) $(RUNME).@OBJEXT@ $(dir $(INTERFACE))/$(GOPACKAGE) -lstdc++; \
+	    $(COMPILETOOL) $(GCCGO) -g -c -I $(GOPATHDIR) $(SRCDIR)$(RUNME).go; \
+	    $(COMPILETOOL) $(GCCGO) -o $(RUNME) $(RUNME).@OBJEXT@ $(GOPATHDIR)/$(GOPACKAGE) -lstdc++; \
 	  elif $(GO12) || $(GO13) || $(GO15); then \
-	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -o $(RUNME).$(GOOBJEXT) $(SRCDIR)$(RUNME).go; \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld "$(CXX)" -extldflags "$(CXXFLAGS) $(LDFLAGS)" -o $(RUNME) $(RUNME).$(GOOBJEXT); \
+	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I $(GOPATHDIR) -o $(RUNME).$(GOOBJEXT) $(SRCDIR)$(RUNME).go; \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L $(GOPATHDIR) -linkmode external -extld "$(CXX)" -extldflags "$(CXXFLAGS) $(LDFLAGS)" -o $(RUNME) $(RUNME).$(GOOBJEXT); \
 	  else \
 	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $(RUNME) $(RUNME).$(GOOBJEXT); \

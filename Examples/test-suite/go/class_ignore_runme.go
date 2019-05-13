@@ -1,6 +1,6 @@
 package main
 
-import "./class_ignore"
+import "class_ignore"
 
 func main() {
 	a := class_ignore.NewBar()
