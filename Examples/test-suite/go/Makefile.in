@@ -73,7 +73,18 @@ INCLUDES = -I$(abs_top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 
 %.multicpptest:
 	$(setup)
-	+$(swig_and_compile_multi_cpp)
+	mkdir -p gopath/$*/src 2>/dev/null || true
+	if ! test -d gopath/$*/src/swigtests; then \
+	  (cd gopath/$*/src && ln -s . swigtests); \
+	fi
+	+for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
+	  SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
+	  LIBS='$(LIBS)' INCLUDES='$(INCLUDES)' SWIGOPT='$(SWIGOPT)' NOLINK=true \
+	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR='$(INTERFACEDIR)' INTERFACE="$$f.i" \
+	  GOMOD="$*" \
+	  $(LANGUAGE)$(VARIANT)_cpp; \
+	done
 	$(run_multi_testcase)
 
 li_windows.cpptest:
@@ -82,50 +93,55 @@ li_windows.cpptest:
 
 multi_import.multicpptest:
 	$(setup)
+	mkdir -p gopath/multi_import/src 2>/dev/null || true
+	if ! test -d gopath/multi_import/src/swigtests; then \
+	  (cd gopath/multi_import/src && ln -s . swigtests); \
+	fi
 	for f in multi_import_b multi_import_a; do \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
 	  SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	  LIBS='$(LIBS)' INCLUDES='$(INCLUDES)' SWIGOPT='$(SWIGOPT)' NOLINK=true \
 	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR='$(INTERFACEDIR)' INTERFACE="$$f.i" \
+	  GOMOD="multi_import" \
 	  $(LANGUAGE)$(VARIANT)_cpp; \
 	done
 	$(run_multi_testcase)
 
 go_subdir_import.multicpptest:
 	$(setup)
-	mkdir -p testdir/go_subdir_import/
-	mkdir -p gopath/src/testdir/go_subdir_import/
+	mkdir -p gopath/go_subdir_import/src 2>/dev/null || true
+	if ! test -d gopath/go_subdir_import/src/swigtests; then \
+	  (cd gopath/go_subdir_import/src && ln -s . swigtests); \
+	fi
+	mkdir -p testdir/go_subdir_import 2>/dev/null || true
+	mkdir -p gopath/go_subdir_import/src/testdir/go_subdir_import 2>/dev/null || true
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	LIBS='$(LIBS)' INTERFACEPATH='$(SRCDIR)$(INTERFACEDIR)go_subdir_import_b.i' \
 	INCLUDES='$(INCLUDES)' SWIGOPT='$(SWIGOPT) -outdir .' NOLINK=true \
 	TARGET='$(TARGETPREFIX)go_subdir_import_b$(TARGETSUFFIX)' INTERFACEDIR='$(INTERFACEDIR)' \
 	INTERFACE='testdir/go_subdir_import/go_subdir_import_b.i' \
+	GOMOD="go_subdir_import" \
 	$(LANGUAGE)$(VARIANT)_cpp;
 	for f in testdir/go_subdir_import/go_subdir_import_c go_subdir_import_a ; do \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
 	  SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	  LIBS='$(LIBS)' INCLUDES='$(INCLUDES)' SWIGOPT='$(SWIGOPT)' NOLINK=true \
 	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR='$(INTERFACEDIR)' INTERFACE="$$f.i" \
+	  GOMOD="go_subdir_import" \
 	  $(LANGUAGE)$(VARIANT)_cpp; \
 	done
-	if $(GOGCC); then \
-	  cp gopath/src/testdir/go_subdir_import/go_subdir_import_b/go_subdir_import_b.a gopath/src/testdir/go_subdir_import/go_subdir_import_b.gox; \
-	  cp gopath/src/testdir/go_subdir_import/go_subdir_import_b/go_subdir_import_b.a .; \
-	  cp gopath/src/testdir/go_subdir_import/go_subdir_import_c/go_subdir_import_c.a gopath/src/testdir/go_subdir_import/go_subdir_import_c.gox; \
-	  cp gopath/src/testdir/go_subdir_import/go_subdir_import_c/go_subdir_import_c.a testdir/go_subdir_import/; \
-	fi
 	$(run_multi_testcase)
 
 # Runs the testcase.
 run_testcase = \
 	if test -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
 	  if $(GOGCC) ; then \
-	    $(COMPILETOOL) $(GCCGO) -c -g -I . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
-	    $(COMPILETOOL) $(GCCGO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $*.a; \
+	    $(COMPILETOOL) $(GCCGO) -c -g -I gopath/src/$* $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	    $(COMPILETOOL) $(GCCGO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ gopath/src/$*/$*.a; \
 	  elif $(GO12) || $(GO13) || $(GO15); then \
-	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld $(CC) -extldflags "$(CFLAGS) $(OSXOLDGOLINKFLAGS)" -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
+	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I gopath/src/$* $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L gopath/src/$* -linkmode external -extld $(CC) -extldflags "$(CFLAGS) $(OSXOLDGOLINKFLAGS)" -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
 	  else \
 	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
@@ -136,11 +152,11 @@ run_testcase = \
 run_testcase_cpp = \
 	if test -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
 	  if $(GOGCC) ; then \
-	    $(COMPILETOOL) $(GCCGO) -c -g -I . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
-	    $(COMPILETOOL) $(GCCGO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $*.a -lstdc++; \
+	    $(COMPILETOOL) $(GCCGO) -c -g -I gopath/src/$* $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	    $(COMPILETOOL) $(GCCGO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ gopath/src/$*/$*.a -lstdc++; \
 	  elif $(GO12) || $(GO13) || $(GO15); then \
-	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld $(CXX) -extldflags "$(CXXFLAGS) $(OSXOLDGOLINKFLAGS)" -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
+	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I gopath/src/$* $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L gopath/src/$* -linkmode external -extld $(CXX) -extldflags "$(CXXFLAGS) $(OSXOLDGOLINKFLAGS)" -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
 	  else \
 	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
@@ -150,18 +166,24 @@ run_testcase_cpp = \
 
 run_multi_testcase = \
 	if test -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
-	  if $(GOGCC) ; then \
-	    $(COMPILETOOL) $(GCCGO) -c -g -I . -I gopath/src $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	  if $(GO15) || $(GOGCC); then \
 	    files=`cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list`; \
-	    $(COMPILETOOL) $(GCCGO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ `for f in $$files; do echo $$f.a; done` -lstdc++; \
-	  elif $(GO12) || $(GO13) || $(GO15); then \
-	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -linkmode external -extld $(CXX) -extldflags "$(CXXFLAGS) $(OSXOLDGOLINKFLAGS)" -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
-	  else \
-	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
-	  fi && \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
+	    mkdir gopath/$*/src/$* 2>/dev/null || true; \
+	    cp $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) gopath/$*/src/$*; \
+	    GOPATH="`pwd`/gopath/$*"; \
+	    export GOPATH; \
+	    CGO_CPPFLAGS="$(CPPFLAGS) $(INCLUDES) `for f in $$files; do echo -I ../$$f; done`"; \
+	    export CGO_CPPFLAGS; \
+	    CGO_CFLAGS="$(CFLAGS)"; \
+	    export CGO_CFLAGS; \
+	    CGO_CXXFLAGS="$(CXXFLAGS)"; \
+	    export CGO_CXXFLAGS; \
+	    CGO_LDFLAGS="$(LDFLAGS) -lm"; \
+	    export CGO_LDFLAGS; \
+	    (cd gopath/$*/src/$* && \
+	      $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o ../../../../$*_runme) && \
+	    env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
+	  fi; \
 	fi
 
 %.clean:

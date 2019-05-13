@@ -1,6 +1,6 @@
 package main
 
-import . "./li_std_vector_ptr"
+import . "li_std_vector_ptr"
 import "fmt"
 
 func check(val1 int, val2 int) {

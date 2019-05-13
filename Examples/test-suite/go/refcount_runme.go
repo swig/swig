@@ -1,6 +1,6 @@
 package main
 
-import . "./refcount"
+import . "refcount"
 
 // very innocent example
 

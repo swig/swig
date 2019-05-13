@@ -1,6 +1,6 @@
 package main
 
-import "./friends"
+import "friends"
 
 func main() {
 	a := friends.NewA(2)

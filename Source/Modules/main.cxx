@@ -970,11 +970,6 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
     SWIG_exit(EXIT_SUCCESS);	// Exit if we're in help mode
   }
 
-  if (!tlm) {
-    Printf(stderr, "No target language specified\n");
-    return 1;
-  }
-
   // Check all of the options to make sure we're cool.
   // Don't check for an input file if -external-runtime is passed
   Swig_check_options(external_runtime ? 0 : 1);
@@ -1070,7 +1065,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 	  char *cfile = Char(input_file);
 	  if (cfile && cfile[0] == '-') {
 	    Printf(stderr, "Unable to find option or file '%s', ", input_file);
-	    Printf(stderr, "use 'swig -help' for more information.\n");
+	    Printf(stderr, "Use 'swig -help' for more information.\n");
 	  } else {
 	    Printf(stderr, "Unable to find file '%s'.\n", input_file);
 	  }
@@ -1079,6 +1074,13 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 	  Swig_warning(WARN_DEPRECATED_INPUT_FILE, "SWIG", 1, "Use of the include path to find the input file is deprecated and will not work with ccache. Please include the path when specifying the input file.\n"); // so that behaviour is like c/c++ compilers
 	}
       }
+
+      if (!tlm) {
+	Printf(stderr, "No target language specified.\n");
+	Printf(stderr, "Use 'swig -help' for more information.\n");
+	SWIG_exit(EXIT_FAILURE);
+      }
+
       if (!no_cpp) {
 	fclose(df);
 	Printf(fs, "%%include <swig.swg>\n");

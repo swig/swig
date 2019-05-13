@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Install MacOS packages where the version has been overidden in .travis.yml
+
 set -e # exit on failure (same as -o errexit)
 
 sw_vers

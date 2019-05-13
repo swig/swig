@@ -1,6 +1,6 @@
 package main
 
-import "./li_attribute"
+import "li_attribute"
 
 func main() {
 	aa := li_attribute.NewA(1, 2, 3)

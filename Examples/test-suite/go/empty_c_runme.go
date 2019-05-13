@@ -1,6 +1,6 @@
 package main
 
-import _ "./empty_c"
+import _ "empty_c"
 
 func main() {
 }
