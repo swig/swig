@@ -1866,9 +1866,9 @@ public:
   }
 
   String *runtimeCode() {
-    String *s = Swig_include_sys("ocaml.swg");
+    String *s = Swig_include_sys("ocamlrun.swg");
     if (!s) {
-      Printf(stderr, "*** Unable to open 'ocaml.swg'\n");
+      Printf(stderr, "*** Unable to open 'ocamlrun.swg'\n");
       s = NewString("");
     }
     return s;

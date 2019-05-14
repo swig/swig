@@ -34,6 +34,12 @@ FAILING_C_TESTS = \
 enums \
 preproc_constants_c \
 
+CPP_TEST_CASES += \
+	inout \
+
+C_TEST_CASES += \
+	multivalue \
+
 ml_runme = $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 
 run_testcase = \

@@ -26,6 +26,11 @@ void divide_v(int a, int b, int *OUTPUT, int *OUTPUT);
 
 void divide_mv(int a, int b, int *OUTPUT, int *OUTPUT);
 
+#else
+%include "typemaps.i"
+void divide_l(int a, int b, int *OUTPUT, int *OUTPUT);
+void divide_v(int a, int b, int *OUTPUT, int *OUTPUT);
+void divide_mv(int a, int b, int *OUTPUT, int *OUTPUT);
 #endif
 
 %{
@@ -49,4 +54,3 @@ void divide_mv(int a, int b, int *quotient_p, int *remainder_p)
 }
 
 %}
-
