@@ -7,3 +7,6 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.1 (in progress)
 ===========================
 
+2019-05-22: ferdynator
+	    [PHP] #1528 Don't add a closing '?>' PHP tag to generated files.
+	    PSR-2 says it MUST be omitted for files containing only PHP.
