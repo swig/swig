@@ -231,10 +231,12 @@ echo "E = " . E . "\n";
 <p>
 There's one peculiarity of how constants work in PHP which it is useful
 to note (this is not specific to SWIG though) - if you try to use an undeclared
-constant, PHP will emit a notice and then expand the constant to a string
-version of the constant's name.  Unfortunately it is easy to miss the notice
-if you're using PHP in a webserver, as it will probably end up in error.log or
-similar.
+constant, PHP will emit a warning (or a notice in PHP 7.1 and earlier) and then
+expand the constant to a string version of the constant's name.  Unfortunately
+it is easy to miss the warning message if you're using PHP in a webserver as
+it will probably end up in error.log or similar.  Apparently this will throw
+an Error in a future version of PHP, but until then it's something to be
+aware of.
 </p>
 
 <p>
@@ -268,8 +270,7 @@ if(EASY_TO_MISPEL) {
 <p>
 The mis-spelled constant will become the string 'EASY_TO_MISPEL', which
 is treated as true by the if test, when the value of the intended constant
-would be treated as false!  Modern versions of PHP will at least issue
-a PHP notice by default when this happens.
+would be treated as false!
 </p>
 
 <H3><a name="Php_nn2_2">31.2.2 Global Variables</a></H3>
