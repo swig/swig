@@ -59,6 +59,10 @@ see bottom for a set of possible tests
     newOp.PlusPlusPostfix(0);
     return newOp;
   }
+%}
+
+// Also test appending to the existing typemap while we're at it.
+%typemap(cscode, append=1) Op %{
   public static Op operator--(Op op) {
     // Unlike C++, operator-- must not modify the parameter and both prefix and postfix operations call this method
     Op newOp = new Op(op.i);

@@ -271,15 +271,44 @@ static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *par
   } else {
     ParmList *clocals = CopyParmList(locals);
     ParmList *ckwargs = CopyParmList(kwargs);
+    int append = 0;
+    Parm* p;
+
+    /* If the typemap uses append=1 attribute, its code and arguments are appended to the existing typemap contents rather than overwriting it. */
+    for (p = kwargs; p; p = nextSibling(p)) {
+      if (Cmp(Getattr(p, "name"), "append") == 0 && Cmp(Getattr(p, "value"), "1") == 0) {
+	append = 1;
+	break;
+      }
+    }
 
     Setfile(tm2, Getfile(code));
     Setline(tm2, Getline(code));
-    Setattr(tm2, "code", code);
+
+    if (append) {
+      Setattr(tm2, "code", NewStringf("%s%s", Getattr(tm2, "code"), code));
+    } else {
+      Setattr(tm2, "code", code);
+    }
+
     Setattr(tm2, "type", type);
     Setattr(tm2, "source", source_directive);
     if (pname) {
       Setattr(tm2, "pname", pname);
     }
+
+    if (append) {
+      Hash *old;
+
+      old = Getattr(tm2, "locals");
+      if (old)
+	set_nextSibling(clocals, old);
+
+      old = Getattr(tm2, "kwargs");
+      if (old)
+	set_nextSibling(ckwargs, old);
+    }
+
     Setattr(tm2, "locals", clocals);
     Setattr(tm2, "kwargs", ckwargs);
 
