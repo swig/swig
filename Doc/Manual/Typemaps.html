@@ -854,6 +854,31 @@ int isprime(int);                 // typemap2
 </div>
 
 <p>
+For most typemaps, redefining the existing typemap when a new typemap for the same type is encountered is the only possibility which makes sense, however for
+some of them, such as, for example, <tt>cscode</tt> or <tt>javacode</tt> typemaps allowing to inject additional code into the generated classes declarations, it
+may also be useful to add to, rather than replace, the existing typemap definition. The special <tt>append=1</tt> modifier can be used to do it, e.g.:
+</p>
+<div class="code">
+<pre>
+// Implement specific comparison rules for the objects of this type.
+%typemap(csinterfaces_derived) Foo "IEquatable<Foo>"
+%typemap(cscode) Foo {
+    public bool Equals(Foo other) { ... }
+    public override bool Equals(object other) { ... }
+}
+... much later ...
+
+// Add some custom C# code to the generated class declaration: without
+// append=1 here this typemap would have overwritten the one defined
+// above and thus would break IEquatable support.
+%typemap(cscode, append=1) Foo {
+    protected void SomeInternalHelper() { ... }
+}
+%
+</pre>
+</div>
+
+<p>
 One exception to the typemap scoping rules pertains to the <tt>%extend</tt> declaration.  <tt>%extend</tt> is used to attach
 new declarations to a class or structure definition.  Because of this, all of the declarations in an <tt>%extend</tt> block are
 subject to the typemap rules that are in effect at the point where the class itself is defined.  For example:
