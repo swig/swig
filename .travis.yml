@@ -140,16 +140,6 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
-      env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.2 CPP11=1
-      sudo: required
-      dist: trusty
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.4 CPP11=1
-      sudo: required
-      dist: trusty
-    - compiler: gcc
-      os: linux
       env: SWIGLANG=perl5
       sudo: required
       dist: xenial
@@ -328,6 +318,11 @@ matrix:
       env: SWIGLANG=java CPP11=1
       sudo: required
       dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.4 CPP11=1
+      sudo: required
+      dist: trusty
     - os: linux
       env: SWIGLANG=python CPP11=1
       sudo: required
@@ -411,6 +406,9 @@ matrix:
       env: SWIGLANG=lua
     - compiler: clang
       os: osx
+      env: SWIGLANG=octave SWIGJOBS=-j2
+    - compiler: clang
+      os: osx
       env: SWIGLANG=perl5
     - compiler: clang
       os: osx
@@ -433,11 +431,9 @@ matrix:
       sudo: required
       dist: xenial
     # Sometimes hits the Travis 50 minute time limit
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.4 CPP11=1
-      sudo: required
-      dist: trusty
+    - compiler: clang
+      os: osx
+      env: SWIGLANG=octave SWIGJOBS=-j2
     # Experimental languages
     - compiler: gcc
       os: linux
