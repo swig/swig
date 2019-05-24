@@ -37,7 +37,7 @@ Not everything works right now...
 
 .. code-block:: c++
 
-     some test code""")
+    some test code""")
 
 comment_verifier.check(inspect.getdoc(doxygen_translate_all_tags.func02),
 r"""Conditional comment: SOMECONDITION

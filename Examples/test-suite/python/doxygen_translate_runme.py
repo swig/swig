@@ -23,7 +23,7 @@ Author: Zubr
 
 .. code-block:: c++
 
-     some test code
+    some test code
 
 
 Conditional comment: SOMECONDITION
