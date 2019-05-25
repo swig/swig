@@ -446,7 +446,6 @@ void PyDocConverter::handleMath(DoxygenEntity &tag, std::string &translatedComme
     indent.Init(translatedComment, m_indent);
 
     trimWhitespace(translatedComment);
-    translatedComment += '\n';
 
     const string formulaIndent = indent.getFirstLineIndent();
     translatedComment += formulaIndent;
@@ -480,8 +479,6 @@ void PyDocConverter::handleMath(DoxygenEntity &tag, std::string &translatedComme
 
   if (inlineFormula) {
     translatedComment += "`";
-  } else {
-    translatedComment += '\n';
   }
 }
 

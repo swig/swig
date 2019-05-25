@@ -90,17 +90,13 @@ r""":raises: SuperError
 
 :math:`\sqrt{(x_2-x_1)^2+(y_2-y_1)^2}`
 
-
 .. math::
 
     \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
 
-
-
 .. math::
 
     \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
-
 
 
 
