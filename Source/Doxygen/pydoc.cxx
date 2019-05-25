@@ -498,7 +498,7 @@ void PyDocConverter::handleCode(DoxygenEntity &tag, std::string &translatedComme
   translatedComment += ".. code-block:: c++\n\n";
 
   // For now on, use extra indent level for all the subsequent lines.
-  codeIndent += m_indent;
+  codeIndent = m_indent;
 
   std::string code;
   handleTagVerbatim(tag, code, arg);
