@@ -219,7 +219,7 @@ void PyDocConverter::fillStaticTables() {
   tagHandlers["short"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["todo"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["version"] = make_handler(&PyDocConverter::handleParagraph);
-  tagHandlers["verbatim"] = make_handler(&PyDocConverter::handleParagraph);
+  tagHandlers["verbatim"] = make_handler(&PyDocConverter::handleVerbatimBlock);
   tagHandlers["warning"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["xmlonly"] = make_handler(&PyDocConverter::handleParagraph);
   // these commands have special handlers
@@ -417,6 +417,19 @@ void PyDocConverter::translateEntity(DoxygenEntity &doxyEntity, std::string &tra
 
 void PyDocConverter::handleParagraph(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
   translatedComment += translateSubtree(tag);
+}
+
+void PyDocConverter::handleVerbatimBlock(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
+  string verb = translateSubtree(tag);
+
+  if ((! verb.empty()) && verb[0] == '\n')
+    verb.erase(verb.begin());
+  
+  // Remove the last newline to prevent doubling the newline already present after \endverbatim
+  trimWhitespace(verb); // Needed to catch trailing newline below
+  if ((! verb.empty()) && verb[verb.size()-1] == '\n')
+    verb = verb.substr(0, verb.size()-1);
+  translatedComment += verb;
 }
 
 void PyDocConverter::handleMath(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg) {
