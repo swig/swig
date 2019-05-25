@@ -493,6 +493,11 @@ void PyDocConverter::handleCode(DoxygenEntity &tag, std::string &translatedComme
   std::string code;
   handleTagVerbatim(tag, code, arg);
 
+  // Try and remove leading newline, which is present for block \code
+  // command:
+  if (code[0] == '\n')
+    code.erase(code.begin());
+
   translatedComment += codeIndent;
   for (size_t n = 0; n < code.length(); n++) {
     if (code[n] == '\n') {
