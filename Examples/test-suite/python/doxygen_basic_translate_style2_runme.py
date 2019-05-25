@@ -24,14 +24,12 @@ very very very very very long comment string."""
 )
 comment_verifier.check(inspect.getdoc(doxygen_basic_translate_spaced.function3),
     """*Overload 1:*
-
 A test for overloaded functions
 This is function **one**
 
 |
 
 *Overload 2:*
-
 A test for overloaded functions
 This is function **two**"""
 )
