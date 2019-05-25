@@ -25,7 +25,6 @@ Author: Zubr
 
     some test code
 
-
 Conditional comment: SOMECONDITION
 Some conditional comment
 End of conditional comment.

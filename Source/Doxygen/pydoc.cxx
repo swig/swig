@@ -495,7 +495,7 @@ void PyDocConverter::handleCode(DoxygenEntity &tag, std::string &translatedComme
 
   // Try and remove leading newline, which is present for block \code
   // command:
-  if (code[0] == '\n')
+  if ((! code.empty()) && code[0] == '\n')
     code.erase(code.begin());
 
   translatedComment += codeIndent;
@@ -515,8 +515,12 @@ void PyDocConverter::handleCode(DoxygenEntity &tag, std::string &translatedComme
   }
 
   trimWhitespace(translatedComment);
-  if (*translatedComment.rbegin() != '\n')
-    translatedComment += '\n';
+
+  // For block commands, the translator adds the newline after
+  // \endcode, so try and compensate by removing the last newline from
+  // the code text:
+  if ((! translatedComment.empty()) && translatedComment[translatedComment.size()-1] == '\n')
+    translatedComment = translatedComment.substr(0, translatedComment.size()-1); // use translatedComment.pop_back() in C++ 11
 }
 
 void PyDocConverter::handlePlainString(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
