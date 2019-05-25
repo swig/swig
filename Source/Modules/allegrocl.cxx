@@ -471,7 +471,7 @@ void add_defined_foreign_type(Node *n, int overwrite = 0, String *k = 0,
 	  // a synonym type was found (held in variable 'match')
 	  // Printf(stderr, "setting primary synonym of %p to %p\n", new_node, match);
 	  if (new_node == match)
-	    Printf(stderr, "Hey-4 * - '%s' is a synonym of iteself!\n", Getattr(new_node, "name"));
+	    Printf(stderr, "Hey-4 * - '%s' is a synonym of itself!\n", Getattr(new_node, "name"));
 	  Setattr(new_node, "allegrocl:synonym-of", match);
 	  // Printf(stderr,"*** 4\n");
 	  add_linked_type(new_node);

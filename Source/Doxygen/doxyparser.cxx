@@ -1294,7 +1294,7 @@ void DoxygenParser::tokenizeDoxygenComment(const std::string &doxygenComment, co
     string lastLine = lines[lines.size() - 1];
 
     if (trim(lastLine).empty()) {
-      lines.pop_back(); // remove trailing empy line
+      lines.pop_back(); // remove trailing empty line
     }
   }
 

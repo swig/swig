@@ -1755,7 +1755,7 @@ public:
 	if (new_value) {
 	  value = new_value;
 	} else {
-	  // Even if the value is not representable in the target language, still use it in the documentaiton, for compatibility with the previous SWIG versions
+	  // Even if the value is not representable in the target language, still use it in the documentation, for compatibility with the previous SWIG versions
 	  // and because it can still be useful to see the C++ expression there.
 	  Node *lookup = Swig_symbol_clookup(value, 0);
 	  if (lookup)
