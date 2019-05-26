@@ -1,10 +1,10 @@
-import doxygen_basic_translate_spaced
+import doxygen_basic_translate_style2
 import inspect
 import string
 import sys
 import comment_verifier
 
-comment_verifier.check(inspect.getdoc(doxygen_basic_translate_spaced.function),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style2.function),
     """\
 Brief description.
 
@@ -17,12 +17,12 @@ Author: Some author
 
 See also: function2"""
 )
-comment_verifier.check(inspect.getdoc(doxygen_basic_translate_spaced.function2),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style2.function2),
     """\
 A test of a very very very very very very very very very very very very very very very very
 very very very very very long comment string."""
 )
-comment_verifier.check(inspect.getdoc(doxygen_basic_translate_spaced.function3),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style2.function3),
     """*Overload 1:*
 A test for overloaded functions
 This is function **one**
@@ -33,7 +33,7 @@ This is function **one**
 A test for overloaded functions
 This is function **two**"""
 )
-comment_verifier.check(inspect.getdoc(doxygen_basic_translate_spaced.function4),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style2.function4),
     """\
 A test of some mixed tag usage
 If: CONDITION {
@@ -50,16 +50,16 @@ Warning: This may not work as expected
     int main() { while(true); }
 }"""
 )
-comment_verifier.check(inspect.getdoc(doxygen_basic_translate_spaced.function5),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style2.function5),
     """This is a post comment."""
 )
-comment_verifier.check(inspect.getdoc(doxygen_basic_translate_spaced.function6),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style2.function6),
     """\
 Test for default args
 :type a: int
 :param a: Some parameter, default is 42"""
 )
-comment_verifier.check(inspect.getdoc(doxygen_basic_translate_spaced.function7),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style2.function7),
     """\
 Test for a parameter with difficult type
 (mostly for python)
@@ -67,7 +67,7 @@ Test for a parameter with difficult type
 :param a: Very strange param"""
 )
 
-comment_verifier.check(inspect.getdoc(doxygen_basic_translate_spaced.Atan2),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style2.Atan2),
     """\
 Multiple parameters test.
 
