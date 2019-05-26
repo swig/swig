@@ -499,16 +499,18 @@ void PyDocConverter::handleCode(DoxygenEntity &tag, std::string &translatedComme
   translatedComment += '\n';
 
   // Use the current indent for the code-block line itself.
-  string codeIndent = indent.getFirstLineIndent();
-  translatedComment += codeIndent;
+  translatedComment += indent.getFirstLineIndent();
 
   // Go out on a limb and assume that examples in the C or C++ sources use C++.
   // In the worst case, we'll highlight C code using C++ syntax which is not a
   // big deal (TODO: handle Doxygen code command language argument).
   translatedComment += ".. code-block:: c++\n\n";
 
-  // For now on, use extra indent level for all the subsequent lines.
-  codeIndent = m_indent;
+  // Specify the level of extra indentation that will be used for
+  // subsequent lines within the code block.  Note that the correct
+  // "starting indentation" is already present in the input, so we
+  // only need to add the desired code block indentation.
+  string codeIndent = m_indent;
 
   std::string code;
   handleTagVerbatim(tag, code, arg);
