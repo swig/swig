@@ -138,6 +138,18 @@ static void trimWhitespace(string &s) {
     s.erase(lastNonSpace + 1);
 }
 
+// Erase the first character in the string if it is a newline
+static void eraseLeadingNewLine(string &s) {
+  if ((! s.empty()) && s[0] == '\n')
+    s.erase(s.begin());
+}
+
+// Erase the last character in the string if it is a newline
+static void eraseTrailingNewLine(string &s) {
+  if ((! s.empty()) && s[s.size() - 1] == '\n')
+    s.erase(s.size() - 1);
+}
+
 /* static */
 PyDocConverter::TagHandlersMap::mapped_type PyDocConverter::make_handler(tagHandler handler) {
   return make_pair(handler, std::string());
@@ -422,13 +434,11 @@ void PyDocConverter::handleParagraph(DoxygenEntity &tag, std::string &translated
 void PyDocConverter::handleVerbatimBlock(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
   string verb = translateSubtree(tag);
 
-  if ((! verb.empty()) && verb[0] == '\n')
-    verb.erase(verb.begin());
-  
+  eraseLeadingNewLine(verb);
+
   // Remove the last newline to prevent doubling the newline already present after \endverbatim
   trimWhitespace(verb); // Needed to catch trailing newline below
-  if ((! verb.empty()) && verb[verb.size()-1] == '\n')
-    verb = verb.substr(0, verb.size()-1);
+  eraseTrailingNewLine(verb);
   translatedComment += verb;
 }
 
@@ -505,8 +515,7 @@ void PyDocConverter::handleCode(DoxygenEntity &tag, std::string &translatedComme
 
   // Try and remove leading newline, which is present for block \code
   // command:
-  if ((! code.empty()) && code[0] == '\n')
-    code.erase(code.begin());
+  eraseLeadingNewLine(code);
 
   translatedComment += codeIndent;
   for (size_t n = 0; n < code.length(); n++) {
@@ -529,8 +538,7 @@ void PyDocConverter::handleCode(DoxygenEntity &tag, std::string &translatedComme
   // For block commands, the translator adds the newline after
   // \endcode, so try and compensate by removing the last newline from
   // the code text:
-  if ((! translatedComment.empty()) && translatedComment[translatedComment.size()-1] == '\n')
-    translatedComment = translatedComment.substr(0, translatedComment.size()-1); // use translatedComment.pop_back() in C++ 11
+  eraseTrailingNewLine(translatedComment);
 }
 
 void PyDocConverter::handlePlainString(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
@@ -852,9 +860,7 @@ String *PyDocConverter::makeDocumentation(Node *n) {
   if (!pyDocString.empty()) {
 
     // remove the last '\n' since additional one is added during writing to file
-    if (pyDocString[pyDocString.size() - 1] == '\n') {
-      pyDocString.erase(pyDocString.size() - 1);
-    }
+    eraseTrailingNewLine(pyDocString);
 
     if (m_flags & debug_translator) {
       std::cout << "\n---RESULT IN PYDOC---" << std::endl;
