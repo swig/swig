@@ -20,7 +20,6 @@ Author: Zubr
 
 'citationword'
 
-
 .. code-block:: c++
 
     some test code

@@ -496,7 +496,6 @@ void PyDocConverter::handleCode(DoxygenEntity &tag, std::string &translatedComme
   IndentGuard indent(translatedComment, m_indent);
 
   trimWhitespace(translatedComment);
-  translatedComment += '\n';
 
   // Use the current indent for the code-block line itself.
   translatedComment += indent.getFirstLineIndent();

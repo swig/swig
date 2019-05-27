@@ -34,7 +34,6 @@ Not everything works right now...
 
 'citationword'
 
-
 .. code-block:: c++
 
     some test code""")
