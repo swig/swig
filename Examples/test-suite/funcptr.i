@@ -67,4 +67,13 @@ void (*pfunc0)();
 int (*pfuncA)();
 void (*pfunc1)(int);
 void (*pfunc2)(int, double);
+
+void set_handle(int choice, Operator* op) {
+  switch (choice) {
+    case 0: *op = add; break;
+    case 1: *op = subtract; break;
+    case 2: *op = multiply; break;
+    default: *op = NULL;
+  }
+}
 %}
