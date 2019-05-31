@@ -1723,9 +1723,9 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
     // An already-wrapped overloaded function already has been declared as
     // a Fortran function.
     Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(n), Getline(n),
-                 "Fortran type-bound 'subroutine' conflicts with Fortran type-bound 'function': ignoring\n");
+                 "Overloaded function cannot return both 'void' and non-'void' in Fortran: ignoring\n");
     Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(conflicting_subroutine), Getline(conflicting_subroutine),
-                 "Other procedure declared here\n");
+                 "Other function declared here\n");
     DelWrapper(ffunc);
     return NULL;
   }

@@ -1,5 +1,16 @@
 %module fortran_overloads
 
+%warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED, SWIGWARN_LANG_OVERLOAD_SHADOW) Base::func;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) Base::sub;
+
+%warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED) overloaded;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED) overloaded2;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED) echo;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED) mirror;
+
+%warnfilter(SWIGWARN_FORTRAN_NAME_COLLISION) fUnC;
+%warnfilter(SWIGWARN_FORTRAN_NAME_COLLISION) funC;
+
 %inline %{
 
 class Base {
