@@ -433,6 +433,15 @@ void ** const, void **const &};
 %apply SWIGTYPE (*)(ANY) { SWIGTYPE (* const)(ANY) } ;
 
 /* -------------------------------------------------------------------------
+ * FUNCTION POINTERS
+ * ------------------------------------------------------------------------- */
+
+%apply void** { SWIGTYPE (**)(ANY) } ;
+
+%typemap(ftype, in="type(C_FUNPTR), target, intent(inout)") SWIGTYPE (**)(ANY)
+  "type(C_FUNPTR), pointer"
+
+/* -------------------------------------------------------------------------
  * TYPE CHECKING
  * ------------------------------------------------------------------------- */
 
