@@ -1039,10 +1039,10 @@ int FORTRAN::functionWrapper(Node *n) {
     // functions to shadow base class functions.
     if (Node *other = Getattr(n, "hides")) {
       if (Getattr(other, "fortran:generic")) {
-        Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, input_file, line_number,
+        Swig_warning(WARN_LANG_OVERLOAD_SHADOW, input_file, line_number,
                      "Ignoring '%s' because it shadows a generic base class function '%s'\n",
                      fsymname, Getattr(other, "fortran:name"));
-        Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, Getfile(other), Getline(other),
+        Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(other), Getline(other),
                      "Previous declaration of '%s'\n",
                      Getattr(other, "sym:name"));
         SetFlag(n, "fortran:ignore");
@@ -1080,10 +1080,10 @@ int FORTRAN::functionWrapper(Node *n) {
         // Parent class's function is generic, so must we be too
         generic = true;
       } else if (generic) {
-        Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, input_file, line_number,
+        Swig_warning(WARN_LANG_OVERLOAD_SHADOW, input_file, line_number,
                      "Ignoring generic '%s': it cannot override a specific binding '%s' with the same name\n",
                      fsymname, Getattr(other, "fortran:name"));
-        Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, Getfile(other), Getline(other),
+        Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(other), Getline(other),
                      "Previous declaration of '%s'\n",
                      Getattr(other, "sym:name"));
         SetFlag(n, "fortran:ignore");
@@ -1685,18 +1685,11 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
       // that the parent procedure is like this one
       is_parent_subroutine = is_fsubroutine;
     }
-    if (!is_parent_subroutine && is_fsubroutine) {
-      conflicting_subroutine = overridden;
-    } else if (is_parent_subroutine && !is_fsubroutine) {
-      // The parent function was a subroutine but this one isn't. (Perhaps the
+    if (is_parent_subroutine != is_fsubroutine) {
+      // The parent procedure's return value conflicts with this one. (Perhaps the
       // conversion feature was applied only to the parent class, or a weird
       // typemap is in play?)
-      Swig_warning(WARN_FORTRAN_AUTO_SUBROUTINE, Getfile(n), Getline(n),
-                   "Fortran subroutine cannot be a generic with a Fortran function: applying "
-                   "%%fortransubroutine\n");
-      Swig_warning(WARN_FORTRAN_AUTO_SUBROUTINE, Getfile(overridden), Getline(overridden),
-                   "Previous function declared here\n");
-      func_to_subroutine = true;
+      conflicting_subroutine = overridden;
     }
   }
 
@@ -1706,17 +1699,11 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
     }
     if (overload && overload != n) {
       bool is_sibling_fsubroutine = Getattr(overload, "fortran:subroutine");
-      if (!is_sibling_fsubroutine && is_fsubroutine) {
+      if (is_sibling_fsubroutine != is_fsubroutine) {
+        // The parent procedure's return value conflicts with this one. (Perhaps the
+        // conversion feature was applied only to the parent class, or a weird
+        // typemap is in play?)
         conflicting_subroutine = overload;
-      } else if (is_sibling_fsubroutine && !is_fsubroutine) {
-        // The original instance of the overloaded function is a subroutine but
-        // this one isn't; automatically apply the feature.
-        Swig_warning(WARN_FORTRAN_AUTO_SUBROUTINE, Getfile(n), Getline(n),
-                     "Fortran subroutine cannot be a generic with a Fortran function: applying "
-                     "%%fortransubroutine\n");
-        Swig_warning(WARN_FORTRAN_AUTO_SUBROUTINE, Getfile(overload), Getline(overload),
-                     "Previous function declared here\n");
-        func_to_subroutine = true;
       }
     }
   }
@@ -1735,10 +1722,10 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
   if (conflicting_subroutine) {
     // An already-wrapped overloaded function already has been declared as
     // a Fortran function.
-    Swig_warning(WARN_FORTRAN_AUTO_SUBROUTINE, Getfile(n), Getline(n),
-                 "Fortran type-bound 'subroutine' conflicts with Fortran type-bound 'function': ignoring\n");
-    Swig_warning(WARN_FORTRAN_AUTO_SUBROUTINE, Getfile(conflicting_subroutine), Getline(conflicting_subroutine),
-                 "Other procedure declared here\n");
+    Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(n), Getline(n),
+                 "Overloaded function cannot return both 'void' and non-'void' in Fortran: ignoring\n");
+    Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(conflicting_subroutine), Getline(conflicting_subroutine),
+                 "Other function declared here\n");
     DelWrapper(ffunc);
     return NULL;
   }

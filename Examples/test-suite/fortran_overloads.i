@@ -1,5 +1,16 @@
 %module fortran_overloads
 
+%warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED, SWIGWARN_LANG_OVERLOAD_SHADOW) Base::func;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) Base::sub;
+
+%warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED) overloaded;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED) overloaded2;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED) echo;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED) mirror;
+
+%warnfilter(SWIGWARN_FORTRAN_NAME_COLLISION) fUnC;
+%warnfilter(SWIGWARN_FORTRAN_NAME_COLLISION) funC;
+
 %inline %{
 
 class Base {
@@ -46,3 +57,25 @@ class LowercaseIssues : public Base {
 };
 
 %}
+
+%{
+static int i_value = 0;
+%}
+
+%inline %{
+void overloaded(int i) { i_value = i; }
+int overloaded() { return i_value; }
+
+int overloaded2() { return i_value; }
+void overloaded2(int i) { i_value = i; }
+
+void echo() { }
+int echo(int i) { return i; }
+double echo(double d) { return d; }
+
+// Note: function being declared *before* subroutine changes the behavior
+double mirror(double d) { return d; }
+int mirror(int i) { return i; }
+void mirror() { }
+%}
+

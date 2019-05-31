@@ -834,15 +834,51 @@ specification:
 
 It should be noted that a function that returns `void` cannot be overloaded
 with a function that returns anything else: generic interfaces must be either
-all subroutines or all functions. Use SWIG's `%ignore` statement to hide one or
-the other:
+all subroutines or all functions:
 ```swig
-%ignore cannot_overload(int x);
 void cannot_overload(int x);
-int  cannot_overload(int x, int y);
+int cannot_overload(int x, int y);
 ```
-Without the `%ignore` statement, SWIG will generate Fortran that fails to
-compile.
+will generate a `SWIGWARN_LANG_OVERLOAD_IGNORED` warning and ignore the second
+function. There are three ways to mitigate this warning:
+1. Silence the warning and not wrap the second function:
+   `%warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED) cannot_overload;`
+2. Ignore the "subroutine" (function that returns void) using `%ignore
+   cannot_overload(int x);`
+3. Transform the `int`-returning function into a Fortran subroutine using the
+   `%fortransubroutine` directive, which converts the return value to an
+   optional argument.
+
+The `%fortransubroutine` directive can be used to transform any return value
+(with the current limitation that the value isn't a wrapped class) to an
+optional subroutine argument. For example, 
+```swig
+int myfunc(int x, int y);
+
+%fortransubroutine mysub;
+int mysub(int x, int y);
+```
+generates the function interfaces
+```f90
+function myfunc(x, y) &
+    result(swig_result)
+  use, intrinsic :: ISO_C_BINDING
+  integer(C_INT) :: swig_result
+  integer(C_INT), intent(in) :: x
+  integer(C_INT), intent(in) :: y
+end function
+
+subroutine mysub(x, y, swig_result)
+  use, intrinsic :: ISO_C_BINDING
+  integer(C_INT), intent(in) :: x
+  integer(C_INT), intent(in) :: y
+  integer(C_INT), intent(out), optional :: swig_result
+end subroutine
+```
+
+The resulting subroutine can be overloaded with other C++ void-returning
+functions.
+
 
 ## Global variables
 
