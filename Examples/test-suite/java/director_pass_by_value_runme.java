@@ -14,7 +14,6 @@ public class director_pass_by_value_runme {
 
   private static void WaitForGC() {
     System.gc();
-    System.runFinalization();
     try {
       java.lang.Thread.sleep(10);
     } catch (java.lang.InterruptedException e) {

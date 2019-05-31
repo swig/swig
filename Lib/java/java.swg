@@ -1204,30 +1204,57 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %define SWIG_JAVABODY_PROXY(PTRCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...)
 // Base proxy classes
 %typemap(javabody) TYPE %{
-  private transient long swigCPtr;
-  protected transient boolean swigCMemOwn;
+  static final class SwigWrap implements Runnable {
+    public transient long swigCPtr;
+    public transient boolean swigCMemOwn;
+    public SwigWrap(long cPtr, boolean cMemoryOwn) {
+      swigCMemOwn = cMemoryOwn;
+      swigCPtr = cPtr;
+    }
+    public final void run() {
+      if (swigCPtr != 0) {
+        if (swigCMemOwn) {
+          swigCMemOwn = false;
+          $jnicall;
+        }
+        swigCPtr = 0;
+      }
+    }
+  }
+  protected final SwigWrap swigWrap;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
-    swigCMemOwn = cMemoryOwn;
-    swigCPtr = cPtr;
+    swigWrap = new SwigWrap(cPtr, cMemoryOwn);
+    $imclassname.cleaner.register(this, swigWrap);
   }
 
   CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
-    return (obj == null) ? 0 : obj.swigCPtr;
+    return (obj == null) ? 0 : obj.swigWrap.swigCPtr;
+  }
+
+  CPTR_VISIBILITY void swigSetCMemOwn(boolean own) {
+    swigWrap.swigCMemOwn = own;
   }
 %}
 
 // Derived proxy classes
 %typemap(javabody_derived) TYPE %{
-  private transient long swigCPtr;
+  static final class SwigWrap implements Runnable {
+    public transient long swigCPtr;
+    public SwigWrap(long cPtr) {
+      swigCPtr = cPtr;
+    }
+    public final void run() { }
+  }
+  protected final SwigWrap swigWrap;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
     super($imclassname.$javaclazznameSWIGUpcast(cPtr), cMemoryOwn);
-    swigCPtr = cPtr;
+    swigWrap = new SwigWrap(cPtr);
   }
 
   CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
-    return (obj == null) ? 0 : obj.swigCPtr;
+    return (obj == null) ? 0 : obj.swigWrap.swigCPtr;
   }
 %}
 %enddef
@@ -1272,11 +1299,12 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 SWIG_JAVABODY_PROXY(protected, protected, SWIGTYPE)
 SWIG_JAVABODY_TYPEWRAPPER(protected, protected, protected, SWIGTYPE)
 
-%typemap(javafinalize) SWIGTYPE %{
-  @SuppressWarnings("deprecation")
-  protected void finalize() {
-    delete();
-  }
+%pragma(java) jniclassimportscleaner=%{
+import java.lang.ref.Cleaner;
+%}
+
+%pragma(java) jniclasscodecleaner=%{
+  public static final Cleaner cleaner = java.lang.ref.Cleaner.create();
 %}
 
 /*
@@ -1301,7 +1329,7 @@ SWIG_JAVABODY_TYPEWRAPPER(protected, protected, protected, SWIGTYPE)
  */
 
 %define SWIG_PROXY_CONSTRUCTOR(OWNERSHIP, WEAKREF, TYPENAME...)
-%typemap(javaconstruct,directorconnect="\n    $imclassname.$javaclazznamedirector_connect(this, swigCPtr, OWNERSHIP, WEAKREF);") TYPENAME {
+%typemap(javaconstruct,directorconnect="\n    $imclassname.$javaclazznamedirector_connect(this, swigWrap.swigCPtr, OWNERSHIP, WEAKREF);") TYPENAME {
     this($imcall, OWNERSHIP);$directorconnect
   }
 %enddef
@@ -1314,43 +1342,31 @@ SWIG_PROXY_CONSTRUCTOR(true, false, TYPENAME)
 SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 
 %typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized", parameters="") SWIGTYPE {
-    if (swigCPtr != 0) {
-      if (swigCMemOwn) {
-        swigCMemOwn = false;
-        $jnicall;
-      }
-      swigCPtr = 0;
-    }
+    swigWrap.run();
   }
 
 %typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized", parameters="") SWIGTYPE {
-    if (swigCPtr != 0) {
-      if (swigCMemOwn) {
-        swigCMemOwn = false;
-        $jnicall;
-      }
-      swigCPtr = 0;
-    }
+    swigWrap.run();
     super.delete();
   }
 
 %typemap(directordisconnect, methodname="swigDirectorDisconnect") SWIGTYPE %{
   protected void $methodname() {
-    swigCMemOwn = false;
+    swigSetCMemOwn(false);
     $jnicall;
   }
 %}
 
 %typemap(directorowner_release, methodname="swigReleaseOwnership") SWIGTYPE %{
   public void $methodname() {
-    swigCMemOwn = false;
+    swigSetCMemOwn(false);
     $jnicall;
   }
 %}
 
 %typemap(directorowner_take, methodname="swigTakeOwnership") SWIGTYPE %{
   public void $methodname() {
-    swigCMemOwn = true;
+    swigSetCMemOwn(true);
     $jnicall;
   }
 %}

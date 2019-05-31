@@ -99,7 +99,7 @@ public:
 
 %typemap(directordisconnect, methodname="disconnect_director") hi::Quux1 %{
   public void $methodname() {
-    swigCMemOwn = false;
+    swigSetCMemOwn(false);
     $jnicall;
     // add in a flag to check this method is really called
     disconnectMethodCalled = true;

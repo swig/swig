@@ -263,49 +263,76 @@
 
 // Base proxy classes
 %typemap(javabody) TYPE %{
-  private transient long swigCPtr;
-  private transient boolean swigCMemOwnBase;
+  static final class SwigWrap implements Runnable {
+    public transient long swigCPtr;
+    public transient boolean swigCMemOwn;
+    public SwigWrap(long cPtr, boolean cMemoryOwn) {
+      swigCMemOwn = cMemoryOwn;
+      swigCPtr = cPtr;
+    }
+    public final void run() {
+      if (swigCPtr != 0) {
+        if (swigCMemOwn) {
+          swigCMemOwn = false;
+          $jnicall;
+        }
+        swigCPtr = 0;
+      }
+    }
+  }
+  protected final SwigWrap swigWrap;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
-    swigCMemOwnBase = cMemoryOwn;
-    swigCPtr = cPtr;
+    swigWrap = new SwigWrap(cPtr, cMemoryOwn);
   }
 
   CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
-    return (obj == null) ? 0 : obj.swigCPtr;
+    return (obj == null) ? 0 : obj.swigWrap.swigCPtr;
   }
 %}
 
 // Derived proxy classes
 %typemap(javabody_derived) TYPE %{
-  private transient long swigCPtr;
+  static final class SwigWrap implements Runnable {
+    public transient long swigCPtr;
+    public transient boolean swigCMemOwn;
+    public SwigWrap(long cPtr, boolean cMemoryOwn) {
+      swigCMemOwn = cMemoryOwn;
+      swigCPtr = cPtr;
+    }
+    public final void run() {
+      if (swigCPtr != 0) {
+        if (swigCMemOwn) {
+          swigCMemOwn = false;
+          $jnicall;
+        }
+        swigCPtr = 0;
+      }
+    }
+  }
+  protected final SwigWrap swigWrap;
   private transient boolean swigCMemOwnDerived;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
     super($imclassname.$javaclazznameSWIGSmartPtrUpcast(cPtr), true);
+    swigWrap = new SwigWrap(cPtr, cMemoryOwn);
     swigCMemOwnDerived = cMemoryOwn;
-    swigCPtr = cPtr;
-  }
-
-  CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
-    return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}
 
 %typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") TYPE {
-    if(swigCPtr != 0 && swigCMemOwnBase) {
-      swigCMemOwnBase = false;
+    if(swigWrap.swigCPtr != 0 && swigWrap.swigCMemOwn) {
+      swigWrap.cMemOwn = false;
       $jnicall;
     }
-    swigCPtr = 0;
+    swigWrap.swigCPtr = 0;
   }
 
 %typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized") TYPE {
-    if(swigCPtr != 0 && swigCMemOwnDerived) {
+    if(swigWrap.swigCPtr != 0 && swigCMemOwnDerived) {
       swigCMemOwnDerived = false;
       $jnicall;
     }
-    swigCPtr = 0;
     super.delete();
   }
 
@@ -413,52 +440,73 @@
 
 // Base proxy classes
 %typemap(javabody) TYPE %{
-  private transient long swigCPtr;
-  private transient boolean swigCMemOwnBase;
+  static final class SwigWrap implements Runnable {
+    public transient long swigCPtr;
+    public transient boolean swigCMemOwn;
+    public SwigWrap(long cPtr, boolean cMemoryOwn) {
+      swigCMemOwn = cMemoryOwn;
+      swigCPtr = cPtr;
+    }
+    public final void run() {
+      if (swigCPtr != 0) {
+        if (swigCMemOwn) {
+          swigCMemOwn = false;
+          $jnicall;
+        }
+        swigCPtr = 0;
+      }
+    }
+  }
+  protected final SwigWrap swigWrap;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
-    swigCMemOwnBase = cMemoryOwn;
-    swigCPtr = cPtr;
+    swigWrap = new SwigWrap(cPtr, cMemoryOwn);
   }
 
   CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
-    return (obj == null) ? 0 : obj.swigCPtr;
+    return (obj == null) ? 0 : obj.swigWrap.swigCPtr;
   }
 %}
 
 // Derived proxy classes
 %typemap(javabody_derived) TYPE %{
-  private transient long swigCPtr;
+  static final class SwigWrap implements Runnable {
+    public transient long swigCPtr;
+    public transient boolean swigCMemOwn;
+    public SwigWrap(long cPtr, boolean cMemoryOwn) {
+      swigCMemOwn = cMemoryOwn;
+      swigCPtr = cPtr;
+    }
+    public final void run() {
+      if (swigCPtr != 0) {
+        if (swigCMemOwn) {
+          swigCMemOwn = false;
+          $jnicall;
+        }
+        swigCPtr = 0;
+      }
+    }
+  }
+  protected final SwigWrap swigWrap;
   private transient boolean swigCMemOwnDerived;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
     super($imclassname.$javaclazznameSWIGSmartPtrUpcast(cPtr), true);
+    swigWrap = new SwigWrap(cPtr, cMemoryOwn);
     swigCMemOwnDerived = cMemoryOwn;
-    swigCPtr = cPtr;
-  }
-
-  CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
-    return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}
 
 %typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") TYPE {
-    if (swigCPtr != 0) {
-      if (swigCMemOwnBase) {
-        swigCMemOwnBase = false;
-        $jnicall;
-      }
-      swigCPtr = 0;
-    }
+    swigWrap.run();
   }
 
 %typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized") TYPE {
-    if (swigCPtr != 0) {
+    if (swigWrap.swigCPtr != 0) {
       if (swigCMemOwnDerived) {
         swigCMemOwnDerived = false;
-        $jnicall;
+        swigWrap.run();
       }
-      swigCPtr = 0;
     }
     super.delete();
   }

@@ -6,7 +6,7 @@
 
 %typemap(javacode) Space::Classic %{
   public long getCPtrValue() {
-    return this.swigCPtr;
+    return this.getCPtr(this);
   }
 %}
 

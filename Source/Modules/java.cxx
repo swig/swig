@@ -69,6 +69,7 @@ class JAVA:public Language {
   String *jnipackage;		// Package name used in the JNI code
   String *package_path;		// Package name used internally by JNI (slashes)
   String *imclass_imports;	//intermediary class imports from %pragma
+  String *imclass_imports_cleaner;	//intermediary class imports for cleaner from %pragma
   String *module_imports;	//module imports from %pragma
   String *imclass_baseclass;	//inheritance for intermediary class class from %pragma
   String *imclass_package;	//package in which to generate the intermediary class
@@ -144,6 +145,7 @@ public:
       jnipackage(NULL),
       package_path(NULL),
       imclass_imports(NULL),
+      imclass_imports_cleaner(NULL),
       module_imports(NULL),
       imclass_baseclass(NULL),
       imclass_package(NULL),
@@ -444,6 +446,7 @@ public:
     module_imports = NewString("");
     module_class_modifiers = NewString("");
     imclass_imports = NewString("");
+    imclass_imports_cleaner = NewString("");
     imclass_cppcasts_code = NewString("");
     imclass_directors = NewString("");
     upcasts_code = NewString("");
@@ -537,6 +540,8 @@ public:
       else if (package)
         Printf(f_im, "package %s;\n", package);
 
+      if (imclass_imports_cleaner)
+	Printf(f_im, "%s\n", imclass_imports_cleaner);
       if (imclass_imports)
 	Printf(f_im, "%s\n", imclass_imports);
 
@@ -1324,9 +1329,12 @@ public:
 	// Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper Java enum
 	// Finish the enum declaration
 	// Typemaps are used to generate the enum definition in a similar manner to proxy classes.
-	Printv(enum_code, (enum_feature == ProperEnum) ? ";\n" : "", typemapLookup(n, "javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),	// main body of class
+	String *body = NewString(typemapLookup(n, "javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF)); // main body of class
+	Replaceall(body, "$jnicall", destructor_call);
+	Printv(enum_code, (enum_feature == ProperEnum) ? ";\n" : "", body,
 	       typemapLookup(n, "javacode", typemap_lookup_type, WARN_NONE),	// extra Java code
 	       "}", NIL);
+	Delete(body);
 
 	Replaceall(enum_code, "$javaclassname", symname);
 
@@ -1754,6 +1762,11 @@ public:
 	  imclass_class_modifiers = Copy(strvalue);
 	} else if (Strcmp(code, "jniclasscode") == 0) {
 	  Printf(imclass_class_code, "%s\n", strvalue);
+	} else if (Strcmp(code, "jniclasscodecleaner") == 0) {
+	  Printf(imclass_class_code, "%s\n", strvalue);
+	} else if (Strcmp(code, "jniclassimportscleaner") == 0) {
+	  Delete(imclass_imports_cleaner);
+	  imclass_imports_cleaner = Copy(strvalue);
 	} else if (Strcmp(code, "jniclassimports") == 0) {
 	  Delete(imclass_imports);
 	  imclass_imports = Copy(strvalue);
@@ -2023,12 +2036,15 @@ public:
 
     if (has_outerclass)
       Printv(proxy_class_def, "static ", NIL); // C++ nested classes correspond to static java classes
+    String *body = NewString(derived ? typemapLookup(n, "javabody_derived", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF) :
+				       typemapLookup(n, "javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF)); // main body of class
+    Replaceall(body, "$jnicall", destructor_call);
     Printv(proxy_class_def, typemapLookup(n, "javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
 	   " $javaclassname",	// Class name and bases
 	   (*Char(wanted_base)) ? " extends " : "", wanted_base, *Char(interface_list) ?	// Pure Java interfaces
-	   " implements " : "", interface_list, " {", derived ? typemapLookup(n, "javabody_derived", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF) :	// main body of class
-	   typemapLookup(n, "javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),	// main body of class
+	   " implements " : "", interface_list, " {", body,
 	   NIL);
+    Delete(body);
 
     // C++ destructor is wrapped by the delete method
     // Note that the method name is specified in a typemap attribute called methodname
@@ -2091,8 +2107,8 @@ public:
       String *changeown_method_name = Swig_name_member(getNSpace(), getClassPrefix(), "change_ownership");
 
       destruct_jnicall = NewStringf("%s()", destruct_methodname);
-      release_jnicall = NewStringf("%s.%s(this, swigCPtr, false)", full_imclass_name, changeown_method_name);
-      take_jnicall = NewStringf("%s.%s(this, swigCPtr, true)", full_imclass_name, changeown_method_name);
+      release_jnicall = NewStringf("%s.%s(this, swigWrap.swigCPtr, false)", full_imclass_name, changeown_method_name);
+      take_jnicall = NewStringf("%s.%s(this, swigWrap.swigCPtr, true)", full_imclass_name, changeown_method_name);
 
       emitCodeTypemap(n, false, typemap_lookup_type, "directordisconnect", "methodname", destruct_jnicall);
       emitCodeTypemap(n, false, typemap_lookup_type, "directorowner_release", "methodname", release_jnicall);
@@ -2530,7 +2546,7 @@ public:
 
     Printv(imcall, full_imclass_name, ".$imfuncname(", NIL);
     if (!static_flag) {
-      Printf(imcall, "swigCPtr");
+      Printf(imcall, "swigWrap.swigCPtr");
 
       String *this_type = Copy(getClassType());
       String *name = NewString("jself");
@@ -3516,13 +3532,16 @@ public:
     const String *pure_interfaces = typemapLookup(n, "javainterfaces", type, WARN_NONE);
 
     // Emit the class
+    String *body = NewString(typemapLookup(n, "javabody", type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF)); // main body of class
+    Replaceall(body, "$jnicall", destructor_call);
     Printv(swigtype, typemapLookup(n, "javaimports", type, WARN_NONE),	// Import statements
 	   "\n", typemapLookup(n, "javaclassmodifiers", type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
 	   " $javaclassname",	// Class name and bases
 	   *Char(pure_baseclass) ? " extends " : "", pure_baseclass, *Char(pure_interfaces) ?	// Interfaces
-	   " implements " : "", pure_interfaces, " {", typemapLookup(n, "javabody", type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),	// main body of class
+	   " implements " : "", pure_interfaces, " {", body,
 	   typemapLookup(n, "javacode", type, WARN_NONE),	// extra Java code
 	   "}\n", "\n", NIL);
+    Delete(body);
 
     Replaceall(swigtype, "$javaclassname", classname);
     Replaceall(swigtype, "$module", module_class_name);
