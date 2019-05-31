@@ -46,3 +46,25 @@ class LowercaseIssues : public Base {
 };
 
 %}
+
+%{
+static int i_value = 0;
+%}
+
+%inline %{
+void overloaded(int i) { i_value = i; }
+int overloaded() { return i_value; }
+
+int overloaded2() { return i_value; }
+void overloaded2(int i) { i_value = i; }
+
+void echo() { }
+int echo(int i) { return i; }
+double echo(double d) { return d; }
+
+// Note: function being declared *before* subroutine changes the behavior
+double mirror(double d) { return d; }
+int mirror(int i) { return i; }
+void mirror() { }
+%}
+
