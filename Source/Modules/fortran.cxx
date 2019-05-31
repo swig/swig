@@ -1685,18 +1685,11 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
       // that the parent procedure is like this one
       is_parent_subroutine = is_fsubroutine;
     }
-    if (!is_parent_subroutine && is_fsubroutine) {
-      conflicting_subroutine = overridden;
-    } else if (is_parent_subroutine && !is_fsubroutine) {
-      // The parent function was a subroutine but this one isn't. (Perhaps the
+    if (is_parent_subroutine != is_fsubroutine) {
+      // The parent procedure's return value conflicts with this one. (Perhaps the
       // conversion feature was applied only to the parent class, or a weird
       // typemap is in play?)
-      Swig_warning(WARN_FORTRAN_AUTO_SUBROUTINE, Getfile(n), Getline(n),
-                   "Fortran subroutine cannot be a generic with a Fortran function: applying "
-                   "%%fortransubroutine\n");
-      Swig_warning(WARN_FORTRAN_AUTO_SUBROUTINE, Getfile(overridden), Getline(overridden),
-                   "Previous function declared here\n");
-      func_to_subroutine = true;
+      conflicting_subroutine = overridden;
     }
   }
 
@@ -1706,17 +1699,11 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
     }
     if (overload && overload != n) {
       bool is_sibling_fsubroutine = Getattr(overload, "fortran:subroutine");
-      if (!is_sibling_fsubroutine && is_fsubroutine) {
+      if (is_sibling_fsubroutine != is_fsubroutine) {
+        // The parent procedure's return value conflicts with this one. (Perhaps the
+        // conversion feature was applied only to the parent class, or a weird
+        // typemap is in play?)
         conflicting_subroutine = overload;
-      } else if (is_sibling_fsubroutine && !is_fsubroutine) {
-        // The original instance of the overloaded function is a subroutine but
-        // this one isn't; automatically apply the feature.
-        Swig_warning(WARN_FORTRAN_AUTO_SUBROUTINE, Getfile(n), Getline(n),
-                     "Fortran subroutine cannot be a generic with a Fortran function: applying "
-                     "%%fortransubroutine\n");
-        Swig_warning(WARN_FORTRAN_AUTO_SUBROUTINE, Getfile(overload), Getline(overload),
-                     "Previous function declared here\n");
-        func_to_subroutine = true;
       }
     }
   }
