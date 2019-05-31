@@ -1823,7 +1823,7 @@ is a way to declare a temporary variable `tempval` in the C wrapper code. The
 same feature is emulated in the special typemaps `findecl` and `foutdecl`,
 which are inserted into the variable declaration blocks when the corresponding
 types are used. If `findecl` allocates a temporary variable, the `ffrearg`
-typemap (analogous to the `ffreearg` typemap for C `in` arguments) can be used
+typemap (analogous to the `freearg` typemap for C `in` arguments) can be used
 to deallocate it.
 
 An example for returning a native `allocatable` Fortran string from a C++
