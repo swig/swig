@@ -72,17 +72,14 @@
   $typemap(imtype, ARRTYPE::value_type), dimension(:), allocatable
 }
 
-// Fortran proxy translation code: convert from imtype $1 to ftype $result
-%typemap(foutdecl, noblock=1, match="fout") ARRTYPE {
-  $typemap(imtype, ARRTYPE::value_type), pointer :: $1_view(:)
-}
-
 // Fortran proxy translation code: copy array contents and free the malloc'd copy
-%typemap(fout, fragment="SWIG_free_f", noblock=1) ARRTYPE {
+%typemap(fout, fragment="SWIG_free_f", noblock=1,
+         temp={$typemap(imtype, ARRTYPE::value_type), dimension(:), pointer}
+         ) ARRTYPE {
   if ($1%size > 0) then
-    call c_f_pointer($1%data, $1_view, [$1%size])
-    allocate($result(size($1_view)))
-    $result = $1_view
+    call c_f_pointer($1%data, $1_temp, [$1%size])
+    allocate($result(size($1_temp)))
+    $result = $1_temp
     call SWIG_free($1%data)
   else
     allocate($result(0))

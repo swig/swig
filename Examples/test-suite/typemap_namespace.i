@@ -41,7 +41,6 @@ namespace Foo {
     %typemap(imtype) Str1 * = char *;
     %typemap(ftype) Str1 * = char *;
     %typemap(fin) Str1 * = char *;
-    %typemap(findecl) Str1 * = char *;
     %typemap(fout) Str1 * = char *;
 #endif
     %typemap(in) Str1 * = char *;

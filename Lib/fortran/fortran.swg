@@ -71,9 +71,6 @@
  *
  * UNUSUAL TYPEMAPS:
  *
- * findecl    : declare any variables used in converting an input value
- *              ($1_temp)
- * foutdecl   : declare any temporary variables used to convert output values
  * fargout    : after calling the C++ function, convert the wrapper argument to 
  *              a mutable Fortran argument (e.g. for a handle `int**`)
  */

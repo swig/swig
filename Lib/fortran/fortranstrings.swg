@@ -85,11 +85,10 @@ end subroutine
 %typemap(ftype, in="character(kind=C_CHAR, len=*), target") const char *
   "character(kind=C_CHAR, len=:), allocatable"
 
-%typemap(findecl, match="fin") const char *
-  "character(kind=C_CHAR), dimension(:), allocatable, target :: $1_chars"
-
-%typemap(fin, fragment="SWIG_string_to_chararray_f", noblock=1) const char * {
-  call SWIG_string_to_chararray($input, $1_chars, $1)
+%typemap(fin, fragment="SWIG_string_to_chararray_f", noblock=1,
+         temp="character(kind=C_CHAR), dimension(:), allocatable, target"
+         ) const char * {
+  call SWIG_string_to_chararray($input, $1_temp, $1)
 }
 
 // Fortran proxy translation code: convert from char array to Fortran string
@@ -120,11 +119,10 @@ end subroutine
 %typemap(ftype, in="character(kind=C_CHAR, len=*), target") (char *STRING, size_t LENGTH)
   "character(kind=C_CHAR, len=:), allocatable"
 
-%typemap(findecl, match="fin") (char *STRING, size_t LENGTH)
-  "character(kind=C_CHAR), dimension(:), allocatable, target :: $1_chars"
-
-%typemap(fin, fragment="SWIG_string_to_chararray_f", noblock=1) (char *STRING, size_t LENGTH) {
-  call SWIG_string_to_chararray($input, $1_chars, $1)
+%typemap(fin, fragment="SWIG_string_to_chararray_f", noblock=1,
+         temp="character(kind=C_CHAR), dimension(:), allocatable, target")
+(char *STRING, size_t LENGTH) {
+  call SWIG_string_to_chararray($input, $1_temp, $1)
 }
 
 // Fortran proxy translation code: convert from char array to Fortran string

@@ -301,10 +301,8 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 }
 %typemap(fin) SWIGTYPE
   "$1 = $input%swigdata"
-%typemap(findecl, match="fin") SWIGTYPE ""
 %typemap(fout) SWIGTYPE
   "$result%swigdata = $1"
-%typemap(foutdecl, match="fout") SWIGTYPE ""
 
 // >>> POINTER
 

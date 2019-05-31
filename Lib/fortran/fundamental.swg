@@ -321,9 +321,7 @@ end function
   $1 = %reinterpret_cast($input, $1_ltype);
 }
 %typemap(fin) void* = FORTRAN_INTRINSIC_TYPE;
-%typemap(findecl, match="fin") void* "";
 %typemap(fout) void* = FORTRAN_INTRINSIC_TYPE;
-%typemap(foutdecl, match="fout") void* "";
 
 %apply void* { const void* } ;
 %typemap(in, noblock=1) const void* {
