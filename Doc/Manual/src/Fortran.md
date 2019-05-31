@@ -739,7 +739,7 @@ function callbacks so that data can be translated through wrapper functions.
 
 Another planned extension for function pointers is to automatically generate
 the necessary *abstract interface* code required by Fortran to interpret the
-function pointer.
+function pointer. This will allow type safety for wrapped function pointers.
 
 ## Handles and other oddities
 
@@ -759,6 +759,9 @@ function get_handle() &
   type(C_PTR) :: swig_result
 end function
 ```
+
+Function handles -- i.e., pointers to function pointers -- allow a `type(C_FUNPTR)` in Fortran to be set by a wrapped C/C++ function. Note that
+like function pointers, these are not currently type-safe.
 
 Similarly, member function pointers (bound to a member function of a particular
 class instance) are supported as opaque Fortran objects.
