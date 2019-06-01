@@ -54,6 +54,9 @@
 #define %nofortranonlywrapped    %feature("fortran:onlywrapped", "0")
 #define %clearfortranonlywrapped %feature("fortran:onlywrapped", "")
 
+// Note: preprocess concatenation (##) seems to happen before mangled name substitution (#@Type)
+%define %fortrantm(Method, Type...) SWIGTM_ ## Method ## _ ## #@Type %enddef
+
 /* -------------------------------------------------------------------------
  *
  * ctype      : type in C wrapper code (input parameter, default return value)
