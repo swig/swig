@@ -1272,6 +1272,7 @@ static void typemap_merge_fragment_kwargs(Parm *kw) {
     next_kw = nextSibling(kw);
     if (Strcmp(Getattr(kw, "name"), "fragment") == 0) {
       String *thisfragment = Getattr(kw, "value");
+      String *kwtype = Getattr(kw, "type");
       if (!fragment) {
 	/* First fragment found; it should remain in the list */
 	fragment = thisfragment;
@@ -1280,6 +1281,13 @@ static void typemap_merge_fragment_kwargs(Parm *kw) {
 	/* Concatentate to previously found fragment */
 	Printv(fragment, ",", thisfragment, NULL);
 	reattach_kw = prev_kw;
+      }
+      if (kwtype) {
+        String *mangle = Swig_string_mangle(kwtype);
+        Append(fragment, mangle);
+        Delete(mangle);
+        /* Remove 'type' from kwargs so it's not duplicated later */
+        Setattr(kw, "type", NULL);
       }
     } else {
       /* Not a fragment */
