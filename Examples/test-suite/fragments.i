@@ -61,6 +61,7 @@ typedef int int_infrag1;
 typedef int int_infrag2;
 typedef int int_outfrag1;
 typedef int int_outfrag2;
+typedef int int_outfrag3;
 
 %fragment("infrag2","runtime") %{
 typedef int_infrag1 int_infrag2;
@@ -87,6 +88,13 @@ typedef int int_tcfrag1;
 typedef int_tcfrag1 int_tcfrag2;
 %}
 
+%fragment("outspecial"{bool},"runtime") %{
+typedef int int_outfrag3_temp;
+%}
+%fragment("outfrag3","runtime") %{
+typedef int_outfrag3_temp int_outfrag3;
+%}
+
 %typemap(in, fragment="infrag1", fragment="infrag2") int_infrag2
 %{$typemap(in,int)%}
 
@@ -100,7 +108,12 @@ typedef int_tcfrag1 int_tcfrag2;
 %typemap(out, noblock=1, fragment="outfrag1", fragment="outfrag2") int_outfrag1
 {$typemap(out,int)}
 
+/* Test fragment specialization */
+%typemap(out, noblock=1, fragment="outspecial"{bool}, fragment="outfrag3") int_outfrag3
+{$typemap(out,int)}
+
 %inline %{
 int identity_in(int_infrag2 inp) { return inp; }
 int_outfrag2 identity_out(int inp) { return inp; }
+int_outfrag3 identity_out_2(int inp) { return inp; }
 %}
