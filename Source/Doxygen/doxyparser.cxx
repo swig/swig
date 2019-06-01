@@ -289,6 +289,18 @@ DoxygenParser::TokenListCIt DoxygenParser::getEndOfParagraph(const TokenList &to
   TokenListCIt endOfParagraph = m_tokenListIt;
 
   while (endOfParagraph != tokList.end()) {
+    // If \code or \verbatim is encountered within a paragraph, then
+    // go all the way to the end of that command, since the content
+    // could contain empty lines that would appear to be paragraph
+    // ends:
+    if (endOfParagraph->m_tokenType == COMMAND &&
+	(endOfParagraph->m_tokenString == "code" ||
+	 endOfParagraph->m_tokenString == "verbatim")) {
+      const string theCommand = endOfParagraph->m_tokenString;
+      endOfParagraph = getEndCommand("end" + theCommand, tokList);
+      endOfParagraph++; // Move after the end command
+      return endOfParagraph;
+    }
     if (endOfParagraph->m_tokenType == END_LINE) {
       endOfParagraph++;
       if (endOfParagraph != tokList.end()
