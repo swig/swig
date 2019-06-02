@@ -28,10 +28,11 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
 %typemap(javainterfaces) std::vector< CTYPE > "java.util.RandomAccess"
 %proxycode %{
   public $javaclassname($typemap(jstype, CTYPE)[] initialElements) {
-    this(initialElements.length);
+    this();
+    reserve(initialElements.length);
 
-    for (int i = 0; i < initialElements.length; ++i) {
-      set(i, initialElements[i]);
+    for ($typemap(jstype, CTYPE) element : initialElements) {
+      add(element);
     }
   }
 
@@ -87,7 +88,6 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
 
     vector();
     vector(const vector &other);
-    vector(size_type count);
 
     size_type capacity() const;
     void reserve(size_type n) throw (std::length_error);
@@ -183,4 +183,3 @@ namespace std {
 %define specialize_std_vector(T)
 #warning "specialize_std_vector - specialization for type T no longer needed"
 %enddef
-
