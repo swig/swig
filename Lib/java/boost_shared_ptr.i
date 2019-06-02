@@ -261,6 +261,7 @@
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
     swigWrap = new SwigWrap(cPtr, cMemoryOwn);
+    $imclassname.cleaner.register(this, swigWrap);
   }
 
   CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
@@ -298,6 +299,7 @@
     super($imclassname.$javaclazznameSWIGSmartPtrUpcast(cPtr), true);
     swigWrap = new SwigWrap(cPtr, cMemoryOwn);
     swigCMemOwnDerived = cMemoryOwn;
+    $imclassname.cleaner.register(this, swigWrap);
   }
 
   CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
