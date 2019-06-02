@@ -2038,7 +2038,10 @@ public:
       Printv(proxy_class_def, "static ", NIL); // C++ nested classes correspond to static java classes
     String *body = NewString(derived ? typemapLookup(n, "javabody_derived", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF) :
 				       typemapLookup(n, "javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF)); // main body of class
-    Replaceall(body, "$jnicall", destructor_call);
+    if (destructor_call && *Char(destructor_call))
+      Replaceall(body, "$jnicall", destructor_call);
+    else
+      Replaceall(body, "$jnicall", "throw new UnsupportedOperationException(\"C++ destructor does not have public access\")");
     Printv(proxy_class_def, typemapLookup(n, "javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
 	   " $javaclassname",	// Class name and bases
 	   (*Char(wanted_base)) ? " extends " : "", wanted_base, *Char(interface_list) ?	// Pure Java interfaces
@@ -3533,7 +3536,10 @@ public:
 
     // Emit the class
     String *body = NewString(typemapLookup(n, "javabody", type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF)); // main body of class
-    Replaceall(body, "$jnicall", destructor_call);
+    if (destructor_call && *Char(destructor_call))
+      Replaceall(body, "$jnicall", destructor_call);
+    else
+      Replaceall(body, "$jnicall", "throw new UnsupportedOperationException(\"C++ destructor does not have public access\")");
     Printv(swigtype, typemapLookup(n, "javaimports", type, WARN_NONE),	// Import statements
 	   "\n", typemapLookup(n, "javaclassmodifiers", type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
 	   " $javaclassname",	// Class name and bases
