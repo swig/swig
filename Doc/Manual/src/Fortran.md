@@ -1820,37 +1820,12 @@ Advanced SWIG users may know that
 %typemap(in) int (double tempval) { /.../ }
 ```
 is a way to declare a temporary variable `tempval` in the C wrapper code. The
-same feature is emulated in the special typemaps `findecl` and `foutdecl`,
-which are inserted into the variable declaration blocks when the corresponding
-types are used. If `findecl` allocates a temporary variable, the `ffrearg`
-typemap (analogous to the `freearg` typemap for C `in` arguments) can be used
-to deallocate it.
-
-An example for returning a native `allocatable` Fortran string from a C++
-string reference must declare a temporary array pointer to the C data, then
-copy the result into a Fortran string.
-```swig
-%typemap(ftype, out="character(kind=C_CHAR, len=:), allocatable")
-    const std::string&
-"character(kind=C_CHAR, len=*), target"
-
-// Fortran proxy translation code: temporary variables for output
-%typemap(foutdecl) const std::string &
-%{
- integer(kind=C_SIZE_T) :: $1_i
- character(kind=C_CHAR), dimension(:), pointer :: $1_chars
-%}
-
-// Fortran proxy translation code: convert from imtype $1 to ftype $result
-%typemap(fout) const std::string &
-%{
-  call c_f_pointer($1%data, $1_chars, [$1%size])
-  allocate(character(kind=C_CHAR, len=$1%size) :: $result)
-  do $1_i=1,$1%size
-    $result($1_i:$1_i) = $1_chars($1_i)
-  enddo
-%}
-```
+same feature is emulated in the `temp` keyword argument of `fin` and `fout`.
+This keyword declares a variable named `$1_temp` with the specified type
+declaration.
+The `ffreearg` typemap (analogous to the `freearg` typemap for C `in`
+arguments) can be used to deallocate or clean up any temporary variables as
+needed.
 
 ### Special class typemaps
 
