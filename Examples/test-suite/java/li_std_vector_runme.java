@@ -30,13 +30,6 @@ public class li_std_vector_runme {
     checkThat(v1.size() == 1);
     checkThat(!v1.isEmpty());
 
-    java.util.List<Integer> sizeInit = new IntVector(10);
-    checkThat(sizeInit.size() == 10);
-    sizeInit.set(0, 55);
-    sizeInit.set(9, 66);
-    sizeInit.add(77);
-    checkThat(sizeInit.size() == 11);
-
     int sum = 0;
     for (int n : v1) {
       checkThat(n == 123);
