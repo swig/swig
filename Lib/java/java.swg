@@ -1239,12 +1239,11 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 
 // Derived proxy classes
 %typemap(javabody_derived) TYPE %{
-  static final class SwigWrap implements Runnable {
+  static final class SwigWrap {
     public transient long swigCPtr;
     public SwigWrap(long cPtr) {
       swigCPtr = cPtr;
     }
-    public final void run() { }
   }
   protected final SwigWrap swigWrap;
 
@@ -1343,11 +1342,6 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 
 %typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized", parameters="") SWIGTYPE {
     swigWrap.run();
-  }
-
-%typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized", parameters="") SWIGTYPE {
-    swigWrap.run();
-    super.delete();
   }
 
 %typemap(directordisconnect, methodname="swigDirectorDisconnect") SWIGTYPE %{

@@ -2109,7 +2109,7 @@ public:
       String *destruct_jnicall, *release_jnicall, *take_jnicall;
       String *changeown_method_name = Swig_name_member(getNSpace(), getClassPrefix(), "change_ownership");
 
-      destruct_jnicall = NewStringf("%s()", destruct_methodname);
+      destruct_jnicall = destruct_methodname && *Char(destruct_methodname) ? NewStringf("%s()", destruct_methodname) : NewStringEmpty();
       release_jnicall = NewStringf("%s.%s(this, swigWrap.swigCPtr, false)", full_imclass_name, changeown_method_name);
       take_jnicall = NewStringf("%s.%s(this, swigWrap.swigCPtr, true)", full_imclass_name, changeown_method_name);
 
