@@ -140,14 +140,48 @@ static void trimWhitespace(string &s) {
 
 // Erase the first character in the string if it is a newline
 static void eraseLeadingNewLine(string &s) {
-  if ((! s.empty()) && s[0] == '\n')
+  if (!s.empty() && s[0] == '\n')
     s.erase(s.begin());
 }
 
 // Erase the last character in the string if it is a newline
 static void eraseTrailingNewLine(string &s) {
-  if ((! s.empty()) && s[s.size() - 1] == '\n')
+  if (!s.empty() && s[s.size() - 1] == '\n')
     s.erase(s.size() - 1);
+}
+
+// Check the generated docstring line by line and make sure that any
+// code and verbatim blocks have an empty line preceding them, which
+// is necessary for Sphinx.  Additionally, this strips any empty lines
+// appearing at the beginning of the docstring.
+static string padCodeAndVerbatimBlocks(const string &docString) {
+  std::string result;
+
+  std::istringstream iss(docString);
+
+  // Initialize to false because there is no previous line yet
+  bool lastLineWasNonBlank = false;
+  
+  for (string line; std::getline(iss, line); result += line) {
+    if (!result.empty()) {
+      // Terminate the previous line
+      result += '\n';
+    }
+
+    const size_t pos = line.find_first_not_of(" \t");
+    if (pos == string::npos) {
+      lastLineWasNonBlank = false;
+    } else {
+      if (lastLineWasNonBlank &&
+	  (line.compare(pos, 13, ".. code-block") == 0 ||
+	  line.compare(pos, 7, ".. math") == 0)) {
+	// Must separate code or math blocks from the previous line
+	result += '\n';
+      }
+      lastLineWasNonBlank = true;
+    }
+  }
+  return result;
 }
 
 /* static */
@@ -862,6 +896,9 @@ String *PyDocConverter::makeDocumentation(Node *n) {
 
     // remove the last '\n' since additional one is added during writing to file
     eraseTrailingNewLine(pyDocString);
+
+    // ensure that a blank line occurs before code or math blocks
+    pyDocString = padCodeAndVerbatimBlocks(pyDocString);
 
     if (m_flags & debug_translator) {
       std::cout << "\n---RESULT IN PYDOC---" << std::endl;
