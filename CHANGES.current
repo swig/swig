@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.1 (in progress)
 ===========================
 
+2019-06-06: bkotzz
+            [Java] #1552 Improve performance in Java std::vector constructor wrapper that takes
+            a native Java array as input.
+
 2019-06-03: olly
 	    [Python] Fix regression in implicit_conv handling of tuples,
 	    introduced in SWIG 4.0.0.  Fixes #1553, reported by Alexandre
