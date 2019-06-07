@@ -219,7 +219,7 @@ namespace Swig {
       PyErr_Print();
       std::cerr << std::endl;
 
-      std::cerr << "This exception was caught by the SWIG unexpected exception handler." << std::endl
+      std::cerr << "This exception was caught by the SWIG UnknownExceptionHandler." << std::endl
                 << "Try using %feature(\"director:except\") to avoid reaching this point." << std::endl
                 << std::endl
                 << "Exception is being re-thrown, program will likely abort/terminate." << std::endl;
@@ -227,14 +227,13 @@ namespace Swig {
     }
 
   public:
-
-    std::unexpected_handler old;
-    UnknownExceptionHandler(std::unexpected_handler nh = handler) {
-      old = std::set_unexpected(nh);
+    std::terminate_handler old;
+    UnknownExceptionHandler(std::terminate_handler nh = handler) {
+      old = std::set_terminate(nh);
     }
 
     ~UnknownExceptionHandler() {
-      std::set_unexpected(old);
+      std::set_terminate(old);
     }
 #endif
   };
