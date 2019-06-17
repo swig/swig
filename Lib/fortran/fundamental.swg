@@ -71,21 +71,21 @@ end subroutine
 
 /*!
  * \def %fortran_apply_typemaps
- * \brief Copy fundamental typemaps to the given type.
+ * \brief Copy *fundamental* typemaps to the given type.
  */
 %define %fortran_apply_typemaps(SRCTYPE, DSTTYPE)
   // Copy all relevant typemaps
-  %apply       SRCTYPE*        {       DSTTYPE* };
+  %apply SRCTYPE*               { DSTTYPE* };
+  %apply SRCTYPE&               { DSTTYPE& };
+  %apply SRCTYPE[ANY]           { DSTTYPE[ANY] };
+  %apply SRCTYPE[ANY][ANY]      { DSTTYPE[ANY][ANY] };
+  %apply SRCTYPE[ANY][ANY][ANY] { DSTTYPE[ANY][ANY][ANY] };
+  %apply SRCTYPE* const&        { DSTTYPE* const& };
+  %apply SRCTYPE&&              { DSTTYPE&& };
+
   %apply const SRCTYPE*        { const DSTTYPE* };
-  %apply       SRCTYPE&        {       DSTTYPE& };
   %apply const SRCTYPE&        { const DSTTYPE& };
-  %apply       SRCTYPE[]       {       DSTTYPE[] };
-  %apply const SRCTYPE[]       { const DSTTYPE[] };
-  %apply       SRCTYPE[ANY]    {       DSTTYPE[ANY] };
-  %apply const SRCTYPE[ANY]    { const DSTTYPE[ANY] };
-  %apply       SRCTYPE* const& {       DSTTYPE* const& };
   %apply const SRCTYPE* const& { const DSTTYPE* const& };
-  %apply       SRCTYPE&&       {       DSTTYPE&&};
 %enddef
 
 /*!
@@ -109,15 +109,16 @@ end subroutine
   %typemap(fin) CTYPE = FORTRAN_INTRINSIC_TYPE;
   %typemap(fout) CTYPE = FORTRAN_INTRINSIC_TYPE;
 
-  // XXX I'd like to do this as FORTRAN_INTRINSIC_TYPE, but because $1_basetype doesn't work as expected, and there's no way to do `$**1_ltype`, we have to explicitly add
-  // these here.
+  %typemap(fin) CTYPE = FORTRAN_INTRINSIC_TYPE;
+  %typemap(fout) CTYPE = FORTRAN_INTRINSIC_TYPE;
+
   %typemap(ftype, in={FTYPE, target, intent(inout)}, noblock=1) CTYPE *const & {
     FTYPE, pointer
   }
   %typemap(ctype, noblock=1) CTYPE *const & {
     const CTYPE*
   }
-  %apply CTYPE *const & { const CTYPE *const & };
+
 %enddef
 
 /*!
@@ -133,19 +134,6 @@ end subroutine
     const DSTTYPE*, const DSTTYPE&, const DSTTYPE[], const DSTTYPE[ANY] {
      $result = %reinterpret_cast($1, SRCTYPE*);
   }
-%enddef
-
-/*!
- * \def %fortran_bindc_array
- * \brief Generate array typemaps for the given dimensions
- */
-%define %fortran_bindc_array(CPPTYPE, FDIMS...)
-  #define FARRTYPE $typemap(imtype, $1_basetype), FDIMS
-  %typemap(bindc, in={FARRTYPE, intent(inout)}, checkdim=1, noblock=1) CPPTYPE
-   {FARRTYPE}
-  %typemap(bindc, in={FARRTYPE, intent(in)}, checkdim=1, noblock=1) const CPPTYPE
-   {FARRTYPE}
-  #undef FARRTYPE
 %enddef
 
 /* -------------------------------------------------------------------------
@@ -238,34 +226,16 @@ end subroutine
 %typemap(out) const FORTRAN_INTRINSIC_TYPE& 
   "$result = *$1;"
 
-// Unspecified-size array inputs should appear as deferred arrays; but since we can't provide a size for the output, we assign a size of 1 for now.
-%apply FORTRAN_INTRINSIC_TYPE* { FORTRAN_INTRINSIC_TYPE[] }
-%typemap(ftype, in="$typemap(ftype, $*1_ltype), dimension(*), target, intent(inout)", checkdim=1) FORTRAN_INTRINSIC_TYPE[]
-  "$typemap(ftype, $*1_ltype), dimension(:), pointer"
-%typemap(fin, checkdim=1) FORTRAN_INTRINSIC_TYPE[]
-  "$1 = c_loc($input(1))" // (1): see fortranarray.swg
-%typemap(fout, checkdim=1) FORTRAN_INTRINSIC_TYPE[]
-  "call c_f_pointer($1, $result, [1])"
- 
-%apply const FORTRAN_INTRINSIC_TYPE* { const FORTRAN_INTRINSIC_TYPE[] }
-%typemap(ftype, in="$typemap(ftype, $*1_ltype), dimension(*), target, intent(in)", checkdim=1) const FORTRAN_INTRINSIC_TYPE[]
-  "$typemap(ftype, $*1_ltype), dimension(:), pointer"
-%typemap(fin) const FORTRAN_INTRINSIC_TYPE[] = FORTRAN_INTRINSIC_TYPE[];
-%typemap(fout) const FORTRAN_INTRINSIC_TYPE[] = FORTRAN_INTRINSIC_TYPE[];
-  
-// Fixed-sized arrays can be treated natively
-%apply FORTRAN_INTRINSIC_TYPE[] { FORTRAN_INTRINSIC_TYPE[ANY] }
-%typemap(ftype, in="$typemap(ftype, $*1_ltype), dimension($1_dim0), target, intent(inout)", checkdim=1) FORTRAN_INTRINSIC_TYPE[ANY]
-  "$typemap(ftype, $*1_ltype), dimension(:), pointer"
-%typemap(fout, checkdim=1) FORTRAN_INTRINSIC_TYPE[ANY]
-  "call c_f_pointer($1, $result, [$1_dim0])"
+// Fixed-sized arrays can be treated natively with Fortran size
+%apply FORTRAN_INTRINSIC_TYPE* { FORTRAN_INTRINSIC_TYPE[ANY], FORTRAN_INTRINSIC_TYPE[ANY][ANY], FORTRAN_INTRINSIC_TYPE[ANY][ANY][ANY] }
 
-// Use correct intent for const fixed-size arrays
-%apply const FORTRAN_INTRINSIC_TYPE[] { const FORTRAN_INTRINSIC_TYPE[ANY] }
-%typemap(ftype, in="$typemap(ftype, $*1_ltype), dimension($1_dim0), target, intent(in)", checkdim=1) const FORTRAN_INTRINSIC_TYPE[ANY]
-  "$typemap(ftype, $*1_ltype), dimension(:), pointer"
-%typemap(fout) const FORTRAN_INTRINSIC_TYPE[ANY] = FORTRAN_INTRINSIC_TYPE[ANY];
-  
+%typemap(ftype, checkdim=1, noblock=1) FORTRAN_INTRINSIC_TYPE[ANY]
+ {$typemap(imtype, $1_basetype), dimension($1_dim0)}
+%typemap(ftype, checkdim=1, noblock=1) FORTRAN_INTRINSIC_TYPE[ANY][ANY]
+ {$typemap(imtype, $1_basetype), dimension($1_dim1,$1_dim0)}
+%typemap(ftype, checkdim=1, noblock=1) FORTRAN_INTRINSIC_TYPE[ANY][ANY][ANY]
+ {$typemap(imtype, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0)}
+
 // Treat rvalue references as values
 %apply const FORTRAN_INTRINSIC_TYPE& { FORTRAN_INTRINSIC_TYPE&& };
 
@@ -285,10 +255,12 @@ end subroutine
  * ------------------------------------------------------------------------- */
 
 // Generic array types with unknown dimensions for C binding
-%fortran_bindc_array(FORTRAN_INTRINSIC_TYPE[],           dimension(*))
-%fortran_bindc_array(FORTRAN_INTRINSIC_TYPE[ANY],        dimension($1_dim0))
-%fortran_bindc_array(SWIGTYPE[][ANY],      dimension($1_dim1,*))
-%fortran_bindc_array(SWIGTYPE[][ANY][ANY], dimension($1_dim2,$1_dim1,*)) 
+%typemap(bindc, checkdim=1, noblock=1) SWIGTYPE[ANY]
+ {$typemap(imtype, $1_basetype), dimension($1_dim0)}
+%typemap(bindc, checkdim=1, noblock=1) SWIGTYPE[ANY][ANY]
+ {$typemap(imtype, $1_basetype), dimension($1_dim1,$1_dim0)}
+%typemap(bindc, checkdim=1, noblock=1) SWIGTYPE[ANY][ANY][ANY]
+ {$typemap(imtype, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0)}
 
 /* -------------------------------------------------------------------------
  * UNSIGNED FUNDAMENTAL TYPE
