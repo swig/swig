@@ -2296,7 +2296,7 @@ int FORTRAN::classHandler(Node *n) {
 
     // Define policies for the class
     const char *policy = "swig::ASSIGNMENT_DEFAULT";
-    if (String *smartptr_type = Getattr(n, "feature:smartptr")) {
+    if (Getattr(n, "feature:smartptr")) {
       policy = "swig::ASSIGNMENT_SMARTPTR";
     } else if (!GetFlag(n, "allocate:default_destructor")) {
       policy = "swig::ASSIGNMENT_NODESTRUCT";
@@ -2729,7 +2729,7 @@ int FORTRAN::enumDeclaration(Node *n) {
   Delete(fsymname);
   Delete(scope_prefix);
 
-  return SWIG_OK;
+  return result;
 }
 
 /* -------------------------------------------------------------------------
