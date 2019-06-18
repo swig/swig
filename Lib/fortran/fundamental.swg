@@ -82,9 +82,6 @@ end subroutine
   %apply SRCTYPE[ANY]           { DSTTYPE[ANY] };
   %apply SRCTYPE[ANY][ANY]      { DSTTYPE[ANY][ANY] };
   %apply SRCTYPE[ANY][ANY][ANY] { DSTTYPE[ANY][ANY][ANY] };
-  %apply SRCTYPE[]              { DSTTYPE[] };
-  %apply SRCTYPE[][ANY]         { DSTTYPE[][ANY] };
-  %apply SRCTYPE[][ANY][ANY]    { DSTTYPE[][ANY][ANY] };
   %apply SRCTYPE* const&        { DSTTYPE* const& };
   %apply SRCTYPE&&              { DSTTYPE&& };
 
@@ -135,8 +132,8 @@ end subroutine
   %fortran_apply_typemaps(FORTRAN_UNSIGNED_TYPE, DSTTYPE)
 
   %typemap(out, noblock=1)
-    DSTTYPE*, DSTTYPE&, DSTTYPE[], DSTTYPE[ANY],
-    const DSTTYPE*, const DSTTYPE&, const DSTTYPE[], const DSTTYPE[ANY] {
+    DSTTYPE*, DSTTYPE&, DSTTYPE[ANY],
+    const DSTTYPE*, const DSTTYPE&, const DSTTYPE[ANY] {
      $result = %reinterpret_cast($1, SRCTYPE*);
   }
 %enddef
@@ -231,26 +228,6 @@ end subroutine
 %typemap(out) const FORTRAN_INTRINSIC_TYPE& 
   "$result = *$1;"
 
-// Fixed-sized arrays can be treated natively with Fortran size
-%apply FORTRAN_INTRINSIC_TYPE* { FORTRAN_INTRINSIC_TYPE[ANY], FORTRAN_INTRINSIC_TYPE[ANY][ANY], FORTRAN_INTRINSIC_TYPE[ANY][ANY][ANY] }
-
-%typemap(ftype, in="$typemap(ftype, $1_basetype), dimension($1_dim0), target", checkdim=1) FORTRAN_INTRINSIC_TYPE[ANY]
- "$typemap(ftype, $1_basetype), dimension($1_dim0)"
-%typemap(ftype, in="$typemap(ftype, $1_basetype), dimension($1_dim1,$1_dim0), target", checkdim=1) FORTRAN_INTRINSIC_TYPE[ANY][ANY]
- "$typemap(ftype, $1_basetype), dimension($1_dim1,$1_dim0)"
-%typemap(ftype, in="$typemap(ftype, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0), target", checkdim=1) FORTRAN_INTRINSIC_TYPE[ANY][ANY][ANY]
- "$typemap(ftype, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0)"
-
-%typemap(fout, temp="$typemap(ftype, $1_basetype), dimension(:), pointer", checkdim=1, noblock=1) FORTRAN_INTRINSIC_TYPE[ANY]
-{call c_f_pointer($1, $1_temp, [$1_dim0])
-$result = $1_temp}
-%typemap(fout, temp="$typemap(ftype, $1_basetype), dimension(:,:), pointer", checkdim=1, noblock=1) FORTRAN_INTRINSIC_TYPE[ANY][ANY]
-{call c_f_pointer($1, $1_temp, [$1_dim1,$1_dim0])
-$result = $1_temp}
-%typemap(fout, temp="$typemap(ftype, $1_basetype), dimension(:,:,:), pointer", checkdim=1, noblock=1) FORTRAN_INTRINSIC_TYPE[ANY][ANY][ANY]
-{call c_f_pointer($1, $1_temp, [$1_dim2,$1_dim1,$1_dim0])
-$result = $1_temp}
-
 // Generic array types with unknown dimensions for C binding
 %typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim0), target", checkdim=1) FORTRAN_INTRINSIC_TYPE[ANY]
  "$typemap(bindc, $1_basetype), dimension($1_dim0)"
@@ -258,9 +235,6 @@ $result = $1_temp}
  "$typemap(bindc, $1_basetype), dimension($1_dim1,$1_dim0)"
 %typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0), target", checkdim=1) FORTRAN_INTRINSIC_TYPE[ANY][ANY][ANY]
  "$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0)"
-
-// For array *return* values with unspecified dimension: we can't know the size so treat it as a pointer
-%apply FORTRAN_INTRINSIC_TYPE* { FORTRAN_INTRINSIC_TYPE[], FORTRAN_INTRINSIC_TYPE[][ANY], FORTRAN_INTRINSIC_TYPE[][ANY][ANY] }
 
 // Treat rvalue references as values
 %apply const FORTRAN_INTRINSIC_TYPE& { FORTRAN_INTRINSIC_TYPE&& };
