@@ -77,14 +77,9 @@ end subroutine
  */
 %define %fortran_apply_typemaps(SRCTYPE, DSTTYPE)
   // Copy all relevant typemaps
-  %apply SRCTYPE*               { DSTTYPE* };
-  %apply SRCTYPE&               { DSTTYPE& };
-  %apply SRCTYPE* const&        { DSTTYPE* const& };
-  %apply SRCTYPE&&              { DSTTYPE&& };
-
-  %apply const SRCTYPE*        { const DSTTYPE* };
-  %apply const SRCTYPE&        { const DSTTYPE& };
-  %apply const SRCTYPE* const& { const DSTTYPE* const& };
+  %apply SRCTYPE&       { DSTTYPE& };
+  %apply SRCTYPE&&      { DSTTYPE&& };
+  %apply const SRCTYPE& { const DSTTYPE& };
 %enddef
 
 /*!
@@ -110,14 +105,6 @@ end subroutine
 
   %typemap(fin) CTYPE = FORTRAN_INTRINSIC_TYPE;
   %typemap(fout) CTYPE = FORTRAN_INTRINSIC_TYPE;
-
-  %typemap(ftype, in={FTYPE, target, intent(inout)}, noblock=1) CTYPE *const & {
-    FTYPE, pointer
-  }
-  %typemap(ctype, noblock=1) CTYPE *const & {
-    const CTYPE*
-  }
-
 %enddef
 
 /*!
@@ -131,7 +118,7 @@ end subroutine
   %typemap(out, noblock=1)
     DSTTYPE*, DSTTYPE&,
     const DSTTYPE*, const DSTTYPE& {
-     $result = %reinterpret_cast($1, SRCTYPE*);
+     $result = (SRCTYPE*)($1);
   }
 %enddef
 
@@ -164,10 +151,10 @@ end subroutine
 
 // Fundamental types
 %typemap(in, noblock=1) FORTRAN_INTRINSIC_TYPE {
-  $1 = %static_cast(*$input, $1_ltype);
+  $1 = ($1_ltype)(*$input);
 }
 %typemap(out, noblock=1) FORTRAN_INTRINSIC_TYPE {
-  $result = %static_cast($1, $1_ltype);
+  $result = ($1_ltype)($1);
 }
 %typemap(fin) FORTRAN_INTRINSIC_TYPE
   "$1 = $input"
@@ -176,38 +163,23 @@ end subroutine
 
 // Mutable references are passed by pointers as arguments, but they're
 // *returned* as actual pointers (becoming Fortran pointers).
-%typemap(ctype) FORTRAN_INTRINSIC_TYPE*
+%typemap(ctype) FORTRAN_INTRINSIC_TYPE&
   "$typemap(ctype, $*1_ltype)*"
-%typemap(imtype, in="type(C_PTR), value") FORTRAN_INTRINSIC_TYPE*
+%typemap(imtype, in="type(C_PTR), value") FORTRAN_INTRINSIC_TYPE&
   "type(C_PTR)"
-%typemap(ftype, in="$typemap(ftype, $*1_ltype), target, intent(inout)") FORTRAN_INTRINSIC_TYPE*
+%typemap(ftype, in="$typemap(ftype, $*1_ltype), target, intent(inout)") FORTRAN_INTRINSIC_TYPE&
   "$typemap(ftype, $*1_ltype), pointer"
-%typemap(bindc, in="$typemap(imtype, $*1_ltype)") FORTRAN_INTRINSIC_TYPE*
+%typemap(bindc, in="$typemap(imtype, $*1_ltype)") FORTRAN_INTRINSIC_TYPE&
   "type(C_PTR)"
-%typemap(in, noblock=1) FORTRAN_INTRINSIC_TYPE* {
-   $1 = %reinterpret_cast($input, $1_ltype);
+%typemap(in, noblock=1) FORTRAN_INTRINSIC_TYPE& {
+   $1 = ($1_ltype)($input);
 }
-%typemap(out) FORTRAN_INTRINSIC_TYPE*
+%typemap(out) FORTRAN_INTRINSIC_TYPE&
   "$result = $1;"
-%typemap(fin) FORTRAN_INTRINSIC_TYPE*
+%typemap(fin) FORTRAN_INTRINSIC_TYPE&
   "$1 = c_loc($input)"
-%typemap(fout) FORTRAN_INTRINSIC_TYPE*
+%typemap(fout) FORTRAN_INTRINSIC_TYPE&
   "call c_f_pointer($1, $result)"
-
-%apply FORTRAN_INTRINSIC_TYPE* { const FORTRAN_INTRINSIC_TYPE* };
-%typemap(ctype) const FORTRAN_INTRINSIC_TYPE*
-  "const $typemap(ctype, $*1_ltype)*"
-%typemap(bindc, in="$typemap(imtype, $*1_ltype), intent(in)") const FORTRAN_INTRINSIC_TYPE*
-  "type(C_PTR)"
-%typemap(in, noblock=1) const FORTRAN_INTRINSIC_TYPE* {
-  $1 = %const_cast($input, $1_ltype);
-}
-%typemap(out, noblock=1) const FORTRAN_INTRINSIC_TYPE* {
-  $result = %const_cast($1, $1_ltype);
-}
-
-// Mutable references are treated as mutable pointers
-%apply FORTRAN_INTRINSIC_TYPE* { FORTRAN_INTRINSIC_TYPE& }
 
 // We treat const references as values for fundamental types
 // Since ctype/imtype/ftype aren't defined for 'FORTRAN_INTRINSIC_TYPE' (just for each fundamental type), use $typemap to retrieve the corresponding values.
@@ -219,25 +191,14 @@ end subroutine
 %typemap(ftype, in="$typemap(ftype, $*1_ltype), intent(in)" ) const FORTRAN_INTRINSIC_TYPE&
   "$typemap(ftype, $*1_ltype)"
 %typemap(in, noblock=1) const FORTRAN_INTRINSIC_TYPE& ($*1_ltype temp) {
-  temp = %static_cast(*$input, $*1_ltype);
+  temp = ($*1_ltype)(*$input);
   $1 = &temp;
 }
 %typemap(out) const FORTRAN_INTRINSIC_TYPE& 
   "$result = *$1;"
 
-// Treat rvalue references as values
+// Treat rvalue references as const refrerences
 %apply const FORTRAN_INTRINSIC_TYPE& { FORTRAN_INTRINSIC_TYPE&& };
-
-// Const references to mutable pointers
-%apply FORTRAN_INTRINSIC_TYPE* { FORTRAN_INTRINSIC_TYPE *const & };
-%typemap(in, noblock=1) FORTRAN_INTRINSIC_TYPE *const & ($*1_ltype temp)
-  {temp = %const_cast($input, $*1_ltype);
-   $1 = &temp;}
-%typemap(out) FORTRAN_INTRINSIC_TYPE *const &
-  "$result = *$1;"
-  
-// Const references to const pointers
-%apply const FORTRAN_INTRINSIC_TYPE* { const FORTRAN_INTRINSIC_TYPE *const & };
 
 /* -------------------------------------------------------------------------
  * ARRAY TYPES
@@ -256,11 +217,9 @@ end subroutine
  * ------------------------------------------------------------------------- */
 
 %fortran_apply_typemaps(FORTRAN_INTRINSIC_TYPE, FORTRAN_UNSIGNED_TYPE)
-%typemap(in, noblock=1) const FORTRAN_UNSIGNED_TYPE* {
+%typemap(in, noblock=1) const FORTRAN_UNSIGNED_TYPE& {
    $1 = ($1_ltype)($input);
 }
-%apply FORTRAN_UNSIGNED_TYPE* { FORTRAN_UNSIGNED_TYPE& };
-%apply const FORTRAN_UNSIGNED_TYPE* { const FORTRAN_UNSIGNED_TYPE& };
 
 /* -------------------------------------------------------------------------
  * VOID TYPES
@@ -280,37 +239,7 @@ end subroutine
  * A generic C pointer is treated as a value.
  * ------------------------------------------------------------------------- */
 
-%apply FORTRAN_INTRINSIC_TYPE* { void* } ;
-
-%typemap(ctype) void*
-  "void*"
-%typemap(imtype) void* = FORTRAN_INTRINSIC_TYPE*;
-%typemap(ftype) void*
-  "type(C_PTR)"
-%typemap(bindc, in="type(C_PTR), value") void*
-  "type(C_PTR)"
-
-%typemap(in, noblock=1) void* {
-  $1 = ($1_ltype)($input);
-}
-%typemap(fin) void* = FORTRAN_INTRINSIC_TYPE;
-%typemap(fout) void* = FORTRAN_INTRINSIC_TYPE;
-
-/* -------------------------------------------------------------------------
- * HANDLES
- *
- * A 'void**' looks like a FORTRAN_INTRINSIC_TYPE* where FORTRAN_INTRINSIC_TYPE is 'void*' (aka C_PTR)
- * ------------------------------------------------------------------------- */
-
-%apply void* { void** };
-%typemap(ftype, in="type(C_PTR), target, intent(inout)") void**
-  "type(C_PTR), pointer"
-%typemap(fin) void** = FORTRAN_INTRINSIC_TYPE*;
-%typemap(fout) void** = FORTRAN_INTRINSIC_TYPE*;
-%apply void** { void*&, void *const* };
-
-%typemap(ftype, in="type(C_PTR), target, intent(in)") const void**
-  "type(C_PTR), pointer"
+%fortran_intrinsic(void*, type(C_PTR))
 
 /* -------------------------------------------------------------------------
  * FUNDAMENTAL TYPES
@@ -388,15 +317,6 @@ end subroutine
   "type(C_FUNPTR)"
 
 %apply SWIGTYPE (*)(ANY) { SWIGTYPE (* const)(ANY) } ;
-
-/* -------------------------------------------------------------------------
- * FUNCTION POINTERS
- * ------------------------------------------------------------------------- */
-
-%apply void** { SWIGTYPE (**)(ANY) } ;
-
-%typemap(ftype, in="type(C_FUNPTR), target, intent(inout)") SWIGTYPE (**)(ANY)
-  "type(C_FUNPTR), pointer"
 
 /* -------------------------------------------------------------------------
  * TYPE CHECKING

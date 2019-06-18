@@ -287,7 +287,7 @@ extend the
 Fortran/C++ mapping as much as possible, keeping in mind that Fortran and C are
 inherently different languages.
 
-## Arithmetic types
+## Fundamental types
 
 SWIG maps ISO C types to Fortran types using the `ISO_C_BINDING` intrinsic
 module. The data types fully supported by C, Fortran, and SWIG are:
@@ -304,8 +304,7 @@ module. The data types fully supported by C, Fortran, and SWIG are:
 | `double`        | `real(C_DOUBLE)`        |
 | `char`          | `character(C_CHAR)`     |
 
-Pointers and references to these basic types are returned as scalar Fortran
-pointers.
+References to these basic types are returned as scalar Fortran pointers.
 
 Note that because the C return value does not contain any information about the
 shape of the data being pointed to, it is not possible to directly construct an
@@ -357,12 +356,12 @@ typedef char NativeChar;
 char *get_my_char_ptr();
 ```
 
-## Pointers and references
+### References
 
-C pointers and mutable references are treated as Fortran pointers. Suppose a C
-function that returns a pointer to an array element at a given index:
+C mutable references are treated as Fortran pointers. Suppose a C
+function that returns a reference to an array element at a given index:
 ```c
-double *get_array_element(int x);
+double &get_array_element(int x);
 ```
 
 This generates the following Fortran interface:
@@ -390,7 +389,7 @@ rptr = 512.0d0
 Note, and this is **very important**, that a function returning a pointer must
 not be *assigned*; the *pointer assignment* operator `=>` must be used.
 
-Mutable references are treated identically. However, *const* references to
+Unlike mutable references, *const* references to
 primitive arithmetic types are treated as values:
 ```c++
 const double &get_const_array_element(int x);
