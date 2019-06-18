@@ -80,6 +80,11 @@ end subroutine
   %apply SRCTYPE&       { DSTTYPE& };
   %apply SRCTYPE&&      { DSTTYPE&& };
   %apply const SRCTYPE& { const DSTTYPE& };
+
+  // Special bind-c types
+  %typemap(bindc) DSTTYPE[ANY] = SRCTYPE[ANY];
+  %typemap(bindc) DSTTYPE[ANY][ANY] = SRCTYPE[ANY][ANY];
+  %typemap(bindc) DSTTYPE[ANY][ANY][ANY] = SRCTYPE[ANY][ANY][ANY];
 %enddef
 
 /*!
@@ -205,11 +210,11 @@ end subroutine
  * ------------------------------------------------------------------------- */
 
 // Generic array types with known dimensions for C binding
-%typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim0), target", checkdim=1) SWIGTYPE[ANY]
+%typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim0), target", checkdim=1) FORTRAN_INTRINSIC_TYPE[ANY]
  "$typemap(bindc, $1_basetype), dimension($1_dim0)"
-%typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim1,$1_dim0), target", checkdim=1) SWIGTYPE[ANY][ANY]
+%typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim1,$1_dim0), target", checkdim=1) FORTRAN_INTRINSIC_TYPE[ANY][ANY]
  "$typemap(bindc, $1_basetype), dimension($1_dim1,$1_dim0)"
-%typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0), target", checkdim=1) SWIGTYPE[ANY][ANY][ANY]
+%typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0), target", checkdim=1) FORTRAN_INTRINSIC_TYPE[ANY][ANY][ANY]
  "$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0)"
 
 /* -------------------------------------------------------------------------
