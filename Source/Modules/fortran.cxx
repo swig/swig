@@ -110,54 +110,21 @@ bool is_fortran_intexpr(String *s) {
 }
 
 /* -------------------------------------------------------------------------
- * \brief Replace '.a()' with '.a(*)' to transform C unspecified array dimensions to Fortran 'deferred' array dimensions 
- */
-void transform_array_type(Node *n) {
-  SwigType *t = Getattr(n, "type");
-  if (!t || !SwigType_isarray(t))
-    return;
-
-  Setattr(n, "transform_array_type:type", Copy(t));
-
-  int ndim = SwigType_array_ndim(t);
-  for (int i = 0; i < ndim; i++) {
-    String *dim = SwigType_array_getdim(t, i);
-    if (!dim || Len(dim) == 0) {
-      SwigType_array_setdim(t, i, "*");
-    }
-  }
-}
-
-/* -------------------------------------------------------------------------
- * \brief Replace '.a()' with '.a(*)' to transform C unspecified array dimensions to Fortran 'deferred' array dimensions 
- */
-void restore_array_type(Node *n) {
-  SwigType *t = Getattr(n, "transform_array_type:type");
-  if (!t)
-    return;
-
-  Setattr(n, "type", t);
-  Delattr(n, "transform_array_type:type");
-}
-
-/* -------------------------------------------------------------------------
  * \brief Check a parameter for invalid dimension names.
  */
-int check_fortran_dims(Node *n, const char *tmap_name, String *typemap) {
+int fix_fortran_dims(Node *n, const char *tmap_name, String *typemap) {
   String *key = NewStringf("tmap:%s:checkdim", tmap_name);
   bool is_checkdims = GetFlag(n, key);
   Delete(key);
   if (!is_checkdims)
     return SWIG_OK;
   
-  SwigType *t = Getattr(n, "type");
-  if (!SwigType_isarray(t))
-    return SWIG_OK;
-
+  SwigType* t = Getattr(n, "type");
+  ASSERT_OR_PRINT_NODE(SwigType_isarray(t), n);
   int ndim = SwigType_array_ndim(t);
   for (int i = 0; i < ndim; i++) {
     String *dim = SwigType_array_getdim(t, i);
-    if (dim && Len(dim) > 0 && Strcmp(dim, "*") != 0 &&  !is_fortran_intexpr(dim)) {
+    if (dim && Len(dim) > 0 && !is_fortran_intexpr(dim)) {
       Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number,
                    "Array dimension expression '%s' is incompatible with Fortran\n",
                    dim);
@@ -166,6 +133,10 @@ int check_fortran_dims(Node *n, const char *tmap_name, String *typemap) {
     }
     Delete(dim);
   }
+
+  // Replace empty dimensions with assumed-size dimension
+  Replaceall(typemap, "dimension()", "dimension(*)");
+  Replaceall(typemap, ",)", ",*)");
 
   return SWIG_OK;
 }
@@ -1597,13 +1568,7 @@ Wrapper *FORTRAN::imfuncWrapper(Node *n) {
   // >>> FUNCTION PARAMETERS/ARGUMENTS
 
   ParmList *parmlist = Getattr(n, "parms");
-  for (Iterator it = First(parmlist); it.item; it = Next(it)) {
-    transform_array_type(it.item);
-  }
   Swig_typemap_attach_parms(tmtype, parmlist, NULL);
-  for (Iterator it = First(parmlist); it.item; it = Next(it)) {
-    restore_array_type(it.item);
-  }
 
   // Get the list of actual parameters used by the C function
   // (these are pointers to values in parmlist, with some elements possibly
@@ -1626,7 +1591,7 @@ Wrapper *FORTRAN::imfuncWrapper(Node *n) {
 
     // Add dummy argument to wrapper body
     String *imtype = get_typemap(tmtype, "in", p, warning_flag);
-    if (check_fortran_dims(p, tmtype, imtype) != SWIG_OK) {
+    if (fix_fortran_dims(p, tmtype, imtype) != SWIG_OK) {
       DelWrapper(imfunc);
       return NULL;
     }
@@ -1680,15 +1645,12 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
 
   // >>> FUNCTION RETURN VALUES
 
-  transform_array_type(n);
   String *return_ftype = attach_typemap("ftype", n, WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF);
-  restore_array_type(n);
-  assert(return_ftype);
-
-  if (check_fortran_dims(n, "ftype", return_ftype) != SWIG_OK) {
+  if (fix_fortran_dims(n, "ftype", return_ftype) != SWIG_OK) {
     DelWrapper(ffunc);
-    return NULL;
+    return SWIG_ERROR;
   }
+  assert(return_ftype);
 
   // Return type for the C call
   String *return_imtype = get_typemap("imtype", n, WARN_NONE);
@@ -1834,15 +1796,9 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
 
   // Attach proxy input typemap (proxy arg -> farg1 in fortran function)
   ParmList *parmlist = Getattr(n, "parms");
-  for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
-    transform_array_type(it.item);
-  }
   Swig_typemap_attach_parms("ftype", parmlist, ffunc);
   Swig_typemap_attach_parms("fin", parmlist, ffunc);
   Swig_typemap_attach_parms("fargout", parmlist, ffunc);
-  for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
-    restore_array_type(it.item);
-  }
 
   // Restore parameter names
   for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
@@ -1918,7 +1874,7 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
 
     // Add dummy argument to wrapper body
     String *ftype = get_typemap("ftype", "in", p, WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF);
-    if (check_fortran_dims(p, "ftype", ftype) != SWIG_OK) {
+    if (fix_fortran_dims(p, "ftype", ftype) != SWIG_OK) {
       DelWrapper(ffunc);
       return NULL;
     }
@@ -1987,7 +1943,6 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
   // Get the typemap for output argument conversion
   Parm *outparm = NewParm(return_cpptype, Getattr(n, "name"), n);
   Setattr(outparm, "lname", "fresult"); // Replaces $1
-  transform_array_type(outparm);
   String *fbody = attach_typemap("fout", outparm, WARN_FORTRAN_TYPEMAP_FOUT_UNDEF);
 
   // Add any needed temporary variables
@@ -2841,7 +2796,7 @@ int FORTRAN::constantWrapper(Node *n) {
   }
 
   // Check for incompatible array dimensions
-  if (check_fortran_dims(n, "bindc", bindc_typestr) != SWIG_OK) {
+  if (fix_fortran_dims(n, "bindc", bindc_typestr) != SWIG_OK) {
     return SWIG_NOWRAP;
   }
 

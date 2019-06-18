@@ -72,6 +72,8 @@ end subroutine
 /*!
  * \def %fortran_apply_typemaps
  * \brief Copy *fundamental* typemaps to the given type.
+ *
+ * These should be exactly the typemaps declared as FORTRAN_INTRINSIC_TYPE. 
  */
 %define %fortran_apply_typemaps(SRCTYPE, DSTTYPE)
   // Copy all relevant typemaps
@@ -80,6 +82,9 @@ end subroutine
   %apply SRCTYPE[ANY]           { DSTTYPE[ANY] };
   %apply SRCTYPE[ANY][ANY]      { DSTTYPE[ANY][ANY] };
   %apply SRCTYPE[ANY][ANY][ANY] { DSTTYPE[ANY][ANY][ANY] };
+  %apply SRCTYPE[]              { DSTTYPE[] };
+  %apply SRCTYPE[][ANY]         { DSTTYPE[][ANY] };
+  %apply SRCTYPE[][ANY][ANY]    { DSTTYPE[][ANY][ANY] };
   %apply SRCTYPE* const&        { DSTTYPE* const& };
   %apply SRCTYPE&&              { DSTTYPE&& };
 
@@ -122,10 +127,10 @@ end subroutine
 %enddef
 
 /*!
- * \def %fortran_apply_unsigned
+ * \def %fortran_unsigned
  * \brief Apply typemaps for treating signed/unsigned variables
  */
-%define %fortran_apply_unsigned(SRCTYPE, DSTTYPE)
+%define %fortran_unsigned(SRCTYPE, DSTTYPE)
   %apply SRCTYPE { DSTTYPE };
   %fortran_apply_typemaps(FORTRAN_UNSIGNED_TYPE, DSTTYPE)
 
@@ -254,6 +259,9 @@ $result = $1_temp}
 %typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0), target", checkdim=1) FORTRAN_INTRINSIC_TYPE[ANY][ANY][ANY]
  "$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0)"
 
+// For array *return* values with unspecified dimension: we can't know the size so treat it as a pointer
+%apply FORTRAN_INTRINSIC_TYPE* { FORTRAN_INTRINSIC_TYPE[], FORTRAN_INTRINSIC_TYPE[][ANY], FORTRAN_INTRINSIC_TYPE[][ANY][ANY] }
+
 // Treat rvalue references as values
 %apply const FORTRAN_INTRINSIC_TYPE& { FORTRAN_INTRINSIC_TYPE&& };
 
@@ -367,13 +375,11 @@ void ** const, void **const &};
 %fortran_intrinsic(char       , character(C_CHAR)     )
 
 // Unsigned integer types
-%fortran_apply_unsigned(signed char     ,unsigned char      )
-%fortran_apply_unsigned(signed short    ,unsigned short     )
-%fortran_apply_unsigned(signed int      ,unsigned int       )
-%fortran_apply_unsigned(signed long     ,unsigned long      )
-%fortran_apply_unsigned(signed long long,unsigned long long )
-
-// TODO: provide optional typemap(check) code for unsigned/signed range
+%fortran_unsigned(signed char     ,unsigned char      )
+%fortran_unsigned(signed short    ,unsigned short     )
+%fortran_unsigned(signed int      ,unsigned int       )
+%fortran_unsigned(signed long     ,unsigned long      )
+%fortran_unsigned(signed long long,unsigned long long )
 
 /* -------------------------------------------------------------------------
  * LOGICAL (BOOLEAN) TYPE
