@@ -30,3 +30,39 @@ $2 = $input->size;
   $typemap(imtype, $*1_ltype), dimension(:), pointer
 }
 
+/* -------------------------------------------------------------------------
+ * Interact natively with Fortran fixed-size arrays.
+ *
+ * To apply these to a function `void foo(const int x[4]);`:
+ *
+ * %apply ARRAY[ANY] {const  int x[4] };
+ */
+
+%apply FORTRAN_INTRINSIC_TYPE* { ARRAY[ANY], ARRAY[ANY][ANY], ARRAY[ANY][ANY][ANY] }
+
+%typemap(ftype, in="$typemap(ftype, $1_basetype), dimension($1_dim0), target", checkdim=1) ARRAY[ANY]
+ "$typemap(ftype, $1_basetype), dimension($1_dim0)"
+%typemap(ftype, in="$typemap(ftype, $1_basetype), dimension($1_dim1,$1_dim0), target", checkdim=1) ARRAY[ANY][ANY]
+ "$typemap(ftype, $1_basetype), dimension($1_dim1,$1_dim0)"
+%typemap(ftype, in="$typemap(ftype, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0), target", checkdim=1) ARRAY[ANY][ANY][ANY]
+ "$typemap(ftype, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0)"
+
+%typemap(fout, temp="$typemap(ftype, $1_basetype), dimension(:), pointer", checkdim=1, noblock=1) ARRAY[ANY]
+{call c_f_pointer($1, $1_temp, [$1_dim0])
+$result = $1_temp}
+%typemap(fout, temp="$typemap(ftype, $1_basetype), dimension(:,:), pointer", checkdim=1, noblock=1) ARRAY[ANY][ANY]
+{call c_f_pointer($1, $1_temp, [$1_dim1,$1_dim0])
+$result = $1_temp}
+%typemap(fout, temp="$typemap(ftype, $1_basetype), dimension(:,:,:), pointer", checkdim=1, noblock=1) ARRAY[ANY][ANY][ANY]
+{call c_f_pointer($1, $1_temp, [$1_dim2,$1_dim1,$1_dim0])
+$result = $1_temp}
+
+// Generic array types with unknown dimensions for C binding
+%typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim0), target", checkdim=1) ARRAY[ANY]
+ "$typemap(bindc, $1_basetype), dimension($1_dim0)"
+%typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim1,$1_dim0), target", checkdim=1) ARRAY[ANY][ANY]
+ "$typemap(bindc, $1_basetype), dimension($1_dim1,$1_dim0)"
+%typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0), target", checkdim=1) ARRAY[ANY][ANY][ANY]
+ "$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0)"
+
+
