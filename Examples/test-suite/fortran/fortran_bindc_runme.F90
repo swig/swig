@@ -28,7 +28,7 @@ subroutine test_arrays
   use fortran_bindc
   use ISO_C_BINDING
   implicit none
-  type(XY), pointer :: globalxyarr(:)
+  type(XY), allocatable :: globalxyarr(:)
   type(XYArray) :: xyarr
   type(XYArray) :: xyarr_ptr
   type(XY) :: tempxy
@@ -36,16 +36,14 @@ subroutine test_arrays
   integer(c_short) :: short_array(5) = [ 5_c_short, 40_c_short, 300_c_short, 2000_c_short, 10000_c_short ]
   integer(c_short) :: summed
 
-  ! Get a fortran pointer to the global xy array
-  globalxyarr => get_globalXYArray()
+  ! Get a copy of the global xy array
+  globalxyarr = get_globalXYArray()
   ASSERT(size(globalxyarr) == 3)
   do i = 1,3
     globalxyarr(i)%x = i * 2
     globalxyarr(i)%y = i * 2 + 1
   end do
-
-  ! Global array should have the same values
-  write(0,*) "Global values:", get_globalXYArray()
+  write(0,*) "Global values:", globalxyarr
 
   ! Get a C pointer to the global xy array using a static method
   xyarr_ptr = xyarr_ptr%frompointer(globalxyarr(1))
