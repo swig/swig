@@ -321,6 +321,10 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 }
 %typemap(bindc) SWIGTYPE* "type(C_PTR)";
 
+// >>> ARRAY
+
+%apply SWIGTYPE* { SWIGTYPE[] };
+
 // >>> CONST POINTER
 
 // Immutable pointers to mutable classes

@@ -79,9 +79,6 @@ end subroutine
   // Copy all relevant typemaps
   %apply SRCTYPE*               { DSTTYPE* };
   %apply SRCTYPE&               { DSTTYPE& };
-  %apply SRCTYPE[ANY]           { DSTTYPE[ANY] };
-  %apply SRCTYPE[ANY][ANY]      { DSTTYPE[ANY][ANY] };
-  %apply SRCTYPE[ANY][ANY][ANY] { DSTTYPE[ANY][ANY][ANY] };
   %apply SRCTYPE* const&        { DSTTYPE* const& };
   %apply SRCTYPE&&              { DSTTYPE&& };
 
@@ -132,8 +129,8 @@ end subroutine
   %fortran_apply_typemaps(FORTRAN_UNSIGNED_TYPE, DSTTYPE)
 
   %typemap(out, noblock=1)
-    DSTTYPE*, DSTTYPE&, DSTTYPE[ANY],
-    const DSTTYPE*, const DSTTYPE&, const DSTTYPE[ANY] {
+    DSTTYPE*, DSTTYPE&,
+    const DSTTYPE*, const DSTTYPE& {
      $result = %reinterpret_cast($1, SRCTYPE*);
   }
 %enddef
@@ -228,14 +225,6 @@ end subroutine
 %typemap(out) const FORTRAN_INTRINSIC_TYPE& 
   "$result = *$1;"
 
-// Generic array types with unknown dimensions for C binding
-%typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim0), target", checkdim=1) FORTRAN_INTRINSIC_TYPE[ANY]
- "$typemap(bindc, $1_basetype), dimension($1_dim0)"
-%typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim1,$1_dim0), target", checkdim=1) FORTRAN_INTRINSIC_TYPE[ANY][ANY]
- "$typemap(bindc, $1_basetype), dimension($1_dim1,$1_dim0)"
-%typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0), target", checkdim=1) FORTRAN_INTRINSIC_TYPE[ANY][ANY][ANY]
- "$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0)"
-
 // Treat rvalue references as values
 %apply const FORTRAN_INTRINSIC_TYPE& { FORTRAN_INTRINSIC_TYPE&& };
 
@@ -254,7 +243,7 @@ end subroutine
  * ARRAY TYPES
  * ------------------------------------------------------------------------- */
 
-// Generic array types with unknown dimensions for C binding
+// Generic array types with known dimensions for C binding
 %typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim0), target", checkdim=1) SWIGTYPE[ANY]
  "$typemap(bindc, $1_basetype), dimension($1_dim0)"
 %typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim1,$1_dim0), target", checkdim=1) SWIGTYPE[ANY][ANY]
@@ -302,15 +291,10 @@ end subroutine
   "type(C_PTR)"
 
 %typemap(in, noblock=1) void* {
-  $1 = %reinterpret_cast($input, $1_ltype);
+  $1 = ($1_ltype)($input);
 }
 %typemap(fin) void* = FORTRAN_INTRINSIC_TYPE;
 %typemap(fout) void* = FORTRAN_INTRINSIC_TYPE;
-
-%apply void* { const void* } ;
-%typemap(in, noblock=1) const void* {
-  $1 = ($1_ltype)($input);
-}
 
 /* -------------------------------------------------------------------------
  * HANDLES
@@ -325,13 +309,8 @@ end subroutine
 %typemap(fout) void** = FORTRAN_INTRINSIC_TYPE*;
 %apply void** { void*&, void *const* };
 
-%apply const void* { const void** };
 %typemap(ftype, in="type(C_PTR), target, intent(in)") const void**
   "type(C_PTR), pointer"
-%typemap(fin) const void** = const FORTRAN_INTRINSIC_TYPE*;
-%typemap(fout) const void** = const FORTRAN_INTRINSIC_TYPE*;
-%apply const void** { const void*&, const void *const*,
-void ** const, void **const &};
 
 /* -------------------------------------------------------------------------
  * FUNDAMENTAL TYPES
@@ -370,16 +349,16 @@ void ** const, void **const &};
  * ------------------------------------------------------------------------- */
 // Treat bools like integers for C/IM types
 %apply int { bool };
+%typemap(in) bool
+  "$1 = (*$input ? true : false);"
+%typemap(out) bool
+  "$result = ($1 ? 1 : 0);"
 %typemap(ftype, in="logical, intent(in)") bool
   "logical"
 %typemap(bindc, in="logical(C_BOOL), value") bool
   "logical(C_BOOL)"
 
-%typemap(in) bool
-  "$1 = (*$input ? true : false);"
-%typemap(out) bool
-  "$result = ($1 ? 1 : 0);"
-
+// Special Fortran conversions for logical->c_int
 %fortran_typemap_finout(bool)
 
 // Treat const references like values
@@ -391,7 +370,7 @@ void ** const, void **const &};
 }
 
 // Mutable references and arrays are treated like opaque pointers
-%apply void* { bool*, bool& };
+%apply SWIGTYPE* { bool*, bool& };
 
 /* -------------------------------------------------------------------------
  * FUNCTION POINTERS
