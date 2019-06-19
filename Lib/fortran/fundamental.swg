@@ -110,6 +110,48 @@ end subroutine
 
   %typemap(fin) CTYPE = FORTRAN_INTRINSIC_TYPE;
   %typemap(fout) CTYPE = FORTRAN_INTRINSIC_TYPE;
+
+  // Fragment for converting array to array wrapper
+  %fragment("SWIG_fin"{CTYPE[]}, "fsubprograms", noblock=1)
+{subroutine %fortrantm(fin, CTYPE[])(finp, iminp)
+  use, intrinsic :: ISO_C_BINDING
+  FTYPE, dimension(:), intent(IN), target :: finp
+  type(SwigArrayWrapper), intent(OUT) :: iminp
+  FTYPE, dimension(:), pointer :: imtemp
+
+  if (size(finp) > 0) then
+    imtemp => finp(1)
+    iminp%data = c_loc(imtemp)
+    iminp%size = size(finp)
+  else
+    iminp%data = c_null_ptr
+    iminp%size = 0
+  end if
+end subroutine}
+
+  // Fragment for converting array wrapper to array
+  %fragment("SWIG_fout_"{CTYPE[]}, "fsubprograms", noblock=1)
+{subroutine %fortrantm(fout, CTYPE[])(imout, fout)
+  use, intrinsic :: ISO_C_BINDING
+  type(SwigArrayWrapper), intent(IN) :: imout
+  FTYPE, dimension(:), pointer, intent(OUT) :: fout
+
+  if (imout%size > 0) then
+    call c_f_pointer(imout%data, fout, [imout%size])
+  else
+    fout => NULL()
+  endif
+end subroutine}
+
+  // Typemap for converting to array wrapper
+  %typemap(fin, fragment="SWIG_fin"{CTYPE[]}, noblock=1) CTYPE ARRAY[] {
+  call %fortrantm(fin, CTYPE[])($input, $1)
+}
+  // Typemap for converting to array wrapper
+  %typemap(fout, fragment="SWIG_fout"{CTYPE[]}, noblock=1) CTYPE ARRAY[] {
+  call %fortrantm(fout, CTYPE[])($1, $result)
+}
+
 %enddef
 
 /*!
