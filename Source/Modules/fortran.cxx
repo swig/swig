@@ -187,6 +187,13 @@ bool is_native_parameter(Node *n) {
 }
 
 /* -------------------------------------------------------------------------
+ * \brief Determine whether an enum is being wrapped
+ */
+bool is_wrapped_enum(Node *n) {
+  return n && !GetFlag(n, "enumMissing") && GetFlag(n, "fortran:declared");
+}
+
+/* -------------------------------------------------------------------------
  * Construct a specifier suffix from a BIND(C) typemap.
  * 
  * This returns NULL if the typestr doesn't have a simple KIND, otherwise
@@ -2938,6 +2945,16 @@ void FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
       Replaceall(tm, "$fenumname", repl);
     }
   }
+  if (Strstr(tm, "$*fenumname")) {
+    String *repltype = Copy(strippedtype);
+    Delete(SwigType_pop(repltype));
+    if (Len(repltype) > 0) {
+      if (String *repl = this->get_fenumname(repltype)) {
+        Replaceall(tm, "$*fenumname", repl);
+      }
+    }
+    Delete(repltype);
+  }
 
   Delete(resolvedtype);
   Delete(strippedtype);
@@ -3011,7 +3028,7 @@ String *FORTRAN::get_fenumname(SwigType *classnametype) {
   Node *n = this->enumLookup(classnametype);
 
   // The enum name is only available if the 'missing' flag isn't set and we've marked the enum as 'declared'
-  if (n && !GetFlag(n, "enumMissing") && GetFlag(n, "fortran:declared")) {
+  if (is_wrapped_enum(n)) {
     replacementname = this->get_fortran_name(n);
   } else {
     replacementname = create_mangled_fname(classnametype);
@@ -3065,13 +3082,16 @@ bool FORTRAN::is_wrapped_class(Node *n) {
   } else if (Strstr(tm, "$*fclassname")) {
     SwigType_pop(strippedtype);
     result = Len(strippedtype) > 0 && (this->classLookup(strippedtype) != NULL);
-  } else if (Strstr(tm, "$fclassname")) {
+  } else if (Strstr(tm, "$&fclassname")) {
     SwigType_add_pointer(strippedtype);
     result = (this->classLookup(strippedtype) != NULL);
   } else if (Strstr(tm, "$fenumname")) {
     // True if the enum is declared
-    Node *clsnode = this->enumLookup(strippedtype);
-    result = clsnode && !GetFlag(clsnode, "enumMissing") && GetFlag(clsnode, "fortran:declared");
+    result = is_wrapped_enum(this->enumLookup(strippedtype));
+  } else if (Strstr(tm, "$*fenumname")) {
+    // True if the enum is declared
+    SwigType_pop(strippedtype);
+    result = Len(strippedtype) > 0 && is_wrapped_enum(this->enumLookup(strippedtype));
   } else {
     // Type doesn't resolve to something that expects a class name
     result = true;

@@ -120,9 +120,7 @@ end subroutine
   %apply SRCTYPE { DSTTYPE };
   %fortran_apply_typemaps(FORTRAN_UNSIGNED_TYPE, DSTTYPE)
 
-  %typemap(out, noblock=1)
-    DSTTYPE*, DSTTYPE&,
-    const DSTTYPE*, const DSTTYPE& {
+  %typemap(out, noblock=1) DSTTYPE&, const DSTTYPE& {
      $result = (SRCTYPE*)($1);
   }
 %enddef

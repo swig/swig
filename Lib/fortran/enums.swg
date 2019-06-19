@@ -17,7 +17,8 @@
   $result = %static_cast($1, int);
 }
 
+%typemap(ftype, in="integer($*fenumname), intent(in)") const enum SWIGTYPE&
+  "integer($*fenumname)"
 %typemap(imtype) const enum SWIGTYPE& = enum SWIGTYPE;
-%typemap(ftype)  const enum SWIGTYPE& = enum SWIGTYPE;
 %typemap(fin)    const enum SWIGTYPE& = enum SWIGTYPE;
 %typemap(fout)   const enum SWIGTYPE& = enum SWIGTYPE;
