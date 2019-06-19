@@ -86,8 +86,8 @@
 %include "fortrankw.swg"
 
 /* TYPEMAPS */
-%include "fundamental.swg"
 %include "classes.swg"
+%include "fundamental.swg"
 %include "enums.swg"
 %include "fortranstrings.swg"
 %include "bindc.swg"

@@ -19,14 +19,14 @@ public:
  int func(int a) { return a; }
  virtual int func(int a, int b) { return a + b; }
  void func(int, int, int) {} // !! Can't overload subroutine with functions
- void sub(int *x) { *x = 123; }
+ void sub(int &x) { x = 123; }
 };
 
 class DerivedOverloads : public Base {
  public:
   double func(double, double) {return 1.0;}
   virtual int func(int x, int y) { return x - y; } // !! different parameter names
-  void sub(int *x) { *x = 456; } // overrides, won't apply if called as base class
+  void sub(int &x) { x = 456; } // overrides, won't apply if called as base class
 };
 
 class DerivedDerived : public DerivedOverloads {

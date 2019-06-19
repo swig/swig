@@ -36,24 +36,12 @@ const double &get_something_rcref(int x) {
   return data[x];
 }
 
-double *get_something_rptr(int x) {
-  return data + x;
-}
-
-const double *get_something_rcptr(int x) {
-  return data + x;
-}
-
 double &get_something_rref(int x) {
   return data[x];
 }
 
 void get_something_ref(int x, double &y) {
   y = get_something(x);
-}
-
-void get_something_ptr(int x, double *y) {
-  *y = get_something(x);
 }
 
 /* ------------------------------------------------------------------------- */

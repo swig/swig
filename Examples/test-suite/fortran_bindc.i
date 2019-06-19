@@ -15,6 +15,8 @@
 %fortranbindc get_cptr;
 %fortranbindc get_handle;
 
+%fortranbindc sum_array;
+
 // Bind some global variables
 %fortranbindc my_global_int;
 %fortranbindc my_const_global_int;
@@ -133,6 +135,9 @@ AB globalABArray[3];
 %array_functions(AB, ABArray)
 
 %inline %{
+#ifdef __cplusplus
+extern "C" {
+#endif
 short sum_array(short x[5]) {
   short sum = 0;
   int i;
@@ -141,6 +146,9 @@ short sum_array(short x[5]) {
   }
   return sum;
 }
+#ifdef __cplusplus
+}
+#endif
 %}
 
 %fortranbindc oned_unknown;

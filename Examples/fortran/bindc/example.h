@@ -20,7 +20,7 @@ extern "C" {
 
 // These functions are simply bound, not wrapped.
 void make_point(Point *pt, const double xyz[3]);
-void print_sphere(const Point *origin, const double *radius);
+void print_sphere(const Point *origin, const double radius);
 bool bound_negation(bool v);
 
 /* ------------------------------------------------------------------------- */

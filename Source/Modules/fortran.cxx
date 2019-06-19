@@ -112,29 +112,33 @@ bool is_fortran_intexpr(String *s) {
 /* -------------------------------------------------------------------------
  * \brief Check a parameter for invalid dimension names.
  */
-bool bad_fortran_dims(Node *n, const char *tmap_name) {
-  bool is_bad = false;
-  // See if the typemap needs its dimensions checked
+int fix_fortran_dims(Node *n, const char *tmap_name, String *typemap) {
   String *key = NewStringf("tmap:%s:checkdim", tmap_name);
-  if (GetFlag(n, key)) {
-    SwigType *t = Getattr(n, "type");
-    if (SwigType_isarray(t)) {
-      int ndim = SwigType_array_ndim(t);
-      for (int i = 0; i < ndim; i++) {
-        String *dim = SwigType_array_getdim(t, i);
-        if (dim && Len(dim) > 0 && !is_fortran_intexpr(dim)) {
-          Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number,
-                       "Array dimension expression '%s' is incompatible with Fortran\n",
-                       dim);
-          is_bad = true;
-        }
-        Delete(dim);
-      }
+  bool is_checkdims = GetFlag(n, key);
+  Delete(key);
+  if (!is_checkdims)
+    return SWIG_OK;
+  
+  SwigType* t = Getattr(n, "type");
+  ASSERT_OR_PRINT_NODE(SwigType_isarray(t), n);
+  int ndim = SwigType_array_ndim(t);
+  for (int i = 0; i < ndim; i++) {
+    String *dim = SwigType_array_getdim(t, i);
+    if (dim && Len(dim) > 0 && !is_fortran_intexpr(dim)) {
+      Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number,
+                   "Array dimension expression '%s' is incompatible with Fortran\n",
+                   dim);
+      Delete(dim);
+      return SWIG_ERROR;
     }
+    Delete(dim);
   }
 
-  Delete(key);
-  return is_bad;
+  // Replace empty dimensions with assumed-size dimension
+  Replaceall(typemap, "dimension()", "dimension(*)");
+  Replaceall(typemap, ",)", ",*)");
+
+  return SWIG_OK;
 }
 
 /* -------------------------------------------------------------------------
@@ -180,6 +184,13 @@ bool is_native_parameter(Node *n) {
     // Value specified and isn't "0"
     return true;
   }
+}
+
+/* -------------------------------------------------------------------------
+ * \brief Determine whether an enum is being wrapped
+ */
+bool is_wrapped_enum(Node *n) {
+  return n && !GetFlag(n, "enumMissing") && GetFlag(n, "fortran:declared");
 }
 
 /* -------------------------------------------------------------------------
@@ -1587,15 +1598,12 @@ Wrapper *FORTRAN::imfuncWrapper(Node *n) {
 
     // Add dummy argument to wrapper body
     String *imtype = get_typemap(tmtype, "in", p, warning_flag);
-    String *cpptype = Getattr(p, "type");
-    this->replace_fclassname(cpptype, imtype);
-    Printv(imlocals, "\n   ", imtype, " :: ", imname, NULL);
-
-    // Check for bad dimension parameters
-    if (bad_fortran_dims(p, tmtype)) {
+    if (fix_fortran_dims(p, tmtype, imtype) != SWIG_OK) {
       DelWrapper(imfunc);
       return NULL;
     }
+    this->replace_fclassname(Getattr(p, "type"), imtype);
+    Printv(imlocals, "\n   ", imtype, " :: ", imname, NULL);
 
     // Include import statements if present; needed for actual structs
     // passed into interface code
@@ -1645,6 +1653,10 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
   // >>> FUNCTION RETURN VALUES
 
   String *return_ftype = attach_typemap("ftype", n, WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF);
+  if (fix_fortran_dims(n, "ftype", return_ftype) != SWIG_OK) {
+    DelWrapper(ffunc);
+    return SWIG_ERROR;
+  }
   assert(return_ftype);
 
   // Return type for the C call
@@ -1843,7 +1855,6 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
   List *fcall_arglist = NewList();
   for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
     Parm *p = it.item;
-    String *cpptype = Getattr(p, "type");
 
     // Add parameter name to declaration list
     String *farg = this->makeParameterName(n, p, i++);
@@ -1870,13 +1881,12 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
 
     // Add dummy argument to wrapper body
     String *ftype = get_typemap("ftype", "in", p, WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF);
-    this->replace_fclassname(cpptype, ftype);
-    Printv(fargs, "   ", ftype, " :: ", farg, "\n", NULL);
-
-    if (bad_fortran_dims(p, "ftype")) {
+    if (fix_fortran_dims(p, "ftype", ftype) != SWIG_OK) {
       DelWrapper(ffunc);
       return NULL;
     }
+    this->replace_fclassname(Getattr(p, "type"), ftype);
+    Printv(fargs, "   ", ftype, " :: ", farg, "\n", NULL);
 
     // Add this argument to the intermediate call function
     Append(fcall_arglist, Getattr(p, "imname"));
@@ -1941,10 +1951,6 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
   Parm *outparm = NewParm(return_cpptype, Getattr(n, "name"), n);
   Setattr(outparm, "lname", "fresult"); // Replaces $1
   String *fbody = attach_typemap("fout", outparm, WARN_FORTRAN_TYPEMAP_FOUT_UNDEF);
-  if (bad_fortran_dims(outparm, "fout")) {
-    DelWrapper(ffunc);
-    return NULL;
-  }
 
   // Add any needed temporary variables
   if (String *temptype = Getattr(outparm, "tmap:fout:temp")) {
@@ -2797,7 +2803,7 @@ int FORTRAN::constantWrapper(Node *n) {
   }
 
   // Check for incompatible array dimensions
-  if (bad_fortran_dims(n, "bindc")) {
+  if (fix_fortran_dims(n, "bindc", bindc_typestr) != SWIG_OK) {
     return SWIG_NOWRAP;
   }
 
@@ -2939,6 +2945,16 @@ void FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
       Replaceall(tm, "$fenumname", repl);
     }
   }
+  if (Strstr(tm, "$*fenumname")) {
+    String *repltype = Copy(strippedtype);
+    Delete(SwigType_pop(repltype));
+    if (Len(repltype) > 0) {
+      if (String *repl = this->get_fenumname(repltype)) {
+        Replaceall(tm, "$*fenumname", repl);
+      }
+    }
+    Delete(repltype);
+  }
 
   Delete(resolvedtype);
   Delete(strippedtype);
@@ -3012,7 +3028,7 @@ String *FORTRAN::get_fenumname(SwigType *classnametype) {
   Node *n = this->enumLookup(classnametype);
 
   // The enum name is only available if the 'missing' flag isn't set and we've marked the enum as 'declared'
-  if (n && !GetFlag(n, "enumMissing") && GetFlag(n, "fortran:declared")) {
+  if (is_wrapped_enum(n)) {
     replacementname = this->get_fortran_name(n);
   } else {
     replacementname = create_mangled_fname(classnametype);
@@ -3066,13 +3082,16 @@ bool FORTRAN::is_wrapped_class(Node *n) {
   } else if (Strstr(tm, "$*fclassname")) {
     SwigType_pop(strippedtype);
     result = Len(strippedtype) > 0 && (this->classLookup(strippedtype) != NULL);
-  } else if (Strstr(tm, "$fclassname")) {
+  } else if (Strstr(tm, "$&fclassname")) {
     SwigType_add_pointer(strippedtype);
     result = (this->classLookup(strippedtype) != NULL);
   } else if (Strstr(tm, "$fenumname")) {
     // True if the enum is declared
-    Node *clsnode = this->enumLookup(strippedtype);
-    result = clsnode && !GetFlag(clsnode, "enumMissing") && GetFlag(clsnode, "fortran:declared");
+    result = is_wrapped_enum(this->enumLookup(strippedtype));
+  } else if (Strstr(tm, "$*fenumname")) {
+    // True if the enum is declared
+    SwigType_pop(strippedtype);
+    result = Len(strippedtype) > 0 && is_wrapped_enum(this->enumLookup(strippedtype));
   } else {
     // Type doesn't resolve to something that expects a class name
     result = true;

@@ -287,7 +287,7 @@ extend the
 Fortran/C++ mapping as much as possible, keeping in mind that Fortran and C are
 inherently different languages.
 
-## Arithmetic types
+## Fundamental types
 
 SWIG maps ISO C types to Fortran types using the `ISO_C_BINDING` intrinsic
 module. The data types fully supported by C, Fortran, and SWIG are:
@@ -304,8 +304,7 @@ module. The data types fully supported by C, Fortran, and SWIG are:
 | `double`        | `real(C_DOUBLE)`        |
 | `char`          | `character(C_CHAR)`     |
 
-Pointers and references to these basic types are returned as scalar Fortran
-pointers.
+References to these basic types are returned as scalar Fortran pointers.
 
 Note that because the C return value does not contain any information about the
 shape of the data being pointed to, it is not possible to directly construct an
@@ -357,12 +356,12 @@ typedef char NativeChar;
 char *get_my_char_ptr();
 ```
 
-## Pointers and references
+### References
 
-C pointers and mutable references are treated as Fortran pointers. Suppose a C
-function that returns a pointer to an array element at a given index:
+C mutable references are treated as Fortran pointers. Suppose a C
+function that returns a reference to an array element at a given index:
 ```c
-double *get_array_element(int x);
+double &get_array_element(int x);
 ```
 
 This generates the following Fortran interface:
@@ -390,7 +389,7 @@ rptr = 512.0d0
 Note, and this is **very important**, that a function returning a pointer must
 not be *assigned*; the *pointer assignment* operator `=>` must be used.
 
-Mutable references are treated identically. However, *const* references to
+Unlike mutable references, *const* references to
 primitive arithmetic types are treated as values:
 ```c++
 const double &get_const_array_element(int x);
@@ -505,37 +504,10 @@ the resulting modification will not have any effect on the Fortran string.
 
 ## Arrays
 
-Unlike other SWIG languages, the Fortran module can wrap explicitly sized
-arrays *directly* rather than treating them as raw pointers. This is because
-Fortran 2003 allows for explicit translation of array sizes between C functions
-and Fortran types. Otherwise, it treats unspecified arrays as the same as
-pointers and references:
-
-| C++ type       | Fortran type                                           |
-| --------       | ------------                                           |
-| `f(int* a)`    | `integer(C_INT), target, intent(inout)`                |
-| `f(int& a)`    | `integer(C_INT), target, intent(inout)`                |
-| `f(int a[10])` | `integer(C_INT), dimension(10), target, intent(inout)` |
-| `f(int a[])`   | `integer(C_INT), target, intent(inout)`                |
-| `int *f()`     | `integer(C_INT), pointer`                              |
-| `int &f()`     | `integer(C_INT), pointer`                              |
-
-One note of caution is that occasionally arrays will be defined using
-nontrivial C expressions rather than explicit integers. Even though these can
-be evaluated by C at compile time, the unevaluated expression cannot be
-propagated into the Fortran wrapper code. Only simple integers can be
-automatically wrapped as dimensioned Fortran arrays: other values will cause
-a warning to be emitted and *no wrapper function will be generated*. Use the
-SWIG `%apply` directive to treat the array as an unspecified-dimension array.
-```c
-%apply int[] { int y[sizeof(int)] };
-
-void foo(int x[8]);
-void bar(int y[sizeof(int)]);
-void baz(int z[]);
-```
-
-The wrapping of arrays is likely to change soon (early 2019).
+Array types such as `int a[10]` and `Object b[][2]` are, like other SWIG
+languages, treated as [opaque types](#opaque-class-types). Use the [fixed-size
+array translation](#fixed-size-array-translation) capability to interact with
+fundamental-arrays as built-in native Fortran arrays.
 
 ## Byte strings
 
@@ -1208,8 +1180,8 @@ the code can embed a non-owning reference to the data in a shared pointer. In
 other words, it is OK to return `const Foo&` even when `Foo` is wrapped as a
 shared pointer.
 
+## Dynamic-size array translation
 
-## Fortran-to-C array translation
 The `<typemaps.i>` library file provides a simple means of passing Fortran
 arrays by reference. It defines a two-argument typemap `(SWIGTYPE *DATA, size_t
 SIZE)` that is wrapped as a single Fortran argument, an array of `SWIGTYPE`
@@ -1235,6 +1207,38 @@ integer(C_INT) :: summed
 call fill_with_zeros(dbl_values)
 summed = accumulate(int_values)
 ```
+
+## Fixed-size array translation
+
+The `<typemaps.i>` file provides an additional typemaps that allows fixed-size
+Fortran arrays to interact natively with fixed-size C arrays:
+
+```swig
+%include <typemaps.i>
+%apply SWIGTYPE ARRAY[ANY] { int global[4] };
+%apply SWIGTYPE ARRAY[ANY][ANY] { double[ANY][ANY] };
+
+double cpp_sum(const double inp[3][2]);
+
+%inline %{
+int global[4] = {0,0,0,0};
+%}
+```
+allows the Fortran usage:
+```fortran
+integer(C_INT), dimension(4) :: int_values = [1,2,3,4]
+real(C_DOUBLE), dimension(2,3) :: dbl_values
+
+call set_global(int_values)
+int_values(:) = 0
+int_values = get_global()
+
+dbl_values(:,:) = 1.0d0
+write(*,*) cpp_sum(dbl_values)
+```
+
+Note that Fortran dimensioning is column-major and C/C++ dimensions are
+row-major, so the dimensionality of the arrays must be reversed.
 
 ## Smart pointers
 

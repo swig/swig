@@ -321,6 +321,10 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 }
 %typemap(bindc) SWIGTYPE* "type(C_PTR)";
 
+// >>> ARRAY
+
+%apply SWIGTYPE* { SWIGTYPE[] };
+
 // >>> CONST POINTER
 
 // Immutable pointers to mutable classes
@@ -354,10 +358,6 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 }
 
 // >>> OTHERS
-
-// Treat arrays of classes as opaque pointers
-%apply SWIGTYPE* { SWIGTYPE [], SWIGTYPE [ANY] };
-%apply SWIGTYPE* { const SWIGTYPE [], const SWIGTYPE [ANY] };
 
 // Treat const-references-to-pointers as pointers
 %typemap(ftype, in="class($*fclassname), intent(inout)", nofortransubroutine=1) SWIGTYPE *MUTABLE_SELF

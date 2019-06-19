@@ -3,6 +3,8 @@
 
 %include <typemaps.i>
 
+/* Test combination pointer/size arguments */
+
 %apply (SWIGTYPE *DATA, size_t SIZE)       { (int *DATA, size_t SIZE) };
 %apply (const SWIGTYPE *DATA, size_t SIZE) { (const int *DATA, size_t SIZE) };
 %apply (const SWIGTYPE *DATA, size_t SIZE) { (double *DATA, int SIZE) };
@@ -36,4 +38,23 @@ int accum(const int *DATA, size_t SIZE) {
 
 %}
 
+/* Test fixed-size arguments */
+
+%apply SWIGTYPE ARRAY[ANY] { int global[4] };
+%apply SWIGTYPE ARRAY[ANY][ANY] { double[ANY][ANY] };
+
+%inline %{
+int global[4] = {0,0,0,0};
+
+double cpp_sum(const double inp[3][2]) {
+  double result = 0;
+  int i, j;
+  for (i = 0; i < 3; ++i) {
+    for (j = 0; j < 2; ++j) {
+      result += inp[i][j];
+    }
+  }
+  return result;
+}
+%}
 

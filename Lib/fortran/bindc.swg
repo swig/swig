@@ -38,6 +38,10 @@
   %apply FORTRAN_STRUCT_TYPE { CLS };
   %fortran_apply_typemaps(FORTRAN_STRUCT_TYPE, CLS)
 
+  // Override 'SWIGTYPE' behavior for pointers to make it behave like references. Otherwise it behaves like SWIGTYPE*, which is wrapped as a class; as
+  // opposed to int*, which is wrapped as an opaque type.
+  %apply FORTRAN_INTRINSIC_TYPE& { CLS*, CLS[], CLS[ANY] };
+
   // Set up C type
   %typemap(ctype, in={const CLS*}, null={SWIG_null_struct_ ## CLS()}, fragment="SWIG_null_struct"{CLS}, noblock=1) CLS {
     CLS

@@ -42,8 +42,8 @@ int multiply(int a, int b) {
   return a * b;
 }
 
-void already_a_subroutine(int a, int *b) {
-  *b = a;
+void already_a_subroutine(int a, int &b) {
+  b = a;
 }
 
 bool still_a_function() { return true; }

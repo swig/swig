@@ -14,14 +14,13 @@ subroutine test_arrays
   implicit none
   type(ArrayStruct) :: arr
   integer(C_INT), dimension(2) :: actual = [ 91, 420 ]
-  integer(C_INT), dimension(:), pointer :: got_arr
+  type(SWIGTYPE_p_int) :: got_arr
   arr = ArrayStruct()
-  call arr%set_array_i(actual)
+  call arr%set_array_i(array_to_ptr(actual))
 
-  got_arr => arr%get_array_i()
-  write(0,*) got_arr
-
-  ASSERT(all(got_arr == actual))
+  got_arr = arr%get_array_i()
+  ASSERT(get_value(got_arr, 1) == actual(1))
+  ASSERT(get_value(got_arr, 2) == actual(2))
 
 end subroutine
 end program

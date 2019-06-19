@@ -9,15 +9,19 @@
 // Most of the opertions are like integers, but replace the fortran wrapper
 // with the kind of enum. Don't worry about pointer types (leave those as
 // integer pointers)
-%fortran_apply_unsigned(int, enum SWIGTYPE)
+%fortran_unsigned(int, enum SWIGTYPE)
 
 %typemap(ftype, in="integer($fenumname), intent(in)") enum SWIGTYPE
   "integer($fenumname)"
 %typemap(out, noblock=1) enum SWIGTYPE {
-  $result = %static_cast($1, int);
+  $result = (int)($1);
+}
+%typemap(out, noblock=1) const enum SWIGTYPE& {
+  $result = (int)(*$1);
 }
 
+%typemap(ftype, in="integer($*fenumname), intent(in)") const enum SWIGTYPE&
+  "integer($*fenumname)"
 %typemap(imtype) const enum SWIGTYPE& = enum SWIGTYPE;
-%typemap(ftype)  const enum SWIGTYPE& = enum SWIGTYPE;
 %typemap(fin)    const enum SWIGTYPE& = enum SWIGTYPE;
 %typemap(fout)   const enum SWIGTYPE& = enum SWIGTYPE;
