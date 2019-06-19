@@ -104,7 +104,7 @@ enum AlsoOmitted {
 
 // Even though the Fortran identifier must be renamed, the function it's
 // bound to cannot.
-extern "C" int _0cboundfunc(const int* _x) { return *_x + 1; }
+extern "C" int _0cboundfunc(const int _x) { return _x + 1; }
 
 %}
 
