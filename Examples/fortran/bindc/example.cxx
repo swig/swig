@@ -54,8 +54,8 @@ void make_point(Point *pt, const double xyz[3]) {
   pt->z = xyz[2];
 }
 
-void print_sphere(const Point *origin, const double *radius) {
-  cout << "Sphere: r=" << *radius
+void print_sphere(const Point *origin, const double radius) {
+  cout << "Sphere: r=" << radius
        << ", "
           "origin={"
        << origin->x << ',' << origin->y << ',' << origin->z << "}" << endl;

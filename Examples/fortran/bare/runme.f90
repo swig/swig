@@ -22,8 +22,6 @@ subroutine test_funcs()
   rptr => get_something_rref(2)
   rptr = 512.0d0
 
-  call get_something_ptr(2, temp)
-  write(0, *) "Got ", temp
   call get_something_ref(1, temp)
   write(0, *) "Got ", temp
 
