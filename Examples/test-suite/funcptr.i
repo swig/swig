@@ -3,7 +3,7 @@
 /*
  Complicated one that should defeat just reading , to find
  the number of arguments expected in the function pointer.
-extern void do(int (*op)(int (*i)(double, double), int j)); 
+extern void do(int (*op)(int (*i)(double, double), int j));
 */
 %{
 #include <stdlib.h>
@@ -40,18 +40,18 @@ int multiply(int a, int b) {
   return a*b;
 }
 
-int *nowt() { 
+int *nowt() {
   return 0;
 }
 
-int *nowt2(void) { 
+int *nowt2(void) {
   return 0;
 }
 
 struct MyStruct { int i; };
 typedef struct MyStruct * MyStructPtr;
 
-MyStructPtr mystructptr() { 
+MyStructPtr mystructptr() {
   return 0;
 }
 
@@ -67,6 +67,15 @@ void (*pfunc0)();
 int (*pfuncA)();
 void (*pfunc1)(int);
 void (*pfunc2)(int, double);
+
+#ifdef SWIGFORTRAN
+// Temporary example of setting function handles. This will be improved.
+%apply void* { SWIGTYPE (**)(ANY) } ;
+
+%typemap(fin) SWIGTYPE (**)(ANY) = FORTRAN_INTRINSIC_TYPE&;
+%typemap(ftype, in="type(C_FUNPTR), target, intent(inout)") SWIGTYPE (**)(ANY)
+  "type(C_FUNPTR), pointer"
+#endif
 
 void set_handle(int choice, Operator* op) {
   switch (choice) {
