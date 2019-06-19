@@ -35,34 +35,37 @@ $2 = $input->size;
  *
  * To apply these to a function `void foo(const int x[4]);`:
  *
- * %apply ARRAY[ANY] {const  int x[4] };
+ * %apply SWIGTYPE ARRAY[ANY] {const  int x[4] };
  */
 
-%apply FORTRAN_INTRINSIC_TYPE* { ARRAY[ANY], ARRAY[ANY][ANY], ARRAY[ANY][ANY][ANY] }
+%apply FORTRAN_INTRINSIC_TYPE& { SWIGTYPE ARRAY[ANY], SWIGTYPE ARRAY[ANY][ANY], SWIGTYPE ARRAY[ANY][ANY][ANY] }
 
-%typemap(ftype, in="$typemap(ftype, $1_basetype), dimension($1_dim0), target", checkdim=1) ARRAY[ANY]
+%typemap(ftype, in="$typemap(ftype, $1_basetype), dimension($1_dim0), target", checkdim=1) SWIGTYPE ARRAY[ANY]
  "$typemap(ftype, $1_basetype), dimension($1_dim0)"
-%typemap(ftype, in="$typemap(ftype, $1_basetype), dimension($1_dim1,$1_dim0), target", checkdim=1) ARRAY[ANY][ANY]
+%typemap(ftype, in="$typemap(ftype, $1_basetype), dimension($1_dim1,$1_dim0), target", checkdim=1) SWIGTYPE ARRAY[ANY][ANY]
  "$typemap(ftype, $1_basetype), dimension($1_dim1,$1_dim0)"
-%typemap(ftype, in="$typemap(ftype, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0), target", checkdim=1) ARRAY[ANY][ANY][ANY]
+%typemap(ftype, in="$typemap(ftype, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0), target", checkdim=1) SWIGTYPE ARRAY[ANY][ANY][ANY]
  "$typemap(ftype, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0)"
 
-%typemap(fout, temp="$typemap(ftype, $1_basetype), dimension(:), pointer", checkdim=1, noblock=1) ARRAY[ANY]
+%typemap(fout, temp="$typemap(ftype, $1_basetype), dimension(:), pointer", checkdim=1, noblock=1) SWIGTYPE ARRAY[ANY]
 {call c_f_pointer($1, $1_temp, [$1_dim0])
 $result = $1_temp}
-%typemap(fout, temp="$typemap(ftype, $1_basetype), dimension(:,:), pointer", checkdim=1, noblock=1) ARRAY[ANY][ANY]
+%typemap(fout, temp="$typemap(ftype, $1_basetype), dimension(:,:), pointer", checkdim=1, noblock=1) SWIGTYPE ARRAY[ANY][ANY]
 {call c_f_pointer($1, $1_temp, [$1_dim1,$1_dim0])
 $result = $1_temp}
-%typemap(fout, temp="$typemap(ftype, $1_basetype), dimension(:,:,:), pointer", checkdim=1, noblock=1) ARRAY[ANY][ANY][ANY]
+%typemap(fout, temp="$typemap(ftype, $1_basetype), dimension(:,:,:), pointer", checkdim=1, noblock=1) SWIGTYPE ARRAY[ANY][ANY][ANY]
 {call c_f_pointer($1, $1_temp, [$1_dim2,$1_dim1,$1_dim0])
 $result = $1_temp}
 
+%typemap(fin) SWIGTYPE ARRAY[ANY], SWIGTYPE ARRAY[ANY][ANY], SWIGTYPE ARRAY[ANY][ANY][ANY]
+  "$1 = c_loc($input)"
+
 // Generic array types with unknown dimensions for C binding
-%typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim0), target", checkdim=1) ARRAY[ANY]
+%typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim0), target", checkdim=1) SWIGTYPE ARRAY[ANY]
  "$typemap(bindc, $1_basetype), dimension($1_dim0)"
-%typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim1,$1_dim0), target", checkdim=1) ARRAY[ANY][ANY]
+%typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim1,$1_dim0), target", checkdim=1) SWIGTYPE ARRAY[ANY][ANY]
  "$typemap(bindc, $1_basetype), dimension($1_dim1,$1_dim0)"
-%typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0), target", checkdim=1) ARRAY[ANY][ANY][ANY]
+%typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0), target", checkdim=1) SWIGTYPE ARRAY[ANY][ANY][ANY]
  "$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0)"
 
 

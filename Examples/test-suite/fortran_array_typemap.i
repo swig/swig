@@ -40,8 +40,8 @@ int accum(const int *DATA, size_t SIZE) {
 
 /* Test fixed-size arguments */
 
-%apply ARRAY[ANY] { int global[4] };
-%apply ARRAY[ANY][ANY] { double[ANY][ANY] };
+%apply SWIGTYPE ARRAY[ANY] { int global[4] };
+%apply SWIGTYPE ARRAY[ANY][ANY] { double[ANY][ANY] };
 
 %inline %{
 int global[4] = {0,0,0,0};

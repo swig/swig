@@ -1215,8 +1215,8 @@ Fortran arrays to interact natively with fixed-size C arrays:
 
 ```swig
 %include <typemaps.i>
-%apply ARRAY[ANY] { int global[4] };
-%apply ARRAY[ANY][ANY] { double[ANY][ANY] };
+%apply SWIGTYPE ARRAY[ANY] { int global[4] };
+%apply SWIGTYPE ARRAY[ANY][ANY] { double[ANY][ANY] };
 
 double cpp_sum(const double inp[3][2]);
 
