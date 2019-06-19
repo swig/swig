@@ -103,14 +103,10 @@ end subroutine}
   // arithmetic.
   // TODO: use the "CONTIGUOUS" attribute if f2008 is being used to guarantee
   // that we can get the C location of the input array directly.
-  %typemap(findecl, match="fin", noblock=1) CPPTYPE {
-    $typemap(imtype, VTYPE), pointer :: $1_view
-  }
-  
-  %typemap(fin, noblock=1) CPPTYPE {
+  %typemap(fin, temp={$typemap(imtype, VTYPE), pointer}, noblock=1) CPPTYPE {
     if (size($input) > 0) then
-      $1_view => $input(1)
-      $1%data = c_loc($1_view)
+      $1_temp => $input(1)
+      $1%data = c_loc($1_temp)
       $1%size = size($input)
     else
       $1%data = c_null_ptr

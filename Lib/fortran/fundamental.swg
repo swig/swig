@@ -26,37 +26,49 @@ using std::ptrdiff_t;
  * FRAGMENTS
  * ------------------------------------------------------------------------- */
 /* Convert Fortran logical values to and from C-bound integers */
-%fragment("SWIG_logical_to_int_f", "fsubprograms", noblock=1) {
-function SWIG_logical_to_int(inp) &
-    result(out)
+%fragment("SWIG_fin"{bool}, "fsubprograms", noblock=1) {
+subroutine %fortrantm(fin, bool)(finp, iminp)
   use, intrinsic :: ISO_C_BINDING
-  logical, intent(IN) :: inp
-  integer(kind=C_INT) :: out
-  if (inp .eqv. .true.) then
-    out = 1
+  logical, intent(IN) :: finp
+  integer(kind=C_INT), intent(OUT) :: iminp
+  if (finp .eqv. .true.) then
+    iminp = 1
   else
-    out = 0
+    iminp = 0
   end if
-end function
+end subroutine
 }
 
-%fragment("SWIG_int_to_logical_f", "fsubprograms", noblock=1) {
-function SWIG_int_to_logical(inp) &
-    result(out)
+%fragment("SWIG_fout"{bool}, "fsubprograms", noblock=1) {
+subroutine %fortrantm(fout, bool)(imout, fout)
   use, intrinsic :: ISO_C_BINDING
-  integer(kind=C_INT), intent(IN) :: inp
-  logical :: out
-  if (inp /= 0) then
-    out = .true.
+  integer(kind=C_INT), intent(IN) :: imout
+  logical, intent(OUT) :: fout
+  ! TODO: fout = (imout /= 0) ???
+  if (imout /= 0) then
+    fout = .true.
   else
-    out = .false.
+    fout = .false.
   end if
-end function
+end subroutine
 }
 
 /* -------------------------------------------------------------------------
  * MACROS
  * ------------------------------------------------------------------------- */
+/*!
+ * \def %fortran_typemap_finout
+ */
+%define %fortran_typemap_finout(CPPTYPE)
+  // Typemap for converting to array wrapper
+  %typemap(fin, fragment="SWIG_fin"{CPPTYPE}, noblock=1) CPPTYPE {
+  call %fortrantm(fin, CPPTYPE)($input, $1)
+  }
+  %typemap(fout, fragment="SWIG_fout"{CPPTYPE}, noblock=1) CPPTYPE {
+  call %fortrantm(fout, CPPTYPE)($1, $result)
+  }
+%enddef
+
 /*!
  * \def %fortran_apply_typemaps
  * \brief Copy fundamental typemaps to the given type.
@@ -321,9 +333,7 @@ end function
   $1 = %reinterpret_cast($input, $1_ltype);
 }
 %typemap(fin) void* = FORTRAN_INTRINSIC_TYPE;
-%typemap(findecl, match="fin") void* "";
 %typemap(fout) void* = FORTRAN_INTRINSIC_TYPE;
-%typemap(foutdecl, match="fout") void* "";
 
 %apply void* { const void* } ;
 %typemap(in, noblock=1) const void* {
@@ -399,10 +409,8 @@ void ** const, void **const &};
   "$1 = (*$input ? true : false);"
 %typemap(out) bool
   "$result = ($1 ? 1 : 0);"
-%typemap(fin, fragment="SWIG_logical_to_int_f") bool
-  "$1 = SWIG_logical_to_int($input)"
-%typemap(fout, fragment="SWIG_int_to_logical_f") bool
-  "$result = SWIG_int_to_logical($1)"
+
+%fortran_typemap_finout(bool)
 
 // Treat const references like values
 %apply bool { const bool& };

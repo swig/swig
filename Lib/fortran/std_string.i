@@ -36,8 +36,8 @@ class string;
 %apply const char * {const std::string &};
 
 // Fortran proxy translation code: convert from char array to Fortran string
-%typemap(fout, noblock=1, fragment="SWIG_chararray_to_string_f") const std::string & {
-  call SWIG_chararray_to_string($1, $result)
+%typemap(fout, noblock=1, fragment="SWIG_fout"{const char*}) const std::string & {
+  call %fortrantm(fout, const char*)($1, $result)
 }
 
 // C input translation typemaps: $1 is std::string*, $input is SwigArrayWrapper
@@ -80,9 +80,9 @@ class string;
 }
 
 // Fortran proxy translation code: convert from char array to Fortran string
-%typemap(fout, noblock=1, fragment="SWIG_chararray_to_string_f",
-         fragment="SWIG_free_f") std::string {
-  call SWIG_chararray_to_string($1, $result)
+%typemap(fout, noblock=1,
+         fragment="SWIG_free_f", fragment="SWIG_fout"{const char*}) std::string {
+  call %fortrantm(fout, const char*)($1, $result)
   call SWIG_free($1%data)
 }
 

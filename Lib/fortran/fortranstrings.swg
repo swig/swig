@@ -12,28 +12,28 @@
 /* Return fortran allocatable array from assumed-length character string. Put a
  * null character *after* the string for compatibility with const char*.
  */
-%fragment("SWIG_string_to_chararray_f", "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1) {
-subroutine SWIG_string_to_chararray(string, chars, wrap)
+%fragment("SWIG_fin"{const char*}, "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1) {
+subroutine %fortrantm(fin, const char*)(finp, iminp, temp)
   use, intrinsic :: ISO_C_BINDING
-  character(kind=C_CHAR, len=*), intent(IN) :: string
-  character(kind=C_CHAR), dimension(:), target, allocatable, intent(OUT) :: chars
-  type(SwigArrayWrapper), intent(OUT) :: wrap
+  character(kind=C_CHAR, len=*), intent(IN) :: finp
+  type(SwigArrayWrapper), intent(OUT) :: iminp
+  character(kind=C_CHAR), dimension(:), target, allocatable, intent(OUT) :: temp
   integer :: i
 
-  allocate(character(kind=C_CHAR) :: chars(len(string) + 1))
-  do i=1,len(string)
-    chars(i) = string(i:i)
+  allocate(character(kind=C_CHAR) :: temp(len(finp) + 1))
+  do i=1,len(finp)
+    temp(i) = finp(i:i)
   end do
-  i = len(string) + 1
-  chars(i) = C_NULL_CHAR ! C string compatibility
-  wrap%data = c_loc(chars)
-  wrap%size = len(string)
+  i = len(finp) + 1
+  temp(i) = C_NULL_CHAR ! C finp compatibility
+  iminp%data = c_loc(temp)
+  iminp%size = len(finp)
 end subroutine
 }
 
 // Copy string to character array
-%fragment("SWIG_restore_chararray_f", "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1) {
-subroutine SWIG_restore_chararray(chars, string)
+%fragment("SWIG_fargout"{char*}, "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1) {
+subroutine %fortrantm(fargout, char*)(chars, string)
   use, intrinsic :: ISO_C_BINDING
   character(kind=C_CHAR), dimension(:), intent(IN) :: chars
   character(kind=C_CHAR, len=*), intent(OUT) :: string
@@ -45,17 +45,17 @@ end subroutine
 }
 
 // Return fortran allocatable string from character array
-%fragment("SWIG_chararray_to_string_f", "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1) {
-subroutine SWIG_chararray_to_string(wrap, string)
+%fragment("SWIG_fout"{const char*}, "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1) {
+subroutine %fortrantm(fout, const char*)(imout, fout)
   use, intrinsic :: ISO_C_BINDING
-  type(SwigArrayWrapper), intent(IN) :: wrap
-  character(kind=C_CHAR, len=:), allocatable, intent(OUT) :: string
+  type(SwigArrayWrapper), intent(IN) :: imout
+  character(kind=C_CHAR, len=:), allocatable, intent(OUT) :: fout
   character(kind=C_CHAR), dimension(:), pointer :: chars
   integer(kind=C_SIZE_T) :: i
-  call c_f_pointer(wrap%data, chars, [wrap%size])
-  allocate(character(kind=C_CHAR, len=wrap%size) :: string)
-  do i=1, wrap%size
-    string(i:i) = chars(i)
+  call c_f_pointer(imout%data, chars, [imout%size])
+  allocate(character(kind=C_CHAR, len=imout%size) :: fout)
+  do i=1, imout%size
+    fout(i:i) = chars(i)
   end do
 end subroutine
 }
@@ -69,7 +69,7 @@ end subroutine
 
 %fortran_array(const char*)
 
-// Since we add a final null character in SWIG_chararray_to_string_f, we can
+// Since we add a final null character in "SWIG_fout"{const char*}, we can
 // just access the data directly.
 %typemap(in, noblock=1) const char * {
   $1 = %reinterpret_cast($input->data, $1_ltype);
@@ -85,17 +85,15 @@ end subroutine
 %typemap(ftype, in="character(kind=C_CHAR, len=*), target") const char *
   "character(kind=C_CHAR, len=:), allocatable"
 
-%typemap(findecl, match="fin") const char *
-  "character(kind=C_CHAR), dimension(:), allocatable, target :: $1_chars"
-
-%typemap(fin, fragment="SWIG_string_to_chararray_f", noblock=1) const char * {
-  call SWIG_string_to_chararray($input, $1_chars, $1)
+%typemap(fin, fragment="SWIG_fin"{const char*}, noblock=1,
+         temp="character(kind=C_CHAR), dimension(:), allocatable, target"
+         ) const char * {
+  call %fortrantm(fin, const char*)($input, $1, $1_temp)
 }
 
 // Fortran proxy translation code: convert from char array to Fortran string
-%typemap(fout, fragment="SWIG_chararray_to_string_f", noblock=1,
-         fragment="SWIG_free_f") const char * {
-  call SWIG_chararray_to_string($1, $result)
+%typemap(fout, fragment="SWIG_fout"{const char*}, fragment="SWIG_free_f", noblock=1) const char * {
+  call %fortrantm(fout, const char*)($1, $result)
   if ($owner) call SWIG_free($1%data)
 }
 
@@ -120,17 +118,16 @@ end subroutine
 %typemap(ftype, in="character(kind=C_CHAR, len=*), target") (char *STRING, size_t LENGTH)
   "character(kind=C_CHAR, len=:), allocatable"
 
-%typemap(findecl, match="fin") (char *STRING, size_t LENGTH)
-  "character(kind=C_CHAR), dimension(:), allocatable, target :: $1_chars"
-
-%typemap(fin, fragment="SWIG_string_to_chararray_f", noblock=1) (char *STRING, size_t LENGTH) {
-  call SWIG_string_to_chararray($input, $1_chars, $1)
+%typemap(fin, fragment="SWIG_fin"{const char*}, noblock=1,
+         temp="character(kind=C_CHAR), dimension(:), allocatable, target")
+(char *STRING, size_t LENGTH) {
+  call %fortrantm(fin, const char*)($input, $1, $1_temp)
 }
 
 // Fortran proxy translation code: convert from char array to Fortran string
-%typemap(fout, fragment="SWIG_chararray_to_string_f", noblock=1,
-         fragment="SWIG_free_f") (char *STRING, size_t LENGTH) {
-  call SWIG_chararray_to_string($1, $result)
+%typemap(fout,
+         fragment="SWIG_fout"{const char*}, fragment="SWIG_free_f", noblock=1) (char *STRING, size_t LENGTH) {
+  call %fortrantm(fout, const char*)($1, $result)
   if ($owner) call SWIG_free($1%data)
 }
 

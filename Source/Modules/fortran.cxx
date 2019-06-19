@@ -1793,13 +1793,21 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
   ParmList *parmlist = Getattr(n, "parms");
   Swig_typemap_attach_parms("ftype", parmlist, ffunc);
   Swig_typemap_attach_parms("fin", parmlist, ffunc);
-  Swig_typemap_attach_parms("findecl", parmlist, ffunc);
   Swig_typemap_attach_parms("fargout", parmlist, ffunc);
 
   // Restore parameter names
   for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
     Parm *p = it.item;
     String *imname = Getattr(p, "imname");
+
+    // Add any needed temporary variables to convert to typemap
+    if (String *temptype = Getattr(p, "tmap:fin:temp")) {
+      Chop(temptype);
+      if (Len(temptype) > 0) {
+        String *tempname = NewStringf("%s_temp", imname);
+        Wrapper_add_localv(ffunc, tempname, temptype, "::", tempname, NULL);
+      }
+    }
 
     // Emit local intermediate parameter in the proxy function
     String *imtype = get_typemap("imtype", p, WARN_FORTRAN_TYPEMAP_IMTYPE_UNDEF);
@@ -1881,13 +1889,6 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
       Printv(ffunc->code, fin, "\n", NULL);
     }
 
-    // Add any needed temporary variables
-    String *findecl = get_typemap("findecl", p, WARN_NONE);
-    if (findecl && Len(findecl) > 0) {
-      Chop(findecl);
-      Printv(fargs, findecl, "\n", NULL);
-    }
-
     Delete(farg);
   }
 
@@ -1937,26 +1938,27 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
   // >>> ADDITIONAL WRAPPER CODE
 
   // Get the typemap for output argument conversion
-  Parm *temp = NewParm(return_cpptype, Getattr(n, "name"), n);
-  Setattr(temp, "lname", "fresult"); // Replaces $1
-  String *fbody = attach_typemap("fout", temp, WARN_FORTRAN_TYPEMAP_FOUT_UNDEF);
-  if (bad_fortran_dims(temp, "fout")) {
+  Parm *outparm = NewParm(return_cpptype, Getattr(n, "name"), n);
+  Setattr(outparm, "lname", "fresult"); // Replaces $1
+  String *fbody = attach_typemap("fout", outparm, WARN_FORTRAN_TYPEMAP_FOUT_UNDEF);
+  if (bad_fortran_dims(outparm, "fout")) {
     DelWrapper(ffunc);
     return NULL;
   }
 
-  String *fparm = attach_typemap("foutdecl", temp, WARN_NONE);
-  Delete(temp);
-  Chop(fbody);
-
-  if (fparm && Len(fparm) > 0) {
-    Chop(fparm);
-    // Write fortran output parameters after dummy argument
-    Printv(ffunc->def, "\n", fparm, NULL);
+  // Add any needed temporary variables
+  if (String *temptype = Getattr(outparm, "tmap:fout:temp")) {
+    Chop(temptype);
+    if (Len(temptype) > 0) {
+      const char *tempname = "fresult_temp";
+      Wrapper_add_localv(ffunc, tempname, temptype, "::", tempname, NULL);
+    }
   }
+  Delete(outparm);
 
   // Output typemap is defined; emit the function call and result
   // conversion code
+  Chop(fbody);
   if (Len(fbody) > 0) {
     if (func_to_subroutine) {
       Insert(fbody, 0, "if (present($result)) then\n");
@@ -2294,7 +2296,7 @@ int FORTRAN::classHandler(Node *n) {
 
     // Define policies for the class
     const char *policy = "swig::ASSIGNMENT_DEFAULT";
-    if (String *smartptr_type = Getattr(n, "feature:smartptr")) {
+    if (Getattr(n, "feature:smartptr")) {
       policy = "swig::ASSIGNMENT_SMARTPTR";
     } else if (!GetFlag(n, "allocate:default_destructor")) {
       policy = "swig::ASSIGNMENT_NODESTRUCT";
@@ -2727,7 +2729,7 @@ int FORTRAN::enumDeclaration(Node *n) {
   Delete(fsymname);
   Delete(scope_prefix);
 
-  return SWIG_OK;
+  return result;
 }
 
 /* -------------------------------------------------------------------------

@@ -511,7 +511,13 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
   if (sm) {
     /* Got a typemap.  Need to only merge attributes for methods that match our signature */
     Iterator ki;
+    Hash *deferred_add;
+    
     match = 1;
+    
+    /* Since typemap_register can modify the `sm` hash, we *cannot* call typemap_register while iterating over sm. 
+     * Create a temporary hash of typemaps to add immediately after. */
+    deferred_add = NewHash();
     for (ki = First(sm); ki.key; ki = Next(ki)) {
       /* Check for a signature match with the source signature */
       if ((count_args(ki.key) == narg) && (Strstr(ki.key, ssig))) {
@@ -519,36 +525,38 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
 	/* A typemap we have to copy */
 	String *nkey = Copy(ki.key);
 	Replace(nkey, ssig, dsig, DOH_REPLACE_ANY);
-
+        
 	/* Make sure the typemap doesn't already exist in the target map */
-
 	oldm = Getattr(tm, nkey);
 	if (!oldm || (!Getattr(tm, "code"))) {
 	  String *code;
-	  ParmList *locals;
-	  ParmList *kwargs;
 	  Hash *sm1 = ki.item;
 
 	  code = Getattr(sm1, "code");
-	  locals = Getattr(sm1, "locals");
-	  kwargs = Getattr(sm1, "kwargs");
 	  if (code) {
-	    String *src_str = ParmList_str_multibrackets(src);
-	    String *dest_str = ParmList_str_multibrackets(dest);
-	    String *source_directive = NewStringf("apply %s { %s }", src_str, dest_str);
-
 	    Replace(nkey, dsig, "", DOH_REPLACE_ANY);
 	    Replace(nkey, "tmap:", "", DOH_REPLACE_ANY);
-	    typemap_register(nkey, dest, code, locals, kwargs, source_directive);
-
-	    Delete(source_directive);
-	    Delete(dest_str);
-	    Delete(src_str);
-	  }
-	}
-	Delete(nkey);
+            Setattr(deferred_add, nkey, sm1);
+          }
+          Delete(nkey);
+        }
       }
     }
+
+    /* After assembling the key/item pairs, add the resulting typemaps */
+    for (ki = First(deferred_add); ki.key; ki = Next(ki)) {
+      Hash *sm1 = ki.item;
+      String *src_str = ParmList_str_multibrackets(src);
+      String *dest_str = ParmList_str_multibrackets(dest);
+      String *source_directive = NewStringf("apply %s { %s }", src_str, dest_str);
+
+      typemap_register(ki.key, dest, Getattr(sm1, "code"), Getattr(sm1, "locals"), Getattr(sm1, "kwargs"), source_directive);
+
+      Delete(source_directive);
+      Delete(dest_str);
+      Delete(src_str);
+    }
+    Delete(deferred_add);
   }
   Delete(ssig);
   Delete(dsig);
@@ -1272,6 +1280,7 @@ static void typemap_merge_fragment_kwargs(Parm *kw) {
     next_kw = nextSibling(kw);
     if (Strcmp(Getattr(kw, "name"), "fragment") == 0) {
       String *thisfragment = Getattr(kw, "value");
+      String *kwtype = Getattr(kw, "type");
       if (!fragment) {
 	/* First fragment found; it should remain in the list */
 	fragment = thisfragment;
@@ -1280,6 +1289,13 @@ static void typemap_merge_fragment_kwargs(Parm *kw) {
 	/* Concatentate to previously found fragment */
 	Printv(fragment, ",", thisfragment, NULL);
 	reattach_kw = prev_kw;
+      }
+      if (kwtype) {
+        String *mangle = Swig_string_mangle(kwtype);
+        Append(fragment, mangle);
+        Delete(mangle);
+        /* Remove 'type' from kwargs so it's not duplicated later */
+        Setattr(kw, "type", NULL);
       }
     } else {
       /* Not a fragment */

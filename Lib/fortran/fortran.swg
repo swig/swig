@@ -54,6 +54,9 @@
 #define %nofortranonlywrapped    %feature("fortran:onlywrapped", "0")
 #define %clearfortranonlywrapped %feature("fortran:onlywrapped", "")
 
+// Note: preprocess concatenation (##) seems to happen before mangled name substitution (#@Type)
+%define %fortrantm(Method, Type...) SWIGTM_ ## Method ## _ ## #@Type %enddef
+
 /* -------------------------------------------------------------------------
  *
  * ctype      : type in C wrapper code (input parameter, default return value)
@@ -71,9 +74,6 @@
  *
  * UNUSUAL TYPEMAPS:
  *
- * findecl    : declare any variables used in converting an input value
- *              ($1_temp)
- * foutdecl   : declare any temporary variables used to convert output values
  * fargout    : after calling the C++ function, convert the wrapper argument to 
  *              a mutable Fortran argument (e.g. for a handle `int**`)
  */
