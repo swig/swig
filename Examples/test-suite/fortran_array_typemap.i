@@ -48,8 +48,9 @@ int global[4] = {0,0,0,0};
 
 double cpp_sum(const double inp[3][2]) {
   double result = 0;
-  for (int i = 0; i < 3; ++i) {
-    for (int j = 0; j < 2; ++j) {
+  int i, j;
+  for (i = 0; i < 3; ++i) {
+    for (j = 0; j < 2; ++j) {
       result += inp[i][j];
     }
   }
