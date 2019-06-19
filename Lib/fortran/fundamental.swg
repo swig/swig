@@ -53,18 +53,51 @@ subroutine %fortrantm(fout, bool)(imout, fout)
 end subroutine
 }
 
+#ifdef __cplusplus
+%fragment("SwigArrayWrapper", "header", fragment="<stdlib.h>") %{
+struct SwigArrayWrapper {
+    void* data;
+    size_t size;
+};
+%}
+#else
+%fragment("SwigArrayWrapper", "header", fragment="<stdlib.h>") %{
+typedef struct {
+    void* data;
+    size_t size;
+} SwigArrayWrapper;
+%}
+#endif
+
+%fragment("SwigArrayWrapper_uninitialized", "header", fragment="SwigArrayWrapper") %{
+SWIGINTERN SwigArrayWrapper SwigArrayWrapper_uninitialized() {
+  SwigArrayWrapper result;
+  result.data = NULL;
+  result.size = 0;
+  return result;
+}
+%}
+
+// Add array wrapper to Fortran types when used
+%fragment("SwigArrayWrapper_f", "fdecl", noblock=1)
+{ type, bind(C) :: SwigArrayWrapper
+  type(C_PTR), public :: data = C_NULL_PTR
+  integer(C_SIZE_T), public :: size = 0
+ end type}
+
+
 /* -------------------------------------------------------------------------
  * MACROS
  * ------------------------------------------------------------------------- */
 /*!
  * \def %fortran_typemap_finout
  */
-%define %fortran_typemap_finout(CPPTYPE)
+%define %fortran_typemap_finout(CPPTYPE, MATCHTYPE)
   // Typemap for converting to array wrapper
-  %typemap(fin, fragment="SWIG_fin"{CPPTYPE}, noblock=1) CPPTYPE {
+  %typemap(fin, fragment="SWIG_fin"{CPPTYPE}, noblock=1) MATCHTYPE {
   call %fortrantm(fin, CPPTYPE)($input, $1)
   }
-  %typemap(fout, fragment="SWIG_fout"{CPPTYPE}, noblock=1) CPPTYPE {
+  %typemap(fout, fragment="SWIG_fout"{CPPTYPE}, noblock=1) MATCHTYPE {
   call %fortrantm(fout, CPPTYPE)($1, $result)
   }
 %enddef
@@ -90,6 +123,20 @@ end subroutine
 /*!
  * \def %fortran_intrinsic
  * \brief Add typemaps for fundamental ISO-C compatible types.
+ *
+ * Note regarding array translation:
+ *
+ * Fortran proxy translation code: convert from ftype $input to imtype $1
+ * Note that we take the address of the first element instead of the array,
+ * because nonallocatable deferred-size arrays *cannot* be referenced in
+ * standard F2003. This is because they might be slices of other arrays
+ * (noncontiguous). It is the caller's responsibility to ensure only
+ * contiguous arrays are passed. Conceivably we could improve this to use
+ * strided access by also passing c_loc($input(2)) and doing pointer
+ * arithmetic.
+ * TODO: use the "CONTIGUOUS" attribute if f2008 is being used to guarantee
+ * that we can get the C location of the input array directly.
+ *
  */
 %define %fortran_intrinsic(CTYPE, FTYPE)
   %fortran_apply_typemaps(FORTRAN_INTRINSIC_TYPE, CTYPE)
@@ -111,13 +158,14 @@ end subroutine
   %typemap(fin) CTYPE = FORTRAN_INTRINSIC_TYPE;
   %typemap(fout) CTYPE = FORTRAN_INTRINSIC_TYPE;
 
-  // Fragment for converting array to array wrapper
-  %fragment("SWIG_fin"{CTYPE[]}, "fsubprograms", noblock=1)
+  // Fragment for converting array to array wrapper. This needs the intermediate step of assigning the first element to an array pointer to be compatible with
+  // ISO C.
+  %fragment("SWIG_fin"{CTYPE[]}, "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1)
 {subroutine %fortrantm(fin, CTYPE[])(finp, iminp)
   use, intrinsic :: ISO_C_BINDING
   FTYPE, dimension(:), intent(IN), target :: finp
   type(SwigArrayWrapper), intent(OUT) :: iminp
-  FTYPE, dimension(:), pointer :: imtemp
+  FTYPE, pointer :: imtemp
 
   if (size(finp) > 0) then
     imtemp => finp(1)
@@ -130,8 +178,8 @@ end subroutine
 end subroutine}
 
   // Fragment for converting array wrapper to array
-  %fragment("SWIG_fout_"{CTYPE[]}, "fsubprograms", noblock=1)
-{subroutine %fortrantm(fout, CTYPE[])(imout, fout)
+  %fragment("SWIG_fout"{CTYPE[]}, "fsubprograms", noblock=1)
+  {subroutine %fortrantm(fout, CTYPE[])(imout, fout)
   use, intrinsic :: ISO_C_BINDING
   type(SwigArrayWrapper), intent(IN) :: imout
   FTYPE, dimension(:), pointer, intent(OUT) :: fout
@@ -143,14 +191,8 @@ end subroutine}
   endif
 end subroutine}
 
-  // Typemap for converting to array wrapper
-  %typemap(fin, fragment="SWIG_fin"{CTYPE[]}, noblock=1) CTYPE ARRAY[] {
-  call %fortrantm(fin, CTYPE[])($input, $1)
-}
-  // Typemap for converting to array wrapper
-  %typemap(fout, fragment="SWIG_fout"{CTYPE[]}, noblock=1) CTYPE ARRAY[] {
-  call %fortrantm(fout, CTYPE[])($1, $result)
-}
+  // Define fin/fout typemaps for an array of this type
+  %fortran_typemap_finout(CTYPE[], CTYPE ARRAY[])
 
 %enddef
 
@@ -159,12 +201,17 @@ end subroutine}
  * \brief Apply typemaps for treating signed/unsigned variables
  */
 %define %fortran_unsigned(SRCTYPE, DSTTYPE)
+  // Copy value properties and array properties from source type
   %apply SRCTYPE { DSTTYPE };
+
   %fortran_apply_typemaps(FORTRAN_UNSIGNED_TYPE, DSTTYPE)
 
   %typemap(out, noblock=1) DSTTYPE& {
      $result = (SRCTYPE*)($1);
   }
+
+  %typemap(fin) DSTTYPE ARRAY[] = SRCTYPE ARRAY[];
+  %typemap(fout) DSTTYPE ARRAY[] = SRCTYPE ARRAY[];
 %enddef
 
 /* -------------------------------------------------------------------------
@@ -333,7 +380,7 @@ end subroutine}
   "logical(C_BOOL)"
 
 // Special Fortran conversions for logical->c_int
-%fortran_typemap_finout(bool)
+%fortran_typemap_finout(bool, bool)
 
 // Treat const references like values
 %apply bool { const bool& };

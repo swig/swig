@@ -7,38 +7,6 @@
  * FRAGMENTS
  * ------------------------------------------------------------------------- */
 
-#ifdef __cplusplus
-%fragment("SwigArrayWrapper", "header", fragment="<stdlib.h>") %{
-struct SwigArrayWrapper {
-    void* data;
-    size_t size;
-};
-%}
-#else
-%fragment("SwigArrayWrapper", "header", fragment="<stdlib.h>") %{
-typedef struct {
-    void* data;
-    size_t size;
-} SwigArrayWrapper;
-%}
-#endif
-
-%fragment("SwigArrayWrapper_uninitialized", "header", fragment="SwigArrayWrapper") %{
-SWIGINTERN SwigArrayWrapper SwigArrayWrapper_uninitialized() {
-  SwigArrayWrapper result;
-  result.data = NULL;
-  result.size = 0;
-  return result;
-}
-%}
-
-// Add array wrapper to Fortran types when used
-%fragment("SwigArrayWrapper_f", "fdecl", noblock=1)
-{ type, bind(C) :: SwigArrayWrapper
-  type(C_PTR), public :: data = C_NULL_PTR
-  integer(C_SIZE_T), public :: size = 0
- end type}
-
 // Generate a wrapper function for cstdlib's 'free' memory function
 %fragment("SWIG_free_f", "finterfaces", noblock=1)
 { subroutine SWIG_free(cptr) &
@@ -93,35 +61,9 @@ end subroutine}
     $typemap(imtype, VTYPE), dimension(:), pointer
   }
   
-  // Fortran proxy translation code: convert from ftype $input to imtype $1
-  // Note that we take the address of the first element instead of the array,
-  // because nonallocatable deferred-size arrays *cannot* be referenced in
-  // standard F2003. This is because they might be slices of other arrays
-  // (noncontiguous). It is the caller's responsibility to ensure only
-  // contiguous arrays are passed. Conceivably we could improve this to use
-  // strided access by also passing c_loc($input(2)) and doing pointer
-  // arithmetic.
-  // TODO: use the "CONTIGUOUS" attribute if f2008 is being used to guarantee
-  // that we can get the C location of the input array directly.
-  %typemap(fin, temp={$typemap(imtype, VTYPE), pointer}, noblock=1) CPPTYPE {
-    if (size($input) > 0) then
-      $1_temp => $input(1)
-      $1%data = c_loc($1_temp)
-      $1%size = size($input)
-    else
-      $1%data = c_null_ptr
-      $1%size = 0
-    end if
-  }
-  
-  // Fortran proxy translation code: convert from imtype 1 to ftype $result
-  %typemap(fout, noblock=1) CPPTYPE {
-    if ($1%size > 0) then
-      call c_f_pointer($1%data, $result, [$1%size])
-    else
-      $result => NULL()
-    endif
-  }
+  // Look up typemaps defined by %fortran_intrinsic
+  %typemap(fin, noblock=1) CPPTYPE {$typemap(fin, VTYPE ARRAY[])}
+  %typemap(fout, noblock=1) CPPTYPE {$typemap(fout, VTYPE ARRAY[])}
 %enddef
 
 /* ------------------------------------------------------------------------- */
@@ -151,25 +93,11 @@ end subroutine}
   %typemap(ftype, in={$typemap(imtype, VTYPE), dimension(:), pointer, intent(inout)}, noblock=1) CPPTYPE& {
     $typemap(imtype, VTYPE), dimension(:), pointer
   }
-  %typemap(fin, match="ftype", noblock=1) CPPTYPE& {
-    if (associated($input) .and. size($input) > 0) then
-      $1%data = c_loc($input)
-      $1%size = size($input)
-    else
-      $1%data = c_null_ptr
-      $1%size = 0
-    end if
-  }
+  %typemap(fin, match="ftype", noblock=1) CPPTYPE& {$typemap(fin, VTYPE ARRAY[])}
   %typemap(imtype) CPPTYPE& = CPPTYPE;
   %typemap(ctype) CPPTYPE& = CPPTYPE;
 
   // Update the resulting Fortran pointer.
-  %typemap(fargout, match="argout", noblock=1) CPPTYPE& {
-    if ($1%size > 0) then
-      call c_f_pointer($1%data, $input, [$1%size])
-    else
-      $input => NULL()
-    endif
-  }
+  //%typemap(fargout, match="argout", noblock=1) CPPTYPE& = VTYPE[]&;
 %enddef
 

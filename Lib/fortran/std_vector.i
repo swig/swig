@@ -65,10 +65,10 @@ namespace std {
     const_reference back() const;
 
     // Instantiate typemaps for this particular vector
-    %std_native_container(std::vector<_Tp, _Alloc >)
+    %std_vector_impl(_Tp, std::vector<_Tp, _Alloc >)
 
     // Enable view output and input
-    %apply vector<_Tp, _Alloc >& POINTER { vector<_Tp, _Alloc >& view() };
+    %apply const vector<_Tp, _Alloc >& { vector<_Tp, _Alloc >& view() };
     %apply (const SWIGTYPE *DATA, ::size_t SIZE)
     { (const value_type* DATA, size_type SIZE) };
 
