@@ -707,40 +707,13 @@ public:
 	Printf(f_shadow, "_swig_new_static_method = %s.SWIG_PyStaticMethod_New\n", module);
       }
 
-      {
-	// Python-2.2 object hack
-	Printv(f_shadow,
-	       "\n", "def _swig_setattr_nondynamic(self, class_type, name, value, static=1):\n",
-	       tab4, "if name == \"thisown\":\n", tab8, "return self.this.own(value)\n",
-	       tab4, "if name == \"this\":\n", tab8, "if type(value).__name__ == 'SwigPyObject':\n", tab4, tab8, "self.__dict__[name] = value\n",
-#ifdef USE_THISOWN
-	       tab4, tab8, "if hasattr(value,\"thisown\"):\n", tab8, tab8, "self.__dict__[\"thisown\"] = value.thisown\n", tab4, tab8, "del value.thisown\n",
-#endif
-	       tab4, tab8, "return\n", tab4, "method = class_type.__swig_setmethods__.get(name, None)\n", tab4, "if method:\n", tab4, tab4, "return method(self, value)\n",
-#ifdef USE_THISOWN
-	       tab4, "if not static or name == \"thisown\":\n",
-#else
-	       tab4, "if not static:\n",
-#endif
-	       NIL);
-	Printv(f_shadow, tab4, tab4, "object.__setattr__(self, name, value)\n", NIL);
-	Printv(f_shadow,
-	       tab4, "else:\n",
-	       tab4, tab4, "raise AttributeError(\"You cannot add attributes to %s\" % self)\n\n",
-	        "\n", "def _swig_setattr(self, class_type, name, value):\n", tab4, "return _swig_setattr_nondynamic(self, class_type, name, value, 0)\n\n", NIL);
-
-	Printv(f_shadow,
-	       "\n", "def _swig_getattr(self, class_type, name):\n",
-	       tab4, "if name == \"thisown\":\n", tab8, "return self.this.own()\n",
-	       tab4, "method = class_type.__swig_getmethods__.get(name, None)\n",
-	       tab4, "if method:\n", tab8, "return method(self)\n",
-	       tab4, "raise AttributeError(\"'%s' object has no attribute '%s'\" % (class_type.__name__, name))\n\n", NIL);
-
-	Printv(f_shadow,
-	        "\n", "def _swig_repr(self):\n",
-	       tab4, "try:\n", tab8, "strthis = \"proxy of \" + self.this.__repr__()\n",
-	       tab4, "except __builtin__.Exception:\n", tab8, "strthis = \"\"\n", tab4, "return \"<%s.%s; %s >\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n", NIL);
-      }
+      Printv(f_shadow, "\n",
+	     "def _swig_repr(self):\n",
+	     tab4, "try:\n",
+	     tab4, tab4, "strthis = \"proxy of \" + self.this.__repr__()\n",
+	     tab4, "except __builtin__.Exception:\n",
+	     tab4, tab4, "strthis = \"\"\n",
+	     tab4, "return \"<%s.%s; %s >\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n", NIL);
 
       Printv(f_shadow,  "\n",
 	     "def _swig_setattr_nondynamic_instance_variable(set):\n",
