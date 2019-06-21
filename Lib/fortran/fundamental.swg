@@ -163,8 +163,8 @@ SWIGINTERN SwigArrayWrapper SwigArrayWrapper_uninitialized() {
   %fragment("SWIG_fin"{CTYPE[]}, "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1)
 {subroutine %fortrantm(fin, CTYPE[])(finp, iminp)
   use, intrinsic :: ISO_C_BINDING
-  FTYPE, dimension(:), intent(IN), target :: finp
-  type(SwigArrayWrapper), intent(OUT) :: iminp
+  FTYPE, dimension(:), intent(in), target :: finp
+  type(SwigArrayWrapper), intent(out) :: iminp
   FTYPE, pointer :: imtemp
 
   if (size(finp) > 0) then
@@ -181,8 +181,8 @@ end subroutine}
   %fragment("SWIG_fout"{CTYPE[]}, "fsubprograms", noblock=1)
   {subroutine %fortrantm(fout, CTYPE[])(imout, fout)
   use, intrinsic :: ISO_C_BINDING
-  type(SwigArrayWrapper), intent(IN) :: imout
-  FTYPE, dimension(:), pointer, intent(OUT) :: fout
+  type(SwigArrayWrapper), intent(in) :: imout
+  FTYPE, dimension(:), pointer, intent(out) :: fout
 
   if (imout%size > 0) then
     call c_f_pointer(imout%data, fout, [imout%size])
@@ -191,7 +191,7 @@ end subroutine}
   endif
 end subroutine}
 
-  // Define fin/fout typemaps for an array of this type
+  // Define proxy code typemaps for an array of this type
   %fortran_typemap_finout(CTYPE[], CTYPE ARRAY[])
 
 %enddef
@@ -326,14 +326,6 @@ end subroutine}
 %typemap(bindc)          void ""
 
 /* -------------------------------------------------------------------------
- * OPAQUE POINTERS
- *
- * A generic C pointer is treated as a value.
- * ------------------------------------------------------------------------- */
-
-%fortran_intrinsic(void*, type(C_PTR))
-
-/* -------------------------------------------------------------------------
  * FUNDAMENTAL TYPES
  * ------------------------------------------------------------------------- */
 
@@ -354,6 +346,9 @@ end subroutine}
 %fortran_unsigned(signed int      ,unsigned int       )
 %fortran_unsigned(signed long     ,unsigned long      )
 %fortran_unsigned(signed long long,unsigned long long )
+
+// Pointer type
+%fortran_intrinsic(void*, type(C_PTR))
 
 /* -------------------------------------------------------------------------
  * LOGICAL (BOOLEAN) TYPE
@@ -379,7 +374,7 @@ end subroutine}
 %typemap(bindc, in="logical(C_BOOL), value") bool
   "logical(C_BOOL)"
 
-// Special Fortran conversions for logical->c_int
+// Define special fin/fout typemaps for logical<->c_int
 %fortran_typemap_finout(bool, bool)
 
 // Treat const references like values
@@ -390,8 +385,8 @@ end subroutine}
   $1 = &tempbool;
 }
 
-// Mutable references and arrays are treated like opaque pointers
-%apply SWIGTYPE* { bool*, bool& };
+// Mutable references are treated like opaque pointers
+%apply SWIGTYPE* { bool& };
 
 /* -------------------------------------------------------------------------
  * FUNCTION POINTERS

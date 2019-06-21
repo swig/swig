@@ -82,11 +82,6 @@
   endif
 }
 
-/* ---- MUTABLE REFERENCE: CLASS OBJECT ---- */
-
-// Since this is the default behavior it's not necessary to do this 'apply'
-// %apply SWIGTYPE& { CPPTYPE& };
-
 %enddef
 
 
