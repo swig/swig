@@ -6,7 +6,7 @@
  * included with the SWIG source code as distributed by the SWIG developers
  * and at http://www.swig.org/legal.html.
  *
- * parser.y
+ * parser.c
  *
  * YACC parser for SWIG.   The grammar is a somewhat broken subset of C/C++.
  * This file is a bit of a mess and probably needs to be rewritten at
