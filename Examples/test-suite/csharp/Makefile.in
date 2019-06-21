@@ -19,6 +19,7 @@ CPP_TEST_CASES = \
 	csharp_exceptions \
 	csharp_features \
 	csharp_lib_arrays \
+	csharp_lib_arrays_bool \
 	csharp_namespace_system_collision \
 	csharp_prepost \
 	csharp_typemaps \
@@ -36,6 +37,9 @@ CPP11_TEST_CASES = \
 	cpp11_shared_ptr_upcast \
 	cpp11_strongly_typed_enumerations_simple \
 
+# bool[] typemaps don't work correctly when running under mono
+FAILING_CPP_TESTS = csharp_lib_arrays_bool
+
 include $(srcdir)/../common.mk
 
 # Overridden variables here
@@ -48,6 +52,7 @@ CSHARPFLAGSSPECIAL =
 intermediary_classname.cpptest: SWIGOPT += -dllimport intermediary_classname
 complextest.cpptest: CSHARPFLAGSSPECIAL = -r:System.Numerics.dll
 csharp_lib_arrays.cpptest: CSHARPFLAGSSPECIAL = -unsafe
+csharp_lib_arrays_bool.cpptest: CSHARPFLAGSSPECIAL = -unsafe
 csharp_swig2_compatibility.cpptest: SWIGOPT += -DSWIG2_CSHARP
 
 # Rules for the different types of tests
