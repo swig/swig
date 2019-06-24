@@ -422,6 +422,14 @@ matrix:
     - compiler: clang
       os: osx
       env: SWIGLANG=tcl
+    - compiler: clang
+      os: osx
+      env: SWIGLANG=java CPP17=1
+      osx_image: xcode10.2
+    - compiler: clang
+      os: osx
+      env: SWIGLANG=python PY3=3 CPP17=1
+      osx_image: xcode10.2
 
   allow_failures:
     # seg fault in director_basic testcase

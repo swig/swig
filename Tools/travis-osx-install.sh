@@ -27,9 +27,6 @@ case "$SWIGLANG" in
 		;;
 	"python")
 		WITHLANG=$SWIGLANG$PY3
-		if [[ "$PY3" ]]; then
-			travis_retry brew upgrade python
-		fi
 		;;
 esac
 
