@@ -199,45 +199,6 @@ namespace Swig {
     }
   };
 
-  /* unknown exception handler  */
-  class UnknownExceptionHandler {
-#ifdef SWIG_DIRECTOR_UEH
-    static void handler() {
-      try {
-        throw;
-      } catch (DirectorException& e) {
-        std::cerr << "SWIG Director exception caught:" << std::endl
-                  << e.what() << std::endl;
-      } catch (std::exception& e) {
-        std::cerr << "std::exception caught: "<< e.what() << std::endl;
-      } catch (...) {
-        std::cerr << "Unknown exception caught." << std::endl;
-      }
-
-      std::cerr << std::endl
-                << "Python interpreter traceback:" << std::endl;
-      PyErr_Print();
-      std::cerr << std::endl;
-
-      std::cerr << "This exception was caught by the SWIG UnknownExceptionHandler." << std::endl
-                << "Try using %feature(\"director:except\") to avoid reaching this point." << std::endl
-                << std::endl
-                << "Exception is being re-thrown, program will likely abort/terminate." << std::endl;
-      throw;
-    }
-
-  public:
-    std::terminate_handler old;
-    UnknownExceptionHandler(std::terminate_handler nh = handler) {
-      old = std::set_terminate(nh);
-    }
-
-    ~UnknownExceptionHandler() {
-      std::set_terminate(old);
-    }
-#endif
-  };
-
   /* type mismatch in the return value from a python method call */
   class DirectorTypeMismatchException : public DirectorException {
   public:
