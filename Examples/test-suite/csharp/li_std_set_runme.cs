@@ -85,5 +85,12 @@ public class runme
         ss = new StringSet{"foo", "bar", "baz"};
         ss.UnionWith(new[] {"baz", "quux"});
         checkThat(ss.SetEquals(new[] {"foo", "bar", "baz", "quux"}), "UnionWith works");
+
+        // Check a set of another type.
+        FooSet fooSet = new FooSet();
+        ISet<Foo> fooISet = fooSet;
+        checkThat(fooISet.Count == 0, "is initially empty");
+        checkThat(fooISet.Add(new Foo(17)), "added successfully");
+        checkThat(fooISet.Count == 1, "is not empty any more");
     }
 }
