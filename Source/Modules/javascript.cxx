@@ -787,13 +787,18 @@ int JSEmitter::emitWrapperFunction(Node *n) {
 }
 
 int JSEmitter::emitNativeFunction(Node *n) {
-  String *wrap_name = Getattr(n, "wrap:name");
-
-  Setattr(n, "feature:extend", "last");
+  String *wrapname = Getattr(n, "wrap:name");
+  // ismember never seems to be the case;
+  // it is technically possible to add native member functions,
+  // just not at the moment? leaving this as an option for later;
+  // the code will automatically defaulting to static space
+  if (GetFlag(n, "ismember") != 0)
+    Setattr(n, "feature:extend", "1"); // member space
+  else
+    Setattr(n, "feature:extend", "0"); // static space
   enterFunction(n);
-  state.function(WRAPPER_NAME, wrap_name);
+  state.function(WRAPPER_NAME, wrapname);
   exitFunction(n);
-
   return SWIG_OK;
 }
 

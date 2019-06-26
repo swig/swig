@@ -42,6 +42,9 @@ extern "C" JNIEXPORT jint JNICALL Java_native_1directive_native_1directiveJNI_Co
 #endif
 
 
+// TODO: C#
+// TODO: Python
+
 
 #ifdef SWIGJAVASCRIPT
 %native(CountAlphaCharacters) void JavaScript_alpha_count();

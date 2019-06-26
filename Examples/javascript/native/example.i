@@ -1,7 +1,13 @@
 /* File : example.i */
 %module example
 
+// placeholder() used to help SWIG generate "SWIG_From_int" call
+%{
+    int placeholder();
+%}
+int placeholder() { return 0; }
 
+// actual demo code
 %wrapper
 %{
 #ifdef SWIG_V8_VERSION /* Engine: Node || V8 */
@@ -38,4 +44,4 @@
 %}
 
 
-%native(num_to_string) void JavaScript_exampleV8_callback_function();
+%native(magicNumber) void JavaScript_do_work();
