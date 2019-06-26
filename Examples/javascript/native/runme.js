@@ -1,3 +1,3 @@
 var example = require("example");
 
-console.info("My magic number is: ", example.magicNumber());
+console.log("My magic number is: ", example.magicNumber());
