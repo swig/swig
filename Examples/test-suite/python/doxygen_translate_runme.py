@@ -20,11 +20,9 @@ Author: Zubr
 
 'citationword'
 
-
 .. code-block:: c++
 
-     some test code
-
+    some test code
 
 Conditional comment: SOMECONDITION
 Some conditional comment
@@ -121,10 +119,8 @@ TODO: Some very important task
 :type b: float
 :param b: B is mentioned again...
 
-
 very long
 text with tags <sometag>
-
 
 Version: 0.0.0.2
 

@@ -40,7 +40,10 @@ public class doxygen_translate_all_tags_runme {
     		" Not everything works right now...\n" +
     		" <code>codeword</code>\n\n\n\n\n\n" +
     		" <i>citationword</i>\n" +
-                " {@code some test code }\n");
+                " {@code some test code }\n\n" +
+    		" Code immediately following text.  Pydoc translation must add an\n" +
+    		" empty line before:\n" +
+    		" {@code more test code }");
     
     wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func02(int)",
     		" Conditional comment: SOMECONDITION \n" +
@@ -63,8 +66,11 @@ public class doxygen_translate_all_tags_runme {
                        " @exception SuperError \n" +
                        " \\sqrt{(x_2-x_1)^2+(y_2-y_1)^2} \n" +
                        " \\sqrt{(x_2-x_1)^2+(y_2-y_1)^2} \n" +
-                       " \\sqrt{(x_2-x_1)^2+(y_2-y_1)^2} \n" +
-    		" This will only appear in hmtl \n");
+                       " \\sqrt{(x_2-x_1)^2+(y_2-y_1)^2} \n\n" +
+                       "Math immediately following text.  Pydoc translation must add an\n" +
+                       "empty line before:\n\n" +
+                       " \\sqrt{(x_2-x_1)^2+(y_2-y_1)^2}\n" +
+                       " This will only appear in hmtl \n");
     
     wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func05(int)",
                        " If: ANOTHERCONDITION {\n" +
