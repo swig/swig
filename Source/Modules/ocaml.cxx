@@ -473,7 +473,6 @@ public:
 
     Wrapper *f = NewWrapper();
     String *proc_name = NewString("");
-    String *source = NewString("");
     String *target = NewString("");
     String *arg = NewString("");
     String *cleanup = NewString("");
@@ -580,10 +579,9 @@ public:
       pt = SwigType_typedef_qualified(pt);
 
       // Produce names of source and target
-      Clear(source);
       Clear(target);
       Clear(arg);
-      Printf(source, "caml_list_nth(args,%d)", i);
+      String *source = NewStringf("caml_list_nth(args,%d)", i);
       Printf(target, "%s", ln);
       Printv(arg, Getattr(p, "name"), NIL);
 
@@ -607,6 +605,7 @@ public:
       if (i >= numreq) {
 	Printf(f->code, "}\n");
       }
+      Delete(source);
     }
 
     /* Insert constraint checking code */
@@ -787,7 +786,6 @@ public:
       Printf(f_mlibody, "val %s : c_obj -> c_obj\n", mangled_name);
 
     Delete(proc_name);
-    Delete(source);
     Delete(target);
     Delete(arg);
     Delete(outarg);
