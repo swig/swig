@@ -1344,6 +1344,8 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
     swigWrap.run();
   }
 
+%typemap(javadestruct_derived, methodname="delete") SWIGTYPE "";
+
 %typemap(directordisconnect, methodname="swigDirectorDisconnect") SWIGTYPE %{
   protected void $methodname() {
     swigSetCMemOwn(false);
