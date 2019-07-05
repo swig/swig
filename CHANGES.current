@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.1 (in progress)
 ===========================
 
+2019-07-05: wsfulton
+            [Python] #1547 Whitespace fixes in Doxygen translated comments into pydoc comments
+            for Sphinx compatibility.
+
 2019-06-28: wsfulton
             [MzScheme, OCaml] #1559 $arg and $input were incorrectly substituted in the
             argout typemap when two or more arguments were present.
