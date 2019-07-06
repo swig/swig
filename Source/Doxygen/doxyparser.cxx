@@ -971,7 +971,9 @@ DoxygenEntityList DoxygenParser::parse(TokenListCIt endParsingIndex, const Token
   std::string currPlainstringCommandType = root ? "partofdescription" : "plainstd::string";
   DoxygenEntityList aNewList;
 
-  while (m_tokenListIt != endParsingIndex) {
+  // Less than check (instead of not equal) is a safeguard in case the
+  // iterator is incremented past the end
+  while (m_tokenListIt < endParsingIndex) {
 
     Token currToken = *m_tokenListIt;
 
@@ -987,6 +989,10 @@ DoxygenEntityList DoxygenParser::parse(TokenListCIt endParsingIndex, const Token
     } else if (currToken.m_tokenType == PLAINSTRING) {
       addCommand(currPlainstringCommandType, tokList, aNewList);
     }
+
+    // If addCommand above misbehaves, it can move the iterator past endParsingIndex
+    if (m_tokenListIt > endParsingIndex)
+      printListError(WARN_DOXYGEN_UNEXPECTED_ITERATOR_VALUE, "Unexpected iterator value in DoxygenParser::parse");
 
     if (endParsingIndex != tokList.end() && m_tokenListIt == tokList.end()) {
       // this could happen if we can't reach the original endParsingIndex
