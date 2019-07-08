@@ -1732,7 +1732,7 @@ public:
       Replaceall(cptr_method_name, ".", "_");
       Replaceall(cptr_method_name, "$interfacename", interface_name);
 
-      String *upcast_method_name = Swig_name_member(getNSpace(), proxy_class_name, cptr_method_name);
+      String *upcast_method_name = Swig_name_member(getNSpace(), getClassPrefix(), cptr_method_name);
       upcastsCode(smart, upcast_method_name, c_classname, c_baseclass);
 
       Delete(upcast_method_name);
