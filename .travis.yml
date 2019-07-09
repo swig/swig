@@ -43,6 +43,10 @@ matrix:
       env: SWIGLANG= GCC=8
       sudo: required
       dist: xenial
+    - os: linux
+      env: SWIGLANG= GCC=9
+      sudo: required
+      dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=csharp
