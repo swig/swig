@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.1 (in progress)
 ===========================
 
+2019-07-09: IsaacPascual
+            [C#, Java] #1570 Fix name of generated C#/Java classes for %interface macros
+            in swiginterface.i when wrapping nested C++ classes.
+
 2019-07-05: wsfulton
             [Python] #1547 Whitespace fixes in Doxygen translated comments into pydoc comments
             for Sphinx compatibility.
