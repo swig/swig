@@ -12,6 +12,9 @@ public class nested_inheritance_interface_runme {
     }
   }
 
+  private static void takeIA(IASwigInterface ia) {
+  }
+
   public static void main(String argv[]) {
 	Class[] BNInterfaces = B.N.class.getInterfaces();
     String expectedInterfacesString = "[interface nested_inheritance_interface.IASwigInterface]";
@@ -24,5 +27,6 @@ public class nested_inheritance_interface_runme {
 
     // overloaded methods check
     B.N d = new B.N();
+    takeIA(d);
   }
 }

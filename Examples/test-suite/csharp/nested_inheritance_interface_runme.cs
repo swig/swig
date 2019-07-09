@@ -16,6 +16,9 @@ public class nested_inheritance_interface_runme {
     return SortArrayToString(stypes.ToArray());
   }
 
+  private static void takeIA(IASwigInterface ia) {
+  }
+
   public static void Main() {
     Type[] BNInterfaces = typeof(B.N).GetInterfaces();
     string expectedInterfacesString = "IASwigInterface IDisposable";
@@ -28,5 +31,6 @@ public class nested_inheritance_interface_runme {
 
     // overloaded methods check
     B.N d = new B.N();
+    takeIA(d);
   }
 }
