@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.1 (in progress)
 ===========================
 
+2019-07-11: mcfarljm
+            #1548 #1578 Fix segfault in Doxygen parser parsing empty lines in some commands like
+            \code.
+
 2019-07-09: IsaacPascual
             [C#, Java] #1570 Fix name of generated C#/Java classes for %interface macros
             in swiginterface.i when wrapping nested C++ classes.
