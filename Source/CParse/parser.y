@@ -6375,6 +6375,12 @@ optional_ignored_defines
 		;
 
 /* Enum lists - any #define macros (constant directives) within the enum list are ignored. Trailing commas accepted. */
+
+/*
+   Note that "_last" attribute is not supposed to be set on the last enum element, as might be expected from its name, but on the _first_ one, and _only_ on it,
+   so we propagate it back to the first item while parsing and reset it on all the subsequent ones.
+ */
+
 enumlist	: enumlist_item {
 		  Setattr($1,"_last",$1);
 		  $$ = $1;
@@ -6389,6 +6395,8 @@ enumlist	: enumlist_item {
 		    set_nextSibling($1, $3);
 		    Setattr($1,"_last",Getattr($3,"_last"));
 		    Setattr($3,"_last",NULL);
+		  } else {
+		    Setattr($1,"_last",$1);
 		  }
 		  $$ = $1;
 		}
@@ -6397,6 +6405,8 @@ enumlist	: enumlist_item {
 		    set_nextSibling($1, $4);
 		    Setattr($1,"_last",Getattr($4,"_last"));
 		    Setattr($4,"_last",NULL);
+		  } else {
+		    Setattr($1,"_last",$1);
 		  }
 		  set_comment($1, $3);
 		  $$ = $1;
