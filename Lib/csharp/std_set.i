@@ -192,7 +192,7 @@ class set {
     private $csclassname collectionRef;
     private global::System.Collections.Generic.IList<$typemap(cstype, T)> ItemsCollection;
     private int currentIndex;
-    private $typemap(cstype, T) currentObject;
+    private object currentObject;
     private int currentSize;
 
     public $csclassnameEnumerator($csclassname collection) {
@@ -212,7 +212,7 @@ class set {
           throw new global::System.InvalidOperationException("Enumeration finished.");
         if (currentObject == null)
           throw new global::System.InvalidOperationException("Collection modified.");
-        return currentObject;
+        return ($typemap(cstype, T))currentObject;
       }
     }
 
