@@ -40,10 +40,7 @@
         };
     %}
 
-    // This one doesn't work in Java correctly yet.
-#ifdef SWIGCSHARP
     %template(IntSet) std::set<int>;
-#endif
     %template(StringSet) std::set<std::string>;
     %template(FooSet) std::set<Foo>;
 #endif
