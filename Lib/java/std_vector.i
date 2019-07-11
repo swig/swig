@@ -27,7 +27,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
 %typemap(javabase) std::vector< CTYPE > "java.util.AbstractList<$typemap(jboxtype, CTYPE)>"
 %typemap(javainterfaces) std::vector< CTYPE > "java.util.RandomAccess"
 %proxycode %{
-  public $javaclassname($typemap(jstype, CTYPE)[] initialElements) {
+  public $javaclassname($typemap(jstype, CTYPE)... initialElements) {
     this();
     reserve(initialElements.length);
 
