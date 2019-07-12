@@ -23,7 +23,26 @@
     %template(v_int) std::vector<int>;
     %template(set_string) std::set<std::string>;
 #elif defined(SWIGJAVA) || defined(SWIGCSHARP)
+    // This operator is only defined because it's needed to store objects of
+    // type Foo in std::set in C++, we don't need to wrap it.
+    %ignore operator<;
+    %inline %{
+        struct Foo
+        {
+            explicit Foo(int n) : n(n) {}
+
+            int n;
+
+            friend bool operator<(Foo foo1, Foo foo2)
+            {
+                return foo1.n < foo2.n;
+            }
+        };
+    %}
+
+    %template(IntSet) std::set<int>;
     %template(StringSet) std::set<std::string>;
+    %template(FooSet) std::set<Foo>;
 #endif
 
 #if defined(SWIGRUBY)

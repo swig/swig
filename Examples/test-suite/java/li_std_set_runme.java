@@ -71,5 +71,20 @@ public class li_std_set_runme {
     checkThat(ss.removeAll(found));
     checkThat(ss.isEmpty());
     checkThat(ss.size() == 0);
+
+    // Check a set of another type.
+    java.util.AbstractSet<Foo> fooSet = new FooSet();
+    checkThat(fooSet.isEmpty());
+    checkThat(fooSet.add(new Foo(17)));
+    checkThat(fooSet.size() == 1);
+
+    // And a set of primitive type.
+    java.util.AbstractSet<Integer> intSet = new IntSet();
+    checkThat(intSet.isEmpty());
+    checkThat(intSet.add(17));
+    checkThat(!intSet.add(17));
+    checkThat(intSet.size() == 1);
+    checkThat(intSet.add(289));
+    checkThat(intSet.size() == 2);
   }
 }
