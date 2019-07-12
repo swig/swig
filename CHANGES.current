@@ -8,6 +8,9 @@ Version 4.0.1 (in progress)
 ===========================
 
 2019-07-12: vadz
+            [C#, Java] #1568 #1583 Fix std::set<> typemaps for primitive types.
+
+2019-07-12: vadz
             #1566 #1584 Regression in 4.0.0 - fix missing value for first item of enums with
             trailing comma.
 
