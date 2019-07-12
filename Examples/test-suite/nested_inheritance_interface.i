@@ -9,6 +9,11 @@
 %interface(IA)
 #endif
 
+#if !defined(SWIGCSHARP) && !defined(SWIGJAVA)
+%feature ("flatnested");
+#endif
+
+
 %inline %{
 struct IA {};
 struct B { struct N : IA {}; };
