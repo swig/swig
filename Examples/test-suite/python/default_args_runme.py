@@ -170,23 +170,23 @@ def run(module_name):
     if default_args.CDA().cdefaultargs_test2() != 1:
         raise RuntimeError
 
-    if default_args.chartest1() != 'x':
+    if default_args.chartest1() != "x":
         raise RuntimeError
 
-    if default_args.chartest2() != '\0':
+    if default_args.chartest2() != "\0":
         raise RuntimeError
 
-    if default_args.chartest3() != '\1':
+    if default_args.chartest3() != "\1":
         raise RuntimeError
 
-    if default_args.chartest4() != '\n':
+    if default_args.chartest4() != "\n":
         raise RuntimeError
 
-    if default_args.chartest5() != 'B':
+    if default_args.chartest5() != "B":
         raise RuntimeError
 
-    if default_args.chartest6() != 'C':
+    if default_args.chartest6() != "C":
         raise RuntimeError
 
 if __name__ == "__main__":
-    run('default_args')
+    run("default_args")

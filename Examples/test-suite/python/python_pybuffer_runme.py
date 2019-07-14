@@ -14,13 +14,13 @@ if len(sys.argv) >= 2 and sys.argv[1] == "benchmark":
     k = 1000000  # number of times to execute the functions
 
     t = time.time()
-    a = bytearray(b'hello world')
+    a = bytearray(b"hello world")
     for i in range(k):
         python_pybuffer.title1(a)
     print "Time used by bytearray:", time.time() - t
 
     t = time.time()
-    b = 'hello world'
+    b = "hello world"
     for i in range(k):
         python_pybuffer.title2(b)
     print "Time used by string:", time.time() - t
@@ -30,7 +30,7 @@ else:
     buf2 = bytearray(50)
 
     python_pybuffer.func1(buf1)
-    check(buf1 == b'a' * 10)
+    check(buf1 == b"a" * 10)
 
     python_pybuffer.func2(buf2)
     check(buf2.startswith(b"Hello world!\x00"))
@@ -43,4 +43,4 @@ else:
 
     buf3 = bytearray(b"hello")
     python_pybuffer.title1(buf3)
-    check(buf3 == b'Hello')
+    check(buf3 == b"Hello")

@@ -60,9 +60,9 @@ if mi[0][1] != mc[0][1]:
 
 
 map = {}
-map['hello'] = 1
-map['hi'] = 2
-map['3'] = 2
+map["hello"] = 1
+map["hi"] = 2
+map["3"] = 2
 
 imap = std_containers.mapident(map)
 for k in map:
@@ -70,13 +70,13 @@ for k in map:
         raise RuntimeError, "bad map"
 
 # Test __contains__ (required for 'x in y' to work)
-if not imap.__contains__('hello'):
+if not imap.__contains__("hello"):
     raise RuntimeError("hello imap.__contains__")
-if 'hello' not in imap:
+if "hello" not in imap:
     raise RuntimeError("hello not in imap")
-if imap.__contains__('oops'):
+if imap.__contains__("oops"):
     raise RuntimeError("oops imap.__contains__")
-if 'oops' in imap:
+if "oops" in imap:
     raise RuntimeError("oops in imap")
 
 mapc = {}

@@ -2,7 +2,7 @@ from ignore_parameter import *
 
 def check(a, b):
     if a != b:
-        raise RuntimeError('"%s" != "%s"' % (a, b))
+        raise RuntimeError("'%s' != '%s'" % (a, b))
 
 check(jaguar(200, 0), "hello")
 check(lotus("foo", 1), 101)
