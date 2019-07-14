@@ -11,7 +11,7 @@ def run_except_on_windows(commandline, env=None):
         print("  Finished running: " + commandline)
 
 def copyMods():
-    dirs = ['path1', 'path2', 'path3']
+    dirs = ["path1", "path2", "path3"]
 
     # Clean out any old package paths
     for d in dirs:
@@ -20,20 +20,20 @@ def copyMods():
 
     for d in dirs:
         os.mkdir(d)
-        os.mkdir(os.path.join(d, 'brave'))
+        os.mkdir(os.path.join(d, "brave"))
 
-    shutil.copy('robin.py', os.path.join('path1', 'brave'))
-    subprocess.check_call('cp _robin.* ' + os.path.join('path1', 'brave'), shell=True)
+    shutil.copy("robin.py", os.path.join("path1", "brave"))
+    subprocess.check_call("cp _robin.* " + os.path.join("path1", "brave"), shell=True)
 
-    shutil.copy('robin.py', os.path.join('path2', 'brave'))
-    subprocess.check_call('cp _robin.* ' + os.path.join('path3', 'brave'), shell=True)
+    shutil.copy("robin.py", os.path.join("path2", "brave"))
+    subprocess.check_call("cp _robin.* " + os.path.join("path3", "brave"), shell=True)
 
     mkzip()
 
 def mkzip():
     zf = zipfile.ZipFile("path4.zip", "w")
-    zf.writestr("brave/", b'')
-    zf.write('robin.py', 'brave/robin.py')
+    zf.writestr("brave/", b"")
+    zf.write("robin.py", "brave/robin.py")
     zf.close()
 
 
