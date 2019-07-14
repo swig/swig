@@ -685,13 +685,13 @@ public:
 	 * same package, otherwise load it as a global module.
 	 */
         Printv(default_import_code, "# Import the low-level C/C++ module\n", NULL);
-        Printv(default_import_code, "if __package__ or '.' in __name__:\n", NULL);
+        Printv(default_import_code, "if __package__ or \".\" in __name__:\n", NULL);
         Printv(default_import_code, tab4, "from . import ", module, "\n", NULL);
         Printv(default_import_code, "else:\n", NULL);
         Printv(default_import_code, tab4, "import ", module, "\n", NULL);
       } else {
         Printv(default_import_code, "# Pull in all the attributes from the low-level C/C++ module\n", NULL);
-        Printv(default_import_code, "if __package__ or '.' in __name__:\n", NULL);
+        Printv(default_import_code, "if __package__ or \".\" in __name__:\n", NULL);
         Printv(default_import_code, tab4, "from .", module, " import *\n", NULL);
         Printv(default_import_code, "else:\n", NULL);
         Printv(default_import_code, tab4, "from ", module, " import *\n", NULL);
@@ -848,7 +848,7 @@ public:
 
       Printv(f_shadow_py, "\nfrom sys import version_info as _swig_python_version_info\n", NULL);
       Printv(f_shadow_py, "if _swig_python_version_info < (2, 7, 0):\n", NULL);
-      Printv(f_shadow_py, tab4, "raise RuntimeError('Python 2.7 or later required')\n\n", NULL);
+      Printv(f_shadow_py, tab4, "raise RuntimeError(\"Python 2.7 or later required\")\n\n", NULL);
 
       if (Len(f_shadow_after_begin) > 0)
 	Printv(f_shadow_py, f_shadow_after_begin, "\n", NIL);
@@ -1720,7 +1720,7 @@ public:
       }
       // Write the function annotation
       if (func_annotation)
-	Printf(doc, ": '%s'", type_str);
+	Printf(doc, ": \"%s\"", type_str);
 
       // Write default value
       if (value && !calling) {
@@ -2011,10 +2011,10 @@ public:
       // This must have been an octal number. This is the only case we
       // cannot use in Python directly, since Python 2 and 3 use non-
       // compatible representations.
-      result = NewString(*s == '-' ? "int('-" : "int('");
+      result = NewString(*s == '-' ? "int(\"-" : "int(\"");
       String *octal_string = NewStringWithSize(p, (int) (end - p));
       Append(result, octal_string);
-      Append(result, "', 8)");
+      Append(result, "\", 8)");
       Delete(octal_string);
       return result;
     }
@@ -4425,7 +4425,7 @@ public:
 	    Printv(f_shadow, tab4, str, "\n\n", NIL);
 	}
 
-	Printv(f_shadow, tab4, "thisown = property(lambda x: x.this.own(), ", "lambda x, v: x.this.own(v), doc='The membership flag')\n", NIL);
+	Printv(f_shadow, tab4, "thisown = property(lambda x: x.this.own(), ", "lambda x, v: x.this.own(v), doc=\"The membership flag\")\n", NIL);
 	/* Add static attribute */
 	if (GetFlag(n, "feature:python:nondynamic")) {
 	  Printv(f_shadow_file, tab4, "__setattr__ = _swig_setattr_nondynamic_instance_variable(object.__setattr__)\n", NIL);
