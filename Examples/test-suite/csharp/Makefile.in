@@ -37,9 +37,6 @@ CPP11_TEST_CASES = \
 	cpp11_shared_ptr_upcast \
 	cpp11_strongly_typed_enumerations_simple \
 
-# bool[] typemaps don't work correctly when running under mono
-FAILING_CPP_TESTS = csharp_lib_arrays_bool
-
 include $(srcdir)/../common.mk
 
 # Overridden variables here
