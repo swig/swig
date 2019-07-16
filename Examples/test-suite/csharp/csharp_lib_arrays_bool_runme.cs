@@ -27,7 +27,8 @@ public class runme
 
     if( runtimeIsMono() )
     {
-      Console.Error.WriteLine("Tests are running on mono, failing bool[] tests skipped");
+//      Console.Error.WriteLine("Tests are running on mono, failing bool[] tests skipped");
+//      See Mono bug report https://github.com/mono/mono/issues/15592
       return;
     }
 
