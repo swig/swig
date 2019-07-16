@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.1 (in progress)
 ===========================
 
+2019-07-16: geefr
+            [C#] #616 #1576 Fix C# bool INPUT[], bool OUTPUT[], bool INOUT[] typemaps to marshall
+            as 1-byte.
+
 2019-07-12: vadz
             [C#, Java] #1568 #1583 Fix std::set<> typemaps for primitive types.
 
