@@ -55,7 +55,7 @@ CPP_TEST_CASES += \
 	li_std_vectora \
 	li_std_vector_extra \
 	li_std_wstream \
-	li_std_wstring \
+	li_std_wstring_inherit \
 	primitive_types \
 	python_abstractbase \
 	python_append \
