@@ -91,7 +91,7 @@ if v.size() != 0:
 
 
 v = vecStr(["hello ", "world"])
-if v[0] != 'hello world':
+if v[0] != "hello world":
     raise RuntimeError, "bad std::string+std::vector"
 
 

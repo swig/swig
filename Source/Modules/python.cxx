@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -462,12 +462,12 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int top(Node *n) {
-    /* check if directors are enabled for this module.  note: this 
+    /* check if directors are enabled for this module.  note: this
      * is a "master" switch, without which no director code will be
      * emitted.  %feature("director") statements are also required
      * to enable directors for individual classes or methods.
      *
-     * use %module(directors="1") modulename at the start of the 
+     * use %module(directors="1") modulename at the start of the
      * interface file to enable director generation.
      */
     String *mod_docstring = NULL;
@@ -685,13 +685,13 @@ public:
 	 * same package, otherwise load it as a global module.
 	 */
         Printv(default_import_code, "# Import the low-level C/C++ module\n", NULL);
-        Printv(default_import_code, "if __package__ or '.' in __name__:\n", NULL);
+        Printv(default_import_code, "if __package__ or \".\" in __name__:\n", NULL);
         Printv(default_import_code, tab4, "from . import ", module, "\n", NULL);
         Printv(default_import_code, "else:\n", NULL);
         Printv(default_import_code, tab4, "import ", module, "\n", NULL);
       } else {
         Printv(default_import_code, "# Pull in all the attributes from the low-level C/C++ module\n", NULL);
-        Printv(default_import_code, "if __package__ or '.' in __name__:\n", NULL);
+        Printv(default_import_code, "if __package__ or \".\" in __name__:\n", NULL);
         Printv(default_import_code, tab4, "from .", module, " import *\n", NULL);
         Printv(default_import_code, "else:\n", NULL);
         Printv(default_import_code, tab4, "from ", module, " import *\n", NULL);
@@ -848,7 +848,7 @@ public:
 
       Printv(f_shadow_py, "\nfrom sys import version_info as _swig_python_version_info\n", NULL);
       Printv(f_shadow_py, "if _swig_python_version_info < (2, 7, 0):\n", NULL);
-      Printv(f_shadow_py, tab4, "raise RuntimeError('Python 2.7 or later required')\n\n", NULL);
+      Printv(f_shadow_py, tab4, "raise RuntimeError(\"Python 2.7 or later required\")\n\n", NULL);
 
       if (Len(f_shadow_after_begin) > 0)
 	Printv(f_shadow_py, f_shadow_after_begin, "\n", NIL);
@@ -1606,7 +1606,7 @@ public:
    *
    * For functions that have not had nameless parameters set in the Language class.
    *
-   * Inputs: 
+   * Inputs:
    *   plist - entire parameter list
    *   arg_num - the number to start from when naming arguments
    * Side effects:
@@ -1720,7 +1720,7 @@ public:
       }
       // Write the function annotation
       if (func_annotation)
-	Printf(doc, ": '%s'", type_str);
+	Printf(doc, ": \"%s\"", type_str);
 
       // Write default value
       if (value && !calling) {
@@ -2011,10 +2011,10 @@ public:
       // This must have been an octal number. This is the only case we
       // cannot use in Python directly, since Python 2 and 3 use non-
       // compatible representations.
-      result = NewString(*s == '-' ? "int('-" : "int('");
+      result = NewString(*s == '-' ? "int(\"-" : "int(\"");
       String *octal_string = NewStringWithSize(p, (int) (end - p));
       Append(result, octal_string);
-      Append(result, "', 8)");
+      Append(result, "\", 8)");
       Delete(octal_string);
       return result;
     }
@@ -2173,7 +2173,7 @@ public:
     while (i) {
       Node *nn = Getattr(i, "defaultargs");
       if (nn != h) {
-	/* Check if overloaded function has defaultargs and 
+	/* Check if overloaded function has defaultargs and
 	 * pointed to the first overloaded. */
 	return true;
       }
@@ -2190,7 +2190,7 @@ public:
    * reuse make_autodocParmList() to do so.
    * ------------------------------------------------------------ */
   String *make_pyParmList(Node *n, bool in_class, bool is_calling, int kw, bool has_self_for_count = false) {
-    /* Get the original function for a defaultargs copy, 
+    /* Get the original function for a defaultargs copy,
      * see default_arguments() in parser.y. */
     Node *nn = Getattr(n, "defaultargs");
     if (nn)
@@ -2972,9 +2972,9 @@ public:
     }
 
     /* if the object is a director, and the method call originated from its
-     * underlying python object, resolve the call by going up the c++ 
-     * inheritance chain.  otherwise try to resolve the method in python.  
-     * without this check an infinite loop is set up between the director and 
+     * underlying python object, resolve the call by going up the c++
+     * inheritance chain.  otherwise try to resolve the method in python.
+     * without this check an infinite loop is set up between the director and
      * shadow class method calls.
      */
 
@@ -3068,7 +3068,7 @@ public:
       //        base class pointers!
 
       /* New addition to unwrap director return values so that the original
-       * python object is returned instead. 
+       * python object is returned instead.
        */
 #if 1
       int unwrap = 0;
@@ -3613,7 +3613,7 @@ public:
   }
 
 
-  /* ------------------------------------------------------------ 
+  /* ------------------------------------------------------------
    * nativeWrapper()
    * ------------------------------------------------------------ */
 
@@ -3648,7 +3648,7 @@ public:
   /* ---------------------------------------------------------------
    * classDirectorMethod()
    *
-   * Emit a virtual director method to pass a method call on to the 
+   * Emit a virtual director method to pass a method call on to the
    * underlying Python object.
    * ** Moved down due to gcc-2.96 internal error **
    * --------------------------------------------------------------- */
@@ -4425,7 +4425,7 @@ public:
 	    Printv(f_shadow, tab4, str, "\n\n", NIL);
 	}
 
-	Printv(f_shadow, tab4, "thisown = property(lambda x: x.this.own(), ", "lambda x, v: x.this.own(v), doc='The membership flag')\n", NIL);
+	Printv(f_shadow, tab4, "thisown = property(lambda x: x.this.own(), ", "lambda x, v: x.this.own(v), doc=\"The membership flag\")\n", NIL);
 	/* Add static attribute */
 	if (GetFlag(n, "feature:python:nondynamic")) {
 	  Printv(f_shadow_file, tab4, "__setattr__ = _swig_setattr_nondynamic_instance_variable(object.__setattr__)\n", NIL);
@@ -4759,7 +4759,7 @@ public:
     int oldshadow = shadow;
     int use_director = Swig_directorclass(n);
 
-    /* 
+    /*
      * If we're wrapping the constructor of a C++ director class, prepend a new parameter
      * to receive the scripting language object (e.g. 'self')
      *
@@ -5088,7 +5088,7 @@ public:
 
   /* ------------------------------------------------------------
    * insertDirective()
-   * 
+   *
    * Hook for %insert directive.   We're going to look for special %shadow inserts
    * as a special case so we can do indenting correctly
    * ------------------------------------------------------------ */
@@ -5171,7 +5171,7 @@ public:
 /* ---------------------------------------------------------------
  * classDirectorMethod()
  *
- * Emit a virtual director method to pass a method call on to the 
+ * Emit a virtual director method to pass a method call on to the
  * underlying Python object.
  *
  * ** Moved it here due to internal error on gcc-2.96 **
@@ -5272,7 +5272,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   Append(w->def, " {");
   Append(declaration, ";\n");
 
-  /* declare method return value 
+  /* declare method return value
    * if the return value is a reference or const reference, a specialized typemap must
    * handle it, including declaration of c_result ($result).
    */
@@ -5432,7 +5432,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	  } else {
 	    Wrapper_add_localv(w, source, "swig::SwigVar_PyObject", source, "= 0", NIL);
 	    Printf(wrap_args, "%s = SWIG_InternalNewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
-	    //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n", 
+	    //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n",
 	    //       source, nonconst, base);
 	    Printv(arglist, source, NIL);
 	  }
