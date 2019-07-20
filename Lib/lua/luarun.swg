@@ -1040,7 +1040,7 @@ SWIGINTERN int  SWIG_Lua_class_tostring(lua_State *L)
 /*  there should be 1 param passed in
   (1) userdata (not the metatable) */
   const char *className;
-  void* userData;
+  swig_lua_userdata* userData;
   assert(lua_isuserdata(L,1));  /* just in case */
   userData = lua_touserdata(L,1); /* get the userdata address for later */
   lua_getmetatable(L,1);    /* get the meta table */
@@ -1049,7 +1049,7 @@ SWIGINTERN int  SWIG_Lua_class_tostring(lua_State *L)
   lua_getfield(L, -1, ".type");
   className = lua_tostring(L, -1);
 
-  lua_pushfstring(L, "<%s userdata: %p>", className, userData);
+  lua_pushfstring(L, "<%s userdata: %p>", className, userData->ptr);
   return 1;
 }
 
