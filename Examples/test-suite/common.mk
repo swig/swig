@@ -655,6 +655,7 @@ CPP_STD_TEST_CASES += \
 	li_std_vector_enum \
 	li_std_vector_member_var\
 	li_std_vector_ptr \
+	li_std_wstring \
 	smart_pointer_inherit \
 	template_typedef_fnc \
 	template_type_namespace \

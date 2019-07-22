@@ -3,74 +3,74 @@ using li_std_wstringNamespace;
 
 public class runme
 {
+    static private void check_equal(char a, char b)
+    {
+      if (a != b)
+        throw new Exception("failed " + a + " " + b);
+    }
+
+    static private void check_equal(string a, string b)
+    {
+      if (a != b)
+        throw new Exception("failed " + a + " " + b);
+    }
+
     static void Main() 
     {
-      char y='h';
+        char h = 'h';
+        check_equal(li_std_wstring.test_wcvalue(h), h);
 
-      if (li_std_wstring.test_wcvalue(y) != y)
-        throw new Exception("bad string mapping:" + li_std_wstring.test_wcvalue(y));
+        string x = "abc";
+        check_equal(li_std_wstring.test_ccvalue(x), x);
+        check_equal(li_std_wstring.test_cvalue(x), x);
 
-      if (li_std_wstring.test_wcvalue_w() != 'W')
-        throw new Exception("bad string mapping:" + li_std_wstring.test_wcvalue_w());
+        check_equal(li_std_wstring.test_wchar_overload(x), x);
+        check_equal(li_std_wstring.test_wchar_overload(), null);
 
-      string x="hello";
+        li_std_wstring.test_pointer(null);
+        li_std_wstring.test_const_pointer(null);
 
-      if (li_std_wstring.test_ccvalue(x) != x)
-        throw new Exception("bad string mapping");
+        try {
+            li_std_wstring.test_value(null);
+            throw new Exception("NULL check failed");
+        } catch (ArgumentNullException) {
+        }
 
-      if (li_std_wstring.test_cvalue(x) != x)
-        throw new Exception("bad string mapping");
+        try {
+              li_std_wstring.test_reference(null);
+              throw new Exception("NULL check failed");
+        } catch (ArgumentNullException e) {
+            if (!e.Message.Contains("type is null"))
+                throw new Exception("Missing text " + e);
+        }
+        try {
+            li_std_wstring.test_const_reference(null);
+            throw new Exception("NULL check failed");
+        } catch (ArgumentNullException e) {
+            if (!e.Message.Contains("null wstring"))
+                throw new Exception("Missing text " + e);
+        }
 
+        x = "hello";
+        check_equal(li_std_wstring.test_const_reference(x), x);
 
-      if (li_std_wstring.test_value(x) != x)
-        throw new Exception("bad string mapping: " + x + li_std_wstring.test_value(x));
+        /* TODO
+        string s = "abc";
+        if (!li_std_wstring.test_equal_abc(s))
+            throw new Exception("Not equal " + s);
 
-      if (li_std_wstring.test_const_reference(x) != x)
-        throw new Exception("bad string mapping");
+        try {
+            li_std_wstring.test_throw();
+        } catch (Exception e) {
+            check_equal(e.Message, "throwing test_throw");
+        }
 
+        x = "abc\0def";
+        check_equal(li_std_wstring.test_value(x), x);
+        check_equal(li_std_wstring.test_ccvalue(x), "abc");
+        check_equal(li_std_wstring.test_wchar_overload(x), "abc");
+        */
 
-      string s = "he";
-      s = s + "llo";
-
-      if (s != x)
-        throw new Exception("bad string mapping: " + s + x);
-
-      if (li_std_wstring.test_value(s) != x)
-        throw new Exception("bad string mapping");
-
-      if (li_std_wstring.test_const_reference(s) != x)
-        throw new Exception("bad string mapping");
-
-      string a = s;
-
-      if (li_std_wstring.test_value(a) != x)
-        throw new Exception("bad string mapping");
-
-      if (li_std_wstring.test_const_reference(a) != x)
-        throw new Exception("bad string mapping");
-
-      string b = " world";
-
-      if (a + b != "hello world")
-        throw new Exception("bad string mapping");
-
-      if (a + " world" != "hello world")
-        throw new Exception("bad string mapping");
-
-      if ("hello" + b != "hello world")
-        throw new Exception("bad string mapping");
-
-      s = "hello world";
-
-      B myB = new B("hi");
-
-      myB.name = "hello";
-      if (myB.name != "hello")
-        throw new Exception("bad string mapping");
-
-      myB.a = "hello";
-      if (myB.a != "hello")
-        throw new Exception("bad string mapping");
     }
 }
 

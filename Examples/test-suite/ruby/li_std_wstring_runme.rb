@@ -2,30 +2,40 @@
 require 'swig_assert'
 require 'li_std_wstring'
 
-x = "abc"
-swig_assert_equal("Li_std_wstring.test_wchar_overload(x)", "x", binding)
-swig_assert_equal("Li_std_wstring.test_ccvalue(x)", "x", binding)
-swig_assert_equal("Li_std_wstring.test_value(Li_std_wstring::Wstring.new(x))", "x", binding)
+h = "h"
+swig_assert_equal("Li_std_wstring.test_wcvalue(h)", "h", binding)
 
+x = "abc"
+swig_assert_equal("Li_std_wstring.test_ccvalue(x)", "x", binding)
+swig_assert_equal("Li_std_wstring.test_cvalue(x)", "x", binding)
+
+swig_assert_equal("Li_std_wstring.test_wchar_overload(x)", "x", binding)
 swig_assert_equal("Li_std_wstring.test_wchar_overload()", "nil", binding)
 
-swig_assert_equal("Li_std_wstring.test_pointer(Li_std_wstring::Wstring.new(x))", "nil", binding)
-swig_assert_equal("Li_std_wstring.test_const_pointer(Li_std_wstring::Wstring.new(x))", "nil", binding)
-swig_assert_equal("Li_std_wstring.test_const_pointer(Li_std_wstring::Wstring.new(x))", "nil", binding)
-swig_assert_equal("Li_std_wstring.test_reference(Li_std_wstring::Wstring.new(x))", "nil", binding)
+Li_std_wstring.test_pointer(nil)
+Li_std_wstring.test_const_pointer(nil)
 
-x = "y"
-swig_assert_equal("Li_std_wstring.test_value(x)", "x", binding)
-a = Li_std_wstring::A.new(x)
-swig_assert_equal("Li_std_wstring.test_value(a)", "x", binding)
+begin
+  Li_std_wstring.test_value(nil)
+  raise RuntimeError, "NULL check failed"
+rescue TypeError => e
+end
+
+begin
+  Li_std_wstring.test_reference(nil)
+  raise RuntimeError, "NULL check failed"
+rescue ArgumentError => e
+  swig_assert_simple(e.message.include? "invalid null reference")
+end
+begin
+  Li_std_wstring.test_const_reference(nil)
+  raise RuntimeError, "NULL check failed"
+rescue ArgumentError => e
+  swig_assert_simple(e.message.include? "invalid null reference")
+end
 
 x = "hello"
 swig_assert_equal("Li_std_wstring.test_const_reference(x)", "x", binding)
-
-
-swig_assert_equal("Li_std_wstring.test_pointer_out", "'x'", binding)
-swig_assert_equal("Li_std_wstring.test_const_pointer_out", "'x'", binding)
-swig_assert_equal("Li_std_wstring.test_reference_out()", "'x'", binding)
 
 s = "abc"
 swig_assert("Li_std_wstring.test_equal_abc(s)", binding)
@@ -33,7 +43,7 @@ swig_assert("Li_std_wstring.test_equal_abc(s)", binding)
 begin
   Li_std_wstring.test_throw
 rescue RuntimeError => e
-  swig_assert_equal("e.message", "'x'", binding)
+  swig_assert_equal("e.message", "'throwing test_throw'", binding)
 end
 
 x = "abc\0def"
