@@ -54,7 +54,9 @@ public class runme
         x = "hello";
         check_equal(li_std_wstring.test_const_reference(x), x);
 
-        /* TODO
+        /* Postpone, tricky, std::wstring portability problem.
+         * std::wstring is 2 bytes on Windows, 4 bytes on Linux, LPWSTR is 2 bytes.
+         * .NET marshalling should work on Windows but not Linux.
         string s = "abc";
         if (!li_std_wstring.test_equal_abc(s))
             throw new Exception("Not equal " + s);
@@ -66,12 +68,12 @@ public class runme
             check_equal(e.Message, "throwing test_throw");
         }
 
-        /* TODO
         x = "abc\0def";
-        check_equal(li_std_wstring.test_value(x), x);
+        // Unlike other languages, embedded NULL in std::string not supported
+        // check_equal(li_std_wstring.test_value(x), x);
+        check_equal(li_std_wstring.test_value(x), "abc");
         check_equal(li_std_wstring.test_ccvalue(x), "abc");
         check_equal(li_std_wstring.test_wchar_overload(x), "abc");
-        */
 
         {
             // Unicode strings
