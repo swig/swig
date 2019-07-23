@@ -6,13 +6,13 @@ public class runme
     static private void check_equal(char a, char b)
     {
       if (a != b)
-        throw new Exception("failed " + a + " " + b);
+        throw new Exception("char failed '" + a + "' != '" + b + "'");
     }
 
     static private void check_equal(string a, string b)
     {
       if (a != b)
-        throw new Exception("failed " + a + " " + b);
+        throw new Exception("string failed '" + a + "' != '" + b + "'");
     }
 
     static void Main() 
@@ -58,6 +58,7 @@ public class runme
         string s = "abc";
         if (!li_std_wstring.test_equal_abc(s))
             throw new Exception("Not equal " + s);
+        */
 
         try {
             li_std_wstring.test_throw();
@@ -65,6 +66,7 @@ public class runme
             check_equal(e.Message, "throwing test_throw");
         }
 
+        /* TODO
         x = "abc\0def";
         check_equal(li_std_wstring.test_value(x), x);
         check_equal(li_std_wstring.test_ccvalue(x), "abc");
@@ -79,10 +81,29 @@ public class runme
 
             foreach (string expected in test_strings)
             {
-                string result = li_std_wstring.test_value(expected);
+                string received = li_std_wstring.test_value(expected);
+                check_equal(received, expected);
+            }
 
-                if (result != expected)
-                    throw new Exception("test_string failure '" + result + "' != '" + expected + "'");
+            foreach (string expected in test_strings)
+            {
+                string received = li_std_wstring.test_const_reference(expected);
+                check_equal(received, expected);
+            }
+
+            foreach (string expected in test_strings)
+            {
+                string received = li_std_wstring.test_ccvalue(expected);
+                check_equal(received, expected);
+            }
+
+            foreach (string test_string in test_strings)
+            {
+                foreach (char expected in test_string)
+                {
+                    char received = li_std_wstring.test_wcvalue(expected);
+                    check_equal(received, expected);
+                }
             }
         }
     }
