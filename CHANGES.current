@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.1 (in progress)
 ===========================
 
+2019-07-23: smithx
+            [C#] #1530 #1532 Fix marshalling of std::wstring to C#.
+
 2019-07-18: gicmo
             [Python] #1587 Python 3.8 support - remove use of deprecated PyObject_GC_UnTrack.
 
