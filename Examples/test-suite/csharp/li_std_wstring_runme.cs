@@ -71,6 +71,20 @@ public class runme
         check_equal(li_std_wstring.test_wchar_overload(x), "abc");
         */
 
+        {
+            // Unicode strings
+            string[] test_strings = {
+                "JP: 日本語", "DE: Kröpeliner Straße" , "RU: Война и мир", "EN: War and Peace"
+            };
+
+            foreach (string expected in test_strings)
+            {
+                string result = li_std_wstring.test_value(expected);
+
+                if (result != expected)
+                    throw new Exception("test_string failure '" + result + "' != '" + expected + "'");
+            }
+        }
     }
 }
 
