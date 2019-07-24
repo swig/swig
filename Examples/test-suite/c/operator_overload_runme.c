@@ -1,8 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "operator_overload/operator_overload_wrap.h"
 
-#define assert(x,msg) if (!x) { printf("%d: %s\n", x, msg); SWIG_exit(0); }
+#define assert(x,msg) if (!x) { printf("%d: %s\n", x, msg); exit(1); }
 
 int main() {
   Op_sanity_check();
@@ -21,5 +22,5 @@ int main() {
   Op_delete(op1);
   Op_delete(op2);
   Op_delete(op3);
-  SWIG_exit(0);
+  exit(0);
 }

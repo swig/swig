@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "exception_order/exception_order_wrap.h"
 
@@ -40,6 +41,6 @@ int main() {
       SWIG_PendingException_reset();
   }
 
-  SWIG_exit(0);
+  exit(0);
 }
 
