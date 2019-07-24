@@ -99,7 +99,10 @@ public class runme
                 check_equal(received, expected);
             }
 
-            /* Not working on Windows okay on Linux
+            /* Not working for Japanese and Russian characters on Windows, okay on Linux
+             * Is fixed by adding CharSet=CharSet.Unicode to the DllImport, so change to:
+             * [global::System.Runtime.InteropServices.DllImport("li_std_wstring", CharSet=global::System.Runtime.InteropServices.CharSet.Unicode, EntryPoint="CSharp_li_std_wstringNamespace_test_wcvalue")]
+             * Needs a SWIG code change to support this
             foreach (string test_string in test_strings)
             {
                 foreach (char expected in test_string)
