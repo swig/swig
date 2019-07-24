@@ -2872,6 +2872,7 @@ EOF
 AC_OUTPUT
 
 langs=""
+test -n "$SKIP_C"		|| langs="${langs}c "
 test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
 test -n "$SKIP_D"		|| langs="${langs}d "
 test -n "$SKIP_GO"		|| langs="${langs}go "
