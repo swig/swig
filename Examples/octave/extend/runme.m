@@ -1,4 +1,7 @@
-# file: runme.m
+# do not dump Octave core
+if exist("crash_dumps_octave_core", "builtin")
+  crash_dumps_octave_core(0);
+endif
 
 # This file illustrates the cross language polymorphism using directors.
 
@@ -11,7 +14,7 @@ CEO=@(name) subclass(swigexample.Manager(name),'getPosition',@(self) "CEO");
 
 # Create an instance of our employee extension class, CEO. The calls to
 # getName() and getPosition() are standard, the call to getTitle() uses
-# the director wrappers to call CEO.getPosition. e = CEO("Alice")
+# the director wrappers to call CEO.getPosition.
 
 e = CEO("Alice");
 printf("%s is a %s\n",e.getName(),e.getPosition());

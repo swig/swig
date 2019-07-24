@@ -1,6 +1,6 @@
 package main
 
-import . "./li_cdata_cpp"
+import . "li_cdata_cpp"
 
 func main() {
 	s := "ABC abc"

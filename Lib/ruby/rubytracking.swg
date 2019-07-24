@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------------
  * rubytracking.swg
  *
- * This file contains support for tracking mappings from 
+ * This file contains support for tracking mappings from
  * Ruby objects to C++ objects.  This functionality is needed
  * to implement mark functions for Ruby's mark and sweep
  * garbage collector.
@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 /* Global hash table to store Trackings from C/C++
-   structs to Ruby Objects. 
+   structs to Ruby Objects.
 */
 static st_table* swig_ruby_trackings = NULL;
 
@@ -42,7 +42,7 @@ SWIGRUNTIME void SWIG_RubyInitializeTrackings(void) {
   /* Create a hash table to store Trackings from C++
      objects to Ruby objects. */
 
-  /* Try to see if some other .so has already created a 
+  /* Try to see if some other .so has already created a
      tracking hash table, which we keep hidden in an instance var
      in the SWIG module.
      This is done to allow multiple DSOs to share the same
@@ -101,13 +101,14 @@ SWIGRUNTIME void SWIG_RubyRemoveTracking(void* ptr) {
 
 /* This is a helper method that unlinks a Ruby object from its
    underlying C++ object.  This is needed if the lifetime of the
-   Ruby object is longer than the C++ object */
+   Ruby object is longer than the C++ object. */
 SWIGRUNTIME void SWIG_RubyUnlinkObjects(void* ptr) {
   VALUE object = SWIG_RubyInstanceFor(ptr);
 
   if (object != Qnil) {
-    if (TYPE(object) != T_DATA)
-      abort();
+    // object might have the T_ZOMBIE type, but that's just
+    // because the GC has flagged it as such for a deferred
+    // destruction. Until then, it's still a T_DATA object.
     DATA_PTR(object) = 0;
   }
 }

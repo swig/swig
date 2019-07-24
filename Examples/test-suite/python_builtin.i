@@ -2,6 +2,14 @@
 
 %module python_builtin
 
+// throw is invalid in C++17 and later, only SWIG to use it
+#define TESTCASE_THROW1(T1) throw(T1)
+#define TESTCASE_THROW2(T1, T2) throw(T1, T2)
+%{
+#define TESTCASE_THROW1(T1)
+#define TESTCASE_THROW2(T1, T2)
+%}
+
 %inline %{
 #ifdef SWIGPYTHON_BUILTIN
 bool is_python_builtin() { return true; }
@@ -21,7 +29,7 @@ struct ValueStruct {
 };
 %}
 
-// Test 1 for tp_hash
+// Test 1a for tp_hash
 #if defined(SWIGPYTHON_BUILTIN)
 %feature("python:tp_hash") SimpleValue "SimpleValueHashFunction"
 #endif
@@ -47,6 +55,24 @@ long SimpleValueHashFunction(PyObject *v)
 hashfunc test_hashfunc_cast() {
     return SimpleValueHashFunction;
 }
+%}
+
+// Test 1b for tp_hash
+#if defined(SWIGPYTHON_BUILTIN)
+%feature("python:slot", "tp_hash", functype="hashfunc") SimpleValue2::HashFunc;
+#endif
+
+%inline %{
+struct SimpleValue2 {
+  int value;
+  SimpleValue2(int value) : value(value) {}
+#if PY_VERSION_HEX >= 0x03020000
+  typedef Py_hash_t HashType;
+#else
+  typedef long HashType;
+#endif
+  HashType HashFunc() { return (HashType)value; }
+};
 %}
 
 // Test 2 for tp_hash
@@ -136,3 +162,86 @@ void Dealloc2Destroyer(PyObject *v) {
   };
   int MyClass::less_than_counts = 0;
 %}
+
+// Test 6 add in container __getitem__ to support basic sequence protocol
+// Tests overloaded functions being used for more than one slot (mp_subscript and sq_item)
+%include <exception.i>
+%include <std_except.i>
+%apply int {Py_ssize_t}
+%typemap(in) PySliceObject * {
+  if (!PySlice_Check($input))
+    SWIG_exception(SWIG_TypeError, "in method '$symname', argument $argnum of type '$type'");
+  $1 = (PySliceObject *)$input;
+}
+%typemap(typecheck,precedence=300) PySliceObject* {
+  $1 = PySlice_Check($input);
+}
+
+%feature("python:slot", "mp_subscript", functype="binaryfunc") SimpleArray::__getitem__(PySliceObject *slice);
+%feature("python:slot", "sq_item", functype="ssizeargfunc") SimpleArray::__getitem__(Py_ssize_t n);
+%feature("python:slot", "sq_length", functype="lenfunc") SimpleArray::__len__;
+%inline %{
+  class SimpleArray {
+    Py_ssize_t size;
+    int numbers[5];
+  public:
+    SimpleArray(Py_ssize_t size) : size(size) {
+      for (Py_ssize_t x = 0; x<size; ++x)
+        numbers[x] = (int)x*10;
+    }
+
+    Py_ssize_t __len__() {
+      return size;
+    }
+
+    int __getitem__(Py_ssize_t n) TESTCASE_THROW1(std::out_of_range) {
+      if (n >= (int)size)
+        throw std::out_of_range("Index too large");
+      return numbers[n];
+    }
+
+    SimpleArray __getitem__(PySliceObject *slice) TESTCASE_THROW2(std::out_of_range, std::invalid_argument) {
+      if (!PySlice_Check(slice))
+        throw std::invalid_argument("Slice object expected");
+      Py_ssize_t i, j, step;
+#if PY_VERSION_HEX >= 0x03020000
+      PySlice_GetIndices((PyObject *)slice, size, &i, &j, &step);
+#else
+      PySlice_GetIndices((PySliceObject *)slice, size, &i, &j, &step);
+#endif
+      if (step != 1)
+        throw std::invalid_argument("Only a step size of 1 is implemented");
+
+      {
+        Py_ssize_t ii = i<0 ? 0 : i>=size ? size-1 : i;
+        Py_ssize_t jj = j<0 ? 0 : j>=size ? size-1 : j;
+        if (ii > jj)
+          throw std::invalid_argument("getitem i should not be larger than j");
+        SimpleArray n(jj-ii);
+        for (Py_ssize_t x = 0; x<size; ++x)
+          n.numbers[x] = numbers[x+ii];
+        return n;
+      }
+    }
+  };
+%}
+
+// Test 7 mapping to Python's pow
+%pybinoperator(__pow__, ANumber::power, ternaryfunc, nb_power);
+
+%inline %{
+class ANumber {
+  int num;
+public:
+  ANumber(int d = 0) : num(d) {}
+  ANumber __pow__(const ANumber &other, const ANumber *x = 0) const {
+    int val = (int)pow(num, other.num);
+    val = x ? val % x->num : val;
+    return ANumber(val);
+  }
+  int Value() const {
+    return num;
+  }
+};
+%}
+

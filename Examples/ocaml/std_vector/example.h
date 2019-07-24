@@ -17,9 +17,8 @@ std::vector<double> half(const std::vector<double>& v) {
 }
 
 void halve_in_place(std::vector<double>& v) {
-    // would you believe this is the same as the above?
-    std::transform(v.begin(),v.end(),v.begin(),
-                   std::bind2nd(std::divides<double>(),2.0));
+    for (std::vector<double>::iterator it = v.begin(); it != v.end(); ++it)
+        *it /= 2.0;
 }
 
 

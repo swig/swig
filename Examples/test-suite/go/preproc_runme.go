@@ -1,6 +1,6 @@
 package main
 
-import "./preproc"
+import "preproc"
 
 func main() {
 	if preproc.GetEndif() != 1 {

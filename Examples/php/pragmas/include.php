@@ -1,7 +1,7 @@
 <?php
 
 # This code is inserted into example.php
-echo "this is include.php\n";
+echo "This is include.php\n";
 
 
 ?>

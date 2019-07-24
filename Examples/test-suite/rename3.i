@@ -52,7 +52,7 @@ namespace Space {
 
   %extend ABC {
     %rename(methodABC) method(ABC a) const;
-    %rename(opABC) operator ABC() const;
+    %rename(opABC) operator ABC*() const;
     %rename(methodKlass) method(Klass k) const;
     %rename(opKlass) operator Klass() const;
   }

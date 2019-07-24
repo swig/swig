@@ -17,6 +17,7 @@
 %include "example.h"
 
 /* An output method that turns a complex into a short string */
+%feature("python:slot", "tp_str", functype="reprfunc") Complex::__str__; // For -builtin option to use __str__ in the tp_str slot
 %extend Complex {
    char *__str__() {
        static char temp[512];

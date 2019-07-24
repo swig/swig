@@ -54,6 +54,8 @@ if i.next() != 2:
 if i.next() != 3:
     raise RuntimeError
 
+if si[0] != 1:
+    raise RuntimeError
 
 i = s.begin()
 i.next()
@@ -88,5 +90,5 @@ sum = ()
 for i in s:
     sum = sum + (i,)
 
-if (len(sum) != 3 or (not 1 in sum) or (not 'hello' in sum) or (not (1, 2) in sum)):
+if (len(sum) != 3 or (not 1 in sum) or (not "hello" in sum) or (not (1, 2) in sum)):
     raise RuntimeError

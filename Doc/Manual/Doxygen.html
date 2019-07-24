@@ -1,0 +1,1838 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>SWIG and Doxygen Translation</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body bgcolor="#FFFFFF">
+<H1><a name="Doxygen">17 SWIG and Doxygen Translation</a></H1>
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="#Doxygen_translation_overview">Doxygen translation overview</a>
+<li><a href="#Doxygen_file_preparation">Preparations</a>
+<ul>
+<li><a href="#Doxygen_running_swig">Enabling Doxygen translation</a>
+<li><a href="#Doxygen_features">Doxygen-specific %feature directives</a>
+<ul>
+<li><a href="#Doxygen_notranslate">doxygen:notranslate</a>
+<li><a href="#Doxygen_alias">doxygen:alias:&lt;command-name&gt;</a>
+<li><a href="#Doxygen_ignore">doxygen:ignore:&lt;command-name&gt;</a>
+<li><a href="#Doxygen_nolinktranslate">doxygen:nolinktranslate</a>
+<li><a href="#Doxygen_nostripparams">doxygen:nostripparams</a>
+</ul>
+<li><a href="#Doxygen_additional_options">Additional command line options</a>
+</ul>
+<li><a href="#Doxygen_to_javadoc">Doxygen to Javadoc</a>
+<ul>
+<li><a href="#Doxygen_basic_example">Basic example</a>
+<li><a href="#Doxygen_javadoc_tags">Javadoc tags</a>
+<li><a href="#Doxygen_unsupported_tags">Unsupported tags</a>
+<li><a href="#Doxygen_further_details">Further details</a>
+</ul>
+<li><a href="#Doxygen_to_pydoc">Doxygen to Pydoc</a>
+<ul>
+<li><a href="#Doxygen_python_basic_example">Basic example</a>
+<li><a href="#Doxygen_pydoc_tags">Pydoc translator</a>
+<li><a href="#Doxygen_python_unsupported_tags">Unsupported tags</a>
+<li><a href="#Doxygen_python_further_details">Further details</a>
+</ul>
+<li><a href="#Doxygen_troubleshooting">Troubleshooting</a>
+<ul>
+<li><a href="#troubleshooting_ifndef">Problem with conditional compilation</a>
+</ul>
+<li><a href="#Doxygen_developer_details">Developer information</a>
+<ul>
+<li><a href="#Doxygen_translator_design">Doxygen translator design</a>
+<li><a href="#Doxygen_debugging_commands">Debugging the Doxygen parser and translator</a>
+<li><a href="#Doxygen_tests">Tests</a>
+</ul>
+<li><a href="#Doxygen_language_extension">Extending to other languages</a>
+</ul>
+</div>
+<!-- INDEX -->
+
+
+
+<p>
+This chapter describes SWIG's support for translating Doxygen comments
+found in interface and header files into a target language's normal
+documentation language.  Currently only Javadoc and Pydoc is
+supported.
+</p>
+
+<H2><a name="Doxygen_translation_overview">17.1 Doxygen translation overview</a></H2>
+
+
+<p>
+The Doxygen Translation module of SWIG adds an extra layer of
+functionality to SWIG, allowing automated translation of <a href=
+"http://www.doxygen.nl/manual/">Doxygen</a> formatted comments
+from input files into a documentation language more suited for the
+target language.  Currently this module only translates into Javadoc
+and Pydoc for the SWIG Java and Python modules.
+Other extensions could be added at a later date.
+The Doxygen Translation module originally started as
+a <a href="https://developers.google.com/open-source/gsoc/2008/">Google Summer of
+Code</a> proposal from Summer 2008.  
+</p>
+
+<H2><a name="Doxygen_file_preparation">17.2 Preparations</a></H2>
+
+
+<p>
+To make use of the comment translation system, your documentation
+comments must be in properly formatted <a href=
+"http://www.doxygen.nl/manual/">Doxygen.</a> Doxygen comments can be
+present in your main SWIG interface file or any header file that it
+imports.  You are advised to be validate that your comments compile
+properly with Doxygen before you try to translate them.  Doxygen
+itself is a more comprehensive tool and can provide you better feedback for
+correcting any syntax errors that may be present.  Please look at
+Doxygen's <a href=
+"http://www.doxygen.nl/manual/docblocks.html"> Documenting the
+code</a> for the full comment format specifications.  However, SWIG's
+Doxygen parser will still report many errors and warnings found
+in comments (like unterminated strings or missing ending tags).
+</p>
+
+<p>
+Currently, the whole subset of Doxygen comment styles is supported
+(See <a href="http://www.doxygen.nl/manual/docblocks.html">
+Documenting the code</a>). Here they are:
+</p>
+
+<div class="code"><pre>
+/**
+ * Javadoc style comment, multiline
+ */
+/*!
+ * QT-style comment, multiline
+ */
+/**
+ Any of the above, but without intermediate *'s
+ */
+/// Single-line comment
+//! Another single-line comment
+</pre></div>
+
+<p>
+Also any of the above with '&lt;' added after comment-starting symbol,
+like <i>/**&lt;, /*!&lt;, ///&lt;, </i> or <i> //!&lt;</i> will be
+treated as a post-comment and will be assigned to the code before the
+comment.
+
+Any number of '*' or '/' within a Doxygen comment is considered to be a
+separator and is not included in the final comment, so you may safely use
+comments like <i>/*********/</i> or <i>//////////</i>.
+</p>
+
+<p>
+Please note, as SWIG parses the input file by itself with strict grammar,
+there is only a limited support for various cases of comment placement
+in the file.
+</p>
+<p>
+Comments can be placed before C/C++ expressions on separate lines:
+</p>
+
+<div class="code"><pre>
+/**
+ * Some comment
+ */
+void someOtherFunction();
+/**
+ * Some comment
+ */
+void someFunction();
+
+class Shape {
+  /*
+   * Calculate the area in cm^2
+   */
+  int getArea();
+}
+</pre></div>
+
+<p>
+After C/C++ expressions at the end of the line:
+</p>
+
+<div class="code"><pre>
+int someVariable = 9; ///&lt; This is a var holding magic number 9
+void doNothing(); ///&lt; This does nothing, nop
+</pre></div>
+
+<p>
+and in some special cases, like function parameter comments:
+</p>
+
+<div class="code"><pre>
+void someFunction(
+         int a ///&lt; Some parameter 
+     );
+</pre></div>
+
+<p>
+or enum element comments:
+</p>
+
+<div class="code"><pre>
+enum E_NUMBERS
+{
+    EN_ZERO, ///&lt; The first enum item, gets zero as it's value
+    EN_ONE, ///&lt; The second, EN_ONE=1
+    EN_THREE
+};
+</pre></div>
+
+<p>
+Currently only comments directly before or after the code items
+are supported. Doxygen also supports comments containing structural commands,
+where the comments for a code item are not put directly before or after the code item.
+These structural commands are stripped out by SWIG and are not assigned to anything.
+</p>
+
+<H3><a name="Doxygen_running_swig">17.2.1 Enabling Doxygen translation</a></H3>
+
+
+<p>
+Doxygen comments translation is disabled by default and needs to be explicitly
+enabled using the command line <tt>-doxygen</tt> option for the languages that
+do support it (currently Java and Python).
+</p>
+
+<H3><a name="Doxygen_features">17.2.2 Doxygen-specific %feature directives</a></H3>
+
+
+<p>
+Translation of Doxygen comments is influenced by the following <a
+href="Customization.html#Customization_features">%feature directives</a>:
+</p>
+
+<H4><a name="Doxygen_notranslate">17.2.2.1 doxygen:notranslate</a></H4>
+
+
+<p>
+Turns off translation of Doxygen comments to the target language syntax: the
+original comment will be copied to the output unchanged. This is useful if you
+want to use Doxygen itself to generate documentation for the target language
+instead of the corresponding language tool (<tt>javadoc</tt>, <tt>sphinx</tt>,
+...).
+</p>
+
+
+<H4><a name="Doxygen_alias">17.2.2.2 doxygen:alias:&lt;command-name&gt;</a></H4>
+
+
+<p>
+Specify an alias for a Doxygen command with the given name. This can be useful
+for custom Doxygen commands which can be defined using <tt>ALIASES</tt> option
+for Doxygen itself but which are unknown to SWIG. <tt>"command-name"</tt> is the
+name of the command in the Doxyfile, e.g. if it contains
+</p>
+
+<div class="code"><pre>
+ALIASES = "sideeffect=\par Side Effects:\n"
+</pre></div>
+
+<p>
+Then you could also specify the same expansion for SWIG with:
+</p>
+
+<div class="code"><pre>
+%feature("doxygen:alias:sideeffect") "\par Side Effects:\n"
+</pre></div>
+
+<p>
+Please note that command arguments are not currently supported with this
+feature.
+</p>
+
+<p>
+Notice that it is perfectly possible and potentially useful to define the alias
+expansion differently depending on the target language, e.g. with
+</p>
+
+<div class="code"><pre>
+#ifdef SWIGJAVA
+%feature("doxygen:alias:not_for_java") "This functionality is not available for Java"
+#else
+%feature("doxygen:alias:not_for_java") ""
+#endif
+</pre></div>
+
+<p>
+you could use <tt>@not_for_java</tt> in the documentation comments of all
+functions which can't, for whatever reason, be currently exposed in Java
+wrappers of the C++ API.
+</p>
+
+
+<H4><a name="Doxygen_ignore">17.2.2.3 doxygen:ignore:&lt;command-name&gt;</a></H4>
+
+
+<p>
+This feature makes it possible to just ignore an unknown Doxygen command, instead of
+replacing it with the predefined text that <tt>doxygen:alias</tt> does.
+For example, you could use
+</p>
+
+<div class="code"><pre>
+%feature("doxygen:ignore:transferfull") Fantastic();
+/**
+    A fantastic function.
+
+    @transferfull Command ignored, but anything here is still included.
+ */
+int * Fantastic();
+</pre></div>
+
+<p>
+if you use a custom Doxygen <tt>transferfull</tt> command to indicate that the
+return value ownership is transferred to the caller, as this information doesn't
+make much sense for the other languages without explicit ownership management.
+</p>
+
+<p>
+Doxygen syntax is rather rich and, in addition to simple commands such as
+<tt>@transferfull</tt>, it is also possible to define commands with arguments.
+As explained in <a href="http://www.doxygen.nl/manual/commands.html">Doxygen documentation</a>,
+the arguments can have a range of a single word, everything until the end of
+line or everything until the end of the next paragraph. Currently, only the "end
+of line" case is supported using the <tt>range="line"</tt> argument of the
+feature directive:
+</p>
+
+<div class="code"><pre>
+// Ignore occurrences of
+//
+//    @compileroptions Some special C++ compiler options.
+//
+// in Doxygen comments as C++ options are not interesting for the target language
+// developers.
+%feature("doxygen:ignore:compileroptions", range="line") Amazing();
+
+/**
+    An amazing function.
+
+    @compileroptions This function must be compiled with /EHa when using MSVC.
+ */
+void Amazing();
+
+</pre></div>
+
+<p>
+In addition, it is also possible to have custom pairs of begin/end tags,
+similarly to the standard Doxygen <tt>@code/@endcode</tt>, for example. Such
+tags can also be ignored using the special value of <tt>range</tt> starting with
+<tt>end</tt> to indicate that the range is an interval, for example:
+</p>
+
+<div class="code"><pre>
+%feature("doxygen:ignore:forcpponly", range="end"); // same as "end:endforcpponly"
+/**
+    An incredible function.
+
+    @forcpponly
+    This is C++-specific.
+    @endforcpponly
+ */
+void Incredible();
+</pre></div>
+
+<p>
+would ignore everything between <tt>@forcpponly</tt> and <tt>@endforcpponly</tt>
+commands in Doxygen comments. By default, the name of the end command is the
+same as of the start one with "end" prefix, following Doxygen conventions, but
+this can be overridden by providing the end command name after the colon.
+</p>
+<p>
+This example shows how custom tags can be used to bracket anything specific to
+C++ and prevent it from appearing in the target language documentation.
+Conversely, another pair of custom tags could be used to put target language
+specific information in the C++ comments. In this case, only the custom tags
+themselves should be ignored, but their contents should be parsed as usual and
+<tt>contents="parse"</tt> can be used for this:
+</p>
+
+<div class="code"><pre>
+%feature("doxygen:ignore:beginPythonOnly", range="end:endPythonOnly", contents="parse");
+/**
+    A splendid function.
+
+    @beginPythonOnly
+    This is specific to @b Python.
+    @endPythonOnly
+ */
+void Splendid();
+
+</pre></div>
+
+<p>
+Putting everything together, if these directives are in effect:
+</p>
+
+<div class="code"><pre>
+%feature("doxygen:ignore:transferfull");
+%feature("doxygen:ignore:compileroptions", range="line");
+%feature("doxygen:ignore:forcpponly", range="end");
+%feature("doxygen:ignore:beginPythonOnly", range="end:endPythonOnly", contents="parse");
+</pre></div>
+
+<p>
+then the following C++ Doxygen comment:
+</p>
+
+<div class="code"><pre>
+/**
+    A contrived example of ignoring too many commands in one comment.
+
+    @forcpponly
+    This is C++-specific.
+    @endforcpponly
+
+    @beginPythonOnly
+    This is specific to @b Python.
+    @endPythonOnly
+
+    @transferfull Command ignored, but anything here is still included.
+
+    @compileroptions This function must be compiled with /EHa when using MSVC.
+ */
+int * Contrived();
+</pre></div>
+
+<p>
+would be translated to this comment in Python:
+</p>
+
+<div class="code"><pre>
+def func():
+    r"""
+    A contrived example of ignoring too many commands in one comment.
+
+    This is specific to **Python**.
+
+    Command ignored, but anything here is still included.
+    """
+    ...
+</pre></div>
+
+
+<H4><a name="Doxygen_nolinktranslate">17.2.2.4 doxygen:nolinktranslate</a></H4>
+
+
+<p>
+Turn off automatic link-objects translation.
+This is only applicable to Java at the moment.
+</p>
+
+
+<H4><a name="Doxygen_nostripparams">17.2.2.5 doxygen:nostripparams</a></H4>
+
+
+<p>
+Turn off stripping of <tt>@param</tt> and <tt>@tparam</tt>
+Doxygen commands if the parameter is not found in the function signature.
+This is only applicable to Java at the moment.
+</p>
+
+
+<H3><a name="Doxygen_additional_options">17.2.3 Additional command line options</a></H3>
+
+
+<p>
+ALSO TO BE ADDED (Javadoc auto brief?)
+</p>
+
+<H2><a name="Doxygen_to_javadoc">17.3 Doxygen to Javadoc</a></H2>
+
+
+<p>
+If translation is enabled, Javadoc formatted comments should be
+automatically placed in the correct locations in the resulting module
+and proxy files.
+</p>
+
+<H3><a name="Doxygen_basic_example">17.3.1 Basic example</a></H3>
+
+
+<p>
+Here is an example segment from an included header file
+</p>
+<div class="code"><pre>
+/*! This is describing class Shape
+ \author Bob
+ */
+
+class Shape {
+public:
+  Shape() {
+    nshapes++;
+  }
+  virtual ~Shape() {
+    nshapes--;
+  };
+  double  x, y; /*!&lt; Important Variables */
+  void    move(double dx, double dy); /*!&lt; Moves the Shape */
+  virtual double area(void) = 0; /*!&lt; \return the area */
+  virtual double perimeter(void) = 0; /*!&lt; \return the perimeter */
+  static  int nshapes;
+};
+</pre></div>
+
+<p>
+Simply running SWIG should result in the following code being present in Shapes.java
+</p>
+
+<div class="targetlang"><pre>
+
+/**
+ * This is describing class Shape 
+ * @author Bob 
+ * 
+ */
+
+public class Shape {
+
+...
+
+/**
+ * Important Variables 
+ */
+  public void setX(double value) {
+    ShapesJNI.Shape_x_set(swigCPtr, this, value);
+  }
+
+/**
+ * Important Variables 
+ */
+  public double getX() {
+    return ShapesJNI.Shape_x_get(swigCPtr, this);
+  }
+
+/**
+ * Moves the Shape 
+ */
+  public void move(double dx, double dy) {
+    ShapesJNI.Shape_move(swigCPtr, this, dx, dy);
+  }
+
+/**
+ * @return the area 
+ */
+  public double area() {
+    return ShapesJNI.Shape_area(swigCPtr, this);
+  }
+
+/**
+ * @return the perimeter 
+ */
+  public double perimeter() {
+    return ShapesJNI.Shape_perimeter(swigCPtr, this);
+  }
+}
+
+</pre></div>
+
+<p>
+The code Java-wise should be identical to what would have been
+generated without the doxygen functionality enabled.  When the Doxygen Translator
+module encounters a comment that contains nothing useful or a doxygen comment that it cannot
+parse, it will not affect the functionality of the SWIG generated
+code.
+</p>
+
+<p>
+The Javadoc translator will handle most of the tags conversions (see the
+table below). It will also automatically translate link-objects
+params, in \see and \link...\endlink commands. For example,
+'someFunction(std::string)' will be converted to
+'someFunction(String)'.  If 
+you don't want such behaviour, you could turn this off by using the
+'doxygen:nolinktranslate' feature. Also all '\param' and '\tparam'
+commands are stripped out, if the specified parameter is not present in
+the function. Use 'doxygen:nostripparams' to avoid.
+</p>
+
+<p>
+Javadoc translator features summary
+(see <a href="Customization.html#Customization_features">%feature
+directives</a>):
+</p>
+
+<H3><a name="Doxygen_javadoc_tags">17.3.2 Javadoc tags</a></H3>
+
+
+<p>
+Here is the list of all Doxygen tags and the description of how they are translated to Javadoc
+</p>
+<div class="diagram">
+<table border="0" summary="Java Doxygen tags">
+<tr>
+  <th align="left">Doxygen tags</th>
+</tr>
+<tr>
+<td>\a</td>
+<td>wrapped with &lt;i&gt; html tag</td>
+</tr>
+<tr>
+<td>\arg</td>
+<td>wrapped with &lt;li&gt; html tag</td>
+</tr>
+<tr>
+<td>\author</td>
+<td>translated to @author</td>
+</tr>
+<tr>
+<td>\authors</td>
+<td>translated to @author</td>
+</tr>
+<tr>
+<td>\b</td>
+<td>wrapped with &lt;b&gt; html tag</td>
+</tr>
+<tr>
+<td>\c</td>
+<td>wrapped with &lt;code&gt; html tag</td>
+</tr>
+<tr>
+<td>\cite</td>
+<td>wrapped with &lt;i&gt; html tag</td>
+</tr>
+<tr>
+<td>\code</td>
+<td>translated to {@code ...}</td>
+</tr>
+<tr>
+<td>\cond</td>
+<td>translated to 'Conditional comment: &lt;condition&gt;'</td>
+</tr>
+<tr>
+<td>\copyright</td>
+<td>replaced with 'Copyright:'</td>
+</tr>
+<tr>
+<td>\deprecated</td>
+<td>translated to @deprecated</td>
+</tr>
+<tr>
+<td>\e</td>
+<td>wrapped with &lt;i&gt; html tag</td>
+</tr>
+<tr>
+<td>\else</td>
+<td>replaced with '}Else:{'</td>
+</tr>
+<tr>
+<td>\elseif</td>
+<td>replaced with '}Else if: &lt;condition&gt;{'</td>
+</tr>
+<tr>
+<td>\em</td>
+<td>wrapped with &lt;i&gt; html tag</td>
+</tr>
+<tr>
+<td>\endcode</td>
+<td>see note for \code</td>
+</tr>
+<tr>
+<td>\endcond</td>
+<td>replaced with 'End of conditional comment.'</td>
+</tr>
+<tr>
+<td>\endif</td>
+<td>replaced with '}'</td>
+</tr>
+<tr>
+<td>\endlink</td>
+<td>see note for \link</td>
+</tr>
+<tr>
+<td>\endverbatim</td>
+<td>see note for \verbatim</td>
+</tr>
+<tr>
+<td>\exception</td>
+<td>translated to @exception</td>
+</tr>
+<tr>
+<td>\f$, \f[, \f], \f{, \f}</td>
+<td>LateX formulas are left unchanged</td>
+</tr>
+<tr>
+<td>\if</td>
+<td>replaced with 'If: &lt;condition&gt; {'</td>
+</tr>
+<tr>
+<td>\ifnot</td>
+<td>replaced with 'If not: &lt;condition&gt; {'</td>
+</tr>
+<tr>
+<td>\image</td>
+<td>translated to &lt;img/&gt; html tag only if target=HTML</td>
+</tr>
+<tr>
+<td>\li</td>
+<td>wrapped with &lt;li&gt; html tag</td>
+</tr>
+<tr>
+<td>\link</td>
+<td>translated to {@link ...}</td>
+</tr>
+<tr>
+<td>\n</td>
+<td>replaced with new line char</td>
+</tr>
+<tr>
+<td>\note</td>
+<td>replaced with 'Note:'</td>
+</tr>
+<tr>
+<td>\overload</td>
+<td>prints 'This is an overloaded ...' according to Doxygen docs</td>
+</tr>
+<tr>
+<td>\p</td>
+<td>wrapped with &lt;code&gt; html tag</td>
+</tr>
+<tr>
+<td>\par</td>
+<td>replaced with &lt;p alt='title'&gt;...&lt;/p&gt;</td>
+</tr>
+<tr>
+<td>\param</td>
+<td>translated to @param</td>
+</tr>
+<tr>
+<td>\remark</td>
+<td>replaced with 'Remarks:'</td>
+</tr>
+<tr>
+<td>\remarks</td>
+<td>replaced with 'Remarks:'</td>
+</tr>
+<tr>
+<td>\result</td>
+<td>translated to @return</td>
+</tr>
+<tr>
+<td>\return</td>
+<td>translated to @return</td>
+</tr>
+<tr>
+<td>\returns</td>
+<td>translated to @return</td>
+</tr>
+<tr>
+<td>\sa</td>
+<td>translated to @see</td>
+</tr>
+<tr>
+<td>\see</td>
+<td>translated to @see</td>
+</tr>
+<tr>
+<td>\since</td>
+<td>translated to @since</td>
+</tr>
+<tr>
+<td>\throw</td>
+<td>translated to @throws</td>
+</tr>
+<tr>
+<td>\throws</td>
+<td>translated to @throws</td>
+</tr>
+<tr>
+<td>\todo</td>
+<td>replaced with 'TODO:'</td>
+</tr>
+<tr>
+<td>\tparam</td>
+<td>translated to @param</td>
+</tr>
+<tr>
+<td>\verbatim</td>
+<td>translated to {@literal ...}</td>
+</tr>
+<tr>
+<td>\version</td>
+<td>translated to @version</td>
+</tr>
+<tr>
+<td>\warning</td>
+<td>translated to 'Warning:'</td>
+</tr>
+<tr>
+<td>\$</td>
+<td>prints $ char</td>
+</tr>
+<tr>
+<td>\@</td>
+<td>prints @ char</td>
+</tr>
+<tr>
+<td>\\</td>
+<td>prints \ char</td>
+</tr>
+<tr>
+<td>\&amp;</td>
+<td>prints &amp; char</td>
+</tr>
+<tr>
+<td>\~</td>
+<td>prints ~ char</td>
+</tr>
+<tr>
+<td>\&lt;</td>
+<td>prints &lt; char</td>
+</tr>
+<tr>
+<td>\&gt;</td>
+<td>prints &gt; char</td>
+</tr>
+<tr>
+<td>\#</td>
+<td>prints # char</td>
+</tr>
+<tr>
+<td>\%</td>
+<td>prints % char</td>
+</tr>
+<tr>
+<td>\&quot;</td>
+<td>prints &quot; char</td>
+</tr>
+<tr>
+<td>\.</td>
+<td>prints . char</td>
+</tr>
+<tr>
+<td>\::</td>
+<td>prints ::</td>
+</tr>
+</table>
+</div>
+
+<H3><a name="Doxygen_unsupported_tags">17.3.3 Unsupported tags</a></H3>
+
+
+<p>
+Doxygen has a wealth of tags such as @latexonly that have no
+equivalent in Javadoc (all supported tags are listed in
+<a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/javadoc.html">Javadoc documentation</a>).
+As a result several tags have no
+translation or particular use, such as some linking and section tags.
+These are suppressed with their content just printed out (if the tag has any
+sense, typically text content).
+Here is the list of these tags:
+</p>
+<div class="diagram">
+<table border="0" summary="Unsupported Java Doxygen Tags">
+<tr>
+  <th align="left">Unsupported Doxygen tags</th>
+</tr>
+<tr>
+<td>\addindex</td>
+<td>\addtogroup</td>
+<td>\anchor</td>
+<td>\attention</td>
+</tr>
+<tr>
+<td>\brief</td>
+<td>\bug</td>
+<td>\callgraph</td>
+<td>\callergraph</td>
+</tr>
+<tr>
+<td>\class</td>
+<td>\copybrief</td>
+<td>\copydetails</td>
+<td>\copydoc</td>
+</tr>
+<tr>
+<td>\date</td>
+<td>\def</td>
+<td>\defgroup</td>
+<td>\details</td>
+</tr>
+<tr>
+<td>\dir</td>
+<td>\dontinclude</td>
+<td>\dot</td>
+<td>\dotfile</td>
+</tr>
+<tr>
+<td>\enddot</td>
+<td>\endhtmlonly</td>
+<td>\endinternal</td>
+<td>\endlatexonly</td>
+</tr>
+<tr>
+<td>\endmanonly</td>
+<td>\endmsc</td>
+<td>\endrtfonly</td>
+<td>\endxmlonly</td>
+</tr>
+<tr>
+<td>\enum</td>
+<td>\example</td>
+<td>\extends</td>
+</tr>
+<tr>
+<td>\file</td>
+<td>\fn</td>
+<td>\headerfile</td>
+<td>\hideinitializer</td>
+</tr>
+<tr>
+<td>\htmlinclude</td>
+<td>\htmlonly</td>
+<td>\implements</td>
+<td>\include</td>
+</tr>
+<tr>
+<td>\includelineno</td>
+<td>\ingroup</td>
+<td>\internal</td>
+<td>\invariant</td>
+</tr>
+<tr>
+<td>\interface</td>
+<td>\latexonly</td>
+<td>\line</td>
+<td>\mainpage</td>
+</tr>
+<tr>
+<td>\manonly</td>
+<td>\memberof</td>
+<td>\msc</td>
+<td>\mscfile</td>
+</tr>
+<tr>
+<td>\name</td>
+<td>\namespace</td>
+<td>\nosubgrouping</td>
+<td>\package</td>
+</tr>
+<tr>
+<td>\page</td>
+<td>\paragraph</td>
+<td>\post</td>
+<td>\pre</td>
+</tr>
+<tr>
+<td>\private</td>
+<td>\privatesection</td>
+<td>\property</td>
+<td>\protected</td>
+</tr>
+<tr>
+<td>\protectedsection</td>
+<td>\protocol</td>
+<td>\public</td>
+<td>\publicsection</td>
+</tr>
+<tr>
+<td>\ref</td>
+<td>\related</td>
+<td>\relates</td>
+<td>\relatedalso</td>
+</tr>
+<tr>
+<td>\relatesalso</td>
+<td>\retval</td>
+<td>\rtfonly</td>
+<td>\section</td>
+</tr>
+<tr>
+<td>\short</td>
+<td>\showinitializer</td>
+<td>\skip</td>
+<td>\skipline</td>
+</tr>
+<tr>
+<td>\snippet</td>
+<td>\struct</td>
+<td>\subpage</td>
+<td>\subsection</td>
+</tr>
+<tr>
+<td>\subsubsection</td>
+<td>\tableofcontents</td>
+<td>\test</td>
+<td>\typedef</td>
+</tr>
+<tr>
+<td>\union</td>
+<td>\until</td>
+<td>\var</td>
+<td>\verbinclude</td>
+</tr>
+<tr>
+<td>\weakgroup</td>
+<td>\xmlonly</td>
+<td>\xrefitem</td>
+<td>\category</td>
+</tr>
+</table>
+</div>
+
+<p>
+
+If one of the following Doxygen tags appears as the first tag in a
+comment, the whole comment block is ignored:
+<!-- see parser.y, function isStructuralDoxygen() -->
+
+</p>
+<div class="diagram">
+<table border="0" summary="Ignored Java Doxygen Tags">
+<tr>
+  <th align="left">Ignored Doxygen tags</th>
+</tr>
+<tr>
+<td>\addtogroup</td>
+<td>\callgraph</td>
+<td>\callergraph</td>
+<td>\category</td>
+</tr>
+<tr>
+<td>\class</td>
+<td>\def</td>
+<td>\defgroup</td>
+<td>\dir</td>
+</tr>
+<tr>
+<td>\enum</td>
+<td>\example</td>
+<td>\file</td>
+<td>\fn</td>
+</tr>
+<tr>
+<td>\headerfile</td>
+<td>\hideinitializer</td>
+<td>\interface</td>
+<td>\internal</td>
+</tr>
+<tr>
+<td>\mainpage</td>
+<td>\name</td>
+<td>\namespace</td>
+<td>\nosubgrouping</td>
+</tr>
+<tr>
+<td>\overload</td>
+<td>\package</td>
+<td>\page</td>
+<td>\property</td>
+</tr>
+<tr>
+<td>\protocol</td>
+<td>\relates</td>
+<td>\relatesalso</td>
+<td>\showinitializer</td>
+</tr>
+<tr>
+<td>\struct</td>
+<td>\name</td>
+<td>\namespace</td>
+<td>\nosubgrouping</td>
+</tr>
+<tr>
+<td>\typedef</td>
+<td>\union</td>
+<td>\var</td>
+<td>\weakgroup</td>
+</tr>
+
+</table>
+</div>
+
+
+
+<H3><a name="Doxygen_further_details">17.3.4 Further details</a></H3>
+
+
+<p>
+TO BE ADDED.
+</p>
+
+<H2><a name="Doxygen_to_pydoc">17.4 Doxygen to Pydoc</a></H2>
+
+
+<p>
+If translation is enabled, Pydoc formatted comments should be
+automatically placed in the correct locations in the resulting module
+and proxy files.  The problem is that Pydoc has no tag mechanism like
+Doxygen or Javadoc, so most of Doxygen commands are translated by merely
+copying the appropriate command text.
+</p>
+
+<H3><a name="Doxygen_python_basic_example">17.4.1 Basic example</a></H3>
+
+
+<p>
+Here is an example segment from an included header file
+</p>
+<div class="code"><pre>
+/*! This is describing class Shape
+ \author Bob
+ */
+
+class Shape {
+public:
+  Shape() {
+    nshapes++;
+  }
+  virtual ~Shape() {
+    nshapes--;
+  };
+  double  x, y; /*!&lt; Important Variables */
+  void    move(double dx, double dy); /*!&lt; Moves the Shape */
+  virtual double area(void) = 0; /*!&lt; \return the area */
+  virtual double perimeter(void) = 0; /*!&lt; \return the perimeter */
+  static  int nshapes;
+};
+</pre></div>
+
+<p>
+Simply running SWIG should result in the following code being present in Shapes.py
+</p>
+
+<div class="targetlang"><pre>
+
+...
+
+class Shape(_object):
+    """
+    This is describing class Shape 
+    Authors:
+    Bob 
+
+    """
+    
+    ...
+    
+    def move(self, *args):
+        """
+        Moves the Shape 
+        """
+        return _Shapes.Shape_move(self, *args)
+
+    def area(self):
+        """
+        Return:
+        the area 
+        """
+        return _Shapes.Shape_area(self)
+
+    def perimeter(self):
+        """
+        Return:
+        the perimeter 
+        """
+        return _Shapes.Shape_perimeter(self)
+</pre></div>
+
+<p>
+If any parameters of a function or a method are documented in the Doxygen comment,
+their description is copied into the generated output using
+<a href="http://sphinx-doc.org/">Sphinx </a> documentation conventions. For example
+</p>
+<div class="code"><pre>
+/**
+    Set a breakpoint at the given location.
+
+    @param filename The full path to the file.
+    @param line_number The line number in the file.
+ */
+bool SetBreakpoint(const char* filename, int line_number);
+</pre></div>
+
+<p>
+would be translated to
+</p>
+
+<div class="targetlang"><pre>
+def SetBreakpoint(filename, line_number):
+    r"""
+    Set a breakpoint at the given location.
+
+    :type filename: string
+    :param filename: The full path to the file.
+    :type line_number: int
+    :param line_number: The line number in the file.
+    """
+</pre></div>
+<p>
+The types used for the parameter documentation come from the "doctype" typemap which
+is defined for all the primitive types and a few others (e.g. <tt>std::string</tt> and
+<tt>shared_ptr&lt;T&gt;</tt>) but for non-primitive types is taken to be just the C++
+name of the type with namespace scope delimiters (<tt>::</tt>) replaced with a dot. To
+change this, you can define your own typemaps for the custom types, e.g:
+</p>
+<div class="code"><pre>
+%typemap(doctype) MyDate "datetime.date";
+</pre></div>
+
+<p>
+Currently Doxygen comments assigned to global variables and static member variables
+are not present in generated code, so they have no comment translated for them.
+</p>
+
+<p>
+  <b>Whitespace and tables</b>
+  Whitespace is preserved when translating comments, so it makes
+  sense to have Doxygen comments formatted in a readable way. This
+  includes tables, where tags &lt;th&gt;, &lt;td&gt; and &lt;/tr&gt;are translated
+  to '|'. The line after line with &lt;th&gt; tags contains dashes.
+  If we take care about whitespace, comments in Python are much more
+  readable. Example:
+
+<div class="code"><pre>
+/**
+ * &lt;table border = '1'&gt;
+ * &lt;caption&gt;Animals&lt;/caption&gt;
+ * &lt;tr&gt;&lt;th&gt; Column 1 &lt;/th&gt;&lt;th&gt; Column 2 &lt;/th&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt; cow      &lt;/td&gt;&lt;td&gt; dog      &lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt; cat      &lt;/td&gt;&lt;td&gt; mouse    &lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt; horse    &lt;/td&gt;&lt;td&gt; parrot   &lt;/td&gt;&lt;/tr&gt;
+ * &lt;/table&gt;
+ */
+</pre></div>
+<p>
+translates to Python as:
+</p>
+<div class="diagram"><pre>
+  Animals
+  | Column 1 | Column 2 |
+  -----------------------
+  | cow      | dog      |
+  | cat      | mouse    |
+  | horse    | parrot   |
+</pre></div>
+
+<p>
+  <b>Overloaded functions</b>
+Since all the overloaded functions in c++ are wrapped into one Python
+function, Pydoc translator will combine every comment of every
+overloaded function and put it into the comment for the one wrapper function.
+</p>
+<p>
+If you intend to use resulting generated Python file with the Doxygen docs
+generator, rather than Pydoc, you may want to turn off translation
+completely (doxygen:notranslate feature).  Then SWIG will just copy
+the comments to the proxy file and reformat them if needed, but all
+the comment content will be left as is. As Doxygen doesn't support
+special commands in Python comments
+(see <a href="http://www.doxygen.nl/manual/docblocks.html#pythonblocks">Doxygen
+docs</a>), you may want to use some tool like doxypy
+(<a href="https://pypi.org/project/doxypy/">doxypy</a>)
+to do the work.
+</p>
+
+<H3><a name="Doxygen_pydoc_tags">17.4.2 Pydoc translator</a></H3>
+
+
+<p>
+Here is the list of all Doxygen tags and the description of how they are translated to Pydoc
+</p>
+<div class="diagram">
+<table border="0" summary="Python Doxygen tags">
+<tr>
+  <th align="left">Doxygen tags</th>
+</tr>
+<tr>
+<td>\a</td>
+<td>wrapped with '_'</td>
+</tr>
+<tr>
+<td>\arg</td>
+<td>prepended with ' --'</td>
+</tr>
+<tr>
+<td>\author</td>
+<td>prints 'Author:'</td>
+</tr>
+<tr>
+<td>\authors</td>
+<td>prints 'Author:'</td>
+</tr>
+<tr>
+<td>\b</td>
+<td>wrapped with '__'</td>
+</tr>
+<tr>
+<td>\cite</td>
+<td>wrapped with single quotes</td>
+</tr>
+<tr>
+<td>\cond</td>
+<td>translated to 'Conditional comment: &lt;condition&gt;'</td>
+</tr>
+<tr>
+<td>\copyright</td>
+<td>prints 'Copyright:'</td>
+</tr>
+<tr>
+<td>\deprecated</td>
+<td>prints 'Deprecated:'</td>
+</tr>
+<tr>
+<td>\e</td>
+<td>wrapped with '_'</td>
+</tr>
+<tr>
+<td>\else</td>
+<td>replaced with '}Else:{'</td>
+</tr>
+<tr>
+<td>\elseif</td>
+<td>replaced with '}Else if: &lt;condition&gt;{'</td>
+</tr>
+<tr>
+<td>\em</td>
+<td>wrapped with '_'</td>
+</tr>
+<tr>
+<td>\endcond</td>
+<td>replaced with 'End of conditional comment.'</td>
+</tr>
+<tr>
+<td>\endif</td>
+<td>replaced with '}'</td>
+</tr>
+<tr>
+<td>\exception</td>
+<td>replaced with 'Throws:'</td>
+</tr>
+<tr>
+<td>\if</td>
+<td>replaced with 'If: &lt;condition&gt; {'</td>
+</tr>
+<tr>
+<td>\ifnot</td>
+<td>replaced with 'If not: &lt;condition&gt; {'</td>
+</tr>
+<tr>
+<td>\li</td>
+<td>prepended with ' --'</td>
+</tr>
+<tr>
+<td>\n</td>
+<td>replaced with new line char</td>
+</tr>
+<tr>
+<td>\note</td>
+<td>replaced with 'Note:'</td>
+</tr>
+<tr>
+<td>\overload</td>
+<td>prints 'This is an overloaded ...' according to Doxygen docs</td>
+</tr>
+<tr>
+<td>\par</td>
+<td>replaced with 'Title: ...'</td>
+</tr>
+<tr>
+<td>\param</td>
+<td>translated to 'Arguments:\n param(type) --description'</td>
+</tr>
+<tr>
+<td>\remark</td>
+<td>replaced with 'Remarks:'</td>
+</tr>
+<tr>
+<td>\remarks</td>
+<td>replaced with 'Remarks:'</td>
+</tr>
+<tr>
+<td>\result</td>
+<td>replaced with 'Result:'</td>
+</tr>
+<tr>
+<td>\return</td>
+<td>replaced with 'Result:'</td>
+</tr>
+<tr>
+<td>\returns</td>
+<td>replaced with 'Result:'</td>
+</tr>
+<tr>
+<td>\sa</td>
+<td>replaced with 'See also:'</td>
+</tr>
+<tr>
+<td>\see</td>
+<td>replaced with 'See also:'</td>
+</tr>
+<tr>
+<td>\since</td>
+<td>replaced with 'Since:'</td>
+</tr>
+<tr>
+<td>\throw</td>
+<td>replaced with 'Throws:'</td>
+</tr>
+<tr>
+<td>\throws</td>
+<td>replaced wih 'Throws:'</td>
+</tr>
+<tr>
+<td>\todo</td>
+<td>replaced with 'TODO:'</td>
+</tr>
+<tr>
+<td>\tparam</td>
+<td>translated to 'Arguments:\n param(type) --description'</td>
+</tr>
+<tr>
+<td>\version</td>
+<td>replaced with 'Version:'</td>
+</tr>
+<tr>
+<td>\warning</td>
+<td>translated to 'Warning:'</td>
+</tr>
+<tr>
+<td>\$</td>
+<td>prints $ char</td>
+</tr>
+<tr>
+<td>\@</td>
+<td>prints @ char</td>
+</tr>
+<tr>
+<td>\\</td>
+<td>prints \ char</td>
+</tr>
+<tr>
+<td>\&amp;</td>
+<td>prints &amp; char</td>
+</tr>
+<tr>
+<td>\~</td>
+<td>prints ~ char</td>
+</tr>
+<tr>
+<td>\&lt;</td>
+<td>prints &lt; char</td>
+</tr>
+<tr>
+<td>\&gt;</td>
+<td>prints &gt; char</td>
+</tr>
+<tr>
+<td>\#</td>
+<td>prints # char</td>
+</tr>
+<tr>
+<td>\%</td>
+<td>prints % char</td>
+</tr>
+<tr>
+<td>\&quot;</td>
+<td>prints &quot; char</td>
+</tr>
+<tr>
+<td>\.</td>
+<td>prints . character</td>
+</tr>
+<tr>
+<td>\::</td>
+<td>prints ::</td>
+</tr>
+</table>
+</div>
+
+<H3><a name="Doxygen_python_unsupported_tags">17.4.3 Unsupported tags</a></H3>
+
+
+<p>
+Doxygen has a wealth of tags such as @latexonly that have no
+equivalent in Pydoc.  As a result several tags that have no
+translation (or particular use, such as some linking and section tags)
+are suppressed with their content just printed out (if it has any
+sense, typically text content).
+Here is the list of these tags:
+</p>
+<div class="diagram">
+<table border="0" summary="Unsupported Python Doxygen Tags">
+<tr>
+  <th align="left">Unsupported Doxygen tags</th>
+</tr>
+<tr>
+<td>\addindex</td>
+<td>\addtogroup</td>
+<td>\anchor</td>
+<td>\attention</td>
+</tr>
+<tr>
+<td>\brief</td>
+<td>\bug</td>
+<td>\callgraph</td>
+<td>\callergraph</td>
+</tr>
+<tr>
+<td>\class</td>
+<td>\copybrief</td>
+<td>\copydetails</td>
+<td>\copydoc</td>
+</tr>
+<tr>
+<td>\date</td>
+<td>\def</td>
+<td>\defgroup</td>
+<td>\details</td>
+</tr>
+<tr>
+<td>\dir</td>
+<td>\dontinclude</td>
+<td>\dot</td>
+<td>\dotfile</td>
+</tr>
+<tr>
+<td>\code</td>
+<td>\endcode</td>
+<td>\endverbatim</td>
+<td>\endlink</td>
+</tr>
+<tr>
+<td>\enddot</td>
+<td>\endhtmlonly</td>
+<td>\endinternal</td>
+<td>\endlatexonly</td>
+</tr>
+<tr>
+<td>\endmanonly</td>
+<td>\endmsc</td>
+<td>\endrtfonly</td>
+<td>\endxmlonly</td>
+</tr>
+<tr>
+<td>\enum</td>
+<td>\example</td>
+<td>\extends</td>
+<td>\f$</td>
+</tr>
+<tr>
+<td>\f[</td>
+<td>\f]</td>
+<td>\f{</td>
+<td>\f}</td>
+</tr>
+<tr>
+<td>\file</td>
+<td>\fn</td>
+<td>\headerfile</td>
+<td>\hideinitializer</td>
+</tr>
+<tr>
+<td>\htmlinclude</td>
+<td>\htmlonly</td>
+<td>\implements</td>
+<td>\include</td>
+</tr>
+<tr>
+<td>\image</td>
+<td>\link</td>
+<td>\verbatim</td>
+<td>\p</td>
+</tr>
+<tr>
+<td>\includelineno</td>
+<td>\ingroup</td>
+<td>\internal</td>
+<td>\invariant</td>
+</tr>
+<tr>
+<td>\interface</td>
+<td>\latexonly</td>
+<td>\line</td>
+<td>\mainpage</td>
+</tr>
+<tr>
+<td>\manonly</td>
+<td>\memberof</td>
+<td>\msc</td>
+<td>\mscfile</td>
+</tr>
+<tr>
+<td>\name</td>
+<td>\namespace</td>
+<td>\nosubgrouping</td>
+<td>\package</td>
+</tr>
+<tr>
+<td>\page</td>
+<td>\paragraph</td>
+<td>\post</td>
+<td>\pre</td>
+</tr>
+<tr>
+<td>\private</td>
+<td>\privatesection</td>
+<td>\property</td>
+<td>\protected</td>
+</tr>
+<tr>
+<td>\protectedsection</td>
+<td>\protocol</td>
+<td>\public</td>
+<td>\publicsection</td>
+</tr>
+<tr>
+<td>\ref</td>
+<td>\related</td>
+<td>\relates</td>
+<td>\relatedalso</td>
+</tr>
+<tr>
+<td>\relatesalso</td>
+<td>\retval</td>
+<td>\rtfonly</td>
+<td>\section</td>
+</tr>
+<tr>
+<td>\short</td>
+<td>\showinitializer</td>
+<td>\skip</td>
+<td>\skipline</td>
+</tr>
+<tr>
+<td>\snippet</td>
+<td>\struct</td>
+<td>\subpage</td>
+<td>\subsection</td>
+</tr>
+<tr>
+<td>\subsubsection</td>
+<td>\tableofcontents</td>
+<td>\test</td>
+<td>\typedef</td>
+</tr>
+<tr>
+<td>\union</td>
+<td>\until</td>
+<td>\var</td>
+<td>\verbinclude</td>
+</tr>
+<tr>
+<td>\weakgroup</td>
+<td>\xmlonly</td>
+<td>\xrefitem</td>
+<td>\category</td>
+</tr>
+<tr>
+<td>\c</td>
+</tr>
+</table>
+</div>
+
+<H3><a name="Doxygen_python_further_details">17.4.4 Further details</a></H3>
+
+
+<p>
+TO BE ADDED.
+</p>
+
+<H2><a name="Doxygen_troubleshooting">17.5 Troubleshooting</a></H2>
+
+
+<p>
+When running SWIG with command line option <tt>-doxygen</tt>, it may happen
+that SWIG will fail to parse the code, which is valid C++ code and
+is parsed without problems without the option. The problem is,
+that Doxygen comments are not tokens (the C/C++ compiler actually never
+sees them) and that they can appear anywhere in the code. That's why it is
+practically impossible to handle all corner cases with the parser.
+However, these problems can usually be avoided by minor changes in the
+code or comment. Known problems and solutions are shown in this section.
+</p>
+
+
+<p>
+Recommended approach is to first run SWIG without command line
+option <tt>-doxygen</tt>. When it successfully processes the code,
+include the option and fix problems with Doxygen comments.
+</p>
+
+
+<H3><a name="troubleshooting_ifndef">17.5.1 Problem with conditional compilation</a></H3>
+
+
+<p>
+  Inserting a conditional compilation preprocessor directive between a
+  Doxygen comment and a commented item may break parsing:
+</p>
+
+
+<div class="code"><pre>
+class A {
+  /**
+   * Some func.
+   */
+  <font color='#ff0000'>#ifndef SWIG</font>
+  void myfunc()
+  {
+  }
+  #endif
+};
+</pre></div>
+
+<p>
+  The solution is to move the directive above the comment:
+</p>
+
+<div class="code"><pre>
+class A {
+  <font color='#00d000'>#ifndef SWIG</font>
+  /**
+   * Some func.
+   */
+  void myfunc()
+  {
+  }
+  #endif
+};
+</pre></div>
+
+
+<H2><a name="Doxygen_developer_details">17.6 Developer information</a></H2>
+
+
+<p>
+This section contains information for developers enhancing the Doxygen translator.
+</p>
+
+<H3><a name="Doxygen_translator_design">17.6.1 Doxygen translator design</a></H3>
+
+
+<p>
+If this functionality is turned on, SWIG places all comments found
+into the SWIG parse tree.  Nodes contain an additional attribute
+called <tt>doxygen</tt> when a comment is present.  Individual nodes
+containing Doxygen with Structural Indicators, such as @file, as their
+first command, are also present in the parse tree.  These individual
+"blobs" of Doxygen such as :
+</p>
+<div class="code"><pre>
+/*! This is describing function Foo
+ \param x some random variable
+ \author Bob
+ \return Foo
+ */
+</pre></div>
+
+<p>
+are passed on individually to the Doxygen Translator module.  This
+module builds its own private parse tree and hands it to a separate
+class for translation into the target documentation language.  For
+example, <tt>JavaDocConverter</tt> is the Javadoc module class.
+</p>
+
+<H3><a name="Doxygen_debugging_commands">17.6.2 Debugging the Doxygen parser and translator</a></H3>
+
+
+<p>
+There are two handy command line options, that enable lots of
+detailed debug information printing.
+</p>
+
+<div class="shell"><pre>
+  -debug-doxygen-parser     - Display Doxygen parser module debugging information
+  -debug-doxygen-translator - Display Doxygen translator module debugging information
+</pre></div>
+
+<H3><a name="Doxygen_tests">17.6.3 Tests</a></H3>
+
+
+<p>
+Doxygen tests have been added to the regular SWIG test-suite.
+There are a number of tests beginning <tt>doxygen_</tt> in the Examples/test-suite sub-directory.
+</p>
+
+<p>
+Like any other SWIG test case, the tests are included in Examples/test-suite/common.mk and can be tested with
+commands like <tt>make check-test-suite</tt> or <tt>make check-python-test-suite</tt>.
+To run them individually, type
+<tt>make -s &lt;testname&gt;.cpptest</tt> in the language-specific sub-directory in
+<tt>Examples/test-suite</tt> directory. For example:
+</p>
+
+<div class="shell"><pre>
+  Examples/test-suite/java $ make -s doxygen_parsing.cpptest
+</pre></div>
+
+<p>
+If the test fails, both expected and translated comments are printed to
+std out, but also written to files <i>expected.txt</i>
+and <i>got.txt</i>. Since it is often difficult to find a single
+character difference in several lines of text, we can use some diff
+tool, for example:
+</p>
+
+<div class="shell"><pre>
+  Examples/test-suite/java $ kdiff3 expected.txt got.txt
+</pre></div>
+
+    
+<p>
+Runtime tests in Java are implemented using Javadoc doclets. To make that work, you
+should have tools.jar from the JDK in your classpath. Or you should have JAVA_HOME
+environment variable defined and pointing to the JDK location.
+</p>
+<p>
+The Java's comment parsing code (the testing part) is located in commentParser.java.
+It checks the generated code. It is possible
+to run this file as a stand-alone program, with <tt>java commentParser &lt;some java package&gt;</tt>,
+and it will print the list of comments found in the specified directory (in the format it has used
+in the runtime tests). So, when you want to create a new Doxygen test case,
+just copy an existing one and replace the actual comment content (section of entries in
+form 'wantedComments.put(...)' with the output of the above command.
+</p>
+<p>
+Runtime tests in Python are just plain string comparisons of the __doc__
+properties.
+</p>
+
+<H2><a name="Doxygen_language_extension">17.7 Extending to other languages</a></H2>
+
+
+<p>
+In general, an extension to another language requires a fairly deep understanding of the target language module, such as Modules/python.cxx for Python.
+Searching for "doxygen" in the java.cxx module can give you a good idea of the process for placing documentation comments into the correct areas.
+The basic gist is that anywhere a comment may reside on a node, there needs to be a catch for it in front of where that function, class, or other object is written out to a target language file.
+The other half of extension is building a target documentation language comment generator that handles one blob at a time.
+However, this is relatively simple and nowhere near as complex as the wrapper generating modules in SWIG.
+See Source/Doxygen/javadoc.cxx for a good example.
+The target language module passes the Doxygen Translator the blob to translate, and receives back the translated text.
+</p>
+<p>
+<b> What is given to the Doxygen Translator</b>
+</p>
+<div class="code"><pre>
+/*! This is describing function Foo
+ \param x some random variable
+ \author Bob
+ \return Foo
+ */
+</pre></div>
+<p>
+<b> What is received back by java.cxx </b>
+</p>
+<div class="targetlang"><pre>
+/** This is describing function Foo
+ *
+ * @param x some random variable
+ * @author Bob
+ * @return Foo
+ */
+</pre></div>
+<p> Development of the comment translator itself is simplified by the fact that the Doxygen Translator module can easily include a <tt>main</tt> function and thus be developed, compiled, and tested independently of SWIG.
+</p>
+
+</body>
+</html>

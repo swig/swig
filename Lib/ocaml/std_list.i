@@ -13,21 +13,24 @@
 %}
 
 
-namespace std{
+namespace std {
     template<class T> class list
     {
     public:
-	     
-	typedef T &reference;
-	typedef const T& const_reference;
+	typedef size_t size_type;
+	typedef ptrdiff_t difference_type;
+	typedef T value_type;
+	typedef value_type* pointer;
+	typedef const value_type* const_pointer;
+	typedef value_type& reference;
+	typedef const value_type& const_reference;
 	typedef T &iterator;
 	typedef const T& const_iterator; 
-	    
+
 	list();
 	list(unsigned int size, const T& value = T());
-	list(const list<T> &);
+	list(const list& other);
 
-	~list();
 	void assign(unsigned int n, const T& value);
 	void swap(list<T> &x);
 
@@ -35,13 +38,12 @@ namespace std{
 	const_reference back();
 	const_iterator begin();
 	const_iterator end();
-	     
+
 	void resize(unsigned int n, T c = T());
 	bool empty() const;
 
 	void push_front(const T& x);
 	void push_back(const T& x);
-
 
 	void pop_front();
 	void pop_back();
@@ -49,14 +51,12 @@ namespace std{
 	unsigned int size() const;
 	unsigned int max_size() const;
 	void resize(unsigned int n, const T& value);
-		
+
 	void remove(const T& value);
 	void unique();
 	void reverse();
 	void sort();
-             
-	     
-		
+
 	%extend 
 	    {
 		const_reference __getitem__(int i) throw (std::out_of_range) 
@@ -206,9 +206,7 @@ namespace std{
 		    {
 			self->pop_back();
 		    }
-	      
-	    };   
-	  
+	    }
     };
 }
 

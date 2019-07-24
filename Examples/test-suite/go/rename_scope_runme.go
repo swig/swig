@@ -1,6 +1,6 @@
 package main
 
-import . "./rename_scope"
+import . "rename_scope"
 
 func main() {
 	a := NewNatural_UP()

@@ -12,17 +12,6 @@
 #include <algorithm>
 #include <functional>
 #include <numeric>
-
-
-#if defined(__clang__)
-// Suppress:
-// warning: destination for this 'memset' call is a pointer to dynamic class
-//       'Test::B'; vtable pointer will be overwritten [-Wdynamic-class-memaccess]
-//         memset(v_def,0,sizeof(Type));
-// Better generated code is probably needed though
-#pragma clang diagnostic ignored "-Wdynamic-class-memaccess"
-#endif
-
 %}
 
 namespace std {
@@ -73,8 +62,8 @@ std::vector<Real> half(const std::vector<Real>& v) {
 }
 
 void halve_in_place(std::vector<double>& v) {
-    std::transform(v.begin(),v.end(),v.begin(),
-                   std::bind2nd(std::divides<double>(),2.0));
+    for (std::vector<double>::iterator it = v.begin(); it != v.end(); ++it)
+        *it /= 2.0;
 }
 
 %}
@@ -140,6 +129,7 @@ std::vector<std::string>  vecStr(std::vector<std::string> v) {
   double *makeDoublePtr(double v) { return new double(v); }
   int extractInt(int *p) { return *p; }
   short extractConstShort(const short *p) { return *p; }
+  short extractConstShort2(std::vector<const short *>::value_type p) { return *p; }
 %}
 
 %template(pyvector) std::vector<swig::SwigPtr_PyObject>; 

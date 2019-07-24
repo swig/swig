@@ -3,8 +3,8 @@
 require "tests.php";
 require "php_iterator.php";
 
-check::functions(array(myiterator_rewind,myiterator_key,myiterator_current,myiterator_next,myiterator_valid));
-check::classes(array(MyIterator));
+check::functions(array('myiterator_rewind','myiterator_key','myiterator_current','myiterator_next','myiterator_valid'));
+check::classes(array('MyIterator'));
 // No new global variables.
 check::globals(array());
 

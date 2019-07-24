@@ -6,12 +6,12 @@
 %inline %{
 class Base {
   public:
-    void base() {}
+    void baseMethod() {}
 };
 
 class Derived : public Base {
   public:
-    void derived() {}
+    void derivedMethod() {}
 };
 
 template <class T>

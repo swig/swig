@@ -1,6 +1,6 @@
 package main
 
-import . "./li_cpointer"
+import . "li_cpointer"
 
 func main() {
 	p := New_intp()

@@ -1,29 +1,18 @@
 %module li_std_wstring
-%include <std_basic_string.i>
+
+// The languages below are yet to provide std_wstring.i
+#if !(defined(SWIGD) || defined(SWIGGO) || defined(SWIGGUILE) || defined(SWIGJAVASCRIPT) || defined(SWIGLUA) || defined(SWIGMZSCHEME) || defined(SWIGOCAML) || defined(SWIGOCTAVE) || defined(SWIGPERL) || defined(SWIGPHP) || defined(SWIGR) || defined(SWIGSCILAB))
+
 %include <std_wstring.i>
 
+// throw is invalid in C++17 and later, only SWIG to use it
+#define TESTCASE_THROW1(T1) throw(T1)
+%{
+#define TESTCASE_THROW1(T1)
+%}
 
 %inline %{
-
-struct A : std::wstring 
-{
-  A(const std::wstring& s) : std::wstring(s)
-  {
-  }
-};
-
-struct B 
-{
-  B(const std::wstring& s) : cname(0), name(s), a(s)
-  {
-  }
-  
-  char *cname;
-  std::wstring name;
-  A a;
-
-};
- 
+#include <string>
 
 wchar_t test_wcvalue(wchar_t x) {
    return x;
@@ -57,47 +46,31 @@ const std::wstring& test_const_reference(const std::wstring &x) {
 void test_pointer(std::wstring *x) {
 }
 
-std::wstring *test_pointer_out() {
-   static std::wstring x = L"x";
-   return &x;
-}
-
 void test_const_pointer(const std::wstring *x) {
-}
-
-const std::wstring *test_const_pointer_out() {
-   static std::wstring x = L"x";
-   return &x;
 }
 
 void test_reference(std::wstring &x) {
 }
 
-std::wstring& test_reference_out() {
-   static std::wstring x = L"x";
-   return x;
+bool test_equal_abc(const std::wstring &s) {
+  return L"abc" == s;
 }
 
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-
-void test_throw() throw(std::wstring){
-  static std::wstring x = L"x";
+void test_throw() TESTCASE_THROW1(std::wstring){
+  static std::wstring x = L"throwing test_throw";
   
   throw x;
 }
 
-#if defined(_MSC_VER)
-  #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
+const char * non_utf8_c_str() {
+  return "h\xe9llo";
+}
 
-#ifdef SWIGPYTHON_BUILTIN
-bool is_python_builtin() { return true; }
-#else
-bool is_python_builtin() { return false; }
-#endif
+size_t size_wstring(const std::wstring& s) {
+  return s.size();
+}
 
 %}
 
+#endif
 

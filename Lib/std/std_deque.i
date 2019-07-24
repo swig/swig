@@ -120,7 +120,7 @@ namespace std {
     %swig_deque_methods_val(std::deque< _Tp*, _Alloc >);
 #endif
 
-    %std_deque_methods_val(std::deque< _Tp*, _Alloc >);
+    %std_deque_methods_val(deque);
   };
 
 }

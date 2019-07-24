@@ -3,7 +3,7 @@
 
 package main
 
-import "./unions"
+import "unions"
 
 func main() {
 	// Create new instances of SmallStruct and BigStruct for later use

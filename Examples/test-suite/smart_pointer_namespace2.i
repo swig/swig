@@ -49,11 +49,6 @@ namespace one
     };
 }
 
-%define PTR_DEF(o)
-typedef one::Ptr<o> o ## _ptr;
-%template(o ## _ptr) one::Ptr<o>;
-%enddef
-
 namespace one
 {
     class Obj1
@@ -63,7 +58,8 @@ namespace one
         void donothing() {}
     };
 
-    PTR_DEF(Obj1)
+    typedef one::Ptr<Obj1> Obj1_ptr;
+    %template(Obj1_ptr) one::Ptr<Obj1>;
 }
 
 namespace two
@@ -75,6 +71,9 @@ namespace two
         void donothing() {}
     };
 
-    PTR_DEF(Obj2)
+    typedef one::Ptr<Obj2> Obj2_ptr;
 }
+
+using two::Obj2;
+%template(Obj2_ptr) one::Ptr<Obj2>;
 

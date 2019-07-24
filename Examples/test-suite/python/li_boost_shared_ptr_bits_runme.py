@@ -1,10 +1,6 @@
 from li_boost_shared_ptr_bits import *
 
 
-def is_new_style_class(cls):
-    return hasattr(cls, "__class__")
-
-
 def check(nd):
     nd.i = 200
     i = nd.i
@@ -35,7 +31,4 @@ if sum != 66:
     raise "sum is wrong"
 
 ################################
-if is_new_style_class(HiddenDestructor):
-    p = HiddenDestructor.create()
-else:
-    p = HiddenDestructor_create()
+p = HiddenDestructor.create()

@@ -16,6 +16,12 @@ CPP_TEST_CASES += \
 	octave_cell_deref\
 	octave_dim
 
+CPP11_TEST_CASES += \
+	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_nullptr_in_containers \
+	cpp11_shared_ptr_overload \
+	cpp11_shared_ptr_upcast \
+
 CPP_TEST_BROKEN += \
 	implicittest \
 	li_implicit \
@@ -59,7 +65,7 @@ CSRCS      = octave_empty.c
 # a file is found which has _runme.m appended after the testcase name.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH OCTAVE_PATH=$(srcdir):$$OCTAVE_PATH $(RUNTOOL) $(OCTAVE) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH OCTAVE_PATH=$(srcdir) OCTAVE_HISTFILE=/dev/null $(RUNTOOL) $(OCTAVE) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
 # Clean: remove the generated .m file
@@ -69,20 +75,6 @@ run_testcase = \
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' octave_clean
-
-cvsignore:
-	@echo '*wrap* *.mc *.so *.dll *.exp *.lib'
-	@echo Makefile
-	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do echo $$i.m; done
-	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do if grep -q $${i}_runme.m CVS/Entries ; then echo $${i}_runme.m; fi; done
-	@echo clientdata_prop_a.m
-	@echo clientdata_prop_b.m
-	@echo imports_a.m
-	@echo imports_b.m
-	@echo mod_a.m mod_b.m
-	@echo hugemod.h hugemod_a.i hugemod_b.i hugemod_a.m hugemod_b.m hugemod_runme.m
-	@echo template_typedef_import.m
-
 
 hugemod:
 	perl hugemod.pl

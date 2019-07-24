@@ -1,6 +1,10 @@
 %module("templatereduce") li_std_map
 %feature("trackobjects");
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#endif
+
 %inline %{
 namespace another {
 struct map {
@@ -117,4 +121,25 @@ namespace std {
   }
 }
 
+%ignore LengthCompare::operator();
+%inline %{
+struct LengthCompare {
+  bool operator() (std::string s1, std::string s2) const {
+    return s1.size() < s2.size();
+  }
+};
+%}
 
+// A map sorted by string lengths
+%template(StringLengthNumberMap) std::map< std::string, int, LengthCompare >;
+
+%inline %{
+std::map< std::string, int, LengthCompare > MyMap;
+void populate(std::map< std::string, int, LengthCompare >&m) {
+  m["aa"] = 2;
+  m["xxxx"] = 4;
+  m["a"] = 1;
+  m["aaaaa"] = 5;
+  m["zzz"] = 3;
+}
+%}

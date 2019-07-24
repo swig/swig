@@ -136,6 +136,7 @@ extern "C" {
   extern SwigType *SwigType_add_function(SwigType *t, ParmList *parms);
   extern SwigType *SwigType_add_template(SwigType *t, ParmList *parms);
   extern SwigType *SwigType_pop_function(SwigType *t);
+  extern SwigType *SwigType_pop_function_qualifiers(SwigType *t);
   extern ParmList *SwigType_function_parms(const SwigType *t, Node *file_line_node);
   extern List *SwigType_split(const SwigType *t);
   extern String *SwigType_pop(SwigType *t);
@@ -187,7 +188,7 @@ extern "C" {
   extern SwigType *SwigType_remove_global_scope_prefix(const SwigType *t);
   extern SwigType *SwigType_alttype(const SwigType *t, int ltmap);
 
-/* --- Type-system managment --- */
+/* --- Type-system management --- */
   extern void SwigType_typesystem_init(void);
   extern int SwigType_typedef(const SwigType *type, const_String_or_char_ptr name);
   extern int SwigType_typedef_class(const_String_or_char_ptr name);
@@ -326,6 +327,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern String *Swig_scopename_last(const String *s);
   extern String *Swig_scopename_first(const String *s);
   extern String *Swig_scopename_suffix(const String *s);
+  extern List *Swig_scopename_tolist(const String *s);
   extern int Swig_scopename_check(const String *s);
   extern String *Swig_string_lower(String *s);
   extern String *Swig_string_upper(String *s);
@@ -333,7 +335,9 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Swig_offset_string(String *s, int number);
   extern String *Swig_pcre_version(void);
   extern void Swig_init(void);
+
   extern int Swig_value_wrapper_mode(int mode);
+  extern int Swig_is_generated_overload(Node *n);
 
   typedef enum { EMF_STANDARD, EMF_MICROSOFT } ErrorMessageFormat;
 
@@ -400,6 +404,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Swig_typemap_clear(const_String_or_char_ptr tmap_method, ParmList *pattern);
   extern int Swig_typemap_apply(ParmList *srcpat, ParmList *destpat);
   extern void Swig_typemap_clear_apply(ParmList *pattern);
+  extern void Swig_typemap_replace_embedded_typemap(String *s, Node *file_line_node);
   extern void Swig_typemap_debug(void);
   extern void Swig_typemap_search_debug_set(void);
   extern void Swig_typemap_used_debug_set(void);

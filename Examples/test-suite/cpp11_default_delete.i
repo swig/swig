@@ -17,20 +17,26 @@ public:
 };
 
 struct A1 {
-  void func(int i) {}
+  void funk(int i) {}
   A1() = default;
   ~A1() = default;
-  void func(double i) = delete;  /* Don't cast double to int. Compiler returns an error */
+  void funk(double i) = delete;  /* Don't cast double to int. Compiler returns an error */
 private:
   A1(const A1&);
 };
 A1::A1(const A1&) = default;
 
 struct A2 {
-  void func(int i) {}
+  void funk(int i) {}
+
+// Workaround clang 10.0.1 -std=c++17 linker error (oddly for Java and not Python):
+// Undefined symbols for architecture x86_64:"___cxa_deleted_virtual", referenced from: vtable for A2
+#if !(defined(__clang__) && __cplusplus >= 201703L)
   virtual void fff(int) = delete;
+#endif
+
   virtual ~A2() = default;
-  template<class T> void func(T) = delete;
+  template<class T> void funk(T) = delete;
 };
 
 struct trivial {

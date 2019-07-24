@@ -14,7 +14,7 @@
 
     template <class T>
     struct traits_from<std::list<T> > {
-      static VALUE from(const std::list<T> & vec) {
+      static VALUE from(const std::list<T>& vec) {
 	return traits_from_stdseq<std::list<T> >::from(vec);
       }
     };
@@ -27,6 +27,7 @@
 #define %swig_list_methods(Type...) %swig_sequence_methods(Type)
 #define %swig_list_methods_val(Type...) %swig_sequence_methods_val(Type);
 
+%mixin std::list "Enumerable";
 
 %rename("delete")     std::list::__delete__;
 %rename("reject!")    std::list::reject_bang;

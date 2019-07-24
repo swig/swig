@@ -1,97 +1,72 @@
 Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
+Issue # numbers mentioned below can be found on Github. For more details, add
+the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
-Version 3.0.11 (in progress)
-============================
+Version 4.0.1 (in progress)
+===========================
 
-2016-09-12: xypron
-            [C#] Patch #786 Keyword rename to be CLS compliant by adding an underscore
-            suffix instead of an underscore suffix to the C symbol name. Please use an explicit
-            %rename to rename the symbol with a _ prefix if you want the old symbol name.
+2019-07-23: smithx
+            [C#] #1530 #1532 Fix marshalling of std::wstring to C#.
+
+2019-07-18: gicmo
+            [Python] #1587 Python 3.8 support - remove use of deprecated PyObject_GC_UnTrack.
+
+2019-07-18: cher-nov
+            [Python] #1573 Generated Python code uses consistent string quoting style - double
+            quotes.
+
+2019-07-16: geefr
+            [C#] #616 #1576 Fix C# bool INPUT[], bool OUTPUT[], bool INOUT[] typemaps to marshall
+            as 1-byte.
+
+2019-07-12: vadz
+            [C#, Java] #1568 #1583 Fix std::set<> typemaps for primitive types.
+
+2019-07-12: vadz
+            #1566 #1584 Regression in 4.0.0 - fix missing value for first item of enums with
+            trailing comma.
+
+2019-07-11: mcfarljm
+            #1548 #1578 Fix segfault in Doxygen parser parsing empty lines in some commands like
+            \code.
+
+2019-07-09: IsaacPascual
+            [C#, Java] #1570 Fix name of generated C#/Java classes for %interface macros
+            in swiginterface.i when wrapping nested C++ classes.
+
+2019-07-05: wsfulton
+            [Python] #1547 Whitespace fixes in Doxygen translated comments into pydoc comments
+            for Sphinx compatibility.
+
+2019-06-28: wsfulton
+            [MzScheme, OCaml] #1559 $arg and $input were incorrectly substituted in the
+            argout typemap when two or more arguments were present.
+
+2019-06-24: wsfulton
+            [Python, Ruby] #1538 Remove the UnknownExceptionHandler class in order to be
+            C++17 compliant as it uses std::unexpected_handler which was removed in C++17.
+            This class was intended for director exception handling but was never used by
+            SWIG and was never documented.
 
             *** POTENTIAL INCOMPATIBILITY ***
 
-2016-09-09: olly
-            [Python] Fix import handling for Python 2.6 to work in a frozen
-            application.  Fixes #145, reported by Thomas Kluyver.
+2019-06-06: bkotzz
+            [Java] #1552 Improve performance in Java std::vector constructor wrapper that takes
+            a native Java array as input.
 
-2016-09-02: smarchetto
-            [Scilab] Pointers are mapped to mlist instead of tlist
-            (mlist better for scilab overloading)
+2019-06-03: olly
+	    [Python] Fix regression in implicit_conv handling of tuples,
+	    introduced in SWIG 4.0.0.  Fixes #1553, reported by Alexandre
+	    Duret-Lutz.
 
-2016-09-02: olly
-            [PHP] Fix "out" typemap for member function pointers and "in"
-            typemap for char INPUT[ANY].
+2019-05-24: wsfulton
+            [Octave] Fix detection of Octave on MacOS.
 
-2016-09-01: wsfulton
-            [Python] More efficient Python slicing.
-            Call reserve for container types that support it to avoid repeated
-            memory reallocations for new slices or slices that grow in size.
+2019-05-24: opoplawski
+            [Octave] #1522 Adapt OCTAVE_LDFLAGS for Octave 5.1.
 
-2016-09-01: wsfulton
-            [Python] #771 - Make builtin types hashable by default.
-            Default hash is the underlying C/C++ pointer. This matches up with testing for
-            equivalence (Py_EQ in SwigPyObject_richcompare) which compares the pointers.
-
-2016-08-22: wsfulton
-            [Python] The following builtin slots can be customized like other slots via the
-            "python:<x>" and "python:slot" features where <x> is the appropriate slot name:
-              tp_allocs
-              tp_bases
-              tp_basicsize
-              tp_cache
-              tp_del
-              tp_dealloc
-              tp_flags
-              tp_frees
-              tp_getset
-              tp_is_gc
-              tp_maxalloc
-              tp_methods
-              tp_mro
-              tp_new
-              tp_next
-              tp_prev
-              tp_richcompare
-              tp_subclasses
-              tp_weaklist
-              was_sq_ass_slice
-              was_sq_slice
-
-            A few documentation improvements for slot customization.
-
-2016-08-09: joequant
-            [R] Patch #765 Fix extern "C" header includes for C++ code.
-
-2016-08-05: olly
-            [xml] Fix how the output filename is built to avoid problems when
-            it contains the embedded strings ".c", ".cpp" or ".cxx".
-            Fixes #540 reported by djack42.
-
-2016-07-01: wsfulton
-            Fix corner case of wrapping std::vector of T pointers where a pointer to a pointer of T
-            also exists in the wrapped code. SF Bug 2359417 (967).
-
-2016-06-26: wkalinin
-            [Java, C#] Patch #681 Fix seg fault when ignoring nested classes.
-
-2016-06-25: mromberg
-            [Python] #711 Fix -castmode and conversion of signed and unsigned integer types.
-            See 2015-12-23 CHANGES entry for details of these improvements when they were
-            implemented for the default options (ie not using -castmode).
-
-2016-06-25: ahnolds
-            Patch #730 - Fix %implicitconv for overloaded functions when using
-            -castmode or -fastdispatch options.
-
-            The result is that in all overload cases where there are multiple possibilities
-            with the same number of arguments, the dispatch function will first check for
-            exact (aka non implicit) matches, and then subsequently check for implicit
-            casting matches. This was already happening in the normal dispatch situation,
-            and in the -fastdispatch case two passes through the candidates were happening,
-            just with SWIG_POINTER_IMPLICIT_CONV always set. After this patch, it is not set
-            on the first pass, and then set on the second pass.
-
-2016-06-25: liorgold
-            Patch #727 - Add support for C++11 type aliasing.
+2019-05-22: ferdynator
+	    [PHP] #1528 Don't add a closing '?>' PHP tag to generated files.
+	    PSR-2 says it MUST be omitted for files containing only PHP.

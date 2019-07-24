@@ -1,0 +1,109 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>SWIG and C++17</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+</head>
+
+<body bgcolor="#ffffff">
+<H1><a name="CPlusPlus17">9 SWIG and C++17</a></H1>
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="#CPlusPlus17_introduction">Introduction</a>
+<li><a href="#CPlusPlus17_core_language_changes">Core language changes</a>
+<ul>
+<li><a href="#CPlusPlus17_nested_namespaces">Nested namespace definitions</a>
+<li><a href="#CPlusPlus17_u8_char_literals">UTF-8 character literals</a>
+<li><a href="#CPlusPlus17_hexadecimal_floating_literals">Hexadecimal floating literals</a>
+</ul>
+<li><a href="#CPlusPlus17_standard_library_changes">Standard library changes</a>
+</ul>
+</div>
+<!-- INDEX -->
+
+
+
+<H2><a name="CPlusPlus17_introduction">9.1 Introduction</a></H2>
+
+
+<p>This chapter gives you a brief overview about the SWIG
+implementation of the C++17 standard.
+There isn't much in C++17 that affects SWIG, however, work has only just begun on adding
+C++17 support.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.0.0 is the first version to support any C++17 features.
+</p>
+
+<H2><a name="CPlusPlus17_core_language_changes">9.2 Core language changes</a></H2>
+
+
+<H3><a name="CPlusPlus17_nested_namespaces">9.2.1 Nested namespace definitions</a></H3>
+
+
+<p>
+C++17 offers a more concise syntax for defining namespaces.
+SWIG has support for nested namespace definitions such as:
+</p>
+
+<div class="code">
+<pre>
+namespace A::B::C {
+  ...
+}
+</pre>
+</div>
+
+<p>
+This is the equivalent to the C++98 namespace definitions:
+</p>
+
+<div class="code">
+<pre>
+namespace A {
+  namespace B {
+    namespace C {
+      ...
+    }
+  }
+}
+</pre>
+</div>
+
+<H3><a name="CPlusPlus17_u8_char_literals">9.2.2 UTF-8 character literals</a></H3>
+
+
+<p>
+C++17 added UTF-8 (u8) character literals.
+These are of type char.
+Example:
+</p>
+
+<div class="code">
+<pre>
+char a = u8'a';
+</pre>
+</div>
+
+<H3><a name="CPlusPlus17_hexadecimal_floating_literals">9.2.3 Hexadecimal floating literals</a></H3>
+
+
+<p>
+C++17 added hexadecimal floating literals.
+For example:
+</p>
+
+<div class="code">
+<pre>
+double f = 0xF.68p2;
+</pre>
+</div>
+
+<H2><a name="CPlusPlus17_standard_library_changes">9.3 Standard library changes</a></H2>
+
+
+</body>
+</html>

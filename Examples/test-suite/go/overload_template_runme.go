@@ -1,6 +1,6 @@
 package main
 
-import . "./overload_template"
+import . "overload_template"
 
 func main() {
 	_ = Foo()

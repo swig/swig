@@ -12,6 +12,7 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
+#include "cparse.h"
 
 /* -----------------------------------------------------------------------------
  * emit_return_variable()
@@ -112,9 +113,8 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
     /* This is compatibility code to deal with the deprecated "ignore" typemap */
     Parm *p = l;
     Parm *np;
-    String *tm;
     while (p) {
-      tm = Getattr(p, "tmap:in");
+      String *tm = Getattr(p, "tmap:in");
       if (tm && checkAttribute(p, "tmap:in:numinputs", "0")) {
 	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Printv(f->code, tm, "\n", NIL);
@@ -134,7 +134,6 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
   /* Perform a sanity check on "in" and "freearg" typemaps.  These
      must exactly match to avoid chaos.  If a mismatch occurs, we
      nuke the freearg typemap */
-
   {
     Parm *p = l;
     Parm *npin, *npfreearg;
@@ -189,9 +188,41 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
       p = lp;
       while (p) {
 	if (SwigType_isvarargs(Getattr(p, "type"))) {
+	  // Mark the head of the ParmList that it has varargs
 	  Setattr(l, "emit:varargs", lp);
+//Printf(stdout, "setting emit:varargs %s ... %s +++ %s\n", Getattr(l, "emit:varargs"), Getattr(l, "type"), Getattr(p, "type"));
 	  break;
 	}
+	p = nextSibling(p);
+      }
+    }
+  }
+
+  /* 
+   * An equivalent type can be used in the typecheck typemap for SWIG to detect the overloading of equivalent
+   * target language types. This is primarily for the smartptr feature, where a pointer and a smart pointer
+   * are seen as equivalent types in the target language.
+   */
+  {
+    Parm *p = l;
+    while (p) {
+      String *tm = Getattr(p, "tmap:typecheck");
+      if (tm) {
+	String *equivalent = Getattr(p, "tmap:typecheck:equivalent");
+	if (equivalent) {
+	  String *precedence = Getattr(p, "tmap:typecheck:precedence");
+	  if (precedence && Strcmp(precedence, "0") != 0)
+	    Swig_error(Getfile(tm), Getline(tm), "The 'typecheck' typemap for %s contains an 'equivalent' attribute for a 'precedence' that is not set to SWIG_TYPECHECK_POINTER or 0.\n", SwigType_str(Getattr(p, "type"), 0));
+	  SwigType *cpt = Swig_cparse_type(equivalent);
+	  if (cpt) {
+	    Setattr(p, "equivtype", cpt);
+	    Delete(cpt);
+	  } else {
+	    Swig_error(Getfile(tm), Getline(tm), "Invalid type (%s) in 'equivalent' attribute in 'typecheck' typemap for type %s.\n", equivalent, SwigType_str(Getattr(p, "type"), 0));
+	  }
+	}
+	p = Getattr(p, "tmap:typecheck:next");
+      } else {
 	p = nextSibling(p);
       }
     }
@@ -300,7 +331,8 @@ int emit_num_required(ParmList *parms) {
 /* -----------------------------------------------------------------------------
  * emit_isvarargs()
  *
- * Checks if a function is a varargs function
+ * Checks if a ParmList is a parameter list containing varargs.
+ * This function requires emit_attach_parmmaps to have been called beforehand.
  * ----------------------------------------------------------------------------- */
 
 int emit_isvarargs(ParmList *p) {
@@ -309,6 +341,28 @@ int emit_isvarargs(ParmList *p) {
   if (Getattr(p, "emit:varargs"))
     return 1;
   return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * emit_isvarargs_function()
+ *
+ * Checks for varargs in a function/constructor (can be overloaded)
+ * ----------------------------------------------------------------------------- */
+
+bool emit_isvarargs_function(Node *n) {
+  bool has_varargs = false;
+  Node *over = Getattr(n, "sym:overloaded");
+  if (over) {
+    for (Node *sibling = over; sibling; sibling = Getattr(sibling, "sym:nextSibling")) {
+      if (ParmList_has_varargs(Getattr(sibling, "parms"))) {
+	has_varargs = true;
+	break;
+      }
+    }
+  } else {
+    has_varargs = ParmList_has_varargs(Getattr(n, "parms")) ? true : false;
+  }
+  return has_varargs;
 }
 
 /* -----------------------------------------------------------------------------
@@ -454,29 +508,29 @@ String *emit_action(Node *n) {
   if (catchlist) {
     int unknown_catch = 0;
     int has_varargs = 0;
-    Printf(eaction, "}\n");
+    Printf(eaction, "}");
     for (Parm *ep = catchlist; ep; ep = nextSibling(ep)) {
       String *em = Swig_typemap_lookup("throws", ep, "_e", 0);
       if (em) {
         SwigType *et = Getattr(ep, "type");
         SwigType *etr = SwigType_typedef_resolve_all(et);
         if (SwigType_isreference(etr) || SwigType_ispointer(etr) || SwigType_isarray(etr)) {
-          Printf(eaction, "catch(%s) {", SwigType_str(et, "_e"));
+          Printf(eaction, " catch(%s) {", SwigType_str(et, "_e"));
         } else if (SwigType_isvarargs(etr)) {
-          Printf(eaction, "catch(...) {");
+          Printf(eaction, " catch(...) {");
           has_varargs = 1;
         } else {
-          Printf(eaction, "catch(%s) {", SwigType_str(et, "&_e"));
+          Printf(eaction, " catch(%s) {", SwigType_str(et, "&_e"));
         }
         Printv(eaction, em, "\n", NIL);
-        Printf(eaction, "}\n");
+        Printf(eaction, "}");
       } else {
 	Swig_warning(WARN_TYPEMAP_THROW, Getfile(n), Getline(n), "No 'throws' typemap defined for exception type '%s'\n", SwigType_str(Getattr(ep, "type"), 0));
         unknown_catch = 1;
       }
     }
     if (unknown_catch && !has_varargs) {
-      Printf(eaction, "catch(...) { throw; }\n");
+      Printf(eaction, " catch(...) {\nthrow;\n}");
     }
   }
 

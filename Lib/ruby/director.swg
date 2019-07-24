@@ -153,43 +153,6 @@ namespace Swig {
     }
   };
 
-  /* unknown exception handler  */
-  class UnknownExceptionHandler {
-#ifdef SWIG_DIRECTOR_UEH
-    static void handler() {
-      try {
-	throw;
-      } catch (DirectorException& e) {
-	std::cerr << "SWIG Director exception caught:" << std::endl
-		  << e.what() << std::endl;
-      } catch (std::exception& e) {
-	std::cerr << "std::exception caught: "<< e.what() << std::endl;
-      } catch (...) {
-	std::cerr << "Unknown exception caught." << std::endl;
-      }
-      std::cerr << std::endl
-		<< "Ruby interpreter traceback:" << std::endl;
-      std::cerr << std::endl;
-      std::cerr << "This exception was caught by the SWIG unexpected exception handler." << std::endl
-		<< "Try using %feature(\"director:except\") to avoid reaching this point." << std::endl
-		<< std::endl
-		<< "Exception is being re-thrown, program will like abort/terminate." << std::endl;
-      throw;
-    }
-
-  public:
-    std::unexpected_handler old;
-    UnknownExceptionHandler(std::unexpected_handler nh = handler) {
-      old = std::set_unexpected(nh);
-    }
-
-    ~UnknownExceptionHandler() {
-      std::set_unexpected(old);
-    }
-#endif
-  };
-
-
   /* Type mismatch in the return value from a Ruby method call */
   class DirectorTypeMismatchException : public DirectorException {
   public:

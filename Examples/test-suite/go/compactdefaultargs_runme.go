@@ -1,6 +1,6 @@
 package main
 
-import . "./compactdefaultargs"
+import . "compactdefaultargs"
 
 func main() {
 	defaults1 := NewDefaults1(1000)

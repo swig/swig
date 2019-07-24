@@ -570,6 +570,17 @@ repeat repeatTest(repeat e) { return e; }
 %}
 
 %inline %{
+namespace EnumWithMacro {
+#define PACK(C1,C2,C3,C4) ((C1<<24)|(C2<<16)|(C3<<8)|C4)
+typedef enum {
+  ABCD = PACK('A','B','C','D'),
+  ABCD2 = ABCD
+} enumWithMacro;
+enumWithMacro enumWithMacroTest(enumWithMacro e) { return e; }
+}
+%}
+
+%inline %{
 namespace DifferentSpace {
 enum DifferentTypes {
   typeint = 10,
@@ -577,7 +588,9 @@ enum DifferentTypes {
   typebooltrue = true,
   typebooltwo,
   typechar = 'C',
-  typedefaultint
+  typedefaultint,
+  typecharcompound='A'+1,
+  typecharcompound2='B' << 2
 };
 DifferentTypes differentTypesTest(DifferentTypes n) { return n; }
 
@@ -587,7 +600,9 @@ enum {
   global_typebooltrue = true,
   global_typebooltwo,
   global_typechar = 'C',
-  global_typedefaultint
+  global_typedefaultint,
+  global_typecharcompound='A'+1,
+  global_typecharcompound2='B' << 2
 };
 int globalDifferentTypesTest(int n) { return n; }
 }

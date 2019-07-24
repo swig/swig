@@ -8,15 +8,17 @@ namespace std {
 
   template<class T, size_t N> class array {
   public:
-    typedef T& reference;
-    typedef const T& const_reference;
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
     typedef T value_type;
-    typedef T* pointer;
-    typedef const T* const_pointer;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
+    typedef value_type& reference;
+    typedef const value_type& const_reference;
+
     array();
     array(const array& other);
+
     size_type size() const;
     %rename(isEmpty) empty;
     bool empty() const;

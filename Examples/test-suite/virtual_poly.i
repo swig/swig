@@ -13,6 +13,10 @@
 #endif
 %}
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) method;
+#endif
+
 //
 // Check this example with directors wherever possible.
 //

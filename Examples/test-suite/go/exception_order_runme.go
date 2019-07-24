@@ -1,7 +1,7 @@
 package main
 
 import "strings"
-import . "./exception_order"
+import . "exception_order"
 
 func main() {
 	a := NewA()

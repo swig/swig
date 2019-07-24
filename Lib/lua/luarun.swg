@@ -180,8 +180,8 @@ typedef struct swig_elua_entry {
  * -------------------------------------------------------------------------- */
 
 /* Push the string STR on the Lua stack, like lua_pushstring, but
-   prefixed with the the location of the innermost Lua call-point
-   (as formated by luaL_where).  */
+   prefixed with the location of the innermost Lua call-point
+   (as formatted by luaL_where).  */
 SWIGRUNTIME void
 SWIG_Lua_pusherrstring (lua_State *L, const char *str)
 {
@@ -191,8 +191,8 @@ SWIG_Lua_pusherrstring (lua_State *L, const char *str)
 }
 
 /* Push a formatted string generated from FMT and following args on
-   the Lua stack, like lua_pushfstring, but prefixed with the the
-   location of the innermost Lua call-point (as formated by luaL_where).  */
+   the Lua stack, like lua_pushfstring, but prefixed with the
+   location of the innermost Lua call-point (as formatted by luaL_where).  */
 SWIGRUNTIME void
 SWIG_Lua_pushferrstring (lua_State *L, const char *fmt, ...)
 {
@@ -289,7 +289,7 @@ to tell the two structures apart within SWIG, other than by looking at the type
 typedef struct {
   swig_type_info   *type;
   int     own;  /* 1 if owned & must be destroyed */
-  char data[1];       /* arbitary amount of data */    
+  char data[1];       /* arbitrary amount of data */    
 } swig_lua_rawdata;
 
 /* Common SWIG API */
@@ -1765,7 +1765,12 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State *L,int index,void **ptr,swig_type
 {
   swig_lua_userdata *usr;
   swig_cast_info *cast;
-  if (lua_isnil(L,index)){*ptr=0; return SWIG_OK;}    /* special case: lua nil => NULL pointer */
+  /* special case: lua nil => NULL pointer */
+  if (lua_isnil(L,index))
+  {
+    *ptr=0;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
+  }
   usr=(swig_lua_userdata*)lua_touserdata(L,index);  /* get data */
   if (usr)
   {
@@ -1860,7 +1865,7 @@ SWIG_Lua_InstallConstants(lua_State *L, swig_lua_const_info constants[]) {
     switch(constants[i].type) {
     case SWIG_LUA_INT:
       lua_pushstring(L,constants[i].name);
-      lua_pushinteger(L,(lua_Number)constants[i].lvalue);
+      lua_pushinteger(L,(lua_Integer)constants[i].lvalue);
       lua_rawset(L,-3);
       break;
     case SWIG_LUA_FLOAT:
@@ -1871,7 +1876,7 @@ SWIG_Lua_InstallConstants(lua_State *L, swig_lua_const_info constants[]) {
     case SWIG_LUA_CHAR:
       lua_pushstring(L,constants[i].name);
       {
-        char c = constants[i].lvalue;
+        char c = (char)constants[i].lvalue;
         lua_pushlstring(L,&c,1);
       }
       lua_rawset(L,-3);

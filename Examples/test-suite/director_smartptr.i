@@ -44,7 +44,6 @@ public:
 %include <boost_shared_ptr.i>
 
 %shared_ptr(Foo)
-
 %feature("director") Foo;
 
 class FooBar {
@@ -72,5 +71,12 @@ public:
   static Foo* get_self(Foo *self_);
 };
 
+%shared_ptr(FooDerived)
+%feature("director") FooDerived;
+
+%inline %{
+struct FooDerived : Foo {
+};
+%}
 #endif
 

@@ -1,7 +1,8 @@
 %module restrict_cplusplus
 
 %{
-// For PHP 5.3 / gcc-4.4
+// Workaround PHP's headers which do:
+// #define restrict __restrict__
 #ifdef restrict
 #undef restrict
 #endif

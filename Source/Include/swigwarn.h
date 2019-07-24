@@ -18,6 +18,8 @@
  * Even though symbolic constants are used in the SWIG source, this is
  * not always the case in SWIG interface files.  Do not change the
  * numbers in this file.
+ *
+ * This file is used as the input for generating Lib/swigwarn.swg.
  * ----------------------------------------------------------------------------- */
 
 #ifndef SWIGWARN_H_
@@ -93,8 +95,8 @@
 #define WARN_PARSE_EXTEND_NAME        326
 
 #define WARN_CPP11_LAMBDA             340
-#define WARN_CPP11_ALIAS_DECLARATION  341
-#define WARN_CPP11_ALIAS_TEMPLATE     342
+#define WARN_CPP11_ALIAS_DECLARATION  341  /* redundant now */
+#define WARN_CPP11_ALIAS_TEMPLATE     342  /* redundant now */
 #define WARN_CPP11_VARIADIC_TEMPLATE  343
 
 #define WARN_IGNORE_OPERATOR_NEW        350	/* new */
@@ -153,6 +155,7 @@
 #define WARN_TYPE_INCOMPLETE          402
 #define WARN_TYPE_ABSTRACT            403
 #define WARN_TYPE_REDEFINED           404
+#define WARN_TYPE_RVALUE_REF_QUALIFIER_IGNORED 405
 
 #define WARN_TYPEMAP_SOURCETARGET     450
 #define WARN_TYPEMAP_CHARLEAK         451
@@ -207,6 +210,18 @@
 #define WARN_LANG_ILLEGAL_DESTRUCTOR  521
 #define WARN_LANG_EXTEND_CONSTRUCTOR  522
 #define WARN_LANG_EXTEND_DESTRUCTOR   523
+#define WARN_LANG_EXPERIMENTAL        524
+#define WARN_LANG_DIRECTOR_FINAL      525
+
+/* -- Doxygen comments -- */
+
+#define WARN_DOXYGEN_UNKNOWN_COMMAND          560
+#define WARN_DOXYGEN_UNEXPECTED_END_OF_COMMENT  561
+#define WARN_DOXYGEN_COMMAND_EXPECTED         562
+#define WARN_DOXYGEN_HTML_ERROR               563
+#define WARN_DOXYGEN_COMMAND_ERROR            564
+#define WARN_DOXYGEN_UNKNOWN_CHARACTER        565
+#define WARN_DOXYGEN_UNEXPECTED_ITERATOR_VALUE  566
 
 /* -- Reserved (600-799) -- */
 
@@ -215,9 +230,9 @@
 /* Feel free to claim any number in this space that's not currently being used. Just make sure you
    add an entry here */
 
-#define WARN_D_TYPEMAP_CTYPE_UNDEF           700
+#define WARN_D_TYPEMAP_CTYPE_UNDEF            700
 #define WARN_D_TYPEMAP_IMTYPE_UNDEF           701
-#define WARN_D_TYPEMAP_DTYPE_UNDEF           702
+#define WARN_D_TYPEMAP_DTYPE_UNDEF            702
 #define WARN_D_MULTIPLE_INHERITANCE           703
 #define WARN_D_TYPEMAP_CLASSMOD_UNDEF         704
 #define WARN_D_TYPEMAP_DBODY_UNDEF            705

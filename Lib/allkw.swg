@@ -16,7 +16,6 @@
   
 */
 
-%include <chicken/chickenkw.swg>
 %include <csharp/csharpkw.swg>
 %include <d/dkw.swg>
 %include <go/gokw.swg>
@@ -25,7 +24,6 @@
 %include <ocaml/ocamlkw.swg>
 %include <perl5/perlkw.swg>
 %include <php/phpkw.swg>
-%include <pike/pikekw.swg>
 %include <python/pythonkw.swg>
 %include <r/rkw.swg>
 %include <ruby/rubykw.swg>

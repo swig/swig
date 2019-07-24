@@ -32,7 +32,7 @@ type overwrittenMethodsOnFooBarAbstract struct {
 	fb FooBarAbstract
 
 	// If additional constructor arguments have been given they are typically
-	// stored here so that the overriden methods can use them.
+	// stored here so that the overridden methods can use them.
 }
 
 func (om *overwrittenMethodsOnFooBarAbstract) Foo() string {
@@ -59,7 +59,7 @@ func NewFooBarGo() FooBarGo {
 	// The memory of the FooBarAbstract director object instance can be
 	// automatically freed once the FooBarGo instance is garbage collected by
 	// uncommenting the following line.  Please make sure to understand the
-	// runtime.SetFinalizer specific gotchas before doing this.  Furthemore
+	// runtime.SetFinalizer specific gotchas before doing this.  Furthermore
 	// DeleteFooBarGo should be deleted if a finalizer is in use or the fooBarGo
 	// struct needs additional data to prevent double deletion.
 	// runtime.SetFinalizer(fbgs, FooBarGo.deleteFooBarAbstract)

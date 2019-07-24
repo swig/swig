@@ -1,6 +1,6 @@
 package main
 
-import . "./li_carrays_cpp"
+import . "li_carrays_cpp"
 
 func main() {
 	d := NewDoubleArray(10)
