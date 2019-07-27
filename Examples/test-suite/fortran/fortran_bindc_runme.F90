@@ -9,6 +9,7 @@ program fortran_bindc_runme
   call test_globals
   call test_arrays
   call test_twod_unknown_int
+  call test_fundamental
 
 contains
 
@@ -70,6 +71,24 @@ subroutine test_twod_unknown_int
     write(*,*) test_data
     stop 1
   end if
+end subroutine
+
+subroutine test_fundamental
+  use fortran_bindc
+  use ISO_C_BINDING
+  implicit none
+  real(C_FLOAT) :: x(10), y(10)
+  integer :: i
+
+  do i = 1, 10
+    x(i) = real(i)
+    y(i) = 100.0
+  end do
+
+  !call saxpy(10_c_int, 2.5, x, y)
+
+  write(*,*) y
+
 end subroutine
 
 end program

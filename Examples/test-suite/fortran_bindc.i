@@ -153,6 +153,7 @@ short sum_array(short x[5]) {
 
 %fortranbindc oned_unknown;
 %fortranbindc twod_unknown_int;
+%fortranbindc saxpy;
 
 %inline %{
 #ifdef __cplusplus
@@ -167,6 +168,12 @@ void twod_unknown_int(int a[][10], int nj) {
             a[j][i] = 10 * j + i + 1;
         }
     }
+}
+
+void saxpy(int n, float sa, const float* sx, float* sy) {
+  int i;
+  for (i = 0; i < n; ++i)
+    sy[i] += sa * sx[i];
 }
 
 #ifdef __cplusplus
