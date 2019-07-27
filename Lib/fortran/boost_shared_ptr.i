@@ -62,8 +62,8 @@
  * SP-owned copy of the obtained value.
  * ------------------------------------------------------------------------- */
 %typemap(in, noblock=1, fragment="SWIG_check_sp_nonnull") CONST TYPE ($&1_type argp = 0) {
-  SWIG_check_sp_nonnull($input, "$1_ltype", "$fclassname", "$decl", return $null)
-  argp = $input->cptr ? %static_cast($input->cptr, SWIGSP__*)->get() : NULL;
+  SWIG_check_sp_nonnull($input->cptr, "$1_ltype", "$fclassname", "$decl", return $null)
+  argp = %static_cast($input->cptr, SWIGSP__*)->get();
   $1 = *argp;
 }
 %typemap(out, noblock=1) CONST TYPE {
@@ -74,6 +74,9 @@
 /* -------------------------------------------------------------------------
  * Original class by pointer. Note that the deleter is determined by the owner
  * cmemflags, but the result is always a new self-owned shared pointer.
+ *
+ * Also note that the 'smartarg' temporary *must* be there so that the
+ * deleter can work properly.
  * ------------------------------------------------------------------------- */
 %typemap(in, noblock=1) CONST TYPE * (SWIGSP__* smartarg) {
   smartarg = %static_cast($input->cptr, SWIGSP__*);
@@ -93,12 +96,11 @@
 }
 
 /* -------------------------------------------------------------------------
- * Original class by reference. Same as by pointer, but with null checks.
+ * Original class by reference. Add null checks.
  * ------------------------------------------------------------------------- */
-%typemap(in, noblock=1, fragment="SWIG_check_sp_nonnull") CONST TYPE& (SWIGSP__* smartarg) {
-  SWIG_check_sp_nonnull($input, "$1_ltype", "$fclassname", "$decl", return $null)
-  smartarg = %static_cast($input->cptr, SWIGSP__*);
-  $1 = %const_cast(smartarg->get(), TYPE*);
+%typemap(in, noblock=1, fragment="SWIG_check_sp_nonnull") CONST TYPE& {
+  SWIG_check_sp_nonnull($input->cptr, "$1_ltype", "$fclassname", "$decl", return $null)
+  $1 = %const_cast(%static_cast($input->cptr, SWIGSP__*)->get(), TYPE*);
 }
 
 // Output value is never null. Because we're allocating a shared pointer, we set the memory ownership to MOVE so that the *SP*
@@ -117,7 +119,7 @@
 }
 
 %typemap(out, noblock=1) SWIGSP__ {
-  $result.cptr = %new_copy($1, SWIGSP__);
+  $result.cptr = SWIG_SHARED_PTR_NOT_NULL($1) ? %new_copy($1, SWIGSP__) : NULL;
   $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE;
 }
 
@@ -129,7 +131,7 @@
 }
 
 %typemap(out, noblock=1) SWIGSP__& {
-  $result.cptr = SWIG_SHARED_PTR_NOT_NULL(*$1) ? %new_copy(*$1, SWIGSP__) : 0;
+  $result.cptr = SWIG_SHARED_PTR_NOT_NULL(*$1) ? %new_copy(*$1, SWIGSP__) : NULL;
   $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE;
 }
 
@@ -141,7 +143,7 @@
 }
 
 %typemap(out, noblock=1, fragment="SWIG_null_deleter") SWIGSP__ * {
-  $result.cptr = ($1 && SWIG_SHARED_PTR_NOT_NULL(*$1)) ? %new_copy(*$1, SWIGSP__) : 0;
+  $result.cptr = ($1 && SWIG_SHARED_PTR_NOT_NULL(*$1)) ? %new_copy(*$1, SWIGSP__) : NULL;
   $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE;
 }
 
