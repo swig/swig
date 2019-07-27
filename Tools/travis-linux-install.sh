@@ -21,6 +21,10 @@ elif [[ "$CC" == gcc-8 ]]; then
 	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 	travis_retry sudo apt-get -qq update
 	travis_retry sudo apt-get install -qq g++-8
+elif [[ "$CC" == gcc-9 ]]; then
+	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+	travis_retry sudo apt-get -qq update
+	travis_retry sudo apt-get install -qq g++-9
 fi
 
 travis_retry sudo apt-get -qq install libboost-dev
@@ -42,6 +46,8 @@ case "$SWIGLANG" in
       "gcc-5") export FC=gfortran-5 ;;
       "gcc-6") export FC=gfortran-6 ;;
       "gcc-7") export FC=gfortran-7 ;;
+      "gcc-8") export FC=gfortran-8 ;;
+      "gcc-9") export FC=gfortran-9 ;;
     esac
     travis_retry sudo apt-get install -qq $FC
 		;;
