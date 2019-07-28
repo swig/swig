@@ -14,6 +14,11 @@ struct Type1 {
   Type1(int val = 0) : val(val) {}
   int val;
 };
+enum EnumType
+{
+  EnumValue
+};
+EnumType enumValue = EnumValue;
 /* Typedefs for const Type and its pointer */
 typedef const Type1 Type1Const;
 typedef const Type1* Type1Cptr;
@@ -46,3 +51,4 @@ Type1 getType1Instance() { return Type1(111); }
 %constant Type1Cfptr TYPE1CFPTR1DEF_CONSTANT1 = getType1Instance;
 /* Regular constant */
 %constant int TYPE_INT = 0;
+%constant enum EnumType newValue = enumValue;
