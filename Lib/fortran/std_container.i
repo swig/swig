@@ -26,23 +26,9 @@
  */
 %define %std_vector_impl(CTYPE, CPPTYPE...)
 
-// Const reference
-%fortran_array_pointer(CTYPE, const CPPTYPE&)
-
-%typemap(out, noblock=1) const CPPTYPE& {
-  $result.data = ($1->empty() ? NULL : &(*$1->begin()));
-  $result.size = $1->size();
-}
-
-%typemap(in, noblock=1) const CPPTYPE& (CPPTYPE temparr, CTYPE* tempbegin) {
-  tempbegin = static_cast<CTYPE*>($input->data);
-  temparr.assign(tempbegin, tempbegin + $input->size);
-  $1 = &temparr;
-}
-
 /* ---- VALUE: NATIVE ARRAY ---- */
 
-%apply const CPPTYPE& { CPPTYPE };
+%fortran_array(CPPTYPE)
 
 // C native input translation typemaps: copy to a temporary vector
 %typemap(in, noblock=1) CPPTYPE (CTYPE* tempbegin) {

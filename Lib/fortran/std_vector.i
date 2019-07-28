@@ -67,11 +67,6 @@ namespace std {
     // Instantiate typemaps for this particular vector
     %std_vector_impl(_Tp, std::vector<_Tp, _Alloc >)
 
-    // Enable view output and input
-    %apply const vector<_Tp, _Alloc >& { vector<_Tp, _Alloc >& view() };
-    %apply (const SWIGTYPE *DATA, ::size_t SIZE)
-    { (const value_type* DATA, size_type SIZE) };
-
     // Extend for Fortran
     %extend{
       // C indexing used here!
@@ -84,16 +79,6 @@ namespace std {
       value_type get(size_type index) {
         // TODO: check range
         return (*$self)[index];
-      }
-
-      // Assign from another vector
-      void assign(const value_type* DATA, size_type SIZE) {
-        $self->assign(DATA, DATA + SIZE);
-      }
-
-      // Get a mutable view to ourself
-      vector<_Tp, _Alloc >& view() {
-        return *$self;
       }
   }
 };

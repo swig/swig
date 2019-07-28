@@ -13,6 +13,19 @@
 
 %include <std_vector.i>
 
+namespace std {
+%extend vector<int> {
+  // Enable view output and input
+  %apply (const SWIGTYPE *DATA, ::size_t SIZE)
+    { (const int* DATA, size_type SIZE) };
+
+    // Assign from another vector
+    void assign(const int* DATA, size_type SIZE) {
+      $self->assign(DATA, DATA + SIZE);
+    }
+}
+}
+
 // Replace ULL type with fortran standard integer
 // (needed BEFORE instantiating VecInt)
 %apply int { std::vector<int>::size_type };

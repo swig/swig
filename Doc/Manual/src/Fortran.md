@@ -1128,19 +1128,9 @@ changing size, for example), you can instantiate the class:
 %template(VecDbl) std::vector<double>;
 ```
 
-The built-in `std::vector` wrapper class has a few methods that differ from the
-standard C++ library:
-
-- Instead of `operator[]`, use `set(index, value)` and `get(index)` to get and
-  assign values.
-- The `view()` method returns a Fortran array pointer to the contents of the
-  array (valid until the array changes size).
-- The `assign(arr)` method takes a Fortran array as an input and sets the
-  contents of the vector to that array.
-
-Both `view` and `assign` are very cheap operations for allowing a `std::vector`
-class to interact with native Fortran datatypes.
-
+The built-in `std::vector` wrapper class differs from the standard C++ library
+in that instead of `operator[]`, assignment and retrieval use `set(index,
+value)` and `get(index)`. Note that 
 
 ## Other C++ standard library containers
 

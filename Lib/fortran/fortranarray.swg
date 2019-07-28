@@ -68,7 +68,7 @@ end subroutine}
 
 /* ------------------------------------------------------------------------- */
 /*!
- * \def %fortran_array_pointer_and_ref
+ * \def %fortran_array_handle
  *
  * Convert a C++ input argument to an array pointer.
  *
