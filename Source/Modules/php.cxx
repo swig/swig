@@ -1223,7 +1223,7 @@ public:
 	/* FIXME: How should this be handled?  The rest of SWIG just seems
 	 * to not bother checking for malloc failing! */
 	fprintf(stderr, "Malloc failed!\n");
-	exit(1);
+	SWIG_exit(EXIT_FAILURE);
       }
       for (i = 0; i < max_num_of_arguments; ++i) {
 	arg_names[i] = NULL;
@@ -1235,7 +1235,7 @@ public:
 	/* FIXME: How should this be handled?  The rest of SWIG just seems
 	 * to not bother checking for malloc failing! */
 	fprintf(stderr, "Malloc failed!\n");
-	exit(1);
+	SWIG_exit(EXIT_FAILURE);
       }
       for (i = 0; i < max_num_of_arguments; ++i) {
 	arg_values[i] = NULL;

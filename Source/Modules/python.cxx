@@ -16,7 +16,6 @@
 #include "cparse.h"
 #include <ctype.h>
 #include <errno.h>
-#include <stdlib.h>
 #include "pydoc.h"
 
 #include <stdint.h>
