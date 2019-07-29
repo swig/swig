@@ -23,6 +23,7 @@
 #include "swigwarn.h"
 #include "cparse.h"
 #include <ctype.h>
+#include <errno.h>
 #include <limits.h>		// for INT_MAX
 
 // Global variables
@@ -1381,7 +1382,10 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
   int error_count = werror ? Swig_warn_count() : 0;
   error_count += Swig_error_count();
 
-  return error_count;
+  if (error_count != 0)
+    SWIG_exit(error_count);
+
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1393,5 +1397,20 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 void SWIG_exit(int exit_code) {
   while (freeze) {
   }
+
+  if (exit_code > 0) {
+    CloseAllOpenFiles();
+
+    /* Remove all generated files */
+    if (all_output_files) {
+      for (int i = 0; i < Len(all_output_files); i++) {
+	String *filename = Getitem(all_output_files, i);
+	int removed = remove(Char(filename));
+	if (removed == -1)
+	  fprintf(stderr, "On exit, could not delete file %s: %s\n", Char(filename), strerror(errno));
+      }
+    }
+  }
+
   exit(exit_code);
 }

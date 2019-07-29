@@ -302,11 +302,12 @@ extern char *DohStrchr(const DOHString_or_char *s1, int ch);
  * Files
  * ----------------------------------------------------------------------------- */
 
-extern DOHFile *DohNewFile(DOH *filename, const char *mode, DOHList *outfiles);
+extern DOHFile *DohNewFile(DOHString *filename, const char *mode, DOHList *outfiles);
 extern DOHFile *DohNewFileFromFile(FILE *f);
 extern DOHFile *DohNewFileFromFd(int fd);
 extern void DohFileErrorDisplay(DOHString * filename);
 extern int DohCopyto(DOHFile * input, DOHFile * output);
+extern void DohCloseAllOpenFiles(void);
 
 
 /* -----------------------------------------------------------------------------
@@ -425,6 +426,7 @@ extern void DohMemoryDebug(void);
 #define Strstr             DohStrstr
 #define Strchr             DohStrchr
 #define Copyto             DohCopyto
+#define CloseAllOpenFiles  DohCloseAllOpenFiles
 #define Split              DohSplit
 #define SplitLines         DohSplitLines
 #define Setmark            DohSetmark

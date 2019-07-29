@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.1 (in progress)
 ===========================
 
+2019-07-29: wsfulton
+            Remove all generated files on error. Previously generated files were not removed,
+            potentially breaking Makefiles using file dependencies, especially when -Werror
+            (warnings as errors) was used.
+
 2019-07-23: smithx
             [C#] #1530 #1532 Fix marshalling of std::wstring to C#.
 
