@@ -1376,13 +1376,12 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
   while (freeze) {
   }
 
-  if ((werror) && (Swig_warn_count())) {
-    return Swig_warn_count();
-  }
-
   delete lang;
 
-  return Swig_error_count();
+  int error_count = werror ? Swig_warn_count() : 0;
+  error_count += Swig_error_count();
+
+  return error_count;
 }
 
 /* -----------------------------------------------------------------------------
