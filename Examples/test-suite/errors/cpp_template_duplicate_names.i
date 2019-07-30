@@ -1,4 +1,4 @@
-%module cpp_template_duplicate_names
+%module xxx
 
 // From test-suite/template_class_reuse.i test
 

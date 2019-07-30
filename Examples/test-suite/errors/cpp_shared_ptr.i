@@ -1,4 +1,4 @@
-%module cpp_shared_ptr
+%module xxx
 
 %include <boost_shared_ptr.i>
 

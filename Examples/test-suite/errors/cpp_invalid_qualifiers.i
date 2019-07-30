@@ -1,4 +1,4 @@
-%module cpp_invalid_qualifiers
+%module xxx
 
 // Constructors, destructors and static methods cannot have qualifiers
 struct A {
