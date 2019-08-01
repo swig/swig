@@ -26,3 +26,16 @@ template<typename T> struct X {
 %}
 
 %template(Xint) X<int>;
+
+
+// The function name and parameter name are both 'labels'
+%inline %{
+template <typename T>
+void labels(T labels) {}
+void voido(int vooo) {}
+%}
+
+// TODO: R has a problem with parameter names clashing with the function name
+#if !defined(SWIGR)
+%template(ShortLabels) labels<short>;
+#endif
