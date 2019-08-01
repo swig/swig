@@ -3438,6 +3438,18 @@ initialization on module loading, you could write this:
 %}
 </pre></div>
 
+<p>
+Please note that some language backends (e.g. C# or Java) don't have any
+initialization function, hence you should define a global object performing
+the necessary initialization for them instead:
+</p>
+
+<div class="code"><pre>
+%init %{
+  static struct MyInit { MyInit() { init_variables(); } } myInit;
+%}
+</pre></div>
+
 <H2><a name="SWIG_nn45">5.7 An Interface Building Strategy</a></H2>
 
 
