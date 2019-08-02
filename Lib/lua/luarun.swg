@@ -1049,7 +1049,7 @@ SWIGINTERN int  SWIG_Lua_class_tostring(lua_State *L)
   lua_getfield(L, -1, ".type");
   className = lua_tostring(L, -1);
 
-  lua_pushfstring(L, "<%s userdata: %p::%p>", className, userData, userData->ptr);
+  lua_pushfstring(L, "<userdata of type '%s' at %p>", userData->type->str, userData->ptr);
   return 1;
 }
 
