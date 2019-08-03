@@ -456,7 +456,7 @@ std::string PyDocConverter::translateSubtree(DoxygenEntity &doxygenEntity) {
 void PyDocConverter::translateEntity(DoxygenEntity &doxyEntity, std::string &translatedComment) {
   // check if we have needed handler and call it
   std::map<std::string, std::pair<tagHandler, std::string> >::iterator it;
-  it = tagHandlers.find(doxyEntity.typeOfEntity);
+  it = tagHandlers.find(getBaseCommand(doxyEntity.typeOfEntity));
   if (it != tagHandlers.end())
     (this->*(it->second.first)) (doxyEntity, translatedComment, it->second.second);
 }

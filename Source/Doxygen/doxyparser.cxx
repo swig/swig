@@ -34,6 +34,30 @@ std::set<std::string> DoxygenParser::doxygenSectionIndicators;
 const int TOKENSPERLINE = 8; //change this to change the printing behaviour of the token list
 const std::string END_HTML_TAG_MARK("/");
 
+std::string getBaseCommand(const std::string &cmd) {
+  if (cmd.substr(0,5) == "param")
+    return "param";
+  else if (cmd.substr(0,4) == "code")
+    return "code";
+  else
+    return cmd;
+}
+
+// Find the first position beyond the word command.  Extra logic is
+// used to avoid putting the characters "," and "." in
+// DOXYGEN_WORD_CHARS.
+static size_t getEndOfWordCommand(const std::string &line, size_t pos) {
+  size_t endOfWordPos = line.find_first_not_of(DOXYGEN_WORD_CHARS, pos);
+  if (line.substr(pos, 6) == "param[")
+    // include ",", which can appear in param[in,out]
+    endOfWordPos = line.find_first_not_of(string(DOXYGEN_WORD_CHARS)+ ",", pos);  
+  else if (line.substr(pos, 5) == "code{")
+    // include ".", which can appear in e.g. code{.py}
+    endOfWordPos = line.find_first_not_of(string(DOXYGEN_WORD_CHARS)+ ".", pos);
+  return endOfWordPos;
+}
+
+
 DoxygenParser::DoxygenParser(bool noisy) : noisy(noisy) {
   fillTables();
 }
@@ -118,7 +142,7 @@ void DoxygenParser::printTree(const DoxygenEntityList &rootList) {
 }
 
 DoxygenParser::DoxyCommandEnum DoxygenParser::commandBelongs(const std::string &theCommand) {
-  DoxyCommandsMapIt it = doxygenCommands.find(stringToLower(theCommand));
+  DoxyCommandsMapIt it = doxygenCommands.find(stringToLower(getBaseCommand(theCommand)));
 
   if (it != doxygenCommands.end()) {
     return it->second;
@@ -312,7 +336,7 @@ DoxygenParser::TokenListCIt DoxygenParser::getEndOfParagraph(const TokenList &to
 
     } else if (endOfParagraph->m_tokenType == COMMAND) {
 
-      if (isSectionIndicator(endOfParagraph->m_tokenString)) {
+      if (isSectionIndicator(getBaseCommand(endOfParagraph->m_tokenString))) {
         return endOfParagraph;
       } else {
         endOfParagraph++;
@@ -1154,7 +1178,7 @@ bool DoxygenParser::processEscapedChars(size_t &pos, const std::string &line) {
  */
 void DoxygenParser::processWordCommands(size_t &pos, const std::string &line) {
   pos++;
-  size_t endOfWordPos = line.find_first_not_of(DOXYGEN_WORD_CHARS, pos);
+  size_t endOfWordPos = getEndOfWordCommand(line, pos);
 
   string cmd = line.substr(pos, endOfWordPos - pos);
   addDoxyCommand(m_tokenList, cmd);
