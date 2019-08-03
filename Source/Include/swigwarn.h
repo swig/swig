@@ -256,6 +256,7 @@
 /* please leave 740-759 free for Python */
 
 #define WARN_C_TYPEMAP_CTYPE_UNDEF            760
+#define WARN_C_UNSUPPORTTED                   779
 
 /* please leave 760-779 free for C */
 

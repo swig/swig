@@ -1273,9 +1273,16 @@ ready:
     for ( Node* node = firstChild(n); node; node = nextSibling(node)) {
       String* const ntype = nodeType(node);
       if (Cmp(ntype, "cdecl") == 0) {
-	String* const var_decl = make_c_var_decl(node);
-	Printv(out, cindent, var_decl, ";\n", NIL);
-	Delete(var_decl);
+	SwigType* t = NewString(Getattr(node, "type"));
+	SwigType_push(t, Getattr(node, "decl"));
+	t = SwigType_typedef_resolve_all(t);
+	if (SwigType_isfunction(t)) {
+            Swig_warning(WARN_C_UNSUPPORTTED, input_file, line_number, "Extending C struct with %s is not currently supported, ignored.\n", SwigType_str(t, 0));
+	} else {
+	  String* const var_decl = make_c_var_decl(node);
+	  Printv(out, cindent, var_decl, ";\n", NIL);
+	  Delete(var_decl);
+	}
       } else if (Cmp(ntype, "enum") == 0) {
 	// This goes directly into f_wrappers_types, before this struct declaration.
 	emit_one(node);
