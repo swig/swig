@@ -531,25 +531,13 @@ public:
 
   virtual int globalfunctionHandler(Node *n) {
     SwigType *type = Getattr(n, "type");
-    ParmList *parms = Getattr(n, "parms");
-    String *arg_list = NewString("");
-    String *call = empty_string;
-    String *cres = empty_string;
 
-    call = Swig_cfunction_call(Getattr(n, "name"), parms);
-    cres = Swig_cresult(type, "result", call);
-    Setattr(n, "wrap:action", cres);
     Setattr(n, "c:globalfun", "1");
 
     if (!SwigType_ispointer(type) && !SwigType_isreference(type))
       Setattr(n, "c:retval", "1");
 
-    functionWrapper(n);
-
-    Delete(cres);
-    Delete(call);
-    Delete(arg_list);
-    return SWIG_OK;
+    return Language::globalfunctionHandler(n);
   }
 
   /* ----------------------------------------------------------------------
