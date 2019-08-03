@@ -443,6 +443,23 @@ std::string PyDocConverter::getParamType(std::string param) {
   return type;
 }
 
+std::string PyDocConverter::getParamValue(std::string param) {
+  std::string value;
+
+  ParmList *plist = CopyParmList(Getattr(currentNode, "parms"));
+  for (Parm *p = plist; p; p = nextSibling(p)) {
+    String *pname = Getattr(p, "name");
+    if (Char(pname) != param)
+      continue;
+
+    String *pval = Getattr(p, "value");
+    if (pval) value = Char(pval);
+    break;
+  }
+  Delete(plist);
+  return value;
+}
+
 std::string PyDocConverter::translateSubtree(DoxygenEntity &doxygenEntity) {
   std::string translatedComment;
 
@@ -651,6 +668,7 @@ void PyDocConverter::handleTagParam(DoxygenEntity &tag, std::string &translatedC
   const std::string &paramName = paramNameEntity.data;
 
   const std::string paramType = getParamType(paramName);
+  const std::string paramValue = getParamValue(paramName);
 
   // Get command option, e.g. "in", "out", or "in,out"
   string commandOpt = getCommandOption(tag.typeOfEntity);
@@ -661,6 +679,12 @@ void PyDocConverter::handleTagParam(DoxygenEntity &tag, std::string &translatedC
   std::string suffix;
   if (commandOpt.size() > 0)
     suffix = ", " + commandOpt;
+  
+  // If the parameter has a default value, flag it as optional in the
+  // generated type definition.  Particularly helpful when the python
+  // call is generated with *args, **kwargs.
+  if (paramValue.size() > 0)
+    suffix += ", optional";  
 
   if (!paramType.empty()) {
     translatedComment += ":type " + paramName + ": " + paramType + suffix + "\n";
