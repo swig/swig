@@ -56,6 +56,7 @@ FAILING_CPP_TESTS := \
     default_args \
     default_constructor \
     director_enum \
+    director_smartptr \
     director_string \
     enum_thorough \
     extend \
@@ -63,6 +64,7 @@ FAILING_CPP_TESTS := \
     extend_default \
     extend_placement \
     extern_c \
+    extern_template_method \
     features \
     funcptr_cpp \
     global_scope_types \
@@ -70,16 +72,22 @@ FAILING_CPP_TESTS := \
     import_nomodule \
     li_attribute \
     li_boost_shared_ptr \
+    li_boost_shared_ptr_bits \
+    li_boost_shared_ptr_director \
+    li_boost_shared_ptr_template \
     li_carrays_cpp \
     li_std_combinations \
     li_std_deque \
     li_std_map \
     li_std_pair \
     li_std_pair_using \
+    li_std_wstring \
     li_windows \
     member_funcptr_galore \
     member_pointer \
+    member_pointer_const \
     mixed_types \
+    multiple_inheritance_shared_ptr \
     namespace_class \
     nested_class \
     nested_scope \
@@ -87,9 +95,11 @@ FAILING_CPP_TESTS := \
     smart_pointer_extend \
     smart_pointer_not \
     smart_pointer_template_defaults_overload \
+    stl_no_default_constructor \
     struct_initialization_cpp \
     template_basic \
     template_default \
+    template_empty_inherit \
     template_enum \
     template_explicit \
     template_typedef_fnc \
@@ -98,6 +108,7 @@ FAILING_CPP_TESTS := \
     typedef_struct_cpp \
     typemap_array_qualifiers \
     typemap_namespace \
+    typemap_various \
     using_extend \
     varargs \
     varargs_overload \
