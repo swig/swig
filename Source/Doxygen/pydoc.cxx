@@ -184,6 +184,21 @@ static string padCodeAndVerbatimBlocks(const string &docString) {
   return result;
 }
 
+// Helper function to extract the option value from a command,
+// e.g. param[in] -> in
+static std::string getCommandOption(const std::string &command) {
+  string option;
+
+  size_t opt_begin, opt_end;
+  opt_begin = command.find('[');
+  opt_end = command.find(']');
+  if (opt_begin != string::npos && opt_end != string::npos)
+    option = command.substr(opt_begin+1, opt_end-opt_begin-1);
+
+  return option;
+}
+
+
 /* static */
 PyDocConverter::TagHandlersMap::mapped_type PyDocConverter::make_handler(tagHandler handler) {
   return make_pair(handler, std::string());
@@ -636,8 +651,19 @@ void PyDocConverter::handleTagParam(DoxygenEntity &tag, std::string &translatedC
   const std::string &paramName = paramNameEntity.data;
 
   const std::string paramType = getParamType(paramName);
+
+  // Get command option, e.g. "in", "out", or "in,out"
+  string commandOpt = getCommandOption(tag.typeOfEntity);
+  if (commandOpt == "in,out") commandOpt = "in/out";
+
+  // If provided, append the parameter direction to the type
+  // information via a suffix:
+  std::string suffix;
+  if (commandOpt.size() > 0)
+    suffix = ", " + commandOpt;
+
   if (!paramType.empty()) {
-    translatedComment += ":type " + paramName + ": " + paramType + "\n";
+    translatedComment += ":type " + paramName + ": " + paramType + suffix + "\n";
     translatedComment += indent.getFirstLineIndent();
   }
 
@@ -909,3 +935,4 @@ String *PyDocConverter::makeDocumentation(Node *n) {
 
   return NewString(pyDocString.c_str());
 }
+
