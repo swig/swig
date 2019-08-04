@@ -129,9 +129,6 @@ class C:public Language {
   String *int_string;
   String *tl_namespace; // optional top level namespace
 
-  // If non-null, contains wrap:action code to be used in the next functionWrapper() call.
-  String *special_wrap_action;
-
   // Used only while generating wrappers for an enum, initially true and reset to false as soon as we see any enum elements.
   bool enum_is_empty;
 
@@ -150,8 +147,7 @@ public:
   C() : 
     empty_string(NewString("")),
     int_string(NewString("int")),
-    tl_namespace(NULL),
-    special_wrap_action(NULL)
+    tl_namespace(NULL)
   {
   }
 
@@ -823,10 +819,7 @@ ready:
             gencomma = 1;
 
             // apply typemaps for input parameter
-            if (Cmp(nodeType(n), "destructor") == 0) {
-                 p = Getattr(p, "tmap:in:next");
-            }
-            else if ((tm = Getattr(p, "tmap:in"))) {
+            if ((tm = Getattr(p, "tmap:in"))) {
                  Replaceall(tm, "$input", arg_name);
 		 if (wrapper) {
 		   Setattr(p, "emit:input", arg_name);
@@ -896,7 +889,6 @@ ready:
        String *wname = IS_SET_TO_ONE(n, "c:globalfun") ? Swig_name_wrapper(name) : Copy(name);
        ParmList *parms = Getattr(n, "parms");
        Parm *p;
-       bool const is_ctor = Cmp(nodeType(n), "constructor") == 0;
        bool is_void_return = (SwigType_type(type) == T_VOID);
        bool return_object = false;
        // create new function wrapper object
@@ -906,7 +898,7 @@ ready:
        Setattr(n, "wrap:name", wname);
 
        // add variable for holding result of original function 'cppresult'
-       if (!is_void_return && !is_ctor) {
+       if (!is_void_return) {
             if (String *tm = Swig_typemap_lookup("cppouttype", n, "", 0)) {
 		 Wrapper_add_local(wrapper, "cppresult", SwigType_str(tm, "cppresult"));
                  return_object = checkAttribute(n, "tmap:cppouttype:retobj", "1");
@@ -922,14 +914,11 @@ ready:
        Printv(wrapper->def, get_wrapper_func_proto(n, wrapper).get(), NIL);
        Printv(wrapper->def, " {", NIL);
 
-       bool const is_dtor = Cmp(nodeType(n), "destructor") == 0;
-       if (!is_dtor) {
-            // emit variables for holding parameters
-            emit_parameter_variables(parms, wrapper);
+	// emit variables for holding parameters
+	emit_parameter_variables(parms, wrapper);
 
-            // emit variable for holding function return value
-            emit_return_variable(n, return_type, wrapper);
-       }
+	// emit variable for holding function return value
+	emit_return_variable(n, return_type, wrapper);
 
        // insert constraint checking
        for (p = parms; p; ) {
@@ -957,53 +946,42 @@ ready:
        }
 
        // handle special cases of cpp return result
-       if (!is_ctor) {
-            if (SwigType_isenum(SwigType_base(type))){
-                 if (return_object)
-                   Replaceall(action, "result =", "cppresult = (int)");
-                 else Replaceall(action, "result =", "cppresult = (int*)");
-            }
-            else if (return_object && Getattr(n, "c:retval") && !SwigType_isarray(type)
-                  && (Cmp(storage, "static") != 0)) {
-                 // returning object by value
-                 String *str = SwigType_str(SwigType_add_reference(SwigType_base(type)), "_result_ref");
-                 String *lstr = SwigType_lstr(type, 0);
-                 if (Cmp(Getattr(n, "kind"), "variable") == 0) {
-                      Delete(action);
-                      action = NewStringf("{const %s = %s;", str, Swig_cmemberget_call(Getattr(n, "name"), type, 0, 0));
-                 }
-                 else {
-                      String *call_str = NewStringf("{const %s = %s", str,
-                            SwigType_ispointer(SwigType_typedef_resolve_all(otype)) ? "*" : "");
-                      Replaceall(action, "result =", call_str);
-                      Delete(call_str);
-                 }
-                 if (Getattr(n, "nested"))
-                   Replaceall(action, "=", NewStringf("= *(%s)(void*) &", SwigType_str(otype, 0)));
-                 Printf(action, "cppresult = (%s*) &_result_ref;}", lstr);
-                 Delete(str);
-                 Delete(lstr);
-            }
-            else
-              Replaceall(action, "result =", "cppresult = ");
+       if (SwigType_isenum(SwigType_base(type))) {
+	 if (return_object)
+	   Replaceall(action, "result =", "cppresult = (int)");
+	 else
+	   Replaceall(action, "result =", "cppresult = (int*)");
+       }
+       else if (return_object && Getattr(n, "c:retval") &&
+		!SwigType_isarray(type) &&
+		(Cmp(storage, "static") != 0)) {
+	 // returning object by value
+	 String *str = SwigType_str(SwigType_add_reference(SwigType_base(type)), "_result_ref");
+	 String *lstr = SwigType_lstr(type, 0);
+	 if (Cmp(Getattr(n, "kind"), "variable") == 0) {
+	   Delete(action);
+	   action = NewStringf("{const %s = %s;", str, Swig_cmemberget_call(Getattr(n, "name"), type, 0, 0));
+	 }
+	 else {
+	   String *call_str = NewStringf("{const %s = %s", str,
+	     SwigType_ispointer(SwigType_typedef_resolve_all(otype)) ? "*" : "");
+	   Replaceall(action, "result =", call_str);
+	   Delete(call_str);
+	 }
+	 if (Getattr(n, "nested"))
+	   Replaceall(action, "=", NewStringf("= *(%s)(void*) &", SwigType_str(otype, 0)));
+	 Printf(action, "cppresult = (%s*) &_result_ref;}", lstr);
+	 Delete(str);
+	 Delete(lstr);
+       } else {
+	 Replaceall(action, "result =", "cppresult =");
        }
 
        // prepare action code to use, e.g. insert try-catch blocks
-
-       // We don't take extension ctors and dtors into account currently (objects are always created using hardcoded new in constructorHandler() and destroyed
-       // using SWIG_destroy_object()) and generating them is at best useless and can be harmful when it results in a clash of names between an extension ctor
-       // new_Foo() and the ctor wrapper which has exactly the same name. So for now just drop them completely, which is certainly not right, but not worse than
-       // before.
-       //
-       // TODO-C: Implement proper extension ctors/dtor support.
-       if (is_ctor || is_dtor) {
-	 Delattr(n, "wrap:code");
-       }
-
        action = emit_action(n);
 
        // emit output typemap if needed
-       if (!is_void_return && !is_ctor) {
+       if (!is_void_return) {
             String *tm;
             if ((tm = Swig_typemap_lookup_out("out", n, "cppresult", wrapper, action))) {
                  Replaceall(tm, "$result", "result");
@@ -1053,13 +1031,6 @@ ready:
 
   virtual void functionWrapperCPPSpecific(Node *n)
     {
-      // Use special actions for special methods if set up.
-      if (special_wrap_action) {
-	Setattr(n, "wrap:action", special_wrap_action);
-	Delete(special_wrap_action);
-	special_wrap_action = NULL;
-      }
-
        ParmList *parms = Getattr(n, "parms");
        String *name = Copy(Getattr(n, "sym:name"));
        SwigType *type = Getattr(n, "type");
@@ -1449,37 +1420,19 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int constructorHandler(Node *n) {
-    Node *klass = Swig_methodclass(n);
-    String *classname = Getattr(klass, "classtype");
-
-    bool const is_copy_ctor = Getattr(n, "copy_constructor");
-    String *arg_lnames;
-    if (is_copy_ctor) {
-      arg_lnames = NewStringf("((%s const &)*arg1)", classname);
-    } else {
-      ParmList *parms = Getattr(n, "parms");
-      arg_lnames = Swig_cfunction_call(empty_string, parms);
+    // For some reason, the base class implementation of constructorDeclaration() only takes care of the copy ctor automatically for the languages not
+    // supporting overloading (i.e. not calling allow_overloading(), as we do). So duplicate the relevant part of its code here,
+    if (!Abstract && Getattr(n, "copy_constructor")) {
+      return Language::copyconstructorHandler(n);
     }
 
-    // TODO-C: We need to call the extension ctor here instead of hard-coding "new classname".
-    special_wrap_action = NewStringf("result = (SwigObj*)new %s%s;", classname, arg_lnames);
+    if (GetFlag(n, "feature:extend")) {
+      // Pretend that all ctors added via %extend are overloaded to avoid clash between the functions created for them and the actual exported function, that
+      // could have the same "Foo_new" name otherwise.
+      SetFlag(n, "sym:overloaded");
+    }
 
-    Delete(arg_lnames);
-
-    return is_copy_ctor ? Language::copyconstructorHandler(n) : Language::constructorHandler(n);
-  }
-
-  /* ---------------------------------------------------------------------
-   * destructorHandler()
-   * --------------------------------------------------------------------- */
-
-  virtual int destructorHandler(Node *n) {
-    Node *klass = Swig_methodclass(n);
-
-    // TODO-C: We need to use the extension dtor here if one is defined.
-    special_wrap_action = NewStringf("delete (%s *)carg1;", Getattr(klass, "classtype"));
-
-    return Language::destructorHandler(n);
+    return Language::constructorHandler(n);
   }
 
   /* ---------------------------------------------------------------------

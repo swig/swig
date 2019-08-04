@@ -33,12 +33,9 @@ FAILING_C_TESTS := \
     function_typedef \
     lextype \
     li_carrays \
-    li_cpointer \
     nested \
     nested_extend_c \
     nested_structs \
-    overload_extend2 \
-    overload_extend_c \
     typedef_struct \
     union_parameter \
     unions \
@@ -54,15 +51,12 @@ FAILING_CPP_TESTS := \
     char_strings \
     constant_pointers \
     default_args \
-    default_constructor \
     director_enum \
     director_smartptr \
     director_string \
     enum_thorough \
     extend \
-    extend_constructor_destructor \
     extend_default \
-    extend_placement \
     extern_c \
     extern_template_method \
     features \
@@ -93,7 +87,6 @@ FAILING_CPP_TESTS := \
     nested_scope \
     nested_template_base \
     smart_pointer_extend \
-    smart_pointer_not \
     smart_pointer_template_defaults_overload \
     stl_no_default_constructor \
     struct_initialization_cpp \
