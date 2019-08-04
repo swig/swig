@@ -1114,7 +1114,7 @@ size_t DoxygenParser::processVerbatimText(size_t pos, const std::string &line) {
     size_t endOfWordPos = line.find_first_not_of(DOXYGEN_WORD_CHARS, pos);
     string cmd = line.substr(pos, endOfWordPos - pos);
 
-    if (cmd == CMD_END_HTML_ONLY || cmd == CMD_END_VERBATIM || cmd == CMD_END_LATEX_1 || cmd == CMD_END_LATEX_2 || cmd == CMD_END_LATEX_3) {
+    if (cmd == CMD_END_HTML_ONLY || cmd == CMD_END_VERBATIM || cmd == CMD_END_LATEX_1 || cmd == CMD_END_LATEX_2 || cmd == CMD_END_LATEX_3 || cmd == CMD_END_CODE) {
 
       m_isVerbatimText = false;
       addDoxyCommand(m_tokenList, cmd);
@@ -1183,17 +1183,29 @@ void DoxygenParser::processWordCommands(size_t &pos, const std::string &line) {
   string cmd = line.substr(pos, endOfWordPos - pos);
   addDoxyCommand(m_tokenList, cmd);
 
-  if (cmd == CMD_HTML_ONLY || cmd == CMD_VERBATIM || cmd == CMD_LATEX_1 || cmd == CMD_LATEX_2 || cmd == CMD_LATEX_3) {
+  // A flag for whether we want to skip leading spaces after the command
+  bool skipLeadingSpace = true;
+
+  if (cmd == CMD_HTML_ONLY || cmd == CMD_VERBATIM || cmd == CMD_LATEX_1 || cmd == CMD_LATEX_2 || cmd == CMD_LATEX_3 || getBaseCommand(cmd) == CMD_CODE) {
 
     m_isVerbatimText = true;
 
-  } else {
+    // Skipping leading space is necessary with inline \code command,
+    // and it won't hurt anything for block \code (TODO: are the other
+    // commands also compatible with skip leading space?  If so, just
+    // do it every time.)
+    if (getBaseCommand(cmd) == CMD_CODE) skipLeadingSpace = true;
+    else skipLeadingSpace = false;
+  }
+
+  if (skipLeadingSpace) {
     // skip any possible spaces after command, because some commands have parameters,
     // and spaces between command and parameter must be ignored.
     if (endOfWordPos != string::npos) {
       endOfWordPos = line.find_first_not_of(" \t", endOfWordPos);
     }
   }
+  
   pos = endOfWordPos;
 }
 
