@@ -560,7 +560,6 @@ public:
 
   String *get_mangled_type(SwigType *type_arg) {
     String *result = NewString("");
-    SwigType *prefix = 0;
     SwigType *type = 0;
     SwigType *tdtype = SwigType_typedef_resolve_all(type_arg);
     if (tdtype)
@@ -584,16 +583,18 @@ public:
       type = Copy(type_arg);
     }
 
-    prefix = SwigType_prefix(type);
-    Replaceall(prefix, ".", "");
-    Replaceall(prefix, "const", "c");
-    Replaceall(prefix, "volatile", "v");
-    Replaceall(prefix, "a(", "a");
-    Replaceall(prefix, "m(", "m");
-    Replaceall(prefix, "q(", "");
-    Replaceall(prefix, ")", "");
-    Replaceall(prefix, " ", "");
-    Printf(result, "%s", prefix);
+    SwigType *prefix = SwigType_prefix(type);
+    if (Len(prefix)) {
+      Replaceall(prefix, ".", "");
+      Replaceall(prefix, "const", "c");
+      Replaceall(prefix, "volatile", "v");
+      Replaceall(prefix, "a(", "a");
+      Replaceall(prefix, "m(", "m");
+      Replaceall(prefix, "q(", "");
+      Replaceall(prefix, ")", "");
+      Replaceall(prefix, " ", "");
+      Printf(result, "%s", prefix);
+    }
 
     type = SwigType_base(type);
     if (SwigType_isbuiltin(type))
