@@ -126,7 +126,6 @@ class C:public Language {
   File *f_init;
 
   String *empty_string;
-  String *int_string;
 
   // Used only while generating wrappers for an enum, initially true and reset to false as soon as we see any enum elements.
   bool enum_is_empty;
@@ -144,8 +143,7 @@ public:
    * ----------------------------------------------------------------------------- */
 
   C() : 
-    empty_string(NewString("")),
-    int_string(NewString("int"))
+    empty_string(NewString(""))
   {
   }
 
