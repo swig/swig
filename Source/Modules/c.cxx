@@ -858,7 +858,7 @@ ready:
        String *wrapper_call = NewString("");
 
        // add function declaration to the proxy header file
-       Printv(f_wrappers_decl, preturn_type, " ", wname, get_wrapper_func_proto(n).get(), ";\n\n", NIL);
+       Printv(f_wrappers_decl, "SWIGIMPORT ", preturn_type, " ", wname, get_wrapper_func_proto(n).get(), ";\n\n", NIL);
 
        if (is_global) {
 	 if (!f_wrappers_aliases) {
