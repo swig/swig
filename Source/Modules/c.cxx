@@ -1559,18 +1559,6 @@ ready:
     Setattr(n, "sym:name", name);
     return Language::classDeclaration(n);
   }
-  
-  /* ---------------------------------------------------------------------
-   * extendDirective()
-   *
-   * The idea is to extend the class with additional variables, using
-   * SwigObj structs. This is not implemented yet.
-   * --------------------------------------------------------------------- */
-
-  virtual int extendDirective(Node *n) {
-    return Language::extendDirective(n);
-  }
-  
 };				/* class C */
 
 /* -----------------------------------------------------------------------------
