@@ -190,12 +190,9 @@ same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;")
     free($input);
 }
 
-%typemap(in) SWIGTYPE & {
-  if ($input)
+%typemap(in) SWIGTYPE & %{
     $1 = ($1_ltype) $input;
-  else
-    $1 = ($1_ltype) 0;
-}
+%}
 
 // Typemaps for assigning result values to a special return variable
 same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;")
