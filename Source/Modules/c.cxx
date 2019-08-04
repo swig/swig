@@ -248,9 +248,9 @@ public:
     if (SwigType_isenum(classnametype)) {
       String *enumname = getEnumName(enumLookup(classnametype));
       if (enumname)
-  Replaceall(tm, classnamespecialvariable, enumname);
+	Replaceall(tm, classnamespecialvariable, enumname);
       else
-  Replaceall(tm, classnamespecialvariable, NewStringf("int"));
+	Replaceall(tm, classnamespecialvariable, NewStringf("int"));
     } else {
       scoped_dohptr btype(SwigType_base(classnametype));
       String* typestr = NIL;
@@ -305,7 +305,7 @@ public:
       SwigType *classnametype = Copy(strippedtype);
       Delete(SwigType_pop(classnametype));
       if (Len(classnametype) > 0) {
-  substituteResolvedTypeSpecialVariable(classnametype, tm, "$*resolved_type");
+	substituteResolvedTypeSpecialVariable(classnametype, tm, "$*resolved_type");
       }
       Delete(classnametype);
     }
@@ -664,8 +664,7 @@ ready:
                  Replaceall(tm, "$name", name);
                  Printv(wrapper->code, tm, "\n", NIL);
                  p = Getattr(p, "tmap:check:next");
-            }
-            else {
+            } else {
                  p = nextSibling(p);
             }
        }
@@ -723,20 +722,19 @@ ready:
 
   String *get_wrapper_func_return_type(Node *n)
     {
-       SwigType *type = Getattr(n, "type");
-       String *return_type;
+      SwigType *type = Getattr(n, "type");
+      String *return_type;
 
-       if ((return_type = Swig_typemap_lookup("ctype", n, "", 0))) {
-	 substituteResolvedType(type, return_type);
-       }
-       else {
-            Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
-	    return_type = NewString("");
-       }
+      if ((return_type = Swig_typemap_lookup("ctype", n, "", 0))) {
+	substituteResolvedType(type, return_type);
+      } else {
+	Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
+	return_type = NewString("");
+      }
 
-       Replaceall(return_type, "::", "_");
+      Replaceall(return_type, "::", "_");
 
-       return return_type;
+      return return_type;
     }
 
   /* ----------------------------------------------------------------------
@@ -803,8 +801,7 @@ ready:
 
 		 // template handling
 		 Replaceall(c_parm_type, "$tt", SwigType_lstr(type, 0));
-	    }
-	    else {
+	    } else {
 		 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
 	    }
 
@@ -819,8 +816,7 @@ ready:
 		   Printf(wrapper->code, "%s\n", tm);
 		 }
                  p = Getattr(p, "tmap:in:next");
-            }
-            else {
+            } else {
                  Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(type, 0));
                  p = nextSibling(p);
             }
@@ -895,8 +891,7 @@ ready:
             if (String *tm = Swig_typemap_lookup("cppouttype", n, "", 0)) {
 		 Wrapper_add_local(wrapper, "cppresult", SwigType_str(tm, "cppresult"));
                  return_object = checkAttribute(n, "tmap:cppouttype:retobj", "1");
-            }
-            else {
+            } else {
                  Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No cppouttype typemap defined for %s\n", SwigType_str(type, 0));
             }
        }
@@ -921,8 +916,7 @@ ready:
                  Replaceall(tm, "$name", name);
                  Printv(wrapper->code, tm, "\n", NIL);
                  p = Getattr(p, "tmap:check:next");
-            }
-            else {
+            } else {
                  p = nextSibling(p);
             }
        }
@@ -944,8 +938,7 @@ ready:
 	   Replaceall(action, "result =", "cppresult = (int)");
 	 else
 	   Replaceall(action, "result =", "cppresult = (int*)");
-       }
-       else if (return_object && Getattr(n, "c:retval") &&
+       } else if (return_object && Getattr(n, "c:retval") &&
 		!SwigType_isarray(type) &&
 		(Cmp(storage, "static") != 0)) {
 	 // returning object by value
@@ -954,8 +947,7 @@ ready:
 	 if (Cmp(Getattr(n, "kind"), "variable") == 0) {
 	   Delete(action);
 	   action = NewStringf("{const %s = %s;", str, Swig_cmemberget_call(Getattr(n, "name"), type, 0, 0));
-	 }
-	 else {
+	 } else {
 	   String *call_str = NewStringf("{const %s = %s", str,
 	     SwigType_ispointer(SwigType_typedef_resolve_all(otype)) ? "*" : "");
 	   Replaceall(action, "result =", call_str);
@@ -981,12 +973,10 @@ ready:
                  Printf(wrapper->code, "%s", tm);
                  if (Len(tm))
                    Printf(wrapper->code, "\n");
-            }
-            else {
+            } else {
                  Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), Getattr(n, "name"));
             }
-       }
-       else {
+       } else {
             Append(wrapper->code, action);
        }
 
@@ -1002,8 +992,7 @@ ready:
                       Printv(wrapper->code, tm, "\n", NIL);
                  }
                  p = Getattr(p, "tmap:freearg:next");
-            }
-            else {
+            } else {
                  p = nextSibling(p);
             }
        }
@@ -1090,10 +1079,9 @@ ready:
     }
 
     if (CPlusPlus) {
-         functionWrapperCPPSpecific(n);
-    }
-    else {
-         functionWrapperCSpecific(n);
+      functionWrapperCPPSpecific(n);
+    } else {
+      functionWrapperCSpecific(n);
     }
 
     return SWIG_OK;
@@ -1282,8 +1270,7 @@ ready:
 			Setattr(new_node, "c:base_name", old_name);
 			appendChild(n, new_node);
 		      }
-		    }
-		    else {
+		    } else {
 		      appendChild(n, copy_node(node));
 		    }
 		  }
