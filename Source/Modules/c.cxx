@@ -577,7 +577,8 @@ public:
       SwigType_del_pointer(type);
       if (SwigType_isfunction(type)) {
         Printf(result, "f");
-        goto ready;
+	Delete(type);
+	return result;
       }
       Delete(type);
       type = Copy(type_arg);
@@ -602,7 +603,6 @@ public:
     else
       Printf(result, "%s", Char(Swig_name_mangle(SwigType_base(type))));
 
-ready:
     if (prefix)
       Delete(prefix);
     if (type)
