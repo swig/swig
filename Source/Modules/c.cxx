@@ -597,17 +597,21 @@ public:
     }
 
     type = SwigType_base(type);
-    if (SwigType_isbuiltin(type))
+    if (SwigType_isbuiltin(type)) {
       Printf(result, "%c", *Char(SwigType_base(type)));
-    else if (SwigType_isenum(type))
-      Printf(result, "e%s", Swig_scopename_last(type));
-    else
+    } else if (SwigType_isenum(type)) {
+      String* enumname = Swig_scopename_last(type);
+      const char* s = Char(enumname);
+      static const int len_enum_prefix = strlen("enum ");
+      if (strncmp(s, "enum ", len_enum_prefix) == 0)
+	s += len_enum_prefix;
+      Printf(result, "e%s", s);
+    } else {
       Printf(result, "%s", Char(Swig_name_mangle(SwigType_base(type))));
+    }
 
-    if (prefix)
-      Delete(prefix);
-    if (type)
-      Delete(type);
+    Delete(prefix);
+    Delete(type);
 
     return result;
   }
