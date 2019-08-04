@@ -10,12 +10,6 @@
 #include <ctype.h>
 #include "swigmod.h"
 
-#ifdef IS_SET_TO_ONE
-#undef IS_SET_TO_ONE
-#endif
-#define IS_SET_TO_ONE(n, var) \
-       (Cmp(Getattr(n, var), "1") == 0)
-
 int SwigType_isbuiltin(SwigType *t) {
   const char* builtins[] = { "void", "short", "int", "long", "char", "float", "double", "bool", 0 };
   int i = 0;
@@ -841,7 +835,7 @@ ready:
        current_output = output_wrapper_decl;
 
        // C++ function wrapper proxy code
-       bool const is_global = IS_SET_TO_ONE(n, "c:globalfun");
+       bool const is_global = GetFlag(n, "c:globalfun");
        String *wname = is_global ? Swig_name_wrapper(name) : Copy(name);
        String *preturn_type = get_wrapper_func_return_type(n);
        String *wrapper_call = NewString("");
@@ -875,7 +869,7 @@ ready:
        SwigType *type = Getattr(n, "type");
        SwigType *otype = Copy(type);
        SwigType *return_type = get_wrapper_func_return_type(n);
-       String *wname = IS_SET_TO_ONE(n, "c:globalfun") ? Swig_name_wrapper(name) : Copy(name);
+       String *wname = GetFlag(n, "c:globalfun") ? Swig_name_wrapper(name) : Copy(name);
        ParmList *parms = Getattr(n, "parms");
        Parm *p;
        bool is_void_return = (SwigType_type(type) == T_VOID);
