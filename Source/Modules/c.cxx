@@ -169,8 +169,7 @@ public:
    * getProxyName()
    *
    * Test to see if a type corresponds to something wrapped with a proxy class.
-   * Return NULL if not otherwise the proxy class name, fully qualified with
-   * top level namespace name if the nspace feature is used.
+   * Return NULL if not, otherwise the proxy class name to be freed by the caller.
    * ----------------------------------------------------------------------------- */
 
    String *getProxyName(SwigType *t) {
@@ -205,6 +204,7 @@ public:
 	  }
           if (proxyname) {
             enumname = NewStringf("%s_%s", proxyname, symname);
+	    Delete(proxyname);
           } else {
             // global enum or enum in a namespace
             String *nspace = Getattr(n, "sym:nspace");
