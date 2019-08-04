@@ -618,7 +618,7 @@ ready:
     return result;
   }
 
-  virtual void functionWrapperCSpecific(Node *n)
+  void functionWrapperCSpecific(Node *n)
     {
        // this is C function, we don't apply typemaps to it
        String *name = Getattr(n, "sym:name");
@@ -707,7 +707,7 @@ ready:
        }
     }
 
-  virtual void functionWrapperAppendOverloaded(String *name, Parm* first_param)
+  void functionWrapperAppendOverloaded(String *name, Parm* first_param)
     {
        String *over_suffix = NewString("");
        Parm *p;
@@ -870,7 +870,7 @@ ready:
     }
 
 
-  virtual void functionWrapperCPPSpecificWrapper(Node *n, String *name)
+    void functionWrapperCPPSpecificWrapper(Node *n, String *name)
     {
        current_output = output_wrapper_def;
 
@@ -1022,7 +1022,7 @@ ready:
        DelWrapper(wrapper);
     }
 
-  virtual void functionWrapperCPPSpecific(Node *n)
+    void functionWrapperCPPSpecific(Node *n)
     {
        ParmList *parms = Getattr(n, "parms");
        String *name = Copy(Getattr(n, "sym:name"));
