@@ -158,12 +158,11 @@ public:
           // FIXME: using namespace as class name is a hack.
           proxyname = Swig_name_member(NULL, nspace, symname);
      } else {
-          proxyname = symname;
+          proxyname = Copy(symname);
      }
      Setattr(n, "proxyname", proxyname);
-     Delete(proxyname);
 
-     return Copy(proxyname);
+     return proxyname;
   }
 
   /* -----------------------------------------------------------------------------

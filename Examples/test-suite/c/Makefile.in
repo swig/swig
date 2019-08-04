@@ -51,7 +51,6 @@ FAILING_CPP_TESTS := \
     char_strings \
     constant_pointers \
     default_args \
-    director_enum \
     director_smartptr \
     director_string \
     enum_thorough \
@@ -82,11 +81,7 @@ FAILING_CPP_TESTS := \
     member_pointer_const \
     mixed_types \
     multiple_inheritance_shared_ptr \
-    namespace_class \
     nested_class \
-    nested_scope \
-    nested_template_base \
-    smart_pointer_extend \
     smart_pointer_template_defaults_overload \
     stl_no_default_constructor \
     struct_initialization_cpp \
