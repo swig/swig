@@ -186,12 +186,12 @@ static string padCodeAndVerbatimBlocks(const string &docString) {
 
 // Helper function to extract the option value from a command,
 // e.g. param[in] -> in
-static std::string getCommandOption(const std::string &command) {
+static std::string getCommandOption(const std::string &command, char openChar, char closeChar) {
   string option;
 
   size_t opt_begin, opt_end;
-  opt_begin = command.find('[');
-  opt_end = command.find(']');
+  opt_begin = command.find(openChar);
+  opt_end = command.find(closeChar);
   if (opt_begin != string::npos && opt_end != string::npos)
     option = command.substr(opt_begin+1, opt_end-opt_begin-1);
 
@@ -566,10 +566,31 @@ void PyDocConverter::handleCode(DoxygenEntity &tag, std::string &translatedComme
   // Use the current indent for the code-block line itself.
   translatedComment += indent.getFirstLineIndent();
 
-  // Go out on a limb and assume that examples in the C or C++ sources use C++.
-  // In the worst case, we'll highlight C code using C++ syntax which is not a
-  // big deal (TODO: handle Doxygen code command language argument).
-  translatedComment += ".. code-block:: c++\n\n";
+  // Check for an option given to the code command (e.g. code{.py}),
+  // and try to set the code-block language accordingly.
+  string option = getCommandOption(tag.typeOfEntity, '{', '}');
+  // Set up the language option to the code-block command, which can
+  // be any language supported by pygments:
+  string codeLanguage;
+  if (option == ".py")
+    // Other possibilities here are "default" or "python3".  In Sphinx
+    // 2.1.2, basic syntax doesn't render quite the same in these as
+    // with "python", which for basic keywords seems to provide
+    // slightly richer formatting.  Another option would be to leave
+    // the language empty, but testing with Sphinx 1.8.5 has produced
+    // an error "1 argument required".
+    codeLanguage = "python";
+  else if (option == ".java")
+    codeLanguage = "java";
+  else if (option == ".c")
+    codeLanguage = "c";
+  else
+    // If there is not a match, or if no option was given, go out on a
+    // limb and assume that the examples in the C or C++ sources use
+    // C++.
+    codeLanguage = "c++";
+  
+  translatedComment += ".. code-block:: " + codeLanguage + "\n\n";
 
   // Specify the level of extra indentation that will be used for
   // subsequent lines within the code block.  Note that the correct
@@ -671,7 +692,7 @@ void PyDocConverter::handleTagParam(DoxygenEntity &tag, std::string &translatedC
   const std::string paramValue = getParamValue(paramName);
 
   // Get command option, e.g. "in", "out", or "in,out"
-  string commandOpt = getCommandOption(tag.typeOfEntity);
+  string commandOpt = getCommandOption(tag.typeOfEntity, '[', ']');
   if (commandOpt == "in,out") commandOpt = "in/out";
 
   // If provided, append the parameter direction to the type

@@ -690,7 +690,7 @@ void DoxygenParser::addCommandUnique(const std::string &theCommand, const TokenL
   // \f{ ... \f}
   // \f{env}{ ... \f}
   // \f$ ... \f$
-  else if (theCommand == "code" || theCommand == "verbatim"
+  else if (getBaseCommand(theCommand) == "code" || theCommand == "verbatim"
            || theCommand == "dot" || theCommand == "msc" || theCommand == "f[" || theCommand == "f{" || theCommand == "f$") {
     if (!endCommands.size()) {
       // fill in static table of end commands
@@ -707,7 +707,7 @@ void DoxygenParser::addCommandUnique(const std::string &theCommand, const TokenL
     if (it != endCommands.end())
       endCommand = it->second;
     else
-      endCommand = "end" + theCommand;
+      endCommand = "end" + getBaseCommand(theCommand);
 
     std::string content = getStringTilEndCommand(endCommand, tokList);
     aNewList.push_back(DoxygenEntity("plainstd::string", content));
