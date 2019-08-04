@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <string.h>
 #include "global_vars/global_vars_wrap.h"
 
 int main(int argc, const char *argv[])
