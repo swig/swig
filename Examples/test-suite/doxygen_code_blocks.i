@@ -46,6 +46,12 @@
  * \code{.py}
  * print('hello world')
  * \endcode
+ *
+ * A python doctest example:
+ * \code{.py}
+ * >>> 1 + 1
+ * 2
+ * \endcode
  */
 int function()
 {

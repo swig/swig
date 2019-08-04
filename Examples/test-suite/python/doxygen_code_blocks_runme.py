@@ -50,4 +50,9 @@ A code block for python:
 
 .. code-block:: python
 
-    print('hello world')""")
+    print('hello world')
+
+A python doctest example:
+
+>>> 1 + 1
+2""")

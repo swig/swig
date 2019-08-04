@@ -174,7 +174,8 @@ static string padCodeAndVerbatimBlocks(const string &docString) {
     } else {
       if (lastLineWasNonBlank &&
 	  (line.compare(pos, 13, ".. code-block") == 0 ||
-	  line.compare(pos, 7, ".. math") == 0)) {
+	   line.compare(pos, 7, ".. math") == 0 ||
+	   line.compare(pos, 3, ">>>") == 0)) {
 	// Must separate code or math blocks from the previous line
 	result += '\n';
       }
@@ -563,9 +564,6 @@ void PyDocConverter::handleCode(DoxygenEntity &tag, std::string &translatedComme
 
   trimWhitespace(translatedComment);
 
-  // Use the current indent for the code-block line itself.
-  translatedComment += indent.getFirstLineIndent();
-
   // Check for an option given to the code command (e.g. code{.py}),
   // and try to set the code-block language accordingly.
   string option = getCommandOption(tag.typeOfEntity, '{', '}');
@@ -589,14 +587,6 @@ void PyDocConverter::handleCode(DoxygenEntity &tag, std::string &translatedComme
     // limb and assume that the examples in the C or C++ sources use
     // C++.
     codeLanguage = "c++";
-  
-  translatedComment += ".. code-block:: " + codeLanguage + "\n\n";
-
-  // Specify the level of extra indentation that will be used for
-  // subsequent lines within the code block.  Note that the correct
-  // "starting indentation" is already present in the input, so we
-  // only need to add the desired code block indentation.
-  string codeIndent = m_indent;
 
   std::string code;
   handleTagVerbatim(tag, code, arg);
@@ -604,6 +594,27 @@ void PyDocConverter::handleCode(DoxygenEntity &tag, std::string &translatedComme
   // Try and remove leading newline, which is present for block \code
   // command:
   eraseLeadingNewLine(code);
+
+  // Check for python doctest blocks, and treat them specially:
+  bool isDocTestBlock = false;
+  size_t startPos;
+  // ">>>" would normally appear at the beginning, but doxygen comment
+  // style may have space in front, so skip leading whitespace
+  if ((startPos=code.find_first_not_of(" \t")) != string::npos && code.substr(startPos,3) == ">>>")
+    isDocTestBlock = true;
+
+  string codeIndent;
+  if (! isDocTestBlock) {
+    // Use the current indent for the code-block line itself.
+    translatedComment += indent.getFirstLineIndent();
+    translatedComment += ".. code-block:: " + codeLanguage + "\n\n";
+
+    // Specify the level of extra indentation that will be used for
+    // subsequent lines within the code block.  Note that the correct
+    // "starting indentation" is already present in the input, so we
+    // only need to add the desired code block indentation.
+    codeIndent = m_indent;
+  }
 
   translatedComment += codeIndent;
   for (size_t n = 0; n < code.length(); n++) {
