@@ -127,7 +127,6 @@ class C:public Language {
 
   String *empty_string;
   String *int_string;
-  String *tl_namespace; // optional top level namespace
 
   // Used only while generating wrappers for an enum, initially true and reset to false as soon as we see any enum elements.
   bool enum_is_empty;
@@ -146,8 +145,7 @@ public:
 
   C() : 
     empty_string(NewString("")),
-    int_string(NewString("int")),
-    tl_namespace(NULL)
+    int_string(NewString("int"))
   {
   }
 
@@ -166,7 +164,7 @@ public:
 
      if (nspace) {
           // FIXME: using namespace as class name is a hack.
-          proxyname = Swig_name_member(tl_namespace, nspace, symname);
+          proxyname = Swig_name_member(NULL, nspace, symname);
      } else {
           proxyname = symname;
      }
@@ -220,10 +218,7 @@ public:
             // global enum or enum in a namespace
             String *nspace = Getattr(n, "sym:nspace");
             if (nspace) {
-              if (tl_namespace)
-                enumname = NewStringf("%s_%s_%s", tl_namespace, nspace, symname);
-              else
-                enumname = NewStringf("%s_%s", nspace, symname);
+	      enumname = NewStringf("%s_%s", nspace, symname);
             } else {
               enumname = Copy(symname);
             }
