@@ -142,7 +142,7 @@ public:
    * C()
    * ----------------------------------------------------------------------------- */
 
-  C() : 
+  C() :
     empty_string(NewString(""))
   {
   }
@@ -179,7 +179,7 @@ public:
    * Return NULL if not otherwise the proxy class name, fully qualified with
    * top level namespace name if the nspace feature is used.
    * ----------------------------------------------------------------------------- */
-  
+
    String *getProxyName(SwigType *t) {
      Node *n = classLookup(t);
 
@@ -281,7 +281,7 @@ public:
   /* -----------------------------------------------------------------------------
    * substituteResolvedType()
    *
-   * Substitute the special variable $csclassname with the proxy class name for classes/structs/unions 
+   * Substitute the special variable $csclassname with the proxy class name for classes/structs/unions
    * that SWIG knows about. Also substitutes enums with enum name.
    * Otherwise use the $descriptor name for the C# class name. Note that the $&csclassname substitution
    * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
@@ -490,7 +490,7 @@ public:
 
   /* -----------------------------------------------------------------------
    * globalvariableHandler()
-   * ------------------------------------------------------------------------ */  
+   * ------------------------------------------------------------------------ */
 
   virtual int globalvariableHandler(Node *n) {
     // Don't export static globals, they won't be accessible when using a shared library, for example.
@@ -614,7 +614,7 @@ ready:
       Delete(prefix);
     if (type)
       Delete(type);
-    
+
     return result;
   }
 
@@ -1082,7 +1082,7 @@ ready:
   /* ----------------------------------------------------------------------
    * functionWrapper()
    * ---------------------------------------------------------------------- */
-   
+
   virtual int functionWrapper(Node *n) {
     if (!Getattr(n, "sym:overloaded")) {
       if (!addSymbol(Getattr(n, "sym:name"), n))
@@ -1304,7 +1304,7 @@ ready:
       String* const tdname = Getattr(n, "tdname");
       if (tdname)
         Append(struct_def, "typedef struct {\n");
-      else 
+      else
         Printv(struct_def, "struct ", name, " {\n", NIL);
       emit_c_struct_def(struct_def, n);
       if (tdname)
@@ -1541,7 +1541,7 @@ ready:
     Printv(f_wrappers_decl, "#define ", name, " ", value, "\n", NIL);
     return SWIG_OK;
   }
-  
+
   /* ---------------------------------------------------------------------
    * classDeclaration()
    * --------------------------------------------------------------------- */
@@ -1552,7 +1552,7 @@ ready:
     String *prefix = 0;
     if (classtype) {
       prefix = Swig_scopename_prefix(classtype);
-      if (prefix) 
+      if (prefix)
         Printf(name, "%s_", Swig_name_mangle(prefix));
     }
     Append(name, Swig_name_mangle(Getattr(n, "sym:name")));
