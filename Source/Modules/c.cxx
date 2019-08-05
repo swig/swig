@@ -1551,24 +1551,6 @@ public:
     Printv(f_wrappers_decl, "#define ", name, " ", value, "\n", NIL);
     return SWIG_OK;
   }
-
-  /* ---------------------------------------------------------------------
-   * classDeclaration()
-   * --------------------------------------------------------------------- */
-
-  virtual int classDeclaration(Node *n) {
-    String *name = NewString("");
-    String *classtype = Getattr(n, "classtype");
-    String *prefix = 0;
-    if (classtype) {
-      prefix = Swig_scopename_prefix(classtype);
-      if (prefix)
-        Printf(name, "%s_", Swig_name_mangle(prefix));
-    }
-    Append(name, Swig_name_mangle(Getattr(n, "sym:name")));
-    Setattr(n, "sym:name", name);
-    return Language::classDeclaration(n);
-  }
 };				/* class C */
 
 /* -----------------------------------------------------------------------------
