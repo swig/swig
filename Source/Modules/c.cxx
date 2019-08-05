@@ -37,7 +37,17 @@ public:
   ~scoped_dohptr() { Delete(obj_); }
 
   // This is an std::auto_ptr<>-like "destructive" copy ctor which allows to return objects of this type from functions.
-  scoped_dohptr(scoped_dohptr const& tmp) : obj_(tmp.release()) {}
+  scoped_dohptr(scoped_dohptr const& other) : obj_(other.release()) {}
+
+  // Same for the assignment operator.
+  scoped_dohptr& operator=(scoped_dohptr const& other) {
+    if (&other != this) {
+      Delete(obj_);
+      obj_ = other.release();
+    }
+
+    return *this;
+  }
 
   DOH* get() const { return obj_; }
 
@@ -47,12 +57,17 @@ public:
     return obj;
   }
 
+  void reset() {
+    if (obj_) {
+      Delete(obj_);
+      obj_ = NULL;
+    }
+  }
+
   operator DOH*() const { return obj_; }
 
 private:
-  scoped_dohptr& operator=(scoped_dohptr const&);
-
-  DOH* const obj_;
+  DOH* obj_;
 };
 
 // Helper class to output "begin" fragment in the ctor and "end" in the dtor.
