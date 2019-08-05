@@ -155,10 +155,12 @@ public:
      String *nspace = Getattr(n, "sym:nspace");
 
      if (nspace) {
-          // FIXME: using namespace as class name is a hack.
-          proxyname = Swig_name_member(NULL, nspace, symname);
+       String *nspace_mangled = Copy(nspace);
+       Replaceall(nspace_mangled, ".", "_");
+       proxyname = NewStringf("%s_%s", nspace_mangled, symname);
+       Delete(nspace_mangled);
      } else {
-          proxyname = Copy(symname);
+       proxyname = Copy(symname);
      }
      Setattr(n, "proxyname", proxyname);
 
@@ -207,12 +209,7 @@ public:
 	    Delete(proxyname);
           } else {
             // global enum or enum in a namespace
-            String *nspace = Getattr(n, "sym:nspace");
-            if (nspace) {
-	      enumname = NewStringf("%s_%s", nspace, symname);
-            } else {
-              enumname = Copy(symname);
-            }
+	    enumname = getNamespacedName(n);
           }
           Setattr(n, "enumname", enumname);
           Delete(enumname);
