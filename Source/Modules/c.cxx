@@ -136,6 +136,9 @@ class C:public Language {
 
   String *empty_string;
 
+  // Prefix for module-level symbols, currently just the module name.
+  String *module_prefix;
+
   // Used only while generating wrappers for an enum, initially true and reset to false as soon as we see any enum elements.
   bool enum_is_empty;
 
@@ -152,10 +155,15 @@ public:
    * ----------------------------------------------------------------------------- */
 
   C() :
-    empty_string(NewString(""))
+    empty_string(NewString("")),
+    module_prefix(NULL)
   {
   }
 
+  ~C()
+  {
+    Delete(module_prefix);
+  }
 
   String *getNamespacedName(Node *n)
   {
@@ -180,6 +188,31 @@ public:
      Setattr(n, "proxyname", proxyname);
 
      return proxyname;
+  }
+
+  // Construct the name to be used for a global (i.e. not member) symbol in C wrappers.
+  //
+  // The returned string must be freed by caller.
+  String *getGlobalWrapperName(Node *n, String *name) const
+  {
+    // Use namespace as the prefix if feature:nspace is in use.
+    scoped_dohptr scopename_prefix(Swig_scopename_prefix(Getattr(n, "name")));
+    if (scopename_prefix) {
+      if (GetFlag(parentNode(n), "feature:nspace")) {
+	scoped_dohptr mangled_prefix(Swig_string_mangle(scopename_prefix));
+	scopename_prefix = mangled_prefix;
+      } else {
+	scopename_prefix.reset();
+      }
+    }
+
+    // Fall back to the module name if we don't use feature:nspace or are outside of any namespace.
+    //
+    // Note that we really, really need to use some prefix, as a global wrapper function can't have the same name as the original function (being wrapped) with
+    // the same name.
+    String* const prefix = scopename_prefix ? scopename_prefix : module_prefix;
+
+    return NewStringf("%s_%s", prefix, name);
   }
 
   /* -----------------------------------------------------------------------------
@@ -386,6 +419,7 @@ public:
 
   virtual int top(Node *n) {
     String *module = Getattr(n, "name");
+    module_prefix = Copy(module);
     String *outfile = Getattr(n, "outfile");
 
     // initialize I/O
@@ -632,7 +666,7 @@ public:
     {
        // this is C function, we don't apply typemaps to it
        String *name = Getattr(n, "sym:name");
-       String *wname = Swig_name_wrapper(name);
+       String *wname = getGlobalWrapperName(n, name);
        SwigType *type = Getattr(n, "type");
        SwigType *return_type = NULL;
        String *arg_names = NULL;
@@ -852,7 +886,7 @@ public:
 
        // C++ function wrapper proxy code
        bool const is_global = GetFlag(n, "c:globalfun");
-       String *wname = is_global ? Swig_name_wrapper(name) : Copy(name);
+       String *wname = is_global ? getGlobalWrapperName(n, name) : Copy(name);
        String *preturn_type = get_wrapper_func_return_type(n);
        String *wrapper_call = NewString("");
 
@@ -885,7 +919,7 @@ public:
        SwigType *type = Getattr(n, "type");
        SwigType *otype = Copy(type);
        SwigType *return_type = get_wrapper_func_return_type(n);
-       String *wname = GetFlag(n, "c:globalfun") ? Swig_name_wrapper(name) : Copy(name);
+       String *wname = GetFlag(n, "c:globalfun") ? getGlobalWrapperName(n, name) : Copy(name);
        ParmList *parms = Getattr(n, "parms");
        Parm *p;
        bool is_void_return = (SwigType_type(type) == T_VOID);

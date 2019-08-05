@@ -63,7 +63,6 @@ Flattening C++ language constructs into a set of C-style functions obviously com
 
 <H3>Known C++ Shortcomings in Generated C API:</H3>
 <ul>
-    <li>Namespaced global functions are not namespaced</li>
     <li>Enums with a context like class or namespace are broken</li>
     <li>Global variables are not supported</li>
     <li>Qualifiers are stripped</li>
@@ -192,11 +191,11 @@ Wrapping C functions and variables is obviously performed in a straightforward w
 
 
 <p>
-For each C function declared in the interface file a wrapper function with the prefix <tt>_wrap_</tt> is created. Basically, the wrapper function performs a call to the original function, and returns its result. For convenience, a <tt>#define func _wrap_func</tt> is also provided in the generated header file to make it possible to call the function under its original name. If this is undesirable, <tt>SWIG_NO_WRAPPER_ALIASES</tt> can be predefined before including the wrapper header to disable these defines.
+For each C function declared in the interface file a wrapper function with a prefix, required to make its name different from the original one, is created. The prefix for the global functions is <tt>module_</tt>, i.e. the name of the SWIG module followed by underscore. If <tt>nspace</tt> feature is used, the prefix for a function defined in a namespace is <tt>namespace_</tt> -- note that it does <em>not</em> contain the module prefix, as it's not necessary to make a unique function name in this case. The wrapper function performs a call to the original function, and returns its result. For convenience, a <tt>#define func prefix_func</tt> is also provided in the generated header file to make it possible to call the function under its original name. If this is undesirable, <tt>SWIG_NO_WRAPPER_ALIASES</tt> can be predefined before including the wrapper header to disable these defines.
 </p>
 
 <p>
-For example, for function declaration:
+For example, for function declaration in the module <tt>mymath</tt>:
 </p>
 
 <div class="targetlang"><pre>
@@ -208,7 +207,7 @@ The output is simply:
 </p>
 
 <div class="targetlang"><pre>
-int _wrap_gcd(int arg1, int arg2) {
+int mymath_gcd(int arg1, int arg2) {
   int result;
   result = gcd(arg1,arg2);
   return result;
@@ -426,7 +425,7 @@ area: 7.068583
           Typecasts wrapper functions return values in proxy functions</br>
           <code>
               MyClass *MyClass_new(void) {</br>
-              &nbsp;return (MyClass *)_wrap_MyClass_new();</br>
+              &nbsp;return (MyClass *)MyClass_new();</br>
               }
           </code>
       </td>
@@ -436,7 +435,7 @@ area: 7.068583
     <td>Mapping of wrapper functions parameters to local C++ variables</br>
        </br>
        <code>
-          SwigObj* _wrap_MyClass_do(SwigObj *carg1) {</br>
+          SwigObj* MyClass_do(SwigObj *carg1) {</br>
             &nbsp;SomeCPPClass *arg1 = 0;</br>
             &nbsp;if (carg1)</br>
               &nbsp;&nbsp;arg1 = (SomeCPPClass*)carg1->obj</br>
@@ -500,7 +499,7 @@ void SomeIntTemplateClass_delete(SomeIntTemplateClass * carg1);
 We'll examine the generation of the wrapper function first.
 
 <div class="targetlang"><pre>
-SWIGEXPORTC SwigObj * _wrap_someFunction(SwigObj * carg1, int carg2) {
+SWIGEXPORTC SwigObj * module_someFunction(SwigObj * carg1, int carg2) {
   SomeClass * cppresult;
   SomeTemplateClass< int > *arg1 = 0 ;
   int arg2 ;
@@ -544,7 +543,7 @@ Let's go through it step by step and start with the wrapper prototype
 <div class="targetlang"><pre>
 ctype                        ctype            ctype
 ---------                    ---------        ---
-SwigObj * _wrap_someFunction(SwigObj * carg1, int carg2);
+SwigObj * module_someFunction(SwigObj * carg1, int carg2);
 </pre></div>
 
 As first unit of the wrapper code, a variable to hold the return value of the function is emitted to the wrapper's body
