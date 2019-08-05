@@ -267,11 +267,19 @@ typedef struct SwigObj SwigObj;
 typedef struct SwigObj SwigObj;
 %}
 
+#endif // SWIG_CPPMODE
+
 #ifdef SWIG_C_EXCEPT
 %include "cexcept.swg"
-#endif // SWIG_C_EXCEPT
-
-#endif // SWIG_CPPMODE
+#else // !SWIG_C_EXCEPT
+// Still define the macro used in some standard typemaps, but we can't
+// implement it in C, so just allow the user predefining their own version.
+%insert("runtime") %{
+#ifndef SWIG_exception
+#define SWIG_exception(code, msg)
+#endif
+%}
+#endif // SWIG_C_EXCEPT/!SWIG_C_EXCEPT
 
 %insert("runtime") %{
 #ifdef __cplusplus
