@@ -145,14 +145,9 @@ same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;")
     $1 = *($&1_ltype) &$input;
 }
 
-%typemap(in) SWIGTYPE {
-  $1 = *($1_ltype *)$input;
-}
+%typemap(in) SWIGTYPE "$1 = *($1_ltype *)$input;"
 
-%typemap(in) SWIGTYPE * {
-  if ($input)
-    $1 = ($1_ltype) $input;
-}
+%typemap(in) SWIGTYPE * "$1 = ($1_ltype) $input;"
 
 %typemap(in) SWIGTYPE *[ANY] {
   if ($input) {
@@ -209,13 +204,9 @@ same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;")
   *($&1_ltype) &$result = $1; 
 }
 
-%typemap(out) SWIGTYPE {
-  $result = (SwigObj*) &$1;
-}
+%typemap(out) SWIGTYPE "$result = (SwigObj*) &$1;"
 
-%typemap(out) SWIGTYPE *, SWIGTYPE & {
-  $result = (SwigObj*) $1;
-}
+%typemap(out) SWIGTYPE *, SWIGTYPE & "$result = (SwigObj*) $1;"
 
 %typemap(out) SWIGTYPE * [ANY], SWIGTYPE [ANY][ANY] {
   static SwigObj **_temp = 0;
