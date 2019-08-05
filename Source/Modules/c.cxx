@@ -1014,6 +1014,7 @@ public:
             String *tm;
             if ((tm = Swig_typemap_lookup_out("out", n, "cppresult", wrapper, action))) {
                  Replaceall(tm, "$result", "result");
+		 Replaceall(tm, "$owner", GetFlag(n, "feature:new") ? "1" : "0");
                  Printf(wrapper->code, "%s", tm);
                  if (Len(tm))
                    Printf(wrapper->code, "\n");
