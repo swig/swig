@@ -401,20 +401,14 @@ namespace swig
       return const_reference(_seq, n);
     }
 
-    bool check(bool set_err = true) const
+    bool check() const
     {
       int s = size();
       for (int i = 0; i < s; ++i) {
 	//	swig::SwigVar_PyObject item = OctSequence_GetItem(_seq, i);
 	octave_value item; // * todo
-	if (!swig::check<value_type>(item)) {
-	  if (set_err) {
-	    char msg[1024];
-	    sprintf(msg, "in sequence element %d", i);
-	    SWIG_Error(SWIG_RuntimeError, msg);
-	  }
+	if (!swig::check<value_type>(item))
 	  return false;
-	}
       }
       return true;
     }
