@@ -179,7 +179,7 @@ int main() {
   // char *& tests
   
   for (i=0; i<count; i++) {
-    char **str = GetConstCharPointerRef();
+    const char **str = GetConstCharPointerRef();
     if (strcmp(*str, CPLUSPLUS_MSG) != 0) {
       fprintf(stderr, "Test char pointer ref get failed, iteration %d\n",i);
       exit(1);
@@ -189,7 +189,7 @@ int main() {
   for (i=0; i<count; i++) {
     char *str = (char*) malloc(sizeof(char) * 256);
     sprintf(str, "%s%d", OTHERLAND_MSG, i);
-    if (!SetConstCharPointerRef((char **) &str, i)) {
+    if (!SetConstCharPointerRef((const char **)&str, i)) {
       fprintf(stderr, "Test char pointer ref set failed, iteration %d\n", i);
       exit(1);
     }
