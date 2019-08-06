@@ -204,7 +204,7 @@ same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;")
   *($&1_ltype) &$result = $1; 
 }
 
-%typemap(out) SWIGTYPE "$result = (SwigObj*) &$1;"
+%typemap(out) SWIGTYPE "$result = (SwigObj*)new $1_ltype($1);"
 
 %typemap(out) SWIGTYPE *, SWIGTYPE & "$result = (SwigObj*) $1;"
 
@@ -230,23 +230,6 @@ same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;")
   else
     $result = ($1_ltype) 0;
 }
-
-// typemaps for 'cppresult'
-same_macro_all_primitive_types_but_void(same_type,cppouttype);
-same_macro_all_primitive_types_but_void(cref_as_ptr,cppouttype);
-
-%typemap(cppouttype, retobj="1") SWIGTYPE      "$1_ltype *"
-%typemap(cppouttype) SWIGTYPE *    "$1_ltype"
-%typemap(cppouttype) const SWIGTYPE * "const $1_ltype"
-%typemap(cppouttype) SWIGTYPE &    "$1_ltype"
-%typemap(cppouttype) SWIGTYPE [ANY] "$1_ltype"
-%typemap(cppouttype) SWIGTYPE * [ANY] "/*SWIGTYPE *[ANY] */ $1_ltype"
-%typemap(cppouttype, retobj="1") enum SWIGTYPE "int"
-%typemap(cppouttype) enum SWIGTYPE &, enum SWIGTYPE * "int *"
-%typemap(cppouttype) SWIGTYPE (CLASS::*) "$1_ltype"
-
-%typemap(cppouttype, fragment="stdbool_inc") bool, const bool, const bool & "bool"
-%typemap(cppouttype, fragment="stdbool_inc") bool *, const bool *, bool & "bool *"
 
 #ifdef SWIG_CPPMODE
 

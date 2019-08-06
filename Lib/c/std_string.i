@@ -13,8 +13,6 @@ class string;
 %typemap(ctype) string * "char *"
 %typemap(ctype) string & "char *"
 %typemap(ctype) const string & "char *"
-%typemap(cppouttype, retobj="1") string "std::string*"
-%typemap(cppouttype) const string &, string *, string & "std::string*"
 
 %typemap(in) string {
   if ($input) {
@@ -40,7 +38,15 @@ class string;
     delete $1;
 }
 
-%typemap(out) string, const string &, string *, string & {
+%typemap(out) string {
+  const char *str = cppresult.c_str();
+  size_t len = strlen(str);
+  $result = (char *) malloc(len + 1);
+  memcpy($result, str, len);
+  $result[len] = '\0';
+}
+
+%typemap(out) const string &, string *, string & {
   const char *str = cppresult->c_str();
   size_t len = strlen(str);
   $result = (char *) malloc(len + 1);

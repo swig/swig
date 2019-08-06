@@ -915,7 +915,6 @@ public:
        current_output = output_wrapper_def;
 
        // C++ function wrapper
-       String *storage = Getattr(n, "storage");
        SwigType *type = Getattr(n, "type");
        SwigType *otype = Copy(type);
        SwigType *return_type = get_wrapper_func_return_type(n);
@@ -923,7 +922,6 @@ public:
        ParmList *parms = Getattr(n, "parms");
        Parm *p;
        bool is_void_return = (SwigType_type(type) == T_VOID);
-       bool return_object = false;
        // create new function wrapper object
        Wrapper *wrapper = NewWrapper();
 
@@ -932,12 +930,12 @@ public:
 
        // add variable for holding result of original function 'cppresult'
        if (!is_void_return) {
-            if (String *tm = Swig_typemap_lookup("cppouttype", n, "", 0)) {
-		 Wrapper_add_local(wrapper, "cppresult", SwigType_str(tm, "cppresult"));
-                 return_object = checkAttribute(n, "tmap:cppouttype:retobj", "1");
-            } else {
-                 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No cppouttype typemap defined for %s\n", SwigType_str(type, 0));
-            }
+	 SwigType *value_type = cplus_value_type(type);
+	 SwigType* cppresult_type = value_type ? value_type : type;
+	 SwigType* ltype = SwigType_ltype(cppresult_type);
+	 Wrapper_add_local(wrapper, "cppresult", SwigType_str(ltype, "cppresult"));
+	 Delete(ltype);
+	 Delete(value_type);
        }
 
        // create wrapper function prototype
@@ -976,35 +974,7 @@ public:
             Replaceall(action, Getattr(n, "name"), cbase_name);
        }
 
-       // handle special cases of cpp return result
-       if (SwigType_isenum(SwigType_base(type))) {
-	 if (return_object)
-	   Replaceall(action, "result =", "cppresult = (int)");
-	 else
-	   Replaceall(action, "result =", "cppresult = (int*)");
-       } else if (return_object && Getattr(n, "c:retval") &&
-		!SwigType_isarray(type) &&
-		(Cmp(storage, "static") != 0)) {
-	 // returning object by value
-	 String *str = SwigType_str(SwigType_add_reference(SwigType_base(type)), "_result_ref");
-	 String *lstr = SwigType_lstr(type, 0);
-	 if (Cmp(Getattr(n, "kind"), "variable") == 0) {
-	   Delete(action);
-	   action = NewStringf("{const %s = %s;", str, Swig_cmemberget_call(Getattr(n, "name"), type, 0, 0));
-	 } else {
-	   String *call_str = NewStringf("{const %s = %s", str,
-	     SwigType_ispointer(SwigType_typedef_resolve_all(otype)) ? "*" : "");
-	   Replaceall(action, "result =", call_str);
-	   Delete(call_str);
-	 }
-	 if (Getattr(n, "nested"))
-	   Replaceall(action, "=", NewStringf("= *(%s)(void*) &", SwigType_str(otype, 0)));
-	 Printf(action, "cppresult = (%s*) &_result_ref;}", lstr);
-	 Delete(str);
-	 Delete(lstr);
-       } else {
-	 Replaceall(action, "result =", "cppresult =");
-       }
+       Replaceall(action, "result =", "cppresult =");
 
        // prepare action code to use, e.g. insert try-catch blocks
        action = emit_action(n);
@@ -1013,6 +983,14 @@ public:
        if (!is_void_return) {
             String *tm;
             if ((tm = Swig_typemap_lookup_out("out", n, "cppresult", wrapper, action))) {
+	      // This is ugly, but the type of our result variable is not always the same as the actual return type currently because
+	      // get_wrapper_func_return_type() applies ctype typemap to it. These types are more or less compatible though, so we should be able to cast
+	      // between them explicitly.
+	      const char* start = Char(tm);
+	      const char* p = strstr(start, "$result = ");
+	      if (p == start || (p && p[-1] == ' ')) {
+		Insert(tm, p - start + strlen("$result = "), NewStringf("(%s)", return_type));
+	      }
                  Replaceall(tm, "$result", "result");
 		 Replaceall(tm, "$owner", GetFlag(n, "feature:new") ? "1" : "0");
                  Printf(wrapper->code, "%s", tm);
@@ -1060,8 +1038,6 @@ public:
     {
        ParmList *parms = Getattr(n, "parms");
        String *name = Copy(Getattr(n, "sym:name"));
-       SwigType *type = Getattr(n, "type");
-       SwigType *tdtype = NULL;
 
        // mangle name if function is overloaded
        if (Getattr(n, "sym:overloaded")) {
@@ -1098,10 +1074,6 @@ public:
 		}
             }
        }
-
-       // resolve correct type
-       if((tdtype = SwigType_typedef_resolve_all(type)))
-         Setattr(n, "type", tdtype);
 
        // make sure lnames are set
        functionWrapperPrepareArgs(parms);
