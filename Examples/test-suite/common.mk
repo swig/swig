@@ -643,6 +643,7 @@ CPP_STD_TEST_CASES += \
 	director_string \
 	ignore_template_constructor \
 	li_std_combinations \
+	li_std_containers_overload \
 	li_std_deque \
 	li_std_except \
 	li_std_except_as_class \

@@ -10,6 +10,56 @@ Version 4.0.1 (in progress)
 2019-08-08: rokups
             [C#, Java] #1601 Fix invalid code generated for "%constant enum EnumType.
 
+2019-08-07: wsfulton
+            [Python] Fix method overloading of methods that take STL containers of different
+            types. The following usage (using std::vector) would fail when using -builtin:
+
+              %include <std_string.i>
+              %include <std_vector.i>
+
+              %inline %{
+              struct X {};
+              %}
+
+              %template(VectorX) std::vector<X>;
+              %template(VectorInt) std::vector<int>;
+
+              %inline %{
+              using namespace std;
+              string VectorOverload(vector<X> v);
+              string VectorOverload(vector<int> v);
+              %}
+
+            The following would incorrectly fail:
+
+              s = VectorOverload([1, 2, 3])
+
+            With:
+
+              Traceback (most recent call last):
+                File "runme3.py", line 20, in <module>
+                  ret = VectorOverload([1, 2, 3])
+              TypeError: Wrong number or type of arguments for overloaded function 'VectorOverload'.
+                Possible C/C++ prototypes are:
+                  VectorOverload(std::vector< Number,std::allocator< Number > >)
+                  VectorOverload(std::vector< int,std::allocator< int > >)
+
+            The problem was due to some error handling that was not cleared during typehecking.
+            In this case an error was not cleared when the elements in the list failed the
+            typecheck for converting to X. Only occurs in Python 3+.
+
+            In some combinations of overloaded methods, the following type of error message would
+            occur:
+
+              RuntimeError: in sequence element 0
+
+              The above exception was the direct cause of the following exception:
+
+              Traceback (most recent call last):
+                File "runme3.py", line 23, in <module>
+                  check(VectorOverload(v), "vector<X>")
+              SystemError: <built-in function VectorOverload> returned a result with an error set
+
 2019-08-01: wsfulton
             #1602 Fix regression in 4.0.0 where a template function containing a parameter
             with the same name as the function name led to the parameter name used in the
