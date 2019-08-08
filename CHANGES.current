@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.1 (in progress)
 ===========================
 
+2019-08-08: rokups
+            [C#, Java] #1601 Fix invalid code generated for "%constant enum EnumType.
+
 2019-08-01: wsfulton
             #1602 Fix regression in 4.0.0 where a template function containing a parameter
             with the same name as the function name led to the parameter name used in the
