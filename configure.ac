@@ -2391,10 +2391,11 @@ else
 
   if test -n "$GO" ; then
     GOVERSIONOPTION=version
+    go_version=$($GO $GOVERSIONOPTION | sed -e 's/go version //')
     AC_MSG_CHECKING([whether go version is too old])
     case $go_version in
-    go1.[012345]*)
-      AC_MSG_RESULT([yes - minimum version is 1.6])
+    go1.[012]*)
+      AC_MSG_RESULT([yes - minimum version is 1.3])
       GO=
       GOOPT="-intgosize 32"
       ;;

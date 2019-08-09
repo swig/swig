@@ -1484,7 +1484,7 @@ go: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
 	  rm -f gopath/$(GOMOD)/src/runme/*; \
 	fi
 	if test -f $(SRCDIR)$(RUNME).go; then \
-	  cp $(SRCDIR)/$(RUNME).go gopath/$(GOMOD)/src/runme/; \
+	  cp $(SRCDIR)$(RUNME).go gopath/$(GOMOD)/src/runme/; \
 	fi
 	GOPATH=`pwd`/gopath/$(GOMOD); \
 	export GOPATH; \
@@ -1533,7 +1533,7 @@ go_cpp: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
 	  rm -f gopath/$(GOMOD)/src/runme/*; \
 	fi
 	if test -f $(SRCDIR)$(RUNME).go; then \
-	  cp $(SRCDIR)/$(RUNME).go gopath/$(GOMOD)/src/runme/; \
+	  cp $(SRCDIR)$(RUNME).go gopath/$(GOMOD)/src/runme/; \
 	fi
 	GOPATH=`pwd`/gopath/$(GOMOD); \
 	export GOPATH; \
