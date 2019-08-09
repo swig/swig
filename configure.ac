@@ -2390,6 +2390,7 @@ else
   GOVERSIONOPTION=
 
   if test -n "$GO" ; then
+    GOVERSIONOPTION=version
     AC_MSG_CHECKING([whether go version is too old])
     case $go_version in
     go1.[012345]*)
