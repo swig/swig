@@ -334,6 +334,7 @@ swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p) {
 SWIGINTERN PyTypeObject*
 swig_varlink_type(void) {
   static char varlink__doc__[] = "Swig var link object";
+#ifndef Py_LIMITED_API
   static PyTypeObject varlink_type;
   static int type_init = 0;
   if (!type_init) {
@@ -394,12 +395,28 @@ swig_varlink_type(void) {
       return NULL;
   }
   return &varlink_type;
+#else // Py_LIMITED_API
+  PyType_Slot slots[] = {
+    { Py_tp_dealloc, (void*)swig_varlink_dealloc },
+    { Py_tp_repr, (void*)swig_varlink_repr },
+    { Py_tp_getattr, (void*)swig_varlink_getattr },
+    { Py_tp_setattr, (void*)swig_varlink_setattr },
+    { Py_tp_str, (void*)swig_varlink_str },
+    { Py_tp_doc, (void*)varlink__doc__ },
+    { 0, NULL }
+  };
+  PyType_Spec spec = {};
+  spec.name = "swigvarlink";
+  spec.basicsize = sizeof(swig_varlinkobject);
+  spec.slots = slots;
+  return (PyTypeObject*)PyType_FromSpec(&spec);
+#endif // Py_LIMITED_API
 }
 
 /* Create a variable linking object for use later */
 SWIGINTERN PyObject *
 SWIG_Python_newvarlink(void) {
-  swig_varlinkobject *result = PyObject_NEW(swig_varlinkobject, swig_varlink_type());
+  swig_varlinkobject *result = PyObject_New(swig_varlinkobject, swig_varlink_type());
   if (result) {
     result->vars = 0;
   }
@@ -710,6 +727,14 @@ SwigPyObject_Check(PyObject *op) {
   if (PyType_IsSubtype(op->ob_type, target_tp))
     return 1;
   return (strcmp(op->ob_type->tp_name, "SwigPyObject") == 0);
+#elif defined(Py_LIMITED_API)
+  int cmp;
+  PyObject *tp_name = PyObject_GetAttrString((PyObject*)Py_TYPE(op), "__name__");
+  if (!tp_name)
+    return 0;
+  cmp = PyUnicode_CompareWithASCIIString(tp_name, "SwigPyObject");
+  Py_DECREF(tp_name);
+  return cmp == 0;
 #else
   return (Py_TYPE(op) == SwigPyObject_type())
     || (strcmp(Py_TYPE(op)->tp_name,"SwigPyObject") == 0);
@@ -852,7 +877,7 @@ swigobject_methods[] = {
 SWIGRUNTIME PyTypeObject*
 SwigPyObject_TypeOnce(void) {
   static char swigobject_doc[] = "Swig object carries a C/C++ instance pointer";
-
+#ifndef Py_LIMITED_API
   static PyNumberMethods SwigPyObject_as_number = {
     (binaryfunc)0, /*nb_add*/
     (binaryfunc)0, /*nb_subtract*/
@@ -980,12 +1005,30 @@ SwigPyObject_TypeOnce(void) {
       return NULL;
   }
   return &swigpyobject_type;
+#else // Py_LIMITED_API
+  PyType_Slot slots[] = {
+    { Py_tp_dealloc, (void*)SwigPyObject_dealloc },
+    { Py_tp_repr, (void*)SwigPyObject_repr },
+    { Py_tp_getattro, (void*)PyObject_GenericGetAttr },
+    { Py_tp_doc, (void*)swigobject_doc },
+    { Py_tp_richcompare, (void*)SwigPyObject_richcompare },
+    { Py_tp_methods, (void*)swigobject_methods },
+    { Py_nb_int, (void*)SwigPyObject_long },
+    { 0, NULL }
+  };
+  PyType_Spec spec = {};
+  spec.name = "SwigPyObject";
+  spec.basicsize = sizeof(SwigPyObject);
+  spec.flags = Py_TPFLAGS_DEFAULT;
+  spec.slots = slots;
+  return (PyTypeObject*)PyType_FromSpec(&spec);
+#endif // Py_LIMITED_API
 }
 
 SWIGRUNTIME PyObject *
 SwigPyObject_New(void *ptr, swig_type_info *ty, int own)
 {
-  SwigPyObject *sobj = PyObject_NEW(SwigPyObject, SwigPyObject_type());
+  SwigPyObject *sobj = PyObject_New(SwigPyObject, SwigPyObject_type());
   if (sobj) {
     sobj->ptr  = ptr;
     sobj->ty   = ty;
@@ -1050,8 +1093,18 @@ SwigPyPacked_type(void) {
 
 SWIGRUNTIMEINLINE int
 SwigPyPacked_Check(PyObject *op) {
+#ifndef Py_LIMITED_API
   return ((op)->ob_type == SwigPyPacked_TypeOnce()) 
     || (strcmp((op)->ob_type->tp_name,"SwigPyPacked") == 0);
+#else
+  int cmp;
+  PyObject *tp_name = PyObject_GetAttrString((PyObject*)Py_TYPE(op), "__name__");
+  if (!tp_name)
+    return 0;
+  cmp = PyUnicode_CompareWithASCIIString(tp_name, "SwigPyPacked");
+  Py_DECREF(tp_name);
+  return cmp == 0;
+#endif
 }
 
 SWIGRUNTIME void
@@ -1067,6 +1120,7 @@ SwigPyPacked_dealloc(PyObject *v)
 SWIGRUNTIME PyTypeObject*
 SwigPyPacked_TypeOnce(void) {
   static char swigpacked_doc[] = "Swig object carries a C/C++ instance pointer";
+#ifndef Py_LIMITED_API
   static PyTypeObject swigpypacked_type;
   static int type_init = 0;
   if (!type_init) {
@@ -1150,12 +1204,28 @@ SwigPyPacked_TypeOnce(void) {
       return NULL;
   }
   return &swigpypacked_type;
+#else
+  PyType_Slot slots[] = {
+    { Py_tp_dealloc, (void*)SwigPyPacked_dealloc },
+    { Py_tp_repr, (void*)SwigPyPacked_repr },
+    { Py_tp_str, (void*)SwigPyPacked_str },
+    { Py_tp_getattro, (void*)PyObject_GenericGetAttr },
+    { Py_tp_doc, swigpacked_doc },
+    { 0, NULL }
+  };
+  PyType_Spec spec = {};
+  spec.name = "SwigPyPacked";
+  spec.basicsize = sizeof(SwigPyPacked);
+  spec.flags = Py_TPFLAGS_DEFAULT;
+  spec.slots = slots;
+  return (PyTypeObject*)PyType_FromSpec(&spec);
+#endif
 }
 
 SWIGRUNTIME PyObject *
 SwigPyPacked_New(void *ptr, size_t size, swig_type_info *ty)
 {
-  SwigPyPacked *sobj = PyObject_NEW(SwigPyPacked, SwigPyPacked_type());
+  SwigPyPacked *sobj = PyObject_New(SwigPyPacked, SwigPyPacked_type());
   if (sobj) {
     void *pack = malloc(size);
     if (pack) {
@@ -1400,10 +1470,18 @@ SWIG_Python_ConvertFunctionPtr(PyObject *obj, void **ptr, swig_type_info *ty) {
     swig_cast_info *tc;
 
     /* here we get the method pointer for callbacks */
+#ifndef Py_LIMITED_API
     const char *doc = (((PyCFunctionObject *)obj) -> m_ml -> ml_doc);
+#else
+    PyObject* pystr_doc = PyObject_GetAttrString(obj, "__doc__");
+    const char *doc = pystr_doc ? SWIG_Python_str_AsChar(pystr_doc) : 0;
+#endif
     const char *desc = doc ? strstr(doc, "swig_ptr: ") : 0;
     if (desc)
       desc = ty ? SWIG_UnpackVoidPtr(desc + 10, &vptr, ty->name) : 0;
+#ifdef Py_LIMITED_API
+    SWIG_Python_str_DelForPy3(doc);
+#endif
     if (!desc)
       return SWIG_ERROR;
     tc = SWIG_TypeCheck(desc,ty);
@@ -1479,14 +1557,23 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
     if (empty_args) {
       PyObject *empty_kwargs = PyDict_New();
       if (empty_kwargs) {
-        inst = ((PyTypeObject *)data->newargs)->tp_new((PyTypeObject *)data->newargs, empty_args, empty_kwargs);
+#ifndef Py_LIMITED_API
+        newfunc newfn = ((PyTypeObject *)data->newargs)->tp_new;
+#else
+        newfunc newfn = (newfunc)PyType_GetSlot((PyTypeObject *)data->newargs, Py_tp_new);
+#endif
+        inst = newfn((PyTypeObject *)data->newargs, empty_args, empty_kwargs);
         Py_DECREF(empty_kwargs);
         if (inst) {
           if (PyObject_SetAttr(inst, SWIG_This(), swig_this) == -1) {
             Py_DECREF(inst);
             inst = 0;
           } else {
+#ifndef Py_LIMITED_API
             Py_TYPE(inst)->tp_flags &= ~Py_TPFLAGS_VALID_VERSION_TAG;
+#else
+            PyType_Modified(Py_TYPE(inst));
+#endif
           }
         }
       }
@@ -1561,7 +1648,12 @@ SWIG_Python_NewPointerObj(PyObject *self, void *ptr, swig_type_info *type, int f
     if (flags & SWIG_BUILTIN_TP_INIT) {
       newobj = (SwigPyObject*) self;
       if (newobj->ptr) {
-        PyObject *next_self = clientdata->pytype->tp_alloc(clientdata->pytype, 0);
+#ifndef Py_LIMITED_API
+        allocfunc alloc = clientdata->pytype->tp_alloc;
+#else
+        allocfunc alloc = (allocfunc)PyType_GetSlot(clientdata->pytype, Py_tp_alloc);
+#endif
+        PyObject *next_self = alloc(clientdata->pytype, 0);
         while (newobj->next)
 	  newobj = (SwigPyObject *) newobj->next;
         newobj->next = next_self;
@@ -1779,6 +1871,7 @@ SWIG_Python_TypeError(const char *type, PyObject *obj)
     } else 
 #endif      
     {
+#ifndef Py_LIMITED_API // tp_name is not accessible
       const char *otype = (obj ? obj->ob_type->tp_name : 0); 
       if (otype) {
 	PyObject *str = PyObject_Str(obj);
@@ -1794,6 +1887,7 @@ SWIG_Python_TypeError(const char *type, PyObject *obj)
 	Py_XDECREF(str);
 	return;
       }
+#endif
     }   
     PyErr_Format(PyExc_TypeError, "a '%s' is expected", type);
   } else {
