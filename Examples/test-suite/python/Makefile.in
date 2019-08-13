@@ -67,7 +67,6 @@ CPP_TEST_CASES += \
 	python_moduleimport \
 	python_overload_simple_cast \
 	python_pickle \
-	python_pybuffer \
 	python_pythoncode \
 	python_richcompare \
 	python_strict_unicode \
@@ -76,6 +75,11 @@ CPP_TEST_CASES += \
 	std_containers \
 	swigobject \
 	template_matrix \
+
+# buffers are not supported with -py3-stable-abi
+ifeq (,$(findstring -py3-stable-abi,$(SWIG_FEATURES)))
+  CPP_TEST_CASES += python_pybuffer
+endif
 
 #	li_std_carray
 #	director_profile
