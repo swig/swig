@@ -435,11 +435,83 @@ install-main:
 	@echo "Installing $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@"
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
-lib-languages = typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
-	csharp lua r go d javascript javascript/jsc \
-	javascript/v8 scilab xml
+lib-languages	=
 
-lib-modules = std
+ifeq (@SKIP_ANDROID@,)
+lib-languages+=	android
+endif
+
+ifeq (@SKIP_CSHARP@,)
+lib-languages+=	csharp
+endif
+
+ifeq (@SKIP_D@,)
+lib-languages+=	d
+endif
+
+ifeq (@SKIP_GO@,)
+lib-languages+=	go
+endif
+
+ifeq (@SKIP_GUILE@,)
+lib-languages+=	guile
+endif
+
+ifeq (@SKIP_JAVA@,)
+lib-languages+=	java
+endif
+
+ifeq (@SKIP_JAVASCRIPT@,)
+lib-languages+=	javascript
+lib-languages+=	javascript/jsc
+lib-languages+=	javascript/v8
+endif
+
+ifeq (@SKIP_LUA@,)
+lib-languages+=	lua
+endif
+
+ifeq (@SKIP_MZSCHEME@,)
+lib-languages+=	mzscheme
+endif
+
+ifeq (@SKIP_OCAML@,)
+lib-languages+=	ocaml
+endif
+
+ifeq (@SKIP_OCTAVE@,)
+lib-languages+=	octave
+endif
+
+ifeq (@SKIP_PHP@,)
+lib-languages+=	php
+endif
+
+ifeq (@SKIP_PERL5@,)
+lib-languages+=	perl5
+endif
+
+ifeq (@SKIP_PYTHON@,)
+lib-languages+=	python
+endif
+
+ifeq (@SKIP_R@,)
+lib-languages+=	r
+endif
+
+ifeq (@SKIP_RUBY@,)
+lib-languages+=	ruby
+endif
+
+ifeq (@SKIP_SCILAB@,)
+lib-languages+=	scilab
+endif
+
+ifeq (@SKIP_TCL@,)
+lib-languages+=	tcl
+endif
+
+lib-modules = std typemaps
 
 
 install-lib:
