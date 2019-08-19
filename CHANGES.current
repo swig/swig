@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.1 (in progress)
 ===========================
 
+2019-08-19: sjml
+            [Lua] #1596 tostring output changes to show the underlying C/C++ pointer.
+
 2019-08-08: rokups
             [C#, Java] #1601 Fix invalid code generated for "%constant enum EnumType.
 
