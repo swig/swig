@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.1 (in progress)
 ===========================
 
+2019-08-20: TekuConcept
+            [Javascript] #1535 Add %native support to Javascript.
+
 2019-08-20: bkotzz
             [Java] #1616 Add SWIG_JavaIllegalStateException to support throwing
             java.lang.IllegalStateException from JNI code.
