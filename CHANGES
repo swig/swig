@@ -5,6 +5,145 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
+Version 4.0.1 (21 Aug 2019)
+===========================
+
+2019-08-20: TekuConcept
+            [Javascript] #1535 Add %native support to Javascript.
+
+2019-08-20: bkotzz
+            [Java] #1616 Add SWIG_JavaIllegalStateException to support throwing
+            java.lang.IllegalStateException from JNI code.
+
+2019-08-19: sjml
+            [Lua] #1596 tostring output changes to show the underlying C/C++ pointer.
+
+2019-08-08: rokups
+            [C#, Java] #1601 Fix invalid code generated for "%constant enum EnumType.
+
+2019-08-07: wsfulton
+            [Python] Fix method overloading of methods that take STL containers of different
+            types. The following usage (using std::vector) would fail when using -builtin:
+
+              %include <std_string.i>
+              %include <std_vector.i>
+
+              %inline %{
+              struct X {};
+              %}
+
+              %template(VectorX) std::vector<X>;
+              %template(VectorInt) std::vector<int>;
+
+              %inline %{
+              using namespace std;
+              string VectorOverload(vector<X> v);
+              string VectorOverload(vector<int> v);
+              %}
+
+            The following would incorrectly fail:
+
+              s = VectorOverload([1, 2, 3])
+
+            With:
+
+              Traceback (most recent call last):
+                File "runme3.py", line 20, in <module>
+                  ret = VectorOverload([1, 2, 3])
+              TypeError: Wrong number or type of arguments for overloaded function 'VectorOverload'.
+                Possible C/C++ prototypes are:
+                  VectorOverload(std::vector< Number,std::allocator< Number > >)
+                  VectorOverload(std::vector< int,std::allocator< int > >)
+
+            The problem was due to some error handling that was not cleared during typehecking.
+            In this case an error was not cleared when the elements in the list failed the
+            typecheck for converting to X. Only occurs in Python 3+.
+
+            In some combinations of overloaded methods, the following type of error message would
+            occur:
+
+              RuntimeError: in sequence element 0
+
+              The above exception was the direct cause of the following exception:
+
+              Traceback (most recent call last):
+                File "runme3.py", line 23, in <module>
+                  check(VectorOverload(v), "vector<X>")
+              SystemError: <built-in function VectorOverload> returned a result with an error set
+
+2019-08-01: wsfulton
+            #1602 Fix regression in 4.0.0 where a template function containing a parameter
+            with the same name as the function name led to the parameter name used in the
+            target language being incorrectly modified.
+
+2019-07-29: wsfulton
+            Remove all generated files on error. Previously generated files were not removed,
+            potentially breaking Makefiles using file dependencies, especially when -Werror
+            (warnings as errors) was used.
+
+2019-07-23: smithx
+            [C#] #1530 #1532 Fix marshalling of std::wstring to C#.
+
+2019-07-18: gicmo
+            [Python] #1587 Python 3.8 support - remove use of deprecated PyObject_GC_UnTrack.
+
+2019-07-18: cher-nov
+            [Python] #1573 Generated Python code uses consistent string quoting style - double
+            quotes.
+
+2019-07-16: geefr
+            [C#] #616 #1576 Fix C# bool INPUT[], bool OUTPUT[], bool INOUT[] typemaps to marshall
+            as 1-byte.
+
+2019-07-12: vadz
+            [C#, Java] #1568 #1583 Fix std::set<> typemaps for primitive types.
+
+2019-07-12: vadz
+            #1566 #1584 Regression in 4.0.0 - fix missing value for first item of enums with
+            trailing comma.
+
+2019-07-11: mcfarljm
+            #1548 #1578 Fix segfault in Doxygen parser parsing empty lines in some commands like
+            \code.
+
+2019-07-09: IsaacPascual
+            [C#, Java] #1570 Fix name of generated C#/Java classes for %interface macros
+            in swiginterface.i when wrapping nested C++ classes.
+
+2019-07-05: wsfulton
+            [Python] #1547 Whitespace fixes in Doxygen translated comments into pydoc comments
+            for Sphinx compatibility.
+
+2019-06-28: wsfulton
+            [MzScheme, OCaml] #1559 $arg and $input were incorrectly substituted in the
+            argout typemap when two or more arguments were present.
+
+2019-06-24: wsfulton
+            [Python, Ruby] #1538 Remove the UnknownExceptionHandler class in order to be
+            C++17 compliant as it uses std::unexpected_handler which was removed in C++17.
+            This class was intended for director exception handling but was never used by
+            SWIG and was never documented.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2019-06-06: bkotzz
+            [Java] #1552 Improve performance in Java std::vector constructor wrapper that takes
+            a native Java array as input.
+
+2019-06-03: olly
+	    [Python] Fix regression in implicit_conv handling of tuples,
+	    introduced in SWIG 4.0.0.  Fixes #1553, reported by Alexandre
+	    Duret-Lutz.
+
+2019-05-24: wsfulton
+            [Octave] Fix detection of Octave on MacOS.
+
+2019-05-24: opoplawski
+            [Octave] #1522 Adapt OCTAVE_LDFLAGS for Octave 5.1.
+
+2019-05-22: ferdynator
+	    [PHP] #1528 Don't add a closing '?>' PHP tag to generated files.
+	    PSR-2 says it MUST be omitted for files containing only PHP.
 Version 4.0.0 (27 Apr 2019)
 ===========================
 
