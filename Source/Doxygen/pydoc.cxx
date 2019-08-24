@@ -261,7 +261,7 @@ void PyDocConverter::fillStaticTables() {
   tagHandlers["date"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["deprecated"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["details"] = make_handler(&PyDocConverter::handleParagraph);
-  tagHandlers["em"] = make_handler(&PyDocConverter::handleParagraph, " ");
+  tagHandlers["em"] = make_handler(&PyDocConverter::handleTagWrap, "*");
   tagHandlers["example"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["exception"] = tagHandlers["throw"] = tagHandlers["throws"] = make_handler(&PyDocConverter::handleTagException);
   tagHandlers["htmlonly"] = make_handler(&PyDocConverter::handleParagraph);

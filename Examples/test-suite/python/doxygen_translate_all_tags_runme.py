@@ -82,7 +82,7 @@ r"""Comment for **func03()**.
 
 *italicword*
 
-emphazedWord
+*emphazedWord*
 
 
 
