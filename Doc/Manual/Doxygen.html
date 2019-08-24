@@ -607,6 +607,10 @@ Here is the list of all Doxygen tags and the description of how they are transla
 <td>translated to {@code ...}</td>
 </tr>
 <tr>
+<td>\code{&lt;ext&gt;}</td>
+<td>translated to {@code ...}; code language extension is ignored</td>
+</tr>
+<tr>
 <td>\cond</td>
 <td>translated to 'Conditional comment: &lt;condition&gt;'</td>
 </tr>
@@ -684,7 +688,7 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\n</td>
-<td>replaced with new line char</td>
+<td>replaced with newline char</td>
 </tr>
 <tr>
 <td>\note</td>
@@ -705,6 +709,10 @@ Here is the list of all Doxygen tags and the description of how they are transla
 <tr>
 <td>\param</td>
 <td>translated to @param</td>
+</tr>
+<tr>
+<td>\param[&lt;dir&gt;]</td>
+<td>translated to @param; parameter direction ('in'; 'out'; or 'in,out') is ignored</td>
 </tr>
 <tr>
 <td>\remark</td>
@@ -1178,11 +1186,11 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\a</td>
-<td>wrapped with '_'</td>
+<td>wrapped with '*'</td>
 </tr>
 <tr>
 <td>\arg</td>
-<td>prepended with ' --'</td>
+<td>prepended with '* '</td>
 </tr>
 <tr>
 <td>\author</td>
@@ -1190,15 +1198,26 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\authors</td>
-<td>prints 'Author:'</td>
+<td>prints 'Authors:'</td>
 </tr>
 <tr>
 <td>\b</td>
-<td>wrapped with '__'</td>
+<td>wrapped with '**'</td>
+</tr>
+<td>\c</td>
+<td>wrapped with '``'</td>
 </tr>
 <tr>
 <td>\cite</td>
 <td>wrapped with single quotes</td>
+</tr>
+<tr>
+<td>\code</td>
+<td>replaced with '.. code-block:: c++'</td>
+</tr>
+<tr>
+<td>\code{&lt;ext&gt;}</td>
+<td>replaced with '.. code-block:: &lt;lang&gt;', where the following doxygen code languages are recognized: .c -&gt; C, .py -&gt; python, .java &gt; java</td>
 </tr>
 <tr>
 <td>\cond</td>
@@ -1214,7 +1233,7 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\e</td>
-<td>wrapped with '_'</td>
+<td>wrapped with '*'</td>
 </tr>
 <tr>
 <td>\else</td>
@@ -1226,7 +1245,7 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\em</td>
-<td>wrapped with '_'</td>
+<td>wrapped with '*'</td>
 </tr>
 <tr>
 <td>\endcond</td>
@@ -1237,8 +1256,24 @@ Here is the list of all Doxygen tags and the description of how they are transla
 <td>replaced with '}'</td>
 </tr>
 <tr>
+<td>\example</td>
+<td>replaced with 'Example:'</td>
+</tr>
+<tr>
 <td>\exception</td>
-<td>replaced with 'Throws:'</td>
+<td>replaced with ':raises:'</td>
+</tr>
+<tr>
+<td>\f$</td>
+<td>rendered using ':math:``'</td>
+</tr>
+<tr>
+<td>\f[</td>
+<td>rendered using '.. math::'</td>
+</tr>
+<tr>
+<td>\f{</td>
+<td>rendered using '.. math::'</td>
 </tr>
 <tr>
 <td>\if</td>
@@ -1250,11 +1285,11 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\li</td>
-<td>prepended with ' --'</td>
+<td>prepended with '* '</td>
 </tr>
 <tr>
 <td>\n</td>
-<td>replaced with new line char</td>
+<td>replaced with newline char</td>
 </tr>
 <tr>
 <td>\note</td>
@@ -1264,13 +1299,21 @@ Here is the list of all Doxygen tags and the description of how they are transla
 <td>\overload</td>
 <td>prints 'This is an overloaded ...' according to Doxygen docs</td>
 </tr>
+</tr>
+<td>\p</td>
+<td>wrapped with '``'</td>
+</tr>
 <tr>
 <td>\par</td>
 <td>replaced with 'Title: ...'</td>
 </tr>
 <tr>
 <td>\param</td>
-<td>translated to 'Arguments:\n param(type) --description'</td>
+<td>add ':type:' and ':param:' directives</td>
+</tr>
+<tr>
+<td>\param[&lt;dir&gt;]</td>
+<td>same as \param, but direction ('in'; 'out'; 'in,out') is included in ':type:' directive</td>
 </tr>
 <tr>
 <td>\remark</td>
@@ -1282,15 +1325,15 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\result</td>
-<td>replaced with 'Result:'</td>
+<td>add ':rtype:' and ':return:' directives</td>
 </tr>
 <tr>
 <td>\return</td>
-<td>replaced with 'Result:'</td>
+<td>add ':rtype:' and ':return:' directives</td>
 </tr>
 <tr>
 <td>\returns</td>
-<td>replaced with 'Result:'</td>
+<td>add ':rtype:' and ':return:' directives</td>
 </tr>
 <tr>
 <td>\sa</td>
@@ -1306,11 +1349,11 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\throw</td>
-<td>replaced with 'Throws:'</td>
+<td>replaced with ':raises:'</td>
 </tr>
 <tr>
 <td>\throws</td>
-<td>replaced wih 'Throws:'</td>
+<td>replaced wih ':raises:'</td>
 </tr>
 <tr>
 <td>\todo</td>
@@ -1318,7 +1361,11 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\tparam</td>
-<td>translated to 'Arguments:\n param(type) --description'</td>
+<td>add ':type:' and ':param:' directives</td>
+</tr>
+<tr>
+<td>\verbatim</td>
+<td>content copied verbatim</td>
 </tr>
 <tr>
 <td>\version</td>
@@ -1401,12 +1448,10 @@ Here is the list of these tags:
     <li>\attention</li>
     <li>\brief</li>
     <li>\bug</li>
-    <li>\c</li>
     <li>\callergraph</li>
     <li>\callgraph</li>
     <li>\category</li>
     <li>\class</li>
-    <li>\code</li>
     <li>\copybrief</li>
     <li>\copydetails</li>
     <li>\copydoc</li>
@@ -1418,7 +1463,6 @@ Here is the list of these tags:
     <li>\dontinclude</li>
     <li>\dot</li>
     <li>\dotfile</li>
-    <li>\endcode</li>
     <li>\enddot</li>
     <li>\endhtmlonly</li>
     <li>\endinternal</li>
@@ -1427,18 +1471,11 @@ Here is the list of these tags:
     <li>\endmanonly</li>
     <li>\endmsc</li>
     <li>\endrtfonly</li>
-    <li>\endverbatim</li>
     <li>\endxmlonly</li>
     <li>\enum</li>
-    <li>\example</li>
     <li>\extends</li>
-    <li>\f$</li>
-    <li>\f[</li>
-    <li>\f]</li>
     <li>\file</li>
     <li>\fn</li>
-    <li>\f{</li>
-    <li>\f}</li>
     <li>\headerfile</li>
     <li>\hideinitializer</li>
     <li>\htmlinclude</li>
@@ -1462,7 +1499,6 @@ Here is the list of these tags:
     <li>\name</li>
     <li>\namespace</li>
     <li>\nosubgrouping</li>
-    <li>\p</li>
     <li>\package</li>
     <li>\page</li>
     <li>\paragraph</li>
@@ -1499,7 +1535,6 @@ Here is the list of these tags:
     <li>\union</li>
     <li>\until</li>
     <li>\var</li>
-    <li>\verbatim</li>
     <li>\verbinclude</li>
     <li>\weakgroup</li>
     <li>\xmlonly</li>
