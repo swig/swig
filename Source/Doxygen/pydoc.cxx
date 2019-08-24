@@ -270,7 +270,7 @@ void PyDocConverter::fillStaticTables() {
   tagHandlers["link"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["manonly"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["note"] = make_handler(&PyDocConverter::handleParagraph);
-  tagHandlers["p"] = make_handler(&PyDocConverter::handleParagraph);
+  tagHandlers["p"] = make_handler(&PyDocConverter::handleTagWrap, "``");
   tagHandlers["partofdescription"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["rtfonly"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["remark"] = make_handler(&PyDocConverter::handleParagraph);
