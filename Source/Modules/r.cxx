@@ -36,11 +36,6 @@ static String * getRTypeName(SwigType *t, int *outCount = NULL) {
   if(Strncmp(b, "struct ", 7) == 0)
     Replace(b, "struct ", "", DOH_REPLACE_FIRST);
 
-  /* Printf(stdout, "<getRTypeName> %s,base = %s\n", t, b);
-     for(i = 0; i < Len(els); i++)
-     Printf(stdout, "%d) %s, ", i, Getitem(els,i));
-     Printf(stdout, "\n"); */
-
   for(i = 0; i < Len(els); i++) {
     String *el = Getitem(els, i);
     if(Strcmp(el, "p.") == 0 || Strncmp(el, "a(", 2) == 0) {
@@ -56,13 +51,6 @@ static String * getRTypeName(SwigType *t, int *outCount = NULL) {
   Insert(tmp, 0, retName);
   return tmp;
 
-  /*
-    if(count)
-    return(b);
-
-    Delete(b);
-    return(NewString(""));
-  */
 }
 
 /* --------------------------------------------------------------
@@ -285,7 +273,6 @@ protected:
   int generateCopyRoutines(Node *n);
   int DumpCode(Node *n);
 
-  //int OutputMemberReferenceMethod(String *className, int isSet, List *el, File *out);
   int OutputMemberReferenceMethod(String *className, int isSet,  
                                   List *memberList, List *nameList,
                                   List *typeList, File *out);
@@ -452,8 +439,6 @@ R::R() :
   R_MEMBER_SET(NewString("set")),
   R_MEMBER_GET(NewString("get")),
   processing_class_member_function(0),
-  // class_member_functions(0),
-  // class_member_set_functions(0),
   class_member_function_types(0),
   class_member_function_names(0),
   class_member_function_membernames(0),
@@ -536,7 +521,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   SwigType *funcparams = SwigType_functionpointer_decompose(rettype);
   String *rtype = SwigType_str(rettype, 0);
 
-  //   ParmList *parms = Getattr(n, "parms");
+  // ParmList *parms = Getattr(n, "parms");
   // memory leak
   ParmList *parms = SwigType_function_parms(SwigType_del_pointer(Copy(t)), n);
 
@@ -1029,9 +1014,6 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
       isSet = strcmp(ptr, "_set") == 0;
     }
 
-    //        OutputArrayMethod(className, el, out);  
-    //OutputMemberReferenceMethod(className, isSet, el, out);
-
     if(outputNamespaceInfo)
       Printf(s_namespace, "\"%s\"%s", className, i < n-1 ? "," : "");
   }
@@ -1123,15 +1105,6 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
     Printf(f->code, ");\n");
   }
 
-
-  /*    Printv(f->code, tab8,
-	"idx = pmatch(name, names(accessorFuns))\n",
-	tab8,
-	"if(is.na(idx)) {\n",
-	tab8, tab4,
-	"stop(\"No ", (isSet ? "modifiable" : "accessible"), " field named \", name, \" in ", className,
-	": fields are \", paste(names(accessorFuns), sep = \", \")",
-	")", "\n}\n", NIL); */
   Printv(f->code, ";", tab8,
 	 "idx = pmatch(name, names(accessorFuns));\n",
 	 tab8,
@@ -1265,7 +1238,6 @@ int R::enumDeclaration(Node *n) {
     Printf(enum_def_calls, "defineEnumeration(\"%s\",\n .values=c(%s))\n\n", ename, enum_values);
     Delete(enum_values);
     Delete(ename);
-    //Delete(symname);
   }
   return SWIG_OK;
 }
@@ -1394,32 +1366,7 @@ int R::variableWrapper(Node *n) {
 
 void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
 		    String *methodSetGet) {
-#if 0
-  if(isSet < 0) {
-    int n = Len(name);
-    char *ptr = Char(name);
-    if (n>4) {
-      isSet = Strcmp(NewString(&ptr[n-4]), "_set") == 0;
-    }
-  }
-/// RJB
-  List *l = isSet ? class_member_set_functions : class_member_functions;
 
-  if(!l) {
-    l = NewList();
-    if(isSet)
-      class_member_set_functions = l;
-    else
-      class_member_functions = l;
-  }
-
-  Append(l, memberName);
-  Append(l, name);
-
-  String *tmp = NewString("");
-  Wrapper_print(wrapper, tmp);
-  Append(l, tmp);
-#endif
   if (!class_member_function_names) {
     class_member_function_names = NewList();
     class_member_function_membernames = NewList();
@@ -1463,11 +1410,6 @@ List * R::Swig_overload_rank(Node *n,
       c = Getattr(c,"sym:nextSibling");
       continue;
     }
-    /*    if (SmartPointer && Getattr(c,"cplus:staticbase")) {
-	  c = Getattr(c,"sym:nextSibling");
-	  continue;
-	  } */
-
     /* Make a list of all the declarations (methods) that are overloaded with
      * this one particular method name */
 
@@ -1927,11 +1869,6 @@ int R::functionWrapper(Node *n) {
   if(!isVoidReturnType)
     addCopyParam = addCopyParameter(rtype);
 
-
-  // Can we get the nodeType() of the type node! and see if it is a struct.
-  //    int addCopyParam = SwigType_isclass(rtype);
-
-  //    if(addCopyParam)
   if (debugMode)
     Printf(stdout, "Adding a .copy argument to %s for %s = %s\n",
 	   iname, type, addCopyParam ? "yes" : "no");
@@ -2569,16 +2506,7 @@ int R::classDeclaration(Node *n) {
     Delete(class_other_functionnames);
     Delete(class_other_functiontypes);
  }
-#endif
-  
-  // if(class_member_functions) {
-  //   Delete(class_member_functions);
-  //   class_member_functions = NULL;
-  // }
-  // if(class_member_set_functions) {
-  //   Delete(class_member_set_functions);
-  //   class_member_set_functions = NULL;
-  // }
+#endif 
 
   if (class_member_function_types) {
     Delete(class_member_function_types);
