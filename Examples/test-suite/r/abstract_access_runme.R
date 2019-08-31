@@ -11,15 +11,27 @@ unittest(1, dd$do_x())
 ## Original version allowed dd$z <- 2
 tryCatch({
     dd$z <- 2
+    # force an error if the previous line doesn't raise an exception
+    stop("Test Failure A")
 }, error = function(e) {
+    if (e$message == "Test Failure A") {
+      # Raise the error again to cause a failed test
+      stop(e)
+    }
     message("Correct - no dollar assignment method found")
 }
 )
 
 tryCatch({
     dd[["z"]] <- 2
+    # force an error if the previous line doesn't raise an exception
+    stop("Test Failure B")
 }, error = function(e) {
-    message("Correct - no dollar assignment method found")
+  if (e$message == "Test Failure B") {
+    # Raise the error again to cause a failed test
+    stop(e)
+  }
+  message("Correct - no dollar assignment method found")
 }
 )
 
@@ -37,14 +49,26 @@ tryCatch({
 ## to fail above.
 tryCatch({
     m2 <- getMethod('$<-', "_p_A")
+    # force an error if the previous line doesn't raise an exception
+    stop("Test Failure C")
 }, error = function(e) {
-    message("Correct - no dollar assignment method found")
+  if (e$message == "Test Failure C") {
+    # Raise the error again to cause a failed test
+    stop(e)
+  }
+  message("Correct - no dollar assignment method found")
 }
 )
 
 tryCatch({
     m3 <- getMethod('[[<-', "_p_A")
+    # force an error if the previous line doesn't raise an exception
+    stop("Test Failure D")
 }, error = function(e) {
-    message("Correct - no list assignment method found")
+  if (e$message == "Test Failure D") {
+    # Raise the error again to cause a failed test
+    stop(e)
+  }
+  message("Correct - no list assignment method found")
 }
 )
