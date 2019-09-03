@@ -146,8 +146,9 @@
 #define WARN_IGNORE_OPERATOR_NEWARR     394	/* new [] */
 #define WARN_IGNORE_OPERATOR_DELARR     395	/* delete [] */
 #define WARN_IGNORE_OPERATOR_REF        396	/* operator *() */
+#define WARN_IGNORE_OPERATOR_LTEQUALGT  397	/* <=> */
 
-/* 394-399 are reserved */
+/* 398-399 are reserved */
 
 /* -- Type system and typemaps -- */
 
