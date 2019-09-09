@@ -1,91 +1,123 @@
 /* -------------------------------------------------------------------------
  * std_vector.i
+ *
+ * SWIG typemaps for std::vector.
+ *
+ * Since Fortran doesn't allow overloading of operator() for array access, we
+ * add `get` and `set` member functions for accessing the data. Note that by
+ * default these use typemaps which translate C indexing into Fortran indexing
+ * (element '1' is the first item, rather than '0'). (By setting a typemap
+ * yourself before instantiating std::vector, you can change this behavior.)
+ * Additionally, native Fortran integers are used by default for sizes and
+ * indexes.
+ *
+ * See the documentation for more details.
  * ------------------------------------------------------------------------- */
+
+%include "std_common.i"
 
 %{
 #include <vector>
 %}
 
-/*!
- * This module defines a std::vector class and conversion typemaps.
- *
- * Like the `std/std_vector.i` header, we convert based on the type. Use the %apply directive (with particular argument and/or function names) to change
- * the behavior.
- *
- * - f(std::vector<T>), f(const std::vector<T>&):
- *   the parameter is read-only, so we treat natively.
- * - f(std::vector<T>&), f(std::vector<T>*):
- *   the parameter may be modified: only a wrapped std::vector can be passed.
- * - std::vector<T> f():
- *   the vector is returned by copy; treat natively.
- * - std::vector<T>& f(), std::vector<T>* f():
- *   the vector is returned by mutable reference; return a wrapped reference.
- * - const std::vector<T>& f()
- *   return a native array view to the underlying data.
- * - const std::vector<T>* f(), f(const std::vector<T>*):
- *   for consistency, they expect and return a plain vector pointer.
- *
- * To avoid wrapping the std::vector class but still use the typemaps,
- * `%template() std::vector<double>` .
- */
-%include "std_container.i"
-%include "typemaps.i"
-
-namespace std {
-  template<class _Tp, class _Alloc = std::allocator<_Tp> >
-  class vector {
+%define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CTYPE, CREF_TYPE)
   public:
-    typedef std::size_t size_type;
-    typedef _Tp value_type;
-    typedef value_type *pointer;
-    typedef const value_type *const_pointer;
-    typedef _Tp &reference;
-    typedef const _Tp &const_reference;
-    typedef _Alloc allocator_type;
+    // Typedefs
+    typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
+    typedef CTYPE value_type;
+    typedef CTYPE &reference;
+    typedef CTYPE *pointer;
+    typedef CTYPE const *const_pointer;
+    // Note that we don't typedef CREF_TYPE const_reference; otherwise, SWIG
+    // will generate 'const_reference' rather than CREF_TYPE in the wrapper
+    // code.
+    // typedef CREF_TYPE const_reference;
 
-  public:
+    // Typemaps for making std::vector feel more like native Fortran:
+    // - Use Fortran 1-offset indexing
+    %apply int FORTRAN_INDEX {std::vector<CTYPE>::size_type index,
+                              std::vector<CTYPE>::size_type start_index,
+                              std::vector<CTYPE>::size_type stop_index};
+    // - Use native Fortran integers in proxy code
+    %apply int FORTRAN_INT {std::vector<CTYPE>::size_type};
+
     // Constructors
     vector();
     vector(size_type count);
-    vector(size_type count, const value_type &v);
+    vector(size_type count, CREF_TYPE v);
 
     // Accessors
     size_type size() const;
     size_type capacity() const;
     bool empty() const;
-    void clear();
+
+    CREF_TYPE front() const;
+    CREF_TYPE back() const;
 
     // Modify
     void reserve(size_type count);
     void resize(size_type count);
-    void resize(size_type count, const value_type &v);
-    void push_back(const value_type &v);
+    void resize(size_type count, CREF_TYPE v);
+    void push_back(CREF_TYPE v);
+    void clear();
 
-    const_reference front() const;
-    const_reference back() const;
+    // Instantiate proxy code
 
-    // Instantiate typemaps for this particular vector
-    %std_vector_impl(_Tp, std::vector<_Tp, _Alloc >)
+    %extend {
+      %fragment("SWIG_check_range");
 
-    // Extend for Fortran
-    %extend{
-      // C indexing used here!
-      void set(size_type index, const_reference v) {
-        // TODO: check range
+      void set(size_type index, CREF_TYPE v) {
+        SWIG_check_range(index, $self->size(),
+                         "std::vector<" #CTYPE ">::set",
+                         return);
         (*$self)[index] = v;
       }
 
-      // C indexing used here!
-      value_type get(size_type index) {
-        // TODO: check range
+      CREF_TYPE get(size_type index) {
+        SWIG_check_range(index, $self->size(),
+                         "std::vector<" #CTYPE ">::get",
+                         return $self->front());
         return (*$self)[index];
       }
-  }
-};
 
-// Specialize on bool
-template<class _Alloc >
-class vector<bool, _Alloc > {
-  /* NOT IMPLEMENTED */
-};
+      void insert(size_type index, CREF_TYPE v)
+      {
+        SWIG_check_range(index, $self->size() + 1,
+                         "std::vector<" #CTYPE ">::insert",
+                         return);
+        $self->insert($self->begin() + index, v);
+      }
+
+      void erase(size_type index)
+      {
+        SWIG_check_range(index, $self->size(),
+                         "std::vector<" #CTYPE ">::remove",
+                         return);
+        $self->erase($self->begin() + index);
+      }
+
+      void erase(size_type start_index, size_type stop_index)
+      {
+        SWIG_check_range(start_index, stop_index + 1,
+                         "std::vector<" #CTYPE ">::remove_range",
+                         return);
+        SWIG_check_range(stop_index, $self->size() + 1,
+                         "std::vector<" #CTYPE ">::remove_range",
+                         return);
+        $self->erase($self->begin() + start_index, $self->begin() + stop_index);
+      }
+    }
+%enddef
+
+namespace std {
+  template<class T> class vector {
+    SWIG_STD_VECTOR_MINIMUM_INTERNAL(T, const T&)
+  };
+
+  // bool specialization
+  template<> class vector<bool> {
+    SWIG_STD_VECTOR_MINIMUM_INTERNAL(bool, bool)
+  };
 } // end namespace std
+
