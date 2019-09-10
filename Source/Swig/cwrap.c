@@ -1496,7 +1496,6 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
   type = Getattr(n, "type");
 
   t = NewString(classname);
-  SwigType_add_qualifier(t, "const");
   SwigType_add_pointer(t);
   parms = NewParm(t, "self", n);
   Setattr(parms, "self", "1");
