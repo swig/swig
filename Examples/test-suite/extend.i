@@ -6,7 +6,7 @@
 
 %extend Base {
   ~Base() {
-    delete $self;
+    delete $self; 
   }
   static int zeroVal() {
     return 0;
@@ -38,7 +38,7 @@ struct Derived : Base {
 
 %{
   double extendval = 0;
-  double Derived_extendval_get(const Derived *self) {
+  double Derived_extendval_get(Derived *self) {
     return self->actualval * 100;
   }
   void Derived_extendval_set(Derived *self, double d) {

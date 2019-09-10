@@ -23,7 +23,7 @@ void ExtendMe_thing_set(ExtendMe *self, const char *val) {
     ExtendMeStringMap[self] = 0;
   }
 }
-char * ExtendMe_thing_get(const ExtendMe *self) {
+char * ExtendMe_thing_get(ExtendMe *self) {
   return ExtendMeStringMap[self];
 }
 %}
