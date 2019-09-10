@@ -30,7 +30,6 @@ subroutine test_ownership
 
   c = get_const_reference(b)
   ASSERT(c_associated(c%swigdata%cptr, a%swigdata%cptr))
-  ASSERT(c%swigdata%cmemflags == 4) ! Const reference
 
   ! Associate with a new class
   b = Foo(234)

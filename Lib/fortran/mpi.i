@@ -35,14 +35,14 @@
 
 %typemap(in, noblock=1) MPI_Comm {
 %#ifdef HAVE_MPI
-  $1 = MPI_Comm_f2c(%static_cast(*$input, MPI_Fint));
+  $1 = MPI_Comm_f2c((MPI_Fint)*$input);
 %#else
   $1 = *$input;
 %#endif
 }
 %typemap(out, noblock=1) MPI_Comm {
 %#ifdef HAVE_MPI
-  $result = %static_cast(MPI_Comm_c2f($1), int);
+  $result = (int)MPI_Comm_c2f($1);
 %#else
   $result = $1;
 %#endif

@@ -18,7 +18,7 @@
 
 /* Transform (SwigArrayWrapper *$input) -> (SWIGTYPE *DATA, size_t SIZE) */
 %typemap(in, noblock=1) (SWIGTYPE *DATA, size_t SIZE) {
-$1 = %static_cast($input->data, $1_ltype);
+$1 = ($1_ltype)$input->data;
 $2 = $input->size;
 }
 
