@@ -69,7 +69,7 @@
     const pair<T1,T2>& get_template_ref() const { return _g; }
     void set_template_ref( const pair<T1,T2>& g ) {  _g = g; }
 
-    std::string get_string() { return str; }
+    std::string get_string() const { return str; }
     void set_string(std::string other) { str = other; }
 
   private:
