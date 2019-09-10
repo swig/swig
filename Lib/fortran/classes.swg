@@ -278,7 +278,7 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 
 #ifdef __cplusplus
 %typemap(out, noblock=1) SWIGTYPE {
-  $result.cptr = new $1_ltype($1);
+  $result.cptr = new ($1_ltype)($1);
   $result.cmemflags = SWIG_MEM_RVALUE | SWIG_MEM_OWN;
 }
 #else
