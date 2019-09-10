@@ -315,7 +315,7 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 
 // >>> REFERENCE
 
-// Mutable references are treated as mutable pointers, but check for non-null reference inputs
+// Check for non-null reference inputs
 %apply SWIGTYPE* { SWIGTYPE& };
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE& {
   SWIG_check_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
