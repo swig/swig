@@ -111,7 +111,7 @@ struct DestructorPolicy {
 };
 template<class T>
 struct DestructorPolicy<T, ASSIGNMENT_NODESTRUCT> {
-  static SwigClassWrapper destruct(SwigClassWrapper self) {
+  static SwigClassWrapper destruct(SwigClassWrapper) {
     SWIG_exception_impl("assignment", SWIG_TypeError, "Invalid assignment: class type has private destructor", return SwigClassWrapper_uninitialized());
   }
 };
