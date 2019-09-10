@@ -42,6 +42,7 @@ case "$SWIGLANG" in
       "gcc-5") export FC=gfortran-5 ;;
       "gcc-6") export FC=gfortran-6 ;;
       "gcc-7") export FC=gfortran-7 ;;
+      "gcc-8") export FC=gfortran-8 ;;
     esac
     travis_retry sudo apt-get install -qq $FC
 		;;

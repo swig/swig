@@ -17,6 +17,11 @@ matrix:
       env: SWIGLANG=fortran SWIG_CC=gcc-7 SWIG_CXX=g++-7 CPP14=1 FCSTD=f2008
       sudo: required
       dist: trusty
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=java
+      sudo: required
+      dist: xenial
 before_install:
   - date -u
   - uname -a

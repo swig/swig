@@ -15,9 +15,9 @@
 %fragment("SWIG_fin"{const char*}, "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1) {
 subroutine %fortrantm(fin, const char*)(finp, iminp, temp)
   use, intrinsic :: ISO_C_BINDING
-  character(kind=C_CHAR, len=*), intent(IN) :: finp
-  type(SwigArrayWrapper), intent(OUT) :: iminp
-  character(kind=C_CHAR), dimension(:), target, allocatable, intent(OUT) :: temp
+  character(kind=C_CHAR, len=*), intent(in) :: finp
+  type(SwigArrayWrapper), intent(out) :: iminp
+  character(kind=C_CHAR), dimension(:), target, allocatable, intent(out) :: temp
   integer :: i
 
   allocate(character(kind=C_CHAR) :: temp(len(finp) + 1))
@@ -35,8 +35,8 @@ end subroutine
 %fragment("SWIG_fargout"{char*}, "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1) {
 subroutine %fortrantm(fargout, char*)(chars, string)
   use, intrinsic :: ISO_C_BINDING
-  character(kind=C_CHAR), dimension(:), intent(IN) :: chars
-  character(kind=C_CHAR, len=*), intent(OUT) :: string
+  character(kind=C_CHAR), dimension(:), intent(in) :: chars
+  character(kind=C_CHAR, len=*), intent(out) :: string
   integer :: i
   do i=1, len(string)
     string(i:i) = chars(i)
@@ -48,8 +48,8 @@ end subroutine
 %fragment("SWIG_fout"{const char*}, "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1) {
 subroutine %fortrantm(fout, const char*)(imout, fout)
   use, intrinsic :: ISO_C_BINDING
-  type(SwigArrayWrapper), intent(IN) :: imout
-  character(kind=C_CHAR, len=:), allocatable, intent(OUT) :: fout
+  type(SwigArrayWrapper), intent(in) :: imout
+  character(kind=C_CHAR, len=:), allocatable, intent(out) :: fout
   character(kind=C_CHAR), dimension(:), pointer :: chars
   integer(kind=C_SIZE_T) :: i
   call c_f_pointer(imout%data, chars, [imout%size])

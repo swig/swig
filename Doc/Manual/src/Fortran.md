@@ -1077,69 +1077,33 @@ like pass-by-value strings (where changes to the value in one language will
 ## std::vector
 
 The C++ `std::vector` class is defined in the `<std_vector.i>` interface file
-along with its basic methods, but the default typemaps generally treat
-read-only vectors as native Fortran arrays, and mutable vectors as classes. For
-the SWIG input of
+along with its basic methods. Similarly to other statically-typed languages
+such as Java, the `vector` class has no automatic conversions to and from the
+native Fortran array types.
+
+To be congruent to native Fortran types, the `vector` wrapper functions use
+1-offset indexing by default. That is, instead of index `0` meaning an offset
+of zero from the start of the array, index `1` indicates the "1st" element of
+the array. Also for improved compatibility, native Fortran integers are used
+for sizing and indexing into the array.
+
+The built-in `std::vector` wrapper class differs from the standard C++ library
+in that instead of `operator[]`, assignment and retrieval use `set(index,
+value)` and `get(index)`. Similarly, `insert`, `remove`, and `erase` all use
+1-offset Fortran integers rather than iterators.
+
+If changing the indexing offset is abhorrent to you, or you expect your
+Fortran integers to be 32-bit in app with vector sizes greater than 2 billion,
+fear not. Those two features are implemented with `%apply` typemaps, so
+applying the following typemap before instantiating `vector<CTYPE>` will
+restore the vector's natural C++ behavior.
+
 ```swig
-%template(vector_int) std::vector<int>;
+  %apply size_t {std::vector<CTYPE>::size_type,
+                 std::vector<CTYPE>::size_type index,
+                 std::vector<CTYPE>::size_type start_index,
+                 std::vector<CTYPE>::size_type stop_index};
 ```
-the arguments and return values are mapped as follows:
-
-| C++ type                      | Fortran type                                |
-| --------                      | ------------                                |
-| `f(std::vector<int>)`         | `integer(C_INT), dimension(:), target`      |
-| `f(const std::vector<int>&)`  | `integer(C_INT), dimension(:), target`      |
-| `f(std::vector<int>&)`        | `class(vector_int), intent(inout)`          |
-| `f(std::vector<int>*)`        | `class(vector_int), intent(inout)`          |
-| `std::vector<int> f()`        | `integer(C_INT), dimension(:), allocatable` |
-| `const std::vector<int>& f()` | `integer(C_INT), dimension(:), pointer`     |
-| `std::vector<int>& f()`       | `type(VecInt)`                              |
-| `std::vector<int>* f()`       | `type(VecInt)`                              |
-| `const std::vector<int>* f()` | `type(VecInt)`                              |
-
-
-This behavior is chosen under the assumption that
-methods being wrapped by SWIG are more for providing a setup API than a
-low-level API passing extremely large vectors: there is some memory and
-performance overhead in the translation layer.
-
-If high performance is needed for specific function calls (e.g. if you simply
-need to pass a large vector from one C++ function to another through some
-glue), then you can use the SWIG typemap system to treat a particular function
-as a standard SWIG class:
-```
-%apply const SWIGTYPE& { const std::vector<double>& get_vec,
-                         const std::vector<double>& vec_input };
-```
-
-Values and const references are wrapped as native Fortran arrays. Returning
-either will result in an `allocatable` array, and taking one as an argument
-translates to a 1-D array input in Fortran. To simply instantiate typemaps for
-`std::vector<double>` for native array transformation, write:
-```swig
-%include <std_vector.i>
-%template() std::vector<double>;
-```
-
-If you want to use `std::vector` for its convenience features (dynamically
-changing size, for example), you can instantiate the class:
-```swig
-%include <std_vector.i>
-%template(VecDbl) std::vector<double>;
-```
-
-The built-in `std::vector` wrapper class has a few methods that differ from the
-standard C++ library:
-
-- Instead of `operator[]`, use `set(index, value)` and `get(index)` to get and
-  assign values.
-- The `view()` method returns a Fortran array pointer to the contents of the
-  array (valid until the array changes size).
-- The `assign(arr)` method takes a Fortran array as an input and sets the
-  contents of the vector to that array.
-
-Both `view` and `assign` are very cheap operations for allowing a `std::vector`
-class to interact with native Fortran datatypes.
 
 
 ## Other C++ standard library containers

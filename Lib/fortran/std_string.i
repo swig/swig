@@ -85,4 +85,3 @@ class string;
   call %fortrantm(fout, const char*)($1, $result)
   call SWIG_free($1%data)
 }
-

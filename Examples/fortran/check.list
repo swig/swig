@@ -9,6 +9,5 @@ inheritance
 simple
 static_members
 std_string
-std_vector
 templated
 thinvec

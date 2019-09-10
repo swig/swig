@@ -14,7 +14,6 @@
 enum SwigMemFlags {
     SWIG_MEM_OWN = 0x01,
     SWIG_MEM_RVALUE = 0x02,
-    SWIG_MEM_CONST = 0x04
 };
 %}
 #else
@@ -22,15 +21,13 @@ enum SwigMemFlags {
 enum {
     SWIG_MEM_OWN = 0x01,
     SWIG_MEM_RVALUE = 0x02,
-    SWIG_MEM_CONST = 0x04
 };
 %}
 #endif
 
 %fragment("SwigMemState_f", "fdecl", noblock=1) {
  integer, parameter :: swig_cmem_own_bit = 0
- integer, parameter :: swig_cmem_rvalue_bit = 1
- integer, parameter :: swig_cmem_const_bit = 2}
+ integer, parameter :: swig_cmem_rvalue_bit = 1}
 
 /* -------------------------------------------------------------------------
  * Wrapper struct that holds a C pointer and memory state
@@ -74,19 +71,8 @@ SWIGINTERN SwigClassWrapper SwigClassWrapper_uninitialized() {
  end type}
 
 /* -------------------------------------------------------------------------
- * Runtime check for mutable argument
+ * Runtime check for null argument
  * ------------------------------------------------------------------------- */
-
-// Runtime check for a class wrapper not being const.
-%fragment("SWIG_check_mutable", "runtime") %{
-#define SWIG_check_mutable(SWIG_CLASS_WRAPPER, TYPENAME, FNAME, FUNCNAME, RETURNNULL) \
-    if ((SWIG_CLASS_WRAPPER).cmemflags & SWIG_MEM_CONST) { \
-        SWIG_exception_impl(FUNCNAME, SWIG_TypeError, \
-            "Cannot pass const " TYPENAME " (class " FNAME ") " \
-            "as a mutable reference", \
-            RETURNNULL); \
-    }
-%}
 
 // Runtime check for a class wrapper not being const.
 %fragment("SWIG_check_nonnull", "runtime") %{
@@ -96,12 +82,6 @@ SWIGINTERN SwigClassWrapper SwigClassWrapper_uninitialized() {
                         "Cannot pass null " TYPENAME " (class " FNAME ") " \
                         "as a reference", RETURNNULL); \
   }
-%}
-
-%fragment("SWIG_check_mutable_nonnull", "runtime", fragment="SWIG_check_mutable", fragment="SWIG_check_nonnull") %{
-#define SWIG_check_mutable_nonnull(SWIG_CLASS_WRAPPER, TYPENAME, FNAME, FUNCNAME, RETURNNULL) \
-    SWIG_check_nonnull(SWIG_CLASS_WRAPPER, TYPENAME, FNAME, FUNCNAME, RETURNNULL); \
-    SWIG_check_mutable(SWIG_CLASS_WRAPPER, TYPENAME, FNAME, FUNCNAME, RETURNNULL);
 %}
 
 /* -------------------------------------------------------------------------
@@ -282,7 +262,7 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
  * They're copy-assigned when they're passed
  * Returning a class by value is copy-constructed as a new'd pointer
  */
-%typemap(ctype, in="const SwigClassWrapper *", null="SwigClassWrapper_uninitialized()", noblock=1, fragment="SwigClassWrapper")
+%typemap(ctype, in="SwigClassWrapper *", null="SwigClassWrapper_uninitialized()", noblock=1, fragment="SwigClassWrapper")
     SWIGTYPE
   "SwigClassWrapper"
 %typemap(imtype, fragment="SwigClassWrapper_f")
@@ -293,12 +273,20 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE {
   SWIG_check_nonnull(*$input, "$1_ltype", "$&fclassname", "$decl", return $null);
-  $1 = *%static_cast($input->cptr, $&1_ltype);
+  $1 = *(($&1_ltype)($input->cptr));
 }
+
+#ifdef __cplusplus
 %typemap(out, noblock=1) SWIGTYPE {
+  $result.cptr = new ($1_ltype)($1);
+  $result.cmemflags = SWIG_MEM_RVALUE | SWIG_MEM_OWN;
+}
+#else
+%typemap(out, noblock=1, fragment="<string.h>") SWIGTYPE {
   $result.cptr = %new_copy($1, $1_ltype);
   $result.cmemflags = SWIG_MEM_RVALUE | SWIG_MEM_OWN;
 }
+#endif
 %typemap(fin) SWIGTYPE
   "$1 = $input%swigdata"
 %typemap(fout) SWIGTYPE
@@ -311,12 +299,11 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 %apply SWIGTYPE { SWIGTYPE* };
 %typemap(ftype, in="class($fclassname), intent(in)", nofortransubroutine=1) SWIGTYPE*
   "type($fclassname)"
-%typemap(in, noblock=1, fragment="SWIG_check_mutable") SWIGTYPE* {
-  SWIG_check_mutable(*$input, "$1_ltype", "$fclassname", "$decl", return $null);
-  $1 = %static_cast($input->cptr, $1_ltype);
+%typemap(in, noblock=1) SWIGTYPE* {
+  $1 = ($1_ltype)$input->cptr;
 }
 %typemap(out, noblock=1) SWIGTYPE* {
-  $result.cptr = $1;
+  $result.cptr = (void*)$1;
   $result.cmemflags = SWIG_MEM_RVALUE | ($owner ? SWIG_MEM_OWN : 0);
 }
 %typemap(bindc) SWIGTYPE* "type(C_PTR)";
@@ -325,46 +312,21 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 
 %apply SWIGTYPE* { SWIGTYPE[] };
 
-// >>> CONST POINTER
-
-// Immutable pointers to mutable classes
-%apply SWIGTYPE* { SWIGTYPE* const };
-
-// Const pointers don't require mutability check; and their intent changes
-%apply SWIGTYPE* { const SWIGTYPE* };
-%typemap(in, noblock=1) const SWIGTYPE*
-  {$1 = %static_cast($input->cptr, $1_ltype);}
-%typemap(out, noblock=1) const SWIGTYPE* {
-  $result.cptr = (void*)$1;
-  $result.cmemflags = SWIG_MEM_RVALUE | ($owner ? SWIG_MEM_OWN : 0) | SWIG_MEM_CONST;
-}
-
 // >>> REFERENCE
 
-// Mutable references are treated as mutable pointers, but check for non-null reference inputs
+// Check for non-null reference inputs
 %apply SWIGTYPE* { SWIGTYPE& };
-%typemap(in, noblock=1, fragment="SWIG_check_mutable_nonnull") SWIGTYPE& {
-  SWIG_check_mutable_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
-  $1 = %static_cast($input->cptr, $1_ltype);
-}
-
-// >>> CONST REFERENCE
-
-// Const references are like const pointers; use more restrictive check though
-%apply const SWIGTYPE* { const SWIGTYPE& };
-%typemap(in, noblock=1, fragment="SWIG_check_nonnull") const SWIGTYPE& {
+%typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE& {
   SWIG_check_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
-  $1 = %static_cast($input->cptr, $1_ltype);
+  $1 = ($1_ltype)$input->cptr;
 }
 
 // >>> OTHERS
 
 // Treat const-references-to-pointers as pointers
-%typemap(ftype, in="class($*fclassname), intent(inout)", nofortransubroutine=1) SWIGTYPE *MUTABLE_SELF
-  "type($*fclassname)"
-%apply SWIGTYPE * { const SWIGTYPE *const& };
+%apply SWIGTYPE * { SWIGTYPE *const& };
 %typemap(in, noblock=1) SWIGTYPE *const & ($*1_ltype temp)
-  {temp = %static_cast($input->cptr, $*1_ltype);
+  {temp = ($*1_ltype)$input->cptr;
    $1 = &temp;}
 
 // C binding for opaque classes for advanced users
@@ -377,33 +339,27 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
  * Special class typedefs for self, assignment, destruction
  */
 
-// Check for non-null, mutable class input "self"
-%typemap(in, noblock=1, fragment="SWIG_check_mutable_nonnull") SWIGTYPE *self {
-  SWIG_check_mutable_nonnull(*$input, "$1_type", "$*fclassname", "$decl", return $null);
-  $1 = %static_cast($input->cptr, $1_ltype);
-}
 // Check for non-null class input "self"
-%typemap(in, noblock=1, fragment="SWIG_check_nonnull") const SWIGTYPE *self {
+%typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE *self {
   SWIG_check_nonnull(*$input, "$1_type", "$*fclassname", "$decl", return $null);
-  $1 = %static_cast($input->cptr, $1_ltype);
+  $1 = ($1_ltype)$input->cptr;
 }
 
-%typemap(ftype, in="class($fclassname), intent(inout)", nofortransubroutine=1) SWIGTYPE *MUTABLE_SELF
-  "type($fclassname)"
-%typemap(ctype, fragment="SwigClassWrapper") SWIGTYPE *MUTABLE_SELF
-  "SwigClassWrapper *"
-%typemap(imtype, in="type(SwigClassWrapper), intent(inout)", fragment="SwigClassWrapper_f") SWIGTYPE *MUTABLE_SELF
+// On assignment, copy pointer to input wrapper class
+%typemap(imtype, in="type(SwigClassWrapper), intent(inout)", fragment="SwigClassWrapper_f") SWIGTYPE *ASSIGNMENT_SELF
   "type(SwigClassWrapper)"
-%typemap(fargout, noblock=1) SWIGTYPE *MUTABLE_SELF {
+%typemap(ftype, in="class($fclassname), intent(inout)", nofortransubroutine=1) SWIGTYPE *ASSIGNMENT_SELF
+  "type($fclassname)"
+
+%typemap(in) SWIGTYPE *ASSIGNMENT_SELF "(void)sizeof($1);";
+%typemap(fargout, noblock=1) SWIGTYPE *ASSIGNMENT_SELF {
   $input%swigdata = $1
 }
 
-%apply SWIGTYPE *MUTABLE_SELF { SWIGTYPE *ASSIGNMENT_SELF };
-%typemap(in) SWIGTYPE *ASSIGNMENT_SELF "(void)sizeof($1);";
-
+// Prevent ambiguous overloads by requiring the RHS to be the exact type
 %typemap(ftype, in="type($fclassname), intent(in)", nofortransubroutine=1) SWIGTYPE &ASSIGNMENT_OTHER
   "type($fclassname)"
 %typemap(in) SWIGTYPE &ASSIGNMENT_OTHER = SWIGTYPE *ASSIGNMENT_SELF;
 
-%apply SWIGTYPE *MUTABLE_SELF { SWIGTYPE *DESTRUCTOR_SELF };
+%apply SWIGTYPE *ASSIGNMENT_SELF { SWIGTYPE *DESTRUCTOR_SELF };
 

@@ -1856,6 +1856,18 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
   for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
     Parm *p = it.item;
 
+    // Get Fortran type *before* generating parameter name
+    // to avoid generating `class(A) :: a` when faced with
+    //   struct A;
+    //   void blah(A* a);
+    //   struct A{};
+    String *ftype = get_typemap("ftype", "in", p, WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF);
+    if (fix_fortran_dims(p, "ftype", ftype) != SWIG_OK) {
+      DelWrapper(ffunc);
+      return NULL;
+    }
+    this->replace_fclassname(Getattr(p, "type"), ftype);
+
     // Add parameter name to declaration list
     String *farg = this->makeParameterName(n, p, i++);
     if (parent_arglist) {
@@ -1880,12 +1892,6 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
     Append(ffunc_arglist, farg);
 
     // Add dummy argument to wrapper body
-    String *ftype = get_typemap("ftype", "in", p, WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF);
-    if (fix_fortran_dims(p, "ftype", ftype) != SWIG_OK) {
-      DelWrapper(ffunc);
-      return NULL;
-    }
-    this->replace_fclassname(Getattr(p, "type"), ftype);
     Printv(fargs, "   ", ftype, " :: ", farg, "\n", NULL);
 
     // Add this argument to the intermediate call function

@@ -17,9 +17,7 @@
                         "as a reference", RETURNNULL); \
   }
 
-#define SWIG_constsp_mem_flags SWIG_MEM_CONST
 #define SWIG_sp_mem_flags 0
-
 %}
 
 %define SWIG_SHARED_PTR_TYPEMAPS(CONST, TYPE...)
@@ -70,7 +68,7 @@
 }
 %typemap(out, noblock=1) CONST TYPE {
  $result.cptr = new SWIGSP__(%new_copy($1, $1_basetype));
- $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE | SWIG_ ## CONST ## sp_mem_flags;
+ $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE;
 }
 
 /* -------------------------------------------------------------------------
@@ -91,7 +89,7 @@
 //   destroyed).
 %typemap(out, noblock=1, fragment="SWIG_null_deleter") CONST TYPE * {
   $result.cptr = $1 ? new SWIGSP__($1 SWIG_NO_NULL_DELETER_$owner) : NULL;
-  $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE | SWIG_ ## CONST ## sp_mem_flags;
+  $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE;
 }
 
 /* -------------------------------------------------------------------------
@@ -108,7 +106,7 @@
 // will not be.
 %typemap(out) CONST TYPE& {
   $result.cptr = new SWIGSP__($1 SWIG_NO_NULL_DELETER_0);
-  $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE | SWIG_ ## CONST ## sp_mem_flags;
+  $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE;
 }
 
 /* -------------------------------------------------------------------------
@@ -120,7 +118,7 @@
 
 %typemap(out, noblock=1) SWIGSP__ {
   $result.cptr = %new_copy($1, SWIGSP__);
-  $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE | SWIG_ ## CONST ## sp_mem_flags;
+  $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE;
 }
 
 /* -------------------------------------------------------------------------
@@ -132,7 +130,7 @@
 
 %typemap(out, noblock=1) SWIGSP__& {
   $result.cptr = SWIG_SHARED_PTR_NOT_NULL(*$1) ? %new_copy(*$1, SWIGSP__) : 0;
-  $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE | SWIG_ ## CONST ## sp_mem_flags;
+  $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE;
 }
 
 /* -------------------------------------------------------------------------
@@ -144,7 +142,7 @@
 
 %typemap(out, noblock=1, fragment="SWIG_null_deleter") SWIGSP__ * {
   $result.cptr = ($1 && SWIG_SHARED_PTR_NOT_NULL(*$1)) ? %new_copy(*$1, SWIGSP__) : 0;
-  $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE | SWIG_ ## CONST ## sp_mem_flags;
+  $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE;
 }
 
 /* -------------------------------------------------------------------------

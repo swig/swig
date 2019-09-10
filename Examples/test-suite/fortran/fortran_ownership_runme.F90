@@ -7,7 +7,6 @@ program fortran_ownership_runme
   implicit none
   integer, parameter :: swig_cmem_own_bit = 0
   integer, parameter :: swig_cmem_rvalue_bit = 1
-  integer, parameter :: swig_cmem_const_bit = 2
 
   call test_standard
   call test_shared
@@ -37,7 +36,6 @@ subroutine test_standard
   ASSERT(get_foo_counter() == 1)
   ASSERT(.not. btest(c%swigdata%cmemflags, swig_cmem_own_bit))
   ASSERT(.not. btest(c%swigdata%cmemflags, swig_cmem_rvalue_bit))
-  ASSERT(.not. btest(c%swigdata%cmemflags, swig_cmem_const_bit))
   call a%set_val(3)
   ASSERT(c%get_val() == 3)
 
@@ -45,7 +43,6 @@ subroutine test_standard
   ASSERT(get_foo_counter() == 1)
   ASSERT(.not. btest(b%swigdata%cmemflags, swig_cmem_own_bit))
   ASSERT(.not. btest(b%swigdata%cmemflags, swig_cmem_rvalue_bit))
-  ASSERT(btest(b%swigdata%cmemflags, swig_cmem_const_bit))
   call b%release()
   ASSERT(get_foo_counter() == 1)
 
