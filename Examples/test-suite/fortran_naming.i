@@ -1,6 +1,9 @@
 %module fortran_naming
 
 %warnfilter(SWIGWARN_LANG_IDENTIFIER);
+%warnfilter(SWIGWARN_FORTRAN_NAME_COLLISION) Omitted;
+%warnfilter(SWIGWARN_FORTRAN_NAME_COLLISION) AlsoOmitted;
+
 
 #ifdef SWIGFORTRAN
 %fortran_struct(MyStruct);
@@ -73,8 +76,6 @@ enum _MyEnum {
 };
 int get_enum_value(_MyEnum e) { return static_cast<int>(e); }
 %}
-
-%warnfilter(SWIGWARN_FORTRAN_NAME_CONFLICT) MyEnum_;
 
 // NOTE: rename must be performed since the `_MyEnum` above was automatically renamed to `MyEnum_`
 #ifdef SWIGFORTRAN
