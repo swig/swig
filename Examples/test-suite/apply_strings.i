@@ -31,12 +31,7 @@
 
 %typemap(freearg) SWIGTYPE * ""
 %apply SWIGTYPE* {CharPtr};
-#if defined(SWIGFORTRAN)
-/* Don't try to make a const char* look mutable. */
-%apply const SWIGTYPE* {CCharPtr};
-#else
 %apply SWIGTYPE* {CCharPtr};
-#endif
 
 %inline %{
   typedef char* CharPtr;
