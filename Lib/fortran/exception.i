@@ -20,13 +20,16 @@
 #define SWIG_FORTRAN_ERROR_STR get_serr
 #endif
 
-/* -------------------------------------------------------------------------
- * Fortran variable declaration
- *
- * This is added to the module *only* if the file is %included, not %imported.
- * ------------------------------------------------------------------------- */
-%insert("fdecl") {
- integer(C_INT), bind(C), public :: SWIG_FORTRAN_ERROR_INT
+/* Declare C-bound global, available from Fortran */
+%fortranbindc SWIG_FORTRAN_ERROR_INT;
+%inline {
+#ifdef __cplusplus
+extern "C" {
+#endif
+int SWIG_FORTRAN_ERROR_INT = 0;
+#ifdef __cplusplus
+}
+#endif
 }
 
 /* -------------------------------------------------------------------------
@@ -80,7 +83,7 @@ void SWIG_store_exception(const char* decl, int errcode, const char *msg);
 // Stored exception message
 SWIGINTERN std::string* swig_last_exception_msg = NULL;
 // Inlined error retrieval function
-SWIGINTERN const char* SWIG_FORTRAN_ERROR_STR()
+SWIGEXPORT const char* SWIG_FORTRAN_ERROR_STR()
 {
     if (!swig_last_exception_msg || swig_last_exception_msg->empty()) {
         SWIG_store_exception("UNKNOWN", SWIG_RuntimeError,
@@ -91,9 +94,6 @@ SWIGINTERN const char* SWIG_FORTRAN_ERROR_STR()
 }
 
 extern "C" {
-// Stored exception integer
-SWIGEXPORT int SWIG_FORTRAN_ERROR_INT = 0;
-
 // Call this function before any new action
 SWIGEXPORT void SWIG_check_unhandled_exception_impl(const char* decl) {
   if (SWIG_FORTRAN_ERROR_INT != 0) {
@@ -139,7 +139,6 @@ const char* SWIG_FORTRAN_ERROR_STR();
 /* C support */
 %fragment("SWIG_exception", "header", fragment="SWIG_exception_impl",
           fragment="<stdio.h>", fragment="<stdlib.h>") {
-SWIGEXPORT int SWIG_FORTRAN_ERROR_INT = 0;
 
 SWIGEXPORT void SWIG_store_exception(const char *decl,
                                      int errcode,
