@@ -306,7 +306,8 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
   $result.cptr = (void*)$1;
   $result.cmemflags = SWIG_MEM_RVALUE | ($owner ? SWIG_MEM_OWN : 0);
 }
-%typemap(bindc) SWIGTYPE* "type(C_PTR)";
+%typemap(bindc, in="type(C_PTR), value") SWIGTYPE*
+  "type(C_PTR)";
 
 // >>> ARRAY
 
