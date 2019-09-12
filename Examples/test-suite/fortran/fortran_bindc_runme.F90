@@ -85,7 +85,7 @@ subroutine test_fundamental
     y(i) = 100.0
   end do
 
-  !call saxpy(10_c_int, 2.5, x, y)
+  call saxpy(10_c_int, 2.5, x(1), y(1))
 
   write(*,*) y
 

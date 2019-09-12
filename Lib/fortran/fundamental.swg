@@ -158,6 +158,9 @@ SWIGINTERN SwigArrayWrapper SwigArrayWrapper_uninitialized() {
   %typemap(fin) CTYPE = FORTRAN_INTRINSIC_TYPE;
   %typemap(fout) CTYPE = FORTRAN_INTRINSIC_TYPE;
 
+  %typemap(bindc) CTYPE* = FORTRAN_INTRINSIC_TYPE*;
+  %typemap(bindc) const CTYPE* = const FORTRAN_INTRINSIC_TYPE*;
+
   // Fragment for converting array to array wrapper. This needs the intermediate step of assigning the first element to an array pointer to be compatible with
   // ISO C.
   %fragment("SWIG_fin"{CTYPE[]}, "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1)
@@ -206,6 +209,9 @@ end subroutine}
 
   %fortran_apply_typemaps(FORTRAN_UNSIGNED_TYPE, DSTTYPE)
 
+  %typemap(bindc) DSTTYPE* = FORTRAN_INTRINSIC_TYPE*;
+  %typemap(bindc) const DSTTYPE* = const FORTRAN_INTRINSIC_TYPE*;
+
   %typemap(out, noblock=1) DSTTYPE& {
      $result = (SRCTYPE*)($1);
   }
@@ -253,6 +259,12 @@ end subroutine}
 %typemap(fout) FORTRAN_INTRINSIC_TYPE
   "$result = $1"
 
+// Pointers can be directly bound
+%typemap(bindc, in="$typemap(imtype, $*1_ltype)") FORTRAN_INTRINSIC_TYPE*
+  "type(C_PTR)"
+%typemap(bindc, in="$typemap(imtype, $*1_ltype), intent(in)") const FORTRAN_INTRINSIC_TYPE*
+  "type(C_PTR)"
+
 // Mutable references are passed by pointers as arguments, but they're
 // *returned* as actual pointers (becoming Fortran pointers).
 %typemap(ctype) FORTRAN_INTRINSIC_TYPE&
@@ -261,8 +273,6 @@ end subroutine}
   "type(C_PTR)"
 %typemap(ftype, in="$typemap(ftype, $*1_ltype), target, intent(inout)") FORTRAN_INTRINSIC_TYPE&
   "$typemap(ftype, $*1_ltype), pointer"
-%typemap(bindc, in="$typemap(imtype, $*1_ltype)") FORTRAN_INTRINSIC_TYPE&
-  "type(C_PTR)"
 %typemap(in, noblock=1) FORTRAN_INTRINSIC_TYPE& {
    $1 = ($1_ltype)($input);
 }
