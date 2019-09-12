@@ -154,6 +154,8 @@ short sum_array(short x[5]) {
 %fortranbindc oned_unknown;
 %fortranbindc twod_unknown_int;
 %fortranbindc saxpy;
+%fortranbindc make_intstruct;
+%fortranbindc get_instruct_i;
 
 %inline %{
 #ifdef __cplusplus
@@ -176,7 +178,27 @@ void saxpy(int n, float sa, const float* sx, float* sy) {
     sy[i] += sa * sx[i];
 }
 
+// Opaque C struct and c-bound functions
+struct IntStruct;
+IntStruct* make_intstruct(const int *value);
+int get_instruct_i(IntStruct* s);
+
 #ifdef __cplusplus
 }
 #endif
+%}
+
+%{
+struct IntStruct {
+  int i;
+};
+
+IntStruct* make_intstruct(const int *value) {
+  static IntStruct foo;
+  foo.i = *value;
+  return &foo;
+}
+int get_instruct_i(IntStruct* s) {
+  return s->i;
+}
 %}
