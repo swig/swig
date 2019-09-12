@@ -8,7 +8,7 @@
 #define SWIG_FORTRAN_ERROR_STR get_serr_test
 %include "extern_exception.i"
 
-%import "except.i"
+%import "example.i"
 
 %inline %{
 void throw_error()

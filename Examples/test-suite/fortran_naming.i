@@ -1,6 +1,9 @@
 %module fortran_naming
 
 %warnfilter(SWIGWARN_LANG_IDENTIFIER);
+%warnfilter(SWIGWARN_FORTRAN_NAME_COLLISION) Omitted;
+%warnfilter(SWIGWARN_FORTRAN_NAME_COLLISION) AlsoOmitted;
+
 
 #ifdef SWIGFORTRAN
 %fortran_struct(MyStruct);
@@ -65,8 +68,6 @@ float get_mystruct_y(const MyStruct* ms) { return ms->_y; }
 
 // Forward-declare enum for SWIG: this is *not* valid C++.
 enum _MyEnum;
-// Declare the function as well
-//int get_enum_value(_MyEnum e);
 
 %inline %{
 // Define enum and function
@@ -75,8 +76,6 @@ enum _MyEnum {
 };
 int get_enum_value(_MyEnum e) { return static_cast<int>(e); }
 %}
-
-%warnfilter(SWIGWARN_FORTRAN_NAME_CONFLICT) MyEnum_;
 
 // NOTE: rename must be performed since the `_MyEnum` above was automatically renamed to `MyEnum_`
 #ifdef SWIGFORTRAN
@@ -219,4 +218,20 @@ enum _MyEnum {
 };
 int get_enum_value(_MyEnum e) { return static_cast<int>(e); }
 } // end namespace ns
+
+// Test name conflicts between classes and variables
+struct AA;
+struct BB;
+
+int aa_bb(AA aa, BB bb);
+int aa_bb_switched(AA bb, BB aa);
+
+struct AA { int v; };
+struct BB { int v; };
+
+%} // end inline
+
+%{
+int aa_bb(AA aa, BB bb) { return aa.v + bb.v; }
+int aa_bb_switched(AA bb, BB aa) { return aa.v + bb.v; }
 %}

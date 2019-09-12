@@ -4,6 +4,7 @@
 bare
 bindc
 class
+except
 funcptr
 inheritance
 simple
