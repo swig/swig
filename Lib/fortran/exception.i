@@ -32,25 +32,27 @@ int SWIG_FORTRAN_ERROR_INT = 0;
 #endif
 }
 
+/* Add wrapper code for the error string */
+%include <fortranstrings.swg>
+const char* SWIG_FORTRAN_ERROR_STR();
+
 /* -------------------------------------------------------------------------
  * Function declarations
  *
  * These should appear both in the module %including exception.i as well as any
  * downstream module that uses exceptions.
  * ------------------------------------------------------------------------- */
-#ifdef __cplusplus
 %fragment("SWIG_exception_decl", "runtime") %{
+#ifdef __cplusplus
 extern "C" {
+#endif
 void SWIG_check_unhandled_exception_impl(const char* decl);
 void SWIG_store_exception(const char* decl, int errcode, const char *msg);
+#ifdef __cplusplus
+}
+#endif
 }
 %}
-#else
-%fragment("SWIG_exception_decl", "runtime") %{
-void SWIG_check_unhandled_exception_impl(const char* decl);
-void SWIG_store_exception(const char* decl, int errcode, const char *msg);
-%}
-#endif
 
 /* -------------------------------------------------------------------------
  * Runtime code
@@ -81,16 +83,14 @@ void SWIG_store_exception(const char* decl, int errcode, const char *msg);
 %fragment("SWIG_exception", "header", fragment="SWIG_exception_impl",
           fragment="<string>", fragment="<cctype>", fragment="<stdexcept>") {
 // Stored exception message
-SWIGINTERN std::string* swig_last_exception_msg = NULL;
+SWIGINTERN const char* swig_last_exception_cstr = NULL;
 // Inlined error retrieval function
-SWIGEXPORT const char* SWIG_FORTRAN_ERROR_STR()
-{
-    if (!swig_last_exception_msg || swig_last_exception_msg->empty()) {
-        SWIG_store_exception("UNKNOWN", SWIG_RuntimeError,
-                             "no error string was present");
-
-    }
-    return swig_last_exception_msg->c_str();
+SWIGEXPORT const char* SWIG_FORTRAN_ERROR_STR() {
+  if (!swig_last_exception_cstr) {
+    SWIG_store_exception("UNKNOWN", SWIG_RuntimeError,
+                         "no error string was present");
+  }
+  return swig_last_exception_cstr;
 }
 
 extern "C" {
@@ -118,21 +118,16 @@ SWIGEXPORT void SWIG_store_exception(const char *decl,
                                      const char *msg) {
   ::SWIG_FORTRAN_ERROR_INT = errcode;
 
-  if (!swig_last_exception_msg) {
-    swig_last_exception_msg = new std::string;
-  }
+  static std::string last_exception_msg;
   // Save the message to a std::string first
-  *swig_last_exception_msg = "In ";
-  *swig_last_exception_msg += decl;
-  *swig_last_exception_msg += ": ";
-  *swig_last_exception_msg += msg;
+  last_exception_msg = "In ";
+  last_exception_msg += decl;
+  last_exception_msg += ": ";
+  last_exception_msg += msg;
+  swig_last_exception_cstr = last_exception_msg.c_str();
 }
 }
 }
-
-// Add wrapper code for the error string
-%include <fortranstrings.swg>
-const char* SWIG_FORTRAN_ERROR_STR();
 
 #else
 
@@ -147,11 +142,11 @@ SWIGEXPORT void SWIG_store_exception(const char *decl,
 }
 
 SWIGEXPORT void SWIG_check_unhandled_exception_impl(const char* decl) {
-    if (SWIG_FORTRAN_ERROR_INT != 0) {
-        printf("An unhandled error %d occurred before a call to %s\n",
-               SWIG_FORTRAN_ERROR_INT, decl);
-        exit(SWIG_FORTRAN_ERROR_INT);
-    }
+  if (SWIG_FORTRAN_ERROR_INT != 0) {
+    printf("An unhandled error %d occurred before a call to %s\n",
+           SWIG_FORTRAN_ERROR_INT, decl);
+    exit(SWIG_FORTRAN_ERROR_INT);
+  }
 }
 }
 #endif /* __cplusplus */
