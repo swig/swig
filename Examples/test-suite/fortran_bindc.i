@@ -21,10 +21,6 @@
 %fortranbindc my_global_int;
 %fortranbindc my_const_global_int;
 
-// XXX: currently C-bound globals are not implemented.
-// See https://github.com/sethrj/swig/issues/73
-%ignore my_global_int;
-
 %inline %{
 
 typedef double (*BinaryOp)(double x, double y);
@@ -88,6 +84,8 @@ SimpleStruct const** get_chandle() { return &global_struct_const_ptr; }
 
 int my_global_int;
 extern const int my_const_global_int;
+
+int get_my_global_int_from_c() { return my_global_int; }
 
 #ifdef __cplusplus
 }
