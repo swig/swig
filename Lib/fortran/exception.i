@@ -51,7 +51,6 @@ void SWIG_store_exception(const char* decl, int errcode, const char *msg);
 #ifdef __cplusplus
 }
 #endif
-}
 %}
 
 /* -------------------------------------------------------------------------
