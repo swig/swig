@@ -2457,6 +2457,11 @@ int FORTRAN::destructorHandler(Node *n) {
   Setattr(n, "fortran:name", "release");
   SetFlag(n, "fortran:ismember");
 
+  // Throwing in a destructor calls `std::terminate`, so don't bother adding wrapper code
+  if (!GetFlag(n, "feature:allowexcept")) {
+    UnsetFlag(n, "feature:except");
+  }
+
   // Add swigf_ to constructor name
   String *fname = proxy_name_construct(this->getNSpace(), "release", Getattr(n, "sym:name"));
   Setattr(n, "fortran:fname", fname);
