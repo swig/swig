@@ -48,6 +48,16 @@ char* concat(const char* a, const char* b) {
 /* ------------------------------------------------------------------------- */
 
 extern "C" {
+int my_global_var = 0;
+}
+
+int get_my_global_var() {
+  return my_global_var;
+}
+
+/* ------------------------------------------------------------------------- */
+
+extern "C" {
 void make_point(Point *pt, const double xyz[3]) {
   pt->x = xyz[0];
   pt->y = xyz[1];
@@ -64,6 +74,4 @@ bool bound_negation(bool v) {
   return !v;
 }
 }
-
-
 

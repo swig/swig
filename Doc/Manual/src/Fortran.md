@@ -882,16 +882,17 @@ end function
 Although no type conversion is needed for simple integers, other global data
 types would require special wrapper code in these functions.
 
-Currently, global C/Fortran-compatible variables are treated the same as C++
-data, but in the future we plan to expand the `%fortranbindc` feature to directly wrap
-```c++
-extern "C" {
-extern int global_counter_c;
-}
+By default, global C/Fortran-compatible variables are treated the same as more
+complex C++ types. However, [the `%fortranbindc` feature](#direct-c-binding)
+allows natively interoperable types to be *directly* accessed in the Fortran
+code. A SWIG input of:
+```swig
+%fortranbindc global_counter_c;
+extern "C" int global_counter_c;
 ```
-as a C-bound common block variable bound
+will generate a publicly accessible C-bound variable:
 ```fortran
-integer(C_INT), bind(C, name="global_counter_c") :: global_counter_c
+integer(C_INT), public, bind(C, name="global_counter_c") :: global_counter_c
 ```
 
 ### Global constants
