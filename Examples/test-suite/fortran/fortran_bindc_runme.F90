@@ -9,6 +9,8 @@ program fortran_bindc_runme
   call test_globals
   call test_arrays
   call test_twod_unknown_int
+  call test_fundamental
+  call test_opaque_struct
 
 contains
 
@@ -70,6 +72,35 @@ subroutine test_twod_unknown_int
     write(*,*) test_data
     stop 1
   end if
+end subroutine
+
+subroutine test_fundamental
+  use fortran_bindc
+  use ISO_C_BINDING
+  implicit none
+  real(C_FLOAT) :: x(10), y(10)
+  integer :: i
+
+  do i = 1, 10
+    x(i) = real(i)
+    y(i) = 100.0
+  end do
+
+  call saxpy(10_c_int, 2.5, x(1), y(1))
+
+  write(*,*) y
+
+end subroutine
+
+subroutine test_opaque_struct
+  use fortran_bindc
+  use ISO_C_BINDING
+  implicit none
+  type(C_PTR) :: s
+
+  s = make_intstruct(1234_c_int)
+  ASSERT(1234_c_int == get_instruct_i(s))
+
 end subroutine
 
 end program
