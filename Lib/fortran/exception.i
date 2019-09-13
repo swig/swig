@@ -12,12 +12,13 @@
 #error "exception.i cannot be %imported directly: instead, %include <extern_exception.i> just below your %module declaration"
 #endif
 
-/* Allow the user to change the name of the error flag on the fortran side */
+/* -------------------------------------------------------------------------
+ * Error code retrieval
+ *
+ * SWIG apps can override the default SWIG_FORTRAN_ERROR_INT to avoid conflicts.
+ * ------------------------------------------------------------------------- */
 #ifndef SWIG_FORTRAN_ERROR_INT
 #define SWIG_FORTRAN_ERROR_INT ierr
-#endif
-#ifndef SWIG_FORTRAN_ERROR_STR
-#define SWIG_FORTRAN_ERROR_STR get_serr
 #endif
 
 /* Declare C-bound global, available from Fortran */
@@ -32,6 +33,15 @@ int SWIG_FORTRAN_ERROR_INT = 0;
 #endif
 }
 
+/* -------------------------------------------------------------------------
+ * Error string retrieval
+ *
+ * SWIG apps can override the default SWIG_FORTRAN_ERROR_STR to avoid conflicts.
+ * ------------------------------------------------------------------------- */
+#ifndef SWIG_FORTRAN_ERROR_STR
+#define SWIG_FORTRAN_ERROR_STR get_serr
+#endif
+
 /* Add wrapper code for the error string */
 %include <fortranstrings.swg>
 const char* SWIG_FORTRAN_ERROR_STR();
@@ -39,8 +49,8 @@ const char* SWIG_FORTRAN_ERROR_STR();
 /* -------------------------------------------------------------------------
  * Function declarations
  *
- * These should appear both in the module %including exception.i as well as any
- * downstream module that uses exceptions.
+ * These must be injected into downstream SWIG modules (via extern_exception.i)
+ * so it must be a reusable %fragment rather than a directly injected %runtime.
  * ------------------------------------------------------------------------- */
 %fragment("SWIG_exception_decl", "runtime") %{
 #ifdef __cplusplus
@@ -78,12 +88,10 @@ void SWIG_store_exception(const char* decl, int errcode, const char *msg);
 /* -------------------------------------------------------------------------
  * Variable definitions: used only if %included, not %imported
  * ------------------------------------------------------------------------- */
-#ifdef __cplusplus
-%fragment("SWIG_exception", "header", fragment="SWIG_exception_impl",
-          fragment="<string>", fragment="<cctype>", fragment="<stdexcept>") {
+%insert("header") {
 // Stored exception message
 SWIGINTERN const char* swig_last_exception_cstr = NULL;
-// Inlined error retrieval function
+// Retrieve error message
 SWIGEXPORT const char* SWIG_FORTRAN_ERROR_STR() {
   if (!swig_last_exception_cstr) {
     SWIG_store_exception("UNKNOWN", SWIG_RuntimeError,
@@ -91,7 +99,15 @@ SWIGEXPORT const char* SWIG_FORTRAN_ERROR_STR() {
   }
   return swig_last_exception_cstr;
 }
+}
 
+#ifdef __cplusplus
+
+%fragment("<string>");
+%fragment("<cctype>");
+%fragment("<stdexcept>");
+
+%insert("header") {
 extern "C" {
 // Call this function before any new action
 SWIGEXPORT void SWIG_check_unhandled_exception_impl(const char* decl) {
@@ -128,18 +144,13 @@ SWIGEXPORT void SWIG_store_exception(const char *decl,
 }
 }
 
-#else
+#else // __cplusplus
 
 /* C support */
-%fragment("SWIG_exception", "header", fragment="SWIG_exception_impl",
-          fragment="<stdio.h>", fragment="<stdlib.h>") {
+%fragment("<stdio.h>");
+%fragment("<stdlib.h>");
 
-SWIGEXPORT void SWIG_store_exception(const char *decl,
-                                     int errcode,
-                                     const char *msg) {
-    printf("Error %d in %s: %s\n", errcode, decl, msg);
-}
-
+%insert("header") {
 SWIGEXPORT void SWIG_check_unhandled_exception_impl(const char* decl) {
   if (SWIG_FORTRAN_ERROR_INT != 0) {
     printf("An unhandled error %d occurred before a call to %s\n",
@@ -147,11 +158,22 @@ SWIGEXPORT void SWIG_check_unhandled_exception_impl(const char* decl) {
     exit(SWIG_FORTRAN_ERROR_INT);
   }
 }
+
+SWIGEXPORT void SWIG_store_exception(const char *decl,
+                                     int errcode,
+                                     const char *msg) {
+  static char exception_buffer[1024];
+  sprintf(exception_buffer, "In %s: %s\n", decl, msg);
+  SWIG_FORTRAN_ERROR_INT = errcode;
+  swig_last_exception_cstr = exception_buffer;
+}
 }
 #endif /* __cplusplus */
 
-/* If not being imported, add the implementation of the exception macros */
-%fragment("SWIG_exception");
-
 /* Load macros and default typemaps from parent 'exception.i' */
 %include "../exception.i"
+
+/* -------------------------------------------------------------------------
+ * Inject fragments into %include-d code
+ */
+%fragment("SWIG_exception_impl");
