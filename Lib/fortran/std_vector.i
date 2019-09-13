@@ -36,14 +36,15 @@
 
     // Typemaps for making std::vector feel more like native Fortran:
     // - Use Fortran 1-offset indexing
-    %apply int FORTRAN_INDEX {std::vector<CTYPE>::size_type index,
-                              std::vector<CTYPE>::size_type start_index,
-                              std::vector<CTYPE>::size_type stop_index};
+    %apply int FORTRAN_INDEX {size_type index,
+                              size_type start_index,
+                              size_type stop_index};
     // - Use native Fortran integers in proxy code
-    %apply int FORTRAN_INT {std::vector<CTYPE>::size_type};
+    %apply int FORTRAN_INT {size_type};
 
     // Constructors
     vector();
+    vector(const vector<CTYPE>& other);
     vector(size_type count);
     vector(size_type count, CREF_TYPE v);
 
@@ -60,6 +61,7 @@
     void resize(size_type count);
     void resize(size_type count, CREF_TYPE v);
     void push_back(CREF_TYPE v);
+    void pop_back();
     void clear();
 
     // Instantiate proxy code
