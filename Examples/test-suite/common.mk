@@ -669,6 +669,7 @@ C_TEST_CASES += \
 	char_constant \
 	const_const \
 	constant_expr \
+	contract_c \
 	default_args_c \
 	empty_c \
 	enums \

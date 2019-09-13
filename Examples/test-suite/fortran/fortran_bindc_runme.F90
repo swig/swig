@@ -23,6 +23,11 @@ subroutine test_globals
   ASSERT(my_const_global_int == 9)
   ! Uncommenting the following line should cause a compile error
   ! my_const_global_int = 4
+
+  my_global_int = 4567
+  ASSERT(my_global_int == 4567)
+  ASSERT(get_my_global_int_from_c() == 4567)
+
 end subroutine
 
 ! Test arrays of bound structs and classes

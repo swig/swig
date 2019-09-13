@@ -638,6 +638,8 @@ private:
   Wrapper *imfuncWrapper(Node *n);
   Wrapper *proxyfuncWrapper(Node *n);
 
+  int bindcvarWrapper(Node *n);
+
   void add_assignment_operator(Node *n);
   void write_docstring(Node *n, String *dest);
 
@@ -2015,6 +2017,47 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
 }
 
 /* -------------------------------------------------------------------------
+ * Generate wrappers for a %fortranbindc global variable.
+ */
+int FORTRAN::bindcvarWrapper(Node *n) {
+  String *fsymname = this->get_fortran_name(n);
+  if (!fsymname) {
+    return SWIG_NOWRAP;
+  }
+
+  String *bindc_typestr = attach_typemap("bindc", n, WARN_NONE);
+  if (!bindc_typestr) {
+    Swig_warning(WARN_TYPEMAP_UNDEF, Getfile(n), Getline(n),
+                 "The 'bindc' typemap for '%s' is not defined, so the corresponding variable cannot be generated\n",
+                 SwigType_str(Getattr(n, "type"), Getattr(n, "sym:name")));
+    return SWIG_NOWRAP;
+  }
+
+  if (fix_fortran_dims(n, "bindc", bindc_typestr) != SWIG_OK) {
+    return SWIG_NOWRAP;
+  }
+
+  if (CPlusPlus && !Swig_storage_isexternc(n)) {
+    Swig_error(input_file,
+               line_number,
+               "The C++ global variable '%s' is not defined with external "
+               "C linkage (extern \"C\"), but it is marked with %%fortranbindc.\n",
+               Getattr(n, "sym:name"));
+    return SWIG_ERROR;
+  }
+  
+  String *name = Getattr(n, "name");
+  ASSERT_OR_PRINT_NODE(name, n);
+  
+  Printv(f_fdecl, " ", bindc_typestr, ", public, &\n",
+         "   bind(C, name=\"", name, "\") :: ",
+         (Len(name) > 60 ? "&\n    " : ""),
+         fsymname, "\n",
+         NULL);
+  return SWIG_OK;
+}
+
+/* -------------------------------------------------------------------------
  * Add an assignment operator.
  *
  * The LHS must be intent(inout), and the RHS must be intent(in).
@@ -2504,23 +2547,23 @@ int FORTRAN::membervariableHandler(Node *n) {
  */
 int FORTRAN::globalvariableHandler(Node *n) {
   if (GetFlag(n, "feature:fortran:const")) {
-    this->constantWrapper(n);
-  } else if (is_bindc(n)) {
+    return this->constantWrapper(n);
+  }
+  if (is_bindc(n)) {
     String *type = Getattr(n, "type");
     if (type && strncmp(Char(type), "q(const)", 8) == 0) { 
       // Treat bindc global const as a non-parameter constant
-      this->constantWrapper(n);
-    } else {
-      Swig_error(input_file, line_number,
-             "Can't wrap '%s': %%fortranbindc support for non-const global variables is not yet implemented\n",
-             Getattr(n, "sym:name"));
+      return this->constantWrapper(n);
     }
-  } else {
-    String *fsymname = Copy(Getattr(n, "sym:name"));
-    Setattr(n, "fortran:variable", fsymname);
-    Language::globalvariableHandler(n);
-    Delete(fsymname);
+    return this->bindcvarWrapper(n);
   }
+
+  // No special cases: treat like a global variable
+  String *fsymname = Copy(Getattr(n, "sym:name"));
+  Setattr(n, "fortran:variable", fsymname);
+  Language::globalvariableHandler(n);
+  Delete(fsymname);
+
   return SWIG_OK;
 }
 

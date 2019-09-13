@@ -49,6 +49,7 @@ int test_prepost(int x, int y) {
 }
 %}
 
+#ifdef __cplusplus
 /* Class tests */
 
 %contract Foo::test_preassert(int x, int y) {
@@ -236,4 +237,4 @@ class myClass
 };
 
 }
-
+#endif

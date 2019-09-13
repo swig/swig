@@ -20,8 +20,5 @@
 #define SWIG_FORTRAN_EXTERN_EXCEPTION
 %import <exception.i>
 
-/* Declare extern-linkage variables */
-%fragment("SWIG_exception_decl");
-/* Use the exception macro */
+/* Inject exception macros and extern function declarations */
 %fragment("SWIG_exception_impl");
-

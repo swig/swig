@@ -11,6 +11,11 @@ inline bool wrapped_negation(bool v) {
   return !v;
 }
 
+// Global variable access
+extern "C" int my_global_var;
+// Wrapped function that returns the same global
+int get_my_global_var();
+
 // String access
 const char* get_existing_string(int i);
 char* concat(const char* a, const char* b);

@@ -5,6 +5,7 @@ program main
   call test_example()
   call test_logical()
   call test_strings()
+  call test_global()
 contains
 
 subroutine test_example()
@@ -51,9 +52,23 @@ subroutine test_strings()
     write(0, *) get_existing_string(i)
   end do
 
-  str = concat("String a", "string b")
+  ! Note: automatic allocation is allowed in Fortran 2003, but GCC tends to
+  ! produce spurious warnings about "maybe uninitialized".
+  !str = concat("String a", "string b")
+  ! Alternatively you can explicitly allocate the string:
+  allocate(str, source=concat("String a", "string b"))
   write(0, *) "Concatenated string: '"//str//"'"
 end subroutine
+
+subroutine test_global()
+  use ISO_C_BINDING
+  use example
+  implicit none
+  my_global_var = 2
+  write(0, "(/a, i2/)") "Global variable: ", get_my_global_var()
+
+end subroutine
+
 end program
 
 !-----------------------------------------------------------------------------!
