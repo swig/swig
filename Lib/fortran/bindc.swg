@@ -42,6 +42,10 @@
   // opposed to int*, which is wrapped as an opaque type.
   %apply FORTRAN_INTRINSIC_TYPE& { CLS*, CLS[], CLS[ANY] };
 
+  // Wrap pointers natively
+  %typemap(bindc) CLS* = FORTRAN_INTRINSIC_TYPE*;
+  %typemap(bindc) const CLS* = const FORTRAN_INTRINSIC_TYPE*;
+
   // Set up C type
   %typemap(ctype, in={const CLS*}, null={SWIG_null_struct_ ## CLS()}, fragment="SWIG_null_struct"{CLS}, noblock=1) CLS {
     CLS
