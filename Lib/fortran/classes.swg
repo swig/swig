@@ -352,6 +352,7 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 %typemap(ftype, in="class($fclassname), intent(inout)", nofortransubroutine=1) SWIGTYPE *ASSIGNMENT_SELF
   "type($fclassname)"
 
+// Assignment operates directly on $input, not $1
 %typemap(in) SWIGTYPE *ASSIGNMENT_SELF "(void)sizeof($1);";
 %typemap(fargout, noblock=1) SWIGTYPE *ASSIGNMENT_SELF {
   $input%swigdata = $1
@@ -363,4 +364,5 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 %typemap(in) SWIGTYPE &ASSIGNMENT_OTHER = SWIGTYPE *ASSIGNMENT_SELF;
 
 %apply SWIGTYPE *ASSIGNMENT_SELF { SWIGTYPE *DESTRUCTOR_SELF };
+%typemap(in) SWIGTYPE *DESTRUCTOR_SELF = SWIGTYPE *;
 
