@@ -22,3 +22,6 @@
 
 /* Inject exception macros and extern function declarations */
 %fragment("SWIG_exception_impl");
+
+/* Inject SWIG error macro definitions */
+%insert("runtime") "swigerrors.swg"

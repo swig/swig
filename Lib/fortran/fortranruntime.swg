@@ -4,13 +4,6 @@
 
 %include <typemaps/fragments.swg>
 
-/* Insert SWIG error macros.
- *
- * Needs to be in a .swg file to allow downstream modules to use definitions
- * such as SWIG_RuntimeError
- */
-%insert("runtime") "swigerrors.swg";
-
 /* Default exception handler */
 #ifdef __cplusplus
 %fragment("<stdexcept>");
