@@ -1,10 +1,13 @@
 /* File : example.i */
 %module example
 
-/* Rename the error variables */
+/* Rename the error variables' internal C symbols */
 #define SWIG_FORTRAN_ERROR_INT ierr_test
 #define SWIG_FORTRAN_ERROR_STR get_serr_test
 
+/* Restore names in the wrapper code */
+%rename(ierr) ierr_test;
+%rename(get_serr) get_serr_test;
 %include <std_except.i>
 
 %exception {
@@ -31,3 +34,8 @@ void do_it(int i) {
 void do_it_again(int i) { do_it(i); }
 }
 
+%{
+/* Stand-in for an externally declared error code. Since we renamed the SWIG one
+ * using SWIG_FORTRAN_ERROR_INT, we should be good. */
+SWIGEXPORT int ierr = 0;
+%}
