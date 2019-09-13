@@ -34,26 +34,31 @@ Foo Foo::clone() const {
   return *this;
 }
 
-std::shared_ptr<Foo> Foo::clone_sp() const {
-  return std::make_shared<Foo>(*this);
+shared_ptr<Foo> Foo::clone_sp() const {
+  return shared_ptr<Foo>(new Foo(*this));
 }
 
-void print_sp(std::shared_ptr<Foo> f) {
+int use_count(const shared_ptr<Foo> *f) {
+  if (!f) return 0;
+  return f->use_count();
+}
+
+void print_sp(shared_ptr<Foo> f) {
   cout << "Shared pointer at " << &f << " with reference count " << f.use_count() << ": ";
   print_crsp(f);
 }
 
-void print_crsp(const std::shared_ptr<Foo> &f) {
+void print_crsp(const shared_ptr<Foo> &f) {
   cout << "Shared pointer at " << &f << " with reference count " << f.use_count() << ": ";
   print_crspc(f);
 }
 
-void print_spc(std::shared_ptr<const Foo> f) {
+void print_spc(shared_ptr<const Foo> f) {
   cout << "Shared pointer at " << &f << " with reference count " << f.use_count() << ": ";
   print_crspc(f);
 }
 
-void print_crspc(const std::shared_ptr<const Foo> &f) {
+void print_crspc(const shared_ptr<const Foo> &f) {
   if (!f)
     throw std::logic_error("got null sp");
 

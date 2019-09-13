@@ -8,6 +8,7 @@ except
 funcptr
 inheritance
 simple
+spdemo
 static_members
 std_string
 templated

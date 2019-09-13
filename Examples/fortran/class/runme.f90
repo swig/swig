@@ -11,6 +11,7 @@ subroutine run()
   type(Circle)          :: c
   type(Square), target  :: s ! 'target' allows it to be pointed to
   class(Shape), pointer :: sh
+  integer(C_INT) :: n_shapes
 
   ! ----- Object creation -----
     
@@ -60,7 +61,13 @@ subroutine run()
   call c%release()
   call s%release()
 
-  write(*,*)c%get_nshapes(), "shapes remain"
+  n_shapes = c%get_nshapes() 
+  write(*,*) n_shapes, "shapes remain"
+  if (n_shapes /= 0) then
+    write(*,*) "Shapes were not freed properly!"
+    stop 1
+  endif
+
   write(*,*) "Goodbye"
 end subroutine
 
