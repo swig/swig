@@ -69,8 +69,7 @@ namespace swig {
     static bool back_reference(PyObject* child, PyObject* owner) {
       SwigPyObject* swigThis = SWIG_Python_GetSwigThis(child);
       if (swigThis && (swigThis->own & SWIG_POINTER_OWN) != SWIG_POINTER_OWN) {
-        PyObject_SetAttr(child, container_owner_attribute(), owner);
-        return true;
+        return PyObject_SetAttr(child, container_owner_attribute(), owner) != -1;
       }
       return false;
     }

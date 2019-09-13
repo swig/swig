@@ -1183,8 +1183,10 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
 	}
       }
 #else
-      PyObject *key = SWIG_This();
-      PyObject_SetAttr(inst, key, swig_this);
+      if (PyObject_SetAttr(inst, SWIG_This(), swig_this) == -1) {
+        Py_DECREF(inst);
+        inst = 0;
+      }
 #endif
     }
   } else {
@@ -1196,8 +1198,12 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
         inst = ((PyTypeObject *)data->newargs)->tp_new((PyTypeObject *)data->newargs, empty_args, empty_kwargs);
         Py_DECREF(empty_kwargs);
         if (inst) {
-          PyObject_SetAttr(inst, SWIG_This(), swig_this);
-          Py_TYPE(inst)->tp_flags &= ~Py_TPFLAGS_VALID_VERSION_TAG;
+          if (PyObject_SetAttr(inst, SWIG_This(), swig_this) == -1) {
+            Py_DECREF(inst);
+            inst = 0;
+          } else {
+            Py_TYPE(inst)->tp_flags &= ~Py_TPFLAGS_VALID_VERSION_TAG;
+          }
         }
       }
       Py_DECREF(empty_args);
