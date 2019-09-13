@@ -5,7 +5,7 @@ program main
   use ISO_FORTRAN_ENV
   implicit none
 
-  !call test_class()
+  call test_class()
   call test_spcopy()
 
 contains
