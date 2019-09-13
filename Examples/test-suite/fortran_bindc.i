@@ -179,7 +179,8 @@ void saxpy(int n, float sa, const float* sx, float* sy) {
 }
 
 // Opaque C struct and c-bound functions
-struct IntStruct;
+struct IntStruct_;
+typedef struct IntStruct_ IntStruct;
 IntStruct* make_intstruct(const int *value);
 int get_instruct_i(IntStruct* s);
 
@@ -189,7 +190,7 @@ int get_instruct_i(IntStruct* s);
 %}
 
 %{
-struct IntStruct {
+struct IntStruct_ {
   int i;
 };
 
