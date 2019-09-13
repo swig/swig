@@ -1,6 +1,8 @@
 /* File : example.h */
 
-#include <memory>
+
+#include "boost/shared_ptr.hpp"
+using boost::shared_ptr;
 
 class Foo {
 public:
@@ -19,7 +21,7 @@ public:
   // Return a copy by value
   Foo clone() const;
   // Return an SP copy
-  std::shared_ptr<Foo> clone_sp() const;
+  shared_ptr<Foo> clone_sp() const;
 
   // Return references to ourself
   Foo &mutable_ref() { return *this; }
@@ -29,10 +31,10 @@ public:
   const Foo *ptr() const { return this; }
 };
 
-int use_count(const std::shared_ptr<Foo> *f);
-void print_crsp(const std::shared_ptr<Foo> &f);
-void print_sp(std::shared_ptr<Foo> f);
-void print_spc(std::shared_ptr<const Foo> f);
-void print_crspc(const std::shared_ptr<const Foo> &f);
+int use_count(const shared_ptr<Foo> *f);
+void print_crsp(const shared_ptr<Foo> &f);
+void print_sp(shared_ptr<Foo> f);
+void print_spc(shared_ptr<const Foo> f);
+void print_crspc(const shared_ptr<const Foo> &f);
 void print_cr(const Foo &f);
 
