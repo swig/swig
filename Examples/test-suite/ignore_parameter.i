@@ -10,7 +10,7 @@
 
 %typemap(freearg) char* a ""; // ensure freearg is not generated (needed for Java at least)
 
-%typemap(argout, match="in") int bb "called_argout = 1;"
+%typemap(argout) int bb "called_argout = 1;"
 
 %inline %{
 // constant for detecting correct "argout" call
