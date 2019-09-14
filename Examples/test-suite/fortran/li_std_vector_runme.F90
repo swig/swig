@@ -39,6 +39,7 @@ subroutine test_ints
   type(IntPtrVector) :: v2
   type(IntConstPtrVector) :: v3
   integer :: i
+  integer(C_INT), pointer :: val_ptr
 
   ! Test that other vectors can be constructed
   v2 = IntPtrVector()
@@ -54,6 +55,10 @@ subroutine test_ints
   ASSERT(.not. v%empty())
   ASSERT(v%size() == 1)
   ASSERT(v%get(1) == 123_c_int)
+  val_ptr => v%get_ref(1)
+  ASSERT(val_ptr == 123_c_int)
+  val_ptr = 999_c_int
+  ASSERT(v%get(1) == 999_c_int)
 
   call v%clear()
   ASSERT(v%empty())

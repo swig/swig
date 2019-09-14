@@ -20,7 +20,7 @@
 #include <vector>
 %}
 
-%define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CTYPE, CREF_TYPE)
+%define SWIG_STD_VECTOR_COMMON(CTYPE, CREF_TYPE)
   public:
     // Typedefs
     typedef size_t size_type;
@@ -36,14 +36,15 @@
 
     // Typemaps for making std::vector feel more like native Fortran:
     // - Use Fortran 1-offset indexing
-    %apply int FORTRAN_INDEX {std::vector<CTYPE>::size_type index,
-                              std::vector<CTYPE>::size_type start_index,
-                              std::vector<CTYPE>::size_type stop_index};
+    %apply int FORTRAN_INDEX {size_type index,
+                              size_type start_index,
+                              size_type stop_index};
     // - Use native Fortran integers in proxy code
-    %apply int FORTRAN_INT {std::vector<CTYPE>::size_type};
+    %apply int FORTRAN_INT {size_type};
 
     // Constructors
     vector();
+    vector(const vector<CTYPE>& other);
     vector(size_type count);
     vector(size_type count, CREF_TYPE v);
 
@@ -60,6 +61,7 @@
     void resize(size_type count);
     void resize(size_type count, CREF_TYPE v);
     void push_back(CREF_TYPE v);
+    void pop_back();
     void clear();
 
     // Instantiate proxy code
@@ -110,14 +112,32 @@
     }
 %enddef
 
+%define SWIG_STD_VECTOR_REF(CTYPE)
+  %extend {
+    CTYPE& front_ref() {
+      return (*$self).front();
+    }
+    CTYPE& back_ref() {
+      return (*$self).back();
+    }
+    CTYPE& get_ref(size_type index) {
+      SWIG_check_range(index, $self->size(),
+                       "std::vector<" #CTYPE ">::get_ref",
+                       return $self->front());
+      return (*$self)[index];
+    }
+  }
+%enddef
+
 namespace std {
   template<class T> class vector {
-    SWIG_STD_VECTOR_MINIMUM_INTERNAL(T, const T&)
+    SWIG_STD_VECTOR_COMMON(T, const T&)
+    SWIG_STD_VECTOR_REF(T)
   };
 
   // bool specialization
   template<> class vector<bool> {
-    SWIG_STD_VECTOR_MINIMUM_INTERNAL(bool, bool)
+    SWIG_STD_VECTOR_COMMON(bool, bool)
   };
 } // end namespace std
 

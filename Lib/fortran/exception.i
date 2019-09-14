@@ -173,7 +173,10 @@ SWIGEXPORT void SWIG_store_exception(const char *decl,
 /* Load macros and default typemaps from parent 'exception.i' */
 %include "../exception.i"
 
-/* -------------------------------------------------------------------------
- * Inject fragments into %include-d code
- */
+/* Generate wrapper definitions for each of the SWIG error values */
+%fortranconst;
+%include <swigerrors.swg>
+%nofortranconst;
+
+/* Inject fragments into %include-d code */
 %fragment("SWIG_exception_impl");
