@@ -1392,7 +1392,7 @@ Wrapper * FORTRAN::cfuncWrapper(Node *n) {
   String *cleanup = NewStringEmpty();
   String *outarg = NewStringEmpty();
 
-  // Insert input conversion, constraint checking, and cleanup code
+  // Add input conversion for parameters being passed through the C wrapper
   for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
     Parm *p = it.item;
     if (String *tm = Getattr(p, "tmap:in")) {
@@ -1402,18 +1402,24 @@ Wrapper * FORTRAN::cfuncWrapper(Node *n) {
       Setattr(p, "emit:input", imname);
       Printv(cfunc->code, tm, "\n", NULL);
     }
+  }
+
+  // Insert constraint checking and cleanup code.
+  // Note that this loops over *all* input parameters, even those that
+  // are ignored or have numinputs=0.
+  for (Parm *p = parmlist; p; p = nextSibling(p)) {
     if (String *tm = Getattr(p, "tmap:check")) {
       Replaceall(tm, "$input", Getattr(p, "emit:input"));
       Printv(cfunc->code, tm, "\n", NULL);
-    }
-    if (String *tm = Getattr(p, "tmap:freearg")) {
-      Replaceall(tm, "$input", Getattr(p, "emit:input"));
-      Printv(cleanup, tm, "\n", NULL);
     }
     if (String *tm = Getattr(p, "tmap:argout")) {
       Replaceall(tm, "$result", "fresult");
       Replaceall(tm, "$input", Getattr(p, "emit:input"));
       Printv(outarg, tm, "\n", NULL);
+    }
+    if (String *tm = Getattr(p, "tmap:freearg")) {
+      Replaceall(tm, "$input", Getattr(p, "emit:input"));
+      Printv(cleanup, tm, "\n", NULL);
     }
   }
 
