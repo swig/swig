@@ -72,12 +72,12 @@ end subroutine
 // Since we add a final null character in "SWIG_fout"{char*}, we can
 // just access the data directly.
 %typemap(in, noblock=1) char * {
-  $1 = %reinterpret_cast($input->data, $1_ltype);
+  $1 = ($1_ltype)($input->data);
 }
 
 // Save the outgoing string
 %typemap(out, fragment="<stdlib.h>", fragment="<string.h>", noblock=1) char * {
-  $result.size = strlen(%reinterpret_cast($1, char*));
+  $result.size = strlen((char*)($1));
   $result.data = %const_cast($1, $*1_ltype *);
 }
 
@@ -109,7 +109,7 @@ end subroutine
 %fortran_array(%arg((char *STRING, size_t LENGTH)))
 
 %typemap(in, noblock=1) (char *STRING, size_t LENGTH) {
-  $1 = %reinterpret_cast($input->data, $1_ltype);
+  $1 = ($1_ltype)($input->data);
   $2 = $input->size;
 }
 
