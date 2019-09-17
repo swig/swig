@@ -164,7 +164,7 @@ struct DestructorPolicy<T, ASSIGNMENT_NODESTRUCT> {
 %fragment("SWIG_assign", "header", fragment="SWIG_destructor_policy") %{
 namespace swig {
 
-SwigClassWrapper capture(SwigClassWrapper other) {
+SWIGINTERN SwigClassWrapper capture(SwigClassWrapper other) {
   other.cmemflags &= ~SWIG_MEM_RVALUE;
   return other;
 }
@@ -175,7 +175,9 @@ struct AssignmentPolicy {
     return DestructorPolicy<T, A>::destroy(self);
   }
   static SwigClassWrapper alias(SwigClassWrapper other) {
-    return capture(other);
+    SwigClassWrapper self = other;
+    self.cmemflags &= ~SWIG_MEM_OWN;
+    return self;
   }
   static SwigClassWrapper move_alias(SwigClassWrapper self, SwigClassWrapper other) {
     if (self.cmemflags & SWIG_MEM_OWN) {
