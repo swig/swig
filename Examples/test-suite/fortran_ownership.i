@@ -4,8 +4,16 @@
 #include "boost/shared_ptr.hpp"
 %}
 
-%immutable foo_counter;
-%immutable bar_counter;
+%fortranbindc foo_counter;
+%fortranbindc bar_counter;
+
+%inline %{
+extern "C" {
+int foo_counter = 0;
+int bar_counter = 0;
+}
+%}
+
 
 // We aren't allowed to return a class via func-to-subroutine conversion, but we're going to test it and hide the warning
 %fortransubroutine make_foo_subroutine;
@@ -14,10 +22,11 @@
 %include <boost_shared_ptr.i>
 %shared_ptr(Bar)
 
-%inline %{
+// Automatically free class arguments passed by value
+// TODO: doesn't work with shared pointers.
+%fortran_autofree_rvalue(Foo)
 
-static int foo_counter = 0;
-static int bar_counter = 0;
+%inline %{
 
 struct Foo {
     int val;

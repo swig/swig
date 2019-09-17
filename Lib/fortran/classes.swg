@@ -7,6 +7,49 @@
 %include <typemaps/swigmacros.swg>
 
 /* -------------------------------------------------------------------------
+ * MACROS
+ * ------------------------------------------------------------------------- */
+/*!
+ * \def %fortran_autofree_rvalue
+ *
+ * When an instance of this CLASS is passed to an argument, check whether it
+ * needs to be deallocated at the end of the function. Without this check,
+ * memory will be leaked when passing a newly constructed object directly into
+ * another function.
+ *
+ * The only reason this isn't done by default is that there are too many edge
+ * cases to ensure the result compiles and works in all cases. (For example,
+ * forward-declared classes, typedef'd classes, SWIG carray.i "classes", ...)
+ */
+%define %fortran_autofree_rvalue(CLASS...)
+
+%typemap(in) CLASS = SWIGTYPE;
+%typemap(argout, noblock=1, match="in") CLASS {
+  SWIG_free_rvalue(SWIGPOLICY_ ## %mangle(CLASS), *$input);
+}
+
+%typemap(in) CLASS* = SWIGTYPE*;
+%typemap(argout, noblock=1, match="in") CLASS* {
+  SWIG_free_rvalue($*1_ltype, SWIGPOLICY_ ## %mangle(CLASS), *$input);
+}
+
+%typemap(in) CLASS[] = SWIGTYPE*;
+%typemap(argout, match="in") CLASS[] = CLASS*;
+
+%typemap(in) CLASS& = SWIGTYPE*;
+%typemap(argout, match="in") CLASS& = CLASS*;
+
+// Restore special assignment/destruct typemaps...
+%typemap(in) CLASS& = SWIGTYPE*;
+
+%typemap(in) CLASS *self = SWIGTYPE *self;
+%typemap(in) CLASS *ASSIGNMENT_SELF = SWIGTYPE *ASSIGNMENT_SELF;
+%typemap(in) CLASS &ASSIGNMENT_OTHER = SWIGTYPE &ASSIGNMENT_OTHER;
+%typemap(in) CLASS *DESTRUCTOR_SELF = SWIGTYPE *DESTRUCTOR_SELF;
+
+%enddef
+
+/* -------------------------------------------------------------------------
  * Memory state enumeration
  * ------------------------------------------------------------------------- */
 #ifdef __cplusplus

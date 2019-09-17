@@ -17,80 +17,75 @@ contains
 subroutine test_standard
   use fortran_ownership
   implicit none
-  type(Foo) :: a, b, c, empty
-  integer :: num_leaks = 0
+  type(Foo) :: a, b, c
+  type(c_ptr) :: temp_cptr
   integer(c_int) :: val
 
-  ASSERT(get_foo_counter() == 0)
+  ASSERT(foo_counter == 0)
   a = Foo(1) ! Create a new object
-  ASSERT(get_foo_counter() == 1)
+  ASSERT(foo_counter == 1)
   b = Foo(a) ! Create a new *copy* of a
-  ASSERT(get_foo_counter() == 2)
+  ASSERT(foo_counter == 2)
   call b%set_val(2) ! Setting 'b' is independent of 'a'
   ASSERT(a%get_val() == 1)
 
   call b%release() ! Release by assigning a 'null' object
-  ASSERT(get_foo_counter() == 1)
+  ASSERT(foo_counter == 1)
 
   c = reference(a) ! Custom function: c refers to data owned by 'a'
-  ASSERT(get_foo_counter() == 1)
+  ASSERT(foo_counter == 1)
   ASSERT(.not. btest(c%swigdata%cmemflags, swig_cmem_own_bit))
   ASSERT(.not. btest(c%swigdata%cmemflags, swig_cmem_rvalue_bit))
   call a%set_val(3)
   ASSERT(c%get_val() == 3)
 
   b = const_reference(a) ! Custom function: c refers to data owned by 'a'
-  ASSERT(get_foo_counter() == 1)
+  ASSERT(foo_counter == 1)
   ASSERT(.not. btest(b%swigdata%cmemflags, swig_cmem_own_bit))
   ASSERT(.not. btest(b%swigdata%cmemflags, swig_cmem_rvalue_bit))
   call b%release()
-  ASSERT(get_foo_counter() == 1)
+  ASSERT(foo_counter == 1)
 
   c = Foo(4) ! Associate 'c' with new Foo
-  ASSERT(get_foo_counter() == 2)
+  ASSERT(foo_counter == 2)
   ASSERT(c%get_val() == 4) ! The reference is changed as well
 
   ! NOTE: returning class by intent(out) is *disabled*
   b = make_foo_subroutine(5)
   ASSERT(btest(b%swigdata%cmemflags, swig_cmem_own_bit))
   ASSERT(.not. btest(b%swigdata%cmemflags, swig_cmem_rvalue_bit))
-  ASSERT(get_foo_counter() == 3)
+  ASSERT(foo_counter == 3)
 
   ! Capture from function
   b = make_foo(6)
   ASSERT(btest(b%swigdata%cmemflags, swig_cmem_own_bit))
   ASSERT(.not. btest(b%swigdata%cmemflags, swig_cmem_rvalue_bit))
-  ASSERT(get_foo_counter() == 3)
+  ASSERT(foo_counter == 3)
 
-  ! NOTE: returning class by intent(out) is *disabled*, so these no longer leak
-!  ! XXX: leaks memory
-!  call make_foo_subroutine(6, b)
-!  num_leaks = num_leaks + 1
-!  ASSERT(get_foo_counter() == 3 + num_leaks)
-!
-!  ! XXX: also leaks memory
-!  call make_foo_subroutine(6)
-!  num_leaks = num_leaks + 1
-!  ASSERT(get_foo_counter() == 3 + num_leaks)
-
-  ! XXX: *also* leaks
+  ! Check that rvalue is automatically freed after it's used
   val = get_value(Foo(7))
-  num_leaks = num_leaks + 1
   ASSERT(val == 7)
-  ASSERT(get_foo_counter() == 3 + num_leaks)
+  ASSERT(foo_counter == 3)
 
-  ! Self-assignment shouldn't change anything
+  ! Self-assignment shouldn't change ownership
+  temp_cptr = b%swigdata%cptr
   b = b
-  ASSERT(get_foo_counter() == 3 + num_leaks)
+  ASSERT(c_associated(b%swigdata%cptr, temp_cptr))
+  ASSERT(btest(b%swigdata%cmemflags, swig_cmem_own_bit))
+  ASSERT(.not. btest(b%swigdata%cmemflags, swig_cmem_rvalue_bit))
+  ASSERT(foo_counter == 3)
+
   call b%release()
-  ASSERT(get_foo_counter() == 2 + num_leaks)
+  ASSERT(foo_counter == 2)
 
   call a%release() ! Free data pointed to by 'a'
-  ASSERT(get_foo_counter() == 1 + num_leaks)
+  ASSERT(foo_counter == 1)
 
-  ! call c%set_val(5) ! XXX This would crash
-  c = empty ! Release by assigning 'null'
-  ASSERT(get_foo_counter() == 0 + num_leaks)
+  call c%set_val(5)
+  ! c = empty ! Release by assigning 'null'
+  ! ASSERT(foo_counter == 0 + num_leaks)
+  call c%release()
+  ASSERT(foo_counter == 0)
 
 end subroutine
 
