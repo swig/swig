@@ -66,6 +66,9 @@ subroutine test_standard
   val = get_value(Foo(7))
   ASSERT(val == 7)
   ASSERT(foo_counter == 3)
+  val = get_value_copy(Foo(8))
+  ASSERT(val == 8)
+  ASSERT(foo_counter == 3)
 
   ! Self-assignment shouldn't change ownership
   temp_cptr = b%swigdata%cptr

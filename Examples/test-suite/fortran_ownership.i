@@ -42,6 +42,7 @@ Foo make_foo(int val) { return Foo(val); }
 Foo make_foo_subroutine(int val) { return Foo(val); }
 
 int get_value(const Foo& other) { return other.val; }
+int get_value_copy(Foo other) { return other.val; }
 
 struct Bar {
     int val;

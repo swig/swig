@@ -25,12 +25,12 @@
 
 %typemap(in) CLASS = SWIGTYPE;
 %typemap(argout, noblock=1, match="in") CLASS {
-  SWIG_free_rvalue(SWIGPOLICY_ ## %mangle(CLASS), *$input);
+  SWIG_free_rvalue< $1_ltype, SWIGPOLICY_ ## %mangle(CLASS) >(*$input);
 }
 
 %typemap(in) CLASS* = SWIGTYPE*;
 %typemap(argout, noblock=1, match="in") CLASS* {
-  SWIG_free_rvalue($*1_ltype, SWIGPOLICY_ ## %mangle(CLASS), *$input);
+  SWIG_free_rvalue< $*1_ltype, SWIGPOLICY_ ## %mangle(CLASS) >(*$input);
 }
 
 %typemap(in) CLASS[] = SWIGTYPE*;
