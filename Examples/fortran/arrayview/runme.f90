@@ -1,7 +1,10 @@
 ! File : runme.f90
 
 program main
+  use ISO_FORTRAN_ENV
   implicit none
+  integer, parameter :: STDOUT = OUTPUT_UNIT
+
   call test_algorithms()
   call test_matview()
 
@@ -20,9 +23,9 @@ subroutine test_algorithms()
   ! Allocate and reverse integer data
   allocate(alloc_data(size(test_data)))
   alloc_data = test_data
-  write (0,list_fmt) alloc_data
+  write(STDOUT,list_fmt) alloc_data
   call reverse(alloc_data)
-  write (0,list_fmt) alloc_data
+  write(STDOUT,list_fmt) alloc_data
 
   call print_array(test_real)
   call sort(test_real)
@@ -30,7 +33,7 @@ subroutine test_algorithms()
   call print_array(test_real)
 
   do i = -2,8
-    write(0, "(i4,""->"",i4)") i, find_sorted(test_data, i)
+    write(STDOUT, "(i4,""->"",i4)") i, find_sorted(test_data, i)
   enddo
 end subroutine
 
@@ -47,12 +50,12 @@ subroutine test_matview()
     arr(i) = real(i) + 0.5
   end do
 
-  write(0, *) "Printing array..."
+  write(STDOUT, *) "Printing array..."
   call print_array(arr)
-  write(0, *) "... printed"
+  write(STDOUT, *) "... printed"
 
   ! Empty array
-  write(0, *) "Printing empty..."
+  write(STDOUT, *) "Printing empty..."
   allocate(alloc(0))
   call print_array(alloc)
 
@@ -64,18 +67,18 @@ subroutine test_matview()
   enddo
 
   ! Printing a single column works
-  write(0,*) "---- Column access is OK ----"
+  write(STDOUT,*) "---- Column access is OK ----"
   do i = 1,3
-    write(0, *) "Printing 2D array col ", i, " slice..."
+    write(STDOUT, *) "Printing 2D array col ", i, " slice..."
     call print_array(mat(:,i))
   enddo
 
   ! THIS PRINTS BAD DATA for columns since they're not contiguous
   ! (fortran is row-major)
-  write(0,*) "---- Row access is NOT ok ----"
+  write(STDOUT,*) "---- Row access is NOT ok ----"
 
   do i = 1,3
-    write(0, *) "Printing 2D array row ", i, " slice..."
+    write(STDOUT, *) "Printing 2D array row ", i, " slice..."
     call print_array(mat(i,:))
   enddo
 
@@ -83,9 +86,9 @@ subroutine test_matview()
   deallocate(alloc)
   allocate(alloc(3))
 
-  write(0,*) "---- Correct row access ----"
+  write(STDOUT,*) "---- Correct row access ----"
   do i = 1,3
-    write(0, *) "Printing 2D array row ", i, " slice..."
+    write(STDOUT, *) "Printing 2D array row ", i, " slice..."
     alloc(:) = mat(i,:)
     call print_array(alloc)
   enddo

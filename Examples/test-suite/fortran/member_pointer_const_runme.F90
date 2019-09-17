@@ -5,8 +5,10 @@
 program member_pointer_const_runme
   use member_pointer_const
   use ISO_C_BINDING
+  use ISO_FORTRAN_ENV
   implicit none
 
+  integer, parameter :: STDOUT = OUTPUT_UNIT
   type(SwigOpaqueMemFunPtr) :: area_memptr, perim_memptr
   type(Square) :: s
   real(C_DOUBLE) :: val
@@ -43,7 +45,7 @@ contains
     character(len=*), intent(in) :: what
     real(C_DOUBLE), intent(in) :: expected, actual
     if (actual /= expected) then
-      write(0, *) "Failed: ", what, " Expected: ", expected, &
+      write(STDOUT, *) "Failed: ", what, " Expected: ", expected, &
                   " Actual: ", actual
       stop 1
     end if

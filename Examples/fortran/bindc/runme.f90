@@ -1,7 +1,10 @@
 ! File : runme.f90
 
 program main
+  use ISO_FORTRAN_ENV
   implicit none
+  integer, parameter :: STDOUT = OUTPUT_UNIT
+
   call test_example()
   call test_logical()
   call test_strings()
@@ -28,17 +31,17 @@ subroutine test_logical()
   logical :: ninp, noutp
   inp = .true.
   outp = bound_negation(inp)
-  write(0, *) "Should be true:", inp, "; should be false: ", outp
+  write(STDOUT, *) "Should be true:", inp, "; should be false: ", outp
   inp = .false.
   outp = bound_negation(inp)
-  write(0, *) "Should be false:", inp, "; should be true: ", outp
+  write(STDOUT, *) "Should be false:", inp, "; should be true: ", outp
 
   ninp = .true.
   noutp = wrapped_negation(ninp)
-  write(0, *) "Should be true:", ninp, "; should be false: ", noutp
+  write(STDOUT, *) "Should be true:", ninp, "; should be false: ", noutp
   ninp = .false.
   noutp = wrapped_negation(ninp)
-  write(0, *) "Should be false:", ninp, "; should be true: ", noutp
+  write(STDOUT, *) "Should be false:", ninp, "; should be true: ", noutp
 end subroutine
 
 subroutine test_strings()
@@ -49,7 +52,7 @@ subroutine test_strings()
   character(len=:), allocatable :: str
 
   do i = -1, 3
-    write(0, *) get_existing_string(i)
+    write(STDOUT, *) get_existing_string(i)
   end do
 
   ! Note: automatic allocation is allowed in Fortran 2003, but GCC tends to
@@ -57,7 +60,7 @@ subroutine test_strings()
   !str = concat("String a", "string b")
   ! Alternatively you can explicitly allocate the string:
   allocate(str, source=concat("String a", "string b"))
-  write(0, *) "Concatenated string: '"//str//"'"
+  write(STDOUT, *) "Concatenated string: '"//str//"'"
 end subroutine
 
 subroutine test_global()
@@ -65,7 +68,7 @@ subroutine test_global()
   use example
   implicit none
   my_global_var = 2
-  write(0, "(/a, i2/)") "Global variable: ", get_my_global_var()
+  write(STDOUT, "(/a, i2/)") "Global variable: ", get_my_global_var()
 
 end subroutine
 

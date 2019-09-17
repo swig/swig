@@ -3,8 +3,10 @@
 #include "fassert.h"
 
 program fortran_bindc_runme
-  use ISO_C_BINDING
+  use ISO_FORTRAN_ENV
   implicit none
+
+  integer, parameter :: STDOUT = OUTPUT_UNIT
 
   call test_globals
   call test_arrays
@@ -73,8 +75,8 @@ subroutine test_twod_unknown_int
   end do
 
   if (nerrs /= 0) then
-    write(*,*) nerrs, " bad entries:"
-    write(*,*) test_data
+    write(STDOUT,*) nerrs, " bad entries:"
+    write(STDOUT,*) test_data
     stop 1
   end if
 end subroutine
@@ -93,7 +95,7 @@ subroutine test_fundamental
 
   call saxpy(10_c_int, 2.5, x(1), y(1))
 
-  write(*,*) y
+  write(STDOUT,*) y
 
 end subroutine
 

@@ -1,7 +1,10 @@
 ! File : runme.f90
 
 program main
+  use ISO_FORTRAN_ENV
   implicit none
+  integer, parameter :: STDOUT = OUTPUT_UNIT
+
   call test_funcs()
   call test_enum()
   call test_consts()
@@ -16,14 +19,14 @@ subroutine test_funcs()
   call set_something(2, 200.0d0)
   call set_something(1, 10.0d0)
   call set_something(0, 1.0d0)
-  write(0, *) "Got ", get_something(0)
-  write(0, *) "Got ", get_something(1)
+  write(STDOUT, *) "Got ", get_something(0)
+  write(STDOUT, *) "Got ", get_something(1)
 
   rptr => get_something_rref(2)
   rptr = 512.0d0
 
   call get_something_ref(1, temp)
-  write(0, *) "Got ", temp
+  write(STDOUT, *) "Got ", temp
 
 end subroutine test_funcs
 
@@ -44,12 +47,12 @@ subroutine test_consts()
   use example
   use, intrinsic :: ISO_C_BINDING
   implicit none
-  write(0, *) "MY_SPECIAL_NUMBERS ", MY_SPECIAL_NUMBERS
-  write(0, *) "octoconst   ", octal_const
-  write(0, *) "wrapped_const ", wrapped_const
-  write(0, *) "pi is approximately ", approx_pi
-  write(0, *) "2pi is approximately ", get_approx_twopi()
-  write(0, *) "extern const int is ", get_linked_const_int()
+  write(STDOUT, *) "MY_SPECIAL_NUMBERS ", MY_SPECIAL_NUMBERS
+  write(STDOUT, *) "octoconst   ", octal_const
+  write(STDOUT, *) "wrapped_const ", wrapped_const
+  write(STDOUT, *) "pi is approximately ", approx_pi
+  write(STDOUT, *) "2pi is approximately ", get_approx_twopi()
+  write(STDOUT, *) "extern const int is ", get_linked_const_int()
   ! Can't assign these
 !   wrapped_const = 2
 !   MY_SPECIAL_NUMBERS = 4

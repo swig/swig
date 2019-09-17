@@ -5,7 +5,10 @@
 program member_pointer_runme
   use member_pointer
   use ISO_C_BINDING
+  use ISO_FORTRAN_ENV
   implicit none
+
+  integer, parameter :: STDOUT = OUTPUT_UNIT
   type(SwigOpaqueMemFunPtr) :: area_memptr, perim_memptr
   type(Square) :: s
   real(C_DOUBLE) :: val
@@ -19,25 +22,25 @@ program member_pointer_runme
 
   ! Call a function that takes a member function pointer and an object
   val = do_op(s, area_memptr)
-  write(0,*) "Area:", val
+  write(STDOUT,*) "Area:", val
   ASSERT(val == 100.0d0)
 
   ! Get a function pointer via a global variable
   area_memptr = get_areavar()
   val = do_op(s, area_memptr)
-  write(0,*) "Area:", val
+  write(STDOUT,*) "Area:", val
   ASSERT(val == 100.0d0)
 
   ! Change the function pointer
   call set_areavar(perim_memptr)
   val = do_op(s, get_areavar())
-  write(0,*) "Perimiter:", val
+  write(STDOUT,*) "Perimeter:", val
   ASSERT(val == 40.0d0)
 
   ! Try the external constants
   perim_memptr = PERIMPT
   val = do_op(s, get_areavar())
-  write(0,*) "Perimiter:", val
+  write(STDOUT,*) "Perimeter:", val
   ASSERT(val == 40.0d0)
 end program
 

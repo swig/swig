@@ -1,5 +1,9 @@
 ! File : runme.f90
-program class_runme
+program runme
+  use ISO_FORTRAN_ENV
+  implicit none
+  integer, parameter :: STDOUT = OUTPUT_UNIT
+
   call run()
 contains
 
@@ -15,12 +19,12 @@ subroutine run()
 
   ! ----- Object creation -----
     
-  write(*,*) "Creating some objects"
+  write(STDOUT,*) "Creating some objects"
   c = Circle(10.0)
   s = Square(10.0)
 
   ! ----- Access a static member -----
-  write(*,'(a,i2,a)')"A total of", s%get_nshapes(), " shapes were created"
+  write(STDOUT,'(a,i2,a)')"A total of", s%get_nshapes(), " shapes were created"
 
   ! ----- Member data access -----
 
@@ -34,24 +38,24 @@ subroutine run()
   call sh%set_x(-10.0)
   call sh%set_y(  5.0)
 
-  write(*,*)"Here is their current position:"
-  write(*,'(a,f5.1,a,f5.1,a)')"  Circle = (", c%get_x(), ",", c%get_y(), " )"
-  write(*,'(a,f5.1,a,f5.1,a)')"  Square = (", s%get_x(), ",", s%get_y(), " )"
+  write(STDOUT,*)"Here is their current position:"
+  write(STDOUT,'(a,f5.1,a,f5.1,a)')"  Circle = (", c%get_x(), ",", c%get_y(), " )"
+  write(STDOUT,'(a,f5.1,a,f5.1,a)')"  Square = (", s%get_x(), ",", s%get_y(), " )"
 
   ! ----- Call some methods -----
 
-  write(*,*)"Here are some properties of the shapes:"
+  write(STDOUT,*)"Here are some properties of the shapes:"
   call print_shape(c)
   call print_shape(s)
 
   ! Call function that takes base class
-  write(*,*)" Circle P/A  = ", surface_to_volume(c)
-  write(*,*)" Square P/A  = ", surface_to_volume(s)
+  write(STDOUT,*)" Circle P/A  = ", surface_to_volume(c)
+  write(STDOUT,*)" Square P/A  = ", surface_to_volume(s)
 
   ! Example of exception handling
   c = circle(-2.0)
   if (ierr /= 0) then
-    write(*,*) "Caught the following error: ", get_serr()
+    write(STDOUT,*) "Caught the following error: ", get_serr()
     ierr = 0
   endif
 
@@ -62,13 +66,13 @@ subroutine run()
   call s%release()
 
   n_shapes = c%get_nshapes() 
-  write(*,*) n_shapes, "shapes remain"
+  write(STDOUT,*) n_shapes, "shapes remain"
   if (n_shapes /= 0) then
-    write(*,*) "Shapes were not freed properly!"
+    write(STDOUT,*) "Shapes were not freed properly!"
     stop 1
   endif
 
-  write(*,*) "Goodbye"
+  write(STDOUT,*) "Goodbye"
 end subroutine
 
 subroutine print_shape(s)
@@ -77,9 +81,9 @@ subroutine print_shape(s)
   implicit none
   class(Shape), intent(in) :: s
 
-  write(*,*)"  ", s%kind(), ":"
-  write(*,*)"    area      = ",s%area()
-  write(*,*)"    perimeter = ",s%perimeter()
+  write(STDOUT,*)"  ", s%kind(), ":"
+  write(STDOUT,*)"    area      = ",s%area()
+  write(STDOUT,*)"    perimeter = ",s%perimeter()
 end subroutine
 
 end program
