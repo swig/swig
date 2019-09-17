@@ -220,7 +220,7 @@ struct AssignmentPolicy<T, ASSIGNMENT_SMARTPTR> {
 } // end namespace swig
 
 template<class T, swig::AssignmentType A>
-SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper other) {
+SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
   typedef swig::AssignmentPolicy<T, A> Policy_t;
 
   if (self->cptr == NULL) {
@@ -257,8 +257,6 @@ SWIGINTERN void SWIG_free_rvalue(SwigClassWrapper other) {
   }
 }
 
-#define SWIG_assign(CLASS, POLICY, SELF, OTHER) SWIG_assign_impl< CLASS, POLICY >(SELF, OTHER)
-#define SWIG_free_rvalue(CLASS, POLICY, ARG) SWIG_free_rvalue< CLASS, POLICY >(ARG)
 %}
 
 /* -------------------------------------------------------------------------
@@ -269,7 +267,7 @@ SWIGINTERN void SWIG_free_rvalue(SwigClassWrapper other) {
 %fragment("SWIG_assign", "header",
           fragment="SwigClassWrapper", fragment="<stdlib.h>",
           fragment="<string.h>") %{
-SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper other) {
+SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
   if (self->cptr == NULL) {
     /* LHS is unassigned */
     if (other.cmemflags & SWIG_MEM_RVALUE) {
@@ -301,8 +299,13 @@ SWIGINTERN void SWIG_assign_impl(SwigClassWrapper* self, SwigClassWrapper other)
     }
   }
 }
+%}
 
-#define SWIG_assign(CLASS, POLICY, SELF, OTHER) SWIG_assign_impl(SELF, OTHER)
+/* Assignment: left = right */
+%fragment("SWIG_assign", "runtime",
+          fragment="SWIG_assign_impl") %{
+#define SWIG_assign(TYPE, POLICY, LEFT, RIGHT) \
+    SWIG_assign_impl(LEFT, RIGHT);
 %}
 
 #endif
