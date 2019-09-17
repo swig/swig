@@ -5,10 +5,7 @@
 program inctest_runme
   use inctest
   use ISO_C_BINDING
-  use ISO_FORTRAN_ENV
   implicit none
-
-  integer, parameter :: STDOUT = OUTPUT_UNIT
   character(kind=C_CHAR, len=:), allocatable :: instr, outstr
   ! If the 'includes' fail, these will produce compiler errors
   type(A) :: ai
@@ -25,7 +22,6 @@ program inctest_runme
   ! XXX since importtest2 modifies by reference, we should have to copy it out (so that 'instr' is "white" as well)
   allocate(instr, source="black")
   outstr = importtest2(instr)
-  write(STDOUT,*) "instr:", instr, " outstr:", outstr
   ASSERT(outstr == "white")
 
 end program

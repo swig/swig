@@ -3,10 +3,7 @@
 #include "fassert.h"
 
 program fortran_array_typemap_runme
-  use ISO_FORTRAN_ENV
   implicit none
-
-  integer, parameter :: STDOUT = OUTPUT_UNIT
 
   call test_ptr_size
   call test_fixed
@@ -52,8 +49,6 @@ subroutine test_fixed
     end do
   end do
 
-  write(STDOUT,*) "dbl_values:", dbl_values
-  write(STDOUT,*) "cpp_sum(dbl_values):", cpp_sum(dbl_values)
   ASSERT(cpp_sum(dbl_values) == sum(dbl_values))
 end subroutine
 

@@ -3,10 +3,8 @@
 #include "fassert.h"
 
 program contract_c_runme
-  use ISO_FORTRAN_ENV
+  use ISO_C_BINDING
   implicit none
-
-  integer, parameter :: STDOUT = OUTPUT_UNIT
 
   call test_assert
 contains
@@ -20,7 +18,6 @@ subroutine test_assert
   ASSERT(test_preassert(1, 1) == 1)
   ASSERT(test_preassert(-1, 1) == 0)
   ASSERT(ierr == -9)
-  ! write(STDOUT,*) "Got error string: ", get_serr()
   ASSERT(len(get_serr()) > 0)
   ierr = 0
   ASSERT(test_postassert(123) == 123)

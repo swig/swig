@@ -3,17 +3,14 @@
 #include "fassert.h"
 
 program arrays_global_twodim
-  use ISO_C_BINDING
-  use ISO_FORTRAN_ENV
   implicit none
-
-  integer, parameter :: STDOUT = OUTPUT_UNIT
 
   call test_int_array
 contains
 
 subroutine test_int_array  
   use arrays_global_twodim
+  use ISO_C_BINDING
   implicit none
   ! The following will fail to build if they're not defined as PARAMETERS in the module file
   type(SWIGTYPE_p_a_4__int) :: constintarray2d
@@ -38,8 +35,6 @@ subroutine test_int_array
     end do
   end do
 
-  write(STDOUT,*) "Expected:", expected
-  write(STDOUT,*) "Actual:", actual
   ASSERT(all(expected == actual))
 end subroutine
 end program

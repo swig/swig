@@ -27,8 +27,6 @@ subroutine test_dynamic_cast
   ASSERT(.not. c_associated(fref%swigdata%cptr))
   ASSERT(c_associated(bref%swigdata%cptr))
 
-  print *, bref%test()
-
 end subroutine
 end program
 
