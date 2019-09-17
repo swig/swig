@@ -11,7 +11,6 @@ program main
 contains
 
 subroutine test_class()
-  use ISO_FORTRAN_ENV
   use example, only : Foo, print_foo => print_crsp
   implicit none
   type(Foo) :: f, f2, f3
@@ -56,6 +55,10 @@ subroutine test_spcopy()
   write(STDOUT, *) "Use count should be 2:", use_count(f1)
   write(STDOUT, *) "Use count should be 2:", use_count(f2)
 
+  write(STDOUT, *) "Self-assigning should change nothing..."
+  f2 = f2
+  write(STDOUT, *) "Use count should be 2:", use_count(f2)
+
   write(STDOUT, *) "Cloning..."
   f2 = f1%clone_sp()
   call f2%set(2.0d0)
@@ -66,10 +69,9 @@ subroutine test_spcopy()
   f1 = f2%ref()
   write(STDOUT, *) "Use count should be 1:", use_count(f1)
   write(STDOUT, *) "Use count should be 1:", use_count(f2)
-
-  call f1%release()
-  write(STDOUT, *) "Use count should be 1:", use_count(f2)
   call f2%release()
+  write(STDOUT, *) "Use count should be 1:", use_count(f1)
+  call f1%release()
   write(STDOUT, *) "-- END SUBROUTINE --"
 end subroutine
 

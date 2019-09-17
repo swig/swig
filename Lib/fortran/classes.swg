@@ -195,6 +195,8 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
   } else if (other.cptr == NULL) {
     /* Replace LHS with a null pointer */
     *self = Policy_t::destruct(*self);
+  } else if (self->cptr == other.cptr) {
+    /* Self-assignment: ignore */
   } else if (other.cmemflags & SWIG_MEM_RVALUE) {
     /* Transferred ownership from a variable that's about to be lost.
      * Move-assign and delete the transient data */
@@ -230,6 +232,8 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
     /* Replace LHS with a null pointer */
     free(self->cptr);
     *self = SwigClassWrapper_uninitialized();
+  } else if (self->cptr == other.cptr) {
+    /* Self-assignment: ignore */
   } else {
     if (self->cmemflags & SWIG_MEM_OWN) {
       free(self->cptr);

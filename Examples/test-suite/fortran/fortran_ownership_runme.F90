@@ -79,12 +79,9 @@ subroutine test_standard
   ASSERT(val == 7)
   ASSERT(get_foo_counter() == 3 + num_leaks)
 
-  ! XXX: self-assignment *incorrectly* leaks and leaves 'b' as
-  ! a pointer to invalid memory
+  ! Self-assignment shouldn't change anything
   b = b
-  ASSERT(get_foo_counter() == 2 + num_leaks)
-  ! XXX: 'release' call just deletes the reference, since 'b'
-  ! was improperly released above
+  ASSERT(get_foo_counter() == 3 + num_leaks)
   call b%release()
   ASSERT(get_foo_counter() == 2 + num_leaks)
 
