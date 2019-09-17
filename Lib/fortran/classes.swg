@@ -104,14 +104,14 @@ namespace swig {
 
 template<class T, AssignmentType A>
 struct DestructorPolicy {
-  static SwigClassWrapper destruct(SwigClassWrapper self) {
+  static SwigClassWrapper destroy(SwigClassWrapper self) {
     delete static_cast<T*>(self.cptr);
     return SwigClassWrapper_uninitialized();
   }
 };
 template<class T>
 struct DestructorPolicy<T, ASSIGNMENT_NODESTRUCT> {
-  static SwigClassWrapper destruct(SwigClassWrapper) {
+  static SwigClassWrapper destroy(SwigClassWrapper) {
     SWIG_exception_impl("assignment", SWIG_TypeError, "Invalid assignment: class type has private destructor", return SwigClassWrapper_uninitialized());
   }
 };
@@ -121,39 +121,37 @@ struct DestructorPolicy<T, ASSIGNMENT_NODESTRUCT> {
 %fragment("SWIG_assign", "header", fragment="SWIG_destructor_policy") %{
 namespace swig {
 
+SwigClassWrapper capture(SwigClassWrapper other) {
+  other.cmemflags &= ~SWIG_MEM_RVALUE;
+  return other;
+}
+
 template<class T, AssignmentType A>
 struct AssignmentPolicy {
-  static SwigClassWrapper destruct(SwigClassWrapper self) {
-    return DestructorPolicy<T, A>::destruct(self);
+  static SwigClassWrapper destroy(SwigClassWrapper self) {
+    return DestructorPolicy<T, A>::destroy(self);
   }
   static SwigClassWrapper alias(SwigClassWrapper other) {
-    SwigClassWrapper self;
-    self.cptr = other.cptr;
-    self.cmemflags = other.cmemflags & ~SWIG_MEM_OWN;
-    return self;
+    return capture(other);
   }
   static SwigClassWrapper move_alias(SwigClassWrapper self, SwigClassWrapper other) {
     if (self.cmemflags & SWIG_MEM_OWN) {
-      destruct(self);
+      destroy(self);
     }
-    self.cptr = other.cptr;
-    self.cmemflags = other.cmemflags & ~SWIG_MEM_RVALUE;
-    return self;
+    return capture(other);
   }
   static SwigClassWrapper copy_alias(SwigClassWrapper self, SwigClassWrapper other) {
     if (self.cmemflags & SWIG_MEM_OWN) {
-      destruct(self);
+      destroy(self);
     }
-    self.cptr = other.cptr;
-    self.cmemflags = other.cmemflags & ~SWIG_MEM_OWN;
-    return self;
+    return capture(other);
   }
 };
 
 template<class T>
 struct AssignmentPolicy<T, ASSIGNMENT_SMARTPTR> {
-  static SwigClassWrapper destruct(SwigClassWrapper self) {
-    return DestructorPolicy<T, ASSIGNMENT_SMARTPTR>::destruct(self);
+  static SwigClassWrapper destroy(SwigClassWrapper self) {
+    return DestructorPolicy<T, ASSIGNMENT_SMARTPTR>::destroy(self);
   }
   static SwigClassWrapper alias(SwigClassWrapper other) {
     SwigClassWrapper self;
@@ -164,7 +162,7 @@ struct AssignmentPolicy<T, ASSIGNMENT_SMARTPTR> {
   static SwigClassWrapper move_alias(SwigClassWrapper self, SwigClassWrapper other) {
     self = copy_alias(self, other);
     self.cmemflags = other.cmemflags & ~SWIG_MEM_RVALUE;
-    destruct(other);
+    destroy(other);
     return self;
   }
   static SwigClassWrapper copy_alias(SwigClassWrapper self, SwigClassWrapper other) {
@@ -186,15 +184,14 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
     /* LHS is unassigned */
     if (other.cmemflags & SWIG_MEM_RVALUE) {
       /* Capture pointer from RHS, clear 'moving' flag */
-      self->cptr = other.cptr;
-      self->cmemflags = other.cmemflags & (~SWIG_MEM_RVALUE);
+      *self = swig::capture(other);
     } else {
       /* Aliasing another class; clear ownership or copy smart pointer */
       *self = Policy_t::alias(other);
     }
   } else if (other.cptr == NULL) {
     /* Replace LHS with a null pointer */
-    *self = Policy_t::destruct(*self);
+    *self = Policy_t::destroy(*self);
   } else if (self->cptr == other.cptr) {
     /* Self-assignment: ignore */
   } else if (other.cmemflags & SWIG_MEM_RVALUE) {
