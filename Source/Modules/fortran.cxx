@@ -2119,12 +2119,8 @@ void FORTRAN::add_assignment_operator(Node *classn) {
   String *policystr = Getattr(classn, "fortran:policy");
 
   // Define action code
-  String *code = NULL;
-  if (CPlusPlus) {
-    code = NewStringf("SWIG_assign<%s, %s>(farg1, *farg2);\n", classname, policystr);
-  } else {
-    code = NewStringf("SWIG_assign(farg1, *farg2);\n");
-  }
+  String *code = NewStringf("SWIG_assign(%s, %s, farg1, *farg2);\n",
+                            classname, (policystr ? policystr : ""));
   Setattr(n, "feature:action", code);
 
   // Insert assignment fragment
