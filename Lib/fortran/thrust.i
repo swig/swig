@@ -28,7 +28,7 @@
 
   %typemap(check, noblock=1) (PTRTYPE DATA, size_t SIZE) {
     if ((thrust::raw_pointer_cast($1) == NULL) && ($2 != 0)) {
-      SWIG_exception_impl("$decl", SWIG_TypeError, \
+      SWIG_exception_impl("$decl", SWIG_NullReferenceError, \
                           "Encountered null device pointer", return $null); \
     }
   }
