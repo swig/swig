@@ -4,6 +4,9 @@
 #include "boost/shared_ptr.hpp"
 %}
 
+// Enable error handling in Fortran code
+%include <exception.i>
+
 %fortranbindc foo_counter;
 %fortranbindc bar_counter;
 
