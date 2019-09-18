@@ -19,25 +19,21 @@ program member_pointer_runme
 
   ! Call a function that takes a member function pointer and an object
   val = do_op(s, area_memptr)
-  write(0,*) "Area:", val
   ASSERT(val == 100.0d0)
 
   ! Get a function pointer via a global variable
   area_memptr = get_areavar()
   val = do_op(s, area_memptr)
-  write(0,*) "Area:", val
   ASSERT(val == 100.0d0)
 
   ! Change the function pointer
   call set_areavar(perim_memptr)
   val = do_op(s, get_areavar())
-  write(0,*) "Perimiter:", val
   ASSERT(val == 40.0d0)
 
   ! Try the external constants
   perim_memptr = PERIMPT
   val = do_op(s, get_areavar())
-  write(0,*) "Perimiter:", val
   ASSERT(val == 40.0d0)
 end program
 

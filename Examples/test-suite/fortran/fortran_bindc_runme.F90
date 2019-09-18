@@ -3,7 +3,6 @@
 #include "fassert.h"
 
 program fortran_bindc_runme
-  use ISO_C_BINDING
   implicit none
 
   call test_globals
@@ -92,8 +91,6 @@ subroutine test_fundamental
   end do
 
   call saxpy(10_c_int, 2.5, x(1), y(1))
-
-  write(*,*) y
 
 end subroutine
 

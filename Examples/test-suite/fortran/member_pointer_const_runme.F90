@@ -43,7 +43,7 @@ contains
     character(len=*), intent(in) :: what
     real(C_DOUBLE), intent(in) :: expected, actual
     if (actual /= expected) then
-      write(0, *) "Failed: ", what, " Expected: ", expected, &
+      write(*, *) "Failed: ", what, " Expected: ", expected, &
                   " Actual: ", actual
       stop 1
     end if

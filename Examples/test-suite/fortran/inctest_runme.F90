@@ -22,7 +22,6 @@ program inctest_runme
   ! XXX since importtest2 modifies by reference, we should have to copy it out (so that 'instr' is "white" as well)
   allocate(instr, source="black")
   outstr = importtest2(instr)
-  write(*,*) "instr:", instr, " outstr:", outstr
   ASSERT(outstr == "white")
 
 end program

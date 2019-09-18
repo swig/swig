@@ -4,7 +4,9 @@ program example_runme
   use example
   use mpi
   use ISO_C_BINDING
+  use ISO_FORTRAN_ENV
   implicit none
+  integer, parameter :: STDOUT = OUTPUT_UNIT
   integer :: ierr, rank, size, srank, ssize, split_comm
 
   call mpi_init(ierr)
@@ -22,7 +24,7 @@ program example_runme
   call mpi_comm_rank(split_comm, srank, ierr)
   call mpi_comm_size(split_comm, ssize, ierr)
   call mpi_barrier(MPI_COMM_WORLD, ierr)
-  write(*, '("Global:", i2, "/", i2, ", split:", i2, "/", i2)') &
+  write(STDOUT, '("Global:", i2, "/", i2, ", split:", i2, "/", i2)') &
     rank, size, srank, ssize
 
   call mpi_finalize(ierr)

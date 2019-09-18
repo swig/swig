@@ -21,8 +21,10 @@ contains
   end function
 end module
 
-program test_callback
+program runme
+  use ISO_FORTRAN_ENV
   implicit none
+  integer, parameter :: STDOUT = OUTPUT_UNIT
 
   call test_procptr()
   call test_transform()
@@ -36,12 +38,12 @@ subroutine test_procptr
   implicit none
   procedure(fp_transform), pointer :: trans => null()
 
-  write(*,*) "test_procptr"
+  write(STDOUT,*) "test_procptr"
 
   trans => enquote_single
-  write(*,*) "Result: " // trans("whee")
+  write(STDOUT,*) "Result: " // trans("whee")
   trans => bracket
-  write(*,*) "Result: " // trans("whee")
+  write(STDOUT,*) "Result: " // trans("whee")
 end subroutine
 
 ! Actual C++ callback function test
@@ -51,10 +53,10 @@ subroutine test_transform
   implicit none
   character(kind=C_CHAR, len=:), allocatable :: str 
 
-  write(*,*) "test_transform"
+  write(STDOUT,*) "test_transform"
 
   str = join_transformed(", and ", enquote_cb)
-  write(0,*) "Got string: " // str
+  write(STDOUT,*) "Got string: " // str
 end subroutine
 
 ! Actual C++ callback to wrapped Function procedure
@@ -65,7 +67,7 @@ subroutine test_cb
   implicit none
   character(kind=C_CHAR, len=:), allocatable :: str 
 
-  write(*,*) "test_cb"
+  write(STDOUT,*) "test_cb"
 
   ! Choose the internal Fortran procedure to wrap
   director_procptr => enquote_single
@@ -73,13 +75,13 @@ subroutine test_cb
   ! Call the C++ function with the callback function that wraps the interface
   ! function that calls "director_procptr"
   str = join_transformed(", and ", director_cb)
-  write(0,*) "Got string: " // str
+  write(STDOUT,*) "Got string: " // str
 
   ! Choose the internal Fortran procedure to wrap
   director_procptr => bracket
 
   str = join_transformed(", and ", director_cb)
-  write(0,*) "Got string: " // str
+  write(STDOUT,*) "Got string: " // str
 end subroutine 
  
 end program

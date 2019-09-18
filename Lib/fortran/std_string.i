@@ -32,17 +32,13 @@ class string;
 
 /* ---- CONST REFERENCE: NATIVE STRING ---- */
 
-// Fortran treats like C strings
-%apply const char * {const std::string &};
-
-// Fortran proxy translation code: convert from char array to Fortran string
-%typemap(fout, noblock=1, fragment="SWIG_fout"{const char*}) const std::string & {
-  call %fortrantm(fout, const char*)($1, $result)
-}
+%typemap(ctype) const std::string & = char*;
+%typemap(imtype) const std::string & = char*;
+%typemap(ftype) const std::string & = char*;
 
 // C input translation typemaps: $1 is std::string*, $input is SwigArrayWrapper
 %typemap(in, noblock=1) const std::string & (std::string tempstr) {
-  tempstr = std::string(static_cast<const char *>($input->data), $input->size);
+  tempstr = std::string(static_cast<char *>($input->data), $input->size);
   $1 = &tempstr;
 }
 
@@ -50,6 +46,13 @@ class string;
 %typemap(out, noblock=1) const std::string & {
   $result.data = ($1->empty() ? NULL : &(*$1->begin()));
   $result.size = $1->size();
+}
+
+// Fortran proxy translation code: convert from char array to Fortran string
+%typemap(fin) const std::string & = char*;
+// Unlike char* code, we never delete the return value!
+%typemap(fout, noblock=1, fragment="SWIG_fout"{char*}) const std::string & {
+  call %fortrantm(fout, char*)($1, $result)
 }
 
 /* ---- VALUE: NATIVE STRING ---- */
@@ -65,7 +68,7 @@ class string;
 
 // Copy input data to local string
 %typemap(in, noblock=1) std::string {
-  $1.assign(static_cast<const char *>($input->data), $input->size);
+  $1.assign(static_cast<char *>($input->data), $input->size);
 }
 
 // Copy the string to a temporary buffer (not null-terminated)
@@ -81,7 +84,7 @@ class string;
 
 // Fortran proxy translation code: convert from char array to Fortran string
 %typemap(fout, noblock=1,
-         fragment="SWIG_free_f", fragment="SWIG_fout"{const char*}) std::string {
-  call %fortrantm(fout, const char*)($1, $result)
+         fragment="SWIG_free_f", fragment="SWIG_fout"{char*}) std::string {
+  call %fortrantm(fout, char*)($1, $result)
   call SWIG_free($1%data)
 }

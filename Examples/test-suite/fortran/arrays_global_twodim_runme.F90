@@ -3,7 +3,6 @@
 #include "fassert.h"
 
 program arrays_global_twodim
-  use ISO_C_BINDING
   implicit none
 
   call test_int_array
@@ -36,8 +35,6 @@ subroutine test_int_array
     end do
   end do
 
-  write(*,*) "Expected:", expected
-  write(*,*) "Actual:", actual
   ASSERT(all(expected == actual))
 end subroutine
 end program

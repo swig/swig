@@ -54,7 +54,9 @@ contains
 end module
 
 program test_director
+  use ISO_FORTRAN_ENV
   implicit none
+  integer, parameter :: STDOUT = OUTPUT_UNIT
 
   call test_subclass()
   call test_transform()
@@ -71,17 +73,17 @@ subroutine test_subclass
   ! NOTE: because we're not calling any C functions here, we don't actually
   ! have to call init_Joiner
 
-  write(*,*) "test_subclass"
+  write(STDOUT,*) "test_subclass"
   allocate(join, source=SingleJoiner())
-  write(*,*) "Transformed: " // join%transform("whee")
+  write(STDOUT,*) "Transformed: " // join%transform("whee")
   deallocate(join)
 
   allocate(join, source=BracketJoiner())
-  write(*,*) "Transformed: " // join%transform("whee")
+  write(STDOUT,*) "Transformed: " // join%transform("whee")
   deallocate(join)
 
 !  call join%append_several()
-!  write(0,*) "Transformed: " // join%join(", and ")
+!  write(STDOUT,*) "Transformed: " // join%join(", and ")
 end subroutine
 
 ! Actual C++ class test
@@ -92,16 +94,16 @@ subroutine test_transform
   character(kind=C_CHAR, len=:), allocatable :: str 
   class(JoinerBase), allocatable :: join
 
-  write(*,*) "test_transform"
+  write(STDOUT,*) "test_transform"
 
   allocate(join, source=QuoteJoiner())
   call join%append_several()
   str = join%join(", and ")
-  write(0,*) "Transformed: " // str
+  write(STDOUT,*) "Transformed: " // str
 
   deallocate(str)
   str = join_with_commas(join)
-  write(0,*) "Joined with commas: " // str
+  write(STDOUT,*) "Joined with commas: " // str
 end subroutine
 
 ! Actual C++ director function test
@@ -113,7 +115,7 @@ subroutine test_actual
   character(kind=C_CHAR, len=:), allocatable :: str 
   class(Joiner), allocatable :: join
 
-  write(*,*) "test_actual"
+  write(STDOUT,*) "test_actual"
 
   ! -- SingleJoiner --
 
@@ -121,14 +123,14 @@ subroutine test_actual
   call init_Joiner(join)
   call join%append_several()
   str = join%join(", and ")
-  write(0,*) "Transformed: " // str
+  write(STDOUT,*) "Transformed: " // str
 
   deallocate(str)
   str = join_with_commas(join)
-  write(0,*) "Joined with commas: " // str
+  write(STDOUT,*) "Joined with commas: " // str
   deallocate(str)
   str = join_default(join)
-  write(0,*) "Joined with default: " // str
+  write(STDOUT,*) "Joined with default: " // str
 
   call join%release()
   deallocate(join)
@@ -142,10 +144,10 @@ subroutine test_actual
 
   deallocate(str)
   str = join_with_commas(join)
-  write(0,*) "Joined with commas: " // str
+  write(STDOUT,*) "Joined with commas: " // str
   deallocate(str)
   str = join_default(join)
-  write(0,*) "Joined with default: " // str
+  write(STDOUT,*) "Joined with default: " // str
 
   call join%release()
   deallocate(join)
@@ -156,7 +158,7 @@ subroutine test_actual
   call init_Joiner(join)
   call join%append_several()
   str = join%join(", and ")
-  write(0,*) "Transformed: " // str
+  write(STDOUT,*) "Transformed: " // str
   deallocate(str)
 
   select type (j => join)
@@ -164,11 +166,11 @@ subroutine test_actual
     j%ch = '!'
   end select
   str = join%join(", and ")
-  write(0,*) "Transformed: " // str
+  write(STDOUT,*) "Transformed: " // str
   deallocate(str)
 
   str = join_with_commas(join)
-  write(0,*) "Joined with commas: " // str
+  write(STDOUT,*) "Joined with commas: " // str
 
   call join%release()
   deallocate(join)
