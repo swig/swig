@@ -24,12 +24,12 @@
 %define %fortran_autofree_rvalue(CLASS...)
 
 %typemap(in) CLASS = SWIGTYPE;
-%typemap(argout, noblock=1, match="in") CLASS {
+%typemap(argout, noblock=1, fragment="SWIG_assign", match="in") CLASS {
   SWIG_free_rvalue< $1_ltype, SWIGPOLICY_ ## %mangle(CLASS) >(*$input);
 }
 
 %typemap(in) CLASS* = SWIGTYPE*;
-%typemap(argout, noblock=1, match="in") CLASS* {
+%typemap(argout, noblock=1, fragment="SWIG_assign", match="in") CLASS* {
   SWIG_free_rvalue< $*1_ltype, SWIGPOLICY_ ## %mangle(CLASS) >(*$input);
 }
 
