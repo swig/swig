@@ -2351,8 +2351,8 @@ int FORTRAN::classHandler(Node *n) {
   {
     SwigType *name = Getattr(n, "name");
     ASSERT_OR_PRINT_NODE(name, n);
-    String *policystr = SwigType_manglestr(name);
-    Insert(policystr, 0, "SWIGPOLICY");
+    String *policystr = Swig_string_mangle(name);
+    Insert(policystr, 0, "SWIGPOLICY_");
     Setattr(n, "fortran:policy", policystr);
 
     // Define policies for the class

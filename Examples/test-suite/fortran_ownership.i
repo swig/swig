@@ -58,3 +58,13 @@ struct Bar {
 boost::shared_ptr<Bar> share(boost::shared_ptr<Bar> other) { return other; }
 int use_count(const boost::shared_ptr<Bar>& sp) { return sp.use_count(); }
 %}
+
+// Test that autofree mangling works with namespaced values
+%fortran_autofree_rvalue(myns::Tricky)
+%inline %{
+namespace myns {
+struct Tricky{};
+
+void do_nothing(Tricky) {};
+}
+%}
