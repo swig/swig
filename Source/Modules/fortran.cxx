@@ -2291,6 +2291,24 @@ int FORTRAN::classDeclaration(Node *n) {
     }
   }
 
+  // Define policy
+  if (CPlusPlus) {
+    if (SwigType *name = Getattr(n, "name")) {
+      String *policystr = Swig_string_mangle(name);
+      Insert(policystr, 0, "SWIGPOLICY_");
+      Setattr(n, "fortran:policy", policystr);
+
+      // Define policies for the class
+      const char *policy = "swig::ASSIGNMENT_DEFAULT";
+      if (Getattr(n, "feature:smartptr")) {
+        policy = "swig::ASSIGNMENT_SMARTPTR";
+      } else if (!GetFlag(n, "allocate:default_destructor")) {
+        policy = "swig::ASSIGNMENT_NODESTRUCT";
+      }
+      Printv(f_policies, "#define ", policystr, " ", policy, "\n", NULL);
+    }
+  }
+
   return Language::classDeclaration(n);
 }
 
@@ -2345,25 +2363,6 @@ int FORTRAN::classHandler(Node *n) {
     Printv(f_class, ", bind(C)", NULL);
   }
   Printv(f_class, ", public :: ", fsymname, "\n", NULL);
-
-  // Define policy
-  if (CPlusPlus)
-  {
-    SwigType *name = Getattr(n, "name");
-    ASSERT_OR_PRINT_NODE(name, n);
-    String *policystr = Swig_string_mangle(name);
-    Insert(policystr, 0, "SWIGPOLICY_");
-    Setattr(n, "fortran:policy", policystr);
-
-    // Define policies for the class
-    const char *policy = "swig::ASSIGNMENT_DEFAULT";
-    if (Getattr(n, "feature:smartptr")) {
-      policy = "swig::ASSIGNMENT_SMARTPTR";
-    } else if (!GetFlag(n, "allocate:default_destructor")) {
-      policy = "swig::ASSIGNMENT_NODESTRUCT";
-    }
-    Printv(f_policies, "#define ", policystr, " ", policy, "\n", NULL);
-  }
 
   if (!bindc) {
     if (!base_fsymname) {
