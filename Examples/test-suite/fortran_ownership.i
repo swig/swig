@@ -61,10 +61,17 @@ int use_count(const boost::shared_ptr<Bar>& sp) { return sp.use_count(); }
 
 // Test that autofree mangling works with namespaced values
 %fortran_autofree_rvalue(myns::Tricky)
+%fortran_autofree_rvalue(myns::TemplTricky<int>)
 %inline %{
 namespace myns {
 struct Tricky{};
 
+template<class T>
+struct TemplTricky{};
+
 void do_nothing(Tricky) {};
+void do_nothing(TemplTricky<int>) {};
 }
 %}
+
+%template(TemplTrickyInt) myns::TemplTricky<int>;
