@@ -1013,20 +1013,49 @@ the call to `SWIG_check_unhandled_exception` ensures that no previous unhandled
 error exists.  If you wish to wrap only a few functions with only specific
 exceptions, use the ["throws" typemap](SWIG.html#throws_typemap).
 
+The error codes (``SWIG_RuntimeError``, etc.) above will be generated as
+public Fortran parameter constants when using the `<exception.i>` header. Thus
+you can check for more specific errors as needed:
+```fortran
+b = get_from_reference(a)
+if (ierr == SWIG_NullReferenceError) then
+  write(0,*) "'a' must be allocated before passing to 'get_from_reference'"
+  stop 1
+endif
+```
+
+### Using exceptions in larger projects or software libraries
+
 When exception handling code is used, SWIG generates a few internal data
 structures as well as two externally accessible symbols with external C linkage
 (`ierr` and `get_serr`). Fortran bindings are generated to make the integer and
 function accessible from the Fortran module.
 
 The names of the integer and string accessor have C linkage and thus must
-be unique in a compiled program. Since other translation units might have
+be unique in a compiled program *and* to all downstream codes linked against
+it. Since other translation units might have
 symbols that share the default exception handling names, the user can provide
-custom names before including the exception handling file:
+custom names before including the exception handling file. A `%rename`
+directive can then reset the Fortran proxy name to something simpler while
+retaining the scoped C linkage variable names.
+
+In this example, the C-linkage variables generated will be `_scoped_ierr` and `_scoped_get_serr`:
 ```swig
-#define SWIG_FORTRAN_ERROR_INT my_ierr
-#define SWIG_FORTRAN_ERROR_STR get_my_serr
+%module foo;
+
+#define SWIG_FORTRAN_ERROR_INT scoped_ierr
+#define SWIG_FORTRAN_ERROR_STR scoped_get_serr
+%rename(ierr) scoped_ierr;
+%rename(get_serr) scoped_get_serr;
 %include <std_except.i>
 ```
+but because of the %rename directives, they can still be accessed from Fortran
+with simpler names since they are "scoped" to the generated module:
+```fortran
+use foo, only : ierr, get_serr
+```
+
+### Exceptions with multiple modules
 
 If you're linking multiple modules together (using %import or otherwise), only
 one of those modules should define the error integer and accessor by including
