@@ -84,6 +84,12 @@ subroutine test_standard
   call a%release() ! Free data pointed to by 'a'
   ASSERT(foo_counter == 1)
 
+  ! Test error checking: passing a null value as a reference
+  ASSERT(ierr == 0)
+  c = const_reference(a)
+  ASSERT(ierr == SWIG_NullReferenceError)
+  ierr = 0
+
   call c%set_val(5)
   ! c = empty ! Release by assigning 'null'
   ! ASSERT(foo_counter == 0 + num_leaks)

@@ -24,24 +24,22 @@
 %define %fortran_autofree_rvalue(CLASS...)
 
 %typemap(in) CLASS = SWIGTYPE;
-%typemap(argout, noblock=1, match="in") CLASS {
+%typemap(argout, noblock=1, fragment="SWIG_assign", match="in") CLASS {
   SWIG_free_rvalue< $1_ltype, SWIGPOLICY_ ## %mangle(CLASS) >(*$input);
 }
 
 %typemap(in) CLASS* = SWIGTYPE*;
-%typemap(argout, noblock=1, match="in") CLASS* {
+%typemap(argout, noblock=1, fragment="SWIG_assign", match="in") CLASS* {
   SWIG_free_rvalue< $*1_ltype, SWIGPOLICY_ ## %mangle(CLASS) >(*$input);
 }
 
 %typemap(in) CLASS[] = SWIGTYPE*;
 %typemap(argout, match="in") CLASS[] = CLASS*;
 
-%typemap(in) CLASS& = SWIGTYPE*;
+%typemap(in) CLASS& = SWIGTYPE&;
 %typemap(argout, match="in") CLASS& = CLASS*;
 
 // Restore special assignment/destruct typemaps...
-%typemap(in) CLASS& = SWIGTYPE*;
-
 %typemap(in) CLASS *self = SWIGTYPE *self;
 %typemap(in) CLASS *ASSIGNMENT_SELF = SWIGTYPE *ASSIGNMENT_SELF;
 %typemap(in) CLASS &ASSIGNMENT_OTHER = SWIGTYPE &ASSIGNMENT_OTHER;
@@ -121,7 +119,7 @@ SWIGINTERN SwigClassWrapper SwigClassWrapper_uninitialized() {
 %fragment("SWIG_check_nonnull", "runtime") %{
 #define SWIG_check_nonnull(SWIG_CLASS_WRAPPER, TYPENAME, FNAME, FUNCNAME, RETURNNULL) \
   if (!(SWIG_CLASS_WRAPPER).cptr) { \
-    SWIG_exception_impl(FUNCNAME, SWIG_TypeError, \
+    SWIG_exception_impl(FUNCNAME, SWIG_NullReferenceError, \
                         "Cannot pass null " TYPENAME " (class " FNAME ") " \
                         "as a reference", RETURNNULL); \
   }

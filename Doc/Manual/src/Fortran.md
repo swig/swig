@@ -1013,20 +1013,49 @@ the call to `SWIG_check_unhandled_exception` ensures that no previous unhandled
 error exists.  If you wish to wrap only a few functions with only specific
 exceptions, use the ["throws" typemap](SWIG.html#throws_typemap).
 
+The error codes (``SWIG_RuntimeError``, etc.) above will be generated as
+public Fortran parameter constants when using the `<exception.i>` header. Thus
+you can check for more specific errors as needed:
+```fortran
+b = get_from_reference(a)
+if (ierr == SWIG_NullReferenceError) then
+  write(0,*) "'a' must be allocated before passing to 'get_from_reference'"
+  stop 1
+endif
+```
+
+### Using exceptions in larger projects or software libraries
+
 When exception handling code is used, SWIG generates a few internal data
 structures as well as two externally accessible symbols with external C linkage
 (`ierr` and `get_serr`). Fortran bindings are generated to make the integer and
 function accessible from the Fortran module.
 
 The names of the integer and string accessor have C linkage and thus must
-be unique in a compiled program. Since other translation units might have
+be unique in a compiled program *and* to all downstream codes linked against
+it. Since other translation units might have
 symbols that share the default exception handling names, the user can provide
-custom names before including the exception handling file:
+custom names before including the exception handling file. A `%rename`
+directive can then reset the Fortran proxy name to something simpler while
+retaining the scoped C linkage variable names.
+
+In this example, the C-linkage variables generated will be `_scoped_ierr` and `_scoped_get_serr`:
 ```swig
-#define SWIG_FORTRAN_ERROR_INT my_ierr
-#define SWIG_FORTRAN_ERROR_STR get_my_serr
+%module foo;
+
+#define SWIG_FORTRAN_ERROR_INT scoped_ierr
+#define SWIG_FORTRAN_ERROR_STR scoped_get_serr
+%rename(ierr) scoped_ierr;
+%rename(get_serr) scoped_get_serr;
 %include <std_except.i>
 ```
+but because of the %rename directives, they can still be accessed from Fortran
+with simpler names since they are "scoped" to the generated module:
+```fortran
+use foo, only : ierr, get_serr
+```
+
+### Exceptions with multiple modules
 
 If you're linking multiple modules together (using %import or otherwise), only
 one of those modules should define the error integer and accessor by including
@@ -1552,7 +1581,8 @@ A single Fortran proxy class must be able to act as a value, a pointer, or a
 reference to a C++ class instance.
 When stored as a value, a method must be put in place to deallocate the
 associated memory; if the instance is a reference, that same method cannot
-double-delete the associated memory. Finally, C++ functions
+double-delete the associated memory. An additional complication is that C++
+functions
 must be able to send Fortran pointers both *with and without* owning the
 associated memory, depending on the function. Finally,
 assignment between Fortran classes must preserve memory association.
@@ -1595,23 +1625,14 @@ temporary's memory. Unfortunately, only the very latest compilers (as of 2018,
 14 years after the standard was ratified) have full support for the `FINAL` keyword.
 
 Our solution to this limitation is to have the `Foo` proxy class store not only
-a pointer to the C data but also a state enumeration `self%swigdata%mem` that
-describes memory ownership. The enumeration needs to have at least three options:
+a pointer to the C data (`self%swigdata%cptr`) but also a set of state flags
+(`self%swigdata%cmemflags`) that describes memory ownership.
+Currently there are two flags:
 
-- The memory is *owned* by the proxy class (and must be deleted when calling
-  `release()`);
-- The proxy class is a *reference* to memory owned by C/C++ (returned by either
-  a raw pointer or a reference);
-- The memory is being allocated and returned from a function, but it must be
-  captured by the left hand side.
-
-This last option is roughly analogous to the behavior of the deprecated
-`std::auto_ptr`, which was the predecessor to C++11's `move` semantics.
-Besides the above flags, we also define an uninitialized state `NULL` for
-convenience, and a "const reference" state to enable const correctness. These
-flags are set by the SWIG `out` typemaps in the C wrapper code: if memory is
-being allocated, the return flag is `MOVE`; if a pointer is being returned,
-`REF` (or `CREF` in the const case) is used.
+- Ownership (the `swig_cmem_own_bit` in Fortran wrapper code) is true if
+  freeing the wrapper should destroy and free the corresponding C/C++ memory.
+- If ownership of the class instance is being transferred from a function, the
+  `rvalue` bit is set (`swig_cmem_rvalue_bit`).
 
 The crucial trick is to implement an assignment operator that correctly copies,
 allocates, or moves memory based on the flags on the left- and right-hand sides,
@@ -1633,19 +1654,15 @@ omitted.
 | NULL   | NULL         | (none)                                  |
 | NULL   | MOVE         | `pself = pother;`                       |
 | NULL   | OWN          | `pself = new This(pother);`             |
-| NULL   | REF/CREF     | `pself = pother;`                       |
+| NULL   | REF          | `pself = pother;`                       |
 | OWN    | NULL         | `delete pself; pself = NULL;`           |
 | OWN    | MOVE         | `*pself = move(*pother); delete pother;`|
 | OWN    | OWN          | `*pself = *pother;`                     |
-| OWN    | REF/CREF     | `*pself = *pother;`                     |
+| OWN    | REF          | `*pself = *pother;`                     |
 | REF    | NULL         | `pself = NULL;`                         |
 | REF    | MOVE         | `*pself = move(*pother); delete pother;`|
 | REF    | OWN          | `*pself = *pother; `                    |
-| REF    | REF/CREF     | `*pself = *pother;`                     |
-| CREF   | NULL         | `pself = NULL;`                         |
-| CREF   | MOVE         | (error)                                 |
-| CREF   | OWN          | (error)                                 |
-| CREF   | REF/CREF     | (error)                                 |
+| REF    | REF          | `*pself = *pother;`                     |
                                                                 
 The above operations are designed to preserve C++ semantics: if an proxy object
 owning memory is assigned, then any existing objects pointing to that memory
