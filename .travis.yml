@@ -322,11 +322,6 @@ matrix:
       env: SWIGLANG=java CPP11=1
       sudo: required
       dist: xenial
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.4 CPP11=1
-      sudo: required
-      dist: trusty
     - os: linux
       env: SWIGLANG=python CPP11=1
       sudo: required
