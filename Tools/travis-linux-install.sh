@@ -71,21 +71,7 @@ case "$SWIGLANG" in
 		travis_retry sudo apt-get -qq install ocaml camlp4
 		;;
 	"octave")
-		if [[ -z "$VER" ]]; then
-			travis_retry sudo apt-get -qq install liboctave-dev
-		else
-			# Travis adds external PPAs which contain newer versions of packages
-			# than in baseline trusty. These newer packages prevent some of the
-			# Octave packages in ppa:kwwette/octave, which rely on the older
-			# packages in trusty, from installing. To prevent these kind of
-			# interactions arising, clean out all external PPAs added by Travis
-			# before installing Octave
-			sudo rm -rf /etc/apt/sources.list.d/*
-			travis_retry sudo apt-get -qq update
-			travis_retry sudo add-apt-repository -y ppa:kwwette/octaves
-			travis_retry sudo apt-get -qq update
-			travis_retry sudo apt-get -qq install liboctave${VER}-dev
-		fi
+		travis_retry sudo apt-get -qq install liboctave-dev
 		;;
 	"php")
 		travis_retry sudo add-apt-repository -y ppa:ondrej/php
