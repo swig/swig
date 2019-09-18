@@ -36,12 +36,10 @@
 %typemap(in) CLASS[] = SWIGTYPE*;
 %typemap(argout, match="in") CLASS[] = CLASS*;
 
-%typemap(in) CLASS& = SWIGTYPE*;
+%typemap(in) CLASS& = SWIGTYPE&;
 %typemap(argout, match="in") CLASS& = CLASS*;
 
 // Restore special assignment/destruct typemaps...
-%typemap(in) CLASS& = SWIGTYPE*;
-
 %typemap(in) CLASS *self = SWIGTYPE *self;
 %typemap(in) CLASS *ASSIGNMENT_SELF = SWIGTYPE *ASSIGNMENT_SELF;
 %typemap(in) CLASS &ASSIGNMENT_OTHER = SWIGTYPE &ASSIGNMENT_OTHER;
