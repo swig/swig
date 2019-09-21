@@ -101,10 +101,12 @@
 /* -------------------------------------------------------------------------
  * Original class by reference. Add null checks.
  * ------------------------------------------------------------------------- */
-%typemap(in, noblock=1, fragment="SWIG_check_sp_nonnull") CONST TYPE& {
+%typemap(in, noblock=1, fragment="SWIG_check_sp_nonnull") CONST TYPE & {
   SWIG_check_sp_nonnull($input->cptr, "$1_ltype", "$fclassname", "$decl", return $null)
   $1 = (TYPE*)static_cast<SWIGSP__*>($input->cptr)->get();
 }
+
+%typemap(in) CONST TYPE &ASSIGNMENT_OTHER = SWIGTYPE *ASSIGNMENT_SELF;
 
 // Output value is never null. Because we're allocating a shared pointer, we set the memory ownership to MOVE so that the *SP*
 // will be properly deallocated. But we also must use a null deleter so that when the SP is deleted the corresponding memory
