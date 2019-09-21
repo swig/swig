@@ -8,7 +8,6 @@ program li_boost_shared_ptr_runme
   implicit none
   type(Klass) :: f1, f2
   integer(c_int) :: orig_total_count
-  integer(c_int) :: memory_leak
 
   !call set_debug_shared(.true.)
 
@@ -40,6 +39,17 @@ program li_boost_shared_ptr_runme
   call f1%release() ! Clear the raw pointer (does not deallocate)
   ASSERT(use_count(f1) == 0)
 
+  ! Test null pointers
+  f1 = sp_pointer_null()
+  ASSERT(nullsmartpointerpointertest(f1) == "null pointer")
+  call f1%release()
+  f1 = null_sp_pointer()
+  ASSERT(nullsmartpointerpointertest(f1) == "null pointer")
+  call f1%release()
+  f1 = sp_value_null()
+  ASSERT(nullsmartpointerpointertest(f1) == "null pointer")
+  call f1%release()
+
   ! Copy-construct the underlying object
   f1 = Klass(f2)
   ASSERT(use_count(f1) == 1)
@@ -52,12 +62,7 @@ program li_boost_shared_ptr_runme
 
   call f2%release() ! Further calls to release() are allowable null-ops
 
-  ! Create a temporary shared pointer that's passed into a function
-  ! THIS LEAKS MEMORY!
-  ASSERT(use_count(Klass()) == 1)
-  memory_leak = 1
-
   ! The getTotal_count function is static, so 'f2' doesn't have to be allocated
-  ASSERT(f2%getTotal_count() == orig_total_count + memory_leak)
+  ASSERT(f2%getTotal_count() == orig_total_count)
 end program
 
