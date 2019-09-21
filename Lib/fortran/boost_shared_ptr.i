@@ -63,7 +63,7 @@
  * ------------------------------------------------------------------------- */
 %typemap(in, noblock=1, fragment="SWIG_check_sp_nonnull") CONST TYPE ($&1_type argp = 0) {
   SWIG_check_sp_nonnull($input->cptr, "$1_ltype", "$fclassname", "$decl", return $null)
-  argp = %static_cast($input->cptr, SWIGSP__*)->get();
+  argp = static_cast<SWIGSP__*>($input->cptr)->get();
   $1 = *argp;
 }
 %typemap(out, noblock=1) CONST TYPE {
@@ -74,14 +74,17 @@
 /* -------------------------------------------------------------------------
  * Original class by pointer. Note that the deleter is determined by the owner
  * cmemflags, but the result is always a new self-owned shared pointer.
- *
- * Also note that the 'smartarg' temporary *must* be there so that the
- * deleter can work properly.
  * ------------------------------------------------------------------------- */
 %typemap(in, noblock=1) CONST TYPE * (SWIGSP__* smartarg) {
-  smartarg = %static_cast($input->cptr, SWIGSP__*);
-  $1 = smartarg ? %const_cast(smartarg->get(), TYPE*) : NULL;
+  smartarg = (SWIGSP__*)($input->cptr);
+  $1 = smartarg ? (TYPE*)(smartarg->get()) : NULL;
 }
+
+// Replace call to "delete (Foo*) arg1;" with call to delete the *shared
+// pointer*: decrement the reference count instead of forcing the object to
+// be destroyed and causing a double-delete.
+%feature("unref") TYPE
+%{ (void)$self; delete smart$self; %}
 
 // The string "SWIG_NO_NULL_DELETER_$owner" is replaced by the macro
 // SWIG_NO_NULL_DELETER_1 if a raw pointer is being emitted via %newobject
@@ -100,7 +103,7 @@
  * ------------------------------------------------------------------------- */
 %typemap(in, noblock=1, fragment="SWIG_check_sp_nonnull") CONST TYPE& {
   SWIG_check_sp_nonnull($input->cptr, "$1_ltype", "$fclassname", "$decl", return $null)
-  $1 = %const_cast(%static_cast($input->cptr, SWIGSP__*)->get(), TYPE*);
+  $1 = (TYPE*)static_cast<SWIGSP__*>($input->cptr)->get();
 }
 
 // Output value is never null. Because we're allocating a shared pointer, we set the memory ownership to MOVE so that the *SP*
@@ -115,7 +118,7 @@
  * SP by value
  * ------------------------------------------------------------------------- */
 %typemap(in, noblock=1) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE > {
-  if ($input->cptr) $1 = *%static_cast($input->cptr, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE >*);
+  if ($input->cptr) $1 = *static_cast<SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE >*>($input->cptr);
 }
 
 %typemap(out, noblock=1) SWIGSP__ {
@@ -127,7 +130,7 @@
  * SP by reference
  * ------------------------------------------------------------------------- */
 %typemap(in, noblock=1) SWIGSP__& ($*1_ltype tempnull) {
-  $1 = $input->cptr ? %static_cast($input->cptr, $1_ltype) : &tempnull;
+  $1 = $input->cptr ? static_cast<$1_ltype >($input->cptr) : &tempnull;
 }
 
 %typemap(out, noblock=1) SWIGSP__& {
@@ -139,7 +142,7 @@
  * SP by pointer
  * ------------------------------------------------------------------------- */
 %typemap(in, noblock=1) SWIGSP__ * ($*1_ltype tempnull) {
-  $1 = $input->cptr ? %static_cast($input->cptr, $1_ltype) : &tempnull;
+  $1 = $input->cptr ? static_cast<$1_ltype >($input->cptr) : &tempnull;
 }
 
 %typemap(out, noblock=1, fragment="SWIG_null_deleter") SWIGSP__ * {
@@ -159,15 +162,6 @@
 %typemap(out) CONST TYPE[], CONST TYPE[ANY], CONST TYPE (CLASS::*) %{
 #error "typemaps for $1_type not available"
 %}
-
-/* -------------------------------------------------------------------------
- * Replace call to "delete (Foo*) arg1;" with call to delete the *shared
- * pointer* (so decrement the reference count instead of forcing the object to
- * be destroyed and causing a double-delete)
- */
-
-%feature("unref") TYPE
-%{ (void)$self; delete smart$self; %}
 
 /* -------------------------------------------------------------------------
  * Instantiate shared pointer
