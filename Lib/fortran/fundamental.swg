@@ -400,23 +400,6 @@ end subroutine}
 %apply SWIGTYPE* { bool& };
 
 /* -------------------------------------------------------------------------
- * FUNCTION POINTERS
- * ------------------------------------------------------------------------- */
-
-%apply void* { SWIGTYPE (*)(ANY) } ;
-
-%typemap(ctype) SWIGTYPE (*)(ANY)
-  "$1_ltype"
-%typemap(imtype, in="type(C_FUNPTR), value") SWIGTYPE (*)(ANY)
-  "type(C_FUNPTR)"
-%typemap(ftype, in="type(C_FUNPTR), intent(in), value") SWIGTYPE (*)(ANY)
-  "type(C_FUNPTR)"
-%typemap(bindc, in="type(C_FUNPTR), value") SWIGTYPE (*)(ANY)
-  "type(C_FUNPTR)"
-
-%apply SWIGTYPE (*)(ANY) { SWIGTYPE (* const)(ANY) } ;
-
-/* -------------------------------------------------------------------------
  * TYPE CHECKING
  * ------------------------------------------------------------------------- */
 

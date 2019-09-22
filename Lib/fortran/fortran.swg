@@ -97,6 +97,7 @@
 %include "classes.swg"
 %include "fundamental.swg"
 %include "enums.swg"
+%include "funptrs.swg"
 %include "fortranstrings.swg"
 %include "bindc.swg"
 

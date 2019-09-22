@@ -1546,12 +1546,15 @@ Wrapper *FORTRAN::imfuncWrapper(Node *n, bool bindc) {
 
   // END FUNCTION DEFINITION
   print_wrapped_list(imfunc->def, First(imfunc_arglist), Len(imfunc->def));
-  Printv(imfunc->def,
-         ") &\n"
-         "    bind(C, name=\"",
-         Getattr(n, "wrap:name"),
-         "\")",
-         NULL);
+  Printv(imfunc->def, ") &\n    bind(C", NULL);
+
+  if (String *wname = Getattr(n, "wrap:name")) {
+    // Binding to an acutal function
+    Printv(imfunc->def, ", name=\"", wname, "\")", NULL);
+  } else {
+    // Creating an abstract interface
+    Printv(imfunc->def, ")", NULL);
+  }
 
   if (!is_imsubroutine) {
     // Declare dummy return value if it's a function
