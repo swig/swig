@@ -56,6 +56,11 @@ subroutine test_standard
   ASSERT(.not. btest(b%swigdata%cmemflags, swig_cmem_rvalue_bit))
   ASSERT(foo_counter == 3)
 
+  ! Return null
+  call b%release()
+  b = get_null()
+  ASSERT(.not. c_associated(b%swigdata%cptr))
+
   ! Capture from function
   b = make_foo(6)
   ASSERT(btest(b%swigdata%cmemflags, swig_cmem_own_bit))
