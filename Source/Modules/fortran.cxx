@@ -570,6 +570,7 @@ private:
   String *f_fbegin;      //!< Very beginning of output file
   String *f_fuse;        //!< Fortran "use" directives
   String *f_fdecl;       //!< Module declaration constructs
+  String *f_fabstract;   //!< Fortran "abstract interface" declarations
   String *f_finterfaces; //!< Fortran interface declarations to SWIG functions
   String *f_fsubprograms;    //!< Fortran subroutine wrapper functions
 
@@ -740,6 +741,10 @@ int FORTRAN::top(Node *n) {
   f_fdecl = NewStringEmpty();
   Swig_register_filebyname("fdecl", f_fdecl);
 
+  // Fortran BIND(C) abstract interfavces
+  f_fabstract = NewStringEmpty();
+  Swig_register_filebyname("fabstract", f_fabstract);
+
   // Fortran BIND(C) interfavces
   f_finterfaces = NewStringEmpty();
   Swig_register_filebyname("finterfaces", f_finterfaces);
@@ -882,6 +887,15 @@ void FORTRAN::write_module(String *filename) {
            NULL);
   }
 
+  if (Len(f_fabstract) > 0) {
+    Printv(out,
+           "\n! FUNCTION POINTER DECLARATIONS\n"
+           "abstract interface\n",
+           f_fabstract,
+           "end interface\n"
+           "\n",
+           NULL);
+  }
   if (Len(f_finterfaces) > 0) {
     Printv(out,
            "\n! WRAPPER DECLARATIONS\n"

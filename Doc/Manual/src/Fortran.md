@@ -1857,6 +1857,7 @@ Fortran standard's specification and naming of the components of a module.
 <tr><td><code>fbegin     </code></td><td>Code before the `module` statement </td></tr>
 <tr><td><code>fuse       </code></td><td>"use" statements                   </td></tr>
 <tr><td><code>fdecl      </code></td><td>Module declarations                </td></tr>
+<tr><td><code>fabstract</code></td><td>Abstract interfaces for callbacks</td></tr>
 <tr><td><code>finterfaces</code></td><td>Procedure interfaces for C code    </td></tr>
 <tr><td><code>fsubprograms</code></td><td>Fortran module subprograms        </td></tr>
 </tbody>
