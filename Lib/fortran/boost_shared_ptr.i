@@ -62,7 +62,7 @@
  * SP-owned copy of the obtained value.
  * ------------------------------------------------------------------------- */
 %typemap(in, noblock=1, fragment="SWIG_check_sp_nonnull") CONST TYPE ($&1_type argp = 0) {
-  SWIG_check_sp_nonnull($input->cptr, "$1_ltype", "$fclassname", "$decl", return $null)
+  SWIG_check_sp_nonnull($input->cptr, "$1_ltype", "$fortranclassname", "$decl", return $null)
   argp = static_cast<SWIGSP__*>($input->cptr)->get();
   $1 = *argp;
 }
@@ -102,7 +102,7 @@
  * Original class by reference. Add null checks.
  * ------------------------------------------------------------------------- */
 %typemap(in, noblock=1, fragment="SWIG_check_sp_nonnull") CONST TYPE & {
-  SWIG_check_sp_nonnull($input->cptr, "$1_ltype", "$fclassname", "$decl", return $null)
+  SWIG_check_sp_nonnull($input->cptr, "$1_ltype", "$fortranclassname", "$decl", return $null)
   $1 = (TYPE*)static_cast<SWIGSP__*>($input->cptr)->get();
 }
 
