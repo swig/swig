@@ -11,8 +11,8 @@
 // integer pointers)
 %fortran_unsigned(int, enum SWIGTYPE)
 
-%typemap(ftype, in="integer($fenumname), intent(in)") enum SWIGTYPE
-  "integer($fenumname)"
+%typemap(ftype, in="integer($fortranclassname), intent(in)") enum SWIGTYPE
+  "integer($fortranclassname)"
 %typemap(out, noblock=1) enum SWIGTYPE {
   $result = (int)($1);
 }
@@ -20,8 +20,8 @@
   $result = (int)(*$1);
 }
 
-%typemap(ftype, in="integer($*fenumname), intent(in)") const enum SWIGTYPE&
-  "integer($*fenumname)"
+%typemap(ftype, in="integer($*fortranclassname), intent(in)") const enum SWIGTYPE&
+  "integer($*fortranclassname)"
 %typemap(imtype) const enum SWIGTYPE& = enum SWIGTYPE;
 %typemap(fin)    const enum SWIGTYPE& = enum SWIGTYPE;
 %typemap(fout)   const enum SWIGTYPE& = enum SWIGTYPE;

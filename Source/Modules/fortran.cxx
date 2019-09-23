@@ -190,7 +190,7 @@ bool is_native_parameter(Node *n) {
  * \brief Determine whether an enum is being wrapped
  */
 bool is_wrapped_enum(Node *n) {
-  return n && !GetFlag(n, "enumMissing") && GetFlag(n, "fortran:declared");
+  return !GetFlag(n, "enumMissing") && GetFlag(n, "fortran:declared");
 }
 
 /* -------------------------------------------------------------------------
@@ -266,7 +266,7 @@ bool return_type_needs_typedef(String *s) {
  * \brief Construct any necessary 'import' identifier.
  *
  * When the `imtype` is an actual `type(Foo)`, it's necessary to import the identifier Foo from the module definition scope. This function examines the
- * evaluated `imtype` (could be `imtype:in`, probably has $fclassname replaced)
+ * evaluated `imtype` (could be `imtype:in`, probably has $fortranclassname replaced)
  */
 String *make_import_string(String *imtype) {
   char *start = Strstr(imtype, "type(");
@@ -647,12 +647,11 @@ private:
   void write_module(String *filename);
 
   void replace_fclassname(SwigType *type, String *tm);
-  String *get_fortran_name(Node *n, String *symname = NULL);
-  String *get_fclassname(SwigType *classnametype);
-  String *get_fenumname(SwigType *classnametype);
+  String *get_fsymname(Node *n, String *symname = NULL);
+  String *get_proxyname(SwigType *classnametype);
+  bool is_wrapped_type(SwigType *classnametype);
   bool is_wrapped_class(Node *n);
   
-
   // Add lowercase symbol (fortran) to the module's namespace
   int add_fsymbol(String *s, Node *n);
   // Whether the current class is a BIND(C) struct
@@ -1673,7 +1672,7 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
   // Check whether the Fortran proxy routine returns a variable, and whether
   // the actual C function does
 
-  // Replace any instance of $fclassname in return type
+  // Replace any instance of $fortranclassname in return type
   SwigType *return_cpptype = Getattr(n, "type");
   this->replace_fclassname(return_cpptype, return_ftype);
   this->replace_fclassname(return_cpptype, return_imtype);
@@ -2026,7 +2025,7 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
  * Generate wrappers for a %fortranbindc global variable.
  */
 int FORTRAN::bindcvarWrapper(Node *n) {
-  String *fsymname = this->get_fortran_name(n);
+  String *fsymname = this->get_fsymname(n);
   if (!fsymname) {
     return SWIG_NOWRAP;
   }
@@ -2245,7 +2244,7 @@ int FORTRAN::classDeclaration(Node *n) {
 
   if (!GetFlag(n, "feature:onlychildren")) {
     // Set up Fortran proxy name, adding to symbol table (even if the class is being imported)
-    fsymname = this->get_fortran_name(n);
+    fsymname = this->get_fsymname(n);
     // Return if it's a duplicate
     if (!fsymname)
       return SWIG_NOWRAP;
@@ -2658,7 +2657,7 @@ int FORTRAN::enumDeclaration(Node *n) {
     // Get symname for this enum, prepending with embedded class name if needed
     String *scoped_symname = class_symname ? NewStringf("%s_%s", class_symname, symname) : Copy(symname);
 
-    fsymname = this->get_fortran_name(n, scoped_symname);
+    fsymname = this->get_fsymname(n, scoped_symname);
     Delete(scoped_symname);
     if (!fsymname)
       return SWIG_NOWRAP;
@@ -2847,7 +2846,7 @@ int FORTRAN::constantWrapper(Node *n) {
     value = Getattr(n, "value");
   }
 
-  String *fsymname = this->get_fortran_name(n);
+  String *fsymname = this->get_fsymname(n);
   if (!fsymname) {
     return SWIG_NOWRAP;
   }
@@ -2949,7 +2948,7 @@ int FORTRAN::constantWrapper(Node *n) {
       wname = Copy(symname);
     }
 
-    // Replace fclassname if needed
+    // Replace fortranclass if needed
     this->replace_fclassname(c_return_type, bindc_typestr);
 
     // Add bound variable to interfaces
@@ -2976,41 +2975,26 @@ void FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
   SwigType *resolvedtype = SwigType_typedef_resolve_all(intype);
   SwigType *strippedtype = SwigType_strip_qualifiers(resolvedtype);
 
-  if (Strstr(tm, "$fclassname")) {
-    if (String *repl = this->get_fclassname(strippedtype)) {
-      Replaceall(tm, "$fclassname", repl);
+  if (Strstr(tm, "$fortranclassname")) {
+    if (String *repl = this->get_proxyname(strippedtype)) {
+      Replaceall(tm, "$fortranclassname", repl);
     }
   }
-  if (Strstr(tm, "$*fclassname")) {
+  if (Strstr(tm, "$*fortranclassname")) {
     String *repltype = Copy(strippedtype);
     Delete(SwigType_pop(repltype));
     if (Len(repltype) > 0) {
-      if (String *repl = this->get_fclassname(repltype)) {
-        Replaceall(tm, "$*fclassname", repl);
+      if (String *repl = this->get_proxyname(repltype)) {
+        Replaceall(tm, "$*fortranclassname", repl);
       }
     }
     Delete(repltype);
   }
-  if (Strstr(tm, "$&fclassname")) {
+  if (Strstr(tm, "$&fortranclassname")) {
     String *repltype = Copy(strippedtype);
     SwigType_add_pointer(repltype);
-    if (String *repl = this->get_fclassname(repltype)) {
-      Replaceall(tm, "$&fclassname", repl);
-    }
-    Delete(repltype);
-  }
-  if (Strstr(tm, "$fenumname")) {
-    if (String *repl = this->get_fenumname(strippedtype)) {
-      Replaceall(tm, "$fenumname", repl);
-    }
-  }
-  if (Strstr(tm, "$*fenumname")) {
-    String *repltype = Copy(strippedtype);
-    Delete(SwigType_pop(repltype));
-    if (Len(repltype) > 0) {
-      if (String *repl = this->get_fenumname(repltype)) {
-        Replaceall(tm, "$*fenumname", repl);
-      }
+    if (String *repl = this->get_proxyname(repltype)) {
+      Replaceall(tm, "$&fortranclassname", repl);
     }
     Delete(repltype);
   }
@@ -3027,87 +3011,85 @@ void FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
  *
  * If the resulting symbol already exists (SWIG error), we return NULL.
  */
-String *FORTRAN::get_fortran_name(Node *n, String *symname) {
+String *FORTRAN::get_fsymname(Node *n, String *symname) {
   String *fsymname = Getattr(n, "fortran:name");
-  if (!fsymname) {
-    // Create fortran identifier from symname
-    if (!symname) {
-      symname = Getattr(n, "sym:name");
-    }
-    ASSERT_OR_PRINT_NODE(symname, n);
-    fsymname = make_fname(symname);
-    
-    if (this->add_fsymbol(fsymname, n) == SWIG_ERROR) {
-      fsymname = NULL;
-    } else {
-      Setattr(n, "fortran:name", fsymname);
-    }
+  if (fsymname) {
+    return fsymname;
   }
 
+  // Create fortran identifier from symname
+  if (!symname) {
+    symname = Getattr(n, "sym:name");
+  }
+  ASSERT_OR_PRINT_NODE(symname, n);
+  fsymname = make_fname(symname);
+  
+  if (this->add_fsymbol(fsymname, n) == SWIG_ERROR) {
+    fsymname = NULL;
+  } else {
+    Setattr(n, "fortran:name", fsymname);
+  }
   return fsymname;
 }
 
 /* ------------------------------------------------------------------------- */
 
-String *FORTRAN::get_fclassname(SwigType *classnametype) {
-  String *replacementname = NULL;
-  Node *n = this->classLookup(classnametype);
-
-  if (n) {
-    replacementname = this->get_fortran_name(n);
+String *FORTRAN::get_proxyname(SwigType *basetype) {
+  Node *n = NULL;
+  
+  bool is_enum = SwigType_isenum(basetype);
+  if (is_enum) {
+    n = this->enumLookup(basetype);
   } else {
-    replacementname = create_mangled_fname(classnametype);
-
-    if (!Getattr(d_emitted_mangled, replacementname)) {
-      // First time encountering this particular mangled type
-      // Create a node so we can insert into the fortran symbol table
-      n = NewHash();
-      set_nodeType(n, "classforward");
-      Setattr(n, "name", classnametype);
-
-      if (this->add_fsymbol(replacementname, n) != SWIG_NOWRAP) {
-        emit_fragment("SwigClassWrapper_f");
-        Printv(f_fdecl,
-               " type, public :: ", replacementname, "\n", 
-               "  type(SwigClassWrapper), public :: swigdata\n",
-               " end type\n",
-               NULL);
-        Setattr(d_emitted_mangled, replacementname, n);
-      }
-    }
+    n = this->classLookup(basetype);
   }
 
+  if (n && (!is_enum || is_wrapped_enum(n))) {
+    // Class node or enum with already-generated wrapper
+    return this->get_fsymname(n);
+  }
+  
+  String *replacementname = create_mangled_fname(basetype);
+  if (Getattr(d_emitted_mangled, replacementname)) {
+    // Mangled type has already been emitted
+    return replacementname;
+  }
+
+  // First time encountering this particular mangled type
+  // Create a node so we can insert into the fortran symbol table
+  n = NewHash();
+  set_nodeType(n, (is_enum ? "enumforward" : "classforward"));
+  Setattr(n, "name", basetype);
+  if (this->add_fsymbol(replacementname, n) == SWIG_NOWRAP) {
+    ASSERT_OR_PRINT_NODE(false, n);
+    return NULL;
+  }
+
+  if (is_enum) {
+    Replace(replacementname, "enum ", "", DOH_REPLACE_ANY);
+    Printv(f_fdecl, "integer, parameter, public :: ", replacementname, " = C_INT\n", NULL);
+  } else {
+    emit_fragment("SwigClassWrapper_f");
+    Printv(f_fdecl,
+           " type, public :: ", replacementname, "\n", 
+           "  type(SwigClassWrapper), public :: swigdata\n",
+           " end type\n",
+           NULL);
+
+  }
+  Setattr(d_emitted_mangled, replacementname, n);
   return replacementname;
 }
 
 /* ------------------------------------------------------------------------- */
 
-String *FORTRAN::get_fenumname(SwigType *classnametype) {
-  String *replacementname = NULL;
-  Node *n = this->enumLookup(classnametype);
-
-  // The enum name is only available if the 'missing' flag isn't set and we've marked the enum as 'declared'
-  if (is_wrapped_enum(n)) {
-    replacementname = this->get_fortran_name(n);
+bool FORTRAN::is_wrapped_type(SwigType *basetype) {
+  if (SwigType_isenum(basetype)) {
+    Node *n = this->enumLookup(basetype);
+    return n && is_wrapped_enum(n);
   } else {
-    replacementname = create_mangled_fname(classnametype);
-
-    if (!Getattr(d_emitted_mangled, replacementname)) {
-      // First time encountering this particular mangled type
-      // Create a node so we can insert into the fortran symbol table
-      n = NewHash();
-      set_nodeType(n, "enumforward");
-      Setattr(n, "name", classnametype);
-
-      if (this->add_fsymbol(replacementname, n) != SWIG_NOWRAP) {
-        Replace(replacementname, "enum ", "", DOH_REPLACE_ANY);
-        Printv(f_fdecl, "integer, parameter, public :: ", replacementname, " = C_INT\n", NULL);
-        Setattr(d_emitted_mangled, replacementname, n);
-      }
-    }
+    return this->classLookup(basetype) != NULL;
   }
-
-  return replacementname;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -3136,28 +3118,21 @@ bool FORTRAN::is_wrapped_class(Node *n) {
   if (!tm) {
     // Somehow there's no ftype; allow it to be wrapped so the error is handled later
     result = true;
-  } else if (Strstr(tm, "$fclassname")) {
-    result = (this->classLookup(strippedtype) != NULL);
-  } else if (Strstr(tm, "$*fclassname")) {
+  } else if (Strstr(tm, "$fortranclassname")) {
+    result = this->is_wrapped_type(strippedtype);
+  } else if (Strstr(tm, "$*fortranclassname")) {
     SwigType_pop(strippedtype);
-    result = Len(strippedtype) > 0 && (this->classLookup(strippedtype) != NULL);
-  } else if (Strstr(tm, "$&fclassname")) {
+    result = this->is_wrapped_type(strippedtype);
+  } else if (Strstr(tm, "$&fortranclassname")) {
     SwigType_add_pointer(strippedtype);
-    result = (this->classLookup(strippedtype) != NULL);
-  } else if (Strstr(tm, "$fenumname")) {
-    // True if the enum is declared
-    result = is_wrapped_enum(this->enumLookup(strippedtype));
-  } else if (Strstr(tm, "$*fenumname")) {
-    // True if the enum is declared
-    SwigType_pop(strippedtype);
-    result = Len(strippedtype) > 0 && is_wrapped_enum(this->enumLookup(strippedtype));
+    result = this->is_wrapped_type(strippedtype);
   } else {
     // Type doesn't resolve to something that expects a class name
     result = true;
   }
 
   // Save in cache
-  Setattr(cached_classes, intype, result  ? is_wrapped : not_wrapped);
+  Setattr(cached_classes, intype, result ? is_wrapped : not_wrapped);
   Delete(resolvedtype);
   Delete(strippedtype);
   return result;

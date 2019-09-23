@@ -323,11 +323,11 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 %typemap(imtype, fragment="SwigClassWrapper_f")
     SWIGTYPE
   "type(SwigClassWrapper)"
-%typemap(ftype, in="type($&fclassname), intent(in)", nofortransubroutine=1) SWIGTYPE
-  "type($&fclassname)"
+%typemap(ftype, in="type($&fortranclassname), intent(in)", nofortransubroutine=1) SWIGTYPE
+  "type($&fortranclassname)"
 
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE {
-  SWIG_check_nonnull(*$input, "$1_ltype", "$&fclassname", "$decl", return $null);
+  SWIG_check_nonnull(*$input, "$1_ltype", "$&fortranclassname", "$decl", return $null);
   $1 = *(($&1_ltype)($input->cptr));
 }
 
@@ -352,8 +352,8 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 // Raw pointers act mostly like value types, but they don't have to accept the exact type (polymorphic input, non-polymorphic output). Intent is 'in' because
 // we're not modifying the pointer or memory status.
 %apply SWIGTYPE { SWIGTYPE* };
-%typemap(ftype, in="class($fclassname), intent(in)", nofortransubroutine=1) SWIGTYPE*
-  "type($fclassname)"
+%typemap(ftype, in="class($fortranclassname), intent(in)", nofortransubroutine=1) SWIGTYPE*
+  "type($fortranclassname)"
 %typemap(in, noblock=1) SWIGTYPE* {
   $1 = ($1_ltype)$input->cptr;
 }
@@ -373,7 +373,7 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 // Check for non-null reference inputs
 %apply SWIGTYPE* { SWIGTYPE& };
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE& {
-  SWIG_check_nonnull(*$input, "$1_type", "$fclassname", "$decl", return $null);
+  SWIG_check_nonnull(*$input, "$1_type", "$fortranclassname", "$decl", return $null);
   $1 = ($1_ltype)$input->cptr;
 }
 
@@ -397,15 +397,15 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 
 // Check for non-null class input "self"
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE *self {
-  SWIG_check_nonnull(*$input, "$1_type", "$*fclassname", "$decl", return $null);
+  SWIG_check_nonnull(*$input, "$1_type", "$*fortranclassname", "$decl", return $null);
   $1 = ($1_ltype)$input->cptr;
 }
 
 // On assignment, copy pointer to input wrapper class
 %typemap(imtype, in="type(SwigClassWrapper), intent(inout)", fragment="SwigClassWrapper_f") SWIGTYPE *ASSIGNMENT_SELF
   "type(SwigClassWrapper)"
-%typemap(ftype, in="class($fclassname), intent(inout)", nofortransubroutine=1) SWIGTYPE *ASSIGNMENT_SELF
-  "type($fclassname)"
+%typemap(ftype, in="class($fortranclassname), intent(inout)", nofortransubroutine=1) SWIGTYPE *ASSIGNMENT_SELF
+  "type($fortranclassname)"
 
 // Assignment operates directly on $input, not $1
 %typemap(in) SWIGTYPE *ASSIGNMENT_SELF "(void)sizeof($1);";
@@ -414,8 +414,8 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 }
 
 // Prevent ambiguous overloads by requiring the RHS to be the exact type
-%typemap(ftype, in="type($fclassname), intent(in)", nofortransubroutine=1) SWIGTYPE &ASSIGNMENT_OTHER
-  "type($fclassname)"
+%typemap(ftype, in="type($fortranclassname), intent(in)", nofortransubroutine=1) SWIGTYPE &ASSIGNMENT_OTHER
+  "type($fortranclassname)"
 %typemap(in) SWIGTYPE &ASSIGNMENT_OTHER = SWIGTYPE *ASSIGNMENT_SELF;
 
 %apply SWIGTYPE *ASSIGNMENT_SELF { SWIGTYPE *DESTRUCTOR_SELF };

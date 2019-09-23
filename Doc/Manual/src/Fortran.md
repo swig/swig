@@ -1689,15 +1689,16 @@ Fortran compiler), `release` should be called on every proxy class instance.
 SWIG's default Fortran type (the `ftype` typemap) for generic types such as
 classes (`SWIGTYPE`) is:
 ```swig
-%typemap(ftype) SWIGTYPE "type($fclassname)"
+%typemap(ftype) SWIGTYPE "type($fortranclassname)"
 ```
-The special symbol `$fclassname` is replaced by the symbolic name of the class
-that matches the typemap. For example, if `std::vector<double>` is
+The special symbol `$fortranclassname` is replaced by the symbolic name (i.e. the Fortran
+identifier in the proxy code) of the class that matches the typemap.
+For example, if `std::vector<double>` is
 instantiated:
 ```swig
 %template(Vec_Dbl) std::vector<double>;
 ```
-then `Vec_Dbl`, the name of the derived type, will replace `$fclassname`.
+then `Vec_Dbl`, the name of the derived type, will replace `$fortranclassname`.
 
 If a class has *not* been wrapped but is encountered (e.g. in a function
 argument or return value), a warning will be emitted: no Fortran
