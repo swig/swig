@@ -647,8 +647,8 @@ private:
   void write_module(String *filename);
 
   void replace_fclassname(SwigType *type, String *tm);
-  String *get_fortran_name(Node *n, String *symname = NULL);
-  String *get_fclassname(SwigType *classnametype);
+  String *get_fsymname(Node *n, String *symname = NULL);
+  String *get_proxyname(SwigType *classnametype);
   String *get_fenumname(SwigType *classnametype);
   bool is_wrapped_class(Node *n);
   
@@ -2026,7 +2026,7 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
  * Generate wrappers for a %fortranbindc global variable.
  */
 int FORTRAN::bindcvarWrapper(Node *n) {
-  String *fsymname = this->get_fortran_name(n);
+  String *fsymname = this->get_fsymname(n);
   if (!fsymname) {
     return SWIG_NOWRAP;
   }
@@ -2245,7 +2245,7 @@ int FORTRAN::classDeclaration(Node *n) {
 
   if (!GetFlag(n, "feature:onlychildren")) {
     // Set up Fortran proxy name, adding to symbol table (even if the class is being imported)
-    fsymname = this->get_fortran_name(n);
+    fsymname = this->get_fsymname(n);
     // Return if it's a duplicate
     if (!fsymname)
       return SWIG_NOWRAP;
@@ -2658,7 +2658,7 @@ int FORTRAN::enumDeclaration(Node *n) {
     // Get symname for this enum, prepending with embedded class name if needed
     String *scoped_symname = class_symname ? NewStringf("%s_%s", class_symname, symname) : Copy(symname);
 
-    fsymname = this->get_fortran_name(n, scoped_symname);
+    fsymname = this->get_fsymname(n, scoped_symname);
     Delete(scoped_symname);
     if (!fsymname)
       return SWIG_NOWRAP;
@@ -2847,7 +2847,7 @@ int FORTRAN::constantWrapper(Node *n) {
     value = Getattr(n, "value");
   }
 
-  String *fsymname = this->get_fortran_name(n);
+  String *fsymname = this->get_fsymname(n);
   if (!fsymname) {
     return SWIG_NOWRAP;
   }
@@ -2977,7 +2977,7 @@ void FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
   SwigType *strippedtype = SwigType_strip_qualifiers(resolvedtype);
 
   if (Strstr(tm, "$fclassname")) {
-    if (String *repl = this->get_fclassname(strippedtype)) {
+    if (String *repl = this->get_proxyname(strippedtype)) {
       Replaceall(tm, "$fclassname", repl);
     }
   }
@@ -2985,7 +2985,7 @@ void FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
     String *repltype = Copy(strippedtype);
     Delete(SwigType_pop(repltype));
     if (Len(repltype) > 0) {
-      if (String *repl = this->get_fclassname(repltype)) {
+      if (String *repl = this->get_proxyname(repltype)) {
         Replaceall(tm, "$*fclassname", repl);
       }
     }
@@ -2994,7 +2994,7 @@ void FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
   if (Strstr(tm, "$&fclassname")) {
     String *repltype = Copy(strippedtype);
     SwigType_add_pointer(repltype);
-    if (String *repl = this->get_fclassname(repltype)) {
+    if (String *repl = this->get_proxyname(repltype)) {
       Replaceall(tm, "$&fclassname", repl);
     }
     Delete(repltype);
@@ -3027,7 +3027,7 @@ void FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
  *
  * If the resulting symbol already exists (SWIG error), we return NULL.
  */
-String *FORTRAN::get_fortran_name(Node *n, String *symname) {
+String *FORTRAN::get_fsymname(Node *n, String *symname) {
   String *fsymname = Getattr(n, "fortran:name");
   if (!fsymname) {
     // Create fortran identifier from symname
@@ -3049,12 +3049,12 @@ String *FORTRAN::get_fortran_name(Node *n, String *symname) {
 
 /* ------------------------------------------------------------------------- */
 
-String *FORTRAN::get_fclassname(SwigType *classnametype) {
+String *FORTRAN::get_proxyname(SwigType *classnametype) {
   String *replacementname = NULL;
   Node *n = this->classLookup(classnametype);
 
   if (n) {
-    replacementname = this->get_fortran_name(n);
+    replacementname = this->get_fsymname(n);
   } else {
     replacementname = create_mangled_fname(classnametype);
 
@@ -3088,7 +3088,7 @@ String *FORTRAN::get_fenumname(SwigType *classnametype) {
 
   // The enum name is only available if the 'missing' flag isn't set and we've marked the enum as 'declared'
   if (is_wrapped_enum(n)) {
-    replacementname = this->get_fortran_name(n);
+    replacementname = this->get_fsymname(n);
   } else {
     replacementname = create_mangled_fname(classnametype);
 
