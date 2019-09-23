@@ -230,25 +230,6 @@ String *make_specifier_suffix(String *bindc_typestr) {
 }
 
 /* -------------------------------------------------------------------------
- * \brief Determine whether to wrap a function/class as a c-bound struct
- * or function.
- */
-bool is_bindc(Node *n) {
-  bool result = GetFlag(n, "feature:fortran:bindc");
-  if (result && CPlusPlus) {
-    String *kind = Getattr(n, "kind");
-    if (kind && Strcmp(kind, "function") == 0 && !Swig_storage_isexternc(n)) {
-      Swig_error(input_file,
-                 line_number,
-                 "The C++ function '%s' is not defined with external "
-                 "C linkage (extern \"C\"), but it is marked with %%fortranbindc.\n",
-                 Getattr(n, "sym:name"));
-    }
-  }
-  return result;
-}
-
-/* -------------------------------------------------------------------------
  * \brief Whether an SWIG type can be rendered as TYPE VAR.
  *
  * Some declarations (arrays, function pointers, member function pointers)
@@ -622,6 +603,7 @@ public:
   virtual int memberfunctionHandler(Node *n);
   virtual int membervariableHandler(Node *n);
   virtual int globalvariableHandler(Node *n);
+  virtual int globalfunctionHandler(Node *n);
   virtual int staticmemberfunctionHandler(Node *n);
   virtual int staticmembervariableHandler(Node *n);
   virtual int enumDeclaration(Node *n);
@@ -634,10 +616,10 @@ public:
 
 private:
   Wrapper *cfuncWrapper(Node *n);
-  int bindcfuncHandler(Node *n);
-  Wrapper *imfuncWrapper(Node *n);
+  Wrapper *imfuncWrapper(Node *n, bool bindc);
   Wrapper *proxyfuncWrapper(Node *n);
 
+  int bindcfunctionHandler(Node *n);
   int bindcvarWrapper(Node *n);
 
   void add_assignment_operator(Node *n);
@@ -945,7 +927,6 @@ int FORTRAN::moduleDirective(Node *n) {
  *  - static functions
  */
 int FORTRAN::functionWrapper(Node *n) {
-  const bool bindc = is_bindc(n);
   const bool member = GetFlag(n, "fortran:ismember");
   bool generic = false;
 
@@ -957,34 +938,26 @@ int FORTRAN::functionWrapper(Node *n) {
   String *imname = NULL;   // Fortran interface function name
   String *wname = NULL;    // SWIG C wrapper function name
 
-  if (!bindc) {
-    // Usual case: generate a unique wrapper name
-    wname = Swig_name_wrapper(symname);
-    imname = ensure_short(NewStringf("swigc_%s", symname));
+  // Generate a unique wrapper name
+  wname = Swig_name_wrapper(symname);
+  imname = ensure_short(NewStringf("swigc_%s", symname));
 
-    if (String *private_fname = Getattr(n, "fortran:fname")) {
-      // Create "private" fortran wrapper function class (swigf_xx) name that will be bound to a class
-      fname = Copy(private_fname);
-      ASSERT_OR_PRINT_NODE(is_valid_identifier(fname), n);
-    } else if (String *varname = Getattr(n, "fortran:variable")) {
-      const char* prefix = (GetFlag(n, "memberset") || GetFlag(n, "varset")) ? "set" : "get";
-      fname = ensure_short(NewStringf("%s_%s", prefix, varname));
-      
-      if (member) {
-        // We're wrapping a static/member variable. The getter/setter name is an alias to the class-namespaced proxy function.
-        fsymname = fname;
-        fname = proxy_name_construct(this->getNSpace(), Getattr(n, "sym:name"));
-      }
-    } else {
-      // Default: use symbolic function name
-      fname = make_fname(symname, WARN_NONE);
+  if (String *private_fname = Getattr(n, "fortran:fname")) {
+    // Create "private" fortran wrapper function class (swigf_xx) name that will be bound to a class
+    fname = Copy(private_fname);
+    ASSERT_OR_PRINT_NODE(is_valid_identifier(fname), n);
+  } else if (String *varname = Getattr(n, "fortran:variable")) {
+    const char* prefix = (GetFlag(n, "memberset") || GetFlag(n, "varset")) ? "set" : "get";
+    fname = ensure_short(NewStringf("%s_%s", prefix, varname));
+    
+    if (member) {
+      // We're wrapping a static/member variable. The getter/setter name is an alias to the class-namespaced proxy function.
+      fsymname = fname;
+      fname = proxy_name_construct(this->getNSpace(), Getattr(n, "sym:name"));
     }
   } else {
-    // BIND(C): use *original* C function name to generate the interface to, and create an acceptable
-    // Fortran identifier based on whatever renames have been requested.
-    wname = Copy(Getattr(n, "name"));
-    imname = make_fname(symname, WARN_NONE);
-    fname = NULL;
+    // Default: use symbolic function name
+    fname = make_fname(symname, WARN_NONE);
   }
 
   if (String *manual_name = Getattr(n, "feature:fortran:generic")) {
@@ -1000,7 +973,6 @@ int FORTRAN::functionWrapper(Node *n) {
 
   // Add suffix if the function is overloaded (can't overload C bound functions)
   if (String *overload_ext = (Getattr(n, "sym:overloaded") ? Getattr(n, "sym:overname") : NULL)) {
-    ASSERT_OR_PRINT_NODE(!bindc, n);
     Append(wname, overload_ext);
     Append(imname, overload_ext);
     if (!fsymname) {
@@ -1019,6 +991,7 @@ int FORTRAN::functionWrapper(Node *n) {
   //   exactly: if the parent is 'generic', this one must be as well. If it's a
   //   subroutine, same deal. 
   if (member) {
+    assert(fsymname);
     String *lower_fsymname = Swig_string_lower(fsymname);
     Symtab *fsymtab = Getattr(this->getCurrentClass(), "fortran:symtab");
     Node *overload_base = NULL;
@@ -1120,18 +1093,16 @@ int FORTRAN::functionWrapper(Node *n) {
   if (add_fsymbol(imname, n) == SWIG_NOWRAP)
     return SWIG_NOWRAP;
   // Add the fortran subroutine name to the module scope
-  if (fname && add_fsymbol(fname, n) == SWIG_NOWRAP)
+  if (add_fsymbol(fname, n) == SWIG_NOWRAP)
     return SWIG_NOWRAP;
 
   // Save wrapper names
   Setattr(n, "wrap:name", wname);
   Setattr(n, "wrap:imname", imname);
-  if (fname) {
-    Setattr(n, "wrap:fname", fname);
-  }
+  Setattr(n, "wrap:fname", fname);
+  // Note: since this node may be used to generate multiple functions (e.g.
+  // 'set' and 'get'), do *not* save as 'fortran:name'.
   if (fsymname) {
-    // Note: since this node may be used to generate multiple functions (e.g.
-    // 'set' and 'get'), do *not* save as 'fortran:name'.
     Setattr(n, "wrap:fsymname", fsymname);
   }
 
@@ -1149,33 +1120,22 @@ int FORTRAN::functionWrapper(Node *n) {
   // >>> GENERATE WRAPPER CODE
 
   int result = SWIG_NOWRAP;
-  if (!bindc) {
-    Wrapper *cfunc = this->cfuncWrapper(n);
-    Wrapper *imfunc = cfunc ? this->imfuncWrapper(n) : NULL;
-    Wrapper *ffunc = imfunc ? this->proxyfuncWrapper(n) : NULL;
-    if (ffunc) {
-      Wrapper_print(cfunc, f_wrapper);
-      Wrapper_print(imfunc, f_finterfaces);
-      Wrapper_print(ffunc, f_fsubprograms);
-      result = SWIG_OK;
-    }
-
-    if (cfunc)
-      DelWrapper(cfunc);
-    if (imfunc)
-      DelWrapper(imfunc);
-    if (ffunc)
-      DelWrapper(ffunc);
-  } else {
-    // C-bound function: set up bindc-type parameters and generate intermediate interface
-    if (this->bindcfuncHandler(n) == SWIG_OK) {
-      if (Wrapper *imfunc = this->imfuncWrapper(n)) {
-        Wrapper_print(imfunc, f_finterfaces);
-        DelWrapper(imfunc);
-        result = SWIG_OK;
-      }
-    }
+  Wrapper *cfunc = this->cfuncWrapper(n);
+  Wrapper *imfunc = cfunc ? this->imfuncWrapper(n, false) : NULL;
+  Wrapper *ffunc = imfunc ? this->proxyfuncWrapper(n) : NULL;
+  if (ffunc) {
+    Wrapper_print(cfunc, f_wrapper);
+    Wrapper_print(imfunc, f_finterfaces);
+    Wrapper_print(ffunc, f_fsubprograms);
+    result = SWIG_OK;
   }
+
+  if (cfunc)
+    DelWrapper(cfunc);
+  if (imfunc)
+    DelWrapper(imfunc);
+  if (ffunc)
+    DelWrapper(ffunc);
 
   if (result != SWIG_OK) {
     SetFlag(n, "fortran:ignore");
@@ -1233,12 +1193,8 @@ int FORTRAN::functionWrapper(Node *n) {
       Setattr(d_overloads, fsymname, overloads);
     }
     Append(overloads, fname);
-  } else if (bindc) {
-    // Expose the interface function 
-    ASSERT_OR_PRINT_NODE(imname && Len(imname) > 0, n);
-    Printv(f_fdecl, " public :: ", imname, "\n", NULL);
   } else {
-    // Expose the proxy function 
+    // Expose the proxy function with its native name
     ASSERT_OR_PRINT_NODE(fname && Len(fname) > 0, n);
     Printv(f_fdecl, " public :: ", fname, "\n", NULL);
   }
@@ -1500,61 +1456,15 @@ Wrapper * FORTRAN::cfuncWrapper(Node *n) {
 }
 
 /* -------------------------------------------------------------------------
- * \brief Set up parameters for intermediate function wrapping.
- *
- * This is the Fortran equivalent of the cfuncWrapper's declaration, but it doesn't.
- */
-int FORTRAN::bindcfuncHandler(Node *n) {
-  // Simply binding a function for Fortran
-  if (CPlusPlus && !Swig_storage_isexternc(n)) {
-    Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number,
-                 "The function '%s' appears not to be defined with external "
-                 "C linkage (extern \"C\"). Link errors may result.\n",
-                 Getattr(n, "sym:name"));
-  }
-
-  // Emit all of the local variables for holding arguments.
-  ParmList *parmlist = Getattr(n, "parms");
-  Swig_typemap_attach_parms("bindc", parmlist, NULL);
-  emit_attach_parmmaps(parmlist, NULL);
-  Setattr(n, "wrap:parms", parmlist);
-
-  // Create a list of parameters wrapped by the intermediate function
-  List *cparmlist = NewList();
-  int i = 0;
-  for (Parm *p = parmlist; p; p = nextSibling(p), ++i) {
-    // Check for varargs
-    if (SwigType_isvarargs(Getattr(p, "type"))) {
-      Swig_warning(WARN_LANG_NATIVE_UNIMPL, Getfile(p), Getline(p),
-                   "C-bound variable arguments (in function '%s') are not implemented in Fortran.\n",
-                   Getattr(n, "sym:name"));
-      return SWIG_NOWRAP;
-    }
-    // Use C arguments
-    String *imname = this->makeParameterName(n, p, i);
-    Setattr(p, "imname", imname);
-    Append(cparmlist, p);
-  }
-
-  // Save list of wrapped parms for im declaration and proxy
-  Setattr(n, "wrap:cparms", cparmlist);
-  return SWIG_OK;
-}
-
-/* -------------------------------------------------------------------------
  * \brief Generate Fortran interface code
  *
  * This is the Fortran equivalent of the cfuncWrapper's declaration.
  */
-Wrapper *FORTRAN::imfuncWrapper(Node *n) {
-  Wrapper *imfunc = NewFortranWrapper();
+Wrapper *FORTRAN::imfuncWrapper(Node *n, bool bindc) {
+  const char * const tmtype = bindc ? "bindc" : "imtype";
+  const int warning_flag = bindc ? WARN_TYPEMAP_UNDEF : WARN_FORTRAN_TYPEMAP_IMTYPE_UNDEF;
 
-  const char *tmtype = "imtype";
-  int warning_flag = WARN_FORTRAN_TYPEMAP_IMTYPE_UNDEF;
-  if (is_bindc(n)) {
-    tmtype = "bindc";
-    warning_flag = WARN_TYPEMAP_UNDEF;
-  }
+  Wrapper *imfunc = NewFortranWrapper();
 
   // >>> RETURN VALUES
 
@@ -2249,7 +2159,7 @@ int FORTRAN::classDeclaration(Node *n) {
     if (!fsymname)
       return SWIG_NOWRAP;
   }
-  if (is_bindc(n)) {
+  if (GetFlag(n, "feature:fortran:bindc")) {
     // Prevent default constructors, destructors, etc.
     SetFlag(n, "feature:nodefault");
   } 
@@ -2336,7 +2246,7 @@ int FORTRAN::classHandler(Node *n) {
     }
   }
 
-  const bool bindc = is_bindc(n);
+  const bool bindc = GetFlag(n, "feature:fortran:bindc");
   if (bindc && base_fsymname) {
     // Disallow inheritance for BIND(C) types
     Swig_error(input_file, line_number,
@@ -2558,7 +2468,7 @@ int FORTRAN::globalvariableHandler(Node *n) {
   if (GetFlag(n, "feature:fortran:const")) {
     return this->constantWrapper(n);
   }
-  if (is_bindc(n)) {
+  if (GetFlag(n, "feature:fortran:bindc")) {
     String *type = Getattr(n, "type");
     if (type && strncmp(Char(type), "q(const)", 8) == 0) { 
       // Treat bindc global const as a non-parameter constant
@@ -2572,6 +2482,84 @@ int FORTRAN::globalvariableHandler(Node *n) {
   Setattr(n, "fortran:variable", fsymname);
   Language::globalvariableHandler(n);
   Delete(fsymname);
+
+  return SWIG_OK;
+}
+
+/* -------------------------------------------------------------------------
+ * \brief Process global-scope functions.
+ */
+int FORTRAN::globalfunctionHandler(Node *n) {
+  // XXX check for callback
+
+  if (GetFlag(n, "feature:fortran:bindc")) {
+    // Just generate the function interface
+    return this->bindcfunctionHandler(n);
+  } else {
+    // Generate wrapper functions
+    return Language::globalfunctionHandler(n);
+  }
+}
+
+/* -------------------------------------------------------------------------
+ * \brief Generate an interface-only `bind(C)` function wrapper.
+ *
+ * This uses the *original* C function name to generate the interface to, and
+ * create an acceptable Fortran identifier based on whatever renames have been
+ * requested.
+ */
+int FORTRAN::bindcfunctionHandler(Node *n) {
+  String *symname = Getattr(n, "sym:name");
+
+  if (CPlusPlus && !Swig_storage_isexternc(n)) {
+    Swig_error(input_file,
+               line_number,
+               "The C++ function '%s' is not defined with external "
+               "C linkage (extern \"C\"), but it is marked with %%fortranbindc.\n",
+               symname);
+  }
+
+  String *imname = make_fname(symname, WARN_NONE);
+
+  // Add the interface subroutine name to the module scope
+  if (add_fsymbol(imname, n) == SWIG_NOWRAP)
+    return SWIG_NOWRAP;
+
+  Setattr(n, "wrap:imname", imname);
+  Setattr(n, "wrap:name", Getattr(n, "name"));
+
+  // Emit all of the local variables for holding arguments.
+  ParmList *parmlist = Getattr(n, "parms");
+  Swig_typemap_attach_parms("bindc", parmlist, NULL);
+  emit_attach_parmmaps(parmlist, NULL);
+  Setattr(n, "wrap:parms", parmlist);
+
+  // Create a list of parameters wrapped by the intermediate function
+  List *cparmlist = NewList();
+  int i = 0;
+  for (Parm *p = parmlist; p; p = nextSibling(p), ++i) {
+    // Use C argument names
+    String *imname = this->makeParameterName(n, p, i);
+    Setattr(p, "imname", imname);
+    Append(cparmlist, p);
+  }
+
+  // Save list of wrapped parms for im declaration and proxy
+  Setattr(n, "wrap:cparms", cparmlist);
+
+  // Generate the wrapper
+  if (Wrapper *imfunc = this->imfuncWrapper(n, true)) {
+    Wrapper_print(imfunc, f_finterfaces);
+    DelWrapper(imfunc);
+  } else {
+    SetFlag(n, "fortran:ignore");
+    return SWIG_NOWRAP;
+  }
+
+  // Expose the interface function 
+  ASSERT_OR_PRINT_NODE(imname && Len(imname) > 0, n);
+  Printv(f_fdecl, " public :: ", imname, "\n", NULL);
+  Delete(imname);
 
   return SWIG_OK;
 }
