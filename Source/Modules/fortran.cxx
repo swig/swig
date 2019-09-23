@@ -576,6 +576,8 @@ private:
 
   // Keep track of anonymous classes and enums
   Hash *d_emitted_mangled;
+  // Declared "abstract interface" callback types (SwigType -> function node)
+  Hash *d_callbacks;
 
   // Module-wide procedure interfaces
   Hash *d_overloads; //!< Overloaded subroutine -> overload names
@@ -620,6 +622,7 @@ private:
   Wrapper *imfuncWrapper(Node *n, bool bindc);
   Wrapper *proxyfuncWrapper(Node *n);
 
+  int bindccallbackfunctionHandler(Node *n);
   int bindcfunctionHandler(Node *n);
   int bindcvarWrapper(Node *n);
 
@@ -2507,9 +2510,35 @@ int FORTRAN::globalvariableHandler(Node *n) {
  * \brief Process global-scope functions.
  */
 int FORTRAN::globalfunctionHandler(Node *n) {
-  // XXX check for callback
+  // Check for Fortran callback
+  String *cb = GetFlagAttr(n, "feature:fortran:callback");
+  if (cb) {
+    String *symname = Getattr(n, "sym:name");
+    Node *cbnode = Getattr(n, "fortran:callback");
+    if (!cbnode) {
+      // Create a shallow copy of the node and save to the parent
+      cbnode = copyNode(n);
+      Setattr(n, "fortran:callback", cbnode);
+      Setattr(cbnode, "parms", Getattr(n, "parms"));
+
+      // 'value' of feature is a printf-like statement: "%s_cb"; it becomes a
+      // symname-like string
+      String *cbname = NewStringf(cb, symname);
+      Setattr(cbnode, "sym:name", cbname);
+    }
+    this->bindcfunctionHandler(cbnode);
+
+    if (Cmp(Getattr(cbnode, "sym:name"), symname) == 0) {
+      // Callback name overwrote original function name: so don't wrap the
+      // original function.
+      return SWIG_NOWRAP;
+    }
+  }
 
   if (GetFlag(n, "feature:fortran:bindc")) {
+    // The wrapped function name *is* the C function name
+    Setattr(n, "wrap:name", Getattr(n, "name"));
+    
     // Just generate the function interface
     return this->bindcfunctionHandler(n);
   } else {
@@ -2532,10 +2561,11 @@ int FORTRAN::bindcfunctionHandler(Node *n) {
     Swig_error(input_file,
                line_number,
                "The C++ function '%s' is not defined with external "
-               "C linkage (extern \"C\"), but it is marked with %%fortranbindc.\n",
+               "C linkage (extern \"C\"), but it is being directly wrapped.\n",
                symname);
   }
 
+  // Interface function name in Fortran module
   String *imname = make_fname(symname, WARN_NONE);
 
   // Add the interface subroutine name to the module scope
@@ -2543,7 +2573,6 @@ int FORTRAN::bindcfunctionHandler(Node *n) {
     return SWIG_NOWRAP;
 
   Setattr(n, "wrap:imname", imname);
-  Setattr(n, "wrap:name", Getattr(n, "name"));
 
   // Emit all of the local variables for holding arguments.
   ParmList *parmlist = Getattr(n, "parms");
@@ -2566,7 +2595,9 @@ int FORTRAN::bindcfunctionHandler(Node *n) {
 
   // Generate the wrapper
   if (Wrapper *imfunc = this->imfuncWrapper(n, true)) {
-    Wrapper_print(imfunc, f_finterfaces);
+    // Write to 'abstract' interfaces if it's not associated with an actual C
+    // function
+    Wrapper_print(imfunc, Getattr(n, "wrap:name") == NULL ? f_fabstract : f_finterfaces);
     DelWrapper(imfunc);
   } else {
     SetFlag(n, "fortran:ignore");
@@ -2576,6 +2607,7 @@ int FORTRAN::bindcfunctionHandler(Node *n) {
   // Expose the interface function 
   ASSERT_OR_PRINT_NODE(imname && Len(imname) > 0, n);
   Printv(f_fdecl, " public :: ", imname, "\n", NULL);
+  Setattr(n, "fortran:name", imname);
   Delete(imname);
 
   return SWIG_OK;
