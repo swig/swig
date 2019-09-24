@@ -168,16 +168,17 @@ SWIGINTERN SwigArrayWrapper SwigArrayWrapper_uninitialized() {
   use, intrinsic :: ISO_C_BINDING
   FTYPE, dimension(:), intent(in), target :: finp
   type(SwigArrayWrapper), intent(out) :: iminp
+  integer(C_SIZE_T) :: sz
   FTYPE, pointer :: imtemp
 
-  if (size(finp) > 0) then
+  sz = size(finp, kind=C_SIZE_T)
+  if (sz > 0_c_size_t) then
     imtemp => finp(1)
     iminp%data = c_loc(imtemp)
-    iminp%size = size(finp)
   else
     iminp%data = c_null_ptr
-    iminp%size = 0
   end if
+  iminp%size = sz
 end subroutine}
 
   // Fragment for converting array wrapper to array

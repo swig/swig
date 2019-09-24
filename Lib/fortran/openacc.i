@@ -32,7 +32,7 @@
 
   %typemap(fin, noblock=1, fragment="f_use_openacc") CPPTYPE {
     $1%data = acc_deviceptr($input)
-    $1%size = size($input)
+    $1%size = size($input, kind=c_int)
   }
 
   %typemap(ftype, noblock=1) CPPTYPE {
