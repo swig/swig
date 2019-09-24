@@ -27,7 +27,7 @@ subroutine %fortrantm(fin, char*)(finp, iminp, temp)
   i = len(finp) + 1
   temp(i) = C_NULL_CHAR ! C finp compatibility
   iminp%data = c_loc(temp)
-  iminp%size = len(finp)
+  iminp%size = len(finp, kind=C_SIZE_T)
 end subroutine
 }
 
