@@ -77,12 +77,10 @@ Wrapper *NewFortranWrapper() {
  *
  * Note that if it has a suffix e.g. `l` or `u`, or a prefix `0` (octal), it's
  * not compatible.
- *
- * Simple expressions like `1 + 2` are OK.
  */
 bool is_fortran_intexpr(String *s) {
-  const char *p = Char(s);
-  char c = *p++;
+  const char *p = Char(s); // 'peek': next character
+  char c = *p++; // character being processed
 
   // Empty string is not an integer
   if (c == '\0')
@@ -92,19 +90,17 @@ bool is_fortran_intexpr(String *s) {
   if (c == '-')
     c = *p++;
 
-  // Outer loop over words/tokens
+  // If it's a multi-digit number that starts with 0, it's octal, and thus
+  // not a simple integer
+  if (c == '0' && *p != '\0')
+    return false;
+
+  // See if any of the remaining characters aren't ints
   while (c) {
-    // If it's a multi-digit number that starts with 0, it's octal, and thus
-    // not a simple integer
-    if (c == '0' && *p != 0)
+    if (!isdigit(c))
       return false;
 
-    while (c) {
-      if (!isdigit(c))
-        return false;
-
-      c = *p++;
-    }
+    c = *p++;
   }
   return true;
 }
@@ -124,7 +120,7 @@ int fix_fortran_dims(Node *n, const char *tmap_name, String *typemap) {
   int ndim = SwigType_array_ndim(t);
   for (int i = 0; i < ndim; i++) {
     String *dim = SwigType_array_getdim(t, i);
-    if (dim && Len(dim) > 0 && !is_fortran_intexpr(dim)) {
+    if (dim && !is_fortran_intexpr(dim)) {
       Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number,
                    "Array dimension expression '%s' is incompatible with Fortran\n",
                    dim);
@@ -165,23 +161,6 @@ bool is_native_enum(Node *n) {
     return false;
   } else {
     // %fortranconst was set as a flag
-    return true;
-  }
-}
-
-/* -------------------------------------------------------------------------
- * \brief Determine whether to wrap an enum as a value.
- */
-bool is_native_parameter(Node *n) {
-  String *param_feature = Getattr(n, "feature:fortran:const");
-  if (!param_feature) {
-    // Default to not wrapping natively
-    return false;
-  } else if (Strcmp(param_feature, "0") == 0) {
-    // Not a native param
-    return false;
-  } else {
-    // Value specified and isn't "0"
     return true;
   }
 }
@@ -2913,7 +2892,7 @@ int FORTRAN::constantWrapper(Node *n) {
       Printv(f_fdecl, " = ", value, NULL);
     }
     Printv(f_fdecl, "\n", NULL);
-  } else if (is_native_parameter(n)) {
+  } else if (GetFlagAttr(n, "feature:fortran:const")) {
     String *suffix = make_specifier_suffix(bindc_typestr);
     if (suffix) {
       // Add specifier such as _C_DOUBLE to the value. Otherwise, for example,
