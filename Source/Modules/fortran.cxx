@@ -594,14 +594,14 @@ public:
   virtual String *makeParameterName(Node *n, Parm *p, int arg_num, bool is_setter = false) const;
   virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm);
 
-  FORTRAN() : d_emitted_mangled(NULL), d_overloads(NULL), f_class(NULL), d_method_overloads(NULL), d_constructors(NULL), d_enum_public(NULL) {}
+  FORTRAN() : d_emitted_mangled(NULL), d_callbacks(NULL), d_overloads(NULL), f_class(NULL), d_method_overloads(NULL), d_constructors(NULL), d_enum_public(NULL) {}
 
 private:
   Wrapper *cfuncWrapper(Node *n);
   Wrapper *imfuncWrapper(Node *n, bool bindc);
   Wrapper *proxyfuncWrapper(Node *n);
 
-  int bindccallbackfunctionHandler(Node *n);
+  int callbackHandler(Node *n);
   int bindcfunctionHandler(Node *n);
   int bindcvarWrapper(Node *n);
 
@@ -611,9 +611,9 @@ private:
   void write_wrapper(String *filename);
   void write_module(String *filename);
 
-  void replace_fclassname(SwigType *type, String *tm);
+  void replace_fclassname(Node *n, SwigType *type, String *tm);
   String *get_fsymname(Node *n, String *symname = NULL);
-  String *get_proxyname(SwigType *classnametype);
+  String *get_proxyname(Node *parent, SwigType *classnametype);
   bool is_wrapped_type(SwigType *classnametype);
   bool is_wrapped_class(Node *n);
   
@@ -736,6 +736,7 @@ int FORTRAN::top(Node *n) {
   Swig_register_filebyname("fsubprograms", f_fsubprograms);
 
   d_emitted_mangled = NewHash();
+  d_callbacks = NewHash();
   d_overloads = NewHash();
 
   // >>> PROCESS
@@ -777,6 +778,7 @@ int FORTRAN::top(Node *n) {
 
   // Clean up files and other data
   Delete(d_overloads);
+  Delete(d_callbacks);
   Delete(d_emitted_mangled);
   Delete(f_fsubprograms);
   Delete(f_finterfaces);
@@ -1347,7 +1349,7 @@ Wrapper * FORTRAN::cfuncWrapper(Node *n) {
   for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
     Parm *p = it.item;
     if (String *tm = Getattr(p, "tmap:in")) {
-      this->replace_fclassname(Getattr(p, "type"), tm);
+      this->replace_fclassname(n, Getattr(p, "type"), tm);
       String *imname = Getattr(p, "imname");
       Replaceall(tm, "$input", imname);
       Setattr(p, "emit:input", imname);
@@ -1468,7 +1470,7 @@ Wrapper *FORTRAN::imfuncWrapper(Node *n, bool bindc) {
 
   // Attach typemap for return value
   String *return_imtype = attach_typemap(tmtype, n, warning_flag);
-  this->replace_fclassname(return_cpptype, return_imtype);
+  this->replace_fclassname(n, return_cpptype, return_imtype);
 
   const bool is_imsubroutine = (Len(return_imtype) == 0);
 
@@ -1515,7 +1517,7 @@ Wrapper *FORTRAN::imfuncWrapper(Node *n, bool bindc) {
       DelWrapper(imfunc);
       return NULL;
     }
-    this->replace_fclassname(Getattr(p, "type"), imtype);
+    this->replace_fclassname(n, Getattr(p, "type"), imtype);
     Printv(imlocals, "\n   ", imtype, " :: ", imname, NULL);
 
     // Include import statements if present; needed for actual structs
@@ -1583,8 +1585,8 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
 
   // Replace any instance of $fortranclassname in return type
   SwigType *return_cpptype = Getattr(n, "type");
-  this->replace_fclassname(return_cpptype, return_ftype);
-  this->replace_fclassname(return_cpptype, return_imtype);
+  this->replace_fclassname(n, return_cpptype, return_ftype);
+  this->replace_fclassname(n, return_cpptype, return_imtype);
 
   // String for calling the im wrapper on the fortran side (the "action")
   String *fcall = NewStringEmpty();
@@ -1739,7 +1741,7 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
 
     // Emit local intermediate parameter in the proxy function
     String *imtype = get_typemap("imtype", p, WARN_FORTRAN_TYPEMAP_IMTYPE_UNDEF);
-    this->replace_fclassname(Getattr(p, "type"), imtype);
+    this->replace_fclassname(n, Getattr(p, "type"), imtype);
     Wrapper_add_localv(ffunc, imname, imtype, "::", imname, NULL);
 
     // Restore local variable name
@@ -1782,7 +1784,7 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
       DelWrapper(ffunc);
       return NULL;
     }
-    this->replace_fclassname(Getattr(p, "type"), ftype);
+    this->replace_fclassname(n, Getattr(p, "type"), ftype);
 
     // Add parameter name to declaration list
     String *farg = this->makeParameterName(n, p, i++);
@@ -1893,7 +1895,7 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
     }
     Replaceall(fbody, "$result", swig_result_name);
     Replaceall(fbody, "$owner", (GetFlag(n, "feature:new") ? ".true." : ".false."));
-    this->replace_fclassname(return_cpptype, fbody);
+    this->replace_fclassname(n, return_cpptype, fbody);
     if (func_to_subroutine) {
       Printv(fbody, "\nendif\n", NULL);
     }
@@ -2140,7 +2142,7 @@ String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool) const {
 void FORTRAN::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
   (void)method;
   SwigType *type = Getattr(parm, "type");
-  this->replace_fclassname(type, tm);
+  this->replace_fclassname(NULL, type, tm);
 }
 
 /* -------------------------------------------------------------------------
@@ -2445,7 +2447,7 @@ int FORTRAN::membervariableHandler(Node *n) {
                  class_symname, fsymname, SwigType_namestr(datatype));
       return SWIG_NOWRAP;
     }
-    this->replace_fclassname(datatype, bindc_typestr);
+    this->replace_fclassname(n, datatype, bindc_typestr);
 
     ASSERT_OR_PRINT_NODE(Len(fsymname) > 0, n);
     Printv(f_class, "  ", bindc_typestr, ", public :: ", fsymname, "\n", NULL);
@@ -2489,27 +2491,15 @@ int FORTRAN::globalvariableHandler(Node *n) {
  * \brief Process global-scope functions.
  */
 int FORTRAN::globalfunctionHandler(Node *n) {
-  // Check for Fortran callback
-  String *cb = GetFlagAttr(n, "feature:fortran:callback");
-  if (cb) {
-    String *symname = Getattr(n, "sym:name");
+  if (GetFlagAttr(n, "feature:fortran:callback")) {
+    // Flag is set to a non-"0" value
     Node *cbnode = Getattr(n, "fortran:callback");
     if (!cbnode) {
-      // Create a shallow copy of the node and save to the parent
-      cbnode = copyNode(n);
-      Setattr(n, "fortran:callback", cbnode);
-      Setattr(cbnode, "parms", Getattr(n, "parms"));
-
-      // 'value' of feature is a printf-like statement: "%s_cb"; it becomes a
-      // symname-like string
-      String *cbname = NewStringf(cb, symname);
-      Setattr(cbnode, "sym:name", cbname);
+      this->callbackHandler(n);
+      cbnode = Getattr(n, "fortran:callback");
     }
-    this->bindcfunctionHandler(cbnode);
-
-    if (Cmp(Getattr(cbnode, "sym:name"), symname) == 0) {
-      // Callback name overwrote original function name: so don't wrap the
-      // original function.
+    if (cbnode && Cmp(Getattr(cbnode, "sym:name"), Getattr(n, "sym:name")) == 0) {
+      // Callback name is the *same* as the function name: we're *just* wrapping as a callback. Return immediately.
       return SWIG_NOWRAP;
     }
   }
@@ -2524,6 +2514,43 @@ int FORTRAN::globalfunctionHandler(Node *n) {
     // Generate wrapper functions
     return Language::globalfunctionHandler(n);
   }
+}
+
+/* -------------------------------------------------------------------------
+ * \brief Create an "abstract inferface" (Fortran callback definition) from a
+ * function node.
+ *
+ * We do *not* check d_callbacks for existing matching signatures. The user
+ * might want to have two separate meaningful callback names and we don't want
+ * to mysteriously prevent one from being wrapped.
+ */
+int FORTRAN::callbackHandler(Node *n) {
+  // Create a shallow copy of the node with params
+  Node *cbnode = copyNode(n);
+  Setattr(cbnode, "parms", Getattr(n, "parms"));
+
+  // Create symname for the callback from the
+  String *cb = GetFlagAttr(n, "feature:fortran:callback");
+  assert(cb);
+  String *cbname = NewStringf(cb, Getattr(n, "sym:name"));
+  Setattr(cbnode, "sym:name", cbname);
+
+  // Wrap the callback
+  int result = this->bindcfunctionHandler(cbnode);
+
+  if (result == SWIG_OK) {
+    // Save to parent node
+    Setattr(n, "fortran:callback", cbnode);
+
+    // Save function pointer type in the cache of types
+    // Construct function pointer type corresponding to this function
+    SwigType *fptype = Copy(Getattr(n, "type"));
+    SwigType_push(fptype, Getattr(n, "decl"));
+    Setattr(d_callbacks, fptype, cbnode);
+    Delete(fptype);
+  }
+
+  return result;
 }
 
 /* -------------------------------------------------------------------------
@@ -2563,6 +2590,10 @@ int FORTRAN::bindcfunctionHandler(Node *n) {
   List *cparmlist = NewList();
   int i = 0;
   for (Parm *p = parmlist; p; p = nextSibling(p), ++i) {
+    // Skip void parameters
+    if (Cmp(Getattr(p, "type"), "void") == 0) {
+      continue;
+    }
     // Use C argument names
     String *imname = this->makeParameterName(n, p, i);
     Setattr(p, "imname", imname);
@@ -2965,7 +2996,7 @@ int FORTRAN::constantWrapper(Node *n) {
     }
 
     // Replace fortranclass if needed
-    this->replace_fclassname(c_return_type, bindc_typestr);
+    this->replace_fclassname(n, c_return_type, bindc_typestr);
 
     // Add bound variable to interfaces
     Printv(f_fdecl, " ", bindc_typestr, ", protected, public, &\n",
@@ -2984,15 +3015,15 @@ int FORTRAN::constantWrapper(Node *n) {
  * HELPER FUNCTIONS
  * ------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------
- * \brief Substitute special '$fXXXXX' in typemaps.
+ * \brief Substitute special '\$[*&]?fortranclassname' in typemaps.
  */
-void FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
+void FORTRAN::replace_fclassname(Node *n, SwigType *intype, String *tm) {
   assert(intype);
   SwigType *resolvedtype = SwigType_typedef_resolve_all(intype);
   SwigType *strippedtype = SwigType_strip_qualifiers(resolvedtype);
 
   if (Strstr(tm, "$fortranclassname")) {
-    if (String *repl = this->get_proxyname(strippedtype)) {
+    if (String *repl = this->get_proxyname(n, strippedtype)) {
       Replaceall(tm, "$fortranclassname", repl);
     }
   }
@@ -3000,7 +3031,7 @@ void FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
     String *repltype = Copy(strippedtype);
     Delete(SwigType_pop(repltype));
     if (Len(repltype) > 0) {
-      if (String *repl = this->get_proxyname(repltype)) {
+      if (String *repl = this->get_proxyname(n, repltype)) {
         Replaceall(tm, "$*fortranclassname", repl);
       }
     }
@@ -3009,7 +3040,7 @@ void FORTRAN::replace_fclassname(SwigType *intype, String *tm) {
   if (Strstr(tm, "$&fortranclassname")) {
     String *repltype = Copy(strippedtype);
     SwigType_add_pointer(repltype);
-    if (String *repl = this->get_proxyname(repltype)) {
+    if (String *repl = this->get_proxyname(n, repltype)) {
       Replaceall(tm, "$&fortranclassname", repl);
     }
     Delete(repltype);
@@ -3050,12 +3081,15 @@ String *FORTRAN::get_fsymname(Node *n, String *symname) {
 
 /* ------------------------------------------------------------------------- */
 
-String *FORTRAN::get_proxyname(SwigType *basetype) {
+String *FORTRAN::get_proxyname(Node *parent, SwigType *basetype) {
   Node *n = NULL;
   
   bool is_enum = SwigType_isenum(basetype);
+  bool is_funptr = !is_enum && SwigType_isfunction(basetype);
   if (is_enum) {
     n = this->enumLookup(basetype);
+  } else if (is_funptr) {
+    n = Getattr(d_callbacks, basetype);
   } else {
     n = this->classLookup(basetype);
   }
@@ -3071,27 +3105,76 @@ String *FORTRAN::get_proxyname(SwigType *basetype) {
     return replacementname;
   }
 
-  // First time encountering this particular mangled type
+  // First time encountering this particular mangled type.
   // Create a node so we can insert into the fortran symbol table
   n = NewHash();
-  set_nodeType(n, (is_enum ? "enumforward" : "classforward"));
   Setattr(n, "name", basetype);
-  if (this->add_fsymbol(replacementname, n) == SWIG_NOWRAP) {
-    ASSERT_OR_PRINT_NODE(false, n);
-    return NULL;
+  Setattr(n, "sym:name", replacementname);
+  if (parent) {
+    Setfile(n, Getfile(parent));
+    Setline(n, Getline(parent));
+  }
+  if (is_enum) {
+    set_nodeType(n, "enumforward");
+  } else if (is_funptr) {
+    // Create a 'callback node' like callbackHandler
+    set_nodeType(n, "cdecl");
+    Setattr(n, "kind", "function");
+    Setattr(n, "storage", "externc");
+
+    // Split function declaration into return/param
+    String *rtype = Copy(basetype);
+    SwigType_add_pointer(rtype);
+    SwigType *funcparams = SwigType_functionpointer_decompose(rtype);
+    Setattr(n, "type", rtype);
+    Setattr(n, "decl", funcparams);
+
+    // Convert function signature to ParmList
+    ParmList *parms = SwigType_function_parms(basetype, n);
+    Setattr(n, "parms", parms);
+
+    // Set parameter names
+    int i = 0;
+    for (Parm *p = parms; p; p = nextSibling(p), ++i) {
+      String *name = NewStringf("arg%d", i);
+      Setattr(p, "name", name);
+      Delete(name);
+    }
+  } else {
+    set_nodeType(n, "classforward");
   }
 
-  if (is_enum) {
-    Replace(replacementname, "enum ", "", DOH_REPLACE_ANY);
-    Printv(f_fdecl, "integer, parameter, public :: ", replacementname, " = C_INT\n", NULL);
-  } else {
-    emit_fragment("SwigClassWrapper_f");
-    Printv(f_fdecl,
-           " type, public :: ", replacementname, "\n", 
-           "  type(SwigClassWrapper), public :: swigdata\n",
-           " end type\n",
-           NULL);
+  if (!ImportMode) {
+    if (!is_funptr) {
+      // Function interfaces add the symbol themselves inside bindcfunctionHandler; enums and classes are added here.
+      if (this->add_fsymbol(replacementname, n) == SWIG_NOWRAP) {
+        ASSERT_OR_PRINT_NODE(false, n);
+        return NULL;
+      }
+    }
 
+    // Emit the wrapper code
+    if (is_enum) {
+      // Generate automatic enum declaration
+      Replace(replacementname, "enum ", "", DOH_REPLACE_ANY);
+      Printv(f_fdecl, "integer, parameter, public :: ", replacementname, " = C_INT\n", NULL);
+    } else if (is_funptr) {
+      // Generate automatic abstract function declaration
+      int result = this->bindcfunctionHandler(n);
+      if (!result) {
+        return NULL;
+      }
+      // Add callback node to the list of successfully generated types
+      Setattr(d_callbacks, basetype, n);
+    } else {
+      emit_fragment("SwigClassWrapper_f");
+      Printv(f_fdecl,
+             " type, public :: ", replacementname, "\n", 
+             "  type(SwigClassWrapper), public :: swigdata\n",
+             " end type\n",
+             NULL);
+
+    }
   }
   Setattr(d_emitted_mangled, replacementname, n);
   return replacementname;

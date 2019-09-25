@@ -11,7 +11,7 @@
 %typemap(imtype, in="type(C_FUNPTR), value") SWIGTYPE (*)(ANY)
   "type(C_FUNPTR)"
 %typemap(ftype) SWIGTYPE (*)(ANY)
-  "procedure($fortranclassname)"
+  "procedure($*fortranclassname)"
 %typemap(bindc, in="type(C_FUNPTR), value") SWIGTYPE (*)(ANY)
   "type(C_FUNPTR)"
 
