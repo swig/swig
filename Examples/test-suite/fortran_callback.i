@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 int add(int left, int right) { return left + right; }
-int mul(int left, int right) { return left - right; }
+int mul(int left, int right) { return left * right; }
 
 #ifdef __cplusplus
 } // end extern
@@ -38,6 +38,11 @@ int mul(int left, int right) { return left - right; }
 
 // Declare callback signature *and* create function with wrapper
 %fortrancallback("%s_cb") call_binary;
+
+%{
+#include <string.h>
+#include <stdio.h>
+%}
 
 %inline %{
 #ifdef __cplusplus
@@ -61,6 +66,16 @@ int call_things(noarg_cb fptr)
 typedef void (*one_int_cb)(int);
 void also_call_things(one_int_cb fptr, int val)
 { return (*fptr)(val); }
+
+binary_op_cb get_a_callback(const char* name) {
+  if (strcmp(name, "add") == 0) {
+    return &add;
+  } if (strcmp(name, "mul") == 0) {
+    return &mul;
+  }
+  printf("Invalid callback name '%s'\n", name);
+  return NULL;
+}
 
 %}
 
