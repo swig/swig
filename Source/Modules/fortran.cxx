@@ -1928,8 +1928,14 @@ int FORTRAN::bindcvarWrapper(Node *n) {
   
   String *name = Getattr(n, "name");
   ASSERT_OR_PRINT_NODE(name, n);
+  ASSERT_OR_PRINT_NODE(Getattr(n, "type"), n);
+
+  const char* protection_str = "";
+  if (strncmp(Char(Getattr(n, "type")), "q(const)", 8) == 0) { 
+    protection_str = "protected, ";
+  }
   
-  Printv(f_fdecl, " ", bindc_typestr, ", public, &\n",
+  Printv(f_fdecl, " ", bindc_typestr, ", public, ", protection_str, "&\n",
          "   bind(C, name=\"", name, "\") :: ",
          (Len(name) > 60 ? "&\n    " : ""),
          fsymname, "\n",
@@ -2427,18 +2433,10 @@ int FORTRAN::membervariableHandler(Node *n) {
 }
 
 /* -------------------------------------------------------------------------
- * \brief Process static member functions.
+ * \brief Process global variables.
  */
 int FORTRAN::globalvariableHandler(Node *n) {
-  if (GetFlag(n, "feature:fortran:const")) {
-    return this->constantWrapper(n);
-  }
   if (GetFlag(n, "feature:fortran:bindc")) {
-    String *type = Getattr(n, "type");
-    if (type && strncmp(Char(type), "q(const)", 8) == 0) { 
-      // Treat bindc global const as a non-parameter constant
-      return this->constantWrapper(n);
-    }
     return this->bindcvarWrapper(n);
   }
 
