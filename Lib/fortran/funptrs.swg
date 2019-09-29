@@ -17,12 +17,11 @@
 
 %typemap(in) SWIGTYPE (*)(ANY) = void *;
 %typemap(out) SWIGTYPE (*)(ANY) = void *;
-  
+
 %typemap(fin) SWIGTYPE (*)(ANY)
   "$1 = c_funloc($input)"
 %typemap(fout) SWIGTYPE (*)(ANY)
   "call c_f_procpointer($1, $result)"
-  
-%apply SWIGTYPE (*)(ANY) { SWIGTYPE (* const)(ANY) } ;
 
+%apply SWIGTYPE (*)(ANY) { SWIGTYPE (* const)(ANY) } ;
 
