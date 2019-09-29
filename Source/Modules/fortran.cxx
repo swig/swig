@@ -120,7 +120,7 @@ int fix_fortran_dims(Node *n, const char *tmap_name, String *typemap) {
   int ndim = SwigType_array_ndim(t);
   for (int i = 0; i < ndim; i++) {
     String *dim = SwigType_array_getdim(t, i);
-    if (dim && !is_fortran_intexpr(dim)) {
+    if (dim && Len(dim) > 0 && !is_fortran_intexpr(dim)) {
       Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number,
                    "Array dimension expression '%s' is incompatible with Fortran\n",
                    dim);
@@ -2864,7 +2864,6 @@ int FORTRAN::constantWrapper(Node *n) {
   // Save some properties that get temporarily changed
   Swig_save("constantWrapper", n, "wrap:name", "lname", "fortran:name", NULL);
 
-  String *nodetype = nodeType(n);
   String *value = NULL;
 
   if (String *override_value = Getattr(n, "feature:fortran:constvalue")) {
@@ -2874,6 +2873,7 @@ int FORTRAN::constantWrapper(Node *n) {
     value = Getattr(n, "rawval");
   }
 
+  String *nodetype = nodeType(n);
   if (Strcmp(nodetype, "enumitem") == 0) {
     // Set type from the parent enumeration
     // XXX why??
