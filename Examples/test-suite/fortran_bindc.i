@@ -1,7 +1,6 @@
 %module fortran_bindc
 
 %rename(RenamedOtherStruct) OtherStruct;
-%warnfilter(SWIGWARN_TYPEMAP_CHARLEAK) SimpleStruct::s; /* Setting a const char * variable may leak memory. */
 
 // Treat the struct as a native fortran struct rather than as a class with
 // getters/setters.
