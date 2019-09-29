@@ -138,18 +138,18 @@ SWIGINTERN SwigArrayWrapper SwigArrayWrapper_uninitialized() {
  * that we can get the C location of the input array directly.
  *
  */
-%define %fortran_intrinsic(CTYPE, FTYPE)
+%define %fortran_intrinsic(CTYPE, FTYPE, FKIND)
   %fortran_apply_typemaps(FORTRAN_INTRINSIC_TYPE, CTYPE)
   
   // Regular values are passed as pointers and returned by value
   %typemap(ctype, in={const CTYPE*}) CTYPE
    %{CTYPE%}
-  %typemap(imtype, in={FTYPE, intent(in)}) CTYPE
-   %{FTYPE%}
-  %typemap(ftype, in={FTYPE, intent(in)}) CTYPE
-   %{FTYPE%}
-  %typemap(bindc, in={FTYPE, intent(in), value}) CTYPE
-   %{FTYPE%}
+  %typemap(imtype, in={FTYPE(FKIND), intent(in)}) CTYPE
+   %{FTYPE(FKIND)%}
+  %typemap(ftype, in={FTYPE(FKIND), intent(in)}) CTYPE
+   %{FTYPE(FKIND)%}
+  %typemap(bindc, in={FTYPE(FKIND), intent(in), value}, kind={FKIND}) CTYPE
+   %{FTYPE(FKIND)%}
   %typemap(in) CTYPE = FORTRAN_INTRINSIC_TYPE;
   %typemap(out) CTYPE = FORTRAN_INTRINSIC_TYPE;
   %typemap(fin) CTYPE = FORTRAN_INTRINSIC_TYPE;
@@ -159,17 +159,16 @@ SWIGINTERN SwigArrayWrapper SwigArrayWrapper_uninitialized() {
   %typemap(fout) CTYPE = FORTRAN_INTRINSIC_TYPE;
 
   %typemap(bindc) CTYPE* = FORTRAN_INTRINSIC_TYPE*;
-  %typemap(bindc) const CTYPE* = const FORTRAN_INTRINSIC_TYPE*;
 
   // Fragment for converting array to array wrapper. This needs the intermediate step of assigning the first element to an array pointer to be compatible with
   // ISO C.
   %fragment("SWIG_fin"{CTYPE[]}, "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1)
 {subroutine %fortrantm(fin, CTYPE[])(finp, iminp)
   use, intrinsic :: ISO_C_BINDING
-  FTYPE, dimension(:), intent(in), target :: finp
+  FTYPE(FKIND), dimension(:), intent(in), target :: finp
   type(SwigArrayWrapper), intent(out) :: iminp
   integer(C_SIZE_T) :: sz
-  FTYPE, pointer :: imtemp
+  FTYPE(FKIND), pointer :: imtemp
 
   sz = size(finp, kind=C_SIZE_T)
   if (sz > 0_c_size_t) then
@@ -186,7 +185,7 @@ end subroutine}
   {subroutine %fortrantm(fout, CTYPE[])(imout, fout)
   use, intrinsic :: ISO_C_BINDING
   type(SwigArrayWrapper), intent(in) :: imout
-  FTYPE, dimension(:), pointer, intent(out) :: fout
+  FTYPE(FKIND), dimension(:), pointer, intent(out) :: fout
 
   if (imout%size > 0) then
     call c_f_pointer(imout%data, fout, [imout%size])
@@ -341,15 +340,15 @@ end subroutine}
  * ------------------------------------------------------------------------- */
 
 // Fundamental ISO-C binding types
-%fortran_intrinsic(signed char, integer(C_SIGNED_CHAR))
-%fortran_intrinsic(short      , integer(C_SHORT)      )
-%fortran_intrinsic(int        , integer(C_INT)        )
-%fortran_intrinsic(long       , integer(C_LONG)       )
-%fortran_intrinsic(long long  , integer(C_LONG_LONG)  )
-%fortran_intrinsic(size_t     , integer(C_SIZE_T)     )
-%fortran_intrinsic(float      , real(C_FLOAT)         )
-%fortran_intrinsic(double     , real(C_DOUBLE)        )
-%fortran_intrinsic(char       , character(C_CHAR)     )
+%fortran_intrinsic(signed char, integer  , C_SIGNED_CHAR)
+%fortran_intrinsic(short      , integer  , C_SHORT)
+%fortran_intrinsic(int        , integer  , C_INT)
+%fortran_intrinsic(long       , integer  , C_LONG)
+%fortran_intrinsic(long long  , integer  , C_LONG_LONG)
+%fortran_intrinsic(size_t     , integer  , C_SIZE_T)
+%fortran_intrinsic(float      , real     , C_FLOAT)
+%fortran_intrinsic(double     , real     , C_DOUBLE)
+%fortran_intrinsic(char       , character, C_CHAR)
 
 // Unsigned integer types
 %fortran_unsigned(signed char     ,unsigned char      )
@@ -359,7 +358,7 @@ end subroutine}
 %fortran_unsigned(signed long long,unsigned long long )
 
 // Pointer type
-%fortran_intrinsic(void*, type(C_PTR))
+%fortran_intrinsic(void*, type, C_PTR)
 
 /* -------------------------------------------------------------------------
  * LOGICAL (BOOLEAN) TYPE

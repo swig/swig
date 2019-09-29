@@ -173,42 +173,6 @@ bool is_wrapped_enum(Node *n) {
 }
 
 /* -------------------------------------------------------------------------
- * Construct a specifier suffix from a BIND(C) typemap.
- * 
- * This returns NULL if the typestr doesn't have a simple KIND, otherwise
- * returns a newly allocated String with the suffix.
- *
- * TODO: consider making this a typedef
- */
-String *make_specifier_suffix(String *bindc_typestr) {
-  String *suffix = NULL;
-    // Search for the KIND embedded in `real(C_DOUBLE)` so that we can
-    // append the fortran specifier. This is kind of a hack, but native
-    // parameters should really only be used for the kinds we define in
-    // fortypemaps.swg
-    const char *start = Char(bindc_typestr);
-    const char *stop = start + Len(bindc_typestr);
-    // Search forward for left parens
-    for (; start != stop; ++start) {
-      if (*start == '(') {
-        ++start;
-        break;
-      }
-    }
-    // Search backward for right parens
-    for (; stop != start; --stop) {
-      if (*stop == ')') {
-        break;
-      }
-    }
-
-    if (stop != start) {
-      suffix = NewStringWithSize(start, (int)(stop - start));
-    }
-    return suffix;
-}
-
-/* -------------------------------------------------------------------------
  * \brief Whether an SWIG type can be rendered as TYPE VAR.
  *
  * Some declarations (arrays, function pointers, member function pointers)
@@ -2924,12 +2888,10 @@ int FORTRAN::constantWrapper(Node *n) {
     }
     Printv(f_fdecl, "\n", NULL);
   } else if (GetFlagAttr(n, "feature:fortran:const")) {
-    String *suffix = make_specifier_suffix(bindc_typestr);
-    if (suffix) {
+    if (String *suffix = Getattr(n, "tmap:bindc:kind")) {
       // Add specifier such as _C_DOUBLE to the value. Otherwise, for example,
       // 1.000000001 will be truncated to 1 because fortran will think it's a float.
       Printv(value, "_", suffix, NULL);
-      Delete(suffix);
     }
     Printv(f_fdecl, " ", bindc_typestr, ", parameter, public :: ", fsymname, " = ", value, "\n", NULL);
   } else {
