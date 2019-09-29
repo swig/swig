@@ -4,16 +4,6 @@ module fortran_ops
   implicit none
   public
     
-  abstract interface
-    ! Interface corresponding to the C typedef "BinaryOp"
-    function binary_op(aa, bb) bind(C)  result(cc)
-      use, intrinsic :: ISO_C_BINDING
-      integer(C_INT), intent(in), value :: aa
-      integer(C_INT), intent(in), value :: bb
-      integer(C_INT) :: cc
-    end function
-  end interface
-  
 contains
   ! Fortran function that we can export so that
   ! it's available to C code
@@ -39,19 +29,16 @@ program fortran_funptr_runme
   integer, parameter :: STDOUT = OUTPUT_UNIT
   integer(C_INT) :: a = 4
   integer(C_INT) :: b = 3
-  type(C_FUNPTR) :: temp_funptr
-  procedure(binary_op), pointer :: my_ffunc => null()
+  procedure(binary_op), pointer :: fptr => null()
 
-  write(STDOUT,*) "SWIG-wrapped C function pointer:", do_op(a,b,add)
-  write(STDOUT,*) "SWIG-wrapped C function pointer:", do_op(a,b,sub)
-  write(STDOUT,*) "SWIG-wrapped C function pointer:", do_op(a,b,mul)
+  call c_f_procpointer(add, fptr)
+  write(STDOUT,*) "SWIG-wrapped C function pointer:", do_op(a, b, fptr)
+  call c_f_procpointer(sub, fptr)                                 
+  write(STDOUT,*) "SWIG-wrapped C function pointer:", do_op(a, b, fptr)
+  call c_f_procpointer(mul, fptr)                                 
+  write(STDOUT,*) "SWIG-wrapped C function pointer:", do_op(a, b, fptr)
 
   ! Convert Fortran function to C function pointer
-  temp_funptr = c_funloc(fortran_mul)
-  write(STDOUT,*) "C call to Fortran function:", do_op(a,b,temp_funptr)
-
-  ! Convert C function pointer to a Fortran function pointer
-  call c_f_procpointer(add, my_ffunc)
-  write(STDOUT,*) "Fortran direct call to C function:", my_ffunc(a,b)
+  write(STDOUT,*) "C call to Fortran function:", do_op(a, b, fortran_mul)
 
 end program

@@ -1,9 +1,11 @@
 /* file: example.h */
 
-extern int do_op(int,int, int (*op)(int,int));
-extern int add(int,int);
-extern int sub(int,int);
-extern int mul(int,int);
+typedef int (*binary_func)(int, int);
 
-extern int (*funcvar)(int,int);
+extern int do_op(int, int, binary_func);
+extern int add(int, int);
+extern int sub(int, int);
+extern int mul(int, int);
+
+extern int (*funcvar)(int, int);
 

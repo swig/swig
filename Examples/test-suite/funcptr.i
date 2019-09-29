@@ -3,23 +3,13 @@
 /*
  Complicated one that should defeat just reading , to find
  the number of arguments expected in the function pointer.
-extern void do(int (*op)(int (*i)(double, double), int j));
+extern void do(int (*op)(int (*i)(double, double), int j)); 
 */
-%{
-#include <stdlib.h>
-%}
 
 %inline %{
 typedef double (*DistFun)(double* data, int r, int c, int i, int j, void *xdata);
 
 void distance(double *data, int *dim, DistFun fun,  double *output) {
-    double val;
-    val = fun(data, dim[0], dim[1], dim[2], dim[3], output);
-}
-
-typedef double (*const CDistFun)(double* data, int r, int c, int i, int j, void *xdata);
-void const_distance(double *data, int *dim, CDistFun fun,  double *output) {
-    double val = fun(data, dim[0], dim[1], dim[2], dim[3], output);
 }
 
 typedef int (*Operator)(int i,int j);
@@ -40,18 +30,18 @@ int multiply(int a, int b) {
   return a*b;
 }
 
-int *nowt() {
+int *nowt() { 
   return 0;
 }
 
-int *nowt2(void) {
+int *nowt2(void) { 
   return 0;
 }
 
 struct MyStruct { int i; };
 typedef struct MyStruct * MyStructPtr;
 
-MyStructPtr mystructptr() {
+MyStructPtr mystructptr() { 
   return 0;
 }
 
@@ -67,22 +57,4 @@ void (*pfunc0)();
 int (*pfuncA)();
 void (*pfunc1)(int);
 void (*pfunc2)(int, double);
-
-#ifdef SWIGFORTRAN
-// Temporary example of setting function handles. This will be improved.
-%apply void* { SWIGTYPE (**)(ANY) } ;
-
-%typemap(fin) SWIGTYPE (**)(ANY) = FORTRAN_INTRINSIC_TYPE&;
-%typemap(ftype, in="type(C_FUNPTR), target, intent(inout)") SWIGTYPE (**)(ANY)
-  "type(C_FUNPTR), pointer"
-#endif
-
-void set_handle(int choice, Operator* op) {
-  switch (choice) {
-    case 0: *op = add; break;
-    case 1: *op = subtract; break;
-    case 2: *op = multiply; break;
-    default: *op = NULL;
-  }
-}
 %}

@@ -148,7 +148,7 @@ SWIGINTERN SwigArrayWrapper SwigArrayWrapper_uninitialized() {
    %{FTYPE%}
   %typemap(ftype, in={FTYPE, intent(in)}) CTYPE
    %{FTYPE%}
-  %typemap(bindc, in={FTYPE, value}) CTYPE
+  %typemap(bindc, in={FTYPE, intent(in), value}) CTYPE
    %{FTYPE%}
   %typemap(in) CTYPE = FORTRAN_INTRINSIC_TYPE;
   %typemap(out) CTYPE = FORTRAN_INTRINSIC_TYPE;
@@ -398,23 +398,6 @@ end subroutine}
 
 // Mutable references are treated like opaque pointers
 %apply SWIGTYPE* { bool& };
-
-/* -------------------------------------------------------------------------
- * FUNCTION POINTERS
- * ------------------------------------------------------------------------- */
-
-%apply void* { SWIGTYPE (*)(ANY) } ;
-
-%typemap(ctype) SWIGTYPE (*)(ANY)
-  "$1_ltype"
-%typemap(imtype, in="type(C_FUNPTR), value") SWIGTYPE (*)(ANY)
-  "type(C_FUNPTR)"
-%typemap(ftype, in="type(C_FUNPTR), intent(in), value") SWIGTYPE (*)(ANY)
-  "type(C_FUNPTR)"
-%typemap(bindc, in="type(C_FUNPTR), value") SWIGTYPE (*)(ANY)
-  "type(C_FUNPTR)"
-
-%apply SWIGTYPE (*)(ANY) { SWIGTYPE (* const)(ANY) } ;
 
 /* -------------------------------------------------------------------------
  * TYPE CHECKING
