@@ -200,3 +200,37 @@ int get_instruct_i(IntStruct* s) {
   return s->i;
 }
 %}
+
+// Character strings
+%{
+#include <string.h>
+%}
+
+%fortranbindc strlen;
+%fortranbindc getstr;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+int strlen(const char *s);
+#ifdef __cplusplus
+}
+#endif
+
+%inline %{
+#ifdef __cplusplus
+extern "C" {
+#endif
+const char* getstr(int choice) {
+  switch(choice) {
+    case 0: return "zero";
+    case 1: return "one";
+    case 2: return "two";
+  }
+  return "unknown";
+}
+#ifdef __cplusplus
+}
+#endif
+%}
+
