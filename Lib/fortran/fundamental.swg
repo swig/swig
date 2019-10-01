@@ -149,7 +149,7 @@ SWIGINTERN SwigArrayWrapper SwigArrayWrapper_uninitialized() {
   %typemap(ftype, in={FTYPE(FKIND), intent(in)}) CTYPE
    %{FTYPE(FKIND)%}
   %typemap(bindc, in={FTYPE(FKIND), intent(in), value}, kind={FKIND},
-           constant={FTYPE(FKIND)}) CTYPE
+           fortranconst={FTYPE(FKIND)}) CTYPE
    %{FTYPE(FKIND)%}
   %typemap(in) CTYPE = FORTRAN_INTRINSIC_TYPE;
   %typemap(out) CTYPE = FORTRAN_INTRINSIC_TYPE;

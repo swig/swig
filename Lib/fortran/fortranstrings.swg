@@ -100,7 +100,8 @@ end subroutine
 %typemap(bindc, in="character(kind=C_CHAR, len=*)") char *
   "type(C_PTR)";
 
-%typemap(bindc, in="character(kind=C_CHAR), dimension(*), intent(in)") const char *
+%typemap(bindc, in="character(kind=C_CHAR), dimension(*), intent(in)",
+         fortranconst="character(kind=C_CHAR, len=*)") const char *
   "type(C_PTR)";
 
 /* -------------------------------------------------------------------------

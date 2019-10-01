@@ -97,7 +97,7 @@ presents some equivalent concepts and names in the two languages:
 | arithmetic type                  | intrinsic type              |
 | derived type                     | extended type               |
 | function parameters              | dummy arguments             |
-| `constexpr` variable             | `parameter` statement       |
+| `constexpr` variable             | named constant              |
 
 ## Identifiers
 
@@ -557,8 +557,10 @@ constants that are guaranteed to be compatible with C enumerators. Unlike C++,
 all enumerators in Fortran are anonymous.
 
 To associate a C enumeration name with the Fortran
-generated wrappers, SWIG generates an integer parameter with the C enumeration
-name. The enumeration generated from the C code
+generated wrappers, SWIG generates a named constant with the C enumeration
+name whose value is the size of the enum that can then be used analogously to
+`C_INT`, which specifies the size of the native C integer type. 
+The enumeration generated from the C code
 ```c++
 enum MyEnum {
   RED = 0,
@@ -895,17 +897,22 @@ will generate a publicly accessible C-bound variable:
 integer(C_INT), public, bind(C, name="global_counter_c") :: global_counter_c
 ```
 
-### Global constants
+### Constants
 
-Global constant variables (whether declared in C++ headers with `const` or in
-a SWIG wrapper with `%constant`) of native types can be wrapped as Fortran
-"parameters" (compile-time values), as externally bound constants, or as
-wrapper functions that return the value.
+A constant declaration can be wrapped as a Fortran *named constant*
+(a compile-time value defined by having the `parameter` attribute), as
+an externally linked data object, or as a wrapper function that returns the
+value as a native Fortran datatype. Constants can be declared with:
+- The SWIG `%constant` directive,
+- Simple `#define` macros, and
+- `constexpr` global variables.
+The last item is a SWIG-Fortran extension.
 
-The default behavior is for global `const` variables, *or* `%constant`s whose
-data types cannot be [directly represented](#direct-c-binding), to be wrapped
-with getter functions. Variables marked with the `%fortranconst` directive are
-wrapped as Fortran `parameter` module values. If declaring a C-linkage
+All global `const` variables will be treated as regular global variables: they
+will be wrapped with getter functions. SWIG-declared `%constant`s whose
+data types cannot be [directly represented](#direct-c-binding) will be wrapped
+with getter functions. Constants marked with the `%fortranconst` directive are
+wrapped as Fortran module-level named constants. If declaring a C-linkage
 `%constant`, it is directly exposed to Fortran using `bind(C)`. Otherwise, a
 const global wrapper variable will be created in the C wrapper code and `bound`
 in the Fortran module.  

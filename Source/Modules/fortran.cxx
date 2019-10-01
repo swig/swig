@@ -2840,7 +2840,7 @@ int FORTRAN::constantWrapper(Node *n) {
 
   // Get Fortran data type
   Swig_typemap_lookup("bindc", n, Getattr(n, "name"), NULL);
-  String *bindc_typestr = Getattr(n, "tmap:bindc:constant");
+  String *bindc_typestr = Getattr(n, "tmap:bindc:fortranconst");
   bool is_native_constant = GetFlagAttr(n, "feature:fortran:const");
 
   // Check for missing typemap
@@ -2848,7 +2848,7 @@ int FORTRAN::constantWrapper(Node *n) {
     if (is_native_constant) {
       Swig_error(input_file,
                  line_number,
-                 "The variable '%s' is marked as %%fortranconst but its type has no 'bindc:constant' typemap.\n",
+                 "The variable '%s' is marked as %%fortranconst but its type has no 'bindc:fortranconst' typemap.\n",
                  Getattr(n, "sym:name"));
       return SWIG_ERROR;
     }
