@@ -36,7 +36,7 @@
 %#endif
 	  res = traits_asptr_stdseq<std::unordered_multimap<K,T,Hash,Compare,Alloc>, std::pair<K, T> >::asptr(items, val);
 	} else {
-	  unordered_multimap_type *p;
+	  unordered_multimap_type *p = 0;
 	  swig_type_info *descriptor = swig::type_info<unordered_multimap_type>();
 	  res = descriptor ? SWIG_ConvertPtr(obj, (void **)&p, descriptor, 0) : SWIG_ERROR;
 	  if (SWIG_IsOK(res) && val)  *val = p;
