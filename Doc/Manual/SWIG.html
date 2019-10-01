@@ -827,6 +827,32 @@ However, for the same conservative reasons even a constant with a simple cast wi
 </div>
 
 <p>
+This logic can lead to false attempts at converting <tt>#define</tt> into <tt>%constant</tt> though.
+For example the following case does not have any undefined symbols within the macro:
+</p>
+
+<div class="code">
+<pre>
+// For indicating pure virtual functions such as: virtual void f() PURE;
+#define PURE = 0
+</pre>
+</div>
+
+<p>
+A warning is issued:
+</p>
+
+<div class="shell">
+<pre>
+pure.h:1: Warning 305: Bad constant value (ignored).
+</pre>
+</div>
+
+<p>
+In such cases simply ignore the warning or suppress it using the normal warning suppression techniques.
+</p>
+
+<p>
 The use of constant expressions is allowed, but SWIG does not evaluate
 them. Rather, it passes them through to the output file and lets the C
 compiler perform the final evaluation (SWIG does perform a limited
