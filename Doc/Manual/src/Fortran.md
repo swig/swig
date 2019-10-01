@@ -178,7 +178,7 @@ module forexample
 private
 interface
  function swigc_fact(farg1) &
-   bind(C, name="swigc_fact") &
+   bind(C, name="_wrap_fact") &
    result(fresult)
   use, intrinsic :: ISO_C_BINDING
   integer(C_INT) :: fresult
@@ -575,7 +575,7 @@ looks like:
   enumerator :: BLUE
   enumerator :: BLACK = -1
  end enum
- integer, parameter :: MyEnum = kind(RED)
+ integer, parameter, public :: MyEnum = kind(RED)
 ```
  
 These enumerators are treated as standard C integers in the C wrapper code
@@ -594,9 +594,9 @@ enum MyWeirdEnum {
 becomes
 ```fortran
 integer(C_INT), protected, public, &
-   bind(C, name="swigc_MyWeirdEnum_FOO") :: FOO
+   bind(C, name="_wrap_MyWeirdEnum_FOO") :: FOO
 integer(C_INT), protected, public, &
-   bind(C, name="swigc_MyWeirdEnum_BAR") :: BAR
+   bind(C, name="_wrap_MyWeirdEnum_BAR") :: BAR
 integer, parameter :: MyWeirdEnum = C_INT
 ```
 
@@ -605,10 +605,6 @@ enable treatment of a C++ `enum` as a Fortran enumerator, and the
 `%nofortranconst` directive forces the values to be wrapped as externally-bound
 C integers. See the section on [global constants](#global-constants) for more
 on this directive.
-
-If an enumeration type has not been defined but is used in a function
-signature, a placeholder `SwigUnknownEnum` enumerator will be generated and
-used instead.
 
 Class-scoped enumerations are prefixed with the class name:
 ```c++
@@ -638,7 +634,7 @@ becomes
 enum, bind(c)
  enumerator :: Foo_Bar = 0
 end enum
-integer, parameter :: Foo = kind(Foo_Bar)
+integer, parameter, public :: Foo = kind(Foo_Bar)
 ```
 
 and
@@ -655,7 +651,7 @@ becomes
 enum, bind(c)
  enumerator :: Cls_Foo_Bar = 0
 end enum
-integer, parameter :: Cls_Foo = kind(Cls_Foo_Bar)
+integer, parameter, public :: Cls_Foo = kind(Cls_Foo_Bar)
 ```
 
 ## Function pointers
@@ -906,14 +902,18 @@ a SWIG wrapper with `%constant`) of native types can be wrapped as Fortran
 "parameters" (compile-time values), as externally bound constants, or as
 wrapper functions that return the value.
 
-The default behavior is as follows:
-- `%constant` and macro values are wrapped as externally bound values.
-- Global constants are wrapped with getter functions.
-- A constant can be forced to be a Fortran compile-time constant `parameter`
-  using the `%fortranconst` directive.
-- A macro whose definition cannot be parsed by Fortran can have its value
-  *replaced* with a simpler expression using the `%fortranconstvalue`
-  directive.
+The default behavior is for global `const` variables, *or* `%constant`s whose
+data types cannot be [directly represented](#direct-c-binding), to be wrapped
+with getter functions. Variables marked with the `%fortranconst` directive are
+wrapped as Fortran `parameter` module values. If declaring a C-linkage
+`%constant`, it is directly exposed to Fortran using `bind(C)`. Otherwise, a
+const global wrapper variable will be created in the C wrapper code and `bound`
+in the Fortran module.  
+
+Some compile-time constants can have definitions that are valid C but invalid
+Fortran.  A macro whose definition cannot be parsed by Fortran can have its
+value *replaced* with a simpler expression using the `%fortranconstvalue`
+directive.
 
 The following example shows the behavior of the various rules above:
 ```swig
@@ -935,7 +935,6 @@ const int extern_const_int = 4;
 ```
 will be translated to
 ```fortran
- public :: get_extern_const_int
  integer(C_INT), parameter, public :: fortranconst_int_global = 4_C_INT
  real(C_FLOAT), parameter, public :: fortranconst_float_global = 1.23_C_FLOAT
  integer(C_INT), protected, public, &
@@ -944,6 +943,7 @@ will be translated to
    bind(C, name="_wrap_constant_float_global") :: constant_float_global
  integer(C_INT), protected, public, &
    bind(C, name="_wrap_MACRO_INT") :: MACRO_INT
+ public :: get_extern_const_int
  integer(C_INT), parameter, public :: MACRO_HEX_INT = 4_C_INT
 ```
 The symbols marked as `protected, public, bind(C)` have their values defined in
@@ -2014,7 +2014,7 @@ module thinvec
  end type
  interface
  subroutine swigc_foo(farg1) &
-   bind(C, name="swigc_foo")
+   bind(C, name="_wrap_foo")
    use, intrinsic :: ISO_C_BINDING
    import :: SwigArrayWrapper    ! Will not compile without this line
    type(SwigArrayWrapper) :: farg1

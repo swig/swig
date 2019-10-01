@@ -2806,157 +2806,105 @@ int FORTRAN::enumDeclaration(Node *n) {
 }
 
 /* -------------------------------------------------------------------------
- * \brief Process constants
+ * \brief Process *compile-time* constants
  *
- * These include callbacks declared with
-
-     %constant int (*ADD)(int,int) = add;
-
- * as well as values such as
-
-     %constant int wrapped_const = (1 << 3) | 1;
-     #define MY_INT 0x123
-
- * that need to be interpreted by the C compiler.
+ * These include:
+ * \code
+    %callback("%s_cb") add;
+    %constant int wrapped_const = (1 << 3) | 1;
+    #define MY_INT 0x123
+ * \endcode
+ * and enum values.
  *
- * They're also called inside enumvalueDeclaration (either directly or through
- * memberconstantHandler)
+ * Some constant types can't be generated as native Fortran, so those are
+ * treated as global const variables.
  */
 int FORTRAN::constantWrapper(Node *n) {
-  // Save some properties that get temporarily changed
-  Swig_save("constantWrapper", n, "wrap:name", "lname", "fortran:name", NULL);
-
-  String *value = NULL;
-
-  if (String *override_value = Getattr(n, "feature:fortran:constvalue")) {
-    value = override_value;
-    Setattr(n, "feature:fortran:const", "1");
-  } else {
-    value = Getattr(n, "rawval");
-  }
-
-  String *nodetype = nodeType(n);
-  if (Strcmp(nodetype, "enumitem") == 0) {
-    // Set type from the parent enumeration
-    // XXX why??
-    String *t = Getattr(parentNode(n), "enumtype");
-    Setattr(n, "type", t);
-
-    if (!value) {
-      if (d_enum_public) {
-        // We are wrapping a native Fortran bind(C) enum. Get the enum value if
-        // present; if not, Fortran enums take the same value as C enums.
-        value = Getattr(n, "enumvalue");
-      } else {
-        value = Getattr(n, "value");
-      }
-    }
-  } else if (!value) {
-    value = Getattr(n, "value");
-  }
-
+  // Get or create a unique fortran identifier
   String *fsymname = this->get_fsymname(n);
   if (!fsymname) {
-    return SWIG_NOWRAP;
-  }
-
-  // Get Fortran data type
-  String *bindc_typestr = attach_typemap("bindc", n, WARN_NONE);
-  if (!bindc_typestr) {
-    Swig_warning(WARN_TYPEMAP_UNDEF, Getfile(n), Getline(n),
-                 "The 'bindc' typemap for '%s' is not defined, so the corresponding constant cannot be generated\n",
-                 SwigType_str(Getattr(n, "type"), Getattr(n, "sym:name")));
-    return SWIG_NOWRAP;
-  }
-
-  // Check for incompatible array dimensions
-  if (fix_fortran_dims(n, "bindc", bindc_typestr) != SWIG_OK) {
-    return SWIG_NOWRAP;
+    return SWIG_ERROR;
   }
 
   if (d_enum_public) {
-    ASSERT_OR_PRINT_NODE(Len(fsymname) > 0, n);
-    // We're wrapping a native enumerator: add to the list of enums being
-    // built
+    // We're wrapping a native enumerator: add to the list of enums being built
     Append(d_enum_public, fsymname);
     // Print the enum to the list
     Printv(f_fdecl, "  enumerator :: ", fsymname, NULL);
-    if (value) {
+    if (String *value = Getattr(n, "enumvalue")) {
       Printv(f_fdecl, " = ", value, NULL);
     }
     Printv(f_fdecl, "\n", NULL);
-  } else if (GetFlagAttr(n, "feature:fortran:const")) {
+    return SWIG_OK;
+  }
+
+  // Get Fortran data type
+  Swig_typemap_lookup("bindc", n, Getattr(n, "name"), NULL);
+  String *bindc_typestr = Getattr(n, "tmap:bindc:constant");
+  bool is_native_constant = GetFlagAttr(n, "feature:fortran:const");
+
+  // Check for missing typemap
+  if (!bindc_typestr) {
+    if (is_native_constant) {
+      Swig_error(input_file,
+                 line_number,
+                 "The variable '%s' is marked as %%fortranconst but its type has no 'bindc:constant' typemap.\n",
+                 Getattr(n, "sym:name"));
+      return SWIG_ERROR;
+    }
+    // If not explicitly specified as native, just wrap as an immutable global variable
+    SetFlag(n, "feature:immutable");
+    return this->globalvariableHandler(n);
+  }
+
+  // Get value of the constant
+  String *value = Getattr(n, "feature:fortran:constvalue");
+  if (value) {
+    is_native_constant = true;
+  }
+  if (!value) {
+    // String types will have the quoted, escaped value set as rawval
+    value = Getattr(n, "rawval");
+  }
+  if (!value) {
+    value = Getattr(n, "value");
+  }
+
+  if (is_native_constant) {
+    if (!value) {
+      Swig_error(input_file,
+                 line_number,
+                 "The variable '%s' is marked as %%fortranconst but it has no value.\n",
+                 Getattr(n, "sym:name"));
+      return SWIG_ERROR;
+    }
     if (String *suffix = Getattr(n, "tmap:bindc:kind")) {
-      // Add specifier such as _C_DOUBLE to the value. Otherwise, for example,
+      // Add specifier such as _C_DOUBLE to the native value. Otherwise, for example,
       // 1.000000001 will be truncated to 1 because fortran will think it's a float.
       Printv(value, "_", suffix, NULL);
     }
+    // Wrap as a compile-time module parameter
     Printv(f_fdecl, " ", bindc_typestr, ", parameter, public :: ", fsymname, " = ", value, "\n", NULL);
   } else {
-    /*! Add to public fortran code:
-     *
-     *   IMTYPE, protected, bind(C, name="swig_SYMNAME") :: FSYMNAME
-     *
-     * Add to wrapper code:
-     *
-     *   {const_CTYPE = SwigType_add_qualifier(CTYPE, "const")}
-     *   {SwigType_str(const_CTYPE, swig_SYMNAME) = VALUE;}
-     */
+    // Wrap as an external link-time variable (since it could be a complex expression or something that only C can evaluate)
     String *symname = Getattr(n, "sym:name");
-
-    // Get type of C value
-    Swig_typemap_lookup("ctype", n, symname, NULL);
-    SwigType *c_return_type = parse_typemap("ctype", n, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
-    if (!c_return_type)
-      return SWIG_NOWRAP;
-
-    // Add a const to the return type
-    SwigType_add_qualifier(c_return_type, "const");
-    
     String *wname = NULL;
-    if (value) {
-      // SYMNAME -> swig_SYMNAME
+    if (!CPlusPlus || Swig_storage_isexternc(n)) {
+      // Bind directly to the symbol
+      wname = Copy(symname);
+    } else {
+      // Create extern-C value with name "swig_SYMNAME"
       wname = Swig_name_wrapper(symname);
       Setattr(n, "wrap:name", wname);
 
-      // Set the value to replace $1 with in the 'out' typemap
-      Setattr(n, "lname", value);
-
-      // Get conversion to C type from native c++ type, *AFTER* changing
-      // lname and wrap:name
-      String *cwrap_code = attach_typemap("out", n, WARN_TYPEMAP_OUT_UNDEF);
-      if (!cwrap_code)
-        return SWIG_NOWRAP;
-
-      if (Strstr(cwrap_code, "\n")) {
-        // There's a newline in the output code, indicating it's
-        // nontrivial.
-        Swig_warning(WARN_LANG_NATIVE_UNIMPL, input_file, line_number,
-                     "The 'out' typemap for '%s' is too complex to wrap as a %%constant variable. This will be implemented later\n",
-                     symname);
-
-        return SWIG_NOWRAP;
-      }
-
       // Write SWIG code
-      String *declstring = SwigType_str(c_return_type, wname);
-      Replaceall(cwrap_code, "$result", declstring);
-      Printv(f_wrapper, "SWIGEXPORT SWIGEXTERN ", cwrap_code, "\n\n", NULL);
+      SwigType *type = Copy(Getattr(n, "type"));
+      SwigType_add_qualifier(type, "const");
+      String *declstring = SwigType_str(type, wname);
+      Printv(f_wrapper, "SWIGEXPORT SWIGEXTERN ", declstring, " = ", value, ";\n\n", NULL);
       Delete(declstring);
-    } else if (CPlusPlus && !Swig_storage_isexternc(n)) {
-      ASSERT_OR_PRINT_NODE(Swig_storage_isexternc(n), n);
-      Swig_error(input_file,
-                 line_number,
-                 "The C++ const global '%s' is not defined with external "
-                 "C linkage (extern \"C\"), but it is marked with %%fortranbindc.\n",
-                 Getattr(n, "sym:name"));
-    } else {
-      // Bind directly to the symbol
-      wname = Copy(symname);
+      Delete(type);
     }
-
-    // Replace fortranclass if needed
-    this->replace_fclassname(n, c_return_type, bindc_typestr);
 
     // Add bound variable to interfaces
     Printv(f_fdecl, " ", bindc_typestr, ", protected, public, &\n",
@@ -2966,8 +2914,6 @@ int FORTRAN::constantWrapper(Node *n) {
            NULL);
     Delete(wname);
   }
-
-  Swig_restore(n);
   return SWIG_OK;
 }
 
