@@ -13,8 +13,8 @@ cvar.var_bool = createref_bool(True)
 if value_bool(cvar.var_bool) != True:
     raise RuntimeError
 
-cvar.var_char = createref_char('w')
-if value_char(cvar.var_char) != 'w':
+cvar.var_char = createref_char("w")
+if value_char(cvar.var_char) != "w":
     raise RuntimeError
 
 cvar.var_unsigned_char = createref_unsigned_char(10)

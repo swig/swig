@@ -1,6 +1,6 @@
 package main
 
-import . "./overload_template_fast"
+import . "swigtests/overload_template_fast"
 
 func main() {
 	_ = Foo()

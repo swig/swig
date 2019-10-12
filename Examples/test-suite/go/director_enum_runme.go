@@ -1,6 +1,6 @@
 package main
 
-import "./director_enum"
+import "swigtests/director_enum"
 
 type MyFoo struct{} // From director_enum.Foo
 func (p *MyFoo) Say_hi(val director_enum.EnumDirectorHello) director_enum.EnumDirectorHello {

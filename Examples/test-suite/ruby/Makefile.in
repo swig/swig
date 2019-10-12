@@ -20,7 +20,7 @@ CPP_TEST_CASES = \
 	li_std_queue \
 	li_std_set \
 	li_std_stack \
-	li_std_wstring \
+	li_std_wstring_inherit \
 	primitive_types \
 	ruby_alias_method \
 	ruby_keywords \

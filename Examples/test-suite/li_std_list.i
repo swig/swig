@@ -30,8 +30,8 @@ double average(std::list<int> v) {
 
 
 void halve_in_place(std::list<double>& v) {
-    std::transform(v.begin(),v.end(),v.begin(),
-                   std::bind2nd(std::divides<double>(),2.0));
+    for (std::list<double>::iterator it = v.begin(); it != v.end(); ++it)
+        *it /= 2.0;
 }
 
 struct Struct {

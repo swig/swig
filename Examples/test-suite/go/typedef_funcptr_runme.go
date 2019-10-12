@@ -1,6 +1,6 @@
 package main
 
-import . "./typedef_funcptr"
+import . "swigtests/typedef_funcptr"
 
 func main() {
 	a := 100

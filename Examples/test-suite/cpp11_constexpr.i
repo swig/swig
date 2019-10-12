@@ -4,6 +4,15 @@
 %module cpp11_constexpr
 
 
+%{
+#if defined(__clang__)
+#pragma clang diagnostic push
+// Suppress: 'constexpr' non-static member function will not be implicitly 'const' in C++14; add 'const' to avoid a change in behavior
+// For MMM() and NNN()
+#pragma clang diagnostic ignored "-Wconstexpr-not-const"
+#endif
+%}
+
 %inline %{
 #ifdef SWIG
 #define SWIGTESTCONST const

@@ -29,6 +29,8 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
 %proxycode %{
   public $javaclassname($typemap(jstype, CTYPE)[] initialElements) {
     this();
+    reserve(initialElements.length);
+
     for ($typemap(jstype, CTYPE) element : initialElements) {
       add(element);
     }
@@ -181,4 +183,3 @@ namespace std {
 %define specialize_std_vector(T)
 #warning "specialize_std_vector - specialization for type T no longer needed"
 %enddef
-

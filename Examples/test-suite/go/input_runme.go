@@ -1,6 +1,6 @@
 package main
 
-import . "./input"
+import . "swigtests/input"
 
 func main() {
 	f := NewFoo()

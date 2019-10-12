@@ -1,6 +1,6 @@
 package main
 
-import . "./reference_global_vars"
+import . "swigtests/reference_global_vars"
 
 func main() {
 	// const class reference variable

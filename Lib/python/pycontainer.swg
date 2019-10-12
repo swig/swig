@@ -69,8 +69,7 @@ namespace swig {
     static bool back_reference(PyObject* child, PyObject* owner) {
       SwigPyObject* swigThis = SWIG_Python_GetSwigThis(child);
       if (swigThis && (swigThis->own & SWIG_POINTER_OWN) != SWIG_POINTER_OWN) {
-        PyObject_SetAttr(child, container_owner_attribute(), owner);
-        return true;
+        return PyObject_SetAttr(child, container_owner_attribute(), owner) != -1;
       }
       return false;
     }
@@ -672,19 +671,13 @@ namespace swig
       return const_reference(_seq, n);
     }
 
-    bool check(bool set_err = true) const
+    bool check() const
     {
       Py_ssize_t s = size();
       for (Py_ssize_t i = 0; i < s; ++i) {
 	swig::SwigVar_PyObject item = PySequence_GetItem(_seq, i);
-	if (!swig::check<value_type>(item)) {
-	  if (set_err) {
-	    char msg[1024];
-	    sprintf(msg, "in sequence element %d", (int)i);
-	    SWIG_Error(SWIG_RuntimeError, msg);
-	  }
+	if (!swig::check<value_type>(item))
 	  return false;
-	}
       }
       return true;
     }

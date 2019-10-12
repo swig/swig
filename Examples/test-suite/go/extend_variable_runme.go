@@ -1,6 +1,6 @@
 package main
 
-import . "./extend_variable"
+import . "swigtests/extend_variable"
 
 func main() {
 	if FooBar != 42 {

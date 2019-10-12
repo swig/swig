@@ -1,6 +1,6 @@
 package main
 
-import "./preproc"
+import "swigtests/preproc"
 
 func main() {
 	if preproc.GetEndif() != 1 {

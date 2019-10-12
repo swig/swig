@@ -1,6 +1,6 @@
 package main
 
-import "./wrapmacro"
+import "swigtests/wrapmacro"
 
 func main() {
 	a := 2

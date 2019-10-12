@@ -11,7 +11,7 @@ def run_except_on_windows(commandline, env=None):
 print(" Starting subtest " + os.path.basename(__file__))
 
 # Package brave found under one path
-sys.path.insert(0, 'path1')
+sys.path.insert(0, "path1")
 
 from brave import robin
 print("  Finished from brave import robin")

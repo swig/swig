@@ -1779,7 +1779,7 @@ declaration    : swig_directive { $$ = $1; }
 		  } else {
 		      Swig_error(cparse_file, cparse_line, "Syntax error in input(1).\n");
 		  }
-		  exit(1);
+		  SWIG_exit(EXIT_FAILURE);
                }
 /* Out of class constructor/destructor declarations */
                | c_constructor_decl { 
@@ -3359,7 +3359,7 @@ c_decl_tail    : SEMI {
 		   } else {
 		       Swig_error(cparse_file, cparse_line, "Syntax error - possibly a missing semicolon.\n");
 		   }
-		   exit(1);
+		   SWIG_exit(EXIT_FAILURE);
                }
               ;
 
@@ -3649,7 +3649,7 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		    }
 		    if (err) {
 		      Swig_error(cparse_file,cparse_line,"Syntax error in input(2).\n");
-		      exit(1);
+		      SWIG_exit(EXIT_FAILURE);
 		    }
                 }
                 ;
@@ -4632,7 +4632,7 @@ cpp_members  : cpp_member cpp_members {
 	       int start_line = cparse_line;
 	       skip_decl();
 	       Swig_error(cparse_file,start_line,"Syntax error in input(3).\n");
-	       exit(1);
+	       SWIG_exit(EXIT_FAILURE);
 	       } cpp_members { 
 		 $$ = $3;
    	     }
@@ -6375,6 +6375,12 @@ optional_ignored_defines
 		;
 
 /* Enum lists - any #define macros (constant directives) within the enum list are ignored. Trailing commas accepted. */
+
+/*
+   Note that "_last" attribute is not supposed to be set on the last enum element, as might be expected from its name, but on the _first_ one, and _only_ on it,
+   so we propagate it back to the first item while parsing and reset it on all the subsequent ones.
+ */
+
 enumlist	: enumlist_item {
 		  Setattr($1,"_last",$1);
 		  $$ = $1;
@@ -6389,6 +6395,8 @@ enumlist	: enumlist_item {
 		    set_nextSibling($1, $3);
 		    Setattr($1,"_last",Getattr($3,"_last"));
 		    Setattr($3,"_last",NULL);
+		  } else {
+		    Setattr($1,"_last",$1);
 		  }
 		  $$ = $1;
 		}
@@ -6397,6 +6405,8 @@ enumlist	: enumlist_item {
 		    set_nextSibling($1, $4);
 		    Setattr($1,"_last",Getattr($4,"_last"));
 		    Setattr($4,"_last",NULL);
+		  } else {
+		    Setattr($1,"_last",$1);
 		  }
 		  set_comment($1, $3);
 		  $$ = $1;

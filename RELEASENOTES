@@ -7,6 +7,16 @@ Release Notes
 Detailed release notes are available with the release and are also
 published on the SWIG web site at http://swig.org/release.html.
 
+SWIG-4.0.1 summary:
+- SWIG now cleans up on error by removing all generated files.
+- Add Python 3.8 support.
+- Python Sphinx compatibility added for Doxygen comments.
+- Some minor regressions introduced in 4.0.0 were fixed.
+- Fix some C++17 compatibility problems in Python and Ruby generated
+  code.
+- Minor improvements/fixes for C#, Java, Javascript, Lua, MzScheme,
+  Ocaml, Octave and Python.
+
 SWIG-4.0.0 summary:
 - Support for Doxygen documentation comments which are parsed and
   converted into JavaDoc or PyDoc comments.

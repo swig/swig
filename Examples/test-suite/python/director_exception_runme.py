@@ -75,7 +75,7 @@ b = launder(a)
 try:
     b.pong()
 except MyException, e:
-    if e.msg == 'foobar':
+    if e.msg == "foobar":
         ok = 1
     else:
         print "Unexpected error message: %s" % str(e)

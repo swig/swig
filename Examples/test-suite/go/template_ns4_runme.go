@@ -1,6 +1,6 @@
 package main
 
-import . "./template_ns4"
+import . "swigtests/template_ns4"
 
 func main() {
 	d := Make_Class_DD()

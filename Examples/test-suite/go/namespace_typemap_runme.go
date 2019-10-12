@@ -1,6 +1,6 @@
 package main
 
-import . "./namespace_typemap"
+import . "swigtests/namespace_typemap"
 
 func main() {
 	if Stest1("hello") != "hello" {

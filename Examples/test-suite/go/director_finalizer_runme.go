@@ -1,6 +1,6 @@
 package main
 
-import . "./director_finalizer"
+import . "swigtests/director_finalizer"
 
 type MyFoo struct{} // From Foo
 func DeleteMyFoo(p Foo) {

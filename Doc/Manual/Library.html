@@ -1581,8 +1581,8 @@ std::vector&lt;double&gt; half(const std::vector&lt;double&gt;&amp; v) {
 }
 
 void halve_in_place(std::vector&lt;double&gt;&amp; v) {
-  std::transform(v.begin(), v.end(), v.begin(),
-                 std::bind2nd(std::divides&lt;double&gt;(), 2.0));
+  for (std::vector&lt;double&gt;::iterator it = v.begin(); it != v.end(); ++it)
+    *it /= 2.0;
 }
 </pre>
 </div>

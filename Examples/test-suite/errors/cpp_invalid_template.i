@@ -1,4 +1,4 @@
-%module cpp_invalid_scope
+%module xxx
 
 %template(abc) SSS::AAA<int>;
 

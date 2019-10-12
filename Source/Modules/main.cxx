@@ -23,6 +23,7 @@
 #include "swigwarn.h"
 #include "cparse.h"
 #include <ctype.h>
+#include <errno.h>
 #include <limits.h>		// for INT_MAX
 
 // Global variables
@@ -970,11 +971,6 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
     SWIG_exit(EXIT_SUCCESS);	// Exit if we're in help mode
   }
 
-  if (!tlm) {
-    Printf(stderr, "No target language specified\n");
-    return 1;
-  }
-
   // Check all of the options to make sure we're cool.
   // Don't check for an input file if -external-runtime is passed
   Swig_check_options(external_runtime ? 0 : 1);
@@ -1070,7 +1066,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 	  char *cfile = Char(input_file);
 	  if (cfile && cfile[0] == '-') {
 	    Printf(stderr, "Unable to find option or file '%s', ", input_file);
-	    Printf(stderr, "use 'swig -help' for more information.\n");
+	    Printf(stderr, "Use 'swig -help' for more information.\n");
 	  } else {
 	    Printf(stderr, "Unable to find file '%s'.\n", input_file);
 	  }
@@ -1079,6 +1075,13 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 	  Swig_warning(WARN_DEPRECATED_INPUT_FILE, "SWIG", 1, "Use of the include path to find the input file is deprecated and will not work with ccache. Please include the path when specifying the input file.\n"); // so that behaviour is like c/c++ compilers
 	}
       }
+
+      if (!tlm) {
+	Printf(stderr, "No target language specified.\n");
+	Printf(stderr, "Use 'swig -help' for more information.\n");
+	SWIG_exit(EXIT_FAILURE);
+      }
+
       if (!no_cpp) {
 	fclose(df);
 	Printf(fs, "%%include <swig.swg>\n");
@@ -1374,13 +1377,15 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
   while (freeze) {
   }
 
-  if ((werror) && (Swig_warn_count())) {
-    return Swig_warn_count();
-  }
-
   delete lang;
 
-  return Swig_error_count();
+  int error_count = werror ? Swig_warn_count() : 0;
+  error_count += Swig_error_count();
+
+  if (error_count != 0)
+    SWIG_exit(error_count);
+
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1392,5 +1397,20 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 void SWIG_exit(int exit_code) {
   while (freeze) {
   }
+
+  if (exit_code > 0) {
+    CloseAllOpenFiles();
+
+    /* Remove all generated files */
+    if (all_output_files) {
+      for (int i = 0; i < Len(all_output_files); i++) {
+	String *filename = Getitem(all_output_files, i);
+	int removed = remove(Char(filename));
+	if (removed == -1)
+	  fprintf(stderr, "On exit, could not delete file %s: %s\n", Char(filename), strerror(errno));
+      }
+    }
+  }
+
   exit(exit_code);
 }

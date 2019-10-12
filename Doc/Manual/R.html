@@ -28,7 +28,9 @@
 R is a GPL'ed open source statistical and plotting environment.
 Information about R can be found at <a
 href="http://www.r-project.org/">www.r-project.org</a>.
+</p>
 
+<p>
 The R bindings are under active development.  They have been used to
 compile and run an R interface to QuantLib running on Mandriva Linux
 with gcc. The R bindings also work on Microsoft Windows using Visual C++.
@@ -113,11 +115,10 @@ cacheMetaData(1)
 </pre>
 </div>
 
+<p>
 The cacheMetaData(1) will cause R to refresh its object tables.
 Without it, inheritance of wrapped objects may fail.
-
-<p>
-These two files can be loaded in any order
+These two files can be loaded in any order.
 </p>
 
 <p>
@@ -140,18 +141,22 @@ Error in .Call("R_swig_fact", s_arg1, as.logical(.copy), PACKAGE = "example") :
 <H2><a name="R_nn4">33.3 Precompiling large R files</a></H2>
 
 
+<p>
 In cases where the R file is large, one make save a lot of loading
 time by precompiling the R wrapper.  This can be done by creating the
 file makeRData.R which contains the following
+</p>
 
-<pre>
+<div class="code"><pre>
 source('BigFile.R')
 save(list=ls(all=TRUE), file="BigFile.RData", compress=TRUE)
 q(save="no")
-</pre>
+</pre></div>
 
+<p>
 This will generate a compiled R file called BigFile.RData that
 will save a large amount of loading time.
+</p>
 
 
 
@@ -192,21 +197,27 @@ of the proxy class baggage you see in other languages.
 R doesn't have a native enumeration type. Enumerations are represented
 as character strings in R, with calls to R functions that convert back
 and forth between integers.
+</p>
 
+<p>
 The details of enumeration names and contents are stored in hidden R
 environments, which are named according the the enumeration name - for
 example, an enumeration colour:
+</p>
+
 <div class="code"><pre>
 enum colour { red=-1, blue, green = 10 };
 </pre></div>
 
+<p>
 will be initialized by the following call in R:
+</p>
+
 <div class="code"><pre>
 defineEnumeration("_colour",
  .values=c("red" = .Call('R_swig_colour_red_get',FALSE, PACKAGE='enum_thorough'),
 "blue" = .Call('R_swig_colour_blue_get',FALSE, PACKAGE='enum_thorough'),
 "green" = .Call('R_swig_colour_green_get',FALSE, PACKAGE='enum_thorough')))
-
 </pre></div>
 
 <p>
@@ -216,7 +227,9 @@ values for enumerations to be used. Calls to the C/C++ code require
 the compiled library to be loaded, so a  <tt>delayedAssign</tt> is employed
 within <tt>defineEnumeration</tt> in order to allow the code to be easily used in R
 packages.
+</p>
 
+<p>
 The user typically does not need to access the enumeration lookup
 functions or know the name of the enumeration type used by
 R. Attributes containing the type information are attached by swig to
@@ -224,14 +237,17 @@ functions requiring enumeration arguments or returning enumeration
 values, and those attributes are used to identify and access the
 appropriate environments and thus translate between characters
 and integers.
+</p>
 
+<p>
 The relevant functions, for debugging purposes, are <tt>enumToInteger</tt> and
 <tt>enumFromInteger</tt>.
+</p>
 
+<p>
 Anonymous enumerations are ignored by the binding generation process,
 leaving no way of accessing the value of anonymous enumerations from R
 code.
-
 </p>
 
 </body>

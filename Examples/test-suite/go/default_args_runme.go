@@ -1,6 +1,6 @@
 package main
 
-import "./default_args"
+import "swigtests/default_args"
 
 func main() {
 	if default_args.StaticsStaticmethod() != 60 {

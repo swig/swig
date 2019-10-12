@@ -1,6 +1,6 @@
 package main
 
-import "./template_default_arg"
+import "swigtests/template_default_arg"
 
 func main() {
 	helloInt := template_default_arg.NewHello_int()

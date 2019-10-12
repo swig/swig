@@ -395,19 +395,13 @@ namespace swig
       return const_reference(_seq, n);
     }
 
-    bool check(bool set_err = false) const
+    bool check() const
     {
       int s = (int) size();
       for (int i = 0; i < s; ++i) {
 	VALUE item = rb_ary_entry(_seq, i );
-	if (!swig::check<value_type>(item)) {
-	  if (set_err) {
-	    char msg[1024];
-	    sprintf(msg, "in sequence element %d", i);
-	    SWIG_Error(SWIG_RuntimeError, msg);
-	  }
+	if (!swig::check<value_type>(item))
 	  return false;
-	}
       }
       return true;
     }
