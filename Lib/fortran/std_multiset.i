@@ -5,6 +5,8 @@
  * keys.
  * ------------------------------------------------------------------------- */
 
+%include "std_common.i"
+
 %{
 #include <set>
 %}
@@ -28,6 +30,9 @@ public:
 
 public:
   set();
+
+  // - Use native Fortran integers in proxy code
+  %apply int FORTRAN_INT {size_type};
 
   bool empty() const;
   size_type size() const;

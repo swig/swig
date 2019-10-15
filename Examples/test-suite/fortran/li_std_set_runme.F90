@@ -16,7 +16,7 @@ subroutine test_multiset_int
   use li_std_set, only : multiset_int => set_int
   implicit none
   type(multiset_int) :: s
-  integer(c_size_t) :: num_erased
+  integer :: num_erased
 
   s = multiset_int()
   ASSERT(s%empty())
