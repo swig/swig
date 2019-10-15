@@ -850,10 +850,14 @@ subroutine mysub(x, y, swig_result)
   integer(C_INT), intent(out), optional :: swig_result
 end subroutine
 ```
-
 The resulting subroutine can be overloaded with other C++ void-returning
 functions.
 
+A common use case of `%fortransubroutine` is for C functions that return error
+codes or other noncritical information such as the number of items deleted. C++
+users should know that a `function` in Fortran is a stronger version of a
+`[[nodiscard]]`-marked function (since C++17): ignoring the return value is an
+error.
 
 ## Global variables
 

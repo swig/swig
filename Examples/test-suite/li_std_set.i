@@ -1,5 +1,5 @@
 /*
- * a test of set containers. 
+ * a test of set containers.
  * Languages should define swig::LANGUAGE_OBJ to be
  * an entity of their native pointer type which can be
  * included in a STL container.
@@ -26,9 +26,9 @@
 
 
 #if defined(SWIGRUBY)
-%template(LanguageSet) std::set<swig::LANGUAGE_OBJ>; 
+%template(LanguageSet) std::set<swig::LANGUAGE_OBJ>;
 #endif
 
 #if defined(SWIGPYTHON)
-%template(pyset) std::set<swig::SwigPtr_PyObject>; 
+%template(pyset) std::set<swig::SwigPtr_PyObject>;
 #endif
