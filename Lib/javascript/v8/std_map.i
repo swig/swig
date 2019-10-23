@@ -6,6 +6,8 @@
 
 %include <std_common.i>
 
+%include <std_vector.i>
+
 // ------------------------------------------------------------------------
 // std::map
 // ------------------------------------------------------------------------
@@ -14,6 +16,7 @@
 #include <map>
 #include <algorithm>
 #include <stdexcept>
+#include <vector>
 %}
 
 // exported class
@@ -60,6 +63,13 @@ namespace std {
             bool has_key(const K& key) {
                 std::map< K, T, C >::iterator i = self->find(key);
                 return i != self->end();
+            }
+            std::vector<K> keys() {
+                std::vector<K> keys;
+                for (std::map<  K, T, C >::iterator it = self->begin(); it != self->end(); ++it) {
+                    keys.push_back(it->first);
+                }
+                return keys;
             }
         }
     };

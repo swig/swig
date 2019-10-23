@@ -34,3 +34,14 @@ if (simap.has_key("7"))
 simap.clear();
 if (simap.size() != 0)
     throw "Clear test failed";
+
+// Custom compare function
+var slmap = new li_std_map.StringLengthNumberMap();
+li_std_map.populate(slmap);
+
+var keys = slmap.keys();
+var keys_array = [];
+for (var i = 0; i < keys.size(); i++)
+    keys_array.push(keys.get(i));
+if (keys_array.join(" ") != "a aa zzz xxxx aaaaa")
+    throw "Keys are wrong or in wrong order: " + keys_array;

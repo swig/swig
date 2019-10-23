@@ -131,6 +131,11 @@ struct LengthCompare {
 %}
 
 // A map sorted by string lengths
+
+// Wrap the vector returned by JavaScript keys() method.
+#ifdef SWIGJAVASCRIPT
+%template(StringVector) std::vector< std::string >;
+#endif
 %template(StringLengthNumberMap) std::map< std::string, int, LengthCompare >;
 
 %inline %{
