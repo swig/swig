@@ -66,6 +66,7 @@ namespace std {
             }
             std::vector<K> keys() {
                 std::vector<K> keys;
+                keys.reserve(self->size());
                 for (std::map<  K, T, C >::iterator it = self->begin(); it != self->end(); ++it) {
                     keys.push_back(it->first);
                 }
