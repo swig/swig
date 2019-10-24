@@ -2762,6 +2762,8 @@ int FORTRAN::enumDeclaration(Node *n) {
     } else {
       Setattr(c, "fortran:name", child_fsymname);
     }
+    // Force enum to have integer type
+    Setattr(c, "type", "int");
     // Add enum name to the symtab
     Setattr(fsymtab, lower_fsymname, n);
     Delete(lower_fsymname);
