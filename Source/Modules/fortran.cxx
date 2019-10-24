@@ -553,6 +553,7 @@ public:
   virtual int staticmemberfunctionHandler(Node *n);
   virtual int staticmembervariableHandler(Node *n);
   virtual int enumDeclaration(Node *n);
+  virtual int callbackfunctionHandler(Node *n);
   virtual int constantWrapper(Node *n);
 
   virtual String *makeParameterName(Node *n, Parm *p, int arg_num, bool is_setter = false) const;
@@ -565,7 +566,7 @@ private:
   Wrapper *imfuncWrapper(Node *n, bool bindc);
   Wrapper *proxyfuncWrapper(Node *n);
 
-  int callbackHandler(Node *n);
+  int fortrancallbackHandler(Node *n);
   int bindcfunctionHandler(Node *n);
   int bindcvarWrapper(Node *n);
 
@@ -2463,7 +2464,7 @@ int FORTRAN::globalfunctionHandler(Node *n) {
     // Flag is set to a non-"0" value
     Node *cbnode = Getattr(n, "fortran:callback");
     if (!cbnode) {
-      this->callbackHandler(n);
+      this->fortrancallbackHandler(n);
       cbnode = Getattr(n, "fortran:callback");
     }
     if (cbnode && Cmp(Getattr(cbnode, "sym:name"), Getattr(n, "sym:name")) == 0) {
@@ -2498,7 +2499,7 @@ int FORTRAN::globalfunctionHandler(Node *n) {
  * might want to have two separate meaningful callback names and we don't want
  * to mysteriously prevent one from being wrapped.
  */
-int FORTRAN::callbackHandler(Node *n) {
+int FORTRAN::fortrancallbackHandler(Node *n) {
   // Create a shallow copy of the node with params
   Node *cbnode = copyNode(n);
   Setattr(cbnode, "parms", Getattr(n, "parms"));
@@ -2817,6 +2818,21 @@ int FORTRAN::enumDeclaration(Node *n) {
   return result;
 }
 
+
+/* -------------------------------------------------------------------------
+ * \brief Process callbacks, which generate 'getter' wrapper functions
+ *
+ * To avoid breaking the later 'functionWrapper', we create a copy of the node.
+ */
+int FORTRAN::callbackfunctionHandler(Node *n) {
+  // Create a shallow copy of the node with params
+  Node *cbnode = copyNode(n);
+  Setattr(cbnode, "parms", Getattr(n, "parms"));
+  Language::callbackfunctionHandler(cbnode);
+  Setattr(n, "feature:callback:node", cbnode);
+  return SWIG_OK;
+}
+
 /* -------------------------------------------------------------------------
  * \brief Process *compile-time* constants
  *
@@ -3043,7 +3059,7 @@ String *FORTRAN::get_proxyname(Node *parent, SwigType *basetype) {
   if (is_enum) {
     set_nodeType(n, "enumforward");
   } else if (is_funptr) {
-    // Create a 'callback node' like callbackHandler
+    // Create a 'callback node' like fortrancallbackHandler
     set_nodeType(n, "cdecl");
     Setattr(n, "kind", "function");
     Setattr(n, "storage", "externc");
