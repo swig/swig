@@ -44,6 +44,14 @@ bool is_node_constructor(Node *n) {
   return (Cmp(Getattr(n, "nodeType"), "constructor") == 0 || Getattr(n, "handled_as_constructor"));
 }
 
+/*!
+ * \brief Whether a node is a compile-time constant that isn't acutally defined in client code.
+ */
+bool has_constant_storage(Node *n) {
+  String *s = Getattr(n, "storage");
+  return s && (Cmp(s, "%constant") == 0);
+}
+
 /* -------------------------------------------------------------------------
  * \brief Print a comma-joined line of items to the given output.
  */
@@ -2927,7 +2935,7 @@ int FORTRAN::constantWrapper(Node *n) {
     // Wrap as an external link-time variable (since it could be a complex expression or something that only C can evaluate)
     String *symname = Getattr(n, "sym:name");
     String *wname = NULL;
-    if (!CPlusPlus || Swig_storage_isexternc(n)) {
+    if ((!CPlusPlus && !has_constant_storage(n)) || Swig_storage_isexternc(n)) {
       // Bind directly to the symbol
       wname = Copy(symname);
     } else {
