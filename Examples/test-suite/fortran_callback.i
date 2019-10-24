@@ -74,3 +74,23 @@ binary_op_cb get_a_callback(const char* name) {
 
 %}
 
+%warnfilter(SWIGWARN_TYPEMAP_UNDEF,SWIGWARN_LANG_NATIVE_UNIMPL) execute;
+
+// Opaque callback
+%{
+#ifdef __cplusplus
+extern "C" {
+#endif
+typedef struct { int i; } Foo;
+#ifdef __cplusplus
+}
+#endif
+%}
+
+%inline %{
+typedef int (*take_foo)(Foo);
+
+void execute(take_foo fptr, Foo f) {
+  (*fptr)(f);
+}
+%}

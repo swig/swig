@@ -1477,6 +1477,9 @@ Wrapper *FORTRAN::imfuncWrapper(Node *n, bool bindc) {
 
     // Add dummy argument to wrapper body
     String *imtype = get_typemap(tmtype, "in", p, warning_flag);
+    if (!imtype) {
+      return NULL;
+    }
     if (fix_fortran_dims(p, tmtype, imtype) != SWIG_OK) {
       DelWrapper(imfunc);
       return NULL;
@@ -3076,7 +3079,17 @@ String *FORTRAN::get_proxyname(Node *parent, SwigType *basetype) {
       // Generate automatic abstract function declaration
       int result = this->bindcfunctionHandler(n);
       if (!result) {
-        return NULL;
+        // Failed to generate automatic type
+        Printv(f_fabstract,
+               " subroutine ", replacementname, "() bind(C)\n", 
+               " end subroutine\n",
+               NULL);
+        
+        Swig_warning(WARN_LANG_NATIVE_UNIMPL, input_file, line_number,
+                     "Procedure pointer '%s' is incompatible with Fortran\n",
+                     replacementname);
+
+        emit_fragment("SwigClassWrapper_f");
       }
       // Add callback node to the list of successfully generated types
       Setattr(d_callbacks, basetype, n);
@@ -3087,7 +3100,6 @@ String *FORTRAN::get_proxyname(Node *parent, SwigType *basetype) {
              "  type(SwigClassWrapper), public :: swigdata\n",
              " end type\n",
              NULL);
-
     }
   }
   Setattr(d_emitted_mangled, replacementname, n);
