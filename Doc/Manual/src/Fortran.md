@@ -656,6 +656,86 @@ end enum
 integer, parameter, public :: Cls_Foo = kind(Cls_Foo_Bar)
 ```
 
+## Constants
+
+A constant declaration can be wrapped as a Fortran *named constant*
+(a compile-time value defined by having the `parameter` attribute) or as
+an externally linked data object. Constants can be declared with:
+- the SWIG `%constant` directive,
+- simple `#define` macros,
+- enum values, and
+- `constexpr` global variables.
+The last item is a SWIG-Fortran extension. For an explanation of this behavior,
+see the "Compatibility note" under "A brief word about const" in the SWIG
+documentation. Note that this list does *not* include global `const` data,
+which is wrapped in the same way as mutable global data (though without the
+setter functions).
+
+ - Native enum values (enum is marked `%fortranconst` or was determined
+   automatically to be native compatible) will become enumerators.
+ - Constants marked with `%fortranconst` will be rendered as *named constants*.
+ - Non-native enum values become C-bound external constants.
+ - Constants marked with `%fortranbindc` also become C-bound external
+   constants.
+ - All other types will generate `getter` functions that return native Fortran
+   types.  
+
+Some compile-time constants can have definitions that are valid C but invalid
+Fortran.  A macro whose definition cannot be parsed by Fortran can have its
+value *replaced* with a simpler expression using the `%fortranconstvalue`
+directive.
+
+The following example shows the behavior of the various rules above:
+```swig
+%fortranconst fortranconst_int_global;
+%fortranconst fortranconst_float_global;
+%constant int fortranconst_int_global = 4;
+%constant float fortranconst_float_global = 1.23f;
+
+%fortranbindc constant_int_global;
+%constant int constant_int_global = 4;
+%constant float constant_float_global = 1.23f;
+
+%fortranconstvalue(4) MACRO_HEX_INT;
+
+%inline %{
+#define MACRO_INT 4
+const int extern_const_int = 4;
+#define MACRO_HEX_INT 0x4
+%}
+```
+will be translated to
+```fortran
+ integer(C_INT), parameter, public :: fortranconst_int_global = 4_C_INT
+ real(C_FLOAT), parameter, public :: fortranconst_float_global = 1.23_C_FLOAT
+ integer(C_INT), protected, public, &
+   bind(C, name="_wrap_constant_int_global") :: constant_int_global
+ real(C_FLOAT), protected, public, &
+   bind(C, name="_wrap_constant_float_global") :: constant_float_global
+ integer(C_INT), protected, public, &
+   bind(C, name="_wrap_MACRO_INT") :: MACRO_INT
+ public :: get_extern_const_int
+ integer(C_INT), parameter, public :: MACRO_HEX_INT = 4_C_INT
+```
+The symbols marked as `protected, public, bind(C)` have their values defined in
+the C wrapper code, where *any* valid expression can be parsed. The
+`get_extern_const_int` wrapper function is a SWIG-generated getter that returns
+the external value.
+
+String constants without special characters (a backslash or anything that must
+be escaped with a backslash) with a can generally be represented
+exactly in Fortran:
+```swig
+%fortranconst MSG_STRING;
+%inline %{
+#define MSG_STRING "This is a string"
+%}
+```
+will generate
+```fortran
+ character(kind=C_CHAR, len=*), parameter, public :: MSG_STRING = "This is a string"
+```
+
 ## Function pointers
 
 It is possible to pass function pointers between C and Fortran using SWIG. When
@@ -906,69 +986,6 @@ will generate a publicly accessible C-bound variable:
 ```fortran
 integer(C_INT), public, bind(C, name="global_counter_c") :: global_counter_c
 ```
-
-### Constants
-
-A constant declaration can be wrapped as a Fortran *named constant*
-(a compile-time value defined by having the `parameter` attribute), as
-an externally linked data object, or as a wrapper function that returns the
-value as a native Fortran datatype. Constants can be declared with:
-- The SWIG `%constant` directive,
-- Simple `#define` macros, and
-- `constexpr` global variables.
-The last item is a SWIG-Fortran extension. For an explanation of this behavior,
-see the "Compatibility note" under "A brief word about const" in the SWIG
-documentation.
-
-All global `const` variables will be treated as regular global variables: they
-will be wrapped with getter functions. SWIG-declared `%constant`s whose
-data types cannot be [directly represented](#direct-c-binding) will be wrapped
-with getter functions. Constants marked with the `%fortranconst` directive are
-wrapped as Fortran module-level named constants. If declaring a C-linkage
-`%constant`, it is directly exposed to Fortran using `bind(C)`. Otherwise, a
-const global wrapper variable will be created in the C wrapper code and `bound`
-in the Fortran module.  
-
-Some compile-time constants can have definitions that are valid C but invalid
-Fortran.  A macro whose definition cannot be parsed by Fortran can have its
-value *replaced* with a simpler expression using the `%fortranconstvalue`
-directive.
-
-The following example shows the behavior of the various rules above:
-```swig
-%fortranconst fortranconst_int_global;
-%fortranconst fortranconst_float_global;
-%constant int fortranconst_int_global = 4;
-%constant float fortranconst_float_global = 1.23f;
-
-%constant int constant_int_global = 4;
-%constant float constant_float_global = 1.23f;
-
-%fortranconstvalue(4) MACRO_HEX_INT;
-
-%inline %{
-#define MACRO_INT 4
-const int extern_const_int = 4;
-#define MACRO_HEX_INT 0x4
-%}
-```
-will be translated to
-```fortran
- integer(C_INT), parameter, public :: fortranconst_int_global = 4_C_INT
- real(C_FLOAT), parameter, public :: fortranconst_float_global = 1.23_C_FLOAT
- integer(C_INT), protected, public, &
-   bind(C, name="_wrap_constant_int_global") :: constant_int_global
- real(C_FLOAT), protected, public, &
-   bind(C, name="_wrap_constant_float_global") :: constant_float_global
- integer(C_INT), protected, public, &
-   bind(C, name="_wrap_MACRO_INT") :: MACRO_INT
- public :: get_extern_const_int
- integer(C_INT), parameter, public :: MACRO_HEX_INT = 4_C_INT
-```
-The symbols marked as `protected, public, bind(C)` have their values defined in
-the C wrapper code, where *any* valid expression can be parsed. The
-`get_extern_const_int` wrapper function is a SWIG-generated getter that returns
-the external value.
 
 ## Classes
 

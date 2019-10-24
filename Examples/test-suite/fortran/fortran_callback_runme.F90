@@ -61,6 +61,10 @@ subroutine test_callback
   bin_op_ptr => get_a_callback("mul")
   ASSERT(associated(bin_op_ptr))
   ASSERT(bin_op_ptr(2, 5) == 10)
+  ! Get from the %callback-generated wrapper
+  bin_op_ptr => get_mul_cb()
+  ASSERT(associated(bin_op_ptr))
+  ASSERT(bin_op_ptr(2, 5) == 10)
 
   bin_op_ptr => get_a_callback("add")
   ASSERT(associated(bin_op_ptr))

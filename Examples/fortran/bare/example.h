@@ -52,21 +52,28 @@ void print_cmyk(CmykEnum color);
 /* -------------------------------------------------------------------------
  * Global variables
  * ------------------------------------------------------------------------- */
+#if __cplusplus >= 201103
+#define CONSTEXPR constexpr
+#elif defined(SWIG)
+#define CONSTEXPR %constant
+#else
+#define CONSTEXPR const
+#endif
 
 //! An integer that is only known at link time
 extern const int linked_const_int;
 
 //! A simple integer
-const int simple_int = 4;
+CONSTEXPR int simple_int = 4;
 
 // A more complicated integer
-const int weird_int = (0x1337 | 0x10000);
+CONSTEXPR int weird_int = (0x1337 | 0x10000);
 
 //! A global constant wrapped as a native parameter
-const double approx_pi = 3.14160000001;
+CONSTEXPR double approx_pi = 3.14160000001;
 
 //! A global constant wrapped as a protected external variable
-const double approx_twopi = 2 * approx_pi;
+CONSTEXPR double approx_twopi = 2 * approx_pi;
 
 //! A global variable
 namespace foo {

@@ -52,6 +52,14 @@ bool has_constant_storage(Node *n) {
   return s && (Cmp(s, "%constant") == 0);
 }
 
+/*!
+ * \brief Whether a node is a compile-time constant as defined by C++.
+ */
+bool has_constexpr_storage(Node *n) {
+  String *s = Getattr(n, "storage");
+  return s && (Cmp(s, "constexpr") == 0);
+}
+
 /* -------------------------------------------------------------------------
  * \brief Print a comma-joined line of items to the given output.
  */
@@ -2450,7 +2458,7 @@ int FORTRAN::membervariableHandler(Node *n) {
 int FORTRAN::globalvariableHandler(Node *n) {
   if (GetFlag(n, "feature:fortran:bindc")) {
     return this->bindcvarWrapper(n);
-  } else if (GetFlagAttr(n, "feature:fortran:const") && Strcmp(Getattr(n, "storage"), "constexpr") == 0) {
+  } else if (GetFlagAttr(n, "feature:fortran:const") && has_constexpr_storage(n)) {
     // constexpr global variable
     return this->constantWrapper(n);
   }
@@ -2851,20 +2859,45 @@ int FORTRAN::callbackfunctionHandler(Node *n) {
     %callback("%s_cb") add;
     %constant int wrapped_const = (1 << 3) | 1;
     #define MY_INT 0x123
+    constexpr int myint = 4;
  * \endcode
  * and enum values.
  *
- * Some constant types can't be generated as native Fortran, so those are
- * treated as global const variables.
+ * - Native enum values will become enumerators
+ * - Constants marked with `%fortranconst` will be rendered as *named constants*
+ * - Non-native enum values become C-bound external constants
+ * - Constants marked with `%fortranbindc` also become C-bound external constants
+ * - All other types will generate `getter` functions that return native fortran types.
  */
 int FORTRAN::constantWrapper(Node *n) {
-  if (d_enum_public) {
-    // We're wrapping a native enumerator.
-    String *fsymname = this->get_fsymname(n);
-    if (!fsymname) {
-      return SWIG_ERROR;
-    }
+  enum {
+    NATIVE_ENUM,
+    NATIVE_CONSTANT,
+    EXTERN_ENUM,
+    EXTERN_CONSTANT
+  } constant_type;
 
+  if (d_enum_public) {
+    constant_type = NATIVE_ENUM;
+  } else if (GetFlag(n, "feature:fortran:const") || Getattr(n, "feature:fortran:constvalue")) {
+    constant_type = NATIVE_CONSTANT;
+  } else if (Cmp(nodeType(n), "enumitem") == 0) {
+    constant_type = EXTERN_ENUM;
+  } else if (GetFlag(n, "feature:fortran:bindc") && has_constant_storage(n)) {
+    constant_type = EXTERN_CONSTANT;
+  } else {
+    // Not a natively representable value: wrap as immutable global variable
+    SetFlag(n, "feature:immutable");
+    return this->globalvariableHandler(n);
+  }
+
+  // Get symbolic name
+  String *fsymname = this->get_fsymname(n);
+  if (!fsymname) {
+    return SWIG_ERROR;
+  }
+
+  if (constant_type == NATIVE_ENUM) {
     // Add to list of public enums
     Append(d_enum_public, fsymname);
     Printv(f_fdecl, "  enumerator :: ", fsymname, NULL);
@@ -2875,30 +2908,18 @@ int FORTRAN::constantWrapper(Node *n) {
     return SWIG_OK;
   }
 
-  // Get Fortran data type
-  Swig_typemap_lookup("bindc", n, Getattr(n, "name"), NULL);
-  bool is_native_constant = GetFlagAttr(n, "feature:fortran:const");
-  String *bindc_typestr = is_native_constant ? Getattr(n, "tmap:bindc:fortranconst") : Getattr(n, "tmap:bindc");
-
-  // Check for missing typemap
+  // Attach bindc typemaps
+  String *bindc_typestr = attach_typemap("bindc", n, WARN_NONE);
   if (!bindc_typestr) {
-    if (is_native_constant) {
-      Swig_error(input_file,
-                 line_number,
-                 "The variable '%s' is marked as %%fortranconst but its type has no 'bindc:fortranconst' typemap.\n",
-                 Getattr(n, "sym:name"));
-      return SWIG_ERROR;
-    }
-    // If not explicitly specified as native, just wrap as an immutable global variable
-    SetFlag(n, "feature:immutable");
-    return this->globalvariableHandler(n);
+    Swig_error(input_file,
+               line_number,
+               "The constant '%s' has no 'bindc' typemap.\n",
+               Getattr(n, "sym:name"));
+    return SWIG_ERROR;
   }
 
   // Get value of the constant
-  String *value = Getattr(n, "feature:fortran:constvalue");
-  if (value) {
-    is_native_constant = true;
-  }
+  String *value = (constant_type == NATIVE_CONSTANT ? Getattr(n, "feature:fortran:constvalue") : NULL);
   if (!value) {
     // String types will have the quoted, escaped value set as rawval
     value = Getattr(n, "rawval");
@@ -2906,23 +2927,18 @@ int FORTRAN::constantWrapper(Node *n) {
   if (!value) {
     value = Getattr(n, "value");
   }
-
-  // Get or create a unique fortran identifier *after* we've confirmed it's
-  // going to be wrapped as a constant. Otherwise "getter" functions sent to
-  // globalvariableHandler above will be renamed so that they lose the `get_`
-  // prefix.
-  String *fsymname = this->get_fsymname(n);
-  if (!fsymname) {
+  if (!value) {
+    Swig_error(input_file,
+               line_number,
+               "The constant '%s' has no value.\n",
+               Getattr(n, "sym:name"));
     return SWIG_ERROR;
   }
 
-  if (is_native_constant) {
-    if (!value) {
-      Swig_error(input_file,
-                 line_number,
-                 "The variable '%s' is marked as %%fortranconst but it has no value.\n",
-                 Getattr(n, "sym:name"));
-      return SWIG_ERROR;
+  if (constant_type == NATIVE_CONSTANT) {
+    if (String *special_bindc_typestr = Getattr(n, "tmap:bindc:fortranconst")) {
+      // Override type
+      bindc_typestr = special_bindc_typestr;
     }
     if (String *suffix = Getattr(n, "tmap:bindc:kind")) {
       // Add specifier such as _C_DOUBLE to the native value. Otherwise, for example,
@@ -2931,35 +2947,33 @@ int FORTRAN::constantWrapper(Node *n) {
     }
     // Wrap as a compile-time module parameter
     Printv(f_fdecl, " ", bindc_typestr, ", parameter, public :: ", fsymname, " = ", value, "\n", NULL);
-  } else {
-    // Wrap as an external link-time variable (since it could be a complex expression or something that only C can evaluate)
-    String *symname = Getattr(n, "sym:name");
-    String *wname = NULL;
-    if ((!CPlusPlus && !has_constant_storage(n)) || Swig_storage_isexternc(n)) {
-      // Bind directly to the symbol
-      wname = Copy(symname);
-    } else {
-      // Create extern-C value with name "swig_SYMNAME"
-      wname = Swig_name_wrapper(symname);
-      Setattr(n, "wrap:name", wname);
-
-      // Write SWIG code
-      SwigType *type = Copy(Getattr(n, "type"));
-      SwigType_add_qualifier(type, "const");
-      String *declstring = SwigType_str(type, wname);
-      Printv(f_wrapper, "SWIGEXPORT SWIGEXTERN ", declstring, " = ", value, ";\n\n", NULL);
-      Delete(declstring);
-      Delete(type);
-    }
-
-    // Add bound variable to interfaces
-    Printv(f_fdecl, " ", bindc_typestr, ", protected, public, &\n",
-           "   bind(C, name=\"", wname, "\") :: ",
-           (Len(wname) > 60 ? "&\n    " : ""),
-           fsymname, "\n",
-           NULL);
-    Delete(wname);
+    return SWIG_OK;
   }
+
+  String *wname = Swig_name_wrapper(Getattr(n, "sym:name"));
+  Setattr(n, "wrap:name", wname);
+
+  if (constant_type == EXTERN_ENUM) {
+    // Generate an int enum (whether a C++ enum class value, an enum that looks like `value = 'a'`, etc.)
+    Printv(f_wrapper, "SWIGEXPORT SWIGEXTERN const int ", wname, " = (int)(", value, ");\n\n", NULL);
+  } else {
+    // Write SWIG code
+    SwigType *type = Copy(Getattr(n, "type"));
+    SwigType_add_qualifier(type, "const");
+    String *declstring = SwigType_str(type, wname);
+    Printv(f_wrapper, "SWIGEXPORT SWIGEXTERN ", declstring, " = ", value, ";\n\n", NULL);
+    Delete(declstring);
+    Delete(type);
+  }
+
+  // Add bound variable to interfaces
+  Printv(f_fdecl, " ", bindc_typestr, ", protected, public, &\n",
+         "   bind(C, name=\"", wname, "\") :: ",
+         (Len(wname) > 60 ? "&\n    " : ""),
+         fsymname, "\n",
+         NULL);
+  Delete(wname);
+
   return SWIG_OK;
 }
 
