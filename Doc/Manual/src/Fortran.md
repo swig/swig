@@ -658,58 +658,68 @@ integer, parameter, public :: Cls_Foo = kind(Cls_Foo_Bar)
 
 ## Function pointers
 
-It is possible to pass function pointers both from C to Fortran and from
-Fortran to C using SWIG. Currently, function pointer variables
-simply generate opaque `type(C_FUNPTR)` objects, and it is up to the user to
-convert to a Fortran procedure pointer using `c_f_procpointer` and an
-appropriate interface.
+It is possible to pass function pointers between C and Fortran using SWIG. When
+wrapping, SWIG will automatically generate `abstract interface` functions and
+subroutines for function pointers that have ISO C-compatible signatures. It
+then uses those interfaces in the wrapper functions as procedure pointers.
 
-Consider the simple C SWIG input:
+These abstract interfaces get default names that are not very pretty, so a
+`%fortrancallback` feature has been introduced to explicitly generate abstract
+interfaces with a meaningful name and dummy argument names
+
+The following C++ SWIG input:
+```swig
+%fortrancallback("%s") binary_op;
+extern "C" {
+int binary_op(int left, int right);
+}
+```
+generates the following interface:
+```
+abstract interface
+ function binary_op(left, right) bind(C) &
+   result(fresult)
+  use, intrinsic :: ISO_C_BINDING
+  integer(C_INT), intent(in), value :: left
+  integer(C_INT), intent(in), value :: right
+  integer(C_INT) :: fresult
+ end function
+end interface 
+```
+
+This allows C++ functions
 ```swig
 %inline %{
-typedef int (*BinaryOp)(int, int);
-
-int do_op(int a, int b, BinaryOp op) {
-  return (*op)(a, b);
-}
-
-int add(int a, int b) {
-  return a + b;
-}
+typedef int (*binary_op_cb)(int, int);
+int call_binary(binary_op_cb fptr, int left, int right);
 %}
-
-%constant BinaryOp ADD_FP = add;
+```
+to generate Fortran functions that take a procedure as an argument:
+```
+function call_binary(fptr, left, right) &
+  result(swig_result)
+ use, intrinsic :: ISO_C_BINDING
+ integer(C_INT) :: swig_result
+ procedure(binary_op) :: fptr
+ integer(C_INT), intent(in) :: left
+ integer(C_INT), intent(in) :: right
+ ! <snip>
+end function
 ```
 
-This generates a *wrapped* function `add`, which converts integer types and
-passes them through SWIG wrapper functions as pointers, and a *function
-pointer* `add_fp`. The wrapped function pointer is defined as a constant in the
-C wrapper code:
-```c
-SWIGEXPORT SWIGEXTERN BinaryOp const _wrap_ADD_FP = add;
-```
-and made accessible through the Fortran wrapper module as
+Note that Fortran ISO C rules require the given procedure to be defined in
+Fortran using the `bind(C)` qualifier, as in this module-level code:
 ```fortran
- type(C_FUNPTR), protected, public, &
-   bind(C, name="_wrap_ADD_FP") :: ADD_FP
+function myexp(left, right) bind(C) &
+    result(fresult)
+  use, intrinsic :: ISO_C_BINDING
+  integer(C_INT), intent(in), value :: left
+  integer(C_INT), intent(in), value :: right
+  integer(C_INT) :: fresult
+
+  fresult = left ** right
+end function
 ```
-
-The Fortran code in the "funptr" example demonstrates:
-- How to pass the C function pointer to another wrapped function `do_op` that
-  takes a function pointer,
-- How to translate a C function pointer into a Fortran function pointer that
-  can be called directly (using `c_f_procpointer` and an `abstract interface`),
-  and
-- How to translate a Fortran function into a C function pointer, which can then
-  be passed to a SWIG-wrapped function.
-
-Currently function pointers only work with
-user-created C-linkage functions, but we plan to extend
-function callbacks so that data can be translated through wrapper functions.
-
-Another planned extension for function pointers is to automatically generate
-the necessary *abstract interface* code required by Fortran to interpret the
-function pointer. This will allow type safety for wrapped function pointers.
 
 ## Handles and other oddities
 
@@ -2083,3 +2093,5 @@ void should_be_wrapped(UnknownType*);
 
 A number of known limitations to the SWIG Fortran module are tracked [on
 GitHub](https://github.com/sethrj/swig/issues/59).
+
+<!-- vim: set tw=79: -->
