@@ -94,3 +94,18 @@ void execute(take_foo fptr, Foo f) {
   (*fptr)(f);
 }
 %}
+
+#ifdef __cplusplus
+
+%warnfilter(SWIGWARN_TYPEMAP_UNDEF,SWIGWARN_LANG_NATIVE_UNIMPL) execute_bar;
+
+%inline %{
+class Bar {};
+
+typedef int (*take_bar)(Bar);
+
+void execute_bar(take_bar fptr, Bar b) {
+  (*fptr)(b);
+}
+%}
+#endif
