@@ -1948,6 +1948,14 @@ To bind *all* functions as native C interfaces, use
 This is often useful when coupled with the `%fortranconst` directive (see
 the [enumerations](#enumerations) section).
 
+### Function pointers and callbacks
+
+The `%callback` feature is redundant and ignored for `%fortranbindc` types: a
+valid function pointer to the C function can be obtained simply with the
+`c_funptr` intrinsic function. Any `%fortrancallback` directives in the code
+will still generate abstract interfaces, but they will simply supplement the
+direct-bound C code 
+
 ### Generating C-bound Fortran types from C structs
 
 In certain circumstances, C++ structs can be wrapped natively as Fortran
