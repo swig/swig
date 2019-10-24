@@ -1,19 +1,22 @@
 %module fortran_global_const
 
+// Wrap as 'parameters'
 %fortranconst fortranconst_int_global;
 %fortranconst fortranconst_float_global;
 %constant int fortranconst_int_global = 4;
 %constant float fortranconst_float_global = 1.23f;
 
-// Neither of these is wrapped as native constants (disabled by default)
+// Wrap as externally-linked constants
+%fortranbindc constant_int_global;
+%fortranbindc constant_float_global;
 %constant int constant_int_global = 4;
 %constant float constant_float_global = 1.23f;
 
-%nofortranconst nofortranconst_int_global;
-%nofortranconst nofortranconst_float_global;
+// Default wrapping: getters
 %constant int nofortranconst_int_global = 4;
 %constant float nofortranconst_float_global = 1.23f;
 
+%fortranbindc MACRO_INT;
 %fortranconstvalue(4) MACRO_HEX_INT;
 
 %inline %{

@@ -29,10 +29,10 @@ subroutine test_constants
   ASSERT(all(compiletime_floats == 1.23))
 
   allocate(runtime_ints(3), source= &
-    [nofortranconst_int_global, MACRO_INT, &
+    [get_nofortranconst_int_global(), MACRO_INT, &
     get_extern_const_int()])
   allocate(runtime_floats(2), source= &
-    [constant_float_global, nofortranconst_float_global])
+    [constant_float_global, get_nofortranconst_float_global()])
 
   ASSERT(all(runtime_ints == 4))
   ASSERT(all(runtime_floats == 1.23))

@@ -5,7 +5,7 @@
 program imports_runme
   use multi_import_a, only : ZZZ
   use multi_import_b, only : YYY
-  use multi_import_d, only : myval
+  use multi_import_d, only : get_myval
   use ISO_C_BINDING
   implicit none
   type(ZZZ) :: z
@@ -21,6 +21,6 @@ program imports_runme
   ASSERT(y%testx() == 0)
   call y%release()
 
-  ASSERT(myval == 1234)
+  ASSERT(get_myval() == 1234)
 
 end program
