@@ -2877,8 +2877,8 @@ int FORTRAN::constantWrapper(Node *n) {
 
   // Get Fortran data type
   Swig_typemap_lookup("bindc", n, Getattr(n, "name"), NULL);
-  String *bindc_typestr = Getattr(n, "tmap:bindc:fortranconst");
   bool is_native_constant = GetFlagAttr(n, "feature:fortran:const");
+  String *bindc_typestr = is_native_constant ? Getattr(n, "tmap:bindc:fortranconst") : Getattr(n, "tmap:bindc");
 
   // Check for missing typemap
   if (!bindc_typestr) {
