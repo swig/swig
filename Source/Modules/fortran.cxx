@@ -2471,12 +2471,10 @@ int FORTRAN::globalfunctionHandler(Node *n) {
 
   if (GetFlag(n, "feature:fortran:bindc")) {
     if (GetFlagAttr(n, "feature:callback")) {
-      Swig_error(input_file,
+      Swig_warning(WARN_FORTRAN_IGNORE_CALLBACK, input_file,
                  line_number,
-                 "Using %%fortranbindc and %%callback on the same function "
-                 "is not supported.\n",
+                 "Ignoring %%callback for %%fortranbindc function '%s'\n",
                  Getattr(n, "sym:name"));
-      return SWIG_ERROR;
     }
     // The wrapped function name *is* the C function name
     Setattr(n, "wrap:name", Getattr(n, "name"));
