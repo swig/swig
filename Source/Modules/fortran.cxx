@@ -2832,16 +2832,15 @@ int FORTRAN::enumDeclaration(Node *n) {
  * treated as global const variables.
  */
 int FORTRAN::constantWrapper(Node *n) {
-  // Get or create a unique fortran identifier
-  String *fsymname = this->get_fsymname(n);
-  if (!fsymname) {
-    return SWIG_ERROR;
-  }
-
   if (d_enum_public) {
-    // We're wrapping a native enumerator: add to the list of enums being built
+    // We're wrapping a native enumerator.
+    String *fsymname = this->get_fsymname(n);
+    if (!fsymname) {
+      return SWIG_ERROR;
+    }
+
+    // Add to list of public enums
     Append(d_enum_public, fsymname);
-    // Print the enum to the list
     Printv(f_fdecl, "  enumerator :: ", fsymname, NULL);
     if (String *value = Getattr(n, "enumvalue")) {
       Printv(f_fdecl, " = ", value, NULL);
@@ -2880,6 +2879,15 @@ int FORTRAN::constantWrapper(Node *n) {
   }
   if (!value) {
     value = Getattr(n, "value");
+  }
+
+  // Get or create a unique fortran identifier *after* we've confirmed it's
+  // going to be wrapped as a constant. Otherwise "getter" functions sent to
+  // globalvariableHandler above will be renamed so that they lose the `get_`
+  // prefix.
+  String *fsymname = this->get_fsymname(n);
+  if (!fsymname) {
+    return SWIG_ERROR;
   }
 
   if (is_native_constant) {
