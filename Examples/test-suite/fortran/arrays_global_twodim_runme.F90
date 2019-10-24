@@ -18,17 +18,19 @@ subroutine test_int_array
   integer(C_INT) :: cnt = 10
   integer(C_INT) :: x, y
   integer(C_INT), dimension(:,:), allocatable :: expected, actual
+  integer(C_INT), dimension(2) :: dims
 
+  dims = [get_ARRAY_LEN_Y(), get_ARRAY_LEN_X()]
   constintarray2d = get_array_const_i()
   intarray2d = get_array_i()
 
   call set_array_i(constintarray2d)
 
-  allocate(expected(ARRAY_LEN_Y, ARRAY_LEN_X))
-  allocate(actual(ARRAY_LEN_Y, ARRAY_LEN_X))
+  allocate(expected(dims(1), dims(2)))
+  allocate(actual(dims(1), dims(2)))
 
-  do x = 1, ARRAY_LEN_X
-    do y = 1, ARRAY_LEN_Y
+  do x = 1, dims(2)
+    do y = 1, dims(1)
       expected(y, x) = cnt
       cnt = cnt + 1
       actual(y, x) = get_2d_array(intarray2d, x - 1, y - 1)

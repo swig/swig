@@ -10,6 +10,7 @@ program fortran_bindc_runme
   call test_twod_unknown_int
   call test_fundamental
   call test_opaque_struct
+  call test_strings
 
 contains
 
@@ -102,6 +103,29 @@ subroutine test_opaque_struct
 
   s = make_intstruct(1234_c_int)
   ASSERT(1234_c_int == get_instruct_i(s))
+
+end subroutine
+
+subroutine test_strings
+  use fortran_bindc
+  use ISO_C_BINDING
+  implicit none
+  character(kind=c_char, len=*), parameter :: mystring = "I'm a string!"
+#if __GNUC__ >= 9
+  type(C_PTR) :: cptr
+  character(kind=c_char, len=:), pointer :: cstrptr
+#endif
+
+  ASSERT(strlen(mystring // C_NULL_CHAR) == len(mystring))
+
+#if __GNUC__ >= 9
+  ! Note: this seems to be allowed in GCC 9 but not before. I'm not sure that it's the correct behavior.
+  cptr = getstr(1)
+  call c_f_pointer(cptr, cstrptr)
+  ASSERT(associated(cstrptr))
+  ASSERT(strlen(cstrptr) == 3)
+  ASSERT(cstrptr(1:3) == "one")
+#endif
 
 end subroutine
 

@@ -97,7 +97,7 @@ presents some equivalent concepts and names in the two languages:
 | arithmetic type                  | intrinsic type              |
 | derived type                     | extended type               |
 | function parameters              | dummy arguments             |
-| `constexpr` variable             | `parameter` statement       |
+| `constexpr` variable             | named constant              |
 
 ## Identifiers
 
@@ -178,7 +178,7 @@ module forexample
 private
 interface
  function swigc_fact(farg1) &
-   bind(C, name="swigc_fact") &
+   bind(C, name="_wrap_fact") &
    result(fresult)
   use, intrinsic :: ISO_C_BINDING
   integer(C_INT) :: fresult
@@ -557,8 +557,10 @@ constants that are guaranteed to be compatible with C enumerators. Unlike C++,
 all enumerators in Fortran are anonymous.
 
 To associate a C enumeration name with the Fortran
-generated wrappers, SWIG generates an integer parameter with the C enumeration
-name. The enumeration generated from the C code
+generated wrappers, SWIG generates a named constant with the C enumeration
+name whose value is the size of the enum that can then be used analogously to
+`C_INT`, which specifies the size of the native C integer type. 
+The enumeration generated from the C code
 ```c++
 enum MyEnum {
   RED = 0,
@@ -575,7 +577,7 @@ looks like:
   enumerator :: BLUE
   enumerator :: BLACK = -1
  end enum
- integer, parameter :: MyEnum = kind(RED)
+ integer, parameter, public :: MyEnum = kind(RED)
 ```
  
 These enumerators are treated as standard C integers in the C wrapper code
@@ -594,9 +596,9 @@ enum MyWeirdEnum {
 becomes
 ```fortran
 integer(C_INT), protected, public, &
-   bind(C, name="swigc_MyWeirdEnum_FOO") :: FOO
+   bind(C, name="_wrap_MyWeirdEnum_FOO") :: FOO
 integer(C_INT), protected, public, &
-   bind(C, name="swigc_MyWeirdEnum_BAR") :: BAR
+   bind(C, name="_wrap_MyWeirdEnum_BAR") :: BAR
 integer, parameter :: MyWeirdEnum = C_INT
 ```
 
@@ -605,10 +607,6 @@ enable treatment of a C++ `enum` as a Fortran enumerator, and the
 `%nofortranconst` directive forces the values to be wrapped as externally-bound
 C integers. See the section on [global constants](#global-constants) for more
 on this directive.
-
-If an enumeration type has not been defined but is used in a function
-signature, a placeholder `SwigUnknownEnum` enumerator will be generated and
-used instead.
 
 Class-scoped enumerations are prefixed with the class name:
 ```c++
@@ -638,7 +636,7 @@ becomes
 enum, bind(c)
  enumerator :: Foo_Bar = 0
 end enum
-integer, parameter :: Foo = kind(Foo_Bar)
+integer, parameter, public :: Foo = kind(Foo_Bar)
 ```
 
 and
@@ -655,63 +653,153 @@ becomes
 enum, bind(c)
  enumerator :: Cls_Foo_Bar = 0
 end enum
-integer, parameter :: Cls_Foo = kind(Cls_Foo_Bar)
+integer, parameter, public :: Cls_Foo = kind(Cls_Foo_Bar)
+```
+
+## Constants
+
+A constant declaration can be wrapped as a Fortran *named constant*
+(a compile-time value defined by having the `parameter` attribute) or as
+an externally linked data object. Constants can be declared with:
+- the SWIG `%constant` directive,
+- simple `#define` macros,
+- enum values, and
+- `constexpr` global variables.
+The last item is a SWIG-Fortran extension. For an explanation of this behavior,
+see the "Compatibility note" under "A brief word about const" in the SWIG
+documentation. Note that this list does *not* include global `const` data,
+which is wrapped in the same way as mutable global data (though without the
+setter functions).
+
+ - Native enum values (enum is marked `%fortranconst` or was determined
+   automatically to be native compatible) will become enumerators.
+ - Constants marked with `%fortranconst` will be rendered as *named constants*.
+ - Non-native enum values become C-bound external constants.
+ - Constants marked with `%fortranbindc` also become C-bound external
+   constants.
+ - All other types will generate `getter` functions that return native Fortran
+   types.  
+
+Some compile-time constants can have definitions that are valid C but invalid
+Fortran.  A macro whose definition cannot be parsed by Fortran can have its
+value *replaced* with a simpler expression using the `%fortranconstvalue`
+directive.
+
+The following example shows the behavior of the various rules above:
+```swig
+%fortranconst fortranconst_int_global;
+%fortranconst fortranconst_float_global;
+%constant int fortranconst_int_global = 4;
+%constant float fortranconst_float_global = 1.23f;
+
+%fortranbindc constant_int_global;
+%constant int constant_int_global = 4;
+%constant float constant_float_global = 1.23f;
+
+%fortranconstvalue(4) MACRO_HEX_INT;
+
+%inline %{
+#define MACRO_INT 4
+const int extern_const_int = 4;
+#define MACRO_HEX_INT 0x4
+%}
+```
+will be translated to
+```fortran
+ integer(C_INT), parameter, public :: fortranconst_int_global = 4_C_INT
+ real(C_FLOAT), parameter, public :: fortranconst_float_global = 1.23_C_FLOAT
+ integer(C_INT), protected, public, &
+   bind(C, name="_wrap_constant_int_global") :: constant_int_global
+ real(C_FLOAT), protected, public, &
+   bind(C, name="_wrap_constant_float_global") :: constant_float_global
+ integer(C_INT), protected, public, &
+   bind(C, name="_wrap_MACRO_INT") :: MACRO_INT
+ public :: get_extern_const_int
+ integer(C_INT), parameter, public :: MACRO_HEX_INT = 4_C_INT
+```
+The symbols marked as `protected, public, bind(C)` have their values defined in
+the C wrapper code, where *any* valid expression can be parsed. The
+`get_extern_const_int` wrapper function is a SWIG-generated getter that returns
+the external value.
+
+String constants without special characters (a backslash or anything that must
+be escaped with a backslash) with a can generally be represented
+exactly in Fortran:
+```swig
+%fortranconst MSG_STRING;
+%inline %{
+#define MSG_STRING "This is a string"
+%}
+```
+will generate
+```fortran
+ character(kind=C_CHAR, len=*), parameter, public :: MSG_STRING = "This is a string"
 ```
 
 ## Function pointers
 
-It is possible to pass function pointers both from C to Fortran and from
-Fortran to C using SWIG. Currently, function pointer variables
-simply generate opaque `type(C_FUNPTR)` objects, and it is up to the user to
-convert to a Fortran procedure pointer using `c_f_procpointer` and an
-appropriate interface.
+It is possible to pass function pointers between C and Fortran using SWIG. When
+wrapping, SWIG will automatically generate `abstract interface` functions and
+subroutines for function pointers that have ISO C-compatible signatures. It
+then uses those interfaces in the wrapper functions as procedure pointers.
 
-Consider the simple C SWIG input:
+These abstract interfaces get default names that are not very pretty, so a
+`%fortrancallback` feature has been introduced to explicitly generate abstract
+interfaces with a meaningful name and dummy argument names
+
+The following C++ SWIG input:
+```swig
+%fortrancallback("%s") binary_op;
+extern "C" {
+int binary_op(int left, int right);
+}
+```
+generates the following interface:
+```
+abstract interface
+ function binary_op(left, right) bind(C) &
+   result(fresult)
+  use, intrinsic :: ISO_C_BINDING
+  integer(C_INT), intent(in), value :: left
+  integer(C_INT), intent(in), value :: right
+  integer(C_INT) :: fresult
+ end function
+end interface 
+```
+
+This allows C++ functions
 ```swig
 %inline %{
-typedef int (*BinaryOp)(int, int);
-
-int do_op(int a, int b, BinaryOp op) {
-  return (*op)(a, b);
-}
-
-int add(int a, int b) {
-  return a + b;
-}
+typedef int (*binary_op_cb)(int, int);
+int call_binary(binary_op_cb fptr, int left, int right);
 %}
-
-%constant BinaryOp ADD_FP = add;
+```
+to generate Fortran functions that take a procedure as an argument:
+```
+function call_binary(fptr, left, right) &
+  result(swig_result)
+ use, intrinsic :: ISO_C_BINDING
+ integer(C_INT) :: swig_result
+ procedure(binary_op) :: fptr
+ integer(C_INT), intent(in) :: left
+ integer(C_INT), intent(in) :: right
+ ! <snip>
+end function
 ```
 
-This generates a *wrapped* function `add`, which converts integer types and
-passes them through SWIG wrapper functions as pointers, and a *function
-pointer* `add_fp`. The wrapped function pointer is defined as a constant in the
-C wrapper code:
-```c
-SWIGEXPORT SWIGEXTERN BinaryOp const _wrap_ADD_FP = add;
-```
-and made accessible through the Fortran wrapper module as
+Note that Fortran ISO C rules require the given procedure to be defined in
+Fortran using the `bind(C)` qualifier, as in this module-level code:
 ```fortran
- type(C_FUNPTR), protected, public, &
-   bind(C, name="_wrap_ADD_FP") :: ADD_FP
+function myexp(left, right) bind(C) &
+    result(fresult)
+  use, intrinsic :: ISO_C_BINDING
+  integer(C_INT), intent(in), value :: left
+  integer(C_INT), intent(in), value :: right
+  integer(C_INT) :: fresult
+
+  fresult = left ** right
+end function
 ```
-
-The Fortran code in the "funptr" example demonstrates:
-- How to pass the C function pointer to another wrapped function `do_op` that
-  takes a function pointer,
-- How to translate a C function pointer into a Fortran function pointer that
-  can be called directly (using `c_f_procpointer` and an `abstract interface`),
-  and
-- How to translate a Fortran function into a C function pointer, which can then
-  be passed to a SWIG-wrapped function.
-
-Currently function pointers only work with
-user-created C-linkage functions, but we plan to extend
-function callbacks so that data can be translated through wrapper functions.
-
-Another planned extension for function pointers is to automatically generate
-the necessary *abstract interface* code required by Fortran to interpret the
-function pointer. This will allow type safety for wrapped function pointers.
 
 ## Handles and other oddities
 
@@ -898,58 +986,6 @@ will generate a publicly accessible C-bound variable:
 ```fortran
 integer(C_INT), public, bind(C, name="global_counter_c") :: global_counter_c
 ```
-
-### Global constants
-
-Global constant variables (whether declared in C++ headers with `const` or in
-a SWIG wrapper with `%constant`) of native types can be wrapped as Fortran
-"parameters" (compile-time values), as externally bound constants, or as
-wrapper functions that return the value.
-
-The default behavior is as follows:
-- `%constant` and macro values are wrapped as externally bound values.
-- Global constants are wrapped with getter functions.
-- A constant can be forced to be a Fortran compile-time constant `parameter`
-  using the `%fortranconst` directive.
-- A macro whose definition cannot be parsed by Fortran can have its value
-  *replaced* with a simpler expression using the `%fortranconstvalue`
-  directive.
-
-The following example shows the behavior of the various rules above:
-```swig
-%fortranconst fortranconst_int_global;
-%fortranconst fortranconst_float_global;
-%constant int fortranconst_int_global = 4;
-%constant float fortranconst_float_global = 1.23f;
-
-%constant int constant_int_global = 4;
-%constant float constant_float_global = 1.23f;
-
-%fortranconstvalue(4) MACRO_HEX_INT;
-
-%inline %{
-#define MACRO_INT 4
-const int extern_const_int = 4;
-#define MACRO_HEX_INT 0x4
-%}
-```
-will be translated to
-```fortran
- public :: get_extern_const_int
- integer(C_INT), parameter, public :: fortranconst_int_global = 4_C_INT
- real(C_FLOAT), parameter, public :: fortranconst_float_global = 1.23_C_FLOAT
- integer(C_INT), protected, public, &
-   bind(C, name="_wrap_constant_int_global") :: constant_int_global
- real(C_FLOAT), protected, public, &
-   bind(C, name="_wrap_constant_float_global") :: constant_float_global
- integer(C_INT), protected, public, &
-   bind(C, name="_wrap_MACRO_INT") :: MACRO_INT
- integer(C_INT), parameter, public :: MACRO_HEX_INT = 4_C_INT
-```
-The symbols marked as `protected, public, bind(C)` have their values defined in
-the C wrapper code, where *any* valid expression can be parsed. The
-`get_extern_const_int` wrapper function is a SWIG-generated getter that returns
-the external value.
 
 ## Classes
 
@@ -1941,6 +1977,14 @@ To bind *all* functions as native C interfaces, use
 This is often useful when coupled with the `%fortranconst` directive (see
 the [enumerations](#enumerations) section).
 
+### Function pointers and callbacks
+
+The `%callback` feature is redundant and ignored for `%fortranbindc` types: a
+valid function pointer to the C function can be obtained simply with the
+`c_funptr` intrinsic function. Any `%fortrancallback` directives in the code
+will still generate abstract interfaces, but they will simply supplement the
+direct-bound C code 
+
 ### Generating C-bound Fortran types from C structs
 
 In certain circumstances, C++ structs can be wrapped natively as Fortran
@@ -2014,7 +2058,7 @@ module thinvec
  end type
  interface
  subroutine swigc_foo(farg1) &
-   bind(C, name="swigc_foo")
+   bind(C, name="_wrap_foo")
    use, intrinsic :: ISO_C_BINDING
    import :: SwigArrayWrapper    ! Will not compile without this line
    type(SwigArrayWrapper) :: farg1
@@ -2066,3 +2110,5 @@ void should_be_wrapped(UnknownType*);
 
 A number of known limitations to the SWIG Fortran module are tracked [on
 GitHub](https://github.com/sethrj/swig/issues/59).
+
+<!-- vim: set tw=79: -->

@@ -1,8 +1,8 @@
-! File : fortran_callback_runme.F90
+! File : fortran_callback_c_c_runme.F90
 
 #include "fassert.h"
 
-module fortran_callback_mod
+module fortran_callback_c_mod
   use, intrinsic :: ISO_C_BINDING
   use ISO_FORTRAN_ENV
   implicit none
@@ -37,41 +37,37 @@ end subroutine
   
 end module
 
-program fortran_callback_runme
+program fortran_callback_c_runme
   call test_callback
 contains
 
 subroutine test_callback
-  use fortran_callback
-  use fortran_callback_mod
+  use fortran_callback_c
+  use fortran_callback_c_mod
   integer(C_INT) :: i
-  procedure(call_binary_cb), pointer :: unused => NULL()
   procedure(binary_op), pointer :: bin_op_ptr => NULL()
 
   ! Use callbacks with Fortran module pointers
   bin_op_ptr => myexp
-  i = call_binary(myexp, 2, 3)
+  i = call_binary(c_funloc(myexp), 2, 3)
   ASSERT(i == 8)
-  i = call_things(mywrite)
+  i = call_things(c_funloc(mywrite))
   ASSERT(i == 256)
-  call also_call_things(store_an_int, 999)
+  call also_call_things(c_funloc(store_an_int), 999)
   ASSERT(module_int == 999)
 
+  ! Get a C function pointer to a bind(c) interface function
+  i = call_binary(c_funloc(mul), 3, 7)
+  ASSERT(i == 21)
+
   ! Get a C callback
-  bin_op_ptr => get_a_callback("mul")
-  ASSERT(associated(bin_op_ptr))
-  ASSERT(bin_op_ptr(2, 5) == 10)
-  ! Get from the %callback-generated wrapper
-  bin_op_ptr => get_mul_cb()
+  call c_f_procpointer(get_a_callback("mul"), bin_op_ptr)
   ASSERT(associated(bin_op_ptr))
   ASSERT(bin_op_ptr(2, 5) == 10)
 
-  bin_op_ptr => get_a_callback("add")
+  call c_f_procpointer(get_a_callback("add"), bin_op_ptr)
   ASSERT(associated(bin_op_ptr))
   ASSERT(bin_op_ptr(2, 5) == 7)
-
-  bin_op_ptr => get_a_callback("nopenope")
-  ASSERT(.not. associated(bin_op_ptr))
 
 end subroutine
 end program

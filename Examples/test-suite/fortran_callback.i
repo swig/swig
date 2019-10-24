@@ -1,10 +1,5 @@
 %module fortran_callback
 
-#ifndef __cplusplus
-// Directly bind all functions: don't create proxy wrappers
-%fortranbindc;
-#endif
-
 // Declare callback signature
 %fortrancallback("%s");
 #ifdef __cplusplus
@@ -18,7 +13,7 @@ void stupider_op();
 #endif
 %nofortrancallback;
 
-// Create callbacks and define functions
+// Create callbacks and define functions *unless using bindc*
 %callback("%s_cb");
 
 %inline %{
@@ -73,9 +68,44 @@ binary_op_cb get_a_callback(const char* name) {
   } if (strcmp(name, "mul") == 0) {
     return &mul;
   }
-  printf("Invalid callback name '%s'\n", name);
+  // printf("Invalid callback name '%s'\n", name);
   return NULL;
 }
 
 %}
 
+%warnfilter(SWIGWARN_TYPEMAP_UNDEF,SWIGWARN_LANG_NATIVE_UNIMPL) execute;
+
+// Opaque callback
+%{
+#ifdef __cplusplus
+extern "C" {
+#endif
+typedef struct { int i; } Foo;
+#ifdef __cplusplus
+}
+#endif
+%}
+
+%inline %{
+typedef int (*take_foo)(Foo);
+
+void execute(take_foo fptr, Foo f) {
+  (*fptr)(f);
+}
+%}
+
+#ifdef __cplusplus
+
+%warnfilter(SWIGWARN_TYPEMAP_UNDEF,SWIGWARN_LANG_NATIVE_UNIMPL) execute_bar;
+
+%inline %{
+class Bar {};
+
+typedef int (*take_bar)(Bar);
+
+void execute_bar(take_bar fptr, Bar b) {
+  (*fptr)(b);
+}
+%}
+#endif

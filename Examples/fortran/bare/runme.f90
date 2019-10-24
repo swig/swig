@@ -53,6 +53,7 @@ subroutine test_consts()
   write(STDOUT, *) "pi is approximately ", approx_pi
   write(STDOUT, *) "2pi is approximately ", get_approx_twopi()
   write(STDOUT, *) "extern const int is ", get_linked_const_int()
+  write(STDOUT, *) so_excited
   ! Can't assign these
 !   wrapped_const = 2
 !   MY_SPECIAL_NUMBERS = 4

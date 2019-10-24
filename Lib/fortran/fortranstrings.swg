@@ -97,6 +97,13 @@ end subroutine
   if ($owner) call SWIG_free($1%data)
 }
 
+%typemap(bindc, in="character(kind=C_CHAR, len=*)") char *
+  "type(C_PTR)";
+
+%typemap(bindc, in="character(kind=C_CHAR), dimension(*), intent(in)",
+         fortranconst="character(kind=C_CHAR, len=*)") const char *
+  "type(C_PTR)";
+
 /* -------------------------------------------------------------------------
  * BYTE ARRAY TYPEMAPS
  *

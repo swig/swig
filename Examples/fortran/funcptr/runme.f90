@@ -31,11 +31,11 @@ program fortran_funptr_runme
   integer(C_INT) :: b = 3
   procedure(binary_op), pointer :: fptr => null()
 
-  call c_f_procpointer(add, fptr)
+  fptr => get_ADD()
   write(STDOUT,*) "SWIG-wrapped C function pointer:", do_op(a, b, fptr)
-  call c_f_procpointer(sub, fptr)                                 
+  fptr => get_SUB()
   write(STDOUT,*) "SWIG-wrapped C function pointer:", do_op(a, b, fptr)
-  call c_f_procpointer(mul, fptr)                                 
+  fptr => get_MUL()
   write(STDOUT,*) "SWIG-wrapped C function pointer:", do_op(a, b, fptr)
 
   ! Convert Fortran function to C function pointer
