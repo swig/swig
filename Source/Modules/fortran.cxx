@@ -2441,6 +2441,9 @@ int FORTRAN::membervariableHandler(Node *n) {
 int FORTRAN::globalvariableHandler(Node *n) {
   if (GetFlag(n, "feature:fortran:bindc")) {
     return this->bindcvarWrapper(n);
+  } else if (GetFlagAttr(n, "feature:fortran:const") && Strcmp(Getattr(n, "storage"), "constexpr") == 0) {
+    // constexpr global variable
+    return this->constantWrapper(n);
   }
 
   // No special cases: treat like a global variable

@@ -906,7 +906,9 @@ value as a native Fortran datatype. Constants can be declared with:
 - The SWIG `%constant` directive,
 - Simple `#define` macros, and
 - `constexpr` global variables.
-The last item is a SWIG-Fortran extension.
+The last item is a SWIG-Fortran extension. For an explanation of this behavior,
+see the "Compatibility note" under "A brief word about const" in the SWIG
+documentation.
 
 All global `const` variables will be treated as regular global variables: they
 will be wrapped with getter functions. SWIG-declared `%constant`s whose
