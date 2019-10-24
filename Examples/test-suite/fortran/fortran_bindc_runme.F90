@@ -110,18 +110,22 @@ subroutine test_strings
   use fortran_bindc
   use ISO_C_BINDING
   implicit none
+  character(kind=c_char, len=*), parameter :: mystring = "I'm a string!"
+#if __GNUC__ >= 9
   type(C_PTR) :: cptr
   character(kind=c_char, len=:), pointer :: cstrptr
-  character(kind=c_char, len=*), parameter :: mystring = "I'm a string!"
+#endif
 
   ASSERT(strlen(mystring // C_NULL_CHAR) == len(mystring))
 
-  ! Note: not sure if the C-to-Fortran here is truly defined behavior
+#if __GNUC__ >= 9
+  ! Note: this seems to be allowed in GCC 9 but not before. I'm not sure that it's the correct behavior.
   cptr = getstr(1)
   call c_f_pointer(cptr, cstrptr)
   ASSERT(associated(cstrptr))
   ASSERT(strlen(cstrptr) == 3)
   ASSERT(cstrptr(1:3) == "one")
+#endif
 
 end subroutine
 
