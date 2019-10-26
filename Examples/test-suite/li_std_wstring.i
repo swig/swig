@@ -1,7 +1,7 @@
 %module li_std_wstring
 
 // The languages below are yet to provide std_wstring.i
-#if !(defined(SWIGD) || defined(SWIGGO) || defined(SWIGGUILE) || defined(SWIGJAVASCRIPT) || defined(SWIGLUA) || defined(SWIGMZSCHEME) || defined(SWIGOCAML) || defined(SWIGOCTAVE) || defined(SWIGPERL) || defined(SWIGPHP) || defined(SWIGR) || defined(SWIGSCILAB))
+#if !(defined(SWIGD) || defined(SWIGFORTRAN) || defined(SWIGGO) || defined(SWIGGUILE) || defined(SWIGJAVASCRIPT) || defined(SWIGLUA) || defined(SWIGMZSCHEME) || defined(SWIGOCAML) || defined(SWIGOCTAVE) || defined(SWIGPERL) || defined(SWIGPHP) || defined(SWIGR) || defined(SWIGSCILAB))
 
 %include <std_wstring.i>
 
