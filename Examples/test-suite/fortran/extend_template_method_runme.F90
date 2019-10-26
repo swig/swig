@@ -9,7 +9,7 @@ program extend_template_method_runme
   type(ExtendMe) :: em
   type(TemplateExtend) :: tm
   real(C_DOUBLE) :: dbl
-  character(kind=C_CHAR, len=:), allocatable :: str
+  character(len=:), allocatable :: str
 
   em = ExtendMe()
   dbl = em%do_stuff_double(1, 1.1d0)

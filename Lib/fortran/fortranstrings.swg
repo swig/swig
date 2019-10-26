@@ -15,14 +15,14 @@
 %fragment("SWIG_fin"{char*}, "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1) {
 subroutine %fortrantm(fin, char*)(finp, iminp, temp)
   use, intrinsic :: ISO_C_BINDING
-  character(kind=C_CHAR, len=*), intent(in) :: finp
+  character(len=*), intent(in) :: finp
   type(SwigArrayWrapper), intent(out) :: iminp
   character(kind=C_CHAR), dimension(:), target, allocatable, intent(out) :: temp
   integer :: i
 
   allocate(character(kind=C_CHAR) :: temp(len(finp) + 1))
   do i=1,len(finp)
-    temp(i) = finp(i:i)
+    temp(i) = char(ichar(finp(i:i)), kind=C_CHAR)
   end do
   i = len(finp) + 1
   temp(i) = C_NULL_CHAR ! C finp compatibility
@@ -31,31 +31,18 @@ subroutine %fortrantm(fin, char*)(finp, iminp, temp)
 end subroutine
 }
 
-// Copy string to character array
-%fragment("SWIG_fargout"{char*}, "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1) {
-subroutine %fortrantm(fargout, char*)(chars, string)
-  use, intrinsic :: ISO_C_BINDING
-  character(kind=C_CHAR), dimension(:), intent(in) :: chars
-  character(kind=C_CHAR, len=*), intent(out) :: string
-  integer :: i
-  do i=1, len(string)
-    string(i:i) = chars(i)
-  end do
-end subroutine
-}
-
 // Return fortran allocatable string from character array
 %fragment("SWIG_fout"{char*}, "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1) {
 subroutine %fortrantm(fout, char*)(imout, fout)
   use, intrinsic :: ISO_C_BINDING
   type(SwigArrayWrapper), intent(in) :: imout
-  character(kind=C_CHAR, len=:), allocatable, intent(out) :: fout
+  character(len=:), allocatable, intent(out) :: fout
   character(kind=C_CHAR), dimension(:), pointer :: chars
   integer(kind=C_SIZE_T) :: i
   call c_f_pointer(imout%data, chars, [imout%size])
   allocate(character(kind=C_CHAR, len=imout%size) :: fout)
   do i=1, imout%size
-    fout(i:i) = chars(i)
+    fout(i:i) = char(ichar(chars(i)))
   end do
 end subroutine
 }
@@ -82,8 +69,8 @@ end subroutine
 }
 
 // Fortran proxy code: return allocatable string
-%typemap(ftype, in="character(kind=C_CHAR, len=*), target") char *
-  "character(kind=C_CHAR, len=:), allocatable"
+%typemap(ftype, in="character(len=*), target") char *
+  "character(len=:), allocatable"
 
 %typemap(fin, fragment="SWIG_fin"{char*}, noblock=1,
          temp="character(kind=C_CHAR), dimension(:), allocatable, target"
@@ -120,8 +107,8 @@ end subroutine
   $2 = $input->size;
 }
 
-%typemap(ftype, in="character(kind=C_CHAR, len=*), target") (char *STRING, size_t LENGTH)
-  "character(kind=C_CHAR, len=:), allocatable"
+%typemap(ftype, in="character(len=*), target") (char *STRING, size_t LENGTH)
+  "character(len=:), allocatable"
 
 %typemap(fin, fragment="SWIG_fin"{char*}, noblock=1,
          temp="character(kind=C_CHAR), dimension(:), allocatable, target")

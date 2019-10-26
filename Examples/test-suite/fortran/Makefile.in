@@ -25,7 +25,6 @@ CPP_TEST_CASES = \
 	fortran_callback \
 	fortran_naming \
 	fortran_onlywrapped \
-	fortran_openacc \
 	fortran_overloads \
 	fortran_subroutine \
 	li_std_set \
