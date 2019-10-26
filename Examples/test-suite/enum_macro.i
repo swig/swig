@@ -97,3 +97,45 @@ enum Greeks13
 #define GREEK13 -13
 };
 
+/* Multiple macros */
+
+%inline %{
+enum Greeks14
+{
+#define GREEK14a -14
+#define GREEK14b -140
+    theta14,
+};
+
+enum Greeks15
+{
+    alpha15 = 150,
+    beta15 = 151,
+#define GREEK15a -150
+#define GREEK15b -151
+    theta15 = 152,
+    delta15 = 153
+};
+
+enum Greeks16
+{
+    alpha16 = 160,
+    beta16 = 161,
+#define GREEK16a -160
+#define GREEK16b -161
+#define GREEK16c -162
+    theta16 = 162,
+    delta16 = 163
+};
+
+enum Greeks17
+{
+    alpha17 = 170,
+    beta17 = 171,
+    theta17 = 172,
+    delta17 = 173
+#define GREEK17a -170
+#define GREEK17b -171
+#define GREEK17c -172
+};
+%}

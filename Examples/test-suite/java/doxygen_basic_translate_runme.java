@@ -54,6 +54,8 @@ public class doxygen_basic_translate_runme {
     		" \n" +
     		" {@code \n" +
     		"int main() { while(true); } \n" +
+		"\n" +
+		"// Test blank line in code block \n" +
     		" }\n" +
     		" }\n" +
     		" \n" +

@@ -27,7 +27,6 @@ CPP_TEST_CASES += \
 # arithmetic expressions
 
 FAILING_CPP_TESTS = \
-	enum_thorough \
 	preproc_constants
 
 FAILING_C_TESTS = \
@@ -64,7 +63,7 @@ include $(srcdir)/../common.mk
 # check for syntactic correctness
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" $(RUNTOOL) $(RUNR) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) || (cat $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)out ; false); \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" $(RUNTOOL) $(RUNR) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) || (cat ./$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)out ; false); \
 	else \
 	  $(RUNTOOL) $(RUNR) ./$(SCRIPTPREFIX)$*$(WRAPSUFFIX) || (cat ./$(SCRIPTPREFIX)$*$(WRAPSUFFIX)out ; false); \
 	fi
@@ -72,7 +71,7 @@ run_testcase = \
 run_multitestcase = \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" $(RUNTOOL) $(RUNR) $(SCRIPTDIR)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) || (cat $(SCRIPTDIR)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX)out ; false); \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" $(RUNTOOL) $(RUNR) $(SCRIPTDIR)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) || (cat ./$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX)out ; false); \
 	else \
 	  $(RUNTOOL) $(RUNR) ./$(SCRIPTPREFIX)$${f}$(WRAPSUFFIX) || (cat ./$(SCRIPTPREFIX)$${f}$(WRAPSUFFIX)out ; false); \
 	fi; \

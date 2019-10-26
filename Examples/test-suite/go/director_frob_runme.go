@@ -1,6 +1,6 @@
 package main
 
-import . "./director_frob"
+import . "swigtests/director_frob"
 
 func main() {
 	foo := NewBravo()

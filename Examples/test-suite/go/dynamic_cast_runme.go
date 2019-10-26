@@ -1,6 +1,6 @@
 package main
 
-import "./dynamic_cast"
+import "swigtests/dynamic_cast"
 
 func main() {
 	f := dynamic_cast.NewFoo()

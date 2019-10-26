@@ -1,7 +1,7 @@
 package main
 
 import "fmt"
-import "./director_profile"
+import "swigtests/director_profile"
 
 type MyB struct{} // From director_profile.B
 func (p *MyB) Vfi(a int) int {

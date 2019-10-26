@@ -1,6 +1,6 @@
 package main
 
-import "./class_scope_weird"
+import "swigtests/class_scope_weird"
 
 func main() {
 	f := class_scope_weird.NewFoo()

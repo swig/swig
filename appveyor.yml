@@ -89,7 +89,7 @@ install:
 - if "%OSVARIANT%"=="" bash -c "cl.exe /? 2>&1 | head -n 1"
 - if "%OSVARIANT%"=="" bash -c "which csc.exe"
 - if "%OSVARIANT%"=="" bash -c "csc.exe /? | head -n 1"
-- if "%OSVARIANT%"=="cygwin" %CYGWINSETUP% --quiet-mode --packages python-devel,libpcre-devel,libboost-devel > cygwin-install.txt || bash -c "cat cygwin-install.txt"
+- if "%OSVARIANT%"=="cygwin" %CYGWINSETUP% --quiet-mode --packages python2-devel,libpcre-devel,libboost-devel > cygwin-install.txt || bash -c "cat cygwin-install.txt"
 - if "%OSVARIANT%"=="mingw" bash -c "pacman --noconfirm --sync mingw%MBITS%/mingw-w64-%MARCH%-pcre mingw%MBITS%/mingw-w64-%MARCH%-boost"
 - if not "%WITHLANG%"=="" set SWIGWITHLANG==%WITHLANG%
 - if not "%WITHLANG%"=="" where %WITHLANG%
@@ -118,6 +118,7 @@ test_script:
 - if not "%OSVARIANT%"=="" CCache\ccache-swig -V
 - bash -c "file ./swig.exe"
 - bash -c "make check-%SWIGLANG%-version"
+- bash -c "make check-%SWIGLANG%-enabled"
 - bash -c "time make -k check-%SWIGLANG%-examples %CHECK_OPTIONS% %CHECK_OPTIONS2%"
 - bash -c "time make -k check-%SWIGLANG%-test-suite -j%MAKEJOBS% %CHECK_OPTIONS% %CHECK_OPTIONS2%"
 

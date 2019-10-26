@@ -1,7 +1,7 @@
 // Note: This example assumes that namespaces are flattened
 package main
 
-import "./cpp_namespace"
+import "swigtests/cpp_namespace"
 
 func main() {
 	n := cpp_namespace.Fact(4)

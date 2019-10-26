@@ -1,6 +1,6 @@
 package main
 
-import . "./template_tbase_template"
+import . "swigtests/template_tbase_template"
 
 func main() {
 	a := Make_Class_dd()

@@ -198,6 +198,11 @@ public:
   virtual int emitWrapperFunction(Node *n);
 
   /**
+   * Invoked by nativeWrapper callback
+   */
+  virtual int emitNativeFunction(Node *n);
+
+  /**
    * Invoked from constantWrapper after call to Language::constantWrapper.
    **/
   virtual int emitConstant(Node *n);
@@ -311,6 +316,7 @@ public:
   virtual int classHandler(Node *n);
   virtual int functionWrapper(Node *n);
   virtual int constantWrapper(Node *n);
+  virtual int nativeWrapper(Node *n);
   virtual void main(int argc, char *argv[]);
   virtual int top(Node *n);
 
@@ -437,6 +443,18 @@ int JAVASCRIPT::constantWrapper(Node *n) {
   // however, there is a remaining bug with function pointer constants
   // which could be fixed with a cleaner approach
   emitter->emitConstant(n);
+
+  return SWIG_OK;
+}
+
+/* ---------------------------------------------------------------------
+ * nativeWrapper()
+ *
+ * Function wrapper for generating placeholders for native functions
+ * --------------------------------------------------------------------- */
+
+int JAVASCRIPT::nativeWrapper(Node *n) {
+  emitter->emitNativeFunction(n);
 
   return SWIG_OK;
 }
@@ -766,6 +784,14 @@ int JSEmitter::emitWrapperFunction(Node *n) {
   }
 
   return ret;
+}
+
+int JSEmitter::emitNativeFunction(Node *n) {
+  String *wrapname = Getattr(n, "wrap:name");
+  enterFunction(n);
+  state.function(WRAPPER_NAME, wrapname);
+  exitFunction(n);
+  return SWIG_OK;
 }
 
 int JSEmitter::enterClass(Node *n) {

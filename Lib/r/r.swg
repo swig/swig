@@ -192,6 +192,11 @@ unsigned char *OUTPUT
     free($1);
 }
 
+%typemap(in) const enum SWIGTYPE & ($*1_ltype temp)
+%{ temp = ($*1_ltype)INTEGER($input)[0];
+   $1 = &temp; %}
+
+%typemap(out) const enum SWIGTYPE & %{ $result = Rf_ScalarInteger((int)*$1); %}
 
 %typemap(memberin) char[] %{
 if ($input) strcpy($1, $input);

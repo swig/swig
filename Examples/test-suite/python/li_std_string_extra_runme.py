@@ -19,7 +19,7 @@ if li_std_string_extra.test_const_reference(x) != x:
 
 s = li_std_string_extra.string("he")
 #s += "ll"
-# s.append('o')
+# s.append("o")
 s = s + "llo"
 
 if s != x:

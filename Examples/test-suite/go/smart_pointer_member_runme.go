@@ -1,7 +1,7 @@
 package main
 
 import "fmt"
-import . "./smart_pointer_member"
+import . "swigtests/smart_pointer_member"
 
 func main() {
 	f := NewFoo()

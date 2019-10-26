@@ -57,6 +57,8 @@ void function3(int a, int b)
  * \warning This may not work as expected
  * \code
  * int main() { while(true); }
+ *
+ * // Test blank line in code block
  * \endcode
  * \endif
  */

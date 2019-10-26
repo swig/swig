@@ -45,6 +45,7 @@ CPP_TEST_CASES += \
 	li_factory \
 	li_implicit \
 	li_std_containers_int \
+	li_std_list \
 	li_std_map_member \
 	li_std_multimap \
 	li_std_pair_extra \
@@ -54,7 +55,7 @@ CPP_TEST_CASES += \
 	li_std_vectora \
 	li_std_vector_extra \
 	li_std_wstream \
-	li_std_wstring \
+	li_std_wstring_inherit \
 	primitive_types \
 	python_abstractbase \
 	python_append \

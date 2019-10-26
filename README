@@ -1,13 +1,11 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: Fortran development fork
+Version: 4.0.2 (in progress)
 
 Tagline: SWIG is a compiler that integrates C and C++ with languages
          including Perl, Python, Tcl, Ruby, PHP, Java, C#, D, Go, Lua,
-         Octave, R, Scheme (Guile, MzScheme/Racket, CHICKEN), Scilab,
-         Ocaml, Modula-3, Common Lisp (CLISP, Allegro CL, CFFI, UFFI)
-         and Pike. SWIG can also export its parse tree into XML and
-         Lisp s-expressions.
+         Octave, R, Scheme (Guile, MzScheme/Racket), Scilab, Ocaml.
+         SWIG can also export its parse tree into XML.
 
 SWIG reads annotated C/C++ header files and creates wrapper code (glue
 code) in order to make the corresponding C/C++ libraries available to
@@ -21,18 +19,6 @@ Up-to-date SWIG related information can be found at
 A SWIG FAQ and other hints can be found on the SWIG Wiki:
 
         https://github.com/swig/swig/wiki
-
-Notes on this fork
-==================
-
-This fork is currently developed independently from upstream SWIG because the 
-Fortran features do not conform to upstream requirements:
-- Constness is not ignored; we use it to generate INTENT qualifiers
-- Invalid Fortran symbols that cannot be renamed using SWIG's renaming system  
-  generate runtime errors
-- Features are targeted at supporting the 
-  [ForTrilinos](https://fortrilinos.readthedocs.io/en/latest/) project rather 
-  than matching the implementations of other target languages
 
 License
 =======

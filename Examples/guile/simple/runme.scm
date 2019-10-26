@@ -3,24 +3,20 @@
   (for-each display args)
   (newline))
 
-(mdisplay-newline (get-time) "My variable = " (My-variable))
+; Call our gcd() function
 
-(do ((i 0 (1+ i)))
-    ((= 14 i))
-  (mdisplay-newline i " factorial is " (fact i)))
+(define x 42)
+(define y 105)
+(define g (gcd x y))
+(mdisplay-newline "The gcd of " x " and " y " is " g)
 
-(define (mods i imax j jmax)
-  (if (< i imax)
-      (if (< j jmax)
-          (begin
-            (My-variable (+ (My-variable) (mod i j)))
-            (mods i imax (+ j 1) jmax))
-          (mods (+ i 1) imax 1 jmax))))
+; Manipulate the Foo global variable
 
-(mods 1 150 1 150)
+; Output its current value
+(mdisplay-newline "Foo = " (Foo))
 
-(mdisplay-newline "My-variable = " (My-variable))
+; Change its value
+(Foo 3.1415926)
 
-(exit (and (= 1932053504 (fact 13))
-           (= 745470.0 (My-variable))))
-
+; See if the change took effect
+(mdisplay-newline "Foo = " (Foo))

@@ -44,6 +44,8 @@ CPP_TEST_CASES = \
 	java_typemaps_proxy \
 	java_typemaps_typewrapper \
 	li_std_list \
+	li_std_map \
+	li_std_set \
 #	li_boost_intrusive_ptr
 
 CPP11_TEST_CASES = \
@@ -51,6 +53,8 @@ CPP11_TEST_CASES = \
 	cpp11_shared_ptr_nullptr_in_containers \
 	cpp11_shared_ptr_overload \
 	cpp11_shared_ptr_upcast \
+	cpp11_std_unordered_map \
+	cpp11_std_unordered_set \
 	cpp11_strongly_typed_enumerations_simple \
 
 DOXYGEN_TEST_CASES := \

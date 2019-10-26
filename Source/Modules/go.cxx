@@ -125,6 +125,8 @@ class GO:public Language {
   String *prefix_option;
   // -fgo-pkgpath option.
   String *pkgpath_option;
+  // Prefix for translating %import directive to import statements.
+  String *import_prefix;
   // Whether to use a shared library.
   bool use_shlib;
   // Name of shared library to import.
@@ -199,11 +201,12 @@ class GO:public Language {
 public:
   GO():package(NULL),
      module(NULL),
-     cgo_flag(false),
+     cgo_flag(true),
      gccgo_flag(false),
      go_prefix(NULL),
      prefix_option(NULL),
      pkgpath_option(NULL),
+     import_prefix(NULL),
      use_shlib(false),
      soname(NULL),
      intgo_type_size(0),
@@ -269,6 +272,9 @@ private:
 	} else if (strcmp(argv[i], "-cgo") == 0) {
 	  Swig_mark_arg(i);
 	  cgo_flag = true;
+	} else if (strcmp(argv[i], "-no-cgo") == 0) {
+	  Swig_mark_arg(i);
+	  cgo_flag = false;
 	} else if (strcmp(argv[i], "-gccgo") == 0) {
 	  Swig_mark_arg(i);
 	  gccgo_flag = true;
@@ -284,6 +290,15 @@ private:
 	} else if (strcmp(argv[i], "-go-pkgpath") == 0) {
 	  if (argv[i + 1]) {
 	    pkgpath_option = NewString(argv[i + 1]);
+	    Swig_mark_arg(i);
+	    Swig_mark_arg(i + 1);
+	    i++;
+	  } else {
+	    Swig_arg_error();
+	  }
+	} else if (strcmp(argv[i], "-import-prefix") == 0) {
+	  if (argv[i + 1]) {
+	    import_prefix = NewString(argv[i + 1]);
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
 	    i++;
@@ -740,7 +755,11 @@ private:
     if (modname) {
       if (!Getattr(go_imports, modname)) {
         Setattr(go_imports, modname, modname);
-        Printv(f_go_imports, "import \"", modname, "\"\n", NULL);
+        Printv(f_go_imports, "import \"", NULL);
+	if (import_prefix) {
+	  Printv(f_go_imports, import_prefix, "/", NULL);
+	}
+	Printv(f_go_imports, modname, "\"\n", NULL);
       }
       imported_package = modname;
       saw_import = true;
@@ -6979,9 +6998,11 @@ extern "C" Language *swig_go(void) {
 const char * const GO::usage = "\
 Go Options (available with -go)\n\
      -cgo                - Generate cgo input files\n\
-     -gccgo              - Generate code for gccgo rather than 6g/8g\n\
+     -no-cgo             - Do not generate cgo input files\n\
+     -gccgo              - Generate code for gccgo rather than gc\n\
      -go-pkgpath <p>     - Like gccgo -fgo-pkgpath option\n\
      -go-prefix <p>      - Like gccgo -fgo-prefix option\n\
+     -import-prefix <p>  - Prefix to add to %import directives\n\
      -intgosize <s>      - Set size of Go int type--32 or 64 bits\n\
      -package <name>     - Set name of the Go package to <name>\n\
      -use-shlib          - Force use of a shared library\n\

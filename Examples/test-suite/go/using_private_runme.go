@@ -1,6 +1,6 @@
 package main
 
-import . "./using_private"
+import . "swigtests/using_private"
 
 func main() {
 	f := NewFooBar()

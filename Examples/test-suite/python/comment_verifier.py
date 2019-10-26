@@ -1,10 +1,10 @@
 def check(got, expected, expected_builtin=None):
   if got is None:  # Absence of comment is equivalent to empty comment.
-      got = ''
+      got = ""
 
   if got != expected:
     import re
-    p = re.compile(r'^[+-]([^+-].*\S)?(\s+)$', re.M)
+    p = re.compile(r"^[+-]([^+-].*\S)?(\s+)$", re.M)
 
     def make_trailing_spaces_visible(str):
         def replace_trailing_spaces(match):

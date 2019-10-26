@@ -71,11 +71,12 @@ namespace std {
     typedef _Key key_type;
     typedef _Tp mapped_type;
     typedef std::pair< const _Key, _Tp > value_type;
-
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type& reference;
     typedef const value_type& const_reference;
+    typedef _Hash hasher;
+    typedef _Compare key_equal;
     typedef _Alloc allocator_type;
 
     %traits_swigtype(_Key);

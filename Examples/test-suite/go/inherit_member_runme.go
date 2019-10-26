@@ -1,6 +1,6 @@
 package main
 
-import wrap "./inherit_member"
+import wrap "swigtests/inherit_member"
 
 func main() {
 	s := wrap.NewChild()

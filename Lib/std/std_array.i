@@ -53,8 +53,8 @@ namespace std {
     typedef _Tp value_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
-    typedef _Tp& reference;
-    typedef const _Tp& const_reference;
+    typedef value_type& reference;
+    typedef const value_type& const_reference;
 
     %traits_swigtype(_Tp);
     %traits_enum(_Tp);

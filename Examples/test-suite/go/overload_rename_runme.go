@@ -1,6 +1,6 @@
 package main
 
-import "./overload_rename"
+import "swigtests/overload_rename"
 
 func main() {
 	_ = overload_rename.NewFoo(float32(1))

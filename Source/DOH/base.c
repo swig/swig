@@ -756,25 +756,6 @@ int DohUngetc(int ch, DOH *obj) {
 }
 
 /* -----------------------------------------------------------------------------
- * DohClose()
- * ----------------------------------------------------------------------------- */
-
-/*
-int DohClose(DOH *obj) {
-  DohBase *b = (DohBase *) obj;
-  DohObjInfo *objinfo;
-  if (DohCheck(obj)) {
-    objinfo = b->type;
-    if (objinfo->doh_file->doh_close) {
-      return (objinfo->doh_file->doh_close) (b);
-    }
-    return 0;
-  }
-  return fclose((FILE *) obj);
-}
-*/
-
-/* -----------------------------------------------------------------------------
  * DohIsString()
  * ----------------------------------------------------------------------------- */
 

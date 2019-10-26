@@ -104,6 +104,9 @@
 
     };
 
+    /// @return This is a bad place for this tag, but it should be ignored.
+    struct StructWithReturnComment {};
+
     /**
         An example of a list in a documentation comment.
 

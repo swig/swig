@@ -1,6 +1,6 @@
 package main
 
-import . "./smart_pointer_typedef"
+import . "swigtests/smart_pointer_typedef"
 
 func main() {
 	f := NewFoo()

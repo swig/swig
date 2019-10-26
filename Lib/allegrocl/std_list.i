@@ -28,17 +28,20 @@ namespace std{
     template<class T> class list
     {
     public:
-	     
-	typedef T &reference;
-	typedef const T& const_reference;
+        typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef T value_type;
+        typedef value_type* pointer;
+        typedef const value_type* const_pointer;
+        typedef value_type& reference;
+        typedef const value_type& const_reference;
 	typedef T &iterator;
 	typedef const T& const_iterator; 
-	    
+
 	list();
 	list(unsigned int size, const T& value = T());
-	list(const list<T> &);
+	list(const list& other);
 
-	~list();
 	void assign(unsigned int n, const T& value);
 	void swap(list<T> &x);
 
@@ -46,13 +49,12 @@ namespace std{
 	const_reference back();
 	const_iterator begin();
 	const_iterator end();
-	     
+
 	void resize(unsigned int n, T c = T());
 	bool empty() const;
 
 	void push_front(const T& INPUT);
 	void push_back(const T& INPUT);
-
 
 	void pop_front();
 	void pop_back();
@@ -60,7 +62,7 @@ namespace std{
 	unsigned int size() const;
 	unsigned int max_size() const;
 	void resize(unsigned int n, const T& INPUT);
-		
+
 	void remove(const T& INPUT);
 	void unique();
 	void reverse();
@@ -153,7 +155,7 @@ namespace std{
 			if (j<0) j += size;
 			if (i<0) i = 0;
 			if (j>size) j = size;
-	
+
 			for (int k=0;k<i;k++)
 			{
 			    first++;
@@ -174,7 +176,7 @@ namespace std{
 			if (j<0) j += size;
 			if (i<0) i = 0;
 			if (j>size) j = size;
-		
+
 			for (int k=0;k<i;k++)
 			{
 			    first++;
@@ -200,7 +202,6 @@ namespace std{
 			    }
 			    else self->insert(self->end(),v.begin(),v.end());
 			}
-			   	
 		    }
 		unsigned int __len__() 
 		    {
@@ -218,8 +219,7 @@ namespace std{
 		    {
 			self->pop_back();
 		    }
-	      
-	    };   
+	    }
     };
 }
 

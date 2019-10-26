@@ -15,7 +15,7 @@ public:
   using type2_t = T2;
   T1 a;
   T2 b;
-  constexpr int get_n() { return N; }
+  constexpr int get_n() const { return N; }
 };
 
 // Specialization for T1=const char*, T2=bool
@@ -26,7 +26,7 @@ public:
   using type2_t = bool;
   type1_t a;
   type2_t b;
-  constexpr int get_n() { return 3 * N; }
+  constexpr int get_n() const { return 3 * N; }
 };
 
 // alias templates

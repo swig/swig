@@ -1,26 +1,16 @@
 #!/bin/bash
 
+# Install Linux packages where the version has been overidden in .travis.yml
+
 set -e # exit on failure (same as -o errexit)
 
 lsb_release -a
 travis_retry sudo apt-get -qq update
 
-if [[ "$CC" == gcc-5 ]]; then
+if [[ -n "$GCC" ]]; then
 	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 	travis_retry sudo apt-get -qq update
-	travis_retry sudo apt-get install -qq g++-5
-elif [[ "$CC" == gcc-6 ]]; then
-	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-	travis_retry sudo apt-get -qq update
-	travis_retry sudo apt-get install -qq g++-6
-elif [[ "$CC" == gcc-7 ]]; then
-	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-	travis_retry sudo apt-get -qq update
-	travis_retry sudo apt-get install -qq g++-7
-elif [[ "$CC" == gcc-8 ]]; then
-	travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-	travis_retry sudo apt-get -qq update
-	travis_retry sudo apt-get install -qq g++-8
+	travis_retry sudo apt-get install -qq g++-$GCC
 fi
 
 travis_retry sudo apt-get -qq install libboost-dev
@@ -47,6 +37,9 @@ case "$SWIGLANG" in
     travis_retry sudo apt-get install -qq $FC
 		;;
 	"go")
+		if [[ "$VER" ]]; then
+		  eval "$(gimme ${VER}.x)"
+		fi
 		;;
 	"guile")
 		travis_retry sudo apt-get -qq install guile-2.0-dev
@@ -54,14 +47,15 @@ case "$SWIGLANG" in
 	"javascript")
 		case "$ENGINE" in
 			"node")
-				if [[ -z "$VER" ]]; then
-				travis_retry sudo apt-get install -qq nodejs node-gyp
-				else
 					travis_retry wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.33.10/install.sh | bash
 					export NVM_DIR="$HOME/.nvm"
 					[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 					travis_retry nvm install ${VER}
 					nvm use ${VER}
+				if [ "$VER" == "0.10" ] || [ "$VER" == "0.12" ] || [ "$VER" == "4" ] ; then
+#					travis_retry sudo apt-get install -qq nodejs node-gyp
+					travis_retry npm install -g node-gyp@$VER
+				else
 					travis_retry npm install -g node-gyp
 				fi
 				;;
@@ -77,31 +71,17 @@ case "$SWIGLANG" in
 		if [[ -z "$VER" ]]; then
 			travis_retry sudo apt-get -qq install lua5.2 liblua5.2-dev
 		else
-			travis_retry sudo add-apt-repository -y ppa:ubuntu-cloud-archive/mitaka-staging
-			travis_retry sudo apt-get -qq update
 			travis_retry sudo apt-get -qq install lua${VER} liblua${VER}-dev
 		fi
 		;;
+	"mzscheme")
+		travis_retry sudo apt-get -qq install racket
+		;;
 	"ocaml")
-		# configure also looks for ocamldlgen, but this isn't packaged.  But it isn't used by default so this doesn't matter.
-		travis_retry sudo apt-get -qq install ocaml ocaml-findlib
+		travis_retry sudo apt-get -qq install ocaml camlp4
 		;;
 	"octave")
-		if [[ -z "$VER" ]]; then
 			travis_retry sudo apt-get -qq install liboctave-dev
-		else
-			# Travis adds external PPAs which contain newer versions of packages
-			# than in baseline trusty. These newer packages prevent some of the
-			# Octave packages in ppa:kwwette/octave, which rely on the older
-			# packages in trusty, from installing. To prevent these kind of
-			# interactions arising, clean out all external PPAs added by Travis
-			# before installing Octave
-			sudo rm -rf /etc/apt/sources.list.d/*
-			travis_retry sudo apt-get -qq update
-			travis_retry sudo add-apt-repository -y ppa:kwwette/octaves
-			travis_retry sudo apt-get -qq update
-			travis_retry sudo apt-get -qq install liboctave${VER}-dev
-		fi
 		;;
 	"php")
 		travis_retry sudo add-apt-repository -y ppa:ondrej/php
@@ -130,6 +110,10 @@ case "$SWIGLANG" in
 		fi
 		;;
 	"scilab")
+		# Travis has the wrong version of Java pre-installed resulting in error using scilab:
+		# /usr/bin/scilab-bin: error while loading shared libraries: libjava.so: cannot open shared object file: No such file or directory
+		echo "JAVA_HOME was set to $JAVA_HOME"
+		unset JAVA_HOME
 		travis_retry sudo apt-get -qq install scilab
 		;;
 	"tcl")

@@ -630,6 +630,10 @@ macro(size_t,             pfx, sizet)
     float val_float(float x) {
       return x;
     } 
+
+    float val_float_3(float f = 0e1f, float f2 = 020e0f, float f3 = 0.3e4f) {
+      return f + f2 + f3;
+    }
 %}
 
 

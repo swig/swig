@@ -103,7 +103,6 @@
 #define DohNewFileFromFile DOH_NAMESPACE(NewFileFromFile)
 #define DohNewFileFromFd   DOH_NAMESPACE(NewFileFromFd)
 #define DohFileErrorDisplay   DOH_NAMESPACE(FileErrorDisplay)
-#define DohClose           DOH_NAMESPACE(Close)
 #define DohCopyto          DOH_NAMESPACE(Copyto)
 #define DohNewList         DOH_NAMESPACE(NewList)
 #define DohNewHash         DOH_NAMESPACE(NewHash)
@@ -303,15 +302,12 @@ extern char *DohStrchr(const DOHString_or_char *s1, int ch);
  * Files
  * ----------------------------------------------------------------------------- */
 
-extern DOHFile *DohNewFile(DOH *filename, const char *mode, DOHList *outfiles);
+extern DOHFile *DohNewFile(DOHString *filename, const char *mode, DOHList *outfiles);
 extern DOHFile *DohNewFileFromFile(FILE *f);
 extern DOHFile *DohNewFileFromFd(int fd);
 extern void DohFileErrorDisplay(DOHString * filename);
-/*
- Deprecated, just use DohDelete
-extern int DohClose(DOH *file);
-*/
 extern int DohCopyto(DOHFile * input, DOHFile * output);
+extern void DohCloseAllOpenFiles(void);
 
 
 /* -----------------------------------------------------------------------------
@@ -392,7 +388,6 @@ extern void DohMemoryDebug(void);
 /* #define StringChar         DohStringChar */
 /* #define StringEqual        DohStringEqual */
 
-#define Close              DohClose
 #define vPrintf            DohvPrintf
 #define GetInt             DohGetInt
 #define GetDouble          DohGetDouble
@@ -424,7 +419,6 @@ extern void DohMemoryDebug(void);
 #define NewFileFromFile    DohNewFileFromFile
 #define NewFileFromFd      DohNewFileFromFd
 #define FileErrorDisplay   DohFileErrorDisplay
-#define Close              DohClose
 #define NewVoid            DohNewVoid
 #define Keys               DohKeys
 #define Strcmp             DohStrcmp
@@ -432,6 +426,7 @@ extern void DohMemoryDebug(void);
 #define Strstr             DohStrstr
 #define Strchr             DohStrchr
 #define Copyto             DohCopyto
+#define CloseAllOpenFiles  DohCloseAllOpenFiles
 #define Split              DohSplit
 #define SplitLines         DohSplitLines
 #define Setmark            DohSetmark

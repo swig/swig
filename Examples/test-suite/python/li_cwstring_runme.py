@@ -15,10 +15,10 @@ if test3("hello") != u"hello-suffix":
 if test4("hello") != u"hello-suffix":
     raise RuntimeError
 
-if test5(4) != u'xxxx':
+if test5(4) != u"xxxx":
     raise RuntimeError
 
-if test6(10) != u'xxxxx':
+if test6(10) != u"xxxxx":
     raise RuntimeError
 
 if test7() != u"Hello world!":

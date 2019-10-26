@@ -14,7 +14,7 @@
 
     template <class T>
     struct traits_from<std::stack<T> > {
-      static VALUE from(const std::stack<T> & vec) {
+      static VALUE from(const std::stack<T>& vec) {
 	return traits_from_stdseq<std::stack<T> >::from(vec);
       }
     };

@@ -15,7 +15,7 @@
 #include "cparse.h"
 
 static const char *usage = "\
-Tcl 8 Options (available with -tcl)\n\
+Tcl 8 Options (available with -tcl8)\n\
      -itcl           - Enable ITcl support\n\
      -nosafe         - Leave out SafeInit module function.\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\

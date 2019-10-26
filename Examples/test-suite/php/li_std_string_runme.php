@@ -27,5 +27,8 @@ check::equal(Structure::StaticMemberString2(), $s, "StaticMemberString2 test 2")
 // below broken ?
 //check::equal(Structure::ConstStaticMemberString(), "const static member string", "ConstStaticMemberString test");
 
+// This used to give "Undefined variable: r"
+li_std_string::test_const_reference_returning_void("foo");
+
 check::done();
 ?>

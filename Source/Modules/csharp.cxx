@@ -1533,7 +1533,7 @@ public:
       if (classname_substituted_flag) {
 	if (SwigType_isenum(t)) {
 	  // This handles wrapping of inline initialised const enum static member variables (not when wrapping enum items - ignored later on)
-	  Printf(constants_code, "(%s)%s.%s();\n", return_type, full_imclass_name, Swig_name_get(getNSpace(), symname));
+	  Printf(constants_code, "(%s)%s.%s();\n", return_type, full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
 	} else {
 	  // This handles function pointers using the %constant directive
 	  Printf(constants_code, "new %s(%s.%s(), false);\n", return_type, full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
@@ -1732,7 +1732,7 @@ public:
       Replaceall(cptr_method_name, ".", "_");
       Replaceall(cptr_method_name, "$interfacename", interface_name);
 
-      String *upcast_method_name = Swig_name_member(getNSpace(), proxy_class_name, cptr_method_name);
+      String *upcast_method_name = Swig_name_member(getNSpace(), getClassPrefix(), cptr_method_name);
       upcastsCode(smart, upcast_method_name, c_classname, c_baseclass);
 
       Delete(upcast_method_name);
@@ -1873,38 +1873,56 @@ public:
 	   typemapLookup(n, "csbody", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF),	// main body of class
 	   NIL);
 
-    // C++ destructor is wrapped by the Dispose method
-    // Note that the method name is specified in a typemap attribute called methodname
+    // C++ destructor is wrapped by the Finalize and Dispose methods
+
+    const char *tmap_method = derived ? "csdestruct_derived" : "csdestruct";
+    const String *tm = typemapExists(n, tmap_method, typemap_lookup_type);
+    if (tm) {
+      Swig_error(Getfile(tm), Getline(tm),
+	  "A deprecated %s typemap was found for %s, please remove it and replace all csdestruct, csdestruct_derived and csfinalize typemaps by the csdispose, csdispose_derived, csdisposing and csdisposing_derived typemaps.\n",
+	  tmap_method, proxy_class_name);
+    }
+    tmap_method = "csfinalize";
+    tm = typemapExists(n, tmap_method, typemap_lookup_type);
+    if (tm) {
+      Swig_error(Getfile(tm), Getline(tm),
+	  "A deprecated %s typemap was found for %s, please remove it and replace all csdestruct, csdestruct_derived and csfinalize typemaps by the csdispose, csdispose_derived, csdisposing and csdisposing_derived typemaps.\n",
+	  tmap_method, proxy_class_name);
+    }
+
+    tmap_method = derived ? "csdisposing_derived" : "csdisposing";
     String *destruct = NewString("");
-    const String *tm = NULL;
     attributes = NewHash();
-    String *destruct_methodname = NULL;
-    String *destruct_methodmodifiers = NULL;
+    const String *destruct_methodname = NULL;
+    const String *destruct_methodmodifiers = NULL;
+    const String *destruct_parameters = NULL;
     if (derived) {
-      tm = typemapLookup(n, "csdestruct_derived", typemap_lookup_type, WARN_NONE, attributes);
-      destruct_methodname = Getattr(attributes, "tmap:csdestruct_derived:methodname");
-      destruct_methodmodifiers = Getattr(attributes, "tmap:csdestruct_derived:methodmodifiers");
+      tm = typemapLookup(n, "csdisposing_derived", typemap_lookup_type, WARN_NONE, attributes);
+      destruct_methodname = Getattr(attributes, "tmap:csdisposing_derived:methodname");
+      destruct_methodmodifiers = Getattr(attributes, "tmap:csdisposing_derived:methodmodifiers");
+      destruct_parameters = Getattr(attributes, "tmap:csdisposing_derived:parameters");
     } else {
-      tm = typemapLookup(n, "csdestruct", typemap_lookup_type, WARN_NONE, attributes);
-      destruct_methodname = Getattr(attributes, "tmap:csdestruct:methodname");
-      destruct_methodmodifiers = Getattr(attributes, "tmap:csdestruct:methodmodifiers");
+      tm = typemapLookup(n, "csdisposing", typemap_lookup_type, WARN_NONE, attributes);
+      destruct_methodname = Getattr(attributes, "tmap:csdisposing:methodname");
+      destruct_methodmodifiers = Getattr(attributes, "tmap:csdisposing:methodmodifiers");
+      destruct_parameters = Getattr(attributes, "tmap:csdisposing:parameters");
     }
     if (tm && *Char(tm)) {
       if (!destruct_methodname) {
-	Swig_error(Getfile(n), Getline(n), "No methodname attribute defined in csdestruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
+	Swig_error(Getfile(n), Getline(n), "No methodname attribute defined in %s typemap for %s\n", tmap_method, proxy_class_name);
       }
       if (!destruct_methodmodifiers) {
 	Swig_error(Getfile(n), Getline(n),
-		   "No methodmodifiers attribute defined in csdestruct%s typemap for %s.\n", (derived ? "_derived" : ""), proxy_class_name);
+		   "No methodmodifiers attribute defined in %s typemap for %s.\n", tmap_method, proxy_class_name);
       }
+      if (!destruct_parameters)
+	destruct_parameters = empty_string;
     }
     // Emit the Finalize and Dispose methods
     if (tm) {
-      // Finalize method
-      if (*Char(destructor_call)) {
-	Printv(proxy_class_def, typemapLookup(n, "csfinalize", typemap_lookup_type, WARN_NONE), NIL);
-      }
-      // Dispose method
+      // Finalize and Dispose methods
+      Printv(proxy_class_def, typemapLookup(n, derived ? "csdispose_derived" : "csdispose", typemap_lookup_type, WARN_NONE), NIL);
+      // Dispose(bool disposing) method
       Printv(destruct, tm, NIL);
       if (*Char(destructor_call))
 	Replaceall(destruct, "$imcall", destructor_call);
@@ -1917,7 +1935,7 @@ public:
 	  Printv(proxy_class_def, methodmods, NIL);
 	else
 	  Printv(proxy_class_def, destruct_methodmodifiers, " ", derived ? "override" : "virtual", NIL);
-	Printv(proxy_class_def, " void ", destruct_methodname, "() ", destruct, "\n", NIL);
+	Printv(proxy_class_def, " void ", destruct_methodname, "(", destruct_parameters, ") ", destruct, "\n", NIL);
       }
     }
     if (*Char(interface_upcasts))
@@ -3549,6 +3567,24 @@ public:
     }
     if (!typemap_attributes)
       Delete(node);
+    return tm;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * typemapExists()
+   * n - for input only and must contain info for Getfile(n) and Getline(n) to work
+   * tmap_method - typemap method name
+   * type - typemap type to lookup
+   * returns found typemap or NULL if not found
+   * ----------------------------------------------------------------------------- */
+
+  const String *typemapExists(Node *n, const_String_or_char_ptr tmap_method, SwigType *type) {
+    Node *node = NewHash();
+    Setattr(node, "type", type);
+    Setfile(node, Getfile(n));
+    Setline(node, Getline(n));
+    const String *tm = Swig_typemap_lookup(tmap_method, node, "", 0);
+    Delete(node);
     return tm;
   }
 

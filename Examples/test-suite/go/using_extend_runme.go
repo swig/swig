@@ -1,6 +1,6 @@
 package main
 
-import . "./using_extend"
+import . "swigtests/using_extend"
 
 func main() {
 	f := NewFooBar()

@@ -20,6 +20,7 @@ static SWIG_CSharpWStringHelperCallback SWIG_csharp_wstring_callback = NULL;
 %pragma(csharp) imclasscode=%{
   protected class SWIGWStringHelper {
 
+    [return: global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]
     public delegate string SWIGWStringDelegate(global::System.IntPtr message);
     static SWIGWStringDelegate wstringDelegate = new SWIGWStringDelegate(CreateWString);
 
@@ -52,7 +53,7 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterWStringCallback_$module(SWIG_CSharpWStri
 
 // wchar_t
 %typemap(ctype) wchar_t "wchar_t"
-%typemap(imtype) wchar_t "char"
+%typemap(imtype) wchar_t "char" // Requires adding CharSet=CharSet.Unicode to the DllImport to correctly marshal Unicode characters
 %typemap(cstype) wchar_t "char"
 
 %typemap(csin) wchar_t "$csinput"

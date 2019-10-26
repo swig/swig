@@ -7,9 +7,9 @@
 %fragment("StdUnorderedSetTraits","header",fragment="<stddef.h>",fragment="StdSetTraits")
 %{
   namespace swig {
-    template <class RubySeq, class T>
+    template <class RubySeq, class Key, class Hash, class Compare, class Alloc>
     inline void
-    assign(const RubySeq& rubyseq, std::unordered_set<T>* seq) {
+    assign(const RubySeq& rubyseq, std::unordered_set<Key,Hash,Compare,Alloc>* seq) {
       // seq->insert(rubyseq.begin(), rubyseq.end()); // not used as not always implemented
       typedef typename RubySeq::value_type value_type;
       typename RubySeq::const_iterator it = rubyseq.begin();
@@ -18,17 +18,17 @@
       }
     }
 
-    template <class T>
-    struct traits_asptr<std::unordered_set<T> >  {
-      static int asptr(VALUE obj, std::unordered_set<T> **s) {
-	return traits_asptr_stdseq<std::unordered_set<T> >::asptr(obj, s);
+    template <class Key, class Hash, class Compare, class Alloc>
+    struct traits_asptr<std::unordered_set<Key,Hash,Compare,Alloc> >  {
+      static int asptr(VALUE obj, std::unordered_set<Key,Hash,Compare,Alloc> **s) {
+	return traits_asptr_stdseq<std::unordered_set<Key,Hash,Compare,Alloc> >::asptr(obj, s);
       }
     };
 
-    template <class T>
-    struct traits_from<std::unordered_set<T> > {
-      static VALUE from(const std::unordered_set<T>& vec) {
-	return traits_from_stdseq<std::unordered_set<T> >::from(vec);
+    template <class Key, class Hash, class Compare, class Alloc>
+    struct traits_from<std::unordered_set<Key,Hash,Compare,Alloc> > {
+      static VALUE from(const std::unordered_set<Key,Hash,Compare,Alloc>& vec) {
+	return traits_from_stdseq<std::unordered_set<Key,Hash,Compare,Alloc> >::from(vec);
       }
     };
   }

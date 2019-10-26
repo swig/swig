@@ -27,7 +27,6 @@ namespace Space {
     void templateXYZ(XYZ<T> i) {}
     operator T() { return m_t; }
     operator NotXYZ<T>() const { return m_notxyz; }
-    operator XYZ<T>() const { XYZ<T> xyz = XYZ<T>(); return xyz; }
   };
 }
 
@@ -48,10 +47,7 @@ class ABC {
   public:
     void method(ABC a) const {}
     void method(Klass k) const {}
-#if !defined(__clang__)
-    // Workaround for: warning: conversion function converting 'Space::ABC' to itself will never be used
-    operator ABC() const { ABC a; return a; }
-#endif
+    operator ABC*() const { return new ABC(); }
     operator Klass() const { Klass k; return k; }
 };
 }

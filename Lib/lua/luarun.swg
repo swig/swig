@@ -289,7 +289,7 @@ to tell the two structures apart within SWIG, other than by looking at the type
 typedef struct {
   swig_type_info   *type;
   int     own;  /* 1 if owned & must be destroyed */
-  char data[1];       /* arbitrary amount of data */    
+  char data[1];       /* arbitrary amount of data */
 } swig_lua_rawdata;
 
 /* Common SWIG API */
@@ -341,7 +341,7 @@ typedef struct {
 #define SWIG_isptrtype(L,I) (lua_isuserdata(L,I) || lua_isnil(L,I))
 
 #ifdef __cplusplus
-/* Special helper for member function pointers 
+/* Special helper for member function pointers
 it gets the address, casts it, then dereferences it */
 /*#define SWIG_mem_fn_as_voidptr(a)  (*((char**)&(a))) */
 #endif
@@ -444,7 +444,7 @@ SWIGINTERN void SWIG_Lua_elua_emulate_register(lua_State *L, const swig_elua_ent
           lua_pop(L,1); /*remove nil */
           lua_newtable(L);
           SWIG_Lua_elua_emulate_register(L,entry->value.value.table);
-        } 
+        }
         if(is_metatable) {
           assert(lua_istable(L,-1));
           lua_pushvalue(L,-1);
@@ -453,11 +453,11 @@ SWIGINTERN void SWIG_Lua_elua_emulate_register(lua_State *L, const swig_elua_ent
 
         break;
       case LUA_TUSERDATA:
-        if(entry->value.value.userdata.member) 
+        if(entry->value.value.userdata.member)
           SWIG_NewMemberObj(L,entry->value.value.userdata.pvalue,
               entry->value.value.userdata.lvalue,
               *(entry->value.value.userdata.ptype));
-        else 
+        else
           SWIG_NewPointerObj(L,entry->value.value.userdata.pvalue,
               *(entry->value.value.userdata.ptype),0);
         break;
@@ -502,7 +502,7 @@ SWIGINTERN int SWIG_Lua_emulate_elua_getmetatable(lua_State *L)
   }
   assert(lua_gettop(L) == 2);
   return 1;
-  
+
 fail:
   lua_error(L);
   return 0;
@@ -520,7 +520,7 @@ SWIGINTERN void SWIG_Lua_emulate_elua_swap_getmetatable(lua_State *L)
   lua_pushcfunction(L, SWIG_Lua_emulate_elua_getmetatable);
   lua_rawset(L,-3);
   lua_pop(L,2);
-      
+
 }
 /* END OF REMOVE */
 
@@ -1039,17 +1039,11 @@ SWIGINTERN int  SWIG_Lua_class_tostring(lua_State *L)
 {
 /*  there should be 1 param passed in
   (1) userdata (not the metatable) */
-  const char *className;
-  void* userData;
+  swig_lua_userdata* userData;
   assert(lua_isuserdata(L,1));  /* just in case */
-  userData = lua_touserdata(L,1); /* get the userdata address for later */
-  lua_getmetatable(L,1);    /* get the meta table */
-  assert(lua_istable(L,-1));  /* just in case */
+  userData = (swig_lua_userdata*)lua_touserdata(L,1); /* get the userdata address */
 
-  lua_getfield(L, -1, ".type");
-  className = lua_tostring(L, -1);
-
-  lua_pushfstring(L, "<%s userdata: %p>", className, userData);
+  lua_pushfstring(L, "<userdata of type '%s' at %p>", userData->type->str, userData->ptr);
   return 1;
 }
 
@@ -1061,7 +1055,7 @@ SWIGINTERN int  SWIG_Lua_class_disown(lua_State *L)
   swig_lua_userdata *usr;
   assert(lua_isuserdata(L,-1));  /* just in case */
   usr=(swig_lua_userdata*)lua_touserdata(L,-1);  /* get it */
-  
+
   usr->own = 0; /* clear our ownership */
   return 0;
 }
@@ -1170,7 +1164,7 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State *L,const char *cname)
 Each class structure has a list of pointers to the base class structures.
 This function fills them.
 It cannot be done at compile time, as this will not work with hireachies
-spread over more than one swig file. 
+spread over more than one swig file.
 Therefore it must be done at runtime, querying the SWIG type system.
 */
 SWIGINTERN void SWIG_Lua_init_base_class(lua_State *L,swig_lua_class *clss)
@@ -1404,11 +1398,11 @@ SWIGRUNTIME int SWIG_Lua_resolve_metamethod(lua_State *L)
 
   lua_checkstack(L,5);
   numargs = lua_gettop(L); /* number of arguments to pass to actual metamethod */
-  
+
   /* Get upvalues from closure */
   lua_pushvalue(L, lua_upvalueindex(1)); /*Get function name*/
   metamethod_name_idx = lua_gettop(L);
-  
+
   lua_pushvalue(L, lua_upvalueindex(2));
   clss = (const swig_lua_class*)(lua_touserdata(L,-1));
   lua_pop(L,1); /* remove lightuserdata with clss from stack */
@@ -1440,7 +1434,7 @@ SWIGINTERN int SWIG_Lua_add_class_user_metamethod(lua_State *L, swig_lua_class *
 
   /* metamethod name - on the top of the stack */
   assert(lua_isstring(L,-1));
-  
+
   key_index = lua_gettop(L);
 
   /* Check whether method is already defined in metatable */
@@ -1450,7 +1444,7 @@ SWIGINTERN int SWIG_Lua_add_class_user_metamethod(lua_State *L, swig_lua_class *
     lua_pop(L,1);
     return -1;
   }
-  lua_pop(L,1); 
+  lua_pop(L,1);
 
   /* Iterating over immediate bases */
   for(i=0;clss->bases[i];i++)
@@ -1460,13 +1454,13 @@ SWIGINTERN int SWIG_Lua_add_class_user_metamethod(lua_State *L, swig_lua_class *
     lua_pushvalue(L, key_index);
     lua_rawget(L, -2);
     if( !lua_isnil(L,-1) ) {
-      lua_pushvalue(L, key_index); 
+      lua_pushvalue(L, key_index);
 
       /* Add proxy function */
       lua_pushvalue(L, key_index); /* first closure value is function name */
       lua_pushlightuserdata(L, clss); /* second closure value is swig_lua_class structure */
       lua_pushcclosure(L, SWIG_Lua_resolve_metamethod, 2);
-      
+
       lua_rawset(L, metatable_index);
       success = 1;
     }
@@ -1477,7 +1471,7 @@ SWIGINTERN int SWIG_Lua_add_class_user_metamethod(lua_State *L, swig_lua_class *
       break;
   }
 
-  return success; 
+  return success;
 }
 
 SWIGINTERN void SWIG_Lua_add_class_user_metamethods(lua_State *L, swig_lua_class *clss)
@@ -1816,7 +1810,7 @@ SWIGRUNTIME void SWIG_Lua_NewPackedObj(lua_State *L,void *ptr,size_t size,swig_t
   memcpy(raw->data,ptr,size); /* copy the data */
   SWIG_Lua_AddMetatable(L,type); /* add metatable */
 }
-    
+
 /* converts a packed userdata. user for member fn pointers only */
 SWIGRUNTIME int  SWIG_Lua_ConvertPacked(lua_State *L,int index,void *ptr,size_t size,swig_type_info *type)
 {
@@ -1915,7 +1909,7 @@ Unfortunately lua keeps changing its APIs, so we need a conditional compile
 In lua 5.0.X it's lua_dostring()
 In lua 5.1.X it's luaL_dostring()
 */
-SWIGINTERN int 
+SWIGINTERN int
 SWIG_Lua_dostring(lua_State *L, const char *str) {
   int ok,top;
   if (str==0 || str[0]==0) return 0; /* nothing to do */
@@ -1930,7 +1924,7 @@ SWIG_Lua_dostring(lua_State *L, const char *str) {
   }
   lua_settop(L,top); /* restore the stack */
   return ok;
-}    
+}
 
 #ifdef __cplusplus
 }

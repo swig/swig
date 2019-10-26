@@ -32,6 +32,13 @@ extern "C" {
     REGISTER_STRINGL_CONSTANT(#N, &swig_char, 1, CONST_CS | CONST_PERSISTENT);\
 } while (0)
 
+/* ZEND_CONSTANT_SET_FLAGS is new in PHP 7.3. */
+#ifdef ZEND_CONSTANT_SET_FLAGS
+# define SWIG_ZEND_CONSTANT_SET_FLAGS ZEND_CONSTANT_SET_FLAGS
+#else
+# define SWIG_ZEND_CONSTANT_SET_FLAGS(C, F, N) do { (C)->flags = (F); (C)->module_number = (N); } while (0)
+#endif
+
 #ifdef __cplusplus
 }
 #endif
@@ -50,7 +57,7 @@ static int default_error_code = E_ERROR;
 
 /* Standard SWIG API */
 #define SWIG_GetModule(clientdata) SWIG_Php_GetModule()
-#define SWIG_SetModule(clientdata, pointer) SWIG_Php_SetModule(pointer)
+#define SWIG_SetModule(clientdata, pointer) SWIG_Php_SetModule(pointer, *(int*)clientdata)
 
 /* used to wrap returned objects in so we know whether they are newobject
    and need freeing, or not */
@@ -223,7 +230,7 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
   return -1;
 }
 
-static char const_name[] = "swig_runtime_data_type_pointer";
+static const char const_name[] = "swig_runtime_data_type_pointer";
 static swig_module_info *SWIG_Php_GetModule() {
   zval *pointer = zend_get_constant_str(const_name, sizeof(const_name) - 1);
   if (pointer) {
@@ -234,6 +241,6 @@ static swig_module_info *SWIG_Php_GetModule() {
   return NULL;
 }
 
-static void SWIG_Php_SetModule(swig_module_info *pointer) {
-  REGISTER_MAIN_LONG_CONSTANT(const_name, (long) pointer, CONST_PERSISTENT | CONST_CS);
+static void SWIG_Php_SetModule(swig_module_info *pointer, int module_number) {
+  REGISTER_LONG_CONSTANT(const_name, (long) pointer, CONST_CS | CONST_PERSISTENT);
 }

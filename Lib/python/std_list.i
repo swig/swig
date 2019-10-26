@@ -14,7 +14,7 @@
 
     template <class T>
     struct traits_from<std::list<T> > {
-      static PyObject *from(const std::list<T> & vec) {
+      static PyObject *from(const std::list<T>& vec) {
 	return traits_from_stdseq<std::list<T> >::from(vec);
       }
     };

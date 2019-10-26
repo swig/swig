@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="CCache">19 Using SWIG with ccache - ccache-swig(1) manpage</a></H1>
+<H1><a name="CCache">20 Using SWIG with ccache - ccache-swig(1) manpage</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -35,7 +35,7 @@
 
 
 <p>
-<H2><a name="CCache_nn2">19.1 NAME</a></H2>
+<H2><a name="CCache_nn2">20.1 NAME</a></H2>
 
 
 <p>
@@ -43,7 +43,7 @@
 ccache-swig - a fast compiler cache
 
 <p>
-<H2><a name="CCache_nn3">19.2 SYNOPSIS</a></H2>
+<H2><a name="CCache_nn3">20.2 SYNOPSIS</a></H2>
 
 
 <p>
@@ -53,7 +53,7 @@ ccache-swig &lt;compiler&gt; [COMPILER OPTIONS]
 <p>
 &lt;compiler&gt; [COMPILER OPTIONS]
 <p>
-<H2><a name="CCache_nn4">19.3 DESCRIPTION</a></H2>
+<H2><a name="CCache_nn4">20.3 DESCRIPTION</a></H2>
 
 
 <p>
@@ -62,7 +62,7 @@ by caching previous compiles and detecting when the same compile is
 being done again. ccache-swig is ccache plus support for SWIG. ccache
 and ccache-swig are used interchangeably in this document.
 <p>
-<H2><a name="CCache_nn5">19.4 OPTIONS SUMMARY</a></H2>
+<H2><a name="CCache_nn5">20.4 OPTIONS SUMMARY</a></H2>
 
 
 <p>
@@ -82,7 +82,7 @@ Here is a summary of the options to ccache-swig.
 </pre>
 
 <p>
-<H2><a name="CCache_nn6">19.5 OPTIONS</a></H2>
+<H2><a name="CCache_nn6">20.5 OPTIONS</a></H2>
 
 
 <p>
@@ -124,7 +124,7 @@ rounded down to the nearest multiple of 16 kilobytes.
 <p>
 </dl>
 <p>
-<H2><a name="CCache_nn7">19.6 INSTALLATION</a></H2>
+<H2><a name="CCache_nn7">20.6 INSTALLATION</a></H2>
 
 
 <p>
@@ -156,7 +156,7 @@ This will work as long as /usr/local/bin comes before the path to gcc
 Note! Do not use a hard link, use a symbolic link. A hardlink will
 cause "interesting" problems.
 <p>
-<H2><a name="CCache_nn8">19.7 EXTRA OPTIONS</a></H2>
+<H2><a name="CCache_nn8">20.7 EXTRA OPTIONS</a></H2>
 
 
 <p>
@@ -176,7 +176,7 @@ file). By using --ccache-skip you can force an option to not be
 treated as an input file name and instead be passed along to the
 compiler as a command line option.
 <p>
-<H2><a name="CCache_nn9">19.8 ENVIRONMENT VARIABLES</a></H2>
+<H2><a name="CCache_nn9">20.8 ENVIRONMENT VARIABLES</a></H2>
 
 
 <p>
@@ -315,7 +315,7 @@ the use of '#pragma SWIG'.
 <p>
 </dl>
 <p>
-<H2><a name="CCache_nn10">19.9 CACHE SIZE MANAGEMENT</a></H2>
+<H2><a name="CCache_nn10">20.9 CACHE SIZE MANAGEMENT</a></H2>
 
 
 <p>
@@ -328,7 +328,7 @@ When these limits are reached ccache will reduce the cache to 20%
 below the numbers you specified in order to avoid doing the cache
 clean operation too often.
 <p>
-<H2><a name="CCache_nn11">19.10 CACHE COMPRESSION</a></H2>
+<H2><a name="CCache_nn11">20.10 CACHE COMPRESSION</a></H2>
 
 
 <p>
@@ -339,7 +339,7 @@ performance slowdown, it significantly increases the number of files
 that fit in the cache. You can turn off compression setting the
 CCACHE_NOCOMPRESS environment variable.
 <p>
-<H2><a name="CCache_nn12">19.11 HOW IT WORKS</a></H2>
+<H2><a name="CCache_nn12">20.11 HOW IT WORKS</a></H2>
 
 
 <p>
@@ -364,7 +364,7 @@ compiler output that you would get without the cache. If you ever
 discover a case where ccache changes the output of your compiler then
 please let me know.
 <p>
-<H2><a name="CCache_nn13">19.12 USING CCACHE WITH DISTCC</a></H2>
+<H2><a name="CCache_nn13">20.12 USING CCACHE WITH DISTCC</a></H2>
 
 
 <p>
@@ -378,7 +378,7 @@ option. You just need to set the environment variable CCACHE_PREFIX to
 'distcc' and ccache will prefix the command line used with the
 compiler with the command 'distcc'.
 <p>
-<H2><a name="CCache_nn14">19.13 SHARING A CACHE</a></H2>
+<H2><a name="CCache_nn14">20.13 SHARING A CACHE</a></H2>
 
 
 <p>
@@ -407,7 +407,7 @@ following conditions need to be met:
   versions of ccache that do not support compression.
 </ul>
 <p>
-<H2><a name="CCache_nn15">19.14 HISTORY</a></H2>
+<H2><a name="CCache_nn15">20.14 HISTORY</a></H2>
 
 
 <p>
@@ -423,7 +423,7 @@ I wrote ccache because I wanted to get a bit more speed out of a
 compiler cache and I wanted to remove some of the limitations of the
 shell-script version.
 <p>
-<H2><a name="CCache_nn16">19.15 DIFFERENCES FROM COMPILERCACHE</a></H2>
+<H2><a name="CCache_nn16">20.15 DIFFERENCES FROM COMPILERCACHE</a></H2>
 
 
 <p>
@@ -441,7 +441,7 @@ are:
 <li> ccache avoids a double call to cpp on a cache miss
 </ul>
 <p>
-<H2><a name="CCache_nn17">19.16 CREDITS</a></H2>
+<H2><a name="CCache_nn17">20.16 CREDITS</a></H2>
 
 
 <p>
@@ -453,12 +453,12 @@ Thanks to the following people for their contributions to ccache
  <li> Paul Russell for many suggestions and the debian packaging
 </ul>
 <p>
-<H2><a name="CCache_nn18">19.17 AUTHOR</a></H2>
+<H2><a name="CCache_nn18">20.17 AUTHOR</a></H2>
 
 
 <p>
 ccache was written by Andrew Tridgell
-<a href="http://samba.org/~tridge/">http://samba.org/~tridge/</a>.
+<a href="https://www.samba.org/~tridge/">https://www.samba.org/~tridge/</a>.
 ccache was adapted to create ccache-swig for use with SWIG by William Fulton.
 <p>
 If you wish to report a problem or make a suggestion then please email

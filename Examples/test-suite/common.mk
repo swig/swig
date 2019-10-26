@@ -82,7 +82,6 @@ Makefile: $(srcdir)/Makefile.in ../../../config.status
 # Broken C++ test cases. (Can be run individually using: make testcase.cpptest)
 CPP_TEST_BROKEN += \
 	constants \
-	cpp_broken \
 	director_nested_class \
 	exception_partial_info \
 	extend_variable \
@@ -162,8 +161,11 @@ CPP_TEST_CASES += \
 	cpp_nodefault \
 	cpp_static \
 	cpp_typedef \
+	cpp14_binary_integer_literals \
+	cpp17_hex_floating_literals \
 	cpp17_nested_namespaces \
 	cpp17_nspace_nested_namespaces \
+	cpp17_u8_char_literals \
 	curiously_recurring_template_pattern \
 	default_args \
 	default_arg_expressions \
@@ -315,6 +317,7 @@ CPP_TEST_CASES += \
 	namespace_virtual_method \
 	nspace \
 	nspace_extend \
+	native_directive \
 	naturalvar \
 	naturalvar_more \
 	naturalvar_onoff \
@@ -322,6 +325,7 @@ CPP_TEST_CASES += \
 	nested_directors \
 	nested_comment \
 	nested_ignore \
+	nested_inheritance_interface \
 	nested_in_template \
 	nested_scope \
 	nested_template_base \
@@ -405,6 +409,7 @@ CPP_TEST_CASES += \
 	static_array_member \
 	static_const_member \
 	static_const_member_2 \
+	stl_no_default_constructor \
 	string_constants \
 	struct_initialization_cpp \
 	struct_value \
@@ -521,6 +526,7 @@ CPP_TEST_CASES += \
 	typemap_numinputs \
 	typemap_template \
 	typemap_template_parm_typedef \
+	typemap_template_parms \
 	typemap_template_typedef \
 	typemap_out_optimal \
 	typemap_qualifier_strip \
@@ -559,6 +565,7 @@ CPP_TEST_CASES += \
 
 # C++11 test cases.
 CPP11_TEST_CASES += \
+	cpp11_alias_nested_template_scoping \
 	cpp11_alignment \
 	cpp11_alternate_function_syntax \
 	cpp11_constexpr \
@@ -568,13 +575,13 @@ CPP11_TEST_CASES += \
 	cpp11_director_enums \
 	cpp11_directors \
 	cpp11_explicit_conversion_operators \
+	cpp11_final_directors \
 	cpp11_final_override \
 	cpp11_function_objects \
 	cpp11_inheriting_constructors \
 	cpp11_initializer_list \
 	cpp11_initializer_list_extend \
 	cpp11_lambda_functions \
-	cpp11_li_std_array \
 	cpp11_noexcept \
 	cpp11_null_pointer_constant \
 	cpp11_raw_string_literals \
@@ -587,6 +594,7 @@ CPP11_TEST_CASES += \
 	cpp11_rvalue_reference3 \
 	cpp11_sizeof_object \
 	cpp11_static_assert \
+	cpp11_std_array \
 	cpp11_strongly_typed_enumerations \
 	cpp11_thread_local \
 	cpp11_template_double_brackets \
@@ -615,6 +623,7 @@ DOXYGEN_TEST_CASES += \
 	doxygen_alias \
 	doxygen_basic_notranslate \
 	doxygen_basic_translate \
+	doxygen_basic_translate_style2 \
 	doxygen_ignore \
 	doxygen_misc_constructs \
 	doxygen_nested_class \
@@ -636,6 +645,7 @@ CPP_STD_TEST_CASES += \
 	director_string \
 	ignore_template_constructor \
 	li_std_combinations \
+	li_std_containers_overload \
 	li_std_deque \
 	li_std_except \
 	li_std_except_as_class \
@@ -644,9 +654,11 @@ CPP_STD_TEST_CASES += \
 	li_std_pair_using \
 	li_std_string \
 	li_std_vector \
+	li_std_vector_back_reference \
 	li_std_vector_enum \
 	li_std_vector_member_var\
 	li_std_vector_ptr \
+	li_std_wstring \
 	smart_pointer_inherit \
 	template_typedef_fnc \
 	template_type_namespace \
@@ -704,6 +716,7 @@ C_TEST_CASES += \
 	preproc \
 	preproc_constants_c \
 	preproc_defined \
+	preproc_gcc_output \
 	preproc_include \
 	preproc_line_file \
 	register_par \
@@ -724,12 +737,12 @@ C_TEST_CASES += \
 # Multi-module C++ test cases . (Can be run individually using make testcase.multicpptest)
 MULTI_CPP_TEST_CASES += \
 	clientdata_prop \
-	imports \
 	import_stl \
-	packageoption \
+	imports \
 	mod \
-	template_typedef_import \
 	multi_import \
+	packageoption \
+	template_typedef_import \
 
 # Custom tests - tests with additional commandline options
 wallkw.cpptest: SWIGOPT += -Wallkw

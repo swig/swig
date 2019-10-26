@@ -28,7 +28,7 @@
         ++count;
     return count;
   }
-  int func4(const char *buf4)
+  size_t func4(const char *buf4)
   {
     return strlen(buf4);
   }  

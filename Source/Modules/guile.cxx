@@ -255,7 +255,7 @@ public:
     if (goops) {
       if (linkage != GUILE_LSTYLE_PASSIVE && linkage != GUILE_LSTYLE_MODULE) {
 	Printf(stderr, "guile: GOOPS support requires passive or module linkage\n");
-	exit(1);
+	SWIG_exit(EXIT_FAILURE);
       }
     }
 
