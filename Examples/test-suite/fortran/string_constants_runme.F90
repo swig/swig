@@ -13,7 +13,7 @@ program string_constants_runme
   character(kind=C_CHAR, len=*), parameter :: &
     expected_aa3 = "A" // CR // "B" // LF // "C"
   character(kind=C_CHAR, len=:), allocatable :: actual_aa3
-  integer :: i
+  ! integer :: i
 
   ASSERT(EE1 == "TUV")
   ASSERT(XX2 == "WXY")
