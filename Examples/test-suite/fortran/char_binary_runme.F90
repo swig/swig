@@ -6,7 +6,7 @@ program char_binary_runme
   use char_binary
   use ISO_C_BINDING
   implicit none
-  character(kind=C_CHAR, len=*), parameter :: withnull = "hil" // C_NULL_CHAR
+  character(len=*), parameter :: withnull = "hil" // C_NULL_CHAR
   type(Test) :: t
 
   if (len(withnull) /= 4) stop 2

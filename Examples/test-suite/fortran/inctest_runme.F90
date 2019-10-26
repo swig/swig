@@ -6,7 +6,7 @@ program inctest_runme
   use inctest
   use ISO_C_BINDING
   implicit none
-  character(kind=C_CHAR, len=:), allocatable :: instr, outstr
+  character(len=:), allocatable :: instr, outstr
   ! If the 'includes' fail, these will produce compiler errors
   type(A) :: ai
   type(B) :: bi
