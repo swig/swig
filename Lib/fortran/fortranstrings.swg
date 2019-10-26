@@ -31,19 +31,6 @@ subroutine %fortrantm(fin, char*)(finp, iminp, temp)
 end subroutine
 }
 
-// Copy string to character array
-%fragment("SWIG_fargout"{char*}, "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1) {
-subroutine %fortrantm(fargout, char*)(chars, string)
-  use, intrinsic :: ISO_C_BINDING
-  character(kind=C_CHAR), dimension(:), intent(in) :: chars
-  character(kind=C_CHAR, len=*), intent(out) :: string
-  integer :: i
-  do i=1, len(string)
-    string(i:i) = chars(i)
-  end do
-end subroutine
-}
-
 // Return fortran allocatable string from character array
 %fragment("SWIG_fout"{char*}, "fsubprograms", fragment="SwigArrayWrapper_f", noblock=1) {
 subroutine %fortrantm(fout, char*)(imout, fout)
