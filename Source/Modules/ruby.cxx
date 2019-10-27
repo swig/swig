@@ -2192,6 +2192,11 @@ public:
     String *getfname, *setfname;
     Wrapper *getf, *setf;
 
+    // Determine whether virtual global variables shall be used
+    // which have different getter and setter signatures,
+    // see https://docs.ruby-lang.org/en/2.6.0/extension_rdoc.html#label-Global+Variables+Shared+Between+C+and+Ruby
+    const bool use_virtual_var = (current == NO_CPP && useGlobalModule);
+
     getf = NewWrapper();
     setf = NewWrapper();
 
@@ -2201,7 +2206,7 @@ public:
     getfname = Swig_name_wrapper(getname);
     Setattr(n, "wrap:name", getfname);
     Printv(getf->def, "SWIGINTERN VALUE\n", getfname, "(", NIL);
-    Printf(getf->def, "VALUE self");
+    Printf(getf->def, (use_virtual_var) ? "ID id" : "VALUE self");
     Printf(getf->def, ") {");
     Wrapper_add_local(getf, "_val", "VALUE _val");
 
@@ -2235,8 +2240,12 @@ public:
       String *setname = Swig_name_set(NSPACE_TODO, iname);
       setfname = Swig_name_wrapper(setname);
       Setattr(n, "wrap:name", setfname);
-      Printv(setf->def, "SWIGINTERN VALUE\n", setfname, "(VALUE self, ", NIL);
-      Printf(setf->def, "VALUE _val) {");
+      Printf(setf->def, "SWIGINTERN ");
+      if (use_virtual_var) {
+        Printv(setf->def, "void\n", setfname, "(VALUE _val, ID id) {", NIL);
+      } else {
+        Printv(setf->def, "VALUE\n", setfname, "(VALUE self, VALUE _val) {", NIL);
+      }
       tm = Swig_typemap_lookup("varin", n, name, 0);
       if (tm) {
 	Replaceall(tm, "$input", "_val");
@@ -2247,9 +2256,14 @@ public:
       } else {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s\n", SwigType_str(t, 0));
       }
-      Printv(setf->code, tab4, "return _val;\n", NIL);
-      Printf(setf->code, "fail:\n");
-      Printv(setf->code, tab4, "return Qnil;\n", NIL);
+      if (use_virtual_var) {
+        Printf(setf->code, "fail:\n");
+        Printv(setf->code, tab4, "return;\n", NIL);
+      } else {
+        Printv(setf->code, tab4, "return _val;\n", NIL);
+        Printf(setf->code, "fail:\n");
+        Printv(setf->code, tab4, "return Qnil;\n", NIL);
+      }
       Printf(setf->code, "}\n");
       Wrapper_print(setf, f_wrappers);
       Delete(setname);
@@ -2259,7 +2273,7 @@ public:
     if (CPlusPlus) {
       Insert(getfname, 0, "VALUEFUNC(");
       Append(getfname, ")");
-      Insert(setfname, 0, "VALUEFUNC(");
+      Insert(setfname, 0, (use_virtual_var) ? "(void (*)(ANYARGS))(" : "VALUEFUNC(");
       Append(setfname, ")");
     }
 
@@ -2283,9 +2297,11 @@ public:
 	  Printv(s, tab4, "rb_define_singleton_method(", modvar, ", \"", iname, "=\", ", setfname, ", 1);\n", NIL);
 	}
       } else {
-	Printv(s, tab4, "rb_define_global_method(\"", iname, "\", ", getfname, ", 0);\n", NIL);
-	if (!GetFlag(n, "feature:immutable")) {
-	  Printv(s, tab4, "rb_define_global_method(\"", iname, "=\", ", setfname, ", 1);\n", NIL);
+	Printv(s, tab4, "rb_define_virtual_variable(\"$", iname, "\", ", getfname, ", ", NIL);
+	if (GetFlag(n, "feature:immutable")) {
+	  Printv(s, tab4, "0);\n", NIL);
+	} else {
+	  Printv(s, tab4, setfname, ");\n", NIL);
 	}
       }
       Printv(f_init, s, NIL);

@@ -615,6 +615,24 @@ directive. For example: </p>
 effect until it is explicitly disabled using <tt>%mutable</tt>.
 </p>
 
+<p>Note: When SWIG is invoked with the <tt>-globalmodule</tt> option in
+effect, the C/C++ global variables will be translated into Ruby global
+variables. Type-checking and the optional read-only characteristic are
+available in the same way as described above. However the example would
+then have to be modified and executed in the following way:
+
+<div class="code targetlang">
+<pre>$ <b>irb</b>
+irb(main):001:0&gt; <b>require 'Example'</b>
+true
+irb(main):002:0&gt; <b>$variable1 = 2</b>
+2
+irb(main):003:0&gt; <b>$Variable2 = 4 * 10.3</b>
+41.2
+irb(main):004:0&gt; <b>$Variable2</b>
+41.2</pre>
+</div>
+
 <H3><a name="Ruby_nn15">34.3.4 Constants</a></H3>
 
 

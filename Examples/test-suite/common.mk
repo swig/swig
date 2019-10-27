@@ -250,6 +250,7 @@ CPP_TEST_CASES += \
 	funcptr_cpp \
 	functors \
 	fvirtual \
+	global_immutable_vars_cpp \
 	global_namespace \
 	global_ns_arg \
 	global_scope_types \
@@ -689,6 +690,7 @@ C_TEST_CASES += \
 	funcptr \
 	function_typedef \
 	global_functions \
+	global_immutable_vars \
 	immutable_values \
 	inctest \
 	infinity \
