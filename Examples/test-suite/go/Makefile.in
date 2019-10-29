@@ -67,7 +67,7 @@ multi_import.multicpptest:
 	if ! test -d gopath/multi_import/src/swigtests; then \
 	  (cd gopath/multi_import/src && ln -s . swigtests); \
 	fi
-	for f in multi_import_b multi_import_a; do \
+	for f in multi_impmort_d multi_import_b multi_import_a; do \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
 	  SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	  LIBS='$(LIBS)' INCLUDES='$(INCLUDES)' SWIGOPT='$(SWIGOPT)' NOLINK=true \
@@ -179,6 +179,7 @@ clean:
 	rm -f clientdata_prop_b.go clientdata_prop_b.gox
 	rm -f multi_import_a.go multi_import_a.gox
 	rm -f multi_import_b.go multi_import_b.gox
+	rm -f multi_import_d.go multi_import_d.gox
 	rm -rf go_subdir_import_a.go go_subdir_import_a.gox testdir
 	rm -f packageoption_a.go packageoption_a.gox
 	rm -f packageoption_b.go packageoption_b.gox
