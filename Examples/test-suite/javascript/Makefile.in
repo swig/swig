@@ -47,6 +47,7 @@ ifeq (node,$(JSENGINE))
   # contract macro has an empty 'else' at the end...
   aggregate.cpptest: GYP_CFLAGS = \"-Wno-empty-body\"
   contract.cpptest: GYP_CFLAGS = \"-Wno-empty-body\"
+  contract_c.ctest: GYP_CFLAGS = \"-Wno-empty-body\"
 
   # dunno... ignoring generously
   apply_signed_char.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
