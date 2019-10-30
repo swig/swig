@@ -8,6 +8,7 @@ program char_binary_runme
   implicit none
   character(len=*), parameter :: withnull = "hil" // C_NULL_CHAR
   type(Test) :: t
+  type(SWIGTYPE_p_char) :: pc
 
   if (len(withnull) /= 4) stop 2
 
@@ -18,6 +19,13 @@ program char_binary_runme
   ASSERT(t%strlen(withnull) == 4)
   ASSERT(t%ustrlen(withnull) == 4)
 
+  pc = New_pchar(5)
+  call Pchar_setitem(pc, 0, 'h')
+  call Pchar_setitem(pc, 1, 'o')
+  call Pchar_setitem(pc, 2, 'l')
+  call Pchar_setitem(pc, 3, 'a')
+  call Pchar_setitem(pc, 4, C_NULL_CHAR)
+  call Delete_pchar(pc)
 end program
 
 
