@@ -67,7 +67,7 @@ multi_import.multicpptest:
 	if ! test -d gopath/multi_import/src/swigtests; then \
 	  (cd gopath/multi_import/src && ln -s . swigtests); \
 	fi
-	for f in multi_impmort_d multi_import_b multi_import_a; do \
+	for f in multi_import_d multi_import_b multi_import_a; do \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
 	  SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	  LIBS='$(LIBS)' INCLUDES='$(INCLUDES)' SWIGOPT='$(SWIGOPT)' NOLINK=true \
