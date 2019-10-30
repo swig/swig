@@ -27,12 +27,12 @@ case "$SWIGLANG" in
 		travis_retry sudo dpkg -i dmd_2.066.0-0_amd64.deb
 		;;
 	"fortran")
-    case "$CC" in
-      "gcc")   export FC=gfortran ;;
-      "gcc-5") export FC=gfortran-5 ;;
-      "gcc-6") export FC=gfortran-6 ;;
-      "gcc-7") export FC=gfortran-7 ;;
-      "gcc-8") export FC=gfortran-8 ;;
+    case "$GCC" in
+      "")   export FC=gfortran ;;
+      "6") export FC=gfortran-6 ;;
+      "7") export FC=gfortran-7 ;;
+      "8") export FC=gfortran-8 ;;
+      "9") export FC=gfortran-9 ;;
     esac
     travis_retry sudo apt-get install -qq $FC
 		;;
