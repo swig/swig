@@ -107,6 +107,9 @@ double Atan2(double y, double x)
     return 0;
 }
 
+/* Regression test for crash with empty comment: */
+/**/ 
+
 /**
  * Comment at the end of file should be ignored.
  */
