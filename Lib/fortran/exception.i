@@ -56,8 +56,8 @@ const char* SWIG_FORTRAN_ERROR_STR();
 #ifdef __cplusplus
 extern "C" {
 #endif
-void SWIG_check_unhandled_exception_impl(const char* decl);
-void SWIG_store_exception(const char* decl, int errcode, const char *msg);
+SWIGEXPORT void SWIG_check_unhandled_exception_impl(const char* decl);
+SWIGEXPORT void SWIG_store_exception(const char* decl, int errcode, const char *msg);
 #ifdef __cplusplus
 }
 #endif
