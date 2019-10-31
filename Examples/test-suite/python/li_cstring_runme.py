@@ -18,10 +18,10 @@ if test4("hello") != "hello-suffix":
     print test4("hello")
     raise RuntimeError
 
-if test5(4) != 'xxxx':
+if test5(4) != "xxxx":
     raise RuntimeError
 
-if test6(10) != 'xxxxx':
+if test6(10) != "xxxxx":
     raise RuntimeError
 
 if test7() != "Hello world!":

@@ -1,7 +1,7 @@
 package main
 
-import "mod_a"
-import "mod_b"
+import "swigtests/mod_a"
+import "swigtests/mod_b"
 
 func main() {
 	c := mod_b.NewC()

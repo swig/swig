@@ -149,8 +149,8 @@
 	if (SWIG_ConvertPtr(&$input, (void **) &$1, 0, 0) < 0) {
 	  /* Allow NULL from php for void* */
 	  if (Z_ISNULL($input)) $1=0;
-	  else
-            SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
+	else
+	  SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
 	}
 %}
 
@@ -471,7 +471,7 @@
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE
 {
   void *tmp;
-  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, $&1_descriptor, SWIG_POINTER_NO_NULL) >= 0);
+  $1 = (SWIG_ConvertPtr(&$input, (void **)&tmp, $&1_descriptor, SWIG_POINTER_NO_NULL) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER)
@@ -480,7 +480,7 @@
              SWIGTYPE *const&
 {
   void *tmp;
-  _v = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, 0) >= 0);
+  $1 = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, 0) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER)
@@ -488,19 +488,19 @@
              SWIGTYPE &&
 {
   void *tmp;
-  _v = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, SWIG_POINTER_NO_NULL) >= 0);
+  $1 = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, SWIG_POINTER_NO_NULL) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const&
 {
   void *tmp;
-  _v = (SWIG_ConvertPtr(&$input, (void**)&tmp, $*1_descriptor, 0) >= 0);
+  $1 = (SWIG_ConvertPtr(&$input, (void**)&tmp, $*1_descriptor, 0) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void *
 {
   void *tmp;
-  _v = (SWIG_ConvertPtr(&$input, (void**)&tmp, 0, 0) >= 0);
+  $1 = (SWIG_ConvertPtr(&$input, (void**)&tmp, 0, 0) >= 0);
 }
 
 /* Exception handling */

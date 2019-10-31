@@ -987,7 +987,6 @@ static DohFileMethods StringFileMethods = {
   String_ungetc,
   String_seek,
   String_tell,
-  0,				/* close */
 };
 
 static DohStringMethods StringStringMethods = {

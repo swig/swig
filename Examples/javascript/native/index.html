@@ -1,0 +1,31 @@
+<html>
+<head>
+<title>SWIG:Examples:javascript:native</title>
+</head>
+
+<body bgcolor="#ffffff">
+
+
+<tt>SWIG/Examples/javascript/native/</tt>
+<hr>
+
+<H2>Manually wrapped callback function in JavaScript</H2>
+
+<p>
+This example demonstrates how to manually add callback feature support to a SWIG module.
+</p>
+
+<ul>
+<li><a href="example.i">example.i</a>. Interface file containing the API function and async behind-the-scenes functions. 
+<li><a href="runme.java">runme.js</a>. Sample JavaScript program showing the API function being called with a callback function parameter.
+</ul>
+
+<h2>Notes</h2>
+
+The V8 code queues the callback request for processing using the UV interface. An async function callback is invoked when the system is ready to process the next request. When the async function finishes, a completion function callback is invoked to finalize the request. Here the callback function parameter is invoked.
+<br/><br/>
+UV request queueing is only necessary for operations that would take a really long or otherwise unpredictable amount of time (async operations). A callback parameter could also be invoked immediately within the API function.
+
+<hr>
+</body>
+</html>

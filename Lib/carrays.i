@@ -25,7 +25,6 @@
  * ----------------------------------------------------------------------------- */
 
 %define %array_functions(TYPE,NAME)
-%newobject new_##NAME;
 %{
 static TYPE *new_##NAME(int nelements) { %}
 #ifdef __cplusplus

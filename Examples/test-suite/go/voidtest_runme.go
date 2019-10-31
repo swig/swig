@@ -1,6 +1,6 @@
 package main
 
-import "./voidtest"
+import "swigtests/voidtest"
 
 func main() {
 	voidtest.Globalfunc()

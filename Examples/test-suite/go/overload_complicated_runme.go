@@ -1,6 +1,6 @@
 package main
 
-import . "./overload_complicated"
+import . "swigtests/overload_complicated"
 
 func main() {
 	var pInt *int

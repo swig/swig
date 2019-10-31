@@ -4,7 +4,7 @@
 %{
 extern int gcd(int x, int y);
 extern int gcdmain(int argc, char *argv[]);
-extern int count(char *bytes, int len, char c);
+extern int charcount(char *bytes, int len, char c);
 extern void capitalize (char *str, int len);
 extern void circle (double cx, double cy);
 extern int squareCubed (int n, int *OUTPUT);
@@ -50,7 +50,7 @@ extern int gcdmain(int argc, char *argv[]);
   $2 = SCHEME_STRLEN_VAL($input);
 }
 
-extern int count(char *bytes, int len, char c);
+extern int charcount(char *bytes, int len, char c);
 
 
 /* This example shows how to wrap a function that mutates a string */
@@ -68,7 +68,7 @@ extern int count(char *bytes, int len, char c);
 
 %typemap(argout) (char *str, int len) {
    Scheme_Object *s;
-   s = scheme_make_sized_string($1,$2,1);
+   s = scheme_make_sized_string($1,$2);
    SWIG_APPEND_VALUE(s);
    free($1);
 }   

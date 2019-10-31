@@ -1,11 +1,13 @@
 # see top-level Makefile.in
+argout_ref
+callback
+class
+contract
+scoped_enum
+shapes
 simple
 #std_string
 std_vector
 stl
-argout_ref
-shapes
-contract
-scoped_enum
 string_from_ptr
 strings_test

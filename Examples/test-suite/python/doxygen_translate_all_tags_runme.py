@@ -34,10 +34,16 @@ Not everything works right now...
 
 'citationword'
 
+.. code-block:: c++
+
+    some test code
+
+Code immediately following text.  Pydoc translation must add an
+empty line before:
 
 .. code-block:: c++
 
-     some test code""")
+    more test code""")
 
 comment_verifier.check(inspect.getdoc(doxygen_translate_all_tags.func02),
 r"""Conditional comment: SOMECONDITION
@@ -90,17 +96,20 @@ r""":raises: SuperError
 
 :math:`\sqrt{(x_2-x_1)^2+(y_2-y_1)^2}`
 
+.. math::
+
+    \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
 
 .. math::
 
     \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
 
-
+Math immediately following text.  Pydoc translation must add an
+empty line before:
 
 .. math::
 
     \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
-
 
 
 
@@ -283,10 +292,8 @@ r"""TODO: Some very important task
 
 
 
-
 very long
 text with tags <sometag>
-
 
 
 

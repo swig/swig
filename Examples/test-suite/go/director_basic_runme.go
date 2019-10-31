@@ -1,6 +1,6 @@
 package main
 
-import "./director_basic"
+import "swigtests/director_basic"
 
 type GoFoo struct{}
 

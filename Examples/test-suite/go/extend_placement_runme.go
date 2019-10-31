@@ -1,6 +1,6 @@
 package main
 
-import "./extend_placement"
+import "swigtests/extend_placement"
 
 func main() {
 	foo := extend_placement.NewFoo()

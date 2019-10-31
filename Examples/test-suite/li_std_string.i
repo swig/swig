@@ -22,6 +22,12 @@ const std::string& test_const_reference(const std::string &x) {
    return x;
 }
 
+void test_const_reference_returning_void(const std::string &) {
+}
+
+void test_const_reference_returning_void(const std::string &, int) {
+}
+
 void test_pointer(std::string *x) {
 }
 

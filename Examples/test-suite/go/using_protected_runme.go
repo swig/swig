@@ -1,6 +1,6 @@
 package main
 
-import . "./using_protected"
+import . "swigtests/using_protected"
 
 func main() {
 	f := NewFooBar()

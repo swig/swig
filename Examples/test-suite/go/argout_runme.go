@@ -1,6 +1,6 @@
 package main
 
-import wrap "./argout"
+import wrap "swigtests/argout"
 
 func main() {
 	ip := wrap.New_intp()

@@ -17,19 +17,19 @@
 // const declarations are used to guess the intent of the function being
 // exported; therefore, the following rationale is applied:
 // 
-//   -- f(std::unordered_multiset<T>), f(const std::unordered_multiset<T>&):
+//   -- f(std::unordered_multiset<Key>), f(const std::unordered_multiset<Key>&):
 //      the parameter being read-only, either a sequence or a
-//      previously wrapped std::unordered_multiset<T> can be passed.
-//   -- f(std::unordered_multiset<T>&), f(std::unordered_multiset<T>*):
+//      previously wrapped std::unordered_multiset<Key> can be passed.
+//   -- f(std::unordered_multiset<Key>&), f(std::unordered_multiset<Key>*):
 //      the parameter may be modified; therefore, only a wrapped std::unordered_multiset
 //      can be passed.
-//   -- std::unordered_multiset<T> f(), const std::unordered_multiset<T>& f():
-//      the set is returned by copy; therefore, a sequence of T:s 
+//   -- std::unordered_multiset<Key> f(), const std::unordered_multiset<Key>& f():
+//      the set is returned by copy; therefore, a sequence of Key:s 
 //      is returned which is most easily used in other functions
-//   -- std::unordered_multiset<T>& f(), std::unordered_multiset<T>* f():
+//   -- std::unordered_multiset<Key>& f(), std::unordered_multiset<Key>* f():
 //      the set is returned by reference; therefore, a wrapped std::unordered_multiset
 //      is returned
-//   -- const std::unordered_multiset<T>* f(), f(const std::unordered_multiset<T>*):
+//   -- const std::unordered_multiset<Key>* f(), f(const std::unordered_multiset<Key>*):
 //      for consistency, they expect and return a plain set pointer.
 // ------------------------------------------------------------------------
 
@@ -40,9 +40,10 @@ namespace std {
 
   //unordered_multiset
 
-  template <class _Key, class _Hash = std::hash< _Key >,
+  template <class _Key,
+            class _Hash = std::hash< _Key >,
             class _Compare = std::equal_to< _Key >,
-	    class _Alloc = allocator< _Key > >
+            class _Alloc = allocator< _Key > >
   class unordered_multiset {
   public:
     typedef size_t size_type;
@@ -53,6 +54,8 @@ namespace std {
     typedef const value_type* const_pointer;
     typedef value_type& reference;
     typedef const value_type& const_reference;
+    typedef _Hash hasher;
+    typedef _Compare key_equal;
     typedef _Alloc allocator_type;
 
     %traits_swigtype(_Key);

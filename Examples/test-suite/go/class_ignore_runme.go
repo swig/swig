@@ -1,6 +1,6 @@
 package main
 
-import "./class_ignore"
+import "swigtests/class_ignore"
 
 func main() {
 	a := class_ignore.NewBar()

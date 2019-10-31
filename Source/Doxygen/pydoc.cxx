@@ -138,6 +138,52 @@ static void trimWhitespace(string &s) {
     s.erase(lastNonSpace + 1);
 }
 
+// Erase the first character in the string if it is a newline
+static void eraseLeadingNewLine(string &s) {
+  if (!s.empty() && s[0] == '\n')
+    s.erase(s.begin());
+}
+
+// Erase the last character in the string if it is a newline
+static void eraseTrailingNewLine(string &s) {
+  if (!s.empty() && s[s.size() - 1] == '\n')
+    s.erase(s.size() - 1);
+}
+
+// Check the generated docstring line by line and make sure that any
+// code and verbatim blocks have an empty line preceding them, which
+// is necessary for Sphinx.  Additionally, this strips any empty lines
+// appearing at the beginning of the docstring.
+static string padCodeAndVerbatimBlocks(const string &docString) {
+  std::string result;
+
+  std::istringstream iss(docString);
+
+  // Initialize to false because there is no previous line yet
+  bool lastLineWasNonBlank = false;
+  
+  for (string line; std::getline(iss, line); result += line) {
+    if (!result.empty()) {
+      // Terminate the previous line
+      result += '\n';
+    }
+
+    const size_t pos = line.find_first_not_of(" \t");
+    if (pos == string::npos) {
+      lastLineWasNonBlank = false;
+    } else {
+      if (lastLineWasNonBlank &&
+	  (line.compare(pos, 13, ".. code-block") == 0 ||
+	  line.compare(pos, 7, ".. math") == 0)) {
+	// Must separate code or math blocks from the previous line
+	result += '\n';
+      }
+      lastLineWasNonBlank = true;
+    }
+  }
+  return result;
+}
+
 /* static */
 PyDocConverter::TagHandlersMap::mapped_type PyDocConverter::make_handler(tagHandler handler) {
   return make_pair(handler, std::string());
@@ -219,7 +265,7 @@ void PyDocConverter::fillStaticTables() {
   tagHandlers["short"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["todo"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["version"] = make_handler(&PyDocConverter::handleParagraph);
-  tagHandlers["verbatim"] = make_handler(&PyDocConverter::handleParagraph);
+  tagHandlers["verbatim"] = make_handler(&PyDocConverter::handleVerbatimBlock);
   tagHandlers["warning"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["xmlonly"] = make_handler(&PyDocConverter::handleParagraph);
   // these commands have special handlers
@@ -336,8 +382,13 @@ static std::string getPyDocType(Node *n, const_String_or_char_ptr lname = "") {
   std::string type;
 
   String *s = Swig_typemap_lookup("doctype", n, lname, 0);
+  if (!s) {
+    if (String *t = Getattr(n, "type"))
+      s = SwigType_str(t, "");
+  }
+
   if (!s)
-    s = SwigType_str(Getattr(n, "type"), "");
+    return type;
 
   if (Language::classLookup(s)) {
     // In Python C++ namespaces are flattened, so remove all but last component
@@ -414,6 +465,17 @@ void PyDocConverter::handleParagraph(DoxygenEntity &tag, std::string &translated
   translatedComment += translateSubtree(tag);
 }
 
+void PyDocConverter::handleVerbatimBlock(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
+  string verb = translateSubtree(tag);
+
+  eraseLeadingNewLine(verb);
+
+  // Remove the last newline to prevent doubling the newline already present after \endverbatim
+  trimWhitespace(verb); // Needed to catch trailing newline below
+  eraseTrailingNewLine(verb);
+  translatedComment += verb;
+}
+
 void PyDocConverter::handleMath(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg) {
   IndentGuard indent;
 
@@ -428,7 +490,6 @@ void PyDocConverter::handleMath(DoxygenEntity &tag, std::string &translatedComme
     indent.Init(translatedComment, m_indent);
 
     trimWhitespace(translatedComment);
-    translatedComment += '\n';
 
     const string formulaIndent = indent.getFirstLineIndent();
     translatedComment += formulaIndent;
@@ -462,8 +523,6 @@ void PyDocConverter::handleMath(DoxygenEntity &tag, std::string &translatedComme
 
   if (inlineFormula) {
     translatedComment += "`";
-  } else {
-    translatedComment += '\n';
   }
 }
 
@@ -471,22 +530,27 @@ void PyDocConverter::handleCode(DoxygenEntity &tag, std::string &translatedComme
   IndentGuard indent(translatedComment, m_indent);
 
   trimWhitespace(translatedComment);
-  translatedComment += '\n';
 
   // Use the current indent for the code-block line itself.
-  string codeIndent = indent.getFirstLineIndent();
-  translatedComment += codeIndent;
+  translatedComment += indent.getFirstLineIndent();
 
   // Go out on a limb and assume that examples in the C or C++ sources use C++.
   // In the worst case, we'll highlight C code using C++ syntax which is not a
   // big deal (TODO: handle Doxygen code command language argument).
   translatedComment += ".. code-block:: c++\n\n";
 
-  // For now on, use extra indent level for all the subsequent lines.
-  codeIndent += m_indent;
+  // Specify the level of extra indentation that will be used for
+  // subsequent lines within the code block.  Note that the correct
+  // "starting indentation" is already present in the input, so we
+  // only need to add the desired code block indentation.
+  string codeIndent = m_indent;
 
   std::string code;
   handleTagVerbatim(tag, code, arg);
+
+  // Try and remove leading newline, which is present for block \code
+  // command:
+  eraseLeadingNewLine(code);
 
   translatedComment += codeIndent;
   for (size_t n = 0; n < code.length(); n++) {
@@ -505,8 +569,11 @@ void PyDocConverter::handleCode(DoxygenEntity &tag, std::string &translatedComme
   }
 
   trimWhitespace(translatedComment);
-  if (*translatedComment.rbegin() != '\n')
-    translatedComment += '\n';
+
+  // For block commands, the translator adds the newline after
+  // \endcode, so try and compensate by removing the last newline from
+  // the code text:
+  eraseTrailingNewLine(translatedComment);
 }
 
 void PyDocConverter::handlePlainString(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
@@ -514,7 +581,7 @@ void PyDocConverter::handlePlainString(DoxygenEntity &tag, std::string &translat
 }
 
 void PyDocConverter::handleTagVerbatim(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg) {
-  translatedComment += arg + " ";
+  translatedComment += arg;
   for (DoxygenEntityListCIt it = tag.entityList.begin(); it != tag.entityList.end(); it++) {
     translatedComment += it->data;
   }
@@ -828,9 +895,10 @@ String *PyDocConverter::makeDocumentation(Node *n) {
   if (!pyDocString.empty()) {
 
     // remove the last '\n' since additional one is added during writing to file
-    if (pyDocString[pyDocString.size() - 1] == '\n') {
-      pyDocString.erase(pyDocString.size() - 1);
-    }
+    eraseTrailingNewLine(pyDocString);
+
+    // ensure that a blank line occurs before code or math blocks
+    pyDocString = padCodeAndVerbatimBlocks(pyDocString);
 
     if (m_flags & debug_translator) {
       std::cout << "\n---RESULT IN PYDOC---" << std::endl;

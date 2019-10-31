@@ -1,6 +1,6 @@
 package main
 
-import "./inctest"
+import "swigtests/inctest"
 
 func main() {
 	inctest.NewA()

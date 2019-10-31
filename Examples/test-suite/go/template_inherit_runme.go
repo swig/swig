@@ -1,6 +1,6 @@
 package main
 
-import . "./template_inherit"
+import . "swigtests/template_inherit"
 
 func main() {
 	a := NewFooInt()

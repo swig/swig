@@ -17,16 +17,16 @@ def run(proc):
 
     except IndexError:
         proc = Popen(
-            [sys.executable, 'runme.py', 'Simple_baseline'], stdout=PIPE)
+            [sys.executable, "runme.py", "Simple_baseline"], stdout=PIPE)
         (stdout, stderr) = proc.communicate()
         print stdout
 
         proc = Popen(
-            [sys.executable, 'runme.py', 'Simple_optimized'], stdout=PIPE)
+            [sys.executable, "runme.py", "Simple_optimized"], stdout=PIPE)
         (stdout, stderr) = proc.communicate()
         print stdout
 
         proc = Popen(
-            [sys.executable, 'runme.py', 'Simple_builtin'], stdout=PIPE)
+            [sys.executable, "runme.py", "Simple_builtin"], stdout=PIPE)
         (stdout, stderr) = proc.communicate()
         print stdout

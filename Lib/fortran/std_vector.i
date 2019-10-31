@@ -29,10 +29,7 @@
     typedef CTYPE &reference;
     typedef CTYPE *pointer;
     typedef CTYPE const *const_pointer;
-    // Note that we don't typedef CREF_TYPE const_reference; otherwise, SWIG
-    // will generate 'const_reference' rather than CREF_TYPE in the wrapper
-    // code.
-    // typedef CREF_TYPE const_reference;
+    typedef CREF_TYPE const_reference;
 
     // Typemaps for making std::vector feel more like native Fortran:
     // - Use Fortran 1-offset indexing

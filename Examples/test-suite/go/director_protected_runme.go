@@ -1,6 +1,6 @@
 package main
 
-import . "./director_protected"
+import . "swigtests/director_protected"
 
 type FooBar struct{} // From Bar
 func (p *FooBar) Ping() string {

@@ -27,10 +27,10 @@ with a variety of high-level programming languages. SWIG is primarily used with
 common scripting languages such as Perl, Python, Tcl/Tk, and Ruby, however the
 list of supported languages also includes non-scripting languages such as Java,
 OCAML and C#. Also several interpreted and compiled Scheme implementations
-(Guile, MzScheme, Chicken) are supported. SWIG is most commonly used to create
+(Guile, MzScheme) are supported. SWIG is most commonly used to create
 high-level interpreted or compiled programming environments, user interfaces,
 and as a tool for testing and prototyping C/C++ software. SWIG can also export
-its parse tree in the form of XML and Lisp s-expressions. 
+its parse tree in the form of XML. 
 
 %prep
 %setup -q -n %{name}-%{version}

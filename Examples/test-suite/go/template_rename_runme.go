@@ -1,6 +1,6 @@
 package main
 
-import "./template_rename"
+import "swigtests/template_rename"
 
 func main() {
 	i := template_rename.NewIFoo()

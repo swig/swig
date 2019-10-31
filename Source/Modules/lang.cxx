@@ -1081,6 +1081,8 @@ int Language::functionHandler(Node *n) {
       globalfunctionHandler(n);
       InClass = oldInClass;
     } else {
+      // This is a member function, set a flag so the documentation type is correct
+      SetFlag(n, "memberfunction");
       Node *explicit_n = 0;
       if (directorsEnabled() && is_member_director(CurrentClass, n) && !extraDirectorProtectedCPPMethodsRequired()) {
 	bool virtual_but_not_pure_virtual = (!(Cmp(storage, "virtual")) && (Cmp(Getattr(n, "value"), "0") != 0));
@@ -1270,6 +1272,9 @@ int Language::memberfunctionHandler(Node *n) {
   int flags = Getattr(n, "template") ? extendmember | SmartPointer : Extend | SmartPointer | DirectorExtraCall;
   Swig_MethodToFunction(n, NSpace, ClassType, flags, director_type, is_member_director(CurrentClass, n));
   Setattr(n, "sym:name", fname);
+  /* Explicitly save low-level and high-level documentation names */
+  Setattr(n, "doc:low:name", fname);
+  Setattr(n, "doc:high:name", symname);
 
   functionWrapper(n);
 
@@ -1330,6 +1335,9 @@ int Language::staticmemberfunctionHandler(Node *n) {
 
   Setattr(n, "name", cname);
   Setattr(n, "sym:name", mrename);
+  /* Explicitly save low-level and high-level documentation names */
+  Setattr(n, "doc:low:name", mrename);
+  Setattr(n, "doc:high:name", symname);
 
   if (cb) {
     String *cbname = NewStringf(cb, symname);
@@ -1886,6 +1894,8 @@ int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_
     }
     if (!checkAttribute(nn, "storage", "virtual"))
       continue;
+    if (GetFlag(nn, "final"))
+      continue;
     /* we need to add methods(cdecl) and destructor (to check for throw decl) */
     int is_destructor = (Cmp(nodeType, "destructor") == 0);
     if ((Cmp(nodeType, "cdecl") == 0) || is_destructor) {
@@ -2101,7 +2111,7 @@ int Language::classDirectorMethods(Node *n) {
     Node *item = Getitem(vtable, i);
     String *method = Getattr(item, "methodNode");
     String *fqdname = Getattr(item, "fqdname");
-    if (GetFlag(method, "feature:nodirector"))
+    if (GetFlag(method, "feature:nodirector") || GetFlag(method, "final"))
       continue;
 
     String *wrn = Getattr(method, "feature:warnfilter");
@@ -2190,6 +2200,16 @@ int Language::classDirector(Node *n) {
   String *using_protected_members_code = NewString("");
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     Node *nodeType = Getattr(ni, "nodeType");
+    if (Cmp(nodeType, "destructor") == 0 && GetFlag(ni, "final")) {
+      String *classtype = Getattr(n, "classtype");
+      SWIG_WARN_NODE_BEGIN(ni);
+      Swig_warning(WARN_LANG_DIRECTOR_FINAL, input_file, line_number, "Destructor %s is final, %s cannot be a director class.\n", Swig_name_decl(ni), classtype);
+      SWIG_WARN_NODE_END(ni);
+      SetFlag(n, "feature:nodirector");
+      Delete(vtable);
+      Delete(using_protected_members_code);
+      return SWIG_OK;
+    }
     bool cdeclaration = (Cmp(nodeType, "cdecl") == 0);
     if (cdeclaration && !GetFlag(ni, "feature:ignore")) {
       if (isNonVirtualProtectedAccess(ni)) {
@@ -3602,7 +3622,7 @@ String *Language::makeParameterName(Node *n, Parm *p, int arg_num, bool setter) 
   String *arg = 0;
   String *pn = Getattr(p, "name");
 
-  // Use C parameter name unless it is a duplicate or an empty parameter name
+  // Check if parameter name is a duplicate.
   int count = 0;
   ParmList *plist = Getattr(n, "parms");
   while (plist) {
@@ -3610,8 +3630,14 @@ String *Language::makeParameterName(Node *n, Parm *p, int arg_num, bool setter) 
       count++;
     plist = nextSibling(plist);
   }
-  String *wrn = pn ? Swig_name_warning(p, 0, pn, 0) : 0;
-  arg = (!pn || (count > 1) || wrn) ? NewStringf("arg%d", arg_num) : Copy(pn);
+
+  // If the parameter has no name at all or has a non-unique name, replace it with "argN".
+  if (!pn || count > 1) {
+    arg = NewStringf("arg%d", arg_num);
+  } else {
+    // Otherwise, try to use the original C name, but modify it if necessary to avoid conflicting with the language keywords.
+    arg = Swig_name_make(p, 0, pn, 0, 0);
+  }
 
   if (setter && Cmp(arg, "self") != 0) {
     // Some languages (C#) insist on calling the input variable "value" while

@@ -117,6 +117,9 @@ public class doxygen_misc_constructs_runme {
     wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENested.THREE",
     		" desc of three\n");
 
+    wantedComments.put("doxygen_misc_constructs.StructWithReturnComment",
+    		" @return This is a bad place for this tag, but it should be ignored.");
+
     wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.showList()",
 "         An example of a list in a documentation comment.<br>\n" +
 " <br>\n" +

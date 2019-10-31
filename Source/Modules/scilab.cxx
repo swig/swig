@@ -496,7 +496,7 @@ public:
     /* Add the failure cleanup code */
     /* TODO */
 
-    /* Final substititions if applicable */
+    /* Final substitutions if applicable */
     Replaceall(wrapper->code, "$symname", functionName);
 
     /* Set CheckInputArgument and CheckOutputArgument input arguments */

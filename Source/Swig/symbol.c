@@ -1039,8 +1039,8 @@ static Node *symbol_lookup_qualified(const_String_or_char_ptr name, Symtab *symt
     return 0;
   if (!prefix) {
     Node *n;
-    String *bname;
-    String *prefix;
+    String *bname = 0;
+    String *prefix = 0;
     Swig_scopename_split(name, &prefix, &bname);
     n = symbol_lookup_qualified(bname, symtab, prefix, local, checkfunc);
     Delete(bname);

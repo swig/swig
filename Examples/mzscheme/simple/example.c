@@ -1,24 +1,18 @@
-/* Simple example from documentation */
 /* File : example.c */
 
-#include <time.h>
+/* A global variable */
+double Foo = 3.0;
 
-double My_variable = 3.0;
-
-/* Compute factorial of n */
-int fact(int n) {
-  if (n <= 1) return 1;
-  else return n*fact(n-1);
+/* Compute the greatest common divisor of positive integers */
+int gcd(int x, int y) {
+  int g;
+  g = y;
+  while (x > 0) {
+    g = x;
+    x = y % x;
+    y = g;
+  }
+  return g;
 }
 
-/* Compute n mod m */
-int my_mod(int n, int m) {
-  return (n % m);
-}
 
-
-char *get_time() {
-    long            ltime;
-    time(&ltime);
-    return ctime(&ltime);
-}

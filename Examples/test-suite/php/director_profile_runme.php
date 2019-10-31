@@ -4,9 +4,9 @@ require "tests.php";
 require "director_profile.php";
 
 // No new functions
-check::functions(array(b_fn,b_vfi,b_fi,b_fj,b_fk,b_fl,b_get_self,b_vfs,b_fs));
+check::functions(array('b_fn','b_vfi','b_fi','b_fj','b_fk','b_fl','b_get_self','b_vfs','b_fs'));
 // No new classes
-check::classes(array(A,B));
+check::classes(array('A','B'));
 // now new vars
 check::globals(array());
 

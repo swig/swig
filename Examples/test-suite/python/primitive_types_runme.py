@@ -227,7 +227,7 @@ t.var_paramc = sct_paramc
 t.v_check()
 
 # this value contains a '0' char!
-if def_namet != 'hola':
+if def_namet != "hola":
     print "bad namet", def_namet
     raise RuntimeError
 
@@ -236,54 +236,54 @@ if t.var_namet != def_namet:
     print "bad namet", t.var_namet, def_namet
     raise RuntimeError
 
-t.var_namet = 'hola'
+t.var_namet = "hola"
 
-if t.var_namet != 'hola':
+if t.var_namet != "hola":
     print "bad namet", t.var_namet
     raise RuntimeError
 
-t.var_namet = 'hol'
+t.var_namet = "hol"
 
-if t.var_namet != 'hol':
-    # if t.var_namet != 'hol\0\0':
+if t.var_namet != "hol":
+    # if t.var_namet != "hol\0\0":
     print "bad namet", t.var_namet
     raise RuntimeError
 
 
-cvar.var_char = '\0'
-if cvar.var_char != '\0':
+cvar.var_char = "\0"
+if cvar.var_char != "\0":
     raise RuntimeError, "bad char '0' case"
 
 cvar.var_char = 0
-if cvar.var_char != '\0':
+if cvar.var_char != "\0":
     raise RuntimeError, "bad char '0' case"
 
-cvar.var_namet = '\0'
-# if cvar.var_namet != '\0\0\0\0\0':
-if cvar.var_namet != '':
-    print 'hola', '', cvar.var_namet
+cvar.var_namet = "\0"
+# if cvar.var_namet != "\0\0\0\0\0":
+if cvar.var_namet != "":
+    print "hola", "", cvar.var_namet
     raise RuntimeError, "bad char '\0' case"
 
-cvar.var_namet = ''
-# if cvar.var_namet != '\0\0\0\0\0':
-if cvar.var_namet != '':
+cvar.var_namet = ""
+# if cvar.var_namet != "\0\0\0\0\0":
+if cvar.var_namet != "":
     raise RuntimeError, "bad char empty case"
 
 cvar.var_pchar = None
 if cvar.var_pchar != None:
     raise RuntimeError, "bad None case"
 
-cvar.var_pchar = ''
-if cvar.var_pchar != '':
-    print '%c' % (cvar.var_pchar[0],)
+cvar.var_pchar = ""
+if cvar.var_pchar != "":
+    print "%c" % (cvar.var_pchar[0],)
     raise RuntimeError, "bad char empty case"
 
 cvar.var_pcharc = None
 if cvar.var_pcharc != None:
     raise RuntimeError, "bad None case"
 
-cvar.var_pcharc = ''
-if cvar.var_pcharc != '':
+cvar.var_pcharc = ""
+if cvar.var_pcharc != "":
     raise RuntimeError, "bad char empty case"
 
 
@@ -291,10 +291,10 @@ if cvar.var_pcharc != '':
 # creating a raw char*
 #
 pc = new_pchar(5)
-pchar_setitem(pc, 0, 'h')
-pchar_setitem(pc, 1, 'o')
-pchar_setitem(pc, 2, 'l')
-pchar_setitem(pc, 3, 'a')
+pchar_setitem(pc, 0, "h")
+pchar_setitem(pc, 1, "o")
+pchar_setitem(pc, 2, "l")
+pchar_setitem(pc, 3, "a")
 pchar_setitem(pc, 4, 0)
 
 
@@ -331,7 +331,7 @@ if error:
 try:
     error = 0
     a = t.var_char
-    t.var_char = '23'
+    t.var_char = "23"
     error = 1
 except TypeError:
     if a != t.var_char:
@@ -393,7 +393,7 @@ if error:
 try:
     error = 0
     a = t.var_namet
-    t.var_namet = '123456'
+    t.var_namet = "123456"
     error = 1
 except TypeError:
     if a != t.var_namet:
@@ -410,11 +410,11 @@ if t.var_namet != t2.var_namet:
     raise RuntimeError, "bad SWIGTYPE* typemap"
 
 
-if cvar.fixsize != 'ho\0la\0\0\0':
+if cvar.fixsize != "ho\0la\0\0\0":
     raise RuntimeError, "bad FIXSIZE typemap"
 
-cvar.fixsize = 'ho'
-if cvar.fixsize != 'ho\0\0\0\0\0\0':
+cvar.fixsize = "ho"
+if cvar.fixsize != "ho\0\0\0\0\0\0":
     raise RuntimeError, "bad FIXSIZE typemap"
 
 
@@ -487,26 +487,26 @@ def checkType(t, e, val, delta):
     """t = Test object, e = type name (e.g. ulong), val = max or min allowed value, delta = +1 for max, -1 for min"""
     error = 0
     # Set the extreme valid value for var_*
-    setattr(t, 'var_' + e, val)
+    setattr(t, "var_" + e, val)
     # Make sure it was set properly and works properly in the val_* and ref_* methods
-    if getattr(t, 'var_' + e) != val or getattr(t, 'val_' + e)(val) != val or getattr(t, 'ref_' + e)(val) != val:
+    if getattr(t, "var_" + e) != val or getattr(t, "val_" + e)(val) != val or getattr(t, "ref_" + e)(val) != val:
         error = 1
     # Make sure setting a more extreme value fails without changing the value
     try:
-        a = getattr(t, 'var_' + e)
-        setattr(t, 'var_' + e, val + delta)
+        a = getattr(t, "var_" + e)
+        setattr(t, "var_" + e, val + delta)
         error = 1
     except OverflowError:
-        if a != getattr(t, 'var_' + e):
+        if a != getattr(t, "var_" + e):
             error = 1
     # Make sure the val_* and ref_* methods fail with a more extreme value
     try:
-        getattr(t, 'val_' + e)(val + delta)
+        getattr(t, "val_" + e)(val + delta)
         error = 1
     except OverflowError:
         pass
     try:
-        getattr(t, 'ref_' + e)(val + delta)
+        getattr(t, "ref_" + e)(val + delta)
         error = 1
     except OverflowError:
         pass
@@ -518,16 +518,16 @@ def checkFull(t, e, maxval, minval):
     checkType(t, e, maxval,  1)
     checkType(t, e, minval, -1)
 
-checkFull(t, 'llong',  maxllong,  minllong)
-checkFull(t, 'long',   maxlong,   minlong)
-checkFull(t, 'int',    maxint,    minint)
-checkFull(t, 'short',  maxshort,  minshort)
-checkFull(t, 'schar',  maxchar,   minchar)
-checkFull(t, 'ullong', maxullong, 0)
-checkFull(t, 'ulong',  maxulong,  0)
-checkFull(t, 'uint',   maxuint,   0)
-checkFull(t, 'ushort', maxushort, 0)
-checkFull(t, 'uchar',  maxuchar,  0)
+checkFull(t, "llong",  maxllong,  minllong)
+checkFull(t, "long",   maxlong,   minlong)
+checkFull(t, "int",    maxint,    minint)
+checkFull(t, "short",  maxshort,  minshort)
+checkFull(t, "schar",  maxchar,   minchar)
+checkFull(t, "ullong", maxullong, 0)
+checkFull(t, "ulong",  maxulong,  0)
+checkFull(t, "uint",   maxuint,   0)
+checkFull(t, "ushort", maxushort, 0)
+checkFull(t, "uchar",  maxuchar,  0)
 
 def checkOverload(t, name, val, delta, prevval, limit):
     """
@@ -556,16 +556,16 @@ def checkOverload(t, name, val, delta, prevval, limit):
                 raise RuntimeError, "bad " + name + " typemap"
 
 # Check that overloading works: uchar > schar > ushort > short > uint > int > ulong > long > ullong > llong
-checkOverload(t, 'uchar',  maxuchar,  +1, 0,         maxullong)
-checkOverload(t, 'ushort', maxushort, +1, maxuchar,  maxullong)
-checkOverload(t, 'uint',   maxuint,   +1, maxushort, maxullong)
-checkOverload(t, 'ulong',  maxulong,  +1, maxuint,   maxullong)
-checkOverload(t, 'ullong', maxullong, +1, maxulong,  maxullong)
-checkOverload(t, 'schar',  minchar,   -1, 0,         minllong)
-checkOverload(t, 'short',  minshort,  -1, minchar,   minllong)
-checkOverload(t, 'int',    minint,    -1, minshort,  minllong)
-checkOverload(t, 'long',   minlong,   -1, minint,    minllong)
-checkOverload(t, 'llong',  minllong,  -1, minlong,   minllong)
+checkOverload(t, "uchar",  maxuchar,  +1, 0,         maxullong)
+checkOverload(t, "ushort", maxushort, +1, maxuchar,  maxullong)
+checkOverload(t, "uint",   maxuint,   +1, maxushort, maxullong)
+checkOverload(t, "ulong",  maxulong,  +1, maxuint,   maxullong)
+checkOverload(t, "ullong", maxullong, +1, maxulong,  maxullong)
+checkOverload(t, "schar",  minchar,   -1, 0,         minllong)
+checkOverload(t, "short",  minshort,  -1, minchar,   minllong)
+checkOverload(t, "int",    minint,    -1, minshort,  minllong)
+checkOverload(t, "long",   minlong,   -1, minint,    minllong)
+checkOverload(t, "llong",  minllong,  -1, minlong,   minllong)
 
 # Make sure that large ints can be converted to doubles properly
 if val_double(sys.maxint + 1) != float(sys.maxint + 1):

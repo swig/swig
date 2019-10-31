@@ -2,7 +2,9 @@
 
 %module multi_import_a
 
+#ifndef SWIGGO
 %import multi_import_d.i
+#endif
 %import "multi_import_b.i"
 
 %{

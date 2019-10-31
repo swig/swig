@@ -18,6 +18,21 @@ import java.io.*; // For Serializable
 // Set default Java const code generation
 %javaconst(1);
 
+// Test enums with trailing comma after the last item.
+enum WithTrailingComma
+{
+    First,
+    Second,
+};
+
+%ignore ReallyFirstOneIsIgnored;
+enum WithTrailingCommaAndIgnoredFirstItem
+{
+    ReallyFirstOneIsIgnored,
+    FirstNonIgnoredOne,
+    SecondNonIgnoredOne,
+};
+
 // Change the default generation so that these enums are generated into an interface instead of a class
 %typemap(javaclassmodifiers) enum stuff "public interface"
 

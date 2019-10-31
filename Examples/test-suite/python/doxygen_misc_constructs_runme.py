@@ -44,7 +44,7 @@ comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.getConnection),
 
 
 comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.getFirstLetter),
-    r''
+    r""
 )
 
 comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.ClassWithNestedEnum),
@@ -73,7 +73,7 @@ comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.isNoSpaceValidB),
 )
 
 comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.isNoSpaceValidC),
-    r''
+    r""
 )
 
 comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.backslashA),

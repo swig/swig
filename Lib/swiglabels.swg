@@ -64,15 +64,6 @@
 # define SWIGINTERNINLINE SWIGINTERN SWIGINLINE
 #endif
 
-/* qualifier for exported *const* global data variables*/
-#ifndef SWIGEXTERN
-# ifdef __cplusplus
-#   define SWIGEXTERN extern
-# else
-#   define SWIGEXTERN
-# endif
-#endif
-
 /* exporting methods */
 #if defined(__GNUC__)
 #  if (__GNUC__ >= 4) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)

@@ -13,13 +13,13 @@
 
 %define %std_stack_methods(stack...)
   stack();
-  stack( const _Sequence& );
+  stack(const _Sequence& other);
 
   bool empty() const;
   size_type size() const;
   const value_type& top() const;
   void pop();
-  void push( const value_type& );
+  void push(const value_type& value);
 %enddef
 
 %define %std_stack_methods_val(stack...) 

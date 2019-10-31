@@ -49,9 +49,9 @@ Warning: This may not work as expected
 
 .. code-block:: c++
 
-
     int main() { while(true); }
 
+    // Test blank line in code block
 }"""
 )
 comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function5),

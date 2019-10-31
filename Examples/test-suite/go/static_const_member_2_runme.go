@@ -1,6 +1,6 @@
 package main
 
-import . "./static_const_member_2"
+import . "swigtests/static_const_member_2"
 
 func main() {
 	_ = NewTest_int()

@@ -65,13 +65,12 @@ void also_call_things(one_int_cb fptr, int val)
 binary_op_cb get_a_callback(const char* name) {
   if (strcmp(name, "add") == 0) {
     return &add;
-  } if (strcmp(name, "mul") == 0) {
+  } else if (strcmp(name, "mul") == 0) {
     return &mul;
   }
   // printf("Invalid callback name '%s'\n", name);
   return NULL;
 }
-
 %}
 
 %warnfilter(SWIGWARN_TYPEMAP_UNDEF,SWIGWARN_LANG_NATIVE_UNIMPL) execute;

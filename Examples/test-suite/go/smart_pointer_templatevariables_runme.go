@@ -1,6 +1,6 @@
 package main
 
-import . "./smart_pointer_templatevariables"
+import . "swigtests/smart_pointer_templatevariables"
 
 func main() {
 	d := NewDiffImContainerPtr_D(Create(1234, 5678))

@@ -4,6 +4,17 @@
 
 %include <typemaps/fragments.swg>
 
+/* qualifier for exported *const* global data variables (enums) */
+%insert("runtime") %{
+#ifndef SWIGEXTERN
+# ifdef __cplusplus
+#   define SWIGEXTERN extern
+# else
+#   define SWIGEXTERN
+# endif
+#endif
+%}
+
 /* Default exception handler */
 #ifdef __cplusplus
 %fragment("<stdexcept>");

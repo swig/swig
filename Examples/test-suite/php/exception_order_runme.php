@@ -2,9 +2,9 @@
 require "tests.php";
 require "exception_order.php";
 
-check::functions(array(a_foo,a_bar,a_foobar,a_barfoo,is_python_builtin));
-check::classes(array(A,E1,E2,E3,exception_order,ET_i,ET_d));
-check::globals(array(efoovar,foovar,cfoovar,a_sfoovar,a_foovar,a_efoovar));
+check::functions(array('a_foo','a_bar','a_foobar','a_barfoo','is_python_builtin'));
+check::classes(array('A','E1','E2','E3','exception_order','ET_i','ET_d'));
+check::globals(array('efoovar','foovar','cfoovar','a_sfoovar','a_foovar','a_efoovar'));
 
 $a = new A();
 try {

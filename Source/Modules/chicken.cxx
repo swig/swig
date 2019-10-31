@@ -547,7 +547,7 @@ int CHICKEN::functionWrapper(Node *n) {
   }
   emit_return_variable(n, d, f);
 
-  /* Insert the argumetn output code */
+  /* Insert the argument output code */
   Printv(f->code, argout, NIL);
 
   /* Output cleanup code */
@@ -1456,7 +1456,7 @@ String *CHICKEN::chickenPrimitiveName(String *name) {
   if (value)
     return value;
   else {
-    Swig_error(input_file, line_number, "Internal Error: attempting to reference non-existant primitive name %s\n", name);
+    Swig_error(input_file, line_number, "Internal Error: attempting to reference non-existent primitive name %s\n", name);
     return NewString("#f");
   }
 }

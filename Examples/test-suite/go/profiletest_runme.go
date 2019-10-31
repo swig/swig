@@ -1,7 +1,7 @@
 package main
 
 import "fmt"
-import "./profiletest"
+import "swigtests/profiletest"
 
 func main() {
 	a := profiletest.NewA()

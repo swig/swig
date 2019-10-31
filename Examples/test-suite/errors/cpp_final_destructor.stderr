@@ -1,0 +1,1 @@
+cpp_final_destructor.i:7: Warning 525: Destructor BaseFinal::~BaseFinal() is final, BaseFinal cannot be a director class.

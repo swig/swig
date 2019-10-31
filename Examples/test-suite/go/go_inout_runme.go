@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"./go_inout"
+	"swigtests/go_inout"
 )
 
 type S struct {
