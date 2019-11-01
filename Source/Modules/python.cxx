@@ -2700,8 +2700,12 @@ public:
       --tuple_required;
     }
     num_fixed_arguments = tuple_required;
+
+    // builtin handles/checks kwargs by default except in constructor wrappers so we need to explicitly handle them in the C constructor wrapper
+    // The check below is for zero arguments. Sometimes (eg directors) self is the first argument for a method with zero arguments.
     if (((num_arguments == 0) && (num_required == 0)) || ((num_arguments == 1) && (num_required == 1) && Getattr(l, "self")))
-      allow_kwargs = 0;
+      if (!builtin_ctor)
+	allow_kwargs = 0;
     varargs = emit_isvarargs(l);
 
     String *wname = Copy(wrapper_name);
@@ -2727,7 +2731,7 @@ public:
       }
       Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args, PyObject *kwargs) {", NIL);
     }
-    if (!builtin || !in_class || tuple_arguments > 0) {
+    if (!builtin || !in_class || tuple_arguments > 0 || builtin_ctor) {
       if (!allow_kwargs) {
 	Append(parse_args, "    if (!PyArg_ParseTuple(args, \"");
       } else {
@@ -2876,9 +2880,7 @@ public:
       Printv(f->locals, "  char * kwnames[] = ", kwargs, ";\n", NIL);
     }
 
-    if (builtin && !funpack && in_class && tuple_arguments == 0) {
-      Printf(parse_args, "    if (args && PyTuple_Check(args) && PyTuple_GET_SIZE(args) > 0) SWIG_exception_fail(SWIG_TypeError, \"%s takes no arguments\");\n", iname);
-    } else if (use_parse || allow_kwargs) {
+    if (use_parse || allow_kwargs) {
       Printf(parse_args, ":%s\"", iname);
       Printv(parse_args, arglist, ")) SWIG_fail;\n", NIL);
       funpack = 0;
@@ -2906,8 +2908,12 @@ public:
 	  }
 	}
       } else {
-	Printf(parse_args, "if (!PyArg_UnpackTuple(args, \"%s\", %d, %d", iname, num_fixed_arguments, tuple_arguments);
-	Printv(parse_args, arglist, ")) SWIG_fail;\n", NIL);
+	if (builtin && in_class && tuple_arguments == 0) {
+	  Printf(parse_args, "    if (args && PyTuple_Check(args) && PyTuple_GET_SIZE(args) > 0) SWIG_exception_fail(SWIG_TypeError, \"%s takes no arguments\");\n", iname);
+	} else {
+	  Printf(parse_args, "if (!PyArg_UnpackTuple(args, \"%s\", %d, %d", iname, num_fixed_arguments, tuple_arguments);
+	  Printv(parse_args, arglist, ")) SWIG_fail;\n", NIL);
+	}
       }
     }
 
