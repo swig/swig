@@ -10,8 +10,8 @@
 
 // Runtime check for a class wrapper not being const.
 %fragment("SWIG_check_sp_nonnull", "runtime", fragment="SwigMemState") %{
-#define SWIG_check_sp_nonnull(INPUT, TYPENAME, FNAME, FUNCNAME, RETURNNULL) \
-  if (!(INPUT)) { \
+#define SWIG_check_sp_nonnull(PTR, TYPENAME, FNAME, FUNCNAME, RETURNNULL) \
+  if (!(PTR)) { \
     SWIG_exception_impl(FUNCNAME, SWIG_NullReferenceError, \
                         "Cannot pass null " TYPENAME " (class " FNAME ") " \
                         "as a reference", RETURNNULL); \

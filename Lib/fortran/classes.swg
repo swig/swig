@@ -117,8 +117,8 @@ SWIGINTERN SwigClassWrapper SwigClassWrapper_uninitialized() {
 
 // Runtime check for a class wrapper not being const.
 %fragment("SWIG_check_nonnull", "runtime") %{
-#define SWIG_check_nonnull(SWIG_CLASS_WRAPPER, TYPENAME, FNAME, FUNCNAME, RETURNNULL) \
-  if (!(SWIG_CLASS_WRAPPER).cptr) { \
+#define SWIG_check_nonnull(PTR, TYPENAME, FNAME, FUNCNAME, RETURNNULL) \
+  if (!(PTR)) { \
     SWIG_exception_impl(FUNCNAME, SWIG_NullReferenceError, \
                         "Cannot pass null " TYPENAME " (class " FNAME ") " \
                         "as a reference", RETURNNULL); \
@@ -320,14 +320,14 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 %typemap(ctype, in="SwigClassWrapper *", null="SwigClassWrapper_uninitialized()", noblock=1, fragment="SwigClassWrapper")
     SWIGTYPE
   "SwigClassWrapper"
-%typemap(imtype, fragment="SwigClassWrapper_f")
+%typemap(imtype, in="type(SwigClassWrapper), intent(in)", fragment="SwigClassWrapper_f")
     SWIGTYPE
   "type(SwigClassWrapper)"
 %typemap(ftype, in="type($&fortranclassname), intent(in)", nofortransubroutine=1) SWIGTYPE
   "type($&fortranclassname)"
 
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE {
-  SWIG_check_nonnull(*$input, "$1_ltype", "$&fortranclassname", "$decl", return $null);
+  SWIG_check_nonnull($input->cptr, "$1_ltype", "$&fortranclassname", "$decl", return $null);
   $1 = *(($&1_ltype)($input->cptr));
 }
 
@@ -373,7 +373,7 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 // Check for non-null reference inputs
 %apply SWIGTYPE* { SWIGTYPE& };
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE& {
-  SWIG_check_nonnull(*$input, "$1_type", "$fortranclassname", "$decl", return $null);
+  SWIG_check_nonnull($input->cptr, "$1_type", "$fortranclassname", "$decl", return $null);
   $1 = ($1_ltype)$input->cptr;
 }
 
@@ -397,7 +397,7 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 
 // Check for non-null class input "self"
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE *self {
-  SWIG_check_nonnull(*$input, "$1_type", "$*fortranclassname", "$decl", return $null);
+  SWIG_check_nonnull($input->cptr, "$1_type", "$*fortranclassname", "$decl", return $null);
   $1 = ($1_ltype)$input->cptr;
 }
 
@@ -420,4 +420,39 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 
 %apply SWIGTYPE *ASSIGNMENT_SELF { SWIGTYPE *DESTRUCTOR_SELF };
 %typemap(in) SWIGTYPE *DESTRUCTOR_SELF = SWIGTYPE *;
+
+/*---------------------------------------------------------------------------
+ * Special class typedefs for directors
+ */
+%typemap(ftype, in="type($fortranclassname), pointer") SWIGTYPE *swigfhandle
+  "type($fortranclassname), pointer"
+%typemap(fin) SWIGTYPE *swigfhandle
+  "$1 = c_loc($input)"
+%typemap(fout, noblock=1) SWIGTYPE *swigfhandle
+{if (c_associated($1)) then
+  call c_f_pointer($1, $result)
+else
+  $result => NULL()
+endif}
+
+%typemap(imtype, in="type(C_PTR), intent(in), value") SWIGTYPE *swigfhandle
+  "type(C_PTR)"
+%typemap(ctype, noblock=1) SWIGTYPE *swigfhandle
+  "void *"
+%typemap(in, noblock=1) SWIGTYPE *swigfhandle
+  "$1 = ($1_ltype)$input;"
+%typemap(out, noblock=1) SWIGTYPE *swigfhandle
+  "$result = (void*)$1;"
+
+// Convert from C++ to ctype
+%typemap(directorin) SWIGTYPE* (SwigClassWrapper temp)
+%{temp.cptr = (void*)$1;
+temp.cmemflags = 0;
+$input = &temp;%}
+
+// Convert from im code to ftype
+%typemap(ftype) SWIGTYPE *DIRECTOR_SELF
+  "class($fortranclassname), pointer"
+%typemap(fdirectorin, temp="type($fortranclassname)", noblock=1) SWIGTYPE *DIRECTOR_SELF {$1_temp%swigdata = $input
+  $1 => swig_dyncast($1_temp)}
 
