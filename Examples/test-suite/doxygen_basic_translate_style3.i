@@ -49,11 +49,18 @@ void function3(int a, int b)
 /// \code
 /// int main() { while(true); }
 ///
-/// // Test blank line in code block
+/// int testBlankLine() {}
 /// \endcode
 /// \endif
 void function4()
 {
+  // Note: a comment in the above code block will not get processed
+  // correctly with this doxygen comment style, because
+  // DoxygenParser::tokenizeDoxygenComment strips out the leading
+  // comment characters.  Whereas it works in the other doxygen
+  // comment styles (as shown in the other variations of
+  // doxygen_basic_translate), this test is modified to remove the
+  // comment within the code block.
 }
 
 

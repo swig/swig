@@ -49,7 +49,7 @@ Warning: This may not work as expected
 
     int main() { while(true); }
 
-    // Test blank line in code block
+    int testBlankLine() {}
 }"""
 )
 comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style3.function5),
