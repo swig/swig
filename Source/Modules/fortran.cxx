@@ -1133,9 +1133,7 @@ int FORTRAN::functionWrapper(Node *n) {
 
   // >>> GENERATE CODE FOR MODULE INTERFACE
 
-  if (GetFlag(n, "fortran:private")) {
-    // Hidden function (currently, only constructors that become module procedures)
-  } else if (member) {
+  if (member) {
     // Wrapping a member function
     ASSERT_OR_PRINT_NODE(!this->is_bindc_struct(), n);
     ASSERT_OR_PRINT_NODE(f_class, n);
@@ -1144,7 +1142,7 @@ int FORTRAN::functionWrapper(Node *n) {
 
     String *qualifiers = NewStringEmpty();
 
-    if (generic) {
+    if (generic || GetFlag(n, "fortran:private")) {
       Append(qualifiers, ", private");
     }
     if (String *extra_quals = Getattr(n, "fortran:procedure")) {
@@ -1169,6 +1167,8 @@ int FORTRAN::functionWrapper(Node *n) {
       // Declare a private procedure
       Printv(f_class, fname, "\n", NULL);
     }
+  } else if (GetFlag(n, "fortran:private")) {
+    /* Don't write the public accessor */
   } else if (fsymname) {
     // The module function name is aliased, and perhaps overloaded.
     // Append this function name to the list of overloaded names
