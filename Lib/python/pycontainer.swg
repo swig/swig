@@ -52,7 +52,7 @@ namespace swig {
   struct container_owner {
     // By default, do not add the back-reference (for value types)
     // Specialization below will check the reference for pointer types.
-    static bool back_reference(PyObject* child, PyObject* owner) {
+    static bool back_reference(PyObject* /*child*/, PyObject* /*owner*/) {
       return false;
     }
   };
