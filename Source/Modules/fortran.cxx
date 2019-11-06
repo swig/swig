@@ -550,6 +550,7 @@ private:
 
   // Module-wide procedure interfaces
   Hash *d_overloads; //!< Overloaded subroutine -> overload names
+  Hash *d_private_overloads; //!< Overloaded subroutine flagged for 'private' use
 
   // Current class parameters
   String *f_class;          //!< Proxy code in currently generated class
@@ -585,7 +586,9 @@ public:
   virtual String *makeParameterName(Node *n, Parm *p, int arg_num, bool is_setter = false) const;
   virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm);
 
-  FORTRAN() : d_emitted_mangled(NULL), d_callbacks(NULL), d_overloads(NULL), f_class(NULL), d_method_overloads(NULL), d_constructors(NULL), d_enum_public(NULL) {}
+  FORTRAN() :
+    d_emitted_mangled(NULL), d_callbacks(NULL), d_overloads(NULL), d_private_overloads(NULL), f_class(NULL), d_method_overloads(NULL), d_constructors(NULL),
+    d_enum_public(NULL) {}
 
 private:
   Wrapper *cfuncWrapper(Node *n);
@@ -608,6 +611,8 @@ private:
   bool is_wrapped_type(SwigType *classnametype);
   bool is_wrapped_class(Node *n);
   
+  // Add n overloaded
+  int add_overload(String *fsymname, Node *n, String *fname, bool is_private);
   // Add lowercase symbol (fortran) to the module's namespace
   int add_fsymbol(String *s, Node *n);
   // Whether the current class is a BIND(C) struct
@@ -729,6 +734,7 @@ int FORTRAN::top(Node *n) {
   d_emitted_mangled = NewHash();
   d_callbacks = NewHash();
   d_overloads = NewHash();
+  d_private_overloads = NewHash();
 
   // >>> PROCESS
 
@@ -769,6 +775,7 @@ int FORTRAN::top(Node *n) {
 
   // Clean up files and other data
   Delete(d_overloads);
+  Delete(d_private_overloads);
   Delete(d_callbacks);
   Delete(d_emitted_mangled);
   Delete(f_fsubprograms);
@@ -855,11 +862,10 @@ void FORTRAN::write_module(String *filename) {
     // Write overloaded procedure names
     int line_length = 19;
     line_length = print_wrapped_list(out, First(kv.item), line_length);
-    Printv(out,
-           "\n"
-           " end interface\n"
-           " public :: ", kv.key, "\n",
-           NULL);
+    Printv(out, "\n end interface\n", NULL);
+    if (!GetFlag(d_private_overloads, kv.key)) {
+      Printv(out, " public :: ", kv.key, "\n", NULL);
+    }
   }
 
   if (Len(f_fabstract) > 0) {
@@ -1133,6 +1139,7 @@ int FORTRAN::functionWrapper(Node *n) {
 
   // >>> GENERATE CODE FOR MODULE INTERFACE
 
+  bool fprivate = GetFlag(n, "fortran:private");
   if (member) {
     // Wrapping a member function
     ASSERT_OR_PRINT_NODE(!this->is_bindc_struct(), n);
@@ -1142,7 +1149,7 @@ int FORTRAN::functionWrapper(Node *n) {
 
     String *qualifiers = NewStringEmpty();
 
-    if (generic || GetFlag(n, "fortran:private")) {
+    if (generic || fprivate) {
       Append(qualifiers, ", private");
     }
     if (String *extra_quals = Getattr(n, "fortran:procedure")) {
@@ -1167,22 +1174,11 @@ int FORTRAN::functionWrapper(Node *n) {
       // Declare a private procedure
       Printv(f_class, fname, "\n", NULL);
     }
-  } else if (GetFlag(n, "fortran:private")) {
-    /* Don't write the public accessor */
   } else if (fsymname) {
-    // The module function name is aliased, and perhaps overloaded.
-    // Append this function name to the list of overloaded names
-    // for the symbol. The 'public' access specification gets added later.
-    List *overloads = Getattr(d_overloads, fsymname);
-    if (!overloads) {
-      // If this is the first overload, make sure the symname is added to the global scope
-      if (add_fsymbol(fsymname, n) == SWIG_NOWRAP)
-        return SWIG_NOWRAP;
-      overloads = NewList();
-      Setattr(d_overloads, fsymname, overloads);
-    }
-    Append(overloads, fname);
-  } else {
+    int result = this->add_overload(fsymname, n, fname, fprivate);
+    if (result == SWIG_NOWRAP)
+      return SWIG_NOWRAP;
+  } else if (!fprivate) {
     // Expose the proxy function with its native name
     ASSERT_OR_PRINT_NODE(fname && Len(fname) > 0, n);
     Printv(f_fdecl, " public :: ", fname, "\n", NULL);
@@ -3219,6 +3215,31 @@ bool FORTRAN::is_wrapped_class(Node *n) {
   Delete(resolvedtype);
   Delete(strippedtype);
   return result;
+}
+
+/* -------------------------------------------------------------------------
+ * \brief Add an overload for the generic method "fsymname" and the specific
+ * procedure name "fname".
+ *
+ * Return SWIG_NOWRAP if the name conflicts.
+ */
+int FORTRAN::add_overload(String *fsymname, Node *n, String *fname, bool is_private) {
+  // The module function name is aliased, and perhaps overloaded.
+  // Append this function name to the list of overloaded names
+  // for the symbol. The 'public' access specification gets added later.
+  List *overloads = Getattr(d_overloads, fsymname);
+  if (!overloads) {
+    // If this is the first overload, make sure the symname is added to the global scope
+    if (add_fsymbol(fsymname, n) == SWIG_NOWRAP)
+      return SWIG_NOWRAP;
+    overloads = NewList();
+    Setattr(d_overloads, fsymname, overloads);
+  }
+  Append(overloads, fname);
+  if (is_private) {
+    SetFlag(d_private_overloads, fsymname);
+  }
+  return SWIG_OK;
 }
 
 /* -------------------------------------------------------------------------
