@@ -81,6 +81,7 @@ CPP_TEST_CASES += \
 #	director_profile
 
 CPP11_TEST_CASES = \
+	cpp11_move_only \
 	cpp11_hash_tables \
 	cpp11_shared_ptr_const \
 	cpp11_shared_ptr_nullptr_in_containers \
