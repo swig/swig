@@ -142,18 +142,8 @@ nocppval
 %insert("header") {
 %define_as(SWIG_as_voidptr(a),    %const_cast(%static_cast(a,const void *), void *))
 %define_as(SWIG_as_voidptrptr(a), ((void)%as_voidptr(*a),%reinterpret_cast(a, void**)))
-
-template <class O, class N>
-N* new_copy(O& old) {
-  return new N(%static_cast(old, N&&));
 }
 
-template <class O, class N>
-N* new_copy(const O& old) {
-  return new N(%static_cast(old, const N&));
-}
-
-}
 
 /* -----------------------------------------------------------------------------
  * Allocating/freeing elements
@@ -161,7 +151,7 @@ N* new_copy(const O& old) {
 
 #if defined(__cplusplus)
 # define %new_instance(Type...)             (new Type())
-# define %new_copy(val,Type...)             (new_copy<decltype(val), Type>(val))
+# define %new_copy(val,Type...)             (new Type(%static_cast(val, const Type&)))
 # define %new_array(size,Type...)           (new Type[size]())
 # define %new_copy_array(ptr,size,Type...)  %reinterpret_cast(memcpy(new Type[size], ptr, sizeof(Type)*(size)), Type*)
 # define %delete(cptr)                      delete cptr

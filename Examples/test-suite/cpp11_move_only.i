@@ -32,6 +32,7 @@ public:
 };
 
 // create move only object via factory function
-MoveOnly factory(int v) { return MoveOnly(v); }
+// this still doesn't work:
+// MoveOnly factory(int v) { return MoveOnly(v); }
 
 %}

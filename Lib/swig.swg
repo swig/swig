@@ -683,7 +683,6 @@ public:
     return *this;
   }
   operator const T&() const { return *pointer.ptr; }
-  operator T&&() const { return std::move(*pointer.ptr); }
   T *operator&() { return pointer.ptr; }
 };%}
 
