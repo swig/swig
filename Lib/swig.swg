@@ -1,12 +1,12 @@
 /* -----------------------------------------------------------------------------
  * swig.swg
  *
- * Common macro definitions for various SWIG directives.  This file is always 
+ * Common macro definitions for various SWIG directives.  This file is always
  * included at the top of each input file.
  * ----------------------------------------------------------------------------- */
 
 /* -----------------------------------------------------------------------------
- * User Directives 
+ * User Directives
  * ----------------------------------------------------------------------------- */
 
 /* Deprecated SWIG-1.1 directives */
@@ -221,7 +221,7 @@
     }
 
 */
-   
+
 %define %aggregate_check(TYPE, NAME, FIRST, ...)
 %wrapper %{
 static int NAME(TYPE x) {
@@ -229,7 +229,7 @@ static int NAME(TYPE x) {
     static  int size = sizeof(values);
     int     i,j;
     for (i = 0, j = 0; i < size; i+=sizeof(TYPE),j++) {
-        if (x == values[j]) return 1; 
+        if (x == values[j]) return 1;
     }
     return 0;
 }
@@ -240,7 +240,7 @@ static int NAME(TYPE x) {
 /* -----------------------------------------------------------------------------
  * %rename predicates
  * ----------------------------------------------------------------------------- */
-/* 
+/*
    Predicates to be used with %rename, for example:
 
    - to rename all the functions:
@@ -268,7 +268,7 @@ static int NAME(TYPE x) {
 
 */
 
-%define %$not            "not" %enddef 
+%define %$not            "not" %enddef
 %define %$isenum         "match"="enum"  %enddef
 %define %$isenumitem     "match"="enumitem"  %enddef
 %define %$isaccess       "match"="access"   %enddef
@@ -401,7 +401,7 @@ static int NAME(TYPE x) {
 
 
 /* -----------------------------------------------------------------------------
- * Default handling of certain overloaded operators 
+ * Default handling of certain overloaded operators
  * ----------------------------------------------------------------------------- */
 
 #ifdef __cplusplus
@@ -601,8 +601,8 @@ namespace std {
 
 /*  The SwigValueWrapper class  */
 
-/*  
- * This template wrapper is used to handle C++ objects that are passed or 
+/*
+ * This template wrapper is used to handle C++ objects that are passed or
  * returned by value.   This is necessary to handle objects that define
  * no default-constructor (making it difficult for SWIG to properly declare
  * local variables).
@@ -611,7 +611,7 @@ namespace std {
  *
  *      Vector cross_product(Vector a, Vector b)
  *
- * Now, if Vector is defined as a C++ class with no default constructor, 
+ * Now, if Vector is defined as a C++ class with no default constructor,
  * code is generated as follows:
  *
  *     Vector *wrap_cross_product(Vector *inarg1, Vector *inarg2) {
@@ -621,16 +621,16 @@ namespace std {
  *
  *          arg1 = *inarg1;
  *          arg2 = *inarg2;
- *          ...            
+ *          ...
  *          result = cross_product(arg1,arg2);
  *          ...
  *          return new Vector(result);
  *    }
- *         
+ *
  * In the wrappers, the template SwigValueWrapper simply provides a thin
  * layer around a Vector *.  However, it does this in a way that allows
  * the object to be bound after the variable declaration (which is not possible
- * with the bare object when it lacks a default constructor).  
+ * with the bare object when it lacks a default constructor).
  *
  * An observant reader will notice that the code after the variable declarations
  * is *identical* to the code used for classes that do define default constructors.
@@ -647,10 +647,10 @@ namespace std {
  * might be assigned.  For example:
  *
  *       arg1 = *inarg1;       // Assignment from a pointer
- *       arg1 = Vector(1,2,3); // Assignment from a value  
+ *       arg1 = Vector(1,2,3); // Assignment from a value
  *
  * The class offers a strong guarantee of exception safety.
- * With regards to the implementation, the private SwigMovePointer nested class is 
+ * With regards to the implementation, the private SwigMovePointer nested class is
  * a simple smart pointer with move semantics, much like std::auto_ptr.
  *
  * This wrapping technique was suggested by William Fulton and is henceforth
@@ -692,11 +692,11 @@ public:
 
 /*
  * SwigValueInit() is a generic initialisation solution as the following approach:
- * 
+ *
  *       T c_result = T();
- * 
+ *
  * doesn't compile for all types for example:
- * 
+ *
  *       unsigned int c_result = unsigned int();
  */
 %insert("runtime") %{
