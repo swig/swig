@@ -1,6 +1,7 @@
 import cpp11_move_only
 
-thing = cpp11_move_only.factory(1)
-# Python3 only:
-# assert thing.value == 1, f'{thing.value} != 1'
-assert thing.value == 1, '{} != 1'.format(thing.value)
+thing1 = cpp11_move_only.MoveOnly(1)
+assert thing1.value() == 1, '{} != 1'.format(thing.value)
+
+# thing2 = cpp11_move_only.factory(1)
+# assert thing2.value() == 1, '{} != 1'.format(thing.value)
