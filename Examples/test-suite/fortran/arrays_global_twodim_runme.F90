@@ -1,8 +1,8 @@
-! File : arrays_global_twodim.F90
+! File : arrays_global_twodim_runme.F90
 
 #include "fassert.h"
 
-program arrays_global_twodim
+program arrays_global_twodim_runme
   implicit none
 
   call test_int_array

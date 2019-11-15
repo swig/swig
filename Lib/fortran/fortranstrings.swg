@@ -40,7 +40,7 @@ subroutine %fortrantm(fout, char*)(imout, fout)
   character(kind=C_CHAR), dimension(:), pointer :: chars
   integer(kind=C_SIZE_T) :: i
   call c_f_pointer(imout%data, chars, [imout%size])
-  allocate(character(kind=C_CHAR, len=imout%size) :: fout)
+  allocate(character(len=imout%size) :: fout)
   do i=1, imout%size
     fout(i:i) = char(ichar(chars(i)))
   end do

@@ -29,8 +29,8 @@ using std::ptrdiff_t;
 %fragment("SWIG_fin"{bool}, "fsubprograms", noblock=1) {
 subroutine %fortrantm(fin, bool)(finp, iminp)
   use, intrinsic :: ISO_C_BINDING
-  logical, intent(IN) :: finp
-  integer(kind=C_INT), intent(OUT) :: iminp
+  logical, intent(in) :: finp
+  integer(kind=C_INT), intent(out) :: iminp
   if (finp .eqv. .true.) then
     iminp = 1
   else
@@ -42,8 +42,8 @@ end subroutine
 %fragment("SWIG_fout"{bool}, "fsubprograms", noblock=1) {
 subroutine %fortrantm(fout, bool)(imout, fout)
   use, intrinsic :: ISO_C_BINDING
-  integer(kind=C_INT), intent(IN) :: imout
-  logical, intent(OUT) :: fout
+  integer(kind=C_INT), intent(in) :: imout
+  logical, intent(out) :: fout
   ! TODO: fout = (imout /= 0) ???
   if (imout /= 0) then
     fout = .true.
