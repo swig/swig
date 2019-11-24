@@ -1098,8 +1098,13 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     octave_value subsasgn(const std::string &ops, const std::list < octave_value_list > &idx, const octave_value &rhs)
       { return ptr->subsasgn(ops, idx, rhs); }
 
+#if SWIG_OCTAVE_PREREQ(4,2,0)
+    virtual bool isobject() const 
+      { return ptr->is_object(); }
+#else
     virtual bool is_object() const 
       { return ptr->is_object(); }
+#endif
 
     virtual bool is_string() const 
       { return ptr->is_string(); }
