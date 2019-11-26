@@ -4064,7 +4064,7 @@ public:
 	      /* Get the C# parameter type */
 	      if ((tm = Getattr(p, "tmap:cstype"))) {
 		substituteClassname(pt, tm);
-		int flags = DOH_REPLACE_FIRST | DOH_REPLACE_ID_BEGIN;
+		int flags = DOH_REPLACE_FIRST | DOH_REPLACE_ID_BEGIN | DOH_REPLACE_NOCOMMENT;
 		if (Replace(tm, "ref ", "", flags) || Replace(tm, "ref\t", "", flags)) {
 		  Printf(proxy_method_types, "typeof(%s).MakeByRefType()", tm);
 		} else if (Replace(tm, "out ", "", flags) || Replace(tm, "out\t", "", flags)) {

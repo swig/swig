@@ -10,8 +10,8 @@
 %typemap(ctype)         int* readLen, int* writeLen "/*ctype*/ int*"
 %typemap(imtype)        int* readLen, int* writeLen "/*imtype*/ out int"
 %typemap(cstype)        int* readLen                "/*cstype*/ out int"
-//%typemap(cstype)                      int* writeLen "/*out cstype out*/ out int"
-%apply int *readLen { int* writeLen } // Replaced above - 'out' in a comment is not working yet
+// Note for below: 'out' used in typemap comment
+%typemap(cstype)                      int* writeLen "/*out cstype out*/ out int"
 %typemap(csin)          int* readLen, int* writeLen "/*csin*/ out $csinput"
 %typemap(in)            int* readLen, int* writeLen %{/*in*/  $1 = ($1_ltype)$input; %}
 %typemap(out)           int* readLen, int* writeLen %{/*out*/ $result = (void *)$1; %}
