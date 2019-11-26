@@ -16,10 +16,10 @@ environment:
   - SWIGLANG: python
     VSVER: 14
     VER: 27
-  - SWIGLANG: python
-    VSVER: 14
-    VER: 36
-    PY3: 3
+# - SWIGLANG: python
+#   VSVER: 14
+#   VER: 36
+#   PY3: 3
   - SWIGLANG: python
     OSVARIANT: cygwin
   - SWIGLANG: python
