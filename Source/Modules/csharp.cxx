@@ -4064,11 +4064,10 @@ public:
 	      /* Get the C# parameter type */
 	      if ((tm = Getattr(p, "tmap:cstype"))) {
 		substituteClassname(pt, tm);
-		if (Strncmp(tm, "ref ", 4) == 0) {
-		  Replace(tm, "ref ", "", DOH_REPLACE_FIRST);
+		int flags = DOH_REPLACE_FIRST | DOH_REPLACE_ID_BEGIN;
+		if (Replace(tm, "ref ", "", flags) || Replace(tm, "ref\t", "", flags)) {
 		  Printf(proxy_method_types, "typeof(%s).MakeByRefType()", tm);
-		} else if (Strncmp(tm, "out ", 4) == 0) {
-		  Replace(tm, "out ", "", DOH_REPLACE_FIRST);
+		} else if (Replace(tm, "out ", "", flags) || Replace(tm, "out\t", "", flags)) {
 		  Printf(proxy_method_types, "typeof(%s).MakeByRefType()", tm);
 		} else {
 		  Printf(proxy_method_types, "typeof(%s)", tm);

@@ -16,6 +16,7 @@ CPP_TEST_CASES = \
 	complextest \
 	csharp_attributes \
 	csharp_swig2_compatibility \
+	csharp_director_typemaps \
 	csharp_exceptions \
 	csharp_features \
 	csharp_lib_arrays \

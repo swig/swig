@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.2 (in progress)
 ===========================
 
+2019-11-26: wsfulton
+            [C#] #1628 'out' or 'ref' used in a cstype typemap was not always stripped out in parts
+            of director code generation.
+
 2019-11-01: wsfulton
             [Python] #1595 Fix bug in support for keyword arguments (kwargs feature or -keyword)
             when using -builtin. The fix is in the argument error checking when wrapping zero
