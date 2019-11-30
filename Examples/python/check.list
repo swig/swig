@@ -1,6 +1,7 @@
 # see top-level Makefile.in
 callback
 class
+class_with_slots
 constants
 contract
 docstrings
