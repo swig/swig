@@ -30,11 +30,6 @@ program member_pointer_runme
   call set_areavar(perim_memptr)
   val = do_op(s, get_areavar())
   ASSERT(val == 40.0d0)
-
-  ! Try the external constants
-  perim_memptr = PERIMPT
-  val = do_op(s, get_areavar())
-  ASSERT(val == 40.0d0)
 end program
 
 
