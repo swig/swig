@@ -873,10 +873,14 @@ int yylex(void) {
 	  return (USING);
 	if (strcmp(yytext, "namespace") == 0)
 	  return (NAMESPACE);
-	if (strcmp(yytext, "override") == 0)
+	if (strcmp(yytext, "override") == 0) {
+	  last_id = 1;
 	  return (OVERRIDE);
-	if (strcmp(yytext, "final") == 0)
+	}
+	if (strcmp(yytext, "final") == 0) {
+	  last_id = 1;
 	  return (FINAL);
+	}
       } else {
 	if (strcmp(yytext, "class") == 0) {
 	  Swig_warning(WARN_PARSE_CLASS_KEYWORD, cparse_file, cparse_line, "class keyword used, but not in C++ mode.\n");
