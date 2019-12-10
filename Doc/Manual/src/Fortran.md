@@ -895,7 +895,7 @@ specification:
 
 It should be noted that a function that returns `void` cannot be overloaded
 with a function that returns anything else: generic interfaces must be either
-all subroutines or all functions:
+all subroutines or all functions. The pair of declarations
 ```swig
 void cannot_overload(int x);
 int cannot_overload(int x, int y);
