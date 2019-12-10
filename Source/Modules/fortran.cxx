@@ -189,6 +189,16 @@ bool is_wrapped_enum(Node *n) {
 }
 
 /* -------------------------------------------------------------------------
+ * \brief Get the special string value corresponding to whether a function is
+ * a void return type (subroutine)
+ */
+String *subroutine_flag_str(bool is_subroutine) {
+  static String *is_subroutine_flag = NewString("is subroutine");
+  static String *not_subroutine_flag = NewString("is function");
+  return is_subroutine ? is_subroutine_flag : not_subroutine_flag;
+}
+
+/* -------------------------------------------------------------------------
  * \brief Whether an SWIG type can be rendered as TYPE VAR.
  *
  * Some declarations (arrays, function pointers, member function pointers)
@@ -1592,14 +1602,10 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
   Node *conflicting_subroutine = NULL;
 
   Node *overridden = Getattr(n, "fortran:override");
-  if (overridden) {
-    bool is_parent_subroutine = Getattr(overridden, "fortran:subroutine");
-    if (Getattr(n, "fortran:variable") && Getattr(overridden, "fortran:variable")) {
-      // Since variables can get wrapped twice (for getters and setters), pretend
-      // that the parent procedure is like this one
-      is_parent_subroutine = is_fsubroutine;
-    }
-    if (is_parent_subroutine != is_fsubroutine) {
+  if (overridden && !(Getattr(n, "fortran:variable") && Getattr(overridden, "fortran:variable"))) {
+    // Overridden, but *not* a variable, which can get wrapped twice (for getters and setters)
+    String *is_parent_subroutine = Getattr(overridden, "fortran:subroutine");
+    if (is_parent_subroutine != NULL && is_parent_subroutine != subroutine_flag_str(is_fsubroutine)) {
       // The parent procedure's return value conflicts with this one. (Perhaps the
       // conversion feature was applied only to the parent class, or a weird
       // typemap is in play?)
@@ -1608,12 +1614,14 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
   }
 
   if (Node *overload = Getattr(n, "sym:overloaded")) {
-    while (overload && GetFlag(overload, "fortran:ignore")) {
+    // Skip ignored overloads or uninstantiated overloads (friend functions implicitly instantiated
+    // in a templated struct, see friends.i)
+    while (overload && (GetFlag(overload, "fortran:ignore") || !Getattr(overload, "fortran:subroutine"))) {
       overload = Getattr(overload, "sym:nextSibling");
     }
     if (overload && overload != n) {
-      bool is_sibling_fsubroutine = Getattr(overload, "fortran:subroutine");
-      if (is_sibling_fsubroutine != is_fsubroutine) {
+      String *is_sibling_fsubroutine = Getattr(overload, "fortran:subroutine");
+      if (!Equal(is_sibling_fsubroutine, subroutine_flag_str(is_fsubroutine))) {
         // The parent procedure's return value conflicts with this one. (Perhaps the
         // conversion feature was applied only to the parent class, or a weird
         // typemap is in play?)
@@ -1628,10 +1636,8 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
   // functions.
   is_fsubroutine = (is_fsubroutine || func_to_subroutine) && !conflicting_subroutine;
 
-  if (is_fsubroutine) {
-    // Before possibly returning, save whether we're a subroutine in case of other overloads
-    Setattr(n, "fortran:subroutine", n);
-  }
+  // Before possibly returning, save whether we're a subroutine in case of other overloads
+  Setattr(n, "fortran:subroutine", subroutine_flag_str(is_fsubroutine));
 
   if (conflicting_subroutine) {
     // An already-wrapped overloaded function already has been declared as

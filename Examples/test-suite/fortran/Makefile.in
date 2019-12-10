@@ -37,7 +37,6 @@ C_TEST_CASES = \
 
 FAILING_CPP_TESTS += \
 	contract \
-	friends \
 	global_scope_types \
 	grouping \
 	member_funcptr_galore \
