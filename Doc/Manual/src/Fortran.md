@@ -1452,6 +1452,8 @@ f = Foo()
 call f%set_val(123)
 value = f%get_val()
 ```
+As in C++, the construction of `Foo()` default-initializes member data, so the
+result of `f%get_val()` will be zero immediately after construction.
 
 ## Inheritance
 
