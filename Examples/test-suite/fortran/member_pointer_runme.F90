@@ -6,7 +6,7 @@ program member_pointer_runme
   use member_pointer
   use ISO_C_BINDING
   implicit none
-  type(SwigOpaqueMemFunPtr) :: area_memptr, perim_memptr
+  type(SWIGTYPE_m_Shape__f_void__double) :: area_memptr, perim_memptr
   type(Square) :: s
   real(C_DOUBLE) :: val
 
