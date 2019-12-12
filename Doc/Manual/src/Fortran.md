@@ -895,7 +895,7 @@ specification:
 
 It should be noted that a function that returns `void` cannot be overloaded
 with a function that returns anything else: generic interfaces must be either
-all subroutines or all functions:
+all subroutines or all functions. The pair of declarations
 ```swig
 void cannot_overload(int x);
 int cannot_overload(int x, int y);
@@ -1452,6 +1452,8 @@ f = Foo()
 call f%set_val(123)
 value = f%get_val()
 ```
+As in C++, the construction of `Foo()` default-initializes member data, so the
+result of `f%get_val()` will be zero immediately after construction.
 
 ## Inheritance
 

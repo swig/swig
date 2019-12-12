@@ -34,7 +34,7 @@ def convert_link(link):
     return "Fortran_" + link.replace("-","_")
 
 def repl_link_match(match):
-    return r'<a href="#{}">'.format(convert_link(match.group(1)))
+    return r'<a href="Fortran.html#{}">'.format(convert_link(match.group(1)))
 
 def swiggify(path):
     with ReWriter(path) as rewriter:
