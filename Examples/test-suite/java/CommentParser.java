@@ -99,7 +99,8 @@ public class CommentParser {
                 try {
                     // write expected string to file
                     BufferedWriter expectedFile = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(expectedFileName)));
-                    expectedFile.write(wantedStr);
+                    if (wantedStr != null)
+                        expectedFile.write(wantedStr);
                     expectedFile.close();
 
                     // write translated string to file
