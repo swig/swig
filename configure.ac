@@ -1408,15 +1408,6 @@ if test -z "$JAVA_HOME" && test -n "$JAVA_HOME_MAYBE" ; then
   fi
 fi
 
-# Javadoc support required for the Java test-suite is available by default in jdk9+ and in tools.jar in earlier jdk versions
-AC_MSG_CHECKING(for java tools.jar)
-if test -n "$JAVA_HOME" && test -r "$JAVA_HOME/lib/tools.jar" ; then
-  JAVA_TOOLS_JAR="$JAVA_HOME/lib/tools.jar"
-  AC_MSG_RESULT([$JAVA_TOOLS_JAR])
-else
-  AC_MSG_RESULT(not found)
-fi
-
 case $host in
 *-*-cygwin*)
         # TODO: Only use this flag if the compiler supports it, later versions of gcc no longer have it
@@ -1483,7 +1474,6 @@ AC_SUBST(JAVA)
 AC_SUBST(JAVAC)
 AC_SUBST(JAVAINC)
 AC_SUBST(JAVA_CLASSPATH_SEP)
-AC_SUBST(JAVA_TOOLS_JAR)
 AC_SUBST(JAVADYNAMICLINKING)
 AC_SUBST(JAVALIBRARYPREFIX)
 AC_SUBST(JAVASO)
