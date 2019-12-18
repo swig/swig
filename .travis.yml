@@ -449,11 +449,6 @@ matrix:
       env: SWIGLANG=php VER=7.2
       sudo: required
       dist: xenial
-    # jdk 13 has removed tools.jar resulting in: CommentParser.java:2: error: package com.sun.javadoc does not exist
-    - compiler: clang
-      os: osx
-      env: SWIGLANG=java CPP17=1
-      osx_image: xcode10.2
     # Sometimes hits the Travis 50 minute time limit
     - compiler: clang
       os: osx
