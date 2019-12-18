@@ -93,13 +93,13 @@ public class CommentParser {
                 System.out.println("Output is also saved to files '" + expectedFileName +
                                    "' and '" + gotFileName + "'");
                 // here we print original strings, for nicer output
-                System.out.println("\n\n---\nexpected:\n" + wantedComments.get(e.getKey()));
+                System.out.println("\n\n---\nexpected:\n" + wantedStr);
                 System.out.println("\n\n---\ngot:\n" + e.getValue());
 
                 try {
                     // write expected string to file
                     BufferedWriter expectedFile = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(expectedFileName)));
-                    expectedFile.write(wantedComments.get(e.getKey()));
+                    expectedFile.write(wantedStr);
                     expectedFile.close();
 
                     // write translated string to file
