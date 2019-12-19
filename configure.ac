@@ -1351,10 +1351,10 @@ fi
 # Check Java version: we require Java 9 or later for Doxygen tests.
 if test -n "$JAVAC"; then
     AC_MSG_CHECKING(if java version is 9 or greater)
-    javac_version=`$JAVAC -version 2>&1`
+    javac_version=`"$JAVAC" -version 2>&1`
     java_version_num=`echo $javac_version | sed -n 's/^javac //p'`
     if test -z "$java_version_num"; then
-        AC_MSG_WARN([unknown format for Java version returned by $JAVAC ($javac_version)])
+        AC_MSG_WARN([unknown format for Java version returned by "$JAVAC" ($javac_version)])
         JAVA_SKIP_DOXYGEN_TEST_CASES=1
         AC_MSG_RESULT(unknown)
     else
