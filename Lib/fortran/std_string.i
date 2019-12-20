@@ -32,6 +32,7 @@ class string;
 
 /* ---- CONST REFERENCE: NATIVE STRING ---- */
 
+%clear const std::string &;
 %typemap(ctype) const std::string & = char*;
 %typemap(imtype) const std::string & = char*;
 %typemap(ftype) const std::string & = char*;
@@ -57,6 +58,7 @@ class string;
 
 /* ---- VALUE: NATIVE STRING ---- */
 
+%clear std::string;
 %apply const std::string & { std::string };
 
 %typemap(globalin) std::string {
