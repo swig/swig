@@ -52,17 +52,20 @@ subroutine test_set_string
   use li_std_set, only : set_string
   implicit none
   type(set_string) :: s
+  logical :: inserted = .false.
 
   s = set_string()
   ASSERT(s%empty())
 
   call s%insert("yoohoo")
-  call s%insert("howdy")
+  call s%insert("howdy", inserted)
+  ASSERT(inserted .eqv. .true.)
   ASSERT(s%size() == 2)
   ASSERT(s%count("yoohoo") == 1)
   ASSERT(s%count("hiya") == 0)
 
-  call s%insert("howdy")
+  call s%insert("howdy", inserted)
+  ASSERT(inserted .eqv. .false.)
   ASSERT(s%count("howdy") == 1)
   ASSERT(s%size() == 2)
 

@@ -37,11 +37,19 @@ public:
 
   size_type erase(const key_type& x);
   size_type count(const key_type& x) const;
-  void insert(const_reference x);
 %enddef
 
 %define %swig_std_set(_Key, _Compare, _Alloc)
   %swig_std_setcommon(set, _Key, _Compare, _Alloc)
+
+  %fortransubroutine insert;
+
+  %extend {
+    bool insert(const_reference x) {
+      std::pair<std::set<_Key, _Compare, _Alloc >::iterator, bool> result = $self->insert(x);
+      return result.second;
+    }
+  }
 %enddef
 
 namespace std {

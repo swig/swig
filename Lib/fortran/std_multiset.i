@@ -9,6 +9,8 @@
 
 %define %swig_std_multiset(_Key, _Compare, _Alloc)
   %swig_std_setcommon(multiset, _Key, _Compare, _Alloc)
+
+  void insert(const_reference x);
 %enddef
 
 namespace std {
