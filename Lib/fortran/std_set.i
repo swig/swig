@@ -8,7 +8,8 @@
 #include <set>
 %}
 
-%define SWIG_STD_SET_COMMON(CLASS, _Key, _Compare, _Alloc)
+// methods used by both set *and* multiset
+%define %swig_std_setcommon(CLASS, _Key, _Compare, _Alloc)
 
 public:
   // Typedefs
@@ -36,14 +37,25 @@ public:
 
   size_type erase(const key_type& x);
   size_type count(const key_type& x) const;
-  void insert(const_reference x);
+%enddef
 
+%define %swig_std_set(_Key, _Compare, _Alloc)
+  %swig_std_setcommon(set, _Key, _Compare, _Alloc)
+
+  %fortransubroutine insert;
+
+  %extend {
+    bool insert(const_reference x) {
+      std::pair<std::set<_Key, _Compare, _Alloc >::iterator, bool> result = $self->insert(x);
+      return result.second;
+    }
+  }
 %enddef
 
 namespace std {
 template<class _Key, class _Compare = std::less<_Key>, class _Alloc = std::allocator<_Key> >
 class set {
-  SWIG_STD_SET_COMMON(set, _Key, _Compare, _Alloc)
+  %swig_std_set(_Key, _Compare, _Alloc)
 };
 } // end namespace std
 

@@ -76,3 +76,18 @@ void do_nothing(TemplTricky<int>) {};
 %}
 
 %template(TemplTrickyInt) myns::TemplTricky<int>;
+
+// Test autofree declaration *before* including std:string
+%fortran_autofree_rvalue(std::string)
+namespace std {
+class string {
+};
+}
+
+%include <std_string.i>
+
+%inline %{
+std::string str_value(std::string s) { return s; }
+const std::string& str_cref(const std::string& s) { return s; }
+std::string& str_ref(std::string& s) { return s; }
+%}

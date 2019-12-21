@@ -1461,6 +1461,9 @@ Wrapper *FORTRAN::imfuncWrapper(Node *n, bool bindc) {
 
   // Attach typemap for return value
   String *return_imtype = attach_typemap(tmtype, n, warning_flag);
+  if (bindc && !return_imtype) {
+    return NULL;
+  }
   this->replace_fclassname(n, return_cpptype, return_imtype);
 
   const bool is_imsubroutine = (Len(return_imtype) == 0);
