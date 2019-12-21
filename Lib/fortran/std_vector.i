@@ -20,7 +20,7 @@
 #include <vector>
 %}
 
-%define SWIG_STD_VECTOR_COMMON(CTYPE, CREF_TYPE)
+%define %swig_std_vector(CTYPE, CREF_TYPE)
   public:
     // Typedefs
     typedef size_t size_type;
@@ -109,7 +109,7 @@
     }
 %enddef
 
-%define SWIG_STD_VECTOR_REF(CTYPE)
+%define %swig_std_vector_extend_ref(CTYPE)
   %extend {
     CTYPE& front_ref() {
       return (*$self).front();
@@ -128,13 +128,13 @@
 
 namespace std {
   template<class T> class vector {
-    SWIG_STD_VECTOR_COMMON(T, const T&)
-    SWIG_STD_VECTOR_REF(T)
+    %swig_std_vector(T, const T&)
+    %swig_std_vector_extend_ref(T)
   };
 
   // bool specialization
   template<> class vector<bool> {
-    SWIG_STD_VECTOR_COMMON(bool, bool)
+    %swig_std_vector(bool, bool)
   };
 } // end namespace std
 
