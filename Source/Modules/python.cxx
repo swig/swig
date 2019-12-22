@@ -637,7 +637,11 @@ public:
     }
 
     if (py3_stable_abi) {
-      Printf(f_runtime, "#define Py_LIMITED_API 0x03040000\n");
+      Printf(f_runtime, "#if !defined(Py_LIMITED_API)\n");
+      Printf(f_runtime, "# define Py_LIMITED_API 0x03040000\n");
+      Printf(f_runtime, "#elif Py_LIMITED_API+0 < 0x03040000\n");
+      Printf(f_runtime, "# error \"SWIG requires Py_LIMITED_API >= 0x03040000\"\n");
+      Printf(f_runtime, "#endif\n");
     }
 
     Printf(f_runtime, "\n");
