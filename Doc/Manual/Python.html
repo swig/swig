@@ -7281,11 +7281,22 @@ with Python versions 3.4 and above without recompilation.
 
 <p> However, this compatibility comes at a performance cost: some Python API macros are not available in this mode, 
 so SWIG must use function versions of the same.  For example, instead of <tt>PyTuple_GET_ITEM</tt> SWIG has to use <tt>PyTuple_GetItem</tt>.
-Unlike the macro, <tt>PyTuple_GetItem</tt> cannot be inlined, so it will execute slower.
+Unlike the macro, <tt>PyTuple_GetItem</tt> cannot be inlined, so it will execute slower. Also, please note that <tt>-py3-stable-abi</tt> is not compatible 
+with some of the other SWIG Python options such as <tt>-builtin</tt> or <tt>-fastproxy</tt>.
 </p>
 
-<p> 
-Also, please note that <tt>-py3-stable-abi</tt> is not compatible with some of the other SWIG Python options such as <tt>-builtin</tt> or <tt>-fastproxy</tt>.
+<H4>Linkage</H4>
+<p>
+Version-independent modules have special requirements when it comes to linking: they should not depend on the versioned Python dynamic library, otherwise the dynamic 
+linker will refuse to load them into a different version of Python runtime.  
+Here's <a href="https://www.python.org/dev/peps/pep-0384/#linkage">PEP 384 guidance on linkage</a>.  In practical terms, it mean this:
+<ul>
+  <li>On Windows, link to the version-independent <tt>python3.lib</tt>.</li>
+  <li>On Linux, don't link to <tt>libpython</tt> at all, leaving all imported Python symbols unresolved.  Make sure that unresolved symbols are not disallowed via "<tt>-z defs</tt>" linker option.</li>
+  <li>On MacOS, also don't link to <tt>libpython</tt>, but you will need to explicitly allow unresolved symbols via "<tt>-undefined dynamic_lookup</tt>" option.  
+      If you're not invoking linker directly, you may need to instruct your compiler to do so.  For example, GCC-compatible complers will need this flag:
+      "<tt>-Wl,-undefined,dynamic_lookup</tt>".</li>
+</ul>  
 </p>
 
 <H2><a name="Python_multithreaded">32.13 Support for Multithreaded Applications</a></H2>
