@@ -45,3 +45,4 @@ end
 swig_assert(had_exception, nil,
             "Global_immutable_vars_cpp::specific_immutable_var is writable (expected to be immutable)")
 
+swig_assert(Global_immutable_vars_cpp::check_values(80, 41, 82, 83, 44) == 1, nil, "Check values failed")

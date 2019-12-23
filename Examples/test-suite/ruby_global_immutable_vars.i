@@ -21,5 +21,14 @@
 %inline %{
   int global_mutable_var = 43;
   int specific_immutable_var = 44;
+
+  int check_values(int default_mutable, int global_immutable, int specific_mutable, int global_mutable, int specific_immutable) {
+    return
+      default_mutable    == default_mutable_var &&
+      global_immutable   == global_immutable_var &&
+      specific_mutable   == specific_mutable_var &&
+      global_mutable     == global_mutable_var &&
+      specific_immutable == specific_immutable_var;
+  }
 %}
 
