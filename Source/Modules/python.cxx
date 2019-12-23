@@ -471,14 +471,6 @@ public:
       SWIG_exit(EXIT_FAILURE);
     }
 
-    if (py3_stable_abi && threads && directorsEnabled()) {
-      // directors + threads uses PyThread_* APIs, which are not exported from python3.dll on Windows,
-      // despite nominally being a part of the stable ABI. 
-      // To prevent confusing users with linker errors, we disable this combination.  
-      Printf(stderr, "-py3-stable-abi, -threads and -directors options are not compatible.\n");
-      SWIG_exit(EXIT_FAILURE);
-    }
-
     if (py3_stable_abi && fastproxy) {
       Printf(stderr, "-py3-stable-abi and -fastproxy options are not compatible.  Disabling -fastproxy.\n");
       fastproxy = 0;
