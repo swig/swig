@@ -1,6 +1,5 @@
 
 import doxygen_misc_constructs.*;
-import com.sun.javadoc.*;
 import java.util.HashMap;
 
 public class doxygen_misc_constructs_runme {
@@ -15,14 +14,7 @@ public class doxygen_misc_constructs_runme {
 
   public static void main(String argv[])
   {
-    /*
-      Here we are using internal javadoc tool, it accepts the name of the class as paramterer,
-      and calls the start() method of that class with parsed information.
-    */
-    CommentParser parser = new CommentParser();
-    com.sun.tools.javadoc.Main.execute("doxygen_misc_constructs runtime test",
-                                       "CommentParser",
-                                       new String[]{"-quiet", "doxygen_misc_constructs"});
+    CommentParser.parse("doxygen_misc_constructs");
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
 
@@ -195,6 +187,6 @@ public class doxygen_misc_constructs_runme {
 
 
     // and ask the parser to check comments for us
-    System.exit(parser.check(wantedComments));
+    System.exit(CommentParser.check(wantedComments));
   }
 }

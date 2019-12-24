@@ -9,6 +9,7 @@ JAVAFLAGS    = @JAVAFLAGS@
 JAVA_CLASSPATH_SEP = @JAVA_CLASSPATH_SEP@
 JAVA_TOOLS_JAR     = @JAVA_TOOLS_JAR@
 SCRIPTSUFFIX = _runme.java
+SKIP_DOXYGEN_TEST_CASES = @JAVA_SKIP_DOXYGEN_TEST_CASES@
 
 srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
@@ -108,13 +109,11 @@ setup = \
 	  mkdir $(JAVA_PACKAGE);							  \
 	fi
 
-# Doxygen test cases need to be compiled together with the CommentParser class
-# which depends on com.sun.javadoc package which is located in this JAR.
+# Doxygen test cases need to be compiled together with the CommentParser class.
 CommentParser.class:
 	$(COMPILETOOL) $(JAVAC) -classpath $(JAVA_CLASSPATH) -d . $(srcdir)/CommentParser.java
 
 JAVA_CLASSPATH := .
-$(DOXYGEN_TEST_CASES:=.cpptest): JAVA_CLASSPATH := "$(JAVA_TOOLS_JAR)$(JAVA_CLASSPATH_SEP)."
 $(DOXYGEN_TEST_CASES:=.cpptest): CommentParser.class
 
 # Compiles java files then runs the testcase. A testcase is only run if
