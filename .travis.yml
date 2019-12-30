@@ -302,6 +302,11 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
+      env: SWIGLANG=ruby VER=2.7
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=scilab
       sudo: required
       dist: xenial
@@ -447,6 +452,12 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=php VER=7.2
+      sudo: required
+      dist: xenial
+    # Not yet supported
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=ruby VER=2.7
       sudo: required
       dist: xenial
     # Sometimes hits the Travis 50 minute time limit
