@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.2 (in progress)
 ===========================
 
+2019-12-30: treitmayr
+            [Ruby] #1653 #1668 Fix code generated when using -globalmodule option.
+
 2019-12-10: wsfulton
             #1679 Fix parsing of C++11 identifiers with special meaning (final and override) when
             they are used as part of the scope name of an identifier, such as a namespace name.
