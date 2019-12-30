@@ -62,7 +62,7 @@
 
 #if 0
 %typemap(argout) SWIGTYPE & {
-    CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
+    const CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
 	swig_result =
 	    caml_list_append(swig_result,
@@ -75,7 +75,7 @@
     }
 }
 %typemap(argout) SWIGTYPE && {
-    CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
+    const CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
 	swig_result =
 	    caml_list_append(swig_result,
