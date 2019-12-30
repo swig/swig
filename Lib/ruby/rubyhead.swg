@@ -110,26 +110,18 @@
  * can be passed as an argument to API functions like Data_Wrap_Struct()
  * and Data_Make_Struct().
  */
- 
-#ifdef __cplusplus
-#  ifndef RUBY_METHOD_FUNC /* These definitions should work for Ruby 1.4.6 */
-#    define PROTECTFUNC(f) ((VALUE (*)()) f)
-#    define VALUEFUNC(f) ((VALUE (*)()) f)
-#    define VOIDFUNC(f)  ((void (*)()) f)
-#  else
-#    ifndef ANYARGS /* These definitions should work for Ruby 1.6 */
-#      define PROTECTFUNC(f) ((VALUE (*)()) f)
-#      define VALUEFUNC(f) ((VALUE (*)()) f)
-#      define VOIDFUNC(f)  ((RUBY_DATA_FUNC) f)
-#    else /* These definitions should work for Ruby 1.7+ */
-#      define PROTECTFUNC(f) ((VALUE (*)(VALUE)) f)
-#      define VALUEFUNC(f) ((VALUE (*)(ANYARGS)) f)
-#      define VOIDFUNC(f)  ((RUBY_DATA_FUNC) f)
-#    endif
-#  endif
+#if defined(__cplusplus) && !defined(RB_METHOD_DEFINITION_DECL)
+#  define PROTECTFUNC(f) ((VALUE (*)(VALUE)) f)
+#  define VALUEFUNC(f) ((VALUE (*)(ANYARGS)) f)
+#  define VOIDFUNC(f) ((RUBY_DATA_FUNC) f)
+#  define VOID_ANYARGS_FUNC(f) ((void (*)(ANYARGS))(f))
+#  define INT_ANYARGS_FUNC(f) ((int (*)(ANYARGS))(f))
 #else
+#  define PROTECTFUNC(f) (f)
 #  define VALUEFUNC(f) (f)
 #  define VOIDFUNC(f) (f)
+#  define VOID_ANYARGS_FUNC(f) (f)
+#  define INT_ANYARGS_FUNC(f) (f)
 #endif
 
 /* Don't use for expressions have side effect */
