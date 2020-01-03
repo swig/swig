@@ -114,14 +114,14 @@
 #  define PROTECTFUNC(f) ((VALUE (*)(VALUE)) f)
 #  define VALUEFUNC(f) ((VALUE (*)(ANYARGS)) f)
 #  define VOIDFUNC(f) ((RUBY_DATA_FUNC) f)
-#  define VOID_ANYARGS_FUNC(f) ((void (*)(ANYARGS))(f))
-#  define INT_ANYARGS_FUNC(f) ((int (*)(ANYARGS))(f))
+#  define SWIG_RUBY_VOID_ANYARGS_FUNC(f) ((void (*)(ANYARGS))(f))
+#  define SWIG_RUBY_INT_ANYARGS_FUNC(f) ((int (*)(ANYARGS))(f))
 #else
 #  define PROTECTFUNC(f) (f)
 #  define VALUEFUNC(f) (f)
 #  define VOIDFUNC(f) (f)
-#  define VOID_ANYARGS_FUNC(f) (f)
-#  define INT_ANYARGS_FUNC(f) (f)
+#  define SWIG_RUBY_VOID_ANYARGS_FUNC(f) (f)
+#  define SWIG_RUBY_INT_ANYARGS_FUNC(f) (f)
 #endif
 
 /* Don't use for expressions have side effect */

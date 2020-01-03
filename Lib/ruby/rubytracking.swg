@@ -69,7 +69,9 @@ SWIGRUNTIME void SWIG_RubyInitializeTrackings(void) {
     swig_ruby_trackings = (st_table*)NUM2SWIG(trackings_value);
   }
 
-  rb_define_virtual_variable("SWIG_TRACKINGS_COUNT", VALUEFUNC(swig_ruby_trackings_count), VOID_ANYARGS_FUNC((rb_gvar_setter_t*)NULL));
+  rb_define_virtual_variable("SWIG_TRACKINGS_COUNT",
+                             VALUEFUNC(swig_ruby_trackings_count),
+                             SWIG_RUBY_VOID_ANYARGS_FUNC((rb_gvar_setter_t*)NULL));
 }
 
 /* Add a Tracking from a C/C++ struct to a Ruby object */
@@ -124,7 +126,9 @@ static int swig_ruby_internal_iterate_callback(st_data_t ptr, st_data_t obj, st_
 }
 
 SWIGRUNTIME void SWIG_RubyIterateTrackings( void(*meth)(void* ptr, VALUE obj) ) {
-  st_foreach(swig_ruby_trackings, INT_ANYARGS_FUNC(swig_ruby_internal_iterate_callback), (st_data_t)meth);
+  st_foreach(swig_ruby_trackings,
+             SWIG_RUBY_INT_ANYARGS_FUNC(swig_ruby_internal_iterate_callback),
+             (st_data_t)meth);
 }
 
 #ifdef __cplusplus
