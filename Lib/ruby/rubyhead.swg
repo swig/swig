@@ -98,17 +98,33 @@
 
 
 /*
- * Need to be very careful about how these macros are defined, especially
- * when compiling C++ code or C code with an ANSI C compiler.
+ * The following macros are used for providing the correct type of a
+ * function pointer to the Ruby C API.
+ * Starting with Ruby 2.7 (corresponding to RB_METHOD_DEFINITION_DECL being
+ * defined) these macros act transparently due to Ruby's moving away from
+ * ANYARGS and instead employing strict function signatures.
  *
- * VALUEFUNC(f) is a macro used to typecast a C function that implements
- * a Ruby method so that it can be passed as an argument to API functions
- * like rb_define_method() and rb_define_singleton_method().
+ * Note: In case of C (not C++) the macros are transparent even before
+ * Ruby 2.7 due to the fact that the Ruby C API used function declarators
+ * with empty parentheses, which allows for an unspecified number of
+ * arguments.
  *
- * VOIDFUNC(f) is a macro used to typecast a C function that implements
- * either the "mark" or "free" stuff for a Ruby Data object, so that it
- * can be passed as an argument to API functions like Data_Wrap_Struct()
+ * PROTECTFUNC(f) is used for the function pointer argument of the Ruby
+ * C API function rb_protect().
+ *
+ * VALUEFUNC(f) is used for the function pointer argument(s) of Ruby C API
+ * functions like rb_define_method() and rb_define_singleton_method().
+ *
+ * VOIDFUNC(f) is used to typecast a C function that implements either
+ * the "mark" or "free" stuff for a Ruby Data object, so that it can be
+ * passed as an argument to Ruby C API functions like Data_Wrap_Struct()
  * and Data_Make_Struct().
+ *
+ * SWIG_RUBY_VOID_ANYARGS_FUNC(f) is used for the function pointer
+ * argument(s) of Ruby C API functions like rb_define_virtual_variable().
+ *
+ * SWIG_RUBY_INT_ANYARGS_FUNC(f) is used for the function pointer
+ * argument(s) of Ruby C API functions like st_foreach().
  */
 #if defined(__cplusplus) && !defined(RB_METHOD_DEFINITION_DECL)
 #  define PROTECTFUNC(f) ((VALUE (*)(VALUE)) f)

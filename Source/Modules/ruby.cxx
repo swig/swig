@@ -2270,13 +2270,11 @@ public:
       Delete(setname);
     }
 
-    /* define accessor method */
-    if (CPlusPlus) {
-      Insert(getfname, 0, "VALUEFUNC(");
-      Append(getfname, ")");
-      Insert(setfname, 0, (use_virtual_var) ? "SWIG_RUBY_VOID_ANYARGS_FUNC(" : "VALUEFUNC(");
-      Append(setfname, ")");
-    }
+    /* define accessor methods */
+    Insert(getfname, 0, "VALUEFUNC(");
+    Append(getfname, ")");
+    Insert(setfname, 0, (use_virtual_var) ? "SWIG_RUBY_VOID_ANYARGS_FUNC(" : "VALUEFUNC(");
+    Append(setfname, ")");
 
     String *s = NewString("");
     switch (current) {
