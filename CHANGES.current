@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.2 (in progress)
 ===========================
 
+2020-01-05: treitmayr
+            [Ruby] #1692 #1689 Add support for Ruby 2.7
+
 2019-12-30: treitmayr
             [Ruby] #1653 #1668 Fix code generated when using -globalmodule option.
 
