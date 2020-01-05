@@ -2191,6 +2191,7 @@ public:
     String *tm;
     String *getfname, *setfname;
     Wrapper *getf, *setf;
+    const int assignable = is_assignable(n);
 
     // Determine whether virtual global variables shall be used
     // which have different getter and setter signatures,
@@ -2206,7 +2207,7 @@ public:
     getfname = Swig_name_wrapper(getname);
     Setattr(n, "wrap:name", getfname);
     Printv(getf->def, "SWIGINTERN VALUE\n", getfname, "(", NIL);
-    Printf(getf->def, (use_virtual_var) ? "ID id" : "VALUE self");
+    Printf(getf->def, (use_virtual_var) ? "ID id, VALUE *data" : "VALUE self");
     Printf(getf->def, ") {");
     Wrapper_add_local(getf, "_val", "VALUE _val");
 
@@ -2229,8 +2230,8 @@ public:
 
     Wrapper_print(getf, f_wrappers);
 
-    if (!is_assignable(n)) {
-      setfname = NewString("NULL");
+    if (!assignable) {
+      setfname = NewString("(rb_gvar_setter_t *)NULL");
     } else {
       /* create setter */
       String* docs = docstring(n, AUTODOC_SETTER);
@@ -2242,7 +2243,7 @@ public:
       Setattr(n, "wrap:name", setfname);
       Printf(setf->def, "SWIGINTERN ");
       if (use_virtual_var) {
-        Printv(setf->def, "void\n", setfname, "(VALUE _val, ID id) {", NIL);
+        Printv(setf->def, "void\n", setfname, "(VALUE _val, ID id, VALUE *data) {", NIL);
       } else {
         Printv(setf->def, "VALUE\n", setfname, "(VALUE self, VALUE _val) {", NIL);
       }
@@ -2269,20 +2270,18 @@ public:
       Delete(setname);
     }
 
-    /* define accessor method */
-    if (CPlusPlus) {
-      Insert(getfname, 0, "VALUEFUNC(");
-      Append(getfname, ")");
-      Insert(setfname, 0, (use_virtual_var) ? "(void (*)(ANYARGS))(" : "VALUEFUNC(");
-      Append(setfname, ")");
-    }
+    /* define accessor methods */
+    Insert(getfname, 0, "VALUEFUNC(");
+    Append(getfname, ")");
+    Insert(setfname, 0, (use_virtual_var) ? "SWIG_RUBY_VOID_ANYARGS_FUNC(" : "VALUEFUNC(");
+    Append(setfname, ")");
 
     String *s = NewString("");
     switch (current) {
     case STATIC_VAR:
       /* C++ class variable */
       Printv(s, tab4, "rb_define_singleton_method(", klass->vname, ", \"", klass->strip(iname), "\", ", getfname, ", 0);\n", NIL);
-      if (!GetFlag(n, "feature:immutable")) {
+      if (assignable) {
 	Printv(s, tab4, "rb_define_singleton_method(", klass->vname, ", \"", klass->strip(iname), "=\", ", setfname, ", 1);\n", NIL);
       }
       Printv(klass->init, s, NIL);
@@ -2293,16 +2292,11 @@ public:
       assert(current == NO_CPP);
       if (!useGlobalModule) {
 	Printv(s, tab4, "rb_define_singleton_method(", modvar, ", \"", iname, "\", ", getfname, ", 0);\n", NIL);
-	if (!GetFlag(n, "feature:immutable")) {
+	if (assignable) {
 	  Printv(s, tab4, "rb_define_singleton_method(", modvar, ", \"", iname, "=\", ", setfname, ", 1);\n", NIL);
 	}
       } else {
-	Printv(s, tab4, "rb_define_virtual_variable(\"$", iname, "\", ", getfname, ", ", NIL);
-	if (GetFlag(n, "feature:immutable")) {
-	  Printv(s, tab4, "0);\n", NIL);
-	} else {
-	  Printv(s, tab4, setfname, ");\n", NIL);
-	}
+	Printv(s, tab4, "rb_define_virtual_variable(\"$", iname, "\", ", getfname, ", ", setfname, ");\n", NIL);
       }
       Printv(f_init, s, NIL);
       Delete(s);
