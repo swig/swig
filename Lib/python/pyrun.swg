@@ -183,6 +183,19 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
   }
 }
 
+SWIGINTERN int
+SWIG_Python_CheckNoKeywords(PyObject *kwargs, const char *name) {
+  int no_kwargs = 1;
+  if (kwargs) {
+    assert(PyDict_Check(kwargs));
+    if (PyDict_Size(kwargs) > 0) {
+      PyErr_Format(PyExc_TypeError, "%s() does not take keyword arguments", name);
+      no_kwargs = 0;
+    }
+  }
+  return no_kwargs;
+}
+
 /* A functor is a function object with one single object argument */
 #define SWIG_Python_CallFunctor(functor, obj)	        PyObject_CallFunctionObjArgs(functor, obj, NULL);
 

@@ -159,6 +159,7 @@ CPP_TEST_CASES += \
 	cpp_enum \
 	cpp_namespace \
 	cpp_nodefault \
+	cpp_parameters \
 	cpp_static \
 	cpp_typedef \
 	cpp14_binary_integer_literals \
