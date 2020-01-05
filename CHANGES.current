@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.2 (in progress)
 ===========================
 
+2020-01-05: jschueller shadchin
+            [Python] #1670 #1696 Add missing field initializers introduced in python 3.8:
+            tp_vectorcall and tp_print.
+
 2020-01-05: friedrichatgc
             [Octave] #1688 Change swig_this() to use size_t instead of long for compatibility
             with Windows 64 bit.
