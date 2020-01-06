@@ -161,8 +161,8 @@ public:
       director_method_types(NULL),
       director_connect_parms(NULL),
       destructor_call(NULL),
-      structuralComments(NULL),
       output_file(NULL),
+      structuralComments(NULL),
       dmethods_seq(NULL),
       dmethods_table(NULL),
       n_dmethods(0),
@@ -1279,7 +1279,8 @@ public:
 	// Wrap C++ enum with integers - just indicate start of enum with a comment, no comment for anonymous enums of any sort
 	if (symname && !Getattr(n, "unnamedinstance"))
 	  Printf(constants_code, "  // %s \n", symname);
-  // Translate and write javadoc comment for the enum itself if flagged
+  
+  // Translate and write comment for the enum itself
   if (doxygen && doxygenTranslator->hasDocumentation(n)) {
     String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
     if (comment_creation_chatter)
@@ -1429,7 +1430,6 @@ public:
 	if (!GetFlag(n, "firstenumitem"))
 	  Printf(enum_code, ",\n");
 
-  //translate and write comment if flagged
   if (doxygen && doxygenTranslator->hasDocumentation(n)) {
     String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
     if (comment_creation_chatter)
@@ -1452,7 +1452,6 @@ public:
 	  Printf(enum_code, " = %s", value);
 	}
       } else {
-        //translate and write comment if flagged
         if (doxygen && doxygenTranslator->hasDocumentation(n)) {
           String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
           if (comment_creation_chatter)
@@ -1552,7 +1551,6 @@ public:
     Swig_save("constantWrapper", n, "value", NIL);
     Swig_save("constantWrapper", n, "tmap:ctype:out", "tmap:imtype:out", "tmap:cstype:out", "tmap:out:null", "tmap:imtype:outattributes", "tmap:cstype:outattributes", NIL);
 
-    //translate and write comment if flagged
     if (doxygen && doxygenTranslator->hasDocumentation(n)) {
       String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
       if (comment_creation_chatter)
@@ -1966,7 +1964,6 @@ public:
       Printv(proxy_class_def, typemapLookup(n, "csimports", typemap_lookup_type, WARN_NONE),	// Import statements
 	   "\n", NIL);
 
-    // translate and write  comment if flagged
     if (doxygen && doxygenTranslator->hasDocumentation(n)) {
       String* doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
       if (comment_creation_chatter)
@@ -2717,7 +2714,6 @@ public:
 	  }
 	}
   
-  // translate and write comment if flagged
   if (doxygen && doxygenTranslator->hasDocumentation(n)) {
     String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
     if (comment_creation_chatter)
@@ -2809,7 +2805,6 @@ public:
       String *mangled_overname = Swig_name_construct(getNSpace(), overloaded_name);
       String *imcall = NewString("");
 
-      // translate and write comment if flagged
       if (doxygen && doxygenTranslator->hasDocumentation(n)) {
         String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
         if (comment_creation_chatter)
@@ -3121,7 +3116,6 @@ public:
     String *post_code = NewString("");
     String *terminator_code = NewString("");
 
-    // translate and write comment if flagged
     if (doxygen && doxygenTranslator->hasDocumentation(n)) {
       String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
       if (comment_creation_chatter)
