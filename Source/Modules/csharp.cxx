@@ -1430,15 +1430,15 @@ public:
 	if (!GetFlag(n, "firstenumitem"))
 	  Printf(enum_code, ",\n");
 
-  if (doxygen && doxygenTranslator->hasDocumentation(n)) {
-    String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
-    if (comment_creation_chatter)
-      Printf(enum_code, "/* This was generated from enumvalueDeclaration() */");
-    Printv(enum_code, "\n /** ", Char(doxygen_comments), " */\n", NIL);
-    Delete(doxygen_comments);
-  }
+	if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+	  String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+	  if (comment_creation_chatter)
+	    Printf(enum_code, "/* This was generated from enumvalueDeclaration() */");
+	  Printv(enum_code, "\n /** ", Char(doxygen_comments), " */\n", NIL);
+	  Delete(doxygen_comments);
+	}
 
-  if (csattributes)
+	if (csattributes)
 	  Printf(enum_code, "  %s\n", csattributes);
 
 	Printf(enum_code, "  %s", symname);
@@ -1555,7 +1555,7 @@ public:
       String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
       if (comment_creation_chatter)
         Printf(constants_code, "/* This was generated from constantWrapper() */");
-      Printv(constants_code, " /** ", Char(doxygen_comments), " */ ", NIL);
+      Printv(constants_code, " /** ", Char(doxygen_comments), " */\n", NIL);
       Delete(doxygen_comments);
     }
 
@@ -1968,7 +1968,7 @@ public:
       String* doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
       if (comment_creation_chatter)
         Printf(proxy_class_def, "/* This was generated from emitProxyClassDefAndCPPCasts() */");
-      Printv(proxy_class_def, " /** ", Char(doxygen_comments), " */ \n", NIL);
+      Printv(proxy_class_def, " /** ", Char(doxygen_comments), " */\n", NIL);
       Delete(doxygen_comments);
     }
 
@@ -2480,6 +2480,14 @@ public:
       Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No cstype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
+    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+      String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+      if (comment_creation_chatter)
+	Printf(function_code, "/* This was generated from proxyclassfunctionhandler() */");
+      Printv(function_code, " /** ", Char(doxygen_comments), " */\n", NIL);
+      Delete(doxygen_comments);
+    }
+
     if (wrapping_member_flag && !enum_constant_flag) {
       // Properties
       setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), Swig_name_member(0, getClassPrefix(), variable_name))) == 0);
@@ -2713,16 +2721,16 @@ public:
 	    Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, "No cstype typemap defined for %s\n", SwigType_str(cvariable_type, 0));
 	  }
 	}
-  
-  if (doxygen && doxygenTranslator->hasDocumentation(n)) {
-    String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
-    if (comment_creation_chatter)
-      Printf(function_code, "/* This was generated from proxyclassfunctionhandler() */");
-    Printv(function_code, " /** ", Char(doxygen_comments), " */ \n", NIL);
-    Delete(doxygen_comments);
-  }
 
-  const String* csattributes = Getattr(n, "feature:cs:attributes");
+        if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+	  String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+	  if (comment_creation_chatter)
+	    Printf(proxy_class_code, "/* This was generated from proxyclassfunctionhandler() */");
+	  Printv(proxy_class_code, " /** ", Char(doxygen_comments), " */\n", NIL);
+	  Delete(doxygen_comments);
+	}
+
+        const String* csattributes = Getattr(n, "feature:cs:attributes");
 	if (csattributes)
 	  Printf(proxy_class_code, "  %s\n", csattributes);
 	const String *methodmods = Getattr(n, "feature:cs:methodmodifiers");
@@ -2809,7 +2817,7 @@ public:
         String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
         if (comment_creation_chatter)
           Printf(function_code, "/* This was generated from constructionhandler() */");
-        Printv(function_code, " /** ", Char(doxygen_comments), " */ \n", NIL);
+        Printv(function_code, " /** ", Char(doxygen_comments), " */\n", NIL);
         Delete(doxygen_comments);
       }
 
