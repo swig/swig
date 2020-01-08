@@ -7,8 +7,22 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.2 (in progress)
 ===========================
 
+2020-01-05: jschueller shadchin
+            [Python] #1670 #1696 Add missing field initializers introduced in python 3.8:
+            tp_vectorcall and tp_print.
+
+2020-01-05: friedrichatgc
+            [Octave] #1688 Change swig_this() to use size_t instead of long for compatibility
+            with Windows 64 bit.
+
+2020-01-05: treitmayr
+            [Ruby] #1692 #1689 Add support for Ruby 2.7
+
+2019-12-30: treitmayr
+            [Ruby] #1653 #1668 Fix code generated when using -globalmodule option.
+
 2019-12-29: ZackerySpytz
-            [OCaml] #1686 Fix compilation errors with OCaml 4.09.0.
+            [OCaml] #1686 #1693 Fix compilation errors with OCaml 4.09.0.
 
 2019-12-10: wsfulton
             #1679 Fix parsing of C++11 identifiers with special meaning (final and override) when

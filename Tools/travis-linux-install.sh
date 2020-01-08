@@ -23,8 +23,8 @@ case "$SWIGLANG" in
 		travis_retry sudo apt-get -qq install mono-devel
 		;;
 	"d")
-		travis_retry wget http://downloads.dlang.org/releases/2014/dmd_2.066.0-0_amd64.deb
-		travis_retry sudo dpkg -i dmd_2.066.0-0_amd64.deb
+		travis_retry wget http://downloads.dlang.org/releases/2.x/${VER}/dmd_${VER}-0_amd64.deb
+		travis_retry sudo dpkg -i dmd_${VER}-0_amd64.deb
 		;;
 	"go")
 		if [[ "$VER" ]]; then
@@ -95,6 +95,12 @@ case "$SWIGLANG" in
 		travis_retry sudo apt-get -qq install r-base
 		;;
 	"ruby")
+		if [[ "$VER" == "2.7" ]]; then
+			# Ruby 2.7 support is currently only rvm master (30 Dec 2019)
+			travis_retry rvm get master
+			rvm reload
+			rvm list known
+		fi
 		if [[ "$VER" ]]; then
 			travis_retry rvm install $VER
 		fi

@@ -507,10 +507,10 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
 	delete this;
     }
 
-    long swig_this() const {
+    size_t swig_this() const {
       if (!types.size())
-	return (long) this;
-      return (long) types[0].second.ptr;
+	return (size_t) this;
+      return (size_t) types[0].second.ptr;
     }
     const char* help_text() const {
       if (!types.size())
