@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.2 (in progress)
 ===========================
 
+2020-01-13: wsfulton
+            [Python] #1595 Python -builtin constructors silently ignored keyword arguments.
+            Instead of silenty ignoring them, now a "TypeError: f() takes no keyword arguments"
+            exception is thrown if keyword arguments are used. Hence constructors and normal methods/
+            functions behave in the same way. Note, -keyword should be used with -builtin to obtain
+            keyword argument support.
+
 2020-01-05: jschueller shadchin
             [Python] #1670 #1696 Add missing field initializers introduced in python 3.8:
             tp_vectorcall and tp_print.
