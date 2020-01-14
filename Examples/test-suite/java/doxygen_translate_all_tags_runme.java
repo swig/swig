@@ -96,7 +96,7 @@ public class doxygen_translate_all_tags_runme {
     		" {@link someMember Some description follows }\n" +
     		" This will only appear in man\n");
     
-    wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func07(int)",
+    wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func07(int, int, int, int)",
                        " Comment for <b>func07()</b>.\n" +
                        " Note: Here \n" +
     		" is the note! \n" +
@@ -107,7 +107,10 @@ public class doxygen_translate_all_tags_runme {
     		" The paragraph text. \n" +
     		" Maybe even multiline \n" +
     		" </p>\n" +
-                " @param a the first param\n");
+                " @param a the first param\n" +
+                " @param b parameter with intent(in)\n" +
+                " @param c parameter with intent(out)\n" +
+		" @param d parameter with intent(in,out)\n");
     
     wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func08(int)",
                        "<a id=\"someAnchor\"></a>\n" +

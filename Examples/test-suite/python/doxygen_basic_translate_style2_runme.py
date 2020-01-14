@@ -58,7 +58,7 @@ comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style2.function5),
 comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style2.function6),
     """\
 Test for default args
-:type a: int
+:type a: int, optional
 :param a: Some parameter, default is 42"""
 )
 comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style2.function7),
