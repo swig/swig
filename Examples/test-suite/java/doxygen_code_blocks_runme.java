@@ -15,14 +15,7 @@ public class doxygen_code_blocks_runme {
   
   public static void main(String argv[]) 
   {
-    /*
-      Here we are using internal javadoc tool, it accepts the name of the class as paramterer,
-      and calls the start() method of that class with parsed information.
-    */
-    CommentParser parser = new CommentParser();
-    com.sun.tools.javadoc.Main.execute("doxygen_code_blocks runtime test",
-                                       "CommentParser",
-                                       new String[]{"-quiet", "doxygen_code_blocks"});
+    CommentParser.parse("doxygen_code_blocks");
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     
@@ -78,6 +71,6 @@ public class doxygen_code_blocks_runme {
 		       "");
 
     // and ask the parser to check comments for us
-    System.exit(parser.check(wantedComments));
+    System.exit(CommentParser.check(wantedComments));
   }
 }
