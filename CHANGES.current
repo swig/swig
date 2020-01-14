@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.2 (in progress)
 ===========================
 
+
+2020-01-14: mcfarljm
+            #1608 Improve doxygen support.
+            - Add support for \param[] commands such as: \param[in].
+            - Optional arguments are marked as 'optional' in pydoc.
+            - Improve support for \code commands so that other languages are supported as code blocks.
+              Support added for java, c and py.  For example Python: \code{.py} ... \endcode
+            - Fix doxygen handling of \em and \p tags for Python.
+
 2020-01-13: wsfulton
             [Python] #1595 Python -builtin constructors silently ignored keyword arguments.
             Instead of silenty ignoring them, now a "TypeError: f() takes no keyword arguments"
