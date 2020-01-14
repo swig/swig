@@ -435,10 +435,11 @@ static int yylook(void) {
 	  if (scan_doxygen_comments) { /* else just skip this node, to avoid crashes in parser module*/
 	    /* Check for all possible Doxygen comment start markers while ignoring
 	       comments starting with a row of asterisks or slashes just as
-	       Doxygen itself does. */
+	       Doxygen itself does.  Also skip empty comment (slash-star-star-slash), 
+	       which causes a crash due to begin > end. */
 	    if (Len(cmt) > 3 && loc[0] == '/' &&
 		((loc[1] == '/' && ((loc[2] == '/' && loc[3] != '/') || loc[2] == '!')) ||
-		 (loc[1] == '*' && ((loc[2] == '*' && loc[3] != '*') || loc[2] == '!')))) {
+		 (loc[1] == '*' && ((loc[2] == '*' && loc[3] != '*' && loc[3] != '/') || loc[2] == '!')))) {
 	      comment_kind_t this_comment = loc[3] == '<' ? DOX_COMMENT_POST : DOX_COMMENT_PRE;
 	      if (existing_comment != DOX_COMMENT_NONE && this_comment != existing_comment) {
 		/* We can't concatenate together Doxygen pre- and post-comments. */
