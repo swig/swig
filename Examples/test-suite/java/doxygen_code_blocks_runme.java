@@ -1,6 +1,5 @@
 
 import doxygen_code_blocks.*;
-import com.sun.javadoc.*;
 import java.util.HashMap;
 
 public class doxygen_code_blocks_runme {
