@@ -627,6 +627,7 @@ DOXYGEN_TEST_CASES += \
 	doxygen_basic_notranslate \
 	doxygen_basic_translate \
 	doxygen_basic_translate_style2 \
+	doxygen_basic_translate_style3 \
 	doxygen_ignore \
 	doxygen_misc_constructs \
 	doxygen_nested_class \
