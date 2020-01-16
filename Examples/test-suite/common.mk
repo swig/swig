@@ -628,6 +628,7 @@ DOXYGEN_TEST_CASES += \
 	doxygen_basic_translate \
 	doxygen_basic_translate_style2 \
 	doxygen_basic_translate_style3 \
+	doxygen_code_blocks \
 	doxygen_ignore \
 	doxygen_misc_constructs \
 	doxygen_nested_class \
@@ -636,7 +637,6 @@ DOXYGEN_TEST_CASES += \
 	doxygen_translate \
 	doxygen_translate_all_tags \
 	doxygen_translate_links \
-	doxygen_code_blocks \
 
 $(DOXYGEN_TEST_CASES:=.cpptest): SWIGOPT += -doxygen
 
