@@ -7,6 +7,8 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.2 (in progress)
 ===========================
 
+2020-01-16: mcfarljm
+            #1632 #1659 Fix newline handling for doxygen "///" comments
 
 2020-01-14: mcfarljm
             #1608 Improve doxygen support.

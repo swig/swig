@@ -428,6 +428,7 @@ static int yylook(void) {
 	/* Concatenate or skip all consecutive comments at once. */
 	do {
 	  String *cmt = Scanner_text(scan);
+	  String *cmt_modified = 0;
 	  char *loc = Char(cmt);
 	  if ((strncmp(loc, "/*@SWIG", 7) == 0) && (loc[Len(cmt)-3] == '@')) {
 	    Scanner_locator(scan, cmt);
@@ -439,9 +440,9 @@ static int yylook(void) {
 	      slashStyle = 1;
 	      if (Len(cmt) == 3) {
 		/* Modify to make length=4 to ensure that the empty comment does
-		   get processed to preserve the newlines in the original
-		   comments. */
-		cmt = NewStringf("%s ", cmt);
+		   get processed to preserve the newlines in the original comments. */
+		cmt_modified = NewStringf("%s ", cmt);
+		cmt = cmt_modified;
 		loc = Char(cmt);
 	      }
 	    }
@@ -492,6 +493,7 @@ static int yylook(void) {
 	  do {
 	    tok = Scanner_token(scan);
 	  } while (tok == SWIG_TOKEN_ENDLINE);
+	  Delete(cmt_modified);
 	} while (tok == SWIG_TOKEN_COMMENT);
 
 	Scanner_pushtoken(scan, tok, Scanner_text(scan));
