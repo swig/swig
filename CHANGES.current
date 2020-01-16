@@ -8,7 +8,10 @@ Version 4.0.2 (in progress)
 ===========================
 
 2020-01-16: mcfarljm
-            #1632 #1659 Fix newline handling for doxygen "///" comments
+            #1632 #1659 Fix newline handling for doxygen "///" comments.
+
+2020-01-14: mcfarljm
+            #1647 #1656 Fix crash handling empty doxygen comments.
 
 2020-01-14: mcfarljm
             #1608 Improve doxygen support.
