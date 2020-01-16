@@ -1,6 +1,5 @@
 
 import doxygen_basic_translate_style3.*;
-import com.sun.javadoc.*;
 import java.util.HashMap;
 
 public class doxygen_basic_translate_style3_runme {
@@ -15,14 +14,7 @@ public class doxygen_basic_translate_style3_runme {
   
   public static void main(String argv[]) 
   {
-    /*
-      Here we are using internal javadoc tool, it accepts the name of the class as paramterer,
-      and calls the start() method of that class with parsed information.
-    */
-    CommentParser parser = new CommentParser();
-    com.sun.tools.javadoc.Main.execute("doxygen_basic_translate_style3 runtime test",
-                                       "CommentParser",
-                                       new String[]{"-quiet", "doxygen_basic_translate_style3"});
+    CommentParser.parse("doxygen_basic_translate_style3");
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     
@@ -96,6 +88,6 @@ public class doxygen_basic_translate_style3_runme {
     		"");
 
     // and ask the parser to check comments for us
-    System.exit(parser.check(wantedComments));
+    System.exit(CommentParser.check(wantedComments));
   }
 }
