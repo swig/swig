@@ -86,6 +86,13 @@ public class doxygen_basic_translate_runme {
     		" @param x Horizontal coordinate.\n" +
     		" @return Arc tangent of <code>y/x</code>.\n" +
     		"");
+    wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function8()",
+		" Test variadic function\n" +
+		"");
+
+    wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function9(int)",
+		" Test unnamed argument\n" +
+		"");    
 
     // and ask the parser to check comments for us
     System.exit(CommentParser.check(wantedComments));

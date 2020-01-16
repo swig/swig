@@ -70,6 +70,16 @@ Test for a parameter with difficult type
 :type a: :py:class:`Shape`
 :param a: Very strange param"""
 )
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function8),
+    """\
+Test variadic function
+:param ...: extra args"""
+)
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function9),
+    """\
+Test unnamed argument
+:param baz: Description of baz"""
+)
 
 comment_verifier.check(inspect.getdoc(doxygen_basic_translate.Atan2),
     """\

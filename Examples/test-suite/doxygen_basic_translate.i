@@ -111,6 +111,20 @@ double Atan2(double y, double x)
 /**/ 
 
 /**
+ * @brief Test variadic function
+ * @param ... extra args
+ */
+void function8(...) {
+}
+
+/**
+ * @brief Test unnamed argument
+ * @param baz Description of baz
+ */
+void function9(int) {
+} 
+
+/**
  * Comment at the end of file should be ignored.
  */
 %}
