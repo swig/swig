@@ -8,6 +8,10 @@ Version 4.0.2 (in progress)
 ===========================
 
 2020-01-16: mcfarljm
+            #1643 #1654 When using -doxygen, fix segfault when nameless parameters or vararg parameters
+            are used.
+
+2020-01-16: mcfarljm
             #1632 #1659 Fix newline handling for doxygen "///" comments.
 
 2020-01-14: mcfarljm
