@@ -1897,14 +1897,17 @@ public:
     String *wname = Swig_name_wrapper(jniname);
     Printf(imclass_cppcasts_code, "  public final static native long %s(long jarg1);\n", upcast_method_name);
     if (smart) {
-      SwigType *bsmart = Copy(smart);
+      String *smartnamestr = SwigType_namestr(smart);
+      String *bsmartnamestr = SwigType_namestr(smart);
+
       SwigType *rclassname = SwigType_typedef_resolve_all(c_classname);
       SwigType *rbaseclass = SwigType_typedef_resolve_all(c_baseclass);
-      Replaceall(bsmart, rclassname, rbaseclass);
+
+      Replaceall(bsmartnamestr, rclassname, rbaseclass);
+
       Delete(rclassname);
       Delete(rbaseclass);
-      String *smartnamestr = SwigType_namestr(smart);
-      String *bsmartnamestr = SwigType_namestr(bsmart);
+
       Printv(upcasts_code,
 	  "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
 	  "    jlong baseptr = 0;\n"
@@ -1917,7 +1920,6 @@ public:
 	  "}\n", "\n", NIL);
       Delete(bsmartnamestr);
       Delete(smartnamestr);
-      Delete(bsmart);
     } else {
       Printv(upcasts_code,
 	  "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
@@ -1928,6 +1930,7 @@ public:
 	  "    return baseptr;\n"
 	  "}\n", "\n", NIL);
     }
+
     Delete(wname);
     Delete(jniname);
   }
