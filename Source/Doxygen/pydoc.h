@@ -178,6 +178,11 @@ protected:
    */
   std::string getParamType(std::string name);
 
+  /*
+   * Simple helper function to retrieve the parameter value
+   */
+  std::string getParamValue(std::string name);
+
 private:
   // temporary thing, should be refactored somehow
   Node *currentNode;

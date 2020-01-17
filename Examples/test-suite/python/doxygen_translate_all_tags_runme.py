@@ -82,7 +82,7 @@ r"""Comment for **func03()**.
 
 *italicword*
 
-emphazedWord
+*emphazedWord*
 
 
 
@@ -196,7 +196,7 @@ is the note!
 This is an overloaded member function, provided for convenience.
 It differs from the above function only in what argument(s) it accepts.
 
-someword
+``someword``
 
 
 
@@ -209,7 +209,13 @@ Maybe even multiline
 
 
 :type a: int
-:param a: the first param""")
+:param a: the first param
+:type b: int, in
+:param b: parameter with intent(in)
+:type c: int, out
+:param c: parameter with intent(out)
+:type d: int, in/out
+:param d: parameter with intent(in,out)""")
 
 comment_verifier.check(inspect.getdoc(doxygen_translate_all_tags.func08),
 r"""Text after anchor.

@@ -2493,7 +2493,7 @@ public:
     String *symname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(symname);
 
-    const char *builtin_kwargs = builtin_ctor ? ", PyObject *SWIGUNUSEDPARM(kwargs)" : "";
+    const char *builtin_kwargs = builtin_ctor ? ", PyObject *kwargs" : "";
     Printv(f->def, linkage, builtin_ctor ? "int " : "PyObject *", wname, "(PyObject *self, PyObject *args", builtin_kwargs, ") {", NIL);
 
     Wrapper_add_local(f, "argc", "Py_ssize_t argc");
@@ -2502,6 +2502,9 @@ public:
 
     if (!fastunpack) {
       Wrapper_add_local(f, "ii", "Py_ssize_t ii");
+
+      if (builtin_ctor)
+	Printf(f->code, "if (!SWIG_Python_CheckNoKeywords(kwargs, \"%s\")) SWIG_fail;\n", symname);
 
       if (maxargs - (add_self ? 1 : 0) > 0) {
         Append(f->code, "if (!PyTuple_Check(args)) SWIG_fail;\n");
@@ -2518,8 +2521,9 @@ public:
       if (add_self)
 	Append(f->code, "argc++;\n");
     } else {
-      String *iname = Getattr(n, "sym:name");
-      Printf(f->code, "if (!(argc = SWIG_Python_UnpackTuple(args, \"%s\", 0, %d, argv%s))) SWIG_fail;\n", iname, maxargs, add_self ? "+1" : "");
+      if (builtin_ctor)
+	Printf(f->code, "if (!SWIG_Python_CheckNoKeywords(kwargs, \"%s\")) SWIG_fail;\n", symname);
+      Printf(f->code, "if (!(argc = SWIG_Python_UnpackTuple(args, \"%s\", 0, %d, argv%s))) SWIG_fail;\n", symname, maxargs, add_self ? "+1" : "");
       if (add_self)
 	Append(f->code, "argv[0] = self;\n");
       else
@@ -2713,7 +2717,7 @@ public:
       Append(wname, overname);
     }
 
-    const char *builtin_kwargs = builtin_ctor ? ", PyObject *SWIGUNUSEDPARM(kwargs)" : "";
+    const char *builtin_kwargs = builtin_ctor ? ", PyObject *kwargs" : "";
     if (!allow_kwargs || overname) {
       if (!varargs) {
 	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args", builtin_kwargs, ") {", NIL);
@@ -2886,6 +2890,7 @@ public:
       funpack = 0;
     } else {
       Clear(parse_args);
+
       if (funpack) {
 	Clear(f->def);
 	if (overname) {
@@ -2898,6 +2903,8 @@ public:
 	} else {
 	  int is_tp_call = Equal(Getattr(n, "feature:python:slot"), "tp_call");
 	  Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args", builtin_kwargs, ") {", NIL);
+	  if (builtin_ctor)
+	    Printf(parse_args, "if (!SWIG_Python_CheckNoKeywords(kwargs, \"%s\")) SWIG_fail;\n", iname);
 	  if (onearg && !builtin_ctor && !is_tp_call) {
 	    Printf(parse_args, "if (!args) SWIG_fail;\n");
 	    Append(parse_args, "swig_obj[0] = args;\n");
@@ -2908,6 +2915,8 @@ public:
 	  }
 	}
       } else {
+	if (builtin_ctor)
+	  Printf(parse_args, "if (!SWIG_Python_CheckNoKeywords(kwargs, \"%s\")) SWIG_fail;\n", iname);
 	if (builtin && in_class && tuple_arguments == 0) {
 	  Printf(parse_args, "    if (args && PyTuple_Check(args) && PyTuple_GET_SIZE(args) > 0) SWIG_exception_fail(SWIG_TypeError, \"%s takes no arguments\");\n", iname);
 	} else {
@@ -4134,6 +4143,13 @@ public:
     Printv(f, "#if PY_VERSION_HEX >= 0x03040000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_finalize"), "tp_finalize", "destructor");
     Printv(f, "#endif\n", NIL);
+    Printv(f, "#if PY_VERSION_HEX >= 0x03080000\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:tp_vectorcall"), "tp_vectorcall", "vectorcallfunc");
+    Printv(f, "#endif\n", NIL);
+    Printv(f, "#if (PY_VERSION_HEX >= 0x03080000) && (PY_VERSION_HEX < 0x03090000)\n", NIL);
+    printSlot(f, getSlot(), "tp_print");
+    Printv(f, "#endif\n", NIL);
+
     Printv(f, "#ifdef COUNT_ALLOCS\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_allocs"), "tp_allocs", "Py_ssize_t");
     printSlot(f, getSlot(n, "feature:python:tp_frees"), "tp_frees", "Py_ssize_t");

@@ -1,6 +1,5 @@
 
 import doxygen_alias.*;
-import com.sun.javadoc.*;
 import java.util.HashMap;
 
 public class doxygen_alias_runme {
@@ -15,10 +14,7 @@ public class doxygen_alias_runme {
 
   public static void main(String argv[])
   {
-    CommentParser parser = new CommentParser();
-    com.sun.tools.javadoc.Main.execute("doxygen_alias runtime test",
-                                       "CommentParser",
-                                       new String[]{"-quiet", "doxygen_alias"});
+    CommentParser.parse("doxygen_alias");
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     wantedComments.put("doxygen_alias.doxygen_alias.make_something()",
@@ -27,6 +23,6 @@ public class doxygen_alias_runme {
       "     @return A new object which may be null.\n" +
       "");
 
-    System.exit(parser.check(wantedComments));
+    System.exit(CommentParser.check(wantedComments));
   }
 }

@@ -54,7 +54,12 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
-      env: SWIGLANG=d
+      env: SWIGLANG=d VER=2.066.0
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=d VER=2.086.1
       sudo: required
       dist: xenial
     - compiler: gcc
@@ -204,6 +209,11 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
+      env: SWIGLANG=python PY3=3 VER=3.8
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin
       sudo: required
       dist: xenial
@@ -217,7 +227,7 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=python SWIG_FEATURES=-builtin GCC=6 CPP11=1 PY3=3 VER=3.7
+      env: SWIGLANG=python SWIG_FEATURES=-builtin GCC=6 CPP11=1 PY3=3 VER=3.8
       sudo: required
       dist: xenial
     - compiler: gcc
@@ -237,12 +247,17 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
-      env: SWIGLANG=python SWIG_FEATURES="-builtin -O" PY3=3 VER=3.7
+      env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.8
       sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
-      env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.7 SWIGOPTPY3=
+      env: SWIGLANG=python SWIG_FEATURES="-builtin -O" PY3=3 VER=3.8
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.8 SWIGOPTPY3=
       sudo: required
       dist: xenial
     - compiler: gcc
@@ -252,7 +267,7 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
-      env: SWIGLANG=python SWIG_FEATURES=-O PY3=3 VER=3.7
+      env: SWIGLANG=python SWIG_FEATURES=-O PY3=3 VER=3.8
       sudo: required
       dist: xenial
     - compiler: gcc
@@ -298,6 +313,11 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=ruby VER=2.6
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=ruby VER=2.7
       sudo: required
       dist: xenial
     - compiler: gcc
@@ -379,7 +399,7 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=python GCC=8 CPP17=1 PY3=3 VER=3.7
+      env: SWIGLANG=python GCC=8 CPP17=1 PY3=3 VER=3.8
       sudo: required
       dist: xenial
     - os: linux
@@ -391,7 +411,7 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=python GCC=9 CPP17=1 PY3=3 VER=3.7
+      env: SWIGLANG=python GCC=9 CPP17=1 PY3=3 VER=3.8
       sudo: required
       dist: xenial
     - compiler: gcc
@@ -443,17 +463,18 @@ matrix:
       osx_image: xcode10.2
 
   allow_failures:
+    # Newer version of D not yet working/supported
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=d VER=2.086.1
+      sudo: required
+      dist: xenial
     # seg fault in director_basic testcase
     - compiler: gcc
       os: linux
       env: SWIGLANG=php VER=7.2
       sudo: required
       dist: xenial
-    # jdk 13 has removed tools.jar resulting in: CommentParser.java:2: error: package com.sun.javadoc does not exist
-    - compiler: clang
-      os: osx
-      env: SWIGLANG=java CPP17=1
-      osx_image: xcode10.2
     # Sometimes hits the Travis 50 minute time limit
     - compiler: clang
       os: osx

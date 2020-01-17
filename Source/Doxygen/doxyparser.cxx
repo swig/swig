@@ -34,6 +34,30 @@ std::set<std::string> DoxygenParser::doxygenSectionIndicators;
 const int TOKENSPERLINE = 8; //change this to change the printing behaviour of the token list
 const std::string END_HTML_TAG_MARK("/");
 
+std::string getBaseCommand(const std::string &cmd) {
+  if (cmd.substr(0,5) == "param")
+    return "param";
+  else if (cmd.substr(0,4) == "code")
+    return "code";
+  else
+    return cmd;
+}
+
+// Find the first position beyond the word command.  Extra logic is
+// used to avoid putting the characters "," and "." in
+// DOXYGEN_WORD_CHARS.
+static size_t getEndOfWordCommand(const std::string &line, size_t pos) {
+  size_t endOfWordPos = line.find_first_not_of(DOXYGEN_WORD_CHARS, pos);
+  if (line.substr(pos, 6) == "param[")
+    // include ",", which can appear in param[in,out]
+    endOfWordPos = line.find_first_not_of(string(DOXYGEN_WORD_CHARS)+ ",", pos);  
+  else if (line.substr(pos, 5) == "code{")
+    // include ".", which can appear in e.g. code{.py}
+    endOfWordPos = line.find_first_not_of(string(DOXYGEN_WORD_CHARS)+ ".", pos);
+  return endOfWordPos;
+}
+
+
 DoxygenParser::DoxygenParser(bool noisy) : noisy(noisy) {
   fillTables();
 }
@@ -118,7 +142,7 @@ void DoxygenParser::printTree(const DoxygenEntityList &rootList) {
 }
 
 DoxygenParser::DoxyCommandEnum DoxygenParser::commandBelongs(const std::string &theCommand) {
-  DoxyCommandsMapIt it = doxygenCommands.find(stringToLower(theCommand));
+  DoxyCommandsMapIt it = doxygenCommands.find(stringToLower(getBaseCommand(theCommand)));
 
   if (it != doxygenCommands.end()) {
     return it->second;
@@ -312,7 +336,7 @@ DoxygenParser::TokenListCIt DoxygenParser::getEndOfParagraph(const TokenList &to
 
     } else if (endOfParagraph->m_tokenType == COMMAND) {
 
-      if (isSectionIndicator(endOfParagraph->m_tokenString)) {
+      if (isSectionIndicator(getBaseCommand(endOfParagraph->m_tokenString))) {
         return endOfParagraph;
       } else {
         endOfParagraph++;
@@ -666,7 +690,7 @@ void DoxygenParser::addCommandUnique(const std::string &theCommand, const TokenL
   // \f{ ... \f}
   // \f{env}{ ... \f}
   // \f$ ... \f$
-  else if (theCommand == "code" || theCommand == "verbatim"
+  else if (getBaseCommand(theCommand) == "code" || theCommand == "verbatim"
            || theCommand == "dot" || theCommand == "msc" || theCommand == "f[" || theCommand == "f{" || theCommand == "f$") {
     if (!endCommands.size()) {
       // fill in static table of end commands
@@ -683,7 +707,7 @@ void DoxygenParser::addCommandUnique(const std::string &theCommand, const TokenL
     if (it != endCommands.end())
       endCommand = it->second;
     else
-      endCommand = "end" + theCommand;
+      endCommand = "end" + getBaseCommand(theCommand);
 
     std::string content = getStringTilEndCommand(endCommand, tokList);
     aNewList.push_back(DoxygenEntity("plainstd::string", content));
@@ -1093,7 +1117,7 @@ size_t DoxygenParser::processVerbatimText(size_t pos, const std::string &line) {
     size_t endOfWordPos = line.find_first_not_of(DOXYGEN_WORD_CHARS, pos);
     string cmd = line.substr(pos, endOfWordPos - pos);
 
-    if (cmd == CMD_END_HTML_ONLY || cmd == CMD_END_VERBATIM || cmd == CMD_END_LATEX_1 || cmd == CMD_END_LATEX_2 || cmd == CMD_END_LATEX_3) {
+    if (cmd == CMD_END_HTML_ONLY || cmd == CMD_END_VERBATIM || cmd == CMD_END_LATEX_1 || cmd == CMD_END_LATEX_2 || cmd == CMD_END_LATEX_3 || cmd == CMD_END_CODE) {
 
       m_isVerbatimText = false;
       addDoxyCommand(m_tokenList, cmd);
@@ -1157,22 +1181,34 @@ bool DoxygenParser::processEscapedChars(size_t &pos, const std::string &line) {
  */
 void DoxygenParser::processWordCommands(size_t &pos, const std::string &line) {
   pos++;
-  size_t endOfWordPos = line.find_first_not_of(DOXYGEN_WORD_CHARS, pos);
+  size_t endOfWordPos = getEndOfWordCommand(line, pos);
 
   string cmd = line.substr(pos, endOfWordPos - pos);
   addDoxyCommand(m_tokenList, cmd);
 
-  if (cmd == CMD_HTML_ONLY || cmd == CMD_VERBATIM || cmd == CMD_LATEX_1 || cmd == CMD_LATEX_2 || cmd == CMD_LATEX_3) {
+  // A flag for whether we want to skip leading spaces after the command
+  bool skipLeadingSpace = true;
+
+  if (cmd == CMD_HTML_ONLY || cmd == CMD_VERBATIM || cmd == CMD_LATEX_1 || cmd == CMD_LATEX_2 || cmd == CMD_LATEX_3 || getBaseCommand(cmd) == CMD_CODE) {
 
     m_isVerbatimText = true;
 
-  } else {
+    // Skipping leading space is necessary with inline \code command,
+    // and it won't hurt anything for block \code (TODO: are the other
+    // commands also compatible with skip leading space?  If so, just
+    // do it every time.)
+    if (getBaseCommand(cmd) == CMD_CODE) skipLeadingSpace = true;
+    else skipLeadingSpace = false;
+  }
+
+  if (skipLeadingSpace) {
     // skip any possible spaces after command, because some commands have parameters,
     // and spaces between command and parameter must be ignored.
     if (endOfWordPos != string::npos) {
       endOfWordPos = line.find_first_not_of(" \t", endOfWordPos);
     }
   }
+  
   pos = endOfWordPos;
 }
 

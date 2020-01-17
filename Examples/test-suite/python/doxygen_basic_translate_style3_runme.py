@@ -1,10 +1,10 @@
-import doxygen_basic_translate
+import doxygen_basic_translate_style3
 import inspect
 import string
 import sys
 import comment_verifier
 
-comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style3.function),
     """\
 Brief description.
 
@@ -17,25 +17,23 @@ Author: Some author
 
 See also: function2"""
 )
-comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function2),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style3.function2),
     """\
 A test of a very very very very very very very very very very very very very very very very
 very very very very very long comment string."""
 )
-comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function3),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style3.function3),
     """*Overload 1:*
-
 A test for overloaded functions
 This is function **one**
 
 |
 
 *Overload 2:*
-
 A test for overloaded functions
 This is function **two**"""
 )
-comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function4),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style3.function4),
     """\
 A test of some mixed tag usage
 If: CONDITION {
@@ -51,37 +49,27 @@ Warning: This may not work as expected
 
     int main() { while(true); }
 
-    // Test blank line in code block
+    int testBlankLine() {}
 }"""
 )
-comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function5),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style3.function5),
     """This is a post comment."""
 )
-comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function6),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style3.function6),
     """\
 Test for default args
 :type a: int, optional
 :param a: Some parameter, default is 42"""
 )
-comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function7),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style3.function7),
     """\
 Test for a parameter with difficult type
 (mostly for python)
 :type a: :py:class:`Shape`
 :param a: Very strange param"""
 )
-comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function8),
-    """\
-Test variadic function
-:param ...: extra args"""
-)
-comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function9),
-    """\
-Test unnamed argument
-:param baz: Description of baz"""
-)
 
-comment_verifier.check(inspect.getdoc(doxygen_basic_translate.Atan2),
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate_style3.Atan2),
     """\
 Multiple parameters test.
 

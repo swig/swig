@@ -7,6 +7,48 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.2 (in progress)
 ===========================
 
+2020-01-16: mcfarljm
+            #1643 #1654 When using -doxygen, fix segfault when nameless parameters or vararg parameters
+            are used.
+
+2020-01-16: mcfarljm
+            #1632 #1659 Fix newline handling for doxygen "///" comments.
+
+2020-01-14: mcfarljm
+            #1647 #1656 Fix crash handling empty doxygen comments.
+
+2020-01-14: mcfarljm
+            #1608 Improve doxygen support.
+            - Add support for \param[] commands such as: \param[in].
+            - Optional arguments are marked as 'optional' in pydoc.
+            - Improve support for \code commands so that other languages are supported as code blocks.
+              Support added for java, c and py.  For example Python: \code{.py} ... \endcode
+            - Fix doxygen handling of \em and \p tags for Python.
+
+2020-01-13: wsfulton
+            [Python] #1595 Python -builtin constructors silently ignored keyword arguments.
+            Instead of silenty ignoring them, now a "TypeError: f() takes no keyword arguments"
+            exception is thrown if keyword arguments are used. Hence constructors and normal methods/
+            functions behave in the same way. Note, -keyword should be used with -builtin to obtain
+            keyword argument support.
+
+2020-01-05: jschueller shadchin
+            [Python] #1670 #1696 Add missing field initializers introduced in python 3.8:
+            tp_vectorcall and tp_print.
+
+2020-01-05: friedrichatgc
+            [Octave] #1688 Change swig_this() to use size_t instead of long for compatibility
+            with Windows 64 bit.
+
+2020-01-05: treitmayr
+            [Ruby] #1692 #1689 Add support for Ruby 2.7
+
+2019-12-30: treitmayr
+            [Ruby] #1653 #1668 Fix code generated when using -globalmodule option.
+
+2019-12-29: ZackerySpytz
+            [OCaml] #1686 Fix compilation errors with OCaml 4.09.0.
+
 2019-12-10: wsfulton
             #1679 Fix parsing of C++11 identifiers with special meaning (final and override) when
             they are used as part of the scope name of an identifier, such as a namespace name.

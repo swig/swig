@@ -159,6 +159,7 @@ CPP_TEST_CASES += \
 	cpp_enum \
 	cpp_namespace \
 	cpp_nodefault \
+	cpp_parameters \
 	cpp_static \
 	cpp_typedef \
 	cpp14_binary_integer_literals \
@@ -250,6 +251,7 @@ CPP_TEST_CASES += \
 	funcptr_cpp \
 	functors \
 	fvirtual \
+	global_immutable_vars_cpp \
 	global_namespace \
 	global_ns_arg \
 	global_scope_types \
@@ -610,11 +612,14 @@ CPP11_TEST_BROKEN = \
 #	cpp11_reference_wrapper \     # No typemaps
 
 # Doxygen support test cases: can only be used with languages supporting
-# Doxygen comment translation, currently only Python and Java.
+# Doxygen comment translation (currently Python and Java) and only if not
+# disabled by configure via SKIP_DOXYGEN_TEST_CASES.
+ifneq ($(SKIP_DOXYGEN_TEST_CASES),1)
 python_HAS_DOXYGEN := 1
 java_HAS_DOXYGEN := 1
 
 $(eval HAS_DOXYGEN := $($(LANGUAGE)_HAS_DOXYGEN))
+endif
 
 ifdef HAS_DOXYGEN
 DOXYGEN_TEST_CASES += \
@@ -622,6 +627,8 @@ DOXYGEN_TEST_CASES += \
 	doxygen_basic_notranslate \
 	doxygen_basic_translate \
 	doxygen_basic_translate_style2 \
+	doxygen_basic_translate_style3 \
+	doxygen_code_blocks \
 	doxygen_ignore \
 	doxygen_misc_constructs \
 	doxygen_nested_class \
@@ -689,6 +696,7 @@ C_TEST_CASES += \
 	funcptr \
 	function_typedef \
 	global_functions \
+	global_immutable_vars \
 	immutable_values \
 	inctest \
 	infinity \

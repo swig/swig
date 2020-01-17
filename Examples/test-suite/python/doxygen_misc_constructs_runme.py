@@ -12,7 +12,7 @@ comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.getAddress),
 :param fileName: name of the file, where the source line is located
 :type line: int
 :param line: line number
-:type isGetSize: boolean
+:type isGetSize: boolean, optional
 :param isGetSize: if set, for every object location both address and size are returned
 
 Connection::getId() """)

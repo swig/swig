@@ -1,11 +1,11 @@
 
-import doxygen_basic_translate_style2.*;
+import doxygen_basic_translate_style3.*;
 import java.util.HashMap;
 
-public class doxygen_basic_translate_style2_runme {
+public class doxygen_basic_translate_style3_runme {
   static {
     try {
-      System.loadLibrary("doxygen_basic_translate_style2");
+      System.loadLibrary("doxygen_basic_translate_style3");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);
@@ -14,11 +14,11 @@ public class doxygen_basic_translate_style2_runme {
   
   public static void main(String argv[]) 
   {
-    CommentParser.parse("doxygen_basic_translate_style2");
+    CommentParser.parse("doxygen_basic_translate_style3");
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     
-    wantedComments.put("doxygen_basic_translate_style2.doxygen_basic_translate_style2.function()",
+    wantedComments.put("doxygen_basic_translate_style3.doxygen_basic_translate_style3.function()",
     		" \n" +
     		" Brief description.\n" +
     		" \n" +
@@ -28,12 +28,12 @@ public class doxygen_basic_translate_style2_runme {
     		" @see function2\n" +
     		" \n" +
     		"");
-    wantedComments.put("doxygen_basic_translate_style2.doxygen_basic_translate_style2.function2()",
+    wantedComments.put("doxygen_basic_translate_style3.doxygen_basic_translate_style3.function2()",
     		" A test of a very very very very very very very very very very very very very very very very \n" +
     		" very very very very very long comment string. \n" +
     		" \n" +
     		"");
-    wantedComments.put("doxygen_basic_translate_style2.doxygen_basic_translate_style2.function4()",
+    wantedComments.put("doxygen_basic_translate_style3.doxygen_basic_translate_style3.function4()",
     		" A test of some mixed tag usage \n" +
     		" If: CONDITION {\n" +
     		" This <i>code </i>fragment shows us something . \n" +
@@ -47,39 +47,39 @@ public class doxygen_basic_translate_style2_runme {
     		" {@code \n" +
     		"int main() { while(true); } \n" +
 		"\n" +
-		"// Test blank line in code block \n" +
+		"int testBlankLine() {} \n" +
     		" }\n" +
     		" }\n" +
     		" \n" +
     		"");
-    wantedComments.put("doxygen_basic_translate_style2.doxygen_basic_translate_style2.function3(int)",
+    wantedComments.put("doxygen_basic_translate_style3.doxygen_basic_translate_style3.function3(int)",
     		" A test for overloaded functions \n" +
     		" This is function <b>one </b>\n" +
     		" \n" +
     		"");
-    wantedComments.put("doxygen_basic_translate_style2.doxygen_basic_translate_style2.function5(int)",
+    wantedComments.put("doxygen_basic_translate_style3.doxygen_basic_translate_style3.function5(int)",
     		" This is a post comment. \n" +
     		"");
-    wantedComments.put("doxygen_basic_translate_style2.doxygen_basic_translate_style2.function6(int)",
+    wantedComments.put("doxygen_basic_translate_style3.doxygen_basic_translate_style3.function6(int)",
     		" Test for default args \n" +
     		" @param a Some parameter, default is 42" +
     		" \n" +
     		"");
-    wantedComments.put("doxygen_basic_translate_style2.doxygen_basic_translate_style2.function6()",
+    wantedComments.put("doxygen_basic_translate_style3.doxygen_basic_translate_style3.function6()",
     		" Test for default args \n" +
     		" \n" +
     		"");
-    wantedComments.put("doxygen_basic_translate_style2.doxygen_basic_translate_style2.function7(doxygen_basic_translate_style2.SWIGTYPE_p_p_p_Shape)",
+    wantedComments.put("doxygen_basic_translate_style3.doxygen_basic_translate_style3.function7(doxygen_basic_translate_style3.SWIGTYPE_p_p_p_Shape)",
     		" Test for a parameter with difficult type \n" +
     		" (mostly for python) \n" +
     		" @param a Very strange param \n" +
     		"");
-    wantedComments.put("doxygen_basic_translate_style2.doxygen_basic_translate_style2.function3(int, int)",
+    wantedComments.put("doxygen_basic_translate_style3.doxygen_basic_translate_style3.function3(int, int)",
     		" A test for overloaded functions \n" +
     		" This is function <b>two </b>\n" +
     		" \n" +
     		"");
-    wantedComments.put("doxygen_basic_translate_style2.doxygen_basic_translate_style2.Atan2(double, double)",
+    wantedComments.put("doxygen_basic_translate_style3.doxygen_basic_translate_style3.Atan2(double, double)",
     		" Multiple parameters test.\n" +
     		" \n" +
     		" @param y Vertical coordinate.\n" +

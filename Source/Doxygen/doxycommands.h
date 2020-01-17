@@ -18,11 +18,13 @@
 const char *CMD_HTML_ONLY = "htmlonly";
 // doxy commands are not processed inside this block
 const char *CMD_VERBATIM = "verbatim";
+const char *CMD_CODE = "code";
 const char *CMD_LATEX_1 = "f$";
 const char *CMD_LATEX_2 = "f{";
 const char *CMD_LATEX_3 = "f[";
 const char *CMD_END_HTML_ONLY = "endhtmlonly";
 const char *CMD_END_VERBATIM = "endverbatim";
+const char *CMD_END_CODE = "endcode";
 const char *CMD_END_LATEX_1 = "f$";
 const char *CMD_END_LATEX_2 = "f}";
 const char *CMD_END_LATEX_3 = "f]";

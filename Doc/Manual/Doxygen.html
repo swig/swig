@@ -117,14 +117,15 @@ Documenting the code</a>). Here they are:
 </pre></div>
 
 <p>
-Also any of the above with '&lt;' added after comment-starting symbol,
-like <i>/**&lt;, /*!&lt;, ///&lt;, </i> or <i> //!&lt;</i> will be
+Also any of the above with '<tt>&lt;</tt>' added after comment-starting symbol,
+like <tt>/**&lt;, /*!&lt;, ///&lt;, </tt> or <tt> //!&lt;</tt> will be
 treated as a post-comment and will be assigned to the code before the
 comment.
 
-Any number of '*' or '/' within a Doxygen comment is considered to be a
-separator and is not included in the final comment, so you may safely use
-comments like <i>/*********/</i> or <i>//////////</i>.
+Any number of '<tt>*</tt>' or '<tt>/</tt>' within a Doxygen comment is
+considered to be a separator and is not included in the final comment,
+so you may safely use comments like <tt>/*********/</tt>
+or <tt>//////////</tt>.
 </p>
 
 <p>
@@ -606,6 +607,10 @@ Here is the list of all Doxygen tags and the description of how they are transla
 <td>translated to {@code ...}</td>
 </tr>
 <tr>
+<td>\code{&lt;ext&gt;}</td>
+<td>translated to {@code ...}; code language extension is ignored</td>
+</tr>
+<tr>
 <td>\cond</td>
 <td>translated to 'Conditional comment: &lt;condition&gt;'</td>
 </tr>
@@ -683,7 +688,7 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\n</td>
-<td>replaced with new line char</td>
+<td>replaced with newline char</td>
 </tr>
 <tr>
 <td>\note</td>
@@ -704,6 +709,10 @@ Here is the list of all Doxygen tags and the description of how they are transla
 <tr>
 <td>\param</td>
 <td>translated to @param</td>
+</tr>
+<tr>
+<td>\param[&lt;dir&gt;]</td>
+<td>translated to @param; parameter direction ('in'; 'out'; or 'in,out') is ignored</td>
 </tr>
 <tr>
 <td>\remark</td>
@@ -829,155 +838,107 @@ These are suppressed with their content just printed out (if the tag has any
 sense, typically text content).
 Here is the list of these tags:
 </p>
+
 <div class="diagram">
-<table border="0" summary="Unsupported Java Doxygen Tags">
-<tr>
-  <th align="left">Unsupported Doxygen tags</th>
-</tr>
-<tr>
-<td>\addindex</td>
-<td>\addtogroup</td>
-<td>\anchor</td>
-<td>\attention</td>
-</tr>
-<tr>
-<td>\brief</td>
-<td>\bug</td>
-<td>\callgraph</td>
-<td>\callergraph</td>
-</tr>
-<tr>
-<td>\class</td>
-<td>\copybrief</td>
-<td>\copydetails</td>
-<td>\copydoc</td>
-</tr>
-<tr>
-<td>\date</td>
-<td>\def</td>
-<td>\defgroup</td>
-<td>\details</td>
-</tr>
-<tr>
-<td>\dir</td>
-<td>\dontinclude</td>
-<td>\dot</td>
-<td>\dotfile</td>
-</tr>
-<tr>
-<td>\enddot</td>
-<td>\endhtmlonly</td>
-<td>\endinternal</td>
-<td>\endlatexonly</td>
-</tr>
-<tr>
-<td>\endmanonly</td>
-<td>\endmsc</td>
-<td>\endrtfonly</td>
-<td>\endxmlonly</td>
-</tr>
-<tr>
-<td>\enum</td>
-<td>\example</td>
-<td>\extends</td>
-</tr>
-<tr>
-<td>\file</td>
-<td>\fn</td>
-<td>\headerfile</td>
-<td>\hideinitializer</td>
-</tr>
-<tr>
-<td>\htmlinclude</td>
-<td>\htmlonly</td>
-<td>\implements</td>
-<td>\include</td>
-</tr>
-<tr>
-<td>\includelineno</td>
-<td>\ingroup</td>
-<td>\internal</td>
-<td>\invariant</td>
-</tr>
-<tr>
-<td>\interface</td>
-<td>\latexonly</td>
-<td>\line</td>
-<td>\mainpage</td>
-</tr>
-<tr>
-<td>\manonly</td>
-<td>\memberof</td>
-<td>\msc</td>
-<td>\mscfile</td>
-</tr>
-<tr>
-<td>\name</td>
-<td>\namespace</td>
-<td>\nosubgrouping</td>
-<td>\package</td>
-</tr>
-<tr>
-<td>\page</td>
-<td>\paragraph</td>
-<td>\post</td>
-<td>\pre</td>
-</tr>
-<tr>
-<td>\private</td>
-<td>\privatesection</td>
-<td>\property</td>
-<td>\protected</td>
-</tr>
-<tr>
-<td>\protectedsection</td>
-<td>\protocol</td>
-<td>\public</td>
-<td>\publicsection</td>
-</tr>
-<tr>
-<td>\ref</td>
-<td>\related</td>
-<td>\relates</td>
-<td>\relatedalso</td>
-</tr>
-<tr>
-<td>\relatesalso</td>
-<td>\retval</td>
-<td>\rtfonly</td>
-<td>\section</td>
-</tr>
-<tr>
-<td>\short</td>
-<td>\showinitializer</td>
-<td>\skip</td>
-<td>\skipline</td>
-</tr>
-<tr>
-<td>\snippet</td>
-<td>\struct</td>
-<td>\subpage</td>
-<td>\subsection</td>
-</tr>
-<tr>
-<td>\subsubsection</td>
-<td>\tableofcontents</td>
-<td>\test</td>
-<td>\typedef</td>
-</tr>
-<tr>
-<td>\union</td>
-<td>\until</td>
-<td>\var</td>
-<td>\verbinclude</td>
-</tr>
-<tr>
-<td>\weakgroup</td>
-<td>\xmlonly</td>
-<td>\xrefitem</td>
-<td>\category</td>
-</tr>
-</table>
+  <b>Unsupported Doxygen tags</b>
+
+  <ul style="list-style-type:none;column-count:4;">
+    <li>\addindex</li>
+    <li>\addtogroup</li>
+    <li>\anchor</li>
+    <li>\attention</li>
+    <li>\brief</li>
+    <li>\bug</li>
+    <li>\callergraph</li>
+    <li>\callgraph</li>
+    <li>\category</li>
+    <li>\class</li>
+    <li>\copybrief</li>
+    <li>\copydetails</li>
+    <li>\copydoc</li>
+    <li>\date</li>
+    <li>\def</li>
+    <li>\defgroup</li>
+    <li>\details</li>
+    <li>\dir</li>
+    <li>\dontinclude</li>
+    <li>\dot</li>
+    <li>\dotfile</li>
+    <li>\enddot</li>
+    <li>\endhtmlonly</li>
+    <li>\endinternal</li>
+    <li>\endlatexonly</li>
+    <li>\endmanonly</li>
+    <li>\endmsc</li>
+    <li>\endrtfonly</li>
+    <li>\endxmlonly</li>
+    <li>\enum</li>
+    <li>\example</li>
+    <li>\extends</li>
+    <li>\file</li>
+    <li>\fn</li>
+    <li>\headerfile</li>
+    <li>\hideinitializer</li>
+    <li>\htmlinclude</li>
+    <li>\htmlonly</li>
+    <li>\implements</li>
+    <li>\include</li>
+    <li>\includelineno</li>
+    <li>\ingroup</li>
+    <li>\interface</li>
+    <li>\internal</li>
+    <li>\invariant</li>
+    <li>\latexonly</li>
+    <li>\line</li>
+    <li>\mainpage</li>
+    <li>\manonly</li>
+    <li>\memberof</li>
+    <li>\msc</li>
+    <li>\mscfile</li>
+    <li>\name</li>
+    <li>\namespace</li>
+    <li>\nosubgrouping</li>
+    <li>\package</li>
+    <li>\page</li>
+    <li>\paragraph</li>
+    <li>\post</li>
+    <li>\pre</li>
+    <li>\private</li>
+    <li>\privatesection</li>
+    <li>\property</li>
+    <li>\protected</li>
+    <li>\protectedsection</li>
+    <li>\protocol</li>
+    <li>\public</li>
+    <li>\publicsection</li>
+    <li>\ref</li>
+    <li>\related</li>
+    <li>\relatedalso</li>
+    <li>\relates</li>
+    <li>\relatesalso</li>
+    <li>\retval</li>
+    <li>\rtfonly</li>
+    <li>\section</li>
+    <li>\short</li>
+    <li>\showinitializer</li>
+    <li>\skip</li>
+    <li>\skipline</li>
+    <li>\snippet</li>
+    <li>\struct</li>
+    <li>\subpage</li>
+    <li>\subsection</li>
+    <li>\subsubsection</li>
+    <li>\tableofcontents</li>
+    <li>\test</li>
+    <li>\typedef</li>
+    <li>\union</li>
+    <li>\until</li>
+    <li>\var</li>
+    <li>\verbinclude</li>
+    <li>\weakgroup</li>
+    <li>\xmlonly</li>
+    <li>\xrefitem</li>
+  </ul>
 </div>
 
 <p>
@@ -987,68 +948,47 @@ comment, the whole comment block is ignored:
 <!-- see parser.y, function isStructuralDoxygen() -->
 
 </p>
-<div class="diagram">
-<table border="0" summary="Ignored Java Doxygen Tags">
-<tr>
-  <th align="left">Ignored Doxygen tags</th>
-</tr>
-<tr>
-<td>\addtogroup</td>
-<td>\callgraph</td>
-<td>\callergraph</td>
-<td>\category</td>
-</tr>
-<tr>
-<td>\class</td>
-<td>\def</td>
-<td>\defgroup</td>
-<td>\dir</td>
-</tr>
-<tr>
-<td>\enum</td>
-<td>\example</td>
-<td>\file</td>
-<td>\fn</td>
-</tr>
-<tr>
-<td>\headerfile</td>
-<td>\hideinitializer</td>
-<td>\interface</td>
-<td>\internal</td>
-</tr>
-<tr>
-<td>\mainpage</td>
-<td>\name</td>
-<td>\namespace</td>
-<td>\nosubgrouping</td>
-</tr>
-<tr>
-<td>\overload</td>
-<td>\package</td>
-<td>\page</td>
-<td>\property</td>
-</tr>
-<tr>
-<td>\protocol</td>
-<td>\relates</td>
-<td>\relatesalso</td>
-<td>\showinitializer</td>
-</tr>
-<tr>
-<td>\struct</td>
-<td>\name</td>
-<td>\namespace</td>
-<td>\nosubgrouping</td>
-</tr>
-<tr>
-<td>\typedef</td>
-<td>\union</td>
-<td>\var</td>
-<td>\weakgroup</td>
-</tr>
 
-</table>
+<div class="diagram">
+  <b>Ignored Doxygen tags</b>
+
+  <ul style="list-style-type:none;column-count:4;">
+    <li>\addtogroup</li>
+    <li>\callergraph</li>
+    <li>\callgraph</li>
+    <li>\category</li>
+    <li>\class</li>
+    <li>\def</li>
+    <li>\defgroup</li>
+    <li>\dir</li>
+    <li>\enum</li>
+    <li>\example</li>
+    <li>\file</li>
+    <li>\fn</li>
+    <li>\headerfile</li>
+    <li>\hideinitializer</li>
+    <li>\interface</li>
+    <li>\internal</li>
+    <li>\mainpage</li>
+    <li>\name</li>
+    <li>\namespace</li>
+    <li>\nosubgrouping</li>
+    <li>\overload</li>
+    <li>\package</li>
+    <li>\page</li>
+    <li>\property</li>
+    <li>\protocol</li>
+    <li>\relates</li>
+    <li>\relatesalso</li>
+    <li>\showinitializer</li>
+    <li>\struct</li>
+    <li>\typedef</li>
+    <li>\union</li>
+    <li>\var</li>
+    <li>\weakgroup</li>
+  </ul>
 </div>
+  
 
 
 
@@ -1246,11 +1186,11 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\a</td>
-<td>wrapped with '_'</td>
+<td>wrapped with '*'</td>
 </tr>
 <tr>
 <td>\arg</td>
-<td>prepended with ' --'</td>
+<td>prepended with '* '</td>
 </tr>
 <tr>
 <td>\author</td>
@@ -1258,15 +1198,26 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\authors</td>
-<td>prints 'Author:'</td>
+<td>prints 'Authors:'</td>
 </tr>
 <tr>
 <td>\b</td>
-<td>wrapped with '__'</td>
+<td>wrapped with '**'</td>
+</tr>
+<td>\c</td>
+<td>wrapped with '``'</td>
 </tr>
 <tr>
 <td>\cite</td>
 <td>wrapped with single quotes</td>
+</tr>
+<tr>
+<td>\code</td>
+<td>replaced with '.. code-block:: c++'</td>
+</tr>
+<tr>
+<td>\code{&lt;ext&gt;}</td>
+<td>replaced with '.. code-block:: &lt;lang&gt;', where the following doxygen code languages are recognized: .c -&gt; C, .py -&gt; python, .java &gt; java</td>
 </tr>
 <tr>
 <td>\cond</td>
@@ -1282,7 +1233,7 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\e</td>
-<td>wrapped with '_'</td>
+<td>wrapped with '*'</td>
 </tr>
 <tr>
 <td>\else</td>
@@ -1294,7 +1245,7 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\em</td>
-<td>wrapped with '_'</td>
+<td>wrapped with '*'</td>
 </tr>
 <tr>
 <td>\endcond</td>
@@ -1305,8 +1256,24 @@ Here is the list of all Doxygen tags and the description of how they are transla
 <td>replaced with '}'</td>
 </tr>
 <tr>
+<td>\example</td>
+<td>replaced with 'Example:'</td>
+</tr>
+<tr>
 <td>\exception</td>
-<td>replaced with 'Throws:'</td>
+<td>replaced with ':raises:'</td>
+</tr>
+<tr>
+<td>\f$</td>
+<td>rendered using ':math:``'</td>
+</tr>
+<tr>
+<td>\f[</td>
+<td>rendered using '.. math::'</td>
+</tr>
+<tr>
+<td>\f{</td>
+<td>rendered using '.. math::'</td>
 </tr>
 <tr>
 <td>\if</td>
@@ -1318,11 +1285,11 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\li</td>
-<td>prepended with ' --'</td>
+<td>prepended with '* '</td>
 </tr>
 <tr>
 <td>\n</td>
-<td>replaced with new line char</td>
+<td>replaced with newline char</td>
 </tr>
 <tr>
 <td>\note</td>
@@ -1332,13 +1299,21 @@ Here is the list of all Doxygen tags and the description of how they are transla
 <td>\overload</td>
 <td>prints 'This is an overloaded ...' according to Doxygen docs</td>
 </tr>
+</tr>
+<td>\p</td>
+<td>wrapped with '``'</td>
+</tr>
 <tr>
 <td>\par</td>
 <td>replaced with 'Title: ...'</td>
 </tr>
 <tr>
 <td>\param</td>
-<td>translated to 'Arguments:\n param(type) --description'</td>
+<td>add ':type:' and ':param:' directives</td>
+</tr>
+<tr>
+<td>\param[&lt;dir&gt;]</td>
+<td>same as \param, but direction ('in'; 'out'; 'in,out') is included in ':type:' directive</td>
 </tr>
 <tr>
 <td>\remark</td>
@@ -1350,15 +1325,15 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\result</td>
-<td>replaced with 'Result:'</td>
+<td>add ':rtype:' and ':return:' directives</td>
 </tr>
 <tr>
 <td>\return</td>
-<td>replaced with 'Result:'</td>
+<td>add ':rtype:' and ':return:' directives</td>
 </tr>
 <tr>
 <td>\returns</td>
-<td>replaced with 'Result:'</td>
+<td>add ':rtype:' and ':return:' directives</td>
 </tr>
 <tr>
 <td>\sa</td>
@@ -1374,11 +1349,11 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\throw</td>
-<td>replaced with 'Throws:'</td>
+<td>replaced with ':raises:'</td>
 </tr>
 <tr>
 <td>\throws</td>
-<td>replaced wih 'Throws:'</td>
+<td>replaced wih ':raises:'</td>
 </tr>
 <tr>
 <td>\todo</td>
@@ -1386,7 +1361,11 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\tparam</td>
-<td>translated to 'Arguments:\n param(type) --description'</td>
+<td>add ':type:' and ':param:' directives</td>
+</tr>
+<tr>
+<td>\verbatim</td>
+<td>content copied verbatim</td>
 </tr>
 <tr>
 <td>\version</td>
@@ -1458,177 +1437,109 @@ are suppressed with their content just printed out (if it has any
 sense, typically text content).
 Here is the list of these tags:
 </p>
+
 <div class="diagram">
-<table border="0" summary="Unsupported Python Doxygen Tags">
-<tr>
-  <th align="left">Unsupported Doxygen tags</th>
-</tr>
-<tr>
-<td>\addindex</td>
-<td>\addtogroup</td>
-<td>\anchor</td>
-<td>\attention</td>
-</tr>
-<tr>
-<td>\brief</td>
-<td>\bug</td>
-<td>\callgraph</td>
-<td>\callergraph</td>
-</tr>
-<tr>
-<td>\class</td>
-<td>\copybrief</td>
-<td>\copydetails</td>
-<td>\copydoc</td>
-</tr>
-<tr>
-<td>\date</td>
-<td>\def</td>
-<td>\defgroup</td>
-<td>\details</td>
-</tr>
-<tr>
-<td>\dir</td>
-<td>\dontinclude</td>
-<td>\dot</td>
-<td>\dotfile</td>
-</tr>
-<tr>
-<td>\code</td>
-<td>\endcode</td>
-<td>\endverbatim</td>
-<td>\endlink</td>
-</tr>
-<tr>
-<td>\enddot</td>
-<td>\endhtmlonly</td>
-<td>\endinternal</td>
-<td>\endlatexonly</td>
-</tr>
-<tr>
-<td>\endmanonly</td>
-<td>\endmsc</td>
-<td>\endrtfonly</td>
-<td>\endxmlonly</td>
-</tr>
-<tr>
-<td>\enum</td>
-<td>\example</td>
-<td>\extends</td>
-<td>\f$</td>
-</tr>
-<tr>
-<td>\f[</td>
-<td>\f]</td>
-<td>\f{</td>
-<td>\f}</td>
-</tr>
-<tr>
-<td>\file</td>
-<td>\fn</td>
-<td>\headerfile</td>
-<td>\hideinitializer</td>
-</tr>
-<tr>
-<td>\htmlinclude</td>
-<td>\htmlonly</td>
-<td>\implements</td>
-<td>\include</td>
-</tr>
-<tr>
-<td>\image</td>
-<td>\link</td>
-<td>\verbatim</td>
-<td>\p</td>
-</tr>
-<tr>
-<td>\includelineno</td>
-<td>\ingroup</td>
-<td>\internal</td>
-<td>\invariant</td>
-</tr>
-<tr>
-<td>\interface</td>
-<td>\latexonly</td>
-<td>\line</td>
-<td>\mainpage</td>
-</tr>
-<tr>
-<td>\manonly</td>
-<td>\memberof</td>
-<td>\msc</td>
-<td>\mscfile</td>
-</tr>
-<tr>
-<td>\name</td>
-<td>\namespace</td>
-<td>\nosubgrouping</td>
-<td>\package</td>
-</tr>
-<tr>
-<td>\page</td>
-<td>\paragraph</td>
-<td>\post</td>
-<td>\pre</td>
-</tr>
-<tr>
-<td>\private</td>
-<td>\privatesection</td>
-<td>\property</td>
-<td>\protected</td>
-</tr>
-<tr>
-<td>\protectedsection</td>
-<td>\protocol</td>
-<td>\public</td>
-<td>\publicsection</td>
-</tr>
-<tr>
-<td>\ref</td>
-<td>\related</td>
-<td>\relates</td>
-<td>\relatedalso</td>
-</tr>
-<tr>
-<td>\relatesalso</td>
-<td>\retval</td>
-<td>\rtfonly</td>
-<td>\section</td>
-</tr>
-<tr>
-<td>\short</td>
-<td>\showinitializer</td>
-<td>\skip</td>
-<td>\skipline</td>
-</tr>
-<tr>
-<td>\snippet</td>
-<td>\struct</td>
-<td>\subpage</td>
-<td>\subsection</td>
-</tr>
-<tr>
-<td>\subsubsection</td>
-<td>\tableofcontents</td>
-<td>\test</td>
-<td>\typedef</td>
-</tr>
-<tr>
-<td>\union</td>
-<td>\until</td>
-<td>\var</td>
-<td>\verbinclude</td>
-</tr>
-<tr>
-<td>\weakgroup</td>
-<td>\xmlonly</td>
-<td>\xrefitem</td>
-<td>\category</td>
-</tr>
-<tr>
-<td>\c</td>
-</tr>
-</table>
+  <b>Unsupported Python Doxygen tags</b>
+
+  <ul style="list-style-type:none;column-count:4;">
+    <li>\addindex</li>
+    <li>\addtogroup</li>
+    <li>\anchor</li>
+    <li>\attention</li>
+    <li>\brief</li>
+    <li>\bug</li>
+    <li>\callergraph</li>
+    <li>\callgraph</li>
+    <li>\category</li>
+    <li>\class</li>
+    <li>\copybrief</li>
+    <li>\copydetails</li>
+    <li>\copydoc</li>
+    <li>\date</li>
+    <li>\def</li>
+    <li>\defgroup</li>
+    <li>\details</li>
+    <li>\dir</li>
+    <li>\dontinclude</li>
+    <li>\dot</li>
+    <li>\dotfile</li>
+    <li>\enddot</li>
+    <li>\endhtmlonly</li>
+    <li>\endinternal</li>
+    <li>\endlatexonly</li>
+    <li>\endlink</li>
+    <li>\endmanonly</li>
+    <li>\endmsc</li>
+    <li>\endrtfonly</li>
+    <li>\endxmlonly</li>
+    <li>\enum</li>
+    <li>\extends</li>
+    <li>\file</li>
+    <li>\fn</li>
+    <li>\headerfile</li>
+    <li>\hideinitializer</li>
+    <li>\htmlinclude</li>
+    <li>\htmlonly</li>
+    <li>\image</li>
+    <li>\implements</li>
+    <li>\include</li>
+    <li>\includelineno</li>
+    <li>\ingroup</li>
+    <li>\interface</li>
+    <li>\internal</li>
+    <li>\invariant</li>
+    <li>\latexonly</li>
+    <li>\line</li>
+    <li>\link</li>
+    <li>\mainpage</li>
+    <li>\manonly</li>
+    <li>\memberof</li>
+    <li>\msc</li>
+    <li>\mscfile</li>
+    <li>\name</li>
+    <li>\namespace</li>
+    <li>\nosubgrouping</li>
+    <li>\package</li>
+    <li>\page</li>
+    <li>\paragraph</li>
+    <li>\post</li>
+    <li>\pre</li>
+    <li>\private</li>
+    <li>\privatesection</li>
+    <li>\property</li>
+    <li>\protected</li>
+    <li>\protectedsection</li>
+    <li>\protocol</li>
+    <li>\public</li>
+    <li>\publicsection</li>
+    <li>\ref</li>
+    <li>\related</li>
+    <li>\relatedalso</li>
+    <li>\relates</li>
+    <li>\relatesalso</li>
+    <li>\retval</li>
+    <li>\rtfonly</li>
+    <li>\section</li>
+    <li>\short</li>
+    <li>\showinitializer</li>
+    <li>\skip</li>
+    <li>\skipline</li>
+    <li>\snippet</li>
+    <li>\struct</li>
+    <li>\subpage</li>
+    <li>\subsection</li>
+    <li>\subsubsection</li>
+    <li>\tableofcontents</li>
+    <li>\test</li>
+    <li>\typedef</li>
+    <li>\union</li>
+    <li>\until</li>
+    <li>\var</li>
+    <li>\verbinclude</li>
+    <li>\weakgroup</li>
+    <li>\xmlonly</li>
+    <li>\xrefitem</li>
+  </ul>
 </div>
 
 <H3><a name="Doxygen_python_further_details">17.4.4 Further details</a></H3>
