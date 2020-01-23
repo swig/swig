@@ -3378,14 +3378,16 @@ private:
       upcast_wrapper_name);
 
     if (smart) {
-      SwigType *bsmart = Copy(smart);
+      String *smartnamestr = SwigType_namestr(smart);
+      String *bsmartnamestr = SwigType_namestr(smart);
+
       SwigType *rclassname = SwigType_typedef_resolve_all(c_class_name);
       SwigType *rbaseclass = SwigType_typedef_resolve_all(c_base_name);
-      Replaceall(bsmart, rclassname, rbaseclass);
+      Replaceall(bsmartnamestr, rclassname, rbaseclass);
+
       Delete(rclassname);
       Delete(rbaseclass);
-      String *smartnamestr = SwigType_namestr(smart);
-      String *bsmartnamestr = SwigType_namestr(bsmart);
+
       Printv(upcasts_code,
 	"SWIGEXPORT ", bsmartnamestr, " * ", upcast_wrapper_name,
 	  "(", smartnamestr, " *objectRef) {\n",
@@ -3394,7 +3396,6 @@ private:
 	"\n", NIL);
       Delete(bsmartnamestr);
       Delete(smartnamestr);
-      Delete(bsmart);
     } else {
       Printv(upcasts_code,
 	"SWIGEXPORT ", c_base_name, " * ", upcast_wrapper_name,
