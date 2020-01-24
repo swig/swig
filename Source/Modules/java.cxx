@@ -1904,6 +1904,7 @@ public:
       String *smartnamestr = SwigType_namestr(smart);
       String *bsmartnamestr = SwigType_namestr(smart);
 
+      // TODO: SwigType_typedef_resolve_all on a String instead of SwigType is incorrect for templates
       SwigType *rclassname = SwigType_typedef_resolve_all(classname);
       SwigType *rbaseclassname = SwigType_typedef_resolve_all(baseclassname);
       Replaceall(bsmartnamestr, rclassname, rbaseclassname);
