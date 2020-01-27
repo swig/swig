@@ -15,9 +15,11 @@ extern "C" {
 
 /* Method creation and docstring support functions */
 
+#ifndef Py_LIMITED_API
 SWIGINTERN PyMethodDef *SWIG_PythonGetProxyDoc(const char *name);
 SWIGINTERN PyObject *SWIG_PyInstanceMethod_New(PyObject *SWIGUNUSEDPARM(self), PyObject *func);
 SWIGINTERN PyObject *SWIG_PyStaticMethod_New(PyObject *SWIGUNUSEDPARM(self), PyObject *func);
+#endif // Py_LIMITED_API
 
 #ifdef __cplusplus
 }
@@ -146,6 +148,7 @@ swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p) {
 SWIGINTERN PyTypeObject*
 swig_varlink_type(void) {
   static char varlink__doc__[] = "Swig var link object";
+#ifndef Py_LIMITED_API  
   static PyTypeObject varlink_type;
   static int type_init = 0;
   if (!type_init) {
@@ -206,12 +209,29 @@ swig_varlink_type(void) {
       return NULL;
   }
   return &varlink_type;
+#else
+  PyType_Slot slots[] = {
+    { Py_tp_dealloc, (void*)swig_varlink_dealloc },
+    { Py_tp_getattr, (void*)swig_varlink_getattr },
+    { Py_tp_setattr, (void*)swig_varlink_setattr },
+    { Py_tp_repr, (void*)swig_varlink_repr },
+    { Py_tp_str, (void*)swig_varlink_str },
+    { Py_tp_doc, (void*)varlink__doc__ },
+    { 0, NULL }
+  };
+  PyType_Spec spec = {};
+  spec.name = "swigvarlink";
+  spec.basicsize = sizeof(swig_varlinkobject);
+  spec.flags = Py_TPFLAGS_DEFAULT;
+  spec.slots = slots;
+  return (PyTypeObject*)PyType_FromSpec(&spec);
+#endif  
 }
 
 /* Create a variable linking object for use later */
 SWIGINTERN PyObject *
 SWIG_Python_newvarlink(void) {
-  swig_varlinkobject *result = PyObject_NEW(swig_varlinkobject, swig_varlink_type());
+  swig_varlinkobject *result = PyObject_New(swig_varlinkobject, swig_varlink_type());
   if (result) {
     result->vars = 0;
   }
@@ -324,6 +344,7 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
  * Method creation and docstring support functions
  * ----------------------------------------------------------------------------- */
 
+#ifndef Py_LIMITED_API
 /* -----------------------------------------------------------------------------
  * Function to find the method definition with the correct docstring for the
  * proxy module as opposed to the low-level API
@@ -377,6 +398,8 @@ SWIGINTERN PyObject *SWIG_PyStaticMethod_New(PyObject *SWIGUNUSEDPARM(self), PyO
   }
   return PyStaticMethod_New(func);
 }
+
+#endif // Py_LIMITED_API
 
 #ifdef __cplusplus
 }

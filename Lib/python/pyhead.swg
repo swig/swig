@@ -85,3 +85,14 @@ SWIG_Python_str_FromChar(const char *c)
 #define PyDescr_NAME(x) (((PyDescrObject *)(x))->d_name)
 #define Py_hash_t long
 #endif
+
+#ifdef Py_LIMITED_API
+# define PyTuple_GET_ITEM PyTuple_GetItem
+# define PyTuple_GET_SIZE PyTuple_Size
+# define PyCFunction_GET_FLAGS PyCFunction_GetFlags
+# define PyCFunction_GET_FUNCTION PyCFunction_GetFunction
+# define PyCFunction_GET_SELF PyCFunction_GetSelf
+# define PyList_GET_ITEM PyList_GetItem
+# define PyList_SET_ITEM PyList_SetItem
+# define PySliceObject PyObject
+#endif
