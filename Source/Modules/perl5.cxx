@@ -420,7 +420,7 @@ public:
       Printf(f_header,"#define SWIG_name   \"%s::%s\"\n", cmodule, boot_name);
       Printf(f_header,"#define SWIG_prefix \"%s::\"\n", cmodule);
 
-      /* Support for static varibles when using threads, see perldoc perlxs */
+      /* Support for static variables when using threads, see perldoc perlxs */
       Printf(f_header, "#define MY_CXT_KEY \"%s::_guts\" XS_VERSION\n", module);
       Printf(f_init, "/* Support for static variables when using threads,");
       Printf(f_init, " see \"perldoc perlxs\" */\n");
