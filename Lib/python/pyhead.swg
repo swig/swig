@@ -43,12 +43,11 @@ SWIG_Python_str_AsChar(PyObject *str)
   if (str) {
     char *cstr;
     Py_ssize_t len;
-    if (PyBytes_AsStringAndSize(str, &cstr, &len) == -1)
-      return NULL;
-    newstr = (char *) malloc(len+1);
-    if (!newstr)
-      return NULL;
-    memcpy(newstr, cstr, len+1);
+    if (PyBytes_AsStringAndSize(str, &cstr, &len) != -1) {
+      newstr = (char *) malloc(len+1);
+      if (newstr)
+        memcpy(newstr, cstr, len+1);
+    }
     Py_XDECREF(str);
   }
   return newstr;
