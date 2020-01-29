@@ -40,9 +40,15 @@ struct A
   std::vector<std::wstring> m_strings;
 
 
+#if !defined(SWIGCSHARP)
   virtual void process_text(const wchar_t *text) 
   {
   }
+#else
+  virtual void process_text(const std::wstring& text)
+  {
+  }
+#endif
 
   virtual std::wstring multiple_params_val(const std::wstring& p1, const std::wstring& p2, std::wstring p3, std::wstring p4) const
   { return get_first(); }
