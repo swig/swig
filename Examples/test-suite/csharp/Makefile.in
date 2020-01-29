@@ -24,6 +24,7 @@ CPP_TEST_CASES = \
 	csharp_namespace_system_collision \
 	csharp_prepost \
 	csharp_typemaps \
+	director_wstring \
 	enum_thorough_simple \
 	enum_thorough_typesafe \
 	exception_partial_info \
