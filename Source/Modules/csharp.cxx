@@ -1,4 +1,4 @@
- /* -----------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * This file is part of SWIG, which is licensed as a whole under version 3 
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
@@ -4600,7 +4600,7 @@ C# Options (available with -csharp)\n\
      -dllimport <dl> - Override DllImport attribute name to <dl>\n\
      -namespace <nm> - Generate wrappers into C# namespace <nm>\n\
      -noproxy        - Generate the low-level functional interface instead\n\
-                     of proxy classes\n\
+                       of proxy classes\n\
      -oldvarnames    - Old intermediary method names for variable wrappers\n\
      -outfile <file> - Write all C# into a single <file> located in the output directory\n\
      -enablenullable - Enable nullable in all C# generated files\n\
