@@ -7,8 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.2 (in progress)
 ===========================
 
+2020-01-30: Alzathar
+            [R] #910 #914 Fix R memory leak on exception.
+
 2020-01-30: richardbeare
-            #1511 [R] Fix bug wrapping functions. These were previously incorrectly wrapped as if
+            [R] #1511 Fix bug wrapping functions. These were previously incorrectly wrapped as if
             they were variables. This happened when 'get' or 'set' was in the name of the function
             or method, but sometimes also in some other circumstances. If you were using R
             attribute syntax to access these methods, you'll need to switch to calling them as R
@@ -17,7 +20,7 @@ Version 4.0.2 (in progress)
             *** POTENTIAL INCOMPATIBILITY ***
 
 2020-01-24: etse-dignitas, wsfulton
-            #1533 [C#, D, Java] Fix upcasting for shared_ptr's of templated types.
+            [C#, D, Java] #1533 Fix upcasting for shared_ptr's of templated types.
 
 2020-01-16: mcfarljm
             #1643 #1654 When using -doxygen, fix segfault when nameless parameters or vararg parameters
