@@ -1985,7 +1985,9 @@ int R::functionWrapper(Node *n) {
   for (p = l; p;) {
     if ((tm = Getattr(p, "tmap:freearg"))) {
       Replaceall(tm, "$source", Getattr(p, "lname"));
-      Printv(cleanup, tm, "\n", NIL);
+      if (tm && (Len(tm) != 0)) {
+        Printv(cleanup, tm, "\n", NIL);
+      }
       p = Getattr(p, "tmap:freearg:next");
     } else {
       p = nextSibling(p);
@@ -2066,8 +2068,10 @@ int R::functionWrapper(Node *n) {
   }
 
   /* Output cleanup code */
-  Printv(f->code, cleanup, NIL);
-  Delete(cleanup);
+  int need_cleanup = Len(cleanup) != 0;
+  if (need_cleanup) {
+    Printv(f->code, cleanup, NIL);
+  }
 
   /* Look to see if there is any newfree cleanup code */
   if (GetFlag(n, "feature:new")) {
@@ -2124,7 +2128,18 @@ int R::functionWrapper(Node *n) {
   if (destructor)
     Printv(f->code, "R_ClearExternalPtr(self);\n", NIL);
 
-  Printv(f->code, "return r_ans;\n}\n", NIL);
+  Printv(f->code, "return r_ans;\n", NIL);
+  
+  /* Error handling code */
+  Printv(f->code, "fail: SWIGUNUSED;\n", NIL);
+  if (need_cleanup) {
+    Printv(f->code, cleanup, NIL);
+  }
+  Printv(f->code, "  Rf_error(\"%s %s\", SWIG_ErrorType(SWIG_lasterror_code), SWIG_lasterror_msg);\n", NIL);
+  Printv(f->code, "  return R_NilValue;\n", NIL);
+  Delete(cleanup);
+  
+  Printv(f->code, "}\n", NIL);
   Printv(sfun->code, "\n}", NIL);
 
   /* Substitute the function name */
