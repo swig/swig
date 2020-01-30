@@ -1,4 +1,4 @@
-/* -----------------------------------------------------------------------------
+ /* -----------------------------------------------------------------------------
  * This file is part of SWIG, which is licensed as a whole under version 3 
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
@@ -46,6 +46,7 @@ class CSHARP:public Language {
   bool global_variable_flag;	// Flag for when wrapping a global variable
   bool old_variable_names;	// Flag for old style variable names in the intermediary class
   bool generate_property_declaration_flag;	// Flag for generating properties
+  bool enable_nullable_flag;
 
   String *imclass_name;		// intermediary class name
   String *module_class_name;	// module class name
@@ -122,6 +123,7 @@ public:
       global_variable_flag(false),
       old_variable_names(false),
       generate_property_declaration_flag(false),
+      enable_nullable_flag(false),
       imclass_name(NULL),
       module_class_name(NULL),
       imclass_class_code(NULL),
@@ -254,6 +256,9 @@ public:
 	} else if (strcmp(argv[i], "-oldvarnames") == 0) {
 	  Swig_mark_arg(i);
 	  old_variable_names = true;
+	} else if (strcmp(argv[i], "-enablenullable") == 0) {
+	  Swig_mark_arg(i);
+	  enable_nullable_flag = true;
 	} else if (strcmp(argv[i], "-outfile") == 0) {
 	  if (argv[i + 1]) {
 	    output_file = NewString("");
@@ -649,6 +654,9 @@ public:
     Printf(f, "//\n");
     Swig_banner_target_lang(f, "//");
     Printf(f, "//------------------------------------------------------------------------------\n\n");
+    if(enable_nullable_flag) {
+      Printf(f, "#nullable enable\n\n");
+    }
   }
 
   /* -----------------------------------------------------------------------------
@@ -4592,7 +4600,8 @@ C# Options (available with -csharp)\n\
      -dllimport <dl> - Override DllImport attribute name to <dl>\n\
      -namespace <nm> - Generate wrappers into C# namespace <nm>\n\
      -noproxy        - Generate the low-level functional interface instead\n\
-                       of proxy classes\n\
+                     of proxy classes\n\
      -oldvarnames    - Old intermediary method names for variable wrappers\n\
      -outfile <file> - Write all C# into a single <file> located in the output directory\n\
+     -enablenullable - Enable nullable in all C# generated files\n\
 \n";
