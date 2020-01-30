@@ -89,7 +89,6 @@ static String *getRClassName(String *retType, int deRef=0, int upRef=0) {
 static String * getRClassNameCopyStruct(String *retType, int addRef) {
   String *tmp = NewString("");
 
-#if 1
   List *l = SwigType_split(retType);
   int n = Len(l);
   if(!l || n == 0) {
@@ -114,24 +113,6 @@ static String * getRClassNameCopyStruct(String *retType, int addRef) {
 	Printf(tmp, "Ref");
     }
   }
-
-#else
-  char *retName = Char(SwigType_manglestr(retType));
-  if(!retName)
-    return(tmp);
-
-  if(addRef) {
-    while(retName && strlen(retName) > 1 &&
-	  strncmp(retName, "_p", 2) == 0)  {
-      retName += 2;
-      Printf(tmp, "Ref");
-    }
-  }
-
-  if(retName[0] == '_')
-    retName ++;
-  Insert(tmp, 0, retName);
-#endif
 
   return tmp;
 }
@@ -273,17 +254,7 @@ protected:
   int generateCopyRoutines(Node *n);
   int DumpCode(Node *n);
 
-  int OutputMemberReferenceMethod(String *className, int isSet,  
-                                  List *memberList, List *nameList,
-                                  List *typeList, File *out);
-#if 0
-  // not used
-  int OutputArrayMethod(String *className, List *el, File *out);
-  int OutputClassMemberTable(Hash *tb, File *out);
-  int OutputClassMethodsTable(File *out);
-  int OutputClassAccessInfo(Hash *tb, File *out);
-#endif
-
+  int OutputMemberReferenceMethod(String *className, int isSet, List *memberList, List *nameList, List *typeList, File *out);
   int defineArrayAccessors(SwigType *type);
 
   void addNamespaceFunction(String *name) {
@@ -369,8 +340,6 @@ protected:
   String *R_MEMBER_GET;
 
   int processing_class_member_function;
-  // List *class_member_functions;
-  // List *class_member_set_functions;
   // Spread out the lists so that they are simpler to process
   // by storing the type of the method (i.e. set, get or nothing)
   // and having separate lists for name, membername and wrapper
@@ -729,18 +698,6 @@ void R::init() {
   s_init_routine = NewString("");
   enum_def_calls = NewString("");
 }
-
-
-
-#if 0
-int R::cDeclaration(Node *n) {
-  SwigType *t = Getattr(n, "type");
-  SwigType *name = Getattr(n, "name");
-  if (debugMode)
-    Printf(stdout, "cDeclaration (%s): %s\n", name, SwigType_lstr(t, 0));
-  return Language::cDeclaration(n);
-}
-#endif
 
 
 /* -------------------------------------------------------------
@@ -1151,49 +1108,6 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
 
   return SWIG_OK;
 }
-
-#if 0
-// not used
-/* -------------------------------------------------------------
- * Write the methods for [ or [<- for accessing a member field in an
- * struct or union (or class).
- * className - the name of the struct or union (e.g. Bar for struct Bar)
- * el - a list of length  2 * # accessible member elements  + 1.
- *     The first element is the name of the class.
- *     The other pairs are  member name and the name of the R function to access it.
- * out - the stream where we write the code.
- * --------------------------------------------------------------*/
-
-int R::OutputArrayMethod(String *className, List *el, File *out) {
-  int numMems = Len(el), j;
-
-  if(!el || numMems == 0)
-    return(0);
-
-  Printf(out, "# start of array methods for %s\n", className);
-  for(j = 0; j < numMems; j+=3) {
-    String *item = Getitem(el, j);
-    String *dup = Getitem(el, j + 1);
-    if (!Strcmp(item, "__getitem__")) {
-      Printf(out,
-	     "setMethod('[', '_p%s', function(x, i, j, ..., drop =TRUE) ",
-	     getRClassName(className));
-      Printf(out, "  sapply(i, function (n)  %s(x, as.integer(n-1))))\n\n", dup);
-    }
-    if (!Strcmp(item, "__setitem__")) {
-      Printf(out, "setMethod('[<-', '_p%s', function(x, i, j, ..., value)",
-	     getRClassName(className));
-      Printf(out, "  sapply(1:length(i), function(n) %s(x, as.integer(i[n]-1), value[n])))\n\n", dup);
-    }
-
-  }
-
-  Printf(out, "# end of array methods for %s\n", className);
-
-  return SWIG_OK;
-}
-
-#endif
 
 /* -------------------------------------------------------------
  * Called when a enumeration is to be processed.
@@ -2118,18 +2032,7 @@ int R::functionWrapper(Node *n) {
       Replaceall(tm,"$owner", "0");
     }
 
-#if 0
-    if(addCopyParam) {
-      Printf(f->code, "if(LOGICAL(s_swig_copy)[0]) {\n");
-      Printf(f->code, "/* Deal with returning a reference. */\nr_ans = R_NilValue;\n");
-      Printf(f->code, "}\n else {\n");
-    }
-#endif
     Printf(f->code, "%s\n", tm);
-#if 0
-    if(addCopyParam)
-      Printf(f->code, "}\n"); /* end of if(s_swig_copy) ... else { ... } */
-#endif
 
   } else {
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
@@ -2467,14 +2370,6 @@ int R::classDeclaration(Node *n) {
   opaqueClassDeclaration = NULL;
 
 
-  // OutputArrayMethod(name, class_member_functions, sfile);
-#if 0
-  // RJB - this bit will need to change
-  if (class_member_functions)
-    OutputMemberReferenceMethod(name, 0, class_member_functions, sfile);
-  if (class_member_set_functions)
-    OutputMemberReferenceMethod(name, 1, class_member_set_functions, sfile);
-#else
   if (class_member_function_types) {
 
     // collect the "set" methods
@@ -2507,7 +2402,6 @@ int R::classDeclaration(Node *n) {
     Delete(class_other_functionnames);
     Delete(class_other_functiontypes);
  }
-#endif 
 
   if (class_member_function_types) {
     Delete(class_member_function_types);
@@ -2544,9 +2438,6 @@ int R::classDeclaration(Node *n) {
 	c = nextSibling(c);
 	continue;
       }
-#if 0
-      tp = getRType(c);
-#else
       tp = Swig_typemap_lookup("rtype", c, "", 0);
       if(!tp) {
 	c = nextSibling(c);
@@ -2573,7 +2464,7 @@ int R::classDeclaration(Node *n) {
       // returns ""  tp = processType(elType, c, NULL);
       //	    Printf(stdout, "<classDeclaration> elType %p\n", elType);
       //	    tp = getRClassNameCopyStruct(Getattr(c, "type"), 1);
-#endif
+
       String *elNameT = replaceInitialDash(elName);
       Printf(def, "%s%s = \"%s\"", tab8, elNameT, tp);
       firstItem = false;
@@ -2933,10 +2824,6 @@ String * R::processType(SwigType *t, Node *n, int *nargs) {
     String *tmp = createFunctionPointerHandler(t, n, nargs);
     return tmp;
   }
-
-#if 0
-  SwigType_isfunction(t) && SwigType_ispointer(t)
-#endif
 
     return NULL;
 }
