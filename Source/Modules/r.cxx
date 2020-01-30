@@ -1126,8 +1126,8 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
   }
   Printf(f->code, "}\n");
 
-
-  Printf(out, "# Start of accessor method for %s\n", className);
+  String *classname_str = SwigType_namestr(className);
+  Printf(out, "# Start of accessor method for %s\n", classname_str);
   Printf(out, "setMethod('$%s', '_p%s', ",
 	 isSet ? "<-" : "",
 	 getRClassName(className));
@@ -1143,10 +1143,11 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
     Printf(out, ");\n");
   }
 
+  Printf(out, "# end of accessor method for %s\n", classname_str);
+
+  Delete(classname_str);
   DelWrapper(attr);
   DelWrapper(f);
-
-  Printf(out, "# end of accessor method for %s\n", className);
 
   return SWIG_OK;
 }
