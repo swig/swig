@@ -8,6 +8,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.1 (21 Aug 2019)
 ===========================
 
+2019-09-09: vadz
+            [Ruby] Add std::auto_ptr<> typemaps.
+
 2019-08-20: TekuConcept
             [Javascript] #1535 Add %native support to Javascript.
 
