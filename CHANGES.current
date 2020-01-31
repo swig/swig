@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.2 (in progress)
 ===========================
 
+2020-01-31: vadz
+            [Python] #1710 Fix crash parsing empty docstrings.
+
 2020-01-30: Alzathar
             [R] #910 #914 Fix R memory leak on exception.
 
