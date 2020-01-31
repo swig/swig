@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.2 (in progress)
 ===========================
 
+2020-01-31: vadz
+            [Ruby] Add std::auto_ptr<> typemaps.
+
 2020-01-31: ZackerySpytz
             [Python] #1700 More robust error checking for failures in calls to Python C API:
             PyBytes_AsStringAndSize() and PyString_AsStringAndSize().
