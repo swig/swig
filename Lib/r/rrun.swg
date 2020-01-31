@@ -1,5 +1,34 @@
-#include <stdarg.h> // va_list, va_start, va_end
-#include <stdio.h> // vsnprintf
+/* Remove global namespace pollution */
+#if !defined(SWIG_NO_R_NO_REMAP)
+# define R_NO_REMAP
+#endif
+#if !defined(SWIG_NO_STRICT_R_HEADERS)
+# define STRICT_R_HEADERS
+#endif
+
+#include <Rdefines.h>
+#include <Rversion.h>
+
+#ifdef __cplusplus
+#include <exception>
+extern "C" {
+#endif
+
+/* for raw pointer */
+#define SWIG_ConvertPtr(obj, pptr, type, flags)         SWIG_R_ConvertPtr(obj, pptr, type, flags)
+#define SWIG_ConvertPtrAndOwn(obj,pptr,type,flags,own)  SWIG_R_ConvertPtr(obj, pptr, type, flags)
+#define SWIG_NewPointerObj(ptr, type, flags)            SWIG_R_NewPointerObj(ptr, type, flags)
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <stdarg.h>
+
+#if R_VERSION >= R_Version(2,6,0)
+#define VMAXTYPE void *
+#else
+#define VMAXTYPE char *
+#endif
 
 /* Last error */
 static int SWIG_lasterror_code = 0;
@@ -12,7 +41,7 @@ SWIGRUNTIME void SWIG_Error(int code, const char *format, ...) {
   va_end(arg);
 }
 
-SWIGRUNTIME const char* SWIG_ErrorType(int code) {
+SWIGRUNTIME const char *SWIG_ErrorType(int code) {
   switch (code) {
   case SWIG_MemoryError:
     return "SWIG:MemoryError";
@@ -41,37 +70,6 @@ SWIGRUNTIME const char* SWIG_ErrorType(int code) {
 }
 
 #define SWIG_fail goto fail
-
-/* Remove global namespace pollution */
-#if !defined(SWIG_NO_R_NO_REMAP)
-# define R_NO_REMAP
-#endif
-#if !defined(SWIG_NO_STRICT_R_HEADERS)
-# define STRICT_R_HEADERS
-#endif
-
-#include <Rdefines.h>
-#include <Rversion.h>
-
-#ifdef __cplusplus
-#include <exception>
-extern "C" {
-#endif
-
-/* for raw pointer */
-#define SWIG_ConvertPtr(obj, pptr, type, flags)         SWIG_R_ConvertPtr(obj, pptr, type, flags)
-#define SWIG_ConvertPtrAndOwn(obj,pptr,type,flags,own)  SWIG_R_ConvertPtr(obj, pptr, type, flags)
-#define SWIG_NewPointerObj(ptr, type, flags)            SWIG_R_NewPointerObj(ptr, type, flags)
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-
-#if R_VERSION >= R_Version(2,6,0)
-#define VMAXTYPE void *
-#else
-#define VMAXTYPE char *
-#endif
 
 /*
   This is mainly a way to avoid having lots of local variables that may 
