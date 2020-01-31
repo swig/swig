@@ -183,3 +183,12 @@ const int PROCESS_DEFAULT_VALUE = 17;
 typedef long int some_type;
 int process_complex_defval(int val = PROCESS_DEFAULT_VALUE, int factor = some_type(-1)) { return val*factor; }
 %}
+
+// Test for empty docstring, which should be ignored.
+%feature("docstring") ""
+
+%inline %{
+struct a_structure{
+  char my_array[1];
+};
+%}

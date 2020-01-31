@@ -1484,8 +1484,15 @@ public:
 
   String *build_combined_docstring(Node *n, autodoc_t ad_type, const String *indent = "", bool low_level = false) {
     String *docstr = Getattr(n, "feature:docstring");
-    if (docstr && Len(docstr)) {
-      docstr = Copy(docstr);
+    if (docstr) {
+      // Simplify the code below by just ignoring empty docstrings.
+      if (!Len(docstr))
+	docstr = NULL;
+      else
+	docstr = Copy(docstr);
+    }
+
+    if (docstr) {
       char *t = Char(docstr);
       if (*t == '{') {
 	Delitem(docstr, 0);
@@ -1496,7 +1503,7 @@ public:
     if (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc")) {
       String *autodoc = make_autodoc(n, ad_type, low_level);
       if (autodoc && Len(autodoc) > 0) {
-	if (docstr && Len(docstr)) {
+	if (docstr) {
 	  Append(autodoc, "\n");
 	  Append(autodoc, docstr);
 	}
@@ -1509,7 +1516,7 @@ public:
       Delete(autodoc);
     }
 
-    if (!docstr || !Len(docstr)) {
+    if (!docstr) {
       if (doxygen) {
 	docstr = Getattr(n, "python:docstring");
 	if (!docstr && doxygenTranslator->hasDocumentation(n)) {
