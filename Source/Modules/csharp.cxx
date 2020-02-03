@@ -654,7 +654,7 @@ public:
     Printf(f, "//\n");
     Swig_banner_target_lang(f, "//");
     Printf(f, "//------------------------------------------------------------------------------\n\n");
-    if(enable_nullable_flag) {
+    if (enable_nullable_flag) {
       Printf(f, "#nullable enable\n\n");
     }
   }
@@ -4598,10 +4598,10 @@ extern "C" Language *swig_csharp(void) {
 const char *CSHARP::usage = "\
 C# Options (available with -csharp)\n\
      -dllimport <dl> - Override DllImport attribute name to <dl>\n\
+     -enablenullable - Enable nullable in all C# generated files\n\
      -namespace <nm> - Generate wrappers into C# namespace <nm>\n\
      -noproxy        - Generate the low-level functional interface instead\n\
                        of proxy classes\n\
      -oldvarnames    - Old intermediary method names for variable wrappers\n\
      -outfile <file> - Write all C# into a single <file> located in the output directory\n\
-     -enablenullable - Enable nullable in all C# generated files\n\
 \n";
