@@ -1245,7 +1245,7 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
   return inst;
 }
 
-SWIGRUNTIME void
+SWIGRUNTIME int
 SWIG_Python_SetSwigThis(PyObject *inst, PyObject *swig_this)
 {
 #if !defined(SWIG_PYTHON_SLOW_GETSET_THIS)
@@ -1256,11 +1256,10 @@ SWIG_Python_SetSwigThis(PyObject *inst, PyObject *swig_this)
       dict = PyDict_New();
       *dictptr = dict;
     }
-    PyDict_SetItem(dict, SWIG_This(), swig_this);
-    return;
+    return PyDict_SetItem(dict, SWIG_This(), swig_this);
   }
 #endif
-  PyObject_SetAttr(inst, SWIG_This(), swig_this);
+  return PyObject_SetAttr(inst, SWIG_This(), swig_this);
 } 
 
 
@@ -1274,7 +1273,8 @@ SWIG_Python_InitShadowInstance(PyObject *args) {
     if (sthis) {
       SwigPyObject_append((PyObject*) sthis, obj[1]);
     } else {
-      SWIG_Python_SetSwigThis(obj[0], obj[1]);
+      if (SWIG_Python_SetSwigThis(obj[0], obj[1]) != 0)
+        return NULL;
     }
     return SWIG_Py_Void();
   }
