@@ -1248,22 +1248,19 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
 SWIGRUNTIME void
 SWIG_Python_SetSwigThis(PyObject *inst, PyObject *swig_this)
 {
- PyObject *dict;
 #if !defined(SWIG_PYTHON_SLOW_GETSET_THIS)
- PyObject **dictptr = _PyObject_GetDictPtr(inst);
- if (dictptr != NULL) {
-   dict = *dictptr;
-   if (dict == NULL) {
-     dict = PyDict_New();
-     *dictptr = dict;
-   }
-   PyDict_SetItem(dict, SWIG_This(), swig_this);
-   return;
- }
+  PyObject **dictptr = _PyObject_GetDictPtr(inst);
+  if (dictptr != NULL) {
+    PyObject *dict = *dictptr;
+    if (dict == NULL) {
+      dict = PyDict_New();
+      *dictptr = dict;
+    }
+    PyDict_SetItem(dict, SWIG_This(), swig_this);
+    return;
+  }
 #endif
- dict = PyObject_GetAttrString(inst, "__dict__");
- PyDict_SetItem(dict, SWIG_This(), swig_this);
- Py_DECREF(dict);
+  PyObject_SetAttr(inst, SWIG_This(), swig_this);
 } 
 
 
