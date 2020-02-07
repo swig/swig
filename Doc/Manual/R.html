@@ -37,7 +37,7 @@ href="http://www.r-project.org/">www.r-project.org</a>.
 The R bindings are under active development.  They have been used to
 compile and run an R interface to QuantLib running on Mandriva Linux
 with gcc. They are also used to create the SimpleITK R package, which
-runs on various linuxes and mac. Swig is used to create all wrapper
+runs on Linux and MacOS. SWIG is used to create all wrapper
 interfaces
 to <a href="http://http://www.simpleitk.org/">SimpleITK</a>.  The R
 bindings also work on Microsoft Windows using Visual C++.
@@ -211,26 +211,30 @@ the future we hope to utilise the built in R6 class structures.
 The R interface has the following capabilities:
 <ul>
   <li> Destructor methods are registered and called automatically by the R garbage collector.
-<li> A range of std::vector types are converted automatically to R equivalents.
+<li> A range of std::vector types are converted automatically to R equivalents via the std_vector.i library.
 <li> The $ operator is used for method access.
-<li> Variable accessors are automatically generated and called via the $, [, [[, $&lt;-,  [&lt;-, [[&lt;- operators 
+<li> Variable accessors are automatically generated and called via the $, [, [[, $&lt;-,  [&lt;-, [[&lt;- operators.
 </ul>
 </p>
 
 <H3><a name="R_class_examples">34.6.1 Examples</a></H3>
 
 
+<p>
 Consider the following simple example:
+</p>
 
 <div class="code">
   <pre>
 class Vehicle {
 private:
   int m_axles;
+
 public:
   int Axles() {
     return(m_axles);
   }
+
   bool Available;
 
   Vehicle() {
@@ -246,12 +250,14 @@ public:
 </pre>
 </div>
 
+<p>
 The following options are available in R:
+</p>
 
 <div class="code">
-  <pre>
-v1 &lt- Vehicle()
-v2 &lt- Vehicle(4)
+<pre>
+v1 &lt;- Vehicle()
+v2 &lt;- Vehicle(4)
 # access members
 v1$Axles()
 [1] 2
@@ -260,7 +266,7 @@ v2$Axles
 v1$Available
 [1] FALSE
 # Set availabilty
-v1$Available &lt- TRUE
+v1$Available &lt;- TRUE
 v1$Available
 [1] TRUE
 </pre>
@@ -302,7 +308,7 @@ defined "_p_Vehicle"
 </pre>
 </div>
 <p>
-The names in the accessorFuns list correspond to class methods while names in the vaccessors section
+The names in the <tt>accessorFuns</tt> list correspond to class methods while names in the <tt>vaccessors</tt> section
 correspond to variables that may be modified.
 </p>
 <H2><a name="R_nn7">34.7 Enumerations</a></H2>
