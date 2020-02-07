@@ -209,13 +209,13 @@ the future we hope to utilise the built in R6 class structures.
 
 <p>
 The R interface has the following capabilities:
+</p>
 <ul>
   <li> Destructor methods are registered and called automatically by the R garbage collector.
 <li> A range of std::vector types are converted automatically to R equivalents via the std_vector.i library.
 <li> The $ operator is used for method access.
 <li> Variable accessors are automatically generated and called via the $, [, [[, $&lt;-,  [&lt;-, [[&lt;- operators.
 </ul>
-</p>
 
 <H3><a name="R_class_examples">34.6.1 Examples</a></H3>
 
@@ -275,7 +275,7 @@ v1$Available
 <p>
 A useful trick to determine the methods that are available is to
 query the R method definition as follows:
-<p>
+</p>
 
 <div class="code">
   <pre>
@@ -298,7 +298,6 @@ function (x, name)
         }
     else f(x)
 }
-<bytecode: 0x55947ff80f68>
 
 Signatures:
         x           
