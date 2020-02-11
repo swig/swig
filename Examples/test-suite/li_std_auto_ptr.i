@@ -1,43 +1,36 @@
 %module li_std_auto_ptr
 
-%{
-#if __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations" // auto_ptr deprecation
-#endif
-
-#if defined(__clang__)
-#pragma clang diagnostic push
-// Suppress 'auto_ptr<>' is deprecated
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-#endif
-%}
-
 #if defined(SWIGCSHARP) || defined(SWIGJAVA) || defined(SWIGPYTHON) || defined(SWIGRUBY)
 
+// Prefer using std::unique_ptr<> if it's available, as auto_ptr<> generates
+// deprecation warnings with C++14 compilers and may not exist at all when
+// using C++17.
+//
+// As we can't test for C++11 support at SWIG time, we use an extra level of
+// indirection, with SwigTest::auto_ptr being defined as either auto_ptr<> or
+// unique_ptr<> below.
+#define SWIG_AUTO_PTR_NAMESPACE SwigTest
 %include "std_auto_ptr.i"
 
 %auto_ptr(Klass)
 
 %{
-#if __cplusplus < 201703L
 #include <memory>
-#else
-// Simple std::auto_ptr implementation for testing after its removal in C++17
-namespace std {
-  template <class T> class auto_ptr {
-    T *ptr;
-    public:
-      auto_ptr(T *ptr = 0) : ptr(ptr) {}
-      auto_ptr(auto_ptr&& a) : ptr(a.ptr) { a.ptr = 0;}
-      ~auto_ptr() { delete ptr; }
-      T *release() { T *p = ptr; ptr = 0; return p; }
-      auto_ptr& operator=(auto_ptr&& a) { if (&a != this) { delete ptr; ptr = a.ptr; a.ptr = 0; } return *this; }
-  };
-}
-#endif
-
 #include <string>
 #include "swig_examples_lock.h"
+%}
+
+%{
+namespace SwigTest
+{
+#if __cplusplus >= 201103L || \
+    (defined(_MSC_VER) && _MSC_VER >= 1800)
+  template <typename T>
+  using auto_ptr = std::unique_ptr<T>;
+#else // No C++11 support
+  using std::auto_ptr;
+#endif
+}
 %}
 
 %inline %{
@@ -73,14 +66,14 @@ int Klass::total_count = 0;
 
 %}
 
-%template(KlassAutoPtr) std::auto_ptr<Klass>;
+%template(KlassAutoPtr) SwigTest::auto_ptr<Klass>;
 
-%inline %{
+%inline {
 
-std::auto_ptr<Klass> makeKlassAutoPtr(const char* label) {
-  return std::auto_ptr<Klass>(new Klass(label));
+SwigTest::auto_ptr<Klass> makeKlassAutoPtr(const char* label) {
+  return SwigTest::auto_ptr<Klass>(new Klass(label));
 }
 
-%}
+}
 
 #endif

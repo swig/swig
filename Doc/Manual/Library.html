@@ -2007,6 +2007,16 @@ directly supported.
 </p>
 
 <p>
+Moreover, the same support can be also used for the (non-deprecated)
+<tt>std::unique_ptr</tt>. To use it, just predefine
+<tt>SWIG_AUTO_PTR_CLASSNAME</tt> as <tt>unique_ptr</tt> <em>before</em>
+including <tt>std_auto_ptr.i</tt> file. For completeness, notice that it's
+also possible to predefine <tt>SWIG_AUTO_PTR_NAMESPACE</tt> to something
+different from its default <tt>std</tt> value, e.g. to use
+<tt>boost::unique_ptr</tt> class.
+</p>
+
+<p>
 A typical example of use would be
 </p>
 <div class="code">

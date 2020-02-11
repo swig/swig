@@ -5,21 +5,19 @@
     something else (e.g. use shared_ptr<> which SWIG supports fully).
  */
 
+%include <auto_ptr.i>
+
 %define %auto_ptr(TYPE)
-%typemap (ctype) std::auto_ptr<TYPE > "void *"
-%typemap (imtype, out="System.IntPtr") std::auto_ptr<TYPE > "HandleRef"
-%typemap (cstype) std::auto_ptr<TYPE > "$typemap(cstype, TYPE)"
-%typemap (out) std::auto_ptr<TYPE > %{
+%typemap (ctype) SWIG_AUTO_PTR_FULL_NAME<TYPE > "void *"
+%typemap (imtype, out="System.IntPtr") SWIG_AUTO_PTR_FULL_NAME<TYPE > "HandleRef"
+%typemap (cstype) SWIG_AUTO_PTR_FULL_NAME<TYPE > "$typemap(cstype, TYPE)"
+%typemap (out) SWIG_AUTO_PTR_FULL_NAME<TYPE > %{
    $result = (void *)$1.release();
 %}
-%typemap(csout, excode=SWIGEXCODE) std::auto_ptr<TYPE > {
+%typemap(csout, excode=SWIGEXCODE) SWIG_AUTO_PTR_FULL_NAME<TYPE > {
      System.IntPtr cPtr = $imcall;
      $typemap(cstype, TYPE) ret = (cPtr == System.IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
      return ret;
    }
-%template() std::auto_ptr<TYPE >;
+%template() SWIG_AUTO_PTR_FULL_NAME<TYPE >;
 %enddef
-
-namespace std {
-   template <class T> class auto_ptr {};
-} 

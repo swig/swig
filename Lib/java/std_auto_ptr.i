@@ -5,23 +5,21 @@
     something else (e.g. use shared_ptr<> which SWIG supports fully).
  */
 
-%define %auto_ptr(TYPE)
-%typemap (jni) std::auto_ptr<TYPE > "jlong"
-%typemap (jtype) std::auto_ptr<TYPE > "long"
-%typemap (jstype) std::auto_ptr<TYPE > "$typemap(jstype, TYPE)"
+%include <auto_ptr.i>
 
-%typemap (out) std::auto_ptr<TYPE > %{
+%define %auto_ptr(TYPE)
+%typemap (jni) SWIG_AUTO_PTR_FULL_NAME<TYPE > "jlong"
+%typemap (jtype) SWIG_AUTO_PTR_FULL_NAME<TYPE > "long"
+%typemap (jstype) SWIG_AUTO_PTR_FULL_NAME<TYPE > "$typemap(jstype, TYPE)"
+
+%typemap (out) SWIG_AUTO_PTR_FULL_NAME<TYPE > %{
    jlong lpp = 0;
    *(TYPE**) &lpp = $1.release();
    $result = lpp;
 %}
-%typemap(javaout) std::auto_ptr<TYPE > {
+%typemap(javaout) SWIG_AUTO_PTR_FULL_NAME<TYPE > {
      long cPtr = $jnicall;
      return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
    }
-%template() std::auto_ptr<TYPE >;
+%template() SWIG_AUTO_PTR_FULL_NAME<TYPE >;
 %enddef
-
-namespace std {
-   template <class T> class auto_ptr {};
-} 
