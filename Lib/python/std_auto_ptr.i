@@ -5,13 +5,11 @@
     something else (e.g. use shared_ptr<> which SWIG supports fully).
  */
 
+%include <auto_ptr.i>
+
 %define %auto_ptr(TYPE)
-%typemap (out) std::auto_ptr<TYPE > %{
+%typemap (out) SWIG_AUTO_PTR_FULL_NAME<TYPE > %{
    %set_output(SWIG_NewPointerObj($1.release(), $descriptor(TYPE *), SWIG_POINTER_OWN | %newpointer_flags));
 %}
-%template() std::auto_ptr<TYPE >;
+%template() SWIG_AUTO_PTR_FULL_NAME<TYPE >;
 %enddef
-
-namespace std {
-   template <class T> class auto_ptr {};
-} 
