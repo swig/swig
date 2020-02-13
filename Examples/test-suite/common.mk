@@ -184,6 +184,7 @@ CPP_TEST_CASES += \
 	director_classes \
 	director_classic \
 	director_constructor \
+	director_conversion_operators \
 	director_default \
 	director_detect \
 	director_enum \
