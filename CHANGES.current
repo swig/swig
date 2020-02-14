@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.2 (in progress)
 ===========================
 
+2020-02-14: treitmayr
+            #1724 Fix wrapping of abstract user-defined conversion operators.
+
 2020-02-13: ddurham2
             [Python] #1512 Fix memleak when using STL containers of shared_ptr objects.
 
