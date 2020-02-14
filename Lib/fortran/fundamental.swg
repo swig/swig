@@ -100,6 +100,12 @@ SWIGINTERN SwigArrayWrapper SwigArrayWrapper_uninitialized() {
   %typemap(fout, fragment="SWIG_fout"{CPPTYPE}, noblock=1) MATCHTYPE {
   call %fortrantm(fout, CPPTYPE)($1, $result)
   }
+  %typemap(fdirectorin, fragment="SWIG_fout"{CPPTYPE}, noblock=1) MATCHTYPE {
+  call %fortrantm(fout, CPPTYPE)($input, $1)
+  }
+  %typemap(fdirectorout, fragment="SWIG_fin"{CPPTYPE}, noblock=1) MATCHTYPE {
+  call %fortrantm(fin, CPPTYPE)($1, $result)
+  }
 %enddef
 
 /*!
@@ -394,6 +400,11 @@ $input = &temp;%}
 
 // Define special fin/fout typemaps for logical<->c_int
 %fortran_typemap_finout(bool, bool)
+
+%typemap(directorin, noblock=1) bool (int temp)
+%{temp = $1 ? 1 : 0;
+$input = &temp;%}
+%typemap(directorout) bool "$result = (bool)$1;"
 
 // Treat const references like values
 %apply bool { const bool& };

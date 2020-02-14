@@ -352,7 +352,7 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 // Raw pointers act mostly like value types, but they don't have to accept the exact type (polymorphic input, non-polymorphic output). Intent is 'in' because
 // we're not modifying the pointer or memory status.
 %apply SWIGTYPE { SWIGTYPE* };
-%typemap(ftype, in="class($fortranclassname), intent(in)", nofortransubroutine=1) SWIGTYPE*
+%typemap(ftype, in="class($fortranclassname)", nofortransubroutine=1) SWIGTYPE*
   "type($fortranclassname)"
 %typemap(in, noblock=1) SWIGTYPE* {
   $1 = ($1_ltype)$input->cptr;
