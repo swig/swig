@@ -8,43 +8,44 @@ module director_simple_mod
   use director_simple, only : IntBase, BoolBase
   implicit none
 
- type, extends(IntBase), public :: MyIntDerived
-   integer(C_INT) :: multiply_by = 1
-   integer(C_INT) :: add_to = 0
- contains
-  procedure :: apply => MyIntDerived_apply
- end type MyIntDerived
-  
- type, extends(BoolBase), public :: MyBoolDerived
-   integer :: call_count = 0
- contains
-  procedure :: apply => MyBoolDerived_apply
- end type MyBoolDerived
-  
+  integer :: call_count
+
+  type, extends(IntBase), public :: MyIntDerived
+    integer(C_INT) :: multiply_by = 1
+    integer(C_INT) :: add_to = 0
+  contains
+    procedure :: apply => MyIntDerived_apply
+  end type MyIntDerived
+   
+  type, extends(BoolBase), public :: MyBoolDerived
+    integer :: call_count = 0
+  contains
+    procedure :: apply => MyBoolDerived_apply
+  end type MyBoolDerived
+   
 contains
-
+ 
 function MyIntDerived_apply(self, x) &
-result(myresult)
-use, intrinsic :: ISO_C_BINDING
-class(MyIntDerived) :: self
-integer(C_INT), intent(in) :: x
-integer(C_INT) :: myresult
+  result(myresult)
+  use, intrinsic :: ISO_C_BINDING
+  class(MyIntDerived), intent(in) :: self
+  integer(C_INT), intent(in) :: x
+  integer(C_INT) :: myresult
 
-myresult = x * self%multiply_by + self%add_to
+  myresult = x * self%multiply_by + self%add_to
 end function
 
 function MyBoolDerived_apply(self, a, b) &
-result(myresult)
-use, intrinsic :: ISO_C_BINDING
-class(MyBoolDerived) :: self
-logical, intent(in) :: a
-logical, intent(in) :: b
-logical :: myresult
-
-myresult = a .or. b
-self%call_count = self%call_count + 1
+  result(myresult)
+  use, intrinsic :: ISO_C_BINDING
+  class(MyBoolDerived), intent(in) :: self
+  logical, intent(in) :: a
+  logical, intent(in) :: b
+  logical :: myresult
+  
+  myresult = a .or. b
+  call_count = call_count + 1
 end function
-
 end module
 
 program director_simple_runme
@@ -101,12 +102,13 @@ subroutine test_director_bool
   call swig_initialize(myclass, source=BoolBase())
 
   ! Direct Fortran call
+  call_count = 0
   ASSERT(myclass%apply(.true., .false.))
   ASSERT(.not. myclass%apply(.false., .false.))
   ! Call through C director
   ASSERT(apply(myclass, .true., .false.))
   ASSERT(.not. apply(myclass, .false., .false.))
-  ASSERT(myclass%call_count == 4)
+  ASSERT(call_count == 4)
 
   call myclass%release()
 
