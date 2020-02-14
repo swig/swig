@@ -65,11 +65,11 @@ def get_cxxflags(language, std, compiler):
     return cxxflags[language]
 
 def get_fcflags(language, std, compiler):
-    if not std:
-        std = "f2003"
-    fcflags = ["-std=" + std, "-Wall", "-Wextra", "-Wimplicit-procedure",
+    fcflags = ["-Wall", "-Wextra", "-Wimplicit-procedure",
             "-Wimplicit-interface", "-Wno-compare-reals",
             "-ffree-line-length-none"]
+    if std:
+        fcflags.append("-std=" + std)
     # The boost version on the systems seems to be compiled as multithreaded
     # but does not link against the pthread library (and I guess the C++
     # compiler does?)

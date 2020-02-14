@@ -1888,6 +1888,15 @@ void not_wrapped(UnknownType*);
 void should_be_wrapped(UnknownType*);
 ```
 
+## Cross-language polymorphism using directors
+
+Fortran has much less introspection than Java, Python, and other less static
+languages. Therefore director methods can't automatically detect whether the
+target language (Fortran) overrides a particular method.
+
+Note that a bug in GCC prevents versions before 8 from using the
+`--std=f2003` flag (see [GNU bug 84924](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84924)).
+
 ## Known Issues
 
 A number of known limitations to the SWIG Fortran module are tracked [on
