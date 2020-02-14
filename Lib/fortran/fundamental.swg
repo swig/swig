@@ -100,6 +100,12 @@ SWIGINTERN SwigArrayWrapper SwigArrayWrapper_uninitialized() {
   %typemap(fout, fragment="SWIG_fout"{CPPTYPE}, noblock=1) MATCHTYPE {
   call %fortrantm(fout, CPPTYPE)($1, $result)
   }
+  %typemap(fdirectorin, fragment="SWIG_fout"{CPPTYPE}, noblock=1) MATCHTYPE {
+  call %fortrantm(fout, CPPTYPE)($input, $1)
+  }
+  %typemap(fdirectorout, fragment="SWIG_fin"{CPPTYPE}, noblock=1) MATCHTYPE {
+  call %fortrantm(fin, CPPTYPE)($1, $result)
+  }
 %enddef
 
 /*!
@@ -158,6 +164,11 @@ SWIGINTERN SwigArrayWrapper SwigArrayWrapper_uninitialized() {
 
   %typemap(fin) CTYPE = FORTRAN_INTRINSIC_TYPE;
   %typemap(fout) CTYPE = FORTRAN_INTRINSIC_TYPE;
+
+  %typemap(directorin) CTYPE = FORTRAN_INTRINSIC_TYPE;
+  %typemap(directorout) CTYPE = FORTRAN_INTRINSIC_TYPE;
+  %typemap(fdirectorin) CTYPE = FORTRAN_INTRINSIC_TYPE;
+  %typemap(fdirectorout) CTYPE = FORTRAN_INTRINSIC_TYPE;
 
   %typemap(bindc) CTYPE* = FORTRAN_INTRINSIC_TYPE*;
 
@@ -232,7 +243,7 @@ end subroutine}
  * boolean/logical type) has a different fundamental representation even though
  * both C_BOOL and bool have the same size. Some structs of primitive types
  * (see the %fortran_struct feature) can also be made interoperable.
- *
+ in
  * - Arguments in Fortran are passed by pointer reference, and return
  * types are passed by value.
  * - Returning by const reference is automatically turned into return-by-value
@@ -249,16 +260,17 @@ end subroutine}
  */
 
 // Fundamental types
-%typemap(in, noblock=1) FORTRAN_INTRINSIC_TYPE {
-  $1 = ($1_ltype)(*$input);
-}
-%typemap(out, noblock=1) FORTRAN_INTRINSIC_TYPE {
-  $result = ($1_ltype)($1);
-}
-%typemap(fin) FORTRAN_INTRINSIC_TYPE
-  "$1 = $input"
-%typemap(fout) FORTRAN_INTRINSIC_TYPE
-  "$result = $1"
+%typemap(in) FORTRAN_INTRINSIC_TYPE "$1 = ($1_ltype)(*$input);"
+%typemap(out) FORTRAN_INTRINSIC_TYPE "$result = ($1_ltype)($1);"
+%typemap(fin) FORTRAN_INTRINSIC_TYPE "$1 = $input"
+%typemap(fout) FORTRAN_INTRINSIC_TYPE "$result = $1"
+
+%typemap(directorin, noblock=1) FORTRAN_INTRINSIC_TYPE ($1_ltype temp)
+%{temp = $1;
+$input = &temp;%}
+%typemap(directorout) FORTRAN_INTRINSIC_TYPE "$result = $1;"
+%typemap(fdirectorin) FORTRAN_INTRINSIC_TYPE "$1 = $input"
+%typemap(fdirectorout) FORTRAN_INTRINSIC_TYPE "$result = $1"
 
 // Pointers can be directly bound
 %typemap(bindc, in="$typemap(imtype, $*1_ltype)") FORTRAN_INTRINSIC_TYPE*
@@ -300,7 +312,7 @@ end subroutine}
 %typemap(out) const FORTRAN_INTRINSIC_TYPE& 
   "$result = *$1;"
 
-// Treat rvalue references as const refrerences
+// Treat rvalue references as const refererences (i.e. copy the result)
 %apply const FORTRAN_INTRINSIC_TYPE& { FORTRAN_INTRINSIC_TYPE&& };
 
 /* -------------------------------------------------------------------------
@@ -334,6 +346,7 @@ end subroutine}
 %typemap(ftype)          void ""
 %typemap(fin)            void ""
 %typemap(fout)           void ""
+%typemap(directorin)     void ""
 %typemap(bindc)          void ""
 
 /* -------------------------------------------------------------------------
@@ -387,6 +400,11 @@ end subroutine}
 
 // Define special fin/fout typemaps for logical<->c_int
 %fortran_typemap_finout(bool, bool)
+
+%typemap(directorin, noblock=1) bool (int temp)
+%{temp = $1 ? 1 : 0;
+$input = &temp;%}
+%typemap(directorout) bool "$result = (bool)$1;"
 
 // Treat const references like values
 %apply bool { const bool& };

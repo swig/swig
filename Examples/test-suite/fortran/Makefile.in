@@ -56,6 +56,50 @@ FAILING_CPP_TESTS += \
 	cpp11_rvalue_reference2 \
 	cpp11_rvalue_reference3 \
 	cpp11_default_delete \
+	allprotected \
+	apply_strings \
+	apply_signed_char \
+	director_abstract \
+	director_binary_string \
+	director_classic \
+	director_basic \
+	director_default \
+	director_detect \
+	director_classes \
+	director_exception_catches \
+	director_exception_nothrow \
+	director_exception \
+	director_enum \
+	director_frob \
+	director_nested \
+	director_extend \
+	director_nspace_director_name_collision \
+	director_nspace \
+	director_keywords \
+	director_overload \
+	director_namespace_clash \
+	director_pass_by_value \
+	director_ignore \
+	director_ownership \
+	director_protected \
+	director_ref \
+	director_property \
+	director_primitives \
+	director_smartptr \
+	director_unroll \
+	director_overload2 \
+	director_protected_overloaded \
+	director_using \
+	director_redefined \
+	director_wombat \
+	director_void \
+	li_boost_shared_ptr_director \
+	nested_directors \
+	typemap_directorout \
+	director_string \
+	cpp11_director_enums \
+	cpp11_directors \
+	cpp11_function_objects \
 
 FAILING_C_TESTS += \
 	char_constant \

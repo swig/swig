@@ -10,7 +10,7 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=fortran GCC=6 CPP14=1
+      env: SWIGLANG=fortran GCC=8 CPP14=1 FCSTD=f2003
       sudo: required
       dist: xenial
     - os: linux
