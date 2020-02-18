@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.2 (in progress)
 ===========================
 
+2020-02-18: ryannevell
+            [Lua] #1728 Add support for LUA lightuserdata to SWIG_Lua_ConvertPtr.
+
+2020-02-18: dmach
+            [Ruby] #1725 Fix gcc -Wcatch-value warnings.
+
 2020-02-14: treitmayr
             #1724 Fix wrapping of abstract user-defined conversion operators.
 
