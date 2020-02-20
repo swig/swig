@@ -120,6 +120,13 @@ extern "C" int _0cboundfunc(const int _x) { return _x + 1; }
 %constant int _leading_underscore_with_sixty_three_characters_might_be_tricky = 63;
 %nofortranconst;
 
+// swigc_ -prefixed name: OK if not overloaded, too long if overloaded
+%inline %{
+int this_is_a_very_long_name_but_its_ok_unless_its_overloaded() { return 0; }
+int this_is_a_very_long_name_but_its_bad_since_its_overloaded(int i) { return i; }
+float this_is_a_very_long_name_but_its_bad_since_its_overloaded(float f) { return f; }
+%}
+
 // This class is poorly named, but the symname is OK.
 %inline %{
 template<class T>
