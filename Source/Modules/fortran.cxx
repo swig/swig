@@ -279,17 +279,17 @@ bool is_valid_identifier(const_String_or_char_ptr name) {
  * Requires input to be longer than 63 chars.
  * Returns new'd string.
  */
-String *shorten_identifier(String *inp, int warning = WARN_NONE) {
-  assert(Len(inp) > 63);
-  String *result = NewStringWithSize(inp, 63);
+String *shorten_identifier(String *inp, int maxlen, int warning) {
+  assert(Len(inp) > maxlen);
+  String *result = NewStringWithSize(inp, maxlen);
   unsigned int hash = 5381;
   // Hash truncated characters *AND* characters that might be replaced by the hash
   // (2**8 / (10 + 26)) =~ 7.1, so backtrack 8 chars
-  for (const char *src = Char(inp) + 63 - 8; *src != '\0'; ++src) {
+  for (const char *src = Char(inp) + maxlen - 8; *src != '\0'; ++src) {
     hash = (hash * 33 + *src) & 0xffffffffu;
   }
   // Replace the last chars with the hash encoded into 0-10 + A-Z
-  char *dst = Char(result) + 63;
+  char *dst = Char(result) + maxlen;
   while (hash > 0) {
     unsigned long rem = hash % 36;
     hash = hash / 36;
@@ -311,9 +311,9 @@ String *shorten_identifier(String *inp, int warning = WARN_NONE) {
  *
  * *assumes ownership of input and returns new'd value*
  */
-String *ensure_short(String *str, int warning = WARN_NONE) {
-  if (Len(str) > 63) {
-    String *shortened = shorten_identifier(str, warning);
+String *ensure_short(String *str, int maxlen=63, int warning=WARN_NONE) {
+  if (Len(str) > maxlen) {
+    String *shortened = shorten_identifier(str, maxlen, warning);
     assert(is_valid_identifier(shortened));
     Delete(str);
     str = shortened;
@@ -387,7 +387,7 @@ String *make_fname(String *name, int warning = WARN_LANG_IDENTIFIER) {
   }
 
   // The beginning of the string is set up; now capture and shorten if too long
-  result = ensure_short(result ? result : Copy(name), warning);
+  result = ensure_short(result ? result : Copy(name), 63, warning);
 
   assert(is_valid_identifier(result));
   return result;
@@ -1077,10 +1077,12 @@ int FORTRAN::functionWrapper(Node *n) {
   String *fname = NULL;    // Fortran proxy function name; null if bind(C)
   String *imname = NULL;   // Fortran interface function name
   String *wname = NULL;    // SWIG C wrapper function name
+  String *overload_ext = Getattr(n, "sym:overloaded") ? Getattr(n, "sym:overname") : NULL;
 
   // Generate a unique wrapper name
   wname = Swig_name_wrapper(symname);
-  imname = ensure_short(NewStringf("swigc_%s", symname));
+  imname = ensure_short(NewStringf("swigc_%s", symname),
+                        63 - (overload_ext ? Len(overload_ext) : 0));
 
   if (String *private_fname = Getattr(n, "fortran:fname")) {
     // Create "private" fortran wrapper function class (swigf_xx) name that will be bound to a class
@@ -1120,6 +1122,7 @@ int FORTRAN::functionWrapper(Node *n) {
       fsymname = fname;
       fname = proxy_name_construct(this->getNSpace(), symname);
     }
+    fname = ensure_short(fname, 63 - Len(overload_ext));
     Append(fname, overload_ext);
     generic = true;
   }
