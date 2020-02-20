@@ -35,7 +35,7 @@ $2 = $input->size;
  *
  * To apply these to a function `void foo(const int x[4]);`:
  *
- * %apply SWIGTYPE ARRAY[ANY] {const  int x[4] };
+ * %apply SWIGTYPE ARRAY[ANY] {const int x[4] };
  */
 
 %apply FORTRAN_INTRINSIC_TYPE& { SWIGTYPE ARRAY[ANY], SWIGTYPE ARRAY[ANY][ANY], SWIGTYPE ARRAY[ANY][ANY][ANY] }
@@ -68,4 +68,16 @@ $result = $1_temp}
 %typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0), target", checkdim=1) SWIGTYPE ARRAY[ANY][ANY][ANY]
  "$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0)"
 
+
+/* -------------------------------------------------------------------------
+ * Interact natively with Fortran deferred-size arrays.
+ *
+ * To apply these to a function `void foo(const int* x);`:
+ *
+ * %apply SWIGTYPE ARRAY[] {const int* x };
+ */
+
+%apply SWIGTYPE ARRAY[ANY] { SWIGTYPE ARRAY[] };
+%apply SWIGTYPE ARRAY[ANY][ANY] { SWIGTYPE ARRAY[][ANY] };
+%apply SWIGTYPE ARRAY[ANY][ANY][ANY] { SWIGTYPE ARRAY[][ANY][ANY] };
 
