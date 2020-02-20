@@ -136,24 +136,32 @@ int fix_fortran_dims(Node *n, const char *tmap_name, String *typemap) {
   if (!is_checkdims)
     return SWIG_OK;
 
-  SwigType* t = Getattr(n, "type");
-  ASSERT_OR_PRINT_NODE(SwigType_isarray(t), n);
-  int ndim = SwigType_array_ndim(t);
-  for (int i = 0; i < ndim; i++) {
-    String *dim = SwigType_array_getdim(t, i);
-    if (dim && Len(dim) > 0 && !is_fortran_intexpr(dim)) {
-      Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number,
-                   "Array dimension expression '%s' is incompatible with Fortran\n",
-                   dim);
-      Delete(dim);
-      return SWIG_ERROR;
-    }
-    Delete(dim);
-  }
+  SwigType *t = Getattr(n, "type");
 
-  // Replace empty dimensions with assumed-size dimension
-  Replaceall(typemap, "dimension()", "dimension(*)");
-  Replaceall(typemap, ",)", ",*)");
+  if (SwigType_isarray(t)) {
+    int ndim = SwigType_array_ndim(t);
+    for (int i = 0; i < ndim; i++) {
+      String *dim = SwigType_array_getdim(t, i);
+      if (dim && Len(dim) > 0 && !is_fortran_intexpr(dim)) {
+        Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number, "Array dimension expression '%s' is incompatible with Fortran\n", dim);
+        Delete(dim);
+        return SWIG_ERROR;
+      }
+      Delete(dim);
+    }
+
+    // Replace empty dimensions with assumed-size dimension
+    Replaceall(typemap, "dimension()", "dimension(*)");
+    Replaceall(typemap, ",)", ",*)");
+  } else if (SwigType_ispointer(t)) {
+    // Note that we use `imname` instead of `lname` since it was temporarily changed for typemap matching for ftype. Pointers should only have a single
+    // dimension, so we replace with deferred size.
+    String *dimname = NewStringf("%s_dim0", Getattr(n, "imname"));
+    Replaceall(typemap, dimname, "*");
+    Delete(dimname);
+  } else {
+    ASSERT_OR_PRINT_NODE(false, n);
+  }
 
   return SWIG_OK;
 }

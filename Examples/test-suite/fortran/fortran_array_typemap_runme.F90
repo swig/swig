@@ -7,6 +7,8 @@ program fortran_array_typemap_runme
 
   call test_ptr_size
   call test_fixed
+  call test_deferred
+  call test_deferred_2d
 
 contains
 
@@ -26,7 +28,7 @@ subroutine test_ptr_size
   ASSERT(accum(int_values) == 2 * 4)
 end subroutine
 
-! Test two-argument (pointer + size) -> dynamic
+! Test hard-coded dimensions
 subroutine test_fixed
   use fortran_array_typemap
   use ISO_C_BINDING
@@ -52,6 +54,36 @@ subroutine test_fixed
   ASSERT(cpp_sum(dbl_values) == sum(dbl_values))
 end subroutine
 
+! Test deferred-size arrays
+subroutine test_deferred
+  use fortran_array_typemap
+  use ISO_C_BINDING
+  implicit none
+  real(C_DOUBLE), dimension(5) :: dbl_values
+  integer :: i
+
+  dbl_values = [(i * 2.0d0, i = 1, size(dbl_values))]
+
+  ASSERT(cpp_dynamic_sum(size(dbl_values), dbl_values) == sum(dbl_values))
+
+end subroutine
+
+! Test deferred-size arrays
+subroutine test_deferred_2d
+  use fortran_array_typemap
+  use ISO_C_BINDING
+  implicit none
+  real(C_DOUBLE), dimension(3,2) :: points
+  real(C_DOUBLE), dimension(3) :: avg_points = [-1, -1, -1]
+
+  points(:,1) = [-10, 10, 4]
+  points(:,2) = [10, 10, 0]
+  call average_points(size(points, 2), points, avg_points)
+
+  ASSERT(avg_points(1) == 0.0d0)
+  ASSERT(avg_points(2) == 10.0d0)
+  ASSERT(avg_points(3) == 2.0d0)
+
+end subroutine
+
 end program
-
-
