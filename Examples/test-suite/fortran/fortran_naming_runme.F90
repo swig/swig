@@ -62,6 +62,9 @@ program fortran_naming_runme
   ASSERT(sixty_four_characters_is_way_too_long_for_fortran_or_punchXAJBV == 65)
   ASSERT(leading_underscore_with_sixty_four_characters_is_just_darnIR2OS == 64)
   ASSERT(leading_underscore_with_sixty_three_characters_might_be_tricky_ == 63)
+  ASSERT(this_is_a_very_long_name_but_its_ok_unless_its_overloaded() == 0)
+  ASSERT(this_is_a_very_long_name_but_its_bad_since_its_overloaded(10) == 10)
+  ASSERT(this_is_a_very_long_name_but_its_bad_since_its_overloaded(20.0) == 20.0)
 
   ! Check elided enum
   ASSERT(Zero == 0)
