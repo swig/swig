@@ -617,7 +617,6 @@ private:
   // Current class parameters
   String *f_class;          //!< Proxy code in currently generated class
   Hash *d_method_overloads; //!< Overloaded subroutine -> overload names
-  List *d_constructors;     //!< Overloaded subroutine -> overload names
 
   // Inside of the 'enum' definitions
   List *d_enum_public; //!< List of enumerator values
@@ -693,7 +692,7 @@ private:
  * \brief Constructor.
  */
 FORTRAN::FORTRAN() :
-  d_emitted_mangled(NULL), d_callbacks(NULL), d_overloads(NULL), d_private_overloads(NULL), f_class(NULL), d_method_overloads(NULL), d_constructors(NULL),
+  d_emitted_mangled(NULL), d_callbacks(NULL), d_overloads(NULL), d_private_overloads(NULL), f_class(NULL), d_method_overloads(NULL), 
   d_enum_public(NULL) {
 
   // Mark this language as supporting directors
@@ -999,6 +998,12 @@ void FORTRAN::write_module(String *filename) {
 
   // Overloads and renamed module procedures
   for (Iterator kv = First(d_overloads); kv.key; kv = Next(kv)) {
+    Iterator proc_name_list = First(kv.item);
+    if (!proc_name_list.item) {
+      // Skip empty overload list, probably from lack of class constructors
+      continue;
+    }
+
     Printv(out,
            " interface ", kv.key, "\n"
            "  module procedure ",
@@ -1006,7 +1011,7 @@ void FORTRAN::write_module(String *filename) {
 
     // Write overloaded procedure names
     int line_length = 19;
-    line_length = print_wrapped_list(out, First(kv.item), line_length);
+    line_length = print_wrapped_list(out, proc_name_list, line_length);
     Printv(out, "\n end interface\n", NULL);
     if (!GetFlag(d_private_overloads, kv.key)) {
       Printv(out, " public :: ", kv.key, "\n", NULL);
@@ -2430,11 +2435,14 @@ int FORTRAN::classHandler(Node *n) {
     // Initialize output strings that will be added by 'functionHandler'.
     d_method_overloads = NewHash();
 
-    // Constructors
-    d_constructors = NewList();
-
     // Add an assignment function to the class node
     this->add_assignment_operator(n);
+
+    // Add overload entry for constructors (must do this outside of `add_overload` since the class name already exists as a symbol)
+    ASSERT_OR_PRINT_NODE(!Getattr(d_overloads, fsymname), n);
+    Setattr(d_overloads, fsymname, NewList());
+    // The derived type is already marked as public, so don't add the additional "public" declaration
+    SetFlag(d_private_overloads, fsymname);
 
     // Assignment operator means we're guaranteed to have at least one method, so it's OK to unconditionally put 'contains'
     Printv(f_class, " contains\n", NULL);
@@ -2475,18 +2483,6 @@ int FORTRAN::classHandler(Node *n) {
   Delete(f_class);
   f_class = NULL;
 
-  // Print constructor interfaces
-  if (d_constructors && (Len(d_constructors) > 0)) {
-    Printf(f_fdecl, " interface %s\n", fsymname);
-    for (Iterator it = First(d_constructors); it.item; it = Next(it)) {
-      Printf(f_fdecl, "  module procedure %s\n", it.item);
-    }
-    Printf(f_fdecl, " end interface\n");
-    Setattr(n, "fortran:constructors", d_constructors);
-    Delete(d_constructors);
-    d_constructors = NULL;
-  }
-
   return SWIG_OK;
 }
 
@@ -2494,20 +2490,18 @@ int FORTRAN::classHandler(Node *n) {
  * \brief Extra stuff for constructors.
  */
 int FORTRAN::constructorHandler(Node *n) {
-  // Add swigf_ to constructor name
-  String *fname = proxy_name_construct(this->getNSpace(), "create", Getattr(n, "sym:name"));
+  // Set fortran symname of this function to the class symname
+  Setattr(n, "fortran:name", Getattr(this->getCurrentClass(), "fortran:name"));
+
+  // Make constructor method name conform to other interface wrapper names
+  String *fname = proxy_name_construct(this->getNSpace(), "new", Getattr(n, "sym:name"));
   Setattr(n, "fortran:fname", fname);
   Delete(fname);
 
   // Override the result variable name
   Setattr(n, "wrap:fresult", "self");
-  // Don't generate a public interface
-  SetFlag(n, "fortran:private");
 
   Language::constructorHandler(n);
-  if (!GetFlag(n, "fortran:ignore")) {
-    Append(d_constructors, Getattr(n, "wrap:fname"));
-  }
   return SWIG_OK;
 }
 
@@ -2524,8 +2518,8 @@ int FORTRAN::destructorHandler(Node *n) {
     UnsetFlag(n, "feature:except");
   }
 
-  // Add swigf_ to constructor name
-  String *fname = proxy_name_construct(this->getNSpace(), "release", Getattr(n, "sym:name"));
+  // Make destructor method name conform to other interface wrapper names
+  String *fname = proxy_name_construct(this->getNSpace(), Getattr(n, "sym:name"), "release");
   Setattr(n, "fortran:fname", fname);
   Delete(fname);
 
