@@ -2493,6 +2493,11 @@ int FORTRAN::constructorHandler(Node *n) {
   // Set fortran symname of this function to the class symname
   Setattr(n, "fortran:name", Getattr(this->getCurrentClass(), "fortran:name"));
 
+  // Make constructor method name conform to other interface wrapper names
+  String *fname = proxy_name_construct(this->getNSpace(), "new", Getattr(n, "sym:name"));
+  Setattr(n, "fortran:fname", fname);
+  Delete(fname);
+
   // Override the result variable name
   Setattr(n, "wrap:fresult", "self");
 
@@ -2513,8 +2518,8 @@ int FORTRAN::destructorHandler(Node *n) {
     UnsetFlag(n, "feature:except");
   }
 
-  // Add swigf_ to constructor name
-  String *fname = proxy_name_construct(this->getNSpace(), "release", Getattr(n, "sym:name"));
+  // Make destructor method name conform to other interface wrapper names
+  String *fname = proxy_name_construct(this->getNSpace(), Getattr(n, "sym:name"), "release");
   Setattr(n, "fortran:fname", fname);
   Delete(fname);
 
