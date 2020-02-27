@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-01: davidcl
+            [Scilab] #745 use SWIG_<module>_Init() as a C module init function.
+
 2022-02-01: olly
 	    [OCaml] #2083 Fix to work when CAML_SAFE_STRING is on, which it is
 	    by default in recent Ocaml releases.
