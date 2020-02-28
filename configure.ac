@@ -1190,10 +1190,10 @@ else
     SCILAB_MAINTENANCE_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f3`
     SCILAB_VERSION="$SCILAB_MAJOR_VERSION$SCILAB_MINOR_VERSION$SCILAB_MAINTENANCE_VERSION"
 
-    if test $SCILAB_VERSION -ge 533; then
-      AC_MSG_RESULT(yes)
+    if test -n "$SCILAB_VERSION" && test "$SCILAB_VERSION" -ge 533; then
+      AC_MSG_RESULT(yes - $SCILAB_FULL_VERSION)
     else
-      AC_MSG_RESULT(no)
+      AC_MSG_RESULT(no - $SCILAB_FULL_VERSION)
       SCILAB=
     fi
 
@@ -1210,6 +1210,8 @@ else
       AC_MSG_CHECKING(for Scilab header files)
       if test "$SCILABINCDIR" != ""; then
         dirs="$SCILABINCDIR"
+      elif test -d "$SCI"; then
+        dirs="$SCI/include $SCI/../../include"
       elif test -n "$PKGCONFIG"; then
         dirs=`$PKGCONFIG scilab --cflags-only-I | sed -e 's/-I//g'`
       else

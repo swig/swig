@@ -327,6 +327,11 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
+      env: SWIGLANG=scilab VER=5.5.2
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=tcl
       sudo: required
       dist: xenial
@@ -473,6 +478,17 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=php VER=7.2
+      sudo: required
+      dist: xenial
+    # Newer version of Scilab broke the tests
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=scilab VER=6.0.2
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=scilab VER=6.1.0
       sudo: required
       dist: xenial
     # Sometimes hits the Travis 50 minute time limit
