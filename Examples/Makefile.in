@@ -649,8 +649,8 @@ java_clean:
 # create a configuration for a new example.
 
 ROOT_DIR = @ROOT_DIR@
-JSINCLUDES = @JSCOREINC@ @JSV8INC@
-JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
+JSINCLUDES = @JSCOREINC@
+JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@
 NODEJS = @NODEJS@
 NODEGYP = @NODEGYP@
 
@@ -685,7 +685,7 @@ javascript: $(SRCDIR_SRCS) javascript_custom_interpreter
 ifeq (jsc, $(ENGINE))
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-else # (v8 | node) # v8 and node must be compiled as c++
+else # (node) # node must be compiled as c++
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 endif
@@ -733,9 +733,6 @@ ifeq (jsc, $(ENGINE))
 	else \
 	  echo "Unknown JavascriptCore version."; \
 	fi
-endif
-ifeq (v8, $(ENGINE))
-	echo "Unknown v8 version."
 endif
 
 # -----------------------------------------------------------------

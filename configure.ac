@@ -1522,7 +1522,7 @@ else
   JAVASCRIPT=1
 
   #----------------------------------------------------------------
-  # General Javascript settings shared by JSC and V8
+  # General Javascript settings
   #----------------------------------------------------------------
 
   case $host in
@@ -1611,78 +1611,6 @@ else
     fi
   fi
 
-  #----------------------------------------------------------------
-  # Look for V8 settings (JSV8INCDIR, JSV8DYNAMICLINKING)
-  #----------------------------------------------------------------
-
-  # check for include files
-  AC_MSG_CHECKING(for V8 Javascript v8.h)
-  AC_ARG_WITH(jsv8inc, [  --with-jsv8inc=path     Set location of Javascript v8 include directory], [JSV8INCDIR="$withval"], [JSV8INCDIR=])
-
-  # if not include dir is specified we try to find
-  if test -z "$JSV8INCDIR"; then
-    # Add in default directory for JavaScriptCore headers for Linux and Mac OS X
-    case $host in
-    *-*-linux*)
-      JSV8INCDIR="/usr/include /usr/local/include/ $JSV8INCDIR"
-      ;;
-    *-*-darwin*)
-      JSV8INCDIR="$JSV8INCDIR"
-      ;;
-    *)
-      ;;
-    esac
-  fi
-
-  for d in $JSV8INCDIR ; do
-    if test -r "$d/v8.h" ; then
-      JSV8INCDIR=$d
-      JSV8INC=-I\"$d\"
-      break
-    fi
-  done
-
-  if test "$JSV8INC" = "" ; then
-    AC_MSG_RESULT(not found)
-  else
-    AC_MSG_RESULT($JSV8INCDIR)
-  fi
-
-  # check for V8 library
-  AC_MSG_CHECKING(for V8 Javascript library)
-  AC_ARG_WITH(jsv8lib,[  --with-jsv8lib=path     Set location of V8 Javascript library directory],[JSV8LIBDIR="$withval"], [JSV8LIB=])
-
-  v8libdirs="$JSV8LIBDIR /usr/lib64/ /usr/local/lib64/ /usr/lib/ /usr/local/lib/"
-  for d in $v8libdirs ; do
-    if test -r $d/libv8$JSSO; then
-      JSV8LIBDIR=$d
-      JSV8LIB="-L$d -lv8"
-      break
-    fi
-  done
-
-  if test "$JSV8LIB" = "" ; then
-    AC_MSG_RESULT(not found)
-    JSV8ENABLED=
-  else
-    AC_MSG_RESULT($JSV8LIBDIR)
-    JSV8ENABLED=1
-  fi
-
-
-  # linking options
-  case $host in
-  *-*-darwin*)
-    JSV8DYNAMICLINKING="$JSV8LIB"
-    ;;
-  *-*-linux*)
-    JSV8DYNAMICLINKING="$JSV8LIB"
-    ;;
-  *)
-    JSV8DYNAMICLINKING=""
-    ;;
-  esac
-
 fi
 
 AC_SUBST(JSINTERPRETERCXX)
@@ -1691,11 +1619,8 @@ AC_SUBST(JSINTERPRETERLINKFLAGS)
 AC_SUBST(JSCOREINC)
 AC_SUBST(JSCOREDYNAMICLINKING)
 AC_SUBST(JSCOREVERSION)
-AC_SUBST(JSV8INC)
-AC_SUBST(JSV8DYNAMICLINKING)
 
 AC_SUBST(JSCENABLED)
-AC_SUBST(JSV8ENABLED)
 
 AC_SUBST(NODEJS)
 AC_SUBST(NODEGYP)
@@ -2600,7 +2525,7 @@ fi
 AC_SUBST(SKIP_JAVA)
 
 SKIP_JAVASCRIPT=
-if test -z "$JAVASCRIPT" || ( test -z "$NODEJS" && test -z "$JSCENABLED" && test -z "$JSV8ENABLED" ) ; then
+if test -z "$JAVASCRIPT" || ( test -z "$NODEJS" && test -z "$JSCENABLED" ) ; then
     SKIP_JAVASCRIPT="1"
 fi
 AC_SUBST(SKIP_JAVASCRIPT)
