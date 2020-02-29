@@ -588,6 +588,7 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
     {
       emitter = swig_javascript_create_V8Emitter();
       Preprocessor_define("SWIG_JAVASCRIPT_V8 1", 0);
+      Preprocessor_define("SWIG_JAVASCRIPT_NODE_V8 1", 0);
       Preprocessor_define("BUILDING_NODE_EXTENSION 1", 0);
       SWIG_library_directory("javascript/v8");
       break;
