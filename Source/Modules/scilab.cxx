@@ -11,6 +11,8 @@
  * Scilab language module for SWIG.
  * --------------------------------------------------------------------------*/
 
+#include <cstddef>
+#include <cstdlib>
 #include "swigmod.h"
 
 static const int SCILAB_IDENTIFIER_NAME_CHAR_MAX = 24;
@@ -360,7 +362,7 @@ public:
     int maxInputArguments = emit_num_arguments(functionParamsList);
     int minInputArguments = emit_num_required(functionParamsList);
     int minOutputArguments = 0;
-    int maxOutputArguments = 0;
+    int maxOutputArguments = 1;
 
     if (!emit_isvarargs(functionParamsList)) {
       Printf(wrapper->code, "SWIG_CheckInputArgument(pvApiCtx, $mininputarguments, $maxinputarguments);\n");
@@ -500,9 +502,11 @@ public:
     Replaceall(wrapper->code, "$symname", functionName);
 
     /* Set CheckInputArgument and CheckOutputArgument input arguments */
-    /* In Scilab there is always one output even if not defined */
-    if (minOutputArguments == 0) {
-      maxOutputArguments = 1;
+    if (maxOutputArguments < 1) {
+        maxOutputArguments = 1;
+    }
+    if (minOutputArguments == 1) {
+      minOutputArguments = 0;
     }
     String *argnumber = NewString("");
     Printf(argnumber, "%d", minInputArguments);
@@ -607,7 +611,7 @@ public:
 
     /* Check the number of input and output */
     Printf(getFunctionWrapper->def, "SWIG_CheckInputArgument(pvApiCtx, 0, 0);\n");
-    Printf(getFunctionWrapper->def, "SWIG_CheckOutputArgument(pvApiCtx, 1, 1);\n");
+    Printf(getFunctionWrapper->def, "SWIG_CheckOutputArgument(pvApiCtx, 0, 1);\n");
     Printf(getFunctionWrapper->def, "SWIG_Scilab_SetApiContext(pvApiCtx);\n");
 
     String *varoutTypemap = Swig_typemap_lookup("varout", node, origVariableName, 0);
@@ -636,7 +640,7 @@ public:
 
       /* Check the number of input and output */
       Printf(setFunctionWrapper->def, "SWIG_CheckInputArgument(pvApiCtx, 1, 1);\n");
-      Printf(setFunctionWrapper->def, "SWIG_CheckOutputArgument(pvApiCtx, 1, 1);\n");
+      Printf(setFunctionWrapper->def, "SWIG_CheckOutputArgument(pvApiCtx, 0, 1);\n");
       Printf(setFunctionWrapper->def, "SWIG_Scilab_SetApiContext(pvApiCtx);\n");
 
       String *varinTypemap = Swig_typemap_lookup("varin", node, origVariableName, 0);
@@ -719,7 +723,7 @@ public:
 
     /* Check the number of input and output */
     Printf(getFunctionWrapper->def, "SWIG_CheckInputArgument(pvApiCtx, 0, 0);\n");
-    Printf(getFunctionWrapper->def, "SWIG_CheckOutputArgument(pvApiCtx, 1, 1);\n");
+    Printf(getFunctionWrapper->def, "SWIG_CheckOutputArgument(pvApiCtx, 0, 1);\n");
     Printf(getFunctionWrapper->def, "SWIG_Scilab_SetApiContext(pvApiCtx);\n");
 
     constantTypemap = Swig_typemap_lookup("constcode", node, nodeName, 0);
