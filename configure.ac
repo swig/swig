@@ -1240,6 +1240,7 @@ fi
 AC_SUBST(SCILAB)
 AC_SUBST(SCILABINCLUDE)
 AC_SUBST(SCILABOPT)
+AC_SUBST(SCILAB_FULL_VERSION)
 
 
 #----------------------------------------------------------------
