@@ -423,11 +423,14 @@ fail:
   SWIGV8_FUNCTION_TEMPLATE $jsmangledname_class_0 = SWIGV8_CreateClassTemplate("$jsname");
   $jsmangledname_class_0->SetCallHandler($jsctor);
   $jsmangledname_class_0->Inherit($jsmangledname_class);
-  $jsmangledname_class_0->SetHiddenPrototype(true);
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
+  $jsmangledname_class_0->SetHiddenPrototype(true);
   v8::Handle<v8::Object> $jsmangledname_obj = $jsmangledname_class_0->GetFunction();
-#else
+#elif (SWIG_V8_VERSION < 0x0705)
+  $jsmangledname_class_0->SetHiddenPrototype(true);
   v8::Local<v8::Object> $jsmangledname_obj = $jsmangledname_class_0->GetFunction();
+#else
+  v8::Local<v8::Object> $jsmangledname_obj = $jsmangledname_class_0->GetFunction(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
 #endif
 %}
 
@@ -439,7 +442,12 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsv8_register_class", "templates")
 %{
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
   $jsparent_obj->Set(SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj);
+#else
+  $jsparent_obj->Set(SWIGV8_CURRENT_CONTEXT(), SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj);
+#endif
+
 %}
 
 /* -----------------------------------------------------------------------------
@@ -459,7 +467,11 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsv8_register_namespace", "templates")
 %{
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
   $jsparent_obj->Set(SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj);
+#else
+  $jsparent_obj->Set(SWIGV8_CURRENT_CONTEXT(), SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj);
+#endif
 %}
 
 /* -----------------------------------------------------------------------------

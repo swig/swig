@@ -9,8 +9,10 @@
 
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031803)
 #define SWIGV8_STRING_NEW2(cstr, len) v8::String::New(cstr, len)
-#else
+#elif (SWIG_V8_VERSION < 0x0706)
 #define SWIGV8_STRING_NEW2(cstr, len) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), cstr, v8::String::kNormalString, len)
+#else
+#define SWIGV8_STRING_NEW2(cstr, len) (v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), cstr, v8::NewStringType::kNormal, len)).ToLocalChecked()
 #endif
 
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
@@ -47,12 +49,18 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_THROW_EXCEPTION(err) v8::ThrowException(err)
 #define SWIGV8_STRING_NEW(str) v8::String::New(str)
 #define SWIGV8_SYMBOL_NEW(sym) v8::String::NewSymbol(sym)
+#elif (SWIG_V8_VERSION < 0x0706)
+#define SWIGV8_ADJUST_MEMORY(size) v8::Isolate::GetCurrent()->AdjustAmountOfExternalAllocatedMemory(size)
+#define SWIGV8_CURRENT_CONTEXT() v8::Isolate::GetCurrent()->GetCurrentContext()
+#define SWIGV8_THROW_EXCEPTION(err) v8::Isolate::GetCurrent()->ThrowException(err)
+#define SWIGV8_STRING_NEW(str) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), str, v8::String::kNormalString)
+#define SWIGV8_SYMBOL_NEW(sym) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), sym, v8::String::kNormalString)
 #else
 #define SWIGV8_ADJUST_MEMORY(size) v8::Isolate::GetCurrent()->AdjustAmountOfExternalAllocatedMemory(size)
 #define SWIGV8_CURRENT_CONTEXT() v8::Isolate::GetCurrent()->GetCurrentContext()
 #define SWIGV8_THROW_EXCEPTION(err) v8::Isolate::GetCurrent()->ThrowException(err)
-#define SWIGV8_STRING_NEW(str) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), str)
-#define SWIGV8_SYMBOL_NEW(sym) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), sym)
+#define SWIGV8_STRING_NEW(str) (v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), str, v8::NewStringType::kNormal)).ToLocalChecked()
+#define SWIGV8_SYMBOL_NEW(sym) (v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), sym, v8::NewStringType::kNormal)).ToLocalChecked()
 #endif
 
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032318)
@@ -117,7 +125,7 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_BOOLEAN_VALUE(handle) (handle)->BooleanValue()
 #define SWIGV8_WRITE_UTF8(handle, buffer, len) (handle)->WriteUtf8(buffer, len)
 #define SWIGV8_UTF8_LENGTH(handle) (handle)->Utf8Length()
-#else
+#elif (SWIG_V8_VERSION < 0x0706)
 #define SWIGV8_TO_OBJECT(handle) (handle)->ToObject(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()
 #define SWIGV8_TO_STRING(handle) (handle)->ToString(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()
 #define SWIGV8_NUMBER_VALUE(handle) (handle)->NumberValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
@@ -125,7 +133,16 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_BOOLEAN_VALUE(handle) (handle)->BooleanValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
 #define SWIGV8_WRITE_UTF8(handle, buffer, len) (handle)->WriteUtf8(v8::Isolate::GetCurrent(), buffer, len)
 #define SWIGV8_UTF8_LENGTH(handle) (handle)->Utf8Length(v8::Isolate::GetCurrent())
+#else
+#define SWIGV8_TO_OBJECT(handle) (handle)->ToObject(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()
+#define SWIGV8_TO_STRING(handle) (handle)->ToString(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()
+#define SWIGV8_NUMBER_VALUE(handle) (handle)->NumberValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
+#define SWIGV8_INTEGER_VALUE(handle) (handle)->IntegerValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
+#define SWIGV8_BOOLEAN_VALUE(handle) (handle)->BooleanValue(v8::Isolate::GetCurrent())
+#define SWIGV8_WRITE_UTF8(handle, buffer, len) (handle)->WriteUtf8(v8::Isolate::GetCurrent(), buffer, len)
+#define SWIGV8_UTF8_LENGTH(handle) (handle)->Utf8Length(v8::Isolate::GetCurrent())
 #endif
+
 
 /* ---------------------------------------------------------------------------
  * Error handling
@@ -371,10 +388,11 @@ SWIGRUNTIME void SWIGV8_SetPrivateData(SWIGV8_OBJECT obj, void *ptr, swig_type_i
   cdata->handle.MarkIndependent();
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032100)
   cdata->handle.MarkIndependent(v8::Isolate::GetCurrent());
-#else
+#elif (SWIG_V8_VERSION < 0x0706)
   cdata->handle.MarkIndependent();
+// Looks like future versions do not require that anymore:
+// https://monorail-prod.appspot.com/p/chromium/issues/detail?id=923361#c11
 #endif
-
 }
 
 SWIGRUNTIME int SWIG_V8_ConvertPtr(SWIGV8_VALUE valRef, void **ptr, swig_type_info *info, int flags) {
@@ -422,8 +440,12 @@ SWIGRUNTIME SWIGV8_VALUE SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, 
   }
 #endif
 
-//  v8::Handle<v8::Object> result = class_templ->InstanceTemplate()->NewInstance();
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903) || (SWIG_V8_VERSION < 0x0705)
   v8::Local<v8::Object> result = class_templ->InstanceTemplate()->NewInstance();
+#else
+  v8::Local<v8::Object> result = class_templ->InstanceTemplate()->NewInstance(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
+#endif
+
   SWIGV8_SetPrivateData(result, ptr, info, flags);
 
   SWIGV8_ESCAPE(result);
@@ -646,8 +668,10 @@ SWIGV8_VALUE SWIGV8_NewPackedObj(void *data, size_t size, swig_type_info *type) 
   cdata->handle.MarkIndependent();
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032100)
   cdata->handle.MarkIndependent(v8::Isolate::GetCurrent());
-#else
+#elif (SWIG_V8_VERSION < 0x0706)
   cdata->handle.MarkIndependent();
+// Looks like future versions do not require that anymore:
+// https://monorail-prod.appspot.com/p/chromium/issues/detail?id=923361#c11
 #endif
 
   SWIGV8_ESCAPE(obj);
@@ -674,6 +698,9 @@ SWIGV8_VALUE SWIGV8_AppendOutput(SWIGV8_VALUE result, SWIGV8_VALUE obj) {
 
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903) || (SWIG_V8_VERSION < 0x0706)
   arr->Set(arr->Length(), obj);
+#else
+  arr->Set(SWIGV8_CURRENT_CONTEXT(), arr->Length(), obj);
+#endif
 
   SWIGV8_ESCAPE(arr);
 }

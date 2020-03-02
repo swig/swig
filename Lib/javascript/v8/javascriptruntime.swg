@@ -56,6 +56,11 @@
 %insert(runtime) %{
 #include <v8.h>
 
+#if defined(V8_MAJOR_VERSION) && defined(V8_MINOR_VERSION)
+#undef SWIG_V8_VERSION
+#define SWIG_V8_VERSION (V8_MAJOR_VERSION * 256 + V8_MINOR_VERSION)
+#endif
+
 #include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
