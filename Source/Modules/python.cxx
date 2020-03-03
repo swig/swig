@@ -1571,7 +1571,8 @@ public:
 
   String *docstring(Node *n, autodoc_t ad_type, const String *indent, bool low_level = false) {
     String *docstr = build_combined_docstring(n, ad_type, indent, low_level);
-    if (!Len(docstr))
+    const int len = Len(docstr);
+    if (!len)
       return docstr;
 
     // Notice that all comments are created as raw strings (prefix "r"),
@@ -1584,9 +1585,22 @@ public:
     // escape '\x'. '\' may additionally appear in verbatim or htmlonly sections
     // of doxygen doc, Latex expressions, ...
     String *doc = NewString("");
-    Append(doc, "r\"\"\"");
+
+    // Determine which kind of quotes to use as delimiters: for single line
+    // strings we can avoid problems with having a quote as the last character
+    // of the docstring by using different kind of quotes as delimiters. For
+    // multi-line strings this problem doesn't arise, as we always have a new
+    // line or spaces at the end of it, but it still does no harm to do it for
+    // them too.
+    //
+    // Note: we use double quotes by default, i.e. if there is no reason to
+    // prefer using single ones, for consistency with the older SWIG versions.
+    const bool useSingleQuotes = (Char(docstr))[len - 1] == '"';
+
+    Append(doc, useSingleQuotes ? "r'''" : "r\"\"\"");
+
     Append(doc, docstr);
-    Append(doc, "\"\"\"");
+    Append(doc, useSingleQuotes ? "'''" : "\"\"\"");
     Delete(docstr);
 
     return doc;

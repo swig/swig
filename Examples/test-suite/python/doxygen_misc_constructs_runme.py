@@ -131,3 +131,7 @@ Spaces at the start of line should be taken into account:
 :type fileName: string
 :param fileName: name of the log file"""
 );
+
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.doc_ends_with_quote),
+    r'''This doc comment ends with a quote: "and that's ok"'''
+);
