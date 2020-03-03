@@ -135,3 +135,9 @@ Spaces at the start of line should be taken into account:
 comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.doc_ends_with_quote),
     r'''This doc comment ends with a quote: "and that's ok"'''
 );
+
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.doc_with_triple_quotes),
+    r'''This comment contains embedded triple-quoted string:
+
+    """How quaint"""'''
+);

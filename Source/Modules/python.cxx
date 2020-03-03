@@ -1599,6 +1599,16 @@ public:
 
     Append(doc, useSingleQuotes ? "r'''" : "r\"\"\"");
 
+    // We also need to avoid having triple quotes of whichever type we use, as
+    // this would break Python doc string syntax too. Unfortunately there is no
+    // way to have triple quotes inside of raw-triple-quoted string, so we have
+    // to break the string in parts and rely on concatenation of the adjacent
+    // string literals.
+    if (useSingleQuotes)
+      Replaceall(docstr, "'''", "''' \"'''\" '''");
+    else
+      Replaceall(docstr, "\"\"\"", "\"\"\" '\"\"\"' \"\"\"");
+
     Append(doc, docstr);
     Append(doc, useSingleQuotes ? "'''" : "\"\"\"");
     Delete(docstr);
