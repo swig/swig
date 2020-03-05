@@ -332,6 +332,16 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
+      env: SWIGLANG=scilab VER=6.0.2
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=scilab VER=6.1.0
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=tcl
       sudo: required
       dist: xenial
