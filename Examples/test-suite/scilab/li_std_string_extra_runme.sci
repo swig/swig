@@ -42,8 +42,12 @@ checkequal(Structure_StaticStr2_get(), "static member string 2", "Structure_Stat
 Structure_StaticStr2_set(s);
 checkequal(Structure_StaticStr2_get(), s, "Structure_StaticStr2_get()");
 
-checkequal(Structure_ConstStati_get(), "const static member string", "Structure_ConstStaticStr_get()");
-
+v = getversion("scilab");
+if v(1) < 6 then
+    checkequal(Structure_ConstStati_get(), "const static member string", "Structure_ConstStati_get()");
+else
+    checkequal(Structure_ConstStaticStr_get(), "const static member string", "Structure_ConstStaticStr_get()");
+end
 
 checkequal(stdstring_empty(), "", "stdstring_empty()");
 checkequal(c_empty(), "", "c_empty()");
