@@ -111,16 +111,12 @@ SWIG_VERSION                    Hexadecimal (binary-coded decimal) number contai
 
 SWIGCSHARP                      Defined when using C#
 SWIGD                           Defined when using D
-SWIG_D_VERSION                  Unsigned integer target version when using D
 SWIGGO                          Defined when using Go
-SWIGGO_CGO                      Defined when using Go for cgo
-SWIGGO_GCCGO                    Defined when using Go for gccgo
-SWIGGO_INTGO_SIZE               Size of the Go type int when using Go (32 or 64)
 SWIGGUILE                       Defined when using Guile
 SWIGJAVA                        Defined when using Java
 SWIGJAVASCRIPT                  Defined when using Javascript
-SWIG_JAVASCRIPT_JSC             Defined when using Javascript for JavascriptCore
-SWIG_JAVASCRIPT_V8              Defined when using Javascript for v8 or node.js
+SWIG_JAVASCRIPT_JSC             Defined when using Javascript with -jsc
+SWIG_JAVASCRIPT_V8              Defined when using Javascript with -v8 or -node
 SWIGLUA                         Defined when using Lua
 SWIGMZSCHEME                    Defined when using Mzscheme
 SWIGOCAML                       Defined when using OCaml
@@ -129,11 +125,8 @@ SWIGPERL                        Defined when using Perl
 SWIGPHP                         Defined when using PHP (any version)
 SWIGPHP7                        Defined when using PHP7
 SWIGPYTHON                      Defined when using Python
-SWIGPYTHON_PY3                  Defined when using Python with -py3
-SWIGPYTHON_BUILTIN              Defined when using Python with -builtin
 SWIGR                           Defined when using R
 SWIGRUBY                        Defined when using Ruby
-SWIG_RUBY_AUTORENAME            Defined when using Ruby with -autorename
 SWIGSCILAB                      Defined when using Scilab
 SWIGTCL                         Defined when using Tcl
 SWIGXML                         Defined when using XML
@@ -151,6 +144,20 @@ __STDC__                        Defined to indicate ISO C
 __cplusplus                     Defined when -c++ option used
 </pre>
 </div>
+
+<p>
+The following are language specific symbols that might be defined:
+</p>
+
+<div class="code"><pre>
+SWIG_D_VERSION                  Unsigned integer target version when using D
+SWIGGO_CGO                      Defined when using Go for cgo
+SWIGGO_GCCGO                    Defined when using Go for gccgo
+SWIGGO_INTGO_SIZE               Size of the Go type int when using Go (32 or 64)
+SWIGPYTHON_PY3                  Defined when using Python with -py3
+SWIGPYTHON_BUILTIN              Defined when using Python with -builtin
+SWIG_RUBY_AUTORENAME            Defined when using Ruby with -autorename
+</pre></div>
 
 <p>
 Interface files can look at these symbols as necessary to change the
