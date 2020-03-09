@@ -1211,6 +1211,7 @@ else
       if test "$SCILABINCDIR" != ""; then
         dirs="$SCILABINCDIR"
       elif test -d "$SCI"; then
+        # SCI is the Scilab data path, usually "/usr/share/scilab"
         dirs="$SCI/include $SCI/../../include"
       elif test -n "$PKGCONFIG"; then
         dirs=`$PKGCONFIG scilab --cflags-only-I | sed -e 's/-I//g'`

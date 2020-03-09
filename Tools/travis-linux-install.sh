@@ -115,6 +115,8 @@ case "$SWIGLANG" in
                 else
                     travis_retry wget "https://www.scilab.org/download/$VER/scilab-$VER.bin.linux-x86_64.tar.gz"
                     tar -xzf "scilab-$VER.bin.linux-x86_64.tar.gz"
+                    # SCI is the Scilab installation path, it can be used to resolve includes at ./configure time
+                    # See https://help.scilab.org/SCI for more information
                     SCI=$(pwd)/scilab-$VER/share/scilab
                     export SCI; echo "SCI: $SCI"
                     PATH=$(pwd)/scilab-$VER/bin:$PATH
