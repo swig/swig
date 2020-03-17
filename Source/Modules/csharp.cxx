@@ -15,6 +15,10 @@
 #include "cparse.h"
 #include <limits.h>		// for INT_MAX
 #include <ctype.h>
+#include <string>
+#include <map>
+
+
 
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
@@ -2298,6 +2302,35 @@ public:
     return SWIG_OK;
   }
 
+  void printArgumentDeclaration(Node *n,
+                                Parm *p, String *param_type, String *arg, String *code)
+  {
+      String *specifiedoverridekey = NewString("feature:cs:defaultargs:");
+      Append(specifiedoverridekey, arg);
+      String *specifiedoverridevalue = Getattr(n, specifiedoverridekey);
+      if(specifiedoverridevalue)
+      {
+          Printf(code, "%s %s=%s", param_type, arg, specifiedoverridevalue);
+      }
+      else
+      {
+          String *cppvalue = NULL;
+          //if they've not specified defaultargs, then fall back to
+          //the normal default handling of specifying one overload per possible
+          //set of arguments.  If they have, then use the default argument from
+          //c++ as a literal csharp expression.
+          if(Getattr(n, "feature:cs:defaultargs"))
+              cppvalue = Getattr(p, "value");
+          if(cppvalue)
+              Printf(code, "%s %s=%s", param_type, arg, cppvalue);
+          else
+              Printf(code, "%s %s", param_type, arg);
+      }
+      Delete(specifiedoverridekey);
+  }
+
+
+
   /* ----------------------------------------------------------------------
    * memberfunctionHandler()
    * ---------------------------------------------------------------------- */
@@ -2375,6 +2408,10 @@ public:
     // Wrappers not wanted for some methods where the parameters cannot be overloaded in C#
     if (Getattr(n, "overload:ignore"))
       return;
+
+    String *csargdef = Getattr(n, "feature:cs:defaultargs");
+    if(csargdef && Getattr(n, "defaultargs"))
+        return;
 
     // Don't generate proxy method for additional explicitcall method used in directors
     if (GetFlag(n, "explicitcall"))
@@ -2460,7 +2497,6 @@ public:
       Printf(imcall, "swigCPtr");
 
     emit_mark_varargs(l);
-
     int gencomma = !static_flag;
 
     /* Output each parameter */
@@ -2539,9 +2575,9 @@ public:
 	    Printf(interface_class_code, ", ");
 	}
 	gencomma = 2;
-	Printf(function_code, "%s %s", param_type, arg);
+        printArgumentDeclaration(n, p, param_type, arg, function_code);
 	if (is_interface)
-	  Printf(interface_class_code, "%s %s", param_type, arg);
+            printArgumentDeclaration(n, p, param_type, arg, interface_class_code);
 
 	Delete(arg);
 	Delete(param_type);
@@ -2723,6 +2759,10 @@ public:
     if (Getattr(n, "overload:ignore"))
       return SWIG_OK;
 
+    String *csargdef = Getattr(n, "feature:cs:defaultargs");
+    if(csargdef && Getattr(n, "defaultargs"))
+        return SWIG_OK;
+
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
       String *mangled_overname = Swig_name_construct(getNSpace(), overloaded_name);
@@ -2831,7 +2871,7 @@ public:
 	  Printf(helper_code, ", ");
 	  Printf(helper_args, ", ");
         }
-	Printf(function_code, "%s %s", param_type, arg);
+        printArgumentDeclaration(n, p, param_type, arg, function_code);
 	Printf(helper_code, "%s %s", param_type, arg);
 	Printf(helper_args, "%s", cshin ? cshin : arg);
 	++gencomma;

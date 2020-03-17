@@ -121,6 +121,7 @@ CPP_TEST_CASES += \
 	apply_strings \
 	argcargvtest \
 	argout \
+	csharp_argument_defaults_feature \
 	array_member \
 	array_typedef_memberin \
 	arrayref \

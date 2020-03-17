@@ -1829,6 +1829,7 @@ such as C# and Java,
 which don't have optional arguments in the language, 
 Another restriction of this feature is that it cannot handle default arguments that are not public.
 The following example illustrates this:
+
 </p>
 
 <div class="code">
@@ -1848,6 +1849,10 @@ This produces uncompilable wrapper code because default values in C++ are
 evaluated in the same scope as the member function whereas SWIG
 evaluates them in the scope of a wrapper function (meaning that the
 values have to be public). 
+</p>
+
+<p>
+For C# there is a feature "cs:defaultargs" which allows you to get a single proxy function and lets you specify the  arguments in C#.
 </p>
 
 <p>

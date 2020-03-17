@@ -42,6 +42,7 @@
 <li><a href="#CSharp_director_caveats">Director caveats</a>
 </ul>
 <li><a href="#CSharp_multiple_modules">Multiple modules</a>
+<li><a href="#CSharp_argdef">Named arguments</a>
 <li><a href="#CSharp_typemap_examples">C# Typemap examples</a>
 <ul>
 <li><a href="#CSharp_memory_management_member_variables">Memory management when returning references to member variables</a>
@@ -2150,7 +2151,52 @@ the <tt>[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrows
 if you don't want users to easily stumble upon these so called 'internal workings' of the wrappers.
 </p>
 
-<H2><a name="CSharp_typemap_examples">23.8 C# Typemap examples</a></H2>
+
+<H2><a name="CSharp_argdef">23.8 C# Named arguments</a></H2>
+
+<p>
+  In C++ you can specify default arguments for functions, methods, and constructors.  C# offers named arguments.  This feature, specific to csharp, lets you bind default argument functions with default arguments in C#.  You can also add default arguments to functions which don't have default arguments.
+</p>
+
+<p>Please note, using this on a function will turn off the default handling of default arguments, which would create an override for each defaulted argument, so that they could be called the same way they could in C++.  So you'll want to specify defaults for every argument when you use this.</p>
+
+<div class="code">
+  <pre>
+    %feature("cs:defaultargs") Foo::Foo;
+    %feature("cs:defaultargs", z=4) Foo::bar;
+    %feature("cs:defaultargs", x="\"five\"") Foo::zoo;
+
+    %inline %{
+    class Foo {
+    public:
+        virtual ~Foo() {}
+        Foo(int a, int b=1, int c=2)
+        {
+        }
+        int bar(int x, int y=2, int z=3)
+        {
+            return x+y+z;
+        }
+        int bat(int x=1, int y=2, int z=3)
+        {
+            return x+y+z;
+        }
+        int zoo(std::string x="four")
+        {
+            return (int)x.size();
+        }
+    };
+    %}
+  </pre>
+</div>
+
+<p>For this feature, you first specify the function/constructor you want it to impact.  Inside the feature
+  call you specify each argument you want to override.  If you specify none, it will take the literal text from c++
+  for each argument and apply that in csharp.  That often works fine, but when it doesn't you can supply a string literal
+  with a csharp expression to be used.  Or you can supply an int literal, or a float literal.  If you want to give a literal
+string you need to include an escaped quote at the start and end of the literal:  "\"a string\"".</p>
+
+<H2><a name="CSharp_typemap_examples">23.9 C# Typemap examples</a></H2>
 
 
 This section includes a few examples of typemaps.  For more examples, you
