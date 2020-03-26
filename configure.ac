@@ -2622,6 +2622,13 @@ fi
 AC_SUBST(SKIP_D)
 
 
+SKIP_CFFI=
+#if test -z "$CFFIBIN" ; then
+    SKIP_CFFI="1"
+#fi
+AC_SUBST(SKIP_CFFI)
+
+
 SKIP_GO=
 if test -z "$GO" ; then
     SKIP_GO="1"
@@ -2839,6 +2846,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/ruby/Makefile
     Examples/test-suite/scilab/Makefile
     Examples/test-suite/tcl/Makefile
+    Examples/test-suite/cffi/Makefile
     Source/Makefile
     Tools/javascript/Makefile
 ])
@@ -2884,6 +2892,7 @@ EOF
 AC_OUTPUT
 
 langs=""
+test -n "$SKIP_CFFI"		|| langs="${langs}cffi "
 test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
 test -n "$SKIP_D"		|| langs="${langs}d "
 test -n "$SKIP_GO"		|| langs="${langs}go "

@@ -71,6 +71,7 @@ skip-octave     = test -n "@SKIP_OCTAVE@"
 skip-perl5	= test -n "@SKIP_PERL5@"
 skip-php	= test -n "@SKIP_PHP@"
 skip-python	= test -n "@SKIP_PYTHON@"
+skip-cffi	= test -n "@SKIP_CFFI@"
 skip-r		= test -n "@SKIP_R@"
 skip-ruby	= test -n "@SKIP_RUBY@"
 skip-scilab     = test -n "@SKIP_SCILAB@"
@@ -112,6 +113,7 @@ check-aliveness:
 	@$(skip-perl5)    || ./$(TARGET) -perl       -help
 	@$(skip-php)      || ./$(TARGET) -php7       -help
 	@$(skip-python)   || ./$(TARGET) -python     -help
+	@$(skip-cffi)     || ./$(TARGET) -cffi       -help
 	@$(skip-r) 	  || ./$(TARGET) -r          -help
 	@$(skip-ruby)     || ./$(TARGET) -ruby       -help
 	@$(skip-scilab)   || ./$(TARGET) -scilab     -help
@@ -136,6 +138,7 @@ check-versions:					\
 	check-perl5-version			\
 	check-php-version			\
 	check-python-version			\
+	check-cffi-version			\
 	check-r-version				\
 	check-ruby-version			\
 	check-scilab-version			\
@@ -170,6 +173,7 @@ check-examples:					\
 	check-perl5-examples			\
 	check-php-examples			\
 	check-python-examples			\
+	check-cffi-examples			\
 	check-r-examples			\
 	check-ruby-examples			\
 	check-scilab-examples			\
@@ -189,6 +193,7 @@ octave_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/octave/check.list)
 perl5_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/perl5/check.list)
 php_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/php/check.list)
 python_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/python/check.list)
+cffi_examples      :=
 r_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/r/check.list)
 ruby_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/ruby/check.list)
 scilab_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/scilab/check.list)
@@ -230,6 +235,7 @@ check-test-suite:				\
 	check-perl5-test-suite			\
 	check-php-test-suite			\
 	check-python-test-suite			\
+	check-cffi-test-suite			\
 	check-r-test-suite			\
 	check-ruby-test-suite			\
 	check-scilab-test-suite			\
@@ -277,6 +283,7 @@ all-test-suite:					\
 	all-perl5-test-suite			\
 	all-php-test-suite			\
 	all-python-test-suite			\
+	all-cffi-test-suite			\
 	all-r-test-suite			\
 	all-ruby-test-suite			\
 	all-scilab-test-suite   		\
@@ -300,6 +307,7 @@ broken-test-suite:				\
 	broken-perl5-test-suite			\
 	broken-php-test-suite			\
 	broken-python-test-suite		\
+	broken-cffi-test-suite			\
 	broken-r-test-suite			\
 	broken-ruby-test-suite			\
 	broken-scilab-test-suite		\
@@ -435,7 +443,7 @@ install-main:
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
 lib-languages = typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
-	csharp lua r go d javascript javascript/jsc \
+	csharp lua cffi r go d javascript javascript/jsc \
 	javascript/v8 javascript/napi scilab xml
 
 lib-modules = std
