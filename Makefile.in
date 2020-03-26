@@ -71,6 +71,7 @@ skip-ocaml      = test -n "@SKIP_OCAML@"
 skip-octave     = test -n "@SKIP_OCTAVE@"
 skip-csharp	= test -n "@SKIP_CSHARP@"
 skip-lua    	= test -n "@SKIP_LUA@"
+skip-cffi	= test -n "@SKIP_CFFI@"
 skip-r		= test -n "@SKIP_R@"
 skip-scilab     = test -n "@SKIP_SCILAB@"
 skip-go		= test -n "@SKIP_GO@"
@@ -111,6 +112,7 @@ check-aliveness:
 	@$(skip-octave)   || ./$(TARGET) -octave     -help
 	@$(skip-php)      || ./$(TARGET) -php7       -help
 	@$(skip-csharp)   || ./$(TARGET) -csharp     -help
+	@$(skip-cffi)     || ./$(TARGET) -cffi       -help
 	@$(skip-lua)      || ./$(TARGET) -lua        -help
 	@$(skip-r) 	  || ./$(TARGET) -r          -help
 	@$(skip-scilab)   || ./$(TARGET) -scilab     -help
@@ -137,6 +139,7 @@ check-versions:					\
 	check-php-version			\
 	check-csharp-version			\
 	check-lua-version			\
+	check-cffi-version			\
 	check-r-version				\
 	check-scilab-version			\
 	check-go-version			\
@@ -170,6 +173,7 @@ check-examples:					\
 	check-php-examples			\
 	check-csharp-examples                   \
 	check-lua-examples			\
+	check-cffi-examples			\
 	check-r-examples			\
 	check-scilab-examples			\
 	check-go-examples			\
@@ -189,6 +193,7 @@ octave_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/octave/check.list)
 php_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/php/check.list)
 csharp_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/csharp/check.list)
 lua_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/lua/check.list)
+cffi_examples      :=
 r_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/r/check.list)
 scilab_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/scilab/check.list)
 go_examples        :=$(shell sed '/^\#/d' $(srcdir)/Examples/go/check.list)
@@ -230,6 +235,7 @@ check-test-suite:				\
 	check-php-test-suite			\
 	check-csharp-test-suite			\
 	check-lua-test-suite			\
+	check-cffi-test-suite			\
 	check-r-test-suite			\
 	check-scilab-test-suite			\
 	check-go-test-suite			\
@@ -277,6 +283,7 @@ all-test-suite:					\
 	all-php-test-suite			\
 	all-csharp-test-suite			\
 	all-lua-test-suite			\
+	all-cffi-test-suite			\
 	all-r-test-suite			\
 	all-scilab-test-suite   		\
 	all-go-test-suite			\
@@ -300,6 +307,7 @@ broken-test-suite:				\
 	broken-php-test-suite			\
 	broken-csharp-test-suite		\
 	broken-lua-test-suite			\
+	broken-cffi-test-suite			\
 	broken-r-test-suite			\
 	broken-scilab-test-suite           	\
 	broken-go-test-suite			\
@@ -436,7 +444,7 @@ install-main:
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
 lib-languages = typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
-	csharp lua r go d javascript javascript/jsc \
+	csharp lua cffi r go d javascript javascript/jsc \
 	javascript/v8 scilab xml
 
 lib-modules = std
