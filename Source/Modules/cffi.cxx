@@ -1146,6 +1146,14 @@ String *CFFI::convert_literal(String *literal, String *type, bool try_to_split) 
       String* result = NewStringf("(cl:ash %d %d)", i, j);
       Delete(num);
       return result;
+    } else if (sscanf(s, "~%d", &i) == 1) {
+      String* result = NewStringf("(cl:lognot %d)", i);
+      Delete(num);
+      return result;
+    } else if (sscanf(s, "!%d", &i) == 1) {
+      String* result = NewStringf("(cl:if (= %d 0) 1 0)", i);
+      Delete(num);
+      return result;
     }
   }
 
