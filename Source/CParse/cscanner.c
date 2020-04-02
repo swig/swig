@@ -912,6 +912,10 @@ int yylex(void) {
 	  yylval.type = NewSwigType(T_COMPLEX);
 	  return (TYPE_COMPLEX);
 	}
+	if (strcmp(yytext, "_Complex") == 0) {
+	  yylval.type = NewSwigType(T_COMPLEX);
+	  return (TYPE_COMPLEX);
+	}
 	if (strcmp(yytext, "restrict") == 0)
 	  return (yylex());
       }
