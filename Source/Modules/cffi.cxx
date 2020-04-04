@@ -727,21 +727,32 @@ int CFFI::enumDeclaration(Node *n) {
     slot_name_keywords = false;
   }
 
-  for (Node *c = firstChild(n); c; c = nextSibling(c)) {
+  Hash *fnames = NewHash();
 
-    String *slot_name = lispify_name(c, Getattr(c, "name"), "'enumvalue", slot_name_keywords);
+  for (Node *c = firstChild(n); c; c = nextSibling(c)) {
+    String *fname = Getattr(c, "name");
+    String *slot_name = lispify_name(c, fname, "'enumvalue", slot_name_keywords);
     String *value = Getattr(c, "enumvalue");
+
+    Setattr(fnames, fname, slot_name);
 
     if (!value || GetFlag(n, "feature:bitfield:ignore_values"))
       Printf(f_cl, "\n\t%s", slot_name);
     else {
-      String *type = Getattr(c, "type");
-      String *converted_value = convert_literal(value, type);
-      Printf(f_cl, "\n\t(%s #.%s)", slot_name, converted_value);
-      Delete(converted_value);
+      String *field_ref = Getattr(fnames, value);
+      if (field_ref) {
+        Printf(f_cl, "\n\t(%s %s)", slot_name, field_ref);
+      } else {
+        String *type = Getattr(c, "type");
+        String *converted_value = convert_literal(value, type);
+        Printf(f_cl, "\n\t(%s %s)", slot_name, converted_value);
+        Delete(converted_value);
+      }
     }
     Delete(value);
   }
+
+  Delete(fnames);
 
   Printf(f_cl, ")\n");
 
