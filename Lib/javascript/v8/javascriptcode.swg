@@ -424,7 +424,11 @@ fail:
   $jsmangledname_class_0->SetCallHandler($jsctor);
   $jsmangledname_class_0->Inherit($jsmangledname_class);
   $jsmangledname_class_0->SetHiddenPrototype(true);
+#if (V8_MAJOR_VERSION-0) < 7
   v8::Handle<v8::Object> $jsmangledname_obj = $jsmangledname_class_0->GetFunction();
+#else
+  v8::Handle<v8::Object> $jsmangledname_obj = $jsmangledname_class_0->GetFunction(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
+#endif
 %}
 
 /* -----------------------------------------------------------------------------

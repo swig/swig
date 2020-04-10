@@ -411,9 +411,11 @@ SWIGRUNTIME v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_inf
     class_templ = v8::Local<v8::FunctionTemplate>::New(isolate, SWIGV8_SWIGTYPE_Proxy_class_templ);
   }
 #endif
-
-//  v8::Handle<v8::Object> result = class_templ->InstanceTemplate()->NewInstance();
+#if (V8_MAJOR_VERSION-0) < 7
   v8::Local<v8::Object> result = class_templ->InstanceTemplate()->NewInstance();
+#else
+  v8::Local<v8::Object> result = class_templ->InstanceTemplate()->NewInstance(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
+#endif
   SWIGV8_SetPrivateData(result, ptr, info, flags);
 
   SWIGV8_ESCAPE(result);
