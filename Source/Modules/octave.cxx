@@ -846,7 +846,7 @@ public:
         Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(t, 0));
       }
       Append(setf->code, "fail:\n");
-      Printf(setf->code, "return octave_value_list();\n");
+      Append(setf->code, "return octave_value_list();\n");
     } else {
       Printf(setf->code, "return octave_set_immutable(args,nargout);");
     }
