@@ -866,10 +866,10 @@ public:
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, "Unable to read variable of type %s\n", SwigType_str(t, 0));
     }
-    Append(getf->code, "  return obj;\n");
+    Append(getf->code, "return obj;\n");
     if (addfail) {
       Append(getf->code, "fail:\n");
-      Append(getf->code, "  return octave_value_list();\n");
+      Append(getf->code, "return octave_value_list();\n");
     }
     Append(getf->code, "}\n");
     Wrapper_print(getf, f_wrappers);
