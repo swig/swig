@@ -830,7 +830,7 @@ public:
     String *setwname = Swig_name_wrapper(setname);
 
     Octave_begin_function(n, setf->def, setname, setwname, true);
-    Printf(setf->def, "if (!SWIG_check_num_args(\"%s_set\",args.length(),1,1,0)) return octave_value_list();", iname);
+    Printf(setf->code, "if (!SWIG_check_num_args(\"%s_set\",args.length(),1,1,0)) return octave_value_list();", iname);
     if (is_assignable(n)) {
       Setattr(n, "wrap:name", setname);
       if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
