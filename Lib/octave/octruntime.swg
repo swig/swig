@@ -315,12 +315,28 @@ DEFUN_DLD( swig_octave_prereq, args, nargout, swig_octave_prereq_usage ) {
   return octave_value(prereq);
 }
 
+static const char *const swig_exit_usage = "-*- texinfo -*- \n\
+@deftypefn {Loadable Function} {} swig_exit([@var{exit_status}])\n\
+Exit Octave without performing any memory cleanup.\n\
+@end deftypefn";
+
+DEFUN_DLD( swig_exit, args, nargout, swig_exit_usage ) {
+  if (args.length() > 1) {
+    error("swig_exit: must be called with at most one arguments");
+    return octave_value_list();
+  }
+  int exit_status = 0;
+  if (args.length() == 1) {
+    exit_status = args(0).int_value();
+  }
+  ::_Exit(exit_status);
+  return octave_value();
+}
+
 static const char *const SWIG_name_usage = "-*- texinfo -*- \n\
 @deftypefn {Loadable Module} {} " SWIG_name_d "\n\
 Loads the SWIG-generated module `" SWIG_name_d "'.\n\
 @end deftypefn";
-
-void __swig_atexit__(void) { ::_Exit(0); }
 
 DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
 
@@ -329,13 +345,14 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
   // workaround to prevent octave seg-faulting on exit: set Octave exit function
   // octave_exit to _Exit, which exits immediately without trying to cleanup memory.
   // definitely affected version 3.2.*, not sure about 3.3.*, seems to be fixed in
-  // version 3.4.*, but reappeared in 4.2.*, so turn on for all versions after 3.2.*.
+  // version 3.4.*, reappeared in 4.2.*, hack not possible in 4.4.* or later due to
+  // removal of octave_exit, so turn on for all versions between 3.2.*. and 4.4.*.
   // can be turned off with macro definition.
 #ifndef SWIG_OCTAVE_NO_SEGFAULT_HACK
-#if SWIG_OCTAVE_PREREQ(4,4,0)
-  atexit(__swig_atexit__);
-#elif SWIG_OCTAVE_PREREQ(3,2,0)
+#if !SWIG_OCTAVE_PREREQ(4,4,0)
+#if SWIG_OCTAVE_PREREQ(3,2,0)
   octave_exit = ::_Exit;
+#endif
 #endif
 #endif
 
@@ -418,6 +435,9 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
       return octave_value_list();
     }
     if (!SWIG_Octave_InstallFunction(me, "swig_octave_prereq")) {
+      return octave_value_list();
+    }
+    if (!SWIG_Octave_InstallFunction(me, "swig_exit")) {
       return octave_value_list();
     }
 
