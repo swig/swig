@@ -203,11 +203,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
 
     std::set<std::string> dispatch_classes;
 
-  private:
-
-    DECLARE_OV_TYPEID_FUNCTIONS_AND_DATA
   };
-  DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(octave_swig_bound_func, "octave_swig_bound_func", "octave_swig_bound_func");
 #else
 #define SWIG_OCTAVE_BOUND_FUNC(func, args) octave_value(func)
 #endif
