@@ -16,6 +16,22 @@ Version 4.0.2 (in progress)
 2020-05-24: vapier
             [JS] #1796 Fix pkg-config invocation in configure.
 
+2020-04-30: kwwette
+            [Octave] Fix exception raising for newer Octave versions
+            Since (at least) Octave 5.1.0, the Octave error() function now raises a C++ exception,
+            which if uncaught immediately exits a SWIG wrapper function, bypassing any cleanup code
+            that may appear after a "fail:" label. This patch adds a "try { ... } catch(...) { }"
+            block around the contents of SWIG wrapper functions to first execute the cleanup code
+            before rethrowing any exception raised. It is backward compatible with earlier versions
+            of Octave where error() does not raise an exception, which will still branch to the
+            "fail:" block to execute cleanup code if an error is encountered.
+
+            Note that the new "try { ... } catch(...) { }" block will localise any local variables
+            used in typemaps that were NOT declared through SWIG's %typemap(...) syntax, so it's
+            possible this could break existing SWIG wrappers which were implicitly sharing local
+            variables between typemaps. This can be fixed, however, by declaring local variables
+            which need to be shared between typemaps through SWIG's %typemap(...) syntax.
+
 2020-02-18: ryannevell
             [Lua] #1728 Add support for LUA lightuserdata to SWIG_Lua_ConvertPtr.
 

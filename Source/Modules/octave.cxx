@@ -567,6 +567,10 @@ public:
     Wrapper *f = NewWrapper();
     Octave_begin_function(n, f->def, iname, overname, !overloaded);
 
+    // Start default try block to execute
+    // cleanup code if exception is thrown
+    Printf(f->code, "try {\n");
+
     emit_parameter_variables(l, f);
     emit_attach_parmmaps(l, f);
     Setattr(n, "wrap:parms", l);
@@ -754,9 +758,20 @@ public:
     }
 
     Printf(f->code, "return _out;\n");
-    Printf(f->code, "fail:\n");	// we should free locals etc if this happens
+
+    // Execute cleanup code if branched to fail: label
+    Printf(f->code, "fail:\n");
     Printv(f->code, cleanup, NIL);
     Printf(f->code, "return octave_value_list();\n");
+
+    // Execute cleanup code if exception was thrown
+    Printf(f->code, "}\n");
+    Printf(f->code, "catch(...) {\n");
+    Printv(f->code, cleanup, NIL);
+    Printf(f->code, "throw;\n");
+    Printf(f->code, "}\n");
+
+    // End wrapper function
     Printf(f->code, "}\n");
 
     /* Substitute the cleanup code */
