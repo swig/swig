@@ -93,7 +93,7 @@ public class doxygen_translate_all_tags_runme {
     		" </li><li>With lots of items \n" +
     		" </li><li>lots of lots of items \n" +
     		" </li></ul> \n" +
-    		" {@link someMember Some description follows }\n" +
+    		" {@link someMember Some description follows} with text after\n" +
     		" This will only appear in man\n");
     
     wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func07(int, int, int, int)",
