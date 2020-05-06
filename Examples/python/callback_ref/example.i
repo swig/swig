@@ -7,8 +7,8 @@
 /* turn on director wrapping Callback */
 %feature("director") Callback;
 
-%feature("ref")   Interface "$this->AddRef();"
-%feature("unref") Interface "$this->Release();"
+%feature("ref")   Interface "$this->Interface::AddRef();"
+%feature("unref") Interface "$this->Interface::Release();"
 
 %include "example.h"
 
