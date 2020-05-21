@@ -1597,7 +1597,7 @@ else
 
   if test -z "$JSCORELIB" -a -n "$PKGCONFIG"; then
     AC_MSG_CHECKING(for JavaScriptCore/Webkit library)
-    if pkg-config javascriptcoregtk-1.0; then
+    if $PKGCONFIG javascriptcoregtk-1.0; then
       JSCORELIB=`$PKGCONFIG --libs javascriptcoregtk-1.0`
       JSCOREVERSION=`$PKGCONFIG --modversion javascriptcoregtk-1.0`
     fi
