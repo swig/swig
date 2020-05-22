@@ -428,7 +428,7 @@ matrix:
       env: SWIGLANG=go
     - compiler: clang
       os: osx
-      env: SWIGLANG=guile
+      env: SWIGLANG=guile CSTD=c11
     - compiler: clang
       os: osx
       env: SWIGLANG=java
