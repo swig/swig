@@ -622,7 +622,7 @@ else
     PYEPREFIX=`($PYTHON -c "import sys; sys.stdout.write(sys.exec_prefix)") 2>/dev/null`
     AC_MSG_RESULT($PYEPREFIX)
 
-    if test x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\"; then
+    if test x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x'\\'; then
       # Windows installations are quite different to posix installations (MinGW path separator is a forward slash)
       PYPREFIX=`echo "$PYPREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
       PYTHON_SO=.pyd
@@ -739,7 +739,7 @@ else
     PYVER=0
   fi
   if test "x$PY3BIN" = xyes; then
-    if test x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\" -a $PYVER -ge 3; then
+    if test x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x'\\' -a $PYVER -ge 3; then
       PYTHON3="$PYTHON"
     else
       for py_ver in 3 3.9 3.8 3.7 3.6 3.5 3.4 3.3 3.2 ""; do
@@ -774,7 +774,7 @@ else
     PYSEPARATOR=`($PYTHON3 -c "import sys, os; sys.stdout.write(os.sep)") 2>/dev/null`
     AC_MSG_RESULT($PYSEPARATOR)
 
-    if test x"$PY3OSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\"; then
+    if test x"$PY3OSNAME" = x"nt" -a x"$PYSEPARATOR" = x'\\'; then
       # Windows installations are quite different to posix installations
       # There is no python-config to use
       AC_MSG_CHECKING(for Python 3.x prefix)
