@@ -1162,7 +1162,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 	  Printf(f_dependencies_file, "\n");
 	  if (depend_phony) {
 	    for (int i = 0; i < Len(phony_targets); i++) {
-	      Printf(f_dependencies_file, "\n%s:\n", Getitem(phony_targets, i));
+	      Printf(f_dependencies_file, "\n%s:\n", Swig_filename_escape_space(Getitem(phony_targets, i)));
 	    }
 	  }
 
