@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.2 (in progress)
 ===========================
 
+2020-05-24: vapier
+            [JS] #1796 Fix pkg-config invocation in configure.
+
 2020-02-18: ryannevell
             [Lua] #1728 Add support for LUA lightuserdata to SWIG_Lua_ConvertPtr.
 
