@@ -351,6 +351,7 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
+      arch: s390x
       env: SWIGLANG=ruby CPP11=1
       sudo: required
       dist: xenial
