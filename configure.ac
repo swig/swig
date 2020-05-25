@@ -587,6 +587,7 @@ AC_ARG_WITH(python, AS_HELP_STRING([--without-python], [Disable Python])
 AS_HELP_STRING([--with-python=path], [Set location of Python executable]),[ PYBIN="$withval"], [PYBIN="$alllang_default"])
 
 # First, check for "--without-python" or "--with-python=no".
+set -x
 if test x"${PYBIN}" = xno; then
   AC_MSG_NOTICE([Disabling Python])
 else
@@ -712,6 +713,7 @@ else
   *)PYTHONDYNAMICLINKING="";;
   esac
 fi
+set +x
 
 AC_SUBST(PYINCLUDE)
 AC_SUBST(PYLIB)
@@ -2579,7 +2581,7 @@ if test -z "$OCTAVE" ; then
 fi
 AC_SUBST(SKIP_OCTAVE)
 
-
+AC_MSG_NOTICE([PYINCLUDE=$PYINCLUDE, PYLINK=$PYLINK])
 SKIP_PYTHON=
 if (test -z "$PYINCLUDE" || test -z "$PYLINK") &&
    (test -z "$PY3INCLUDE" || test -z "$PY3LINK") ; then
