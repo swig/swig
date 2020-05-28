@@ -1196,6 +1196,10 @@ void DoxygenParser::processWordCommands(size_t &pos, const std::string &line) {
     // do it every time.)
     if (getBaseCommand(cmd) == CMD_CODE) skipLeadingSpace = true;
     else skipLeadingSpace = false;
+  } else if (cmd.substr(0,3) == "end") {
+    // If processing an "end" command such as "endlink", don't skip
+    // the space before the next string
+    skipLeadingSpace = false;
   }
 
   if (skipLeadingSpace) {

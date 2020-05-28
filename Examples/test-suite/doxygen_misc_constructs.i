@@ -36,7 +36,7 @@
      * @param line line number
      * @param isGetSize if set, for every object location both address and size are returned
      *
-     * @link Connection::getId() @endlink <br>
+     * @link Connection::getId() @endlink<br>
      */
     void getAddress(int &fileName,
                     int line,
@@ -62,7 +62,7 @@
      * used for unspecified parameters.
      * <p>
      *
-     * @link advancedWinIDEALaunching.py Python example.@endlink <br>
+     * @link advancedWinIDEALaunching.py Python example.@endlink<br>
      */
     class CConnectionConfig
     {

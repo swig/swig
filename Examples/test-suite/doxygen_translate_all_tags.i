@@ -210,7 +210,7 @@ void func05(int a)
  * 
  * \line example
  *
- * \link someMember Some description follows \endlink
+ * \link someMember Some description follows\endlink with text after
  * 
  * \mainpage Some title
  *
