@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.2 (in progress)
 ===========================
 
+2020-05-28: ZackerySpytz
+            #1776 Quite dramatically decrease run times when generating very large interface files by changing some internal memory pool sizes.
+
+2020-05-28: mcfarljm
+            #1788 Fix handling of Doxygen \endlink command.
+
 2020-05-24: vapier
             [JS] #1796 Fix pkg-config invocation in configure.
 
