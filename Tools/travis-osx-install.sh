@@ -23,7 +23,7 @@ case "$SWIGLANG" in
 		travis_retry brew install lua
 		;;
 	"octave")
-		travis_retry brew install octave
+		travis_retry Tools/brew-install octave
 		;;
 	"python")
 		WITHLANG=$SWIGLANG$PY3
