@@ -58,6 +58,7 @@ INTERFACE  =
 INTERFACEDIR  =
 INTERFACEPATH = $(SRCDIR)$(INTERFACEDIR)$(INTERFACE)
 SWIGOPT    =
+PCHSUPPORT = @PCHSUPPORT@
 
 # SWIG_LIB_DIR and SWIGEXE must be explicitly set by Makefiles using this Makefile
 SWIG_LIB_DIR = ./Lib
@@ -439,13 +440,36 @@ OCTAVE_SO     = @OCTAVE_SO@
 OCTAVE_SCRIPT = $(SRCDIR)$(RUNME).m
 
 # ----------------------------------------------------------------
+# Pre-compile Octave headers, if supported
+# ----------------------------------------------------------------
+
+ifeq (yes,$(PCHSUPPORT))
+
+octave_precompile_headers:
+	echo "precompiling $(OCTHEADERS)"
+	cp -f $(OCTHEADERSSRC) $(OCTHEADERS)
+	if $(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDES) $(OCTAVE_CXX) $(OCTHEADERS); then \
+		: ; \
+	else \
+		rm -f $(OCTHEADERSGCH); \
+		exit 1; \
+	fi
+
+else
+
+octave_precompile_headers:
+	echo "precompiling Octave headers not supported"; exit 1
+
+endif
+
+# ----------------------------------------------------------------
 # Build a C dynamically loadable module
 # Note: Octave requires C++ compiler when compiling C wrappers
 # ----------------------------------------------------------------
 
 octave: $(SRCDIR_SRCS)
-	$(SWIG) -octave $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
+	$(SWIG) -octave $(SWIGOCTHDROPT) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -g -c $(IOCTHEADERS) $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
 	$(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS) $(INCLUDES)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
 
@@ -454,8 +478,8 @@ octave: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 octave_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -octave $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
+	$(SWIG) -c++ -octave $(SWIGOCTHDROPT) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -g -c $(IOCTHEADERS) $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
 	$(CXXSHARED) -g $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
 
 # -----------------------------------------------------------------
@@ -481,6 +505,7 @@ octave_clean:
 	rm -f *_wrap* *~ .~* myoctave@EXEEXT@ *.pyc
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ *$(OCTAVE_SO)
+	rm -f $(OCTHEADERS) $(OCTHEADERSGCH)
 
 ##################################################################
 #####                       GUILE                           ######

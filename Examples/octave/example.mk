@@ -8,25 +8,25 @@ TARGET     = swigexample
 INTERFACE  = example.i
 
 check: build
-	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' octave_run
+	$(MAKE) -f $(TOP)/Makefile PCHSUPPORT=no SRCDIR='$(SRCDIR)' octave_run
 
 build:
 ifneq (,$(SRCS))
-	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
+	$(MAKE) -f $(TOP)/Makefile PCHSUPPORT=no SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' octave
 else
-	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
+	$(MAKE) -f $(TOP)/Makefile PCHSUPPORT=no SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' octave_cpp
 endif
 ifneq (,$(TARGET2)$(SWIGOPT2))
 ifneq (,$(SRCS))
-	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
+	$(MAKE) -f $(TOP)/Makefile PCHSUPPORT=no SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	SWIGOPT='$(SWIGOPT2)' TARGET='$(TARGET2)' INTERFACE='$(INTERFACE)' octave
 else
-	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
+	$(MAKE) -f $(TOP)/Makefile PCHSUPPORT=no SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	SWIGOPT='$(SWIGOPT2)' TARGET='$(TARGET2)' INTERFACE='$(INTERFACE)' octave_cpp
 endif
@@ -34,4 +34,4 @@ endif
 
 
 clean:
-	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' octave_clean
+	$(MAKE) -f $(TOP)/Makefile PCHSUPPORT=no SRCDIR='$(SRCDIR)' octave_clean

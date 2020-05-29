@@ -89,10 +89,6 @@ SWIGRUNTIME void SWIG_Octave_SetModule(void *clientdata, swig_module_info *point
 
 // Runtime API implementation
 
-#include <map>
-#include <vector>
-#include <string>
-
 typedef octave_value_list(*octave_func) (const octave_value_list &, int);
 class octave_swig_type;
 

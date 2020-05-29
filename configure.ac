@@ -333,6 +333,39 @@ case $host in
   *) ;;
 esac
 
+# Check for compiler pre-compiled header support
+AC_MSG_CHECKING([if compiler supports pre-compiled headers])
+PCHSUPPORT=no
+if test "$CLANGXX" = "yes"; then
+   PCHINCLUDEARG="-include-pch"
+   PCHINCLUDEEXT=".gch"
+else
+   PCHINCLUDEARG="-include"
+   PCHINCLUDEEXT=""
+fi
+AC_LANG_PUSH([C++])
+echo '#include <cstdlib>' > conftest.hpp
+echo '#include "conftest.hpp"' > conftest.cpp
+$CXX -c conftest.hpp 2>/dev/null
+if test $? -eq 0; then
+   if test -f conftest.hpp.gch; then
+      $CXX -H -c -I. ${PCHINCLUDEARG} ./conftest.hpp${PCHINCLUDEEXT} -o conftest.o conftest.cpp >conftest.out 2>&1
+      if test $? -eq 0; then
+         if test "$CLANGXX" = "yes"; then
+            PCHSUPPORT=yes
+         elif grep -q '^!.*conftest.hpp.gch$' conftest.out; then
+            PCHSUPPORT=yes
+         fi
+      fi
+   fi
+fi
+rm -f conftest.hpp conftest.cpp conftest.out
+AC_LANG_POP([C++])
+AC_MSG_RESULT([$PCHSUPPORT])
+AC_SUBST(PCHSUPPORT)
+AC_SUBST(PCHINCLUDEARG)
+AC_SUBST(PCHINCLUDEEXT)
+
 # Set info about shared libraries.
 AC_SUBST(SO)
 AC_SUBST(LDSHARED)
