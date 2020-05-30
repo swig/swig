@@ -442,7 +442,7 @@ matrix:
       env: SWIGLANG=lua
     - compiler: clang
       os: osx
-      env: SWIGLANG=octave SWIGJOBS=-j2
+      env: SWIGLANG=octave SWIGJOBS=-j2 CPP11=1
     - compiler: clang
       os: osx
       env: SWIGLANG=perl5
