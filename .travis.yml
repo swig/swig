@@ -146,7 +146,12 @@ matrix:
       os: linux
       env: SWIGLANG=octave SWIGJOBS=-j2
       sudo: required
-      dist: xenial
+      dist: xenial   # Octave v4.0.0
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=octave SWIGJOBS=-j2 CPP11=1
+      sudo: required
+      dist: bionic   # Octave v4.2.2
     - compiler: gcc
       os: linux
       env: SWIGLANG=perl5
