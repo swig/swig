@@ -1058,7 +1058,13 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     octave_swig_type *ptr;
   public:
     octave_swig_ref(octave_swig_type *_ptr = 0)
-      :ptr(_ptr) { }
+      :ptr(_ptr)
+      {
+        // Ensure type_id() is set correctly
+        if (t_id == -1) {
+          t_id = octave_swig_ref::static_type_id();
+        }
+      }
 
     ~octave_swig_ref()
       { if (ptr) ptr->decref(); }
@@ -1199,8 +1205,13 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
   public:
 
     octave_swig_packed(swig_type_info *_type = 0, const void *_buf = 0, size_t _buf_len = 0)
-      :	type(_type), buf((const char*)_buf, (const char*)_buf + _buf_len) {
-    }
+      :	type(_type), buf((const char*)_buf, (const char*)_buf + _buf_len)
+      {
+        // Ensure type_id() is set correctly
+        if (t_id == -1) {
+          t_id = octave_swig_packed::static_type_id();
+        }
+      }
 
     bool copy(swig_type_info *outtype, void *ptr, size_t sz) const {
       if (outtype && outtype != type)
