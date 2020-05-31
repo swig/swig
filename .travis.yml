@@ -480,10 +480,6 @@ matrix:
       env: SWIGLANG=php VER=7.2
       sudo: required
       dist: xenial
-    # Sometimes hits the Travis 50 minute time limit
-    - compiler: clang
-      os: osx
-      env: SWIGLANG=octave SWIGJOBS=-j2
     # Experimental languages
     - compiler: gcc
       os: linux
