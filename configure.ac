@@ -333,6 +333,39 @@ case $host in
   *) ;;
 esac
 
+# Check for compiler pre-compiled header support
+AC_MSG_CHECKING([if compiler supports pre-compiled headers])
+PCHSUPPORT=no
+if test "$CLANGXX" = "yes"; then
+   PCHINCLUDEARG="-include-pch"
+   PCHINCLUDEEXT=".gch"
+else
+   PCHINCLUDEARG="-include"
+   PCHINCLUDEEXT=""
+fi
+AC_LANG_PUSH([C++])
+echo '#include <cstdlib>' > conftest.hpp
+echo '#include "conftest.hpp"' > conftest.cpp
+$CXX -c conftest.hpp 2>/dev/null
+if test $? -eq 0; then
+   if test -f conftest.hpp.gch; then
+      $CXX -H -c -I. ${PCHINCLUDEARG} ./conftest.hpp${PCHINCLUDEEXT} -o conftest.o conftest.cpp >conftest.out 2>&1
+      if test $? -eq 0; then
+         if test "$CLANGXX" = "yes"; then
+            PCHSUPPORT=yes
+         elif grep -q '^!.*conftest.hpp.gch$' conftest.out; then
+            PCHSUPPORT=yes
+         fi
+      fi
+   fi
+fi
+rm -f conftest.hpp conftest.cpp conftest.out
+AC_LANG_POP([C++])
+AC_MSG_RESULT([$PCHSUPPORT])
+AC_SUBST(PCHSUPPORT)
+AC_SUBST(PCHINCLUDEARG)
+AC_SUBST(PCHINCLUDEEXT)
+
 # Set info about shared libraries.
 AC_SUBST(SO)
 AC_SUBST(LDSHARED)
@@ -1079,6 +1112,7 @@ if test -n "$OCTAVE"; then
   fi
   AC_MSG_RESULT([${mkoctfile}])
   AC_MSG_CHECKING([if ${mkoctfile} works])
+  mkoctfile="env - PATH=$PATH LD_LIBRARY_PATH=$LD_LIBRARY_PATH ${mkoctfile}"
   AS_IF([test "x`${mkoctfile} --version 2>/dev/null | sed -n -e '1p' | sed -n -e '/mkoctfile, version/p'`" != x],[
       AC_MSG_RESULT([yes])
     ],[
@@ -1093,7 +1127,7 @@ if test -n "$OCTAVE"; then
    AC_MSG_CHECKING([for Octave preprocessor flags])
    OCTAVE_CPPFLAGS=
    for var in CPPFLAGS INCFLAGS ALL_CXXFLAGS; do
-      for flag in `env - ${mkoctfile} -p ${var}`; do
+      for flag in `${mkoctfile} -p ${var}`; do
          case ${flag} in
             -D*|-I*) OCTAVE_CPPFLAGS="${OCTAVE_CPPFLAGS} ${flag}";;
             *) ;;
@@ -1105,7 +1139,7 @@ if test -n "$OCTAVE"; then
    AC_MSG_CHECKING([for Octave compiler flags])
    OCTAVE_CXXFLAGS=
    for var in CXX ALL_CXXFLAGS; do
-      for flag in `env - ${mkoctfile} -p ${var}`; do
+      for flag in `${mkoctfile} -p ${var}`; do
          case ${flag} in
             -std=*|-g*|-W*) OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} ${flag}";;
             *) ;;
@@ -1125,10 +1159,10 @@ if test -n "$OCTAVE"; then
    AC_MSG_CHECKING([for Octave linker flags])
    OCTAVE_LDFLAGS=
    for var in OCTLIBDIR; do
-     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "-L`env - ${mkoctfile} -p ${var}`
+     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "-L`${mkoctfile} -p ${var}`
    done
    for var in RDYNAMIC_FLAG RLD_FLAG OCTAVE_LIBS LIBS; do
-     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`env - ${mkoctfile} -p ${var}`
+     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`${mkoctfile} -p ${var}`
    done
    AC_MSG_RESULT([$OCTAVE_LDFLAGS])
 
