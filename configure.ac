@@ -115,15 +115,6 @@ dnl Some test cases require Boost
 AX_BOOST_BASE(,,,)
 AC_SUBST(BOOST_CPPFLAGS)
 
-dnl How to specify include directories that may be system directories.
-# -I should not be used on system directories (GCC)
-if test "$GCC" = yes; then
-    ISYSTEM="-isystem "
-else
-    ISYSTEM="-I"
-fi
-AC_MSG_NOTICE(ISYSTEM: $ISYSTEM)
-
 dnl Info for building shared libraries ... in order to run the examples
 
 # SO is the extension of shared libraries (including the dot!)
@@ -484,7 +475,7 @@ AC_ARG_WITH(tcl,
  [  --with-tcl=path         Set location of Tcl package],[
 	TCLPACKAGE="$withval"], [TCLPACKAGE="$alllang_default"])
 AC_ARG_WITH(tclincl,[  --with-tclincl=path     Set location of Tcl include directory],[
-	TCLINCLUDE="$ISYSTEM$withval"], [TCLINCLUDE=])
+	TCLINCLUDE="-I$withval"], [TCLINCLUDE=])
 AC_ARG_WITH(tcllib,[  --with-tcllib=path      Set location of Tcl library directory],[
 	TCLLIB="-L$withval"], [TCLLIB=])
 
@@ -526,7 +517,7 @@ else
     AC_MSG_RESULT(found $TCLCONFIG/tclConfig.sh)
     . $TCLCONFIG/tclConfig.sh
     if test -z "$TCLINCLUDE"; then
-        TCLINCLUDE=`echo $TCL_INCLUDE_SPEC | sed "s/-I/$ISYSTEM/"`
+        TCLINCLUDE=`echo $TCL_INCLUDE_SPEC`
     fi
     if test -z "$TCLLIB"; then
         TCLLIB=$TCL_LIB_SPEC
@@ -535,7 +526,7 @@ fi
 
 if test -z "$TCLINCLUDE"; then
    if test "x$TCLPACKAGE" != xyes; then
-	TCLINCLUDE="$ISYSTEM$TCLPACKAGE/include"
+	TCLINCLUDE="-I$TCLPACKAGE/include"
    fi
 fi
 
@@ -553,7 +544,7 @@ if test -z "$TCLINCLUDE"; then
 	for i in $dirs ; do
 		if test -r $i/tcl.h; then
 			AC_MSG_RESULT($i)
-			TCLINCLUDE="$ISYSTEM$i"
+			TCLINCLUDE="-I$i"
 			break
 		fi
 	done
@@ -1004,7 +995,7 @@ if test -n "$PERL"; then
 			AC_MSG_RESULT($PERL5LIB)
 		fi
     AC_MSG_CHECKING(for Perl5 ccflags)
- 		PERL5CCFLAGS=`($PERL -e 'use Config; print $Config{ccflags}, "\n"' | sed "s/-Wdeclaration-after-statement//" | sed "s/-I/$ISYSTEM/") 2>/dev/null`
+ 		PERL5CCFLAGS=`($PERL -e 'use Config; print $Config{ccflags}, "\n"' | sed "s/-Wdeclaration-after-statement//") 2>/dev/null`
  		if test -z "$PERL5CCFLAGS" ; then
  			AC_MSG_RESULT(not found)
  		else
@@ -2326,7 +2317,7 @@ if test "$LUABIN"; then
   # look for the header files & set LUAFLAGS accordingly
   # will clear LUABIN if not present
   if test -n "$LUAINCLUDE"; then
-    AC_CHECK_FILE($LUAINCLUDE/lua.h,[LUAFLAGS="$ISYSTEM$LUAINCLUDE"],[LUABIN=])
+    AC_CHECK_FILE($LUAINCLUDE/lua.h,[LUAFLAGS="-I$LUAINCLUDE"],[LUABIN=])
   else
     LUA_OK="1"
     CFLAGS_SAVED=$CFLAGS
@@ -2350,7 +2341,7 @@ if test "$LUABIN"; then
         #echo "$i"
         if test -r $i/lua.h; then
           AC_MSG_RESULT($i/lua.h)
-          LUAFLAGS="$ISYSTEM$i"
+          LUAFLAGS="-I$i"
           break
         fi
       done
