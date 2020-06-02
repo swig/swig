@@ -1898,7 +1898,7 @@ int R::functionWrapper(Node *n) {
 	       name, " = getNativeSymbolInfo(", name, ");",
 	       "\n};\n",
 	       "if(is(", name, ", \"NativeSymbolInfo\")) {\n",
-	       name, " = ", name, "$address", ";\n}\n",
+	       name, " = ", name, "$address", ";\n};\n",
 	       "if(is(", name, ", \"ExternalReference\")) {\n",
 	       name, " = ", name, "@ref;\n}\n",
 	       "}; \n",

@@ -17,7 +17,7 @@
     SWIG_exception_fail(SWIG_RuntimeError, "Let's see how the bindings manage this exception!");
 }
 %typemap(scoerceout) Foo*
-  %{ if (!is.null($result) && !is.logical($result)) {$result <- new("$R_class", ref=$result) ;} %}
+  %{ if (!is.null($result) && !is.logical($result)) {$result <- new("$R_class", ref=$result) ;}; %}
 
 %inline %{
   #include <string>
