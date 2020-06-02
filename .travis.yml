@@ -419,6 +419,11 @@ matrix:
       env: SWIGLANG=python GCC=9 CPP17=1 PY3=3 VER=3.8
       sudo: required
       dist: xenial
+    - os: linux
+      arch: s390x
+      env: SWIGLANG=ruby CPP11=1
+      sudo: required
+      dist: xenial
     - compiler: gcc
       os: osx
       env: SWIGLANG=
@@ -468,6 +473,12 @@ matrix:
       osx_image: xcode10.2
 
   allow_failures:
+    # li_std_wstring failure see https://github.com/swig/swig/pull/1803
+    - os: linux
+      arch: s390x
+      env: SWIGLANG=ruby CPP11=1
+      sudo: required
+      dist: xenial
     # Newer version of D not yet working/supported
     - compiler: gcc
       os: linux
@@ -495,7 +506,7 @@ matrix:
 before_install:
   - date -u
   - uname -a
-  - if test "$TRAVIS_OS_NAME" = "linux"; then lscpu && cat /proc/cpuinfo | grep "model name" && cat /proc/meminfo | grep MemTotal; fi
+  - if test "$TRAVIS_OS_NAME" = "linux"; then lscpu; grep "model name" /proc/cpuinfo || echo 'Unknown CPU model'; grep "MemTotal" /proc/meminfo || echo 'Unknown system memory amount'; fi
   - if test "$TRAVIS_OS_NAME" = "osx"; then sysctl -a | grep brand_string; fi
   # Travis overrides CC environment with compiler predefined values
   - if test -n "$GCC"; then export CC="gcc-$GCC" && export CXX="g++-$GCC"; fi

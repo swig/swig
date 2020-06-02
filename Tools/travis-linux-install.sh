@@ -13,7 +13,7 @@ if [[ -n "$GCC" ]]; then
 	travis_retry sudo apt-get install -qq g++-$GCC
 fi
 
-travis_retry sudo apt-get -qq install libboost-dev
+travis_retry sudo apt-get -qq install libboost-dev libpcre3-dev
 
 WITHLANG=$SWIGLANG
 
