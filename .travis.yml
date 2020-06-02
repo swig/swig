@@ -351,7 +351,6 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
-      arch: s390x
       env: SWIGLANG=ruby CPP11=1
       sudo: required
       dist: xenial
@@ -415,6 +414,11 @@ matrix:
       env: SWIGLANG=python GCC=9 CPP17=1 PY3=3 VER=3.8
       sudo: required
       dist: xenial
+    - os: linux
+      arch: s390x
+      env: SWIGLANG=ruby CPP11=1
+      sudo: required
+      dist: xenial
     - compiler: gcc
       os: osx
       env: SWIGLANG=
@@ -464,6 +468,12 @@ matrix:
       osx_image: xcode10.2
 
   allow_failures:
+    # li_std_wstring failure see https://github.com/swig/swig/pull/1803
+    - os: linux
+      arch: s390x
+      env: SWIGLANG=ruby CPP11=1
+      sudo: required
+      dist: xenial
     # Newer version of D not yet working/supported
     - compiler: gcc
       os: linux
