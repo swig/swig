@@ -1143,7 +1143,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 	  if (dependencies_target) {
 	    Printf(f_dependencies_file, "%s: ", dependencies_target);
 	  } else {
-	    Printf(f_dependencies_file, "%s: ", outfile);
+	    Printf(f_dependencies_file, "%s: ", Swig_filename_escape_space(outfile));
 	  }
 	  List *files = Preprocessor_depend();
 	  List *phony_targets = NewList();
