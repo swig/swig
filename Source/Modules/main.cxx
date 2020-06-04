@@ -1154,7 +1154,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
                 use_file = 0;
             }
             if (use_file) {
-              Printf(f_dependencies_file, "\\\n  %s ", Getitem(files, i));
+              Printf(f_dependencies_file, "\\\n  %s ", Swig_filename_escape_space(Getitem(files, i)));
               if (depend_phony)
                 Append(phony_targets, Getitem(files, i));
             }
