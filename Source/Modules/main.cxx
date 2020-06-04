@@ -1141,7 +1141,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 	  } else
 	    f_dependencies_file = stdout;
 	  if (dependencies_target) {
-	    Printf(f_dependencies_file, "%s: ", dependencies_target);
+	    Printf(f_dependencies_file, "%s: ", Swig_filename_escape_space(dependencies_target));
 	  } else {
 	    Printf(f_dependencies_file, "%s: ", Swig_filename_escape_space(outfile));
 	  }
