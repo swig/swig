@@ -175,10 +175,6 @@ String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_Strin
   if (qualifiers)
     Printv(result, " ", qualifiers, NIL);
 
-  // Reformat result to how it has been historically
-  Replaceall(result, ",", ", ");
-  Replaceall(result, "=", " = ");
-
   Delete(args_string);
   Delete(popped_decl);
   Delete(qualifiers);
