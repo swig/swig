@@ -98,7 +98,7 @@ SWIGOPT += -w524 # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
 # a file is found which has _runme.scm appended after the testcase name.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(MZSCHEME) -r $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(MZSCHEME) -r $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) $(RUNCAPTURE); \
 	fi
 
 # Clean

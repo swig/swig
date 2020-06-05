@@ -79,8 +79,8 @@ setup = \
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.sci appended after the testcase name.
 run_testcase = \
-	if [ -f $(RUNME_SCRIPT) ]; then ( \
-	  env LD_LIBRARY_PATH=$(srcdir):$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(RUNME_SCRIPT); ) \
+	if [ -f $(RUNME_SCRIPT) ]; then \
+	  env LD_LIBRARY_PATH=$(srcdir):$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(RUNME_SCRIPT) $(RUNCAPTURE); \
 	fi
 
 # Clean: remove the generated files

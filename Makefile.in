@@ -249,7 +249,7 @@ check-%-test-suite:
 	  echo warning: cannot $(ACTION) $* test-suite "(no dir $$dir)";\
 	else								\
 	  echo $(ACTION)ing $* test-suite;				\
-	  (cd $$dir && $(MAKE) $(FLAGS) $(ACTION) HAVE_CXX11_COMPILER=$(HAVE_CXX11_COMPILER)) \
+	  (cd $$dir && $(MAKE) $(FLAGS) $(ACTION) RUNPIPE=$(RUNPIPE) HAVE_CXX11_COMPILER=$(HAVE_CXX11_COMPILER)) \
 	  || passed=false;						\
 	fi;								\
 	test $$passed = true

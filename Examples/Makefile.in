@@ -82,6 +82,23 @@ RUNPIPE=
 
 RUNME = runme
 
+# RUNCAPTURE captures output from examples, then displays output with name of example prepended
+# to each line. This helps to identify output from examples when running in parallel (i.e. -j2)
+ifeq (,$(RUNTOOL))
+RUNNAME = $(notdir $(CURDIR))
+RUNCAPTURE = >.runcapture_stdout_$$$$.log 2>.runcapture_stderr_$$$$.log; \
+	status=$$?; \
+	if test $$status -ne 0; then \
+		( sed "s|^|$(RUNNAME) stderr: |" .runcapture_stderr_$$$$.log >&2; sed "s|^|$(RUNNAME) stdout: |" .runcapture_stdout_$$$$.log ); \
+	else \
+		( sed "s|^|$(RUNNAME) stderr: |" .runcapture_stderr_$$$$.log >&2; sed "s|^|$(RUNNAME) stdout: |" .runcapture_stdout_$$$$.log ) $(RUNPIPE); \
+	fi; \
+	rm -f .runcapture_stdout_$$$$.log .runcapture_stderr_$$$$.log; \
+	exit $$status
+else
+RUNCAPTURE = $(RUNPIPE)
+endif
+
 IWRAP      = $(INTERFACE:.i=_wrap.i)
 ISRCS      = $(IWRAP:.i=.c)
 ICXXSRCS   = $(IWRAP:.i=.cxx)
@@ -134,6 +151,9 @@ CXXSHARED=      @CXXSHARED@
 @TRYLINKINGWITHCXX@
 
 OBJS      = $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@)
+
+all_clean:
+	rm -f .runcapture_std*.log
 
 distclean:
 	rm -f Makefile
@@ -203,7 +223,7 @@ tcl_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 tcl_run:
-	$(RUNTOOL) $(TCLSH) $(TCL_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(TCLSH) $(TCL_SCRIPT) $(RUNCAPTURE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -216,7 +236,7 @@ tcl_version:
 # Cleaning the Tcl examples
 # -----------------------------------------------------------------
 
-tcl_clean:
+tcl_clean: all_clean
 	rm -f *_wrap* *~ .~* mytclsh@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *$(TCL_SO)
@@ -283,7 +303,7 @@ perl5_static_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 perl5_run:
-	$(RUNTOOL) $(PERL) -I. $(PERL5_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(PERL) -I. $(PERL5_SCRIPT) $(RUNCAPTURE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -296,7 +316,7 @@ perl5_version:
 # Cleaning the Perl5 examples
 # -----------------------------------------------------------------
 
-perl5_clean:
+perl5_clean: all_clean
 	rm -f *_wrap* *~ .~* myperl@EXEEXT@ *.pm
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
@@ -387,7 +407,7 @@ python_run: $(PYSCRIPT)
 ifneq (,$(PYCODESTYLE))
 	$(COMPILETOOL) $(PYCODESTYLE) $(PYCODESTYLE_FLAGS) $(PYSCRIPT)
 endif
-	env PYTHONPATH=$$PWD $(RUNTOOL) $(PYTHON) $(PYSCRIPT) $(RUNPIPE)
+	env PYTHONPATH=$$PWD $(RUNTOOL) $(PYTHON) $(PYSCRIPT) $(RUNCAPTURE)
 
 ifneq (,$(SRCDIR))
 $(RUNME).py: $(SRCDIR)$(RUNME).py
@@ -405,7 +425,7 @@ python_version:
 # Cleaning the python examples
 # -----------------------------------------------------------------
 
-python_clean:
+python_clean: all_clean
 	rm -rf __pycache__
 	rm -f *_wrap* *~ .~* mypython@EXEEXT@ *.pyc
 	rm -f core @EXTRA_CLEAN@
@@ -476,7 +496,7 @@ octave_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 octave_run:
-	env OCTAVE_PATH= OCTAVE_HISTFILE=/dev/null $(RUNTOOL) $(OCTAVE) $(OCTAVE_SCRIPT) $(RUNPIPE)
+	env OCTAVE_PATH= OCTAVE_HISTFILE=/dev/null $(RUNTOOL) $(OCTAVE) $(OCTAVE_SCRIPT) $(RUNCAPTURE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -489,7 +509,7 @@ octave_version:
 # Cleaning the Octave examples
 # -----------------------------------------------------------------
 
-octave_clean:
+octave_clean: all_clean
 	rm -rf __pycache__
 	rm -f *_wrap* *~ .~* myoctave@EXEEXT@ *.pyc
 	rm -f core @EXTRA_CLEAN@
@@ -564,10 +584,10 @@ guile_simple_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 guile_run:
-	env GUILE_AUTO_COMPILE=0 $(RUNTOOL) $(GUILE) -l $(GUILE_SCRIPT) $(RUNPIPE)
+	env GUILE_AUTO_COMPILE=0 $(RUNTOOL) $(GUILE) -l $(GUILE_SCRIPT) $(RUNCAPTURE)
 
 guile_augmented_run:
-	env GUILE_AUTO_COMPILE=0 $(RUNTOOL) ./$(TARGET) $(GUILE_RUNOPTIONS) -s $(GUILE_SCRIPT) $(RUNPIPE)
+	env GUILE_AUTO_COMPILE=0 $(RUNTOOL) ./$(TARGET) $(GUILE_RUNOPTIONS) -s $(GUILE_SCRIPT) $(RUNCAPTURE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -580,7 +600,7 @@ guile_version:
 # Cleaning the Guile examples
 # -----------------------------------------------------------------
 
-guile_clean:
+guile_clean: all_clean
 	rm -f *_wrap* *~ .~* my-guile@EXEEXT@ $(TARGET)@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *$(GUILE_SO)
@@ -635,7 +655,7 @@ java_compile: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 java_run:
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(JAVA) $(JAVAFLAGS) $(RUNME) $(RUNPIPE)
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(JAVA) $(JAVAFLAGS) $(RUNME) $(RUNCAPTURE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -649,7 +669,7 @@ java_version:
 # Cleaning the java examples
 # -----------------------------------------------------------------
 
-java_clean:
+java_clean: all_clean
 	rm -f *_wrap* *~ .~* *.class `find . -name \*.java | grep -v $(RUNME).java`
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@JAVASO@
@@ -718,10 +738,10 @@ javascript_custom_interpreter:
 
 ifeq (node,$(JSENGINE))
 javascript_run:
-	env NODE_PATH=$$PWD:$(SRCDIR) $(RUNTOOL) $(NODEJS) $(SRCDIR)$(RUNME).js $(RUNPIPE)
+	env NODE_PATH=$$PWD:$(SRCDIR) $(RUNTOOL) $(NODEJS) $(SRCDIR)$(RUNME).js $(RUNCAPTURE)
 else
 javascript_run: javascript_custom_interpreter
-	$(RUNTOOL) $(ROOT_DIR)/Tools/javascript/javascript -$(JSENGINE) -L $(TARGET) $(SRCDIR)$(RUNME).js $(RUNPIPE)
+	$(RUNTOOL) $(ROOT_DIR)/Tools/javascript/javascript -$(JSENGINE) -L $(TARGET) $(SRCDIR)$(RUNME).js $(RUNCAPTURE)
 endif
 
 # -----------------------------------------------------------------
@@ -756,7 +776,7 @@ endif
 # Cleaning the Javascript examples
 # -----------------------------------------------------------------
 
-javascript_clean:
+javascript_clean: all_clean
 	rm -rf build
 	rm -f *_wrap* $(RUNME)
 	rm -f core @EXTRA_CLEAN@
@@ -813,7 +833,7 @@ android_version:
 # Cleaning the Android examples
 # -----------------------------------------------------------------
 
-android_clean:
+android_clean: all_clean
 	test -n "$(SRCDIR)" && cd $(SRCDIR) ; $(ANT) -q -logfile /dev/null clean
 	rm -f $(INTERFACEDIR)$(TARGET)_wrap.*
 	rm -f `find $(PACKAGEDIR) -name \*.java | grep -v $(PROJECTNAME).java`
@@ -848,7 +868,7 @@ mzscheme_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 mzscheme_run:
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(MZSCHEME) -r $(MZSCHEME_SCRIPT) $(RUNPIPE)
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(MZSCHEME) -r $(MZSCHEME_SCRIPT) $(RUNCAPTURE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -862,7 +882,7 @@ mzscheme_version:
 # Cleaning the mzscheme examples
 # -----------------------------------------------------------------
 
-mzscheme_clean:
+mzscheme_clean: all_clean
 	rm -f *_wrap* *~ .~*
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *$(MZSCHEME_SO)
@@ -952,7 +972,7 @@ ocaml_dynamic_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 ocaml_run:
-	$(RUNTOOL) ./$(RUNME) $(RUNPIPE)
+	$(RUNTOOL) ./$(RUNME) $(RUNCAPTURE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -965,7 +985,7 @@ ocaml_version:
 # Cleaning the Ocaml examples
 # -----------------------------------------------------------------
 
-ocaml_clean:
+ocaml_clean: all_clean
 	rm -f *_wrap* *~ .~* *.cmo *.cmi *.mli $(TARGET).ml $(RUNME) $(RUNME)_top swig.ml swigp4.ml
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
@@ -1026,7 +1046,7 @@ ruby_cpp_static: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 ruby_run:
-	$(RUNTOOL) $(RUBY) $(RUBYFLAGS) -I. $(RUBY_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(RUBY) $(RUBYFLAGS) -I. $(RUBY_SCRIPT) $(RUNCAPTURE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1039,7 +1059,7 @@ ruby_version:
 # Cleaning the Ruby examples
 # -----------------------------------------------------------------
 
-ruby_clean:
+ruby_clean: all_clean
 	rm -f *_wrap* *~ .~* myruby@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *$(RUBY_SO)
@@ -1076,7 +1096,7 @@ php_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 php_run:
-	$(RUNTOOL) $(PHP) -n -q -d extension_dir=. -d safe_mode=Off -d display_errors=stderr $(PHP_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(PHP) -n -q -d extension_dir=. -d safe_mode=Off -d display_errors=stderr $(PHP_SCRIPT) $(RUNCAPTURE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1089,7 +1109,7 @@ php_version:
 # Cleaning the PHP examples
 # -----------------------------------------------------------------
 
-php_clean:
+php_clean: all_clean
 	rm -f *_wrap* *~ .~* example.php php_example.h
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *$(PHP_SO)
@@ -1146,7 +1166,7 @@ csharp_compile: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 csharp_run:
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(CSHARPCILINTERPRETER) $(CSHARPCILINTERPRETER_FLAGS) $(CSHARP_RUNME) $(RUNPIPE)
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(CSHARPCILINTERPRETER) $(CSHARPCILINTERPRETER_FLAGS) $(CSHARP_RUNME) $(RUNCAPTURE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1161,7 +1181,7 @@ csharp_version:
 # Cleaning the CSharp examples
 # -----------------------------------------------------------------
 
-csharp_clean:
+csharp_clean: all_clean
 	rm -f *_wrap* *~ .~* $(RUNME) $(RUNME).exe *.exe.mdb gc.log `find . -name \*.cs | grep -v $(RUNME).cs`
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@CSHARPSO@
@@ -1227,10 +1247,10 @@ lua_static_cpp: $(SRCDIR_SRCS) $(GENCXXSRCS)
 # -----------------------------------------------------------------
 
 lua_run:
-	$(RUNTOOL) $(LUA) $(LUA_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(LUA) $(LUA_SCRIPT) $(RUNCAPTURE)
 
 lua_embed_run:
-	$(RUNTOOL) ./$(TARGET) $(LUA_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) ./$(TARGET) $(LUA_SCRIPT) $(RUNCAPTURE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1243,7 +1263,7 @@ lua_version:
 # Cleaning the lua examples
 # -----------------------------------------------------------------
 
-lua_clean:
+lua_clean: all_clean
 	rm -f *_wrap* *~ .~* mylua@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *$(LUA_SO)
@@ -1270,7 +1290,7 @@ allegrocl_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 allegrocl_run:
-	$(RUNTOOL) $(ALLEGROCL) -batch -s $(ALLEGROCL_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(ALLEGROCL) -batch -s $(ALLEGROCL_SCRIPT) $(RUNCAPTURE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1283,7 +1303,7 @@ allegrocl_version:
 # Cleaning the ALLEGRO CL examples
 # -----------------------------------------------------------------
 
-allegrocl_clean:
+allegrocl_clean: all_clean
 	rm -f *_wrap* *~ .~*
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
@@ -1310,7 +1330,7 @@ cffi_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 cffi_run:
-	$(RUNTOOL) $(CFFI) -batch -s $(CFFI_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(CFFI) -batch -s $(CFFI_SCRIPT) $(RUNCAPTURE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1323,7 +1343,7 @@ cffi_version:
 # Cleaning the CFFI examples
 # -----------------------------------------------------------------
 
-cffi_clean:
+cffi_clean: all_clean
 	rm -f *_wrap* *~ .~*
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
@@ -1369,7 +1389,7 @@ endif
 # -----------------------------------------------------------------
 
 r_run:
-	$(RUNTOOL) $(R) $(R_OPT) -f $(R_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(R) $(R_OPT) -f $(R_SCRIPT) $(RUNCAPTURE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1382,7 +1402,7 @@ r_version:
 # Cleaning the R examples
 # -----------------------------------------------------------------
 
-r_clean:
+r_clean: all_clean
 	rm -f *_wrap* *~ .~*
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ NAMESPACE
@@ -1420,7 +1440,7 @@ scilab_cpp:
 # -----------------------------------------------------------------
 
 scilab_run:
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(SRCDIR)$(RUNME).sci $(RUNPIPE)
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(SRCDIR)$(RUNME).sci $(RUNCAPTURE)
 
 # -----------------------------------------------------------------
 # Scilab version
@@ -1433,7 +1453,7 @@ scilab_version:
 # Cleaning the scilab examples
 # -----------------------------------------------------------------
 
-scilab_clean:
+scilab_clean: all_clean
 	rm -f *_wrap* *~ .~*
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
@@ -1576,7 +1596,7 @@ go_cpp: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
 # -----------------------------------------------------------------
 
 go_run:
-	env $(RUNTOOL) ./$(RUNME) $(RUNPIPE)
+	env $(RUNTOOL) ./$(RUNME) $(RUNCAPTURE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1589,7 +1609,7 @@ go_version:
 # Cleaning the Go examples
 # -----------------------------------------------------------------
 
-go_clean:
+go_clean: all_clean
 	rm -f *_wrap* *_gc* *.gox .~* $(RUNME) $(GOSRCS)
 	rm -rf gopath
 	rm -f core @EXTRA_CLEAN@
@@ -1647,7 +1667,7 @@ d_compile: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 d_run:
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(D_RUNME) $(RUNPIPE)
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(D_RUNME) $(RUNCAPTURE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1661,7 +1681,7 @@ d_version:
 # Clean the D examples
 # -----------------------------------------------------------------
 
-d_clean:
+d_clean: all_clean
 	rm -f *_wrap* *~ .~* $(RUNME) $(RUNME).exe `find . -name \*.d | grep -v $(RUNME).d`
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@

@@ -50,7 +50,7 @@ lua_no_module_global.%: SWIGOPT += -nomoduleglobal
 # a file is found which has _runme.lua appended after the testcase name.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LUA_PATH="$(srcdir)/?.lua;" $(RUNTOOL) $(LUA) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	  env LUA_PATH="$(srcdir)/?.lua;" $(RUNTOOL) $(LUA) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) $(RUNCAPTURE); \
 	fi
 
 # Clean: (does nothing, we dont generate extra lua code)

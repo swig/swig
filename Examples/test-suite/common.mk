@@ -858,12 +858,27 @@ setup = \
 	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
 	fi
 
-
+# RUNCAPTURE captures output from examples, then displays output with name of example prepended to each line.
+# This helps to identify output from examples when running in parallel (i.e. -j2)
+ifeq (,$(RUNTOOL))
+RUNCAPTURE = >.runcapture_stdout_$$$$.log 2>.runcapture_stderr_$$$$.log; \
+	status=$$?; \
+	if test $$status -ne 0; then \
+		( sed "s|^|$* stderr: |" .runcapture_stderr_$$$$.log >&2; sed "s|^|$* stdout: |" .runcapture_stdout_$$$$.log ); \
+	else \
+		( sed "s|^|$* stderr: |" .runcapture_stderr_$$$$.log >&2; sed "s|^|$* stdout: |" .runcapture_stdout_$$$$.log ) $(RUNPIPE); \
+	fi; \
+	rm -f .runcapture_stdout_$$$$.log .runcapture_stderr_$$$$.log; \
+	exit $$status
+endif
 
 #######################################################################
 # Clean
 #######################################################################
-clean: $(ALL_CLEAN)
+clean: all_clean $(ALL_CLEAN)
+
+all_clean:
+	rm -f .runcapture_std*.log
 
 distclean: clean
 	@rm -f Makefile

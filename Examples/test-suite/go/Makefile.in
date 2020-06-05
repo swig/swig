@@ -123,7 +123,7 @@ run_testcase = \
 	  cp $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) gopath/src/$*/runme/runme.go; \
 	  (cd gopath/src/$*/runme && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o runme runme.go); \
 	  cp gopath/src/$*/runme/runme $*_runme; \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme $(RUNCAPTURE); \
 	fi
 
 run_testcase_cpp = \
@@ -145,7 +145,7 @@ run_testcase_cpp = \
 	  cp $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) gopath/src/$*/runme/runme.go; \
 	  (cd gopath/src/$*/runme && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o runme runme.go); \
 	  cp gopath/src/$*/runme/runme $*_runme; \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme $(RUNCAPTURE); \
 	fi
 
 run_multi_testcase = \
@@ -165,7 +165,7 @@ run_multi_testcase = \
 	  export CGO_LDFLAGS; \
 	  (cd gopath/$*/src/$* && \
 	    $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o ../../../../$*_runme) && \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme $(RUNCAPTURE); \
 	fi
 
 %.clean:

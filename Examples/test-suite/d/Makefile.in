@@ -75,7 +75,7 @@ run_testcase = \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
 	  DFLAGS='-of$*_runme' \
 	  DSRCS='../$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) `find $* -name *.d`' d_compile && \
-	  env LD_LIBRARY_PATH=".:$$LD_LIBRARY_PATH" $(RUNTOOL) ./$*_runme; \
+	  env LD_LIBRARY_PATH=".:$$LD_LIBRARY_PATH" $(RUNTOOL) ./$*_runme $(RUNCAPTURE); \
 	else \
 	  cd $*$(VERSIONSUFFIX) && \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \

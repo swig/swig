@@ -50,9 +50,9 @@ run_testcase = \
 		fi ; \
 		$(OCC) $(OCAMLPP) -c $(ml_runme) && \
 		if [ -f $(top_srcdir)/Examples/test-suite/$*.list ]; then \
-			$(OCC) swig.cmo -custom -g -cc '$(CXX)' -o $*_runme `cat $(top_srcdir)/Examples/test-suite/$(*).list | sed -e 's/\(.*\)/\1_wrap.o \1.cmo/g'`&& $(RUNTOOL) ./$*_runme; \
+			$(OCC) swig.cmo -custom -g -cc '$(CXX)' -o $*_runme `cat $(top_srcdir)/Examples/test-suite/$(*).list | sed -e 's/\(.*\)/\1_wrap.o \1.cmo/g'`&& $(RUNTOOL) ./$*_runme $(RUNCAPTURE); \
 		else \
-			$(OCC) swig.cmo -custom -g -cc '$(CXX)' -o $*_runme $(*).cmo $(*)_runme.cmo $(*)_wrap.o && $(RUNTOOL) ./$*_runme; \
+			$(OCC) swig.cmo -custom -g -cc '$(CXX)' -o $*_runme $(*).cmo $(*)_runme.cmo $(*)_wrap.o && $(RUNTOOL) ./$*_runme $(RUNCAPTURE); \
 		fi ; \
 	fi ;
 
