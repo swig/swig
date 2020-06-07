@@ -7,8 +7,30 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.0.2 (in progress)
 ===========================
 
+2020-06-07  vigsterkr
+            [Ruby] #1717 Nil fix mangling strings
+
+2020-06-07  vadz
+            #1748 Fix doxygen comments quoting issue
+
+2020-06-07  munoah
+            #1800 Escape spaces in file paths for dependencies (-M -MM etc)
+
+2020-06-06  andreas-schwab
+            [Ruby] #1801 Fix encoding on big endian systems when wrapping std::wstring.
+
+2020-05-31  kwwette
+            [Octave] #1789 error handling improvements and return error code on exit for SWIG wrapped modules.
+
+2020-05-30  msteinbeck
+            [D] #1593 Replace broken imports when using newer versions of D.
+
+2020-05-29: ZackerySpytz
+            [Python] #1716 Performance improvements converting strings when using Python >= 3.3.
+
 2020-05-28: ZackerySpytz
-            #1776 Quite dramatically decrease run times when generating very large interface files by changing some internal memory pool sizes.
+            #1776 Quite dramatically decrease run times when generating very large interface files by changing
+            some internal memory pool sizes.
 
 2020-05-28: mcfarljm
             #1788 Fix handling of Doxygen \endlink command.
