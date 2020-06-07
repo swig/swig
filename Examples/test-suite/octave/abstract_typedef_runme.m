@@ -10,7 +10,7 @@ a = A();
   
 
 if (a.write(e) != 1)
-  error
+  error("failed");
 endif
 
 
