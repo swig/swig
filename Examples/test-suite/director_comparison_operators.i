@@ -3,6 +3,13 @@
 %include "std_string.i"
 %feature("director");
 
+#if !defined(SWIGLUA) && !defined(SWIGR)
+%rename(EqualEqual) operator ==;
+%rename(NotEqual) operator !=;
+%rename(LessThanEqual) operator <=;
+%rename(GreaterThanEqual) operator >=;
+#endif
+
 %inline %{
 class Foo {
 public:
