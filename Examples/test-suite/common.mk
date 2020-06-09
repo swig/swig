@@ -213,6 +213,7 @@ CPP_TEST_CASES += \
 	director_smartptr \
 	director_thread \
 	director_unroll \
+	director_unwrap_result \
 	director_using \
 	director_void \
 	director_wombat \
