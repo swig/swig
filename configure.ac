@@ -459,7 +459,7 @@ else
   alllang_default=yes
 fi
 
-AC_CHECK_PROGS(PKGCONFIG, [pkg-config])
+AC_CHECK_PROGS([PKG_CONFIG], [pkg-config])
 
 #--------------------------------------------------------------------
 # Look for Tcl
@@ -1235,8 +1235,8 @@ else
       AC_MSG_CHECKING(for Scilab header files)
       if test "$SCILABINCDIR" != ""; then
         dirs="$SCILABINCDIR"
-      elif test -n "$PKGCONFIG"; then
-        dirs=`$PKGCONFIG scilab --cflags-only-I | sed -e 's/-I//g'`
+      elif test -n "$PKG_CONFIG "; then
+        dirs=`$PKG_CONFIG  scilab --cflags-only-I | sed -e 's/-I//g'`
       else
         dirs=""
       fi
@@ -1620,11 +1620,11 @@ else
   # check for JavaScriptCore/Webkit libraries
   AC_ARG_WITH(jscorelib,[  --with-jscorelib=path      Set location of the JavaScriptCore/Webkit library directory],[JSCORELIB="-L$withval"], [JSCORELIB=])
 
-  if test -z "$JSCORELIB" -a -n "$PKGCONFIG"; then
+  if test -z "$JSCORELIB" -a -n "$PKG_CONFIG "; then
     AC_MSG_CHECKING(for JavaScriptCore/Webkit library)
-    if $PKGCONFIG javascriptcoregtk-1.0; then
-      JSCORELIB=`$PKGCONFIG --libs javascriptcoregtk-1.0`
-      JSCOREVERSION=`$PKGCONFIG --modversion javascriptcoregtk-1.0`
+    if $PKG_CONFIG  javascriptcoregtk-1.0; then
+      JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-1.0`
+      JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-1.0`
     fi
     if test -z "$JSCORELIB"; then
       AC_MSG_RESULT(not found)
