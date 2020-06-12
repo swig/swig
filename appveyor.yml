@@ -6,7 +6,7 @@ environment:
   global:
     MAKEJOBS: 2
 
-matrix:
+  matrix:
   - SWIGLANG: csharp
     VSVER: 12
   - SWIGLANG: csharp
@@ -21,6 +21,8 @@ matrix:
 #   VER: 36
 #   PY3: 3
   - SWIGLANG: python
+    OSVARIANT: cygwin
+  - SWIGLANG: python
     OSVARIANT: mingw
     VER: 27
   - SWIGLANG: python
@@ -28,11 +30,6 @@ matrix:
     WITHLANG: python
     VER: 37
     PY3: 3
-
-allow_failures:
-#  Currently failing due to not detecting header files/include paths
-  - swiglang: python
-    osvariant: cygwin
 
 install:
 - date /T & time /T
