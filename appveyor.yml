@@ -20,8 +20,6 @@ environment:
 #   VSVER: 14
 #   VER: 36
 #   PY3: 3
-#  - SWIGLANG: python
-#    OSVARIANT: cygwin
   - SWIGLANG: python
     OSVARIANT: mingw
     VER: 27
@@ -30,6 +28,12 @@ environment:
     WITHLANG: python
     VER: 37
     PY3: 3
+
+matrix:
+  allow_failures:
+  # Currently failing due to not detecting header files/include paths
+  - SWIGLANG: python
+    OSVARIANT: cygwin
 
 install:
 - date /T & time /T
