@@ -20,6 +20,7 @@ apply_strings \
 cpp_enum \
 default_constructor \
 director_binary_string \
+director_comparison_operators \
 director_enum \
 director_primitives \
 director_redefined \
