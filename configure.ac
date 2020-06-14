@@ -459,7 +459,7 @@ else
   alllang_default=yes
 fi
 
-AC_CHECK_PROGS([PKG_CONFIG], [pkg-config])
+AC_PATH_TOOL([PKG_CONFIG], [pkg-config])
 
 #--------------------------------------------------------------------
 # Look for Tcl
