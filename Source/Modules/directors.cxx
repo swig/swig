@@ -160,7 +160,7 @@ String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_Strin
     SwigType *rettype_stripped = SwigType_strip_qualifiers(rettype);
     String *rtype = SwigType_str(rettype, 0);
     Append(result, rtype);
-    if (SwigType_issimple(rettype_stripped) && return_base_type)
+    if ((SwigType_issimple(rettype_stripped) && return_base_type) || SwigType_isqualifier(rettype))
       Append(result, " ");
     Delete(rtype);
     Delete(rettype_stripped);
