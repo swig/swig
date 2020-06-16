@@ -72,15 +72,15 @@
 
 %inline
 {
-  complex Conj(complex a)
+  double complex Conj(complex a)
   {
     return conj(a);
   }
 
 
-  complex float Conjf(float complex a)
+  float complex Conjf(float complex a)
   {
-    return conj(a);
+    return conjf(a);
   }
 }
 

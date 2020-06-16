@@ -1457,8 +1457,6 @@ int SwigType_type(const SwigType *t) {
     return T_FLTCPLX;
   if (!cparse_cplusplus && (strcmp(c, "double _Complex") == 0))
     return T_DBLCPLX;
-  if (!cparse_cplusplus && (strcmp(c, "complex") == 0))
-    return T_COMPLEX;
   if (strcmp(c, "void") == 0)
     return T_VOID;
   if (strcmp(c, "bool") == 0)

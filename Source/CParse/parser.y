@@ -6232,18 +6232,18 @@ primitive_type_list : type_specifier {
 			} else if (Cmp($1.type,"double") == 0) {
 			  if (Cmp($2.type,"long") == 0) {
 			    $$.type = NewString("long double");
-			  } else if (Cmp($2.type,"complex") == 0 || Cmp($2.type,"_Complex") == 0) {
+			  } else if (Cmp($2.type,"_Complex") == 0) {
 			    $$.type = NewString("double _Complex");
 			  } else {
 			    err = 1;
 			  }
 			} else if (Cmp($1.type,"float") == 0) {
-			  if (Cmp($2.type,"complex") == 0 || Cmp($2.type,"_Complex") == 0) {
+			  if (Cmp($2.type,"_Complex") == 0) {
 			    $$.type = NewString("float _Complex");
 			  } else {
 			    err = 1;
 			  }
-			} else if (Cmp($1.type,"complex") == 0 || Cmp($1.type,"_Complex") == 0) {
+			} else if (Cmp($1.type,"_Complex") == 0) {
 			  $$.type = NewStringf("%s _Complex", $2.type);
 			} else {
 			  err = 1;
