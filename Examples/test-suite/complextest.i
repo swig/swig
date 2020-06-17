@@ -68,19 +68,68 @@
 
 
 %{
+#include <complex.h>
 %}
 
 %inline
 {
-  double complex Conj(complex a)
+  complex double Conj(complex double a)
   {
     return conj(a);
   }
 
 
-  float complex Conjf(float complex a)
+  complex float Conjf(complex float a)
   {
     return conjf(a);
+  }
+
+
+  double complex Conj1(double complex a)
+  {
+    return conj(a);
+  }
+
+
+  float complex Conjf1(float complex a)
+  {
+    return conjf(a);
+  }
+
+
+  _Complex double Conj2(_Complex double a)
+  {
+    return conj(a);
+  }
+
+
+  _Complex float Conjf2(_Complex float a)
+  {
+    return conjf(a);
+  }
+
+
+  double _Complex Conj3(double _Complex a)
+  {
+    return conj(a);
+  }
+
+
+  float _Complex Conjf3(float _Complex a)
+  {
+    return conjf(a);
+  }
+
+
+  complex Conj4(complex a)
+  {
+    return conj(a);
+  }
+
+
+  _Complex Conj5(_Complex a)
+  {
+    return conj(a);
   }
 }
 

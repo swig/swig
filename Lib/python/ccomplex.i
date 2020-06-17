@@ -12,6 +12,7 @@
 #include <complex.h>
 %}
 
+#define complex _Complex
 
 /* C complex constructor */
 #define CCplxConst(r, i) ((r) + I*(i))
