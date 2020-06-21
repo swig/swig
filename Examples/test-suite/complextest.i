@@ -119,18 +119,6 @@
   {
     return conjf(a);
   }
-
-
-  complex Conj4(complex a)
-  {
-    return conj(a);
-  }
-
-
-  _Complex Conj5(_Complex a)
-  {
-    return conj(a);
-  }
 }
 
 
