@@ -73,9 +73,9 @@ if not skip_checks:
         sys.exit(3)
 
 print("Tagging release")
-tag = "'rel-" + version + "'"
+tag = "'v" + version + "'"
 force = "-f " if force_tag else ""
-os.system("git tag -a -m " + tag + " " + force + tag) == 0 or failed()
+os.system("git tag -a -m 'Release version " + version + "' " + force + tag) == 0 or failed()
 
 outdir = os.path.basename(os.getcwd()) + "/" + dirname + "/"
 print("Grabbing tagged release git repository using 'git archive' into " + outdir)
