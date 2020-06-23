@@ -119,19 +119,31 @@
   {
     return conjf(a);
   }
+}
 
 
-  complex Conj4(complex a)
+%{
+  /* Clang and GCC support complex or _Complex by themselves
+   * (implying double _Complex) as extensions to the C99 standard,
+   * but issue warnings about it. */
+
+  double complex Conj4(double complex a)
   {
     return conj(a);
   }
 
 
-  _Complex Conj5(_Complex a)
+  double _Complex Conj5(double _Complex a)
   {
     return conj(a);
   }
 }
+
+
+complex Conj4(complex a);
+
+
+_Complex Conj5(_Complex a);
 
 
 #endif
