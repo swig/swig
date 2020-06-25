@@ -137,7 +137,7 @@
   {
     return conj(a);
   }
-}
+%}
 
 
 complex Conj4(complex a);
