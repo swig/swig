@@ -77,10 +77,10 @@ If you want to build your own swig.exe have a look at <a href="#Windows_swig_exe
 
 
 <p>
-Using Microsoft Visual C++ is the most common approach to compiling and linking SWIG's output. 
+Microsoft Visual C++ is the most commonly used compiler for compiling and linking SWIG's output on Windows.
 The Examples directory has a few Visual C++ project files (.dsp files). 
 These were produced by Visual C++ 6.
-Newer versions of Visual Studio should be able to open and convert these project files.
+Newer versions of Visual Studio are able to open and convert these project files.
 Each C# example comes with a Visual Studio 2005 solution and associated project files instead of Visual C++ 6 project files.
 The project files have been set up to execute SWIG in a custom build rule for the SWIG interface (.i) file. 
 Alternatively run the <a href="#Windows_examples_cygwin">examples using Cygwin</a>.
@@ -95,9 +95,11 @@ More information on each of the examples is available with the examples distribu
 Ensure the SWIG executable is as supplied in the SWIG root directory in order for the examples to work. 
 Most languages require some environment variables to be set <b>before</b> running Visual C++. 
 Note that Visual C++ must be re-started to pick up any changes in environment variables. 
-Open up an example .dsp file, Visual C++ will create a workspace for you (.dsw file). 
-Ensure the Release build is selected then do a Rebuild All from the Build menu.
-The required environment variables are displayed with their current values.
+Open up an example .dsp file, Visual C++ will prompt you to upgrade the project and convert
+it into an MSBuild project (.vcxproj file) and Solution (.sln file).
+Note that older versions of Visual C++ will simply create a workspace for you (.dsw file).
+Ensure the Release build is selected then do a Rebuild Solution from the Build menu.
+The required environment variables are displayed with their current values during the build.
 </p>
 <p>
 The list of required environment variables for each module language is also listed below.
@@ -111,7 +113,7 @@ If you are interested in how the project files are set up there is explanatory i
 
 <p>
 The C# examples do not require any environment variables to be set as a C# project file is included.
-Just open up the .sln solution file in Visual Studio .NET 2003 or later, select Release Build, and do a Rebuild All from the Build menu.
+Just open up the .sln solution file in Visual Studio 2005 or later, select Release Build, and do a Rebuild Solution from the Build menu.
 The accompanying C# and C++ project files are automatically used by the solution file.
 </p>
 
