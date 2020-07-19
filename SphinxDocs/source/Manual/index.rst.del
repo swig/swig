@@ -1,0 +1,76 @@
+SWIG-4.0 Documentation
+======================
+
+The SWIG documentation is available in one of the following formats.
+
+-  HTML documentation with one chapter per page. Please start with
+   either the `Sections summary <Sections.html#Sections>`__ or the
+   `Detailed table of contents <Contents.html#Contents>`__.
+-  HTML documentation on a `single HTML
+   page <SWIGDocumentation.html>`__.
+-  `PDF document <SWIGDocumentation.pdf>`__.
+
+
+
+.. toctree::
+    :caption: SWIG Core Documentation
+    :maxdepth: 1
+
+    Preface<Preface>
+    Introduction<Introduction>
+    Getting started on Windows<Windows>
+    Scripting<Scripting>
+    SWIG Basics<SWIG>
+    SWIG and C++<SWIGPlus>
+    SWIG and C++11<CPlusPlus11>
+    SWIG and C++14<CPlusPlus14>
+    SWIG and C++17<CPlusPlus17>
+    SWIG and C++20<CPlusPlus20>
+    The SWIG preprocessor<Preprocessor>
+    The SWIG library<Library>
+    Argument handling<Arguments>
+    Typemaps<Typemaps>
+    Customization features<Customization>
+    Contracts<Contract>
+    Variable length arguments<Varargs>
+    Doxygen documentation comments<Doxygen>
+    Warning messages<Warnings>
+    Working with Modules<Modules>
+    Using SWIG with ccache<CCache>
+
+
+.. toctree::
+    :caption: Supported Language Modules Documentation
+    :maxdepth: 1
+
+    Android support<Android>
+    C# support<CSharp>
+    D support<D>
+    Go support<Go>
+    Guile support<Guile>
+    Java support<Java>
+    Javascript support<Javascript>
+    Lua support<Lua>
+    Octave support<Octave>
+    Perl5 support<Perl5>
+    PHP support<Php>
+    Python support<Python>
+    R support<R>
+    Ruby support<Ruby>
+    Scilab support<Scilab>
+    Tcl support<Tcl>
+
+.. toctree::
+    :caption: Experimental Language Modules Documentation
+    :maxdepth: 1
+
+    MzScheme/Racket support<Mzscheme>
+    OCaml support<Ocaml>
+
+.. toctree::
+    :caption: Developer Documentation
+    :maxdepth: 1
+
+    Extending SWIG<Extending>
+
+Last update : SWIG-4.1.0 (in progress)
