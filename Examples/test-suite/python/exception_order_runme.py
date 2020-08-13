@@ -25,8 +25,7 @@ try:
     a.foobar()
 except RuntimeError, e:
     if e.args[0] != "postcatch unknown":
-        print "bad exception order",
-        raise RuntimeError, e.args
+        raise RuntimeError("bad exception order {}".format(e.args))
 
 
 try:

@@ -33,8 +33,7 @@ if vu[2] != std_containers.videntu(vu)[2]:
 
 
 if v[0:3][1] != vu[0:3][1]:
-    print v[0:3][1], vu[0:3][1]
-    raise RuntimeError, "bad getslice"
+    raise RuntimeError("bad getslice {} {}".format(v[0:3][1], vu[0:3][1]))
 
 
 m = ((1, 2, 3), (2, 3), (3, 4))

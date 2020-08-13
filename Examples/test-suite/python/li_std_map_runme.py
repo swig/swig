@@ -25,8 +25,7 @@ for k in m:
 
 for k in m:
     if pm[k].this != m[k].this:
-        print pm[k], m[k]
-        raise RuntimeError
+        raise RuntimeError("Not equal {} {}".format(pm[k], m[k]))
 
 
 m = {}

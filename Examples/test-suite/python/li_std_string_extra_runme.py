@@ -10,8 +10,7 @@ if li_std_string_extra.test_cvalue(x) != x:
     raise RuntimeError, "bad string mapping"
 
 if li_std_string_extra.test_value(x) != x:
-    print x, li_std_string_extra.test_value(x)
-    raise RuntimeError, "bad string mapping"
+    raise RuntimeError("bad string mapping {} {}".format(x, li_std_string_extra.test_value(x)))
 
 if li_std_string_extra.test_const_reference(x) != x:
     raise RuntimeError, "bad string mapping"
@@ -23,8 +22,7 @@ s = li_std_string_extra.string("he")
 s = s + "llo"
 
 if s != x:
-    print s, x
-    raise RuntimeError, "bad string mapping"
+    raise RuntimeError("bad string mapping {} {}".format(s, x))
 
 if s[1:4] != x[1:4]:
     raise RuntimeError, "bad string mapping"
@@ -47,8 +45,7 @@ b = li_std_string_extra.string(" world")
 
 s = a + b
 if a + b != "hello world":
-    print a + b
-    raise RuntimeError, "bad string mapping"
+    raise RuntimeError("bad string mapping {}".format(a + b))
 
 if a + " world" != "hello world":
     raise RuntimeError, "bad string mapping"

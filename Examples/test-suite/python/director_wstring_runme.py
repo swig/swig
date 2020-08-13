@@ -17,12 +17,10 @@ b = B(u"hello")
 
 b.get(0)
 if b.get_first() != u"hello world!":
-    print b.get_first()
-    raise RuntimeError
+    raise RuntimeError("b.get_first(): {}".format(b.get_first()))
 
 
 b.call_process_func()
 
 if b.smem != u"hello":
-    print smem
-    raise RuntimeError
+    raise RuntimeError("smem: {}".format(smem))

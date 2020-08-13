@@ -13,7 +13,7 @@ m2 = MultimapAInt()
 #dummy_pair = m2.make_dummy_pair()
 #val = m2.typemap_test(dummy_pair)
 
-# print val
+# print("{}".format(val))
 # if val != 4321:
 #    raise RuntimeError, "typemaps not working"
 

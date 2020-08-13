@@ -34,68 +34,48 @@ class MyFoo4(Foo):
 
 # Check that the NotImplementedError raised by MyFoo.ping() is returned by
 # MyFoo.pong().
-ok = 0
 a = MyFoo()
 b = launder(a)
 try:
     b.pong()
 except NotImplementedError, e:
-    if str(e) == "MyFoo::ping() EXCEPTION":
-        ok = 1
-    else:
-        print "Unexpected error message: %s" % str(e)
-except:
+    if not str(e) == "MyFoo::ping() EXCEPTION":
+        raise RuntimeError("Unexpected error message: %s" % str(e))
+except TypeError:
     pass
-if not ok:
-    raise RuntimeError
 
 
 # Check that the director returns the appropriate TypeError if the return type
 # is wrong.
-ok = 0
 a = MyFoo2()
 b = launder(a)
 try:
     b.pong()
 except TypeError, e:
     # fastdispatch mode adds on Additional Information to the exception message - just check the main exception message exists
-    if str(e).startswith("SWIG director type mismatch in output value of type 'std::string'"):
-        ok = 1
-    else:
-        print "Unexpected error message: %s" % str(e)
-if not ok:
-    raise RuntimeError
+    if not str(e).startswith("SWIG director type mismatch in output value of type 'std::string'"):
+        raise RuntimeError("Unexpected error message: %s" % str(e))
 
 
 # Check that the director can return an exception which requires two arguments
 # to the constructor, without mangling it.
-ok = 0
 a = MyFoo3()
 b = launder(a)
 try:
     b.pong()
 except MyException, e:
-    if e.msg == "foobar":
-        ok = 1
-    else:
-        print "Unexpected error message: %s" % str(e)
-if not ok:
-    raise RuntimeError
+    if e.msg != "foobar":
+        raise RuntimeError("Unexpected error message: %s" % str(e))
 
 
 # Check that the director returns the appropriate TypeError thrown in a director method
-ok = 0
 a = MyFoo4()
 b = launder(a)
 try:
     b.pong()
 except TypeError as e:
-    if str(e).startswith("type() takes 1 or 3 arguments"):
-        ok = 1
-    else:
-        print "Unexpected error message: %s" % str(e)
-if not ok:
-    raise RuntimeError
+    if not str(e).startswith("type() takes 1 or 3 arguments"):
+        raise RuntimeError("Unexpected error message: %s" % str(e))
 
 
 # This is expected to fail with -builtin option

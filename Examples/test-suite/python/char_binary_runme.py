@@ -2,11 +2,9 @@ from char_binary import *
 
 t = Test()
 if t.strlen("hile") != 4:
-    print t.strlen("hile")
-    raise RuntimeError, "bad multi-arg typemap"
+    raise RuntimeError("bad multi-arg typemap {}".format(t.strlen("hile")))
 if t.ustrlen("hile") != 4:
-    print t.ustrlen("hile")
-    raise RuntimeError, "bad multi-arg typemap"
+    raise RuntimeError("bad multi-arg typemap {}".format(t.ustrlen("hile")))
 
 if t.strlen("hil\0") != 4:
     raise RuntimeError, "bad multi-arg typemap"
@@ -31,8 +29,7 @@ if t.ustrlen(pc) != 4:
 
 cvar.var_pchar = pc
 if cvar.var_pchar != "hola":
-    print cvar.var_pchar
-    raise RuntimeError, "bad pointer case"
+    raise RuntimeError("bad pointer case {}".format(cvar.var_pchar))
 
 cvar.var_namet = pc
 # if cvar.var_namet != "hola\0":

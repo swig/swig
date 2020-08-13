@@ -23,8 +23,7 @@ xstr2 = str.lstrip(xstr2, "0")
 xstr2 = str.upper(xstr2)
 
 if xstr1 != xstr2:
-    print xstr1, xstr2
-    raise RuntimeError
+    raise RuntimeError("Not equal failed {} {}".format(xstr1, xstr2))
 
 s = str(a.this)
 r = repr(a.this)

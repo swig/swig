@@ -31,8 +31,7 @@ v_check()
 
 
 def pyerror(name, val, cte):
-    print "bad val/cte", name, val, cte
-    raise RuntimeError
+    raise RuntimeError("bad val/cte {} {} {}".format(name, val, cte))
     pass
 
 if cvar.var_bool != cct_bool:
@@ -228,26 +227,22 @@ t.v_check()
 
 # this value contains a '0' char!
 if def_namet != "hola":
-    print "bad namet", def_namet
-    raise RuntimeError
+    raise RuntimeError("bad namet {}".format(def_namet))
 
 t.var_namet = def_namet
 if t.var_namet != def_namet:
-    print "bad namet", t.var_namet, def_namet
-    raise RuntimeError
+    raise RuntimeError("bad namet {} {}".format(t.var_namet, def_namet))
 
 t.var_namet = "hola"
 
 if t.var_namet != "hola":
-    print "bad namet", t.var_namet
-    raise RuntimeError
+    raise RuntimeError("bad namet {}".format(t.var_namet))
 
 t.var_namet = "hol"
 
 if t.var_namet != "hol":
     # if t.var_namet != "hol\0\0":
-    print "bad namet", t.var_namet
-    raise RuntimeError
+    raise RuntimeError("bad namet {}".format(t.var_namet))
 
 
 cvar.var_char = "\0"
@@ -261,8 +256,7 @@ if cvar.var_char != "\0":
 cvar.var_namet = "\0"
 # if cvar.var_namet != "\0\0\0\0\0":
 if cvar.var_namet != "":
-    print "hola", "", cvar.var_namet
-    raise RuntimeError, "bad char '\0' case"
+    raise RuntimeError("bad char '\0' case hola {}".format(cvar.var_namet))
 
 cvar.var_namet = ""
 # if cvar.var_namet != "\0\0\0\0\0":
@@ -275,8 +269,7 @@ if cvar.var_pchar != None:
 
 cvar.var_pchar = ""
 if cvar.var_pchar != "":
-    print "%c" % (cvar.var_pchar[0],)
-    raise RuntimeError, "bad char empty case"
+    raise RuntimeError("bad char empty case %c" % (cvar.var_pchar[0],))
 
 cvar.var_pcharc = None
 if cvar.var_pcharc != None:
@@ -300,8 +293,7 @@ pchar_setitem(pc, 4, 0)
 
 cvar.var_pchar = pc
 if cvar.var_pchar != "hola":
-    print cvar.var_pchar
-    raise RuntimeError, "bad pointer case"
+    raise RuntimeError("bad pointer case {}".format(cvar.var_pchar))
 
 cvar.var_namet = pc
 # if cvar.var_namet != "hola\0":

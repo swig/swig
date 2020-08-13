@@ -17,13 +17,13 @@ if len(sys.argv) >= 2 and sys.argv[1] == "benchmark":
     a = bytearray(b"hello world")
     for i in range(k):
         python_pybuffer.title1(a)
-    print "Time used by bytearray:", time.time() - t
+    print("Time used by bytearray: {}".format(time.time() - t))
 
     t = time.time()
     b = "hello world"
     for i in range(k):
         python_pybuffer.title2(b)
-    print "Time used by string:", time.time() - t
+    print("Time used by string: {}".format(time.time() - t))
 else:
     # run the test case
     buf1 = bytearray(10)

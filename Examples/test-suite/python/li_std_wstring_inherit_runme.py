@@ -7,8 +7,7 @@ s = li_std_wstring_inherit.wstring(u"he")
 s = s + u"llo"
 
 if s != x:
-    print s, x
-    raise RuntimeError("bad string mapping")
+    raise RuntimeError("bad string mapping {} {}".format(s, x))
 
 if s[1:4] != x[1:4]:
     raise RuntimeError("bad string mapping")
