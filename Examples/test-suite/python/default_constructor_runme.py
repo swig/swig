@@ -16,7 +16,7 @@ dc.delete_AA(aa)
 
 try:
     b = dc.new_B()
-    print "Whoa. new_BB created."
+    raise RuntimeError("Whoa. new_BB created.")
 except TypeError:
     pass
 
@@ -24,7 +24,7 @@ del_b = dc.delete_B
 
 try:
     bb = dc.new_BB()
-    print "Whoa. new_BB created."
+    raise RuntimeError("Whoa. new_BB created.")
 except AttributeError:
     pass
 
@@ -32,7 +32,7 @@ del_bb = dc.delete_BB
 
 try:
     c = dc.new_C()
-    print "Whoa. new_C created."
+    raise RuntimeError("Whoa. new_C created.")
 except AttributeError:
     pass
 
@@ -43,7 +43,7 @@ dc.delete_CC(cc)
 
 try:
     d = dc.new_D()
-    print "Whoa. new_D created"
+    raise RuntimeError("Whoa. new_D created")
 except AttributeError:
     pass
 
@@ -51,7 +51,7 @@ del_d = dc.delete_D
 
 try:
     dd = dc.new_DD()
-    print "Whoa. new_DD created"
+    raise RuntimeError("Whoa. new_DD created")
 except AttributeError:
     pass
 
@@ -59,7 +59,7 @@ dd = dc.delete_DD
 
 try:
     ad = dc.new_AD()
-    print "Whoa. new_AD created"
+    raise RuntimeError("Whoa. new_AD created")
 except AttributeError:
     pass
 
@@ -73,7 +73,7 @@ dc.delete_EE(ee)
 
 try:
     eb = dc.new_EB()
-    print "Whoa. new_EB created"
+    raise RuntimeError("Whoa. new_EB created")
 except AttributeError:
     pass
 
@@ -83,7 +83,7 @@ f = dc.new_F()
 
 try:
     del_f = dc.delete_F
-    print "Whoa. delete_F created"
+    raise RuntimeError("Whoa. delete_F created")
 except AttributeError:
     pass
 
@@ -93,7 +93,7 @@ g = dc.new_G()
 
 try:
     del_g = dc.delete_G
-    print "Whoa. delete_G created"
+    raise RuntimeError("Whoa. delete_G created")
 except AttributeError:
     pass
 
