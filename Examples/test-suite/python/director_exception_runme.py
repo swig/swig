@@ -28,7 +28,7 @@ class MyFoo3(Foo):
 class MyFoo4(Foo):
 
     def ping(self, *args):
-        print(type("bad", "call")) # throws TypeError message: type() takes 1 or 3 arguments
+        t = type("bad", "call") # throws TypeError message: type() takes 1 or 3 arguments
         return "Foo4.ping"
 
 
@@ -38,6 +38,7 @@ a = MyFoo()
 b = launder(a)
 try:
     b.pong()
+    raise RuntimeError("Exception was not thrown")
 except NotImplementedError, e:
     if not str(e) == "MyFoo::ping() EXCEPTION":
         raise RuntimeError("Unexpected error message: %s" % str(e))
@@ -51,6 +52,7 @@ a = MyFoo2()
 b = launder(a)
 try:
     b.pong()
+    raise RuntimeError("Exception was not thrown")
 except TypeError, e:
     # fastdispatch mode adds on Additional Information to the exception message - just check the main exception message exists
     if not str(e).startswith("SWIG director type mismatch in output value of type 'std::string'"):
@@ -63,6 +65,7 @@ a = MyFoo3()
 b = launder(a)
 try:
     b.pong()
+    raise RuntimeError("Exception was not thrown")
 except MyException, e:
     if e.msg != "foobar":
         raise RuntimeError("Unexpected error message: %s" % str(e))
@@ -73,6 +76,7 @@ a = MyFoo4()
 b = launder(a)
 try:
     b.pong()
+    raise RuntimeError("Exception was not thrown")
 except TypeError as e:
     if not str(e).startswith("type() takes 1 or 3 arguments"):
         raise RuntimeError("Unexpected error message: %s" % str(e))
