@@ -17,7 +17,7 @@ dc.delete_AA(aa)
 try:
     b = dc.new_B()
     print "Whoa. new_BB created."
-except:
+except TypeError:
     pass
 
 del_b = dc.delete_B
@@ -25,7 +25,7 @@ del_b = dc.delete_B
 try:
     bb = dc.new_BB()
     print "Whoa. new_BB created."
-except:
+except AttributeError:
     pass
 
 del_bb = dc.delete_BB
@@ -33,7 +33,7 @@ del_bb = dc.delete_BB
 try:
     c = dc.new_C()
     print "Whoa. new_C created."
-except:
+except AttributeError:
     pass
 
 del_c = dc.delete_C
@@ -44,7 +44,7 @@ dc.delete_CC(cc)
 try:
     d = dc.new_D()
     print "Whoa. new_D created"
-except:
+except AttributeError:
     pass
 
 del_d = dc.delete_D
@@ -52,7 +52,7 @@ del_d = dc.delete_D
 try:
     dd = dc.new_DD()
     print "Whoa. new_DD created"
-except:
+except AttributeError:
     pass
 
 dd = dc.delete_DD
@@ -60,7 +60,7 @@ dd = dc.delete_DD
 try:
     ad = dc.new_AD()
     print "Whoa. new_AD created"
-except:
+except AttributeError:
     pass
 
 del_ad = dc.delete_AD
@@ -74,7 +74,7 @@ dc.delete_EE(ee)
 try:
     eb = dc.new_EB()
     print "Whoa. new_EB created"
-except:
+except AttributeError:
     pass
 
 del_eb = dc.delete_EB

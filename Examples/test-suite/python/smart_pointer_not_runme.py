@@ -8,35 +8,35 @@ g = Grok(f)
 try:
     x = b.x
     print "Error! b.x"
-except:
+except AttributeError:
     pass
 
 try:
     x = s.x
     print "Error! s.x"
-except:
+except AttributeError:
     pass
 
 try:
     x = g.x
     print "Error! g.x"
-except:
+except AttributeError:
     pass
 
 try:
     x = b.getx()
     print "Error! b.getx()"
-except:
+except AttributeError:
     pass
 
 try:
     x = s.getx()
     print "Error! s.getx()"
-except:
+except AttributeError:
     pass
 
 try:
     x = g.getx()
     print "Error! g.getx()"
-except:
+except AttributeError:
     pass
