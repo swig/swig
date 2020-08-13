@@ -875,6 +875,15 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     global::System.IntPtr ret = $imcall;$excode
     return ret;
   }
+%typemap(csvarin, excode=SWIGEXCODE2) void *VOID_INT_PTR %{
+    set {
+      $imcall;$excode
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) void *VOID_INT_PTR %{
+    get {
+      global::System.IntPtr ret = $imcall;$excode
+      return ret;
+    } %}
 %typemap(csdirectorin) void *VOID_INT_PTR "$iminput"
 %typemap(csdirectorout) void *VOID_INT_PTR "$cscall"
 
