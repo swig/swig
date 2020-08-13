@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2020-08-13: wsfulton
+            [C#] Add support for void *VOID_INT_PTR for member variables.
+
+2020-07-29: chrisburr
+            #1843 [Python] Compilation error fix in SwigPyBuiltin_SetMetaType when using PyPy.
+
 2020-06-14: ZackerySpytz
             #1642 #1809 Fix virtual comparison operators in director classes - remove incorrect
             space in the function name, for example, operator= = is now operator==.
