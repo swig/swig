@@ -75,7 +75,7 @@ if myStringyClass.ReadOnlyString != "changed string":
 try:
     x = myFoo.does_not_exist
     raise RuntimeError
-except AttributeError, e:
+except AttributeError as e:
     if str(e).find("does_not_exist") == -1:
         raise RuntimeError
 

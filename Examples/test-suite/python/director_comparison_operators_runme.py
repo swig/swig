@@ -8,4 +8,4 @@ class PyFoo(director_comparison_operators.Foo):
 a = PyFoo()
 
 if a.test() != "a=1,b=2":
-    raise RuntimeError, a.test()
+    raise RuntimeError(a.test())

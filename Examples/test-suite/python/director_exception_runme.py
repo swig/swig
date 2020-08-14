@@ -10,7 +10,7 @@ class MyException(Exception):
 class MyFoo(Foo):
 
     def ping(self):
-        raise NotImplementedError, "MyFoo::ping() EXCEPTION"
+        raise NotImplementedError("MyFoo::ping() EXCEPTION")
 
 
 class MyFoo2(Foo):
@@ -39,7 +39,7 @@ b = launder(a)
 try:
     b.pong()
     raise RuntimeError("Exception was not thrown")
-except NotImplementedError, e:
+except NotImplementedError as e:
     if not str(e) == "MyFoo::ping() EXCEPTION":
         raise RuntimeError("Unexpected error message: %s" % str(e))
 except TypeError:
@@ -53,7 +53,7 @@ b = launder(a)
 try:
     b.pong()
     raise RuntimeError("Exception was not thrown")
-except TypeError, e:
+except TypeError as e:
     # fastdispatch mode adds on Additional Information to the exception message - just check the main exception message exists
     if not str(e).startswith("SWIG director type mismatch in output value of type 'std::string'"):
         raise RuntimeError("Unexpected error message: %s" % str(e))
@@ -66,7 +66,7 @@ b = launder(a)
 try:
     b.pong()
     raise RuntimeError("Exception was not thrown")
-except MyException, e:
+except MyException as e:
     if e.msg != "foobar":
         raise RuntimeError("Unexpected error message: %s" % str(e))
 
