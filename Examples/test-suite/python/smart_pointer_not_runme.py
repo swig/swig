@@ -7,36 +7,36 @@ g = Grok(f)
 
 try:
     x = b.x
-    print "Error! b.x"
-except:
+    raise RuntimeError("Error! b.x")
+except AttributeError:
     pass
 
 try:
     x = s.x
-    print "Error! s.x"
-except:
+    raise RuntimeError("Error! s.x")
+except AttributeError:
     pass
 
 try:
     x = g.x
-    print "Error! g.x"
-except:
+    raise RuntimeError("Error! g.x")
+except AttributeError:
     pass
 
 try:
     x = b.getx()
-    print "Error! b.getx()"
-except:
+    raise RuntimeError("Error! b.getx()")
+except AttributeError:
     pass
 
 try:
     x = s.getx()
-    print "Error! s.getx()"
-except:
+    raise RuntimeError("Error! s.getx()")
+except AttributeError:
     pass
 
 try:
     x = g.getx()
-    print "Error! g.getx()"
-except:
+    raise RuntimeError("Error! g.getx()")
+except AttributeError:
     pass

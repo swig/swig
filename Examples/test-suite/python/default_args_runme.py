@@ -108,47 +108,33 @@ def run(module_name):
     if Klass_inc().val != 0:
         raise RuntimeError("Klass::inc failed")
 
-    tricky_failure = False
     tricky = default_args.TrickyInPython()
     if tricky.value_m1(10) != -1:
-        print "trickyvalue_m1 failed"
-        tricky_failure = True
+        raise RuntimeError("trickyvalue_m1 failed")
     if tricky.value_m1(10, 10) != 10:
-        print "trickyvalue_m1 failed"
-        tricky_failure = True
+        raise RuntimeError("trickyvalue_m1 failed")
     if tricky.value_0xabcdef(10) != 0xabcdef:
-        print "trickyvalue_0xabcdef failed"
-        tricky_failure = True
+        raise RuntimeError("trickyvalue_0xabcdef failed")
     if tricky.value_0644(10) != 420:
-        print "trickyvalue_0644 failed"
-        tricky_failure = True
+        raise RuntimeError("trickyvalue_0644 failed")
     if tricky.value_perm(10) != 420:
-        print "trickyvalue_perm failed"
-        tricky_failure = True
+        raise RuntimeError("trickyvalue_perm failed")
     if tricky.value_m01(10) != -1:
-        print "trickyvalue_m01 failed"
-        tricky_failure = True
+        raise RuntimeError("trickyvalue_m01 failed")
     if not tricky.booltest2():
-        print "booltest2 failed"
-        tricky_failure = True
+        raise RuntimeError("booltest2 failed")
 
     if tricky.max_32bit_int1() != 0x7FFFFFFF:
-        print "max_32bit_int1 failed"
-        tricky_failure = True
+        raise RuntimeError("max_32bit_int1 failed")
     if tricky.min_32bit_int1() != -2147483648:
-        print "min_32bit_int1 failed"
-        tricky_failure = True
+        raise RuntimeError("min_32bit_int1 failed")
     if tricky.max_32bit_int2() != 0x7FFFFFFF:
-        print "max_32bit_int2 failed"
-        tricky_failure = True
+        raise RuntimeError("max_32bit_int2 failed")
 
     tricky.too_big_32bit_int1()
     tricky.too_small_32bit_int1()
     tricky.too_big_32bit_int2()
     tricky.too_small_32bit_int2()
-
-    if tricky_failure:
-        raise RuntimeError
 
     default_args.seek()
     default_args.seek(10)
