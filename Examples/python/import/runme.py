@@ -1,15 +1,22 @@
 # file: runme.py
 # Test various properties of classes defined in separate modules
+import sys
 
-print "Testing the %import directive"
+print("Testing the %import directive")
+
 import base
 import foo
 import bar
 import spam
 
+def write_flush(s):
+    # Python 2/3 compatible write and flush
+    sys.stdout.write(s)
+    sys.stdout.flush()
+
 # Create some objects
 
-print "Creating some objects"
+print("Creating some objects")
 
 a = base.Base()
 b = foo.Foo()
@@ -17,91 +24,74 @@ c = bar.Bar()
 d = spam.Spam()
 
 # Try calling some methods
-print "Testing some methods"
-print "",
-print "Should see 'Base::A' ---> ",
+print("Testing some methods")
+
+write_flush("  Should see 'Base::A' ---> ")
 a.A()
-print "Should see 'Base::B' ---> ",
+write_flush("  Should see 'Base::B' ---> ")
 a.B()
 
-print "Should see 'Foo::A' ---> ",
+write_flush("  Should see 'Foo::A' ---> ")
 b.A()
-print "Should see 'Foo::B' ---> ",
+write_flush("  Should see 'Foo::B' ---> ")
 b.B()
 
-print "Should see 'Bar::A' ---> ",
+write_flush("  Should see 'Bar::A' ---> ")
 c.A()
-print "Should see 'Bar::B' ---> ",
+write_flush("  Should see 'Bar::B' ---> ")
 c.B()
 
-print "Should see 'Spam::A' ---> ",
+write_flush("  Should see 'Spam::A' ---> ")
 d.A()
-print "Should see 'Spam::B' ---> ",
+write_flush("  Should see 'Spam::B' ---> ")
 d.B()
 
 # Try some casts
 
-print "\nTesting some casts\n"
-print "",
+print("\nTesting some casts\n")
 
 x = a.toBase()
-print "Should see 'Base::A' ---> ",
+write_flush("  Should see 'Base::A' ---> ")
 x.A()
-print "Should see 'Base::B' ---> ",
+write_flush("  Should see 'Base::B' ---> ")
 x.B()
 
 x = b.toBase()
-print "Should see 'Foo::A' ---> ",
+write_flush("  Should see 'Foo::A' ---> ")
 x.A()
 
-print "Should see 'Base::B' ---> ",
+write_flush("  Should see 'Base::B' ---> ")
 x.B()
 
 x = c.toBase()
-print "Should see 'Bar::A' ---> ",
+write_flush("  Should see 'Bar::A' ---> ")
 x.A()
 
-print "Should see 'Base::B' ---> ",
+write_flush("  Should see 'Base::B' ---> ")
 x.B()
 
 x = d.toBase()
-print "Should see 'Spam::A' ---> ",
+write_flush("  Should see 'Spam::A' ---> ")
 x.A()
 
-print "Should see 'Base::B' ---> ",
+write_flush("  Should see 'Base::B' ---> ")
 x.B()
 
 x = d.toBar()
-print "Should see 'Bar::B' ---> ",
+write_flush("  Should see 'Bar::B' ---> ")
 x.B()
 
-print "\nTesting some dynamic casts\n"
+print("\nTesting some dynamic casts\n")
 x = d.toBase()
 
-print " Spam -> Base -> Foo : ",
 y = foo.Foo_fromBase(x)
-if y:
-    print "bad swig"
-else:
-    print "good swig"
+print("  Spam -> Base -> Foo : {} swig".format("bad" if y else "good"))
 
-print " Spam -> Base -> Bar : ",
 y = bar.Bar_fromBase(x)
-if y:
-    print "good swig"
-else:
-    print "bad swig"
+print("  Spam -> Base -> Bar : {} swig".format("good" if y else "bad"))
 
-print " Spam -> Base -> Spam : ",
 y = spam.Spam_fromBase(x)
-if y:
-    print "good swig"
-else:
-    print "bad swig"
+print("  Spam -> Base -> Spam : {} swig".format("good" if y else "bad"))
 
-print " Foo -> Spam : ",
 y = spam.Spam_fromBase(b)
-if y:
-    print "bad swig"
-else:
-    print "good swig"
+print("  Foo -> Spam : {} swig".format("bad" if y else "good"))
