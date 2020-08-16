@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2020-08-16: wsfulton
+            [Python] Remove PyEval_InitThreads() call for Python 3.7 and later as Python calls
+            it automatically now. This removes a deprecation warning when using Python 3.9.
+
 2020-08-15: wsfulton
             [Python] All Python examples and tests are written to be Python 2 and Python 3
             compatible, removing the need for 2to3 to run the examples or test-suite.
