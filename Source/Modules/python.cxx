@@ -4308,6 +4308,10 @@ public:
     // struct _dictkeysobject *ht_cached_keys;
     printSlot(f, getSlot(n, "feature:python:ht_cached_keys"), "ht_cached_keys");
     Printv(f, "#endif\n", NIL);
+
+    Printv(f, "#if PY_VERSION_HEX >= 0x03090000\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:ht_module"), "ht_module", "PyObject *");
+    Printv(f, "#endif\n", NIL);
     Printf(f, "};\n\n");
 
     String *clientdata = NewString("");

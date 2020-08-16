@@ -8,6 +8,10 @@ Version 4.1.0 (in progress)
 ===========================
 
 2020-08-16: wsfulton
+            [Python] Add missing initializer for member ‘_heaptypeobject::ht_module’ when using
+            -builtin to complete Python 3.9 support.
+
+2020-08-16: wsfulton
             [Python] Remove PyEval_InitThreads() call for Python 3.7 and later as Python calls
             it automatically now. This removes a deprecation warning when using Python 3.9.
 
