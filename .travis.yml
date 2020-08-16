@@ -219,6 +219,11 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
+      env: SWIGLANG=python PY3=3 VER=3.9
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin
       sudo: required
       dist: xenial
@@ -232,7 +237,7 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=python SWIG_FEATURES=-builtin GCC=6 CPP11=1 PY3=3 VER=3.8
+      env: SWIGLANG=python SWIG_FEATURES=-builtin GCC=6 CPP11=1 PY3=3 VER=3.9
       sudo: required
       dist: xenial
     - compiler: gcc
@@ -257,12 +262,17 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
-      env: SWIGLANG=python SWIG_FEATURES="-builtin -O" PY3=3 VER=3.8
+      env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.9
       sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
-      env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.8 SWIGOPTPY3=
+      env: SWIGLANG=python SWIG_FEATURES="-builtin -O" PY3=3 VER=3.9
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.9 SWIGOPTPY3=
       sudo: required
       dist: xenial
     - compiler: gcc
@@ -272,7 +282,7 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
-      env: SWIGLANG=python SWIG_FEATURES=-O PY3=3 VER=3.8
+      env: SWIGLANG=python SWIG_FEATURES=-O PY3=3 VER=3.9
       sudo: required
       dist: xenial
     - compiler: gcc
@@ -404,7 +414,7 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=python GCC=8 CPP17=1 PY3=3 VER=3.8
+      env: SWIGLANG=python GCC=8 CPP17=1 PY3=3 VER=3.9
       sudo: required
       dist: xenial
     - os: linux
@@ -416,7 +426,7 @@ matrix:
       sudo: required
       dist: xenial
     - os: linux
-      env: SWIGLANG=python GCC=9 CPP17=1 PY3=3 VER=3.8
+      env: SWIGLANG=python GCC=9 CPP17=1 PY3=3 VER=3.9
       sudo: required
       dist: xenial
     - os: linux
