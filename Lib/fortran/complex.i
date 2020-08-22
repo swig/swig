@@ -23,9 +23,10 @@ struct SwigComplex_ ## CTYPE;
 %fortran_intrinsic(SwigComplex_ ## CTYPE, complex, FKIND)
 %fortran_apply_typemaps(SwigComplex_ ## CTYPE, CPPTYPE)
 
-%apply SwigComplex_ ## CTYPE& { CPPTYPE*, CPPTYPE[], CPPTYPE[ANY] };
-
 %apply SwigComplex_ ## CTYPE { CPPTYPE };
+%apply SwigComplex_ ## CTYPE[] { CPPTYPE[] };
+%apply SwigComplex_ ## CTYPE ARRAY[] { CPPTYPE ARRAY[] };
+%apply SwigComplex_ ## CTYPE[ANY] { CPPTYPE[ANY] };
 
 %typemap(ctype, in={SwigComplex_ ## CTYPE*}, null={SWIG_create_complex_ ## CTYPE(0, 0)}, fragment="SWIG_complex_"{CTYPE}, noblock=1) CPPTYPE {
   SwigComplex_ ## CTYPE
