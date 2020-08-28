@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2020-08-28: wsfulton
+            [Java] #1862 Fix crashes in swig_connect_director during director class construction
+            when using the director class from multiple threads - a race condition initialising
+            block scope static variables. The fix is guaranteed when using C++11, but most
+            compilers also fix it when using C++03/C++98.
+
 2020-08-16: wsfulton
             [Python] Add missing initializer for member ‘_heaptypeobject::ht_module’ when using
             -builtin to complete Python 3.9 support.
