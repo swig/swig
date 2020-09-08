@@ -138,15 +138,17 @@ for the Java module. They can also be seen by using:
 
       swig -java -help 
 
-+-----------------------+
-| Java specific options |
-+=======================+
-| -nopgcpp              |
-+-----------------------+
-| -noproxy              |
-+-----------------------+
-| -package <name>       |
-+-----------------------+
++-----------------------+---------------------------------------------+
+| Java specific options |                                             |
++=======================+=============================================+
+| -nopgcpp              | suppress the premature garbage collection   |
+|                       | prevention parameter                        |
++-----------------------+---------------------------------------------+
+| -noproxy              | generate the low-level functional interface |
+|                       | instead of proxy classes                    |
++-----------------------+---------------------------------------------+
+| -package <name>       | set name of the Java package to <name>      |
++-----------------------+---------------------------------------------+
 
 Their use will become clearer by the time you have finished reading this
 section on SWIG and Java.
@@ -403,7 +405,7 @@ Running SWIG from Visual Studio
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you are developing your application within Microsoft Visual studio,
-SWIG can be invoked as a custom build option. The Examples\java
+SWIG can be invoked as a custom build option. The ``Examples\java``
 directory has a few `Windows Examples <Windows.html#Windows_examples>`__
 containing Visual Studio project (.dsp) files. The process to re-create
 the project files for a C project are roughly:
@@ -424,7 +426,7 @@ the project files for a C project are roughly:
 -  Next, select the settings for the entire project and go to C/C++ tab
    and select the Preprocessor category. Add the include directories to
    the JNI header files under "Additional include directories", eg
-   "C:\jdk1.3\include, C:\jdk1.3\include\win32".
+   "``C:\jdk1.3\include, C:\jdk1.3\include\win32``".
 -  Next, select the settings for the entire project and go to Link tab
    and select the General category. Set the name of the output file to
    match the name of your Java module (ie. example.dll).
@@ -433,8 +435,8 @@ the project files for a C project are roughly:
    settings. Disabling precompiled headers for these files will overcome
    any precompiled header errors while building.
 -  Finally, add the java compilation as a post build rule in the
-   Post-build step tab in project settings, eg, "c:\jdk1.3\bin\javac
-   \*.java"
+   Post-build step tab in project settings, eg, "``c:\jdk1.3\bin\javac
+   *.java``"
 -  Build your project.
 
 Note: If using C++, choose a C++ suffix for the wrapper file, for
@@ -996,7 +998,7 @@ JavaWorld tips.
 
 Note that the syntax required for using typesafe enums is the same as
 that for proper Java enums. This is useful during the period that a
-project has to support legacy versions of Java. When upgrading to JDK
+project has to support legacy versions of Java. When upgrading to JDK 1.5
 or later, proper Java enums could be used instead, without users
 having to change their code. The following section details proper Java
 enum generation.
@@ -3142,62 +3144,61 @@ for marking a C++ class to be wrapped as a Java interface. There is more
 than one macro in order to provide a choice for choosing the Java
 interface and Java proxy names.
 
-+----------------------------------+----------------------------------+
-| **Interface Macro Name**         | **Description**                  |
-+----------------------------------+----------------------------------+
-| ``%interface(CTYPE)``            | For C++ class ``CTYPE``, proxy   |
-|                                  | class name is unchanged without  |
-|                                  | any suffix added, interface name |
-|                                  | has ``SwigInterface`` added as a |
-|                                  | suffix.                          |
-+----------------------------------+----------------------------------+
-| ``%interface_impl(CTYPE)``       | For C++ class ``CTYPE``, proxy   |
-|                                  | class name has ``SwigImpl``      |
-|                                  | added as a suffix, interface     |
-|                                  | name has no added suffix.        |
-+----------------------------------+----------------------------------+
-| ``%interface_custo               | For C++ class ``CTYPE``, proxy   |
-| m("PROXY", "INTERFACE", CTYPE)`` | class name is given by the       |
-|                                  | string ``PROXY``, interface name |
-|                                  | is given by the string           |
-|                                  | ``INTERFACE``. The ``PROXY`` and |
-|                                  | ``INTERFACE`` names can use the  |
-|                                  | `string formatting               |
-|                                  | functions <SWIG                  |
-|                                  | .html#SWIG_advanced_renaming>`__ |
-|                                  | used in ``%rename``.             |
-+----------------------------------+----------------------------------+
+.. list-table::
+    :widths: 30 70
+
+    * - **Interface Macro Name**
+      - **Description**
+
+    * - ``%interface(CTYPE)``
+      - For C++ class ``CTYPE``, proxy class name is unchanged without
+        any suffix added, interface name has ``SwigInterface`` added as
+        a suffix.
+
+    * - ``%interface_impl(CTYPE)``
+      - For C++ class ``CTYPE``, proxy class name has ``SwigImpl`` added
+        as a suffix, interface name has no added suffix.
+
+    * - ``%interface_custom("PROXY", "INTERFACE", CTYPE)``
+      - For C++ class ``CTYPE``, proxy class name is given by the
+        string ``PROXY``, interface name is given by the string
+        ``INTERFACE``. The ``PROXY`` and ``INTERFACE`` names can use
+        the `string formatting functions <SWIG.html#SWIG_advanced_renaming>`__
+        used in ``%rename``.
 
 The table below has a few examples showing the resulting proxy and
 interface names for a C++ class called ``Base``.
 
-+----------------------+----------------------+----------------------+
-| **Example Usage**    | **Proxy Class Name** | **Interface Class    |
-|                      |                      | Name**               |
-+----------------------+----------------------+----------------------+
-| ``%interface(Base)`` | ``Base``             | `                    |
-|                      |                      | `BaseSwigInterface`` |
-+----------------------+----------------------+----------------------+
-| ``%in                | ``BaseSwigImpl``     | ``Base``             |
-| terface_impl(Base)`` |                      |                      |
-+----------------------+----------------------+----------------------+
-| ``%interf            | ``BaseProxy``        | ``IBase``            |
-| ace_custom("BaseProx |                      |                      |
-| y", "IBase", Base)`` |                      |                      |
-+----------------------+----------------------+----------------------+
-| ``%inte              | ``BaseProxy``        | ``IBase``            |
-| rface_custom("%sProx |                      |                      |
-| y", "IBase", Base)`` |                      |                      |
-+----------------------+----------------------+----------------------+
-| ``%interface_        | ``BaseProxy``        | ``                   |
-| custom("%sProxy", "% |                      | BaseProxyInterface`` |
-| sInterface", Base)`` |                      |                      |
-+----------------------+----------------------+----------------------+
-| ``%interf            | ``BaseProxy``        | ``BaseInterface``    |
-| ace_custom("%sProxy" |                      |                      |
-| , "%(rstrip:[Proxy]) |                      |                      |
-| sInterface", Base)`` |                      |                      |
-+----------------------+----------------------+----------------------+
+.. list-table::
+    :widths: 50 25 25
+
+    * - **Example Usage**
+      - **Proxy Class Name**
+      - **Interface Class Name**
+
+    * - ``%interface(Base)``
+      - ``Base``
+      - ``BaseSwigInterface``
+
+    * - ``%interface_impl(Base)``
+      - ``BaseSwigImpl``
+      - ``Base``
+
+    * - ``%interface_custom("BaseProxy", "IBase", Base)``
+      - ``BaseProxy``
+      - ``IBase``
+
+    * - ``%interface_custom("%sProxy", "IBase", Base)``
+      - ``BaseProxy``
+      - ``IBase``
+
+    * - ``%interface_custom("%sProxy", "%sInterface", Base)``
+      - ``BaseProxy``
+      - ``BaseProxyInterface``
+
+    * - ``%interface_custom("%sProxy", "%(rstrip:[Proxy])sInterface", Base)``
+      - ``BaseProxy``
+      - ``BaseInterface``
 
 The 2nd last example shows the names used in the string formatting
 functions. The input for ``PROXY`` that ``"%s"`` expands to is the proxy
@@ -3926,7 +3927,7 @@ For example, you can just ignore them:
 
 Alternatively an exception compatible with the existing director method
 exception specifications can be thrown. Assuming that all methods allow
-std::runtime_error to be thrown, the ``return $null`` line above could
+std::runtime_error to be thrown, the ``return $null`` line above could
 be changed to:
 
 .. container:: code
@@ -4126,7 +4127,7 @@ Let's use the following Java class to override the director method.
 Consider the output using the Java code in the four slightly different
 scenarios below.
 
-Non-director C++ class is used, thus, no upcall to a Java director
+1. Non-director C++ class is used, thus, no upcall to a Java director
 method is made. A ``std::out_of_range`` exception is thrown, which is
 derived from ``std::exception``, and hence caught by the generic
 exception handler in the ``call_dirmethod`` wrapper. The Java code
@@ -4148,7 +4149,7 @@ snippet and resulting output is:
               at MyClass.call_dirmethod(MyClass.java:57)
               at runme.main(runme.java:14)
 
-Non-director C++ class again but this time the ``MyNS::MyException``
+2. Non-director C++ class again but this time the ``MyNS::MyException``
 class is thrown and caught:
 
 .. container:: code
@@ -4168,7 +4169,7 @@ class is thrown and caught:
               at MyClass.call_dirmethod(MyClass.java:57)
               at runme.main(runme.java:15)
 
-The ``DerivedClass`` director class is used so the upcall to Java
+3. The ``DerivedClass`` director class is used so the upcall to Java
 occurs, but it throws a Java ``MyException``, which gets converted into
 a C++ ``MyNS::MyException``, then caught and converted back into a Java
 ``MyException``:
@@ -4192,7 +4193,7 @@ a C++ ``MyNS::MyException``, then caught and converted back into a Java
               at MyClass.call_dirmethod(MyClass.java:57)
               at runme.main(runme.java:16)
 
-The director class is used again, but this time the director method
+4. The director class is used again, but this time the director method
 throws a Java ``IndexOutOfBoundsException`` exception which is converted
 into a C++ ``Swig::DirectorException``, thrown and caught again. This
 time the original Java exception is extracted from the
@@ -5352,52 +5353,67 @@ The following table lists the default type mapping from Java to C/C++.
 
 +-----------------------+-----------------------+-----------------------+
 | **C/C++ type**        | **Java type**         | **JNI type**          |
-+-----------------------+-----------------------+-----------------------+
++=======================+=======================+=======================+
 | bool                  | boolean               | jboolean              |
++-----------------------+                       |                       |
 | const bool &          |                       |                       |
 +-----------------------+-----------------------+-----------------------+
 | char                  | char                  | jchar                 |
++-----------------------+                       |                       |
 | const char &          |                       |                       |
 +-----------------------+-----------------------+-----------------------+
 | signed char           | byte                  | jbyte                 |
++-----------------------+                       |                       |
 | const signed char &   |                       |                       |
 +-----------------------+-----------------------+-----------------------+
 | unsigned char         | short                 | jshort                |
++-----------------------+                       |                       |
 | const unsigned char & |                       |                       |
 +-----------------------+-----------------------+-----------------------+
 | short                 | short                 | jshort                |
++-----------------------+                       |                       |
 | const short &         |                       |                       |
 +-----------------------+-----------------------+-----------------------+
 | unsigned short        | int                   | jint                  |
++-----------------------+                       |                       |
 | const unsigned short  |                       |                       |
 | &                     |                       |                       |
 +-----------------------+-----------------------+-----------------------+
 | int                   | int                   | jint                  |
++-----------------------+                       |                       |
 | const int &           |                       |                       |
 +-----------------------+-----------------------+-----------------------+
 | unsigned int          | long                  | jlong                 |
++-----------------------+                       |                       |
 | const unsigned int &  |                       |                       |
 +-----------------------+-----------------------+-----------------------+
 | long                  | int                   | jint                  |
++-----------------------+                       |                       |
 | const long &          |                       |                       |
 +-----------------------+-----------------------+-----------------------+
 | unsigned long         | long                  | jlong                 |
++-----------------------+                       |                       |
 | const unsigned long & |                       |                       |
 +-----------------------+-----------------------+-----------------------+
 | long long             | long                  | jlong                 |
++-----------------------+                       |                       |
 | const long long &     |                       |                       |
 +-----------------------+-----------------------+-----------------------+
 | unsigned long long    | java.math.BigInteger  | jobject               |
++-----------------------+                       |                       |
 | const unsigned long   |                       |                       |
 | long &                |                       |                       |
 +-----------------------+-----------------------+-----------------------+
 | float                 | float                 | jfloat                |
++-----------------------+                       |                       |
 | const float &         |                       |                       |
 +-----------------------+-----------------------+-----------------------+
 | double                | double                | jdouble               |
++-----------------------+                       |                       |
 | const double &        |                       |                       |
 +-----------------------+-----------------------+-----------------------+
 | char \*               | String                | jstring               |
++-----------------------+                       |                       |
 | char []               |                       |                       |
 +-----------------------+-----------------------+-----------------------+
 
@@ -5458,7 +5474,7 @@ is marshalled as a pointer, by reference or by value. It also applies
 for any unknown/incomplete types which use type wrapper classes.
 
 So in summary, the C/C++ pointer to non-primitive types is cast into the
-bit Java ``long`` type and therefore the JNI type is a ``jlong``. The
+64 bit Java ``long`` type and therefore the JNI type is a ``jlong``. The
 Java type is either the proxy class or type wrapper class.
 
 Sixty four bit JVMs
@@ -5467,7 +5483,7 @@ Sixty four bit JVMs
 If you are using a 64 bit JVM you may have to override the C long, but
 probably not C int default mappings. Mappings will be system dependent,
 for example long will need remapping on Unix LP64 systems (long, pointer
-bits, int 32 bits), but not on Microsoft 64 bit Windows which will be
+64 bits, int 32 bits), but not on Microsoft 64 bit Windows which will be
 using a P64 IL32 (pointer 64 bits and int, long 32 bits) model. This may
 be automated in a future version of SWIG. Note that the Java write once
 run anywhere philosophy holds true for all pure Java code when moving to
@@ -5713,8 +5729,8 @@ typemap marshals the real C/C++ type to the JNI type held in the "jni"
 typemap. For `non-primitive
 types <#Java_default_non_primitive_typemaps>`__ the "in" and "out"
 typemaps are responsible for casting between the C/C++ pointer and the
-bit ``jlong`` type. There is no portable way to cast a pointer into a
-bit integer type and the approach taken by SWIG is mostly portable,
+64 bit ``jlong`` type. There is no portable way to cast a pointer into a
+64 bit integer type and the approach taken by SWIG is mostly portable,
 but breaks C/C++ aliasing rules. In summary, these rules state that a
 pointer to any type must never be dereferenced by a pointer to any other
 incompatible type. The following code snippet might aid in understand
@@ -5731,7 +5747,7 @@ aliasing rules better:
       a = (short)i;    /* okay */
       a = *(short*)&i; /* breaks aliasing rules */
 
-An email posting, `Aliasing, pointer casts and gcc
+An email posting, `Aliasing, pointer casts and gcc 3.3
 <http://mail-index.netbsd.org/tech-kern/2003/08/11/0001.html>`__
 elaborates further on the subject. In SWIG, the "in" and "out" typemaps
 for pointers are typically
@@ -5786,115 +5802,86 @@ types <#Java_default_non_primitive_typemaps>`__ covered earlier. There
 are other type mapping typemaps in the Java library. These are listed
 below:
 
-| 
-|  
+.. list-table:: Java library typemap mappings
+    :widths: 15 15 15 15 15 25
 
-+-----------+-----------+-----------+-----------+-----------+-----------+
-| **C       | **        | **File**  | **Kind**  | **Java    | **F       |
-| Type**    | Typemap** |           |           | Type**    | unction** |
-+-----------+-----------+-----------+-----------+-----------+-----------+
-| primitive | INPUT     | t         | input     | Java      | Allows    |
-| pointers  |           | ypemaps.i |           | basic     | values to |
-| and       |           |           |           | types     | be used   |
-| r         |           |           |           |           | for C     |
-| eferences |           |           |           |           | functions |
-|           |           |           |           |           | taking    |
-|           |           |           |           |           | pointers  |
-|           |           |           |           |           | for data  |
-|           |           |           |           |           | input.    |
-+-----------+-----------+-----------+-----------+-----------+-----------+
-| primitive | OUTPUT    | t         | output    | Java      | Allows    |
-| pointers  |           | ypemaps.i |           | basic     | values    |
-| and       |           |           |           | type      | held      |
-| r         |           |           |           | arrays    | within an |
-| eferences |           |           |           |           | array to  |
-|           |           |           |           |           | be used   |
-|           |           |           |           |           | for C     |
-|           |           |           |           |           | functions |
-|           |           |           |           |           | taking    |
-|           |           |           |           |           | pointers  |
-|           |           |           |           |           | for data  |
-|           |           |           |           |           | output.   |
-+-----------+-----------+-----------+-----------+-----------+-----------+
-| primitive | INOUT     | t         | input     | Java      | Allows    |
-| pointers  |           | ypemaps.i | output    | basic     | values    |
-| and       |           |           |           | type      | held      |
-| r         |           |           |           | arrays    | within an |
-| eferences |           |           |           |           | array to  |
-|           |           |           |           |           | be used   |
-|           |           |           |           |           | for C     |
-|           |           |           |           |           | functions |
-|           |           |           |           |           | taking    |
-|           |           |           |           |           | pointers  |
-|           |           |           |           |           | for data  |
-|           |           |           |           |           | input and |
-|           |           |           |           |           | output.   |
-+-----------+-----------+-----------+-----------+-----------+-----------+
-| string    | [unnamed] | std       | input     | String    | Use for   |
-| wstring   |           | _string.i | output    |           | st        |
-|           |           |           |           |           | d::string |
-|           |           |           |           |           | mapping   |
-|           |           |           |           |           | to Java   |
-|           |           |           |           |           | String.   |
-+-----------+-----------+-----------+-----------+-----------+-----------+
-| arrays of | [unnamed] | arra      | input     | arrays of | Use for   |
-| primitive |           | ys_java.i | output    | primitive | mapping C |
-| types     |           |           |           | Java      | arrays to |
-|           |           |           |           | types     | Java      |
-|           |           |           |           |           | arrays.   |
-+-----------+-----------+-----------+-----------+-----------+-----------+
-| arrays of | JA        | arra      | input     | arrays of | Use for   |
-| clas      | VA_ARRAYS | ys_java.i | output    | proxy     | mapping C |
-| ses/struc | OFCLASSES |           |           | classes   | arrays to |
-| ts/unions | macro     |           |           |           | Java      |
-|           |           |           |           |           | arrays.   |
-+-----------+-----------+-----------+-----------+-----------+-----------+
-| arrays of | ARRA      | arra      | input     | int[]     | Use for   |
-| enums     | YSOFENUMS | ys_java.i | output    |           | mapping C |
-|           |           |           |           |           | arrays to |
-|           |           |           |           |           | Java      |
-|           |           |           |           |           | arrays    |
-|           |           |           |           |           | (t        |
-|           |           |           |           |           | ypeunsafe |
-|           |           |           |           |           | and       |
-|           |           |           |           |           | simple    |
-|           |           |           |           |           | enum      |
-|           |           |           |           |           | wrapping  |
-|           |           |           |           |           | a         |
-|           |           |           |           |           | pproaches |
-|           |           |           |           |           | only).    |
-+-----------+-----------+-----------+-----------+-----------+-----------+
-| char \*   | BYTE      | various.i | input     | byte[]    | Java byte |
-|           |           |           |           |           | array is  |
-|           |           |           |           |           | converted |
-|           |           |           |           |           | to char   |
-|           |           |           |           |           | array     |
-+-----------+-----------+-----------+-----------+-----------+-----------+
-| char \*\* | STR       | various.i | input     | String[]  | Use for   |
-|           | ING_ARRAY |           | output    |           | mapping   |
-|           |           |           |           |           | NULL      |
-|           |           |           |           |           | t         |
-|           |           |           |           |           | erminated |
-|           |           |           |           |           | arrays of |
-|           |           |           |           |           | C strings |
-|           |           |           |           |           | to Java   |
-|           |           |           |           |           | String    |
-|           |           |           |           |           | arrays    |
-+-----------+-----------+-----------+-----------+-----------+-----------+
-| unsigned  | NIOBUFFER | various.i | input     | java.n    | Use for   |
-| char \*   |           |           | output    | io.Buffer | mapping   |
-|           |           |           |           |           | directly  |
-|           |           |           |           |           | allocated |
-|           |           |           |           |           | buffers   |
-|           |           |           |           |           | to c/c++. |
-|           |           |           |           |           | useful    |
-|           |           |           |           |           | with      |
-|           |           |           |           |           | directors |
-|           |           |           |           |           | and long  |
-|           |           |           |           |           | lived     |
-|           |           |           |           |           | memory    |
-|           |           |           |           |           | objects   |
-+-----------+-----------+-----------+-----------+-----------+-----------+
+    * - **C Type**
+      - **Typemap**
+      - **File**
+      - **Kind**
+      - **Java Type**
+      - **Function**
+
+    * - primitive pointers and references
+      - INPUT
+      - typemaps.i
+      - input
+      - Java basic types
+      - Allows values to be used for C functions taking pointers for data input.
+
+    * - primitive pointers and references
+      - OUTPUT
+      - typemaps.i
+      - output
+      - Java basic type arrays
+      - Allows values held within an array to be used for C functions taking pointers for data output.
+
+    * - primitive pointers and references
+      - INOUT
+      - typemaps.i
+      - input output
+      - Java basic type arrays
+      - Allows values held within an array to be used for C functions taking pointers for data input and output.
+
+    * - string wstring
+      - [unnamed]
+      - std_string.i
+      - input output
+      - String
+      - Use for std::string mapping to Java String.
+
+    * - arrays of primitive types
+      - [unnamed]
+      - arrays_java.i
+      - input output
+      - arrays of primitive Java types
+      - Use for mapping C arrays to Java arrays.
+
+    * - arrays of classes/structs/unions
+      - JAVA_ARRAYSOFCLASSES macro
+      - arrays_java.i
+      - input output
+      - arrays of proxy classes
+      - Use for mapping C arrays to Java arrays.
+
+    * - arrays of enums
+      - ARRAYSOFENUMS
+      - arrays_java.i
+      - input output
+      - int[]
+      - Use for mapping C arrays to Java arrays (typeunsafe and simple enum wrapping approaches only).
+
+    * - char \*
+      - BYTE
+      - various.i
+      - input
+      - byte[]
+      - Java byte array is converted to char array
+
+    * - char \*\*
+      - STRING_ARRAY
+      - various.i
+      - input output
+      - String[]
+      - Use for mapping NULL terminated arrays of C strings to Java String arrays
+
+    * - unsigned char \*
+      - NIOBUFFER
+      - various.i
+      - input output
+      - java.nio.Buffer
+      - Use for mapping directly allocated buffers to c/c++. useful with directors and long lived memory objects
+
 
 Java typemap attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -5965,7 +5952,7 @@ documentation <Typemaps.html#Typemaps>`__, for example ``$1``,
 
 The Java module uses a few additional special variables:
 
-| **``$javaclassname``**
+| **$javaclassname**
 | This special variable works like the other `special
   variables <Typemaps.html#Typemaps_special_variables>`__ and
   ``$javaclassname`` is similar to ``$1_type``. It expands to the class
@@ -5982,7 +5969,7 @@ The Java module uses a few additional special variables:
   package name when using the `nspace
   feature <SWIGPlus.html#SWIGPlus_nspace>`__.
 
-| **``$javaclazzname``**
+| **$javaclazzname**
 | This special variable works like ``$javaclassname``, but expands the
   fully qualified C++ class into the package name, if used by the
   `nspace feature <SWIGPlus.html#SWIGPlus_nspace>`__, and the proxy
@@ -5992,7 +5979,7 @@ The Java module uses a few additional special variables:
   used for making calls to a function in the intermediary JNI class, as
   they are mangled with this prefix.
 
-| **``$null``**
+| **$null**
 | Used in input typemaps to return early from JNI functions that have
   either void or a non-void return type. Example:
 
@@ -6036,7 +6023,7 @@ otherwise $null expands to *NULL*
         ...
       }
 
-| **``$javainput, $jnicall and $owner``**
+| **$javainput, $jnicall and $owner**
 | The $javainput special variable is used in "javain" typemaps and
   $jnicall and $owner are used in "javaout" typemaps. $jnicall is
   analogous to $action in %exception. It is replaced by the call to the
@@ -6095,28 +6082,28 @@ allocated for it in ``bar``:
         return new Class(exampleJNI.bar(Class.getCPtr(cls), cls, ush), true);
       }
 
-| **``$static``**
+| **$static**
 | This special variable expands to either *static* or nothing depending
   on whether the class is an inner Java class or not. It is used in the
   "javaclassmodifiers" typemap so that global classes can be wrapped as
   Java proxy classes and nested C++ classes/enums can be wrapped with
   the Java equivalent, that is, static inner proxy classes.
 
-| **``$error, $jniinput, $javacall and $packagepath``**
+| **$error, $jniinput, $javacall and $packagepath**
 | These special variables are used in the directors typemaps. See
   `Director specific typemaps <#Java_directors_typemaps>`__ for details.
 
-| **``$module``**
+| **$module**
 | This special variable expands to the module name, as specified by
   ``%module`` or the ``-module`` commandline option.
 
-| **``$imclassname``**
+| **$imclassname**
 | This special variable expands to the intermediary class name. Usually
   this is the same as '$moduleJNI', unless the jniclassname attribute is
   specified in the `%module
   directive <Java.html#Java_module_directive>`__.
 
-| **``$javainterfacename``**
+| **$javainterfacename**
 | This special variable is only expanded when the ``interface`` feature
   is applied to a class. It works much like ``$javaclassname``, but
   instead of expanding to the proxy classname, it expands to the value
@@ -6135,7 +6122,7 @@ both ``MyClass`` and ``MyClass *``. The interface name is fully
 qualified with the package name when using the `nspace
 feature <SWIGPlus.html#SWIGPlus_nspace>`__.
 
-| **``$interfacename``**
+| **$interfacename**
 | This special variable is only expanded when the ``interface`` feature
   is applied to a class. It expands to just the interface name and is
   thus different to ``$javainterfacename`` in that it is not fully
@@ -6195,6 +6182,7 @@ following typemaps (the defaults).
 .. container:: indent
 
    base (extends) for Java class: empty default
+
    Note that this typemap accepts a ``replace`` attribute as an optional
    flag. When set to "1", it will replace/override any C++ base classes
    that might have been parsed. If this flag is not specified and there
@@ -6239,7 +6227,7 @@ following typemaps (the defaults).
    can be used multiple times per class and offers nearly identical
    functionality.
 
-| ``%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized", parameters="")``
+``%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized", parameters="")``
 
 .. container:: indent
 
@@ -6247,6 +6235,7 @@ following typemaps (the defaults).
    used for all proxy classes except those which have a base class :
    default calls C++ destructor (or frees C memory) and resets
    ``swigCPtr`` and ``swigCMemOwn`` flags
+
    Note that the ``delete()`` method name is configurable and is
    specified by the ``methodname`` attribute. The method modifiers are
    also configurable via the ``methodmodifiers`` attribute. If a
@@ -6264,6 +6253,7 @@ following typemaps (the defaults).
    same as "javadestruct" but only used for derived proxy classes :
    default calls C++ destructor (or frees C memory) and resets
    ``swigCPtr`` and ``swigCMemOwn`` flags
+
    Note that the ``delete()`` method name is configurable and is
    specified by the ``methodname`` attribute. The method modifiers are
    also configurable via the ``methodmodifiers`` attribute. If a
