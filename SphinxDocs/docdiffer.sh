@@ -4,8 +4,9 @@
 # Old documentation is in Doc/Manual/*.html
 # New documentation is in SphinxDocs/source/Manual/*.rst
 
-# Before running install appropriate tools:
-# sudo apt install pandoc python3-docutils html2text
+# Before running setup the environment as outlined in the README.md file,
+# then install additional tools:
+# sudo apt install html2text
 
 set -e
 
