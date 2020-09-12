@@ -13,3 +13,14 @@ Here is how to setup environment and build docs:
 * Open `build/html/index.html` in a browser to browse docs
 
 You might have to `make clean` if there are issues with generated html.
+
+## How to write docs
+
+Sphinx is fairly simple system to use. It uses a markup called restructured
+text (rst) to write docs. You can read the following tutorials to get started
+with rst and sphinx:
+
+* Learn RST in y minutes: https://learnxinyminutes.com/docs/rst/
+* reStructuredText Primer: https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
+* Sphinx Quickstart: https://www.sphinx-doc.org/en/master/usage/quickstart.html
+* Getting started with Sphinx: https://docs.readthedocs.io/en/stable/intro/getting-started-with-sphinx.html
