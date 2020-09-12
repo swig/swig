@@ -53,7 +53,7 @@ python ../Doc/Manual/makechap-no-numbering.py /tmp/$file-old.html 0 > /dev/null
 # Did not use html2text --body-width=0 as not available in Ubuntu's html2text
 # https://github.com/aaronsw/html2text probably should be used
 html2text /tmp/$file-old.html > /tmp/$file-old.txt 
-rst2html ../SphinxDocs/source/Manual/$file.rst > /tmp/$file-new.html
+rst2html.py ../SphinxDocs/source/Manual/$file.rst > /tmp/$file-new.html
 
 # The sed below removes one * in headings.
 # Done because the original html headings are one more than in the original than the new html.

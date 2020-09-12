@@ -2515,6 +2515,8 @@ further details.
 used to extend a structure with more than just methods, a more suitable
 directive name has been chosen.
 
+.. _cpp_templates:
+
 Templates
 --------------
 

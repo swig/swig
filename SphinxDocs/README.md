@@ -24,3 +24,4 @@ with rst and sphinx:
 * reStructuredText Primer: https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
 * Sphinx Quickstart: https://www.sphinx-doc.org/en/master/usage/quickstart.html
 * Getting started with Sphinx: https://docs.readthedocs.io/en/stable/intro/getting-started-with-sphinx.html
+* How to link/reference b/w docs: https://www.sphinx-doc.org/en/master/usage/restructuredtext/roles.html#ref-role

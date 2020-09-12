@@ -1012,7 +1012,7 @@ SWIG provides support for dealing with templates, but by default, it
 will not generate any member variable or function wrappers for templated
 classes. In order to create these wrappers, you need to explicitly tell
 SWIG to instantiate them. This is done via the
-:doc:```%template``<SWIGPlus>` directive.
+:ref:`%template<cpp_templates>` directive.
 
 Implicit Template instantiation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
