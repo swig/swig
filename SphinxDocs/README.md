@@ -8,7 +8,7 @@ because handcrafted html files are harder to maintain.
 Here is how to setup environment and build docs:
 
 * Install python3: `sudo apt-get install python3 python3-pip`
-* Install dependencies: `pip install -r requirements.txt`
+* Install dependencies: `pip3 install -r requirements.txt`
 * Build html: `make html`
 * Open `build/html/index.html` in a browser to browse docs
 
