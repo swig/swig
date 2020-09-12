@@ -158,7 +158,7 @@ intended to simplify the implementation of the internals. For instance,
 rather than having to support dozens of special directives, it is easier
 to have a few basic primitives such as ``%feature`` or ``%insert``.
 
-The *``langconfig.swg``* file is supplied by the target language. This
+The ``langconfig.swg`` file is supplied by the target language. This
 file contains language-specific configuration information. More often
 than not, this file provides run-time wrapper support code (e.g., the
 type-checker) as well as a collection of typemaps that define the
@@ -819,7 +819,7 @@ these primitive types. Specifically:
 Strings
 ~~~~~~~~~~~~~~
 
-**``String *NewString(const String_or_char *val)``**
+``String *NewString(const String_or_char *val)``
 
 .. container:: indent
 
@@ -827,7 +827,7 @@ Strings
    ``char *`` or another ``String`` object. If you want to create an
    empty string, use "" for val.
 
-**``String *NewStringf(const char *fmt, ...)``**
+``String *NewStringf(const char *fmt, ...)``
 
 .. container:: indent
 
@@ -835,37 +835,37 @@ Strings
    ``printf`` style format string in ``fmt``. Additional arguments
    follow depending on ``fmt``.
 
-**``String *Copy(String *s)``**
+``String *Copy(String *s)``
 
 .. container:: indent
 
    Make a copy of the string ``s``.
 
-**``void Delete(String *s)``**
+``void Delete(String *s)``
 
 .. container:: indent
 
    Deletes ``s``.
 
-**``int Len(const String_or_char *s)``**
+``int Len(const String_or_char *s)``
 
 .. container:: indent
 
    Returns the length of the string.
 
-**``char *Char(const String_or_char *s)``**
+``char *Char(const String_or_char *s)``
 
 .. container:: indent
 
    Returns a pointer to the first character in a string.
 
-**``void Append(String *s, const String_or_char *t)``**
+``void Append(String *s, const String_or_char *t)``
 
 .. container:: indent
 
    Appends ``t`` to the end of string ``s``.
 
-**``void Insert(String *s, int pos, const String_or_char *t)``**
+``void Insert(String *s, int pos, const String_or_char *t)``
 
 .. container:: indent
 
@@ -874,40 +874,40 @@ Strings
    for ``pos`` to indicate insertion at the end of the string
    (appending).
 
-**``int Strcmp(const String_or_char *s, const String_or_char *t)``**
+``int Strcmp(const String_or_char *s, const String_or_char *t)``
 
 .. container:: indent
 
    Compare strings ``s`` and ``t``. Same as the C ``strcmp()`` function.
 
-**``int Strncmp(const String_or_char *s, const String_or_char *t, int len)``**
+``int Strncmp(const String_or_char *s, const String_or_char *t, int len)``
 
 .. container:: indent
 
    Compare the first ``len`` characters of strings ``s`` and ``t``. Same
    as the C ``strncmp()`` function.
 
-**``char *Strstr(const String_or_char *s, const String_or_char *pat)``**
+``char *Strstr(const String_or_char *s, const String_or_char *pat)``
 
 .. container:: indent
 
    Returns a pointer to the first occurrence of ``pat`` in ``s``. Same
    as the C ``strstr()`` function.
 
-**``char *Strchr(const String_or_char *s, char ch)``**
+``char *Strchr(const String_or_char *s, char ch)``
 
 .. container:: indent
 
    Returns a pointer to the first occurrence of character ``ch`` in
    ``s``. Same as the C ``strchr()`` function.
 
-**``void Chop(String *s)``**
+``void Chop(String *s)``
 
 .. container:: indent
 
    Chops trailing whitespace off the end of ``s``.
 
-**``int Replace(String *s, const String_or_char *pat, const String_or_char *rep, int flags)``**
+``int Replace(String *s, const String_or_char *pat, const String_or_char *rep, int flags)``
 
 .. container:: indent
 
@@ -928,38 +928,38 @@ Strings
 Hashes
 ~~~~~~~~~~~~~
 
-**``Hash *NewHash()``**
+``Hash *NewHash()``
 
 .. container:: indent
 
    Creates a new empty hash table.
 
-**``Hash *Copy(Hash *h)``**
+``Hash *Copy(Hash *h)``
 
 .. container:: indent
 
    Make a shallow copy of the hash ``h``.
 
-**``void Delete(Hash *h)``**
+``void Delete(Hash *h)``
 
 .. container:: indent
 
    Deletes ``h``.
 
-**``int Len(Hash *h)``**
+``int Len(Hash *h)``
 
 .. container:: indent
 
    Returns the number of items in ``h``.
 
-**``Object *Getattr(Hash *h, const String_or_char *key)``**
+``Object *Getattr(Hash *h, const String_or_char *key)``
 
 .. container:: indent
 
    Gets an object from ``h``. ``key`` may be a string or a simple
    ``char *`` string. Returns NULL if not found.
 
-**``int Setattr(Hash *h, const String_or_char *key, const Object_or_char *val)``**
+``int Setattr(Hash *h, const String_or_char *key, const Object_or_char *val)``
 
 .. container:: indent
 
@@ -971,7 +971,7 @@ Hashes
    ``val``. Returns 1 if this operation replaced an existing hash entry,
    0 otherwise.
 
-**``int Delattr(Hash *h, const String_or_char *key)``**
+``int Delattr(Hash *h, const String_or_char *key)``
 
 .. container:: indent
 
@@ -979,7 +979,7 @@ Hashes
    count on the corresponding object (if any). Returns 1 if an object
    was removed, 0 otherwise.
 
-**``List *Keys(Hash *h)``**
+``List *Keys(Hash *h)``
 
 .. container:: indent
 
@@ -988,31 +988,31 @@ Hashes
 Lists
 ~~~~~~~~~~~~
 
-**``List *NewList()``**
+``List *NewList()``
 
 .. container:: indent
 
    Creates a new empty list.
 
-**``List *Copy(List *x)``**
+``List *Copy(List *x)``
 
 .. container:: indent
 
    Make a shallow copy of the List ``x``.
 
-**``void Delete(List *x)``**
+``void Delete(List *x)``
 
 .. container:: indent
 
    Deletes ``x``.
 
-**``int Len(List *x)``**
+``int Len(List *x)``
 
 .. container:: indent
 
    Returns the number of items in ``x``.
 
-**``Object *Getitem(List *x, int n)``**
+``Object *Getitem(List *x, int n)``
 
 .. container:: indent
 
@@ -1020,7 +1020,7 @@ Lists
    end of the list, the last item is returned. If ``n`` is negative, the
    first item is returned.
 
-**``int *Setitem(List *x, int n, const Object_or_char *val)``**
+``int *Setitem(List *x, int n, const Object_or_char *val)``
 
 .. container:: indent
 
@@ -1029,7 +1029,7 @@ Lists
    used to construct a ``String`` that is stored in the list. ``n`` must
    be in range. Otherwise, an assertion will be raised.
 
-**``int *Delitem(List *x, int n)``**
+``int *Delitem(List *x, int n)``
 
 .. container:: indent
 
@@ -1037,7 +1037,7 @@ Lists
    To delete the last item in the list, use the special value
    ``DOH_END`` for ``n``.
 
-**``void Append(List *x, const Object_or_char *t)``**
+``void Append(List *x, const Object_or_char *t)``
 
 .. container:: indent
 
@@ -1045,7 +1045,7 @@ Lists
    it is assumed to be a ``char *`` and is used to create a String
    object.
 
-**``void Insert(String *s, int pos, const Object_or_char *t)``**
+``void Insert(String *s, int pos, const Object_or_char *t)``
 
 .. container:: indent
 
@@ -1060,39 +1060,39 @@ Common operations
 
 The following operations are applicable to all datatypes.
 
-**``Object *Copy(Object *x)``**
+``Object *Copy(Object *x)``
 
 .. container:: indent
 
    Make a copy of the object ``x``.
 
-**``void Delete(Object *x)``**
+``void Delete(Object *x)``
 
 .. container:: indent
 
    Deletes ``x``.
 
-**``void Setfile(Object *x, String_or_char *f)``**
+``void Setfile(Object *x, String_or_char *f)``
 
 .. container:: indent
 
    Sets the filename associated with ``x``. Used to track objects and
    report errors.
 
-**``String *Getfile(Object *x)``**
+``String *Getfile(Object *x)``
 
 .. container:: indent
 
    Gets the filename associated with ``x``.
 
-**``void Setline(Object *x, int n)``**
+``void Setline(Object *x, int n)``
 
 .. container:: indent
 
    Sets the line number associated with ``x``. Used to track objects and
    report errors.
 
-**``int Getline(Object *x)``**
+``int Getline(Object *x)``
 
 .. container:: indent
 
@@ -1104,7 +1104,7 @@ Iterating over Lists and Hashes
 To iterate over the elements of a list or a hash table, the following
 functions are used:
 
-**``Iterator First(Object *x)``**
+``Iterator First(Object *x)``
 
 .. container:: indent
 
@@ -1115,7 +1115,7 @@ functions are used:
    key. The ``item`` and ``key`` attributes are NULL if the object
    contains no items or if there are no more items.
 
-**``Iterator Next(Iterator i)``**
+``Iterator Next(Iterator i)``
 
 .. container:: indent
 
@@ -1147,7 +1147,7 @@ Special I/O functions are used for all internal I/O. These operations
 work on C ``FILE *`` objects, String objects, and special ``File``
 objects (which are merely a wrapper around ``FILE *``).
 
-**``int Printf(String_or_FILE *f, const char *fmt, ...)``**
+``int Printf(String_or_FILE *f, const char *fmt, ...)``
 
 .. container:: indent
 
@@ -1156,7 +1156,7 @@ objects (which are merely a wrapper around ``FILE *``).
    format specifier works with both strings and ``char *``. All other
    format operators have the same meaning.
 
-**``int Printv(String_or_FILE *f, String_or_char *arg1, ..., NULL)``**
+``int Printv(String_or_FILE *f, String_or_char *arg1, ..., NULL)``
 
 .. container:: indent
 
@@ -1164,50 +1164,50 @@ objects (which are merely a wrapper around ``FILE *``).
    argument to this function must be NULL. The other arguments can
    either be ``char *`` or string objects.
 
-**``int Putc(int ch, String_or_FILE *f)``**
+``int Putc(int ch, String_or_FILE *f)``
 
 .. container:: indent
 
    Same as the C ``fputc()`` function.
 
-**``int Write(String_or_FILE *f, void *buf, int len)``**
+``int Write(String_or_FILE *f, void *buf, int len)``
 
 .. container:: indent
 
    Same as the C ``write()`` function.
 
-**``int Read(String_or_FILE *f, void *buf, int maxlen)``**
+``int Read(String_or_FILE *f, void *buf, int maxlen)``
 
 .. container:: indent
 
    Same as the C ``read()`` function.
 
-**``int Getc(String_or_FILE *f)``**
+``int Getc(String_or_FILE *f)``
 
 .. container:: indent
 
    Same as the C ``fgetc()`` function.
 
-**``int Ungetc(int ch, String_or_FILE *f)``**
+``int Ungetc(int ch, String_or_FILE *f)``
 
 .. container:: indent
 
    Same as the C ``ungetc()`` function.
 
-**``int Seek(String_or_FILE *f, int offset, int whence)``**
+``int Seek(String_or_FILE *f, int offset, int whence)``
 
 .. container:: indent
 
    Same as the C ``seek()`` function. ``offset`` is the number of bytes.
    ``whence`` is one of ``SEEK_SET``, ``SEEK_CUR``, or ``SEEK_END``..
 
-**``long Tell(String_or_FILE *f)``**
+``long Tell(String_or_FILE *f)``
 
 .. container:: indent
 
    Same as the C ``tell()`` function.
 
-**``File *NewFile(const char *filename, const char *mode, List *newfiles)``**
+``File *NewFile(const char *filename, const char *mode, List *newfiles)``
 
 .. container:: indent
 
@@ -1217,7 +1217,7 @@ objects (which are merely a wrapper around ``FILE *``).
    ``newfiles`` list if ``newfiles`` is non-zero and the file was
    created successfully.
 
-**``File *NewFileFromFile(FILE *f)``**
+``File *NewFileFromFile(FILE *f)``
 
 .. container:: indent
 
@@ -1255,42 +1255,42 @@ table in which arbitrary attributes can be stored. Certain attributes in
 the hash table provide links to other parse tree nodes. The following
 macros can be used to move around the parse tree.
 
-**``String *nodeType(Node *n)``**
+``String *nodeType(Node *n)``
 
 .. container:: indent
 
    Returns the node type tag as a string. The returned string indicates
    the type of parse tree node.
 
-**``Node *nextSibling(Node *n)``**
+``Node *nextSibling(Node *n)``
 
 .. container:: indent
 
    Returns the next node in the parse tree. For example, the next C
    declaration.
 
-**``Node *previousSibling(Node *n)``**
+``Node *previousSibling(Node *n)``
 
 .. container:: indent
 
    Returns the previous node in the parse tree. For example, the
    previous C declaration.
 
-**``Node *firstChild(Node *n)``**
+``Node *firstChild(Node *n)``
 
 .. container:: indent
 
    Returns the first child node. For example, if ``n`` was a C++ class
    node, this would return the node for the first class member.
 
-**``Node *lastChild(Node *n)``**
+``Node *lastChild(Node *n)``
 
 .. container:: indent
 
    Returns the last child node. You might use this if you wanted to
    append a new node to the children of a class.
 
-**``Node *parentNode(Node *n)``**
+``Node *parentNode(Node *n)``
 
 .. container:: indent
 
@@ -1300,37 +1300,37 @@ The following macros can be used to change all of the above attributes.
 Normally, these functions are only used by the parser. Changing them
 without knowing what you are doing is likely to be dangerous.
 
-**``void set_nodeType(Node *n, const String_or_char)``**
+``void set_nodeType(Node *n, const String_or_char)``
 
 .. container:: indent
 
    Change the node type. tree node.
 
-**``void set_nextSibling(Node *n, Node *s)``**
+``void set_nextSibling(Node *n, Node *s)``
 
 .. container:: indent
 
    Set the next sibling.
 
-**``void set_previousSibling(Node *n, Node *s)``**
+``void set_previousSibling(Node *n, Node *s)``
 
 .. container:: indent
 
    Set the previous sibling.
 
-**``void set_firstChild(Node *n, Node *c)``**
+``void set_firstChild(Node *n, Node *c)``
 
 .. container:: indent
 
    Set the first child node.
 
-**``void set_lastChild(Node *n, Node *c)``**
+``void set_lastChild(Node *n, Node *c)``
 
 .. container:: indent
 
    Set the last child node.
 
-**``void set_parentNode(Node *n, Node *p)``**
+``void set_parentNode(Node *n, Node *p)``
 
 .. container:: indent
 
@@ -1339,14 +1339,14 @@ without knowing what you are doing is likely to be dangerous.
 The following utility functions are used to alter the parse tree (at
 your own risk)
 
-**``void appendChild(Node *parent, Node *child)``**
+``void appendChild(Node *parent, Node *child)``
 
 .. container:: indent
 
    Append a child to ``parent``. The appended node becomes the last
    child.
 
-**``void deleteNode(Node *node)``**
+``void deleteNode(Node *node)``
 
 .. container:: indent
 
@@ -1401,7 +1401,7 @@ modifies a node, it is required to restore modified attributes to their
 original values. To simplify the task of saving/restoring attributes,
 the following functions are used:
 
-**``int Swig_save(const char *ns, Node *n, const char *name1, const char *name2, ..., NIL)``**
+``int Swig_save(const char *ns, Node *n, const char *name1, const char *name2, ..., NIL)``
 
 .. container:: indent
 
@@ -1414,7 +1414,7 @@ the following functions are used:
    this can be examined to find out where previous values of attributes
    might have been saved.
 
-**``int Swig_restore(Node *n)``**
+``int Swig_restore(Node *n)``
 
 .. container:: indent
 
@@ -1446,7 +1446,7 @@ the following functions are used:
            return SWIG_OK;
          }
 
-**``int Swig_require(const char *ns, Node *n, const char *name1, const char *name2, ..., NIL)``**
+``int Swig_require(const char *ns, Node *n, const char *name1, const char *name2, ..., NIL)``
 
 .. container:: indent
 
@@ -1555,68 +1555,68 @@ Type construction
 The following functions are used to construct types. You should use
 these functions instead of trying to build the type strings yourself.
 
-**``void SwigType_add_pointer(SwigType *ty)``**
+``void SwigType_add_pointer(SwigType *ty)``
 
 .. container:: indent
 
    Adds a pointer to ``ty``.
 
-**``void SwigType_del_pointer(SwigType *ty)``**
+``void SwigType_del_pointer(SwigType *ty)``
 
 .. container:: indent
 
    Removes a single pointer from ``ty``.
 
-**``void SwigType_add_reference(SwigType *ty)``**
+``void SwigType_add_reference(SwigType *ty)``
 
 .. container:: indent
 
    Adds a reference to ``ty``.
 
-**``void SwigType_add_array(SwigType *ty, const String_or_char *size)``**
+``void SwigType_add_array(SwigType *ty, const String_or_char *size)``
 
 .. container:: indent
 
    Adds an array with dimension ``dim`` to ``ty``.
 
-**``void SwigType_del_array(SwigType *ty)``**
+``void SwigType_del_array(SwigType *ty)``
 
 .. container:: indent
 
    Removes a single array dimension from ``ty``.
 
-**``int SwigType_array_ndim(SwigType *ty)``**
+``int SwigType_array_ndim(SwigType *ty)``
 
 .. container:: indent
 
    Returns number of array dimensions of ``ty``.
 
-**``String* SwigType_array_getdim(SwigType *ty, int n)``**
+``String* SwigType_array_getdim(SwigType *ty, int n)``
 
 .. container:: indent
 
    Returns ``n``\ th array dimension of ``ty``.
 
-**``void SwigType_array_setdim(SwigType *ty, int n, const String_or_char *rep)``**
+``void SwigType_array_setdim(SwigType *ty, int n, const String_or_char *rep)``
 
 .. container:: indent
 
    Sets ``n``\ th array dimensions of ``ty`` to ``rep``.
 
-**``void SwigType_add_qualifier(SwigType *ty, const String_or_char *q)``**
+``void SwigType_add_qualifier(SwigType *ty, const String_or_char *q)``
 
 .. container:: indent
 
    Adds a type qualifier ``q`` to ``ty``. ``q`` is typically ``"const"``
    or ``"volatile"``.
 
-**``void SwigType_add_memberpointer(SwigType *ty, const String_or_char *cls)``**
+``void SwigType_add_memberpointer(SwigType *ty, const String_or_char *cls)``
 
 .. container:: indent
 
    Adds a pointer to a member of class ``cls`` to ``ty``.
 
-**``void SwigType_add_function(SwigType *ty, ParmList *p)``**
+``void SwigType_add_function(SwigType *ty, ParmList *p)``
 
 .. container:: indent
 
@@ -1624,7 +1624,7 @@ these functions instead of trying to build the type strings yourself.
    as generated by the parser. See the section on parameter lists for
    details about the representation.
 
-**``void SwigType_add_template(SwigType *ty, ParmList *p)``**
+``void SwigType_add_template(SwigType *ty, ParmList *p)``
 
 .. container:: indent
 
@@ -1632,21 +1632,21 @@ these functions instead of trying to build the type strings yourself.
    as generated by the parser. See the section on parameter lists for
    details about the representation.
 
-**``SwigType *SwigType_pop(SwigType *ty)``**
+``SwigType *SwigType_pop(SwigType *ty)``
 
 .. container:: indent
 
    Removes the last type constructor from ``ty`` and returns it. ``ty``
    is modified.
 
-**``void SwigType_push(SwigType *ty, SwigType *op)``**
+``void SwigType_push(SwigType *ty, SwigType *op)``
 
 .. container:: indent
 
    Pushes the type operators in ``op`` onto type ``ty``. The opposite of
    ``SwigType_pop()``.
 
-**``SwigType *SwigType_pop_arrays(SwigType *ty)``**
+``SwigType *SwigType_pop_arrays(SwigType *ty)``
 
 .. container:: indent
 
@@ -1656,7 +1656,7 @@ these functions instead of trying to build the type strings yourself.
    ``"a(20).a(10)."`` and modify ``ty`` so that it has the value
    ``"p.int"``.
 
-**``SwigType *SwigType_pop_function(SwigType *ty)``**
+``SwigType *SwigType_pop_function(SwigType *ty)``
 
 .. container:: indent
 
@@ -1665,7 +1665,7 @@ these functions instead of trying to build the type strings yourself.
    this function would return ``"f(int)."`` and modify ``ty`` so that it
    has the value ``"int"``.
 
-**``SwigType *SwigType_base(SwigType *ty)``**
+``SwigType *SwigType_base(SwigType *ty)``
 
 .. container:: indent
 
@@ -1673,7 +1673,7 @@ these functions instead of trying to build the type strings yourself.
    ``"p.a(20).int"``, this function would return ``"int"``. ``ty`` is
    unmodified.
 
-**``SwigType *SwigType_prefix(SwigType *ty)``**
+``SwigType *SwigType_prefix(SwigType *ty)``
 
 .. container:: indent
 
@@ -1686,61 +1686,61 @@ Type tests
 
 The following functions can be used to test properties of a datatype.
 
-**``int SwigType_ispointer(SwigType *ty)``**
+``int SwigType_ispointer(SwigType *ty)``
 
 .. container:: indent
 
    Checks if ``ty`` is a standard pointer.
 
-**``int SwigType_ismemberpointer(SwigType *ty)``**
+``int SwigType_ismemberpointer(SwigType *ty)``
 
 .. container:: indent
 
    Checks if ``ty`` is a member pointer.
 
-**``int SwigType_isreference(SwigType *ty)``**
+``int SwigType_isreference(SwigType *ty)``
 
 .. container:: indent
 
    Checks if ``ty`` is a C++ reference.
 
-**``int SwigType_isarray(SwigType *ty)``**
+``int SwigType_isarray(SwigType *ty)``
 
 .. container:: indent
 
    Checks if ``ty`` is an array.
 
-**``int SwigType_isfunction(SwigType *ty)``**
+``int SwigType_isfunction(SwigType *ty)``
 
 .. container:: indent
 
    Checks if ``ty`` is a function.
 
-**``int SwigType_isqualifier(SwigType *ty)``**
+``int SwigType_isqualifier(SwigType *ty)``
 
 .. container:: indent
 
    Checks if ``ty`` is a qualifier.
 
-**``int SwigType_issimple(SwigType *ty)``**
+``int SwigType_issimple(SwigType *ty)``
 
 .. container:: indent
 
    Checks if ``ty`` is a simple type. No operators applied.
 
-**``int SwigType_isconst(SwigType *ty)``**
+``int SwigType_isconst(SwigType *ty)``
 
 .. container:: indent
 
    Checks if ``ty`` is a const type.
 
-**``int SwigType_isvarargs(SwigType *ty)``**
+``int SwigType_isvarargs(SwigType *ty)``
 
 .. container:: indent
 
    Checks if ``ty`` is a varargs type.
 
-**``int SwigType_istemplate(SwigType *ty)``**
+``int SwigType_istemplate(SwigType *ty)``
 
 .. container:: indent
 
@@ -1785,7 +1785,7 @@ produces two trees like this:
 To resolve a single typedef relationship, the following function is
 used:
 
-**``SwigType *SwigType_typedef_resolve(SwigType *ty)``**
+``SwigType *SwigType_typedef_resolve(SwigType *ty)``
 
 .. container:: indent
 
@@ -1825,7 +1825,7 @@ reduction of a function pointer:
 Two types are equivalent if their full type reductions are the same. The
 following function will fully reduce a datatype:
 
-**``SwigType *SwigType_typedef_resolve_all(SwigType *ty)``**
+``SwigType *SwigType_typedef_resolve_all(SwigType *ty)``
 
 .. container:: indent
 
@@ -1841,7 +1841,7 @@ However, not all C datatypes can be used in this way---especially arrays
 and const-qualified types. To generate a type that can be used as an
 lvalue, use the following function:
 
-**``SwigType *SwigType_ltype(SwigType *ty)``**
+``SwigType *SwigType_ltype(SwigType *ty)``
 
 .. container:: indent
 
@@ -1868,7 +1868,7 @@ Output functions
 
 The following functions produce strings that are suitable for output.
 
-**``String *SwigType_str(SwigType *ty, const String_or_char *id = 0)``**
+``String *SwigType_str(SwigType *ty, const String_or_char *id = 0)``
 
 .. container:: indent
 
@@ -1878,14 +1878,14 @@ The following functions produce strings that are suitable for output.
    function is used to convert string-encoded types back into a form
    that is valid C syntax.
 
-**``String *SwigType_lstr(SwigType *ty, const String_or_char *id = 0)``**
+``String *SwigType_lstr(SwigType *ty, const String_or_char *id = 0)``
 
 .. container:: indent
 
    This is the same as ``SwigType_str()`` except that the result is
    generated from the type's lvalue (as generated from SwigType_ltype).
 
-**``String *SwigType_lcaststr(SwigType *ty, const String_or_char *id = 0)``**
+``String *SwigType_lcaststr(SwigType *ty, const String_or_char *id = 0)``
 
 .. container:: indent
 
@@ -1894,7 +1894,7 @@ The following functions produce strings that are suitable for output.
    example, if ``ty`` is "``q(const).p.char``" and ``id`` is "``foo``",
    this function produces the string "``(char *) foo``".
 
-**``String *SwigType_rcaststr(SwigType *ty, const String_or_char *id = 0)``**
+``String *SwigType_rcaststr(SwigType *ty, const String_or_char *id = 0)``
 
 .. container:: indent
 
@@ -1904,7 +1904,7 @@ The following functions produce strings that are suitable for output.
    is "``foo``", this function produces the string
    "``(const char *) foo``".
 
-**``String *SwigType_manglestr(SwigType *ty)``**
+``String *SwigType_manglestr(SwigType *ty)``
 
 .. container:: indent
 
@@ -1954,39 +1954,39 @@ An empty list of parameters is denoted by a NULL pointer.
 Since parameter lists are fairly common, the following utility functions
 are provided to manipulate them:
 
-**``Parm  *CopyParm(Parm *p);``**
+``Parm *CopyParm(Parm *p);``
 
 .. container:: indent
 
    Copies a single parameter.
 
-**``ParmList  *CopyParmList(ParmList *p);``**
+``ParmList *CopyParmList(ParmList *p);``
 
 .. container:: indent
 
    Copies an entire list of parameters.
 
-**``int ParmList_len(ParmList *p);``**
+``int ParmList_len(ParmList *p);``
 
 .. container:: indent
 
    Returns the number of parameters in a parameter list.
 
-**``String *ParmList_str(ParmList *p);``**
+``String *ParmList_str(ParmList *p);``
 
 .. container:: indent
 
    Converts a parameter list into a C string. For example, produces a
    string like "``(int *p, int n, double x);``".
 
-**``String *ParmList_protostr(ParmList *p);``**
+``String *ParmList_protostr(ParmList *p);``
 
 .. container:: indent
 
    The same as ``ParmList_str()`` except that parameter names are not
    included. Used to emit prototypes.
 
-**``int ParmList_numrequired(ParmList *p);``**
+``int ParmList_numrequired(ParmList *p);``
 
 .. container:: indent
 
@@ -2562,21 +2562,19 @@ uses, or be prepared to kludge.
 
 The nickname is used in four places:
 
-**usage**
+.. list-table::
 
-**transform**
+    * - **usage**
+      - **transform**
 
-"skip" tag
+    * - "skip" tag
+      - (none)
 
-(none)
+    * - Examples/ subdir name
+      - (none)
 
-Examples/ subdir name
-
-(none)
-
-Examples/test-suite/ subdir name
-
-(none)
+    * - Examples/test-suite/ subdir name
+      - (none)
 
 As you can see, most usages are direct.
 
