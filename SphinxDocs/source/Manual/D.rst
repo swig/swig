@@ -123,6 +123,8 @@ extern(C) declarations of these functions in the intermediary D module.
 The ``dtype`` typemap contains the D types used in the D proxy
 module/class.
 
+.. _D_ddirectorinout:
+
 in, out, directorin, directorout
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -247,8 +249,8 @@ When generating D wrappers, a few additional macros are available:
 
 ``$dclazzname`` (C#: ``$csclazzname``)
    This special variable expands the fully qualified C++ class into the
-   package name, if used by the ```nspace``
-   feature <SWIGPlus.html#SWIGPlus_nspace>`__, and the proxy class name,
+   package name, if used by the `nspace
+   feature <SWIGPlus.html#the-nspace-feature-for-namespaces>`__, and the proxy class name,
    mangled for use as a function name. For example,
    ``Namespace1::Namespace2::Klass`` is expanded into
    ``Namespace1_Namespace2_Klass_``.
@@ -333,8 +335,8 @@ When generating D wrappers, a few additional macros are available:
 
 ``$dcall`` and ``$winput`` (C#: ``$cscall``, ``$iminput``)
    These variables are used in the director-specific typemaps
-   ```ddirectorin`` <D.html#D_ddirectorinout>`__ and
-   ```ddirectorout`` <D.html#D_ddirectorinout>`__. They are more or less
+   :ref:`ddirectorin <D_ddirectorinout>` and
+   :ref:`ddirectorout <D_ddirectorinout>`. They are more or less
    the reverse of the ``$imcall`` and ``$dinput`` macros: ``$dcall``
    contains the invocation of the D proxy method of which the return
    value is to be passed back to C++, ``$winput`` contains the parameter
@@ -552,7 +554,7 @@ Extended namespace support (nspace)
 
 By default, SWIG flattens all C++ namespaces into a single target
 language namespace, but as for Java and C#, the
-```nspace`` <SWIGPlus.html#SWIGPlus_nspace>`__ feature is supported for
+`nspace <SWIGPlus.html#SWIGPlus_nspace>`__ feature is supported for
 D. If it is active, C++ namespaces are mapped to D packages/modules.
 Note, however, that like for the other languages, *free* variables and
 functions are not supported yet; currently, they are all allows written
