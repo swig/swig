@@ -75,6 +75,13 @@ public class runme
         check_equal(li_std_wstring.test_ccvalue(x), "abc");
         check_equal(li_std_wstring.test_wchar_overload(x), "abc");
 
+        // Member variables
+        var s = new wchar_test_struct();
+        s.wchar_t_member = h;
+        check_equal(s.wchar_t_member, h);
+        s.wchar_t_ptr_member = x;
+        check_equal(s.wchar_t_ptr_member, "abc");
+
         {
             // Unicode strings
             string[] test_strings = {

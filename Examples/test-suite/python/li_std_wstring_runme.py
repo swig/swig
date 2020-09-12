@@ -54,6 +54,12 @@ check_equal(li_std_wstring.test_value(x), x)
 check_equal(li_std_wstring.test_ccvalue(x), "abc")
 check_equal(li_std_wstring.test_wchar_overload(x), "abc")
 
+ts = li_std_wstring.wchar_test_struct()
+ts.wchar_t_member = h
+check_equal(ts.wchar_t_member, h)
+ts.wchar_t_ptr_member = s
+check_equal(ts.wchar_t_ptr_member, s)
+
 ################### Python specific
 
 # Byte strings only converted in Python 2
