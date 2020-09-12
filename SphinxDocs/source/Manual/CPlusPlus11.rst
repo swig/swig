@@ -903,7 +903,7 @@ Static assertions
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 SWIG correctly parses the new ``static_assert`` declarations (though
-and earlier had a bug which meant this wasn't accepted at file
+3.0.12 and earlier had a bug which meant this wasn't accepted at file
 scope). This is a C++ compile time directive so there isn't anything
 useful that SWIG can do with it.
 

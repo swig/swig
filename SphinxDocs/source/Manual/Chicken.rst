@@ -110,7 +110,7 @@ The generated example.scm file then exports
 ``(declare (unit modulename))``, pass the -nounit option to SWIG.
 
 CHICKEN will be able to access the module using the
-``(declare         (uses modulename))`` CHICKEN Scheme form.
+``(declare (uses modulename))`` CHICKEN Scheme form.
 
 Constants and Variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -121,7 +121,7 @@ interface file:
 #. ``#define MYCONSTANT1 ...``
 #. ``%constant int MYCONSTANT2 = ...``
 #. ``const int MYCONSTANT3 = ...``
-#. ``enum { MYCONSTANT4  = ... };``
+#. ``enum { MYCONSTANT4 = ... };``
 
 In all cases, the constants may be accessed from within CHICKEN using
 the form ``(MYCONSTANT1)``; that is, the constants may be accessed using
@@ -238,8 +238,8 @@ Linkage
 Please refer to *CHICKEN - A practical and portable Scheme system -
 User's manual* for detailed help on how to link object files to create a
 CHICKEN Scheme program. Briefly, to link object files, be sure to add
-:literal:`\`chicken-config       -extra-libs -libs\`` or
-:literal:`\`chicken-config -shared       -extra-libs -libs\``\ to your
+:literal:`\`chicken-config -extra-libs -libs\`` or
+:literal:`\`chicken-config -shared -extra-libs -libs\``\ to your
 linker options. Use the ``-shared`` option if you want to create a
 dynamically loadable module. You might also want to use the much simpler
 ``csc`` or ``csc.bat``.
@@ -444,8 +444,8 @@ object might get deleted while the scheme code still holds a pointer to
 it. Further use of this pointer can lead to a crash.
 
 Adding a finalizer function from C code was added to chicken in the 1.89
-release, so garbage collection does not work for chicken versions below
-If you would like the SWIG generated code to work with chicken
+release, so garbage collection does not work for chicken versions below 1.89.
+If you would like the SWIG generated code to work with chicken 1.40
 to 1.89, pass the ``-nocollection`` argument to SWIG. This will not
 export code inside the \_wrap.c file to register finalizers, and will
 then export destructor functions which must be called manually.

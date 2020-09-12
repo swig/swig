@@ -58,19 +58,21 @@ for the C# module. They can also be seen by using:
 
       swig -csharp -help 
 
-+---------------------+
-| C# specific options |
-+=====================+
-| -dllimport <dl>     |
-+---------------------+
-| -namespace <nm>     |
-+---------------------+
-| -noproxy            |
-+---------------------+
-| -oldvarnames        |
-+---------------------+
-| -outfile <file>     |
-+---------------------+
++---------------------+---------------------------------------------------------+
+| C# specific options |                                                         |
++=====================+=========================================================+
+| -dllimport <dl>     | Override DllImport attribute name to <dl>               |
++---------------------+---------------------------------------------------------+
+| -namespace <nm>     | Generate wrappers into C# namespace <nm>                |
++---------------------+---------------------------------------------------------+
+| -noproxy            | Generate the low-level functional interface instead of  |
+|                     | proxy classes                                           |
++---------------------+---------------------------------------------------------+
+| -oldvarnames        | Old intermediary method names for variable wrappers     |
++---------------------+---------------------------------------------------------+
+| -outfile <file>     | Write all C# into a single <file> located in the output |
+|                     | directory                                               |
++---------------------+---------------------------------------------------------+
 
 The -outfile option combines all the generated C# code into a single
 output file instead of creating multiple C# files. The default, when
@@ -141,6 +143,7 @@ differences to Java are the following:
 
 -  The default enum wrapping approach is proper C# enums, not typesafe
    enums.
+
    Note that %csconst(0) will be ignored when wrapping C/C++ enums with
    proper C# enums. This is because C# enum items must be initialised
    from a compile time constant. If an enum item has an initialiser and
@@ -462,14 +465,14 @@ differences to Java are the following:
    of ensuring a reference to the proxy class is held until the
    unmanaged call completed.
 
-| **``$dllimport``**
+| **$dllimport**
 | This is a C# only special variable that can be used in typemaps,
   pragmas, features etc. The special variable will get translated into
   the value specified by the ``-dllimport`` commandline option if
   specified, otherwise it is equivalent to the **$module** special
   variable.
 
-| **``$imclassname``**
+| **$imclassname**
 | This special variable expands to the intermediary class name. For C#
   this is usually the same as '$modulePINVOKE' ('$moduleJNI' for Java),
   unless the imclassname attribute is specified in the `%module

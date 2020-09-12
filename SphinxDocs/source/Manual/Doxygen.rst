@@ -457,10 +457,10 @@ the SWIG generated code.
 
 The Javadoc translator will handle most of the tags conversions (see the
 table below). It will also automatically translate link-objects params,
-in \\see and \\link...\endlink commands. For example,
+in \\see and \\link...\\endlink commands. For example,
 'someFunction(std::string)' will be converted to 'someFunction(String)'.
 If you don't want such behaviour, you could turn this off by using the
-'doxygen:nolinktranslate' feature. Also all '\param' and '\tparam'
+'doxygen:nolinktranslate' feature. Also all '\\param' and '\\tparam'
 commands are stripped out, if the specified parameter is not present in
 the function. Use 'doxygen:nostripparams' to avoid.
 
@@ -473,135 +473,195 @@ Javadoc tags
 Here is the list of all Doxygen tags and the description of how they are
 translated to Javadoc
 
-.. container:: diagram
+.. list-table:: Java Doxygen Tags
+    :widths: 20 80
 
-   +------------------------------+
-   | Doxygen tags                 |
-   +==============================+
-   | \\a                          |
-   +------------------------------+
-   | \\arg                        |
-   +------------------------------+
-   | \\author                     |
-   +------------------------------+
-   | \\authors                    |
-   +------------------------------+
-   | \\b                          |
-   +------------------------------+
-   | \\c                          |
-   +------------------------------+
-   | \\cite                       |
-   +------------------------------+
-   | \\code                       |
-   +------------------------------+
-   | \\code{<ext>}                |
-   +------------------------------+
-   | \\cond                       |
-   +------------------------------+
-   | \\copyright                  |
-   +------------------------------+
-   | \\deprecated                 |
-   +------------------------------+
-   | \\e                          |
-   +------------------------------+
-   | \\else                       |
-   +------------------------------+
-   | \\elseif                     |
-   +------------------------------+
-   | \\em                         |
-   +------------------------------+
-   | \\endcode                    |
-   +------------------------------+
-   | \\endcond                    |
-   +------------------------------+
-   | \\endif                      |
-   +------------------------------+
-   | \\endlink                    |
-   +------------------------------+
-   | \\endverbatim                |
-   +------------------------------+
-   | \\exception                  |
-   +------------------------------+
-   | \\f$, \\f[, \\f], \\f{, \\f} |
-   +------------------------------+
-   | \\if                         |
-   +------------------------------+
-   | \\ifnot                      |
-   +------------------------------+
-   | \\image                      |
-   +------------------------------+
-   | \\li                         |
-   +------------------------------+
-   | \\link                       |
-   +------------------------------+
-   | \\n                          |
-   +------------------------------+
-   | \\note                       |
-   +------------------------------+
-   | \\overload                   |
-   +------------------------------+
-   | \\p                          |
-   +------------------------------+
-   | \\par                        |
-   +------------------------------+
-   | \\param                      |
-   +------------------------------+
-   | \\param[<dir>]               |
-   +------------------------------+
-   | \\remark                     |
-   +------------------------------+
-   | \\remarks                    |
-   +------------------------------+
-   | \\result                     |
-   +------------------------------+
-   | \\return                     |
-   +------------------------------+
-   | \\returns                    |
-   +------------------------------+
-   | \\sa                         |
-   +------------------------------+
-   | \\see                        |
-   +------------------------------+
-   | \\since                      |
-   +------------------------------+
-   | \\throw                      |
-   +------------------------------+
-   | \\throws                     |
-   +------------------------------+
-   | \\todo                       |
-   +------------------------------+
-   | \\tparam                     |
-   +------------------------------+
-   | \\verbatim                   |
-   +------------------------------+
-   | \\version                    |
-   +------------------------------+
-   | \\warning                    |
-   +------------------------------+
-   | \\$                          |
-   +------------------------------+
-   | \\@                          |
-   +------------------------------+
-   | \\\\                         |
-   +------------------------------+
-   | \\&                          |
-   +------------------------------+
-   | \\~                          |
-   +------------------------------+
-   | \\<                          |
-   +------------------------------+
-   | \\>                          |
-   +------------------------------+
-   | \\#                          |
-   +------------------------------+
-   | \\%                          |
-   +------------------------------+
-   | \\"                          |
-   +------------------------------+
-   | \\.                          |
-   +------------------------------+
-   | \\::                         |
-   +------------------------------+
+    * - \\a
+      - wrapped with <i> html tag
+
+    * - \\arg
+      - wrapped with <li> html tag
+
+    * - \\author
+      - translated to @author
+
+    * - \\authors
+      - translated to @author
+
+    * - \\b
+      - wrapped with <b> html tag
+
+    * - \\c
+      - wrapped with <code> html tag
+
+    * - \\cite
+      - wrapped with <i> html tag
+
+    * - \\code
+      - translated to {\@code ...}
+
+    * - \\code{<ext>}
+      - translated to {\@code ...}; code language extension is ignored
+
+    * - \\cond
+      - translated to 'Conditional comment: <condition>'
+
+    * - \\copyright
+      - replaced with 'Copyright:'
+
+    * - \\deprecated
+      - translated to @deprecated
+
+    * - \\e
+      - wrapped with <i> html tag
+
+    * - \\else
+      - replaced with '}Else:{'
+
+    * - \\elseif
+      - replaced with '}Else if: <condition>{'
+
+    * - \\em
+      - wrapped with <i> html tag
+
+    * - \\endcode
+      - see note for \\code
+
+    * - \\endcond
+      - replaced with 'End of conditional comment.'
+
+    * - \\endif
+      - replaced with '}'
+
+    * - \\endlink
+      - see note for \\link
+
+    * - \\endverbatim
+      - see note for \\verbatim
+
+    * - \\exception
+      - translated to @exception
+
+    * - \\f$, \\f[, \\f], \\f{, \\f}
+      - LateX formulas are left unchanged
+
+    * - \\if
+      - replaced with 'If: <condition> {'
+
+    * - \\ifnot
+      - replaced with 'If not: <condition> {'
+
+    * - \\image
+      - translated to <img/> html tag only if target=HTML
+
+    * - \\li
+      - wrapped with <li> html tag
+
+    * - \\link
+      - translated to {\@link ...}
+
+    * - \\n
+      - replaced with newline char
+
+    * - \\note
+      - replaced with 'Note:'
+
+    * - \\overload
+      - prints 'This is an overloaded ...' according to Doxygen docs
+
+    * - \\p
+      - wrapped with <code> html tag
+
+    * - \\par
+      - replaced with <p alt='title'>...</p>
+
+    * - \\param
+      - translated to @param
+
+    * - \\param[<dir>]
+      - translated to @param; parameter direction ('in'; 'out'; or 'in,out') is ignored
+
+    * - \\remark
+      - replaced with 'Remarks:'
+
+    * - \\remarks
+      - replaced with 'Remarks:'
+
+    * - \\result
+      - translated to @return
+
+    * - \\return
+      - translated to @return
+
+    * - \\returns
+      - translated to @return
+
+    * - \\sa
+      - translated to @see
+
+    * - \\see
+      - translated to @see
+
+    * - \\since
+      - translated to @since
+
+    * - \\throw
+      - translated to @throws
+
+    * - \\throws
+      - translated to @throws
+
+    * - \\todo
+      - replaced with 'TODO:'
+
+    * - \\tparam
+      - translated to @param
+
+    * - \\verbatim
+      - translated to {\@literal ...}
+
+    * - \\version
+      - translated to @version
+
+    * - \\warning
+      - translated to 'Warning:'
+
+    * - \\$
+      - prints $ char
+
+    * - \\@
+      - prints @ char
+
+    * - ``\\``
+      - prints \\ char
+
+    * - \\&
+      - prints & char
+
+    * - \\~
+      - prints ~ char
+
+    * - \\<
+      - prints < char
+
+    * - \\>
+      - prints > char
+
+    * - \\#
+      - prints # char
+
+    * - \\%
+      - prints % char
+
+    * - \\"
+      - prints " char
+
+    * - \\.
+      - prints . char
+
+    * - \\\:\:
+      - prints \:\:
+
 
 Unsupported tags
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -944,131 +1004,189 @@ Pydoc translator
 Here is the list of all Doxygen tags and the description of how they are
 translated to Pydoc
 
-.. container:: diagram
+.. list-table:: Python Doxygen tags
+    :widths: 20 80
 
-   +----------------+
-   | Doxygen tags   |
-   +================+
-   | \\a            |
-   +----------------+
-   | \\arg          |
-   +----------------+
-   | \\author       |
-   +----------------+
-   | \\authors      |
-   +----------------+
-   | \\b            |
-   +----------------+
-   | \\c            |
-   +----------------+
-   | \\cite         |
-   +----------------+
-   | \\code         |
-   +----------------+
-   | \\code{<ext>}  |
-   +----------------+
-   | \\cond         |
-   +----------------+
-   | \\copyright    |
-   +----------------+
-   | \\deprecated   |
-   +----------------+
-   | \\e            |
-   +----------------+
-   | \\else         |
-   +----------------+
-   | \\elseif       |
-   +----------------+
-   | \\em           |
-   +----------------+
-   | \\endcond      |
-   +----------------+
-   | \\endif        |
-   +----------------+
-   | \\example      |
-   +----------------+
-   | \\exception    |
-   +----------------+
-   | \\f$           |
-   +----------------+
-   | \\f[           |
-   +----------------+
-   | \\f{           |
-   +----------------+
-   | \\if           |
-   +----------------+
-   | \\ifnot        |
-   +----------------+
-   | \\li           |
-   +----------------+
-   | \\n            |
-   +----------------+
-   | \\note         |
-   +----------------+
-   | \\overload     |
-   +----------------+
-   | \\p            |
-   +----------------+
-   | \\par          |
-   +----------------+
-   | \\param        |
-   +----------------+
-   | \\param[<dir>] |
-   +----------------+
-   | \\remark       |
-   +----------------+
-   | \\remarks      |
-   +----------------+
-   | \\result       |
-   +----------------+
-   | \\return       |
-   +----------------+
-   | \\returns      |
-   +----------------+
-   | \\sa           |
-   +----------------+
-   | \\see          |
-   +----------------+
-   | \\since        |
-   +----------------+
-   | \\throw        |
-   +----------------+
-   | \\throws       |
-   +----------------+
-   | \\todo         |
-   +----------------+
-   | \\tparam       |
-   +----------------+
-   | \\verbatim     |
-   +----------------+
-   | \\version      |
-   +----------------+
-   | \\warning      |
-   +----------------+
-   | \\$            |
-   +----------------+
-   | \\@            |
-   +----------------+
-   | \\\\           |
-   +----------------+
-   | \\&            |
-   +----------------+
-   | \\~            |
-   +----------------+
-   | \\<            |
-   +----------------+
-   | \\>            |
-   +----------------+
-   | \\#            |
-   +----------------+
-   | \\%            |
-   +----------------+
-   | \\"            |
-   +----------------+
-   | \\.            |
-   +----------------+
-   | \\::           |
-   +----------------+
+    * - \\a
+      - wrapped with '*'
+
+    * - \\arg
+      - prepended with '* '
+
+    * - \\author
+      - prints 'Author:'
+
+    * - \\authors
+      - prints 'Authors:'
+
+    * - \\b
+      - wrapped with '**'
+
+    * - \\c
+      - wrapped with '``'
+
+    * - \\cite
+      - wrapped with single quotes
+
+    * - \\code
+      - replaced with '.. code-block:: c++'
+
+    * - \\code{<ext>}
+      - replaced with '.. code-block:: <lang>', where the following doxygen code languages are recognized: .c -> C, .py -> python, .java > java
+
+    * - \\cond
+      - translated to 'Conditional comment: <condition>'
+
+    * - \\copyright
+      - prints 'Copyright:'
+
+    * - \\deprecated
+      - prints 'Deprecated:'
+
+    * - \\e
+      - wrapped with '*'
+
+    * - \\else
+      - replaced with '}Else:{'
+
+    * - \\elseif
+      - replaced with '}Else if: <condition>{'
+
+    * - \\em
+      - wrapped with '*'
+
+    * - \\endcond
+      - replaced with 'End of conditional comment.'
+
+    * - \\endif
+      - replaced with '}'
+
+    * - \\example
+      - replaced with 'Example:'
+
+    * - \\exception
+      - replaced with ':raises:'
+
+    * - \\f$
+      - rendered using ':math:\`\`'
+
+    * - \\f[
+      - rendered using '.. math::'
+
+    * - \\f{
+      - rendered using '.. math::'
+
+    * - \\if
+      - replaced with 'If: <condition> {'
+
+    * - \\ifnot
+      - replaced with 'If not: <condition> {'
+
+    * - \\li
+      - prepended with '* '
+
+    * - \\n
+      - replaced with newline char
+
+    * - \\note
+      - replaced with 'Note:'
+
+    * - \\overload
+      - prints 'This is an overloaded ...' according to Doxygen docs
+
+    * - \\p
+      - wrapped with '``'
+
+    * - \\par
+      - replaced with 'Title: ...'
+
+    * - \\param
+      - add ':type:' and ':param:' directives
+
+    * - \\param[<dir>]
+      - same as \\param, but direction ('in'; 'out'; 'in,out') is included in ':type:' directive
+
+    * - \\remark
+      - replaced with 'Remarks:'
+
+    * - \\remarks
+      - replaced with 'Remarks:'
+
+    * - \\result
+      - add ':rtype:' and ':return:' directives
+
+    * - \\return
+      - add ':rtype:' and ':return:' directives
+
+    * - \\returns
+      - add ':rtype:' and ':return:' directives
+
+    * - \\sa
+      - replaced with 'See also:'
+
+    * - \\see
+      - replaced with 'See also:'
+
+    * - \\since
+      - replaced with 'Since:'
+
+    * - \\throw
+      - replaced with ':raises:'
+
+    * - \\throws
+      - replaced wih ':raises:'
+
+    * - \\todo
+      - replaced with 'TODO:'
+
+    * - \\tparam
+      - add ':type:' and ':param:' directives
+
+    * - \\verbatim
+      - content copied verbatim
+
+    * - \\version
+      - replaced with 'Version:'
+
+    * - \\warning
+      - translated to 'Warning:'
+
+    * - \\$
+      - prints $ char
+
+    * - \\@
+      - prints @ char
+
+    * - ``\\``
+      - prints \\ char
+
+    * - \\&
+      - prints & char
+
+    * - \\~
+      - prints ~ char
+
+    * - \\<
+      - prints < char
+
+    * - \\>
+      - prints > char
+
+    * - \\#
+      - prints # char
+
+    * - \\%
+      - prints % char
+
+    * - \\"
+      - prints " char
+
+    * - \\.
+      - prints . character
+
+    * - \\\:\:
+      - prints \:\:
+
 
 .. _unsupported-tags-1:
 

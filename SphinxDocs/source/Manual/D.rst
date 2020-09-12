@@ -158,7 +158,7 @@ the return type used in the intermediary D module to the type returned
 by the proxy function. The ``$excode`` special variable in ``dout``
 typemaps is replaced by the ``excode`` typemap attribute code if the
 method can throw any exceptions from unmanaged code, otherwise by
-nothing (the ```$imcall`` and ``$owner`` <D.html#D_imcall>`__ macros are
+nothing (the `$imcall and $owner <D_imcall_>`_ macros are
 replaced).
 
 The code from the ``ddirectorin`` and ``ddirectorout`` typemaps is used
@@ -289,6 +289,8 @@ When generating D wrappers, a few additional macros are available:
          void foo(SomeClass arg) {
            example_im.foo(SomeClass.getCPointer(arg));
          }
+
+.. _D_imcall:
 
 ``$imcall`` and ``$owner`` (C#: ``$imcall``)
    These variables are used in ``dout`` typemaps. ``$imcall`` contains
