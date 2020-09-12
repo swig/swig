@@ -106,6 +106,13 @@ public class runme
                 check_equal(received, expected);
             }
 
+            foreach (string expected in test_strings)
+            {
+                s.wchar_t_ptr_member = expected;
+                string received = s.wchar_t_ptr_member;
+                check_equal(received, expected);
+            }
+
             /* Not working for Japanese and Russian characters on Windows, okay on Linux
              * Is fixed by adding CharSet=CharSet.Unicode to the DllImport, so change to:
              * [global::System.Runtime.InteropServices.DllImport("li_std_wstring", CharSet=global::System.Runtime.InteropServices.CharSet.Unicode, EntryPoint="CSharp_li_std_wstringNamespace_test_wcvalue")]
