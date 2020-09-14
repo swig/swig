@@ -8,6 +8,12 @@ def failed():
     print("mkdist.py failed to complete")
     sys.exit(2)
 
+def check_file_exists(path):
+    return os.path.isfile(path)
+
+def check_dir_exists(path):
+    return os.path.isdir(path)
+
 import argparse
 parser = argparse.ArgumentParser(description="Build a SWIG distribution tarball swig-x.y.z.tar.gz")
 parser.add_argument("version", help="version string in format x.y.z")
@@ -33,13 +39,18 @@ if dirname.lower() != dirname:
 
 # If directory and tarball exist, remove it
 print("Removing " + dirname)
-os.system("rm -rf " + dirname)
+if check_dir_exists(dirname):
+    subprocess.call(["rm", "-rf", dirname])
 
 print("Removing " + dirname + ".tar if exists")
-os.system("rm -f " + dirname + ".tar.gz")
+filename = dirname + ".tar"
+if check_file_exists(filename):
+    subprocess.call(["rm", "-rf", filename])
 
 print("Removing " + dirname + ".tar.gz if exists")
-os.system("rm -f " + dirname + ".tar")
+filename += ".gz"
+if check_file_exists(filename):
+    subprocess.call(["rm", "-rf", filename])
 
 # Grab the code from git
 
