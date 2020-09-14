@@ -139,7 +139,6 @@ run_command("find", dirname, "-name", "autom4te.cache", "-exec", "rm", "-rf", "{
 
 # Build documentation
 print("Building html documentation")
-# os.system("cd " + dirname + "/Doc/Manual && make all clean-baks") == 0 or failed()
 docpath = os.path.join(dirpath, "Doc", "Manual")
 run_command("make", "all", "clean-baks", cwd=docpath) == 0 or failed()
 
