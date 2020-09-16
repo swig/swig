@@ -24,7 +24,7 @@ def run_command(*args, **kwargs):
     """
     Runs an os command using subprocess module.
     """
-    return subprocess.call([*args], **kwargs)
+    return subprocess.call(args, **kwargs)
 
 import argparse
 parser = argparse.ArgumentParser(description="Build a SWIG distribution tarball swig-x.y.z.tar.gz")
@@ -116,7 +116,7 @@ print("Grabbing tagged release git repository using 'git archive' into " + outdi
 # using pipe operator without shell=True; split commands into individual ones.
 # git archive command
 command = ["git", "archive", "--prefix=" + outdir, tag, "."]
-archive_ps = subprocess.Popen((*command, ), cwd=rootdir, stdout=subprocess.PIPE)
+archive_ps = subprocess.Popen(command, cwd=rootdir, stdout=subprocess.PIPE)
 # tar -xf -
 tar_ps = subprocess.Popen(("tar", "-xf", "-"), stdin=archive_ps.stdout, stdout=subprocess.PIPE)
 archive_ps.stdout.close()  # Allow archive_ps to receive a SIGPIPE if tar_ps exits.
