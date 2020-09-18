@@ -167,9 +167,9 @@ int fix_fortran_dims(Node *n, const char *tmap_name, String *typemap) {
 }
 
 /* -------------------------------------------------------------------------
- * \brief Determine whether to wrap an enum as a value.
+ * \brief Determine whether to wrap an enum as a fortran parameter.
  */
-bool is_native_enum(Node *n) {
+bool is_native_enum_decl(Node *n) {
   String *enum_feature = Getattr(n, "feature:fortran:const");
   if (!enum_feature) {
     // Determine from enum values
@@ -2897,7 +2897,7 @@ int FORTRAN::enumDeclaration(Node *n) {
 
   // Determine whether to add enum as a native fortran enumeration. If false,
   // the values are all wrapped as constants. Only create the list if values are defined.
-  bool is_native = is_native_enum(n) && firstChild(n);
+  bool is_native = is_native_enum_decl(n) && firstChild(n);
 
   // Check all enum values and update their names
   for (Node *c = firstChild(n); c; c = nextSibling(c)) {
@@ -3021,25 +3021,25 @@ int FORTRAN::callbackfunctionHandler(Node *n) {
  * and enum values.
  *
  * - Native enum values will become enumerators
- * - Constants marked with `%fortranconst` will be rendered as *named constants*
  * - Non-native enum values become C-bound external constants
+ * - Constants marked with `%fortranconst` will be rendered as *named constants*
  * - Constants marked with `%fortranbindc` also become C-bound external constants
  * - All other types will generate `getter` functions that return native fortran types.
  */
 int FORTRAN::constantWrapper(Node *n) {
   enum {
     NATIVE_ENUM,
-    NATIVE_CONSTANT,
     EXTERN_ENUM,
+    NATIVE_CONSTANT,
     EXTERN_CONSTANT
   } constant_type;
 
   if (d_enum_public) {
     constant_type = NATIVE_ENUM;
-  } else if (GetFlag(n, "feature:fortran:const") || Getattr(n, "feature:fortran:constvalue")) {
-    constant_type = NATIVE_CONSTANT;
   } else if (Cmp(nodeType(n), "enumitem") == 0) {
     constant_type = EXTERN_ENUM;
+  } else if (GetFlag(n, "feature:fortran:const") || Getattr(n, "feature:fortran:constvalue")) {
+    constant_type = NATIVE_CONSTANT;
   } else if (GetFlag(n, "feature:fortran:bindc") && has_constant_storage(n)) {
     constant_type = EXTERN_CONSTANT;
   } else {
