@@ -26,6 +26,7 @@ CPP_TEST_CASES = \
 	fortran_naming \
 	fortran_onlywrapped \
 	fortran_overloads \
+	fortran_std_span \
 	fortran_subroutine \
 	li_std_set \
 	complextest \

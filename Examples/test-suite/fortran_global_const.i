@@ -50,3 +50,18 @@ typedef enum {
 
 %}
 
+/* Test wrapping everything */
+%fortranconst;
+%nofortranconst NFCEnum;
+
+%inline %{
+typedef enum {
+  FCSierra = 1,
+  FCJuliet
+} FCEnum;
+
+typedef enum {
+  NFCWhiskey = 0x123
+} NFCEnum;
+
+%}

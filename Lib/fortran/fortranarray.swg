@@ -97,7 +97,8 @@ end subroutine}
   %typemap(imtype) CPPTYPE& = CPPTYPE;
   %typemap(ctype) CPPTYPE& = CPPTYPE;
 
-  // Update the resulting Fortran pointer.
-  //%typemap(fargout, match="argout", noblock=1) CPPTYPE& = VTYPE[]&;
+  // Update the resulting Fortran pointer, but only by reference (not const ref)
+  %typemap(fargout, match="fin", noblock=1) CPPTYPE& = VTYPE ARRAY[];
+  %typemap(fargout, noblock=1) const CPPTYPE& {};
 %enddef
 
