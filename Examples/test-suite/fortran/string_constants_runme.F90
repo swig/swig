@@ -8,8 +8,8 @@ program string_constants_runme
   implicit none
   type(things) :: foo
   ! note: Z'deadbeef' and O'777' are used to generate hex and oct constants
-  character(C_CHAR), parameter :: CR = char(Z'0D', C_CHAR)
-  character(C_CHAR), parameter :: LF = char(O'12', C_CHAR)
+  character(C_CHAR), parameter :: CR = char(int(Z'0D'), C_CHAR)
+  character(C_CHAR), parameter :: LF = char(int(O'12'), C_CHAR)
   character(kind=C_CHAR, len=*), parameter :: &
     expected_aa3 = "A" // CR // "B" // LF // "C"
   character(kind=C_CHAR, len=:), allocatable :: actual_aa3
