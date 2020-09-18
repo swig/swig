@@ -1853,11 +1853,11 @@ public:
    * addInterfaceNameAndUpcasts()
    * ----------------------------------------------------------------------------- */
 
-  void addInterfaceNameAndUpcasts(SwigType *smart, String *interface_list, String *interface_upcasts, Hash *base_list, String *c_classname) {
+  void addInterfaceNameAndUpcasts(SwigType *smart, String *interface_list, String *interface_upcasts, Hash *base_list, SwigType *c_classname) {
     List *keys = Keys(base_list);
     for (Iterator it = First(keys); it.item; it = Next(it)) {
       Node *base = Getattr(base_list, it.item);
-      String *c_baseclass = SwigType_namestr(Getattr(base, "name"));
+      SwigType *c_baseclassname = Getattr(base, "name");
       String *interface_name = Getattr(base, "interface:name");
       if (Len(interface_list))
 	Append(interface_list, ", ");
@@ -1877,11 +1877,11 @@ public:
       Replaceall(cptr_method_name, "$interfacename", interface_name);
 
       String *upcast_method_name = Swig_name_member(getNSpace(), getClassPrefix(), cptr_method_name);
-      upcastsCode(smart, upcast_method_name, c_classname, c_baseclass);
+      upcastsCode(smart, upcast_method_name, c_classname, c_baseclassname);
+
       Delete(upcast_method_name);
       Delete(cptr_method_name);
       Delete(interface_code);
-      Delete(c_baseclass);
     }
     Delete(keys);
   }
@@ -1892,19 +1892,23 @@ public:
    * Add code for C++ casting to base class
    * ----------------------------------------------------------------------------- */
 
-  void upcastsCode(SwigType *smart, String *upcast_method_name, String *c_classname, String *c_baseclass) {
+  void upcastsCode(SwigType *smart, String *upcast_method_name, SwigType *c_classname, SwigType *c_baseclassname) {
     String *jniname = makeValidJniName(upcast_method_name);
     String *wname = Swig_name_wrapper(jniname);
+
     Printf(imclass_cppcasts_code, "  public final static native long %s(long jarg1);\n", upcast_method_name);
+
+    String *classname = SwigType_namestr(c_classname);
+    String *baseclassname = SwigType_namestr(c_baseclassname);
     if (smart) {
-      SwigType *bsmart = Copy(smart);
-      SwigType *rclassname = SwigType_typedef_resolve_all(c_classname);
-      SwigType *rbaseclass = SwigType_typedef_resolve_all(c_baseclass);
-      Replaceall(bsmart, rclassname, rbaseclass);
-      Delete(rclassname);
-      Delete(rbaseclass);
       String *smartnamestr = SwigType_namestr(smart);
-      String *bsmartnamestr = SwigType_namestr(bsmart);
+      String *bsmartnamestr = SwigType_namestr(smart);
+
+      // TODO: SwigType_typedef_resolve_all on a String instead of SwigType is incorrect for templates
+      SwigType *rclassname = SwigType_typedef_resolve_all(classname);
+      SwigType *rbaseclassname = SwigType_typedef_resolve_all(baseclassname);
+      Replaceall(bsmartnamestr, rclassname, rbaseclassname);
+
       Printv(upcasts_code,
 	  "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
 	  "    jlong baseptr = 0;\n"
@@ -1915,19 +1919,24 @@ public:
 	  "    *(", bsmartnamestr, " **)&baseptr = argp1 ? new ", bsmartnamestr, "(*argp1) : 0;\n"
 	  "    return baseptr;\n"
 	  "}\n", "\n", NIL);
+
+      Delete(rbaseclassname);
+      Delete(rclassname);
       Delete(bsmartnamestr);
       Delete(smartnamestr);
-      Delete(bsmart);
     } else {
       Printv(upcasts_code,
 	  "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
 	  "    jlong baseptr = 0;\n"
 	  "    (void)jenv;\n"
 	  "    (void)jcls;\n"
-	  "    *(", c_baseclass, " **)&baseptr = *(", c_classname, " **)&jarg1;\n"
+	  "    *(", baseclassname, " **)&baseptr = *(", classname, " **)&jarg1;\n"
 	  "    return baseptr;\n"
 	  "}\n", "\n", NIL);
     }
+
+    Delete(baseclassname);
+    Delete(classname);
     Delete(wname);
     Delete(jniname);
   }
@@ -1937,10 +1946,9 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void emitProxyClassDefAndCPPCasts(Node *n) {
-    String *c_classname = SwigType_namestr(Getattr(n, "name"));
-    String *c_baseclass = NULL;
+    SwigType *c_classname = Getattr(n, "name");
+    SwigType *c_baseclassname = NULL;
     String *baseclass = NULL;
-    String *c_baseclassname = NULL;
     String *interface_list = NewStringEmpty();
     String *interface_upcasts = NewStringEmpty();
     SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
@@ -1962,12 +1970,13 @@ public:
 	Iterator base = First(baselist);
 	while (base.item) {
 	  if (!(GetFlag(base.item, "feature:ignore") || Getattr(base.item, "feature:interface"))) {
-	    String *baseclassname = Getattr(base.item, "name");
+	    SwigType *baseclassname = Getattr(base.item, "name");
 	    if (!c_baseclassname) {
-	      c_baseclassname = baseclassname;
-	      baseclass = Copy(getProxyName(baseclassname));
-	      if (baseclass)
-		c_baseclass = SwigType_namestr(baseclassname);
+	      String *name = getProxyName(baseclassname);
+	      if (name) {
+		c_baseclassname = baseclassname;
+		baseclass = name;
+	      }
 	    } else {
 	      /* Warn about multiple inheritance for additional base class(es) */
 	      String *proxyclassname = Getattr(n, "classtypeobj");
@@ -1984,7 +1993,7 @@ public:
     if (interface_bases)
       addInterfaceNameAndUpcasts(smart, interface_list, interface_upcasts, interface_bases, c_classname);
 
-    bool derived = baseclass && getProxyName(c_baseclassname);
+    bool derived = baseclass != 0;
     if (derived && purebase_notderived)
       pure_baseclass = empty_string;
     const String *wanted_base = baseclass ? baseclass : pure_baseclass;
@@ -1992,7 +2001,6 @@ public:
     if (purebase_replace) {
       wanted_base = pure_baseclass;
       derived = false;
-      Delete(baseclass);
       baseclass = NULL;
       if (purebase_notderived)
         Swig_error(Getfile(n), Getline(n), "The javabase typemap for proxy %s must contain just one of the 'replace' or 'notderived' attributes.\n", typemap_lookup_type);
@@ -2115,12 +2123,11 @@ public:
 
     if (derived) {
       String *upcast_method_name = Swig_name_member(getNSpace(), getClassPrefix(), smart != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
-      upcastsCode(smart, upcast_method_name, c_classname, c_baseclass);
+      upcastsCode(smart, upcast_method_name, c_classname, c_baseclassname);
       Delete(upcast_method_name);
     }
 
     Delete(smart);
-    Delete(baseclass);
   }
 
   /* ----------------------------------------------------------------------

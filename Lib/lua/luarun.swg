@@ -1765,6 +1765,11 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State *L,int index,void **ptr,swig_type
     *ptr=0;
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
+  if (lua_islightuserdata(L,index))
+  {
+    *ptr=lua_touserdata(L,index);
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
+  }
   usr=(swig_lua_userdata*)lua_touserdata(L,index);  /* get data */
   if (usr)
   {

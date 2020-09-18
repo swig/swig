@@ -4,6 +4,9 @@
 
 set -e # exit on failure (same as -o errexit)
 
+# Disable 'brew cleanup', just wastes Travis job run time
+export HOMEBREW_NO_INSTALL_CLEANUP=1
+
 sw_vers
 travis_retry brew update
 travis_retry brew list
@@ -23,7 +26,7 @@ case "$SWIGLANG" in
 		travis_retry brew install lua
 		;;
 	"octave")
-		travis_retry brew install octave
+		travis_retry Tools/brew-install octave
 		;;
 	"python")
 		WITHLANG=$SWIGLANG$PY3

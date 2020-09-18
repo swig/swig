@@ -267,6 +267,8 @@ class TypePass:private Dispatcher {
 	       and smart pointer to base class, so that smart pointer upcasts
 	       are automatically generated. */
 	    SwigType *bsmart = Copy(smart);
+
+	    // TODO: SwigType_typedef_resolve_all on a String instead of SwigType is incorrect for templates
 	    SwigType *rclsname = SwigType_typedef_resolve_all(clsname);
 	    SwigType *rbname = SwigType_typedef_resolve_all(bname);
 	    int replace_count = Replaceall(bsmart, rclsname, rbname);
@@ -276,6 +278,12 @@ class TypePass:private Dispatcher {
 	      String *firstname = Getattr(first, "name");
 	      Replaceall(bsmart, firstname, rbname);
 	    }
+	    // The code above currently creates a smartptr of the base class by substitution, replacing Derived
+	    // with Base resulting in something like: 'smartptr< Derived >' from 'smartptr< Base >'. Instead
+	    // the feature:smartptr should be used as it also contains 'smartptr< Base >' as specified by the user.
+	    // A similar fix should also be done in upcastsCode in java.cxx, csharp.cxx and writeClassUpcast in d.cxx.
+	    // Printf(stdout, "smartcomparison %s <=> %s\n", SwigType_namestr(bsmart), Getattr(bclass, "feature:smartptr"));
+
 	    Delete(rclsname);
 	    Delete(rbname);
 	    String *smartnamestr = SwigType_namestr(smart);

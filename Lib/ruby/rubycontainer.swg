@@ -628,7 +628,7 @@ namespace swig
       try {
 	r = swig::from< const Sequence* >( swig::getslice(self, i, j) );
       }
-      catch( std::out_of_range ) {
+      catch( const std::out_of_range& ) {
       }
       return r;
     }
@@ -687,9 +687,8 @@ namespace swig
 	r = swig::from< Sequence::value_type >( *(at) );
 	$self->erase(at); 
       }
-      catch (std::out_of_range)
-	{
-	}
+      catch (const std::out_of_range&) {
+      }
       return r;
     }
   }
@@ -757,7 +756,7 @@ namespace swig
       try {
 	r = swig::from< Sequence::value_type >( *(swig::cgetpos(self, i)) );
       }
-      catch( std::out_of_range ) {
+      catch( const std::out_of_range& ) {
       }
       return r;
     }
@@ -780,7 +779,7 @@ namespace swig
       try {
 	r = swig::from< const Sequence* >( swig::getslice(self, i, j) );
       }
-      catch( std::out_of_range ) {
+      catch( const std::out_of_range& ) {
       }
       return r;
     }
@@ -790,7 +789,7 @@ namespace swig
       try {
 	r = swig::from< Sequence::value_type >( *(swig::cgetpos(self, i)) );
       }
-      catch( std::out_of_range ) {
+      catch( const std::out_of_range& ) {
       }
       return r;
     }
@@ -1017,7 +1016,7 @@ namespace swig {
 	  } else {
 	    return rubyseq.check() ? SWIG_OK : SWIG_ERROR;
 	  }
-	} catch (std::exception& e) {
+	} catch (const std::exception& e) {
 	  if (seq) {
 	    VALUE lastErr = rb_gv_get("$!");
 	    if (lastErr == Qnil) {
@@ -1057,7 +1056,7 @@ namespace swig {
 	  } else {
 	    return true;
 	  }
-	} catch (std::exception& e) {
+	} catch (const std::exception& e) {
 	  if (seq) {
 	    VALUE lastErr = rb_gv_get("$!");
 	    if (lastErr == Qnil) {

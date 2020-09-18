@@ -138,3 +138,31 @@ void DerivedNoVirtualStruct::ef() {}
 DerivedNoVirtualStruct::~DerivedNoVirtualStruct() {}
 %}
 
+%inline %{
+namespace Outer {
+  namespace final {
+    template <typename T> struct smart_ptr {
+      typedef T type;
+    };
+  }
+  namespace override {
+    template <typename T> struct dumb_ptr {
+      typedef T type;
+    };
+  }
+}
+%}
+
+%template(SmartPtrBaseStruct) Outer::final::smart_ptr<DerivedStruct>;
+
+%inline %{
+class ObjectDB
+{
+public:
+  static void smart1(typename Outer::final::smart_ptr<DerivedStruct>::type *objectT) {}
+  static void smart2(Outer::final::smart_ptr<DerivedStruct>::type *objectT) {}
+  static void dumb1(typename Outer::override::dumb_ptr<DerivedStruct>::type *objectT) {}
+  static void dumb2(Outer::override::dumb_ptr<DerivedStruct>::type *objectT) {}
+  static Outer::final::smart_ptr<DerivedStruct>::type get() { return DerivedStruct(); }
+};
+%}

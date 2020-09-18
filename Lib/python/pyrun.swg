@@ -183,6 +183,19 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
   }
 }
 
+SWIGINTERN int
+SWIG_Python_CheckNoKeywords(PyObject *kwargs, const char *name) {
+  int no_kwargs = 1;
+  if (kwargs) {
+    assert(PyDict_Check(kwargs));
+    if (PyDict_Size(kwargs) > 0) {
+      PyErr_Format(PyExc_TypeError, "%s() does not take keyword arguments", name);
+      no_kwargs = 0;
+    }
+  }
+  return no_kwargs;
+}
+
 /* A functor is a function object with one single object argument */
 #define SWIG_Python_CallFunctor(functor, obj)	        PyObject_CallFunctionObjArgs(functor, obj, NULL);
 
@@ -696,6 +709,12 @@ SwigPyObject_TypeOnce(void) {
 #if PY_VERSION_HEX >= 0x03040000
       0,                                    /* tp_finalize */
 #endif
+#if PY_VERSION_HEX >= 0x03080000
+      0,                                    /* tp_vectorcall */
+#endif
+#if (PY_VERSION_HEX >= 0x03080000) && (PY_VERSION_HEX < 0x03090000)
+      0,                                    /* tp_print */
+#endif
 #ifdef COUNT_ALLOCS
       0,                                    /* tp_allocs */
       0,                                    /* tp_frees */
@@ -856,6 +875,12 @@ SwigPyPacked_TypeOnce(void) {
       0,                                    /* tp_version_tag */
 #if PY_VERSION_HEX >= 0x03040000
       0,                                    /* tp_finalize */
+#endif
+#if PY_VERSION_HEX >= 0x03080000
+      0,                                    /* tp_vectorcall */
+#endif
+#if (PY_VERSION_HEX >= 0x03080000) && (PY_VERSION_HEX < 0x03090000)
+      0,                                    /* tp_print */
 #endif
 #ifdef COUNT_ALLOCS
       0,                                    /* tp_allocs */
@@ -1220,25 +1245,21 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
   return inst;
 }
 
-SWIGRUNTIME void
+SWIGRUNTIME int
 SWIG_Python_SetSwigThis(PyObject *inst, PyObject *swig_this)
 {
- PyObject *dict;
 #if !defined(SWIG_PYTHON_SLOW_GETSET_THIS)
- PyObject **dictptr = _PyObject_GetDictPtr(inst);
- if (dictptr != NULL) {
-   dict = *dictptr;
-   if (dict == NULL) {
-     dict = PyDict_New();
-     *dictptr = dict;
-   }
-   PyDict_SetItem(dict, SWIG_This(), swig_this);
-   return;
- }
+  PyObject **dictptr = _PyObject_GetDictPtr(inst);
+  if (dictptr != NULL) {
+    PyObject *dict = *dictptr;
+    if (dict == NULL) {
+      dict = PyDict_New();
+      *dictptr = dict;
+    }
+    return PyDict_SetItem(dict, SWIG_This(), swig_this);
+  }
 #endif
- dict = PyObject_GetAttrString(inst, "__dict__");
- PyDict_SetItem(dict, SWIG_This(), swig_this);
- Py_DECREF(dict);
+  return PyObject_SetAttr(inst, SWIG_This(), swig_this);
 } 
 
 
@@ -1252,7 +1273,8 @@ SWIG_Python_InitShadowInstance(PyObject *args) {
     if (sthis) {
       SwigPyObject_append((PyObject*) sthis, obj[1]);
     } else {
-      SWIG_Python_SetSwigThis(obj[0], obj[1]);
+      if (SWIG_Python_SetSwigThis(obj[0], obj[1]) != 0)
+        return NULL;
     }
     return SWIG_Py_Void();
   }
