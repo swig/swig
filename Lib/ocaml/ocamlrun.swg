@@ -407,7 +407,7 @@ extern "C" {
 	    CAMLreturn((long)SWIG_Int64_val(SWIG_Field(SWIG_Field(v,0),0)));
 	case C_enum: {
 	    SWIG_CAMLlocal1(ret);
-	    CAML_VALUE *enum_to_int = caml_named_value(SWIG_MODULE "_enum_to_int");
+	    const CAML_VALUE *enum_to_int = caml_named_value(SWIG_MODULE "_enum_to_int");
 	    if( !name ) caml_failwith( "Not an enum conversion" );
 	    ret = caml_callback2(*enum_to_int,*caml_named_value(name),v);
 	    CAMLreturn(caml_long_val(ret));
@@ -451,7 +451,7 @@ extern "C" {
 	CAMLparam1(v);
 	void *outptr = NULL;
         swig_type_info *outdescr = NULL;
-        static CAML_VALUE *func_val = NULL;
+        static const CAML_VALUE *func_val = NULL;
 
 	if( v == Val_unit ) {
 	    *out = 0;
@@ -574,7 +574,7 @@ extern "C" {
         CAMLparam0();
         SWIG_CAMLlocal1(result);
 
-        CAML_VALUE *fromval = caml_named_value(name);
+        const CAML_VALUE *fromval = caml_named_value(name);
         if (fromval) {
             result = caml_callback(*fromval, caml_val_ptr(ptr, descriptor));
         } else {

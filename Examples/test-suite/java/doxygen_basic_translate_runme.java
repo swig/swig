@@ -1,6 +1,5 @@
 
 import doxygen_basic_translate.*;
-import com.sun.javadoc.*;
 import java.util.HashMap;
 
 public class doxygen_basic_translate_runme {
@@ -15,14 +14,7 @@ public class doxygen_basic_translate_runme {
   
   public static void main(String argv[]) 
   {
-    /*
-      Here we are using internal javadoc tool, it accepts the name of the class as paramterer,
-      and calls the start() method of that class with parsed information.
-    */
-    CommentParser parser = new CommentParser();
-    com.sun.tools.javadoc.Main.execute("doxygen_basic_translate runtime test",
-                                       "CommentParser",
-                                       new String[]{"-quiet", "doxygen_basic_translate"});
+    CommentParser.parse("doxygen_basic_translate");
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     
@@ -94,8 +86,15 @@ public class doxygen_basic_translate_runme {
     		" @param x Horizontal coordinate.\n" +
     		" @return Arc tangent of <code>y/x</code>.\n" +
     		"");
+    wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function8()",
+		" Test variadic function\n" +
+		"");
+
+    wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function9(int)",
+		" Test unnamed argument\n" +
+		"");    
 
     // and ask the parser to check comments for us
-    System.exit(parser.check(wantedComments));
+    System.exit(CommentParser.check(wantedComments));
   }
 }

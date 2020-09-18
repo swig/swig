@@ -21,6 +21,11 @@
 
 #include "doxyentity.h"
 
+// Utility function to return the base part of a command that may
+// include options, e.g. param[in] -> param
+std::string getBaseCommand(const std::string &cmd);
+
+
 class DoxygenParser {
 private:
 

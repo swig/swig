@@ -9,8 +9,8 @@ class B(A):
     def get_first(self):
         return A.get_first(self) + u" world!"
 
-    def process_text(self, string):
-        self.smem = u"hello"
+    def process_text(self, s):
+        self.smem = s
 
 
 b = B(u"hello")

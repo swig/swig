@@ -66,7 +66,13 @@ PInvoke is part of the ECMA/ISO C# specification.
 It is also better suited for robust production environments due to the Managed C++ flaw called the
 <a href="https://msdn.microsoft.com/en-us/ie/aa290048(v=vs.94)">Mixed DLL Loading Problem</a>.
 SWIG C# works equally well on non-Microsoft operating systems such as Linux, Solaris and Apple Mac using
-<a href="https://www.mono-project.com/Main_Page/">Mono</a> and <a href="http://www.dotgnu.org/pnet.html">Portable.NET</a>.
+<a href="https://www.mono-project.com/Main_Page/">Mono</a>.
+</p>
+
+<p>
+SWIG 3 and later requires .NET 2.0 at a minimum.
+There are some minor exceptions, where the minimum required is .NET 4.0.
+This is when using the <tt>std::complex</tt> and <tt>std::list</tt> STL containers.
 </p>
 
 <p>

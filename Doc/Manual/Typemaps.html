@@ -734,7 +734,7 @@ these methods is described later.
 </p>
 
 <p>
-<em>modifiers</em> is an optional comma separated list of <tt>name="value"</tt> or <tt>name={value}</tt> values. 
+<em>modifiers</em> is an optional comma separated list of <tt>name="value"</tt> values. 
 These are sometimes to attach extra information to a typemap and is often target-language dependent.
 They are also known as typemap attributes.
 </p>
@@ -803,7 +803,6 @@ Here are some examples of valid typemap specifications:
 
 /* Typemap with modifiers */
 %typemap(in, doc="integer") int "$1 = scm_to_int($input);";
-%typemap(in, doc={embedded MACRO will be expanded}) int "$1 = scm_to_int($input);";
 
 /* Typemap applied to patterns of multiple arguments */
 %typemap(in) (char *str, int len),
@@ -1388,7 +1387,6 @@ Below is a list of the typical default types supplied by language modules, showi
 %typemap(in) SWIGTYPE []           { ... unknown sized array handling ...                     };
 %typemap(in) enum SWIGTYPE         { ... default handling for enum values ...                 };
 %typemap(in) const enum SWIGTYPE &amp; { ... default handling for const enum reference values ... };
-%typemap(in) SWIGTYPE (*)(ANY)     { ... default function pointer handling ...                  };
 %typemap(in) SWIGTYPE (CLASS::*)   { ... default pointer member handling ...                  };
 %typemap(in) SWIGTYPE              { ... simple default handling ...                          };
 </pre>
@@ -3985,16 +3983,14 @@ inclusion of the other fragments.
 
 <li>
 <p>
-A typemap can also use more than one fragment. You can provide multiple
-"fragment" keywords to the typemap (the same syntax as the <tt>%fragment</tt>
-directive) or specify the dependent fragments in a comma-separated list.
-Consider:
+A typemap can also use more than one fragment, but since the
+syntax is different, you need to specify the dependent fragments in a comma separated
+list. Consider:
 </p>
 
 <div class="code">
 <pre>
 %typemap(in, fragment="frag1, frag2, frag3") {...}
-%typemap(out, fragment="frag1", fragment="frag2") {...}
 </pre>
 </div>
 
@@ -4634,34 +4630,34 @@ To support dynamic dispatch, SWIG first defines a general purpose type hierarchy
 <pre>
 Symbolic Name                   Precedence Value
 ------------------------------  ------------------
-SWIG_TYPECHECK_POINTER           0  
+SWIG_TYPECHECK_POINTER           0
 SWIG_TYPECHECK_ITERATOR          5
-SWIG_TYPECHECK_VOIDPTR           10 
-SWIG_TYPECHECK_BOOL              15 
-SWIG_TYPECHECK_UINT8             20 
-SWIG_TYPECHECK_INT8              25 
-SWIG_TYPECHECK_UINT16            30 
-SWIG_TYPECHECK_INT16             35 
-SWIG_TYPECHECK_UINT32            40 
-SWIG_TYPECHECK_INT32             45 
+SWIG_TYPECHECK_VOIDPTR           10
+SWIG_TYPECHECK_BOOL              15
+SWIG_TYPECHECK_UINT8             20
+SWIG_TYPECHECK_INT8              25
+SWIG_TYPECHECK_UINT16            30
+SWIG_TYPECHECK_INT16             35
+SWIG_TYPECHECK_UINT32            40
+SWIG_TYPECHECK_INT32             45
 SWIG_TYPECHECK_SIZE              47
 SWIG_TYPECHECK_PTRDIFF           48
-SWIG_TYPECHECK_UINT64            50 
-SWIG_TYPECHECK_INT64             55 
-SWIG_TYPECHECK_UINT128           60 
-SWIG_TYPECHECK_INT128            65 
-SWIG_TYPECHECK_INTEGER           70 
-SWIG_TYPECHECK_FLOAT             80 
-SWIG_TYPECHECK_DOUBLE            90 
+SWIG_TYPECHECK_UINT64            50
+SWIG_TYPECHECK_INT64             55
+SWIG_TYPECHECK_UINT128           60
+SWIG_TYPECHECK_INT128            65
+SWIG_TYPECHECK_INTEGER           70
+SWIG_TYPECHECK_FLOAT             80
+SWIG_TYPECHECK_DOUBLE            90
 SWIG_TYPECHECK_CPLXFLT           95
 SWIG_TYPECHECK_CPLXDBL           100
 SWIG_TYPECHECK_COMPLEX           105
-SWIG_TYPECHECK_UNICHAR           110 
+SWIG_TYPECHECK_UNICHAR           110
 SWIG_TYPECHECK_STDUNISTRING      115
-SWIG_TYPECHECK_UNISTRING         120 
-SWIG_TYPECHECK_CHAR              130 
+SWIG_TYPECHECK_UNISTRING         120
+SWIG_TYPECHECK_CHAR              130
 SWIG_TYPECHECK_STDSTRING         135
-SWIG_TYPECHECK_STRING            140 
+SWIG_TYPECHECK_STRING            140
 SWIG_TYPECHECK_PAIR              150
 SWIG_TYPECHECK_STDARRAY          155
 SWIG_TYPECHECK_VECTOR            160
@@ -4673,16 +4669,16 @@ SWIG_TYPECHECK_MAP               210
 SWIG_TYPECHECK_MULTIMAP          220
 SWIG_TYPECHECK_STACK             230
 SWIG_TYPECHECK_QUEUE             240
-SWIG_TYPECHECK_BOOL_ARRAY        1015 
-SWIG_TYPECHECK_INT8_ARRAY        1025 
-SWIG_TYPECHECK_INT16_ARRAY       1035 
-SWIG_TYPECHECK_INT32_ARRAY       1045 
-SWIG_TYPECHECK_INT64_ARRAY       1055 
-SWIG_TYPECHECK_INT128_ARRAY      1065 
-SWIG_TYPECHECK_FLOAT_ARRAY       1080 
-SWIG_TYPECHECK_DOUBLE_ARRAY      1090 
-SWIG_TYPECHECK_CHAR_ARRAY        1130 
-SWIG_TYPECHECK_STRING_ARRAY      1140 
+SWIG_TYPECHECK_BOOL_ARRAY        1015
+SWIG_TYPECHECK_INT8_ARRAY        1025
+SWIG_TYPECHECK_INT16_ARRAY       1035
+SWIG_TYPECHECK_INT32_ARRAY       1045
+SWIG_TYPECHECK_INT64_ARRAY       1055
+SWIG_TYPECHECK_INT128_ARRAY      1065
+SWIG_TYPECHECK_FLOAT_ARRAY       1080
+SWIG_TYPECHECK_DOUBLE_ARRAY      1090
+SWIG_TYPECHECK_CHAR_ARRAY        1130
+SWIG_TYPECHECK_STRING_ARRAY      1140
 SWIG_TYPECHECK_OBJECT_ARRAY      1150
 SWIG_TYPECHECK_BOOL_PTR          2015
 SWIG_TYPECHECK_UINT8_PTR         2020

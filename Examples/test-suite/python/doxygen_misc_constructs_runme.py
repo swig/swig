@@ -12,7 +12,7 @@ comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.getAddress),
 :param fileName: name of the file, where the source line is located
 :type line: int
 :param line: line number
-:type isGetSize: boolean
+:type isGetSize: boolean, optional
 :param isGetSize: if set, for every object location both address and size are returned
 
 Connection::getId() """)
@@ -130,4 +130,14 @@ Spaces at the start of line should be taken into account:
 
 :type fileName: string
 :param fileName: name of the log file"""
+);
+
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.doc_ends_with_quote),
+    r'''This doc comment ends with a quote: "and that's ok"'''
+);
+
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.doc_with_triple_quotes),
+    r'''This comment contains embedded triple-quoted string:
+
+    """How quaint"""'''
 );

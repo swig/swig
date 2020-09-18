@@ -10,15 +10,16 @@
 %fragment("SWIG_ruby_failed","header")
 {
 SWIGINTERN VALUE
-SWIG_ruby_failed(void)
+SWIG_ruby_failed(VALUE SWIGUNUSEDPARM(arg1), VALUE SWIGUNUSEDPARM(arg2))
 {
   return Qnil;
 } 
 }
 
 %define %ruby_aux_method(Type, Method, Action)
-SWIGINTERN VALUE SWIG_AUX_##Method##(VALUE *args)
+SWIGINTERN VALUE SWIG_AUX_##Method##(VALUE arg)
 {
+  VALUE *args = (VALUE *)arg;
   VALUE obj = args[0];
   VALUE type = TYPE(obj);
   Type *res = (Type *)(args[1]);
@@ -79,7 +80,7 @@ SWIG_AsVal_dec(long)(VALUE obj, long* val)
     VALUE a[2];
     a[0] = obj;
     a[1] = (VALUE)(&v);
-    if (rb_rescue(RUBY_METHOD_FUNC(SWIG_AUX_NUM2LONG), (VALUE)a, RUBY_METHOD_FUNC(SWIG_ruby_failed), 0) != Qnil) {
+    if (rb_rescue(VALUEFUNC(SWIG_AUX_NUM2LONG), (VALUE)a, VALUEFUNC(SWIG_ruby_failed), 0) != Qnil) {
       if (val) *val = v;
       return SWIG_OK;
     }
@@ -111,7 +112,7 @@ SWIG_AsVal_dec(unsigned long)(VALUE obj, unsigned long *val)
     VALUE a[2];
     a[0] = obj;
     a[1] = (VALUE)(&v);
-    if (rb_rescue(RUBY_METHOD_FUNC(SWIG_AUX_NUM2ULONG), (VALUE)a, RUBY_METHOD_FUNC(SWIG_ruby_failed), 0) != Qnil) {
+    if (rb_rescue(VALUEFUNC(SWIG_AUX_NUM2ULONG), (VALUE)a, VALUEFUNC(SWIG_ruby_failed), 0) != Qnil) {
       if (val) *val = v;
       return SWIG_OK;
     }
@@ -149,7 +150,7 @@ SWIG_AsVal_dec(long long)(VALUE obj, long long *val)
     VALUE a[2];
     a[0] = obj;
     a[1] = (VALUE)(&v);
-    if (rb_rescue(RUBY_METHOD_FUNC(SWIG_AUX_NUM2LL), (VALUE)a, RUBY_METHOD_FUNC(SWIG_ruby_failed), 0) != Qnil) {
+    if (rb_rescue(VALUEFUNC(SWIG_AUX_NUM2LL), (VALUE)a, VALUEFUNC(SWIG_ruby_failed), 0) != Qnil) {
       if (val) *val = v;
       return SWIG_OK;
     }
@@ -187,7 +188,7 @@ SWIG_AsVal_dec(unsigned long long)(VALUE obj, unsigned long long *val)
     VALUE a[2];
     a[0] = obj;
     a[1] = (VALUE)(&v);
-    if (rb_rescue(RUBY_METHOD_FUNC(SWIG_AUX_NUM2ULL), (VALUE)a, RUBY_METHOD_FUNC(SWIG_ruby_failed), 0) != Qnil) {
+    if (rb_rescue(VALUEFUNC(SWIG_AUX_NUM2ULL), (VALUE)a, VALUEFUNC(SWIG_ruby_failed), 0) != Qnil) {
       if (val) *val = v;
       return SWIG_OK;
     }
@@ -215,7 +216,7 @@ SWIG_AsVal_dec(double)(VALUE obj, double *val)
     VALUE a[2];
     a[0] = obj;
     a[1] = (VALUE)(&v);
-    if (rb_rescue(RUBY_METHOD_FUNC(SWIG_AUX_NUM2DBL), (VALUE)a, RUBY_METHOD_FUNC(SWIG_ruby_failed), 0) != Qnil) {
+    if (rb_rescue(VALUEFUNC(SWIG_AUX_NUM2DBL), (VALUE)a, VALUEFUNC(SWIG_ruby_failed), 0) != Qnil) {
       if (val) *val = v;
       return SWIG_OK;
     }

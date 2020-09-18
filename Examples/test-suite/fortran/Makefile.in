@@ -68,6 +68,7 @@ FAILING_CPP_TESTS += \
 	director_default \
 	director_detect \
 	director_classes \
+	director_conversion_operators \
 	director_exception_catches \
 	director_exception_nothrow \
 	director_exception \

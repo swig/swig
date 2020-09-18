@@ -37,15 +37,19 @@
 SWIGINTERN char*
 SWIG_Python_str_AsChar(PyObject *str)
 {
-#if PY_VERSION_HEX >= 0x03000000
+#if PY_VERSION_HEX >= 0x03030000
+  return (char *)PyUnicode_AsUTF8(str);
+#elif PY_VERSION_HEX >= 0x03000000
   char *newstr = 0;
   str = PyUnicode_AsUTF8String(str);
   if (str) {
     char *cstr;
     Py_ssize_t len;
-    PyBytes_AsStringAndSize(str, &cstr, &len);
-    newstr = (char *) malloc(len+1);
-    memcpy(newstr, cstr, len+1);
+    if (PyBytes_AsStringAndSize(str, &cstr, &len) != -1) {
+      newstr = (char *) malloc(len+1);
+      if (newstr)
+        memcpy(newstr, cstr, len+1);
+    }
     Py_XDECREF(str);
   }
   return newstr;
@@ -54,10 +58,10 @@ SWIG_Python_str_AsChar(PyObject *str)
 #endif
 }
 
-#if PY_VERSION_HEX >= 0x03000000
-#  define SWIG_Python_str_DelForPy3(x) free( (void*) (x) )
+#if PY_VERSION_HEX >= 0x03030000 || PY_VERSION_HEX < 0x03000000
+#  define SWIG_Python_str_DelForPy3(x)
 #else
-#  define SWIG_Python_str_DelForPy3(x) 
+#  define SWIG_Python_str_DelForPy3(x) free( (void*) (x) )
 #endif
 
 

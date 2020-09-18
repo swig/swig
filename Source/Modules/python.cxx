@@ -1484,8 +1484,15 @@ public:
 
   String *build_combined_docstring(Node *n, autodoc_t ad_type, const String *indent = "", bool low_level = false) {
     String *docstr = Getattr(n, "feature:docstring");
-    if (docstr && Len(docstr)) {
-      docstr = Copy(docstr);
+    if (docstr) {
+      // Simplify the code below by just ignoring empty docstrings.
+      if (!Len(docstr))
+	docstr = NULL;
+      else
+	docstr = Copy(docstr);
+    }
+
+    if (docstr) {
       char *t = Char(docstr);
       if (*t == '{') {
 	Delitem(docstr, 0);
@@ -1496,7 +1503,7 @@ public:
     if (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc")) {
       String *autodoc = make_autodoc(n, ad_type, low_level);
       if (autodoc && Len(autodoc) > 0) {
-	if (docstr && Len(docstr)) {
+	if (docstr) {
 	  Append(autodoc, "\n");
 	  Append(autodoc, docstr);
 	}
@@ -1509,7 +1516,7 @@ public:
       Delete(autodoc);
     }
 
-    if (!docstr || !Len(docstr)) {
+    if (!docstr) {
       if (doxygen) {
 	docstr = Getattr(n, "python:docstring");
 	if (!docstr && doxygenTranslator->hasDocumentation(n)) {
@@ -1564,7 +1571,8 @@ public:
 
   String *docstring(Node *n, autodoc_t ad_type, const String *indent, bool low_level = false) {
     String *docstr = build_combined_docstring(n, ad_type, indent, low_level);
-    if (!Len(docstr))
+    const int len = Len(docstr);
+    if (!len)
       return docstr;
 
     // Notice that all comments are created as raw strings (prefix "r"),
@@ -1577,9 +1585,32 @@ public:
     // escape '\x'. '\' may additionally appear in verbatim or htmlonly sections
     // of doxygen doc, Latex expressions, ...
     String *doc = NewString("");
-    Append(doc, "r\"\"\"");
+
+    // Determine which kind of quotes to use as delimiters: for single line
+    // strings we can avoid problems with having a quote as the last character
+    // of the docstring by using different kind of quotes as delimiters. For
+    // multi-line strings this problem doesn't arise, as we always have a new
+    // line or spaces at the end of it, but it still does no harm to do it for
+    // them too.
+    //
+    // Note: we use double quotes by default, i.e. if there is no reason to
+    // prefer using single ones, for consistency with the older SWIG versions.
+    const bool useSingleQuotes = (Char(docstr))[len - 1] == '"';
+
+    Append(doc, useSingleQuotes ? "r'''" : "r\"\"\"");
+
+    // We also need to avoid having triple quotes of whichever type we use, as
+    // this would break Python doc string syntax too. Unfortunately there is no
+    // way to have triple quotes inside of raw-triple-quoted string, so we have
+    // to break the string in parts and rely on concatenation of the adjacent
+    // string literals.
+    if (useSingleQuotes)
+      Replaceall(docstr, "'''", "''' \"'''\" '''");
+    else
+      Replaceall(docstr, "\"\"\"", "\"\"\" '\"\"\"' \"\"\"");
+
     Append(doc, docstr);
-    Append(doc, "\"\"\"");
+    Append(doc, useSingleQuotes ? "'''" : "\"\"\"");
     Delete(docstr);
 
     return doc;
@@ -2493,7 +2524,7 @@ public:
     String *symname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(symname);
 
-    const char *builtin_kwargs = builtin_ctor ? ", PyObject *SWIGUNUSEDPARM(kwargs)" : "";
+    const char *builtin_kwargs = builtin_ctor ? ", PyObject *kwargs" : "";
     Printv(f->def, linkage, builtin_ctor ? "int " : "PyObject *", wname, "(PyObject *self, PyObject *args", builtin_kwargs, ") {", NIL);
 
     Wrapper_add_local(f, "argc", "Py_ssize_t argc");
@@ -2502,6 +2533,9 @@ public:
 
     if (!fastunpack) {
       Wrapper_add_local(f, "ii", "Py_ssize_t ii");
+
+      if (builtin_ctor)
+	Printf(f->code, "if (!SWIG_Python_CheckNoKeywords(kwargs, \"%s\")) SWIG_fail;\n", symname);
 
       if (maxargs - (add_self ? 1 : 0) > 0) {
         Append(f->code, "if (!PyTuple_Check(args)) SWIG_fail;\n");
@@ -2518,8 +2552,9 @@ public:
       if (add_self)
 	Append(f->code, "argc++;\n");
     } else {
-      String *iname = Getattr(n, "sym:name");
-      Printf(f->code, "if (!(argc = SWIG_Python_UnpackTuple(args, \"%s\", 0, %d, argv%s))) SWIG_fail;\n", iname, maxargs, add_self ? "+1" : "");
+      if (builtin_ctor)
+	Printf(f->code, "if (!SWIG_Python_CheckNoKeywords(kwargs, \"%s\")) SWIG_fail;\n", symname);
+      Printf(f->code, "if (!(argc = SWIG_Python_UnpackTuple(args, \"%s\", 0, %d, argv%s))) SWIG_fail;\n", symname, maxargs, add_self ? "+1" : "");
       if (add_self)
 	Append(f->code, "argv[0] = self;\n");
       else
@@ -2700,8 +2735,12 @@ public:
       --tuple_required;
     }
     num_fixed_arguments = tuple_required;
+
+    // builtin handles/checks kwargs by default except in constructor wrappers so we need to explicitly handle them in the C constructor wrapper
+    // The check below is for zero arguments. Sometimes (eg directors) self is the first argument for a method with zero arguments.
     if (((num_arguments == 0) && (num_required == 0)) || ((num_arguments == 1) && (num_required == 1) && Getattr(l, "self")))
-      allow_kwargs = 0;
+      if (!builtin_ctor)
+	allow_kwargs = 0;
     varargs = emit_isvarargs(l);
 
     String *wname = Copy(wrapper_name);
@@ -2709,7 +2748,7 @@ public:
       Append(wname, overname);
     }
 
-    const char *builtin_kwargs = builtin_ctor ? ", PyObject *SWIGUNUSEDPARM(kwargs)" : "";
+    const char *builtin_kwargs = builtin_ctor ? ", PyObject *kwargs" : "";
     if (!allow_kwargs || overname) {
       if (!varargs) {
 	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args", builtin_kwargs, ") {", NIL);
@@ -2727,7 +2766,7 @@ public:
       }
       Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args, PyObject *kwargs) {", NIL);
     }
-    if (!builtin || !in_class || tuple_arguments > 0) {
+    if (!builtin || !in_class || tuple_arguments > 0 || builtin_ctor) {
       if (!allow_kwargs) {
 	Append(parse_args, "    if (!PyArg_ParseTuple(args, \"");
       } else {
@@ -2876,14 +2915,13 @@ public:
       Printv(f->locals, "  char * kwnames[] = ", kwargs, ";\n", NIL);
     }
 
-    if (builtin && !funpack && in_class && tuple_arguments == 0) {
-      Printf(parse_args, "    if (args && PyTuple_Check(args) && PyTuple_GET_SIZE(args) > 0) SWIG_exception_fail(SWIG_TypeError, \"%s takes no arguments\");\n", iname);
-    } else if (use_parse || allow_kwargs) {
+    if (use_parse || allow_kwargs) {
       Printf(parse_args, ":%s\"", iname);
       Printv(parse_args, arglist, ")) SWIG_fail;\n", NIL);
       funpack = 0;
     } else {
       Clear(parse_args);
+
       if (funpack) {
 	Clear(f->def);
 	if (overname) {
@@ -2896,6 +2934,8 @@ public:
 	} else {
 	  int is_tp_call = Equal(Getattr(n, "feature:python:slot"), "tp_call");
 	  Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args", builtin_kwargs, ") {", NIL);
+	  if (builtin_ctor)
+	    Printf(parse_args, "if (!SWIG_Python_CheckNoKeywords(kwargs, \"%s\")) SWIG_fail;\n", iname);
 	  if (onearg && !builtin_ctor && !is_tp_call) {
 	    Printf(parse_args, "if (!args) SWIG_fail;\n");
 	    Append(parse_args, "swig_obj[0] = args;\n");
@@ -2906,8 +2946,14 @@ public:
 	  }
 	}
       } else {
-	Printf(parse_args, "if (!PyArg_UnpackTuple(args, \"%s\", %d, %d", iname, num_fixed_arguments, tuple_arguments);
-	Printv(parse_args, arglist, ")) SWIG_fail;\n", NIL);
+	if (builtin_ctor)
+	  Printf(parse_args, "if (!SWIG_Python_CheckNoKeywords(kwargs, \"%s\")) SWIG_fail;\n", iname);
+	if (builtin && in_class && tuple_arguments == 0) {
+	  Printf(parse_args, "    if (args && PyTuple_Check(args) && PyTuple_GET_SIZE(args) > 0) SWIG_exception_fail(SWIG_TypeError, \"%s takes no arguments\");\n", iname);
+	} else {
+	  Printf(parse_args, "if (!PyArg_UnpackTuple(args, \"%s\", %d, %d", iname, num_fixed_arguments, tuple_arguments);
+	  Printv(parse_args, arglist, ")) SWIG_fail;\n", NIL);
+	}
       }
     }
 
@@ -4128,6 +4174,13 @@ public:
     Printv(f, "#if PY_VERSION_HEX >= 0x03040000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_finalize"), "tp_finalize", "destructor");
     Printv(f, "#endif\n", NIL);
+    Printv(f, "#if PY_VERSION_HEX >= 0x03080000\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:tp_vectorcall"), "tp_vectorcall", "vectorcallfunc");
+    Printv(f, "#endif\n", NIL);
+    Printv(f, "#if (PY_VERSION_HEX >= 0x03080000) && (PY_VERSION_HEX < 0x03090000)\n", NIL);
+    printSlot(f, getSlot(), "tp_print");
+    Printv(f, "#endif\n", NIL);
+
     Printv(f, "#ifdef COUNT_ALLOCS\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_allocs"), "tp_allocs", "Py_ssize_t");
     printSlot(f, getSlot(n, "feature:python:tp_frees"), "tp_frees", "Py_ssize_t");

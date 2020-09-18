@@ -1,6 +1,5 @@
 
 import doxygen_ignore.*;
-import com.sun.javadoc.*;
 import java.util.HashMap;
 
 public class doxygen_ignore_runme {
@@ -15,10 +14,7 @@ public class doxygen_ignore_runme {
 
   public static void main(String argv[]) 
   {
-    CommentParser parser = new CommentParser();
-    com.sun.tools.javadoc.Main.execute("doxygen_ignore runtime test",
-                                       "CommentParser",
-                                       new String[]{"-quiet", "doxygen_ignore"});
+    CommentParser.parse("doxygen_ignore");
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     wantedComments.put("doxygen_ignore.doxygen_ignore.func()",
@@ -39,6 +35,6 @@ public class doxygen_ignore_runme {
       "\n" +
       "");
 
-    System.exit(parser.check(wantedComments));
+    System.exit(CommentParser.check(wantedComments));
   }
 }

@@ -21,7 +21,7 @@ matrix:
 before_install:
   - date -u
   - uname -a
-  - if test "$TRAVIS_OS_NAME" = "linux"; then lscpu && cat /proc/cpuinfo | grep "model name" && cat /proc/meminfo | grep MemTotal; fi
+  - if test "$TRAVIS_OS_NAME" = "linux"; then lscpu; grep "model name" /proc/cpuinfo || echo 'Unknown CPU model'; grep "MemTotal" /proc/meminfo || echo 'Unknown system memory amount'; fi
   - if test "$TRAVIS_OS_NAME" = "osx"; then sysctl -a | grep brand_string; fi
   # Travis overrides CC environment with compiler predefined values
   - if test -n "$GCC"; then export CC="gcc-$GCC" && export CXX="g++-$GCC"; fi
