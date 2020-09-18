@@ -203,7 +203,10 @@ end subroutine}
 
   // Define proxy code typemaps for an array of this type
   %fortran_typemap_finout(CTYPE[], CTYPE ARRAY[])
-
+  %typemap(fargout, fragment="SWIG_fout"{CTYPE[]}, noblock=1) CTYPE ARRAY[] {
+  call %fortrantm(fout, CTYPE[])($1, $input)
+  }
+  %typemap(fargout) CTYPE const ARRAY[] = CTYPE ARRAY[];
 %enddef
 
 /*!
@@ -225,6 +228,8 @@ end subroutine}
 
   %typemap(fin) DSTTYPE ARRAY[] = SRCTYPE ARRAY[];
   %typemap(fout) DSTTYPE ARRAY[] = SRCTYPE ARRAY[];
+  %typemap(fargout) DSTTYPE ARRAY[] = SRCTYPE ARRAY[];
+  %typemap(fargout) DSTTYPE const ARRAY[] = SRCTYPE const ARRAY[];
 %enddef
 
 /* -------------------------------------------------------------------------

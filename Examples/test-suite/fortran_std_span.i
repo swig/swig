@@ -11,16 +11,16 @@ class span
   typedef int index_type;
   typedef _Tp* pointer;
 
-  span() : d_ptr(NULL), d_size(0) {}
-  span(pointer d, index_type s) : d_ptr(d), d_size(s) {}
-  span(pointer first, pointer last) : d_ptr(first), d_size(last - first) {}
+  span() : ptr_(NULL), size_(0) {}
+  span(pointer d, index_type s) : ptr_(d), size_(s) {}
+  span(pointer first, pointer last) : ptr_(first), size_(last - first) {}
 
-  pointer data() const { return d_ptr; }
-  index_type size() const { return d_size; }
+  pointer data() const { return ptr_; }
+  index_type size() const { return size_; }
 
  private:
-  pointer d_ptr;
-  index_type d_size;
+  pointer ptr_;
+  index_type size_;
 };
 } // namespace std
 
@@ -30,6 +30,8 @@ class span
 
 %template() std::span<int>;
 %template() std::span<const int>;
+%template() std::span<unsigned int>;
+%template() std::span<const unsigned int>;
 
 %inline %{
 std::span<int> get_by_value() {
