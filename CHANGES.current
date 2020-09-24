@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2020-09-24: geefr
+            [C#] #1868 Fix wchar_t* csvarout typemap for member variable wrappers.
+
 2020-08-28: wsfulton
             [Java] #1862 Fix crashes in swig_connect_director during director class construction
             when using the director class from multiple threads - a race condition initialising
