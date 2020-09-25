@@ -7,6 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2020-09-25: wsfulton
+            [C#, Java] #1874 Add ability to change the modifiers for the interface
+            generated when using the %interface macros.
+
+            For C# use the 'csinterfacemodifiers' typemap.
+            For Java use the 'javainterfacemodifiers' typemap.
+
+            For example:
+
+              %typemap(csinterfacemodifiers) X "internal interface"
+
+
 2020-09-24: geefr
             [C#] #1868 Fix wchar_t* csvarout typemap for member variable wrappers.
 

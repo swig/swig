@@ -6610,6 +6610,15 @@ Below shows an example modifying the finalizer, assuming the <tt>delete</tt> met
 
 </div>
 
+<p><tt>%typemap(javainterfacemodifiers)</tt></p>
+<div class="indent">
+Interface modifiers for the Java interface generated when using the <tt>interface</tt> feature, see <a href="Java.html#Java_interfaces">Java interfaces</a> section. The default is "public interface".
+<p>
+<b>Compatibility note:</b> This typemap was added in SWIG-4.1.0.
+</p>
+
+</div>
+
 <p><tt>%typemap(javainterfacecode, declaration="...", cptrmethod="...")</tt></p>
 <div class="indent">
 <p>
@@ -6709,7 +6718,7 @@ The "javaimports" typemap is ignored if the enum class is wrapped by an inner Ja
 <div class="code">
 <pre>
 [ javaimports typemap ]
-public interface [ javainterfacename ] {
+[ javainterfacemodifiers typemap ] [ javainterfacename ] {
 [ javainterfacecode:cptrmethod typemap attribute ]
 ... interface declarations ...
 }
