@@ -89,6 +89,7 @@ namespace Space {
   class X {
   public:
     virtual void x(const InternalAccess& date) const = 0;
+    virtual ~X() {}
   };
 }
 %}
