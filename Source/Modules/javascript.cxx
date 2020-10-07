@@ -1575,7 +1575,8 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
       Printf(arg, "argv[%d]", i);
       break;
     default:
-      throw "Illegal state.";
+      Printf(stderr, "Illegal MarshallingMode.");
+      SWIG_exit(EXIT_FAILURE);
     }
     tm = emitInputTypemap(n, p, wrapper, arg);
     Delete(arg);
@@ -2212,7 +2213,8 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
       Printf(arg, "args[%d]", i);
       break;
     default:
-      throw "Illegal state.";
+      Printf(stderr, "Illegal MarshallingMode.");
+      SWIG_exit(EXIT_FAILURE);
     }
 
     tm = emitInputTypemap(n, p, wrapper, arg);
