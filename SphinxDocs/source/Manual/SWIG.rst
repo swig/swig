@@ -1,4 +1,4 @@
-SWIG Basics
+5 SWIG Basics
 =============
 
 This chapter describes the basic operation of SWIG, the structure of its
@@ -1675,149 +1675,113 @@ example of applying each one. Note that some of them have two names, a
 shorter one and a more descriptive one, but the two functions are
 otherwise equivalent:
 
-Function
+..  list-table:: \ 
+    :widths: 25 25 25 25
+    :header-rows: 1
+    :width: 100
 
-Returns
-
-Example (in/out)
-
-``uppercase`` or ``upper``
-
-Upper case version of the string.
-
-``Print``
-
-``PRINT``
-
-``lowercase`` or ``lower``
-
-Lower case version of the string.
-
-``Print``
-
-``print``
-
-``title``
-
-String with first letter capitalized and the rest in lower case.
-
-``print``
-
-``Print``
-
-``firstuppercase``
-
-String with the first letter capitalized and the rest unchanged.
-
-``printIt``
-
-``PrintIt``
-
-``firstlowercase``
-
-String with the first letter in lower case and the rest unchanged.
-
-``PrintIt``
-
-``printIt``
-
-``camelcase`` or ``ctitle``
-
-String with capitalized first letter and any letter following an
-underscore (which are removed in the process) and rest in lower case.
-
-``print_it``
-
-``PrintIt``
-
-``lowercamelcase`` or ``lctitle``
-
-String with every letter following an underscore (which is removed in
-the process) capitalized and rest, including the first letter, in lower
-case.
-
-``print_it``
-
-``printIt``
-
-``undercase`` or ``utitle``
-
-Lower case string with underscores inserted before every upper case
-letter in the original string and any number not at the end of string.
-Logically, this is the reverse of ``camelcase``.
-
-``PrintIt``
-
-``print_it``
-
-``schemify``
-
-String with all underscores replaced with dashes, resulting in more
-Lispers/Schemers-pleasing name.
-
-``print_it``
-
-``print-it``
-
-``strip:[prefix]``
-
-String without the given prefix or the original string if it doesn't
-start with this prefix. Note that square brackets should be used
-literally, e.g. ``%rename("strip:[wx]")``
-
-``wxPrint``
-
-``Print``
-
-``rstrip:[suffix]``
-
-String without the given suffix or the original string if it doesn't end
-with this suffix. Note that square brackets should be used literally,
-e.g. ``%rename("rstrip:[Cls]")``
-
-``PrintCls``
-
-``Print``
-
-``regex:/pattern/subst/``
-
-String after (Perl-like) regex substitution operation. This function
-allows to apply arbitrary regular expressions to the identifier names.
-The *pattern* part is a regular expression in Perl syntax (as supported
-by the `Perl Compatible Regular Expressions
-(PCRE) <http://www.pcre.org/>`__) library and the *subst* string can
-contain back-references of the form ``\N`` where ``N`` is a digit from 0
-to 9, or one of the following escape sequences: ``\l``, ``\L``, ``\u``,
-``\U`` or ``\E``. The back-references are replaced with the contents of
-the corresponding capture group while the escape sequences perform the
-case conversion in the substitution string: ``\l`` and ``\L`` convert to
-the lower case, while ``\u`` and ``\U`` convert to the upper case. The
-difference between the elements of each pair is that ``\l`` and ``\u``
-change the case of the next character only, while ``\L`` and ``\U`` do
-it for all the remaining characters or until ``\E`` is encountered.
-Finally please notice that backslashes need to be escaped in C strings,
-so in practice ``"\\"`` must be used in all these escape sequences. For
-example, to remove any alphabetic prefix before an underscore and
-capitalize the remaining part you could use the following directive:
-``%rename("regex:/(\\w+)_(.*)/\\u\\2/")``
-
-``prefix_print``
-
-``Print``
-
-``command:cmd``
-
-Output of an external command ``cmd`` with the string passed to it as
-input. Notice that this function is extremely slow compared to all the
-other ones as it involves spawning a separate process and using it for
-many declarations is not recommended. The *cmd* is not enclosed in
-square brackets but must be terminated with a triple ``'<'`` sign, e.g.
-``%rename("command:tr -d aeiou <<<")`` (nonsensical example removing all
-vowels)
-
-``Print``
-
-``Prnt``
+    *
+      - Function      
+      - Returns                                                                  
+      - Example (in/out)
+      - \ 
+    *
+      - uppercase or upper  
+      - Upper case version of the string.
+      - Print
+      - PRINT
+    * 
+      - lowercase or lower  
+      - Lower case version of the string.
+      - Print
+      - print
+    * 
+      - title
+      - String_with_first_letter_capitalized_and_the_rest_in_lower_case.
+      - print
+      - Print
+    *      
+      - firstuppercase
+      - String_with_the_first_letter_capitalized_and_the_rest_unchanged.
+      - printIt
+      - PrintIt
+    * 
+      - firstlowercase
+      - String_with_the_first_letter_in_lower_case_and_the_rest_unchanged.
+      - PrintIt
+      - printIt
+    * 
+      - camelcase or ctitle
+      - String with capitalized first letter and any letter following an 
+        underscore_(which_are_removed_in_the_process)_and_rest_in_lower_case.
+      - print_it    
+      - PrintIt
+    *
+      - lowercamelcase or lctitle
+      - String with every letter following an underscore (which is removed in
+        the process) capitalized and rest, including the first letter, in lower
+        case.
+      - print_it
+      - printIt
+    *
+      - undercase or utitle
+      - Lower case string with underscores inserted before every upper case
+        letter in the original string and any number not at the end of string.
+        Logically,_this_is_the_reverse_of_camelcase.
+      - PrintIt
+      - print_it
+    *
+      - schemify
+      - String with all underscores replaced with dashes, resulting in more
+        Lispers/Schemers-pleasing_name.
+      - print_it    
+      - print-it
+    * 
+      - strip:[prefix]
+      - String without the given prefix or the original string if it doesn't
+        start with this prefix. Note that square brackets should be used
+        literally,_e.g._%rename("strip:[wx]")
+      - wxPrint
+      - Print
+    * 
+      - rstrip:[suffix]      
+      - String without the given suffix or the original string if it doesn't
+        end with this suffix. Note that square brackets should be used           
+        literally,_e.g._%rename("rstrip:[Cls]")
+      - PrintCls
+      - Print                            
+    * 
+      - regex:/pattern/subst/
+      - String after (Perl-like) regex substitution operation. This function
+        allows to apply arbitrary regular expressions to the identifier names.    
+        The pattern part is a regular expression in Perl syntax (as supported     
+        by the Perl_Compatible_Regular_Expressions_(PCRE)) library and the        
+        subst string can contain back-references of the form \\N where N is a     
+        digit from 0 to 9, or one of the following escape sequences: \\l, \\L,    
+        \\u, \\U or \\E. The back-references are replaced with the contents of    
+        the corresponding capture group while the escape sequences perform the    
+        case conversion in the substitution string: \\l and \\L convert to the    
+        lower case, while \\u and \\U convert to the upper case. The difference   
+        between the elements of each pair is that \\l and \\u change the case of  
+        the next character only, while \\L and \\U do it for all the remaining    
+        characters or until \\E is encountered. Finally please notice that        
+        backslashes need to be escaped in C strings, so in practice "\\\\" must   
+        be used in all these escape sequences. For example, to remove any         
+        alphabetic prefix before an underscore and capitalize the remaining part  
+        you could use the_following_directive:\                                   
+        _%rename("regex:/(\\\\w+)_(.*)/\\\\u\\\\2/")  
+      - prefix_print
+      - Print                            
+    *
+      - command:cmd
+      - Output of an external command cmd with the string passed to it as      
+        input. Notice that this function is extremely slow compared to all the 
+        other ones as it involves spawning a separate process and using it for 
+        many declarations is not recommended. The cmd is not enclosed in square
+        brackets but must be terminated with a triple '<' sign, e.g. %rename   
+        ("command:tr -d aeiou_<<<")_(nonsensical_example_removing_all_vowels)
+      - Print
+      - Prnt
 
 The most general function of all of the above ones (not counting
 ``command`` which is even more powerful in principle but which should
@@ -2947,21 +2911,21 @@ When SWIG creates its output C/C++ file, it is broken up into five
 sections corresponding to runtime code, headers, wrapper functions, and
 module initialization code (in that order).
 
--  **Begin section**.
-   A placeholder for users to put code at the beginning of the C/C++
-   wrapper file. This is most often used to define preprocessor macros
-   that are used in later sections.
--  **Runtime code**.
-   This code is internal to SWIG and is used to include type-checking
-   and other support functions that are used by the rest of the module.
--  **Header section**.
-   This is user-defined support code that has been included by the
-   ``%{ ... %}`` directive. Usually this consists of header files and
-   other helper functions.
--  **Wrapper code**.
-   These are the wrappers generated automatically by SWIG.
--  **Module initialization**.
-   The function generated by SWIG to initialize the module upon loading.
+-  | **Begin section**.
+   | A placeholder for users to put code at the beginning of the C/C++
+     wrapper file. This is most often used to define preprocessor macros
+     that are used in later sections.
+-  | **Runtime code**.
+   | This code is internal to SWIG and is used to include type-checking
+     and other support functions that are used by the rest of the module.
+-  | **Header section**.
+   | This is user-defined support code that has been included by the
+     ``%{ ... %}`` directive. Usually this consists of header files and
+     other helper functions.
+-  | **Wrapper code**.
+   | These are the wrappers generated automatically by SWIG.
+-  | **Module initialization**.
+   | The function generated by SWIG to initialize the module upon loading.
 
 Code insertion blocks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
