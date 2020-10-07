@@ -70,97 +70,92 @@ generate wrappers written in C. All conversion and argument checking can
 be done in Modula-3 and the interfacing is quite efficient. All you have
 to do is to write pieces of Modula-3 code that SWIG puts together.
 
-C library support integrated in Modula-3
+.. list-table::
+    :widths: 25 50
+    :header-rows: 1
 
-Pragma ``<* EXTERNAL *>``
-
-Precedes a declaration of a PROCEDURE that is implemented in an external
-library instead of a Modula-3 module.
-
-Pragma ``<* CALLBACK *>``
-
-Precedes a declaration of a PROCEDURE that should be called by external
-library code.
-
-Module ``Ctypes``
-
-Contains Modula-3 types that match some basic C types.
-
-Module ``M3toC``
-
-Contains routines that convert between Modula-3's ``TEXT`` type and C's
-``char *`` type.
+    *
+      - C library support integrated in Modula-3
+      -
+    *
+      - Pragma <\* EXTERNAL \*>
+      - Precedes a declaration of a PROCEDURE that is implemented in an external library instead of a
+        Modula-3 module.                               
+    *
+      - Pragma <\* CALLBACK \*>
+      - Precedes a declaration of a PROCEDURE that should be called by external library code.
+    *
+      - Module Ctypes
+      - Contains Modula-3 types that match some basic C types.
+    *
+      - Module M3toC
+      - Contains routines that convert between Modula-3's TEXT type and C's char * type.
 
 In each run of SWIG the Modula-3 part generates several files:
 
-+--------------------+-----------------------+-----------------------+
-| Module name scheme | Identifier for        | Description           |
-|                    | ``%insert``           |                       |
-+====================+=======================+=======================+
-| Module\ ``Raw.i3`` | ``m3rawintf``         | Declaration of types  |
-|                    |                       | that are equivalent   |
-|                    |                       | to those of the C     |
-|                    |                       | library, ``EXTERNAL`` |
-|                    |                       | procedures as         |
-|                    |                       | interface to the C    |
-|                    |                       | library functions     |
-+--------------------+-----------------------+-----------------------+
-| Module\ ``Raw.m3`` | ``m3rawimpl``         | Almost empty.         |
-+--------------------+-----------------------+-----------------------+
-| Module\ ``.i3``    | ``m3wrapintf``        | Declaration of        |
-|                    |                       | comfortable wrappers  |
-|                    |                       | to the C library      |
-|                    |                       | functions.            |
-+--------------------+-----------------------+-----------------------+
-| Module\ ``.m3``    | ``m3wrapimpl``        | Implementation of the |
-|                    |                       | wrappers that convert |
-|                    |                       | between Modula-3 and  |
-|                    |                       | C types, check for    |
-|                    |                       | validity of values,   |
-|                    |                       | hand-over resource    |
-|                    |                       | management to the     |
-|                    |                       | garbage collector     |
-|                    |                       | using ``WeakRef``\ s  |
-|                    |                       | and raises            |
-|                    |                       | exceptions.           |
-+--------------------+-----------------------+-----------------------+
-| ``m3makefile``     | ``m3makefile``        | Add the modules above |
-|                    |                       | to the Modula-3       |
-|                    |                       | project and specify   |
-|                    |                       | the name of the       |
-|                    |                       | Modula-3 wrapper      |
-|                    |                       | library to be         |
-|                    |                       | generated. Today I'm  |
-|                    |                       | not sure if it is a   |
-|                    |                       | good idea to create a |
-|                    |                       | ``m3makefile`` in     |
-|                    |                       | each run, because     |
-|                    |                       | SWIG must be started  |
-|                    |                       | for each Modula-3     |
-|                    |                       | module it creates.    |
-|                    |                       | Thus the m3makefile   |
-|                    |                       | is overwritten each   |
-|                    |                       | time. :-(             |
-+--------------------+-----------------------+-----------------------+
+.. list-table::
+    :widths: 25 25 50
+    :header-rows: 1
+
+    *
+      - Module name scheme
+      - Identifier for ``%insert``
+      - Description
+    *
+      - Module\ ``Raw.i3``
+      - ``m3rawintf``
+      - Declaration of types that are equivalent to those of the C library, ``EXTERNAL`` 
+        procedures as interface to the C library functions.
+    *
+      - Module\ ``Raw.m3``
+      - ``m3rawimpl``
+      - Almost empty.
+    *
+      - Module\ ``.i3``
+      - ``m3wrapintf``
+      - Declaration of comfortable wrappers to the C library functions.
+    *
+      - Module\ ``.m3`` 
+      - ``m3wrapimpl``
+      - Implementation of the wrappers that convert between Modula-3 and C types, check for
+        validity of values, hand-over resource management to the garbage collector using ``WeakRef``\ s
+        and raises exceptions.
+    *
+      - ``m3makefile``
+      - ``m3makefile``
+      - Add the modules above to the Modula-3 project and specify the name of the Modula-3 wrapper
+        library to be generated. Today I'm not sure if it is a good idea to create a ``m3makefile`` in
+        each run, because SWIG must be started for each Modula-3 module it creates. Thus the m3makefile
+        is overwritten each time. :-(
 
 Here's a scheme of how the function calls to Modula-3 wrappers are
 redirected to C library functions:
 
-+-----------------------+-----------------------+-----------------------+
-| Modula-3 wrapper      |                       |                       |
-| Module\ ``.i3``       |                       |                       |
-| generated by Modula-3 |                       |                       |
-| part of SWIG          |                       |                       |
-+-----------------------+-----------------------+-----------------------+
-| \|                    |                       |                       |
-| v                     |                       |                       |
-+-----------------------+-----------------------+-----------------------+
-| Modula-3 interface to | -->                   | C library             |
-| C                     |                       |                       |
-| Module\ ``Raw.i3``    |                       |                       |
-| generated by Modula-3 |                       |                       |
-| part of SWIG          |                       |                       |
-+-----------------------+-----------------------+-----------------------+
+.. list-table::
+    :widths: 40 20 40
+    :header-rows: 0 
+    :align: center
+
+    *
+      - | Modula-3 wrapper     
+        | Module\ ``.i3``      
+        | generated by Modula-3
+        | part of SWIG         
+      -
+      -
+    *
+      - |  |
+        |  v
+      -
+      -
+    *
+      - | Modula-3 interface to 
+        | C                    
+        | Module\ ``Raw.i3``   
+        | generated by Modula-3
+        | part of SWIG
+      - -->
+      - C library
 
 I have still no good conception how one can split C library interfaces
 into type oriented interfaces. A Module in Modula-3 represents an
@@ -189,21 +184,36 @@ functions with a C interface.
 Here's a scheme of how the function calls to Modula-3 wrappers are
 redirected to C library functions:
 
-+-----------------------+-----------------------+-----------------------+
-| Modula-3 wrapper      |                       | C++ library           |
-| Module\ ``.i3``       |                       |                       |
-| generated by Modula-3 |                       |                       |
-| part of SWIG          |                       |                       |
-+-----------------------+-----------------------+-----------------------+
-| \|                    |                       | ^                     |
-| v                     |                       | \|                    |
-+-----------------------+-----------------------+-----------------------+
-| Modula-3 interface to | -->                   | C interface to C++    |
-| C                     |                       | module\ ``_wrap.cxx`` |
-| Module\ ``Raw.i3``    |                       | generated by the SWIG |
-| generated by Modula-3 |                       | core                  |
-| part of SWIG          |                       |                       |
-+-----------------------+-----------------------+-----------------------+
+.. list-table::
+    :widths: 40 20 40
+    :header-rows: 0 
+    :align: center
+
+    *
+      - | Modula-3 wrapper                       
+        | Module ``.i3``                        
+        | generated by Modula-3                      
+        | part of SWIG                           
+      - 
+      - C++ library     
+    *
+      - | \|
+        | v 
+      -
+      - | ^
+        | \|
+    *
+      - | Modula-3 interface to 
+        |  C                    
+        | Module ``Raw.i3`` 
+        | generated by Modula-3
+        | part of SWIG             
+      - -->
+      - | C interface to C++ 
+        | module ``_wrap.cxx``
+        | generated by the   
+        | SWIG core            
+                       
 
 Wrapping C++ libraries arises additional problems:
 
@@ -218,15 +228,15 @@ Wrapping C++ libraries arises additional problems:
    `Java <Java.html#Java_directors>`__ and
    `Python <Python.html#Python_directors>`__.
 -  How to manage storage with the garbage collector of Modula-3? Support
-   for ```%newobject`` and
-   ``%typemap(newfree)`` <Customization.html#Customization_ownership>`__
+   for `%newobject and \
+   %typemap(newfree) <Customization.html#Customization_ownership>`__
    isn't implemented, yet. What's about resources that are managed by
    the garbage collector but shall be passed back to the storage
    management of the C++ library? This is a general issue which is not
    solved in a satisfying fashion as far as I know.
 -  How to turn C++ exceptions into Modula-3 exceptions? There's also no
    support for
-   ```%exception`` <Customization.html#Customization_exception>`__, yet.
+   `%exception <Customization.html#Customization_exception>`__, yet.
 
 Be warned: There is no C++ library I wrote a SWIG interface for, so I'm
 not sure if this is possible or sensible, yet.
@@ -249,70 +259,44 @@ There are some experimental command line options that prevent SWIG from
 generating interface files. Instead files are emitted that may assist
 you when writing SWIG interface files.
 
-+-----------------------------------+-----------------------------------+
-| Modula-3 specific options         | Description                       |
-+===================================+===================================+
-| -generateconst <file>             | Disable generation of interfaces  |
-|                                   | and wrappers. Instead write code  |
-|                                   | for computing numeric values of   |
-|                                   | constants to the specified file.  |
-|                                   | C code may contain several        |
-|                                   | constant definitions written as   |
-|                                   | preprocessor macros. Other        |
-|                                   | language modules of SWIG use      |
-|                                   | compute-once-use-readonly         |
-|                                   | variables or functions to wrap    |
-|                                   | such definitions. All of them can |
-|                                   | invoke C code dynamically for     |
-|                                   | computing the macro values. But   |
-|                                   | if one wants to turn them into    |
-|                                   | Modula-3 integer constants,       |
-|                                   | enumerations or set types, the    |
-|                                   | values of these expressions has   |
-|                                   | to be known statically. Although  |
-|                                   | definitions like                  |
-|                                   | ``(1 << FLAG_MAXIMIZEWINDOW)``    |
-|                                   | must be considered as good C      |
-|                                   | style they are hard to convert to |
-|                                   | Modula-3 since the value          |
-|                                   | computation can use every feature |
-|                                   | of C.                             |
-|                                   | Thus I implemented these switch   |
-|                                   | to extract all constant           |
-|                                   | definitions and write a C program |
-|                                   | that output the values of them.   |
-|                                   | It works for numeric constants    |
-|                                   | only and treats all of them as    |
-|                                   | ``double``. Future versions may   |
-|                                   | generate a C++ program that can   |
-|                                   | detect the type of the macros by  |
-|                                   | overloaded output functions. Then |
-|                                   | strings can also be processed.    |
-+-----------------------------------+-----------------------------------+
-| -generaterename <file>            | Disable generation of interfaces  |
-|                                   | and wrappers. Instead generate    |
-|                                   | suggestions for ``%rename``.      |
-|                                   | C libraries use a naming style    |
-|                                   | that is neither homogeneous nor   |
-|                                   | similar to that of Modula-3. C    |
-|                                   | function names often contain a    |
-|                                   | prefix denoting the library and   |
-|                                   | some name components separated by |
-|                                   | underscores or capitalization     |
-|                                   | changes. To get library           |
-|                                   | interfaces that are really        |
-|                                   | Modula-3 like you should rename   |
-|                                   | the function names with the       |
-|                                   | ``%rename`` directive. This       |
-|                                   | switch outputs a list of such     |
-|                                   | directives with a name suggestion |
-|                                   | generated by a simple heuristic.  |
-+-----------------------------------+-----------------------------------+
-| -generatetypemap <file>           | Disable generation of interfaces  |
-|                                   | and wrappers. Instead generate    |
-|                                   | templates for some basic          |
-|                                   | typemaps.                         |
-+-----------------------------------+-----------------------------------+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    *
+      - Modula-3 specific options
+      - Description
+    *
+      - -generateconst <file>
+      - Disable generation of interfaces and wrappers. Instead write code for 
+        computing numeric values of constants to the specified file. 
+        C code may contain several constant definitions written as preprocessor macros. 
+        Other language modules of SWIG use compute-once-use-readonly variables or functions to wrap
+        such definitions.
+        All of them can invoke C code dynamically for computing the macro values. 
+        But if one wants to turn them into Modula-3 integer constants, enumerations or set 
+        types, the values of these  expressions has to be known statically. 
+        Although definitions like ``(1 << FLAG_MAXIMIZEWINDOW)`` must be considered as good 
+        C style they are hard to convert to Modula-3 since the value computation can use every feature of C.
+        Thus I implemented these switch to extract all constant definitions and write 
+        a C program that output the values of them.
+        It works for numeric constants only and treats all of them as ``double``.
+        Future versions may generate a C++ program that can detect the type of the macros by output functions.
+        Then strings can also be processed.
+    *
+      - -generaterename <file>
+      - Disable generation of interfaces and wrappers. Instead generate suggestions for ``%rename``.
+        C libraries use a naming style that is neither homogeneous nor similar to that of Modula-3. 
+        C function names often contain a prefix denoting the library and some name components 
+        separated by underscores or capitalization changes. 
+        To get library interfaces that are really Modula-3 like you should rename 
+        the function names with the ``%rename``directive. 
+        This switch outputs a list of such directives with a name suggestion generated by a simple heuristic.
+    *
+      - -generatetypemap <file>
+      - Disable generation of interfaces and wrappers. Instead generate templates for 
+        some basic typemaps.
+
 
 Modula-3 typemaps
 ----------------------
@@ -356,91 +340,101 @@ following parts:
 -  Free temporary storage.
 -  Return values.
 
-+-----------------+------------------------+------------------------+
-| Typemap         | Example                | Description            |
-+=================+========================+========================+
-| m3wrapargvar    | ``$1:                  | Declaration of some    |
-|                 |  INTEGER := $1_name;`` | variables needed for   |
-|                 |                        | temporary results.     |
-+-----------------+------------------------+------------------------+
-| m3wrapargconst  | ``$1 = "$1_name";``    | Declaration of some    |
-|                 |                        | constant, maybe for    |
-|                 |                        | debug purposes.        |
-+-----------------+------------------------+------------------------+
-| m3wrapargraw    | ``ORD($1_name)``       | The expression that    |
-|                 |                        | should be passed as    |
-|                 |                        | argument to the raw    |
-|                 |                        | Modula-3 interface     |
-|                 |                        | function.              |
-+-----------------+------------------------+------------------------+
-| m3wrapargdir    | ``out``                | Referential arguments  |
-|                 |                        | can be used for input, |
-|                 |                        | output, update. ???    |
-+-----------------+------------------------+------------------------+
-| m3wrapinmode    | ``READONLY``           | One of Modula-3        |
-|                 |                        | parameter modes        |
-|                 |                        | ``VALUE`` (or empty),  |
-|                 |                        | ``VAR``, ``READONLY``  |
-+-----------------+------------------------+------------------------+
-| m3wrapinname    |                        | New name of the input  |
-|                 |                        | argument.              |
-+-----------------+------------------------+------------------------+
-| m3wrapintype    |                        | Modula-3 type of the   |
-|                 |                        | input argument.        |
-+-----------------+------------------------+------------------------+
-| m3wrapindefault |                        | Default value of the   |
-|                 |                        | input argument         |
-+-----------------+------------------------+------------------------+
-| m3wrapinconv    | ``$1 := M3toC.         | Statement for          |
-|                 | SharedTtoS($1_name);`` | converting the         |
-|                 |                        | Modula-3 input value   |
-|                 |                        | to C compliant value.  |
-+-----------------+------------------------+------------------------+
-| m3wrapincheck   | `                      | Check the integrity of |
-|                 | `IF Text.Length($1_nam | the input value.       |
-|                 | e) > 10 THEN RAISE E(" |                        |
-|                 | str too long"); END;`` |                        |
-+-----------------+------------------------+------------------------+
-| m3wrapoutname   |                        | Name of the ``RECORD`` |
-|                 |                        | field to be used for   |
-|                 |                        | returning multiple     |
-|                 |                        | values. This applies   |
-|                 |                        | to referential output  |
-|                 |                        | arguments that shall   |
-|                 |                        | be turned into return  |
-|                 |                        | values.                |
-+-----------------+------------------------+------------------------+
-| m3wrapouttype   |                        | Type of the value that |
-|                 |                        | is returned instead of |
-|                 |                        | a referential output   |
-|                 |                        | argument.              |
-+-----------------+------------------------+------------------------+
-| m3wrapoutconv   |                        |                        |
-+-----------------+------------------------+------------------------+
-| m3wrapoutcheck  |                        |                        |
-+-----------------+------------------------+------------------------+
-| m3wrapretraw    |                        |                        |
-+-----------------+------------------------+------------------------+
-| m3wrapretname   |                        |                        |
-+-----------------+------------------------+------------------------+
-| m3wraprettype   |                        |                        |
-+-----------------+------------------------+------------------------+
-| m3wrapretvar    |                        |                        |
-+-----------------+------------------------+------------------------+
-| m3wrapretconv   |                        |                        |
-+-----------------+------------------------+------------------------+
-| m3wrapretcheck  |                        |                        |
-+-----------------+------------------------+------------------------+
-| m3wrapfreearg   | ``M3toC.Fre            | Free resources that    |
-|                 | eSharedS(str, arg1);`` | were temporarily used  |
-|                 |                        | in the wrapper. Since  |
-|                 |                        | this step should never |
-|                 |                        | be skipped, SWIG will  |
-|                 |                        | put it in the          |
-|                 |                        | ``FINALLY`` branch of  |
-|                 |                        | a ``TRY .. FINALLY``   |
-|                 |                        | structure.             |
-+-----------------+------------------------+------------------------+
+.. list-table::
+    :widths: 25 25 50
+    :header-rows: 1
+
+    *
+      - Typemap
+      - Example
+      - Description
+    *
+      - m3wrapargvar
+      - ``$1: INTEGER := $1_name;``
+      - Declaration of some variables needed for temporary results.  
+    *
+      - m3wrapargconst
+      - ``$1 = "$1_name";``
+      - Declaration of some constant, maybe for debug purposes.    
+    *
+      - m3wrapargraw
+      - ``ORD($1_name)``
+      - The expression that should be passed as argument to the raw Modula-3 interface function.
+    *
+      - m3wrapargdir
+      - ``out``
+      - Referential arguments can be used for input, output, update. ???
+    *
+      - m3wrapinmode
+      - ``READONLY``
+      - One of Modula-3 parameter modes ``VALUE`` (or empty), ``VAR``, ``READONLY``
+    *
+      - m3wrapinname
+      -
+      - New name of the input argument.
+    *
+      - m3wrapintype 
+      -
+      - Modula-3 type of the input argument.
+    *
+      - m3wrapindefault
+      -
+      - Default value of the input argument.
+    *
+      - m3wrapinconv
+      -  $1 := M3toC.SharedTtoS($1_name);
+      - Statement for converting the Modula-3 input value to C compliant value.
+    *
+      - m3wrapincheck
+      - IF Text.Length($1_name) > 10 THEN RAISE E("str too long"); END;
+      - Check the integrity of the input value.
+    *
+      - m3wrapoutname
+      -
+      - Name of the ``RECORD`` field to be used for returning multiple values.
+        This applies to referential output arguments that shall be turned into return values.
+    *
+      - m3wrapouttype
+      -
+      - Type of the value that is returned instead of a referential output argument.
+    *
+      - m3wrapoutconv
+      -
+      -
+    *
+      - m3wrapoutcheck
+      -
+      -
+    *
+      - m3wrapretraw
+      -
+      -
+    *
+      - m3wrapretname
+      -
+      -
+    *
+      - m3wraprettype
+      -
+      -
+    *
+      - m3wrapretvar
+      -
+      -
+    *
+      - m3wrapretconv
+      -
+      -
+    *
+      - m3wrapretcheck
+      -  
+      - 
+    *
+      - m3wrapfreearg   
+      - M3toC.FreeSharedS(str, arg1);
+      - Free resources that were temporarily used in the wrapper.
+        Since this step should never be skipped, SWIG will put it in the ``FINALLY`` branch of
+        a ``TRY .. FINALLY`` structure.
 
 Subranges, Enumerations, Sets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -570,62 +564,54 @@ More hints to the generator
 Features
 ~~~~~~~~~~~~~~~
 
-+--------------+--------------------------+--------------------------+
-| Feature      | Example                  | Description              |
-+==============+==========================+==========================+
-| multiretval  | ``%                      | Let the denoted function |
-|              | m3multiretval get_box;`` | return a ``RECORD``      |
-|              | or                       | rather than a plain      |
-|              | ``%feature("modula3:     | value. This ``RECORD``   |
-|              | multiretval") get_box;`` | contains all arguments   |
-|              |                          | with "out" direction     |
-|              |                          | including the return     |
-|              |                          | value of the C function  |
-|              |                          | (if there is one). If    |
-|              |                          | more than one argument   |
-|              |                          | is "out" then the        |
-|              |                          | function **must** have   |
-|              |                          | the ``multiretval``      |
-|              |                          | feature activated, but   |
-|              |                          | it is explicitly         |
-|              |                          | requested from the user  |
-|              |                          | to prevent mistakes.     |
-+--------------+--------------------------+--------------------------+
-| constnumeric | ``%co                    | This feature can be used |
-|              | nstnumeric(12) twelve;`` | to tell Modula-3's       |
-|              | or                       | back-end of SWIG the     |
-|              | ``%feature("constn       | value of an identifier.  |
-|              | umeric", "12") twelve;`` | This is necessary in the |
-|              |                          | cases where it was       |
-|              |                          | defined by a non-trivial |
-|              |                          | C expression. This       |
-|              |                          | feature is used by the   |
-|              |                          | ``-generateconst``       |
-|              |                          | `option <#               |
-|              |                          | Modula3_commandline>`__. |
-|              |                          | In future it may be      |
-|              |                          | generalized to other     |
-|              |                          | kind of values such as   |
-|              |                          | strings.                 |
-+--------------+--------------------------+--------------------------+
+.. list-table::
+    :widths: 25 25 50
+    :header-rows: 1
+
+    *
+      - Feature
+      - Example
+      - Description
+    *
+      - multiretval                           
+      - %m3multiretval get_box; or 
+        %feature("modula3:multiretval")     
+        get_box;                   
+      - Let the denoted function return a ``RECORD`` rather than a plain value.
+        This ``RECORD`` contains all arguments with "out" direction including the return value of the C function
+        (if there is one). 
+        If more than one argument is "out" then the function **must** have the ``multiretval`` feature activated, but it is explicitly requested from the user to prevent mistakes.
+    *
+      - constnumeric
+      - %constnumeric(12) twelve;  
+        or                        
+        %feature("constnumeric", "12") twelve;              
+      - This feature can be used to tell Modula-3's back-end of SWIG the value of an identifier.  
+        This is necessary in the cases where it was defined by a non-trivial C expression. 
+        This feature is used by the ``-generateconst`` `option <#Modula3_commandline>`__.
+        In future it may be generalized to other kind of values such as strings. 
 
 Pragmas
 ~~~~~~~~~~~~~~
 
-+---------+----------------------------+----------------------------+
-| Pragma  | Example                    | Description                |
-+=========+============================+============================+
-| unsafe  | ``%pragma                  | Mark the raw interface     |
-|         | (modula3) unsafe="true";`` | modules as ``UNSAFE``.     |
-|         |                            | This will be necessary in  |
-|         |                            | many cases.                |
-+---------+----------------------------+----------------------------+
-| library | ``%pragma(mo               | Specifies the library name |
-|         | dula3) library="m3fftw";`` | for the wrapper library to |
-|         |                            | be created. It should be   |
-|         |                            | distinct from the name of  |
-|         |                            | the library to be wrapped. |
-+---------+----------------------------+----------------------------+
+.. list-table::
+    :widths: 25 25 50
+    :header-rows: 1
+
+    *
+      - Pragma
+      - Example
+      - Description
+    *
+      - unsafe
+      - ``%pragma(modula3)unsafe="true";``
+      - Mark the raw interface modules as ``UNSAFE``. 
+        This will be necessary in many cases.
+    *
+      - library
+      - ``%pragma(modula3)library="m3fftw";``
+      - Specifies the library name for the wrapper library to be created.
+        It should be distinct from the name of the library to be wrapped.    
 
 Remarks
 ------------
