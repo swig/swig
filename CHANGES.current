@@ -8,6 +8,9 @@ Version 4.1.0 (in progress)
 ===========================
 
 2020-10-07: treitmayr
+            [Python] #1812 Fix error handling in pybuffer.i PyObject_GetBuffer().
+
+2020-10-07: treitmayr
             #1824 Add missing space in director method declaration returning
             const pointer.
 
