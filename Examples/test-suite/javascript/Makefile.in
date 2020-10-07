@@ -51,6 +51,7 @@ ifeq (node,$(JSENGINE))
   # dunno... ignoring generously
   apply_signed_char.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   constant_pointers.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
+  director_basic.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   enum_thorough.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
 
 	setup_node = \
