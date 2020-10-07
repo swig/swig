@@ -31,7 +31,7 @@ Examples
 -------------
 
 Working examples can be found in the `SWIG source
-tree <https://github.com/swig/swig/tree/master/Examples/go>`__ .
+tree <https://github.com/swig/swig/tree/master/Examples/go>`__.
 
 Please note that the examples in the SWIG source tree use makefiles with
 the .i SWIG interface file extension for backwards compatibility with Go
@@ -122,29 +122,73 @@ be seen by using:
 
       swig -go -help
 
-+-------------------------+
-| Go-specific options     |
-+=========================+
-| -cgo                    |
-+-------------------------+
-| -no-cgo                 |
-+-------------------------+
-| -intgosize <s>          |
-+-------------------------+
-| -gccgo                  |
-+-------------------------+
-| -package <name>         |
-+-------------------------+
-| -use-shlib              |
-+-------------------------+
-| -soname <name>          |
-+-------------------------+
-| -go-pkgpath <pkgpath>   |
-+-------------------------+
-| -go-prefix <prefix>     |
-+-------------------------+
-| -import-prefix <prefix> |
-+-------------------------+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+    
+    *
+      - Go-specific options
+      - 
+    *
+      - -cgo
+      - Generate files to be used as input for the Go cgo tool.
+        This is the default.
+    *
+      - -no-cgo
+      - Generate files that can be used directly, rather than
+        via the Go cgo tool. This option does not work with Go
+        1.5 or later. It is required for versions of Go before 1.2.
+    *
+      - -intgosize <s>
+      - Set the size for the Go type int. This controls the
+        size that the C/C++ code expects to see. The <s>
+        argument should be 32 or 64. This option is currently
+        required during the transition from Go 1.0 to Go 1.1,
+        as the size of int on 64-bit x86 systems changes
+        between those releases (from 32 bits to 64 bits). In
+        the future the option may become optional, and SWIG
+        will assume that the size of int is the size of a C
+        pointer.
+    *
+      - -gccgo     
+      - Generate code for gccgo. The default is to generate        
+        code for the Go compiler of the Go distribution.
+    *
+      - -package <name>
+      - Set the name of the Go package to <name>. The default
+        package name is the SWIG module name.
+    *
+      - -use-shlib
+      - Tell SWIG to emit code that uses a shared library. This
+        is only meaningful for the Go compiler of the Go
+        distribution, which needs to know at compile time
+        whether a shared library will be used.
+    *
+      - -soname <name>
+      - Set the runtime name of the shared library that the
+        dynamic linker should include at runtime. The default
+        is the package name with ".so" appended. This is only
+        used when generating code for the Go compiler of the Go
+        distribution; when using gccgo, the equivalent name
+        will be taken from the -soname option passed to the
+        linker. Using this option implies the -use-shlib
+        option.
+    *
+      - -go-pkgpath <pkgpath>
+      - When generating code for gccgo, set the pkgpath to use.
+        This corresponds to the -fgo-pkgpath option to gccgo.
+    *
+      - -go-prefix <prefix>
+      - When generating code for gccgo, set the prefix to use.
+        This corresponds to the -fgo-prefix option to gccgo. If
+        -go-pkgpath is used, -go-prefix will be ignored.
+    *
+      - -import-prefix <prefix>
+      - A prefix to add when turning a %import prefix in the
+        SWIG interface file into an import statement in the Go
+        file. For example, with -import-prefix mymodule, a SWIG
+        interface file %import mypackage will become a Go
+        import statement import "mymodule/mypackage".
 
 Generated Wrapper Files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -207,8 +251,8 @@ First the first letter of the variable name will be forced to uppercase,
 and then ``Get`` or ``Set`` will be prepended. For example, if the C/C++
 variable is called ``var``, then SWIG will define the functions
 ``GetVar`` and ``SetVar``. If a variable is declared as ``const``, or if
-SWIG's ```%immutable`` directive <SWIG.html#SWIG_readonly_variables>`__
-is used for the variable, then only the getter will be defined.
+SWIG's `%immutable directive <SWIG.html#SWIG_readonly_variables>`__ is used for the variable,
+then only the getter will be defined.
 
 C++ classes will be discussed further below. Here we'll note that the
 first letter of the class name will be forced to uppercase to give the
@@ -909,40 +953,61 @@ The following table lists the default type mapping from C/C++ to Go.
 This table will tell you which Go type to expect for a function which
 uses a given C/C++ type.
 
-+-----------------------------------+-----------------------------------+
-| **C/C++ type**                    | **Go type**                       |
-+-----------------------------------+-----------------------------------+
-| bool                              | bool                              |
-+-----------------------------------+-----------------------------------+
-| char                              | byte                              |
-+-----------------------------------+-----------------------------------+
-| signed char                       | int8                              |
-+-----------------------------------+-----------------------------------+
-| unsigned char                     | byte                              |
-+-----------------------------------+-----------------------------------+
-| short                             | int16                             |
-+-----------------------------------+-----------------------------------+
-| unsigned short                    | uint16                            |
-+-----------------------------------+-----------------------------------+
-| int                               | int                               |
-+-----------------------------------+-----------------------------------+
-| unsigned int                      | uint                              |
-+-----------------------------------+-----------------------------------+
-| long                              | int64                             |
-+-----------------------------------+-----------------------------------+
-| unsigned long                     | uint64                            |
-+-----------------------------------+-----------------------------------+
-| long long                         | int64                             |
-+-----------------------------------+-----------------------------------+
-| unsigned long long                | uint64                            |
-+-----------------------------------+-----------------------------------+
-| float                             | float32                           |
-+-----------------------------------+-----------------------------------+
-| double                            | float64                           |
-+-----------------------------------+-----------------------------------+
-| char \*                           | string                            |
-| char []                           |                                   |
-+-----------------------------------+-----------------------------------+
+.. list-table::
+    :widths: 50 50
+    :header-rows: 1
+
+
+    *
+      - **C/C++ type**
+      - **Go type**
+    *
+      - bool
+      - bool
+    *
+      - char                              
+      - byte
+    *
+      - signed char
+      - int8
+    *
+      - unsigned char
+      - byte
+    *
+      - short
+      - int16
+    *
+      - unsigned short
+      - uint16
+    *
+      - int                               
+      - int
+    *
+      - unsigned int
+      - uint
+    *
+      - long
+      - int64
+    *
+      - unsigned long
+      - uint64
+    *
+      - long long
+      - int64
+    *
+      - unsigned long long
+      - uint64
+    *
+      - float
+      - float32
+    *
+      - double
+      - float64
+    *
+      - char \*                         
+        
+        char []                         
+      - string
 
 Note that SWIG wraps the C ``char`` type as a character. Pointers and
 arrays of this type are wrapped as strings. The ``signed char`` type can
