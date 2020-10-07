@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2020-10-07: treitmayr
+            #1824 Add missing space in director method declaration returning
+            const pointer.
+
+2020-10-07: adelva1984
+            #1859 Remove all (two) exceptions from SWIG executable.
+
 2020-09-25: wsfulton
             [C#, Java] #1874 Add ability to change the modifiers for the interface
             generated when using the %interface macros.
