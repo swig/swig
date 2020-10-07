@@ -47,24 +47,24 @@ else:
 
     try:
         python_pybuffer.func1(1)
-        raise RuntimeError, "should throw TypeError"
-    except TypeError, e:
+        raise RuntimeError("should throw TypeError")
+    except TypeError as e:
         check("(char *buf1, int len)" in str(e))
 
     try:
         python_pybuffer.func2(1)
-        raise RuntimeError, "should throw TypeError"
-    except TypeError, e:
+        raise RuntimeError("should throw TypeError")
+    except TypeError as e:
         check("(char *buf2)" in str(e))
 
     try:
         python_pybuffer.func3(1)
-        raise RuntimeError, "should throw TypeError"
-    except TypeError, e:
+        raise RuntimeError("should throw TypeError")
+    except TypeError as e:
         check("(const char *buf3, int len)" in str(e))
 
     try:
         python_pybuffer.func4(1)
-        raise RuntimeError, "should throw TypeError"
-    except TypeError, e:
+        raise RuntimeError("should throw TypeError")
+    except TypeError as e:
         check("(const char *buf4)" in str(e))
