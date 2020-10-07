@@ -67,7 +67,7 @@ If building a C++ extension, add the -c++ option:
 
       $ swig -c++ -javascript -jsc example.i
 
-The V8 code that SWIG generates should work with most versions from
+The V8 code that SWIG generates should work with most versions from 3.11.10
 up to 3.29.14 and later.
 
 The API headers for V8 >= 4.3.0 define constants which SWIG can use to
