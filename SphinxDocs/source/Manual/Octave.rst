@@ -1009,5 +1009,3 @@ that is accessed from Octave as,
 
       octave:1> my_det(rand(4));
       ans = -0.18388
-
-````
