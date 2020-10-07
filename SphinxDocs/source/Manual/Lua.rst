@@ -8,7 +8,7 @@ and data-driven programming. Lua is intended to be used as a powerful,
 light-weight configuration language for any program that needs one. Lua
 is implemented as a library, written in clean C (that is, in the common
 subset of ISO C and C++). It's also a *really* tiny language, less than
-lines of code, which compiles to <100 kilobytes of binary code. It
+6000 lines of code, which compiles to <100 kilobytes of binary code. It
 can be found at http://www.lua.org
 
 eLua stands for Embedded Lua (can be thought of as a flavor of Lua) and
@@ -117,19 +117,30 @@ for the Lua module. They can also be seen by using:
 
       swig -lua -help 
 
-+----------------------------+
-| Lua specific options       |
-+============================+
-| -elua                      |
-+----------------------------+
-| -eluac                     |
-+----------------------------+
-| -nomoduleglobal            |
-+----------------------------+
-| -no-old-metatable-bindings |
-+----------------------------+
-| -squash-bases              |
-+----------------------------+
+.. list-table::
+    :widths: 25 50
+    :header-rows: 1
+
+    *
+      - Lua specific options
+      -
+    *
+      - -elua
+      - Generates LTR compatible wrappers for smaller devices running elua.
+    *
+      - -eluac
+      - LTR compatible wrappers in "crass compress" mode for elua.
+    *
+      - -nomoduleglobal           
+      - Do not register the module name as a global variable but return the module table from calls to require.
+    *
+      - -no-old-metatable-bindings
+      - Disable backward compatibility: old-style binding names generations and a few other things.        
+        Explanations are included in appropriate later sections.
+    *
+      - -squash-bases
+      - Squashes symbols from all inheritance tree of a given class into itself. 
+        Emulates pre-SWIG3.0 inheritance. Insignificantly speeds things up, but increases memory consumption.
 
 Compiling and Linking and Interpreter
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2102,7 +2113,7 @@ ease of use:
 
 Obviously the first version could be made less tedious by writing a Lua
 function to perform the conversion from a table to a C-array. The
-``%luacode`` directive is good for this. See SWIG\Examples\lua\arrays
+``%luacode`` directive is good for this. See ``SWIG\Examples\lua\arrays``
 for an example of this.
 
 **Warning:** in C indexes start at ZERO, in Lua indexes start at ONE.
@@ -2213,12 +2224,13 @@ main Lua-C api, as this is well documented and not worth covering.
 .. container:: indent
 
    This is the standard function used for converting a Lua userdata to a
-   void*. It takes the value at the given index in the Lua state and
+   ``void*``. It takes the value at the given index in the Lua state and
    converts it to a userdata. It will then provide the necessary type
    checks, confirming that the pointer is compatible with the type given
-   in 'type'. Then finally setting '*ptr' to the pointer. If flags is
+   in 'type'. Then finally setting ``'*ptr'`` to the pointer. If flags is
    set to SWIG_POINTER_DISOWN, this is will clear any ownership flag set
    on the object.
+
    This returns a value which can be checked with the macro SWIG_IsOK()
 
 ``void SWIG_NewPointerObj(lua_State* L, void* ptr, swig_type_info *type, int own);``
@@ -2247,6 +2259,7 @@ main Lua-C api, as this is well documented and not worth covering.
    function, will jump to the error handler code. This will call any
    cleanup code (freeing any temp variables) and then triggers a
    lua_error.
+   
    A common use for this code is:
    ::
 
