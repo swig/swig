@@ -1,12 +1,14 @@
 SWIG and C++
-==============
+============
 
 This chapter describes SWIG's support for wrapping C++. It is mostly
 concerned about C++ as defined by the C++ 98 and 03 standards. For
-additions to the original C++ standard, please read the :doc:`CPlusPlus11` ,
-:doc:`CPlusPlus14` and :doc:`CPlusPlus17` chapters. :doc:`CPlusPlus20` 
-chapters. As a prerequisite, you
-should first read the chapter :doc:`SWIG` to see
+additions to the original C++ standard, please read the `SWIG and
+C++11 <CPlusPlus11.html#CPlusPlus11>`__, `SWIG and
+C++14 <CPlusPlus14.html#CPlusPlus14>`__ and `SWIG and
+C++17 <CPlusPlus17.html#CPlusPlus17>`__ chapters. `SWIG and
+C++20 <CPlusPlus20.html#CPlusPlus20>`__ chapters. As a prerequisite, you
+should first read the chapter `SWIG Basics <SWIG.html#SWIG>`__ to see
 how SWIG wraps ISO C. Support for C++ builds upon ISO C wrapping and
 that material will be useful in understanding this chapter.
 
@@ -2514,8 +2516,6 @@ further details.
 ``%addmethods`` directive in SWIG1.1. Since ``%addmethods`` could be
 used to extend a structure with more than just methods, a more suitable
 directive name has been chosen.
-
-.. _cpp_templates:
 
 Templates
 --------------
