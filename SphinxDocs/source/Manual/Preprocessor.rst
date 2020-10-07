@@ -156,14 +156,14 @@ More complex macros can be defined in the standard way. For example:
 The following operators can appear in macro definitions:
 
 -  ``#x``
-   Converts macro argument ``x`` to a string surrounded by double quotes
-   ("x").
+
+   Converts macro argument ``x`` to a string surrounded by double quotes ("x").
 -  ``x ## y``
+   
    Concatenates x and y together to form ``xy``.
 -  :literal:`\`x\``
-   If ``x`` is a string surrounded by double quotes, do nothing.
-   Otherwise, turn into a string like ``#x``. This is a non-standard
-   SWIG extension.
+   
+   If ``x`` is a string surrounded by double quotes, do nothing. Otherwise, turn into a string like ``#x``. This is a non-standard SWIG extension.
 
 SWIG Macros
 ----------------
@@ -197,7 +197,7 @@ SWIG provides an enhanced macro capability with the ``%define`` and
 
 The primary purpose of ``%define`` is to define large macros of code.
 Unlike normal C preprocessor macros, it is not necessary to terminate
-each line with a continuation character (\)--the macro definition
+each line with a continuation character (``\``)--the macro definition
 extends to the first occurrence of ``%enddef``. Furthermore, when such
 macros are expanded, they are reparsed through the C preprocessor. Thus,
 SWIG macros can contain all other preprocessor directives except for
