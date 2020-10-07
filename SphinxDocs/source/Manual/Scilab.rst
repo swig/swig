@@ -177,33 +177,43 @@ Scilab command line options
 The following table lists the Scilab specific command line options in
 addition to the generic SWIG options:
 
-+----------------------------------+----------------------------------+
-| ``-builder``                     | Generate the Scilab builder      |
-|                                  | script                           |
-+----------------------------------+----------------------------------+
-| ``-buildercflags <cflags>``      | Add <cflags> to the builder      |
-|                                  | compiler flags                   |
-+----------------------------------+----------------------------------+
-| ``-builderldflags <ldflags>``    | Add <ldlags> to the builder      |
-|                                  | linker flags                     |
-+----------------------------------+----------------------------------+
-| ``-buildersources <files>``      | Add the (comma separated) files  |
-|                                  | <files> to the builder sources   |
-+----------------------------------+----------------------------------+
-| ``                               | Set the build verbosity level to |
-| -builderverbositylevel <level>`` | <level> (default 0: off, 2:      |
-|                                  | high)                            |
-+----------------------------------+----------------------------------+
-| ``-builderflagscript <file>``    | Use the Scilab script <file> to  |
-|                                  | configure the compiler and       |
-|                                  | linker flags                     |
-+----------------------------------+----------------------------------+
-| ``-gatewayxml <gateway_id>``     | Generate the gateway XML with    |
-|                                  | the given <gateway_id>           |
-+----------------------------------+----------------------------------+
-| ``-targetversion``               | Generate for Scilab target       |
-|                                  | (major) version                  |
-+----------------------------------+----------------------------------+
+..  list-table::
+    :widths: 25 25
+    :header-rows: 1
+
+    *
+     - ``-builder``
+     - Generate the Scilab builder
+       script
+    *
+      - ``-buildercflags <cflags>``
+      - Add <cflags> to the builder
+        compiler flags
+    *
+      - ``-builderldflags <ldflags>``
+      - Add <ldlags> to the builder
+        linker flags
+    *
+      - ``-buildersources <files>``
+      - Add the (comma separated) files
+        <files> to the builder sources
+    *                                  
+      - ``-builderverbositylevel <level>``
+      - Set the build verbosity level to
+        <level> (default 0: off, 2:high)
+    *
+      - ``-builderflagscript <file>``
+      - Use the Scilab script <file> to
+        configure the compiler and
+        linker flags
+    *
+      - ``-gatewayxml <gateway_id>``
+      - Generate the gateway XML with
+        the given <gateway_id>
+    *
+      - ``-targetversion``
+      - Generate for Scilab target
+        (major) version
 
 These options can be displayed with:
 
