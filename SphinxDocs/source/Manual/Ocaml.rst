@@ -100,7 +100,7 @@ use is optional, but encouraged. The source file is included in the
 Lib/ocaml directory of the SWIG source distribution. You can checkout
 this file with ``"swig -ocaml -co swigp4.ml"``. You should compile the
 file with
-:literal:`"ocamlc -I `camlp4 -where` -pp 'camlp4o pa_extend.cmo q_MLast.cmo' -c swigp4.ml"`
+:literal:`"ocamlc -I \`camlp4 -where\` -pp 'camlp4o pa_extend.cmo q_MLast.cmo' -c swigp4.ml"`
 
 The basic principle of the module is to recognize certain non-caml
 expressions and convert them for use with C++ code as interfaced by
@@ -109,64 +109,61 @@ interfaces, and probably isn't great to use with anything else.
 
 Here are the main rewriting rules:
 
-Input
+.. list-table::
+    :widths: 25 50
+    :header-rows: 1 
 
-Rewritten to
 
-| f'( ... ) as in
-| atoi'("0") or
-| \_exit'(0)
-
-| f(C_list [ ... ]) as in
-| atoi (C_list [ C_string "0" ]) or
-| \_exit (C_list [ C_int 0 ])
-
-object -> method ( ... )
-
-(invoke object) "method" (C_list [ ... ])
-
-| object *'binop* argument as in
-| a '+= b
-
-| (invoke object) "+=" argument as in
-| (invoke a) "+=" b
-
-Note that because camlp4 always recognizes << and >>, they are replaced
-by lsl and lsr in operator names.
-
-| *'unop* object as in
-| '! a
-
-(invoke a) "!" C_void
-
-| **Smart pointer access like this**
-| object '-> method ( args )
-
-(invoke (invoke object "->" C_void))
-
-| **Invoke syntax**
-| object . '( ... )
-
-(invoke object) "()" (C_list [ ... ])
-
-| **Array syntax**
-| object '[ 10 ]
-
-(invoke object) "[]" (C_int 10)
-
-| **Assignment syntax**
-| let a = '10 and b = '"foo" and c = '1.0 and d = 'true
-
-let a = C_int 10 and b = C_string "foo" and c = C_double 1.0 and d =
-C_bool true
-
-| **Cast syntax**
-| let a = \_atoi '("2") as int
-| let b = (getenv "PATH") to string
-| This works for int, string, float, bool
-
-| let a = get_int (_atoi (C_string "2"))
-| let b = C_string (getenv "PATH")
+    *
+      - Input                             
+      - Rewritten_to
+    *
+      - f'( ... ) as in                   
+      - f(C_list [ ... ]) as in                
+    *
+      - atoi'("0") or _exit'(0)                    
+      - atoi (C_list [ C_string "0" ]) or _exit_(C_list_[_C_int_0_])           
+    *
+      - object -> method ( ... )
+      - (invoke object) "method" (C_list [ ...])
+    *
+      - object 'binop argument as in a \'+=_b
+      - (invoke object) "+=" argument as in (invoke_a)_"+="_b
+    *
+      - Note that because camlp4 always recognizes << and >>, they are replaced by
+        lsl_and_lsr_in_operator_names. 
+      -                                            
+    *
+      - 'unop object as in !_a'
+      - (invoke a) "!" C_void                  
+    *
+      - Smart pointer access like this  
+        object '->_method_(_args_)      
+      - (invoke (invoke object "->" C_void))
+    *
+      - Invoke syntax                   
+        object ._'(_..._)               
+      - (invoke object) "()" (C_list [ ... ])
+    *
+      - Array syntax                    
+        object '[_10_]                  
+      - (invoke object) "[]" (C_int 10)
+    *
+      - Assignment syntax              
+        let a = '10 and b = '"foo" and
+        c = '1.0_and_d_=_'true          
+      - let a = C_int 10 and b = C_string "foo"
+        and c = C_double 1.0 and d = C_bool
+        true
+    * 
+      - Cast syntax                     
+        let a = _atoi '("2") as int    
+        let b = (getenv "PATH") to  
+        string                         
+        This works for int, string,   
+        float, bool                     
+      - let a = get_int (_atoi (C_string "2"))
+        let b = C_string (getenv "PATH")
 
 Using your module
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -267,8 +264,8 @@ caml_ptr_val, the returned value is the result of a call to the object's
 "&" operator, taken as a pointer.
 
 You should only construct values using objective caml, or using the
-functions caml_val_\* functions provided as static functions to a SWIG
-ocaml module, as well as the caml_list_\* functions. These functions
+functions caml_val_* functions provided as static functions to a SWIG
+ocaml module, as well as the caml_list_* functions. These functions
 provide everything a typemap needs to produce values. In addition, value
 items pass through directly, but you must make your own type signature
 for a function that uses value in this way.
@@ -286,28 +283,38 @@ the same as the C++ ones.
 You can introduce extra code into the output wherever you like with
 SWIG. These are the places you can introduce code:
 
-+-----------------+---------------------------------------------------+
-| "header"        | This code is inserted near the beginning of the C |
-|                 | wrapper file, before any function definitions.    |
-+-----------------+---------------------------------------------------+
-| "wrapper"       | This code is inserted in the function definition  |
-|                 | section.                                          |
-+-----------------+---------------------------------------------------+
-| "runtime"       | This code is inserted near the end of the C       |
-|                 | wrapper file.                                     |
-+-----------------+---------------------------------------------------+
-| "mli"           | This code is inserted into the caml interface     |
-|                 | file. Special signatures should be inserted here. |
-+-----------------+---------------------------------------------------+
-| "ml"            | This code is inserted in the caml code defining   |
-|                 | the interface to your C code. Special caml code,  |
-|                 | as well as any initialization which should run    |
-|                 | when the module is loaded may be inserted here.   |
-+-----------------+---------------------------------------------------+
-| "classtemplate" | The "classtemplate" place is special because it   |
-|                 | describes the output SWIG will generate for class |
-|                 | definitions.                                      |
-+-----------------+---------------------------------------------------+
+.. list-table::
+    :widths: 25 50
+    :header-rows: 1
+
+
+    *
+      - "header"
+      - This code is inserted near the beginning of the C 
+        wrapper file, before any function definitions.    
+    *
+      - "wrapper"
+      - This code is inserted in the function definition
+        section.
+    *
+      - "runtime"
+      - This code is inserted near the end of the C
+        wrapper file.
+    *
+      - "mli"
+      - This code is inserted into the caml interface
+        file. Special signatures should be inserted here.
+    *
+      - "ml"
+      - This code is inserted in the caml code defining
+        the interface to your C code. Special caml code, 
+        as well as any initialization which should run
+        when the module is loaded may be inserted here.
+    *
+      - "classtemplate"
+      - The "classtemplate" place is special because it
+        describes the output SWIG will generate for class
+        definitions.
 
 Enums
 ~~~~~~~~~~~~
@@ -430,48 +437,50 @@ is called with a float array, and specified length. The actual length
 reported in the len argument is the length of the array passed from
 ocaml, making passing an array into this type of function convenient.
 
-+-----------------------------------------------------------------------+
-| tarray.i                                                              |
-+=======================================================================+
-| ::                                                                    |
-|                                                                       |
-|    %module tarray                                                     |
-|    %{                                                                 |
-|    #include <stdio.h>                                                 |
-|                                                                       |
-|    void printfloats( float *tab, int len ) {                          |
-|      int i;                                                           |
-|                                                                       |
-|      for( i = 0; i < len; i++ ) {                                     |
-|        printf( "%f ", tab[i] );                                       |
-|      }                                                                |
-|                                                                       |
-|      printf( "\n" );                                                  |
-|    }                                                                  |
-|    %}                                                                 |
-|                                                                       |
-|    %typemap(in) (float *tab, int len) {                               |
-|      int i;                                                           |
-|      /* $*1_type */                                                   |
-|      $2 = caml_array_len($input);                                     |
-|      $1 = ($*1_type *)malloc( $2 * sizeof( float ) );                 |
-|      for( i = 0; i < $2; i++ ) {                                      |
-|        $1[i] = caml_double_val(caml_array_nth($input, i));            |
-|      }                                                                |
-|    }                                                                  |
-|                                                                       |
-|    void printfloats( float *tab, int len );                           |
-+-----------------------------------------------------------------------+
-| Sample Run                                                            |
-+-----------------------------------------------------------------------+
-| ::                                                                    |
-|                                                                       |
-|    # open Tarray ;;                                                   |
-|    # _printfl                                                         |
-| oats (C_array [| C_double 1.0 ; C_double 3.0 ; C_double 5.6666 |]) ;; |
-|    1.000000 3.000000 5.666600                                         |
-|    - : Tarray.c_obj = C_void                                          |
-+-----------------------------------------------------------------------+
+
++---------------------------------------------------------------------------------+
+|tarray.i                                                                         |
++=================================================================================+
+| ::                                                                              |
+|                                                                                 |
+|    %module tarray                                                               |
+|    %{                                                                           |
+|    #include <stdio.h>                                                           |
+|                                                                                 |
+|    void printfloats( float *tab, int len ) {                                    |
+|      int i;                                                                     |
+|                                                                                 |
+|      for( i = 0; i < len; i++ ) {                                               |
+|        printf( "%f ", tab[i] );                                                 |
+|      }                                                                          |
+|                                                                                 |
+|      printf( "\n" );                                                            |
+|    }                                                                            |
+|    %}                                                                           |
+|                                                                                 |
+|    %typemap(in) (float *tab, int len) {                                         |
+|      int i;                                                                     |
+|      /* $*1_type */                                                             |
+|      $2 = caml_array_len($input);                                               |
+|      $1 = ($*1_type *)malloc( $2 * sizeof( float ) );                           |
+|      for( i = 0; i < $2; i++ ) {                                                |
+|        $1[i] = caml_double_val(caml_array_nth($input, i));                      |
+|      }                                                                          |
+|    }                                                                            |
+|                                                                                 |
+|    void printfloats( float *tab, int len );                                     |
++---------------------------------------------------------------------------------+
+| Sample Run                                                                      |
++---------------------------------------------------------------------------------+
+| ::                                                                              |
+|                                                                                 |
+|    # open Tarray ;;                                                             |
+|    # _printfloats (C_array [| C_double 1.0 ; C_double 3.0 ; C_double 5.6666 |]) |
+|    ;;                                                                           |
+|    1.000000 3.000000 5.666600                                                   |
+|    - : Tarray.c_obj = C_void                                                    |
+|                                                                                 |
++---------------------------------------------------------------------------------+          
 
 C++ Classes
 ~~~~~~~~~~~~~~~~~~
@@ -486,35 +495,47 @@ memory only once. In addition to any other operators an object might
 have, certain builtin ones are provided by SWIG: (all of these take no
 arguments (C_void))
 
-+---------------------+-----------------------------------------------+
-| "~"                 | Delete this object                            |
-+---------------------+-----------------------------------------------+
-| "&"                 | Return an ordinary C_ptr value representing   |
-|                     | this object's address                         |
-+---------------------+-----------------------------------------------+
-| "sizeof"            | If enabled with ("sizeof"="1") on the module  |
-|                     | node, return the object's size in char.       |
-+---------------------+-----------------------------------------------+
-| ":methods"          | Returns a list of strings containing the      |
-|                     | names of the methods this object contains     |
-+---------------------+-----------------------------------------------+
-| ":classof"          | Returns the name of the class this object     |
-|                     | belongs to.                                   |
-+---------------------+-----------------------------------------------+
-| ":parents"          | Returns a list of all direct parent classes   |
-|                     | which have been wrapped by SWIG.              |
-+---------------------+-----------------------------------------------+
-| "::[parent-class]"  | Returns a view of the object as the indicated |
-|                     | parent class. This is mainly used internally  |
-|                     | by the SWIG module, but may be useful to      |
-|                     | client programs.                              |
-+---------------------+-----------------------------------------------+
-| "[member-variable]" | Each member variable is wrapped as a method   |
-|                     | with an optional parameter. Called with one   |
-|                     | argument, the member variable is set to the   |
-|                     | value of the argument. With zero arguments,   |
-|                     | the value is returned.                        |
-+---------------------+-----------------------------------------------+
+.. list-table::
+    :widths: 25 50
+    :header-rows: 1
+
+    *
+      - "~"
+      - Delete this object
+    *
+      - "&"                 
+      - Return an ordinary C_ptr value representing   
+        this object's address
+    *
+      - "sizeof"
+      - If enabled with ("sizeof"="1") on the module 
+        node, return the object's size in char.
+    *
+      - ":methods"          
+      - Returns a list of strings containing the
+        names of the methods this object contains
+    *
+      - ":classof"
+      - Returns the name of the class this object
+        belongs to.
+    *
+      - ":parents"
+      - Returns a list of all direct parent classes
+        which have been wrapped by SWIG.
+    *
+      - "::[parent-class]"
+      - Returns a view of the object as the indicated
+        parent class. This is mainly used internally  
+        by the SWIG module, but may be useful to
+        client programs.
+    *
+      - "[member-variable]"
+      - Each member variable is wrapped as a method   
+        with an optional parameter. Called with one
+        argument, the member variable is set to the
+        value of the argument. With zero arguments,
+        the value is returned.
+
 
 Note that this string belongs to the wrapper object, and not the
 underlying pointer, so using create_[x]_from_ptr alters the returned
