@@ -76,64 +76,70 @@ automatically used by the solution file.
 Java
 ^^^^^^^^^^^^
 
-| **``JAVA_INCLUDE``** : Set this to the directory containing jni.h
-| **``JAVA_BIN``** : Set this to the bin directory containing javac.exe
+| **JAVA_INCLUDE** : Set this to the directory containing jni.h
+| **JAVA_BIN** : Set this to the bin directory containing javac.exe
 
 | Example using JDK1.3:
-| ``JAVA_INCLUDE: D:\jdk1.3\include JAVA_BIN: D:\jdk1.3\bin``
+| ``JAVA_INCLUDE: D:\jdk1.3\include``
+| ``JAVA_BIN: D:\jdk1.3\bin``
 
 Perl
 ^^^^^^^^^^^^
 
-| **``PERL5_INCLUDE``** : Set this to the directory containing perl.h
-| **``PERL5_LIB``** : Set this to the Perl library including path for
+| **PERL5_INCLUDE** : Set this to the directory containing perl.h
+| **PERL5_LIB** : Set this to the Perl library including path for
   linking
 
 Example using nsPerl 5.004_04:
 
-``PERL5_INCLUDE: D:\nsPerl5.004_04\lib\CORE PERL5_LIB: D:\nsPerl5.004_04\lib\CORE\perl.lib``
+| ``PERL5_INCLUDE: D:\nsPerl5.004_04\lib\CORE``
+| ``PERL5_LIB: D:\nsPerl5.004_04\lib\CORE\perl.lib``
 
 Python
 ^^^^^^^^^^^^^^
 
-| **``PYTHON_INCLUDE``** : Set this to the directory that contains
+| **PYTHON_INCLUDE** : Set this to the directory that contains
   Python.h
-| **``PYTHON_LIB``** : Set this to the Python library including path for
+| **PYTHON_LIB** : Set this to the Python library including path for
   linking
 
 | Example using Python 2.1.1:
-| ``PYTHON_INCLUDE: D:\python21\include PYTHON_LIB: D:\python21\libs\python21.lib``
+| ``PYTHON_INCLUDE: D:\python21\include``
+| ``PYTHON_LIB: D:\python21\libs\python21.lib``
 
 TCL
 ^^^^^^^^^^^
 
-| **``TCL_INCLUDE``** : Set this to the directory containing tcl.h
-| **``TCL_LIB``** : Set this to the TCL library including path for
+| **TCL_INCLUDE** : Set this to the directory containing tcl.h
+| **TCL_LIB** : Set this to the TCL library including path for
   linking
 
 | Example using ActiveTcl 8.3.3.3
-| ``TCL_INCLUDE: D:\tcl\include TCL_LIB: D:\tcl\lib\tcl83.lib``
+| ``TCL_INCLUDE: D:\tcl\include``
+| ``TCL_LIB: D:\tcl\lib\tcl83.lib``
 
 R
 ^^^^^^^^^
 
-| **``R_INCLUDE``** : Set this to the directory containing R.h
-| **``R_LIB``** : Set this to the R library (Rdll.lib) including path
+| **R_INCLUDE** : Set this to the directory containing R.h
+| **R_LIB** : Set this to the R library (Rdll.lib) including path
   for linking. The library needs to be built as described in the R
   README.packages file (the pexports.exe approach is the easiest).
 
 | Example using R 2.5.1:
-| ``R_INCLUDE: C:\Program Files\R\R-2.5.1\include R_LIB: C:\Program Files\R\R-2.5.1\bin\Rdll.lib``
+| ``R_INCLUDE: C:\Program Files\R\R-2.5.1\include``
+| ``R_LIB: C:\Program Files\R\R-2.5.1\bin\Rdll.lib``
 
 Ruby
 ^^^^^^^^^^^^
 
-| **``RUBY_INCLUDE``** : Set this to the directory containing ruby.h
-| **``RUBY_LIB``** : Set this to the ruby library including path for
+| **RUBY_INCLUDE** : Set this to the directory containing ruby.h
+| **RUBY_LIB** : Set this to the ruby library including path for
   linking
 
 | Example using Ruby 1.6.4:
-| ``RUBY_INCLUDE: D:\ruby\lib\ruby\1.6\i586-mswin32 RUBY_LIB: D:\ruby\lib\mswin32-ruby16.lib``
+| ``RUBY_INCLUDE: D:\ruby\lib\ruby\1.6\i586-mswin32``
+| ``RUBY_LIB: D:\ruby\lib\mswin32-ruby16.lib``
 
 Instructions for using the Examples with other compilers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -195,9 +201,10 @@ directories.
    -  msys-autoconf-2.59.tar.bz2
    -  msys-automake-1.8.2.tar.bz2
 
-#. Install MinGW-3.1.0-1.exe (C:\MinGW is default location.)
+
+#. Install MinGW-3.1.0-1.exe (``C:\MinGW`` is default location.)
 #. Install MSYS-1.0.11-2004.04.30-1.exe. Make sure you install it on the
-   same windows drive letter as MinGW (C:\msys\1.0 is default). In the
+   same windows drive letter as MinGW (``C:\msys\1.0`` is default). In the
    post install script,
 
    -  Answer y to the "do you wish to continue with the post install?"
@@ -206,8 +213,8 @@ directories.
       default)
 
 #. Install msysDTK-1.0.1.exe to the same folder that you installed MSYS
-   (C:\msys\1.0 is default).
-#. Copy the following to the MSYS install folder (C:\msys\1.0 is
+   (``C:\msys\1.0`` is default).
+#. Copy the following to the MSYS install folder (``C:\msys\1.0`` is
    default):
 
    -  msys-automake-1.8.2.tar.bz2
