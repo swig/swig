@@ -44,3 +44,27 @@ else:
     buf3 = bytearray(b"hello")
     python_pybuffer.title1(buf3)
     check(buf3 == b"Hello")
+
+    try:
+        python_pybuffer.func1(1)
+        raise RuntimeError, "should throw TypeError"
+    except TypeError, e:
+        check("(char *buf1, int len)" in str(e))
+
+    try:
+        python_pybuffer.func2(1)
+        raise RuntimeError, "should throw TypeError"
+    except TypeError, e:
+        check("(char *buf2)" in str(e))
+
+    try:
+        python_pybuffer.func3(1)
+        raise RuntimeError, "should throw TypeError"
+    except TypeError, e:
+        check("(const char *buf3, int len)" in str(e))
+
+    try:
+        python_pybuffer.func4(1)
+        raise RuntimeError, "should throw TypeError"
+    except TypeError, e:
+        check("(const char *buf4)" in str(e))
