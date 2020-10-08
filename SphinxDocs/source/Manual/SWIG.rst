@@ -1678,7 +1678,6 @@ otherwise equivalent:
 ..  list-table:: \ 
     :widths: 25 25 25 25
     :header-rows: 1
-    :width: 100
 
     *
       - Function      
