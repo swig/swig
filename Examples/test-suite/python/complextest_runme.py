@@ -22,14 +22,6 @@ if 'Conjf3' in dir(complextest):
     if complextest.Conjf3(a) != a.conjugate():
         raise RuntimeError("bad complex mapping")
 
-if 'Conj4' in dir(complextest):
-    if complextest.Conj4(a) != a.conjugate():
-        raise RuntimeError("bad complex mapping")
-
-if 'Conj5' in dir(complextest):
-    if complextest.Conj5(a) != a.conjugate():
-        raise RuntimeError("bad complex mapping")
-
 if 'CopyHalf' in dir(complextest):
 
     v = (complex(1, 2), complex(2, 3), complex(4, 3), 1)
