@@ -6,7 +6,7 @@
  * ----------------------------------------------------------------------------- */
 
 
-%include <javscriptcomplex.swg>
+%include <javascriptcomplex.swg>
 
 %{
 #include <complex.h>
