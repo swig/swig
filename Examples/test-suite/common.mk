@@ -718,6 +718,7 @@ C_TEST_CASES += \
 	nested_extend_c \
 	nested_structs \
 	newobject2 \
+	not_ckeywords \
 	overload_extend_c \
 	overload_extend2 \
 	preproc \
