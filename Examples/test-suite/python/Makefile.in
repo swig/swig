@@ -83,18 +83,12 @@ CPP11_TEST_CASES = \
 	cpp11_std_unordered_set \
 
 C_TEST_CASES += \
-	complextest \
+	ccomplextest \
 	file_test \
 	li_cstring \
 	li_cwstring \
 	python_nondynamic \
 	python_varargs_typemap \
-
-#
-# This test only works with modern C compilers
-#
-#C_TEST_CASES += \
-#	complextest
 
 include $(srcdir)/../common.mk
 
