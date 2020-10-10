@@ -8,7 +8,7 @@
 #if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199001L
 #define HAS_C99_COMPLEX_FOR_TESTING 1
 #else
-/* complex not supported - hack tests to just test plain floating point numbers */
+/* c99 complex not supported - super hack tests to just test plain floating point numbers */
 /* some pre c99 compilers (gcc-4.x) don't define _Complex but do define complex */
 #define _Complex
 #if !defined(complex)
@@ -16,6 +16,8 @@
 #endif
 #define conj
 #define conjf
+#define creal
+#define cimag
 #if defined(I)
 #  undef I
 #  define I 1
