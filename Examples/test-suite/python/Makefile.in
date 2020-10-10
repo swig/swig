@@ -83,6 +83,7 @@ CPP11_TEST_CASES = \
 	cpp11_std_unordered_set \
 
 C_TEST_CASES += \
+	complextest \
 	file_test \
 	li_cstring \
 	li_cwstring \
