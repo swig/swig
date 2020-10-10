@@ -20,5 +20,3 @@ if ccomplextest.has_c99_complex():
 
     if ccomplextest.Conjf3(a) != a.conjugate():
         raise RuntimeError("bad complex mapping")
-else:
-    print("Not a c99 compiler")
