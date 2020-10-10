@@ -137,4 +137,5 @@ clean:
 		rm -f mod_a$${ext} mod_b$${ext}; \
 		rm -f multi_import_a$${ext} multi_import_b$${ext}; \
 		rm -f packageoption_a$${ext} packageoption_b$${ext} packageoption_c$${ext}; \
+		rm -f template_typedef_cplx2$${ext}; \
 	done
