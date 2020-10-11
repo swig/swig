@@ -335,8 +335,8 @@ When generating D wrappers, a few additional macros are available:
 
 ``$dcall`` and ``$winput`` (C#: ``$cscall``, ``$iminput``)
    These variables are used in the director-specific typemaps
-   :ref:`ddirectorin <D_ddirectorinout>` and
-   :ref:`ddirectorout <D_ddirectorinout>`. They are more or less
+   :ref: `ddirectorin<D_ddirectorinout>` and
+   :ref: `ddirectorout<D_ddirectorinout>`. They are more or less
    the reverse of the ``$imcall`` and ``$dinput`` macros: ``$dcall``
    contains the invocation of the D proxy method of which the return
    value is to be passed back to C++, ``$winput`` contains the parameter
