@@ -2094,124 +2094,56 @@ The first way is to use ``SWIG_exception(int code, const char *msg)``.
 The following table shows the mappings from SWIG error codes to Ruby
 exceptions:
 
-.. container:: diagram
+..  list-table::
+    :widths: 25 25
+    :header-rows: 0  
 
-   .. container::
-
-      SWIG_MemoryError
-
-.. container::
-
-   rb_eNoMemError
-
-.. container::
-
-   SWIG_IOError
-
-.. container::
-
-   rb_eIOError
-
-.. container::
-
-   SWIG_RuntimeError
-
-.. container::
-
-   rb_eRuntimeError
-
-.. container::
-
-   SWIG_IndexError
-
-.. container::
-
-   rb_eIndexError
-
-.. container::
-
-   SWIG_TypeError
-
-.. container::
-
-   rb_eTypeError
-
-.. container::
-
-   SWIG_DivisionByZero
-
-.. container::
-
-   rb_eZeroDivError
-
-.. container::
-
-   SWIG_OverflowError
-
-.. container::
-
-   rb_eRangeError
-
-.. container::
-
-   SWIG_SyntaxError
-
-.. container::
-
-   rb_eSyntaxError
-
-.. container::
-
-   SWIG_ValueError
-
-.. container::
-
-   rb_eArgError
-
-.. container::
-
-   SWIG_SystemError
-
-.. container::
-
-   rb_eFatal
-
-.. container::
-
-   SWIG_AttributeError
-
-.. container::
-
-   rb_eRuntimeError
-
-.. container::
-
-   SWIG_NullReferenceError
-
-.. container::
-
-   rb_eNullReferenceError\*
-
-.. container::
-
-   SWIG_ObjectPreviouslyDeletedError
-
-.. container::
-
-   rb_eObjectPreviouslyDeleted\*
-
-.. container::
-
-   SWIG_UnknownError
-
-.. container::
-
-   rb_eRuntimeError
-
-.. container::
-
-   \* These error classes are created by SWIG and are not built-in Ruby
-   exception classes
+    *
+      - SWIG_MemoryError                 
+      - rb_eNoMemError
+    *
+      - SWIG_IOError                     
+      - rb_eIOError
+    *
+      - SWIG_RuntimeError                
+      - rb_eRuntimeError
+    *    
+      - SWIG_IndexError                  
+      - rb_eIndexError
+    *   
+      - SWIG_TypeError                   
+      - rb_eTypeError
+    *    
+      - SWIG_DivisionByZero              
+      - rb_eZeroDivError
+    *   
+      - SWIG_OverflowError               
+      - rb_eRangeError
+    *    
+      - SWIG_SyntaxError                 
+      - rb_eSyntaxError
+    *   
+      - SWIG_ValueError                  
+      - rb_eArgError
+    *   
+      - SWIG_SystemError                 
+      - rb_eFatal
+    *   
+      - SWIG_AttributeError              
+      - rb_eRuntimeError
+    *   
+      - SWIG_NullReferenceError          
+      - rb_eNullReferenceError*
+    *   
+      - SWIG_ObjectPreviouslyDeletedError
+      - rb_eObjectPreviouslyDeleted*                       
+    * 
+      - SWIG_UnknownError
+      - rb_eRuntimeError
+    *   
+      - \* These error classes are created by SWIG and are not built-in Ruby                 
+        exception_classes                                                                    
+      -  
 
 The second way to raise errors is to use
 ``SWIG_Raise(obj, type, desc)``. Obj is a C++ instance of an exception
@@ -2678,21 +2610,28 @@ Converts Ruby objects to input function arguments. For example:
 
 The following special variables are available:
 
-.. container:: diagram
+.. list-table::
+    :widths: 25 50
+    :header-rows: 1
 
-   +----------+------------------------------------------------------------------+
-   | $input   | Input object holding value to be converted.                      |
-   +----------+------------------------------------------------------------------+
-   | $symname | Name of function/method being wrapped                            |
-   +----------+------------------------------------------------------------------+
-   | $1...n   | Argument being sent to the function                              |
-   +----------+------------------------------------------------------------------+
-   | $1_name  | Name of the argument (if provided)                               |
-   +----------+------------------------------------------------------------------+
-   | $1_type  | The actual C datatype matched by the typemap.                    |
-   +----------+------------------------------------------------------------------+
-   | $1_ltype | The assignable version of the C datatype matched by the typemap. |
-   +----------+------------------------------------------------------------------+
+    *
+      - $input   
+      - Input object holding value to be converted.
+    *
+      - $symname 
+      - Name of function/method being wrapped
+    *
+      - $1...n
+      - Argument being sent to the function
+    *
+      - $1_name
+      - Name of the argument (if provided)
+    *
+      - $1_type
+      - The actual C datatype matched by the typemap.
+    *
+      - $1_ltype
+      - The assignable version of the C datatype matched by the typemap.
 
 This is probably the most commonly redefined typemap because it can be
 used to implement customized conversions.
@@ -2750,21 +2689,28 @@ Converts return value of a C function to a Ruby object.
 
 The following special variables are available.
 
-.. container:: diagram
+.. list-table::
+    :widths: 25 50
+    :header-rows: 1
 
-   +----------+------------------------------------------------------------------+
-   | $result  | Result object returned to target language.                       |
-   +----------+------------------------------------------------------------------+
-   | $symname | Name of function/method being wrapped                            |
-   +----------+------------------------------------------------------------------+
-   | $1...n   | Argument being wrapped                                           |
-   +----------+------------------------------------------------------------------+
-   | $1_name  | Name of the argument (if provided)                               |
-   +----------+------------------------------------------------------------------+
-   | $1_type  | The actual C datatype matched by the typemap.                    |
-   +----------+------------------------------------------------------------------+
-   | $1_ltype | The assignable version of the C datatype matched by the typemap. |
-   +----------+------------------------------------------------------------------+
+    *
+      - $result
+      - Result object returned to target language.                       
+    *
+      - $symname 
+      - Name of function/method being wrapped                            
+    *
+      - $1...n
+      - Argument being wrapped                                           
+    *
+      - $1_name
+      - Name of the argument (if provided)                               
+    *
+      - $1_type
+      - The actual C datatype matched by the typemap.                    
+    *
+      - $1_ltype
+      - The assignable version of the C datatype matched by the typemap.
 
 "arginit" typemap
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -3017,23 +2963,31 @@ similar to the "out" typemap.
 
 The following special variables are available.
 
-.. container:: diagram
+.. list-table::
+    :widths: 25 50
+    :header-rows: 1
 
-   +----------+------------------------------------------------------------------+
-   | $result  | Result object returned to target language.                       |
-   +----------+------------------------------------------------------------------+
-   | $symname | Name of function/method being wrapped                            |
-   +----------+------------------------------------------------------------------+
-   | $1...n   | Argument being wrapped                                           |
-   +----------+------------------------------------------------------------------+
-   | $1_name  | Name of the argument (if provided)                               |
-   +----------+------------------------------------------------------------------+
-   | $1_type  | The actual C datatype matched by the typemap.                    |
-   +----------+------------------------------------------------------------------+
-   | $1_ltype | The assignable version of the C datatype matched by the typemap. |
-   +----------+------------------------------------------------------------------+
-   | this     | C++ this, referring to the class itself.                         |
-   +----------+------------------------------------------------------------------+
+    *
+       - $result  
+       - Result object returned to target language.                       
+    *
+       - $symname 
+       - Name of function/method being wrapped                            
+    *
+       - $1...n
+       - Argument being wrapped                                           
+    *
+       - $1_name  
+       - Name of the argument (if provided)                       
+    *
+       - $1_type  
+       - The actual C datatype matched by the typemap.                    
+    *
+       - $1_ltype 
+       - The assignable version of the C datatype matched by the typemap. 
+    *
+       - this
+       - C++ this, referring to the class itself.
 
 directorout typemap
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -3052,23 +3006,31 @@ to the "in" typemap.
 
 The following special variables are available:
 
-.. container:: diagram
+.. list-table::
+    :widths: 25 50
+    :header-rows: 1
 
-   +----------+------------------------------------------------------------------+
-   | $input   | Ruby object being sent to the function                           |
-   +----------+------------------------------------------------------------------+
-   | $symname | Name of function/method being wrapped                            |
-   +----------+------------------------------------------------------------------+
-   | $1...n   | Argument being sent to the function                              |
-   +----------+------------------------------------------------------------------+
-   | $1_name  | Name of the argument (if provided)                               |
-   +----------+------------------------------------------------------------------+
-   | $1_type  | The actual C datatype matched by the typemap.                    |
-   +----------+------------------------------------------------------------------+
-   | $1_ltype | The assignable version of the C datatype matched by the typemap. |
-   +----------+------------------------------------------------------------------+
-   | this     | C++ this, referring to the class itself.                         |
-   +----------+------------------------------------------------------------------+
+    *
+       - $input
+       - Ruby object being sent to the function                           
+    *
+       - $symname
+       - Name of function/method being wrapped                            
+    *
+       - $1...n
+       - Argument being sent to the function                              
+    *
+       - $1_name  
+       - Name of the argument (if provided)                               
+    *
+       - $1_type
+       - The actual C datatype matched by the typemap.                    
+    *
+       - $1_ltype
+       - The assignable version of the C datatype matched by the typemap. 
+    *
+       - this
+       - C++ this, referring to the class itself.
 
 Currently, the directorout nor the out typemap support the option
 ``numoutputs``, but the Ruby module provides that functionality through
@@ -3201,29 +3163,34 @@ languages.
 C Datatypes to Ruby Objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. container:: diagram
+.. list-table::
+    :widths: 25 25 25
+    :header-rows: 1
 
-   +-----------------------+-----------------------+-----------------------+
-   | **RUBY**              | **SWIG**              |                       |
-   +-----------------------+-----------------------+-----------------------+
-   | INT2NUM(long or int)  | SWIG_From_int(int x)  | int to Fixnum or      |
-   |                       |                       | Bignum                |
-   +-----------------------+-----------------------+-----------------------+
-   | INT2FIX(long or int)  |                       | int to Fixnum (faster |
-   |                       |                       | than INT2NUM)         |
-   +-----------------------+-----------------------+-----------------------+
-   | CHR2FIX(char)         | SWIG_From_char(char   | char to Fixnum        |
-   |                       | x)                    |                       |
-   +-----------------------+-----------------------+-----------------------+
-   | rb_str_new2(char*)    | SWIG_From             | char\* to String      |
-   |                       | CharPtrAndSize(char*, |                       |
-   |                       | size_t)               |                       |
-   +-----------------------+-----------------------+-----------------------+
-   | rb_float_new(double)  | SWIG                  | float/double to Float |
-   |                       | _From_double(double), |                       |
-   |                       | S                     |                       |
-   |                       | WIG_From_float(float) |                       |
-   +-----------------------+-----------------------+-----------------------+
+    *
+      - **RUBY**
+      - **SWIG**
+      -
+    *
+      - INT2NUM(long or int)
+      - SWIG_From_int(int x)
+      - int to Fixnum or Bignum            
+    *
+      - INT2FIX(long or int)
+      - 
+      - int to Fixnum (faster than INT2NUM)
+    *
+      - CHR2FIX(char)
+      - SWIG_From_char(char x)
+      - char to Fixnum                     
+    *
+      - rb_str_new2(char*)
+      - SWIG_FromCharPtrAndSize(char*,size_t)
+      - char\* to String
+    *
+      - rb_float_new(double)  
+      - SWIG_From_double(double), SWIG_From_float(float)
+      - float/double to Float
 
 Ruby Objects to C Datatypes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -3244,40 +3211,45 @@ typemaps that report more helpful error messages, like:
         }
       }
 
-.. container:: diagram
+.. list-table::
+    :widths: 25 25
+    :header-rows: 0
 
-   +----------------------------------+----------------------------------+
-   | int NUM2INT(Numeric)             | SWIG_AsVal_int(VALUE, int*)      |
-   +----------------------------------+----------------------------------+
-   | int FIX2INT(Numeric)             | SWIG_AsVal_int(VALUE, int*)      |
-   +----------------------------------+----------------------------------+
-   | unsigned int NUM2UINT(Numeric)   | S                                |
-   |                                  | WIG_AsVal_unsigned_SS_int(VALUE, |
-   |                                  | int*)                            |
-   +----------------------------------+----------------------------------+
-   | unsigned int FIX2UINT(Numeric)   | S                                |
-   |                                  | WIG_AsVal_unsigned_SS_int(VALUE, |
-   |                                  | int*)                            |
-   +----------------------------------+----------------------------------+
-   | long NUM2LONG(Numeric)           | SWIG_AsVal_long(VALUE, long*)    |
-   +----------------------------------+----------------------------------+
-   | long FIX2LONG(Numeric)           | SWIG_AsVal_long(VALUE, long*)    |
-   +----------------------------------+----------------------------------+
-   | unsigned long FIX2ULONG(Numeric) | SW                               |
-   |                                  | IG_AsVal_unsigned_SS_long(VALUE, |
-   |                                  | unsigned long*)                  |
-   +----------------------------------+----------------------------------+
-   | char NUM2CHR(Numeric or String)  | SWIG_AsVal_char(VALUE, int*)     |
-   +----------------------------------+----------------------------------+
-   | char \* StringValuePtr(String)   | SWIG_AsCharPtrAndSize(VALUE,     |
-   |                                  | char*, size_t, int\* alloc)      |
-   +----------------------------------+----------------------------------+
-   | char \* rb_str2cstr(String,      |                                  |
-   | int*length)                      |                                  |
-   +----------------------------------+----------------------------------+
-   | double NUM2DBL(Numeric)          | (double) SWIG_AsVal_int(VALUE)   |
-   |                                  | or similar                       |
-   +----------------------------------+----------------------------------+
+    *
+      - int NUM2INT(Numeric)
+      - SWIG_AsVal_int(VALUE, int*)       
+    *
+      - int FIX2INT(Numeric)
+      - SWIG_AsVal_int(VALUE, int*)       
+    *
+      - unsigned int NUM2UINT(Numeric)
+      - SWIG_AsVal_unsigned_SS_int(VALUE, int*)
+    *
+      - unsigned int FIX2UINT(Numeric)
+      - SWIG_AsVal_unsigned_SS_int(VALUE, int*)
+    *
+      - long NUM2LONG(Numeric)
+      -  SWIG_AsVal_long(VALUE, long*)
+    *
+      - long FIX2LONG(Numeric)
+      - SWIG_AsVal_long(VALUE, long*)
+    *
+      - unsigned long FIX2ULONG(Numeric)
+      - SWIG_AsVal_unsigned_SS_long(VALUE, unsigned long*) 
+    *
+      - char NUM2CHR(Numeric or String) 
+      -  SWIG_AsVal_char(VALUE, int*)
+    *
+      - char \* StringValuePtr(String)
+      - SWIG_AsCharPtrAndSize(VALUE, char*, size_t, int\* alloc)
+    *
+      - char \* rb_str2cstr(String,int*length) 
+      -
+    *
+      - double NUM2DBL(Numeric)         
+      - (double) SWIG_AsVal_int(VALUE)
+        or similar
+   
 
 Macros for VALUE
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -4123,48 +4095,44 @@ from Python):
 .. container:: code diagram
 
    ======================= ========
-   **General**                      
-   \__repr_\_              inspect  
-   \__str_\_               to_s     
-   \__cmp_\_               <=>      
-   \__hash_\_              hash     
-   \__nonzero_\_           nonzero? 
-   \                                
-   **Callable**                     
-   \__call_\_              call     
-   \                                
-   **Collection**                   
-   \__len_\_               length   
-   \__getitem_\_           []       
-   \__setitem_\_           []=      
-   \                                
-   **Numeric**                      
-   \__add_\_               +        
-   \__sub_\_               -        
-   \__mul_\_               \*       
-   \__div_\_               /        
-   \__mod_\_               %        
-   \__divmod_\_            divmod   
-   \__pow_\_               \*\*     
-   \__lshift_\_            <<       
-   \__rshift_\_            >>       
-   \__and_\_               &        
-   \__xor_\_               ^        
-   \__or_\_                \|       
-   \__neg_\_               -@       
-   \__pos_\_               +@       
-   \__abs_\_               abs      
-   \__invert_\_            ~        
-   \__int_\_               to_i     
-   \__float_\_             to_f     
-   \__coerce_\_            coerce   
-   \                                
-   **Additions in 1.3.13**          
-   \__lt_\_                <        
-   \__le_\_                <=       
-   \__eq_\_                ==       
-   \__gt_\_                >        
-   \__ge_\_                >=       
+   **General**                     
+   \__repr_\_              inspect 
+   \__str_\_               to_s    
+   \__cmp_\_               <=>     
+   \__hash_\_              hash    
+   \__nonzero_\_           nonzero?
+   **Callable**            \       
+   \__call_\_              call    
+   **Collection**          \       
+   \__len_\_               length  
+   \__getitem_\_           []      
+   \__setitem_\_           []=     
+   **Numeric**             \       
+   \__add_\_               \+      
+   \__sub_\_               \-      
+   \__mul_\_               \*      
+   \__div_\_               /       
+   \__mod_\_               %       
+   \__divmod_\_            divmod  
+   \__pow_\_               \*\*    
+   \__lshift_\_            <<      
+   \__rshift_\_            >>      
+   \__and_\_               &       
+   \__xor_\_               ^       
+   \__or_\_                \|      
+   \__neg_\_               -@      
+   \__pos_\_               +@      
+   \__abs_\_               abs     
+   \__invert_\_            ~       
+   \__int_\_               to_i    
+   \__float_\_             to_f    
+   \__coerce_\_            coerce  
+   **Additions in 1.3.13** \       
+   \__lt_\_                <       
+   \__le_\_                <=      
+   \__eq_\_                ==      
+   \__gt_\_                >       
+   \__ge_\_                >=      
    ======================= ========
 
 Note that although SWIG supports the ``__eq__`` magic method name for

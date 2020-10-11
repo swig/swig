@@ -1,4 +1,4 @@
-Preface
+1 Preface
 =========
 
 Introduction
@@ -84,7 +84,7 @@ available. More information about this can be obtained at:
 
    ::
 
-      SWIG Bleeding Edge
+      SWIG_Bleeding_Edge
 
 Prerequisites
 -----------------

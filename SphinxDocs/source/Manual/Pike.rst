@@ -3,7 +3,7 @@ SWIG and Pike
 
 This chapter describes SWIG support for Pike. As of this writing, the
 SWIG Pike module is still under development and is not considered ready
-for prime time. The Pike module is being developed against the Pike
+for prime time. The Pike module is being developed against the Pike 7.4.10
 release and may not be compatible with previous versions of Pike.
 
 | This chapter covers most SWIG features, but certain low-level details

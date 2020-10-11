@@ -684,51 +684,90 @@ for the Python module. They can also be seen by using:
 
       swig -python -help
 
-+---------------------------+
-| Python specific options   |
-+===========================+
-| -builtin                  |
-+---------------------------+
-| -castmode                 |
-+---------------------------+
-| -debug-doxygen-parser     |
-+---------------------------+
-| -debug-doxygen-translator |
-+---------------------------+
-| -dirvtable                |
-+---------------------------+
-| -doxygen                  |
-+---------------------------+
-| -extranative              |
-+---------------------------+
-| -fastproxy                |
-+---------------------------+
-| -globals <name>           |
-+---------------------------+
-| -interface <mod>          |
-+---------------------------+
-| -keyword                  |
-+---------------------------+
-| -nofastunpack             |
-+---------------------------+
-| -noh                      |
-+---------------------------+
-| -noproxy                  |
-+---------------------------+
-| -nortti                   |
-+---------------------------+
-| -nothreads                |
-+---------------------------+
-| -olddefs                  |
-+---------------------------+
-| -py3                      |
-+---------------------------+
-| -relativeimport           |
-+---------------------------+
-| -threads                  |
-+---------------------------+
-| -O                        |
-+---------------------------+
+
+.. list-table::
+    :widths: 25 50
+    :header-rows: 1
+
+    *
+      - Python specific options
+      -                                                    
+    *
+      - -builtin
+      - Create Python built-in types rather than proxy       
+        classes, for better performance
+    *
+      - -castmode                
+      - Enable the casting mode, which allows implicit cast  
+        between types in Python
+    *                          
+      - -debug-doxygen-parser
+      - Display doxygen parser module debugging information
+    *
+      - -debug-doxygen-translator
+      - Display doxygen translator module debugging
+        information
+    *
+      - -dirvtable
+      - Generate a pseudo virtual table for directors for
+        faster dispatch
+    *
+      - -doxygen
+      - Convert C++ doxygen comments to pydoc comments in
+        proxy classes
+    *
+      - -extranative
+      - Return extra native wrappers for C++ std containers
+        wherever possible
+    *
+      - -fastproxy
+      - Use fast proxy mechanism for member methods          
+    *
+      - -globals <name>
+      - Set <name> used to access C global variable ( 
+        default:'cvar')
+    *
+      - -interface <mod>
+      - Set low-level C/C++ module name to <mod> (default:   
+        module name prefixed by '_')                         
+    *
+      - -keyword                 
+      - Use keyword arguments
+    *
+      - -nofastunpack            
+      - Use traditional UnpackTuple method to parse the
+        argument functions     
+    *
+      - -noh
+      - Don't generate the output header file                
+    *
+      - -noproxy                 
+      - Don't generate proxy classes                         
+    *
+      - -nortti
+      -  Disable the use of the native C++ RTTI with directors
+    *
+      - -nothreads               
+      - Disable thread support for the entire interface      
+    *
+      - -olddefs
+      - Keep the old method definitions when using -fastproxy
+    *
+      - -py3
+      - Generate code with Python 3 specific features and
+        syntax
+    *
+      - -relativeimport
+      - Use relative Python imports
+    *
+      - -threads                 
+      - Add thread support for all the interface
+    *
+      - -O                       
+      - Enable the following optimization options: -
+        fastdispatch -fastproxy -fvirtual
+    
+
 
 Many of these options are covered later on and their use should become
 clearer by the time you have finished reading this section on SWIG and
@@ -4935,7 +4974,7 @@ readability of the ``%module`` directive by using a macro. For example:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 As alluded to above SWIG will generate all the function and method proxy
-wrappers with just "*args" (or "*args, \**kwargs" if the -keyword option
+wrappers with just "``*args``" (or "``*args, **kwargs``" if the -keyword option
 is used) for a parameter list and will then sort out the individual
 parameters in the C wrapper code. This is nice and simple for the
 wrapper code, but makes it difficult to be programmer and tool friendly
@@ -5112,7 +5151,7 @@ any arbitrary descriptive text to a node in the parse tree with the
 docstring associated with classes, function or methods are output. If an
 item already has an autodoc string then it is combined with the
 docstring and they are output together. If the docstring is all on a
-single line then it is output like this::
+single line then it is output like this:
 
 .. container:: targetlang
 
@@ -5526,7 +5565,9 @@ Python 3.3 introduced `PEP
 <https://www.python.org/dev/peps/pep-0420/>`__ which implements
 implicit namespace packages. In a nutshell, implicit namespace packages
 remove the requirement of an \__init__.py file and allow packages to be
-split across multiple PATH elements. For example:
+split across multiple PATH elements.
+
+For example:
 
 .. container:: diagram
 
@@ -6158,7 +6199,7 @@ completely decoded as UTF-8:
 
       %}
 
-Note that "\xe9" is an invalid UTF-8 encoding, but "\xc3\xb6" is valid.
+Note that "``\xe9``" is an invalid UTF-8 encoding, but "``\xc3\xb6``" is valid.
 When this method is called from Python 3, the return value is the
 following text string:
 
@@ -6470,19 +6511,31 @@ For the curious about performance, here are some numbers for the
 profiletest.i test, which is used to check the speed of the wrapped
 code:
 
-+---------------------+----------------------+----------------------+
-| Thread Mode         | Execution Time (sec) | Comment              |
-+=====================+======================+======================+
-| Single Threaded     | 9.6                  | no "-threads" option |
-|                     |                      | given                |
-+---------------------+----------------------+----------------------+
-| Fully Multithreaded | 15.5                 | "-threads" option =  |
-|                     |                      | 'allow' + 'block'    |
-+---------------------+----------------------+----------------------+
-| No Thread block     | 12.2                 | only 'allow'         |
-+---------------------+----------------------+----------------------+
-| No Thread Allow     | 13.6                 | only block'          |
-+---------------------+----------------------+----------------------+
+.. list-table::
+    :widths: 25 25 25
+    :header-rows: 1
+
+    *
+      - Thread Mode
+      - Execution Time (sec)
+      - Comment
+    *
+      - Single Threaded
+      - 9.6
+      - no "-threads" option given
+    *
+      - Fully Multithreaded 
+      - 15.5                 
+      - "-threads" option = 'allow' + 'block'
+    *
+      - No Thread block     
+      - 12.2                 
+      - only 'allow'         
+    *
+      - No Thread Allow     
+      - 13.6                 
+      - only block'          
+    
 
 Fully threaded code decreases the wrapping performance by around 60%. If
 that is important to your application, you can tune each method using

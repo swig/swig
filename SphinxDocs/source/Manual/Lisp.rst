@@ -34,15 +34,25 @@ the various things which you can do with them.
 Additional Commandline Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+-----------------------------------------------------------------------+
-| CFFI specific options                                                 |
-+=======================================================================+
-| -generate-typedef                                                     |
-+-----------------------------------------------------------------------+
-| -[no]cwrap                                                            |
-+-----------------------------------------------------------------------+
-| -[no]swig-lisp                                                        |
-+-----------------------------------------------------------------------+
+.. list-table::
+    :widths: 25 50
+    :header-rows: 1
+
+    *
+      - CFFI specific options
+      -
+    *
+      - -generate-typedef
+      - If this option is given then defctype will be used to generate shortcuts according to the typedefs
+        in the input.
+    *
+      - -[no]cwrap
+      - Turn on or turn off generation of an intermediate C file when creating a C interface. By default
+        this is only done for C++ code.                                                    
+    *
+      - -[no]swig-lisp
+      - Turns on or off generation of code for helper lisp macro,functions, etc. 
+        which SWIG uses while generating wrappers. These macros, functions may still be used by generated wrapper code.                                      
 
 Generating CFFI bindings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -60,7 +60,7 @@ generate wrappers around simple C pointers. The primary use of this
 module is in generating pointers to primitive datatypes such as ``int``
 and ``double``.
 
-**``%pointer_functions(type, name)``**
+**%pointer_functions(type, name)**
 
 .. container:: indent
 
@@ -133,7 +133,7 @@ and ``double``.
          7
          >>> example.delete_intp(c)     # Delete
 
-**``%pointer_class(type, name)``**
+**%pointer_class(type, name)**
 
 .. container:: indent
 
@@ -200,7 +200,7 @@ and ``double``.
    access like objects and they can be easily garbage collected
    (destruction of the pointer object destroys the underlying object).
 
-**``%pointer_cast(type1, type2, name)``**
+**%pointer_cast(type1, type2, name)**
 
 .. container:: indent
 
@@ -230,7 +230,7 @@ as arrays. The module does not provide any safety or an extra layer of
 wrapping--it merely provides functionality for creating, destroying, and
 modifying the contents of raw C array data.
 
-**``%array_functions(type, name)``**
+**%array_functions(type, name)**
 
 .. container:: indent
 
@@ -305,7 +305,7 @@ modifying the contents of raw C array data.
          print_array(a)                        # Pass to C
          delete_doubleArray(a)                 # Destroy array
 
-**``%array_class(type, name)``**
+**%array_class(type, name)**
 
 .. container:: indent
 
@@ -374,7 +374,7 @@ This module defines macros for wrapping the low-level C memory
 allocation functions ``malloc()``, ``calloc()``, ``realloc()``, and
 ``free()``.
 
-**``%malloc(type [, name=type])``**
+**%malloc(type [, name=type])**
 
 .. container:: indent
 
@@ -391,7 +391,7 @@ allocation functions ``malloc()``, ``calloc()``, ``realloc()``, and
    wrapping a type that is not a valid identifier (e.g., "``int *``",
    "``double **``", etc.).
 
-**``%calloc(type [, name=type])``**
+**%calloc(type [, name=type])**
 
 .. container:: indent
 
@@ -405,7 +405,7 @@ allocation functions ``malloc()``, ``calloc()``, ``realloc()``, and
 
    If ``type`` is ``void``, then the size parameter ``sz`` is required.
 
-**``%realloc(type [, name=type])``**
+**%realloc(type [, name=type])**
 
 .. container:: indent
 
@@ -422,7 +422,7 @@ allocation functions ``malloc()``, ``calloc()``, ``realloc()``, and
    ``realloc_int(p, 100)`` reallocates ``p`` so that it holds 100
    integers.
 
-**``%free(type [, name=type])``**
+**%free(type [, name=type])**
 
 .. container:: indent
 
@@ -434,7 +434,7 @@ allocation functions ``malloc()``, ``calloc()``, ``realloc()``, and
 
          void free_name(type *ptr);
 
-**``%sizeof(type [, name=type])``**
+**%sizeof(type [, name=type])**
 
 .. container:: indent
 
@@ -446,7 +446,7 @@ allocation functions ``malloc()``, ``calloc()``, ``realloc()``, and
 
          %constant int sizeof_name = sizeof(type);
 
-**``%allocators(type [, name=type])``**
+**%allocators(type [, name=type])**
 
 .. container:: indent
 
@@ -504,14 +504,14 @@ instance, if you needed to extract data from a buffer. The target
 language must support strings with embedded binary data in order for
 this to work.
 
-**``const char *cdata(void *ptr, size_t nbytes)``**
+**const char *cdata(void *ptr, size_t nbytes)**
 
 .. container:: indent
 
    Converts ``nbytes`` of data at ``ptr`` into a string. ``ptr`` can be
    any pointer.
 
-**``void memmove(void *ptr, const char *s)``**
+**void memmove(void *ptr, const char *s)**
 
 .. container:: indent
 
@@ -519,7 +519,7 @@ this to work.
    ``ptr``. The string may contain embedded NULL bytes. This is actually
    a wrapper to the standard C library ``memmove`` function, which is
    declared as
-   **``void memmove(void *ptr, const void *src, size_t n)``**. The
+   **void memmove(void *ptr, const void *src, size_t n)**. The
    ``src`` and length ``n`` parameters are extracted from the language
    specific string ``s`` in the underlying wrapper code.
 
@@ -559,7 +559,7 @@ Python example:
 Since the size of data is not always known, the following macro is also
 defined:
 
-**``%cdata(type [, name=type])``**
+**%cdata(type [, name=type])**
 
 .. container:: indent
 
@@ -759,7 +759,7 @@ typemaps. Therefore, the same pattern matching rules and ideas apply.
    stored in the buffer is then returned as a function return value. If
    the function already returns a value, then the return value and the
    output string are returned together (multiple return values). **If
-   more than ``maxsize`` bytes are written, your program will crash with
+   more than maxsize bytes are written, your program will crash with
    a buffer overflow!**
 
 **%cstring_chunk_output(parm, chunksize)**
@@ -790,7 +790,7 @@ typemaps. Therefore, the same pattern matching rules and ideas apply.
    This macro is essentially identical to ``%cstring_bounded_output``.
    The only difference is that the result is always ``chunksize``
    characters. Furthermore, the result can contain binary data. **If
-   more than ``maxsize`` bytes are written, your program will crash with
+   more than maxsize bytes are written, your program will crash with
    a buffer overflow!**
 
 **%cstring_bounded_mutable(parm, maxsize)**
@@ -826,7 +826,7 @@ typemaps. Therefore, the same pattern matching rules and ideas apply.
    internal buffer. It is important to emphasize that this function does
    not mutate the string value passed---instead it makes a copy of the
    input value, mutates it, and returns it as a result. **If more than
-   ``maxsize`` bytes are written, your program will crash with a buffer
+   maxsize bytes are written, your program will crash with a buffer
    overflow!**
 
 **%cstring_mutable(parm [, expansion])**
@@ -871,7 +871,7 @@ typemaps. Therefore, the same pattern matching rules and ideas apply.
    important to emphasize that this function does not directly mutate
    the string value passed---instead it makes a copy of the input value,
    mutates it, and returns it as a result. **If the function expands the
-   result by more than ``expansion`` extra bytes, then the program will
+   result by more than expansion extra bytes, then the program will
    crash with a buffer overflow!**
 
 **%cstring_output_maxsize(parm, maxparm)**
@@ -1068,55 +1068,86 @@ code written.
 The following table shows which C++ classes are supported and the
 equivalent SWIG interface library file for the C++ library.
 
-+----------------------+----------------------+----------------------+
-| **C++ class**        | **C++ Library file** | **SWIG Interface     |
-|                      |                      | library file**       |
-+----------------------+----------------------+----------------------+
-| std::array (C++11)   | array                | std_array.i          |
-+----------------------+----------------------+----------------------+
-| std::auto_ptr        | memory               | std_auto_ptr.i       |
-+----------------------+----------------------+----------------------+
-| std::complex         | complex              | std_complex.i        |
-+----------------------+----------------------+----------------------+
-| std::deque           | deque                | std_deque.i          |
-+----------------------+----------------------+----------------------+
-| std::list            | list                 | std_list.i           |
-+----------------------+----------------------+----------------------+
-| std::map             | map                  | std_map.i            |
-+----------------------+----------------------+----------------------+
-| std::multimap        | multimap             | std_multimap.i       |
-| (C++11)              |                      |                      |
-+----------------------+----------------------+----------------------+
-| std::multiset        | multiset             | std_multiset.i       |
-| (C++11)              |                      |                      |
-+----------------------+----------------------+----------------------+
-| std::pair            | utility              | std_pair.i           |
-+----------------------+----------------------+----------------------+
-| std::set             | set                  | std_set.i            |
-+----------------------+----------------------+----------------------+
-| std::string          | string               | std_string.i         |
-+----------------------+----------------------+----------------------+
-| std::unordered_map   | unordered_map        | std_unordered_map.i  |
-| (C++11)              |                      |                      |
-+----------------------+----------------------+----------------------+
-| std                  | unordered_multimap   | std_                 |
-| ::unordered_multimap |                      | unordered_multimap.i |
-| (C++11)              |                      |                      |
-+----------------------+----------------------+----------------------+
-| std                  | unordered_multiset   | std_                 |
-| ::unordered_multiset |                      | unordered_multiset.i |
-| (C++11)              |                      |                      |
-+----------------------+----------------------+----------------------+
-| std::unordered_set   | unordered_set        | std_unordered_set.i  |
-| (C++11)              |                      |                      |
-+----------------------+----------------------+----------------------+
-| std::vector          | vector               | std_vector.i         |
-+----------------------+----------------------+----------------------+
-| std::wstring         | wstring              | std_wstring.i        |
-+----------------------+----------------------+----------------------+
-| std::shared_ptr      | shared_ptr           | std_shared_ptr.i     |
-| (C++11)              |                      |                      |
-+----------------------+----------------------+----------------------+
+.. list-table::
+    :widths: 25 25 25
+    :header-rows: 1
+
+    *
+      - **C++ class**
+      - **C++ Library file**
+      - **SWIG Interface library file**
+    *
+      - std::array (C++11)
+      - array                
+      - std_array.i
+    *
+      - std::auto_ptr
+      - memory               
+      - std_auto_ptr.i
+    *
+      - std::complex
+      - complex              
+      - std_complex.i          
+    *
+      - std::deque
+      - deque
+      - std_deque.i
+    *
+      - std::list
+      - list
+      - std_list.i
+    *
+      - std::map               
+      - map                  
+      - std_map.i
+    *
+      - std::multimap (C++11)
+      - multimap
+      - std_multimap.i         
+    *
+      - std::multiset (C++11)
+      - multiset             
+      - std_multiset.i
+    *
+      - std::pair
+      - utility
+      - std_pair.i
+    *
+      - std::set
+      - set
+      - std_set.i
+    *
+      - std::string
+      - string
+      - std_string.i
+    *
+      - std::unordered_map (C++11)
+      - unordered_map
+      - std_unordered_map.i
+    *
+      - std::unordered_multimap (C++11)         
+      - unordered_multimap 
+      - std_unordered_multimap.i       
+    *
+      - std::unordered_multiset (C++11)
+      - unordered_multiset
+      - std_unordered_multiset.i
+    *
+      - std::unordered_set (C++11)           
+      - unordered_set
+      - std_unordered_set.i
+    *
+      - std::vector
+      - vector
+      - std_vector.i
+    *
+      - std::wstring
+      - wstring
+      - std_wstring.i
+    *
+      - std::shared_ptr (C++11)
+      - shared_ptr
+      - std_shared_ptr.i
 
 The list is by no means complete; some language modules support a subset
 of the above and some support additional STL classes. Please look for
@@ -1710,7 +1741,7 @@ largely used by the SWIG library writers. If possible, use the error
 handling scheme available to your target language as there is greater
 flexibility in what errors/exceptions can be thrown.
 
-**``SWIG_exception(int code, const char *message)``**
+**SWIG_exception(int code, const char *message)**
 
 .. container:: indent
 

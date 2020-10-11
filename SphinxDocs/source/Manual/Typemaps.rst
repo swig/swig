@@ -1840,55 +1840,73 @@ is by no means a complete list as some target languages have additional
 special variables which are documented in the language specific
 chapters.
 
-+------------------------+--------------------------------------------+
-| Variable               | Meaning                                    |
-+========================+============================================+
-| $\ *n*                 | A C local variable corresponding to type   |
-|                        | *n* in the typemap pattern.                |
-+------------------------+--------------------------------------------+
-| $argnum                | Argument number. Only available in         |
-|                        | typemaps related to argument conversion    |
-+------------------------+--------------------------------------------+
-| $\ *n*\ \_name         | Argument name                              |
-+------------------------+--------------------------------------------+
-| $\ *n*\ \_type         | Real C datatype of type *n*.               |
-+------------------------+--------------------------------------------+
-| $\ *n*\ \_ltype        | ltype of type *n*                          |
-+------------------------+--------------------------------------------+
-| $\ *n*\ \_mangle       | Mangled form of type *n*. For example      |
-|                        | ``_p_Foo``                                 |
-+------------------------+--------------------------------------------+
-| $\ *n*\ \_descriptor   | Type descriptor structure for type *n*.    |
-|                        | For example ``SWIGTYPE_p_Foo``. This is    |
-|                        | primarily used when interacting with the   |
-|                        | run-time type checker (described later).   |
-+------------------------+--------------------------------------------+
-| $\*\ *n*\ \_type       | Real C datatype of type *n* with one       |
-|                        | pointer removed.                           |
-+------------------------+--------------------------------------------+
-| $\*\ *n*\ \_ltype      | ltype of type *n* with one pointer         |
-|                        | removed.                                   |
-+------------------------+--------------------------------------------+
-| $\*\ *n*\ \_mangle     | Mangled form of type *n* with one pointer  |
-|                        | removed.                                   |
-+------------------------+--------------------------------------------+
-| $\*\ *n*\ \_descriptor | Type descriptor structure for type *n*     |
-|                        | with one pointer removed.                  |
-+------------------------+--------------------------------------------+
-| $&\ *n*\ \_type        | Real C datatype of type *n* with one       |
-|                        | pointer added.                             |
-+------------------------+--------------------------------------------+
-| $&\ *n*\ \_ltype       | ltype of type *n* with one pointer added.  |
-+------------------------+--------------------------------------------+
-| $&\ *n*\ \_mangle      | Mangled form of type *n* with one pointer  |
-|                        | added.                                     |
-+------------------------+--------------------------------------------+
-| $&\ *n*\ \_descriptor  | Type descriptor structure for type *n*     |
-|                        | with one pointer added.                    |
-+------------------------+--------------------------------------------+
-| $\ *n*\ \_basetype     | Base typename with all pointers and        |
-|                        | qualifiers stripped.                       |
-+------------------------+--------------------------------------------+
+.. list-table::
+    :widths: 25 50
+    :header-rows: 1   
+
+    *
+      - Variable
+      - Meaning
+    *
+      - $\ *n*                 
+      - A C local variable corresponding to type
+        *n* in the typemap pattern.
+    *
+      - $argnum                
+      - Argument number. Only available in
+        typemaps related to argument conversion
+    *
+      - $\ *n*\ \_name         
+      - Argument name
+    *
+      - $\ *n*\ \_type         
+      - Real C datatype of type *n*.
+    *
+      - $\ *n*\ \_ltype
+      - ltype of type *n*
+    *
+      - $\ *n*\ \_mangle
+      - Mangled form of type *n*. For example
+        ``_p_Foo``
+    *
+      - $\ *n*\ \_descriptor
+      - Type descriptor structure for type *n*.
+        For example ``SWIGTYPE_p_Foo``. This is
+        primarily used when interacting with the
+        run-time type checker (described later). 
+    *
+      - $\*\ *n*\ \_type
+      - Real C datatype of type *n* with one
+        pointer removed.
+    *
+      - $\*\ *n*\ \_ltype     
+      - ltype of type *n* with one pointer
+        removed.
+    *
+      - $\*\ *n*\ \_mangle     
+      - Mangled form of type *n* with one pointer
+        removed.
+    *
+      - $\*\ *n*\ \_descriptor 
+      - Type descriptor structure for type *n*
+        with one pointer removed.                  
+    *
+      - $&\ *n*\ \_type        
+      - Real C datatype of type *n* with one       
+        pointer added.                             
+    *
+      - $&\ *n*\ \_ltype       
+      - ltype of type *n* with one pointer added.  
+    * - $&\ *n*\ \_mangle      
+      - Mangled form of type *n* with one pointer  
+        added.
+    *
+      - $&\ *n*\ \_descriptor
+      - Type descriptor structure for type *n*
+        with one pointer added.
+    * - $\ *n*\ \_basetype     
+      - Base typename with all pointers and        
+        qualifiers stripped.                       
 
 Within the table, $\ *n* refers to a specific type within the typemap
 specification. For example, if you write this
