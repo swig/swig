@@ -1012,7 +1012,7 @@ SWIG provides support for dealing with templates, but by default, it
 will not generate any member variable or function wrappers for templated
 classes. In order to create these wrappers, you need to explicitly tell
 SWIG to instantiate them. This is done via the
-:ref:`%template<cpp_templates>` directive.
+:ref: `%template<cpp_templates>` directive.
 
 Implicit Template instantiation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1458,7 +1458,7 @@ SWIG Typemaps provide a powerful tool for automatically generating code
 to handle various menial tasks required of writing an interface to
 foreign code. The purpose of this section is to describe each of the
 typemaps used by the Allegro CL module. Please read the chapter on
-:doc:`Typemaps` for more information.
+:doc: `Typemaps` for more information.
 
 Code Generation in the C++ Wrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
