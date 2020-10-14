@@ -2140,10 +2140,8 @@ exceptions:
     * 
       - SWIG_UnknownError
       - rb_eRuntimeError
-    *   
-      - \* These error classes are created by SWIG and are not built-in Ruby                 
-        exception_classes                                                                    
-      -  
+
+\* These error classes are created by SWIG and are not built-in Ruby exception_classes                                                                    
 
 The second way to raise errors is to use
 ``SWIG_Raise(obj, type, desc)``. Obj is a C++ instance of an exception
@@ -4948,7 +4946,7 @@ When we use these objects in IRB we see:
 
 .. container:: code targetlang
 
-   .. code:: targetlang
+   ::
 
       $irb
       irb(main):002:0> require 'example'
