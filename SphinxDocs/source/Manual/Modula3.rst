@@ -604,12 +604,12 @@ Pragmas
       - Description
     *
       - unsafe
-      - ``%pragma(modula3)unsafe="true";``
+      - ``%pragma(modula3) unsafe="true";``
       - Mark the raw interface modules as ``UNSAFE``. 
         This will be necessary in many cases.
     *
       - library
-      - ``%pragma(modula3)library="m3fftw";``
+      - ``%pragma(modula3) library="m3fftw";``
       - Specifies the library name for the wrapper library to be created.
         It should be distinct from the name of the library to be wrapped.    
 
