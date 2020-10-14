@@ -122,19 +122,19 @@ Here are the main rewriting rules:
       - f(C_list [ ... ]) as in                
     *
       - atoi'("0") or _exit'(0)                    
-      - atoi (C_list [ C_string "0" ]) or _exit_(C_list_[_C_int_0_])           
+      - atoi (C_list [ C_string "0" ]) or _exit (C_list [ C_int 0 ])
     *
       - object -> method ( ... )
       - (invoke object) "method" (C_list [ ...])
     *
       - object 'binop argument as in a \'+=_b
-      - (invoke object) "+=" argument as in (invoke_a)_"+="_b
+      - (invoke object) "+=" argument as in (invoke_a) "+="_b
     *
       - Note that because camlp4 always recognizes << and >>, they are replaced by
         lsl_and_lsr_in_operator_names. 
-      -                                            
+      -
     *
-      - 'unop object as in !_a'
+      - 'unop object as in ! a'
       - (invoke a) "!" C_void                  
     *
       - Smart pointer access like this  
@@ -770,7 +770,6 @@ Director Usage Example
 |                 let xa = x_arg as float                               |
 |                 and ya = y_arg as float in                            |
 |                   (point_in_triangle pts xa ya) to bool               |
-|                                                                       |
 |           | _ -> raise (Failure "cover needs two double arguments.")) |
 |        | _ -> (invoke ob) meth args ;;                                |
 |                                                                       |
