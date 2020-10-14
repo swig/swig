@@ -5221,7 +5221,7 @@ by SWIG. They should be created by other means. Both files (module
 destination directories in order to obtain a desirable package/module
 hierarchy.
 
-Python3 adds another option for packages with `PEP
+Python3 adds another option for packages with `PEP 0420
 <https://www.python.org/dev/peps/pep-0420/>`__ (implicit namespace
 packages). Implicit namespace packages no longer use \__init__.py files.
 SWIG generated Python modules support implicit namespace packages. See
@@ -5427,8 +5427,8 @@ earlier it is not clear whether
       import foo
 
 refers to a top-level module or to another module inside the current
-package. In Python 3 it always refers to a top-level module (see `PEP
-<https://www.python.org/dev/peps/pep-0328/>`__). To instruct Python
+package. In Python 3 it always refers to a top-level module (see `PEP 328
+<https://www.python.org/dev/peps/pep-0328/>`__). To instruct Python 2.5
 through 2.7 to use new semantics (that is ``import foo`` is
 interpreted as absolute import), one has to put the following line
 
@@ -5561,7 +5561,7 @@ workaround).
 Implicit namespace packages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Python 3.3 introduced `PEP
+Python 3.3 introduced `PEP 0420
 <https://www.python.org/dev/peps/pep-0420/>`__ which implements
 implicit namespace packages. In a nutshell, implicit namespace packages
 remove the requirement of an \__init__.py file and allow packages to be
@@ -6001,7 +6001,7 @@ on whether you enabled the keyword argument. This fallback is due to all
 overloaded functions share the same function in SWIG generated proxy
 class.
 
-For detailed usage of function annotation, see `PEP
+For detailed usage of function annotation, see `PEP 3107
 <https://www.python.org/dev/peps/pep-3107/>`__.
 
 Buffer interface
@@ -6161,7 +6161,7 @@ define an abstract base class for your own C++ class:
 
       %pythonabc(MySet, collections.abc.MutableSet);
 
-For details of abstract base class, please see `PEP
+For details of abstract base class, please see `PEP 3119
 <https://www.python.org/dev/peps/pep-3119/>`__.
 
 **Compatibility Note:** SWIG-4.0.0 changed the base classes to use the
