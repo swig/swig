@@ -179,7 +179,7 @@ addition to the generic SWIG options:
 
 ..  list-table::
     :widths: 25 25
-    :header-rows: 1
+    :header-rows: 0
 
     *
      - ``-builder``
