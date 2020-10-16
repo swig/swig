@@ -4,435 +4,342 @@ matrix:
     - compiler: clang
       os: linux
       env: SWIGLANG=
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG= GCC=4.4
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG= GCC=4.6
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG= GCC=4.7
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG= GCC=4.8
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG= GCC=4.9
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG= GCC=6
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG= GCC=7
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG= GCC=8
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG= GCC=9
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=csharp
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=d VER=2.066.0
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=d VER=2.086.1
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=go VER=1.3
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=go VER=1.8
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=go VER=1.12
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=guile
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=java
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=javascript ENGINE=node VER=0.10
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=javascript ENGINE=node VER=4 CPP11=1
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=javascript ENGINE=node VER=6 CPP11=1
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=javascript ENGINE=node VER=8 CPP11=1
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=javascript ENGINE=node VER=10 CPP11=1
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=javascript ENGINE=jsc
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=javascript ENGINE=v8
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=lua
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=lua VER=5.3
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=mzscheme
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=ocaml
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=octave SWIGJOBS=-j2
-      sudo: required
       dist: xenial   # Octave v4.0.0
     - compiler: gcc
       os: linux
       env: SWIGLANG=octave SWIGJOBS=-j2 CPP11=1
-      sudo: required
       dist: bionic   # Octave v4.2.2
     - compiler: gcc
       os: linux
       env: SWIGLANG=perl5
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=php VER=7.0
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=php VER=7.1
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=php VER=7.2
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=php VER=7.3
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python # 2.7
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python PY3=3 VER=3.2
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python PY3=3 VER=3.3
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python PY3=3 VER=3.4
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python PY3=3 VER=3.5
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python PY3=3 VER=3.6
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python PY3=3 VER=3.7
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python PY3=3 VER=3.8
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python PY3=3 VER=3.9
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES="-builtin -O"
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin GCC=6 CPP11=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin GCC=6 CPP11=1 PY3=3 VER=3.9
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.4
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.5
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.7
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.8
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.9
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES="-builtin -O" PY3=3 VER=3.9
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.9 SWIGOPTPY3=
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-O
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-O PY3=3 VER=3.9
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=r
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=ruby VER=1.9
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=ruby VER=2.0
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=ruby VER=2.1
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=ruby VER=2.2
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=ruby VER=2.3
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=ruby VER=2.4
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=ruby VER=2.5
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=ruby VER=2.6
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=ruby VER=2.7
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=scilab
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=tcl
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=csharp CPP11=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=go VER=1.6 CPP11=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=java CPP11=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=python CPP11=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=r CPP11=1 # Note: making 'R CMD SHLIB' use a different compiler is non-trivial
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=ruby CPP11=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=tcl CPP11=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=csharp GCC=6 CPP14=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=go VER=1.6 GCC=6 CPP14=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=java GCC=6 CPP14=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=python GCC=6 CPP14=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=ruby GCC=6 CPP14=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=tcl GCC=6 CPP14=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=java GCC=7 CPP14=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=python GCC=7 CPP14=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=csharp GCC=8 CPP17=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=java GCC=8 CPP17=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=python GCC=8 CPP17=1 PY3=3 VER=3.9
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=csharp GCC=9 CPP17=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=java GCC=9 CPP17=1
-      sudo: required
       dist: xenial
     - os: linux
       env: SWIGLANG=python GCC=9 CPP17=1 PY3=3 VER=3.9
-      sudo: required
       dist: xenial
     - os: linux
       arch: s390x
       env: SWIGLANG=ruby CPP11=1
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: osx
@@ -487,24 +394,20 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=d VER=2.086.1
-      sudo: required
       dist: xenial
     # seg fault in director_basic testcase
     - compiler: gcc
       os: linux
       env: SWIGLANG=php VER=7.2
-      sudo: required
       dist: xenial
     # Experimental languages
     - compiler: gcc
       os: linux
       env: SWIGLANG=mzscheme
-      sudo: required
       dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=ocaml
-      sudo: required
       dist: xenial
 
 before_install:
