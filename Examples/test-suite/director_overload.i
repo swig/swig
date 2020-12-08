@@ -47,5 +47,13 @@ public:
   virtual void notover(int *p) const {}
 };
 
-%}
+class OverloadedGetSet
+{
+  int v;
+public:
+  OverloadedGetSet() : v(42) { }
+  virtual int rw() const { return v; }
+  virtual void rw(int new_v) { v = new_v; }
+};
 
+%}

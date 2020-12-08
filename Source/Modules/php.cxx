@@ -1566,7 +1566,7 @@ public:
 	      Printf(prepare, "case %d: ", ++last_handled_i);
 	    }
 	    if (non_void_return) {
-	      if ((!directorsEnabled() || !Swig_directorclass(n)) && !constructor) {
+	      if (!constructor) {
 		Append(prepare, "$r=");
 	      } else if (wrapperType == staticmemberfn || wrapperType == staticmembervar) {
 		Append(prepare, "$r=");
@@ -1590,7 +1590,7 @@ public:
 	if (had_a_case)
 	  Printf(prepare, "default: ");
 	if (non_void_return) {
-	  if ((!directorsEnabled() || !Swig_directorclass(n)) && !constructor) {
+	  if (!constructor) {
 	    Append(prepare, "$r=");
 	  } else if (wrapperType == staticmemberfn || wrapperType == staticmembervar) {
 	    Append(prepare, "$r=");
