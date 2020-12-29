@@ -226,7 +226,36 @@ This information is provided for those that want to modify the SWIG source code 
 Normally this is not needed, so most people will want to ignore this section. 
 </p>
 
-<H4><a name="Windows_mingw_msys">3.3.1.1 Building swig.exe using MinGW and MSYS</a></H4>
+<H4><a name="Windows_mingw_msys">3.3.1.1 Building swig.exe using MSYS2</a></H4>
+        
+Download and install MSYS2 from <a href="https://www.msys2.org/">www.msys2.org</a> (tested with version msys2-x86_64-20201109).<br>        
+Launch the MSYS2 shell (windows button, then type msys2, run).<br>
+Install the packages needed to build swig:<br>
+<div class="shell">
+<pre>
+pacman -S git autoconf automake bison gcc make pcre-devel
+</pre>
+</div>        
+Clone the repository to /usr/src/:<br>
+<div class="shell">
+<pre>
+mkdir /usr/src/
+cd /usr/src/
+git clone https://github.com/swig/swig.git
+</pre>
+</div>
+Configure and build:<br>
+<div class="shell">
+<pre>
+cd /usr/src/swig
+./autogen.sh
+./configure
+make
+</pre>
+</div>
+Finally you may also do a "make install".
+        
+<H4><a name="Windows_mingw_msys">3.3.1.2 Building swig.exe using MinGW and MSYS</a></H4>
 
 
 <p>
@@ -344,7 +373,7 @@ make
 </ol>
 
 
-<H4><a name="Windows_cygwin">3.3.1.2 Building swig.exe using Cygwin</a></H4>
+<H4><a name="Windows_cygwin">3.3.1.3 Building swig.exe using Cygwin</a></H4>
 
 
 <p>
@@ -355,7 +384,7 @@ Note that the Cygwin environment will also allow one to regenerate the autotool 
 These files are generated using the <tt>autogen.sh</tt> script and will only need regenerating in circumstances such as changing the build system.
 </p>
 
-<H4><a name="Windows_building_alternatives">3.3.1.3 Building swig.exe alternatives</a></H4>
+<H4><a name="Windows_building_alternatives">3.3.1.4 Building swig.exe alternatives</a></H4>
 
 
 <p>
