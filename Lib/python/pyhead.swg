@@ -36,7 +36,7 @@
 SWIGINTERN char*
 SWIG_Python_str_AsChar(PyObject *str)
 {
-#if PY_VERSION_HEX >= 0x03030000
+#if PY_VERSION_HEX >= 0x03030000 && !defined(Py_LIMITED_API)
   return (char *)PyUnicode_AsUTF8(str);
 #elif PY_VERSION_HEX >= 0x03000000
   char *newstr = 0;
@@ -57,7 +57,7 @@ SWIG_Python_str_AsChar(PyObject *str)
 #endif
 }
 
-#if PY_VERSION_HEX >= 0x03030000 || PY_VERSION_HEX < 0x03000000
+#if (PY_VERSION_HEX >= 0x03030000 && !defined(Py_LIMITED_API)) || PY_VERSION_HEX < 0x03000000
 #  define SWIG_Python_str_DelForPy3(x)
 #else
 #  define SWIG_Python_str_DelForPy3(x) free( (void*) (x) )
