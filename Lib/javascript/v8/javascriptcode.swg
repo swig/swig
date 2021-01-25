@@ -423,12 +423,13 @@ fail:
   SWIGV8_FUNCTION_TEMPLATE $jsmangledname_class_0 = SWIGV8_CreateClassTemplate("$jsname");
   $jsmangledname_class_0->SetCallHandler($jsctor);
   $jsmangledname_class_0->Inherit($jsmangledname_class);
+#if (SWIG_V8_VERSION < 0x0705)
+$jsmangledname_class_0->SetHiddenPrototype(true);
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
-  $jsmangledname_class_0->SetHiddenPrototype(true);
   v8::Handle<v8::Object> $jsmangledname_obj = $jsmangledname_class_0->GetFunction();
-#elif (SWIG_V8_VERSION < 0x0705)
-  $jsmangledname_class_0->SetHiddenPrototype(true);
+#else
   v8::Local<v8::Object> $jsmangledname_obj = $jsmangledname_class_0->GetFunction();
+#endif
 #else
   v8::Local<v8::Object> $jsmangledname_obj = $jsmangledname_class_0->GetFunction(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
 #endif
