@@ -16,8 +16,9 @@ Version 4.1.0 (in progress)
             The complex macro is available in the ccomplex.i library file along with other
             complex number handling provided by the complex.h header.
 
-2020-10-07: treitmayr
-            [Python] #1812 Fix error handling in pybuffer.i PyObject_GetBuffer().
+2020-10-07: ZackerySpytz
+            [Python] #1812 Fix the error handling for the PyObject_GetBuffer() calls in
+            pybuffer.i.
 
 2020-10-07: treitmayr
             #1824 Add missing space in director method declaration returning
