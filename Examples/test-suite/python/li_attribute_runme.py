@@ -45,6 +45,9 @@ myClass = li_attribute.MyClass()
 myClass.Foo = myFoo
 if myClass.Foo.x != 8:
     raise RuntimeError
+myClass.Foo2 = myFoo
+if myClass.Foo2.x != 8:
+    raise RuntimeError
 
 # class/struct attribute with get/set methods using return/pass by value
 myClassVal = li_attribute.MyClassVal()
