@@ -32,6 +32,9 @@ case "$SWIGLANG" in
 	"python")
 		WITHLANG=$SWIGLANG$PY3
 		;;
+	"tcl")
+		travis_retry Tools/brew-install --cask tcl
+		;;
 esac
 
 # Workaround for https://github.com/travis-ci/travis-ci/issues/6522
