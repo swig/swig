@@ -20,9 +20,6 @@ case "$SWIGLANG" in
 	"csharp")
 		travis_retry brew install mono
 		;;
-	"guile")
-		travis_retry Tools/brew-install guile
-		;;
 	"lua")
 		travis_retry brew install lua
 		;;
