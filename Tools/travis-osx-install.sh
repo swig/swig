@@ -9,7 +9,8 @@ export HOMEBREW_NO_INSTALL_CLEANUP=1
 
 sw_vers
 travis_retry brew update
-travis_retry brew list
+echo "Installed packages..."
+travis_retry brew list --versions
 # travis_retry brew install pcre # Travis Xcode-7.3 has pcre
 # travis_retry brew install boost
 
