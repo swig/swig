@@ -343,51 +343,64 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: osx
+      osx_image: xcode12.2
       env: SWIGLANG=
     - compiler: clang
       os: osx
+      osx_image: xcode12.2
       env: SWIGLANG=
     - compiler: clang
       os: osx
+      osx_image: xcode12.2
       env: SWIGLANG=csharp
     - compiler: clang
       os: osx
+      osx_image: xcode12.2
       env: SWIGLANG=go
     - compiler: clang
       os: osx
+      osx_image: xcode12.2
       env: SWIGLANG=guile CSTD=c11
     - compiler: clang
       os: osx
+      osx_image: xcode12.2
       env: SWIGLANG=java
     - compiler: clang
       os: osx
+      osx_image: xcode12.2
       env: SWIGLANG=lua
     - compiler: clang
       os: osx
+      osx_image: xcode12.2
       env: SWIGLANG=octave SWIGJOBS=-j2 CPP11=1
     - compiler: clang
       os: osx
+      osx_image: xcode12.2
       env: SWIGLANG=perl5
     - compiler: clang
       os: osx
+      osx_image: xcode12.2
       env: SWIGLANG=python
     - compiler: clang
       os: osx
+      osx_image: xcode12.2
       env: SWIGLANG=python PY3=3
     - compiler: clang
       os: osx
+      osx_image: xcode12.2
       env: SWIGLANG=ruby
     - compiler: clang
       os: osx
+      osx_image: xcode12.2
       env: SWIGLANG=tcl
     - compiler: clang
       os: osx
+      osx_image: xcode12.2
       env: SWIGLANG=java CPP17=1
-      osx_image: xcode10.2
     - compiler: clang
       os: osx
+      osx_image: xcode12.2
       env: SWIGLANG=python PY3=3 CPP17=1
-      osx_image: xcode10.2
 
   allow_failures:
     # Newer version of D not yet working/supported
