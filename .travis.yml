@@ -459,5 +459,6 @@ script:
   - if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
   - if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
   - echo 'Cleaning...' && echo -en 'travis_fold:start:script.3\\r'
-  - make check-maintainer-clean && ../../configure $CONFIGOPTS
+  # Skip on osx as often fails with: rm: Resource temporarily unavailable
+  - if test "$TRAVIS_OS_NAME" != "osx"; then make check-maintainer-clean && ../../configure $CONFIGOPTS; fi
   - echo -en 'travis_fold:end:script.3\\r'
