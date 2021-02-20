@@ -496,7 +496,9 @@ fi
 dirs="/usr/lib*/ /usr/lib*/tcl*/ /usr/local/lib*/ /usr/local/lib*/tcl*/"
 case $host in
 *-*-darwin*)
-  dirs="/System/Library/Frameworks/Tcl.framework/ $dirs"
+  tcl_framework="/System/Library/Frameworks/Tcl.framework/"
+  macos_sysroot="$(xcodebuild -version -sdk macosx Path 2>/dev/null)" # For MacOSX10.14 and later
+  dirs="$macos_sysroot$tcl_framework $tcl_framework $dirs"
   ;;
 *)
   ;;
