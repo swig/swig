@@ -7,8 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
-2020-10-07: treitmayr
-            [Python] #1812 Fix error handling in pybuffer.i PyObject_GetBuffer().
+2020-10-10: wsfulton
+            #252 complex can now be used as a C identifier and doesn't give a syntax error.
+
+2020-10-10: lpsinger
+            #1770 Correct C complex support.
+            _Complex is now parsed as a keyword rather than complex as per the C99 standard.
+            The complex macro is available in the ccomplex.i library file along with other
+            complex number handling provided by the complex.h header.
+
+2020-10-07: ZackerySpytz
+            [Python] #1812 Fix the error handling for the PyObject_GetBuffer() calls in
+            pybuffer.i.
 
 2020-10-07: treitmayr
             #1824 Add missing space in director method declaration returning

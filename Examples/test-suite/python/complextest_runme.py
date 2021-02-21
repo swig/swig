@@ -14,7 +14,6 @@ if complextest.Conj2(a) != a.conjugate():
 if complextest.Conjf2(a) != a.conjugate():
     raise RuntimeError("bad complex mapping")
 
-
 v = (complex(1, 2), complex(2, 3), complex(4, 3), 1)
 
 if len(complextest.CopyHalf(v)) != 2:

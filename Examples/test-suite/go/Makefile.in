@@ -173,16 +173,17 @@ run_multi_testcase = \
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' go_clean
-	rm -f mod_a.go mod_a.gox mod_b.go mod_b.gox
-	rm -f imports_a.go imports_a.gox imports_b.go imports_b.gox
 	rm -f clientdata_prop_a.go clientdata_prop_a.gox
 	rm -f clientdata_prop_b.go clientdata_prop_b.gox
+	rm -f import_stl_a.go import_stl_a.gox
+	rm -f import_stl_b.go import_stl_b.gox
+	rm -f imports_a.go imports_a.gox imports_b.go imports_b.gox
+	rm -f mod_a.go mod_a.gox mod_b.go mod_b.gox
 	rm -f multi_import_a.go multi_import_a.gox
 	rm -f multi_import_b.go multi_import_b.gox
-	rm -rf go_subdir_import_a.go go_subdir_import_a.gox testdir
 	rm -f packageoption_a.go packageoption_a.gox
 	rm -f packageoption_b.go packageoption_b.gox
 	rm -f packageoption_c.go packageoption_c.gox
-	rm -f import_stl_a.go import_stl_a.gox
-	rm -f import_stl_b.go import_stl_b.gox
+	rm -f template_typedef_cplx2.go template_typedef_cplx2.gox
+	rm -rf go_subdir_import_a.go go_subdir_import_a.gox testdir
 	rm -rf gopath
