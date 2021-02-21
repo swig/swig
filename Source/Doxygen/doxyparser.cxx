@@ -1086,16 +1086,19 @@ bool DoxygenParser::addDoxyCommand(DoxygenParser::TokenList &tokList, const std:
     // We don't recognize all of those, so just ignore them and pass them
     // through, but warn about unknown Doxygen commands as ignoring them will
     // often result in wrong output being generated.
-    const char ch = *cmd.begin();
-    if (ch != '<' && ch != '&') {
-      // Before calling printListError() we must ensure that m_tokenListIt used
-      // by it is valid.
-      const TokenListCIt itSave = m_tokenListIt;
-      m_tokenListIt = m_tokenList.end();
 
-      printListError(WARN_DOXYGEN_UNKNOWN_COMMAND, "Unknown Doxygen command: " + cmd + ".");
+    if(!cmd.empty()){
+        const char ch = *cmd.begin();
+        if (ch != '<' && ch != '&') {
+          // Before calling printListError() we must ensure that m_tokenListIt used
+          // by it is valid.
+          const TokenListCIt itSave = m_tokenListIt;
+          m_tokenListIt = m_tokenList.end();
 
-      m_tokenListIt = itSave;
+          printListError(WARN_DOXYGEN_UNKNOWN_COMMAND, "Unknown Doxygen command: " + cmd + ".");
+
+          m_tokenListIt = itSave;
+        }
     }
   }
 
