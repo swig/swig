@@ -2376,6 +2376,23 @@ public:
   }
 
   /* ------------------------------------------------------------
+   * returnPropertyAnnotation()
+   *
+   * Helper function for constructing a property annotation
+   * return a empty string for Python 2.x
+   * ------------------------------------------------------------ */
+
+  String *returnPropertyAnnotation(Node *n) {
+    String *ret = 0;
+     ret = Getattr(n, "type");
+      if (ret) {
+          ret = SwigType_str(ret, 0);
+      }
+    return (ret && py3) ? NewStringf(": \"%s\"", ret)
+	: NewString("");
+  }
+
+  /* ------------------------------------------------------------
    * emitFunctionShadowHelper()
    *
    * Refactoring some common code out of functionWrapper and
@@ -5003,7 +5020,7 @@ public:
       String *setname = Swig_name_set(NSPACE_TODO, mname);
       String *getname = Swig_name_get(NSPACE_TODO, mname);
       int assignable = is_assignable(n);
-      Printv(f_shadow, tab4, symname, " = property(", module, ".", getname, NIL);
+      Printv(f_shadow, tab4, symname, returnPropertyAnnotation(n), " = property(", module, ".", getname, NIL);
       if (assignable)
 	Printv(f_shadow, ", ", module, ".", setname, NIL);
       if (have_docstring(n))
