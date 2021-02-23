@@ -356,17 +356,6 @@ Note that the Cygwin environment will also allow one to regenerate the autotool 
 These files are generated using the <tt>autogen.sh</tt> script and will only need regenerating in circumstances such as changing the build system.
 </p>
 
-<H4><a name="Windows_cygwin">3.3.1.2 Building swig.exe using Cygwin</a></H4>
-
-
-<p>
-Note that SWIG can also be built using Cygwin.
-However, SWIG will then require the Cygwin DLL when executing. 
-Follow the Unix instructions in the README file in the SWIG root directory.
-Note that the Cygwin environment will also allow one to regenerate the autotool generated files which are supplied with the release distribution. 
-These files are generated using the <tt>autogen.sh</tt> script and will only need regenerating in circumstances such as changing the build system.
-</p>
-
 <H4><a name="Windows_building_alternatives">3.3.1.3 Building swig.exe alternatives</a></H4>
 
 
@@ -387,19 +376,20 @@ For fully working build steps always check the Continuous Integration setups cur
 
 <ol>
     <li>
-        Install Nuget from <a href="https://www.nuget.org/downloads">https://www.nuget.org/downloads</a> (v5.8.1 is used in this example). Nuget is the package manager
-        for .NET, but allows us to easily install <a href="https://www.pcre.org/">PCRE</a> required by SWIG.
+        Install Nuget from <a href="https://www.nuget.org/downloads">https://www.nuget.org/downloads</a> (v5.8.1 is used in this example, and installed to C:\Tools). Nuget is the package manager
+        for .NET, but allows us to easily install <a href="https://www.pcre.org/">PCRE</a> and other dependencies required by SWIG.
     </li>
     <li>
-        Download CMake from <a href="https://cmake.org/download/">https://cmake.org/download/</a>. In this example we are using 3.19 and unzipping it
-        to C:\Tools\cmake-3.19.4-win64-x64
+        Install CMake using the following command: <pre>C:\Tools\nuget install CMake-win64 -Version 3.15.5 -OutputDirectory C:\Tools\CMake</pre>
+        Alternatively you can download CMake from <a href="https://cmake.org/download/">https://cmake.org/download/</a>.
     </li>
     <li>
-        Download Bison from <a href="https://sourceforge.net/projects/gnuwin32/files/bison/">https://sourceforge.net/projects/gnuwin32/files/bison/</a> (2.4.1 is used in this example)
+        Install Bison using the following command: <pre>C:\Tools\nuget install bison-win32 -Version 2.4.1.1 -OutputDirectory C:\Tools\bison</pre>
+        Alternatively download Bison from <a href="https://sourceforge.net/projects/gnuwin32/files/bison/">https://sourceforge.net/projects/gnuwin32/files/bison/</a> (2.4.1 is used in this example)
         and save to a folder e.g. C:\Tools\Bison
     </li>
     <li>
-        Install PCRE using Nuget using the following command: <pre>C:\Tools\nuget install pcre -Verbosity quiet -Version 8.33.0.1 -OutputDirectory C:\pcre</pre>
+        Install PCRE using Nuget using the following command: <pre>C:\Tools\nuget install pcre -Version 8.33.0.1 -OutputDirectory C:\Tools\pcre</pre>
     </li>
     <li>
         We will also need the SWIG source code. Either download a zipped archive from GitHub, or if git is installed clone the latest codebase
@@ -409,31 +399,35 @@ For fully working build steps always check the Continuous Integration setups cur
 </ol>
 
 <p>
-Now we have all the required dependencies we can build SWIG using the commands below. We add the required build tools to the system PATH, and then
-build a Release version of SWIG. 
+    We are assuming Visual Studio 2017 is installed. For other versions of Visual Studio change <i>"Visual Studio 15 2017 Win64"</i> to the relevant
+    <a href="https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html#visual-studio-generators">Visual Studio Generator</a>.
+    Now we have all the required dependencies we can build SWIG using the commands below. We add the required build tools to the system PATH, and then
+    build a Release version of SWIG. If all runs successfully a new swig.exe should be generated in a /Release folder.
 </p>
 
 <div class="shell">
-<pre>
+    <pre>
 cd C:\swig
-SET PATH=C:\Tools\cmake-3.19.4-win64-x64\bin;C:\Tools\Bison\bin;%PATH%
-PCRE_ROOT=C:/pcre/pcre.8.33.0.1/build/native
+SET PATH=C:\Tools\CMake\CMake-win64.3.15.5\bin;C:\Tools\bison\bison-win32.2.4.1.1\tools\native\bin;%PATH%
+SET PCRE_ROOT=C:\Tools\pcre\pcre.8.33.0.1\build\native
 SET PCRE_PLATFORM=x64
-cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_PREFIX="%CD:\=/%/install2" -DCMAKE_C_FLAGS="/DPCRE_STATIC" -DPCRE_INCLUDE_DIR=%PCRE_ROOT%/include 
--DPCRE_LIBRARY=%PCRE_ROOT%/lib/v110/%PCRE_PLATFORM%/Release/static/utf8/pcre8.lib -DBISON_EXECUTABLE=C:/Tools/Bison/bin/bison.exe .
+cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_PREFIX="%CD:\=/%/install2" -DCMAKE_C_FLAGS="/DPCRE_STATIC" -DPCRE_INCLUDE_DIR=%PCRE_ROOT%/include -DPCRE_LIBRARY=%PCRE_ROOT%/lib/v110/%PCRE_PLATFORM%/Release/static/utf8/pcre8.lib .
 cmake --build . --config Release
+
+REM to test the exe
+cd /Release
+swig.exe -help
 </pre>
 </div>
 
 <p>
-    If all runs successfully a new swig.exe should be generated in a /Release folder.
     In addition to Release builds you can create a Debug build using:
 </p>
 <div class="shell">
     <pre>cmake --build . --config Debug</pre>
 </div>
 <p>
-    A Visual Studio solution file should be generated - swig.sln. This can be opened and debugged by running the swig project and setting the
+    A Visual Studio solution file should be generated named swig.sln. This can be opened and debugged by running the swig project and setting the
     Debugging Command Arguments. For example to step through one of the sample .i files included with the SWIG source use the following:
 </p>
 <div class="shell">
