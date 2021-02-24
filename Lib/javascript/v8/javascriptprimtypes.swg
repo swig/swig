@@ -6,7 +6,7 @@
 
 %fragment(SWIG_From_frag(bool),"header") {
 SWIGINTERNINLINE
-v8::Handle<v8::Value>
+SWIGV8_VALUE
 SWIG_From_dec(bool)(bool value)
 {
   return SWIGV8_BOOLEAN_NEW(value);
@@ -16,7 +16,7 @@ SWIG_From_dec(bool)(bool value)
 %fragment(SWIG_AsVal_frag(bool),"header",
           fragment=SWIG_AsVal_frag(long)) {
 SWIGINTERN
-int SWIG_AsVal_dec(bool)(v8::Handle<v8::Value> obj, bool *val)
+int SWIG_AsVal_dec(bool)(SWIGV8_VALUE obj, bool *val)
 {
   if(!obj->IsBoolean()) {
     return SWIG_ERROR;
@@ -31,7 +31,7 @@ int SWIG_AsVal_dec(bool)(v8::Handle<v8::Value> obj, bool *val)
 
 %fragment(SWIG_From_frag(int),"header") {
 SWIGINTERNINLINE
-v8::Handle<v8::Value> SWIG_From_dec(int)(int value)
+SWIGV8_VALUE SWIG_From_dec(int)(int value)
 {
   return SWIGV8_INT32_NEW(value);
 }
@@ -39,7 +39,7 @@ v8::Handle<v8::Value> SWIG_From_dec(int)(int value)
 
 %fragment(SWIG_AsVal_frag(int),"header") {
 SWIGINTERN
-int SWIG_AsVal_dec(int)(v8::Handle<v8::Value> valRef, int* val)
+int SWIG_AsVal_dec(int)(SWIGV8_VALUE valRef, int* val)
 {
   if (!valRef->IsNumber()) {
     return SWIG_TypeError;
@@ -54,7 +54,7 @@ int SWIG_AsVal_dec(int)(v8::Handle<v8::Value> valRef, int* val)
 
 %fragment(SWIG_From_frag(long),"header") {
 SWIGINTERNINLINE
-v8::Handle<v8::Value> SWIG_From_dec(long)(long value)
+SWIGV8_VALUE SWIG_From_dec(long)(long value)
 {
   return SWIGV8_NUMBER_NEW(value);
 }
@@ -63,7 +63,7 @@ v8::Handle<v8::Value> SWIG_From_dec(long)(long value)
 %fragment(SWIG_AsVal_frag(long),"header",
           fragment="SWIG_CanCastAsInteger") {
 SWIGINTERN
-int SWIG_AsVal_dec(long)(v8::Handle<v8::Value> obj, long* val)
+int SWIG_AsVal_dec(long)(SWIGV8_VALUE obj, long* val)
 {
   if (!obj->IsNumber()) {
     return SWIG_TypeError;
@@ -79,7 +79,7 @@ int SWIG_AsVal_dec(long)(v8::Handle<v8::Value> obj, long* val)
 %fragment(SWIG_From_frag(unsigned long),"header",
           fragment=SWIG_From_frag(long)) {
 SWIGINTERNINLINE
-v8::Handle<v8::Value> SWIG_From_dec(unsigned long)(unsigned long value)
+SWIGV8_VALUE SWIG_From_dec(unsigned long)(unsigned long value)
 {
   return (value > LONG_MAX) ?
     SWIGV8_INTEGER_NEW_UNS(value) : SWIGV8_INTEGER_NEW(%numeric_cast(value,long));
@@ -89,7 +89,7 @@ v8::Handle<v8::Value> SWIG_From_dec(unsigned long)(unsigned long value)
 %fragment(SWIG_AsVal_frag(unsigned long),"header",
           fragment="SWIG_CanCastAsInteger") {
 SWIGINTERN
-int SWIG_AsVal_dec(unsigned long)(v8::Handle<v8::Value> obj, unsigned long *val)
+int SWIG_AsVal_dec(unsigned long)(SWIGV8_VALUE obj, unsigned long *val)
 {
   if(!obj->IsNumber()) {
     return SWIG_TypeError;
@@ -115,7 +115,7 @@ int SWIG_AsVal_dec(unsigned long)(v8::Handle<v8::Value> obj, unsigned long *val)
     fragment="SWIG_LongLongAvailable") {
 %#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERNINLINE
-v8::Handle<v8::Value> SWIG_From_dec(long long)(long long value)
+SWIGV8_VALUE SWIG_From_dec(long long)(long long value)
 {
   return SWIGV8_NUMBER_NEW(value);
 }
@@ -128,7 +128,7 @@ v8::Handle<v8::Value> SWIG_From_dec(long long)(long long value)
     fragment="SWIG_LongLongAvailable") {
 %#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN
-int SWIG_AsVal_dec(long long)(v8::Handle<v8::Value> obj, long long* val)
+int SWIG_AsVal_dec(long long)(SWIGV8_VALUE obj, long long* val)
 {
   if (!obj->IsNumber()) {
     return SWIG_TypeError;
@@ -148,7 +148,7 @@ int SWIG_AsVal_dec(long long)(v8::Handle<v8::Value> obj, long long* val)
     fragment="SWIG_LongLongAvailable") {
 %#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERNINLINE
-v8::Handle<v8::Value> SWIG_From_dec(unsigned long long)(unsigned long long value)
+SWIGV8_VALUE SWIG_From_dec(unsigned long long)(unsigned long long value)
 {
   return (value > LONG_MAX) ?
     SWIGV8_INTEGER_NEW_UNS(value) : SWIGV8_INTEGER_NEW(%numeric_cast(value,long));
@@ -162,7 +162,7 @@ v8::Handle<v8::Value> SWIG_From_dec(unsigned long long)(unsigned long long value
     fragment="SWIG_LongLongAvailable") {
 %#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN
-int SWIG_AsVal_dec(unsigned long long)(v8::Handle<v8::Value> obj, unsigned long long *val)
+int SWIG_AsVal_dec(unsigned long long)(SWIGV8_VALUE obj, unsigned long long *val)
 {
   if(!obj->IsNumber()) {
     return SWIG_TypeError;
@@ -185,7 +185,7 @@ int SWIG_AsVal_dec(unsigned long long)(v8::Handle<v8::Value> obj, unsigned long 
 
 %fragment(SWIG_From_frag(double),"header") {
 SWIGINTERN
-v8::Handle<v8::Value> SWIG_From_dec(double) (double val)
+SWIGV8_VALUE SWIG_From_dec(double) (double val)
 {
   return SWIGV8_NUMBER_NEW(val);
 }
@@ -193,7 +193,7 @@ v8::Handle<v8::Value> SWIG_From_dec(double) (double val)
 
 %fragment(SWIG_AsVal_frag(double),"header") {
 SWIGINTERN
-int SWIG_AsVal_dec(double)(v8::Handle<v8::Value> obj, double *val)
+int SWIG_AsVal_dec(double)(SWIGV8_VALUE obj, double *val)
 {
   if(!obj->IsNumber()) {
     return SWIG_TypeError;
@@ -203,4 +203,3 @@ int SWIG_AsVal_dec(double)(v8::Handle<v8::Value> obj, double *val)
   return SWIG_OK;
 }
 }
-

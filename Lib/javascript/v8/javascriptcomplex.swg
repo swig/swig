@@ -12,7 +12,7 @@
 %fragment(SWIG_From_frag(Type),"header",
           fragment=SWIG_From_frag(double))
 {
-SWIGINTERNINLINE v8::Handle<v8::Value>
+SWIGINTERNINLINE SWIGV8_VALUE
 SWIG_From_dec(Type)(%ifcplusplus(const Type&, Type) c)
 {
   SWIGV8_HANDLESCOPE_ESC();
@@ -32,12 +32,12 @@ SWIG_From_dec(Type)(%ifcplusplus(const Type&, Type) c)
 	  fragment=SWIG_AsVal_frag(double))
 {
 SWIGINTERN int
-SWIG_AsVal_dec(Type) (v8::Handle<v8::Value> o, Type* val)
+SWIG_AsVal_dec(Type) (SWIGV8_VALUE o, Type* val)
 {
   SWIGV8_HANDLESCOPE();
   
   if (o->IsArray()) {
-    v8::Handle<v8::Array> array = v8::Handle<v8::Array>::Cast(o);
+    SWIGV8_ARRAY array = SWIGV8_ARRAY::Cast(o);
     
     if(array->Length() != 2) SWIG_Error(SWIG_TypeError, "Illegal argument for complex: must be array[2].");
     double re, im;
@@ -74,12 +74,12 @@ SWIG_AsVal_dec(Type) (v8::Handle<v8::Value> o, Type* val)
 %fragment(SWIG_AsVal_frag(Type),"header",
           fragment=SWIG_AsVal_frag(float)) {
 SWIGINTERN int
-SWIG_AsVal_dec(Type) (v8::Handle<v8::Value> o, Type* val)
+SWIG_AsVal_dec(Type) (SWIGV8_VALUE o, Type* val)
 {
   SWIGV8_HANDLESCOPE();
 
   if (o->IsArray()) {
-    v8::Handle<v8::Array> array = v8::Handle<v8::Array>::Cast(o);
+    SWIGV8_ARRAY array = SWIGV8_ARRAY::Cast(o);
     
     if(array->Length() != 2) SWIG_Error(SWIG_TypeError, "Illegal argument for complex: must be array[2].");
     double re, im;
