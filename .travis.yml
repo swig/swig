@@ -70,14 +70,6 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
-      env: SWIGLANG=javascript ENGINE=node VER=0.10
-      dist: xenial
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=javascript ENGINE=node VER=4 CPP11=1
-      dist: xenial
-    - compiler: gcc
-      os: linux
       env: SWIGLANG=javascript ENGINE=node VER=6 CPP11=1
       dist: xenial
     - compiler: gcc
