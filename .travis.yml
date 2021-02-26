@@ -406,12 +406,6 @@ matrix:
       os: linux
       env: SWIGLANG=d VER=2.086.1
       dist: xenial
-    # New node support, wip
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=javascript ENGINE=node VER=12 CPP11=1
-      sudo: required
-      dist: xenial
     # seg fault in director_basic testcase
     - compiler: gcc
       os: linux
