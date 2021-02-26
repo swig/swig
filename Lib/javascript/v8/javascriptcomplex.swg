@@ -43,12 +43,12 @@ SWIG_AsVal_dec(Type) (SWIGV8_VALUE o, Type* val)
     double re, im;
     int res;
 
-    res = SWIG_AsVal(double)(array->Get(0), &re);
+    res = SWIG_AsVal(double)(array->Get(SWIGV8_CURRENT_CONTEXT(), 0).ToLocalChecked(), &re);
     if(!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
     
-    res = SWIG_AsVal(double)(array->Get(1), &im);
+    res = SWIG_AsVal(double)(array->Get(SWIGV8_CURRENT_CONTEXT(), 1).ToLocalChecked(), &im);
     if(!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
@@ -85,12 +85,12 @@ SWIG_AsVal_dec(Type) (SWIGV8_VALUE o, Type* val)
     double re, im;
     int res;
 
-    res = SWIG_AsVal(double)(array->Get(0), &re);
+    res = SWIG_AsVal(double)(array->Get(SWIGV8_CURRENT_CONTEXT(), 0).ToLocalChecked(), &re);
     if(!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
     
-    res = SWIG_AsVal(double)(array->Get(1), &im);
+    res = SWIG_AsVal(double)(array->Get(SWIGV8_CURRENT_CONTEXT(), 1).ToLocalChecked(), &im);
     if(!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
