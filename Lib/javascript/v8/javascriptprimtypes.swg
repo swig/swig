@@ -149,8 +149,7 @@ int SWIG_AsVal_dec(long long)(SWIGV8_VALUE obj, long long* val)
 SWIGINTERNINLINE
 SWIGV8_VALUE SWIG_From_dec(unsigned long long)(unsigned long long value)
 {
-  return (value > LONG_MAX) ?
-    SWIGV8_INTEGER_NEW_UNS(value) : SWIGV8_INTEGER_NEW(%numeric_cast(value,long));
+  return SWIGV8_INTEGER_NEW_UNS(value);
 }
 %#endif
 }
