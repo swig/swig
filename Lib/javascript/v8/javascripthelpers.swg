@@ -67,7 +67,7 @@ SWIGRUNTIME void SWIGV8_AddStaticFunction(SWIGV8_OBJECT obj, const char* symbol,
 #elif (SWIG_V8_VERSION < 0x0706)
   obj->Set(SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func)->GetFunction(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked());
 #else
-  obj->Set(SWIGV8_CURRENT_CONTEXT(), SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func)->GetFunction(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked());
+  obj->Set(SWIGV8_CURRENT_CONTEXT(), SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func)->GetFunction(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()).Check();
 #endif
 }
 
@@ -79,7 +79,7 @@ SWIGRUNTIME void SWIGV8_AddStaticVariable(SWIGV8_OBJECT obj, const char* symbol,
 #if (V8_MAJOR_VERSION-0) < 5
   obj->SetAccessor(SWIGV8_SYMBOL_NEW(symbol), getter, setter);
 #else
-  obj->SetAccessor(SWIGV8_CURRENT_CONTEXT(), SWIGV8_SYMBOL_NEW(symbol), getter, setter);
+  obj->SetAccessor(SWIGV8_CURRENT_CONTEXT(), SWIGV8_SYMBOL_NEW(symbol), getter, setter).Check();
 #endif
 }
 

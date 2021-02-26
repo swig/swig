@@ -699,7 +699,7 @@ SWIGV8_VALUE SWIGV8_AppendOutput(SWIGV8_VALUE result, SWIGV8_VALUE obj) {
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903) || (SWIG_V8_VERSION < 0x0706)
   arr->Set(arr->Length(), obj);
 #else
-  arr->Set(SWIGV8_CURRENT_CONTEXT(), arr->Length(), obj);
+  arr->Set(SWIGV8_CURRENT_CONTEXT(), arr->Length(), obj).Check();
 #endif
 
   SWIGV8_ESCAPE(arr);
