@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-02-26: murillo128, wsfulton
+            #1269 [Javascript] Fix handling of large positive unsigned long and
+            unsigned long long values.
+
 2021-02-24: tomleavy, yegorich, tungntpham
             #1746 [Javascript] Add support for Node v12.
             SWIG support is now for Node v6 and later only.
