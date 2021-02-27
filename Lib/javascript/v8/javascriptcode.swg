@@ -426,7 +426,7 @@ fail:
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
   $jsmangledname_class_0->SetHiddenPrototype(true);
   v8::Handle<v8::Object> $jsmangledname_obj = $jsmangledname_class_0->GetFunction();
-#elif (SWIG_V8_VERSION < 0x0705)
+#elif (SWIG_V8_VERSION < 0x0704)
   $jsmangledname_class_0->SetHiddenPrototype(true);
   v8::Local<v8::Object> $jsmangledname_obj = $jsmangledname_class_0->GetFunction();
 #else
