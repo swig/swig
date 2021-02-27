@@ -19,8 +19,13 @@ SWIG_From_dec(Type)(%ifcplusplus(const Type&, Type) c)
 
   v8::Local<v8::Array> vals = SWIGV8_ARRAY_NEW();
 
+#if (SWIG_V8_VERSION < 0x0706)
+  vals->Set(0, SWIG_From(double)(Real(c)));
+  vals->Set(1, SWIG_From(double)(Imag(c)));
+#else
   vals->Set(SWIGV8_CURRENT_CONTEXT(), 0, SWIG_From(double)(Real(c))).Check();
   vals->Set(SWIGV8_CURRENT_CONTEXT(), 1, SWIG_From(double)(Imag(c))).Check();
+#endif
   SWIGV8_ESCAPE(vals);
 }
 }
