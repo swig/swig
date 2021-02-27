@@ -63,6 +63,12 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_SYMBOL_NEW(sym) (v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), sym, v8::NewStringType::kNormal)).ToLocalChecked()
 #endif
 
+#if (SWIG_V8_VERSION < 0x0704)
+#define SWIGV8_MAYBE_CHECK(maybe) maybe.FromJust()
+#else
+#define SWIGV8_MAYBE_CHECK(maybe) maybe.Check()
+#endif
+
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032318)
 #define SWIGV8_ARRAY_NEW() v8::Array::New()
 #define SWIGV8_BOOLEAN_NEW(bool) v8::Boolean::New(bool)
@@ -81,6 +87,8 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_OBJECT_TEMPLATE v8::Handle<v8::ObjectTemplate>
 #define SWIGV8_VALUE v8::Handle<v8::Value>
 #define SWIGV8_NULL() v8::Null()
+#define SWIGV8_ARRAY_GET(array, index) (array)->Get(index)
+#define SWIGV8_ARRAY_SET(array, index, value) (array)->Set(index, value)
 #else
 #define SWIGV8_ARRAY_NEW() v8::Array::New(v8::Isolate::GetCurrent())
 #define SWIGV8_BOOLEAN_NEW(bool) v8::Boolean::New(v8::Isolate::GetCurrent(), bool)
@@ -99,6 +107,8 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_OBJECT_TEMPLATE v8::Local<v8::ObjectTemplate>
 #define SWIGV8_VALUE v8::Local<v8::Value>
 #define SWIGV8_NULL() v8::Null(v8::Isolate::GetCurrent())
+#define SWIGV8_ARRAY_GET(array, index) (array)->Get(SWIGV8_CURRENT_CONTEXT(), index).ToLocalChecked()
+#define SWIGV8_ARRAY_SET(array, index, value) SWIGV8_MAYBE_CHECK((array)->Set(SWIGV8_CURRENT_CONTEXT(), index, value))
 #endif
 
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031710)
@@ -141,12 +151,6 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_BOOLEAN_VALUE(handle) (handle)->BooleanValue(v8::Isolate::GetCurrent())
 #define SWIGV8_WRITE_UTF8(handle, buffer, len) (handle)->WriteUtf8(v8::Isolate::GetCurrent(), buffer, len)
 #define SWIGV8_UTF8_LENGTH(handle) (handle)->Utf8Length(v8::Isolate::GetCurrent())
-#endif
-
-#if (SWIG_V8_VERSION < 0x0704)
-#define SWIGV8_MAYBE_CHECK(maybe) maybe.FromJust()
-#else
-#define SWIGV8_MAYBE_CHECK(maybe) maybe.Check()
 #endif
 
 /* ---------------------------------------------------------------------------
