@@ -445,7 +445,7 @@ fail:
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
   $jsparent_obj->Set(SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj);
 #else
-  $jsparent_obj->Set(SWIGV8_CURRENT_CONTEXT(), SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj).Check();
+  SWIGV8_MAYBE_CHECK($jsparent_obj->Set(SWIGV8_CURRENT_CONTEXT(), SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj));
 #endif
 
 %}
@@ -470,7 +470,7 @@ fail:
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
   $jsparent_obj->Set(SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj);
 #else
-  $jsparent_obj->Set(SWIGV8_CURRENT_CONTEXT(), SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj).Check();
+  SWIGV8_MAYBE_CHECK($jsparent_obj->Set(SWIGV8_CURRENT_CONTEXT(), SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj));
 #endif
 %}
 

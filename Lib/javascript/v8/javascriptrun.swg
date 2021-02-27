@@ -143,6 +143,11 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_UTF8_LENGTH(handle) (handle)->Utf8Length(v8::Isolate::GetCurrent())
 #endif
 
+#if (SWIG_V8_VERSION < 0x0704)
+#define SWIGV8_MAYBE_CHECK(maybe) maybe.FromJust()
+#else
+#define SWIGV8_MAYBE_CHECK(maybe) maybe.Check()
+#endif
 
 /* ---------------------------------------------------------------------------
  * Error handling
@@ -699,7 +704,7 @@ SWIGV8_VALUE SWIGV8_AppendOutput(SWIGV8_VALUE result, SWIGV8_VALUE obj) {
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903) || (SWIG_V8_VERSION < 0x0706)
   arr->Set(arr->Length(), obj);
 #else
-  arr->Set(SWIGV8_CURRENT_CONTEXT(), arr->Length(), obj).Check();
+  SWIGV8_MAYBE_CHECK(arr->Set(SWIGV8_CURRENT_CONTEXT(), arr->Length(), obj));
 #endif
 
   SWIGV8_ESCAPE(arr);
