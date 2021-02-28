@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-02-28: p2k
+            #969 [Javascript] v8/node - prevent crash calling a constructor without new keyword.
+
 2021-02-28: alecmev
             #405 #1121 [Javascript] Fix OUTPUT typemaps on methods that don't return void.
             The output value is appended to the return value.
