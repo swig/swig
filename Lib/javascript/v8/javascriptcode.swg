@@ -432,7 +432,7 @@ fail:
   $jsmangledname_class_0->SetHiddenPrototype(true);
   v8::Local<v8::Object> $jsmangledname_obj = $jsmangledname_class_0->GetFunction();
 #else
-  v8::Local<v8::Object> $jsmangledname_obj = $jsmangledname_class_0->GetFunction(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
+  v8::Local<v8::Object> $jsmangledname_obj = $jsmangledname_class_0->GetFunction(context).ToLocalChecked();
 #endif
 %}
 
@@ -447,7 +447,7 @@ fail:
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
   $jsparent_obj->Set(SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj);
 #else
-  SWIGV8_MAYBE_CHECK($jsparent_obj->Set(SWIGV8_CURRENT_CONTEXT(), SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj));
+  SWIGV8_MAYBE_CHECK($jsparent_obj->Set(context, SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj));
 #endif
 
 %}
@@ -472,7 +472,7 @@ fail:
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
   $jsparent_obj->Set(SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj);
 #else
-  SWIGV8_MAYBE_CHECK($jsparent_obj->Set(SWIGV8_CURRENT_CONTEXT(), SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj));
+  SWIGV8_MAYBE_CHECK($jsparent_obj->Set(context, SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj));
 #endif
 %}
 
@@ -509,7 +509,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsv8_register_static_function", "templates")
 %{
-  SWIGV8_AddStaticFunction($jsparent_obj, "$jsname", $jswrapper);
+  SWIGV8_AddStaticFunction($jsparent_obj, "$jsname", $jswrapper, context);
 %}
 
 /* -----------------------------------------------------------------------------
@@ -523,5 +523,5 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsv8_register_static_variable", "templates")
 %{
-  SWIGV8_AddStaticVariable($jsparent_obj, "$jsname", $jsgetter, $jssetter);
+  SWIGV8_AddStaticVariable($jsparent_obj, "$jsname", $jsgetter, $jssetter, context);
 %}
