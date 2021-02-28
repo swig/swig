@@ -684,6 +684,7 @@ SWIGV8_VALUE SWIGV8_NewPackedObj(void *data, size_t size, swig_type_info *type) 
 #endif
 
   SWIGV8_ESCAPE(obj);
+
 }
 
 #define SWIG_ConvertMember(obj, ptr, sz, ty)            SWIGV8_ConvertPacked(obj, ptr, sz, ty)
@@ -703,21 +704,12 @@ SWIGV8_VALUE SWIGV8_AppendOutput(SWIGV8_VALUE result, SWIGV8_VALUE obj) {
   if (result->IsUndefined()) {
     result = SWIGV8_ARRAY_NEW();
   } else if (!result->IsArray()) {
-#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
-    v8::Handle<v8::Array> tmparr = SWIGV8_ARRAY_NEW();
-#else  
-    v8::Local<v8::Array> tmparr = SWIGV8_ARRAY_NEW();
-#endif
-    tmparr->Set(0, result);
+    SWIGV8_ARRAY tmparr = SWIGV8_ARRAY_NEW();
+    SWIGV8_ARRAY_SET(tmparr, 0, result);
     result = tmparr;
   }
+
   SWIGV8_ARRAY arr = SWIGV8_ARRAY::Cast(result);
-
-#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903) || (SWIG_V8_VERSION < 0x0704)
-  arr->Set(arr->Length(), obj);
-#else
-  SWIGV8_MAYBE_CHECK(arr->Set(SWIGV8_CURRENT_CONTEXT(), arr->Length(), obj));
-#endif
-
+  SWIGV8_ARRAY_SET(arr, arr->Length(), obj);
   SWIGV8_ESCAPE(arr);
 }
