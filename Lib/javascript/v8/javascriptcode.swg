@@ -10,9 +10,10 @@
 %fragment("js_ctor", "templates") %{
 static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
-  
+
   SWIGV8_OBJECT self = args.Holder();
   $jslocals
+  if(self->InternalFieldCount() < 1) SWIG_exception_fail(SWIG_ERROR, "Illegal call of constructor $jswrapper.");
   if(args.Length() != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   $jscode
 
@@ -77,9 +78,10 @@ fail:
 %fragment("js_overloaded_ctor", "templates") %{
 static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args, V8ErrorHandler &SWIGV8_ErrorHandler) {
   SWIGV8_HANDLESCOPE();
-  
+
   SWIGV8_OBJECT self = args.Holder();
   $jslocals
+  if(self->InternalFieldCount() < 1) SWIG_exception_fail(SWIG_ERROR, "Illegal call of constructor $jswrapper.");
   if(args.Length() != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   $jscode
 
