@@ -10,7 +10,7 @@ function check_array(a, b) {
   if (a.length != b.length)
     throw new Error("Array length mismatch " + a.length + " " + b.length)
   if (!a.every(function(element, index) { return element === b[index]; }))
-    throw new Error("Arrays don't match a: " + a + " b:" + b)
+    throw new Error("Arrays don't match a:" + a + " b:" + b)
 }
 
 // Check double INPUT typemaps
@@ -47,3 +47,4 @@ check_array(li_typemaps.inoutr_int2(1,2), [1, 2])
 fi = li_typemaps.out_foo(10)
 check(fi[0].a, 10)
 check(fi[1], 20)
+check(fi[2], 30)
