@@ -1,6 +1,7 @@
 /* ---------------------------------------------------------------------------
  * These typedefs and defines are used to deal with v8 API changes
  *
+ * Useful table of versions: https://nodejs.org/en/download/releases/
  * ---------------------------------------------------------------------------*/
 
 // First v8 version that uses "SetWeak" and not "MakeWeak"
