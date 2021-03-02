@@ -36,7 +36,6 @@
 <li><a href="#Windows_cmake">Building swig.exe using CMake</a>
 <li><a href="#Windows_mingw_msys">Building swig.exe using MinGW and MSYS</a>
 <li><a href="#Windows_cygwin">Building swig.exe using Cygwin</a>
-<li><a href="#Windows_building_alternatives">Building swig.exe alternatives</a>
 </ul>
 <li><a href="#Windows_examples_cygwin">Running the examples on Windows using Cygwin</a>
 </ul>
@@ -273,7 +272,8 @@ cd C:\swig
 SET PATH=C:\Tools\CMake\CMake-win64.3.15.5\bin;C:\Tools\bison\bison-win32.2.4.1.1\tools\native\bin;%PATH%
 SET PCRE_ROOT=C:\Tools\pcre\pcre.8.33.0.1\build\native
 SET PCRE_PLATFORM=x64
-cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_PREFIX="%CD:\=/%/install2" -DCMAKE_C_FLAGS="/DPCRE_STATIC" -DPCRE_INCLUDE_DIR=%PCRE_ROOT%/include -DPCRE_LIBRARY=%PCRE_ROOT%/lib/v110/%PCRE_PLATFORM%/Release/static/utf8/pcre8.lib .
+cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_PREFIX="%CD:\=/%/install2" -DCMAKE_C_FLAGS="/DPCRE_STATIC" ^
+  -DPCRE_INCLUDE_DIR=%PCRE_ROOT%/include -DPCRE_LIBRARY=%PCRE_ROOT%/lib/v110/%PCRE_PLATFORM%/Release/static/utf8/pcre8.lib .
 cmake --build . --config Release
 
 REM to test the exe
@@ -290,10 +290,10 @@ swig.exe -help
 </div>
 <p>
     A Visual Studio solution file should be generated named swig.sln. This can be opened and debugged by running the swig project and setting the
-    Debugging Command Arguments. For example to step through one of the sample .i files included with the SWIG source use the following:
+    Debugging Command Arguments. For example to debug one of the test-suite .i files included with the SWIG source use the following:
 </p>
 <div class="shell">
-    <pre>-python -py3 -shadow -o C:\Temp\doxygen_parsing.c C:\swig\Examples\test-suite\doxygen_parsing.i</pre>
+    <pre>-python -c++ -o C:\Temp\doxygen_parsing.cpp C:\swig\Examples\test-suite\doxygen_parsing.i</pre>
 </div>
 
 <H4><a name="Windows_mingw_msys">3.3.1.1 Building swig.exe using MinGW and MSYS</a></H4>
@@ -425,14 +425,6 @@ Note that the Cygwin environment will also allow one to regenerate the autotool 
 These files are generated using the <tt>autogen.sh</tt> script and will only need regenerating in circumstances such as changing the build system.
 </p>
 
-<H4><a name="Windows_building_alternatives">3.3.1.3 Building swig.exe alternatives</a></H4>
-
-
-<p>
-If you don't want to install Cygwin or MinGW, use a different compiler to build 
-SWIG. For example, all the source code files can be added to a Visual C++ project 
-file in order to build swig.exe from the Visual C++ IDE.
-</p>
 
 <H3><a name="Windows_examples_cygwin">3.3.2 Running the examples on Windows using Cygwin</a></H3>
 
