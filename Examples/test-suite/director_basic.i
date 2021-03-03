@@ -1,6 +1,11 @@
 %module(directors="1") director_basic
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) method;
+#endif
+
 %warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) MyClass::pmethod;
+%warnfilter(SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) ConstPtrClass::getConstPtr;
 
  %{
  #include <string>
@@ -65,6 +70,14 @@
 
  %}
 
+ %typemap(cscode) MyClass %{
+   public void testSwigDerivedClassHasMethod() {
+     if (SwigDerivedClassHasMethod("nonVirtual", swigMethodTypes3))
+       throw new global::System.Exception("non-overriding non-virtual method would be when connecting director");
+     if (SwigDerivedClassHasMethod("nonOverride", swigMethodTypes4))
+       throw new global::System.Exception("non-overriding virtual method would be when connecting director");
+   }
+ %}
 
  %feature("director") MyClass;
 
@@ -121,6 +134,29 @@ public:
   static Bar * call_pmethod(MyClass *myclass, Bar *b) {
     return myclass->pmethod(b);
   }
+
+  virtual int nonVirtual()
+  {
+    return 100;
+  }
+
+  virtual int nonOverride()
+  {
+    return 101;
+  }
+
+  static int call_nonVirtual(MyClass *myclass)
+  {
+    return myclass->nonVirtual();
+  }
+
+  static int call_nonOverride(MyClass *myclass)
+  {
+    return myclass->nonOverride();
+  }
+
+  // Collisions with generated method names
+  virtual void Connect() { }
 };
 
 template<class T>
@@ -139,7 +175,19 @@ public:
   }
   
 };
-
-%}
+ %}
 
 %template(MyClassT_i) MyClassT<int>;
+
+ %feature("director") ConstPtrClass;
+
+ %inline %{
+
+class ConstPtrClass {
+public:
+  virtual ~ConstPtrClass() {}
+  virtual int *const getConstPtr() = 0;
+};
+
+ %}
+

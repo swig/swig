@@ -11,7 +11,7 @@
 
 /* ------------------------------------------------------------------------- */
 /*
-  Enable keywords paramaters
+  Enable keywords parameters
 */
 
 #define %kwargs      %feature("kwargs") 

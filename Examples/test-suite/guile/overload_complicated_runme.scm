@@ -14,8 +14,8 @@
 (check (=~ (foo 1 2 "bar" 4) 15))
 
 ;; Check second method
-(check (=~ (foo 1 2) 4811.4))
-(check (=~ (foo 1 2 3.2) 4797.2))
-(check (=~ (foo 1 2 3.2 #\Q) 4798.2))
+(check (=~ (foo 1 2) 118))
+(check (=~ (foo 1 2 3.2) 104))
+(check (=~ (foo 1 2 3.2 #\Q) 4798))
 
 (exit 0)

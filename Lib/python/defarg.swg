@@ -24,7 +24,7 @@ SWIGINTERN PyObject *swig_call_defargs(PyObject *self, PyObject *args) {
   PyObject *func;
   PyObject *parms;
   
-  if (!PyArg_ParseTuple(args,"OO",&func,&parms))
+  if (!PyArg_ParseTuple(args, "OO", &func, &parms))
     return NULL;
   
   if (!PyCallable_Check(func)) {
@@ -33,5 +33,5 @@ SWIGINTERN PyObject *swig_call_defargs(PyObject *self, PyObject *args) {
     SWIG_PYTHON_THREAD_END_BLOCK;
     return NULL;
   }
-  return PyEval_CallObject(func,parms);
+  return PyObject_Call(func, parms, NULL);
 }

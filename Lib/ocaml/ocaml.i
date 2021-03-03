@@ -4,15 +4,11 @@
  * SWIG Configuration File for Ocaml
  * ----------------------------------------------------------------------------- */
 
-%runtime %{
-#define SWIGSTATIC static
-%}
-
 /* Insert common stuff */
 %insert(runtime) "swigrun.swg"
 
 /* Include headers */
-%insert(runtime) "ocamldec.swg"
+%insert(runtime) "ocamlrundec.swg"
 
 /* Type registration */
 %insert(init) "swiginit.swg"
@@ -32,18 +28,14 @@
 %}
 
 /*#ifndef SWIG_NOINCLUDE*/
-%insert(runtime) "ocaml.swg"
+%insert(runtime) "ocamlrun.swg"
 /*#endif*/
 
 %insert(classtemplate) "class.swg"
 
-/* Definitions */
-#define SWIG_malloc(size) swig_malloc(size, FUNC_NAME)
-#define SWIG_free(mem) free(mem)
-
 /* Read in standard typemaps. */
 %include <swig.swg>
-%include <typemaps.i>
+%include <ocaml.swg>
 %include <typecheck.i>
 %include <exception.i>
 %include <preamble.swg>

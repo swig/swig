@@ -8,6 +8,7 @@
 #define SWIGGUILE_SCM
 
 %runtime "swigrun.swg"       // Common C API type-checking code
+%runtime "swigerrors.swg"    // SWIG errors
 
 %runtime "guile_scm_run.swg"
 %include <guile.i>
@@ -26,10 +27,10 @@
     else {									\
       if (!gswig_list_p) {							\
 	      gswig_list_p = 1;							\
-	      gswig_result = scm_listify(gswig_result, object, SCM_UNDEFINED);	\
+	      gswig_result = scm_list_n(gswig_result, object, SCM_UNDEFINED);	\
       }									\
       else									\
-            gswig_result = scm_append(scm_listify(gswig_result, scm_listify(object, SCM_UNDEFINED), SCM_UNDEFINED));		\
+            gswig_result = scm_append(scm_list_n(gswig_result, scm_list_n(object, SCM_UNDEFINED), SCM_UNDEFINED));		\
     }
 
 %}

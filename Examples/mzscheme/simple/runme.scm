@@ -2,23 +2,30 @@
 
 (load-extension "example.so")
 
-(display (get-time))
+; Call our gcd() function
 
-(printf "My-variable = ~a~n" (my-variable))
+(define x 42)
+(define y 105)
+(define g (gcd x y))
+(display "The gcd of ")
+(display x)
+(display " and ")
+(display y)
+(display " is ")
+(display g)
+(newline)
 
-(let loop ((i 0))
-  (when (< i 14) (begin (display i)
-			(display " factorial is ")
-			(display (fact i))
-			(newline)
-			(loop (+ i 1)))))
+; Manipulate the Foo global variable
 
-(let loop ((i 1))
-  (when (< i 250)
-	(begin
-	  (let loopi ((j 1))
-	    (when (< j 250) (begin (my-variable (+ (my-variable) (mod i j)))
-				   (loopi (+ j 1)))))
-	  (loop (+ i 1)))))
+; Output its current value
+(display "Foo = ")
+(display (Foo))
+(newline)
 
-(printf "My-variable = ~a~n" (my-variable))
+; Change its value
+(Foo 3.1415926)
+
+; See if the change took effect
+(display "Foo = ")
+(display (Foo))
+(newline)

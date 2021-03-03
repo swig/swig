@@ -1,7 +1,7 @@
 package main
 
 import "fmt"
-import . "./cpp11_strongly_typed_enumerations"
+import . "swigtests/cpp11_strongly_typed_enumerations"
 
 func enumCheck(actual int, expected int) int {
 	if actual != expected {

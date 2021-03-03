@@ -12,16 +12,12 @@ print "EXPR    = " . EXPR  . " (should be 48.5484)\n";
 print "iconst  = " . iconst . " (should be 37)\n";
 print "fconst  = " . fconst . " (should be 3.14)\n";
 
-if (EXTERN!="EXTERN") {
-    print "EXTERN = " . EXTERN . " (Arg! This shouldn't print anything)\n";
-} else {
-    print "EXTERN defaults to 'EXTERN', it probably isn't defined (good)\n";
+$c = get_defined_constants();
+if (array_key_exists("EXTERN", $c)) {
+    print "EXTERN = " . $c["EXTERN"] . " (Arg! This shouldn't print anything)\n";
 }
-
-if (FOO!="FOO") {
-    print "FOO    = " . FOO . "(Arg! This shouldn't print anything)\n";
-} else {
-    print "FOO defaults to 'FOO', it probably isn't defined (good)\n";
+if (array_key_exists("FOO", $c)) {
+    print "FOO    = " . $c["FOO"] . " (Arg! This shouldn't print anything)\n";
 }
 
 

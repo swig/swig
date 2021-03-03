@@ -26,12 +26,18 @@ void takeit5(Thing const*const&& t) {}
 
 struct Containing {
   Thing && member_rvalue_ref;
-  Thing *&& member_rvalue_ref_ptr1 = 0;
-  Thing const*&& member_rvalue_ref_ptr2 = 0;
-  Thing *const&& member_rvalue_ref_ptr3 = 0;
-  Thing const*const &&member_rvalue_ref_ptr4 = 0;
+  Thing *&& member_rvalue_ref_ptr1;
+  Thing const*&& member_rvalue_ref_ptr2;
+  Thing *const&& member_rvalue_ref_ptr3;
+  Thing const*const &&member_rvalue_ref_ptr4;
 
-  Containing() : member_rvalue_ref(Thing()) {}
+  Containing(Thing&&r, Thing*&& r1, Thing const*&& r2, Thing *const&& r3, Thing const*const && r4) :
+    member_rvalue_ref(std::move(r)), 
+    member_rvalue_ref_ptr1(std::move(r1)),
+    member_rvalue_ref_ptr2(std::move(r2)),
+    member_rvalue_ref_ptr3(std::move(r3)),
+    member_rvalue_ref_ptr4(std::move(r4))
+    {}
 };
 %}
 
@@ -57,11 +63,17 @@ void int_takeit5(int const*const&& t) {}
 
 struct IntContaining {
   int && member_rvalue_ref;
-  int *&& member_rvalue_ref_ptr1 = 0;
-  int const*&& member_rvalue_ref_ptr2 = 0;
-  int *const&& member_rvalue_ref_ptr3 = 0;
-  int const*const &&member_rvalue_ref_ptr4 = 0;
+  int *&& member_rvalue_ref_ptr1;
+  int const*&& member_rvalue_ref_ptr2;
+  int *const&& member_rvalue_ref_ptr3;
+  int const*const &&member_rvalue_ref_ptr4;
 
-  IntContaining() : member_rvalue_ref(55) {}
+  IntContaining(int&& r, int*&& r1, int const*&& r2, int *const&& r3, int const*const && r4) :
+    member_rvalue_ref(std::move(r)),
+    member_rvalue_ref_ptr1(std::move(r1)),
+    member_rvalue_ref_ptr2(std::move(r2)),
+    member_rvalue_ref_ptr3(std::move(r3)),
+    member_rvalue_ref_ptr4(std::move(r4))
+    {}
 };
 %}

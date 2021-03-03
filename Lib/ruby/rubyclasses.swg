@@ -174,7 +174,7 @@ namespace swig {
       return rb_inspect(_obj);
     }
 
-    static VALUE swig_rescue_swallow(VALUE)
+    static VALUE swig_rescue_swallow(VALUE, VALUE)
     {
       /*
       VALUE errstr = rb_obj_as_string(rb_errinfo());
@@ -203,8 +203,8 @@ namespace swig {
         args.id     = op_id;
         args.nargs  = 1;
         args.target = VALUE(other);
-        ret = rb_rescue(RUBY_METHOD_FUNC(swig_rescue_funcall), VALUE(&args),
-                       (RUBY_METHOD_FUNC(swig_rescue_swallow)), Qnil);
+        ret = rb_rescue(VALUEFUNC(swig_rescue_funcall), VALUE(&args),
+                       (VALUEFUNC(swig_rescue_swallow)), Qnil);
       }
       if (ret == Qnil) {
         VALUE a = rb_funcall(         _obj, hash_id, 0 );
@@ -243,8 +243,8 @@ namespace swig {
       args.id     = op_id;
       args.nargs  = 0;
       args.target = Qnil;
-      ret = rb_rescue(RUBY_METHOD_FUNC(swig_rescue_funcall), VALUE(&args),
-                     (RUBY_METHOD_FUNC(swig_rescue_swallow)), Qnil);
+      ret = rb_rescue(VALUEFUNC(swig_rescue_funcall), VALUE(&args),
+                     (VALUEFUNC(swig_rescue_swallow)), Qnil);
       SWIG_RUBY_THREAD_END_BLOCK;
       return ret;
     }
@@ -262,8 +262,8 @@ namespace swig {
       args.id     = op_id;
       args.nargs  = 1;
       args.target = VALUE(other);
-      ret = rb_rescue(RUBY_METHOD_FUNC(swig_rescue_funcall), VALUE(&args),
-                     (RUBY_METHOD_FUNC(swig_rescue_swallow)), Qnil);
+      ret = rb_rescue(VALUEFUNC(swig_rescue_funcall), VALUE(&args),
+                     (VALUEFUNC(swig_rescue_swallow)), Qnil);
       SWIG_RUBY_THREAD_END_BLOCK;
       return GC_VALUE(ret);
     }

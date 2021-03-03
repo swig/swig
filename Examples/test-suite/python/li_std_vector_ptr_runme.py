@@ -4,11 +4,19 @@ def check(val1, val2):
     if val1 != val2:
         raise RuntimeError("Values are not the same %s %s" % (val1, val2))
 ip1 = makeIntPtr(11)
-ip2 = makeIntPtr(22)
+ip2 = makeIntPtr2(22)
 
 vi = IntPtrVector((ip1, ip2))
 check(getValueFromVector(vi, 0), 11)
 check(getValueFromVector(vi, 1), 22)
+
+check(getIntValue(vi[0]), 11)
+check(getIntValue(vi[1]), 22)
+check(getIntValue2(vi[0]), 11)
+check(getIntValue2(vi[1]), 22)
+
+ipp = makeIntPtrPtr(vi[0])
+check(getIntValue3(ipp), 11) # Note: getIntValue3 takes int**
 
 vA = APtrVector([makeA(33), makeA(34)])
 check(getVectorValueA(vA, 0), 33)

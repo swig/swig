@@ -75,9 +75,11 @@ void Swig_print_node(Node *obj) {
     if ((Cmp(k, "nodeType") == 0) || (Cmp(k, "firstChild") == 0) || (Cmp(k, "lastChild") == 0) ||
 	(Cmp(k, "parentNode") == 0) || (Cmp(k, "nextSibling") == 0) || (Cmp(k, "previousSibling") == 0) || (*(Char(k)) == '$')) {
       /* Do nothing */
-    } else if (Cmp(k, "parms") == 0 || Cmp(k, "wrap:parms") == 0) {
+    } else if (Cmp(k, "kwargs") == 0 || Cmp(k, "parms") == 0 || Cmp(k, "wrap:parms") == 0 ||
+	       Cmp(k, "pattern") == 0 || Cmp(k, "templateparms") == 0 || Cmp(k, "throws") == 0) {
       print_indent(2);
-      Printf(stdout, "%-12s - %s\n", k, ParmList_str_defaultargs(Getattr(obj, k)));
+      /* Differentiate parameter lists by displaying within single quotes */
+      Printf(stdout, "%-12s - \'%s\'\n", k, ParmList_str_defaultargs(Getattr(obj, k)));
     } else {
       DOH *o;
       const char *trunc = "";

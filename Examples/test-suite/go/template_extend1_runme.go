@@ -1,6 +1,6 @@
 package main
 
-import "./template_extend1"
+import "swigtests/template_extend1"
 
 func main() {
 	a := template_extend1.NewLBaz()

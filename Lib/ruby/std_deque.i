@@ -14,7 +14,7 @@
 
     template <class T>
     struct traits_from<std::deque<T> > {
-      static VALUE from(const std::deque<T> & vec) {
+      static VALUE from(const std::deque<T>& vec) {
 	return traits_from_stdseq<std::deque<T> >::from(vec);
       }
     };

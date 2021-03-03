@@ -79,5 +79,9 @@ protected:
 };
 int ProtectedBase::staticMemberVariable = 10;
 
+class ProtectedDerived : public ProtectedBase {
+public:
+  ProtectedDerived(const char *s) : ProtectedBase(s) {}
+};
 %}
 

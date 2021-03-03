@@ -4,6 +4,7 @@ class
 constants
 contract
 docstrings
+doxygen
 enum
 exception
 exceptproxy
@@ -12,9 +13,8 @@ funcptr
 funcptr2
 functor
 import
-import_template
 import_packages
-java
+import_template
 #libffi
 multimap
 operator
@@ -22,8 +22,8 @@ pointer
 reference
 simple
 smartptr
-std_vector
 std_map
+std_vector
 template
 varargs
 variables

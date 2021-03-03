@@ -1,6 +1,6 @@
 package main
 
-import "./template_opaque"
+import "swigtests/template_opaque"
 
 func main() {
 	v := template_opaque.NewOpaqueVectorType(int64(10))

@@ -1,14 +1,64 @@
 %insert(init) %{
 SWIGRUNTIME void
-SWIG_JSC_SetModule(swig_module_info *swig_module) {}
+SWIG_JSC_SetModule(void *clientdata, swig_module_info *swig_module) {
+    JSGlobalContextRef context;
+    JSObjectRef globalObject;
+    JSStringRef moduleName;
+    JSClassDefinition classDef;
+    JSClassRef classRef;
+    JSObjectRef object;
 
+    if(clientdata == 0){
+        return;
+    }
+
+    context = (JSGlobalContextRef)clientdata;
+
+    globalObject = JSContextGetGlobalObject(context);
+    moduleName = JSStringCreateWithUTF8CString("swig_module_info_data");
+
+    classDef  = kJSClassDefinitionEmpty;
+    classRef = JSClassCreate(&classDef);
+
+    object = JSObjectMake(context, classRef, NULL);
+    JSObjectSetPrivate(object, (void*)swig_module);
+
+    JSObjectSetProperty(context, globalObject, moduleName, object, kJSPropertyAttributeNone, NULL);
+
+    JSClassRelease(classRef);
+    JSStringRelease(moduleName);
+}
 SWIGRUNTIME swig_module_info *
-SWIG_JSC_GetModule(void) {
-  return 0;
+SWIG_JSC_GetModule(void *clientdata) {
+    JSGlobalContextRef context;
+    JSObjectRef globalObject;
+    JSStringRef moduleName;
+    JSValueRef value;
+    JSObjectRef object;
+
+    if(clientdata == 0){
+        return 0;
+    }
+
+    context = (JSGlobalContextRef)clientdata;
+
+    globalObject = JSContextGetGlobalObject(context);
+    moduleName = JSStringCreateWithUTF8CString("swig_module_info_data");
+
+    if(JSObjectHasProperty(context, globalObject, moduleName) == false) {
+        JSStringRelease(moduleName);
+        return 0;
+    }
+
+    value = JSObjectGetProperty(context, globalObject, moduleName, NULL);
+    object = JSValueToObject(context, value, NULL);
+    JSStringRelease(moduleName);
+
+    return (swig_module_info*)JSObjectGetPrivate(object);
 }
 
-#define SWIG_GetModule(clientdata)                SWIG_JSC_GetModule()
-#define SWIG_SetModule(clientdata, pointer)       SWIG_JSC_SetModule(pointer)
+#define SWIG_GetModule(clientdata)                SWIG_JSC_GetModule(clientdata)
+#define SWIG_SetModule(clientdata, pointer)       SWIG_JSC_SetModule(clientdata, pointer)
 %}
 
 %insert(init) "swiginit.swg"
@@ -26,7 +76,7 @@ extern "C" {
 #endif
 
 bool SWIGJSC_INIT (JSGlobalContextRef context, JSObjectRef *exports) {
-    SWIG_InitializeModule(0);
+    SWIG_InitializeModule((void*)context);
 %}
 
 /* -----------------------------------------------------------------------------

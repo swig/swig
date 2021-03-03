@@ -26,12 +26,19 @@ void SwigType_template_init() {
 }
 
 
-static void add_parms(ParmList *p, List *patchlist, List *typelist) {
+static void add_parms(ParmList *p, List *patchlist, List *typelist, int is_pattern) {
   while (p) {
     SwigType *ty = Getattr(p, "type");
     SwigType *val = Getattr(p, "value");
     Append(typelist, ty);
     Append(typelist, val);
+    if (is_pattern) {
+      /* Typemap patterns are not simple parameter lists.
+       * Output style ("out", "ret" etc) typemap names can be
+       * qualified names and so may need template expansion */
+      SwigType *name = Getattr(p, "name");
+      Append(typelist, name);
+    }
     Append(patchlist, val);
     p = nextSibling(p);
   }
@@ -49,32 +56,31 @@ void Swig_cparse_debug_templates(int x) {
  * template parameters
  * ----------------------------------------------------------------------------- */
 
-static int cparse_template_expand(Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist, List *cpatchlist) {
+static void cparse_template_expand(Node *templnode, Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist, List *cpatchlist) {
   static int expanded = 0;
-  int ret;
   String *nodeType;
   if (!n)
-    return 0;
+    return;
   nodeType = nodeType(n);
   if (Getattr(n, "error"))
-    return 0;
+    return;
 
   if (Equal(nodeType, "template")) {
     /* Change the node type back to normal */
     if (!expanded) {
       expanded = 1;
       set_nodeType(n, Getattr(n, "templatetype"));
-      ret = cparse_template_expand(n, tname, rname, templateargs, patchlist, typelist, cpatchlist);
+      cparse_template_expand(templnode, n, tname, rname, templateargs, patchlist, typelist, cpatchlist);
       expanded = 0;
-      return ret;
+      return;
     } else {
       /* Called when template appears inside another template */
       /* Member templates */
 
       set_nodeType(n, Getattr(n, "templatetype"));
-      ret = cparse_template_expand(n, tname, rname, templateargs, patchlist, typelist, cpatchlist);
+      cparse_template_expand(templnode, n, tname, rname, templateargs, patchlist, typelist, cpatchlist);
       set_nodeType(n, "template");
-      return ret;
+      return;
     }
   } else if (Equal(nodeType, "cdecl")) {
     /* A simple C declaration */
@@ -107,8 +113,8 @@ static int cparse_template_expand(Node *n, String *tname, String *rname, String 
       Append(typelist, Getattr(n, "name"));
     }
 
-    add_parms(Getattr(n, "parms"), cpatchlist, typelist);
-    add_parms(Getattr(n, "throws"), cpatchlist, typelist);
+    add_parms(Getattr(n, "parms"), cpatchlist, typelist, 0);
+    add_parms(Getattr(n, "throws"), cpatchlist, typelist, 0);
 
   } else if (Equal(nodeType, "class")) {
     /* Patch base classes */
@@ -131,7 +137,7 @@ static int cparse_template_expand(Node *n, String *tname, String *rname, String 
     {
       Node *cn = firstChild(n);
       while (cn) {
-	cparse_template_expand(cn, tname, rname, templateargs, patchlist, typelist, cpatchlist);
+	cparse_template_expand(templnode, cn, tname, rname, templateargs, patchlist, typelist, cpatchlist);
 	cn = nextSibling(cn);
       }
     }
@@ -174,28 +180,33 @@ static int cparse_template_expand(Node *n, String *tname, String *rname, String 
     }
     Append(cpatchlist, Getattr(n, "code"));
     Append(typelist, Getattr(n, "decl"));
-    add_parms(Getattr(n, "parms"), cpatchlist, typelist);
-    add_parms(Getattr(n, "throws"), cpatchlist, typelist);
+    add_parms(Getattr(n, "parms"), cpatchlist, typelist, 0);
+    add_parms(Getattr(n, "throws"), cpatchlist, typelist, 0);
   } else if (Equal(nodeType, "destructor")) {
-    String *name = Getattr(n, "name");
-    if (name) {
-      if (strchr(Char(name), '<'))
-        Append(patchlist, Getattr(n, "name"));
-      else
-        Append(name, templateargs);
-    }
-    name = Getattr(n, "sym:name");
-    if (name) {
-      if (strchr(Char(name), '<')) {
-        String *sn = Copy(tname);
-        Setattr(n, "sym:name", sn);
-        Delete(sn);
-      } else {
-        Replace(name, tname, rname, DOH_REPLACE_ANY);
+    /* We only need to patch the dtor of the template itself, not the destructors of any nested classes, so check that the parent of this node is the root
+     * template node, with the special exception for %extend which adds its methods under an intermediate node. */
+    Node* parent = parentNode(n);
+    if (parent == templnode || (parentNode(parent) == templnode && Equal(nodeType(parent), "extend"))) {
+      String *name = Getattr(n, "name");
+      if (name) {
+	if (strchr(Char(name), '<'))
+	  Append(patchlist, Getattr(n, "name"));
+	else
+	  Append(name, templateargs);
       }
+      name = Getattr(n, "sym:name");
+      if (name) {
+	if (strchr(Char(name), '<')) {
+	  String *sn = Copy(tname);
+	  Setattr(n, "sym:name", sn);
+	  Delete(sn);
+	} else {
+	  Replace(name, tname, rname, DOH_REPLACE_ANY);
+	}
+      }
+      /* Setattr(n,"sym:name",name); */
+      Append(cpatchlist, Getattr(n, "code"));
     }
-    /* Setattr(n,"sym:name",name); */
-    Append(cpatchlist, Getattr(n, "code"));
   } else if (Equal(nodeType, "using")) {
     String *uname = Getattr(n, "uname");
     if (uname && strchr(Char(uname), '<')) {
@@ -211,17 +222,16 @@ static int cparse_template_expand(Node *n, String *tname, String *rname, String 
     Append(cpatchlist, Getattr(n, "code"));
     Append(typelist, Getattr(n, "type"));
     Append(typelist, Getattr(n, "decl"));
-    add_parms(Getattr(n, "parms"), cpatchlist, typelist);
-    add_parms(Getattr(n, "kwargs"), cpatchlist, typelist);
-    add_parms(Getattr(n, "pattern"), cpatchlist, typelist);
-    add_parms(Getattr(n, "throws"), cpatchlist, typelist);
+    add_parms(Getattr(n, "parms"), cpatchlist, typelist, 0);
+    add_parms(Getattr(n, "kwargs"), cpatchlist, typelist, 0);
+    add_parms(Getattr(n, "pattern"), cpatchlist, typelist, 1);
+    add_parms(Getattr(n, "throws"), cpatchlist, typelist, 0);
     cn = firstChild(n);
     while (cn) {
-      cparse_template_expand(cn, tname, rname, templateargs, patchlist, typelist, cpatchlist);
+      cparse_template_expand(templnode, cn, tname, rname, templateargs, patchlist, typelist, cpatchlist);
       cn = nextSibling(cn);
     }
   }
-  return 0;
 }
 
 static
@@ -306,7 +316,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   /*  Printf(stdout,"targs = '%s'\n", templateargs);
      Printf(stdout,"rname = '%s'\n", rname);
      Printf(stdout,"tname = '%s'\n", tname);  */
-  cparse_template_expand(n, tname, rname, templateargs, patchlist, typelist, cpatchlist);
+  cparse_template_expand(n, n, tname, rname, templateargs, patchlist, typelist, cpatchlist);
 
   /* Set the name */
   {

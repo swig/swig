@@ -183,8 +183,8 @@ namespace swig
     {
       VALUE item = rb_ary_entry(_seq, _index );
       try {
-	return swig::as<T>(item, true);
-      } catch (std::exception& e) {
+	return swig::as<T>(item);
+      } catch (const std::invalid_argument& e) {
 	char msg[1024];
 	sprintf(msg, "in sequence element %d ", _index);
 	VALUE lastErr = rb_gv_get("$!");
@@ -395,19 +395,13 @@ namespace swig
       return const_reference(_seq, n);
     }
 
-    bool check(bool set_err = false) const
+    bool check() const
     {
       int s = (int) size();
       for (int i = 0; i < s; ++i) {
 	VALUE item = rb_ary_entry(_seq, i );
-	if (!swig::check<value_type>(item)) {
-	  if (set_err) {
-	    char msg[1024];
-	    sprintf(msg, "in sequence element %d", i);
-	    SWIG_Error(SWIG_RuntimeError, msg);
-	  }
+	if (!swig::check<value_type>(item))
 	  return false;
-	}
       }
       return true;
     }
@@ -634,7 +628,7 @@ namespace swig
       try {
 	r = swig::from< const Sequence* >( swig::getslice(self, i, j) );
       }
-      catch( std::out_of_range ) {
+      catch( const std::out_of_range& ) {
       }
       return r;
     }
@@ -693,9 +687,8 @@ namespace swig
 	r = swig::from< Sequence::value_type >( *(at) );
 	$self->erase(at); 
       }
-      catch (std::out_of_range)
-	{
-	}
+      catch (const std::out_of_range&) {
+      }
       return r;
     }
   }
@@ -763,7 +756,7 @@ namespace swig
       try {
 	r = swig::from< Sequence::value_type >( *(swig::cgetpos(self, i)) );
       }
-      catch( std::out_of_range ) {
+      catch( const std::out_of_range& ) {
       }
       return r;
     }
@@ -786,7 +779,7 @@ namespace swig
       try {
 	r = swig::from< const Sequence* >( swig::getslice(self, i, j) );
       }
-      catch( std::out_of_range ) {
+      catch( const std::out_of_range& ) {
       }
       return r;
     }
@@ -796,7 +789,7 @@ namespace swig
       try {
 	r = swig::from< Sequence::value_type >( *(swig::cgetpos(self, i)) );
       }
-      catch( std::out_of_range ) {
+      catch( const std::out_of_range& ) {
       }
       return r;
     }
@@ -926,7 +919,7 @@ namespace swig
       VALUE elem = argv[0];
       int idx = 0;
       try {
-	Sequence::value_type val = swig::as<Sequence::value_type>( elem, true );
+	Sequence::value_type val = swig::as<Sequence::value_type>( elem );
 	if ( i >= len ) {
 	  $self->resize(i-1, val);
 	  return $self;
@@ -943,7 +936,7 @@ namespace swig
 	  }
 
       } 
-      catch( std::invalid_argument )
+      catch(const std::invalid_argument &)
 	{
 	  rb_raise( rb_eArgError, "%s",
 		    Ruby_Format_TypeError( "", 
@@ -967,10 +960,10 @@ namespace swig
 	  Sequence::iterator start = $self->begin();
 	  VALUE elem = argv[idx];
 	  try {
-	    Sequence::value_type val = swig::as<Sequence::value_type>( elem, true );
+	    Sequence::value_type val = swig::as<Sequence::value_type>( elem );
 	    $self->insert( start, val );
 	  }
-	  catch( std::invalid_argument )
+	  catch(const std::invalid_argument &)
 	    {
 	      rb_raise( rb_eArgError, "%s",
 			Ruby_Format_TypeError( "", 
@@ -1023,7 +1016,7 @@ namespace swig {
 	  } else {
 	    return rubyseq.check() ? SWIG_OK : SWIG_ERROR;
 	  }
-	} catch (std::exception& e) {
+	} catch (const std::exception& e) {
 	  if (seq) {
 	    VALUE lastErr = rb_gv_get("$!");
 	    if (lastErr == Qnil) {
@@ -1063,7 +1056,7 @@ namespace swig {
 	  } else {
 	    return true;
 	  }
-	} catch (std::exception& e) {
+	} catch (const std::exception& e) {
 	  if (seq) {
 	    VALUE lastErr = rb_gv_get("$!");
 	    if (lastErr == Qnil) {

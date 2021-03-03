@@ -4,9 +4,9 @@ require "tests.php";
 require "director_classic.php";
 
 // No new functions
-check::functions(array(being_id,person_id,child_id,grandchild_id,caller_delcallback,caller_setcallback,caller_resetcallback,caller_call,caller_baseclass));
+check::functions(array('being_id','person_id','child_id','grandchild_id','caller_delcallback','caller_setcallback','caller_resetcallback','caller_call','caller_baseclass'));
 // No new classes
-check::classes(array(Being,Person,Child,GrandChild,OrphanPerson,OrphanChild,Caller));
+check::classes(array('Being','Person','Child','GrandChild','OrphanPerson','OrphanChild','Caller'));
 // now new vars
 check::globals(array());
 

@@ -717,9 +717,20 @@ public:
    * D::insertDirective()
    * --------------------------------------------------------------------------- */
   virtual int insertDirective(Node *n) {
+    int ret = SWIG_OK;
     String *code = Getattr(n, "code");
+    String *section = Getattr(n, "section");
     replaceModuleVariables(code);
-    return Language::insertDirective(n);
+
+    if (!ImportMode && (Cmp(section, "proxycode") == 0)) {
+      if (proxy_class_body_code) {
+	Swig_typemap_replace_embedded_typemap(code, n);
+	Printv(proxy_class_body_code, code, NIL);
+      }
+    } else {
+      ret = Language::insertDirective(n);
+    }
+    return ret;
   }
 
   /* ---------------------------------------------------------------------------
@@ -978,7 +989,7 @@ public:
     // Smart pointer classes do not mirror the inheritance hierarchy of the
     // underlying types, so aliasing the base class methods in is not required
     // for them.
-    // DMD BUG: We have to emit the alias after the last function becasue
+    // DMD BUG: We have to emit the alias after the last function because
     // taking a delegate in the overload checking code fails otherwise
     // (http://d.puremagic.com/issues/show_bug.cgi?id=4860).
     if (!Getattr(n, "sym:nextSibling") && !is_smart_pointer() &&
@@ -1216,8 +1227,9 @@ public:
 
     // Insert the dconstructor typemap (replacing $directorconnect as needed).
     Hash *attributes = NewHash();
+    String *typemap_lookup_type = Getattr(getCurrentClass(), "classtypeobj");
     String *construct_tm = Copy(lookupCodeTypemap(n, "dconstructor",
-      Getattr(n, "name"), WARN_D_TYPEMAP_DCONSTRUCTOR_UNDEF, attributes));
+      typemap_lookup_type, WARN_D_TYPEMAP_DCONSTRUCTOR_UNDEF, attributes));
     if (construct_tm) {
       const bool use_director = (parentNode(n) && Swig_directorclass(n));
       if (!use_director) {
@@ -1287,7 +1299,12 @@ public:
   virtual int destructorHandler(Node *n) {
     Language::destructorHandler(n);
     String *symname = Getattr(n, "sym:name");
+
     Printv(destructor_call, im_dmodule_fq_name, ".", Swig_name_destroy(getNSpace(),symname), "(cast(void*)swigCPtr)", NIL);
+    const String *methodmods = Getattr(n, "feature:d:methodmodifiers");
+    if (methodmods)
+      Setattr(getCurrentClass(), "destructmethodmodifiers", methodmods);
+
     return SWIG_OK;
   }
 
@@ -1465,7 +1482,7 @@ public:
     }
     Delete(attributes);
 
-    // Retrive the override value set via %dconstvalue, if any.
+    // Retrieve the override value set via %dconstvalue, if any.
     String *override_value = Getattr(n, "feature:d:constvalue");
     if (override_value) {
       Printf(constants_code, "%s;\n", override_value);
@@ -1964,7 +1981,7 @@ public:
 
     qualified_return = SwigType_rcaststr(returntype, "c_result");
 
-    if (!is_void && !ignored_method) {
+    if (!is_void && (!ignored_method || pure_virtual)) {
       if (!SwigType_isclass(returntype)) {
 	if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
 	  String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
@@ -1984,15 +2001,17 @@ public:
 	    /* If returning a reference, initialize the pointer to a sane
 	       default - if a D exception occurs, then the pointer returns
 	       something other than a NULL-initialized reference. */
-	    String *non_ref_type = Copy(returntype);
+	    SwigType *noref_type = SwigType_del_reference(Copy(returntype));
+	    String *noref_ltype = SwigType_lstr(noref_type, 0);
+	    String *return_ltype = SwigType_lstr(returntype, 0);
 
-	    /* Remove reference and const qualifiers */
-	    Replaceall(non_ref_type, "r.", "");
-	    Replaceall(non_ref_type, "q(const).", "");
-	    Wrapper_add_localv(w, "result_default", "static", SwigType_str(non_ref_type, "result_default"), "=", SwigType_str(non_ref_type, "()"), NIL);
-	    Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= &result_default", NIL);
-
-	    Delete(non_ref_type);
+	    Wrapper_add_localv(w, "result_default", "static", noref_ltype, "result_default", NIL);
+	    Wrapper_add_localv(w, "c_result", return_ltype, "c_result", NIL);
+	    Printf(w->code, "result_default = SwigValueInit< %s >();\n", noref_ltype);
+	    Printf(w->code, "c_result = &result_default;\n");
+	    Delete(return_ltype);
+	    Delete(noref_ltype);
+	    Delete(noref_type);
 	  }
 
 	  Delete(base_typename);
@@ -2047,7 +2066,7 @@ public:
     Swig_typemap_attach_parms("ctype", l, 0);
     Swig_typemap_attach_parms("imtype", l, 0);
     Swig_typemap_attach_parms("dtype", l, 0);
-    Swig_typemap_attach_parms("directorin", l, 0);
+    Swig_typemap_attach_parms("directorin", l, w);
     Swig_typemap_attach_parms("ddirectorin", l, 0);
     Swig_typemap_attach_parms("directorargout", l, w);
 
@@ -2066,7 +2085,11 @@ public:
       }
       Delete(super_call);
     } else {
-      Printf(w->code, " throw Swig::DirectorPureVirtualException(\"%s::%s\");\n", SwigType_namestr(c_classname), SwigType_namestr(name));
+      Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"%s::%s\");\n", SwigType_namestr(c_classname), SwigType_namestr(name));
+      if (!is_void)
+	Printf(w->code, "return %s;", qualified_return);
+      else if (!ignored_method)
+	Printf(w->code, "return;\n");
     }
 
     if (!ignored_method)
@@ -2197,15 +2220,19 @@ public:
     /* header declaration, start wrapper definition */
     String *target;
     SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-    target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
     Printf(w->def, "%s", target);
     Delete(qualified_name);
     Delete(target);
-    target = Swig_method_decl(rtype, decl, name, l, 0, 1);
+    target = Swig_method_decl(rtype, decl, name, l, 1);
     Printf(declaration, "    virtual %s", target);
     Delete(target);
 
     // Add any exception specifications to the methods in the director class
+    if (Getattr(n, "noexcept")) {
+      Append(w->def, " noexcept");
+      Append(declaration, " noexcept");
+    }
     ParmList *throw_parm_list = NULL;
     if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
       int gencomma = 0;
@@ -2417,7 +2444,7 @@ public:
       /* constructor */
       {
 	String *basetype = Getattr(parent, "classtype");
-	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 0);
+	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0);
 	String *call = Swig_csuperclass_call(0, basetype, superparms);
 	String *classtype = SwigType_namestr(Getattr(n, "name"));
 
@@ -2432,7 +2459,7 @@ public:
 
       /* constructor header */
       {
-	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 1);
+	String *target = Swig_method_decl(0, decl, dirclassname, parms, 1);
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }
@@ -2472,9 +2499,12 @@ public:
     String *dirclassname = directorClassName(current_class);
     Wrapper *w = NewWrapper();
 
-    if (Getattr(n, "throw")) {
-      Printf(f_directors_h, "    virtual ~%s() throw ();\n", dirclassname);
-      Printf(w->def, "%s::~%s() throw () {\n", dirclassname, dirclassname);
+    if (Getattr(n, "noexcept")) {
+      Printf(f_directors_h, "    virtual ~%s() noexcept;\n", dirclassname);
+      Printf(w->def, "%s::~%s() noexcept {\n", dirclassname, dirclassname);
+    } else if (Getattr(n, "throw")) {
+      Printf(f_directors_h, "    virtual ~%s() throw();\n", dirclassname);
+      Printf(w->def, "%s::~%s() throw() {\n", dirclassname, dirclassname);
     } else {
       Printf(f_directors_h, "    virtual ~%s();\n", dirclassname);
       Printf(w->def, "%s::~%s() {\n", dirclassname, dirclassname);
@@ -3110,11 +3140,10 @@ private:
      * Handle inheriting from D and C++ classes.
      */
 
-    String *c_classname = SwigType_namestr(Getattr(n, "name"));
-    String *c_baseclass = NULL;
-    Node *basenode = NULL;
-    String *basename = NULL;
+    String *c_classname = Getattr(n, "name");
     String *c_baseclassname = NULL;
+    Node *basenode = NULL;
+    String *baseclass = NULL;
 
     // Inheritance from pure D classes.
     Node *attributes = NewHash();
@@ -3131,13 +3160,14 @@ private:
 	Iterator base = First(baselist);
 	while (base.item) {
 	  if (!GetFlag(base.item, "feature:ignore")) {
-	    String *baseclassname = Getattr(base.item, "name");
+	    SwigType *baseclassname = Getattr(base.item, "name");
 	    if (!c_baseclassname) {
 	      basenode = base.item;
-	      c_baseclassname = baseclassname;
-	      basename = createProxyName(c_baseclassname);
-	      if (basename)
-		c_baseclass = SwigType_namestr(baseclassname);
+	      String *name = createProxyName(baseclassname);
+	      if (name) {
+		c_baseclassname = baseclassname;
+		baseclass = name;
+	      }
 	    } else {
 	      /* Warn about multiple inheritance for additional base class(es) */
 	      String *proxyclassname = Getattr(n, "classtypeobj");
@@ -3150,25 +3180,24 @@ private:
       }
     }
 
-    bool derived = (basename != NULL);
+    bool derived = baseclass != NULL;
 
     if (derived && purebase_notderived) {
       pure_baseclass = empty_string;
     }
-    const String *wanted_base = basename ? basename : pure_baseclass;
+    const String *wanted_base = baseclass ? baseclass : pure_baseclass;
 
     if (purebase_replace) {
       wanted_base = pure_baseclass;
       derived = false;
       basenode = NULL;
-      Delete(basename);
-      basename = NULL;
+      baseclass = NULL;
       if (purebase_notderived) {
 	Swig_error(Getfile(n), Getline(n),
 	  "The dbase typemap for proxy %s must contain just one of the 'replace' or 'notderived' attributes.\n",
 	  typemap_lookup_type);
       }
-    } else if (basename && Len(pure_baseclass) > 0) {
+    } else if (baseclass && Len(pure_baseclass) > 0) {
       Swig_warning(WARN_D_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
 	"Warning for %s, base class %s ignored. Multiple inheritance is not supported in D. "
 	"Perhaps you need one of the 'replace' or 'notderived' attributes in the dbase typemap?\n", typemap_lookup_type, pure_baseclass);
@@ -3176,7 +3205,7 @@ private:
 
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if (derived) {
-      writeClassUpcast(n, proxy_class_name, c_classname, c_baseclass);
+      writeClassUpcast(n, proxy_class_name, c_classname, c_baseclassname);
     }
 
     /*
@@ -3244,17 +3273,20 @@ private:
     // attribute called »methodname«.
     const String *tm = NULL;
 
-    String *dispose_methodname;
-    String *dispose_methodmodifiers;
+    const String *dispose_methodname;
+    const String *dispose_methodmodifiers;
+    const String *dispose_parameters;
     attributes = NewHash();
     if (derived) {
       tm = lookupCodeTypemap(n, "ddispose_derived", typemap_lookup_type, WARN_NONE, attributes);
       dispose_methodname = Getattr(attributes, "tmap:ddispose_derived:methodname");
       dispose_methodmodifiers = Getattr(attributes, "tmap:ddispose_derived:methodmodifiers");
+      dispose_parameters = Getattr(attributes, "tmap:ddispose_derived:parameters");
     } else {
       tm = lookupCodeTypemap(n, "ddispose", typemap_lookup_type, WARN_NONE, attributes);
       dispose_methodname = Getattr(attributes, "tmap:ddispose:methodname");
       dispose_methodmodifiers = Getattr(attributes, "tmap:ddispose:methodmodifiers");
+      dispose_parameters = Getattr(attributes, "tmap:ddispose:parameters");
     }
 
     if (tm && *Char(tm)) {
@@ -3268,6 +3300,8 @@ private:
 	  "No methodmodifiers attribute defined in ddispose%s typemap for %s.\n",
 	  (derived ? "_derived" : ""), proxy_class_name);
       }
+      if (!dispose_parameters)
+	dispose_parameters = empty_string;
     }
 
     if (tm) {
@@ -3288,9 +3322,13 @@ private:
       }
 
       if (*Char(dispose_code)) {
-	Printv(body, "\n", dispose_methodmodifiers,
-	  (derived ? " override" : ""), " void ", dispose_methodname, "() ",
-	  dispose_code, "\n", NIL);
+	Printv(body, "\n", NIL);
+	const String *methodmods = Getattr(n, "destructmethodmodifiers");
+	if (methodmods)
+	  Printv(body, methodmods, NIL);
+	else
+	  Printv(body, dispose_methodmodifiers, (derived ? " override" : ""), NIL);
+	Printv(body, " void ", dispose_methodname, "(", dispose_parameters, ") ", dispose_code, "\n", NIL);
       }
     }
 
@@ -3315,8 +3353,7 @@ private:
     // Write the class body and the curly bracket closing the class definition
     // to the proxy module.
     indentCode(body);
-    Replaceall(body, "$dbaseclass", basename);
-    Delete(basename);
+    Replaceall(body, "$dbaseclass", baseclass);
 
     Printv(proxy_class_code, body, "\n}\n", NIL);
     Delete(body);
@@ -3329,7 +3366,7 @@ private:
   /* ---------------------------------------------------------------------------
    * D::writeClassUpcast()
    * --------------------------------------------------------------------------- */
-  void writeClassUpcast(Node *n, const String* d_class_name, String* c_class_name, String* c_base_name) {
+  void writeClassUpcast(Node *n, const String* d_class_name, SwigType* c_classname, SwigType* c_baseclassname) {
 
     SwigType *smart = Swig_cparse_smartptr(n);
     String *upcast_name = Swig_name_member(getNSpace(), d_class_name, (smart != 0 ? "SmartPtrUpcast" : "Upcast"));
@@ -3338,36 +3375,42 @@ private:
     writeImDModuleFunction(upcast_name, "void*", "(void* objectRef)",
       upcast_wrapper_name);
 
+    String *classname = SwigType_namestr(c_classname);
+    String *baseclassname = SwigType_namestr(c_baseclassname);
     if (smart) {
-      SwigType *bsmart = Copy(smart);
-      SwigType *rclassname = SwigType_typedef_resolve_all(c_class_name);
-      SwigType *rbaseclass = SwigType_typedef_resolve_all(c_base_name);
-      Replaceall(bsmart, rclassname, rbaseclass);
-      Delete(rclassname);
-      Delete(rbaseclass);
       String *smartnamestr = SwigType_namestr(smart);
-      String *bsmartnamestr = SwigType_namestr(bsmart);
+      String *bsmartnamestr = SwigType_namestr(smart);
+
+      // TODO: SwigType_typedef_resolve_all on a String instead of SwigType is incorrect for templates
+      SwigType *rclassname = SwigType_typedef_resolve_all(classname);
+      SwigType *rbaseclassname = SwigType_typedef_resolve_all(baseclassname);
+      Replaceall(bsmartnamestr, rclassname, rbaseclassname);
+
       Printv(upcasts_code,
 	"SWIGEXPORT ", bsmartnamestr, " * ", upcast_wrapper_name,
 	  "(", smartnamestr, " *objectRef) {\n",
 	"    return objectRef ? new ", bsmartnamestr, "(*objectRef) : 0;\n"
 	"}\n",
 	"\n", NIL);
+
+      Delete(rbaseclassname);
+      Delete(rclassname);
       Delete(bsmartnamestr);
       Delete(smartnamestr);
-      Delete(bsmart);
     } else {
       Printv(upcasts_code,
-	"SWIGEXPORT ", c_base_name, " * ", upcast_wrapper_name,
-	  "(", c_base_name, " *objectRef) {\n",
-	"    return (", c_base_name, " *)objectRef;\n"
+	"SWIGEXPORT ", baseclassname, " * ", upcast_wrapper_name,
+	  "(", baseclassname, " *objectRef) {\n",
+	"    return (", baseclassname, " *)objectRef;\n"
 	"}\n",
 	"\n", NIL);
     }
 
-    Replaceall(upcasts_code, "$cclass", c_class_name);
-    Replaceall(upcasts_code, "$cbaseclass", c_base_name);
+    Replaceall(upcasts_code, "$cclass", classname);
+    Replaceall(upcasts_code, "$cbaseclass", baseclassname);
 
+    Delete(baseclassname);
+    Delete(classname);
     Delete(upcast_name);
     Delete(upcast_wrapper_name);
     Delete(smart);
@@ -3545,10 +3588,9 @@ private:
     Printf(code_wrap->def, "SWIGEXPORT void D_%s(void *objarg, void *dobj", connect_name);
 
     Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", norm_name, norm_name);
-    Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName);
+    Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj);\n", dirClassName, dirClassName);
 
-    Printf(code_wrap->code, "  if (director) {\n");
-    Printf(code_wrap->code, "    director->swig_connect_director(dobj");
+    Printf(code_wrap->code, "  director->swig_connect_director(dobj");
 
     for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
       UpcallData *udata = Getitem(dmethods_seq, i);
@@ -3562,7 +3604,6 @@ private:
     Printf(code_wrap->def, ") {\n");
     Printf(code_wrap->code, ");\n");
     Printf(im_dmodule_code, ") %s;\n", connect_name);
-    Printf(code_wrap->code, "  }\n");
     Printf(code_wrap->code, "}\n");
 
     Wrapper_print(code_wrap, f_wrappers);
@@ -4321,7 +4362,7 @@ private:
    *
    * Determines whether the class the passed function node belongs to overrides
    * all the overlaods for the passed function node defined somewhere up the
-   * inheritance hierachy.
+   * inheritance hierarchy.
    * --------------------------------------------------------------------------- */
   bool areAllOverloadsOverridden(Node *n) const {
     List *base_list = Getattr(parentNode(n), "bases");
@@ -4346,7 +4387,7 @@ private:
     }
 
     // We try to find at least a single overload which exists in the base class
-    // so we can progress up the inheritance hierachy even if there have been
+    // so we can progress up the inheritance hierarchy even if there have been
     // new overloads introduced after the topmost class.
     Node *base_function = NULL;
     String *symname = Getattr(n, "sym:name");
@@ -4372,7 +4413,7 @@ private:
 	  !(Swig_director_mode() && Swig_director_protected_mode() && Swig_all_protected_mode())) {
 	// If the base class function is »protected« and were are not in
 	// director mode, it is not emitted to the base class and thus we do
-	// not count it. Otherwise, we would run into issues if the visiblity
+	// not count it. Otherwise, we would run into issues if the visibility
 	// of some functions was changed from protected to public in a child
 	// class with the using directive.
 	continue;

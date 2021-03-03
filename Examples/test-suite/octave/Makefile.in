@@ -5,6 +5,7 @@
 LANGUAGE     = octave
 OCTAVE       = @OCTAVE@
 SCRIPTSUFFIX = _runme.m
+PCHSUPPORT   = @PCHSUPPORT@
 
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
@@ -16,19 +17,17 @@ CPP_TEST_CASES += \
 	octave_cell_deref\
 	octave_dim
 
+CPP11_TEST_CASES += \
+	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_nullptr_in_containers \
+	cpp11_shared_ptr_overload \
+	cpp11_shared_ptr_upcast \
+
 CPP_TEST_BROKEN += \
 	implicittest \
 	li_implicit \
 	li_std_set \
 	li_std_stream
-
-#C_TEST_CASES +=
-
-#
-# This test only works with modern C compilers
-#
-#C_TEST_CASES += \
-#	complextest
 
 include $(srcdir)/../common.mk
 
@@ -55,11 +54,28 @@ CSRCS      = octave_empty.c
 	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
 
+# Pre-compile Octave headers, if supported
+
+ifeq (yes,$(PCHSUPPORT))
+
+export OCTHEADERSSRC = @top_srcdir@/Lib/octave/octheaders.hpp
+export OCTHEADERS    = @top_builddir@/Examples/test-suite/octave/octheaders.hpp
+export OCTHEADERSGCH = $(OCTHEADERS).gch
+export SWIGOCTHDROPT = -DSWIG_OCTAVE_EXTERNAL_OCTHEADERS
+export IOCTHEADERS   = -I@top_builddir@/Examples/test-suite/octave @PCHINCLUDEARG@ $(OCTHEADERS)@PCHINCLUDEEXT@
+
+$(OCTHEADERSGCH): $(OCTHEADERSSRC)
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile octave_precompile_headers
+
+$(NOT_BROKEN_TEST_CASES) $(BROKEN_TEST_CASES): $(OCTHEADERSGCH)
+
+endif
+
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.m appended after the testcase name.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH OCTAVE_PATH=$(srcdir):$$OCTAVE_PATH $(RUNTOOL) $(OCTAVE) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH OCTAVE_PATH=$(srcdir) OCTAVE_HISTFILE=/dev/null $(RUNTOOL) $(OCTAVE) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
 # Clean: remove the generated .m file
@@ -69,20 +85,6 @@ run_testcase = \
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' octave_clean
-
-cvsignore:
-	@echo '*wrap* *.mc *.so *.dll *.exp *.lib'
-	@echo Makefile
-	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do echo $$i.m; done
-	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do if grep -q $${i}_runme.m CVS/Entries ; then echo $${i}_runme.m; fi; done
-	@echo clientdata_prop_a.m
-	@echo clientdata_prop_b.m
-	@echo imports_a.m
-	@echo imports_b.m
-	@echo mod_a.m mod_b.m
-	@echo hugemod.h hugemod_a.i hugemod_b.i hugemod_a.m hugemod_b.m hugemod_runme.m
-	@echo template_typedef_import.m
-
 
 hugemod:
 	perl hugemod.pl

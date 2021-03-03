@@ -100,3 +100,29 @@
 
   int foo_mm(int min = 1, int max = 2) {return min + max; }
 %}
+
+
+// Extended constructors
+%extend Extending0 {
+  Extending0() { return new Extending0(); }
+}
+%extend Extending1 {
+  Extending1(int one) { return new Extending1(); }
+}
+%extend Extending2 {
+  Extending2(int one, const char *two) { return new Extending2(); }
+}
+%extend ExtendingOptArgs1 {
+  ExtendingOptArgs1(int one = 0) { return new ExtendingOptArgs1(); }
+}
+%extend ExtendingOptArgs2 {
+  ExtendingOptArgs2(int one = 0, const char* two = NULL) { return new ExtendingOptArgs2(); }
+}
+
+%inline %{
+struct Extending0 {};
+struct Extending1 {};
+struct Extending2 {};
+struct ExtendingOptArgs1 {};
+struct ExtendingOptArgs2 {};
+%}

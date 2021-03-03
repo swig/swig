@@ -4,9 +4,12 @@
 
 %include <octcomplex.swg>
 
-%{
-#include <complex> 
-%}
+namespace std {
+  %naturalvar complex;
+  template<typename T> class complex;
+  %template() complex<double>;
+  %template() complex<float>;
+}
 
 /* defining the complex as/from converters */
 

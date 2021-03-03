@@ -12,7 +12,7 @@
  * -----------------------------------------------------------------------------
  */
 
-/* FIXME: PHP5 OO wrapping TODO list:
+/* FIXME: PHP OO wrapping TODO list:
  *
  * Medium term:
  *
@@ -43,7 +43,7 @@
 #include <errno.h>
 
 static const char *usage = "\
-PHP Options (available with -php7)\n\
+PHP 7 Options (available with -php7)\n\
      -noproxy         - Don't generate proxy classes.\n\
      -prefix <prefix> - Prepend <prefix> to all class names in PHP wrappers\n\
 \n";
@@ -96,6 +96,7 @@ static String *all_cs_entry;
 static String *pragma_incl;
 static String *pragma_code;
 static String *pragma_phpinfo;
+static String *pragma_version;
 static String *s_oowrappers;
 static String *s_fakeoowrappers;
 static String *s_phpclasses;
@@ -141,7 +142,7 @@ static void SwigPHP_emit_resource_registrations() {
 
   ki = First(zend_types);
   if (ki.key)
-    Printf(s_oinit, "\n/* Register resource destructors for pointer types */\n");
+    Printf(s_oinit, "\n  /* Register resource destructors for pointer types */\n");
   while (ki.key) {
     DOH *key = ki.key;
     Node *class_node = ki.item;
@@ -179,11 +180,11 @@ static void SwigPHP_emit_resource_registrations() {
     Printf(s_vdecl, "static int le_swig_%s=0; /* handle for %s */\n", key, human_name);
 
     // register with php
-    Printf(s_oinit, "le_swig_%s=zend_register_list_destructors_ex"
+    Printf(s_oinit, "  le_swig_%s=zend_register_list_destructors_ex"
 		    "(%s, NULL, SWIGTYPE%s->name, module_number);\n", key, rsrc_dtor_name, key);
 
     // store php type in class struct
-    Printf(s_oinit, "SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n", key, key);
+    Printf(s_oinit, "  SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n", key, key);
 
     Delete(rsrc_dtor_name);
 
@@ -271,8 +272,8 @@ public:
     /* subsections of the init section */
     s_vinit = NewStringEmpty();
     s_vdecl = NewString("/* vdecl subsection */\n");
-    s_cinit = NewString("/* cinit subsection */\n");
-    s_oinit = NewString("/* oinit subsection */\n");
+    s_cinit = NewString("  /* cinit subsection */\n");
+    s_oinit = NewString("  /* oinit subsection */\n");
     pragma_phpinfo = NewStringEmpty();
     s_phpclasses = NewString("/* PHP Proxy Classes */\n");
     f_directors_h = NewStringEmpty();
@@ -359,10 +360,11 @@ public:
     /* sub-sections of the php file */
     pragma_code = NewStringEmpty();
     pragma_incl = NewStringEmpty();
+    pragma_version = NULL;
 
     /* Initialize the rest of the module */
 
-    Printf(s_oinit, "ZEND_INIT_MODULE_GLOBALS(%s, %s_init_globals, NULL);\n", module, module);
+    Printf(s_oinit, "  ZEND_INIT_MODULE_GLOBALS(%s, %s_init_globals, NULL);\n", module, module);
 
     /* start the header section */
     Printf(s_header, "ZEND_BEGIN_MODULE_GLOBALS(%s)\n", module);
@@ -370,8 +372,8 @@ public:
     Printf(s_header, "int error_code;\n");
     Printf(s_header, "ZEND_END_MODULE_GLOBALS(%s)\n", module);
     Printf(s_header, "ZEND_DECLARE_MODULE_GLOBALS(%s)\n", module);
-    Printf(s_header, "#define SWIG_ErrorMsg() (%s_globals.error_msg)\n", module);
-    Printf(s_header, "#define SWIG_ErrorCode() (%s_globals.error_code)\n", module);
+    Printf(s_header, "#define SWIG_ErrorMsg() ZEND_MODULE_GLOBALS_ACCESSOR(%s, error_msg)\n", module);
+    Printf(s_header, "#define SWIG_ErrorCode() ZEND_MODULE_GLOBALS_ACCESSOR(%s, error_code)\n", module);
 
     /* The following can't go in Lib/php/phprun.swg as it uses SWIG_ErrorMsg(), etc
      * which has to be dynamically generated as it depends on the module name.
@@ -515,7 +517,11 @@ public:
       } else {
 	Printf(s_init, "    NULL, /* No MINFO code */\n");
       }
-      Printf(s_init, "    NO_VERSION_YET,\n");
+      if (Len(pragma_version) > 0) {
+	Printf(s_init, "    \"%s\",\n", pragma_version);
+      } else {
+	Printf(s_init, "    NO_VERSION_YET,\n");
+      }
       Printf(s_init, "    STANDARD_MODULE_PROPERTIES\n");
       Printf(s_init, "};\n");
       Printf(s_init, "zend_module_entry* SWIG_module_entry = &%s_module_entry;\n\n", module);
@@ -524,7 +530,7 @@ public:
       Printf(s_init, "extern \"C\" {\n");
       Printf(s_init, "#endif\n");
       // We want to write "SWIGEXPORT ZEND_GET_MODULE(%s)" but ZEND_GET_MODULE
-      // in PHP5 has "extern "C" { ... }" around it so we can't do that.
+      // in PHP7 has "extern "C" { ... }" around it so we can't do that.
       Printf(s_init, "SWIGEXPORT zend_module_entry *get_module(void) { return &%s_module_entry; }\n", module);
       Printf(s_init, "#ifdef __cplusplus\n");
       Printf(s_init, "}\n");
@@ -543,17 +549,17 @@ public:
 
     //    Printv(s_init,s_resourcetypes,NIL);
     /* We need this after all classes written out by ::top */
-    Printf(s_oinit, "CG(active_class_entry) = NULL;\n");
-    Printf(s_oinit, "/* end oinit subsection */\n");
+    Printf(s_oinit, "  CG(active_class_entry) = NULL;\n");
+    Printf(s_oinit, "  /* end oinit subsection */\n");
     Printf(s_init, "%s\n", s_oinit);
 
     /* Constants generated during top call */
-    Printf(s_cinit, "/* end cinit subsection */\n");
+    Printf(s_cinit, "  /* end cinit subsection */\n");
     Printf(s_init, "%s\n", s_cinit);
     Clear(s_cinit);
     Delete(s_cinit);
 
-    Printf(s_init, "    return SUCCESS;\n");
+    Printf(s_init, "  return SUCCESS;\n");
     Printf(s_init, "}\n\n");
 
     // Now do REQUEST init which holds any user specified %rinit, and also vinit
@@ -571,15 +577,15 @@ public:
       if (Len(s_vinit) > 0) {
 	/* finish our init section which will have been used by class wrappers */
 	Printv(s_init,
-	       "/* vinit subsection */\n",
+	       "  /* vinit subsection */\n",
 	       s_vinit, "\n"
-	       "/* end vinit subsection */\n",
+	       "  /* end vinit subsection */\n",
 	       NIL);
 	Clear(s_vinit);
       }
       Delete(s_vinit);
 
-      Printf(s_init, "    return SUCCESS;\n");
+      Printf(s_init, "  return SUCCESS;\n");
       Printf(s_init, "}\n\n");
     }
 
@@ -592,7 +598,7 @@ public:
 		     "/* shutdown section */\n"
 		     "{\n",
 		     s_shutdown,
-		     "    return SUCCESS;\n"
+		     "  return SUCCESS;\n"
 		     "}\n\n", NIL);
     }
 
@@ -670,7 +676,7 @@ public:
       Delete(s_fakeoowrappers);
       s_fakeoowrappers = NULL;
     }
-    Printf(f_phpcode, "%s\n?>\n", s_phpclasses);
+    Printf(f_phpcode, "%s\n", s_phpclasses);
     Delete(f_phpcode);
 
     return SWIG_OK;
@@ -973,7 +979,7 @@ public:
     /* Insert argument output code */
     bool hasargout = false;
     for (i = 0, p = l; p; i++) {
-      if ((tm = Getattr(p, "tmap:argout"))) {
+      if ((tm = Getattr(p, "tmap:argout")) && Len(tm)) {
 	hasargout = true;
 	Replaceall(tm, "$source", Getattr(p, "lname"));
 	//      Replaceall(tm,"$input",Getattr(p,"lname"));
@@ -1090,11 +1096,11 @@ public:
       if (constructor) {
 	class_has_ctor = true;
 	// Skip the Foo:: prefix.
-	char *ptr = strrchr(GetChar(Swig_methodclass(n), "sym:name"), ':');
+	char *ptr = strrchr(GetChar(current_class, "sym:name"), ':');
 	if (ptr) {
 	  ptr++;
 	} else {
-	  ptr = GetChar(Swig_methodclass(n), "sym:name");
+	  ptr = GetChar(current_class, "sym:name");
 	}
 	if (strcmp(ptr, GetChar(n, "constructorHandler:sym:name")) == 0) {
 	  methodname = "__construct";
@@ -1217,7 +1223,7 @@ public:
 	/* FIXME: How should this be handled?  The rest of SWIG just seems
 	 * to not bother checking for malloc failing! */
 	fprintf(stderr, "Malloc failed!\n");
-	exit(1);
+	SWIG_exit(EXIT_FAILURE);
       }
       for (i = 0; i < max_num_of_arguments; ++i) {
 	arg_names[i] = NULL;
@@ -1229,7 +1235,7 @@ public:
 	/* FIXME: How should this be handled?  The rest of SWIG just seems
 	 * to not bother checking for malloc failing! */
 	fprintf(stderr, "Malloc failed!\n");
-	exit(1);
+	SWIG_exit(EXIT_FAILURE);
       }
       for (i = 0; i < max_num_of_arguments; ++i) {
 	arg_values[i] = NULL;
@@ -1456,14 +1462,6 @@ public:
       /* We need $this to refer to the current class, so can't allow it
        * to be used as a parameter. */
       Setattr(seen, "this", seen);
-      /* We use $r to store the return value, so disallow that as a parameter
-       * name in case the user uses the "call-time pass-by-reference" feature
-       * (it's deprecated and off by default in PHP5, but we want to be
-       * maximally portable).  Similarly we use $c for the classname or new
-       * stdClass object.
-       */
-      Setattr(seen, "r", seen);
-      Setattr(seen, "c", seen);
 
       for (int argno = 0; argno < max_num_of_arguments; ++argno) {
 	String *&pname = arg_names[argno];
@@ -1511,7 +1509,7 @@ public:
 	      Replaceall(value, "$", "\\$");
 	    }
 	    Printf(args, "$%s=%s", arg_names[i], value);
-	  } else if (constructor && i >= 1 && i < min_num_of_arguments) {
+	  } else if (constructor && strcmp(methodname, "__construct") == 0 && i >= 1 && i < min_num_of_arguments) {
 	    // We need to be able to call __construct($resource).
 	    Printf(args, "$%s=null", arg_names[i]);
 	  } else {
@@ -1568,13 +1566,15 @@ public:
 	      Printf(prepare, "case %d: ", ++last_handled_i);
 	    }
 	    if (non_void_return) {
-	      if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
+	      if ((!directorsEnabled() || !Swig_directorclass(n)) && !constructor) {
+		Append(prepare, "$r=");
+	      } else if (wrapperType == staticmemberfn || wrapperType == staticmembervar) {
 		Append(prepare, "$r=");
 	      } else {
 		Printf(prepare, "$this->%s=", SWIG_PTR);
 	      }
 	    }
-	    if (!directorsEnabled() || !Swig_directorclass(n) || !newobject) {
+	    if (!directorsEnabled() || !Swig_directorclass(n) || !constructor) {
 	      Printf(prepare, "%s(%s); break;\n", iname, invoke_args);
 	    } else if (!i) {
 	      Printf(prepare, "%s($_this%s); break;\n", iname, invoke_args);
@@ -1590,14 +1590,16 @@ public:
 	if (had_a_case)
 	  Printf(prepare, "default: ");
 	if (non_void_return) {
-	  if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
+	  if ((!directorsEnabled() || !Swig_directorclass(n)) && !constructor) {
+	    Append(prepare, "$r=");
+	  } else if (wrapperType == staticmemberfn || wrapperType == staticmembervar) {
 	    Append(prepare, "$r=");
 	  } else {
 	    Printf(prepare, "$this->%s=", SWIG_PTR);
 	  }
 	}
 
-	if (!directorsEnabled() || !Swig_directorclass(n) || !newobject) {
+	if (!directorsEnabled() || !Swig_directorclass(n) || !constructor) {
 	  Printf(prepare, "%s(%s);\n", iname, invoke_args);
 	} else {
 	  Printf(prepare, "%s($_this, %s);\n", iname, invoke_args);
@@ -1665,20 +1667,33 @@ public:
 	}
 
 	if (constructor) {
-	  const char * arg0;
+	  // Discriminate between the PHP constructor and a C++ constructor
+	  // renamed to become a factory function in PHP.
+	  bool php_constructor = (strcmp(methodname, "__construct") == 0);
+	  const char * arg0 = NULL;
 	  if (max_num_of_arguments > 0) {
 	    arg0 = Char(arg_names[0]);
-	  } else {
+	  } else if (php_constructor) {
+	    // The PHP constructor needs to be able to wrap a resource, but a
+	    // renamed constructor doesn't.
 	    arg0 = "res";
 	    Delete(args);
 	    args = NewString("$res=null");
 	  }
 	  String *mangled_type = SwigType_manglestr(Getattr(n, "type"));
+	  if (!php_constructor) {
+	    // A renamed constructor should be a static method.
+	    Append(acc, "static ");
+	  }
 	  Printf(output, "\t%sfunction %s(%s) {\n", acc, methodname, args);
-	  Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) === '%s') {\n", arg0, arg0, mangled_type);
-	  Printf(output, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg0);
-	  Printf(output, "\t\t\treturn;\n");
-	  Printf(output, "\t\t}\n");
+	  if (php_constructor) {
+	    // The PHP constructor needs to be able to wrap a resource, but a
+	    // renamed constructor doesn't.
+	    Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) === '%s') {\n", arg0, arg0, mangled_type);
+	    Printf(output, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg0);
+	    Printf(output, "\t\t\treturn;\n");
+	    Printf(output, "\t\t}\n");
+	  }
 	} else {
 	  Printf(output, "\t%sfunction %s(%s) {\n", acc, methodname, args);
 	}
@@ -1707,7 +1722,7 @@ public:
 	Printf(output, "\tstatic function %s(%s) {\n", methodname, args);
       }
 
-      if (!newobject)
+      if (!constructor)
 	Printf(output, "%s", prepare);
       if (constructor) {
 	if (!directorsEnabled() || !Swig_directorclass(n)) {
@@ -1835,7 +1850,7 @@ public:
 	  Delete(wrapobj);
 	}
       } else {
-	if (non_void_return) {
+	if (non_void_return || hasargout) {
 	  Printf(output, "\t\treturn %s;\n", invoke);
 	} else if (Cmp(invoke, "$r") != 0) {
 	  Printf(output, "\t\t%s;\n", invoke);
@@ -1994,7 +2009,7 @@ done:
       String *type = Getattr(n, "name");
       String *value = Getattr(n, "value");
 
-      if (Strcmp(lang, "php") == 0 || Strcmp(lang, "php4") == 0) {
+      if (Strcmp(lang, "php") == 0) {
 	if (Strcmp(type, "code") == 0) {
 	  if (value) {
 	    Printf(pragma_code, "%s\n", value);
@@ -2006,6 +2021,10 @@ done:
 	} else if (Strcmp(type, "phpinfo") == 0) {
 	  if (value) {
 	    Printf(pragma_phpinfo, "%s\n", value);
+	  }
+	} else if (Strcmp(type, "version") == 0) {
+	  if (value) {
+	    pragma_version = value;
 	  }
 	} else {
 	  Swig_warning(WARN_PHP_UNKNOWN_PRAGMA, input_file, line_number, "Unrecognized pragma <%s>.\n", type);
@@ -2193,7 +2212,6 @@ done:
 	}
 	Printf(s_phpclasses, "\t}\n");
 
-	/* Create __isset for PHP 5.1 and later; PHP 5.0 will just ignore it. */
 	/* __isset() should return true for read-only properties, so check for
 	 * *_get() not *_set(). */
 	Printf(s_phpclasses, "\n\tfunction __isset($var) {\n");
@@ -2464,7 +2482,7 @@ done:
 	String *call;
 	String *basetype = Getattr(parent, "classtype");
 
-	String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
+	String *target = Swig_method_decl(0, decl, classname, parms, 0);
 	call = Swig_csuperclass_call(0, basetype, superparms);
 	Printf(w->def, "%s::%s: %s, Swig::Director(self) {", classname, target, call);
 	Append(w->def, "}");
@@ -2476,7 +2494,7 @@ done:
 
       /* constructor header */
       {
-	String *target = Swig_method_decl(0, decl, classname, parms, 0, 1);
+	String *target = Swig_method_decl(0, decl, classname, parms, 1);
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }
@@ -2520,16 +2538,20 @@ done:
     String *pclassname = NewStringf("SwigDirector_%s", classname);
     String *qualified_name = NewStringf("%s::%s", pclassname, name);
     SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-    target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
     Printf(w->def, "%s", target);
     Delete(qualified_name);
     Delete(target);
     /* header declaration */
-    target = Swig_method_decl(rtype, decl, name, l, 0, 1);
+    target = Swig_method_decl(rtype, decl, name, l, 1);
     Printf(declaration, "    virtual %s", target);
     Delete(target);
 
     // Get any exception classes in the throws typemap
+    if (Getattr(n, "noexcept")) {
+      Append(w->def, " noexcept");
+      Append(declaration, " noexcept");
+    }
     ParmList *throw_parm_list = 0;
 
     if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
@@ -2565,8 +2587,16 @@ done:
      * if the return value is a reference or const reference, a specialized typemap must
      * handle it, including declaration of c_result ($result).
      */
-    if (!is_void) {
-      if (!(ignored_method && !pure_virtual)) {
+    if (!is_void && (!ignored_method || pure_virtual)) {
+      if (!SwigType_isclass(returntype)) {
+	if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
+	  String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
+	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
+	  Delete(construct_result);
+	} else {
+	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
+	}
+      } else {
 	String *cres = SwigType_lstr(returntype, "c_result");
 	Printf(w->code, "%s;\n", cres);
 	Delete(cres);
@@ -2592,7 +2622,7 @@ done:
 
       /* remove the wrapper 'w' since it was producing spurious temps */
       Swig_typemap_attach_parms("in", l, 0);
-      Swig_typemap_attach_parms("directorin", l, 0);
+      Swig_typemap_attach_parms("directorin", l, w);
       Swig_typemap_attach_parms("directorargout", l, w);
 
       Parm *p;

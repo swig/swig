@@ -4,7 +4,8 @@
 struct A {
   int member;
 };
-const int align1 = alignof(A::member);
+const int align1 = alignof(int);
+const int align2 = alignof(int *);
 %}
 
 %{

@@ -43,6 +43,8 @@
   return ret;
 }
 
+%apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
+%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
 /*
  * Helper functions to pack/unpack arbitrary binary data (member function

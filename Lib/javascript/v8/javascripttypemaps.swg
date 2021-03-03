@@ -25,7 +25,7 @@
 
 /* Javascript types */
 
-#define SWIG_Object                     v8::Handle<v8::Value>
+#define SWIG_Object                     SWIGV8_VALUE
 #define VOID_Object                     SWIGV8_UNDEFINED()
 
 /* Overload of the output/constant/exception/dirout handling */

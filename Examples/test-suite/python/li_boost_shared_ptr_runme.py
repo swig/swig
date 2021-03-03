@@ -10,7 +10,7 @@ class li_boost_shared_ptr_runme:
 
     def main(self):
         if (debug):
-            print "Started"
+            print("Started")
 
         li_boost_shared_ptr.cvar.debug_shared = debug
 
@@ -32,7 +32,7 @@ class li_boost_shared_ptr_runme:
                     "shared_ptr wrapper count=%s" % wrapper_count)
 
         if (debug):
-            print "Finished"
+            print("Finished")
 
     def runtest(self):
         # simple shared_ptr usage - created in C++

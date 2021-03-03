@@ -4,15 +4,89 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
-Version 3.0.12 (in progress)
-============================
+Version 4.1.0 (in progress)
+===========================
 
-2016-12-31: ajrheading1
-	    Issue #860 - Remove use of std::unary_function and std::binary_function
-            which is deprecated in C++11.
+2021-03-01: xantares, Oliver Buchtala, geographika
+            #1040 Add support for building SWIG with CMake. See documentation in Windows.html.
 
-2016-12-30: olly
-	    [PHP7] Register internal 'swig_runtime_data_type_pointer' constant
-	    as "CONST_PERSISTENT" to avoid segmentation fault on module unload.
-	    Fixes https://github.com/swig/swig/issues/859 reported by Timotheus
-	    Pokorra - thanks also to Javier Torres for a minimal reproducer.
+2021-03-01: vadz
+            #1952 Fix incorrect warning "Unknown Doxygen command: ."
+
+2021-02-28: p2k
+            #969 [Javascript] v8/node - prevent crash calling a constructor without new keyword.
+
+2021-02-28: alecmev
+            #405 #1121 [Javascript] Fix OUTPUT typemaps on methods that don't return void.
+            The output value is appended to the return value.
+
+2021-02-26: murillo128, wsfulton
+            #1269 [Javascript] Fix handling of large positive unsigned long and
+            unsigned long long values.
+
+2021-02-24: tomleavy, yegorich, tungntpham
+            #1746 [Javascript] Add support for Node v12.
+            SWIG support is now for Node v6 and later only.
+
+2020-10-10: wsfulton
+            #252 complex can now be used as a C identifier and doesn't give a syntax error.
+
+2020-10-10: lpsinger
+            #1770 Correct C complex support.
+            _Complex is now parsed as a keyword rather than complex as per the C99 standard.
+            The complex macro is available in the ccomplex.i library file along with other
+            complex number handling provided by the complex.h header.
+
+2020-10-07: ZackerySpytz
+            [Python] #1812 Fix the error handling for the PyObject_GetBuffer() calls in
+            pybuffer.i.
+
+2020-10-07: treitmayr
+            #1824 Add missing space in director method declaration returning
+            const pointer.
+
+2020-10-07: adelva1984
+            #1859 Remove all (two) exceptions from SWIG executable.
+
+2020-09-25: wsfulton
+            [C#, Java] #1874 Add ability to change the modifiers for the interface
+            generated when using the %interface macros.
+
+            For C# use the 'csinterfacemodifiers' typemap.
+            For Java use the 'javainterfacemodifiers' typemap.
+
+            For example:
+
+              %typemap(csinterfacemodifiers) X "internal interface"
+
+
+2020-09-24: geefr
+            [C#] #1868 Fix wchar_t* csvarout typemap for member variable wrappers.
+
+2020-08-28: wsfulton
+            [Java] #1862 Fix crashes in swig_connect_director during director class construction
+            when using the director class from multiple threads - a race condition initialising
+            block scope static variables. The fix is guaranteed when using C++11, but most
+            compilers also fix it when using C++03/C++98.
+
+2020-08-16: wsfulton
+            [Python] Add missing initializer for member ‘_heaptypeobject::ht_module’ when using
+            -builtin to complete Python 3.9 support.
+
+2020-08-16: wsfulton
+            [Python] Remove PyEval_InitThreads() call for Python 3.7 and later as Python calls
+            it automatically now. This removes a deprecation warning when using Python 3.9.
+
+2020-08-15: wsfulton
+            [Python] All Python examples and tests are written to be Python 2 and Python 3
+            compatible, removing the need for 2to3 to run the examples or test-suite.
+
+2020-08-13: wsfulton
+            [C#] Add support for void *VOID_INT_PTR for member variables.
+
+2020-07-29: chrisburr
+            #1843 [Python] Compilation error fix in SwigPyBuiltin_SetMetaType when using PyPy.
+
+2020-06-14: ZackerySpytz
+            #1642 #1809 Fix virtual comparison operators in director classes - remove incorrect
+            space in the function name, for example, operator= = is now operator==.

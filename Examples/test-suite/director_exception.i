@@ -3,27 +3,17 @@
 %warnfilter(SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) return_const_char_star;
 
 %{
-
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
-#endif
-
 #include <string>
-
 
 // define dummy director exception classes to prevent spurious errors 
 // in target languages that do not support directors.
 
 #ifndef SWIG_DIRECTORS
 namespace Swig {
-class DirectorException {};
-class DirectorMethodException: public Swig::DirectorException {};
+  class DirectorException {};
+  class DirectorMethodException: public Swig::DirectorException {};
 }
-  #ifndef SWIG_fail
-    #define SWIG_fail
-  #endif
 #endif /* !SWIG_DIRECTORS */
-
 %}
 
 %include "std_string.i"
@@ -31,14 +21,14 @@ class DirectorMethodException: public Swig::DirectorException {};
 #ifdef SWIGPHP
 
 %feature("director:except") {
-	if ($error == FAILURE) {
-		throw Swig::DirectorMethodException();
-	}
+  if ($error == FAILURE) {
+    Swig::DirectorMethodException::raise("$symname");
+  }
 }
 
 %exception {
-	try { $action }
-	catch (Swig::DirectorException &) { SWIG_fail; }
+  try { $action }
+  catch (Swig::DirectorException &) { SWIG_fail; }
 }
 
 #endif
@@ -46,14 +36,14 @@ class DirectorMethodException: public Swig::DirectorException {};
 #ifdef SWIGPYTHON
 
 %feature("director:except") {
-	if ($error != NULL) {
-		throw Swig::DirectorMethodException();
-	}
+  if ($error != NULL) {
+    Swig::DirectorMethodException::raise("$symname");
+  }
 }
 
 %exception {
-	try { $action }
-	catch (Swig::DirectorException &) { SWIG_fail; }
+  try { $action }
+  catch (Swig::DirectorException &) { SWIG_fail; }
 }
 
 #endif
@@ -71,12 +61,12 @@ class DirectorMethodException: public Swig::DirectorException {};
 // Change back to old 2.0 default behavior
 
 %feature("director:except") {
-	jthrowable $error = jenv->ExceptionOccurred();
-	if ($error) {
-	  // Dont clear exception, still be active when return to java execution
-	  // Essentially ignore exception occurred -- old behavior.
-	  return $null;
-	}
+  jthrowable $error = jenv->ExceptionOccurred();
+  if ($error) {
+    // Dont clear exception, still be active when return to java execution
+    // Essentially ignore exception occurred -- old behavior.
+    return $null;
+  }
 }
 
 #endif
@@ -84,7 +74,7 @@ class DirectorMethodException: public Swig::DirectorException {};
 #ifdef SWIGRUBY
 
 %feature("director:except") {
-    throw Swig::DirectorMethodException($error);
+  Swig::DirectorMethodException::raise($error);
 }
 
 %exception {
@@ -125,6 +115,18 @@ Foo *launder(Foo *f) {
 %feature("director") Bar;
 %feature("director") ReturnAllTypes;
 
+%{
+// throw is deprecated in C++11 and invalid in C++17 and later
+#if defined(__cplusplus) && __cplusplus >= 201103L
+#define throw(TYPE1, TYPE2, TYPE3)
+#else
+#define throw(TYPE1, TYPE2, TYPE3) throw(TYPE1, TYPE2, TYPE3)
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+#endif
+%}
+
 %inline %{
   struct Exception1
   {
@@ -137,16 +139,15 @@ Foo *launder(Foo *f) {
   class Base 
   {
   public:
-    virtual ~Base() throw () {}
+    virtual ~Base() {}
   };
   
 
   class Bar : public Base
   {
   public:
-    virtual std::string ping() throw (Exception1, Exception2&) { return "Bar::ping()"; }
-    virtual std::string pong() throw (Unknown1, int, Unknown2&) { return "Bar::pong();" + ping(); }
-    virtual std::string pang() throw () { return "Bar::pang()"; }
+    virtual std::string ping() throw(Exception1, Exception2&, double) { return "Bar::ping()"; }
+    virtual std::string pong() throw(Unknown1, int, Unknown2&) { return "Bar::pong();" + ping(); }
   };
   
   // Class to allow regression testing SWIG/PHP not checking if an exception

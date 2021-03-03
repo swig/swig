@@ -4,11 +4,11 @@ require "tests.php";
 require "director_string.php";
 
 // No new functions
-check::functions(array(a_get_first,a_call_get_first,a_string_length,a_process_text,a_call_process_func,stringvector_size,stringvector_is_empty,stringvector_clear,stringvector_push,stringvector_pop,stringvector_capacity,stringvector_reserve));
+check::functions(array('a_get_first','a_call_get_first','a_string_length','a_process_text','a_call_process_func','stringvector_size','stringvector_is_empty','stringvector_clear','stringvector_push','stringvector_pop','stringvector_capacity','stringvector_reserve'));
 // No new classes
-check::classes(array(A,StringVector));
+check::classes(array('A','StringVector'));
 // now new vars
-check::globals(array(a,a_call,a_m_strings,stringvector));
+check::globals(array('a','a_call','a_m_strings','stringvector'));
 
 class B extends A {
   function get_first() {

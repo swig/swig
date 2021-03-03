@@ -1,6 +1,6 @@
 package main
 
-import . "./cpp_static"
+import . "swigtests/cpp_static"
 
 func main() {
 	StaticFunctionTestStatic_func()

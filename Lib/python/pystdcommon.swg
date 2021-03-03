@@ -45,11 +45,20 @@ namespace swig {
   template <class Type>
   struct traits_asptr {   
     static int asptr(PyObject *obj, Type **val) {
-      Type *p;
+      int res = SWIG_ERROR;
       swig_type_info *descriptor = type_info<Type>();
-      int res = descriptor ? SWIG_ConvertPtr(obj, (void **)&p, descriptor, 0) : SWIG_ERROR;
-      if (SWIG_IsOK(res)) {
-	if (val) *val = p;
+      if (val) {
+        Type *p = 0;
+        int newmem = 0;
+        res = descriptor ? SWIG_ConvertPtrAndOwn(obj, (void **)&p, descriptor, 0, &newmem) : SWIG_ERROR;
+        if (SWIG_IsOK(res)) {
+          if (newmem & SWIG_CAST_NEW_MEMORY) {
+            res |= SWIG_NEWOBJMASK;
+          }
+          *val = p;
+        }
+      } else {
+        res = descriptor ? SWIG_ConvertPtr(obj, 0, descriptor, 0) : SWIG_ERROR;
       }
       return res;
     }
@@ -107,14 +116,14 @@ namespace swig {
 
   template <class Type> 
   struct traits_as<Type, value_category> {
-    static Type as(PyObject *obj, bool throw_error) {
+    static Type as(PyObject *obj) {
       Type v;
       int res = asval(obj, &v);
       if (!obj || !SWIG_IsOK(res)) {
 	if (!PyErr_Occurred()) {
 	  ::%type_error(swig::type_name<Type>());
 	}
-	if (throw_error) throw std::invalid_argument("bad type");
+	throw std::invalid_argument("bad type");
       }
       return v;
     }
@@ -122,7 +131,7 @@ namespace swig {
 
   template <class Type> 
   struct traits_as<Type, pointer_category> {
-    static Type as(PyObject *obj, bool throw_error) {
+    static Type as(PyObject *obj) {
       Type *v = 0;      
       int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : SWIG_ERROR);
       if (SWIG_IsOK(res) && v) {
@@ -134,21 +143,17 @@ namespace swig {
 	  return *v;
 	}
       } else {
-	// Uninitialized return value, no Type() constructor required.
-	static Type *v_def = (Type*) malloc(sizeof(Type));
 	if (!PyErr_Occurred()) {
 	  %type_error(swig::type_name<Type>());
 	}
-	if (throw_error) throw std::invalid_argument("bad type");
-	memset(v_def,0,sizeof(Type));
-	return *v_def;
+	throw std::invalid_argument("bad type");
       }
     }
   };
 
   template <class Type> 
   struct traits_as<Type*, pointer_category> {
-    static Type* as(PyObject *obj, bool throw_error) {
+    static Type* as(PyObject *obj) {
       Type *v = 0;      
       int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : SWIG_ERROR);
       if (SWIG_IsOK(res)) {
@@ -157,15 +162,14 @@ namespace swig {
 	if (!PyErr_Occurred()) {
 	  %type_error(swig::type_name<Type>());
 	}
-	if (throw_error) throw std::invalid_argument("bad type");
-	return 0;
+	throw std::invalid_argument("bad type");
       }
     }
   };
     
   template <class Type>
-  inline Type as(PyObject *obj, bool te = false) {
-    return traits_as<Type, typename traits<Type>::category>::as(obj, te);
+  inline Type as(PyObject *obj) {
+    return traits_as<Type, typename traits<Type>::category>::as(obj);
   }
 
   template <class Type> 

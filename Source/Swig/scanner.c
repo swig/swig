@@ -749,11 +749,18 @@ static int look(Scanner *s) {
 	  }
 	  
 	  if (Strcmp( str_delimiter, end_delimiter )==0) {
-	    Delete( end_delimiter ); /* Correct end delimiter )XXXX" occured */
+	    int len = Len(s->text);
+	    Delslice(s->text, len - 2 - Len(str_delimiter), len); /* Delete ending )XXXX" */
+	    Delslice(s->text, 0, Len(str_delimiter) + 1); /* Delete starting XXXX( */
+	    Delete( end_delimiter ); /* Correct end delimiter )XXXX" occurred */
 	    Delete( str_delimiter );
 	    str_delimiter = 0;
 	    return SWIG_TOKEN_STRING;
-	  } else {                   /* Incorrect end delimiter occured */
+	  } else {                   /* Incorrect end delimiter occurred */
+	    if (c == 0) {
+	      Swig_error(cparse_file, cparse_start_line, "Unterminated raw string, started with R\"%s( is not terminated by )%s\"\n", str_delimiter, str_delimiter);
+	      return SWIG_TOKEN_ERROR;
+	    }
 	    retract( s, i );
 	    Delete( end_delimiter );
 	  }
@@ -826,7 +833,7 @@ static int look(Scanner *s) {
 	return SWIG_TOKEN_MODEQUAL;
       } else if (c == '}') {
 	Swig_error(cparse_file, cparse_line, "Syntax error. Extraneous '%%}'\n");
-	exit(1);
+	SWIG_exit(EXIT_FAILURE);
       } else {
 	retract(s, 1);
 	return SWIG_TOKEN_PERCENT;
@@ -931,10 +938,14 @@ static int look(Scanner *s) {
 	retract(s, 1);
 	state = 1000;
       }
+      else if (c == '\'') { /* Definitely u, U or L char */
+	retract(s, 1);
+	state = 77;
+      }
       else if (c == 'R') { /* Possibly CUSTOM DELIMITER u, U, L string */
 	state = 73;
       }
-      else if (c == '8') { /* Possibly u8 string */
+      else if (c == '8') { /* Possibly u8 string/char */
 	state = 71;
       }
       else {
@@ -954,13 +965,17 @@ static int look(Scanner *s) {
       }
       break;
     
-    case 71:			/* Possibly u8 string */
+    case 71:			/* Possibly u8 string/char */
       if ((c = nextchar(s)) == 0) {
 	state = 76;
       }
       else if (c=='\"') {
 	retract(s, 1); /* Definitely u8 string */
 	state = 1000;
+      }
+      else if (c=='\'') {
+	retract(s, 1); /* Definitely u8 char */
+	state = 77;
       }
       else if (c=='R') {
 	state = 74; /* Possibly CUSTOM DELIMITER u8 string */
@@ -1114,27 +1129,29 @@ static int look(Scanner *s) {
       break;
     case 82:
       if ((c = nextchar(s)) == 0) {
-	retract(s, 1);
-	return SWIG_TOKEN_INT;
+	Swig_error(cparse_file, cparse_start_line, "Exponent does not have any digits\n");
+	return SWIG_TOKEN_ERROR;
       }
       if ((isdigit(c)) || (c == '-') || (c == '+'))
 	state = 86;
       else {
 	retract(s, 2);
-	return (SWIG_TOKEN_INT);
+	Swig_error(cparse_file, cparse_start_line, "Exponent does not have any digits\n");
+	return SWIG_TOKEN_ERROR;
       }
       break;
     case 820:
       /* Like case 82, but we've seen a decimal point. */
       if ((c = nextchar(s)) == 0) {
-	retract(s, 1);
-	return SWIG_TOKEN_DOUBLE;
+	Swig_error(cparse_file, cparse_start_line, "Exponent does not have any digits\n");
+	return SWIG_TOKEN_ERROR;
       }
       if ((isdigit(c)) || (c == '-') || (c == '+'))
 	state = 86;
       else {
 	retract(s, 2);
-	return (SWIG_TOKEN_DOUBLE);
+	Swig_error(cparse_file, cparse_start_line, "Exponent does not have any digits\n");
+	return SWIG_TOKEN_ERROR;
       }
       break;
     case 83:
@@ -1143,8 +1160,12 @@ static int look(Scanner *s) {
 	return SWIG_TOKEN_INT;
       if (isdigit(c))
 	state = 84;
+      else if ((c == 'e') || (c == 'E'))
+	state = 82;
       else if ((c == 'x') || (c == 'X'))
 	state = 85;
+      else if ((c == 'b') || (c == 'B'))
+	state = 850;
       else if (c == '.')
 	state = 81;
       else if ((c == 'l') || (c == 'L')) {
@@ -1162,6 +1183,10 @@ static int look(Scanner *s) {
 	return SWIG_TOKEN_INT;
       if (isdigit(c))
 	state = 84;
+      else if (c == '.')
+	state = 81;
+      else if ((c == 'e') || (c == 'E'))
+	state = 82;
       else if ((c == 'l') || (c == 'L')) {
 	state = 87;
       } else if ((c == 'u') || (c == 'U')) {
@@ -1177,6 +1202,10 @@ static int look(Scanner *s) {
 	return SWIG_TOKEN_INT;
       if (isxdigit(c))
 	state = 85;
+      else if (c == '.') /* hexadecimal float */
+	state = 860;
+      else if ((c == 'p') || (c == 'P')) /* hexadecimal float */
+	state = 820;
       else if ((c == 'l') || (c == 'L')) {
 	state = 87;
       } else if ((c == 'u') || (c == 'U')) {
@@ -1186,7 +1215,37 @@ static int look(Scanner *s) {
 	return SWIG_TOKEN_INT;
       }
       break;
-
+    case 850:
+      /* This is a binary number */
+      if ((c = nextchar(s)) == 0)
+	return SWIG_TOKEN_INT;
+      if ((c == '0') || (c == '1'))
+	state = 850;
+      else if ((c == 'l') || (c == 'L')) {
+	state = 87;
+      } else if ((c == 'u') || (c == 'U')) {
+	state = 88;
+      } else {
+	retract(s, 1);
+	return SWIG_TOKEN_INT;
+      }
+      break;
+    case 860:
+      /* hexadecimal float */
+      if ((c = nextchar(s)) == 0) {
+	Swig_error(cparse_file, cparse_start_line, "Hexadecimal floating literals require an exponent\n");
+	return SWIG_TOKEN_ERROR;
+      }
+      if (isxdigit(c))
+	state = 860;
+      else if ((c == 'p') || (c == 'P'))
+	state = 820;
+      else {
+	retract(s, 2);
+	Swig_error(cparse_file, cparse_start_line, "Hexadecimal floating literals require an exponent\n");
+	return SWIG_TOKEN_ERROR;
+      }
+      break;
     case 86:
       /* Rest of floating point number */
 

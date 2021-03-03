@@ -1,6 +1,6 @@
 package main
 
-import "./contract"
+import "swigtests/contract"
 
 func main() {
 	contract.Test_preassert(1, 2)

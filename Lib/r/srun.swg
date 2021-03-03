@@ -7,7 +7,7 @@
 
 
 # This could be provided as a separate run-time library but this
-# approach allows the code to to be included directly into the
+# approach allows the code to be included directly into the
 # generated bindings and so removes the need to have and install an
 # additional library.  We may however end up with multiple copies of
 # this and some confusion at run-time as to which class to use. This
@@ -73,7 +73,7 @@ function(name, .values, where = topenv(parent.frame()), suffix = "Value")
 {
    # Mirror the class definitions via the E analogous to .__C__
   defName = paste(".__E__", name, sep = "")
-  assign(defName,  .values,  envir = where)
+  delayedAssign(defName,  .values, assign.env = where)
 
   if(nchar(suffix))
     name = paste(name, suffix, sep = "")

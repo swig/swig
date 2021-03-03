@@ -187,8 +187,10 @@ class TypePass:private Dispatcher {
 			ilist = alist = NewList();
 		      Append(ilist, bcls);
 		    } else {
-		      Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Base class '%s' has no name as it is an empty template instantiated with '%%template()'. Ignored.\n", SwigType_namestr(bname));
-		      Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bcls), Getline(bcls), "The %%template directive must be written before '%s' is used as a base class and be declared with a name.\n", SwigType_namestr(bname));
+		      if (!GetFlag(bcls, "feature:ignore")) {
+			Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Base class '%s' has no name as it is an empty template instantiated with '%%template()'. Ignored.\n", SwigType_namestr(bname));
+			Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bcls), Getline(bcls), "The %%template directive must be written before '%s' is used as a base class and be declared with a name.\n", SwigType_namestr(bname));
+		      }
 		    }
 		  }
 		  break;
@@ -209,8 +211,10 @@ class TypePass:private Dispatcher {
 		      ilist = alist = NewList();
 		    Append(ilist, bcls);
 		  } else {
-		    Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Base class '%s' has no name as it is an empty template instantiated with '%%template()'. Ignored.\n", SwigType_namestr(bname));
-		    Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bcls), Getline(bcls), "The %%template directive must be written before '%s' is used as a base class and be declared with a name.\n", SwigType_namestr(bname));
+		    if (!GetFlag(bcls, "feature:ignore")) {
+		      Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Base class '%s' has no name as it is an empty template instantiated with '%%template()'. Ignored.\n", SwigType_namestr(bname));
+		      Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bcls), Getline(bcls), "The %%template directive must be written before '%s' is used as a base class and be declared with a name.\n", SwigType_namestr(bname));
+		    }
 		  }
 		} else {
 		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Base class '%s' undefined.\n", SwigType_namestr(bname));
@@ -263,6 +267,8 @@ class TypePass:private Dispatcher {
 	       and smart pointer to base class, so that smart pointer upcasts
 	       are automatically generated. */
 	    SwigType *bsmart = Copy(smart);
+
+	    // TODO: SwigType_typedef_resolve_all on a String instead of SwigType is incorrect for templates
 	    SwigType *rclsname = SwigType_typedef_resolve_all(clsname);
 	    SwigType *rbname = SwigType_typedef_resolve_all(bname);
 	    int replace_count = Replaceall(bsmart, rclsname, rbname);
@@ -272,6 +278,12 @@ class TypePass:private Dispatcher {
 	      String *firstname = Getattr(first, "name");
 	      Replaceall(bsmart, firstname, rbname);
 	    }
+	    // The code above currently creates a smartptr of the base class by substitution, replacing Derived
+	    // with Base resulting in something like: 'smartptr< Derived >' from 'smartptr< Base >'. Instead
+	    // the feature:smartptr should be used as it also contains 'smartptr< Base >' as specified by the user.
+	    // A similar fix should also be done in upcastsCode in java.cxx, csharp.cxx and writeClassUpcast in d.cxx.
+	    // Printf(stdout, "smartcomparison %s <=> %s\n", SwigType_namestr(bsmart), Getattr(bclass, "feature:smartptr"));
+
 	    Delete(rclsname);
 	    Delete(rbname);
 	    String *smartnamestr = SwigType_namestr(smart);
@@ -957,7 +969,7 @@ class TypePass:private Dispatcher {
       if (Getattr(c, "sym:overloaded") != checkoverloaded) {
         Printf(stdout, "sym:overloaded error c:%p checkoverloaded:%p\n", c, checkoverloaded);
         Swig_print_node(c);
-        exit (1);
+        SWIG_exit(EXIT_FAILURE);
       }
 
       String *decl = Strcmp(nodeType(c), "using") == 0 ? NewString("------") : Getattr(c, "decl");
@@ -965,7 +977,7 @@ class TypePass:private Dispatcher {
       if (!Getattr(c, "sym:overloaded")) {
         Printf(stdout, "sym:overloaded error.....%p\n", c);
         Swig_print_node(c);
-        exit (1);
+        SWIG_exit(EXIT_FAILURE);
       }
       c = Getattr(c, "sym:nextSibling");
     }
@@ -1199,10 +1211,7 @@ class TypePass:private Dispatcher {
 	} else if (Strcmp(ntype, "enum") == 0) {
 	  SwigType_typedef_using(Getattr(n, "uname"));
 	} else if (Strcmp(ntype, "template") == 0) {
-	  /*
-	  Printf(stdout, "usingDeclaration template %s --- %s\n", Getattr(n, "name"), Getattr(n, "uname"));
 	  SwigType_typedef_using(Getattr(n, "uname"));
-	  */
 	}
       }
     }

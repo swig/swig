@@ -17,8 +17,8 @@
 #if defined(SWIGCSHARP)
 #define javaclassmodifiers   csclassmodifiers
 #define javabody             csbody
-#define javafinalize         csfinalize
-#define javadestruct         csdestruct
+#define javafinalize         csdispose
+#define javadestruct         csdisposing
 #define javaout              csout
 #define javainterfaces       csinterfaces
 #define javabase             csbase

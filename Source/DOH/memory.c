@@ -15,7 +15,7 @@
 #include "dohint.h"
 
 #ifndef DOH_POOL_SIZE
-#define DOH_POOL_SIZE         16384
+#define DOH_POOL_SIZE         4194304
 #endif
 
 /* Checks stale DOH object use - will use a lot more memory as pool memory is not re-used. */
@@ -81,8 +81,8 @@ static void InitPools() {
  * ---------------------------------------------------------------------- */
 
 int DohCheck(const DOH *ptr) {
-  register Pool *p = Pools;
-  register char *cptr = (char *) ptr;
+  Pool *p = Pools;
+  char *cptr = (char *) ptr;
   while (p) {
     if ((cptr >= p->pbeg) && (cptr < p->pend)) {
 #ifdef DOH_DEBUG_MEMORY_POOLS

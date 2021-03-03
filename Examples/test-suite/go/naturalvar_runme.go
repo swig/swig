@@ -1,6 +1,6 @@
 package main
 
-import . "./naturalvar"
+import . "swigtests/naturalvar"
 
 func main() {
 	f := NewFoo()

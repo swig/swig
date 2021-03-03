@@ -5,7 +5,7 @@
  * ----------------------------------------------------------------------------- */
 
 
-/* JNI function calls require different calling conventions for C and C++. These JCALL macros are used so 
+/* JNI function calls require different calling conventions for C and C++. These JCALL macros are used so
  * that the same typemaps can be used for generating code for both C and C++. The SWIG preprocessor can expand
  * the macros thereby generating the correct calling convention. It is thus essential that all typemaps that
  * use the macros are not within %{ %} brackets as they won't be run through the SWIG preprocessor. */
@@ -50,15 +50,16 @@
 %insert(runtime) %{
 /* Support for throwing Java exceptions */
 typedef enum {
-  SWIG_JavaOutOfMemoryError = 1, 
-  SWIG_JavaIOException, 
-  SWIG_JavaRuntimeException, 
+  SWIG_JavaOutOfMemoryError = 1,
+  SWIG_JavaIOException,
+  SWIG_JavaRuntimeException,
   SWIG_JavaIndexOutOfBoundsException,
   SWIG_JavaArithmeticException,
   SWIG_JavaIllegalArgumentException,
   SWIG_JavaNullPointerException,
   SWIG_JavaDirectorPureVirtual,
-  SWIG_JavaUnknownError
+  SWIG_JavaUnknownError,
+  SWIG_JavaIllegalStateException,
 } SWIG_JavaExceptionCodes;
 
 typedef struct {
@@ -80,6 +81,7 @@ static void SWIGUNUSED SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionC
     { SWIG_JavaNullPointerException, "java/lang/NullPointerException" },
     { SWIG_JavaDirectorPureVirtual, "java/lang/RuntimeException" },
     { SWIG_JavaUnknownError,  "java/lang/UnknownError" },
+    { SWIG_JavaIllegalStateException, "java/lang/IllegalStateException" },
     { (SWIG_JavaExceptionCodes)0,  "java/lang/UnknownError" }
   };
   const SWIG_JavaExceptions_t *except_ptr = java_exceptions;

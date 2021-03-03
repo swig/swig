@@ -1,6 +1,6 @@
 package main
 
-import "./typedef_scope"
+import "swigtests/typedef_scope"
 
 func main() {
 	b := typedef_scope.NewBar()

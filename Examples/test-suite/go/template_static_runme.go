@@ -1,6 +1,6 @@
 package main
 
-import . "./template_static"
+import . "swigtests/template_static"
 
 func main() {
 	FooBar_double(1)

@@ -1,6 +1,6 @@
 package main
 
-import . "./fvirtual"
+import . "swigtests/fvirtual"
 
 func main() {
 	sw := NewNodeSwitch()

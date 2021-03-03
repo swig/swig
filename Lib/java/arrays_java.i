@@ -337,7 +337,8 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
 
 /* Add some code to the proxy class of the array type for converting between type used in 
  * JNI class (long[]) and type used in proxy class ( ARRAYSOFCLASSES[] ) */
-%typemap(javacode) ARRAYSOFCLASSES %{
+%extend ARRAYSOFCLASSES {
+%proxycode %{
   protected static long[] cArrayUnwrap($javaclassname[] arrayWrapper) {
       long[] cArray = new long[arrayWrapper.length];
       for (int i=0; i<arrayWrapper.length; i++)
@@ -352,6 +353,7 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
     return arrayWrapper;
   }
 %}
+}
 
 %enddef /* JAVA_ARRAYSOFCLASSES */
 

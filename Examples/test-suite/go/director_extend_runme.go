@@ -5,7 +5,7 @@
 
 package main
 
-import . "./director_extend"
+import . "swigtests/director_extend"
 
 func main() {
 	m := NewSpObject()

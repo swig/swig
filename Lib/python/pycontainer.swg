@@ -36,6 +36,47 @@
 
 %include <std_except.i>
 
+%fragment("container_owner_attribute_init", "init") {
+  // thread safe initialization
+  swig::container_owner_attribute();
+}
+
+%fragment("reference_container_owner", "header", fragment="container_owner_attribute_init") {
+namespace swig {
+  static PyObject* container_owner_attribute() {
+    static PyObject* attr = SWIG_Python_str_FromChar("__swig_container");
+    return attr;
+  }
+
+  template <typename T>
+  struct container_owner {
+    // By default, do not add the back-reference (for value types)
+    // Specialization below will check the reference for pointer types.
+    static bool back_reference(PyObject* /*child*/, PyObject* /*owner*/) {
+      return false;
+    }
+  };
+
+  template <>
+  struct container_owner<swig::pointer_category> {  
+    /*
+     * Call to add a back-reference to the owning object when returning a 
+     * reference from a container.  Will only set the reference if child
+     * is a SWIG wrapper object that does not own the pointer.
+     *
+     * returns whether the reference was set or not
+     */
+    static bool back_reference(PyObject* child, PyObject* owner) {
+      SwigPyObject* swigThis = SWIG_Python_GetSwigThis(child);
+      if (swigThis && (swigThis->own & SWIG_POINTER_OWN) != SWIG_POINTER_OWN) {
+        return PyObject_SetAttr(child, container_owner_attribute(), owner) != -1;
+      }
+      return false;
+    }
+  };
+}
+}
+
 %fragment(SWIG_Traits_frag(swig::SwigPtr_PyObject),"header",fragment="StdTraits") {
 namespace swig {
   template <>  struct traits<SwigPtr_PyObject > {
@@ -102,7 +143,7 @@ namespace swig {
 } 
 }
 
-%fragment("SwigPySequence_Base","header",fragment="<stddef.h>")
+%fragment("SwigPySequence_Base","header",fragment="<stddef.h>",fragment="StdTraits")
 {
 %#include <functional>
 
@@ -351,7 +392,7 @@ namespace swig {
         typename Sequence::const_iterator isit = is.begin();
         typename Sequence::iterator it = self->begin();
         std::advance(it,ii);
-        for (size_t rc=0; rc<replacecount; ++rc) {
+        for (size_t rc=0; rc<replacecount && it != self->end(); ++rc) {
           *it++ = *isit++;
           for (Py_ssize_t c=0; c<(step-1) && it != self->end(); ++c)
             it++;
@@ -367,7 +408,7 @@ namespace swig {
       typename Sequence::const_iterator isit = is.begin();
       typename Sequence::reverse_iterator it = self->rbegin();
       std::advance(it,size-ii-1);
-      for (size_t rc=0; rc<replacecount; ++rc) {
+      for (size_t rc=0; rc<replacecount && it != self->rend(); ++rc) {
         *it++ = *isit++;
         for (Py_ssize_t c=0; c<(-step-1) && it != self->rend(); ++c)
           it++;
@@ -434,8 +475,8 @@ namespace swig
     {
       swig::SwigVar_PyObject item = PySequence_GetItem(_seq, _index);
       try {
-	return swig::as<T>(item, true);
-      } catch (std::exception& e) {
+	return swig::as<T>(item);
+      } catch (const std::invalid_argument& e) {
 	char msg[1024];
 	sprintf(msg, "in sequence element %d ", (int)_index);
 	if (!PyErr_Occurred()) {
@@ -630,19 +671,13 @@ namespace swig
       return const_reference(_seq, n);
     }
 
-    bool check(bool set_err = true) const
+    bool check() const
     {
       Py_ssize_t s = size();
       for (Py_ssize_t i = 0; i < s; ++i) {
 	swig::SwigVar_PyObject item = PySequence_GetItem(_seq, i);
-	if (!swig::check<value_type>(item)) {
-	  if (set_err) {
-	    char msg[1024];
-	    sprintf(msg, "in sequence element %d", (int)i);
-	    SWIG_Error(SWIG_RuntimeError, msg);
-	  }
+	if (!swig::check<value_type>(item))
 	  return false;
-	}
       }
       return true;
     }
@@ -655,6 +690,14 @@ namespace swig
 }
 
 %define %swig_sequence_iterator(Sequence...)
+  %swig_sequence_iterator_with_making_function(swig::make_output_iterator,Sequence...)
+%enddef
+
+%define %swig_sequence_forward_iterator(Sequence...)
+  %swig_sequence_iterator_with_making_function(swig::make_output_forward_iterator,Sequence...)
+%enddef
+
+%define %swig_sequence_iterator_with_making_function(Make_output_iterator,Sequence...)
 #if defined(SWIG_EXPORT_ITERATOR_METHODS)
   class iterator;
   class reverse_iterator;
@@ -663,15 +706,15 @@ namespace swig
 
   %typemap(out,noblock=1,fragment="SwigPySequence_Cont")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
-    $result = SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &)),
+    $result = SWIG_NewPointerObj(Make_output_iterator(%static_cast($1,const $type &)),
 				 swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN);
   }
   %typemap(out,noblock=1,fragment="SwigPySequence_Cont")
     std::pair<iterator, iterator>, std::pair<const_iterator, const_iterator> {
     $result = PyTuple_New(2);
-    PyTuple_SetItem($result,0,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
+    PyTuple_SetItem($result,0,SWIG_NewPointerObj(Make_output_iterator(%static_cast($1,const $type &).first),
 						 swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN));
-    PyTuple_SetItem($result,1,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).second),
+    PyTuple_SetItem($result,1,SWIG_NewPointerObj(Make_output_iterator(%static_cast($1,const $type &).second),
 						 swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN));    
   }
 
@@ -680,7 +723,7 @@ namespace swig
   %typemap(out,noblock=1,fragment="SwigPyPairBoolOutputIterator")
     std::pair<iterator, bool>, std::pair<const_iterator, bool> {
     $result = PyTuple_New(2);
-    PyTuple_SetItem($result,0,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
+    PyTuple_SetItem($result,0,SWIG_NewPointerObj(Make_output_iterator(%static_cast($1,const $type &).first),
 					       swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN));    
     PyTuple_SetItem($result,1,SWIG_From(bool)(%static_cast($1,const $type &).second));
   }
@@ -715,7 +758,7 @@ namespace swig
   %newobject iterator(PyObject **PYTHON_SELF);
   %extend  {
     swig::SwigPyIterator* iterator(PyObject **PYTHON_SELF) {
-      return swig::make_output_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
+      return Make_output_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
     }
 
 #if defined(SWIGPYTHON_BUILTIN)
@@ -757,6 +800,12 @@ namespace swig
 
     size_type __len__() const {
       return self->size();
+    }
+
+    // Although __getitem__, front, back actually use a const value_type& return type, the typemaps below
+    // use non-const so that they can be easily overridden by users if necessary.
+    %typemap(ret, fragment="reference_container_owner", noblock=1) value_type& __getitem__, value_type& front, value_type& back {
+      (void)swig::container_owner<swig::traits<$*1_ltype>::category>::back_reference($result, $self);
     }
   }
 %enddef

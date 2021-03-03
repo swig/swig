@@ -1,4 +1,3 @@
-
 /* Remove global namespace pollution */
 #if !defined(SWIG_NO_R_NO_REMAP)
 # define R_NO_REMAP
@@ -23,12 +22,54 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <stdarg.h>
 
 #if R_VERSION >= R_Version(2,6,0)
 #define VMAXTYPE void *
 #else
 #define VMAXTYPE char *
 #endif
+
+/* Last error */
+static int SWIG_lasterror_code = 0;
+static char SWIG_lasterror_msg[1024];
+SWIGRUNTIME void SWIG_Error(int code, const char *format, ...) {
+  va_list arg;
+  SWIG_lasterror_code = code;
+  va_start(arg, format);
+  vsnprintf(SWIG_lasterror_msg, sizeof(SWIG_lasterror_msg), format, arg);
+  va_end(arg);
+}
+
+SWIGRUNTIME const char *SWIG_ErrorType(int code) {
+  switch (code) {
+  case SWIG_MemoryError:
+    return "SWIG:MemoryError";
+  case SWIG_IOError:
+    return "SWIG:IOError";
+  case SWIG_RuntimeError:
+    return "SWIG:RuntimeError";
+  case SWIG_IndexError:
+    return "SWIG:IndexError";
+  case SWIG_TypeError:
+    return "SWIG:TypeError";
+  case SWIG_DivisionByZero:
+    return "SWIG:DivisionByZero";
+  case SWIG_OverflowError:
+    return "SWIG:OverflowError";
+  case SWIG_SyntaxError:
+    return "SWIG:SyntaxError";
+  case SWIG_ValueError:
+    return "SWIG:ValueError";
+  case SWIG_SystemError:
+    return "SWIG:SystemError";
+  case SWIG_AttributeError:
+    return "SWIG:AttributeError";
+  }
+  return "SWIG:UnknownError";
+}
+
+#define SWIG_fail goto fail
 
 /*
   This is mainly a way to avoid having lots of local variables that may 
@@ -213,17 +254,15 @@ R_SWIG_ReferenceFinalizer(SEXP el)
   return;
 }
 
-typedef enum {R_SWIG_EXTERNAL, R_SWIG_OWNER } R_SWIG_Owner;
-
 SWIGRUNTIME SEXP
-SWIG_MakePtr(void *ptr, const char *typeName, R_SWIG_Owner owner)
+SWIG_MakePtr(void *ptr, const char *typeName, int flags)
 {
   SEXP external, r_obj;
 
   Rf_protect(external = R_MakeExternalPtr(ptr, Rf_install(typeName), R_NilValue));
   Rf_protect(r_obj = NEW_OBJECT(MAKE_CLASS((char *) typeName)));
 
-  if(owner)
+  if (flags & SWIG_POINTER_OWN)
     R_RegisterCFinalizer(external, R_SWIG_ReferenceFinalizer);
 
   r_obj = SET_SLOT(r_obj, Rf_mkString((char *) "ref"), external);
@@ -262,7 +301,11 @@ AddOutputArgToReturn(int pos, SEXP value, const char *name, SEXP output)
 /* Create a new pointer object */
 SWIGRUNTIMEINLINE SEXP
 SWIG_R_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
-  SEXP rptr = R_MakeExternalPtr(ptr, 
+  SEXP rptr;
+  if (!ptr) {
+     return R_NilValue;
+  }
+  rptr = R_MakeExternalPtr(ptr, 
   R_MakeExternalPtr(type, R_NilValue, R_NilValue), R_NilValue); 
   SET_S4_OBJECT(rptr);
   return rptr;
@@ -276,7 +319,7 @@ SWIG_R_ConvertPtr(SEXP obj, void **ptr, swig_type_info *ty, int flags) {
   if (!obj) return SWIG_ERROR;
   if (obj == R_NilValue) {
     if (ptr) *ptr = NULL;
-    return SWIG_OK;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
 
   vptr = R_ExternalPtrAddr(obj);
@@ -350,7 +393,7 @@ SWIG_R_NewPackedObj(void *ptr, size_t sz, swig_type_info *type) {
   return ptr ? RSwigPacked_New((void *) ptr, sz, type) : R_NilValue;
 }
 
-/* Convert a packed value value */
+/* Convert a packed pointer value */
 
 SWIGRUNTIME int
 SWIG_R_ConvertPacked(SEXP obj, void *ptr, size_t sz, swig_type_info *ty) {

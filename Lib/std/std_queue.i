@@ -13,14 +13,14 @@
 
 %define %std_queue_methods(queue...)
   queue();
-  queue( const _Sequence& );
+  queue(const _Sequence& other);
 
   bool empty() const;
   size_type size() const;
   const value_type& front() const;
   const value_type& back() const;
   void pop();
-  void push( const value_type& );
+  void push(const value_type& value);
 %enddef
 
 %define %std_queue_methods_val(queue...) 

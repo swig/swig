@@ -43,7 +43,7 @@
 
 /* Perl types */
 #define SWIG_Object                      SV *
-#define VOID_Object                      sv_newmortal()
+#define VOID_Object                      &PL_sv_undef
 
 /* Perl $shadow flag */
 #define %newpointer_flags                $shadow
@@ -56,7 +56,7 @@
 %define %set_output(obj) $result = obj; argvi++ %enddef
 
 /* append output */
-%define %append_output(obj) if (argvi >= items) EXTEND(sp,1); %set_output(obj) %enddef
+%define %append_output(obj) if (argvi >= items) EXTEND(sp, argvi+1); %set_output(obj) %enddef
 
 /* variable output */
 %define %set_varoutput(obj) sv_setsv($result,obj)  %enddef
@@ -70,6 +70,10 @@
 
 /* raise exception */
 %define %raise(obj, type, desc) sv_setsv(get_sv("@", GV_ADD), obj); SWIG_fail %enddef
+
+/* For directors to raise/throw the original exception */
+%typemap(throws) Swig::DirectorException
+%{ sv_setsv(ERRSV, $1.getNative()); SWIG_fail; %}
 
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>

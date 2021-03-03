@@ -21,8 +21,7 @@ SWIG_AsPtr_dec(std::basic_string<char>)(int _iVar, std::basic_string<char> **_ps
         delete[] buf;
       }
       return SWIG_NEWOBJ;
-    }
-    else {
+    } else {
       if (_pstValue) {
         *_pstValue = NULL;
       }

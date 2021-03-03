@@ -56,9 +56,9 @@
 
     template<class OutIterator,
 	     class FromOper = from_value_oper<typename OutIterator::value_type> >
-    struct SwigPyMapValueITerator_T : SwigPyMapIterator_T<OutIterator, FromOper>
+    struct SwigPyMapValueIterator_T : SwigPyMapIterator_T<OutIterator, FromOper>
     {
-      SwigPyMapValueITerator_T(OutIterator curr, OutIterator first, OutIterator last, PyObject *seq)
+      SwigPyMapValueIterator_T(OutIterator curr, OutIterator first, OutIterator last, PyObject *seq)
 	: SwigPyMapIterator_T<OutIterator, FromOper>(curr, first, last, seq)
       {
       }
@@ -69,7 +69,7 @@
     inline SwigPyIterator*
     make_output_value_iterator(const OutIter& current, const OutIter& begin, const OutIter& end, PyObject *seq = 0)
     {
-      return new SwigPyMapValueITerator_T<OutIter>(current, begin, end, seq);
+      return new SwigPyMapValueIterator_T<OutIter>(current, begin, end, seq);
     }
   }
 }
@@ -101,7 +101,7 @@
 %#endif
 	  res = traits_asptr_stdseq<map_type, std::pair<K, T> >::asptr(items, val);
 	} else {
-	  map_type *p;
+	  map_type *p = 0;
 	  swig_type_info *descriptor = swig::type_info<map_type>();
 	  res = descriptor ? SWIG_ConvertPtr(obj, (void **)&p, descriptor, 0) : SWIG_ERROR;
 	  if (SWIG_IsOK(res) && val)  *val = p;
@@ -156,6 +156,7 @@
   %feature("python:slot", "mp_length", functype="lenfunc") __len__;
   %feature("python:slot", "mp_subscript", functype="binaryfunc") __getitem__;
   %feature("python:slot", "tp_iter", functype="getiterfunc") key_iterator;
+  %feature("python:slot", "sq_contains", functype="objobjproc") __contains__;
 
   %extend {
     %newobject iterkeys(PyObject **PYTHON_SELF);
@@ -263,7 +264,6 @@
       return itemList;
     }
     
-    // Python 2.2 methods
     bool __contains__(const key_type& key) {
       return self->find(key) != self->end();
     }

@@ -11,12 +11,6 @@
  * be the case.
  * ----------------------------------------------------------------------------- */
 
-%{
-#include <climits>
-#include <iostream>
-%}
-
-
 #if !defined(SWIG_NO_EXPORT_ITERATOR_METHODS)
 # if !defined(SWIG_EXPORT_ITERATOR_METHODS)
 #  define SWIG_EXPORT_ITERATOR_METHODS SWIG_EXPORT_ITERATOR_METHODS
@@ -64,7 +58,6 @@ namespace swig {
 
 %fragment("OctSequence_Base","header",fragment="<stddef.h>")
 {
-%#include <functional>
 
 namespace std {
   template <>
@@ -202,8 +195,8 @@ namespace swig
       //      swig::SwigVar_PyObject item = OctSequence_GetItem(_seq, _index);
       octave_value item; // * todo
       try {
-	return swig::as<T>(item, true);
-      } catch (std::exception& e) {
+	return swig::as<T>(item);
+      } catch (const std::exception& e) {
 	char msg[1024];
 	sprintf(msg, "in sequence element %d ", _index);
 	if (!Octave_Error_Occurred()) {
@@ -401,20 +394,14 @@ namespace swig
       return const_reference(_seq, n);
     }
 
-    bool check(bool set_err = true) const
+    bool check() const
     {
       int s = size();
       for (int i = 0; i < s; ++i) {
 	//	swig::SwigVar_PyObject item = OctSequence_GetItem(_seq, i);
 	octave_value item; // * todo
-	if (!swig::check<value_type>(item)) {
-	  if (set_err) {
-	    char msg[1024];
-	    sprintf(msg, "in sequence element %d", i);
-	    SWIG_Error(SWIG_RuntimeError, msg);
-	  }
+	if (!swig::check<value_type>(item))
 	  return false;
-	}
       }
       return true;
     }
@@ -567,7 +554,11 @@ namespace swig {
 	  if (seq) *seq = p;
 	  return SWIG_OLDOBJ;
 	}
+%#if SWIG_OCTAVE_PREREQ(4,4,0)
+      } else if (obj.iscell()) {
+%#else
       } else if (obj.is_cell()) {
+%#endif
 	try {
 	  OctSequence_Cont<value_type> octseq(obj);
 	  if (seq) {

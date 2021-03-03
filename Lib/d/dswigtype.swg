@@ -162,7 +162,7 @@
   return ret;
 }
 
-// Treat references to arrays like like references to a single element.
+// Treat references to arrays like references to a single element.
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
 
 
@@ -182,3 +182,16 @@
   $*dclassname ret = (cPtr is null) ? null : new $*dclassname(cPtr, $owner);$excode
   return ret;
 }
+%typemap(directorin) SWIGTYPE *const&
+  "$input = (void *) $1;"
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *const&
+%{ static $*1_ltype swig_temp;
+   swig_temp = ($*1_ltype)$input;
+   $result = &swig_temp; %}
+%typemap(ddirectorin,
+  nativepointer="cast($dtype)$winput"
+) SWIGTYPE *const& "($winput is null) ? null : new $*dclassname($winput, false)"
+%typemap(ddirectorout,
+  nativepointer="cast(void*)$dcall"
+) SWIGTYPE *const& "$*dclassname.swigGetCPtr($dcall)"
+

@@ -20,4 +20,6 @@ char *charstring(char *s) {
   return s;
 }
 
+void instring(const char *s) {
+}
 %}

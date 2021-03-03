@@ -1,31 +1,39 @@
 #!/bin/bash
 
+# Install MacOS packages where the version has been overidden in .travis.yml
+
 set -e # exit on failure (same as -o errexit)
 
+# Disable 'brew cleanup', just wastes Travis job run time
+export HOMEBREW_NO_INSTALL_CLEANUP=1
+
 sw_vers
-brew update
-brew list
-# brew install pcre # Travis Xcode-7.3 has pcre
-# brew install boost
+travis_retry brew update
+echo "Installed packages..."
+travis_retry brew list --versions
+# travis_retry brew install pcre # Travis Xcode-7.3 has pcre
+# travis_retry brew install boost
 
 WITHLANG=$SWIGLANG
 
 case "$SWIGLANG" in
 	"csharp")
-		brew install mono
-		;;
-	"guile")
-		Tools/brew-install guile
+		travis_retry brew install mono
 		;;
 	"lua")
-		brew install lua
+		travis_retry brew install lua
+		;;
+	"octave")
+		travis_retry Tools/brew-install octave
+		;;
+	"perl5")
+		travis_retry Tools/brew-install perl
 		;;
 	"python")
 		WITHLANG=$SWIGLANG$PY3
-		if [[ "$PY3" ]]; then
-			brew install python3
-			brew list -v python3
-		fi
+		;;
+	"tcl")
+		travis_retry Tools/brew-install --cask tcl
 		;;
 esac
 

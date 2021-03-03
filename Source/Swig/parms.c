@@ -254,3 +254,19 @@ int ParmList_has_defaultargs(ParmList *p) {
   }
   return 0;
 }
+
+/* ---------------------------------------------------------------------
+ * ParmList_has_varargs()
+ *
+ * Returns 1 if the parameter list passed in has varargs.
+ * Otherwise returns 0.
+ * ---------------------------------------------------------------------- */
+
+int ParmList_has_varargs(ParmList *p) {
+  Parm *lp = 0;
+  while (p) {
+    lp = p;
+    p = nextSibling(p);
+  }
+  return lp ? SwigType_isvarargs(Getattr(lp, "type")) : 0;
+}

@@ -9,7 +9,6 @@ functor
 hashargs
 import
 import_template
-java
 mark_function
 multimap
 operator
