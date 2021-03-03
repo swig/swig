@@ -17,7 +17,7 @@ SWIG_From_dec(Type)(%ifcplusplus(const Type&, Type) c)
 {
   SWIGV8_HANDLESCOPE_ESC();
 
-  v8::Local<v8::Array> vals = SWIGV8_ARRAY_NEW();
+  v8::Local<v8::Array> vals = SWIGV8_ARRAY_NEW(0);
 
   SWIGV8_ARRAY_SET(vals, 0, SWIG_From(double)(Real(c)));
   SWIGV8_ARRAY_SET(vals, 1, SWIG_From(double)(Imag(c)));
