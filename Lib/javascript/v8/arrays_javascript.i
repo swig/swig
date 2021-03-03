@@ -42,7 +42,7 @@
     // Get each element from array
     for (int i = 0; i < length; i++)
     {
-      v8::Local<v8::Value> jsvalue = array->Get(i);
+      v8::Local<v8::Value> jsvalue = SWIGV8_ARRAY_GET(array, i);
       $*1_ltype temp;
 
       // Get primitive value from JSObject
@@ -74,7 +74,7 @@
 
   for (int i = 0; i < length; i++)
   {
-    array->Set(i, SWIG_From(CTYPE)($1[i]));
+    SWIGV8_ARRAY_SET(array, i, SWIG_From(CTYPE)($1[i]));
   }
 
   $result = array;
