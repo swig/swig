@@ -30,38 +30,33 @@
 %define JAVASCRIPT_ARRAYS_IN_DECL(NAME, CTYPE, ANY, ANYLENGTH)
 
 %typemap(in, fragment=NAME) CTYPE[ANY] {
-  if ($input->IsArray())
-  {
+  if ($input->IsArray()) {
     // Convert into Array
     v8::Local<v8::Array> array = v8::Local<v8::Array>::Cast($input);
 
     int length = ANYLENGTH;
 
-    $1  = ($*1_ltype *)malloc(sizeof($*1_ltype) * length);
+    $1 = ($*1_ltype *)malloc(sizeof($*1_ltype) * length);
 
     // Get each element from array
-    for (int i = 0; i < length; i++)
-    {
+    for (int i = 0; i < length; i++) {
       v8::Local<v8::Value> jsvalue = SWIGV8_ARRAY_GET(array, i);
       $*1_ltype temp;
 
       // Get primitive value from JSObject
       int res = SWIG_AsVal(CTYPE)(jsvalue, &temp);
-      if (!SWIG_IsOK(res))
-      {
+      if (!SWIG_IsOK(res)) {
         SWIG_exception_fail(SWIG_ERROR, "Failed to convert $input to double");
       }
       arg$argnum[i] = temp;
     }
-  }
-  else
-  {
+  } else {
     SWIG_exception_fail(SWIG_ERROR, "$input is not an array");
   }
 }
 
 %typemap(freearg) CTYPE[ANY] {
-    free($1);
+  free($1);
 }
 
 %enddef
@@ -72,8 +67,7 @@
   int length = $1_dim0;
   v8::Local<v8::Array> array = SWIGV8_ARRAY_NEW(length);
 
-  for (int i = 0; i < length; i++)
-  {
+  for (int i = 0; i < length; i++) {
     SWIGV8_ARRAY_SET(array, i, SWIG_From(CTYPE)($1[i]));
   }
 
