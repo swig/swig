@@ -1,6 +1,6 @@
 package main
 
-import "./inherit_missing"
+import "swigtests/inherit_missing"
 
 func main() {
 	a := inherit_missing.New_Foo()

@@ -1,6 +1,6 @@
 package main
 
-import "./overload_extend2"
+import "swigtests/overload_extend2"
 
 func main() {
 	f := overload_extend2.NewFoo()

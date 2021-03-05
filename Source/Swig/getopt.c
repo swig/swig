@@ -16,7 +16,6 @@
  * sure there are no unmarked options.
  * 
  * TODO: 
- *     - This module needs to be modified so that it doesn't call exit().
  *       Should have cleaner error handling in general.
  * ----------------------------------------------------------------------------- */
 
@@ -88,11 +87,11 @@ void Swig_check_options(int check_input) {
   }
   if (error) {
     Printf(stderr, "Use 'swig -help' for available options.\n");
-    exit(1);
+    SWIG_exit(EXIT_FAILURE);
   }
   if (check_input && marked[numargs - 1]) {
     Printf(stderr, "Must specify an input file. Use -help for available options.\n");
-    exit(1);
+    SWIG_exit(EXIT_FAILURE);
   }
 }
 
@@ -105,5 +104,5 @@ void Swig_check_options(int check_input) {
 void Swig_arg_error(void) {
   Printf(stderr, "SWIG : Unable to parse command line options.\n");
   Printf(stderr, "Use 'swig -help' for available options.\n");
-  exit(1);
+  SWIG_exit(EXIT_FAILURE);
 }

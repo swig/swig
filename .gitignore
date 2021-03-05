@@ -173,6 +173,8 @@ Examples/ocaml/**/swigp4.ml
 # Octave
 swigexample*.oct
 Examples/test-suite/octave/*.oct
+Examples/test-suite/octave/octheaders.hpp
+Examples/test-suite/octave/octheaders.hpp.gch
 
 # Perl5
 Examples/test-suite/perl5/*.pm

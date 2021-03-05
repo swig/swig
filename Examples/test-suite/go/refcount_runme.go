@@ -1,6 +1,6 @@
 package main
 
-import . "./refcount"
+import . "swigtests/refcount"
 
 // very innocent example
 

@@ -1,6 +1,6 @@
 package main
 
-import "./director_unroll"
+import "swigtests/director_unroll"
 
 type MyFoo struct{} // From director_unroll.Foo
 func (p *MyFoo) Ping() string {

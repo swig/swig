@@ -57,6 +57,10 @@ class set {
     return sizeImpl();
   }
 
+  public boolean add($typemap(jboxtype, T) key) {
+    return addImpl(key);
+  }
+
   public boolean addAll(java.util.Collection<? extends $typemap(jboxtype, T)> collection) {
     boolean didAddElement = false;
     for (java.lang.Object object : collection) {
@@ -152,8 +156,8 @@ class set {
 
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
-    typedef T value_type;
     typedef T key_type;
+    typedef T value_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type& reference;
@@ -172,7 +176,7 @@ class set {
       %fragment("SWIG_SetSize");
 
       // Returns whether item was inserted.
-      bool add(const T& key) {
+      bool addImpl(const T& key) {
         return self->insert(key).second;
       }
 

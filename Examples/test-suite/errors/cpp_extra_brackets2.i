@@ -1,4 +1,4 @@
-%module cpp_extra_brackets
+%module xxx
 
 // Extra brackets was segfaulting in SWIG-3.0.0
 struct ABC {

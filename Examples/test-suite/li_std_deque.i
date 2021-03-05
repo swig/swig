@@ -36,8 +36,8 @@ std::deque<float> half(const std::deque<float>& v) {
 }
 
 void halve_in_place(std::deque<double>& v) {
-    std::transform(v.begin(),v.end(),v.begin(),
-                   std::bind2nd(std::divides<double>(),2.0));
+    for (std::deque<double>::iterator it = v.begin(); it != v.end(); ++it)
+        *it /= 2.0;
 }
 
 %}

@@ -35,14 +35,9 @@
 %rename(opNotXYZ3) Space::XYZ<Space::Klass>::operator NotXYZ<Space::Klass>() const;
 %rename(opNotXYZ4) Space::XYZ<Space::Enu>::operator NotXYZ<Space::Enu>() const;
 
-%rename(opXYZ1) Space::XYZ::operator XYZ<T>() const;
-%rename(opXYZ2) Space::XYZ<int>::operator XYZ<int>() const;
-%rename(opXYZ3) Space::XYZ<Space::Klass>::operator XYZ<Space::Klass>() const;
-%rename(opXYZ4) Space::XYZ<Space::Enu>::operator XYZ<Space::Enu>() const;
-
 
 %rename(methodABC) Space::ABC::method(ABC a) const;
-%rename(opABC) Space::ABC::operator ABC() const;
+%rename(opABC) Space::ABC::operator ABC*() const;
 %rename(methodKlass) Space::ABC::method(Klass k) const;
 %rename(opKlass) Space::ABC::operator Klass() const;
 

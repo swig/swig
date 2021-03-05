@@ -1650,7 +1650,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 
 /* C declarations */
 %type <node>     c_declaration c_decl c_decl_tail c_enum_key c_enum_inherit c_enum_decl c_enum_forward_decl c_constructor_decl;
-%type <node>     enumlist enumlist_tail enumlist_item edecl_with_dox edecl;
+%type <node>     enumlist enumlist_item edecl_with_dox edecl;
 
 /* C++ declarations */
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl cpp_alternate_rettype;
@@ -1779,7 +1779,7 @@ declaration    : swig_directive { $$ = $1; }
 		  } else {
 		      Swig_error(cparse_file, cparse_line, "Syntax error in input(1).\n");
 		  }
-		  exit(1);
+		  SWIG_exit(EXIT_FAILURE);
                }
 /* Out of class constructor/destructor declarations */
                | c_constructor_decl { 
@@ -3359,7 +3359,7 @@ c_decl_tail    : SEMI {
 		   } else {
 		       Swig_error(cparse_file, cparse_line, "Syntax error - possibly a missing semicolon.\n");
 		   }
-		   exit(1);
+		   SWIG_exit(EXIT_FAILURE);
                }
               ;
 
@@ -3649,7 +3649,7 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		    }
 		    if (err) {
 		      Swig_error(cparse_file,cparse_line,"Syntax error in input(2).\n");
-		      exit(1);
+		      SWIG_exit(EXIT_FAILURE);
 		    }
                 }
                 ;
@@ -4632,7 +4632,7 @@ cpp_members  : cpp_member cpp_members {
 	       int start_line = cparse_line;
 	       skip_decl();
 	       Swig_error(cparse_file,start_line,"Syntax error in input(3).\n");
-	       exit(1);
+	       SWIG_exit(EXIT_FAILURE);
 	       } cpp_members { 
 		 $$ = $3;
    	     }
@@ -4800,6 +4800,9 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 if ($8.qualifier) {
 		   SwigType_push($4,$8.qualifier);
 		 }
+		 if ($8.val) {
+		   Setattr($$,"value",$8.val);
+		 }
 		 Setattr($$,"refqualifier",$8.refqualifier);
 		 Setattr($$,"decl",$4);
 		 Setattr($$,"parms",$6);
@@ -4818,6 +4821,9 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 if ($8.qualifier) {
 		   SwigType_push(decl,$8.qualifier);
 		 }
+		 if ($8.val) {
+		   Setattr($$,"value",$8.val);
+		 }
 		 Setattr($$,"refqualifier",$8.refqualifier);
 		 Setattr($$,"decl",decl);
 		 Setattr($$,"parms",$6);
@@ -4835,6 +4841,9 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 SwigType_add_function(decl,$6);
 		 if ($8.qualifier) {
 		   SwigType_push(decl,$8.qualifier);
+		 }
+		 if ($8.val) {
+		   Setattr($$,"value",$8.val);
 		 }
 		 Setattr($$,"refqualifier",$8.refqualifier);
 		 Setattr($$,"decl",decl);
@@ -4856,6 +4865,9 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 if ($9.qualifier) {
 		   SwigType_push(decl,$9.qualifier);
 		 }
+		 if ($9.val) {
+		   Setattr($$,"value",$9.val);
+		 }
 		 Setattr($$,"refqualifier",$9.refqualifier);
 		 Setattr($$,"decl",decl);
 		 Setattr($$,"parms",$7);
@@ -4873,7 +4885,10 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		if ($7.qualifier) {
 		  SwigType_push(t,$7.qualifier);
 		}
-		 Setattr($$,"refqualifier",$7.refqualifier);
+		if ($7.val) {
+		  Setattr($$,"value",$7.val);
+		}
+		Setattr($$,"refqualifier",$7.refqualifier);
 		Setattr($$,"decl",t);
 		Setattr($$,"parms",$5);
 		Setattr($$,"conversion_operator","1");
@@ -6217,19 +6232,19 @@ primitive_type_list : type_specifier {
 			} else if (Cmp($1.type,"double") == 0) {
 			  if (Cmp($2.type,"long") == 0) {
 			    $$.type = NewString("long double");
-			  } else if (Cmp($2.type,"complex") == 0) {
-			    $$.type = NewString("double complex");
+			  } else if (Cmp($2.type,"_Complex") == 0) {
+			    $$.type = NewString("double _Complex");
 			  } else {
 			    err = 1;
 			  }
 			} else if (Cmp($1.type,"float") == 0) {
-			  if (Cmp($2.type,"complex") == 0) {
-			    $$.type = NewString("float complex");
+			  if (Cmp($2.type,"_Complex") == 0) {
+			    $$.type = NewString("float _Complex");
 			  } else {
 			    err = 1;
 			  }
-			} else if (Cmp($1.type,"complex") == 0) {
-			  $$.type = NewStringf("%s complex", $2.type);
+			} else if (Cmp($1.type,"_Complex") == 0) {
+			  $$.type = NewStringf("%s _Complex", $2.type);
 			} else {
 			  err = 1;
 			}
@@ -6279,7 +6294,7 @@ type_specifier : TYPE_INT {
                     $$.type = 0;
                 }
                | TYPE_COMPLEX { 
-                    $$.type = NewString("complex");
+                    $$.type = NewString("_Complex");
                     $$.us = 0;
                 }
                | TYPE_NON_ISO_INT8 { 
@@ -6374,36 +6389,45 @@ optional_ignored_defines
 		| empty
 		;
 
-optional_ignored_define_after_comma
-		: empty
-		| COMMA
-		| COMMA constant_directive
-		;
-
 /* Enum lists - any #define macros (constant directives) within the enum list are ignored. Trailing commas accepted. */
-enumlist	: enumlist_item optional_ignored_define_after_comma {
+
+/*
+   Note that "_last" attribute is not supposed to be set on the last enum element, as might be expected from its name, but on the _first_ one, and _only_ on it,
+   so we propagate it back to the first item while parsing and reset it on all the subsequent ones.
+ */
+
+enumlist	: enumlist_item {
 		  Setattr($1,"_last",$1);
 		  $$ = $1;
 		}
-		| enumlist_item enumlist_tail optional_ignored_define_after_comma {
-		  set_nextSibling($1, $2);
-		  Setattr($1,"_last",Getattr($2,"_last"));
-		  Setattr($2,"_last",NULL);
+		| enumlist_item DOXYGENPOSTSTRING {
+		  Setattr($1,"_last",$1);
+		  set_comment($1, $2);
+		  $$ = $1;
+		}
+		| enumlist_item COMMA enumlist {
+		  if ($3) {
+		    set_nextSibling($1, $3);
+		    Setattr($1,"_last",Getattr($3,"_last"));
+		    Setattr($3,"_last",NULL);
+		  } else {
+		    Setattr($1,"_last",$1);
+		  }
+		  $$ = $1;
+		}
+		| enumlist_item COMMA DOXYGENPOSTSTRING enumlist {
+		  if ($4) {
+		    set_nextSibling($1, $4);
+		    Setattr($1,"_last",Getattr($4,"_last"));
+		    Setattr($4,"_last",NULL);
+		  } else {
+		    Setattr($1,"_last",$1);
+		  }
+		  set_comment($1, $3);
 		  $$ = $1;
 		}
 		| optional_ignored_defines {
 		  $$ = 0;
-		}
-		;
-
-enumlist_tail	: COMMA enumlist_item {
-		  Setattr($2,"_last",$2);
-		  $$ = $2;
-		}
-		| enumlist_tail COMMA enumlist_item {
-		  set_nextSibling(Getattr($1,"_last"), $3);
-		  Setattr($1,"_last",$3);
-		  $$ = $1;
 		}
 		;
 
@@ -6418,19 +6442,6 @@ edecl_with_dox	: edecl {
 		| DOXYGENSTRING edecl {
 		  $$ = $2;
 		  set_comment($2, $1);
-		}
-		| edecl DOXYGENPOSTSTRING {
-		  $$ = $1;
-		  set_comment($1, $2);
-		}
-		| DOXYGENPOSTSTRING edecl {
-		  $$ = $2;
-		  set_comment(previousNode, $1);
-		}
-		| DOXYGENPOSTSTRING edecl DOXYGENPOSTSTRING {
-		  $$ = $2;
-		  set_comment(previousNode, $1);
-		  set_comment($2, $3);
 		}
 		;
 

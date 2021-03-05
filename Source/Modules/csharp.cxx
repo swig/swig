@@ -1533,7 +1533,7 @@ public:
       if (classname_substituted_flag) {
 	if (SwigType_isenum(t)) {
 	  // This handles wrapping of inline initialised const enum static member variables (not when wrapping enum items - ignored later on)
-	  Printf(constants_code, "(%s)%s.%s();\n", return_type, full_imclass_name, Swig_name_get(getNSpace(), symname));
+	  Printf(constants_code, "(%s)%s.%s();\n", return_type, full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
 	} else {
 	  // This handles function pointers using the %constant directive
 	  Printf(constants_code, "new %s(%s.%s(), false);\n", return_type, full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
@@ -1709,11 +1709,11 @@ public:
    * addInterfaceNameAndUpcasts()
    * ----------------------------------------------------------------------------- */
 
-  void addInterfaceNameAndUpcasts(SwigType *smart, String *interface_list, String *interface_upcasts, Hash *base_list, String *c_classname) {
+  void addInterfaceNameAndUpcasts(SwigType *smart, String *interface_list, String *interface_upcasts, Hash *base_list, SwigType *c_classname) {
     List *keys = Keys(base_list);
     for (Iterator it = First(keys); it.item; it = Next(it)) {
       Node *base = Getattr(base_list, it.item);
-      String *c_baseclass = SwigType_namestr(Getattr(base, "name"));
+      SwigType *c_baseclassname = Getattr(base, "name");
       String *interface_name = Getattr(base, "interface:name");
       if (Len(interface_list))
 	Append(interface_list, ", ");
@@ -1732,13 +1732,12 @@ public:
       Replaceall(cptr_method_name, ".", "_");
       Replaceall(cptr_method_name, "$interfacename", interface_name);
 
-      String *upcast_method_name = Swig_name_member(getNSpace(), proxy_class_name, cptr_method_name);
-      upcastsCode(smart, upcast_method_name, c_classname, c_baseclass);
+      String *upcast_method_name = Swig_name_member(getNSpace(), getClassPrefix(), cptr_method_name);
+      upcastsCode(smart, upcast_method_name, c_classname, c_baseclassname);
 
       Delete(upcast_method_name);
       Delete(cptr_method_name);
       Delete(interface_code);
-      Delete(c_baseclass);
     }
     Delete(keys);
   }
@@ -1749,7 +1748,7 @@ public:
    * Add code for C++ casting to base class
    * ----------------------------------------------------------------------------- */
 
-  void upcastsCode(SwigType *smart, String *upcast_method_name, String *c_classname, String *c_baseclass) {
+  void upcastsCode(SwigType *smart, String *upcast_method_name, SwigType *c_classname, SwigType *c_baseclassname) {
     String *wname = Swig_name_wrapper(upcast_method_name);
 
     Printv(imclass_cppcasts_code, "\n  [global::System.Runtime.InteropServices.DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
@@ -1757,28 +1756,35 @@ public:
 
     Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
 
+    String *classname = SwigType_namestr(c_classname);
+    String *baseclassname = SwigType_namestr(c_baseclassname);
     if (smart) {
-      SwigType *bsmart = Copy(smart);
-      SwigType *rclassname = SwigType_typedef_resolve_all(c_classname);
-      SwigType *rbaseclass = SwigType_typedef_resolve_all(c_baseclass);
-      Replaceall(bsmart, rclassname, rbaseclass);
-      Delete(rclassname);
-      Delete(rbaseclass);
       String *smartnamestr = SwigType_namestr(smart);
-      String *bsmartnamestr = SwigType_namestr(bsmart);
+      String *bsmartnamestr = SwigType_namestr(smart);
+
+      // TODO: SwigType_typedef_resolve_all on a String instead of SwigType is incorrect for templates
+      SwigType *rclassname = SwigType_typedef_resolve_all(classname);
+      SwigType *rbaseclassname = SwigType_typedef_resolve_all(baseclassname);
+      Replaceall(bsmartnamestr, rclassname, rbaseclassname);
+
       Printv(upcasts_code,
 	  "SWIGEXPORT ", bsmartnamestr, " * SWIGSTDCALL ", wname, "(", smartnamestr, " *jarg1) {\n",
 	  "    return jarg1 ? new ", bsmartnamestr, "(*jarg1) : 0;\n"
 	  "}\n", "\n", NIL);
+
+      Delete(rbaseclassname);
+      Delete(rclassname);
       Delete(bsmartnamestr);
       Delete(smartnamestr);
-      Delete(bsmart);
     } else {
       Printv(upcasts_code,
-	  "SWIGEXPORT ", c_baseclass, " * SWIGSTDCALL ", wname, "(", c_classname, " *jarg1) {\n",
-	  "    return (", c_baseclass, " *)jarg1;\n"
+	  "SWIGEXPORT ", baseclassname, " * SWIGSTDCALL ", wname, "(", classname, " *jarg1) {\n",
+	  "    return (", baseclassname, " *)jarg1;\n"
 	  "}\n", "\n", NIL);
     }
+
+    Delete(baseclassname);
+    Delete(classname);
     Delete(wname);
   }
 
@@ -1787,10 +1793,9 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void emitProxyClassDefAndCPPCasts(Node *n) {
-    String *c_classname = SwigType_namestr(Getattr(n, "name"));
-    String *c_baseclass = NULL;
+    SwigType *c_classname = Getattr(n, "name");
+    SwigType *c_baseclassname = NULL;
     String *baseclass = NULL;
-    String *c_baseclassname = NULL;
     String *interface_list = NewStringEmpty();
     String *interface_upcasts = NewStringEmpty();
     SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
@@ -1812,12 +1817,13 @@ public:
 	Iterator base = First(baselist);
 	while (base.item) {
 	  if (!(GetFlag(base.item, "feature:ignore") || Getattr(base.item, "feature:interface"))) {
-	    String *baseclassname = Getattr(base.item, "name");
+	    SwigType *baseclassname = Getattr(base.item, "name");
 	    if (!c_baseclassname) {
-	      c_baseclassname = baseclassname;
-	      baseclass = Copy(getProxyName(baseclassname));
-	      if (baseclass)
-		c_baseclass = SwigType_namestr(baseclassname);
+	      String *name = getProxyName(baseclassname);
+	      if (name) {
+		c_baseclassname = baseclassname;
+		baseclass = name;
+	      }
 	    } else {
 	      /* Warn about multiple inheritance for additional base class(es) */
 	      String *proxyclassname = Getattr(n, "classtypeobj");
@@ -1833,7 +1839,7 @@ public:
     if (interface_bases)
       addInterfaceNameAndUpcasts(smart, interface_list, interface_upcasts, interface_bases, c_classname);
 
-    bool derived = baseclass && getProxyName(c_baseclassname);
+    bool derived = baseclass != 0;
     if (derived && purebase_notderived)
       pure_baseclass = empty_string;
     const String *wanted_base = baseclass ? baseclass : pure_baseclass;
@@ -1841,7 +1847,6 @@ public:
     if (purebase_replace) {
       wanted_base = pure_baseclass;
       derived = false;
-      Delete(baseclass);
       baseclass = NULL;
       if (purebase_notderived)
         Swig_error(Getfile(n), Getline(n), "The csbase typemap for proxy %s must contain just one of the 'replace' or 'notderived' attributes.\n", typemap_lookup_type);
@@ -1873,38 +1878,56 @@ public:
 	   typemapLookup(n, "csbody", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF),	// main body of class
 	   NIL);
 
-    // C++ destructor is wrapped by the Dispose method
-    // Note that the method name is specified in a typemap attribute called methodname
+    // C++ destructor is wrapped by the Finalize and Dispose methods
+
+    const char *tmap_method = derived ? "csdestruct_derived" : "csdestruct";
+    const String *tm = typemapExists(n, tmap_method, typemap_lookup_type);
+    if (tm) {
+      Swig_error(Getfile(tm), Getline(tm),
+	  "A deprecated %s typemap was found for %s, please remove it and replace all csdestruct, csdestruct_derived and csfinalize typemaps by the csdispose, csdispose_derived, csdisposing and csdisposing_derived typemaps.\n",
+	  tmap_method, proxy_class_name);
+    }
+    tmap_method = "csfinalize";
+    tm = typemapExists(n, tmap_method, typemap_lookup_type);
+    if (tm) {
+      Swig_error(Getfile(tm), Getline(tm),
+	  "A deprecated %s typemap was found for %s, please remove it and replace all csdestruct, csdestruct_derived and csfinalize typemaps by the csdispose, csdispose_derived, csdisposing and csdisposing_derived typemaps.\n",
+	  tmap_method, proxy_class_name);
+    }
+
+    tmap_method = derived ? "csdisposing_derived" : "csdisposing";
     String *destruct = NewString("");
-    const String *tm = NULL;
     attributes = NewHash();
-    String *destruct_methodname = NULL;
-    String *destruct_methodmodifiers = NULL;
+    const String *destruct_methodname = NULL;
+    const String *destruct_methodmodifiers = NULL;
+    const String *destruct_parameters = NULL;
     if (derived) {
-      tm = typemapLookup(n, "csdestruct_derived", typemap_lookup_type, WARN_NONE, attributes);
-      destruct_methodname = Getattr(attributes, "tmap:csdestruct_derived:methodname");
-      destruct_methodmodifiers = Getattr(attributes, "tmap:csdestruct_derived:methodmodifiers");
+      tm = typemapLookup(n, "csdisposing_derived", typemap_lookup_type, WARN_NONE, attributes);
+      destruct_methodname = Getattr(attributes, "tmap:csdisposing_derived:methodname");
+      destruct_methodmodifiers = Getattr(attributes, "tmap:csdisposing_derived:methodmodifiers");
+      destruct_parameters = Getattr(attributes, "tmap:csdisposing_derived:parameters");
     } else {
-      tm = typemapLookup(n, "csdestruct", typemap_lookup_type, WARN_NONE, attributes);
-      destruct_methodname = Getattr(attributes, "tmap:csdestruct:methodname");
-      destruct_methodmodifiers = Getattr(attributes, "tmap:csdestruct:methodmodifiers");
+      tm = typemapLookup(n, "csdisposing", typemap_lookup_type, WARN_NONE, attributes);
+      destruct_methodname = Getattr(attributes, "tmap:csdisposing:methodname");
+      destruct_methodmodifiers = Getattr(attributes, "tmap:csdisposing:methodmodifiers");
+      destruct_parameters = Getattr(attributes, "tmap:csdisposing:parameters");
     }
     if (tm && *Char(tm)) {
       if (!destruct_methodname) {
-	Swig_error(Getfile(n), Getline(n), "No methodname attribute defined in csdestruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
+	Swig_error(Getfile(n), Getline(n), "No methodname attribute defined in %s typemap for %s\n", tmap_method, proxy_class_name);
       }
       if (!destruct_methodmodifiers) {
 	Swig_error(Getfile(n), Getline(n),
-		   "No methodmodifiers attribute defined in csdestruct%s typemap for %s.\n", (derived ? "_derived" : ""), proxy_class_name);
+		   "No methodmodifiers attribute defined in %s typemap for %s.\n", tmap_method, proxy_class_name);
       }
+      if (!destruct_parameters)
+	destruct_parameters = empty_string;
     }
     // Emit the Finalize and Dispose methods
     if (tm) {
-      // Finalize method
-      if (*Char(destructor_call)) {
-	Printv(proxy_class_def, typemapLookup(n, "csfinalize", typemap_lookup_type, WARN_NONE), NIL);
-      }
-      // Dispose method
+      // Finalize and Dispose methods
+      Printv(proxy_class_def, typemapLookup(n, derived ? "csdispose_derived" : "csdispose", typemap_lookup_type, WARN_NONE), NIL);
+      // Dispose(bool disposing) method
       Printv(destruct, tm, NIL);
       if (*Char(destructor_call))
 	Replaceall(destruct, "$imcall", destructor_call);
@@ -1917,7 +1940,7 @@ public:
 	  Printv(proxy_class_def, methodmods, NIL);
 	else
 	  Printv(proxy_class_def, destruct_methodmodifiers, " ", derived ? "override" : "virtual", NIL);
-	Printv(proxy_class_def, " void ", destruct_methodname, "() ", destruct, "\n", NIL);
+	Printv(proxy_class_def, " void ", destruct_methodname, "(", destruct_parameters, ") ", destruct, "\n", NIL);
       }
     }
     if (*Char(interface_upcasts))
@@ -2014,12 +2037,11 @@ public:
 
     if (derived) {
       String *upcast_method_name = Swig_name_member(getNSpace(), getClassPrefix(), smart != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
-      upcastsCode(smart, upcast_method_name, c_classname, c_baseclass);
+      upcastsCode(smart, upcast_method_name, c_classname, c_baseclassname);
       Delete(upcast_method_name);
     }
 
     Delete(smart);
-    Delete(baseclass);
   }
 
   /* ----------------------------------------------------------------------
@@ -2028,7 +2050,8 @@ public:
 
   void emitInterfaceDeclaration(Node *n, String *interface_name, File *f_interface) {
     Printv(f_interface, typemapLookup(n, "csimports", Getattr(n, "classtypeobj"), WARN_NONE), "\n", NIL);
-    Printf(f_interface, "public interface %s", interface_name);
+    Printv(f_interface, typemapLookup(n, "csinterfacemodifiers", Getattr(n, "classtypeobj"), WARN_CSHARP_TYPEMAP_INTERFACEMODIFIERS_UNDEF), NIL);
+    Printf(f_interface, " %s", interface_name);
     if (List *baselist = Getattr(n, "bases")) {
       String *bases = 0;
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
@@ -3553,6 +3576,24 @@ public:
   }
 
   /* -----------------------------------------------------------------------------
+   * typemapExists()
+   * n - for input only and must contain info for Getfile(n) and Getline(n) to work
+   * tmap_method - typemap method name
+   * type - typemap type to lookup
+   * returns found typemap or NULL if not found
+   * ----------------------------------------------------------------------------- */
+
+  const String *typemapExists(Node *n, const_String_or_char_ptr tmap_method, SwigType *type) {
+    Node *node = NewHash();
+    Setattr(node, "type", type);
+    Setfile(node, Getfile(n));
+    Setline(node, Getline(n));
+    const String *tm = Swig_typemap_lookup(tmap_method, node, "", 0);
+    Delete(node);
+    return tm;
+  }
+
+  /* -----------------------------------------------------------------------------
    * canThrow()
    * Determine whether the code in the typemap can throw a C# exception.
    * If so, note it for later when excodeSubstitute() is called.
@@ -4028,11 +4069,10 @@ public:
 	      /* Get the C# parameter type */
 	      if ((tm = Getattr(p, "tmap:cstype"))) {
 		substituteClassname(pt, tm);
-		if (Strncmp(tm, "ref ", 4) == 0) {
-		  Replace(tm, "ref ", "", DOH_REPLACE_FIRST);
+		int flags = DOH_REPLACE_FIRST | DOH_REPLACE_ID_BEGIN | DOH_REPLACE_NOCOMMENT;
+		if (Replace(tm, "ref ", "", flags) || Replace(tm, "ref\t", "", flags)) {
 		  Printf(proxy_method_types, "typeof(%s).MakeByRefType()", tm);
-		} else if (Strncmp(tm, "out ", 4) == 0) {
-		  Replace(tm, "out ", "", DOH_REPLACE_FIRST);
+		} else if (Replace(tm, "out ", "", flags) || Replace(tm, "out\t", "", flags)) {
 		  Printf(proxy_method_types, "typeof(%s).MakeByRefType()", tm);
 		} else {
 		  Printf(proxy_method_types, "typeof(%s)", tm);

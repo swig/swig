@@ -13,6 +13,12 @@ public class java_enums_runme implements stuff {
 
   public static void main(String argv[]) 
   {
+      if (WithTrailingComma.Second != 1)
+          throw new RuntimeException("Incorrect value for Second");
+
+      if (WithTrailingCommaAndIgnoredFirstItem.SecondNonIgnoredOne != 2)
+          throw new RuntimeException("Incorrect value for SecondNonIgnoredOne");
+
       int number = 200;
 
       // Switch statement will only compile if these enums are initialised 

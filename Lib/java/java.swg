@@ -1196,6 +1196,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %typemap(javacode)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(javaimports)          SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(javainterfaces)       SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
+%typemap(javainterfacemodifiers) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) "public interface"
 
 /* javabody typemaps */
 
@@ -1313,7 +1314,7 @@ SWIG_PROXY_CONSTRUCTOR(true, false, TYPENAME)
 // Set the default for SWIGTYPE: Java owns the C/C++ object.
 SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 
-%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") SWIGTYPE {
+%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized", parameters="") SWIGTYPE {
     if (swigCPtr != 0) {
       if (swigCMemOwn) {
         swigCMemOwn = false;
@@ -1323,7 +1324,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
     }
   }
 
-%typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized") SWIGTYPE {
+%typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized", parameters="") SWIGTYPE {
     if (swigCPtr != 0) {
       if (swigCMemOwn) {
         swigCMemOwn = false;

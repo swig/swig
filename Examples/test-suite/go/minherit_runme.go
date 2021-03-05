@@ -1,7 +1,7 @@
 package main
 
 import "fmt"
-import "./minherit"
+import "swigtests/minherit"
 
 func main() {
 	a := minherit.NewFoo()

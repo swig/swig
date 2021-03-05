@@ -2,11 +2,8 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[4.0.0],[http://www.swig.org])
-
-dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
-dnl     definition below can be removed
-AC_PREREQ(2.58)
+AC_INIT([swig],[4.1.0],[http://www.swig.org])
+AC_PREREQ(2.60)
 
 AC_CONFIG_SRCDIR([Source/Swig/swig.h])
 AC_CONFIG_AUX_DIR([Tools/config])
@@ -44,11 +41,6 @@ AC_CHECK_FUNC(popen, AC_DEFINE(HAVE_POPEN, 1, [Define if popen is available]), A
 fi
 
 dnl PCRE
-
-dnl AX_PATH_GENERIC() relies on AC_PROG_SED() but it is defined only in
-dnl autoconf 2.60 so trivially predefine it ourselves for the older versions
-m4_ifdef([AC_PROG_SED],, [AC_DEFUN([AC_PROG_SED], [AC_PATH_PROG([SED], sed)])])
-
 AC_ARG_WITH([pcre],
   [AS_HELP_STRING([--without-pcre],
                   [Disable support for regular expressions using PCRE])],
@@ -122,15 +114,6 @@ echo ""
 dnl Some test cases require Boost
 AX_BOOST_BASE(,,,)
 AC_SUBST(BOOST_CPPFLAGS)
-
-dnl How to specify include directories that may be system directories.
-# -I should not be used on system directories (GCC)
-if test "$GCC" = yes; then
-    ISYSTEM="-isystem "
-else
-    ISYSTEM="-I"
-fi
-AC_MSG_NOTICE(ISYSTEM: $ISYSTEM)
 
 dnl Info for building shared libraries ... in order to run the examples
 
@@ -341,6 +324,39 @@ case $host in
   *) ;;
 esac
 
+# Check for compiler pre-compiled header support
+AC_MSG_CHECKING([if compiler supports pre-compiled headers])
+PCHSUPPORT=no
+if test "$CLANGXX" = "yes"; then
+   PCHINCLUDEARG="-include-pch"
+   PCHINCLUDEEXT=".gch"
+else
+   PCHINCLUDEARG="-include"
+   PCHINCLUDEEXT=""
+fi
+AC_LANG_PUSH([C++])
+echo '#include <cstdlib>' > conftest.hpp
+echo '#include "conftest.hpp"' > conftest.cpp
+$CXX -c conftest.hpp 2>/dev/null
+if test $? -eq 0; then
+   if test -f conftest.hpp.gch; then
+      $CXX -H -c -I. ${PCHINCLUDEARG} ./conftest.hpp${PCHINCLUDEEXT} -o conftest.o conftest.cpp >conftest.out 2>&1
+      if test $? -eq 0; then
+         if test "$CLANGXX" = "yes"; then
+            PCHSUPPORT=yes
+         elif grep -q '^!.*conftest.hpp.gch$' conftest.out; then
+            PCHSUPPORT=yes
+         fi
+      fi
+   fi
+fi
+rm -f conftest.hpp conftest.cpp conftest.out
+AC_LANG_POP([C++])
+AC_MSG_RESULT([$PCHSUPPORT])
+AC_SUBST(PCHSUPPORT)
+AC_SUBST(PCHINCLUDEARG)
+AC_SUBST(PCHINCLUDEEXT)
+
 # Set info about shared libraries.
 AC_SUBST(SO)
 AC_SUBST(LDSHARED)
@@ -443,7 +459,7 @@ else
   alllang_default=yes
 fi
 
-AC_CHECK_PROGS(PKGCONFIG, [pkg-config])
+AC_PATH_TOOL([PKG_CONFIG], [pkg-config])
 
 #--------------------------------------------------------------------
 # Look for Tcl
@@ -459,7 +475,7 @@ AC_ARG_WITH(tcl,
  [  --with-tcl=path         Set location of Tcl package],[
 	TCLPACKAGE="$withval"], [TCLPACKAGE="$alllang_default"])
 AC_ARG_WITH(tclincl,[  --with-tclincl=path     Set location of Tcl include directory],[
-	TCLINCLUDE="$ISYSTEM$withval"], [TCLINCLUDE=])
+	TCLINCLUDE="-I$withval"], [TCLINCLUDE=])
 AC_ARG_WITH(tcllib,[  --with-tcllib=path      Set location of Tcl library directory],[
 	TCLLIB="-L$withval"], [TCLLIB=])
 
@@ -480,7 +496,9 @@ fi
 dirs="/usr/lib*/ /usr/lib*/tcl*/ /usr/local/lib*/ /usr/local/lib*/tcl*/"
 case $host in
 *-*-darwin*)
-  dirs="/System/Library/Frameworks/Tcl.framework/ $dirs"
+  tcl_framework="/System/Library/Frameworks/Tcl.framework/"
+  macos_sysroot="$(xcodebuild -version -sdk macosx Path 2>/dev/null)" # For MacOSX10.14 and later
+  dirs="$macos_sysroot$tcl_framework $tcl_framework $dirs"
   ;;
 *)
   ;;
@@ -501,7 +519,7 @@ else
     AC_MSG_RESULT(found $TCLCONFIG/tclConfig.sh)
     . $TCLCONFIG/tclConfig.sh
     if test -z "$TCLINCLUDE"; then
-        TCLINCLUDE=`echo $TCL_INCLUDE_SPEC | sed "s/-I/$ISYSTEM/"`
+        TCLINCLUDE=`echo $TCL_INCLUDE_SPEC`
     fi
     if test -z "$TCLLIB"; then
         TCLLIB=$TCL_LIB_SPEC
@@ -510,7 +528,7 @@ fi
 
 if test -z "$TCLINCLUDE"; then
    if test "x$TCLPACKAGE" != xyes; then
-	TCLINCLUDE="$ISYSTEM$TCLPACKAGE/include"
+	TCLINCLUDE="-I$TCLPACKAGE/include"
    fi
 fi
 
@@ -528,7 +546,7 @@ if test -z "$TCLINCLUDE"; then
 	for i in $dirs ; do
 		if test -r $i/tcl.h; then
 			AC_MSG_RESULT($i)
-			TCLINCLUDE="$ISYSTEM$i"
+			TCLINCLUDE="-I$i"
 			break
 		fi
 	done
@@ -903,30 +921,6 @@ if test -n "$PYINCLUDE" || test -n "$PY3INCLUDE" ; then
   fi
 fi
 
-AC_ARG_WITH(2to3, AS_HELP_STRING([--with-2to3=path], [Set location of Python 2to3 tool]), [PY2TO3BIN="$withval"], [PY2TO3BIN="yes"])
-if test -n "$PYTHON3"; then
-  if test "x$PY2TO3BIN" = xyes; then
-    py3to2=`echo $PYTHON3 | sed -e "s/python/2to3-/"`
-    AC_CHECK_PROGS(PY2TO3, $py3to2 2to3)
-    if test -z "$PY2TO3"; then
-      # Windows distributions don't always have the 2to3 executable
-      AC_MSG_CHECKING(for 2to3.py)
-      py2to3script="$PY3PREFIX/Tools/scripts/2to3.py"
-      if test -f "$py2to3script"; then
-        AC_MSG_RESULT($py2to3script)
-        PY2TO3="$PYTHON3 $py2to3script"
-      else
-        AC_MSG_RESULT(Not found)
-      fi
-    fi
-  else
-    PY2TO3="$PY2TO3BIN"
-  fi
-  if test -z "$PY2TO3"; then
-    PYTHON3=
-  fi
-fi
-
 #----------------------------------------------------------------
 # Look for Perl5
 #----------------------------------------------------------------
@@ -979,7 +973,7 @@ if test -n "$PERL"; then
 			AC_MSG_RESULT($PERL5LIB)
 		fi
     AC_MSG_CHECKING(for Perl5 ccflags)
- 		PERL5CCFLAGS=`($PERL -e 'use Config; print $Config{ccflags}, "\n"' | sed "s/-Wdeclaration-after-statement//" | sed "s/-I/$ISYSTEM/") 2>/dev/null`
+ 		PERL5CCFLAGS=`($PERL -e 'use Config; print $Config{ccflags}, "\n"' | sed "s/-Wdeclaration-after-statement//") 2>/dev/null`
  		if test -z "$PERL5CCFLAGS" ; then
  			AC_MSG_RESULT(not found)
  		else
@@ -1066,23 +1060,34 @@ if test -n "$OCTAVE"; then
    AS_IF([test "x`${OCTAVE} --version 2>/dev/null | sed -n -e '1p' | sed -n -e '/Octave, version/p'`" != x],[
       AC_MSG_RESULT([yes])
    ],[
-      AC_MSG_NOTICE([no, disabling Octave])
+      AC_MSG_RESULT([no])
       OCTAVE=
    ])
 fi
 
 # Check for required Octave helper program "mkoctfile"
 if test -n "$OCTAVE"; then
-   AC_MSG_CHECKING([for mkoctfile])
-   mkoctfile=["`echo $OCTAVE | sed -e 's|[a-z][a-z-]*$|mkoctfile|;t;s|[a-z][a-z-]*\(-[0-9][0-9.+]*\)$|mkoctfile\1|;t'`"]
-   AC_MSG_RESULT([${mkoctfile}])
-   AC_MSG_CHECKING([if ${mkoctfile} works])
-   AS_IF([test "x`${mkoctfile} --version 2>/dev/null | sed -n -e '1p' | sed -n -e '/mkoctfile, version/p'`" != x],[
+  AC_MSG_CHECKING([for mkoctfile])
+  version_suffix=["`echo $OCTAVE | sed -e 's|.*\(-[0-9][0-9.]*\)$|\1|'`"]
+  case $version_suffix in
+    -*) ;;
+    *) version_suffix="" ;;
+  esac
+  octave_directory=`dirname $OCTAVE`
+  if test "$octave_directory" = "." ; then
+    mkoctfile="mkoctfile${version_suffix}"
+  else
+    mkoctfile="${octave_directory}/mkoctfile${version_suffix}"
+  fi
+  AC_MSG_RESULT([${mkoctfile}])
+  AC_MSG_CHECKING([if ${mkoctfile} works])
+  mkoctfile="env - PATH=$PATH LD_LIBRARY_PATH=$LD_LIBRARY_PATH ${mkoctfile}"
+  AS_IF([test "x`${mkoctfile} --version 2>/dev/null | sed -n -e '1p' | sed -n -e '/mkoctfile, version/p'`" != x],[
       AC_MSG_RESULT([yes])
-   ],[
-      AC_MSG_NOTICE([no, disabling Octave])
+    ],[
+      AC_MSG_RESULT([no])
       OCTAVE=
-   ])
+    ])
 fi
 
 # Check for Octave preprocessor/compiler/linker flags
@@ -1091,7 +1096,7 @@ if test -n "$OCTAVE"; then
    AC_MSG_CHECKING([for Octave preprocessor flags])
    OCTAVE_CPPFLAGS=
    for var in CPPFLAGS INCFLAGS ALL_CXXFLAGS; do
-      for flag in `env - ${mkoctfile} -p ${var}`; do
+      for flag in `${mkoctfile} -p ${var}`; do
          case ${flag} in
             -D*|-I*) OCTAVE_CPPFLAGS="${OCTAVE_CPPFLAGS} ${flag}";;
             *) ;;
@@ -1103,7 +1108,7 @@ if test -n "$OCTAVE"; then
    AC_MSG_CHECKING([for Octave compiler flags])
    OCTAVE_CXXFLAGS=
    for var in CXX ALL_CXXFLAGS; do
-      for flag in `env - ${mkoctfile} -p ${var}`; do
+      for flag in `${mkoctfile} -p ${var}`; do
          case ${flag} in
             -std=*|-g*|-W*) OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} ${flag}";;
             *) ;;
@@ -1122,8 +1127,11 @@ if test -n "$OCTAVE"; then
 
    AC_MSG_CHECKING([for Octave linker flags])
    OCTAVE_LDFLAGS=
-   for var in RDYNAMIC_FLAG LFLAGS RLD_FLAG OCTAVE_LIBS LIBS; do
-     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`env - ${mkoctfile} -p ${var}`
+   for var in OCTLIBDIR; do
+     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "-L`${mkoctfile} -p ${var}`
+   done
+   for var in RDYNAMIC_FLAG RLD_FLAG OCTAVE_LIBS LIBS; do
+     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`${mkoctfile} -p ${var}`
    done
    AC_MSG_RESULT([$OCTAVE_LDFLAGS])
 
@@ -1205,8 +1213,8 @@ else
       AC_MSG_CHECKING(for Scilab header files)
       if test "$SCILABINCDIR" != ""; then
         dirs="$SCILABINCDIR"
-      elif test -n "$PKGCONFIG"; then
-        dirs=`$PKGCONFIG scilab --cflags-only-I | sed -e 's/-I//g'`
+      elif test -n "$PKG_CONFIG "; then
+        dirs=`$PKG_CONFIG  scilab --cflags-only-I | sed -e 's/-I//g'`
       else
         dirs=""
       fi
@@ -1343,6 +1351,33 @@ else
   JAVAC="$JAVACBIN"
 fi
 
+# Check Java version: we require Java 9 or later for Doxygen tests.
+if test -n "$JAVAC"; then
+    AC_MSG_CHECKING(if java version is 9 or greater)
+    javac_version=`"$JAVAC" -version 2>&1`
+    java_version_num=`echo $javac_version | sed -n 's/^javac //p'`
+    if test -z "$java_version_num"; then
+        AC_MSG_WARN([unknown format for Java version returned by "$JAVAC" ($javac_version)])
+        JAVA_SKIP_DOXYGEN_TEST_CASES=1
+        AC_MSG_RESULT(unknown)
+    else
+        dnl Until Java 8 version number was in format "1.x", starting from
+        dnl Java 9 it's just "x".
+        case $java_version_num in
+            1.*)
+                JAVA_SKIP_DOXYGEN_TEST_CASES=1
+                AC_MSG_RESULT([no, disabling Doxygen tests])
+                ;;
+
+            *)
+                AC_MSG_RESULT(yes)
+                ;;
+        esac
+    fi
+
+    AC_SUBST(JAVA_SKIP_DOXYGEN_TEST_CASES)
+fi
+
 AC_MSG_CHECKING(for java include file jni.h)
 AC_ARG_WITH(javaincl, [  --with-javaincl=path    Set location of Java include directory], [JAVAINCDIR="$withval"], [JAVAINCDIR=])
 
@@ -1401,15 +1436,6 @@ if test -z "$JAVA_HOME" && test -n "$JAVA_HOME_MAYBE" ; then
   else
     AC_MSG_RESULT(not found)
   fi
-fi
-
-# Javadoc support required for the Java test-suite is available by default in jdk9+ and in tools.jar in earlier jdk versions
-AC_MSG_CHECKING(for java tools.jar)
-if test -n "$JAVA_HOME" && test -r "$JAVA_HOME/lib/tools.jar" ; then
-  JAVA_TOOLS_JAR="$JAVA_HOME/lib/tools.jar"
-  AC_MSG_RESULT([$JAVA_TOOLS_JAR])
-else
-  AC_MSG_RESULT(not found)
 fi
 
 case $host in
@@ -1478,7 +1504,6 @@ AC_SUBST(JAVA)
 AC_SUBST(JAVAC)
 AC_SUBST(JAVAINC)
 AC_SUBST(JAVA_CLASSPATH_SEP)
-AC_SUBST(JAVA_TOOLS_JAR)
 AC_SUBST(JAVADYNAMICLINKING)
 AC_SUBST(JAVALIBRARYPREFIX)
 AC_SUBST(JAVASO)
@@ -1573,11 +1598,19 @@ else
   # check for JavaScriptCore/Webkit libraries
   AC_ARG_WITH(jscorelib,[  --with-jscorelib=path      Set location of the JavaScriptCore/Webkit library directory],[JSCORELIB="-L$withval"], [JSCORELIB=])
 
-  if test -z "$JSCORELIB" -a -n "$PKGCONFIG"; then
+  if test -z "$JSCORELIB" -a -n "$PKG_CONFIG "; then
     AC_MSG_CHECKING(for JavaScriptCore/Webkit library)
-    if pkg-config javascriptcoregtk-1.0; then
-      JSCORELIB=`$PKGCONFIG --libs javascriptcoregtk-1.0`
-      JSCOREVERSION=`$PKGCONFIG --modversion javascriptcoregtk-1.0`
+    if $PKG_CONFIG  javascriptcoregtk-4.0; then
+      JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-4.0`
+      JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-4.0`
+      JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-4.0`
+    elif $PKG_CONFIG  javascriptcoregtk-3.0; then
+      JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-3.0`
+      JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-3.0`
+      JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-3.0`
+    elif $PKG_CONFIG  javascriptcoregtk-1.0; then
+      JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-1.0`
+      JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-1.0`
     fi
     if test -z "$JSCORELIB"; then
       AC_MSG_RESULT(not found)
@@ -2052,6 +2085,16 @@ if test x"${with_ocaml}" = xno; then
     AC_MSG_NOTICE([Disabling OCaml])
     OCAMLC=
 else
+    # OCaml compiler
+    if test -z "$OCAMLC"; then
+	AC_CHECK_PROGS(OCAMLC, ocamlc)
+    fi
+
+    # OCaml Pre-Processor-Pretty-Printer
+    if test -z "$CAMLP4"; then
+	AC_CHECK_PROGS(CAMLP4, camlp4)
+    fi
+
     # OCaml DL load generator
     if test -z "$OCAMLDLGEN"; then
 	AC_CHECK_PROGS(OCAMLDLGEN, ocamldlgen)
@@ -2062,27 +2105,17 @@ else
 	AC_CHECK_PROGS(OCAMLFIND, ocamlfind)
     fi
 
-    # OCaml compiler
-    if test -z "$OCAMLC"; then
-	AC_CHECK_PROGS(OCAMLC, ocamlc)
-    fi
-
     # OCaml toplevel creator
     if test -z "$OCAMLMKTOP"; then
 	AC_CHECK_PROGS(OCAMLMKTOP, ocamlmktop)
     fi
-
-    # OCaml Pre-Processor-Pretty-Printer
-    if test -z "$CAMLP4"; then
-	AC_CHECK_PROGS(CAMLP4, camlp4)
-    fi
 fi
 
 AC_SUBST(OCAMLC)
+AC_SUBST(CAMLP4)
 AC_SUBST(OCAMLDLGEN)
 AC_SUBST(OCAMLFIND)
 AC_SUBST(OCAMLMKTOP)
-AC_SUBST(CAMLP4)
 
 #----------------------------------------------------------------
 # Look for C#
@@ -2270,7 +2303,7 @@ if test "$LUABIN"; then
   # look for the header files & set LUAFLAGS accordingly
   # will clear LUABIN if not present
   if test -n "$LUAINCLUDE"; then
-    AC_CHECK_FILE($LUAINCLUDE/lua.h,[LUAFLAGS="$ISYSTEM$LUAINCLUDE"],[LUABIN=])
+    AC_CHECK_FILE($LUAINCLUDE/lua.h,[LUAFLAGS="-I$LUAINCLUDE"],[LUABIN=])
   else
     LUA_OK="1"
     CFLAGS_SAVED=$CFLAGS
@@ -2294,7 +2327,7 @@ if test "$LUABIN"; then
         #echo "$i"
         if test -r $i/lua.h; then
           AC_MSG_RESULT($i/lua.h)
-          LUAFLAGS="$ISYSTEM$i"
+          LUAFLAGS="-I$i"
           break
         fi
       done
@@ -2365,11 +2398,6 @@ AS_HELP_STRING([--with-go=path], [Set location of Go compiler]),[GOBIN="$withval
 if test x"${GOBIN}" = xno; then
   AC_MSG_NOTICE([Disabling Go])
   GO=
-  GOC=
-  GO1=false
-  GO12=false
-  GO13=false
-  GO15=false
   GOGCC=false
   GCCGO=
   GOOPT=
@@ -2385,30 +2413,17 @@ else
 
   GOGCC=false
   GCCGO=
-  GO1=false
-  GO12=false
-  GO13=false
-  GO15=false
   GOOPT=
   GCCGOOPT=
   GOVERSIONOPTION=
 
   if test -n "$GO" ; then
-    GO1=true
     GOVERSIONOPTION=version
     go_version=$($GO $GOVERSIONOPTION | sed -e 's/go version //')
-    case "$go_version" in
-    go1 | go1.[[01234]] | go1.[[01234]].*)
-      GOC=$(sh -c "$(go env) && echo \$GOCHAR")c
-      ;;
-    *)
-      GOC=compile
-      ;;
-    esac
     AC_MSG_CHECKING([whether go version is too old])
     case $go_version in
-    go1.1.* | go1.1 | go1.0 | go1.0.* | go1 )
-      AC_MSG_RESULT([yes - minimum version is 1.2])
+    go1.[012]*)
+      AC_MSG_RESULT([yes - minimum version is 1.3])
       GO=
       GOOPT="-intgosize 32"
       ;;
@@ -2422,20 +2437,6 @@ else
         GOOPT="-intgosize 32"
 	;;
       esac
-      ;;
-    esac
-    case $go_version in
-    go1.0 | go1.0.* | go1 | go1.1 | go1.1.*)
-      GOOPT="$GOOPT -use-shlib"
-      ;;
-    go1.2 | go1.2.*)
-      GO12=true
-      ;;
-    go1.3 | go1.3.* | go1.4 | go1.4.*)
-      GO13=true
-      ;;
-    *)
-      GO15=true
       ;;
     esac
   fi
@@ -2644,7 +2645,7 @@ AC_SUBST(SKIP_PHP)
 
 
 SKIP_OCAML=
-if test -z "$OCAMLC" ; then
+if test -z "$OCAMLC" || test -z "$CAMLP4" ; then
     SKIP_OCAML="1"
 fi
 AC_SUBST(SKIP_OCAML)

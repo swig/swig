@@ -117,7 +117,7 @@ SwigPyBuiltin_FunpackSetterClosure (PyObject *obj, PyObject *val, void *closure)
 
 SWIGINTERN void
 SwigPyStaticVar_dealloc(PyDescrObject *descr) {
-  _PyObject_GC_UNTRACK(descr);
+  PyObject_GC_UnTrack(descr);
   Py_XDECREF(PyDescr_TYPE(descr));
   Py_XDECREF(PyDescr_NAME(descr));
   PyObject_GC_Del(descr);
@@ -256,6 +256,12 @@ SwigPyStaticVar_Type(void) {
 #if PY_VERSION_HEX >= 0x03040000
       0,                                        /* tp_finalize */
 #endif
+#if PY_VERSION_HEX >= 0x03080000
+      0,                                        /* tp_vectorcall */
+#endif
+#if (PY_VERSION_HEX >= 0x03080000) && (PY_VERSION_HEX < 0x03090000)
+      0,                                        /* tp_print */
+#endif
 #ifdef COUNT_ALLOCS
       0,                                        /* tp_allocs */
       0,                                        /* tp_frees */
@@ -334,6 +340,12 @@ SwigPyObjectType(void) {
 #if PY_VERSION_HEX >= 0x03040000
       0,                                        /* tp_finalize */
 #endif
+#if PY_VERSION_HEX >= 0x03080000
+      0,                                        /* tp_vectorcall */
+#endif
+#if (PY_VERSION_HEX >= 0x03080000) && (PY_VERSION_HEX < 0x03090000)
+      0,                                        /* tp_print */
+#endif
 #ifdef COUNT_ALLOCS
       0,                                        /* tp_allocs */
       0,                                        /* tp_frees */
@@ -402,11 +414,7 @@ SwigPyBuiltin_ThisClosure (PyObject *self, void *SWIGUNUSEDPARM(closure)) {
 SWIGINTERN void
 SwigPyBuiltin_SetMetaType (PyTypeObject *type, PyTypeObject *metatype)
 {
-#if PY_VERSION_HEX >= 0x03000000
-    type->ob_base.ob_base.ob_type = metatype;
-#else
-    type->ob_type = metatype;
-#endif
+    Py_TYPE(type) = metatype;
 }
 
 

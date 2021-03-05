@@ -1,6 +1,6 @@
 package main
 
-import . "./li_cmalloc"
+import . "swigtests/li_cmalloc"
 
 func main() {
 	p := Malloc_int()

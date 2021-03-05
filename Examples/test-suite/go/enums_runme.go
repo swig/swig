@@ -1,6 +1,6 @@
 package main
 
-import "./enums"
+import "swigtests/enums"
 
 func main() {
 	enums.Bar2(1)

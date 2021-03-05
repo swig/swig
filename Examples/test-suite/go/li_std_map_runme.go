@@ -1,6 +1,6 @@
 package main
 
-import "./li_std_map"
+import "swigtests/li_std_map"
 
 func main() {
 	a1 := li_std_map.NewA(3)

@@ -58,6 +58,7 @@ INTERFACE  =
 INTERFACEDIR  =
 INTERFACEPATH = $(SRCDIR)$(INTERFACEDIR)$(INTERFACE)
 SWIGOPT    =
+PCHSUPPORT = @PCHSUPPORT@
 
 # SWIG_LIB_DIR and SWIGEXE must be explicitly set by Makefiles using this Makefile
 SWIG_LIB_DIR = ./Lib
@@ -380,13 +381,7 @@ python_static_cpp: $(SRCDIR_SRCS)
 # Running a Python example
 # -----------------------------------------------------------------
 
-ifeq (,$(PY3))
-  PYSCRIPT = $(RUNME).py
-else
-  PYSCRIPT = $(RUNME)3.py
-endif
-
-PY2TO3 = @PY2TO3@ `@PY2TO3@ -l | grep -v -E "Available|import$$" | awk '{print "-f "$$0}'`
+PYSCRIPT = $(RUNME).py
 
 python_run: $(PYSCRIPT)
 ifneq (,$(PYCODESTYLE))
@@ -398,10 +393,6 @@ ifneq (,$(SRCDIR))
 $(RUNME).py: $(SRCDIR)$(RUNME).py
 	cp $< $@
 endif
-
-$(RUNME)3.py: $(SRCDIR)$(RUNME).py
-	cp $< $@
-	$(PY2TO3) -w $@ >/dev/null 2>&1
 
 # -----------------------------------------------------------------
 # Version display
@@ -420,7 +411,6 @@ python_clean:
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ *$(PYTHON_SO)
 	rm -f $(TARGET).py
-	if test -f $(SRCDIR)$(RUNME).py; then rm -f $(RUNME)3.py $(RUNME)3.py.bak; fi
 	case "x$(SRCDIR)" in x|x./);; *) rm -f $(RUNME).py;; esac
 
 
@@ -439,13 +429,36 @@ OCTAVE_SO     = @OCTAVE_SO@
 OCTAVE_SCRIPT = $(SRCDIR)$(RUNME).m
 
 # ----------------------------------------------------------------
+# Pre-compile Octave headers, if supported
+# ----------------------------------------------------------------
+
+ifeq (yes,$(PCHSUPPORT))
+
+octave_precompile_headers:
+	echo "precompiling $(OCTHEADERS)"
+	cp -f $(OCTHEADERSSRC) $(OCTHEADERS)
+	if $(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDES) $(OCTAVE_CXX) $(OCTHEADERS); then \
+		: ; \
+	else \
+		rm -f $(OCTHEADERSGCH); \
+		exit 1; \
+	fi
+
+else
+
+octave_precompile_headers:
+	echo "precompiling Octave headers not supported"; exit 1
+
+endif
+
+# ----------------------------------------------------------------
 # Build a C dynamically loadable module
 # Note: Octave requires C++ compiler when compiling C wrappers
 # ----------------------------------------------------------------
 
 octave: $(SRCDIR_SRCS)
-	$(SWIG) -octave $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
+	$(SWIG) -octave $(SWIGOCTHDROPT) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -g -c $(IOCTHEADERS) $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
 	$(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS) $(INCLUDES)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
 
@@ -454,8 +467,8 @@ octave: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 octave_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -octave $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
+	$(SWIG) -c++ -octave $(SWIGOCTHDROPT) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -g -c $(IOCTHEADERS) $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
 	$(CXXSHARED) -g $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
 
 # -----------------------------------------------------------------
@@ -481,6 +494,7 @@ octave_clean:
 	rm -f *_wrap* *~ .~* myoctave@EXEEXT@ *.pyc
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ *$(OCTAVE_SO)
+	rm -f $(OCTHEADERS) $(OCTHEADERSGCH)
 
 ##################################################################
 #####                       GUILE                           ######
@@ -858,31 +872,33 @@ mzscheme_clean:
 ##################################################################
 
 OCC=$(COMPILETOOL) @OCAMLC@
+OCC_WITH_PP=env TMPDIR=./localtmp $(OCC)
+# TMPDIR above is a workaround for some ocamlc versions, such as 4.05.0, which always create a temp file of the same name breaking parallel make (seemingly only when -pp is used)
 OCAMLDLGEN=$(COMPILETOOL) @OCAMLDLGEN@
 OCAMLFIND=$(COMPILETOOL) @OCAMLFIND@
 OCAMLMKTOP=$(COMPILETOOL) @OCAMLMKTOP@
 NOLINK ?= false
 OCAMLPP= -pp "camlp4o ./swigp4.cmo"
 OCAMLP4WHERE=`$(COMPILETOOL) @CAMLP4@ -where`
-OCAMLCORE=\
-	(test -f swig.mli   || $(SWIG) -ocaml -co swig.mli 2>/dev/null) &&  \
-	(test -f swig.ml    || $(SWIG) -ocaml -co swig.ml 2>/dev/null) &&  \
-	(test -f swigp4.ml  || $(SWIG) -ocaml -co swigp4.ml 2>/dev/null) &&  \
-	(test -f swig.cmi   || $(OCC) -c swig.mli) &&  \
-	(test -f swig.cmo   || $(OCC) -c swig.ml) &&  \
-	(test -f swigp4.cmi || $(OCC) -I $(OCAMLP4WHERE) -pp "camlp4o pa_extend.cmo q_MLast.cmo" -c swigp4.ml)
+
+ocaml_core:
+	mkdir -p ./localtmp
+	$(SWIG) -ocaml -co swig.mli 2>/dev/null
+	$(SWIG) -ocaml -co swig.ml 2>/dev/null
+	$(SWIG) -ocaml -co swigp4.ml 2>/dev/null
+	$(OCC) -c swig.mli
+	$(OCC) -c swig.ml
+	$(OCC_WITH_PP) -I $(OCAMLP4WHERE) -pp "camlp4o pa_extend.cmo q_MLast.cmo" -c swigp4.ml
 
 ocaml_static: $(SRCDIR_SRCS)
-	$(OCAMLCORE)
 	$(SWIG) -ocaml $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(OCC) -g -c -ccopt -g -ccopt "$(INCLUDES)" $(ISRCS) $(SRCDIR_SRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
 	$(OCC) -w -U -g -c $(INTERFACE:%.i=%.ml)
-	test -z "$(PROGFILE)" || $(OCC) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
+	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
 	$(NOLINK) || $(OCC) -g -ccopt -g -cclib -g -custom -o $(RUNME) swig.cmo $(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) -cclib "$(LIBS)"
 
 ocaml_dynamic: $(SRCDIR_SRCS)
-	$(OCAMLCORE)
 	$(SWIG) -ocaml $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(OCC) -g -c -ccopt -g -ccopt "$(INCLUDES)" $(ISRCS) $(SRCDIR_SRCS)
 	$(CXXSHARED) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(CCSHARED) -o $(INTERFACE:%.i=%@SO@) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) $(LIBS)
@@ -890,40 +906,36 @@ ocaml_dynamic: $(SRCDIR_SRCS)
 	mv $(INTERFACE:%.i=%_dynamic.ml) $(INTERFACE:%.i=%.ml)
 	rm $(INTERFACE:%.i=%.mli)
 	$(OCAMLFIND) $(OCC) -g -c -package dl $(INTERFACE:%.i=%.ml)
-	test -z "$(PROGFILE)" || $(OCC) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
+	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
 	$(NOLINK) || $(OCAMLFIND) $(OCC) -g -ccopt -g -cclib -g -custom -o $(RUNME) swig.cmo -package dl -linkpkg $(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo)
 
 ocaml_static_toplevel: $(SRCDIR_SRCS)
-	$(OCAMLCORE)
 	$(SWIG) -ocaml $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(OCC) -g -c -ccopt -g -ccopt "$(INCLUDES)" $(ISRCS) $(SRCDIR_SRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
 	$(OCC) -w -U -g -c $(INTERFACE:%.i=%.ml)
-	test -z "$(PROGFILE)" || $(OCC) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
+	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
 	$(NOLINK) || $(OCAMLMKTOP) swig.cmo -I $(OCAMLP4WHERE) dynlink.cma camlp4o.cma swigp4.cmo -cclib "$(LIBS)" -g -ccopt -g -cclib -g -custom -o $(RUNME)_top $(INTERFACE:%.i=%.cmo) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS)
 
 ocaml_static_cpp: $(SRCDIR_SRCS)
-	$(OCAMLCORE)
 	$(SWIG) -ocaml -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
 	$(OCC) -cc '$(CXX) $(CPPFLAGS)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" $(ICXXSRCS:%.cxx=%.c) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
 	$(OCC) -w -U -g -c $(INTERFACE:%.i=%.ml)
-	test -z "$(PROGFILE)" || $(OCC) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
+	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
 	$(NOLINK) || $(OCC) -g -ccopt -g -cclib -g -custom -o $(RUNME) swig.cmo $(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) -cclib "$(LIBS)" -cc '$(CXX)'
 
 ocaml_static_cpp_toplevel: $(SRCDIR_SRCS)
-	$(OCAMLCORE)
 	$(SWIG) -ocaml -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
 	$(OCC) -cc '$(CXX) $(CPPFLAGS)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" $(ICXXSRCS:%.cxx=%.c) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
 	$(OCC) -w -U -g -c $(INTERFACE:%.i=%.ml)
-	test -z "$(PROGFILE)" || $(OCC) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
+	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
 	$(NOLINK) || $(OCAMLMKTOP) -cc '$(CXX) $(CPPFLAGS)' swig.cmo -I $(OCAMLP4WHERE) dynlink.cma camlp4o.cma swigp4.cmo -cclib "$(LIBS)" -g -ccopt -g -cclib -g -custom -o $(RUNME)_top $(INTERFACE:%.i=%.cmo) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS)
 
 ocaml_dynamic_cpp: $(SRCDIR_SRCS)
-	$(OCAMLCORE)
 	$(SWIG) -ocaml -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
 	$(OCC) -cc '$(CXX) $(CPPFLAGS)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" $(ICXXSRCS:%.cxx=%.c) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) -ccopt -fPIC
@@ -932,7 +944,7 @@ ocaml_dynamic_cpp: $(SRCDIR_SRCS)
 	mv $(INTERFACE:%.i=%_dynamic.ml) $(INTERFACE:%.i=%.ml)
 	rm $(INTERFACE:%.i=%.mli)
 	$(OCAMLFIND) $(OCC) -g -c -package dl $(INTERFACE:%.i=%.ml)
-	test -z "$(PROGFILE)" || $(OCC) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
+	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
 	$(NOLINK) || $(OCAMLFIND) swig.cmo $(OCC) -cclib -export-dynamic -g -ccopt -g -cclib -g -custom -o $(RUNME) -package dl -linkpkg $(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo) -cc '$(CXX)'
 
 # -----------------------------------------------------------------
@@ -957,6 +969,7 @@ ocaml_clean:
 	rm -f *_wrap* *~ .~* *.cmo *.cmi *.mli $(TARGET).ml $(RUNME) $(RUNME)_top swig.ml swigp4.ml
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
+	rm -rf ./localtmp
 
 ##################################################################
 #####                       RUBY                            ######
@@ -1095,7 +1108,7 @@ CSHARPCFLAGS = @CSHARPCFLAGS@
 CSHARPFLAGS =
 CSHARPOPTIONS =
 CSHARPSO = @CSHARPSO@
-CSHARP_RUNME = $(CSHARPCILINTERPRETER) $(CSHARPCILINTERPRETER_FLAGS) ./$(RUNME).exe
+CSHARP_RUNME = ./$(RUNME).exe
 
 # ----------------------------------------------------------------
 # Build a CSharp dynamically loadable module (C)
@@ -1133,7 +1146,7 @@ csharp_compile: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 csharp_run:
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(CSHARP_RUNME) $(RUNPIPE)
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(CSHARPCILINTERPRETER) $(CSHARPCILINTERPRETER_FLAGS) $(CSHARP_RUNME) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1437,79 +1450,41 @@ scilab_clean:
 GO = @GO@
 GOGCC = @GOGCC@
 GCCGO = @GCCGO@
-GO1 = @GO1@
-GO12 = @GO12@
-GO13 = @GO13@
-GO15 = @GO15@
-GOC = @GOC@
 GOOPT = @GOOPT@
 GCCGOOPT = @GCCGOOPT@
 GOVERSIONOPTION = @GOVERSIONOPTION@
 
 GOSWIGARG = `if $(GOGCC) ; then echo -gccgo; fi`
-GOCOMPILEARG = `if $(GO15); then echo tool compile; elif $(GO1) ; then echo tool $(GOC:c=g) ; fi` `if $(GO13) || $(GO15); then echo -pack ; fi`
 
 GOSRCS = $(INTERFACE:.i=.go)
 GOCSRCS = $(INTERFACE:.i=_gc.c)
 
-GOLD = `if $(GO15); then echo link; else echo $(GOC:c=l); fi`
-GOTOOL = `if $(GO1) ; then echo go tool; fi`
-GOPACK = `if $(GO1) ; then echo go tool pack; else echo gopack; fi`
-
 GOPACKAGE = $(notdir $(INTERFACE:.i=.a))
 
-GOPATHDIR = gopath/src/$(INTERFACE:.i=)
-
-GOOBJEXT = `if $(GO15); then echo o; else echo $(GOC:c=); fi`
-GOGCOBJS = $(GOSRCS:.go=.$(GOOBJEXT))
-GOGCCOBJS = $(GOSRCS:.go=.@OBJEXT@)
+GOPATHPARENTDIR = gopath/$(GOMOD)/src
+GOPATHDIR = $(GOPATHPARENTDIR)/$(INTERFACE:.i=)
 
 # ----------------------------------------------------------------
 # Build a Go module (C)
 # ----------------------------------------------------------------
 
-go_nocgo: $(SRCDIR_SRCS)
-	$(SWIG) -go $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	if $(GO12) || $(GO13) || $(GO15) || $(GOGCC); then \
-	  $(CC) -g -c $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES); \
-	else \
-	  $(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES); \
-	  $(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO); \
-	fi
-	if $(GOGCC) ; then \
-	  $(COMPILETOOL) $(GCCGO) -g -c -I . $(GOSRCS); \
-	else \
-	  $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(GOSRCS); \
-	  $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`} $(GOCSRCS); \
-	  rm -f $(GOPACKAGE); \
-	  if $(GO13) || $(GO15); then \
-	    cp $(GOGCOBJS) $(GOPACKAGE); \
-	    $(COMPILETOOL) $(GOPACK) r $(GOPACKAGE) $(GOCSRCS:.c=.$(GOOBJEXT)) $(OBJS) $(IOBJS); \
-	  elif $(GO12); then \
-	    $(COMPILETOOL) $(GOPACK) grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)) $(OBJS) $(IOBJS); \
-	  else \
-	    $(COMPILETOOL) $(GOPACK) grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
-	  fi; \
-	fi
-	if test -f $(SRCDIR)$(RUNME).go; then \
-	  if $(GOGCC) ; then \
-	    $(COMPILETOOL) $(GCCGO) -g -c $(SRCDIR)$(RUNME).go; \
-	    $(COMPILETOOL) $(GCCGO) -o $(RUNME) $(RUNME).@OBJEXT@ $(GOGCCOBJS) $(OBJS) $(IOBJS); \
-	  elif $(GO12) || $(GO13) || $(GO15); then \
-	    $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld "$(CC)" -extldflags "$(CFLAGS) $(LDFLAGS)" -o $(RUNME) $(RUNME).$(GOOBJEXT); \
-	  else \
-	    $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $(RUNME) $(RUNME).$(GOOBJEXT); \
-	  fi; \
-	fi
-
-go: $(SRCDIR_SRCS)
-	$(SWIG) -go -cgo $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+$(GOPATHPARENTDIR)/go.mod:
 	@mkdir gopath 2>/dev/null || true
-	@mkdir gopath/src 2>/dev/null || true
-	@mkdir gopath/src/$(INTERFACE:.i=) 2>/dev/null || true
-	rm -f $(GOPATHDIR)/*
+	@mkdir gopath/$(GOMOD) 2>/dev/null || true
+	@mkdir gopath/$(GOMOD)/src 2>/dev/null || true
+	@mkdir $(GOPATHDIR) 2>/dev/null || true
+	echo "module swigtests" > $(GOPATHDIR)/go.mod
+	echo "" >> $(GOPATHDIR)/go.mod
+	echo "go 1.12" >> $(GOPATHDIR)/go.mod
+	mv -f $(GOPATHDIR)/go.mod $(GOPATHPARENTDIR)/go.mod
+
+go: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
+	$(SWIG) -go -import-prefix swigtests $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	@mkdir gopath 2>/dev/null || true
+	@mkdir gopath/$(GOMOD) 2>/dev/null || true
+	@mkdir gopath/$(GOMOD)/src 2>/dev/null || true
+	@mkdir $(GOPATHDIR) 2>/dev/null || true
+	rm -rf $(GOPATHDIR)/*
 	cp $(ISRCS) $(GOPATHDIR)/
 	if test -f $(IWRAP:.i=.h); then \
 	  cp $(IWRAP:.i=.h) $(GOPATHDIR)/; \
@@ -1518,7 +1493,14 @@ go: $(SRCDIR_SRCS)
 	  cp $(SRCDIR_SRCS) $(GOPATHDIR)/; \
 	fi
 	cp $(GOSRCS) $(GOPATHDIR)/
-	GOPATH=`pwd`/gopath; \
+	@if test -f $(SRCDIR)$(RUNME).go; then \
+	  mkdir gopath/$(GOMOD)/src/runme 2>/dev/null || true; \
+	  rm -f gopath/$(GOMOD)/src/runme/*; \
+	fi
+	if test -f $(SRCDIR)$(RUNME).go; then \
+	  cp $(SRCDIR)$(RUNME).go gopath/$(GOMOD)/src/runme/; \
+	fi
+	GOPATH=`pwd`/gopath/$(GOMOD); \
 	export GOPATH; \
 	CGO_CPPFLAGS="$(CPPFLAGS) $(INCLUDES) -I `cd $(SRCDIR) && pwd` -I `pwd`"; \
 	export CGO_CPPFLAGS; \
@@ -1526,82 +1508,29 @@ go: $(SRCDIR_SRCS)
 	export CGO_CFLAGS; \
 	CGO_LDFLAGS="$(LDFLAGS) -lm"; \
 	export CGO_LDFLAGS; \
-	(cd $(GOPATHDIR)/ && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o $(GOPACKAGE))
-	cp $(GOPATHDIR)/$(GOPACKAGE) $(dir $(INTERFACE))/$(GOPACKAGE)
+	(cd $(GOPATHDIR)/ && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o $(GOPACKAGE)); \
 	if $(GOGCC); then \
-	  cp $(dir $(INTERFACE))/$(GOPACKAGE) $(dir $(INTERFACE))/$(GOPACKAGE:.a=.gox); \
-	fi
+	  cp $(GOPATHDIR)/$(GOPACKAGE) $(GOPATHDIR)/$(GOPACKAGE:.a=.gox); \
+	fi; \
 	if test -f $(SRCDIR)$(RUNME).go; then \
-	  if $(GOGCC) ; then \
-	    $(COMPILETOOL) $(GCCGO) -c -g $(SRCDIR)$(RUNME).go; \
-	    $(COMPILETOOL) $(GCCGO) -o $(RUNME) $(RUNME).@OBJEXT@ $(dir $(INTERFACE))/$(GOPACKAGE); \
-	  elif $(GO12) || $(GO13) || $(GO15); then \
-	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -o $(RUNME).$(GOOBJEXT) $(SRCDIR)$(RUNME).go; \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld "$(CC)" -extldflags "$(CFLAGS) $(LDFLAGS)" -o $(RUNME) $(RUNME).$(GOOBJEXT); \
-	  else \
-	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $(RUNME) $(RUNME).$(GOOBJEXT); \
-	  fi; \
+	  mkdir gopath/$(GOMOD)/src/swigtests 2>/dev/null || true; \
+	  mkdir gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=) 2>/dev/null || true; \
+	  cp $(GOPATHDIR)/* gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=)/; \
+	  (cd gopath/$(GOMOD)/src/runme && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o runme $(RUNME).go); \
+	  cp gopath/$(GOMOD)/src/runme/runme $(RUNME); \
 	fi
 
 # ----------------------------------------------------------------
 # Build a Go module (C++)
 # ----------------------------------------------------------------
 
-go_cpp_nocgo: $(SRCDIR_SRCS)
-	$(SWIG) -go -c++ $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	if $(GO12) || $(GO13) || $(GO15) || $(GOGCC); then \
-	  if test -n "$(SRCDIR_CXXSRCS)$(SRCDIR_SRCS)"; then \
-	    $(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_CXXSRCS) $(SRCDIR_SRCS) $(INCLUDES); \
-	  fi; \
-	  $(foreach f,$(ICXXSRCS), \
-	    $(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) -o $(addsuffix .@OBJEXT@,$(basename $f)) $f $(INCLUDES); \
-	  ) \
-	else \
-	  $(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES); \
-	  $(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO); \
-	fi
-	if ! $(GOGCC) ; then \
-	  $(foreach f,$(GOSRCS), \
-	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . -o $(addsuffix .$(GOOBJEXT),$(basename $f)) $f \
-	  ); \
-	  $(foreach f,$(GOCSRCS), \
-	    $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`} \
-	    -o $(addsuffix .$(GOOBJEXT),$(basename $f)) $f; \
-	  ) \
-	  rm -f $(GOPACKAGE); \
-	  if $(GO13) || $(GO15); then \
-	    cp $(GOGCOBJS) $(GOPACKAGE); \
-	    $(COMPILETOOL) $(GOPACK) r $(GOPACKAGE) $(GOCSRCS:.c=.$(GOOBJEXT)) $(OBJS) $(IOBJS); \
-	  elif $(GO12); then \
-	    $(COMPILETOOL) $(GOPACK) grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)) $(OBJS) $(IOBJS); \
-	  else \
-	    $(COMPILETOOL) $(GOPACK) grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
-	  fi; \
-	else \
-	  $(foreach f,$(GOSRCS), \
-	    $(COMPILETOOL) $(GCCGO) -g -c -I . -o $(addsuffix .@OBJEXT@,$(basename $f)) $f \
-	  ); \
-	fi
-	if test -f $(SRCDIR)$(RUNME).go; then \
-	  if $(GOGCC) ; then \
-	    $(COMPILETOOL) $(GCCGO) -g -c $(SRCDIR)$(RUNME).go; \
-	    $(COMPILETOOL) $(GCCGO) -o $(RUNME) $(RUNME).@OBJEXT@ $(GOGCCOBJS) $(OBJS) $(IOBJS) -lstdc++; \
-	  elif $(GO12) || $(GO13) || $(GO15); then \
-	    $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld "$(CXX)" -extldflags "$(CXXFLAGS) $(LDFLAGS)" -o $(RUNME) $(RUNME).$(GOOBJEXT); \
-	  else \
-	    $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $(RUNME) $(RUNME).$(GOOBJEXT); \
-	  fi; \
-	fi
-
-go_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -go -c++ -cgo $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+go_cpp: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
+	$(SWIG) -go -c++ -import-prefix swigtests $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	@mkdir gopath 2>/dev/null || true
-	@mkdir gopath/src 2>/dev/null || true
-	@mkdir gopath/src/$(INTERFACE:.i=) 2>/dev/null || true
-	rm -f $(GOPATHDIR)/*
+	@mkdir gopath/$(GOMOD) 2>/dev/null || true
+	@mkdir gopath/$(GOMOD)/src 2>/dev/null || true
+	@mkdir $(GOPATHDIR) 2>/dev/null || true
+	rm -rf $(GOPATHDIR)/*
 	cp $(ICXXSRCS) $(GOPATHDIR)/
 	if test -f $(IWRAP:.i=.h); then \
 	  cp $(IWRAP:.i=.h) $(GOPATHDIR)/; \
@@ -1613,7 +1542,14 @@ go_cpp: $(SRCDIR_SRCS)
 	  cp $(SRCDIR_SRCS) $(GOPATHDIR)/; \
 	fi
 	cp $(GOSRCS) $(GOPATHDIR)/
-	GOPATH=`pwd`/gopath; \
+	@if test -f $(SRCDIR)$(RUNME).go; then \
+	  mkdir gopath/$(GOMOD)/src/runme 2>/dev/null || true; \
+	  rm -f gopath/$(GOMOD)/src/runme/*; \
+	fi
+	if test -f $(SRCDIR)$(RUNME).go; then \
+	  cp $(SRCDIR)$(RUNME).go gopath/$(GOMOD)/src/runme/; \
+	fi
+	GOPATH=`pwd`/gopath/$(GOMOD); \
 	export GOPATH; \
 	CGO_CPPFLAGS="$(CPPFLAGS) $(INCLUDES) -I `cd $(SRCDIR) && pwd` -I `pwd`"; \
 	export CGO_CPPFLAGS; \
@@ -1623,22 +1559,16 @@ go_cpp: $(SRCDIR_SRCS)
 	export CGO_CXXFLAGS; \
 	CGO_LDFLAGS="$(LDFLAGS) -lm"; \
 	export CGO_LDFLAGS; \
-	(cd $(GOPATHDIR) && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o $(GOPACKAGE))
-	cp $(GOPATHDIR)/$(GOPACKAGE) $(dir $(INTERFACE))/$(GOPACKAGE)
+	(cd $(GOPATHDIR) && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o $(GOPACKAGE)); \
 	if $(GOGCC); then \
-	  cp $(dir $(INTERFACE))/$(GOPACKAGE) $(dir $(INTERFACE))/$(GOPACKAGE:.a=.gox); \
-	fi
+	  cp $(GOPATHDIR)/$(GOPACKAGE) $(GOPATHDIR)/$(GOPACKAGE:.a=.gox); \
+	fi; \
 	if test -f $(SRCDIR)$(RUNME).go; then \
-	  if $(GOGCC) ; then \
-	    $(COMPILETOOL) $(GCCGO) -g -c $(SRCDIR)$(RUNME).go; \
-	    $(COMPILETOOL) $(GCCGO) -o $(RUNME) $(RUNME).@OBJEXT@ $(dir $(INTERFACE))/$(GOPACKAGE) -lstdc++; \
-	  elif $(GO12) || $(GO13) || $(GO15); then \
-	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -o $(RUNME).$(GOOBJEXT) $(SRCDIR)$(RUNME).go; \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld "$(CXX)" -extldflags "$(CXXFLAGS) $(LDFLAGS)" -o $(RUNME) $(RUNME).$(GOOBJEXT); \
-	  else \
-	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $(RUNME) $(RUNME).$(GOOBJEXT); \
-	  fi; \
+	  mkdir gopath/$(GOMOD)/src/swigtests 2>/dev/null || true; \
+	  mkdir gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=) 2>/dev/null || true; \
+	  cp $(GOPATHDIR)/* gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=)/; \
+	  (cd gopath/$(GOMOD)/src/runme && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o runme $(RUNME).go); \
+	  cp gopath/$(GOMOD)/src/runme/runme $(RUNME); \
 	fi
 
 # -----------------------------------------------------------------

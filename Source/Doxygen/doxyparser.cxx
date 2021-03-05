@@ -34,6 +34,30 @@ std::set<std::string> DoxygenParser::doxygenSectionIndicators;
 const int TOKENSPERLINE = 8; //change this to change the printing behaviour of the token list
 const std::string END_HTML_TAG_MARK("/");
 
+std::string getBaseCommand(const std::string &cmd) {
+  if (cmd.substr(0,5) == "param")
+    return "param";
+  else if (cmd.substr(0,4) == "code")
+    return "code";
+  else
+    return cmd;
+}
+
+// Find the first position beyond the word command.  Extra logic is
+// used to avoid putting the characters "," and "." in
+// DOXYGEN_WORD_CHARS.
+static size_t getEndOfWordCommand(const std::string &line, size_t pos) {
+  size_t endOfWordPos = line.find_first_not_of(DOXYGEN_WORD_CHARS, pos);
+  if (line.substr(pos, 6) == "param[")
+    // include ",", which can appear in param[in,out]
+    endOfWordPos = line.find_first_not_of(string(DOXYGEN_WORD_CHARS)+ ",", pos);  
+  else if (line.substr(pos, 5) == "code{")
+    // include ".", which can appear in e.g. code{.py}
+    endOfWordPos = line.find_first_not_of(string(DOXYGEN_WORD_CHARS)+ ".", pos);
+  return endOfWordPos;
+}
+
+
 DoxygenParser::DoxygenParser(bool noisy) : noisy(noisy) {
   fillTables();
 }
@@ -118,7 +142,7 @@ void DoxygenParser::printTree(const DoxygenEntityList &rootList) {
 }
 
 DoxygenParser::DoxyCommandEnum DoxygenParser::commandBelongs(const std::string &theCommand) {
-  DoxyCommandsMapIt it = doxygenCommands.find(stringToLower(theCommand));
+  DoxyCommandsMapIt it = doxygenCommands.find(stringToLower(getBaseCommand(theCommand)));
 
   if (it != doxygenCommands.end()) {
     return it->second;
@@ -289,6 +313,18 @@ DoxygenParser::TokenListCIt DoxygenParser::getEndOfParagraph(const TokenList &to
   TokenListCIt endOfParagraph = m_tokenListIt;
 
   while (endOfParagraph != tokList.end()) {
+    // If \code or \verbatim is encountered within a paragraph, then
+    // go all the way to the end of that command, since the content
+    // could contain empty lines that would appear to be paragraph
+    // ends:
+    if (endOfParagraph->m_tokenType == COMMAND &&
+	(endOfParagraph->m_tokenString == "code" ||
+	 endOfParagraph->m_tokenString == "verbatim")) {
+      const string theCommand = endOfParagraph->m_tokenString;
+      endOfParagraph = getEndCommand("end" + theCommand, tokList);
+      endOfParagraph++; // Move after the end command
+      return endOfParagraph;
+    }
     if (endOfParagraph->m_tokenType == END_LINE) {
       endOfParagraph++;
       if (endOfParagraph != tokList.end()
@@ -300,7 +336,7 @@ DoxygenParser::TokenListCIt DoxygenParser::getEndOfParagraph(const TokenList &to
 
     } else if (endOfParagraph->m_tokenType == COMMAND) {
 
-      if (isSectionIndicator(endOfParagraph->m_tokenString)) {
+      if (isSectionIndicator(getBaseCommand(endOfParagraph->m_tokenString))) {
         return endOfParagraph;
       } else {
         endOfParagraph++;
@@ -654,7 +690,7 @@ void DoxygenParser::addCommandUnique(const std::string &theCommand, const TokenL
   // \f{ ... \f}
   // \f{env}{ ... \f}
   // \f$ ... \f$
-  else if (theCommand == "code" || theCommand == "verbatim"
+  else if (getBaseCommand(theCommand) == "code" || theCommand == "verbatim"
            || theCommand == "dot" || theCommand == "msc" || theCommand == "f[" || theCommand == "f{" || theCommand == "f$") {
     if (!endCommands.size()) {
       // fill in static table of end commands
@@ -671,7 +707,7 @@ void DoxygenParser::addCommandUnique(const std::string &theCommand, const TokenL
     if (it != endCommands.end())
       endCommand = it->second;
     else
-      endCommand = "end" + theCommand;
+      endCommand = "end" + getBaseCommand(theCommand);
 
     std::string content = getStringTilEndCommand(endCommand, tokList);
     aNewList.push_back(DoxygenEntity("plainstd::string", content));
@@ -959,7 +995,9 @@ DoxygenEntityList DoxygenParser::parse(TokenListCIt endParsingIndex, const Token
   std::string currPlainstringCommandType = root ? "partofdescription" : "plainstd::string";
   DoxygenEntityList aNewList;
 
-  while (m_tokenListIt != endParsingIndex) {
+  // Less than check (instead of not equal) is a safeguard in case the
+  // iterator is incremented past the end
+  while (m_tokenListIt < endParsingIndex) {
 
     Token currToken = *m_tokenListIt;
 
@@ -975,6 +1013,10 @@ DoxygenEntityList DoxygenParser::parse(TokenListCIt endParsingIndex, const Token
     } else if (currToken.m_tokenType == PLAINSTRING) {
       addCommand(currPlainstringCommandType, tokList, aNewList);
     }
+
+    // If addCommand above misbehaves, it can move the iterator past endParsingIndex
+    if (m_tokenListIt > endParsingIndex)
+      printListError(WARN_DOXYGEN_UNEXPECTED_ITERATOR_VALUE, "Unexpected iterator value in DoxygenParser::parse");
 
     if (endParsingIndex != tokList.end() && m_tokenListIt == tokList.end()) {
       // this could happen if we can't reach the original endParsingIndex
@@ -1039,6 +1081,13 @@ bool DoxygenParser::addDoxyCommand(DoxygenParser::TokenList &tokList, const std:
     tokList.push_back(Token(COMMAND, cmd));
     return true;
   } else {
+    if (cmd.empty()) {
+      // This actually indicates a bug in the code in this file, as this
+      // function shouldn't be called at all in this case.
+      printListError(WARN_DOXYGEN_UNKNOWN_COMMAND, "Unexpected empty Doxygen command.");
+      return false;
+    }
+
     // This function is called for the special Doxygen commands, but also for
     // HTML commands (or anything that looks like them, actually) and entities.
     // We don't recognize all of those, so just ignore them and pass them
@@ -1072,7 +1121,7 @@ size_t DoxygenParser::processVerbatimText(size_t pos, const std::string &line) {
     size_t endOfWordPos = line.find_first_not_of(DOXYGEN_WORD_CHARS, pos);
     string cmd = line.substr(pos, endOfWordPos - pos);
 
-    if (cmd == CMD_END_HTML_ONLY || cmd == CMD_END_VERBATIM || cmd == CMD_END_LATEX_1 || cmd == CMD_END_LATEX_2 || cmd == CMD_END_LATEX_3) {
+    if (cmd == CMD_END_HTML_ONLY || cmd == CMD_END_VERBATIM || cmd == CMD_END_LATEX_1 || cmd == CMD_END_LATEX_2 || cmd == CMD_END_LATEX_3 || cmd == CMD_END_CODE) {
 
       m_isVerbatimText = false;
       addDoxyCommand(m_tokenList, cmd);
@@ -1136,22 +1185,43 @@ bool DoxygenParser::processEscapedChars(size_t &pos, const std::string &line) {
  */
 void DoxygenParser::processWordCommands(size_t &pos, const std::string &line) {
   pos++;
-  size_t endOfWordPos = line.find_first_not_of(DOXYGEN_WORD_CHARS, pos);
+  size_t endOfWordPos = getEndOfWordCommand(line, pos);
 
   string cmd = line.substr(pos, endOfWordPos - pos);
+  if (cmd.empty()) {
+    // This was a bare backslash, just ignore it.
+    return;
+  }
+
   addDoxyCommand(m_tokenList, cmd);
 
-  if (cmd == CMD_HTML_ONLY || cmd == CMD_VERBATIM || cmd == CMD_LATEX_1 || cmd == CMD_LATEX_2 || cmd == CMD_LATEX_3) {
+  // A flag for whether we want to skip leading spaces after the command
+  bool skipLeadingSpace = true;
+
+  if (cmd == CMD_HTML_ONLY || cmd == CMD_VERBATIM || cmd == CMD_LATEX_1 || cmd == CMD_LATEX_2 || cmd == CMD_LATEX_3 || getBaseCommand(cmd) == CMD_CODE) {
 
     m_isVerbatimText = true;
 
-  } else {
+    // Skipping leading space is necessary with inline \code command,
+    // and it won't hurt anything for block \code (TODO: are the other
+    // commands also compatible with skip leading space?  If so, just
+    // do it every time.)
+    if (getBaseCommand(cmd) == CMD_CODE) skipLeadingSpace = true;
+    else skipLeadingSpace = false;
+  } else if (cmd.substr(0,3) == "end") {
+    // If processing an "end" command such as "endlink", don't skip
+    // the space before the next string
+    skipLeadingSpace = false;
+  }
+
+  if (skipLeadingSpace) {
     // skip any possible spaces after command, because some commands have parameters,
     // and spaces between command and parameter must be ignored.
     if (endOfWordPos != string::npos) {
       endOfWordPos = line.find_first_not_of(" \t", endOfWordPos);
     }
   }
+  
   pos = endOfWordPos;
 }
 
@@ -1294,7 +1364,7 @@ void DoxygenParser::tokenizeDoxygenComment(const std::string &doxygenComment, co
     string lastLine = lines[lines.size() - 1];
 
     if (trim(lastLine).empty()) {
-      lines.pop_back(); // remove trailing empy line
+      lines.pop_back(); // remove trailing empty line
     }
   }
 

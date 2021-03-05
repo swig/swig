@@ -20,11 +20,9 @@ Author: Zubr
 
 'citationword'
 
-
 .. code-block:: c++
 
-     some test code
-
+    some test code
 
 Conditional comment: SOMECONDITION
 Some conditional comment
@@ -82,7 +80,7 @@ is the note!
 This is an overloaded member function, provided for convenience.
 It differs from the above function only in what argument(s) it accepts.
 
-someword
+``someword``
 
 
 
@@ -121,10 +119,8 @@ TODO: Some very important task
 :type b: float
 :param b: B is mentioned again...
 
-
 very long
 text with tags <sometag>
-
 
 Version: 0.0.0.2
 

@@ -1,6 +1,6 @@
 package main
 
-import "./memberin_extend_c"
+import "swigtests/memberin_extend_c"
 
 func main() {
 	t := memberin_extend_c.NewPerson()

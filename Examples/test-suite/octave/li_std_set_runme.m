@@ -11,15 +11,15 @@ for i in s:
     sum = sum + i
 
 if (sum != "abc")
-    error
+    error("failed");
 
 i = s.__iter__()
 if i.next() != "a":
-    error
+    error("failed");
 if i.next() != "b":
-    error
+    error("failed");
 if i.next() != "c":
-    error
+    error("failed");
 
 
 b = s.begin()
@@ -28,7 +28,7 @@ sum = ""
 while (b != e):    
     sum = sum + b.next()
 if sum != "abc":
-    error
+    error("failed");
 
 b = s.rbegin()
 e = s.rend()
@@ -37,7 +37,7 @@ while (b != e):
     sum = sum  + b.next()
 
 if sum != "cba":
-    error
+    error("failed");
 
 
 
@@ -49,11 +49,11 @@ si.append(3)
 i = si.__iter__()
 
 if i.next() != 1:
-    error
+    error("failed");
 if i.next() != 2:
-    error
+    error("failed");
 if i.next() != 3:
-    error
+    error("failed");
 
 
 
@@ -68,17 +68,17 @@ sum = ""
 while (b != e):    
     sum = sum + b.next()
 if sum != "ac":
-    error
+    error("failed");
 
 
 b = s.begin()
 e = s.end()
 if e - b != 2:
-    error
+    error("failed");
     
 m = b + 1
 if m.value() != "c":
-    error
+    error("failed");
 
 
 
@@ -93,4 +93,4 @@ for i in s:
     sum = sum  + (i,)
 
 if sum != (1, 'hello', (1, 2)):
-    error
+    error("failed");

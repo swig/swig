@@ -1,4 +1,4 @@
-%module cpp_refqualifier
+%module xxx
 
 %ignore Host::h_ignored;
 %ignore Host::i_ignored() &&;

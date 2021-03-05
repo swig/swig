@@ -1,6 +1,5 @@
 
 import doxygen_parsing_enums_typesafe.*;
-import com.sun.javadoc.*;
 import java.util.HashMap;
 
 public class doxygen_parsing_enums_typesafe_runme {
@@ -15,14 +14,7 @@ public class doxygen_parsing_enums_typesafe_runme {
   
   public static void main(String argv[]) 
   {
-    /*
-      Here we are using internal javadoc tool, it accepts the name of the class as paramterer,
-      and calls the start() method of that class with parsed information.
-    */
-    CommentParser parser = new CommentParser();
-    com.sun.tools.javadoc.Main.execute("doxygen_parsing_enums_typesafe runtime test",
-                                       "CommentParser",
-                                       new String[]{"-quiet", "doxygen_parsing_enums_typesafe"});
+    CommentParser.parse("doxygen_parsing_enums_typesafe");
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     
@@ -55,9 +47,13 @@ public class doxygen_parsing_enums_typesafe_runme {
     wantedComments.put("doxygen_parsing_enums_typesafe.SomeAnotherEnum2.SOME_ITEM_30",
     		"Post comment for the third item \n" +
     		"");
+    wantedComments.put("doxygen_parsing_enums_typesafe.SomeEnumWithTrailingComma.SOME_ITEM_100",
+    		"Post comment after comma.");
+    wantedComments.put("doxygen_parsing_enums_typesafe.SomeEnumWithTrailingComma.SOME_ITEM_200",
+    		"Post comment after last comma.");
 
     
     // and ask the parser to check comments for us
-    System.exit(parser.check(wantedComments));
+    System.exit(CommentParser.check(wantedComments));
   }
 }

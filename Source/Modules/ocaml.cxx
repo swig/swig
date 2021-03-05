@@ -473,7 +473,6 @@ public:
 
     Wrapper *f = NewWrapper();
     String *proc_name = NewString("");
-    String *source = NewString("");
     String *target = NewString("");
     String *arg = NewString("");
     String *cleanup = NewString("");
@@ -580,10 +579,9 @@ public:
       pt = SwigType_typedef_qualified(pt);
 
       // Produce names of source and target
-      Clear(source);
       Clear(target);
       Clear(arg);
-      Printf(source, "caml_list_nth(args,%d)", i);
+      String *source = NewStringf("caml_list_nth(args,%d)", i);
       Printf(target, "%s", ln);
       Printv(arg, Getattr(p, "name"), NIL);
 
@@ -607,6 +605,7 @@ public:
       if (i >= numreq) {
 	Printf(f->code, "}\n");
       }
+      Delete(source);
     }
 
     /* Insert constraint checking code */
@@ -787,7 +786,6 @@ public:
       Printf(f_mlibody, "val %s : c_obj -> c_obj\n", mangled_name);
 
     Delete(proc_name);
-    Delete(source);
     Delete(target);
     Delete(arg);
     Delete(outarg);
@@ -1621,7 +1619,7 @@ public:
       /* pass the method call on to the OCaml object */
       Printv(w->code,
 	     "swig_result = caml_swig_alloc(1,C_list);\n" "SWIG_Store_field(swig_result,0,args);\n" "args = swig_result;\n" "swig_result = Val_unit;\n", 0);
-      Printf(w->code, "static CAML_VALUE *swig_ocaml_func_val = NULL;\n" "if (!swig_ocaml_func_val) {\n");
+      Printf(w->code, "static const CAML_VALUE *swig_ocaml_func_val = NULL;\n" "if (!swig_ocaml_func_val) {\n");
       Printf(w->code, "  swig_ocaml_func_val = caml_named_value(\"swig_runmethod\");\n  }\n");
       Printf(w->code, "swig_result = caml_callback3(*swig_ocaml_func_val,swig_get_self(),caml_copy_string(\"%s\"),args);\n", Getattr(n, "name"));
       /* exception handling */
@@ -1866,9 +1864,9 @@ public:
   }
 
   String *runtimeCode() {
-    String *s = Swig_include_sys("ocaml.swg");
+    String *s = Swig_include_sys("ocamlrun.swg");
     if (!s) {
-      Printf(stderr, "*** Unable to open 'ocaml.swg'\n");
+      Printf(stderr, "*** Unable to open 'ocamlrun.swg'\n");
       s = NewString("");
     }
     return s;

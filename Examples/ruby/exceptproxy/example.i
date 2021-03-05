@@ -14,7 +14,7 @@
 %}
 
 
-/* The EmpytError doesn't appear in a throw declaration, and hence
+/* The EmptyError doesn't appear in a throw declaration, and hence
   we need to tell SWIG that the dequeue method throws it.  This can
   now be done via the %catchs feature. */
 %catches(FullError) *::enqueue;

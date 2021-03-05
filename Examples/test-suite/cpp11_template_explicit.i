@@ -8,7 +8,8 @@
 
 %inline %{
 
-template<typename T> struct Temper {
+template<typename T> class Temper {
+public:
   T val;
 };
 
@@ -18,14 +19,20 @@ public:
   int memberFunction() { return 100; }
 };
 
+class B {
+public:
+  short member;
+  short memberFunction() { return 100; }
+};
+
 template class Temper<A>;
-extern template class Temper<A>;
+extern template class Temper<B>;
 
 template class Temper<A*>;
-extern template class Temper<A*>;
+extern template class Temper<B*>;
 
 template class Temper<int>;
-extern template class Temper<int>;
+extern template class Temper<short>;
 %}
 
 %template(TemperInt) Temper<int>;

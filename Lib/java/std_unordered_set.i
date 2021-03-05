@@ -43,12 +43,12 @@
 
 namespace std {
 
-template <class T>
+template <class Key>
 class unordered_set {
 
-%typemap(javabase) std::unordered_set<T> "java.util.AbstractSet<$typemap(jboxtype, T)>"
+%typemap(javabase) std::unordered_set<Key> "java.util.AbstractSet<$typemap(jboxtype, Key)>"
 %proxycode %{
-  public $javaclassname(java.util.Collection<? extends $typemap(jboxtype, T)> collection) {
+  public $javaclassname(java.util.Collection<? extends $typemap(jboxtype, Key)> collection) {
     this();
     addAll(collection);
   }
@@ -57,34 +57,34 @@ class unordered_set {
     return sizeImpl();
   }
 
-  public boolean addAll(java.util.Collection<? extends $typemap(jboxtype, T)> collection) {
+  public boolean addAll(java.util.Collection<? extends $typemap(jboxtype, Key)> collection) {
     boolean didAddElement = false;
     for (java.lang.Object object : collection) {
-      didAddElement |= add(($typemap(jboxtype, T))object);
+      didAddElement |= add(($typemap(jboxtype, Key))object);
     }
 
     return didAddElement;
   }
 
-  public java.util.Iterator<$typemap(jboxtype, T)> iterator() {
-    return new java.util.Iterator<$typemap(jboxtype, T)>() {
+  public java.util.Iterator<$typemap(jboxtype, Key)> iterator() {
+    return new java.util.Iterator<$typemap(jboxtype, Key)>() {
       private Iterator curr;
       private Iterator end;
 
-      private java.util.Iterator<$typemap(jboxtype, T)> init() {
+      private java.util.Iterator<$typemap(jboxtype, Key)> init() {
         curr = $javaclassname.this.begin();
         end = $javaclassname.this.end();
         return this;
       }
 
-      public $typemap(jboxtype, T) next() {
+      public $typemap(jboxtype, Key) next() {
         if (!hasNext()) {
           throw new java.util.NoSuchElementException();
         }
 
         // Save the current position, increment it,
         // then return the value at the position before the increment.
-        final $typemap(jboxtype, T) currValue = curr.derefUnchecked();
+        final $typemap(jboxtype, Key) currValue = curr.derefUnchecked();
         curr.incrementUnchecked();
         return currValue;
       }
@@ -106,11 +106,11 @@ class unordered_set {
   }
 
   public boolean contains(java.lang.Object object) {
-    if (!(object instanceof $typemap(jboxtype, T))) {
+    if (!(object instanceof $typemap(jboxtype, Key))) {
       return false;
     }
 
-    return containsImpl(($typemap(jboxtype, T))object);
+    return containsImpl(($typemap(jboxtype, Key))object);
   }
 
   public boolean removeAll(java.util.Collection<?> collection) {
@@ -123,11 +123,11 @@ class unordered_set {
   }
 
   public boolean remove(java.lang.Object object) {
-    if (!(object instanceof $typemap(jboxtype, T))) {
+    if (!(object instanceof $typemap(jboxtype, Key))) {
       return false;
     }
 
-    return removeImpl(($typemap(jboxtype, T))object);
+    return removeImpl(($typemap(jboxtype, Key))object);
   }
 %}
 
@@ -140,7 +140,7 @@ class unordered_set {
           ++(*$self);
         }
 
-        T derefUnchecked() const {
+        Key derefUnchecked() const {
           return **$self;
         }
 
@@ -152,8 +152,8 @@ class unordered_set {
 
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
-    typedef T value_type;
-    typedef T key_type;
+    typedef Key value_type;
+    typedef Key key_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type& reference;
@@ -172,17 +172,17 @@ class unordered_set {
       %fragment("SWIG_UnorderedSetSize");
 
       // Returns whether item was inserted.
-      bool add(const T& key) {
+      bool add(const Key& key) {
         return self->insert(key).second;
       }
 
       // Returns whether set contains key.
-      bool containsImpl(const T& key) {
+      bool containsImpl(const Key& key) {
         return (self->count(key) > 0);
       }
 
       // Returns whether the item was erased.
-      bool removeImpl(const T& key) {
+      bool removeImpl(const Key& key) {
         return (self->erase(key) > 0);
       }
 

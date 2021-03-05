@@ -45,11 +45,20 @@ namespace swig {
   template <class Type>
   struct traits_asptr {   
     static int asptr(PyObject *obj, Type **val) {
-      Type *p = 0;
+      int res = SWIG_ERROR;
       swig_type_info *descriptor = type_info<Type>();
-      int res = descriptor ? SWIG_ConvertPtr(obj, (void **)&p, descriptor, 0) : SWIG_ERROR;
-      if (SWIG_IsOK(res)) {
-	if (val) *val = p;
+      if (val) {
+        Type *p = 0;
+        int newmem = 0;
+        res = descriptor ? SWIG_ConvertPtrAndOwn(obj, (void **)&p, descriptor, 0, &newmem) : SWIG_ERROR;
+        if (SWIG_IsOK(res)) {
+          if (newmem & SWIG_CAST_NEW_MEMORY) {
+            res |= SWIG_NEWOBJMASK;
+          }
+          *val = p;
+        }
+      } else {
+        res = descriptor ? SWIG_ConvertPtr(obj, 0, descriptor, 0) : SWIG_ERROR;
       }
       return res;
     }

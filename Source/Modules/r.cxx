@@ -36,11 +36,6 @@ static String * getRTypeName(SwigType *t, int *outCount = NULL) {
   if(Strncmp(b, "struct ", 7) == 0)
     Replace(b, "struct ", "", DOH_REPLACE_FIRST);
 
-  /* Printf(stdout, "<getRTypeName> %s,base = %s\n", t, b);
-     for(i = 0; i < Len(els); i++)
-     Printf(stdout, "%d) %s, ", i, Getitem(els,i));
-     Printf(stdout, "\n"); */
-
   for(i = 0; i < Len(els); i++) {
     String *el = Getitem(els, i);
     if(Strcmp(el, "p.") == 0 || Strncmp(el, "a(", 2) == 0) {
@@ -56,91 +51,44 @@ static String * getRTypeName(SwigType *t, int *outCount = NULL) {
   Insert(tmp, 0, retName);
   return tmp;
 
-  /*
-    if(count)
-    return(b);
-
-    Delete(b);
-    return(NewString(""));
-  */
 }
 
-/*********************
- Tries to get the name of the R class corresponding  to the given type
-  e.g. struct A * is ARef,  struct A**  is  ARefRef.
-  Now handles arrays, i.e. struct A[2]
-****************/
+/* --------------------------------------------------------------
+ * Tries to get the resolved name, with options of adding
+ * or removing a layer of references. Take care not
+ * to request both
+ * --------------------------------------------------------------*/
 
-static String *getRClassName(String *retType, int /*addRef*/ = 1, int upRef=0) {
-  String *tmp = NewString("");
+static String *getRClassName(String *retType, int deRef=0, int upRef=0) {
   SwigType *resolved = SwigType_typedef_resolve_all(retType);
-  char *retName = Char(SwigType_manglestr(resolved));
+  int ispointer = SwigType_ispointer(resolved);
+  int isreference = SwigType_isreference(resolved);
   if (upRef) {
-    Printf(tmp, "_p%s", retName);
-  } else{
-    Insert(tmp, 0, retName);
+    SwigType_add_pointer(resolved);
   }
-
-  return tmp;
-/*
-#if 1
-  List *l = SwigType_split(retType);
-  int n = Len(l);
-  if(!l || n == 0) {
-#ifdef R_SWIG_VERBOSE
-    if (debugMode)
-      Printf(stdout, "SwigType_split return an empty list for %s\n",
-             retType);
-#endif
-    return(tmp);
-  }
-
-
-  String *el = Getitem(l, n-1);
-  char *ptr = Char(el);
-  if(strncmp(ptr, "struct ", 7) == 0)
-    ptr += 7;
-
-  Printf(tmp, "%s", ptr);
-
-  if(addRef) {
-    for(int i = 0; i < n; i++) {
-      if(Strcmp(Getitem(l, i), "p.") == 0 ||
-         Strncmp(Getitem(l, i), "a(", 2) == 0)
-        Printf(tmp, "Ref");
+  if (deRef) {
+    if (ispointer) {
+      SwigType_del_pointer(resolved);
     }
-  }
-
-#else
-  char *retName = Char(SwigType_manglestr(retType));
-  if(!retName)
-    return(tmp);
-
-  if(addRef) {
-    while(retName && strlen(retName) > 1 && strncmp(retName, "_p", 2) == 0)  {
-      retName += 2;
-      Printf(tmp, "Ref");
+    if (isreference) {
+      SwigType_del_reference(resolved);
     }
-  }
-  if(retName[0] == '_')
-    retName ++;
-  Insert(tmp, 0, retName);
-#endif
-
-  return tmp;
-*/
+  } 
+  String *tmp = NewString("");
+  Insert(tmp, 0, Char(SwigType_manglestr(resolved)));
+  return(tmp);
 }
 
-/*********************
- Tries to get the name of the R class corresponding  to the given type
-  e.g. struct A * is ARef,  struct A**  is  ARefRef.
-  Now handles arrays, i.e. struct A[2]
-****************/
+/* --------------------------------------------------------------
+ * Tries to get the name of the R class corresponding  to the given type
+ * e.g. struct A * is ARef,  struct A**  is  ARefRef.
+ * Now handles arrays, i.e. struct A[2]
+ * --------------------------------------------------------------*/
+
 
 static String * getRClassNameCopyStruct(String *retType, int addRef) {
   String *tmp = NewString("");
 
-#if 1
   List *l = SwigType_split(retType);
   int n = Len(l);
   if(!l || n == 0) {
@@ -166,34 +114,17 @@ static String * getRClassNameCopyStruct(String *retType, int addRef) {
     }
   }
 
-#else
-  char *retName = Char(SwigType_manglestr(retType));
-  if(!retName)
-    return(tmp);
-
-  if(addRef) {
-    while(retName && strlen(retName) > 1 &&
-	  strncmp(retName, "_p", 2) == 0)  {
-      retName += 2;
-      Printf(tmp, "Ref");
-    }
-  }
-
-  if(retName[0] == '_')
-    retName ++;
-  Insert(tmp, 0, retName);
-#endif
-
   return tmp;
 }
 
 
-/*********************************
-  Write the elements of a list to the File*, one element per line.
-  If quote  is true, surround the element with "element".
-  This takes care of inserting a tab in front of each line and also
-  a comma after each element, except the last one.
-**********************************/
+/* -------------------------------------------------------------
+ * Write the elements of a list to the File*, one element per line.
+ * If quote  is true, surround the element with "element".
+ * This takes care of inserting a tab in front of each line and also
+ * a comma after each element, except the last one.
+ * --------------------------------------------------------------*/
+
 
 static void writeListByLine(List *l, File *out, bool quote = 0) {
   int i, n = Len(l);
@@ -222,9 +153,10 @@ R Options (available with -r)\n\
 
 
 
-/************
- Display the help for this module on the screen/console.
-*************/
+/* -------------------------------------------------------------
+ * Display the help for this module on the screen/console.
+ * --------------------------------------------------------------*/
+
 static void showUsage() {
   fputs(usage, stdout);
 }
@@ -238,10 +170,11 @@ static bool expandTypedef(SwigType *t) {
 }
 
 
-/*****
-      Determine whether  we should add a .copy argument to the S function
-      that wraps/interfaces to the routine that returns the given type.
-*****/
+/* -------------------------------------------------------------
+ * Determine whether  we should add a .copy argument to the S function
+ * that wraps/interfaces to the routine that returns the given type.
+ * --------------------------------------------------------------*/
+
 static int addCopyParameter(SwigType *type) {
   int ok = 0;
   ok = Strncmp(type, "struct ", 7) == 0 || Strncmp(type, "p.struct ", 9) == 0;
@@ -253,25 +186,13 @@ static int addCopyParameter(SwigType *type) {
 }
 
 static void replaceRClass(String *tm, SwigType *type) {
-  String *tmp = getRClassName(type);
-  String *tmp_base = getRClassName(type, 0);
-  String *tmp_ref = getRClassName(type, 1, 1);
+  String *tmp = getRClassName(type, 0, 0);
+  String *tmp_base = getRClassName(type, 1, 0);
+  String *tmp_ref = getRClassName(type, 0, 1);
   Replaceall(tm, "$R_class", tmp);
   Replaceall(tm, "$*R_class", tmp_base);
   Replaceall(tm, "$&R_class", tmp_ref);
   Delete(tmp); Delete(tmp_base); Delete(tmp_ref);
-}
-
-static bool getNumber(String *value, int* result) {
-  if(Char(value)) {
-    // Check the conversion processed the whole of value by having %c at
-    // the end of the format, and checking that only the first value is
-    // converted.  We don't want to convert "3+7" -> 3.
-    char dummy;
-    if (sscanf(Char(value), "%i%c", result, &dummy) == 1)
-      return true;
-  }
-  return false;
 }
 
 class R : public Language {
@@ -288,7 +209,8 @@ public:
 
   int classDeclaration(Node *n);
   int enumDeclaration(Node *n);
-
+  String *enumValue(Node *n);
+  virtual int enumvalueDeclaration(Node *n);
   int membervariableHandler(Node *n);
 
   int typedefHandler(Node *n);
@@ -332,12 +254,7 @@ protected:
   int generateCopyRoutines(Node *n);
   int DumpCode(Node *n);
 
-  int OutputMemberReferenceMethod(String *className, int isSet, List *el, File *out);
-  int OutputArrayMethod(String *className, List *el, File *out);
-  int OutputClassMemberTable(Hash *tb, File *out);
-  int OutputClassMethodsTable(File *out);
-  int OutputClassAccessInfo(Hash *tb, File *out);
-
+  int OutputMemberReferenceMethod(String *className, int isSet, List *memberList, List *nameList, List *typeList, File *out);
   int defineArrayAccessors(SwigType *type);
 
   void addNamespaceFunction(String *name) {
@@ -381,9 +298,13 @@ protected:
 
 
   void addAccessor(String *memberName, Wrapper *f,
-		   String *name, int isSet = -1);
+		   String *name, String *methodSetGet);
 
   static int getFunctionPointerNumArgs(Node *n, SwigType *tt);
+
+  // filtering of class member lists by function type. Used in constructing accessors
+  // are we allowed to use stl style functors to customise this?
+  List* filterMemberList(List *class_member_function_types, List *class_member_other, String *R_MEMBER, bool equal);
 
 protected:
   bool copyStruct;
@@ -392,6 +313,8 @@ protected:
 
   // Strings into which we cumulate the generated code that is to be written
   //vto the files.
+  String *enum_values;
+  String *enum_def_calls;
   String *sfile;
   String *f_init;
   String *s_classes;
@@ -412,11 +335,18 @@ protected:
   String *member_name;
   String *class_name;
 
+  String *R_MEMBER_NORMAL;
+  String *R_MEMBER_SET;
+  String *R_MEMBER_GET;
 
   int processing_class_member_function;
-  List *class_member_functions;
-  List *class_member_set_functions;
-
+  // Spread out the lists so that they are simpler to process
+  // by storing the type of the method (i.e. set, get or nothing)
+  // and having separate lists for name, membername and wrapper
+  List *class_member_function_types;
+  List *class_member_function_names;
+  List *class_member_function_membernames;
+  List *class_member_function_wrappernames;
   /* */
   Hash *ClassMemberTable;
   Hash *ClassMethodsTable;
@@ -456,6 +386,8 @@ R::R() :
   copyStruct(false),
   memoryProfile(false),
   aggressiveGc(false),
+  enum_values(0),
+  enum_def_calls(0),
   sfile(0),
   f_init(0),
   s_classes(0),
@@ -472,9 +404,14 @@ R::R() :
   processing_member_access_function(0),
   member_name(0),
   class_name(0),
+  R_MEMBER_NORMAL(NewString("normal")),
+  R_MEMBER_SET(NewString("set")),
+  R_MEMBER_GET(NewString("get")),
   processing_class_member_function(0),
-  class_member_functions(0),
-  class_member_set_functions(0),
+  class_member_function_types(0),
+  class_member_function_names(0),
+  class_member_function_membernames(0),
+  class_member_function_wrappernames(0),
   ClassMemberTable(0),
   ClassMethodsTable(0),
   SClassDefs(0),
@@ -535,9 +472,10 @@ void R::addSMethodInfo(String *name, String *argType, int nargs) {
   }
 }
 
-/*
-  Returns the name of the new routine.
-*/
+/* ----------------------------------------
+ * Returns the name of the new routine.
+ * ------------------------------------------ */
+
 String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   String *funName = SwigType_manglestr(t);
 
@@ -552,7 +490,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   SwigType *funcparams = SwigType_functionpointer_decompose(rettype);
   String *rtype = SwigType_str(rettype, 0);
 
-  //   ParmList *parms = Getattr(n, "parms");
+  // ParmList *parms = Getattr(n, "parms");
   // memory leak
   ParmList *parms = SwigType_function_parms(SwigType_del_pointer(Copy(t)), n);
 
@@ -574,7 +512,6 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   for (i = 0; p; p = nextSibling(p), ++i) {
     String *arg = Getattr(p, "name");
     String *lname;
-
     if (!arg && Cmp(Getattr(p, "type"), "void")) {
       lname = NewStringf("arg%d", i+1);
       Setattr(p, "name", lname);
@@ -635,6 +572,9 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
       }
       Replaceall(tm, "$1", name);
       Replaceall(tm, "$result", "r_tmp");
+      if (debugMode) {
+        Printf(stdout, "Calling Replace A: %s\n", Getattr(p,"type"));
+      }
       replaceRClass(tm, Getattr(p,"type"));
       Replaceall(tm,"$owner", "0");
       Delete(lstr);
@@ -756,29 +696,23 @@ void R::init() {
   s_classes = NewString("");
   s_init = NewString("");
   s_init_routine = NewString("");
+  enum_def_calls = NewString("");
 }
 
 
-
-#if 0
-int R::cDeclaration(Node *n) {
-  SwigType *t = Getattr(n, "type");
-  SwigType *name = Getattr(n, "name");
-  if (debugMode)
-    Printf(stdout, "cDeclaration (%s): %s\n", name, SwigType_lstr(t, 0));
-  return Language::cDeclaration(n);
-}
-#endif
-
-
-/**
-   Method from Language that is called to start the entire
-   processing off, i.e. the generation of the code.
-   It is called after the input has been read and parsed.
-   Here we open the output streams and generate the code.
-***/
+/* -------------------------------------------------------------
+ *  Method from Language that is called to start the entire
+ *  processing off, i.e. the generation of the code.
+ *  It is called after the input has been read and parsed.
+ *  Here we open the output streams and generate the code.
+ * ------------------------------------------------------------- */
 int R::top(Node *n) {
   String *module = Getattr(n, "name");
+
+  if (debugMode) {
+    Printf(stdout, "<Top> %s\n", module);
+  }
+
   if(!Rpackage)
     Rpackage = Copy(module);
   if(!DllName)
@@ -789,6 +723,8 @@ int R::top(Node *n) {
     Swig_register_filebyname("snamespace", s_namespace);
     Printf(s_namespace, "useDynLib(%s)\n", DllName);
   }
+  // Register the naming functions
+  Swig_name_register("wrapper", "R_swig_%f");
 
   /* Associate the different streams with names so that they can be used in %insert directives by the
      typemap code. */
@@ -853,9 +789,9 @@ int R::top(Node *n) {
 }
 
 
-/*****************************************************
-  Write the generated code  to the .S and the .c files.
-****************************************************/
+/* -------------------------------------------------------------
+ * Write the generated code  to the .S and the .c files.
+ * ------------------------------------------------------------- */
 int R::DumpCode(Node *n) {
   String *output_filename = NewString("");
 
@@ -878,6 +814,7 @@ int R::DumpCode(Node *n) {
   Printf(scode, "%s\n\n", s_init);
   Printf(scode, "%s\n\n", s_classes);
   Printf(scode, "%s\n", sfile);
+  Printf(scode, "%s\n", enum_def_calls);
 
   Delete(scode);
   String *outfile = Getattr(n,"outfile");
@@ -921,23 +858,50 @@ int R::DumpCode(Node *n) {
 }
 
 
+List *R::filterMemberList(List *class_member_types, 
+                          List *class_member_other, 
+                          String *R_MEMBER, bool equal) {
+  // filters class_member_other based on whether corresponding elements of
+  // class_member_function_types are equal or notequal to R_MEMBER
+  List *CM = NewList();
+  Iterator ftype, other;
 
-/*
-  We may need to do more.... so this is left as a
-  stub for the moment.
-*/
+  for (ftype = First(class_member_types), other = First(class_member_other);
+       ftype.item; 
+       ftype=Next(ftype), other=Next(other)) {
+    // verbose, clean up later if the overall structure works
+    if (equal) {
+      if (ftype.item == R_MEMBER) {
+        Append(CM, other.item);
+      }
+    } else {
+      if (ftype.item != R_MEMBER) {
+        Append(CM, other.item);
+      }
+    }
+  }
+  return(CM);
+}
+
+# if 0
+// not called
+/* -------------------------------------------------------------
+ * We may need to do more.... so this is left as a
+ * stub for the moment.
+ * -------------------------------------------------------------*/
 int R::OutputClassAccessInfo(Hash *tb, File *out) {
   int n = OutputClassMemberTable(tb, out);
   OutputClassMethodsTable(out);
   return n;
 }
 
-/************************************************************************
-  Currently this just writes the information collected about the
-  different methods of the C++ classes that have been processed
-  to the console.
-  This will be used later to define S4 generics and methods.
-**************************************************************************/
+/* -------------------------------------------------------------
+ * Currently this just writes the information collected about the
+ * different methods of the C++ classes that have been processed
+ * to the console.
+ * This will be used later to define S4 generics and methods.
+ * --------------------------------------------------------------*/
+
 int R::OutputClassMethodsTable(File *) {
   Hash *tb = ClassMethodsTable;
 
@@ -966,20 +930,21 @@ int R::OutputClassMethodsTable(File *) {
 }
 
 
-/*
-  Iterate over the <class name>_set and <>_get
-  elements and generate the $ and $<- functions
-  that provide constrained access to the member
-  fields in these elements.
+/* --------------------------------------------------------------
+ * Iterate over the <class name>_set and <>_get
+ * elements and generate the $ and $<- functions
+ * that provide constrained access to the member
+ * fields in these elements.
 
-  tb - a hash table that is built up in functionWrapper
-  as we process each membervalueHandler.
-  The entries are indexed by <class name>_set and
-  <class_name>_get. Each entry is a List *.
+ * tb - a hash table that is built up in functionWrapper
+ * as we process each membervalueHandler.
+ * The entries are indexed by <class name>_set and
+ * <class_name>_get. Each entry is a List *.
 
-  out - the stram where the code is to be written. This is the S
-  code stream as we generate only S code here..
-*/
+ * out - the stram where the code is to be written. This is the S
+ * code stream as we generate only S code here.
+ * --------------------------------------------------------------*/
+
 int R::OutputClassMemberTable(Hash *tb, File *out) {
   List *keys = Keys(tb), *el;
 
@@ -1006,9 +971,6 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
       isSet = strcmp(ptr, "_set") == 0;
     }
 
-    //        OutputArrayMethod(className, el, out);  
-    OutputMemberReferenceMethod(className, isSet, el, out);
-
     if(outputNamespaceInfo)
       Printf(s_namespace, "\"%s\"%s", className, i < n-1 ? "," : "");
   }
@@ -1019,20 +981,24 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
   return n;
 }
 
-/*******************************************************************
- Write the methods for $ or $<- for accessing a member field in an
- struct or union (or class).
- className - the name of the struct or union (e.g. Bar for struct Bar)
- isSet - a logical value indicating whether the method is for
-	   modifying ($<-) or accessing ($) the member field.
- el - a list of length  2 * # accessible member elements  + 1.
-      The first element is the name of the class.
-      The other pairs are  member name and the name of the R function to access it.
- out - the stream where we write the code.
-********************************************************************/
-int R::OutputMemberReferenceMethod(String *className, int isSet,
-				   List *el, File *out) {
-  int numMems = Len(el), j;
+// end not used
+#endif
+/* --------------------------------------------------------------
+ * Write the methods for $ or $<- for accessing a member field in an
+ * struct or union (or class).
+ * className - the name of the struct or union (e.g. Bar for struct Bar)
+ * isSet - a logical value indicating whether the method is for
+ *	   modifying ($<-) or accessing ($) the member field.
+ * el - a list of length  2 * # accessible member elements  + 1.
+ *     The first element is the name of the class.
+ *     The other pairs are  member name and the name of the R function to access it.
+ * out - the stream where we write the code.
+ * --------------------------------------------------------------*/
+
+int R::OutputMemberReferenceMethod(String *className, int isSet,  
+				   List *memberList, List *nameList,
+				   List *typeList, File *out) {
+  int numMems = Len(memberList), j;
   int varaccessor = 0;
   if (numMems == 0)
     return SWIG_OK;
@@ -1047,13 +1013,12 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
 
   Node *itemList = NewHash();
   bool has_prev = false;
-  for(j = 0; j < numMems; j+=3) {
-    String *item = Getitem(el, j);
-    String *dup = Getitem(el, j + 1);
-    char *ptr = Char(dup);
-    ptr = &ptr[Len(dup) - 3];
+  for(j = 0; j < numMems; j++) {
+    String *item = Getitem(memberList, j);
+    String *dup = Getitem(nameList, j);
+    String *setgetmethod = Getitem(typeList, j);
 
-    if (!strcmp(ptr, "get"))
+    if (setgetmethod == R_MEMBER_GET)
       varaccessor++;
 
     if (Getattr(itemList, item))
@@ -1083,30 +1048,20 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
 
   if (!isSet && varaccessor > 0) {
     Printf(f->code, "%svaccessors = c(", tab8);
-    int first = 1;
-    for(j = 0; j < numMems; j+=3) {
-      String *item = Getitem(el, j);
-      String *dup = Getitem(el, j + 1);
-      char *ptr = Char(dup);
-      ptr = &ptr[Len(dup) - 3];
+    bool first = true;
+    for(j = 0; j < numMems; j++) {
+      String *item = Getitem(memberList, j);
+      String *setgetmethod = Getitem(typeList, j);
 
-      if (!strcmp(ptr, "get")) {
+      // Check the type here instead of the name
+      if (setgetmethod == R_MEMBER_GET) {
 	Printf(f->code, "%s'%s'", first ? "" : ", ", item);
-	first = 0;
+	first = false;
       }
     }
     Printf(f->code, ");\n");
   }
 
-
-  /*    Printv(f->code, tab8,
-	"idx = pmatch(name, names(accessorFuns))\n",
-	tab8,
-	"if(is.na(idx)) {\n",
-	tab8, tab4,
-	"stop(\"No ", (isSet ? "modifiable" : "accessible"), " field named \", name, \" in ", className,
-	": fields are \", paste(names(accessorFuns), sep = \", \")",
-	")", "\n}\n", NIL); */
   Printv(f->code, ";", tab8,
 	 "idx = pmatch(name, names(accessorFuns));\n",
 	 tab8,
@@ -1128,8 +1083,8 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
   }
   Printf(f->code, "}\n");
 
-
-  Printf(out, "# Start of accessor method for %s\n", className);
+  String *classname_str = SwigType_namestr(className);
+  Printf(out, "# Start of accessor method for %s\n", classname_str);
   Printf(out, "setMethod('$%s', '_p%s', ",
 	 isSet ? "<-" : "",
 	 getRClassName(className));
@@ -1145,150 +1100,161 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
     Printf(out, ");\n");
   }
 
+  Printf(out, "# end of accessor method for %s\n", classname_str);
+
+  Delete(classname_str);
   DelWrapper(attr);
   DelWrapper(f);
 
-  Printf(out, "# end of accessor method for %s\n", className);
-
   return SWIG_OK;
 }
 
-/*******************************************************************
- Write the methods for [ or [<- for accessing a member field in an
- struct or union (or class).
- className - the name of the struct or union (e.g. Bar for struct Bar)
- el - a list of length  2 * # accessible member elements  + 1.
-      The first element is the name of the class.
-      The other pairs are  member name and the name of the R function to access it.
- out - the stream where we write the code.
-********************************************************************/
-int R::OutputArrayMethod(String *className, List *el, File *out) {
-  int numMems = Len(el), j;
+/* -------------------------------------------------------------
+ * Called when a enumeration is to be processed.
+ * We want to call the R function defineEnumeration().
+ * tdname is the typedef of the enumeration, i.e. giving its name.
+ * --------------------------------------------------------------*/
 
-  if(!el || numMems == 0)
-    return(0);
-
-  Printf(out, "# start of array methods for %s\n", className);
-  for(j = 0; j < numMems; j+=3) {
-    String *item = Getitem(el, j);
-    String *dup = Getitem(el, j + 1);
-    if (!Strcmp(item, "__getitem__")) {
-      Printf(out,
-	     "setMethod('[', '_p%s', function(x, i, j, ..., drop =TRUE) ",
-	     getRClassName(className));
-      Printf(out, "  sapply(i, function (n)  %s(x, as.integer(n-1))))\n\n", dup);
-    }
-    if (!Strcmp(item, "__setitem__")) {
-      Printf(out, "setMethod('[<-', '_p%s', function(x, i, j, ..., value)",
-	     getRClassName(className));
-      Printf(out, "  sapply(1:length(i), function(n) %s(x, as.integer(i[n]-1), value[n])))\n\n", dup);
-    }
-
-  }
-
-  Printf(out, "# end of array methods for %s\n", className);
-
-  return SWIG_OK;
-}
-
-
-/************************************************************
- Called when a enumeration is to be processed.
- We want to call the R function defineEnumeration().
- tdname is the typedef of the enumeration, i.e. giving its name.
-*************************************************************/
 int R::enumDeclaration(Node *n) {
-  if (getCurrentClass() && (cplus_mode != PUBLIC))
-    return SWIG_NOWRAP;
+  if (!ImportMode) {
+    if (getCurrentClass() && (cplus_mode != PUBLIC))
+      return SWIG_NOWRAP;
 
-  String *name = Getattr(n, "name");
-  String *tdname = Getattr(n, "tdname");
+    String *symname = Getattr(n, "sym:name");
 
-  /* Using name if tdname is empty. */
+    // TODO - deal with anonymous enumerations
+    // Previous enum code for R didn't wrap them
+    if (!symname || Getattr(n, "unnamedinstance"))
+      return SWIG_NOWRAP;
 
-  if(Len(tdname) == 0)
-    tdname = name;
+    // create mangled name for the enum
+    // This will have content if the %nspace feature is set on
+    // the input file
+    String *nspace = Getattr(n, "sym:nspace"); // NSpace/getNSpace() only works during Language::enumDeclaration call
+    String *ename;
 
-
-  if(!tdname || Strcmp(tdname, "") == 0) {
+    String *name = Getattr(n, "name");
+    ename = getRClassName(name); 
+    if (debugMode) {
+      Node *current_class = getCurrentClass();
+      String *cl = NewString("");
+      if (current_class) {
+        cl = getEnumClassPrefix();
+      }
+      Printf(stdout, "enumDeclaration: %s, %s, %s, %s, %s\n", name, symname, nspace, ename, cl);
+    }
+    Delete(name);
+    // set up a call to create the R enum structure. The list of
+    // individual elements will be built in enum_code
+    enum_values = 0;
+    // Emit each enum item
     Language::enumDeclaration(n);
-    return SWIG_OK;
+      
+    Printf(enum_def_calls, "defineEnumeration(\"%s\",\n .values=c(%s))\n\n", ename, enum_values);
+    Delete(enum_values);
+    Delete(ename);
+  }
+  return SWIG_OK;
+}
+
+/* -------------------------------------------------------------
+* --------------------------------------------------------------*/
+
+int R::enumvalueDeclaration(Node *n) {
+  if (getCurrentClass() && (cplus_mode != PUBLIC)) {
+    Printf(stdout, "evd: Not public\n");
+    return SWIG_NOWRAP;
   }
 
-  String *mangled_tdname = SwigType_manglestr(tdname);
-  String *scode = NewString("");
+  Swig_require("enumvalueDeclaration", n, "*name", "?value", NIL);
+  String *symname = Getattr(n, "sym:name");
+  String *value = Getattr(n, "value");
+  String *name = Getattr(n, "name");
+  Node *parent = parentNode(n);
+  String *parent_name = Getattr(parent, "name");
+  String *newsymname = 0;
+  String *tmpValue;
 
-  Printv(scode, "defineEnumeration('", mangled_tdname, "'",
-	 ",\n",  tab8, tab8, tab4, ".values = c(\n", NIL);
-
-  Node *c;
-  int value = -1; // First number is zero
-  for (c = firstChild(n); c; c = nextSibling(c)) {
-    //      const char *tag = Char(nodeType(c));
-    //      if (Strcmp(tag,"cdecl") == 0) {
-    name = Getattr(c, "name");
-    String *val = Getattr(c, "enumvalue");
-    if(val && Char(val)) {
-      int inval;
-      if (!getNumber(val, &inval)) {
-	// Conversion failed - use the string value in val.
-      } else {
-	val = NULL;
-	value = inval;
-      }
-    } else {
-      val = NULL;
-      value++;
-    }
-
-    if (val != NULL) {
-      // This won't work in general, but will at least handle cases like (3)
-      // and 3+7, and when it doesn't work, it'll fail noisly rather than
-      // quietly using the wrong enum value like we used to.
-      if (!Strcmp(val, "true")) {
-	Printf(scode, "%s%s%s'%s' = %s%s\n", tab8, tab8, tab8, name, "TRUE",
-	       nextSibling(c) ? ", " : "");
-      } else if (!Strcmp(val, "false")) {
-	Printf(scode, "%s%s%s'%s' = %s%s\n", tab8, tab8, tab8, name, "FALSE",
-	       nextSibling(c) ? ", " : "");
-      } else {
-	Printf(scode, "%s%s%s'%s' = %s%s\n", tab8, tab8, tab8, name, val,
-	       nextSibling(c) ? ", " : "");
-      }
-    } else {
-      Printf(scode, "%s%s%s'%s' = %d%s\n", tab8, tab8, tab8, name, value,
-	     nextSibling(c) ? ", " : "");
-    }
-    //      }
+  // Strange hack from parent method
+  if (value)
+    tmpValue = NewString(value);
+  else
+    tmpValue = NewString(name);
+  // Note that this is used in enumValue() amongst other places
+  Setattr(n, "value", tmpValue);
+  
+  // Deal with enum values that are not int
+  int swigtype = SwigType_type(Getattr(n, "type"));
+  if (swigtype == T_BOOL) {
+    const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
+    Setattr(n, "enumvalue", val);
+  } else if (swigtype == T_CHAR) {
+    String *val = NewStringf("'%s'", Getattr(n, "enumvalue"));
+    Setattr(n, "enumvalue", val);
+    Delete(val);
   }
 
-  Printv(scode, "))", NIL);
-  Printf(sfile, "%s\n", scode);
+  if (GetFlag(parent, "scopedenum")) {
+    newsymname = Swig_name_member(0, Getattr(parent, "sym:name"), symname);
+    symname = newsymname;
+  }
 
-  Delete(scode);
-  Delete(mangled_tdname);
+  {
+    // Wrap C/C++ enums with constant integers or use the typesafe enum pattern
+    SwigType *typemap_lookup_type = parent_name ? parent_name : NewString("enum ");
+    if (debugMode) {
+      Printf(stdout, "Setting type: %s\n", Copy(typemap_lookup_type));
+    }
+    Setattr(n, "type", typemap_lookup_type);
+    
+    // Simple integer constants
+    // Note these are always generated for anonymous enums, no matter what enum_feature is specified
+    // Code generated is the same for SimpleEnum and TypeunsafeEnum -> the class it is generated into is determined later
+
+    String *value = enumValue(n);
+    if (enum_values) {
+      Printf(enum_values, ",\n\"%s\" = %s", name, value);
+    } else {
+      enum_values = NewString("");
+      Printf(enum_values, "\"%s\" = %s", name, value);
+    }
+
+    Delete(value);
+  }
 
   return SWIG_OK;
 }
 
 
-/*************************************************************
-**************************************************************/
+/* -------------------------------------------------------------
+ * Create accessor functions for variables.
+ * Does not create equivalent wrappers for enumerations,
+ * which are handled differently
+ * --------------------------------------------------------------*/
+
 int R::variableWrapper(Node *n) {
   String *name = Getattr(n, "sym:name");
-
+  if (debugMode) {
+    Printf(stdout, "variableWrapper %s\n", n);
+  }
   processing_variable = 1;
   Language::variableWrapper(n); // Force the emission of the _set and _get function wrappers.
   processing_variable = 0;
 
 
   SwigType *ty = Getattr(n, "type");
+  String *nodeType = nodeType(n);
   int addCopyParam = addCopyParameter(ty);
 
   //XXX
   processType(ty, n);
 
-  if(!SwigType_isconst(ty)) {
+  if (nodeType && !Strcmp(nodeType, "enumitem")) {
+    /* special wrapper for enums - don't want the R _set, _get functions*/
+    if (debugMode) {
+      Printf(stdout, "variableWrapper enum branch\n");
+    }
+  } else if(!SwigType_isconst(ty)) {
     Wrapper *f = NewWrapper();
     Printf(f->def, "%s = \nfunction(value%s)\n{\n",
 	   name, addCopyParam ? ", .copy = FALSE" : "");
@@ -1306,33 +1272,29 @@ int R::variableWrapper(Node *n) {
   return SWIG_OK;
 }
 
+/* -------------------------------------------------------------
+ * Creates accessor functions for class members.
+
+ * ToDo - this version depends on naming conventions and needs
+ * to be replaced.
+ * --------------------------------------------------------------*/
 
 void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
-		    int isSet) {
-  if(isSet < 0) {
-    int n = Len(name);
-    char *ptr = Char(name);
-    if (n>4) {
-      isSet = Strcmp(NewString(&ptr[n-4]), "_set") == 0;
-    }
+		    String *methodSetGet) {
+
+  if (!class_member_function_names) {
+    class_member_function_names = NewList();
+    class_member_function_membernames = NewList();
+    class_member_function_wrappernames = NewList();
+    class_member_function_types = NewList();
   }
-
-  List *l = isSet ? class_member_set_functions : class_member_functions;
-
-  if(!l) {
-    l = NewList();
-    if(isSet)
-      class_member_set_functions = l;
-    else
-      class_member_functions = l;
-  }
-
-  Append(l, memberName);
-  Append(l, name);
-
+  Append(class_member_function_types, methodSetGet);
+  Append(class_member_function_names, name);
+  Append(class_member_function_membernames, memberName);
+  
   String *tmp = NewString("");
   Wrapper_print(wrapper, tmp);
-  Append(l, tmp);
+  Append(class_member_function_wrappernames, tmp);
   // if we could put the wrapper in directly:       Append(l, Copy(sfun));
   if (debugMode)
     Printf(stdout, "Adding accessor: %s (%s) => %s\n", memberName, name, tmp);
@@ -1363,11 +1325,6 @@ List * R::Swig_overload_rank(Node *n,
       c = Getattr(c,"sym:nextSibling");
       continue;
     }
-    /*    if (SmartPointer && Getattr(c,"cplus:staticbase")) {
-	  c = Getattr(c,"sym:nextSibling");
-	  continue;
-	  } */
-
     /* Make a list of all the declarations (methods) that are overloaded with
      * this one particular method name */
 
@@ -1708,9 +1665,10 @@ void R::dispatchFunction(Node *n) {
   DelWrapper(f);
 }
 
-/******************************************************************
+/*--------------------------------------------------------------
 
-*******************************************************************/
+* --------------------------------------------------------------*/
+
 int R::functionWrapper(Node *n) {
   String *fname = Getattr(n, "name");
   String *iname = Getattr(n, "sym:name");
@@ -1752,6 +1710,9 @@ int R::functionWrapper(Node *n) {
       SwigType *resolved =
 	SwigType_typedef_resolve_all(resultType);
       if (expandTypedef(resolved)) {
+        if (debugMode) {
+          Printf(stdout, "Setting type: %s\n", resolved);
+        }
 	Setattr(p, "type", Copy(resolved));
       }
     }
@@ -1764,18 +1725,18 @@ int R::functionWrapper(Node *n) {
       SwigType_istypedef(type)) {
     SwigType *resolved =
       SwigType_typedef_resolve_all(type);
+    if (debugMode)
+      Printf(stdout, "<functionWrapper> resolved %s\n", Copy(unresolved_return_type));
     if (expandTypedef(resolved)) {
       type = Copy(resolved);
       Setattr(n, "type", type);
     }
   }
   if (debugMode)
-    Printf(stdout, "<functionWrapper> unresolved_return_type %s\n",
-	   unresolved_return_type);
+    Printf(stdout, "<functionWrapper> unresolved_return_type %s\n", unresolved_return_type);
   if(processing_member_access_function) {
     if (debugMode)
-      Printf(stdout, "<functionWrapper memberAccess> '%s' '%s' '%s' '%s'\n",
-	     fname, iname, member_name, class_name);
+      Printf(stdout, "<functionWrapper memberAccess> '%s' '%s' '%s' '%s'\n", fname, iname, member_name, class_name);
 
     if(opaqueClassDeclaration)
       return SWIG_OK;
@@ -1784,14 +1745,9 @@ int R::functionWrapper(Node *n) {
     /* Add the name of this member to a list for this class_name.
        We will dump all these at the end. */
 
-    int n = Len(iname);
-    char *ptr = Char(iname);
-    bool isSet(0);
-    if (n > 4) isSet = Strcmp(NewString(&ptr[n-4]), "_set") == 0;
+    bool isSet(GetFlag(n, "memberset"));
 
-
-    String *tmp = NewString("");
-    Printf(tmp, "%s_%s", class_name, isSet ? "set" : "get");
+    String *tmp = NewString(isSet ? Swig_name_set(NSPACE_TODO, class_name) : Swig_name_get(NSPACE_TODO, class_name));
 
     List *memList = Getattr(ClassMemberTable, tmp);
     if(!memList) {
@@ -1808,7 +1764,7 @@ int R::functionWrapper(Node *n) {
   int nargs;
 
   String *wname = Swig_name_wrapper(iname);
-  Replace(wname, "_wrap", "R_swig", DOH_REPLACE_FIRST);
+
   if(overname)
     Append(wname, overname);
   Setattr(n,"wrap:name", wname);
@@ -1828,11 +1784,6 @@ int R::functionWrapper(Node *n) {
   if(!isVoidReturnType)
     addCopyParam = addCopyParameter(rtype);
 
-
-  // Can we get the nodeType() of the type node! and see if it is a struct.
-  //    int addCopyParam = SwigType_isclass(rtype);
-
-  //    if(addCopyParam)
   if (debugMode)
     Printf(stdout, "Adding a .copy argument to %s for %s = %s\n",
 	   iname, type, addCopyParam ? "yes" : "no");
@@ -1947,7 +1898,7 @@ int R::functionWrapper(Node *n) {
 	       name, " = getNativeSymbolInfo(", name, ");",
 	       "\n};\n",
 	       "if(is(", name, ", \"NativeSymbolInfo\")) {\n",
-	       name, " = ", name, "$address", ";\n}\n",
+	       name, " = ", name, "$address", ";\n};\n",
 	       "if(is(", name, ", \"ExternalReference\")) {\n",
 	       name, " = ", name, "@ref;\n}\n",
 	       "}; \n",
@@ -2034,7 +1985,9 @@ int R::functionWrapper(Node *n) {
   for (p = l; p;) {
     if ((tm = Getattr(p, "tmap:freearg"))) {
       Replaceall(tm, "$source", Getattr(p, "lname"));
-      Printv(cleanup, tm, "\n", NIL);
+      if (tm && (Len(tm) != 0)) {
+        Printv(cleanup, tm, "\n", NIL);
+      }
       p = Getattr(p, "tmap:freearg:next");
     } else {
       p = nextSibling(p);
@@ -2067,14 +2020,12 @@ int R::functionWrapper(Node *n) {
   /* Deal with the explicit return value. */
   if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
     SwigType *retType = Getattr(n, "type");
-    //Printf(stdout, "Return Value for %s, array? %s\n", retType, SwigType_isarray(retType) ? "yes" : "no");
-    /*      if(SwigType_isarray(retType)) {
-	    defineArrayAccessors(retType);
-	    } */
-
-
+    
     Replaceall(tm,"$1", Swig_cresult_name());
     Replaceall(tm,"$result", "r_ans");
+    if (debugMode){
+      Printf(stdout, "Calling replace D: %s, %s, %s\n", retType, n, tm);
+    }
     replaceRClass(tm, retType);
 
     if (GetFlag(n,"feature:new")) {
@@ -2083,18 +2034,7 @@ int R::functionWrapper(Node *n) {
       Replaceall(tm,"$owner", "0");
     }
 
-#if 0
-    if(addCopyParam) {
-      Printf(f->code, "if(LOGICAL(s_swig_copy)[0]) {\n");
-      Printf(f->code, "/* Deal with returning a reference. */\nr_ans = R_NilValue;\n");
-      Printf(f->code, "}\n else {\n");
-    }
-#endif
     Printf(f->code, "%s\n", tm);
-#if 0
-    if(addCopyParam)
-      Printf(f->code, "}\n"); /* end of if(s_swig_copy) ... else { ... } */
-#endif
 
   } else {
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
@@ -2128,8 +2068,10 @@ int R::functionWrapper(Node *n) {
   }
 
   /* Output cleanup code */
-  Printv(f->code, cleanup, NIL);
-  Delete(cleanup);
+  int need_cleanup = Len(cleanup) != 0;
+  if (need_cleanup) {
+    Printv(f->code, cleanup, NIL);
+  }
 
   /* Look to see if there is any newfree cleanup code */
   if (GetFlag(n, "feature:new")) {
@@ -2161,6 +2103,9 @@ int R::functionWrapper(Node *n) {
 	Delete(smartname);
       }
     }
+    if (debugMode) {
+      Printf(stdout, "Calling replace B: %s, %s, %s\n", Getattr(n, "type"), Getattr(n, "sym:name"), getNSpace());
+    }
     replaceRClass(tm, Getattr(n, "type"));
     Chop(tm);
   }
@@ -2175,7 +2120,7 @@ int R::functionWrapper(Node *n) {
 	{
 	  String *finalizer = NewString(iname);
 	  Replace(finalizer, "new_", "", DOH_REPLACE_FIRST);
-	  Printf(sfun->code, "reg.finalizer(ans@ref, delete_%s)\n", finalizer);
+	  Printf(sfun->code, "reg.finalizer(ans@ref, delete_%s);\n", finalizer);
 	}
       Printf(sfun->code, "ans\n");
     }
@@ -2183,7 +2128,18 @@ int R::functionWrapper(Node *n) {
   if (destructor)
     Printv(f->code, "R_ClearExternalPtr(self);\n", NIL);
 
-  Printv(f->code, "return r_ans;\n}\n", NIL);
+  Printv(f->code, "return r_ans;\n", NIL);
+  
+  /* Error handling code */
+  Printv(f->code, "fail: SWIGUNUSED;\n", NIL);
+  if (need_cleanup) {
+    Printv(f->code, cleanup, NIL);
+  }
+  Printv(f->code, "  Rf_error(\"%s %s\", SWIG_ErrorType(SWIG_lasterror_code), SWIG_lasterror_msg);\n", NIL);
+  Printv(f->code, "  return R_NilValue;\n", NIL);
+  Delete(cleanup);
+  
+  Printv(f->code, "}\n", NIL);
   Printv(sfun->code, "\n}", NIL);
 
   /* Substitute the function name */
@@ -2196,6 +2152,9 @@ int R::functionWrapper(Node *n) {
   tm = Swig_typemap_lookup("rtype", n, "", 0);
   if(tm) {
     SwigType *retType = Getattr(n, "type");
+    if (debugMode) {
+      Printf(stdout, "Calling replace C: %s\n", Copy(retType));
+    }
     replaceRClass(tm, retType);
   }
 
@@ -2226,7 +2185,13 @@ int R::functionWrapper(Node *n) {
      Would like to be able to do this so that we can potentially insert
   */
   if(processing_member_access_function || processing_class_member_function) {
-    addAccessor(member_name, sfun, iname);
+    String *method_type = R_MEMBER_NORMAL;
+    if (GetFlag(n, "memberset")) {
+      method_type = R_MEMBER_SET;
+    } else if (GetFlag(n, "memberget")) {
+      method_type = R_MEMBER_GET;
+    }
+    addAccessor(member_name, sfun, iname, method_type);
   }
 
   if (Getattr(n, "sym:overloaded") &&
@@ -2254,15 +2219,16 @@ int R::constantWrapper(Node *n) {
   return SWIG_OK;
 }
 
-/*****************************************************
- Add the specified routine name to the collection of
- generated routines that are called from R functions.
- This is used to register the routines with R for
- resolving symbols.
+/*--------------------------------------------------------------
+ * Add the specified routine name to the collection of
+ * generated routines that are called from R functions.
+ * This is used to register the routines with R for
+ * resolving symbols.
 
- rname - the name of the routine
- nargs - the number of arguments it expects.
-******************************************************/
+ * rname - the name of the routine
+ * nargs - the number of arguments it expects.
+ * --------------------------------------------------------------*/
+
 int R::addRegistrationRoutine(String *rname, int nargs) {
   if(!registrationTable)
     registrationTable = NewHash();
@@ -2275,11 +2241,12 @@ int R::addRegistrationRoutine(String *rname, int nargs) {
   return SWIG_OK;
 }
 
-/*****************************************************
- Write the registration information to an array and
- create the initialization routine for registering
- these.
-******************************************************/
+/* -------------------------------------------------------------
+ * Write the registration information to an array and
+ * create the initialization routine for registering
+ * these.
+ * --------------------------------------------------------------*/
+
 int R::outputRegistrationRoutines(File *out) {
   int i, n;
   if(!registrationTable)
@@ -2322,11 +2289,11 @@ int R::outputRegistrationRoutines(File *out) {
 
 
 
-/****************************************************************************
-  Process a struct, union or class declaration in the source code,
-  or an anonymous typedef struct
+/* -------------------------------------------------------------
+ * Process a struct, union or class declaration in the source code,
+ * or an anonymous typedef struct
+ * --------------------------------------------------------------*/
 
-*****************************************************************************/
 //XXX What do we need to do here -
 // Define an S4 class to refer to this.
 
@@ -2418,24 +2385,51 @@ int R::classDeclaration(Node *n) {
   opaqueClassDeclaration = NULL;
 
 
-  // OutputArrayMethod(name, class_member_functions, sfile);
-  if (class_member_functions)
-    OutputMemberReferenceMethod(name, 0, class_member_functions, sfile);
-  if (class_member_set_functions)
-    OutputMemberReferenceMethod(name, 1, class_member_set_functions, sfile);
+  if (class_member_function_types) {
 
-  if(class_member_functions) {
-    Delete(class_member_functions);
-    class_member_functions = NULL;
-  }
-  if(class_member_set_functions) {
-    Delete(class_member_set_functions);
-    class_member_set_functions = NULL;
-  }
+    // collect the "set" methods
+    List *class_set_membernames   = filterMemberList(class_member_function_types, 
+                                                     class_member_function_membernames, R_MEMBER_SET, true);
+    List *class_set_functionnames = filterMemberList(class_member_function_types, 
+                                                     class_member_function_names, R_MEMBER_SET, true);
+    // this one isn't used - collecting to keep code simpler
+    List *class_set_functiontypes = filterMemberList(class_member_function_types, 
+                                                     class_member_function_types, R_MEMBER_SET, true);
+
+    // collect the others
+    List *class_other_membernames   = filterMemberList(class_member_function_types, 
+                                                       class_member_function_membernames, R_MEMBER_SET, false);
+    List *class_other_functionnames = filterMemberList(class_member_function_types, 
+                                                       class_member_function_names, R_MEMBER_SET, false);
+    List *class_other_functiontypes = filterMemberList(class_member_function_types, 
+                                                       class_member_function_types, R_MEMBER_SET, false);
+
+    if (Len(class_other_membernames) > 0) {
+      OutputMemberReferenceMethod(name, 0, class_other_membernames, class_other_functionnames, class_other_functiontypes, sfile);
+    }
+    if (Len(class_set_membernames) > 0) {
+      OutputMemberReferenceMethod(name, 1, class_set_membernames, class_set_functionnames, class_set_functiontypes, sfile);
+    }
+    Delete(class_set_membernames);
+    Delete(class_set_functionnames);
+    Delete(class_set_functiontypes);
+    Delete(class_other_membernames);
+    Delete(class_other_functionnames);
+    Delete(class_other_functiontypes);
+ }
+
+  if (class_member_function_types) {
+    Delete(class_member_function_types);
+    class_member_function_types = NULL;
+    Delete(class_member_function_names);
+    class_member_function_names = NULL;
+    Delete(class_member_function_membernames);
+    class_member_function_membernames = NULL;
+    Delete(class_member_function_wrappernames);
+    class_member_function_wrappernames = NULL;
+   }
   if (Getattr(n, "has_destructor")) {
-    Printf(sfile, "setMethod('delete', '_p%s', function(obj) {delete%s(obj)})\n",
-	   getRClassName(Getattr(n, "name")),
-	   getRClassName(Getattr(n, "name")));
+    Printf(sfile, "setMethod('delete', '_p%s', function(obj) {delete%s(obj)})\n", getRClassName(name), getRClassName(name));
 
   }
   if(!opaque && !Strcmp(kind, "struct") && copyStruct) {
@@ -2459,9 +2453,6 @@ int R::classDeclaration(Node *n) {
 	c = nextSibling(c);
 	continue;
       }
-#if 0
-      tp = getRType(c);
-#else
       tp = Swig_typemap_lookup("rtype", c, "", 0);
       if(!tp) {
 	c = nextSibling(c);
@@ -2488,7 +2479,7 @@ int R::classDeclaration(Node *n) {
       // returns ""  tp = processType(elType, c, NULL);
       //	    Printf(stdout, "<classDeclaration> elType %p\n", elType);
       //	    tp = getRClassNameCopyStruct(Getattr(c, "type"), 1);
-#endif
+
       String *elNameT = replaceInitialDash(elName);
       Printf(def, "%s%s = \"%s\"", tab8, elNameT, tp);
       firstItem = false;
@@ -2509,12 +2500,13 @@ int R::classDeclaration(Node *n) {
 
 
 
-/***************************************************************
- Create the C routines that copy an S object of the class given
- by the given struct definition in Node *n to the C value
- and also the routine that goes from the C routine to an object
- of this S class.
-****************************************************************/
+/* -------------------------------------------------------------
+ * Create the C routines that copy an S object of the class given
+ * by the given struct definition in Node *n to the C value
+ * and also the routine that goes from the C routine to an object
+ * of this S class.
+ * --------------------------------------------------------------*/
+
 /*XXX
   Clean up the toCRef - make certain the names are correct for the types, etc.
   in all cases.
@@ -2609,13 +2601,14 @@ int R::generateCopyRoutines(Node *n) {
 
 
 
-/*****
-      Called when there is a typedef to be invoked.
+/* -------------------------------------------------------------
+ *  Called when there is a typedef to be invoked.
+ *
+ *  XXX Needs to be enhanced or split to handle the case where we have a
+ *  typedef within a classDeclaration emission because the struct/union/etc.
+ *  is anonymous.
+ * --------------------------------------------------------------*/
 
-      XXX Needs to be enhanced or split to handle the case where we have a
-      typedef within a classDeclaration emission because the struct/union/etc.
-      is anonymous.
-******/
 int R::typedefHandler(Node *n) {
   SwigType *tp = Getattr(n, "type");
   String *type = Getattr(n, "type");
@@ -2639,12 +2632,13 @@ int R::typedefHandler(Node *n) {
 
 
 
-/*********************
-  Called when processing a field in a "class", i.e. struct, union or
-  actual class.  We set a state variable so that we can correctly
-  interpret the resulting functionWrapper() call and understand that
-  it is for a field element.
-**********************/
+/* --------------------------------------------------------------
+ * Called when processing a field in a "class", i.e. struct, union or
+ * actual class.  We set a state variable so that we can correctly
+ * interpret the resulting functionWrapper() call and understand that
+ * it is for a field element.
+ * --------------------------------------------------------------*/
+
 int R::membervariableHandler(Node *n) {
   SwigType *t = Getattr(n, "type");
   processType(t, n, NULL);
@@ -2679,12 +2673,14 @@ String * R::runtimeCode() {
 }
 
 
-/**
-   Called when SWIG wants to initialize this
-   We initialize anythin we want here.
-   Most importantly, tell SWIG where to find the files (e.g. r.swg) for this module.
-   Use Swig_mark_arg() to tell SWIG that it is understood and not to throw an error.
-**/
+/* -----------------------------------------------------------------------
+ * Called when SWIG wants to initialize this
+ * We initialize anythin we want here.
+ * Most importantly, tell SWIG where to find the files (e.g. r.swg) for this module.
+ * Use Swig_mark_arg() to tell SWIG that it is understood and not to
+ * throw an error.
+ * --------------------------------------------------------------*/
+
 void R::main(int argc, char *argv[]) {
   init();
   Preprocessor_define("SWIGR 1", 0);
@@ -2767,10 +2763,10 @@ void R::main(int argc, char *argv[]) {
   }
 }
 
-/*
-  Could make this work for String or File and then just store the resulting string
-  rather than the collection of arguments and argc.
-*/
+/* -----------------------------------------------------------------------
+ * Could make this work for String or File and then just store the resulting string
+ * rather than the collection of arguments and argc.
+ * ----------------------------------------------------------------------- */
 int R::outputCommandLineArguments(File *out)
 {
   if(Argc < 1 || !Argv || !Argv[0])
@@ -2796,18 +2792,17 @@ Language *swig_r(void) {
 
 
 
-/*************************************************************************************/
 
-/*
-  Needs to be reworked.
-*/
+/* -----------------------------------------------------------------------
+ * Needs to be reworked.
+ *----------------------------------------------------------------------- */
 String * R::processType(SwigType *t, Node *n, int *nargs) {
   //XXX Need to handle typedefs, e.g.
   //  a type which is a typedef  to a function pointer.
 
   SwigType *tmp = Getattr(n, "tdname");
   if (debugMode)
-    Printf(stdout, "processType %s (tdname = %s)\n", Getattr(n, "name"), tmp);
+    Printf(stdout, "processType %s (tdname = %s)(SwigType = %s)\n", Getattr(n, "name"), tmp, Copy(t));
 
   SwigType *td = t;
   if (expandTypedef(t) &&
@@ -2845,11 +2840,58 @@ String * R::processType(SwigType *t, Node *n, int *nargs) {
     return tmp;
   }
 
-#if 0
-  SwigType_isfunction(t) && SwigType_ispointer(t)
-#endif
-
     return NULL;
 }
 
-/*************************************************************************************/
+
+/* -----------------------------------------------------------------------
+ * enumValue()
+ * This method will return a string with an enum value to use in from R when 
+ * setting up an enum variable
+ * ------------------------------------------------------------------------ */
+
+String *R::enumValue(Node *n) {
+  String *symname = Getattr(n, "sym:name");
+  String *value = Getattr(n, "value");
+  String *newsymname = 0;
+
+  Node *parent = parentNode(n);
+  symname = Getattr(n, "sym:name");
+  
+  // parent enumtype has namespace mangled in
+  String *etype = Getattr(parent, "enumtype");
+  // we have to directly call the c wrapper function, as the
+  // R wrapper to the enum is designed to be used after the enum
+  // structures have been created on the R side. This means
+  // that we'll need to construct a .Call expression
+
+  // change the type for variableWrapper
+  if (debugMode) {
+    Printf(stdout, "<enumValue> type set: %s\n", etype);
+  }
+
+  Setattr(n, "type", etype);
+
+  if (!getCurrentClass()) {
+    newsymname = Swig_name_member(0, Getattr(parent, "sym:name"), symname);
+    // Strange hack to change the name
+    Setattr(n, "name", Getattr(n, "value"));
+    Setattr(n, "sym:name", newsymname);
+    variableWrapper(n);
+    value = Swig_name_get(NSPACE_TODO, newsymname);
+  } else {
+    String *enumClassPrefix = getEnumClassPrefix();
+    newsymname = Swig_name_member(0, enumClassPrefix, symname);
+    Setattr(n, "name", Getattr(n, "value"));
+    Setattr(n, "sym:name", newsymname);
+    variableWrapper(n);
+    value = Swig_name_get(NSPACE_TODO, newsymname);
+  }
+  value = Swig_name_wrapper(value);
+  Replace(value, "_wrap", "R_swig", DOH_REPLACE_FIRST);
+
+  String *valuecall=NewString("");
+  Printv(valuecall, ".Call('", value, "',FALSE, PACKAGE='", Rpackage, "')", NIL);
+  Delete(value);
+  return valuecall;
+}

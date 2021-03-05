@@ -1,4 +1,4 @@
-%module cpp_nested_namespace_alias
+%module xxx
 
 // C++17 nested namespaces
 

@@ -31,9 +31,9 @@ c = FooBar_int_get_self(cc);
 c.advance();
 
 if (!strcmp(c.get_name(),"FooBar::get_name hello"))
-  error
+  error("failed");
 endif
 
 if (!strcmp(c.name(),"FooBar::get_name hello"))
-  error
+  error("failed");
 endif

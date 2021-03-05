@@ -1,6 +1,6 @@
 package main
 
-import . "./smart_pointer_rename"
+import . "swigtests/smart_pointer_rename"
 
 func main() {
 	f := NewFoo()

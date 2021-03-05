@@ -1,6 +1,6 @@
 package main
 
-import . "./template_ns"
+import . "swigtests/template_ns"
 
 func main() {
 	p1 := NewPairii(2, 3)

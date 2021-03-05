@@ -38,6 +38,10 @@
  * \cite citationword
  * \class someClass headerFile.h headerName
  * \code some test code \endcode
+ *
+ * Code immediately following text.  Pydoc translation must add an
+ * empty line before:
+ * \code more test code \endcode
  */
 void func01(int a)
 {
@@ -121,6 +125,12 @@ void func03(int a)
  *     \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
  * \f}
  *
+ * Math immediately following text.  Pydoc translation must add an
+ * empty line before:
+ * \f[
+ *     \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
+ * \f]
+ *
  * \file file.h
  *
  * \fn someFn
@@ -200,7 +210,7 @@ void func05(int a)
  * 
  * \line example
  *
- * \link someMember Some description follows \endlink
+ * \link someMember Some description follows\endlink with text after
  * 
  * \mainpage Some title
  *
@@ -252,6 +262,9 @@ void func06(int a)
  * \paragraph someParagraph Paragraph title
  *
  * \param a the first param
+ * \param[in] b parameter with intent(in)
+ * \param[out] c parameter with intent(out)
+ * \param[in,out] d parameter with intent(in,out)
  * 
  * \post Some description
  *
@@ -263,7 +276,7 @@ void func06(int a)
  *
  * \property someVar
  */
-void func07(int a)
+void func07(int a, int b, int c, int d)
 {
 }
 

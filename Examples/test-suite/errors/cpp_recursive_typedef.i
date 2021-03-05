@@ -1,4 +1,4 @@
-%module cpp_recursive_typedef
+%module xxx
 
 typedef std::set<pds> pds;
 

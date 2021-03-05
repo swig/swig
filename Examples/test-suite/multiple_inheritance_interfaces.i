@@ -64,3 +64,32 @@ struct DerivedOverloaded : public BaseOverloaded {
   virtual void identical_overload(int i, const PTypedef &p = PTypedef()) {}
 };
 %}
+
+
+#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+%interface(Space::X)
+#endif
+
+// Test the csinterfacemodifiers and javainterfacemodifiers typemaps.
+#if defined(SWIGCSHARP)
+/* change access from default "public class" to "internal class" */
+%typemap(csclassmodifiers) InternalAccess "internal class"
+/* The following modifiers are also needed with the above access modifier change */
+%typemap(csclassmodifiers) Space::X "internal class"
+%typemap(csinterfacemodifiers) Space::X "internal interface"
+#elif defined(SWIGJAVA)
+%typemap(javaclassmodifiers) InternalAccess "final /*notpublic*/ class"
+%typemap(javaclassmodifiers) Space::X "final class"
+%typemap(javainterfacemodifiers) Space::X "/*notpublic*/ interface"
+#endif
+
+%inline %{
+struct InternalAccess {};
+namespace Space {
+  class X {
+  public:
+    virtual void x(const InternalAccess& date) const = 0;
+    virtual ~X() {}
+  };
+}
+%}

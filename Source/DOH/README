@@ -73,11 +73,17 @@ Replace(obj, orig, rep, flags)  Replace occurrences of orig with rep.
 Chop(obj)                       Remove trailing whitespace
 
 flags is one of the following:
-     DOH_REPLACE_ANY
-     DOH_REPLACE_NOQUOTE
-     DOH_REPLACE_ID
-     DOH_REPLACE_FIRST
-             
+    DOH_REPLACE_ID
+    DOH_REPLACE_ID_BEGIN
+    DOH_REPLACE_ID_END
+    DOH_REPLACE_NUMBER_END
+
+and can be combined with one or more of the following:
+    DOH_REPLACE_ANY
+    DOH_REPLACE_NOQUOTE
+    DOH_REPLACE_NOCOMMENT
+    DOH_REPLACE_FIRST
+
 Callable Operations
 -------------------
 Call(obj, args)                 Perform a function call with arguments args.

@@ -1,7 +1,7 @@
 package main
 
 import "fmt"
-import . "./rename_simple"
+import . "swigtests/rename_simple"
 
 func main() {
 	s := NewNewStruct()
