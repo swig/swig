@@ -61,11 +61,11 @@ SWIGRUNTIME void SWIGV8_AddMemberVariable(SWIGV8_FUNCTION_TEMPLATE class_templ, 
  * Registers a class method with given name for a given object.
  */
 SWIGRUNTIME void SWIGV8_AddStaticFunction(SWIGV8_OBJECT obj, const char* symbol,
-  const SwigV8FunctionCallback& _func) {
-#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903) || (SWIG_V8_VERSION < 0x0704)
+  const SwigV8FunctionCallback& _func, v8::Local<v8::Context> context) {
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
   obj->Set(SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func)->GetFunction());
 #else
-  SWIGV8_MAYBE_CHECK(obj->Set(SWIGV8_CURRENT_CONTEXT(), SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func)->GetFunction(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()));
+  SWIGV8_MAYBE_CHECK(obj->Set(context, SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func)->GetFunction(context).ToLocalChecked()));
 #endif
 }
 
@@ -73,11 +73,12 @@ SWIGRUNTIME void SWIGV8_AddStaticFunction(SWIGV8_OBJECT obj, const char* symbol,
  * Registers a class method with given name for a given object.
  */
 SWIGRUNTIME void SWIGV8_AddStaticVariable(SWIGV8_OBJECT obj, const char* symbol,
-  SwigV8AccessorGetterCallback getter, SwigV8AccessorSetterCallback setter) {
+  SwigV8AccessorGetterCallback getter, SwigV8AccessorSetterCallback setter,
+  v8::Local<v8::Context> context) {
 #if (V8_MAJOR_VERSION-0) < 5
   obj->SetAccessor(SWIGV8_SYMBOL_NEW(symbol), getter, setter);
 #else
-  SWIGV8_MAYBE_CHECK(obj->SetAccessor(SWIGV8_CURRENT_CONTEXT(), SWIGV8_SYMBOL_NEW(symbol), getter, setter));
+  SWIGV8_MAYBE_CHECK(obj->SetAccessor(context, SWIGV8_SYMBOL_NEW(symbol), getter, setter));
 #endif
 }
 
