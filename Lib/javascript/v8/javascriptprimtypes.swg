@@ -183,7 +183,7 @@ int SWIG_AsVal_dec(unsigned long long)(SWIGV8_VALUE obj, unsigned long long *val
 
 %fragment(SWIG_From_frag(double),"header") {
 SWIGINTERN
-SWIGV8_VALUE (double) (double val)
+SWIGV8_VALUE SWIG_From_dec(double) (double val)
 {
   return SWIGV8_NUMBER_NEW(val);
 }
