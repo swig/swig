@@ -289,8 +289,12 @@ SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, void **ptr, swi
     if(!type_valid) {
       return SWIG_TypeError;
     }
+    int newmemory = 0;
+    *ptr = SWIG_TypeCast(tc, cdata->swigCObject, &newmemory);
+  } else {
+    *ptr = cdata->swigCObject;
   }
-  *ptr = cdata->swigCObject;
+
   if(flags & SWIG_POINTER_DISOWN) {
     cdata->swigCMemOwn = false;
   }
