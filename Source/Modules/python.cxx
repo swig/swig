@@ -4875,6 +4875,7 @@ public:
 	      String *classname = Swig_class_name(parent);
 	      String *rclassname = Swig_class_name(getCurrentClass());
 	      assert(rclassname);
+	      (void)rclassname;
 
 	      String *parms = make_pyParmList(n, true, false, allow_kwargs);
 	      /* Pass 'self' only if using director */
