@@ -71,7 +71,7 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #endif
 
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032318)
-#define SWIGV8_ARRAY_NEW() v8::Array::New()
+#define SWIGV8_ARRAY_NEW(size) v8::Array::New(size)
 #define SWIGV8_BOOLEAN_NEW(bool) v8::Boolean::New(bool)
 #define SWIGV8_EXTERNAL_NEW(val) v8::External::New(val)
 #define SWIGV8_FUNCTEMPLATE_NEW(func) v8::FunctionTemplate::New(func)
@@ -91,7 +91,7 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_ARRAY_GET(array, index) (array)->Get(index)
 #define SWIGV8_ARRAY_SET(array, index, value) (array)->Set(index, value)
 #else
-#define SWIGV8_ARRAY_NEW() v8::Array::New(v8::Isolate::GetCurrent())
+#define SWIGV8_ARRAY_NEW(size) v8::Array::New(v8::Isolate::GetCurrent(), size)
 #define SWIGV8_BOOLEAN_NEW(bool) v8::Boolean::New(v8::Isolate::GetCurrent(), bool)
 #define SWIGV8_EXTERNAL_NEW(val) v8::External::New(v8::Isolate::GetCurrent(), val)
 #define SWIGV8_FUNCTEMPLATE_NEW(func) v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), func)
@@ -703,9 +703,9 @@ SWIGV8_VALUE SWIGV8_AppendOutput(SWIGV8_VALUE result, SWIGV8_VALUE obj) {
   SWIGV8_HANDLESCOPE_ESC();
   
   if (result->IsUndefined()) {
-    result = SWIGV8_ARRAY_NEW();
+    result = SWIGV8_ARRAY_NEW(0);
   } else if (!result->IsArray()) {
-    SWIGV8_ARRAY tmparr = SWIGV8_ARRAY_NEW();
+    SWIGV8_ARRAY tmparr = SWIGV8_ARRAY_NEW(0);
     SWIGV8_ARRAY_SET(tmparr, 0, result);
     result = tmparr;
   }
