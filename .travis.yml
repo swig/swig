@@ -447,7 +447,7 @@ install:
   - if test "$TRAVIS_OS_NAME" = "osx"; then source Tools/travis-osx-install.sh; fi
   - ls -la $(which $CC) $(which $CXX) && $CC --version && $CXX --version
 script:
-  - if test "$BUILDSYSTEM" = "cmake"; then mkdir -p build/build && cd build/build && cmake -DCMAKE_INSTALL_PREFIX=~/.local ../.. && make install && ctest --output-on-failure -V && exit 0; fi
+  - if test "$BUILDSYSTEM" = "cmake"; then mkdir -p build/build && cd build/build && CXXFLAGS="-Wall -Wextra -Werror" CFLAGS="-Wall -Wextra -Werror" cmake -DCMAKE_INSTALL_PREFIX=~/.local ../.. && make install && ctest --output-on-failure -V && exit 0; fi
   - echo 'Configuring...' && echo -en 'travis_fold:start:script.1\\r'
   - if test -n "$CPP11"; then CONFIGOPTS+=(--enable-cpp11-testing --without-maximum-compile-warnings "CXXFLAGS=-std=c++11 -Wall -Wextra" "CFLAGS=-std=c11 -Wall -Wextra") && export CSTD=c11 && export CPPSTD=c++11; fi
   - if test -n "$CPP14"; then CONFIGOPTS+=(--enable-cpp11-testing --without-maximum-compile-warnings "CXXFLAGS=-std=c++14 -Wall -Wextra" "CFLAGS=-std=c11 -Wall -Wextra") && export CSTD=c11 && export CPPSTD=c++14; fi

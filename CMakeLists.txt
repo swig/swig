@@ -69,6 +69,10 @@ check_include_file_cxx ("boost/shared_ptr.hpp" HAVE_BOOST)
 check_library_exists (dl dlopen "" HAVE_LIBDL)
 check_function_exists (popen HAVE_POPEN)
 
+if (MSVC)
+  set (CMAKE_CXX_FLAGS "/EHsc ${CMAKE_CXX_FLAGS}")
+endif ()
+
 set (PCRE_REQUIRED_ARG "REQUIRED" CACHE STRING "required arg")
 find_package (PCRE ${PCRE_REQUIRED_ARG})
 if (PCRE_FOUND)
