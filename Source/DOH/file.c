@@ -64,6 +64,7 @@ static void open_files_list_remove(DohFile *f) {
   }
   Delete(sf);
   assert(removed);
+  (void)removed;
 }
 
 /* -----------------------------------------------------------------------------
@@ -80,6 +81,7 @@ void DohCloseAllOpenFiles() {
     DOHString *sf = Getitem(all_open_files, i);
     int check = sscanf(Char(sf), "%p", (void **)&f);
     assert(check == 1);
+    (void)check;
     if (f->closeondel) {
       if (f->filep) {
 	check = fclose(f->filep);
