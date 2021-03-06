@@ -91,6 +91,11 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
+      env: SWIGLANG=javascript ENGINE=node VER=14 CPP11=1
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=javascript ENGINE=jsc
       dist: xenial
     - compiler: gcc
