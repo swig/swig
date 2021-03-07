@@ -377,8 +377,10 @@ fail:
 %{
   /* Name: $jsmangledname, Type: $jsmangledtype, Dtor: $jsdtor */
   SWIGV8_FUNCTION_TEMPLATE $jsmangledname_class = SWIGV8_CreateClassTemplate("$jsmangledname");
-  SWIGV8_SET_CLASS_TEMPL($jsmangledname_clientData.class_templ, $jsmangledname_class);
-  $jsmangledname_clientData.dtor = $jsdtor;
+  if ($jsmangledname_clientData.class_templ.IsEmpty()) {
+    SWIGV8_SET_CLASS_TEMPL($jsmangledname_clientData.class_templ, $jsmangledname_class);
+    $jsmangledname_clientData.dtor = $jsdtor;
+  }
   if (SWIGTYPE_$jsmangledtype->clientdata == 0) {
     SWIGTYPE_$jsmangledtype->clientdata = &$jsmangledname_clientData;
   }

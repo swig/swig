@@ -65,17 +65,25 @@ SWIG_V8_GetModule(v8::Local<v8::Context> context) {
 %}
 
 %insert(init) %{
+// This is when we opt for context-aware initialization, in node v10 and
+// later. It's possible to lower it, 64 is just a conservative value...
+#define SWIG_NODE_CONTEXT_AWARE 64
+
 #if !defined(NODE_MODULE_VERSION) || (NODE_MODULE_VERSION < 12)
 // Note: 'extern "C"'' disables name mangling which makes it easier to load the symbol manually
 extern "C" void SWIGV8_INIT (SWIGV8_OBJECT exports_obj)
-#elif (NODE_MODULE_VERSION < 64)
+#elif (NODE_MODULE_VERSION < SWIG_NODE_CONTEXT_AWARE)
 void SWIGV8_INIT (SWIGV8_OBJECT exports_obj, SWIGV8_VALUE /*module*/, void*)
 #else
 void SWIGV8_INIT (SWIGV8_OBJECT exports_obj, SWIGV8_VALUE /*module*/, v8::Local<v8::Context> context, void*)
 #endif
 {
-#if !defined(NODE_MODULE_VERSION) || NODE_MODULE_VERSION < 64
+#if !defined(NODE_MODULE_VERSION) || NODE_MODULE_VERSION<SWIG_NODE_CONTEXT_AWARE
   v8::Local<v8::Context> context = SWIGV8_CURRENT_CONTEXT();
+#else
+  v8::Isolate *isolate = context->GetIsolate();
+  v8::Locker locker(isolate);
+  isolate->Enter();
 #endif
 
   SWIG_InitializeModule(context);
@@ -97,7 +105,9 @@ void SWIGV8_INIT (SWIGV8_OBJECT exports_obj, SWIGV8_VALUE /*module*/, v8::Local<
 %fragment("js_initializer", "templates")
 %{
   // a class template for creating proxies of undefined types
-  SWIGV8_SET_CLASS_TEMPL(SWIGV8_SWIGTYPE_Proxy_class_templ, SWIGV8_CreateClassTemplate("SwigProxy"));
+  if (SWIGV8_SWIGTYPE_Proxy_class_templ.IsEmpty()) {
+    SWIGV8_SET_CLASS_TEMPL(SWIGV8_SWIGTYPE_Proxy_class_templ, SWIGV8_CreateClassTemplate("SwigProxy"));
+  }
 
   /* create objects for namespaces */
   $jsv8nspaces
@@ -122,10 +132,14 @@ void SWIGV8_INIT (SWIGV8_OBJECT exports_obj, SWIGV8_VALUE /*module*/, v8::Local<
 
   /* create and register namespace objects */
   $jsv8registernspaces
+
+#if defined(NODE_MODULE_VERSION) && NODE_MODULE_VERSION>=SWIG_NODE_CONTEXT_AWARE
+  isolate->Exit();
+#endif
 }
 
 #if defined(BUILDING_NODE_EXTENSION)
-#if (NODE_MODULE_VERSION < 64)
+#if (NODE_MODULE_VERSION < SWIG_NODE_CONTEXT_AWARE)
 NODE_MODULE($jsname, $jsname_initialize)
 #else
 NODE_MODULE_CONTEXT_AWARE($jsname, $jsname_initialize)
