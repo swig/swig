@@ -168,13 +168,28 @@ public:
 };
 
 class SWIGV8_ClientData {
+private:
+  v8::Persistent<v8::FunctionTemplate> clazz_templ;
 public:
-  v8::Persistent<v8::FunctionTemplate> class_templ;
+  size_t index;
 
   void (*dtor) (const v8::WeakCallbackInfo<SWIGV8_Proxy> &data);
+
+  SWIGV8_ClientData() : index(-1) {}
+  SWIGV8_FUNCTION_TEMPLATE class_templ() {
+    return SWIGV8_FUNCTION_TEMPLATE::New(v8::Isolate::GetCurrent(), clazz_templ);
+  }
+  bool IsEmpty() {
+    return clazz_templ.IsEmpty();
+  }
+  void Set(SWIGV8_FUNCTION_TEMPLATE class_templ) {
+    if (clazz_templ.IsEmpty()) {
+      SWIGV8_SET_CLASS_TEMPL(clazz_templ, class_templ);
+    }
+  }
 };
 
-SWIGRUNTIME v8::Persistent<v8::FunctionTemplate> SWIGV8_SWIGTYPE_Proxy_class_templ;
+static SWIGV8_ClientData SWIGV8_SWIGTYPE_Proxy;
 
 SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, void **ptr, swig_type_info *info, int flags) {
   SWIGV8_HANDLESCOPE();
@@ -250,8 +265,8 @@ SWIGRUNTIME void SWIGV8_SetPrivateData(SWIGV8_OBJECT obj, void *ptr, swig_type_i
 
   cdata->handle.Reset(v8::Isolate::GetCurrent(), obj);
 
-  if(cdata->swigCMemOwn && (SWIGV8_ClientData*)info->clientdata) {
-    cdata->handle.SetWeak(cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor, v8::WeakCallbackType::kParameter);
+  if(cdata->swigCMemOwn && info->clientdata) {
+    cdata->handle.SetWeak(cdata, info->clientdata->dtor, v8::WeakCallbackType::kParameter);
   } else {
     cdata->handle.SetWeak(cdata, SWIGV8_Proxy_DefaultDtor, v8::WeakCallbackType::kParameter);
   }
@@ -288,12 +303,10 @@ SWIGRUNTIME SWIGV8_VALUE SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, 
     SWIGV8_ESCAPE(result);
   }
 
-  v8::Isolate *isolate = v8::Isolate::GetCurrent();
-
   if(info->clientdata != 0) {
-    class_templ = v8::Local<v8::FunctionTemplate>::New(isolate, ((SWIGV8_ClientData*) info->clientdata)->class_templ);
+    class_templ = info->clientdata->class_templ();
   } else {
-    class_templ = v8::Local<v8::FunctionTemplate>::New(isolate, SWIGV8_SWIGTYPE_Proxy_class_templ);
+    class_templ = SWIGV8_SWIGTYPE_Proxy.class_templ();
   }
 
   v8::Local<v8::Object> result = class_templ->InstanceTemplate()->NewInstance(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();

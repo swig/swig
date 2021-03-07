@@ -38,6 +38,9 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <assert.h>
+
+class SWIGV8_ClientData;
+#define SWIG_CLIENT_DATA_TYPE SWIGV8_ClientData
 %}
 
 %insert(runtime) "swigrun.swg";         /* SWIG API */

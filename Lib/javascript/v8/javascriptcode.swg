@@ -314,11 +314,10 @@ fail:
 %{
   /* Name: $jsmangledname, Type: $jsmangledtype, Dtor: $jsdtor */
   SWIGV8_FUNCTION_TEMPLATE $jsmangledname_class = SWIGV8_CreateClassTemplate("$jsmangledname");
-  SWIGV8_SET_CLASS_TEMPL($jsmangledname_clientData.class_templ, $jsmangledname_class);
+  $jsmangledname_clientData.index = &SWIGTYPE_$jsmangledtype - &swig_types[0];
   $jsmangledname_clientData.dtor = $jsdtor;
-  if (SWIGTYPE_$jsmangledtype->clientdata == 0) {
-    SWIGTYPE_$jsmangledtype->clientdata = &$jsmangledname_clientData;
-  }
+  $jsmangledname_clientData.Set($jsmangledname_class);
+  SWIGTYPE_$jsmangledtype->clientdata = &$jsmangledname_clientData;
 %}
 
 
@@ -329,14 +328,9 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsv8_inherit", "templates")
 %{
-  if (SWIGTYPE_p$jsbaseclass->clientdata && !(static_cast<SWIGV8_ClientData *>(SWIGTYPE_p$jsbaseclass->clientdata)->class_templ.IsEmpty()))
+  if (SWIGTYPE_p$jsbaseclass->clientdata && !SWIGTYPE_p$jsbaseclass->clientdata->IsEmpty())
   {
-    $jsmangledname_class->Inherit(
-      v8::Local<v8::FunctionTemplate>::New(
-        v8::Isolate::GetCurrent(),
-        static_cast<SWIGV8_ClientData *>(SWIGTYPE_p$jsbaseclass->clientdata)->class_templ)
-     );
-
+    $jsmangledname_class->Inherit(SWIGTYPE_p$jsbaseclass->clientdata->class_templ());
 #ifdef SWIGRUNTIME_DEBUG
     printf("Inheritance successful $jsmangledname $jsbaseclass\n");
 #endif
