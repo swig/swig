@@ -444,7 +444,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsv8_register_class", "templates")
 %{
-#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
+#if (V8_MAJOR_VERSION-0) < 5
   $jsparent_obj->Set(SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj);
 #else
   SWIGV8_MAYBE_CHECK($jsparent_obj->Set(context, SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj));
@@ -469,7 +469,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsv8_register_namespace", "templates")
 %{
-#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
+#if (V8_MAJOR_VERSION-0) < 5
   $jsparent_obj->Set(SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj);
 #else
   SWIGV8_MAYBE_CHECK($jsparent_obj->Set(context, SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj));
