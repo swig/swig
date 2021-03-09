@@ -5,6 +5,7 @@ def get_cflags(language, std, compiler):
         std = "gnu89"
     c_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wdeclaration-after-statement -Wmissing-field-initializers"
     cflags = {
+          "cffi":"-Werror " + c_common,
         "csharp":"-Werror " + c_common,
              "d":"-Werror " + c_common,
             "go":"-Werror " + c_common + " -Wno-declaration-after-statement",
@@ -36,6 +37,7 @@ def get_cxxflags(language, std, compiler):
         std = "c++98"
     cxx_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers"
     cxxflags = {
+          "cffi":"-Werror " + cxx_common,
         "csharp":"-Werror " + cxx_common,
              "d":"-Werror " + cxx_common,
             "go":"-Werror " + cxx_common,
