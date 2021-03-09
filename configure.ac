@@ -2668,7 +2668,7 @@ AC_SUBST(SKIP_R)
 
 SKIP_CFFI=
 #if test -z "$CFFIBIN" ; then
-    SKIP_CFFI="1"
+    SKIP_CFFI=
 #fi
 AC_SUBST(SKIP_CFFI)
 
