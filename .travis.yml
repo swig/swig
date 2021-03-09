@@ -38,6 +38,10 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
+      env: SWIGLANG=cffi
+      dist: xenial
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=csharp
       dist: xenial
     - compiler: gcc
