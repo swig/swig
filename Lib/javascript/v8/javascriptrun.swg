@@ -310,7 +310,7 @@ SWIGRUNTIME int SWIG_V8_GetInstancePtr(SWIGV8_VALUE valRef, void **ptr) {
   if(!valRef->IsObject()) {
     return SWIG_TypeError;
   }
-  SWIGV8_OBJECT objRef = SWIGV8_TO_OBJECT(valRef);
+  SWIGV8_OBJECT objRef = SWIGV8_OBJECT::Cast(valRef);
 
   if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
 
@@ -405,7 +405,7 @@ SWIGRUNTIME int SWIG_V8_ConvertPtr(SWIGV8_VALUE valRef, void **ptr, swig_type_in
   if(!valRef->IsObject()) {
     return SWIG_TypeError;
   }
-  SWIGV8_OBJECT objRef = SWIGV8_TO_OBJECT(valRef);
+  SWIGV8_OBJECT objRef = SWIGV8_OBJECT::Cast(valRef);
   return SWIG_V8_ConvertInstancePtr(objRef, ptr, info, flags);
 }
 
