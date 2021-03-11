@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-03-11: murillo128
+            #1498 [Javascript] Support type conversion.
+
 2021-03-06: nshmyrev
             #872 [Javascript] Various typemap issues in arrays_javascript.i fixed.
 

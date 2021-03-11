@@ -291,6 +291,7 @@ SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, void **ptr, swi
     }
     int newmemory = 0;
     *ptr = SWIG_TypeCast(tc, cdata->swigCObject, &newmemory);
+    assert(!newmemory); /* newmemory handling not yet implemented */
   } else {
     *ptr = cdata->swigCObject;
   }
