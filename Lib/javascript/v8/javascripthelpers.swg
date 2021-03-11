@@ -62,7 +62,7 @@ SWIGRUNTIME void SWIGV8_AddMemberVariable(SWIGV8_FUNCTION_TEMPLATE class_templ, 
  */
 SWIGRUNTIME void SWIGV8_AddStaticFunction(SWIGV8_OBJECT obj, const char* symbol,
   const SwigV8FunctionCallback& _func, v8::Local<v8::Context> context) {
-#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
+#if (V8_MAJOR_VERSION-0) < 5
   obj->Set(SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func)->GetFunction());
 #else
   SWIGV8_MAYBE_CHECK(obj->Set(context, SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func)->GetFunction(context).ToLocalChecked()));
