@@ -58,8 +58,8 @@ Version 4.1.0 (in progress)
             unsigned long long values.
 
 2021-02-24: tomleavy, yegorich, tungntpham
-            #1746 [Javascript] Add support for Node v12.
-            SWIG support is now for Node v6 and later only.
+            #1746 [Javascript] Add support for Node v12 and v14.
+            SWIG support for Node is now for v6 and later only.
 
 2020-02-09: ZackerySpytz
             #1872 Fix typos in attribute2ref macros.
