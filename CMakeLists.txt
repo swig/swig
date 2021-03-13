@@ -127,7 +127,7 @@ file (GLOB PREPROCESSOR_SOURCES ${SWIG_SOURCE_DIR}/Preprocessor/*.c)
 file (GLOB CORE_SOURCES ${SWIG_SOURCE_DIR}/Swig/*.c)
 file (GLOB DOXYGEN_SOURCES ${SWIG_SOURCE_DIR}/Doxygen/*.cxx)
 file (GLOB MODULES_SOURCES ${SWIG_SOURCE_DIR}/Modules/*.cxx)
-file (GLOB TEST_SOURCES ${SWIG_ROOT}/Tests/*.cxx)
+file (GLOB_RECURSE TEST_SOURCES ${SWIG_ROOT}/Tests/*.cxx)
 
 add_executable (swig
   ${CPARSE_SOURCES}
