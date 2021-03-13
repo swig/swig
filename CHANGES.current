@@ -61,6 +61,12 @@ Version 4.1.0 (in progress)
             #1746 [Javascript] Add support for Node v12.
             SWIG support is now for Node v6 and later only.
 
+2020-02-09: ZackerySpytz
+            #1872 Fix typos in attribute2ref macros.
+
+2020-10-10: wsfulton
+            [Javascript] Fix so that ccomplex.i interface to file can be used.
+
 2020-10-10: wsfulton
             #252 complex can now be used as a C identifier and doesn't give a syntax error.
 
