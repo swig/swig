@@ -181,5 +181,6 @@ enable_testing ()
 add_test (NAME cmd_version COMMAND swig -version)
 add_test (NAME cmd_swiglib COMMAND swig -swiglib)
 add_test (NAME cmd_external_runtime COMMAND swig -external-runtime ext_rt.h)
+add_test (NAME unittests COMMAND swig-unittests)
 set_tests_properties(cmd_external_runtime PROPERTIES ENVIRONMENT "SWIG_LIB=${PROJECT_SOURCE_DIR}/Lib")
 
