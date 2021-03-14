@@ -161,7 +161,7 @@ add_executable (swig-unittests
 )
 
 target_compile_definitions(swig-unittests PUBLIC "-Dmain=orig_deactivated_swig_main")
-
+target_include_directories(swig-unittests PUBLIC ${SWIG_ROOT}/Tests)
 
 if (PCRE_FOUND)
   target_link_libraries (swig ${PCRE_LIBRARIES})
