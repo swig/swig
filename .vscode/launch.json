@@ -1,3 +1,6 @@
+// Note: run
+//   export SWIG_LIB=/home/pierre/checkouts/swig/build/Lib
+// before starting vscode
 {
     "configurations": [
     {
@@ -8,7 +11,7 @@
         "type": "cppdbg",
         "request": "launch",
         "program": "${workspaceFolder}/build/swig-unittests",
-        "args": [], // "-c++" "-java" "-Isrc" "-o" "./wrapper.cpp" "mytest.i"],
+        "args": [], //"-c++" "-java" "-Isrc" "-o" "./wrapper.cpp" "mytest.i"],
         "stopAtEntry": false,
         "cwd": "/home/pierre/Documents/cpp/swig/example",
         "externalConsole": false,
