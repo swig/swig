@@ -13,15 +13,11 @@ SWIGRUNTIME SWIGV8_FUNCTION_TEMPLATE SWIGV8_CreateClassTemplate(const char* symb
     
     v8::Local<v8::FunctionTemplate> class_templ = SWIGV8_FUNCTEMPLATE_NEW_VOID();
     class_templ->SetClassName(SWIGV8_SYMBOL_NEW(symbol));
-
-    SWIGV8_OBJECT_TEMPLATE inst_templ = class_templ->InstanceTemplate();
-    inst_templ->SetInternalFieldCount(1);
-
-    SWIGV8_OBJECT_TEMPLATE equals_templ = class_templ->PrototypeTemplate();
-    equals_templ->Set(SWIGV8_SYMBOL_NEW("equals"), SWIGV8_FUNCTEMPLATE_NEW(_SWIGV8_wrap_equals));
-
-    SWIGV8_OBJECT_TEMPLATE cptr_templ = class_templ->PrototypeTemplate();
-    cptr_templ->Set(SWIGV8_SYMBOL_NEW("getCPtr"), SWIGV8_FUNCTEMPLATE_NEW(_wrap_getCPtr));
+    class_templ->InstanceTemplate()->SetInternalFieldCount(1);
+    class_templ->PrototypeTemplate()->Set(SWIGV8_SYMBOL_NEW("equals"),
+                                          SWIGV8_FUNCTEMPLATE_NEW(_SWIGV8_wrap_equals));
+    class_templ->PrototypeTemplate()->Set(SWIGV8_SYMBOL_NEW("getCPtr"),
+                                          SWIGV8_FUNCTEMPLATE_NEW(_wrap_getCPtr));
 
     SWIGV8_ESCAPE(class_templ);
 }
@@ -31,8 +27,8 @@ SWIGRUNTIME SWIGV8_FUNCTION_TEMPLATE SWIGV8_CreateClassTemplate(const char* symb
  */
 SWIGRUNTIME void SWIGV8_AddMemberFunction(SWIGV8_FUNCTION_TEMPLATE class_templ, const char* symbol,
   SwigV8FunctionCallback _func) {
-    SWIGV8_OBJECT_TEMPLATE proto_templ = class_templ->PrototypeTemplate();
-    proto_templ->Set(SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func));
+    class_templ->PrototypeTemplate()->Set(SWIGV8_SYMBOL_NEW(symbol),
+                                          SWIGV8_FUNCTEMPLATE_NEW(_func));
 }
 
 /**
@@ -40,8 +36,8 @@ SWIGRUNTIME void SWIGV8_AddMemberFunction(SWIGV8_FUNCTION_TEMPLATE class_templ, 
  */
 SWIGRUNTIME void SWIGV8_AddMemberVariable(SWIGV8_FUNCTION_TEMPLATE class_templ, const char* symbol,
   SwigV8AccessorGetterCallback getter, SwigV8AccessorSetterCallback setter) {
-  SWIGV8_OBJECT_TEMPLATE proto_templ = class_templ->InstanceTemplate();
-  proto_templ->SetAccessor(SWIGV8_SYMBOL_NEW(symbol), getter, setter);
+  class_templ->InstanceTemplate()->SetAccessor(SWIGV8_SYMBOL_NEW(symbol),
+                                               getter, setter);
 }
 
 /**
