@@ -2224,7 +2224,7 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
     Delete(nthash);
     Delete(resolved_lstr);
 
-    Printf(types, "\"%s\", \"%s\", 0, 0, (void*)%s, 0};\n", ki.item, nt, cd);
+    Printf(types, "\"%s\", \"%s\", 0, 0, (SWIG_CLIENT_DATA_TYPE*)%s, 0};\n", ki.item, nt, cd);
 
     el = SwigType_equivalent_mangle(ki.item, 0, 0);
     SortList(el, Strcmp);
