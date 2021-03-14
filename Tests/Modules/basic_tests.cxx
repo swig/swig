@@ -6,8 +6,9 @@ extern "C" {
     #include "cparse.h"
 }
 
+
 TEST_CASE( "Code_w_o_templates", "[Modules]" ) {
-    Swig_init();
+    Swig_init_for_unittests();
     
     char code[] = "struct TestStruct { int x; };\nint f() { return 2; }\n";
     DOH* codefile = DohNewFileFromFile(fmemopen(code, sizeof(code), "r"));
@@ -26,8 +27,7 @@ TEST_CASE( "Code_w_o_templates", "[Modules]" ) {
 }
 
 TEST_CASE( "Code_with_simple_templates", "[Modules]" ) {
-    Swig_init();
-    Swig_cparse_cplusplus(1);
+    Swig_init_for_unittests();
 
     char code[] = R"(
         template<class MyT>
@@ -54,3 +54,44 @@ TEST_CASE( "Code_with_simple_templates", "[Modules]" ) {
     CHECK(get_attr(myFloatStruct, "name") == "TestStruct<(float)>");
 }
 
+TEST_CASE( "Code_with_template_templates", "[Modules]" ) {
+    __reset_parser();
+    Swig_init();
+    Swig_cparse_cplusplus(1);
+
+    char code[] = R"(
+        template<class T>
+        struct Container1 { 
+            T x;
+        };
+        template<class U>
+        struct Container2 { 
+            U x;
+        };
+        template<class T, class MyT>
+        struct TestStruct { 
+            MyT<T> x;
+        };
+        %template(IntTestStruct) TestStruct<int, Container1>;
+        %template(FloatTestStruct) TestStruct<float, Container2>;
+    )";
+    DOH* codefile = DohNewFileFromFile(fmemopen(code, sizeof(code), "r"));
+    Node *top = Swig_cparse(codefile);
+
+    Node *classes = DohGetattr(top, "classes");
+
+    Node* myStruct = get_first_with_symname(classes, "TestStruct");
+    Node* myFloatStruct = get_first_with_symname(classes, "FloatTestStruct");
+    Node* myIntStruct = get_first_with_symname(classes, "IntTestStruct");
+
+    REQUIRE(myStruct != nullptr);
+    REQUIRE(myFloatStruct != nullptr);
+    REQUIRE(myIntStruct != nullptr);
+
+    std::cout << "#########################\n";
+    print_content(myIntStruct);
+    std::cout << "#########################\n";
+    print_content(myFloatStruct);
+    CHECK(get_attr(myIntStruct, "name") == "TestStruct<(int,Container1)>");
+    CHECK(get_attr(myFloatStruct, "name") == "TestStruct<(float,Container2)>");
+}

@@ -6,9 +6,16 @@
 extern "C" {
     #include "doh.h"
     #include "cparse.h"
+    void __reset_parser();
 }
 
 namespace {
+
+    void Swig_init_for_unittests() {
+        Swig_init();
+        Swig_cparse_cplusplus(1);        
+    }
+
     template<class T>
     void print(T x) {
         DOH* output_as_str = DohStr(x);
@@ -47,7 +54,6 @@ namespace {
             iterator = DohNext(iterator)
         ) {
             Node* x = iterator.item;
-            std::cout << " search..."  << get_attr(x,attr_name) << "\n"; 
             if (get_attr(x,attr_name) == v) {
                 return x;
             }
