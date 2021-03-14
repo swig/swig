@@ -14,6 +14,26 @@ namespace {
         DOH* output_as_str = DohStr(x);
         std::cout << (const char*)DohData(output_as_str) << "\n";        
     }
+
+    template<class T>
+    void print_content(T x) {
+        print(x);
+        size_t idx=0;
+        std::cout << "-------------\n";
+        for (
+            auto iterator = DohFirst(x); // see DOH/README
+            iterator.item;
+            iterator = DohNext(iterator)
+        ) {
+            std::cout << "loop:" << idx<< "\n";
+            std::cout << "::::::::::::::::\n";
+            Node* x = iterator.item;
+            print(x);
+            idx++;
+        }
+        std::cout << "-------------\n";
+    }
+
     std::string get_attr(Node* node, const char* name) {
         DOH* attr = DohGetattr(node, name);  
         DOH* output_as_str = DohStr(attr);
@@ -27,6 +47,7 @@ namespace {
             iterator = DohNext(iterator)
         ) {
             Node* x = iterator.item;
+            std::cout << " search..."  << get_attr(x,attr_name) << "\n"; 
             if (get_attr(x,attr_name) == v) {
                 return x;
             }
@@ -39,6 +60,9 @@ namespace {
     }
     Node* get_first_with_name(Node *n, const char* name) {
         return get_first(n, "name", name);
+    }
+    Node* get_first_with_symname(Node *n, const char* name) {
+        return get_first(n, "sym:name", name);
     }
 }
 

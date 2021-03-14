@@ -13,21 +13,6 @@ TEST_CASE( "Code_w_o_templates", "[Modules]" ) {
     DOH* codefile = DohNewFileFromFile(fmemopen(code, sizeof(code), "r"));
 
     Node *top = Swig_cparse(codefile);
-#if 0
-    {
-        print(top);
-        Node *classes = DohGetattr(top, "classes");
-        for (
-            auto iterator = DohFirst(classes); // see DOH/README
-            iterator.item;
-            iterator = DohNext(iterator)
-        ) {
-            std::cout << "loop:\n";
-            Node* myclass = iterator.item;
-            print(myclass);
-        }
-    }
-#endif
 
     Node* mystruct = get_first_of_kind(top, "struct");
     CHECK( get_attr(mystruct, "name") == "TestStruct" );
@@ -42,19 +27,30 @@ TEST_CASE( "Code_w_o_templates", "[Modules]" ) {
 
 TEST_CASE( "Code_with_simple_templates", "[Modules]" ) {
     Swig_init();
-    
+    Swig_cparse_cplusplus(1);
+
     char code[] = R"(
-        template<class T>
+        template<class MyT>
         struct TestStruct { 
-            T x;
+            MyT x;
         };
-        //%template(IntTestStruct) TestStruct<int>;
-        //%template(FloatTestStruct) TestStruct<float>;
+        %template(IntTestStruct) TestStruct<int>;
+        %template(FloatTestStruct) TestStruct<float>;
     )";
     DOH* codefile = DohNewFileFromFile(fmemopen(code, sizeof(code), "r"));
     Node *top = Swig_cparse(codefile);
 
-    Node* mystruct = get_first_with_name(top, "TestStruct");
-    print(mystruct);
+    Node *classes = DohGetattr(top, "classes");
+
+    Node* myStruct = get_first_with_symname(classes, "TestStruct");
+    Node* myFloatStruct = get_first_with_symname(classes, "FloatTestStruct");
+    Node* myIntStruct = get_first_with_symname(classes, "IntTestStruct");
+
+    REQUIRE(myStruct != nullptr);
+    REQUIRE(myFloatStruct != nullptr);
+    REQUIRE(myIntStruct != nullptr);
+
+    CHECK(get_attr(myIntStruct, "name") == "TestStruct<(int)>");
+    CHECK(get_attr(myFloatStruct, "name") == "TestStruct<(float)>");
 }
 
