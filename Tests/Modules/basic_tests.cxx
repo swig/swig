@@ -35,3 +35,22 @@ TEST_CASE( "Code_w_o_templates", "[Modules]" ) {
     Node* myfunc = get_first_of_kind(top, "function");
     CHECK( get_attr(myfunc, "name") == "f" );
 }
+
+TEST_CASE( "Code_with_simple_templates", "[Modules]" ) {
+    Swig_init();
+    
+    char code[] = R"(
+        template<class T>
+        struct TestStruct { 
+            T x;
+        };
+        //%template(IntTestStruct) TestStruct<int>;
+        //%template(FloatTestStruct) TestStruct<float>;
+    )";
+    DOH* codefile = DohNewFileFromFile(fmemopen(code, sizeof(code), "r"));
+    Node *top = Swig_cparse(codefile);
+
+    Node* mystruct = get_first_with_name(top, "TestStruct");
+    print(mystruct);
+}
+
