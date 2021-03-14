@@ -1,6 +1,10 @@
 #include "catch.hpp"
 #include <iostream>
 #include "test_helper.h"
+extern "C" {
+    #include "doh.h"
+    #include "cparse.h"
+}
 
 TEST_CASE( "Code_w_o_templates", "[Modules]" ) {
     Swig_init();

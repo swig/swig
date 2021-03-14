@@ -1,3 +1,6 @@
+#ifndef __UNITTESTS__TEST_HELPER_H
+#define __UNITTESTS__TEST_HELPER_H
+
 // to be used in tests
 // just inline this code
 extern "C" {
@@ -38,3 +41,5 @@ namespace {
         return get_first(n, "name", name);
     }
 }
+
+#endif
