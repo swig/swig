@@ -88,10 +88,18 @@ TEST_CASE( "Code_with_template_templates", "[Modules]" ) {
     REQUIRE(myFloatStruct != nullptr);
     REQUIRE(myIntStruct != nullptr);
 
-    std::cout << "#########################\n";
-    print_content(myIntStruct);
-    std::cout << "#########################\n";
-    print_content(myFloatStruct);
     CHECK(get_attr(myIntStruct, "name") == "TestStruct<(int,Container1)>");
     CHECK(get_attr(myFloatStruct, "name") == "TestStruct<(float,Container2)>");
+
+    Node* myFloatStruct_x = get_first_with_symname(myFloatStruct, "x");
+    Node* myIntStruct_x = get_first_with_symname(myIntStruct, "x");
+    REQUIRE(myFloatStruct_x != nullptr);
+    REQUIRE(myIntStruct_x != nullptr);
+
+    
+
+    // TODO: why is MyT not Container1/2
+    CHECK(get_attr(myIntStruct_x, "type") == "MyT<(int)>");
+    CHECK(get_attr(myFloatStruct_x, "type") == "MyT<(float)>");
+    
 }
