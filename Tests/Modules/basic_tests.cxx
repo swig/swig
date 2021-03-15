@@ -99,7 +99,11 @@ TEST_CASE( "Code_with_template_templates", "[Modules]" ) {
     
 
     // TODO: why is MyT not Container1/2
+    // wrong:
     CHECK(get_attr(myIntStruct_x, "type") == "MyT<(int)>");
     CHECK(get_attr(myFloatStruct_x, "type") == "MyT<(float)>");
+    // correct:
+    //CHECK(get_attr(myIntStruct_x, "type") == "Container1<(int)>");
+    //CHECK(get_attr(myFloatStruct_x, "type") == "Container2<(float)>");
     
 }
