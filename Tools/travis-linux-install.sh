@@ -97,8 +97,8 @@ case "$SWIGLANG" in
 		travis_retry sudo apt-get -qq install r-base
 		;;
 	"ruby")
-		if [[ "$VER" == "2.7" ]]; then
-			# Ruby 2.7 support is currently only rvm master (30 Dec 2019)
+		if [[ "$VER" == "2.7" || "$VER" == "3.0" ]]; then
+			# Ruby 2.7+ support is currently only rvm master (30 Dec 2019)
 			travis_retry rvm get master
 			rvm reload
 			rvm list known
