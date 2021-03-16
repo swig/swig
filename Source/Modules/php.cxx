@@ -473,6 +473,20 @@ public:
     s_arginfo = NewString("/* arginfo subsection */\n");
     arginfo_used = NewHash();
 
+    // Add arginfo we'll definitely need for *_alter_newobject and *_get_newobject.
+    SetFlag(arginfo_used, "1");
+    Append(s_arginfo,
+	   "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_1, 0, 0, 0)\n"
+	   " ZEND_ARG_INFO(0,arg1)\n"
+	   "ZEND_END_ARG_INFO()\n");
+
+    SetFlag(arginfo_used, "2");
+    Append(s_arginfo,
+	   "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_2, 0, 0, 0)\n"
+	   " ZEND_ARG_INFO(0,arg1)\n"
+	   " ZEND_ARG_INFO(0,arg2)\n"
+	   "ZEND_END_ARG_INFO()\n");
+
     /* start the function entry section */
     s_entry = NewString("/* entry subsection */\n");
 
@@ -653,8 +667,8 @@ public:
     }
     Printv(f_begin, s_vdecl, s_wrappers, NIL);
     Printv(f_begin, all_cs_entry, "\n\n", s_arginfo, "\n\n", s_entry,
-	" SWIG_ZEND_NAMED_FE(swig_", module, "_alter_newobject,_wrap_swig_", module, "_alter_newobject,NULL)\n"
-	" SWIG_ZEND_NAMED_FE(swig_", module, "_get_newobject,_wrap_swig_", module, "_get_newobject,NULL)\n"
+	" SWIG_ZEND_NAMED_FE(swig_", module, "_alter_newobject,_wrap_swig_", module, "_alter_newobject,swig_arginfo_2)\n"
+	" SWIG_ZEND_NAMED_FE(swig_", module, "_get_newobject,_wrap_swig_", module, "_get_newobject,swig_arginfo_1)\n"
 	" ZEND_FE_END\n};\n\n", NIL);
     Printv(f_begin, s_init, NIL);
     Delete(s_header);
@@ -689,25 +703,46 @@ public:
 
     // We want to only emit each different arginfo once, as that reduces the
     // size of both the generated source code and the compiled extension
-    // module.  To do this, we name the arginfo to encode the number of
-    // parameters and which (if any) are passed by reference by using a
-    // sequence of 0s (for non-reference) and 1s (for by references).
+    // module.  The parameters at this level are just named arg1, arg2, etc
+    // so we generate an arginfo name with the number of parameters and a
+    // bitmap value saying which (if any) are passed by reference.
     ParmList *l = Getattr(n, "parms");
-    String * arginfo_code = NewStringEmpty();
+    unsigned long bitmap = 0, bit = 1;
+    int n_params = 0;
+    bool overflowed = false;
     for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
       /* Ignored parameters */
       if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	continue;
       }
-      Append(arginfo_code, GetFlag(p, "tmap:in:byref") ? "1" : "0");
+      ++n_params;
+      if (GetFlag(p, "tmap:in:byref")) {
+	  bitmap |= bit;
+	  if (bit == 0) overflowed = true;
+      }
+      bit <<= 1;
+    }
+    String * arginfo_code;
+    if (overflowed) {
+      // We overflowed the bitmap so just generate a unique name - this only
+      // happens for a function with more parameters than bits in a long
+      // where a high numbered parameter is passed by reference, so should be
+      // rare in practice.
+      static int overflowed_counter = 0;
+      arginfo_code = NewStringf("z%d", ++overflowed_counter);
+    } else if (bitmap == 0) {
+      // No parameters passed by reference.
+      arginfo_code = NewStringf("%d", n_params);
+    } else {
+      arginfo_code = NewStringf("%d_%lx", n_params, bitmap);
     }
 
     if (!GetFlag(arginfo_used, arginfo_code)) {
-      // Not had this one before, so emit it.
+      // Not had this one before so emit it.
       SetFlag(arginfo_used, arginfo_code);
       Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%s, 0, 0, 0)\n", arginfo_code);
-      for (const char * p = Char(arginfo_code); *p; ++p) {
-	Printf(s_arginfo, " ZEND_ARG_PASS_INFO(%c)\n", *p);
+      for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
+	Printf(s_arginfo, " ZEND_ARG_INFO(%d,%s)\n", GetFlag(p, "tmap:in:byref"), Getattr(p, "lname"));
       }
       Printf(s_arginfo, "ZEND_END_ARG_INFO()\n");
     }

@@ -12,8 +12,8 @@ extern "C" {
 #include "zend_exceptions.h"
 #include "php.h"
 
-#if PHP_MAJOR_VERSION != 7
-# error These bindings need PHP7 - to generate PHP5 bindings use: SWIG < 4.0.0 and swig -php5
+#if PHP_MAJOR_VERSION < 7
+# error These bindings need PHP 7 or later - to generate PHP5 bindings use: SWIG < 4.0.0 and swig -php5
 #endif
 
 #include "ext/standard/php_string.h"
@@ -200,7 +200,11 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
 
   switch (Z_TYPE_P(z)) {
     case IS_OBJECT: {
+#if PHP_MAJOR_VERSION < 8
       HashTable * ht = Z_OBJ_HT_P(z)->get_properties(z);
+#else
+      HashTable * ht = Z_OBJ_HT_P(z)->get_properties(Z_OBJ_P(z));
+#endif
       if (ht) {
         zval * _cPtr = zend_hash_str_find(ht, "_cPtr", sizeof("_cPtr") - 1);
         if (_cPtr) {
