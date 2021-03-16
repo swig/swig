@@ -104,7 +104,7 @@ TEST_CASE( "Code_with_template_templates", "[Modules]" ) {
     REQUIRE(myFloatStruct_x != nullptr);
     REQUIRE(myIntStruct_x != nullptr);
 
-    // TODO: why is MyT not Container1/2
+    // TODO:
     // wrong:
     CHECK(get_attr(myIntStruct_x, "type") == "TemplateTemplateT<(int)>");
     CHECK(get_attr(myFloatStruct_x, "type") == "TemplateTemplateT<(float)>");
