@@ -62,7 +62,7 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
-      env: SWIGLANG=go VER=1.12
+      env: SWIGLANG=go VER=1.12 CSTD=gnu99
       dist: xenial
     - compiler: gcc
       os: linux
@@ -278,6 +278,10 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
+      env: SWIGLANG=ruby VER=3.0 CSTD=c99
+      dist: xenial
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=scilab
       dist: xenial
     - compiler: gcc
@@ -369,7 +373,7 @@ matrix:
     - compiler: clang
       os: osx
       osx_image: xcode12.2
-      env: SWIGLANG=go
+      env: SWIGLANG=go CSTD=gnu99
     - compiler: clang
       os: osx
       osx_image: xcode12.2
