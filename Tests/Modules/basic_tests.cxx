@@ -30,9 +30,9 @@ TEST_CASE( "Code_with_simple_templates", "[Modules]" ) {
     Swig_init_for_unittests();
 
     char code[] = R"(
-        template<class MyT>
+        template<class SimpleT>
         struct TestStruct { 
-            MyT x;
+            SimpleT x;
         };
         %template(IntTestStruct) TestStruct<int>;
         %template(FloatTestStruct) TestStruct<float>;
@@ -76,9 +76,9 @@ TEST_CASE( "Code_with_template_templates", "[Modules]" ) {
         struct Container2 { 
             U x;
         };
-        template<class T, class MyT>
+        template<class BaseT, class TemplateTemplateT>
         struct TestStruct { 
-            MyT<T> x;
+            TemplateTemplateT<BaseT> x;
         };
         %template(IntTestStruct) TestStruct<int, Container1>;
         %template(FloatTestStruct) TestStruct<float, Container2>;
@@ -104,14 +104,11 @@ TEST_CASE( "Code_with_template_templates", "[Modules]" ) {
     REQUIRE(myFloatStruct_x != nullptr);
     REQUIRE(myIntStruct_x != nullptr);
 
-    
-
     // TODO: why is MyT not Container1/2
     // wrong:
-    CHECK(get_attr(myIntStruct_x, "type") == "MyT<(int)>");
-    CHECK(get_attr(myFloatStruct_x, "type") == "MyT<(float)>");
+    CHECK(get_attr(myIntStruct_x, "type") == "TemplateTemplateT<(int)>");
+    CHECK(get_attr(myFloatStruct_x, "type") == "TemplateTemplateT<(float)>");
     // correct:
     //CHECK(get_attr(myIntStruct_x, "type") == "Container1<(int)>");
     //CHECK(get_attr(myFloatStruct_x, "type") == "Container2<(float)>");
-    
 }
