@@ -5,23 +5,12 @@
 
 require 'swig_assert'
 
-# helper class for comparing version strings
-class Version
-  attr_reader :array
-  def initialize(s)
-    @array = s.split('.').map { |e| e.to_i }
-  end
-  def <(rhs)
-    a = @array.clone
-    b = rhs.array.clone
-    a << 0 while a.size < b.size
-    b << 0 while b.size < a.size
-    (a <=> b) < 0
-  end
-end
-
+# This extension to the Warning class is intended for suppressing expected
+# Ruby warning messages about invalid or redefined Ruby constants - basically
+# the equivalent of %warnfilter(SWIGWARN_RUBY_WRONG_NAME) but for the moment
+# the wrapper library is loaded by the Ruby interpreter.
+# Note: This only works for Ruby 2.4 and later
 if Object.const_defined?(:Warning) && Warning.respond_to?(:warn)
-  # suppressing warnings like this only works for Ruby 2.4 and later
   module CustomWarningFilter
     def warn(*args)
       msg = args[0]
