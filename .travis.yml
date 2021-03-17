@@ -66,6 +66,10 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
+      env: SWIGLANG=go VER=1.16 CSTD=gnu99
+      dist: xenial
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=guile
       dist: xenial
     - compiler: gcc
