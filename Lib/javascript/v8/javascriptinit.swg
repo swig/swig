@@ -57,6 +57,10 @@ SWIG_V8_GetModule(v8::Local<v8::Context> context) {
 %}
 
 %insert(init) %{
+#if __cplusplus >= 201103L || (defined(_MSVC_LANG) && _MSVC_LANG >= 201103L)
+#include <mutex>
+#endif
+
 #if !defined(NODE_MODULE_VERSION) || (NODE_MODULE_VERSION < 12)
 // Note: 'extern "C"'' disables name mangling which makes it easier to load the symbol manually
 extern "C" void SWIGV8_INIT (SWIGV8_OBJECT exports_obj)
@@ -68,6 +72,10 @@ void SWIGV8_INIT (SWIGV8_OBJECT exports_obj, SWIGV8_VALUE /*module*/, v8::Local<
 {
 #if !defined(NODE_MODULE_VERSION) || NODE_MODULE_VERSION < 64
   v8::Local<v8::Context> context = SWIGV8_CURRENT_CONTEXT();
+#endif
+#if __cplusplus >= 201103L || (defined(_MSVC_LANG) && _MSVC_LANG >= 201103L)
+  static std::mutex guard;
+  const std::lock_guard<std::mutex> lock(guard);
 #endif
 
   SWIG_InitializeModule(context);
