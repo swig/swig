@@ -465,7 +465,10 @@
 %php_typecheck(double,SWIG_TYPECHECK_DOUBLE,IS_DOUBLE)
 %php_typecheck(char,SWIG_TYPECHECK_CHAR,IS_STRING)
 
-%typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char *, char *&, char []
+%typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char *, char *&
+ " $1 = (Z_TYPE($input) == IS_STRING || Z_TYPE($input) == IS_NULL); "
+
+%typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char []
  " $1 = (Z_TYPE($input) == IS_STRING); "
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE

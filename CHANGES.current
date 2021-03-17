@@ -8,6 +8,10 @@ Version 4.1.0 (in progress)
 ===========================
 
 2021-03-18: olly
+	    #1655 [PHP] Fix char* typecheck typemap to accept PHP Null like the
+	    corresponding in typemap does.
+
+2021-03-18: olly
 	    #1900, #1905 [PHP] Fix wrapping of overloaded directed methods with
 	    non-void return.
 
