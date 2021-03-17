@@ -36,7 +36,7 @@ TEST_CASE( "Code_with_simple_templates", "[Modules]" ) {
         };
         %template(IntTestStruct) TestStruct<int>;
         %template(FloatTestStruct) TestStruct<float>;
-    )";
+    )"; 
     DOH* codefile = DohNewFileFromFile(fmemopen(code, sizeof(code), "r"));
     Node *top = Swig_cparse(codefile);
 
@@ -112,3 +112,9 @@ TEST_CASE( "Code_with_template_templates", "[Modules]" ) {
     //CHECK(get_attr(myIntStruct_x, "type") == "Container1<(int)>");
     //CHECK(get_attr(myFloatStruct_x, "type") == "Container2<(float)>");
 }
+
+// Notes:
+//
+// check static void cparse_template_expand(Node *templnode, Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist, List *cpatchlist) {
+// printf("-----------------------------------------\nPI: '%s'\n",(const char*)(DohData(DohStr(nn))));
+// y-file/#line --> %no-lines
