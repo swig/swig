@@ -59,7 +59,7 @@ void Swig_cparse_debug_templates(int x) {
 static void cparse_template_expand(Node *templnode, Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist, List *cpatchlist) {
   static int expanded = 0;
   String *nodeType;
-  //printf("---------\nPI-BEFORE: '%s'\n",(const char*)(DohData(DohStr(tname))));
+  //printf("---------\nPI-BEFORE: '%s'\n",(const char*)(DohData(DohStr(templateargs))));
   if (!n)
     return;
   nodeType = nodeType(n);
@@ -295,7 +295,11 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       SwigType_add_template(tmp, tparms);
     }
     templateargs = Copy(tmp);
-    Delete(tmp);
+  printf("PI-BUILT: '%s' '%s'\n",
+    (const char*)(DohData(DohStr(templateargs))),
+    "..."
+  );
+   Delete(tmp);
   }
 
   tname = Copy(Getattr(n, "name"));

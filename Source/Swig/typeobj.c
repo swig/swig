@@ -945,6 +945,14 @@ SwigType *SwigType_add_template(SwigType *t, ParmList *parms) {
 
   Append(t, "<(");
   for (p = parms; p; p = nextSibling(p)) {
+    // HERE we have non-expanded "Container*" types...
+    // Here we could build the "final type" if we know
+    // about the template-template style of the parameter!
+    // Do we know this here? Or is it better somewhere else?
+  printf("PI-BUILD: '%s' '%s'\n",
+    (const char*)(DohData(DohStr(p))),
+    "..."
+  );
     String *v;
     if (Getattr(p, "default"))
       continue;
