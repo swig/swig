@@ -103,6 +103,14 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
   (const char*)(DohData(DohStr(t))),
   (const char*)(DohData(DohStr(v)))
   );
+  { // The template arguments come as string here...
+    // The Simple parameters are already replaced (e.g. '<(int)>')
+    // The Template template parameters are not correctly replaced...!!!
+    printf("CHECK: PI-templargs[len=%d]: '%s'\n",
+      DohLen(templateargs),
+      (const char*)(DohData(DohStr(templateargs)))
+    );
+  }
 
     if (Getattr(n, "conversion_operator")) {
       Append(cpatchlist, Getattr(n, "name"));
@@ -123,7 +131,7 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
     add_parms(Getattr(n, "parms"), cpatchlist, typelist, 0);
     add_parms(Getattr(n, "throws"), cpatchlist, typelist, 0);
 
-//printf("PI-here1: '%s'\n",(const char*)(DohData(DohStr(typelist))));
+    //printf("PI-here1: '%s'\n",(const char*)(DohData(DohStr(Getattr(n, "parms")))));
 
   } else if (Equal(nodeType, "class")) {
     /* Patch base classes */
