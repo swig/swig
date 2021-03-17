@@ -59,6 +59,7 @@ void Swig_cparse_debug_templates(int x) {
 static void cparse_template_expand(Node *templnode, Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist, List *cpatchlist) {
   static int expanded = 0;
   String *nodeType;
+  //printf("---------\nPI-BEFORE: '%s'\n",(const char*)(DohData(DohStr(tname))));
   if (!n)
     return;
   nodeType = nodeType(n);
@@ -89,6 +90,7 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
     t = Getattr(n, "type");
     v = Getattr(n, "value");
     d = Getattr(n, "decl");
+// printf("---------\nPI-BEFORE: '%s'\n",(const char*)(DohData(DohStr(tname))));
 
     code = Getattr(n, "code");
 
@@ -96,6 +98,11 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
     Append(typelist, d);
     Append(patchlist, v);
     Append(cpatchlist, code);
+ printf("PINAME: '%s' '%s' '%s'\n",
+  (const char*)(DohData(DohStr(Getattr(n, "name")))),
+  (const char*)(DohData(DohStr(t))),
+  (const char*)(DohData(DohStr(v)))
+  );
 
     if (Getattr(n, "conversion_operator")) {
       Append(cpatchlist, Getattr(n, "name"));
@@ -115,6 +122,8 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
 
     add_parms(Getattr(n, "parms"), cpatchlist, typelist, 0);
     add_parms(Getattr(n, "throws"), cpatchlist, typelist, 0);
+
+//printf("PI-here1: '%s'\n",(const char*)(DohData(DohStr(typelist))));
 
   } else if (Equal(nodeType, "class")) {
     /* Patch base classes */
@@ -232,6 +241,10 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
       cn = nextSibling(cn);
     }
   }
+  /*printf("PI-END: '%s' '%s'\n",
+    (const char*)(DohData(DohStr(tname))),
+    (const char*)(DohData(DohStr(rname)))
+  );*/
 }
 
 static
