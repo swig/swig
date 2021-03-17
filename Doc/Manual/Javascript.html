@@ -89,6 +89,8 @@ $ swig -javascript -jsc example.i</pre>
 <pre>
 $ swig -c++ -javascript -jsc example.i</pre>
 </div>
+<p>Unlike JavaScriptCore, V8 is a C++ API, and thus, the generated modules
+must be generated and compiled as C++.</p>
 <p>The V8 code that SWIG generates should work with most versions from 3.11.10.
 However, the only early version that receives some testing is 3.14.5, which is
 still shipped with Ubuntu for some reason. Other than that it's probably safer
@@ -111,7 +113,7 @@ $ swig -c++ -javascript -v8 -DV8_VERSION=0x032530 example.i</pre>
 <pre>
 $ swig -c++ -javascript -v8 example.i</pre>
 </div>
-<p>This creates a C/C++ source file <code>example_wrap.c</code> or <code>example_wrap.cxx</code>. The generated C source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application to create an extension module.</p>
+<p>This creates a C++ source file <code>example_wrap.cxx</code> which contains the low-level wrappers and needs to be compiled and linked with the rest of your C/C++ application code to create an extension module.</p>
 <p>The name of the wrapper file is derived from the name of the input file. For example, if the input file is <code>example.i</code>, the name of the wrapper file is <code>example_wrap.c</code>. To change this, you can use the -o option. The wrapped module will export one function which must be called to register the module with the Javascript interpreter. For example, if your module is named <code>example</code> the corresponding initializer for JavascriptCore would be</p>
 <div class="code">
 <pre>
@@ -122,9 +124,10 @@ bool example_initialize(JSGlobalContextRef context, JSObjectRef *exports)</pre>
 <pre>
 void example_initialize(v8::Handle&lt;v8::Object&gt; exports)</pre>
 </div>
-<p>
-<b>Note</b>: be aware that <code>v8</code> has a C++ API, and thus, the generated modules must be compiled as C++.
-</p>
+<p>Node.js handles module initialization transparently, without requiring any
+calls on developer's behalf. Caveat lector! If module is to be used with
+<code>worker_threads</code>, then generated wrapper has to be compiled as at
+least C++11. Consult your compiler manual.</p>
 
 <H3><a name="Javascript_running_tests_examples">28.2.2 Running Tests and Examples</a></H3>
 
