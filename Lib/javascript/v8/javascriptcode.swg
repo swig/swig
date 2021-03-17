@@ -12,6 +12,7 @@ static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
 
   SWIGV8_OBJECT self = args.Holder();
+  SWIGV8_VALUE jsdata = args.Data();
   $jslocals
   if(self->InternalFieldCount() < 1) SWIG_exception_fail(SWIG_ERROR, "Illegal call of constructor $jswrapper.");
   if(args.Length() != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
@@ -23,6 +24,7 @@ static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args) {
   goto fail;
 fail:
   SWIGV8_RETURN(SWIGV8_UNDEFINED());
+  (void)jsdata;
 }
 %}
 
@@ -80,6 +82,7 @@ static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args, V8ErrorHandler 
   SWIGV8_HANDLESCOPE();
 
   SWIGV8_OBJECT self = args.Holder();
+  SWIGV8_VALUE jsdata = args.Data();
   $jslocals
   if(self->InternalFieldCount() < 1) SWIG_exception_fail(SWIG_ERROR, "Illegal call of constructor $jswrapper.");
   if(args.Length() != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
@@ -91,6 +94,7 @@ static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args, V8ErrorHandler 
   goto fail;
 fail:
   SWIGV8_RETURN(SWIGV8_UNDEFINED());
+  (void)jsdata;
 }
 %}
 
@@ -229,6 +233,7 @@ static SwigV8ReturnValue $jswrapper(v8::Local<v8::Name> property, const SwigV8Pr
   SWIGV8_HANDLESCOPE();
   
   SWIGV8_VALUE jsresult;
+  SWIGV8_VALUE jsdata = info.Data();
   $jslocals
   $jscode
   SWIGV8_RETURN_INFO(jsresult, info);
@@ -236,6 +241,7 @@ static SwigV8ReturnValue $jswrapper(v8::Local<v8::Name> property, const SwigV8Pr
   goto fail;
 fail:
   SWIGV8_RETURN_INFO(SWIGV8_UNDEFINED(), info);
+  (void)jsdata;
 }
 %}
 
@@ -274,6 +280,7 @@ static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
   SWIGV8_VALUE jsresult;
+  SWIGV8_VALUE jsdata = args.Data();
   $jslocals
   if(args.Length() != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
 
@@ -283,6 +290,7 @@ static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args) {
   goto fail;
 fail:
   SWIGV8_RETURN(SWIGV8_UNDEFINED());
+  (void)jsdata;
 }
 %}
 
@@ -299,6 +307,7 @@ static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
   SWIGV8_VALUE jsresult;
+  SWIGV8_VALUE jsdata = args.Data();
   OverloadErrorHandler errorHandler;
   $jscode
 
@@ -307,6 +316,7 @@ static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args) {
   goto fail;
 fail:
   SWIGV8_RETURN(SWIGV8_UNDEFINED());
+  (void)jsdata;
 }
 %}
 
@@ -323,6 +333,7 @@ static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args, V8ErrorHandler 
   SWIGV8_HANDLESCOPE();
   
   SWIGV8_VALUE jsresult;
+  SWIGV8_VALUE jsdata = args.Data();
   $jslocals
   $jscode
   SWIGV8_RETURN(jsresult);
@@ -330,6 +341,7 @@ static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args, V8ErrorHandler 
   goto fail;
 fail:
   SWIGV8_RETURN(SWIGV8_UNDEFINED());
+  (void)jsdata;
 }
 %}
 
