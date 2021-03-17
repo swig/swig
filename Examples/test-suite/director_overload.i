@@ -52,6 +52,7 @@ class OverloadedGetSet
   int v;
 public:
   OverloadedGetSet() : v(42) { }
+  virtual ~OverloadedGetSet() { }
   virtual int rw() const { return v; }
   virtual void rw(int new_v) { v = new_v; }
 };
