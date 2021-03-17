@@ -422,11 +422,6 @@ matrix:
       os: linux
       env: SWIGLANG=d VER=2.086.1
       dist: xenial
-    # seg fault in director_basic testcase
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=php VER=7.2
-      dist: xenial
     # Experimental languages
     - compiler: gcc
       os: linux
