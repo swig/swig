@@ -111,5 +111,5 @@ TEST_CASE( "Code_with_template_templates", "[Modules]" ) {
 // Notes:
 //
 // check static void cparse_template_expand(Node *templnode, Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist, List *cpatchlist) {
-// printf("-----------------------------------------\nPI: '%s'\n",(const char*)(DohData(DohStr(nn))));
+// printf("PI: '%s'\n",(const char*)(DohData(DohStr(nn))));
 // y-file/#line --> %no-lines

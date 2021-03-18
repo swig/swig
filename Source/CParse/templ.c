@@ -59,7 +59,6 @@ void Swig_cparse_debug_templates(int x) {
 static void cparse_template_expand(Node *templnode, Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist, List *cpatchlist) {
   static int expanded = 0;
   String *nodeType;
-  //printf("---------\nPI-BEFORE: '%s'\n",(const char*)(DohData(DohStr(templateargs))));
   if (!n)
     return;
   nodeType = nodeType(n);
@@ -90,7 +89,6 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
     t = Getattr(n, "type");
     v = Getattr(n, "value");
     d = Getattr(n, "decl");
-// printf("---------\nPI-BEFORE: '%s'\n",(const char*)(DohData(DohStr(tname))));
 
     code = Getattr(n, "code");
 
@@ -98,19 +96,6 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
     Append(typelist, d);
     Append(patchlist, v);
     Append(cpatchlist, code);
- printf("PINAME: '%s' '%s' '%s'\n",
-  (const char*)(DohData(DohStr(Getattr(n, "name")))),
-  (const char*)(DohData(DohStr(t))),
-  (const char*)(DohData(DohStr(v)))
-  );
-  { // The template arguments come as string here...
-    // The Simple parameters are already replaced (e.g. '<(int)>')
-    // The Template template parameters are not correctly replaced...!!!
-    printf("CHECK: PI-templargs[len=%d]: '%s'\n",
-      DohLen(templateargs),
-      (const char*)(DohData(DohStr(templateargs)))
-    );
-  }
 
     if (Getattr(n, "conversion_operator")) {
       Append(cpatchlist, Getattr(n, "name"));
@@ -130,9 +115,6 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
 
     add_parms(Getattr(n, "parms"), cpatchlist, typelist, 0);
     add_parms(Getattr(n, "throws"), cpatchlist, typelist, 0);
-
-
-    //printf("PI-here1: '%s'\n",(const char*)(DohData(DohStr(Getattr(n, "parms")))));
 
   } else if (Equal(nodeType, "class")) {
     /* Patch base classes */
@@ -250,10 +232,6 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
       cn = nextSibling(cn);
     }
   }
-  /*printf("PI-END: '%s' '%s'\n",
-    (const char*)(DohData(DohStr(tname))),
-    (const char*)(DohData(DohStr(rname)))
-  );*/
 }
 
 static
@@ -296,10 +274,6 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       SwigType_add_template(tmp, tparms);
     }
     templateargs = Copy(tmp);
-  /*printf("PI-BUILT: '%s' '%s'\n",
-    (const char*)(DohData(DohStr(templateargs))),
-    "..."
-  );*/
    Delete(tmp);
   }
 
@@ -376,12 +350,6 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	  qvalue = Swig_symbol_typedef_reduce(value, tsdecl);
 	  dvalue = Swig_symbol_type_qualify(qvalue, tsdecl);
 
-/*     printf("PI-POINT1: '%s' '%s' '%s'\n",
-      (const char*)(DohData(DohStr(value))),
-      (const char*)(DohData(DohStr(qvalue))),
-      (const char*)(DohData(DohStr(dvalue)))
-      );*/
-
 	  if (SwigType_istemplate(dvalue)) {
 	    String *ty = Swig_symbol_template_deftype(dvalue, tscope);
 	    Delete(dvalue);
@@ -410,33 +378,16 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	  for (i = 0; i < sz; i++) {
 	    String *s = Getitem(typelist, i);
 
-      printf("----\nPI-POINT2 IN: '%s' '%s' '%s'\n",
-        (const char*)(DohData(DohStr(s))),
-        (const char*)(DohData(DohStr(dvalue))),
-        (const char*)(DohData(DohStr(name)))
-        );
-
 	    /*      Replace(s,name,value, DOH_REPLACE_ID); */
 	    /*      Printf(stdout,"name = '%s', value = '%s', tbase = '%s', iname='%s' s = '%s' --> ", name, dvalue, tbase, iname, s); */
 	    SwigType_typename_replace(s, name, dvalue);
 	    SwigType_typename_replace(s, tbase, iname);
 	    /*      Printf(stdout,"'%s'\n", s); */
 
-      printf("PI-POINT2 OUT : '%s' '%s' '%s'\n",
-        (const char*)(DohData(DohStr(s))),
-        (const char*)(DohData(DohStr(dvalue))),
-        (const char*)(DohData(DohStr(name)))
-        );
-
 	  }
 
 	  tmp = NewStringf("#%s", name);
 	  tmpr = NewStringf("\"%s\"", valuestr);
-     /*printf("PI-POINT2-OK: '%s' '%s' '%s'\n",
-      (const char*)(DohData(DohStr(tmp))),
-      (const char*)(DohData(DohStr(tmpr))),
-      (const char*)(DohData(DohStr(name)))
-      );*/
 
 	  sz = Len(cpatchlist);
 	  for (i = 0; i < sz; i++) {

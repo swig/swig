@@ -1277,22 +1277,9 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
     return;
 
   if (Equal(t, pat)) {
-
-    printf("   >PT0 REPL : '%s' '%s' '%s'\n",
-    (const char*)(DohData(DohStr(t))),
-    (const char*)(DohData(DohStr(pat))),
-    (const char*)(DohData(DohStr(rep)))
-    );
-
     Replace(t, pat, rep, DOH_REPLACE_ANY);
     return;
   }
-
-  printf("   >PT1 : '%s' '%s' '%s'\n",
-  (const char*)(DohData(DohStr(t))),
-  (const char*)(DohData(DohStr(pat))),
-  (const char*)(DohData(DohStr(rep)))
-  );
 
   nt = NewStringEmpty();
   elem = SwigType_split(t);
@@ -1300,31 +1287,10 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
   for (i = 0; i < ilen; i++) {
     String *e = Getitem(elem, i);
     if (SwigType_issimple(e)) {
-
-      printf("   -->PT2 SIMPLE: '%s' '%s' '%s'\n",
-      (const char*)(DohData(DohStr(e))),
-      (const char*)(DohData(DohStr(pat))),
-      (const char*)(DohData(DohStr(rep)))
-      );
-
       if (Equal(e, pat)) {
-
-      printf("   ---->PT2 SIMPLE, EQ: '%s' '%s' '%s'\n",
-      (const char*)(DohData(DohStr(e))),
-      (const char*)(DohData(DohStr(pat))),
-      (const char*)(DohData(DohStr(rep)))
-      );
-
 	/* Replaces a type of the form 'pat' with 'rep<args>' */
 	Replace(e, pat, rep, DOH_REPLACE_ANY);
       } else if (SwigType_istemplate(e)) {
-
-      printf("   ---->PT2 SIMPLE, ISTEMPLATE: '%s' '%s' '%s'\n",
-      (const char*)(DohData(DohStr(e))), // e=TemplateTemplateT<(float)>
-      (const char*)(DohData(DohStr(pat))), // TemplateTemplateT
-      (const char*)(DohData(DohStr(rep))) // Container2
-      );
-
 	/* Replaces a type of the form 'pat<args>' with 'rep' */
   {
     // POSSIBLE FIX:
@@ -1367,13 +1333,6 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	  Delete(tparms);
 	}
       } else if (Swig_scopename_check(e)) {
-
-      printf("   ---->PT2 SIMPLE, Swig_scopename_check: '%s' '%s' '%s'\n",
-      (const char*)(DohData(DohStr(e))),
-      (const char*)(DohData(DohStr(pat))),
-      (const char*)(DohData(DohStr(rep)))
-      );
-
 	String *first = 0;
 	String *rest = 0;
 	Swig_scopename_split(e, &first, &rest);
@@ -1396,13 +1355,6 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	Delete(rest);
       }
     } else if (SwigType_isfunction(e)) {
-
-  printf("   -->PT2 FUNC: '%s' '%s' '%s'\n",
-  (const char*)(DohData(DohStr(e))),
-  (const char*)(DohData(DohStr(0))),
-  (const char*)(DohData(DohStr(0)))
-  );
-
       int j, jlen;
       List *fparms = SwigType_parmlist(e);
       Clear(e);
@@ -1417,13 +1369,6 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
       Append(e, ").");
       Delete(fparms);
     } else if (SwigType_isarray(e)) {
-
-  printf("   -->PT2 ARRAY: '%s' '%s' '%s'\n",
-  (const char*)(DohData(DohStr(e))),
-  (const char*)(DohData(DohStr(0))),
-  (const char*)(DohData(DohStr(0)))
-  );
-
       Replace(e, pat, rep, DOH_REPLACE_ID);
     }
     Append(nt, e);
