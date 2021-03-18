@@ -392,14 +392,12 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	    Replace(s, tmp, tmpr, DOH_REPLACE_ID);
 	    Replace(s, name, valuestr, DOH_REPLACE_ID);
 	  }
-
 	  Delete(tmp);
 	  Delete(tmpr);
 	  Delete(valuestr);
 	  Delete(dvalue);
 	  Delete(qvalue);
 	}
-
 	p = nextSibling(p);
 	tp = nextSibling(tp);
 	if (!p)
@@ -412,7 +410,6 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       for (i = 0; i < sz; i++) {
 	String *s = Getitem(typelist, i);
 	SwigType_typename_replace(s, tbase, iname);
-
       }
     }
   }
@@ -430,7 +427,6 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       }
     }
   }
-
   Delete(patchlist);
   Delete(cpatchlist);
   Delete(typelist);

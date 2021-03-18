@@ -1280,7 +1280,6 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
     Replace(t, pat, rep, DOH_REPLACE_ANY);
     return;
   }
-
   nt = NewStringEmpty();
   elem = SwigType_split(t);
   ilen = Len(elem);
@@ -1291,24 +1290,24 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	/* Replaces a type of the form 'pat' with 'rep<args>' */
 	Replace(e, pat, rep, DOH_REPLACE_ANY);
       } else if (SwigType_istemplate(e)) {
-	/* Replaces a type of the form 'pat<args>' with 'rep' */
-  {
-    // POSSIBLE FIX:
-    // to match "e=TemplateTemplateT<(float)>"
-    // with "pat=TemplateTemplateT"
-    // we need to compare only the first part of the string e,
-    // instead of the complete string...
-    int len = DohLen(pat);
-    String *firstPartOfType = NewStringWithSize(e, len);
+    /* Replaces a type of the form 'pat<args>' with 'rep' */
+    {
+      // POSSIBLE FIX:
+      // to match "e=TemplateTemplateT<(float)>"
+      // with "pat=TemplateTemplateT"
+      // we need to compare only the first part of the string e,
+      // instead of the complete string...
+      int len = DohLen(pat);
+      String *firstPartOfType = NewStringWithSize(e, len);
 
-    if (Equal(firstPartOfType, pat)) {
-      String *repbase = SwigType_templateprefix(rep);
-      Replace(e, pat, repbase, DOH_REPLACE_ID | DOH_REPLACE_FIRST);
-      Delete(repbase);
+      if (Equal(firstPartOfType, pat)) {
+        String *repbase = SwigType_templateprefix(rep);
+        Replace(e, pat, repbase, DOH_REPLACE_ID | DOH_REPLACE_FIRST);
+        Delete(repbase);
+      }
+
+      Delete(firstPartOfType);
     }
-
-    Delete(firstPartOfType);
-  }
 
 	{
 	  String *tsuffix;
