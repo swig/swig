@@ -330,7 +330,7 @@ CPP_TEST_CASES += \
 	nested_ignore \
 	nested_inheritance_interface \
 	nested_in_template \
-	nested_scope \
+	nested_scope_flat \
 	nested_template_base \
 	nested_workaround \
 	newobject1 \
@@ -460,6 +460,7 @@ CPP_TEST_CASES += \
 	template_using_directive_and_declaration_forward \
 	template_using_directive_typedef \
 	template_nested \
+	template_nested_flat \
 	template_nested_typemaps \
 	template_ns \
 	template_ns2 \
@@ -858,8 +859,6 @@ setup = \
 	else								  \
 	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
 	fi
-
-
 
 #######################################################################
 # Clean
