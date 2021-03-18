@@ -90,15 +90,13 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
     } else {
       /*
        * Wrap the resource in an object, the resource will be accessible
-       * via the "_cPtr" member. This is currently only used by
+       * via the "_cPtr" property. This code path is currently only used by
        * directorin typemaps.
        */
-      zval resource;
       zend_class_entry *ce = NULL;
       const char *type_name = type->name+3; /* +3 so: _p_Foo -> Foo */
       size_t type_name_len;
       const char * p;
-      HashTable * ht;
 
       /* Namespace__Foo -> Foo */
       /* FIXME: ugly and goes wrong for classes with __ in their names. */
@@ -107,7 +105,6 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
       }
       type_name_len = strlen(type_name);
 
-      ZVAL_RES(&resource, zend_register_resource(value, *(int *)(type->clientdata)));
       if (SWIG_PREFIX_LEN > 0) {
         zend_string * classname = zend_string_alloc(SWIG_PREFIX_LEN + type_name_len, 0);
         memcpy(classname->val, SWIG_PREFIX, SWIG_PREFIX_LEN);
@@ -121,13 +118,12 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
       }
       if (ce == NULL) {
         /* class does not exist */
-        ce = zend_standard_class_def;
+        object_init(z);
+      } else {
+        object_init_ex(z, ce);
       }
 
-      ALLOC_HASHTABLE(ht);
-      zend_hash_init(ht, 1, NULL, NULL, 0);
-      zend_hash_str_update(ht, "_cPtr", sizeof("_cPtr") - 1, &resource);
-      object_and_properties_init(z, ce, ht);
+      add_property_resource_ex(z, "_cPtr", sizeof("_cPtr") - 1, zend_register_resource(value, *(int *)(type->clientdata)));
     }
     return;
   }
