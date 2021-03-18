@@ -65,6 +65,7 @@ static int      cparse_externc = 0;
 int		ignore_nested_classes = 0;
 int		kwargs_supported = 0;
 
+/** this function is used to reset the parser for unittests. */
 void __reset_parser() {
 	top = 0;      /* Top of the generated parse tree */
 	unnamed = 0;  /* Unnamed datatype counter */

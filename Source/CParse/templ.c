@@ -274,7 +274,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       SwigType_add_template(tmp, tparms);
     }
     templateargs = Copy(tmp);
-   Delete(tmp);
+    Delete(tmp);
   }
 
   tname = Copy(Getattr(n, "name"));
