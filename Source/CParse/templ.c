@@ -131,6 +131,7 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
     add_parms(Getattr(n, "parms"), cpatchlist, typelist, 0);
     add_parms(Getattr(n, "throws"), cpatchlist, typelist, 0);
 
+
     //printf("PI-here1: '%s'\n",(const char*)(DohData(DohStr(Getattr(n, "parms")))));
 
   } else if (Equal(nodeType, "class")) {
@@ -295,10 +296,10 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       SwigType_add_template(tmp, tparms);
     }
     templateargs = Copy(tmp);
-  printf("PI-BUILT: '%s' '%s'\n",
+  /*printf("PI-BUILT: '%s' '%s'\n",
     (const char*)(DohData(DohStr(templateargs))),
     "..."
-  );
+  );*/
    Delete(tmp);
   }
 
@@ -374,6 +375,13 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	    value = Getattr(p, "type");
 	  qvalue = Swig_symbol_typedef_reduce(value, tsdecl);
 	  dvalue = Swig_symbol_type_qualify(qvalue, tsdecl);
+
+/*     printf("PI-POINT1: '%s' '%s' '%s'\n",
+      (const char*)(DohData(DohStr(value))),
+      (const char*)(DohData(DohStr(qvalue))),
+      (const char*)(DohData(DohStr(dvalue)))
+      );*/
+
 	  if (SwigType_istemplate(dvalue)) {
 	    String *ty = Swig_symbol_template_deftype(dvalue, tscope);
 	    Delete(dvalue);
@@ -401,15 +409,34 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	  sz = Len(typelist);
 	  for (i = 0; i < sz; i++) {
 	    String *s = Getitem(typelist, i);
+
+      printf("----\nPI-POINT2 IN: '%s' '%s' '%s'\n",
+        (const char*)(DohData(DohStr(s))),
+        (const char*)(DohData(DohStr(dvalue))),
+        (const char*)(DohData(DohStr(name)))
+        );
+
 	    /*      Replace(s,name,value, DOH_REPLACE_ID); */
 	    /*      Printf(stdout,"name = '%s', value = '%s', tbase = '%s', iname='%s' s = '%s' --> ", name, dvalue, tbase, iname, s); */
 	    SwigType_typename_replace(s, name, dvalue);
 	    SwigType_typename_replace(s, tbase, iname);
 	    /*      Printf(stdout,"'%s'\n", s); */
+
+      printf("PI-POINT2 OUT : '%s' '%s' '%s'\n",
+        (const char*)(DohData(DohStr(s))),
+        (const char*)(DohData(DohStr(dvalue))),
+        (const char*)(DohData(DohStr(name)))
+        );
+
 	  }
 
 	  tmp = NewStringf("#%s", name);
 	  tmpr = NewStringf("\"%s\"", valuestr);
+     /*printf("PI-POINT2-OK: '%s' '%s' '%s'\n",
+      (const char*)(DohData(DohStr(tmp))),
+      (const char*)(DohData(DohStr(tmpr))),
+      (const char*)(DohData(DohStr(name)))
+      );*/
 
 	  sz = Len(cpatchlist);
 	  for (i = 0; i < sz; i++) {
@@ -417,12 +444,14 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	    Replace(s, tmp, tmpr, DOH_REPLACE_ID);
 	    Replace(s, name, valuestr, DOH_REPLACE_ID);
 	  }
+
 	  Delete(tmp);
 	  Delete(tmpr);
 	  Delete(valuestr);
 	  Delete(dvalue);
 	  Delete(qvalue);
 	}
+
 	p = nextSibling(p);
 	tp = nextSibling(tp);
 	if (!p)
@@ -435,6 +464,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       for (i = 0; i < sz; i++) {
 	String *s = Getitem(typelist, i);
 	SwigType_typename_replace(s, tbase, iname);
+
       }
     }
   }
@@ -452,6 +482,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       }
     }
   }
+
   Delete(patchlist);
   Delete(cpatchlist);
   Delete(typelist);

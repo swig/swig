@@ -949,10 +949,10 @@ SwigType *SwigType_add_template(SwigType *t, ParmList *parms) {
     // Here we could build the "final type" if we know
     // about the template-template style of the parameter!
     // Do we know this here? Or is it better somewhere else?
-  printf("PI-BUILD: '%s' '%s'\n",
+/*  printf("PI-BUILD: '%s' '%s'\n",
     (const char*)(DohData(DohStr(p))),
     "..."
-  );
+  );*/
     String *v;
     if (Getattr(p, "default"))
       continue;
