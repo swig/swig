@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-03-19: olly
+	    #1527 [PHP] Improve PHP object creation in directorin case.
+	    Reportedly the code we were using in this case gave segfaults in
+	    PHP 7.2 and later - we've been unable to reproduce these, but the
+	    new approach is also simpler and should be bit faster too.
+
 2021-03-18: olly
 	    #1655 [PHP] Fix char* typecheck typemap to accept PHP Null like the
 	    corresponding in typemap does.
