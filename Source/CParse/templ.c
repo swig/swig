@@ -349,7 +349,6 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	    value = Getattr(p, "type");
 	  qvalue = Swig_symbol_typedef_reduce(value, tsdecl);
 	  dvalue = Swig_symbol_type_qualify(qvalue, tsdecl);
-
 	  if (SwigType_istemplate(dvalue)) {
 	    String *ty = Swig_symbol_template_deftype(dvalue, tscope);
 	    Delete(dvalue);
@@ -377,13 +376,11 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	  sz = Len(typelist);
 	  for (i = 0; i < sz; i++) {
 	    String *s = Getitem(typelist, i);
-
 	    /*      Replace(s,name,value, DOH_REPLACE_ID); */
 	    /*      Printf(stdout,"name = '%s', value = '%s', tbase = '%s', iname='%s' s = '%s' --> ", name, dvalue, tbase, iname, s); */
 	    SwigType_typename_replace(s, name, dvalue);
 	    SwigType_typename_replace(s, tbase, iname);
 	    /*      Printf(stdout,"'%s'\n", s); */
-
 	  }
 
 	  tmp = NewStringf("#%s", name);
