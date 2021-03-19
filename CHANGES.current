@@ -7,8 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2020-10-19: wsfulton
+            #1610 Remove -ansi from default compilation flags.
+
 2021-03-19: dot-asm
-            #1934 [Java] Clean up typemaps for long long arrays
+            #1934 [Java] Clean up typemaps for long long arrays.
 
 2021-03-19: olly
 	    #1527 [PHP] Improve PHP object creation in directorin case.
