@@ -41,9 +41,7 @@ environment:
 
 matrix:
   allow_failures:
-  # Currently failing due to not detecting header files/include paths
-  - SWIGLANG: python
-    OSVARIANT: cygwin
+  # None
 
 install:
 - date /T & time /T
