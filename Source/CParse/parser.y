@@ -64,33 +64,6 @@ static int      template_reduce = 0;
 static int      cparse_externc = 0;
 int		ignore_nested_classes = 0;
 int		kwargs_supported = 0;
-
-/** this function is used to reset the parser for unittests. */
-void __reset_parser() {
-	top = 0;      /* Top of the generated parse tree */
-	unnamed = 0;  /* Unnamed datatype counter */
-	classes = 0;        /* Hash table of classes */
-	classes_typedefs = 0; /* Hash table of typedef classes: typedef struct X {...} Y; */
-	prev_symtab = 0;
-	current_class = 0;
-	ModuleName = 0;
-	module_node = 0;
-	Classprefix = 0;  
-	Namespaceprefix = 0;
-	inclass = 0;
-	currentOuterClass = 0; /* for nested classes */
-	last_cpptype = 0;
-	inherit_list = 0;
-	template_parameters = 0;
-	parsing_template_declaration = 0;
-	extendmode   = 0;
-	compact_default_args = 0;
-	template_reduce = 0;
-	cparse_externc = 0;
-	ignore_nested_classes = 0;
-	kwargs_supported = 0;	
-}
-
 /* -----------------------------------------------------------------------------
  *                            Doxygen Comment Globals
  * ----------------------------------------------------------------------------- */
