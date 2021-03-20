@@ -127,7 +127,6 @@ file (GLOB PREPROCESSOR_SOURCES ${SWIG_SOURCE_DIR}/Preprocessor/*.c)
 file (GLOB CORE_SOURCES ${SWIG_SOURCE_DIR}/Swig/*.c)
 file (GLOB DOXYGEN_SOURCES ${SWIG_SOURCE_DIR}/Doxygen/*.cxx)
 file (GLOB MODULES_SOURCES ${SWIG_SOURCE_DIR}/Modules/*.cxx)
-file (GLOB_RECURSE TEST_SOURCES ${SWIG_ROOT}/Tests/*.cxx)
 
 add_executable (swig
   ${CPARSE_SOURCES}
@@ -141,31 +140,8 @@ add_executable (swig
   ${PROJECT_BINARY_DIR}/Source/CParse/parser.c
   ${PROJECT_BINARY_DIR}/Source/CParse/parser.h
 )
-
-message("---------------P")
-message("${TEST_SOURCES}")
-message("---------------P")
-
-add_executable (swig-unittests
-  ${TEST_SOURCES}
-  ${CPARSE_SOURCES}
-  ${DOH_SOURCES}
-  ${DOXYGEN_SOURCES}
-  ${MODULES_SOURCES}
-  ${CORE_SOURCES}
-  ${PREPROCESSOR_SOURCES}
-  ${PROJECT_BINARY_DIR}/Source/Include/swigconfig.h
-  ${SWIG_SOURCE_DIR}/Include/swigwarn.h
-  ${PROJECT_BINARY_DIR}/Source/CParse/parser.c
-  ${PROJECT_BINARY_DIR}/Source/CParse/parser.h
-)
-
-target_compile_definitions(swig-unittests PUBLIC "-Dmain=orig_deactivated_swig_main")
-target_include_directories(swig-unittests PUBLIC ${SWIG_ROOT}/Tests)
-
 if (PCRE_FOUND)
   target_link_libraries (swig ${PCRE_LIBRARIES})
-  target_link_libraries (swig-unittests ${PCRE_LIBRARIES})
 endif ()
 install (TARGETS swig DESTINATION bin)
 
@@ -181,6 +157,5 @@ enable_testing ()
 add_test (NAME cmd_version COMMAND swig -version)
 add_test (NAME cmd_swiglib COMMAND swig -swiglib)
 add_test (NAME cmd_external_runtime COMMAND swig -external-runtime ext_rt.h)
-add_test (NAME unittests COMMAND swig-unittests)
 set_tests_properties(cmd_external_runtime PROPERTIES ENVIRONMENT "SWIG_LIB=${PROJECT_SOURCE_DIR}/Lib")
 
