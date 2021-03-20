@@ -10,7 +10,7 @@ Version 4.1.0 (in progress)
 2021-03-21: olly
 	    #1929, #1978 [PHP] Add support for PHP 8.
 
-2020-10-19: wsfulton
+2021-03-19: wsfulton
             #1610 Remove -ansi from default compilation flags.
 
 2021-03-19: dot-asm
