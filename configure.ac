@@ -2019,7 +2019,7 @@ AC_SUBST(RUBYSO)
 AC_SUBST(RUBYDYNAMICLINKING)
 
 #-------------------------------------------------------------------------
-# Look for PHP7
+# Look for PHP
 #-------------------------------------------------------------------------
 
 PHPBIN=
@@ -2033,7 +2033,7 @@ if test x"${PHPBIN}" = xno; then
     PHP=
 else
     if test "x$PHPBIN" = xyes; then
-      AC_CHECK_PROGS(PHP, [php7.4 php7.3 php7.2 php7.1 php7.0 php])
+      AC_CHECK_PROGS(PHP, [php8.0 php7.4 php7.3 php7.2 php7.1 php7.0 php])
     else
       PHP=$PHPBIN
     fi
@@ -2044,12 +2044,14 @@ else
       case $PHP in
         *7.*)
           PHPCONFIG=`echo "$PHP"|sed 's/7\...*$/-config&/'` ;;
+        *8.*)
+          PHPCONFIG=`echo "$PHP"|sed 's/8\...*$/-config&/'` ;;
         *)
           PHPCONFIG=$PHP-config ;;
       esac
       php_version=`$PHPCONFIG --version 2>/dev/null`
       case $php_version in
-      7.*)
+      7.*|8.*)
         PHPINC=`$PHPCONFIG --includes 2>/dev/null`
         if test -n "$PHPINC"; then
           AC_MSG_RESULT($PHPINC)
@@ -2060,7 +2062,7 @@ else
       "")
         AC_MSG_RESULT([could not find $PHPCONFIG or obtain PHP version from it]) ;;
       *)
-        AC_MSG_RESULT([found PHP $php_version - not PHP 7]) ;;
+        AC_MSG_RESULT([found PHP $php_version - not PHP 7 or 8]) ;;
       esac
     fi
 fi
