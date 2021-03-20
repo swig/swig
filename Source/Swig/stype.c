@@ -1292,11 +1292,9 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
       } else if (SwigType_istemplate(e)) {
     /* Replaces a type of the form 'pat<args>' with 'rep' */
     {
-      /* POSSIBLE FIX:
-       * to match "e=TemplateTemplateT<(float)>"
+       /* To match "e=TemplateTemplateT<(float)>"
        * with "pat=TemplateTemplateT"
-       * we need to compare only the first part of the string e,
-       * instead of the complete string...
+       * we need to compare only the first part of the string e.
        */
       int len = DohLen(pat);
 
