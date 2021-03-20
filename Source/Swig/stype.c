@@ -1298,15 +1298,21 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
       // we need to compare only the first part of the string e,
       // instead of the complete string...
       int len = DohLen(pat);
-      String *firstPartOfType = NewStringWithSize(e, len);
 
-      if (Equal(firstPartOfType, pat)) {
-        String *repbase = SwigType_templateprefix(rep);
-        Replace(e, pat, repbase, DOH_REPLACE_ID | DOH_REPLACE_FIRST);
-        Delete(repbase);
+      // DohLen(e) > len, not >= (because we expecte at least a
+      // character '<' following the template typename)
+      if (DohLen(e)>len) {
+        String *firstPartOfType = NewStringWithSize(e, len);
+        const char* e_as_char = DohData(e);
+
+        if (Equal(firstPartOfType, pat) && e_as_char[len]=='<') {
+          String *repbase = SwigType_templateprefix(rep);
+          Replace(e, pat, repbase, DOH_REPLACE_ID | DOH_REPLACE_FIRST);
+          Delete(repbase);
+        }
+        Delete(firstPartOfType);
+  
       }
-
-      Delete(firstPartOfType);
     }
 
 	{
