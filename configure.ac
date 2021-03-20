@@ -289,26 +289,24 @@ AC_MSG_RESULT($PLATCFLAGS)
 
 # Add switch if necessary to enable C++11 support - just for tests
 AC_ARG_ENABLE([cpp11-testing], AS_HELP_STRING([--enable-cpp11-testing], [enable C++11 testing if supported by compiler (default disabled)]), [enable_cpp11_testing=$enableval], [enable_cpp11_testing=no])
-AC_MSG_CHECKING([whether to enable C++11 testing])
+AC_MSG_CHECKING([whether to attempt to enable C++11 testing])
 AC_MSG_RESULT([$enable_cpp11_testing])
 
 PLATCXXFLAGS="$PLATCFLAGS"
 if test x"$enable_cpp11_testing" = xyes; then
-  AC_LANG_PUSH([C++])
-  CXXFLAGS_SAVED=$CXXFLAGS
-  CXXFLAGS=
-  AX_CXX_COMPILE_STDCXX_11([noext], [nostop])
-  CXXFLAGS=$CXXFLAGS_SAVED
-  AC_LANG_POP([C++])
-  if test x"$CXX11FLAGS" != x; then
-    PLATCXXFLAGS="$CXX11FLAGS $PLATCXXFLAGS"
-  fi
-  AC_MSG_CHECKING([for C++11 enabled compiler])
-  if test x"$HAVE_CXX11_COMPILER" = x; then
-    AC_MSG_RESULT([no])
+  CXX_SAVED=$CXX
+  CXXCPP_SAVED=$CXXCPP
+  CXXCPP=" "
+  AX_CXX_COMPILE_STDCXX(11, [noext], [optional])
+  AC_MSG_CHECKING([whether C++11 testing is actually enabled])
+  if test "$HAVE_CXX11" = "1"; then
+    AC_MSG_RESULT([yes])
+    PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
   else
-    AC_MSG_RESULT([$HAVE_CXX11_COMPILER])
+    AC_MSG_RESULT([no])
   fi
+  CXX=$CXX_SAVED
+  CXXCPP=$CXXCPP_SAVED
 fi
 
 # On darwin 10.7,10.8,10.9 using clang++, need to ensure using
@@ -366,7 +364,7 @@ AC_SUBST(TRYLINKINGWITHCXX)
 AC_SUBST(RPATH)
 AC_SUBST(PLATCFLAGS)
 AC_SUBST(PLATCXXFLAGS)
-AC_SUBST(HAVE_CXX11_COMPILER)
+AC_SUBST(HAVE_CXX11)
 AC_SUBST(LINKFORSHARED)
 
 # This variation is needed on OS-X because there is no (apparent) consistency in shared library naming.
