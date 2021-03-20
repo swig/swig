@@ -1292,15 +1292,17 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
       } else if (SwigType_istemplate(e)) {
     /* Replaces a type of the form 'pat<args>' with 'rep' */
     {
-      // POSSIBLE FIX:
-      // to match "e=TemplateTemplateT<(float)>"
-      // with "pat=TemplateTemplateT"
-      // we need to compare only the first part of the string e,
-      // instead of the complete string...
+      /* POSSIBLE FIX:
+       * to match "e=TemplateTemplateT<(float)>"
+       * with "pat=TemplateTemplateT"
+       * we need to compare only the first part of the string e,
+       * instead of the complete string...
+       */
       int len = DohLen(pat);
 
-      // DohLen(e) > len, not >= (because we expecte at least a
-      // character '<' following the template typename)
+      /* DohLen(e) > len, not >= (because we expecte at least a
+       * character '<' following the template typename)
+       */
       if (DohLen(e)>len) {
         String *firstPartOfType = NewStringWithSize(e, len);
         const char* e_as_char = DohData(e);
