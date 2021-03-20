@@ -76,7 +76,7 @@ TEST_CASE( "Code_with_template_templates", "[Modules]" ) {
         struct Container2 { 
             U x;
         };
-        template<class BaseT, class TemplateTemplateT>
+        template<class BaseT, template<class> class TemplateTemplateT>
         struct TestStruct { 
             TemplateTemplateT<BaseT> x;
         };
