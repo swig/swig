@@ -36,6 +36,7 @@ environment:
     WITHLANG: python
     VER: 37
     PY3: 3
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
   - BUILDSYSTEM: cmake
     VSVER: 14
 
