@@ -39,9 +39,8 @@ environment:
   - BUILDSYSTEM: cmake
     VSVER: 14
 
-matrix:
-  allow_failures:
-  # None
+#matrix:
+#  allow_failures:
 
 install:
 - date /T & time /T
