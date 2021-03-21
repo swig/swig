@@ -9,6 +9,7 @@ typedef v8::PropertyCallbackInfo<void>  SwigV8PropertyCallbackInfoVoid;
  * Creates a class template for a class with specified initialization function.
  */
 SWIGRUNTIME SWIGV8_FUNCTION_TEMPLATE SWIGV8_CreateClassTemplate(const char* symbol) {
+    v8::Isolate* isolate = v8::Isolate::GetCurrent();
     SWIGV8_HANDLESCOPE_ESC();
     
     v8::Local<v8::FunctionTemplate> class_templ = SWIGV8_FUNCTEMPLATE_NEW_VOID();
