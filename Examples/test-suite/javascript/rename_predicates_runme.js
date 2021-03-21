@@ -46,3 +46,5 @@ ex.MF_real_member2();
 ex.EX_EXTENDMETHOD1();
 ex.EX_EXTENDMETHOD2();
 ex.EX_EXTENDMETHOD3();
+
+// no-worker-threads

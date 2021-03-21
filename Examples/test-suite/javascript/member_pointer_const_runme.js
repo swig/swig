@@ -49,3 +49,5 @@ check("Add by value", 3, member_pointer_const.call1(member_pointer_const.ADD_BY_
 // TODO: For some reason, these are commented out in the shared interface file?
 //check("Add by pointer", 7, member_pointer_const.call2(member_pointer_const.ADD_BY_POINTER, 3, 4));
 //check("Add by reference", 11, member_pointer_const.call3(member_pointer_const.ADD_BY_REFERENCE, 5, 6));
+
+// no-worker-threads

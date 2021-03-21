@@ -48,3 +48,5 @@ rename_simple.NewGlobalVariable = 6666;
 if (rename_simple.NewGlobalVariable !== 6666) {
   throw new Error("rename_simple.NewGlobalVariable: Expected 6666, was " + rename_simple.NewGlobalVariable);
 }
+
+// no-worker-threads
