@@ -63,10 +63,10 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_THROW_EXCEPTION(err) v8::Isolate::GetCurrent()->ThrowException(err)
 #if (SWIG_V8_VERSION < 0x0704)
 #define SWIGV8_STRING_NEW(str) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), str, v8::String::kNormalString)
-#define SWIGV8_SYMBOL_NEW(sym) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), sym, v8::String::kNormalString)
+#define SWIGV8_SYMBOL_NEW(sym) v8::String::NewFromUtf8(isolate, sym, v8::String::kNormalString)
 #else
 #define SWIGV8_STRING_NEW(str) (v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), str, v8::NewStringType::kNormal)).ToLocalChecked()
-#define SWIGV8_SYMBOL_NEW(sym) (v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), sym, v8::NewStringType::kNormal)).ToLocalChecked()
+#define SWIGV8_SYMBOL_NEW(sym) (v8::String::NewFromUtf8(isolate, sym, v8::NewStringType::kNormal)).ToLocalChecked()
 #endif
 #endif
 
@@ -132,9 +132,9 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031710)
 #define SWIGV8_SET_CLASS_TEMPL(class_templ, class) class_templ = v8::Persistent<v8::FunctionTemplate>::New(class);
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031900)
-#define SWIGV8_SET_CLASS_TEMPL(class_templ, class) class_templ = v8::Persistent<v8::FunctionTemplate>::New(v8::Isolate::GetCurrent(), class);
+#define SWIGV8_SET_CLASS_TEMPL(class_templ, class) class_templ = v8::Persistent<v8::FunctionTemplate>::New(isolate, class);
 #else
-#define SWIGV8_SET_CLASS_TEMPL(class_templ, class) class_templ.Reset(v8::Isolate::GetCurrent(), class);
+#define SWIGV8_SET_CLASS_TEMPL(class_templ, class) class_templ.Reset(isolate, class);
 #endif
 
 #if (V8_MAJOR_VERSION-0) < 6 || (SWIG_V8_VERSION < 0x0608)
@@ -271,18 +271,35 @@ public:
 
   SWIGV8_ClientData() : index(-1) {}
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
-  v8::Persistent<v8::FunctionTemplate> class_templ() {
+  v8::Persistent<v8::FunctionTemplate> class_templ(v8::Isolate* isolate,
+                                                   v8::Persistent<v8::FunctionTemplate>* v8_swig_types = NULL) {
     return clazz_templ;
   }
 #else
-  SWIGV8_FUNCTION_TEMPLATE class_templ() {
-    return SWIGV8_FUNCTION_TEMPLATE::New(v8::Isolate::GetCurrent(), clazz_templ);
+  SWIGV8_FUNCTION_TEMPLATE class_templ(v8::Isolate* isolate,
+                                       v8::Persistent<v8::FunctionTemplate>* v8_swig_types) {
+#if (V8_MAJOR_VERSION-0) >= 5
+    if (v8_swig_types != NULL)
+      return SWIGV8_FUNCTION_TEMPLATE::New(isolate, v8_swig_types[index+1]);
+#endif
+    return SWIGV8_FUNCTION_TEMPLATE::New(isolate, clazz_templ);
   }
 #endif
-  bool IsEmpty() {
+  bool IsEmpty(v8::Persistent<v8::FunctionTemplate>* v8_swig_types) {
+#if (V8_MAJOR_VERSION-0) >= 5
+    if (v8_swig_types != NULL)
+      return v8_swig_types[index+1].IsEmpty();
+#endif
     return clazz_templ.IsEmpty();
   }
-  void Set(SWIGV8_FUNCTION_TEMPLATE class_templ) {
+  void Set(SWIGV8_FUNCTION_TEMPLATE class_templ, v8::Isolate *isolate,
+           v8::Persistent<v8::FunctionTemplate>* v8_swig_types) {
+#if (V8_MAJOR_VERSION-0) >= 5
+    if (v8_swig_types != NULL) {
+      v8_swig_types[index+1].Reset(isolate, class_templ);
+      return;
+    }
+#endif
     if (clazz_templ.IsEmpty()) {
       SWIGV8_SET_CLASS_TEMPL(clazz_templ, class_templ);
     }
@@ -452,10 +469,19 @@ SWIGRUNTIME int SWIG_V8_ConvertPtr(SWIGV8_VALUE valRef, void **ptr, swig_type_in
 }
 
 SWIGRUNTIME SWIGV8_VALUE SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int flags,
-                                               SWIGV8_VALUE data=SWIGV8_VALUE()) {
+                                               SWIGV8_VALUE data) {
   v8::Isolate* isolate = v8::Isolate::GetCurrent();
   SWIGV8_HANDLESCOPE_ESC();
-  
+  v8::Persistent<v8::FunctionTemplate>* v8_swig_types = NULL;
+#if (V8_MAJOR_VERSION-0) >= 5
+  v8::Local<v8::ArrayBuffer> ab = v8::Local<v8::ArrayBuffer>::Cast(data);
+#if (V8_MAJOR_VERSION-0) >= 8
+  v8_swig_types = static_cast<v8::Persistent<v8::FunctionTemplate>*>(ab->GetBackingStore()->Data());
+#else
+  v8_swig_types = static_cast<v8::Persistent<v8::FunctionTemplate>*>(ab->GetContents().Data());
+#endif
+#endif
+
   SWIGV8_FUNCTION_TEMPLATE class_templ;
 
   if (ptr == NULL) {
@@ -463,9 +489,9 @@ SWIGRUNTIME SWIGV8_VALUE SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, 
   }
 
   if(info->clientdata != 0) {
-    class_templ = info->clientdata->class_templ();
+    class_templ = info->clientdata->class_templ(isolate, v8_swig_types);
   } else {
-    class_templ = SWIGV8_SWIGTYPE_Proxy.class_templ();
+    class_templ = SWIGV8_SWIGTYPE_Proxy.class_templ(isolate, v8_swig_types);
   }
 
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)

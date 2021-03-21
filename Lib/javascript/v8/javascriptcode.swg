@@ -397,10 +397,10 @@ fail:
 %fragment("jsv8_define_class_template", "templates")
 %{
   /* Name: $jsmangledname, Type: $jsmangledtype, Dtor: $jsdtor */
-  SWIGV8_FUNCTION_TEMPLATE $jsmangledname_class = SWIGV8_CreateClassTemplate("$jsmangledname");
+  SWIGV8_FUNCTION_TEMPLATE $jsmangledname_class = SWIGV8_CreateClassTemplate("$jsmangledname", isolate, v8_swig_types_as_data);
   $jsmangledname_clientData.index = &SWIGTYPE_$jsmangledtype - &swig_types[0];
   $jsmangledname_clientData.dtor = $jsdtor;
-  $jsmangledname_clientData.Set($jsmangledname_class);
+  $jsmangledname_clientData.Set($jsmangledname_class, isolate, v8_swig_types);
   SWIGTYPE_$jsmangledtype->clientdata = &$jsmangledname_clientData;
 %}
 
@@ -412,9 +412,9 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsv8_inherit", "templates")
 %{
-  if (SWIGTYPE_p$jsbaseclass->clientdata && !SWIGTYPE_p$jsbaseclass->clientdata->IsEmpty())
+  if (SWIGTYPE_p$jsbaseclass->clientdata && !SWIGTYPE_p$jsbaseclass->clientdata->IsEmpty(v8_swig_types))
   {
-    $jsmangledname_class->Inherit(SWIGTYPE_p$jsbaseclass->clientdata->class_templ());
+    $jsmangledname_class->Inherit(SWIGTYPE_p$jsbaseclass->clientdata->class_templ(isolate, v8_swig_types));
 #ifdef SWIGRUNTIME_DEBUG
     printf("Inheritance successful $jsmangledname $jsbaseclass\n");
 #endif
@@ -433,8 +433,8 @@ fail:
 %fragment("jsv8_create_class_instance", "templates")
 %{
   /* Class: $jsname ($jsmangledname) */
-  SWIGV8_FUNCTION_TEMPLATE $jsmangledname_class_0 = SWIGV8_CreateClassTemplate("$jsname");
-  $jsmangledname_class_0->SetCallHandler($jsctor);
+  SWIGV8_FUNCTION_TEMPLATE $jsmangledname_class_0 = SWIGV8_CreateClassTemplate("$jsname", isolate, v8_swig_types_as_data);
+  $jsmangledname_class_0->SetCallHandler($jsctor, v8_swig_types_as_data);
   $jsmangledname_class_0->Inherit($jsmangledname_class);
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
   $jsmangledname_class_0->SetHiddenPrototype(true);
@@ -495,7 +495,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsv8_register_member_function", "templates")
 %{
-  SWIGV8_AddMemberFunction($jsmangledname_class, "$jsname", $jswrapper);
+  SWIGV8_AddMemberFunction($jsmangledname_class, "$jsname", $jswrapper, isolate, v8_swig_types_as_data);
 %}
 
 /* -----------------------------------------------------------------------------
@@ -507,7 +507,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsv8_register_member_variable", "templates")
 %{
-  SWIGV8_AddMemberVariable($jsmangledname_class, "$jsname", $jsgetter, $jssetter);
+  SWIGV8_AddMemberVariable($jsmangledname_class, "$jsname", $jsgetter, $jssetter, isolate, v8_swig_types_as_data);
 %}
 
 /* -----------------------------------------------------------------------------
@@ -520,7 +520,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsv8_register_static_function", "templates")
 %{
-  SWIGV8_AddStaticFunction($jsparent_obj, "$jsname", $jswrapper, context);
+  SWIGV8_AddStaticFunction($jsparent_obj, "$jsname", $jswrapper, context, v8_swig_types_as_data);
 %}
 
 /* -----------------------------------------------------------------------------
@@ -534,5 +534,5 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsv8_register_static_variable", "templates")
 %{
-  SWIGV8_AddStaticVariable($jsparent_obj, "$jsname", $jsgetter, $jssetter, context);
+  SWIGV8_AddStaticVariable($jsparent_obj, "$jsname", $jsgetter, $jssetter, context, v8_swig_types_as_data);
 %}
