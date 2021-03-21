@@ -47,16 +47,17 @@ SWIG_AsCharPtrAndSize(SWIGV8_VALUE valRef, char** cptr, size_t* psize, int *allo
 SWIGINTERNINLINE SWIGV8_VALUE
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
   if (carray) {
     if (size > INT_MAX) {
       // TODO: handle extra long strings
-      return SWIGV8_UNDEFINED();
+      return v8::Undefined(isolate);
     } else {
       v8::Local<v8::String> js_str = SWIGV8_STRING_NEW2(carray, size);
       return js_str;
     }
   } else {
-    return SWIGV8_UNDEFINED();
+    return v8::Undefined(isolate);
   }
 }
 }

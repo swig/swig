@@ -5,9 +5,9 @@
  * ---------------------------------------------------------------------------*/
 
 #if (SWIG_V8_VERSION < 0x0704)
-#define SWIGV8_STRING_NEW2(cstr, len) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), cstr, v8::String::kNormalString, len)
+#define SWIGV8_STRING_NEW2(cstr, len) v8::String::NewFromUtf8(isolate, cstr, v8::String::kNormalString, len)
 #else
-#define SWIGV8_STRING_NEW2(cstr, len) (v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), cstr, v8::NewStringType::kNormal, len)).ToLocalChecked()
+#define SWIGV8_STRING_NEW2(cstr, len) (v8::String::NewFromUtf8(isolate, cstr, v8::NewStringType::kNormal, len)).ToLocalChecked()
 #endif
 
 typedef void SwigV8ReturnValue;
@@ -16,12 +16,13 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_RETURN(val) args.GetReturnValue().Set(val); return
 #define SWIGV8_RETURN_INFO(val, info) info.GetReturnValue().Set(val); return
 
-#define SWIGV8_HANDLESCOPE() v8::HandleScope scope(v8::Isolate::GetCurrent());
-#define SWIGV8_HANDLESCOPE_ESC() v8::EscapableHandleScope scope(v8::Isolate::GetCurrent());
+#define SWIGV8_HANDLESCOPE() v8::HandleScope scope(isolate)
+#define SWIGV8_HANDLESCOPE_ESC() v8::EscapableHandleScope scope(isolate)
 #define SWIGV8_ESCAPE(val) return scope.Escape(val)
 
 #define SWIGV8_ADJUST_MEMORY(size) v8::Isolate::GetCurrent()->AdjustAmountOfExternalAllocatedMemory(size)
 #define SWIGV8_CURRENT_CONTEXT() v8::Isolate::GetCurrent()->GetCurrentContext()
+#define SWIGV8_CONTEXT(isolate) isolate->GetCurrentContext()
 #define SWIGV8_THROW_EXCEPTION(err) v8::Isolate::GetCurrent()->ThrowException(err)
 
 #if (SWIG_V8_VERSION < 0x0704)
@@ -38,11 +39,15 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_MAYBE_CHECK(maybe) maybe.Check()
 #endif
 
+/* internal use only, imply |isolate| to be declared in current scope */
+#define SWIGV8_EXTERNAL_NEW(val) v8::External::New(isolate, val)
+#define SWIGV8_FUNCTEMPLATE_NEW(...) v8::FunctionTemplate::New(isolate, __VA_ARGS__)
+#define SWIGV8_FUNCTEMPLATE_NEW_VOID() v8::FunctionTemplate::New(isolate)
+#define SWIGV8_OBJECT_INEW() v8::Object::New(isolate)
+#define SWIGV8_OBJECT_TEMPLATE_NEW() v8::ObjectTemplate::New(isolate)
+
 #define SWIGV8_ARRAY_NEW(size) v8::Array::New(v8::Isolate::GetCurrent(), size)
 #define SWIGV8_BOOLEAN_NEW(bool) v8::Boolean::New(v8::Isolate::GetCurrent(), bool)
-#define SWIGV8_EXTERNAL_NEW(val) v8::External::New(v8::Isolate::GetCurrent(), val)
-#define SWIGV8_FUNCTEMPLATE_NEW(...) v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), __VA_ARGS__)
-#define SWIGV8_FUNCTEMPLATE_NEW_VOID() v8::FunctionTemplate::New(v8::Isolate::GetCurrent())
 #define SWIGV8_INT32_NEW(num) v8::Int32::New(v8::Isolate::GetCurrent(), num)
 #define SWIGV8_INTEGER_NEW(num) v8::Integer::New(v8::Isolate::GetCurrent(), num)
 #define SWIGV8_INTEGER_NEW_UNS(num) v8::Integer::NewFromUnsigned(v8::Isolate::GetCurrent(), num)
@@ -53,11 +58,11 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_FUNCTION_TEMPLATE v8::Local<v8::FunctionTemplate>
 #define SWIGV8_OBJECT v8::Local<v8::Object>
 #define SWIGV8_OBJECT_TEMPLATE v8::Local<v8::ObjectTemplate>
-#define SWIGV8_OBJECT_TEMPLATE_NEW() v8::ObjectTemplate::New(v8::Isolate::GetCurrent())
 #define SWIGV8_VALUE v8::Local<v8::Value>
 #define SWIGV8_NULL() v8::Null(v8::Isolate::GetCurrent())
 #define SWIGV8_ARRAY_GET(array, index) (array)->Get(SWIGV8_CURRENT_CONTEXT(), index).ToLocalChecked()
 #define SWIGV8_ARRAY_SET(array, index, value) SWIGV8_MAYBE_CHECK((array)->Set(SWIGV8_CURRENT_CONTEXT(), index, value))
+#define SWIGV8_GETISOLATE(context) context->GetIsolate()
 
 #define SWIGV8_SET_CLASS_TEMPL(class_templ, class) class_templ.Reset(v8::Isolate::GetCurrent(), class);
 
@@ -192,8 +197,6 @@ public:
 static SWIGV8_ClientData SWIGV8_SWIGTYPE_Proxy;
 
 SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, void **ptr, swig_type_info *info, int flags) {
-  SWIGV8_HANDLESCOPE();
-
   if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
 
   SWIGV8_Proxy *cdata = static_cast<SWIGV8_Proxy *>(objRef->GetAlignedPointerFromInternalField(0));
@@ -256,6 +259,7 @@ SWIGRUNTIME int SWIG_V8_GetInstancePtr(SWIGV8_VALUE valRef, void **ptr) {
 }
 
 SWIGRUNTIME void SWIGV8_SetPrivateData(SWIGV8_OBJECT obj, void *ptr, swig_type_info *info, int flags) {
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
   SWIGV8_Proxy *cdata = new SWIGV8_Proxy();
   cdata->swigCObject = ptr;
   cdata->swigCMemOwn = (flags & SWIG_POINTER_OWN) ? 1 : 0;
@@ -263,7 +267,7 @@ SWIGRUNTIME void SWIGV8_SetPrivateData(SWIGV8_OBJECT obj, void *ptr, swig_type_i
 
   obj->SetAlignedPointerInInternalField(0, cdata);
 
-  cdata->handle.Reset(v8::Isolate::GetCurrent(), obj);
+  cdata->handle.Reset(isolate, obj);
 
   if(cdata->swigCMemOwn && info->clientdata) {
     cdata->handle.SetWeak(cdata, info->clientdata->dtor, v8::WeakCallbackType::kParameter);
@@ -279,6 +283,7 @@ SWIGRUNTIME void SWIGV8_SetPrivateData(SWIGV8_OBJECT obj, void *ptr, swig_type_i
 }
 
 SWIGRUNTIME int SWIG_V8_ConvertPtr(SWIGV8_VALUE valRef, void **ptr, swig_type_info *info, int flags) {
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
   SWIGV8_HANDLESCOPE();
   
   /* special case: JavaScript null => C NULL pointer */
@@ -295,13 +300,13 @@ SWIGRUNTIME int SWIG_V8_ConvertPtr(SWIGV8_VALUE valRef, void **ptr, swig_type_in
 
 SWIGRUNTIME SWIGV8_VALUE SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int flags,
                                                SWIGV8_VALUE data=SWIGV8_VALUE()) {
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
   SWIGV8_HANDLESCOPE_ESC();
   
   SWIGV8_FUNCTION_TEMPLATE class_templ;
 
   if (ptr == NULL) {
-    v8::Local<v8::Primitive> result = SWIGV8_NULL();
-    SWIGV8_ESCAPE(result);
+    SWIGV8_ESCAPE(v8::Null(isolate));
   }
 
   if(info->clientdata != 0) {
@@ -310,7 +315,7 @@ SWIGRUNTIME SWIGV8_VALUE SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, 
     class_templ = SWIGV8_SWIGTYPE_Proxy.class_templ();
   }
 
-  v8::Local<v8::Object> result = class_templ->InstanceTemplate()->NewInstance(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
+  v8::Local<v8::Object> result = class_templ->InstanceTemplate()->NewInstance(SWIGV8_CONTEXT(isolate)).ToLocalChecked();
 
   SWIGV8_SetPrivateData(result, ptr, info, flags);
 
@@ -329,6 +334,7 @@ SWIGRUNTIME SWIGV8_VALUE SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, 
 #define SWIG_GetInstancePtr(obj, ptr)    SWIG_V8_GetInstancePtr(obj, ptr)
 
 SWIGRUNTIME SwigV8ReturnValue _SWIGV8_wrap_equals(const SwigV8Arguments &args) {
+  v8::Isolate* isolate = args.GetIsolate();
   SWIGV8_HANDLESCOPE();
   
   SWIGV8_VALUE jsresult;
@@ -355,10 +361,11 @@ SWIGRUNTIME SwigV8ReturnValue _SWIGV8_wrap_equals(const SwigV8Arguments &args) {
   SWIGV8_RETURN(jsresult);
   goto fail;
 fail:
-  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+  SWIGV8_RETURN(v8::Undefined(isolate));
 }
 
 SWIGRUNTIME SwigV8ReturnValue _wrap_getCPtr(const SwigV8Arguments &args) {
+  v8::Isolate* isolate = args.GetIsolate();
   SWIGV8_HANDLESCOPE();
   
   SWIGV8_VALUE jsresult;
@@ -377,7 +384,7 @@ SWIGRUNTIME SwigV8ReturnValue _wrap_getCPtr(const SwigV8Arguments &args) {
   SWIGV8_RETURN(jsresult);
   goto fail;
 fail:
-  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+  SWIGV8_RETURN(v8::Undefined(isolate));
 }
 
 /* ---------------------------------------------------------------------------
@@ -406,13 +413,14 @@ public:
 
 SWIGRUNTIMEINLINE
 int SwigV8Packed_Check(SWIGV8_VALUE valRef) {
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
   SWIGV8_HANDLESCOPE();
   
   SWIGV8_OBJECT objRef = SWIGV8_TO_OBJECT(valRef);
   if(objRef->InternalFieldCount() < 1) return false;
-  v8::Local<v8::Private> privateKey = v8::Private::ForApi(v8::Isolate::GetCurrent(), SWIGV8_STRING_NEW("__swig__packed_data__"));
+  v8::Local<v8::Private> privateKey = v8::Private::ForApi(isolate, SWIGV8_STRING_NEW("__swig__packed_data__"));
   v8::Local<v8::Value> flag;
-  if (!objRef->GetPrivate(SWIGV8_CURRENT_CONTEXT(), privateKey).ToLocal(&flag))
+  if (!objRef->GetPrivate(SWIGV8_CONTEXT(isolate), privateKey).ToLocal(&flag))
     return false;
   return (flag->IsBoolean() && SWIGV8_BOOLEAN_VALUE(flag));
 }
@@ -420,6 +428,7 @@ int SwigV8Packed_Check(SWIGV8_VALUE valRef) {
 SWIGRUNTIME
 swig_type_info *SwigV8Packed_UnpackData(SWIGV8_VALUE valRef, void *ptr, size_t size) {
   if (SwigV8Packed_Check(valRef)) {
+    v8::Isolate* isolate = v8::Isolate::GetCurrent();
     SWIGV8_HANDLESCOPE();
     
     SwigV8PackedData *sobj;
@@ -457,6 +466,7 @@ SWIGRUNTIME void _wrap_SwigV8PackedData_delete(const v8::WeakCallbackInfo<SwigV8
 
 SWIGRUNTIME
 SWIGV8_VALUE SWIGV8_NewPackedObj(void *data, size_t size, swig_type_info *type) {
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
   SWIGV8_HANDLESCOPE_ESC();
 
   SwigV8PackedData *cdata = new SwigV8PackedData(data, size, type);
@@ -464,12 +474,12 @@ SWIGV8_VALUE SWIGV8_NewPackedObj(void *data, size_t size, swig_type_info *type) 
   tmpl->SetInternalFieldCount(1);
   v8::Local<v8::Object> obj = SWIGV8_OBJECT_TEMPLATE_INSTACE(tmpl);
 
-  v8::Local<v8::Private> privateKey = v8::Private::ForApi(v8::Isolate::GetCurrent(), SWIGV8_STRING_NEW("__swig__packed_data__"));
-  obj->SetPrivate(SWIGV8_CURRENT_CONTEXT(), privateKey, SWIGV8_BOOLEAN_NEW(true));
+  v8::Local<v8::Private> privateKey = v8::Private::ForApi(isolate, SWIGV8_STRING_NEW("__swig__packed_data__"));
+  obj->SetPrivate(SWIGV8_CONTEXT(isolate), privateKey, v8::Boolean::New(isolate, true));
 
   obj->SetAlignedPointerInInternalField(0, cdata);
 
-  cdata->handle.Reset(v8::Isolate::GetCurrent(), obj);
+  cdata->handle.Reset(isolate, obj);
 
   cdata->handle.SetWeak(cdata, _wrap_SwigV8PackedData_delete, v8::WeakCallbackType::kParameter);
 
@@ -495,6 +505,7 @@ SWIGV8_VALUE SWIGV8_NewPackedObj(void *data, size_t size, swig_type_info *type) 
 SWIGRUNTIME
 
 SWIGV8_VALUE SWIGV8_AppendOutput(SWIGV8_VALUE result, SWIGV8_VALUE obj) {
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
   SWIGV8_HANDLESCOPE_ESC();
   
   if (result->IsUndefined()) {
