@@ -56,6 +56,7 @@ SWIG_V8_GetModule(v8::Local<v8::Context> context) {
 
 %fragment ("js_initializer_define", "templates") %{
 #define SWIGV8_INIT $jsname_initialize
+#define SWIGV8_JSNAME "$jsname"
 %}
 
 %insert(init) %{
@@ -75,12 +76,46 @@ void SWIGV8_INIT (SWIGV8_OBJECT exports_obj, SWIGV8_VALUE /*module*/, v8::Local<
 #if !defined(NODE_MODULE_VERSION) || NODE_MODULE_VERSION < 64
   v8::Local<v8::Context> context = SWIGV8_CURRENT_CONTEXT();
 #endif
+  v8::Isolate* isolate = SWIGV8_GETISOLATE(context);
+  SWIGV8_HANDLESCOPE();
+
 #if __cplusplus >= 201103L || (defined(_MSVC_LANG) && _MSVC_LANG >= 201103L)
   static std::mutex guard;
   const std::lock_guard<std::mutex> lock(guard);
 #endif
 
   SWIG_InitializeModule(context);
+
+  // Formally speaking SWIGV8_INIT has
+  //
+  // - things to do just once, initialize global variables;
+  // - things to do in each |isolate|, create Persistent<Template>-s;
+  // - things to do in each |context|, instantiate |export_obj|;
+  //
+  // However, if you examine the generated code below, you'll notice that all
+  // the things-to-do are executed always on each invocation. As for globals,
+  // the arrangement is such that the assignments are constant and hence can be
+  // executed multiple times without side effects. And as for templates, it's
+  // reckoned that cases when multiple contexts get created per isolate are
+  // rare, and occasional template duplicates are tolerable. Just in case for
+  // reference, each Node.js Worker thread is executed in own |isolate|, which
+  // is the most common case when SWIGV8_INIT would be called multiple times.
+
+  // Per-context array that holds Persistent<Template>-s
+  size_t sz = sizeof(v8::Persistent<v8::FunctionTemplate>)
+            * (sizeof(swig_types)/sizeof(swig_types[0]) + 1);
+  v8::Local<v8::ArrayBuffer> v8_swig_types_as_data = v8::ArrayBuffer::New(isolate, sz);
+  v8::Persistent<v8::FunctionTemplate>* v8_swig_types =
+#if SWIG_V8_VERSION >= 0x800
+    static_cast<v8::Persistent<v8::FunctionTemplate>*>(v8_swig_types_as_data->GetBackingStore()->Data());
+#else
+    static_cast<v8::Persistent<v8::FunctionTemplate>*>(v8_swig_types_as_data->GetContents().Data());
+#endif
+
+  // Anchor the array, so that it won't be garbage-collected
+  v8::Local<v8::Private> priv = v8::Private::ForApi(isolate,
+                                                    SWIGV8_SYMBOL_NEW("__swig_types__" SWIGV8_JSNAME));
+  exports_obj->SetPrivate(context, priv, v8_swig_types_as_data);
 %}
 
 
@@ -99,7 +134,8 @@ void SWIGV8_INIT (SWIGV8_OBJECT exports_obj, SWIGV8_VALUE /*module*/, v8::Local<
 %fragment("js_initializer", "templates")
 %{
   // a class template for creating proxies of undefined types
-  SWIGV8_SWIGTYPE_Proxy.Set(SWIGV8_CreateClassTemplate("SwigProxy"));
+  SWIGV8_SWIGTYPE_Proxy.Set(SWIGV8_CreateClassTemplate("SwigProxy", isolate, v8_swig_types_as_data),
+                            isolate, v8_swig_types);
 
   /* create objects for namespaces */
   $jsv8nspaces
