@@ -48,10 +48,11 @@ SWIG_AsCharPtrAndSize(SWIGV8_VALUE valRef, char** cptr, size_t* psize, int *allo
 SWIGINTERNINLINE SWIGV8_VALUE
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
   if (carray) {
     if (size > INT_MAX) {
       // TODO: handle extra long strings
-      return SWIGV8_UNDEFINED();
+      return v8::Undefined(isolate);
     } else {
 %#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
       v8::Handle<v8::String> js_str = SWIGV8_STRING_NEW2(carray, size);
@@ -61,7 +62,7 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
       return js_str;
     }
   } else {
-    return SWIGV8_UNDEFINED();
+    return v8::Undefined(isolate);
   }
 }
 }

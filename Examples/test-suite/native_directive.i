@@ -52,6 +52,7 @@ extern "C" JNIEXPORT jint JNICALL Java_native_1directive_native_1directiveJNI_Co
 #ifdef SWIG_V8_VERSION /* engine = node || v8 */
 
 static SwigV8ReturnValue JavaScript_alpha_count(const SwigV8Arguments &args) {
+  v8::Isolate* isolate = args.GetIsolate();
   SWIGV8_HANDLESCOPE();
   SWIGV8_VALUE jsresult;
   char *arg1 = (char *)0;
