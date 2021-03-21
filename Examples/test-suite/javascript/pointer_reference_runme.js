@@ -18,3 +18,5 @@ if (pointer_reference.overloading(1) != 111) {
 if (pointer_reference.overloading(ss) != 222) {
     throw new Error("overload test 2 failed");
 }
+
+// no-worker-threads
