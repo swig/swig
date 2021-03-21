@@ -128,7 +128,18 @@ void SWIGV8_INIT (SWIGV8_OBJECT exports_obj, SWIGV8_VALUE /*module*/, v8::Local<
 #if (NODE_MODULE_VERSION < 64)
 NODE_MODULE($jsname, $jsname_initialize)
 #else
-NODE_MODULE_CONTEXT_AWARE($jsname, $jsname_initialize)
+#ifndef NODE_GYP_MODULE_NAME
+# define NODE_GYP_MODULE_NAME $jsname
+#endif
+#if defined(__GNUC__) && __GNUC__>=8
+// NODE_MODULE_INIT is self-inconsistent in all supported Node.js versions :-(
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+NODE_MODULE_INIT() { $jsname_initialize(exports, module, context, NULL); }
+#if defined(__GNUC__) && __GNUC__>=8
+# pragma GCC diagnostic pop
+#endif
 #endif
 #endif
 %}
