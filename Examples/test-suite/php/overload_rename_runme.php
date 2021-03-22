@@ -16,4 +16,3 @@ $f = Foo::Foo_int(1.0,1);
 $f = Foo::Foo_int(1.0,1,1.0);
 
 check::done();
-?>

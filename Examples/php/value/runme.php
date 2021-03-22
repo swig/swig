@@ -37,7 +37,3 @@
 #	free($r);
 
 	echo "Good\n";
-
-?>
-
-

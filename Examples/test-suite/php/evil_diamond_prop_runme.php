@@ -37,4 +37,3 @@ restore_error_handler();
 check::equal(4,$spam->_spam,"4==spam->_spam");
 
 check::done();
-?>

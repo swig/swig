@@ -52,4 +52,3 @@ check::equal($bc->x, 34, "bc failed");
 check::equal($bd->x, 16, "bd failed");
 
 check::done();
-?>

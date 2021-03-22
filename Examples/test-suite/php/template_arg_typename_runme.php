@@ -15,4 +15,3 @@ $bufb=new boolunaryfunction_bool($whatisthis);
 check::is_a($bufb,"boolunaryfunction_bool");
 
 check::done();
-?>

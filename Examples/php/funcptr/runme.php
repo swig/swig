@@ -19,6 +19,3 @@ print "Using swig style string pointers as we need them registered as constants\
 print "    ADD      = " . ADD . "\n";
 print "    SUB      = " . SUB . "\n";
 print "    MUL      = " . MUL . "\n";
-
-?>
-

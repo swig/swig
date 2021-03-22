@@ -15,4 +15,3 @@ check::equal($o->rw(7), null, "get_set() failed to set");
 check::equal($o->rw(), 7, "get_set() didn't return back set value");
 
 check::done();
-?>

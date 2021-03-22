@@ -16,4 +16,3 @@ check::set("array_c","h");
 check::equal("h",check::get("array_c"),"set array_c");
 
 check::done();
-?>

@@ -59,4 +59,3 @@ $class = new ReflectionClass('Example3_i');
 check::equal($class->isAbstract(), true, "Example3_i abstractness failed");
 
 check::done();
-?>

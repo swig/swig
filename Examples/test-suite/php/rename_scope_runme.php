@@ -13,4 +13,3 @@ check::classparent("Natural_UP","Interface_UP");
 check::classparent("Natural_BP","Interface_BP");
 
 check::done();
-?>

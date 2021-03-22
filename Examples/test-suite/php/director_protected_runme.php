@@ -67,4 +67,3 @@ check::equal($fb3->callping(), "Bar::ping();", "bad fb3::callping");
 check::equal($fb3->callcheer(), "FooBar3::cheer();", "bad fb3::callcheer");
 
 check::done();
-?>

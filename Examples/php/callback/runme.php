@@ -43,5 +43,3 @@ $caller->delCallback();
 # All done.
 
 print "php exit\n";
-
-?>

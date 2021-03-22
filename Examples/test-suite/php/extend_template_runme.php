@@ -9,4 +9,3 @@ check::equal(2,$foo->test1(2),"test1");
 check::equal(3,$foo->test2(3),"test2");
 
 check::done();
-?>

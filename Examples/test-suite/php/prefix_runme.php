@@ -15,4 +15,3 @@ $f = new ProjectFoo();
 $f->get_self();
 
 check::done();
-?>

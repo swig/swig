@@ -40,4 +40,3 @@ check::equal(GetConstCharPointerRef(), $CPLUSPLUS_MSG, "failed GetConstCharPoint
 check::equal(SetConstCharPointerRef($OTHERLAND_MSG_10, 10), true, "failed SetConstCharPointerRef");
 
 check::done();
-?>
