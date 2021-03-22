@@ -343,19 +343,6 @@ public:
     Swig_banner(f_phpcode);
 
     Printf(f_phpcode, "\n");
-    Printf(f_phpcode, "// Try to load our extension if it's not already loaded.\n");
-    Printf(f_phpcode, "if (!extension_loaded('%s')) {\n", module);
-    Printf(f_phpcode, "  if (strtolower(substr(PHP_OS, 0, 3)) === 'win') {\n");
-    Printf(f_phpcode, "    if (!dl('php_%s.dll')) return;\n", module);
-    Printf(f_phpcode, "  } else {\n");
-    Printf(f_phpcode, "    // PHP_SHLIB_SUFFIX gives 'dylib' on MacOS X but modules are 'so'.\n");
-    Printf(f_phpcode, "    if (PHP_SHLIB_SUFFIX === 'dylib') {\n");
-    Printf(f_phpcode, "      if (!dl('%s.so')) return;\n", module);
-    Printf(f_phpcode, "    } else {\n");
-    Printf(f_phpcode, "      if (!dl('%s.'.PHP_SHLIB_SUFFIX)) return;\n", module);
-    Printf(f_phpcode, "    }\n");
-    Printf(f_phpcode, "  }\n");
-    Printf(f_phpcode, "}\n\n");
 
     /* sub-sections of the php file */
     pragma_code = NewStringEmpty();

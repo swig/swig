@@ -62,9 +62,9 @@ missingtests: missingcpptests missingctests
 # found, runs testcase.php, except for multicpptests.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) RUNTOOL='$(RUNTOOL)' php_run; \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_EXTENSION=$(TARGETPREFIX)$*$(PHP_SO) PHP_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) RUNTOOL='$(RUNTOOL)' php_run; \
 	elif [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*.php -a ! -f $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list ]; then \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*.php RUNTOOL='$(RUNTOOL)' php_run; \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_EXTENSION=$(TARGETPREFIX)$*$(PHP_SO) PHP_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*.php RUNTOOL='$(RUNTOOL)' php_run; \
 	fi
 
 # Clean: remove the generated .php file
