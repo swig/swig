@@ -175,7 +175,7 @@ class check {
     $extra=array_flip(check::get_extra_globals());
     foreach ($globals as $glob) {
       if (self::GETSET) {
-        if (! isset($extra[$glob])) $missing[]=$glob;
+        if (! function_exists($glob . "_get") && ! function_exists($glob . "_set")) $missing[]=$glob;
         else unset($extra[$glob]);
       } else {
         if (! isset($GLOBALS[$glob])) $missing[]=$glob;

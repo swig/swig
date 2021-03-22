@@ -371,19 +371,6 @@ public:
     Swig_banner(f_phpcode);
 
     Printf(f_phpcode, "\n");
-    Printf(f_phpcode, "// Try to load our extension if it's not already loaded.\n");
-    Printf(f_phpcode, "if (!extension_loaded('%s')) {\n", module);
-    Printf(f_phpcode, "  if (strtolower(substr(PHP_OS, 0, 3)) === 'win') {\n");
-    Printf(f_phpcode, "    if (!dl('php_%s.dll')) return;\n", module);
-    Printf(f_phpcode, "  } else {\n");
-    Printf(f_phpcode, "    // PHP_SHLIB_SUFFIX gives 'dylib' on MacOS X but modules are 'so'.\n");
-    Printf(f_phpcode, "    if (PHP_SHLIB_SUFFIX === 'dylib') {\n");
-    Printf(f_phpcode, "      if (!dl('%s.so')) return;\n", module);
-    Printf(f_phpcode, "    } else {\n");
-    Printf(f_phpcode, "      if (!dl('%s.'.PHP_SHLIB_SUFFIX)) return;\n", module);
-    Printf(f_phpcode, "    }\n");
-    Printf(f_phpcode, "  }\n");
-    Printf(f_phpcode, "}\n\n");
 
     /* sub-sections of the php file */
     pragma_code = NewStringEmpty();
@@ -1493,7 +1480,11 @@ public:
       {
 	tm = Swig_typemap_lookup("consttab", n, name, 0);
 	Replaceall(tm, "$value", value);
-	Printf(s_cinit, "%s\n", tm);
+        if (Getattr(n, "tmap:consttab:rinit")) {
+          Printf(r_init, "%s\n", tm);
+        } else {
+          Printf(s_cinit, "%s\n", tm);
+        }
       }
 
       {
@@ -1502,14 +1493,22 @@ public:
         Replaceall(tm, "$class", fake_class_name());
         Replaceall(tm, "$const_name", iname);
 	Replaceall(tm, "$value", value);
-	Printf(s_cinit, "%s\n", tm);
+        if (Getattr(n, "tmap:classconsttab:rinit")) {
+          Printf(r_init, "%s\n", tm);
+        } else {
+          Printf(s_cinit, "%s\n", tm);
+        }
       }
     } else {
       tm = Swig_typemap_lookup("classconsttab", n, name, 0);
       Replaceall(tm, "$class", class_name);
       Replaceall(tm, "$const_name", wrapping_member_constant);
       Replaceall(tm, "$value", value);
-      Printf(s_cinit, "%s\n", tm);
+      if (Getattr(n, "tmap:classconsttab:rinit")) {
+        Printf(r_init, "%s\n", tm);
+      } else {
+        Printf(s_cinit, "%s\n", tm);
+      }
     }
 
     wrapperType = standard;
@@ -1653,6 +1652,9 @@ public:
       String *interfaces = Swig_typemap_lookup("phpinterfaces", node, "", 0);
       Replaceall(interfaces, " ", "");
       if (interfaces) {
+	// It seems we need to wait until RINIT time to look up classes.
+	// The downside is that this then happens for every request.
+	Printf(r_init, "{\n");
         List *interface_list = Split(interfaces, ',', -1);
         int num_interfaces = Len(interface_list);
         String *append_interface = NewStringEmpty();
@@ -1660,13 +1662,14 @@ public:
           String *interface = Getitem(interface_list, Iterator-1);
           String *interface_ce = NewStringEmpty();
           Printf(interface_ce, "php_%s_interface_ce_%d" , class_name , Iterator);
-          Printf(s_oinit, "  zend_class_entry *%s = zend_lookup_class(zend_string_init(\"%s\", sizeof(\"%s\") - 1, 0));\n", interface_ce, interface, interface);
+          Printf(r_init, "  zend_class_entry *%s = zend_lookup_class(zend_string_init(\"%s\", sizeof(\"%s\") - 1, 0));\n", interface_ce, interface, interface);
           Append(append_interface, interface_ce);
           Append(append_interface, " ");
         }
         Chop(append_interface);
         Replaceall(append_interface, " ", ",");
-        Printf(s_oinit, "  zend_class_implements(SWIGTYPE_%s_ce, %d, %s);\n", class_name, num_interfaces, append_interface);
+        Printf(r_init, "  zend_class_implements(SWIGTYPE_%s_ce, %d, %s);\n", class_name, num_interfaces, append_interface);
+	Printf(r_init, "}\n");
       }
     }
 

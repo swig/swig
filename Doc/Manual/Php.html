@@ -152,9 +152,9 @@ If the module is in PHP's default extension directory, you can omit the path.
 </p>
 
 <p>
-For some SAPIs (for example, the CLI SAPI) you can instead use the
-<a href="https://www.php.net/manual/en/function.dl.php">dl() function</a> to load
-an extension at run time, by adding a line like this to the start of each
+If you're using the PHP CLI SAPI it's possible (but not recommended) to use the
+<a href="https://www.php.net/manual/en/function.dl.php">dl() function</a> to
+load an extension at run time, by adding a line like this to the start of each
 PHP script which uses your extension:
 </p>
 
@@ -163,24 +163,21 @@ PHP script which uses your extension:
 </pre></div>
 
 <p>
-But note that <tt>dl()</tt> isn't supported when running PHP through a
-webserver - you'll need to use <tt>extension</tt> in <tt>php.ini</tt> as
+But to do this portably you need to take into account that pathnames and the
+filename extension vary by platform, and for security reasons PHP no longer
+supports <tt>dl()</tt> when running PHP through a webserver.  Overall it's
+probably better to instead use <tt>extension</tt> in <tt>php.ini</tt> as
 described above.
 </p>
 
 <p>
-The PHP module which SWIG generates will also attempt to do the <tt>dl()</tt>
-call for you if the extension isn't already loaded:
+SWIG also generates a PHP module which defines PHP classes for the wrapped
+API, which you'll need to load, for example:
 </p>
 
 <div class="code"><pre>
         include("example.php");
 </pre></div>
-
-<p>
-This PHP module also defines the PHP classes for the wrapped API, so you'll
-almost certainly want to include it anyway.
-</p>
 
 <H2><a name="Php_nn2">32.2 Basic PHP interface</a></H2>
 

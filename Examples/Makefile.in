@@ -1053,6 +1053,7 @@ PHP         = @PHP@
 PHP_INCLUDE = @PHPINC@
 PHP_SO      = @PHP_SO@
 PHP_SCRIPT  = $(SRCDIR)$(RUNME).php
+PHP_EXTENSION = example$(PHP_SO)
 
 # -------------------------------------------------------------------
 # Build a PHP dynamically loadable module (C)
@@ -1077,7 +1078,7 @@ php_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 php_run:
-	$(RUNTOOL) $(PHP) -n -d extension_dir=. -d display_errors=stderr -r 'set_error_handler(function($$n,$$s,$$f,$$l){if($$f!==Null){print$$f;if($$l!==Null)print":$$l";print": ";}print"$$s\n";exit(1);});include($$argv[1]);' $(PHP_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(PHP) -n -d extension_dir=. -d extension=$(PHP_EXTENSION) -d display_errors=stderr -r 'set_error_handler(function($$n,$$s,$$f,$$l){if($$f!==Null){print$$f;if($$l!==Null)print":$$l";print": ";}print"$$s\n";exit(1);});include($$argv[1]);' $(PHP_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display

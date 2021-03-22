@@ -38,7 +38,10 @@
   zend_declare_class_constant_string(SWIGTYPE_$class_ce, "$const_name", sizeof("$const_name") - 1, $value);
 %}
 
-%typemap(classconsttab) SWIGTYPE *,
+// This creates a zend_object to wrap the pointer, and we can't do that
+// before the Zend runtime has been initialised so we delay it until
+// RINIT.  The downside is it then happens for every request.
+%typemap(classconsttab,rinit=1) SWIGTYPE *,
                         SWIGTYPE &,
                         SWIGTYPE &&,
                         SWIGTYPE [] %{
@@ -79,7 +82,10 @@
                    const char []
   "SWIG_STRING_CONSTANT($symname, $value);";
 
-%typemap(consttab) SWIGTYPE *,
+// This creates a zend_object to wrap the pointer, and we can't do that
+// before the Zend runtime has been initialised so we delay it until
+// RINIT.  The downside is it then happens for every request.
+%typemap(consttab,rinit=1) SWIGTYPE *,
                    SWIGTYPE &,
                    SWIGTYPE &&,
                    SWIGTYPE [] {
