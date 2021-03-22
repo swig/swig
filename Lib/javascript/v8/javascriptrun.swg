@@ -181,19 +181,19 @@ public:
   void (*dtor) (const v8::WeakCallbackInfo<SWIGV8_Proxy> &data);
 
   SWIGV8_ClientData() : index(-1) {}
-  SWIGV8_FUNCTION_TEMPLATE class_templ(v8::Isolate* isolate,
-                                       v8::Persistent<v8::FunctionTemplate>* v8_swig_types) {
+  SWIGV8_FUNCTION_TEMPLATE GetType(v8::Isolate* isolate,
+                                   v8::Persistent<v8::FunctionTemplate>* v8_swig_types) {
     if (v8_swig_types != NULL)
       return SWIGV8_FUNCTION_TEMPLATE::New(isolate, v8_swig_types[index+1]);
     return SWIGV8_FUNCTION_TEMPLATE::New(isolate, clazz_templ);
   }
-  bool IsEmpty(v8::Persistent<v8::FunctionTemplate>* v8_swig_types) {
+  bool IsTypeEmpty(v8::Persistent<v8::FunctionTemplate>* v8_swig_types) {
     if (v8_swig_types != NULL)
       return v8_swig_types[index+1].IsEmpty();
     return clazz_templ.IsEmpty();
   }
-  void Set(SWIGV8_FUNCTION_TEMPLATE class_templ, v8::Isolate *isolate,
-           v8::Persistent<v8::FunctionTemplate>* v8_swig_types) {
+  void SetType(SWIGV8_FUNCTION_TEMPLATE class_templ, v8::Isolate *isolate,
+               v8::Persistent<v8::FunctionTemplate>* v8_swig_types) {
     if (v8_swig_types != NULL) {
       v8_swig_types[index+1].Reset(isolate, class_templ);
       return;
@@ -327,9 +327,9 @@ SWIGRUNTIME SWIGV8_VALUE SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, 
   }
 
   if(info->clientdata != 0) {
-    class_templ = info->clientdata->class_templ(isolate, v8_swig_types);
+    class_templ = info->clientdata->GetType(isolate, v8_swig_types);
   } else {
-    class_templ = SWIGV8_SWIGTYPE_Proxy.class_templ(isolate, v8_swig_types);
+    class_templ = SWIGV8_SWIGTYPE_Proxy.GetType(isolate, v8_swig_types);
   }
 
   v8::Local<v8::Object> result = class_templ->InstanceTemplate()->NewInstance(SWIGV8_CONTEXT(isolate)).ToLocalChecked();

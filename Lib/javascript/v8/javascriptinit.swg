@@ -134,8 +134,8 @@ void SWIGV8_INIT (SWIGV8_OBJECT exports_obj, SWIGV8_VALUE /*module*/, v8::Local<
 %fragment("js_initializer", "templates")
 %{
   // a class template for creating proxies of undefined types
-  SWIGV8_SWIGTYPE_Proxy.Set(SWIGV8_CreateClassTemplate("SwigProxy", isolate, v8_swig_types_as_data),
-                            isolate, v8_swig_types);
+  SWIGV8_SWIGTYPE_Proxy.SetType(SWIGV8_CreateClassTemplate("SwigProxy", isolate, v8_swig_types_as_data),
+                                isolate, v8_swig_types);
 
   /* create objects for namespaces */
   $jsv8nspaces
