@@ -40,6 +40,9 @@ matrix:
     - os: linux
       env: SWIGLANG= GCC=9
       dist: xenial
+    - os: linux
+      env: SWIGLANG= GCC=10
+      dist: focal
     - compiler: gcc
       os: linux
       env: SWIGLANG=csharp
