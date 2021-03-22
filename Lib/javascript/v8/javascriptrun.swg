@@ -271,13 +271,13 @@ public:
 
   SWIGV8_ClientData() : index(-1) {}
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
-  v8::Persistent<v8::FunctionTemplate> class_templ(v8::Isolate* isolate,
-                                                   v8::Persistent<v8::FunctionTemplate>* v8_swig_types = NULL) {
+  v8::Persistent<v8::FunctionTemplate> GetType(v8::Isolate* isolate,
+                                               v8::Persistent<v8::FunctionTemplate>* v8_swig_types = NULL) {
     return clazz_templ;
   }
 #else
-  SWIGV8_FUNCTION_TEMPLATE class_templ(v8::Isolate* isolate,
-                                       v8::Persistent<v8::FunctionTemplate>* v8_swig_types) {
+  SWIGV8_FUNCTION_TEMPLATE GetType(v8::Isolate* isolate,
+                                   v8::Persistent<v8::FunctionTemplate>* v8_swig_types) {
 #if (V8_MAJOR_VERSION-0) >= 5
     if (v8_swig_types != NULL)
       return SWIGV8_FUNCTION_TEMPLATE::New(isolate, v8_swig_types[index+1]);
@@ -285,15 +285,15 @@ public:
     return SWIGV8_FUNCTION_TEMPLATE::New(isolate, clazz_templ);
   }
 #endif
-  bool IsEmpty(v8::Persistent<v8::FunctionTemplate>* v8_swig_types) {
+  bool IsTypeEmpty(v8::Persistent<v8::FunctionTemplate>* v8_swig_types) {
 #if (V8_MAJOR_VERSION-0) >= 5
     if (v8_swig_types != NULL)
       return v8_swig_types[index+1].IsEmpty();
 #endif
     return clazz_templ.IsEmpty();
   }
-  void Set(SWIGV8_FUNCTION_TEMPLATE class_templ, v8::Isolate *isolate,
-           v8::Persistent<v8::FunctionTemplate>* v8_swig_types) {
+  void SetType(SWIGV8_FUNCTION_TEMPLATE class_templ, v8::Isolate *isolate,
+               v8::Persistent<v8::FunctionTemplate>* v8_swig_types) {
 #if (V8_MAJOR_VERSION-0) >= 5
     if (v8_swig_types != NULL) {
       v8_swig_types[index+1].Reset(isolate, class_templ);
@@ -489,9 +489,9 @@ SWIGRUNTIME SWIGV8_VALUE SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, 
   }
 
   if(info->clientdata != 0) {
-    class_templ = info->clientdata->class_templ(isolate, v8_swig_types);
+    class_templ = info->clientdata->GetType(isolate, v8_swig_types);
   } else {
-    class_templ = SWIGV8_SWIGTYPE_Proxy.class_templ(isolate, v8_swig_types);
+    class_templ = SWIGV8_SWIGTYPE_Proxy.GetType(isolate, v8_swig_types);
   }
 
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
