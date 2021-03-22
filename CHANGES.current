@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-03-22: goto40
+            #1977 Fix handling of template template parameters.
+
 2021-03-21: olly
 	    #1929, #1978 [PHP] Add support for PHP 8.
 

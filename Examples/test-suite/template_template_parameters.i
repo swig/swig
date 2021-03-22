@@ -48,6 +48,11 @@ struct TestStruct {
     TemplateTemplateT<BaseT> x;
 };
 
+TestStruct<int, Container1> TestStructContainer1Method(TestStruct<int, Container1> ts1) {
+  ts1.x.x += 10;
+  return ts1;
+}
+
 %}
 
 /* part 1 */
@@ -61,8 +66,8 @@ struct TestStruct {
 %template(DoubleAllocFast) pfc::alloc_fast<double>;
 
 /* part 2 */
-%template(IntTestStruct) TestStruct<int, Container1>;
-%template(FloatTestStruct) TestStruct<float, Container2>;
 %template(IntContainer1) Container1<int>;
 %template(FloatContainer2) Container2<float>;
+%template(IntTestStruct) TestStruct<int, Container1>;
+%template(FloatTestStruct) TestStruct<float, Container2>;
 

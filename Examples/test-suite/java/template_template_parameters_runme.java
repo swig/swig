@@ -29,12 +29,17 @@ public class template_template_parameters_runme {
 
     // Test second part
     FloatTestStruct floatTestStruct = new FloatTestStruct();
-    FloatContainer2 floatContainer2 = floatTestStruct.getX(); 
+    FloatContainer2 floatContainer2 = floatTestStruct.getX();
     floatContainer2.setX(8.1f);
     IntTestStruct intTestStruct = new IntTestStruct();
-    IntContainer1 intContainer1 = intTestStruct.getX(); 
+    IntContainer1 intContainer1 = intTestStruct.getX();
     intContainer1.setX(91);
-    if (intContainer1.getX()!=91) 
+    if (intContainer1.getX() != 91)
+      throw new RuntimeException("Failed");
+    if (intTestStruct.getX().getX() != 91)
+      throw new RuntimeException("Failed");
+    IntTestStruct intTestStructReturned = template_template_parameters.TestStructContainer1Method(intTestStruct);
+    if (intTestStructReturned.getX().getX() != 101)
       throw new RuntimeException("Failed");
   }
 }

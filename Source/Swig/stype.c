@@ -1290,30 +1290,29 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	/* Replaces a type of the form 'pat' with 'rep<args>' */
 	Replace(e, pat, rep, DOH_REPLACE_ANY);
       } else if (SwigType_istemplate(e)) {
-    /* Replaces a type of the form 'pat<args>' with 'rep' */
-    {
-       /* To match "e=TemplateTemplateT<(float)>"
-       * with "pat=TemplateTemplateT"
-       * we need to compare only the first part of the string e.
-       */
-      int len = DohLen(pat);
+	/* Replaces a type of the form 'pat<args>' with 'rep' */
+	{
+	  /* To match "e=TemplateTemplateT<(float)>"
+	   * with "pat=TemplateTemplateT"
+	   * we need to compare only the first part of the string e.
+	   */
+	  int len = Len(pat);
 
-      /* DohLen(e) > len, not >= (because we expecte at least a
-       * character '<' following the template typename)
-       */
-      if (DohLen(e)>len) {
-        String *firstPartOfType = NewStringWithSize(e, len);
-        const char* e_as_char = DohData(e);
+	  /* Len(e) > len, not >= (because we expect at least a
+	   * character '<' following the template typename)
+	   */
+	  if (Len(e) > len) {
+	    String *firstPartOfType = NewStringWithSize(e, len);
+	    const char* e_as_char = Char(e);
 
-        if (Equal(firstPartOfType, pat) && e_as_char[len]=='<') {
-          String *repbase = SwigType_templateprefix(rep);
-          Replace(e, pat, repbase, DOH_REPLACE_ID | DOH_REPLACE_FIRST);
-          Delete(repbase);
-        }
-        Delete(firstPartOfType);
-  
-      }
-    }
+	    if (Equal(firstPartOfType, pat) && e_as_char[len] == '<') {
+	      String *repbase = SwigType_templateprefix(rep);
+	      Replace(e, pat, repbase, DOH_REPLACE_ID | DOH_REPLACE_FIRST);
+	      Delete(repbase);
+	    }
+	    Delete(firstPartOfType);
+	  }
+	}
 
 	{
 	  String *tsuffix;
