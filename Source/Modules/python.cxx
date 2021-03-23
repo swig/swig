@@ -2753,7 +2753,7 @@ public:
       if (!varargs) {
 	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args", builtin_kwargs, ") {", NIL);
       } else {
-	Printv(f->def, linkage, wrap_return, wname, "__varargs__", "(PyObject *", self_param, ", PyObject *args, PyObject *varargs) {", NIL);
+	Printv(f->def, linkage, wrap_return, wname, "__varargs__", "(PyObject *", self_param, ", PyObject *args, PyObject *varargs", builtin_kwargs, ") {", NIL);
       }
       if (allow_kwargs) {
 	Swig_warning(WARN_LANG_OVERLOAD_KEYWORD, input_file, line_number, "Can't use keyword arguments with overloaded functions (%s).\n", Swig_name_decl(n));
@@ -3253,10 +3253,10 @@ public:
 	Printf(f->code, "  Py_XINCREF(swig_obj[i + %d]);\n", num_fixed_arguments);
 	Printf(f->code, "}\n");
       } else {
-	Printf(f->code, "newargs = PyTuple_GetSlice(args,0,%d);\n", num_fixed_arguments);
-	Printf(f->code, "varargs = PyTuple_GetSlice(args,%d,PyTuple_Size(args));\n", num_fixed_arguments);
+	Printf(f->code, "newargs = PyTuple_GetSlice(args, 0, %d);\n", num_fixed_arguments);
+	Printf(f->code, "varargs = PyTuple_GetSlice(args, %d, PyTuple_Size(args));\n", num_fixed_arguments);
       }
-      Printf(f->code, "resultobj = %s__varargs__(%s,newargs,varargs);\n", wname, builtin ? "self" : "NULL");
+      Printf(f->code, "resultobj = %s__varargs__(%s, newargs, varargs%s);\n", wname, builtin ? "self" : "NULL", strlen(builtin_kwargs) == 0 ? "" : ", kwargs");
       Append(f->code, "Py_XDECREF(newargs);\n");
       Append(f->code, "Py_XDECREF(varargs);\n");
       Append(f->code, "return resultobj;\n");
