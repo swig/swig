@@ -205,14 +205,12 @@ static void SwigPHP_emit_resource_registrations() {
   Iterator ki;
   bool emitted_default_dtor = false;
 
-  if (!zend_types) {
+  if (!zend_types)
     return;
-  }
 
   ki = First(zend_types);
-  if (ki.key) {
+  if (ki.key)
     Printf(s_oinit, "\n/* Register resource destructors for pointer types */\n");
-  }
   while (ki.key) {
     DOH *key = ki.key;
     Node *class_node = ki.item;
@@ -223,9 +221,8 @@ static void SwigPHP_emit_resource_registrations() {
     if (class_node != NOTCLASS) {
       String *destructor = Getattr(class_node, "destructor");
       human_name = Getattr(class_node, "sym:name");
-      if (!human_name) {
+      if (!human_name)
         human_name = Getattr(class_node, "name");
-      }
       // Do we have a known destructor for this type?
       if (destructor) {
 	rsrc_dtor_name = NewStringf("_wrap_destroy%s", key);
@@ -1340,7 +1337,7 @@ public:
       overname = Getattr(n, "sym:overname");
     } else {
       if (!addSymbol(iname, n))
-        return SWIG_ERROR;
+	return SWIG_ERROR;
     }
 
     if (overname) {
@@ -1533,16 +1530,16 @@ public:
       SwigType *pt = Getattr(p, "type");
 
       if (wrapperType == memberfn || wrapperType == membervar) {
-        source = NewStringf("args[%d]", i-1);   
+	source = NewStringf("args[%d]", i-1);
       } else {
-        source = NewStringf("args[%d]", i);
+	source = NewStringf("args[%d]", i);
       }
 
       String *ln = Getattr(p, "lname");
 
       /* Check if optional */
       if (i >= num_required) {
-        Printf(f->code, "\tif(arg_count > %d) {\n", i);
+	Printf(f->code, "\tif(arg_count > %d) {\n", i);
       }
 
       String *paramType_class = NULL;
@@ -1779,9 +1776,8 @@ public:
     if (overloaded && Getattr(n, "sym:nextSibling") != 0)
       return SWIG_OK;
 
-    if (!s_oowrappers) {
+    if (!s_oowrappers)
       s_oowrappers = NewStringEmpty();
-    }
 
     if (newobject || wrapperType == memberfn || wrapperType == staticmemberfn || wrapperType == standard || wrapperType == staticmembervar) {
       bool handle_as_overload = false;
@@ -2739,6 +2735,7 @@ done:
       String *symname = Getattr(n, "sym:name");
       Setattr(n, "php:proxy", symname);
     }
+
     return Language::classDeclaration(n);
   }
 
@@ -3141,6 +3138,7 @@ done:
     }
     Language::constructorHandler(n);
     wrapperType = standard;
+
     return SWIG_OK;
   }
 
@@ -3164,7 +3162,6 @@ done:
     Setattr(classnode, "destructor", destructorname);
 
     Wrapper *f = NewWrapper();
-
     Printf(f->def, "/* This function is designed to be called by the zend list destructors */\n");
     Printf(f->def, "/* to typecast and do the actual destruction */\n");
     Printf(f->def, "static void %s(zend_resource *res, const char *type_name) {\n", destructorname);
@@ -3429,15 +3426,15 @@ done:
 	if ((tm = Getattr(p, "tmap:directorin")) != 0) {
 	  String *parse = Getattr(p, "tmap:directorin:parse");
 	  if (!parse) {
-            if (is_class(Getattr(p, "type"))) {
-              String *return_class_name = get_class_name(Getattr(p, "type"));
-              String *object_name = NewStringEmpty();
-              Printf(object_name, "%s_object_new(SWIGTYPE_%s_ce)", return_class_name, return_class_name);
-              Replaceall(tm, "$zend_obj", object_name);
-              Replaceall(tm, "$needNewFlow", "1");
-            }
-            Replaceall(tm, "$zend_obj", "NULL");
-            Replaceall(tm, "$needNewFlow", "0");
+	    if (is_class(Getattr(p, "type"))) {
+	      String *return_class_name = get_class_name(Getattr(p, "type"));
+	      String *object_name = NewStringEmpty();
+	      Printf(object_name, "%s_object_new(SWIGTYPE_%s_ce)", return_class_name, return_class_name);
+	      Replaceall(tm, "$zend_obj", object_name);
+	      Replaceall(tm, "$needNewFlow", "1");
+	    }
+	    Replaceall(tm, "$zend_obj", "NULL");
+	    Replaceall(tm, "$needNewFlow", "0");
 	    String *input = NewStringf("&args[%d]", idx++);
 	    Setattr(p, "emit:directorinput", input);
 	    Replaceall(tm, "$input", input);
@@ -3526,7 +3523,7 @@ done:
 	  char temp[24];
 	  sprintf(temp, "%d", idx);
 	  Replaceall(tm, "$argnum", temp);
-         Replaceall(tm, "$needNewFlow", Getattr(n, "feature:new") ? "1" : "0");
+	  Replaceall(tm, "$needNewFlow", Getattr(n, "feature:new") ? "1" : "0");
 
 	  /* TODO check this */
 	  if (Getattr(n, "wrap:disown")) {

@@ -188,8 +188,8 @@ SWIG_ConvertResourcePtr(zval *z, swig_type_info *ty, int flags) {
   if (!type_name) {
     if (Z_TYPE_P(z) == IS_OBJECT) {
       HashTable * ht = Z_OBJ_HT_P(z)->get_properties(z);
-        zval * _cPtr = zend_hash_str_find(ht, "_cPtr", sizeof("_cPtr") - 1);
-        type_name=zend_rsrc_list_get_rsrc_type(Z_RES_P(_cPtr));
+      zval * _cPtr = zend_hash_str_find(ht, "_cPtr", sizeof("_cPtr") - 1);
+      type_name=zend_rsrc_list_get_rsrc_type(Z_RES_P(_cPtr));
     }
   }
 
@@ -299,4 +299,3 @@ static swig_module_info *SWIG_Php_GetModule() {
 static void SWIG_Php_SetModule(swig_module_info *pointer) {
   REGISTER_MAIN_LONG_CONSTANT(const_name, (long) pointer, CONST_PERSISTENT | CONST_CS);
 }
-
