@@ -1052,7 +1052,7 @@ PHP         = @PHP@
 PHP_INCLUDE = @PHPINC@
 PHP_SO      = @PHP_SO@
 PHP_SCRIPT  = $(SRCDIR)$(RUNME).php
-PHP_EXTENSION = `pwd`
+PHP_EXTENSION = example$(PHP_SO)
 
 # -------------------------------------------------------------------
 # Build a PHP dynamically loadable module (C)
