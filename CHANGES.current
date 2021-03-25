@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-03-26: olly
+	    [PHP] Add PHP keywords 'fn' (added in 7.4) and 'match' (added in
+	    8.0) to the list SWIG knows to automatically rename.
+
 2021-03-23: wsfulton
             #1942 [Python] Fix compilation error in wrappers when using -builtin
             and wrapping varargs in constructors.

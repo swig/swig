@@ -55,6 +55,7 @@ PHPKW(endwhile);
 PHPKW(extends);
 PHPKW(final);
 PHPKW(finally);
+PHPKW(fn); // as of PHP 7.4
 PHPKW(for);
 PHPKW(foreach);
 PHPKW(function);
@@ -65,6 +66,7 @@ PHPKW(implements);
 PHPKW(instanceof);
 PHPKW(insteadof);
 PHPKW(interface);
+PHPKW(match); // as of PHP 8.0
 PHPKW(namespace);
 PHPKW(new);
 PHPKW(or);
