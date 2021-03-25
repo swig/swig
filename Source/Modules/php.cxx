@@ -24,17 +24,6 @@
  *   value which is a compound C++ expression (i.e. as if we had a
  *   method with two overloaded forms instead of a single method with
  *   a default parameter value).
- *
- * Long term:
- *
- * Sort out locale-dependent behaviour of strtod() - it's harmless unless
- *   SWIG ever sets the locale and DOH/base.c calls atof, so we're probably
- *   OK currently at least.
- */
-
-/*
- * TODO: Replace remaining stderr messages with Swig_error or Swig_warning
- * (may need to add more WARN_PHP_xxx codes...)
  */
 
 #include "swigmod.h"
@@ -1255,8 +1244,6 @@ public:
 
       arg_names = (String **) malloc(max_num_of_arguments * sizeof(String *));
       if (!arg_names) {
-	/* FIXME: How should this be handled?  The rest of SWIG just seems
-	 * to not bother checking for malloc failing! */
 	fprintf(stderr, "Malloc failed!\n");
 	SWIG_exit(EXIT_FAILURE);
       }
@@ -1267,8 +1254,6 @@ public:
       arg_values = (String **) malloc(max_num_of_arguments * sizeof(String *));
       byref = (unsigned char *) malloc(max_num_of_arguments);
       if (!arg_values || !byref) {
-	/* FIXME: How should this be handled?  The rest of SWIG just seems
-	 * to not bother checking for malloc failing! */
 	fprintf(stderr, "Malloc failed!\n");
 	SWIG_exit(EXIT_FAILURE);
       }
@@ -1386,7 +1371,6 @@ public:
 	      case T_LONGDOUBLE: {
 		char *p;
 		errno = 0;
-		/* FIXME: strtod is locale dependent... */
 		double val = strtod(Char(value), &p);
 		if (errno || *p) {
 		  Clear(value);
