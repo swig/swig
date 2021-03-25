@@ -48,7 +48,7 @@ print_vars
 
 puts "\nNow I'm going to try and modify some read only variables";
 
-puts "     Tring to set 'path'";
+puts "     Trying to set 'path'";
 if { [catch {
     set path "Whoa!"
     puts "Hey, what's going on?!?! This shouldn't work"

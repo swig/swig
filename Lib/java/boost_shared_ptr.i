@@ -31,12 +31,35 @@
 %typemap(out) CONST TYPE
 %{ *(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$result = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(new $1_ltype(($1_ltype &)$1)); %}
 
+%typemap(directorin,descriptor="L$packagepath/$&javaclassname;") CONST TYPE
+%{ $input = 0;
+  *((SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > (new $1_ltype((const $1_ltype &)$1)); %}
+
+%typemap(directorout) CONST TYPE
+%{ if (!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null $1_type");
+    return $null;
+  }
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = *(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input;
+  $result = *smartarg->get();
+  %}
+
 // plain pointer
 %typemap(in) CONST TYPE * (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) %{
   smartarg = *(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input;
   $1 = (TYPE *)(smartarg ? smartarg->get() : 0); %}
 %typemap(out, fragment="SWIG_null_deleter") CONST TYPE * %{
   *(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$result = $1 ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1 SWIG_NO_NULL_DELETER_$owner) : 0;
+%}
+
+%typemap(directorin,descriptor="L$packagepath/$javaclassname;") CONST TYPE *
+%{ $input = 0;
+  if ($1) {
+    *((SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > ($1 SWIG_NO_NULL_DELETER_0);
+  } %}
+
+%typemap(directorout) CONST TYPE * %{
+#error "typemaps for $1_type not available"
 %}
 
 // plain reference
@@ -49,12 +72,30 @@
 %typemap(out, fragment="SWIG_null_deleter") CONST TYPE &
 %{ *(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$result = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1 SWIG_NO_NULL_DELETER_$owner); %}
 
+%typemap(directorin,descriptor="L$packagepath/$javaclassname;") CONST TYPE &
+%{ $input = 0;
+  *((SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > (&$1 SWIG_NO_NULL_DELETER_0); %}
+
+%typemap(directorout) CONST TYPE & %{
+#error "typemaps for $1_type not available"
+%}
+
 // plain pointer by reference
 %typemap(in) TYPE *CONST& ($*1_ltype temp = 0)
 %{ temp = (TYPE *)((*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) ? (*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input)->get() : 0);
    $1 = &temp; %}
 %typemap(out, fragment="SWIG_null_deleter") TYPE *CONST&
 %{ *(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$result = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(*$1 SWIG_NO_NULL_DELETER_$owner); %}
+
+%typemap(directorin,descriptor="L$packagepath/$*javaclassname;") TYPE *CONST&
+%{ $input = 0;
+  if ($1) {
+    *((SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > ($1 SWIG_NO_NULL_DELETER_0);
+ } %}
+
+%typemap(directorout) TYPE *CONST& %{
+#error "typemaps for $1_type not available"
+%}
 
 // shared_ptr by value
 %typemap(in) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > ($&1_type argp)
@@ -63,11 +104,33 @@
 %typemap(out) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >
 %{ *($&1_ltype*)&$result = $1 ? new $1_ltype($1) : 0; %}
 
+%typemap(directorin,descriptor="L$packagepath/$typemap(jstype, TYPE);") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >
+%{ $input = 0;
+  if ($1) {
+    *((SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1);
+  } %}
+
+%typemap(directorout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >
+%{ if ($input) {
+    $&1_type smartarg = *(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input;
+    $result = *smartarg;
+  } %}
+
 // shared_ptr by reference
 %typemap(in) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & ($*1_ltype tempnull)
 %{ $1 = $input ? *($&1_ltype)&$input : &tempnull; %}
 %typemap(out) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &
 %{ *($&1_ltype)&$result = *$1 ? new $*1_ltype(*$1) : 0; %}
+
+%typemap(directorin,descriptor="L$packagepath/$typemap(jstype, TYPE);") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &
+%{ $input = 0;
+  if ($1) {
+    *((SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1);
+  } %}
+
+%typemap(directorout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & %{
+#error "typemaps for $1_type not available"
+%}
 
 // shared_ptr by pointer
 %typemap(in) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * ($*1_ltype tempnull)
@@ -76,12 +139,32 @@
 %{ *($&1_ltype)&$result = ($1 && *$1) ? new $*1_ltype(*$1) : 0;
    if ($owner) delete $1; %}
 
+%typemap(directorin,descriptor="L$packagepath/$typemap(jstype, TYPE);") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *
+%{ $input = 0;
+  if ($1 && *$1) {
+    *((SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(*$1);
+  } %}
+
+%typemap(directorout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * %{
+#error "typemaps for $1_type not available"
+%}
+
 // shared_ptr by pointer reference
 %typemap(in) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > tempnull, $*1_ltype temp = 0)
 %{ temp = $input ? *($1_ltype)&$input : &tempnull;
    $1 = &temp; %}
 %typemap(out) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
 %{ *($1_ltype)&$result = (*$1 && **$1) ? new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(**$1) : 0; %}
+
+%typemap(directorin,descriptor="L$packagepath/$typemap(jstype, TYPE);") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
+%{ $input = 0;
+  if ($1 && *$1) {
+    *((SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(*$1);
+  } %}
+
+%typemap(directorout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& %{
+#error "typemaps for $1_type not available"
+%}
 
 // various missing typemaps - If ever used (unlikely) ensure compilation error rather than runtime bug
 %typemap(in) CONST TYPE[], CONST TYPE[ANY], CONST TYPE (CLASS::*) %{
@@ -142,6 +225,18 @@
     long cPtr = $jnicall;
     return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
+
+%typemap(javadirectorout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > "$typemap(jstype, TYPE).getCPtr($javacall)"
+
+%typemap(javadirectorin) CONST TYPE,
+                         CONST TYPE *,
+                         CONST TYPE &,
+                         TYPE *CONST& "($jniinput == 0) ? null : new $typemap(jstype, TYPE)($jniinput, true)"
+
+%typemap(javadirectorin) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+                         SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
+                         SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
+                         SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "($jniinput == 0) ? null : new $typemap(jstype, TYPE)($jniinput, true)"
 
 // Base proxy classes
 %typemap(javabody) TYPE %{
@@ -224,6 +319,18 @@
     $jnicall;
   }
 %}
+
+// Typecheck typemaps
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *")
+  TYPE CONST,
+  TYPE CONST &,
+  TYPE CONST *,
+  TYPE *CONST&,
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
+  ""
 
 %template() SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >;
 %enddef

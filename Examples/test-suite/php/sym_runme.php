@@ -19,4 +19,3 @@ check::equal($flam->jam(),"flam-jam","flam()->jam==flam-jam");
 check::equal($flam->jar(),"flam-jar","flam()->jar==flam-jar");
 
 check::done();
-?>

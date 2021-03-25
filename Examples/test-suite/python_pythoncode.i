@@ -29,3 +29,33 @@ struct TYPE2 {
 struct TYPE { };
 struct TYPE2 { };
 %}
+
+
+// Overriding __new__ test: https://github.com/swig/swig/pull/1357
+%inline %{
+class Foo {
+  public:
+    virtual ~Foo() {}
+    Foo() {}
+};
+
+Foo* get_foo() {return new Foo();}
+%}
+
+%pythoncode %{
+    print_debug = False
+%}
+
+%extend Foo {
+    // Note that %pythoncode is not available with -builtin
+    %pythoncode %{
+    def __new__(cls, *args, **kwargs):
+        if print_debug:
+            print('in Foo.__new__()')
+        return super(Foo, cls).__new__(cls)
+
+    def __init__(self):
+        if print_debug:
+            print('in Foo.__init__()')
+    %}
+};

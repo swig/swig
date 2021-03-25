@@ -112,6 +112,9 @@ typedef unsigned __int64 DWORD64, *PDWORD64;
 // Types from winnt.h
 typedef void *PVOID;
 typedef void *PVOID64;
+#ifndef VOID
+#define VOID void
+#endif
 typedef char CHAR;
 typedef short SHORT;
 typedef long LONG;

@@ -1,6 +1,6 @@
 package main
 
-import . "./director_nested"
+import . "swigtests/director_nested"
 
 type A struct{} // From FooBar_int
 func (p *A) Do_step() string {

@@ -15,4 +15,3 @@ $spam=new spam();
 $_spam=test($spam);
 
 check::done();
-?>

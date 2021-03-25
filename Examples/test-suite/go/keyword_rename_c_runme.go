@@ -1,6 +1,6 @@
 package main
 
-import "./keyword_rename_c"
+import "swigtests/keyword_rename_c"
 
 func main() {
 	keyword_rename_c.Xgo(1)

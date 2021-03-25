@@ -189,7 +189,7 @@ SWIGINTERN int SWIG_lua_isnilstring(lua_State *L, int idx) {
 // Also needed for object ptrs by const ref
 // eg A* const& ref_pointer(A* const& a);
 // found in mixed_types.i
-%typemap(in,checkfn="lua_isuserdata") SWIGTYPE *const&($*ltype temp)
+%typemap(in,checkfn="SWIG_isptrtype") SWIGTYPE *const&($*ltype temp)
 %{temp=($*ltype)SWIG_MustGetPtr(L,$input,$*descriptor,0,$argnum,"$symname");
 $1=($1_ltype)&temp;%}
 
@@ -327,7 +327,7 @@ parameters match which function
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE & {
   void *ptr;
-  if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $1_descriptor, 0)) {
+  if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $1_descriptor, SWIG_POINTER_NO_NULL)) {
     $1 = 0;
   } else {
     $1 = 1;
@@ -336,7 +336,7 @@ parameters match which function
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE && {
   void *ptr;
-  if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $1_descriptor, 0)) {
+  if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $1_descriptor, SWIG_POINTER_NO_NULL)) {
     $1 = 0;
   } else {
     $1 = 1;
@@ -345,7 +345,7 @@ parameters match which function
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
   void *ptr;
-  if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $&1_descriptor, 0)) {
+  if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $&1_descriptor, SWIG_POINTER_NO_NULL)) {
     $1 = 0;
   } else {
     $1 = 1;
@@ -367,7 +367,7 @@ parameters match which function
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const&
 {
   void *ptr;
-  if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $*descriptor, 0)) {
+  if (SWIG_isptrtype(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $*descriptor, 0)) {
     $1 = 0;
   } else {
     $1 = 1;

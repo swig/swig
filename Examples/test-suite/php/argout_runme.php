@@ -30,9 +30,8 @@ unset($handle);
 #$handledata=handle($handle);
 #check::equal($handledata,"Here it is","\$handledata != \"Here it is\"");
 
-unset($handle);
+$handle=NULL;
 voidhandle($handle);
 check::isnull($handle,'$handle not null');
 
 check::done();
-?>

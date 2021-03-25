@@ -5,13 +5,15 @@
 #endif
 #if defined(SWIG_PYTHON_THREADS) /* Threading support is enabled */
 #  if !defined(SWIG_PYTHON_USE_GIL) && !defined(SWIG_PYTHON_NO_USE_GIL)
-#    if (PY_VERSION_HEX >= 0x02030000) /* For 2.3 or later, use the PyGILState calls */
-#      define SWIG_PYTHON_USE_GIL
-#    endif
+#    define SWIG_PYTHON_USE_GIL
 #  endif
 #  if defined(SWIG_PYTHON_USE_GIL) /* Use PyGILState threads calls */
-#    ifndef SWIG_PYTHON_INITIALIZE_THREADS
-#     define SWIG_PYTHON_INITIALIZE_THREADS  PyEval_InitThreads() 
+#    if !defined(SWIG_PYTHON_INITIALIZE_THREADS)
+#      if PY_VERSION_HEX < 0x03070000
+#        define SWIG_PYTHON_INITIALIZE_THREADS PyEval_InitThreads()
+#      else
+#        define SWIG_PYTHON_INITIALIZE_THREADS
+#      endif
 #    endif
 #    ifdef __cplusplus /* C++ code */
        class SWIG_Python_Thread_Block {

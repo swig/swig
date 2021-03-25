@@ -1,6 +1,6 @@
 package main
 
-import . "./import_nomodule"
+import . "swigtests/import_nomodule"
 
 func main() {
 	f := Create_Foo()

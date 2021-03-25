@@ -1,111 +1,10 @@
+#ifdef SWIG_OCTAVE_EXTERNAL_OCTHEADERS
 %insert(runtime) %{
-
-#include <cstdlib>
-#include <iostream>
-
-#include <octave/oct.h>
-#include <octave/version.h>
-
-// Macro for enabling features which require Octave version >= major.minor.patch
-// - Use (OCTAVE_PATCH_VERSION + 0) to handle both '<digit>' (released) and '<digit>+' (in development) patch numbers
-#define SWIG_OCTAVE_PREREQ(major, minor, patch) \
-  ( (OCTAVE_MAJOR_VERSION<<16) + (OCTAVE_MINOR_VERSION<<8) + (OCTAVE_PATCH_VERSION + 0) >= ((major)<<16) + ((minor)<<8) + (patch) )
-
-// Reconstruct Octave major, minor, and patch versions for releases prior to 3.8.1
-#if !defined(OCTAVE_MAJOR_VERSION)
-
-# if !defined(OCTAVE_API_VERSION_NUMBER)
-
-// Hack to distinguish between Octave 3.8.0, which removed OCTAVE_API_VERSION_NUMBER but did not yet
-// introduce OCTAVE_MAJOR_VERSION, and Octave <= 3.2, which did not define OCTAVE_API_VERSION_NUMBER
-#  include <octave/ov.h>
-#  if defined(octave_ov_h)
-#   define OCTAVE_MAJOR_VERSION 3
-#   define OCTAVE_MINOR_VERSION 8
-#   define OCTAVE_PATCH_VERSION 0
-#  else
-
-// Hack to distinguish between Octave 3.2 and earlier versions, before OCTAVE_API_VERSION_NUMBER existed
-#   define ComplexLU __ignore
-#   include <octave/CmplxLU.h>
-#   undef ComplexLU
-#   if defined(octave_Complex_LU_h)
-
-// We know only that this version is prior to Octave 3.2, i.e. OCTAVE_API_VERSION_NUMBER < 37
-#    define OCTAVE_MAJOR_VERSION 3
-#    define OCTAVE_MINOR_VERSION 1
-#    define OCTAVE_PATCH_VERSION 99
-
-#   else
-
-// OCTAVE_API_VERSION_NUMBER == 37
-#    define OCTAVE_MAJOR_VERSION 3
-#    define OCTAVE_MINOR_VERSION 2
-#    define OCTAVE_PATCH_VERSION 0
-
-#   endif // defined(octave_Complex_LU_h)
-
-#  endif // defined(octave_ov_h)
-
-// Correlation between Octave API and version numbers extracted from Octave's
-// ChangeLogs; version is the *earliest* released Octave with that API number
-# elif OCTAVE_API_VERSION_NUMBER >= 48
-#  define OCTAVE_MAJOR_VERSION 3
-#  define OCTAVE_MINOR_VERSION 6
-#  define OCTAVE_PATCH_VERSION 0
-
-# elif OCTAVE_API_VERSION_NUMBER >= 45
-#  define OCTAVE_MAJOR_VERSION 3
-#  define OCTAVE_MINOR_VERSION 4
-#  define OCTAVE_PATCH_VERSION 1
-
-# elif OCTAVE_API_VERSION_NUMBER >= 42
-#  define OCTAVE_MAJOR_VERSION 3
-#  define OCTAVE_MINOR_VERSION 3
-#  define OCTAVE_PATCH_VERSION 54
-
-# elif OCTAVE_API_VERSION_NUMBER >= 41
-#  define OCTAVE_MAJOR_VERSION 3
-#  define OCTAVE_MINOR_VERSION 3
-#  define OCTAVE_PATCH_VERSION 53
-
-# elif OCTAVE_API_VERSION_NUMBER >= 40
-#  define OCTAVE_MAJOR_VERSION 3
-#  define OCTAVE_MINOR_VERSION 3
-#  define OCTAVE_PATCH_VERSION 52
-
-# elif OCTAVE_API_VERSION_NUMBER >= 39
-#  define OCTAVE_MAJOR_VERSION 3
-#  define OCTAVE_MINOR_VERSION 3
-#  define OCTAVE_PATCH_VERSION 51
-
-# else // OCTAVE_API_VERSION_NUMBER == 38
-#  define OCTAVE_MAJOR_VERSION 3
-#  define OCTAVE_MINOR_VERSION 3
-#  define OCTAVE_PATCH_VERSION 50
-
-# endif // !defined(OCTAVE_API_VERSION_NUMBER)
-
-#endif // !defined(OCTAVE_MAJOR_VERSION)
-
-#include <octave/Cell.h>
-#include <octave/dynamic-ld.h>
-#include <octave/oct-env.h>
-#include <octave/oct-map.h>
-#include <octave/ov-scalar.h>
-#include <octave/ov-fcn-handle.h>
-#include <octave/parse.h>
-#if SWIG_OCTAVE_PREREQ(4,2,0)
-#include <octave/interpreter.h>
-#else
-#include <octave/toplev.h>
-#endif
-#include <octave/unwind-prot.h>
-#if SWIG_OCTAVE_PREREQ(4,2,0)
-#include <octave/call-stack.h>
-#endif
-
+#include "octheaders.hpp"
 %}
+#else
+%insert(runtime) "octheaders.hpp";
+#endif
 
 %insert(runtime) "swigrun.swg";
 %insert(runtime) "swigerrors.swg";
@@ -139,7 +38,11 @@ SWIGINTERN bool SWIG_Octave_LoadModule(std::string name) {
 #endif
 #if SWIG_OCTAVE_PREREQ(4,2,0)
     try {
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+      octave::feval(name, octave_value_list(), 0);
+#else
       feval(name, octave_value_list(), 0);
+#endif
       retn = true;
     } catch (octave::execution_exception&) { }
 #else
@@ -170,7 +73,7 @@ SWIGINTERN bool SWIG_Octave_InstallFunction(octave_function *octloadfcn, std::st
     frame.protect_var(discard_error_messages);          discard_error_messages = true;
     frame.protect_var(discard_warning_messages);        discard_warning_messages = true;
 #else
-    unwind_protect::begin_frame("SWIG_Octave_LoadModule");
+    unwind_protect::begin_frame("SWIG_Octave_InstallFunction");
     unwind_protect_int(error_state);                    error_state = 0;
     unwind_protect_int(warning_state);                  warning_state = 0;
     unwind_protect_bool(discard_error_messages);        discard_error_messages = true;
@@ -181,7 +84,11 @@ SWIGINTERN bool SWIG_Octave_InstallFunction(octave_function *octloadfcn, std::st
     args.append(octloadfcn->fcn_file_name());
 #if SWIG_OCTAVE_PREREQ(4,2,0)
     try {
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+      octave::feval("autoload", args, 0);
+#else
       feval("autoload", args, 0);
+#endif
       retn = true;
     } catch (octave::execution_exception&) { }
 #else
@@ -307,6 +214,24 @@ DEFUN_DLD( swig_octave_prereq, args, nargout, swig_octave_prereq_usage ) {
   return octave_value(prereq);
 }
 
+static const char *const swig_exit_usage = "-*- texinfo -*- \n\
+@deftypefn {Loadable Function} {} swig_exit([@var{exit_status}])\n\
+Exit Octave without performing any memory cleanup.\n\
+@end deftypefn";
+
+DEFUN_DLD( swig_exit, args, nargout, swig_exit_usage ) {
+  if (args.length() > 1) {
+    error("swig_exit: must be called with at most one arguments");
+    return octave_value_list();
+  }
+  int exit_status = 0;
+  if (args.length() == 1) {
+    exit_status = args(0).int_value();
+  }
+  ::_Exit(exit_status);
+  return octave_value();
+}
+
 static const char *const SWIG_name_usage = "-*- texinfo -*- \n\
 @deftypefn {Loadable Module} {} " SWIG_name_d "\n\
 Loads the SWIG-generated module `" SWIG_name_d "'.\n\
@@ -319,11 +244,14 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
   // workaround to prevent octave seg-faulting on exit: set Octave exit function
   // octave_exit to _Exit, which exits immediately without trying to cleanup memory.
   // definitely affected version 3.2.*, not sure about 3.3.*, seems to be fixed in
-  // version 3.4.*, but reappeared in 4.2.*, so turn on for all versions after 3.2.*.
+  // version 3.4.*, reappeared in 4.2.*, hack not possible in 4.4.* or later due to
+  // removal of octave_exit, so turn on for all versions between 3.2.*. and 4.4.*.
   // can be turned off with macro definition.
 #ifndef SWIG_OCTAVE_NO_SEGFAULT_HACK
+#if !SWIG_OCTAVE_PREREQ(4,4,0)
 #if SWIG_OCTAVE_PREREQ(3,2,0)
   octave_exit = ::_Exit;
+#endif
 #endif
 #endif
 
@@ -351,15 +279,47 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
                      "__swig_atexit__; "
                      "atexit(\"__swig_atexit__\", false); "
                      "atexit(\"__swig_atexit__\")");
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+    octave::feval("evalin", eval_args, 0);
+#else
     feval("evalin", eval_args, 0);
 #endif
+#endif
 
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+    {
+      octave::type_info& typeinfo = octave::interpreter::the_interpreter()->get_type_info();
+      string_vector types = typeinfo.installed_type_names();
+      bool register_octave_swig_ref = true;
+      bool register_octave_swig_packed = true;
+      for (int i = 0; i < types.numel(); ++i) {
+        if (types(i) == octave_swig_ref::static_type_name()) {
+          register_octave_swig_ref = false;
+        }
+        if (types(i) == octave_swig_packed::static_type_name()) {
+          register_octave_swig_packed = false;
+        }
+      }
+      if (register_octave_swig_ref) {
+        octave_swig_ref::register_type();
+      }
+      if (register_octave_swig_packed) {
+        octave_swig_packed::register_type();
+      }
+    }
+#else
     octave_swig_ref::register_type();
     octave_swig_packed::register_type();
+#endif
     SWIG_InitializeModule(0);
     SWIG_PropagateClientData();
 
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+    octave::call_stack& stack = octave::interpreter::the_interpreter()->get_call_stack();
+    octave_function *me = stack.current();
+#else
     octave_function *me = octave_call_stack::current();
+#endif
 
     if (!SWIG_Octave_InstallFunction(me, "subclass")) {
       return octave_value_list();
@@ -374,6 +334,9 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
       return octave_value_list();
     }
     if (!SWIG_Octave_InstallFunction(me, "swig_octave_prereq")) {
+      return octave_value_list();
+    }
+    if (!SWIG_Octave_InstallFunction(me, "swig_exit")) {
       return octave_value_list();
     }
 
@@ -426,10 +389,12 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
       }
     }
 
-#if !SWIG_OCTAVE_PREREQ(3,2,0)
-    mlock(me->name());
-#else
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+    octave::interpreter::the_interpreter()->mlock();
+#elif SWIG_OCTAVE_PREREQ(3,2,0)
     mlock();
+#else
+    mlock(me->name());
 #endif
 
   }

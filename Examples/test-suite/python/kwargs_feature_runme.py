@@ -79,3 +79,46 @@ if rfoo(n=11, x=22) != -11:
 
 if rfoo(x=11, n=22) != 11:
     raise RuntimeError
+
+# Extended constructors
+e = Extending0()
+e = Extending1(one=1)
+e = Extending1(1)
+e = Extending2(1, "two")
+e = Extending2(1, two="two")
+e = Extending2(two="two", one=1)
+e = ExtendingOptArgs1()
+e = ExtendingOptArgs1(1)
+e = ExtendingOptArgs2(one=1)
+e = ExtendingOptArgs2()
+e = ExtendingOptArgs2(one=1)
+e = ExtendingOptArgs2(two="two")
+e = ExtendingOptArgs2(two="two", one=1)
+
+# Invalid kwargs test
+h = Hello()
+try:
+    h = Hello(nonexistent=10)
+    raise RuntimeError("missed exception")
+except TypeError as e:
+    pass
+
+f = Foo(1)
+f = Foo(a=1)
+try:
+    f = Foo(nonexistent=10)
+    raise RuntimeError("missed exception")
+except TypeError as e:
+    pass
+
+try:
+    f = Foo(a=1, nonexistent=10)
+    raise RuntimeError("missed exception")
+except TypeError as e:
+    pass
+
+try:
+    f = Foo(1, nonexistent=10)
+    raise RuntimeError("missed exception")
+except TypeError as e:
+    pass

@@ -1,6 +1,6 @@
 package main
 
-import . "./overload_copy"
+import . "swigtests/overload_copy"
 
 func main() {
 	f := NewFoo()

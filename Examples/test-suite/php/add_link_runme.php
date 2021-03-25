@@ -19,4 +19,3 @@ check::is_a($foo_blah,'foo');
 //check::is_a($class_foo_blah,foo);
 
 check::done();
-?>

@@ -50,9 +50,12 @@ extern "C" {
 #define SWIGRUNTIME_DEBUG
 #endif
 
+#ifndef SWIG_INIT_CLIENT_DATA_TYPE
+#define SWIG_INIT_CLIENT_DATA_TYPE void *
+#endif
 
 SWIGRUNTIME void
-SWIG_InitializeModule(void *clientdata) {
+SWIG_InitializeModule(SWIG_INIT_CLIENT_DATA_TYPE clientdata) {
   size_t i;
   swig_module_info *module_head, *iter;
   int init;
@@ -98,7 +101,7 @@ SWIG_InitializeModule(void *clientdata) {
 
   /* Now work on filling in swig_module.types */
 #ifdef SWIGRUNTIME_DEBUG
-  printf("SWIG_InitializeModule: size %d\n", swig_module.size);
+  printf("SWIG_InitializeModule: size %lu\n", (unsigned long)swig_module.size);
 #endif
   for (i = 0; i < swig_module.size; ++i) {
     swig_type_info *type = 0;
@@ -106,7 +109,7 @@ SWIG_InitializeModule(void *clientdata) {
     swig_cast_info *cast;
 
 #ifdef SWIGRUNTIME_DEBUG
-    printf("SWIG_InitializeModule: type %d %s\n", i, swig_module.type_initial[i]->name);
+    printf("SWIG_InitializeModule: type %lu %s\n", (unsigned long)i, swig_module.type_initial[i]->name);
 #endif
 
     /* if there is another module already loaded */
@@ -182,7 +185,7 @@ SWIG_InitializeModule(void *clientdata) {
   for (i = 0; i < swig_module.size; ++i) {
     int j = 0;
     swig_cast_info *cast = swig_module.cast_initial[i];
-    printf("SWIG_InitializeModule: type %d %s\n", i, swig_module.type_initial[i]->name);
+    printf("SWIG_InitializeModule: type %lu %s\n", (unsigned long)i, swig_module.type_initial[i]->name);
     while (cast->type) {
       printf("SWIG_InitializeModule: cast type %s\n", cast->type->name);
       cast++;

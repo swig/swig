@@ -5,6 +5,7 @@
  * ----------------------------------------------------------------------------- */
 
 %runtime "swigrun.swg"  // Common C API type-checking code
+%runtime "swigerrors.swg"    // SWIG errors
 %runtime "phprun.swg"	// PHP runtime functions
 
 %include <phpinit.swg> // PHP initialization routine.
@@ -177,7 +178,7 @@
     /* Allow NULL from php for void* */
     if (Z_ISNULL($input)) $1=0;
     else
-      SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
+      SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
   }
 %}
 
@@ -492,36 +493,45 @@
 %php_typecheck(double,SWIG_TYPECHECK_DOUBLE,IS_DOUBLE)
 %php_typecheck(char,SWIG_TYPECHECK_CHAR,IS_STRING)
 
-%typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char *, char *&, char []
+%typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char *, char *&
+ " $1 = (Z_TYPE($input) == IS_STRING || Z_TYPE($input) == IS_NULL); "
+
+%typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char []
  " $1 = (Z_TYPE($input) == IS_STRING); "
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE
 {
   void *tmp;
-  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, $&1_descriptor, 0) >= 0);
+  $1 = (SWIG_ConvertPtr(&$input, (void **)&tmp, $&1_descriptor, SWIG_POINTER_NO_NULL) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER)
              SWIGTYPE *,
              SWIGTYPE [],
-             SWIGTYPE &,
-             SWIGTYPE &&,
              SWIGTYPE *const&
 {
   void *tmp;
-  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, $1_descriptor, 0) >= 0);
+  $1 = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, 0) >= 0);
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER)
+             SWIGTYPE &,
+             SWIGTYPE &&
+{
+  void *tmp;
+  $1 = (SWIG_ConvertPtr(&$input, (void**)&tmp, $1_descriptor, SWIG_POINTER_NO_NULL) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const&
 {
   void *tmp;
-  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, $*1_descriptor, 0) >= 0);
+  $1 = (SWIG_ConvertPtr(&$input, (void**)&tmp, $*1_descriptor, 0) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void *
 {
   void *tmp;
-  _v = (SWIG_ConvertPtr(&$input, (void **)&tmp, 0, 0) >= 0);
+  $1 = (SWIG_ConvertPtr(&$input, (void**)&tmp, 0, 0) >= 0);
 }
 
 /* Exception handling */

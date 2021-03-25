@@ -88,6 +88,30 @@ public class enum_macro_runme {
     {
       Greeks13 a = null;
     }
+    {
+      Greeks15 a = Greeks15.alpha15;
+      a = Greeks15.beta15;
+      a = Greeks15.theta15;
+      a = Greeks15.delta15;
+      if (a.swigValue() != 153)
+        throw new RuntimeException("Greeks15");
+    }
+    {
+      Greeks16 a = Greeks16.alpha16;
+      a = Greeks16.beta16;
+      a = Greeks16.theta16;
+      a = Greeks16.delta16;
+      if (a.swigValue() != 163)
+        throw new RuntimeException("Greeks16");
+    }
+    {
+      Greeks17 a = Greeks17.alpha17;
+      a = Greeks17.beta17;
+      a = Greeks17.theta17;
+      a = Greeks17.delta17;
+      if (a.swigValue() != 173)
+        throw new RuntimeException("Greeks17");
+    }
   }
 }
 

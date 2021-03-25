@@ -54,5 +54,3 @@ $s = 42;
 print Shape::nshapes() . " shapes remain\n";
 
 print "Goodbye\n";
-
-?>

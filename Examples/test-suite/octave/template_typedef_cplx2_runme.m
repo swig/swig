@@ -12,10 +12,10 @@ catch
   error("is not an instance")
 end_try_catch
 
-if (findstr('ArithUnaryFunction',swig_type(d)) != 1)
+if (strfind('ArithUnaryFunction',swig_type(d)) != 1)
   d
   error("is not an ArithUnaryFunction")
-  error
+  error("failed");
 endif
 
 try
@@ -26,7 +26,7 @@ catch
   error("is not an instance")
 end_try_catch
 
-if (findstr('ArithUnaryFunction',swig_type(e)) != 1)
+if (strfind('ArithUnaryFunction',swig_type(e)) != 1)
   e
   error("is not an ArithUnaryFunction")
 endif
@@ -44,7 +44,7 @@ catch
   error("is not an instance")
 end_try_catch
 
-if (findstr('ArithUnaryFunction',swig_type(c)) != 1)
+if (strfind('ArithUnaryFunction',swig_type(c)) != 1)
   c
   error("is not an ArithUnaryFunction")
 endif
@@ -57,7 +57,7 @@ catch
   error("is not an instance")
 end_try_catch
 
-if (findstr('ArithUnaryFunction',swig_type(f)) != 1)
+if (strfind('ArithUnaryFunction',swig_type(f)) != 1)
   f
   error("is not an ArithUnaryFunction")
 endif
@@ -74,10 +74,10 @@ catch
   error("is not an instance")
 end_try_catch
 
-if (findstr('ArithUnaryFunction',swig_type(g)) != 1)
+if (strfind('ArithUnaryFunction',swig_type(g)) != 1)
   g
   error("is not an ArithUnaryFunction")
-  error
+  error("failed");
 endif
 
 
@@ -89,7 +89,7 @@ catch
   error("is not an instance")
 end_try_catch
 
-if (findstr('ArithUnaryFunction',swig_type(h)) == -1)
+if (strfind('ArithUnaryFunction',swig_type(h)) == -1)
   h
   error("is not an ArithUnaryFunction")
 endif
@@ -98,6 +98,6 @@ try
   a = g.get_value();
 catch
   error(g, "has not get_value() method")
-  error
+  error("failed");
 end_try_catch
 

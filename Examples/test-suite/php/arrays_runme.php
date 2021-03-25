@@ -14,4 +14,3 @@ check::equal($as->array_c,"a",'$as->array_c=="a"');
 check::equal(isset($as->array_const_i),TRUE,'isset($as->array_const_i)');
 
 check::done();
-?>

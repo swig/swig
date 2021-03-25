@@ -65,6 +65,10 @@ div.diagram {
   font-family: "Courier New", Courier, "Courier 10 Pitch", monospace;
 }
 
+div.diagram li {
+    margin-left: 0;
+}
+
 ul li p {
   margin-left: 0;
   margin-right: 0;

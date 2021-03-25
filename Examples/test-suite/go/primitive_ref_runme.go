@@ -1,6 +1,6 @@
 package main
 
-import . "./primitive_ref"
+import . "swigtests/primitive_ref"
 
 func main() {
 	if Ref_int(3) != 3 {

@@ -19,7 +19,10 @@
 %rename(Foos) Foo;
 #endif
 
-#ifndef SWIG_NO_OVERLOAD
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) type;
+#endif
+
 %immutable Spam::type;
 
 %inline %{
@@ -176,8 +179,6 @@ long long ll(long long ull) { return ull; }
 %include cmalloc.i
 %malloc(void);
 %free(void);
-
-#endif
 
 
 %inline {  

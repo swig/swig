@@ -1,7 +1,7 @@
 package main
 
 import (
-	wrap "./go_director_inout"
+	wrap "swigtests/go_director_inout"
 )
 
 type GoMyClass struct {}

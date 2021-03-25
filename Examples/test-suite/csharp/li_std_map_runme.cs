@@ -240,6 +240,20 @@ public class li_std_map_runme {
                 throw new Exception("Key test (2) on complex key map failed");
         }
 
+        // Custom compare function
+        {
+          StringLengthNumberMap slmap = new StringLengthNumberMap();
+          li_std_map.populate(slmap);
+
+          string keys = string.Join(" ", new List<string>(slmap.Keys));
+          if (keys != "a aa zzz xxxx aaaaa")
+            throw new Exception("Keys are wrong or in wrong order: " + keys);
+
+          string values = string.Join(" ", new List<int>(slmap.Values));
+          if (values != "1 2 3 4 5")
+            throw new Exception("Values are wrong or in wrong order: " + values);
+        }
+
         // All done
     }
 }

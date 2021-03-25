@@ -151,12 +151,14 @@ void Swig_interface_propagate_methods(Node *n) {
 	for (Node *child = firstChild(n); child; child = nextSibling(child)) {
 	  if (Getattr(child, "interface:owner"))
 	    break; // at the end of the list are newly appended methods
-	  if (checkAttribute(child, "name", name)) {
-	    String *decl = SwigType_typedef_resolve_all(Getattr(child, "decl"));
-	    identically_overloaded_method = Strcmp(decl, this_decl_resolved) == 0;
-	    Delete(decl);
-	    if (identically_overloaded_method)
-	      break;
+	  if (Cmp(nodeType(child), "cdecl") == 0) {
+	    if (checkAttribute(child, "name", name)) {
+	      String *decl = SwigType_typedef_resolve_all(Getattr(child, "decl"));
+	      identically_overloaded_method = Strcmp(decl, this_decl_resolved) == 0;
+	      Delete(decl);
+	      if (identically_overloaded_method)
+		break;
+	    }
 	  }
 	}
       }

@@ -71,4 +71,3 @@ check::equal($c->get_name(), "FooBar::get_name hello", "get_name failed");
 check::equal($c->name(), "FooBar::get_name hello", "name failed");
 
 check::done();
-?>

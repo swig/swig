@@ -4,11 +4,9 @@ require "tests.php";
 require "ignore_parameter.php";
 
 // New functions
-check::functions(array('jaguar','lotus','tvr','ferrari','sportscars_daimler','sportscars_astonmartin','sportscars_bugatti','sportscars_lamborghini'));
+check::functions(array('jaguar','lotus','tvr','ferrari','fiat','sportscars_daimler','sportscars_astonmartin','sportscars_bugatti','sportscars_lamborghini','sportscars_maseratti'));
 // New classes
 check::classes(array('ignore_parameter','SportsCars','MiniCooper','MorrisMinor','FordAnglia','AustinAllegro'));
-// No new vars
-check::globals(array());
 
 check::equal(jaguar(2,3.4),"hello",'jaguar(2,3.4)=="hello"');
 check::equal(lotus("eek",3.4),101,'lotus("eek",3.4)==101');
@@ -35,4 +33,3 @@ $aa=new austinallegro();
 check::classname("austinallegro",$aa);
 
 check::done();
-?>

@@ -28,4 +28,3 @@ if ($d->val >= 0) {
 $d->stop();
 
 check::done();
-?>

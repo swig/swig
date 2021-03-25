@@ -11,4 +11,3 @@ check::classes(array('arrays_scope','Bar'));
 $bar=new bar();
 
 check::done();
-?>

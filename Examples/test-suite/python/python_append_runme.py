@@ -1,19 +1,13 @@
 from python_append import *
 
 
-def is_new_style_class(cls):
-    return hasattr(cls, "__class__")
-
 # test not relevant for -builtin
 if is_python_builtin():
     exit(0)
 
 t = Test()
 t.funk()
-if is_new_style_class(Test):
-    t.static_func()
-else:
-    Test_static_func()
+t.static_func()
 
 if grabpath() != os.path.dirname(mypath):
     raise RuntimeError("grabpath failed")
@@ -27,3 +21,16 @@ if grabstaticpath() != None:
 Test.static_func()
 if grabstaticpath() != os.path.basename(mypath):
     raise RuntimeError("grabstaticpath failed")
+
+# slots test
+fs = ForSlots()
+if fs.ValidVariable != 99:
+    raise RuntimeError("ValidVariable failed")
+fs.ValidVariable = 11
+if fs.ValidVariable != 11:
+    raise RuntimeError("ValidVariable failed")
+try:
+    fs.Invalid = 22
+    raise RuntimeError("It should not be possible to set a random variable name")
+except AttributeError:
+    pass

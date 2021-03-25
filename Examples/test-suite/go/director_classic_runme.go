@@ -1,7 +1,7 @@
 package main
 
 import "fmt"
-import . "./director_classic"
+import . "swigtests/director_classic"
 
 type TargetLangPerson struct{} // From Person
 func (p *TargetLangPerson) Id() string {

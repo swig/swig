@@ -31,5 +31,3 @@
 	# print "Testing multiple return values\n";
 	# ($q,$r) = divide(42,37);
 	# print "	42/37 = $q remainder $r\n";
-
-?>

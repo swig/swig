@@ -18,4 +18,3 @@ for($x=0;$x<count($a1);$x++) {
 }
 
 check::done();
-?>

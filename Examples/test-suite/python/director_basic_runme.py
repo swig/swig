@@ -10,18 +10,18 @@ class PyFoo(director_basic.Foo):
 a = PyFoo()
 
 if a.ping() != "PyFoo::ping()":
-    raise RuntimeError, a.ping()
+    raise RuntimeError(a.ping())
 
 if a.pong() != "Foo::pong();PyFoo::ping()":
-    raise RuntimeError, a.pong()
+    raise RuntimeError(a.pong())
 
 b = director_basic.Foo()
 
 if b.ping() != "Foo::ping()":
-    raise RuntimeError, b.ping()
+    raise RuntimeError(b.ping())
 
 if b.pong() != "Foo::pong();Foo::ping()":
-    raise RuntimeError, b.pong()
+    raise RuntimeError(b.pong())
 
 a = director_basic.A1(1)
 

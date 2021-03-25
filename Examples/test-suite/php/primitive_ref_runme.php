@@ -31,4 +31,3 @@ long_long_equal(ref_longlong(0x123456789ABCDEF0), 0x123456789ABCDEF0, "ref_longl
 long_long_equal(ref_ulonglong(0xF23456789ABCDEF0), 0xF23456789ABCDEF0, "ref_ulonglong failed");
 
 check::done();
-?>

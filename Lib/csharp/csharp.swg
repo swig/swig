@@ -855,6 +855,14 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
    $1 = ($1_ltype)&temp; %}
 %typemap(out) SWIGTYPE *const&
 %{ $result = (void *)*$1; %} 
+%typemap(directorin) SWIGTYPE *const&
+%{ $input = (void *) $1; %}
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) SWIGTYPE *const&
+%{ static $*1_ltype swig_temp;
+   swig_temp = ($*1_ltype)$input;
+   $result = &swig_temp; %}
+%typemap(csdirectorin) SWIGTYPE *const& "($iminput == global::System.IntPtr.Zero) ? null : new $*csclassname($iminput, false)"
+%typemap(csdirectorout) SWIGTYPE *const& "$*csclassname.getCPtr($cscall).Handle"
 
 /* Marshal C/C++ pointer to global::System.IntPtr */
 %typemap(ctype) void *VOID_INT_PTR "void *"
@@ -867,6 +875,15 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     global::System.IntPtr ret = $imcall;$excode
     return ret;
   }
+%typemap(csvarin, excode=SWIGEXCODE2) void *VOID_INT_PTR %{
+    set {
+      $imcall;$excode
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) void *VOID_INT_PTR %{
+    get {
+      global::System.IntPtr ret = $imcall;$excode
+      return ret;
+    } %}
 %typemap(csdirectorin) void *VOID_INT_PTR "$iminput"
 %typemap(csdirectorout) void *VOID_INT_PTR "$cscall"
 
@@ -877,6 +894,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(csinterfaces)                SWIGTYPE "global::System.IDisposable"
 %typemap(csinterfaces)                          SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(csinterfaces_derived)        SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
+%typemap(csinterfacemodifiers)        SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) "public interface"
 
 
 // csbody typemaps... these are in macros so that the visibility of the methods can be easily changed by users.
@@ -951,17 +969,24 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 SWIG_CSBODY_PROXY(internal, internal, SWIGTYPE)
 SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 
-%typemap(csfinalize) SWIGTYPE %{
+%typemap(csdispose) SWIGTYPE %{
   ~$csclassname() {
-    Dispose();
+    Dispose(false);
+  }
+
+  public void Dispose() {
+    Dispose(true);
+    global::System.GC.SuppressFinalize(this);
   }
 %}
+
+%typemap(csdispose_derived) SWIGTYPE ""
 
 %typemap(csconstruct, excode=SWIGEXCODE,directorconnect="\n    SwigDirectorConnect();") SWIGTYPE %{: this($imcall, true) {$excode$directorconnect
   }
 %}
 
-%typemap(csdestruct, methodname="Dispose", methodmodifiers="public") SWIGTYPE {
+%typemap(csdisposing, methodname="Dispose", methodmodifiers="protected", parameters="bool disposing") SWIGTYPE {
     lock(this) {
       if (swigCPtr.Handle != global::System.IntPtr.Zero) {
         if (swigCMemOwn) {
@@ -970,11 +995,10 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
         }
         swigCPtr = new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero);
       }
-      global::System.GC.SuppressFinalize(this);
     }
   }
 
-%typemap(csdestruct_derived, methodname="Dispose", methodmodifiers="public") SWIGTYPE {
+%typemap(csdisposing_derived, methodname="Dispose", methodmodifiers="protected", parameters="bool disposing") SWIGTYPE {
     lock(this) {
       if (swigCPtr.Handle != global::System.IntPtr.Zero) {
         if (swigCMemOwn) {
@@ -983,8 +1007,7 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
         }
         swigCPtr = new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero);
       }
-      global::System.GC.SuppressFinalize(this);
-      base.Dispose();
+      base.Dispose(disposing);
     }
   }
 

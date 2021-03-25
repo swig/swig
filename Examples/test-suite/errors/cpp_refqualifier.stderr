@@ -1,0 +1,6 @@
+cpp_refqualifier.i:11: Warning 405: Method with rvalue ref-qualifier h3() && ignored.
+cpp_refqualifier.i:12: Warning 405: Method with rvalue ref-qualifier h4() const && ignored.
+cpp_refqualifier.i:16: Warning 405: Method with rvalue ref-qualifier h() && ignored.
+cpp_refqualifier.i:17: Warning 405: Method with rvalue ref-qualifier h() const && ignored.
+cpp_refqualifier.i:15: Warning 512: Overloaded method Host::h() const & ignored,
+cpp_refqualifier.i:14: Warning 512: using non-const method Host::h() & instead.

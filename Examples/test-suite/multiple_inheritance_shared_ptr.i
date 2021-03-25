@@ -1,9 +1,8 @@
 // This is a copy of the multiple_inheritance_abstract test and extended for testing %shared_ptr and %interface_impl
-%module  multiple_inheritance_shared_ptr
+%module(ruby_minherit="1") multiple_inheritance_shared_ptr
 
-%warnfilter(SWIGWARN_RUBY_MULTIPLE_INHERITANCE,
-	    SWIGWARN_D_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP_MULTIPLE_INHERITANCE); /* languages not supporting multiple inheritance or %interface */
+%warnfilter(SWIGWARN_D_MULTIPLE_INHERITANCE,
+	    SWIGWARN_PHP_MULTIPLE_INHERITANCE); /* languages not supporting multiple inheritance */
 
 // Typemap changes required to mix %shared_ptr and %interface_impl
 // Note we don't have a way to use $javainterfacename/$csinterfacename (yet),
@@ -50,9 +49,9 @@
 %shared_ptr(Space::Bottom3)
 
 %include "swiginterface.i"
-SWIG_SHARED_PTR_INTERFACE_TYPEMAPS(SWIGEMPTYHACK, Space::ABase1)
-SWIG_SHARED_PTR_INTERFACE_TYPEMAPS(SWIGEMPTYHACK, Space::CBase1)
-SWIG_SHARED_PTR_INTERFACE_TYPEMAPS(SWIGEMPTYHACK, Space::CBase2)
+SWIG_SHARED_PTR_INTERFACE_TYPEMAPS(, Space::ABase1)
+SWIG_SHARED_PTR_INTERFACE_TYPEMAPS(, Space::CBase1)
+SWIG_SHARED_PTR_INTERFACE_TYPEMAPS(, Space::CBase2)
 %interface_impl(Space::ABase1)
 %interface_impl(Space::CBase1)
 %interface_impl(Space::CBase2)

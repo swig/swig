@@ -19,7 +19,7 @@
  * a new std_except.i file in the target library directory.
  * ----------------------------------------------------------------------------- */
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGGUILE) || defined(SWIGUTL) || defined(SWIGD)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGGUILE) || defined(SWIGUTL) || defined(SWIGD) || defined(SWIGOCAML)
 #error "This version of std_except.i should not be used"
 #endif
 

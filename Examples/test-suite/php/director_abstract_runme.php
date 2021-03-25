@@ -50,4 +50,3 @@ $me3 = new MyExample3();
 check::equal($me3->Color(1, 2, 3), 3, "Example3_get_color failed");
 
 check::done();
-?>

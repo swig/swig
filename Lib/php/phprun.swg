@@ -12,8 +12,8 @@ extern "C" {
 #include "zend_exceptions.h"
 #include "php.h"
 
-#if PHP_MAJOR_VERSION != 7
-# error These bindings need PHP7 - to generate PHP5 bindings use: swig -php5
+#if PHP_MAJOR_VERSION < 7
+# error These bindings need PHP 7 or later - to generate PHP5 bindings use: SWIG < 4.0.0 and swig -php5
 #endif
 
 #include "ext/standard/php_string.h"
@@ -57,7 +57,7 @@ static int default_error_code = E_ERROR;
 
 /* Standard SWIG API */
 #define SWIG_GetModule(clientdata) SWIG_Php_GetModule()
-#define SWIG_SetModule(clientdata, pointer) SWIG_Php_SetModule(pointer)
+#define SWIG_SetModule(clientdata, pointer) SWIG_Php_SetModule(pointer, *(int*)clientdata)
 
 /* used to wrap returned objects in so we know whether they are newobject
    and need freeing, or not */
@@ -92,15 +92,13 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
     } else {
       /*
        * Wrap the resource in an object, the resource will be accessible
-       * via the "_cPtr" member. This is currently only used by
+       * via the "_cPtr" property. This code path is currently only used by
        * directorin typemaps.
        */
-      zval resource;
       zend_class_entry *ce = NULL;
       const char *type_name = type->name+3; /* +3 so: _p_Foo -> Foo */
       size_t type_name_len;
       const char * p;
-      HashTable * ht;
 
       /* Namespace__Foo -> Foo */
       /* FIXME: ugly and goes wrong for classes with __ in their names. */
@@ -109,7 +107,6 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
       }
       type_name_len = strlen(type_name);
 
-      ZVAL_RES(&resource, zend_register_resource(value, *(int *)(type->clientdata)));
       if (SWIG_PREFIX_LEN > 0) {
         zend_string * classname = zend_string_alloc(SWIG_PREFIX_LEN + type_name_len, 0);
         memcpy(classname->val, SWIG_PREFIX, SWIG_PREFIX_LEN);
@@ -123,13 +120,12 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
       }
       if (ce == NULL) {
         /* class does not exist */
-        ce = zend_standard_class_def;
+        object_init(z);
+      } else {
+        object_init_ex(z, ce);
       }
 
-      ALLOC_HASHTABLE(ht);
-      zend_hash_init(ht, 1, NULL, NULL, 0);
-      zend_hash_str_update(ht, "_cPtr", sizeof("_cPtr") - 1, &resource);
-      object_and_properties_init(z, ce, ht);
+      add_property_resource_ex(z, "_cPtr", sizeof("_cPtr") - 1, zend_register_resource(value, *(int *)(type->clientdata)));
     }
     return;
   }
@@ -221,7 +217,11 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
 
   switch (Z_TYPE_P(z)) {
     case IS_OBJECT: {
+#if PHP_MAJOR_VERSION < 8
       HashTable * ht = Z_OBJ_HT_P(z)->get_properties(z);
+#else
+      HashTable * ht = Z_OBJ_HT_P(z)->get_properties(Z_OBJ_P(z));
+#endif
       if (ht) {
         zval * _cPtr = zend_hash_str_find(ht, "_cPtr", sizeof("_cPtr") - 1);
         if (_cPtr) {
@@ -245,7 +245,7 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
       return (*ptr == NULL ? -1 : 0);
     case IS_NULL:
       *ptr = 0;
-      return 0;
+      return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
 
   return -1;
@@ -293,7 +293,7 @@ SWIG_SetZval( zval *zv, int newFlow, int userNewObj, void *ptr, swig_type_info *
   }
 }
 
-static char const_name[] = "swig_runtime_data_type_pointer";
+static const char const_name[] = "swig_runtime_data_type_pointer";
 static swig_module_info *SWIG_Php_GetModule() {
   zval *pointer = zend_get_constant_str(const_name, sizeof(const_name) - 1);
   if (pointer) {
@@ -304,6 +304,6 @@ static swig_module_info *SWIG_Php_GetModule() {
   return NULL;
 }
 
-static void SWIG_Php_SetModule(swig_module_info *pointer) {
-  REGISTER_MAIN_LONG_CONSTANT(const_name, (long) pointer, CONST_PERSISTENT | CONST_CS);
+static void SWIG_Php_SetModule(swig_module_info *pointer, int module_number) {
+  REGISTER_LONG_CONSTANT(const_name, (long) pointer, CONST_CS | CONST_PERSISTENT);
 }

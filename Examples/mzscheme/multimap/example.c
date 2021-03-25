@@ -27,7 +27,7 @@ int gcdmain(int argc, char *argv[]) {
   return 0;
 }
 
-int count(char *bytes, int len, char c) {
+int charcount(char *bytes, int len, char c) {
   int i;
   int count = 0;
   for (i = 0; i < len; i++) {

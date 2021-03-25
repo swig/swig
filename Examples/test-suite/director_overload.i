@@ -1,5 +1,9 @@
 %module(directors="1") director_overload
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) method;
+#endif
+
 %feature("director");
 
 #ifdef SWIGPYTHON
@@ -43,5 +47,14 @@ public:
   virtual void notover(int *p) const {}
 };
 
-%}
+class OverloadedGetSet
+{
+  int v;
+public:
+  OverloadedGetSet() : v(42) { }
+  virtual ~OverloadedGetSet() { }
+  virtual int rw() const { return v; }
+  virtual void rw(int new_v) { v = new_v; }
+};
 
+%}

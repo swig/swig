@@ -235,6 +235,8 @@ SWIGRUNTIMEINLINE char *
 SWIG_Ruby_MangleStr(VALUE obj)
 {
   VALUE stype = rb_iv_get(obj, "@__swigtype__");
+  if (NIL_P(stype))
+    return NULL;
   return StringValuePtr(stype);
 }
 
@@ -247,7 +249,7 @@ typedef struct {
 SWIGRUNTIME swig_ruby_owntype
 SWIG_Ruby_AcquirePtr(VALUE obj, swig_ruby_owntype own) {
   swig_ruby_owntype oldown = {0, 0};
-  if (TYPE(obj) == T_DATA) {
+  if (TYPE(obj) == T_DATA && !RTYPEDDATA_P(obj)) {
     oldown.datafree = RDATA(obj)->dfree;
     RDATA(obj)->dfree = own.datafree;
   }
@@ -266,9 +268,9 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
   if (NIL_P(obj)) {
     if (ptr)
       *ptr = 0;
-    return SWIG_OK;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   } else {
-    if (TYPE(obj) != T_DATA) {
+    if (TYPE(obj) != T_DATA || (TYPE(obj) == T_DATA && RTYPEDDATA_P(obj))) {
       return SWIG_ERROR;
     }
     Data_Get_Struct(obj, void, vptr);

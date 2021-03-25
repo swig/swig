@@ -13,19 +13,23 @@
  */
 
 %define %pybuffer_mutable_binary(TYPEMAP, SIZE)
-%typemap(in) (TYPEMAP, SIZE)
-  (int res, Py_ssize_t size = 0, void *buf = 0) {
-  res = PyObject_AsWriteBuffer($input, &buf, &size);
-  if (res<0) {
+%typemap(in) (TYPEMAP, SIZE) {
+  int res; Py_ssize_t size = 0; void *buf = 0;
+  Py_buffer view;
+  res = PyObject_GetBuffer($input, &view, PyBUF_WRITABLE);
+  if (res < 0) {
     PyErr_Clear();
     %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
   }
+  size = view.len;
+  buf = view.buf;
+  PyBuffer_Release(&view);
   $1 = ($1_ltype) buf;
   $2 = ($2_ltype) (size/sizeof($*1_type));
 }
 %enddef
 
-/* %pybuffer_mutable_string(TYPEMAP, SIZE)
+/* %pybuffer_mutable_string(TYPEMAP)
  *
  * Macro for functions accept mutable zero terminated string pointer.
  * This can be used for both input and output. For example:
@@ -39,13 +43,16 @@
  */
 
 %define %pybuffer_mutable_string(TYPEMAP)
-%typemap(in) (TYPEMAP)
-  (int res, Py_ssize_t size = 0, void *buf = 0) {
-  res = PyObject_AsWriteBuffer($input, &buf, &size);
-  if (res<0) {
+%typemap(in) (TYPEMAP) {
+  int res; void *buf = 0;
+  Py_buffer view;
+  res = PyObject_GetBuffer($input, &view, PyBUF_WRITABLE);
+  if (res < 0) {
     PyErr_Clear();
-    %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
+    %argument_fail(res, "(TYPEMAP)", $symname, $argnum);
   }
+  buf = view.buf;
+  PyBuffer_Release(&view);
   $1 = ($1_ltype) buf;
 }
 %enddef
@@ -65,19 +72,23 @@
  */
 
 %define %pybuffer_binary(TYPEMAP, SIZE)
-%typemap(in) (TYPEMAP, SIZE)
-  (int res, Py_ssize_t size = 0, const void *buf = 0) {
-  res = PyObject_AsReadBuffer($input, &buf, &size);
-  if (res<0) {
+%typemap(in) (TYPEMAP, SIZE) {
+  int res; Py_ssize_t size = 0; const void *buf = 0;
+  Py_buffer view;
+  res = PyObject_GetBuffer($input, &view, PyBUF_CONTIG_RO);
+  if (res < 0) {
     PyErr_Clear();
     %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
   }
+  size = view.len;
+  buf = view.buf;
+  PyBuffer_Release(&view);
   $1 = ($1_ltype) buf;
   $2 = ($2_ltype) (size / sizeof($*1_type));
 }
 %enddef
 
-/* %pybuffer_string(TYPEMAP, SIZE)
+/* %pybuffer_string(TYPEMAP)
  *
  * Macro for functions accept read only zero terminated string pointer.
  * This can be used for input. For example:
@@ -93,15 +104,16 @@
  */
 
 %define %pybuffer_string(TYPEMAP)
-%typemap(in) (TYPEMAP)
-  (int res, Py_ssize_t size = 0, const void *buf = 0) {
-  res = PyObject_AsReadBuffer($input, &buf, &size);
-  if (res<0) {
-    %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
+%typemap(in) (TYPEMAP) {
+  int res; const void *buf = 0;
+  Py_buffer view;
+  res = PyObject_GetBuffer($input, &view, PyBUF_CONTIG_RO);
+  if (res < 0) {
+    PyErr_Clear();
+    %argument_fail(res, "(TYPEMAP)", $symname, $argnum);
   }
+  buf = view.buf;
+  PyBuffer_Release(&view);
   $1 = ($1_ltype) buf;
 }
 %enddef
-
-
-

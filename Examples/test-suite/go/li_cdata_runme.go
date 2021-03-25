@@ -1,6 +1,6 @@
 package main
 
-import . "./li_cdata"
+import . "swigtests/li_cdata"
 
 func main() {
 	s := "ABC abc"

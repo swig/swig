@@ -21,5 +21,3 @@ Foo_set(3.1415926);
 #				  manual for why. )
 print "Foo = "  . Foo_get() . "\n";
 print_Foo();
-
-?>

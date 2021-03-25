@@ -57,7 +57,7 @@ Alternatively, if the language supports modules, a module named
 named "type_table" SWIG_TYPE_TABLE_NAME can be created inside it.  The most
 common approach is to store the mod pointer in some global variable in the
 target language, but if the language provides an alternative place to store data
-(like the chicken module), then that is good too.
+then that is good too.
 
 The way the code is set up, SetModule should only be called when GetModule
 returns NULL, and if SetModule is called a second time, the behavior is
@@ -105,7 +105,7 @@ Standard Functions
 These functions are not required and their API is not formalized, but almost all
 language modules implement them for consistency across languages.  Throughout
 this discussion, I will use LangType to represent the underlying language type
-(C_word in chicken, Scheme_Object * in mzscheme, PyObject * in python, etc)
+(Scheme_Object * in mzscheme, PyObject * in python, etc)
 
 
 

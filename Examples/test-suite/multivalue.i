@@ -11,14 +11,14 @@ back to this behavior, use: */
 
 void divide_l(int a, int b, int *OUTPUT, int *OUTPUT);
 
-/* Multiple values as vectors. By issueing: */
+/* Multiple values as vectors. By issuing: */
 %values_as_vector;
 /* vectors instead of lists will be used. */
 
 void divide_v(int a, int b, int *OUTPUT, int *OUTPUT);
 
 /* Multiple values for multiple-value continuations.
-   (This is the most elegant way.)  By issueing: */
+   (This is the most elegant way.)  By issuing: */
 %multiple_values;
 /* multiple values are passed to the multiple-value
    continuation, as created by `call-with-values' or the
@@ -26,6 +26,11 @@ void divide_v(int a, int b, int *OUTPUT, int *OUTPUT);
 
 void divide_mv(int a, int b, int *OUTPUT, int *OUTPUT);
 
+#else
+%include "typemaps.i"
+void divide_l(int a, int b, int *OUTPUT, int *OUTPUT);
+void divide_v(int a, int b, int *OUTPUT, int *OUTPUT);
+void divide_mv(int a, int b, int *OUTPUT, int *OUTPUT);
 #endif
 
 %{
@@ -49,4 +54,3 @@ void divide_mv(int a, int b, int *quotient_p, int *remainder_p)
 }
 
 %}
-

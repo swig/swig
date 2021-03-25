@@ -20,7 +20,7 @@
 (gcdmain #("gcdmain" "42" "105"))
 
 
-(display (count "Hello World" #\l))
+(display (charcount "Hello World" #\l))
 (newline)
 
 (display (capitalize "hello world"))

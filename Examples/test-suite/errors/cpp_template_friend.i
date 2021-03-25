@@ -1,4 +1,4 @@
-%module cpp_template_friend
+%module xxx
 
 template<typename T> T template_friend1(T);
 template<typename T> T template_friend1(T);

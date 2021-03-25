@@ -50,6 +50,57 @@ static int last_brace = 0;
 static int last_id = 0;
 static int rename_active = 0;
 
+/* Doxygen comments scanning */
+int scan_doxygen_comments = 0;
+
+int isStructuralDoxygen(String *s) {
+  static const char* const structuralTags[] = {
+    "addtogroup",
+    "callgraph",
+    "callergraph",
+    "category",
+    "def",
+    "defgroup",
+    "dir",
+    "example",
+    "file",
+    "headerfile",
+    "internal",
+    "mainpage",
+    "name",
+    "nosubgrouping",
+    "overload",
+    "package",
+    "page",
+    "protocol",
+    "relates",
+    "relatesalso",
+    "showinitializer",
+    "weakgroup",
+  };
+
+  unsigned n;
+  char *slashPointer = Strchr(s, '\\');
+  char *atPointer = Strchr(s,'@');
+  if (slashPointer == NULL && atPointer == NULL)
+    return 0;
+  else if(slashPointer == NULL)
+    slashPointer = atPointer;
+
+  slashPointer++; /* skip backslash or at sign */
+
+  for (n = 0; n < sizeof(structuralTags)/sizeof(structuralTags[0]); n++) {
+    const size_t len = strlen(structuralTags[n]);
+    if (strncmp(slashPointer, structuralTags[n], len) == 0) {
+      /* Take care to avoid false positives with prefixes of other tags. */
+      if (slashPointer[len] == '\0' || isspace(slashPointer[len]))
+	return 1;
+    }
+  }
+
+  return 0;
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_cparse_cplusplus()
  * ----------------------------------------------------------------------------- */
@@ -367,10 +418,93 @@ static int yylook(void) {
       
     case SWIG_TOKEN_COMMENT:
       {
-	String *cmt = Scanner_text(scan);
-	char *loc = Char(cmt);
-	if ((strncmp(loc,"/*@SWIG",7) == 0) && (loc[Len(cmt)-3] == '@')) {
-	  Scanner_locator(scan, cmt);
+	typedef enum {
+	  DOX_COMMENT_PRE = -1,
+	  DOX_COMMENT_NONE,
+	  DOX_COMMENT_POST
+	} comment_kind_t;
+	comment_kind_t existing_comment = DOX_COMMENT_NONE;
+
+	/* Concatenate or skip all consecutive comments at once. */
+	do {
+	  String *cmt = Scanner_text(scan);
+	  String *cmt_modified = 0;
+	  char *loc = Char(cmt);
+	  if ((strncmp(loc, "/*@SWIG", 7) == 0) && (loc[Len(cmt)-3] == '@')) {
+	    Scanner_locator(scan, cmt);
+	  }
+	  if (scan_doxygen_comments) { /* else just skip this node, to avoid crashes in parser module*/
+
+	    int slashStyle = 0; /* Flag for "///" style doxygen comments */
+	    if (strncmp(loc, "///", 3) == 0) {
+	      slashStyle = 1;
+	      if (Len(cmt) == 3) {
+		/* Modify to make length=4 to ensure that the empty comment does
+		   get processed to preserve the newlines in the original comments. */
+		cmt_modified = NewStringf("%s ", cmt);
+		cmt = cmt_modified;
+		loc = Char(cmt);
+	      }
+	    }
+	    
+	    /* Check for all possible Doxygen comment start markers while ignoring
+	       comments starting with a row of asterisks or slashes just as
+	       Doxygen itself does.  Also skip empty comment (slash-star-star-slash), 
+	       which causes a crash due to begin > end. */
+	    if (Len(cmt) > 3 && loc[0] == '/' &&
+		((loc[1] == '/' && ((loc[2] == '/' && loc[3] != '/') || loc[2] == '!')) ||
+		 (loc[1] == '*' && ((loc[2] == '*' && loc[3] != '*' && loc[3] != '/') || loc[2] == '!')))) {
+	      comment_kind_t this_comment = loc[3] == '<' ? DOX_COMMENT_POST : DOX_COMMENT_PRE;
+	      if (existing_comment != DOX_COMMENT_NONE && this_comment != existing_comment) {
+		/* We can't concatenate together Doxygen pre- and post-comments. */
+		break;
+	      }
+
+	      if (this_comment == DOX_COMMENT_POST || !isStructuralDoxygen(loc)) {
+		String *str;
+
+		int begin = this_comment == DOX_COMMENT_POST ? 4 : 3;
+		int end = Len(cmt);
+		if (loc[end - 1] == '/' && loc[end - 2] == '*') {
+		  end -= 2;
+		}
+
+		str = NewStringWithSize(loc + begin, end - begin);
+
+		if (existing_comment == DOX_COMMENT_NONE) {
+		  yylval.str = str;
+		  Setline(yylval.str, Scanner_start_line(scan));
+		  Setfile(yylval.str, Scanner_file(scan));
+		} else {
+		  if (slashStyle) {
+		    /* Add a newline to the end of each doxygen "///" comment,
+		       since they are processed individually, unlike the
+		       slash-star style, which gets processed as a block with
+		       newlines included. */
+		    Append(yylval.str, "\n");
+		  }
+		  Append(yylval.str, str);
+		}
+
+		existing_comment = this_comment;
+	      }
+	    }
+	  }
+	  do {
+	    tok = Scanner_token(scan);
+	  } while (tok == SWIG_TOKEN_ENDLINE);
+	  Delete(cmt_modified);
+	} while (tok == SWIG_TOKEN_COMMENT);
+
+	Scanner_pushtoken(scan, tok, Scanner_text(scan));
+
+	switch (existing_comment) {
+	  case DOX_COMMENT_PRE:
+	    return DOXYGENSTRING;
+	  case DOX_COMMENT_NONE:
+	    break;
+	  case DOX_COMMENT_POST:
+	    return DOXYGENPOSTSTRING;
 	}
       }
       break;
@@ -762,15 +896,19 @@ int yylex(void) {
 	  return (USING);
 	if (strcmp(yytext, "namespace") == 0)
 	  return (NAMESPACE);
-	if (strcmp(yytext, "override") == 0)
+	if (strcmp(yytext, "override") == 0) {
+	  last_id = 1;
 	  return (OVERRIDE);
-	if (strcmp(yytext, "final") == 0)
+	}
+	if (strcmp(yytext, "final") == 0) {
+	  last_id = 1;
 	  return (FINAL);
+	}
       } else {
 	if (strcmp(yytext, "class") == 0) {
 	  Swig_warning(WARN_PARSE_CLASS_KEYWORD, cparse_file, cparse_line, "class keyword used, but not in C++ mode.\n");
 	}
-	if (strcmp(yytext, "complex") == 0) {
+	if (strcmp(yytext, "_Complex") == 0) {
 	  yylval.type = NewSwigType(T_COMPLEX);
 	  return (TYPE_COMPLEX);
 	}
@@ -906,6 +1044,8 @@ int yylex(void) {
     last_id = 1;
     return (ID);
   case POUND:
+    return yylex();
+  case SWIG_TOKEN_COMMENT:
     return yylex();
   default:
     return (l);

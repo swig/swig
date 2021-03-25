@@ -16,4 +16,3 @@ $bar = $foo->makeMore();
 check::equal(get_class($bar), "Foo", "regular failed");
 
 check::done();
-?>

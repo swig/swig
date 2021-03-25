@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#if defined(_MSC_VER) || defined(__BORLANDC__) || defined(_WATCOM)
+#if (defined(_MSC_VER) && (_MSC_VER < 1900)) || defined(__BORLANDC__) || defined(_WATCOM)
 # ifndef snprintf
 #  define snprintf _snprintf
 # endif
@@ -265,6 +265,7 @@ SWIG_Chicken_ConvertPtr(C_word s, void **result, swig_type_info *type, int flags
 
   if (s == C_SCHEME_FALSE) {
     *result = NULL;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   } else if (C_swig_is_swigpointer(s)) {
     /* try and convert type */
     from = (swig_type_info *) C_block_item(s, 1);

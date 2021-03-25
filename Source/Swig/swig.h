@@ -136,6 +136,7 @@ extern "C" {
   extern SwigType *SwigType_add_function(SwigType *t, ParmList *parms);
   extern SwigType *SwigType_add_template(SwigType *t, ParmList *parms);
   extern SwigType *SwigType_pop_function(SwigType *t);
+  extern SwigType *SwigType_pop_function_qualifiers(SwigType *t);
   extern ParmList *SwigType_function_parms(const SwigType *t, Node *file_line_node);
   extern List *SwigType_split(const SwigType *t);
   extern String *SwigType_pop(SwigType *t);
@@ -187,7 +188,7 @@ extern "C" {
   extern SwigType *SwigType_remove_global_scope_prefix(const SwigType *t);
   extern SwigType *SwigType_alttype(const SwigType *t, int ltmap);
 
-/* --- Type-system managment --- */
+/* --- Type-system management --- */
   extern void SwigType_typesystem_init(void);
   extern int SwigType_typedef(const SwigType *type, const_String_or_char_ptr name);
   extern int SwigType_typedef_class(const_String_or_char_ptr name);
@@ -314,6 +315,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern String *Swig_new_subdirectory(String *basedirectory, String *subdirectory);
   extern void Swig_filename_correct(String *filename);
   extern String *Swig_filename_escape(String *filename);
+  extern String *Swig_filename_escape_space(String *filename);
   extern void Swig_filename_unescape(String *filename);
   extern int Swig_storage_isextern(Node *n);
   extern int Swig_storage_isexternc(Node *n);
@@ -334,7 +336,9 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Swig_offset_string(String *s, int number);
   extern String *Swig_pcre_version(void);
   extern void Swig_init(void);
+
   extern int Swig_value_wrapper_mode(int mode);
+  extern int Swig_is_generated_overload(Node *n);
 
   typedef enum { EMF_STANDARD, EMF_MICROSOFT } ErrorMessageFormat;
 
@@ -435,6 +439,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Language_replace_special_variables(String *method, String *tm, Parm *parm);
   extern void Swig_print(DOH *object, int count);
   extern void Swig_print_with_location(DOH *object, int count);
+  extern void SWIG_exit(int exit_code);
 
 
 /* -- template init -- */

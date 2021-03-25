@@ -75,3 +75,10 @@ if not -a==a:
 if not -b==Op(-5):
   raise RuntimeError("-b==Op(-5)")
 
+# test functors
+if not b()==5:
+  raise RuntimeError("functor")
+if not b(1)==6:
+  raise RuntimeError("functor")
+if not b(1, 2)==8:
+  raise RuntimeError("functor")

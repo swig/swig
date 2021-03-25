@@ -108,7 +108,7 @@
 %define %cstring_mutable(TYPEMAP,...)
 %typemap(in) TYPEMAP {
    char *t = String_val($input);
-   int   n = string_length($input);
+   int   n = caml_string_length($input);
    $1 = ($1_ltype) t;
 #if #__VA_ARGS__ == ""
 #ifdef __cplusplus

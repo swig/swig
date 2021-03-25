@@ -19,4 +19,3 @@ $w = $point->width();
 check::equal($w, 1.0, "w failed");
 
 check::done();
-?>

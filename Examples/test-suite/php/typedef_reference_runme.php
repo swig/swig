@@ -10,4 +10,3 @@ $int3=copy_intp(3);
 check::equal(3,otherfunc($int3)," test passing intp to otherfunc");
 
 check::done();
-?>

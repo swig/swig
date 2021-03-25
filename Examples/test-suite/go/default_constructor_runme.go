@@ -1,6 +1,6 @@
 package main
 
-import dc "./default_constructor"
+import dc "swigtests/default_constructor"
 
 func main() {
 	a := dc.NewA()
