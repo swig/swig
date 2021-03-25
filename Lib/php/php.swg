@@ -146,12 +146,13 @@
 
 %typemap(in) void *
 %{
-	if (SWIG_ConvertPtr(&$input, (void **) &$1, 0, 0) < 0) {
-	  /* Allow NULL from php for void* */
-	  if (Z_ISNULL($input)) $1=0;
-	else
-	  SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
-	}
+  if (SWIG_ConvertPtr(&$input, (void **) &$1, 0, 0) < 0) {
+    /* Allow NULL from php for void* */
+    if (Z_ISNULL($input))
+      $1=0;
+    else
+      SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
+  }
 %}
 
 /* Special case when void* is passed by reference so it can be made to point
