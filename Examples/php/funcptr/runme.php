@@ -15,7 +15,6 @@ print "    SUB(a,b) = ". do_op($a,$b,example::SUB)."\n";
 print "    MUL(a,b) = ". do_op($a,$b,example::MUL)."\n";
 
 print "Here is what the C callback function objects look like in php\n";
-print "Using swig style string pointers as we need them registered as constants\n";
 print "    ADD      = " . example::ADD . "\n";
 print "    SUB      = " . example::SUB . "\n";
 print "    MUL      = " . example::MUL . "\n";
