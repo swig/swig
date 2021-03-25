@@ -99,10 +99,9 @@
   /* If exit was via exception, PHP NULL is returned so skip the conversion. */
   if (!EG(exception)) {
     if ($needNewFlow) {
-      swig_object_wrapper *obj = SWIG_Z_FETCH_OBJ_P(result);
-      tmp = ($&1_ltype) &obj->ptr;
+      tmp = ($&1_ltype) &SWIG_Z_FETCH_OBJ_P(result)->ptr;
       c_result = *tmp;
-      obj->newobject = 0;
+      SWIG_Z_FETCH_OBJ_P(result)->newobject = 0;
     } else {
       if (SWIG_ConvertPtr($input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL)
         SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
@@ -146,7 +145,7 @@
 %typemap(in) SWIGTYPE *const& ($*ltype temp)
 %{
   if ($needNewFlow) {
-    void *tempPointer = $obj_value;
+    tempPointer = $obj_value;
     $1 = ($1_ltype) &tempPointer;
   } else {
     if (SWIG_ConvertPtr(&$input, (void **) &temp, $*1_descriptor, 0) < 0) {

@@ -261,16 +261,17 @@ SWIG_pack_zval(zval *zv, void *ptr, int userNewObj) {
 
 static void
 SWIG_generalize_object(zval *zval_obj, void *ptr, int userNewObj ,swig_type_info *type) {
-  SWIG_pack_zval(zval_obj, ptr, userNewObj);
+  zval tempZval;
+  HashTable *ht = 0;
 
-  HashTable *ht = Z_OBJ_HT_P(zval_obj)->get_properties(zval_obj);
+  SWIG_pack_zval(zval_obj, ptr, userNewObj);
+  ht = Z_OBJ_HT_P(zval_obj)->get_properties(zval_obj);
 
   if(ht) {
-    zval zv;
-    ZVAL_RES(&zv,zend_register_resource(ptr,*(int *)(type->clientdata)));
-    zend_hash_str_add(ht, "_cPtr", sizeof("_cPtr") - 1, &zv);
-    ZVAL_TRUE(&zv);
-    zend_hash_str_add(ht, "SWIG_classWrapper", sizeof("SWIG_classWrapper") - 1, &zv);
+    ZVAL_RES(&tempZval,zend_register_resource(ptr,*(int *)(type->clientdata)));
+    zend_hash_str_add(ht, "_cPtr", sizeof("_cPtr") - 1, &tempZval);
+    ZVAL_TRUE(&tempZval);
+    zend_hash_str_add(ht, "SWIG_classWrapper", sizeof("SWIG_classWrapper") - 1, &tempZval);
   }
 }
 
