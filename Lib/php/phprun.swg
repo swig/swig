@@ -152,7 +152,7 @@ SWIG_ConvertResourceData(void * p, const char *type_name, swig_type_info *ty) {
     return p;
   }
 
-  if (! type_name) {  
+  if (! type_name) {
     /* can't convert p to ptr type ty if we don't know what type p is */
     return NULL;
   }
@@ -237,7 +237,7 @@ static swig_module_info *SWIG_Php_GetModule() {
     if (Z_TYPE_P(pointer) == IS_LONG) {
       return (swig_module_info *) pointer->value.lval;
     }
-  } 
+  }
   return NULL;
 }
 
