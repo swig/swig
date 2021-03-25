@@ -3,28 +3,11 @@
 import sys
 import os
 import subprocess
+from utils import *
 
 def failed():
     print("mkdist.py failed to complete")
     sys.exit(2)
-
-def check_file_exists(path):
-    """
-    Checks if a file exists or not.
-    """
-    return os.path.isfile(path)
-
-def check_dir_exists(path):
-    """
-    Checks if a folder exists or not.
-    """
-    return os.path.isdir(path)
-
-def run_command(*args, **kwargs):
-    """
-    Runs an os command using subprocess module.
-    """
-    return subprocess.call(args, **kwargs)
 
 import argparse
 parser = argparse.ArgumentParser(description="Build a SWIG distribution tarball swig-x.y.z.tar.gz")
@@ -44,8 +27,10 @@ skip_checks = args.skip_checks
 toolsdir = os.path.dirname(os.path.abspath(__file__))
 # Root directory path (swig) $ENV/swig
 rootdir = os.path.abspath(os.path.join(toolsdir, os.pardir))
+# current directory
+current_dir = os.getcwd()
 # version directory path $ENV/swig/<x.x.x>
-dirpath = os.path.join(rootdir, dirname)
+dirpath = os.path.join(current_dir, dirname)
 
 if sys.version_info[0:2] < (2, 7):
      print("Error: Python 2.7 or higher is required")
@@ -125,6 +110,7 @@ output = tar_ps.communicate()
 # Go build the system
 
 print("Building system")
+run_command("mkdir", "-p", dirpath)
 run_command("./autogen.sh", cwd=dirpath) == 0 or failed()
 
 cmdpath = os.path.join(dirpath, "Source", "CParse")
