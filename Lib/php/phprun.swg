@@ -19,10 +19,6 @@ extern "C" {
 #include "ext/standard/php_string.h"
 #include <stdlib.h> /* for abort(), used in generated code. */
 
-/* This indirection is to work around const correctness issues in older PHP.
- * FIXME: Remove for PHP7?  Or might user code be using it? */
-#define SWIG_ZEND_NAMED_FE(ZN, N, A) ZEND_NAMED_FE(ZN, N, A)
-
 #define SWIG_BOOL_CONSTANT(N, V) REGISTER_BOOL_CONSTANT(#N, V, CONST_CS | CONST_PERSISTENT)
 #define SWIG_LONG_CONSTANT(N, V) REGISTER_LONG_CONSTANT(#N, V, CONST_CS | CONST_PERSISTENT)
 #define SWIG_DOUBLE_CONSTANT(N, V) REGISTER_DOUBLE_CONSTANT(#N, V, CONST_CS | CONST_PERSISTENT)

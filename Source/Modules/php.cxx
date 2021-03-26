@@ -739,8 +739,8 @@ public:
     }
     Printv(f_begin, s_vdecl, s_wrappers, NIL);
     Printv(f_begin, s_arginfo, "\n\n", all_cs_entry, "\n\n", s_entry,
-	" SWIG_ZEND_NAMED_FE(swig_", module, "_alter_newobject,_wrap_swig_", module, "_alter_newobject,swig_arginfo_2)\n"
-	" SWIG_ZEND_NAMED_FE(swig_", module, "_get_newobject,_wrap_swig_", module, "_get_newobject,swig_arginfo_1)\n"
+	" ZEND_NAMED_FE(swig_", module, "_alter_newobject,_wrap_swig_", module, "_alter_newobject,swig_arginfo_2)\n"
+	" ZEND_NAMED_FE(swig_", module, "_get_newobject,_wrap_swig_", module, "_get_newobject,swig_arginfo_1)\n"
 	" ZEND_FE_END\n};\n\n", NIL);
     Printv(f_begin, s_init, NIL);
     Delete(s_header);
@@ -840,7 +840,7 @@ public:
       Printf(all_cs_entry, " PHP_ME(%s,%s,swig_arginfo_%s,%s)\n", cname, fname, arginfo_code, modes);
     } else {
       if (overload)
-        Printf(s, " SWIG_ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%s)\n", Getattr(n, "sym:name"), fname, arginfo_code);
+        Printf(s, " ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%s)\n", Getattr(n, "sym:name"), fname, arginfo_code);
       else
         Printf(s, " PHP_FE(%s,swig_arginfo_%s)\n", fname, arginfo_code);
     }
