@@ -256,7 +256,7 @@ SWIG_pack_zval(zval *zv, void *ptr, int userNewObj) {
 }
 
 static void
-SWIG_generalize_object(zval *zval_obj, void *ptr, int userNewObj ,swig_type_info *type) {
+SWIG_generalize_object(zval *zval_obj, void *ptr, int userNewObj, swig_type_info *type) {
   zval tempZval;
   HashTable *ht = 0;
 
