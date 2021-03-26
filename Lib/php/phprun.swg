@@ -222,6 +222,7 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
         zval * _cPtr = zend_hash_str_find(ht, "_cPtr", sizeof("_cPtr") - 1);
         if (_cPtr) {
           if (zend_hash_str_exists(ht, "SWIG_classWrapper", sizeof("SWIG_classWrapper") - 1)) {
+            /* FIXME - we need to check the type is compatible here! */
             *ptr = SWIG_Z_FETCH_OBJ_P(z)->ptr;
             return (*ptr == NULL ? -1 : 0);
           }
