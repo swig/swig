@@ -771,43 +771,48 @@ public:
   /* Just need to append function names to function table to register with PHP. */
   void create_command(String *cname, String *fname, Node *n, bool overload, String *modes = NULL) {
     // This is for the single main zend_function_entry record
+    bool has_this = false;
     if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
-        Printf(f_h, "PHP_METHOD(%s,%s);\n", cname, fname);
+      Printf(f_h, "PHP_METHOD(%s,%s);\n", cname, fname);
+      has_this = (wrapperType != staticmemberfn) &&
+		 (wrapperType != staticmembervar) &&
+		 (Cmp(fname,"__construct") != 0);
     } else {
-      if (overload)
+      if (overload) {
         Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", fname);
-      else
+      } else {
         Printf(f_h, "PHP_FUNCTION(%s);\n", fname);
+      }
     }
     // We want to only emit each different arginfo once, as that reduces the
     // size of both the generated source code and the compiled extension
     // module.  The parameters at this level are just named arg1, arg2, etc
     // so we generate an arginfo name with the number of parameters and a
     // bitmap value saying which (if any) are passed by reference.
-    bool constructor = false;
-    if (Cmp(fname,"__construct") == 0) {
-      constructor = true;
-    }
     ParmList *l = Getattr(n, "parms");
-    int Iterator = 0;
     unsigned long bitmap = 0, bit = 1;
-    int n_params = 0;
     bool overflowed = false;
+    bool skip_this = has_this;
     for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
-      /* Ignored parameters */
-      if ((overload || (!constructor && class_name)) && (Iterator == 0)) {
-        Iterator++;
+      if (skip_this) {
+	skip_this = false;
         continue;
       }
       if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+	/* Ignored parameter */
 	continue;
       }
-      ++n_params;
       if (GetFlag(p, "tmap:in:byref")) {
 	  bitmap |= bit;
 	  if (bit == 0) overflowed = true;
       }
       bit <<= 1;
+    }
+    int num_arguments = emit_num_arguments(l);
+    int num_required = emit_num_required(l);
+    if (has_this) {
+      --num_arguments;
+      --num_required;
     }
     String * arginfo_code;
     if (overflowed) {
@@ -819,16 +824,33 @@ public:
       arginfo_code = NewStringf("z%d", ++overflowed_counter);
     } else if (bitmap == 0) {
       // No parameters passed by reference.
-      arginfo_code = NewStringf("%d", n_params);
+      if (num_required == num_arguments) {
+	  arginfo_code = NewStringf("%d", num_arguments);
+      } else {
+	  arginfo_code = NewStringf("%d_%d", num_required, num_arguments);
+      }
     } else {
-      arginfo_code = NewStringf("%d_%lx", n_params, bitmap);
+      if (num_required == num_arguments) {
+	  arginfo_code = NewStringf("%d_r%lx", num_arguments, bitmap);
+      } else {
+	  arginfo_code = NewStringf("%d_%d_r%lx", num_required, num_arguments, bitmap);
+      }
     }
 
     if (!GetFlag(arginfo_used, arginfo_code)) {
       // Not had this one before so emit it.
       SetFlag(arginfo_used, arginfo_code);
-      Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%s, 0, 0, %d)\n", arginfo_code, n_params);
+      Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%s, 0, 0, %d)\n", arginfo_code, num_required);
+      bool skip_this = has_this;
       for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
+	if (skip_this) {
+	  skip_this = false;
+	  continue;
+	}
+	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+	  /* Ignored parameter */
+	  continue;
+	}
 	Printf(s_arginfo, " ZEND_ARG_INFO(%d,%s)\n", GetFlag(p, "tmap:in:byref"), Getattr(p, "lname"));
       }
       Printf(s_arginfo, "ZEND_END_ARG_INFO()\n");
