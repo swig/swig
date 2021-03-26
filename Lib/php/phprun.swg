@@ -59,9 +59,9 @@ static int default_error_code = E_ERROR;
    and need freeing, or not */
 typedef struct {
   void * ptr;
-  zend_object std;
   HashTable *extras;
   int newobject;
+  zend_object std;
 } swig_object_wrapper;
 
 #define SWIG_as_voidptr(a) const_cast< void * >(static_cast< const void * >(a))

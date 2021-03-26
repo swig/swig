@@ -170,9 +170,9 @@ static void print_creation_free_wrapper(int item_index) {
 
   Printf(s_header, "/* Object Creation Method for class %s */\n",class_name);
   Printf(s_header, "zend_object * %s_object_new(zend_class_entry *ce) {\n",class_name);
-  Printf(s_header, "  swig_object_wrapper *obj = (swig_object_wrapper *)ecalloc(1,sizeof(swig_object_wrapper) + zend_object_properties_size(ce));\n");
+  Printf(s_header, "  swig_object_wrapper *obj = (swig_object_wrapper*)zend_object_alloc(sizeof(swig_object_wrapper), ce);\n");
   Printf(s_header, "  zend_object_std_init(&obj->std, ce);\n");
-  //Printf(s_header, "  object_properties_init(&obj->std, ce);\n");
+  Printf(s_header, "  object_properties_init(&obj->std, ce);\n");
   Printf(s_header, "  %s_object_handlers.offset = XtOffsetOf(swig_object_wrapper, std);\n",class_name);
   Printf(s_header, "  %s_object_handlers.free_obj = %s_free_storage;\n",class_name,class_name);
   Printf(s_header, "  %s_object_handlers.dtor_obj = %s_destroy_object;\n",class_name,class_name);
@@ -180,7 +180,6 @@ static void print_creation_free_wrapper(int item_index) {
 
   class_name = NULL;
   class_type = NULL;
-
 }
 
 static void SwigPHP_emit_all_creation_free_wrapper() {
