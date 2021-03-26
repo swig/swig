@@ -249,8 +249,7 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
 
 static void
 SWIG_pack_zval(zval *zv, void *ptr, int userNewObj) {
-  swig_object_wrapper *obj = NULL;
-  obj = (swig_object_wrapper *) SWIG_Z_FETCH_OBJ_P(zv);
+  swig_object_wrapper *obj = SWIG_Z_FETCH_OBJ_P(zv);
   obj->ptr = ptr;
   obj->newobject = userNewObj;
 }
