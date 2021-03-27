@@ -1171,8 +1171,8 @@ public:
       Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
       Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
 
-      Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n",magic_set);
-      Printf(f->code, "%s\n",magic_set);
+      Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n");
+      Printv(f->code, magic_set, "\n", NIL);
       Printf(f->code, "\nelse if (strcmp(arg2->val,\"thisown\") == 0) {\n");
       Printf(f->code, "arg->newobject = zval_get_long(&args[1]);\n}\n\n");
       Printf(f->code, "else {\n");
