@@ -28,11 +28,25 @@ extern "C" {
     REGISTER_STRINGL_CONSTANT(#N, &swig_char, 1, CONST_CS | CONST_PERSISTENT);\
 } while (0)
 
-/* ZEND_CONSTANT_SET_FLAGS is new in PHP 7.3. */
+/* ZEND_CONSTANT_SET_FLAGS was new in PHP 7.3. */
 #ifdef ZEND_CONSTANT_SET_FLAGS
 # define SWIG_ZEND_CONSTANT_SET_FLAGS ZEND_CONSTANT_SET_FLAGS
 #else
 # define SWIG_ZEND_CONSTANT_SET_FLAGS(C, F, N) do { (C)->flags = (F); (C)->module_number = (N); } while (0)
+#endif
+
+/* zend_object_alloc was new in PHP 7.3. */
+#if PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION < 3
+static zend_always_inline void *zend_object_alloc(size_t obj_size, zend_class_entry *ce) {
+    void *obj = emalloc(obj_size + zend_object_properties_size(ce));
+    memset(obj, 0, obj_size - sizeof(zval));
+    return obj;
+}
+#endif
+
+/* ZEND_THIS was new in PHP 7.4. */
+#ifndef ZEND_THIS
+# define ZEND_THIS &EX(This)
 #endif
 
 #ifdef __cplusplus
