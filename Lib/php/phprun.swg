@@ -59,7 +59,6 @@ static int default_error_code = E_ERROR;
    and need freeing, or not */
 typedef struct {
   void * ptr;
-  HashTable *extras;
   int newobject;
   zend_object std;
 } swig_object_wrapper;

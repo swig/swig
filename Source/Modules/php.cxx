@@ -155,16 +155,12 @@ static void print_creation_free_wrapper(int item_index) {
   Printf(s_header, "  swig_object_wrapper *obj = 0;\n\n");
   Printf(s_header, "  if(!object)\n\t  return;\n\n");
   Printf(s_header, "  obj = php_fetch_object(object);\n\n");
-  Printf(s_header, "  if(!obj->newobject)\n\t  return;\n");
 
   if (need_free) {
-    Printf(s_header, "  if(obj->ptr)\n");
-    Printf(s_header, "   SWIG_remove((%s *)obj->ptr);\n",class_type);
+    Printf(s_header, "  if(obj->ptr && obj->newobject)\n");
+    Printf(s_header, "    SWIG_remove((%s *)obj->ptr);\n",class_type);
   }
 
-  Printf(s_header, "  if(obj->extras) {\n");
-  Printf(s_header, "    zend_hash_destroy(obj->extras);\n");
-  Printf(s_header, "    FREE_HASHTABLE(obj->extras);\n  }\n\n");
   Printf(s_header, "  if(&obj->std)\n");
   Printf(s_header, "    zend_object_std_dtor(&obj->std);\n}\n\n\n");
 
@@ -1183,10 +1179,7 @@ public:
       if (baseClassExtend) {
         Printf(f->code, "PHP_MN(%s___set)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
       } else {
-        Printf(f->code, "if (!arg->extras) {\n");
-        Printf(f->code, "ALLOC_HASHTABLE(arg->extras);\nzend_hash_init(arg->extras, 0, NULL, ZVAL_PTR_DTOR, 0);\n}\n");
-        Printf(f->code, "if (!zend_hash_find(arg->extras,arg2))\nzend_hash_add(arg->extras,arg2,&args[1]);\n");
-        Printf(f->code, "else\nzend_hash_update(arg->extras,arg2,&args[1]);\n}\n");
+        Printf(f->code, "add_property_zval_ex(ZEND_THIS, arg2->val, arg2->len, &args[1]);\n}\n");
       }
 
       Printf(f->code, "zend_string_release(arg2);\n\n");
@@ -1218,9 +1211,8 @@ public:
       if (baseClassExtend) {
         Printf(f->code, "PHP_MN(%s___get)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
       } else {
-        Printf(f->code, "if (!arg->extras) {\nRETVAL_NULL();\n}\n");
-        Printf(f->code, "else {\nzval *zv = zend_hash_find(arg->extras,arg2);\n");
-        Printf(f->code, "if (!zv)\nRETVAL_NULL();\nelse\nRETVAL_ZVAL(zv,1,ZVAL_PTR_DTOR);\n}\n}\n");
+        Printf(f->code, "zval *zv = zend_read_property(Z_OBJCE_P(ZEND_THIS), ZEND_THIS, arg2->val, arg2->len, 1, NULL);\n");
+        Printf(f->code, "if (!zv)\nRETVAL_NULL();\nelse\nRETVAL_ZVAL(zv,1,ZVAL_PTR_DTOR);\n}\n");
       }
 
       Printf(f->code, "zend_string_release(arg2);\n\n");
@@ -1258,9 +1250,7 @@ public:
       if (baseClassExtend) {
         Printf(f->code, "PHP_MN(%s___isset)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
       } else {
-        Printf(f->code, "if (!arg->extras) {\nRETVAL_FALSE;\n}\n");
-        Printf(f->code, "else {\nif (!zend_hash_find(arg->extras,arg2))\n");
-        Printf(f->code, "RETVAL_FALSE;\nelse\nRETVAL_TRUE;\n}\n}\n");
+        Printf(f->code, "if (!zend_read_property(Z_OBJCE_P(ZEND_THIS), ZEND_THIS, arg2->val, arg2->len, 1, NULL)) RETVAL_FALSE; else RETVAL_TRUE;\n}\n");
       }
 
       Printf(f->code, "free(method_name);\nzend_string_release(arg2);\n\n");
