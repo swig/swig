@@ -301,15 +301,47 @@ PLATCXXFLAGS="$PLATCFLAGS"
 if test x"$enable_cpp11_testing" = xyes; then
   CXX_SAVED=$CXX
   CXXCPP_SAVED=$CXXCPP
+
+  # Test for c++17
   CXXCPP=" "
-  AX_CXX_COMPILE_STDCXX(11, [noext], [optional])
-  AC_MSG_CHECKING([whether C++11 testing is actually enabled])
-  if test "$HAVE_CXX11" = "1"; then
+  AX_CXX_COMPILE_STDCXX(17, [noext], [optional])
+  AC_MSG_CHECKING([whether C++17 and earlier testing is enabled])
+  if test "$HAVE_CXX17" = "1"; then
     AC_MSG_RESULT([yes])
     PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+    HAVE_CXX14="1"
+    HAVE_CXX11="1"
   else
     AC_MSG_RESULT([no])
+
+    # Test for c++14
+    CXXCPP=" "
+    CXX=$CXX_SAVED
+    AX_CXX_COMPILE_STDCXX(14, [noext], [optional])
+    AC_MSG_CHECKING([whether C++14 and earlier testing is enabled])
+    if test "$HAVE_CXX14" = "1"; then
+      AC_MSG_RESULT([yes])
+      PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+      HAVE_CXX11="1"
+    else
+      AC_MSG_RESULT([no])
+
+      # Test for c++11
+      CXXCPP=" "
+      CXX=$CXX_SAVED
+      AX_CXX_COMPILE_STDCXX(11, [noext], [optional])
+      AC_MSG_CHECKING([whether C++11 and earlier testing is enabled])
+      if test "$HAVE_CXX11" = "1"; then
+        AC_MSG_RESULT([yes])
+        PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+      else
+        AC_MSG_RESULT([no])
+      fi
+
+    fi
+
   fi
+
   CXX=$CXX_SAVED
   CXXCPP=$CXXCPP_SAVED
 fi
