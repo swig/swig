@@ -1168,7 +1168,7 @@ public:
       Printf(all_cs_entry, " PHP_ME(%s,__set,swig_arginfo_2,ZEND_ACC_PUBLIC)\n", class_name);
       Printf(f->code, "PHP_METHOD(%s,__set) {\n",class_name);
 
-      Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(getThis());\n");
+      Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n");
       Printf(f->code, "  zval args[2];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
       Printf(f->code, "  if(ZEND_NUM_ARGS() != 2 || zend_get_parameters_array_ex(2, args) != SUCCESS) {\n");
       Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
@@ -1203,7 +1203,7 @@ public:
       Printf(all_cs_entry, " PHP_ME(%s,__get,swig_arginfo_1,ZEND_ACC_PUBLIC)\n", class_name);
       Printf(f->code, "PHP_METHOD(%s,__get) {\n",class_name);
 
-      Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(getThis());\n", class_name);
+      Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n", class_name);
       Printf(f->code, "  zval args[1];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
       Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
       Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
@@ -1237,7 +1237,7 @@ public:
       Printf(all_cs_entry, " PHP_ME(%s,__isset,swig_arginfo_1,ZEND_ACC_PUBLIC)\n", class_name);
       Printf(f->code, "PHP_METHOD(%s,__isset) {\n",class_name);
 
-      Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(getThis());\n", class_name);
+      Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n", class_name);
       Printf(f->code, "  zval args[1];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
       Printf(f->code, "  int newSize = 1;\nchar *method_name = 0;\n\n");
       Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
@@ -1290,11 +1290,11 @@ public:
 
     Printf(magic_set, "\nelse if (strcmp(arg2->val,\"%s\") == 0) {\n",v_name);
     Printf(magic_set, "ZVAL_STRING(&tempZval, \"%s_set\");\n",v_name);
-    Printf(magic_set, "CALL_METHOD_PARAM_1(tempZval, return_value, getThis(),args[1]);\n}\n\n");
+    Printf(magic_set, "CALL_METHOD_PARAM_1(tempZval, return_value, ZEND_THIS, args[1]);\n}\n\n");
 
     Printf(magic_get, "\nelse if (strcmp(arg2->val,\"%s\") == 0) {\n",v_name);
     Printf(magic_get, "ZVAL_STRING(&tempZval, \"%s_get\");\n",v_name);
-    Printf(magic_get, "CALL_METHOD(tempZval, return_value, getThis());\n}\n");
+    Printf(magic_get, "CALL_METHOD(tempZval, return_value, ZEND_THIS);\n}\n");
 
   }
 
@@ -1496,7 +1496,7 @@ public:
       args = NULL;
     }
     if (wrapperType == directorconstructor) {
-        Wrapper_add_local(f, "arg0", "zval *arg0 = getThis()");
+        Wrapper_add_local(f, "arg0", "zval *arg0 = ZEND_THIS");
     }
 
     // This generated code may be called:
@@ -1584,7 +1584,7 @@ public:
 	Replaceall(tm, "$source", &source);
 	Replaceall(tm, "$target", ln);
         if (Cmp(source,"args[-1]") == 0) {
-          Replaceall(tm, "$uinput", "getThis()");
+          Replaceall(tm, "$uinput", "ZEND_THIS");
           Replaceall(tm, "$linput", "args[0]");         // Adding this to compile. It won't reach the generated if clause.
         } else {
           Replaceall(tm, "$linput", source);
@@ -1595,7 +1595,7 @@ public:
           String *param_value = NewStringEmpty();
           String *param_zval = NewStringEmpty();
           if (Cmp(source,"args[-1]") == 0) {
-            Printf(param_zval, "getThis()");
+            Printf(param_zval, "ZEND_THIS");
           } else {
             Printf(param_zval, "&%s", source);
           }
@@ -1628,7 +1628,7 @@ public:
 
     if (is_member_director(n)) {
       Wrapper_add_local(f, "upcall", "bool upcall = false");
-      Printf(f->code, "upcall = !Swig::Director::swig_is_overridden_method(\"%s%s\", getThis());\n",
+      Printf(f->code, "upcall = !Swig::Director::swig_is_overridden_method(\"%s%s\", ZEND_THIS);\n",
 	  prefix, Swig_class_name(Swig_methodclass(n)));
     }
 
@@ -1710,7 +1710,7 @@ public:
       Replaceall(tm, "$input", Swig_cresult_name());
       Replaceall(tm, "$source", Swig_cresult_name());
       Replaceall(tm, "$target", "return_value");
-      Replaceall(tm, "$result", constructor ? (constructorRenameOverload ? "return_value" : "getThis()") : "return_value");
+      Replaceall(tm, "$result", constructor ? (constructorRenameOverload ? "return_value" : "ZEND_THIS") : "return_value");
       Replaceall(tm, "$owner", newobject ? "1" : "0");
       Replaceall(tm, "$needNewFlow", retType_valid ? (constructor ? (constructorRenameOverload ? "1" : "2") : (valid_wrapped_class ? "1" : "0")) : "0");
       if (retType_class) {
