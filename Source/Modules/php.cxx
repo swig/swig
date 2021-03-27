@@ -44,11 +44,6 @@ PHP Options (available with -php7)\n\
  */
 #define SWIG_PTR "_cPtr"
 
-/* This is the name of the hash where the variables existing only in PHP
- * classes are stored.
- */
-#define SWIG_DATA "_pData"
-
 static int constructors = 0;
 static String *NOTCLASS = NewString("Not a class");
 static Node *classnode = 0;
@@ -1100,12 +1095,6 @@ public:
 	return true;
     }
     return false;
-  }
-
-  /* Helper method for PHP::functionWrapper to get Node n of a class */
-  Node *get_class_node(SwigType *t) {
-    Node *n = classLookup(t);
-    return n;
   }
 
   /* Helper method for PHP::functionWrapper to get class name for parameter*/
@@ -2882,177 +2871,6 @@ done:
     Language::classHandler(n);
     classnode = 0;
 
-    if (shadow && !class_name) {
-      List *baselist = Getattr(n, "bases");
-      Iterator ki, base;
-
-      if (baselist) {
-	base = First(baselist);
-	while (base.item && GetFlag(base.item, "feature:ignore")) {
-	  base = Next(base);
-	}
-      } else {
-	base.item = NULL;
-      }
-
-      if (Getattr(n, "abstracts") && !GetFlag(n, "feature:notabstract")) {
-	Printf(s_phpclasses, "abstract ");
-      }
-
-      Printf(s_phpclasses, "class %s%s ", prefix, shadow_classname);
-      String *baseclass = NULL;
-      if (base.item && Getattr(base.item, "module")) {
-	baseclass = Getattr(base.item, "sym:name");
-	if (!baseclass)
-	  baseclass = Getattr(base.item, "name");
-	Printf(s_phpclasses, "extends %s%s ", prefix, baseclass);
-      } else if (GetFlag(n, "feature:exceptionclass")) {
-	Append(s_phpclasses, "extends Exception ");
-      }
-      {
-	Node *node = NewHash();
-	Setattr(node, "type", Getattr(n, "name"));
-	Setfile(node, Getfile(n));
-	Setline(node, Getline(n));
-	String * interfaces = Swig_typemap_lookup("phpinterfaces", node, "", 0);
-	if (interfaces) {
-	  Printf(s_phpclasses, "implements %s ", interfaces);
-	}
-	Delete(node);
-      }
-      Printf(s_phpclasses, "{\n\tpublic $%s=null;\n", SWIG_PTR);
-      if (!baseclass) {
-	// Only store this in the base class (NB !baseclass means we *are*
-	// a base class...)
-	Printf(s_phpclasses, "\tprotected $%s=array();\n", SWIG_DATA);
-      }
-
-      // Write property SET handlers
-      ki = First(shadow_set_vars);
-      if (ki.key) {
-	// This class has setters.
-	Printf(s_phpclasses, "\n\tfunction __set($var,$value) {\n");
-	// FIXME: tune this threshold...
-	if (Len(shadow_set_vars) <= 2) {
-	  // Not many setters, so avoid call_user_func.
-	  for (; ki.key; ki = Next(ki)) {
-	    DOH *key = ki.key;
-	    String *iname = ki.item;
-	    Printf(s_phpclasses, "\t\tif ($var === '%s') return %s($this->%s,$value);\n", key, iname, SWIG_PTR);
-	  }
-	} else {
-	  Printf(s_phpclasses, "\t\t$func = '%s_'.$var.'_set';\n", shadow_classname);
-	  Printf(s_phpclasses, "\t\tif (function_exists($func)) return call_user_func($func,$this->%s,$value);\n", SWIG_PTR);
-	}
-	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_alter_newobject($this->%s,$value);\n", module, SWIG_PTR);
-	if (baseclass) {
-	  Printf(s_phpclasses, "\t\t%s%s::__set($var,$value);\n", prefix, baseclass);
-	} else {
-	  Printf(s_phpclasses, "\t\t$this->%s[$var] = $value;\n", SWIG_DATA);
-	}
-	Printf(s_phpclasses, "\t}\n");
-      } else {
-	Printf(s_phpclasses, "\n\tfunction __set($var,$value) {\n");
-	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_alter_newobject($this->%s,$value);\n", module, SWIG_PTR);
-	if (baseclass) {
-	  Printf(s_phpclasses, "\t\t%s%s::__set($var,$value);\n", prefix, baseclass);
-	} else {
-	  Printf(s_phpclasses, "\t\t$this->%s[$var] = $value;\n", SWIG_DATA);
-	}
-	Printf(s_phpclasses, "\t}\n");
-      }
-
-      // Write property GET handlers
-      ki = First(shadow_get_vars);
-      if (ki.key) {
-	// This class has getters.
-	Printf(s_phpclasses, "\n\tfunction __get($var) {\n");
-	int non_class_getters = 0;
-	for (; ki.key; ki = Next(ki)) {
-	  DOH *key = ki.key;
-	  SwigType *d = ki.item;
-	  if (!is_class(d)) {
-	    ++non_class_getters;
-	    continue;
-	  }
-	  Printv(s_phpclasses, "\t\tif ($var === '", key, "') return new ", prefix, Getattr(classLookup(d), "sym:name"), "(", shadow_classname, "_", key, "_get($this->", SWIG_PTR, "));\n", NIL);
-	}
-	// FIXME: tune this threshold...
-	if (non_class_getters <= 2) {
-	  // Not many non-class getters, so avoid call_user_func.
-	  for (ki = First(shadow_get_vars); non_class_getters && ki.key;  ki = Next(ki)) {
-	    DOH *key = ki.key;
-	    SwigType *d = ki.item;
-	    if (is_class(d)) continue;
-	    Printv(s_phpclasses, "\t\tif ($var === '", key, "') return ", shadow_classname, "_", key, "_get($this->", SWIG_PTR, ");\n", NIL);
-	    --non_class_getters;
-	  }
-	} else {
-	  Printf(s_phpclasses, "\t\t$func = '%s_'.$var.'_get';\n", shadow_classname);
-	  Printf(s_phpclasses, "\t\tif (function_exists($func)) return call_user_func($func,$this->%s);\n", SWIG_PTR);
-	}
-	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_get_newobject($this->%s);\n", module, SWIG_PTR);
-	if (baseclass) {
-	  Printf(s_phpclasses, "\t\treturn %s%s::__get($var);\n", prefix, baseclass);
-	} else {
-	  // Reading an unknown property name gives null in PHP.
-	  Printf(s_phpclasses, "\t\treturn $this->%s[$var];\n", SWIG_DATA);
-	}
-	Printf(s_phpclasses, "\t}\n");
-
-	/* __isset() should return true for read-only properties, so check for
-	 * *_get() not *_set(). */
-	Printf(s_phpclasses, "\n\tfunction __isset($var) {\n");
-	Printf(s_phpclasses, "\t\tif (function_exists('%s_'.$var.'_get')) return true;\n", shadow_classname);
-	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return true;\n");
-	if (baseclass) {
-	  Printf(s_phpclasses, "\t\treturn %s%s::__isset($var);\n", prefix, baseclass);
-	} else {
-	  Printf(s_phpclasses, "\t\treturn array_key_exists($var, $this->%s);\n", SWIG_DATA);
-	}
-	Printf(s_phpclasses, "\t}\n");
-      } else {
-	Printf(s_phpclasses, "\n\tfunction __get($var) {\n");
-	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_get_newobject($this->%s);\n", module, SWIG_PTR);
-	if (baseclass) {
-	  Printf(s_phpclasses, "\t\treturn %s%s::__get($var);\n", prefix, baseclass);
-	} else {
-	  Printf(s_phpclasses, "\t\treturn $this->%s[$var];\n", SWIG_DATA);
-	}
-	Printf(s_phpclasses, "\t}\n");
-	Printf(s_phpclasses, "\n\tfunction __isset($var) {\n");
-	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return true;\n");
-	if (baseclass) {
-	  Printf(s_phpclasses, "\t\treturn %s%s::__isset($var);\n", prefix, baseclass);
-	} else {
-	  Printf(s_phpclasses, "\t\treturn array_key_exists($var, $this->%s);\n", SWIG_DATA);
-	}
-	Printf(s_phpclasses, "\t}\n");
-      }
-
-      if (!class_has_ctor) {
-	Printf(s_phpclasses, "\tfunction __construct($h) {\n");
-	Printf(s_phpclasses, "\t\t$this->%s=$h;\n", SWIG_PTR);
-	Printf(s_phpclasses, "\t}\n");
-      }
-
-      if (s_oowrappers) {
-	Printf(s_phpclasses, "%s", s_oowrappers);
-	Delete(s_oowrappers);
-	s_oowrappers = NULL;
-      }
-      class_has_ctor = false;
-
-      Printf(s_phpclasses, "}\n\n");
-
-      Delete(shadow_classname);
-      shadow_classname = NULL;
-
-      Delete(shadow_set_vars);
-      shadow_set_vars = NULL;
-      Delete(shadow_get_vars);
-      shadow_get_vars = NULL;
-    }
     magic_method_setter(n, true, baseClassExtend);
     class_name = NULL;
     class_type = NULL;
