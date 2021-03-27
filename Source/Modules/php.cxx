@@ -154,7 +154,7 @@ static void print_creation_free_wrapper(int item_index) {
   Printf(s_header, "void %s_free_storage(zend_object *object) {\n",class_name);
   Printf(s_header, "  swig_object_wrapper *obj = 0;\n\n");
   Printf(s_header, "  if(!object)\n\t  return;\n\n");
-  Printf(s_header, "  obj = (swig_object_wrapper *)php_fetch_object(object);\n\n");
+  Printf(s_header, "  obj = php_fetch_object(object);\n\n");
   Printf(s_header, "  if(!obj->newobject)\n\t  return;\n");
 
   if (need_free) {
@@ -1168,7 +1168,7 @@ public:
       Printf(all_cs_entry, " PHP_ME(%s,__set,swig_arginfo_2,ZEND_ACC_PUBLIC)\n", class_name);
       Printf(f->code, "PHP_METHOD(%s,__set) {\n",class_name);
 
-      Printf(f->code, "  swig_object_wrapper *arg = (swig_object_wrapper *)SWIG_Z_FETCH_OBJ_P(getThis());\n");
+      Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(getThis());\n");
       Printf(f->code, "  zval args[2];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
       Printf(f->code, "  if(ZEND_NUM_ARGS() != 2 || zend_get_parameters_array_ex(2, args) != SUCCESS) {\n");
       Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
@@ -1203,7 +1203,7 @@ public:
       Printf(all_cs_entry, " PHP_ME(%s,__get,swig_arginfo_1,ZEND_ACC_PUBLIC)\n", class_name);
       Printf(f->code, "PHP_METHOD(%s,__get) {\n",class_name);
 
-      Printf(f->code, "  swig_object_wrapper *arg = (swig_object_wrapper *)SWIG_Z_FETCH_OBJ_P(getThis());\n", class_name);
+      Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(getThis());\n", class_name);
       Printf(f->code, "  zval args[1];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
       Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
       Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
@@ -1237,7 +1237,7 @@ public:
       Printf(all_cs_entry, " PHP_ME(%s,__isset,swig_arginfo_1,ZEND_ACC_PUBLIC)\n", class_name);
       Printf(f->code, "PHP_METHOD(%s,__isset) {\n",class_name);
 
-      Printf(f->code, "  swig_object_wrapper *arg = (swig_object_wrapper *)SWIG_Z_FETCH_OBJ_P(getThis());\n", class_name);
+      Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(getThis());\n", class_name);
       Printf(f->code, "  zval args[1];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
       Printf(f->code, "  int newSize = 1;\nchar *method_name = 0;\n\n");
       Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
