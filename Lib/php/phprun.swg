@@ -199,7 +199,11 @@ SWIG_ConvertResourcePtr(zval *z, swig_type_info *ty, int flags) {
 
   if (!type_name) {
     if (Z_TYPE_P(z) == IS_OBJECT) {
+#if PHP_MAJOR_VERSION < 8
       HashTable * ht = Z_OBJ_HT_P(z)->get_properties(z);
+#else
+      HashTable * ht = Z_OBJ_HT_P(z)->get_properties(Z_OBJ_P(z));
+#endif
       zval * _cPtr = zend_hash_str_find(ht, "_cPtr", sizeof("_cPtr") - 1);
       type_name=zend_rsrc_list_get_rsrc_type(Z_RES_P(_cPtr));
     }
@@ -274,7 +278,11 @@ SWIG_generalize_object(zval *zval_obj, void *ptr, int userNewObj, swig_type_info
   HashTable *ht = 0;
 
   SWIG_pack_zval(zval_obj, ptr, userNewObj);
+#if PHP_MAJOR_VERSION < 8
   ht = Z_OBJ_HT_P(zval_obj)->get_properties(zval_obj);
+#else
+  ht = Z_OBJ_HT_P(zval_obj)->get_properties(Z_OBJ_P(zval_obj));
+#endif
 
   if(ht) {
     ZVAL_RES(&tempZval,zend_register_resource(ptr,*(int *)(type->clientdata)));
