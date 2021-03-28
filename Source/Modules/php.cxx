@@ -1194,7 +1194,11 @@ public:
       if (baseClassExtend) {
         Printf(f->code, "PHP_MN(%s___get)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
       } else {
+        Printf(f->code, "#if PHP_MAJOR_VERSION < 8\n");
         Printf(f->code, "zval *zv = zend_read_property(Z_OBJCE_P(ZEND_THIS), ZEND_THIS, arg2->val, arg2->len, 1, NULL);\n");
+        Printf(f->code, "#else\n");
+        Printf(f->code, "zval *zv = zend_read_property(Z_OBJCE_P(ZEND_THIS), Z_OBJ_P(ZEND_THIS), arg2->val, arg2->len, 1, NULL);\n");
+        Printf(f->code, "#endif\n");
         Printf(f->code, "if (!zv)\nRETVAL_NULL();\nelse\nRETVAL_ZVAL(zv,1,ZVAL_PTR_DTOR);\n}\n");
       }
 
@@ -1233,7 +1237,11 @@ public:
       if (baseClassExtend) {
         Printf(f->code, "PHP_MN(%s___isset)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
       } else {
+        Printf(f->code, "#if PHP_MAJOR_VERSION < 8\n");
         Printf(f->code, "if (!zend_read_property(Z_OBJCE_P(ZEND_THIS), ZEND_THIS, arg2->val, arg2->len, 1, NULL)) RETVAL_FALSE; else RETVAL_TRUE;\n}\n");
+        Printf(f->code, "#else\n");
+        Printf(f->code, "if (!zend_read_property(Z_OBJCE_P(ZEND_THIS), Z_OBJ_P(ZEND_THIS), arg2->val, arg2->len, 1, NULL)) RETVAL_FALSE; else RETVAL_TRUE;\n}\n");
+        Printf(f->code, "#endif\n");
       }
 
       Printf(f->code, "free(method_name);\nzend_string_release(arg2);\n\n");
