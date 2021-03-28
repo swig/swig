@@ -80,9 +80,7 @@ static String *pragma_incl;
 static String *pragma_code;
 static String *pragma_phpinfo;
 static String *pragma_version;
-static String *s_oowrappers;
 static String *s_fakeoowrappers;
-static String *s_phpclasses;
 
 static String *class_name = NULL;
 static String *class_type = NULL;
@@ -107,7 +105,6 @@ static Hash *zend_types = 0;
 
 static int shadow = 1;
 
-static bool class_has_ctor = false;
 static String *wrapping_member_constant = NULL;
 
 // These static variables are used to pass some state from Handlers into functionWrapper
@@ -323,7 +320,6 @@ public:
     s_cinit = NewString("  /* cinit subsection */\n");
     s_oinit = NewString("  /* oinit subsection */\n");
     pragma_phpinfo = NewStringEmpty();
-    s_phpclasses = NewString("/* PHP Proxy Classes */\n");
     f_directors_h = NewStringEmpty();
     f_directors = NewStringEmpty();
 
@@ -752,8 +748,6 @@ public:
       Delete(s_fakeoowrappers);
       s_fakeoowrappers = NULL;
     }
-    Printf(f_phpcode, "%s\n", s_phpclasses);
-    Delete(f_phpcode);
 
     return SWIG_OK;
   }
@@ -1784,46 +1778,20 @@ public:
     if (overloaded && Getattr(n, "sym:nextSibling") != 0)
       return SWIG_OK;
 
-    if (!s_oowrappers)
-      s_oowrappers = NewStringEmpty();
+    if (constructor || wrapperType != standard) {
+      return SWIG_OK;
+    }
 
-    if (newobject || wrapperType == memberfn || wrapperType == staticmemberfn || wrapperType == standard || wrapperType == staticmembervar) {
+    {
       bool handle_as_overload = false;
       String **arg_names;
       String **arg_values;
       unsigned char * byref;
       // Method or static method or plain function.
-      const char *methodname = 0;
-      String *output = s_oowrappers;
-      if (constructor) {
-	class_has_ctor = true;
-	// Skip the Foo:: prefix.
-	char *ptr = strrchr(GetChar(current_class, "sym:name"), ':');
-	if (ptr) {
-	  ptr++;
-	} else {
-	  ptr = GetChar(current_class, "sym:name");
-	}
-	if (strcmp(ptr, GetChar(n, "constructorHandler:sym:name")) == 0) {
-	  methodname = "__construct";
-	} else {
-	  // The class has multiple constructors and this one is
-	  // renamed, so this will be a static factory function
-	  methodname = GetChar(n, "constructorHandler:sym:name");
-	}
-      } else if (wrapperType == memberfn) {
-	methodname = Char(Getattr(n, "memberfunctionHandler:sym:name"));
-      } else if (wrapperType == staticmemberfn) {
-	methodname = Char(Getattr(n, "staticmemberfunctionHandler:sym:name"));
-      } else if (wrapperType == staticmembervar) {
-	// Static member variable, wrapped as a function due to PHP limitations.
-	methodname = Char(Getattr(n, "staticmembervariableHandler:sym:name"));
-      } else {			// wrapperType == standard
-	methodname = Char(iname);
-	if (!s_fakeoowrappers)
-	  s_fakeoowrappers = NewStringEmpty();
-	output = s_fakeoowrappers;
-      }
+      const char *methodname = Char(iname);
+      if (!s_fakeoowrappers)
+	s_fakeoowrappers = NewStringEmpty();
+      String *output = s_fakeoowrappers;
 
       bool really_overloaded = overloaded ? true : false;
       int min_num_of_arguments = emit_num_required(l);
@@ -1846,9 +1814,8 @@ public:
 	  }
 
 	  SwigType *d2 = Getattr(o, "type");
-	  if (!d2) {
-	    assert(constructor);
-	  } else if (!Getattr(ret_types, d2)) {
+	  assert(d2);
+	  if (!Getattr(ret_types, d2)) {
 	    Setattr(ret_types, d2, d2);
 	    non_void_return = non_void_return || (Cmp(d2, "void") != 0);
 	  }
@@ -1874,10 +1841,6 @@ public:
 
 	  ParmList *l2 = Getattr(o, "wrap:parms");
 	  Parm *p = l, *p2 = l2;
-	  if (wrapperType == memberfn) {
-	    p = nextSibling(p);
-	    p2 = nextSibling(p2);
-	  }
 	  while (p && p2) {
 	    if (Cmp(Getattr(p, "type"), Getattr(p2, "type")) != 0)
 	      break;
@@ -1914,12 +1877,6 @@ public:
 	}
       }
 
-      if (wrapperType == memberfn) {
-	// Allow for the "this" pointer.
-	--min_num_of_arguments;
-	--max_num_of_arguments;
-      }
-
       arg_names = (String **) malloc(max_num_of_arguments * sizeof(String *));
       if (!arg_names) {
 	fprintf(stderr, "Malloc failed!\n");
@@ -1949,8 +1906,6 @@ public:
       while (o) {
 	int argno = 0;
 	Parm *p = Getattr(o, "wrap:parms");
-	if (wrapperType == memberfn)
-	  p = nextSibling(p);
 	while (p) {
 	  if (GetInt(p, "tmap:in:numinputs") == 0) {
 	    p = nextSibling(p);
@@ -2189,13 +2144,10 @@ public:
 
       if (!handle_as_overload && !(really_overloaded && max_num_of_arguments > min_num_of_arguments)) {
 	Printf(invoke, "%s(", iname);
-	if (wrapperType == memberfn) {
-	  Printf(invoke, "$this->%s", SWIG_PTR);
-	}
 	for (int i = 0; i < max_num_of_arguments; ++i) {
 	  if (i)
 	    Printf(args, ",");
-	  if (i || wrapperType == memberfn)
+	  if (i)
 	    Printf(invoke, ",");
 	  if (byref[i]) Printf(args, "&");
 	  String *value = arg_values[i];
@@ -2206,9 +2158,6 @@ public:
 	      Replaceall(value, "$", "\\$");
 	    }
 	    Printf(args, "$%s=%s", arg_names[i], value);
-	  } else if (constructor && strcmp(methodname, "__construct") == 0 && i >= 1 && i < min_num_of_arguments) {
-	    // We need to be able to call __construct($resource).
-	    Printf(args, "$%s=null", arg_names[i]);
 	  } else {
 	    Printf(args, "$%s", arg_names[i]);
 	  }
@@ -2223,21 +2172,7 @@ public:
 	  Printf(args, "$%s", arg_names[i]);
 	}
 	String *invoke_args = NewStringEmpty();
-	if (wrapperType == memberfn) {
-	  Printf(invoke_args, "$this->%s", SWIG_PTR);
-	  if (min_num_of_arguments > 0)
-	    Printf(invoke_args, ",");
-	}
 	Printf(invoke_args, "%s", args);
-	if (constructor && min_num_of_arguments > 1) {
-	  // We need to be able to call __construct($resource).
-	  Clear(args);
-	  Printf(args, "$%s", arg_names[0]);
-	  for (i = 1; i < min_num_of_arguments; ++i) {
-	    Printf(args, ",");
-	    Printf(args, "$%s=null", arg_names[i]);
-	  }
-	}
 	bool had_a_case = false;
 	int last_handled_i = i - 1;
 	for (; i < max_num_of_arguments; ++i) {
@@ -2263,23 +2198,11 @@ public:
 	      Printf(prepare, "case %d: ", ++last_handled_i);
 	    }
 	    if (non_void_return) {
-	      if (!constructor) {
-		Append(prepare, "$r=");
-	      } else if (wrapperType == staticmemberfn || wrapperType == staticmembervar) {
-		Append(prepare, "$r=");
-	      } else {
-		Printf(prepare, "$this->%s=", SWIG_PTR);
-	      }
+	      Append(prepare, "$r=");
 	    }
-	    if (!directorsEnabled() || !Swig_directorclass(n) || !constructor) {
-	      Printf(prepare, "%s(%s); break;\n", iname, invoke_args);
-	    } else if (!i) {
-	      Printf(prepare, "%s($_this%s); break;\n", iname, invoke_args);
-	    } else {
-	      Printf(prepare, "%s($_this, %s); break;\n", iname, invoke_args);
-	    }
+	    Printf(prepare, "%s(%s); break;\n", iname, invoke_args);
 	  }
-	  if (i || wrapperType == memberfn)
+	  if (i)
 	    Printf(invoke_args, ",");
 	  Printf(invoke_args, "$%s", arg_names[i]);
 	}
@@ -2287,20 +2210,10 @@ public:
 	if (had_a_case)
 	  Printf(prepare, "default: ");
 	if (non_void_return) {
-	  if (!constructor) {
-	    Append(prepare, "$r=");
-	  } else if (wrapperType == staticmemberfn || wrapperType == staticmembervar) {
-	    Append(prepare, "$r=");
-	  } else {
-	    Printf(prepare, "$this->%s=", SWIG_PTR);
-	  }
+	  Append(prepare, "$r=");
 	}
 
-	if (!directorsEnabled() || !Swig_directorclass(n) || !constructor) {
-	  Printf(prepare, "%s(%s);\n", iname, invoke_args);
-	} else {
-	  Printf(prepare, "%s($_this, %s);\n", iname, invoke_args);
-	}
+	Printf(prepare, "%s(%s);\n", iname, invoke_args);
 	if (had_a_case)
 	  Printf(prepare, "\t\t}\n");
 	Delete(invoke_args);
@@ -2308,147 +2221,10 @@ public:
       }
 
       Printf(output, "\n");
-      // If it's a member function or a class constructor...
-      if (wrapperType == memberfn || (constructor && current_class)) {
-	String *acc = NewString(Getattr(n, "access"));
-	// If a base has the same method with public access, then PHP
-	// requires to have it here as public as well
-	Node *bases = Getattr(Swig_methodclass(n), "bases");
-	if (bases && Strcmp(acc, "public") != 0) {
-	  String *warnmsg = 0;
-	  int haspublicbase = 0;
-	  Iterator i = First(bases);
-	  while (i.item) {
-	    Node *j = firstChild(i.item);
-	    while (j) {
-	      String *jname = Getattr(j, "name");
-	      if (!jname || Strcmp(jname, Getattr(n, "name")) != 0) {
-		j = nextSibling(j);
-		continue;
-	      }
-	      if (Strcmp(nodeType(j), "cdecl") == 0) {
-		if (!Getattr(j, "access") || checkAttribute(j, "access", "public")) {
-		  haspublicbase = 1;
-		}
-	      } else if (Strcmp(nodeType(j), "using") == 0 && firstChild(j) && Strcmp(nodeType(firstChild(j)), "cdecl") == 0) {
-		if (!Getattr(firstChild(j), "access") || checkAttribute(firstChild(j), "access", "public")) {
-		  haspublicbase = 1;
-		}
-	      }
-	      if (haspublicbase) {
-		  warnmsg = NewStringf("Modifying the access of '%s::%s' to public, as the base '%s' has it as public as well.\n", Getattr(current_class, "classtype"), Getattr(n, "name"), Getattr(i.item, "classtype"));
-		  break;
-	      }
-	      j = nextSibling(j);
-	    }
-	    i = Next(i);
-	    if (haspublicbase) {
-	      break;
-	    }
-	  }
-	  if (Getattr(n, "access") && haspublicbase) {
-	    Delete(acc);
-	    acc = NewStringEmpty(); // implicitly public
-	    Swig_warning(WARN_PHP_PUBLIC_BASE, input_file, line_number, Char(warnmsg));
-	    Delete(warnmsg);
-	  }
-	}
+      Printf(output, "\tstatic function %s(%s) {\n", methodname, args);
 
-	if (Cmp(acc, "public") == 0) {
-	  // The default visibility for methods is public, so don't specify
-	  // that explicitly to keep the wrapper size down.
-	  Delete(acc);
-	  acc = NewStringEmpty();
-	} else if (Cmp(acc, "") != 0) {
-	  Append(acc, " ");
-	}
-
-	if (constructor) {
-	  // Discriminate between the PHP constructor and a C++ constructor
-	  // renamed to become a factory function in PHP.
-	  bool php_constructor = (strcmp(methodname, "__construct") == 0);
-	  const char * arg0 = NULL;
-	  if (max_num_of_arguments > 0) {
-	    arg0 = Char(arg_names[0]);
-	  } else if (php_constructor) {
-	    // The PHP constructor needs to be able to wrap a resource, but a
-	    // renamed constructor doesn't.
-	    arg0 = "res";
-	    Delete(args);
-	    args = NewString("$res=null");
-	  }
-	  String *mangled_type = SwigType_manglestr(Getattr(n, "type"));
-	  if (!php_constructor) {
-	    // A renamed constructor should be a static method.
-	    Append(acc, "static ");
-	  }
-	  Printf(output, "\t%sfunction %s(%s) {\n", acc, methodname, args);
-	  if (php_constructor) {
-	    // The PHP constructor needs to be able to wrap a resource, but a
-	    // renamed constructor doesn't.
-	    Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) === '%s') {\n", arg0, arg0, mangled_type);
-	    Printf(output, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg0);
-	    Printf(output, "\t\t\treturn;\n");
-	    Printf(output, "\t\t}\n");
-	  }
-	} else {
-	  Printf(output, "\t%sfunction %s(%s) {\n", acc, methodname, args);
-	}
-	Delete(acc);
-      } else if (wrapperType == staticmembervar) {
-	// We're called twice for a writable static member variable - first
-	// with "foo_set" and then with "foo_get" - so generate half the
-	// wrapper function each time.
-	//
-	// For a const static member, we only get called once.
-	static bool started = false;
-	if (!started) {
-	  Printf(output, "\tstatic function %s() {\n", methodname);
-	  if (max_num_of_arguments) {
-	    // Setter.
-	    Printf(output, "\t\tif (func_num_args()) {\n");
-	    Printf(output, "\t\t\t%s(func_get_arg(0));\n", iname);
-	    Printf(output, "\t\t\treturn;\n");
-	    Printf(output, "\t\t}\n");
-	    started = true;
-	    goto done;
-	  }
-	}
-	started = false;
-      } else {
-	Printf(output, "\tstatic function %s(%s) {\n", methodname, args);
-      }
-
-      if (!constructor)
-	Printf(output, "%s", prepare);
-      if (constructor) {
-	if (!directorsEnabled() || !Swig_directorclass(n)) {
-	  if (!Len(prepare)) {
-	    if (strcmp(methodname, "__construct") == 0) {
-	      Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
-	    } else {
-	      String *classname = Swig_class_name(current_class);
-	      Printf(output, "\t\treturn new %s%s(%s);\n", prefix, classname, invoke);
-	    }
-	  }
-	} else {
-	  Node *parent = Swig_methodclass(n);
-	  String *classname = Swig_class_name(parent);
-	  Printf(output, "\t\tif (get_class($this) === '%s%s') {\n", prefix, classname);
-	  Printf(output, "\t\t\t$_this = null;\n");
-	  Printf(output, "\t\t} else {\n");
-	  Printf(output, "\t\t\t$_this = $this;\n");
-	  Printf(output, "\t\t}\n");
-	  if (!Len(prepare)) {
-	    if (num_arguments > 1) {
-	      Printf(output, "\t\t$this->%s=%s($_this, %s);\n", SWIG_PTR, iname, args);
-	    } else {
-	      Printf(output, "\t\t$this->%s=%s($_this);\n", SWIG_PTR, iname);
-	    }
-	  }
-	}
-	Printf(output, "%s", prepare);
-      } else if (!non_void_return && !hasargout) {
+      Printf(output, "%s", prepare);
+      if (!non_void_return && !hasargout) {
 	if (Cmp(invoke, "$r") != 0)
 	  Printf(output, "\t\t%s;\n", invoke);
       } else if (is_class(d)) {
@@ -2555,7 +2331,6 @@ public:
       }
       Printf(output, "\t}\n");
 
-done:
       Delete(prepare);
       Delete(invoke);
       free(arg_values);
@@ -2684,11 +2459,7 @@ done:
 	  set_to = enumvalue;
       }
 
-      if (wrapping_member_constant) {
-	if (!s_oowrappers)
-	  s_oowrappers = NewStringEmpty();
-	Printf(s_oowrappers, "\n\tconst %s = %s;\n", wrapping_member_constant, set_to);
-      } else {
+      if (!wrapping_member_constant) {
 	if (!s_fakeoowrappers)
 	  s_fakeoowrappers = NewStringEmpty();
 	Printf(s_fakeoowrappers, "\n\tconst %s = %s;\n", iname, set_to);
