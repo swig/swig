@@ -135,7 +135,7 @@ static void print_creation_free_wrapper(int item_index) {
   Printf(s_header, "  obj = php_fetch_object(object);\n\n");
 
   if (need_free) {
-    Printf(s_header, "  if(obj->ptr && obj->newobject)\n");
+    Printf(s_header, "  if(obj->newobject)\n");
     Printf(s_header, "    SWIG_remove((%s *)obj->ptr);\n",class_type);
   }
 
