@@ -93,7 +93,7 @@ int isStructuralDoxygen(String *s) {
     const size_t len = strlen(structuralTags[n]);
     if (strncmp(slashPointer, structuralTags[n], len) == 0) {
       /* Take care to avoid false positives with prefixes of other tags. */
-      if (slashPointer[len] == '\0' || isspace(slashPointer[len]))
+      if (slashPointer[len] == '\0' || isspace((int)slashPointer[len]))
 	return 1;
     }
   }
