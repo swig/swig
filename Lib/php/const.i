@@ -12,10 +12,10 @@
                         unsigned char,
                         signed char,
                         enum SWIGTYPE
-  "zend_declare_class_constant_long(SWIGTYPE_$class_ce, \"$const_name\", sizeof(\"$const_name\") - 1, $value);";
+  "zend_declare_class_constant_long(SWIGTYPE_$class_ce, \"$const_name\", sizeof(\"$const_name\") - 1, ($1_type)$value);";
 
  %typemap(classconsttab) bool
-  "zend_declare_class_constant_bool(SWIGTYPE_$class_ce, \"$const_name\", sizeof(\"$const_name\") - 1, $value);";
+  "zend_declare_class_constant_bool(SWIGTYPE_$class_ce, \"$const_name\", sizeof(\"$const_name\") - 1, ($1_type)$value);";
 
  %typemap(classconsttab) float,
                          double
