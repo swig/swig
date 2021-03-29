@@ -118,8 +118,8 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
 
       if (SWIG_PREFIX_LEN > 0) {
         zend_string * classname = zend_string_alloc(SWIG_PREFIX_LEN + type_name_len, 0);
-        memcpy(classname->val, SWIG_PREFIX, SWIG_PREFIX_LEN);
-        memcpy(classname->val + SWIG_PREFIX_LEN, type_name, type_name_len);
+        memcpy(ZSTR_VAL(classname), SWIG_PREFIX, SWIG_PREFIX_LEN);
+        memcpy(ZSTR_VAL(classname) + SWIG_PREFIX_LEN, type_name, type_name_len);
         ce = zend_lookup_class(classname);
         zend_string_release(classname);
       } else {

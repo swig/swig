@@ -997,13 +997,13 @@ public:
 
       Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n");
       Printv(f->code, magic_set, "\n", NIL);
-      Printf(f->code, "\nelse if (strcmp(arg2->val,\"thisown\") == 0) {\n");
+      Printf(f->code, "\nelse if (strcmp(ZSTR_VAL(arg2),\"thisown\") == 0) {\n");
       Printf(f->code, "arg->newobject = zval_get_long(&args[1]);\n}\n\n");
       Printf(f->code, "else {\n");
       if (baseClassExtend) {
         Printf(f->code, "PHP_MN(%s___set)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
       } else {
-        Printf(f->code, "add_property_zval_ex(ZEND_THIS, arg2->val, arg2->len, &args[1]);\n}\n");
+        Printf(f->code, "add_property_zval_ex(ZEND_THIS, ZSTR_VAL(arg2), ZSTR_LEN(arg2), &args[1]);\n}\n");
       }
 
       Printf(f->code, "zend_string_release(arg2);\n\n");
@@ -1027,18 +1027,18 @@ public:
       Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
       Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
 
-      Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n",magic_set);
+      Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n");
       Printf(f->code, "%s\n",magic_get);
-      Printf(f->code, "\nelse if (strcmp(arg2->val,\"thisown\") == 0) {\n");
+      Printf(f->code, "\nelse if (strcmp(ZSTR_VAL(arg2),\"thisown\") == 0) {\n");
       Printf(f->code, "if(arg->newobject) {\nRETVAL_LONG(1);\n}\nelse {\nRETVAL_LONG(0);\n}\n}\n\n");
       Printf(f->code, "else {\n");
       if (baseClassExtend) {
         Printf(f->code, "PHP_MN(%s___get)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
       } else {
         Printf(f->code, "#if PHP_MAJOR_VERSION < 8\n");
-        Printf(f->code, "zval *zv = zend_read_property(Z_OBJCE_P(ZEND_THIS), ZEND_THIS, arg2->val, arg2->len, 1, NULL);\n");
+        Printf(f->code, "zval *zv = zend_read_property(Z_OBJCE_P(ZEND_THIS), ZEND_THIS, ZSTR_VAL(arg2), ZSTR_LEN(arg2), 1, NULL);\n");
         Printf(f->code, "#else\n");
-        Printf(f->code, "zval *zv = zend_read_property(Z_OBJCE_P(ZEND_THIS), Z_OBJ_P(ZEND_THIS), arg2->val, arg2->len, 1, NULL);\n");
+        Printf(f->code, "zval *zv = zend_read_property(Z_OBJCE_P(ZEND_THIS), Z_OBJ_P(ZEND_THIS), ZSTR_VAL(arg2), ZSTR_LEN(arg2), 1, NULL);\n");
         Printf(f->code, "#endif\n");
         Printf(f->code, "if (!zv)\nRETVAL_NULL();\nelse\nRETVAL_ZVAL(zv,1,ZVAL_PTR_DTOR);\n}\n");
       }
@@ -1064,14 +1064,14 @@ public:
       Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
       Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
       Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
-      Printf(f->code, "  newSize += arg2->len + strlen(\"_get\");\nmethod_name = (char *)malloc(newSize);\n");
-      Printf(f->code, "  strcpy(method_name,arg2->val);\nstrcat(method_name,\"_get\");\n\n");
+      Printf(f->code, "  newSize += ZSTR_LEN(arg2) + strlen(\"_get\");\nmethod_name = (char *)malloc(newSize);\n");
+      Printf(f->code, "  strcpy(method_name,ZSTR_VAL(arg2));\nstrcat(method_name,\"_get\");\n\n");
 
       Printf(magic_isset, "\nelse if (zend_hash_exists(&SWIGTYPE_%s_ce->function_table, zend_string_init(method_name, newSize-1, 0))) {\n",class_name);
       Printf(magic_isset, "RETVAL_TRUE;\n}\n");
 
-      Printf(f->code, "if (!arg2) {\n  RETVAL_FALSE;\n}\n",magic_set);
-      Printf(f->code, "\nelse if (strcmp(arg2->val,\"thisown\") == 0) {\n");
+      Printf(f->code, "if (!arg2) {\n  RETVAL_FALSE;\n}\n");
+      Printf(f->code, "\nelse if (strcmp(ZSTR_VAL(arg2),\"thisown\") == 0) {\n");
       Printf(f->code, "RETVAL_TRUE;\n}\n\n");
       Printf(f->code, "%s\n",magic_isset);
       Printf(f->code, "else {\n");
@@ -1079,9 +1079,9 @@ public:
         Printf(f->code, "PHP_MN(%s___isset)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
       } else {
         Printf(f->code, "#if PHP_MAJOR_VERSION < 8\n");
-        Printf(f->code, "if (!zend_read_property(Z_OBJCE_P(ZEND_THIS), ZEND_THIS, arg2->val, arg2->len, 1, NULL)) RETVAL_FALSE; else RETVAL_TRUE;\n}\n");
+        Printf(f->code, "if (!zend_read_property(Z_OBJCE_P(ZEND_THIS), ZEND_THIS, ZSTR_VAL(arg2), ZSTR_LEN(arg2), 1, NULL)) RETVAL_FALSE; else RETVAL_TRUE;\n}\n");
         Printf(f->code, "#else\n");
-        Printf(f->code, "if (!zend_read_property(Z_OBJCE_P(ZEND_THIS), Z_OBJ_P(ZEND_THIS), arg2->val, arg2->len, 1, NULL)) RETVAL_FALSE; else RETVAL_TRUE;\n}\n");
+        Printf(f->code, "if (!zend_read_property(Z_OBJCE_P(ZEND_THIS), Z_OBJ_P(ZEND_THIS), ZSTR_VAL(arg2), ZSTR_LEN(arg2), 1, NULL)) RETVAL_FALSE; else RETVAL_TRUE;\n}\n");
         Printf(f->code, "#endif\n");
       }
 
@@ -1110,11 +1110,11 @@ public:
 
     String *v_name = GetChar(n, "name");
 
-    Printf(magic_set, "\nelse if (strcmp(arg2->val,\"%s\") == 0) {\n",v_name);
+    Printf(magic_set, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n",v_name);
     Printf(magic_set, "ZVAL_STRING(&tempZval, \"%s_set\");\n",v_name);
     Printf(magic_set, "CALL_METHOD_PARAM_1(tempZval, return_value, ZEND_THIS, args[1]);\n}\n\n");
 
-    Printf(magic_get, "\nelse if (strcmp(arg2->val,\"%s\") == 0) {\n",v_name);
+    Printf(magic_get, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n",v_name);
     Printf(magic_get, "ZVAL_STRING(&tempZval, \"%s_get\");\n",v_name);
     Printf(magic_get, "CALL_METHOD(tempZval, return_value, ZEND_THIS);\n}\n");
 
