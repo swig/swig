@@ -86,15 +86,11 @@ namespace Swig {
         ZVAL_COPY_VALUE(&swig_self, self);
       }
 
-      static bool swig_is_overridden_method(const char *cname, zval *ptr) {
+      static bool swig_is_overridden_method(const char *cname, zval *z) {
         zend_string * cname_str = zend_string_init(cname, strlen(cname), 0);
-        zend_class_entry *cname_ce = zend_lookup_class(cname_str);
-        zend_class_entry *ptr_ce = Z_OBJCE_P(ptr);
-
-        if (cname_ce == ptr_ce)
-          return true;
-
-        return false;
+        zend_class_entry *ce = zend_lookup_class(cname_str);
+        zend_string_release(cname_str);
+        return ce == Z_OBJCE_P(z);
       }
 
       template <typename Type>
