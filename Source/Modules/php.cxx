@@ -12,20 +12,6 @@
  * -----------------------------------------------------------------------------
  */
 
-/* FIXME: PHP OO wrapping TODO list:
- *
- * Medium term:
- *
- * Handle default parameters on overloaded methods in PHP where possible.
- *   (Mostly done - just need to handle cases of overloaded methods with
- *   default parameters...)
- *   This is an optimisation - we could handle this case using a PHP
- *   default value, but currently we treat it as we would for a default
- *   value which is a compound C++ expression (i.e. as if we had a
- *   method with two overloaded forms instead of a single method with
- *   a default parameter value).
- */
-
 #include "swigmod.h"
 
 #include <ctype.h>
