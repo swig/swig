@@ -760,7 +760,7 @@ public:
       Printf(f_h, "PHP_METHOD(%s,%s);\n", cname, fname);
       has_this = (wrapperType != staticmemberfn) &&
 		 (wrapperType != staticmembervar) &&
-		 (Cmp(fname,"__construct") != 0);
+		 (Cmp(fname, "__construct") != 0);
     } else {
       if (overload) {
         Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", fname);
@@ -1035,7 +1035,7 @@ public:
       if (constructorRenameOverload) {
         Append(modes, " | ZEND_ACC_STATIC");
       }
-    } else if (wrapperType == staticmemberfn || Cmp(Getattr(n, "storage"),"static") == 0) {
+    } else if (wrapperType == staticmemberfn || Cmp(Getattr(n, "storage"), "static") == 0) {
       modes = NewString("ZEND_ACC_PUBLIC | ZEND_ACC_STATIC");
     } else {
       modes = NewString("ZEND_ACC_PUBLIC");
@@ -1044,7 +1044,7 @@ public:
     create_command(class_name, wname, n, true, modes);
 
     if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
-      Printv(f->def,  "PHP_METHOD(", class_name, ",", wname, ") {\n", NIL);
+      Printv(f->def, "PHP_METHOD(", class_name, ",", wname, ") {\n", NIL);
     } else {
       Printv(f->def, "ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
     }
@@ -1340,7 +1340,7 @@ public:
     if (constructor) {
       Append(modes, " | ZEND_ACC_CTOR");
     } 
-    if (wrapperType == staticmemberfn || Cmp(Getattr(n, "storage"),"static") == 0) {
+    if (wrapperType == staticmemberfn || Cmp(Getattr(n, "storage"), "static") == 0) {
       Append(modes, " | ZEND_ACC_STATIC");
     }
     if (GetFlag(n, "abstract") && Swig_directorclass(Swig_methodclass(n)) && !is_member_director(n))
@@ -1396,7 +1396,7 @@ public:
 
       if (is_getter_method(n)) {
         // This is to overcome types that can't be set and hence no setter.
-        if (Cmp(Getattr(n, "feature:immutable"),"1") != 0)
+        if (Cmp(Getattr(n, "feature:immutable"), "1") != 0)
           static_getter = true;
       }
     } else if (wrapperType == staticmemberfn) {
@@ -1438,14 +1438,14 @@ public:
         if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
           Printv(f->def, "PHP_METHOD(", class_name, ",", wname,") {\n", NIL);
         } else {
-          Printv(f->def, "PHP_FUNCTION(", wname,") {\n", NIL);
+          Printv(f->def, "PHP_FUNCTION(", wname, ") {\n", NIL);
         }
       }
     } else {
       if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
-        Printv(f->def, "PHP_METHOD(", class_name, ",", overloadwname,") {\n", NIL);
+        Printv(f->def, "PHP_METHOD(", class_name, ",", overloadwname, ") {\n", NIL);
       } else {
-        Printv(f->def, "ZEND_NAMED_FUNCTION(", overloadwname,") {\n", NIL);
+        Printv(f->def, "ZEND_NAMED_FUNCTION(", overloadwname, ") {\n", NIL);
       }
     }
 
@@ -1477,7 +1477,7 @@ public:
       args = NULL;
     }
     if (wrapperType == directorconstructor) {
-        Wrapper_add_local(f, "arg0", "zval *arg0 = ZEND_THIS");
+      Wrapper_add_local(f, "arg0", "zval *arg0 = ZEND_THIS");
     }
 
     // This generated code may be called:
