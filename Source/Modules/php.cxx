@@ -485,8 +485,8 @@ public:
     Printf(s_header, "}\n");
     Printf(s_header, "#endif\n\n");
 
-    Printf(s_header,"#ifdef __cplusplus\n#define SWIG_remove(zv) delete zv\n");
-    Printf(s_header,"#else\n#define SWIG_remove(zv) free(zv)\n#endif\n\n");
+    Printf(s_header, "#ifdef __cplusplus\n#define SWIG_remove(zv) delete zv\n");
+    Printf(s_header, "#else\n#define SWIG_remove(zv) free(zv)\n#endif\n\n");
 
     Printf(s_header, "#define CALL_METHOD(name, retval, thisptr)                  \
                       call_user_function(EG(function_table),thisptr,&name,retval,0,NULL);\n\n");
@@ -853,144 +853,6 @@ public:
     Delete(arginfo_code);
   }
 
-  // /* -----------------------------------------------------------------------------
-  //  * print_typecheck() - Helper Function for Class Overload Dispatch
-  //  * ----------------------------------------------------------------------------- */
-
-  static bool print_typecheck(String *f, int j, Parm *pj, bool implicitconvtypecheckoff) {
-    char tmp[256];
-    sprintf(tmp, Char(argv_template_string), j);
-    String *tm = Getattr(pj, "tmap:typecheck");
-    if (tm) {
-      tm = Copy(tm);
-      Replaceid(tm, Getattr(pj, "lname"), "_v");
-      String *conv = Getattr(pj, "implicitconv");
-      if (conv && !implicitconvtypecheckoff) {
-        Replaceall(tm, "$implicitconv", conv);
-      } else {
-        Replaceall(tm, "$implicitconv", "0");
-      }
-      Replaceall(tm, "$input", tmp);
-      Printv(f, tm, "\n", NIL);
-      Delete(tm);
-      return true;
-    } else
-      return false;
-  }
-
-  /* -----------------------------------------------------------------------------
-   * ReplaceFormat() - Helper Function for Class Overload Dispatch
-   * ----------------------------------------------------------------------------- */
-
-  static String *ReplaceFormat(const_String_or_char_ptr fmt, int j) {
-    String *lfmt = NewString(fmt);
-    char buf[50];
-    sprintf(buf, "%d", j);
-    Replaceall(lfmt, "$numargs", buf);
-    int i;
-    String *commaargs = NewString("");
-    for (i = 0; i < j; i++) {
-      Printv(commaargs, ", ", NIL);
-      Printf(commaargs, Char(argv_template_string), i);
-    }
-    Replaceall(lfmt, "$commaargs", commaargs);
-    return lfmt;
-  }
-
-  /* ------------------------------------------------------------
-   * Class dispatch Function - Overloaded Class Methods
-   * ------------------------------------------------------------ */
-   String *Swig_class_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxargs) {
-
-     int i, j;
-
-     *maxargs = 1;
-
-     String *f = NewString("");
-
-     int constructorOverload = (Cmp(Getattr(n, "nodeType"), "constructor") == 0);
-
-     /* Get a list of methods ranked by precedence values and argument count */
-     List *dispatch = Swig_overload_rank(n, true);
-     int nfunc = Len(dispatch);
-
-    /* Loop over the functions */
-
-    for (i = 0; i < nfunc; i++) {
-      Node *ni = Getitem(dispatch, i);
-      Parm *pi = Getattr(ni, "wrap:parms");
-      bool implicitconvtypecheckoff = GetFlag(ni, "implicitconvtypecheckoff") != 0;
-      int num_required = emit_num_required(pi)-1;
-      int num_arguments = emit_num_arguments(pi)-1;
-
-      if (constructorOverload) {
-        num_required++;
-        num_arguments++;
-      }
-
-      if (num_arguments > *maxargs)
-        *maxargs = num_arguments;
-
-      if (num_required == num_arguments) {
-        Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
-      } else {
-        Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
-      }
-
-      if (num_arguments) {
-        Printf(f, "int _v;\n");
-      }
-
-      int num_braces = 0;
-      j = 0;
-      Parm *pj = pi;
-      if (!constructorOverload && pj)
-        pj = nextSibling(pj);
-      while (pj) {
-        if (checkAttribute(pj, "tmap:in:numinputs", "0")) {
-          pj = Getattr(pj, "tmap:in:next");
-          continue;
-        }
-        if (j >= num_required) {
-          String *lfmt = ReplaceFormat(fmt, num_arguments);
-          Printf(f, "if (%s <= %d) {\n", argc_template_string, j);
-          Printf(f, Char(lfmt), Getattr(ni, "wrap:name"));
-          Printf(f, "}\n");
-          Delete(lfmt);
-        }
-        if (print_typecheck(f, (GetFlag(n, "wrap:this") ? j + 1 : j), pj, implicitconvtypecheckoff)) {
-          Printf(f, "if (_v) {\n");
-          num_braces++;
-        }
-        if (!Getattr(pj, "tmap:in:SWIGTYPE") && Getattr(pj, "tmap:typecheck:SWIGTYPE")) {
-          /* we emit  a warning if the argument defines the 'in' typemap, but not the 'typecheck' one */
-          Swig_warning(WARN_TYPEMAP_TYPECHECK_UNDEF, Getfile(ni), Getline(ni),
-                     "Overloaded method %s with no explicit typecheck typemap for arg %d of type '%s'\n",
-                     Swig_name_decl(n), j, SwigType_str(Getattr(pj, "type"), 0));
-        }
-        Parm *pk = Getattr(pj, "tmap:in:next");
-        if (pk) {
-          pj = pk;
-        } else {
-          pj = nextSibling(pj);
-        }
-        j++;
-      }
-      String *lfmt = ReplaceFormat(fmt, num_arguments);
-      Printf(f, Char(lfmt), Getattr(ni, "wrap:name"));
-      Delete(lfmt);
-      /* close braces */
-      for ( /* empty */ ; num_braces > 0; num_braces--)
-        Printf(f, "}\n");
-      Printf(f, "}\n");           /* braces closes "if" for this method */
-      if (implicitconvtypecheckoff)
-        Delattr(ni, "implicitconvtypecheckoff");
-    }
-    Delete(dispatch);
-    return f;
-
-   }
-
   /* ------------------------------------------------------------
    * dispatchFunction()
    * ------------------------------------------------------------ */
@@ -999,14 +861,7 @@ public:
 
     int maxargs;
     String *tmp = NewStringEmpty();
-
-    String *dispatch = NULL;
-
-    if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
-      dispatch = Swig_class_overload_dispatch(n, "%s(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;", &maxargs);
-    } else {
-      dispatch = Swig_overload_dispatch(n, "%s(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;", &maxargs);
-    }
+    String *dispatch = Swig_overload_dispatch(n, "%s(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;", &maxargs);
 
     /* Generate a dispatch wrapper for all overloaded functions */
 
@@ -1458,6 +1313,12 @@ public:
       create_command(class_name, wname, n, false, modes);
     }
 
+    if (wrapperType == memberfn || wrapperType == membervar) {
+      // Assign "this" to arg1 and remove first entry from ParmList l.
+      Printf(f->code, "arg1 = (%s)SWIG_Z_FETCH_OBJ_P(ZEND_THIS)->ptr;\n", SwigType_lstr(Getattr(l, "type"), ""));
+      l = nextSibling(l);
+    }
+
     // wrap:parms is used by overload resolution.
     Setattr(n, "wrap:parms", l);
 
@@ -1469,9 +1330,6 @@ public:
       String *args = NewStringEmpty();
       Printf(args, "zval args[%d]", num_arguments);
       Wrapper_add_local(f, "tempPointer", "void *tempPointer = 0");
-      if ((wrapperType == memberfn || wrapperType == membervar)) {
-        num_arguments--; //To remove This Pointer
-      }
       Wrapper_add_local(f, "args", args);
       Delete(args);
       args = NULL;
@@ -1521,14 +1379,7 @@ public:
     // _this and not the first argument.
     // This may mean looking at Language::memberfunctionHandler
 
-    int limit = num_arguments;
-    //if (wrapperType == directorconstructor)
-      //limit--;
-    if (wrapperType == memberfn || wrapperType == membervar) {
-      limit++;
-    }
-
-    for (i = 0, p = l; i < limit; i++) {
+    for (i = 0, p = l; i < num_arguments; i++) {
       String *source;
 
       /* Skip ignored arguments */
@@ -1539,11 +1390,7 @@ public:
 
       SwigType *pt = Getattr(p, "type");
 
-      if (wrapperType == memberfn || wrapperType == membervar) {
-	source = NewStringf("args[%d]", i-1);
-      } else {
-	source = NewStringf("args[%d]", i);
-      }
+      source = NewStringf("args[%d]", i);
 
       String *ln = Getattr(p, "lname");
 
@@ -1564,22 +1411,11 @@ public:
       if ((tm = Getattr(p, "tmap:in"))) {
 	Replaceall(tm, "$source", &source);
 	Replaceall(tm, "$target", ln);
-        if (Cmp(source,"args[-1]") == 0) {
-          Replaceall(tm, "$uinput", "ZEND_THIS");
-          Replaceall(tm, "$linput", "args[0]");         // Adding this to compile. It won't reach the generated if clause.
-        } else {
-          Replaceall(tm, "$linput", source);
-          Replaceall(tm, "$uinput", "args[0]");         // Adding this to compile. It won't reach the generated if clause.
-        }
-        Replaceall(tm, "$input", source);
+	Replaceall(tm, "$input", source);
         if (paramType_valid) {
           String *param_value = NewStringEmpty();
           String *param_zval = NewStringEmpty();
-          if (Cmp(source,"args[-1]") == 0) {
-            Printf(param_zval, "ZEND_THIS");
-          } else {
-            Printf(param_zval, "&%s", source);
-          }
+          Printf(param_zval, "&%s", source);
           Printf(param_value, "SWIG_Z_FETCH_OBJ_P(%s)->ptr", param_zval);
           Replaceall(tm, "$obj_value", param_value);
         }

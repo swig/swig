@@ -117,7 +117,7 @@
   if ($needNewFlow) {
     $1 = ($1_ltype) $obj_value;
   } else {
-    if (SWIG_ConvertPtr(&$linput, (void **) &$1, $1_descriptor, 0) < 0)
+    if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0)
       SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
   }
 %}
