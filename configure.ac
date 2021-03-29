@@ -1635,15 +1635,15 @@ else
 
   if test -z "$JSCORELIB" -a -n "$PKG_CONFIG "; then
     AC_MSG_CHECKING(for JavaScriptCore/Webkit library)
-    if $PKG_CONFIG  javascriptcoregtk-4.0; then
+    if $PKG_CONFIG  javascriptcoregtk-4.0 2>/dev/null ; then
       JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-4.0`
       JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-4.0`
       JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-4.0`
-    elif $PKG_CONFIG  javascriptcoregtk-3.0; then
+    elif $PKG_CONFIG  javascriptcoregtk-3.0 2>/dev/null ; then
       JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-3.0`
       JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-3.0`
       JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-3.0`
-    elif $PKG_CONFIG  javascriptcoregtk-1.0; then
+    elif $PKG_CONFIG  javascriptcoregtk-1.0 2>/dev/null ; then
       JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-1.0`
       JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-1.0`
     fi
