@@ -50,7 +50,6 @@ PHP 7 Options (available with -php7)\n\
  */
 #define SWIG_DATA "_pData"
 
-static int constructors = 0;
 static String *NOTCLASS = NewString("Not a class");
 static Node *classnode = 0;
 static String *module = 0;
@@ -66,7 +65,6 @@ static File *f_h = 0;
 static File *f_phpcode = 0;
 static File *f_directors = 0;
 static File *f_directors_h = 0;
-static String *phpfilename = 0;
 
 static String *s_header;
 static String *s_wrappers;
@@ -319,7 +317,6 @@ public:
     /* PHP module file */
     filen = NewStringEmpty();
     Printv(filen, SWIG_output_directory(), module, ".php", NIL);
-    phpfilename = NewString(filen);
 
     f_phpcode = NewFile(filen, "w", SWIG_output_files());
     if (!f_phpcode) {
@@ -2071,7 +2068,6 @@ done:
    * ------------------------------------------------------------ */
 
   virtual int classHandler(Node *n) {
-    constructors = 0;
     current_class = n;
 
     if (shadow) {
@@ -2344,7 +2340,6 @@ done:
    * ------------------------------------------------------------ */
 
   virtual int constructorHandler(Node *n) {
-    constructors++;
     if (Swig_directorclass(n)) {
       String *name = GetChar(Swig_methodclass(n), "name");
       String *ctype = GetChar(Swig_methodclass(n), "classtype");
