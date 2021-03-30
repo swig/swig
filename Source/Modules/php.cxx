@@ -1367,7 +1367,7 @@ public:
       }
 
       if ((tm = Getattr(p, "tmap:in"))) {
-	Replaceall(tm, "$source", &source);
+	Replaceall(tm, "$source", source);
 	Replaceall(tm, "$target", ln);
 	Replaceall(tm, "$input", source);
         if (paramType_valid) {
