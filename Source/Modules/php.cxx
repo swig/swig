@@ -66,7 +66,6 @@ static String *pragma_version;
 static String *s_fakeoowrappers;
 
 static String *class_name = NULL;
-static String *class_type = NULL;
 static String *magic_set = NULL;
 static String *magic_get = NULL;
 static String *magic_isset = NULL;
@@ -99,7 +98,7 @@ extern "C" {
   static void (*r_prevtracefunc) (const SwigType *t, String *mangled, String *clientdata) = 0;
 }
 
-static void print_creation_free_wrapper(bool need_free) {
+static void print_creation_free_wrapper(Node *n) {
   if (!s_creation) {
     s_creation = NewStringEmpty();
   }
@@ -122,9 +121,9 @@ static void print_creation_free_wrapper(bool need_free) {
   Printf(s, "  if(!object)\n\t  return;\n\n");
   Printf(s, "  obj = php_fetch_object(object);\n\n");
 
-  if (need_free) {
+  if (Getattr(n, "destructor") != NULL) {
     Printf(s, "  if(obj->newobject)\n");
-    Printf(s, "    SWIG_remove((%s *)obj->ptr);\n",class_type);
+    Printf(s, "    SWIG_remove((%s *)obj->ptr);\n", Getattr(n, "classtype"));
   }
 
   Printf(s, "  if(&obj->std)\n");
@@ -2333,8 +2332,6 @@ public:
 
     Printf(all_cs_entry, "static zend_function_entry class_%s_functions[] = {\n", class_name);
 
-    class_type = Getattr(n, "classtype");
-
     Printf(s_oinit, "\n{\n  zend_class_entry SWIGTYPE_%s_internal_ce;\n", class_name);
     
     // namespace code to introduce namespaces into wrapper classes.
@@ -2425,14 +2422,13 @@ public:
 
     classnode = n;
     Language::classHandler(n);
-    print_creation_free_wrapper(Getattr(classnode, "destructor") != NULL);
     classnode = 0;
 
+    print_creation_free_wrapper(n);
     magic_method_setter(n, true, baseClassExtend);
     Printf(all_cs_entry, " ZEND_FE_END\n};\n\n");
 
     class_name = NULL;
-    class_type = NULL;
     return SWIG_OK;
   }
 
@@ -2552,8 +2548,7 @@ public:
 
     bool newClassObject = is_class_wrapped(class_name);
 
-    String *destructorname = NewStringEmpty();
-    Printf(destructorname, "_%s", Swig_name_wrapper(iname));
+    String *destructorname = NewStringf("_%s", Swig_name_wrapper(iname));
     Setattr(classnode, "destructor", destructorname);
 
     Wrapper *f = NewWrapper();
