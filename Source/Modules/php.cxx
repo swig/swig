@@ -36,8 +36,6 @@ static String *module = 0;
 static String *cap_module = 0;
 static String *prefix = 0;
 
-static String *shadow_classname = 0;
-
 static File *f_begin = 0;
 static File *f_runtime = 0;
 static File *f_runtime_h = 0;
@@ -81,10 +79,6 @@ static String *magic_isset = NULL;
 static Hash *arginfo_used;
 
 /* Variables for using PHP classes */
-static Node *current_class = 0;
-
-static Hash *shadow_get_vars;
-static Hash *shadow_set_vars;
 static Hash *zend_types = 0;
 
 static int shadow = 1;
@@ -1584,12 +1578,8 @@ public:
       const char *p = Char(iname);
       if (strlen(p) > 4) {
 	p += strlen(p) - 4;
-	String *varname = Getattr(n, "membervariableHandler:sym:name");
 	if (strcmp(p, "_get") == 0) {
           magic_method_setter(n, false, NULL);
-	  Setattr(shadow_get_vars, varname, Getattr(n, "type"));
-	} else if (strcmp(p, "_set") == 0) {
-	  Setattr(shadow_set_vars, varname, iname);
 	}
       }
       return SWIG_OK;
@@ -2354,7 +2344,6 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int classHandler(Node *n) {
-    current_class = n;
     String *symname = Getattr(n, "sym:name");
     String *baseClassExtend = NULL;
     bool exceptionClassFlag = false;
@@ -2385,10 +2374,6 @@ public:
 
       if (!addSymbol(rename, n))
 	return SWIG_ERROR;
-      shadow_classname = NewString(rename);
-
-      shadow_get_vars = NewHash();
-      shadow_set_vars = NewHash();
 
       /* Deal with inheritance */
       List *baselist = Getattr(n, "bases");
