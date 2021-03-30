@@ -3,7 +3,7 @@ dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
 AC_INIT([swig],[4.1.0],[http://www.swig.org])
-AC_PREREQ(2.60)
+AC_PREREQ([2.71])
 
 AC_CONFIG_SRCDIR([Source/Swig/swig.h])
 AC_CONFIG_AUX_DIR([Tools/config])
@@ -35,7 +35,15 @@ AC_DEFINE_UNQUOTED(SWIG_CXX, ["$CXX"], [Compiler that built SWIG])
 AC_DEFINE_UNQUOTED(SWIG_PLATFORM, ["$host"], [Platform that SWIG is built for])
 
 dnl Checks for header files.
-AC_HEADER_STDC
+m4_warn([obsolete],
+[The preprocessor macro `STDC_HEADERS' is obsolete.
+  Except in unusual embedded environments, you can safely include all
+  ISO C90 headers unconditionally.])dnl
+# Autoupdate added the next two lines to ensure that your configure
+# script's behavior did not change.  They are probably safe to remove.
+AC_CHECK_INCLUDES_DEFAULT
+AC_PROG_EGREP
+
 
 dnl Look for popen
 AC_ARG_WITH(popen, AS_HELP_STRING([--without-popen], [Disable popen]), with_popen="$withval")
@@ -575,7 +583,7 @@ fi
 
 AC_MSG_CHECKING(for Tcl header files)
 if test -z "$TCLINCLUDE"; then
-AC_TRY_CPP([#include <tcl.h>], , TCLINCLUDE="")
+AC_PREPROC_IFELSE([AC_LANG_SOURCE([[#include <tcl.h>]])],[],[TCLINCLUDE=""])
 if test -z "$TCLINCLUDE"; then
 	dirs="/usr/local/include /usr/include /opt/local/include"
 	for i in $dirs ; do
