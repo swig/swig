@@ -58,6 +58,7 @@ static String *s_arginfo;
 static String *s_entry;
 static String *cs_entry;
 static String *all_cs_entry;
+static String *s_creation;
 static String *pragma_incl;
 static String *pragma_code;
 static String *pragma_phpinfo;
@@ -66,9 +67,6 @@ static String *s_fakeoowrappers;
 
 static String *class_name = NULL;
 static String *class_type = NULL;
-static List *classes = NewList();
-static List *class_types = NewList();
-static List *class_need_free = NewList();
 static String *magic_set = NULL;
 static String *magic_get = NULL;
 static String *magic_isset = NULL;
@@ -101,59 +99,46 @@ extern "C" {
   static void (*r_prevtracefunc) (const SwigType *t, String *mangled, String *clientdata) = 0;
 }
 
-static void print_creation_free_wrapper(int item_index) {
-
-  class_name = Getitem(classes, item_index);
-  class_type = Getitem(class_types, item_index);
-  bool need_free = false;
-  if (Cmp(Getitem(class_need_free, item_index), "1") == 0) {
-    need_free = true;
+static void print_creation_free_wrapper(bool need_free) {
+  if (!s_creation) {
+    s_creation = NewStringEmpty();
   }
 
-  Printf(s_header, "/* class entry for %s */\n",class_name);
-  Printf(s_header, "zend_class_entry *SWIGTYPE_%s_ce;\n\n",class_name);
-  Printf(s_header, "/* class object handlers for %s */\n",class_name);
-  Printf(s_header, "zend_object_handlers %s_object_handlers;\n\n",class_name);
+  String *s = s_creation;
 
-  Printf(s_header, "/* dtor Method for class %s */\n",class_name);
-  Printf(s_header, "void %s_destroy_object(zend_object *object) {\n",class_name);
-  Printf(s_header, "  if(!object)\n\t  return;\n");
-  Printf(s_header, "  zend_objects_destroy_object(object);\n}\n\n\n");
+  Printf(s, "/* class entry for %s */\n",class_name);
+  Printf(s, "zend_class_entry *SWIGTYPE_%s_ce;\n\n",class_name);
+  Printf(s, "/* class object handlers for %s */\n",class_name);
+  Printf(s, "zend_object_handlers %s_object_handlers;\n\n",class_name);
 
-  Printf(s_header, "/* Garbage Collection Method for class %s */\n",class_name);
-  Printf(s_header, "void %s_free_storage(zend_object *object) {\n",class_name);
-  Printf(s_header, "  swig_object_wrapper *obj = 0;\n\n");
-  Printf(s_header, "  if(!object)\n\t  return;\n\n");
-  Printf(s_header, "  obj = php_fetch_object(object);\n\n");
+  Printf(s, "/* dtor Method for class %s */\n",class_name);
+  Printf(s, "void %s_destroy_object(zend_object *object) {\n",class_name);
+  Printf(s, "  if(!object)\n\t  return;\n");
+  Printf(s, "  zend_objects_destroy_object(object);\n}\n\n\n");
+
+  Printf(s, "/* Garbage Collection Method for class %s */\n",class_name);
+  Printf(s, "void %s_free_storage(zend_object *object) {\n",class_name);
+  Printf(s, "  swig_object_wrapper *obj = 0;\n\n");
+  Printf(s, "  if(!object)\n\t  return;\n\n");
+  Printf(s, "  obj = php_fetch_object(object);\n\n");
 
   if (need_free) {
-    Printf(s_header, "  if(obj->newobject)\n");
-    Printf(s_header, "    SWIG_remove((%s *)obj->ptr);\n",class_type);
+    Printf(s, "  if(obj->newobject)\n");
+    Printf(s, "    SWIG_remove((%s *)obj->ptr);\n",class_type);
   }
 
-  Printf(s_header, "  if(&obj->std)\n");
-  Printf(s_header, "    zend_object_std_dtor(&obj->std);\n}\n\n\n");
+  Printf(s, "  if(&obj->std)\n");
+  Printf(s, "    zend_object_std_dtor(&obj->std);\n}\n\n\n");
 
-  Printf(s_header, "/* Object Creation Method for class %s */\n",class_name);
-  Printf(s_header, "zend_object * %s_object_new(zend_class_entry *ce) {\n",class_name);
-  Printf(s_header, "  swig_object_wrapper *obj = (swig_object_wrapper*)zend_object_alloc(sizeof(swig_object_wrapper), ce);\n");
-  Printf(s_header, "  zend_object_std_init(&obj->std, ce);\n");
-  Printf(s_header, "  object_properties_init(&obj->std, ce);\n");
-  Printf(s_header, "  %s_object_handlers.offset = XtOffsetOf(swig_object_wrapper, std);\n",class_name);
-  Printf(s_header, "  %s_object_handlers.free_obj = %s_free_storage;\n",class_name,class_name);
-  Printf(s_header, "  %s_object_handlers.dtor_obj = %s_destroy_object;\n",class_name,class_name);
-  Printf(s_header, "  obj->std.handlers = &%s_object_handlers;\n  obj->newobject = 1;\n  return &obj->std;\n}\n\n\n",class_name);
-
-  class_name = NULL;
-  class_type = NULL;
-}
-
-static void SwigPHP_emit_all_creation_free_wrapper() {
-  for (int Iterator = 0; Iterator < Len(classes); Iterator++) {
-    print_creation_free_wrapper(Iterator);
-  }
-  Delete(classes);
-  Delete(class_types);
+  Printf(s, "/* Object Creation Method for class %s */\n",class_name);
+  Printf(s, "zend_object * %s_object_new(zend_class_entry *ce) {\n",class_name);
+  Printf(s, "  swig_object_wrapper *obj = (swig_object_wrapper*)zend_object_alloc(sizeof(swig_object_wrapper), ce);\n");
+  Printf(s, "  zend_object_std_init(&obj->std, ce);\n");
+  Printf(s, "  object_properties_init(&obj->std, ce);\n");
+  Printf(s, "  %s_object_handlers.offset = XtOffsetOf(swig_object_wrapper, std);\n",class_name);
+  Printf(s, "  %s_object_handlers.free_obj = %s_free_storage;\n",class_name,class_name);
+  Printf(s, "  %s_object_handlers.dtor_obj = %s_destroy_object;\n",class_name,class_name);
+  Printf(s, "  obj->std.handlers = &%s_object_handlers;\n  obj->newobject = 1;\n  return &obj->std;\n}\n\n\n",class_name);
 }
 
 static void SwigPHP_emit_resource_registrations() {
@@ -530,12 +515,12 @@ public:
     /* Emit all of the code */
     Language::top(n);
 
-    if (Len(classes) > 0) {
-      Printf(all_cs_entry, " ZEND_FE_END\n};\n\n");
-    }
-
     SwigPHP_emit_resource_registrations();
-    SwigPHP_emit_all_creation_free_wrapper();
+    if (s_creation) {
+      Dump(s_creation, s_header);
+      Delete(s_creation);
+      s_creation = NULL;
+    }
 
     /* start the init section */
     {
@@ -939,12 +924,8 @@ public:
   bool is_class_wrapped(String *className) {
     if (!className)
       return false;
-    Iterator iterate;
-    for (iterate = First(classes); iterate.item; iterate = Next(iterate)) {
-      if (Cmp(iterate.item, className) == 0)
-        return true;
-    }
-    return false;
+    Node * n = symbolLookup(className);
+    return n && Getattr(n, "classtype") != NULL;
   }
 
   /* Is special return type */
@@ -2350,16 +2331,9 @@ public:
 
     class_name = symname;
 
-    if (Len(classes) != 0) {
-        Printf(all_cs_entry, " ZEND_FE_END\n};\n\n");
-    }
-
     Printf(all_cs_entry, "static zend_function_entry class_%s_functions[] = {\n", class_name);
 
     class_type = Getattr(n, "classtype");
-    Append(classes,class_name);
-    Append(class_types, class_type);
-    Append(class_need_free, "0");
 
     Printf(s_oinit, "\n{\n  zend_class_entry SWIGTYPE_%s_internal_ce;\n", class_name);
     
@@ -2451,9 +2425,12 @@ public:
 
     classnode = n;
     Language::classHandler(n);
+    print_creation_free_wrapper(Getattr(classnode, "destructor") != NULL);
     classnode = 0;
 
     magic_method_setter(n, true, baseClassExtend);
+    Printf(all_cs_entry, " ZEND_FE_END\n};\n\n");
+
     class_name = NULL;
     class_type = NULL;
     return SWIG_OK;
@@ -2572,9 +2549,6 @@ public:
     String *name = GetChar(Swig_methodclass(n), "name");
     String *iname = GetChar(n, "sym:name");
     ParmList *l = Getattr(n, "parms");
-
-    Delitem(class_need_free, Len(class_need_free) - 1);
-    Append(class_need_free, "1");
 
     bool newClassObject = is_class_wrapped(class_name);
 
