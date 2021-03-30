@@ -28,6 +28,8 @@
 	print "	37 - 42 = $r\n";
 
 	# Now try the version with multiple return values
-	# print "Testing multiple return values\n";
-	# ($q,$r) = divide(42,37);
-	# print "	42/37 = $q remainder $r\n";
+	print "Testing multiple return values\n";
+	$a = divide(42,37);
+	$q = $a[0];
+	$r = $a[1];
+	print "	42/37 = $q remainder $r\n";
