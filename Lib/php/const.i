@@ -11,19 +11,46 @@
                         unsigned long,
                         unsigned char,
                         signed char,
-                        enum SWIGTYPE
-  "zend_declare_class_constant_long(SWIGTYPE_$class_ce, \"$const_name\", sizeof(\"$const_name\") - 1, ($1_type)$value);";
+                        enum SWIGTYPE %{
+  zend_declare_class_constant_long(SWIGTYPE_$class_ce, "$const_name", sizeof("$const_name") - 1, ($1_type)$value);
+%}
 
- %typemap(classconsttab) bool
-  "zend_declare_class_constant_bool(SWIGTYPE_$class_ce, \"$const_name\", sizeof(\"$const_name\") - 1, ($1_type)$value);";
+%typemap(classconsttab) bool %{
+  zend_declare_class_constant_bool(SWIGTYPE_$class_ce, "$const_name", sizeof("$const_name") - 1, ($1_type)$value);
+%}
 
- %typemap(classconsttab) float,
-                         double
-  "zend_declare_class_constant_double(SWIGTYPE_$class_ce, \"$const_name\", sizeof(\"$const_name\") - 1, $value);";
+%typemap(classconsttab) float,
+                        double %{
+  zend_declare_class_constant_double(SWIGTYPE_$class_ce, "$const_name", sizeof("$const_name") - 1, $value);
+%}
 
- %typemap(classconsttab) char,
-                         string
-  "zend_declare_class_constant_string(SWIGTYPE_$class_ce, \"$const_name\", sizeof(\"$const_name\") - 1, \"$value\");";
+%typemap(classconsttab) char %{
+{
+  char swig_char = $value;
+  zend_declare_class_constant_stringl(SWIGTYPE_$class_ce, "$const_name", sizeof("$const_name") - 1, &swig_char, 1);
+}
+%}
+
+%typemap(classconsttab) char *,
+                        const char *,
+                        char [],
+                        const char [] %{
+  zend_declare_class_constant_string(SWIGTYPE_$class_ce, "$const_name", sizeof("$const_name") - 1, $value);
+%}
+
+%typemap(classconsttab) SWIGTYPE *,
+                        SWIGTYPE &,
+                        SWIGTYPE &&,
+                        SWIGTYPE [] %{
+{
+  zval z;
+  SWIG_SetPointerZval(&z, (void*)$value, $1_descriptor, 0);
+  zval_copy_ctor(&z);
+  zend_declare_class_constant(SWIGTYPE_$class_ce, "$const_name", sizeof("$const_name") - 1, &z);
+}
+%}
+
+%typemap(classconsttab) SWIGTYPE (CLASS::*) "";
 
 %typemap(consttab) int,
                    unsigned int,
