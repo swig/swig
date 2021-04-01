@@ -133,11 +133,6 @@ static void print_creation_free_wrapper(Node *n) {
   Printf(s, "/* class object handlers for %s */\n",class_name);
   Printf(s, "zend_object_handlers %s_object_handlers;\n\n",class_name);
 
-  Printf(s, "/* dtor Method for class %s */\n",class_name);
-  Printf(s, "void %s_destroy_object(zend_object *object) {\n",class_name);
-  Printf(s, "  if(!object)\n\t  return;\n");
-  Printf(s, "  zend_objects_destroy_object(object);\n}\n\n\n");
-
   Printf(s, "/* Garbage Collection Method for class %s */\n",class_name);
   Printf(s, "void %s_free_storage(zend_object *object) {\n",class_name);
   Printf(s, "  swig_object_wrapper *obj = 0;\n\n");
@@ -159,7 +154,7 @@ static void print_creation_free_wrapper(Node *n) {
   Printf(s, "  object_properties_init(&obj->std, ce);\n");
   Printf(s, "  %s_object_handlers.offset = XtOffsetOf(swig_object_wrapper, std);\n",class_name);
   Printf(s, "  %s_object_handlers.free_obj = %s_free_storage;\n",class_name,class_name);
-  Printf(s, "  %s_object_handlers.dtor_obj = %s_destroy_object;\n",class_name,class_name);
+  Printf(s, "  %s_object_handlers.dtor_obj = zend_objects_destroy_object;\n",class_name);
   Printf(s, "  obj->std.handlers = &%s_object_handlers;\n  obj->newobject = 1;\n  return &obj->std;\n}\n\n\n",class_name);
 }
 
