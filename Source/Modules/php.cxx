@@ -200,15 +200,15 @@ static void SwigPHP_emit_resource_registrations() {
       }
     }
 
-    // declare le_swig_<mangled> to store php registration
-    Printf(s_vdecl, "static int le_swig_%s=0; /* handle for %s */\n", key, human_name);
+    // declare le_swig<mangled> to store php registration
+    Printf(s_vdecl, "static int le_swig%s=0; /* handle for %s */\n", key, human_name);
 
     // register with php
-    Printf(s_oinit, "  le_swig_%s=zend_register_list_destructors_ex"
+    Printf(s_oinit, "  le_swig%s=zend_register_list_destructors_ex"
 		    "(%s, NULL, SWIGTYPE%s->name, module_number);\n", key, rsrc_dtor_name, key);
 
     // store php type in class struct
-    Printf(s_oinit, "  SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n", key, key);
+    Printf(s_oinit, "  SWIG_TypeClientData(SWIGTYPE%s,&le_swig%s);\n", key, key);
 
     Delete(rsrc_dtor_name);
 
