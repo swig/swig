@@ -1262,10 +1262,6 @@ public:
       }
     }
 
-    if (!wname) {
-        Swig_print_node(n);
-    }
-
     if (Cmp(nodeType, "destructor") == 0) {
       // We just generate the Zend List Destructor and let Zend manage the
       // reference counting.  There's no explicit destructor, but the user can
