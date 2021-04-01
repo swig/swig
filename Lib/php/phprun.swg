@@ -238,7 +238,7 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
       if (ht) {
         zval * _cPtr = zend_hash_str_find(ht, "_cPtr", sizeof("_cPtr") - 1);
         if (_cPtr) {
-          if (zend_hash_str_exists(ht, "SWIG_classWrapper", sizeof("SWIG_classWrapper") - 1)) {
+          if (Z_TYPE_P(_cPtr) == IS_NULL) {
             /* FIXME - we need to check the type is compatible here! */
             *ptr = SWIG_Z_FETCH_OBJ_P(z)->ptr;
             return (*ptr == NULL ? -1 : 0);
@@ -274,7 +274,6 @@ SWIG_pack_zval(zval *zv, void *ptr, int userNewObj) {
 
 static void
 SWIG_generalize_object(zval *zval_obj, void *ptr, int userNewObj, swig_type_info *type) {
-  zval tempZval;
   HashTable *ht = 0;
 
   SWIG_pack_zval(zval_obj, ptr, userNewObj);
@@ -285,10 +284,9 @@ SWIG_generalize_object(zval *zval_obj, void *ptr, int userNewObj, swig_type_info
 #endif
 
   if(ht) {
-    ZVAL_RES(&tempZval,zend_register_resource(ptr,*(int *)(type->clientdata)));
-    zend_hash_str_add(ht, "_cPtr", sizeof("_cPtr") - 1, &tempZval);
-    ZVAL_TRUE(&tempZval);
-    zend_hash_str_add(ht, "SWIG_classWrapper", sizeof("SWIG_classWrapper") - 1, &tempZval);
+    zval z;
+    ZVAL_NULL(&z);
+    zend_hash_str_add(ht, "_cPtr", sizeof("_cPtr") - 1, &z);
   }
 }
 
