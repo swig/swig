@@ -144,8 +144,7 @@ static void print_creation_free_wrapper(Node *n) {
     Printf(s, "    SWIG_remove((%s *)obj->ptr);\n", Getattr(n, "classtype"));
   }
 
-  Printf(s, "  if(&obj->std)\n");
-  Printf(s, "    zend_object_std_dtor(&obj->std);\n}\n\n\n");
+  Printf(s, "  zend_object_std_dtor(&obj->std);\n}\n\n\n");
 
   Printf(s, "/* Object Creation Method for class %s */\n",class_name);
   Printf(s, "zend_object * %s_object_new(zend_class_entry *ce) {\n",class_name);
