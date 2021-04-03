@@ -77,64 +77,40 @@ typedef struct {
   zend_object std;
 } swig_object_wrapper;
 
+#define SWIG_Z_FETCH_OBJ_P(zv) php_fetch_object(Z_OBJ_P(zv))
+
+static inline
+swig_object_wrapper * php_fetch_object(zend_object *obj) {
+  return (swig_object_wrapper *)((char *)obj - XtOffsetOf(swig_object_wrapper, std));
+}
+
 #define SWIG_as_voidptr(a) const_cast< void * >(static_cast< const void * >(a))
 
 static void
 SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
-  /*
-   * First test for Null pointers.  Return those as PHP native NULL
-   */
-  if (!ptr ) {
+  // Return PHP NULL for a C/C++ NULL pointer.
+  if (!ptr) {
     ZVAL_NULL(z);
     return;
   }
   if (type->clientdata) {
-    swig_object_wrapper *value;
-    if (! (*(int *)(type->clientdata)))
-      zend_error(E_ERROR, "Type: %s failed to register with zend",type->name);
-    value=(swig_object_wrapper *)emalloc(sizeof(swig_object_wrapper));
-    value->ptr=ptr;
-    value->newobject=(newobject & 1);
     if ((newobject & 2) == 0) {
-      /* Just register the pointer as a resource. */
-      ZVAL_RES(z, zend_register_resource(value, *(int *)(type->clientdata)));
+      int resource_type = *(int *)(type->clientdata);
+      if (resource_type == 0)
+	zend_error(E_ERROR, "Type: %s failed to register with zend", type->name);
+      /* Register the pointer as a resource. */
+      swig_object_wrapper *value=(swig_object_wrapper *)emalloc(sizeof(swig_object_wrapper));
+      value->ptr = ptr;
+      value->newobject = (newobject & 1);
+      ZVAL_RES(z, zend_register_resource(value, resource_type));
     } else {
-      /*
-       * Wrap the resource in an object, the resource will be accessible
-       * via the "_cPtr" property. This code path is currently only used by
-       * directorin typemaps.
-       */
-      zend_class_entry *ce = NULL;
-      const char *type_name = type->name+3; /* +3 so: _p_Foo -> Foo */
-      size_t type_name_len;
-      const char * p;
-
-      /* Namespace__Foo -> Foo */
-      /* FIXME: ugly and goes wrong for classes with __ in their names. */
-      while ((p = strstr(type_name, "__")) != NULL) {
-        type_name = p + 2;
-      }
-      type_name_len = strlen(type_name);
-
-      if (SWIG_PREFIX_LEN > 0) {
-        zend_string * classname = zend_string_alloc(SWIG_PREFIX_LEN + type_name_len, 0);
-        memcpy(ZSTR_VAL(classname), SWIG_PREFIX, SWIG_PREFIX_LEN);
-        memcpy(ZSTR_VAL(classname) + SWIG_PREFIX_LEN, type_name, type_name_len);
-        ce = zend_lookup_class(classname);
-        zend_string_release(classname);
-      } else {
-        zend_string * classname = zend_string_init(type_name, type_name_len, 0);
-        ce = zend_lookup_class(classname);
-        zend_string_release(classname);
-      }
-      if (ce == NULL) {
-        /* class does not exist */
-        object_init(z);
-      } else {
-        object_init_ex(z, ce);
-      }
-
-      add_property_resource_ex(z, "_cPtr", sizeof("_cPtr") - 1, zend_register_resource(value, *(int *)(type->clientdata)));
+      /* This code path is currently only used by directorin typemaps. */
+      zend_class_entry *ce = (zend_class_entry*)(type->clientdata);
+      zend_object *obj = ce->create_object(ce);
+      swig_object_wrapper *value = php_fetch_object(obj);
+      value->ptr = ptr;
+      value->newobject = (newobject & 1);
+      ZVAL_OBJ(z, obj);
     }
     return;
   }
@@ -197,30 +173,11 @@ SWIG_ConvertResourcePtr(zval *z, swig_type_info *ty, int flags) {
 
   type_name=zend_rsrc_list_get_rsrc_type(Z_RES_P(z));
 
-  if (!type_name) {
-    if (Z_TYPE_P(z) == IS_OBJECT) {
-#if PHP_MAJOR_VERSION < 8
-      HashTable * ht = Z_OBJ_HT_P(z)->get_properties(z);
-#else
-      HashTable * ht = Z_OBJ_HT_P(z)->get_properties(Z_OBJ_P(z));
-#endif
-      zval * _cPtr = zend_hash_str_find(ht, "_cPtr", sizeof("_cPtr") - 1);
-      type_name=zend_rsrc_list_get_rsrc_type(Z_RES_P(_cPtr));
-    }
-  }
-
   return SWIG_ConvertResourceData(p, type_name, ty);
 }
 
-#define SWIG_Z_FETCH_OBJ_P(zv) php_fetch_object(Z_OBJ_P(zv))
-
-static inline
-swig_object_wrapper * php_fetch_object(zend_object *obj) {
-  return (swig_object_wrapper *)((char *)obj - XtOffsetOf(swig_object_wrapper, std));
-}
-
-/* We allow passing of a RESOURCE pointing to the object or an OBJECT whose
-   _cPtr is a resource pointing to the object */
+/* We allow passing of a RESOURCE wrapping a non-class pointer or an OBJECT
+   wrapping a pointer to an object. */
 static int
 SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
   if (z == NULL) {
@@ -229,31 +186,10 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
   }
 
   switch (Z_TYPE_P(z)) {
-    case IS_OBJECT: {
-#if PHP_MAJOR_VERSION < 8
-      HashTable * ht = Z_OBJ_HT_P(z)->get_properties(z);
-#else
-      HashTable * ht = Z_OBJ_HT_P(z)->get_properties(Z_OBJ_P(z));
-#endif
-      if (ht) {
-        zval * _cPtr = zend_hash_str_find(ht, "_cPtr", sizeof("_cPtr") - 1);
-        if (_cPtr) {
-          if (Z_TYPE_P(_cPtr) == IS_NULL) {
-            /* FIXME - we need to check the type is compatible here! */
-            *ptr = SWIG_Z_FETCH_OBJ_P(z)->ptr;
-            return (*ptr == NULL ? -1 : 0);
-          }
-          if (Z_TYPE_P(_cPtr) == IS_INDIRECT) {
-            _cPtr = Z_INDIRECT_P(_cPtr);
-          }
-          if (Z_TYPE_P(_cPtr) == IS_RESOURCE) {
-            *ptr = SWIG_ConvertResourcePtr(_cPtr, ty, flags);
-            return (*ptr == NULL ? -1 : 0);
-          }
-        }
-      }
-      break;
-    }
+    case IS_OBJECT:
+      /* FIXME - we need to check the type is compatible here! */
+      *ptr = SWIG_Z_FETCH_OBJ_P(z)->ptr;
+      return (*ptr == NULL ? -1 : 0);
     case IS_RESOURCE:
       *ptr = SWIG_ConvertResourcePtr(z, ty, flags);
       return (*ptr == NULL ? -1 : 0);
@@ -266,33 +202,7 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
 }
 
 static void
-SWIG_pack_zval(zval *zv, void *ptr, int userNewObj) {
-  swig_object_wrapper *obj = SWIG_Z_FETCH_OBJ_P(zv);
-  obj->ptr = ptr;
-  obj->newobject = userNewObj;
-}
-
-static void
-SWIG_generalize_object(zval *zval_obj, void *ptr, int userNewObj, swig_type_info *type) {
-  HashTable *ht = 0;
-
-  SWIG_pack_zval(zval_obj, ptr, userNewObj);
-#if PHP_MAJOR_VERSION < 8
-  ht = Z_OBJ_HT_P(zval_obj)->get_properties(zval_obj);
-#else
-  ht = Z_OBJ_HT_P(zval_obj)->get_properties(Z_OBJ_P(zval_obj));
-#endif
-
-  if(ht) {
-    zval z;
-    ZVAL_NULL(&z);
-    zend_hash_str_add(ht, "_cPtr", sizeof("_cPtr") - 1, &z);
-  }
-}
-
-static void
 SWIG_SetZval( zval *zv, int newFlow, int userNewObj, void *ptr, swig_type_info *type, zend_object *std) {
-
   if (!ptr) {
     ZVAL_NULL(zv);
     return;
@@ -301,9 +211,10 @@ SWIG_SetZval( zval *zv, int newFlow, int userNewObj, void *ptr, swig_type_info *
   if (newFlow) {
     if (newFlow == 1)
       ZVAL_OBJ(zv,std);
-    SWIG_generalize_object(zv, ptr, userNewObj, type);
-  }
-  else {
+    swig_object_wrapper *obj = SWIG_Z_FETCH_OBJ_P(zv);
+    obj->ptr = ptr;
+    obj->newobject = userNewObj;
+  } else {
     SWIG_SetPointerZval(zv, ptr, type, userNewObj);
   }
 }

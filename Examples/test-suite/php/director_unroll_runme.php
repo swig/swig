@@ -21,9 +21,7 @@ $b = new Bar();
 $b->set($a);
 $c = $b->get();
 
-// FIXME: This doesn't work for checking that they wrap the same C++ object
-// because the two objects have different PHP resources, and we can't easily
-// look inside those resources to see which C++ objects they refer to.
-//check::equal($a->_cPtr, $c->_cPtr, "_cPtr check failed");
+// FIXME: The python version checks that a.this == c.this, but we don't seem
+// to have a way to check this with the PHP bindings we generate.
 
 check::done();

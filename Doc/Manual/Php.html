@@ -1008,8 +1008,8 @@ that derives from both the class in question and a special
 <tt>Swig::Director</tt> class. These new classes, referred to as director
 classes, can be loosely thought of as the C++ equivalent of the PHP
 proxy classes. The director classes store a pointer to their underlying
-PHP object.  Indeed, this is quite similar to the "_cPtr" and "thisown"
-members of the PHP proxy classes.
+PHP object.  Indeed, this is quite similar to <tt>struct swig_object_wrapper</tt>
+which is used to implement the PHP proxy classes.
 </p>
 
 <p>
@@ -1064,12 +1064,12 @@ infinite loop.
 <p>
 One more point needs to be made about the relationship between director
 classes and proxy classes. When a proxy class instance is created in
-PHP, SWIG creates an instance of the original C++ class and assigns it
-to <tt>-&gt;_cPtr</tt>. This is exactly what happens without directors
-and is true even if directors are enabled for the particular class in
-question. When a class <i>derived</i> from a proxy class is created,
-however, SWIG then creates an instance of the corresponding C++ director
-class. The reason for this difference is that user-defined subclasses
+PHP, SWIG creates an instance of the original C++ class and stores it
+in the <tt>struct swig_object_wrapper</tt>. This is true whether or not
+directors are enabled for the particular class in question. However
+when a class <i>derived</i> from a proxy class is created, SWIG instead
+creates an instance of the corresponding C++ director class.
+The reason for this difference is that user-defined subclasses
 may override or extend methods of the original class, so the director
 class is needed to route calls to these methods correctly. For
 unmodified proxy classes, all methods are ultimately implemented in C++

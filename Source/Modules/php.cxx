@@ -32,7 +32,6 @@ static bool wrap_nonclass_global = true;
 // before PHP added namespaces.
 static bool wrap_nonclass_fake_class = true;
 
-static String *NOTCLASS = NewString("Not a class");
 static Node *classnode = 0;
 static String *module = 0;
 static String *cap_module = 0;
@@ -98,7 +97,7 @@ static String *fake_class_name() {
  */
 static Hash *arginfo_used;
 
-/* Variables for using PHP classes */
+/* Track non-class pointer types that get wrapped as resources */
 static Hash *zend_types = 0;
 
 static int shadow = 1;
@@ -139,6 +138,7 @@ static void print_creation_free_wrapper(Node *n) {
   Printf(s, "  if(!object)\n\t  return;\n\n");
   Printf(s, "  obj = php_fetch_object(object);\n\n");
 
+  // expand %delete typemap?
   if (Getattr(n, "destructor") != NULL) {
     Printf(s, "  if(obj->newobject)\n");
     Printf(s, "    SWIG_remove((%s *)obj->ptr);\n", Getattr(n, "classtype"));
@@ -158,59 +158,32 @@ static void print_creation_free_wrapper(Node *n) {
 }
 
 static void SwigPHP_emit_resource_registrations() {
-  Iterator ki;
-  bool emitted_default_dtor = false;
-
   if (!zend_types)
     return;
 
-  ki = First(zend_types);
-  if (ki.key)
-    Printf(s_oinit, "\n  /* Register resource destructors for pointer types */\n");
+  Iterator ki = First(zend_types);
+  if (!ki.key)
+    return;
+
+  // Write out custom destructor function
+  const char *rsrc_dtor_name = "_swig_default_rsrc_destroy";
+  Printf(s_wrappers, "static ZEND_RSRC_DTOR_FUNC(%s) {\n", rsrc_dtor_name);
+  Printf(s_wrappers, "  efree(res->ptr);\n");
+  Printf(s_wrappers, "}\n");
+
+  Printf(s_oinit, "\n  /* Register resource destructors for non-class pointer types */\n");
   while (ki.key) {
-    DOH *key = ki.key;
-    Node *class_node = ki.item;
-    String *human_name = key;
-    String *rsrc_dtor_name = NULL;
-
-    // write out body
-    if (class_node != NOTCLASS) {
-      String *destructor = Getattr(class_node, "destructor");
-      human_name = Getattr(class_node, "sym:name");
-      if (!human_name)
-        human_name = Getattr(class_node, "name");
-      // Do we have a known destructor for this type?
-      if (destructor) {
-	rsrc_dtor_name = NewStringf("_wrap_destroy%s", key);
-	// Write out custom destructor function
-	Printf(s_wrappers, "static ZEND_RSRC_DTOR_FUNC(%s) {\n", rsrc_dtor_name);
-        Printf(s_wrappers, "  %s(res, SWIGTYPE%s->name);\n", destructor, key);
-	Printf(s_wrappers, "}\n");
-      }
-    }
-
-    if (!rsrc_dtor_name) {
-      rsrc_dtor_name = NewString("_swig_default_rsrc_destroy");
-      if (!emitted_default_dtor) {
-	// Write out custom destructor function
-	Printf(s_wrappers, "static ZEND_RSRC_DTOR_FUNC(%s) {\n", rsrc_dtor_name);
-	Printf(s_wrappers, "  efree(res->ptr);\n");
-	Printf(s_wrappers, "}\n");
-	emitted_default_dtor = true;
-      }
-    }
+    String *type = ki.key;
 
     // declare le_swig<mangled> to store php registration
-    Printf(s_vdecl, "static int le_swig%s=0; /* handle for %s */\n", key, human_name);
+    Printf(s_vdecl, "static int le_swig%s=0; /* handle for %s */\n", type, type);
 
     // register with php
     Printf(s_oinit, "  le_swig%s=zend_register_list_destructors_ex"
-		    "(%s, NULL, SWIGTYPE%s->name, module_number);\n", key, rsrc_dtor_name, key);
+		    "(%s, NULL, SWIGTYPE%s->name, module_number);\n", type, rsrc_dtor_name, type);
 
     // store php type in class struct
-    Printf(s_oinit, "  SWIG_TypeClientData(SWIGTYPE%s,&le_swig%s);\n", key, key);
-
-    Delete(rsrc_dtor_name);
+    Printf(s_oinit, "  SWIG_TypeClientData(SWIGTYPE%s,&le_swig%s);\n", type, type);
 
     ki = Next(ki);
   }
@@ -1827,9 +1800,9 @@ public:
     }
 
     if (baseClassExtend && (exceptionClassFlag || is_class_wrapped(baseClassExtend))) {
-      Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class_ex(&SWIGTYPE_%s_internal_ce, SWIGTYPE_%s_ce);\n", class_name , class_name, baseClassExtend);
+      Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class_ex(&SWIGTYPE_%s_internal_ce, SWIGTYPE_%s_ce);\n", class_name, class_name, baseClassExtend);
     } else {
-      Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class(&SWIGTYPE_%s_internal_ce);\n", class_name , class_name);
+      Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class(&SWIGTYPE_%s_internal_ce);\n", class_name, class_name);
     }
 
     {
@@ -1847,7 +1820,7 @@ public:
           String *interface = Getitem(interface_list, Iterator-1);
           String *interface_ce = NewStringEmpty();
           Printf(interface_ce, "php_%s_interface_ce_%d" , class_name , Iterator);
-          Printf(s_oinit, "  zend_class_entry *%s = zend_lookup_class(zend_string_init(\"%s\", sizeof(\"%s\") - 1, 0));\n", interface_ce , interface, interface);
+          Printf(s_oinit, "  zend_class_entry *%s = zend_lookup_class(zend_string_init(\"%s\", sizeof(\"%s\") - 1, 0));\n", interface_ce, interface, interface);
           Append(append_interface, interface_ce);
           Append(append_interface, " ");
         }
@@ -1859,7 +1832,9 @@ public:
 
     Printf(s_oinit, "  SWIGTYPE_%s_ce->create_object = %s_object_new;\n", class_name, class_name);
     Printf(s_oinit, "  memcpy(&%s_object_handlers,zend_get_std_object_handlers(), sizeof(zend_object_handlers));\n", class_name);
-    Printf(s_oinit, "  %s_object_handlers.clone_obj = NULL;\n}\n\n", class_name);
+    Printf(s_oinit, "  %s_object_handlers.clone_obj = NULL;\n", class_name);
+    Printf(s_oinit, "  SWIG_TypeClientData(SWIGTYPE_p%s,SWIGTYPE_%s_ce);\n", SwigType_manglestr(Getattr(n, "classtypeobj")), class_name);
+    Printf(s_oinit, "}\n\n");
 
     classnode = n;
     Language::classHandler(n);
@@ -2453,29 +2428,21 @@ public:
 
 static PHP *maininstance = 0;
 
-// We use this function to be able to write out zend_register_list_destructor_ex
-// lines for most things in the type table
+// Collect non-class pointer types from the type table so we can set up PHP
+// resource types for them later.
+//
 // NOTE: it's a function NOT A PHP::METHOD
 extern "C" {
 static void typetrace(const SwigType *ty, String *mangled, String *clientdata) {
-  Node *class_node;
-  if (!zend_types) {
-    zend_types = NewHash();
-  }
-  // we want to know if the type which reduced to this has a constructor
-  if ((class_node = maininstance->classLookup(ty))) {
-    if (!Getattr(zend_types, mangled)) {
-      // OK it may have been set before by a different SwigType but it would
-      // have had the same underlying class node I think
-      // - it is certainly required not to have different originating class
-      // nodes for the same SwigType
-      Setattr(zend_types, mangled, class_node);
+  if (maininstance->classLookup(ty) == NULL) {
+    // a non-class pointer
+    if (!zend_types) {
+      zend_types = NewHash();
     }
-  } else {			// a non-class pointer
-    Setattr(zend_types, mangled, NOTCLASS);
+    Setattr(zend_types, mangled, mangled);
   }
   if (r_prevtracefunc)
-    (*r_prevtracefunc) (ty, mangled, (String *) clientdata);
+    (*r_prevtracefunc) (ty, mangled, clientdata);
 }
 }
 
