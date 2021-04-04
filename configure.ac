@@ -1282,7 +1282,7 @@ else
     # Add in default directory for JavaScriptCore headers for Linux and Mac OS X
     case $host in
     *-*-linux*)
-      JSV8INCDIR="/usr/include /usr/local/include/ $JSV8INCDIR"
+      JSV8INCDIR="/usr/include /usr/include/v8 /usr/local/include/ $JSV8INCDIR"
       ;;
     *-*-darwin*)
       JSV8INCDIR="$JSV8INCDIR"
@@ -1302,13 +1302,15 @@ else
 
   if test "$JSV8INC" = "" ; then
     AC_MSG_RESULT(not found)
+    JSV8LIB=
   else
     AC_MSG_RESULT($JSV8INCDIR)
+    JSV8LIB="-lv8"
   fi
 
   # check for V8 library
   AC_MSG_CHECKING(for V8 Javascript library)
-  AC_ARG_WITH(jsv8lib,[  --with-jsv8lib=path     Set location of V8 Javascript library directory],[JSV8LIBDIR="$withval"], [JSV8LIB=])
+  AC_ARG_WITH(jsv8lib,[  --with-jsv8lib=path     Set location of V8 Javascript library directory],[JSV8LIBDIR="$withval"])
 
   v8libdirs="$JSV8LIBDIR /usr/lib64/ /usr/local/lib64/ /usr/lib/ /usr/local/lib/"
   for d in $v8libdirs ; do
