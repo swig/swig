@@ -664,17 +664,17 @@ SWIGRUNTIME void _wrap_SwigV8PackedData_delete(const v8::WeakCallbackInfo<SwigV8
 
   delete cdata;
 
+#if (V8_MAJOR_VERSION-0) < 5
+  // handle |object|
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031710)
-  object.Clear();
   object.Dispose();
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031900)
-  object.Clear();
   object.Dispose(isolate);
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032100)
   object->Dispose(isolate);
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
   object->Dispose();
-#elif (V8_MAJOR_VERSION-0) < 5
+#endif
   object.Clear();
 #endif
 }

@@ -161,17 +161,15 @@ static void $jswrapper(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &dat
   delete proxy;
 
 #if (V8_MAJOR_VERSION-0) < 5
-  object.Clear();
-#endif
-  
+  // handle |object|
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031710)
   object.Dispose();
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031900)
   object.Dispose(isolate);
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032100)
   object->Dispose(isolate);
-#elif (V8_MAJOR_VERSION-0) < 5
-  object->Dispose();
+#endif
+  object.Clear();
 #endif
 }
 %}
@@ -207,6 +205,8 @@ static void $jswrapper(const v8::WeakCallbackInfo<SWIGV8_Proxy> &data) {
   }
   delete proxy;
 
+#if (V8_MAJOR_VERSION-0) < 5
+  // handle |object|
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031710)
   object.Dispose();
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031900)
@@ -215,7 +215,7 @@ static void $jswrapper(const v8::WeakCallbackInfo<SWIGV8_Proxy> &data) {
   object->Dispose(isolate);
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
   object->Dispose();
-#elif (V8_MAJOR_VERSION-0) < 5
+#endif
   object.Clear();
 #endif
 }
