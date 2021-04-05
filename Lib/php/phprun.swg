@@ -96,13 +96,15 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
   if (type->clientdata) {
     if ((newobject & 2) == 0) {
       int resource_type = *(int *)(type->clientdata);
-      if (resource_type == 0)
+      if (resource_type == 0) {
 	zend_error(E_ERROR, "Type: %s failed to register with zend", type->name);
-      /* Register the pointer as a resource. */
-      swig_object_wrapper *value=(swig_object_wrapper *)emalloc(sizeof(swig_object_wrapper));
-      value->ptr = ptr;
-      value->newobject = (newobject & 1);
-      ZVAL_RES(z, zend_register_resource(value, resource_type));
+      } else {
+	/* Register the pointer as a resource. */
+	swig_object_wrapper *value=(swig_object_wrapper *)emalloc(sizeof(swig_object_wrapper));
+	value->ptr = ptr;
+	value->newobject = (newobject & 1);
+	ZVAL_RES(z, zend_register_resource(value, resource_type));
+      }
     } else {
       /* This code path is currently only used by directorin typemaps. */
       zend_class_entry *ce = (zend_class_entry*)(type->clientdata);
@@ -209,9 +211,10 @@ SWIG_SetZval(zval *zv, int newFlow, int newobject, void *ptr, swig_type_info *ty
   }
 
   if (newFlow) {
+    swig_object_wrapper *obj;
     if (newFlow == 1)
       ZVAL_OBJ(zv,std);
-    swig_object_wrapper *obj = SWIG_Z_FETCH_OBJ_P(zv);
+    obj = SWIG_Z_FETCH_OBJ_P(zv);
     obj->ptr = ptr;
     obj->newobject = newobject;
   } else {
