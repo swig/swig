@@ -202,7 +202,7 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
 }
 
 static void
-SWIG_SetZval( zval *zv, int newFlow, int userNewObj, void *ptr, swig_type_info *type, zend_object *std) {
+SWIG_SetZval(zval *zv, int newFlow, int newobject, void *ptr, swig_type_info *type, zend_object *std) {
   if (!ptr) {
     ZVAL_NULL(zv);
     return;
@@ -213,9 +213,9 @@ SWIG_SetZval( zval *zv, int newFlow, int userNewObj, void *ptr, swig_type_info *
       ZVAL_OBJ(zv,std);
     swig_object_wrapper *obj = SWIG_Z_FETCH_OBJ_P(zv);
     obj->ptr = ptr;
-    obj->newobject = userNewObj;
+    obj->newobject = newobject;
   } else {
-    SWIG_SetPointerZval(zv, ptr, type, userNewObj);
+    SWIG_SetPointerZval(zv, ptr, type, newobject);
   }
 }
 
