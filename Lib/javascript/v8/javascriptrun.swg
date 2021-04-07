@@ -360,7 +360,24 @@ SWIGRUNTIME void SWIGV8_Proxy_DefaultDtor(const v8::WeakCallbackInfo<SWIGV8_Prox
   SWIGV8_Proxy *proxy = data.GetParameter();
 #endif
 
+  if(proxy->swigCMemOwn)
+    operator delete(proxy->swigCObject);
+
   delete proxy;
+
+#if (V8_MAJOR_VERSION-0) < 5
+  // handle |object|
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031710)
+  object.Dispose();
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031900)
+  object.Dispose(isolate);
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032100)
+  object->Dispose(isolate);
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
+  object->Dispose();
+#endif
+  object.Clear();
+#endif
 }
 
 SWIGRUNTIME int SWIG_V8_GetInstancePtr(SWIGV8_VALUE valRef, void **ptr) {
@@ -410,31 +427,31 @@ SWIGRUNTIME void SWIGV8_SetPrivateData(SWIGV8_OBJECT obj, void *ptr, swig_type_i
 
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031710)
   // clientdata must be set for owned data as we need to register the dtor
-  if(cdata->swigCMemOwn && info->clientdata) {
+  if(info->clientdata && info->clientdata->dtor) {
     cdata->handle.MakeWeak(cdata, info->clientdata->dtor);
   } else {
     cdata->handle.MakeWeak(cdata, SWIGV8_Proxy_DefaultDtor);
   }
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031918)
-  if(cdata->swigCMemOwn && info->clientdata) {
+  if(info->clientdata && info->clientdata->dtor) {
     cdata->handle.MakeWeak(isolate, cdata, info->clientdata->dtor);
   } else {
     cdata->handle.MakeWeak(isolate, cdata, SWIGV8_Proxy_DefaultDtor);
   }
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
-  if(cdata->swigCMemOwn && info->clientdata) {
+  if(info->clientdata && info->clientdata->dtor) {
     cdata->handle.MakeWeak(cdata, info->clientdata->dtor);
   } else {
     cdata->handle.MakeWeak(cdata, SWIGV8_Proxy_DefaultDtor);
   }
 #elif (V8_MAJOR_VERSION-0) < 5
-  if(cdata->swigCMemOwn && info->clientdata) {
+  if(info->clientdata && info->clientdata->dtor) {
     cdata->handle.SetWeak(cdata, info->clientdata->dtor);
   } else {
     cdata->handle.SetWeak(cdata, SWIGV8_Proxy_DefaultDtor);
   }
 #else
-  if(cdata->swigCMemOwn && info->clientdata) {
+  if(info->clientdata && info->clientdata->dtor) {
     cdata->handle.SetWeak(cdata, info->clientdata->dtor, v8::WeakCallbackType::kParameter);
   } else {
     cdata->handle.SetWeak(cdata, SWIGV8_Proxy_DefaultDtor, v8::WeakCallbackType::kParameter);
