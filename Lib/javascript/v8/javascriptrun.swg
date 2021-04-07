@@ -246,6 +246,10 @@ SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, void **ptr, swi
 
 SWIGRUNTIME void SWIGV8_Proxy_DefaultDtor(const v8::WeakCallbackInfo<SWIGV8_Proxy> &data) {
   SWIGV8_Proxy *proxy = data.GetParameter();
+
+  if(proxy->swigCMemOwn)
+    operator delete(proxy->swigCObject);
+
   delete proxy;
 }
 
@@ -279,7 +283,7 @@ SWIGRUNTIME void SWIGV8_SetPrivateData(SWIGV8_OBJECT obj, void *ptr, swig_type_i
 
   cdata->handle.Reset(isolate, obj);
 
-  if(cdata->swigCMemOwn && info->clientdata) {
+  if(info->clientdata && info->clientdata->dtor) {
     cdata->handle.SetWeak(cdata, info->clientdata->dtor, v8::WeakCallbackType::kParameter);
   } else {
     cdata->handle.SetWeak(cdata, SWIGV8_Proxy_DefaultDtor, v8::WeakCallbackType::kParameter);
