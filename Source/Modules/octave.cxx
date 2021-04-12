@@ -815,7 +815,7 @@ public:
     Printf(tmp, "}");
     Wrapper_add_local(f, "argv", tmp);
     Printv(f->code, dispatch, "\n", NIL);
-    Printf(f->code, "error(\"No matching function for overload\");\n", iname);
+    Printf(f->code, "error(\"No matching function for overload\");\n");
     Printf(f->code, "return octave_value_list();\n");
     Printv(f->code, "}\n", NIL);
 
