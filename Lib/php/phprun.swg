@@ -74,6 +74,7 @@ static int default_error_code = E_ERROR;
 typedef struct {
   void * ptr;
   int newobject;
+  const swig_type_info * type;
   zend_object std;
 } swig_object_wrapper;
 
@@ -103,6 +104,7 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
 	swig_object_wrapper *value=(swig_object_wrapper *)emalloc(sizeof(swig_object_wrapper));
 	value->ptr = ptr;
 	value->newobject = (newobject & 1);
+	value->type = type;
 	ZVAL_RES(z, zend_register_resource(value, resource_type));
       }
     } else {
@@ -112,6 +114,7 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
       swig_object_wrapper *value = php_fetch_object(obj);
       value->ptr = ptr;
       value->newobject = (newobject & 1);
+      value->type = type;
       ZVAL_OBJ(z, obj);
     }
     return;
@@ -188,10 +191,14 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
   }
 
   switch (Z_TYPE_P(z)) {
-    case IS_OBJECT:
-      /* FIXME - we need to check the type is compatible here! */
-      *ptr = SWIG_Z_FETCH_OBJ_P(z)->ptr;
+    case IS_OBJECT: {
+      swig_object_wrapper *value = SWIG_Z_FETCH_OBJ_P(z);
+      if (flags & SWIG_POINTER_DISOWN) {
+	value->newobject = 0;
+      }
+      *ptr = SWIG_ConvertResourceData(value->ptr, value->type->name, ty);
       return (*ptr == NULL ? -1 : 0);
+    }
     case IS_RESOURCE:
       *ptr = SWIG_ConvertResourcePtr(z, ty, flags);
       return (*ptr == NULL ? -1 : 0);
@@ -217,6 +224,7 @@ SWIG_SetZval(zval *zv, int newFlow, int newobject, void *ptr, swig_type_info *ty
     obj = SWIG_Z_FETCH_OBJ_P(zv);
     obj->ptr = ptr;
     obj->newobject = newobject;
+    obj->type = type;
   } else {
     SWIG_SetPointerZval(zv, ptr, type, newobject);
   }
