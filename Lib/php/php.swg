@@ -136,14 +136,13 @@
 %typemap(in) SWIGTYPE *const& ($*ltype temp)
 %{
   if ($needNewFlow) {
-    tempPointer = $obj_value;
-    $1 = ($1_ltype) &tempPointer;
+    temp = ($*1_ltype) $obj_value;
   } else {
     if (SWIG_ConvertPtr(&$input, (void **) &temp, $*1_descriptor, 0) < 0) {
       SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $*1_descriptor");
     }
-  $1 = ($1_ltype)&temp;
   }
+  $1 = ($1_ltype)&temp;
 %}
 
 %typemap(in) SWIGTYPE *DISOWN

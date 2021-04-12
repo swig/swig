@@ -1294,7 +1294,6 @@ public:
     if (num_arguments > 0) {
       String *args = NewStringEmpty();
       Printf(args, "zval args[%d]", num_arguments);
-      Wrapper_add_local(f, "tempPointer", "void *tempPointer = 0");
       Wrapper_add_local(f, "args", args);
       Delete(args);
       args = NULL;
