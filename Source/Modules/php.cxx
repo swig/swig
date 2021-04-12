@@ -1932,7 +1932,7 @@ public:
       director_prot_ctor_code = NewStringEmpty();
       Printf(director_ctor_code, "if (Swig::Director::swig_is_overridden_method(\"%s\", arg0)) { /* not subclassed */\n", class_name);
       Printf(director_prot_ctor_code, "if (Swig::Director::swig_is_overridden_method(\"%s\", arg0)) { /* not subclassed */\n", class_name);
-      Printf(director_ctor_code, "  %s = (%s *)new %s(%s);\n", Swig_cresult_name(), ctype, ctype, args);
+      Printf(director_ctor_code, "  %s = new %s(%s);\n", Swig_cresult_name(), ctype, args);
       Printf(director_prot_ctor_code, "  SWIG_PHP_Error(E_ERROR, \"accessing abstract class or protected constructor\");\n", name, name, args);
       if (i) {
 	Insert(args, 0, ", ");
