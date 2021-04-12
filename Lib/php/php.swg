@@ -101,13 +101,12 @@
   if (!EG(exception)) {
     if ($needNewFlow) {
       tmp = ($&1_ltype) &SWIG_Z_FETCH_OBJ_P(result)->ptr;
-      c_result = *tmp;
       SWIG_Z_FETCH_OBJ_P(result)->newobject = 0;
     } else {
       if (SWIG_ConvertPtr($input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL)
         SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
-      $result = *tmp;
     }
+    $result = *tmp;
   }
 %}
 
