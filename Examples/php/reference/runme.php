@@ -45,5 +45,3 @@ print "Getting some array values\n";
 for ($i = 0; $i < 5; $i++) {
     print "    va[$i] = {$va->get($i)->as_string()}\n";
 }
-
-?>

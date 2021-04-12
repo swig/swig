@@ -12,4 +12,3 @@ check::equal(TreeInt_Fir,chops(TreeInt_Fir),"TreeInt_Fir==chops(TreeInt_Fir)");
 check::equal(TreeInt_Cedar,chops(TreeInt_Cedar),"TreeInt_Cedar==chops(TreeInt_Cedar)");
 
 check::done();
-?>

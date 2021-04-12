@@ -17,4 +17,3 @@ $b = new Bar();
 import_nomodule::test1($b,37);
 
 check::done();
-?>

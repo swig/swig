@@ -7,7 +7,7 @@ except:
     error = 0
 
 if (error):
-    raise RuntimeError, "Private1 is private"
+    raise RuntimeError("Private1 is private")
 
 try:
     p = Private2()
@@ -16,7 +16,7 @@ except:
     error = 0
 
 if (error):
-    raise RuntimeError, "Private2 is private"
+    raise RuntimeError("Private2 is private")
 
 EulerT3D.toFrame(1, 1, 1)
 

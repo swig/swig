@@ -6,4 +6,3 @@ require "callback.php";
 if (gettype(callback::FOO_I_Cb_Ptr) !== 'resource') die("callback::FOO_I_Cb_Ptr not a resource\n");
 
 check::done();
-?>

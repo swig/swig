@@ -50,9 +50,12 @@ extern "C" {
 #define SWIGRUNTIME_DEBUG
 #endif
 
+#ifndef SWIG_INIT_CLIENT_DATA_TYPE
+#define SWIG_INIT_CLIENT_DATA_TYPE void *
+#endif
 
 SWIGRUNTIME void
-SWIG_InitializeModule(void *clientdata) {
+SWIG_InitializeModule(SWIG_INIT_CLIENT_DATA_TYPE clientdata) {
   size_t i;
   swig_module_info *module_head, *iter;
   int init;

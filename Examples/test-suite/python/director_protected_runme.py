@@ -35,7 +35,7 @@ try:
         raise RuntimeError
     pass
 except:
-    raise RuntimeError, "bad FooBar::used"
+    raise RuntimeError("bad FooBar::used")
 
 try:
     s = fb2.used()
@@ -43,7 +43,7 @@ try:
         raise RuntimeError
     pass
 except:
-    raise RuntimeError, "bad FooBar2::used"
+    raise RuntimeError("bad FooBar2::used")
 
 try:
     s = b.pong()
@@ -51,7 +51,7 @@ try:
         raise RuntimeError
     pass
 except:
-    raise RuntimeError, "bad Bar::pong"
+    raise RuntimeError("bad Bar::pong")
 
 try:
     s = f.pong()
@@ -59,7 +59,7 @@ try:
         raise RuntimeError
     pass
 except:
-    raise RuntimeError, " bad Foo::pong"
+    raise RuntimeError(" bad Foo::pong")
 
 try:
     s = fb.pong()
@@ -67,7 +67,7 @@ try:
         raise RuntimeError
     pass
 except:
-    raise RuntimeError, " bad FooBar::pong"
+    raise RuntimeError(" bad FooBar::pong")
 
 protected = 1
 try:
@@ -76,7 +76,7 @@ try:
 except:
     pass
 if not protected:
-    raise RuntimeError, "Foo::ping is protected"
+    raise RuntimeError("Foo::ping is protected")
 
 protected = 1
 try:
@@ -85,7 +85,7 @@ try:
 except:
     pass
 if not protected:
-    raise RuntimeError, "Foo::ping is protected"
+    raise RuntimeError("Foo::ping is protected")
 
 
 protected = 1
@@ -95,7 +95,7 @@ try:
 except:
     pass
 if not protected:
-    raise RuntimeError, "FooBar::pang is protected"
+    raise RuntimeError("FooBar::pang is protected")
 
 
 protected = 1
@@ -105,7 +105,7 @@ try:
 except:
     pass
 if not protected:
-    raise RuntimeError, "Bar::cheer is protected"
+    raise RuntimeError("Bar::cheer is protected")
 
 protected = 1
 try:
@@ -114,19 +114,19 @@ try:
 except:
     pass
 if not protected:
-    raise RuntimeError, "Foo::cheer is protected"
+    raise RuntimeError("Foo::cheer is protected")
 
 if fb3.cheer() != "FooBar3::cheer();":
-    raise RuntimeError, "bad fb3::cheer"
+    raise RuntimeError("bad fb3::cheer")
 
 if fb2.callping() != "FooBar2::ping();":
-    raise RuntimeError, "bad fb2.callping"
+    raise RuntimeError("bad fb2.callping")
 
 if fb2.callcheer() != "FooBar2::pang();Bar::pong();Foo::pong();FooBar2::ping();":
-    raise RuntimeError, "bad fb2.callcheer"
+    raise RuntimeError("bad fb2.callcheer")
 
 if fb3.callping() != "Bar::ping();":
-    raise RuntimeError, "bad fb3.callping"
+    raise RuntimeError("bad fb3.callping")
 
 if fb3.callcheer() != "FooBar3::cheer();":
-    raise RuntimeError, "bad fb3.callcheer"
+    raise RuntimeError("bad fb3.callcheer")

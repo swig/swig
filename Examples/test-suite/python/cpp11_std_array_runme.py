@@ -3,7 +3,7 @@ import sys
 
 
 def failed(a, b, msg):
-    raise RuntimeError, msg + " " + str(list(a)) + " " + str(list(b))
+    raise RuntimeError(msg + " " + str(list(a)) + " " + str(list(b)))
 
 
 def compare_sequences(a, b):
@@ -26,8 +26,8 @@ def steps_exception(swigarray, i, j, step):
             a = swigarray[i::step]
         else:
             a = swigarray[i:j:step]
-        raise RuntimeError, "swigarray[" + str(i) + ":" + str(j) + ":" + str(step) + "] missed steps exception for " + str(list(swigarray))
-    except ValueError, e:
+        raise RuntimeError("swigarray[" + str(i) + ":" + str(j) + ":" + str(step) + "] missed steps exception for " + str(list(swigarray)))
+    except ValueError as e:
 #        print("exception: {}".format(e))
         pass
 
@@ -43,16 +43,16 @@ def del_exception(swigarray, i, j, step):
             del swigarray[i::step]
         else:
             del swigarray[i:j:step]
-        raise RuntimeError, "swigarray[" + str(i) + ":" + str(j) + ":" + str(step) + "] missed del exception for " + str(list(swigarray))
-    except ValueError, e:
+        raise RuntimeError("swigarray[" + str(i) + ":" + str(j) + ":" + str(step) + "] missed del exception for " + str(list(swigarray)))
+    except ValueError as e:
 #        print("exception: {}".format(e))
         pass
 
 def setslice_exception(swigarray, newval):
     try:
         swigarray[::] = newval
-        raise RuntimeError, "swigarray[::] = " + str(newval) + " missed set exception for swigarray:" + str(list(swigarray))
-    except TypeError, e:
+        raise RuntimeError("swigarray[::] = " + str(newval) + " missed set exception for swigarray:" + str(list(swigarray)))
+    except TypeError as e:
 #        print("exception: {}".format(e))
         pass
 

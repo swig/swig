@@ -5,4 +5,4 @@ n = Node()
 i = sw.addChild(n)
 
 if i != 2:
-    raise RuntimeError, "addChild"
+    raise RuntimeError("addChild")

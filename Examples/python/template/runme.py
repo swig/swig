@@ -3,8 +3,8 @@
 import example
 
 # Call some templated functions
-print example.maxint(3, 7)
-print example.maxdouble(3.14, 2.18)
+print(example.maxint(3, 7))
+print(example.maxdouble(3.14, 2.18))
 
 # Create some class
 
@@ -21,12 +21,12 @@ sum = 0
 for i in range(0, 100):
     sum = sum + iv.getitem(i)
 
-print sum
+print(sum)
 
 sum = 0.0
 for i in range(0, 1000):
     sum = sum + dv.getitem(i)
-print sum
+print(sum)
 
 del iv
 del dv

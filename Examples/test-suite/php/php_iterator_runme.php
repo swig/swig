@@ -21,4 +21,3 @@ foreach (new MyIterator(2, 5) as $k => $v) {
 check::equal($s, '(0=>2)(1=>3)(2=>4)', 'Simple iteration failed');
 
 check::done();
-?>

@@ -1141,9 +1141,9 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 	  } else
 	    f_dependencies_file = stdout;
 	  if (dependencies_target) {
-	    Printf(f_dependencies_file, "%s: ", dependencies_target);
+	    Printf(f_dependencies_file, "%s: ", Swig_filename_escape_space(dependencies_target));
 	  } else {
-	    Printf(f_dependencies_file, "%s: ", outfile);
+	    Printf(f_dependencies_file, "%s: ", Swig_filename_escape_space(outfile));
 	  }
 	  List *files = Preprocessor_depend();
 	  List *phony_targets = NewList();
@@ -1154,7 +1154,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
                 use_file = 0;
             }
             if (use_file) {
-              Printf(f_dependencies_file, "\\\n  %s ", Getitem(files, i));
+              Printf(f_dependencies_file, "\\\n  %s ", Swig_filename_escape_space(Getitem(files, i)));
               if (depend_phony)
                 Append(phony_targets, Getitem(files, i));
             }
@@ -1162,7 +1162,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 	  Printf(f_dependencies_file, "\n");
 	  if (depend_phony) {
 	    for (int i = 0; i < Len(phony_targets); i++) {
-	      Printf(f_dependencies_file, "\n%s:\n", Getitem(phony_targets, i));
+	      Printf(f_dependencies_file, "\n%s:\n", Swig_filename_escape_space(Getitem(phony_targets, i)));
 	    }
 	  }
 

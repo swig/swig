@@ -112,5 +112,3 @@ namespace std {
 %define specialize_std_vector(T)
 #warning "specialize_std_vector - specialization for type T no longer needed"
 %enddef
-
-

@@ -10,14 +10,14 @@ for x in [cpp11_hash_tables.MapIntInt({1:7}),
 		  cpp11_hash_tables.UnorderedMultiMapIntInt({1:7})
          ]:
 
-	swig_assert_equal([(k, v) for k, v in x.iteritems()], [(1, 7)])
-	swig_assert_equal(x.keys(), [1])
-	swig_assert_equal(x.values(), [7])
-	swig_assert_equal(x.items(), [(1, 7)])
+	swig_assert_equal([(k, v) for k, v in x.items()], [(1, 7)])
+	swig_assert_equal(list(x.keys()), [1])
+	swig_assert_equal(list(x.values()), [7])
+	swig_assert_equal(list(x.items()), [(1, 7)])
 	swig_assert_equal([k for k in x], [1])
-	swig_assert_equal([i for i in x.iterkeys()], [1])
-	swig_assert_equal([i for i in x.itervalues()], [7])
-	swig_assert_equal([i for i in x.iteritems()], [(1, 7)])
+	swig_assert_equal([i for i in x.keys()], [1])
+	swig_assert_equal([i for i in x.values()], [7])
+	swig_assert_equal([i for i in x.items()], [(1, 7)])
 
 	swig_assert_equal(x[1], 7)
 	swig_assert_equal(2 in x, False)
@@ -33,7 +33,7 @@ for x in [cpp11_hash_tables.MapIntInt({1:7}),
 for x in [cpp11_hash_tables.MultiMapIntInt({1:7}),
 		  cpp11_hash_tables.UnorderedMultiMapIntInt({1:7})]:
 	x[1] = 9
-	swig_assert_equal(sorted([v for k, v in x.iteritems()]), [7, 9])
+	swig_assert_equal(sorted([v for k, v in x.items()]), [7, 9])
 	swig_assert_equal(len(x), 2)
 
 for x in [cpp11_hash_tables.SetInt([1]),

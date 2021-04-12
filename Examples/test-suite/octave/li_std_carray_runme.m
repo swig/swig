@@ -9,7 +9,7 @@ endfor
 i = 0;
 for d in v3,
   if (d != i)
-    error
+    error("failed");
   endif
   i = i + 1;
 endfor
@@ -29,7 +29,7 @@ for v3 in m3,
   j = 0;
   for d in v3,
     if (d != i + j)
-      error
+      error("failed");
     endif
     j = j + 1;
   endfor
@@ -39,7 +39,7 @@ endfor
 for i=0:len(m3),
   for j=0:len(m3),
     if (m3(i,j) != i + j)
-      error
+      error("failed");
     endif
   endfor
 endfor

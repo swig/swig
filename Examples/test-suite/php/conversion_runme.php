@@ -10,4 +10,3 @@ $foo=$bar->toFoo();
 check::classname("foo",$foo);
 
 check::done();
-?>

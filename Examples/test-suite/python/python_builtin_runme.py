@@ -32,7 +32,7 @@ if is_python_builtin():
   passed = False
   try:
     h = hash(ExceptionHashFunction())
-  except RuntimeError, e:
+  except RuntimeError as e:
     passed = str(e).find("oops") != -1
     pass
 

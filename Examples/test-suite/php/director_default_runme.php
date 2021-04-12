@@ -17,4 +17,3 @@ $f = new Bar();
 $f = new Bar(1);
 
 check::done();
-?>

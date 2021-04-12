@@ -10,4 +10,3 @@ $ibp=valuewrapper_base::make_interface_bp();
 check::classname("interface_bp",$ibp);
 
 check::done();
-?>

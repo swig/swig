@@ -1453,11 +1453,11 @@ int SwigType_type(const SwigType *t) {
     return T_DOUBLE;
   if (strcmp(c, "long double") == 0)
     return T_LONGDOUBLE;
-  if (!cparse_cplusplus && (strcmp(c, "float complex") == 0))
+  if (!cparse_cplusplus && (strcmp(c, "float _Complex") == 0))
     return T_FLTCPLX;
-  if (!cparse_cplusplus && (strcmp(c, "double complex") == 0))
+  if (!cparse_cplusplus && (strcmp(c, "double _Complex") == 0))
     return T_DBLCPLX;
-  if (!cparse_cplusplus && (strcmp(c, "complex") == 0))
+  if (!cparse_cplusplus && (strcmp(c, "_Complex") == 0))
     return T_COMPLEX;
   if (strcmp(c, "void") == 0)
     return T_VOID;

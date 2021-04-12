@@ -235,6 +235,8 @@ SWIGRUNTIMEINLINE char *
 SWIG_Ruby_MangleStr(VALUE obj)
 {
   VALUE stype = rb_iv_get(obj, "@__swigtype__");
+  if (NIL_P(stype))
+    return NULL;
   return StringValuePtr(stype);
 }
 

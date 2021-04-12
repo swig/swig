@@ -18,7 +18,7 @@ typedef int (*JSCIntializer)(JSGlobalContextRef context, JSObjectRef *module);
 
 public:
 
-  JSCShell() {};
+  JSCShell() { context = 0; };
 
   virtual ~JSCShell();
 

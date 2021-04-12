@@ -29,4 +29,3 @@ $c = $b->get();
 //check::equal($a->_cPtr, $c->_cPtr, "_cPtr check failed");
 
 check::done();
-?>

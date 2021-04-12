@@ -7,18 +7,18 @@ overload_extend_c
 
 f = overload_extend_c.Foo();
 if (f.test() != 0)
-    error
+    error("failed");
 endif
 if (f.test(3) != 1)
-    error
+    error("failed");
 endif
 if (f.test("hello") != 2)
-    error
+    error("failed");
 endif
 if (f.test(3,2) != 5)
-    error
+    error("failed");
 endif
 if (f.test(3.1)-.1 != 1003) # :)
-    error
+    error("failed");
 endif
 

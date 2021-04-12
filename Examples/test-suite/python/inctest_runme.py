@@ -1,31 +1,21 @@
 import inctest
 
-error = 0
 try:
     a = inctest.A()
 except:
-    print "didn't find A"
-    print "therefore, I didn't include 'testdir/subdir1/hello.i'"
-    error = 1
+    raise RuntimeError("didn't find A, therefore, I didn't include 'testdir/subdir1/hello.i'")
 pass
 
 
 try:
     b = inctest.B()
 except:
-    print "didn't find B"
-    print "therefore, I didn't include 'testdir/subdir2/hello.i'"
-    error = 1
+    raise RuntimeError("didn't find B, therefore, I didn't include 'testdir/subdir2/hello.i'")
 pass
-
-if error == 1:
-    raise RuntimeError
 
 # Check the import in subdirectory worked
 if inctest.importtest1(5) != 15:
-    print "import test 1 failed"
-    raise RuntimeError
+    raise RuntimeError("import test 1 failed")
 
 if inctest.importtest2("black") != "white":
-    print "import test 2 failed"
-    raise RuntimeError
+    raise RuntimeError("import test 2 failed")

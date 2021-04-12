@@ -5,24 +5,24 @@
 
 import example
 
-print "Creating some objects:"
+print("Creating some objects:")
 c = example.MakeCircle(10)
-print "    Created circle", c
+print("    Created circle %s" % c)
 s = example.MakeSquare(10)
-print "    Created square", s
+print("    Created square %s" % s)
 r = example.MakeRectangleInt(10, 20)
-print "    Created rectangle", r
+print("    Created rectangle %s" % r)
 
-print "\nHere are some properties of the shapes:"
+print("\nHere are some properties of the shapes:")
 for o in [c, s, r]:
-    print "   ", o
-    print "        area      = ", o.area()
-    print "        perimeter = ", o.perimeter()
+    print("    %s" % o)
+    print("        area      = %s" % o.area())
+    print("        perimeter = %s" % o.perimeter())
 
-print "\nRunning pydoc, this is the equivalent to executing: pydoc -w ./example.py"
+print("\nRunning pydoc, this is the equivalent to executing: pydoc -w ./example.py")
 
 import pydoc
 
 pydoc.writedoc("example")
 
-print "Open example.html in your browser to view the generated python docs"
+print("Open example.html in your browser to view the generated python docs")

@@ -2,22 +2,24 @@
 
 import example
 
-print "ICONST  =", example.ICONST, "(should be 42)"
-print "FCONST  =", example.FCONST, "(should be 2.1828)"
-print "CCONST  =", example.CCONST, "(should be 'x')"
-print "CCONST2 =", example.CCONST2, "(this should be on a new line)"
-print "SCONST  =", example.SCONST, "(should be 'Hello World')"
-print "SCONST2 =", example.SCONST2, "(should be '\"Hello World\"')"
-print "EXPR    =", example.EXPR, "(should be 48.5484)"
-print "iconst  =", example.iconst, "(should be 37)"
-print "fconst  =", example.fconst, "(should be 3.14)"
+print("ICONST  = %s (should be 42)" % example.ICONST)
+print("FCONST  = %s (should be 2.1828)" % example.FCONST)
+print("CCONST  = %s (should be 'x')" % example.CCONST)
+print("CCONST2 = %s (this should be on a new line)" % example.CCONST2)
+print("SCONST  = %s (should be 'Hello World')" % example.SCONST)
+print("SCONST2 = %s (should be '\"Hello World\"')" % example.SCONST2)
+print("EXPR    = %s (should be 48.5484)" % example.EXPR)
+print("iconst  = %s (should be 37)" % example.iconst)
+print("fconst  = %s (should be 3.14)" % example.fconst)
 
 try:
-    print "EXTERN = ", example.EXTERN, "(Arg! This shouldn't print anything)"
+    x = example.EXTERN
+    print("%s (Arg! This shouldn't print anything)" % x)
 except AttributeError:
-    print "EXTERN isn't defined (good)"
+    print("EXTERN isn't defined (good)")
 
 try:
-    print "FOO    = ", example.FOO, "(Arg! This shouldn't print anything)"
+    x = example.FOO
+    print("%s (Arg! This shouldn't print anything)" % x)
 except AttributeError:
-    print "FOO isn't defined (good)"
+    print("FOO isn't defined (good)")

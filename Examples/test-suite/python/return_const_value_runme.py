@@ -3,10 +3,8 @@ import sys
 
 p = return_const_value.Foo_ptr_getPtr()
 if (p.getVal() != 17):
-    print "Runtime test1 failed. p.getVal()=", p.getVal()
-    sys.exit(1)
+    raise RuntimeError("Runtime test1 failed. p.getVal()={}".format(p.getVal()))
 
 p = return_const_value.Foo_ptr_getConstPtr()
 if (p.getVal() != 17):
-    print "Runtime test2 failed. p.getVal()=", p.getVal()
-    sys.exit(1)
+    raise RuntimeError("Runtime test2 failed. p.getVal()={}".format(p.getVal()))

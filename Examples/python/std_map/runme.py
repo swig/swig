@@ -11,45 +11,45 @@ dmap = {}
 dmap["hello"] = 1.0
 dmap["hi"] = 2.0
 
-print dmap.items()
-print dmap.keys()
-print dmap.values()
+print(list(dmap.items()))
+print(list(dmap.keys()))
+print(list(dmap.values()))
 
-print dmap
+print(dmap)
 hmap = example.halfd(dmap)
 dmap = hmap
 
-print dmap
-for i in dmap.iterkeys():
-    print "key", i
+print(dmap)
+for i in dmap.keys():
+    print("key %s" % i)
 
-for i in dmap.itervalues():
-    print "val", i
+for i in dmap.values():
+    print("val %s" % i)
 
-for k, v in dmap.iteritems():
-    print "item", k, v
+for k, v in dmap.items():
+    print("item %s %s" % (k, v))
 
 dmap = example.DoubleMap()
 dmap["hello"] = 1.0
 dmap["hi"] = 2.0
 
-for i in dmap.iterkeys():
-    print "key", i
+for i in dmap.keys():
+    print("key %s" % i)
 
-for i in dmap.itervalues():
-    print "val", i
+for i in dmap.values():
+    print("val %s" % i)
 
-for k, v in dmap.iteritems():
-    print "item", k, v
+for k, v in dmap.items():
+    print("item %s %s" % (k, v))
 
 
-print dmap.items()
-print dmap.keys()
-print dmap.values()
+print(list(dmap.items()))
+print(list(dmap.keys()))
+print(list(dmap.values()))
 
 hmap = example.halfd(dmap)
-print hmap.keys()
-print hmap.values()
+print(list(hmap.keys()))
+print(list(hmap.values()))
 
 
 dmap = {}
@@ -57,23 +57,23 @@ dmap["hello"] = 2
 dmap["hi"] = 4
 
 hmap = example.halfi(dmap)
-print hmap
-print hmap.keys()
-print hmap.values()
+print(hmap)
+print(list(hmap.keys()))
+print(list(hmap.values()))
 
 
 dmap = hmap
 
-for i in dmap.iterkeys():
-    print "key", i
+for i in dmap.keys():
+    print("key %s" % i)
 
-for i in dmap.itervalues():
-    print "val", i
+for i in dmap.values():
+    print("val %s" % i)
 
-for i in dmap.iteritems():
-    print "item", i
+for i in dmap.items():
+    print("item %s" % str(i))
 
-for k, v in dmap.iteritems():
-    print "item", k, v
+for k, v in dmap.items():
+    print("item %s %s" % (k, v))
 
-print dmap
+print(dmap)

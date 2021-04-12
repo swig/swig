@@ -13,10 +13,10 @@ class MyFoo(director_abstract.Foo):
 a = MyFoo()
 
 if a.ping() != "MyFoo::ping()":
-    raise RuntimeError, a.ping()
+    raise RuntimeError(a.ping())
 
 if a.pong() != "Foo::pong();MyFoo::ping()":
-    raise RuntimeError, a.pong()
+    raise RuntimeError(a.pong())
 
 
 class MyExample1(director_abstract.Example1):

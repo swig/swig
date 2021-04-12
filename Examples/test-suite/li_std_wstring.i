@@ -70,6 +70,11 @@ size_t size_wstring(const std::wstring& s) {
   return s.size();
 }
 
+struct wchar_test_struct {
+  wchar_t wchar_t_member;
+  wchar_t* wchar_t_ptr_member;
+};
+
 %}
 
 #endif

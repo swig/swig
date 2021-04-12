@@ -35,7 +35,7 @@ namespace std {
 
         map();
         map(const map& other);
-        
+
         unsigned int size() const;
         void clear();
         %extend {

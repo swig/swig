@@ -13,4 +13,3 @@ do_blah($bar);
 check::classparent($bar,"");
 
 check::done();
-?>

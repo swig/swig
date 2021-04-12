@@ -114,22 +114,22 @@ else:
     try:
         res = base1 < 42
         raise RuntimeError("Failed to throw")
-    except TypeError,e:
+    except TypeError as e:
         check_unorderable_types(e)
     try:
         res = base1 <= 42
         raise RuntimeError("Failed to throw")
-    except TypeError,e:
+    except TypeError as e:
         check_unorderable_types(e)
     try:
         res = base1 > 42
         raise RuntimeError("Failed to throw")
-    except TypeError,e:
+    except TypeError as e:
         check_unorderable_types(e)
     try:
         res = base1 >= 42
         raise RuntimeError("Failed to throw")
-    except TypeError,e:
+    except TypeError as e:
         check_unorderable_types(e)
 
 # Check inequalities used for ordering

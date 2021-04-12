@@ -7,34 +7,33 @@ cube = (((1, 2), (3, 4)), ((5, 6), (7, 8)))
 icube = std_containers.cident(cube)
 for i in range(0, len(cube)):
     if cube[i] != icube[i]:
-        raise RuntimeError, "bad cident"
+        raise RuntimeError("bad cident")
 
 
 p = (1, 2)
 if p != std_containers.pident(p):
-    raise RuntimeError, "bad pident"
+    raise RuntimeError("bad pident")
 
 v = (1, 2, 3, 4, 5, 6)
 iv = std_containers.vident(v)
 for i in range(0, len(v)):
     if v[i] != iv[i]:
-        raise RuntimeError, "bad vident"
+        raise RuntimeError("bad vident")
 
 
 iv = std_containers.videntu(v)
 for i in range(0, len(v)):
     if v[i] != iv[i]:
-        raise RuntimeError, "bad videntu"
+        raise RuntimeError("bad videntu")
 
 
 vu = std_containers.vector_ui(v)
 if vu[2] != std_containers.videntu(vu)[2]:
-    raise RuntimeError, "bad videntu"
+    raise RuntimeError("bad videntu")
 
 
 if v[0:3][1] != vu[0:3][1]:
-    print v[0:3][1], vu[0:3][1]
-    raise RuntimeError, "bad getslice"
+    raise RuntimeError("bad getslice {} {}".format(v[0:3][1], vu[0:3][1]))
 
 
 m = ((1, 2, 3), (2, 3), (3, 4))
@@ -43,20 +42,20 @@ im = std_containers.midenti(m)
 for i in range(0, len(m)):
     for j in range(0, len(m[i])):
         if m[i][j] != im[i][j]:
-            raise RuntimeError, "bad getslice"
+            raise RuntimeError("bad getslice")
 
 m = ((True, False, True), (True, True), (True, True))
 im = std_containers.midentb(m)
 for i in range(0, len(m)):
     for j in range(0, len(m[i])):
         if m[i][j] != im[i][j]:
-            raise RuntimeError, "bad getslice"
+            raise RuntimeError("bad getslice")
 
 
 mi = std_containers.imatrix(m)
 mc = std_containers.cmatrix(m)
 if mi[0][1] != mc[0][1]:
-    raise RuntimeError, "bad matrix"
+    raise RuntimeError("bad matrix")
 
 
 map = {}
@@ -67,7 +66,7 @@ map["3"] = 2
 imap = std_containers.mapident(map)
 for k in map:
     if map[k] != imap[k]:
-        raise RuntimeError, "bad map"
+        raise RuntimeError("bad map")
 
 # Test __contains__ (required for 'x in y' to work)
 if not imap.__contains__("hello"):

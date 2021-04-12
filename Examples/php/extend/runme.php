@@ -72,5 +72,3 @@ print "----------------------\n";
 # All done.
 
 print "php exit\n";
-
-?>

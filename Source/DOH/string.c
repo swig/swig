@@ -836,7 +836,9 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
 	  memmove(t, s, (str->str + str->len) - s + 1);
 	}
       } else {
-	t += (c - s);
+	if (c) {
+	  t += (c - s);
+	}
       }
       s = c;
       ic--;

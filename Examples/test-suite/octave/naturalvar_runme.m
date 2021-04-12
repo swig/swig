@@ -14,6 +14,6 @@ cvar.s = "hello";
 b.s = "hello";
 
 if (b.s != cvar.s)
-    error
+    error("failed");
 endif
 

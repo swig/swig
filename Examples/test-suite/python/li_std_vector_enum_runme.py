@@ -14,7 +14,7 @@ check(ev.nums[2], 30)
 it = ev.nums.iterator()
 v = it.value()
 check(v, 10)
-it.next()
+next(it)
 v = it.value()
 check(v, 20)
 

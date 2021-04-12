@@ -22,7 +22,7 @@
 %rename (newname) Space::Base::oldname(double d) const;
 
 /* Rename derived class method only */
-%rename (Xfunc) Space::Derived::fn(Base baseValue, Base* basePtr, Base& baseRef);
+%rename (Xfunc) Space::Derived::fn1(Base baseValue, Base* basePtr, Base& baseRef);
 
 %inline %{
 class Bar {
@@ -43,14 +43,14 @@ class Base {
 public: 
   Base(){}; 
   virtual ~Base(){};
-  void fn(Base baseValue, Base* basePtr, Base& baseRef){}
+  void fn1(Base baseValue, Base* basePtr, Base& baseRef){}
   virtual const char * oldname(double d) const { return "Base"; }
 };
 class Derived : public Base {
 public:
   Derived(){}
   ~Derived(){}
-  void fn(Base baseValue, Base* basePtr, Base& baseRef){}
+  void fn1(Base baseValue, Base* basePtr, Base& baseRef){}
   virtual const char * oldname(double d) const { return "Derived"; }
 };
 }

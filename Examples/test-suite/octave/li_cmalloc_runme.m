@@ -17,6 +17,6 @@ catch
 end_try_catch
 
 if (ok != 1)
-    error
+    error("failed");
 endif
 

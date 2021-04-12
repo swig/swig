@@ -175,7 +175,7 @@ This will only appear in LATeX
 
 
 
-someMember Some description follows
+someMember Some description follows with text after
 
 
 

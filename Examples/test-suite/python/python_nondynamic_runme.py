@@ -51,9 +51,7 @@ if python_nondynamic.retrieve_A_b(bb) != 5: raise RuntimeError("b not set correc
 
 try:
     bb.c = 3
-    print("bb.c = {}".format(bb.c))
-    print("B.c = {}".format(B.c))
-    raise RuntimeError("B.c class variable messes up nondynamic-ness of B")
+    raise RuntimeError("B.c class variable messes up nondynamic-ness of B bb.c={} B.c={}".format(bb.c, B.c))
 except AttributeError as e:
     debug_print(e)
     pass
@@ -99,9 +97,7 @@ if is_python_modern() and not python_nondynamic.is_python_builtin():
 if not python_nondynamic.is_python_builtin():
     try:
         bb.cc = 3
-        print("bb.cc = {}".format(bb.cc))
-        print("B.cc = {}".format(B.cc))
-        raise RuntimeError("B.cc class variable messes up nondynamic-ness of B")
+        raise RuntimeError("B.cc class variable messes up nondynamic-ness of B bb.cc={} B.cc={}".format(bb.cc, B.cc))
     except AttributeError as e:
         debug_print(e)
         pass

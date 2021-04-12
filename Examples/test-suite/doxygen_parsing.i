@@ -29,6 +29,7 @@ enum SomeEnum
  */
 struct SomeStruct
 {
+   int width; ///< \**immutable** image width in pixels
 };
 
 /**

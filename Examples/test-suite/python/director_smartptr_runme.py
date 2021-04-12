@@ -31,7 +31,7 @@ class director_smartptr_MyBarFooDerived(FooDerived):
 
 def check(got, expected):
   if (got != expected):
-    raise RuntimeError, "Failed, got: " + got + " expected: " + expected
+    raise RuntimeError("Failed, got: " + got + " expected: " + expected)
 
 fooBar = FooBar()
 

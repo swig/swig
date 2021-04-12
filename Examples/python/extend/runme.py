@@ -21,9 +21,9 @@ class CEO(example.Manager):
 # the director wrappers to call CEO.getPosition.
 
 e = CEO("Alice")
-print e.getName(), "is a", e.getPosition()
-print "Just call her \"%s\"" % e.getTitle()
-print "----------------------"
+print("%s is a %s" % (e.getName(), e.getPosition()))
+print("Just call her \"%s\"" % e.getTitle())
+print("----------------------")
 
 
 # Create a new EmployeeList instance.  This class does not have a C++
@@ -40,7 +40,7 @@ list = example.EmployeeList()
 
 e = e.__disown__()
 list.addEmployee(e)
-print "----------------------"
+print("----------------------")
 
 # Now we access the first four items in list (three are C++ objects that
 # EmployeeList's constructor adds, the last is our CEO). The virtual
@@ -59,13 +59,13 @@ print "----------------------"
 # passes down through the C++ director class to the Python implementation
 # in CEO. All this routing takes place transparently.
 
-print "(position, title) for items 0-3:"
+print("(position, title) for items 0-3:")
 
-print "  %s, \"%s\"" % (list.get_item(0).getPosition(), list.get_item(0).getTitle())
-print "  %s, \"%s\"" % (list.get_item(1).getPosition(), list.get_item(1).getTitle())
-print "  %s, \"%s\"" % (list.get_item(2).getPosition(), list.get_item(2).getTitle())
-print "  %s, \"%s\"" % (list.get_item(3).getPosition(), list.get_item(3).getTitle())
-print "----------------------"
+print("  %s, \"%s\"" % (list.get_item(0).getPosition(), list.get_item(0).getTitle()))
+print("  %s, \"%s\"" % (list.get_item(1).getPosition(), list.get_item(1).getTitle()))
+print("  %s, \"%s\"" % (list.get_item(2).getPosition(), list.get_item(2).getTitle()))
+print("  %s, \"%s\"" % (list.get_item(3).getPosition(), list.get_item(3).getTitle()))
+print("----------------------")
 
 # Time to delete the EmployeeList, which will delete all the Employee*
 # items it contains. The last item is our CEO, which gets destroyed as its
@@ -75,8 +75,8 @@ print "----------------------"
 # usual to destroy the object.
 
 del list
-print "----------------------"
+print("----------------------")
 
 # All done.
 
-print "python exit"
+print("python exit")

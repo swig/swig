@@ -567,6 +567,10 @@ public:
     Wrapper *f = NewWrapper();
     Octave_begin_function(n, f->def, iname, overname, !overloaded);
 
+    // Start default try block to execute
+    // cleanup code if exception is thrown
+    Printf(f->code, "try {\n");
+
     emit_parameter_variables(l, f);
     emit_attach_parmmaps(l, f);
     Setattr(n, "wrap:parms", l);
@@ -754,9 +758,20 @@ public:
     }
 
     Printf(f->code, "return _out;\n");
-    Printf(f->code, "fail:\n");	// we should free locals etc if this happens
+
+    // Execute cleanup code if branched to fail: label
+    Printf(f->code, "fail:\n");
     Printv(f->code, cleanup, NIL);
     Printf(f->code, "return octave_value_list();\n");
+
+    // Execute cleanup code if exception was thrown
+    Printf(f->code, "}\n");
+    Printf(f->code, "catch(...) {\n");
+    Printv(f->code, cleanup, NIL);
+    Printf(f->code, "throw;\n");
+    Printf(f->code, "}\n");
+
+    // End wrapper function
     Printf(f->code, "}\n");
 
     /* Substitute the cleanup code */
@@ -830,7 +845,7 @@ public:
     String *setwname = Swig_name_wrapper(setname);
 
     Octave_begin_function(n, setf->def, setname, setwname, true);
-    Printf(setf->def, "if (!SWIG_check_num_args(\"%s_set\",args.length(),1,1,0)) return octave_value_list();", iname);
+    Printf(setf->code, "if (!SWIG_check_num_args(\"%s_set\",args.length(),1,1,0)) return octave_value_list();", iname);
     if (is_assignable(n)) {
       Setattr(n, "wrap:name", setname);
       if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
@@ -845,8 +860,9 @@ public:
       } else {
         Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(t, 0));
       }
+      Append(setf->code, "return octave_value_list();\n");
       Append(setf->code, "fail:\n");
-      Printf(setf->code, "return octave_value_list();\n");
+      Append(setf->code, "return octave_value_list();\n");
     } else {
       Printf(setf->code, "return octave_set_immutable(args,nargout);");
     }
@@ -866,10 +882,10 @@ public:
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, "Unable to read variable of type %s\n", SwigType_str(t, 0));
     }
-    Append(getf->code, "  return obj;\n");
+    Append(getf->code, "return obj;\n");
     if (addfail) {
       Append(getf->code, "fail:\n");
-      Append(getf->code, "  return octave_value_list();\n");
+      Append(getf->code, "return octave_value_list();\n");
     }
     Append(getf->code, "}\n");
     Wrapper_print(getf, f_wrappers);

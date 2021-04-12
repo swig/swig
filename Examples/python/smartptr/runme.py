@@ -7,17 +7,17 @@ import example
 
 # ----- Object creation -----
 
-print "Creating some objects:"
+print("Creating some objects:")
 cc = example.Circle(10)
 c = example.ShapePtr(cc)
-print "    Created circle", c
+print("    Created circle %s" % c)
 ss = example.Square(10)
 s = example.ShapePtr(ss)
-print "    Created square", s
+print("    Created square %s" % s)
 
 # ----- Access a static member -----
 
-print "\nA total of", example.cvar.Shape_nshapes, "shapes were created"
+print("\nA total of %s shapes were created" % example.cvar.Shape_nshapes)
 
 # ----- Member data access -----
 
@@ -29,19 +29,19 @@ c.y = 30
 s.x = -10
 s.y = 5
 
-print "\nHere is their current position:"
-print "    Circle = (%f, %f)" % (c.x, c.y)
-print "    Square = (%f, %f)" % (s.x, s.y)
+print("\nHere is their current position:")
+print("    Circle = (%f, %f)" % (c.x, c.y))
+print("    Square = (%f, %f)" % (s.x, s.y))
 
 # ----- Call some methods -----
 
-print "\nHere are some properties of the shapes:"
+print("\nHere are some properties of the shapes:")
 for o in [c, s]:
-    print "   ", o
-    print "        area      = ", o.area()
-    print "        perimeter = ", o.perimeter()
+    print("    %s" % o)
+    print("        area      = %s" % o.area())
+    print("        perimeter = %s" % o.perimeter())
 
-print "\nGuess I'll clean up now"
+print("\nGuess I'll clean up now")
 
 # Note: this invokes the virtual destructor
 del c
@@ -50,5 +50,5 @@ del cc
 del ss
 
 s = 3
-print example.cvar.Shape_nshapes, "shapes remain"
-print "Goodbye"
+print("%d shapes remain" % example.cvar.Shape_nshapes)
+print("Goodbye")

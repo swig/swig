@@ -117,27 +117,25 @@ SWIGRUNTIME int SWIG_JSC_ConvertInstancePtr(JSContextRef context, JSObjectRef ob
   SwigPrivData *cdata;
 
   cdata = (SwigPrivData *) JSObjectGetPrivate(objRef);
-  if(cdata == NULL) {
+  if (cdata == NULL) {
     return SWIG_ERROR;
   }
-  if(cdata->info != info) {
-    bool type_valid = false;
-    swig_cast_info *t = info->cast;
-    while(t != NULL) {
-      if(t->type == cdata->info) {
-        type_valid = true;
-        break;
-      }
-      t = t->next;
-    }
-    if(!type_valid) {
-      return SWIG_TypeError;
+  assert(ptr);
+  *ptr = NULL;
+  if (cdata->info == info) {
+    *ptr = cdata->swigCObject;
+  } else {
+    swig_cast_info *tc = SWIG_TypeCheckStruct(cdata->info, info);
+    if (tc) {
+      int newmemory = 0;
+      *ptr = SWIG_TypeCast(tc, cdata->swigCObject, &newmemory);
+      assert(!newmemory); /* newmemory handling not yet implemented */
+    } else {
+      return SWIG_ERROR;
     }
   }
 
-  *ptr = cdata->swigCObject;
-
-  if(flags & SWIG_POINTER_DISOWN) {
+  if (flags & SWIG_POINTER_DISOWN) {
     cdata->swigCMemOwn = false;
   }
 
@@ -318,12 +316,38 @@ unsigned int SWIGJSC_ArrayLength(JSContextRef context, JSObjectRef arr) {
 }
 
 SWIGRUNTIME
+bool SWIGJSC_ValueIsArray(JSContextRef context, JSValueRef value) {
+  if (JSValueIsObject(context, value)) {
+    static JSStringRef ArrayString = NULL;
+    static JSStringRef isArrayString = NULL;
+    JSObjectRef array = NULL;
+    JSObjectRef isArray = NULL;
+    JSValueRef retval = NULL;
+
+    if (!ArrayString)
+      ArrayString = JSStringCreateWithUTF8CString("Array");
+    if (!isArrayString)
+      isArrayString = JSStringCreateWithUTF8CString("isArray");
+
+    array = (JSObjectRef)JSObjectGetProperty(context, JSContextGetGlobalObject(context), ArrayString, NULL);
+    isArray = (JSObjectRef)JSObjectGetProperty(context, array, isArrayString, NULL);
+    retval = JSObjectCallAsFunction(context, isArray, NULL, 1, &value, NULL);
+
+    if (JSValueIsBoolean(context, retval))
+      return JSValueToBoolean(context, retval);
+  }
+  return false;
+}
+
+SWIGRUNTIME
 JSValueRef SWIGJSC_AppendOutput(JSContextRef context, JSValueRef value, JSValueRef obj) {
   JSObjectRef arr;
   unsigned int length;
 
   if (JSValueIsUndefined(context, value)) {
     arr = JSObjectMakeArray(context, 0, 0, 0);
+  } else if (!SWIGJSC_ValueIsArray(context, value)) {
+    arr = JSObjectMakeArray(context, 1, &value, 0);
   } else {
     arr = JSValueToObject(context, value, 0);
   }

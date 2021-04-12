@@ -56,5 +56,3 @@ $o = NULL;
 
 print Shape::nshapes() . " shapes remain\n";
 print "Goodbye\n";
-
-?>

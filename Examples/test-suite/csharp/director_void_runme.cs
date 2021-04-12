@@ -67,6 +67,12 @@ public class runme
       if (x != 1334)
         throw new Exception("Bad4 should be 1334, got " + x);
     }
+    {
+      MemberVoid mv = new MemberVoid();
+      global::System.IntPtr zero = global::System.IntPtr.Zero;
+      mv.memberVariable = zero;
+      zero = mv.memberVariable;
+    }
   }
 }
 

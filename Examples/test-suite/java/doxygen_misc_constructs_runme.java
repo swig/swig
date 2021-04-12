@@ -185,6 +185,12 @@ public class doxygen_misc_constructs_runme {
                 "\n" +
                 " @param fileName name of the log file\n");
 
+    wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.doc_ends_with_quote()",
+            "This doc comment ends with a quote: \"and that's ok\"");
+
+    wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.doc_with_triple_quotes()",
+            "This comment contains embedded triple-quoted string:\n" +
+            "\"\"\"How quaint\"\"\"");
 
     // and ask the parser to check comments for us
     System.exit(CommentParser.check(wantedComments));

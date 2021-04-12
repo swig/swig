@@ -10,7 +10,7 @@ p = new_intp();
 intp_assign(p,3);
 
 if (intp_value(p) != 3)
-    error
+    error("failed");
 endif
 
 delete_intp(p);

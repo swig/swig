@@ -13,8 +13,8 @@ funcptr
 funcptr2
 functor
 import
-import_template
 import_packages
+import_template
 #libffi
 multimap
 operator
@@ -22,8 +22,8 @@ pointer
 reference
 simple
 smartptr
-std_vector
 std_map
+std_vector
 template
 varargs
 variables

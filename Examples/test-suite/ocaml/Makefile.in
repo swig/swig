@@ -20,6 +20,7 @@ apply_strings \
 cpp_enum \
 default_constructor \
 director_binary_string \
+director_comparison_operators \
 director_enum \
 director_primitives \
 director_redefined \
@@ -101,6 +102,10 @@ $(MULTI_CPP_TEST_CASES:=.multicpptest): extra_objects
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' ocaml_clean
-	rm -f clientdata_prop_a.ml clientdata_prop_b.ml import_stl_a.ml import_stl_b.ml
-	rm -f imports_a.ml imports_b.ml mod_a.ml mod_b.ml multi_import_a.ml
-	rm -f multi_import_b.ml packageoption_a.ml packageoption_b.ml packageoption_c.ml
+	rm -f clientdata_prop_a.ml clientdata_prop_b.ml
+	rm -f import_stl_a.ml import_stl_b.ml
+	rm -f imports_a.ml imports_b.ml
+	rm -f mod_a.ml mod_b.ml
+	rm -f multi_import_a.ml multi_import_b.ml
+	rm -f packageoption_a.ml packageoption_b.ml packageoption_c.ml
+	rm -f template_typedef_cplx2.ml

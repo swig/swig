@@ -16,4 +16,3 @@ $s = $foo->abs_method();
 check::equal($s, "Bravo::abs_method()", "s failed");
 
 check::done();
-?>

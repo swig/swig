@@ -224,7 +224,7 @@
   #if #AccessorMethod != ""
     %attribute_custom(%arg(Class), %arg(AttributeType), AttributeName, AccessorMethod, AccessorMethod, &self_->AccessorMethod(), self_->AccessorMethod() = *val_)
   #else
-    %attribute_custom(%arg(Class), %arg(AttributeType), AccessorName, AccessorName, AccessorName, &self_->AccessorName(), self_->AccessorName() = *val_)
+    %attribute_custom(%arg(Class), %arg(AttributeType), AttributeName, AttributeName, AttributeName, &self_->AttributeName(), self_->AttributeName() = *val_)
   #endif
 %enddef
 

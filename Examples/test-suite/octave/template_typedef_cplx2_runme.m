@@ -15,7 +15,7 @@ end_try_catch
 if (strfind('ArithUnaryFunction',swig_type(d)) != 1)
   d
   error("is not an ArithUnaryFunction")
-  error
+  error("failed");
 endif
 
 try
@@ -77,7 +77,7 @@ end_try_catch
 if (strfind('ArithUnaryFunction',swig_type(g)) != 1)
   g
   error("is not an ArithUnaryFunction")
-  error
+  error("failed");
 endif
 
 
@@ -98,6 +98,6 @@ try
   a = g.get_value();
 catch
   error(g, "has not get_value() method")
-  error
+  error("failed");
 end_try_catch
 

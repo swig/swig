@@ -21,4 +21,3 @@ check::equal($m->dummy(), 666, "1st call");
 check::equal($m->dummy(), 666, "2st call"); // Locked system
 
 check::done();
-?>

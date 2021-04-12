@@ -31,4 +31,3 @@ $b->call_process_func();
 check::equal($b->smem, "hello", "smem failed");
 
 check::done();
-?>

@@ -73,7 +73,7 @@
 	int res = SWIG_AddCast(SWIG_AsVal(float)(ov, &d));
 	if (SWIG_IsOK(res)) {
 	  if (val)
-	    *val = Constructor(d, 0.0);
+	    *val = Constructor(d, 0.0f);
 	  return res;
 	}
       }

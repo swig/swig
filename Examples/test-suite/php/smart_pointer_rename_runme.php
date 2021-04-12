@@ -24,4 +24,3 @@ check::equal(3,$bar->test(),"bar->test");
 check::classname("foo",$bar->__deref__());
 
 check::done();
-?>

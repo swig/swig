@@ -126,3 +126,21 @@ struct Extending2 {};
 struct ExtendingOptArgs1 {};
 struct ExtendingOptArgs2 {};
 %}
+
+// Varargs
+%warnfilter(SWIGWARN_LANG_VARARGS_KEYWORD) VarargConstructor::VarargConstructor; // Can't wrap varargs with keyword arguments enabled
+%warnfilter(SWIGWARN_LANG_VARARGS_KEYWORD) VarargConstructor::vararg_method; // Can't wrap varargs with keyword arguments enabled
+%inline %{
+struct VarargConstructor {
+  char *str;
+  VarargConstructor(const char *fmt, ...) {
+    str = new char[strlen(fmt) + 1];
+    strcpy(str, fmt);
+  }
+  void vararg_method(const char *fmt, ...) {
+    delete [] str;
+    str = new char[strlen(fmt) + 1];
+    strcpy(str, fmt);
+  }
+};
+%}

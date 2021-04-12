@@ -16,5 +16,4 @@ c = b.get()
 
 
 if not (a.this == c.this):
-    print a, c
-    raise RuntimeError
+    raise RuntimeError("{} {}".format(a, c))

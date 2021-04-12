@@ -1,14 +1,13 @@
 import li_std_wstring_inherit
 import sys
 
-x = u"hello"
+x = "hello"
 
-s = li_std_wstring_inherit.wstring(u"he")
-s = s + u"llo"
+s = li_std_wstring_inherit.wstring("he")
+s = s + "llo"
 
 if s != x:
-    print s, x
-    raise RuntimeError("bad string mapping")
+    raise RuntimeError("bad string mapping {} {}".format(s, x))
 
 if s[1:4] != x[1:4]:
     raise RuntimeError("bad string mapping")
@@ -34,12 +33,12 @@ if not li_std_wstring_inherit.is_python_builtin():
 
 b = li_std_wstring_inherit.B("hi")
 
-b.name = li_std_wstring_inherit.wstring(u"hello")
+b.name = li_std_wstring_inherit.wstring("hello")
 if b.name != "hello":
     raise RuntimeError("bad string mapping")
 
 
 b.a = li_std_wstring_inherit.A("hello")
-if b.a != u"hello":
+if b.a != "hello":
     raise RuntimeError("bad string mapping")
 

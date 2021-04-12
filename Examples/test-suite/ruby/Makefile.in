@@ -84,6 +84,8 @@ ruby_naming.cpptest: SWIGOPT += -autorename
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(RUBY) $(RUBYFLAGS) -I$(srcdir):. $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	elif [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*.so ] ; then \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(RUBY) $(RUBYFLAGS) -I$(srcdir):. -r$(SCRIPTDIR)/$(SCRIPTPREFIX)$*.so -e '' ; \
 	fi
 
 # Clean

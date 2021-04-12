@@ -6,7 +6,7 @@
 
 seconds=0
 minutes=0
-brew install $1 &
+brew install "$@" &
 while true; do
   ps -p$! 2>& 1>/dev/null
   if [ $? = 0 ]; then

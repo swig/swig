@@ -9,36 +9,35 @@ a = A()
 
 try:
     a.foo()
-except E1, e:
+except E1 as e:
     pass
 except:
-    raise RuntimeError, "bad exception order"
+    raise RuntimeError("bad exception order")
 
 try:
     a.bar()
-except E2, e:
+except E2 as e:
     pass
 except:
-    raise RuntimeError, "bad exception order"
+    raise RuntimeError("bad exception order")
 
 try:
     a.foobar()
-except RuntimeError, e:
+except RuntimeError as e:
     if e.args[0] != "postcatch unknown":
-        print "bad exception order",
-        raise RuntimeError, e.args
+        raise RuntimeError("bad exception order {}".format(e.args))
 
 
 try:
     a.barfoo(1)
-except E1, e:
+except E1 as e:
     pass
 except:
-    raise RuntimeError, "bad exception order"
+    raise RuntimeError("bad exception order")
 
 try:
     a.barfoo(2)
-except E2, e:
+except E2 as e:
     pass
 except:
-    raise RuntimeError, "bad exception order"
+    raise RuntimeError("bad exception order")

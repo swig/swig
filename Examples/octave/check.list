@@ -8,8 +8,8 @@ extend
 funcptr
 funcptr2
 functor
-operator
 module_load
+operator
 pointer
 reference
 simple

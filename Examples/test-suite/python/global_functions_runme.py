@@ -11,7 +11,7 @@ check(global_two(2, 2), 4)
 fail = True
 try:
     global_void(1)
-except TypeError, e:
+except TypeError as e:
     fail = False
 if fail:
     raise RuntimeError("argument count check failed")
@@ -19,7 +19,7 @@ if fail:
 fail = True
 try:
     global_one()
-except TypeError, e:
+except TypeError as e:
     fail = False
 if fail:
     raise RuntimeError("argument count check failed")
@@ -27,7 +27,7 @@ if fail:
 fail = True
 try:
     global_one(2, 2)
-except TypeError, e:
+except TypeError as e:
     fail = False
 
 if fail:
@@ -36,7 +36,7 @@ if fail:
 fail = True
 try:
     global_two(1)
-except TypeError, e:
+except TypeError as e:
     fail = False
 
 if fail:
@@ -45,7 +45,7 @@ if fail:
 fail = True
 try:
     global_two(3, 3, 3)
-except TypeError, e:
+except TypeError as e:
     fail = False
 
 if fail:

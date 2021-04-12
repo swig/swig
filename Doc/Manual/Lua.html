@@ -145,7 +145,7 @@ The <tt>-elua</tt> option puts all the C function wrappers and variable get/set 
 The following table list the additional commandline options available for the Lua module. They can also be seen by using: 
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 swig -lua -help 
 </pre></div>
 
@@ -747,7 +747,8 @@ Stout
 <p>
 Class data members are accessed in the same manner as C structures. Static class members present a special problem for Lua, as Lua doesn't have support for such features. Therefore, SWIG generates wrappers that try to work around some of these issues. To illustrate, suppose you have a class like this:
 </p>
-<div class="targetlang"><pre>class Spam {
+<div class="code"><pre>
+class Spam {
 public:
   static void foo();
   static int bar;
@@ -756,7 +757,7 @@ public:
 <p>
 In Lua, C++ static members can be accessed as follows:
 </p>
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt; example.Spam.foo()            -- calling Spam::foo()
 &gt; a=example.Spam.bar            -- reading Spam::bar 
 &gt; example.Spam.bar=b            -- writing to Spam::bar
@@ -774,7 +775,7 @@ It is not (currently) possible to access static members of an instance:
 <b>Compatibility Note:</b> In versions prior to SWIG-3.0.0 only the following names would work:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt; example.Spam_foo()            -- calling Spam::foo()
 &gt; a=example.Spam_bar            -- reading Spam::bar 
 &gt; example.Spam_bar=b            -- writing to Spam::bar
@@ -964,7 +965,8 @@ When wrapped, it works like you expect:
 <p>
 One restriction with operator overloading support is that SWIG is not able to fully handle operators that aren't defined as part of the class. For example, if you had code like this
 </p>
-<div class="targetlang"><pre>class Complex {
+<div class="code"><pre>
+class Complex {
 ...
 friend Complex operator+(double, const Complex &amp;c);
 ...
@@ -973,7 +975,8 @@ friend Complex operator+(double, const Complex &amp;c);
 <p>
 then SWIG doesn't know what to do with the friend function--in fact, it simply ignores it and issues a warning. You can still wrap the operator, but you may have to encapsulate it in a special function. For example:
 </p>
-<div class="targetlang"><pre>%rename(Complex_add_dc) operator+(double, const Complex &amp;);
+<div class="code"><pre>
+%rename(Complex_add_dc) operator+(double, const Complex &amp;);
 ...
 Complex operator+(double, const Complex &amp;c);
 </pre></div>
@@ -1446,6 +1449,7 @@ Those names are in a form <tt>$classname_$symbolname</tt> and are added to the s
 If %nspace is enabled, then class namespace is taken as scope. If there is no namespace, or %nspace is disabled,
 then module is considered a class namespace.</p>
 <p> Consider the following C++ code </p>
+
 <div class="code"><pre>%module example
 %nspace MyWorld::Test;
 namespace MyWorld {
@@ -1486,6 +1490,7 @@ surrounding scope without any prefixing. Pretending that Test2 is a struct, not 
 
 <p> The internal organization of inheritance has changed. 
 Consider the following C++ code:</p>
+
 <div class="code"><pre>%module example
 class Base {
   public:
@@ -1502,6 +1507,7 @@ were squashed and added to corresponding derived class <tt>ST</tt>: Everything f
 was copied to <tt>.fn</tt> table of class Derived and so on. This was a recursive procedure, so in the end the whole
 inheritance tree of derived class was squashed into derived class. </p>
 <p> That means that any changes done to class Base after module initialization wouldn't affect class Derived:</p>
+
 <div class="targetlang"><pre>
 base = example.Base()
 der = example.Derived()
@@ -1516,6 +1522,8 @@ nil
 </pre></div>
 <p> This behaviour was changed. Now unless -squash-bases option is provided, Derived store a list of it's bases and if some symbol is not found in it's own service tables
 then its bases are searched for it. Option -squash-bases will effectively return old behaviour.
+</p>
+
 <div class="targetlang"><pre>
 &gt; print(der.new_func) -- Now it works
 function

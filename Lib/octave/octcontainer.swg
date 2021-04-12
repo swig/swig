@@ -11,12 +11,6 @@
  * be the case.
  * ----------------------------------------------------------------------------- */
 
-%{
-#include <climits>
-#include <iostream>
-%}
-
-
 #if !defined(SWIG_NO_EXPORT_ITERATOR_METHODS)
 # if !defined(SWIG_EXPORT_ITERATOR_METHODS)
 #  define SWIG_EXPORT_ITERATOR_METHODS SWIG_EXPORT_ITERATOR_METHODS
@@ -64,7 +58,6 @@ namespace swig {
 
 %fragment("OctSequence_Base","header",fragment="<stddef.h>")
 {
-%#include <functional>
 
 namespace std {
   template <>

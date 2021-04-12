@@ -14,22 +14,19 @@ try:
     e = make_Multiplies_float_float_float_float(d, d)
     a = e.this
 except:
-    print e, "is not an instance"
-    raise RuntimeError
+    raise RuntimeError("{} is not an instance".format(e))
 
 try:
     f = make_Multiplies_reald_reald_reald_reald(c, c)
     a = f.this
 except:
-    print f, "is not an instance"
-    raise RuntimeError
+    raise RuntimeError("{} is not an instance".format(f))
 
 try:
     g = make_Multiplies_float_float_reald_reald(d, c)
     a = g.this
 except:
-    print g, "is not an instance"
-    raise RuntimeError
+    raise RuntimeError("{} is not an instance".format(g))
 
 
 # the old large format

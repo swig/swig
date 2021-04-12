@@ -8,7 +8,7 @@ try
   a = swig_this(d);
   a = swig_this(c);
 catch
-  error
+  error("failed");
 end_try_catch
 
 try
@@ -37,15 +37,15 @@ end_try_catch
 
 # the old large format
 if (strcmp("<unknown>",swig_typequery("vfncs::ArithUnaryFunction<vfncs::arith_traits<float,double>::argument_type,vfncs::arith_traits<float,double >::result_type > *")))
-  error
+  error("failed");
 endif
 
 # the reduced format
 if (strcmp("<unknown>",swig_typequery("vfncs::ArithUnaryFunction<double,double> *")))
-  error
+  error("failed");
 endif
 
 # this is a bad name
 if (!strcmp("<unknown>",swig_typequery("vfncs::ArithUnaryFunction<double,doublex> *")))
-  error
+  error("failed");
 endif

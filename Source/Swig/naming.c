@@ -1132,6 +1132,7 @@ static int name_regexmatch_value(Node *n, String *pattern, String *s) {
   Swig_error("SWIG", Getline(n),
              "PCRE regex matching is not available in this SWIG build.\n");
   SWIG_exit(EXIT_FAILURE);
+  return 0;
 }
 
 #endif /* HAVE_PCRE/!HAVE_PCRE */

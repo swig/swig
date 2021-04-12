@@ -163,7 +163,7 @@ static void merge_options_files(int *argc, char ***argv) {
   i = 1;
   while (i < new_argc) {
     if (new_argv[i] && new_argv[i][0] == '@' && (f = fopen(&new_argv[i][1], "r"))) {
-      char c;
+      int ci;
       char *b;
       char *be = &buffer[BUFFER_SIZE];
       int quote = 0;
@@ -174,7 +174,8 @@ static void merge_options_files(int *argc, char ***argv) {
       insert = i;
       b = buffer;
 
-      while ((c = fgetc(f)) != EOF) {
+      while ((ci = fgetc(f)) != EOF) {
+        const char c = static_cast<char>(ci);
         if (escape) {
           if (b != be) {
             *b = c;

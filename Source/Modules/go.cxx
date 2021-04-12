@@ -4115,6 +4115,7 @@ private:
     String *name = Getattr(n, "sym:name");
     if (!name) {
       assert(is_ignored);
+      (void)is_ignored;
       name = Getattr(n, "name");
     }
 
@@ -6085,6 +6086,7 @@ private:
     }
     bool r = addSymbol(name, n, scope) ? true : false;
     assert(r);
+    (void)r;
     return true;
   }
 

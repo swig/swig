@@ -3,8 +3,7 @@ a = inplaceadd.A(7)
 
 a += 5
 if a.val != 12:
-    print a.val
-    raise RuntimeError
+    raise RuntimeError("a.val: {}".format(a.val))
 
 a -= 5
 if a.val != 7:

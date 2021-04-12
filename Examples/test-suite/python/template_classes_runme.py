@@ -13,7 +13,7 @@ RectangleInt.static_onearg(1)
 fail = True
 try:
     rectangle.setPoint()
-except TypeError, e:
+except TypeError as e:
     fail = False
 if fail:
     raise RuntimeError("argument count check failed")
@@ -22,7 +22,7 @@ if fail:
 fail = True
 try:
     rectangle.getPoint(0)
-except TypeError, e:
+except TypeError as e:
     fail = False
 if fail:
     raise RuntimeError("argument count check failed")
@@ -30,7 +30,7 @@ if fail:
 fail = True
 try:
     RectangleInt.static_noargs(0)
-except TypeError, e:
+except TypeError as e:
     fail = False
 if fail:
     raise RuntimeError("argument count check failed")
@@ -38,7 +38,7 @@ if fail:
 fail = True
 try:
     RectangleInt.static_onearg()
-except TypeError, e:
+except TypeError as e:
     fail = False
 if fail:
     raise RuntimeError("argument count check failed")

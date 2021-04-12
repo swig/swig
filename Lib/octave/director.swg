@@ -7,8 +7,6 @@
 
 # define SWIG_DIRECTOR_CAST(ARG) dynamic_cast<Swig::Director *>(ARG)
 
-#include <exception>
-
 namespace Swig {
 
   class Director {

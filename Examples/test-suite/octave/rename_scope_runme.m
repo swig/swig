@@ -4,11 +4,11 @@ a = Natural_UP();
 b = Natural_BP();
 
 if (a.rtest() != 1)
-    error
+    error("failed");
 endif
 
 if (b.rtest() != 1)
-    error
+    error("failed");
 endif
 
 f = @equals;

@@ -11,4 +11,3 @@ check::classes(array('StaticMemberTest','StaticFunctionTest','cpp_static','Stati
 check::globals(array('staticmembertest_static_int','staticbase_statty','staticderived_statty'));
 
 check::done();
-?>

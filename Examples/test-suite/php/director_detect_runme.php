@@ -52,4 +52,3 @@ check::equal($b->val, 5, "b: Bad virtual detection");
 check::equal($vc, 6, "c: Bad virtual detection");
 
 check::done();
-?>

@@ -17,13 +17,13 @@ if len(sys.argv) >= 2 and sys.argv[1] == "benchmark":
     a = bytearray(b"hello world")
     for i in range(k):
         python_pybuffer.title1(a)
-    print "Time used by bytearray:", time.time() - t
+    print("Time used by bytearray: {}".format(time.time() - t))
 
     t = time.time()
     b = "hello world"
     for i in range(k):
         python_pybuffer.title2(b)
-    print "Time used by string:", time.time() - t
+    print("Time used by string: {}".format(time.time() - t))
 else:
     # run the test case
     buf1 = bytearray(10)
@@ -44,3 +44,27 @@ else:
     buf3 = bytearray(b"hello")
     python_pybuffer.title1(buf3)
     check(buf3 == b"Hello")
+
+    try:
+        python_pybuffer.func1(1)
+        raise RuntimeError("should throw TypeError")
+    except TypeError as e:
+        check("(char *buf1, int len)" in str(e))
+
+    try:
+        python_pybuffer.func2(1)
+        raise RuntimeError("should throw TypeError")
+    except TypeError as e:
+        check("(char *buf2)" in str(e))
+
+    try:
+        python_pybuffer.func3(1)
+        raise RuntimeError("should throw TypeError")
+    except TypeError as e:
+        check("(const char *buf3, int len)" in str(e))
+
+    try:
+        python_pybuffer.func4(1)
+        raise RuntimeError("should throw TypeError")
+    except TypeError as e:
+        check("(const char *buf4)" in str(e))

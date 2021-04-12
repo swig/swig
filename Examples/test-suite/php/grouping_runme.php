@@ -19,4 +19,3 @@ check::equal(-5,negate(5),"-5==negate(5)");
 check::equal(7,do_unary(-7,NEGATE),"7=do_unary(-7,NEGATE)");
 
 check::done();
-?>

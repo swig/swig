@@ -91,4 +91,12 @@ void backslashC()
 void cycle(int id, char *fileName)
 {}
 
+/// This doc comment ends with a quote: "and that's ok"
+void doc_ends_with_quote() {}
 
+/**
+    This comment contains embedded triple-quoted string:
+
+        """How quaint"""
+ */
+void doc_with_triple_quotes() {}

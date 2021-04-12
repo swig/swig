@@ -17,6 +17,6 @@ class MyObject(SpObject):
 
 m = MyObject()
 if m.dummy() != 666:
-    raise RuntimeError, "1st call"
+    raise RuntimeError("1st call")
 if m.dummy() != 666:                        # Locked system
-    raise RuntimeError, "2nd call"
+    raise RuntimeError("2nd call")

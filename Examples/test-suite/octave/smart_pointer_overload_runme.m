@@ -10,23 +10,23 @@ b = Bar(f);
 
 
 if (f.test(3) != 1)
-    error
+    error("failed");
 endif
 if (f.test(3.5) != 2)
-    error
+    error("failed");
 endif
 if (f.test("hello") != 3)
-    error
+    error("failed");
 endif
 
 if (b.test(3) != 1)
-    error
+    error("failed");
 endif
 if (b.test(3.5) != 2)
-    error
+    error("failed");
 endif
 if (b.test("hello") != 3)
-    error
+    error("failed");
 endif
 
 

@@ -50,4 +50,3 @@ while ($i) {
 print $a . "\n";
 
 check::done();
-?>

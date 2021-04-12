@@ -14,7 +14,7 @@ int *(test2)(int x) {
     return &y;
 }
 
-int (test3) = 37;
+int test3 = 37;
 
 typedef Integer (UnaryOp)(Integer);
 

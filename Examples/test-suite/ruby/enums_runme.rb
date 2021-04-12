@@ -25,10 +25,7 @@ Enums::BAR1 == 0
 Enums::BAR2 == 1
 EOF
 
-#
-# @bug: 
-#
-# swig_assert_each_line( <<EOF )
-# Enums::IFoo::Phoo == 50
-# Enums::IFoo::Char == 'a'[0]
-# EOF
+swig_assert_each_line( <<EOF )
+Enums::Phoo == 50
+Enums::Char == 'a'[0]
+EOF

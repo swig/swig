@@ -9,4 +9,3 @@ $spam=new Spam();
 check::equal(0,$spam->blah(),"spam object method");
 
 check::done();
-?>

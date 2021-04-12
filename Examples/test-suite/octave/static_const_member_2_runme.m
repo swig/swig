@@ -18,6 +18,6 @@ end_try_catch
 
 
 if (Foo.BAZ.val != 2*Foo.BAR.val)
-    error
+    error("failed");
 endif
 

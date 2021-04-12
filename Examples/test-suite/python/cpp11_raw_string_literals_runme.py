@@ -34,19 +34,19 @@ if cvar.aa != "Wide string":
     raise RuntimeError
 
 if cvar.bb != "UTF-8 string":
-    raise RuntimeError, cvar.wide
+    raise RuntimeError(cvar.wide)
 
 if cvar.xx != ")I'm an \"ascii\" \\ string.":
-    raise RuntimeError, cvar.xx
+    raise RuntimeError(cvar.xx)
 
 if cvar.ee != ")I'm an \"ascii\" \\ string.":
-    raise RuntimeError, cvar.ee
+    raise RuntimeError(cvar.ee)
 
 if cvar.ff != "I'm a \"raw wide\" \\ string.":
-    raise RuntimeError, cvar.ff
+    raise RuntimeError(cvar.ff)
 
 if cvar.gg != "I'm a \"raw UTF-8\" \\ string.":
-    raise RuntimeError, cvar.gg
+    raise RuntimeError(cvar.gg)
 
 
 def check(got, expected):

@@ -45,6 +45,12 @@ public class doxygen_parsing_runme {
     		" The struct comment \n" +
     		" \n" +
     		"");
+    wantedComments.put("doxygen_parsing.SomeStruct.setWidth(int)",
+    		"**immutable** image width in pixels \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeStruct.getWidth()",
+    		"**immutable** image width in pixels \n" +
+    		"");
     wantedComments.put("doxygen_parsing.doxygen_parsing.setSomeVar(int)",
     		" The var comment \n" +
     		" \n" +

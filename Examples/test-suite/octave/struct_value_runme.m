@@ -9,10 +9,10 @@ b = struct_value.Bar();
 
 b.a.x = 3;
 if (b.a.x != 3)
-  error
+  error("failed");
 endif
 
 b.b.x = 3;
 if (b.b.x != 3)
-  error
+  error("failed");
 endif

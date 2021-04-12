@@ -27,4 +27,3 @@ check::equal($T->start_t->x, 4, "S::x != 4");
 check::equal($T->length, 7, "T::length != 7");
 
 check::done();
-?>

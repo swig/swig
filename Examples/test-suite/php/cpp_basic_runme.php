@@ -17,4 +17,3 @@ $f->func_ptr = get_func2_ptr();
 check::equal(test_func_ptr($f, 7), -7*3, "get_func2_ptr() didn't work");
 
 check::done();
-?>

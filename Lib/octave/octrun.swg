@@ -89,10 +89,6 @@ SWIGRUNTIME void SWIG_Octave_SetModule(void *clientdata, swig_module_info *point
 
 // Runtime API implementation
 
-#include <map>
-#include <vector>
-#include <string>
-
 typedef octave_value_list(*octave_func) (const octave_value_list &, int);
 class octave_swig_type;
 
@@ -203,11 +199,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
 
     std::set<std::string> dispatch_classes;
 
-  private:
-
-    DECLARE_OV_TYPEID_FUNCTIONS_AND_DATA
   };
-  DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(octave_swig_bound_func, "octave_swig_bound_func", "octave_swig_bound_func");
 #else
 #define SWIG_OCTAVE_BOUND_FUNC(func, args) octave_value(func)
 #endif
@@ -1066,7 +1058,13 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     octave_swig_type *ptr;
   public:
     octave_swig_ref(octave_swig_type *_ptr = 0)
-      :ptr(_ptr) { }
+      :ptr(_ptr)
+      {
+        // Ensure type_id() is set correctly
+        if (t_id == -1) {
+          t_id = octave_swig_ref::static_type_id();
+        }
+      }
 
     ~octave_swig_ref()
       { if (ptr) ptr->decref(); }
@@ -1207,8 +1205,13 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
   public:
 
     octave_swig_packed(swig_type_info *_type = 0, const void *_buf = 0, size_t _buf_len = 0)
-      :	type(_type), buf((const char*)_buf, (const char*)_buf + _buf_len) {
-    }
+      :	type(_type), buf((const char*)_buf, (const char*)_buf + _buf_len)
+      {
+        // Ensure type_id() is set correctly
+        if (t_id == -1) {
+          t_id = octave_swig_packed::static_type_id();
+        }
+      }
 
     bool copy(swig_type_info *outtype, void *ptr, size_t sz) const {
       if (outtype && outtype != type)

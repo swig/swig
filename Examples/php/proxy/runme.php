@@ -64,5 +64,3 @@ Shape::nshapes(42);
 print Shape::get_nshapes() ." == 42\n";
 
 print "Goodbye\n";
-
-?>

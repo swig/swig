@@ -79,3 +79,4 @@ clean:
 	rm -f mod_a.php mod_b.php php_mod_a.h php_mod_b.h
 	rm -f multi_import_a.php multi_import_b.php php_multi_import_a.h php_multi_import_b.h
 	rm -f packageoption_a.php packageoption_b.php packageoption_c.php php_packageoption_a.h php_packageoption_b.h php_packageoption_c.h
+	rm -f template_typedef_cplx2.php php_template_typedef_cplx2.h

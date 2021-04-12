@@ -140,23 +140,23 @@ endif
 
 
 if (li_std_string_extra.test_reference_input("hello") != "hello")
-  error
+  error("failed");
 endif
 s = li_std_string_extra.test_reference_inout("hello");
 if (s != "hellohello")
-  error
+  error("failed");
 endif
 
 
 if (li_std_string_extra.stdstring_empty() != "")
-  error
+  error("failed");
 endif
 
 
 if (li_std_string_extra.c_empty() != "")
-  error
+  error("failed");
 endif
 
 #if (li_std_string_extra.c_null() != None)
-#  error
+#  error("failed");
 #endif

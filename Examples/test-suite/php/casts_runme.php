@@ -15,4 +15,3 @@ $b=new B();
 $b->hello();
 
 check::done();
-?>
