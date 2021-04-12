@@ -2341,7 +2341,7 @@ public:
 	Replaceall(tm, "$error", "ERRSV");
 	Printv(w->code, Str(tm), "\n", NIL);
       } else {
-	Printf(w->code, "  Swig::DirectorMethodException::raise(ERRSV);\n", classname, pyname);
+	Printf(w->code, "  Swig::DirectorMethodException::raise(ERRSV);\n");
       }
       Append(w->code, "}\n");
       Delete(tm);
