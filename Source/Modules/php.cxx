@@ -1388,7 +1388,6 @@ public:
         String *temp_obj = NewStringEmpty();
         Printf(temp_obj, "&%s", ln);
         Replaceall(tm, "$obj_value", is_param_type_pointer(resolved ? resolved : pt) ? "NULL" : temp_obj);        // Adding this to compile. It won't reach this if $obj_val is required.
-        Replaceall(tm, "$lower_param", paramType_class);
 	Setattr(p, "emit:input", source);
 	Printf(f->code, "%s\n", tm);
 	if (i == 0 && Getattr(p, "self")) {
