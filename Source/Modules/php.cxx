@@ -1378,11 +1378,9 @@ public:
 	Replaceall(tm, "$target", ln);
 	Replaceall(tm, "$input", source);
         if (paramType_valid) {
-          String *param_value = NewStringEmpty();
-          String *param_zval = NewStringEmpty();
-          Printf(param_zval, "&%s", source);
-          Printf(param_value, "SWIG_Z_FETCH_OBJ_P(%s)->ptr", param_zval);
+          String *param_value = NewStringf("SWIG_Z_FETCH_OBJ_P(&%s)->ptr", source);
           Replaceall(tm, "$obj_value", param_value);
+          Delete(param_value);
         }
         Replaceall(tm, "$needNewFlow", paramType_valid ? (is_class_wrapped(paramType_class) ? "1" : "0") : "0");
         String *temp_obj = NewStringEmpty();
