@@ -435,12 +435,6 @@ public:
     Printf(s_header, "#ifdef __cplusplus\n#define SWIG_remove(zv) delete zv\n");
     Printf(s_header, "#else\n#define SWIG_remove(zv) free(zv)\n#endif\n\n");
 
-    Printf(s_header, "#define CALL_METHOD(name, retval, thisptr)                  \
-                      call_user_function(EG(function_table),thisptr,&name,retval,0,NULL);\n\n");
-
-    Printf(s_header, "#define CALL_METHOD_PARAM_1(name, retval, thisptr, param)                  \
-                      call_user_function(EG(function_table),thisptr,&name,retval,1,&param);\n\n");
-
     if (directorsEnabled()) {
       // Insert director runtime
       Swig_insert_file("director_common.swg", s_header);
@@ -1083,12 +1077,11 @@ public:
 
     Printf(magic_set, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n",v_name);
     Printf(magic_set, "ZVAL_STRING(&tempZval, \"%s_set\");\n",v_name);
-    Printf(magic_set, "CALL_METHOD_PARAM_1(tempZval, return_value, ZEND_THIS, args[1]);\n}\n\n");
+    Printf(magic_set, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,1,&args[1]);\n}\n");
 
     Printf(magic_get, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n",v_name);
     Printf(magic_get, "ZVAL_STRING(&tempZval, \"%s_get\");\n",v_name);
-    Printf(magic_get, "CALL_METHOD(tempZval, return_value, ZEND_THIS);\n}\n");
-
+    Printf(magic_get, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,0,NULL);\n}\n");
   }
 
   String *getAccessMode(String *access) {
