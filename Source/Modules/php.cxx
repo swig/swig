@@ -1783,6 +1783,10 @@ public:
       Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class(&SWIGTYPE_%s_internal_ce);\n", class_name, class_name);
     }
 
+    if (Getattr(n, "abstracts") && !GetFlag(n, "feature:notabstract")) {
+      Printf(s_oinit, "  SWIGTYPE_%s_ce->ce_flags |= ZEND_ACC_EXPLICIT_ABSTRACT_CLASS;\n", class_name);
+    }
+
     {
       Node *node = NewHash();
       Setattr(node, "type", Getattr(n, "name"));
