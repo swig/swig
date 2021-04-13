@@ -130,10 +130,8 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
    Sadly PHP has no API to find a type name from a type id, only from an
    instance of a resource of the type id, so we have to pass type_name as well.
 
-   The two functions which might call this are:
-   SWIG_ConvertResourcePtr which gets the type name from the resource
-   and the registered zend destructors for which we have one per type each
-   with the type name hard wired in. */
+   This is called by SWIG_ConvertPtr which gets the type name from the
+   swig_object_wrapper or resource type. */
 static void *
 SWIG_ConvertResourceData(void * p, const char *type_name, swig_type_info *ty) {
   swig_cast_info *tc;
@@ -159,35 +157,13 @@ SWIG_ConvertResourceData(void * p, const char *type_name, swig_type_info *ty) {
   return result;
 }
 
-/* This function returns a pointer of type ty by extracting the pointer
-   and type info from the resource in z.  z must be a resource.
-   If it fails, NULL is returned.
-   It uses SWIG_ConvertResourceData to do the real work. */
-static void *
-SWIG_ConvertResourcePtr(zval *z, swig_type_info *ty, int flags) {
-  swig_object_wrapper *value;
-  void *p;
-  const char *type_name;
-
-  if (Z_RES_TYPE_P(z) == -1) return NULL;
-  value = (swig_object_wrapper *) Z_RES_VAL_P(z);
-  if (flags & SWIG_POINTER_DISOWN) {
-    value->newobject = 0;
-  }
-  p = value->ptr;
-
-  type_name=zend_rsrc_list_get_rsrc_type(Z_RES_P(z));
-
-  return SWIG_ConvertResourceData(p, type_name, ty);
-}
-
 /* We allow passing of a RESOURCE wrapping a non-class pointer or an OBJECT
    wrapping a pointer to an object. */
 static int
 SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
   if (z == NULL) {
     *ptr = 0;
-    return 0;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
 
   switch (Z_TYPE_P(z)) {
@@ -197,11 +173,25 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
 	value->newobject = 0;
       }
       *ptr = SWIG_ConvertResourceData(value->ptr, value->type->name, ty);
-      return (*ptr == NULL ? -1 : 0);
+      return (*ptr == NULL ? SWIG_ERROR : SWIG_OK);
     }
-    case IS_RESOURCE:
-      *ptr = SWIG_ConvertResourcePtr(z, ty, flags);
-      return (*ptr == NULL ? -1 : 0);
+    case IS_RESOURCE: {
+      swig_object_wrapper *value;
+      void *p;
+      const char *type_name;
+
+      if (Z_RES_TYPE_P(z) == -1) return -1;
+      value = (swig_object_wrapper *) Z_RES_VAL_P(z);
+      if (flags & SWIG_POINTER_DISOWN) {
+	value->newobject = 0;
+      }
+      p = value->ptr;
+
+      type_name=zend_rsrc_list_get_rsrc_type(Z_RES_P(z));
+
+      *ptr = SWIG_ConvertResourceData(p, type_name, ty);
+      return (*ptr == NULL ? SWIG_ERROR : SWIG_OK);
+    }
     case IS_NULL:
       *ptr = 0;
       return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
