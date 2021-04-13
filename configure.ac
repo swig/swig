@@ -1188,7 +1188,7 @@ else
 
   if test -n "$SCILAB"; then
     # Check for Scilab version (needs api_scilab so needs version 5.3.3 or higher)
-    SCILAB_FULL_VERSION=`$SCILAB -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
+    SCILAB_FULL_VERSION=`$SCILAB -nwni -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
 
     AC_MSG_CHECKING(Scilab version is 5.3.3 or higher)
     SCILAB_MAJOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f1`
