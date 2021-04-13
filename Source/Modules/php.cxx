@@ -1892,7 +1892,6 @@ public:
 
   virtual int constructorHandler(Node *n) {
     if (Swig_directorclass(n)) {
-      String *name = GetChar(Swig_methodclass(n), "name");
       String *ctype = GetChar(Swig_methodclass(n), "classtype");
       String *sname = GetChar(Swig_methodclass(n), "sym:name");
       String *args = NewStringEmpty();
@@ -1920,7 +1919,7 @@ public:
       Printf(director_ctor_code, "if (Swig::Director::swig_is_overridden_method(\"%s\", arg0)) { /* not subclassed */\n", class_name);
       Printf(director_prot_ctor_code, "if (Swig::Director::swig_is_overridden_method(\"%s\", arg0)) { /* not subclassed */\n", class_name);
       Printf(director_ctor_code, "  %s = new %s(%s);\n", Swig_cresult_name(), ctype, args);
-      Printf(director_prot_ctor_code, "  SWIG_PHP_Error(E_ERROR, \"accessing abstract class or protected constructor\");\n", name, name, args);
+      Printf(director_prot_ctor_code, "  SWIG_PHP_Error(E_ERROR, \"accessing abstract class or protected constructor\");\n");
       if (i) {
 	Insert(args, 0, ", ");
       }
@@ -2225,7 +2224,7 @@ public:
       // typemap_directorout testcase requires that 0 can be assigned to the
       // variable named after the result of Swig_cresult_name(), so that can't
       // be a zval - make it a pointer to one instead.
-      Printf(w->code, "zval swig_zval_result, swig_funcname;\n", Swig_cresult_name());
+      Printf(w->code, "zval swig_zval_result, swig_funcname;\n");
       Printf(w->code, "zval * SWIGUNUSED %s = &swig_zval_result;\n", Swig_cresult_name());
       const char * funcname = GetChar(n, "sym:name");
       Printf(w->code, "ZVAL_STRINGL(&swig_funcname, \"%s\", %d);\n", funcname, strlen(funcname));

@@ -846,8 +846,13 @@ public:
 	Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
 
       Printv(f_shadow_py, "\nfrom sys import version_info as _swig_python_version_info\n", NULL);
-      Printv(f_shadow_py, "if _swig_python_version_info < (2, 7, 0):\n", NULL);
-      Printv(f_shadow_py, tab4, "raise RuntimeError(\"Python 2.7 or later required\")\n\n", NULL);
+      if (py3) {
+	Printv(f_shadow_py, "if _swig_python_version_info < (3, 0):\n", NULL);
+	Printv(f_shadow_py, tab4, "raise RuntimeError(\"Python 3.x or later required\")\n\n", NULL);
+      } else {
+	Printv(f_shadow_py, "if _swig_python_version_info < (2, 7, 0):\n", NULL);
+	Printv(f_shadow_py, tab4, "raise RuntimeError(\"Python 2.7 or later required\")\n\n", NULL);
+      }
 
       if (Len(f_shadow_after_begin) > 0)
 	Printv(f_shadow_py, f_shadow_after_begin, "\n", NIL);
@@ -3608,7 +3613,7 @@ public:
 	// class type (the SWIG_init() is called before shadow classes are
 	// defined and registered).
         Printf(f_wrappers, "SWIGINTERN PyObject *%s_swigconstant(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", iname);
-        Printf(f_wrappers, tab2 "PyObject *module;\n", tm);
+        Printf(f_wrappers, tab2 "PyObject *module;\n");
         Printf(f_wrappers, tab2 "PyObject *d;\n");
 	Printf(f_wrappers, tab2 "if (!SWIG_Python_UnpackTuple(args, \"swigconstant\", 1, 1, &module)) return NULL;\n");
         Printf(f_wrappers, tab2 "d = PyModule_GetDict(module);\n");
@@ -4018,7 +4023,7 @@ public:
       if (GetFlag(mgetset, "static")) {
 	Printf(f, "static PyGetSetDef %s_def = %s;\n", gspair, entry);
 	Printf(f_init, "static_getset = SwigPyStaticVar_new_getset(metatype, &%s_def);\n", gspair);
-	Printf(f_init, "PyDict_SetItemString(d, static_getset->d_getset->name, (PyObject *) static_getset);\n", memname);
+	Printf(f_init, "PyDict_SetItemString(d, static_getset->d_getset->name, (PyObject *) static_getset);\n");
 	Printf(f_init, "Py_DECREF(static_getset);\n");
       } else {
 	Printf(getset_def, "    %s,\n", entry);
@@ -4467,7 +4472,9 @@ public:
 	    Printf(f_shadow, "(Exception)");
 	  } else {
 	    Printf(f_shadow, "(object");
-	    Printf(f_shadow, py3 && GetFlag(n, "feature:python:nondynamic") ? ", metaclass=_SwigNonDynamicMeta" : "", ")");
+	    if (py3 && GetFlag(n, "feature:python:nondynamic")) {
+	      Printf(f_shadow, ", metaclass=_SwigNonDynamicMeta");
+	    }
 	    Printf(f_shadow, ")");
 	  }
 	}
