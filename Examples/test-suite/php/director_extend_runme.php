@@ -3,11 +3,11 @@
 require "tests.php";
 require "director_extend.php";
 
-// No new functions
+// New functions
 check::functions(array('spobject_getfoobar','spobject_dummy','spobject_exceptionmethod'));
-// No new classes
+// New classes
 check::classes(array('SpObject'));
-// now new vars
+// No new vars
 check::globals(array());
 
 class MyObject extends SpObject{

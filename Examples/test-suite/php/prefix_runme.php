@@ -3,11 +3,11 @@
 require "tests.php";
 require "prefix.php";
 
-// No new functions
+// New functions
 check::functions(array('foo_get_self'));
-// No new classes
+// New classes
 check::classes(array('ProjectFoo'));
-// now new vars
+// No new vars
 check::globals(array());
 
 $f = new ProjectFoo();

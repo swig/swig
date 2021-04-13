@@ -3,11 +3,11 @@
 require "tests.php";
 require "casts.php";
 
-// No new functions
+// New functions
 check::functions(array('new_a','a_hello','new_b'));
-// No new classes
+// New classes
 check::classes(array('A','B'));
-// now new vars
+// No new vars
 check::globals(array());
 
 # Make sure $b inherits hello() from class A

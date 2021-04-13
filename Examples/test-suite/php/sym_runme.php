@@ -5,9 +5,9 @@ require "sym.php";
 
 // No new functions
 check::functions(array());
-// No new classes
+// New classes
 check::classes(array('flim','flam'));
-// now new vars
+// No new vars
 check::globals(array());
 
 $flim=new flim();

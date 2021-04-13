@@ -7,10 +7,12 @@ require "director_thread.php";
 # FIXME: Does this still fail in a threaded build of PHP7?
 exit(0);
 
-// No new functions
+// New functions
 check::functions(array('millisecondsleep','foo_stop','foo_run','foo_do_foo'));
-// No new classes
+// New classes
 check::classes(array('director_thread','Foo'));
+// No new vars
+check::globals(array());
 
 class Derived extends Foo {
   function do_foo() {

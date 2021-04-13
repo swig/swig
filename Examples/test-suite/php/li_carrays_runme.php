@@ -9,6 +9,9 @@ check::functions(array('new_intarray','delete_intarray','intarray_getitem','inta
 // NB An "li_carrays" class is created as a mock namespace.
 check::classes(array('li_carrays','doubleArray','AB','XY','XYArray','shortArray'));
 
+// Check global variables.
+check::globals(array('globalxyarray','globalabarray'));
+
 $d = new doubleArray(10);
 
 $d->setitem(0, 7);

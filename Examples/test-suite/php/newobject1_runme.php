@@ -3,11 +3,11 @@
 require "tests.php";
 require "newobject1.php";
 
-// No new functions
+// New functions
 check::functions(array('foo_makefoo','foo_makemore','foo_foocount'));
-// No new classes
+// New classes
 check::classes(array('Foo'));
-// now new vars
+// No new vars
 check::globals(array());
 
 $foo = Foo::makeFoo();

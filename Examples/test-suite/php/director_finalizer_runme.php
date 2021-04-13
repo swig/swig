@@ -3,11 +3,11 @@
 require "tests.php";
 require "director_finalizer.php";
 
-// No new functions
+// New functions
 check::functions(array('foo_orstatus','deletefoo','getstatus','launder','resetstatus'));
-// No new classes
+// New classes
 check::classes(array('director_finalizer','Foo'));
-// now new vars
+// No new vars
 check::globals(array());
 
 class MyFoo extends Foo {

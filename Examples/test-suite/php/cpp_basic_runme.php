@@ -7,6 +7,8 @@ require "cpp_basic.php";
 check::functions(array('foo_func1','foo_func2','foo___str__','foosubsub___str__','bar_test','bar_testfoo','get_func1_ptr','get_func2_ptr','test_func_ptr','fl_window_show'));
 // New classes
 check::classes(array('cpp_basic','Foo','FooSub','FooSubSub','Bar','Fl_Window'));
+// No new vars
+check::globals(array());
 
 $f = new Foo(3);
 $f->func_ptr = get_func1_ptr();

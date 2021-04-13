@@ -3,9 +3,12 @@
 require "tests.php";
 require "director_exception.php";
 
+// New functions
 check::functions(array('foo_ping','foo_pong','launder','bar_ping','bar_pong','returnalltypes_return_int','returnalltypes_return_double','returnalltypes_return_const_char_star','returnalltypes_return_std_string','returnalltypes_return_bar','returnalltypes_call_int','returnalltypes_call_double','returnalltypes_call_const_char_star','returnalltypes_call_std_string','returnalltypes_call_bar','is_python_builtin'));
-// No new classes
+// New classes
 check::classes(array('director_exception','Foo','Exception1','Exception2','Base','Bar','ReturnAllTypes'));
+// No new vars
+check::globals(array());
 
 class MyException extends Exception {
   function __construct($a, $b) {
