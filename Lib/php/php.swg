@@ -110,14 +110,8 @@
 	}
 %}
 
-%typemap(in) SWIGTYPE &
-%{
-	if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL) {
-	    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
-	}
-%}
-
-%typemap(in) SWIGTYPE &&
+%typemap(in) SWIGTYPE &,
+	     SWIGTYPE &&
 %{
 	if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL) {
 	    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
