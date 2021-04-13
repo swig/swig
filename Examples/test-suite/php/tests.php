@@ -91,7 +91,6 @@ class check {
   }
 
   static function classmethods($classname,$methods) {
-    return TRUE;
     if (is_object($classname)) $classname=get_class($classname);
     $classmethods=array_flip(get_class_methods($classname));
     $message=NULL;
@@ -146,7 +145,6 @@ class check {
   }
 
   static function classes($classes) {
-    return TRUE;
     if (! is_array($classes)) $classes=array($classes);
     $message=array();
     $missing=array();
