@@ -1218,7 +1218,7 @@ if test x"${SCILABBIN}" = xno; then
 else
   # Check for Scilab executable
   if test "x$SCILABBIN" = xyes; then
-    AC_CHECK_PROGS(SCILAB, scilab)
+    AC_PATH_PROG(SCILAB, scilab)
   else
     AC_MSG_CHECKING(for scilab)
     if test -f "$SCILABBIN"; then
@@ -1231,18 +1231,18 @@ else
 
   if test -n "$SCILAB"; then
     # Check for Scilab version (needs api_scilab so needs version 5.3.3 or higher)
-    SCILAB_FULL_VERSION=`$SCILAB -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
+    SCILAB_VERSION=`$SCILAB -nwni -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
 
     AC_MSG_CHECKING(Scilab version is 5.3.3 or higher)
-    SCILAB_MAJOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f1`
-    SCILAB_MINOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f2`
-    SCILAB_MAINTENANCE_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f3`
-    SCILAB_VERSION="$SCILAB_MAJOR_VERSION$SCILAB_MINOR_VERSION$SCILAB_MAINTENANCE_VERSION"
+    SCILAB_MAJOR_VERSION=`echo $SCILAB_VERSION | cut -d. -f1`
+    SCILAB_MINOR_VERSION=`echo $SCILAB_VERSION | cut -d. -f2`
+    SCILAB_MAINTENANCE_VERSION=`echo $SCILAB_VERSION | cut -d. -f3`
+    SCILAB_VERSION_NO_DOTS="$SCILAB_MAJOR_VERSION$SCILAB_MINOR_VERSION$SCILAB_MAINTENANCE_VERSION"
 
-    if test $SCILAB_VERSION -ge 533; then
-      AC_MSG_RESULT(yes)
+    if test -n "$SCILAB_VERSION_NO_DOTS" && test "$SCILAB_VERSION_NO_DOTS" -ge 533; then
+      AC_MSG_RESULT(yes - $SCILAB_VERSION)
     else
-      AC_MSG_RESULT(no)
+      AC_MSG_RESULT(no - $SCILAB_VERSION)
       SCILAB=
     fi
 
@@ -1250,22 +1250,27 @@ else
       # Set Scilab startup options depending on version
       AC_MSG_CHECKING(for Scilab startup options)
       SCILABOPT="-nwni -nb"
-      if test $SCILAB_VERSION -ge 540; then
+      if test $SCILAB_VERSION_NO_DOTS -ge 540; then
         SCILABOPT+=" -noatomsautoload"
       fi
-      if test $SCILAB_VERSION -ge 600; then
+      if test $SCILAB_VERSION_NO_DOTS -ge 600; then
         SCILABOPT+=" -quit"
       fi
       AC_MSG_RESULT($SCILABOPT)
 
       # Check for Scilab header files
       AC_MSG_CHECKING(for Scilab header files)
+      headers="`AS_DIRNAME(["$SCILAB"])`/../include"
       if test "$SCILABINCDIR" != ""; then
         dirs="$SCILABINCDIR"
+      elif test -d "$SCI"; then
+        dirs="$SCI/include $SCI/../../include"
+      elif test -d "$headers"; then
+        dirs="$headers"
       elif test -n "$PKG_CONFIG "; then
         dirs=`$PKG_CONFIG  scilab --cflags-only-I | sed -e 's/-I//g'`
       else
-        dirs=""
+        dirs="/usr/include"
       fi
       for i in $dirs; do
         if test -r $i/api_scilab.h; then
@@ -1290,6 +1295,7 @@ fi
 AC_SUBST(SCILAB)
 AC_SUBST(SCILABINCLUDE)
 AC_SUBST(SCILABOPT)
+AC_SUBST(SCILAB_VERSION)
 
 
 #----------------------------------------------------------------
