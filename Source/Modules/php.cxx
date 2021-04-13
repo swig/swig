@@ -32,7 +32,6 @@ static bool wrap_nonclass_global = true;
 // before PHP added namespaces.
 static bool wrap_nonclass_fake_class = true;
 
-static Node *classnode = 0;
 static String *module = 0;
 static String *cap_module = 0;
 static String *prefix = 0;
@@ -139,7 +138,7 @@ static void print_creation_free_wrapper(Node *n) {
   Printf(s, "  obj = php_fetch_object(object);\n\n");
 
   // expand %delete typemap?
-  if (Getattr(n, "destructor") != NULL) {
+  if (Getattr(n, "has_destructor")) {
     Printf(s, "  if(obj->newobject)\n");
     Printf(s, "    SWIG_remove((%s *)obj->ptr);\n", Getattr(n, "classtype"));
   }
@@ -1227,10 +1226,10 @@ public:
     }
 
     if (Cmp(nodeType, "destructor") == 0) {
-      // We just generate the Zend List Destructor and let Zend manage the
-      // reference counting.  There's no explicit destructor, but the user can
-      // just do `$obj = null;' to remove a reference to an object.
-      return CreateZendListDestructor(n);
+      // We don't explicitly wrap the destructor for PHP - Zend manages the
+      // reference counting, and the user can just do `$obj = null;' or similar
+      // to remove a reference to an object.
+      return SWIG_OK;
     }
 
     f = NewWrapper();
@@ -1832,9 +1831,7 @@ public:
     Printf(s_oinit, "#endif\n");
     Printf(s_oinit, "}\n\n");
 
-    classnode = n;
     Language::classHandler(n);
-    classnode = 0;
 
     print_creation_free_wrapper(n);
     magic_method_setter(n, true, baseClassExtend);
@@ -1949,71 +1946,10 @@ public:
   }
 
   /* ------------------------------------------------------------
-   * CreateZendListDestructor()
+   * destructorHandler()
    * ------------------------------------------------------------ */
   //virtual int destructorHandler(Node *n) {
   //}
-  int CreateZendListDestructor(Node *n) {
-    String *name = GetChar(Swig_methodclass(n), "name");
-    String *iname = GetChar(n, "sym:name");
-    ParmList *l = Getattr(n, "parms");
-
-    bool newClassObject = is_class_wrapped(class_name);
-
-    String *destructorname = NewStringf("_%s", Swig_name_wrapper(iname));
-    Setattr(classnode, "destructor", destructorname);
-
-    Wrapper *f = NewWrapper();
-    Printf(f->def, "/* This function is designed to be called by the zend list destructors */\n");
-    Printf(f->def, "/* to typecast and do the actual destruction */\n");
-    Printf(f->def, "static void %s(zend_resource *res, const char *type_name) {\n", destructorname);
-
-    Wrapper_add_localv(f, "value", "swig_object_wrapper *value = 0", NIL);
-    Wrapper_add_localv(f, "ptr", "void *ptr = 0", NIL);
-    Wrapper_add_localv(f, "newobject", "int newobject = 0", NIL);
-
-
-    Printf(f->code, "if(%d) {\n", newClassObject ? 1 : 0);
-    Printf(f->code, "return;\n}\n\n");
-
-    Printf(f->code, "value=(swig_object_wrapper *) res->ptr;\n");
-    Printf(f->code, "ptr=value->ptr;\n");
-    Printf(f->code, "newobject=value->newobject;\n\n");
-
-    emit_parameter_variables(l, f);
-    emit_attach_parmmaps(l, f);
-
-    // Get type of first arg, thing to be destructed
-    // Skip ignored arguments
-    Parm *p = l;
-    //while (Getattr(p,"tmap:ignore")) {p = Getattr(p,"tmap:ignore:next");}
-    while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-      p = Getattr(p, "tmap:in:next");
-    }
-    SwigType *pt = Getattr(p, "type");
-
-    Printf(f->code, "  efree(value);\n");
-    Printf(f->code, "  if (! newobject) return; /* can't delete it! */\n");
-    Printf(f->code, "  arg1 = (%s)SWIG_ConvertResourceData(ptr, type_name, SWIGTYPE%s);\n", SwigType_lstr(pt, 0), SwigType_manglestr(pt));
-    Printf(f->code, "  if (! arg1) zend_error(E_ERROR, \"%s resource already free'd\");\n", Char(name));
-
-    Setattr(n, "wrap:name", destructorname);
-
-    String *actioncode = emit_action(n);
-    Append(f->code, actioncode);
-    Delete(actioncode);
-
-    Printf(f->code, "thrown:\n");
-    Append(f->code, "return;\n");
-    Append(f->code, "fail:\n");
-    Append(f->code, "SWIG_FAIL();\n");
-    Printf(f->code, "}\n");
-
-    Wrapper_print(f, s_wrappers);
-    DelWrapper(f);
-
-    return SWIG_OK;
-  }
 
   /* ------------------------------------------------------------
    * memberconstantHandler()
