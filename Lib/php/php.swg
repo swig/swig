@@ -86,14 +86,10 @@
 /* Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE ($&1_ltype tmp)
 %{
-  if ($needNewFlow) {
-    $1 = *(($1_ltype *)$obj_value);
-  } else {
-    if (SWIG_ConvertPtr(&$input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL) {
-      SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
-    }
-    $1 = *tmp;
+  if (SWIG_ConvertPtr(&$input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL) {
+    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
   }
+  $1 = *tmp;
 %}
 
 %typemap(directorout) SWIGTYPE ($&1_ltype tmp)
@@ -115,35 +111,23 @@
 %typemap(in) SWIGTYPE *,
 	     SWIGTYPE []
 %{
-  if ($needNewFlow) {
-    $1 = ($1_ltype) $obj_value;
-  } else {
-    if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0) {
-      SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
-    }
+  if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0) {
+    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
   }
 %}
 
 %typemap(in) SWIGTYPE &,
              SWIGTYPE &&
 %{
-  if ($needNewFlow) {
-    $1 = ($1_ltype) $obj_value;
-  } else {
-    if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL) {
-      SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
-    }
+  if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL) {
+    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
   }
 %}
 
 %typemap(in) SWIGTYPE *const& ($*ltype temp)
 %{
-  if ($needNewFlow) {
-    temp = ($*1_ltype) $obj_value;
-  } else {
-    if (SWIG_ConvertPtr(&$input, (void **) &temp, $*1_descriptor, 0) < 0) {
-      SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $*1_descriptor");
-    }
+  if (SWIG_ConvertPtr(&$input, (void **) &temp, $*1_descriptor, 0) < 0) {
+    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $*1_descriptor");
   }
   $1 = ($1_ltype)&temp;
 %}

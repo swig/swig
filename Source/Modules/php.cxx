@@ -1354,7 +1354,6 @@ public:
 
       String *paramType_class = NULL;
       bool paramType_valid = is_class(pt);
-      SwigType *resolved = SwigType_typedef_resolve_all(pt);
 
       if (paramType_valid) {
         paramType_class = get_class_name(pt);
@@ -1365,15 +1364,9 @@ public:
 	Replaceall(tm, "$source", source);
 	Replaceall(tm, "$target", ln);
 	Replaceall(tm, "$input", source);
-        if (paramType_valid) {
-          String *param_value = NewStringf("SWIG_Z_FETCH_OBJ_P(&%s)->ptr", source);
-          Replaceall(tm, "$obj_value", param_value);
-          Delete(param_value);
-        }
         Replaceall(tm, "$needNewFlow", paramType_valid ? (is_class_wrapped(paramType_class) ? "1" : "0") : "0");
         String *temp_obj = NewStringEmpty();
         Printf(temp_obj, "&%s", ln);
-        Replaceall(tm, "$obj_value", is_param_type_pointer(resolved ? resolved : pt) ? "NULL" : temp_obj);        // Adding this to compile. It won't reach this if $obj_val is required.
 	Setattr(p, "emit:input", source);
 	Printf(f->code, "%s\n", tm);
 	if (i == 0 && Getattr(p, "self")) {
