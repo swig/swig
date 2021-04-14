@@ -157,7 +157,7 @@
 
 /* Special case when void* is passed by reference so it can be made to point
    to opaque api structs */
-%typemap(in) void ** ($*1_ltype ptr, int force),
+%typemap(in, byref=1) void ** ($*1_ltype ptr, int force),
              void *& ($*1_ltype ptr, int force)
 {
   /* If they pass NULL by reference, make it into a void*
@@ -184,8 +184,8 @@
 %typemap(argout) void **,
                  void *&
 %{
-  if (force$argnum) {
-    SWIG_SetPointerZval(&$input, (void*) ptr$argnum, $*1_descriptor, 1);
+  if (force$argnum && Z_ISREF($input)) {
+    SWIG_SetPointerZval(Z_REFVAL($input), (void*) ptr$argnum, $*1_descriptor, 1);
   }
 %}
 
