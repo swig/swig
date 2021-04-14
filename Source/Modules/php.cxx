@@ -2206,7 +2206,7 @@ public:
 	if (Replaceall(tm, "$error", "error")) {
 	  /* Only declare error if it is used by the typemap. */
 	  error_used_in_typemap = true;
-	  Append(w->code, "int error;\n");
+	  Append(w->code, "int error = SUCCESS;\n");
 	}
       } else {
 	Delete(tm);
@@ -2221,19 +2221,22 @@ public:
       // typemap_directorout testcase requires that 0 can be assigned to the
       // variable named after the result of Swig_cresult_name(), so that can't
       // be a zval - make it a pointer to one instead.
-      Printf(w->code, "zval swig_zval_result, swig_funcname;\n");
+      Printf(w->code, "zval swig_zval_result;\n");
       Printf(w->code, "zval * SWIGUNUSED %s = &swig_zval_result;\n", Swig_cresult_name());
-      const char * funcname = GetChar(n, "sym:name");
-      Printf(w->code, "ZVAL_STRINGL(&swig_funcname, \"%s\", %d);\n", funcname, strlen(funcname));
 
       /* wrap complex arguments to zvals */
-      Printv(w->code, wrap_args, NIL);
+      Append(w->code, wrap_args);
 
+      const char * funcname = GetChar(n, "sym:name");
+      Append(w->code, "{\n");
+      Printf(w->code, "zend_string *swig_funcname = zend_string_init(\"%s\", %d, 0);\n", funcname, strlen(funcname));
+      Append(w->code, "zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ(swig_self), swig_funcname, NULL);\n");
+      Append(w->code, "zend_string_release(swig_funcname);\n");
+      Printf(w->code, "if (swig_zend_func) zend_call_known_instance_method(swig_zend_func, Z_OBJ(swig_self), &swig_zval_result, %d, args);\n", idx);
       if (error_used_in_typemap) {
-	Append(w->code, "error = ");
+	Append(w->code, "else error = FAILURE;\n");
       }
-      Append(w->code, "call_user_function(EG(function_table), &swig_self, &swig_funcname,");
-      Printf(w->code, " &swig_zval_result, %d, args);\n", idx);
+      Append(w->code, "}\n");
 
       if (tm) {
 	Printv(w->code, Str(tm), "\n", NIL);
