@@ -2145,7 +2145,8 @@ public:
     }
 
     Printv(f_interface, typemapLookup(n, "javaimports", Getattr(n, "classtypeobj"), WARN_NONE), "\n", NIL);
-    Printf(f_interface, "public interface %s", interface_name);
+    Printv(f_interface, typemapLookup(n, "javainterfacemodifiers", Getattr(n, "classtypeobj"), WARN_JAVA_TYPEMAP_INTERFACEMODIFIERS_UNDEF), NIL);
+    Printf(f_interface, " %s", interface_name);
     if (List *baselist = Getattr(n, "bases")) {
       String *bases = 0;
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
@@ -4835,34 +4836,27 @@ public:
     // .'s to delimit namespaces, so we need to replace those with /'s
     Replace(internal_classname, NSPACE_SEPARATOR, "/", DOH_REPLACE_ANY);
 
-    Wrapper_add_localv(w, "baseclass", "static jclass baseclass", "= 0", NIL);
     Printf(w->def, "void %s::swig_connect_director(JNIEnv *jenv, jobject jself, jclass jcls, bool swig_mem_own, bool weak_global) {", director_classname);
 
+    Printf(w->def, "static jclass baseclass = swig_new_global_ref(jenv, \"%s\");\n", internal_classname);
+    Printf(w->def, "if (!baseclass) return;\n");
+
     if (first_class_dmethod != curr_class_dmethod) {
-      Printf(w->def, "static struct {\n");
-      Printf(w->def, "const char *mname;\n");
-      Printf(w->def, "const char *mdesc;\n");
-      Printf(w->def, "jmethodID base_methid;\n");
-      Printf(w->def, "} methods[] = {\n");
+      Printf(w->def, "static SwigDirectorMethod methods[] = {\n");
 
       for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
 	UpcallData *udata = Getitem(dmethods_seq, i);
 
-	Printf(w->def, "{ \"%s\", \"%s\", NULL }", Getattr(udata, "method"), Getattr(udata, "fdesc"));
+	Printf(w->def, "SwigDirectorMethod(jenv, baseclass, \"%s\", \"%s\")", Getattr(udata, "method"), Getattr(udata, "fdesc"));
 	if (i != curr_class_dmethod - 1)
 	  Putc(',', w->def);
 	Putc('\n', w->def);
       }
 
-      Printf(w->def, "};\n");
+      Printf(w->def, "};");
     }
 
     Printf(w->code, "if (swig_set_self(jenv, jself, swig_mem_own, weak_global)) {\n");
-    Printf(w->code, "if (!baseclass) {\n");
-    Printf(w->code, "baseclass = jenv->FindClass(\"%s\");\n", internal_classname);
-    Printf(w->code, "if (!baseclass) return;\n");
-    Printf(w->code, "baseclass = (jclass) jenv->NewGlobalRef(baseclass);\n");
-    Printf(w->code, "}\n");
 
     int n_methods = curr_class_dmethod - first_class_dmethod;
 
@@ -4877,12 +4871,8 @@ public:
 
       /* Emit the code to look up the class's methods, initialize the override array */
 
-      Printf(w->code, "bool derived = (jenv->IsSameObject(baseclass, jcls) ? false : true);\n");
-      Printf(w->code, "for (int i = 0; i < %d; ++i) {\n", n_methods);
-      Printf(w->code, "  if (!methods[i].base_methid) {\n");
-      Printf(w->code, "    methods[i].base_methid = jenv->GetMethodID(baseclass, methods[i].mname, methods[i].mdesc);\n");
-      Printf(w->code, "    if (!methods[i].base_methid) return;\n");
-      Printf(w->code, "  }\n");
+      Printf(w->code, "  bool derived = (jenv->IsSameObject(baseclass, jcls) ? false : true);\n");
+      Printf(w->code, "  for (int i = 0; i < %d; ++i) {\n", n_methods);
       // Generally, derived classes have a mix of overridden and
       // non-overridden methods and it is worth making a GetMethodID
       // check during initialization to determine if each method is
@@ -4902,8 +4892,8 @@ public:
       } else {
         Printf(w->code, "  swig_override[i] = false;\n");
         Printf(w->code, "  if (derived) {\n");
-        Printf(w->code, "    jmethodID methid = jenv->GetMethodID(jcls, methods[i].mname, methods[i].mdesc);\n");
-        Printf(w->code, "    swig_override[i] = (methid != methods[i].base_methid);\n");
+        Printf(w->code, "    jmethodID methid = jenv->GetMethodID(jcls, methods[i].name, methods[i].desc);\n");
+        Printf(w->code, "    swig_override[i] = methods[i].methid && (methid != methods[i].methid);\n");
         Printf(w->code, "    jenv->ExceptionClear();\n");
         Printf(w->code, "  }\n");
       }

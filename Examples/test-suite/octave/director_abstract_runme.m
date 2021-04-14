@@ -28,17 +28,17 @@ MyExample3=@() subclass(director_abstract.Example3_i(),'Color',@(self,r,g,b) b);
 
 me1 = MyExample1();
 if (director_abstract.Example1.get_color(me1, 1,2,3) != 1)
-  error
+  error("failed");
 endif
 
 me2 = MyExample2(1,2);
 if (me2.get_color(me2, 1,2,3) != 2)
-  error
+  error("failed");
 endif
 
 me3 = MyExample3();
 if (me3.get_color(me3, 1,2,3) != 3)
-  error
+  error("failed");
 endif
 
 

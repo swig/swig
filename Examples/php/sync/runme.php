@@ -10,6 +10,3 @@ $s = new Sync();
 echo "Got new object\n";
 
 $s->printer();
-
-?>
-

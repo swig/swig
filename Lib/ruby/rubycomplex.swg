@@ -127,7 +127,7 @@ SWIG_AsVal(Type)(VALUE o, Type *val)
     float re;
     int res = SWIG_AddCast(SWIG_AsVal(float)(o, &re));
     if (SWIG_IsOK(res)) {
-      if (val) *val = Constructor(re, 0.0);
+      if (val) *val = Constructor(re, 0.0f);
       return res;
     }
   }

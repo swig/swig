@@ -22,4 +22,3 @@ $a = new MyFoo();
 check::equal($a->say_hi(director_enum::hello), $b->say_hello(director_enum::hi), "say failed");
 
 check::done();
-?>

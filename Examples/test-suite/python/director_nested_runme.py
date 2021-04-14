@@ -14,7 +14,7 @@ class A(FooBar_int):
 
 a = A()
 if a.step() != "Bar::step;Foo::advance;Bar::do_advance;A::do_step;":
-    raise RuntimeError, "Bad A virtual resolution"
+    raise RuntimeError("Bad A virtual resolution")
 
 
 class B(FooBar_int):
@@ -34,7 +34,7 @@ class B(FooBar_int):
 b = B()
 
 if b.step() != "Bar::step;Foo::advance;B::do_advance;B::do_step;":
-    raise RuntimeError, "Bad B virtual resolution"
+    raise RuntimeError("Bad B virtual resolution")
 
 
 class C(FooBar_int):

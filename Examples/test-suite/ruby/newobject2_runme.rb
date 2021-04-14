@@ -18,10 +18,12 @@ require 'newobject2'
 include Newobject2
 
 GC.track_class = Foo
+GC.disable
 GC.stats if $VERBOSE
 100.times { foo1 = makeFoo }
 GC.stats if $VERBOSE
 swig_assert( 'fooCount == 100', nil, "but is #{fooCount}" )
+GC.enable
 GC.start
 swig_assert( 'fooCount <= 1', nil, "but is #{fooCount}" )
 

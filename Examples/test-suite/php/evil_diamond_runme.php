@@ -13,4 +13,3 @@ check::is_a("spam","bar");
 //check::is_a("spam","baz");
 
 check::done();
-?>

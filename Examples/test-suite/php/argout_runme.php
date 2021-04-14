@@ -35,4 +35,3 @@ voidhandle($handle);
 check::isnull($handle,'$handle not null');
 
 check::done();
-?>

@@ -6,12 +6,12 @@ import example
 
 # ----- Object creation -----
 
-print "Creating some objects:"
+print("Creating some objects:")
 a = example.Vector(3, 4, 5)
 b = example.Vector(10, 11, 12)
 
-print "    Created", a.cprint()
-print "    Created", b.cprint()
+print("    Created %s" % a.cprint())
+print("    Created %s" % b.cprint())
 
 # ----- Call an overloaded operator -----
 
@@ -21,9 +21,9 @@ print "    Created", b.cprint()
 #
 # It returns a new allocated object.
 
-print "Adding a+b"
+print("Adding a+b")
 c = example.addv(a, b)
-print "    a+b =", c.cprint()
+print("    a+b = %s" % c.cprint())
 
 # Note: Unless we free the result, a memory leak will occur
 del c
@@ -31,9 +31,9 @@ del c
 # ----- Create a vector array -----
 
 # Note: Using the high-level interface here
-print "Creating an array of vectors"
+print("Creating an array of vectors")
 va = example.VectorArray(10)
-print "    va = ", va
+print("    va = %s" % va)
 
 # ----- Set some values in the array -----
 
@@ -45,17 +45,17 @@ va.set(2, example.addv(a, b))
 
 # Get some values from the array
 
-print "Getting some array values"
+print("Getting some array values")
 for i in range(0, 5):
-    print "    va(%d) = %s" % (i, va.get(i).cprint())
+    print("    va(%d) = %s" % (i, va.get(i).cprint()))
 
 # Watch under resource meter to check on this
-print "Making sure we don't leak memory."
-for i in xrange(0, 1000000):
+print("Making sure we don't leak memory.")
+for i in range(0, 1000000):
     c = va.get(i % 10)
 
 # ----- Clean up -----
-print "Cleaning up"
+print("Cleaning up")
 
 del va
 del a

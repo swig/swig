@@ -13,4 +13,3 @@ check::globals(array('bar_adata','bar_bdata','bar_cdata'));
 $bar=new bar();
 
 check::done();
-?>

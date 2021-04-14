@@ -4,33 +4,26 @@ error = 0
 
 p = constover.test("test")
 if p != "test":
-    print "test failed!"
-    error = 1
+    raise RuntimeError("test failed!")
 
 p = constover.test_pconst("test")
 if p != "test_pconst":
-    print "test_pconst failed!"
-    error = 1
+    raise RuntimeError("test_pconst failed!")
 
 f = constover.Foo()
 p = f.test("test")
 if p != "test":
-    print "member-test failed!"
-    error = 1
+    raise RuntimeError("member-test failed!")
 
 p = f.test_pconst("test")
 if p != "test_pconst":
-    print "member-test_pconst failed!"
-    error = 1
+    raise RuntimeError("member-test_pconst failed!")
 
 p = f.test_constm("test")
 if p != "test_constmethod":
-    print "member-test_constm failed!"
-    error = 1
+    raise RuntimeError("member-test_constm failed!")
 
 p = f.test_pconstm("test")
 if p != "test_pconstmethod":
-    print "member-test_pconstm failed!"
-    error = 1
+    raise RuntimeError("member-test_pconstm failed!")
 
-sys.exit(error)

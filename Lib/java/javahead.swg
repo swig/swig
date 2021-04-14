@@ -30,18 +30,6 @@
 #endif
 
 %insert(runtime) %{
-/* Fix for jlong on some versions of gcc on Windows */
-#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
-  typedef long long __int64;
-#endif
-
-/* Fix for jlong on 64-bit x86 Solaris */
-#if defined(__x86_64)
-# ifdef _LP64
-#   undef _LP64
-# endif
-#endif
-
 #include <jni.h>
 #include <stdlib.h>
 #include <string.h>

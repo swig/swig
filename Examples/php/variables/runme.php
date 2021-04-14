@@ -91,6 +91,3 @@
 	/* And this */
 	//status_set(0);
 	echo "Status = ".status_get()."\n";
-
-?>
-

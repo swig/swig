@@ -3,6 +3,9 @@
 %module cpp_typedef
 
 %{
+#if defined(_MSC_VER)
+  #pragma warning( disable : 5208) // warning C5208: unnamed class used in typedef name cannot declare members other than non-static data members, member enumerations, or member classes
+#endif
 
 class Bar {
 public:

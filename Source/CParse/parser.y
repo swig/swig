@@ -6232,19 +6232,19 @@ primitive_type_list : type_specifier {
 			} else if (Cmp($1.type,"double") == 0) {
 			  if (Cmp($2.type,"long") == 0) {
 			    $$.type = NewString("long double");
-			  } else if (Cmp($2.type,"complex") == 0) {
-			    $$.type = NewString("double complex");
+			  } else if (Cmp($2.type,"_Complex") == 0) {
+			    $$.type = NewString("double _Complex");
 			  } else {
 			    err = 1;
 			  }
 			} else if (Cmp($1.type,"float") == 0) {
-			  if (Cmp($2.type,"complex") == 0) {
-			    $$.type = NewString("float complex");
+			  if (Cmp($2.type,"_Complex") == 0) {
+			    $$.type = NewString("float _Complex");
 			  } else {
 			    err = 1;
 			  }
-			} else if (Cmp($1.type,"complex") == 0) {
-			  $$.type = NewStringf("%s complex", $2.type);
+			} else if (Cmp($1.type,"_Complex") == 0) {
+			  $$.type = NewStringf("%s _Complex", $2.type);
 			} else {
 			  err = 1;
 			}
@@ -6294,7 +6294,7 @@ type_specifier : TYPE_INT {
                     $$.type = 0;
                 }
                | TYPE_COMPLEX { 
-                    $$.type = NewString("complex");
+                    $$.type = NewString("_Complex");
                     $$.us = 0;
                 }
                | TYPE_NON_ISO_INT8 { 

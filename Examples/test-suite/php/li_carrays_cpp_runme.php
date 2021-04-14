@@ -19,4 +19,3 @@ $d->setitem(5, $d->getitem(0) + 3);
 check::equal($d->getitem(0) + $d->getitem(5), 17., "7+10==17");
 
 check::done();
-?>

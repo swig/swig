@@ -1,9 +1,8 @@
 // This is a copy of the multiple_inheritance_abstract test
-%module  multiple_inheritance_abstract
+%module(ruby_minherit="1") multiple_inheritance_abstract
 
-%warnfilter(SWIGWARN_RUBY_MULTIPLE_INHERITANCE,
-	    SWIGWARN_D_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP_MULTIPLE_INHERITANCE); /* languages not supporting multiple inheritance or %interface */
+%warnfilter(SWIGWARN_D_MULTIPLE_INHERITANCE,
+	    SWIGWARN_PHP_MULTIPLE_INHERITANCE); /* languages not supporting multiple inheritance */
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
 %include "swiginterface.i"

@@ -19,6 +19,3 @@ if (array_key_exists("EXTERN", $c)) {
 if (array_key_exists("FOO", $c)) {
     print "FOO    = " . $c["FOO"] . " (Arg! This shouldn't print anything)\n";
 }
-
-
-?>

@@ -12,4 +12,3 @@ check::classes(array());
 check::globals(array());
 
 check::done();
-?>

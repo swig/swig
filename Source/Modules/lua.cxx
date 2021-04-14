@@ -1002,6 +1002,7 @@ public:
     //    REPORT("variableWrapper", n);
     String *lua_name = Getattr(n, "lua:name");
     assert(lua_name);
+    (void)lua_name;
     current[VARIABLE] = true;
     // let SWIG generate the wrappers
     int result = Language::variableWrapper(n);

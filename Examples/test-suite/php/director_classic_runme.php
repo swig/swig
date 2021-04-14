@@ -147,4 +147,3 @@ mycheck($person, "TargetLangOrphanChild");
 unset($person);
 
 check::done();
-?>

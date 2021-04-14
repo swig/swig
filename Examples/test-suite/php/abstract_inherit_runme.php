@@ -11,4 +11,3 @@ check::classes(array('Foo','Bar','Spam','NRFilter_i','NRRCFilter_i','NRRCFilterp
 //check::equal(0,Spam::blah($spam),"spam class method");
 
 check::done();
-?>

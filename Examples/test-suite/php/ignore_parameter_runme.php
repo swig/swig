@@ -35,4 +35,3 @@ $aa=new austinallegro();
 check::classname("austinallegro",$aa);
 
 check::done();
-?>

@@ -246,4 +246,3 @@ class check {
 #    print $_SERVER[argv][0]." ok\n";
   }
 }
-?>

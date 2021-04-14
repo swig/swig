@@ -45,5 +45,3 @@ $container = NULL;
 print "\nA total of " . Shape::nshapes() . " shapes remain\n";
 
 print "Goodbye\n";
-
-?>

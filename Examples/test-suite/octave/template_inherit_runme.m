@@ -12,62 +12,62 @@ e = FooUInt();
 f = BarUInt();
 
 if (!strcmp(a.blah(),"Foo"))
-    error
+    error("failed");
 endif
 
 if (!strcmp(b.blah(),"Foo"))
-    error
+    error("failed");
 endif
 
 if (!strcmp(e.blah(),"Foo"))
-    error
+    error("failed");
 endif
 
 if (!strcmp(c.blah(),"Bar"))
-    error
+    error("failed");
 endif
 
 if (!strcmp(d.blah(),"Bar"))
-    error
+    error("failed");
 endif
 
 if (!strcmp(f.blah(),"Bar"))
-    error
+    error("failed");
 endif
 
 if (!strcmp(c.foomethod(),"foomethod"))
-    error
+    error("failed");
 endif
 
 if (!strcmp(d.foomethod(),"foomethod"))
-    error
+    error("failed");
 endif
 
 if (!strcmp(f.foomethod(),"foomethod"))
-    error
+    error("failed");
 endif
 
 if (!strcmp(invoke_blah_int(a),"Foo"))
-    error
+    error("failed");
 endif
 
 if (!strcmp(invoke_blah_int(c),"Bar"))
-    error
+    error("failed");
 endif
 
 if (!strcmp(invoke_blah_double(b),"Foo"))
-    error
+    error("failed");
 endif
 
 if (!strcmp(invoke_blah_double(d),"Bar"))
-    error
+    error("failed");
 endif
 
 if (!strcmp(invoke_blah_uint(e),"Foo"))
-    error
+    error("failed");
 endif
 
 if (!strcmp(invoke_blah_uint(f),"Bar"))
-    error
+    error("failed");
 endif
 

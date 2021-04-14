@@ -58,4 +58,3 @@ check::equal(getStatus(), 3, "getStatus() failed #5");
 resetStatus();
 
 check::done();
-?>
