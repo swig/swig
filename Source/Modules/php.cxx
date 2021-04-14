@@ -2229,6 +2229,14 @@ public:
 
       const char * funcname = GetChar(n, "sym:name");
       Append(w->code, "{\n");
+      Append(w->code, "#if PHP_MAJOR_VERSION < 8\n");
+      Printf(w->code, "zval swig_funcname;\n");
+      Printf(w->code, "ZVAL_STRINGL(&swig_funcname, \"%s\", %d);\n", funcname, strlen(funcname));
+      if (error_used_in_typemap) {
+	Append(w->code, "error = ");
+      }
+      Printf(w->code, "call_user_function(EG(function_table), &swig_self, &swig_funcname, &swig_zval_result, %d, args);\n", idx);
+      Append(w->code, "#else\n");
       Printf(w->code, "zend_string *swig_funcname = zend_string_init(\"%s\", %d, 0);\n", funcname, strlen(funcname));
       Append(w->code, "zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ(swig_self), swig_funcname, NULL);\n");
       Append(w->code, "zend_string_release(swig_funcname);\n");
@@ -2236,6 +2244,7 @@ public:
       if (error_used_in_typemap) {
 	Append(w->code, "else error = FAILURE;\n");
       }
+      Append(w->code, "#endif\n");
       Append(w->code, "}\n");
 
       if (tm) {
