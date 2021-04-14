@@ -297,6 +297,18 @@ matrix:
       dist: xenial
     - compiler: gcc
       os: linux
+      env: SWIGLANG=scilab VER=5.5.2
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=scilab VER=6.0.2
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=scilab VER=6.1.0
+      dist: xenial
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=tcl
       dist: xenial
     - os: linux
@@ -437,6 +449,17 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=d VER=2.086.1
+      dist: xenial
+    # Newer version of Scilab broke the tests
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=scilab VER=6.0.2
+      sudo: required
+      dist: xenial
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=scilab VER=6.1.0
+      sudo: required
       dist: xenial
     # Experimental languages
     - compiler: gcc

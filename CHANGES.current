@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-04-14: davidcl
+      [Scilab] remove the targetversion argument and improve 5.5.2, 6.0.0 
+      and 6.1.0 support
+
 2021-04-12: olly
 	    #1777 [Python] Specifying -py3 now generates a check for Python
 	    version >= 3.0.

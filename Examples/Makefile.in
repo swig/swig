@@ -1395,6 +1395,7 @@ r_clean:
 SCILAB = @SCILAB@
 SCILAB_INC= @SCILABINCLUDE@
 SCILAB_OPT = @SCILABOPT@
+SCILAB_VERSION = @SCILAB_FULL_VERSION@
 SCILAB_LIBPREFIX = lib
 
 # ----------------------------------------------------------------

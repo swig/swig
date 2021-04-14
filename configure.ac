@@ -1188,7 +1188,7 @@ else
 
   if test -n "$SCILAB"; then
     # Check for Scilab version (needs api_scilab so needs version 5.3.3 or higher)
-    SCILAB_FULL_VERSION=`$SCILAB -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
+    SCILAB_FULL_VERSION=`$SCILAB -nwni -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
 
     AC_MSG_CHECKING(Scilab version is 5.3.3 or higher)
     SCILAB_MAJOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f1`
@@ -1196,10 +1196,10 @@ else
     SCILAB_MAINTENANCE_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f3`
     SCILAB_VERSION="$SCILAB_MAJOR_VERSION$SCILAB_MINOR_VERSION$SCILAB_MAINTENANCE_VERSION"
 
-    if test $SCILAB_VERSION -ge 533; then
-      AC_MSG_RESULT(yes)
+    if test -n "$SCILAB_VERSION" && test "$SCILAB_VERSION" -ge 533; then
+      AC_MSG_RESULT(yes - $SCILAB_FULL_VERSION)
     else
-      AC_MSG_RESULT(no)
+      AC_MSG_RESULT(no - $SCILAB_FULL_VERSION)
       SCILAB=
     fi
 
@@ -1216,8 +1216,10 @@ else
       AC_MSG_CHECKING(for Scilab header files)
       if test "$SCILABINCDIR" != ""; then
         dirs="$SCILABINCDIR"
-      elif test -n "$PKG_CONFIG "; then
-        dirs=`$PKG_CONFIG  scilab --cflags-only-I | sed -e 's/-I//g'`
+      elif test -d "$SCI"; then
+        dirs="$SCI/include $SCI/../../include"
+      elif test -n "$PKGCONFIG"; then
+        dirs=`$PKGCONFIG scilab --cflags-only-I | sed -e 's/-I//g'`
       else
         dirs=""
       fi
@@ -1244,6 +1246,7 @@ fi
 AC_SUBST(SCILAB)
 AC_SUBST(SCILABINCLUDE)
 AC_SUBST(SCILABOPT)
+AC_SUBST(SCILAB_FULL_VERSION)
 
 
 #----------------------------------------------------------------
