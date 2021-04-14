@@ -2,8 +2,8 @@
 require "tests.php";
 require "enum_scope_template.php";
 
+check::functions(array("chops"));
 check::classes(array("enum_scope_template", "TreeInt"));
-check::functions(array("chops","treeint_chops"));
 // No new vars
 check::globals(array());
 

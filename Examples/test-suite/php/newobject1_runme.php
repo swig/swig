@@ -3,8 +3,8 @@
 require "tests.php";
 require "newobject1.php";
 
-// New functions
-check::functions(array('foo_makefoo','foo_makemore','foo_foocount'));
+// No new functions
+check::functions(array());
 // New classes
 check::classes(array('Foo'));
 // No new vars

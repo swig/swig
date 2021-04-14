@@ -3,8 +3,8 @@
 require "tests.php";
 require "li_factory.php";
 
-// New functions
-check::functions(array('geometry_draw','geometry_create','geometry_clone_','point_draw','point_width','point_clone_','circle_draw','circle_radius','circle_clone_'));
+// No new functions
+check::functions(array());
 // New classes
 check::classes(array('Geometry','Point','Circle'));
 // No new vars

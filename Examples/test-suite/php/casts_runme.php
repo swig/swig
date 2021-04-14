@@ -3,8 +3,8 @@
 require "tests.php";
 require "casts.php";
 
-// New functions
-check::functions(array('new_a','a_hello','new_b'));
+// No new functions
+check::functions(array());
 // New classes
 check::classes(array('A','B'));
 // No new vars

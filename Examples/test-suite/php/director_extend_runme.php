@@ -3,8 +3,8 @@
 require "tests.php";
 require "director_extend.php";
 
-// New functions
-check::functions(array('spobject_getfoobar','spobject_dummy','spobject_exceptionmethod'));
+// No new functions
+check::functions(array());
 // New classes
 check::classes(array('SpObject'));
 // No new vars

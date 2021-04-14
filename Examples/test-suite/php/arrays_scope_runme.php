@@ -3,8 +3,8 @@
 require "tests.php";
 require "arrays_scope.php";
 
-// New functions
-check::functions(array('new_bar','bar_blah'));
+// No new functions
+check::functions(array());
 // New classes
 check::classes(array('arrays_scope','Bar'));
 // No new globals

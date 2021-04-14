@@ -4,7 +4,7 @@ require "tests.php";
 require "director_finalizer.php";
 
 // New functions
-check::functions(array('foo_orstatus','deletefoo','getstatus','launder','resetstatus'));
+check::functions(array('deletefoo','getstatus','launder','resetstatus'));
 // New classes
 check::classes(array('director_finalizer','Foo'));
 // No new vars

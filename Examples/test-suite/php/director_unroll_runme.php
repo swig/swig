@@ -3,8 +3,8 @@
 require "tests.php";
 require "director_unroll.php";
 
-// New functions
-check::functions(array('foo_ping','foo_pong'));
+// No new functions
+check::functions(array());
 // New classes
 check::classes(array('Foo','Bar'));
 // No new vars

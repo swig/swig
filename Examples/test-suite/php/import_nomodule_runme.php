@@ -2,7 +2,7 @@
 require "tests.php";
 require "import_nomodule.php";
 
-check::functions(array('create_foo','delete_foo','test1','is_python_builtin'));
+check::functions(array('is_python_builtin'));
 check::classes(array('import_nomodule'));
 // No new globals
 check::globals(array());

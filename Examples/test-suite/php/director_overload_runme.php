@@ -3,8 +3,7 @@
 require "tests.php";
 require "director_overload.php";
 
-check::functions(array('new_overloadedClass','new_overloadedPointers','new_overloadedGetSet','overloadedclass_method1','overloadedclass_method3','overloadedclass_method2','overloadedpointers_method','overloadedpointers_notover','overloadedgetset_rw'));
-
+check::functions(array());
 check::classes(array('OverloadedClass','OverloadedPointers','OverloadedGetSet'));
 check::globals(array());
 
