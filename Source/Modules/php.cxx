@@ -391,34 +391,6 @@ public:
     Printf(s_header, "}\n");
 
     Append(s_header, "\n");
-    Printf(s_header, "ZEND_NAMED_FUNCTION(_wrap_swig_%s_alter_newobject) {\n", module);
-    Append(s_header, "  zval args[2];\n");
-    Append(s_header, "  swig_object_wrapper *value;\n");
-    Append(s_header, "\n");
-    Append(s_header, "  SWIG_ResetError();\n");
-    Append(s_header, "  if(ZEND_NUM_ARGS() != 2 || zend_get_parameters_array_ex(2, args) != SUCCESS) {\n");
-    Append(s_header, "    WRONG_PARAM_COUNT;\n");
-    Append(s_header, "  }\n");
-    Append(s_header, "\n");
-    Append(s_header, "  value = (swig_object_wrapper *) Z_RES_VAL(args[0]);\n");
-    Append(s_header, "  value->newobject = zval_is_true(&args[1]);\n");
-    Append(s_header, "\n");
-    Append(s_header, "  return;\n");
-    Append(s_header, "}\n");
-    Printf(s_header, "ZEND_NAMED_FUNCTION(_wrap_swig_%s_get_newobject) {\n", module);
-    Append(s_header, "  zval args[1];\n");
-    Append(s_header, "  swig_object_wrapper *value;\n");
-    Append(s_header, "\n");
-    Append(s_header, "  SWIG_ResetError();\n");
-    Append(s_header, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
-    Append(s_header, "    WRONG_PARAM_COUNT;\n");
-    Append(s_header, "  }\n");
-    Append(s_header, "\n");
-    Append(s_header, "  value = (swig_object_wrapper *) Z_RES_VAL(args[0]);\n");
-    Append(s_header, "  RETVAL_LONG(value->newobject);\n");
-    Append(s_header, "\n");
-    Append(s_header, "  return;\n");
-    Append(s_header, "}\n");
 
     Printf(s_header, "#define SWIG_name  \"%s\"\n", module);
     Printf(s_header, "#ifdef __cplusplus\n");
@@ -466,20 +438,6 @@ public:
     /* start the arginfo section */
     s_arginfo = NewString("/* arginfo subsection */\n");
     arginfo_used = NewHash();
-
-    // Add arginfo we'll definitely need for *_alter_newobject and *_get_newobject.
-    SetFlag(arginfo_used, "1");
-    Append(s_arginfo,
-	   "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_1, 0, 0, 1)\n"
-	   " ZEND_ARG_INFO(0,arg1)\n"
-	   "ZEND_END_ARG_INFO()\n");
-
-    SetFlag(arginfo_used, "2");
-    Append(s_arginfo,
-	   "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_2, 0, 0, 2)\n"
-	   " ZEND_ARG_INFO(0,arg1)\n"
-	   " ZEND_ARG_INFO(0,arg2)\n"
-	   "ZEND_END_ARG_INFO()\n");
 
     /* start the function entry section */
     s_entry = NewString("/* entry subsection */\n");
@@ -667,8 +625,6 @@ public:
     }
     Printv(f_begin, s_vdecl, s_wrappers, NIL);
     Printv(f_begin, s_arginfo, "\n\n", all_cs_entry, "\n\n", s_entry,
-	" ZEND_NAMED_FE(swig_", module, "_alter_newobject,_wrap_swig_", module, "_alter_newobject,swig_arginfo_2)\n"
-	" ZEND_NAMED_FE(swig_", module, "_get_newobject,_wrap_swig_", module, "_get_newobject,swig_arginfo_1)\n"
 	" ZEND_FE_END\n};\n\n", NIL);
     if (fake_cs_entry) {
       Printv(f_begin, fake_cs_entry, " ZEND_FE_END\n};\n\n", NIL);
@@ -722,7 +678,9 @@ public:
 	skip_this = false;
         continue;
       }
-      if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+      String* tmap_in_numinputs = Getattr(p, "tmap:in:numinputs");
+      // tmap:in:numinputs is unset for varargs, which we don't count here.
+      if (!tmap_in_numinputs || Equal(tmap_in_numinputs, "0")) {
 	/* Ignored parameter */
 	continue;
       }
@@ -766,16 +724,19 @@ public:
       SetFlag(arginfo_used, arginfo_code);
       Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%s, 0, 0, %d)\n", arginfo_code, num_required);
       bool skip_this = has_this;
+      int param_count = 0;
       for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
 	if (skip_this) {
 	  skip_this = false;
 	  continue;
 	}
-	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+	String* tmap_in_numinputs = Getattr(p, "tmap:in:numinputs");
+	// tmap:in:numinputs is unset for varargs, which we don't count here.
+	if (!tmap_in_numinputs || Equal(tmap_in_numinputs, "0")) {
 	  /* Ignored parameter */
 	  continue;
 	}
-	Printf(s_arginfo, " ZEND_ARG_INFO(%d,%s)\n", GetFlag(p, "tmap:in:byref"), Getattr(p, "lname"));
+	Printf(s_arginfo, " ZEND_ARG_INFO(%d,arg%d)\n", GetFlag(p, "tmap:in:byref"), ++param_count);
       }
       Printf(s_arginfo, "ZEND_END_ARG_INFO()\n");
     }
@@ -947,6 +908,24 @@ public:
       if (Cmp(baseClassExtend, "Exception") == 0 || !is_class_wrapped(baseClassExtend)) {
         baseClassExtend = NULL;
       }
+
+      // Ensure arginfo_1 and arginfo_2 exist.
+      if (!GetFlag(arginfo_used, "1")) {
+	SetFlag(arginfo_used, "1");
+	Append(s_arginfo,
+	       "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_1, 0, 0, 1)\n"
+	       " ZEND_ARG_INFO(0,arg1)\n"
+	       "ZEND_END_ARG_INFO()\n");
+      }
+      if (!GetFlag(arginfo_used, "2")) {
+	SetFlag(arginfo_used, "2");
+	Append(s_arginfo,
+	       "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_2, 0, 0, 2)\n"
+	       " ZEND_ARG_INFO(0,arg1)\n"
+	       " ZEND_ARG_INFO(0,arg2)\n"
+	       "ZEND_END_ARG_INFO()\n");
+      }
+
       Wrapper *f = NewWrapper();
 
       Printf(f_h, "PHP_METHOD(%s,__set);\n", class_name);
