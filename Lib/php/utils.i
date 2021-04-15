@@ -79,12 +79,21 @@
     CONVERT_IN($result, $1_ltype, *$input);
   }
 %}
-%typemap(directorout) const TYPE & ($*1_ltype temp)
+%typemap(directorout) const TYPE &
 %{
+  $*1_ltype swig_val;
   if (!EG(exception)) {
-    CONVERT_IN(temp, $*1_ltype, *$input);
+    CONVERT_IN(swig_val, $*1_ltype, *$input);
+    $1_ltype temp = new $*1_ltype(($*1_ltype)swig_val);
+    swig_acquire_ownership(temp);
+    $result = temp;
   }
-  $result = &temp;
+%}
+%typemap(directorfree) const TYPE &
+%{
+  if (director) {
+    director->swig_release_ownership(%as_voidptr($input));
+  }
 %}
 %enddef
 
