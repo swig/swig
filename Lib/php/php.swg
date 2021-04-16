@@ -10,7 +10,6 @@
 
 %include <phpinit.swg> // PHP initialization routine.
 
-%include <globalvar.i>	// Global variables.
 %include <const.i>
 
 // use %init %{ "/*code goes here*/ " %}

@@ -50,7 +50,6 @@ static String *s_init;
 static String *r_init;		// RINIT user code
 static String *s_shutdown;	// MSHUTDOWN user code
 static String *r_shutdown;	// RSHUTDOWN user code
-static String *s_vinit;		// varinit initialization code.
 static String *s_vdecl;
 static String *s_cinit;		// consttab initialization code.
 static String *s_oinit;
@@ -266,7 +265,6 @@ public:
     s_header = NewString("/* header section */\n");
     s_wrappers = NewString("/* wrapper section */\n");
     /* subsections of the init section */
-    s_vinit = NewStringEmpty();
     s_vdecl = NewString("/* vdecl subsection */\n");
     s_cinit = NewString("  /* cinit subsection */\n");
     s_oinit = NewString("  /* oinit subsection */\n");
@@ -474,7 +472,7 @@ public:
       } else {
 	Printf(s_init, "    NULL, /* No MSHUTDOWN code */\n");
       }
-      if (Len(r_init) > 0 || Len(s_vinit) > 0) {
+      if (Len(r_init) > 0) {
 	Printf(s_init, "    PHP_RINIT(%s),\n", module);
       } else {
 	Printf(s_init, "    NULL, /* No RINIT code */\n");
@@ -535,27 +533,14 @@ public:
     Printf(s_init, "}\n\n");
 
     // Now do REQUEST init which holds any user specified %rinit, and also vinit
-    if (Len(r_init) > 0 || Len(s_vinit) > 0) {
+    if (Len(r_init) > 0) {
       Printf(f_h, "PHP_RINIT_FUNCTION(%s);\n", module);
 
       Printf(s_init, "PHP_RINIT_FUNCTION(%s)\n{\n", module);
-      if (Len(r_init) > 0) {
-	Printv(s_init,
-	       "/* rinit section */\n",
-	       r_init, "\n",
-	       NIL);
-      }
-
-      if (Len(s_vinit) > 0) {
-	/* finish our init section which will have been used by class wrappers */
-	Printv(s_init,
-	       "  /* vinit subsection */\n",
-	       s_vinit, "\n"
-	       "  /* end vinit subsection */\n",
-	       NIL);
-	Clear(s_vinit);
-      }
-      Delete(s_vinit);
+      Printv(s_init,
+	     "/* rinit section */\n",
+	     r_init, "\n",
+	     NIL);
 
       Printf(s_init, "  return SUCCESS;\n");
       Printf(s_init, "}\n\n");
@@ -1517,56 +1502,17 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int globalvariableHandler(Node *n) {
-    char *name = GetChar(n, "name");
-    char *iname = GetChar(n, "sym:name");
-    SwigType *t = Getattr(n, "type");
-    String *tm;
     wrapperType = globalvar;
 
-    /* First do the wrappers such as name_set(), name_get()
-     * as provided by the baseclass's implementation of variableWrapper
+    /* PHP doesn't support intercepting reads and writes to global variables
+     * (nor static property reads and writes so we can't wrap them as static
+     * properties on a dummy class) so just let SWIG do its default thing and
+     * wrap them as name_get() and name_set().
      */
-    if (Language::globalvariableHandler(n) == SWIG_NOWRAP) {
-      return SWIG_NOWRAP;
-    }
+    int result = Language::globalvariableHandler(n);
 
-    if (!addSymbol(iname, n))
-      return SWIG_ERROR;
-
-    /* First link C variables to PHP */
-
-    tm = Swig_typemap_lookup("varinit", n, name, 0);
-    if (tm) {
-      Printf(s_vinit, "%s\n", tm);
-    } else {
-      Swig_error(input_file, line_number, "Unable to link with type %s\n", SwigType_str(t, 0));
-    }
-
-    /* Now generate PHP -> C sync blocks */
-    /*
-       tm = Swig_typemap_lookup("varin", n, name, 0);
-       if(tm) {
-       Replaceall(tm, "$symname", iname);
-       Printf(f_c->code, "%s\n", tm);
-       } else {
-       Swig_error(input_file, line_number, "Unable to link with type %s\n", SwigType_str(t, 0));
-       }
-     */
-    /* Now generate C -> PHP sync blocks */
-    /*
-       if(!GetFlag(n,"feature:immutable")) {
-
-       tm = Swig_typemap_lookup("varout", n, name, 0);
-       if(tm) {
-       Replaceall(tm, "$symname", iname);
-       Printf(f_php->code, "%s\n", tm);
-       } else {
-       Swig_error(input_file, line_number, "Unable to link with type %s\n", SwigType_str(t, 0));
-       }
-       }
-     */
     wrapperType = standard;
-    return SWIG_OK;
+    return result;
   }
 
   /* ------------------------------------------------------------

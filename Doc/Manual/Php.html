@@ -306,8 +306,10 @@ print seki_get();
 
 <p>
 SWIG supports global variables of all C datatypes including pointers
-and complex objects.  Additional types can be supported by using the
-<tt>varinit</tt> typemap.
+and complex objects.  To support additional types, you just need to
+supply the standard <tt>in</tt> and <tt>out</tt> typemaps, which get
+used because of the wrapping as <tt>_get()</tt> and <tt>_set()</tt>
+functions.
 </p>
 
 <p>
