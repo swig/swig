@@ -1324,8 +1324,6 @@ public:
 
       source = NewStringf("args[%d]", i);
 
-      String *ln = Getattr(p, "lname");
-
       /* Check if optional */
       if (i >= num_required) {
 	Printf(f->code, "\tif(arg_count > %d) {\n", i);
@@ -1340,8 +1338,6 @@ public:
       }
 
       if ((tm = Getattr(p, "tmap:in"))) {
-	Replaceall(tm, "$source", source);
-	Replaceall(tm, "$target", ln);
 	Replaceall(tm, "$input", source);
         Replaceall(tm, "$needNewFlow", paramType_valid ? (is_class_wrapped(paramType_class) ? "1" : "0") : "0");
 	Setattr(p, "emit:input", source);
@@ -1385,7 +1381,6 @@ public:
     /* Insert cleanup code */
     for (i = 0, p = l; p; i++) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
-	Replaceall(tm, "$source", Getattr(p, "lname"));
 	Printv(cleanup, tm, "\n", NIL);
 	p = Getattr(p, "tmap:freearg:next");
       } else {
@@ -1396,9 +1391,6 @@ public:
     /* Insert argument output code */
     for (i = 0, p = l; p; i++) {
       if ((tm = Getattr(p, "tmap:argout")) && Len(tm)) {
-	Replaceall(tm, "$source", Getattr(p, "lname"));
-	//      Replaceall(tm,"$input",Getattr(p,"lname"));
-	Replaceall(tm, "$target", "return_value");
 	Replaceall(tm, "$result", "return_value");
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
@@ -1442,8 +1434,6 @@ public:
 
     if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
       Replaceall(tm, "$input", Swig_cresult_name());
-      Replaceall(tm, "$source", Swig_cresult_name());
-      Replaceall(tm, "$target", "return_value");
       Replaceall(tm, "$result", constructor ? (constructorRenameOverload ? "return_value" : "ZEND_THIS") : "return_value");
       Replaceall(tm, "$owner", newobject ? "1" : "0");
       Replaceall(tm, "$needNewFlow", retType_valid ? (constructor ? (constructorRenameOverload ? "1" : "2") : (valid_wrapped_class ? "1" : "0")) : "0");
@@ -1547,7 +1537,6 @@ public:
 
     tm = Swig_typemap_lookup("varinit", n, name, 0);
     if (tm) {
-      Replaceall(tm, "$target", name);
       Printf(s_vinit, "%s\n", tm);
     } else {
       Swig_error(input_file, line_number, "Unable to link with type %s\n", SwigType_str(t, 0));
@@ -1601,7 +1590,6 @@ public:
       {
 	tm = Swig_typemap_lookup("consttab", n, name, 0);
 	Replaceall(tm, "$target", name);
-	Replaceall(tm, "$source", value);
 	Replaceall(tm, "$value", value);
 	Printf(s_cinit, "%s\n", tm);
       }
@@ -1611,7 +1599,6 @@ public:
 
         Replaceall(tm, "$class", fake_class_name());
         Replaceall(tm, "$const_name", iname);
-	Replaceall(tm, "$source", value);
 	Replaceall(tm, "$value", value);
 	Printf(s_cinit, "%s\n", tm);
       }
@@ -1619,7 +1606,6 @@ public:
       tm = Swig_typemap_lookup("classconsttab", n, name, 0);
       Replaceall(tm, "$class", class_name);
       Replaceall(tm, "$const_name", wrapping_member_constant);
-      Replaceall(tm, "$source", value);
       Replaceall(tm, "$value", value);
       Printf(s_cinit, "%s\n", tm);
     }
