@@ -1450,12 +1450,6 @@ public:
       Replaceall(tm, "$result", constructor ? (constructorRenameOverload ? "return_value" : "ZEND_THIS") : "return_value");
       Replaceall(tm, "$owner", newobject ? "1" : "0");
       Replaceall(tm, "$needNewFlow", retType_valid ? (constructor ? (constructorRenameOverload ? "1" : "2") : (valid_wrapped_class ? "1" : "0")) : "0");
-      if (retType_class) {
-        String *retZend_obj = NewStringEmpty();
-        Printf(retZend_obj, "%s_object_new(SWIGTYPE_%s_ce)", retType_class, retType_class);
-        Replaceall(tm, "$zend_obj", retType_valid ? (constructor ? (constructorRenameOverload ? retZend_obj : "NULL") : (valid_wrapped_class ? retZend_obj : "NULL")) : "NULL");
-      }
-      Replaceall(tm, "$zend_obj", "NULL");
       Printf(f->code, "%s\n", tm);
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
@@ -2138,14 +2132,10 @@ public:
 	  String *parse = Getattr(p, "tmap:directorin:parse");
 	  if (!parse) {
 	    if (is_class(Getattr(p, "type"))) {
-	      String *return_class_name = get_class_name(Getattr(p, "type"));
-	      String *object_name = NewStringEmpty();
-	      Printf(object_name, "%s_object_new(SWIGTYPE_%s_ce)", return_class_name, return_class_name);
-	      Replaceall(tm, "$zend_obj", object_name);
 	      Replaceall(tm, "$needNewFlow", "1");
+	    } else {
+	      Replaceall(tm, "$needNewFlow", "0");
 	    }
-	    Replaceall(tm, "$zend_obj", "NULL");
-	    Replaceall(tm, "$needNewFlow", "0");
 	    String *input = NewStringf("&args[%d]", idx++);
 	    Setattr(p, "emit:directorinput", input);
 	    Replaceall(tm, "$input", input);

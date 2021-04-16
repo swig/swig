@@ -201,7 +201,7 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
 }
 
 static void
-SWIG_SetZval(zval *zv, int newFlow, int newobject, void *ptr, swig_type_info *type, zend_object *std) {
+SWIG_SetZval(zval *zv, int newFlow, int newobject, void *ptr, swig_type_info *type) {
   if (!ptr) {
     ZVAL_NULL(zv);
     return;
@@ -209,8 +209,10 @@ SWIG_SetZval(zval *zv, int newFlow, int newobject, void *ptr, swig_type_info *ty
 
   if (newFlow) {
     swig_object_wrapper *obj;
-    if (newFlow == 1)
-      ZVAL_OBJ(zv,std);
+    if (newFlow == 1) {
+      zend_class_entry *ce = (zend_class_entry*)type->clientdata;
+      ZVAL_OBJ(zv, ce->create_object(ce));
+    }
     obj = SWIG_Z_FETCH_OBJ_P(zv);
     obj->ptr = ptr;
     obj->newobject = newobject;

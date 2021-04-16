@@ -371,12 +371,12 @@
               SWIGTYPE &,
               SWIGTYPE &&
 %{
-  SWIG_SetZval($result, $needNewFlow, $owner, (void *)result, $1_descriptor, $zend_obj);
+  SWIG_SetZval($result, $needNewFlow, $owner, (void *)result, $1_descriptor);
 %}
 
 %typemap(out) SWIGTYPE *const&
 %{
-  SWIG_SetZval(return_value, $needNewFlow, $owner, (void *)*$1, $*1_descriptor, $zend_obj);
+  SWIG_SetZval(return_value, $needNewFlow, $owner, (void *)*$1, $*1_descriptor);
 %}
 
 %typemap(directorin) SWIGTYPE *,
@@ -384,7 +384,7 @@
                      SWIGTYPE &,
                      SWIGTYPE &&
 %{
-  SWIG_SetZval($input, $needNewFlow, $owner, (void *)&$1, $1_descriptor, $zend_obj);
+  SWIG_SetZval($input, $needNewFlow, $owner, (void *)&$1, $1_descriptor);
 %}
 
 %typemap(out, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)
@@ -411,19 +411,19 @@
 #ifdef __cplusplus
 {
   $&1_ltype resultobj = new $1_ltype((const $1_ltype &) $1);
-  SWIG_SetZval(return_value, $needNewFlow, 1, (void *)resultobj, $&1_descriptor, $zend_obj);
+  SWIG_SetZval(return_value, $needNewFlow, 1, (void *)resultobj, $&1_descriptor);
 }
 #else
 {
   $&1_ltype resultobj = ($&1_ltype) emalloc(sizeof($1_type));
   memcpy(resultobj, &$1, sizeof($1_type));
-  SWIG_SetZval(return_value, $needNewFlow, 1, (void *)resultobj, $&1_descriptor, $zend_obj);
+  SWIG_SetZval(return_value, $needNewFlow, 1, (void *)resultobj, $&1_descriptor);
 }
 #endif
 
 %typemap(directorin) SWIGTYPE
 %{
-  SWIG_SetZval($input, $needNewFlow, 1, SWIG_as_voidptr(new $1_ltype((const $1_ltype &)$1)), $&1_descriptor, $zend_obj);
+  SWIG_SetZval($input, $needNewFlow, 1, SWIG_as_voidptr(new $1_ltype((const $1_ltype &)$1)), $&1_descriptor);
 %}
 
 %typemap(out) void "";

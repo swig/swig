@@ -95,8 +95,7 @@ if (!dcast) {
   Type *dobj = dynamic_cast<Type *>($1);
   if (dobj) {
     dcast = 1;
-    zend_object *std = $descriptor(Type)##_ce->create_object($descriptor(Type)##_ce);
-    SWIG_SetZval(return_value, $needNewFlow, $owner, SWIG_as_voidptr(dobj), $descriptor(Type *), std);
+    SWIG_SetZval(return_value, $needNewFlow, $owner, SWIG_as_voidptr(dobj), $descriptor(Type *));
   }
 }%enddef
 
@@ -105,6 +104,6 @@ if (!dcast) {
   int dcast = 0;
   %formacro(%_factory_dispatch, Types)
   if (!dcast) {
-    SWIG_SetZval(return_value, $needNewFlow, $owner, SWIG_as_voidptr($1), $descriptor, $zend_obj);
+    SWIG_SetZval(return_value, $needNewFlow, $owner, SWIG_as_voidptr($1), $descriptor);
   }
 }%enddef
