@@ -3,7 +3,7 @@ require "tests.php";
 require "li_carrays.php";
 
 // Check functions.
-check::functions(array('delete_intarray','intarray_getitem','intarray_setitem','delete_abarray','abarray_getitem','abarray_setitem','sum_array'));
+check::functions(array('new_intarray','delete_intarray','intarray_getitem','intarray_setitem','new_abarray','delete_abarray','abarray_getitem','abarray_setitem','sum_array'));
 
 // Check classes.
 // NB An "li_carrays" class is created as a mock namespace.

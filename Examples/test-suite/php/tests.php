@@ -46,9 +46,7 @@ class check {
       foreach($_original_functions['internal'] as $func) unset($df[$func]);
       // Now chop out any get/set accessors
       foreach(array_keys($df) as $func)
-        if ((self::GETSET && preg_match('/_[gs]et$/', $func)) ||
-            preg_match('/^new_/', $func) ||
-            preg_match('/_(alter|get)_newobject$/', $func))
+        if ((self::GETSET && preg_match('/_[gs]et$/', $func)))
           $extrags[]=$func;
         else $extra[]=$func;
 //      $extra=array_keys($df);
