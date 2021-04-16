@@ -1402,7 +1402,6 @@ public:
 	//      Replaceall(tm,"$input",Getattr(p,"lname"));
 	Replaceall(tm, "$target", "return_value");
 	Replaceall(tm, "$result", "return_value");
-        Replaceall(tm, "$classFlag", "0");
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(outarg, tm, "\n", NIL);
