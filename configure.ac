@@ -292,19 +292,19 @@ case $host in
 esac
 AC_MSG_RESULT($PLATCFLAGS)
 
-# Add switch if necessary to enable C++11 support - just for tests
-AC_ARG_ENABLE([cpp11-testing], AS_HELP_STRING([--enable-cpp11-testing], [enable C++11 testing if supported by compiler (default disabled)]), [enable_cpp11_testing=$enableval], [enable_cpp11_testing=no])
-AC_MSG_CHECKING([whether to attempt to enable C++11 testing])
-AC_MSG_RESULT([$enable_cpp11_testing])
+# Add switch if necessary to enable C++17 support - just for tests
+AC_ARG_ENABLE([cpp17-testing], AS_HELP_STRING([--enable-cpp17-testing], [enable C++17 testing if supported by compiler (default disabled)]), [enable_cpp17_testing=$enableval], [enable_cpp17_testing=no])
+AC_MSG_CHECKING([whether to attempt to enable C++17 testing])
+AC_MSG_RESULT([$enable_cpp17_testing])
 
 PLATCXXFLAGS="$PLATCFLAGS"
-if test x"$enable_cpp11_testing" = xyes; then
+if test x"$enable_cpp17_testing" = xyes; then
   CXX_SAVED=$CXX
   CXXCPP_SAVED=$CXXCPP
   CXXCPP=" "
-  AX_CXX_COMPILE_STDCXX(11, [noext], [optional])
-  AC_MSG_CHECKING([whether C++11 testing is actually enabled])
-  if test "$HAVE_CXX11" = "1"; then
+  AX_CXX_COMPILE_STDCXX(17, [noext], [optional])
+  AC_MSG_CHECKING([whether C++17 testing is actually enabled])
+  if test "$HAVE_CXX17" = "1"; then
     AC_MSG_RESULT([yes])
     PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
   else
@@ -802,7 +802,7 @@ else
     AC_MSG_CHECKING(for Python 3.x path separator)
     PYSEPARATOR=`($PYTHON3 -c "import sys, os; sys.stdout.write(os.sep)") 2>/dev/null`
     AC_MSG_RESULT($PYSEPARATOR)
-
+    
     if test x"$PY3OSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\"; then
       # Windows installations are quite different to posix installations
       # There is no python-config to use
@@ -811,7 +811,7 @@ else
       AC_MSG_RESULT($PY3PREFIX)
       PY3PREFIX=`echo "$PY3PREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
       PYTHON_SO=.pyd
-
+      
       AC_MSG_CHECKING(for Python 3.x header files)
       if test -r $PY3PREFIX/include/Python.h; then
         PY3INCLUDE="-I$PY3PREFIX/include"
@@ -909,6 +909,7 @@ else
   *)PYTHON3DYNAMICLINKING="";;
   esac
 
+  AC_SUBST(PYVER)
   AC_SUBST(PY3INCLUDE)
   AC_SUBST(PY3LIB)
   AC_SUBST(PY3LINK)
