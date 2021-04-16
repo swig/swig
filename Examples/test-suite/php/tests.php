@@ -209,23 +209,11 @@ class check {
   }
 
   static function resource($a,$b,$message) {
-    $resource=trim(check::var_dump($a));
-    if (! preg_match("/^resource\([0-9]+\) of type \($b\)/i", $resource))
-      return check::fail($message);
-    return TRUE;
+    return check::equal(get_resource_type($a), $b, $message);
   }
 
   static function isnull($a,$message) {
-    $value=trim(check::var_dump($a));
-    return check::equal($value,"NULL",$message);
-  }
-
-  static function var_dump($arg) {
-    ob_start();
-    var_dump($arg);
-    $result=ob_get_contents();
-    ob_end_clean();
-    return $result;
+    return check::equal($a,NULL,$message);
   }
 
   static function fail($pattern) {
