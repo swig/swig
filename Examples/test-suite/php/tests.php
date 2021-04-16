@@ -208,6 +208,11 @@ class check {
     return TRUE;
   }
 
+  static function equivalent($a,$b,$message) {
+    if (! ($a==$b)) return check::fail($message . ": '$a'!='$b'");
+    return TRUE;
+  }
+
   static function resource($a,$b,$message) {
     return check::equal(get_resource_type($a), $b, $message);
   }
