@@ -108,7 +108,6 @@ static enum {
   memberfn,
   staticmemberfn,
   membervar,
-  globalvar,
   staticmembervar,
   constructor,
   directorconstructor
@@ -1140,18 +1139,6 @@ public:
       }
     } else if (wrapperType == memberfn) {
       wname = Getattr(n, "memberfunctionHandler:sym:name");
-    } else if (wrapperType == globalvar) {
-      //check for namespaces (global class vars)
-      if (class_name) {
-        wname = Copy(Getattr(n, "variableWrapper:sym:name"));
-        if (is_setter_method(n)) {
-          Append(wname, "_set");
-        } else if (is_getter_method(n)) {
-          Append(wname, "_get");
-        }
-      } else {
-        wname = iname;
-      }
     } else if (wrapperType == staticmembervar) {
       // Shape::nshapes -> nshapes
       wname = Getattr(n, "staticmembervariableHandler:sym:name");
@@ -1501,19 +1488,13 @@ public:
    * globalvariableHandler()
    * ------------------------------------------------------------ */
 
-  virtual int globalvariableHandler(Node *n) {
-    wrapperType = globalvar;
-
-    /* PHP doesn't support intercepting reads and writes to global variables
-     * (nor static property reads and writes so we can't wrap them as static
-     * properties on a dummy class) so just let SWIG do its default thing and
-     * wrap them as name_get() and name_set().
-     */
-    int result = Language::globalvariableHandler(n);
-
-    wrapperType = standard;
-    return result;
-  }
+  /* PHP doesn't support intercepting reads and writes to global variables
+   * (nor static property reads and writes so we can't wrap them as static
+   * properties on a dummy class) so just let SWIG do its default thing and
+   * wrap them as name_get() and name_set().
+   */
+  //virtual int globalvariableHandler(Node *n) {
+  //}
 
   /* ------------------------------------------------------------
    * constantWrapper()
