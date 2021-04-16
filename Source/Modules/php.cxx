@@ -1344,8 +1344,6 @@ public:
 	Replaceall(tm, "$target", ln);
 	Replaceall(tm, "$input", source);
         Replaceall(tm, "$needNewFlow", paramType_valid ? (is_class_wrapped(paramType_class) ? "1" : "0") : "0");
-        String *temp_obj = NewStringEmpty();
-        Printf(temp_obj, "&%s", ln);
 	Setattr(p, "emit:input", source);
 	Printf(f->code, "%s\n", tm);
 	if (i == 0 && Getattr(p, "self")) {
