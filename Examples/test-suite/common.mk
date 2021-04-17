@@ -680,6 +680,10 @@ ifneq (,$(HAVE_CXX11))
 CPP_TEST_CASES += $(CPP11_TEST_CASES)
 endif
 
+ifneq (,$(HAVE_CXX17))
+CPP_TEST_CASES += $(CPP17_TEST_CASES)
+endif
+
 # C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_CASES += \
 	arrays \
@@ -799,6 +803,8 @@ check-c: $(C_TEST_CASES:=.ctest)
 check-cpp: $(CPP_TEST_CASES:=.cpptest)
 
 check-cpp11: $(CPP11_TEST_CASES:=.cpptest)
+
+check-cpp17: $(CPP17_TEST_CASES:=.cpptest)
 
 ifdef HAS_DOXYGEN
 check-doxygen: $(DOXYGEN_TEST_CASES:=.cpptest)

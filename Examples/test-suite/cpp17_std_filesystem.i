@@ -1,4 +1,4 @@
-%module li_std_filesystem
+%module cpp17_std_filesystem
 
 %include "std_filesystem.i"
 
