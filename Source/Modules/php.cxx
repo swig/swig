@@ -67,7 +67,6 @@ static String *pragma_version;
 static String *class_name = NULL;
 static String *magic_set = NULL;
 static String *magic_get = NULL;
-static String *magic_isset = NULL;
 
 // Class used as pseudo-namespace for compatibility.
 static String *fake_class_name() {
@@ -886,7 +885,6 @@ public:
     if (magic_set == NULL) {
       magic_set = NewStringEmpty();
       magic_get = NewStringEmpty();
-      magic_isset = NewStringEmpty();
     }
     if (flag) {
       if (Cmp(baseClassExtend, "Exception") == 0 || !is_class_wrapped(baseClassExtend)) {
@@ -963,12 +961,8 @@ public:
       if (baseClassExtend) {
         Printf(f->code, "PHP_MN(%s___get)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
       } else {
-        Printf(f->code, "#if PHP_MAJOR_VERSION < 8\n");
-        Printf(f->code, "zval *zv = zend_read_property(Z_OBJCE_P(ZEND_THIS), ZEND_THIS, ZSTR_VAL(arg2), ZSTR_LEN(arg2), 1, NULL);\n");
-        Printf(f->code, "#else\n");
-        Printf(f->code, "zval *zv = zend_read_property(Z_OBJCE_P(ZEND_THIS), Z_OBJ_P(ZEND_THIS), ZSTR_VAL(arg2), ZSTR_LEN(arg2), 1, NULL);\n");
-        Printf(f->code, "#endif\n");
-        Printf(f->code, "if (!zv)\nRETVAL_NULL();\nelse\nRETVAL_ZVAL(zv,1,ZVAL_PTR_DTOR);\n}\n");
+	// __get is only called if the property isn't set on the zend_object.
+        Printf(f->code, "RETVAL_NULL();\n}\n");
       }
 
       Printf(f->code, "zend_string_release(arg2);\n\n");
@@ -995,22 +989,20 @@ public:
       Printf(f->code, "  newSize += ZSTR_LEN(arg2) + strlen(\"_get\");\nmethod_name = (char *)malloc(newSize);\n");
       Printf(f->code, "  strcpy(method_name,ZSTR_VAL(arg2));\nstrcat(method_name,\"_get\");\n\n");
 
-      Printf(magic_isset, "\nelse if (zend_hash_exists(&SWIGTYPE_%s_ce->function_table, zend_string_init(method_name, newSize-1, 0))) {\n",class_name);
-      Printf(magic_isset, "RETVAL_TRUE;\n}\n");
-
       Printf(f->code, "if (!arg2) {\n  RETVAL_FALSE;\n}\n");
       Printf(f->code, "\nelse if (strcmp(ZSTR_VAL(arg2),\"thisown\") == 0) {\n");
       Printf(f->code, "RETVAL_TRUE;\n}\n\n");
-      Printf(f->code, "%s\n",magic_isset);
+
+      // Check if there's a <property>_get method.
+      Printf(f->code, "\nelse if (zend_hash_exists(&SWIGTYPE_%s_ce->function_table, zend_string_init(method_name, newSize-1, 0))) {\n",class_name);
+      Printf(f->code, "RETVAL_TRUE;\n}\n");
+
       Printf(f->code, "else {\n");
       if (baseClassExtend) {
         Printf(f->code, "PHP_MN(%s___isset)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
       } else {
-        Printf(f->code, "#if PHP_MAJOR_VERSION < 8\n");
-        Printf(f->code, "if (!zend_read_property(Z_OBJCE_P(ZEND_THIS), ZEND_THIS, ZSTR_VAL(arg2), ZSTR_LEN(arg2), 1, NULL)) RETVAL_FALSE; else RETVAL_TRUE;\n}\n");
-        Printf(f->code, "#else\n");
-        Printf(f->code, "if (!zend_read_property(Z_OBJCE_P(ZEND_THIS), Z_OBJ_P(ZEND_THIS), ZSTR_VAL(arg2), ZSTR_LEN(arg2), 1, NULL)) RETVAL_FALSE; else RETVAL_TRUE;\n}\n");
-        Printf(f->code, "#endif\n");
+	// __isset is only called if the property isn't set on the zend_object.
+        Printf(f->code, "RETVAL_FALSE;\n}\n");
       }
 
       Printf(f->code, "free(method_name);\nzend_string_release(arg2);\n\n");
@@ -1028,10 +1020,8 @@ public:
 
       Delete(magic_set);
       Delete(magic_get);
-      Delete(magic_isset);
       magic_set = NULL;
       magic_get = NULL;
-      magic_isset = NULL;
 
       return;
     }
