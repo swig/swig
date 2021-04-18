@@ -4,11 +4,11 @@ extern std::string s;
 extern int x;
 
 class Sync {
-	public:
-		int x;
-		std::string s;
-		void printer();
-		void all_change();
+  public:
+    int x;
+    std::string s;
+    void printer();
+    void all_change();
 
-		Sync() : x(0) { }
+    Sync() : x(0) { }
 };

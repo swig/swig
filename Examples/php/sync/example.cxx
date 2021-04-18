@@ -12,8 +12,8 @@ void Sync::printer() {
 }
 
 void Sync::all_change() {
-	::s = "global change";
-	++::x;
-	this->s = "local change";
-	++this->x;
+    ::s = "global change";
+    ++::x;
+    this->s = "local change";
+    ++this->x;
 }
