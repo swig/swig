@@ -4,7 +4,6 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=php VER=7.0 CONFIGOPTS=--enable-cpp11-testing
-      CPP11=1
       dist: xenial
     - compiler: gcc
       os: linux
