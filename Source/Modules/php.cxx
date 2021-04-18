@@ -1998,8 +1998,6 @@ public:
       }
     } else {
       /* attach typemaps to arguments (C/C++ -> PHP) */
-      String *parse_args = NewStringEmpty();
-
       Swig_director_parms_fixup(l);
 
       /* remove the wrapper 'w' since it was producing spurious temps */
@@ -2042,9 +2040,7 @@ public:
 	    Delete(input);
 	    Replaceall(tm, "$owner", "0");
 	    Printv(wrap_args, tm, "\n", NIL);
-	    Putc('O', parse_args);
 	  } else {
-	    Append(parse_args, parse);
 	    Setattr(p, "emit:directorinput", pname);
 	    Replaceall(tm, "$input", pname);
 	    Replaceall(tm, "$owner", "0");
@@ -2167,7 +2163,6 @@ public:
 	}
       }
 
-      Delete(parse_args);
       Delete(cleanup);
       Delete(outarg);
     }
