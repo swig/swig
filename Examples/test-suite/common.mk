@@ -418,6 +418,7 @@ CPP_TEST_CASES += \
 	struct_value \
 	swig_exception \
 	symbol_clash \
+	sym \
 	template_arg_replace \
 	template_arg_scope \
 	template_arg_typename \

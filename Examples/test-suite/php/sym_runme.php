@@ -3,11 +3,11 @@
 require "tests.php";
 require "sym.php";
 
-// No new functions
-check::functions(array());
-// No new classes
-check::classes(array('flim','flam'));
-// now new vars
+// New functions
+check::functions(array('flim_hulahoops','flim_jar','flam_jam','flam_jar'));
+// New classes
+check::classes(array('Flim','Flam'));
+// No new vars
 check::globals(array());
 
 $flim=new flim();
