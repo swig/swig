@@ -67,6 +67,7 @@ static String *pragma_version;
 static String *class_name = NULL;
 static String *magic_set = NULL;
 static String *magic_get = NULL;
+static String *magic_isset = NULL;
 
 // Class used as pseudo-namespace for compatibility.
 static String *fake_class_name() {
@@ -878,8 +879,6 @@ public:
   }
 
   void generate_magic_property_methods(String *baseClassExtend) {
-    if (magic_set == NULL) return;
-
     if (Cmp(baseClassExtend, "Exception") == 0 || !is_class_wrapped(baseClassExtend)) {
       baseClassExtend = NULL;
     }
@@ -915,7 +914,9 @@ public:
     Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
 
     Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n");
-    Printv(f->code, magic_set, "\n", NIL);
+    if (magic_set) {
+      Append(f->code, magic_set);
+    }
     Printf(f->code, "\nelse if (strcmp(ZSTR_VAL(arg2),\"thisown\") == 0) {\n");
     Printf(f->code, "arg->newobject = zval_get_long(&args[1]);\n}\n\n");
     Printf(f->code, "else {\n");
@@ -947,7 +948,9 @@ public:
     Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
 
     Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n");
-    Printf(f->code, "%s\n",magic_get);
+    if (magic_get) {
+      Append(f->code, magic_get);
+    }
     Printf(f->code, "\nelse if (strcmp(ZSTR_VAL(arg2),\"thisown\") == 0) {\n");
     Printf(f->code, "if(arg->newobject) {\nRETVAL_LONG(1);\n}\nelse {\nRETVAL_LONG(0);\n}\n}\n\n");
     Printf(f->code, "else {\n");
@@ -985,11 +988,9 @@ public:
     Printf(f->code, "if (!arg2) {\n  RETVAL_FALSE;\n}\n");
     Printf(f->code, "\nelse if (strcmp(ZSTR_VAL(arg2),\"thisown\") == 0) {\n");
     Printf(f->code, "RETVAL_TRUE;\n}\n\n");
-
-    // Check if there's a <property>_get method.
-    Printf(f->code, "\nelse if (zend_hash_exists(&SWIGTYPE_%s_ce->function_table, zend_string_init(method_name, newSize-1, 0))) {\n",class_name);
-    Printf(f->code, "RETVAL_TRUE;\n}\n");
-
+    if (magic_isset) {
+      Append(f->code, magic_isset);
+    }
     Printf(f->code, "else {\n");
     if (baseClassExtend) {
       Printf(f->code, "PHP_MN(%s___isset)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
@@ -1013,8 +1014,10 @@ public:
 
     Delete(magic_set);
     Delete(magic_get);
+    Delete(magic_isset);
     magic_set = NULL;
     magic_get = NULL;
+    magic_isset = NULL;
   }
 
   String *getAccessMode(String *access) {
@@ -1692,6 +1695,7 @@ public:
     if (magic_set == NULL) {
       magic_set = NewStringEmpty();
       magic_get = NewStringEmpty();
+      magic_isset = NewStringEmpty();
     }
 
     String *v_name = GetChar(n, "name");
@@ -1703,6 +1707,9 @@ public:
     Printf(magic_get, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
     Printf(magic_get, "ZVAL_STRING(&tempZval, \"%s_get\");\n", v_name);
     Printf(magic_get, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,0,NULL);\n}\n");
+
+    Printf(magic_isset, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
+    Printf(magic_isset, "RETVAL_TRUE;\n}\n");
 
     wrapperType = membervar;
     Language::membervariableHandler(n);
