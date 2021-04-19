@@ -4,27 +4,27 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=php VER=7.0 CONFIGOPTS=--enable-cpp11-testing
-      dist: xenial
+      dist: bionic
     - compiler: gcc
       os: linux
       env: SWIGLANG=php VER=7.1 CONFIGOPTS=--enable-cpp11-testing
-      dist: xenial
+      dist: bionic
     - compiler: gcc
       os: linux
       env: SWIGLANG=php VER=7.2 CONFIGOPTS=--enable-cpp11-testing
-      dist: xenial
+      dist: bionic
     - compiler: gcc
       os: linux
       env: SWIGLANG=php VER=7.3 CONFIGOPTS=--enable-cpp11-testing
-      dist: xenial
+      dist: bionic
     - compiler: gcc
       os: linux
       env: SWIGLANG=php VER=7.4 CONFIGOPTS=--enable-cpp11-testing
-      dist: xenial
+      dist: bionic
     - compiler: gcc
       os: linux
       env: SWIGLANG=php VER=8.0 CONFIGOPTS=--enable-cpp11-testing
-      dist: xenial
+      dist: bionic
 
 before_install:
   - date -u
