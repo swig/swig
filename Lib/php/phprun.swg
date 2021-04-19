@@ -63,7 +63,7 @@ static int default_error_code = E_ERROR;
 #define SWIG_PHP_Error(code,msg) do { SWIG_ErrorCode() = code; SWIG_ErrorMsg() = msg; SWIG_fail; } while (0)
 
 #define SWIG_contract_assert(expr,msg) \
-  if (!(expr) ) { zend_printf("Contract Assert Failed %s\n",msg ); } else
+  do { if (!(expr)) zend_printf("Contract Assert Failed %s\n", msg); } while (0)
 
 /* Standard SWIG API */
 #define SWIG_GetModule(clientdata) SWIG_Php_GetModule()
