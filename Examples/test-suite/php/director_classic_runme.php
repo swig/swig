@@ -81,11 +81,7 @@ function mycheck($person, $expected) {
   $ret = $baseclass->id();
   if ($debug)
     print $ret . "\n";
-  # TODO: Currently we do not track the dynamic type of returned 
-  # objects, so in case it's possible that the dynamic type is not equal 
-  # to the static type, we skip this check.
-  if (get_parent_class($person) === false)
-    check::equal($ret, $expected, "#3 failed");
+  check::equal($ret, $expected, "#3 failed");
 
   $caller->resetCallback();
   if ($debug)

@@ -38,9 +38,7 @@ class MyFoo3 extends Foo {
 # MyFoo.pong().
 $ok = 0;
 $a = new MyFoo();
-# TODO: Currently we do not track the dynamic type of returned 
-# objects, so we skip the launder() call.
-#$b = director_exception::launder($a);
+$b = director_exception::launder($a);
 $b = $a;
 try {
   $b->pong();

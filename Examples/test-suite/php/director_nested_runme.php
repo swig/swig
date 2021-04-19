@@ -60,10 +60,7 @@ class C extends FooBar_int {
 }
 
 $cc = new C();
-# TODO: Currently we do not track the dynamic type of returned 
-# objects, so we skip the get_self() call.
-#$c = Foobar_int::get_self($cc);
-$c = $cc;
+$c = Foobar_int::get_self($cc);
 $c->advance();
 
 check::equal($c->get_name(), "FooBar::get_name hello", "get_name failed");
