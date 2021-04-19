@@ -877,164 +877,144 @@ public:
     return false;
   }
 
-  /* Magic methods __set, __get, __isset is declared here in the extension.
-     The flag variable is used to decide whether all variables are read or not.
-   */
-  void magic_method_setter(Node *n, bool flag, String *baseClassExtend) {
+  void generate_magic_property_methods(String *baseClassExtend) {
+    if (magic_set == NULL) return;
 
-    if (magic_set == NULL) {
-      magic_set = NewStringEmpty();
-      magic_get = NewStringEmpty();
-    }
-    if (flag) {
-      if (Cmp(baseClassExtend, "Exception") == 0 || !is_class_wrapped(baseClassExtend)) {
-        baseClassExtend = NULL;
-      }
-
-      // Ensure arginfo_1 and arginfo_2 exist.
-      if (!GetFlag(arginfo_used, "1")) {
-	SetFlag(arginfo_used, "1");
-	Append(s_arginfo,
-	       "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_1, 0, 0, 1)\n"
-	       " ZEND_ARG_INFO(0,arg1)\n"
-	       "ZEND_END_ARG_INFO()\n");
-      }
-      if (!GetFlag(arginfo_used, "2")) {
-	SetFlag(arginfo_used, "2");
-	Append(s_arginfo,
-	       "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_2, 0, 0, 2)\n"
-	       " ZEND_ARG_INFO(0,arg1)\n"
-	       " ZEND_ARG_INFO(0,arg2)\n"
-	       "ZEND_END_ARG_INFO()\n");
-      }
-
-      Wrapper *f = NewWrapper();
-
-      Printf(f_h, "PHP_METHOD(%s,__set);\n", class_name);
-      Printf(all_cs_entry, " PHP_ME(%s,__set,swig_arginfo_2,ZEND_ACC_PUBLIC)\n", class_name);
-      Printf(f->code, "PHP_METHOD(%s,__set) {\n",class_name);
-
-      Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n");
-      Printf(f->code, "  zval args[2];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
-      Printf(f->code, "  if(ZEND_NUM_ARGS() != 2 || zend_get_parameters_array_ex(2, args) != SUCCESS) {\n");
-      Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
-      Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
-      Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
-
-      Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n");
-      Printv(f->code, magic_set, "\n", NIL);
-      Printf(f->code, "\nelse if (strcmp(ZSTR_VAL(arg2),\"thisown\") == 0) {\n");
-      Printf(f->code, "arg->newobject = zval_get_long(&args[1]);\n}\n\n");
-      Printf(f->code, "else {\n");
-      if (baseClassExtend) {
-        Printf(f->code, "PHP_MN(%s___set)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
-      } else {
-        Printf(f->code, "add_property_zval_ex(ZEND_THIS, ZSTR_VAL(arg2), ZSTR_LEN(arg2), &args[1]);\n}\n");
-      }
-
-      Printf(f->code, "zend_string_release(arg2);\n\n");
-      Printf(f->code, "thrown:\n");
-      Printf(f->code, "return;\n");
-
-      /* Error handling code */
-      Printf(f->code, "fail:\n");
-      Append(f->code, "SWIG_FAIL();\n");
-      Printf(f->code, "}\n\n\n");
-
-
-      Printf(f_h, "PHP_METHOD(%s,__get);\n", class_name);
-      Printf(all_cs_entry, " PHP_ME(%s,__get,swig_arginfo_1,ZEND_ACC_PUBLIC)\n", class_name);
-      Printf(f->code, "PHP_METHOD(%s,__get) {\n",class_name);
-
-      Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n", class_name);
-      Printf(f->code, "  zval args[1];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
-      Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
-      Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
-      Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
-      Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
-
-      Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n");
-      Printf(f->code, "%s\n",magic_get);
-      Printf(f->code, "\nelse if (strcmp(ZSTR_VAL(arg2),\"thisown\") == 0) {\n");
-      Printf(f->code, "if(arg->newobject) {\nRETVAL_LONG(1);\n}\nelse {\nRETVAL_LONG(0);\n}\n}\n\n");
-      Printf(f->code, "else {\n");
-      if (baseClassExtend) {
-        Printf(f->code, "PHP_MN(%s___get)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
-      } else {
-	// __get is only called if the property isn't set on the zend_object.
-        Printf(f->code, "RETVAL_NULL();\n}\n");
-      }
-
-      Printf(f->code, "zend_string_release(arg2);\n\n");
-      Printf(f->code, "thrown:\n");
-      Printf(f->code, "return;\n");
-
-      /* Error handling code */
-      Printf(f->code, "fail:\n");
-      Append(f->code, "SWIG_FAIL();\n");
-      Printf(f->code, "}\n\n\n");
-
-
-      Printf(f_h, "PHP_METHOD(%s,__isset);\n", class_name);
-      Printf(all_cs_entry, " PHP_ME(%s,__isset,swig_arginfo_1,ZEND_ACC_PUBLIC)\n", class_name);
-      Printf(f->code, "PHP_METHOD(%s,__isset) {\n",class_name);
-
-      Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n", class_name);
-      Printf(f->code, "  zval args[1];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
-      Printf(f->code, "  int newSize = 1;\nchar *method_name = 0;\n\n");
-      Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
-      Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
-      Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
-      Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
-      Printf(f->code, "  newSize += ZSTR_LEN(arg2) + strlen(\"_get\");\nmethod_name = (char *)malloc(newSize);\n");
-      Printf(f->code, "  strcpy(method_name,ZSTR_VAL(arg2));\nstrcat(method_name,\"_get\");\n\n");
-
-      Printf(f->code, "if (!arg2) {\n  RETVAL_FALSE;\n}\n");
-      Printf(f->code, "\nelse if (strcmp(ZSTR_VAL(arg2),\"thisown\") == 0) {\n");
-      Printf(f->code, "RETVAL_TRUE;\n}\n\n");
-
-      // Check if there's a <property>_get method.
-      Printf(f->code, "\nelse if (zend_hash_exists(&SWIGTYPE_%s_ce->function_table, zend_string_init(method_name, newSize-1, 0))) {\n",class_name);
-      Printf(f->code, "RETVAL_TRUE;\n}\n");
-
-      Printf(f->code, "else {\n");
-      if (baseClassExtend) {
-        Printf(f->code, "PHP_MN(%s___isset)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
-      } else {
-	// __isset is only called if the property isn't set on the zend_object.
-        Printf(f->code, "RETVAL_FALSE;\n}\n");
-      }
-
-      Printf(f->code, "free(method_name);\nzend_string_release(arg2);\n\n");
-      Printf(f->code, "thrown:\n");
-      Printf(f->code, "return;\n");
-
-      /* Error handling code */
-      Printf(f->code, "fail:\n");
-      Append(f->code, "SWIG_FAIL();\n");
-      Printf(f->code, "}\n\n\n");
-
-      Wrapper_print(f, s_wrappers);
-      DelWrapper(f);
-      f = NULL;
-
-      Delete(magic_set);
-      Delete(magic_get);
-      magic_set = NULL;
-      magic_get = NULL;
-
-      return;
+    if (Cmp(baseClassExtend, "Exception") == 0 || !is_class_wrapped(baseClassExtend)) {
+      baseClassExtend = NULL;
     }
 
-    String *v_name = GetChar(n, "name");
+    // Ensure arginfo_1 and arginfo_2 exist.
+    if (!GetFlag(arginfo_used, "1")) {
+      SetFlag(arginfo_used, "1");
+      Append(s_arginfo,
+	     "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_1, 0, 0, 1)\n"
+	     " ZEND_ARG_INFO(0,arg1)\n"
+	     "ZEND_END_ARG_INFO()\n");
+    }
+    if (!GetFlag(arginfo_used, "2")) {
+      SetFlag(arginfo_used, "2");
+      Append(s_arginfo,
+	     "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_2, 0, 0, 2)\n"
+	     " ZEND_ARG_INFO(0,arg1)\n"
+	     " ZEND_ARG_INFO(0,arg2)\n"
+	     "ZEND_END_ARG_INFO()\n");
+    }
 
-    Printf(magic_set, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n",v_name);
-    Printf(magic_set, "ZVAL_STRING(&tempZval, \"%s_set\");\n",v_name);
-    Printf(magic_set, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,1,&args[1]);\n}\n");
+    Wrapper *f = NewWrapper();
 
-    Printf(magic_get, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n",v_name);
-    Printf(magic_get, "ZVAL_STRING(&tempZval, \"%s_get\");\n",v_name);
-    Printf(magic_get, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,0,NULL);\n}\n");
+    Printf(f_h, "PHP_METHOD(%s,__set);\n", class_name);
+    Printf(all_cs_entry, " PHP_ME(%s,__set,swig_arginfo_2,ZEND_ACC_PUBLIC)\n", class_name);
+    Printf(f->code, "PHP_METHOD(%s,__set) {\n",class_name);
+
+    Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n");
+    Printf(f->code, "  zval args[2];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
+    Printf(f->code, "  if(ZEND_NUM_ARGS() != 2 || zend_get_parameters_array_ex(2, args) != SUCCESS) {\n");
+    Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
+    Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
+    Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
+
+    Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n");
+    Printv(f->code, magic_set, "\n", NIL);
+    Printf(f->code, "\nelse if (strcmp(ZSTR_VAL(arg2),\"thisown\") == 0) {\n");
+    Printf(f->code, "arg->newobject = zval_get_long(&args[1]);\n}\n\n");
+    Printf(f->code, "else {\n");
+    if (baseClassExtend) {
+      Printf(f->code, "PHP_MN(%s___set)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
+    } else {
+      Printf(f->code, "add_property_zval_ex(ZEND_THIS, ZSTR_VAL(arg2), ZSTR_LEN(arg2), &args[1]);\n}\n");
+    }
+
+    Printf(f->code, "zend_string_release(arg2);\n\n");
+    Printf(f->code, "thrown:\n");
+    Printf(f->code, "return;\n");
+
+    /* Error handling code */
+    Printf(f->code, "fail:\n");
+    Append(f->code, "SWIG_FAIL();\n");
+    Printf(f->code, "}\n\n\n");
+
+
+    Printf(f_h, "PHP_METHOD(%s,__get);\n", class_name);
+    Printf(all_cs_entry, " PHP_ME(%s,__get,swig_arginfo_1,ZEND_ACC_PUBLIC)\n", class_name);
+    Printf(f->code, "PHP_METHOD(%s,__get) {\n",class_name);
+
+    Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n", class_name);
+    Printf(f->code, "  zval args[1];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
+    Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
+    Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
+    Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
+    Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
+
+    Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n");
+    Printf(f->code, "%s\n",magic_get);
+    Printf(f->code, "\nelse if (strcmp(ZSTR_VAL(arg2),\"thisown\") == 0) {\n");
+    Printf(f->code, "if(arg->newobject) {\nRETVAL_LONG(1);\n}\nelse {\nRETVAL_LONG(0);\n}\n}\n\n");
+    Printf(f->code, "else {\n");
+    if (baseClassExtend) {
+      Printf(f->code, "PHP_MN(%s___get)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
+    } else {
+      // __get is only called if the property isn't set on the zend_object.
+      Printf(f->code, "RETVAL_NULL();\n}\n");
+    }
+
+    Printf(f->code, "zend_string_release(arg2);\n\n");
+    Printf(f->code, "thrown:\n");
+    Printf(f->code, "return;\n");
+
+    /* Error handling code */
+    Printf(f->code, "fail:\n");
+    Append(f->code, "SWIG_FAIL();\n");
+    Printf(f->code, "}\n\n\n");
+
+
+    Printf(f_h, "PHP_METHOD(%s,__isset);\n", class_name);
+    Printf(all_cs_entry, " PHP_ME(%s,__isset,swig_arginfo_1,ZEND_ACC_PUBLIC)\n", class_name);
+    Printf(f->code, "PHP_METHOD(%s,__isset) {\n",class_name);
+
+    Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n", class_name);
+    Printf(f->code, "  zval args[1];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
+    Printf(f->code, "  int newSize = 1;\nchar *method_name = 0;\n\n");
+    Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
+    Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
+    Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
+    Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
+    Printf(f->code, "  newSize += ZSTR_LEN(arg2) + strlen(\"_get\");\nmethod_name = (char *)malloc(newSize);\n");
+    Printf(f->code, "  strcpy(method_name,ZSTR_VAL(arg2));\nstrcat(method_name,\"_get\");\n\n");
+
+    Printf(f->code, "if (!arg2) {\n  RETVAL_FALSE;\n}\n");
+    Printf(f->code, "\nelse if (strcmp(ZSTR_VAL(arg2),\"thisown\") == 0) {\n");
+    Printf(f->code, "RETVAL_TRUE;\n}\n\n");
+
+    // Check if there's a <property>_get method.
+    Printf(f->code, "\nelse if (zend_hash_exists(&SWIGTYPE_%s_ce->function_table, zend_string_init(method_name, newSize-1, 0))) {\n",class_name);
+    Printf(f->code, "RETVAL_TRUE;\n}\n");
+
+    Printf(f->code, "else {\n");
+    if (baseClassExtend) {
+      Printf(f->code, "PHP_MN(%s___isset)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
+    } else {
+      // __isset is only called if the property isn't set on the zend_object.
+      Printf(f->code, "RETVAL_FALSE;\n}\n");
+    }
+
+    Printf(f->code, "free(method_name);\nzend_string_release(arg2);\n\n");
+    Printf(f->code, "thrown:\n");
+    Printf(f->code, "return;\n");
+
+    /* Error handling code */
+    Printf(f->code, "fail:\n");
+    Append(f->code, "SWIG_FAIL();\n");
+    Printf(f->code, "}\n\n\n");
+
+    Wrapper_print(f, s_wrappers);
+    DelWrapper(f);
+    f = NULL;
+
+    Delete(magic_set);
+    Delete(magic_get);
+    magic_set = NULL;
+    magic_get = NULL;
   }
 
   String *getAccessMode(String *access) {
@@ -1459,18 +1439,6 @@ public:
       dispatchFunction(n, constructor);
     }
 
-    // Handle getters and setters.
-    if (wrapperType == membervar) {
-      const char *p = Char(iname);
-      if (strlen(p) > 4) {
-	p += strlen(p) - 4;
-	if (strcmp(p, "_get") == 0) {
-          magic_method_setter(n, false, NULL);
-	}
-      }
-      return SWIG_OK;
-    }
-
     return SWIG_OK;
   }
 
@@ -1697,7 +1665,7 @@ public:
     Language::classHandler(n);
 
     print_creation_free_wrapper(n);
-    magic_method_setter(n, true, baseClassExtend);
+    generate_magic_property_methods(baseClassExtend);
     Printf(all_cs_entry, " ZEND_FE_END\n};\n\n");
 
     class_name = NULL;
@@ -1721,6 +1689,21 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int membervariableHandler(Node *n) {
+    if (magic_set == NULL) {
+      magic_set = NewStringEmpty();
+      magic_get = NewStringEmpty();
+    }
+
+    String *v_name = GetChar(n, "name");
+
+    Printf(magic_set, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
+    Printf(magic_set, "ZVAL_STRING(&tempZval, \"%s_set\");\n", v_name);
+    Printf(magic_set, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,1,&args[1]);\n}\n");
+
+    Printf(magic_get, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
+    Printf(magic_get, "ZVAL_STRING(&tempZval, \"%s_get\");\n", v_name);
+    Printf(magic_get, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,0,NULL);\n}\n");
+
     wrapperType = membervar;
     Language::membervariableHandler(n);
     wrapperType = standard;
