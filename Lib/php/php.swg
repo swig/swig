@@ -429,7 +429,7 @@
 
 %typemap(out) char [ANY]
 {
-  int len = 0;
+  size_t len = 0;
   while (len < $1_dim0 && $1[len]) ++len;
   RETVAL_STRINGL($1, len);
 }
