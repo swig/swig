@@ -12,11 +12,18 @@ top_builddir = @top_builddir@
 CPP_TEST_CASES += \
 	callback \
 	director_stl \
+	exception_partial_info \
+	inout \
+	li_cdata_carrays_cpp \
 	li_factory \
 	php_iterator \
 	php_namewarn_rename \
 	php_pragma \
 	prefix \
+
+C_TEST_CASES += \
+	li_cdata_carrays \
+	multivalue \
 
 include $(srcdir)/../common.mk
 
