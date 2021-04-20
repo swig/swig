@@ -3,8 +3,8 @@
 require "tests.php";
 require "prefix.php";
 
-// New functions
-check::functions(array('foo_get_self'));
+// No new functions
+check::functions(array());
 // New classes
 check::classes(array('ProjectFoo'));
 // No new vars

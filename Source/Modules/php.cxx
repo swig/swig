@@ -637,7 +637,7 @@ public:
     // This is for the single main zend_function_entry record
     bool has_this = false;
     if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
-      Printf(f_h, "PHP_METHOD(%s,%s);\n", cname, fname);
+      Printf(f_h, "PHP_METHOD(%s%s,%s);\n", prefix, cname, fname);
       has_this = (wrapperType != staticmemberfn) &&
 		 (wrapperType != staticmembervar) &&
 		 (Cmp(fname, "__construct") != 0);
@@ -728,7 +728,7 @@ public:
     String * s = cs_entry;
     if (!s) s = s_entry;
     if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
-      Printf(all_cs_entry, " PHP_ME(%s,%s,swig_arginfo_%s,%s)\n", cname, fname, arginfo_code, modes);
+      Printf(all_cs_entry, " PHP_ME(%s%s,%s,swig_arginfo_%s,%s)\n", prefix, cname, fname, arginfo_code, modes);
     } else {
       if (overload) {
 	if (wrap_nonclass_global) {
@@ -799,7 +799,7 @@ public:
     create_command(class_name, wname, n, true, modes);
 
     if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
-      Printv(f->def, "PHP_METHOD(", class_name, ",", wname, ") {\n", NIL);
+      Printv(f->def, "PHP_METHOD(", prefix, class_name, ",", wname, ") {\n", NIL);
     } else {
       Printv(f->def, "ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
     }
@@ -902,9 +902,9 @@ public:
 
     Wrapper *f = NewWrapper();
 
-    Printf(f_h, "PHP_METHOD(%s,__set);\n", class_name);
-    Printf(all_cs_entry, " PHP_ME(%s,__set,swig_arginfo_2,ZEND_ACC_PUBLIC)\n", class_name);
-    Printf(f->code, "PHP_METHOD(%s,__set) {\n",class_name);
+    Printf(f_h, "PHP_METHOD(%s%s,__set);\n", prefix, class_name);
+    Printf(all_cs_entry, " PHP_ME(%s%s,__set,swig_arginfo_2,ZEND_ACC_PUBLIC)\n", prefix, class_name);
+    Printf(f->code, "PHP_METHOD(%s%s,__set) {\n", prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n");
     Printf(f->code, "  zval args[2];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
@@ -936,9 +936,9 @@ public:
     Printf(f->code, "}\n\n\n");
 
 
-    Printf(f_h, "PHP_METHOD(%s,__get);\n", class_name);
-    Printf(all_cs_entry, " PHP_ME(%s,__get,swig_arginfo_1,ZEND_ACC_PUBLIC)\n", class_name);
-    Printf(f->code, "PHP_METHOD(%s,__get) {\n",class_name);
+    Printf(f_h, "PHP_METHOD(%s%s,__get);\n", prefix, class_name);
+    Printf(all_cs_entry, " PHP_ME(%s%s,__get,swig_arginfo_1,ZEND_ACC_PUBLIC)\n", prefix, class_name);
+    Printf(f->code, "PHP_METHOD(%s%s,__get) {\n",prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n", class_name);
     Printf(f->code, "  zval args[1];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
@@ -971,9 +971,9 @@ public:
     Printf(f->code, "}\n\n\n");
 
 
-    Printf(f_h, "PHP_METHOD(%s,__isset);\n", class_name);
-    Printf(all_cs_entry, " PHP_ME(%s,__isset,swig_arginfo_1,ZEND_ACC_PUBLIC)\n", class_name);
-    Printf(f->code, "PHP_METHOD(%s,__isset) {\n",class_name);
+    Printf(f_h, "PHP_METHOD(%s%s,__isset);\n", prefix, class_name);
+    Printf(all_cs_entry, " PHP_ME(%s%s,__isset,swig_arginfo_1,ZEND_ACC_PUBLIC)\n", prefix, class_name);
+    Printf(f->code, "PHP_METHOD(%s%s,__isset) {\n",prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n", class_name);
     Printf(f->code, "  zval args[1];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
@@ -1161,7 +1161,7 @@ public:
     if (!overloaded) {
       if (!static_getter) {
         if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
-          Printv(f->def, "PHP_METHOD(", class_name, ",", wname, ") {\n", NIL);
+          Printv(f->def, "PHP_METHOD(", prefix, class_name, ",", wname, ") {\n", NIL);
         } else {
 	  if (wrap_nonclass_global) {
 	    Printv(f->def, "PHP_METHOD(", fake_class_name(), ",", wname, ") {\n",
@@ -1176,7 +1176,7 @@ public:
       }
     } else {
       if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
-        Printv(f->def, "PHP_METHOD(", class_name, ",", overloadwname, ") {\n", NIL);
+        Printv(f->def, "PHP_METHOD(", prefix, class_name, ",", overloadwname, ") {\n", NIL);
       } else {
         Printv(f->def, "ZEND_NAMED_FUNCTION(", overloadwname, ") {\n", NIL);
       }
@@ -1574,7 +1574,7 @@ public:
     //if (nameSpace != NULL)
       //Printf(s_oinit, "INIT_CLASS_ENTRY(%s_internal_ce, \"%s\\\\%s\", class_%s_functions);\n", class_name, nameSpace ,class_name, class_name);
     //else
-    Printf(s_oinit, "  INIT_CLASS_ENTRY(SWIGTYPE_%s_internal_ce, \"%s\", class_%s_functions);\n", class_name, class_name, class_name);
+    Printf(s_oinit, "  INIT_CLASS_ENTRY(SWIGTYPE_%s_internal_ce, \"%s%s\", class_%s_functions);\n", class_name, prefix, class_name, class_name);
 
     if (shadow) {
       char *rename = GetChar(n, "sym:name");
