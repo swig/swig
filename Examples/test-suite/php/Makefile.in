@@ -16,6 +16,7 @@ CPP_TEST_CASES += \
 	php_iterator \
 	php_namewarn_rename \
 	php_pragma \
+	prefix \
 
 include $(srcdir)/../common.mk
 
