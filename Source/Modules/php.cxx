@@ -967,7 +967,6 @@ public:
       Printf(f->code, "add_property_zval_ex(ZEND_THIS, ZSTR_VAL(arg2), ZSTR_LEN(arg2), &args[1]);\n}\n");
     }
 
-    Printf(f->code, "zend_string_release(arg2);\n\n");
     Printf(f->code, "thrown:\n");
     Printf(f->code, "return;\n");
 
@@ -1002,7 +1001,6 @@ public:
       Printf(f->code, "RETVAL_NULL();\n}\n");
     }
 
-    Printf(f->code, "zend_string_release(arg2);\n\n");
     Printf(f->code, "thrown:\n");
     Printf(f->code, "return;\n");
 
@@ -1037,7 +1035,6 @@ public:
       Printf(f->code, "RETVAL_FALSE;\n}\n");
     }
 
-    Printf(f->code, "zend_string_release(arg2);\n\n");
     Printf(f->code, "thrown:\n");
     Printf(f->code, "return;\n");
 
