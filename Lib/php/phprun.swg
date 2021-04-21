@@ -102,6 +102,7 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
 
   {
     zend_object *obj;
+    swig_object_wrapper *value;
     if (Z_TYPE_P(z) == IS_OBJECT) {
       /* The PHP object is already initialised - this is the case when wrapping
        * the return value from a PHP constructor. */
@@ -111,7 +112,7 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
       obj = ce->create_object(ce);
       ZVAL_OBJ(z, obj);
     }
-    swig_object_wrapper *value = php_fetch_object(obj);
+    value = php_fetch_object(obj);
     value->ptr = ptr;
     value->newobject = (newobject & 1);
     value->type = type;
