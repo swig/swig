@@ -442,8 +442,8 @@ public:
     Printf(s_header, "}\n");
     Printf(s_header, "#endif\n\n");
 
-    Printf(s_header, "#ifdef __cplusplus\n#define SWIG_remove(zv) delete zv\n");
-    Printf(s_header, "#else\n#define SWIG_remove(zv) free(zv)\n#endif\n\n");
+    Printf(s_header, "#ifdef __cplusplus\n#define SWIG_remove(PTR) delete PTR\n");
+    Printf(s_header, "#else\n#define SWIG_remove(PTR) free(PTR)\n#endif\n\n");
 
     if (directorsEnabled()) {
       // Insert director runtime
