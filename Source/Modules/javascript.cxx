@@ -727,7 +727,7 @@ Node *JSEmitter::getBaseClass(Node *n) {
  /* -----------------------------------------------------------------------------
   * JSEmitter::emitWrapperFunction() :  dispatches emitter functions.
   *
-  * This allows to have small sized, dedicated emitting functions.
+  * This allows having small sized, dedicated emitting functions.
   * All state dependent branching is done here.
   * ----------------------------------------------------------------------------- */
 
