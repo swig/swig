@@ -3,8 +3,8 @@
 require "tests.php";
 require "director_stl.php";
 
-// New functions
-check::functions(array('foo_bar','foo_ping','foo_pong','foo_tping','foo_tpong','foo_pident','foo_vident','foo_vsecond','foo_tpident','foo_tvident','foo_tvsecond','foo_vidents','foo_tvidents'));
+// No new functions
+check::functions(array());
 // New classes
 check::classes(array('Foo'));
 // No new vars

@@ -46,7 +46,6 @@ CPP_TEST_CASES = \
 	java_typemaps_typewrapper \
 	nested_scope \
 	li_std_list \
-	li_std_map \
 	li_std_set \
 #	li_boost_intrusive_ptr
 
