@@ -176,10 +176,12 @@ SWIG_SetZval(zval *zv, int newFlow, int newobject, void *ptr, swig_type_info *ty
       return;
     }
 
-    swig_object_wrapper * obj = SWIG_Z_FETCH_OBJ_P(zv);
-    obj->ptr = ptr;
-    obj->newobject = newobject;
-    obj->type = type;
+    {
+      swig_object_wrapper * obj = SWIG_Z_FETCH_OBJ_P(zv);
+      obj->ptr = ptr;
+      obj->newobject = newobject;
+      obj->type = type;
+    }
   } else {
     SWIG_SetPointerZval(zv, ptr, type, newobject);
   }
