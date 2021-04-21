@@ -1402,7 +1402,6 @@ public:
       Replaceall(tm, "$input", Swig_cresult_name());
       Replaceall(tm, "$result", php_constructor ? "ZEND_THIS" : "return_value");
       Replaceall(tm, "$owner", newobject ? "1" : "0");
-      Replaceall(tm, "$needNewFlow", php_constructor && is_class(d) ? "2" : "0");
       Printf(f->code, "%s\n", tm);
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);

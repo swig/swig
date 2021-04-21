@@ -101,13 +101,20 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
   }
 
   {
-    zend_class_entry *ce = (zend_class_entry*)(type->clientdata);
-    zend_object *obj = ce->create_object(ce);
+    zend_object *obj;
+    if (Z_TYPE_P(z) == IS_OBJECT) {
+      /* The PHP object is already initialised - this is the case when wrapping
+       * the return value from a PHP constructor. */
+      obj = Z_OBJ_P(z);
+    } else {
+      zend_class_entry *ce = (zend_class_entry*)(type->clientdata);
+      obj = ce->create_object(ce);
+      ZVAL_OBJ(z, obj);
+    }
     swig_object_wrapper *value = php_fetch_object(obj);
     value->ptr = ptr;
     value->newobject = (newobject & 1);
     value->type = type;
-    ZVAL_OBJ(z, obj);
   }
 }
 
@@ -166,25 +173,6 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
   }
 
   return -1;
-}
-
-static void
-SWIG_SetZval(zval *zv, int newFlow, int newobject, void *ptr, swig_type_info *type) {
-  if (newFlow > 1) {
-    if (!ptr) {
-      ZVAL_NULL(zv);
-      return;
-    }
-
-    {
-      swig_object_wrapper * obj = SWIG_Z_FETCH_OBJ_P(zv);
-      obj->ptr = ptr;
-      obj->newobject = newobject;
-      obj->type = type;
-    }
-  } else {
-    SWIG_SetPointerZval(zv, ptr, type, newobject);
-  }
 }
 
 static const char const_name[] = "swig_runtime_data_type_pointer";

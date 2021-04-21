@@ -370,12 +370,12 @@
               SWIGTYPE &,
               SWIGTYPE &&
 %{
-  SWIG_SetZval($result, $needNewFlow, $owner, (void *)result, $1_descriptor);
+  SWIG_SetPointerZval($result, (void *)$1, $1_descriptor, $owner);
 %}
 
 %typemap(out) SWIGTYPE *const&
 %{
-  SWIG_SetZval(return_value, $needNewFlow, $owner, (void *)*$1, $*1_descriptor);
+  SWIG_SetPointerZval($result, (void *)*$1, $*1_descriptor, $owner);
 %}
 
 %typemap(directorin) SWIGTYPE *,
@@ -403,22 +403,19 @@
               SWIGTYPE &DYNAMIC
 {
   swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
-  SWIG_SetPointerZval(return_value, (void *)$1, ty, $owner);
+  SWIG_SetPointerZval($result, (void *)$1, ty, $owner);
 }
 
 %typemap(out) SWIGTYPE
+{
 #ifdef __cplusplus
-{
   $&1_ltype resultobj = new $1_ltype((const $1_ltype &) $1);
-  SWIG_SetZval(return_value, $needNewFlow, 1, (void *)resultobj, $&1_descriptor);
-}
 #else
-{
   $&1_ltype resultobj = ($&1_ltype) emalloc(sizeof($1_type));
   memcpy(resultobj, &$1, sizeof($1_type));
-  SWIG_SetZval(return_value, $needNewFlow, 1, (void *)resultobj, $&1_descriptor);
-}
 #endif
+  SWIG_SetPointerZval($result, (void *)resultobj, $&1_descriptor, 1);
+}
 
 %typemap(directorin) SWIGTYPE
 %{
