@@ -196,10 +196,6 @@ static void SwigPHP_emit_pointer_type_registrations() {
   Printf(s_wrappers, "  return FAILURE;\n");
   Printf(s_wrappers, "}\n\n");
 
-  Printf(s_wrappers, "static zend_function_entry swig_ptr_class_functions[] = {\n");
-  Printf(s_wrappers, "  ZEND_FE_END\n");
-  Printf(s_wrappers, "};\n\n");
-
   Printf(s_oinit, "\n  /* Register classes to represent non-class pointer types */\n");
   Printf(s_oinit, "  memcpy(&swig_ptr_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));\n");
   Printf(s_oinit, "  swig_ptr_object_handlers.offset = XtOffsetOf(swig_object_wrapper, std);\n");
@@ -217,7 +213,7 @@ static void SwigPHP_emit_pointer_type_registrations() {
 
     Printf(s_oinit, "{\n");
     Printf(s_oinit, "  zend_class_entry internal_ce;\n");
-    Printf(s_oinit, "  INIT_CLASS_ENTRY(internal_ce, \"%s\\\\%s\", swig_ptr_class_functions);\n", "SWIG", type);
+    Printf(s_oinit, "  INIT_CLASS_ENTRY(internal_ce, \"%s\\\\%s\", NULL);\n", "SWIG", type);
     Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class(&internal_ce);\n", type);
     Printf(s_oinit, "  SWIGTYPE_%s_ce->create_object = swig_ptr_object_new;\n", type);
     Printf(s_oinit, "  SWIG_TypeClientData(SWIGTYPE%s,SWIGTYPE_%s_ce);\n", type, type);
