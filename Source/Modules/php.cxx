@@ -82,9 +82,9 @@ static String *fake_class_name() {
     }
     Printf(s_creation, "/* class entry for %s */\n",result);
     Printf(s_creation, "zend_class_entry *SWIGTYPE_%s_ce;\n\n",result);
-    Printf(s_oinit, "\n{\n  zend_class_entry SWIGTYPE_%s_internal_ce;\n", result);
-    Printf(s_oinit, "  INIT_CLASS_ENTRY(SWIGTYPE_%s_internal_ce, \"%s\", class_%s_functions);\n", result, result, result);
-    Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class(&SWIGTYPE_%s_internal_ce);\n", result , result);
+    Printf(s_oinit, "\n{\n  zend_class_entry internal_ce;\n");
+    Printf(s_oinit, "  INIT_CLASS_ENTRY(internal_ce, \"%s\", class_%s_functions);\n", result, result);
+    Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class(&internal_ce);\n", result);
     Printf(s_oinit, "}\n\n", result);
   }
   return result;
@@ -216,9 +216,9 @@ static void SwigPHP_emit_pointer_type_registrations() {
     Printf(s_creation, "zend_class_entry *SWIGTYPE_%s_ce;\n\n", type);
 
     Printf(s_oinit, "{\n");
-    Printf(s_oinit, "  zend_class_entry SWIGTYPE_%s_internal_ce;\n", type);
-    Printf(s_oinit, "  INIT_CLASS_ENTRY(SWIGTYPE_%s_internal_ce, \"%s\\\\%s\", swig_ptr_class_functions);\n", type, "SWIG", type);
-    Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class(&SWIGTYPE_%s_internal_ce);\n", type, type);
+    Printf(s_oinit, "  zend_class_entry internal_ce;\n");
+    Printf(s_oinit, "  INIT_CLASS_ENTRY(internal_ce, \"%s\\\\%s\", swig_ptr_class_functions);\n", "SWIG", type);
+    Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class(&internal_ce);\n", type);
     Printf(s_oinit, "  SWIGTYPE_%s_ce->create_object = swig_ptr_object_new;\n", type);
     Printf(s_oinit, "  SWIG_TypeClientData(SWIGTYPE%s,SWIGTYPE_%s_ce);\n", type, type);
     Printf(s_oinit, "}\n\n");
@@ -1588,13 +1588,13 @@ public:
 
     Printf(all_cs_entry, "static zend_function_entry class_%s_functions[] = {\n", class_name);
 
-    Printf(s_oinit, "\n{\n  zend_class_entry SWIGTYPE_%s_internal_ce;\n", class_name);
+    Printf(s_oinit, "\n{\n  zend_class_entry internal_ce;\n");
     
     // namespace code to introduce namespaces into wrapper classes.
     //if (nameSpace != NULL)
-      //Printf(s_oinit, "INIT_CLASS_ENTRY(%s_internal_ce, \"%s\\\\%s\", class_%s_functions);\n", class_name, nameSpace ,class_name, class_name);
+      //Printf(s_oinit, "INIT_CLASS_ENTRY(internal_ce, \"%s\\\\%s\", class_%s_functions);\n", nameSpace, class_name, class_name);
     //else
-    Printf(s_oinit, "  INIT_CLASS_ENTRY(SWIGTYPE_%s_internal_ce, \"%s%s\", class_%s_functions);\n", class_name, prefix, class_name, class_name);
+    Printf(s_oinit, "  INIT_CLASS_ENTRY(internal_ce, \"%s%s\", class_%s_functions);\n", prefix, class_name, class_name);
 
     if (shadow) {
       char *rename = GetChar(n, "sym:name");
@@ -1642,9 +1642,9 @@ public:
     }
 
     if (baseClassExtend && (exceptionClassFlag || is_class_wrapped(baseClassExtend))) {
-      Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class_ex(&SWIGTYPE_%s_internal_ce, SWIGTYPE_%s_ce);\n", class_name, class_name, baseClassExtend);
+      Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class_ex(&internal_ce, SWIGTYPE_%s_ce);\n", class_name, baseClassExtend);
     } else {
-      Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class(&SWIGTYPE_%s_internal_ce);\n", class_name, class_name);
+      Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class(&internal_ce);\n", class_name);
     }
 
     if (Getattr(n, "abstracts") && !GetFlag(n, "feature:notabstract")) {
