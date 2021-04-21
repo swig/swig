@@ -24,7 +24,7 @@ check::equal(5,intp_value($tr),"5==$tr");
 # Check the voidhandle call, first with null
 $handle=NULL;
 voidhandle($handle);
-check::resource($handle,"_p_void",'$handle is not _p_void');
+check::equal(get_class($handle),"SWIG\\_p_void",'$handle is not _p_void');
 $handledata=handle($handle);
 check::equal($handledata,"Here it is","\$handledata != \"Here it is\"");
 

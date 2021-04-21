@@ -17,6 +17,10 @@ class check {
     if (! is_array($extra)) {
       $df=array_flip(get_declared_classes());
       foreach($_original_classes as $class) unset($df[$class]);
+      // Filter out pointer wrappers such as SWIG/_p_int.
+      foreach(array_keys($df) as $class) {
+	if (preg_match('/^SWIG\\\\/', $class)) unset($df[$class]);
+      }
       $extra=array_keys($df);
     }
     return $extra;
@@ -200,10 +204,6 @@ class check {
   static function equivalent($a,$b,$message) {
     if (! ($a==$b)) return check::fail($message . ": '$a'!='$b'");
     return TRUE;
-  }
-
-  static function resource($a,$b,$message) {
-    return check::equal(get_resource_type($a), $b, $message);
   }
 
   static function isnull($a,$message) {

@@ -94,32 +94,21 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
     ZVAL_NULL(z);
     return;
   }
-  if (type->clientdata) {
-    if ((newobject & 2) == 0) {
-      int resource_type = *(int *)(type->clientdata);
-      if (resource_type == 0) {
-	zend_error(E_ERROR, "Type: %s failed to register with zend", type->name);
-      } else {
-	/* Register the pointer as a resource. */
-	swig_object_wrapper *value=(swig_object_wrapper *)emalloc(sizeof(swig_object_wrapper));
-	value->ptr = ptr;
-	value->newobject = (newobject & 1);
-	value->type = type;
-	ZVAL_RES(z, zend_register_resource(value, resource_type));
-      }
-    } else {
-      /* This code path is currently only used by directorin typemaps. */
-      zend_class_entry *ce = (zend_class_entry*)(type->clientdata);
-      zend_object *obj = ce->create_object(ce);
-      swig_object_wrapper *value = php_fetch_object(obj);
-      value->ptr = ptr;
-      value->newobject = (newobject & 1);
-      value->type = type;
-      ZVAL_OBJ(z, obj);
-    }
+
+  if (!type->clientdata) {
+    zend_error(E_ERROR, "Type: %s not registered with zend", type->name);
     return;
   }
-  zend_error(E_ERROR, "Type: %s not registered with zend",type->name);
+
+  {
+    zend_class_entry *ce = (zend_class_entry*)(type->clientdata);
+    zend_object *obj = ce->create_object(ce);
+    swig_object_wrapper *value = php_fetch_object(obj);
+    value->ptr = ptr;
+    value->newobject = (newobject & 1);
+    value->type = type;
+    ZVAL_OBJ(z, obj);
+  }
 }
 
 /* This pointer conversion routine takes the native pointer p (along with
@@ -127,13 +116,10 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
    according to ty.  The resultant pointer is returned, or NULL is returned
    if the pointer can't be cast.
 
-   Sadly PHP has no API to find a type name from a type id, only from an
-   instance of a resource of the type id, so we have to pass type_name as well.
-
    This is called by SWIG_ConvertPtr which gets the type name from the
-   swig_object_wrapper or resource type. */
+   swig_object_wrapper. */
 static void *
-SWIG_ConvertResourceData(void * p, const char *type_name, swig_type_info *ty) {
+SWIG_ConvertPtrData(void * p, const char *type_name, swig_type_info *ty) {
   swig_cast_info *tc;
   void *result = 0;
 
@@ -157,8 +143,7 @@ SWIG_ConvertResourceData(void * p, const char *type_name, swig_type_info *ty) {
   return result;
 }
 
-/* We allow passing of a RESOURCE wrapping a non-class pointer or an OBJECT
-   wrapping a pointer to an object. */
+/* We wrap C/C++ pointers as PHP objects. */
 static int
 SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
   if (z == NULL) {
@@ -172,24 +157,7 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
       if (flags & SWIG_POINTER_DISOWN) {
 	value->newobject = 0;
       }
-      *ptr = SWIG_ConvertResourceData(value->ptr, value->type->name, ty);
-      return (*ptr == NULL ? SWIG_ERROR : SWIG_OK);
-    }
-    case IS_RESOURCE: {
-      swig_object_wrapper *value;
-      void *p;
-      const char *type_name;
-
-      if (Z_RES_TYPE_P(z) == -1) return -1;
-      value = (swig_object_wrapper *) Z_RES_VAL_P(z);
-      if (flags & SWIG_POINTER_DISOWN) {
-	value->newobject = 0;
-      }
-      p = value->ptr;
-
-      type_name=zend_rsrc_list_get_rsrc_type(Z_RES_P(z));
-
-      *ptr = SWIG_ConvertResourceData(p, type_name, ty);
+      *ptr = SWIG_ConvertPtrData(value->ptr, value->type->name, ty);
       return (*ptr == NULL ? SWIG_ERROR : SWIG_OK);
     }
     case IS_NULL:
@@ -202,18 +170,13 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
 
 static void
 SWIG_SetZval(zval *zv, int newFlow, int newobject, void *ptr, swig_type_info *type) {
-  if (!ptr) {
-    ZVAL_NULL(zv);
-    return;
-  }
-
-  if (newFlow) {
-    swig_object_wrapper *obj;
-    if (newFlow == 1) {
-      zend_class_entry *ce = (zend_class_entry*)type->clientdata;
-      ZVAL_OBJ(zv, ce->create_object(ce));
+  if (newFlow > 1) {
+    if (!ptr) {
+      ZVAL_NULL(zv);
+      return;
     }
-    obj = SWIG_Z_FETCH_OBJ_P(zv);
+
+    swig_object_wrapper * obj = SWIG_Z_FETCH_OBJ_P(zv);
     obj->ptr = ptr;
     obj->newobject = newobject;
     obj->type = type;
