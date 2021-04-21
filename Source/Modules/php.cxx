@@ -1017,14 +1017,11 @@ public:
     Printf(f->code, "PHP_METHOD(%s%s,__isset) {\n",prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n", class_name);
-    Printf(f->code, "  zval args[1];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
-    Printf(f->code, "  int newSize = 1;\nchar *method_name = 0;\n\n");
+    Printf(f->code, "  zval args[1];\n  zend_string *arg2 = 0;\n\n");
     Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
     Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
     Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
     Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
-    Printf(f->code, "  newSize += ZSTR_LEN(arg2) + strlen(\"_get\");\nmethod_name = (char *)malloc(newSize);\n");
-    Printf(f->code, "  strcpy(method_name,ZSTR_VAL(arg2));\nstrcat(method_name,\"_get\");\n\n");
 
     Printf(f->code, "if (!arg2) {\n  RETVAL_FALSE;\n}\n");
     Printf(f->code, "\nelse if (strcmp(ZSTR_VAL(arg2),\"thisown\") == 0) {\n");
@@ -1040,7 +1037,7 @@ public:
       Printf(f->code, "RETVAL_FALSE;\n}\n");
     }
 
-    Printf(f->code, "free(method_name);\nzend_string_release(arg2);\n\n");
+    Printf(f->code, "zend_string_release(arg2);\n\n");
     Printf(f->code, "thrown:\n");
     Printf(f->code, "return;\n");
 
