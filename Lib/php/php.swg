@@ -386,16 +386,16 @@
   SWIG_SetPointerZval($input, (void *)&$1, $1_descriptor, $owner);
 %}
 
-%typemap(out, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)
+%typemap(out) SWIGTYPE (CLASS::*)
 {
   void * p = emalloc(sizeof($1));
   memcpy(p, &$1, sizeof($1));
-  RETVAL_RES(zend_register_resource(p, swig_member_ptr));
+  SWIG_SetPointerZval($result, (void *)p, $&1_descriptor, 1);
 }
 
-%typemap(in, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)
+%typemap(in) SWIGTYPE (CLASS::*)
 {
-  void * p = (void*)zend_fetch_resource_ex(&$input, SWIG_MEMBER_PTR, swig_member_ptr);
+  void * p = SWIG_Z_FETCH_OBJ_P(&$input)->ptr;
   memcpy(&$1, p, sizeof($1));
 }
 
