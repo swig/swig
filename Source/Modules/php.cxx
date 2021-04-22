@@ -2000,7 +2000,7 @@ public:
 	Delete(super_call);
       } else {
 	Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
-	    SwigType_namestr(name));
+	       SwigType_namestr(name));
       }
     } else {
       /* attach typemaps to arguments (C/C++ -> PHP) */
@@ -2146,8 +2146,8 @@ public:
 	  Delete(tm);
 	} else {
 	  Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
-	      "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0), SwigType_namestr(c_classname),
-	      SwigType_namestr(name));
+		       "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0),
+		       SwigType_namestr(c_classname), SwigType_namestr(name));
 	  status = SWIG_ERROR;
 	}
       }

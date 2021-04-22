@@ -140,8 +140,7 @@ namespace Swig {
   };
 
   /* any php exception that occurs during a director method call */
-  class DirectorMethodException : public DirectorException
-  {
+  class DirectorMethodException : public DirectorException {
   public:
     DirectorMethodException()
       : DirectorException(E_ERROR, "SWIG director method error", NULL) {
