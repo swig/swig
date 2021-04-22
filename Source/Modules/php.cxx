@@ -400,20 +400,6 @@ public:
     Printf(s_header, "#define SWIG_ErrorMsg() ZEND_MODULE_GLOBALS_ACCESSOR(%s, error_msg)\n", module);
     Printf(s_header, "#define SWIG_ErrorCode() ZEND_MODULE_GLOBALS_ACCESSOR(%s, error_code)\n", module);
 
-    /* The following can't go in Lib/php/phprun.swg as it uses SWIG_ErrorMsg(), etc
-     * which has to be dynamically generated as it depends on the module name.
-     */
-    Append(s_header, "#ifdef __GNUC__\n");
-    Append(s_header, "static void SWIG_FAIL(void) __attribute__ ((__noreturn__));\n");
-    Append(s_header, "#endif\n\n");
-    Append(s_header, "static void SWIG_FAIL(void) {\n");
-    Append(s_header, "    zend_error(SWIG_ErrorCode(), \"%s\", SWIG_ErrorMsg());\n");
-    // zend_error() should never return with the parameters we pass, but if it
-    // does, we really don't want to let SWIG_FAIL() return.  This also avoids
-    // a warning about returning from a function marked as "__noreturn__".
-    Append(s_header, "    abort();\n");
-    Append(s_header, "}\n\n");
-
     Printf(s_header, "static void %s_init_globals(zend_%s_globals *globals ) {\n", module, module);
     Printf(s_header, "  globals->error_msg = default_error_msg;\n");
     Printf(s_header, "  globals->error_code = default_error_code;\n");
@@ -857,7 +843,8 @@ public:
     Printf(f->code, "SWIG_ErrorCode() = E_ERROR;\n");
     Printf(f->code, "SWIG_ErrorMsg() = \"No matching function for overloaded '%s'\";\n", symname);
     Printv(f->code, "SWIG_FAIL();\n", NIL);
-
+    Printv(f->code, "thrown:\n", NIL);
+    Printv(f->code, "return;\n", NIL);
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, s_wrappers);
 
@@ -2060,25 +2047,6 @@ public:
 	p = nextSibling(p);
       }
 
-      /* exception handling */
-      bool error_used_in_typemap = false;
-      tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0);
-      if (!tm) {
-	tm = Getattr(n, "feature:director:except");
-	if (tm)
-	  tm = Copy(tm);
-      }
-      if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
-	if (Replaceall(tm, "$error", "error")) {
-	  /* Only declare error if it is used by the typemap. */
-	  error_used_in_typemap = true;
-	  Append(w->code, "int error = SUCCESS;\n");
-	}
-      } else {
-	Delete(tm);
-	tm = NULL;
-      }
-
       if (!idx) {
 	Printf(w->code, "zval *args = NULL;\n");
       } else {
@@ -2098,25 +2066,27 @@ public:
       Append(w->code, "#if PHP_MAJOR_VERSION < 8\n");
       Printf(w->code, "zval swig_funcname;\n");
       Printf(w->code, "ZVAL_STRINGL(&swig_funcname, \"%s\", %d);\n", funcname, strlen(funcname));
-      if (error_used_in_typemap) {
-	Append(w->code, "error = ");
-      }
       Printf(w->code, "call_user_function(EG(function_table), &swig_self, &swig_funcname, &swig_zval_result, %d, args);\n", idx);
       Append(w->code, "#else\n");
       Printf(w->code, "zend_string *swig_funcname = zend_string_init(\"%s\", %d, 0);\n", funcname, strlen(funcname));
       Append(w->code, "zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ(swig_self), swig_funcname, NULL);\n");
       Append(w->code, "zend_string_release(swig_funcname);\n");
       Printf(w->code, "if (swig_zend_func) zend_call_known_instance_method(swig_zend_func, Z_OBJ(swig_self), &swig_zval_result, %d, args);\n", idx);
-      if (error_used_in_typemap) {
-	Append(w->code, "else error = FAILURE;\n");
-      }
       Append(w->code, "#endif\n");
-      Append(w->code, "}\n");
 
-      if (tm) {
-	Printv(w->code, Str(tm), "\n", NIL);
-	Delete(tm);
+      /* exception handling */
+      tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0);
+      if (!tm) {
+	tm = Getattr(n, "feature:director:except");
+	if (tm)
+	  tm = Copy(tm);
       }
+      if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
+	Replaceall(tm, "$error", "EG(exception)");
+	Printv(w->code, Str(tm), "\n", NIL);
+      }
+      Append(w->code, "}\n");
+      Delete(tm);
 
       /* marshal return value from PHP to C/C++ type */
 

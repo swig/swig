@@ -93,18 +93,15 @@
 
 %typemap(directorout) SWIGTYPE ($&1_ltype tmp)
 %{
-  /* If exit was via exception, PHP NULL is returned so skip the conversion. */
-  if (!EG(exception)) {
-    if ($needNewFlow) {
-      tmp = ($&1_ltype) &SWIG_Z_FETCH_OBJ_P($1)->ptr;
-      SWIG_Z_FETCH_OBJ_P($1)->newobject = 0;
-    } else {
-      if (SWIG_ConvertPtr($input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL) {
-	SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
-      }
+  if ($needNewFlow) {
+    tmp = ($&1_ltype) &SWIG_Z_FETCH_OBJ_P($1)->ptr;
+    SWIG_Z_FETCH_OBJ_P($1)->newobject = 0;
+  } else {
+    if (SWIG_ConvertPtr($input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL) {
+      SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
     }
-    $result = *tmp;
   }
+  $result = *tmp;
 %}
 
 %typemap(in) SWIGTYPE *,

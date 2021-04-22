@@ -17,11 +17,7 @@
 %feature("director") Foo;
 
 %feature("director:except") {
-#ifndef SWIGPHP
   if ($error != NULL) {
-#else
-  if ($error == FAILURE) {
-#endif
     throw Swig::DirectorMethodException();
   }
 }

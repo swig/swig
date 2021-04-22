@@ -55,6 +55,9 @@ static zend_always_inline void *zend_object_alloc(size_t obj_size, zend_class_en
 
 #define SWIG_fail goto fail
 
+// If there's an active PHP exception, just return so it can propagate.
+#define SWIG_FAIL() do { if (!EG(exception)) zend_error_noreturn(SWIG_ErrorCode(), "%s", SWIG_ErrorMsg()); goto thrown; } while (0)
+
 static const char *default_error_msg = "Unknown error occurred";
 static int default_error_code = E_ERROR;
 

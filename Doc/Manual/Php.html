@@ -1159,12 +1159,31 @@ should suffice in most cases:
 <div class="code">
 <pre>
 %feature("director:except") {
-  if ($error == FAILURE) {
+#if SWIG_VERSION &gt;= 0x040100
+  if ($error != NULL)
+#else
+  if ($error == FAILURE)
+#endif
+  {
     throw Swig::DirectorMethodException();
   }
 }
 </pre>
 </div>
+
+<p>
+If you only need to support SWIG >= 4.1.0, you can just use the
+<tt>($error != NULL)</tt> condition.
+</p>
+
+<p>
+In SWIG 4.1.0, <tt>$error</tt> was changed in the SWIG/PHP director
+implementation to make it work more like how it does for other languages.
+Previously, <tt>$error</tt> didn't actually indicate an exception, but instead
+was only set to <tt>FAILURE</tt> if there was a problem calling the PHP method.
+Now <tt>$error</tt> indicates if the PHP method threw a PHP exception, and
+directorout typemaps for PHP no longer need to be gated by <tt>if (EG(exception))</tt>.
+</p>
 
 <p>
 This code will check the PHP error state after each method call from a
