@@ -99,6 +99,12 @@ namespace Swig {
           swig_owner[vptr] = new GCItem_T<Type>(vptr);
         }
       }
+
+      void swig_acquire_ownership_obj(void *vptr, int own) const {
+        if (vptr && own) {
+          swig_owner[vptr] = new GCItem_Object(own);
+        }
+      }
   };
 
   /* base class for director exceptions */

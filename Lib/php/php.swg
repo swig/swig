@@ -93,8 +93,8 @@
 
 %typemap(directorout) SWIGTYPE ($&1_ltype tmp)
 %{
-  if (SWIG_ConvertPtr($input, (void **) &tmp, $1_descriptor, 0) < 0 || tmp == NULL) {
-    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
+  if (SWIG_ConvertPtr($input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL) {
+    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
   }
   $result = *tmp;
 %}
@@ -107,12 +107,30 @@
   }
 %}
 
+%typemap(directorout) SWIGTYPE * (swig_owntype own),
+		      SWIGTYPE [] (swig_owntype own)
+%{
+  if (SWIG_ConvertPtrAndOwn($input, (void **)&$result, $1_descriptor, SWIG_POINTER_DISOWN, &own) < 0) {
+    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
+  }
+  swig_acquire_ownership_obj((void*)$result, own);
+%}
+
 %typemap(in) SWIGTYPE &,
              SWIGTYPE &&
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL) {
     SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
   }
+%}
+
+%typemap(directorout) SWIGTYPE & ($1_ltype tmp),
+		      SWIGTYPE && ($1_ltype tmp)
+%{
+  if (SWIG_ConvertPtr($input, (void **) &tmp, $1_descriptor, 0) < 0 || tmp == NULL) {
+    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
+  }
+  $result = tmp;
 %}
 
 %typemap(in) SWIGTYPE *const& ($*ltype temp)

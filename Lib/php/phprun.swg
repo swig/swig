@@ -4,6 +4,8 @@
  * PHP runtime library
  * ----------------------------------------------------------------------------- */
 
+#define swig_owntype                                    int
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -130,7 +132,7 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
    This is called by SWIG_ConvertPtr which gets the type name from the
    swig_object_wrapper. */
 static void *
-SWIG_ConvertPtrData(void * p, const char *type_name, swig_type_info *ty) {
+SWIG_ConvertPtrData(void * p, const char *type_name, swig_type_info *ty, int *own) {
   swig_cast_info *tc;
   void *result = 0;
 
@@ -149,14 +151,21 @@ SWIG_ConvertPtrData(void * p, const char *type_name, swig_type_info *ty) {
   if (tc) {
     int newmemory = 0;
     result = SWIG_TypeCast(tc, p, &newmemory);
-    assert(!newmemory); /* newmemory handling not yet implemented */
+    if (newmemory == SWIG_CAST_NEW_MEMORY) {
+      assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
+      if (own)
+        *own |= SWIG_CAST_NEW_MEMORY;
+    }
   }
   return result;
 }
 
 /* We wrap C/C++ pointers as PHP objects. */
 static int
-SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
+SWIG_ConvertPtrAndOwn(zval *z, void **ptr, swig_type_info *ty, int flags, swig_owntype *own) {
+  if (own)
+    *own = 0;
+
   if (z == NULL) {
     *ptr = 0;
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
@@ -165,11 +174,12 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
   switch (Z_TYPE_P(z)) {
     case IS_OBJECT: {
       swig_object_wrapper *value = SWIG_Z_FETCH_OBJ_P(z);
+      *ptr = SWIG_ConvertPtrData(value->ptr, value->type->name, ty, own);
+      if (*ptr == NULL) return SWIG_ERROR;
       if (flags & SWIG_POINTER_DISOWN) {
 	value->newobject = 0;
       }
-      *ptr = SWIG_ConvertPtrData(value->ptr, value->type->name, ty);
-      return (*ptr == NULL ? SWIG_ERROR : SWIG_OK);
+      return SWIG_OK;
     }
     case IS_NULL:
       *ptr = 0;
@@ -177,6 +187,11 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
   }
 
   return -1;
+}
+
+static int
+SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
+  return SWIG_ConvertPtrAndOwn(z, ptr, ty, flags, 0);
 }
 
 static const char const_name[] = "swig_runtime_data_type_pointer";
