@@ -2103,7 +2103,6 @@ public:
 	  char temp[24];
 	  sprintf(temp, "%d", idx);
 	  Replaceall(tm, "$argnum", temp);
-	  Replaceall(tm, "$needNewFlow", Getattr(n, "feature:new") ? "1" : "0");
 
 	  /* TODO check this */
 	  if (Getattr(n, "wrap:disown")) {
