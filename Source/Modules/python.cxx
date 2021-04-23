@@ -91,6 +91,7 @@ static int castmode = 0;
 static int extranative = 0;
 static int nortti = 0;
 static int relativeimport = 0;
+static int propertyannotations = 0;
 
 /* flags for the make_autodoc function */
 enum autodoc_t {
@@ -127,6 +128,7 @@ static const char *usage3 = "\
      -nothreads      - Disable thread support for the entire interface\n\
      -olddefs        - Keep the old method definitions when using -fastproxy\n\
      -py3            - Generate code with Python 3 specific features and syntax\n\
+     -propertyannotations      - Add type annotations to class properties\n\
      -relativeimport - Use relative Python imports\n\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options:\n\
@@ -393,6 +395,10 @@ public:
 	  py3 = 1;
 	  Preprocessor_define("SWIGPYTHON_PY3", 0);
 	  Swig_mark_arg(i);
+    }
+    else if (strcmp(argv[i], "-propertyannotations") == 0) {
+        propertyannotations = 1;
+        Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-builtin") == 0) {
 	  builtin = 1;
 	  Preprocessor_define("SWIGPYTHON_BUILTIN", 0);
@@ -2388,8 +2394,8 @@ public:
       if (ret) {
           ret = SwigType_str(ret, 0);
       }
-    return (ret && py3) ? NewStringf(": \"%s\"", ret)
-	: NewString("");
+    return (ret && py3 && propertyannotations) ? NewStringf(": \"%s\"", ret)
+    : NewString("");
   }
 
   /* ------------------------------------------------------------
