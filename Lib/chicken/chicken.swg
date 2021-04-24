@@ -258,7 +258,7 @@ SIMPLE_TYPEMAP(double, C_c_double, C_flonum, C_swig_is_number, (double), C_SIZEO
     if (!SWIG_ConvertPtr(C_block_item($input,1), &result, $descriptor, 0)) {
       C_word ptr = C_block_item($input,0);
       if (C_swig_is_string(ptr)) {
-        SWIG_UnpackData(C_c_string(ptr), (void *) &$1, sizeof($type));
+        SWIG_UnpackData(C_c_string(ptr), (void *) &$1, sizeof($1));
       } else {
         snprintf(err_msg, sizeof(err_msg), "Type error in argument #%i: expected %s", $argnum, ($descriptor->str ? $descriptor->str : $descriptor->name));
         SWIG_Chicken_Barf(SWIG_BARF1_BAD_ARGUMENT_TYPE, err_msg);
@@ -293,7 +293,7 @@ SIMPLE_TYPEMAP(double, C_c_double, C_flonum, C_swig_is_number, (double), C_SIZEO
     if (!SWIG_ConvertPtr(C_block_item($input,1), &result, $descriptor, 0)) {
       C_word ptr = C_block_item($input,0);
       if (C_swig_is_string(ptr)) {
-        SWIG_UnpackData(C_c_string(ptr), (void *) &$1, sizeof($type));
+        SWIG_UnpackData(C_c_string(ptr), (void *) &$1, sizeof($1));
       } else {
         snprintf(err_msg, sizeof(err_msg), "Type error in argument #%i: expected %s", 1, ($descriptor->str ? $descriptor->str : $descriptor->name));
         SWIG_Chicken_Barf(SWIG_BARF1_BAD_ARGUMENT_TYPE, err_msg);
