@@ -345,6 +345,7 @@ if test x"$enable_cpp11_testing" = xyes; then
   CXX=$CXX_SAVED
   CXXCPP=$CXXCPP_SAVED
 fi
+AC_SUBST(HAVE_CXX11)
 
 # On darwin 10.7,10.8,10.9 using clang++, need to ensure using
 # libc++ for tests and examples to run under mono. May affect
@@ -401,7 +402,6 @@ AC_SUBST(TRYLINKINGWITHCXX)
 AC_SUBST(RPATH)
 AC_SUBST(PLATCFLAGS)
 AC_SUBST(PLATCXXFLAGS)
-AC_SUBST(HAVE_CXX11)
 AC_SUBST(LINKFORSHARED)
 
 # This variation is needed on OS-X because there is no (apparent) consistency in shared library naming.
