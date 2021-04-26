@@ -1745,7 +1745,7 @@ int R::functionWrapper(Node *n) {
     /* Add the name of this member to a list for this class_name.
        We will dump all these at the end. */
 
-    bool isSet(GetFlag(n, "memberset"));
+    bool isSet = GetFlag(n, "memberset") ? true : false;
 
     String *tmp = NewString(isSet ? Swig_name_set(NSPACE_TODO, class_name) : Swig_name_get(NSPACE_TODO, class_name));
 
