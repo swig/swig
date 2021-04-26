@@ -40,8 +40,10 @@ environment:
   - BUILDSYSTEM: cmake
     VSVER: 14
 
-#matrix:
-#  allow_failures:
+matrix:
+  allow_failures:
+  - SWIGLANG: python
+    OSVARIANT: cygwin
 
 install:
 - date /T & time /T
