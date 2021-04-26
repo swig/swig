@@ -44,6 +44,8 @@ case "$SWIGLANG" in
 					travis_retry npm install -g node-gyp@$VER
 				elif [ "$VER" == "8" ] ; then
 					travis_retry npm install -g node-gyp@6
+				elif [ "$VER" == "10" ] || [ "$VER" == "12" ] || [ "$VER" == "14" ] ; then
+					travis_retry npm install -g node-gyp@7
 				else
 					travis_retry npm install -g node-gyp
 				fi
