@@ -503,6 +503,7 @@ AC_PATH_TOOL([PKG_CONFIG], [pkg-config])
 TCLINCLUDE=
 TCLLIB=
 TCLPACKAGE=
+TCLLINK=
 
 AC_ARG_WITH(tclconfig, AS_HELP_STRING([--without-tcl], [Disable Tcl])
 AS_HELP_STRING([--with-tclconfig=path], [Set location of tclConfig.sh]), [with_tclconfig="$withval"], [with_tclconfig=])
@@ -595,7 +596,7 @@ fi
 
 AC_MSG_CHECKING(for Tcl library)
 if test -z "$TCLLIB"; then
-dirs="/usr/local/lib /usr/lib /opt/local/lib"
+dirs="/usr/local/lib /usr/lib /opt/local/lib /opt/freeware/lib"
 for i in $dirs ; do
 	if test -r $i/libtcl.a; then
 	    AC_MSG_RESULT($i)
@@ -613,7 +614,14 @@ fi
 # Cygwin (Windows) needs the library for dynamic linking
 case $host in
 *-*-cygwin* | *-*-mingw*) TCLDYNAMICLINKING="$TCLLIB";;
+*-*-aix*) TCLDYNAMICLINKING="$TCLLIB";;
 *)TCLDYNAMICLINKING="";;
+esac
+
+# AIX needs -ltcl for linking at test time
+case $host in
+*-*-aix*) TCLLINK="-ltcl";;
+*)TCLLINK="";;
 esac
 
 case $host in
@@ -634,6 +642,7 @@ AC_SUBST(TCLLIB)
 AC_SUBST(TCLDYNAMICLINKING)
 AC_SUBST(TCLLDSHARED)
 AC_SUBST(TCLCXXSHARED)
+AC_SUBST(TCLLINK)
 
 #----------------------------------------------------------------
 # Look for Python
