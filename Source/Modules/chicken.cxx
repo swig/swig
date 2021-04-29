@@ -400,7 +400,6 @@ int CHICKEN::functionWrapper(Node *n) {
     }
 
     SwigType *pt = Getattr(p, "type");
-    String *ln = Getattr(p, "lname");
 
     Printf(f->def, ", C_word scm%d", i + 1);
     Printf(declfunc, ",C_word");
