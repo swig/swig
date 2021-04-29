@@ -1346,7 +1346,6 @@ MODULA3():
 	String *tm = Getattr(p, "tmap:check");
 	if (tm != NIL) {
 	  addThrows(throws_hash, "check", p);
-	  Replaceall(tm, "$target", Getattr(p, "lname"));	/* deprecated */
 	  Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
 	  Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	  Printv(f->code, tm, "\n", NIL);
@@ -1364,7 +1363,6 @@ MODULA3():
 	String *tm = Getattr(p, "tmap:freearg");
 	if (tm != NIL) {
 	  addThrows(throws_hash, "freearg", p);
-	  Replaceall(tm, "$source", Getattr(p, "emit:input"));	/* deprecated */
 	  Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
 	  Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	  Printv(cleanup, tm, "\n", NIL);
@@ -1382,8 +1380,6 @@ MODULA3():
 	String *tm = Getattr(p, "tmap:argout");
 	if (tm != NIL) {
 	  addThrows(throws_hash, "argout", p);
-	  Replaceall(tm, "$source", Getattr(p, "emit:input"));	/* deprecated */
-	  Replaceall(tm, "$target", Getattr(p, "lname"));	/* deprecated */
 	  Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
 	  Replaceall(tm, "$result", "cresult");
 	  Replaceall(tm, "$input", Getattr(p, "emit:input"));
@@ -1415,8 +1411,6 @@ MODULA3():
       String *tm;
       if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
 	addThrows(throws_hash, "out", n);
-	Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
-	Replaceall(tm, "$target", "cresult");	/* deprecated */
 	Replaceall(tm, "$result", "cresult");
 	Printf(f->code, "%s", tm);
 	if (hasContent(tm))
@@ -1438,7 +1432,6 @@ MODULA3():
       String *tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0);
       if (tm != NIL) {
 	addThrows(throws_hash, "newfree", n);
-	Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
 	Printf(f->code, "%s\n", tm);
       }
     }
@@ -1447,7 +1440,6 @@ MODULA3():
     if (!native_function_flag) {
       String *tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0);
       if (tm != NIL) {
-	Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
 	Printf(f->code, "%s\n", tm);
       }
     }

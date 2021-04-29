@@ -426,7 +426,6 @@ void CFFI::cleanupFunction(Node *n, Wrapper *f, ParmList *parms) {
   if (GetFlag(n, "feature:new")) {
     String *tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0);
     if (tm) {
-      Replaceall(tm, "$source", Swig_cresult_name());
       Printv(f->code, tm, "\n", NULL);
       Delete(tm);
     }
@@ -546,7 +545,6 @@ int CFFI::functionWrapper(Node *n) {
   /* See if there is any return cleanup code */
   String *tm = 0;
   if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
-    Replaceall(tm, "$source", Swig_cresult_name());
     Printf(f->code, "%s\n", tm);
     Delete(tm);
   }

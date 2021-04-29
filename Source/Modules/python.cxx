@@ -2867,8 +2867,6 @@ public:
 	  } else {
 	    Replaceall(tm, "$self", "obj0");
 	  }
-	  Replaceall(tm, "$source", source);
-	  Replaceall(tm, "$target", ln);
 	  Replaceall(tm, "$input", source);
 	  Setattr(p, "emit:input", source);	/* Save the location of the object */
 
@@ -2976,7 +2974,6 @@ public:
     /* Insert constraint checking code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
-	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Printv(f->code, tm, "\n", NIL);
 	p = Getattr(p, "tmap:check:next");
       } else {
@@ -2998,7 +2995,6 @@ public:
 	  }
 	}
 	if (tm && (Len(tm) != 0)) {
-	  Replaceall(tm, "$source", Getattr(p, "lname"));
 	  Printv(cleanup, tm, "\n", NIL);
 	}
 	p = Getattr(p, "tmap:freearg:next");
@@ -3010,8 +3006,6 @@ public:
     /* Insert argument output code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-	Replaceall(tm, "$source", Getattr(p, "lname"));
-	Replaceall(tm, "$target", "resultobj");
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(outarg, tm, "\n", NIL);
@@ -3100,8 +3094,6 @@ public:
       } else {
 	Replaceall(tm, "$self", "obj0");
       }
-      Replaceall(tm, "$source", Swig_cresult_name());
-      Replaceall(tm, "$target", "resultobj");
       Replaceall(tm, "$result", "resultobj");
       if (builtin_ctor) {
 	Replaceall(tm, "$owner", "SWIG_BUILTIN_INIT");
@@ -3167,7 +3159,6 @@ public:
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
-	Replaceall(tm, "$source", Swig_cresult_name());
 	Printf(f->code, "%s\n", tm);
 	Delete(tm);
       }
@@ -3175,7 +3166,6 @@ public:
 
     /* See if there is any return cleanup code */
     if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
-      Replaceall(tm, "$source", Swig_cresult_name());
       Printf(f->code, "%s\n", tm);
       Delete(tm);
     }
@@ -3461,8 +3451,6 @@ public:
       }
       Printf(setf->def, "SWIGINTERN int %s(PyObject *_val) {", varsetname);
       if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
-	Replaceall(tm, "$source", "_val");
-	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "_val");
 	if (Getattr(n, "tmap:varin:implicitconv")) {
 	  Replaceall(tm, "$implicitconv", get_implicitconv_flag(n));
@@ -3503,8 +3491,6 @@ public:
       Append(getf->code, "  (void)self;\n");
     }
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
-      Replaceall(tm, "$source", name);
-      Replaceall(tm, "$target", "pyobj");
       Replaceall(tm, "$result", "pyobj");
       addfail = emit_action_code(n, getf->code, tm);
       Delete(tm);
@@ -3584,8 +3570,6 @@ public:
     }
 
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
-      Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
       Printf(const_code, "%s,\n", tm);
       Delete(tm);
@@ -3600,8 +3584,6 @@ public:
     }
 
     if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
-      Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
       if (needs_swigconstant(n) && !builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER)) && (!in_class || !Getattr(n, "feature:python:callback"))) {
 	// Generate `*_swigconstant()` method which registers the new constant.
