@@ -937,16 +937,12 @@ public:
 	source = NewStringf("args[%d]", i);
       }
 
-      String *ln = Getattr(p, "lname");
-
       /* Check if optional */
       if (i >= num_required) {
 	Printf(f->code, "\tif(arg_count > %d) {\n", i);
       }
 
       if ((tm = Getattr(p, "tmap:in"))) {
-	Replaceall(tm, "$source", &source);
-	Replaceall(tm, "$target", ln);
 	Replaceall(tm, "$input", source);
 	Setattr(p, "emit:input", source);
 	Printf(f->code, "%s\n", tm);
@@ -978,7 +974,6 @@ public:
     /* Insert constraint checking code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
-	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Printv(f->code, tm, "\n", NIL);
 	p = Getattr(p, "tmap:check:next");
       } else {
@@ -989,7 +984,6 @@ public:
     /* Insert cleanup code */
     for (i = 0, p = l; p; i++) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
-	Replaceall(tm, "$source", Getattr(p, "lname"));
 	Printv(cleanup, tm, "\n", NIL);
 	p = Getattr(p, "tmap:freearg:next");
       } else {
@@ -1002,9 +996,7 @@ public:
     for (i = 0, p = l; p; i++) {
       if ((tm = Getattr(p, "tmap:argout")) && Len(tm)) {
 	hasargout = true;
-	Replaceall(tm, "$source", Getattr(p, "lname"));
 	//      Replaceall(tm,"$input",Getattr(p,"lname"));
-	Replaceall(tm, "$target", "return_value");
 	Replaceall(tm, "$result", "return_value");
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
@@ -1022,8 +1014,6 @@ public:
 
     if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
       Replaceall(tm, "$input", Swig_cresult_name());
-      Replaceall(tm, "$source", Swig_cresult_name());
-      Replaceall(tm, "$target", "return_value");
       Replaceall(tm, "$result", "return_value");
       Replaceall(tm, "$owner", newobject ? "1" : "0");
       Printf(f->code, "%s\n", tm);
@@ -1916,7 +1906,6 @@ done:
 
     tm = Swig_typemap_lookup("varinit", n, name, 0);
     if (tm) {
-      Replaceall(tm, "$target", name);
       Printf(s_vinit, "%s\n", tm);
     } else {
       Swig_error(input_file, line_number, "Unable to link with type %s\n", SwigType_str(t, 0));
@@ -1966,8 +1955,6 @@ done:
     SwigType_remember(type);
 
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
-      Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
       Printf(s_cinit, "%s\n", tm);
     }

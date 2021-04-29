@@ -341,8 +341,6 @@ public:
 	/* Look for an input typemap */
 	sprintf(source, "Pike_sp[%d-args]", i - start + offset);
 	if ((tm = Getattr(p, "tmap:in"))) {
-	  Replaceall(tm, "$source", source);
-	  Replaceall(tm, "$target", ln);
 	  Replaceall(tm, "$input", source);
 	  Setattr(p, "emit:input", source);
 	  Printf(f->code, "%s\n", tm);
@@ -371,7 +369,6 @@ public:
     /* Insert constraint checking code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
-	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Printv(f->code, tm, "\n", NIL);
 	p = Getattr(p, "tmap:check:next");
       } else {
@@ -383,7 +380,6 @@ public:
     String *cleanup = NewString("");
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
-	Replaceall(tm, "$source", Getattr(p, "lname"));
 	Printv(cleanup, tm, "\n", NIL);
 	p = Getattr(p, "tmap:freearg:next");
       } else {
@@ -395,8 +391,6 @@ public:
     String *outarg = NewString("");
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-	Replaceall(tm, "$source", Getattr(p, "lname"));
-	Replaceall(tm, "$target", "resultobj");
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(outarg, tm, "\n", NIL);
@@ -422,8 +416,6 @@ public:
       Printv(description, ", ", NIL);
       if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
         actioncode = 0;
-	Replaceall(tm, "$source", Swig_cresult_name());
-	Replaceall(tm, "$target", "resultobj");
 	Replaceall(tm, "$result", "resultobj");
 	if (GetFlag(n, "feature:new")) {
 	  Replaceall(tm, "$owner", "1");
@@ -454,14 +446,12 @@ public:
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
-	Replaceall(tm, "$source", Swig_cresult_name());
 	Printf(f->code, "%s\n", tm);
       }
     }
 
     /* See if there is any return cleanup code */
     if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
-      Replaceall(tm, "$source", Swig_cresult_name());
       Printf(f->code, "%s\n", tm);
     }
 
@@ -586,8 +576,6 @@ public:
     /* Perform constant typemap substitution */
     String *tm = Swig_typemap_lookup("constant", n, value, 0);
     if (tm) {
-      Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", symname);
       Replaceall(tm, "$symname", symname);
       Replaceall(tm, "$value", value);
       Printf(f_init, "%s\n", tm);

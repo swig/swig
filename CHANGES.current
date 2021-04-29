@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-04-30: olly
+	    #1984 Remove support for $source and $target.
+	    These were officially deprecated in 2001, and attempts to use them have
+	    resulted in a warning (including a pointer to what to update them to)
+	    for most if not all of that time.
+
 2021-04-27: wsfulton
             #1987 [Java] Fix %interface family of macros for returning by const
             pointer reference.
