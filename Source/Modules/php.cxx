@@ -530,8 +530,6 @@ public:
      */
 
     //    Printv(s_init,s_resourcetypes,NIL);
-    /* We need this after all classes written out by ::top */
-    Printf(s_oinit, "  CG(active_class_entry) = NULL;\n");
     Printf(s_oinit, "  /* end oinit subsection */\n");
     Printf(s_init, "%s\n", s_oinit);
 
