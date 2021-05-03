@@ -82,10 +82,9 @@ static String *fake_class_name() {
     }
     Printf(s_creation, "/* class entry for %s */\n",result);
     Printf(s_creation, "zend_class_entry *SWIGTYPE_%s_ce;\n\n",result);
-    Printf(s_oinit, "\n{\n  zend_class_entry internal_ce;\n");
     Printf(s_oinit, "  INIT_CLASS_ENTRY(internal_ce, \"%s\", class_%s_functions);\n", result, result);
     Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class(&internal_ce);\n", result);
-    Printf(s_oinit, "}\n\n", result);
+    Printf(s_oinit, "\n");
   }
   return result;
 }
@@ -214,13 +213,11 @@ static void SwigPHP_emit_pointer_type_registrations() {
     Printf(s_creation, "/* class entry for pointer to %s */\n", type);
     Printf(s_creation, "zend_class_entry *SWIGTYPE_%s_ce;\n\n", type);
 
-    Printf(s_oinit, "{\n");
-    Printf(s_oinit, "  zend_class_entry internal_ce;\n");
     Printf(s_oinit, "  INIT_CLASS_ENTRY(internal_ce, \"%s\\\\%s\", NULL);\n", "SWIG", type);
     Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class(&internal_ce);\n", type);
     Printf(s_oinit, "  SWIGTYPE_%s_ce->create_object = swig_ptr_object_new;\n", type);
     Printf(s_oinit, "  SWIG_TypeClientData(SWIGTYPE%s,SWIGTYPE_%s_ce);\n", type, type);
-    Printf(s_oinit, "}\n\n");
+    Printf(s_oinit, "\n");
 
     ki = Next(ki);
   }
@@ -890,9 +887,9 @@ public:
     return false;
   }
 
-  void generate_magic_property_methods(Node *class_node, String *baseClassExtend) {
-    if (Cmp(baseClassExtend, "Exception") == 0 || !is_class_wrapped(baseClassExtend)) {
-      baseClassExtend = NULL;
+  void generate_magic_property_methods(Node *class_node, String *base_class) {
+    if (Equal(base_class, "Exception") || !is_class_wrapped(base_class)) {
+      base_class = NULL;
     }
 
     // Ensure arginfo_1 and arginfo_2 exist.
@@ -938,8 +935,8 @@ public:
 		      "}\n", NIL);
     }
     Printf(f->code, "} else {\n");
-    if (baseClassExtend) {
-      Printf(f->code, "PHP_MN(%s___set)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
+    if (base_class) {
+      Printf(f->code, "PHP_MN(%s___set)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", base_class);
     } else {
       Printf(f->code, "add_property_zval_ex(ZEND_THIS, ZSTR_VAL(arg2), ZSTR_LEN(arg2), &args[1]);\n}\n");
     }
@@ -971,8 +968,8 @@ public:
     Printf(f->code, "\nelse if (strcmp(ZSTR_VAL(arg2),\"thisown\") == 0) {\n");
     Printf(f->code, "if(arg->newobject) {\nRETVAL_LONG(1);\n}\nelse {\nRETVAL_LONG(0);\n}\n}\n\n");
     Printf(f->code, "else {\n");
-    if (baseClassExtend) {
-      Printf(f->code, "PHP_MN(%s___get)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
+    if (base_class) {
+      Printf(f->code, "PHP_MN(%s___get)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", base_class);
     } else {
       // __get is only called if the property isn't set on the zend_object.
       Printf(f->code, "RETVAL_NULL();\n}\n");
@@ -1005,8 +1002,8 @@ public:
       Append(f->code, magic_isset);
     }
     Printf(f->code, "else {\n");
-    if (baseClassExtend) {
-      Printf(f->code, "PHP_MN(%s___isset)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
+    if (base_class) {
+      Printf(f->code, "PHP_MN(%s___isset)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", base_class);
     } else {
       // __isset is only called if the property isn't set on the zend_object.
       Printf(f->code, "RETVAL_FALSE;\n}\n");
@@ -1572,15 +1569,12 @@ public:
 
   virtual int classHandler(Node *n) {
     String *symname = Getattr(n, "sym:name");
-    String *baseClassExtend = NULL;
-    bool exceptionClassFlag = false;
+    String *base_class = NULL;
 
     class_name = symname;
 
     Printf(all_cs_entry, "static zend_function_entry class_%s_functions[] = {\n", class_name);
 
-    Printf(s_oinit, "\n{\n  zend_class_entry internal_ce;\n");
-    
     // namespace code to introduce namespaces into wrapper classes.
     //if (nameSpace != NULL)
       //Printf(s_oinit, "INIT_CLASS_ENTRY(internal_ce, \"%s\\\\%s\", class_%s_functions);\n", nameSpace, class_name, class_name);
@@ -1597,43 +1591,40 @@ public:
       List *baselist = Getattr(n, "bases");
       if (baselist) {
 	Iterator base = First(baselist);
-	while (base.item && GetFlag(base.item, "feature:ignore")) {
-	  base = Next(base);
-	}
-        if (base.item)
-          baseClassExtend = Getattr(base.item, "sym:name");
-	base = Next(base);
-	if (base.item) {
-	  /* Warn about multiple inheritance for additional base class(es) */
-	  while (base.item) {
-	    if (GetFlag(base.item, "feature:ignore")) {
-	      base = Next(base);
-	      continue;
+	while (base.item) {
+	  if (!GetFlag(base.item, "feature:ignore")) {
+	    if (!base_class) {
+	      base_class = Getattr(base.item, "sym:name");
+	    } else {
+	      /* Warn about multiple inheritance for additional base class(es) */
+	      String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
+	      String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
+	      Swig_warning(WARN_PHP_MULTIPLE_INHERITANCE, input_file, line_number,
+			   "Warning for %s, base %s ignored. Multiple inheritance is not supported in PHP.\n", proxyclassname, baseclassname);
 	    }
-	    String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
-	    String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
-	    Swig_warning(WARN_PHP_MULTIPLE_INHERITANCE, input_file, line_number,
-			 "Warning for %s, base %s ignored. Multiple inheritance is not supported in PHP.\n", proxyclassname, baseclassname);
-	    base = Next(base);
 	  }
+	  base = Next(base);
 	}
       }
     }
 
-    if (Cmp(Getattr(n, "feature:exceptionclass"), "1") == 0 && Getattr(n, "feature:except")) {
-        if (baseClassExtend) {
-          Swig_warning(WARN_PHP_MULTIPLE_INHERITANCE, input_file, line_number,
-                         "Warning for %s, base %s ignored. Multiple inheritance is not supported in PHP.\n", class_name, baseClassExtend);
-        }
-        baseClassExtend = NewString(class_name);
-        Append(baseClassExtend, "_Exception");
-
-        Printf(s_oinit, "  zend_class_entry *SWIGTYPE_%s_ce = zend_lookup_class(zend_string_init(\"Exception\", sizeof(\"Exception\") - 1, 0));\n", baseClassExtend);
-        exceptionClassFlag = true;
+    if (GetFlag(n, "feature:exceptionclass") && Getattr(n, "feature:except")) {
+      /* PHP requires thrown objects to be instances of or derived from
+       * Exception, so that really needs to take priority over any
+       * explicit base class.
+       */
+      if (base_class) {
+	String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
+	Swig_warning(WARN_PHP_MULTIPLE_INHERITANCE, input_file, line_number,
+		     "Warning for %s, base %s ignored. Multiple inheritance is not supported in PHP.\n", proxyclassname, base_class);
+      }
+      base_class = NewString("Exception");
     }
 
-    if (baseClassExtend && (exceptionClassFlag || is_class_wrapped(baseClassExtend))) {
-      Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class_ex(&internal_ce, SWIGTYPE_%s_ce);\n", class_name, baseClassExtend);
+    if (Equal(base_class, "Exception")) {
+      Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class_ex(&internal_ce, zend_ce_exception);\n", class_name);
+    } else if (is_class_wrapped(base_class)) {
+      Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class_ex(&internal_ce, SWIGTYPE_%s_ce);\n", class_name, base_class);
     } else {
       Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class(&internal_ce);\n", class_name);
     }
@@ -1678,12 +1669,12 @@ public:
     Printf(s_oinit, "#ifdef SWIGTYPE_p%s\n", SwigType_manglestr(Getattr(n, "classtypeobj")));
     Printf(s_oinit, "  SWIG_TypeClientData(SWIGTYPE_p%s,SWIGTYPE_%s_ce);\n", SwigType_manglestr(Getattr(n, "classtypeobj")), class_name);
     Printf(s_oinit, "#endif\n");
-    Printf(s_oinit, "}\n\n");
+    Printf(s_oinit, "\n");
 
     Language::classHandler(n);
 
     print_creation_free_wrapper(n);
-    generate_magic_property_methods(n, baseClassExtend);
+    generate_magic_property_methods(n, base_class);
     Printf(all_cs_entry, " ZEND_FE_END\n};\n\n");
 
     class_name = NULL;

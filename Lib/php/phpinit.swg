@@ -7,5 +7,6 @@
 
 %init %{
 SWIG_php_minit {
+  zend_class_entry SWIGUNUSED internal_ce;
   SWIG_InitializeModule((void*)&module_number);
 %}
