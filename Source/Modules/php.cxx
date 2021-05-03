@@ -110,7 +110,8 @@ static enum {
   membervar,
   staticmembervar,
   constructor,
-  directorconstructor
+  directorconstructor,
+  directordisown
 } wrapperType = standard;
 
 extern "C" {
@@ -904,7 +905,7 @@ public:
     return false;
   }
 
-  void generate_magic_property_methods(String *baseClassExtend) {
+  void generate_magic_property_methods(Node *class_node, String *baseClassExtend) {
     if (Cmp(baseClassExtend, "Exception") == 0 || !is_class_wrapped(baseClassExtend)) {
       baseClassExtend = NULL;
     }
@@ -944,8 +945,14 @@ public:
       Append(f->code, magic_set);
     }
     Printf(f->code, "\nelse if (strcmp(ZSTR_VAL(arg2),\"thisown\") == 0) {\n");
-    Printf(f->code, "arg->newobject = zval_get_long(&args[1]);\n}\n\n");
-    Printf(f->code, "else {\n");
+    Printf(f->code, "arg->newobject = zval_get_long(&args[1]);\n");
+    if (Swig_directorclass(class_node)) {
+      Printv(f->code, "if (arg->newobject == 0) {\n",
+		      "  Swig::Director *director = SWIG_DIRECTOR_CAST((", Getattr(class_node, "classtypeobj"), "*)(arg->ptr));\n",
+		      "  if (director) director->swig_disown();\n",
+		      "}\n", NIL);
+    }
+    Printf(f->code, "} else {\n");
     if (baseClassExtend) {
       Printf(f->code, "PHP_MN(%s___set)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", baseClassExtend);
     } else {
@@ -1074,6 +1081,10 @@ public:
   }
 
   virtual int functionWrapper(Node *n) {
+    if (wrapperType == directordisown) {
+      // Handled via __set magic method - no explicit wrapper method wanted.
+      return SWIG_OK;
+    }
     String *name = GetChar(n, "name");
     String *iname = GetChar(n, "sym:name");
     SwigType *d = Getattr(n, "type");
@@ -1673,7 +1684,7 @@ public:
     Language::classHandler(n);
 
     print_creation_free_wrapper(n);
-    generate_magic_property_methods(baseClassExtend);
+    generate_magic_property_methods(n, baseClassExtend);
     Printf(all_cs_entry, " ZEND_FE_END\n};\n\n");
 
     class_name = NULL;
@@ -2190,8 +2201,11 @@ public:
     return status;
   }
 
-  int classDirectorDisown(Node *) {
-    return SWIG_OK;
+  int classDirectorDisown(Node *n) {
+    wrapperType = directordisown;
+    int result = Language::classDirectorDisown(n);
+    wrapperType = standard;
+    return result;
   }
 };				/* class PHP */
 

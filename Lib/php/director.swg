@@ -8,6 +8,8 @@
 #ifndef SWIG_DIRECTOR_PHP_HEADER_
 #define SWIG_DIRECTOR_PHP_HEADER_
 
+#define SWIG_DIRECTOR_CAST(ARG) dynamic_cast<Swig::Director *>(ARG)
+
 #include <string>
 #include <exception>
 #include <map>
@@ -76,14 +78,32 @@ namespace Swig {
   };
 
   class Director {
+    private:
+      /* flag indicating whether the object is owned by PHP or C++ */
+      mutable bool swig_disown_flag;
+
     protected:
       // "mutable" so we can get a non-const pointer to it in const methods.
       mutable zval swig_self;
       typedef std::map<void *, GCItem_var> swig_ownership_map;
       mutable swig_ownership_map swig_owner;
+
     public:
-      Director(zval *self) {
+      Director(zval *self) : swig_disown_flag(false) {
         ZVAL_COPY_VALUE(&swig_self, self);
+      }
+
+      ~Director() {
+        if (swig_disown_flag) {
+          Z_DELREF(swig_self);
+	}
+      }
+
+      void swig_disown() const {
+        if (!swig_disown_flag) {
+          swig_disown_flag = true;
+          Z_ADDREF(swig_self);
+        }
       }
 
       static bool swig_is_overridden_method(const char *cname, zval *z) {
