@@ -948,7 +948,7 @@ public:
     Printf(f->code, "arg->newobject = zval_get_long(&args[1]);\n");
     if (Swig_directorclass(class_node)) {
       Printv(f->code, "if (arg->newobject == 0) {\n",
-		      "  Swig::Director *director = SWIG_DIRECTOR_CAST((", Getattr(class_node, "classtypeobj"), "*)(arg->ptr));\n",
+		      "  Swig::Director *director = SWIG_DIRECTOR_CAST((", Getattr(class_node, "classtype"), "*)(arg->ptr));\n",
 		      "  if (director) director->swig_disown();\n",
 		      "}\n", NIL);
     }
