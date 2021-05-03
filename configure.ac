@@ -3,7 +3,7 @@ dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
 AC_INIT([swig],[4.1.0],[http://www.swig.org])
-AC_PREREQ(2.60)
+AC_PREREQ([2.60])
 
 AC_CONFIG_SRCDIR([Source/Swig/swig.h])
 AC_CONFIG_AUX_DIR([Tools/config])
@@ -34,8 +34,8 @@ AC_MSG_RESULT([$CXXFLAGS])
 AC_DEFINE_UNQUOTED(SWIG_CXX, ["$CXX"], [Compiler that built SWIG])
 AC_DEFINE_UNQUOTED(SWIG_PLATFORM, ["$host"], [Platform that SWIG is built for])
 
-dnl Checks for header files.
-AC_HEADER_STDC
+# For AC_EGREP_CPP
+AC_PROG_EGREP
 
 dnl Look for popen
 AC_ARG_WITH(popen, AS_HELP_STRING([--without-popen], [Disable popen]), with_popen="$withval")
@@ -301,18 +301,51 @@ PLATCXXFLAGS="$PLATCFLAGS"
 if test x"$enable_cpp11_testing" = xyes; then
   CXX_SAVED=$CXX
   CXXCPP_SAVED=$CXXCPP
+
+  # Test for c++17
   CXXCPP=" "
-  AX_CXX_COMPILE_STDCXX(11, [noext], [optional])
-  AC_MSG_CHECKING([whether C++11 testing is actually enabled])
-  if test "$HAVE_CXX11" = "1"; then
+  AX_CXX_COMPILE_STDCXX(17, [noext], [optional])
+  AC_MSG_CHECKING([whether C++17 and earlier testing is enabled])
+  if test "$HAVE_CXX17" = "1"; then
     AC_MSG_RESULT([yes])
     PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+    HAVE_CXX14="1"
+    HAVE_CXX11="1"
   else
     AC_MSG_RESULT([no])
+
+    # Test for c++14
+    CXXCPP=" "
+    CXX=$CXX_SAVED
+    AX_CXX_COMPILE_STDCXX(14, [noext], [optional])
+    AC_MSG_CHECKING([whether C++14 and earlier testing is enabled])
+    if test "$HAVE_CXX14" = "1"; then
+      AC_MSG_RESULT([yes])
+      PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+      HAVE_CXX11="1"
+    else
+      AC_MSG_RESULT([no])
+
+      # Test for c++11
+      CXXCPP=" "
+      CXX=$CXX_SAVED
+      AX_CXX_COMPILE_STDCXX(11, [noext], [optional])
+      AC_MSG_CHECKING([whether C++11 and earlier testing is enabled])
+      if test "$HAVE_CXX11" = "1"; then
+        AC_MSG_RESULT([yes])
+        PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+      else
+        AC_MSG_RESULT([no])
+      fi
+
+    fi
+
   fi
+
   CXX=$CXX_SAVED
   CXXCPP=$CXXCPP_SAVED
 fi
+AC_SUBST(HAVE_CXX11)
 
 # On darwin 10.7,10.8,10.9 using clang++, need to ensure using
 # libc++ for tests and examples to run under mono. May affect
@@ -369,7 +402,6 @@ AC_SUBST(TRYLINKINGWITHCXX)
 AC_SUBST(RPATH)
 AC_SUBST(PLATCFLAGS)
 AC_SUBST(PLATCXXFLAGS)
-AC_SUBST(HAVE_CXX11)
 AC_SUBST(LINKFORSHARED)
 
 # This variation is needed on OS-X because there is no (apparent) consistency in shared library naming.
@@ -471,6 +503,7 @@ AC_PATH_TOOL([PKG_CONFIG], [pkg-config])
 TCLINCLUDE=
 TCLLIB=
 TCLPACKAGE=
+TCLLINK=
 
 AC_ARG_WITH(tclconfig, AS_HELP_STRING([--without-tcl], [Disable Tcl])
 AS_HELP_STRING([--with-tclconfig=path], [Set location of tclConfig.sh]), [with_tclconfig="$withval"], [with_tclconfig=])
@@ -543,7 +576,7 @@ fi
 
 AC_MSG_CHECKING(for Tcl header files)
 if test -z "$TCLINCLUDE"; then
-AC_TRY_CPP([#include <tcl.h>], , TCLINCLUDE="")
+AC_PREPROC_IFELSE([AC_LANG_SOURCE([[#include <tcl.h>]])],[],[TCLINCLUDE=""])
 if test -z "$TCLINCLUDE"; then
 	dirs="/usr/local/include /usr/include /opt/local/include"
 	for i in $dirs ; do
@@ -563,7 +596,7 @@ fi
 
 AC_MSG_CHECKING(for Tcl library)
 if test -z "$TCLLIB"; then
-dirs="/usr/local/lib /usr/lib /opt/local/lib"
+dirs="/usr/local/lib /usr/lib /opt/local/lib /opt/freeware/lib"
 for i in $dirs ; do
 	if test -r $i/libtcl.a; then
 	    AC_MSG_RESULT($i)
@@ -581,7 +614,14 @@ fi
 # Cygwin (Windows) needs the library for dynamic linking
 case $host in
 *-*-cygwin* | *-*-mingw*) TCLDYNAMICLINKING="$TCLLIB";;
+*-*-aix*) TCLDYNAMICLINKING="$TCLLIB";;
 *)TCLDYNAMICLINKING="";;
+esac
+
+# AIX needs -ltcl for linking at test time
+case $host in
+*-*-aix*) TCLLINK="-ltcl";;
+*)TCLLINK="";;
 esac
 
 case $host in
@@ -602,6 +642,7 @@ AC_SUBST(TCLLIB)
 AC_SUBST(TCLDYNAMICLINKING)
 AC_SUBST(TCLLDSHARED)
 AC_SUBST(TCLCXXSHARED)
+AC_SUBST(TCLLINK)
 
 #----------------------------------------------------------------
 # Look for Python
@@ -1603,15 +1644,15 @@ else
 
   if test -z "$JSCORELIB" -a -n "$PKG_CONFIG "; then
     AC_MSG_CHECKING(for JavaScriptCore/Webkit library)
-    if $PKG_CONFIG  javascriptcoregtk-4.0; then
+    if $PKG_CONFIG  javascriptcoregtk-4.0 2>/dev/null ; then
       JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-4.0`
       JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-4.0`
       JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-4.0`
-    elif $PKG_CONFIG  javascriptcoregtk-3.0; then
+    elif $PKG_CONFIG  javascriptcoregtk-3.0 2>/dev/null ; then
       JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-3.0`
       JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-3.0`
       JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-3.0`
-    elif $PKG_CONFIG  javascriptcoregtk-1.0; then
+    elif $PKG_CONFIG  javascriptcoregtk-1.0 2>/dev/null ; then
       JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-1.0`
       JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-1.0`
     fi

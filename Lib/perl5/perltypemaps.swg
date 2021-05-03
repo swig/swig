@@ -95,7 +95,7 @@
     "sv_setiv(SvRV($result), PTR2IV(&$1));";
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE (CLASS::*) {
-  SWIG_MakePackedObj($result, (void *) &$1, sizeof($1_type), $1_descriptor);
+  SWIG_MakePackedObj($result, (void *) &$1, sizeof($1), $1_descriptor);
 }
 
 %typemap(varout) SWIGTYPE *const = SWIGTYPE *;

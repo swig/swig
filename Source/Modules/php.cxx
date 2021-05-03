@@ -1345,7 +1345,6 @@ public:
     /* Insert constraint checking code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
-	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Printv(f->code, tm, "\n", NIL);
 	p = Getattr(p, "tmap:check:next");
       } else {
@@ -1493,7 +1492,6 @@ public:
     if (!wrapping_member_constant) {
       {
 	tm = Swig_typemap_lookup("consttab", n, name, 0);
-	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$value", value);
 	Printf(s_cinit, "%s\n", tm);
       }

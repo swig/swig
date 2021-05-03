@@ -400,7 +400,6 @@ int CHICKEN::functionWrapper(Node *n) {
     }
 
     SwigType *pt = Getattr(p, "type");
-    String *ln = Getattr(p, "lname");
 
     Printf(f->def, ", C_word scm%d", i + 1);
     Printf(declfunc, ",C_word");
@@ -410,8 +409,6 @@ int CHICKEN::functionWrapper(Node *n) {
       String *parse = Getattr(p, "tmap:in:parse");
       if (!parse) {
         String *source = NewStringf("scm%d", i + 1);
-	Replaceall(tm, "$source", source);
-	Replaceall(tm, "$target", ln);
 	Replaceall(tm, "$input", source);
 	Setattr(p, "emit:input", source);	/* Save the location of
 						   the object */
@@ -480,7 +477,6 @@ int CHICKEN::functionWrapper(Node *n) {
   /* Insert constraint checking code */
   for (p = l; p;) {
     if ((tm = Getattr(p, "tmap:check"))) {
-      Replaceall(tm, "$target", Getattr(p, "lname"));
       Printv(f->code, tm, "\n", NIL);
       p = Getattr(p, "tmap:check:next");
     } else {
@@ -491,7 +487,6 @@ int CHICKEN::functionWrapper(Node *n) {
   /* Insert cleanup code */
   for (p = l; p;) {
     if ((tm = Getattr(p, "tmap:freearg"))) {
-      Replaceall(tm, "$source", Getattr(p, "lname"));
       Printv(cleanup, tm, "\n", NIL);
       p = Getattr(p, "tmap:freearg:next");
     } else {
@@ -510,8 +505,6 @@ int CHICKEN::functionWrapper(Node *n) {
 	Printf(argout, "SWIG_Chicken_SetupArgout\n");
       }
 
-      Replaceall(tm, "$source", Getattr(p, "lname"));
-      Replaceall(tm, "$target", "resultobj");
       Replaceall(tm, "$arg", Getattr(p, "emit:input"));
       Replaceall(tm, "$input", Getattr(p, "emit:input"));
       Printf(argout, "%s", tm);
@@ -528,8 +521,6 @@ int CHICKEN::functionWrapper(Node *n) {
 
   /* Return the function value */
   if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
-    Replaceall(tm, "$source", Swig_cresult_name());
-    Replaceall(tm, "$target", "resultobj");
     Replaceall(tm, "$result", "resultobj");
     if (GetFlag(n, "feature:new")) {
       Replaceall(tm, "$owner", "1");
@@ -556,14 +547,12 @@ int CHICKEN::functionWrapper(Node *n) {
   /* Look to see if there is any newfree cleanup code */
   if (GetFlag(n, "feature:new")) {
     if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
-      Replaceall(tm, "$source", Swig_cresult_name());
       Printf(f->code, "%s\n", tm);
     }
   }
 
   /* See if there is any return cleanup code */
   if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
-    Replaceall(tm, "$source", Swig_cresult_name());
     Printf(f->code, "%s\n", tm);
   }
 
@@ -719,8 +708,6 @@ int CHICKEN::variableWrapper(Node *n) {
     if (!GetFlag(n, "feature:immutable")) {
       Printf(f->code, "if (argc > 2) {\n");
       if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
-	Replaceall(tm, "$source", "value");
-	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "value");
 	/* Printv(f->code, tm, "\n",NIL); */
 	emit_action_code(n, f->code, tm);
@@ -740,9 +727,7 @@ int CHICKEN::variableWrapper(Node *n) {
     // Now return the value of the variable - regardless
     // of evaluating or setting.
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
-      Replaceall(tm, "$source", varname);
       Replaceall(tm, "$varname", varname);
-      Replaceall(tm, "$target", "resultobj");
       Replaceall(tm, "$result", "resultobj");
       /* Printf(f->code, "%s\n", tm); */
       emit_action_code(n, f->code, tm);
@@ -871,8 +856,6 @@ int CHICKEN::constantWrapper(Node *n) {
     Printf(f_header, "static %s = %s;\n", SwigType_str(t, source), rvalue);
   } else {
     if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
-      Replaceall(tm, "$source", rvalue);
-      Replaceall(tm, "$target", source);
       Replaceall(tm, "$result", source);
       Replaceall(tm, "$value", rvalue);
       Printf(f_header, "%s\n", tm);
@@ -907,9 +890,7 @@ int CHICKEN::constantWrapper(Node *n) {
     // Return the value of the variable
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
 
-      Replaceall(tm, "$source", source);
       Replaceall(tm, "$varname", source);
-      Replaceall(tm, "$target", "resultobj");
       Replaceall(tm, "$result", "resultobj");
       /* Printf(f->code, "%s\n", tm); */
       emit_action_code(n, f->code, tm);

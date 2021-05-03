@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-04-30: olly
+	    #1984 Remove support for $source and $target.
+	    These were officially deprecated in 2001, and attempts to use them have
+	    resulted in a warning (including a pointer to what to update them to)
+	    for most if not all of that time.
+
+2021-04-27: wsfulton
+            #1987 [Java] Fix %interface family of macros for returning by const
+            pointer reference.
+
 2021-04-19: olly
 	    Fix use of uninitialised variable in the generated code for an
 	    empty typecheck typemap, such as the dummy one we include for
@@ -78,7 +88,7 @@ Version 4.1.0 (in progress)
             unsigned long long values.
 
 2021-02-24: tomleavy, yegorich, tungntpham
-            #1746 [Javascript] Add support for Node v12 and v14.
+            #1746 [Javascript] Add support for Node v12, v14 and v16.
             SWIG support for Node is now for v6 and later only.
 
 2020-02-09: ZackerySpytz

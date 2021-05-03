@@ -31,7 +31,7 @@ namespace Space {
   struct CBase1 {
     virtual void cbase1x() {
       return;
-    } 
+    }
     virtual int cbase1y() {
       return 1;
     }
@@ -312,6 +312,36 @@ namespace Space {
   }
   CBase2 &MakeRefDerived3_CBase2() {
     static Derived3 d;
+    return d;
+  }
+
+  // Return const pointer references
+  CBase1 *const&MakeConstPtrRefDerived1_CBase1() {
+    static CBase1 *d = new Derived1();
+    return d;
+  }
+  CBase2 *const&MakeConstPtrRefDerived1_CBase2() {
+    static CBase2 *const& d = new Derived1();
+    return d;
+  }
+  CBase1 *const&MakeConstPtrRefDerived2_CBase1() {
+    static CBase1 *const& d = new Derived2();
+    return d;
+  }
+  ABase1 *const&MakeConstPtrRefDerived2_ABase1() {
+    static ABase1 *const& d = new Derived2();
+    return d;
+  }
+  ABase1 *const&MakeConstPtrRefDerived3_ABase1() {
+    static ABase1 *const& d = new Derived3();
+    return d;
+  }
+  CBase1 *const&MakeConstPtrRefDerived3_CBase1() {
+    static CBase1 *const& d = new Derived3();
+    return d;
+  }
+  CBase2 *const&MakeConstPtrRefDerived3_CBase2() {
+    static CBase2 *const& d = new Derived3();
     return d;
   }
 
