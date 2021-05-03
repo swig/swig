@@ -139,17 +139,25 @@ least work for Linux though):
 
 <p>
 To test the extension from a PHP script, you first need to tell PHP to
-load it.  To do this, add a line like this to the <tt>[PHP]</tt> section of
-<tt>php.ini</tt>:
+load it.  Assuming you're using PHP 7.2 or higher, the recommended (and
+simplest!) way to do this is to copy it to PHP's default extension directory
+and add a line like this to the <tt>[PHP]</tt> section of <tt>php.ini</tt>:
 </p>
 
 <div class="code"><pre>
-        extension=/path/to/modulename.so
+        extension=modulename
 </pre></div>
 
 <p>
-If the module is in PHP's default extension directory, you can omit the path.
+PHP &lt; 7.2 doesn't support loading by just the module name, so you need
+to specify the filename of the module to be specified, which varies
+between platforms.  And for any PHP version, if the module is not in PHP's
+default extension directory, you also need to specify the path, for example:
 </p>
+
+<div class="code"><pre>
+	extension=/path/to/modulename.so
+</pre></div>
 
 <p>
 If you're using the PHP CLI SAPI it's possible (but not recommended) to use the
@@ -166,8 +174,8 @@ PHP script which uses your extension:
 But to do this portably you need to take into account that pathnames and the
 filename extension vary by platform, and for security reasons PHP no longer
 supports <tt>dl()</tt> when running PHP through a webserver.  Overall it's
-probably better to instead use <tt>extension</tt> in <tt>php.ini</tt> as
-described above.
+better to instead use <tt>extension</tt> in <tt>php.ini</tt> as described
+above.
 </p>
 
 <p>
