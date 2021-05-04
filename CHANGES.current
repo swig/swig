@@ -7,6 +7,23 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-05-04: olly
+	    [PHP] #1982 #1457 https://sourceforge.net/p/swig/bugs/1339/
+	    SWIG now only use PHP's C API to implement its wrappers, and no
+	    longer generates PHP code to define classes.  The wrappers should
+	    be almost entirely compatible with those generated before, but
+	    faster and without some previously hard-to-fix bugs.
+
+	    The main notable difference is SWIG no longer generates a .php
+	    wrapper at all by default (only if %pragma(php) code=... or
+	    %pragma(php) include=... are specified in the interface file).
+	    This also means you need to load the module via extension=...
+	    in php.ini, rather than letting the dl() in the generated
+	    .php wrapper load it (but dl() has only worked for command-line
+	    PHP for some years now).
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2021-04-30: olly
 	    #1984 Remove support for $source and $target.
 	    These were officially deprecated in 2001, and attempts to use them have
