@@ -47,6 +47,7 @@
                         SWIGTYPE [] %{
 {
   zval z;
+  ZVAL_UNDEF(&z);
   SWIG_SetPointerZval(&z, (void*)$value, $1_descriptor, 0);
   zval_copy_ctor(&z);
   zend_declare_class_constant(SWIGTYPE_$class_ce, "$const_name", sizeof("$const_name") - 1, &z);
@@ -90,6 +91,7 @@
                    SWIGTYPE &&,
                    SWIGTYPE [] {
   zend_constant c;
+  ZVAL_UNDEF(&c.value);
   SWIG_SetPointerZval(&c.value, (void*)$value, $1_descriptor, 0);
   zval_copy_ctor(&c.value);
   c.name = zend_string_init("$symname", sizeof("$symname") - 1, 0);
