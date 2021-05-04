@@ -14,7 +14,6 @@
 
 #ifdef SWIGPHP
 %{
-#include "zend_exceptions.h"
 #define SWIG_exception(code, msg) do { zend_throw_exception(NULL, (char*)msg, code); goto thrown; } while (0)
 %}
 #endif
