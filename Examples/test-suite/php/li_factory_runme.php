@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "li_factory.php";
 
 // No new functions
 check::functions(array());

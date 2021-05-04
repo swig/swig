@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "argout.php";
 
 check::functions(array('incp','incr','inctr','new_intp','copy_intp','delete_intp','intp_assign','intp_value','voidhandle','handle'));
 

@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "li_std_string.php";
 
 # Checking expected use of %typemap(in) std::string {}
 li_std_string::test_value("Fee");

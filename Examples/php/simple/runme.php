@@ -1,7 +1,5 @@
 <?php
 
-require "example.php";
-
 # Call our gcd() function
 
 $x = "42 aaa";

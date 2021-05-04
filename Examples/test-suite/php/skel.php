@@ -2,7 +2,6 @@
 // Sample test file
 
 require "tests.php";
-require "____.php";
 
 // No new functions
 check::functions(array());

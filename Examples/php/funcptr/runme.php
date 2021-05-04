@@ -1,7 +1,5 @@
 <?php
 
-require "example.php";
-
 $a = 37;
 $b = 42;
 

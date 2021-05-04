@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "cpp_basic.php";
 
 // New functions
 check::functions(array('get_func1_ptr','get_func2_ptr','test_func_ptr'));

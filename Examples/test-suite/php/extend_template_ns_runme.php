@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "extend_template_ns.php";
 
 check::classes(array("extend_template_ns","Foo_One"));
 $foo=new Foo_One();

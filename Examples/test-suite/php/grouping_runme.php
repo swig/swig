@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "grouping.php";
 
 check::functions(array("test1","test2","do_unary","negate"));
 check::equal(5,test1(5),"5==test1(5)");

@@ -1,7 +1,5 @@
 <?php
 
-require "example.php";
-
 # ----- Object creation -----
 
 # Print out the value of some enums

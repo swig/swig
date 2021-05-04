@@ -1,6 +1,5 @@
 <?
 require "tests.php";
-require "exception_order.php";
 
 check::functions(array('is_python_builtin'));
 check::classes(array('A','E1','E2','E3','exception_order','ET_i','ET_d'));

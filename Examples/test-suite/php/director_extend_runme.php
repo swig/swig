@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "director_extend.php";
 
 // No new functions
 check::functions(array());

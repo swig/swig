@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "director_abstract.php";
 
 // New functions
 check::functions(array('g'));

@@ -2,8 +2,6 @@
 
 # This file illustrates the cross language polymorphism using directors.
 
-require("example.php");
-
 # CEO class, which overrides Employee::getPosition().
 
 class CEO extends Manager {

@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "arrays_scope.php";
 
 // No new functions
 check::functions(array());

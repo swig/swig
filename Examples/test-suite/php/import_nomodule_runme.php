@@ -1,6 +1,6 @@
 <?php
+
 require "tests.php";
-require "import_nomodule.php";
 
 check::functions(array('is_python_builtin'));
 check::classes(array('import_nomodule'));

@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "add_link.php";
 
 // No new functions
 check::functions(array());

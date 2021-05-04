@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "sym.php";
 
 // No new functions
 check::functions(array());

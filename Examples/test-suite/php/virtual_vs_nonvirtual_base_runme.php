@@ -1,7 +1,6 @@
 <? 
 
 require "tests.php";
-require "virtual_vs_nonvirtual_base.php";
 
 $fail = new SimpleClassFail();
 $work = new SimpleClassWork();

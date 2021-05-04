@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "preproc_constants.php";
 
 check::equal(gettype(preproc_constants::CONST_INT1), "integer", "preproc_constants.CONST_INT1 has unexpected type");
 check::equal(gettype(preproc_constants::CONST_INT2), "integer", "preproc_constants.CONST_INT2 has unexpected type");

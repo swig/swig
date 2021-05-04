@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "global_vars.php";
 
 check::functions(array('init','read_b','read_x'));
 check::classes(array('A','global_vars'));

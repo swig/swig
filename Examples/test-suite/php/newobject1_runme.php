@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "newobject1.php";
 
 // No new functions
 check::functions(array());

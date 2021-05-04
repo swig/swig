@@ -1,7 +1,5 @@
 <?
 
-include("example.php");
-
 echo "PHP reading globals: string is '", s_get(), "' and value is ", x_get(), "\n";
 
 $o = new Sync();

@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "valuewrapper_base.php";
 
 check::classes(array("valuewrapper_base","Base","Interface_BP"));
 check::functions("make_interface_bp");

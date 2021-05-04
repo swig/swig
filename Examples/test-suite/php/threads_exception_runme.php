@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "threads_exception.php";
 
 // Check functions
 check::functions(array('is_python_builtin'));

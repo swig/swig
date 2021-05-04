@@ -1,7 +1,5 @@
 <?php
 
-require "example.php";
-
 print "ICONST  = " . ICONST . " (should be 42)\n";
 print "FCONST  = " . FCONST . " (should be 2.1828)\n";
 print "CCONST  = " . CCONST . " (should be 'x')\n";

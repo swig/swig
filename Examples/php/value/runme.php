@@ -1,8 +1,5 @@
 <?php
 
-	require "example.php";
-
-
 	$v = new Vector();
         $v->x = 1.0;
         $v->y = 2.0;

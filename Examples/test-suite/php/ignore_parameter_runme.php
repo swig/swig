@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "ignore_parameter.php";
 
 // New functions
 check::functions(array('jaguar','lotus','tvr','ferrari','fiat'));

@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "arrays_global.php";
 
 check::functions(array('test_a','test_b'));
 check::classes(array('arrays_global','SimpleStruct','Material'));

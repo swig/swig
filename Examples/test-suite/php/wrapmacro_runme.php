@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "wrapmacro.php";
 
 check::functions(array('guint16_swap_le_be_constant', 'maximum'));
 

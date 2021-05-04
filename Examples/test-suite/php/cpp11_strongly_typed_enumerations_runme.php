@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "cpp11_strongly_typed_enumerations.php";
 
 function enumCheck($actual, $expected) {
   check::equal($actual, $expected, "Enum value mismatch");

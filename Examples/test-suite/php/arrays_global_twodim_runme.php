@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "arrays_global_twodim.php";
 
 check::functions(array('fn_taking_arrays','get_2d_array',));
 check::classes(array('arrays_global_twodim','SimpleStruct','Material'));

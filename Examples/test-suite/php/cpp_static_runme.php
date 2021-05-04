@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "cpp_static.php";
 
 // New functions
 check::functions(array('is_python_builtin'));

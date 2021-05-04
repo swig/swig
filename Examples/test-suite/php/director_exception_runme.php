@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "director_exception.php";
 
 // New functions
 check::functions(array('launder','is_python_builtin'));

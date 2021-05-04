@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "evil_diamond_prop.php";
 
 check::classes(array("evil_diamond_prop","foo","bar","baz","spam"));
 check::functions("test");

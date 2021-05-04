@@ -1,7 +1,5 @@
 <?php
 
-	require "example.php";
-
 	# First create some objects using the pointer library.
 
 	print "Testing the pointer library\n";

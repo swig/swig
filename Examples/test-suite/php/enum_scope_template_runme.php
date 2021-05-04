@@ -1,6 +1,5 @@
 <?php
 require "tests.php";
-require "enum_scope_template.php";
 
 check::functions(array("chops"));
 check::classes(array("enum_scope_template", "TreeInt"));

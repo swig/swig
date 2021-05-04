@@ -2,8 +2,6 @@
 
 # This file illustrates the cross language polymorphism using directors.
 
-require("example.php");
-
 # Class, which overwrites Callback::run().
 
 class PhpCallback extends Callback {

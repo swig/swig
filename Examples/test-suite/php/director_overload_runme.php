@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "director_overload.php";
 
 check::functions(array());
 check::classes(array('OverloadedClass','OverloadedPointers','OverloadedGetSet'));

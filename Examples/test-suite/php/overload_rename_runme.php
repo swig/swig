@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "overload_rename.php";
 
 // No new functions
 check::functions(array());

@@ -40,7 +40,6 @@ static File *f_begin = 0;
 static File *f_runtime = 0;
 static File *f_runtime_h = 0;
 static File *f_h = 0;
-static File *f_phpcode = 0;
 static File *f_directors = 0;
 static File *f_directors_h = 0;
 
@@ -353,22 +352,6 @@ public:
       Delete(filename);
     }
 
-    /* PHP module file */
-    filen = NewStringEmpty();
-    Printv(filen, SWIG_output_directory(), module, ".php", NIL);
-
-    f_phpcode = NewFile(filen, "w", SWIG_output_files());
-    if (!f_phpcode) {
-      FileErrorDisplay(filen);
-      SWIG_exit(EXIT_FAILURE);
-    }
-
-    Printf(f_phpcode, "<?php\n\n");
-
-    Swig_banner(f_phpcode);
-
-    Printf(f_phpcode, "\n");
-
     /* sub-sections of the php file */
     pragma_code = NewStringEmpty();
     pragma_incl = NewStringEmpty();
@@ -635,7 +618,30 @@ public:
     Delete(f_begin);
     Delete(arginfo_used);
 
-    Printf(f_phpcode, "%s\n%s\n", pragma_incl, pragma_code);
+    if (Len(pragma_incl) > 0 || Len(pragma_code) > 0) {
+      /* PHP module file */
+      String *php_filename = NewStringEmpty();
+      Printv(php_filename, SWIG_output_directory(), module, ".php", NIL);
+
+      File *f_phpcode = NewFile(php_filename, "w", SWIG_output_files());
+      if (!f_phpcode) {
+	FileErrorDisplay(php_filename);
+	SWIG_exit(EXIT_FAILURE);
+      }
+
+      Printf(f_phpcode, "<?php\n\n");
+
+      if (Len(pragma_incl) > 0) {
+	Printv(f_phpcode, pragma_incl, "\n", NIL);
+      }
+
+      if (Len(pragma_code) > 0) {
+	Printv(f_phpcode, pragma_code, "\n", NIL);
+      }
+
+      Delete(f_phpcode);
+      Delete(php_filename);
+    }
 
     return SWIG_OK;
   }

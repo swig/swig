@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "php_iterator.php";
 
 // No new functions.
 check::functions(array());

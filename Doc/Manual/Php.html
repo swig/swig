@@ -84,16 +84,21 @@ swig -php7 example.i
 </pre></div>
 
 <p>
-This will produce 3 files example_wrap.c, php_example.h and
-example.php. The first file, <tt>example_wrap.c</tt> contains all of
+This will produce 2 files: example_wrap.c and php_example.h.
+The first file, <tt>example_wrap.c</tt> contains all of
 the C code needed to build a PHP extension. The second file,
 <tt>php_example.h</tt> contains the header information needed if
 you wish to statically link the extension into the php interpreter.
-The third file,
-<tt>example.php</tt> can be included by PHP scripts.  It attempts to
-dynamically load the extension and contains extra php code specified
-in the interface file.  If wrapping C++ code with PHP classes, it will
-also contain PHP class wrappers.
+</p>
+
+<p>
+If the interface file uses <tt>%pragma(php) include=</tt>... or
+<tt>%pragma(php) code=</tt>... then SWIG will also generate a third file,
+<tt>example.php</tt> to contain what these specify.  In SWIG &lt; 4.1.0,
+this third file was always generated as it defined the PHP classes, etc
+(but this is now done via C code in <tt>example_wrap.c</tt>) and also
+contained code to dynamically load the extension (but this used the
+PHP <tt>dl()</tt> function, which isn't recommended nowadays).
 </p>
 
 <p>
@@ -178,15 +183,6 @@ better to instead use <tt>extension</tt> in <tt>php.ini</tt> as described
 above.
 </p>
 
-<p>
-SWIG also generates a PHP module which defines PHP classes for the wrapped
-API, which you'll need to load, for example:
-</p>
-
-<div class="code"><pre>
-        include("example.php");
-</pre></div>
-
 <H2><a name="Php_nn2">32.2 Basic PHP interface</a></H2>
 
 
@@ -224,12 +220,8 @@ you can access the constants in your PHP script like this,
 </p>
 
 <div class="code"><pre>
-include("example.php");
-
 echo "PI = " . PI . "\n";
-
 echo "E = " . E . "\n";
-
 </pre>
 </div>
 
@@ -261,8 +253,6 @@ accessed incorrectly in PHP,
 
 <div class="code">
 <pre>
-include("example.php");
-
 if(EASY_TO_MISPEL) {
   ...
 } else {
@@ -303,7 +293,6 @@ is accessed as follows:
 </p>
 
 <div class="code"><pre>
-include("example.php");
 print seki_get();
 seki_set( seki_get() * 2); # The C variable is now 4.
 print seki_get();
@@ -349,7 +338,6 @@ Will be accessed in PHP like this :
 </p>
 
 <div class="code"><pre>
-include("example.php");
 $a = foo(2);
 $b = bar(3.5, -1.5);
 $c = bar(3.5);  # Use default argument for 2nd parameter
@@ -474,8 +462,6 @@ This will result in the following usage in PHP:
 <div class="code"><pre>
 &lt;?php
 
-include("example.php");
-
 $in1=copy_intp(3);
 $in2=copy_intp(5);
 $result=new_intp();
@@ -506,8 +492,6 @@ This will result in the following usage in PHP:
 
 <div class="code"><pre>
 &lt;?php
-
-include("example.php");
 
 $in1 = 3;
 $in2 = 5;
@@ -543,8 +527,6 @@ This will result in the following usage in PHP:
 
 <div class="code"><pre>
 &lt;?php
-
-include("example.php");
 
 $in1 = 3;
 $in2 = 5;
@@ -609,7 +591,6 @@ Would be used in the following way from PHP:
 
 <div class="code"><pre>
 &lt;?php
-  require "vector.php";
 
   $v = new Vector();
   $v-&gt;x = 3;
@@ -724,8 +705,6 @@ would be accessed in PHP as,
 </p>
 
 <div class="code"><pre>
-include("example.php");
-
 echo "There have now been " . Ko::threats() . " threats\n";
 
 </pre></div>
@@ -759,7 +738,6 @@ class Ko {
 
 would be executed in PHP as,
 <div class="code"><pre>
-include("example.php");
 Ko::threats();
 </pre></div>
 
@@ -786,9 +764,8 @@ If there are multiple interfaces, just list them separated by commas.
 
 
 <p>
-To place PHP code in the generated "example.php" file one can use the
-<b>code</b> pragma. The code is inserted after loading the shared
-object.
+You can get SWIG to generate an "example.php" file by specifying
+the code to put in it using the <b>code</b> pragma.
 </p>
 
 <div class="code"><pre>
@@ -992,8 +969,6 @@ then at the PHP side you can define
 
 <div class="targetlang">
 <pre>
-require("mymodule.php");
-
 class MyFoo extends Foo {
   function one() {
     print "one from php\n";
