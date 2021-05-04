@@ -31,6 +31,6 @@
 
 	echo "\nNow I'm going to clean up the return result\n";
 
-#	free($r);
+	unset($r);
 
 	echo "Good\n";
