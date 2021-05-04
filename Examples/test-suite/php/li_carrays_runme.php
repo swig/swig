@@ -3,7 +3,7 @@
 require "tests.php";
 
 // Check functions.
-check::functions(array('new_intArray','delete_intArray','intArray_getitem','intArray_setitem','new_ABArray','delete_ABArray','ABArray_getitem','ABArray_setitem','sum_Array'));
+check::functions(array('new_intArray','delete_intArray','intArray_getitem','intArray_setitem','new_ABArray','delete_ABArray','ABArray_getitem','ABArray_setitem','sum_array'));
 
 // Check classes.
 // NB An "li_carrays" class is created as a mock namespace.
