@@ -1671,7 +1671,9 @@ public:
     Printf(s_oinit, "  SWIGTYPE_%s_ce->create_object = %s_object_new;\n", class_name, class_name);
     Printf(s_oinit, "  memcpy(&%s_object_handlers,zend_get_std_object_handlers(), sizeof(zend_object_handlers));\n", class_name);
     Printf(s_oinit, "  %s_object_handlers.clone_obj = NULL;\n", class_name);
-    // If not defined we aren't wrapping this type being passed or returned.
+    // If not defined we aren't wrapping any functions which use this type as a
+    // parameter or return value, in which case we don't need the clientdata
+    // set.
     Printf(s_oinit, "#ifdef SWIGTYPE_p%s\n", SwigType_manglestr(Getattr(n, "classtypeobj")));
     Printf(s_oinit, "  SWIG_TypeClientData(SWIGTYPE_p%s,SWIGTYPE_%s_ce);\n", SwigType_manglestr(Getattr(n, "classtypeobj")), class_name);
     Printf(s_oinit, "#endif\n");
