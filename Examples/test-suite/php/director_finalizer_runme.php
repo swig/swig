@@ -3,7 +3,7 @@
 require "tests.php";
 
 // New functions
-check::functions(array('deletefoo','getstatus','launder','resetstatus'));
+check::functions(array('deleteFoo','getStatus','launder','resetStatus'));
 // New classes
 check::classes(array('director_finalizer','Foo'));
 // No new vars

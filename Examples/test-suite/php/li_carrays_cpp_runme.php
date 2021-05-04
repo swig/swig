@@ -3,14 +3,14 @@
 require "tests.php";
 
 // Check functions.
-check::functions(array('new_intarray','delete_intarray','intarray_getitem','intarray_setitem','new_abarray','delete_abarray','abarray_getitem','abarray_setitem','sum_array'));
+check::functions(array('new_intArray','delete_intArray','intArray_getitem','intArray_setitem','new_ABArray','delete_ABArray','ABArray_getitem','ABArray_setitem','sum_Array'));
 
 // Check classes.
 // NB An "li_carrays_cpp" class is created as a mock namespace.
 check::classes(array('li_carrays_cpp','doubleArray','AB','XY','XYArray','shortArray'));
 
 // Check global variables.
-check::globals(array('globalxyarray','globalabarray'));
+check::globals(array('globalXYArray','globalABArray'));
 
 $d = new doubleArray(10);
 
