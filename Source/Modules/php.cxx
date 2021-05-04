@@ -386,7 +386,6 @@ public:
     Printf(s_header, "#ifdef __cplusplus\n");
     Printf(s_header, "extern \"C\" {\n");
     Printf(s_header, "#endif\n");
-    Printf(s_header, "#include \"php.h\"\n");
     Printf(s_header, "#include \"php_ini.h\"\n");
     Printf(s_header, "#include \"ext/standard/info.h\"\n");
     Printf(s_header, "#include \"php_%s.h\"\n", module);
