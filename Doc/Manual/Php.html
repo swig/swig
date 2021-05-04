@@ -226,14 +226,13 @@ echo "E = " . E . "\n";
 </div>
 
 <p>
-There's one peculiarity of how constants work in PHP which it is useful
-to note (this is not specific to SWIG though) - if you try to use an undeclared
-constant, PHP will emit a warning (or a notice in PHP 7.1 and earlier) and then
-expand the constant to a string version of the constant's name.  Unfortunately
-it is easy to miss the warning message if you're using PHP in a webserver as
-it will probably end up in error.log or similar.  Apparently this will throw
-an Error in a future version of PHP, but until then it's something to be
-aware of.
+There's one peculiarity of how constants work in PHP prior to PHP 8
+which it is useful to note (this is not specific to SWIG though) - if you try
+to use an undeclared constant, PHP will emit a warning (or a notice in PHP 7.1
+and earlier) and then expand the constant to a string version of the constant's
+name.  Unfortunately it is easy to miss the warning message if you're using PHP
+in a webserver as it will probably end up in error.log or similar.  PHP 8.0
+made this an error.
 </p>
 
 <p>
