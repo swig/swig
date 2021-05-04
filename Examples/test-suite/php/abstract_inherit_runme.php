@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "abstract_inherit.php";
 
 check::classes(array('Foo','Bar','Spam','NRFilter_i','NRRCFilter_i','NRRCFilterpro_i','NRRCFilterpri_i'));
 // This constructor attempt should fail as there isn't one

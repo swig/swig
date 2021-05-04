@@ -17,8 +17,8 @@
           errno = 0;
           lvar = (t) strtoll(Z_STRVAL(invar), &endptr, 10);
           if (*endptr && !errno) break;
-          /* FALL THRU */
       }
+      /* FALL THRU */
       default:
           lvar = (t) zval_get_long(&invar);
   }
@@ -34,8 +34,8 @@
           errno = 0;
           lvar = (t) strtoull(Z_STRVAL(invar), &endptr, 10);
           if (*endptr && !errno) break;
-          /* FALL THRU */
       }
+      /* FALL THRU */
       default:
           lvar = (t) zval_get_long(&invar);
   }
@@ -75,16 +75,21 @@
 %}
 %typemap(directorout) TYPE
 %{
-  if (!EG(exception)) {
-    CONVERT_IN($result, $1_ltype, *$input);
-  }
+  CONVERT_IN($result, $1_ltype, *$input);
 %}
-%typemap(directorout) const TYPE & ($*1_ltype temp)
+%typemap(directorout) const TYPE &
 %{
-  if (!EG(exception)) {
-    CONVERT_IN(temp, $*1_ltype, *$input);
+  $*1_ltype swig_val;
+  CONVERT_IN(swig_val, $*1_ltype, *$input);
+  $1_ltype temp = new $*1_ltype(($*1_ltype)swig_val);
+  swig_acquire_ownership(temp);
+  $result = temp;
+%}
+%typemap(directorfree) const TYPE &
+%{
+  if (director) {
+    director->swig_release_ownership(%as_voidptr($input));
   }
-  $result = &temp;
 %}
 %enddef
 

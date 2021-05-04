@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "newobject3.php";
 
 $factory = new factory();
 

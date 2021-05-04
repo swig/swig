@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "template_construct.php";
 
 check::classes(array('Foo_int'));
 $foo_int=new foo_int(3);

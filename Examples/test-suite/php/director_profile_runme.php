@@ -1,10 +1,9 @@
 <?php
 
 require "tests.php";
-require "director_profile.php";
 
-// New functions
-check::functions(array('b_c_fn','b_vfi','b_fi','b_fj','b_fk','b_fl','b_get_self','b_vfs','b_fs'));
+// No new functions
+check::functions(array());
 // New classes
 check::classes(array('A','B'));
 // No new vars

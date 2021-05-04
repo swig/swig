@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "director_pass_by_value.php";
 
 $passByVal = null;
 

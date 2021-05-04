@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "overload_null.php";
 
 $o = new Overload();
 $x = new X();

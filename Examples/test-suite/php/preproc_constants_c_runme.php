@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "preproc_constants_c.php";
 
 // Same as preproc_constants.i testcase, but bool types are int instead
 check::equal(gettype(preproc_constants_c::CONST_INT1), "integer", "preproc_constants.CONST_INT1 has unexpected type");

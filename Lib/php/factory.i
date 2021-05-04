@@ -95,7 +95,7 @@ if (!dcast) {
   Type *dobj = dynamic_cast<Type *>($1);
   if (dobj) {
     dcast = 1;
-    SWIG_SetPointerZval(return_value, SWIG_as_voidptr(dobj),$descriptor(Type *), $owner);
+    SWIG_SetPointerZval(return_value, SWIG_as_voidptr(dobj), $descriptor(Type *), $owner);
   }
 }%enddef
 
@@ -104,6 +104,6 @@ if (!dcast) {
   int dcast = 0;
   %formacro(%_factory_dispatch, Types)
   if (!dcast) {
-    SWIG_SetPointerZval(return_value, SWIG_as_voidptr($1),$descriptor, $owner);
+    SWIG_SetPointerZval(return_value, SWIG_as_voidptr($1), $descriptor, $owner);
   }
 }%enddef

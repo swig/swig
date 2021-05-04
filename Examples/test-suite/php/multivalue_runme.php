@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "multivalue.php";
 
 // New functions
 check::functions(array('divide_l','divide_v','divide_mv'));

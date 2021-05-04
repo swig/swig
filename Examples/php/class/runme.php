@@ -2,8 +2,6 @@
 
 # This example illustrates how member variables are wrapped.
 
-require("example.php");
-
 # ----- Object creation -----
 
 print "Creating some objects:\n";

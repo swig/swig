@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "template_arg_typename.php";
 
 // No new functions
 check::functions(array());

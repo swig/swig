@@ -4,8 +4,6 @@
 # created by SWIG.  In this case, all of our C++ classes
 # get converted into function calls.
 
-require("example.php");
-
 # ----- Object creation -----
 
 print "Creating some objects:\n";

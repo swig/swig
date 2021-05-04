@@ -1,10 +1,9 @@
 <?php
 
 require "tests.php";
-require "sym.php";
 
-// New functions
-check::functions(array('flim_hulahoops','flim_jar','flam_jam','flam_jar'));
+// No new functions
+check::functions(array());
 // New classes
 check::classes(array('Flim','Flam'));
 // No new vars

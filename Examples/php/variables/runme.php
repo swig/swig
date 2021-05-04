@@ -1,6 +1,5 @@
 <?php
 
-	require "example.php";
 	echo "\nVariables (values printed from C)\n";
 
 	print_vars();
