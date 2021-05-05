@@ -68,6 +68,8 @@ static String *magic_set = NULL;
 static String *magic_get = NULL;
 static String *magic_isset = NULL;
 
+static Hash *looked_up_interfaces;
+
 // Class used as pseudo-namespace for compatibility.
 static String *fake_class_name() {
   static String *result = NULL;
@@ -435,6 +437,8 @@ public:
     all_cs_entry = NewString("/* class entry subsection */\n");
     cs_entry = NULL;
     fake_cs_entry = NULL;
+
+    looked_up_interfaces = NewHash();
 
     Printf(s_entry, "/* Every non-class user visible function must have an entry here */\n");
     Printf(s_entry, "static zend_function_entry module_%s_functions[] = {\n", module);
@@ -1636,24 +1640,51 @@ public:
       String *interfaces = Swig_typemap_lookup("phpinterfaces", node, "", 0);
       Replaceall(interfaces, " ", "");
       if (interfaces) {
-	// It seems we need to wait until RINIT time to look up classes.
-	// The downside is that this then happens for every request.
-	Printf(r_init, "{\n");
-        List *interface_list = Split(interfaces, ',', -1);
-        int num_interfaces = Len(interface_list);
-        String *append_interface = NewStringEmpty();
-        for(int Iterator = 1; Iterator <= num_interfaces; Iterator++) {
-          String *interface = Getitem(interface_list, Iterator-1);
-          String *interface_ce = NewStringEmpty();
-          Printf(interface_ce, "php_%s_interface_ce_%d" , class_name , Iterator);
-          Printf(r_init, "  zend_class_entry *%s = zend_lookup_class(zend_string_init(\"%s\", sizeof(\"%s\") - 1, 0));\n", interface_ce, interface, interface);
-          Append(append_interface, interface_ce);
-          Append(append_interface, " ");
-        }
-        Chop(append_interface);
-        Replaceall(append_interface, " ", ",");
-        Printf(r_init, "  zend_class_implements(SWIGTYPE_%s_ce, %d, %s);\n", class_name, num_interfaces, append_interface);
-	Printf(r_init, "}\n");
+	// It seems we need to wait until RINIT time to look up class entries
+	// for interfaces.  The downside is that this then happens for every
+	// request.
+	//
+	// Most pre-defined interfaces are accessible via zend_class_entry*
+	// variables declared in the PHP C API - these we can use at MINIT
+	// time, so we special case them.  This will also be a little faster
+	// than looking up by name.
+	bool known_interfaces_only = true;
+	List *interface_list = Split(interfaces, ',', -1);
+	int num_interfaces = Len(interface_list);
+	String *interface_ces = NewStringEmpty();
+	for (int i = 0; i < num_interfaces; ++i) {
+	  String *interface = Getitem(interface_list, i);
+	  // First check if specified by a feature such as:
+	  // %feature("phpinterface:Iterator", header="#include \"zend_interfaces.h\"") "zend_ce_iterator";
+	  String *feature_name = NewStringf("feature:phpinterface:%s", interface);
+	  String *interface_ce = Getattr(n, feature_name);
+	  if (interface_ce) {
+	    Printf(interface_ces, ", %s", interface_ce);
+	    // Pull in any fragment needed.
+	    Append(feature_name, ":fragment");
+	    String *fragment = Getattr(n, feature_name);
+	    if (fragment) {
+	      Swig_fragment_emit(fragment);
+	    }
+	  } else {
+	    known_interfaces_only = false;
+	    String *interface_ce = NewStringf("swig_interface_%s_ce", interface);
+	    if (!GetFlag(looked_up_interfaces, interface)) {
+	      SetFlag(looked_up_interfaces, interface);
+	      String *decl = NewStringf("  zend_class_entry *%s = zend_lookup_class(zend_string_init(\"%s\", sizeof(\"%s\") - 1, 0));\n", interface_ce, interface, interface);
+	      Printf(decl, "  if (!%s) zend_throw_exception(zend_ce_error, \"Interface \\\"%s\\\" not found\", 0);\n", interface_ce, interface);
+	      Insert(r_init, 0, decl);
+	      Delete(decl);
+	    }
+	    Printv(interface_ces, ", ", interface_ce, NIL);
+	  }
+	  Delete(feature_name);
+	}
+	if (known_interfaces_only) {
+	  Printf(s_oinit, "  zend_class_implements(SWIGTYPE_%s_ce, %d%s);\n", class_name, num_interfaces, interface_ces);
+	} else {
+	  Printf(r_init, "  zend_class_implements(SWIGTYPE_%s_ce, %d%s);\n", class_name, num_interfaces, interface_ces);
+	}
       }
     }
 
