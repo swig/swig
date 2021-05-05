@@ -547,3 +547,6 @@
 
 /* php keywords */
 %include <phpkw.swg>
+
+/* PHP known interfaces */
+%include <phpinterfaces.i>

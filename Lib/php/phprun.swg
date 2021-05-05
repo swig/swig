@@ -16,7 +16,9 @@ extern "C" {
 # error These bindings need PHP 7 or later - to generate PHP5 bindings use: SWIG < 4.0.0 and swig -php5
 #endif
 
+#include "zend_inheritance.h"
 #include "zend_exceptions.h"
+#include "zend_inheritance.h"
 
 #include <stdlib.h> /* for abort(), used in generated code. */
 

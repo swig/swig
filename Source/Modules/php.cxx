@@ -1635,26 +1635,64 @@ public:
       Setline(node, Getline(n));
       String *interfaces = Swig_typemap_lookup("phpinterfaces", node, "", 0);
       Replaceall(interfaces, " ", "");
-      if (interfaces) {
-	// It seems we need to wait until RINIT time to look up classes.
-	// The downside is that this then happens for every request.
-	Printf(r_init, "{\n");
-        List *interface_list = Split(interfaces, ',', -1);
-        int num_interfaces = Len(interface_list);
-        String *append_interface = NewStringEmpty();
-        for(int Iterator = 1; Iterator <= num_interfaces; Iterator++) {
-          String *interface = Getitem(interface_list, Iterator-1);
-          String *interface_ce = NewStringEmpty();
-          Printf(interface_ce, "php_%s_interface_ce_%d" , class_name , Iterator);
-          Printf(r_init, "  zend_class_entry *%s = zend_lookup_class(zend_string_init(\"%s\", sizeof(\"%s\") - 1, 0));\n", interface_ce, interface, interface);
-          Append(append_interface, interface_ce);
-          Append(append_interface, " ");
-        }
-        Chop(append_interface);
-        Replaceall(append_interface, " ", ",");
-        Printf(r_init, "  zend_class_implements(SWIGTYPE_%s_ce, %d, %s);\n", class_name, num_interfaces, append_interface);
-	Printf(r_init, "}\n");
+      if (interfaces && Len(interfaces) > 0) {
+	// It seems we need to wait until RINIT time to look up class entries
+	// for interfaces by name.  The downside is that this then happens for
+	// every request.
+	//
+	// Most pre-defined interfaces are accessible via zend_class_entry*
+	// variables declared in the PHP C API - these we can use at MINIT
+	// time, so we special case them.  This will also be a little faster
+	// than looking up by name.
+	Printv(s_header,
+	       "#ifdef __cplusplus\n",
+	       "extern \"C\" {\n",
+	       "#endif\n",
+	       NIL);
+
+	String *r_init_prefix = NewStringEmpty();
+
+	List *interface_list = Split(interfaces, ',', -1);
+	int num_interfaces = Len(interface_list);
+	for (int i = 0; i < num_interfaces; ++i) {
+	  String *interface = Getitem(interface_list, i);
+	  // We generate conditional code in both minit and rinit - then we or the user
+	  // just need to define SWIG_PHP_INTERFACE_xxx_CE (and optionally
+	  // SWIG_PHP_INTERFACE_xxx_CE) to handle interface `xxx` at minit-time.
+	  Printv(s_header,
+		 "#ifdef SWIG_PHP_INTERFACE_", interface, "_HEADER\n",
+		 "# include SWIG_PHP_INTERFACE_", interface, "_HEADER\n",
+		 "#endif\n",
+		 NIL);
+	  Printv(s_oinit,
+		 "#ifdef SWIG_PHP_INTERFACE_", interface, "_CE\n",
+		 "  zend_do_implement_interface(SWIGTYPE_", class_name, "_ce, SWIG_PHP_INTERFACE_", interface, "_CE);\n",
+		 "#endif\n",
+		 NIL);
+	  Printv(r_init_prefix,
+		 "#ifndef SWIG_PHP_INTERFACE_", interface, "_CE\n",
+		 "  {\n",
+		 "    zend_class_entry *swig_interface_ce = zend_lookup_class(zend_string_init(\"", interface, "\", sizeof(\"", interface, "\") - 1, 0));\n",
+		 "    if (!swig_interface_ce) zend_throw_exception(zend_ce_error, \"Interface \\\"", interface, "\\\" not found\", 0);\n",
+		 "    zend_do_implement_interface(SWIGTYPE_", class_name, "_ce, swig_interface_ce);\n",
+		 "  }\n",
+		 "#endif\n",
+		 NIL);
+	}
+
+	// Handle interfaces at the start of rinit so that they're added
+	// before any potential constant objects, etc which might be created
+	// later in rinit.
+	Insert(r_init, 0, r_init_prefix);
+	Delete(r_init_prefix);
+
+	Printv(s_header,
+	       "#ifdef __cplusplus\n",
+	       "}\n",
+	       "#endif\n",
+	       NIL);
       }
+      Delete(interfaces);
     }
 
     Printf(s_oinit, "  SWIGTYPE_%s_ce->create_object = %s_object_new;\n", class_name, class_name);
