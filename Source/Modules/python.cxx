@@ -3422,7 +3422,7 @@ public:
       Printf(f_init, "\t   return;\n");
       Printf(f_init, "#endif\n");
       Printf(f_init, "\t }\n");
-      Printf(f_init, "\t PyDict_SetItemString(md, \"%s\", globals);\n", global_name);
+      Printf(f_init, "\t PyModule_AddObject(m, \"%s\", globals);\n", global_name);
       Printf(f_init, "\t Py_DECREF(globals);\n");
       if (builtin)
 	Printf(f_init, "\t SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", global_name);
