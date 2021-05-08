@@ -1,13 +1,12 @@
 <?php
 
 require "tests.php";
-require "newobject1.php";
 
 // No new functions
-check::functions(array('foo_makefoo','foo_makemore','foo_foocount'));
-// No new classes
+check::functions(array());
+// New classes
 check::classes(array('Foo'));
-// now new vars
+// No new vars
 check::globals(array());
 
 $foo = Foo::makeFoo();
@@ -16,4 +15,3 @@ $bar = $foo->makeMore();
 check::equal(get_class($bar), "Foo", "regular failed");
 
 check::done();
-?>

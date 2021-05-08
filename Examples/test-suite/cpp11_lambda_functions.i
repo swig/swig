@@ -56,7 +56,7 @@ auto lambda4 = [](int x, int y) { return x+y; };
 auto lambda5 = []() { return thing; };
 #endif
 
-void fn() {
+void fn1() {
   int stuff = 0;
   auto lambdaxxxx = [=,&stuff]() { return thing; };
 }

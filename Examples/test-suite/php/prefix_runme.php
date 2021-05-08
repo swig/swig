@@ -1,13 +1,12 @@
 <?php
 
 require "tests.php";
-require "prefix.php";
 
 // No new functions
-check::functions(array('foo_get_self'));
-// No new classes
+check::functions(array());
+// New classes
 check::classes(array('ProjectFoo'));
-// now new vars
+// No new vars
 check::globals(array());
 
 $f = new ProjectFoo();
@@ -15,4 +14,3 @@ $f = new ProjectFoo();
 $f->get_self();
 
 check::done();
-?>

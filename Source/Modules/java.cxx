@@ -1001,8 +1001,6 @@ public:
       // Get typemap for this argument
       if ((tm = Getattr(p, "tmap:in"))) {
 	addThrows(n, "tmap:in", p);
-	Replaceall(tm, "$source", arg);	/* deprecated */
-	Replaceall(tm, "$target", ln);	/* deprecated */
 	Replaceall(tm, "$arg", arg);	/* deprecated? */
 	Replaceall(tm, "$input", arg);
 	Setattr(p, "emit:input", arg);
@@ -1027,7 +1025,6 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
 	addThrows(n, "tmap:check", p);
-	Replaceall(tm, "$target", Getattr(p, "lname"));	/* deprecated */
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(f->code, tm, "\n", NIL);
@@ -1041,7 +1038,6 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
 	addThrows(n, "tmap:freearg", p);
-	Replaceall(tm, "$source", Getattr(p, "emit:input"));	/* deprecated */
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(cleanup, tm, "\n", NIL);
@@ -1055,8 +1051,6 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
 	addThrows(n, "tmap:argout", p);
-	Replaceall(tm, "$source", Getattr(p, "emit:input"));	/* deprecated */
-	Replaceall(tm, "$target", Getattr(p, "lname"));	/* deprecated */
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
 	Replaceall(tm, "$result", "jresult");
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
@@ -1090,8 +1084,6 @@ public:
       /* Return value if necessary  */
       if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
 	addThrows(n, "tmap:out", n);
-	Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
-	Replaceall(tm, "$target", "jresult");	/* deprecated */
 	Replaceall(tm, "$result", "jresult");
 
         if (GetFlag(n, "feature:new"))
@@ -1118,7 +1110,6 @@ public:
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
 	addThrows(n, "tmap:newfree", n);
-	Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
 	Printf(f->code, "%s\n", tm);
       }
     }
@@ -1127,7 +1118,6 @@ public:
     if (!native_function_flag) {
       if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
 	addThrows(n, "tmap:ret", n);
-	Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
 	Printf(f->code, "%s\n", tm);
       }
     }

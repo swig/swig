@@ -51,12 +51,12 @@
 
 <p>
 In this chapter, we discuss SWIG's support of PHP.  SWIG currently supports
-generating wrappers for PHP7.  Support for PHP5 was removed in SWIG 4.0.0
-and support for PHP4 was removed in SWIG 1.3.37.
+generating wrappers for PHP7 and PHP8.  Support for PHP5 was removed in SWIG
+4.0.0 and support for PHP4 was removed in SWIG 1.3.37.
 </p>
 
 <p>
-Currently any PHP7 release should work.
+Currently any PHP7 or PHP8 release should work.
 </p>
 
 <p>
@@ -84,16 +84,21 @@ swig -php7 example.i
 </pre></div>
 
 <p>
-This will produce 3 files example_wrap.c, php_example.h and
-example.php. The first file, <tt>example_wrap.c</tt> contains all of
+This will produce 2 files: example_wrap.c and php_example.h.
+The first file, <tt>example_wrap.c</tt> contains all of
 the C code needed to build a PHP extension. The second file,
 <tt>php_example.h</tt> contains the header information needed if
 you wish to statically link the extension into the php interpreter.
-The third file,
-<tt>example.php</tt> can be included by PHP scripts.  It attempts to
-dynamically load the extension and contains extra php code specified
-in the interface file.  If wrapping C++ code with PHP classes, it will
-also contain PHP class wrappers.
+</p>
+
+<p>
+If the interface file uses <tt>%pragma(php) include=</tt>... or
+<tt>%pragma(php) code=</tt>... then SWIG will also generate a third file,
+<tt>example.php</tt> to contain what these specify.  In SWIG &lt; 4.1.0,
+this third file was always generated as it defined the PHP classes, etc
+(but this is now done via C code in <tt>example_wrap.c</tt>) and also
+contained code to dynamically load the extension (but this used the
+PHP <tt>dl()</tt> function, which isn't recommended nowadays).
 </p>
 
 <p>
@@ -139,22 +144,30 @@ least work for Linux though):
 
 <p>
 To test the extension from a PHP script, you first need to tell PHP to
-load it.  To do this, add a line like this to the <tt>[PHP]</tt> section of
-<tt>php.ini</tt>:
+load it.  Assuming you're using PHP 7.2 or higher, the recommended (and
+simplest!) way to do this is to copy it to PHP's default extension directory
+and add a line like this to the <tt>[PHP]</tt> section of <tt>php.ini</tt>:
 </p>
 
 <div class="code"><pre>
-        extension=/path/to/modulename.so
+        extension=modulename
 </pre></div>
 
 <p>
-If the module is in PHP's default extension directory, you can omit the path.
+PHP &lt; 7.2 doesn't support loading by just the module name, so you need
+to specify the filename of the module to be specified, which varies
+between platforms.  And for any PHP version, if the module is not in PHP's
+default extension directory, you also need to specify the path, for example:
 </p>
 
+<div class="code"><pre>
+	extension=/path/to/modulename.so
+</pre></div>
+
 <p>
-For some SAPIs (for example, the CLI SAPI) you can instead use the
-<a href="https://www.php.net/manual/en/function.dl.php">dl() function</a> to load
-an extension at run time, by adding a line like this to the start of each
+If you're using the PHP CLI SAPI it's possible (but not recommended) to use the
+<a href="https://www.php.net/manual/en/function.dl.php">dl() function</a> to
+load an extension at run time, by adding a line like this to the start of each
 PHP script which uses your extension:
 </p>
 
@@ -163,23 +176,11 @@ PHP script which uses your extension:
 </pre></div>
 
 <p>
-But note that <tt>dl()</tt> isn't supported when running PHP through a
-webserver - you'll need to use <tt>extension</tt> in <tt>php.ini</tt> as
-described above.
-</p>
-
-<p>
-The PHP module which SWIG generates will also attempt to do the <tt>dl()</tt>
-call for you if the extension isn't already loaded:
-</p>
-
-<div class="code"><pre>
-        include("example.php");
-</pre></div>
-
-<p>
-This PHP module also defines the PHP classes for the wrapped API, so you'll
-almost certainly want to include it anyway.
+But to do this portably you need to take into account that pathnames and the
+filename extension vary by platform, and for security reasons PHP no longer
+supports <tt>dl()</tt> when running PHP through a webserver.  Overall it's
+better to instead use <tt>extension</tt> in <tt>php.ini</tt> as described
+above.
 </p>
 
 <H2><a name="Php_nn2">32.2 Basic PHP interface</a></H2>
@@ -219,24 +220,19 @@ you can access the constants in your PHP script like this,
 </p>
 
 <div class="code"><pre>
-include("example.php");
-
 echo "PI = " . PI . "\n";
-
 echo "E = " . E . "\n";
-
 </pre>
 </div>
 
 <p>
-There's one peculiarity of how constants work in PHP which it is useful
-to note (this is not specific to SWIG though) - if you try to use an undeclared
-constant, PHP will emit a warning (or a notice in PHP 7.1 and earlier) and then
-expand the constant to a string version of the constant's name.  Unfortunately
-it is easy to miss the warning message if you're using PHP in a webserver as
-it will probably end up in error.log or similar.  Apparently this will throw
-an Error in a future version of PHP, but until then it's something to be
-aware of.
+There's one peculiarity of how constants work in PHP prior to PHP 8
+which it is useful to note (this is not specific to SWIG though) - if you try
+to use an undeclared constant, PHP will emit a warning (or a notice in PHP 7.1
+and earlier) and then expand the constant to a string version of the constant's
+name.  Unfortunately it is easy to miss the warning message if you're using PHP
+in a webserver as it will probably end up in error.log or similar.  PHP 8.0
+made this an error.
 </p>
 
 <p>
@@ -256,8 +252,6 @@ accessed incorrectly in PHP,
 
 <div class="code">
 <pre>
-include("example.php");
-
 if(EASY_TO_MISPEL) {
   ...
 } else {
@@ -298,7 +292,6 @@ is accessed as follows:
 </p>
 
 <div class="code"><pre>
-include("example.php");
 print seki_get();
 seki_set( seki_get() * 2); # The C variable is now 4.
 print seki_get();
@@ -306,8 +299,10 @@ print seki_get();
 
 <p>
 SWIG supports global variables of all C datatypes including pointers
-and complex objects.  Additional types can be supported by using the
-<tt>varinit</tt> typemap.
+and complex objects.  To support additional types, you just need to
+supply the standard <tt>in</tt> and <tt>out</tt> typemaps, which get
+used because of the wrapping as <tt>_get()</tt> and <tt>_set()</tt>
+functions.
 </p>
 
 <p>
@@ -342,7 +337,6 @@ Will be accessed in PHP like this :
 </p>
 
 <div class="code"><pre>
-include("example.php");
 $a = foo(2);
 $b = bar(3.5, -1.5);
 $c = bar(3.5);  # Use default argument for 2nd parameter
@@ -467,8 +461,6 @@ This will result in the following usage in PHP:
 <div class="code"><pre>
 &lt;?php
 
-include("example.php");
-
 $in1=copy_intp(3);
 $in2=copy_intp(5);
 $result=new_intp();
@@ -476,7 +468,6 @@ $result=new_intp();
 add( $in1, $in2, $result );
 
 echo "The sum " . intp_value($in1) . " + " . intp_value($in2) . " = " . intp_value( $result) . "\n";
-?&gt;
 </pre></div>
 
 <p>
@@ -501,14 +492,11 @@ This will result in the following usage in PHP:
 <div class="code"><pre>
 &lt;?php
 
-include("example.php");
-
 $in1 = 3;
 $in2 = 5;
 $result= add($in1, $in2);  # Note using variables for the input is unnecessary.
 
 echo "The sum $in1 + $in2 = $result\n";
-?&gt;
 </pre></div>
 
 <p>
@@ -539,15 +527,12 @@ This will result in the following usage in PHP:
 <div class="code"><pre>
 &lt;?php
 
-include("example.php");
-
 $in1 = 3;
 $in2 = 5;
 $result = 0;
 add($in1, $in2, $result);
 
 echo "The sum $in1 + $in2 = $result\n";
-?&gt;
 </pre></div>
 
 <p>
@@ -605,7 +590,6 @@ Would be used in the following way from PHP:
 
 <div class="code"><pre>
 &lt;?php
-  require "vector.php";
 
   $v = new Vector();
   $v-&gt;x = 3;
@@ -622,7 +606,6 @@ Would be used in the following way from PHP:
   $c-&gt;im = 0;
 
   # $c destructor called when $c goes out of scope.
-?&gt;
 </pre></div>
 
 <p>
@@ -721,8 +704,6 @@ would be accessed in PHP as,
 </p>
 
 <div class="code"><pre>
-include("example.php");
-
 echo "There have now been " . Ko::threats() . " threats\n";
 
 </pre></div>
@@ -756,7 +737,6 @@ class Ko {
 
 would be executed in PHP as,
 <div class="code"><pre>
-include("example.php");
 Ko::threats();
 </pre></div>
 
@@ -783,9 +763,8 @@ If there are multiple interfaces, just list them separated by commas.
 
 
 <p>
-To place PHP code in the generated "example.php" file one can use the
-<b>code</b> pragma. The code is inserted after loading the shared
-object.
+You can get SWIG to generate an "example.php" file by specifying
+the code to put in it using the <b>code</b> pragma.
 </p>
 
 <div class="code"><pre>
@@ -989,8 +968,6 @@ then at the PHP side you can define
 
 <div class="targetlang">
 <pre>
-require("mymodule.php");
-
 class MyFoo extends Foo {
   function one() {
     print "one from php\n";
@@ -1012,8 +989,8 @@ that derives from both the class in question and a special
 <tt>Swig::Director</tt> class. These new classes, referred to as director
 classes, can be loosely thought of as the C++ equivalent of the PHP
 proxy classes. The director classes store a pointer to their underlying
-PHP object.  Indeed, this is quite similar to the "_cPtr" and "thisown"
-members of the PHP proxy classes.
+PHP object.  Indeed, this is quite similar to <tt>struct swig_object_wrapper</tt>
+which is used to implement the PHP proxy classes.
 </p>
 
 <p>
@@ -1068,12 +1045,12 @@ infinite loop.
 <p>
 One more point needs to be made about the relationship between director
 classes and proxy classes. When a proxy class instance is created in
-PHP, SWIG creates an instance of the original C++ class and assigns it
-to <tt>-&gt;_cPtr</tt>. This is exactly what happens without directors
-and is true even if directors are enabled for the particular class in
-question. When a class <i>derived</i> from a proxy class is created,
-however, SWIG then creates an instance of the corresponding C++ director
-class. The reason for this difference is that user-defined subclasses
+PHP, SWIG creates an instance of the original C++ class and stores it
+in the <tt>struct swig_object_wrapper</tt>. This is true whether or not
+directors are enabled for the particular class in question. However
+when a class <i>derived</i> from a proxy class is created, SWIG instead
+creates an instance of the corresponding C++ director class.
+The reason for this difference is that user-defined subclasses
 may override or extend methods of the original class, so the director
 class is needed to route calls to these methods correctly. For
 unmodified proxy classes, all methods are ultimately implemented in C++
@@ -1161,12 +1138,31 @@ should suffice in most cases:
 <div class="code">
 <pre>
 %feature("director:except") {
-  if ($error == FAILURE) {
+#if SWIG_VERSION &gt;= 0x040100
+  if ($error != NULL)
+#else
+  if ($error == FAILURE)
+#endif
+  {
     throw Swig::DirectorMethodException();
   }
 }
 </pre>
 </div>
+
+<p>
+If you only need to support SWIG >= 4.1.0, you can just use the
+<tt>($error != NULL)</tt> condition.
+</p>
+
+<p>
+In SWIG 4.1.0, <tt>$error</tt> was changed in the SWIG/PHP director
+implementation to make it work more like how it does for other languages.
+Previously, <tt>$error</tt> didn't actually indicate an exception, but instead
+was only set to <tt>FAILURE</tt> if there was a problem calling the PHP method.
+Now <tt>$error</tt> indicates if the PHP method threw a PHP exception, and
+directorout typemaps for PHP no longer need to be gated by <tt>if (EG(exception))</tt>.
+</p>
 
 <p>
 This code will check the PHP error state after each method call from a

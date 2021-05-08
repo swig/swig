@@ -7,6 +7,113 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-05-04: olly
+	    [PHP] #1982 #1457 https://sourceforge.net/p/swig/bugs/1339/
+	    SWIG now only use PHP's C API to implement its wrappers, and no
+	    longer generates PHP code to define classes.  The wrappers should
+	    be almost entirely compatible with those generated before, but
+	    faster and without some previously hard-to-fix bugs.
+
+	    The main notable difference is SWIG no longer generates a .php
+	    wrapper at all by default (only if %pragma(php) code=... or
+	    %pragma(php) include=... are specified in the interface file).
+	    This also means you need to load the module via extension=...
+	    in php.ini, rather than letting the dl() in the generated
+	    .php wrapper load it (but dl() has only worked for command-line
+	    PHP for some years now).
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2021-04-30: olly
+	    #1984 Remove support for $source and $target.
+	    These were officially deprecated in 2001, and attempts to use them have
+	    resulted in a warning (including a pointer to what to update them to)
+	    for most if not all of that time.
+
+2021-04-27: wsfulton
+            #1987 [Java] Fix %interface family of macros for returning by const
+            pointer reference.
+
+2021-04-19: olly
+	    Fix use of uninitialised variable in the generated code for an
+	    empty typecheck typemap, such as the dummy one we include for
+	    std::initializer_list.
+
+2021-04-12: olly
+	    #1777 [Python] Specifying -py3 now generates a check for Python
+	    version >= 3.0.
+
+2021-03-26: olly
+	    [PHP] Add PHP keywords 'fn' (added in 7.4) and 'match' (added in
+	    8.0) to the list SWIG knows to automatically rename.
+
+2021-03-23: wsfulton
+            #1942 [Python] Fix compilation error in wrappers when using -builtin
+            and wrapping varargs in constructors.
+
+2021-03-22: goto40
+            #1977 Fix handling of template template parameters.
+
+2021-03-21: olly
+	    #1929, #1978 [PHP] Add support for PHP 8.
+
+2021-03-19: wsfulton
+            #1610 Remove -ansi from default compilation flags.
+
+2021-03-19: dot-asm
+            #1934 [Java] Clean up typemaps for long long arrays.
+
+2021-03-19: olly
+	    #1527 [PHP] Improve PHP object creation in directorin case.
+	    Reportedly the code we were using in this case gave segfaults in
+	    PHP 7.2 and later - we've been unable to reproduce these, but the
+	    new approach is also simpler and should be bit faster too.
+
+2021-03-18: olly
+	    #1655 [PHP] Fix char* typecheck typemap to accept PHP Null like the
+	    corresponding in typemap does.
+
+2021-03-18: olly
+	    #1900, #1905 [PHP] Fix wrapping of overloaded directed methods with
+	    non-void return.
+
+2021-03-11: murillo128
+            #1498 [Javascript] Support type conversion.
+
+2021-03-06: nshmyrev
+            #872 [Javascript] Various typemap issues in arrays_javascript.i fixed.
+
+2021-03-03: vaughamhong
+            #577 [Javascript] Implemented SetModule/GetModule for JSC to allow type sharing
+            across modules.
+
+2021-03-01: xantares, Oliver Buchtala, geographika
+            #1040 Add support for building SWIG with CMake. See documentation in Windows.html.
+
+2021-03-01: vadz
+            #1952 Fix incorrect warning "Unknown Doxygen command: ."
+
+2021-02-28: p2k
+            #969 [Javascript] v8/node - prevent crash calling a constructor without new keyword.
+
+2021-02-28: alecmev
+            #405 #1121 [Javascript] Fix OUTPUT typemaps on methods that don't return void.
+            The output value is appended to the return value.
+
+2021-02-26: murillo128, wsfulton
+            #1269 [Javascript] Fix handling of large positive unsigned long and
+            unsigned long long values.
+
+2021-02-24: tomleavy, yegorich, tungntpham
+            #1746 [Javascript] Add support for Node v12, v14 and v16.
+            SWIG support for Node is now for v6 and later only.
+
+2020-02-09: ZackerySpytz
+            #1872 Fix typos in attribute2ref macros.
+
+2020-10-10: wsfulton
+            [Javascript] Fix so that ccomplex.i interface to file can be used.
+
 2020-10-10: wsfulton
             #252 complex can now be used as a C identifier and doesn't give a syntax error.
 

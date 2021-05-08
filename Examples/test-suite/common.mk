@@ -330,7 +330,7 @@ CPP_TEST_CASES += \
 	nested_ignore \
 	nested_inheritance_interface \
 	nested_in_template \
-	nested_scope \
+	nested_scope_flat \
 	nested_template_base \
 	nested_workaround \
 	newobject1 \
@@ -418,6 +418,7 @@ CPP_TEST_CASES += \
 	struct_value \
 	swig_exception \
 	symbol_clash \
+	sym \
 	template_arg_replace \
 	template_arg_scope \
 	template_arg_typename \
@@ -460,6 +461,7 @@ CPP_TEST_CASES += \
 	template_using_directive_and_declaration_forward \
 	template_using_directive_typedef \
 	template_nested \
+	template_nested_flat \
 	template_nested_typemaps \
 	template_ns \
 	template_ns2 \
@@ -675,7 +677,7 @@ ifndef SKIP_CPP_STD_CASES
 CPP_TEST_CASES += ${CPP_STD_TEST_CASES}
 endif
 
-ifneq (,$(HAVE_CXX11_COMPILER))
+ifeq (1,$(HAVE_CXX11))
 CPP_TEST_CASES += $(CPP11_TEST_CASES)
 endif
 
@@ -858,8 +860,6 @@ setup = \
 	else								  \
 	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
 	fi
-
-
 
 #######################################################################
 # Clean

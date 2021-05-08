@@ -3,6 +3,7 @@
 import sys
 import os
 import subprocess
+from utils import *
 
 def failed():
     print("mkdist.py failed to complete")
@@ -22,6 +23,15 @@ dirname = "swig-" + version
 force_tag = args.force_tag
 skip_checks = args.skip_checks
 
+# Tools directory path $ENV/swig/Tools
+toolsdir = os.path.dirname(os.path.abspath(__file__))
+# Root directory path (swig) $ENV/swig
+rootdir = os.path.abspath(os.path.join(toolsdir, os.pardir))
+# current directory
+current_dir = os.getcwd()
+# version directory path $ENV/swig/<x.x.x>
+dirpath = os.path.join(current_dir, dirname)
+
 if sys.version_info[0:2] < (2, 7):
      print("Error: Python 2.7 or higher is required")
      sys.exit(3)
@@ -33,21 +43,26 @@ if dirname.lower() != dirname:
 
 # If directory and tarball exist, remove it
 print("Removing " + dirname)
-os.system("rm -rf " + dirname)
+if check_dir_exists(dirpath):
+    run_command("rm", "-rf", dirpath)
 
 print("Removing " + dirname + ".tar if exists")
-os.system("rm -f " + dirname + ".tar.gz")
+filename = dirpath + ".tar"
+if check_file_exists(filename):
+    run_command("rm", "-rf", filename)
 
 print("Removing " + dirname + ".tar.gz if exists")
-os.system("rm -f " + dirname + ".tar")
+filename += ".gz"
+if check_file_exists(filename):
+    run_command("rm", "-rf", filename)
 
 # Grab the code from git
 
 print("Checking there are no local changes in git repo")
-os.system("git remote update origin") == 0 or failed()
+run_command("git", "remote", "update", "origin") == 0 or failed()
 command = ["git", "status", "--porcelain", "-uno"]
 out = subprocess.check_output(command)
-if out.strip() != "":
+if out.strip():
     print("Local git repository has modifications")
     print(" ".join(command))
     print(out)
@@ -57,7 +72,7 @@ if not skip_checks:
     print("Checking git repository is in sync with remote repository")
     command = ["git", "log", "--oneline", branch + "..origin/" + branch]
     out = subprocess.check_output(command)
-    if out.strip() != "":
+    if out.strip():
         print("Remote repository has additional modifications to local repository")
         print(" ".join(command))
         print(out)
@@ -65,7 +80,7 @@ if not skip_checks:
 
     command = ["git", "log", "--oneline", "origin/" + branch + ".." + branch]
     out = subprocess.check_output(command)
-    if out.strip() != "":
+    if out.strip():
         print("Local repository has modifications not pushed to the remote repository")
         print("These should be pushed and checked that they pass Continuous Integration testing before continuing")
         print(" ".join(command))
@@ -73,31 +88,49 @@ if not skip_checks:
         sys.exit(3)
 
 print("Tagging release")
-tag = "'v" + version + "'"
+tag = "v" + version
 force = "-f " if force_tag else ""
-os.system("git tag -a -m 'Release version " + version + "' " + force + tag) == 0 or failed()
+command = ["git", "tag", "-a", "-m", "'Release version " + version + "'"]
+force and command.extend(force, tag)
+not force and command.append(tag)
+run_command(*command) == 0 or failed()
 
-outdir = os.path.basename(os.getcwd()) + "/" + dirname + "/"
+outdir = dirname + "/"
 print("Grabbing tagged release git repository using 'git archive' into " + outdir)
-os.system("(cd .. && git archive --prefix=" + outdir + " " + tag + " . | tar -xf -)") == 0 or failed()
+
+# using pipe operator without shell=True; split commands into individual ones.
+# git archive command
+command = ["git", "archive", "--prefix=" + outdir, tag, "."]
+archive_ps = subprocess.Popen(command, cwd=rootdir, stdout=subprocess.PIPE)
+# tar -xf -
+tar_ps = subprocess.Popen(("tar", "-xf", "-"), stdin=archive_ps.stdout, stdout=subprocess.PIPE)
+archive_ps.stdout.close()  # Allow archive_ps to receive a SIGPIPE if tar_ps exits.
+output = tar_ps.communicate()
 
 # Go build the system
 
 print("Building system")
-os.system("cd " + dirname + " && ./autogen.sh") == 0 or failed()
-os.system("cd " + dirname + "/Source/CParse && bison -y -d parser.y && mv y.tab.c parser.c && mv y.tab.h parser.h") == 0 or failed()
-os.system("cd " + dirname + " && make -f Makefile.in libfiles srcdir=./") == 0 or failed()
+run_command("mkdir", "-p", dirpath)
+run_command("./autogen.sh", cwd=dirpath) == 0 or failed()
+
+cmdpath = os.path.join(dirpath, "Source", "CParse")
+run_command("bison", "-y", "-d", "parser.y", cwd=cmdpath) == 0 or failed()
+run_command("mv", "y.tab.c", "parser.c", cwd=cmdpath) == 0 or failed()
+run_command("mv", "y.tab.h", "parser.h", cwd=cmdpath) == 0 or failed()
+
+run_command("make", "-f", "Makefile.in", "libfiles", "srcdir=./", cwd=dirpath) == 0 or failed()
 
 # Remove autoconf files
-os.system("find " + dirname + " -name autom4te.cache -exec rm -rf {} \\;")
+run_command("find", dirname, "-name", "autom4te.cache", "-exec", "rm", "-rf", "{}", ";", cwd=rootdir)
 
 # Build documentation
 print("Building html documentation")
-os.system("cd " + dirname + "/Doc/Manual && make all clean-baks") == 0 or failed()
+docpath = os.path.join(dirpath, "Doc", "Manual")
+run_command("make", "all", "clean-baks", cwd=docpath) == 0 or failed()
 
 # Build the tar-ball
-os.system("tar -cf " + dirname + ".tar " + dirname) == 0 or failed()
-os.system("gzip " + dirname + ".tar") == 0 or failed()
+run_command("tar", "-cf", dirname + ".tar", dirname, stdout=open(dirname + ".tar", "w")) == 0 or failed()
+run_command("gzip", dirname + ".tar", stdout=open(dirname + ".tar.gz", "w")) == 0 or failed()
 
 print("Finished building " + dirname + ".tar.gz")
 

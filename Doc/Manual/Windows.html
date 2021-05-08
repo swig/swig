@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>Getting started on Windows</title>
@@ -33,9 +33,10 @@
 <ul>
 <li><a href="#Windows_swig_exe">Building swig.exe on Windows</a>
 <ul>
+<li><a href="#Windows_cmake">Building swig.exe using CMake</a>
+<li><a href="#Windows_mingw_msys">Building swig.exe using MSYS2</a>
 <li><a href="#Windows_mingw_msys">Building swig.exe using MinGW and MSYS</a>
 <li><a href="#Windows_cygwin">Building swig.exe using Cygwin</a>
-<li><a href="#Windows_building_alternatives">Building swig.exe alternatives</a>
 </ul>
 <li><a href="#Windows_examples_cygwin">Running the examples on Windows using Cygwin</a>
 </ul>
@@ -226,7 +227,129 @@ This information is provided for those that want to modify the SWIG source code 
 Normally this is not needed, so most people will want to ignore this section. 
 </p>
 
-<H4><a name="Windows_mingw_msys">3.3.1.1 Building swig.exe using MinGW and MSYS</a></H4>
+<H4><a name="Windows_cmake">3.3.1.1 Building swig.exe using CMake</a></H4>
+
+
+<p>
+SWIG can also be built using <a href="https://cmake.org/">CMake</a> and Visual Studio rather than autotools. As with the other approaches to 
+building SWIG the dependencies need to be installed. The steps below are one of a number of ways of installing the dependencies without requiring Cygwin or MinGW.
+For fully working build steps always check the Continuous Integration setups currently detailed in the <a href="https://github.com/swig/swig/blob/master/appveyor.yml">Appveyor YAML file</a>.
+</p>
+
+<ol>
+    <li>
+        Install Nuget from <a href="https://www.nuget.org/downloads">https://www.nuget.org/downloads</a> (v5.8.1 is used in this example, and installed to C:\Tools). Nuget is the package manager
+        for .NET, but allows us to easily install <a href="https://www.pcre.org/">PCRE</a> and other dependencies required by SWIG.
+    </li>
+    <li>
+        Install CMake using the following command: <pre>C:\Tools\nuget install CMake-win64 -Version 3.15.5 -OutputDirectory C:\Tools\CMake</pre>
+        Alternatively you can download CMake from <a href="https://cmake.org/download/">https://cmake.org/download/</a>.
+    </li>
+    <li>
+        Install Bison using the following command: <pre>C:\Tools\nuget install bison-win32 -Version 2.4.1.1 -OutputDirectory C:\Tools\bison</pre>
+        Alternatively download Bison from <a href="https://sourceforge.net/projects/gnuwin32/files/bison/">https://sourceforge.net/projects/gnuwin32/files/bison/</a> (2.4.1 is used in this example)
+        and save to a folder e.g. C:\Tools\Bison
+    </li>
+    <li>
+        Install PCRE using Nuget using the following command: <pre>C:\Tools\nuget install pcre -Version 8.33.0.1 -OutputDirectory C:\Tools\pcre</pre>
+    </li>
+    <li>
+        We will also need the SWIG source code. Either download a zipped archive from GitHub, or if git is installed clone the latest codebase
+        using <pre>git clone https://github.com/swig/swig.git</pre>
+        In this example we are assuming the source code is available at C:\swig
+    </li>
+</ol>
+
+<p>
+    We are assuming Visual Studio 2017 is installed. For other versions of Visual Studio change <i>"Visual Studio 15 2017 Win64"</i> to the relevant
+    <a href="https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html#visual-studio-generators">Visual Studio Generator</a>.
+    Now we have all the required dependencies we can build SWIG using the commands below. We add the required build tools to the system PATH, and then
+    build a Release version of SWIG. If all runs successfully a new swig.exe should be generated in a /Release folder.
+</p>
+
+<div class="shell">
+    <pre>
+cd C:\swig
+SET PATH=C:\Tools\CMake\CMake-win64.3.15.5\bin;C:\Tools\bison\bison-win32.2.4.1.1\tools\native\bin;%PATH%
+SET PCRE_ROOT=C:\Tools\pcre\pcre.8.33.0.1\build\native
+SET PCRE_PLATFORM=x64
+cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_PREFIX="%CD:\=/%/install2" -DCMAKE_C_FLAGS="/DPCRE_STATIC" ^
+  -DPCRE_INCLUDE_DIR=%PCRE_ROOT%/include -DPCRE_LIBRARY=%PCRE_ROOT%/lib/v110/%PCRE_PLATFORM%/Release/static/utf8/pcre8.lib .
+cmake --build . --config Release
+
+REM to test the exe
+cd /Release
+swig.exe -help
+</pre>
+</div>
+
+<p>
+    In addition to Release builds you can create a Debug build using:
+</p>
+<div class="shell">
+    <pre>cmake --build . --config Debug</pre>
+</div>
+<p>
+    A Visual Studio solution file should be generated named swig.sln. This can be opened and debugged by running the swig project and setting the
+    Debugging Command Arguments. For example to debug one of the test-suite .i files included with the SWIG source use the following:
+</p>
+<div class="shell">
+    <pre>-python -c++ -o C:\Temp\doxygen_parsing.cpp C:\swig\Examples\test-suite\doxygen_parsing.i</pre>
+</div>
+
+<H4><a name="Windows_mingw_msys">3.3.1.2 Building swig.exe using MSYS2</a></H4>
+
+
+<p>
+Download and install MSYS2 from <a href="https://www.msys2.org/">www.msys2.org</a> (tested with version msys2-x86_64-20201109).
+Launch the MSYS2 shell.
+</p>
+<p>
+Install the packages needed to build swig:<br>
+</p>
+
+<div class="shell">
+<pre>
+pacman -S git autoconf automake bison gcc make pcre-devel
+</pre>
+</div>
+
+<p>
+Clone the repository to /usr/src/:
+</p>
+
+<div class="shell">
+<pre>
+mkdir /usr/src/
+cd /usr/src/
+git clone https://github.com/swig/swig.git
+</pre>
+</div>
+
+<p>
+Configure and build:
+</p>
+
+<div class="shell">
+<pre>
+cd /usr/src/swig
+./autogen.sh
+./configure
+make
+</pre>
+</div>
+
+<p>
+Finally you may also want to install SWIG:
+</p>
+
+<div class="shell">
+<pre>
+make install
+</pre>
+</div>
+
+<H4><a name="Windows_mingw_msys">3.3.1.3 Building swig.exe using MinGW and MSYS</a></H4>
 
 
 <p>
@@ -344,7 +467,7 @@ make
 </ol>
 
 
-<H4><a name="Windows_cygwin">3.3.1.2 Building swig.exe using Cygwin</a></H4>
+<H4><a name="Windows_cygwin">3.3.1.4 Building swig.exe using Cygwin</a></H4>
 
 
 <p>
@@ -353,15 +476,6 @@ However, SWIG will then require the Cygwin DLL when executing.
 Follow the Unix instructions in the README file in the SWIG root directory.
 Note that the Cygwin environment will also allow one to regenerate the autotool generated files which are supplied with the release distribution. 
 These files are generated using the <tt>autogen.sh</tt> script and will only need regenerating in circumstances such as changing the build system.
-</p>
-
-<H4><a name="Windows_building_alternatives">3.3.1.3 Building swig.exe alternatives</a></H4>
-
-
-<p>
-If you don't want to install Cygwin or MinGW, use a different compiler to build 
-SWIG. For example, all the source code files can be added to a Visual C++ project 
-file in order to build swig.exe from the Visual C++ IDE.
 </p>
 
 

@@ -846,8 +846,13 @@ public:
 	Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
 
       Printv(f_shadow_py, "\nfrom sys import version_info as _swig_python_version_info\n", NULL);
-      Printv(f_shadow_py, "if _swig_python_version_info < (2, 7, 0):\n", NULL);
-      Printv(f_shadow_py, tab4, "raise RuntimeError(\"Python 2.7 or later required\")\n\n", NULL);
+      if (py3) {
+	Printv(f_shadow_py, "if _swig_python_version_info < (3, 0):\n", NULL);
+	Printv(f_shadow_py, tab4, "raise RuntimeError(\"Python 3.x or later required\")\n\n", NULL);
+      } else {
+	Printv(f_shadow_py, "if _swig_python_version_info < (2, 7, 0):\n", NULL);
+	Printv(f_shadow_py, tab4, "raise RuntimeError(\"Python 2.7 or later required\")\n\n", NULL);
+      }
 
       if (Len(f_shadow_after_begin) > 0)
 	Printv(f_shadow_py, f_shadow_after_begin, "\n", NIL);
@@ -2753,7 +2758,7 @@ public:
       if (!varargs) {
 	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args", builtin_kwargs, ") {", NIL);
       } else {
-	Printv(f->def, linkage, wrap_return, wname, "__varargs__", "(PyObject *", self_param, ", PyObject *args, PyObject *varargs) {", NIL);
+	Printv(f->def, linkage, wrap_return, wname, "__varargs__", "(PyObject *", self_param, ", PyObject *args, PyObject *varargs", builtin_kwargs, ") {", NIL);
       }
       if (allow_kwargs) {
 	Swig_warning(WARN_LANG_OVERLOAD_KEYWORD, input_file, line_number, "Can't use keyword arguments with overloaded functions (%s).\n", Swig_name_decl(n));
@@ -2862,8 +2867,6 @@ public:
 	  } else {
 	    Replaceall(tm, "$self", "obj0");
 	  }
-	  Replaceall(tm, "$source", source);
-	  Replaceall(tm, "$target", ln);
 	  Replaceall(tm, "$input", source);
 	  Setattr(p, "emit:input", source);	/* Save the location of the object */
 
@@ -2971,7 +2974,6 @@ public:
     /* Insert constraint checking code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
-	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Printv(f->code, tm, "\n", NIL);
 	p = Getattr(p, "tmap:check:next");
       } else {
@@ -2993,7 +2995,6 @@ public:
 	  }
 	}
 	if (tm && (Len(tm) != 0)) {
-	  Replaceall(tm, "$source", Getattr(p, "lname"));
 	  Printv(cleanup, tm, "\n", NIL);
 	}
 	p = Getattr(p, "tmap:freearg:next");
@@ -3005,8 +3006,6 @@ public:
     /* Insert argument output code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-	Replaceall(tm, "$source", Getattr(p, "lname"));
-	Replaceall(tm, "$target", "resultobj");
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(outarg, tm, "\n", NIL);
@@ -3095,8 +3094,6 @@ public:
       } else {
 	Replaceall(tm, "$self", "obj0");
       }
-      Replaceall(tm, "$source", Swig_cresult_name());
-      Replaceall(tm, "$target", "resultobj");
       Replaceall(tm, "$result", "resultobj");
       if (builtin_ctor) {
 	Replaceall(tm, "$owner", "SWIG_BUILTIN_INIT");
@@ -3162,7 +3159,6 @@ public:
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
-	Replaceall(tm, "$source", Swig_cresult_name());
 	Printf(f->code, "%s\n", tm);
 	Delete(tm);
       }
@@ -3170,7 +3166,6 @@ public:
 
     /* See if there is any return cleanup code */
     if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
-      Replaceall(tm, "$source", Swig_cresult_name());
       Printf(f->code, "%s\n", tm);
       Delete(tm);
     }
@@ -3253,10 +3248,10 @@ public:
 	Printf(f->code, "  Py_XINCREF(swig_obj[i + %d]);\n", num_fixed_arguments);
 	Printf(f->code, "}\n");
       } else {
-	Printf(f->code, "newargs = PyTuple_GetSlice(args,0,%d);\n", num_fixed_arguments);
-	Printf(f->code, "varargs = PyTuple_GetSlice(args,%d,PyTuple_Size(args));\n", num_fixed_arguments);
+	Printf(f->code, "newargs = PyTuple_GetSlice(args, 0, %d);\n", num_fixed_arguments);
+	Printf(f->code, "varargs = PyTuple_GetSlice(args, %d, PyTuple_Size(args));\n", num_fixed_arguments);
       }
-      Printf(f->code, "resultobj = %s__varargs__(%s,newargs,varargs);\n", wname, builtin ? "self" : "NULL");
+      Printf(f->code, "resultobj = %s__varargs__(%s, newargs, varargs%s);\n", wname, builtin ? "self" : "NULL", strlen(builtin_kwargs) == 0 ? "" : ", kwargs");
       Append(f->code, "Py_XDECREF(newargs);\n");
       Append(f->code, "Py_XDECREF(varargs);\n");
       Append(f->code, "return resultobj;\n");
@@ -3456,8 +3451,6 @@ public:
       }
       Printf(setf->def, "SWIGINTERN int %s(PyObject *_val) {", varsetname);
       if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
-	Replaceall(tm, "$source", "_val");
-	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "_val");
 	if (Getattr(n, "tmap:varin:implicitconv")) {
 	  Replaceall(tm, "$implicitconv", get_implicitconv_flag(n));
@@ -3498,8 +3491,6 @@ public:
       Append(getf->code, "  (void)self;\n");
     }
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
-      Replaceall(tm, "$source", name);
-      Replaceall(tm, "$target", "pyobj");
       Replaceall(tm, "$result", "pyobj");
       addfail = emit_action_code(n, getf->code, tm);
       Delete(tm);
@@ -3579,8 +3570,6 @@ public:
     }
 
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
-      Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
       Printf(const_code, "%s,\n", tm);
       Delete(tm);
@@ -3595,8 +3584,6 @@ public:
     }
 
     if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
-      Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
       if (needs_swigconstant(n) && !builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER)) && (!in_class || !Getattr(n, "feature:python:callback"))) {
 	// Generate `*_swigconstant()` method which registers the new constant.
@@ -3608,7 +3595,7 @@ public:
 	// class type (the SWIG_init() is called before shadow classes are
 	// defined and registered).
         Printf(f_wrappers, "SWIGINTERN PyObject *%s_swigconstant(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", iname);
-        Printf(f_wrappers, tab2 "PyObject *module;\n", tm);
+        Printf(f_wrappers, tab2 "PyObject *module;\n");
         Printf(f_wrappers, tab2 "PyObject *d;\n");
 	Printf(f_wrappers, tab2 "if (!SWIG_Python_UnpackTuple(args, \"swigconstant\", 1, 1, &module)) return NULL;\n");
         Printf(f_wrappers, tab2 "d = PyModule_GetDict(module);\n");
@@ -4018,7 +4005,7 @@ public:
       if (GetFlag(mgetset, "static")) {
 	Printf(f, "static PyGetSetDef %s_def = %s;\n", gspair, entry);
 	Printf(f_init, "static_getset = SwigPyStaticVar_new_getset(metatype, &%s_def);\n", gspair);
-	Printf(f_init, "PyDict_SetItemString(d, static_getset->d_getset->name, (PyObject *) static_getset);\n", memname);
+	Printf(f_init, "PyDict_SetItemString(d, static_getset->d_getset->name, (PyObject *) static_getset);\n");
 	Printf(f_init, "Py_DECREF(static_getset);\n");
       } else {
 	Printf(getset_def, "    %s,\n", entry);
@@ -4467,7 +4454,9 @@ public:
 	    Printf(f_shadow, "(Exception)");
 	  } else {
 	    Printf(f_shadow, "(object");
-	    Printf(f_shadow, py3 && GetFlag(n, "feature:python:nondynamic") ? ", metaclass=_SwigNonDynamicMeta" : "", ")");
+	    if (py3 && GetFlag(n, "feature:python:nondynamic")) {
+	      Printf(f_shadow, ", metaclass=_SwigNonDynamicMeta");
+	    }
 	    Printf(f_shadow, ")");
 	  }
 	}
@@ -4875,6 +4864,7 @@ public:
 	      String *classname = Swig_class_name(parent);
 	      String *rclassname = Swig_class_name(getCurrentClass());
 	      assert(rclassname);
+	      (void)rclassname;
 
 	      String *parms = make_pyParmList(n, true, false, allow_kwargs);
 	      /* Pass 'self' only if using director */

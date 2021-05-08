@@ -165,6 +165,7 @@ TCL_SO     = @TCL_SO@
 TCLLDSHARED = @TCLLDSHARED@
 TCLCXXSHARED = @TCLCXXSHARED@
 TCL_SCRIPT = $(SRCDIR)$(RUNME).tcl
+TCL_LINK   = @TCLLINK@
 
 # -----------------------------------------------------------
 # Build a new version of the tclsh shell
@@ -187,7 +188,7 @@ tclsh_cpp: $(SRCDIR_SRCS)
 tcl:  $(SRCDIR_SRCS)
 	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(TCL_INCLUDE)
-	$(TCLLDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO)
+	$(TCLLDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO) $(TCL_LINK)
 
 # -----------------------------------------------------------
 # Build a Tcl7.5 dynamic loadable module for C++
@@ -196,7 +197,7 @@ tcl:  $(SRCDIR_SRCS)
 tcl_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(TCL_INCLUDE)
-	$(TCLCXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO)
+	$(TCLCXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO) $(TCL_LINK)
 
 # -----------------------------------------------------------------
 # Run Tcl example
@@ -1045,20 +1046,21 @@ ruby_clean:
 	rm -f *.@OBJEXT@ *$(RUBY_SO)
 
 ##################################################################
-#####                       PHP7                            ######
+#####                       PHP                             ######
 ##################################################################
 
 PHP         = @PHP@
 PHP_INCLUDE = @PHPINC@
 PHP_SO      = @PHP_SO@
 PHP_SCRIPT  = $(SRCDIR)$(RUNME).php
+PHP_EXTENSION = example$(PHP_SO)
 
 # -------------------------------------------------------------------
 # Build a PHP dynamically loadable module (C)
 # -------------------------------------------------------------------
 
 php: $(SRCDIR_SRCS)
-	$(SWIG) -php7 $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(SWIG) -php $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(PHP_INCLUDE)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
 
@@ -1067,7 +1069,7 @@ php: $(SRCDIR_SRCS)
 # --------------------------------------------------------------------
 
 php_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -php7 -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(SWIG) -php -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PHP_INCLUDE)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
 
@@ -1076,7 +1078,7 @@ php_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 php_run:
-	$(RUNTOOL) $(PHP) -n -q -d extension_dir=. -d safe_mode=Off -d display_errors=stderr $(PHP_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(PHP) -n -d extension_dir=. -d extension=$(PHP_EXTENSION) -d display_errors=stderr -r 'set_error_handler(function($$n,$$s,$$f,$$l){if($$f!==Null){print$$f;if($$l!==Null)print":$$l";print": ";}print"$$s\n";exit(1);});include($$argv[1]);' $(PHP_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display

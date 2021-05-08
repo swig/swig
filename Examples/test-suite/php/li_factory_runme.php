@@ -1,13 +1,12 @@
 <?php
 
 require "tests.php";
-require "li_factory.php";
 
 // No new functions
-check::functions(array('geometry_draw','geometry_create','geometry_clone_','point_draw','point_width','point_clone_','circle_draw','circle_radius','circle_clone_'));
-// No new classes
+check::functions(array());
+// New classes
 check::classes(array('Geometry','Point','Circle'));
-// now new vars
+// No new vars
 check::globals(array());
 
 $circle = Geometry::create(Geometry::CIRCLE);
@@ -19,4 +18,3 @@ $w = $point->width();
 check::equal($w, 1.0, "w failed");
 
 check::done();
-?>

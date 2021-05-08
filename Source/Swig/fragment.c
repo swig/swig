@@ -29,7 +29,7 @@ static int debug = 0;
  * Swig_fragment_register()
  *
  * Add a fragment. Use the original Node*, so, if something needs to be
- * changed, lang.cxx doesn't nedd to be touched again.
+ * changed, lang.cxx doesn't need to be touched again.
  * ----------------------------------------------------------------------------- */
 
 void Swig_fragment_register(Node *fragment) {

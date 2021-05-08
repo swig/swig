@@ -128,7 +128,7 @@ Supported Target Language Options
      -lua            - Generate Lua wrappers
      -octave         - Generate Octave wrappers
      -perl5          - Generate Perl 5 wrappers
-     -php7           - Generate PHP 7 wrappers
+     -php7           - Generate PHP 7 or later wrappers
      -python         - Generate Python wrappers
      -r              - Generate R (aka GNU S) wrappers
      -ruby           - Generate Ruby wrappers
@@ -2021,7 +2021,7 @@ and a more descriptive one, but the two functions are otherwise equivalent:
 <tr>
     <td><span style="white-space: nowrap;"><tt>regex:/pattern/subst/</tt></span></td>
     <td>String after (Perl-like) regex substitution operation. This function
-    allows to apply arbitrary regular expressions to the identifier names. The
+    allows applying arbitrary regular expressions to the identifier names. The
     <i>pattern</i> part is a regular expression in Perl syntax (as supported
     by the <a href="http://www.pcre.org/">Perl Compatible Regular Expressions (PCRE)</a>)
     library and the <i>subst</i> string

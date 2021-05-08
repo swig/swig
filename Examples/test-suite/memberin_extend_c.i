@@ -32,7 +32,8 @@ char *Person_name_get(Person *p) {
 }
 
 void Person_name_set(Person *p, char *val) {
-  strncpy(p->name,val,50);
+  p->name[0] = '\0';
+  strncat(p->name, val, sizeof(p->name) - 1);
   make_upper(p->name);
 }
 %}

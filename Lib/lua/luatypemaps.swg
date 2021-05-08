@@ -237,13 +237,13 @@ $1=($1_ltype)&temp;%}
 // therefore a special wrapping functions SWIG_ConvertMember() & SWIG_NewMemberObj() were written
 %typemap(in,checkfn="lua_isuserdata") SWIGTYPE (CLASS::*)
 %{
-  if (!SWIG_IsOK(SWIG_ConvertMember(L,$input,(void*)(&$1),sizeof($type),$descriptor)))
+  if (!SWIG_IsOK(SWIG_ConvertMember(L,$input,(void*)(&$1),sizeof($1),$descriptor)))
     SWIG_fail_ptr("$symname",$argnum,$descriptor);
 %}
 
 %typemap(out) SWIGTYPE (CLASS::*)
-%{ 
-  SWIG_NewMemberObj(L,(void*)(&$1),sizeof($type),$descriptor); SWIG_arg++; 
+%{
+  SWIG_NewMemberObj(L,(void*)(&$1),sizeof($1),$descriptor); SWIG_arg++;
 %}
 
 

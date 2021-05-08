@@ -1,14 +1,13 @@
 <?php
 
 require "tests.php";
-require "threads_exception.php";
 
 // Check functions
-check::functions(array('test_simple','test_message','test_hosed','test_unknown','test_multi','is_python_builtin'));
+check::functions(array('is_python_builtin'));
 // Check classes.
 check::classes(array('Exc','Test','threads_exception'));
-// Check globals.
-check::globals(array('exc_code','exc_msg'));
+// No new vars
+check::globals(array());
 
 $t = new Test();
 try {

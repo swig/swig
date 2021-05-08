@@ -16,6 +16,9 @@ top_builddir = @top_builddir@
 C_TEST_CASES += \
 	ccomplextest \
 
+CPP_TEST_CASES += \
+	javascript_lib_arrays \
+
 SWIGEXE   = $(top_builddir)/swig
 SWIG_LIB_DIR = $(top_srcdir)/Lib
 

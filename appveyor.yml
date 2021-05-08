@@ -16,24 +16,32 @@ environment:
   - SWIGLANG: python
     VSVER: 14
     VER: 27
-# - SWIGLANG: python
-#   VSVER: 14
-#   VER: 36
-#   PY3: 3
+  - SWIGLANG: python
+    VSVER: 15
+    VER: 38
+    PY3: 3
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+  - SWIGLANG: python
+    VSVER: 16
+    VER: 39
+    PY3: 3
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
   - SWIGLANG: python
     OSVARIANT: cygwin
-#  - SWIGLANG: python
-#    OSVARIANT: mingw
-#    VER: 27
-#  - SWIGLANG: python
-#    OSVARIANT: mingw
-#    WITHLANG: python
-#    VER: 37
-#    PY3: 3
+  - SWIGLANG: java
+    OSVARIANT: mingw
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+  - SWIGLANG: python
+    OSVARIANT: mingw
+    WITHLANG: python
+    VER: 37
+    PY3: 3
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+  - BUILDSYSTEM: cmake
+    VSVER: 14
 
 matrix:
   allow_failures:
-  # Currently failing due to not detecting header files/include paths
   - SWIGLANG: python
     OSVARIANT: cygwin
 
@@ -51,9 +59,10 @@ install:
       $env:MINGWBIN="C:\msys64\mingw32\bin"
       $env:MBITS="32"
       $env:MARCH="i686"
+      $env:VSARCH=""
     } else {
       $env:PCRE_PLATFORM="x64"
-      $env:JAVA_HOME="C:/Program Files/Java/jdk1.8.0"
+      $env:JAVA_HOME="C:/Program Files/Java/jdk15"
       $env:VCVARS_PLATFORM="amd64"
       $env:LANG_PLATFORM="-x64"
       $env:CYGWINBIN="C:\cygwin64\bin"
@@ -62,14 +71,26 @@ install:
       $env:MINGWBIN="C:\msys64\mingw64\bin"
       $env:MBITS="64"
       $env:MARCH="x86_64"
+      $env:VSARCH=" Win64"
     }
 - ps: >-
     if (!$env:OSVARIANT) {
       $env:PATH="$env:CYGWINBIN;$env:PATH"
       $env:CYGWIN="nodosfilewarning"
-      $env:VSCOMNTOOLS=(Get-Content ("env:VS" + "$env:VSVER" + "0COMNTOOLS"))
       $env:CC="cccl"
       $env:CXX="cccl"
+      if ($env:VSVER -ge 16) {
+        $env:VCVARSBAT="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars$env:MBITS.bat"
+        $env:BOOSTROOT="C:/Libraries/boost_1_73_0"
+      } elseif ($env:VSVER -eq 15) {
+        $env:VCVARSBAT="C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars$env:MBITS.bat"
+        $env:BOOSTROOT="C:/Libraries/boost_1_69_0"
+      } else {
+        $env:VSCOMNTOOLS=(Get-Content ("env:VS" + "$env:VSVER" + "0COMNTOOLS"))
+        $env:VCVARSBAT="$env:VSCOMNTOOLS..\..\VC\vcvarsall.bat"
+        $env:VCVARSARG="$env:VCVARS_PLATFORM"
+        $env:BOOSTROOT="C:/Libraries/boost_1_69_0"
+      }
     } elseif ($env:OSVARIANT -eq "cygwin") {
       $env:PATH="$env:CYGWINBIN;$env:PATH"
       $env:CYGWIN="nodosfilewarning"
@@ -85,9 +106,8 @@ install:
         $env:CHECK_OPTIONS2="CFLAGS+=-DMS_WIN64 CXXFLAGS+=-DMS_WIN64"
       }
     }
-- if "%OSVARIANT%"=="" bash -c "cd /usr/bin && curl --retry 15 -s -L https://github.com/swig/cccl/archive/cccl-1.0.tar.gz | tar -xz --strip 1 cccl-cccl-1.0/cccl"
-- if "%OSVARIANT%"=="" echo Using Visual Studio %VSVER%.0 at %VSCOMNTOOLS%
-- if "%OSVARIANT%"=="" call "%VSCOMNTOOLS%\..\..\VC\vcvarsall.bat" %VCVARS_PLATFORM%
+- if "%OSVARIANT%"=="" bash -c "cd /usr/bin && curl --retry 15 -s -L https://github.com/swig/cccl/archive/cccl-1.2.tar.gz | tar -xz --strip 1 cccl-cccl-1.2/cccl"
+- if "%OSVARIANT%"=="" call "%VCVARSBAT%" %VCVARSARG%
 - if "%OSVARIANT%"=="" Tools\nuget-install.cmd pcre -Verbosity quiet -Version 8.33.0.1 -OutputDirectory C:\pcre
 - if "%OSVARIANT%"=="" set PCRE_ROOT=C:/pcre/pcre.8.33.0.1/build/native
 - if not "%OSVARIANT%"=="cygwin" set PATH=C:\Python%VER%%LANG_PLATFORM%;%PATH%
@@ -113,8 +133,9 @@ install:
 build_script:
 - set CCCL_OPTIONS=--cccl-muffle /W3 /EHsc
 - set CHECK_OPTIONS=CSHARPOPTIONS=-platform:%Platform%
+- if "%BUILDSYSTEM%"=="cmake" cmake --version && cmake -G "Visual Studio 14 2015%VSARCH%" -DCMAKE_INSTALL_PREFIX="%CD:\=/%/install2" -DCMAKE_C_FLAGS="/WX /DPCRE_STATIC" -DCMAKE_CXX_FLAGS="/WX /DPCRE_STATIC" -DPCRE_INCLUDE_DIR=%PCRE_ROOT%/include -DPCRE_LIBRARY=%PCRE_ROOT%/lib/v110/%PCRE_PLATFORM%/Release/static/utf8/pcre8.lib -DBISON_EXECUTABLE=C:/cygwin/bin/bison.exe . && cmake --build . --config Release --target install && ctest --output-on-failure -V -C Release && appveyor exit
   # Open dummy file descriptor to fix error on cygwin: ./configure: line 560: 0: Bad file descriptor
-- if "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure --disable-dependency-tracking --disable-ccache CC=$CC CXX=$CXX CFLAGS='-O2' CXXFLAGS='-O2' LDFLAGS='--cccl-link /LTCG' PCRE_CFLAGS='-I%PCRE_ROOT%/include -DPCRE_STATIC' PCRE_LIBS='-L%PCRE_ROOT%/lib/v110/%PCRE_PLATFORM%/Release/static/utf8 -lpcre8' --without-perl5 --without-go --with-boost=C:/Libraries/boost_1_67_0 || cat config.log"
+- if "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure --disable-dependency-tracking --disable-ccache --enable-cpp11-testing CC=$CC CXX=$CXX CFLAGS='-O2' CXXFLAGS='-O2' LDFLAGS='--cccl-link /LTCG' PCRE_CFLAGS='-I%PCRE_ROOT%/include -DPCRE_STATIC' PCRE_LIBS='-L%PCRE_ROOT%/lib/v110/%PCRE_PLATFORM%/Release/static/utf8 -lpcre8' --without-perl5 --without-go --with-boost=%BOOSTROOT% || cat config.log"
 - if not "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure CC=%CC% CXX=%CXX% --without-alllang --with-$SWIGLANG$PY3$SWIGWITHLANG --enable-cpp11-testing || cat config.log"
 - bash -c "time make -s -j%MAKEJOBS%"
 

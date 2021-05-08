@@ -2,15 +2,11 @@
 %typemap(in, byref=1) TYPE *REF ($*1_ltype tmp),
              TYPE &REF ($*1_ltype tmp)
 %{
-  /* First Check for SWIG wrapped type */
-  if (Z_ISNULL($input)) {
-      $1 = 0;
-  } else if (Z_ISREF($input)) {
-      /* Not swig wrapped type, so we check if it's a PHP reference type */
-      CONVERT_IN(tmp, $*1_ltype, $input);
-      $1 = &tmp;
+  if (Z_ISREF($input)) {
+    CONVERT_IN(tmp, $*1_ltype, $input);
+    $1 = &tmp;
   } else {
-      SWIG_PHP_Error(E_ERROR, SWIG_PHP_Arg_Error_Msg($argnum, Expected a reference));
+    SWIG_PHP_Error(E_ERROR, SWIG_PHP_Arg_Error_Msg($argnum, Expected a reference));
   }
 %}
 %typemap(argout) TYPE *REF,

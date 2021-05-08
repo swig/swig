@@ -1,14 +1,13 @@
 <?php
 
 require "tests.php";
-require "cpp_basic.php";
 
 // New functions
-check::functions(array('foo_func1','foo_func2','foo___str__','foosubsub___str__','bar_test','bar_testfoo','get_func1_ptr','get_func2_ptr','test_func_ptr','fl_window_show'));
+check::functions(array('get_func1_ptr','get_func2_ptr','test_func_ptr'));
 // New classes
 check::classes(array('cpp_basic','Foo','FooSub','FooSubSub','Bar','Fl_Window'));
-// New vars
-check::globals(array('foo_num','foo_func_ptr','bar_fptr','bar_fref','bar_fval','bar_cint','bar_global_fptr','bar_global_fref','bar_global_fval'));
+// No new vars
+check::globals(array());
 
 $f = new Foo(3);
 $f->func_ptr = get_func1_ptr();
@@ -16,5 +15,12 @@ check::equal(test_func_ptr($f, 7), 2*7*3, "get_func1_ptr() didn't work");
 $f->func_ptr = get_func2_ptr();
 check::equal(test_func_ptr($f, 7), -7*3, "get_func2_ptr() didn't work");
 
+// Test that custom properties work - standard PHP objects support them,
+// so PHP developers will expect them to work for SWIG-wrapped objects too.
+check::equal($f->custom_prop, NULL, "Test unset custom property");
+$f->custom_prop = "test";
+check::equal($f->custom_prop, "test", "Test custom property setting");
+$f->custom_prop = 42;
+check::equal($f->custom_prop, 42, "Test custom property setting");
+
 check::done();
-?>

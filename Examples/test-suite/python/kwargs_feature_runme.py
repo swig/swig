@@ -122,3 +122,18 @@ try:
     raise RuntimeError("missed exception")
 except TypeError as e:
     pass
+
+# Varargs
+f = VarargConstructor(fmt="Ciao")
+f.vararg_method(fmt="Bonjour")
+try:
+    f = VarargConstructor(nonexistent="Ciao")
+    raise RuntimeError("missed exception")
+except TypeError as e:
+    pass
+
+try:
+    f.vararg_method(nonexistent="Bonjour")
+    raise RuntimeError("missed exception")
+except TypeError as e:
+    pass

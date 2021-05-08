@@ -1,16 +1,14 @@
 <?php
 
 require "tests.php";
-require "arrays_scope.php";
 
-// New functions
-check::functions(array('new_bar','bar_blah'));
+// No new functions
+check::functions(array());
 // New classes
 check::classes(array('arrays_scope','Bar'));
-// New vars
-check::globals(array('bar_adata','bar_bdata','bar_cdata'));
+// No new globals
+check::globals(array());
 
 $bar=new bar();
 
 check::done();
-?>
