@@ -22,7 +22,7 @@ case "$SWIGLANG" in
     	export ROSWELL_INSTALL_DIR=$HOME/.roswell
 		travis_retry brew install roswell
 		travis_retry ros install cffi
-		travis_retry cp $(dirname $0)/cffi/cffi.ros ${ROSWELL_INSTALL_DIR}/bin/
+		travis_retry cp Tools/cffi/cffi.ros ${ROSWELL_INSTALL_DIR}/bin/
 		travis_retry chmod +x ${ROSWELL_INSTALL_DIR}/bin/cffi.ros
 		;;
 	"csharp")
