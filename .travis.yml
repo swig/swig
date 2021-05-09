@@ -45,7 +45,7 @@ matrix:
       dist: focal
     - compiler: gcc
       os: linux
-      env: SWIGLANG=cffi CFFIBIN=cffi.ros
+      env: SWIGLANG=cffi
       dist: xenial
     - compiler: gcc
       os: linux

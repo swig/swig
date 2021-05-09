@@ -2612,6 +2612,28 @@ AC_SUBST(D2COMPILER)
 AC_SUBST(DDEFAULTVERSION)
 AC_SUBST(DLIBPREFIX)
 
+
+#----------------------------------------------------------------
+# Look for cffi helper script
+#----------------------------------------------------------------
+
+AC_ARG_WITH(cffi, AS_HELP_STRING([--without-cffi], [Disable CFFI])
+AS_HELP_STRING([--with-cffi=path], [Set location of CFFI helper script]),[CFFIBIN="$withval"], [CFFIBIN="$alllang_default"])
+
+if test x"${CFFIBIN}" = xno; then
+  AC_MSG_NOTICE([Disabling CFFI])
+  CFFIBIN=
+else
+  if test "x$CFFIBIN" = xyes; then
+    AC_PATH_PROG(CFFIBIN, cffi)
+  else
+    CFFIBIN="$CFFIBIN"
+  fi
+fi
+
+AC_SUBST(CFFIBIN)
+
+
 #----------------------------------------------------------------
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
@@ -2721,9 +2743,9 @@ fi
 AC_SUBST(SKIP_R)
 
 SKIP_CFFI=
-#if test -z "$CFFIBIN" ; then
-    SKIP_CFFI=
-#fi
+if test -z "$CFFIBIN"; then
+    SKIP_CFFI="1"
+fi
 AC_SUBST(SKIP_CFFI)
 
 SKIP_SCILAB=

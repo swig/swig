@@ -24,8 +24,8 @@ case "$SWIGLANG" in
     	export ROSWELL_INSTALL_DIR=$HOME/.roswell
 		travis_retry wget -qO- https://raw.githubusercontent.com/roswell/roswell/release/scripts/install-for-ci.sh | sh
 		travis_retry mkdir -p ${ROSWELL_INSTALL_DIR}/bin
-		travis_retry cp Tools/cffi/cffi.ros ${ROSWELL_INSTALL_DIR}/bin/cffi.ros
-		travis_retry chmod +x ${ROSWELL_INSTALL_DIR}/bin/cffi.ros
+		travis_retry cp Tools/cffi/cffi.ros ${ROSWELL_INSTALL_DIR}/bin/cffi
+		travis_retry chmod +x ${ROSWELL_INSTALL_DIR}/bin/cffi
 		;;
 	"csharp")
 		travis_retry sudo apt-get -qq install mono-devel
