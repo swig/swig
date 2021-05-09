@@ -1312,7 +1312,7 @@ cffi_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 cffi_run:
-	$(RUNTOOL) $(CFFI) -batch -s $(CFFI_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(CFFI) --run $(CFFI_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
