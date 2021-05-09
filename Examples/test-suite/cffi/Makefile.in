@@ -46,7 +46,8 @@ run_testcase = \
 
 # Clean: (does nothing, we dont generate extra cffi code)
 %.clean:
-	@exit 0
+	@rm -f $*.fasl
+	@rm -f $*.lisp
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' cffi_clean
