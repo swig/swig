@@ -372,6 +372,8 @@ SWIGRUNTIME void
 SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
   swig_cast_info *cast = ti->cast;
   /* if (ti->clientdata == clientdata) return; */
+  if (ti->clientdata)
+    free(ti->clientdata);
   ti->clientdata = clientdata;
 
   while (cast) {
