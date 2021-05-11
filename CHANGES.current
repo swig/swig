@@ -7,6 +7,32 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-05-12: adr26
+            #1985 [Python] Fix memory leaks:
+
+            1. Python object references were being incorrectly retained by
+            SwigPyClientData, causing swig_varlink_dealloc() never to run / free
+            memory. SwigPyClientData_New() / SwigPyClientData_Del() were updated
+            to fix the object reference counting, causing swig_varlink_dealloc()
+            to run and the memory swig_varlink owns to be freed.
+
+            2. SwigPyClientData itself was not freed by SwigPyClientData_Del(),
+            causing another heap leak. The required free() was added to
+            SwigPyClientData_Del()
+
+            3. Fix reference counting/leak of python cached type query
+
+            4. Fix reference counting/leak of SwigPyObject dict (-builtin)
+
+            5. Python object reference counting fixes for out-of-memory
+            scenarios were added to: SWIG_Python_RaiseOrModifyTypeError(),
+            SWIG_Python_AppendOutput(), SwigPyClientData_New(),
+            SwigPyObject_get___dict__() and SwigPyObject_format()
+
+            6. Add error handling for PyModule_AddObject() to
+            SWIG_Python_SetModule() (failure could be caused by OOM or a name
+            clash caused by malicious code)
+
 2021-05-04: olly
 	    [PHP] #1982 #1457 https://sourceforge.net/p/swig/bugs/1339/
 	    SWIG now only use PHP's C API to implement its wrappers, and no
