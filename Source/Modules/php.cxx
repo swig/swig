@@ -941,7 +941,7 @@ public:
     }
     Printf(f->code, "} else {\n");
     if (base_class) {
-      Printf(f->code, "PHP_MN(%s___set)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", base_class);
+      Printf(f->code, "PHP_MN(%s%s___set)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", prefix, base_class);
     } else {
       Printf(f->code, "add_property_zval_ex(ZEND_THIS, ZSTR_VAL(arg2), ZSTR_LEN(arg2), &args[1]);\n}\n");
     }
@@ -974,7 +974,7 @@ public:
     Printf(f->code, "if(arg->newobject) {\nRETVAL_LONG(1);\n}\nelse {\nRETVAL_LONG(0);\n}\n}\n\n");
     Printf(f->code, "else {\n");
     if (base_class) {
-      Printf(f->code, "PHP_MN(%s___get)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", base_class);
+      Printf(f->code, "PHP_MN(%s%s___get)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", prefix, base_class);
     } else {
       // __get is only called if the property isn't set on the zend_object.
       Printf(f->code, "RETVAL_NULL();\n}\n");
@@ -1008,7 +1008,7 @@ public:
     }
     Printf(f->code, "else {\n");
     if (base_class) {
-      Printf(f->code, "PHP_MN(%s___isset)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", base_class);
+      Printf(f->code, "PHP_MN(%s%s___isset)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", prefix, base_class);
     } else {
       // __isset is only called if the property isn't set on the zend_object.
       Printf(f->code, "RETVAL_FALSE;\n}\n");

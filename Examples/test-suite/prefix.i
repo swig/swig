@@ -11,4 +11,10 @@ public:
   }
 };
 
+// This failed in git pre 4.1.0 - the calls to the parent class' magic __get,
+// __set and __isset methods weren't getting the prefix.
+class Bar : public Foo {
+public:
+};
+
 %}
