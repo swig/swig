@@ -623,7 +623,8 @@ PHPBN2(PGSQL_POLLING_OK);
 PHPBN2(PGSQL_POLLING_READING);
 PHPBN2(PGSQL_POLLING_WRITING);
 
-/* Class names reserved by PHP (case insensitive) */
+/* Class names reserved by PHP. */
+/* Check is case insensitive - these *MUST* be listed in lower case here. */
 PHPCN(directory);
 PHPCN(stdclass);
 PHPCN(__php_incomplete_class);
@@ -639,9 +640,9 @@ PHPCN(bool); // As of PHP 7.0
 PHPCN(int); // As of PHP 7.0
 PHPCN(float); // As of PHP 7.0
 PHPCN(string); // As of PHP 7.0
-PHPCN(NULL); // As of PHP 7.0
-PHPCN(TRUE); // As of PHP 7.0
-PHPCN(FALSE); // As of PHP 7.0
+PHPCN(null); // As of PHP 7.0
+PHPCN(true); // As of PHP 7.0
+PHPCN(false); // As of PHP 7.0
 PHPCN(resource); // As of PHP 7.0 (currently works but reserved)
 PHPCN(object); // As of PHP 7.0 (currently works but reserved)
 PHPCN(mixed); // As of PHP 7.0 (currently works but reserved)

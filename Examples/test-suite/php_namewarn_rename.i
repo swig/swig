@@ -5,6 +5,9 @@
 %warnfilter(SWIGWARN_PARSE_KEYWORD) stdClass;
 %warnfilter(SWIGWARN_PARSE_KEYWORD) directory;
 %warnfilter(SWIGWARN_PARSE_KEYWORD) Hello::empty();
+%warnfilter(SWIGWARN_PARSE_KEYWORD) null;
+%warnfilter(SWIGWARN_PARSE_KEYWORD) True;
+%warnfilter(SWIGWARN_PARSE_KEYWORD) FALSE;
 #endif
 
 %ignore prev::operator++;
@@ -36,4 +39,15 @@
     prev operator++(int) { return *this; }
   };
 
+  class null
+  {
+  };
+
+  class True
+  {
+  };
+
+  class FALSE
+  {
+  };
 %}
