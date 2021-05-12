@@ -1178,6 +1178,10 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
 #endif
       { return ptr->print(os, pr_as_read_syntax); }
 
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+      static void set_type_id(int type_id) { t_id=type_id; }
+#endif
+
     virtual type_conv_info numeric_conversion_function(void) const {
       return octave_base_value::type_conv_info (default_numeric_conversion_function,
                                                 octave_scalar::static_type_id ());
@@ -1283,6 +1287,10 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       return true;
     }
 # endif
+#endif
+
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+    static void set_type_id(int type_id) { t_id=type_id; }
 #endif
 
   private:

@@ -295,9 +295,11 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
       for (int i = 0; i < types.numel(); ++i) {
         if (types(i) == octave_swig_ref::static_type_name()) {
           register_octave_swig_ref = false;
+          octave_swig_ref::set_type_id(i);
         }
         if (types(i) == octave_swig_packed::static_type_name()) {
           register_octave_swig_packed = false;
+	  octave_swig_packed::set_type_id(i);
         }
       }
       if (register_octave_swig_ref) {
