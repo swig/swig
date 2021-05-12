@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-05-13: olly
+	    [Allegrocl] #2009 Remove code for Allegro Common Lisp.  We dropped
+	    support for it in SWIG 4.0.0 and nobody has stepped forward to
+	    revive it in over 2 years.
+
 2021-05-04: olly
 	    [PHP] #1982 #1457 https://sourceforge.net/p/swig/bugs/1339/
 	    SWIG now only use PHP's C API to implement its wrappers, and no
