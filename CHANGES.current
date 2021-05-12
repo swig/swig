@@ -8,6 +8,11 @@ Version 4.1.0 (in progress)
 ===========================
 
 2021-05-13: olly
+	    [UFFI] #2009 Remove code for Common Lisp UFFI.  We dropped support
+	    for it in SWIG 4.0.0 and nobody has stepped forward to revive it in
+	    over 2 years.
+
+2021-05-13: olly
 	    [S-EXP] #2009 Remove code for Common Lisp S-Exp.  We dropped
 	    support for it in SWIG 4.0.0 and nobody has stepped forward to
 	    revive it in over 2 years.
