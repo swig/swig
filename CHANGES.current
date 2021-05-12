@@ -8,6 +8,11 @@ Version 4.1.0 (in progress)
 ===========================
 
 2021-05-13: olly
+	    [Modula3] #2009 Remove code for Modula3.  We dropped support for it
+	    in SWIG 4.0.0 and nobody has stepped forward to revive it in over 2
+	    years.
+
+2021-05-13: olly
 	    [CLISP] #2009 Remove code for GNU Common Lisp.  We dropped support
 	    for it in SWIG 4.0.0 and nobody has stepped forward to revive it in
 	    over 2 years.
