@@ -1193,11 +1193,7 @@ public:
         }
       }
     } else {
-      if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
-        Printv(f->def, "PHP_METHOD(", prefix, class_name, ",", overloadwname, ") {\n", NIL);
-      } else {
-        Printv(f->def, "ZEND_NAMED_FUNCTION(", overloadwname, ") {\n", NIL);
-      }
+      Printv(f->def, "ZEND_NAMED_FUNCTION(", overloadwname, ") {\n", NIL);
     }
 
     emit_parameter_variables(l, f);
@@ -1365,13 +1361,7 @@ public:
     if (!overloaded) {
       Setattr(n, "wrap:name", wname);
     } else {
-      if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
-        String *m_call = NewStringEmpty();
-        Printf(m_call, "ZEND_MN(%s_%s)", class_name, overloadwname);
-        Setattr(n, "wrap:name", m_call);
-      } else {
-        Setattr(n, "wrap:name", overloadwname);
-      }
+      Setattr(n, "wrap:name", overloadwname);
     }
     Setattr(n, "wrapper:method:name", wname);
 
