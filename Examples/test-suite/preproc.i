@@ -298,11 +298,6 @@ inline const char* mangle_macro ## #@__VA_ARGS__ () {
 /* chiao */
 #endif;
 
-#ifdef SWIGCHICKEN
-/* define is a scheme keyword (and thus an invalid variable name), so SWIG warns about it */
-%warnfilter(SWIGWARN_PARSE_KEYWORD) define; 
-#endif
-
 #ifdef SWIGRUBY
 %rename(ddefined) defined;
 #endif
