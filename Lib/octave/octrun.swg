@@ -660,7 +660,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       return true;
     }
 
+#if SWIG_OCTAVE_PREREQ(6,0,0)
+    virtual bool isstruct() const {
+#else
     virtual bool is_map() const {
+#endif
       return true;
     }
 
@@ -808,7 +812,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       return as_value();
     }
 
+#if SWIG_OCTAVE_PREREQ(6,0,0)
+    virtual bool isobject() const {
+#else
     virtual bool is_object() const {
+#endif
       return true;
     }
 
@@ -1117,8 +1125,13 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     bool is_defined() const
       { return ptr->is_defined(); }
 
+#if SWIG_OCTAVE_PREREQ(6,0,0)
+    virtual bool isstruct() const 
+      { return ptr->isstruct(); }
+#else
     virtual bool is_map() const 
       { return ptr->is_map(); }
+#endif
 
     virtual octave_value subsref(const std::string &ops, const std::list < octave_value_list > &idx) 
       { return ptr->subsref(ops, idx); }
@@ -1129,8 +1142,13 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     octave_value subsasgn(const std::string &ops, const std::list < octave_value_list > &idx, const octave_value &rhs)
       { return ptr->subsasgn(ops, idx, rhs); }
 
+#if SWIG_OCTAVE_PREREQ(6,0,0)
+    virtual bool isobject() const 
+      { return ptr->isobject(); }
+#else
     virtual bool is_object() const 
       { return ptr->is_object(); }
+#endif
 
     virtual bool is_string() const 
       { return ptr->is_string(); }
