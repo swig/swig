@@ -36,6 +36,7 @@ C_TEST_CASES = \
 	fortran_bindc_c \
 	fortran_callback_c \
 	fortran_global_const \
+	complextest_c \
 
 FAILING_CPP_TESTS += \
 	contract \
