@@ -25,6 +25,7 @@
 <ul>
 <li><a href="#Fortran_other_integer_types">Other integer types</a>
 <li><a href="#Fortran_booleanlogical_values">Boolean/logical values</a>
+<li><a href="#Fortran_complex_numbers">Complex numbers</a>
 <li><a href="#Fortran_characters">Characters</a>
 <li><a href="#Fortran_references">References</a>
 </ul>
@@ -130,7 +131,7 @@ The purpose of running SWIG with the <code>-fortran</code> language option is to
 
 
 <p>
-The C/C++ <code>_wrap</code> file contains simple, flat, C-linkage interface functions that provide access to arbitrarily complicated C/C++ data and functions. The conversion may be as simple as casting one integer type to another, or as complicated as allocating a piece of memory and calling a function to encode a complex object. These interface functions, which are namespaced with a <code>_wrap</code> prefix, translate the C/C++ data (classes, enumerations) into simple ANSI C types (integers, structs).
+The C/C++ <code>_wrap</code> file contains simple, flat, C-linkage interface functions that provide access to arbitrarily complicated C/C++ data and functions. The conversion may be as simple as casting one integer type to another, or as complicated as allocating a piece of memory and calling a function to translate an object. These interface functions, which are namespaced with a <code>_wrap</code> prefix, translate the C/C++ data (classes, enumerations) into simple ANSI C types (integers, structs).
 </p>
 
 
@@ -140,7 +141,7 @@ The C function signature of those interfaces is translated to private <code>inte
 
 
 <p>
-These two layers of translation allow complex C++ datatypes to be translated to complex Fortran data. For example, <code>std::string</code> objects can be automatically converted to Fortran <code>character(len=:), allocatable</code> variables.
+These two layers of translation allow nontrivial C++ datatypes to be translated to arbitrary Fortran data. For example, <code>std::string</code> objects can be automatically converted to Fortran <code>character(len=:), allocatable</code> variables.
 </p>
 
 
@@ -252,8 +253,7 @@ Suppose that we have a SWIG interface file <code>example.i</code> with the follo
 #include &quot;cexample.h&quot;
 %}
 
-%include &quot;cexample.h&quot;
-</code></pre></div>
+%include &quot;cexample.h&quot;</code></pre></div>
 
 
 <p>
@@ -261,8 +261,7 @@ where <code>cexample.h</code> contains the simple function declaration:
 </p>
 
 
-<div class="code"><pre><code>int fact(int n);
-</code></pre></div>
+<div class="code"><pre><code>int fact(int n);</code></pre></div>
 
 
 <p>
@@ -270,8 +269,7 @@ To generate SWIG Fortran wrappers for this file, run
 </p>
 
 
-<div class="shell"><pre><code>$ swig -fortran example.i
-</code></pre></div>
+<div class="shell"><pre><code>$ swig -fortran example.i</code></pre></div>
 
 
 <p>
@@ -287,14 +285,13 @@ SWIGEXPORT int _wrap_fact(int const *farg1) {
   int fresult;
   int arg1;
   int result;
-  
+
   arg1 = *farg1;
   result = (int)fact(arg1);
   fresult = result;
   return fresult;
 }
-/* SNIP */
-</code></pre></div>
+/* SNIP */</code></pre></div>
 
 
 <p>
@@ -322,14 +319,13 @@ contains
   use, intrinsic :: ISO_C_BINDING
   integer(C_INT) :: swig_result
   integer(C_INT), intent(in) :: n
-  integer(C_INT) :: fresult 
-  integer(C_INT) :: farg1 
+  integer(C_INT) :: fresult
+  integer(C_INT) :: farg1
   farg1 = n
   fresult = swigc_fact(farg1)
   swig_result = fresult
  end function
-end module forexample
-</code></pre></div>
+end module forexample</code></pre></div>
 
 
 <p>
@@ -354,7 +350,7 @@ In the generated C wrapper code above, <code>int _wrap_fact(int const *farg1)</c
 
 
 <p>
-Note that since this function takes and returns simple data types, the C and Fortran wrapper functions have some code that could be easily simplified by hand. (A compiler with optimization enabled automatically does this, in fact.) However, for more complex data types, SWIG shows its power by generating complex expressions that seamlessly translate between C and Fortran data types without requiring user intervention.
+Note that since this function takes and returns simple data types, the C and Fortran wrapper functions have some code that could be easily simplified by hand. (A compiler with optimization enabled automatically does this, in fact.) However, for more complicated data types, SWIG shows its power by generating complex expressions that seamlessly translate between C and Fortran data types without requiring user intervention.
 </p>
 
 <H3><a name="Fortran_compiling_a_simple_fortran_program">24.2.4 Compiling a simple Fortran program</a></H3>
@@ -369,8 +365,7 @@ Several examples are provided in the SWIG source code under <code>Examples/fortr
 $CXX -c example_wrap.cxx
 $CXX -c example.cxx -o examplecxx.o
 $FC -c example.f90
-$FC runme.f90 example.o example_wrap.o examplecxx.o -lstdc++ -o run.exe
-</code></pre></div>
+$FC runme.f90 example.o example_wrap.o examplecxx.o -lstdc++ -o run.exe</code></pre></div>
 
 
 <p>
@@ -496,7 +491,45 @@ A more complete set of typemaps for the full set of integer types available in <
 The astute reader may notice the omission of <code>C_BOOL</code> from the above table. Because of the different treatment of booleans in C and Fortran, guaranteeing the sizes of the <code>bool</code> are equivalent in the two languages does <em>not</em> guarantee the equivalence of their values. See <a href="https://software.intel.com/en-us/forums/intel-fortran-compiler-for-linux-and-mac-os-x/topic/594856">this discussion topic</a> for details of the subtle compatibility, but in brief, Fortran&rsquo;s <code>.true.</code> is defined by having the least significant bit set to <code>1</code>, whereas C defines it as any nonzero value. So the value <code>2</code> would be <code>true</code> in C but <code>false</code> in Fortran. A special typemap inserts wrapper code to explicitly convert booleans between the two languages.
 </p>
 
-<H4><a name="Fortran_characters">24.3.1.3 Characters</a></H4>
+<H4><a name="Fortran_complex_numbers">24.3.1.3 Complex numbers</a></H4>
+
+
+<p>
+Complex numbers (sum of real and imaginary components on the complex plane) are supported natively by Fortran as the <code>complex</code> datatype, in C99 and higher by the <code>_Complex</code> or <code>complex</code> types, and in C++ by the <code>std::complex</code> template class. Each of the three datatypes is specified to have the same data layout as a two-element array, so they can be reinterpret-cast freely across language barriers.
+</p>
+
+
+<p>
+To enable SWIG translation of complex types to and from Fortran, simply include <code>complex.i</code> for C <em>or</em> C++ support. The following translations are performed automatically:
+</p>
+
+<table>
+<thead>
+<tr class="header">
+<th>C type</th>
+<th>C++ type</th>
+<th>Fortran type</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>float _Complex</code></td>
+<td><code>std::complex&lt;float&gt;</code></td>
+<td><code>complex(C_FLOAT_COMPLEX)</code></td>
+</tr>
+<tr class="even">
+<td><code>double _Complex</code></td>
+<td><code>std::complex&lt;double&gt;</code></td>
+<td><code>complex(C_DOUBLE_COMPLEX)</code></td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Arrays of these types can also be transformed seamlessly.
+</p>
+
+<H4><a name="Fortran_characters">24.3.1.4 Characters</a></H4>
 
 
 <p>
@@ -508,10 +541,9 @@ Since <code>char*</code>, <code>const char[]</code>, etc. typically signify char
 %fortran_intrinsic(NativeChar, character, C_CHAR)
 %apply NativeChar * { char *get_my_char_ptr };
 
-char *get_my_char_ptr();
-</code></pre></div>
+char *get_my_char_ptr();</code></pre></div>
 
-<H4><a name="Fortran_references">24.3.1.4 References</a></H4>
+<H4><a name="Fortran_references">24.3.1.5 References</a></H4>
 
 
 <p>
@@ -519,8 +551,7 @@ C mutable references are treated as Fortran pointers. Suppose a C function that 
 </p>
 
 
-<div class="code"><pre><code>double &amp;get_array_element(int x);
-</code></pre></div>
+<div class="code"><pre><code>double &amp;get_array_element(int x);</code></pre></div>
 
 
 <p>
@@ -533,14 +564,13 @@ This generates the following Fortran interface:
   use, intrinsic :: ISO_C_BINDING
   real(C_DOUBLE), pointer :: swig_result
   integer(C_INT), intent(in) :: x
-  type(C_PTR) :: fresult 
-  integer(C_INT) :: farg1 
+  type(C_PTR) :: fresult
+  integer(C_INT) :: farg1
 
   farg1 = x
   fresult = swigc_get_array_element(farg1)
   call c_f_pointer(fresult, swig_result)
-end function
-</code></pre></div>
+end function</code></pre></div>
 
 
 <p>
@@ -550,8 +580,7 @@ To set the element at array index 2 to the value 512,
 
 <div class="targetlang"><pre><code>real(C_DOUBLE), pointer :: rptr
 rptr =&gt; get_array_element(2)
-rptr = 512.0d0
-</code></pre></div>
+rptr = 512.0d0</code></pre></div>
 
 
 <p>
@@ -564,8 +593,7 @@ Unlike mutable references, <em>const</em> references to primitive arithmetic typ
 </p>
 
 
-<div class="code"><pre><code>const double &amp;get_const_array_element(int x);
-</code></pre></div>
+<div class="code"><pre><code>const double &amp;get_const_array_element(int x);</code></pre></div>
 
 
 <p>
@@ -578,14 +606,13 @@ will generate
   use, intrinsic :: ISO_C_BINDING
   real(C_DOUBLE) :: swig_result
   integer(C_INT), intent(in) :: x
-  real(C_DOUBLE) :: fresult 
-  integer(C_INT) :: farg1 
+  real(C_DOUBLE) :: fresult
+  integer(C_INT) :: farg1
 
   farg1 = x
   fresult = swigc_get_const_array_element(farg1)
   swig_result = fresult
-end function
-</code></pre></div>
+end function</code></pre></div>
 
 
 <p>
@@ -594,8 +621,7 @@ which must be called like
 
 
 <div class="targetlang"><pre><code>real(C_DOUBLE) :: rval
-rval = get_const_array_element(2)
-</code></pre></div>
+rval = get_const_array_element(2)</code></pre></div>
 
 
 <p>
@@ -605,8 +631,7 @@ Combining the two examples, you could copy the value of element 3 to element 2 w
 
 <div class="targetlang"><pre><code>real(C_DOUBLE), pointer :: rptr
 rptr =&gt; get_array_element(2)
-rptr = get_const_array_element(3)
-</code></pre></div>
+rptr = get_const_array_element(3)</code></pre></div>
 
 
 <p>
@@ -626,9 +651,8 @@ Starting with Fortran 90, strings with an unambiguous size can be dynamically al
 </p>
 
 
-<div class="targetlang"><pre><code>character(kind=C_CHAR, len=:), allocatable :: mystring
-allocate(character(kind=C_CHAR, len=123) :: mystring)
-</code></pre></div>
+<div class="targetlang"><pre><code>character(len=:), allocatable :: mystring
+allocate(character(len=123) :: mystring)</code></pre></div>
 
 
 <p>
@@ -652,15 +676,14 @@ If a function <code>char* to_string(float f);</code> emits a <code>malloc</code>
 
 
 <div class="code"><pre><code>%newobject to_string;
-char *to_string(float f);
-</code></pre></div>
+char *to_string(float f);</code></pre></div>
 
 
 <p>
 The Fortran-to-C string translation performs the following steps:
 </p>
 
-<ol>
+<ol type="1">
 <li>Allocates a character array of <code>len(string) + 1</code></li>
 <li>Copies the string contents into that array and sets the final character to <code>C_NULL_CHAR</code></li>
 <li>Saves the C pointer to the character array using <code>C_LOC</code> and the size to a small <code>SwigArrayWrapper</code> struct</li>
@@ -671,7 +694,7 @@ The Fortran-to-C string translation performs the following steps:
 The C-to-Fortran string translation is similar:
 </p>
 
-<ol>
+<ol type="1">
 <li>Use <code>strlen</code> to save the string length to <code>SwigArrayWrapper.size</code>, and save the pointer to the data; return this struct to Fortran</li>
 <li>Call <code>C_F_POINTER</code> to reinterpret the opaque C pointer as a character array</li>
 <li>Allocate a new string with a length determined by the <code>size</code> member</li>
@@ -704,8 +727,7 @@ SWIG provides a two-argument typemap for converting fixed-length byte sequences,
 
 
 <div class="code"><pre><code>%apply (char *STRING, size_t LENGTH) { (const char *buf, size_t len) }
-void send_bytes(int dst, const char *buf, size_t len);
-</code></pre></div>
+void send_bytes(int dst, const char *buf, size_t len);</code></pre></div>
 
 
 <p>
@@ -713,8 +735,7 @@ can be used in Fortran as:
 </p>
 
 
-<div class="targetlang"><pre><code>call send_bytes(123, &quot;these are&quot; // c_null_char // &quot; some bytes&quot;)
-</code></pre></div>
+<div class="targetlang"><pre><code>call send_bytes(123, &quot;these are&quot; // c_null_char // &quot; some bytes&quot;)</code></pre></div>
 
 
 <p>
@@ -722,8 +743,7 @@ The function will be passed the actual length of the byte string (9 + 1 + 10) in
 </p>
 
 
-<div class="code"><pre><code>void send_bytes(int dst, const char *buf);
-</code></pre></div>
+<div class="code"><pre><code>void send_bytes(int dst, const char *buf);</code></pre></div>
 
 
 <p>
@@ -765,8 +785,7 @@ To associate a C enumeration name with the Fortran generated wrappers, SWIG gene
   GREEN,
   BLUE,
   BLACK = -1
-};
-</code></pre></div>
+};</code></pre></div>
 
 
 <p>
@@ -780,8 +799,7 @@ looks like:
   enumerator :: BLUE
   enumerator :: BLACK = -1
  end enum
- integer, parameter, public :: MyEnum = kind(RED)
-</code></pre></div>
+ integer, parameter, public :: MyEnum = kind(RED)</code></pre></div>
 
 
 <p>
@@ -797,8 +815,7 @@ Some C++ enumeration definitions cannot be natively interpreted by a Fortran com
 <div class="code"><pre><code>enum MyWeirdEnum {
   FOO = 0x12,
   BAR = sizeof(int)
-};
-</code></pre></div>
+};</code></pre></div>
 
 
 <p>
@@ -810,8 +827,7 @@ becomes
    bind(C, name=&quot;_wrap_MyWeirdEnum_FOO&quot;) :: FOO
 integer(C_INT), protected, public, &amp;
    bind(C, name=&quot;_wrap_MyWeirdEnum_BAR&quot;) :: BAR
-integer, parameter :: MyWeirdEnum = C_INT
-</code></pre></div>
+integer, parameter :: MyWeirdEnum = C_INT</code></pre></div>
 
 
 <p>
@@ -828,8 +844,7 @@ Class-scoped enumerations are prefixed with the class name:
   enum Foo {
     Bar = 0
   };
-};
-</code></pre></div>
+};</code></pre></div>
 
 
 <p>
@@ -840,8 +855,7 @@ generates
 <div class="targetlang"><pre><code>enum, bind(c)
  enumerator :: MyStruct_Foo_Bar = 0
 end enum
-integer, parameter :: MyStruct_Foo = kind(MyStruct_Foo_Bar)
-</code></pre></div>
+integer, parameter :: MyStruct_Foo = kind(MyStruct_Foo_Bar)</code></pre></div>
 
 
 <p>
@@ -851,8 +865,7 @@ If using C++11, <code>enum class</code> will scope the enumerations by the enum 
 
 <div class="code"><pre><code>enum class Foo {
   Bar = 0
-};
-</code></pre></div>
+};</code></pre></div>
 
 
 <p>
@@ -863,8 +876,7 @@ becomes
 <div class="targetlang"><pre><code>enum, bind(c)
  enumerator :: Foo_Bar = 0
 end enum
-integer, parameter, public :: Foo = kind(Foo_Bar)
-</code></pre></div>
+integer, parameter, public :: Foo = kind(Foo_Bar)</code></pre></div>
 
 
 <p>
@@ -877,8 +889,7 @@ and
     enum class Foo {
       Bar = 0
     };
-};
-</code></pre></div>
+};</code></pre></div>
 
 
 <p>
@@ -889,8 +900,7 @@ becomes
 <div class="targetlang"><pre><code>enum, bind(c)
  enumerator :: Cls_Foo_Bar = 0
 end enum
-integer, parameter, public :: Cls_Foo = kind(Cls_Foo_Bar)
-</code></pre></div>
+integer, parameter, public :: Cls_Foo = kind(Cls_Foo_Bar)</code></pre></div>
 
 <H3><a name="Fortran_constants">24.3.7 Constants</a></H3>
 
@@ -972,8 +982,7 @@ The following example shows the behavior of the various rules above:
 #define MACRO_INT 4
 const int extern_const_int = 4;
 #define MACRO_HEX_INT 0x4
-%}
-</code></pre></div>
+%}</code></pre></div>
 
 
 <p>
@@ -990,8 +999,7 @@ will be translated to
  integer(C_INT), protected, public, &amp;
    bind(C, name=&quot;_wrap_MACRO_INT&quot;) :: MACRO_INT
  public :: get_extern_const_int
- integer(C_INT), parameter, public :: MACRO_HEX_INT = 4_C_INT
-</code></pre></div>
+ integer(C_INT), parameter, public :: MACRO_HEX_INT = 4_C_INT</code></pre></div>
 
 
 <p>
@@ -1007,8 +1015,7 @@ String constants without special characters (a backslash or anything that must b
 <div class="code"><pre><code>%fortranconst MSG_STRING;
 %inline %{
 #define MSG_STRING &quot;This is a string&quot;
-%}
-</code></pre></div>
+%}</code></pre></div>
 
 
 <p>
@@ -1016,8 +1023,7 @@ will generate
 </p>
 
 
-<div class="targetlang"><pre><code> character(kind=C_CHAR, len=*), parameter, public :: MSG_STRING = &quot;This is a string&quot;
-</code></pre></div>
+<div class="targetlang"><pre><code> character(kind=C_CHAR, len=*), parameter, public :: MSG_STRING = &quot;This is a string&quot;</code></pre></div>
 
 <H3><a name="Fortran_function_pointers">24.3.8 Function pointers</a></H3>
 
@@ -1040,8 +1046,7 @@ The following C++ SWIG input:
 <div class="code"><pre><code>%fortrancallback(&quot;%s&quot;) binary_op;
 extern &quot;C&quot; {
 int binary_op(int left, int right);
-}
-</code></pre></div>
+}</code></pre></div>
 
 
 <p>
@@ -1056,8 +1061,7 @@ generates the following interface:
   integer(C_INT), intent(in), value :: right
   integer(C_INT) :: fresult
  end function
-end interface 
-</code></pre>
+end interface</code></pre>
 
 <p>
 This allows C++ functions
@@ -1067,8 +1071,7 @@ This allows C++ functions
 <div class="code"><pre><code>%inline %{
 typedef int (*binary_op_cb)(int, int);
 int call_binary(binary_op_cb fptr, int left, int right);
-%}
-</code></pre></div>
+%}</code></pre></div>
 
 
 <p>
@@ -1083,8 +1086,7 @@ to generate Fortran functions that take a procedure as an argument:
  integer(C_INT), intent(in) :: left
  integer(C_INT), intent(in) :: right
  ! &lt;snip&gt;
-end function
-</code></pre>
+end function</code></pre>
 
 <p>
 Note that Fortran ISO C rules require the given procedure to be defined in Fortran using the <code>bind(C)</code> qualifier, as in this module-level code:
@@ -1099,8 +1101,7 @@ Note that Fortran ISO C rules require the given procedure to be defined in Fortr
   integer(C_INT) :: fresult
 
   fresult = left ** right
-end function
-</code></pre></div>
+end function</code></pre></div>
 
 <H3><a name="Fortran_unusual_types">24.3.9 Unusual types</a></H3>
 
@@ -1120,8 +1121,7 @@ Most combinations of pointers and references (such as <code>int**</code>, <code>
 </p>
 
 
-<div class="code"><pre><code>double** get_handle();
-</code></pre></div>
+<div class="code"><pre><code>double** get_handle();</code></pre></div>
 
 
 <p>
@@ -1132,8 +1132,7 @@ will generate a function with the signature
 <div class="targetlang"><pre><code>function get_handle() result(swig_result)
  use, intrinsic :: ISO_C_BINDING
  type(SWIGTYPE_p_p_double) :: swig_result
-end function
-</code></pre></div>
+end function</code></pre></div>
 
 
 <p>
@@ -1145,8 +1144,7 @@ You could define a function to convert the resulting opaque class into a native 
 double &amp;handle_to_pointer(double **val) {
   return **val;
 }
-%}
-</code></pre></div>
+%}</code></pre></div>
 
 
 <p>
@@ -1158,8 +1156,7 @@ that would return a native Fortran pointer to the data referenced by the handle:
  use, intrinsic :: ISO_C_BINDING
  real(C_DOUBLE), pointer :: swig_result
  class(SWIGTYPE_p_p_double), intent(in) :: val
-end function
-</code></pre></div>
+end function</code></pre></div>
 
 <!-- ###################################################################### -->
 
@@ -1208,8 +1205,7 @@ There is an important exception to the naming scheme described above: function o
 <div class="targetlang"><pre><code> public :: myfunc
  interface myfunc
   module procedure myfunc__SWIG_0, myfunc__SWIG_1
- end interface
-</code></pre></div>
+ end interface</code></pre></div>
 
 
 <p>
@@ -1218,15 +1214,14 @@ It should be noted that a function that returns <code>void</code> cannot be over
 
 
 <div class="code"><pre><code>void cannot_overload(int x);
-int cannot_overload(int x, int y);
-</code></pre></div>
+int cannot_overload(int x, int y);</code></pre></div>
 
 
 <p>
 will generate a <code>SWIGWARN_LANG_OVERLOAD_IGNORED</code> warning and ignore the second function. There are three ways to mitigate this warning:
 </p>
 
-<ol>
+<ol type="1">
 <li>Silence the warning and not wrap the second function: <code>%warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED) cannot_overload;</code></li>
 <li>Ignore the &ldquo;subroutine&rdquo; (function that returns void) using <code>%ignore cannot_overload(int x);</code></li>
 <li>Transform the <code>int</code>-returning function into a Fortran subroutine using the <code>%fortransubroutine</code> directive, which converts the return value to an optional argument.</li>
@@ -1240,8 +1235,7 @@ The <code>%fortransubroutine</code> directive can be used to transform any retur
 <div class="code"><pre><code>int myfunc(int x, int y);
 
 %fortransubroutine mysub;
-int mysub(int x, int y);
-</code></pre></div>
+int mysub(int x, int y);</code></pre></div>
 
 
 <p>
@@ -1262,8 +1256,7 @@ subroutine mysub(x, y, swig_result)
   integer(C_INT), intent(in) :: x
   integer(C_INT), intent(in) :: y
   integer(C_INT), intent(out), optional :: swig_result
-end subroutine
-</code></pre></div>
+end subroutine</code></pre></div>
 
 
 <p>
@@ -1285,8 +1278,7 @@ Global variables in SWIG are wrapped with &ldquo;getter&rdquo; and &ldquo;setter
 
 <div class="code"><pre><code>namespace foo {
 extern int global_counter;
-}
-</code></pre></div>
+}</code></pre></div>
 
 
 <p>
@@ -1297,8 +1289,7 @@ SWIG will generate functions with interfaces
 <div class="targetlang"><pre><code>subroutine set_global_counter(value0)
   use, intrinsic :: ISO_C_BINDING
   integer(C_INT), intent(in) :: value0
-end subroutine
-</code></pre></div>
+end subroutine</code></pre></div>
 
 
 <p>
@@ -1310,8 +1301,7 @@ and
   result(swigf_result)
   use, intrinsic :: ISO_C_BINDING
   integer(C_INT) :: swigf_result
-end function
-</code></pre></div>
+end function</code></pre></div>
 
 
 <p>
@@ -1320,13 +1310,12 @@ Although no type conversion is needed for simple integers, other global data typ
 
 
 <p>
-By default, global C/Fortran-compatible variables are treated the same as more complex C++ types. However, <a href="Fortran.html#Fortran_direct_c_binding">the <code>%fortranbindc</code> feature</a> allows natively interoperable types to be <em>directly</em> accessed in the Fortran code. A SWIG input of:
+By default, global C/Fortran-compatible variables are treated the same as more complicated C++ types. However, <a href="Fortran.html#Fortran_direct_c_binding">the <code>%fortranbindc</code> feature</a> allows natively interoperable types to be <em>directly</em> accessed in the Fortran code. A SWIG input of:
 </p>
 
 
 <div class="code"><pre><code>%fortranbindc global_counter_c;
-extern &quot;C&quot; int global_counter_c;
-</code></pre></div>
+extern &quot;C&quot; int global_counter_c;</code></pre></div>
 
 
 <p>
@@ -1334,8 +1323,7 @@ will generate a publicly accessible C-bound variable:
 </p>
 
 
-<div class="targetlang"><pre><code>integer(C_INT), public, bind(C, name=&quot;global_counter_c&quot;) :: global_counter_c
-</code></pre></div>
+<div class="targetlang"><pre><code>integer(C_INT), public, bind(C, name=&quot;global_counter_c&quot;) :: global_counter_c</code></pre></div>
 
 <H3><a name="Fortran_classes">24.4.4 Classes</a></H3>
 
@@ -1362,8 +1350,7 @@ call do_it(-3)
 if (ierr /= 0) then
   write(0,*) &quot;Got error &quot;, ierr, &quot;: &quot;, get_serr()
   ierr = 0
-endif
-</code></pre></div>
+endif</code></pre></div>
 
 
 <p>
@@ -1392,8 +1379,7 @@ void do_it(int i)
 {
   if (i &lt; 0) throw std::runtime_error(&quot;Bad value&quot;);
 }
-%}
-</code></pre></div>
+%}</code></pre></div>
 
 
 <p>
@@ -1410,8 +1396,7 @@ The error codes (<code>SWIG_RuntimeError</code>, etc.) above will be generated a
 if (ierr == SWIG_NullReferenceError) then
   write(0,*) &quot;&#39;a&#39; must be allocated before passing to &#39;get_from_reference&#39;&quot;
   stop 1
-endif
-</code></pre></div>
+endif</code></pre></div>
 
 <H4><a name="Fortran_using_exceptions_in_larger_projects_or_software_libraries">24.4.5.1 Using exceptions in larger projects or software libraries</a></H4>
 
@@ -1437,8 +1422,7 @@ In this example, the C-linkage variables generated will be <code>_scoped_ierr</c
 #define SWIG_FORTRAN_ERROR_STR scoped_get_serr
 %rename(ierr) scoped_ierr;
 %rename(get_serr) scoped_get_serr;
-%include &lt;std_except.i&gt;
-</code></pre></div>
+%include &lt;std_except.i&gt;</code></pre></div>
 
 
 <p>
@@ -1446,8 +1430,7 @@ but because of the %rename directives, they can still be accessed from Fortran w
 </p>
 
 
-<div class="targetlang"><pre><code>use foo, only : ierr, get_serr
-</code></pre></div>
+<div class="targetlang"><pre><code>use foo, only : ierr, get_serr</code></pre></div>
 
 <H4><a name="Fortran_exceptions_with_multiple_modules">24.4.5.2 Exceptions with multiple modules</a></H4>
 
@@ -1457,8 +1440,7 @@ If you&rsquo;re linking multiple modules together (using %import or otherwise), 
 </p>
 
 
-<div class="code"><pre><code>%include &lt;extern_exception.i&gt;
-</code></pre></div>
+<div class="code"><pre><code>%include &lt;extern_exception.i&gt;</code></pre></div>
 
 
 <p>
@@ -1493,8 +1475,7 @@ The default typemaps do not include support for <em>mutable</em> string referenc
 
 
 <div class="code"><pre><code>%include &lt;std_string.i&gt;
-%apply std::string { std::string&amp; }
-</code></pre></div>
+%apply std::string { std::string&amp; }</code></pre></div>
 
 <H3><a name="Fortran_stdvector">24.5.2 std::vector</a></H3>
 
@@ -1522,8 +1503,7 @@ If changing the indexing offset is abhorrent to you, or you expect your Fortran 
 <div class="code"><pre><code>  %apply size_t {std::vector&lt;CTYPE&gt;::size_type,
                  std::vector&lt;CTYPE&gt;::size_type index,
                  std::vector&lt;CTYPE&gt;::size_type start_index,
-                 std::vector&lt;CTYPE&gt;::size_type stop_index};
-</code></pre></div>
+                 std::vector&lt;CTYPE&gt;::size_type stop_index};</code></pre></div>
 
 <H3><a name="Fortran_other_c_standard_library_containers">24.5.3 Other C++ standard library containers</a></H3>
 
@@ -1567,8 +1547,7 @@ The following example shows how to apply the typemap to two different functions:
 %apply (const SWIGTYPE *DATA, size_t SIZE) { (const int *arr, size_t len) };
 
 void fill_with_zeros(double* x, int x_length);
-int accumulate(const int *arr, size_t len);
-</code></pre></div>
+int accumulate(const int *arr, size_t len);</code></pre></div>
 
 
 <p>
@@ -1581,8 +1560,7 @@ integer(C_INT), allocatable, dimension(:)  :: int_values
 integer(C_INT) :: summed
 
 call fill_with_zeros(dbl_values)
-summed = accumulate(int_values)
-</code></pre></div>
+summed = accumulate(int_values)</code></pre></div>
 
 <H3><a name="Fortran_fixed_size_array_translation">24.5.6 Fixed-size array translation</a></H3>
 
@@ -1600,8 +1578,7 @@ double cpp_sum(const double inp[3][2]);
 
 %inline %{
 int global[4] = {0,0,0,0};
-%}
-</code></pre></div>
+%}</code></pre></div>
 
 
 <p>
@@ -1617,8 +1594,7 @@ int_values(:) = 0
 int_values = get_global()
 
 dbl_values(:,:) = 1.0d0
-write(*,*) cpp_sum(dbl_values)
-</code></pre></div>
+write(*,*) cpp_sum(dbl_values)</code></pre></div>
 
 
 <p>
@@ -1649,8 +1625,7 @@ Returning a <code>std::span&lt;T&gt;</code> yields a Fortran array pointer, and 
 %template() std::span&lt;int&gt;;
 std::span&lt;int&gt; get_array_ptr();
 void set_array_ptr(std::span&lt;int&gt;&amp; arr);
-void increment(std::span&lt;int&gt; arr);
-</code></pre></div>
+void increment(std::span&lt;int&gt; arr);</code></pre></div>
 
 
 <p>
@@ -1661,8 +1636,7 @@ is usable in Fortran as
 <div class="targetlang"><pre><code>integer(C_INT), pointer :: arrptr(:)
 arrptr =&gt; get_array_ptr()
 call set_array_ptr(arrptr)
-call increment(arrptr)
-</code></pre></div>
+call increment(arrptr)</code></pre></div>
 
 
 <p>
@@ -1677,8 +1651,7 @@ One other note to be made about Fortran interoperability concerns the mismatch b
 </p>
 
 
-<div class="targetlang"><pre><code>call my_vector%resize(INT(n,C_LONG))
-</code></pre></div>
+<div class="targetlang"><pre><code>call my_vector%resize(INT(n,C_LONG))</code></pre></div>
 
 
 <p>
@@ -1686,8 +1659,7 @@ This nuisance can be simply avoided by replacing occurrences of C&rsquo;s size t
 </p>
 
 
-<div class="code"><pre><code>%apply int { std::size_t }
-</code></pre></div>
+<div class="code"><pre><code>%apply int { std::size_t }</code></pre></div>
 
 
 <p>
@@ -1712,8 +1684,7 @@ To introduce the class translation mechanism, we observe the transformation of a
 <div class="code"><pre><code>class Foo {
 public:
   void bar();
-};
-</code></pre></div>
+};</code></pre></div>
 
 
 <p>
@@ -1725,8 +1696,7 @@ into a Fortran derived type
   type(SwigClassWrapper), public :: swigdata
 contains
   procedure :: bar =&gt; swigf_Foo_bar
-end type
-</code></pre></div>
+end type</code></pre></div>
 
 
 <p>
@@ -1751,8 +1721,7 @@ type(Foo) :: g
 f = Foo()
 g = Foo(123)
 call f%do_something()
-call g%do_something_else()
-</code></pre></div>
+call g%do_something_else()</code></pre></div>
 
 <H3><a name="Fortran_destructors">24.6.2 Destructors</a></H3>
 
@@ -1763,8 +1732,7 @@ Even though the Fortran 2003 standard specifies when local variables become <em>
 
 
 <div class="targetlang"><pre><code>call f%release()
-call g%release()
-</code></pre></div>
+call g%release()</code></pre></div>
 
 
 <p>
@@ -1788,8 +1756,7 @@ Type-bound procedures in Fortran proxy classes are treated exactly the same as f
 type(Foo) :: food
 food = Foo()
 call food%do_something()
-value = food%get_something()
-</code></pre></div>
+value = food%get_something()</code></pre></div>
 
 
 <p>
@@ -1800,8 +1767,7 @@ corresponding to
 <div class="code"><pre><code>class Foo {
   void do_something();
   int get_something();
-};
-</code></pre></div>
+};</code></pre></div>
 
 
 <p>
@@ -1811,8 +1777,7 @@ Function overloading for derived types is implemented using <em>generic interfac
 
 <div class="targetlang"><pre><code>  procedure, private :: doit__SWIG_0 =&gt; swigf_Action_doit__SWIG_0
   procedure, private :: doit__SWIG_1 =&gt; swigf_Action_doit__SWIG_1
-  generic :: doit =&gt; doit__SWIG_0, doit__SWIG_1
-</code></pre></div>
+  generic :: doit =&gt; doit__SWIG_0, doit__SWIG_1</code></pre></div>
 
 
 <p>
@@ -1834,8 +1799,7 @@ For a struct
 
 <div class="code"><pre><code>struct Foo {
   int val;
-};
-</code></pre></div>
+};</code></pre></div>
 
 
 <p>
@@ -1846,8 +1810,7 @@ the interface to an instance and its data is:
 <div class="targetlang"><pre><code>type(Foo) :: f
 f = Foo()
 call f%set_val(123)
-value = f%get_val()
-</code></pre></div>
+value = f%get_val()</code></pre></div>
 
 
 <p>
@@ -1876,8 +1839,7 @@ There is no intrinsic way to <code>dynamic_cast</code> to a daughter class, but 
 Derived &amp;base_to_derived(Base &amp;b) {
     return dynamic_cast&lt;Derived &amp;&gt;(b);
 }
-%}
-</code></pre></div>
+%}</code></pre></div>
 
 
 <p>
@@ -1906,8 +1868,7 @@ Fortran&rsquo;s &ldquo;dummy argument&rdquo; for the return result of any functi
   type(Foo) :: fresult
   call fresult%release() ! always a null-op
   fresult = Foo(1234)
-end function
-</code></pre></div>
+end function</code></pre></div>
 
 
 <p>
@@ -1922,8 +1883,7 @@ The assignment operator must behave correctly in both of the following assignmen
 
 <div class="targetlang"><pre><code> type(Foo) :: a, b
  a = make_foo()
- b = a
-</code></pre></div>
+ b = a</code></pre></div>
 
 
 <p>
@@ -1967,8 +1927,7 @@ SWIG&rsquo;s default Fortran type (the <code>ftype</code> typemap) for generic t
 </p>
 
 
-<div class="code"><pre><code>%typemap(ftype) SWIGTYPE &quot;type($fortranclassname)&quot;
-</code></pre></div>
+<div class="code"><pre><code>%typemap(ftype) SWIGTYPE &quot;type($fortranclassname)&quot;</code></pre></div>
 
 
 <p>
@@ -1976,8 +1935,7 @@ The special symbol <code>$fortranclassname</code> is replaced by the symbolic na
 </p>
 
 
-<div class="code"><pre><code>%template(Vec_Dbl) std::vector&lt;double&gt;;
-</code></pre></div>
+<div class="code"><pre><code>%template(Vec_Dbl) std::vector&lt;double&gt;;</code></pre></div>
 
 
 <p>
@@ -2023,7 +1981,7 @@ SWIG Fortran extends the typemap system of SWIG with additional typemaps, modele
 
 
 <p>
-SWIG-generated Fortran code works by translating C++ data types to simple C types compatible with ISO C binding, then translating the data types to more complex Fortran data types. The C-compatible types are known as the &ldquo;intermediate layer&rdquo;.
+SWIG-generated Fortran code works by translating C++ data types to simple C types compatible with ISO C binding, then translating the data types to more complicated Fortran data types. The C-compatible types are known as the &ldquo;intermediate layer&rdquo;.
 </p>
 
 
@@ -2043,8 +2001,7 @@ The <code>ctype</code> and <code>imtype</code> each have keywords that are usual
 
 
 <div class="code"><pre><code>%typemap(ctype, out=&quot;int&quot;) int
-  &quot;const int *&quot;
-</code></pre></div>
+  &quot;const int *&quot;</code></pre></div>
 
 
 <p>
@@ -2053,8 +2010,7 @@ The <code>imtype</code> is used both as a dummy argument <em>and</em> as a tempo
 
 
 <div class="code"><pre><code>%typemap(imtype, in=&quot;integer(C_INT), intent(in)&quot;) int
-  &quot;integer(C_INT)&quot;
-</code></pre></div>
+  &quot;integer(C_INT)&quot;</code></pre></div>
 
 <H4><a name="Fortran_fortran_proxy_datatype_translation">24.7.1.2 Fortran proxy datatype translation</a></H4>
 
@@ -2064,8 +2020,7 @@ The <code>fin</code> and <code>fout</code> typemaps are Fortran proxy wrapper co
 </p>
 
 
-<div class="targetlang"><pre><code>farg1 = self%swigdata%cptr
-</code></pre></div>
+<div class="targetlang"><pre><code>farg1 = self%swigdata%cptr</code></pre></div>
 
 
 <p>
@@ -2073,8 +2028,7 @@ This argument is then passed into the C function call:
 </p>
 
 
-<div class="targetlang"><pre><code>fresult = swigc_make_class(farg1)
-</code></pre></div>
+<div class="targetlang"><pre><code>fresult = swigc_make_class(farg1)</code></pre></div>
 
 
 <p>
@@ -2082,8 +2036,7 @@ and the output is translated back via the <code>fout</code> typemap, which in th
 </p>
 
 
-<div class="targetlang"><pre><code>swig_result%swigdata%cptr = fresult
-</code></pre></div>
+<div class="targetlang"><pre><code>swig_result%swigdata%cptr = fresult</code></pre></div>
 
 <H4><a name="Fortran_allocating_local_fortran_variables_in_wrapper_codes">24.7.1.3 Allocating local Fortran variables in wrapper codes</a></H4>
 
@@ -2093,8 +2046,7 @@ Advanced SWIG users may know that
 </p>
 
 
-<div class="code"><pre><code>%typemap(in) int (double tempval) { /.../ }
-</code></pre></div>
+<div class="code"><pre><code>%typemap(in) int (double tempval) { /.../ }</code></pre></div>
 
 
 <p>
@@ -2149,8 +2101,7 @@ extern &quot;C&quot; {
 #ifdef __cplusplus
 }
 #endif
-{init}
-</code></pre></div>
+{init}</code></pre></div>
 
 
 <p>
@@ -2170,8 +2121,7 @@ interface
 end interface
 contains
  {fsubprograms}
-end module
-</code></pre></div>
+end module</code></pre></div>
 
 <H3><a name="Fortran_direct_c_binding">24.7.3 Direct C binding</a></H3>
 
@@ -2197,8 +2147,7 @@ The SWIG code:
 extern &quot;C&quot; {
 // These functions are simply bound, not wrapped.
 void print_sphere(const double origin[3], const double* radius);
-}
-</code></pre></div>
+}</code></pre></div>
 
 
 <p>
@@ -2211,8 +2160,7 @@ is translated to
   use, intrinsic :: ISO_C_BINDING
   real(C_DOUBLE), dimension(3), intent(in) :: origin
   real(C_DOUBLE), intent(in) :: radius
-end subroutine
-</code></pre></div>
+end subroutine</code></pre></div>
 
 
 <p>
@@ -2220,8 +2168,7 @@ To bind <em>all</em> functions as native C interfaces, use
 </p>
 
 
-<div class="code"><pre><code>%fortranbindc;
-</code></pre></div>
+<div class="code"><pre><code>%fortranbindc;</code></pre></div>
 
 
 <p>
@@ -2246,8 +2193,7 @@ In certain circumstances, C++ structs can be wrapped natively as Fortran <code>b
 <div class="code"><pre><code>struct BasicStruct {
   int foo;
   double bar;
-};
-</code></pre></div>
+};</code></pre></div>
 
 
 <p>
@@ -2258,8 +2204,7 @@ to
 <div class="targetlang"><pre><code>type, bind(C) :: BasicStruct
   integer(C_INT), public :: foo
   real(C_DOUBLE), public :: bar
-end type
-</code></pre></div>
+end type</code></pre></div>
 
 
 <p>
@@ -2272,8 +2217,7 @@ The C binding feature for structs must be activated using a special macro <code>
 </p>
 
 
-<div class="code"><pre><code>%fortran_struct(BasicStruct);
-</code></pre></div>
+<div class="code"><pre><code>%fortran_struct(BasicStruct);</code></pre></div>
 
 
 <p>
@@ -2294,8 +2238,7 @@ Every member of the struct must be <code>bind(C)</code> compatible. This is enfo
 <div class="code"><pre><code>%typemap(bindc) int       &quot;integer(C_INT)&quot;
 %typemap(bindc) int *     &quot;type(C_PTR)&quot;
 %typemap(bindc) int [ANY] &quot;integer(C_INT), dimension($1_dim0)&quot;
-%typemap(bindc) int [] = int *;
-</code></pre></div>
+%typemap(bindc) int [] = int *;</code></pre></div>
 
 
 <p>
@@ -2321,8 +2264,7 @@ class ForwardDeclared;
 
 void overloaded(Ignored i);
 void overloaded(ForwardDeclared f);
-void overloaded(int i);
-</code></pre></div>
+void overloaded(int i);</code></pre></div>
 
 
 <p>
@@ -2339,8 +2281,7 @@ Like any other feature, it can be applied globally and disabled on a case-by-cas
 %nofortranonlywrapped should_be_wrapped;
 
 void not_wrapped(UnknownType*);
-void should_be_wrapped(UnknownType*);
-</code></pre></div>
+void should_be_wrapped(UnknownType*);</code></pre></div>
 
 <H3><a name="Fortran_cross_language_polymorphism_using_directors">24.7.5 Cross-language polymorphism using directors</a></H3>
 
@@ -2369,8 +2310,7 @@ class Base {
 int apply(const Base&amp; b, int x) {
   return b.apply(x);
 }
-%}
-</code></pre></div>
+%}</code></pre></div>
 
 
 <p>
@@ -2391,7 +2331,7 @@ This allows a user application to declare an extended type such as:
     procedure :: apply =&gt; MyDerived_apply
   end type MyDerived
 contains
- 
+
 function MyDerived_apply(self, x) &amp;
   result(myresult)
   use, intrinsic :: ISO_C_BINDING
@@ -2401,8 +2341,7 @@ function MyDerived_apply(self, x) &amp;
 
   myresult = x * self%multiply_by + self%add_to
 end function
-end module
-</code></pre></div>
+end module</code></pre></div>
 
 
 <p>
@@ -2427,8 +2366,7 @@ The overridden procedure can be called either from Fortran <em>or</em> through e
   ASSERT(apply(myclass, 10_c_int) == 21_c_int)
 
   call myclass%release()
-end subroutine
-</code></pre></div>
+end subroutine</code></pre></div>
 
 <H4><a name="Fortran_limitations">24.7.5.1 Limitations</a></H4>
 

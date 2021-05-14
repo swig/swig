@@ -102,7 +102,7 @@ C_TEST_CASES += \
 # This test only works with modern C compilers
 #
 #C_TEST_CASES += \
-#	complextest
+#	complextest_c
 
 include $(srcdir)/../common.mk
 

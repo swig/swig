@@ -2,7 +2,6 @@
 
 %include <complex.i>
 
-#ifdef __cplusplus
 %{
 #include <algorithm>
 #include <functional>
@@ -62,27 +61,3 @@
     return b;
   }
 }
-
-
-#else
-
-
-%{
-%}
-
-%inline
-{
-  complex Conj(complex a)
-  {
-    return conj(a);
-  }
-
-
-  complex float Conjf(float complex a)
-  {
-    return conj(a);
-  }
-}
-
-
-#endif
