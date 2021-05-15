@@ -302,19 +302,7 @@
 
 /* please leave 830-849 free for C# */
 
-#define WARN_MODULA3_TYPEMAP_TYPE_UNDEF        850
-#define WARN_MODULA3_TYPEMAP_GETCPTR_UNDEF     851
-#define WARN_MODULA3_TYPEMAP_CLASSMOD_UNDEF    852
-#define WARN_MODULA3_TYPEMAP_PTRCONSTMOD_UNDEF 853
-#define WARN_MODULA3_TYPEMAP_MULTIPLE_RETURN   854
-#define WARN_MODULA3_MULTIPLE_INHERITANCE      855
-#define WARN_MODULA3_TYPECONSTRUCTOR_UNKNOWN   856
-#define WARN_MODULA3_UNKNOWN_PRAGMA            857
-#define WARN_MODULA3_BAD_ENUMERATION           858
-#define WARN_MODULA3_DOUBLE_ID                 859
-#define WARN_MODULA3_BAD_IMPORT                860
-
-/* please leave 850-869 free for Modula 3 */
+/* 850-860 were used by Modula 3 (removed in SWIG 4.1.0) - avoid reusing for now */
 
 #define WARN_PHP_MULTIPLE_INHERITANCE         870
 #define WARN_PHP_UNKNOWN_PRAGMA               871

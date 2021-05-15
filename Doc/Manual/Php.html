@@ -426,10 +426,12 @@ taking the integer argument.
 
 <H3><a name="Php_nn2_5">32.2.5 Pointers and References</a></H3>
 
-
 <p>
-Pointers to C/C++ objects are represented
-as PHP resources, rather like MySQL connection handles.
+Since SWIG 4.1.0, SWIG wraps C/C++ classes directly with PHP objects.
+Pointers to other types are also wrapped as PHP objects - mostly this is an
+implementation detail, but it's visible from PHP via <tt>is_object()</tt> and
+similar.  In earlier SWIG versions, PHP resources were used to wrap both
+classes and pointers to other types.
 </p>
 
 <p>
@@ -557,11 +559,16 @@ variable, or assigning <tt>NULL</tt> to a variable.
 
 
 <p>
-SWIG defaults to wrapping C++ structs and classes with PHP classes - this
-is done by generating a PHP wrapper script which defines proxy classes
-which calls a set of flat functions which actually wrap the C++ class.
-You can disable this wrapper layer by passing the command-line option
-"-noproxy" in which case you'll just get the flat functions.
+SWIG defaults to wrapping C++ structs and classes with PHP classes.
+Since SWIG 4.1.0, this is done entirely via PHP's C API - earlier SWIG
+versions generated a PHP wrapper script which defined proxy classes
+which called a set of flat functions which actually wrapped the C++ class.
+</p>
+
+<p>
+If you don't want the class wrappers, you can pass the command-line option
+"-noproxy" in which case you'll get C++ classes wrapped as flat functions
+as described below.
 </p>
 
 <p>
@@ -650,8 +657,8 @@ constructor to execute.
 </p>
 
 <p>
-Because PHP uses reference counting to manage resources, simple
-assignment of one variable to another such as:
+Because PHP uses reference counting, simple assignment of one variable to
+another such as:
 </p>
 
 <div class="code"><pre>
@@ -862,7 +869,7 @@ into the request init (PHP_RINIT_FUNCTION) and request shutdown (PHP_RSHUTDOWN_F
 Proxy classes provide a more natural, object-oriented way to access
 extension classes. As described above, each proxy instance has an
 associated C++ instance, and method calls to the proxy are passed to the
-C++ instance transparently via C wrapper functions.
+C++ instance transparently.
 </p>
 
 <p>

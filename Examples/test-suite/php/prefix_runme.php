@@ -5,7 +5,7 @@ require "tests.php";
 // No new functions
 check::functions(array());
 // New classes
-check::classes(array('ProjectFoo'));
+check::classes(array('ProjectBar','ProjectFoo'));
 // No new vars
 check::globals(array());
 

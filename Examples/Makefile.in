@@ -1251,46 +1251,6 @@ lua_clean:
 	rm -f *.@OBJEXT@ *$(LUA_SO)
 
 ##################################################################
-#####                   ALLEGRO CL                          ######
-##################################################################
-
-ALLEGROCL    = @ALLEGROCLBIN@
-ALLEGROCL_SCRIPT=$(RUNME).lisp
-
-allegrocl: $(SRCDIR_SRCS)
-	$(SWIG) -allegrocl -cwrap $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(INCLUDES) $(SRCDIR_SRCS)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
-allegrocl_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -allegrocl $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
-# -----------------------------------------------------------------
-# Run ALLEGRO CL example
-# -----------------------------------------------------------------
-
-allegrocl_run:
-	$(RUNTOOL) $(ALLEGROCL) -batch -s $(ALLEGROCL_SCRIPT) $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-allegrocl_version:
-	$(ALLEGROCL) --version
-
-# -----------------------------------------------------------------
-# Cleaning the ALLEGRO CL examples
-# -----------------------------------------------------------------
-
-allegrocl_clean:
-	rm -f *_wrap* *~ .~*
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@
-
-##################################################################
 #####                      CFFI                             ######
 ##################################################################
 

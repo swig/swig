@@ -227,7 +227,7 @@ int CFFI::classHandler(Node *n) {
 int CFFI::constructorHandler(Node *n) {
 #ifdef CFFI_DEBUG
   Printf(stderr, "constructor %s\n", Getattr(n, "name"));
-  Printf(stderr, "constructor %s\n and %s and %s", Getattr(n, "kind"), Getattr(n, "sym:name"), Getattr(n, "allegrocl:old-sym:name"));
+  Printf(stderr, "constructor %s\n and %s", Getattr(n, "kind"), Getattr(n, "sym:name"));
 #endif
   Setattr(n, "cffi:constructorfunction", "1");
   // Let SWIG generate a global forwarding function.
