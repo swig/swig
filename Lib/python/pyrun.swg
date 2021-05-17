@@ -296,7 +296,6 @@ SwigPyClientData_New(PyObject* obj)
           Py_DECREF(data->newraw);
           Py_DECREF(data->klass);
           free(data);
-          PyErr_NoMemory();
           return 0;
         }
       } else {
@@ -355,10 +354,7 @@ SwigPyObject_get___dict__(PyObject *v, PyObject *SWIGUNUSEDPARM(args))
   if (!sobj->dict)
     sobj->dict = PyDict_New();
 
-  if (!sobj->dict)
-    return PyErr_NoMemory();
-
-  Py_INCREF(sobj->dict);
+  Py_XINCREF(sobj->dict);
   return sobj->dict;
 }
 
