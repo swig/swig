@@ -7,8 +7,8 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
-2021-05-12: adr26
-            #1985 [Python] Fix memory leaks:
+2021-05-17: adr26
+            [Python] #1985 Fix memory leaks:
 
             1. Python object references were being incorrectly retained by
             SwigPyClientData, causing swig_varlink_dealloc() never to run / free
@@ -32,6 +32,41 @@ Version 4.1.0 (in progress)
             6. Add error handling for PyModule_AddObject() to
             SWIG_Python_SetModule() (failure could be caused by OOM or a name
             clash caused by malicious code)
+
+2021-05-13: olly
+	    [UFFI] #2009 Remove code for Common Lisp UFFI.  We dropped support
+	    for it in SWIG 4.0.0 and nobody has stepped forward to revive it in
+	    over 2 years.
+
+2021-05-13: olly
+	    [S-EXP] #2009 Remove code for Common Lisp S-Exp.  We dropped
+	    support for it in SWIG 4.0.0 and nobody has stepped forward to
+	    revive it in over 2 years.
+
+2021-05-13: olly
+	    [Pike] #2009 Remove code for Pike.  We dropped support for it in
+	    SWIG 4.0.0 and nobody has stepped forward to revive it in over 2
+	    years.
+
+2021-05-13: olly
+	    [Modula3] #2009 Remove code for Modula3.  We dropped support for it
+	    in SWIG 4.0.0 and nobody has stepped forward to revive it in over 2
+	    years.
+
+2021-05-13: olly
+	    [CLISP] #2009 Remove code for GNU Common Lisp.  We dropped support
+	    for it in SWIG 4.0.0 and nobody has stepped forward to revive it in
+	    over 2 years.
+
+2021-05-13: olly
+	    [Chicken] #2009 Remove code for Chicken.  We dropped support for it
+	    in SWIG 4.0.0 and nobody has stepped forward to revive it in over 2
+	    years.
+
+2021-05-13: olly
+	    [Allegrocl] #2009 Remove code for Allegro Common Lisp.  We dropped
+	    support for it in SWIG 4.0.0 and nobody has stepped forward to
+	    revive it in over 2 years.
 
 2021-05-04: olly
 	    [PHP] #1982 #1457 https://sourceforge.net/p/swig/bugs/1339/
