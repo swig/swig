@@ -743,7 +743,7 @@ SwigPyObject_TypeOnce(void) {
     };
     swigpyobject_type = tmp;
     type_init = 1;
-    if (PyType_Ready(&swigpyobject_type) < 0)
+    if (PyType_Ready(&swigpyobject_type) != 0)
       return NULL;
   }
   return &swigpyobject_type;
@@ -913,7 +913,7 @@ SwigPyPacked_TypeOnce(void) {
     };
     swigpypacked_type = tmp;
     type_init = 1;
-    if (PyType_Ready(&swigpypacked_type) < 0)
+    if (PyType_Ready(&swigpypacked_type) != 0)
       return NULL;
   }
   return &swigpypacked_type;
@@ -1427,7 +1427,7 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
 #endif
   PyObject *pointer = PyCapsule_New((void *) swig_module, SWIGPY_CAPSULE_NAME, SWIG_Python_DestroyModule);
   if (pointer && module) {
-    if (PyModule_AddObject(module, "type_pointer_capsule" SWIG_TYPE_TABLE_NAME, pointer) < 0) {
+    if (PyModule_AddObject(module, "type_pointer_capsule" SWIG_TYPE_TABLE_NAME, pointer) != 0) {
       Py_DECREF(pointer);
     }
   } else {
@@ -1593,7 +1593,7 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
   }
 
   if (!tp->tp_dict) {
-    if (PyType_Ready(tp) < 0)
+    if (PyType_Ready(tp) != 0)
       goto done;
   }
 
