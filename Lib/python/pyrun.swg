@@ -130,6 +130,7 @@ SWIG_Python_AppendOutput(PyObject* result, PyObject* obj) {
       if (result) {
         PyList_SET_ITEM(result, 0, o2);
       } else {
+        Py_DECREF(obj);
         return o2;
       }
     }
@@ -408,18 +409,23 @@ SwigPyObject_repr(SwigPyObject *v)
 {
   const char *name = SWIG_TypePrettyName(v->ty);
   PyObject *repr = SWIG_Python_str_FromFormat("<Swig Object of type '%s' at %p>", (name ? name : "unknown"), (void *)v);
-  if (v->next) {
+  if (repr && v->next) {
     PyObject *nrep = SwigPyObject_repr((SwigPyObject *)v->next);
+    if (nrep) {
 # if PY_VERSION_HEX >= 0x03000000
-    PyObject *joined = PyUnicode_Concat(repr, nrep);
-    Py_DecRef(repr);
-    Py_DecRef(nrep);
-    repr = joined;
+      PyObject *joined = PyUnicode_Concat(repr, nrep);
+      Py_DecRef(repr);
+      Py_DecRef(nrep);
+      repr = joined;
 # else
-    PyString_ConcatAndDel(&repr,nrep);
+      PyString_ConcatAndDel(&repr,nrep);
 # endif
+    } else {
+      Py_DecRef(repr);
+      repr = NULL;
+    }
   }
-  return repr;  
+  return repr;
 }
 
 /* We need a version taking two PyObject* parameters so it's a valid
@@ -515,8 +521,12 @@ SwigPyObject_dealloc(PyObject *v)
       if (data->delargs) {
         /* we need to create a temporary object to carry the destroy operation */
         PyObject *tmp = SwigPyObject_New(sobj->ptr, ty, 0);
-        res = SWIG_Python_CallFunctor(destroy, tmp);
-        Py_DECREF(tmp);
+        if (tmp) {
+          res = SWIG_Python_CallFunctor(destroy, tmp);
+        } else {
+          res = 0;
+        }
+        Py_XDECREF(tmp);
       } else {
         PyCFunction meth = PyCFunction_GET_FUNCTION(destroy);
         PyObject *mself = PyCFunction_GET_SELF(destroy);
@@ -595,11 +605,10 @@ SwigPyObject_own(PyObject *v, PyObject *args)
     PyObject *obj = PyBool_FromLong(sobj->own);
     if (val) {
       if (PyObject_IsTrue(val)) {
-        SwigPyObject_acquire(v,args);
+        Py_DECREF(SwigPyObject_acquire(v,args));
       } else {
-        SwigPyObject_disown(v,args);
+        Py_DECREF(SwigPyObject_disown(v,args));
       }
-      Py_DECREF(Py_None);
     } 
     return obj;
   }
@@ -1221,12 +1230,17 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
 #if !defined(SWIG_PYTHON_SLOW_GETSET_THIS)
       PyObject **dictptr = _PyObject_GetDictPtr(inst);
       if (dictptr != NULL) {
-	PyObject *dict = *dictptr;
-	if (dict == NULL) {
-	  dict = PyDict_New();
-	  *dictptr = dict;
-	  PyDict_SetItem(dict, SWIG_This(), swig_this);
-	}
+        PyObject *dict = *dictptr;
+        if (dict == NULL) {
+          dict = PyDict_New();
+          *dictptr = dict;
+        }
+        if (dict) {
+          PyDict_SetItem(dict, SWIG_This(), swig_this);
+        } else{
+          Py_DECREF(inst);
+          inst = 0;
+        }
       }
 #else
       if (PyObject_SetAttr(inst, SWIG_This(), swig_this) == -1) {
@@ -1277,7 +1291,11 @@ SWIG_Python_SetSwigThis(PyObject *inst, PyObject *swig_this)
       dict = PyDict_New();
       *dictptr = dict;
     }
-    return PyDict_SetItem(dict, SWIG_This(), swig_this);
+    if (dict) {
+      return PyDict_SetItem(dict, SWIG_This(), swig_this);
+    } else{
+      return -1;
+    }
   }
 #endif
   return PyObject_SetAttr(inst, SWIG_This(), swig_this);
@@ -1292,7 +1310,7 @@ SWIG_Python_InitShadowInstance(PyObject *args) {
   } else {
     SwigPyObject *sthis = SWIG_Python_GetSwigThis(obj[0]);
     if (sthis) {
-      SwigPyObject_append((PyObject*) sthis, obj[1]);
+      Py_DECREF(SwigPyObject_append((PyObject*) sthis, obj[1]));
     } else {
       if (SWIG_Python_SetSwigThis(obj[0], obj[1]) != 0)
         return NULL;
@@ -1449,8 +1467,10 @@ SWIG_Python_TypeQuery(const char *type)
     descriptor = SWIG_TypeQueryModule(swig_module, swig_module, type);
     if (descriptor) {
       obj = PyCapsule_New((void*) descriptor, NULL, NULL);
-      PyDict_SetItem(cache, key, obj);
-      Py_DECREF(obj);
+      if (obj) {
+        PyDict_SetItem(cache, key, obj);
+        Py_DECREF(obj);
+      }
     }
   }
   Py_DECREF(key);
@@ -1608,7 +1628,7 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
     } else {
       encoded_name = PyUnicode_AsUTF8String(name);
       if (!encoded_name)
-        return -1;
+        goto done;
     }
     PyErr_Format(PyExc_AttributeError, "'%.100s' object has no attribute '%.200s'", tp->tp_name, PyString_AsString(encoded_name));
     Py_DECREF(encoded_name);
