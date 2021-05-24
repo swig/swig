@@ -41,7 +41,25 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
     if (cptr) {
       if (alloc) {
 	if (*alloc == SWIG_NEWOBJ) {
-	  *cptr = %new_copy_array(cstr, len + 1, char);
+%#if defined(__cplusplus)
+	  try {
+	    *cptr = %new_array(len + 1, char);
+	  } catch( const std::exception& ) {
+%#if PY_VERSION_HEX>=0x03000000 && !defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
+	    Py_XDECREF(obj);
+%#endif
+	    throw;
+	  }
+%#else
+	  *cptr = %new_array(len + 1, char);
+	  if (!(*cptr)) {
+%#if PY_VERSION_HEX>=0x03000000 && !defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
+	    Py_XDECREF(obj);
+%#endif
+	    return SWIG_MemoryError;
+	  }
+%#endif
+	  memcpy(*cptr, cstr, len + 1);
 	  *alloc = SWIG_NEWOBJ;
 	} else {
 	  *cptr = cstr;
@@ -83,7 +101,21 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
       if (PyString_AsStringAndSize(obj, &cstr, &len) != -1) {
         if (cptr) {
           if (alloc) *alloc = SWIG_NEWOBJ;
-          *cptr = %new_copy_array(cstr, len + 1, char);
+%#if defined(__cplusplus)
+          try {
+            *cptr = %new_array(len + 1, char);
+          } catch( const std::exception& ) {
+            Py_XDECREF(obj);
+            throw;
+          }
+%#else
+          *cptr = %new_array(len + 1, char);
+          if (!(*cptr)) {
+            Py_XDECREF(obj);
+            return SWIG_MemoryError;
+          }
+%#endif
+          memcpy(*cptr, cstr, len + 1);
         }
         if (psize) *psize = len + 1;
 
