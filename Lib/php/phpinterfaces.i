@@ -3,77 +3,58 @@
  *
  * Define "known" PHP interfaces.
  *
- * These are accessible at MINIT time.  Any interface can be added via
- * phpinterfaces by looking up by name, but that has to wait until RINIT
- * time, which means it happens for every request.
+ * These can be added at MINIT time (which is when PHP loads the extension
+ * module).
+ *
+ * Any interface can be added via phpinterfaces, but looking up the
+ * zend_class_entry by name has to wait until RINIT time, which means it
+ * happens for every request.
  * ----------------------------------------------------------------------------- */
 
 // Note: Abstract interfaces such as "Traversable" can't be used in
-// "implements" so we don't include them here.
+// "implements" so are not relevant here.
 
-%fragment("zend_interfaces.h", "header") %{
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "zend_interfaces.h"
-#ifdef __cplusplus
-}
-#endif
-%}
+%insert(header) %{
 
-%fragment("ext/spl/spl_iterators.h", "header") %{
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "ext/spl/spl_iterators.h"
-#ifdef __cplusplus
-}
-#endif
-%}
+#define SWIG_PHP_INTERFACE_Iterator_CE zend_ce_iterator
+#define SWIG_PHP_INTERFACE_Iterator_HEADER "zend_interfaces.h"
 
-%fragment("ext/spl/spl_observer.h", "header") %{
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "ext/spl/spl_observer.h"
-#ifdef __cplusplus
-}
-#endif
-%}
+#define SWIG_PHP_INTERFACE_IteratorAggregate_CE zend_ce_aggregate
+#define SWIG_PHP_INTERFACE_IteratorAggregate_HEADER "zend_interfaces.h"
 
-%fragment("ext/date/php_date.h", "header") %{
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "ext/date/php_date.h"
-#ifdef __cplusplus
-}
-#endif
-%}
+#define SWIG_PHP_INTERFACE_ArrayAccess_CE zend_ce_arrayaccess
+#define SWIG_PHP_INTERFACE_ArrayAccess_HEADER "zend_interfaces.h"
 
-%fragment("ext/json/php_json.h", "header") %{
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "ext/json/php_json.h"
-#ifdef __cplusplus
-}
-#endif
-%}
+#define SWIG_PHP_INTERFACE_Serializable_CE zend_ce_serializable
+#define SWIG_PHP_INTERFACE_Serializable_HEADER "zend_interfaces.h"
 
-%feature("phpinterface:Iterator", fragment="zend_interfaces.h") "zend_ce_iterator";
-%feature("phpinterface:IteratorAggregate", fragment="zend_interfaces.h") "zend_ce_aggregate";
-%feature("phpinterface:ArrayAccess", fragment="zend_interfaces.h") "zend_ce_arrayaccess";
-%feature("phpinterface:Serializable", fragment="zend_interfaces.h") "zend_ce_serializable";
-%feature("phpinterface:Countable", fragment="zend_interfaces.h") "zend_ce_countable";
-%feature("phpinterface:OuterIterator", fragment="ext/spl/spl_iterators.h") "spl_ce_OuterIterator";
-%feature("phpinterface:RecursiveIterator", fragment="ext/spl/spl_iterators.h") "spl_ce_RecursiveIterator";
-%feature("phpinterface:SeekableIterator", fragment="ext/spl/spl_iterators.h") "spl_ce_SeekableIterator";
-%feature("phpinterface:SplObserver", fragment="ext/spl/spl_observer.h") "spl_ce_SplObserver";
-%feature("phpinterface:SplSubject", fragment="ext/spl/spl_observer.h") "spl_ce_SplSubject";
-%feature("phpinterface:DateTimeInterface", fragment="ext/date/php_date.h") "php_date_get_interface_ce()";
+#define SWIG_PHP_INTERFACE_Countable_CE zend_ce_countable
+#define SWIG_PHP_INTERFACE_Countable_HEADER "zend_interfaces.h"
+
+#define SWIG_PHP_INTERFACE_OuterIterator_CE spl_ce_OuterIterator
+#define SWIG_PHP_INTERFACE_OuterIterator_HEADER "ext/spl/spl_iterators.h"
+
+#define SWIG_PHP_INTERFACE_RecursiveIterator_CE spl_ce_RecursiveIterator
+#define SWIG_PHP_INTERFACE_RecursiveIterator_HEADER "ext/spl/spl_iterators.h"
+
+#define SWIG_PHP_INTERFACE_SeekableIterator_CE spl_ce_SeekableIterator
+#define SWIG_PHP_INTERFACE_SeekableIterator_HEADER "ext/spl/spl_iterators.h"
+
+#define SWIG_PHP_INTERFACE_SplObserver_CE spl_ce_SplObserver
+#define SWIG_PHP_INTERFACE_SplObserver_HEADER "ext/spl/spl_observer.h"
+
+#define SWIG_PHP_INTERFACE_SplSubject_CE spl_ce_SplSubject
+#define SWIG_PHP_INTERFACE_SplSubject_HEADER "ext/spl/spl_observer.h"
+
+#define SWIG_PHP_INTERFACE_DateTimeInterface_CE php_date_get_interface_ce()
+#define SWIG_PHP_INTERFACE_DateTimeInterface_HEADER "ext/date/php_date.h"
+
 // The "json" extension needs to be loaded earlier that us for this to work.
-%feature("phpinterface:JsonSerializable", fragment="ext/json/php_json.h") "php_json_serializable_ce";
+#define SWIG_PHP_INTERFACE_JsonSerializable_CE php_json_serializable_ce
+#define SWIG_PHP_INTERFACE_JsonSerializable_HEADER "ext/json/php_json.h"
 
 // New in PHP 8.0.
-%feature("phpinterface:Stringable", fragment="zend_interfaces.h") "zend_ce_stringable";
+#define SWIG_PHP_INTERFACE_Stringable_CE zend_ce_stringable
+#define SWIG_PHP_INTERFACE_Stringable_HEADER "zend_interfaces.h"
+
+%}
