@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-05-04: olly
+	    [PHP] #2014 Throw exceptions instead of using errors
+
+	    Parameter type errors and some other cases in SWIG-generated wrappers
+	    now throw a PHP exception, which is how PHP's native parameter handling
+	    deals with similar situations.
+
 2021-05-17: adr26
             [Python] #1985 Fix memory leaks:
 

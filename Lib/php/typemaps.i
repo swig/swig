@@ -276,7 +276,8 @@ INT_TYPEMAP(unsigned long long);
     /* So... we didn't get a ref or ptr, but we'll accept NULL by reference */
     if (!(Z_ISREF($input) && Z_ISNULL_P(Z_REFVAL($input)))) {
       /* wasn't a pre/ref/thing, OR anything like an int thing */
-      SWIG_PHP_Error(E_ERROR, "Type error in argument $arg of $symname.");
+      zend_type_error("Expected reference or NULL for argument $arg of $symname");
+      SWIG_FAIL;
     }
   }
   force=0;

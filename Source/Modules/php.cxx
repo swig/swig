@@ -830,9 +830,7 @@ public:
 
     Printv(f->code, dispatch, "\n", NIL);
 
-    Printf(f->code, "SWIG_ErrorCode() = E_ERROR;\n");
-    Printf(f->code, "SWIG_ErrorMsg() = \"No matching function for overloaded '%s'\";\n", symname);
-    Printv(f->code, "SWIG_FAIL();\n", NIL);
+    Printf(f->code, "zend_throw_exception(zend_ce_type_error, \"No matching function for overloaded '%s'\", 0);\n", symname);
     Printv(f->code, "thrown:\n", NIL);
     Printv(f->code, "return;\n", NIL);
     Printv(f->code, "}\n", NIL);
@@ -924,7 +922,10 @@ public:
     Printf(f->code, "  zval args[2];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
     Printf(f->code, "  if(ZEND_NUM_ARGS() != 2 || zend_get_parameters_array_ex(2, args) != SUCCESS) {\n");
     Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
-    Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
+    Printf(f->code, "  if (!arg) {\n");
+    Printf(f->code, "    zend_throw_exception(zend_ce_type_error, \"this pointer is NULL\", 0);\n");
+    Printf(f->code, "    return;\n");
+    Printf(f->code, "  }\n");
     Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
 
     Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n");
@@ -963,7 +964,10 @@ public:
     Printf(f->code, "  zval args[1];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
     Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
     Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
-    Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
+    Printf(f->code, "  if (!arg) {\n");
+    Printf(f->code, "    zend_throw_exception(zend_ce_type_error, \"this pointer is NULL\", 0);\n");
+    Printf(f->code, "    return;\n");
+    Printf(f->code, "  }\n");
     Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
 
     Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n");
@@ -997,7 +1001,9 @@ public:
     Printf(f->code, "  zval args[1];\n  zend_string *arg2 = 0;\n\n");
     Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
     Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
-    Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
+    Printf(f->code, "  if(!arg) {\n");
+    Printf(f->code, "    zend_throw_exception(zend_ce_type_error, \"this pointer is NULL\", 0);\n");
+    Printf(f->code, "  }\n");
     Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
 
     Printf(f->code, "if (!arg2) {\n  RETVAL_FALSE;\n}\n");
@@ -1301,7 +1307,10 @@ public:
 	Setattr(p, "emit:input", source);
 	Printf(f->code, "%s\n", tm);
 	if (i == 0 && Getattr(p, "self")) {
-	  Printf(f->code, "\tif(!arg1) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n");
+	  Printf(f->code, "\tif(!arg1) {\n");
+	  Printf(f->code, "\t  zend_throw_exception(zend_ce_type_error, \"this pointer is NULL\", 0);\n");
+	  Printf(f->code, "\t  return;\n");
+	  Printf(f->code, "\t}\n");
 	}
 	p = Getattr(p, "tmap:in:next");
 	if (i >= num_required) {
@@ -1820,7 +1829,9 @@ public:
       Printf(director_ctor_code, "if (Swig::Director::swig_is_overridden_method(\"%s\", arg0)) { /* not subclassed */\n", class_name);
       Printf(director_prot_ctor_code, "if (Swig::Director::swig_is_overridden_method(\"%s\", arg0)) { /* not subclassed */\n", class_name);
       Printf(director_ctor_code, "  %s = new %s(%s);\n", Swig_cresult_name(), ctype, args);
-      Printf(director_prot_ctor_code, "  SWIG_PHP_Error(E_ERROR, \"accessing abstract class or protected constructor\");\n");
+      Printf(director_prot_ctor_code,
+	     "  zend_throw_exception(zend_ce_type_error, \"accessing abstract class or protected constructor\", 0);\n"
+	     "  return;\n");
       if (i) {
 	Insert(args, 0, ", ");
       }
