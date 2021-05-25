@@ -8,11 +8,33 @@ Version 4.1.0 (in progress)
 ===========================
 
 2021-05-04: olly
-	    [PHP] #2014 Throw exceptions instead of using errors
+	    [PHP] #2014 Throw PHP exceptions instead of using PHP errors
 
-	    Parameter type errors and some other cases in SWIG-generated wrappers
-	    now throw a PHP exception, which is how PHP's native parameter handling
-	    deals with similar situations.
+	    PHP exceptions can be caught and handled if desired, but if they
+	    aren't caught then PHP exits in much the same way as it does for a
+	    PHP error.
+
+	    In particular this means parameter type errors and some other cases
+	    in SWIG-generated wrappers now throw a PHP exception, which matches
+	    how PHP's native parameter handling deals with similar situations.
+
+	    `SWIG_ErrorCode()`, `SWIG_ErrorMsg()`, `SWIG_FAIL()` and `goto thrown;`
+	    are no longer supported (these are really all internal implementation
+	    details and none are documented aside from brief mentions in CHANGES
+	    for the first three).  I wasn't able to find any uses in user interface
+	    files at least in FOSS code via code search tools.
+
+	    If you are using these:
+
+	    Use `SWIG_PHP_Error(code,msg);` instead of `SWIG_ErrorCode(code);
+	    SWIG_ErrorMsg(msg);` (which will throw a PHP exception in SWIG >= 4.1
+	    and do the same as the individual calls in older SWIG).
+
+	    `SWIG_FAIL();` and `goto thrown;` can typically be replaced with
+	    `SWIG_fail;`.  This will probably also work with older SWIG, but
+	    please test with your wrappers if this is important to you.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
 
 2021-05-17: adr26
             [Python] #1985 Fix memory leaks:

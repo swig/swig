@@ -277,7 +277,7 @@ INT_TYPEMAP(unsigned long long);
     if (!(Z_ISREF($input) && Z_ISNULL_P(Z_REFVAL($input)))) {
       /* wasn't a pre/ref/thing, OR anything like an int thing */
       zend_type_error("Expected reference or NULL for argument $arg of $symname");
-      SWIG_FAIL;
+      return;
     }
   }
   force=0;

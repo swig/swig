@@ -96,7 +96,7 @@
 %{
   if (SWIG_ConvertPtr($input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL) {
     zend_type_error("Expected $&1_descriptor for argument $argnum of $symname");
-    goto thrown;
+    SWIG_fail;
   }
   $result = *tmp;
 %}
@@ -115,7 +115,7 @@
 %{
   if (SWIG_ConvertPtrAndOwn($input, (void **)&$result, $1_descriptor, SWIG_POINTER_DISOWN, &own) < 0) {
     zend_type_error("Expected $1_descriptor for argument $argnum of $symname");
-    goto thrown;
+    SWIG_fail;
   }
   swig_acquire_ownership_obj((void*)$result, own);
 %}
@@ -134,7 +134,7 @@
 %{
   if (SWIG_ConvertPtr($input, (void **) &tmp, $1_descriptor, 0) < 0 || tmp == NULL) {
     zend_type_error("Expected $1_descriptor for argument $argnum of $symname");
-    goto thrown;
+    SWIG_fail;
   }
   $result = tmp;
 %}

@@ -58,15 +58,12 @@ static zend_always_inline void *zend_object_alloc(size_t obj_size, zend_class_en
 
 #define SWIG_fail goto fail
 
-// If there's an active PHP exception, just return so it can propagate.
-#define SWIG_FAIL() do { if (!EG(exception)) zend_error_noreturn(SWIG_ErrorCode(), "%s", SWIG_ErrorMsg()); goto thrown; } while (0)
-
 static const char *default_error_msg = "Unknown error occurred";
 static int default_error_code = E_ERROR;
 
 #define SWIG_PHP_Arg_Error_Msg(argnum,extramsg) "Error in argument " #argnum " "#extramsg
 
-#define SWIG_PHP_Error(code,msg) do { SWIG_ErrorCode() = code; SWIG_ErrorMsg() = msg; SWIG_fail; } while (0)
+#define SWIG_PHP_Error(code,msg) do { zend_throw_exception(NULL, msg, code); SWIG_fail; } while (0)
 
 #define SWIG_contract_assert(expr,msg) \
   do { if (!(expr)) zend_printf("Contract Assert Failed %s\n", msg); } while (0)
@@ -102,7 +99,7 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
   }
 
   if (!type->clientdata) {
-    zend_error(E_ERROR, "Type: %s not registered with zend", type->name);
+    zend_type_error("Type: %s not registered with zend", type->name);
     return;
   }
 

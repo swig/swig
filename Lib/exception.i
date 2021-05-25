@@ -25,7 +25,7 @@
     code == SWIG_DivisionByZero ? zend_ce_division_by_zero_error : \
     code == SWIG_SyntaxError ? zend_ce_parse_error : \
     code == SWIG_OverflowError ? zend_ce_arithmetic_error : \
-    NULL, msg, code); goto thrown; } while (0)
+    NULL, msg, code); SWIG_fail; } while (0)
 %}
 #endif
 

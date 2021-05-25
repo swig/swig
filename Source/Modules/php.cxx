@@ -359,29 +359,7 @@ public:
 
     /* Initialize the rest of the module */
 
-    Printf(s_oinit, "  ZEND_INIT_MODULE_GLOBALS(%s, %s_init_globals, NULL);\n", module, module);
-
     /* start the header section */
-    Printf(s_header, "ZEND_BEGIN_MODULE_GLOBALS(%s)\n", module);
-    Printf(s_header, "const char *error_msg;\n");
-    Printf(s_header, "int error_code;\n");
-    Printf(s_header, "ZEND_END_MODULE_GLOBALS(%s)\n", module);
-    Printf(s_header, "ZEND_DECLARE_MODULE_GLOBALS(%s)\n", module);
-    Printf(s_header, "#define SWIG_ErrorMsg() ZEND_MODULE_GLOBALS_ACCESSOR(%s, error_msg)\n", module);
-    Printf(s_header, "#define SWIG_ErrorCode() ZEND_MODULE_GLOBALS_ACCESSOR(%s, error_code)\n", module);
-
-    Printf(s_header, "static void %s_init_globals(zend_%s_globals *globals ) {\n", module, module);
-    Printf(s_header, "  globals->error_msg = default_error_msg;\n");
-    Printf(s_header, "  globals->error_code = default_error_code;\n");
-    Printf(s_header, "}\n");
-
-    Printf(s_header, "static void SWIG_ResetError(void) {\n");
-    Printf(s_header, "  SWIG_ErrorMsg() = default_error_msg;\n");
-    Printf(s_header, "  SWIG_ErrorCode() = default_error_code;\n");
-    Printf(s_header, "}\n");
-
-    Append(s_header, "\n");
-
     Printf(s_header, "#define SWIG_name  \"%s\"\n", module);
     Printf(s_header, "#ifdef __cplusplus\n");
     Printf(s_header, "extern \"C\" {\n");
@@ -831,7 +809,7 @@ public:
     Printv(f->code, dispatch, "\n", NIL);
 
     Printf(f->code, "zend_throw_exception(zend_ce_type_error, \"No matching function for overloaded '%s'\", 0);\n", symname);
-    Printv(f->code, "thrown:\n", NIL);
+    Printv(f->code, "fail:\n", NIL);
     Printv(f->code, "return;\n", NIL);
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, s_wrappers);
@@ -947,12 +925,8 @@ public:
       Printf(f->code, "add_property_zval_ex(ZEND_THIS, ZSTR_VAL(arg2), ZSTR_LEN(arg2), &args[1]);\n}\n");
     }
 
-    Printf(f->code, "thrown:\n");
-    Printf(f->code, "return;\n");
-
-    /* Error handling code */
     Printf(f->code, "fail:\n");
-    Append(f->code, "SWIG_FAIL();\n");
+    Printf(f->code, "return;\n");
     Printf(f->code, "}\n\n\n");
 
 
@@ -984,12 +958,8 @@ public:
       Printf(f->code, "RETVAL_NULL();\n}\n");
     }
 
-    Printf(f->code, "thrown:\n");
-    Printf(f->code, "return;\n");
-
-    /* Error handling code */
     Printf(f->code, "fail:\n");
-    Append(f->code, "SWIG_FAIL();\n");
+    Printf(f->code, "return;\n");
     Printf(f->code, "}\n\n\n");
 
 
@@ -1020,12 +990,8 @@ public:
       Printf(f->code, "RETVAL_FALSE;\n}\n");
     }
 
-    Printf(f->code, "thrown:\n");
-    Printf(f->code, "return;\n");
-
-    /* Error handling code */
     Printf(f->code, "fail:\n");
-    Append(f->code, "SWIG_FAIL();\n");
+    Printf(f->code, "return;\n");
     Printf(f->code, "}\n\n\n");
 
     Wrapper_print(f, s_wrappers);
@@ -1243,8 +1209,6 @@ public:
 
     // NOTE: possible we ignore this_ptr as a param for native constructor
 
-    Printf(f->code, "SWIG_ResetError();\n");
-
     if (numopt > 0) {		// membervariable wrappers do not have optional args
       Wrapper_add_local(f, "arg_count", "int arg_count");
       Printf(f->code, "arg_count = ZEND_NUM_ARGS();\n");
@@ -1420,14 +1384,9 @@ public:
     }
 
     if (!static_setter) {
-      Printf(f->code, "thrown:\n");
-      Printf(f->code, "return;\n");
-
-      /* Error handling code */
       Printf(f->code, "fail:\n");
       Printv(f->code, cleanup, NIL);
-      Append(f->code, "SWIG_FAIL();\n");
-
+      Printf(f->code, "return;\n");
       Printf(f->code, "}\n");
     }
 
@@ -2186,7 +2145,7 @@ public:
       Delete(outarg);
     }
 
-    Append(w->code, "thrown:\n");
+    Append(w->code, "fail: ;\n");
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
 	String *rettype = SwigType_str(returntype, 0);
@@ -2197,12 +2156,7 @@ public:
 	}
 	Delete(rettype);
       }
-    } else {
-      Append(w->code, "return;\n");
     }
-
-    Append(w->code, "fail:\n");
-    Append(w->code, "SWIG_FAIL();\n");
     Append(w->code, "}\n");
 
     // We expose protected methods via an extra public inline method which makes a straight call to the wrapped class' method
