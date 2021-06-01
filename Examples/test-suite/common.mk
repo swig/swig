@@ -336,6 +336,7 @@ CPP_TEST_CASES += \
 	newobject1 \
 	newobject3 \
 	null_pointer \
+	numeric_bounds_checking \
 	operator_overload \
 	operator_overload_break \
 	operator_pointer_ref \
