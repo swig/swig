@@ -443,7 +443,7 @@ int SWIG_Ruby_arity( VALUE proc, int minimal )
 {
   if ( rb_respond_to( proc, swig_arity_id ) )
     {
-      VALUE num = rb_funcall( proc, swig_arity_id, 0 );
+      VALUE num = rb_funcall2( proc, swig_arity_id, 0, 0 );
       int arity = NUM2INT(num);
       if ( arity < 0 && (arity+1) < -minimal ) return 1;
       if ( arity == minimal ) return 1;
