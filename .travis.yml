@@ -411,7 +411,7 @@ matrix:
     - compiler: clang
       os: osx
       osx_image: xcode12.2
-      env: SWIGLANG=octave SWIGJOBS=-j4 CPP11=1
+      env: SWIGLANG=octave SWIGJOBS=-j8 CPP11=1
     - compiler: clang
       os: osx
       osx_image: xcode12.2
