@@ -80,6 +80,7 @@ static VALUE swig_runtime_data_type_pointer = Qnil;
 /* Global IDs used to keep some internal SWIG stuff */
 static ID swig_arity_id = 0;
 static ID swig_call_id  = 0;
+static ID swig_lowerthan_id = 0;
 
 /*
   If your swig extension is to be run within an embedded ruby and has
@@ -144,6 +145,7 @@ SWIG_Ruby_InitRuntime(void)
     _mSWIG = rb_define_module("SWIG");
     swig_call_id  = rb_intern("call");
     swig_arity_id = rb_intern("arity");
+    swig_lowerthan_id = rb_intern("<");
   }
 }
 

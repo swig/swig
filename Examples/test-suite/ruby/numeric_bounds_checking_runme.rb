@@ -28,7 +28,7 @@ types.each do |t|
   swig_assert_equal("checker.#{meth}(#{max})", "#{max}", binding)
 
   # check outside bounds
-  [ min - 1, max + 1].each do |val|
+  [ min - 1, max + 1 ].each do |val|
     ok = false
     begin
       ret = checker.send("#{meth}", val)
