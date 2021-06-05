@@ -137,6 +137,10 @@ matrix:
       dist: bionic   # Octave v4.2.2
     - compiler: gcc
       os: linux
+      env: SWIGLANG=octave SWIGJOBS=-j2 CPP11=1
+      dist: focal   # Octave v5.2.0
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=perl5
       dist: xenial
     - compiler: gcc
@@ -411,7 +415,7 @@ matrix:
     - compiler: clang
       os: osx
       osx_image: xcode12.2
-      env: SWIGLANG=octave SWIGJOBS=-j8 CPP11=1
+      env: SWIGLANG=octave SWIGJOBS=-j3 CPP11=1
     - compiler: clang
       os: osx
       osx_image: xcode12.2
