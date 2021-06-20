@@ -4971,6 +4971,60 @@ int print_args(char **argv) {
 </pre></div>
 
 <p>
+  The following SWIG interface file allows a Python3 list
+  object to be used as a <tt>char **</tt> object.
+</p>
+
+
+<div class="code"><pre>
+  %module argv
+
+  // This tells SWIG to treat char ** as a special case
+  %typemap(in) char ** {
+    /* Check if is a list */
+    if (PyList_Check($input)) {
+      int size = PyList_Size($input);
+      int i = 0;
+      $1 = (char **) malloc((size+1)*sizeof(char *));
+      for (i = 0; i < size; i++) {
+        PyObject *o = PyList_GetItem($input, i);
+        if (PyUnicode_Check(o)) {
+          $1[i] = strdup(PyUnicode_AsUTF8(o));
+        } else {
+          free($1);
+          PyErr_SetString(PyExc_TypeError, "list must contain strings");
+          SWIG_fail;
+        }
+      }
+      $1[i] = 0;
+    } else {
+      PyErr_SetString(PyExc_TypeError, "not a list");
+      SWIG_fail;
+    }
+  }
+
+  // This cleans up the char ** array we malloc'd before the function call
+  %typemap(freearg) char ** {
+    free((char *) $1);
+  }
+
+  // Now a test function
+  %inline %{
+  int print_args(char **argv) {
+    int i = 0;
+    while (argv[i]) {
+      printf("argv[%d] = %s\n", i, argv[i]);
+      i++;
+    }
+    return i;
+  }
+  %}
+
+
+  </pre></div>
+
+<p>
+
 When this module is compiled, the wrapped C function now operates as
 follows :
 </p>
@@ -5112,6 +5166,40 @@ TypeError: Wrong number or type of arguments for overloaded function 'foo'.
     foo()
 </pre>
 </div>
+
+<p>
+  Similarly for Python 3
+</p>
+
+
+<div class="code"><pre>
+%typemap(in) (int argc, char **argv) {
+  /* Check if is a list */
+  if (PyList_Check($input)) {
+    int i;
+    $1 = PyList_Size($input);
+    $2 = (char **) malloc(($1 + 1)*sizeof(char *));
+    for (i = 0; i < $1; i++) {
+      PyObject *o = PyList_GetItem($input, i);
+      if (PyUnicode_Check(o)) {
+        $2[i] = strdup(PyUnicode_AsUTF8(o));
+      } else {
+        free($2);
+        PyErr_SetString(PyExc_TypeError, "list must contain strings");
+        SWIG_fail;
+      }
+    }
+    $2[i] = 0;
+  } else {
+    PyErr_SetString(PyExc_TypeError, "not a list");
+    SWIG_fail;
+  }
+}
+
+%typemap(freearg) (int argc, char **argv) {
+  free((char *) $2);
+}
+</pre></div>
 
 <H3><a name="Python_nn61">33.9.3 Using typemaps to return arguments</a></H3>
 
