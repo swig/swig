@@ -1,0 +1,6 @@
+#! /bin/sh
+if [ $1 = "-p" ] ; then
+  flatpak run --env="OCTLIBDIR=$OCTLIBDIR" --command=mkoctfile org.octave.Octave $* | sed --expression s/\\/app\\//\\/var\\/lib\\/flatpak\\/app\\/org.octave.Octave\\/current\\/active\\/files\\//g
+else
+  flatpak run --env="OCTLIBDIR=$OCTLIBDIR" --command=mkoctfile org.octave.Octave $*
+fi

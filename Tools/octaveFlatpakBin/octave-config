@@ -1,0 +1,2 @@
+    #! /bin/sh
+    flatpak run --command=octave-config org.octave.Octave $*
