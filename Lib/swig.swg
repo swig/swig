@@ -672,7 +672,11 @@ template<typename T> class SwigValueWrapper {
   SwigValueWrapper(const SwigValueWrapper<T>& rhs);
 public:
   SwigValueWrapper() : pointer(0) { }
+#if __cplusplus >= 201103L
+  SwigValueWrapper& operator=(T t) { SwigMovePointer tmp(new T(std::move(t))); pointer = tmp; return *this; }
+#else
   SwigValueWrapper& operator=(const T& t) { SwigMovePointer tmp(new T(t)); pointer = tmp; return *this; }
+#endif
   operator T&() const { return *pointer.ptr; }
   T *operator&() { return pointer.ptr; }
 };%}
