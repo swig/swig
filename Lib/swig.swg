@@ -660,6 +660,7 @@ namespace std {
 #ifdef __cplusplus
 %insert("runtime") %{
 #ifdef __cplusplus
+#include <utility>
 /* SwigValueWrapper is described in swig.swg */
 template<typename T> class SwigValueWrapper {
   struct SwigMovePointer {
