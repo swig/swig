@@ -1,6 +1,11 @@
 #! /bin/sh
+OctAppDir=`flatpak info --system --show-location org.octave.Octave`/files
+octaveVersion=`flatpak run --command=octave org.octave.Octave  --eval 'printf("%s\n",version)'`
+OCTLIBDIR=$OctAppDir/lib/octave/$octaveVersion
 if [ $1 = "-p" ] ; then
-  flatpak run --env="OCTLIBDIR=$OCTLIBDIR" --command=mkoctfile org.octave.Octave $* | sed --expression s/\\/app\\//\\/var\\/lib\\/flatpak\\/app\\/org.octave.Octave\\/current\\/active\\/files\\//g
+  flatpak run --env="OCTLIBDIR=$OCTLIBDIR" --command=mkoctfile org.octave.Octave $* \
+    | sed --expression s/\\/app\\//${OctAppDir}\\//g
 else
   flatpak run --env="OCTLIBDIR=$OCTLIBDIR" --command=mkoctfile org.octave.Octave $*
 fi
+
