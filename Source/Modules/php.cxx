@@ -359,29 +359,7 @@ public:
 
     /* Initialize the rest of the module */
 
-    Printf(s_oinit, "  ZEND_INIT_MODULE_GLOBALS(%s, %s_init_globals, NULL);\n", module, module);
-
     /* start the header section */
-    Printf(s_header, "ZEND_BEGIN_MODULE_GLOBALS(%s)\n", module);
-    Printf(s_header, "const char *error_msg;\n");
-    Printf(s_header, "int error_code;\n");
-    Printf(s_header, "ZEND_END_MODULE_GLOBALS(%s)\n", module);
-    Printf(s_header, "ZEND_DECLARE_MODULE_GLOBALS(%s)\n", module);
-    Printf(s_header, "#define SWIG_ErrorMsg() ZEND_MODULE_GLOBALS_ACCESSOR(%s, error_msg)\n", module);
-    Printf(s_header, "#define SWIG_ErrorCode() ZEND_MODULE_GLOBALS_ACCESSOR(%s, error_code)\n", module);
-
-    Printf(s_header, "static void %s_init_globals(zend_%s_globals *globals ) {\n", module, module);
-    Printf(s_header, "  globals->error_msg = default_error_msg;\n");
-    Printf(s_header, "  globals->error_code = default_error_code;\n");
-    Printf(s_header, "}\n");
-
-    Printf(s_header, "static void SWIG_ResetError(void) {\n");
-    Printf(s_header, "  SWIG_ErrorMsg() = default_error_msg;\n");
-    Printf(s_header, "  SWIG_ErrorCode() = default_error_code;\n");
-    Printf(s_header, "}\n");
-
-    Append(s_header, "\n");
-
     Printf(s_header, "#define SWIG_name  \"%s\"\n", module);
     Printf(s_header, "#ifdef __cplusplus\n");
     Printf(s_header, "extern \"C\" {\n");
@@ -830,10 +808,8 @@ public:
 
     Printv(f->code, dispatch, "\n", NIL);
 
-    Printf(f->code, "SWIG_ErrorCode() = E_ERROR;\n");
-    Printf(f->code, "SWIG_ErrorMsg() = \"No matching function for overloaded '%s'\";\n", symname);
-    Printv(f->code, "SWIG_FAIL();\n", NIL);
-    Printv(f->code, "thrown:\n", NIL);
+    Printf(f->code, "zend_throw_exception(zend_ce_type_error, \"No matching function for overloaded '%s'\", 0);\n", symname);
+    Printv(f->code, "fail:\n", NIL);
     Printv(f->code, "return;\n", NIL);
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, s_wrappers);
@@ -924,7 +900,10 @@ public:
     Printf(f->code, "  zval args[2];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
     Printf(f->code, "  if(ZEND_NUM_ARGS() != 2 || zend_get_parameters_array_ex(2, args) != SUCCESS) {\n");
     Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
-    Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
+    Printf(f->code, "  if (!arg) {\n");
+    Printf(f->code, "    zend_throw_exception(zend_ce_type_error, \"this pointer is NULL\", 0);\n");
+    Printf(f->code, "    return;\n");
+    Printf(f->code, "  }\n");
     Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
 
     Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n");
@@ -946,12 +925,8 @@ public:
       Printf(f->code, "add_property_zval_ex(ZEND_THIS, ZSTR_VAL(arg2), ZSTR_LEN(arg2), &args[1]);\n}\n");
     }
 
-    Printf(f->code, "thrown:\n");
-    Printf(f->code, "return;\n");
-
-    /* Error handling code */
     Printf(f->code, "fail:\n");
-    Append(f->code, "SWIG_FAIL();\n");
+    Printf(f->code, "return;\n");
     Printf(f->code, "}\n\n\n");
 
 
@@ -963,7 +938,10 @@ public:
     Printf(f->code, "  zval args[1];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
     Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
     Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
-    Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
+    Printf(f->code, "  if (!arg) {\n");
+    Printf(f->code, "    zend_throw_exception(zend_ce_type_error, \"this pointer is NULL\", 0);\n");
+    Printf(f->code, "    return;\n");
+    Printf(f->code, "  }\n");
     Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
 
     Printf(f->code, "if (!arg2) {\n  RETVAL_NULL();\n}\n");
@@ -980,12 +958,8 @@ public:
       Printf(f->code, "RETVAL_NULL();\n}\n");
     }
 
-    Printf(f->code, "thrown:\n");
-    Printf(f->code, "return;\n");
-
-    /* Error handling code */
     Printf(f->code, "fail:\n");
-    Append(f->code, "SWIG_FAIL();\n");
+    Printf(f->code, "return;\n");
     Printf(f->code, "}\n\n\n");
 
 
@@ -997,7 +971,9 @@ public:
     Printf(f->code, "  zval args[1];\n  zend_string *arg2 = 0;\n\n");
     Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
     Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
-    Printf(f->code, "  if(!arg) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n\n");
+    Printf(f->code, "  if(!arg) {\n");
+    Printf(f->code, "    zend_throw_exception(zend_ce_type_error, \"this pointer is NULL\", 0);\n");
+    Printf(f->code, "  }\n");
     Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
 
     Printf(f->code, "if (!arg2) {\n  RETVAL_FALSE;\n}\n");
@@ -1014,12 +990,8 @@ public:
       Printf(f->code, "RETVAL_FALSE;\n}\n");
     }
 
-    Printf(f->code, "thrown:\n");
-    Printf(f->code, "return;\n");
-
-    /* Error handling code */
     Printf(f->code, "fail:\n");
-    Append(f->code, "SWIG_FAIL();\n");
+    Printf(f->code, "return;\n");
     Printf(f->code, "}\n\n\n");
 
     Wrapper_print(f, s_wrappers);
@@ -1237,8 +1209,6 @@ public:
 
     // NOTE: possible we ignore this_ptr as a param for native constructor
 
-    Printf(f->code, "SWIG_ResetError();\n");
-
     if (numopt > 0) {		// membervariable wrappers do not have optional args
       Wrapper_add_local(f, "arg_count", "int arg_count");
       Printf(f->code, "arg_count = ZEND_NUM_ARGS();\n");
@@ -1301,7 +1271,10 @@ public:
 	Setattr(p, "emit:input", source);
 	Printf(f->code, "%s\n", tm);
 	if (i == 0 && Getattr(p, "self")) {
-	  Printf(f->code, "\tif(!arg1) SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");\n");
+	  Printf(f->code, "\tif(!arg1) {\n");
+	  Printf(f->code, "\t  zend_throw_exception(zend_ce_type_error, \"this pointer is NULL\", 0);\n");
+	  Printf(f->code, "\t  return;\n");
+	  Printf(f->code, "\t}\n");
 	}
 	p = Getattr(p, "tmap:in:next");
 	if (i >= num_required) {
@@ -1411,14 +1384,9 @@ public:
     }
 
     if (!static_setter) {
-      Printf(f->code, "thrown:\n");
-      Printf(f->code, "return;\n");
-
-      /* Error handling code */
       Printf(f->code, "fail:\n");
       Printv(f->code, cleanup, NIL);
-      Append(f->code, "SWIG_FAIL();\n");
-
+      Printf(f->code, "return;\n");
       Printf(f->code, "}\n");
     }
 
@@ -1635,26 +1603,64 @@ public:
       Setline(node, Getline(n));
       String *interfaces = Swig_typemap_lookup("phpinterfaces", node, "", 0);
       Replaceall(interfaces, " ", "");
-      if (interfaces) {
-	// It seems we need to wait until RINIT time to look up classes.
-	// The downside is that this then happens for every request.
-	Printf(r_init, "{\n");
-        List *interface_list = Split(interfaces, ',', -1);
-        int num_interfaces = Len(interface_list);
-        String *append_interface = NewStringEmpty();
-        for(int Iterator = 1; Iterator <= num_interfaces; Iterator++) {
-          String *interface = Getitem(interface_list, Iterator-1);
-          String *interface_ce = NewStringEmpty();
-          Printf(interface_ce, "php_%s_interface_ce_%d" , class_name , Iterator);
-          Printf(r_init, "  zend_class_entry *%s = zend_lookup_class(zend_string_init(\"%s\", sizeof(\"%s\") - 1, 0));\n", interface_ce, interface, interface);
-          Append(append_interface, interface_ce);
-          Append(append_interface, " ");
-        }
-        Chop(append_interface);
-        Replaceall(append_interface, " ", ",");
-        Printf(r_init, "  zend_class_implements(SWIGTYPE_%s_ce, %d, %s);\n", class_name, num_interfaces, append_interface);
-	Printf(r_init, "}\n");
+      if (interfaces && Len(interfaces) > 0) {
+	// It seems we need to wait until RINIT time to look up class entries
+	// for interfaces by name.  The downside is that this then happens for
+	// every request.
+	//
+	// Most pre-defined interfaces are accessible via zend_class_entry*
+	// variables declared in the PHP C API - these we can use at MINIT
+	// time, so we special case them.  This will also be a little faster
+	// than looking up by name.
+	Printv(s_header,
+	       "#ifdef __cplusplus\n",
+	       "extern \"C\" {\n",
+	       "#endif\n",
+	       NIL);
+
+	String *r_init_prefix = NewStringEmpty();
+
+	List *interface_list = Split(interfaces, ',', -1);
+	int num_interfaces = Len(interface_list);
+	for (int i = 0; i < num_interfaces; ++i) {
+	  String *interface = Getitem(interface_list, i);
+	  // We generate conditional code in both minit and rinit - then we or the user
+	  // just need to define SWIG_PHP_INTERFACE_xxx_CE (and optionally
+	  // SWIG_PHP_INTERFACE_xxx_CE) to handle interface `xxx` at minit-time.
+	  Printv(s_header,
+		 "#ifdef SWIG_PHP_INTERFACE_", interface, "_HEADER\n",
+		 "# include SWIG_PHP_INTERFACE_", interface, "_HEADER\n",
+		 "#endif\n",
+		 NIL);
+	  Printv(s_oinit,
+		 "#ifdef SWIG_PHP_INTERFACE_", interface, "_CE\n",
+		 "  zend_do_implement_interface(SWIGTYPE_", class_name, "_ce, SWIG_PHP_INTERFACE_", interface, "_CE);\n",
+		 "#endif\n",
+		 NIL);
+	  Printv(r_init_prefix,
+		 "#ifndef SWIG_PHP_INTERFACE_", interface, "_CE\n",
+		 "  {\n",
+		 "    zend_class_entry *swig_interface_ce = zend_lookup_class(zend_string_init(\"", interface, "\", sizeof(\"", interface, "\") - 1, 0));\n",
+		 "    if (!swig_interface_ce) zend_throw_exception(zend_ce_error, \"Interface \\\"", interface, "\\\" not found\", 0);\n",
+		 "    zend_do_implement_interface(SWIGTYPE_", class_name, "_ce, swig_interface_ce);\n",
+		 "  }\n",
+		 "#endif\n",
+		 NIL);
+	}
+
+	// Handle interfaces at the start of rinit so that they're added
+	// before any potential constant objects, etc which might be created
+	// later in rinit.
+	Insert(r_init, 0, r_init_prefix);
+	Delete(r_init_prefix);
+
+	Printv(s_header,
+	       "#ifdef __cplusplus\n",
+	       "}\n",
+	       "#endif\n",
+	       NIL);
       }
+      Delete(interfaces);
     }
 
     Printf(s_oinit, "  SWIGTYPE_%s_ce->create_object = %s_object_new;\n", class_name, class_name);
@@ -1782,7 +1788,9 @@ public:
       Printf(director_ctor_code, "if (Swig::Director::swig_is_overridden_method(\"%s\", arg0)) { /* not subclassed */\n", class_name);
       Printf(director_prot_ctor_code, "if (Swig::Director::swig_is_overridden_method(\"%s\", arg0)) { /* not subclassed */\n", class_name);
       Printf(director_ctor_code, "  %s = new %s(%s);\n", Swig_cresult_name(), ctype, args);
-      Printf(director_prot_ctor_code, "  SWIG_PHP_Error(E_ERROR, \"accessing abstract class or protected constructor\");\n");
+      Printf(director_prot_ctor_code,
+	     "  zend_throw_exception(zend_ce_type_error, \"accessing abstract class or protected constructor\", 0);\n"
+	     "  return;\n");
       if (i) {
 	Insert(args, 0, ", ");
       }
@@ -2137,7 +2145,7 @@ public:
       Delete(outarg);
     }
 
-    Append(w->code, "thrown:\n");
+    Append(w->code, "fail: ;\n");
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
 	String *rettype = SwigType_str(returntype, 0);
@@ -2148,12 +2156,7 @@ public:
 	}
 	Delete(rettype);
       }
-    } else {
-      Append(w->code, "return;\n");
     }
-
-    Append(w->code, "fail:\n");
-    Append(w->code, "SWIG_FAIL();\n");
     Append(w->code, "}\n");
 
     // We expose protected methods via an extra public inline method which makes a straight call to the wrapped class' method

@@ -86,7 +86,8 @@
 %typemap(in) SWIGTYPE ($&1_ltype tmp)
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL) {
-    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
+    zend_type_error("Expected $&1_descriptor for argument $argnum of $symname");
+    return;
   }
   $1 = *tmp;
 %}
@@ -94,7 +95,8 @@
 %typemap(directorout) SWIGTYPE ($&1_ltype tmp)
 %{
   if (SWIG_ConvertPtr($input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL) {
-    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
+    zend_type_error("Expected $&1_descriptor for argument $argnum of $symname");
+    SWIG_fail;
   }
   $result = *tmp;
 %}
@@ -103,7 +105,8 @@
 	     SWIGTYPE []
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0) {
-    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
+    zend_type_error("Expected $1_descriptor for argument $argnum of $symname");
+    return;
   }
 %}
 
@@ -111,7 +114,8 @@
 		      SWIGTYPE [] (swig_owntype own)
 %{
   if (SWIG_ConvertPtrAndOwn($input, (void **)&$result, $1_descriptor, SWIG_POINTER_DISOWN, &own) < 0) {
-    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
+    zend_type_error("Expected $1_descriptor for argument $argnum of $symname");
+    SWIG_fail;
   }
   swig_acquire_ownership_obj((void*)$result, own);
 %}
@@ -120,7 +124,8 @@
              SWIGTYPE &&
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL) {
-    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
+    zend_type_error("Expected $1_descriptor for argument $argnum of $symname");
+    return;
   }
 %}
 
@@ -128,7 +133,8 @@
 		      SWIGTYPE && ($1_ltype tmp)
 %{
   if (SWIG_ConvertPtr($input, (void **) &tmp, $1_descriptor, 0) < 0 || tmp == NULL) {
-    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
+    zend_type_error("Expected $1_descriptor for argument $argnum of $symname");
+    SWIG_fail;
   }
   $result = tmp;
 %}
@@ -136,7 +142,8 @@
 %typemap(in) SWIGTYPE *const& ($*ltype temp)
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &temp, $*1_descriptor, 0) < 0) {
-    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $*1_descriptor");
+    zend_type_error("Expected $*1_descriptor for argument $argnum of $symname");
+    return;
   }
   $1 = ($1_ltype)&temp;
 %}
@@ -144,7 +151,8 @@
 %typemap(in) SWIGTYPE *DISOWN
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, SWIG_POINTER_DISOWN) < 0) {
-    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
+    zend_type_error("Expected $1_descriptor for argument $argnum of $symname");
+    return;
   }
 %}
 
@@ -157,10 +165,12 @@
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &$1, 0, 0) < 0) {
     /* Allow NULL from php for void* */
-    if (Z_ISNULL($input))
+    if (Z_ISNULL($input)) {
       $1=0;
-    else
-      SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
+    } else {
+      zend_type_error("Expected $1_descriptor for argument $argnum of $symname");
+      return;
+    }
   }
 %}
 
@@ -175,7 +185,8 @@
     /* So... we didn't get a ref or ptr, but we'll accept NULL by reference */
     if (!(Z_ISREF($input) && Z_ISNULL_P(Z_REFVAL($input)))) {
       /* wasn't a pre/ref/thing, OR anything like an int thing */
-      SWIG_PHP_Error(E_ERROR, "Type error in argument $arg of $symname.");
+      zend_throw_exception(zend_ce_type_error, "Type error in argument $arg of $symname", 0);
+      return;
     }
   }
   force=0;
@@ -547,3 +558,6 @@
 
 /* php keywords */
 %include <phpkw.swg>
+
+/* PHP known interfaces */
+%include <phpinterfaces.i>

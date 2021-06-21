@@ -3,9 +3,7 @@
 #include <vector>
 %}
 
-#ifndef SWIGCHICKEN
 %include "std_common.i"
-#endif
 
 %inline
 {

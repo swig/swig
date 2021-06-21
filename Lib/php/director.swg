@@ -137,8 +137,8 @@ namespace Swig {
         swig_msg += " ";
         swig_msg += msg;
       }
-      SWIG_ErrorCode() = code;
-      SWIG_ErrorMsg() = swig_msg.c_str();
+      // Don't replace an already active PHP exception.
+      if (!EG(exception)) zend_throw_exception(NULL, swig_msg.c_str(), code);
     }
 
     virtual ~DirectorException() throw() {
