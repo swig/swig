@@ -2694,6 +2694,7 @@ public:
 	Replaceall(imcall, "$imfuncname", intermediary_function_name);
       }
 
+      Replaceall(tm, "$imfuncname", intermediary_function_name);
       Replaceall(tm, "$jnicall", imcall);
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, "No javaout typemap defined for %s\n", SwigType_str(t, 0));
