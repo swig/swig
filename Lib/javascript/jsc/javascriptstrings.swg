@@ -8,34 +8,32 @@ SWIG_JSC_AsCharPtrAndSize(JSContextRef context, JSValueRef valRef, char** cptr, 
   if(JSValueIsString(context, valRef)) {
     JSStringRef js_str = JSValueToStringCopy(context, valRef, NULL);
     size_t len = JSStringGetMaximumUTF8CStringSize(js_str);
-    char* cstr = (char*) %new_array(len, char);
-    /* JSStringGetUTF8CString returns the length including 0-terminator */
-    len = JSStringGetUTF8CString(js_str, cstr, len);
-
-    if(alloc) *alloc = SWIG_NEWOBJ;
-    if(psize) *psize = len;
-    if(cptr) *cptr = cstr;
-
-    return SWIG_OK;
-  } else {
-    if(JSValueIsObject(context, valRef)) {
-      JSObjectRef obj = JSValueToObject(context, valRef, NULL);
-      // try if the object is a wrapped char[]
-      swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
-      if (pchar_descriptor) {
-        void* vptr = 0;
-        if (SWIG_ConvertPtr(obj, &vptr, pchar_descriptor, 0) == SWIG_OK) {
-          if (cptr) *cptr = (char *) vptr;
-          if (psize) *psize = vptr ? (strlen((char *)vptr) + 1) : 0;
-          if (alloc) *alloc = SWIG_OLDOBJ;
-          return SWIG_OK;
-        }
-      }
-      return SWIG_TypeError;
+    if(cptr) {
+      *cptr = %new_array(len, char);
+      /* JSStringGetUTF8CString returns the length including 0-terminator */
+      len = JSStringGetUTF8CString(js_str, *cptr, len);
+      if(alloc) *alloc = SWIG_NEWOBJ;
     } else {
-      return SWIG_TypeError;
+      if(alloc) *alloc = SWIG_OLDOBJ;
     }
+    if(psize) *psize = len;
+    return SWIG_OK;
+  } else if(JSValueIsObject(context, valRef)) {
+    JSObjectRef obj = JSValueToObject(context, valRef, NULL);
+    // try if the object is a wrapped char[]
+    swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
+    if(pchar_descriptor) {
+      void* vptr = 0;
+      if (SWIG_ConvertPtr(obj, &vptr, pchar_descriptor, 0) == SWIG_OK) {
+        if (cptr) *cptr = (char *) vptr;
+        if (psize) *psize = vptr ? (strlen((char *)vptr) + 1) : 0;
+        if (alloc) *alloc = SWIG_OLDOBJ;
+        return SWIG_OK;
+      }
+    }
+    return SWIG_TypeError;
   }
+  return SWIG_TypeError;
 }
 }
 
