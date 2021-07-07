@@ -207,8 +207,8 @@ namespace swig {
                        (VALUEFUNC(swig_rescue_swallow)), Qnil);
       }
       if (ret == Qnil) {
-        VALUE a = rb_funcall(         _obj, hash_id, 0 );
-        VALUE b = rb_funcall( VALUE(other), hash_id, 0 );
+        VALUE a = rb_funcall2(         _obj, hash_id, 0, 0 );
+        VALUE b = rb_funcall2( VALUE(other), hash_id, 0, 0 );
         res = op_func(a, b);
       } else {
         res = RTEST(ret);

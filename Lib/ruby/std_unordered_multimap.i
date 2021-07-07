@@ -23,7 +23,7 @@
 	int res = SWIG_ERROR;
 	if ( TYPE(obj) == T_HASH ) {
 	  static ID id_to_a = rb_intern("to_a");
-	  VALUE items = rb_funcall(obj, id_to_a, 0);
+	  VALUE items = rb_funcall2(obj, id_to_a, 0, 0);
 	  return traits_asptr_stdseq<std::unordered_multimap<K,T,Hash,Compare,Alloc>, std::pair<K, T> >::asptr(items, val);
 	} else {
 	  multimap_type *p;
