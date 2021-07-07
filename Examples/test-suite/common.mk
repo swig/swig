@@ -547,6 +547,7 @@ CPP_TEST_CASES += \
 	using_directive_and_declaration_forward \
 	using_extend \
 	using_inherit \
+	using_member \
 	using_namespace \
 	using_namespace_loop \
 	using_pointers \
