@@ -817,8 +817,8 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
 	Append(type, tsuffix);
 	Delete(targs);
 	Delete(tsuffix);
-	Delete(rtprefix);
       }
+      Delete(rtprefix);
       Delete(tprefix);
     }
 
