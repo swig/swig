@@ -1237,17 +1237,17 @@ else
     SCILAB_MAINTENANCE_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f3`
     SCILAB_VERSION="$SCILAB_MAJOR_VERSION$SCILAB_MINOR_VERSION$SCILAB_MAINTENANCE_VERSION"
 
-    if test $SCILAB_VERSION -ge 533; then
-      AC_MSG_RESULT(yes)
+    if test -n "$SCILAB_VERSION" && test "$SCILAB_VERSION" -ge 533; then
+      AC_MSG_RESULT(yes - $SCILAB_FULL_VERSION)
     else
-      AC_MSG_RESULT(no)
+      AC_MSG_RESULT(no - $SCILAB_FULL_VERSION)
       SCILAB=
     fi
 
     if test -n "$SCILAB"; then
       # Set Scilab startup options depending on version
       AC_MSG_CHECKING(for Scilab startup options)
-      SCILABOPT="-nwni -nb"
+      SCILABOPT="-nwni -ns"
       if test $SCILAB_VERSION -ge 540; then
         SCILABOPT+=" -noatomsautoload"
       fi
@@ -1257,8 +1257,11 @@ else
       AC_MSG_CHECKING(for Scilab header files)
       if test "$SCILABINCDIR" != ""; then
         dirs="$SCILABINCDIR"
-      elif test -n "$PKG_CONFIG "; then
-        dirs=`$PKG_CONFIG  scilab --cflags-only-I | sed -e 's/-I//g'`
+      elif test -d "$SCI"; then
+        # SCI is the Scilab data path, usually "/usr/share/scilab"
+        dirs="$SCI/include $SCI/../../include"
+      elif test -n "$PKGCONFIG"; then
+        dirs=`$PKGCONFIG scilab --cflags-only-I | sed -e 's/-I//g'`
       else
         dirs=""
       fi
@@ -1285,6 +1288,7 @@ fi
 AC_SUBST(SCILAB)
 AC_SUBST(SCILABINCLUDE)
 AC_SUBST(SCILABOPT)
+AC_SUBST(SCILAB_MAJOR_VERSION)
 
 
 #----------------------------------------------------------------
