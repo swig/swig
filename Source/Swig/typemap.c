@@ -2014,14 +2014,33 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	    String *parm = Getitem(l, i);
 	    char *eq = strchr(Char(parm), '=');
 	    char *c = Char(parm);
-	    if (eq && (eq - c > 0)) {
-	      String *name = NewStringWithSize(c, (int)(eq - c));
+	    int size = (int)(eq - c);
+	    if (eq && size > 0) {
+	      String *name = NewStringWithSize(c, size);
 	      String *value = NewString(eq + 1);
 	      Insert(name, 0, "$");
 	      Setattr(vars, name, value);
 	    } else {
 	      to_match_parms = 0; /* error - variable replacement parameters must be of form varname=value */
 	    }
+	  }
+	}
+
+	/* If the typemap method name contains ":", the user is trying to access an attribute of the method.
+	 * For example, in C#: $typemap(imtype:out, ctype) or $typemap(csin:pre, ctype).
+	 * Split the string into the real method_name and the attribute name. */
+	String *tmap_attr = 0;
+	String *tmap_method_with_attr = 0;
+	{
+	  char *eq = strchr(Char(tmap_method), ':');
+	  char *c = Char(tmap_method);
+	  int size = (int)(eq - c);
+	  if (eq && size > 0) {
+	    tmap_method = NewStringWithSize(c, size);
+	    /* tmap_method memory is owned by a list, but since we're overriding it,
+	     * keep track of this so we can clean up. */
+	    tmap_method_with_attr = tmap_method;
+	    tmap_attr = NewString(eq + 1);
 	  }
 	}
 
@@ -2048,6 +2067,19 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	    /* Look for the typemap code */
 	    attr = NewStringf("tmap:%s", tmap_method);
 	    tm = Getattr(to_match_parms, attr);
+
+	    /* Replace the typemap code with the attribute value, if there is one. */
+	    if (tmap_attr) {
+	      String *attr2 = NewStringf("%s:%s", attr, tmap_attr);
+	      String *replacement = Getattr(to_match_parms, attr2);
+	      if (replacement) {
+		tm = replacement;
+	      }
+	      Delete(attr2);
+	      Delete(tmap_attr);
+	      tmap_attr = 0;
+	    }
+
 	    if (tm) {
 	      Printf(attr, "%s", ":next");
 	      /* fail if multi-argument lookup requested in $typemap(...) and the lookup failed */
@@ -2083,6 +2115,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	  }
 	  syntax_error = 0;
 	}
+	Delete(tmap_method_with_attr);
 	Delete(vars);
       }
       Delete(l);
