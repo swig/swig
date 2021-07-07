@@ -50,7 +50,7 @@
 
 %typemap(javainterfacecode, declaration="  long $interfacename_GetInterfaceCPtr();\n", cptrmethod="$interfacename_GetInterfaceCPtr") CTYPE %{
   public long $interfacename_GetInterfaceCPtr() {
-    return $imclassname.$javaclazzname$interfacename_GetInterfaceCPtr(swigCPtr);
+    return $imclassname.$javaclazzname$interfacename_GetInterfaceCPtr(swigWrap.swigCPtr);
   }
 %}
 %enddef

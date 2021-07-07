@@ -16,7 +16,6 @@ public class li_boost_shared_ptr_runme {
   private static void WaitForGC()
   {
     System.gc();
-    System.runFinalization();
     try {
       java.lang.Thread.sleep(10);
     } catch (java.lang.InterruptedException e) {
@@ -35,13 +34,6 @@ public class li_boost_shared_ptr_runme {
     for (int i=0; i<loopCount; i++) {
       new li_boost_shared_ptr_runme().runtest();
       System.gc();
-      System.runFinalization();
-      try {
-        if (i%100 == 0) {
-          java.lang.Thread.sleep(1); // give some time to the lower priority finalizer thread
-        }
-      } catch (java.lang.InterruptedException e) {
-      }
     }
 
     if (debug)

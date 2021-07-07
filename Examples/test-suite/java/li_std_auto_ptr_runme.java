@@ -13,7 +13,6 @@ public class li_std_auto_ptr_runme {
   private static void WaitForGC()
   {
     System.gc();
-    System.runFinalization();
     try {
       java.lang.Thread.sleep(10);
     } catch (java.lang.InterruptedException e) {

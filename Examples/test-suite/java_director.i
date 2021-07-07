@@ -6,15 +6,6 @@
 
 %module(directors="1") java_director
 
-%typemap(javafinalize) SWIGTYPE %{
-  @SuppressWarnings("deprecation")
-  protected void finalize() {
-//    System.out.println("Finalizing " + this);
-    delete();
-  }
-%}
-
-
 %{
 #include <string>
 #include <vector>
@@ -99,7 +90,7 @@ public:
 
 %typemap(directordisconnect, methodname="disconnect_director") hi::Quux1 %{
   public void $methodname() {
-    swigCMemOwn = false;
+    swigSetCMemOwn(false);
     $jnicall;
     // add in a flag to check this method is really called
     disconnectMethodCalled = true;
