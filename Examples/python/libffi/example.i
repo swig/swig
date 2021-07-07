@@ -56,7 +56,7 @@
   }
   if (ffi_prep_cif(&cif, FFI_DEFAULT_ABI, vc+3,
                    &ffi_type_uint, types) == FFI_OK) {
-    ffi_call(&cif, (void (*)()) execlp, &result, values);
+    ffi_call(&cif, (void (*)()) execlp, &_swig_result, values);
   } else {
     free(types);
     free(values);
@@ -155,7 +155,7 @@ int execlp(const char *path, const char *arg1, ...);
   }
   if (ffi_prep_cif(&cif, FFI_DEFAULT_ABI, vc+1,
                    &ffi_type_uint, types) == FFI_OK) {
-    ffi_call(&cif, (void (*)()) printf, &result, values);
+    ffi_call(&cif, (void (*)()) printf, &_swig_result, values);
   } else {
     free(types);
     free(values);

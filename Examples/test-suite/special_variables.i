@@ -29,10 +29,10 @@ std::string ExceptionVars(double i, double j) {
 %rename(ExceptionVars) Space::exceptionvars;
 %exception Space::exceptionvars %{
   $action
-  result = $symname(1.0,2.0); // Should expand to ExceptionVars
-  result = $name(3.0,4.0); // Should expand to Space::exceptionvars
+  _swig_result = $symname(1.0,2.0); // Should expand to ExceptionVars
+  _swig_result = $name(3.0,4.0); // Should expand to Space::exceptionvars
   // above will not compile if the variables are not expanded properly
-  result = "$action  $name  $symname  $overname $wrapname $parentclassname $parentclasssymname";
+  _swig_result = "$action  $name  $symname  $overname $wrapname $parentclassname $parentclasssymname";
 %}
 %inline %{
 namespace Space {
@@ -45,11 +45,11 @@ std::string exceptionvars(double i, double j) {
 
 %exception Space::overloadedmethod %{
   $action
-  result = Space::$symname(1.0);
-  result = $name();
-  result = $name(2.0);
+  _swig_result = Space::$symname(1.0);
+  _swig_result = $name();
+  _swig_result = $name(2.0);
   // above will not compile if the variables are not expanded properly
-  result = "$action  $name  $symname  $overname $wrapname $parentclassname $parentclasssymname";
+  _swig_result = "$action  $name  $symname  $overname $wrapname $parentclassname $parentclasssymname";
   // $decl
 %}
 

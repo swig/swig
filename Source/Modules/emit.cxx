@@ -18,7 +18,7 @@
  * emit_return_variable()
  *
  * Emits a variable declaration for a function return value.
- * The variable name is always called result.
+ * The variable name is always defined by Swig_cresult_name().
  * n => Node of the method being wrapped
  * rt => the return type
  * f => the wrapper to generate code into

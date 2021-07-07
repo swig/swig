@@ -15,7 +15,7 @@
 #include "swig.h"
 #include "cparse.h"
 
-static const char *cresult_variable_name = "result";
+static const char *cresult_variable_name = "_swig_result";
 
 static Parm *nonvoid_parms(Parm *p) {
   if (p) {

@@ -55,7 +55,7 @@ void CheckRetTypemapUsed() {
 
 %newobject FFoo::Bar(bool) const ;
 %typemap(newfree) char* Bar(bool)  {
-   /* hello */ delete[] result;
+   /* hello */ delete[] _swig_result;
 }
 
 %inline {
