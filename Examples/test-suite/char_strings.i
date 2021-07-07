@@ -11,6 +11,7 @@ below.
 
 %{
 #include <stdio.h>
+#include <string.h>
 
 #define OTHERLAND_MSG "Little message from the safe world."
 #define CPLUSPLUS_MSG "A message from the deep dark world of C++, where anything is possible."
@@ -150,11 +151,11 @@ const char global_const_char_array2[sizeof(CPLUSPLUS_MSG)+1] = CPLUSPLUS_MSG;
 %inline {
   struct Formatpos;
   struct OBFormat;
-  
+
   static int GetNextFormat(Formatpos& itr, const  char*& str,OBFormat*& pFormat) {
     return 0;
   }
-  
+
 
 
 }

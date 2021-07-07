@@ -3,6 +3,7 @@
 
 %{
 typedef char * TypedefString;
+#include <string.h>
 %}
 
 

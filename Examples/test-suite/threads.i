@@ -9,6 +9,7 @@
 
 %inline %{
   #include <string>
+  #include <string.h>
   struct Kerfuffle {
     std::string StdString(std::string str) {
       return str;

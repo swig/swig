@@ -3,6 +3,10 @@
 %warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED) Bar::operator->;      // Overloaded method Bar::operator ->() ignored
 %warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED) Bar2::operator->;     // Overloaded method Bar2::operator ->() ignored
 
+%{
+#include <stdlib.h>
+%}
+
 %inline %{
 int CONST_ACCESS = 1;
 int MUTABLE_ACCESS = 2;
