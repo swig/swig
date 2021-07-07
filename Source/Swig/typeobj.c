@@ -209,6 +209,90 @@ SwigType *SwigType_pop(SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_last()
+ * 
+ * Return the last element of the given (partial) type.
+ * For example:
+ *   t:      q(const).p.
+ *   result: p.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_last(SwigType *t) {
+  SwigType *result;
+  char *c;
+  char *last;
+  int sz = 0;
+
+  if (!t)
+    return 0;
+
+  /* Find the last element */
+  c = Char(t);
+  last = 0;
+  while (*c) {
+    last = c;
+    sz = element_size(c);
+    c = c + sz;
+    if (*c == '.') {
+      c++;
+      sz++;
+    }
+  }
+
+  /* Extract the last element */
+  if (last) {
+    result = NewStringWithSize(last, sz);
+  } else {
+    result = 0;
+  }
+
+  return result;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_refptr_count_return()
+ * 
+ * Returns the number of pointer and reference indirections found in the given
+ * type. For functions this concerns the return type.
+ * For example:
+ *   r.p.              => 2
+ *   q(const).p.       => 1
+ *   r.f(int).p.p.     => 2
+ *   f().p.q(const).p. => 2
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_refptr_count_return(const SwigType *t) {
+  char *c;
+  char *last;
+  int sz;
+  int result = 0;
+
+  if (!t)
+    return 0;
+
+  c = Char(t);
+  last = c;
+  while (*c) {
+    last = c;
+    sz = element_size(c);
+    c = c + sz;
+    if (*(c-1) == '.') {
+      if (((last[0] == 'p') || (last[0] == 'r')) && (last[1] == '.')) {
+        result++;
+      } else if (strncmp(last, "f(", 2) == 0) {
+        /* restart counter if this is a function type */
+        result = 0;
+      }
+    }
+    if (*c == '.') {
+      c++;
+    }
+  }
+
+  return result;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_parm()
  *
  * Returns the parameter of an operator as a string
