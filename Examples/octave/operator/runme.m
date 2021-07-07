@@ -42,3 +42,7 @@ if swig_octave_prereq(3,8,0)
   printf("conj(a) = %s\n", disp(conj(a)));
   printf("exp(a) = %s\n", disp(exp(a)));
 endif
+
+# concatenation operator
+g = [a, b, c];
+printf("g   = %s\n",disp(g));
