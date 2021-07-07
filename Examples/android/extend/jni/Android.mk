@@ -5,6 +5,6 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE    := example
 LOCAL_SRC_FILES := example_wrap.cpp example.cpp
-LOCAL_CFLAGS    := -frtti
+LOCAL_CFLAGS    := -frtti -fexceptions
 
 include $(BUILD_SHARED_LIBRARY)
