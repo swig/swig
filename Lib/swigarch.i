@@ -53,7 +53,7 @@
 #ifndef LONG_MAX
 #include <limits.h>
 #endif
-#if (__WORDSIZE == 32) || (LONG_MAX == INT_MAX)
+#if (__WORDSIZE == 32)
 # error "SWIG wrapped code invalid in 32 bit architecture, regenerate code using -DSWIGWORDSIZE32"
 #endif
 %}
