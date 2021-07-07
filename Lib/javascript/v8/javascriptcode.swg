@@ -352,9 +352,13 @@ fail:
 #else
     $jswrapper(args, errorHandler);
     if(errorHandler.err.IsEmpty()) {
-      return;
+      SWIGV8_RETURN(jsresult);
+    }
+    else {
+      SWIGV8_RETURN(SWIGV8_UNDEFINED());
     }
 #endif
+    SWIGV8_RETURN(SWIGV8_UNDEFINED());
   }
 %}
 
