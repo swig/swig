@@ -331,6 +331,8 @@ static int yylook(void) {
       return COLON;
     case SWIG_TOKEN_DCOLONSTAR:
       return DSTAR;
+    case SWIG_TOKEN_LTEQUALGT:
+      return LESSEQUALGREATER;
       
     case SWIG_TOKEN_DCOLON:
       {

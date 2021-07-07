@@ -893,8 +893,18 @@ static int look(Scanner *s) {
       }
       if (c == '<')
 	state = 240;
-      else if (c == '=')
-	return SWIG_TOKEN_LTEQUAL;
+      else if (c == '=') {
+	if ((c = nextchar(s)) == 0) {
+	  brackets_increment(s);
+	  return SWIG_TOKEN_LTEQUAL;
+	} else if (c == '>') { /* Spaceship operator */
+	  return SWIG_TOKEN_LTEQUALGT;
+	} else {
+	  retract(s, 1);
+	  brackets_increment(s);
+	  return SWIG_TOKEN_LTEQUAL;
+	}
+      }
       else {
 	retract(s, 1);
 	brackets_increment(s);
