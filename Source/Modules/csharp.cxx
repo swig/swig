@@ -15,6 +15,10 @@
 #include <limits.h>		// for INT_MAX
 #include "cparse.h"
 #include <ctype.h>
+#include <string>
+#include <map>
+
+
 
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
@@ -2255,6 +2259,72 @@ public:
     return SWIG_OK;
   }
 
+  void printArgumentDeclaration(std::map<std::string, std::string> &argdefs,
+                                Parm *p, String *param_type, String *arg, String *code)
+  {
+    if(argdefs.find(Char(arg)) != argdefs.end())
+    {
+      if(argdefs[Char(arg)] == "$value")
+        Printf(code, "%s %s=%s", param_type, arg, Getattr(p, "value"));
+      else
+        Printf(code, "%s %s=%s", param_type, arg, argdefs[Char(arg)].c_str());
+    }
+    else if(argdefs.find("*") != argdefs.end())
+    {
+      if(argdefs["*"] == "$value")
+      {
+        String *value = Getattr(p, "value");
+        if(value) //with *:$value, don't grab a missing value
+            Printf(code, "%s %s=%s", param_type, arg, value);
+        else
+            Printf(code, "%s %s", param_type, arg);
+      }
+      else
+        Printf(code, "%s %s=%s", param_type, arg, argdefs["*"].c_str());
+    }
+    else
+      Printf(code, "%s %s", param_type, arg);
+  }
+
+  void parse_csargdef(String *csargdef, std::map<std::string, std::string> &argdefs)
+  {
+    char *cstr = Char(csargdef);
+    while(true)
+    {
+      while(cstr[0] == ','
+            || cstr[0] == ' '
+            || cstr[0] == '\t')
+        cstr++;
+      if(!cstr[0])
+      {
+        break;
+      }
+
+      char *name = cstr;
+      char *colon = name;
+      while(colon[0] != ':'
+            && colon[0] != '\0')
+          colon++;
+      if(!colon[0])
+      {
+        Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number,
+                     "csargdef invalid syntax for csharp default arguments\n");
+        break;
+      }
+      char *value = colon+1;
+      char *end = value;
+      while(end[0] != '\0' && end[0] != ',')
+        end++;
+      cstr = end;
+      if(cstr[0] == ',')
+          cstr++;
+      std::string n(name, colon-name);
+      std::string v(value, end-value);
+      argdefs[n] = v;
+    }
+  }
+
+
   /* ----------------------------------------------------------------------
    * memberfunctionHandler()
    * ---------------------------------------------------------------------- */
@@ -2332,6 +2402,10 @@ public:
     // Wrappers not wanted for some methods where the parameters cannot be overloaded in C#
     if (Getattr(n, "overload:ignore"))
       return;
+
+    String *csargdef = Getattr(n, "feature:cs:argdef");
+    if(csargdef && Getattr(n, "defaultargs"))
+        return;
 
     // Don't generate proxy method for additional explicitcall method used in directors
     if (GetFlag(n, "explicitcall"))
@@ -2417,7 +2491,9 @@ public:
       Printf(imcall, "swigCPtr");
 
     emit_mark_varargs(l);
-
+    std::map<std::string, std::string> argdefs;
+    if(csargdef)
+      parse_csargdef(csargdef, argdefs);
     int gencomma = !static_flag;
 
     /* Output each parameter */
@@ -2496,9 +2572,9 @@ public:
 	    Printf(interface_class_code, ", ");
 	}
 	gencomma = 2;
-	Printf(function_code, "%s %s", param_type, arg);
+        printArgumentDeclaration(argdefs, p, param_type, arg, function_code);
 	if (is_interface)
-	  Printf(interface_class_code, "%s %s", param_type, arg);
+          printArgumentDeclaration(argdefs, p, param_type, arg, interface_class_code);
 
 	Delete(arg);
 	Delete(param_type);
@@ -2675,6 +2751,10 @@ public:
     if (Getattr(n, "overload:ignore"))
       return SWIG_OK;
 
+    String *csargdef = Getattr(n, "feature:cs:argdef");
+    if(csargdef && Getattr(n, "defaultargs"))
+        return SWIG_OK;
+
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
       String *mangled_overname = Swig_name_construct(getNSpace(), overloaded_name);
@@ -2706,6 +2786,9 @@ public:
 
       emit_mark_varargs(l);
 
+      std::map<std::string, std::string> argdefs;
+      if(csargdef)
+        parse_csargdef(csargdef, argdefs);
       int gencomma = 0;
 
       /* Output each parameter */
@@ -2783,7 +2866,7 @@ public:
 	  Printf(helper_code, ", ");
 	  Printf(helper_args, ", ");
         }
-	Printf(function_code, "%s %s", param_type, arg);
+        printArgumentDeclaration(argdefs, p, param_type, arg, function_code);
 	Printf(helper_code, "%s %s", param_type, arg);
 	Printf(helper_args, "%s", cshin ? cshin : arg);
 	++gencomma;
