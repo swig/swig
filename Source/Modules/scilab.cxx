@@ -254,7 +254,7 @@ public:
 
     // Add Builder footer code and save
     if (generateBuilder) {
-      saveBuilderFile(gatewayName);
+      saveBuilderFile(gatewayLibraryName);
     }
 
     /* Close the init function and rename with module name */
