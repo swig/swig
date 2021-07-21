@@ -11,5 +11,5 @@ d(0) = 7;
 d(5) = d(0) + 3;
 
 if (d(5) + d(0) != 17)
-    error
+    error("failed");
 endif

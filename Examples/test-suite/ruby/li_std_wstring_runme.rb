@@ -50,3 +50,10 @@ x = "abc\0def"
 swig_assert_equal("Li_std_wstring.test_value(x)", "x", binding)
 swig_assert_equal("Li_std_wstring.test_ccvalue(x)", '"abc"', binding)
 swig_assert_equal("Li_std_wstring.test_wchar_overload(x)", '"abc"', binding)
+
+ts = Li_std_wstring::Wchar_test_struct.new
+ts.wchar_t_member = h
+swig_assert_equal("ts.wchar_t_member", "h", binding)
+ts.wchar_t_ptr_member = s
+swig_assert_equal("ts.wchar_t_ptr_member", "s", binding)
+

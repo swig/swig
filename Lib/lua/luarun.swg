@@ -1344,14 +1344,14 @@ SWIGRUNTIME int SWIG_Lua_resolve_metamethod(lua_State *L); /*forward declaration
 
 /* The real function that resolves a metamethod.
  * Function searches given class and all it's bases(recursively) for first instance of something that is
- * not equal to SWIG_Lua_resolve_metatmethod. (Almost always this 'something' is actual metamethod implementation
+ * not equal to SWIG_Lua_resolve_metamethod. (Almost always this 'something' is actual metamethod implementation
  * and it is a SWIG-generated C function.). It returns value on the top of the L and there is no garbage below the
  * answer.
  * Returns 1 if found, 0 otherwise.
  * clss is class which metatable we will search for method
  * metamethod_name_idx is index in L where metamethod name (as string) lies
- * skip_check allows to skip searching metamethod in givel clss and immideatelly go to searching in bases. skip_check
- * is not caried to subsequent recursive calls - false is always passed. It is set to true only at first call from
+ * skip_check allows skipping searching metamethod in the given class and immediately going to searching in bases. skip_check
+ * is not carried to subsequent recursive calls - false is always passed. It is set to true only at first call from
  * SWIG_Lua_resolve_metamethod
  * */
 SWIGINTERN int SWIG_Lua_do_resolve_metamethod(lua_State *L, const swig_lua_class *clss, int metamethod_name_idx,
@@ -1497,7 +1497,7 @@ SWIGINTERN void SWIG_Lua_add_class_user_metamethods(lua_State *L, swig_lua_class
     }
   }
 
-  lua_pop(L,1); /* remove inheritable metatmethods table */
+  lua_pop(L,1); /* remove inheritable metamethods table */
 
   /* Special handling for __tostring method */
   lua_pushstring(L, "__tostring");

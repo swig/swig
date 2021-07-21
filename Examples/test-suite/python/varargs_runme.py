@@ -1,31 +1,35 @@
 import varargs
 
 if varargs.test("Hello") != "Hello":
-    raise RuntimeError, "Failed"
+    raise RuntimeError("Failed")
+
+vc = varargs.VarargConstructor("Hey there")
+if vc.str != "Hey there":
+    raise RuntimeError("Failed")
 
 f = varargs.Foo("Greetings")
 if f.str != "Greetings":
-    raise RuntimeError, "Failed"
+    raise RuntimeError("Failed")
 
 if f.test("Hello") != "Hello":
-    raise RuntimeError, "Failed"
+    raise RuntimeError("Failed")
 
 
 if varargs.test_def("Hello", 1) != "Hello":
-    raise RuntimeError, "Failed"
+    raise RuntimeError("Failed")
 
 if varargs.test_def("Hello") != "Hello":
-    raise RuntimeError, "Failed"
+    raise RuntimeError("Failed")
 
 ###
 if varargs.test_plenty("Hello") != "Hello":
-    raise RuntimeError, "Failed"
+    raise RuntimeError("Failed")
 
 if varargs.test_plenty("Hello", 1) != "Hello":
-    raise RuntimeError, "Failed"
+    raise RuntimeError("Failed")
 
 if varargs.test_plenty("Hello", 1, 2) != "Hello":
-    raise RuntimeError, "Failed"
+    raise RuntimeError("Failed")
 
 try:
     varargs.test_plenty("Hello", 1, 2, 3)

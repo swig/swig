@@ -2,8 +2,6 @@
 
 # This file illustrates the manipulation of C++ references in PHP.
 
-require "example.php";
-
 # ----- Object creation -----
 
 print "Creating some objects:\n";
@@ -45,5 +43,3 @@ print "Getting some array values\n";
 for ($i = 0; $i < 5; $i++) {
     print "    va[$i] = {$va->get($i)->as_string()}\n";
 }
-
-?>

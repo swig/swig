@@ -404,6 +404,7 @@ SwigType *SwigType_del_reference(SwigType *t) {
   char *c = Char(t);
   int check = strncmp(c, "r.", 2);
   assert(check == 0);
+  (void)check;
   Delslice(t, 0, 2);
   return t;
 }
@@ -439,6 +440,7 @@ SwigType *SwigType_del_rvalue_reference(SwigType *t) {
   char *c = Char(t);
   int check = strncmp(c, "z.", 2);
   assert(check == 0);
+  (void)check;
   Delslice(t, 0, 2);
   return t;
 }
@@ -529,6 +531,7 @@ SwigType *SwigType_del_qualifier(SwigType *t) {
   char *c = Char(t);
   int check = strncmp(c, "q(", 2);
   assert(check == 0);
+  (void)check;
   Delslice(t, 0, element_size(c));
   return t;
 }
@@ -597,6 +600,7 @@ SwigType *SwigType_del_memberpointer(SwigType *t) {
   char *c = Char(t);
   int check = strncmp(c, "m(", 2);
   assert(check == 0);
+  (void)check;
   Delslice(t, 0, element_size(c));
   return t;
 }
@@ -641,6 +645,7 @@ SwigType *SwigType_del_array(SwigType *t) {
   char *c = Char(t);
   int check = strncmp(c, "a(", 2);
   assert(check == 0);
+  (void)check;
   Delslice(t, 0, element_size(c));
   return t;
 }

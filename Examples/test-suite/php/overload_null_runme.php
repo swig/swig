@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "overload_null.php";
 
 $o = new Overload();
 $x = new X();
@@ -43,4 +42,3 @@ check::equal(21, $o->byval1forwardref($x), "test 21");
 check::equal(22, $o->byval2forwardref($x), "test 22");
 
 check::done();
-?>

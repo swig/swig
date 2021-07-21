@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "evil_diamond_ns.php";
 
 check::classes(array("evil_diamond_ns","foo","bar","baz","spam"));
 check::functions("test");
@@ -15,4 +14,3 @@ $spam=new spam();
 $_spam=test($spam);
 
 check::done();
-?>

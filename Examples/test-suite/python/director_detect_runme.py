@@ -35,4 +35,4 @@ c = b.clone()
 vc = c.get_value()
 
 if (v != 3) or (b.val != 5) or (vc != 6):
-    raise RuntimeError, "Bad virtual detection"
+    raise RuntimeError("Bad virtual detection")

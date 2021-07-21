@@ -809,7 +809,7 @@ String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxar
     }
 
     if (num_arguments) {
-      Printf(f, "int _v;\n");
+      Printf(f, "int _v = 0;\n");
     }
 
     int num_braces = 0;

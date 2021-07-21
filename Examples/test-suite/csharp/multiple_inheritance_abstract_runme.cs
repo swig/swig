@@ -216,6 +216,7 @@ public class multiple_inheritance_abstract_runme {
     check(multiple_inheritance_abstract.InputCPtrRefBottom1(b1)!=103+104, "InputCPtrRefBottom1() failed");
     check(multiple_inheritance_abstract.InputCPtrRefBottom2(b2)!=206+205, "InputCPtrRefBottom2() failed");
     check(multiple_inheritance_abstract.InputCPtrRefBottom3(b3)!=307+308+309, "InputCPtrRefBottom3() failed");
+
     // Return pointers
     check(multiple_inheritance_abstract.MakePtrDerived1_CBase1().cbase1y()!=3, "MakePtrDerived1_CBase1 failed");
     check(multiple_inheritance_abstract.MakePtrDerived1_CBase2().cbase2()!=4, "MakePtrDerived1_CBase2 failed");
@@ -233,6 +234,15 @@ public class multiple_inheritance_abstract_runme {
     check(multiple_inheritance_abstract.MakeRefDerived3_ABase1().abase1()!=9, "MakeRefDerived3_ABase1 failed");
     check(multiple_inheritance_abstract.MakeRefDerived3_CBase1().cbase1y()!=7, "MakeRefDerived3_CBase1 failed");
     check(multiple_inheritance_abstract.MakeRefDerived3_CBase2().cbase2()!=8, "MakeRefDerived3_CBase2 failed");
+
+    // Return const pointer references
+    check(multiple_inheritance_abstract.MakeConstPtrRefDerived1_CBase1().cbase1y()!=3, "MakeConstPtrRefDerived1_CBase1 failed");
+    check(multiple_inheritance_abstract.MakeConstPtrRefDerived1_CBase2().cbase2()!=4, "MakeConstPtrRefDerived1_CBase2 failed");
+    check(multiple_inheritance_abstract.MakeConstPtrRefDerived2_CBase1().cbase1y()!=6, "MakeConstPtrRefDerived2_CBase1 failed");
+    check(multiple_inheritance_abstract.MakeConstPtrRefDerived2_ABase1().abase1()!=5, "MakeConstPtrRefDerived2_ABase1 failed");
+    check(multiple_inheritance_abstract.MakeConstPtrRefDerived3_ABase1().abase1()!=9, "MakeConstPtrRefDerived3_ABase1 failed");
+    check(multiple_inheritance_abstract.MakeConstPtrRefDerived3_CBase1().cbase1y()!=7, "MakeConstPtrRefDerived3_CBase1 failed");
+    check(multiple_inheritance_abstract.MakeConstPtrRefDerived3_CBase2().cbase2()!=8, "MakeConstPtrRefDerived3_CBase2 failed");
 
     // Return by value (sliced objects)
     check(multiple_inheritance_abstract.MakeValDerived1_CBase1().cbase1y()!=1, "MakeValDerived1_CBase1 failed");

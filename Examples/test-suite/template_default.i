@@ -196,7 +196,6 @@ namespace ns1 {
 %}
 
 
-#ifndef SWIGCHICKEN
 %include std_vector.i
 
 %{
@@ -211,6 +210,3 @@ void q(double = 0) {}
 
 %constant void (*Bf)(std::vector<double> *p = 0) = g; 
 %constant void (*Cf)(double = 0) = q; 
-
-
-#endif

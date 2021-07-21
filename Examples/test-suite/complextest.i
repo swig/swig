@@ -2,7 +2,6 @@
 
 %include <complex.i>
 
-#ifdef __cplusplus
 %{
 #include <algorithm>
 #include <functional>
@@ -10,9 +9,7 @@
 %}
 %include <std_vector.i>
 
-#if 1
 %template(VectorStdCplx) std::vector<std::complex<double> >;
-#endif
 
 %inline
 {
@@ -63,26 +60,3 @@
   }
 }
 
-
-#else
-
-
-%{
-%}
-
-%inline
-{
-  complex Conj(complex a)
-  {
-    return conj(a);
-  }
-
-
-  complex float Conjf(float complex a)
-  {
-    return conj(a);
-  }
-}
-
-
-#endif

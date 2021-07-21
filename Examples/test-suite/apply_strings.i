@@ -44,8 +44,6 @@
 // unsigned char* as strings
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
 
-/* Note: Chicken does not allow unsigned char * in strings */
-
 %apply char [ANY] {TAscii[ANY]}
 %apply char [] {TAscii []}
 %apply char * {TAscii *}

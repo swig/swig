@@ -3,41 +3,41 @@
   you have:
 
   ----  geometry.h --------
-       struct Geometry {                          
-         enum GeomType{			     
-           POINT,				     
-           CIRCLE				     
-         };					     
-         					     
-         virtual ~Geometry() {}    		     
+       struct Geometry {
+         enum GeomType{
+           POINT,
+           CIRCLE
+         };
+
+         virtual ~Geometry() {}
          virtual int draw() = 0;
-	 
+
 	 //
 	 // Factory method for all the Geometry objects
 	 //
-         static Geometry *create(GeomType i);     
-       };					     
-       					     
-       struct Point : Geometry  {		     
-         int draw() { return 1; }		     
-         double width() { return 1.0; }    	     
-       };					     
-       					     
-       struct Circle : Geometry  {		     
-         int draw() { return 2; }		     
-         double radius() { return 1.5; }          
-       }; 					     
-       
+         static Geometry *create(GeomType i);
+       };
+
+       struct Point : Geometry  {
+         int draw() { return 1; }
+         double width() { return 1.0; }
+       };
+
+       struct Circle : Geometry  {
+         int draw() { return 2; }
+         double radius() { return 1.5; }
+       };
+
        //
        // Factory method for all the Geometry objects
        //
        Geometry *Geometry::create(GeomType type) {
-         switch (type) {			     
-         case POINT: return new Point();	     
-         case CIRCLE: return new Circle(); 	     
-         default: return 0;			     
-         }					     
-       }					    
+         switch (type) {
+         case POINT: return new Point();
+         case CIRCLE: return new Circle();
+         default: return 0;
+         }
+       }
   ----  geometry.h --------
 
 
@@ -57,16 +57,16 @@
 
   NOTES: remember to fully qualify all the type names and don't
   use %factory inside a namespace declaration, ie, instead of
-  
+
      namespace Foo {
        %factory(Geometry *Geometry::create, Point, Circle);
      }
 
   use
 
-     %factory(Foo::Geometry *Foo::Geometry::create, Foo::Point,  Foo::Circle);   
+     %factory(Foo::Geometry *Foo::Geometry::create, Foo::Point,  Foo::Circle);
 
-     
+
 */
 
 /* for loop for macro with one argument */
@@ -90,13 +90,13 @@
 /* for loop for macro with two arguments */
 %define %formacro_2(macro,...)%_formacro_2(macro, __VA_ARGS__, __fordone__)%enddef
 
-%define %_factory_dispatch(Type) 
+%define %_factory_dispatch(Type)
 if (!dcast) {
   Type *dobj = dynamic_cast<Type *>($1);
   if (dobj) {
     dcast = 1;
-    SWIG_SetPointerZval(return_value, SWIG_as_voidptr(dobj),$descriptor(Type *), $owner);
-  }   
+    SWIG_SetPointerZval(return_value, SWIG_as_voidptr(dobj), $descriptor(Type *), $owner);
+  }
 }%enddef
 
 %define %factory(Method,Types...)
@@ -104,6 +104,6 @@ if (!dcast) {
   int dcast = 0;
   %formacro(%_factory_dispatch, Types)
   if (!dcast) {
-    SWIG_SetPointerZval(return_value, SWIG_as_voidptr($1),$descriptor, $owner);
+    SWIG_SetPointerZval(return_value, SWIG_as_voidptr($1), $descriptor, $owner);
   }
 }%enddef

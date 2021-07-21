@@ -26,17 +26,6 @@ UVW Bar::static_member_variable;
 struct XYZ {
 };
 
-// The operator& trick doesn't work for SWIG/PHP because the generated code
-// takes the address of the variable in the code in the "vinit" section.
-#ifdef SWIGPHP
-%{
-struct XYZ {
-  void foo() {}
-private:
-  XYZ& operator=(const XYZ& other); // prevent assignment used in normally generated set method
-};
-%}
-#else
 %{
 struct XYZ {
   void foo() {}
@@ -45,7 +34,6 @@ private:
   XYZ* operator&(); // prevent dereferencing used in normally generated get method
 };
 %}
-#endif
 #if defined(SWIGUTL)
 %exception {
   /* 
