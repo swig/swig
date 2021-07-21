@@ -134,7 +134,7 @@ int CFFI::top(Node *n) {
   File *f_lisp = NewFile(lisp_filename, "w", SWIG_output_files());
   if (!f_lisp) {
     FileErrorDisplay(lisp_filename);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 
   if (CPlusPlus || CWrap) {
@@ -142,7 +142,7 @@ int CFFI::top(Node *n) {
     if (!f_begin) {
       Delete(f_lisp);
       Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     String *clos_filename = NewString("");
@@ -151,7 +151,7 @@ int CFFI::top(Node *n) {
     if (!f_clos) {
       Delete(f_lisp);
       Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
   } else {
     f_begin = NewString("");
@@ -217,7 +217,7 @@ int CFFI::classHandler(Node *n) {
   } else {
     Printf(stderr, "Don't know how to deal with %s kind of class yet.\n", kind);
     Printf(stderr, " (name: %s)\n", name);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
     return SWIG_OK;
   }
 
@@ -227,7 +227,7 @@ int CFFI::classHandler(Node *n) {
 int CFFI::constructorHandler(Node *n) {
 #ifdef CFFI_DEBUG
   Printf(stderr, "constructor %s\n", Getattr(n, "name"));
-  Printf(stderr, "constructor %s\n and %s and %s", Getattr(n, "kind"), Getattr(n, "sym:name"), Getattr(n, "allegrocl:old-sym:name"));
+  Printf(stderr, "constructor %s\n and %s", Getattr(n, "kind"), Getattr(n, "sym:name"));
 #endif
   Setattr(n, "cffi:constructorfunction", "1");
   // Let SWIG generate a global forwarding function.
@@ -426,7 +426,6 @@ void CFFI::cleanupFunction(Node *n, Wrapper *f, ParmList *parms) {
   if (GetFlag(n, "feature:new")) {
     String *tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0);
     if (tm) {
-      Replaceall(tm, "$source", Swig_cresult_name());
       Printv(f->code, tm, "\n", NULL);
       Delete(tm);
     }
@@ -546,7 +545,6 @@ int CFFI::functionWrapper(Node *n) {
   /* See if there is any return cleanup code */
   String *tm = 0;
   if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
-    Replaceall(tm, "$source", Swig_cresult_name());
     Printf(f->code, "%s\n", tm);
     Delete(tm);
   }
@@ -875,7 +873,7 @@ void CFFI::emit_struct_union(Node *n, bool un = false) {
   if (Strcmp(kind, "struct") != 0 && Strcmp(kind, "union") != 0) {
     Printf(stderr, "Don't know how to deal with %s kind of class yet.\n", kind);
     Printf(stderr, " (name: %s)\n", name);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
   String *lisp_name = lispify_name(n, name, "'classname");
 
@@ -911,7 +909,7 @@ void CFFI::emit_struct_union(Node *n, bool un = false) {
       //               nodeType(c),
       //               Getattr(c, "name"),
       //               Getattr(c, "type"));
-      //       SWIG_exit(EXIT_FAILURE);
+      //       Exit(EXIT_FAILURE);
     } else {
       SwigType *childType = NewStringf("%s%s", Getattr(c, "decl"), Getattr(c, "type"));
 
@@ -983,27 +981,14 @@ String *CFFI::lispify_name(Node *n, String *ty, const char *flag, bool kw) {
 /* utilities */
 /* returns new string w/ parens stripped */
 String *CFFI::strip_parens(String *string) {
-  char *s = Char(string), *p;
+  char *s = Char(string);
   int len = Len(string);
-  String *res;
 
   if (len == 0 || s[0] != '(' || s[len - 1] != ')') {
     return NewString(string);
   }
 
-  p = (char *) malloc(len - 2 + 1);
-  if (!p) {
-    Printf(stderr, "Malloc failed\n");
-    SWIG_exit(EXIT_FAILURE);
-  }
-
-  strncpy(p, s + 1, len - 1);
-  p[len - 2] = 0;   /* null terminate */
-
-  res = NewString(p);
-  free(p);
-
-  return res;
+  return NewStringWithSize(s + 1, len - 2);
 }
 
 String *CFFI::trim(String *str) {

@@ -64,6 +64,7 @@ static void open_files_list_remove(DohFile *f) {
   }
   Delete(sf);
   assert(removed);
+  (void)removed;
 }
 
 /* -----------------------------------------------------------------------------
@@ -80,6 +81,7 @@ void DohCloseAllOpenFiles() {
     DOHString *sf = Getitem(all_open_files, i);
     int check = sscanf(Char(sf), "%p", (void **)&f);
     assert(check == 1);
+    (void)check;
     if (f->closeondel) {
       if (f->filep) {
 	check = fclose(f->filep);
@@ -289,10 +291,6 @@ DOH *DohNewFile(DOHString *filename, const char *mode, DOHList *newfiles) {
     return 0;
 
   f = (DohFile *) DohMalloc(sizeof(DohFile));
-  if (!f) {
-    fclose(file);
-    return 0;
-  }
   if (newfiles)
     Append(newfiles, filename);
   f->filep = file;
@@ -312,8 +310,6 @@ DOH *DohNewFile(DOHString *filename, const char *mode, DOHList *newfiles) {
 DOH *DohNewFileFromFile(FILE *file) {
   DohFile *f;
   f = (DohFile *) DohMalloc(sizeof(DohFile));
-  if (!f)
-    return 0;
   f->filep = file;
   f->fd = 0;
   f->closeondel = 0;
@@ -329,8 +325,6 @@ DOH *DohNewFileFromFile(FILE *file) {
 DOH *DohNewFileFromFd(int fd) {
   DohFile *f;
   f = (DohFile *) DohMalloc(sizeof(DohFile));
-  if (!f)
-    return 0;
   f->filep = 0;
   f->fd = fd;
   f->closeondel = 0;

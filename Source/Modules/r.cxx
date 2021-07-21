@@ -634,7 +634,6 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
     if(returnTM) {
       String *tm = returnTM;
       Replaceall(tm,"$input", "r_swig_cb_data->retValue");
-      Replaceall(tm,"$target", Swig_cresult_name());
       replaceRClass(tm, rettype);
       Replaceall(tm,"$owner", "0");
       Replaceall(tm,"$disown","0");
@@ -806,7 +805,7 @@ int R::DumpCode(Node *n) {
   File *scode = NewFile(output_filename, "w", SWIG_output_files());
   if (!scode) {
     FileErrorDisplay(output_filename);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
   Delete(output_filename);
 
@@ -821,7 +820,7 @@ int R::DumpCode(Node *n) {
   File *runtime = NewFile(outfile,"w", SWIG_output_files());
   if (!runtime) {
     FileErrorDisplay(outfile);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 
   Printf(runtime, "%s", f_begin);
@@ -838,7 +837,7 @@ int R::DumpCode(Node *n) {
     File *ns = NewFile(output_filename, "w", SWIG_output_files());
     if (!ns) {
       FileErrorDisplay(output_filename);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     Delete(output_filename);
 
@@ -1302,13 +1301,14 @@ void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
 
 #define MAX_OVERLOAD 256
 
+namespace {
 struct Overloaded {
   Node      *n;          /* Node                               */
   int        argc;       /* Argument count                     */
   ParmList  *parms;      /* Parameters used for overload check */
   int        error;      /* Ambiguity error                    */
 };
-
+}
 
 List * R::Swig_overload_rank(Node *n,
 	                     bool script_lang_wrapping) {
@@ -1745,7 +1745,7 @@ int R::functionWrapper(Node *n) {
     /* Add the name of this member to a list for this class_name.
        We will dump all these at the end. */
 
-    bool isSet(GetFlag(n, "memberset"));
+    bool isSet = GetFlag(n, "memberset") ? true : false;
 
     String *tmp = NewString(isSet ? Swig_name_set(NSPACE_TODO, class_name) : Swig_name_get(NSPACE_TODO, class_name));
 
@@ -1912,8 +1912,6 @@ int R::functionWrapper(Node *n) {
 
     if ((tm = Getattr(p,"tmap:scheck"))) {
 
-      Replaceall(tm,"$target", lname);
-      Replaceall(tm,"$source", name);
       Replaceall(tm,"$input", name);
       replaceRClass(tm, Getattr(p, "type"));
       Printf(sfun->code,"%s\n",tm);
@@ -1924,8 +1922,6 @@ int R::functionWrapper(Node *n) {
     curP = p;
     if ((tm = Getattr(p,"tmap:in"))) {
 
-      Replaceall(tm,"$target", lname);
-      Replaceall(tm,"$source", name);
       Replaceall(tm,"$input", name);
 
       if (Getattr(p,"wrap:disown") || (Getattr(p,"tmap:in:disown"))) {
@@ -1984,7 +1980,6 @@ int R::functionWrapper(Node *n) {
   String *cleanup = NewString("");
   for (p = l; p;) {
     if ((tm = Getattr(p, "tmap:freearg"))) {
-      Replaceall(tm, "$source", Getattr(p, "lname"));
       if (tm && (Len(tm) != 0)) {
         Printv(cleanup, tm, "\n", NIL);
       }
@@ -2001,7 +1996,6 @@ int R::functionWrapper(Node *n) {
       //       String *lname =  Getattr(p, "lname");
       numOutArgs++;
       String *pos = NewStringf("%d", numOutArgs);
-      Replaceall(tm,"$source", Getattr(p, "lname"));
       Replaceall(tm,"$result", "r_ans");
       Replaceall(tm,"$n", pos); // The position into which to store the answer.
       Replaceall(tm,"$arg", Getattr(p, "emit:input"));
@@ -2076,14 +2070,12 @@ int R::functionWrapper(Node *n) {
   /* Look to see if there is any newfree cleanup code */
   if (GetFlag(n, "feature:new")) {
     if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
-      Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
       Printf(f->code, "%s\n", tm);
     }
   }
 
   /* See if there is any return cleanup code */
   if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
-    Replaceall(tm, "$source", Swig_cresult_name());
     Printf(f->code, "%s\n", tm);
     Delete(tm);
   }
@@ -2092,7 +2084,6 @@ int R::functionWrapper(Node *n) {
 
   /*If the user gave us something to convert the result in  */
   if ((tm = Swig_typemap_lookup("scoerceout", n, Swig_cresult_name(), sfun))) {
-    Replaceall(tm,"$source","ans");
     Replaceall(tm,"$result","ans");
     if (constructor) {
       Node * parent = Getattr(n, "parentNode");
@@ -2578,7 +2569,7 @@ int R::generateCopyRoutines(Node *n) {
 
 
   Printf(sfile, "# Start definition of copy methods for %s\n", rclassName);
-  Printf(sfile, "setMethod('copyToR', '_p_%s', CopyToR%s);\n", rclassName,
+  Printf(sfile, "setMethod('copyToR', '_p%s', CopyToR%s);\n", mangledName,
 	 mangledName);
   Printf(sfile, "setMethod('copyToC', '%s', CopyToC%s);\n\n", rclassName,
 	 mangledName);
@@ -2749,7 +2740,7 @@ void R::main(int argc, char *argv[]) {
     } else if (strcmp(argv[i], "-nocppcast") == 0) {
       Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
       Swig_mark_arg(i);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     if (debugMode) {

@@ -3,6 +3,7 @@
 %newobject copy_str;
 
 %inline %{
+#include <stdlib.h>
 #include <string.h>
 const char* copy_str(const char* str) {
   size_t len = strlen(str);

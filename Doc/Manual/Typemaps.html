@@ -1060,9 +1060,11 @@ The matching rules can be observed in practice by using the debugging options al
 
 
 <p>
-Typemaps are matched using both a type and a name (typically the name of a argument).  For a given
-<tt>TYPE NAME</tt> pair, the following rules are applied, in order, to find a match.  The first typemap found
-is used.
+Typemaps are matched using both a type and a name (typically the name of an
+argument, but in the case of <tt>out</tt> typemaps, the name of a function,
+qualified by the class name if it's a class method).  For a given <tt>TYPE
+NAME</tt> pair, the following rules are applied, in order, to find a match.
+The first typemap found is used.
 </p>
 
 <ul>
@@ -3103,7 +3105,7 @@ as shown.   To work with heap allocated data, the following technique can be use
   }
 }
 %typemap(freearg) float value[ANY] {
-  if ($1) free($1);
+  free($1);
 }
 </pre>
 </div>
@@ -3298,7 +3300,7 @@ The example above also shows a common approach of issuing a warning for an as ye
 </p>
 
 <p>
-<b>Compatibility note: </b> In SWIG-1.1 different languages could be distinguished with the language name being put within the <tt>%typemap</tt> directive, for example, <br>
+<b>Compatibility note: </b> In SWIG-1.1 different languages could be distinguished with the language name being put within the <tt>%typemap</tt> directive, but this was deprecated in SWIG 1.3.28 and support finally dropped completely in SWIG 4.1.0 so you'll need to update any remaining uses to use the approach above.  For example, <br>
 <tt>%typemap(ruby, in) int "$1 = NUM2INT($input);"</tt>.
 </p>
 
@@ -3556,7 +3558,7 @@ maps perform the conversion described for the above example:
 }
 
 %typemap(freearg) (int argc, char *argv[]) {
-  if ($2) free($2);
+  free($2);
 }
 
 /* Required for C++ method overloading */
@@ -3835,7 +3837,7 @@ To eliminate this, define a fragment that includes the common marshalling code:
 
 <p>
 When the "in" or "varin" typemaps for MyClass are required, the
-contents of the fragment called "AsMyClass" is added to the "header" section within the generated code, and then the
+contents of the fragment called "AsMyClass" are added to the "header" section within the generated code, and then the
 typemap code is emitted. Hence, the method <tt>AsMyClass</tt> will be
 generated into the wrapper code before any typemap code that calls it.
 </p>
@@ -3983,19 +3985,34 @@ inclusion of the other fragments.
 
 <li>
 <p>
-A typemap can also use more than one fragment, but since the
-syntax is different, you need to specify the dependent fragments in a comma separated
-list. Consider:
+A typemap can also use more than one fragment:
 </p>
-
 <div class="code">
 <pre>
-%typemap(in, fragment="frag1, frag2, frag3") {...}
+%typemap("in", fragment="frag1", fragment="frag2", fragment="frag3") {...}
 </pre>
 </div>
 
 <p>
-which is equivalent to:
+<b>Compatibility note: </b> The ability to use multiple
+<tt>fragment</tt> keys as shown above was introduced in SWIG-4.1.0.
+</p>
+
+<p>
+Multiple fragments can alternatively be specified as a comma
+separated list value in a single <tt>fragment</tt> key.
+Note that no whitespace is allowed within this comma separated list.
+The following is the equivalent to the above:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in, fragment="frag1,frag2,frag3") {...}
+</pre>
+</div>
+
+<p>
+which in turn is functionally equivalent to:
 </p>
 
 <div class="code">

@@ -229,7 +229,6 @@ static void DohString_append(DOH *so, const DOHString_or_char *str) {
     if (newlen >= newmaxsize - 1)
       newmaxsize = newlen + 1;
     s->str = (char *) DohRealloc(s->str, newmaxsize);
-    assert(s->str);
     s->maxsize = newmaxsize;
   }
   tc = s->str;
@@ -296,7 +295,6 @@ static int String_insert(DOH *so, int pos, DOH *str) {
   while (s->maxsize <= s->len + len) {
     int newsize = 2 * s->maxsize;
     s->str = (char *) DohRealloc(s->str, newsize);
-    assert(s->str);
     s->maxsize = newsize;
   }
   memmove(s->str + pos + len, s->str + pos, (s->len - pos));
@@ -424,7 +422,6 @@ static int String_write(DOH *so, const void *buffer, int len) {
   newlen = s->sp + len + 1;
   if (newlen > s->maxsize) {
     s->str = (char *) DohRealloc(s->str, newlen);
-    assert(s->str);
     s->maxsize = newlen;
     s->len = s->sp + len;
   }
@@ -517,7 +514,6 @@ static int String_putc(DOH *so, int ch) {
     if (len > (maxsize - 2)) {
       maxsize *= 2;
       tc = (char *) DohRealloc(tc, maxsize);
-      assert(tc);
       s->maxsize = (int) maxsize;
       s->str = tc;
     }
@@ -836,7 +832,9 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
 	  memmove(t, s, (str->str + str->len) - s + 1);
 	}
       } else {
-	t += (c - s);
+	if (c) {
+	  t += (c - s);
+	}
       }
       s = c;
       ic--;
@@ -921,7 +919,6 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
       newsize *= 2;
 
     ns = (char *) DohMalloc(newsize);
-    assert(ns);
     t = ns;
     s = first;
 

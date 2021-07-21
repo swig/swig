@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "preproc_constants.php";
 
 check::equal(gettype(preproc_constants::CONST_INT1), "integer", "preproc_constants.CONST_INT1 has unexpected type");
 check::equal(gettype(preproc_constants::CONST_INT2), "integer", "preproc_constants.CONST_INT2 has unexpected type");
@@ -65,4 +64,4 @@ check::equal(gettype(preproc_constants::EXPR_MIXED1), "double", "preproc_constan
 check::equal(gettype(preproc_constants::EXPR_WCHAR_MAX), "integer", "preproc_constants.EXPR_WCHAR_MAX has unexpected type");
 check::equal(gettype(preproc_constants::EXPR_WCHAR_MIN), "integer", "preproc_constants.EXPR_WCHAR_MIN has unexpected type");
 
-?>
+check::done();

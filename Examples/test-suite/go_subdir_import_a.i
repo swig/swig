@@ -6,7 +6,7 @@
  * This case might happen for two different reasons:
  * 1) Importing a module for which the .i file is in a subdirectory relatively
  *    to this file (this is tested here with go_subdir_import_c).
- * 2) Importing a module whos module name is a path (this is tested here with
+ * 2) Importing a module whose module name is a path (this is tested here with
  *    go_subdir_import_b).
  *
  * This file is the "root" file that imports the two modules which will be

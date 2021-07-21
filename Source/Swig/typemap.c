@@ -1257,6 +1257,59 @@ static String *typemap_warn(const_String_or_char_ptr tmap_method, Parm *p) {
 }
 
 /* -----------------------------------------------------------------------------
+ * typemap_merge_fragment_kwargs()
+ *
+ * If multiple 'fragment' attributes are provided to a typemap, combine them by
+ * concatenating with commas.
+ * ----------------------------------------------------------------------------- */
+
+static void typemap_merge_fragment_kwargs(Parm *kw) {
+  Parm *reattach_kw = NULL;
+  Parm *prev_kw = NULL;
+  Parm *next_kw = NULL;
+  String *fragment = NULL;
+  while (kw) {
+    next_kw = nextSibling(kw);
+    if (Strcmp(Getattr(kw, "name"), "fragment") == 0) {
+      String *thisfragment = Getattr(kw, "value");
+      String *kwtype = Getattr(kw, "type");
+      if (!fragment) {
+	/* First fragment found; it should remain in the list */
+	fragment = thisfragment;
+	prev_kw = kw;
+      } else {
+	/* Concatenate to previously found fragment */
+	Printv(fragment, ",", thisfragment, NULL);
+	reattach_kw = prev_kw;
+      }
+      if (kwtype) {
+        String *mangle = Swig_string_mangle(kwtype);
+        Append(fragment, mangle);
+        Delete(mangle);
+        /* Remove 'type' from kwargs so it's not duplicated later */
+        Setattr(kw, "type", NULL);
+      }
+    } else {
+      /* Not a fragment */
+      if (reattach_kw) {
+	/* Update linked list to remove duplicate fragment */
+	DohIncref(kw);
+	set_nextSibling(reattach_kw, kw);
+	set_previousSibling(kw, reattach_kw);
+	Delete(reattach_kw);
+	reattach_kw = NULL;
+      }
+      prev_kw = kw;
+    }
+    kw = next_kw;
+  }
+  if (reattach_kw) {
+    /* Update linked list to remove duplicate fragment */
+    set_nextSibling(reattach_kw, kw);
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_typemap_lookup()
  *
  * Attach one or more typemaps to a node and optionally generate the typemap contents
@@ -1463,6 +1516,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
 
   /* Attach kwargs - ie the typemap attributes */
   kw = Getattr(tm, "kwargs");
+  typemap_merge_fragment_kwargs(kw);
   while (kw) {
     String *value = Copy(Getattr(kw, "value"));
     String *kwtype = Getattr(kw, "type");
@@ -1577,6 +1631,7 @@ String *Swig_typemap_lookup(const_String_or_char_ptr tmap_method, Node *node, co
 static void typemap_attach_kwargs(Hash *tm, const_String_or_char_ptr tmap_method, Parm *firstp, int nmatch) {
   String *temp = NewStringEmpty();
   Parm *kw = Getattr(tm, "kwargs");
+  typemap_merge_fragment_kwargs(kw);
   while (kw) {
     String *value = Copy(Getattr(kw, "value"));
     String *type = Getattr(kw, "type");

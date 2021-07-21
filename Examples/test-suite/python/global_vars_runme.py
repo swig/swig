@@ -20,7 +20,7 @@ if x != 9876:
 fail = True
 try:
     global_vars.cvar.notexist = "something"
-except AttributeError, e:
+except AttributeError as e:
     fail = False
 if fail:
     raise RuntimeError("AttributeError should have been thrown")
@@ -28,7 +28,7 @@ if fail:
 fail = True
 try:
     g = global_vars.cvar.notexist
-except AttributeError, e:
+except AttributeError as e:
     fail = False
 if fail:
     raise RuntimeError("AttributeError should have been thrown")

@@ -316,24 +316,24 @@ public:
 
     if (!outfile) {
       Printf(stderr, "Unable to determine outfile\n");
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     if (directorsEnabled()) {
       if (!outfile_h) {
         Printf(stderr, "Unable to determine outfile_h\n");
-        SWIG_exit(EXIT_FAILURE);
+        Exit(EXIT_FAILURE);
       }
       f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
       if (!f_runtime_h) {
 	FileErrorDisplay(outfile_h);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
     }
 
@@ -670,7 +670,7 @@ public:
 	f_single_out = NewFile(filen, "w", SWIG_output_files());
 	if (!f_single_out) {
 	  FileErrorDisplay(filen);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
 	Append(filenames_list, Copy(filen));
 	Delete(filen);
@@ -684,7 +684,7 @@ public:
       File *f = NewFile(filen, "w", SWIG_output_files());
       if (!f) {
 	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filen));
       Delete(filen);
@@ -901,8 +901,6 @@ public:
       // Get typemap for this argument
       if ((tm = Getattr(p, "tmap:in"))) {
 	canThrow(n, "in", p);
-	Replaceall(tm, "$source", arg);	/* deprecated */
-	Replaceall(tm, "$target", ln);	/* deprecated */
 	Replaceall(tm, "$arg", arg);	/* deprecated? */
 	Replaceall(tm, "$input", arg);
 	Setattr(p, "emit:input", arg);
@@ -921,7 +919,6 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
 	canThrow(n, "check", p);
-	Replaceall(tm, "$target", Getattr(p, "lname"));	/* deprecated */
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(f->code, tm, "\n", NIL);
@@ -935,7 +932,6 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
 	canThrow(n, "freearg", p);
-	Replaceall(tm, "$source", Getattr(p, "emit:input"));	/* deprecated */
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(cleanup, tm, "\n", NIL);
@@ -949,8 +945,6 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
 	canThrow(n, "argout", p);
-	Replaceall(tm, "$source", Getattr(p, "emit:input"));	/* deprecated */
-	Replaceall(tm, "$target", Getattr(p, "lname"));	/* deprecated */
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
 	Replaceall(tm, "$result", "jresult");
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
@@ -982,8 +976,6 @@ public:
       /* Return value if necessary  */
       if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
 	canThrow(n, "out", n);
-	Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
-	Replaceall(tm, "$target", "jresult");	/* deprecated */
 	Replaceall(tm, "$result", "jresult");
 
         if (GetFlag(n, "feature:new"))
@@ -1011,7 +1003,6 @@ public:
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
 	canThrow(n, "newfree", n);
-	Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
 	Printf(f->code, "%s\n", tm);
       }
     }
@@ -1020,7 +1011,6 @@ public:
     if (!native_function_flag) {
       if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
 	canThrow(n, "ret", n);
-	Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
 	Printf(f->code, "%s\n", tm);
       }
     }
@@ -2050,7 +2040,8 @@ public:
 
   void emitInterfaceDeclaration(Node *n, String *interface_name, File *f_interface) {
     Printv(f_interface, typemapLookup(n, "csimports", Getattr(n, "classtypeobj"), WARN_NONE), "\n", NIL);
-    Printf(f_interface, "public interface %s", interface_name);
+    Printv(f_interface, typemapLookup(n, "csinterfacemodifiers", Getattr(n, "classtypeobj"), WARN_CSHARP_TYPEMAP_INTERFACEMODIFIERS_UNDEF), NIL);
+    Printf(f_interface, " %s", interface_name);
     if (List *baselist = Getattr(n, "bases")) {
       String *bases = 0;
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
@@ -2131,12 +2122,12 @@ public:
 	full_imclass_name = NewStringf("%s", imclass_name);
 	if (Cmp(proxy_class_name, imclass_name) == 0) {
 	  Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
 
 	if (Cmp(proxy_class_name, module_class_name) == 0) {
 	  Printf(stderr, "Class name cannot be equal to module class name: %s\n", proxy_class_name);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
       } else {
 	if (namespce) {
@@ -2562,8 +2553,8 @@ public:
 	Replaceall(imcall, "$imfuncname", intermediary_function_name);
 	String *excode = NewString("");
 	Node *directorNode = Getattr(n, "directorNode");
-	if (directorNode) {
-	  UpcallData *udata = Getattr(directorNode, "upcalldata");
+	UpcallData *udata = directorNode ? Getattr(directorNode, "upcalldata") : 0;
+	if (udata) {
 	  String *methid = Getattr(udata, "class_methodidx");
 
 	  if (!Cmp(return_type, "void"))
@@ -3669,7 +3660,7 @@ public:
       if (newdir_error) {
 	Printf(stderr, "%s\n", newdir_error);
 	Delete(newdir_error);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Printv(output_directory, nspace_subdirectory, SWIG_FILE_DELIMITER, 0);
       Delete(nspace_subdirectory);

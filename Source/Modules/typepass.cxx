@@ -969,7 +969,7 @@ class TypePass:private Dispatcher {
       if (Getattr(c, "sym:overloaded") != checkoverloaded) {
         Printf(stdout, "sym:overloaded error c:%p checkoverloaded:%p\n", c, checkoverloaded);
         Swig_print_node(c);
-        SWIG_exit(EXIT_FAILURE);
+        Exit(EXIT_FAILURE);
       }
 
       String *decl = Strcmp(nodeType(c), "using") == 0 ? NewString("------") : Getattr(c, "decl");
@@ -977,7 +977,7 @@ class TypePass:private Dispatcher {
       if (!Getattr(c, "sym:overloaded")) {
         Printf(stdout, "sym:overloaded error.....%p\n", c);
         Swig_print_node(c);
-        SWIG_exit(EXIT_FAILURE);
+        Exit(EXIT_FAILURE);
       }
       c = Getattr(c, "sym:nextSibling");
     }
@@ -1039,6 +1039,21 @@ class TypePass:private Dispatcher {
 	      Node *unodes = 0, *last_unodes = 0;
 	      int ccount = 0;
 	      String *symname = Getattr(n, "sym:name");
+
+	      // The overloaded functions in scope may not yet have had their parameters normalized yet (in cDeclaration).
+	      // Happens if the functions were declared after the using declaration. So use a normalized copy.
+	      List *n_decl_list = NewList();
+	      Node *over = Getattr(n, "sym:overloaded");
+	      while (over) {
+		String *odecl = Copy(Getattr(over, "decl"));
+		if (odecl) {
+		  normalize_type(odecl);
+		  Append(n_decl_list, odecl);
+		  Delete(odecl);
+		}
+		over = Getattr(over, "sym:nextSibling");
+	      }
+
 	      while (c) {
 		if (Strcmp(nodeType(c), "cdecl") == 0) {
 		  if (!(Swig_storage_isstatic(c)
@@ -1047,37 +1062,40 @@ class TypePass:private Dispatcher {
 			|| (Getattr(c, "feature:extend") && !Getattr(c, "code"))
 			|| GetFlag(c, "feature:ignore"))) {
 
-		    /* Don't generate a method if the method is overridden in this class, 
-		     * for example don't generate another m(bool) should there be a Base::m(bool) :
-		     * struct Derived : Base { 
-		     *   void m(bool);
-		     *   using Base::m;
-		     * };
-		     */
 		    String *csymname = Getattr(c, "sym:name");
 		    if (!csymname || (Strcmp(csymname, symname) == 0)) {
-		      {
-			String *decl = Getattr(c, "decl");
-			Node *over = Getattr(n, "sym:overloaded");
-			int match = 0;
-			while (over) {
-			  String *odecl = Getattr(over, "decl");
-			  if (Cmp(decl, odecl) == 0) {
-			    match = 1;
-			    break;
-			  }
-			  over = Getattr(over, "sym:nextSibling");
-			}
-			if (match) {
-			  c = Getattr(c, "csym:nextSibling");
-			  continue;
+		      String *decl = Getattr(c, "decl");
+		      int match = 0;
+
+		      for (Iterator it = First(n_decl_list); it.item; it = Next(it)) {
+			String *odecl = it.item;
+			if (Cmp(decl, odecl) == 0) {
+			  match = 1;
+			  break;
 			}
 		      }
+		      if (match) {
+			/* Don't generate a method if the method is overridden in this class,
+			 * for example don't generate another m(bool) should there be a Base::m(bool) :
+			 * struct Derived : Base {
+			 *   void m(bool);
+			 *   using Base::m;
+			 * };
+			 */
+			c = Getattr(c, "csym:nextSibling");
+			continue;
+		      }
+
 		      Node *nn = copyNode(c);
+		      Setfile(nn, Getfile(n));
+		      Setline(nn, Getline(n));
 		      Delattr(nn, "access");	// access might be different from the method in the base class
 		      Setattr(nn, "access", Getattr(n, "access"));
 		      if (!Getattr(nn, "sym:name"))
 			Setattr(nn, "sym:name", symname);
+		      Symtab *st = Getattr(n, "sym:symtab");
+		      assert(st);
+		      Setattr(nn, "sym:symtab", st);
 
 		      if (!GetFlag(nn, "feature:ignore")) {
 			ParmList *parms = CopyParmList(Getattr(c, "parms"));
@@ -1117,6 +1135,9 @@ class TypePass:private Dispatcher {
 		      } else {
 			Delete(nn);
 		      }
+		    } else {
+		      Swig_warning(WARN_LANG_USING_NAME_DIFFERENT, Getfile(n), Getline(n), "Using declaration %s, with name '%s', is not actually using\n", SwigType_namestr(Getattr(n, "uname")), symname);
+		      Swig_warning(WARN_LANG_USING_NAME_DIFFERENT, Getfile(c), Getline(c), "the method from %s, with name '%s', as the names are different.\n", Swig_name_decl(c), csymname);
 		    }
 		  }
 		}
@@ -1201,6 +1222,7 @@ class TypePass:private Dispatcher {
 #endif
 		clean_overloaded(n);	// Needed?
 	      }
+	      Delete(n_decl_list);
 	    }
 	  }
 	} else if ((Strcmp(ntype, "class") == 0) || ((Strcmp(ntype, "classforward") == 0))) {

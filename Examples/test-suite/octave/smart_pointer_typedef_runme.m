@@ -10,11 +10,11 @@ b = Bar(f);
 
 b.x = 3;
 if (b.getx() != 3)
-    error
+    error("failed");
 endif
 
 fp = b.__deref__();
 fp.x = 4;
 if (fp.getx() != 4)
-    error
+    error("failed");
 endif

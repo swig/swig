@@ -2,6 +2,8 @@
 
 %module(directors="1") go_director_inout
 
+%include <std_string.i>
+
 %{
 #include <string>
 %}
@@ -108,6 +110,25 @@ type GoRetStruct struct {
   $1.str.assign($input.p, $input.n);
 %}
 
+%typemap(directorin) std::string & (_gostring_ temp) {
+    $input = &temp;
+    temp.p = (char *) $1.data();
+    temp.n = $1.size();
+}
+%typemap(directorargout) std::string & {
+    _gostring_ *tmp = $input;
+    $1.assign(tmp->p, tmp->p + tmp->n);
+}
+
+%typemap(directorin) std::string * (_gostring_ temp) {
+    $input = &temp;
+    $input->p = (char *) $1->data();
+    $input->n = $1->size();
+}
+%typemap(directorargout) std::string * {
+    $1->assign($input->p, $input->p + $input->n);
+}
+
 %feature("director") MyClass;
 
 %inline
@@ -121,6 +142,10 @@ class MyClass {
     r.str = s.str;
     return r;
   }
+
+  virtual void S1(std::string s) = 0;
+  virtual void S2(std::string& s) = 0;
+  virtual void S3(std::string* s) = 0;
 };
 
 %}

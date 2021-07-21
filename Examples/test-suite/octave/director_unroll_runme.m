@@ -11,6 +11,6 @@ c = b.get();
 
 if (swig_this(a) != swig_this(c))
   a,c
-  error
+  error("failed");
 endif
 

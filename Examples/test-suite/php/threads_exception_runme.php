@@ -1,14 +1,13 @@
 <?php
 
 require "tests.php";
-require "threads_exception.php";
 
-// Check functions
-check::functions(array('test_simple','test_message','test_hosed','test_unknown','test_multi','is_python_builtin'));
+// No new functions
+check::functions(array());
 // Check classes.
 check::classes(array('Exc','Test','threads_exception'));
-// Check globals.
-check::globals(array('exc_code','exc_msg'));
+// No new vars
+check::globals(array());
 
 $t = new Test();
 try {
@@ -41,3 +40,5 @@ foreach (Array(1,2,3,4) as $i) {
     } catch (Exception $e) {
     }
 }
+
+check::done();

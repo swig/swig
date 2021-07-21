@@ -92,7 +92,7 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterWStringCallback_$module(SWIG_CSharpWStri
     } %}
 %typemap(csvarout, excode=SWIGEXCODE2) wchar_t * %{
     get {
-      string ret = $imcall;$excode
+      string ret = global::System.Runtime.InteropServices.Marshal.PtrToStringUni($imcall);$excode
       return ret;
     } %}
 

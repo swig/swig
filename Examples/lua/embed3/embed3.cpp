@@ -61,7 +61,7 @@ bool push_pointer(lua_State*L, void* ptr, const char* type_name, int owned = 0) 
 
 /* This is an example of how to call the Lua function
     void onEvent(Event e) 
-  its very tedious, but gives you an idea of the issues involed.
+  it's very tedious, but gives you an idea of the issues involved.
 */
 int call_onEvent(lua_State *L, Event e) {
   int top;
@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
   /* this code will pass a pointer into lua, but C++ still owns the object
   this is a little tedious, to do, but let's do it
   we need to pass the pointer (obviously), the type name 
-  and a flag which states if Lua should delete the pointer once its finished with it
+  and a flag which states if Lua should delete the pointer once it's finished with it
   The type name is a class name string which is registered with SWIG
   (normally, just look in the wrapper file to get this)
   in this case we don't want Lua to delete the pointer so the ownership flag is 0

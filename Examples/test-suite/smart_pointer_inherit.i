@@ -70,7 +70,10 @@ class ItkVectorContainerUILSNUS2 : public std::vector< ItkLevelSetNodeUS2 > {
 
 class ItkVectorContainerUILSNUS2_Pointer {
   public:
-    ItkVectorContainerUILSNUS2 * operator->() const { return 0; }
+    ItkVectorContainerUILSNUS2 * operator->() const {
+      static ItkVectorContainerUILSNUS2 instance;
+      return &instance;
+    }
 };
 
 %}

@@ -106,9 +106,10 @@ public:
 
   char *strip(const_String_or_char_ptr s) {
     Clear(temp);
-    Append(temp, s);
     if (Strncmp(s, prefix, Len(prefix)) == 0) {
-      Replaceall(temp, prefix, "");
+      Append(temp, Char(s) + Len(prefix));
+    } else {
+      Append(temp, s);
     }
     return Char(temp);
   }
@@ -116,6 +117,7 @@ public:
 
 
 /* flags for the make_autodoc function */
+namespace {
 enum autodoc_t {
   AUTODOC_CLASS,
   AUTODOC_CTOR,
@@ -127,6 +129,7 @@ enum autodoc_t {
   AUTODOC_SETTER,
   AUTODOC_NONE
 };
+}
 
 static const char *usage = "\
 Ruby Options (available with -ruby)\n\
@@ -895,7 +898,7 @@ public:
 	} else if (strcmp(argv[i], "-nocppcast") == 0) {
 	  Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
 	  Swig_mark_arg(i);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
       }
     }
@@ -1034,13 +1037,13 @@ public:
 
     if (!outfile) {
       Printf(stderr, "Unable to determine outfile\n");
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     f_runtime = NewString("");
@@ -1055,12 +1058,12 @@ public:
     if (directorsEnabled()) {
       if (!outfile_h) {
         Printf(stderr, "Unable to determine outfile_h\n");
-        SWIG_exit(EXIT_FAILURE);
+        Exit(EXIT_FAILURE);
       }
       f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
       if (!f_runtime_h) {
 	FileErrorDisplay(outfile_h);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
     }
 
@@ -1425,16 +1428,14 @@ public:
    * applyInputTypemap()
    *
    * Look up the appropriate "in" typemap for this parameter (p),
-   * substitute the correct strings for the $target and $input typemap
-   * parameters, and dump the resulting code to the wrapper file.
+   * substitute the correct strings for the typemap parameters, and dump the
+   * resulting code to the wrapper file.
    * --------------------------------------------------------------------- */
 
-  Parm *applyInputTypemap(Parm *p, String *ln, String *source, Wrapper *f, String *symname) {
+  Parm *applyInputTypemap(Parm *p, String *source, Wrapper *f, String *symname) {
     String *tm;
     SwigType *pt = Getattr(p, "type");
     if ((tm = Getattr(p, "tmap:in"))) {
-      Replaceall(tm, "$target", ln);
-      Replaceall(tm, "$source", source);
       Replaceall(tm, "$input", source);
       Replaceall(tm, "$symname", symname);
 
@@ -1474,10 +1475,8 @@ public:
     Parm *p;
     String *tm;
     String *source;
-    String *target;
 
     source = NewString("");
-    target = NewString("");
 
     bool ctor_director = (current == CONSTRUCTOR_INITIALIZE && Swig_directorclass(n));
 
@@ -1498,7 +1497,6 @@ public:
       p = skipIgnoredArgs(p);
 
       String *pn = Getattr(p, "name");
-      String *ln = Getattr(p, "lname");
 
       /* Produce string representation of source argument */
       Clear(source);
@@ -1509,10 +1507,6 @@ public:
       } else {
 	Printf(source, "argv[%d]", i - start);
       }
-
-      /* Produce string representation of target argument */
-      Clear(target);
-      Printf(target, "%s", Char(ln));
 
       if (i >= (numreq)) {	/* Check if parsing an optional argument */
 	Printf(f->code, "    if (argc > %d) {\n", i - start);
@@ -1526,7 +1520,7 @@ public:
       }
 
       /* Look for an input typemap */
-      p = applyInputTypemap(p, ln, source, f, Getattr(n, "name"));
+      p = applyInputTypemap(p, source, f, Getattr(n, "name"));
       if (i >= numreq) {
 	Printf(f->code, "}\n");
       }
@@ -1553,7 +1547,6 @@ public:
     }
 
     Delete(source);
-    Delete(target);
   }
 
   /* ---------------------------------------------------------------------
@@ -1569,7 +1562,6 @@ public:
     String *tm;
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
-	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Printv(f->code, tm, "\n", NIL);
 	p = Getattr(p, "tmap:check:next");
       } else {
@@ -1591,7 +1583,6 @@ public:
     for (Parm *p = l; p;) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
 	if (Len(tm) != 0) {
-	  Replaceall(tm, "$source", Getattr(p, "lname"));
 	  Printv(cleanup, tm, "\n", NIL);
 	}
 	p = Getattr(p, "tmap:freearg:next");
@@ -1613,8 +1604,6 @@ public:
     String *tm;
     for (Parm *p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-	Replaceall(tm, "$source", Getattr(p, "lname"));
-	Replaceall(tm, "$target", "vresult");
 	Replaceall(tm, "$result", "vresult");
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
@@ -1876,8 +1865,6 @@ public:
           actioncode = 0;
           if (tm) {
             Replaceall(tm, "$result", "vresult");
-            Replaceall(tm, "$source", Swig_cresult_name());
-            Replaceall(tm, "$target", "vresult");
 
             if (GetFlag(n, "feature:new"))
               Replaceall(tm, "$owner", "SWIG_POINTER_OWN");
@@ -1975,7 +1962,6 @@ public:
     if (current != CONSTRUCTOR_ALLOCATE && GetFlag(n, "feature:new")) {
       tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0);
       if (tm) {
-	Replaceall(tm, "$source", Swig_cresult_name());
 	Printv(f->code, tm, "\n", NIL);
 	Delete(tm);
       }
@@ -1984,7 +1970,6 @@ public:
     /* Special processing on return value. */
     tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0);
     if (tm) {
-      Replaceall(tm, "$source", Swig_cresult_name());
       Printv(f->code, tm, NIL);
       Delete(tm);
     }
@@ -2214,8 +2199,6 @@ public:
     tm = Swig_typemap_lookup("varout", n, name, 0);
     if (tm) {
       Replaceall(tm, "$result", "_val");
-      Replaceall(tm, "$target", "_val");
-      Replaceall(tm, "$source", name);
       /* Printv(getf->code,tm, NIL); */
       addfail = emit_action_code(n, getf->code, tm);
     } else {
@@ -2250,8 +2233,6 @@ public:
       tm = Swig_typemap_lookup("varin", n, name, 0);
       if (tm) {
 	Replaceall(tm, "$input", "_val");
-	Replaceall(tm, "$source", "_val");
-	Replaceall(tm, "$target", name);
 	/* Printv(setf->code,tm,"\n",NIL); */
 	emit_action_code(n, setf->code, tm);
       } else {
@@ -2363,8 +2344,6 @@ public:
     if (!tm)
       tm = Swig_typemap_lookup("constcode", n, value, 0);
     if (tm) {
-      Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", iname);
       Replaceall(tm, "$symname", iname);
       Replaceall(tm, "$value", value);
       if (current == CLASS_CONST) {

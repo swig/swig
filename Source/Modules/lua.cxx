@@ -50,7 +50,7 @@
 /**** Diagnostics:
   With the #define REPORT(), you can change the amount of diagnostics given
   This helps me search the parse tree & figure out what is going on inside SWIG
-  (because its not clear or documented)
+  (because it's not clear or documented)
 */
 #define REPORT(T,D)		// no info:
 //#define REPORT(T,D)   {Printf(stdout,T"\n");} // only title
@@ -304,7 +304,7 @@ public:
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     f_runtime = NewString("");
     f_init = NewString("");
@@ -435,7 +435,7 @@ public:
   /* NEW LANGUAGE NOTE:***********************************************
      This is it!
      you get this one right, and most of your work is done
-     but its going to take some file to get it working right
+     but it's going to take some file to get it working right
      quite a bit of this is generally boilerplate code
      (or stuff I don't understand)
      that which matters will have extra added comments
@@ -613,13 +613,9 @@ public:
       }
 
       SwigType *pt = Getattr(p, "type");
-      String *ln = Getattr(p, "lname");
-
       /* Look for an input typemap */
       sprintf(source, "%d", i + 1);
       if ((tm = Getattr(p, "tmap:in"))) {
-	Replaceall(tm, "$source", source);
-	Replaceall(tm, "$target", ln);
 	Replaceall(tm, "$input", source);
 	Setattr(p, "emit:input", source);
 	if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:in:disown"))) {
@@ -678,7 +674,6 @@ public:
     /* Insert constraint checking code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
-	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Printv(f->code, tm, "\n", NIL);
 	p = Getattr(p, "tmap:check:next");
       } else {
@@ -690,7 +685,6 @@ public:
     String *cleanup = NewString("");
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
-	Replaceall(tm, "$source", Getattr(p, "lname"));
 	Printv(cleanup, tm, "\n", NIL);
 	p = Getattr(p, "tmap:freearg:next");
       } else {
@@ -709,8 +703,6 @@ public:
 	//                      returnval+=GetInt(p,"tmap:argout:numoutputs");
 	//        }
 	//        else returnval++;
-	Replaceall(tm, "$source", Getattr(p, "lname"));
-	Replaceall(tm, "$target", Swig_cresult_name());
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(outarg, tm, "\n", NIL);
@@ -740,7 +732,6 @@ public:
       //              returnval+=GetInt(tm,"numoutputs");
       //      }
       //        else returnval++;
-      Replaceall(tm, "$source", Swig_cresult_name());
       if (GetFlag(n, "feature:new")) {
 	Replaceall(tm, "$owner", "1");
       } else {
@@ -762,14 +753,12 @@ public:
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
-	Replaceall(tm, "$source", Swig_cresult_name());
 	Printf(f->code, "%s\n", tm);
       }
     }
 
     /* See if there is any return cleanup code */
     if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
-      Replaceall(tm, "$source", Swig_cresult_name());
       Printf(f->code, "%s\n", tm);
     }
 
@@ -1002,6 +991,7 @@ public:
     //    REPORT("variableWrapper", n);
     String *lua_name = Getattr(n, "lua:name");
     assert(lua_name);
+    (void)lua_name;
     current[VARIABLE] = true;
     // let SWIG generate the wrappers
     int result = Language::variableWrapper(n);
@@ -1073,14 +1063,10 @@ public:
     }
 
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
-      Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", lua_name);
       Replaceall(tm, "$value", value);
       Replaceall(tm, "$nsname", nsname);
       registerConstant(luaCurrentSymbolNSpace(), tm);
     } else if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
-      Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", lua_name);
       Replaceall(tm, "$value", value);
       Replaceall(tm, "$nsname", nsname);
       Printf(f_init, "%s\n", tm);
@@ -1109,8 +1095,6 @@ public:
         Setattr(n_v2, "sym:name", lua_name_v2);
         tm_v2 = Swig_typemap_lookup("consttab", n_v2, name, 0);
         if (tm_v2) {
-          Replaceall(tm_v2, "$source", value);
-          Replaceall(tm_v2, "$target", lua_name_v2);
           Replaceall(tm_v2, "$value", value);
           Replaceall(tm_v2, "$nsname", nsname);
           registerConstant(getNSpace(), tm_v2);
@@ -1122,8 +1106,6 @@ public:
             Swig_restore(n);
             return SWIG_ERROR;
           }
-          Replaceall(tm_v2, "$source", value);
-          Replaceall(tm_v2, "$target", lua_name_v2);
           Replaceall(tm_v2, "$value", value);
           Replaceall(tm_v2, "$nsname", nsname);
           Printf(f_init, "%s\n", tm_v2);
@@ -2071,8 +2053,8 @@ public:
 	if (GetFlag(carrays_hash, "lua:class_instance")) {
 	  String *static_cls = Getattr(carrays_hash, "lua:class_instance:static_hash");
 	  assert(static_cls);
-	  // static_cls is swig_lua_namespace. This structure can't be use with eLua(LTR)
-	  // Instead structure describing its methods isused
+	  // static_cls is swig_lua_namespace. This structure can't be used with eLua(LTR)
+	  // Instead a structure describing its methods is used
 	  String *static_cls_cname = Getattr(static_cls, "methods:name");
 	  assert(static_cls_cname);
 	  Printv(metatable_tab, tab4, "{LSTRKEY(\".static\"), LROVAL(", static_cls_cname, ")},\n", NIL);
@@ -2242,36 +2224,6 @@ public:
   }
 
 };
-
-/* NEW LANGUAGE NOTE:***********************************************
- in order to add you language into swig, you need to make the following changes:
- - write this file (obviously)
- - add into the makefile (not 100% clear on how to do this)
- - edit swigmain.cxx to add your module
- 
-near the top of swigmain.cxx, look for this code & add you own codes
-======= begin change ==========
-extern "C" {
-  Language *swig_tcl(void);
-  Language *swig_python(void);
-  //etc,etc,etc...
-  Language *swig_lua(void);	// this is my code
-}
- 
-  //etc,etc,etc...
- 
-swig_module  modules[] = {
-  {"-guile",     swig_guile,     "Guile"},
-  {"-java",      swig_java,      "Java"},
-  //etc,etc,etc...
-  {"-lua",       swig_lua,       "Lua"},	// this is my code
-  {NULL, NULL, NULL}	// this must come at the end of the list
-};
-======= end change ==========
- 
-This is all that is needed
- 
-NEW LANGUAGE NOTE:END ************************************************/
 
 /* -----------------------------------------------------------------------------
  * swig_lua()    - Instantiate module

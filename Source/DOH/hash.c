@@ -173,10 +173,7 @@ static void resize(Hash *h) {
     p = p + 2;
   }
 
-  table = (HashNode **) DohMalloc(newsize * sizeof(HashNode *));
-  for (i = 0; i < newsize; i++) {
-    table[i] = 0;
-  }
+  table = (HashNode **) DohCalloc(newsize, sizeof(HashNode *));
 
   /* Walk down the old set of nodes and re-place */
   h->hashsize = newsize;

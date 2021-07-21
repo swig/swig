@@ -239,5 +239,7 @@ class C1 {
 };
 
 class C2 : public C1 {
+ public:
+  void M2(C1*) {}
 };
 %}

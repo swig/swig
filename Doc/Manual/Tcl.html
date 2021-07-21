@@ -636,7 +636,7 @@ tcl:
 
 <p>
 To build the extension, run NMAKE (you may need to run vcvars32
-first).  This is a pretty minimal Makefile, but hopefully its enough
+first).  This is a pretty minimal Makefile, but hopefully it's enough
 to get you started.  With a little practice, you'll be making lots of
 Tcl extensions.
 </p>
@@ -1227,7 +1227,15 @@ _108fea88_p_Bar
 
 <p>
 Finally, to destroy objects created from Tcl, you can either let the object
-name go out of scope or you can explicitly delete the object.  For example:
+name go out of scope or you can explicitly delete the object as shown below.
+Objects won't get automatically destroyed when the Tcl program exits, so if
+it's important that the C++ destructor is called for a class you'll need to
+make sure that you explicitly do this for objects of that class before program
+exit.
+</p>
+
+<p>
+For example:
 </p>
 
 <div class="code">
@@ -2235,7 +2243,7 @@ as well as a special error code:
 <div class="code">
 <pre>
 /* send message, return number of bytes sent, along with success code */
-int send_message(char *text, int len, int *success);
+int send_message(char *text, int *success);
 </pre>
 </div>
 
@@ -2811,9 +2819,7 @@ used as a <tt>char **</tt> object.
 
 // This gives SWIG some cleanup code that will get called after the function call
 %typemap(freearg) char ** {
-  if ($1) {
-    free($1);
-  }
+  free($1);
 }
 
 // Now a test functions

@@ -13,57 +13,24 @@ typedef int (*V8ExtensionInitializer) (v8::Handle<v8::Object> module);
 
 // Note: these typedefs and defines are used to deal with  v8 API changes since version 3.19.00
 
-#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
-typedef v8::Handle<v8::Value> SwigV8ReturnValue;
-typedef v8::Arguments SwigV8Arguments;
-typedef v8::AccessorInfo SwigV8PropertyCallbackInfo;
-#define SWIGV8_RETURN(val) return scope.Close(val)
-#define SWIGV8_RETURN_INFO(val, info) return scope.Close(val)
-#else
 typedef void SwigV8ReturnValue;
 typedef v8::FunctionCallbackInfo<v8::Value> SwigV8Arguments;
 typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_RETURN(val) args.GetReturnValue().Set(val); return
 #define SWIGV8_RETURN_INFO(val, info) info.GetReturnValue().Set(val); return
-#endif
 
-
-#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032117)
-#define SWIGV8_HANDLESCOPE() v8::HandleScope scope
-#define SWIGV8_HANDLESCOPE_ESC() v8::HandleScope scope
-#define SWIGV8_ESCAPE(val) return scope.Close(val)
-#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032318)
-#define SWIGV8_HANDLESCOPE() v8::HandleScope scope(v8::Isolate::GetCurrent());
-#define SWIGV8_HANDLESCOPE_ESC() v8::HandleScope scope(v8::Isolate::GetCurrent());
-#define SWIGV8_ESCAPE(val) return scope.Close(val)
-#else
 #define SWIGV8_HANDLESCOPE() v8::HandleScope scope(v8::Isolate::GetCurrent());
 #define SWIGV8_HANDLESCOPE_ESC() v8::EscapableHandleScope scope(v8::Isolate::GetCurrent());
 #define SWIGV8_ESCAPE(val) return scope.Escape(val)
-#endif
 
-#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032318)
-#define SWIGV8_CURRENT_CONTEXT() v8::Context::GetCurrent()
-#define SWIGV8_STRING_NEW(str) v8::String::New(str)
-#define SWIGV8_FUNCTEMPLATE_NEW(func) v8::FunctionTemplate::New(func)
-#define SWIGV8_OBJECT_NEW() v8::Object::New()
-#define SWIGV8_EXTERNAL_NEW(val) v8::External::New(val)
-#define SWIGV8_UNDEFINED() v8::Undefined()
-#else
 #define SWIGV8_CURRENT_CONTEXT() v8::Isolate::GetCurrent()->GetCurrentContext()
 #define SWIGV8_STRING_NEW(str) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), str)
 #define SWIGV8_FUNCTEMPLATE_NEW(func) v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), func)
 #define SWIGV8_OBJECT_NEW() v8::Object::New(v8::Isolate::GetCurrent())
 #define SWIGV8_EXTERNAL_NEW(val) v8::External::New(v8::Isolate::GetCurrent(), val)
 #define SWIGV8_UNDEFINED() v8::Undefined(v8::Isolate::GetCurrent())
-#endif
 
-
-#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031900)
-typedef v8::Persistent<v8::Context> SwigV8Context;
-#else
 typedef v8::Local<v8::Context> SwigV8Context;
-#endif
 
 class V8Shell: public JSShell {
 
@@ -149,13 +116,7 @@ bool V8Shell::RunScript(const std::string &scriptPath) {
 
   context->Exit();
 
-#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031710)
-    context.Dispose();
-#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031900)
-    context.Dispose(v8::Isolate::GetCurrent());
-#else
 //    context.Dispose();
-#endif
 
 //  v8::V8::Dispose();
 
@@ -193,13 +154,7 @@ bool V8Shell::RunShell() {
 
   context->Exit();
 
-#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031710)
-    context.Dispose();
-#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031900)
-    context.Dispose(v8::Isolate::GetCurrent());
-#else
 //    context.Dispose();
-#endif
 
 //  v8::V8::Dispose();
 
@@ -249,13 +204,8 @@ SwigV8Context V8Shell::CreateShellContext() {
   global->Set(SWIGV8_STRING_NEW("require"), SWIGV8_FUNCTEMPLATE_NEW(V8Shell::Require));
   global->Set(SWIGV8_STRING_NEW("version"), SWIGV8_FUNCTEMPLATE_NEW(V8Shell::Version));
 
-#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031900)
-  SwigV8Context context = v8::Context::New(NULL, global);
-  return context;
-#else
   SwigV8Context context = v8::Context::New(v8::Isolate::GetCurrent(), NULL, global);
   return context;
-#endif
 }
 
 v8::Handle<v8::Value> V8Shell::Import(const std::string &module_path)
@@ -307,7 +257,7 @@ SwigV8ReturnValue V8Shell::Require(const SwigV8Arguments &args) {
 
   if (args.Length() != 1) {
     printf("Illegal arguments for `require`");
-  };
+  }
 
   v8::String::Utf8Value str(args[0]);
   const char *cstr = V8Shell::ToCString(str);

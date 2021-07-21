@@ -196,7 +196,7 @@ public:
   virtual int classDirector(Node *n);
   virtual int classDirectorInit(Node *n);
   virtual int classDirectorEnd(Node *n);
-  virtual int unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_director, int &virtual_destructor, int protectedbase = 0);
+  virtual int unrollVirtualMethods(Node *n, Node *parent, List *vm, int &virtual_destructor, int protectedbase = 0);
   virtual int classDirectorConstructor(Node *n);
   virtual int classDirectorDefaultConstructor(Node *n);
   virtual int classDirectorMethod(Node *n, Node *parent, String *super);
@@ -346,6 +346,8 @@ protected:
   class DoxygenTranslator *doxygenTranslator;
 
 private:
+  void unrollOneVirtualMethod(String *classname, Node *n, Node *parent, List *vm, int &virtual_destructor, int protectedbase);
+
   Hash *symtabs; /* symbol tables */
   int overloading;
   int multiinput;

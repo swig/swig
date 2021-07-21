@@ -53,3 +53,12 @@ int Array300[ConstExpressions::LLL];
 //int Array400[ConstExpressions::MMM()];
 //int Array500[ConstExpressions::NNN()];
 %}
+
+%{
+// Test handling of ID PERIOD ID in constant expressions (supported since 4.1.0).
+struct A {
+    int i;
+};
+constexpr A a{42};
+constexpr int N = a.i;
+%}

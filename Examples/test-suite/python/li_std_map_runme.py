@@ -25,8 +25,7 @@ for k in m:
 
 for k in m:
     if pm[k].this != m[k].this:
-        print pm[k], m[k]
-        raise RuntimeError
+        raise RuntimeError("Not equal {} {}".format(pm[k], m[k]))
 
 
 m = {}
@@ -51,31 +50,31 @@ mii[1] = 2
 if mii[1] != 2:
     raise RuntimeError
 
-if mii.keys() != [1]:
+if list(mii.keys()) != [1]:
     raise RuntimeError("keys")
-if mii.values() != [2]:
+if list(mii.values()) != [2]:
     raise RuntimeError("values")
-if mii.items() != [(1, 2)]:
+if list(mii.items()) != [(1, 2)]:
     raise RuntimeError("items")
 
 if [k for k in mii] != [1]:
     raise RuntimeError("iteration")
 
-if [i for i in mii.iterkeys()] != [1]:
+if [i for i in mii.keys()] != [1]:
     raise RuntimeError("iterkeys")
-if [i for i in mii.itervalues()] != [2]:
+if [i for i in mii.values()] != [2]:
     raise RuntimeError("itervalues")
-if [i for i in mii.iteritems()] != [(1, 2)]:
+if [i for i in mii.items()] != [(1, 2)]:
     raise RuntimeError("iteritems")
 
 
 slmap = li_std_map.StringLengthNumberMap()
 li_std_map.populate(slmap)
 
-keys = " ".join([k for k in slmap.keys()])
+keys = " ".join([k for k in list(slmap.keys())])
 if keys != "a aa zzz xxxx aaaaa":
     raise RuntimeError("Keys are wrong or in wrong order: " + keys)
 
-values = " ".join([str(v) for v in slmap.values()])
+values = " ".join([str(v) for v in list(slmap.values())])
 if values != "1 2 3 4 5":
     raise RuntimeError("Values are wrong or in wrong order: " + values)

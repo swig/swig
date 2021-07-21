@@ -19,7 +19,8 @@ clear all
 # load module in a function globally before base context
 clear all;
 function testme_1
-  assert(exist("swigexample") == 3);
+  % exist("swigexample") returns 1 (variable) in octave >= 4.4 < 6 but 3 (.oct file) in octave >= 6
+  assert(exist("swigexample"));
   swigexample;
   assert(isglobal("swigexample"));
   assert(cvar.ivar == ifunc);
@@ -32,7 +33,8 @@ assert(isglobal("swigexample"));
 assert(cvar.ivar == ifunc);
 clear all
 function testme_2
-  assert(exist("swigexample") == 3);
+  % exist("swigexample") returns 1 (variable) in octave >= 4.4 < 6 but 3 (.oct file) in octave >= 6
+  assert(exist("swigexample"));
   swigexample;
   assert(isglobal("swigexample"));
   assert(cvar.ivar == ifunc);
@@ -52,7 +54,8 @@ swigexample;
 assert(isglobal("swigexample"));
 assert(cvar.ivar == ifunc);
 function testme_3
-  assert(exist("swigexample") == 3);
+  % exist("swigexample") returns 1 (variable) in octave >= 4.4 < 6 but 3 (.oct file) in octave >= 6
+  assert(exist("swigexample"));
   swigexample;
   assert(isglobal("swigexample"));
   assert(cvar.ivar == ifunc);
@@ -65,7 +68,8 @@ swigexample;
 assert(isglobal("swigexample"));
 assert(cvar.ivar == ifunc);
 function testme_4
-  assert(exist("swigexample") == 3);
+  % exist("swigexample") returns 1 (variable) in octave >= 4.4 < 6 but 3 (.oct file) in octave >= 6
+  assert(exist("swigexample"));
   swigexample;
   assert(isglobal("swigexample"));
   assert(cvar.ivar == ifunc);

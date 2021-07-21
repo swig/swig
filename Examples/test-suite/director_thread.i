@@ -20,7 +20,6 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <process.h>
-#include <stdio.h>
 #else
 #include <pthread.h>
 #include <errno.h>
@@ -30,6 +29,7 @@
 #endif
 
 #include <assert.h>
+#include <stdio.h>
 #include "swig_examples_lock.h"
 
 class Foo;  
@@ -42,15 +42,15 @@ extern "C" {
   static pthread_t thread;
 #endif
 
-  static int thread_terminate = 0;
+  static int swig_thread_terminate = 0;
   static SwigExamples::CriticalSection critical_section;
   int get_thread_terminate() {
     SwigExamples::Lock lock(critical_section);
-    return thread_terminate;
+    return swig_thread_terminate;
   }
   void set_thread_terminate(int value) {
     SwigExamples::Lock lock(critical_section);
-    thread_terminate = value;
+    swig_thread_terminate = value;
   }
 }
 %}

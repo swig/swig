@@ -29,10 +29,10 @@ if d.get() != dr.get():
 #
 # 'narrowing' also works
 #
-ddc = virtual_poly.NDouble_narrow(d.nnumber())
+ddc = virtual_poly.NDouble.narrow(d.nnumber())
 if d.get() != ddc.get():
     raise RuntimeError
 
-dic = virtual_poly.NInt_narrow(i.nnumber())
+dic = virtual_poly.NInt.narrow(i.nnumber())
 if i.get() != dic.get():
     raise RuntimeError

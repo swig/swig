@@ -2,6 +2,7 @@
 
 %include "typemaps.i"
 
+%apply int *OUTPUT { int *OUTPUT2 };
 %apply int &INOUT { int &INOUT2 };
 %newobject out_foo;
 %inline %{
@@ -51,10 +52,13 @@ void out_longlong(long long x, long long *OUTPUT) {  *OUTPUT = x; }
 void out_ulonglong(unsigned long long x, unsigned long long *OUTPUT) {  *OUTPUT = x; }
 
 /* Tests a returning a wrapped pointer and an output argument */
-struct Foo *out_foo(int a, int *OUTPUT) {
+struct Foo *out_foo(int a, int *OUTPUT, int *OUTPUT2) {
   struct Foo *f = new struct Foo();
   f->a = a;
   *OUTPUT = a * 2;
+  struct Foo *f2 = new struct Foo();
+  f2->a = a;
+  *OUTPUT2 = a * 3;
   return f;
 }
 

@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "template_arg_typename.php";
 
 // No new functions
 check::functions(array());
@@ -15,4 +14,3 @@ $bufb=new boolunaryfunction_bool($whatisthis);
 check::is_a($bufb,"boolunaryfunction_bool");
 
 check::done();
-?>

@@ -3,7 +3,7 @@ dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
 AC_INIT([swig],[4.1.0],[http://www.swig.org])
-AC_PREREQ(2.60)
+AC_PREREQ([2.60])
 
 AC_CONFIG_SRCDIR([Source/Swig/swig.h])
 AC_CONFIG_AUX_DIR([Tools/config])
@@ -26,11 +26,16 @@ AM_PROG_CC_C_O  # Needed for subdir-objects in AUTOMAKE_OPTIONS
 
 AC_COMPILE_WARNINGS # Increase warning levels
 
+AC_MSG_CHECKING([CFLAGS to compile SWIG executable])
+AC_MSG_RESULT([$CFLAGS])
+AC_MSG_CHECKING([CXXFLAGS to compile SWIG executable])
+AC_MSG_RESULT([$CXXFLAGS])
+
 AC_DEFINE_UNQUOTED(SWIG_CXX, ["$CXX"], [Compiler that built SWIG])
 AC_DEFINE_UNQUOTED(SWIG_PLATFORM, ["$host"], [Platform that SWIG is built for])
 
-dnl Checks for header files.
-AC_HEADER_STDC
+# For AC_EGREP_CPP
+AC_PROG_EGREP
 
 dnl Look for popen
 AC_ARG_WITH(popen, AS_HELP_STRING([--without-popen], [Disable popen]), with_popen="$withval")
@@ -43,46 +48,47 @@ fi
 dnl PCRE
 AC_ARG_WITH([pcre],
   [AS_HELP_STRING([--without-pcre],
-                  [Disable support for regular expressions using PCRE])],
+                  [Disable support for regular expressions using PCRE2])],
   [],
   [with_pcre=yes])
 
-AC_MSG_CHECKING([whether to enable PCRE support])
+AC_MSG_CHECKING([whether to enable PCRE2 support])
 AC_MSG_RESULT([$with_pcre])
 
 dnl To make configuring easier, check for a locally built PCRE using the Tools/pcre-build.sh script
 if test x"${with_pcre}" = xyes ; then
-  AC_MSG_CHECKING([whether to use local PCRE])
+  AC_MSG_CHECKING([whether to use local PCRE2])
   local_pcre_config=no
-  if test -z $PCRE_CONFIG; then
-    if test -f `pwd`/pcre/pcre-swig-install/bin/pcre-config; then
-      PCRE_CONFIG=`pwd`/pcre/pcre-swig-install/bin/pcre-config
-      local_pcre_config=$PCRE_CONFIG
+  if test -z $PCRE2_CONFIG; then
+    if test -f `pwd`/pcre/pcre-swig-install/bin/pcre2-config; then
+      PCRE2_CONFIG=`pwd`/pcre/pcre-swig-install/bin/pcre2-config
+      local_pcre_config=$PCRE2_CONFIG
     fi
   fi
   AC_MSG_RESULT([$local_pcre_config])
 fi
 AS_IF([test "x$with_pcre" != xno],
-  [AX_PATH_GENERIC([pcre],
+  [AX_PATH_GENERIC([pcre2],
     [], dnl Minimal version of PCRE we need -- accept any
     [], dnl custom sed script for version parsing is not needed
-    [AC_DEFINE([HAVE_PCRE], [1], [Define if you have PCRE library])
-     LIBS="$LIBS $PCRE_LIBS"
-     CPPFLAGS="$CPPFLAGS $PCRE_CFLAGS"
+    [AC_DEFINE([HAVE_PCRE], [1], [Define if you have PCRE2 library])
+     LIBS="$LIBS $PCRE2_LIBS"
+     CPPFLAGS="$CPPFLAGS $PCRE2_CFLAGS"
     ],
     [AC_MSG_FAILURE([
-        Cannot find pcre-config script from PCRE (Perl Compatible Regular Expressions)
+        Cannot find pcre2-config script from PCRE2 (Perl Compatible Regular Expressions)
         library package. This dependency is needed for configure to complete,
         Either:
-        - Install the PCRE developer package on your system (preferred approach).
-        - Download the PCRE source tarball, build and install on your system
+        - Install the PCRE2 developer package on your system (preferred approach).
+        - Download the PCRE2 source tarball, build and install on your system
           as you would for any package built from source distribution.
-        - Use the Tools/pcre-build.sh script to build PCRE just for SWIG to statically
+        - Use the Tools/pcre-build.sh script to build PCRE2 just for SWIG to statically
           link against. Run 'Tools/pcre-build.sh --help' for instructions.
-          (quite easy and does not require privileges to install PCRE on your system)
+          (quite easy and does not require privileges to install PCRE2 on your system)
         - Use configure --without-pcre to disable regular expressions support in SWIG
           (not recommended).])
-    ])
+    ],
+    [],[],[--libs8])
   ])
 
 
@@ -138,17 +144,17 @@ AC_MSG_CHECKING(LDSHARED)
 if test -z "$LDSHARED"
 then
 	case $host in
-	*-*-aix*) LDSHARED="\$(srcdir)/ld_so_aix \$(CC)";;
+	*-*-aix*) LDSHARED="$CC -shared";;
 	*-*-cygwin* | *-*-mingw*)
             if test "$GCC" = yes; then
-                LDSHARED="$CC -shared"
+                LDSHARED="\$(CC) -shared"
             else
                 if test "cl" = $CC ;  then
                     # Microsoft Visual C++ (MSVC)
-                    LDSHARED="$CC -nologo -LD"
+                    LDSHARED="\$(CC) -nologo -LD"
                 else
                     # Unknown compiler try gcc approach
-                    LDSHARED="$CC -shared"
+                    LDSHARED="\$(CC) -shared"
                 fi
             fi ;;
 	*-*-irix5*) LDSHARED="ld -shared";;
@@ -160,25 +166,25 @@ then
 	*-sequent-sysv4) LDSHARED="ld -G";;
 	*-*-next*)
 		if test "$ns_dyld"
-		then LDSHARED='$(CC) $(LDFLAGS) -bundle -prebind'
-		else LDSHARED='$(CC) $(CFLAGS) -nostdlib -r'
+		then LDSHARED="\$(CC) \$(LDFLAGS) -bundle -prebind"
+		else LDSHARED="\$(CC) \$(CFLAGS) -nostdlib -r"
 		fi
                 if test "$with_next_framework" ; then
 		    LDSHARED="$LDSHARED \$(LDLIBRARY)"
 		fi ;;
-	*-*-linux*) LDSHARED="$CC -shared";;
+	*-*-linux*) LDSHARED="\$(CC) -shared";;
 	*-*-dgux*) LDSHARED="ld -G";;
-	*-*-freebsd3*) LDSHARED="$CC -shared";;
+	*-*-freebsd3*) LDSHARED="\$(CC) -shared";;
 	*-*-freebsd* | *-*-openbsd*) LDSHARED="ld -Bshareable";;
 	*-*-netbsd*)
-		if [[ "`$CC -dM -E - </dev/null | grep __ELF__`" != "" ]]
+		if [[ "`\$(CC) -dM -E - </dev/null | grep __ELF__`" != "" ]]
 		then
-			LDSHARED="$CC -shared"
+			LDSHARED="\$(CC) -shared"
 		else
 			LDSHARED="ld -Bshareable"
 		fi;;
-	*-sco-sysv*) LDSHARED="$CC -G -KPIC -Ki486 -belf -Wl,-Bexport";;
-	*-*-darwin*) LDSHARED="$CC -bundle -undefined suppress -flat_namespace";;
+	*-sco-sysv*) LDSHARED="\$(CC) -G -KPIC -Ki486 -belf -Wl,-Bexport";;
+	*-*-darwin*) LDSHARED="\$(CC) -bundle -undefined suppress -flat_namespace";;
 	*)	LDSHARED="ld";;
 	esac
 fi
@@ -200,23 +206,23 @@ if test -z "$TRYLINKINGWITHCXX"
 then
 	case $host in
 	*-*-solaris*) if test "$GCC" = yes
-             then TRYLINKINGWITHCXX="CXXSHARED= $CXX -Wl,-G"
-             else TRYLINKINGWITHCXX="CXXSHARED= $CXX -G -L/opt/SUNWspro/lib -lCrun -lCstd"
+             then TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -Wl,-G"
+             else TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -G -L/opt/SUNWspro/lib -lCrun -lCstd"
              fi;;
-        *-*-hp*) TRYLINKINGWITHCXX="CXXSHARED= $CXX +z ";;
-        *-*-darwin*) TRYLINKINGWITHCXX="CXXSHARED= $CXX -bundle -undefined suppress -flat_namespace";;
+        *-*-hp*) TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) +z ";;
+        *-*-darwin*) TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -bundle -undefined suppress -flat_namespace";;
         *-*-cygwin* | *-*-mingw*)
             if test "$GCC" = yes; then
-                TRYLINKINGWITHCXX="CXXSHARED= $CXX -shared "
+                TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -shared "
             else
                 if test "cl" = $CXX ;  then
                     # Microsoft Visual C++ (MSVC)
-                    TRYLINKINGWITHCXX="CXXSHARED= $CXX -nologo -LD"
+                    TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -nologo -LD"
                 else
                     TRYLINKINGWITHCXX="#unknown Windows compiler"
                 fi
             fi ;;
-        *)       TRYLINKINGWITHCXX="CXXSHARED= $CXX -shared ";;
+        *)       TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -shared ";;
         esac
 fi
 AC_MSG_RESULT($TRYLINKINGWITHCXX)
@@ -283,33 +289,65 @@ case $host in
     else PLATCFLAGS=
       #    else PLATCFLAGS="-errtags=yes" # Need more work as C examples use ld for linking
     fi;;
+  *-*-aix*) PLATCFLAGS="$CFLAGS";;
   *) PLATCFLAGS=
 esac
 AC_MSG_RESULT($PLATCFLAGS)
 
 # Add switch if necessary to enable C++11 support - just for tests
 AC_ARG_ENABLE([cpp11-testing], AS_HELP_STRING([--enable-cpp11-testing], [enable C++11 testing if supported by compiler (default disabled)]), [enable_cpp11_testing=$enableval], [enable_cpp11_testing=no])
-AC_MSG_CHECKING([whether to enable C++11 testing])
+AC_MSG_CHECKING([whether to attempt to enable C++11 testing])
 AC_MSG_RESULT([$enable_cpp11_testing])
 
 PLATCXXFLAGS="$PLATCFLAGS"
 if test x"$enable_cpp11_testing" = xyes; then
-  AC_LANG_PUSH([C++])
-  CXXFLAGS_SAVED=$CXXFLAGS
-  CXXFLAGS=
-  AX_CXX_COMPILE_STDCXX_11([noext], [nostop])
-  CXXFLAGS=$CXXFLAGS_SAVED
-  AC_LANG_POP([C++])
-  if test x"$CXX11FLAGS" != x; then
-    PLATCXXFLAGS="$CXX11FLAGS $PLATCXXFLAGS"
-  fi
-  AC_MSG_CHECKING([for C++11 enabled compiler])
-  if test x"$HAVE_CXX11_COMPILER" = x; then
-    AC_MSG_RESULT([no])
+  CXX_SAVED=$CXX
+  CXXCPP_SAVED=$CXXCPP
+
+  # Test for c++17
+  CXXCPP=" "
+  AX_CXX_COMPILE_STDCXX(17, [noext], [optional])
+  AC_MSG_CHECKING([whether C++17 and earlier testing is enabled])
+  if test "$HAVE_CXX17" = "1"; then
+    AC_MSG_RESULT([yes])
+    PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+    HAVE_CXX14="1"
+    HAVE_CXX11="1"
   else
-    AC_MSG_RESULT([$HAVE_CXX11_COMPILER])
+    AC_MSG_RESULT([no])
+
+    # Test for c++14
+    CXXCPP=" "
+    CXX=$CXX_SAVED
+    AX_CXX_COMPILE_STDCXX(14, [noext], [optional])
+    AC_MSG_CHECKING([whether C++14 and earlier testing is enabled])
+    if test "$HAVE_CXX14" = "1"; then
+      AC_MSG_RESULT([yes])
+      PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+      HAVE_CXX11="1"
+    else
+      AC_MSG_RESULT([no])
+
+      # Test for c++11
+      CXXCPP=" "
+      CXX=$CXX_SAVED
+      AX_CXX_COMPILE_STDCXX(11, [noext], [optional])
+      AC_MSG_CHECKING([whether C++11 and earlier testing is enabled])
+      if test "$HAVE_CXX11" = "1"; then
+        AC_MSG_RESULT([yes])
+        PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+      else
+        AC_MSG_RESULT([no])
+      fi
+
+    fi
+
   fi
+
+  CXX=$CXX_SAVED
+  CXXCPP=$CXXCPP_SAVED
 fi
+AC_SUBST(HAVE_CXX11)
 
 # On darwin 10.7,10.8,10.9 using clang++, need to ensure using
 # libc++ for tests and examples to run under mono. May affect
@@ -366,7 +404,6 @@ AC_SUBST(TRYLINKINGWITHCXX)
 AC_SUBST(RPATH)
 AC_SUBST(PLATCFLAGS)
 AC_SUBST(PLATCXXFLAGS)
-AC_SUBST(HAVE_CXX11_COMPILER)
 AC_SUBST(LINKFORSHARED)
 
 # This variation is needed on OS-X because there is no (apparent) consistency in shared library naming.
@@ -468,6 +505,7 @@ AC_PATH_TOOL([PKG_CONFIG], [pkg-config])
 TCLINCLUDE=
 TCLLIB=
 TCLPACKAGE=
+TCLLINK=
 
 AC_ARG_WITH(tclconfig, AS_HELP_STRING([--without-tcl], [Disable Tcl])
 AS_HELP_STRING([--with-tclconfig=path], [Set location of tclConfig.sh]), [with_tclconfig="$withval"], [with_tclconfig=])
@@ -496,7 +534,9 @@ fi
 dirs="/usr/lib*/ /usr/lib*/tcl*/ /usr/local/lib*/ /usr/local/lib*/tcl*/"
 case $host in
 *-*-darwin*)
-  dirs="/System/Library/Frameworks/Tcl.framework/ $dirs"
+  tcl_framework="/System/Library/Frameworks/Tcl.framework/"
+  macos_sysroot="$(xcodebuild -version -sdk macosx Path 2>/dev/null)" # For MacOSX10.14 and later
+  dirs="$macos_sysroot$tcl_framework $tcl_framework $dirs"
   ;;
 *)
   ;;
@@ -538,7 +578,7 @@ fi
 
 AC_MSG_CHECKING(for Tcl header files)
 if test -z "$TCLINCLUDE"; then
-AC_TRY_CPP([#include <tcl.h>], , TCLINCLUDE="")
+AC_PREPROC_IFELSE([AC_LANG_SOURCE([[#include <tcl.h>]])],[],[TCLINCLUDE=""])
 if test -z "$TCLINCLUDE"; then
 	dirs="/usr/local/include /usr/include /opt/local/include"
 	for i in $dirs ; do
@@ -558,7 +598,7 @@ fi
 
 AC_MSG_CHECKING(for Tcl library)
 if test -z "$TCLLIB"; then
-dirs="/usr/local/lib /usr/lib /opt/local/lib"
+dirs="/usr/local/lib /usr/lib /opt/local/lib /opt/freeware/lib"
 for i in $dirs ; do
 	if test -r $i/libtcl.a; then
 	    AC_MSG_RESULT($i)
@@ -576,7 +616,14 @@ fi
 # Cygwin (Windows) needs the library for dynamic linking
 case $host in
 *-*-cygwin* | *-*-mingw*) TCLDYNAMICLINKING="$TCLLIB";;
+*-*-aix*) TCLDYNAMICLINKING="$TCLLIB";;
 *)TCLDYNAMICLINKING="";;
+esac
+
+# AIX needs -ltcl for linking at test time
+case $host in
+*-*-aix*) TCLLINK="-ltcl";;
+*)TCLLINK="";;
 esac
 
 case $host in
@@ -597,6 +644,7 @@ AC_SUBST(TCLLIB)
 AC_SUBST(TCLDYNAMICLINKING)
 AC_SUBST(TCLLDSHARED)
 AC_SUBST(TCLCXXSHARED)
+AC_SUBST(TCLLINK)
 
 #----------------------------------------------------------------
 # Look for Python
@@ -766,7 +814,7 @@ else
     if test x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\" -a $PYVER -ge 3; then
       PYTHON3="$PYTHON"
     else
-      for py_ver in 3 3.9 3.8 3.7 3.6 3.5 3.4 3.3 3.2 ""; do
+      for py_ver in 3 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 3.2 ""; do
         AC_CHECK_PROGS(PYTHON3, [python$py_ver])
         if test -n "$PYTHON3"; then
           AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
@@ -919,30 +967,6 @@ if test -n "$PYINCLUDE" || test -n "$PY3INCLUDE" ; then
   fi
 fi
 
-AC_ARG_WITH(2to3, AS_HELP_STRING([--with-2to3=path], [Set location of Python 2to3 tool]), [PY2TO3BIN="$withval"], [PY2TO3BIN="yes"])
-if test -n "$PYTHON3"; then
-  if test "x$PY2TO3BIN" = xyes; then
-    py3to2=`echo $PYTHON3 | sed -e "s/python/2to3-/"`
-    AC_CHECK_PROGS(PY2TO3, $py3to2 2to3)
-    if test -z "$PY2TO3"; then
-      # Windows distributions don't always have the 2to3 executable
-      AC_MSG_CHECKING(for 2to3.py)
-      py2to3script="$PY3PREFIX/Tools/scripts/2to3.py"
-      if test -f "$py2to3script"; then
-        AC_MSG_RESULT($py2to3script)
-        PY2TO3="$PYTHON3 $py2to3script"
-      else
-        AC_MSG_RESULT(Not found)
-      fi
-    fi
-  else
-    PY2TO3="$PY2TO3BIN"
-  fi
-  if test -z "$PY2TO3"; then
-    PYTHON3=
-  fi
-fi
-
 #----------------------------------------------------------------
 # Look for Perl5
 #----------------------------------------------------------------
@@ -961,7 +985,7 @@ else
 # First figure out what the name of Perl5 is
 
 if test "x$PERLBIN" = xyes; then
-AC_CHECK_PROGS(PERL, perl perl5.6.1 perl5.6.0 perl5.004 perl5.003 perl5.002 perl5.001 perl5 perl)
+AC_CHECK_PROGS(PERL, perl perl5)
 else
 PERL="$PERLBIN"
 fi
@@ -1194,7 +1218,7 @@ if test x"${SCILABBIN}" = xno; then
 else
   # Check for Scilab executable
   if test "x$SCILABBIN" = xyes; then
-    AC_CHECK_PROGS(SCILAB, scilab)
+    AC_PATH_PROG(SCILAB, scilab)
   else
     AC_MSG_CHECKING(for scilab)
     if test -f "$SCILABBIN"; then
@@ -1207,18 +1231,18 @@ else
 
   if test -n "$SCILAB"; then
     # Check for Scilab version (needs api_scilab so needs version 5.3.3 or higher)
-    SCILAB_FULL_VERSION=`$SCILAB -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
+    SCILAB_VERSION=`$SCILAB -nwni -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
 
     AC_MSG_CHECKING(Scilab version is 5.3.3 or higher)
-    SCILAB_MAJOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f1`
-    SCILAB_MINOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f2`
-    SCILAB_MAINTENANCE_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f3`
-    SCILAB_VERSION="$SCILAB_MAJOR_VERSION$SCILAB_MINOR_VERSION$SCILAB_MAINTENANCE_VERSION"
+    SCILAB_MAJOR_VERSION=`echo $SCILAB_VERSION | cut -d. -f1`
+    SCILAB_MINOR_VERSION=`echo $SCILAB_VERSION | cut -d. -f2`
+    SCILAB_MAINTENANCE_VERSION=`echo $SCILAB_VERSION | cut -d. -f3`
+    SCILAB_VERSION_NO_DOTS="$SCILAB_MAJOR_VERSION$SCILAB_MINOR_VERSION$SCILAB_MAINTENANCE_VERSION"
 
-    if test $SCILAB_VERSION -ge 533; then
-      AC_MSG_RESULT(yes)
+    if test -n "$SCILAB_VERSION_NO_DOTS" && test "$SCILAB_VERSION_NO_DOTS" -ge 533; then
+      AC_MSG_RESULT(yes - $SCILAB_VERSION)
     else
-      AC_MSG_RESULT(no)
+      AC_MSG_RESULT(no - $SCILAB_VERSION)
       SCILAB=
     fi
 
@@ -1226,19 +1250,27 @@ else
       # Set Scilab startup options depending on version
       AC_MSG_CHECKING(for Scilab startup options)
       SCILABOPT="-nwni -nb"
-      if test $SCILAB_VERSION -ge 540; then
+      if test $SCILAB_VERSION_NO_DOTS -ge 540; then
         SCILABOPT+=" -noatomsautoload"
+      fi
+      if test $SCILAB_VERSION_NO_DOTS -ge 600; then
+        SCILABOPT+=" -quit"
       fi
       AC_MSG_RESULT($SCILABOPT)
 
       # Check for Scilab header files
       AC_MSG_CHECKING(for Scilab header files)
+      headers="`AS_DIRNAME(["$SCILAB"])`/../include"
       if test "$SCILABINCDIR" != ""; then
         dirs="$SCILABINCDIR"
+      elif test -d "$SCI"; then
+        dirs="$SCI/include $SCI/../../include"
+      elif test -d "$headers"; then
+        dirs="$headers"
       elif test -n "$PKG_CONFIG "; then
         dirs=`$PKG_CONFIG  scilab --cflags-only-I | sed -e 's/-I//g'`
       else
-        dirs=""
+        dirs="/usr/include"
       fi
       for i in $dirs; do
         if test -r $i/api_scilab.h; then
@@ -1263,6 +1295,7 @@ fi
 AC_SUBST(SCILAB)
 AC_SUBST(SCILABINCLUDE)
 AC_SUBST(SCILABOPT)
+AC_SUBST(SCILAB_VERSION)
 
 
 #----------------------------------------------------------------
@@ -1568,7 +1601,7 @@ else
   # Look for Node.js which is the default Javascript engine
   #----------------------------------------------------------------
 
-  AC_CHECK_PROGS(NODEJS, [nodejs node])
+  AC_CHECK_PROGS(NODEJS, [node nodejs])
 
   if test -n "$NODEJS"; then
     # node-gyp is needed to run the test-suite/examples
@@ -1622,7 +1655,15 @@ else
 
   if test -z "$JSCORELIB" -a -n "$PKG_CONFIG "; then
     AC_MSG_CHECKING(for JavaScriptCore/Webkit library)
-    if $PKG_CONFIG  javascriptcoregtk-1.0; then
+    if $PKG_CONFIG  javascriptcoregtk-4.0 2>/dev/null ; then
+      JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-4.0`
+      JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-4.0`
+      JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-4.0`
+    elif $PKG_CONFIG  javascriptcoregtk-3.0 2>/dev/null ; then
+      JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-3.0`
+      JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-3.0`
+      JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-3.0`
+    elif $PKG_CONFIG  javascriptcoregtk-1.0 2>/dev/null ; then
       JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-1.0`
       JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-1.0`
     fi
@@ -2035,7 +2076,7 @@ AC_SUBST(RUBYSO)
 AC_SUBST(RUBYDYNAMICLINKING)
 
 #-------------------------------------------------------------------------
-# Look for PHP7
+# Look for PHP
 #-------------------------------------------------------------------------
 
 PHPBIN=
@@ -2049,7 +2090,7 @@ if test x"${PHPBIN}" = xno; then
     PHP=
 else
     if test "x$PHPBIN" = xyes; then
-      AC_CHECK_PROGS(PHP, [php7.3 php7.2 php7.1 php7.0 php])
+      AC_CHECK_PROGS(PHP, [php8.1 php8.0 php7.4 php7.3 php7.2 php7.1 php7.0 php])
     else
       PHP=$PHPBIN
     fi
@@ -2060,12 +2101,14 @@ else
       case $PHP in
         *7.*)
           PHPCONFIG=`echo "$PHP"|sed 's/7\...*$/-config&/'` ;;
+        *8.*)
+          PHPCONFIG=`echo "$PHP"|sed 's/8\...*$/-config&/'` ;;
         *)
           PHPCONFIG=$PHP-config ;;
       esac
       php_version=`$PHPCONFIG --version 2>/dev/null`
       case $php_version in
-      7.*)
+      7.*|8.*)
         PHPINC=`$PHPCONFIG --includes 2>/dev/null`
         if test -n "$PHPINC"; then
           AC_MSG_RESULT($PHPINC)
@@ -2076,7 +2119,7 @@ else
       "")
         AC_MSG_RESULT([could not find $PHPCONFIG or obtain PHP version from it]) ;;
       *)
-        AC_MSG_RESULT([found PHP $php_version - not PHP 7]) ;;
+        AC_MSG_RESULT([found PHP $php_version - not PHP 7 or 8]) ;;
       esac
     fi
 fi

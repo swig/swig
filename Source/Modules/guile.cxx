@@ -132,7 +132,7 @@ public:
       if (argv[i]) {
 	if (strcmp(argv[i], "-help") == 0) {
 	  fputs(usage, stdout);
-	  SWIG_exit(EXIT_SUCCESS);
+	  Exit(EXIT_SUCCESS);
 	} else if (strcmp(argv[i], "-prefix") == 0) {
 	  if (argv[i + 1]) {
 	    prefix = NewString(argv[i + 1]);
@@ -176,7 +176,7 @@ public:
 	    procdoc = NewFile(argv[i + 1], "w", SWIG_output_files());
 	    if (!procdoc) {
 	      FileErrorDisplay(argv[i + 1]);
-	      SWIG_exit(EXIT_FAILURE);
+	      Exit(EXIT_FAILURE);
 	    }
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
@@ -255,7 +255,7 @@ public:
     if (goops) {
       if (linkage != GUILE_LSTYLE_PASSIVE && linkage != GUILE_LSTYLE_MODULE) {
 	Printf(stderr, "guile: GOOPS support requires passive or module linkage\n");
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
     }
 
@@ -298,7 +298,7 @@ public:
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     f_runtime = NewString("");
     f_init = NewString("");
@@ -476,7 +476,8 @@ public:
       Printf(f_init, "}\n");
       break;
     default:
-      abort();			// for now
+      fputs("Fatal internal error: Invalid Guile linkage setting.\n", stderr);
+      Exit(EXIT_FAILURE);
     }
 
     if (scmstub) {
@@ -495,7 +496,7 @@ public:
       File *scmstubfile = NewFile(fname, "w", SWIG_output_files());
       if (!scmstubfile) {
 	FileErrorDisplay(fname);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Delete(fname);
 
@@ -526,7 +527,7 @@ public:
       File *goopsfile = NewFile(fname, "w", SWIG_output_files());
       if (!goopsfile) {
 	FileErrorDisplay(fname);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Delete(fname);
       Swig_banner_target_lang(goopsfile, ";;;");
@@ -719,7 +720,6 @@ public:
 	sprintf(source, "argv[%d]", i);
       else
 	sprintf(source, "s_%d", i);
-      String *target = Getattr(p, "lname");
 
       if (!args_passed_as_array) {
 	if (i != 0)
@@ -730,8 +730,6 @@ public:
 	Printf(f->code, "    if (%s != SCM_UNDEFINED) {\n", source);
       }
       if ((tm = Getattr(p, "tmap:in"))) {
-	Replaceall(tm, "$source", source);
-	Replaceall(tm, "$target", target);
 	Replaceall(tm, "$input", source);
 	Setattr(p, "emit:input", source);
 	Printv(f->code, tm, "\n", NIL);
@@ -794,7 +792,6 @@ public:
     /* Insert constraint checking code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
-	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Printv(f->code, tm, "\n", NIL);
 	p = Getattr(p, "tmap:check:next");
       } else {
@@ -807,8 +804,6 @@ public:
     String *returns_argout = NewString("");
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-	Replaceall(tm, "$source", Getattr(p, "lname"));
-	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(outarg, tm, "\n", NIL);
@@ -828,7 +823,6 @@ public:
     /* Insert cleanup code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
-	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(cleanup, tm, "\n", NIL);
 	p = Getattr(p, "tmap:freearg:next");
@@ -859,8 +853,6 @@ public:
     // Now have return value, figure out what to do with it.
     if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
       Replaceall(tm, "$result", "gswig_result");
-      Replaceall(tm, "$target", "gswig_result");
-      Replaceall(tm, "$source", Swig_cresult_name());
       if (GetFlag(n, "feature:new"))
 	Replaceall(tm, "$owner", "1");
       else
@@ -898,13 +890,11 @@ public:
 
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
-	Replaceall(tm, "$source", Swig_cresult_name());
 	Printv(f->code, tm, "\n", NIL);
       }
     }
     // Free any memory allocated by the function being wrapped..
     if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
-      Replaceall(tm, "$source", Swig_cresult_name());
       Printv(f->code, tm, "\n", NIL);
     }
     // Wrap things up (in a manner of speaking)
@@ -958,20 +948,16 @@ public:
 
 	if (!is_setter) {
 	  /* Strip off "-get" */
-	  char *pws_name = (char *) malloc(sizeof(char) * (len - 3));
-	  strncpy(pws_name, pc, len - 3);
-	  pws_name[len - 4] = 0;
 	  if (struct_member == 2) {
 	    /* There was a setter, so create a procedure with setter */
 	    Printf(f_init, "scm_c_define");
-	    Printf(f_init, "(\"%s\", " "scm_make_procedure_with_setter(getter, setter));\n", pws_name);
+	    Printf(f_init, "(\"%.*s\", " "scm_make_procedure_with_setter(getter, setter));\n", pc, len - 4);
 	  } else {
 	    /* There was no setter, so make an alias to the getter */
 	    Printf(f_init, "scm_c_define");
-	    Printf(f_init, "(\"%s\", getter);\n", pws_name);
+	    Printf(f_init, "(\"%.*s\", getter);\n", pc, len - 4);
 	  }
-	  Printf(exported_symbols, "\"%s\", ", pws_name);
-	  free(pws_name);
+	  Printf(exported_symbols, "\"%.*s\", ", pc, len - 4);
 	}
       } else {
 	/* Register the function */
@@ -1141,9 +1127,7 @@ public:
 	/* Check for a setting of the variable value */
 	Printf(f->code, "if (s_0 != SCM_UNDEFINED) {\n");
 	if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
-	  Replaceall(tm, "$source", "s_0");
 	  Replaceall(tm, "$input", "s_0");
-	  Replaceall(tm, "$target", name);
 	  /* Printv(f->code,tm,"\n",NIL); */
 	  emit_action_code(n, f->code, tm);
 	} else {
@@ -1155,8 +1139,6 @@ public:
       // of evaluating or setting)
 
       if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
-	Replaceall(tm, "$source", name);
-	Replaceall(tm, "$target", "gswig_result");
 	Replaceall(tm, "$result", "gswig_result");
 	/* Printv(f->code,tm,"\n",NIL); */
 	emit_action_code(n, f->code, tm);
@@ -1334,9 +1316,7 @@ public:
     // See if there's a typemap
 
     if ((tm = Swig_typemap_lookup("constant", n, name, 0))) {
-      Replaceall(tm, "$source", value);
       Replaceall(tm, "$value", value);
-      Replaceall(tm, "$target", name);
       Printv(f_header, tm, "\n", NIL);
     } else {
       // Create variable and assign it a value
