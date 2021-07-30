@@ -6,6 +6,7 @@
 .*.sw?
 *.bak
 *.log
+*~
 .DS_Store
 
 # Local PCRE
