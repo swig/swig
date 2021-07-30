@@ -2105,12 +2105,8 @@ int MATLAB::classHandler(Node *n) {
       }
 #endif
       String *bname = Getattr(b.item, "sym:name");
-      Node *bmodNode = Getattr(b.item, "module");
-      Node *bmodoptions = Getattr(bmodNode, "options");
-      String *bpkg = 0;
-      if (bmodoptions) {
-          bpkg = Getattr(bmodoptions, "package");
-      }
+      Node *bpkgNode = Getattr(b.item, "module");
+      String *bpkg = Getattr(bpkgNode, "name");
       if (!bname || !bpkg || GetFlag(b.item, "feature:ignore"))
 	continue;
       base_count++;
