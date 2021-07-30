@@ -1,0 +1,19 @@
+pp_expressions_bad.i:7: Warning 202: Could not evaluate expression '1%ZERO'
+pp_expressions_bad.i:7: Warning 202: Error: 'Modulo by zero in expression'
+pp_expressions_bad.i:9: Warning 202: Could not evaluate expression '2/ZERO'
+pp_expressions_bad.i:9: Warning 202: Error: 'Division by zero in expression'
+pp_expressions_bad.i:12: Warning 202: Could not evaluate expression '1%(5-5)'
+pp_expressions_bad.i:12: Warning 202: Error: 'Modulo by zero in expression'
+pp_expressions_bad.i:14: Warning 202: Could not evaluate expression '2/(55-55)'
+pp_expressions_bad.i:14: Warning 202: Error: 'Division by zero in expression'
+pp_expressions_bad.i:18: Warning 202: Could not evaluate expression '1.2'
+pp_expressions_bad.i:18: Warning 202: Error: 'Floating point constant in preprocessor expression'
+pp_expressions_bad.i:21: Warning 202: Could not evaluate expression '2e3'
+pp_expressions_bad.i:21: Warning 202: Error: 'Floating point constant in preprocessor expression'
+pp_expressions_bad.i:25: Warning 202: Could not evaluate expression '8.8'
+pp_expressions_bad.i:25: Warning 202: Error: 'Floating point constant in preprocessor expression'
+pp_expressions_bad.i:29: Error: Unknown SWIG preprocessor directive: if123 (if this is a block of target language code, delimit it with %{ and %})
+pp_expressions_bad.i:30: Error: Extraneous #endif.
+pp_expressions_bad.i:32: Error: Unknown SWIG preprocessor directive: if456e (if this is a block of target language code, delimit it with %{ and %})
+pp_expressions_bad.i:33: Error: Extraneous #endif.
+pp_expressions_bad.i:42: Warning 204: CPP #warning, "Warning okay: #if(1)".

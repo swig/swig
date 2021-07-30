@@ -25,7 +25,8 @@
 
 %pragma(php) code="
 # This code is inserted into example.php
-echo \"this was php code\\n\";
+echo \"This was php code\\n\";
 "
+%pragma(php) version="1.5"
 
 %pragma(php) phpinfo="php_info_print_table_start();"

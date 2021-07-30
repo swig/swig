@@ -1,0 +1,1 @@
+cpp_class_definition.i:22: Error: 'Space1::A' resolves to 'Space1::A' and was incorrectly instantiated in scope 'Space2' instead of within scope 'Space1'.

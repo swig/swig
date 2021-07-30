@@ -45,11 +45,11 @@
       Difference jj = 0;
       swig::slice_adjust(i, j, step, size, ii, jj);
 
-      if (step == 1 && ii == 0 && jj == size) {
+      if (step == 1 && ii == 0 && static_cast<typename Sequence::size_type>(jj) == size) {
         Sequence *sequence = new Sequence();
         std::copy(self->begin(), self->end(), sequence->begin());
         return sequence;
-      } else if (step == -1 && ii == (size - 1) && jj == -1) {
+      } else if (step == -1 && static_cast<typename Sequence::size_type>(ii) == (size - 1) && jj == -1) {
         Sequence *sequence = new Sequence();
         std::copy(self->rbegin(), self->rend(), sequence->begin());
         return sequence;
@@ -67,9 +67,9 @@
       Difference jj = 0;
       swig::slice_adjust(i, j, step, size, ii, jj, true);
 
-      if (step == 1 && ii == 0 && jj == size) {
+      if (step == 1 && ii == 0 && static_cast<typename Sequence::size_type>(jj) == size) {
         std::copy(is.begin(), is.end(), self->begin());
-      } else if (step == -1 && ii == (size - 1) && jj == -1) {
+      } else if (step == -1 && static_cast<typename Sequence::size_type>(ii) == (size - 1) && jj == -1) {
         std::copy(is.rbegin(), is.rend(), self->begin());
       } else {
         throw std::invalid_argument("std::array object only supports setting a slice that is the size of the array");

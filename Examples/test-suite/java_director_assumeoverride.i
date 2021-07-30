@@ -4,7 +4,7 @@
 class OverrideMe {
 public:
   virtual ~OverrideMe() {}
-  virtual void func() {};
+  virtual void funk() {};
 };
 
 #include "java_director_assumeoverride_wrap.h"
@@ -23,7 +23,7 @@ bool isFuncOverridden(OverrideMe* f) {
 class OverrideMe {
 public:
   virtual ~OverrideMe();
-  virtual void func();
+  virtual void funk();
 };
 
 bool isFuncOverridden(OverrideMe* f);

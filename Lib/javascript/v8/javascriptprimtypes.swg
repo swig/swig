@@ -22,7 +22,7 @@ int SWIG_AsVal_dec(bool)(v8::Handle<v8::Value> obj, bool *val)
     return SWIG_ERROR;
   }
 
-  if (val) *val = obj->BooleanValue();
+  if (val) *val = SWIGV8_BOOLEAN_VALUE(obj);
   return SWIG_OK;
 }
 }
@@ -44,7 +44,7 @@ int SWIG_AsVal_dec(int)(v8::Handle<v8::Value> valRef, int* val)
   if (!valRef->IsNumber()) {
     return SWIG_TypeError;
   }
-  if(val) *val = valRef->IntegerValue();
+  if(val) *val = SWIGV8_INTEGER_VALUE(valRef);
 
   return SWIG_OK;
 }
@@ -68,7 +68,7 @@ int SWIG_AsVal_dec(long)(v8::Handle<v8::Value> obj, long* val)
   if (!obj->IsNumber()) {
     return SWIG_TypeError;
   }
-  if(val) *val = (long) obj->IntegerValue();
+  if(val) *val = (long) SWIGV8_INTEGER_VALUE(obj);
 
   return SWIG_OK;
 }
@@ -95,7 +95,7 @@ int SWIG_AsVal_dec(unsigned long)(v8::Handle<v8::Value> obj, unsigned long *val)
     return SWIG_TypeError;
   }
 
-  long longVal = (long) obj->NumberValue();
+  long longVal = (long) SWIGV8_NUMBER_VALUE(obj);
 
   if(longVal < 0) {
       return SWIG_OverflowError;
@@ -133,7 +133,7 @@ int SWIG_AsVal_dec(long long)(v8::Handle<v8::Value> obj, long long* val)
   if (!obj->IsNumber()) {
     return SWIG_TypeError;
   }
-  if(val) *val = (long long) obj->IntegerValue();
+  if(val) *val = (long long) SWIGV8_INTEGER_VALUE(obj);
 
   return SWIG_OK;
 }
@@ -168,7 +168,7 @@ int SWIG_AsVal_dec(unsigned long long)(v8::Handle<v8::Value> obj, unsigned long 
     return SWIG_TypeError;
   }
 
-  long long longVal = (long long) obj->NumberValue();
+  long long longVal = (long long) SWIGV8_NUMBER_VALUE(obj);
 
   if(longVal < 0) {
       return SWIG_OverflowError;
@@ -198,7 +198,7 @@ int SWIG_AsVal_dec(double)(v8::Handle<v8::Value> obj, double *val)
   if(!obj->IsNumber()) {
     return SWIG_TypeError;
   }
-  if(val) *val = obj->NumberValue();
+  if(val) *val = SWIGV8_NUMBER_VALUE(obj);
 
   return SWIG_OK;
 }

@@ -1,6 +1,6 @@
 package main
 
-import . "./nested_workaround"
+import . "swigtests/nested_workaround"
 
 func main() {
 	inner := NewInner(5)

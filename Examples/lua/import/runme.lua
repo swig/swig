@@ -3,7 +3,7 @@
 print("Testing the %import directive")
 
 if string.sub(_VERSION,1,7)=='Lua 5.0' then
-	-- lua5.0 doesnt have a nice way to do this
+	-- lua5.0 doesn't have a nice way to do this
 	function loadit(a)
 		lib=loadlib(a..'.dll','luaopen_'..a) or loadlib(a..'.so','luaopen_'..a)
 		assert(lib)()

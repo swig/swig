@@ -20,7 +20,7 @@
 /*
  * The SWIG_D_PRIMITIVE macro is used to define the typemaps for the primitive
  * types, because are more or less the same for all of them. The few special
- * cases are handeled below.
+ * cases are handled below.
  */
 %define SWIG_D_PRIMITIVE(TYPE, DTYPE)
 %typemap(ctype) TYPE, const TYPE & "TYPE"

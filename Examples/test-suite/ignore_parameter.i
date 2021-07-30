@@ -8,12 +8,15 @@
 
 %typemap(freearg) char* a ""; // ensure freearg is not generated (needed for Java at least)
 
+%ignore unignorable;
+
 %inline %{
 // global function tests
 char* jaguar(char* a, int b, double c) { return a; }
 int lotus(char* aa, int bb, double cc) { return bb; }
 double tvr(char* aaa, int bbb, double ccc) { return ccc; }
 int ferrari(int bb) { return bb; }
+int fiat(int unignorable) { return unignorable; }
 
 // member function tests
 struct SportsCars {
@@ -21,6 +24,7 @@ struct SportsCars {
   int astonmartin(char* aa, int bb, double cc) { return bb; }
   double bugatti(char* aaa, int bbb, double ccc) { return ccc; }
   int lamborghini(int bb) { return bb; }
+  int maseratti(int unignorable) { return unignorable; }
 };
 
 // constructor tests

@@ -3,8 +3,9 @@
 package main
 
 import (
-	. "./example"
 	"fmt"
+
+	. "swigtests/example"
 )
 
 func main() {

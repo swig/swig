@@ -1,6 +1,6 @@
 package main
 
-import . "./extend_template_ns"
+import . "swigtests/extend_template_ns"
 
 func main() {
 	f := NewFoo_One()

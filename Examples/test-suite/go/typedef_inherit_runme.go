@@ -1,6 +1,6 @@
 package main
 
-import "./typedef_inherit"
+import "swigtests/typedef_inherit"
 
 func main() {
 	a := typedef_inherit.NewFoo()

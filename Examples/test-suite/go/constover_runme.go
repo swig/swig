@@ -1,9 +1,10 @@
 package main
 
 import (
-	"./constover"
 	"fmt"
 	"os"
+
+	"swigtests/constover"
 )
 
 func main() {

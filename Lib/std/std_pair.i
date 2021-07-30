@@ -35,9 +35,9 @@ namespace std {
 
     pair();
     pair(T first, U second);
-    pair(const pair& p);
+    pair(const pair& other);
 
-    template <class U1, class U2> pair(const pair< U1, U2 > &p);
+    template <class U1, class U2> pair(const pair< U1, U2 > &other);
 
     T first;
     U second;
@@ -76,8 +76,8 @@ namespace std {
     %typemap_traits_ptr(SWIG_TYPECHECK_PAIR, std::pair< T, U* >);
 
     pair();
-    pair(T __a, U* __b);
-    pair(const pair& __p);
+    pair(T first, U* second);
+    pair(const pair& other);
 
     T first;
     U* second;
@@ -112,8 +112,8 @@ namespace std {
     %typemap_traits_ptr(SWIG_TYPECHECK_PAIR, std::pair< T*, U >);
 
     pair();
-    pair(T* __a, U __b);
-    pair(const pair& __p);
+    pair(T* first, U second);
+    pair(const pair& other);
 
     T* first;
     U second;
@@ -148,8 +148,8 @@ namespace std {
     %typemap_traits(SWIG_TYPECHECK_PAIR, std::pair< T*, U* >);
 
     pair();
-    pair(T* __a, U* __b);
-    pair(const pair& __p);
+    pair(T* first, U* second);
+    pair(const pair& other);
 
     T* first;
     U* second;

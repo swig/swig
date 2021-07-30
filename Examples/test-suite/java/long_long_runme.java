@@ -84,14 +84,14 @@ public class long_long_runme {
 
     ArrayList<BigInteger> bigIntegers = new ArrayList<BigInteger>();
     for (int i=0; i<nums.length; ++i) {
-      BigInteger bi = new BigInteger(new Long(nums[i]).toString());
+      BigInteger bi = new BigInteger(Long.valueOf(nums[i]).toString());
       bigIntegers.add(bi);
     }
 
     {
-      BigInteger bi = new BigInteger(new Long(Long.MAX_VALUE).toString());
+      BigInteger bi = new BigInteger(Long.valueOf(Long.MAX_VALUE).toString());
       bigIntegers.add(bi.add(BigInteger.ONE));
-      bi = new BigInteger(new Long(Long.MIN_VALUE).toString());
+      bi = new BigInteger(Long.valueOf(Long.MIN_VALUE).toString());
       bigIntegers.add(bi.subtract(BigInteger.ONE));
     }
 

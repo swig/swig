@@ -9,7 +9,7 @@ def check(got, expected):
         raise RuntimeError("\n" + "Expected: " + str(expected_list) + "\n" + "Got     : " + str(got_list))
 
 # When getting docstrings, use inspect.getdoc(x) instead of x.__doc__ otherwise the different options
-# such as -O, -builtin, -classic produce different initial indentation.
+# such as -O and -builtin may produce different initial indentation.
 
 check(inspect.getdoc(DocStrings.docstring1),
     "  line 1\n"

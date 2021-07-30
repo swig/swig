@@ -33,7 +33,7 @@
 %typemap(consttab) char *, const char *, char [], const char []
        {SWIG_LUA_CONSTTAB_STRING("$symname", $value)}
 
-// note: char is treated as a seperate special type
+// note: char is treated as a separate special type
 // signed char & unsigned char are numbers
 %typemap(consttab) char
        {SWIG_LUA_CONSTTAB_CHAR("$symname", $value)}

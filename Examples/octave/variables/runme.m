@@ -1,4 +1,7 @@
-# file: runme.m
+# do not dump Octave core
+if exist("crash_dumps_octave_core", "builtin")
+  crash_dumps_octave_core(0);
+endif
 
 swigexample
 
@@ -48,7 +51,7 @@ swigexample.print_vars();
 
 printf("\nNow I'm going to try and modify some read only variables\n");
 
-printf("     Tring to set 'path'\n");
+printf("     Trying to set 'path'\n");
 try
     swigexample.cvar.path = "Whoa!";
     printf("Hey, what's going on?!?! This shouldn't work\n");

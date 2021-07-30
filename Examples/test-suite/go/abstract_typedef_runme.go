@@ -1,6 +1,6 @@
 package main
 
-import "./abstract_typedef"
+import "swigtests/abstract_typedef"
 
 func main() {
 	e := abstract_typedef.NewEngine()

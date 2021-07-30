@@ -49,7 +49,7 @@ print_vars()
 
 // Immutable variables
 printf("\nNow I''m going to try and modify some read only variables\n");
-printf("     Tring to set ''path''\n");
+printf("     Trying to set ''path''\n");
 try
     path_set("Whoa!");
     printf("Hey, what''s going on?!?! This shouldn''t work\n");

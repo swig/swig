@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Extending">41 Extending SWIG to support new languages</a></H1>
+<H1><a name="Extending">39 Extending SWIG to support new languages</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -64,8 +64,13 @@
 <li><a href="#Extending_running_test_suite">Running the test-suite</a>
 </ul>
 <li><a href="#Extending_nn43">Documentation</a>
-<li><a href="#Extending_prerequisites">Prerequisites for adding a new language module to the SWIG distribution</a>
 <li><a href="#Extending_coding_style_guidelines">Coding style guidelines</a>
+<li><a href="#Extending_language_status">Target language status</a>
+<ul>
+<li><a href="#Extending_supported_status">Supported status</a>
+<li><a href="#Extending_experimental_status">Experimental status</a>
+</ul>
+<li><a href="#Extending_prerequisites">Prerequisites for adding a new language module to the SWIG distribution</a>
 </ul>
 <li><a href="#Extending_debugging_options">Debugging Options</a>
 <li><a href="#Extending_nn46">Guide to parse tree nodes</a>
@@ -76,7 +81,7 @@
 
 
 
-<H2><a name="Extending_nn2">41.1 Introduction</a></H2>
+<H2><a name="Extending_nn2">39.1 Introduction</a></H2>
 
 
 <p>
@@ -92,7 +97,7 @@ Also, this chapter is not meant to be a hand-holding tutorial.  As a starting po
 you should probably look at one of SWIG's existing modules.
 </p>
 
-<H2><a name="Extending_nn3">41.2 Prerequisites</a></H2>
+<H2><a name="Extending_nn3">39.2 Prerequisites</a></H2>
 
 
 <p>
@@ -122,7 +127,7 @@ obvious, but almost all SWIG directives as well as the low-level generation of
 wrapper code are driven by C++ datatypes.
 </p>
 
-<H2><a name="Extending_nn4">41.3 The Big Picture</a></H2>
+<H2><a name="Extending_nn4">39.3 The Big Picture</a></H2>
 
 
 <p>
@@ -159,7 +164,7 @@ role in making the system work.  For example, both typemaps and declaration anno
 based on pattern matching and interact heavily with the underlying type system.
 </p>
 
-<H2><a name="Extending_nn5">41.4 Execution Model</a></H2>
+<H2><a name="Extending_nn5">39.4 Execution Model</a></H2>
 
 
 <p>
@@ -204,7 +209,7 @@ latter stage of compilation.
 The next few sections briefly describe some of these stages.
 </p>
 
-<H3><a name="Extending_nn6">41.4.1 Preprocessing</a></H3>
+<H3><a name="Extending_nn6">39.4.1 Preprocessing</a></H3>
 
 
 <p>
@@ -243,7 +248,7 @@ of <tt>swig.swg</tt> looks like this:
 
 /* Access control directives */
 
-#define %immutable   %feature("immutable","1")
+#define %immutable   %feature("immutable", "1")
 #define %mutable     %feature("immutable")
 
 /* Directives for callback functions */
@@ -278,14 +283,14 @@ or <tt>perl5.swg</tt>.
 </p>
 
 <p>
-As a debugging aide, the text that SWIG feeds to its C++ parser can be
+As a debugging aid, the text that SWIG feeds to its C++ parser can be
 obtained by running <tt>swig -E interface.i</tt>.  This output
 probably isn't too useful in general, but it will show how macros have
 been expanded as well as everything else that goes into the low-level
 construction of the wrapper code.
 </p>
 
-<H3><a name="Extending_nn7">41.4.2 Parsing</a></H3>
+<H3><a name="Extending_nn7">39.4.2 Parsing</a></H3>
 
 
 <p>
@@ -306,7 +311,7 @@ datatype such as <tt>int</tt> or <tt>void</tt>.   <tt><em>type</em></tt> may be 
 qualified with a qualifier such as <tt>const</tt> or <tt>volatile</tt>. <tt><em>declarator</em></tt>
 is a name with additional type-construction modifiers attached to it (pointers, arrays, references,
 functions, etc.).  Examples of declarators include <tt>*x</tt>, <tt>**x</tt>, <tt>x[20]</tt>, and
-<tt>(*x)(int,double)</tt>.   The <tt><em>initializer</em></tt> may be a value assigned using <tt>=</tt> or
+<tt>(*x)(int, double)</tt>.   The <tt><em>initializer</em></tt> may be a value assigned using <tt>=</tt> or
 body of code enclosed in braces <tt>{ ... }</tt>.
 </p>
 
@@ -372,7 +377,7 @@ For example, in an old C program, you might see things like this:
 
 <div class="code">
 <pre>
-foo(a,b) {
+foo(a, b) {
 ...
 }
 </pre>
@@ -386,7 +391,7 @@ returning a <tt>foo</tt> and taking types <tt>a</tt> and <tt>b</tt> as
 arguments).
 </p>
 
-<H3><a name="Extending_nn8">41.4.3 Parse Trees</a></H3>
+<H3><a name="Extending_nn8">39.4.3 Parse Trees</a></H3>
 
 
 <p>
@@ -516,8 +521,8 @@ $ swig -c++ -python -debug-module 4 example.i
                         +++ cdecl ----------------------------------------
                         | sym:name     - "move"
                         | name         - "move"
-                        | decl         - "f(double,double)."
-                        | parms        - double ,double
+                        | decl         - "f(double, double)."
+                        | parms        - double, double
                         | type         - "void"
                         | sym:symtab   - 0x40194140
                         |
@@ -641,7 +646,7 @@ $ swig -c++ -python -debug-module 4 example.i
 </pre>
 </div>
 
-<H3><a name="Extending_nn9">41.4.4 Attribute namespaces</a></H3>
+<H3><a name="Extending_nn9">39.4.4 Attribute namespaces</a></H3>
 
 
 <p>
@@ -660,7 +665,7 @@ that matches the name of the target language.  For example, <tt>python:foo</tt> 
 <tt>perl:foo</tt>.
 </p>
 
-<H3><a name="Extending_nn10">41.4.5 Symbol Tables</a></H3>
+<H3><a name="Extending_nn10">39.4.5 Symbol Tables</a></H3>
 
 
 <p>
@@ -729,7 +734,7 @@ For instance, the following example uses <tt>%rename</tt> in reverse to generate
 <div class="code">
 <pre>
 %rename(foo) foo_i(int);
-%rename(foo) foo_d(double;
+%rename(foo) foo_d(double);
 
 void foo_i(int);
 void foo_d(double);
@@ -751,7 +756,7 @@ example.i:5. Previous declaration is foo_i(int )
 </pre>
 </div>
 
-<H3><a name="Extending_nn11">41.4.6 The %feature directive</a></H3>
+<H3><a name="Extending_nn11">39.4.6 The %feature directive</a></H3>
 
 
 <p>
@@ -772,8 +777,8 @@ low-level <tt>%feature</tt> directive.  For example:
 ...
 class Foo {
 public:
-    Object *getitem(int index) throws(badindex);
-    ...
+  Object *getitem(int index) throws(badindex);
+  ...
 };
 </pre>
 </div>
@@ -807,7 +812,7 @@ For example, the exception code above is simply
 stored without any modifications.
 </p>
 
-<H3><a name="Extending_nn12">41.4.7 Code Generation</a></H3>
+<H3><a name="Extending_nn12">39.4.7 Code Generation</a></H3>
 
 
 <p>
@@ -826,7 +831,7 @@ transformed. For example, suppose you are wrapping a class like this:
 <pre>
 class Foo {
 public:
-    virtual int *bar(int x);
+  virtual int *bar(int x);
 };
 </pre>
 </div>
@@ -929,7 +934,7 @@ public :
 The role of these functions is described shortly.
 </p>
 
-<H3><a name="Extending_nn13">41.4.8 SWIG and XML</a></H3>
+<H3><a name="Extending_nn13">39.4.8 SWIG and XML</a></H3>
 
 
 <p>
@@ -942,7 +947,7 @@ internal data structures, it may be useful to keep XML in the back of
 your mind as a model.
 </p>
 
-<H2><a name="Extending_nn14">41.5 Primitive Data Structures</a></H2>
+<H2><a name="Extending_nn14">39.5 Primitive Data Structures</a></H2>
 
 
 <p>
@@ -988,7 +993,7 @@ typedef Hash   Typetab;
 </pre>
 </div>
 
-<H3><a name="Extending_nn15">41.5.1 Strings</a></H3>
+<H3><a name="Extending_nn15">39.5.1 Strings</a></H3>
 
 
 <p>
@@ -1129,7 +1134,7 @@ Returns the number of replacements made (if any).
 
 </div>
 
-<H3><a name="Extending_nn16">41.5.2 Hashes</a></H3>
+<H3><a name="Extending_nn16">39.5.2 Hashes</a></H3>
 
 
 <p>
@@ -1206,7 +1211,7 @@ Returns the list of hash table keys.
 </div>
 
 
-<H3><a name="Extending_nn17">41.5.3 Lists</a></H3>
+<H3><a name="Extending_nn17">39.5.3 Lists</a></H3>
 
 
 <p>
@@ -1295,7 +1300,7 @@ If <tt>t</tt> is not a standard object, it is assumed to be a <tt>char *</tt>
 and is used to create a String object.
 </div>
 
-<H3><a name="Extending_nn18">41.5.4 Common operations</a></H3>
+<H3><a name="Extending_nn18">39.5.4 Common operations</a></H3>
 
 
 The following operations are applicable to all datatypes.
@@ -1350,7 +1355,7 @@ objects and report errors.
 Gets the line number associated with <tt>x</tt>.
 </div>
 
-<H3><a name="Extending_nn19">41.5.5 Iterating over Lists and Hashes</a></H3>
+<H3><a name="Extending_nn19">39.5.5 Iterating over Lists and Hashes</a></H3>
 
 
 To iterate over the elements of a list or a hash table, the following functions are used:
@@ -1381,21 +1386,21 @@ List *l = (some list);
 Iterator i;
 
 for (i = First(l); i.item; i = Next(i)) {
-    Printf(stdout,"%s\n", i.item);
+  Printf(stdout, "%s\n", i.item);
 }
 
 Hash *h = (some hash);
 Iterator j;
 
 for (j = First(j); j.item; j= Next(j)) {
-    Printf(stdout,"%s : %s\n", j.key, j.item);
+  Printf(stdout, "%s : %s\n", j.key, j.item);
 }
 </pre>
 </div>
 
 </div>
 
-<H3><a name="Extending_nn20">41.5.6 I/O</a></H3>
+<H3><a name="Extending_nn20">39.5.6 I/O</a></H3>
 
 
 Special I/O functions are used for all internal I/O.  These operations
@@ -1414,7 +1419,7 @@ operators have the same meaning.
 </div>
 
 <p>
-<b><tt>int Printv(String_or_FILE *f, String_or_char *arg1,..., NULL)</tt></b>
+<b><tt>int Printv(String_or_FILE *f, String_or_char *arg1, ..., NULL)</tt></b>
 </p>
 
 <div class="indent">
@@ -1469,7 +1474,7 @@ Same as the C <tt>ungetc()</tt> function.
 
 <div class="indent">
 Same as the C <tt>seek()</tt> function.  <tt>offset</tt> is the number
-of bytes.  <tt>whence</tt> is one of <tt>SEEK_SET</tt>,<tt>SEEK_CUR</tt>,
+of bytes.  <tt>whence</tt> is one of <tt>SEEK_SET</tt>, <tt>SEEK_CUR</tt>,
 or <tt>SEEK_END</tt>..
 </div>
 
@@ -1515,9 +1520,9 @@ common to see small code fragments of code generated using code like this:
 <pre>
 /* Print into a string */
 String *s = NewString("");
-Printf(s,"Hello\n");
+Printf(s, "Hello\n");
 for (i = 0; i &lt; 10; i++) {
-    Printf(s,"%d\n", i);
+  Printf(s, "%d\n", i);
 }
 ...
 /* Print string into a file */
@@ -1529,7 +1534,7 @@ Printf(f, "%s\n", s);
 Similarly, the preprocessor and parser all operate on string-files.
 </p>
 
-<H2><a name="Extending_nn21">41.6 Navigating and manipulating parse trees</a></H2>
+<H2><a name="Extending_nn21">39.6 Navigating and manipulating parse trees</a></H2>
 
 
 Parse trees are built as collections of hash tables.   Each node is a hash table in which
@@ -1576,7 +1581,7 @@ return the node for the first class member.
 
 <div class="indent">
 Returns the last child node.   You might use this if you wanted to append a new
-node to the of a class.
+node to the children of a class.
 </div>
 
 <p>
@@ -1663,7 +1668,7 @@ Deletes a node from the parse tree.  Deletion reconnects siblings and properly u
 the parent so that sibling nodes are unaffected.
 </div>
 
-<H2><a name="Extending_nn22">41.7 Working with attributes</a></H2>
+<H2><a name="Extending_nn22">39.7 Working with attributes</a></H2>
 
 
 <p>
@@ -1674,10 +1679,10 @@ Since parse tree nodes are just hash tables, attributes are accessed using the <
 <div class="code">
 <pre>
 int functionHandler(Node *n) {
-    String *name    = Getattr(n,"name");
-    String *symname = Getattr(n,"sym:name");
-    SwigType *type  = Getattr(n,"type");
-    ...
+  String *name    = Getattr(n, "name");
+  String *symname = Getattr(n, "sym:name");
+  SwigType *type  = Getattr(n, "type");
+  ...
 }
 </pre>
 </div>
@@ -1691,7 +1696,7 @@ For example:
 <div class="code">
 <pre>
 ...
-Setattr(n,"python:docstring", doc);     /* Store docstring */
+Setattr(n, "python:docstring", doc);     /* Store docstring */
 ...
 </pre>
 </div>
@@ -1702,9 +1707,9 @@ A quick way to check the value of an attribute is to use the <tt>checkAttribute(
 
 <div class="code">
 <pre>
-if (checkAttribute(n,"storage","virtual")) {
-   /* n is virtual */
-   ...
+if (checkAttribute(n, "storage", "virtual")) {
+  /* n is virtual */
+  ...
 }
 </pre>
 </div>
@@ -1723,7 +1728,7 @@ the following functions are used:
 <div class="indent">
 Saves a copy of attributes <tt>name1</tt>, <tt>name2</tt>, etc. from node <tt>n</tt>.
 Copies of the attributes are actually resaved in the node in a different namespace which is
-set by the <tt>ns</tt> argument.   For example, if you call <tt>Swig_save("foo",n,"type",NIL)</tt>,
+set by the <tt>ns</tt> argument.   For example, if you call <tt>Swig_save("foo", n, "type", NIL)</tt>,
 then the "type" attribute will be copied and saved as "foo:type".  The namespace name itself is stored in
 the "view" attribute of the node.  If necessary, this can be examined to find out where previous
 values of attributes might have been saved.
@@ -1750,17 +1755,17 @@ Calls can be nested if necessary.  Here is an example that shows how the functio
 <div class="code">
 <pre>
 int variableHandler(Node *n) {
-    Swig_save("variableHandler",n,"type","sym:name",NIL);
-    String *symname = Getattr(n,"sym:name");
-    SwigType *type  = Getattr(n,"type");
-    ...
-    Append(symname,"_global");         // Change symbol name
-    SwigType_add_pointer(type);        // Add pointer
-    ...
-    generate wrappers
-    ...
-    Swig_restore(n);                  // Restore original values
-    return SWIG_OK;
+  Swig_save("variableHandler", n, "type", "sym:name", NIL);
+  String *symname = Getattr(n, "sym:name");
+  SwigType *type  = Getattr(n, "type");
+  ...
+  Append(symname, "_global");        // Change symbol name
+  SwigType_add_pointer(type);        // Add pointer
+  ...
+  generate wrappers
+  ...
+  Swig_restore(n);                  // Restore original values
+  return SWIG_OK;
 }
 </pre>
 </div>
@@ -1780,7 +1785,7 @@ the attribute is optional.   <tt>Swig_restore()</tt> must always be called after
 function.
 </div>
 
-<H2><a name="Extending_nn23">41.8 Type system</a></H2>
+<H2><a name="Extending_nn23">39.8 Type system</a></H2>
 
 
 <p>
@@ -1789,7 +1794,7 @@ pointers, references, and pointers to members.   A detailed discussion of
 type theory is impossible here.   However, let's cover the highlights.
 </p>
 
-<H3><a name="Extending_nn24">41.8.1 String encoding of types</a></H3>
+<H3><a name="Extending_nn24">39.8.1 String encoding of types</a></H3>
 
 
 <p>
@@ -1808,7 +1813,7 @@ C datatype                     SWIG encoding (strings)
 int                            "int"
 int *                          "p.int"
 const int *                    "p.q(const).int"
-int (*x)(int,double)           "p.f(int,double).int"
+int (*x)(int, double)          "p.f(int, double).int"
 int [20][30]                   "a(20).a(30).int"
 int (F::*)(int)                "m(F).f(int).int"
 vector&lt;int&gt; *                  "p.vector&lt;(int)&gt;"
@@ -1817,8 +1822,8 @@ vector&lt;int&gt; *                  "p.vector&lt;(int)&gt;"
 
 <p>
 Reading the SWIG encoding is often easier than figuring out the C code---just
-read it from left to right.  For a type of "p.f(int,double).int" is
-a "pointer to a function(int,double) that returns int".
+read it from left to right.  For a type of "p.f(int, double).int" is
+a "pointer to a function(int, double) that returns int".
 </p>
 
 <p>
@@ -1854,7 +1859,7 @@ an extremely perverted example:
 
 <div class="diagram">
 <pre>
-`p.a(10).p.f(int,p.f(int).int)` foo(int, int (*x)(int));
+`p.a(10).p.f(int, p.f(int).int)` foo(int, int (*x)(int));
 </pre>
 </div>
 
@@ -1864,7 +1869,7 @@ This corresponds to the immediately obvious C declaration:
 
 <div class="diagram">
 <pre>
-(*(*foo(int,int (*)(int)))[10])(int,int (*)(int));
+(*(*foo(int, int (*)(int)))[10])(int, int (*)(int));
 </pre>
 </div>
 
@@ -1890,7 +1895,7 @@ make the final type, the two parts are just joined together using
 string concatenation.
 </p>
 
-<H3><a name="Extending_nn25">41.8.2 Type construction</a></H3>
+<H3><a name="Extending_nn25">39.8.2 Type construction</a></H3>
 
 
 <p>
@@ -1947,7 +1952,7 @@ Returns number of array dimensions of <tt>ty</tt>.
 </div>
 
 <p>
-<b><tt>String* SwigType_array_getdim(SwigType *ty,int n)</tt></b>
+<b><tt>String* SwigType_array_getdim(SwigType *ty, int n)</tt></b>
 </p>
 
 <div class="indent">
@@ -2059,7 +2064,7 @@ Returns the prefix of a type. For example, if <tt>ty</tt> is
 <tt>ty</tt> is unmodified.
 </div>
 
-<H3><a name="Extending_nn26">41.8.3 Type tests</a></H3>
+<H3><a name="Extending_nn26">39.8.3 Type tests</a></H3>
 
 
 <p>
@@ -2146,7 +2151,7 @@ Checks if <tt>ty</tt> is a varargs type.
 Checks if <tt>ty</tt> is a templatized type.
 </div>
 
-<H3><a name="Extending_nn27">41.8.4 Typedef and inheritance</a></H3>
+<H3><a name="Extending_nn27">39.8.4 Typedef and inheritance</a></H3>
 
 
 <p>
@@ -2248,7 +2253,7 @@ Fully reduces <tt>ty</tt> according to typedef rules.  Resulting datatype
 will consist only of primitive typenames.
 </div>
 
-<H3><a name="Extending_nn28">41.8.5 Lvalues</a></H3>
+<H3><a name="Extending_nn28">39.8.5 Lvalues</a></H3>
 
 
 <p>
@@ -2285,7 +2290,7 @@ Literal y;    // type = 'Literal', ltype='p.char'
 </pre>
 </div>
 
-<H3><a name="Extending_nn29">41.8.6 Output functions</a></H3>
+<H3><a name="Extending_nn29">39.8.6 Output functions</a></H3>
 
 
 <p>
@@ -2347,7 +2352,7 @@ SWIG, but is most commonly associated with type-descriptor objects
 that appear in wrappers (e.g., <tt>SWIGTYPE_p_double</tt>).
 </div>
 
-<H2><a name="Extending_nn30">41.9 Parameters</a></H2>
+<H2><a name="Extending_nn30">39.9 Parameters</a></H2>
 
 
 <p>
@@ -2375,10 +2380,10 @@ code like this:
 Parm *parms;
 Parm *p;
 for (p = parms; p; p = nextSibling(p)) {
-    SwigType *type  = Getattr(p,"type");
-    String   *name  = Getattr(p,"name");
-    String   *value = Getattr(p,"value");
-    ...
+  SwigType *type  = Getattr(p, "type");
+  String   *name  = Getattr(p, "name");
+  String   *value = Getattr(p, "value");
+  ...
 }
 </pre>
 </div>
@@ -2446,7 +2451,7 @@ included.  Used to emit prototypes.
 Returns the number of required (non-optional) arguments in <tt>p</tt>.
 </div>
 
-<H2><a name="Extending_nn31">41.10 Writing a Language Module</a></H2>
+<H2><a name="Extending_nn31">39.10 Writing a Language Module</a></H2>
 
 
 <p>
@@ -2461,7 +2466,7 @@ describes the creation of a minimal Python module.   You should be able to extra
 this to other languages.
 </p>
 
-<H3><a name="Extending_nn32">41.10.1 Execution model</a></H3>
+<H3><a name="Extending_nn32">39.10.1 Execution model</a></H3>
 
 
 <p>
@@ -2471,7 +2476,7 @@ the parsing of command line options, all aspects of code generation are controll
 different methods of the <tt>Language</tt> that must be defined by your module.
 </p>
 
-<H3><a name="Extending_starting_out">41.10.2 Starting out</a></H3>
+<H3><a name="Extending_starting_out">39.10.2 Starting out</a></H3>
 
 
 <p>
@@ -2534,10 +2539,10 @@ also return a pointer to the base class (<tt>Language</tt>) so that only the int
 </p>
 
 <p>
-Save the code for your language module in a file named "<tt>python.cxx</tt>" and.
+Save the code for your language module in a file named "<tt>python.cxx</tt>" and
 place this file in the <tt>Source/Modules</tt> directory of the SWIG distribution.
 To ensure that your module is compiled into SWIG along with the other language modules,
-modify the file <tt>Source/Modules/Makefile.am</tt> to include the additional source
+modify the file <tt>Source/Makefile.am</tt> to include the additional source
 files.  In addition, modify the file <tt>Source/Modules/swigmain.cxx</tt>
 with an additional command line option that activates the module. Read the source---it's straightforward.
 </p>
@@ -2579,7 +2584,7 @@ that activates your module. For example, <tt>swig -python foo.i</tt>. The
 messages from your new module should appear.
 </p>
 
-<H3><a name="Extending_nn34">41.10.3 Command line options</a></H3>
+<H3><a name="Extending_nn34">39.10.3 Command line options</a></H3>
 
 
 <p>
@@ -2592,36 +2597,36 @@ command line options, simply use code similar to this:
 <pre>
 void Language::main(int argc, char *argv[]) {
   for (int i = 1; i &lt; argc; i++) {
-      if (argv[i]) {
-          if(strcmp(argv[i],"-interface") == 0) {
-            if (argv[i+1]) {
-              interface = NewString(argv[i+1]);
-              Swig_mark_arg(i);
-              Swig_mark_arg(i+1);
-              i++;
-            } else {
-              Swig_arg_error();
-            }
-          } else if (strcmp(argv[i],"-globals") == 0) {
-            if (argv[i+1]) {
-              global_name = NewString(argv[i+1]);
-              Swig_mark_arg(i);
-              Swig_mark_arg(i+1);
-              i++;
-            } else {
-              Swig_arg_error();
-            }
-          } else if ( (strcmp(argv[i],"-proxy") == 0)) {
-            proxy_flag = 1;
-            Swig_mark_arg(i);
-          } else if (strcmp(argv[i],"-keyword") == 0) {
-            use_kw = 1;
-            Swig_mark_arg(i);
-          } else if (strcmp(argv[i],"-help") == 0) {
-            fputs(usage,stderr);
-          }
-          ...
+    if (argv[i]) {
+      if (strcmp(argv[i], "-interface") == 0) {
+        if (argv[i+1]) {
+          interface = NewString(argv[i+1]);
+          Swig_mark_arg(i);
+          Swig_mark_arg(i+1);
+          i++;
+        } else {
+          Swig_arg_error();
+        }
+      } else if (strcmp(argv[i], "-globals") == 0) {
+        if (argv[i+1]) {
+          global_name = NewString(argv[i+1]);
+          Swig_mark_arg(i);
+          Swig_mark_arg(i+1);
+          i++;
+        } else {
+          Swig_arg_error();
+        }
+      } else if ((strcmp(argv[i], "-proxy") == 0)) {
+        proxy_flag = 1;
+        Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-keyword") == 0) {
+        use_kw = 1;
+        Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-help") == 0) {
+        fputs(usage, stderr);
       }
+      ...
+    }
   }
 }
 </pre>
@@ -2638,7 +2643,7 @@ to mark the option as valid.   If you forget to do this, SWIG will terminate wit
 unrecognized command line option error.
 </p>
 
-<H3><a name="Extending_nn35">41.10.4 Configuration and preprocessing</a></H3>
+<H3><a name="Extending_nn35">39.10.4 Configuration and preprocessing</a></H3>
 
 
 <p>
@@ -2650,19 +2655,19 @@ insert some code like this:
 <div class="code">
 <pre>
 void main(int argc, char *argv[]) {
-   ... command line options ...
+  ... command line options ...
 
-   /* Set language-specific subdirectory in SWIG library */
-   SWIG_library_directory("python");
+  /* Set language-specific subdirectory in SWIG library */
+  SWIG_library_directory("python");
 
-   /* Set language-specific preprocessing symbol */
-   Preprocessor_define("SWIGPYTHON 1", 0);
+  /* Set language-specific preprocessing symbol */
+  Preprocessor_define("SWIGPYTHON 1", 0);
 
-   /* Set language-specific configuration file */
-   SWIG_config_file("python.swg");
+  /* Set language-specific configuration file */
+  SWIG_config_file("python.swg");
 
-   /* Set typemap language (historical) */
-   SWIG_typemap_lang("python");
+  /* Set typemap language (historical) */
+  SWIG_typemap_lang("python");
 }
 </pre>
 </div>
@@ -2687,7 +2692,7 @@ an implementation file <tt>python.cxx</tt> and a configuration file
 <tt>python.swg</tt>.
 </p>
 
-<H3><a name="Extending_nn36">41.10.5 Entry point to code generation</a></H3>
+<H3><a name="Extending_nn36">39.10.5 Entry point to code generation</a></H3>
 
 
 <p>
@@ -2721,31 +2726,31 @@ An outline of <tt>top()</tt> might be as follows:
 <pre>
 int Python::top(Node *n) {
 
-   /* Get the module name */
-   String *module = Getattr(n,"name");
+  /* Get the module name */
+  String *module = Getattr(n, "name");
 
-   /* Get the output file name */
-   String *outfile = Getattr(n,"outfile");
+  /* Get the output file name */
+  String *outfile = Getattr(n, "outfile");
 
-   /* Initialize I/O (see next section) */
-   ...
+  /* Initialize I/O (see next section) */
+  ...
 
-   /* Output module initialization code */
-   ...
+  /* Output module initialization code */
+  ...
 
-   /* Emit code for children */
-   Language::top(n);
+  /* Emit code for children */
+  Language::top(n);
 
-   ...
-   /* Cleanup files */
-   ...
+  ...
+  /* Cleanup files */
+  ...
 
-   return SWIG_OK;
+  return SWIG_OK;
 }
 </pre>
 </div>
 
-<H3><a name="Extending_nn37">41.10.6 Module I/O and wrapper skeleton</a></H3>
+<H3><a name="Extending_nn37">39.10.6 Module I/O and wrapper skeleton</a></H3>
 
 
 <!-- please report bugs in this section to mgossage -->
@@ -2777,62 +2782,62 @@ such as:
 <pre>
 class PYTHON : public Language {
 protected:
-   /* General DOH objects used for holding the strings */
-   File *f_begin;
-   File *f_runtime;
-   File *f_header;
-   File *f_wrappers;
-   File *f_init;
+  /* General DOH objects used for holding the strings */
+  File *f_begin;
+  File *f_runtime;
+  File *f_header;
+  File *f_wrappers;
+  File *f_init;
 
 public:
-   ...
+  ...
 
 };
 
 int Python::top(Node *n) {
 
-   ...
+  ...
 
-   /* Initialize I/O */
-   f_begin = NewFile(outfile, "w", SWIG_output_files());
-   if (!f_begin) {
-      FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
-   }
-   f_runtime = NewString("");
-   f_init = NewString("");
-   f_header = NewString("");
-   f_wrappers = NewString("");
+  /* Initialize I/O */
+  f_begin = NewFile(outfile, "w", SWIG_output_files());
+  if (!f_begin) {
+    FileErrorDisplay(outfile);
+    SWIG_exit(EXIT_FAILURE);
+  }
+  f_runtime = NewString("");
+  f_init = NewString("");
+  f_header = NewString("");
+  f_wrappers = NewString("");
 
-   /* Register file targets with the SWIG file handler */
-   Swig_register_filebyname("begin", f_begin);
-   Swig_register_filebyname("header", f_header);
-   Swig_register_filebyname("wrapper", f_wrappers);
-   Swig_register_filebyname("runtime", f_runtime);
-   Swig_register_filebyname("init", f_init);
+  /* Register file targets with the SWIG file handler */
+  Swig_register_filebyname("begin", f_begin);
+  Swig_register_filebyname("header", f_header);
+  Swig_register_filebyname("wrapper", f_wrappers);
+  Swig_register_filebyname("runtime", f_runtime);
+  Swig_register_filebyname("init", f_init);
 
-   /* Output module initialization code */
-   Swig_banner(f_begin);
-   ...
+  /* Output module initialization code */
+  Swig_banner(f_begin);
+  ...
 
-   /* Emit code for children */
-   Language::top(n);
+  /* Emit code for children */
+  Language::top(n);
 
-   ...
-   /* Write all to the file */
-   Dump(f_runtime, f_begin);
-   Dump(f_header, f_begin);
-   Dump(f_wrappers, f_begin);
-   Wrapper_pretty_print(f_init, f_begin);
+  ...
+  /* Write all to the file */
+  Dump(f_runtime, f_begin);
+  Dump(f_header, f_begin);
+  Dump(f_wrappers, f_begin);
+  Wrapper_pretty_print(f_init, f_begin);
 
-   /* Cleanup files */
-   Delete(f_runtime);
-   Delete(f_header);
-   Delete(f_wrappers);
-   Delete(f_init);
-   Delete(f_begin);
+  /* Cleanup files */
+  Delete(f_runtime);
+  Delete(f_header);
+  Delete(f_wrappers);
+  Delete(f_init);
+  Delete(f_begin);
 
-   return SWIG_OK;
+  return SWIG_OK;
 }
 </pre>
 </div>
@@ -2858,15 +2863,15 @@ A simple modification to write some basic details to the wrapper looks like this
 <pre>
 int Python::functionWrapper(Node *n) {
   /* Get some useful attributes of this function */
-  String   *name   = Getattr(n,"sym:name");
-  SwigType *type   = Getattr(n,"type");
-  ParmList *parms  = Getattr(n,"parms");
+  String   *name   = Getattr(n, "sym:name");
+  SwigType *type   = Getattr(n, "type");
+  ParmList *parms  = Getattr(n, "parms");
   String   *parmstr= ParmList_str_defaultargs(parms); // to string
   String   *func   = SwigType_str(type, NewStringf("%s(%s)", name, parmstr));
-  String   *action = Getattr(n,"wrap:action");
+  String   *action = Getattr(n, "wrap:action");
 
-  Printf(f_wrappers,"functionWrapper   : %s\n", func);
-  Printf(f_wrappers,"           action : %s\n", action);
+  Printf(f_wrappers, "functionWrapper   : %s\n", func);
+  Printf(f_wrappers, "           action : %s\n", action);
   return SWIG_OK;
 }
 </pre>
@@ -2881,19 +2886,19 @@ This will now produce some useful information within your wrapper file.
 functionWrapper   : void delete_Shape(Shape *self)
            action : delete arg1;
 
-functionWrapper   : void Shape_x_set(Shape *self,double x)
+functionWrapper   : void Shape_x_set(Shape *self, double x)
            action : if (arg1) (arg1)-&gt;x = arg2;
 
 functionWrapper   : double Shape_x_get(Shape *self)
            action : result = (double) ((arg1)-&gt;x);
 
-functionWrapper   : void Shape_y_set(Shape *self,double y)
+functionWrapper   : void Shape_y_set(Shape *self, double y)
            action : if (arg1) (arg1)-&gt;y = arg2;
 ...
 </pre>
 </div>
 
-<H3><a name="Extending_nn38">41.10.7 Low-level code generators</a></H3>
+<H3><a name="Extending_nn38">39.10.7 Low-level code generators</a></H3>
 
 
 <!-- please report bugs in this section to mgossage -->
@@ -2918,7 +2923,7 @@ In general most language wrappers look a little like this:
 </p>
 <div class="code">
 <pre>
-/* wrapper for TYPE3 some_function(TYPE1,TYPE2); */
+/* wrapper for TYPE3 some_function(TYPE1, TYPE2); */
 RETURN_TYPE _wrap_some_function(ARGS){
   TYPE1 arg1;
   TYPE2 arg2;
@@ -2929,7 +2934,7 @@ RETURN_TYPE _wrap_some_function(ARGS){
   if(ARG2 is not of TYPE2) goto fail;
   arg2=(convert ARG2);
 
-  result=some_function(arg1,arg2);
+  result=some_function(arg1, arg2);
 
   convert 'result' to whatever the language wants;
 
@@ -2973,9 +2978,9 @@ There are a lot of issues to address.
 <pre>
 virtual int functionWrapper(Node *n) {
   /* get useful attributes */
-  String   *name   = Getattr(n,"sym:name");
-  SwigType *type   = Getattr(n,"type");
-  ParmList *parms  = Getattr(n,"parms");
+  String   *name   = Getattr(n, "sym:name");
+  SwigType *type   = Getattr(n, "type");
+  ParmList *parms  = Getattr(n, "parms");
   ...
 
   /* create the wrapper object */
@@ -2988,7 +2993,7 @@ virtual int functionWrapper(Node *n) {
   ....
 
   /* write the wrapper function definition */
-  Printv(wrapper-&gt;def,"RETURN_TYPE ", wname, "(ARGS) {",NIL);
+  Printv(wrapper-&gt;def, "RETURN_TYPE ", wname, "(ARGS) {", NIL);
 
   /* if any additional local variable needed, add them now */
   ...
@@ -3006,7 +3011,7 @@ virtual int functionWrapper(Node *n) {
   ....
 
   /* Emit the function call */
-  emit_action(n,wrapper);
+  emit_action(n, wrapper);
 
   /* return value if necessary  */
   ....
@@ -3026,11 +3031,11 @@ virtual int functionWrapper(Node *n) {
   /* Close the function(error) */
   Printv(wrapper-&gt;code, "return ERROR;\n", "}\n", NIL);
 
-  /* final substititions if applicable */
+  /* final substitutions if applicable */
   ...
 
   /* Dump the function out */
-  Wrapper_print(wrapper,f_wrappers);
+  Wrapper_print(wrapper, f_wrappers);
 
   /* tidy up */
   Delete(wname);
@@ -3047,7 +3052,7 @@ but without the typemaps, there is still work to do.
 </p>
 
 
-<H3><a name="Extending_configuration_files">41.10.8 Configuration files</a></H3>
+<H3><a name="Extending_configuration_files">39.10.8 Configuration files</a></H3>
 
 
 <!-- please report bugs in this section to ttn -->
@@ -3164,7 +3169,7 @@ these kinds of problems.
 </p>
 
 <dt> <b>Examples/Makefile.in</b>
-<dd> Nothing special here; see comments at top the of this file
+<dd> Nothing special here; see comments at the top of this file
 and look to the existing languages for examples.
 
 <dt> <b>Examples/qux99/check.list</b>
@@ -3191,7 +3196,7 @@ politely displays the ignoring language message.
 </dl>
 
 
-<H3><a name="Extending_nn40">41.10.9 Runtime support</a></H3>
+<H3><a name="Extending_nn40">39.10.9 Runtime support</a></H3>
 
 
 <p>
@@ -3200,7 +3205,7 @@ Discuss the kinds of functions typically needed for SWIG runtime support (e.g.
 the SWIG files that implement those functions.
 </p>
 
-<H3><a name="Extending_nn41">41.10.10 Standard library files</a></H3>
+<H3><a name="Extending_nn41">39.10.10 Standard library files</a></H3>
 
 
 <p>
@@ -3219,7 +3224,7 @@ The following are the minimum that are usually supported:
 Please copy these and modify for any new language.
 </p>
 
-<H3><a name="Extending_nn42">41.10.11 User examples</a></H3>
+<H3><a name="Extending_nn42">39.10.11 User examples</a></H3>
 
 
 <p>
@@ -3248,7 +3253,7 @@ during this process, see the section on <a href="#Extending_configuration_files"
 files</a>.
 </p>
 
-<H3><a name="Extending_test_suite">41.10.12 Test driven development and the test-suite</a></H3>
+<H3><a name="Extending_test_suite">39.10.12 Test driven development and the test-suite</a></H3>
 
 
 <p>
@@ -3307,7 +3312,7 @@ It is therefore essential that the runtime tests are written in a manner that di
 but error/exception out with an error message on stderr on failure.
 </p>
 
-<H4><a name="Extending_running_test_suite">41.10.12.1 Running the test-suite</a></H4>
+<H4><a name="Extending_running_test_suite">39.10.12.1 Running the test-suite</a></H4>
 
 
 <p>
@@ -3499,7 +3504,7 @@ It can be run in the same way as the other language test-suites, replacing [lang
 The test cases used and the way it works is described in <tt>Examples/test-suite/errors/Makefile.in</tt>.
 </p>
 
-<H3><a name="Extending_nn43">41.10.13 Documentation</a></H3>
+<H3><a name="Extending_nn43">39.10.13 Documentation</a></H3>
 
 
 <p>
@@ -3531,64 +3536,7 @@ Some topics that you'll want to be sure to address include:
      if available.
 </ul>
 
-<H3><a name="Extending_prerequisites">41.10.14 Prerequisites for adding a new language module to the SWIG distribution</a></H3>
-
-
-<p>
-If you wish for a new language module to be distributed with SWIG,
-which we encourage for all popular languages, there are a few requirements.
-While we appreciate that getting all aspects of a new language working
-won't happen at the outset, there are a set of minimum requirements before
-a module can be committed into the official Github repository for distribution with future
-versions of SWIG. The following are really a summary of this whole section with
-details being outlined earlier on.
-</p>
-
-<ol>
-  <li>
-  Demonstrate basic C code working by porting the "simple" example including
-  a runtime test, see for example <tt>Examples/python/simple</tt>.
-  </li>
-  <li>
-  Demonstrate basic C++ code working by porting the "class" example including
-  a runtime test, see for example <tt>Examples/python/class</tt>.
-  </li>
-  <li>
-  Modify <tt>configure.ac</tt>, <tt>Makefile.in</tt> and <tt>Examples/Makefile.in</tt> to run
-  these examples. Please make sure that if the new language is not
-  installed properly on a box, <tt>make -k check</tt> should still work by
-  skipping the tests and examples for the new language module.
-  </li>
-  <li>
-  Get the test-suite running for the new language (<tt>make check-[lang]-test-suite</tt>).
-  While the test-suite tests many corner cases,
-  we'd expect the majority of it to work by compiling the generated code
-  correctly as most of the corner cases are covered in the SWIG core. Get
-  at least one C and one C++ runtime test running in the test-suite.
-  </li>
-  <li>
-  Provide a chapter in the html documentation on the basics of using
-  the language module.
-  </li>
-  <li>
-  Ensure your source code is formatted according to the <a href="#Extending_coding_style_guidelines">coding style guidelines</a>.
-  </li>
-  <li>
-  Finally, email the SWIG developers with a patch and a demonstration of
-  commitment to maintaining the language module,
-  certainly in the short term and ideally long term.
-  </li>
-</ol>
-
-<p>
-Once accepted into the official Git repository, development efforts should concentrate on
-getting the entire test-suite to work with plenty of runtime tests.
-Runtime tests should be for existing testcases and new test cases 
-should be added should there be an area not already covered by 
-the existing tests.
-</p>
-
-<H3><a name="Extending_coding_style_guidelines">41.10.15 Coding style guidelines</a></H3>
+<H3><a name="Extending_coding_style_guidelines">39.10.14 Coding style guidelines</a></H3>
 
 
 <p>
@@ -3612,7 +3560,193 @@ The generated C/C++ code should also follow this style as close as possible. How
 should be avoided as unlike the SWIG developers, users will never have consistent tab settings.
 </p>
 
-<H2><a name="Extending_debugging_options">41.11 Debugging Options</a></H2>
+
+<H3><a name="Extending_language_status">39.10.15 Target language status</a></H3>
+
+
+<p>
+Target languages are given a status of either 'Supported' or 'Experimental' depending on their maturity as broadly outlined in
+the <a href="Introduction.html#Introduction_target_languages">Target language introduction</a>.
+This section provides more details on how this status is given.
+</p>
+
+<H4><a name="Extending_supported_status">39.10.15.1 Supported status</a></H4>
+
+
+<p>
+A target language is given the 'Supported' status when
+</p>
+
+<ul>
+<li>
+  It is in a mature, well functioning state.
+</li>
+<li>
+  It has its own comprehensive chapter in the documentation.
+  The level of documentation should be comprehensive and match the standard of the other mature modules.
+  Python and Java are good references.</li>
+<li>
+  It passes all of the main SWIG test-suite.
+  The main test-suite is defined by the tests in the C_TEST_CASES, CPP_TEST_CASES and MULTI_CPP_TEST_CASES lists in Examples/test-suite/common.mk.
+  The tests in CPP11_TEST_CASES will also be required in the near future.
+</li>
+<li>
+  The test-suite must also include at least twenty wide-ranging runtime tests.
+  The most mature languages have a few hundred runtime tests.
+  Note that porting runtime tests from another language module is a quick and easy way to achieve this.
+</li>
+<li>
+  It supports the vast majority of SWIG features.
+  Some more advanced features, such as, directors, full nested class support and target language namespaces (nspace) may be unimplemented.
+  A few support libraries may be missing, for example, a small number of STL libraries.</li>
+<li>
+  It provides strong backwards compatibility between releases.
+  Each point release must aim to be fully backwards compatible.
+  A point release version is the 3rd version digit, so each of the x.y.* versions should be backwards compatible.
+  Backwards compatibility breakages can occur in a new major or minor version if absolutely necessary and if documented.
+  A major or minor version is the first or second digit in the three digit version.
+</li>
+<li>
+  Fixing unintended regressions in the Supported languages will be given higher priority over experimental languages by the core SWIG developers.
+</li>
+<li>
+  Examples must be available and run successfully.
+</li>
+<li>
+  The examples and test-suite must be fully functioning on the Travis Continuous Integration platform.
+</li>
+</ul>
+
+<H4><a name="Extending_experimental_status">39.10.15.2 Experimental status</a></H4>
+
+
+<p>
+A target language is given the 'Experimental' status when
+</p>
+
+<ul>
+<li>
+  It is of sub-standard quality, failing to meet the above 'Supported' status.
+</li>
+<li>
+  It is somewhere between the mid to mature stage of development.
+</li>
+<li>
+  It is in need of help to finish development.
+</li>
+</ul>
+
+<p>
+Some minimum requirements and notes about languages with the 'Experimental' status:
+</p>
+
+<ul>
+<li>
+  Will at least implement basic functionality - support wrapping C functions and simple C++ classes and templates.
+</li>
+<li>
+  Have its own documentation chapter containing a reasonable level of detail.
+  The documentation must provide enough basic functionality for a user to get started.
+</li>
+<li>
+  Have fully functional examples of basic functionality (the simple and class examples).
+</li>
+<li>
+  The test-suite must be implemented and include a few runtime tests for both C and C++ test cases.
+</li>
+<li>
+  Failing tests must be put into one of the FAILING_CPP_TESTS or FAILING_C_TESTS lists in the test-suite.
+  This will ensure the test-suite can be superficially made to pass by ignoring failing tests.
+  The number of tests in these lists should be no greater than half of the number of tests in the full test-suite.
+</li>
+<li>
+  The examples and test-suite must also be fully functioning on the Travis Continuous Integration platform.
+  However, experimental languages will be set as 'allow_failures'.
+  This means that pull requests and normal development commits will not break the entire Travis build should an experimental language fail.
+</li>
+<li>
+  Any new failed tests will be fixed on a 'best effort' basis by core developers with no promises made.
+</li>
+<li>
+  If a language module has an official maintainer, then the maintainer will be requested to focus on fixing test-suite regressions and commit to migrating the module to become a 'Supported' module.
+</li>
+<li>
+  If a module does not have an official maintainer, then, as maintenance will be on a 'best efforts' basis by the core maintainers, no guarantees will be provided from one release to the next and regressions may creep in.
+</li>
+<li>
+  Experimental target languages will have a (suppressible) warning explaining the Experimental sub-standard status and encourage users to help improve it.
+</li>
+<li>
+  No backwards compatibility is guaranteed as the module is effectively 'in development'.
+  If a language module has an official maintainer, then a backwards compatibility guarantee may be provided at the maintainer's discretion and should be documented as such.
+</li>
+</ul>
+
+<H3><a name="Extending_prerequisites">39.10.16 Prerequisites for adding a new language module to the SWIG distribution</a></H3>
+
+
+<p>
+New target language modules can be included in SWIG and contributions are encouraged for popular languages.
+In order to be considered for inclusion, a language must at a minimum fit the 'Experimental' status described above.
+</p>
+
+<p>
+Below are some practical steps that should help meet these requirements.
+</p>
+
+<ol>
+  <li>
+  The "simple" example needs to be working to demonstrate basic C code wrappers.
+  Port the example from another language, such as from <tt>Examples/python/simple</tt>.
+  </li>
+  <li>
+  The "class" example needs to be working to demonstrate basic C++ code wrappers.
+  Port the example from another language, such as from <tt>Examples/python/class</tt>.
+  </li>
+  <li>
+  Modify <tt>configure.ac</tt>, <tt>Makefile.in</tt> and <tt>Examples/Makefile.in</tt> to run
+  these examples. Please make sure that if the new language is not
+  installed properly on a box, <tt>make -k check</tt> should still work by
+  skipping the tests and examples for the new language module.
+  </li>
+  <li>
+  Copying an existing language module and adapting the source for it is likely to be the most efficient
+  approach to fully developing a new module as a number of corner cases are covered in the existing implementations.
+  The most advanced scripting languages are Python and Ruby.
+  The most advanced compiled target languages are Java and C#.
+  </li>
+  <li>
+  Get the <a href="#Extending_running_test_suite">test-suite</a> running for the new language (<tt>make check-[lang]-test-suite</tt>).
+  While the test-suite tests many corner cases,
+  we'd expect the majority of it to work without much effort once the generated code is compiling
+  correctly for basic functionality as most of the corner cases are covered in the SWIG core. Aim to first get
+  one C and one C++ runtime test running in the test-suite.
+  Adding further runtime tests should be a lot easier afterwards by porting existing runtime tests from another language module.
+  </li>
+  <li>
+  The structure and contents of the html documentation chapter can be copied and adapted from one of the other language modules.
+  </li>
+  <li>
+  Source code can be formatted correctly using the info in the <a href="#Extending_coding_style_guidelines">coding style guidelines</a> section.
+  </li>
+  <li>
+  When ready, post a patch on Github, join the swig-devel mailing list and email the SWIG developers with a demonstration of
+  commitment to maintaining the language module,
+  certainly in the short term and ideally long term.
+  </li>
+</ol>
+
+<p>
+Once accepted into the official Git repository, development efforts should concentrate on
+getting the entire test-suite to work
+in order to migrate the language module to the 'Supported' status.
+Runtime tests should be added for existing testcases and new test cases 
+can be added should there be an area not already covered by 
+the existing tests.
+</p>
+
+
+<H2><a name="Extending_debugging_options">39.11 Debugging Options</a></H2>
 
 
 <p>
@@ -3639,7 +3773,7 @@ There are various command line options which can aid debugging a SWIG interface 
 The complete list of command line options for SWIG are available by running <tt>swig -help</tt>.
 </p>
 
-<H2><a name="Extending_nn46">41.12 Guide to parse tree nodes</a></H2>
+<H2><a name="Extending_nn46">39.12 Guide to parse tree nodes</a></H2>
 
 
 <p>
@@ -4047,7 +4181,7 @@ extern "X" { ... } declaration.
 </pre>
 </div>
 
-<H2><a name="Extending_further_info">41.13 Further Development Information</a></H2>
+<H2><a name="Extending_further_info">39.13 Further Development Information</a></H2>
 
 
 <p>

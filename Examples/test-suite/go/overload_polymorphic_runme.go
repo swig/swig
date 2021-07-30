@@ -1,6 +1,6 @@
 package main
 
-import "./overload_polymorphic"
+import "swigtests/overload_polymorphic"
 
 func main(){
 	t := overload_polymorphic.NewDerived()

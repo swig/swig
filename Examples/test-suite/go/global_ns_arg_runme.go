@@ -1,6 +1,6 @@
 package main
 
-import . "./global_ns_arg"
+import . "swigtests/global_ns_arg"
 
 func main() {
 	Foo(1)

@@ -8,7 +8,7 @@
 
 <body bgcolor="#ffffff">
 
-<H1><a name="Mzscheme">30 SWIG and MzScheme/Racket</a></H1>
+<H1><a name="Mzscheme">37 SWIG and MzScheme/Racket</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -24,7 +24,7 @@
 <p>
 This section contains information on SWIG's support of Racket, formally known as MzScheme.
 
-<H2><a name="MzScheme_nn2">30.1 Creating native structures</a></H2>
+<H2><a name="MzScheme_nn2">37.1 Creating native structures</a></H2>
 
 
 <p>
@@ -34,14 +34,14 @@ Example interface file:
 <div class="code">
 <pre>
 /* define a macro for the struct creation */
-%define handle_ptr(TYPE,NAME)
+%define handle_ptr(TYPE, NAME)
 %typemap(argout) TYPE *NAME{
-    Scheme_Object *o = SWIG_NewStructFromPtr($1, $*1_mangle);
-    SWIG_APPEND_VALUE(o);
+  Scheme_Object *o = SWIG_NewStructFromPtr($1, $*1_mangle);
+  SWIG_APPEND_VALUE(o);
 }
 
-%typemap(in,numinputs=0) TYPE *NAME (TYPE temp) {
-    $1 = &amp;temp;
+%typemap(in, numinputs=0) TYPE *NAME (TYPE temp) {
+  $1 = &amp;temp;
 }
 %enddef
 
@@ -65,7 +65,7 @@ Then in scheme, you can use regular struct access procedures like
 </pre>
 </div>
 
-<H2><a name="MzScheme_simple">30.2 Simple example</a></H2>
+<H2><a name="MzScheme_simple">37.2 Simple example</a></H2>
 
 
 <p>
@@ -166,11 +166,11 @@ Some points of interest:
   <li> The above requests mzc to create an extension using the CGC garbage-collector. The alternative -- the 3m collector -- has generally better performance, but work is still required for SWIG to emit code which is compatible with it.
 </ul>
 
-<H2><a name="MzScheme_external_docs">30.3 External documentation</a></H2>
+<H2><a name="MzScheme_external_docs">37.3 External documentation</a></H2>
 
 
 <p>
-See the <a href="http://docs.racket-lang.org/inside/index.html">C API</a> for more description of using the mechanism for adding extensions. The main documentation is <a href="http://docs.racket-lang.org/">here</a>.
+See the <a href="https://docs.racket-lang.org/inside/index.html">C API</a> for more description of using the mechanism for adding extensions. The main documentation is <a href="https://docs.racket-lang.org/">here</a>.
 </p>
 
 <p>

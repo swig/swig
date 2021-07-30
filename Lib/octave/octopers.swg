@@ -25,8 +25,6 @@
 // __div__        a / b
 // __pow__        a ^ b
 // __ldiv__       a \ b
-// __lshift__     a << b
-// __rshift__     a >> b
 // __lt__         a < b
 // __le__         a <= b
 // __eq__         a == b
@@ -51,8 +49,6 @@
 %rename(__mul__)       *::operator*;
 %rename(__div__)       *::operator/;
 %rename(__mod__)       *::operator%;
-%rename(__lshift__)    *::operator<<;
-%rename(__rshift__)    *::operator>>;
 %rename(__el_and__)    *::operator&&;
 %rename(__el_or__)     *::operator||;
 %rename(__xor__)       *::operator^;
@@ -84,5 +80,7 @@
 // Ignored operators
 %ignoreoperator(EQ)         operator=;
 %ignoreoperator(ARROWSTAR)  operator->*;
+%ignoreoperator(LSHIFT)     operator<<;
+%ignoreoperator(RSHIFT)     operator>>;
 
 #endif /* __cplusplus */

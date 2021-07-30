@@ -25,7 +25,7 @@ namespace Swig {
   size_t ExceptionMethod()
   {
 // Check positioning of director code in wrapper file
-// Below is what we really want to test, but director exceptions vary too much across across all languages
+// Below is what we really want to test, but director exceptions vary too much across all languages
 //    throw Swig::DirectorException("DirectorException was not in scope!!");
 // Instead check definition of Director class as that is defined in the same place as DirectorException (director.swg)
     size_t size = sizeof(Swig::Director);

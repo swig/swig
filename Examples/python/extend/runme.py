@@ -18,7 +18,7 @@ class CEO(example.Manager):
 
 # Create an instance of our employee extension class, CEO. The calls to
 # getName() and getPosition() are standard, the call to getTitle() uses
-# the director wrappers to call CEO.getPosition. e = CEO("Alice")
+# the director wrappers to call CEO.getPosition.
 
 e = CEO("Alice")
 print e.getName(), "is a", e.getPosition()

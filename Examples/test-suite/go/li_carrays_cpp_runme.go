@@ -1,6 +1,6 @@
 package main
 
-import . "./li_carrays_cpp"
+import . "swigtests/li_carrays_cpp"
 
 func main() {
 	d := NewDoubleArray(10)

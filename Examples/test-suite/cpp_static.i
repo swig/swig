@@ -10,6 +10,7 @@ Tests Sourceforge bug #444748.
 class StaticMemberTest {
 public:
   static int static_int;
+  static int grab_int() { return static_int; }
 };
 
 class StaticFunctionTest {
@@ -22,5 +23,30 @@ public:
 %}
 
 %{
-int StaticMemberTest::static_int;
+int StaticMemberTest::static_int = 99;
+%}
+
+%inline %{
+struct StaticBase {
+  static int statty;
+  static int grab_statty_base() { return statty; }
+  virtual ~StaticBase() {}
+};
+struct StaticDerived : StaticBase {
+  static int statty;
+  static int grab_statty_derived() { return statty; }
+};
+%}
+
+%{
+int StaticBase::statty = 11;
+int StaticDerived::statty = 111;
+%}
+
+%inline %{
+#ifdef SWIGPYTHON_BUILTIN
+bool is_python_builtin() { return true; }
+#else
+bool is_python_builtin() { return false; }
+#endif
 %}

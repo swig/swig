@@ -6,6 +6,13 @@
 %{
   namespace swig {
     template <class T>
+    struct traits_reserve<std::vector<T> > {
+      static void reserve(std::vector<T> &seq, typename std::vector<T>::size_type n) {
+        seq.reserve(n);
+      }
+    };
+
+    template <class T>
     struct traits_asptr<std::vector<T> >  {
       static int asptr(PyObject *obj, std::vector<T> **vec) {
 	return traits_asptr_stdseq<std::vector<T> >::asptr(obj, vec);

@@ -1,6 +1,6 @@
 package main
 
-import "./sneaky1"
+import "swigtests/sneaky1"
 
 func main() {
 	_ = sneaky1.Add(3, 4)

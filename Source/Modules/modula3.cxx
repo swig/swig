@@ -219,8 +219,8 @@ private:
   String *module_baseclass;	//inheritance for module class from %pragma
   String *m3raw_interfaces;	//interfaces for intermediary class class from %pragma
   String *module_interfaces;	//interfaces for module class from %pragma
-  String *m3raw_class_modifiers;	//class modifiers for intermediary class overriden by %pragma
-  String *m3wrap_modifiers;	//class modifiers for module class overriden by %pragma
+  String *m3raw_class_modifiers;	//class modifiers for intermediary class overridden by %pragma
+  String *m3wrap_modifiers;	//class modifiers for module class overridden by %pragma
   String *upcasts_code;		//C++ casts for inheritance hierarchies C++ code
   String *m3raw_cppcasts_code;	//C++ casts up inheritance hierarchies intermediary class code
   String *destructor_call;	//C++ destructor call if any
@@ -822,7 +822,7 @@ MODULA3():
     Printf(file, "\n");
     Printf(file, "int main (int argc, char *argv[]) {\n");
     Printf(file, "\
-/*This progam must work for floating point numbers and integers.\n\
+/*This program must work for floating point numbers and integers.\n\
   Thus all numbers are converted to double precision floating point format.*/\n");
     scanConstant(file, n);
     Printf(file, "  return 0;\n");
@@ -3214,7 +3214,7 @@ MODULA3():
 
 	tm = Getattr(p, "tmap:m3wrapargvar");
 	if (tm != NIL) {
-	  /* exceptions that may be raised but can't be catched,
+	  /* exceptions that may be raised but can't be caught,
 	     thus we won't count them in num_exceptions */
 	  addImports(m3wrap_impl.import, "m3wrapargvar", p);
 	  addThrows(throws_hash, "m3wrapargvar", p);

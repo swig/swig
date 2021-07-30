@@ -1,29 +1,21 @@
 Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
+Issue # numbers mentioned below can be found on Github. For more details, add
+the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
-Version 3.0.11 (in progress)
-============================
+Version 4.0.2 (in progress)
+===========================
 
-2016-06-26: wkalinin
-            [Java, C#] Patch #681 Fix seg fault when ignoring nested classes.
+2019-12-10: wsfulton
+            #1679 Fix parsing of C++11 identifiers with special meaning (final and override) when
+            they are used as part of the scope name of an identifier, such as a namespace name.
 
-2016-06-25: mromberg
-            [Python] #711 Fix -castmode and conversion of signed and unsigned integer types.
-            See 2015-12-23 CHANGES entry for details of these improvements when they were
-            implemented for the default options (ie not using -castmode).
+2019-11-26: wsfulton
+            [C#] #1628 'out' or 'ref' used in a cstype typemap was not always stripped out in parts
+            of director code generation.
 
-2016-06-25: ahnolds
-            Patch #730 - Fix %implicitconv for overloaded functions when using
-            -castmode or -fastdispatch options.
-
-            The result is that in all overload cases where there are multiple possibilities
-            with the same number of arguments, the dispatch function will first check for
-            exact (aka non implicit) matches, and then subsequently check for implicit
-            casting matches. This was already happening in the normal dispatch situation,
-            and in the -fastdispatch case two passes through the candidates were happening,
-            just with SWIG_POINTER_IMPLICIT_CONV always set. After this patch, it is not set
-            on the first pass, and then set on the second pass.
-
-2016-06-25: liorgold
-            Patch #727 - Add support for C++11 type aliasing.
+2019-11-01: wsfulton
+            [Python] #1595 Fix bug in support for keyword arguments (kwargs feature or -keyword)
+            when using -builtin. The fix is in the argument error checking when wrapping zero
+            argument constructors only.

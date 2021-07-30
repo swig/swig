@@ -1,0 +1,18 @@
+This example tests renaming the generated SWIG pure Python module to __init__.py
+to turn the module into a Python package.
+
+Use 'python runme.py' to run the test.
+
+Overview:
+---------
+
+SWIG generates a pure Python module foo.py from the input interface file foo.i.
+The foo.py file is generated within the pkg1 directory and is then renamed __init__.py.
+This results in everything in the SWIG generated module being available in the Python
+pkg1 package.
+
+This approach of turning the SWIG generated module into a package worked in versions
+of SWIG up to swig-3.0.8, but stopped working from swig-3.0.9 until it was
+re-instated in swig-4.0.0. However, Python 2.7 or 3.3 and later are needed to
+work out of the box. Python 3.2 does not work as this version of Python does
+not set __package__ in __init__.py.

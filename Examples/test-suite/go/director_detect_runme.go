@@ -1,6 +1,6 @@
 package main
 
-import "./director_detect"
+import "swigtests/director_detect"
 
 type MyBar struct {
 	val int

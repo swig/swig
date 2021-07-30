@@ -1,5 +1,9 @@
 %module template_default_class_parms
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) method;
+#endif
+
 %inline %{
 namespace Space {
   struct SomeType {};

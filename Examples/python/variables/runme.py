@@ -48,18 +48,18 @@ example.print_vars()
 
 print "\nNow I'm going to try and modify some read only variables"
 
-print "     Tring to set 'path'"
+print "     Trying to set 'path'"
 try:
     example.cvar.path = "Whoa!"
     print "Hey, what's going on?!?! This shouldn't work"
-except:
+except Exception:
     print "Good."
 
 print "     Trying to set 'status'"
 try:
     example.cvar.status = 0
     print "Hey, what's going on?!?! This shouldn't work"
-except:
+except Exception:
     print "Good."
 
 

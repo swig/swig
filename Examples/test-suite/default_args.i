@@ -2,10 +2,22 @@
 
 %module default_args
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#endif
+
 %{
 #if defined(_MSC_VER)
-  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+  #pragma warning(disable: 4146) // unary minus operator applied to unsigned type, result still unsigned
 #endif
+%}
+
+// throw is invalid in C++17 and later, only SWIG to use it
+#define TESTCASE_THROW1(T1) throw(T1)
+#define TESTCASE_THROW2(T1, T2) throw(T1, T2)
+%{
+#define TESTCASE_THROW1(T1)
+#define TESTCASE_THROW2(T1, T2)
 %}
 
 %include <std_string.i>
@@ -14,14 +26,27 @@
   #include <string>
 
   // All kinds of numbers: hex, octal (which pose special problems to Python), negative...
-  void trickyvalue1(int first, int pos = -1) {}
-  void trickyvalue2(int first, unsigned rgb = 0xabcdef) {}
-  void trickyvalue3(int first, int mode = 0644) {}
+
+  class TrickyInPython {
+  public:
+    int value_m1(int first, int pos = -1) { return pos; }
+    unsigned value_0xabcdef(int first, unsigned rgb = 0xabcdef) { return rgb; }
+    int value_0644(int first, int mode = 0644) { return mode; }
+    int value_perm(int first, int mode = 0640 | 0004) { return mode; }
+    int value_m01(int first, int val = -01) { return val; }
+    bool booltest2(bool x = 0 | 1) { return x; }
+    int max_32bit_int1(int a = 0x7FFFFFFF) { return a; }
+    int max_32bit_int2(int a = 2147483647) { return a; }
+    int min_32bit_int1(int a = -0x80000000) { return a; }
+    long long too_big_32bit_int1(long long a = 0x80000000) { return a; }
+    long long too_big_32bit_int2(long long a = 2147483648LL) { return a; }
+    long long too_small_32bit_int1(long long a = -0x80000001) { return a; }
+    long long too_small_32bit_int2(long long a = -2147483649LL) { return a; }
+  };
 
   void doublevalue1(int first, double num = 0.0e-1) {}
   void doublevalue2(int first, double num = -0.0E2) {}
 
-  // Long long arguments are not handled at Python level currently but still work.
   void seek(long long offset = 0LL) {}
   void seek2(unsigned long long offset = 0ULL) {}
   void seek3(long offset = 0L) {}
@@ -152,6 +177,9 @@
       int double_if_handle_is_null(int n, MyHandle h = 0) { return h ? n : 2*n; }
       int double_if_dbl_ptr_is_null(int n, double* null_by_default)
         { return null_by_default ? n : 2*n; }
+
+      void defaulted1(unsigned offset = -1U) {} // minus unsigned!
+      void defaulted2(int offset = -1U) {} // minus unsigned!
   };
   int Foo::bar = 1;
   int Foo::spam = 2;
@@ -182,18 +210,18 @@
 
 // Default parameters with exception specifications
 %inline %{
-void exceptionspec(int a = -1) throw (int, const char*) {
+void exceptionspec(int a = -1) TESTCASE_THROW2(int, const char*) {
   if (a == -1)
     throw "ciao";
   else
     throw a;
 }
 struct Except {
-  Except(bool throwException, int a = -1) throw (int) {
+  Except(bool throwException, int a = -1) TESTCASE_THROW1(int) {
     if (throwException)
       throw a;
   }
-  void exspec(int a = 0) throw (int, const char*) {
+  void exspec(int a = 0) TESTCASE_THROW2(int, const char*) {
     ::exceptionspec(a);
   }
 };

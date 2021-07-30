@@ -1,6 +1,6 @@
 package main
 
-import "./template_ref_type"
+import "swigtests/template_ref_type"
 
 func main() {
 	xr := template_ref_type.NewXC()

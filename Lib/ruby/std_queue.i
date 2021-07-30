@@ -14,7 +14,7 @@
 
     template <class T>
     struct traits_from<std::queue<T> > {
-      static VALUE from(const std::queue<T> & vec) {
+      static VALUE from(const std::queue<T>& vec) {
 	return traits_from_stdseq<std::queue<T> >::from(vec);
       }
     };

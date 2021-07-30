@@ -1,6 +1,6 @@
 package main
 
-import . "./namespace_class"
+import . "swigtests/namespace_class"
 
 func main() {
 	EulerT3DToFrame(1, 1, 1)

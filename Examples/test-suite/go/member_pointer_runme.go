@@ -3,7 +3,7 @@
 package main
 
 import "fmt"
-import . "./member_pointer"
+import . "swigtests/member_pointer"
 
 func check(what string, expected float64, actual float64) {
 	if expected != actual {

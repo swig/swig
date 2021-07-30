@@ -158,7 +158,7 @@ SWIG_MzScheme_ConvertPtr(Scheme_Object *s, void **result, swig_type_info *type, 
 
   if (SCHEME_NULLP(s)) {
     *result = NULL;
-    return 0;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   } else if (SCHEME_TYPE(s) == swig_type) {
     struct swig_mz_proxy *proxy = (struct swig_mz_proxy *) s;
     if (type) {

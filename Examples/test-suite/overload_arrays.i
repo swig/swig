@@ -18,9 +18,10 @@
 %rename(Foos) Foo;
 #endif
 
+#ifdef SWIGOCAML
+%warnfilter(SWIGWARN_PARSE_KEYWORD) type;
+#endif
 
-
-#ifndef SWIG_NO_OVERLOAD
 %immutable Spam::type;
 
 %inline %{
@@ -129,8 +130,6 @@ static char *bar(void *[SIZE]) {
 };
 
 %}
-
-#endif
 
 
 %inline {

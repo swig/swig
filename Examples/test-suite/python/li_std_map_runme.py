@@ -50,3 +50,32 @@ mii[1] = 2
 
 if mii[1] != 2:
     raise RuntimeError
+
+if mii.keys() != [1]:
+    raise RuntimeError("keys")
+if mii.values() != [2]:
+    raise RuntimeError("values")
+if mii.items() != [(1, 2)]:
+    raise RuntimeError("items")
+
+if [k for k in mii] != [1]:
+    raise RuntimeError("iteration")
+
+if [i for i in mii.iterkeys()] != [1]:
+    raise RuntimeError("iterkeys")
+if [i for i in mii.itervalues()] != [2]:
+    raise RuntimeError("itervalues")
+if [i for i in mii.iteritems()] != [(1, 2)]:
+    raise RuntimeError("iteritems")
+
+
+slmap = li_std_map.StringLengthNumberMap()
+li_std_map.populate(slmap)
+
+keys = " ".join([k for k in slmap.keys()])
+if keys != "a aa zzz xxxx aaaaa":
+    raise RuntimeError("Keys are wrong or in wrong order: " + keys)
+
+values = " ".join([str(v) for v in slmap.values()])
+if values != "1 2 3 4 5":
+    raise RuntimeError("Values are wrong or in wrong order: " + values)

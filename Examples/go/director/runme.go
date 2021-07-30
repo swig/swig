@@ -1,9 +1,10 @@
 package main
 
 import (
-	"./example"
 	"fmt"
 	"os"
+
+	"swigtests/example"
 )
 
 func Compare(name string, got string, exp string) error {
