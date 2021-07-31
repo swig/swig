@@ -1,1 +1,12 @@
 # see top-level Makefile.in
+class
+constants
+#contract
+#enum
+funcptr
+#funcptr2
+#modules # Test not finalized
+#reference
+#simple
+#template
+#variables

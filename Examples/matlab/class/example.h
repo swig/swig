@@ -51,9 +51,5 @@ public:
   CircleInscribedInSquare(double w) : Circle(w/2.0), Square(w) { }
 
   virtual double area();
-//#define FIXME_SWIGMATLAB // uncomment this to demonstrate matlab choke
-#ifdef FIXME_SWIGMATLAB
   virtual double perimeter();
-#endif
-  // let perimeter resolve itself
 };

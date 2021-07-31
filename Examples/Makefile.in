@@ -510,7 +510,7 @@ MATLAB_MEX      = @MATLAB_MEX@
 MATLAB_CFLAGS   = @MATLAB_CFLAGS@
 MATLAB_CXXFLAGS = @MATLAB_CXXFLAGS@
 MATLAB_LDFLAGS  = @MATLAB_LDFLAGS@
-MATLAB_SCRIPT   = $(SRCDIR)$(RUNME)
+MATLAB_SCRIPT   = $(RUNME)
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
@@ -550,6 +550,7 @@ endif
 # -----------------------------------------------------------------
 
 matlab_run:
+	env MATLABPATH="$(SRCDIR):$(SCRIPTDIR):$$MATLABPATH" \
 	$(RUNTOOL) "$(MATLAB)" $(MATLAB_OPTS) $(MATLAB_EXEC) "try; $(MATLAB_SCRIPT); catch err; fprintf(2,['ERROR: ' err.message '\n']);exit(1); end; exit(0)" $(RUNPIPE)
 
 # -----------------------------------------------------------------

@@ -12,7 +12,7 @@ disp(sprintf('    ADD(a,b) = %i', swigexample.do_op(a,b,swigexample.ADD)))
 disp(sprintf('    SUB(a,b) = %i', swigexample.do_op(a,b,swigexample.SUB)))
 disp(sprintf('    MUL(a,b) = %i', swigexample.do_op(a,b,swigexample.MUL)))
 
-disp(sprintf('Here is what the C callback function objects look like in Octave'))
+disp(sprintf('Here is what the C callback function objects look like in MATLAB'))
 swigexample.ADD
 swigexample.SUB
 swigexample.MUL
