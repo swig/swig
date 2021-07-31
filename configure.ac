@@ -1256,7 +1256,7 @@ elif test "x$enable_octave_for_matlab" = "xyes"; then
 
 else 
   AC_MSG_NOTICE([Using MATLAB to test the MATLAB/Octave module])
-  MATLAB_OPTS="-nodisplay -nojvm"
+  MATLAB_OPTS="-nodisplay -nojvm -nosplash"
   MATLAB_EXEC="-r"
 
    if test "x$MATLABBIN" = xyes; then

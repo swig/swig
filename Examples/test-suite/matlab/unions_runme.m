@@ -1,3 +1,4 @@
+import unions.*
 % This is the union runtime testcase. It ensures that values within a 
 % union embedded within a struct can be set and read correctly.
 
