@@ -8,7 +8,7 @@
 
 %import "import_nomodule.h"
 
-#if !defined(SWIGJAVA) && !defined(SWIGRUBY) && !defined(SWIGCSHARP) && !defined(SWIGD) && !defined(SWIGPYTHON_BUILTIN) && !defined(SWIGMATLAB)
+#if !defined(SWIGJAVA) && !defined(SWIGRUBY) && !defined(SWIGCSHARP) && !defined(SWIGD) && !defined(SWIGPYTHON_BUILTIN) && !defined(SWIGPHP) && !defined(SWIGMATLAB)
 
 /**
  * The proxy class does not have Bar derived from Foo, yet an instance of Bar
@@ -16,7 +16,7 @@
  * language modules).
  * 
  * This violation of the type system is not possible in Java, C# and D due to
- * static type checking. It's also not (currently) possible in Ruby or MATLAB,
+ * static type checking. It's also not (currently) possible in PHP or Ruby or MATLAB,
  * but this may be fixable (needs more investigation).
  */
 

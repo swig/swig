@@ -279,3 +279,5 @@ check(inspect.getdoc(process3), "process3(int _from, int _in, int var) -> int")
 check(inspect.getdoc(process4), "process4(int _from=0, int _in=1, int var=2) -> int")
 
 check(inspect.getdoc(process_complex_defval), "process_complex_defval(val=PROCESS_DEFAULT_VALUE, factor=some_type(-1)) -> int")
+
+check(inspect.getdoc(a_structure.__init__), "__init__(a_structure self) -> a_structure", None, skip)

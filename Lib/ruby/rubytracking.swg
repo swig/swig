@@ -32,7 +32,7 @@ extern "C" {
 */
 static st_table* swig_ruby_trackings = NULL;
 
-static VALUE swig_ruby_trackings_count(ANYARGS) {
+static VALUE swig_ruby_trackings_count(ID id, VALUE *var) {
   return SWIG2NUM(swig_ruby_trackings->num_entries);
 }
 
@@ -69,7 +69,9 @@ SWIGRUNTIME void SWIG_RubyInitializeTrackings(void) {
     swig_ruby_trackings = (st_table*)NUM2SWIG(trackings_value);
   }
 
-  rb_define_virtual_variable("SWIG_TRACKINGS_COUNT", swig_ruby_trackings_count, NULL);
+  rb_define_virtual_variable("SWIG_TRACKINGS_COUNT",
+                             VALUEFUNC(swig_ruby_trackings_count),
+                             SWIG_RUBY_VOID_ANYARGS_FUNC((rb_gvar_setter_t*)NULL));
 }
 
 /* Add a Tracking from a C/C++ struct to a Ruby object */
@@ -118,13 +120,15 @@ SWIGRUNTIME void SWIG_RubyUnlinkObjects(void* ptr) {
    to the passed callback function. */
 
 /* Proxy method to abstract the internal trackings datatype */
-static int swig_ruby_internal_iterate_callback(void* ptr, VALUE obj, void(*meth)(void* ptr, VALUE obj)) {
-  (*meth)(ptr, obj);
+static int swig_ruby_internal_iterate_callback(st_data_t ptr, st_data_t obj, st_data_t meth) {
+  ((void (*) (void *, VALUE))meth)((void *)ptr, (VALUE)obj);
   return ST_CONTINUE;
 }
 
 SWIGRUNTIME void SWIG_RubyIterateTrackings( void(*meth)(void* ptr, VALUE obj) ) {
-  st_foreach(swig_ruby_trackings, (int (*)(ANYARGS))&swig_ruby_internal_iterate_callback, (st_data_t)meth);
+  st_foreach(swig_ruby_trackings,
+             SWIG_RUBY_INT_ANYARGS_FUNC(swig_ruby_internal_iterate_callback),
+             (st_data_t)meth);
 }
 
 #ifdef __cplusplus

@@ -30,8 +30,6 @@ class ex2 : public myException
 
 #if !defined(SWIGUTL)
 
-#if !defined(SWIGCHICKEN)
-
 %inline %{
 class Impl
 {
@@ -40,10 +38,6 @@ class Impl
       void f2() TESTCASE_THROW1(myException) { ex2 e; throw e; }
 };
 %}
-
-#else
-#warning "Chicken needs fixing for partial exception information"
-#endif
 
 #else
 #warning "UTL needs fixing for partial exception information"

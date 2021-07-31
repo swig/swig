@@ -839,6 +839,7 @@ Node *Swig_cparse_template_locate(String *name, Parm *tparms, Symtab *tscope) {
     String *nodeType = nodeType(n);
     int isclass = 0;
     assert(Equal(nodeType, "template"));
+    (void)nodeType;
     isclass = (Equal(Getattr(n, "templatetype"), "class"));
     if (!isclass) {
       /* If not a templated class we must have a templated function.

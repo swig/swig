@@ -58,6 +58,7 @@ INTERFACE  =
 INTERFACEDIR  =
 INTERFACEPATH = $(SRCDIR)$(INTERFACEDIR)$(INTERFACE)
 SWIGOPT    =
+PCHSUPPORT = @PCHSUPPORT@
 
 # SWIG_LIB_DIR and SWIGEXE must be explicitly set by Makefiles using this Makefile
 SWIG_LIB_DIR = ./Lib
@@ -164,6 +165,7 @@ TCL_SO     = @TCL_SO@
 TCLLDSHARED = @TCLLDSHARED@
 TCLCXXSHARED = @TCLCXXSHARED@
 TCL_SCRIPT = $(SRCDIR)$(RUNME).tcl
+TCL_LINK   = @TCLLINK@
 
 # -----------------------------------------------------------
 # Build a new version of the tclsh shell
@@ -186,7 +188,7 @@ tclsh_cpp: $(SRCDIR_SRCS)
 tcl:  $(SRCDIR_SRCS)
 	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(TCL_INCLUDE)
-	$(TCLLDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO)
+	$(TCLLDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO) $(TCL_LINK)
 
 # -----------------------------------------------------------
 # Build a Tcl7.5 dynamic loadable module for C++
@@ -195,7 +197,7 @@ tcl:  $(SRCDIR_SRCS)
 tcl_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(TCL_INCLUDE)
-	$(TCLCXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO)
+	$(TCLCXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO) $(TCL_LINK)
 
 # -----------------------------------------------------------------
 # Run Tcl example
@@ -380,13 +382,7 @@ python_static_cpp: $(SRCDIR_SRCS)
 # Running a Python example
 # -----------------------------------------------------------------
 
-ifeq (,$(PY3))
-  PYSCRIPT = $(RUNME).py
-else
-  PYSCRIPT = $(RUNME)3.py
-endif
-
-PY2TO3 = @PY2TO3@ `@PY2TO3@ -l | grep -v -E "Available|import$$" | awk '{print "-f "$$0}'`
+PYSCRIPT = $(RUNME).py
 
 python_run: $(PYSCRIPT)
 ifneq (,$(PYCODESTYLE))
@@ -398,10 +394,6 @@ ifneq (,$(SRCDIR))
 $(RUNME).py: $(SRCDIR)$(RUNME).py
 	cp $< $@
 endif
-
-$(RUNME)3.py: $(SRCDIR)$(RUNME).py
-	cp $< $@
-	$(PY2TO3) -w $@ >/dev/null 2>&1
 
 # -----------------------------------------------------------------
 # Version display
@@ -420,7 +412,6 @@ python_clean:
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ *$(PYTHON_SO)
 	rm -f $(TARGET).py
-	if test -f $(SRCDIR)$(RUNME).py; then rm -f $(RUNME)3.py $(RUNME)3.py.bak; fi
 	case "x$(SRCDIR)" in x|x./);; *) rm -f $(RUNME).py;; esac
 
 
@@ -439,13 +430,36 @@ OCTAVE_SO     = @OCTAVE_SO@
 OCTAVE_SCRIPT = $(SRCDIR)$(RUNME).m
 
 # ----------------------------------------------------------------
+# Pre-compile Octave headers, if supported
+# ----------------------------------------------------------------
+
+ifeq (yes,$(PCHSUPPORT))
+
+octave_precompile_headers:
+	echo "precompiling $(OCTHEADERS)"
+	cp -f $(OCTHEADERSSRC) $(OCTHEADERS)
+	if $(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDES) $(OCTAVE_CXX) $(OCTHEADERS); then \
+		: ; \
+	else \
+		rm -f $(OCTHEADERSGCH); \
+		exit 1; \
+	fi
+
+else
+
+octave_precompile_headers:
+	echo "precompiling Octave headers not supported"; exit 1
+
+endif
+
+# ----------------------------------------------------------------
 # Build a C dynamically loadable module
 # Note: Octave requires C++ compiler when compiling C wrappers
 # ----------------------------------------------------------------
 
 octave: $(SRCDIR_SRCS)
-	$(SWIG) -octave $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
+	$(SWIG) -octave $(SWIGOCTHDROPT) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -g -c $(IOCTHEADERS) $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
 	$(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS) $(INCLUDES)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
 
@@ -454,8 +468,8 @@ octave: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 octave_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -octave $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
+	$(SWIG) -c++ -octave $(SWIGOCTHDROPT) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -g -c $(IOCTHEADERS) $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
 	$(CXXSHARED) -g $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
 
 # -----------------------------------------------------------------
@@ -481,6 +495,7 @@ octave_clean:
 	rm -f *_wrap* *~ .~* myoctave@EXEEXT@ *.pyc
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ *$(OCTAVE_SO)
+	rm -f $(OCTHEADERS) $(OCTHEADERSGCH)
 
 ##################################################################
 #####                       MATLAB/Octave                   ######
@@ -1101,20 +1116,21 @@ ruby_clean:
 	rm -f *.@OBJEXT@ *$(RUBY_SO)
 
 ##################################################################
-#####                       PHP7                            ######
+#####                       PHP                             ######
 ##################################################################
 
 PHP         = @PHP@
 PHP_INCLUDE = @PHPINC@
 PHP_SO      = @PHP_SO@
 PHP_SCRIPT  = $(SRCDIR)$(RUNME).php
+PHP_EXTENSION = example$(PHP_SO)
 
 # -------------------------------------------------------------------
 # Build a PHP dynamically loadable module (C)
 # -------------------------------------------------------------------
 
 php: $(SRCDIR_SRCS)
-	$(SWIG) -php7 $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(SWIG) -php $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(PHP_INCLUDE)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
 
@@ -1123,7 +1139,7 @@ php: $(SRCDIR_SRCS)
 # --------------------------------------------------------------------
 
 php_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -php7 -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(SWIG) -php -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PHP_INCLUDE)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
 
@@ -1132,7 +1148,7 @@ php_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 php_run:
-	$(RUNTOOL) $(PHP) -n -q -d extension_dir=. -d safe_mode=Off -d display_errors=stderr $(PHP_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(PHP) -n -d extension_dir=. -d extension=$(PHP_EXTENSION) -d display_errors=stderr -r 'set_error_handler(function($$n,$$s,$$f,$$l){if($$f!==Null){print$$f;if($$l!==Null)print":$$l";print": ";}print"$$s\n";exit(1);});include($$argv[1]);' $(PHP_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1303,46 +1319,6 @@ lua_clean:
 	rm -f *_wrap* *~ .~* mylua@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *$(LUA_SO)
-
-##################################################################
-#####                   ALLEGRO CL                          ######
-##################################################################
-
-ALLEGROCL    = @ALLEGROCLBIN@
-ALLEGROCL_SCRIPT=$(RUNME).lisp
-
-allegrocl: $(SRCDIR_SRCS)
-	$(SWIG) -allegrocl -cwrap $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(INCLUDES) $(SRCDIR_SRCS)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
-allegrocl_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -allegrocl $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
-# -----------------------------------------------------------------
-# Run ALLEGRO CL example
-# -----------------------------------------------------------------
-
-allegrocl_run:
-	$(RUNTOOL) $(ALLEGROCL) -batch -s $(ALLEGROCL_SCRIPT) $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-allegrocl_version:
-	$(ALLEGROCL) --version
-
-# -----------------------------------------------------------------
-# Cleaning the ALLEGRO CL examples
-# -----------------------------------------------------------------
-
-allegrocl_clean:
-	rm -f *_wrap* *~ .~*
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@
 
 ##################################################################
 #####                      CFFI                             ######

@@ -13,24 +13,27 @@ namespace swig {
   template <class Type>
   struct traits_asptr<std::shared_ptr<Type> > {
     static int asptr(VALUE obj, std::shared_ptr<Type> **val) {
-      std::shared_ptr<Type> *p = 0;
+      int res = SWIG_ERROR;
       swig_type_info *descriptor = type_info<std::shared_ptr<Type> >();
-      swig_ruby_owntype newmem = {0, 0};
-      int res = descriptor ? SWIG_ConvertPtrAndOwn(obj, (void **)&p, descriptor, 0, &newmem) : SWIG_ERROR;
-      if (SWIG_IsOK(res)) {
-	if (val) {
-	  if (*val) {
-	    **val = p ? *p : std::shared_ptr<Type>();
-	  } else {
-	    *val = p;
-	    if (newmem.own & SWIG_CAST_NEW_MEMORY) {
-	      // Upcast for pointers to shared_ptr in this generic framework has not been implemented
-	      res = SWIG_ERROR;
-	    }
-	  }
-	}
-	if (newmem.own & SWIG_CAST_NEW_MEMORY)
-	  delete p;
+      if (val) {
+        std::shared_ptr<Type> *p = 0;
+        swig_ruby_owntype newmem = {0, 0};
+        res = descriptor ? SWIG_ConvertPtrAndOwn(obj, (void **)&p, descriptor, 0, &newmem) : SWIG_ERROR;
+        if (SWIG_IsOK(res)) {
+          if (*val) {
+            **val = p ? *p : std::shared_ptr<Type>();
+          } else {
+            *val = p;
+            if (newmem.own & SWIG_CAST_NEW_MEMORY) {
+              // Upcast for pointers to shared_ptr in this generic framework has not been implemented
+              res = SWIG_ERROR;
+            }
+          }
+          if (newmem.own & SWIG_CAST_NEW_MEMORY)
+            delete p;
+        }
+      } else {
+        res = descriptor ? SWIG_ConvertPtr(obj, 0, descriptor, 0) : SWIG_ERROR;
       }
       return res;
     }

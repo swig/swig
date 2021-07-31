@@ -8,7 +8,7 @@ li_attribute
 aa = li_attribute.A(1,2,3);
 
 if (aa.a != 1)
-  error
+  error("failed");
 endif
 aa.a = 3;
 if (aa.a != 3)
@@ -20,31 +20,31 @@ if (aa.b != 2)
 endif
 aa.b = 5;
 if (aa.b != 5)
-  error
+  error("failed");
 endif
 
 if (aa.d != aa.b)
-  error
+  error("failed");
 endif
 
 if (aa.c != 3)
-  error
+  error("failed");
 endif
 
 pi = li_attribute.Param_i(7);
 if (pi.value != 7)
- error
+ error("failed");
 endif
 
 pi.value=3;
 if (pi.value != 3)
- error
+ error("failed");
 endif
 
 b = li_attribute.B(aa);
 
 if (b.a.c != 3)
- error
+ error("failed");
 endif
 
 # class/struct attribute with get/set methods using return/pass by reference
@@ -53,38 +53,38 @@ myFoo.x = 8;
 myClass = li_attribute.MyClass();
 myClass.Foo = myFoo;
 if (myClass.Foo.x != 8)
-  error
+  error("failed");
 endif
 
 # class/struct attribute with get/set methods using return/pass by value
 myClassVal = li_attribute.MyClassVal();
 if (myClassVal.ReadWriteFoo.x != -1)
-  error
+  error("failed");
 endif
 if (myClassVal.ReadOnlyFoo.x != -1)
-  error
+  error("failed");
 endif
 myClassVal.ReadWriteFoo = myFoo;
 if (myClassVal.ReadWriteFoo.x != 8)
-  error
+  error("failed");
 endif
 if (myClassVal.ReadOnlyFoo.x != 8)
-  error
+  error("failed");
 endif
 
 # string attribute with get/set methods using return/pass by value
 myStringyClass = li_attribute.MyStringyClass("initial string");
 if (myStringyClass.ReadWriteString != "initial string")
-  error
+  error("failed");
 endif
 if (myStringyClass.ReadOnlyString != "initial string")
-  error
+  error("failed");
 endif
 myStringyClass.ReadWriteString = "changed string";
 if (myStringyClass.ReadWriteString != "changed string")
-  error
+  error("failed");
 endif
 if (myStringyClass.ReadOnlyString != "changed string")
-  error
+  error("failed");
 endif
 

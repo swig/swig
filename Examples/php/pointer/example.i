@@ -21,10 +21,5 @@ extern void sub(int *INPUT, int *INPUT, int *OUTPUT);
 
 /* Next we'll use typemaps and the %apply directive */
 
-//%apply int *OUTPUT { int *r };
-//extern int divide(int n, int d, int *r);
-
-
-
-
-
+%apply int *OUTPUT { int *r };
+extern int divide(int n, int d, int *r);

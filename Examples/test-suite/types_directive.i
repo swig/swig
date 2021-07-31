@@ -19,10 +19,11 @@ struct Date {
 };
 
 struct Time1 {
-  Time1(unsigned int year, unsigned int month, unsigned int day, unsigned int seconds) : date(year, month, day), seconds(seconds) {}
+  Time1(unsigned int year, unsigned int month, unsigned int day, unsigned int seconds) : padding(), date(year, month, day), seconds(seconds) {}
   Date &dateFromTime() {
     return date;
   }
+  unsigned int padding; // so that memory layout is not the same as Date
   Date date;
   unsigned int seconds;
 };

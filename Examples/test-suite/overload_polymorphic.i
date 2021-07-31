@@ -23,4 +23,7 @@ class Unknown;
 int test2(Unknown* unknown) { return 0; }
 int test2(Base* base) { return 1; }
 
+int test3(const char*, const Base* = 0, bool = false) { return 0; }
+int test3(Base&, const char* = 0, const Base* = 0, bool = false) { return 1; }
+
 %}

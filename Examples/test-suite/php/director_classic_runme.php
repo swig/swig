@@ -1,13 +1,12 @@
 <?php
 
 require "tests.php";
-require "director_classic.php";
 
 // No new functions
-check::functions(array('being_id','person_id','child_id','grandchild_id','caller_delcallback','caller_setcallback','caller_resetcallback','caller_call','caller_baseclass'));
-// No new classes
+check::functions(array());
+// New classes
 check::classes(array('Being','Person','Child','GrandChild','OrphanPerson','OrphanChild','Caller'));
-// now new vars
+// No new vars
 check::globals(array());
 
 class TargetLangPerson extends Person {
@@ -81,11 +80,7 @@ function mycheck($person, $expected) {
   $ret = $baseclass->id();
   if ($debug)
     print $ret . "\n";
-  # TODO: Currently we do not track the dynamic type of returned 
-  # objects, so in case it's possible that the dynamic type is not equal 
-  # to the static type, we skip this check.
-  if (get_parent_class($person) === false)
-    check::equal($ret, $expected, "#3 failed");
+  check::equal($ret, $expected, "#3 failed");
 
   $caller->resetCallback();
   if ($debug)
@@ -147,4 +142,3 @@ mycheck($person, "TargetLangOrphanChild");
 unset($person);
 
 check::done();
-?>

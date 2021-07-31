@@ -1425,16 +1425,14 @@ public:
    * applyInputTypemap()
    *
    * Look up the appropriate "in" typemap for this parameter (p),
-   * substitute the correct strings for the $target and $input typemap
-   * parameters, and dump the resulting code to the wrapper file.
+   * substitute the correct strings for the typemap parameters, and dump the
+   * resulting code to the wrapper file.
    * --------------------------------------------------------------------- */
 
-  Parm *applyInputTypemap(Parm *p, String *ln, String *source, Wrapper *f, String *symname) {
+  Parm *applyInputTypemap(Parm *p, String *source, Wrapper *f, String *symname) {
     String *tm;
     SwigType *pt = Getattr(p, "type");
     if ((tm = Getattr(p, "tmap:in"))) {
-      Replaceall(tm, "$target", ln);
-      Replaceall(tm, "$source", source);
       Replaceall(tm, "$input", source);
       Replaceall(tm, "$symname", symname);
 
@@ -1474,10 +1472,8 @@ public:
     Parm *p;
     String *tm;
     String *source;
-    String *target;
 
     source = NewString("");
-    target = NewString("");
 
     bool ctor_director = (current == CONSTRUCTOR_INITIALIZE && Swig_directorclass(n));
 
@@ -1498,7 +1494,6 @@ public:
       p = skipIgnoredArgs(p);
 
       String *pn = Getattr(p, "name");
-      String *ln = Getattr(p, "lname");
 
       /* Produce string representation of source argument */
       Clear(source);
@@ -1509,10 +1504,6 @@ public:
       } else {
 	Printf(source, "argv[%d]", i - start);
       }
-
-      /* Produce string representation of target argument */
-      Clear(target);
-      Printf(target, "%s", Char(ln));
 
       if (i >= (numreq)) {	/* Check if parsing an optional argument */
 	Printf(f->code, "    if (argc > %d) {\n", i - start);
@@ -1526,7 +1517,7 @@ public:
       }
 
       /* Look for an input typemap */
-      p = applyInputTypemap(p, ln, source, f, Getattr(n, "name"));
+      p = applyInputTypemap(p, source, f, Getattr(n, "name"));
       if (i >= numreq) {
 	Printf(f->code, "}\n");
       }
@@ -1553,7 +1544,6 @@ public:
     }
 
     Delete(source);
-    Delete(target);
   }
 
   /* ---------------------------------------------------------------------
@@ -1569,7 +1559,6 @@ public:
     String *tm;
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
-	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Printv(f->code, tm, "\n", NIL);
 	p = Getattr(p, "tmap:check:next");
       } else {
@@ -1591,7 +1580,6 @@ public:
     for (Parm *p = l; p;) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
 	if (Len(tm) != 0) {
-	  Replaceall(tm, "$source", Getattr(p, "lname"));
 	  Printv(cleanup, tm, "\n", NIL);
 	}
 	p = Getattr(p, "tmap:freearg:next");
@@ -1613,8 +1601,6 @@ public:
     String *tm;
     for (Parm *p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-	Replaceall(tm, "$source", Getattr(p, "lname"));
-	Replaceall(tm, "$target", "vresult");
 	Replaceall(tm, "$result", "vresult");
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
@@ -1876,8 +1862,6 @@ public:
           actioncode = 0;
           if (tm) {
             Replaceall(tm, "$result", "vresult");
-            Replaceall(tm, "$source", Swig_cresult_name());
-            Replaceall(tm, "$target", "vresult");
 
             if (GetFlag(n, "feature:new"))
               Replaceall(tm, "$owner", "SWIG_POINTER_OWN");
@@ -1975,7 +1959,6 @@ public:
     if (current != CONSTRUCTOR_ALLOCATE && GetFlag(n, "feature:new")) {
       tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0);
       if (tm) {
-	Replaceall(tm, "$source", Swig_cresult_name());
 	Printv(f->code, tm, "\n", NIL);
 	Delete(tm);
       }
@@ -1984,7 +1967,6 @@ public:
     /* Special processing on return value. */
     tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0);
     if (tm) {
-      Replaceall(tm, "$source", Swig_cresult_name());
       Printv(f->code, tm, NIL);
       Delete(tm);
     }
@@ -2191,6 +2173,12 @@ public:
     String *tm;
     String *getfname, *setfname;
     Wrapper *getf, *setf;
+    const int assignable = is_assignable(n);
+
+    // Determine whether virtual global variables shall be used
+    // which have different getter and setter signatures,
+    // see https://docs.ruby-lang.org/en/2.6.0/extension_rdoc.html#label-Global+Variables+Shared+Between+C+and+Ruby
+    const bool use_virtual_var = (current == NO_CPP && useGlobalModule);
 
     getf = NewWrapper();
     setf = NewWrapper();
@@ -2201,15 +2189,13 @@ public:
     getfname = Swig_name_wrapper(getname);
     Setattr(n, "wrap:name", getfname);
     Printv(getf->def, "SWIGINTERN VALUE\n", getfname, "(", NIL);
-    Printf(getf->def, "VALUE self");
+    Printf(getf->def, (use_virtual_var) ? "ID id, VALUE *data" : "VALUE self");
     Printf(getf->def, ") {");
     Wrapper_add_local(getf, "_val", "VALUE _val");
 
     tm = Swig_typemap_lookup("varout", n, name, 0);
     if (tm) {
       Replaceall(tm, "$result", "_val");
-      Replaceall(tm, "$target", "_val");
-      Replaceall(tm, "$source", name);
       /* Printv(getf->code,tm, NIL); */
       addfail = emit_action_code(n, getf->code, tm);
     } else {
@@ -2224,8 +2210,8 @@ public:
 
     Wrapper_print(getf, f_wrappers);
 
-    if (!is_assignable(n)) {
-      setfname = NewString("NULL");
+    if (!assignable) {
+      setfname = NewString("(rb_gvar_setter_t *)NULL");
     } else {
       /* create setter */
       String* docs = docstring(n, AUTODOC_SETTER);
@@ -2235,40 +2221,45 @@ public:
       String *setname = Swig_name_set(NSPACE_TODO, iname);
       setfname = Swig_name_wrapper(setname);
       Setattr(n, "wrap:name", setfname);
-      Printv(setf->def, "SWIGINTERN VALUE\n", setfname, "(VALUE self, ", NIL);
-      Printf(setf->def, "VALUE _val) {");
+      Printf(setf->def, "SWIGINTERN ");
+      if (use_virtual_var) {
+        Printv(setf->def, "void\n", setfname, "(VALUE _val, ID id, VALUE *data) {", NIL);
+      } else {
+        Printv(setf->def, "VALUE\n", setfname, "(VALUE self, VALUE _val) {", NIL);
+      }
       tm = Swig_typemap_lookup("varin", n, name, 0);
       if (tm) {
 	Replaceall(tm, "$input", "_val");
-	Replaceall(tm, "$source", "_val");
-	Replaceall(tm, "$target", name);
 	/* Printv(setf->code,tm,"\n",NIL); */
 	emit_action_code(n, setf->code, tm);
       } else {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s\n", SwigType_str(t, 0));
       }
-      Printv(setf->code, tab4, "return _val;\n", NIL);
-      Printf(setf->code, "fail:\n");
-      Printv(setf->code, tab4, "return Qnil;\n", NIL);
+      if (use_virtual_var) {
+        Printf(setf->code, "fail:\n");
+        Printv(setf->code, tab4, "return;\n", NIL);
+      } else {
+        Printv(setf->code, tab4, "return _val;\n", NIL);
+        Printf(setf->code, "fail:\n");
+        Printv(setf->code, tab4, "return Qnil;\n", NIL);
+      }
       Printf(setf->code, "}\n");
       Wrapper_print(setf, f_wrappers);
       Delete(setname);
     }
 
-    /* define accessor method */
-    if (CPlusPlus) {
-      Insert(getfname, 0, "VALUEFUNC(");
-      Append(getfname, ")");
-      Insert(setfname, 0, "VALUEFUNC(");
-      Append(setfname, ")");
-    }
+    /* define accessor methods */
+    Insert(getfname, 0, "VALUEFUNC(");
+    Append(getfname, ")");
+    Insert(setfname, 0, (use_virtual_var) ? "SWIG_RUBY_VOID_ANYARGS_FUNC(" : "VALUEFUNC(");
+    Append(setfname, ")");
 
     String *s = NewString("");
     switch (current) {
     case STATIC_VAR:
       /* C++ class variable */
       Printv(s, tab4, "rb_define_singleton_method(", klass->vname, ", \"", klass->strip(iname), "\", ", getfname, ", 0);\n", NIL);
-      if (!GetFlag(n, "feature:immutable")) {
+      if (assignable) {
 	Printv(s, tab4, "rb_define_singleton_method(", klass->vname, ", \"", klass->strip(iname), "=\", ", setfname, ", 1);\n", NIL);
       }
       Printv(klass->init, s, NIL);
@@ -2279,14 +2270,11 @@ public:
       assert(current == NO_CPP);
       if (!useGlobalModule) {
 	Printv(s, tab4, "rb_define_singleton_method(", modvar, ", \"", iname, "\", ", getfname, ", 0);\n", NIL);
-	if (!GetFlag(n, "feature:immutable")) {
+	if (assignable) {
 	  Printv(s, tab4, "rb_define_singleton_method(", modvar, ", \"", iname, "=\", ", setfname, ", 1);\n", NIL);
 	}
       } else {
-	Printv(s, tab4, "rb_define_global_method(\"", iname, "\", ", getfname, ", 0);\n", NIL);
-	if (!GetFlag(n, "feature:immutable")) {
-	  Printv(s, tab4, "rb_define_global_method(\"", iname, "=\", ", setfname, ", 1);\n", NIL);
-	}
+	Printv(s, tab4, "rb_define_virtual_variable(\"$", iname, "\", ", getfname, ", ", setfname, ");\n", NIL);
       }
       Printv(f_init, s, NIL);
       Delete(s);
@@ -2353,8 +2341,6 @@ public:
     if (!tm)
       tm = Swig_typemap_lookup("constcode", n, value, 0);
     if (tm) {
-      Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", iname);
       Replaceall(tm, "$symname", iname);
       Replaceall(tm, "$value", value);
       if (current == CLASS_CONST) {

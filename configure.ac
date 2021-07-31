@@ -2,8 +2,8 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[4.0.2],[http://www.swig.org])
-AC_PREREQ(2.60)
+AC_INIT([swig],[4.1.0],[http://www.swig.org])
+AC_PREREQ([2.60])
 
 AC_CONFIG_SRCDIR([Source/Swig/swig.h])
 AC_CONFIG_AUX_DIR([Tools/config])
@@ -26,11 +26,16 @@ AM_PROG_CC_C_O  # Needed for subdir-objects in AUTOMAKE_OPTIONS
 
 AC_COMPILE_WARNINGS # Increase warning levels
 
+AC_MSG_CHECKING([CFLAGS to compile SWIG executable])
+AC_MSG_RESULT([$CFLAGS])
+AC_MSG_CHECKING([CXXFLAGS to compile SWIG executable])
+AC_MSG_RESULT([$CXXFLAGS])
+
 AC_DEFINE_UNQUOTED(SWIG_CXX, ["$CXX"], [Compiler that built SWIG])
 AC_DEFINE_UNQUOTED(SWIG_PLATFORM, ["$host"], [Platform that SWIG is built for])
 
-dnl Checks for header files.
-AC_HEADER_STDC
+# For AC_EGREP_CPP
+AC_PROG_EGREP
 
 dnl Look for popen
 AC_ARG_WITH(popen, AS_HELP_STRING([--without-popen], [Disable popen]), with_popen="$withval")
@@ -114,15 +119,6 @@ echo ""
 dnl Some test cases require Boost
 AX_BOOST_BASE(,,,)
 AC_SUBST(BOOST_CPPFLAGS)
-
-dnl How to specify include directories that may be system directories.
-# -I should not be used on system directories (GCC)
-if test "$GCC" = yes; then
-    ISYSTEM="-isystem "
-else
-    ISYSTEM="-I"
-fi
-AC_MSG_NOTICE(ISYSTEM: $ISYSTEM)
 
 dnl Info for building shared libraries ... in order to run the examples
 
@@ -298,27 +294,58 @@ AC_MSG_RESULT($PLATCFLAGS)
 
 # Add switch if necessary to enable C++11 support - just for tests
 AC_ARG_ENABLE([cpp11-testing], AS_HELP_STRING([--enable-cpp11-testing], [enable C++11 testing if supported by compiler (default disabled)]), [enable_cpp11_testing=$enableval], [enable_cpp11_testing=no])
-AC_MSG_CHECKING([whether to enable C++11 testing])
+AC_MSG_CHECKING([whether to attempt to enable C++11 testing])
 AC_MSG_RESULT([$enable_cpp11_testing])
 
 PLATCXXFLAGS="$PLATCFLAGS"
 if test x"$enable_cpp11_testing" = xyes; then
-  AC_LANG_PUSH([C++])
-  CXXFLAGS_SAVED=$CXXFLAGS
-  CXXFLAGS=
-  AX_CXX_COMPILE_STDCXX_11([noext], [nostop])
-  CXXFLAGS=$CXXFLAGS_SAVED
-  AC_LANG_POP([C++])
-  if test x"$CXX11FLAGS" != x; then
-    PLATCXXFLAGS="$CXX11FLAGS $PLATCXXFLAGS"
-  fi
-  AC_MSG_CHECKING([for C++11 enabled compiler])
-  if test x"$HAVE_CXX11_COMPILER" = x; then
-    AC_MSG_RESULT([no])
+  CXX_SAVED=$CXX
+  CXXCPP_SAVED=$CXXCPP
+
+  # Test for c++17
+  CXXCPP=" "
+  AX_CXX_COMPILE_STDCXX(17, [noext], [optional])
+  AC_MSG_CHECKING([whether C++17 and earlier testing is enabled])
+  if test "$HAVE_CXX17" = "1"; then
+    AC_MSG_RESULT([yes])
+    PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+    HAVE_CXX14="1"
+    HAVE_CXX11="1"
   else
-    AC_MSG_RESULT([$HAVE_CXX11_COMPILER])
+    AC_MSG_RESULT([no])
+
+    # Test for c++14
+    CXXCPP=" "
+    CXX=$CXX_SAVED
+    AX_CXX_COMPILE_STDCXX(14, [noext], [optional])
+    AC_MSG_CHECKING([whether C++14 and earlier testing is enabled])
+    if test "$HAVE_CXX14" = "1"; then
+      AC_MSG_RESULT([yes])
+      PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+      HAVE_CXX11="1"
+    else
+      AC_MSG_RESULT([no])
+
+      # Test for c++11
+      CXXCPP=" "
+      CXX=$CXX_SAVED
+      AX_CXX_COMPILE_STDCXX(11, [noext], [optional])
+      AC_MSG_CHECKING([whether C++11 and earlier testing is enabled])
+      if test "$HAVE_CXX11" = "1"; then
+        AC_MSG_RESULT([yes])
+        PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+      else
+        AC_MSG_RESULT([no])
+      fi
+
+    fi
+
   fi
+
+  CXX=$CXX_SAVED
+  CXXCPP=$CXXCPP_SAVED
 fi
+AC_SUBST(HAVE_CXX11)
 
 # On darwin 10.7,10.8,10.9 using clang++, need to ensure using
 # libc++ for tests and examples to run under mono. May affect
@@ -333,6 +360,39 @@ case $host in
   *) ;;
 esac
 
+# Check for compiler pre-compiled header support
+AC_MSG_CHECKING([if compiler supports pre-compiled headers])
+PCHSUPPORT=no
+if test "$CLANGXX" = "yes"; then
+   PCHINCLUDEARG="-include-pch"
+   PCHINCLUDEEXT=".gch"
+else
+   PCHINCLUDEARG="-include"
+   PCHINCLUDEEXT=""
+fi
+AC_LANG_PUSH([C++])
+echo '#include <cstdlib>' > conftest.hpp
+echo '#include "conftest.hpp"' > conftest.cpp
+$CXX -c conftest.hpp 2>/dev/null
+if test $? -eq 0; then
+   if test -f conftest.hpp.gch; then
+      $CXX -H -c -I. ${PCHINCLUDEARG} ./conftest.hpp${PCHINCLUDEEXT} -o conftest.o conftest.cpp >conftest.out 2>&1
+      if test $? -eq 0; then
+         if test "$CLANGXX" = "yes"; then
+            PCHSUPPORT=yes
+         elif grep -q '^!.*conftest.hpp.gch$' conftest.out; then
+            PCHSUPPORT=yes
+         fi
+      fi
+   fi
+fi
+rm -f conftest.hpp conftest.cpp conftest.out
+AC_LANG_POP([C++])
+AC_MSG_RESULT([$PCHSUPPORT])
+AC_SUBST(PCHSUPPORT)
+AC_SUBST(PCHINCLUDEARG)
+AC_SUBST(PCHINCLUDEEXT)
+
 # Set info about shared libraries.
 AC_SUBST(SO)
 AC_SUBST(LDSHARED)
@@ -342,7 +402,6 @@ AC_SUBST(TRYLINKINGWITHCXX)
 AC_SUBST(RPATH)
 AC_SUBST(PLATCFLAGS)
 AC_SUBST(PLATCXXFLAGS)
-AC_SUBST(HAVE_CXX11_COMPILER)
 AC_SUBST(LINKFORSHARED)
 
 # This variation is needed on OS-X because there is no (apparent) consistency in shared library naming.
@@ -435,7 +494,7 @@ else
   alllang_default=yes
 fi
 
-AC_CHECK_PROGS(PKGCONFIG, [pkg-config])
+AC_PATH_TOOL([PKG_CONFIG], [pkg-config])
 
 #--------------------------------------------------------------------
 # Look for Tcl
@@ -444,6 +503,7 @@ AC_CHECK_PROGS(PKGCONFIG, [pkg-config])
 TCLINCLUDE=
 TCLLIB=
 TCLPACKAGE=
+TCLLINK=
 
 AC_ARG_WITH(tclconfig, AS_HELP_STRING([--without-tcl], [Disable Tcl])
 AS_HELP_STRING([--with-tclconfig=path], [Set location of tclConfig.sh]), [with_tclconfig="$withval"], [with_tclconfig=])
@@ -451,7 +511,7 @@ AC_ARG_WITH(tcl,
  [  --with-tcl=path         Set location of Tcl package],[
 	TCLPACKAGE="$withval"], [TCLPACKAGE="$alllang_default"])
 AC_ARG_WITH(tclincl,[  --with-tclincl=path     Set location of Tcl include directory],[
-	TCLINCLUDE="$ISYSTEM$withval"], [TCLINCLUDE=])
+	TCLINCLUDE="-I$withval"], [TCLINCLUDE=])
 AC_ARG_WITH(tcllib,[  --with-tcllib=path      Set location of Tcl library directory],[
 	TCLLIB="-L$withval"], [TCLLIB=])
 
@@ -472,7 +532,9 @@ fi
 dirs="/usr/lib*/ /usr/lib*/tcl*/ /usr/local/lib*/ /usr/local/lib*/tcl*/"
 case $host in
 *-*-darwin*)
-  dirs="/System/Library/Frameworks/Tcl.framework/ $dirs"
+  tcl_framework="/System/Library/Frameworks/Tcl.framework/"
+  macos_sysroot="$(xcodebuild -version -sdk macosx Path 2>/dev/null)" # For MacOSX10.14 and later
+  dirs="$macos_sysroot$tcl_framework $tcl_framework $dirs"
   ;;
 *)
   ;;
@@ -493,7 +555,7 @@ else
     AC_MSG_RESULT(found $TCLCONFIG/tclConfig.sh)
     . $TCLCONFIG/tclConfig.sh
     if test -z "$TCLINCLUDE"; then
-        TCLINCLUDE=`echo $TCL_INCLUDE_SPEC | sed "s/-I/$ISYSTEM/"`
+        TCLINCLUDE=`echo $TCL_INCLUDE_SPEC`
     fi
     if test -z "$TCLLIB"; then
         TCLLIB=$TCL_LIB_SPEC
@@ -502,7 +564,7 @@ fi
 
 if test -z "$TCLINCLUDE"; then
    if test "x$TCLPACKAGE" != xyes; then
-	TCLINCLUDE="$ISYSTEM$TCLPACKAGE/include"
+	TCLINCLUDE="-I$TCLPACKAGE/include"
    fi
 fi
 
@@ -514,13 +576,13 @@ fi
 
 AC_MSG_CHECKING(for Tcl header files)
 if test -z "$TCLINCLUDE"; then
-AC_TRY_CPP([#include <tcl.h>], , TCLINCLUDE="")
+AC_PREPROC_IFELSE([AC_LANG_SOURCE([[#include <tcl.h>]])],[],[TCLINCLUDE=""])
 if test -z "$TCLINCLUDE"; then
 	dirs="/usr/local/include /usr/include /opt/local/include"
 	for i in $dirs ; do
 		if test -r $i/tcl.h; then
 			AC_MSG_RESULT($i)
-			TCLINCLUDE="$ISYSTEM$i"
+			TCLINCLUDE="-I$i"
 			break
 		fi
 	done
@@ -534,7 +596,7 @@ fi
 
 AC_MSG_CHECKING(for Tcl library)
 if test -z "$TCLLIB"; then
-dirs="/usr/local/lib /usr/lib /opt/local/lib"
+dirs="/usr/local/lib /usr/lib /opt/local/lib /opt/freeware/lib"
 for i in $dirs ; do
 	if test -r $i/libtcl.a; then
 	    AC_MSG_RESULT($i)
@@ -552,7 +614,14 @@ fi
 # Cygwin (Windows) needs the library for dynamic linking
 case $host in
 *-*-cygwin* | *-*-mingw*) TCLDYNAMICLINKING="$TCLLIB";;
+*-*-aix*) TCLDYNAMICLINKING="$TCLLIB";;
 *)TCLDYNAMICLINKING="";;
+esac
+
+# AIX needs -ltcl for linking at test time
+case $host in
+*-*-aix*) TCLLINK="-ltcl";;
+*)TCLLINK="";;
 esac
 
 case $host in
@@ -573,6 +642,7 @@ AC_SUBST(TCLLIB)
 AC_SUBST(TCLDYNAMICLINKING)
 AC_SUBST(TCLLDSHARED)
 AC_SUBST(TCLCXXSHARED)
+AC_SUBST(TCLLINK)
 
 #----------------------------------------------------------------
 # Look for Python
@@ -895,30 +965,6 @@ if test -n "$PYINCLUDE" || test -n "$PY3INCLUDE" ; then
   fi
 fi
 
-AC_ARG_WITH(2to3, AS_HELP_STRING([--with-2to3=path], [Set location of Python 2to3 tool]), [PY2TO3BIN="$withval"], [PY2TO3BIN="yes"])
-if test -n "$PYTHON3"; then
-  if test "x$PY2TO3BIN" = xyes; then
-    py3to2=`echo $PYTHON3 | sed -e "s/python/2to3-/"`
-    AC_CHECK_PROGS(PY2TO3, $py3to2 2to3)
-    if test -z "$PY2TO3"; then
-      # Windows distributions don't always have the 2to3 executable
-      AC_MSG_CHECKING(for 2to3.py)
-      py2to3script="$PY3PREFIX/Tools/scripts/2to3.py"
-      if test -f "$py2to3script"; then
-        AC_MSG_RESULT($py2to3script)
-        PY2TO3="$PYTHON3 $py2to3script"
-      else
-        AC_MSG_RESULT(Not found)
-      fi
-    fi
-  else
-    PY2TO3="$PY2TO3BIN"
-  fi
-  if test -z "$PY2TO3"; then
-    PYTHON3=
-  fi
-fi
-
 #----------------------------------------------------------------
 # Look for Perl5
 #----------------------------------------------------------------
@@ -971,7 +1017,7 @@ if test -n "$PERL"; then
 			AC_MSG_RESULT($PERL5LIB)
 		fi
     AC_MSG_CHECKING(for Perl5 ccflags)
- 		PERL5CCFLAGS=`($PERL -e 'use Config; print $Config{ccflags}, "\n"' | sed "s/-Wdeclaration-after-statement//" | sed "s/-I/$ISYSTEM/") 2>/dev/null`
+ 		PERL5CCFLAGS=`($PERL -e 'use Config; print $Config{ccflags}, "\n"' | sed "s/-Wdeclaration-after-statement//") 2>/dev/null`
  		if test -z "$PERL5CCFLAGS" ; then
  			AC_MSG_RESULT(not found)
  		else
@@ -1058,7 +1104,7 @@ if test -n "$OCTAVE"; then
    AS_IF([test "x`${OCTAVE} --version 2>/dev/null | sed -n -e '1p' | sed -n -e '/Octave, version/p'`" != x],[
       AC_MSG_RESULT([yes])
    ],[
-      AC_MSG_NOTICE([no])
+      AC_MSG_RESULT([no])
       OCTAVE=
    ])
 fi
@@ -1079,6 +1125,7 @@ if test -n "$OCTAVE"; then
   fi
   AC_MSG_RESULT([${mkoctfile}])
   AC_MSG_CHECKING([if ${mkoctfile} works])
+  mkoctfile="env - PATH=$PATH LD_LIBRARY_PATH=$LD_LIBRARY_PATH ${mkoctfile}"
   AS_IF([test "x`${mkoctfile} --version 2>/dev/null | sed -n -e '1p' | sed -n -e '/mkoctfile, version/p'`" != x],[
       AC_MSG_RESULT([yes])
     ],[
@@ -1093,7 +1140,7 @@ if test -n "$OCTAVE"; then
    AC_MSG_CHECKING([for Octave preprocessor flags])
    OCTAVE_CPPFLAGS=
    for var in CPPFLAGS INCFLAGS ALL_CXXFLAGS; do
-      for flag in `env - ${mkoctfile} -p ${var}`; do
+      for flag in `${mkoctfile} -p ${var}`; do
          case ${flag} in
             -D*|-I*) OCTAVE_CPPFLAGS="${OCTAVE_CPPFLAGS} ${flag}";;
             *) ;;
@@ -1105,7 +1152,7 @@ if test -n "$OCTAVE"; then
    AC_MSG_CHECKING([for Octave compiler flags])
    OCTAVE_CXXFLAGS=
    for var in CXX ALL_CXXFLAGS; do
-      for flag in `env - ${mkoctfile} -p ${var}`; do
+      for flag in `${mkoctfile} -p ${var}`; do
          case ${flag} in
             -std=*|-g*|-W*) OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} ${flag}";;
             *) ;;
@@ -1125,10 +1172,10 @@ if test -n "$OCTAVE"; then
    AC_MSG_CHECKING([for Octave linker flags])
    OCTAVE_LDFLAGS=
    for var in OCTLIBDIR; do
-     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "-L`env - ${mkoctfile} -p ${var}`
+     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "-L`${mkoctfile} -p ${var}`
    done
    for var in RDYNAMIC_FLAG RLD_FLAG OCTAVE_LIBS LIBS; do
-     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`env - ${mkoctfile} -p ${var}`
+     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`${mkoctfile} -p ${var}`
    done
    AC_MSG_RESULT([$OCTAVE_LDFLAGS])
 
@@ -1327,8 +1374,8 @@ else
       AC_MSG_CHECKING(for Scilab header files)
       if test "$SCILABINCDIR" != ""; then
         dirs="$SCILABINCDIR"
-      elif test -n "$PKGCONFIG"; then
-        dirs=`$PKGCONFIG scilab --cflags-only-I | sed -e 's/-I//g'`
+      elif test -n "$PKG_CONFIG "; then
+        dirs=`$PKG_CONFIG  scilab --cflags-only-I | sed -e 's/-I//g'`
       else
         dirs=""
       fi
@@ -1468,10 +1515,10 @@ fi
 # Check Java version: we require Java 9 or later for Doxygen tests.
 if test -n "$JAVAC"; then
     AC_MSG_CHECKING(if java version is 9 or greater)
-    javac_version=`$JAVAC -version 2>&1`
+    javac_version=`"$JAVAC" -version 2>&1`
     java_version_num=`echo $javac_version | sed -n 's/^javac //p'`
     if test -z "$java_version_num"; then
-        AC_MSG_WARN([unknown format for Java version returned by $JAVAC ($javac_version)])
+        AC_MSG_WARN([unknown format for Java version returned by "$JAVAC" ($javac_version)])
         JAVA_SKIP_DOXYGEN_TEST_CASES=1
         AC_MSG_RESULT(unknown)
     else
@@ -1660,7 +1707,7 @@ else
   # Look for Node.js which is the default Javascript engine
   #----------------------------------------------------------------
 
-  AC_CHECK_PROGS(NODEJS, [nodejs node])
+  AC_CHECK_PROGS(NODEJS, [node nodejs])
 
   if test -n "$NODEJS"; then
     # node-gyp is needed to run the test-suite/examples
@@ -1712,11 +1759,19 @@ else
   # check for JavaScriptCore/Webkit libraries
   AC_ARG_WITH(jscorelib,[  --with-jscorelib=path      Set location of the JavaScriptCore/Webkit library directory],[JSCORELIB="-L$withval"], [JSCORELIB=])
 
-  if test -z "$JSCORELIB" -a -n "$PKGCONFIG"; then
+  if test -z "$JSCORELIB" -a -n "$PKG_CONFIG "; then
     AC_MSG_CHECKING(for JavaScriptCore/Webkit library)
-    if pkg-config javascriptcoregtk-1.0; then
-      JSCORELIB=`$PKGCONFIG --libs javascriptcoregtk-1.0`
-      JSCOREVERSION=`$PKGCONFIG --modversion javascriptcoregtk-1.0`
+    if $PKG_CONFIG  javascriptcoregtk-4.0 2>/dev/null ; then
+      JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-4.0`
+      JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-4.0`
+      JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-4.0`
+    elif $PKG_CONFIG  javascriptcoregtk-3.0 2>/dev/null ; then
+      JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-3.0`
+      JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-3.0`
+      JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-3.0`
+    elif $PKG_CONFIG  javascriptcoregtk-1.0 2>/dev/null ; then
+      JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-1.0`
+      JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-1.0`
     fi
     if test -z "$JSCORELIB"; then
       AC_MSG_RESULT(not found)
@@ -2127,7 +2182,7 @@ AC_SUBST(RUBYSO)
 AC_SUBST(RUBYDYNAMICLINKING)
 
 #-------------------------------------------------------------------------
-# Look for PHP7
+# Look for PHP
 #-------------------------------------------------------------------------
 
 PHPBIN=
@@ -2141,7 +2196,7 @@ if test x"${PHPBIN}" = xno; then
     PHP=
 else
     if test "x$PHPBIN" = xyes; then
-      AC_CHECK_PROGS(PHP, [php7.3 php7.2 php7.1 php7.0 php])
+      AC_CHECK_PROGS(PHP, [php8.0 php7.4 php7.3 php7.2 php7.1 php7.0 php])
     else
       PHP=$PHPBIN
     fi
@@ -2152,12 +2207,14 @@ else
       case $PHP in
         *7.*)
           PHPCONFIG=`echo "$PHP"|sed 's/7\...*$/-config&/'` ;;
+        *8.*)
+          PHPCONFIG=`echo "$PHP"|sed 's/8\...*$/-config&/'` ;;
         *)
           PHPCONFIG=$PHP-config ;;
       esac
       php_version=`$PHPCONFIG --version 2>/dev/null`
       case $php_version in
-      7.*)
+      7.*|8.*)
         PHPINC=`$PHPCONFIG --includes 2>/dev/null`
         if test -n "$PHPINC"; then
           AC_MSG_RESULT($PHPINC)
@@ -2168,7 +2225,7 @@ else
       "")
         AC_MSG_RESULT([could not find $PHPCONFIG or obtain PHP version from it]) ;;
       *)
-        AC_MSG_RESULT([found PHP $php_version - not PHP 7]) ;;
+        AC_MSG_RESULT([found PHP $php_version - not PHP 7 or 8]) ;;
       esac
     fi
 fi
@@ -2409,7 +2466,7 @@ if test "$LUABIN"; then
   # look for the header files & set LUAFLAGS accordingly
   # will clear LUABIN if not present
   if test -n "$LUAINCLUDE"; then
-    AC_CHECK_FILE($LUAINCLUDE/lua.h,[LUAFLAGS="$ISYSTEM$LUAINCLUDE"],[LUABIN=])
+    AC_CHECK_FILE($LUAINCLUDE/lua.h,[LUAFLAGS="-I$LUAINCLUDE"],[LUABIN=])
   else
     LUA_OK="1"
     CFLAGS_SAVED=$CFLAGS
@@ -2433,7 +2490,7 @@ if test "$LUABIN"; then
         #echo "$i"
         if test -r $i/lua.h; then
           AC_MSG_RESULT($i/lua.h)
-          LUAFLAGS="$ISYSTEM$i"
+          LUAFLAGS="-I$i"
           break
         fi
       done

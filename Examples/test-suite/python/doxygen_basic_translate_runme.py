@@ -60,7 +60,7 @@ comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function5),
 comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function6),
     """\
 Test for default args
-:type a: int
+:type a: int, optional
 :param a: Some parameter, default is 42"""
 )
 comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function7),
@@ -69,6 +69,16 @@ Test for a parameter with difficult type
 (mostly for python)
 :type a: :py:class:`Shape`
 :param a: Very strange param"""
+)
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function8),
+    """\
+Test variadic function
+:param ...: extra args"""
+)
+comment_verifier.check(inspect.getdoc(doxygen_basic_translate.function9),
+    """\
+Test unnamed argument
+:param baz: Description of baz"""
 )
 
 comment_verifier.check(inspect.getdoc(doxygen_basic_translate.Atan2),

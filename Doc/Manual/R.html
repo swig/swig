@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="R">33 SWIG and R</a></H1>
+<H1><a name="R">34 SWIG and R</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -17,6 +17,9 @@
 <li><a href="#R_nn5">General policy</a>
 <li><a href="#R_language_conventions">Language conventions</a>
 <li><a href="#R_nn6">C++ classes</a>
+<ul>
+<li><a href="#R_class_examples">Examples</a>
+</ul>
 <li><a href="#R_nn7">Enumerations</a>
 </ul>
 </div>
@@ -33,10 +36,14 @@ href="http://www.r-project.org/">www.r-project.org</a>.
 <p>
 The R bindings are under active development.  They have been used to
 compile and run an R interface to QuantLib running on Mandriva Linux
-with gcc. The R bindings also work on Microsoft Windows using Visual C++.
+with gcc. They are also used to create the SimpleITK R package, which
+runs on Linux and MacOS. SWIG is used to create all wrapper
+interfaces
+to <a href="http://http://www.simpleitk.org/">SimpleITK</a>.  The R
+bindings also work on Microsoft Windows using Visual C++.
 </p>
 
-<H2><a name="R_nn2">33.1 Bugs</a></H2>
+<H2><a name="R_nn2">34.1 Bugs</a></H2>
 
 
 <p>
@@ -44,11 +51,13 @@ Currently the following features are not implemented or broken:
 </p>
 
 <ul>
-<li>Garbage collection of created objects
+<li>Garbage collection of some created objects. Finalizers are
+  available for wrapped C++ classes and are called by the
+  garbage collection system.
 <li>C Array wrappings
 </ul>
 
-<H2><a name="R_nn3">33.2 Using R and SWIG</a></H2>
+<H2><a name="R_nn3">34.2 Using R and SWIG</a></H2>
 
 
 <p>
@@ -138,7 +147,7 @@ Error in .Call("R_swig_fact", s_arg1, as.logical(.copy), PACKAGE = "example") :
 <li>Make sure the architecture of the shared library(x64 for instance), matches the architecture of the R program you want to load your shared library into
 </ul>
 
-<H2><a name="R_nn4">33.3 Precompiling large R files</a></H2>
+<H2><a name="R_nn4">34.3 Precompiling large R files</a></H2>
 
 
 <p>
@@ -158,9 +167,12 @@ This will generate a compiled R file called BigFile.RData that
 will save a large amount of loading time.
 </p>
 
+<p>
+There is no need to precompile large R files if the SWIG-generated code is being included
+in an R package. The package infrastructure provides this service during package installation.
+</p>
 
-
-<H2><a name="R_nn5">33.4 General policy</a></H2>
+<H2><a name="R_nn5">34.4 General policy</a></H2>
 
 
 <p>
@@ -169,28 +181,136 @@ wrapping over the underlying functions and rely on the R type system
 to provide R syntax.
 </p>
 
-<H2><a name="R_language_conventions">33.5 Language conventions</a></H2>
+<H2><a name="R_language_conventions">34.5 Language conventions</a></H2>
 
 
 <p>
-getitem and setitem use C++ conventions (i.e. zero based indices). [<-
+getitem and setitem use C++ conventions (i.e. zero based indices). [&lt;-
 and [ are overloaded to allow for R syntax (one based indices and
 slices)
 </p>
 
-<H2><a name="R_nn6">33.6 C++ classes</a></H2>
+<H2><a name="R_nn6">34.6 C++ classes</a></H2>
 
 
 <p>
-C++ objects are implemented as external pointer objects with the class
-being the mangled name of the class. The C++ classes are encapsulated
-as an SEXP with an external pointer type. The class is the mangled
-name of the class. The nice thing about R is that is allows you to
-keep track of the pointer object which removes the necessity for a lot
-of the proxy class baggage you see in other languages.
+Wrapping of C++ classes for R works quite well. R has a special
+type, known as an external reference, that can be used as a pointer
+to arbitary things, including C++ classes. The proxy layers generated
+for other classes are not required.
 </p>
 
-<H2><a name="R_nn7">33.7 Enumerations</a></H2>
+<p>
+  SWIG currently creates a custom hierarchy of R classes derived from the
+  external reference type and implements
+type checking and function overloading in the R code it generates. In
+the future we hope to utilise the built in R6 class structures.
+</p>
+
+<p>
+The R interface has the following capabilities:
+</p>
+<ul>
+  <li> Destructor methods are registered and called automatically by the R garbage collector.
+<li> A range of std::vector types are converted automatically to R equivalents via the std_vector.i library.
+<li> The $ operator is used for method access.
+<li> Variable accessors are automatically generated and called via the $, [, [[, $&lt;-,  [&lt;-, [[&lt;- operators.
+</ul>
+
+<H3><a name="R_class_examples">34.6.1 Examples</a></H3>
+
+
+<p>
+Consider the following simple example:
+</p>
+
+<div class="code">
+  <pre>
+class Vehicle {
+private:
+  int m_axles;
+
+public:
+  int Axles() {
+    return(m_axles);
+  }
+
+  bool Available;
+
+  Vehicle() {
+    Available=false;
+    m_axles=2;
+  }
+
+  Vehicle(int ax) {
+    Available=false;
+    m_axles=ax;
+  }
+};
+</pre>
+</div>
+
+<p>
+The following options are available in R:
+</p>
+
+<div class="code">
+<pre>
+v1 &lt;- Vehicle()
+v2 &lt;- Vehicle(4)
+# access members
+v1$Axles()
+[1] 2
+v2$Axles
+[1] 4
+v1$Available
+[1] FALSE
+# Set availabilty
+v1$Available &lt;- TRUE
+v1$Available
+[1] TRUE
+</pre>
+</div>
+  
+<p>
+A useful trick to determine the methods that are available is to
+query the R method definition as follows:
+</p>
+
+<div class="code">
+  <pre>
+# display the methods for the class
+getMethod("$", class(v1))
+    
+Method Definition:
+
+function (x, name) 
+{
+    accessorFuns = list(Axles = Vehicle_Axles, Available = Vehicle_Available_get)
+    vaccessors = c("Available")
+    idx = pmatch(name, names(accessorFuns))
+    if (is.na(idx)) 
+        return(callNextMethod(x, name))
+    f = accessorFuns[[idx]]
+    if (is.na(match(name, vaccessors))) 
+        function(...) {
+            f(x, ...)
+        }
+    else f(x)
+}
+
+Signatures:
+        x           
+target  "_p_Vehicle"
+defined "_p_Vehicle"
+
+</pre>
+</div>
+<p>
+The names in the <tt>accessorFuns</tt> list correspond to class methods while names in the <tt>vaccessors</tt> section
+correspond to variables that may be modified.
+</p>
+<H2><a name="R_nn7">34.7 Enumerations</a></H2>
 
 
 <p>

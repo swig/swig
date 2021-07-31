@@ -17,13 +17,13 @@
   int res; Py_ssize_t size = 0; void *buf = 0;
   Py_buffer view;
   res = PyObject_GetBuffer($input, &view, PyBUF_WRITABLE);
-  size = view.len;
-  buf = view.buf;
-  PyBuffer_Release(&view);
   if (res < 0) {
     PyErr_Clear();
     %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
   }
+  size = view.len;
+  buf = view.buf;
+  PyBuffer_Release(&view);
   $1 = ($1_ltype) buf;
   $2 = ($2_ltype) (size/sizeof($*1_type));
 }
@@ -47,12 +47,12 @@
   int res; void *buf = 0;
   Py_buffer view;
   res = PyObject_GetBuffer($input, &view, PyBUF_WRITABLE);
-  buf = view.buf;
-  PyBuffer_Release(&view);
   if (res < 0) {
     PyErr_Clear();
     %argument_fail(res, "(TYPEMAP)", $symname, $argnum);
   }
+  buf = view.buf;
+  PyBuffer_Release(&view);
   $1 = ($1_ltype) buf;
 }
 %enddef
@@ -76,13 +76,13 @@
   int res; Py_ssize_t size = 0; const void *buf = 0;
   Py_buffer view;
   res = PyObject_GetBuffer($input, &view, PyBUF_CONTIG_RO);
-  size = view.len;
-  buf = view.buf;
-  PyBuffer_Release(&view);
   if (res < 0) {
     PyErr_Clear();
     %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
   }
+  size = view.len;
+  buf = view.buf;
+  PyBuffer_Release(&view);
   $1 = ($1_ltype) buf;
   $2 = ($2_ltype) (size / sizeof($*1_type));
 }
@@ -108,14 +108,12 @@
   int res; const void *buf = 0;
   Py_buffer view;
   res = PyObject_GetBuffer($input, &view, PyBUF_CONTIG_RO);
-  buf = view.buf;
-  PyBuffer_Release(&view);
   if (res < 0) {
+    PyErr_Clear();
     %argument_fail(res, "(TYPEMAP)", $symname, $argnum);
   }
+  buf = view.buf;
+  PyBuffer_Release(&view);
   $1 = ($1_ltype) buf;
 }
 %enddef
-
-
-
