@@ -7,8 +7,10 @@ disp(sprintf('CCONST2 = %s (this should be on a new line)', swigexample.CCONST2)
 disp(sprintf('SCONST  = %s (should be ''Hello World'')', swigexample.SCONST))
 disp(sprintf('SCONST2 = %s (should be ''"Hello World"'')', swigexample.SCONST2))
 disp(sprintf('EXPR    = %f (should be 48.5484)', swigexample.EXPR))
-disp(sprintf('iconst  = %i (should be 37)', swigexample.iconst))
-disp(sprintf('fconst  = %f (should be 3.14)', swigexample.fconst))
+disp(sprintf('iconst3  = %i (should be 37)', swigexample.iconst3))
+disp(sprintf('fconst3  = %f (should be 3.14)', swigexample.fconst3))
+% FIXME_MATLAB
+% next doesn't work yet
 % disp(sprintf('cxconst = %s (should be 3.12,-3)', num2str(swigexample.cxconst)))
 
 try

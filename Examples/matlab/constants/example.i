@@ -27,6 +27,11 @@
 
 /* The following directives also produce constants */
 
-%constant int iconst = 37;
-%constant double fconst = 3.14;
+%constant int iconst3 = 37;
+%constant double fconst3 = 3.14;
+/* FIXME_MATLAB
+The following line is commented because of this warning message in SWIG 4.0.0: example.i:32: Warning 305: Bad constant value (ignored),
+leading to an error when trying to use it.
+Possibly %constant doesn't understand complex constants.
 %constant std::complex<double> cxconst(3.14,-3);
+*/
