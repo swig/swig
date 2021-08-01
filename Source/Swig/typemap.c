@@ -1976,6 +1976,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
     if (!syntax_error) {
       List *l;
       String *tmap_method;
+      String *tmap_types;
       Hash *vars;
       syntax_error = 1;
 
@@ -1985,10 +1986,16 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
       if (Len(l) >= 2) {
 	ParmList *to_match_parms;
 	tmap_method = Getitem(l, 0);
+        tmap_types = Getitem(l, 1);
+
+        /* The second parameter might be another embedded typemap. */
+        if (strstr(Char(tmap_types), "$TYPEMAP(") != NULL) {
+          replace_embedded_typemap(tmap_types, parm_sublist, f, file_line_node);
+        }
 
 	/* the second parameter might contain multiple sub-parameters for multi-argument 
 	 * typemap matching, so split these parameters apart */
-	to_match_parms = Swig_cparse_parms(Getitem(l, 1), file_line_node);
+	to_match_parms = Swig_cparse_parms(tmap_types, file_line_node);
 	if (to_match_parms) {
 	  Parm *p = to_match_parms;
 	  Parm *sub_p = parm_sublist;
