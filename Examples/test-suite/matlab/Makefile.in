@@ -12,8 +12,21 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
-CPP_TEST_BROKEN += \
-	arrays_global
+FAILING_CPP_TESTS = \
+	director_basic \
+	director_unroll \
+	overload_complicated \
+	overload_extend \
+	preproc_constants \
+	smart_pointer_member \
+	template_typedef \
+	template_typedef_cplx \
+	template_typedef_cplx2 \
+	li_std_wstring
+
+FAILING_C_TESTS = \
+	li_carrays \
+	li_cmalloc
 
 include $(srcdir)/../common.mk
 
@@ -51,14 +64,16 @@ run_testcase = \
 	  exit(0)" ; \
 	 env LD_LIBRARY_PATH=".:$$LD_LIBRARY_PATH" MATLABPATH="$(srcdir):$(SCRIPTDIR):$$MATLABPATH" \
 	 $(RUNTOOL) "$(MATLAB)" $(MATLAB_OPTS) $(MATLAB_EXEC) "$$RUNSCRIPT"  $(RUNPIPE); \
-	 if [ $$? -ne 0 ] ; then \
+	 ret=$$?; \
+	 if [ $$ret -ne 0 ] ; then \
 	   echo "   $* failed" $(RUNPIPE) ; \
 	 else \
 	   echo "   $* passed" $(RUNPIPE) ; \
 	 fi \
 	else \
 	   echo "   $* build passed (no runme test present)" $(RUNPIPE) ; \
-	fi
+	fi; \
+	exit $$ret
 
 # Clean: remove the generated .m file
 %.clean:
