@@ -1,8 +1,8 @@
-name: test SWIG CI
+name: test SWIG via CI
 
 on:
   push:
-    #branches: [ master ]
+    branches: [ master ]
   pull_request:
     branches: [ master ]
 
