@@ -10,6 +10,8 @@ if [[ -n "$GCC" ]]; then
 fi
 
 $RETRY sudo apt-get -qq install libboost-dev libpcre3-dev
+# testflags.py needs python
+$RETRY sudo apt-get install -qq python
 
 WITHLANG=$SWIGLANG
 
@@ -80,15 +82,14 @@ case "$SWIGLANG" in
 		;;
 	"python")
 		pip install --user pycodestyle
-		if [[ "$PY3" ]]; then
-			$RETRY sudo apt-get install -qq python3-dev
-		fi
-		WITHLANG=$SWIGLANG$PY3
 		if [[ "$VER" ]]; then
 			$RETRY sudo add-apt-repository -y ppa:deadsnakes/ppa
 			$RETRY sudo apt-get -qq update
 			$RETRY sudo apt-get -qq install python${VER}-dev
 			WITHLANG=$SWIGLANG$PY3=$SWIGLANG$VER
+                else
+		        $RETRY sudo apt-get install -qq python${PY3}-dev
+		        WITHLANG=$SWIGLANG$PY3
 		fi
 		;;
 	"r")
