@@ -12,18 +12,28 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # the agent machine operating systems
-        os: [ubuntu-latest]
-        SWIGJOBS: ["-j2"]
-        CSTD: [""]
-        CC: ["gcc"]
-        CPP11: ["1"]
-        CPP14: [""]
-        CPP17: [""]
-        CONFIGOPTS: [""]
-        SWIGLANG: ["", "python"]
-        VER: [""]
-        SWIG_FEATURES: [""]
+        #SWIGJOBS: ["-j2"]
+        # other variables to optionally set
+        # CC, GCC (used as suffix)
+        # CPP11, CPP14, CPP17
+        # CONFIGOPTS
+        # SWIGLANG
+        # PY3,VER
+        # SWIG_FEATURES
+        include:
+        - os: ubuntu-latest
+          CPP11: 1
+          SWIGLANG: ""
+        - os: ubuntu-latest
+          CPP11: 1
+          SWIGLANG: python
+        - os: ubuntu-latest
+          CPP11: 1
+          SWIGLANG: python
+          PY3: 3
+        - os: ubuntu-latest
+          CPP11: 1
+          SWIGLANG: tcl
         # let's run all of them, as opposed to aborting when one fails
       fail-fast: false
 
