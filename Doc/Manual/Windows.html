@@ -251,7 +251,8 @@ For fully working build steps always check the Continuous Integration setups cur
         and save to a folder e.g. C:\Tools\Bison
     </li>
     <li>
-        Install PCRE using Nuget using the following command: <pre>C:\Tools\nuget install pcre -Version 8.33.0.1 -OutputDirectory C:\Tools\pcre</pre>
+        Install PCRE using Nuget using the following command: <pre>C:\Tools\nuget install pcre -Version 8.33.0.1 -OutputDirectory C:\Tools\pcre</pre>.
+        Alternatively, use <tt>WITH_PCRE</tt> option to disable PCRE support if you are sure not to need it.
     </li>
     <li>
         We will also need the SWIG source code. Either download a zipped archive from GitHub, or if git is installed clone the latest codebase

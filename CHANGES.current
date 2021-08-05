@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-10-03: jschueller
+            [CMake] #2065: Add option to enable or disable PCRE support.
+
 2021-09-16: ianlancetaylor
             [Go] Improved _cgo_panic implementation.
 
