@@ -1,4 +1,4 @@
-name: test SWIG via CI
+name: CI
 
 on:
   push:
