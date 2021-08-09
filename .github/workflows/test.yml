@@ -2,10 +2,9 @@ name: test SWIG via CI
 
 on:
   push:
-    # enable on master and GHA branches. The latter should be removed once merged to SWIG/master.
-    branches: [ master, GHA ]
+    branches: master
   pull_request:
-    branches: [ master ]
+    branches: master
 
 jobs:
   build:
