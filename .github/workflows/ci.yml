@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: master
+  pull_request:
+    branches: master
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        #SWIGJOBS: ["-j2"]
+        # other variables to optionally set
+        # CC, GCC (used as suffix)
+        # CPP11, CPP14, CPP17
+        # CONFIGOPTS
+        # SWIGLANG
+        # PY3,VER
+        # SWIG_FEATURES
+        include:
+        - os: ubuntu-latest
+          CPP11: 1
+          SWIGLANG: ""
+        - os: ubuntu-latest
+          CPP11: 1
+          SWIGLANG: python
+        - os: ubuntu-latest
+          CPP11: 1
+          SWIGLANG: python
+          PY3: 3
+        - os: ubuntu-latest
+          CPP11: 1
+          SWIGLANG: tcl
+        # let's run all of them, as opposed to aborting when one fails
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        key: ${{ matrix.os }}-${{ matrix.SWIGLANG }}
+    - name: configure
+      shell: bash
+      env:
+          SWIGLANG: ${{ matrix.SWIGLANG }}
+          CONFIGOPTS: ${{ matrix.CONFIGOPTS }}
+          CC: ${{ matrix.CC }}
+      run: |
+          set -ex
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          source Tools/GHA-linux-install.sh
+          if test -n "$CPP11"; then CONFIGOPTS+=(--enable-cpp11-testing "CXXFLAGS=-std=c++11 $CXXFLAGS" "CFLAGS=-std=c11 $CFLAGS") && export CSTD=c11 && export CPPSTD=c++11; fi
+          if test -n "$CPP14"; then CONFIGOPTS+=(--enable-cpp11-testing "CXXFLAGS=-std=c++14 $CXXFLAGS" "CFLAGS=-std=c11 $CFLAGS") && export CSTD=c11 && export CPPSTD=c++14; fi
+          if test -n "$CPP17"; then CONFIGOPTS+=(--enable-cpp11-testing "CXXFLAGS=-std=c++17 $CXXFLAGS" "CFLAGS=-std=c17 $CFLAGS") && export CSTD=c17 && export CPPSTD=c++17; fi
+          if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
+          echo "${CONFIGOPTS[@]}"
+          ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
+
+    - name: build
+      shell: bash
+      env:
+          SWIGLANG: ${{ matrix.SWIGLANG }}
+          SWIGJOBS: ${{ matrix.SWIGJOBS }}
+      run: |
+          set -ex
+          cd ${GITHUB_WORKSPACE}/build/build;
+          make -s $SWIGJOBS
+          ./swig -version && ./swig -pcreversion
+          if test -z "$SWIGLANG"; then make -s $SWIGJOBS check-ccache; fi
+          if test -z "$SWIGLANG"; then make -s $SWIGJOBS check-errors-test-suite; fi
+          echo 'Installing...'
+          if test -z "$SWIGLANG"; then sudo make -s install && swig -version && ccache-swig -V; fi
+    - name: tests
+      shell: bash
+      env:
+          SWIGLANG: ${{ matrix.SWIGLANG }}
+          SWIGJOBS: ${{ matrix.SWIGJOBS }}
+          SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
+          CC: ${{ matrix.CC }}
+          CSTD: ${{ matrix.CSTD }}
+          CPP11: ${{ matrix.CPP11 }}
+          CPP14: ${{ matrix.CPP14 }}
+          CPP17: ${{ matrix.CPP17 }}
+      run: |
+          set -ex
+          cd ${GITHUB_WORKSPACE}/build/build;
+          if test -n "$CPP11"; then export CPPSTD=c++11; fi
+          if test -n "$CPP14"; then export CPPSTD=c++14; fi
+          if test -n "$CPP17"; then export CPPSTD=c++17; fi
+          # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
+          if test -n "$SWIGLANG"; then cflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC) && echo $cflags; fi
+          if test -n "$SWIGLANG"; then cxxflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC) && echo $cxxflags; fi
+          if test -n "$SWIGLANG"; then make -s check-$SWIGLANG-version; fi
+          if test -n "$SWIGLANG"; then make check-$SWIGLANG-enabled; fi
+          if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
+          if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
+          #echo 'Cleaning...'
+          # Skip on osx as often fails with: rm: Resource temporarily unavailable
+          #if test "$TRAVIS_OS_NAME" != "osx"; then make check-maintainer-clean && ../../configure $CONFIGOPTS; fi

@@ -3632,7 +3632,7 @@ Alternatively, you could expand the constructor template in selected instantiati
 
 // Create default and conversion constructors 
 %extend pair&lt;double, double&gt; {
-  %template(paird) pair&lt;double, dobule&gt;;   // Default constructor
+  %template(paird) pair&lt;double, double&gt;;   // Default constructor
   %template(pairc) pair&lt;int, int&gt;;         // Conversion constructor
 };
 </pre>
@@ -3647,7 +3647,7 @@ instead:
 <pre>
 // Create default and conversion constructors 
 %extend pair&lt;double, double&gt; {
-  %template(pair) pair&lt;double, dobule&gt;;   // Default constructor
+  %template(pair) pair&lt;double, double&gt;;   // Default constructor
   %template(pair) pair&lt;int, int&gt;;         // Conversion constructor
 };
 </pre>
