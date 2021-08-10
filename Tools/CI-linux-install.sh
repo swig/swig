@@ -73,7 +73,13 @@ case "$SWIGLANG" in
 		$RETRY sudo apt-get -qq install ocaml camlp4
 		;;
 	"octave")
-		$RETRY sudo apt-get -qq install liboctave-dev
+		if [[ "$OCTAVE_USE_FLATPAK" ]]; then
+			$RETRY sudo apt-get -qq install flatpak
+			$RETRY sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+			$RETRY sudo flatpak install --system --assumeyes --noninteractive flathub org.octave.Octave
+		else
+			$RETRY sudo apt-get -qq install liboctave-dev
+		fi
 		;;
 	"php")
 		$RETRY sudo add-apt-repository -y ppa:ondrej/php
