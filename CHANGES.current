@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-05-23: jkuebart
+            [Java] On some versions of Android, specifically Android 6,
+            detaching the current thread from the JVM after every invocation
+            causes a memory leak.
+
+            Offer SWIG_JAVA_DETACH_ON_THREAD_END to configure a behaviour
+            where the JVM is only detached in the thread destructor.
+
+            See https://developer.android.com/training/articles/perf-jni#threads.
+
 2022-05-15: erezgeva, eiselekd
             [Lua, Perl, Octave, PHP, Tcl] #2275 #2276 #2283 Add argcargv.i library containing
             (int ARGC, char **ARGV) multi-argument typemaps.
