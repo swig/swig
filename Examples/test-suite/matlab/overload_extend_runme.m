@@ -16,7 +16,7 @@ end
 if (f.test(3.1) ~= 1003.1)
     error('Failed!')
 end
-if (f.test(3.0) ~= 1003)
+if (f.test(double(3.0)) ~= 1003)
     error('Failed to use "double" overload!')
 end
 
