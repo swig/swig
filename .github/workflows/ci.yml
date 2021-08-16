@@ -58,6 +58,7 @@ jobs:
           SWIGLANG: ${{ matrix.SWIGLANG }}
           CONFIGOPTS: ${{ matrix.CONFIGOPTS }}
           CC: ${{ matrix.CC }}
+          OCTAVE_USE_FLATPAK: ${{ matrix.OCTAVE_USE_FLATPAK }}
       run: |
           set -ex
           export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
