@@ -106,7 +106,7 @@ jobs:
           # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
           if test -n "$SWIGLANG"; then cflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC) && echo $cflags; fi
           if test -n "$SWIGLANG"; then cxxflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC) && echo $cxxflags; fi
-          if test -n "$OCTAVE_USE_FLATPAK"; then export "PATH=${GITHUB_WORKSPACE}/Tools/octaveFlatpakBin:$PATH"; export LD_LIBRARY_PATH=$(mkoctfile -p LIBDIR)/octave/$(echo 'printf("%s",version)'|octave -q -f); fi
+          if test -n "$OCTAVE_USE_FLATPAK"; then export "PATH=${GITHUB_WORKSPACE}/Tools/octaveFlatpakBin:$PATH"; export LD_LIBRARY_PATH=$(mkoctfile -p OCTLIBDIR); fi
           if test -n "$SWIGLANG"; then make -s check-$SWIGLANG-version; fi
           if test -n "$SWIGLANG"; then make check-$SWIGLANG-enabled; fi
           if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
