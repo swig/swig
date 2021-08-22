@@ -1,6 +1,6 @@
 #! /bin/sh
-OctAppDir=`flatpak info --system --show-location org.octave.Octave`/files
-octaveVersion=`flatpak run --command=octave org.octave.Octave  --eval 'printf("%s\n",version)'`
+OctAppDir=$(flatpak info --system --show-location org.octave.Octave)/files
+octaveVersion=$(flatpak run --command=octave org.octave.Octave  --eval 'printf("%s\n",version)')
 OCTLIBDIR=$OctAppDir/lib/octave/$octaveVersion
 if [ $1 = "-p" ] && [ $2 != "OCTLIBDIR" ] ; then
   flatpak run --env="OCTLIBDIR=$OCTLIBDIR" --command=mkoctfile org.octave.Octave $* \
