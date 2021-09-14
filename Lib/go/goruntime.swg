@@ -23,45 +23,37 @@ static void* Swig_malloc(int c) {
 
 %}
 
-#if SWIGGO_CGO
 %insert(cgo_comment_typedefs) %{
 #include <stdint.h>
 %}
-#endif
 
 #if SWIGGO_INTGO_SIZE == 32
 %insert(runtime) %{
 typedef int intgo;
 typedef unsigned int uintgo;
 %}
-#if SWIGGO_CGO
 %insert(cgo_comment_typedefs) %{
 typedef int intgo;
 typedef unsigned int uintgo;
 %}
-#endif
 #elif SWIGGO_INTGO_SIZE == 64
 %insert(runtime) %{
 typedef long long intgo;
 typedef unsigned long long uintgo;
 %}
-#if SWIGGO_CGO
 %insert(cgo_comment_typedefs) %{
 typedef long long intgo;
 typedef unsigned long long uintgo;
 %}
-#endif
 #else
 %insert(runtime) %{
 typedef ptrdiff_t intgo;
 typedef size_t uintgo;
 %}
-#if SWIGGO_CGO
 %insert(cgo_comment_typedefs) %{
 typedef ptrdiff_t intgo;
 typedef size_t uintgo;
 %}
-#endif
 #endif
 
 #ifndef SWIGGO_GCCGO
@@ -89,16 +81,12 @@ typedef struct { void* array; intgo len; intgo cap; } _goslice_;
 
 %}
 
-#ifdef SWIGGO_CGO
-
 %insert(cgo_comment_typedefs) %{
 
 typedef struct { char *p; intgo n; } _gostring_;
 typedef struct { void* array; intgo len; intgo cap; } _goslice_;
 
 %}
-
-#endif
 
 #ifndef SWIGGO_GCCGO
 /* Boilerplate for C/C++ code when using 6g/8g.  This code is compiled
@@ -145,43 +133,6 @@ static void _swig_gopanic(const char *p) {
 
 %}
 
-#if !SWIGGO_CGO
-
-/* This is here for backward compatibility, but it will not work
-   with Go 1.5 or later.  Do not use it in new code.  */
-%insert(runtime) %{
-
-static void *_swig_goallocate(size_t len) {
-  struct {
-    size_t len;
-    void *ret;
-  } SWIGSTRUCTPACKED a;
-  a.len = len;
-  crosscall2(_cgo_allocate, &a, (int) sizeof a);
-  return a.ret;
-}
-
-%}
-
-#endif
-
-#if !SWIGGO_CGO
-
-/* Boilerplate for C code when using 6g/8g.  This code is compiled
-   with 6c/8c.  */
-%insert(gc_header) %{
-#include "runtime.h"
-#include "cgocall.h"
-
-#pragma dataflag 16
-static void *cgocall = runtime·cgocall;
-#pragma dataflag 16
-void *·_cgo_runtime_cgocall = &cgocall;
-
-%}
-
-#endif
-
 #else
 
 /* Boilerplate for C/C++ code when using gccgo.  */
@@ -201,97 +152,6 @@ extern void _cgo_panic(const char *);
 #define _swig_gopanic _cgo_panic
 %}
 
-#if !SWIGGO_CGO
-
-%insert(runtime) %{
-
-/* Implementations of SwigCgocall and friends for different versions
-   of gccgo.  The Go code will call these functions using C names with
-   a prefix of the module name.  The implementations here call the
-   routine in libgo.  The routines to call vary depending on the gccgo
-   version.  We assume that the version of gcc used to compile this
-   file is the same as the version of gccgo.  */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define SWIG_GCC_VERSION \
-  (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
-
-#if SWIG_GCC_VERSION < 40700
-#define SwigDoCgocall()
-#define SwigDoCgocallDone()
-#define SwigDoCgocallBack()
-#define SwigDoCgocallBackDone()
-#elif SWIG_GCC_VERSION == 40700
-void SwigDoCgocall(void) __asm__("libgo_syscall.syscall.Entersyscall");
-void SwigDoCgocallDone(void) __asm__("libgo_syscall.syscall.Exitsyscall");
-void SwigDoCgocallBack(void) __asm__("libgo_syscall.syscall.Exitsyscall");
-void SwigDoCgocallBackDone(void) __asm__("libgo_syscall.syscall.Entersyscall");
-#else
-void SwigDoCgocall(void) __asm__("syscall.Cgocall");
-void SwigDoCgocallDone(void) __asm__("syscall.CgocallDone");
-void SwigDoCgocallBack(void) __asm__("syscall.CgocallBack");
-void SwigDoCgocallBackDone(void) __asm__("syscall.CgocallBackDone");
-#endif
-
-#define SWIGSTRINGIFY2(s) #s
-#define SWIGSTRINGIFY(s) SWIGSTRINGIFY2(s)
-
-void SwigCgocall()
-  __asm__(SWIGSTRINGIFY(SWIGGO_PREFIX) ".SwigCgocall");
-void SwigCgocall() {
-  SwigDoCgocall();
-}
-
-void SwigCgocallDone()
-  __asm__(SWIGSTRINGIFY(SWIGGO_PREFIX) ".SwigCgocallDone");
-void SwigCgocallDone() {
-  SwigDoCgocallDone();
-}
-
-void SwigCgocallBack()
-  __asm__(SWIGSTRINGIFY(SWIGGO_PREFIX) ".SwigCgocallBack");
-void SwigCgocallBack() {
-  SwigDoCgocallBack();
-}
-
-void SwigCgocallBackDone()
-  __asm__(SWIGSTRINGIFY(SWIGGO_PREFIX) ".SwigCgocallBackDone");
-void SwigCgocallBackDone() {
-  SwigDoCgocallBackDone();
-}
-
-#undef SWIGSTRINGIFY
-#undef SWIGSTRINGIFY2
-
-#ifdef __cplusplus
-}
-#endif
-
-%}
-
-#endif
-
-#endif
-
-#if !SWIGGO_CGO
-
-%insert(runtime) %{
-
-/* This is here for backward compatibility, but it will not work
-   with Go 1.5 or later.  Do not use it in new code.  */
-static _gostring_ _swig_makegostring(const char *p, size_t l) {
-  _gostring_ ret;
-  ret.p = (char*)_swig_goallocate(l + 1);
-  memcpy(ret.p, p, l);
-  ret.n = l;
-  return ret;
-}
-
-%}
-
 #endif
 
 %insert(runtime) %{
@@ -303,12 +163,6 @@ static _gostring_ _swig_makegostring(const char *p, size_t l) {
 #ifndef SWIGGO_GCCGO
 
 %go_import("unsafe", _ "runtime/cgo")
-
-#if !SWIGGO_CGO
-%insert(go_header) %{
-var _cgo_runtime_cgocall func(unsafe.Pointer, uintptr)
-%}
-#endif
 
 #else
 
