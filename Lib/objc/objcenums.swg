@@ -27,7 +27,7 @@
 %typemap(directorout) enum SWIGTYPE
 %{ $result = ($1_ltype)$input; %}
 
-%typemap(objcdirectorout) enum SWIGTYPE "$objccall"
+%typemap(objcdirectorout) enum SWIGTYPE "(int)($objccall)"
 
 %typemap(out)   const enum SWIGTYPE &  
 %{ $result = (int)*$1; %}
