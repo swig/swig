@@ -647,15 +647,12 @@ private:
       Printv(f_go_header, "//export cgo_panic_", unique_id, "\n", NULL);
       Printv(f_go_header, "func cgo_panic_", unique_id, "(p *byte) {\n", NULL);
       Printv(f_go_header, "\ts := (*[1024]byte)(unsafe.Pointer(p))[:]\n", NULL);
-      Printv(f_go_header, "\tvar i int\n", NULL);
-      Printv(f_go_header, "\tvar b byte\n", NULL);
-      Printv(f_go_header, "\tfor i, b = range s {\n", NULL);
+      Printv(f_go_header, "\tfor i, b := range s {\n", NULL);
       Printv(f_go_header, "\t\tif b == 0 {\n", NULL);
-      Printv(f_go_header, "\t\t\ti--\n", NULL);
-      Printv(f_go_header, "\t\t\tbreak\n", NULL);
+      Printv(f_go_header, "\t\t\tpanic(string(s[:i]))\n", NULL);
       Printv(f_go_header, "\t\t}\n", NULL);
       Printv(f_go_header, "\t}\n", NULL);
-      Printv(f_go_header, "\tpanic(string(s[:i+1]))\n", NULL);
+      Printv(f_go_header, "\tpanic(string(s))\n", NULL);
       Printv(f_go_header, "}\n\n", NULL);
 
       Printv(f_c_begin, "\nextern\n", NULL);
