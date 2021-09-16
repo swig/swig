@@ -637,6 +637,37 @@ private:
     Printv(f_cgo_comment, "import \"C\"\n", NULL);
     Printv(f_cgo_comment, "\n", NULL);
 
+    bool need_panic = false;
+    if (Strstr(f_c_runtime, "SWIG_contract_assert(") != 0 || Strstr(f_c_wrappers, "SWIG_contract_assert(") != 0) {
+      Printv(f_c_begin, "\n#define SWIG_contract_assert(expr, msg) if (!(expr)) { _swig_gopanic(msg); } else\n\n", NULL);
+      need_panic = true;
+    }
+
+    if (!gccgo_flag && (need_panic || Strstr(f_c_runtime, "_swig_gopanic") != 0 || Strstr(f_c_wrappers, "_swig_gopanic") != 0)) {
+      Printv(f_go_header, "//export cgo_panic_", unique_id, "\n", NULL);
+      Printv(f_go_header, "func cgo_panic_", unique_id, "(p *byte) {\n", NULL);
+      Printv(f_go_header, "\ts := (*[1024]byte)(unsafe.Pointer(p))[:]\n", NULL);
+      Printv(f_go_header, "\tvar i int\n", NULL);
+      Printv(f_go_header, "\tvar b byte\n", NULL);
+      Printv(f_go_header, "\tfor i, b = range s {\n", NULL);
+      Printv(f_go_header, "\t\tif b == 0 {\n", NULL);
+      Printv(f_go_header, "\t\t\ti--\n", NULL);
+      Printv(f_go_header, "\t\t\tbreak\n", NULL);
+      Printv(f_go_header, "\t\t}\n", NULL);
+      Printv(f_go_header, "\t}\n", NULL);
+      Printv(f_go_header, "\tpanic(string(s[:i+1]))\n", NULL);
+      Printv(f_go_header, "}\n\n", NULL);
+
+      Printv(f_c_begin, "\nextern\n", NULL);
+      Printv(f_c_begin, "#ifdef __cplusplus\n", NULL);
+      Printv(f_c_begin, "  \"C\"\n", NULL);
+      Printv(f_c_begin, "#endif\n", NULL);
+      Printv(f_c_begin, "  void cgo_panic_", unique_id, "(const char*);\n", NULL);
+      Printv(f_c_begin, "static void _swig_gopanic(const char *p) {\n", NULL);
+      Printv(f_c_begin, "  cgo_panic_", unique_id, "(p);\n", NULL);
+      Printv(f_c_begin, "}\n\n", NULL);
+    }
+
     Dump(f_c_runtime, f_c_begin);
     Dump(f_c_wrappers, f_c_begin);
     Dump(f_c_init, f_c_begin);

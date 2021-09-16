@@ -88,52 +88,7 @@ typedef struct { void* array; intgo len; intgo cap; } _goslice_;
 
 %}
 
-#ifndef SWIGGO_GCCGO
-/* Boilerplate for C/C++ code when using 6g/8g.  This code is compiled
-   with gcc.  */
-%insert(runtime) %{
-
-#define swiggo_size_assert_eq(x, y, name) typedef char name[(x-y)*(x-y)*-2+1];
-#define swiggo_size_assert(t, n) swiggo_size_assert_eq(sizeof(t), n, swiggo_sizeof_##t##_is_not_##n)
-
-swiggo_size_assert(char, 1)
-swiggo_size_assert(short, 2)
-swiggo_size_assert(int, 4)
-typedef long long swiggo_long_long;
-swiggo_size_assert(swiggo_long_long, 8)
-swiggo_size_assert(float, 4)
-swiggo_size_assert(double, 8)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern void crosscall2(void (*fn)(void *, int), void *, int);
-extern char* _cgo_topofstack(void) __attribute__ ((weak));
-extern void _cgo_allocate(void *, int);
-extern void _cgo_panic(void *, int);
-#ifdef __cplusplus
-}
-#endif
-
-static char *_swig_topofstack() {
-  if (_cgo_topofstack) {
-    return _cgo_topofstack();
-  } else {
-    return 0;
-  }
-}
-
-static void _swig_gopanic(const char *p) {
-  struct {
-    const char *p;
-  } SWIGSTRUCTPACKED a;
-  a.p = p;
-  crosscall2(_cgo_panic, &a, (int) sizeof a);
-}
-
-%}
-
-#else
+#ifdef SWIGGO_GCCGO
 
 /* Boilerplate for C/C++ code when using gccgo.  */
 %insert(runtime) %{
@@ -153,12 +108,6 @@ extern void _cgo_panic(const char *);
 %}
 
 #endif
-
-%insert(runtime) %{
-
-#define SWIG_contract_assert(expr, msg) \
-  if (!(expr)) { _swig_gopanic(msg); } else
-%}
 
 #ifndef SWIGGO_GCCGO
 
