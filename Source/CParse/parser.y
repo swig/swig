@@ -1675,7 +1675,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <type>     type rawtype type_right anon_bitfield_type decltype ;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
-%type <dtype>    expr exprnum exprcompound valexpr exprmem;
+%type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem;
 %type <id>       ename ;
 %type <id>       less_valparms_greater;
 %type <str>      type_qualifier;
@@ -6521,7 +6521,8 @@ exprmem        : ID ARROW ID {
 	       }
 	       ;
 
-valexpr        : exprnum {
+/* Non-compound expression */
+exprsimple     : exprnum {
 		    $$ = $1;
                }
                | exprmem {
@@ -6541,7 +6542,6 @@ valexpr        : exprnum {
 		  $$.val = NewStringf("sizeof...(%s)",SwigType_str($6,0));
 		  $$.type = T_ULONG;
                }
-               | exprcompound { $$ = $1; }
 	       | wstring {
 		    $$.val = $1;
 		    $$.rawval = NewStringf("L\"%s\"", $$.val);
@@ -6575,6 +6575,11 @@ valexpr        : exprnum {
 		  $$.nexcept = 0;
 		  $$.final = 0;
 	       }
+
+               ;
+
+valexpr        : exprsimple { $$ = $1; }
+	       | exprcompound { $$ = $1; }
 
 /* grouping */
                |  LPAREN expr RPAREN %prec CAST {
@@ -6654,7 +6659,7 @@ valexpr        : exprnum {
 		 $$ = $2;
                  $$.val = NewStringf("*%s",$2.val);
 	       }
-               ;
+	       ;
 
 exprnum        :  NUM_INT { $$ = $1; }
                |  NUM_FLOAT { $$ = $1; }
@@ -6722,16 +6727,24 @@ exprcompound   : expr PLUS expr {
 		 $$.val = NewStringf("%s!=%s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
-/* Sadly this causes 2 reduce-reduce conflicts with templates.  FIXME resolve these.
-               | expr GREATERTHAN expr {
-		 $$.val = NewStringf("%s > %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
+	       /* Trying to parse `>` in the general case results in conflicts
+		* in the parser, but all user-reported cases are actually inside
+		* parentheses and we can handle that case.
+		*/
+	       | LPAREN expr GREATERTHAN expr RPAREN {
+		 $$.val = NewStringf("%s > %s", COMPOUND_EXPR_VAL($2), COMPOUND_EXPR_VAL($4));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
-               | expr LESSTHAN expr {
-		 $$.val = NewStringf("%s < %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
+
+	       /* Similarly for `<` except trying to handle exprcompound on the
+		* left side gives a shift/reduce conflict, so also restrict
+		* handling to non-compound subexpressions there.  Again this
+		* covers all user-reported cases.
+		*/
+               | LPAREN exprsimple LESSTHAN expr RPAREN {
+		 $$.val = NewStringf("%s < %s", COMPOUND_EXPR_VAL($2), COMPOUND_EXPR_VAL($4));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
-*/
                | expr GREATERTHANOREQUALTO expr {
 		 $$.val = NewStringf("%s >= %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;

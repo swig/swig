@@ -141,6 +141,7 @@ CPP_TEST_CASES += \
 	compactdefaultargs \
 	const_const_2 \
 	constant_directive \
+	constant_expr \
 	constant_pointers \
 	constover \
 	constructor_copy \
@@ -689,7 +690,7 @@ C_TEST_CASES += \
 	c_delete_function \
 	char_constant \
 	const_const \
-	constant_expr \
+	constant_expr_c \
 	default_args_c \
 	empty_c \
 	enums \
