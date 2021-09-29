@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-01-25: olly
+	    #80 #635 https://sourceforge.net/p/swig/bugs/1139/
+	    Add support for parsing common cases of `<` and `>` comparisons
+	    in constant expressions.  Adding full support for these seems hard
+	    to do without introducing conflicts into the parser grammar, but in
+	    fact all reported cases have had parentheses around the comparison
+	    and we can support that with a few restrictions on the left side of
+	    `<`.
+
 2022-01-25: wsfulton
             New warning 327 for extern templates, eg:
 
