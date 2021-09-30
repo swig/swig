@@ -83,6 +83,9 @@ jobs:
           if test '${{ matrix.compiler }}' = 'clang'; then
             CC="clang"
             CXX="clang++"
+
+            CFLAGS="$CFLAGS -fPIE"
+            CXXFLAGS="$CXXFLAGS -fPIE"
           elif test -n "$GCC"; then
             CC="gcc-$GCC"
             CXX="g++-$GCC"
