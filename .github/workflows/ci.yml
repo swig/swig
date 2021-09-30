@@ -45,6 +45,17 @@ jobs:
         # let's run all of them, as opposed to aborting when one fails
       fail-fast: false
 
+    env:
+      SWIGLANG: ${{ matrix.SWIGLANG }}
+      SWIGJOBS: ${{ matrix.SWIGJOBS }}
+      SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
+      CONFIGOPTS: ${{ matrix.CONFIGOPTS }}
+      CC: ${{ matrix.CC }}
+      CSTD: ${{ matrix.CSTD }}
+      CPP11: ${{ matrix.CPP11 }}
+      CPP14: ${{ matrix.CPP14 }}
+      CPP17: ${{ matrix.CPP17 }}
+
     steps:
     - uses: actions/checkout@v2
       with:
@@ -55,10 +66,6 @@ jobs:
         key: ${{ matrix.os || 'ubuntu-20.04' }}-${{ matrix.SWIGLANG }}
     - name: configure
       shell: bash
-      env:
-          SWIGLANG: ${{ matrix.SWIGLANG }}
-          CONFIGOPTS: ${{ matrix.CONFIGOPTS }}
-          CC: ${{ matrix.CC }}
       run: |
           set -ex
           export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
@@ -72,9 +79,6 @@ jobs:
 
     - name: build
       shell: bash
-      env:
-          SWIGLANG: ${{ matrix.SWIGLANG }}
-          SWIGJOBS: ${{ matrix.SWIGJOBS }}
       run: |
           set -ex
           cd ${GITHUB_WORKSPACE}/build/build;
@@ -86,15 +90,6 @@ jobs:
           if test -z "$SWIGLANG"; then sudo make -s install && swig -version && ccache-swig -V; fi
     - name: tests
       shell: bash
-      env:
-          SWIGLANG: ${{ matrix.SWIGLANG }}
-          SWIGJOBS: ${{ matrix.SWIGJOBS }}
-          SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
-          CC: ${{ matrix.CC }}
-          CSTD: ${{ matrix.CSTD }}
-          CPP11: ${{ matrix.CPP11 }}
-          CPP14: ${{ matrix.CPP14 }}
-          CPP17: ${{ matrix.CPP17 }}
       run: |
           set -ex
           cd ${GITHUB_WORKSPACE}/build/build;
