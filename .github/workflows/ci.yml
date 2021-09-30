@@ -42,13 +42,10 @@ jobs:
         - SWIGLANG: ""
           compiler: clang
           desc: clang
-        - CPP11: 1
-          SWIGLANG: python
-        - CPP11: 1
-          SWIGLANG: python
+        - SWIGLANG: python
+        - SWIGLANG: python
           PY3: 3
-        - CPP11: 1
-          SWIGLANG: tcl
+        - SWIGLANG: tcl
         # let's run all of them, as opposed to aborting when one fails
       fail-fast: false
 
