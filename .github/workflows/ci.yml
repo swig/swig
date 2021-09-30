@@ -24,16 +24,24 @@ jobs:
 
     strategy:
       matrix:
-        # other variables to optionally set
-        # CC, GCC (used as suffix)
-        # CPP11, CPP14, CPP17
-        # CONFIGOPTS
-        # SWIGLANG
-        # PY3,VER
-        # SWIG_FEATURES
         include:
-        - CPP11: 1
-          SWIGLANG: ""
+        - SWIGLANG: ""
+          desc: gcc
+        - SWIGLANG: ""
+          GCC: 7
+          desc: gcc7
+        - SWIGLANG: ""
+          GCC: 8
+          desc: gcc8
+        - SWIGLANG: ""
+          GCC: 9
+          desc: gcc9
+        - SWIGLANG: ""
+          GCC: 10
+          desc: gcc10
+        - SWIGLANG: ""
+          CC: clang
+          desc: clang
         - CPP11: 1
           SWIGLANG: python
         - CPP11: 1
