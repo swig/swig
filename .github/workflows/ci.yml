@@ -53,7 +53,6 @@ jobs:
       SWIGLANG: ${{ matrix.SWIGLANG }}
       PY3: ${{ matrix.PY3 }}
       SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
-      CONFIGOPTS: ${{ matrix.CONFIGOPTS }}
       CSTD: ${{ matrix.CSTD }}
       CPP11: ${{ matrix.CPP11 }}
       CPP14: ${{ matrix.CPP14 }}
@@ -102,6 +101,9 @@ jobs:
           $CC --version
           $CXX --version
 
+          if test -n '${{ matrix.CONFIGOPTS }}'; then
+            CONFIGOPTS=${{ matrix.CONFIGOPTS }}
+          fi
           if test -n "$CPP11"; then CONFIGOPTS+=(--enable-cpp11-testing "CXXFLAGS=-std=c++11 $CXXFLAGS" "CFLAGS=-std=c11 $CFLAGS") && export CSTD=c11 && export CPPSTD=c++11; fi
           if test -n "$CPP14"; then CONFIGOPTS+=(--enable-cpp11-testing "CXXFLAGS=-std=c++14 $CXXFLAGS" "CFLAGS=-std=c11 $CFLAGS") && export CSTD=c11 && export CPPSTD=c++14; fi
           if test -n "$CPP17"; then CONFIGOPTS+=(--enable-cpp11-testing "CXXFLAGS=-std=c++17 $CXXFLAGS" "CFLAGS=-std=c17 $CFLAGS") && export CSTD=c17 && export CPPSTD=c++17; fi
