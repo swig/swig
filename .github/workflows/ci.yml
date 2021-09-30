@@ -114,6 +114,9 @@ jobs:
           if test -n "$SWIGLANG"; then make check-$SWIGLANG-enabled; fi
           if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
           if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
-          #echo 'Cleaning...'
-          # Skip on osx as often fails with: rm: Resource temporarily unavailable
-          #if test "$TRAVIS_OS_NAME" != "osx"; then make check-maintainer-clean && ../../configure $CONFIGOPTS; fi
+
+    - name: clean
+      working-directory: build/build
+      run: |
+          set -x
+          make check-maintainer-clean && ../../configure $CONFIGOPTS
