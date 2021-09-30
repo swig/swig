@@ -15,7 +15,8 @@ on:
 jobs:
   build:
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os || 'ubuntu-20.04' }}
+
     strategy:
       matrix:
         #SWIGJOBS: ["-j2"]
@@ -27,18 +28,14 @@ jobs:
         # PY3,VER
         # SWIG_FEATURES
         include:
-        - os: ubuntu-latest
-          CPP11: 1
+        - CPP11: 1
           SWIGLANG: ""
-        - os: ubuntu-latest
-          CPP11: 1
+        - CPP11: 1
           SWIGLANG: python
-        - os: ubuntu-latest
-          CPP11: 1
+        - CPP11: 1
           SWIGLANG: python
           PY3: 3
-        - os: ubuntu-latest
-          CPP11: 1
+        - CPP11: 1
           SWIGLANG: tcl
         # let's run all of them, as opposed to aborting when one fails
       fail-fast: false
@@ -50,7 +47,7 @@ jobs:
     - name: ccache
       uses: hendrikmuhs/ccache-action@v1
       with:
-        key: ${{ matrix.os }}-${{ matrix.SWIGLANG }}
+        key: ${{ matrix.os || 'ubuntu-20.04' }}-${{ matrix.SWIGLANG }}
     - name: configure
       shell: bash
       env:
