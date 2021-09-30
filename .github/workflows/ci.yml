@@ -24,7 +24,6 @@ jobs:
 
     strategy:
       matrix:
-        #SWIGJOBS: ["-j2"]
         # other variables to optionally set
         # CC, GCC (used as suffix)
         # CPP11, CPP14, CPP17
@@ -47,7 +46,6 @@ jobs:
 
     env:
       SWIGLANG: ${{ matrix.SWIGLANG }}
-      SWIGJOBS: ${{ matrix.SWIGJOBS }}
       SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
       CONFIGOPTS: ${{ matrix.CONFIGOPTS }}
       CC: ${{ matrix.CC }}
@@ -76,6 +74,22 @@ jobs:
           if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
           echo "${CONFIGOPTS[@]}"
           ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
+
+          case $(uname) in
+              Linux)
+                  cpu_count=$(nproc)
+                  ;;
+
+              Darwin)
+                  cpu_count=$(sysctl -n hw.ncpu)
+                  ;;
+
+              *)
+                  cpu_count=0
+                  ;;
+          esac
+          ((cpu_count++))
+          echo SWIGJOBS=-j$cpu_count >> $GITHUB_ENV
 
     - name: build
       shell: bash
