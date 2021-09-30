@@ -55,14 +55,17 @@ jobs:
       CPP17: ${{ matrix.CPP17 }}
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v2
       with:
         submodules: recursive
-    - name: ccache
+
+    - name: Install CCache
       uses: hendrikmuhs/ccache-action@v1
       with:
         key: ${{ matrix.os || 'ubuntu-20.04' }}-${{ matrix.SWIGLANG }}
-    - name: configure
+
+    - name: Configure
       run: |
           set -x
           export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
@@ -90,7 +93,7 @@ jobs:
           ((cpu_count++))
           echo SWIGJOBS=-j$cpu_count >> $GITHUB_ENV
 
-    - name: build
+    - name: Build
       working-directory: build/build
       run: |
           set -x
@@ -100,7 +103,8 @@ jobs:
           if test -z "$SWIGLANG"; then make -s $SWIGJOBS check-errors-test-suite; fi
           echo 'Installing...'
           if test -z "$SWIGLANG"; then sudo make -s install && swig -version && ccache-swig -V; fi
-    - name: tests
+
+    - name: Test
       working-directory: build/build
       run: |
           set -x
@@ -115,7 +119,7 @@ jobs:
           if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
           if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
 
-    - name: clean
+    - name: Clean
       working-directory: build/build
       run: |
           set -x
