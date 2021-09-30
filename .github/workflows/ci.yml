@@ -51,6 +51,7 @@ jobs:
 
     env:
       SWIGLANG: ${{ matrix.SWIGLANG }}
+      PY3: ${{ matrix.PY3 }}
       SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
       CONFIGOPTS: ${{ matrix.CONFIGOPTS }}
       CSTD: ${{ matrix.CSTD }}
