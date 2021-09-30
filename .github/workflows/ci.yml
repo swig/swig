@@ -17,6 +17,11 @@ jobs:
 
     runs-on: ${{ matrix.os || 'ubuntu-20.04' }}
 
+    # By default, the name of the build is just the language used, but matrix
+    # entries can define the additional "desc" field with any additional
+    # information to include in the name.
+    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY3 }} ${{ matrix.desc }}
+
     strategy:
       matrix:
         #SWIGJOBS: ["-j2"]
