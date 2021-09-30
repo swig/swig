@@ -63,7 +63,7 @@ jobs:
     - name: Install CCache
       uses: hendrikmuhs/ccache-action@v1
       with:
-        key: ${{ matrix.os || 'ubuntu-20.04' }}-${{ matrix.SWIGLANG }}
+        key: ${{ matrix.os || 'ubuntu-20.04' }}-${{ matrix.CC || 'gcc' }}${{ matrix.GCC }}
 
     - name: Configure
       run: |
