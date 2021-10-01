@@ -242,11 +242,12 @@ jobs:
                   ;;
 
               *)
-                  cpu_count=0
+                  cpu_count=1
                   ;;
           esac
-          ((cpu_count++))
-          echo SWIGJOBS=-j$cpu_count >> $GITHUB_ENV
+          if [[ $cpu_count != 1 ]]; then
+            echo SWIGJOBS=-j$cpu_count >> $GITHUB_ENV
+          fi
 
     - name: Build
       working-directory: build/build
