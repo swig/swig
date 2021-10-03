@@ -93,6 +93,7 @@ static int nortti = 0;
 static int relativeimport = 0;
 
 /* flags for the make_autodoc function */
+namespace {
 enum autodoc_t {
   AUTODOC_CLASS,
   AUTODOC_CTOR,
@@ -103,7 +104,7 @@ enum autodoc_t {
   AUTODOC_CONST,
   AUTODOC_VAR
 };
-
+}
 
 static const char *usage1 = "\
 Python Options (available with -python)\n\

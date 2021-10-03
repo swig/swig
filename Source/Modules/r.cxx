@@ -1301,13 +1301,14 @@ void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
 
 #define MAX_OVERLOAD 256
 
+namespace {
 struct Overloaded {
   Node      *n;          /* Node                               */
   int        argc;       /* Argument count                     */
   ParmList  *parms;      /* Parameters used for overload check */
   int        error;      /* Ambiguity error                    */
 };
-
+}
 
 List * R::Swig_overload_rank(Node *n,
 	                     bool script_lang_wrapping) {

@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-09-16: ianlancetaylor
+            [Go] Improved _cgo_panic implementation.
+
+2021-09-16: ianlancetaylor
+            [Go] Don't use crosscall2 for panicking. Instead rely on documented
+            and exported interfaces.
+
+2021-09-14: ianlancetaylor
+            [Go] Remove -no-cgo option (long unsupported in Go)
+
 2021-05-04: olly
 	    [PHP] #2014 Throw PHP exceptions instead of using PHP errors
 
