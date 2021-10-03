@@ -2,6 +2,12 @@ platform:
 - x86
 - x64
 
+skip_commits:
+  files:
+    - 'CHANGES*'
+    - 'Doc/**'
+    - '.github/**'
+
 environment:
   global:
     MAKEJOBS: 2
