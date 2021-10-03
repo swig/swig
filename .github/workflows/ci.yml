@@ -271,6 +271,12 @@ jobs:
                   [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                   nvm use ${VER}
                   ;;
+                *)
+                  # Running tests using v8 or jsc involves creating a custom
+                  # interpreter in Tools/javascript, which is currently broken
+                  # for parallel builds (we attempt to update this interpreter
+                  # while running, resulting in "Text file busy" error).
+                  unset SWIGJOBS
               esac
               ;;
 
