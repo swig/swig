@@ -825,6 +825,12 @@ public:
                  p = nextSibling(p);
                  continue;
             }
+
+	    if (SwigType_type(type) == T_VARARGS) {
+	      Swig_error(Getfile(n), Getline(n), "Vararg function %s not supported.\n", Getattr(n, "name"));
+	      return scoped_dohptr(NULL);
+	    }
+
             String *lname = Getattr(p, "lname");
             String *c_parm_type = 0;
             String *arg_name = NewString("");
