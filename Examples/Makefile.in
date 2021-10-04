@@ -1389,7 +1389,7 @@ c_syntax_check:
 # -----------------------------------------------------------------
 
 c_run: c_compile
-	$(RUNTOOL) ./$(RUNME) $(RUNPIPE)
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) ./$(RUNME) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
