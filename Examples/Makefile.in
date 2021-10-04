@@ -1403,7 +1403,7 @@ c_version:
 # -----------------------------------------------------------------
 
 c_clean:
-	rm -f *_wrap.c *_wrap.cxx
+	rm -f *_wrap.[ch] *_wrap.cxx
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
 	rm -f $(RUNME)
