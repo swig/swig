@@ -9,8 +9,10 @@ struct SomeStruct {
   auto addAlternateConst(int x, int y) const -> int;
   auto addAlternateNoExcept(int x, int y) noexcept -> int;
   auto addAlternateConstNoExcept(int x, int y) const noexcept -> int;
+#ifndef SWIGC
   auto addAlternateMemberPtrParm(int x, int (SomeStruct::*mp)(int, int)) -> int;
   auto addAlternateMemberPtrConstParm(int x, int (SomeStruct::*mp)(int, int) const) const -> int;
+#endif // !SWIGC
 
   virtual auto addFinal(int x, int y) const noexcept -> int final { return x + y; }
   virtual ~SomeStruct() = default;
@@ -21,11 +23,13 @@ auto SomeStruct::addAlternate(int x, int y) -> int { return x + y; }
 auto SomeStruct::addAlternateConst(int x, int y) const -> int { return x + y; }
 auto SomeStruct::addAlternateNoExcept(int x, int y) noexcept -> int { return x + y; }
 auto SomeStruct::addAlternateConstNoExcept(int x, int y) const noexcept -> int { return x + y; }
+#ifndef SWIGC
 auto SomeStruct::addAlternateMemberPtrParm(int x, int (SomeStruct::*mp)(int, int)) -> int {
   return 100*x + (this->*mp)(x, x);
 }
 auto SomeStruct::addAlternateMemberPtrConstParm(int x, int (SomeStruct::*mp)(int, int) const) const -> int {
   return 1000*x + (this->*mp)(x, x);
 }
+#endif // !SWIGC
 
 %}
