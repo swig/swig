@@ -39,6 +39,6 @@ int main(int argc, char **argv) {
   printf("%d shapes remain\n", Shape_nshapes_get());
   printf("Goodbye\n");
 
-  SWIG_exit(0);
+  return 0;
 }
 

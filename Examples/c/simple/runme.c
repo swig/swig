@@ -10,6 +10,6 @@ int main(int argc, char **argv) {
   printf("Foo = %f\n", Foo);
   Foo = 3.1415926;
   printf("Foo = %f\n", Foo);
-  SWIG_exit(0);
+  return 0;
 }
 

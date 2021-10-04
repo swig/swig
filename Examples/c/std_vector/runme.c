@@ -38,5 +38,5 @@ int main() {
   
   Klass_delete(klass);
 
-  SWIG_exit(0);
+  return 0;
 }
