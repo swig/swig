@@ -16,6 +16,7 @@ CPP_TEST_CASES = \
 	complextest \
 	csharp_attributes \
 	csharp_swig2_compatibility \
+	csharp_director_typemaps \
 	csharp_exceptions \
 	csharp_features \
 	csharp_lib_arrays \
@@ -27,6 +28,7 @@ CPP_TEST_CASES = \
 	enum_thorough_typesafe \
 	exception_partial_info \
 	intermediary_classname \
+	nested_scope \
 	li_boost_intrusive_ptr \
 	li_std_list \
 
@@ -34,6 +36,7 @@ CPP11_TEST_CASES = \
 	cpp11_shared_ptr_const \
 	cpp11_shared_ptr_nullptr_in_containers \
 	cpp11_shared_ptr_overload \
+	cpp11_shared_ptr_template_upcast \
 	cpp11_shared_ptr_upcast \
 	cpp11_strongly_typed_enumerations_simple \
 

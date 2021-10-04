@@ -1,8 +1,5 @@
 <?php
 
-	require "example.php";
-
-
 	$v = new Vector();
         $v->x = 1.0;
         $v->y = 2.0;
@@ -34,10 +31,6 @@
 
 	echo "\nNow I'm going to clean up the return result\n";
 
-#	free($r);
+	unset($r);
 
 	echo "Good\n";
-
-?>
-
-

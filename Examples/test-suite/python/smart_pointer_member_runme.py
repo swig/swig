@@ -11,9 +11,7 @@ b = Bar(f)
 b.y = 2
 
 if f.y != 2:
-    print f.y
-    print b.y
-    raise RuntimeError
+    raise RuntimeError("Failed {} {}".format(f.y, b.y))
 
 if b.x != f.x:
     raise RuntimeError

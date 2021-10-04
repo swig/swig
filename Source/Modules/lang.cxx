@@ -722,18 +722,18 @@ int Language::typemapDirective(Node *n) {
   String *code = Getattr(n, "code");
   Parm *kwargs = Getattr(n, "kwargs");
   Node *items = firstChild(n);
-  static int namewarn = 0;
+  static int nameerror = 0;
 
 
   if (code && (Strstr(code, "$source") || (Strstr(code, "$target")))) {
-    Swig_warning(WARN_TYPEMAP_SOURCETARGET, Getfile(n), Getline(n), "Deprecated typemap feature ($source/$target).\n");
-    if (!namewarn) {
-      Swig_warning(WARN_TYPEMAP_SOURCETARGET, Getfile(n), Getline(n), "The use of $source and $target in a typemap declaration is deprecated.\n\
+    Swig_error(Getfile(n), Getline(n), "Obsolete typemap feature ($source/$target).\n");
+    if (!nameerror) {
+      Swig_error(Getfile(n), Getline(n), "The use of $source and $target in a typemap declaration is no longer supported.\n\
 For typemaps related to argument input (in,ignore,default,arginit,check), replace\n\
 $source by $input and $target by $1.   For typemaps related to return values (out,\n\
 argout,ret,except), replace $source by $1 and $target by $result.  See the file\n\
 Doc/Manual/Typemaps.html for complete details.\n");
-      namewarn = 1;
+      nameerror = 1;
     }
   }
 
@@ -1481,8 +1481,6 @@ int Language::membervariableHandler(Node *n) {
 	} else {
 	  String *pname0 = Swig_cparm_name(0, 0);
 	  String *pname1 = Swig_cparm_name(0, 1);
-	  Replace(tm, "$source", pname1, DOH_REPLACE_ANY);
-	  Replace(tm, "$target", target, DOH_REPLACE_ANY);
 	  Replace(tm, "$input", pname1, DOH_REPLACE_ANY);
 	  Replace(tm, "$self", pname0, DOH_REPLACE_ANY);
 	  Setattr(n, "wrap:action", tm);
@@ -3049,8 +3047,6 @@ int Language::variableWrapper(Node *n) {
       }
     } else {
       String *pname0 = Swig_cparm_name(0, 0);
-      Replace(tm, "$source", pname0, DOH_REPLACE_ANY);
-      Replace(tm, "$target", name, DOH_REPLACE_ANY);
       Replace(tm, "$input", pname0, DOH_REPLACE_ANY);
       Setattr(n, "wrap:action", tm);
       Delete(tm);

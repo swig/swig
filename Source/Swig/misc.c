@@ -250,6 +250,19 @@ String *Swig_filename_escape(String *filename) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_filename_escape()
+ *
+ * Escapes spaces in filename - for Makefiles
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_filename_escape_space(String *filename) {
+  String *adjusted_filename = Copy(filename);
+  Swig_filename_correct(adjusted_filename);
+  Replaceall(adjusted_filename, " ", "\\ ");
+  return adjusted_filename;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_filename_unescape()
  *
  * Remove double backslash escaping in filename - for Windows
@@ -1177,7 +1190,7 @@ String *Swig_string_command(String *s) {
       pclose(fp);
     } else {
       Swig_error("SWIG", Getline(s), "Command encoder fails attempting '%s'.\n", s);
-      exit(1);
+      SWIG_exit(EXIT_FAILURE);
     }
   }
 #endif
@@ -1327,7 +1340,8 @@ static int split_regex_pattern_subst(String *s, String **pattern, String **subst
 
 err_out:
   Swig_error("SWIG", Getline(s), "Invalid regex substitution: '%s'.\n", s);
-  exit(1);
+  SWIG_exit(EXIT_FAILURE);
+  return 0;
 }
 
 /* This function copies len characters from src to dst, possibly applying case conversions to them: if convertCase is 1, to upper case and if it is -1, to lower
@@ -1449,7 +1463,7 @@ String *Swig_string_regex(String *s) {
     if (!compiled_pat) {
       Swig_error("SWIG", Getline(s), "PCRE compilation failed: '%s' in '%s':%i.\n",
           pcre_error, Char(pattern), pcre_errorpos);
-      exit(1);
+      SWIG_exit(EXIT_FAILURE);
     }
     rc = pcre_exec(compiled_pat, NULL, input, (int)strlen(input), 0, 0, captures, 30);
     if (rc >= 0) {
@@ -1457,7 +1471,7 @@ String *Swig_string_regex(String *s) {
     } else if (rc != PCRE_ERROR_NOMATCH) {
       Swig_error("SWIG", Getline(s), "PCRE execution failed: error %d while matching \"%s\" using \"%s\".\n",
 	rc, Char(pattern), input);
-      exit(1);
+      SWIG_exit(EXIT_FAILURE);
     }
   }
 
@@ -1475,7 +1489,8 @@ String *Swig_pcre_version(void) {
 
 String *Swig_string_regex(String *s) {
   Swig_error("SWIG", Getline(s), "PCRE regex support not enabled in this SWIG build.\n");
-  exit(1);
+  SWIG_exit(EXIT_FAILURE);
+  return 0;
 }
 
 String *Swig_pcre_version(void) {

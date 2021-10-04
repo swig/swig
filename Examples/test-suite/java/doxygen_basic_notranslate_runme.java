@@ -1,6 +1,5 @@
 
 import doxygen_basic_notranslate.*;
-import com.sun.javadoc.*;
 import java.util.HashMap;
 
 public class doxygen_basic_notranslate_runme {
@@ -15,14 +14,7 @@ public class doxygen_basic_notranslate_runme {
   
   public static void main(String argv[]) 
   {
-    /*
-      Here we are using internal javadoc tool, it accepts the name of the class as paramterer,
-      and calls the start() method of that class with parsed information.
-    */
-    CommentParser parser = new CommentParser();
-    com.sun.tools.javadoc.Main.execute("doxygen_basic_notranslate runtime test",
-                                       "CommentParser",
-                                       new String[]{"-quiet", "doxygen_basic_notranslate"});
+    CommentParser.parse("doxygen_basic_notranslate");
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     wantedComments.put("doxygen_basic_notranslate.doxygen_basic_notranslate.function3(int)",
@@ -97,6 +89,6 @@ public class doxygen_basic_notranslate_runme {
     		"");
     
     // and ask the parser to check comments for us
-    System.exit(parser.check(wantedComments));
+    System.exit(CommentParser.check(wantedComments));
   }
 }

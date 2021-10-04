@@ -43,7 +43,7 @@ typedef struct SWIGCDATA {
     $2 = $input->len;
 }
 
-#elif SWIGPHP7
+#elif SWIGPHP
 
 %typemap(out) SWIGCDATA {
   ZVAL_STRINGL($result, $1.data, $1.len);

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"example"
+	"swigtests/example"
 )
 
 func Compare(name string, got string, exp string) error {

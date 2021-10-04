@@ -9,6 +9,8 @@
 #include <math.h>
 %}
 
+#ifndef SWIGPHP /* PHP already provides all these functions except fabs() */
+
 extern double	cos(double x);
 /* Cosine of x */
 
@@ -54,9 +56,6 @@ extern double	pow(double x, double y);
 extern double	sqrt(double x);
 /* Square root. x >= 0 */
 
-extern double	fabs(double x);
-/* Absolute value of x */
-
 extern double	ceil(double x);
 /* Smallest integer not less than x, as a double */
 
@@ -65,6 +64,13 @@ extern double	floor(double x);
 
 extern double	fmod(double x, double y);
 /* Floating-point remainder of x/y, with the same sign as x. */
+
+#endif
+
+extern double	fabs(double x);
+/* Absolute value of x */
+
+#ifndef SWIGPHP /* PHP already provides these constants and it's an error to redefine them */
 
 #define M_E		2.7182818284590452354
 #define M_LOG2E		1.4426950408889634074
@@ -80,3 +86,4 @@ extern double	fmod(double x, double y);
 #define M_SQRT2		1.41421356237309504880
 #define M_SQRT1_2	0.70710678118654752440
 
+#endif

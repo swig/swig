@@ -334,7 +334,7 @@ std::string JavaDocConverter::translateSubtree(DoxygenEntity &doxygenEntity) {
 void JavaDocConverter::translateEntity(DoxygenEntity &tag, std::string &translatedComment) {
 
   std::map<std::string, std::pair<tagHandler, std::string> >::iterator it;
-  it = tagHandlers.find(tag.typeOfEntity);
+  it = tagHandlers.find(getBaseCommand(tag.typeOfEntity));
 
   if (it != tagHandlers.end()) {
     (this->*(it->second.first))(tag, translatedComment, it->second.second);

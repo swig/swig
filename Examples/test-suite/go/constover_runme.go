@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"constover"
+	"swigtests/constover"
 )
 
 func main() {

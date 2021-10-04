@@ -75,6 +75,13 @@ public class runme
         check_equal(li_std_wstring.test_ccvalue(x), "abc");
         check_equal(li_std_wstring.test_wchar_overload(x), "abc");
 
+        // Member variables
+        var s = new wchar_test_struct();
+        s.wchar_t_member = h;
+        check_equal(s.wchar_t_member, h);
+        s.wchar_t_ptr_member = x;
+        check_equal(s.wchar_t_ptr_member, "abc");
+
         {
             // Unicode strings
             string[] test_strings = {
@@ -99,7 +106,17 @@ public class runme
                 check_equal(received, expected);
             }
 
-            /* Not working on Windows okay on Linux
+            foreach (string expected in test_strings)
+            {
+                s.wchar_t_ptr_member = expected;
+                string received = s.wchar_t_ptr_member;
+                check_equal(received, expected);
+            }
+
+            /* Not working for Japanese and Russian characters on Windows, okay on Linux
+             * Is fixed by adding CharSet=CharSet.Unicode to the DllImport, so change to:
+             * [global::System.Runtime.InteropServices.DllImport("li_std_wstring", CharSet=global::System.Runtime.InteropServices.CharSet.Unicode, EntryPoint="CSharp_li_std_wstringNamespace_test_wcvalue")]
+             * Needs a SWIG code change to support this
             foreach (string test_string in test_strings)
             {
                 foreach (char expected in test_string)

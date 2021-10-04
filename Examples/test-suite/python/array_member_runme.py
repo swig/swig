@@ -5,7 +5,7 @@ f.data = cvar.global_data
 
 for i in range(0, 8):
     if get_value(f.data, i) != get_value(cvar.global_data, i):
-        raise RuntimeError, "Bad array assignment"
+        raise RuntimeError("Bad array assignment")
 
 
 for i in range(0, 8):
@@ -15,4 +15,4 @@ cvar.global_data = f.data
 
 for i in range(0, 8):
     if get_value(f.data, i) != get_value(cvar.global_data, i):
-        raise RuntimeError, "Bad array assignment"
+        raise RuntimeError("Bad array assignment")

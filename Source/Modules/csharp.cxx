@@ -901,8 +901,6 @@ public:
       // Get typemap for this argument
       if ((tm = Getattr(p, "tmap:in"))) {
 	canThrow(n, "in", p);
-	Replaceall(tm, "$source", arg);	/* deprecated */
-	Replaceall(tm, "$target", ln);	/* deprecated */
 	Replaceall(tm, "$arg", arg);	/* deprecated? */
 	Replaceall(tm, "$input", arg);
 	Setattr(p, "emit:input", arg);
@@ -921,7 +919,6 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
 	canThrow(n, "check", p);
-	Replaceall(tm, "$target", Getattr(p, "lname"));	/* deprecated */
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(f->code, tm, "\n", NIL);
@@ -935,7 +932,6 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
 	canThrow(n, "freearg", p);
-	Replaceall(tm, "$source", Getattr(p, "emit:input"));	/* deprecated */
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(cleanup, tm, "\n", NIL);
@@ -949,8 +945,6 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
 	canThrow(n, "argout", p);
-	Replaceall(tm, "$source", Getattr(p, "emit:input"));	/* deprecated */
-	Replaceall(tm, "$target", Getattr(p, "lname"));	/* deprecated */
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
 	Replaceall(tm, "$result", "jresult");
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
@@ -982,8 +976,6 @@ public:
       /* Return value if necessary  */
       if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
 	canThrow(n, "out", n);
-	Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
-	Replaceall(tm, "$target", "jresult");	/* deprecated */
 	Replaceall(tm, "$result", "jresult");
 
         if (GetFlag(n, "feature:new"))
@@ -1011,7 +1003,6 @@ public:
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
 	canThrow(n, "newfree", n);
-	Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
 	Printf(f->code, "%s\n", tm);
       }
     }
@@ -1020,7 +1011,6 @@ public:
     if (!native_function_flag) {
       if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
 	canThrow(n, "ret", n);
-	Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
 	Printf(f->code, "%s\n", tm);
       }
     }
@@ -1533,7 +1523,7 @@ public:
       if (classname_substituted_flag) {
 	if (SwigType_isenum(t)) {
 	  // This handles wrapping of inline initialised const enum static member variables (not when wrapping enum items - ignored later on)
-	  Printf(constants_code, "(%s)%s.%s();\n", return_type, full_imclass_name, Swig_name_get(getNSpace(), symname));
+	  Printf(constants_code, "(%s)%s.%s();\n", return_type, full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
 	} else {
 	  // This handles function pointers using the %constant directive
 	  Printf(constants_code, "new %s(%s.%s(), false);\n", return_type, full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
@@ -1709,11 +1699,11 @@ public:
    * addInterfaceNameAndUpcasts()
    * ----------------------------------------------------------------------------- */
 
-  void addInterfaceNameAndUpcasts(SwigType *smart, String *interface_list, String *interface_upcasts, Hash *base_list, String *c_classname) {
+  void addInterfaceNameAndUpcasts(SwigType *smart, String *interface_list, String *interface_upcasts, Hash *base_list, SwigType *c_classname) {
     List *keys = Keys(base_list);
     for (Iterator it = First(keys); it.item; it = Next(it)) {
       Node *base = Getattr(base_list, it.item);
-      String *c_baseclass = SwigType_namestr(Getattr(base, "name"));
+      SwigType *c_baseclassname = Getattr(base, "name");
       String *interface_name = Getattr(base, "interface:name");
       if (Len(interface_list))
 	Append(interface_list, ", ");
@@ -1733,12 +1723,11 @@ public:
       Replaceall(cptr_method_name, "$interfacename", interface_name);
 
       String *upcast_method_name = Swig_name_member(getNSpace(), getClassPrefix(), cptr_method_name);
-      upcastsCode(smart, upcast_method_name, c_classname, c_baseclass);
+      upcastsCode(smart, upcast_method_name, c_classname, c_baseclassname);
 
       Delete(upcast_method_name);
       Delete(cptr_method_name);
       Delete(interface_code);
-      Delete(c_baseclass);
     }
     Delete(keys);
   }
@@ -1749,7 +1738,7 @@ public:
    * Add code for C++ casting to base class
    * ----------------------------------------------------------------------------- */
 
-  void upcastsCode(SwigType *smart, String *upcast_method_name, String *c_classname, String *c_baseclass) {
+  void upcastsCode(SwigType *smart, String *upcast_method_name, SwigType *c_classname, SwigType *c_baseclassname) {
     String *wname = Swig_name_wrapper(upcast_method_name);
 
     Printv(imclass_cppcasts_code, "\n  [global::System.Runtime.InteropServices.DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
@@ -1757,28 +1746,35 @@ public:
 
     Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
 
+    String *classname = SwigType_namestr(c_classname);
+    String *baseclassname = SwigType_namestr(c_baseclassname);
     if (smart) {
-      SwigType *bsmart = Copy(smart);
-      SwigType *rclassname = SwigType_typedef_resolve_all(c_classname);
-      SwigType *rbaseclass = SwigType_typedef_resolve_all(c_baseclass);
-      Replaceall(bsmart, rclassname, rbaseclass);
-      Delete(rclassname);
-      Delete(rbaseclass);
       String *smartnamestr = SwigType_namestr(smart);
-      String *bsmartnamestr = SwigType_namestr(bsmart);
+      String *bsmartnamestr = SwigType_namestr(smart);
+
+      // TODO: SwigType_typedef_resolve_all on a String instead of SwigType is incorrect for templates
+      SwigType *rclassname = SwigType_typedef_resolve_all(classname);
+      SwigType *rbaseclassname = SwigType_typedef_resolve_all(baseclassname);
+      Replaceall(bsmartnamestr, rclassname, rbaseclassname);
+
       Printv(upcasts_code,
 	  "SWIGEXPORT ", bsmartnamestr, " * SWIGSTDCALL ", wname, "(", smartnamestr, " *jarg1) {\n",
 	  "    return jarg1 ? new ", bsmartnamestr, "(*jarg1) : 0;\n"
 	  "}\n", "\n", NIL);
+
+      Delete(rbaseclassname);
+      Delete(rclassname);
       Delete(bsmartnamestr);
       Delete(smartnamestr);
-      Delete(bsmart);
     } else {
       Printv(upcasts_code,
-	  "SWIGEXPORT ", c_baseclass, " * SWIGSTDCALL ", wname, "(", c_classname, " *jarg1) {\n",
-	  "    return (", c_baseclass, " *)jarg1;\n"
+	  "SWIGEXPORT ", baseclassname, " * SWIGSTDCALL ", wname, "(", classname, " *jarg1) {\n",
+	  "    return (", baseclassname, " *)jarg1;\n"
 	  "}\n", "\n", NIL);
     }
+
+    Delete(baseclassname);
+    Delete(classname);
     Delete(wname);
   }
 
@@ -1787,10 +1783,9 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void emitProxyClassDefAndCPPCasts(Node *n) {
-    String *c_classname = SwigType_namestr(Getattr(n, "name"));
-    String *c_baseclass = NULL;
+    SwigType *c_classname = Getattr(n, "name");
+    SwigType *c_baseclassname = NULL;
     String *baseclass = NULL;
-    String *c_baseclassname = NULL;
     String *interface_list = NewStringEmpty();
     String *interface_upcasts = NewStringEmpty();
     SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
@@ -1812,12 +1807,13 @@ public:
 	Iterator base = First(baselist);
 	while (base.item) {
 	  if (!(GetFlag(base.item, "feature:ignore") || Getattr(base.item, "feature:interface"))) {
-	    String *baseclassname = Getattr(base.item, "name");
+	    SwigType *baseclassname = Getattr(base.item, "name");
 	    if (!c_baseclassname) {
-	      c_baseclassname = baseclassname;
-	      baseclass = Copy(getProxyName(baseclassname));
-	      if (baseclass)
-		c_baseclass = SwigType_namestr(baseclassname);
+	      String *name = getProxyName(baseclassname);
+	      if (name) {
+		c_baseclassname = baseclassname;
+		baseclass = name;
+	      }
 	    } else {
 	      /* Warn about multiple inheritance for additional base class(es) */
 	      String *proxyclassname = Getattr(n, "classtypeobj");
@@ -1833,7 +1829,7 @@ public:
     if (interface_bases)
       addInterfaceNameAndUpcasts(smart, interface_list, interface_upcasts, interface_bases, c_classname);
 
-    bool derived = baseclass && getProxyName(c_baseclassname);
+    bool derived = baseclass != 0;
     if (derived && purebase_notderived)
       pure_baseclass = empty_string;
     const String *wanted_base = baseclass ? baseclass : pure_baseclass;
@@ -1841,7 +1837,6 @@ public:
     if (purebase_replace) {
       wanted_base = pure_baseclass;
       derived = false;
-      Delete(baseclass);
       baseclass = NULL;
       if (purebase_notderived)
         Swig_error(Getfile(n), Getline(n), "The csbase typemap for proxy %s must contain just one of the 'replace' or 'notderived' attributes.\n", typemap_lookup_type);
@@ -2032,12 +2027,11 @@ public:
 
     if (derived) {
       String *upcast_method_name = Swig_name_member(getNSpace(), getClassPrefix(), smart != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
-      upcastsCode(smart, upcast_method_name, c_classname, c_baseclass);
+      upcastsCode(smart, upcast_method_name, c_classname, c_baseclassname);
       Delete(upcast_method_name);
     }
 
     Delete(smart);
-    Delete(baseclass);
   }
 
   /* ----------------------------------------------------------------------
@@ -2046,7 +2040,8 @@ public:
 
   void emitInterfaceDeclaration(Node *n, String *interface_name, File *f_interface) {
     Printv(f_interface, typemapLookup(n, "csimports", Getattr(n, "classtypeobj"), WARN_NONE), "\n", NIL);
-    Printf(f_interface, "public interface %s", interface_name);
+    Printv(f_interface, typemapLookup(n, "csinterfacemodifiers", Getattr(n, "classtypeobj"), WARN_CSHARP_TYPEMAP_INTERFACEMODIFIERS_UNDEF), NIL);
+    Printf(f_interface, " %s", interface_name);
     if (List *baselist = Getattr(n, "bases")) {
       String *bases = 0;
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
@@ -4064,11 +4059,10 @@ public:
 	      /* Get the C# parameter type */
 	      if ((tm = Getattr(p, "tmap:cstype"))) {
 		substituteClassname(pt, tm);
-		if (Strncmp(tm, "ref ", 4) == 0) {
-		  Replace(tm, "ref ", "", DOH_REPLACE_FIRST);
+		int flags = DOH_REPLACE_FIRST | DOH_REPLACE_ID_BEGIN | DOH_REPLACE_NOCOMMENT;
+		if (Replace(tm, "ref ", "", flags) || Replace(tm, "ref\t", "", flags)) {
 		  Printf(proxy_method_types, "typeof(%s).MakeByRefType()", tm);
-		} else if (Strncmp(tm, "out ", 4) == 0) {
-		  Replace(tm, "out ", "", DOH_REPLACE_FIRST);
+		} else if (Replace(tm, "out ", "", flags) || Replace(tm, "out\t", "", flags)) {
 		  Printf(proxy_method_types, "typeof(%s).MakeByRefType()", tm);
 		} else {
 		  Printf(proxy_method_types, "typeof(%s)", tm);

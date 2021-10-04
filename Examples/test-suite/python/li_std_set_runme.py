@@ -14,11 +14,11 @@ if sum != "abc":
     raise RuntimeError
 
 i = s.__iter__()
-if i.next() != "a":
+if next(i) != "a":
     raise RuntimeError
-if i.next() != "b":
+if next(i) != "b":
     raise RuntimeError
-if i.next() != "c":
+if next(i) != "c":
     raise RuntimeError
 
 
@@ -26,7 +26,7 @@ b = s.begin()
 e = s.end()
 sum = ""
 while (b != e):
-    sum = sum + b.next()
+    sum = sum + next(b)
 if sum != "abc":
     raise RuntimeError
 
@@ -34,7 +34,7 @@ b = s.rbegin()
 e = s.rend()
 sum = ""
 while (b != e):
-    sum = sum + b.next()
+    sum = sum + next(b)
 
 if sum != "cba":
     raise RuntimeError
@@ -47,25 +47,25 @@ si.append(2)
 si.append(3)
 i = si.__iter__()
 
-if i.next() != 1:
+if next(i) != 1:
     raise RuntimeError
-if i.next() != 2:
+if next(i) != 2:
     raise RuntimeError
-if i.next() != 3:
+if next(i) != 3:
     raise RuntimeError
 
 if si[0] != 1:
     raise RuntimeError
 
 i = s.begin()
-i.next()
+next(i)
 s.erase(i)
 
 b = s.begin()
 e = s.end()
 sum = ""
 while (b != e):
-    sum = sum + b.next()
+    sum = sum + next(b)
 if sum != "ac":
     raise RuntimeError
 

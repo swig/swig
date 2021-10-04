@@ -1,9 +1,5 @@
 %module nested_scope
 
-#if !defined(SWIGCSHARP) && !defined(SWIGJAVA)
-%feature ("flatnested");
-#endif
-
 %inline %{
 namespace ns {
         // "global" is a case-insensitive keyword in PHP.
@@ -31,9 +27,9 @@ namespace ns {
 		public:
 			struct Nested2;
 #ifdef __clang__
-		struct Nested2 {
-			int data;
-		};
+			struct Nested2 {
+				int data;
+			};
 #endif
 			template <class T> class AbstractClass;
 			class Real;

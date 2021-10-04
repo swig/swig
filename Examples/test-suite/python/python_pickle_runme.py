@@ -15,15 +15,15 @@ check(p)
 
 r = p.__reduce__()
 if python_pickle.cvar.debug:
-    print "__reduce__ returned:", r
+    print("__reduce__ returned: {}".format(r))
 pickle_string = pickle.dumps(p)
 newp = pickle.loads(pickle_string)
 check(newp)
 
 # Not yet working... some crash and others are not producing a sensible "can't be pickled" error
 #nfp = python_pickle.NotForPickling("no no")
-#print nfp.__reduce__()
+#print("{}".format(nfp.__reduce__()))
 #pickle_string = pickle.dumps(nfp)
-#print pickle_string
+#print("{}".format(pickle_string))
 #newp = pickle.loads(pickle_string)
-#print newp.msg
+#print("{}".format(newp.msg))

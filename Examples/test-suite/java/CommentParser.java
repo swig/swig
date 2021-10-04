@@ -1,5 +1,6 @@
 
-import com.sun.javadoc.*;
+import com.sun.source.doctree.*;
+import com.sun.source.util.DocTrees;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Map;
@@ -9,45 +10,120 @@ import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.*;
+import java.util.spi.ToolProvider;
+import javax.lang.model.*;
+import javax.lang.model.element.*;
+import javax.lang.model.util.*;
+import jdk.javadoc.doclet.*;
 
 
-public class CommentParser {
+public class CommentParser implements Doclet {
     private static Map<String, String> m_parsedComments = new HashMap<String, String>();
 
-    public static boolean start(RootDoc root) {
+    // We need to implement these base class pure virtual methods.
 
+    @Override
+    public void init(Locale locale, Reporter reporter) {
+    }
+
+    @Override
+    public Set<? extends Option> getSupportedOptions() {
+        return new HashSet<>();
+    }
+
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return SourceVersion.latest();
+    }
+
+    @Override
+    public String getName() {
+        return "CommentParser";
+    }
+
+    // Element name must be the fully qualified name of the element.
+    //
+    // If there is no comment associated with this element, simply do nothing.
+    private void storeCommentFor(DocTrees docTrees, String fullName, Element e) {
+        DocCommentTree docCommentTree = docTrees.getDocCommentTree(e);
+        if (docCommentTree == null)
+            return;
+
+        StringBuilder name = new StringBuilder(fullName);
+
+        // We must use signature in the key for methods for compatibility with
+        // the existing tests and to allow distinguishing between overloaded
+        // methods.
+        if (e instanceof ExecutableElement) {
+            ExecutableElement ex = (ExecutableElement)e;
+            name.append("(");
+
+            boolean firstParam = true;
+            for (VariableElement p : ex.getParameters()) {
+                if (firstParam) {
+                    firstParam = false;
+                } else {
+                    name.append(", ");
+                }
+
+                name.append(p.asType().toString());
+            }
+
+            name.append(")");
+        }
+
+        // For some reason the comment in the source is split into "body" and
+        // "block tags" parts, so we need to concatenate them back together.
+        StringBuilder comment = new StringBuilder();
+        for (DocTree d : docCommentTree.getFullBody()) {
+            comment.append(d.toString());
+            comment.append("\n");
+        }
+
+        boolean firstBlockTag = true;
+        for (DocTree d : docCommentTree.getBlockTags()) {
+            if (firstBlockTag) {
+                firstBlockTag = false;
+                comment.append("\n");
+            }
+
+            comment.append(d.toString());
+            comment.append("\n");
+        }
+
+        m_parsedComments.put(name.toString(), comment.toString());
+    }
+
+    @Override
+    public boolean run(DocletEnvironment docEnv) {
         /*
          * This method is called by 'javadoc' and gets the whole parsed java
          * file, we get comments and store them
          */
+        DocTrees docTrees = docEnv.getDocTrees();
+        for (TypeElement t : ElementFilter.typesIn(docEnv.getIncludedElements())) {
+            String typeName = t.getQualifiedName().toString();
 
-        for (ClassDoc classDoc : root.classes()) {
+            storeCommentFor(docTrees, typeName, t);
 
-            if (classDoc.getRawCommentText().length() > 0)
-                m_parsedComments.put(classDoc.qualifiedName(), classDoc.getRawCommentText());
+            for (Element e : t.getEnclosedElements()) {
+                // Omit the method name for ctors: this is a bit weird, but
+                // this is what the existing tests expect.
+                String fullName = typeName;
+                if (e.getKind() != ElementKind.CONSTRUCTOR) {
+                    fullName = fullName + "." + e.getSimpleName();
+                }
 
-            for (FieldDoc f : classDoc.enumConstants()) {
-                if (f.getRawCommentText().length() > 0)
-                    m_parsedComments.put(f.qualifiedName(), f.getRawCommentText());
-            }
-            for (FieldDoc f : classDoc.fields()) {
-                if (f.getRawCommentText().length() > 0)
-                    m_parsedComments.put(f.qualifiedName(), f.getRawCommentText());
-            }
-            for (ConstructorDoc c : classDoc.constructors()) {
-                if (c.getRawCommentText().length() > 0)
-                    m_parsedComments.put(c.toString(), c.getRawCommentText());
-            }
-            for (MethodDoc m : classDoc.methods()) {
-                if (m.getRawCommentText().length() > 0)
-                    m_parsedComments.put(m.toString(), m.getRawCommentText());
+                storeCommentFor(docTrees, fullName, e);
             }
         }
+
         return true;
     }
 
     
-    public int check(Map<String, String> wantedComments) {
+    public static int check(Map<String, String> wantedComments) {
         int errorCount=0;
         Iterator<Entry<String, String>> it = m_parsedComments.entrySet().iterator();
 
@@ -93,13 +169,14 @@ public class CommentParser {
                 System.out.println("Output is also saved to files '" + expectedFileName +
                                    "' and '" + gotFileName + "'");
                 // here we print original strings, for nicer output
-                System.out.println("\n\n---\nexpected:\n" + wantedComments.get(e.getKey()));
+                System.out.println("\n\n---\nexpected:\n" + wantedStr);
                 System.out.println("\n\n---\ngot:\n" + e.getValue());
 
                 try {
                     // write expected string to file
                     BufferedWriter expectedFile = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(expectedFileName)));
-                    expectedFile.write(wantedComments.get(e.getKey()));
+                    if (wantedStr != null)
+                        expectedFile.write(wantedStr);
                     expectedFile.close();
 
                     // write translated string to file
@@ -130,7 +207,7 @@ public class CommentParser {
     }
 
     
-    private void printKeys(Map<String, String> map) {
+    private static void printKeys(Map<String, String> map) {
         
         Set<String> keys = map.keySet();
         for (String key : keys) {
@@ -154,6 +231,15 @@ public class CommentParser {
         }
     }
 
+    public static void parse(String sourcefile) {
+        ToolProvider javadoc = ToolProvider.findFirst("javadoc").orElseThrow();
+        int result = javadoc.run(System.out, System.err, new String[]{"-quiet", "-doclet", "CommentParser", sourcefile});
+        if (result != 0) {
+          System.err.println("Executing javadoc failed.");
+          System.exit(result);
+        }
+    }
+
     
     public static void main(String argv[]) {
 		
@@ -162,8 +248,7 @@ public class CommentParser {
             System.exit(1);
         }
 		
-        com.sun.tools.javadoc.Main.execute("The comment parser program",
-                                           "CommentParser", new String[]{"-quiet", argv[0]});
+        parse(argv[0]);
 		
         // if we are run as standalone app, print the list of found comments as it would appear in java source
 		

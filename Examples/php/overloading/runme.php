@@ -4,8 +4,6 @@
 # created by SWIG.  In this case, all of our C++ classes
 # get converted into function calls.
 
-include("example.php");
-
 # ----- Object creation -----
 
 print "Creating some objects:\n";
@@ -54,5 +52,3 @@ $s = 42;
 print Shape::nshapes() . " shapes remain\n";
 
 print "Goodbye\n";
-
-?>

@@ -4,7 +4,7 @@ f = Foo();
 f.y = 1;
 
 if (f.y != 1)
-  error
+  error("failed");
 endif
 
 b = Bar(f);
@@ -15,18 +15,18 @@ if (f.y != 2)
 endif
 
 if (swig_this(b.x) != swig_this(f.x))
-  error
+  error("failed");
 endif
 
 if (b.z != f.z)
-  error
+  error("failed");
 endif
 
 try
   if (Foo.z == Bar.z)
-    error
+    error("failed");
   endif
-    error
+    error("failed");
 catch
 end_try_catch
 

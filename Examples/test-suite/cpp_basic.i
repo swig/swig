@@ -1,4 +1,4 @@
-/* This is a basic test of proxy classes, used by chicken */
+/* This is a basic test of proxy classes */
 
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK);                   /* memory leak when setting a ptr/ref variable */
 

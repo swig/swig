@@ -159,6 +159,7 @@ CPP_TEST_CASES += \
 	cpp_enum \
 	cpp_namespace \
 	cpp_nodefault \
+	cpp_parameters \
 	cpp_static \
 	cpp_typedef \
 	cpp14_binary_integer_literals \
@@ -183,6 +184,8 @@ CPP_TEST_CASES += \
 	director_classes \
 	director_classic \
 	director_constructor \
+	director_comparison_operators \
+	director_conversion_operators \
 	director_default \
 	director_detect \
 	director_enum \
@@ -250,6 +253,7 @@ CPP_TEST_CASES += \
 	funcptr_cpp \
 	functors \
 	fvirtual \
+	global_immutable_vars_cpp \
 	global_namespace \
 	global_ns_arg \
 	global_scope_types \
@@ -326,7 +330,7 @@ CPP_TEST_CASES += \
 	nested_ignore \
 	nested_inheritance_interface \
 	nested_in_template \
-	nested_scope \
+	nested_scope_flat \
 	nested_template_base \
 	nested_workaround \
 	newobject1 \
@@ -414,6 +418,7 @@ CPP_TEST_CASES += \
 	struct_value \
 	swig_exception \
 	symbol_clash \
+	sym \
 	template_arg_replace \
 	template_arg_scope \
 	template_arg_typename \
@@ -456,6 +461,7 @@ CPP_TEST_CASES += \
 	template_using_directive_and_declaration_forward \
 	template_using_directive_typedef \
 	template_nested \
+	template_nested_flat \
 	template_nested_typemaps \
 	template_ns \
 	template_ns2 \
@@ -610,11 +616,14 @@ CPP11_TEST_BROKEN = \
 #	cpp11_reference_wrapper \     # No typemaps
 
 # Doxygen support test cases: can only be used with languages supporting
-# Doxygen comment translation, currently only Python and Java.
+# Doxygen comment translation (currently Python and Java) and only if not
+# disabled by configure via SKIP_DOXYGEN_TEST_CASES.
+ifneq ($(SKIP_DOXYGEN_TEST_CASES),1)
 python_HAS_DOXYGEN := 1
 java_HAS_DOXYGEN := 1
 
 $(eval HAS_DOXYGEN := $($(LANGUAGE)_HAS_DOXYGEN))
+endif
 
 ifdef HAS_DOXYGEN
 DOXYGEN_TEST_CASES += \
@@ -622,6 +631,8 @@ DOXYGEN_TEST_CASES += \
 	doxygen_basic_notranslate \
 	doxygen_basic_translate \
 	doxygen_basic_translate_style2 \
+	doxygen_basic_translate_style3 \
+	doxygen_code_blocks \
 	doxygen_ignore \
 	doxygen_misc_constructs \
 	doxygen_nested_class \
@@ -643,6 +654,7 @@ CPP_STD_TEST_CASES += \
 	director_string \
 	ignore_template_constructor \
 	li_std_combinations \
+	li_std_containers_overload \
 	li_std_deque \
 	li_std_except \
 	li_std_except_as_class \
@@ -665,7 +677,7 @@ ifndef SKIP_CPP_STD_CASES
 CPP_TEST_CASES += ${CPP_STD_TEST_CASES}
 endif
 
-ifneq (,$(HAVE_CXX11_COMPILER))
+ifeq (1,$(HAVE_CXX11))
 CPP_TEST_CASES += $(CPP11_TEST_CASES)
 endif
 
@@ -688,6 +700,7 @@ C_TEST_CASES += \
 	funcptr \
 	function_typedef \
 	global_functions \
+	global_immutable_vars \
 	immutable_values \
 	inctest \
 	infinity \
@@ -707,6 +720,7 @@ C_TEST_CASES += \
 	nested_extend_c \
 	nested_structs \
 	newobject2 \
+	not_c_keywords \
 	overload_extend_c \
 	overload_extend2 \
 	preproc \
@@ -848,8 +862,6 @@ setup = \
 	else								  \
 	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
 	fi
-
-
 
 #######################################################################
 # Clean

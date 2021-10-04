@@ -3140,11 +3140,10 @@ private:
      * Handle inheriting from D and C++ classes.
      */
 
-    String *c_classname = SwigType_namestr(Getattr(n, "name"));
-    String *c_baseclass = NULL;
-    Node *basenode = NULL;
-    String *basename = NULL;
+    String *c_classname = Getattr(n, "name");
     String *c_baseclassname = NULL;
+    Node *basenode = NULL;
+    String *baseclass = NULL;
 
     // Inheritance from pure D classes.
     Node *attributes = NewHash();
@@ -3161,13 +3160,14 @@ private:
 	Iterator base = First(baselist);
 	while (base.item) {
 	  if (!GetFlag(base.item, "feature:ignore")) {
-	    String *baseclassname = Getattr(base.item, "name");
+	    SwigType *baseclassname = Getattr(base.item, "name");
 	    if (!c_baseclassname) {
 	      basenode = base.item;
-	      c_baseclassname = baseclassname;
-	      basename = createProxyName(c_baseclassname);
-	      if (basename)
-		c_baseclass = SwigType_namestr(baseclassname);
+	      String *name = createProxyName(baseclassname);
+	      if (name) {
+		c_baseclassname = baseclassname;
+		baseclass = name;
+	      }
 	    } else {
 	      /* Warn about multiple inheritance for additional base class(es) */
 	      String *proxyclassname = Getattr(n, "classtypeobj");
@@ -3180,25 +3180,24 @@ private:
       }
     }
 
-    bool derived = (basename != NULL);
+    bool derived = baseclass != NULL;
 
     if (derived && purebase_notderived) {
       pure_baseclass = empty_string;
     }
-    const String *wanted_base = basename ? basename : pure_baseclass;
+    const String *wanted_base = baseclass ? baseclass : pure_baseclass;
 
     if (purebase_replace) {
       wanted_base = pure_baseclass;
       derived = false;
       basenode = NULL;
-      Delete(basename);
-      basename = NULL;
+      baseclass = NULL;
       if (purebase_notderived) {
 	Swig_error(Getfile(n), Getline(n),
 	  "The dbase typemap for proxy %s must contain just one of the 'replace' or 'notderived' attributes.\n",
 	  typemap_lookup_type);
       }
-    } else if (basename && Len(pure_baseclass) > 0) {
+    } else if (baseclass && Len(pure_baseclass) > 0) {
       Swig_warning(WARN_D_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
 	"Warning for %s, base class %s ignored. Multiple inheritance is not supported in D. "
 	"Perhaps you need one of the 'replace' or 'notderived' attributes in the dbase typemap?\n", typemap_lookup_type, pure_baseclass);
@@ -3206,7 +3205,7 @@ private:
 
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if (derived) {
-      writeClassUpcast(n, proxy_class_name, c_classname, c_baseclass);
+      writeClassUpcast(n, proxy_class_name, c_classname, c_baseclassname);
     }
 
     /*
@@ -3354,8 +3353,7 @@ private:
     // Write the class body and the curly bracket closing the class definition
     // to the proxy module.
     indentCode(body);
-    Replaceall(body, "$dbaseclass", basename);
-    Delete(basename);
+    Replaceall(body, "$dbaseclass", baseclass);
 
     Printv(proxy_class_code, body, "\n}\n", NIL);
     Delete(body);
@@ -3368,7 +3366,7 @@ private:
   /* ---------------------------------------------------------------------------
    * D::writeClassUpcast()
    * --------------------------------------------------------------------------- */
-  void writeClassUpcast(Node *n, const String* d_class_name, String* c_class_name, String* c_base_name) {
+  void writeClassUpcast(Node *n, const String* d_class_name, SwigType* c_classname, SwigType* c_baseclassname) {
 
     SwigType *smart = Swig_cparse_smartptr(n);
     String *upcast_name = Swig_name_member(getNSpace(), d_class_name, (smart != 0 ? "SmartPtrUpcast" : "Upcast"));
@@ -3377,36 +3375,42 @@ private:
     writeImDModuleFunction(upcast_name, "void*", "(void* objectRef)",
       upcast_wrapper_name);
 
+    String *classname = SwigType_namestr(c_classname);
+    String *baseclassname = SwigType_namestr(c_baseclassname);
     if (smart) {
-      SwigType *bsmart = Copy(smart);
-      SwigType *rclassname = SwigType_typedef_resolve_all(c_class_name);
-      SwigType *rbaseclass = SwigType_typedef_resolve_all(c_base_name);
-      Replaceall(bsmart, rclassname, rbaseclass);
-      Delete(rclassname);
-      Delete(rbaseclass);
       String *smartnamestr = SwigType_namestr(smart);
-      String *bsmartnamestr = SwigType_namestr(bsmart);
+      String *bsmartnamestr = SwigType_namestr(smart);
+
+      // TODO: SwigType_typedef_resolve_all on a String instead of SwigType is incorrect for templates
+      SwigType *rclassname = SwigType_typedef_resolve_all(classname);
+      SwigType *rbaseclassname = SwigType_typedef_resolve_all(baseclassname);
+      Replaceall(bsmartnamestr, rclassname, rbaseclassname);
+
       Printv(upcasts_code,
 	"SWIGEXPORT ", bsmartnamestr, " * ", upcast_wrapper_name,
 	  "(", smartnamestr, " *objectRef) {\n",
 	"    return objectRef ? new ", bsmartnamestr, "(*objectRef) : 0;\n"
 	"}\n",
 	"\n", NIL);
+
+      Delete(rbaseclassname);
+      Delete(rclassname);
       Delete(bsmartnamestr);
       Delete(smartnamestr);
-      Delete(bsmart);
     } else {
       Printv(upcasts_code,
-	"SWIGEXPORT ", c_base_name, " * ", upcast_wrapper_name,
-	  "(", c_base_name, " *objectRef) {\n",
-	"    return (", c_base_name, " *)objectRef;\n"
+	"SWIGEXPORT ", baseclassname, " * ", upcast_wrapper_name,
+	  "(", baseclassname, " *objectRef) {\n",
+	"    return (", baseclassname, " *)objectRef;\n"
 	"}\n",
 	"\n", NIL);
     }
 
-    Replaceall(upcasts_code, "$cclass", c_class_name);
-    Replaceall(upcasts_code, "$cbaseclass", c_base_name);
+    Replaceall(upcasts_code, "$cclass", classname);
+    Replaceall(upcasts_code, "$cbaseclass", baseclassname);
 
+    Delete(baseclassname);
+    Delete(classname);
     Delete(upcast_name);
     Delete(upcast_wrapper_name);
     Delete(smart);

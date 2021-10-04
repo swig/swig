@@ -1,4 +1,4 @@
-%module namespace_template
+%module xxx
 
 namespace test {
   template<typename T> T max(T a, T b) { return (a > b) ? a : b; }

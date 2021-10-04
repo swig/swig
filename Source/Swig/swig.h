@@ -315,6 +315,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern String *Swig_new_subdirectory(String *basedirectory, String *subdirectory);
   extern void Swig_filename_correct(String *filename);
   extern String *Swig_filename_escape(String *filename);
+  extern String *Swig_filename_escape_space(String *filename);
   extern void Swig_filename_unescape(String *filename);
   extern int Swig_storage_isextern(Node *n);
   extern int Swig_storage_isexternc(Node *n);
@@ -438,6 +439,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Language_replace_special_variables(String *method, String *tm, Parm *parm);
   extern void Swig_print(DOH *object, int count);
   extern void Swig_print_with_location(DOH *object, int count);
+  extern void SWIG_exit(int exit_code);
 
 
 /* -- template init -- */
