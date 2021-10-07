@@ -1026,8 +1026,13 @@ public:
             }
        }
 
-       if (!is_void_return)
+       if (is_void_return) {
+	 Replaceall(wrapper->code, "$null", "");
+       } else {
+	 Replaceall(wrapper->code, "$null", "0");
+
          Append(wrapper->code, "return result;\n");
+       }
 
        Append(wrapper->code, "}\n");
 

@@ -607,6 +607,10 @@ Finally, the return value variable is returned.
 return result;
 </pre></div>
 
+Note that typemaps may use <tt>$null</tt> special variable which will be
+replaced with either <tt>0</tt> or nothing, depending on whether the function
+has a non-void return value or not.
+
 <H4>The Proxy</H4>
 Compared to the wrapper code generation, the header code is very simple.</br>
 Basically it contains just the declarations corresponding to the definitions
