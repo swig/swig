@@ -24,7 +24,6 @@ namespace std {
         typedef const value_type& const_reference;
 
         vector();
-        vector(size_type n);
         vector(const vector& other);
 
         size_type size() const;
