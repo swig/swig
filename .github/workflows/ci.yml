@@ -6,11 +6,13 @@ on:
     paths-ignore:
       - 'CHANGES*'
       - 'Doc/**'
+      - 'appveyor.yml'
   pull_request:
     branches: master
     paths-ignore:
       - 'CHANGES*'
       - 'Doc/**'
+      - 'appveyor.yml'
 
 jobs:
   build:
