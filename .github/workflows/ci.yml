@@ -301,9 +301,9 @@ jobs:
           if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
           if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
 
-    - name: Test Installation
-      run: |
+    - name: Install
       working-directory: build/build
+      run: |
           set -x
           if test -z "$SWIGLANG"; then sudo make install && swig -version && ccache-swig -V; fi
 
