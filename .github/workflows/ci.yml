@@ -258,7 +258,7 @@ jobs:
       working-directory: build/build
       run: |
           set -x
-          make $SWIGJOBS
+          make -s $SWIGJOBS
           ./swig -version && ./swig -pcreversion
 
     - name: Test
