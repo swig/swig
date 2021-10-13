@@ -192,7 +192,7 @@ jobs:
       with:
         key: ${{ matrix.os || 'ubuntu-20.04' }}-${{ matrix.compiler || 'gcc' }}${{ matrix.GCC }}
 
-    - name: Configure
+    - name: Install Dependencies
       run: |
           set -x
           export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
@@ -224,6 +224,9 @@ jobs:
           $CC --version
           $CXX --version
 
+    - name: Configure
+      run: |
+          set -x
           if test -n '${{ matrix.CONFIGOPTS }}'; then
             CONFIGOPTS=${{ matrix.CONFIGOPTS }}
           fi
@@ -257,10 +260,6 @@ jobs:
           set -x
           make $SWIGJOBS
           ./swig -version && ./swig -pcreversion
-          if test -z "$SWIGLANG"; then make $SWIGJOBS check-ccache; fi
-          if test -z "$SWIGLANG"; then make $SWIGJOBS check-errors-test-suite; fi
-          echo 'Installing...'
-          if test -z "$SWIGLANG"; then sudo make install && swig -version && ccache-swig -V; fi
 
     - name: Test
       working-directory: build/build
@@ -291,6 +290,10 @@ jobs:
           if test -n "$CPP11"; then export CPPSTD=c++11; fi
           if test -n "$CPP14"; then export CPPSTD=c++14; fi
           if test -n "$CPP17"; then export CPPSTD=c++17; fi
+
+          if test -z "$SWIGLANG"; then make $SWIGJOBS check-ccache; fi
+          if test -z "$SWIGLANG"; then make $SWIGJOBS check-errors-test-suite; fi
+
           # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
           if test -n "$SWIGLANG"; then cflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC) && echo $cflags; fi
           if test -n "$SWIGLANG"; then cxxflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC) && echo $cxxflags; fi
@@ -298,6 +301,12 @@ jobs:
           if test -n "$SWIGLANG"; then make check-$SWIGLANG-enabled; fi
           if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
           if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
+
+    - name: Test Installation
+      run: |
+      working-directory: build/build
+          set -x
+          if test -z "$SWIGLANG"; then sudo make install && swig -version && ccache-swig -V; fi
 
     - name: Clean
       working-directory: build/build
