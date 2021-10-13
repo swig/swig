@@ -214,19 +214,11 @@ jobs:
                   cpu_count=1
                   ;;
           esac
-          if [[ $cpu_count != 1 ]]; then
-            echo SWIGJOBS=-j$cpu_count >> $GITHUB_ENV
-          fi
 
           case "$SWIGLANG" in
             javascript)
               case "$ENGINE" in
-                node)
-                  export NVM_DIR="$HOME/.nvm"
-                  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                  nvm use ${VER}
-                  ;;
-                *)
+                v8 | jsc)
                   # Running tests using v8 or jsc involves creating a custom
                   # interpreter in Tools/javascript, which is currently broken
                   # for parallel builds (we attempt to update this interpreter
@@ -234,11 +226,11 @@ jobs:
                   unset SWIGJOBS
               esac
               ;;
-
-            ruby)
-              source $HOME/.rvm/scripts/rvm
-              ;;
           esac
+
+          if [[ $cpu_count != 1 ]]; then
+            echo SWIGJOBS=-j$cpu_count >> $GITHUB_ENV
+          fi
 
           if test '${{ matrix.compiler }}' = 'clang'; then
             CC="clang"
@@ -266,6 +258,25 @@ jobs:
     - name: Configure
       run: |
           set -x
+
+          # Repeat language specific environment setup
+          case "$SWIGLANG" in
+            javascript)
+              case "$ENGINE" in
+                node)
+                  export NVM_DIR="$HOME/.nvm"
+                  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                  nvm use ${VER}
+                  ;;
+                *)
+              esac
+              ;;
+
+            ruby)
+              source $HOME/.rvm/scripts/rvm
+              ;;
+          esac
+
           if test -n '${{ matrix.CONFIGOPTS }}'; then
             CONFIGOPTS=${{ matrix.CONFIGOPTS }}
           fi
@@ -287,6 +298,25 @@ jobs:
       working-directory: build/build
       run: |
           set -x
+
+          # Repeat language specific environment setup
+          case "$SWIGLANG" in
+            javascript)
+              case "$ENGINE" in
+                node)
+                  export NVM_DIR="$HOME/.nvm"
+                  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                  nvm use ${VER}
+                  ;;
+                *)
+              esac
+              ;;
+
+            ruby)
+              source $HOME/.rvm/scripts/rvm
+              ;;
+          esac
+
           if test -n "$CPP11"; then export CPPSTD=c++11; fi
           if test -n "$CPP14"; then export CPPSTD=c++14; fi
           if test -n "$CPP17"; then export CPPSTD=c++17; fi
