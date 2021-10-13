@@ -200,6 +200,45 @@ jobs:
 
           source Tools/GHA-linux-install.sh
 
+          case $(uname) in
+              Linux)
+                  cpu_count=$(nproc)
+                  ;;
+
+              Darwin)
+                  cpu_count=$(sysctl -n hw.ncpu)
+                  ;;
+
+              *)
+                  cpu_count=1
+                  ;;
+          esac
+          if [[ $cpu_count != 1 ]]; then
+            echo SWIGJOBS=-j$cpu_count >> $GITHUB_ENV
+          fi
+
+          case "$SWIGLANG" in
+            javascript)
+              case "$ENGINE" in
+                node)
+                  export NVM_DIR="$HOME/.nvm"
+                  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                  nvm use ${VER}
+                  ;;
+                *)
+                  # Running tests using v8 or jsc involves creating a custom
+                  # interpreter in Tools/javascript, which is currently broken
+                  # for parallel builds (we attempt to update this interpreter
+                  # while running, resulting in "Text file busy" error).
+                  unset SWIGJOBS
+              esac
+              ;;
+
+            ruby)
+              source $HOME/.rvm/scripts/rvm
+              ;;
+          esac
+
           if test '${{ matrix.compiler }}' = 'clang'; then
             CC="clang"
             CXX="clang++"
@@ -236,23 +275,6 @@ jobs:
           echo "${CONFIGOPTS[@]}"
           ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
 
-          case $(uname) in
-              Linux)
-                  cpu_count=$(nproc)
-                  ;;
-
-              Darwin)
-                  cpu_count=$(sysctl -n hw.ncpu)
-                  ;;
-
-              *)
-                  cpu_count=1
-                  ;;
-          esac
-          if [[ $cpu_count != 1 ]]; then
-            echo SWIGJOBS=-j$cpu_count >> $GITHUB_ENV
-          fi
-
     - name: Build
       working-directory: build/build
       run: |
@@ -263,28 +285,6 @@ jobs:
     - name: Test
       working-directory: build/build
       run: |
-          case "$SWIGLANG" in
-            javascript)
-              case "$ENGINE" in
-                node)
-                  export NVM_DIR="$HOME/.nvm"
-                  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                  nvm use ${VER}
-                  ;;
-                *)
-                  # Running tests using v8 or jsc involves creating a custom
-                  # interpreter in Tools/javascript, which is currently broken
-                  # for parallel builds (we attempt to update this interpreter
-                  # while running, resulting in "Text file busy" error).
-                  unset SWIGJOBS
-              esac
-              ;;
-
-            ruby)
-              source $HOME/.rvm/scripts/rvm
-              ;;
-          esac
-
           set -x
           if test -n "$CPP11"; then export CPPSTD=c++11; fi
           if test -n "$CPP14"; then export CPPSTD=c++14; fi
