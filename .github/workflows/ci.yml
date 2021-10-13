@@ -219,7 +219,6 @@ jobs:
           echo CC="$CC" >> $GITHUB_ENV
           echo CXX="$CXX" >> $GITHUB_ENV
 
-          echo "Compiler used:"
           ls -la $(which $CC) $(which $CXX)
           $CC --version
           $CXX --version
