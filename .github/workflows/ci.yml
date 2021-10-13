@@ -199,6 +199,7 @@ jobs:
           echo PATH="$PATH" >> $GITHUB_ENV
 
           source Tools/GHA-linux-install.sh
+          echo WITHLANG="$WITHLANG" >> $GITHUB_ENV
 
           case $(uname) in
               Linux)
