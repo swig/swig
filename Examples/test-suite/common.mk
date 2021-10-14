@@ -761,7 +761,6 @@ preproc_include.ctest: SWIGOPT += -includeall
 # Allow modules to define temporarily failing tests.
 C_TEST_CASES := $(filter-out $(FAILING_C_TESTS),$(C_TEST_CASES))
 CPP_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP_TEST_CASES))
-CPP11_TEST_CASES := $(filter-out $(FAILING_CPP11_TESTS),$(CPP11_TEST_CASES))
 MULTI_CPP_TEST_CASES := $(filter-out $(FAILING_MULTI_CPP_TESTS),$(MULTI_CPP_TEST_CASES))
 
 
@@ -812,7 +811,6 @@ check-failing-test = \
 check-failing:
 	+-$(foreach t,$(FAILING_C_TESTS),$(call check-failing-test,$t,ctest);)
 	+-$(foreach t,$(FAILING_CPP_TESTS),$(call check-failing-test,$t,cpptest);)
-	+-$(foreach t,$(FAILING_CPP11_TESTS),$(call check-failing-test,$t,cpptest);)
 	+-$(foreach t,$(FAILING_MULTI_CPP_TESTS),$(call check-failing-test,$t,multicpptest);)
 endif
 
