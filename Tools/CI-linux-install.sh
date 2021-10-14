@@ -1,5 +1,5 @@
 #!/bin/bash
-# expected to be called from elsewhere with certain variables set
+# Expected to be called from elsewhere with certain variables set
 # e.g. RETRY=travis-retry SWIGLANG=python GCC=7
 set -e # exit on failure (same as -o errexit)
 
