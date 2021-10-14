@@ -215,19 +215,6 @@ jobs:
                   ;;
           esac
 
-          case "$SWIGLANG" in
-            javascript)
-              case "$ENGINE" in
-                v8 | jsc)
-                  # Running tests using v8 or jsc involves creating a custom
-                  # interpreter in Tools/javascript, which is currently broken
-                  # for parallel builds (we attempt to update this interpreter
-                  # while running, resulting in "Text file busy" error).
-                  unset SWIGJOBS
-              esac
-              ;;
-          esac
-
           if [[ $cpu_count != 1 ]]; then
             echo SWIGJOBS=-j$cpu_count >> $GITHUB_ENV
           fi
@@ -289,6 +276,19 @@ jobs:
 
           if test -z "$SWIGLANG"; then make $SWIGJOBS check-ccache; fi
           if test -z "$SWIGLANG"; then make $SWIGJOBS check-errors-test-suite; fi
+
+          case "$SWIGLANG" in
+            javascript)
+              case "$ENGINE" in
+                v8 | jsc)
+                  # Running tests using v8 or jsc involves creating a custom
+                  # interpreter in Tools/javascript, which is currently broken
+                  # for parallel builds (we attempt to update this interpreter
+                  # while running, resulting in "Text file busy" error).
+                  unset SWIGJOBS
+              esac
+              ;;
+          esac
 
           # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
           if test -n "$SWIGLANG"; then cflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC) && echo $cflags; fi
