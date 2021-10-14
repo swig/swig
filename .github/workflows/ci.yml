@@ -43,6 +43,7 @@ jobs:
           compiler: clang
           desc: clang
         - SWIGLANG: c
+          CPP11: 1
           SWIG_FEATURES: "-w524"
         - SWIGLANG: csharp
         # D support can't be enabled because dmd 2.066 fails to build anything
