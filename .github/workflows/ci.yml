@@ -198,7 +198,7 @@ jobs:
           export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
           echo PATH="$PATH" >> $GITHUB_ENV
 
-          source Tools/GHA-linux-install.sh
+          source $GITHUB_WORKSPACE/Tools/GHA-linux-install.sh
           echo WITHLANG="$WITHLANG" >> $GITHUB_ENV
 
           case $(uname) in
@@ -258,7 +258,7 @@ jobs:
     - name: Configure
       run: |
           set -x
-          source Tools/CI-linux-environment.sh
+          source $GITHUB_WORKSPACE/Tools/CI-linux-environment.sh
 
           if test -n '${{ matrix.CONFIGOPTS }}'; then
             CONFIGOPTS=${{ matrix.CONFIGOPTS }}
@@ -281,7 +281,7 @@ jobs:
       working-directory: build/build
       run: |
           set -x
-          source Tools/CI-linux-environment.sh
+          source $GITHUB_WORKSPACE/Tools/CI-linux-environment.sh
 
           if test -n "$CPP11"; then export CPPSTD=c++11; fi
           if test -n "$CPP14"; then export CPPSTD=c++14; fi
