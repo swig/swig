@@ -42,6 +42,9 @@ jobs:
           GCC: 10
           desc: gcc10
         - SWIGLANG: ""
+          GCC: 11
+          desc: gcc11
+        - SWIGLANG: ""
           compiler: clang
           desc: clang
         - SWIGLANG: csharp
