@@ -2434,19 +2434,30 @@ fi
 
 AC_SUBST(RBIN)
 
-# C module on Mac OS X tweaks
+#----------------------------------------------------------------
+# Nothing to look for in C case, just define some variables
+#----------------------------------------------------------------
+
+# Some tweaks for creating shared modules.
+C_SO='$(SO)'
+
 case $host in
-*-*-darwin*) 
-        C_LDSHARED="cc -dynamiclib"
-        CXX_LDSHARED="g++ -dynamiclib"
+*-*-darwin*)
+        C_LDFLAGS='-dynamiclib'
         C_SO=".dylib"
         ;;
+*-*-cygwin* | *-*-mingw*)
+        # Nothing special to do.
+        ;;
 *)
-        C_LDSHARED='$(LDSHARED)'
-        CXX_LDSHARED='$(CXXSHARED)'
-        C_SO='$(SO)'
+        # This is needed for linking with Boost which uses mutexes and does no
+        # harm in all the other cases.
+        C_LDFLAGS='-pthread'
         ;;
 esac
+
+C_LDSHARED="\$(LDSHARED) $C_LDFLAGS"
+CXX_LDSHARED="\$(CXXSHARED) $C_LDFLAGS"
 
 AC_SUBST(C_LDSHARED)
 AC_SUBST(CXX_LDSHARED)
