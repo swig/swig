@@ -2,6 +2,7 @@
  * cheader.swg
  * ----------------------------------------------------------------------------- */
 
+%insert("cheader") %{
 #ifndef SWIGIMPORT
 # ifndef __GNUC__
 #   define __DLL_IMPORT __declspec(dllimport)
@@ -16,3 +17,4 @@
 #endif
 
 #include <stddef.h>
+%}

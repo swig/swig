@@ -5,8 +5,9 @@
  * c.swg
  * ----------------------------------------------------------------------------- */ 
 
+%include <cheader.swg>
+
 %insert("runtime") "clabels.swg"
-%insert("cheader") "cheader.swg"
 
 %insert("runtime") %{
 #include <stdlib.h>
