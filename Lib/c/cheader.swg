@@ -4,16 +4,16 @@
 
 %insert("cheader") %{
 #ifndef SWIGIMPORT
-# ifndef __GNUC__
-#   define __DLL_IMPORT __declspec(dllimport)
+# if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
+#   if defined(STATIC_LINKED)
+#     define SWIGDLLIMPORT
+#   else
+#     define SWIGDLLIMPORT __declspec(dllimport)
+#   endif
 # else
-#   define __DLL_IMPORT __attribute__((dllimport)) extern
+#   define SWIGDLLIMPORT
 # endif
-# if !defined (__WIN32__)
-#   define SWIGIMPORT extern
-# else
-#   define SWIGIMPORT __DLL_IMPORT
-# endif
+# define SWIGIMPORT extern SWIGDLLIMPORT
 #endif
 
 #include <stddef.h>
