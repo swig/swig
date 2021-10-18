@@ -42,6 +42,9 @@ jobs:
           GCC: 10
           desc: gcc10
         - SWIGLANG: ""
+          GCC: 11
+          desc: gcc11
+        - SWIGLANG: ""
           compiler: clang
           desc: clang
         - SWIGLANG: csharp
@@ -192,13 +195,32 @@ jobs:
       with:
         key: ${{ matrix.os || 'ubuntu-20.04' }}-${{ matrix.compiler || 'gcc' }}${{ matrix.GCC }}
 
-    - name: Configure
+    - name: Install Dependencies
       run: |
           set -x
           export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
           echo PATH="$PATH" >> $GITHUB_ENV
 
-          source Tools/GHA-linux-install.sh
+          source $GITHUB_WORKSPACE/Tools/GHA-linux-install.sh
+          echo WITHLANG="$WITHLANG" >> $GITHUB_ENV
+
+          case $(uname) in
+              Linux)
+                  cpu_count=$(nproc)
+                  ;;
+
+              Darwin)
+                  cpu_count=$(sysctl -n hw.ncpu)
+                  ;;
+
+              *)
+                  cpu_count=1
+                  ;;
+          esac
+
+          if [[ $cpu_count != 1 ]]; then
+            echo SWIGJOBS=-j$cpu_count >> $GITHUB_ENV
+          fi
 
           if test '${{ matrix.compiler }}' = 'clang'; then
             CC="clang"
@@ -219,10 +241,14 @@ jobs:
           echo CC="$CC" >> $GITHUB_ENV
           echo CXX="$CXX" >> $GITHUB_ENV
 
-          echo "Compiler used:"
           ls -la $(which $CC) $(which $CXX)
           $CC --version
           $CXX --version
+
+    - name: Configure
+      run: |
+          set -x
+          source $GITHUB_WORKSPACE/Tools/CI-linux-environment.sh
 
           if test -n '${{ matrix.CONFIGOPTS }}'; then
             CONFIGOPTS=${{ matrix.CONFIGOPTS }}
@@ -234,46 +260,30 @@ jobs:
           echo "${CONFIGOPTS[@]}"
           ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
 
-          case $(uname) in
-              Linux)
-                  cpu_count=$(nproc)
-                  ;;
-
-              Darwin)
-                  cpu_count=$(sysctl -n hw.ncpu)
-                  ;;
-
-              *)
-                  cpu_count=1
-                  ;;
-          esac
-          if [[ $cpu_count != 1 ]]; then
-            echo SWIGJOBS=-j$cpu_count >> $GITHUB_ENV
-          fi
-
     - name: Build
       working-directory: build/build
       run: |
           set -x
-          make $SWIGJOBS
+          make -s $SWIGJOBS
           ./swig -version && ./swig -pcreversion
-          if test -z "$SWIGLANG"; then make $SWIGJOBS check-ccache; fi
-          if test -z "$SWIGLANG"; then make $SWIGJOBS check-errors-test-suite; fi
-          echo 'Installing...'
-          if test -z "$SWIGLANG"; then sudo make install && swig -version && ccache-swig -V; fi
 
     - name: Test
       working-directory: build/build
       run: |
+          set -x
+          source $GITHUB_WORKSPACE/Tools/CI-linux-environment.sh
+
+          if test -n "$CPP11"; then export CPPSTD=c++11; fi
+          if test -n "$CPP14"; then export CPPSTD=c++14; fi
+          if test -n "$CPP17"; then export CPPSTD=c++17; fi
+
+          if test -z "$SWIGLANG"; then make $SWIGJOBS check-ccache; fi
+          if test -z "$SWIGLANG"; then make $SWIGJOBS check-errors-test-suite; fi
+
           case "$SWIGLANG" in
             javascript)
               case "$ENGINE" in
-                node)
-                  export NVM_DIR="$HOME/.nvm"
-                  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                  nvm use ${VER}
-                  ;;
-                *)
+                v8 | jsc)
                   # Running tests using v8 or jsc involves creating a custom
                   # interpreter in Tools/javascript, which is currently broken
                   # for parallel builds (we attempt to update this interpreter
@@ -281,16 +291,8 @@ jobs:
                   unset SWIGJOBS
               esac
               ;;
-
-            ruby)
-              source $HOME/.rvm/scripts/rvm
-              ;;
           esac
 
-          set -x
-          if test -n "$CPP11"; then export CPPSTD=c++11; fi
-          if test -n "$CPP14"; then export CPPSTD=c++14; fi
-          if test -n "$CPP17"; then export CPPSTD=c++17; fi
           # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
           if test -n "$SWIGLANG"; then cflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC) && echo $cflags; fi
           if test -n "$SWIGLANG"; then cxxflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC) && echo $cxxflags; fi
@@ -298,6 +300,12 @@ jobs:
           if test -n "$SWIGLANG"; then make check-$SWIGLANG-enabled; fi
           if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
           if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
+
+    - name: Install
+      working-directory: build/build
+      run: |
+          set -x
+          if test -z "$SWIGLANG"; then sudo make install && swig -version && ccache-swig -V; fi
 
     - name: Clean
       working-directory: build/build
