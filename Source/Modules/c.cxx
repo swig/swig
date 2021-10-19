@@ -476,9 +476,8 @@ public:
       f_wrappers_types = NewString("");
       f_wrappers_decl = NewString("");
 
-      // We also define aliases for the global wrapper functions to allow calling them using their original names, but as this can result in problems (as usual
-      // when using the preprocessor), we provide a way to disable this by defining SWIG_NO_WRAPPER_ALIASES when compiling the generated code and so we use a
-      // separate section for this too.
+      // We may also define aliases for the global wrapper functions to allow calling them using their original names, but as this can result in problems (as
+      // usual when using the preprocessor), this is only done when SWIG_DEFINE_WRAPPER_ALIASES is defined, so use a separate section for this.
       f_wrappers_aliases = NIL;
 
       {
@@ -504,7 +503,7 @@ public:
 	Dump(f_wrappers_aliases, f_wrappers_h);
 	Delete(f_wrappers_aliases);
 
-	Printv(f_wrappers_h, "#endif /* SWIG_NO_WRAPPER_ALIASES */\n", NIL);
+	Printv(f_wrappers_h, "#endif /* SWIG_DEFINE_WRAPPER_ALIASES */\n", NIL);
       }
     } // close wrapper header guard
 
@@ -903,7 +902,7 @@ public:
 	 if (!f_wrappers_aliases) {
 	   // Allocate it on demand.
 	   f_wrappers_aliases = NewStringEmpty();
-	   Printv(f_wrappers_aliases, "#ifndef SWIG_NO_WRAPPER_ALIASES\n", NIL);
+	   Printv(f_wrappers_aliases, "#ifdef SWIG_DEFINE_WRAPPER_ALIASES\n", NIL);
 	 }
 
 	 Printf(f_wrappers_aliases, "#define %s %s\n", name, wname);

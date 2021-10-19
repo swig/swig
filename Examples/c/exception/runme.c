@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <assert.h>
 
+#define SWIG_DEFINE_WRAPPER_ALIASES
 #include "example_wrap.h"
 
 static void show_exception(const char* prefix) {

@@ -1,4 +1,6 @@
 #include <assert.h>
+
+#define SWIG_DEFINE_WRAPPER_ALIASES
 #include "cpp_basic_template_function/cpp_basic_template_function_wrap.h"
 
 int main() {

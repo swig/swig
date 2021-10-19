@@ -1,3 +1,4 @@
+#define SWIG_DEFINE_WRAPPER_ALIASES
 #include "li_std_pair/li_std_pair_wrap.h"
 #include <assert.h>
 

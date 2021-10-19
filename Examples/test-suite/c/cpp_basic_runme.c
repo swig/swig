@@ -1,3 +1,4 @@
+#define SWIG_DEFINE_WRAPPER_ALIASES
 #include "cpp_basic/cpp_basic_wrap.h"
 #include <assert.h>
 #include <stdio.h>

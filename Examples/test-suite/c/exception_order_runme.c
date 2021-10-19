@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define SWIG_DEFINE_WRAPPER_ALIASES
 #include "exception_order/exception_order_wrap.h"
 
 int main() {

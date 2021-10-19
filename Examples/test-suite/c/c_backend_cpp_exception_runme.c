@@ -1,4 +1,6 @@
 #include <assert.h>
+
+#define SWIG_DEFINE_WRAPPER_ALIASES
 #include "c_backend_cpp_exception/c_backend_cpp_exception_wrap.h"
 
 int main()

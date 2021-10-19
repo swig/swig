@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#define SWIG_DEFINE_WRAPPER_ALIASES
 #include "example_wrap.h"
 
 int main(int argc, char **argv) {

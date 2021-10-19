@@ -4,7 +4,7 @@
 
 int main(int argc, const char *argv[])
 {
-    init();
+    global_vars_init();
 
     assert(strcmp(b_get(), "string b") == 0);
     assert(x == 1234);

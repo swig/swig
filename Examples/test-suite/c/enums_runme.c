@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#define SWIG_DEFINE_WRAPPER_ALIASES
 #include "enums/enums_wrap.h"
 
 int main() {

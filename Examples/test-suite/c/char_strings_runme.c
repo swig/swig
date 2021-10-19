@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define SWIG_DEFINE_WRAPPER_ALIASES
 #include "char_strings/char_strings_wrap.h"
 
 int main() {
