@@ -128,6 +128,9 @@ jobs:
           PY3: 3
           VER: '3.9'
         - SWIGLANG: python
+          PY3: 3
+          VER: '3.10'
+        - SWIGLANG: python
           SWIG_FEATURES: -builtin
           desc: builtin
         - SWIGLANG: python
