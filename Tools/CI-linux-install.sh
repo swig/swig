@@ -34,7 +34,7 @@ case "$SWIGLANG" in
 			"node")
 				$RETRY wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.33.10/install.sh | bash
 				export NVM_DIR="$HOME/.nvm"
-				[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+				[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
 				$RETRY nvm install ${VER}
 				nvm use ${VER}
 				if [ "$VER" == "0.10" ] || [ "$VER" == "0.12" ] || [ "$VER" == "4" ] || [ "$VER" == "6" ] ; then
