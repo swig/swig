@@ -26,7 +26,11 @@ case "$SWIGLANG" in
 		;;
 	"go")
 		if [[ "$VER" ]]; then
-		  eval "$(gimme ${VER}.x)"
+		  mkdir -p $HOME/bin
+		  curl -sL -o $HOME/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
+		  chmod +x $HOME/bin/gimme
+		  eval "$($HOME/bin/gimme ${VER}.x)"
+		  $HOME/bin/gimme --list
 		fi
 		;;
 	"javascript")
