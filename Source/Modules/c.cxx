@@ -176,7 +176,8 @@ public:
     Delete(module_prefix);
   }
 
-  String *getNamespacedName(Node *n)
+  // Return the name to be used in proxy code and cache it as "proxyname".
+  String *getProxyName(Node *n)
   {
      if (!n)
       return 0;
@@ -233,7 +234,7 @@ public:
    String *getClassProxyName(SwigType *t) {
      Node *n = classLookup(t);
 
-    return n ? getNamespacedName(n) : NULL;
+    return n ? getProxyName(n) : NULL;
 
    }
 
@@ -265,7 +266,7 @@ public:
 	    Delete(proxyname);
           } else {
             // global enum or enum in a namespace
-	    enumname = getNamespacedName(n);
+	    enumname = getProxyName(n);
           }
           Setattr(n, "enumname", enumname);
           Delete(enumname);
@@ -1274,7 +1275,7 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int classHandler(Node *n) {
-    String *name = getNamespacedName(n);
+    String *name = getProxyName(n);
 
     if (CPlusPlus) {
       // inheritance support: attach all members from base classes to this class
