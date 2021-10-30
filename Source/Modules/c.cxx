@@ -224,13 +224,13 @@ public:
   }
 
   /* -----------------------------------------------------------------------------
-   * getProxyName()
+   * getClassProxyName()
    *
    * Test to see if a type corresponds to something wrapped with a proxy class.
    * Return NULL if not, otherwise the proxy class name to be freed by the caller.
    * ----------------------------------------------------------------------------- */
 
-   String *getProxyName(SwigType *t) {
+   String *getClassProxyName(SwigType *t) {
      Node *n = classLookup(t);
 
     return n ? getNamespacedName(n) : NULL;
@@ -256,7 +256,7 @@ public:
           String *proxyname = 0;
           if (String *name = Getattr(n, "name")) {
 	    if (String *scopename_prefix = Swig_scopename_prefix(name)) {
-	      proxyname = getProxyName(scopename_prefix);
+	      proxyname = getClassProxyName(scopename_prefix);
 	      Delete(scopename_prefix);
 	    }
 	  }
@@ -304,7 +304,7 @@ public:
 	// Special case, just leave it unchanged.
 	typestr = NewString("SwigObj");
       } else {
-	typestr = getProxyName(classnametype);
+	typestr = getClassProxyName(classnametype);
 	if (!typestr) {
 	  if (SwigType_isbuiltin(btype)) {
 	    // This should work just as well in C without any changes.
