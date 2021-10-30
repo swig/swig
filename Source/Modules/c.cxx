@@ -189,10 +189,8 @@ public:
      String *nspace = Getattr(n, "sym:nspace");
 
      if (nspace) {
-       String *nspace_mangled = Copy(nspace);
-       Replaceall(nspace_mangled, ".", "_");
-       proxyname = NewStringf("%s_%s", nspace_mangled, symname);
-       Delete(nspace_mangled);
+       scoped_dohptr nspace_mangled(Swig_string_mangle(nspace));
+       proxyname = NewStringf("%s_%s", (DOH*)nspace_mangled, symname);
      } else {
        proxyname = Copy(symname);
      }
