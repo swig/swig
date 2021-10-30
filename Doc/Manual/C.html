@@ -133,6 +133,11 @@ $ swig -c -help
 </tr>
 
 <tr>
+<td>-namespace &lt;nspace&gt;</td>
+<td>Generate wrappers with the prefix based on the provided namespace, e.g. if the option value is <tt>outer::inner</tt>, the prefix <tt>outer_inner_</tt> will be used. Notice that this is different from using SWIG <tt>nspace</tt> feature, as it applies the the prefix to all the symbols, regardless of the namespace they were actually declared in. Notably, this allows to export instantiations of templates defined in the <tt>std</tt> namespace, such as <tt>std::vector</tt>, using a custom prefix rather than <tt>std_</tt>.</td>
+</tr>
+
+<tr>
 <td>-noexcept</td>
 <td>generate wrappers with no support of exception handling; see <a href="#C_exceptions">Exceptions</a> chapter for more details </td>
 </tr>

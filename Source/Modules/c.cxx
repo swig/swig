@@ -178,6 +178,9 @@ class C:public Language {
 
   String *empty_string;
 
+  // Prefix used for all symbols, if defined.
+  String *ns_prefix;
+
   // Prefix for module-level symbols, currently just the module name.
   String *module_prefix;
 
@@ -201,12 +204,14 @@ public:
 
   C() :
     empty_string(NewString("")),
+    ns_prefix(NULL),
     module_prefix(NULL)
   {
   }
 
   ~C()
   {
+    Delete(ns_prefix);
     Delete(module_prefix);
   }
 
@@ -226,6 +231,8 @@ public:
      if (nspace) {
        scoped_dohptr nspace_mangled(Swig_string_mangle(nspace));
        proxyname = NewStringf("%s_%s", (DOH*)nspace_mangled, symname);
+     } else if (ns_prefix) {
+       proxyname = NewStringf("%s_%s", ns_prefix, symname);
      } else {
        proxyname = Copy(symname);
      }
@@ -247,6 +254,15 @@ public:
       return wname;
     }
 
+    // Static member functions (which do have "c:globalfun" attribute) are a special case: normally we wouldn't want to use prefix for them neither, as they
+    // already use the class name as prefix, but without one, they conflict with the names created by %extend, that use the same "class_method" form,
+    // internally. So we still need to append some prefix to them, but we may avoid doing it if use a global prefix, as this is enough to avoid the conflict
+    // with %extend, and doing this allows to avoid duplicating this prefix (as it is also part of the class name).
+    if (Checkattr(n, "ismember", "1") && ns_prefix) {
+      wname.assign_non_owned(name);
+      return wname;
+    }
+
     // Use namespace as the prefix if feature:nspace is in use.
     scoped_dohptr scopename_prefix;
     if (GetFlag(parentNode(n), "feature:nspace")) {
@@ -257,11 +273,15 @@ public:
       }
     }
 
-    // Fall back to the module name if we don't use feature:nspace or are outside of any namespace.
+    // Fall back to the module name if we don't use feature:nspace and don't have the global prefix neither.
     //
     // Note that we really, really need to use some prefix, as a global wrapper function can't have the same name as the original function (being wrapped) with
     // the same name.
-    String* const prefix = scopename_prefix ? scopename_prefix : module_prefix;
+    String* const prefix = scopename_prefix
+      ? scopename_prefix
+      : ns_prefix
+	? ns_prefix
+	: module_prefix;
 
     wname.assign_owned(NewStringf("%s_%s", prefix, name));
     return wname;
@@ -434,6 +454,16 @@ public:
       if (argv[i]) {
         if (strcmp(argv[i], "-help") == 0) {
           Printf(stdout, "%s\n", usage);
+        } else if (strcmp(argv[i], "-namespace") == 0) {
+	  if (argv[i + 1]) {
+	    scoped_dohptr ns(NewString(argv[i + 1]));
+	    ns_prefix = Swig_string_mangle(ns);
+	    Swig_mark_arg(i);
+	    Swig_mark_arg(i + 1);
+	    i++;
+	  } else {
+	    Swig_arg_error();
+	  }
         } else if (strcmp(argv[i], "-noexcept") == 0) {
           except_flag = false;
           Swig_mark_arg(i);
@@ -454,13 +484,21 @@ public:
     SWIG_typemap_lang("c");
     SWIG_config_file("c.swg");
 
+    String* const ns_prefix_ = ns_prefix ? NewStringf("%s_", ns_prefix) : NewString("");
+
     // The default naming convention is to use new_Foo(), copy_Foo() and delete_Foo() for the default/copy ctor and dtor of the class Foo, but we prefer to
     // start all Foo methods with the same prefix, so change this. Notice that new/delete are chosen to ensure that we avoid conflicts with the existing class
     // methods, more natural create/destroy, for example, could result in errors if the class already had a method with the same name, but this is impossible
     // for the chosen names as they're keywords in C++ ("copy" is still a problem but we'll just have to live with it).
-    Swig_name_register("construct", "%n%c_new");
-    Swig_name_register("copy", "%n%c_copy");
-    Swig_name_register("destroy", "%n%c_delete");
+    Swig_name_register("construct", NewStringf("%s%%n%%c_new", ns_prefix_));
+    Swig_name_register("copy", NewStringf("%s%%n%%c_copy", ns_prefix_));
+    Swig_name_register("destroy", NewStringf("%s%%n%%c_delete", ns_prefix_));
+
+    // These ones are only needed when using a global prefix, as otherwise the defaults are fine.
+    if (ns_prefix) {
+      Swig_name_register("member", NewStringf("%s%%n%%c_%%m", ns_prefix_));
+      Swig_name_register("type", NewStringf("%s%%c", ns_prefix_));
+    }
 
     allow_overloading();
   }
@@ -587,21 +625,33 @@ public:
     if (Checkattr(n, "storage", "static"))
       return SWIG_NOWRAP;
 
-    // We can't export variables defined inside namespaces to C directly, whatever their type.
-    String* const scope = Swig_scopename_prefix(Getattr(n, "name"));
-    if (!scope) {
+    // We can't export variables defined inside namespaces to C directly, whatever their type, and we can only export them under their original name, so we
+    // can't do it when using a global namespace prefix neither.
+    if (!ns_prefix && !scoped_dohptr(Swig_scopename_prefix(Getattr(n, "name")))) {
       // If we can export the variable directly, do it, this will be more convenient to use from C code than accessor functions.
       if (String* const var_decl = make_c_var_decl(n)) {
 	Printv(f_wrappers_decl, "SWIGIMPORT ", var_decl, ";\n\n", NIL);
 	Delete(var_decl);
 	return SWIG_OK;
       }
-    } else {
-      Delete(scope);
+    }
+
+    // We have to prepend the global prefix to the names of the accessors for this variable, if we use one.
+    //
+    // Note that we can't just register the name format using the prefix for "get" and "set", as we do it for "member", and using it for both would result in
+    // the prefix being used twice for the member variables getters and setters, so we have to work around it here instead.
+    if (ns_prefix && !getCurrentClass()) {
+      Swig_require("c:globalvariableHandler", n, "*sym:name", NIL);
+      Setattr(n, "sym:name", NewStringf("%s_%s", ns_prefix, Getattr(n, "sym:name")));
     }
 
     // Otherwise, e.g. if it's of a C++-only type, or a reference, generate accessor functions for it.
-    return Language::globalvariableHandler(n);
+    int const rc = Language::globalvariableHandler(n);
+
+    if (Getattr(n, "view"))
+      Swig_restore(n);
+
+    return rc;
   }
 
   /* -----------------------------------------------------------------------
@@ -1445,7 +1495,8 @@ public:
       return SWIG_NOWRAP;
 
     // Preserve the typedef if we have it in the input.
-    String* const tdname = Getattr(n, "tdname");
+    maybe_owned_dohptr tdname;
+    tdname.assign_non_owned(Getattr(n, "tdname"));
     if (tdname) {
       Printv(f_wrappers_types, "typedef ", NIL);
     }
@@ -1454,7 +1505,11 @@ public:
     if (Node* const klass = getCurrentClass()) {
       enum_prefix = getProxyName(klass);
     } else {
-      enum_prefix = NIL;
+      enum_prefix = ns_prefix; // Possibly NULL, but that's fine.
+    }
+
+    if (tdname && enum_prefix) {
+      tdname.assign_owned(NewStringf("%s_%s", enum_prefix, tdname.get()));
     }
 
     scoped_dohptr enumname;
@@ -1493,9 +1548,7 @@ public:
     enum_prefix = NULL;
 
     if (tdname) {
-      String* const enumname = Swig_name_mangle(tdname);
-      Printv(f_wrappers_types, " ", enumname, NIL);
-      Delete(enumname);
+      Printv(f_wrappers_types, " ", tdname.get(), NIL);
     }
     Printv(f_wrappers_types, ";\n\n", NIL);
 
@@ -1619,6 +1672,7 @@ extern "C" Language *swig_c(void) {
 
 const char *C::usage = (char *) "\
 C Options (available with -c)\n\
+     -namespace ns - use prefix based on the provided namespace\n\
      -noexcept     - do not generate exception handling code\n\
 \n";
 
