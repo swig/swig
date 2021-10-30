@@ -33,6 +33,7 @@ namespace
 class scoped_dohptr
 {
 public:
+  scoped_dohptr() : obj_(NULL) {}
   explicit scoped_dohptr(DOH* obj) : obj_(obj) {}
   ~scoped_dohptr() { Delete(obj_); }
 
@@ -44,6 +45,16 @@ public:
     if (&other != this) {
       Delete(obj_);
       obj_ = other.release();
+    }
+
+    return *this;
+  }
+
+  // Assignment operator takes ownership of the pointer, just as the ctor does.
+  scoped_dohptr& operator=(DOH* obj) {
+    if (obj != obj_) {
+      Delete(obj_);
+      obj_ = obj;
     }
 
     return *this;
@@ -196,13 +207,12 @@ public:
   String *getGlobalWrapperName(Node *n, String *name) const
   {
     // Use namespace as the prefix if feature:nspace is in use.
-    scoped_dohptr scopename_prefix(Swig_scopename_prefix(Getattr(n, "name")));
-    if (scopename_prefix) {
-      if (GetFlag(parentNode(n), "feature:nspace")) {
+    scoped_dohptr scopename_prefix;
+    if (GetFlag(parentNode(n), "feature:nspace")) {
+      scopename_prefix = Swig_scopename_prefix(Getattr(n, "name"));
+      if (scopename_prefix) {
 	scoped_dohptr mangled_prefix(Swig_string_mangle(scopename_prefix));
 	scopename_prefix = mangled_prefix;
-      } else {
-	scopename_prefix.reset();
       }
     }
 
