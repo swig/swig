@@ -7,6 +7,8 @@ if [[ -n "$GCC" ]]; then
 	$RETRY sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 	$RETRY sudo apt-get -qq update
 	$RETRY sudo apt-get install -qq g++-$GCC
+else
+	$RETRY sudo apt-get -qq update
 fi
 
 $RETRY sudo apt-get -qq install libboost-dev libpcre3-dev
