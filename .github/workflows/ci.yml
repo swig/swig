@@ -83,7 +83,6 @@ jobs:
           CPP14: 1
         - SWIGLANG: javascript
           ENGINE: jsc
-          os: ubuntu-18.04 # libwebkitgtk-dev dependency not available in 20.04.
         - SWIGLANG: javascript
           ENGINE: v8
           os: ubuntu-18.04 # libv8-dev only actually provides v8 in 18.04.

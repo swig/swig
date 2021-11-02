@@ -55,7 +55,7 @@ case "$SWIGLANG" in
 				fi
 				;;
 			"jsc")
-				$RETRY sudo apt-get install -qq libwebkitgtk-dev
+				$RETRY sudo apt-get install -qq libjavascriptcoregtk-4.0-dev
 				;;
 			"v8")
 				$RETRY sudo apt-get install -qq libv8-dev
