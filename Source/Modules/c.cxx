@@ -606,12 +606,7 @@ public:
    * ------------------------------------------------------------------------ */
 
   virtual int globalfunctionHandler(Node *n) {
-    SwigType *type = Getattr(n, "type");
-
     Setattr(n, "c:globalfun", "1");
-
-    if (!SwigType_ispointer(type) && !SwigType_isreference(type))
-      Setattr(n, "c:retval", "1");
 
     return Language::globalfunctionHandler(n);
   }
@@ -1370,40 +1365,6 @@ public:
   }
 
   /* ---------------------------------------------------------------------
-   * staticmemberfunctionHandler()
-   * --------------------------------------------------------------------- */
-
-  virtual int staticmemberfunctionHandler(Node *n) {
-    SwigType *type = Getattr(n, "type");
-    SwigType *tdtype;
-    tdtype = SwigType_typedef_resolve_all(type);
-    if (tdtype)
-      type = tdtype;
-    if (type) {
-      if (!SwigType_ispointer(type) && !SwigType_isreference(type))
-        Setattr(n, "c:retval", "1");
-    }
-    return Language::staticmemberfunctionHandler(n);
-  }
-
-  /* ---------------------------------------------------------------------
-   * memberfunctionHandler()
-   * --------------------------------------------------------------------- */
-
-  virtual int memberfunctionHandler(Node *n) {
-    SwigType *type = Getattr(n, "type");
-    SwigType *tdtype;
-    tdtype = SwigType_typedef_resolve_all(type);
-    if (tdtype)
-      type = tdtype;
-    if (type) {
-      if (!SwigType_ispointer(type) && !SwigType_isreference(type))
-        Setattr(n, "c:retval", "1");
-    }
-    return Language::memberfunctionHandler(n);
-  }
-
-  /* ---------------------------------------------------------------------
    * staticmembervariableHandler()
    * --------------------------------------------------------------------- */
 
@@ -1420,10 +1381,6 @@ public:
       SwigType_add_pointer(btype);
       SwigType_add_array(btype, NewStringf("%s", SwigType_array_getdim(type, 0)));
       Setattr(n, "type", btype);
-    }
-    if (type) {
-      if (!SwigType_ispointer(type) && !SwigType_isreference(type))
-        Setattr(n, "c:retval", "1");
     }
     Delete(type);
     Delete(btype);
@@ -1447,10 +1404,6 @@ public:
       SwigType_add_pointer(btype);
       SwigType_add_array(btype, NewStringf("%s", SwigType_array_getdim(type, 0)));
       Setattr(n, "type", btype);
-    }
-    if (type) {
-      if (!SwigType_ispointer(type) && !SwigType_isreference(type))
-        Setattr(n, "c:retval", "1");
     }
     Delete(type);
     Delete(btype);
