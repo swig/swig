@@ -933,7 +933,6 @@ public:
        bool const is_global = GetFlag(n, "c:globalfun");
        String *wname = is_global ? getGlobalWrapperName(n, name) : Copy(name);
        String *preturn_type = get_wrapper_func_return_type(n);
-       String *wrapper_call = NewString("");
 
        // add function declaration to the proxy header file
        Printv(f_wrappers_decl, "SWIGIMPORT ", preturn_type, " ", wname, get_wrapper_func_proto(n).get(), ";\n\n", NIL);
@@ -950,7 +949,6 @@ public:
 
        // cleanup
        Delete(wname);
-       Delete(wrapper_call);
        Delete(preturn_type);
     }
 
@@ -961,7 +959,6 @@ public:
 
        // C++ function wrapper
        SwigType *type = Getattr(n, "type");
-       SwigType *otype = Copy(type);
        SwigType *return_type = get_wrapper_func_return_type(n);
        String *wname = GetFlag(n, "c:globalfun") ? getGlobalWrapperName(n, name) : Copy(name);
        ParmList *parms = Getattr(n, "parms");
@@ -1080,7 +1077,6 @@ public:
        // cleanup
        Delete(wname);
        Delete(return_type);
-       Delete(otype);
        DelWrapper(wrapper);
     }
 
