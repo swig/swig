@@ -958,6 +958,7 @@ swig -python -help
 <tr><td>-interface &lt;mod&gt;</td><td>Set low-level C/C++ module name to &lt;mod&gt; (default: module name prefixed by '_')</td></tr>
 <tr><td>-keyword        </td><td>Use keyword arguments</td></tr>
 <tr><td>-nofastunpack   </td><td>Use traditional UnpackTuple method to parse the argument functions</td></tr>
+<tr><td>-noflatstaticmember </td><td>Don't generate Foo_bar for static method Foo::bar</td></tr>
 <tr><td>-noh            </td><td>Don't generate the output header file</td></tr>
 <tr><td>-noproxy        </td><td>Don't generate proxy classes</td></tr>
 <tr><td>-nortti         </td><td>Disable the use of the native C++ RTTI with directors</td></tr>
@@ -1613,7 +1614,7 @@ In Python, the static member can be accessed in three different ways:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; example.Spam_foo()    # Spam::foo()
+&gt;&gt;&gt; example.Spam_foo()    # Spam::foo() "flattened" name
 &gt;&gt;&gt; s = example.Spam()
 &gt;&gt;&gt; s.foo()               # Spam::foo() via an instance
 &gt;&gt;&gt; example.Spam.foo()    # Spam::foo() using Python-2.2 and later
@@ -1622,7 +1623,8 @@ In Python, the static member can be accessed in three different ways:
 
 <p>
 The first two methods of access are supported in all versions of Python.  The
-last technique is only available in Python-2.2 and later versions.
+last technique is only available in Python-2.2 and later versions.  The <tt>
+-noflatstaticmember</tt> option can be used to prevent generation of the first "flattened" function if required.
 </p>
 
 <p>
