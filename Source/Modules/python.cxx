@@ -91,6 +91,7 @@ static int castmode = 0;
 static int extranative = 0;
 static int nortti = 0;
 static int relativeimport = 0;
+static int flat_static_member = 1;
 
 /* flags for the make_autodoc function */
 namespace {
@@ -121,6 +122,7 @@ Python Options (available with -python)\n\
      -keyword        - Use keyword arguments\n";
 static const char *usage2 = "\
      -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions\n\
+     -noflatstaticmember - Don't generate Foo_bar for static method Foo::bar\n\
      -noh            - Don't generate the output header file\n";
 static const char *usage3 = "\
      -noproxy        - Don't generate proxy classes\n\
@@ -371,6 +373,9 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-extranative") == 0) {
 	  extranative = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-noflatstaticmember") == 0) {
+	  flat_static_member = 0;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-noh") == 0) {
 	  no_header_file = 1;
@@ -2594,11 +2599,11 @@ public:
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, f_wrappers);
     Node *p = Getattr(n, "sym:previousSibling");
-    if (!builtin_self)
+    if (!builtin_self && (flat_static_member || !in_class || !builtin))
       add_method(symname, wname, 0, p);
 
     /* Create a shadow for this function (if enabled and not in a member function) */
-    if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER))) {
+    if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER)) && (flat_static_member || !in_class)) {
       emitFunctionShadowHelper(n, in_class ? f_shadow_stubs : f_shadow, symname, 0);
     }
     DelWrapper(f);
@@ -3262,11 +3267,11 @@ public:
 
     /* Now register the function with the interpreter.   */
     if (!Getattr(n, "sym:overloaded")) {
-      if (!builtin_self)
+      if (!builtin_self && (flat_static_member || !in_class || !builtin))
 	add_method(iname, wname, allow_kwargs, n, funpack, num_required, num_arguments);
 
       /* Create a shadow for this function (if enabled and not in a member function) */
-      if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER))) {
+      if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER)) && (flat_static_member || !in_class)) {
 	emitFunctionShadowHelper(n, in_class ? f_shadow_stubs : f_shadow, iname, allow_kwargs);
       }
     } else {
