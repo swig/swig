@@ -42,20 +42,14 @@ public:
 
   // Same for the assignment operator.
   scoped_dohptr& operator=(scoped_dohptr const& other) {
-    if (&other != this) {
-      Delete(obj_);
-      obj_ = other.release();
-    }
+    reset(other.release());
 
     return *this;
   }
 
   // Assignment operator takes ownership of the pointer, just as the ctor does.
   scoped_dohptr& operator=(DOH* obj) {
-    if (obj != obj_) {
-      Delete(obj_);
-      obj_ = obj;
-    }
+    reset(obj);
 
     return *this;
   }
@@ -68,10 +62,10 @@ public:
     return obj;
   }
 
-  void reset() {
-    if (obj_) {
+  void reset(DOH* obj = NULL) {
+    if (obj != obj_) {
       Delete(obj_);
-      obj_ = NULL;
+      obj_ = obj;
     }
   }
 
