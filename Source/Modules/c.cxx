@@ -811,7 +811,7 @@ public:
        Delete(over_suffix);
     }
 
-  String *get_wrapper_func_return_type(Node *n)
+  scoped_dohptr get_wrapper_func_return_type(Node *n)
     {
       SwigType *type = Getattr(n, "type");
       String *return_type;
@@ -825,7 +825,7 @@ public:
 
       Replaceall(return_type, "::", "_");
 
-      return return_type;
+      return scoped_dohptr(return_type);
     }
 
   /* ----------------------------------------------------------------------
@@ -938,10 +938,9 @@ public:
        current_output = output_wrapper_decl;
 
        maybe_owned_dohptr wname = getFunctionWrapperName(n, name);
-       String *preturn_type = get_wrapper_func_return_type(n);
 
        // add function declaration to the proxy header file
-       Printv(f_wrappers_decl, "SWIGIMPORT ", preturn_type, " ", wname.get(), get_wrapper_func_proto(n).get(), ";\n\n", NIL);
+       Printv(f_wrappers_decl, "SWIGIMPORT ", get_wrapper_func_return_type(n).get(), " ", wname.get(), get_wrapper_func_proto(n).get(), ";\n\n", NIL);
 
        if (GetFlag(n, "c:globalfun")) {
 	 if (!f_wrappers_aliases) {
@@ -952,9 +951,6 @@ public:
 
 	 Printf(f_wrappers_aliases, "#define %s %s\n", name, wname.get());
        }
-
-       // cleanup
-       Delete(preturn_type);
     }
 
 
@@ -964,7 +960,7 @@ public:
 
        // C++ function wrapper
        SwigType *type = Getattr(n, "type");
-       SwigType *return_type = get_wrapper_func_return_type(n);
+       scoped_dohptr return_type = get_wrapper_func_return_type(n);
        maybe_owned_dohptr wname = getFunctionWrapperName(n, name);
        ParmList *parms = Getattr(n, "parms");
        Parm *p;
@@ -986,7 +982,7 @@ public:
        }
 
        // create wrapper function prototype
-       Printv(wrapper->def, "SWIGEXPORTC ", return_type, " ", wname.get(), NIL);
+       Printv(wrapper->def, "SWIGEXPORTC ", return_type.get(), " ", wname.get(), NIL);
 
        Printv(wrapper->def, get_wrapper_func_proto(n, wrapper).get(), NIL);
        Printv(wrapper->def, " {", NIL);
@@ -1036,7 +1032,7 @@ public:
 	      const char* start = Char(tm);
 	      const char* p = strstr(start, "$result = ");
 	      if (p == start || (p && p[-1] == ' ')) {
-		Insert(tm, p - start + strlen("$result = "), NewStringf("(%s)", return_type));
+		Insert(tm, p - start + strlen("$result = "), NewStringf("(%s)", return_type.get()));
 	      }
                  Replaceall(tm, "$result", "result");
 		 Replaceall(tm, "$owner", GetFlag(n, "feature:new") ? "1" : "0");
@@ -1080,7 +1076,6 @@ public:
        Wrapper_print(wrapper, f_wrappers);
 
        // cleanup
-       Delete(return_type);
        DelWrapper(wrapper);
     }
 
