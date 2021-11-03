@@ -930,25 +930,27 @@ public:
        current_output = output_wrapper_decl;
 
        // C++ function wrapper proxy code
-       bool const is_global = GetFlag(n, "c:globalfun");
-       String *wname = is_global ? getGlobalWrapperName(n, name) : Copy(name);
+       maybe_owned_dohptr wname;
+       if (GetFlag(n, "c:globalfun"))
+	 wname.assign_owned(getGlobalWrapperName(n, name));
+       else
+	 wname.assign_non_owned(name);
        String *preturn_type = get_wrapper_func_return_type(n);
 
        // add function declaration to the proxy header file
-       Printv(f_wrappers_decl, "SWIGIMPORT ", preturn_type, " ", wname, get_wrapper_func_proto(n).get(), ";\n\n", NIL);
+       Printv(f_wrappers_decl, "SWIGIMPORT ", preturn_type, " ", wname.get(), get_wrapper_func_proto(n).get(), ";\n\n", NIL);
 
-       if (is_global) {
+       if (GetFlag(n, "c:globalfun")) {
 	 if (!f_wrappers_aliases) {
 	   // Allocate it on demand.
 	   f_wrappers_aliases = NewStringEmpty();
 	   Printv(f_wrappers_aliases, "#ifdef SWIG_DEFINE_WRAPPER_ALIASES\n", NIL);
 	 }
 
-	 Printf(f_wrappers_aliases, "#define %s %s\n", name, wname);
+	 Printf(f_wrappers_aliases, "#define %s %s\n", name, wname.get());
        }
 
        // cleanup
-       Delete(wname);
        Delete(preturn_type);
     }
 
@@ -960,7 +962,11 @@ public:
        // C++ function wrapper
        SwigType *type = Getattr(n, "type");
        SwigType *return_type = get_wrapper_func_return_type(n);
-       String *wname = GetFlag(n, "c:globalfun") ? getGlobalWrapperName(n, name) : Copy(name);
+       maybe_owned_dohptr wname;
+       if (GetFlag(n, "c:globalfun"))
+	 wname.assign_owned(getGlobalWrapperName(n, name));
+       else
+	 wname.assign_non_owned(name);
        ParmList *parms = Getattr(n, "parms");
        Parm *p;
        bool is_void_return = (SwigType_type(type) == T_VOID);
@@ -981,7 +987,7 @@ public:
        }
 
        // create wrapper function prototype
-       Printv(wrapper->def, "SWIGEXPORTC ", return_type, " ", wname, NIL);
+       Printv(wrapper->def, "SWIGEXPORTC ", return_type, " ", wname.get(), NIL);
 
        Printv(wrapper->def, get_wrapper_func_proto(n, wrapper).get(), NIL);
        Printv(wrapper->def, " {", NIL);
@@ -1075,7 +1081,6 @@ public:
        Wrapper_print(wrapper, f_wrappers);
 
        // cleanup
-       Delete(wname);
        Delete(return_type);
        DelWrapper(wrapper);
     }
