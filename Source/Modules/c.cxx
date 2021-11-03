@@ -248,17 +248,19 @@ public:
   {
     maybe_owned_dohptr wname;
 
-    // For class members we don't need to use any prefix at all, as they're already prefixed by the class name, which has the appropriate prefix.
-    if (!GetFlag(n, "c:globalfun")) {
-      wname.assign_non_owned(name);
-      return wname;
-    }
-
-    // Static member functions (which do have "c:globalfun" attribute) are a special case: normally we wouldn't want to use prefix for them neither, as they
-    // already use the class name as prefix, but without one, they conflict with the names created by %extend, that use the same "class_method" form,
-    // internally. So we still need to append some prefix to them, but we may avoid doing it if use a global prefix, as this is enough to avoid the conflict
-    // with %extend, and doing this allows to avoid duplicating this prefix (as it is also part of the class name).
-    if (Checkattr(n, "ismember", "1") && ns_prefix) {
+    // The basic idea here is that for class members we don't need to use any prefix at all, as they're already prefixed by the class name, which has the
+    // appropriate prefix, but we need to use a prefix for the other symbols.
+    //
+    // However there are a couple of special cases complicating this:
+    //
+    //  - Friend functions are declared inside the class, but are not member functions, so we have to check for both the current class and "ismember" property.
+    //  - Destructors and implicitly generated constructors don't have "ismember" for some reason, so we need to check for them specifically.
+    //  - Variable getters and setters don't need to use the prefix as they don't clash with anything.
+    if ((getCurrentClass() &&
+	  (Checkattr(n, "ismember", "1") ||
+	    Checkattr(n, "nodeType", "constructor") ||
+	      Checkattr(n, "nodeType", "destructor"))) ||
+-               Checkattr(n, "varget", "1") || Checkattr(n, "varset", "1")) {
       wname.assign_non_owned(name);
       return wname;
     }
@@ -275,8 +277,7 @@ public:
 
     // Fall back to the module name if we don't use feature:nspace and don't have the global prefix neither.
     //
-    // Note that we really, really need to use some prefix, as a global wrapper function can't have the same name as the original function (being wrapped) with
-    // the same name.
+    // Note that we really, really need to use some prefix, as wrapper function can't have the same name as the original function being wrapped.
     String* const prefix = scopename_prefix
       ? scopename_prefix
       : ns_prefix
@@ -654,16 +655,6 @@ public:
     return rc;
   }
 
-  /* -----------------------------------------------------------------------
-   * globalfunctionHandler()
-   * ------------------------------------------------------------------------ */
-
-  virtual int globalfunctionHandler(Node *n) {
-    Setattr(n, "c:globalfun", "1");
-
-    return Language::globalfunctionHandler(n);
-  }
-
   /* ----------------------------------------------------------------------
    * prepend_feature()
    * ---------------------------------------------------------------------- */
@@ -990,7 +981,7 @@ public:
        // add function declaration to the proxy header file
        Printv(f_wrappers_decl, "SWIGIMPORT ", get_wrapper_func_return_type(n).get(), " ", wname.get(), get_wrapper_func_proto(n).get(), ";\n\n", NIL);
 
-       if (GetFlag(n, "c:globalfun")) {
+       if (Cmp(name, wname) != 0) {
 	 if (!f_wrappers_aliases) {
 	   // Allocate it on demand.
 	   f_wrappers_aliases = NewStringEmpty();
@@ -1140,11 +1131,14 @@ public:
 		  // Skip the first "this" parameter of the wrapped methods, it doesn't participate in overload resolution and would just result in extra long
 		  // and ugly names.
 		  //
-		  // The check for c:globalfun is needed to avoid dropping the first argument of static methods which don't have "this" pointer neither, in
-		  // spite of being members. Of course, the constructors don't have it neither.
+		  // We need to avoid dropping the first argument of static methods which don't have "this" pointer, in spite of being members (and we have to
+		  // use "cplus:staticbase" for this instead of just using Swig_storage_isstatic() because "storage" is reset in staticmemberfunctionHandler()
+		  // and so is not available here.
+		  //
+		  // Of course, the constructors don't have the extra first parameter neither.
 		  if (!Checkattr(n, "nodeType", "constructor") &&
 			Checkattr(n, "ismember", "1") &&
-			  !Checkattr(n, "c:globalfun", "1")) {
+			  !Getattr(n, "cplus:staticbase")) {
 		    first_param = nextSibling(first_param);
 
 		    // A special case of overloading on const/non-const "this" pointer only, we still need to distinguish between those.
