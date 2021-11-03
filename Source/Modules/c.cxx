@@ -71,8 +71,45 @@ public:
 
   operator DOH*() const { return obj_; }
 
-private:
+protected:
   DOH* obj_;
+};
+
+// Wrapper for a DOH object which can be owned or not.
+class maybe_owned_dohptr : public scoped_dohptr
+{
+public:
+  explicit maybe_owned_dohptr(DOH* obj = NULL) : scoped_dohptr(obj), owned_(true) {}
+
+  maybe_owned_dohptr(maybe_owned_dohptr const& other) : scoped_dohptr(other) {
+    owned_ = other.owned_;
+
+    // We can live other.owned_ unchanged, as its pointer is null now anyhow.
+  }
+
+  maybe_owned_dohptr& operator=(maybe_owned_dohptr const& other) {
+    reset(other.release());
+    owned_ = other.owned_;
+
+    return *this;
+  }
+
+  ~maybe_owned_dohptr() {
+    if (!owned_)
+      obj_ = NULL; // Prevent it from being deleted by the base class dtor.
+  }
+
+  void assign_owned(DOH* obj) {
+    reset(obj);
+  }
+
+  void assign_non_owned(DOH* obj) {
+    reset(obj);
+    owned_ = false;
+  }
+
+private:
+  bool owned_;
 };
 
 // Helper class to output "begin" fragment in the ctor and "end" in the dtor.
