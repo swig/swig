@@ -231,11 +231,19 @@ public:
      return proxyname;
   }
 
-  // Construct the name to be used for a global (i.e. not member) symbol in C wrappers.
+  // Construct the name to be used for a function with the given name in C wrappers.
   //
   // The returned string must be freed by caller.
-  String *getGlobalWrapperName(Node *n, String *name) const
+  maybe_owned_dohptr getFunctionWrapperName(Node *n, String *name) const
   {
+    maybe_owned_dohptr wname;
+
+    // For class members we don't need to use any prefix at all, as they're already prefixed by the class name, which has the appropriate prefix.
+    if (!GetFlag(n, "c:globalfun")) {
+      wname.assign_non_owned(name);
+      return wname;
+    }
+
     // Use namespace as the prefix if feature:nspace is in use.
     scoped_dohptr scopename_prefix;
     if (GetFlag(parentNode(n), "feature:nspace")) {
@@ -252,7 +260,8 @@ public:
     // the same name.
     String* const prefix = scopename_prefix ? scopename_prefix : module_prefix;
 
-    return NewStringf("%s_%s", prefix, name);
+    wname.assign_owned(NewStringf("%s_%s", prefix, name));
+    return wname;
   }
 
   /* -----------------------------------------------------------------------------
@@ -705,7 +714,7 @@ public:
     {
        // this is C function, we don't apply typemaps to it
        String *name = Getattr(n, "sym:name");
-       String *wname = getGlobalWrapperName(n, name);
+       maybe_owned_dohptr wname = getFunctionWrapperName(n, name);
        SwigType *type = Getattr(n, "type");
        SwigType *return_type = NULL;
        String *arg_names = NULL;
@@ -734,7 +743,7 @@ public:
             Printv(proto, gencomma ? ", " : "", SwigType_str(Getattr(p, "type"), 0), " ", Getattr(p, "lname"), NIL);
             gencomma = 1;
        }
-       Printv(wrapper->def, return_type, " ", wname, "(", proto, ") {\n", NIL);
+       Printv(wrapper->def, return_type, " ", wname.get(), "(", proto, ") {\n", NIL);
 
        // attach 'check' typemaps
        Swig_typemap_attach_parms("check", parms, wrapper);
@@ -770,7 +779,6 @@ public:
        // cleanup
        Delete(proto);
        Delete(arg_names);
-       Delete(wname);
        Delete(return_type);
        DelWrapper(wrapper);
     }
@@ -929,12 +937,7 @@ public:
     {
        current_output = output_wrapper_decl;
 
-       // C++ function wrapper proxy code
-       maybe_owned_dohptr wname;
-       if (GetFlag(n, "c:globalfun"))
-	 wname.assign_owned(getGlobalWrapperName(n, name));
-       else
-	 wname.assign_non_owned(name);
+       maybe_owned_dohptr wname = getFunctionWrapperName(n, name);
        String *preturn_type = get_wrapper_func_return_type(n);
 
        // add function declaration to the proxy header file
@@ -962,11 +965,7 @@ public:
        // C++ function wrapper
        SwigType *type = Getattr(n, "type");
        SwigType *return_type = get_wrapper_func_return_type(n);
-       maybe_owned_dohptr wname;
-       if (GetFlag(n, "c:globalfun"))
-	 wname.assign_owned(getGlobalWrapperName(n, name));
-       else
-	 wname.assign_non_owned(name);
+       maybe_owned_dohptr wname = getFunctionWrapperName(n, name);
        ParmList *parms = Getattr(n, "parms");
        Parm *p;
        bool is_void_return = (SwigType_type(type) == T_VOID);
