@@ -6,7 +6,7 @@
 
 int main() {
   assert(GlobalInstance == globalinstance1);
-  assert(Char == 'a');
+  assert(iFoo_Char == 'a');
   bar2(1);
   bar3(1);
   bar1(1);

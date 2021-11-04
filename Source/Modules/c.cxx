@@ -181,6 +181,9 @@ class C:public Language {
   // Prefix for module-level symbols, currently just the module name.
   String *module_prefix;
 
+  // Used only while generating wrappers for an enum and contains the prefix to use for enum elements if non-null.
+  String *enum_prefix;
+
   // Used only while generating wrappers for an enum, initially true and reset to false as soon as we see any enum elements.
   bool enum_is_empty;
 
@@ -1448,10 +1451,32 @@ public:
     }
     Printv(f_wrappers_types, "enum", NIL);
 
-    if (String* const name = Getattr(n, "name")) {
-      String* const enumname = Swig_name_mangle(name);
-      Printv(f_wrappers_types, " ", enumname, NIL);
-      Delete(enumname);
+    if (Node* const klass = getCurrentClass()) {
+      enum_prefix = getProxyName(klass);
+    } else {
+      enum_prefix = NIL;
+    }
+
+    scoped_dohptr enumname;
+
+    // Unnamed enums may just have no name at all or have a synthesized invalid name of the form "$unnamedN$ which is indicated by "unnamed" attribute.
+    //
+    // Also note that we use "name" here and not "sym:name" because the latter is the name of typedef if there is one, while we want to use the name of enum
+    // itself here and, even more importantly, use the enum, and not the typedef, name as prefix for its elements.
+    if (String* const name = Getattr(n, "unnamed") ? NIL : Getattr(n, "name")) {
+      // But the name may included the containing class, so get rid of it.
+      enumname = Swig_scopename_last(name);
+
+      if (enum_prefix) {
+	enumname = NewStringf("%s_%s", enum_prefix, enumname.get());
+      }
+
+      Printv(f_wrappers_types, " ", enumname.get(), NIL);
+
+      // For scoped enums, their name should be prefixed to their elements in addition to any other prefix we use.
+      if (Getattr(n, "scopedenum")) {
+	enum_prefix = enumname.get();
+      }
     }
 
     // We don't know here if we're going to have any non-ignored enum elements, so let enumvalueDeclaration() itself reset this flag if it does get called, this
@@ -1464,6 +1489,8 @@ public:
     if (!enum_is_empty) {
       Printv(f_wrappers_types, "\n}", NIL);
     }
+
+    enum_prefix = NULL;
 
     if (tdname) {
       String* const enumname = Swig_name_mangle(tdname);
@@ -1482,7 +1509,7 @@ public:
   virtual int enumvalueDeclaration(Node *n) {
     if (Cmp(Getattr(n, "ismember"), "1") == 0 && Cmp(Getattr(n, "access"), "public") != 0)
       return SWIG_NOWRAP;
-    Swig_require("enumvalueDeclaration", n, "*value", "?enumvalueex", "?enumvalue", NIL);
+    Swig_require("enumvalueDeclaration", n, "?enumvalueex", "?enumvalue", NIL);
 
     enum_is_empty = false;
 
@@ -1491,8 +1518,15 @@ public:
     else
       Printv(f_wrappers_types, ",\n", NIL);
 
-    String* const enumitemname = Getattr(n, "value");
-    Printv(f_wrappers_types, cindent, Swig_name_mangle(enumitemname), NIL);
+    maybe_owned_dohptr wname;
+
+    String* const symname = Getattr(n, "sym:name");
+    if (enum_prefix) {
+      wname.assign_owned(NewStringf("%s_%s", enum_prefix, symname));
+    } else {
+      wname.assign_non_owned(symname);
+    }
+    Printv(f_wrappers_types, cindent, wname.get(), NIL);
 
     // We only use "enumvalue", which comes from the input, and not "enumvalueex" synthesized by SWIG itself because C should use the correct value for the enum
     // items without an explicit one anyhow (and "enumvalueex" can't be always used as is in C code for enum elements inside a class or even a namespace).
@@ -1508,7 +1542,7 @@ public:
       if (*Char(value) == '\\') {
 	Push(cvalue, "'");
 	Append(cvalue, "'");
-      } else if (Len(value) == 1 && !Swig_symbol_clookup(enumitemname, NULL)) {
+      } else if (Len(value) == 1 && !Swig_symbol_clookup(value, NULL)) {
 	Push(cvalue, "'");
 	Append(cvalue, "'");
       }
