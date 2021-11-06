@@ -822,20 +822,6 @@ public:
        DelWrapper(wrapper);
     }
 
-  static void functionWrapperPrepareArgs(const ParmList *parms)
-    {
-       Parm *p;
-       int index = 1;
-       String *lname = 0;
-
-       for (p = (Parm*)parms, index = 1; p; (p = nextSibling(p)), index++) {
-            if(!(lname = Getattr(p, "lname"))) {
-                 lname = NewStringf("arg%d", index);
-                 Setattr(p, "lname", lname);
-            }
-       }
-    }
-
   void functionWrapperAppendOverloaded(String *name, Parm* first_param)
     {
        String *over_suffix = NewString("");
@@ -991,16 +977,68 @@ public:
     }
 
 
-    void functionWrapperCPPSpecificWrapper(Node *n, String *name)
+    void functionWrapperCPPSpecific(Node *n)
     {
-       current_output = output_wrapper_def;
+       ParmList *parms = Getattr(n, "parms");
+       String *name = Copy(Getattr(n, "sym:name"));
+
+       // mangle name if function is overloaded
+       if (Getattr(n, "sym:overloaded")) {
+            if (!Getattr(n, "copy_constructor")) {
+		Parm* first_param = (Parm*)parms;
+		if (first_param) {
+		  // Skip the first "this" parameter of the wrapped methods, it doesn't participate in overload resolution and would just result in extra long
+		  // and ugly names.
+		  //
+		  // We need to avoid dropping the first argument of static methods which don't have "this" pointer, in spite of being members (and we have to
+		  // use "cplus:staticbase" for this instead of just using Swig_storage_isstatic() because "storage" is reset in staticmemberfunctionHandler()
+		  // and so is not available here.
+		  //
+		  // Of course, the constructors don't have the extra first parameter neither.
+		  if (!Checkattr(n, "nodeType", "constructor") &&
+			Checkattr(n, "ismember", "1") &&
+			  !Getattr(n, "cplus:staticbase")) {
+		    first_param = nextSibling(first_param);
+
+		    // A special case of overloading on const/non-const "this" pointer only, we still need to distinguish between those.
+		    if (SwigType_isconst(Getattr(n, "decl"))) {
+		      const char * const nonconst = Char(Getattr(n, "decl")) + 9 /* strlen("q(const).") */;
+		      for (Node* nover = Getattr(n, "sym:overloaded"); nover; nover = Getattr(nover, "sym:nextSibling")) {
+			if (nover == n)
+			  continue;
+
+			if (Cmp(Getattr(nover, "decl"), nonconst) == 0) {
+			  // We have an overload differing by const only, disambiguate.
+			  Append(name, "_const");
+			  break;
+			}
+		      }
+		    }
+		  }
+
+		  functionWrapperAppendOverloaded(name, first_param);
+		}
+            }
+       }
+
+       // make sure lnames are set
+       Parm *p;
+       int index = 1;
+       String *lname = 0;
+
+       for (p = (Parm*)parms, index = 1; p; (p = nextSibling(p)), index++) {
+            if(!(lname = Getattr(p, "lname"))) {
+                 lname = NewStringf("arg%d", index);
+                 Setattr(p, "lname", lname);
+            }
+       }
 
        // C++ function wrapper
+       current_output = output_wrapper_def;
+
        SwigType *type = Getattr(n, "type");
        scoped_dohptr return_type = get_wrapper_func_return_type(n);
        maybe_owned_dohptr wname = getFunctionWrapperName(n, name);
-       ParmList *parms = Getattr(n, "parms");
-       Parm *p;
        bool is_void_return = (SwigType_type(type) == T_VOID);
        // create new function wrapper object
        Wrapper *wrapper = NewWrapper();
@@ -1116,57 +1154,6 @@ public:
        DelWrapper(wrapper);
 
        emit_wrapper_func_decl(n, name, wname);
-    }
-
-    void functionWrapperCPPSpecific(Node *n)
-    {
-       ParmList *parms = Getattr(n, "parms");
-       String *name = Copy(Getattr(n, "sym:name"));
-
-       // mangle name if function is overloaded
-       if (Getattr(n, "sym:overloaded")) {
-            if (!Getattr(n, "copy_constructor")) {
-		Parm* first_param = (Parm*)parms;
-		if (first_param) {
-		  // Skip the first "this" parameter of the wrapped methods, it doesn't participate in overload resolution and would just result in extra long
-		  // and ugly names.
-		  //
-		  // We need to avoid dropping the first argument of static methods which don't have "this" pointer, in spite of being members (and we have to
-		  // use "cplus:staticbase" for this instead of just using Swig_storage_isstatic() because "storage" is reset in staticmemberfunctionHandler()
-		  // and so is not available here.
-		  //
-		  // Of course, the constructors don't have the extra first parameter neither.
-		  if (!Checkattr(n, "nodeType", "constructor") &&
-			Checkattr(n, "ismember", "1") &&
-			  !Getattr(n, "cplus:staticbase")) {
-		    first_param = nextSibling(first_param);
-
-		    // A special case of overloading on const/non-const "this" pointer only, we still need to distinguish between those.
-		    if (SwigType_isconst(Getattr(n, "decl"))) {
-		      const char * const nonconst = Char(Getattr(n, "decl")) + 9 /* strlen("q(const).") */;
-		      for (Node* nover = Getattr(n, "sym:overloaded"); nover; nover = Getattr(nover, "sym:nextSibling")) {
-			if (nover == n)
-			  continue;
-
-			if (Cmp(Getattr(nover, "decl"), nonconst) == 0) {
-			  // We have an overload differing by const only, disambiguate.
-			  Append(name, "_const");
-			  break;
-			}
-		      }
-		    }
-		  }
-
-		  functionWrapperAppendOverloaded(name, first_param);
-		}
-            }
-       }
-
-       // make sure lnames are set
-       functionWrapperPrepareArgs(parms);
-
-       // C++ function wrapper
-       functionWrapperCPPSpecificWrapper(n, name);
 
        Delete(name);
     }
