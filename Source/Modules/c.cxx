@@ -813,7 +813,7 @@ public:
 
        Wrapper_print(wrapper, f_wrappers);
 
-       emit_wrapper_func_decl(n, name);
+       emit_wrapper_func_decl(n, name, wname);
 
        // cleanup
        Delete(proto);
@@ -972,14 +972,12 @@ public:
    * Also emits a define allowing to use the function without the "_wrap_" prefix.
    * The node here is a function declaration.
    * ---------------------------------------------------------------------- */
-  void emit_wrapper_func_decl(Node *n, String *name)
+  void emit_wrapper_func_decl(Node *n, String *name, String *wname)
     {
        current_output = output_wrapper_decl;
 
-       maybe_owned_dohptr wname = getFunctionWrapperName(n, name);
-
        // add function declaration to the proxy header file
-       Printv(f_wrappers_decl, "SWIGIMPORT ", get_wrapper_func_return_type(n).get(), " ", wname.get(), get_wrapper_func_proto(n).get(), ";\n\n", NIL);
+       Printv(f_wrappers_decl, "SWIGIMPORT ", get_wrapper_func_return_type(n).get(), " ", wname, get_wrapper_func_proto(n).get(), ";\n\n", NIL);
 
        if (Cmp(name, wname) != 0) {
 	 if (!f_wrappers_aliases) {
@@ -988,7 +986,7 @@ public:
 	   Printv(f_wrappers_aliases, "#ifdef SWIG_DEFINE_WRAPPER_ALIASES\n", NIL);
 	 }
 
-	 Printf(f_wrappers_aliases, "#define %s %s\n", name, wname.get());
+	 Printf(f_wrappers_aliases, "#define %s %s\n", name, wname);
        }
     }
 
@@ -1116,6 +1114,8 @@ public:
 
        // cleanup
        DelWrapper(wrapper);
+
+       emit_wrapper_func_decl(n, name, wname);
     }
 
     void functionWrapperCPPSpecific(Node *n)
@@ -1167,7 +1167,6 @@ public:
 
        // C++ function wrapper
        functionWrapperCPPSpecificWrapper(n, name);
-       emit_wrapper_func_decl(n, name);
 
        Delete(name);
     }
