@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define SWIG_DEFINE_WRAPPER_ALIASES
 #include "char_strings/char_strings_wrap.h"
 
 int main() {
@@ -14,25 +13,25 @@ int main() {
 
   // get functions
   for (i=0; i<count; i++) {
-    char *str = GetCharHeapString();
+    char *str = char_strings_GetCharHeapString();
     if (strcmp(str, CPLUSPLUS_MSG) != 0) {
       fprintf(stderr, "Test char get 1 failed, iteration %d\n", i);
       exit(1);
     }
-    DeleteCharHeapString();
+    char_strings_DeleteCharHeapString();
   }
 
   for (i=0; i<count; i++) {
-    const char *str = GetConstCharProgramCodeString();
+    const char *str = char_strings_GetConstCharProgramCodeString();
     if (strcmp(str, CPLUSPLUS_MSG) != 0) {
       fprintf(stderr, "Test char get 2 failed, iteration %d\n", i);
       exit(1);
     }
-    DeleteCharHeapString();
+    char_strings_DeleteCharHeapString();
   }
 
   for (i=0; i<count; i++) {
-    char *str = GetCharStaticString();
+    char *str = char_strings_GetCharStaticString();
     if (strcmp(str, CPLUSPLUS_MSG) != 0) {
       fprintf(stderr, "Test char get 3 failed, iteration %d\n", i);
       exit(1);
@@ -40,7 +39,7 @@ int main() {
   }
 
   for (i=0; i<count; i++) {
-    char *str = GetCharStaticStringFixed();
+    char *str = char_strings_GetCharStaticStringFixed();
     if (strcmp(str, CPLUSPLUS_MSG) != 0) {
       fprintf(stderr, "Test char get 4 failed, iteration %d\n", i);
       exit(1);
@@ -48,7 +47,7 @@ int main() {
   }
 
   for (i=0; i<count; i++) {
-    const char *str = GetConstCharStaticStringFixed();
+    const char *str = char_strings_GetConstCharStaticStringFixed();
     if (strcmp(str, CPLUSPLUS_MSG) != 0) {
       fprintf(stderr, "Test char get 5 failed, iteration %d\n", i);
       exit(1);
@@ -59,7 +58,7 @@ int main() {
   for (i=0; i<count; i++) {
     char str[256];
     sprintf(str, "%s%d", OTHERLAND_MSG, i);
-    if (!SetCharHeapString(str, i)) {
+    if (!char_strings_SetCharHeapString(str, i)) {
       fprintf(stderr, "Test char set 1 failed, iteration %d\n", i);
       exit(1);
     }
@@ -69,7 +68,7 @@ int main() {
   for (i=0; i<count; i++) {
     char str[256];
     sprintf(str, "%s%d", OTHERLAND_MSG, i);
-    if (!SetCharStaticString(str, i)) {
+    if (!char_strings_SetCharStaticString(str, i)) {
       fprintf(stderr, "Test char set 2 failed, iteration %d\n", i);
       exit(1);
     }
@@ -78,7 +77,7 @@ int main() {
   for (i=0; i<count; i++) {
     char str[256];
     sprintf(str, "%s%d", OTHERLAND_MSG, i);
-    if (!SetCharArrayStaticString(str, i)) {
+    if (!char_strings_SetCharArrayStaticString(str, i)) {
       fprintf(stderr, "Test char set 3 failed, iteration %d\n", i);
       exit(1);
     }
@@ -87,7 +86,7 @@ int main() {
   for (i=0; i<count; i++) {
     char str[256];
     sprintf(str, "%s%d", OTHERLAND_MSG, i);
-    if (!SetConstCharHeapString(str, i)) {
+    if (!char_strings_SetConstCharHeapString(str, i)) {
       fprintf(stderr, "Test char set 4 failed, iteration %d\n", i);
       exit(1);
     }
@@ -96,7 +95,7 @@ int main() {
   for (i=0; i<count; i++) {
     char str[256];
     sprintf(str, "%s%d", OTHERLAND_MSG, i);
-    if (!SetConstCharStaticString(str, i)) {
+    if (!char_strings_SetConstCharStaticString(str, i)) {
       fprintf(stderr, "Test char set 5 failed, iteration %d\n", i);
       exit(1);
     }
@@ -105,7 +104,7 @@ int main() {
   for (i=0; i<count; i++) {
     char str[256];
     sprintf(str, "%s%d", OTHERLAND_MSG, i);
-    if (!SetConstCharArrayStaticString(str, i)) {
+    if (!char_strings_SetConstCharArrayStaticString(str, i)) {
       fprintf(stderr, "Test char set 6 failed, iteration %d\n", i);
       exit(1);
     }
@@ -115,7 +114,7 @@ int main() {
   for (i=0; i<count; i++) {
     char ping[256];
     sprintf(ping, "%s%d", OTHERLAND_MSG, i);
-    char *pong = CharPingPong(ping);
+    char *pong = char_strings_CharPingPong(ping);
     if (strcmp(ping, pong) != 0) {
       fprintf(stderr, "Test PingPong 1 failed.\nExpected:%d\nReceived:%d\n", ping, pong);
       exit(1);
@@ -127,8 +126,8 @@ int main() {
   for (i=0; i<count; i++) {
     char str[256];
     sprintf(str, "%s%d", OTHERLAND_MSG, i);
-    global_char = str;
-    if (strcmp(global_char, str) != 0) {
+    char_strings_global_char_set(str);
+    if (strcmp(char_strings_global_char_get(), str) != 0) {
       fprintf(stderr, "Test variables 1 failed, iteration %d\n", i);
       exit(1);
     }
@@ -137,8 +136,8 @@ int main() {
   for (i=0; i<count; i++) {
     char str[256];
     sprintf(str, "%s%d", OTHERLAND_MSG, i);
-    sprintf(global_char_array1, "%s%d", OTHERLAND_MSG, i);
-    if (strcmp(global_char_array1, str) != 0) {
+    sprintf(char_strings_global_char_array1_get(), "%s%d", OTHERLAND_MSG, i);
+    if (strcmp(char_strings_global_char_array1_get(), str) != 0) {
       fprintf(stderr, "Test variables 2 failed, iteration %d\n", i);
       exit(1);
     }
@@ -147,15 +146,15 @@ int main() {
   for (i=0; i<count; i++) {
     char str[256];
     sprintf(str, "%s%d", OTHERLAND_MSG, i);
-    sprintf(global_char_array2, "%s%d", OTHERLAND_MSG, i);
-    if (strcmp(global_char_array2, str) != 0) {
+    sprintf(char_strings_global_char_array2_get(), "%s%d", OTHERLAND_MSG, i);
+    if (strcmp(char_strings_global_char_array2_get(), str) != 0) {
       fprintf(stderr, "Test variables 3 failed, iteration %d\n", i);
       exit(1);
     }
   }
 
   for (i=0; i<count; i++) {
-    if (strcmp(global_const_char, CPLUSPLUS_MSG) != 0) {
+    if (strcmp(char_strings_global_const_char_get(), CPLUSPLUS_MSG) != 0) {
       fprintf(stderr, "Test variables 3 failed, iteration %d\n", i);
       exit(1);
     }
@@ -180,7 +179,7 @@ int main() {
   // char *& tests
   
   for (i=0; i<count; i++) {
-    const char **str = GetConstCharPointerRef();
+    const char **str = char_strings_GetConstCharPointerRef();
     if (strcmp(*str, CPLUSPLUS_MSG) != 0) {
       fprintf(stderr, "Test char pointer ref get failed, iteration %d\n",i);
       exit(1);
@@ -190,7 +189,7 @@ int main() {
   for (i=0; i<count; i++) {
     char *str = (char*) malloc(sizeof(char) * 256);
     sprintf(str, "%s%d", OTHERLAND_MSG, i);
-    if (!SetConstCharPointerRef((const char **)&str, i)) {
+    if (!char_strings_SetConstCharPointerRef((const char **)&str, i)) {
       fprintf(stderr, "Test char pointer ref set failed, iteration %d\n", i);
       exit(1);
     }

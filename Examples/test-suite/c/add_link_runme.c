@@ -2,13 +2,13 @@
 #include <assert.h>
 
 int main(int argc, const char *argv[]) {
-	Foo *f = Foo_new();
-	Foo *f2 = Foo_blah(f);
+	add_link_Foo *f = add_link_Foo_new();
+	add_link_Foo *f2 = add_link_Foo_blah(f);
 
 	assert(f2 != 0);
 
-	Foo_delete(f);
-	Foo_delete(f2);
+	add_link_Foo_delete(f);
+	add_link_Foo_delete(f2);
 
 	return 0;
 }

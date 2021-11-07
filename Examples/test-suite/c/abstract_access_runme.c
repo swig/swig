@@ -2,11 +2,11 @@
 #include <assert.h>
 
 int main(int argc, const char *argv[]) {
-	D *d = D_new();
+	abstract_access_D *d = abstract_access_D_new();
 
-	assert(D_do_x(d) == 1);
+	assert(abstract_access_D_do_x(d) == 1);
 
-	D_delete(d);
+	abstract_access_D_delete(d);
 
 	return 0;
 }

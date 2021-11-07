@@ -5,67 +5,67 @@
 int main(int argc, const char *argv[]) {
 
 	// We don't have "enum SOME_ENUM"
-	int e = ENUM_ONE, *p;
+	int e = cpp_enum_ENUM_ONE, *p;
 
 	// check the constructor's default value
-	StructWithEnums *s = StructWithEnums_new();
-	assert(StructWithEnums_some_enum_get(s) == ENUM_ONE);
+	cpp_enum_StructWithEnums *s = cpp_enum_StructWithEnums_new();
+	assert(cpp_enum_StructWithEnums_some_enum_get(s) == cpp_enum_ENUM_ONE);
 
 	// check setter
-	StructWithEnums_some_enum_set(s, ENUM_TWO);
-	assert(StructWithEnums_some_enum_get(s) == ENUM_TWO);
+	cpp_enum_StructWithEnums_some_enum_set(s, cpp_enum_ENUM_TWO);
+	assert(cpp_enum_StructWithEnums_some_enum_get(s) == cpp_enum_ENUM_TWO);
 
 	// check function call
-	StructWithEnums_enum_test1(s, e, &e, &e);
+	cpp_enum_StructWithEnums_enum_test1(s, e, &e, &e);
 
 	// check function call
-	StructWithEnums_enum_test2(s, e, &e, &e);
+	cpp_enum_StructWithEnums_enum_test2(s, e, &e, &e);
 
 	// check function call
-	assert(StructWithEnums_enum_test3(s) == ENUM_ONE);
+	assert(cpp_enum_StructWithEnums_enum_test3(s) == cpp_enum_ENUM_ONE);
 
 	// check function call
-	assert(StructWithEnums_enum_test4(s) == ENUM_TWO);
+	assert(cpp_enum_StructWithEnums_enum_test4(s) == cpp_enum_ENUM_TWO);
 
 	// check function call
-	p = StructWithEnums_enum_test5(s);
-	assert(*p == ENUM_TWO);
+	p = cpp_enum_StructWithEnums_enum_test5(s);
+	assert(*p == cpp_enum_ENUM_TWO);
 
 	// check function call
-	p = StructWithEnums_enum_test6(s);
-	assert(*p == ENUM_TWO);
+	p = cpp_enum_StructWithEnums_enum_test6(s);
+	assert(*p == cpp_enum_ENUM_TWO);
 
 	// check function call
-	p = StructWithEnums_enum_test7(s);
-	assert(*p == ENUM_TWO);
+	p = cpp_enum_StructWithEnums_enum_test7(s);
+	assert(*p == cpp_enum_ENUM_TWO);
 
 	// check function call
-	p = StructWithEnums_enum_test8(s);
-	assert(*p == ENUM_TWO);
+	p = cpp_enum_StructWithEnums_enum_test8(s);
+	assert(*p == cpp_enum_ENUM_TWO);
 	
-	StructWithEnums_delete(s);
+	cpp_enum_StructWithEnums_delete(s);
 
-	Foo *f = Foo_new();
+	cpp_enum_Foo *f = cpp_enum_Foo_new();
 
 	// check the constructor's default value
-	assert(Foo_hola_get(f) == Foo_Hello);
+	assert(cpp_enum_Foo_hola_get(f) == cpp_enum_Foo_Hello);
 
-	Foo_hola_set(f, Foo_Hi);
-	assert(Foo_hola_get(f) == Foo_Hi);
+	cpp_enum_Foo_hola_set(f, cpp_enum_Foo_Hi);
+	assert(cpp_enum_Foo_hola_get(f) == cpp_enum_Foo_Hi);
 
-	Foo_delete(f);
+	cpp_enum_Foo_delete(f);
 
 	//check C enum
-	hi = Hi;
-	hi = Hello;
+	cpp_enum_hi_set(cpp_enum_Hi);
+	cpp_enum_hi_set(cpp_enum_Hello);
 
 	// check typedef enum
-	play_state t;
+	cpp_enum_play_state t;
 
-	t = PLAY;
+	t = cpp_enum_PLAY;
 	assert(t == 1);
 
-	t = STOP;
+	t = cpp_enum_STOP;
 	assert(t == 0);
 
 	return 0;

@@ -197,7 +197,7 @@ Wrapping C functions and variables is obviously performed in a straightforward w
 
 
 <p>
-For each C function declared in the interface file a wrapper function with a prefix, required to make its name different from the original one, is created. The prefix for the global functions is <tt>module_</tt>, i.e. the name of the SWIG module followed by underscore. If <tt>nspace</tt> feature is used, the prefix for a function defined in a namespace is <tt>namespace_</tt> -- note that it does <em>not</em> contain the module prefix, as it's not necessary to make a unique function name in this case. The wrapper function performs a call to the original function, and returns its result. For convenience, a <tt>#define func prefix_func</tt> can be provided in the generated header file to make it possible to call the function under its original name: predefine <tt>SWIG_DEFINE_WRAPPER_ALIASES</tt> before including the wrapper header to enable these defines, which are disabled by default to avoid accidental name clashes.
+For each C function declared in the interface file a wrapper function with a prefix, required to make its name different from the original one, is created. The prefix for the global functions is <tt>module_</tt>, i.e. the name of the SWIG module followed by underscore, by default. If <tt>-namespace</tt> option is used, the prefix corresponding to the given fixed namespace is used instead. If <tt>nspace</tt> feature is used, the prefix corresponding to the namespace in which the function is defined is used -- note that, unlike with <tt>-namespace</tt> option, this prefix can be different for different functions. The wrapper function performs a call to the original function, and returns its result.
 </p>
 
 <p>
@@ -333,8 +333,10 @@ This section briefly covers the essential aspects of this wrapping.
 <H3><a name="C_enums"></a>36.3.3 Enums</H3>
 
 <p>
-C enums are simply copied to the generated code and keep the same name as in
-the original code.
+C enums and unscoped C++ enums are simply copied to the generated code and both the enum itself and its elements keep the same name as in the original code unless <tt>-namespace</tt> option is used or <tt>nspace</tt> feature is enabled, in which case the prefix corresponding to the specified namespace is used.
+</p>
+<p>
+For scoped C++11 enums, the enum name itself is used as an additional prefix.
 </p>
 
 

@@ -3,13 +3,13 @@
 #include <assert.h>
 
 int main(int argc, const char *argv[]) {
-	Engine *e = Engine_new();
-	A *a = A_new();
+	abstract_typedef_Engine *e = abstract_typedef_Engine_new();
+	abstract_typedef_A *a = abstract_typedef_A_new();
 
-	assert(AbstractBaseClass_write((AbstractBaseClass*)a, e) == true);
+	assert(abstract_typedef_AbstractBaseClass_write((abstract_typedef_AbstractBaseClass*)a, e) == true);
 
-	A_delete(a);
-	Engine_delete(e);
+	abstract_typedef_A_delete(a);
+	abstract_typedef_Engine_delete(e);
 
 	return 0;
 }

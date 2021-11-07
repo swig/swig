@@ -2,25 +2,25 @@
 #include <assert.h>
 
 int main() {
-    A* a1 = A_new_i(3);
-    A* a2 = A_new_i(7);
+    li_std_map_A* a1 = li_std_map_A_new_i(3);
+    li_std_map_A* a2 = li_std_map_A_new_i(7);
 
-    mapA* mA = mapA_new();
-    mapA_set(mA, 1, a1);
-    mapA_set(mA, 2, a2);
+    li_std_map_mapA* mA = li_std_map_mapA_new();
+    li_std_map_mapA_set(mA, 1, a1);
+    li_std_map_mapA_set(mA, 2, a2);
 
-    assert( mapA_size(mA) == 2 );
+    assert( li_std_map_mapA_size(mA) == 2 );
 
     {
-        A* a = mapA_get(mA, 1);
-        assert( A_val_get(a) == 3 );
+        li_std_map_A* a = li_std_map_mapA_get(mA, 1);
+        assert( li_std_map_A_val_get(a) == 3 );
     }
 
-    assert( !mapA_has_key(mA, 3) );
+    assert( !li_std_map_mapA_has_key(mA, 3) );
 
-    mapA_delete(mA);
-    A_delete(a2);
-    A_delete(a1);
+    li_std_map_mapA_delete(mA);
+    li_std_map_A_delete(a2);
+    li_std_map_A_delete(a1);
 
     return 0;
 }

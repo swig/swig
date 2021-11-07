@@ -4,14 +4,14 @@
 
 int main(int argc, const char *argv[]) {
     {
-        Klass* k = Klass_new_rcstd_string("me oh my");
-        assert( strcmp(Klass_getValue(k), "me oh my") == 0 );
-        Klass_delete(k);
+        li_boost_shared_ptr_Klass* k = li_boost_shared_ptr_Klass_new_rcstd_string("me oh my");
+        assert( strcmp(li_boost_shared_ptr_Klass_getValue(k), "me oh my") == 0 );
+        li_boost_shared_ptr_Klass_delete(k);
     }
 
     {
-        Klass* k = li_boost_shared_ptr_factorycreate();
-        assert( strcmp(Klass_getValue(k), "factorycreate") == 0 );
-        Klass_delete(k);
+        li_boost_shared_ptr_Klass* k = li_boost_shared_ptr_factorycreate();
+        assert( strcmp(li_boost_shared_ptr_Klass_getValue(k), "factorycreate") == 0 );
+        li_boost_shared_ptr_Klass_delete(k);
     }
 }

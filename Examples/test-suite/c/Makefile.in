@@ -104,6 +104,8 @@ include $(srcdir)/../common.mk
 # Overridden variables here
 SWIGOPT += -w524 # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
 
+%.cpptest: SWIGOPT += -namespace $*
+
 SRCDIR       = ../$(srcdir)/
 
 # Rules for the different types of tests

@@ -173,7 +173,6 @@ class C:public Language {
   File *f_wrappers_cxx;
   File *f_wrappers_types;
   File *f_wrappers_decl;
-  File *f_wrappers_aliases;
   File *f_init;
 
   String *empty_string;
@@ -567,10 +566,6 @@ public:
       f_wrappers_types = NewString("");
       f_wrappers_decl = NewString("");
 
-      // We may also define aliases for the global wrapper functions to allow calling them using their original names, but as this can result in problems (as
-      // usual when using the preprocessor), this is only done when SWIG_DEFINE_WRAPPER_ALIASES is defined, so use a separate section for this.
-      f_wrappers_aliases = NIL;
-
       {
 
         cplusplus_output_guard
@@ -589,13 +584,6 @@ public:
 
       Dump(f_wrappers_h_body, f_wrappers_h);
       Delete(f_wrappers_h_body);
-
-      if (f_wrappers_aliases) {
-	Dump(f_wrappers_aliases, f_wrappers_h);
-	Delete(f_wrappers_aliases);
-
-	Printv(f_wrappers_h, "#endif /* SWIG_DEFINE_WRAPPER_ALIASES */\n", NIL);
-      }
     } // close wrapper header guard
 
     // write all to the file
@@ -813,7 +801,7 @@ public:
 
        Wrapper_print(wrapper, f_wrappers);
 
-       emit_wrapper_func_decl(n, name, wname);
+       emit_wrapper_func_decl(n, wname);
 
        // cleanup
        Delete(proto);
@@ -955,25 +943,14 @@ public:
    * emit_wrapper_func_decl()
    *
    * Declares the wrapper function, using the C types used for it, in the header.
-   * Also emits a define allowing to use the function without the "_wrap_" prefix.
    * The node here is a function declaration.
    * ---------------------------------------------------------------------- */
-  void emit_wrapper_func_decl(Node *n, String *name, String *wname)
+  void emit_wrapper_func_decl(Node *n, String *wname)
     {
        current_output = output_wrapper_decl;
 
        // add function declaration to the proxy header file
        Printv(f_wrappers_decl, "SWIGIMPORT ", get_wrapper_func_return_type(n).get(), " ", wname, get_wrapper_func_proto(n).get(), ";\n\n", NIL);
-
-       if (Cmp(name, wname) != 0) {
-	 if (!f_wrappers_aliases) {
-	   // Allocate it on demand.
-	   f_wrappers_aliases = NewStringEmpty();
-	   Printv(f_wrappers_aliases, "#ifdef SWIG_DEFINE_WRAPPER_ALIASES\n", NIL);
-	 }
-
-	 Printf(f_wrappers_aliases, "#define %s %s\n", name, wname);
-       }
     }
 
 
@@ -1153,7 +1130,7 @@ public:
        // cleanup
        DelWrapper(wrapper);
 
-       emit_wrapper_func_decl(n, name, wname);
+       emit_wrapper_func_decl(n, wname);
 
        Delete(name);
     }

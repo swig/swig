@@ -3,30 +3,30 @@
 
 int main() {
     {
-        IntSet* is = IntSet_new();
+        li_std_set_IntSet* is = li_std_set_IntSet_new();
 
-        IntSet_add(is, 1);
-        IntSet_add(is, 4);
-        IntSet_add(is, 9);
+        li_std_set_IntSet_add(is, 1);
+        li_std_set_IntSet_add(is, 4);
+        li_std_set_IntSet_add(is, 9);
 
-        assert( IntSet_size(is) == 3 );
-        assert( IntSet_has(is, 4) );
-        assert( !IntSet_has(is, 16) );
+        assert( li_std_set_IntSet_size(is) == 3 );
+        assert( li_std_set_IntSet_has(is, 4) );
+        assert( !li_std_set_IntSet_has(is, 16) );
 
-        IntSet_delete(is);
+        li_std_set_IntSet_delete(is);
     }
 
     {
-        StringSet* ss = StringSet_new();
+        li_std_set_StringSet* ss = li_std_set_StringSet_new();
 
-        StringSet_add(ss, "foo");
-        StringSet_add(ss, "bar");
+        li_std_set_StringSet_add(ss, "foo");
+        li_std_set_StringSet_add(ss, "bar");
 
-        assert( StringSet_size(ss) == 2 );
-        assert( StringSet_has(ss, "bar") );
-        assert( !StringSet_has(ss, "baz") );
+        assert( li_std_set_StringSet_size(ss) == 2 );
+        assert( li_std_set_StringSet_has(ss, "bar") );
+        assert( !li_std_set_StringSet_has(ss, "baz") );
 
-        StringSet_delete(ss);
+        li_std_set_StringSet_delete(ss);
     }
 
     return 0;
