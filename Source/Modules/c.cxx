@@ -1532,35 +1532,32 @@ public:
     // items without an explicit one anyhow (and "enumvalueex" can't be always used as is in C code for enum elements inside a class or even a namespace).
     String *value = Getattr(n, "enumvalue");
     if (value) {
-      String* const cvalue = Copy(value);
+      // We can't always use the raw value, check its type to see if we need to transform it.
+      maybe_owned_dohptr cvalue;
+      switch (SwigType_type(Getattr(n, "type"))) {
+	case T_BOOL:
+	  // Boolean constants can't appear in C code, so replace them with their values in the simplest possible case. This is not exhaustive, of course,
+	  // but better than nothing and doing the right thing is not simple at all as we'd need to really parse the expression, just textual substitution wouldn't
+	  // be enough (consider e.g. an enum element called "very_true" and another one using it as its value).
+	  if (Cmp(value, "true") == 0) {
+	    cvalue.assign_owned(NewString("1"));
+	  } else if (Cmp(value, "false") == 0) {
+	    cvalue.assign_owned(NewString("0"));
+	  } else {
+	    Swig_error(Getfile(n), Getline(n), "Unsupported boolean enum value \"%s\".\n", value);
+	  }
+	  break;
 
-      // Due to what seems to be a bug in SWIG parser, char values for enum elements lose their quotes, i.e.
-      //
-      //  enum { x = 'a', y = '\x62' };
-      //
-      // in input results in value being just "a" or "\x62". Try to repair this brokenness.
-      if (*Char(value) == '\\') {
-	Push(cvalue, "'");
-	Append(cvalue, "'");
-      } else if (Len(value) == 1 && !Swig_symbol_clookup(value, NULL)) {
-	Push(cvalue, "'");
-	Append(cvalue, "'");
+	case T_CHAR:
+	  // SWIG parser doesn't put single quotes around char values, for some reason, so add them here.
+	  cvalue.assign_owned(NewStringf("'%(escape)s'", value));
+	  break;
+
+	default:
+	  cvalue.assign_non_owned(value);
       }
 
-      // Boolean constants can't appear in C code neither, so replace them with their values in the simplest possible case. This is not exhaustive, of course,
-      // but better than nothing and doing the right thing is not simple at all as we'd need to really parse the expression, just textual substitution wouldn't
-      // be enough (consider e.g. an enum element called "very_true" and another one using it as its value).
-      if (Cmp(value, "true") == 0) {
-	Clear(cvalue);
-	Append(cvalue, "1");
-      } else if (Cmp(value, "false") == 0) {
-	Clear(cvalue);
-	Append(cvalue, "0");
-      }
-
-      Printv(f_wrappers_types, " = ", cvalue, NIL);
-
-      Delete(cvalue);
+      Printv(f_wrappers_types, " = ", cvalue.get(), NIL);
     }
 
     Swig_restore(n);
