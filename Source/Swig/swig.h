@@ -273,6 +273,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Swig_name_register(const_String_or_char_ptr method, const_String_or_char_ptr format);
   extern void Swig_name_unregister(const_String_or_char_ptr method);
   extern String *Swig_name_mangle(const_String_or_char_ptr s);
+  extern String *Swig_name_type(const_String_or_char_ptr tname);
   extern String *Swig_name_wrapper(const_String_or_char_ptr fname);
   extern String *Swig_name_member(const_String_or_char_ptr nspace, const_String_or_char_ptr classname, const_String_or_char_ptr membername);
   extern String *Swig_name_get(const_String_or_char_ptr nspace, const_String_or_char_ptr vname);
