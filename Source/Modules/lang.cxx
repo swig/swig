@@ -1321,8 +1321,11 @@ int Language::staticmemberfunctionHandler(Node *n) {
     mrename = mangled;
 
     if (code) {
+      // See Swig_MethodToFunction() for the explanation of this code.
       if (Getattr(n, "sym:overloaded")) {
 	Append(cname, Getattr(defaultargs ? defaultargs : n, "sym:overname"));
+      } else {
+	Append(cname, "__SWIG");
       }
 
       if (!defaultargs) {

@@ -1076,9 +1076,18 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
 
     /* Check if the method is overloaded.   If so, and it has code attached, we append an extra suffix
        to avoid a name-clash in the generated wrappers.  This allows overloaded methods to be defined
-       in C. */
-    if (Getattr(n, "sym:overloaded") && code) {
-      Append(mangled, Getattr(defaultargs ? defaultargs : n, "sym:overname"));
+       in C.
+
+       But when not using the suffix used for overloaded functions, we still need to ensure that the
+       wrapper name doesn't conflict with any wrapper functions, so make it sufficiently unique by
+       appending a suffix similar to the one used for overloaded functions to it.
+     */
+    if (code) {
+      if (Getattr(n, "sym:overloaded")) {
+	Append(mangled, Getattr(defaultargs ? defaultargs : n, "sym:overname"));
+      } else {
+	Append(mangled, "__SWIG");
+      }
     }
 
     /* See if there is any code that we need to emit */
