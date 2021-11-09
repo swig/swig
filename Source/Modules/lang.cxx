@@ -1320,16 +1320,18 @@ int Language::staticmemberfunctionHandler(Node *n) {
     Delete(mrename);
     mrename = mangled;
 
-    if (Getattr(n, "sym:overloaded") && code) {
-      Append(cname, Getattr(defaultargs ? defaultargs : n, "sym:overname"));
-    }
+    if (code) {
+      if (Getattr(n, "sym:overloaded")) {
+	Append(cname, Getattr(defaultargs ? defaultargs : n, "sym:overname"));
+      }
 
-    if (!defaultargs && code) {
-      /* Hmmm. An added static member.  We have to create a little wrapper for this */
-      String *mangled_cname = Swig_name_mangle(cname);
-      Swig_add_extension_code(n, mangled_cname, parms, type, code, CPlusPlus, 0);
-      Setattr(n, "extendname", mangled_cname);
-      Delete(mangled_cname);
+      if (!defaultargs) {
+	/* Hmmm. An added static member.  We have to create a little wrapper for this */
+	String *mangled_cname = Swig_name_mangle(cname);
+	Swig_add_extension_code(n, mangled_cname, parms, type, code, CPlusPlus, 0);
+	Setattr(n, "extendname", mangled_cname);
+	Delete(mangled_cname);
+      }
     }
   }
 
