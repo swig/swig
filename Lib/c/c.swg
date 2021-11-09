@@ -113,12 +113,15 @@ same_action(TM, size_t, ACTION, ACTION_CREF);
 same_macro_all_primitive_types_but_void(same_type,ctype);
 same_macro_all_primitive_types_but_void(cref_as_value,ctype);
 
+// trivial typemap for arrays of void pointers to avoid applying the object typemaps to them
+%typemap(ctype) void*[ANY] "void **"
+
 // objects
 %typemap(ctype) SWIGTYPE      "$&resolved_type*"
 %typemap(ctype) SWIGTYPE *    "$resolved_type*"
 %typemap(ctype) SWIGTYPE &    "$*resolved_type*"
-%typemap(ctype) SWIGTYPE [ANY] "/*SWIGTYPE [ANY]*/ $1_ltype **"
-%typemap(ctype) SWIGTYPE * [ANY] "/*SWIGTYPE *[ANY] */ $1_ltype **"
+%typemap(ctype) SWIGTYPE [ANY] "$resolved_type*"
+%typemap(ctype) SWIGTYPE * [ANY] "$resolved_type**"
 %typemap(ctype) enum SWIGTYPE "int"
 %typemap(ctype) enum SWIGTYPE &, enum SWIGTYPE * "int *"
 
