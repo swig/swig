@@ -587,7 +587,7 @@ public:
 
     // write all to the file
     Dump(f_header, f_runtime);
-    Wrapper_pretty_print(f_wrappers, f_runtime);
+    Dump(f_wrappers, f_runtime);
     Dump(f_init, f_runtime);
     Dump(f_runtime, f_begin);
 
