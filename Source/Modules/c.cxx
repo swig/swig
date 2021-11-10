@@ -186,8 +186,9 @@ class C:public Language {
   // Used only while generating wrappers for an enum and contains the prefix to use for enum elements if non-null.
   String *enum_prefix;
 
-  // Used only while generating wrappers for an enum, initially true and reset to false as soon as we see any enum elements.
-  bool enum_is_empty;
+  // Used only while generating wrappers for an enum, as we don't know if enum will have any elements or not in advance and we must not generate an empty enum,
+  // so we accumulate the full declaration here and then write it to f_wrappers_types at once only if there are any elements.
+  String *enum_decl;
 
   // Selects between the wrappers (public) declarations and (private) definitions.
   enum {
@@ -1462,13 +1463,16 @@ public:
     if (getCurrentClass() && (cplus_mode != PUBLIC))
       return SWIG_NOWRAP;
 
+    // We don't know here if we're going to have any non-ignored enum elements, so generate enum declaration in a temporary string.
+    enum_decl = NewStringEmpty();
+
     // Preserve the typedef if we have it in the input.
     maybe_owned_dohptr tdname;
     tdname.assign_non_owned(Getattr(n, "tdname"));
     if (tdname) {
-      Printv(f_wrappers_types, "typedef ", NIL);
+      Printv(enum_decl, "typedef ", NIL);
     }
-    Printv(f_wrappers_types, "enum", NIL);
+    Printv(enum_decl, "enum", NIL);
 
     if (Node* const klass = getCurrentClass()) {
       enum_prefix = getProxyName(klass);
@@ -1494,7 +1498,7 @@ public:
 	enumname = NewStringf("%s_%s", enum_prefix, enumname.get());
       }
 
-      Printv(f_wrappers_types, " ", enumname.get(), NIL);
+      Printv(enum_decl, " ", enumname.get(), NIL);
 
       // For scoped enums, their name should be prefixed to their elements in addition to any other prefix we use.
       if (Getattr(n, "scopedenum")) {
@@ -1502,23 +1506,27 @@ public:
       }
     }
 
-    // We don't know here if we're going to have any non-ignored enum elements, so let enumvalueDeclaration() itself reset this flag if it does get called, this
-    // is simpler than trying to determine it here, even if it's a bit ugly because we generate the opening brace there, but the closing one here.
-    enum_is_empty = true;
+    Printv(enum_decl, " {\n", NIL);
+
+    int const len_orig = Len(enum_decl);
 
     // Emit each enum item.
     Language::enumDeclaration(n);
 
-    if (!enum_is_empty) {
-      Printv(f_wrappers_types, "\n}", NIL);
+    // Only emit the enum declaration if there were actually any items.
+    if (Len(enum_decl) > len_orig) {
+      Printv(enum_decl, "\n}", NIL);
+
+      if (tdname) {
+	Printv(enum_decl, " ", tdname.get(), NIL);
+      }
+      Printv(enum_decl, ";\n\n", NIL);
+
+      Append(f_wrappers_types, enum_decl);
     }
 
     enum_prefix = NULL;
-
-    if (tdname) {
-      Printv(f_wrappers_types, " ", tdname.get(), NIL);
-    }
-    Printv(f_wrappers_types, ";\n\n", NIL);
+    Delete(enum_decl);
 
     return SWIG_OK;
   }
@@ -1532,12 +1540,8 @@ public:
       return SWIG_NOWRAP;
     Swig_require("enumvalueDeclaration", n, "?enumvalueex", "?enumvalue", NIL);
 
-    enum_is_empty = false;
-
-    if (GetFlag(n, "firstenumitem"))
-      Printv(f_wrappers_types, " {\n", NIL);
-    else
-      Printv(f_wrappers_types, ",\n", NIL);
+    if (!GetFlag(n, "firstenumitem"))
+      Printv(enum_decl, ",\n", NIL);
 
     maybe_owned_dohptr wname;
 
@@ -1547,7 +1551,7 @@ public:
     } else {
       wname.assign_non_owned(symname);
     }
-    Printv(f_wrappers_types, cindent, wname.get(), NIL);
+    Printv(enum_decl, cindent, wname.get(), NIL);
 
     // We only use "enumvalue", which comes from the input, and not "enumvalueex" synthesized by SWIG itself because C should use the correct value for the enum
     // items without an explicit one anyhow (and "enumvalueex" can't be always used as is in C code for enum elements inside a class or even a namespace).
@@ -1578,7 +1582,7 @@ public:
 	  cvalue.assign_non_owned(value);
       }
 
-      Printv(f_wrappers_types, " = ", cvalue.get(), NIL);
+      Printv(enum_decl, " = ", cvalue.get(), NIL);
     }
 
     Swig_restore(n);
