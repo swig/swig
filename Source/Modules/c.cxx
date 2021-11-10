@@ -170,7 +170,6 @@ class C:public Language {
   File *f_runtime;
   File *f_header;
   File *f_wrappers;
-  File *f_wrappers_cxx;
   File *f_wrappers_types;
   File *f_wrappers_decl;
   File *f_init;
@@ -523,7 +522,6 @@ public:
     f_init = NewString("");
     f_header = NewString("");
     f_wrappers = NewString("");
-    f_wrappers_cxx = NewString("");
 
     Swig_banner(f_begin);
 
@@ -589,7 +587,6 @@ public:
 
     // write all to the file
     Dump(f_header, f_runtime);
-    Dump(f_wrappers_cxx, f_runtime);
     Wrapper_pretty_print(f_wrappers, f_runtime);
     Dump(f_init, f_runtime);
     Dump(f_runtime, f_begin);
@@ -598,7 +595,6 @@ public:
     Delete(f_begin);
     Delete(f_header);
     Delete(f_wrappers);
-    Delete(f_wrappers_cxx);
     Delete(f_wrappers_h);
     Delete(f_init);
     Delete(f_runtime);
