@@ -276,29 +276,31 @@ jobs:
           source $GITHUB_WORKSPACE/Tools/CI-linux-environment.sh
           set -x
 
-          if test -z "$SWIGLANG"; then make $SWIGJOBS check-ccache; fi
-          if test -z "$SWIGLANG"; then make $SWIGJOBS check-errors-test-suite; fi
+          if test -z "$SWIGLANG"; then
+            make $SWIGJOBS check-ccache
+            make $SWIGJOBS check-errors-test-suite
+          else
+            case "$SWIGLANG" in
+              javascript)
+                case "$ENGINE" in
+                  v8 | jsc)
+                    # Running tests using v8 or jsc involves creating a custom
+                    # interpreter in Tools/javascript, which is currently broken
+                    # for parallel builds (we attempt to update this interpreter
+                    # while running, resulting in "Text file busy" error).
+                    unset SWIGJOBS
+                esac
+                ;;
+            esac
 
-          case "$SWIGLANG" in
-            javascript)
-              case "$ENGINE" in
-                v8 | jsc)
-                  # Running tests using v8 or jsc involves creating a custom
-                  # interpreter in Tools/javascript, which is currently broken
-                  # for parallel builds (we attempt to update this interpreter
-                  # while running, resulting in "Text file busy" error).
-                  unset SWIGJOBS
-              esac
-              ;;
-          esac
-
-          # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
-          if test -n "$SWIGLANG"; then cflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC) && echo $cflags; fi
-          if test -n "$SWIGLANG"; then cxxflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC) && echo $cxxflags; fi
-          if test -n "$SWIGLANG"; then make check-$SWIGLANG-version; fi
-          if test -n "$SWIGLANG"; then make check-$SWIGLANG-enabled; fi
-          if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
-          if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
+            # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
+            cflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC) && echo $cflags
+            cxxflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC) && echo $cxxflags
+            make check-$SWIGLANG-version
+            make check-$SWIGLANG-enabled
+            make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"
+            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"
+          fi
 
     - name: Install
       working-directory: build/build
