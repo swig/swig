@@ -5,7 +5,7 @@
 LANGUAGE     = c
 C            = gcc
 CXX          = g++
-SCRIPTSUFFIX = _runme.c
+RUNMESUFFIX  = _runme
 srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@
@@ -108,6 +108,11 @@ SWIGOPT += -w524 # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
 
 SRCDIR       = ../$(srcdir)/
 
+# Make function to check if we have an executable test for the given test base name.
+define has_runme
+-f $(srcdir)/$1$(RUNMESUFFIX).c -o -f $(srcdir)/$1$(RUNMESUFFIX).cxx
+endef
+
 # Rules for the different types of tests
 %.cpptest: 
 	$(setup)
@@ -122,7 +127,7 @@ SRCDIR       = ../$(srcdir)/
 %.multicpptest: 
 	$(setup)
 	+(cd $* && $(swig_and_compile_multi_cpp))
-	+if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	+if [ $(call has_runme,$*) ]; then \
 	  $(do_run_testcase); \
 	else \
 	  cd $* && for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list`; do \
@@ -132,7 +137,7 @@ SRCDIR       = ../$(srcdir)/
 
 # Makes a directory for the testcase if it does not exist
 setup = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
+	if [  $(call has_runme,$*) ]; then	  \
 	  $(ECHO_PROGRESS) "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
 	else								  \
 	  $(ECHO_PROGRESS) "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
@@ -153,14 +158,15 @@ syntax_check_testcase = \
 do_run_testcase = \
 	cd $* && $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
 	  SRCDIR='$(SRCDIR)' \
-	  RUNME=$*_runme \
+	  RUNME=$*$(RUNMESUFFIX) \
+	  RUNME_EXT=$(patsubst .%,%,$(suffix $(wildcard $(srcdir)/$*$(RUNMESUFFIX).c*))) \
 	  TARGET='$*' \
 	  c_run
 
-# Only compile and run testcase if a file with _rume.c appended to the testcase
-# name is found, otherwise only check the syntax of the generated files.
+# Only compile and run testcase if we have a runme for it, otherwise only check
+# the syntax of the generated files.
 run_testcase = \
-	+if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	+if [ $(call has_runme,$*) ]; then \
 	  $(do_run_testcase); \
 	else \
 	  cd $* && $(call syntax_check_testcase,$*); \

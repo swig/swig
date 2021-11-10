@@ -1375,8 +1375,13 @@ c_cpp: $(SRCDIR_SRCS)
 	$(CXX) -c $(CCSHARED) -I$(SRCDIR) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_CXXSRCS) $(INCLUDES)
 	$(CXX_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
 
-c_compile: $(SRCDIR)$(RUNME).c
+c_compile_c: $(SRCDIR)$(RUNME).c
 	$(COMPILETOOL) $(CC) $(CFLAGS) -o $(RUNME) -I. -I.. $< -L. -l$(TARGET)
+
+c_compile_cxx: $(SRCDIR)$(RUNME).cxx
+	$(COMPILETOOL) $(CXX) $(CXXFLAGS) -o $(RUNME) -I. -I.. $< -L. -l$(TARGET)
+
+$(eval c_compile: c_compile_$(RUNME_EXT))
 
 # This target is used for the unit tests: if we don't have any test code to
 # run, we at least can check that the generated header can be included without

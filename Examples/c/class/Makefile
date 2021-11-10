@@ -7,7 +7,7 @@ INTERFACE  = example.i
 
 check: build
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' \
-	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' c_run
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' RUNME_EXT=c c_run
 
 build:
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
