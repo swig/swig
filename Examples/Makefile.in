@@ -1363,8 +1363,6 @@ C_LDSHARED = @C_LDSHARED@
 CXX_LDSHARED = @CXX_LDSHARED@
 C_SO = @C_SO@
 
-SYNTAX_CHECK := $(CC) -fsyntax-only -x c
-
 c: $(SRCDIR_SRCS)
 	$(SWIG) -c $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) -I$(SRCDIR) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES)
@@ -1385,9 +1383,14 @@ $(eval c_compile: c_compile_$(RUNME_EXT))
 
 # This target is used for the unit tests: if we don't have any test code to
 # run, we at least can check that the generated header can be included without
-# giving any syntax errors.
-c_syntax_check:
-	$(SYNTAX_CHECK) -I$(SRCDIR)$(INTERFACEDIR) $(C_HEADER)
+# giving any syntax errors, both when compiling it as C and C++ code.
+c_syntax_check: c_syntax_check_c c_syntax_check_cxx
+
+c_syntax_check_c:
+	$(CC) -fsyntax-only -x c -I$(SRCDIR)$(INTERFACEDIR) $(C_HEADER)
+
+c_syntax_check_cxx:
+	$(CXX) -fsyntax-only -x c++ -I$(SRCDIR)$(INTERFACEDIR) $(C_HEADER)
 
 # -----------------------------------------------------------------
 # Run C example

@@ -117,12 +117,20 @@ endef
 %.cpptest: 
 	$(setup)
 	+(cd $* && $(swig_and_compile_cpp))
-	$(run_testcase)
+	+if [ $(call has_runme,$*) ]; then \
+	  $(do_run_testcase); \
+	else \
+	  cd $* && $(call syntax_check_testcase,$*); \
+	fi
 
 %.ctest:
 	$(setup)
 	+(cd $* && $(swig_and_compile_c))
-	$(run_testcase)
+	+if [ $(call has_runme,$*) ]; then \
+	  $(do_run_testcase); \
+	else \
+	  cd $* && $(call syntax_check_testcase,$*,_c); \
+	fi
 
 %.multicpptest: 
 	$(setup)
@@ -147,12 +155,15 @@ setup = \
 	fi;
 
 # Checks the header syntax if there is no runnable testcase for it.
+#
+# The optional second argument can be "_c" to check syntax using C compiler only
+# (by default both C and C++ compilers are used).
 syntax_check_testcase = \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
 	  SRCDIR='$(SRCDIR)' \
 	  INTERFACEDIR='$(INTERFACEDIR)' \
 	  C_HEADER=$1_wrap.h \
-	  c_syntax_check
+	  c_syntax_check$2
 
 # Compiles C files then runs the testcase unconditionally.
 do_run_testcase = \
@@ -162,15 +173,6 @@ do_run_testcase = \
 	  RUNME_EXT=$(patsubst .%,%,$(suffix $(wildcard $(srcdir)/$*$(RUNMESUFFIX).c*))) \
 	  TARGET='$*' \
 	  c_run
-
-# Only compile and run testcase if we have a runme for it, otherwise only check
-# the syntax of the generated files.
-run_testcase = \
-	+if [ $(call has_runme,$*) ]; then \
-	  $(do_run_testcase); \
-	else \
-	  cd $* && $(call syntax_check_testcase,$*); \
-	fi
 
 # Clean: remove testcase directories
 %.clean:
