@@ -566,28 +566,24 @@ public:
         include_guard_wrappers_h(f_wrappers_h, include_guard_begin, include_guard_end);
 
       // All the struct types used by the functions go to f_wrappers_types so that they're certain to be defined before they're used by any functions. All the
-      // functions declarations go directly to f_wrappers_decl and f_wrappers_h_body combines both of them.
-      const scoped_dohptr f_wrappers_h_body(NewStringEmpty());
+      // functions declarations go directly to f_wrappers_decl we write both of them to f_wrappers_h at the end.
       f_wrappers_types = NewString("");
       f_wrappers_decl = NewString("");
 
       {
-
         cplusplus_output_guard
           cplusplus_guard_wrappers(f_wrappers),
-          cplusplus_guard_wrappers_h(f_wrappers_h_body);
+          cplusplus_guard_wrappers_h(f_wrappers_decl);
 
         // emit code for children
         Language::top(n);
-
-        Dump(f_wrappers_types, f_wrappers_h_body);
-        Delete(f_wrappers_types);
-
-        Dump(f_wrappers_decl, f_wrappers_h_body);
-        Delete(f_wrappers_decl);
       } // close extern "C" guards
 
-      Dump(f_wrappers_h_body, f_wrappers_h);
+      Dump(f_wrappers_types, f_wrappers_h);
+      Delete(f_wrappers_types);
+
+      Dump(f_wrappers_decl, f_wrappers_h);
+      Delete(f_wrappers_decl);
     } // close wrapper header guard
 
     // write all to the file
