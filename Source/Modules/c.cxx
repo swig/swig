@@ -166,13 +166,12 @@ const char* const cindent = "  ";
 class C:public Language {
   static const char *usage;
 
-  File *f_begin;
-  File *f_runtime;
-  File *f_header;
-  File *f_wrappers;
+  // These files contain types used by the wrappers declarations and the declarations themselves and end up in the output header file.
   File *f_wrappers_types;
   File *f_wrappers_decl;
-  File *f_init;
+
+  // This one contains wrapper functions definitions and end up in the output C++ file.
+  File *f_wrappers;
 
   String *empty_string;
 
@@ -513,21 +512,17 @@ public:
     String *outfile = Getattr(n, "outfile");
 
     // initialize I/O
-    f_begin = NewFile(outfile, "w", SWIG_output_files());
-    if (!f_begin) {
+    const scoped_dohptr f_wrappers_cxx(NewFile(outfile, "w", SWIG_output_files()));
+    if (!f_wrappers_cxx) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
-    f_runtime = NewString("");
-    f_init = NewString("");
-    f_header = NewString("");
-    f_wrappers = NewString("");
 
-    Swig_banner(f_begin);
+    Swig_banner(f_wrappers_cxx);
 
     // Open the file where all wrapper declarations will be written to in the end.
     String* const outfile_h = Getattr(n, "outfile_h");
-    File* const f_wrappers_h = NewFile(outfile_h, "w", SWIG_output_files());
+    const scoped_dohptr f_wrappers_h(NewFile(outfile_h, "w", SWIG_output_files()));
     if (!f_wrappers_h) {
       FileErrorDisplay(outfile_h);
         SWIG_exit(EXIT_FAILURE);
@@ -535,11 +530,22 @@ public:
 
     Swig_banner(f_wrappers_h);
 
+    // Associate file with the SWIG sections with the same name, so that e.g. "%header" contents end up in f_header etc.
+    const scoped_dohptr f_begin(NewStringEmpty());
+    const scoped_dohptr f_header(NewStringEmpty());
+    const scoped_dohptr f_runtime(NewStringEmpty());
+    const scoped_dohptr f_init(NewStringEmpty());
+
+    // This one is used outside of this function, so it's a member variable rather than a local one.
+    f_wrappers = NewStringEmpty();
+
     Swig_register_filebyname("begin", f_begin);
     Swig_register_filebyname("header", f_header);
     Swig_register_filebyname("wrapper", f_wrappers);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", f_init);
+
+    // This one is C-specific and goes directly to the output header file.
     Swig_register_filebyname("cheader", f_wrappers_h);
 
     {
@@ -561,7 +567,7 @@ public:
 
       // All the struct types used by the functions go to f_wrappers_types so that they're certain to be defined before they're used by any functions. All the
       // functions declarations go directly to f_wrappers_decl and f_wrappers_h_body combines both of them.
-      String* const f_wrappers_h_body = NewString("");
+      const scoped_dohptr f_wrappers_h_body(NewStringEmpty());
       f_wrappers_types = NewString("");
       f_wrappers_decl = NewString("");
 
@@ -582,22 +588,14 @@ public:
       } // close extern "C" guards
 
       Dump(f_wrappers_h_body, f_wrappers_h);
-      Delete(f_wrappers_h_body);
     } // close wrapper header guard
 
     // write all to the file
-    Dump(f_header, f_runtime);
-    Dump(f_wrappers, f_runtime);
-    Dump(f_init, f_runtime);
-    Dump(f_runtime, f_begin);
-
-    // cleanup
-    Delete(f_begin);
-    Delete(f_header);
-    Delete(f_wrappers);
-    Delete(f_wrappers_h);
-    Delete(f_init);
-    Delete(f_runtime);
+    Dump(f_begin, f_wrappers_cxx);
+    Dump(f_runtime, f_wrappers_cxx);
+    Dump(f_header, f_wrappers_cxx);
+    Dump(f_wrappers, f_wrappers_cxx);
+    Dump(f_init, f_wrappers_cxx);
 
     return SWIG_OK;
   }
