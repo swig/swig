@@ -1440,6 +1440,17 @@ public:
     return Language::constructorHandler(n);
   }
 
+  /* ----------------------------------------------------------------------
+   * Language::enumforwardDeclaration()
+   * ---------------------------------------------------------------------- */
+
+  virtual int enumforwardDeclaration(Node *n) {
+    // Base implementation of this function calls enumDeclaration() for "missing" enums, i.e. those without any definition at all. This results in invalid (at
+    // least in C++) enum declarations in the output, so simply don't do this here.
+    (void) n;
+    return SWIG_OK;
+  }
+
   /* ---------------------------------------------------------------------
    * enumDeclaration()
    * --------------------------------------------------------------------- */
