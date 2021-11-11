@@ -154,6 +154,7 @@ jobs:
           VER: '2.7'
         - SWIGLANG: ruby
           VER: '3.0'
+          CPPSTD: c++11
         - SWIGLANG: tcl
         # c++11 testing
         - SWIGLANG: csharp
