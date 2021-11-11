@@ -51,15 +51,14 @@ jobs:
         #   os: ubuntu-18.04 # This dlang version doesn't work under 20.04.
         - SWIGLANG: go
           VER: '1.6'
-          CSTD: gnu99
+          CSTD: gnu11
         - SWIGLANG: go
           VER: '1.8'
         - SWIGLANG: go
           VER: '1.12'
-          CSTD: gnu99
+          CSTD: gnu11
         - SWIGLANG: go
           VER: '1.17'
-          CSTD: gnu99
         - SWIGLANG: guile
         - SWIGLANG: java
         - SWIGLANG: javascript
@@ -156,9 +155,105 @@ jobs:
           VER: '2.7'
         - SWIGLANG: ruby
           VER: '3.0'
-          CSTD: c99
+        - SWIGLANG: tcl
+        # c++11 testing
+        - SWIGLANG: csharp
+          CPPSTD: c++11
+        - SWIGLANG: go
+          VER: '1.17'
+          CPPSTD: c++11
+          CSTD: gnu11
+        - SWIGLANG: java
+          CPPSTD: c++11
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '14'
+          CPPSTD: c++11
+          # - SWIGLANG: octave
+          # CPPSTD: c++11
+        - SWIGLANG: perl5
+          CPPSTD: c++11
+        - SWIGLANG: php
+          CPPSTD: c++11
+          CSTD: gnu11
+        - SWIGLANG: python
+          CPPSTD: c++11
+          PY3: 3
+        - SWIGLANG: r
+          CPPSTD: c++11
+        - SWIGLANG: ruby
           CPPSTD: c++11
         - SWIGLANG: tcl
+          CPPSTD: c++11
+        # c++14 testing
+        - SWIGLANG: csharp
+          CPPSTD: c++14
+        - SWIGLANG: go
+          VER: '1.17'
+          CPPSTD: c++14
+          CSTD: gnu11
+        - SWIGLANG: java
+          CPPSTD: c++14
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '16'
+          CPPSTD: c++14
+        - SWIGLANG: octave
+          CPPSTD: c++14
+        - SWIGLANG: perl5
+          CPPSTD: c++14
+        - SWIGLANG: php
+          CPPSTD: c++14
+          CSTD: gnu11
+        - SWIGLANG: python
+          CPPSTD: c++14
+          PY3: 3
+        - SWIGLANG: r
+          CPPSTD: c++14
+        - SWIGLANG: ruby
+          CPPSTD: c++14
+        - SWIGLANG: tcl
+          CPPSTD: c++14
+        # c++17 testing (using gcc11)
+        - SWIGLANG: csharp
+          CPPSTD: c++17
+          GCC: 11
+        - SWIGLANG: go
+          VER: '1.17'
+          CPPSTD: c++17
+          GCC: 11
+          CSTD: gnu17
+        - SWIGLANG: java
+          CPPSTD: c++17
+          GCC: 11
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '16'
+          CPPSTD: c++17
+          GCC: 11
+        - SWIGLANG: octave
+          CPPSTD: c++17
+          GCC: 11
+        - SWIGLANG: perl5
+          CPPSTD: c++17
+          GCC: 11
+        - SWIGLANG: php
+          CPPSTD: c++17
+          CSTD: gnu17
+          GCC: 11
+        - SWIGLANG: python
+          CPPSTD: c++17
+          GCC: 11
+          PY3: 3
+        - SWIGLANG: r
+          CPPSTD: c++17
+          GCC: 11
+        - SWIGLANG: ruby
+          CPPSTD: c++17
+          GCC: 11
+        - SWIGLANG: tcl
+          CPPSTD: c++17
+          GCC: 11
         # let's run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -168,9 +263,9 @@ jobs:
       VER: ${{ matrix.VER }}
       ENGINE: ${{ matrix.ENGINE }}
       SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
+      GCC: ${{ matrix.GCC }}
       CSTD: ${{ matrix.CSTD }}
       CPPSTD: ${{ matrix.CPPSTD }}
-      GCC: ${{ matrix.GCC }}
 
     steps:
     - name: Checkout
