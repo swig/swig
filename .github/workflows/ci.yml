@@ -96,7 +96,6 @@ jobs:
         - SWIGLANG: php
           VER: '7.4'
         - SWIGLANG: php
-          VER: '8.0'
         - SWIGLANG: python
         - SWIGLANG: python
           PY3: 3

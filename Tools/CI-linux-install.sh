@@ -83,9 +83,12 @@ case "$SWIGLANG" in
 		$RETRY sudo apt-get -qq install liboctave-dev
 		;;
 	"php")
-		$RETRY sudo add-apt-repository -y ppa:ondrej/php
-		$RETRY sudo apt-get -qq update
-		$RETRY sudo apt-get -qq install php$VER-cli php$VER-dev
+		if [[ "$VER" ]]; then
+			$RETRY sudo apt-get -qq remove "php*-cli" "php*-dev" # Multiple versions are pre-installed
+			$RETRY sudo add-apt-repository -y ppa:ondrej/php
+			$RETRY sudo apt-get -qq update
+			$RETRY sudo apt-get -qq install php$VER-cli php$VER-dev
+		fi
 		;;
 	"python")
 		pip install --user pycodestyle
