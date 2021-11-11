@@ -58,7 +58,7 @@ jobs:
           VER: '1.12'
           CSTD: gnu99
         - SWIGLANG: go
-          VER: '1.16'
+          VER: '1.17'
           CSTD: gnu99
         - SWIGLANG: guile
         - SWIGLANG: java
