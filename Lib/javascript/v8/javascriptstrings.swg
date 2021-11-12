@@ -14,7 +14,7 @@ SWIG_AsCharPtrAndSize(SWIGV8_VALUE valRef, char** cptr, size_t* psize, int *allo
 %#endif
 
     size_t len = SWIGV8_UTF8_LENGTH(js_str) + 1;
-    char* cstr = new char[len];
+    char* cstr = (char*) %new_array(len, char);
     SWIGV8_WRITE_UTF8(js_str, cstr, len);
     
     if(alloc) *alloc = SWIG_NEWOBJ;
