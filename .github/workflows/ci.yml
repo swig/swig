@@ -169,6 +169,8 @@ jobs:
           ENGINE: node
           VER: '14'
           CPPSTD: c++11
+        - SWIGLANG: lua
+          CPPSTD: c++11
           # - SWIGLANG: octave
           # CPPSTD: c++11
         - SWIGLANG: perl5
@@ -197,6 +199,8 @@ jobs:
         - SWIGLANG: javascript
           ENGINE: node
           VER: '16'
+          CPPSTD: c++14
+        - SWIGLANG: lua
           CPPSTD: c++14
         - SWIGLANG: octave
           CPPSTD: c++14
@@ -229,6 +233,9 @@ jobs:
         - SWIGLANG: javascript
           ENGINE: node
           VER: '16'
+          CPPSTD: c++17
+          GCC: 11
+        - SWIGLANG: lua
           CPPSTD: c++17
           GCC: 11
         - SWIGLANG: octave
