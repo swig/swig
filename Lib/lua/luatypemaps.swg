@@ -39,12 +39,12 @@ $1 = ($type)lua_tonumber(L, $input);%}
 // SWIG assumes that this code will need a pointer to int to be passed in
 // (this might be ok for objects by const ref, but not for numeric primitives)
 // therefore we add a set of typemaps to fix this (for both in & out)
-%typemap(in,checkfn="lua_isnumber") const int&($basetype temp)
-%{ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
+%typemap(in,checkfn="lua_isnumber") const int&($*1_ltype temp)
+%{ temp=($*1_ltype)lua_tonumber(L,$input); $1=&temp;%}
 
-%typemap(in,checkfn="lua_isnumber") const unsigned int&($basetype temp)
+%typemap(in,checkfn="lua_isnumber") const unsigned int&($*1_ltype temp)
 %{SWIG_contract_assert((lua_tonumber(L,$input)>=0),"number must not be negative")
-temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
+temp=($*1_ltype)lua_tonumber(L,$input); $1=&temp;%}
 
 %typemap(out) const int&, const unsigned int&
 %{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
