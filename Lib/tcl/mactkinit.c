@@ -126,7 +126,7 @@ MacintoshInit()
  *
  *	This procedure calls initialization routines require a Tcl 
  *	interp as an argument.  This call effectively makes the passed
- *	iterpreter the "main" interpreter for the application.
+ *	interpreter the "main" interpreter for the application.
  *
  * Results:
  *	Returns TCL_OK if everything went fine.  If it didn't the 
