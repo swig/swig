@@ -40,13 +40,13 @@ check "testX" 14 [$o byval1cpr "NULL"]
 check "testX" 15 [$o byval2cpr "NULL"]
 check "testX" 16 [$o byval2cpr $x]
 
-# forward class declaration
-check "testX" 17 [$o byval1forwardptr $x]
-check "testX" 18 [$o byval1forwardptr "NULL"]
+# fwd class declaration
+check "testX" 17 [$o byval1fwdptr $x]
+check "testX" 18 [$o byval1fwdptr "NULL"]
 
-check "testX" 19 [$o byval2forwardptr "NULL"]
-check "testX" 20 [$o byval2forwardptr $x]
+check "testX" 19 [$o byval2fwdptr "NULL"]
+check "testX" 20 [$o byval2fwdptr $x]
 
-check "testX" 21 [$o byval1forwardref $x]
+check "testX" 21 [$o byval1fwdref $x]
 
-check "testX" 22 [$o byval2forwardref $x]
+check "testX" 22 [$o byval2fwdref $x]
