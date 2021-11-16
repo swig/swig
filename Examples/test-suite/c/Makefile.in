@@ -102,7 +102,7 @@ char_binary.cpptest director_binary_string.cpptest li_typemaps.cpptest li_typema
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-SWIGOPT += -w524 # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
+SWIGOPT += -w524 -nocxx # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
 
 %.cpptest: SWIGOPT += -namespace $*
 

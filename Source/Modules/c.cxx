@@ -168,6 +168,528 @@ public:
 // String containing one indentation level for the generated code.
 const char* const cindent = "  ";
 
+/*
+  cxx_class_wrapper
+
+  Outputs the declaration of the class wrapping the given one if we're generating C++ wrappers, i.e. if the provided File is not null.
+*/
+class cxx_class_wrapper
+{
+public:
+  // The pointer passed to the ctor is set to this object and restored to its previous value in dtor, ensuring that it never becomes dangling.
+  //
+  // The file pointer may be null, in which case we simply don't do anything.
+  //
+  // Finally, the node pointer must be valid, point to a class and remain valid for the lifetime of this object.
+  cxx_class_wrapper(cxx_class_wrapper** pp, File* f_out, Node* n) : current_wrapper_(pp), old_wrapper_(*current_wrapper_), f_out_(f_out) {
+    if (!f_out_)
+      return;
+
+    class_node_ = NULL;
+
+    scoped_dohptr base_classes(NewStringEmpty());
+    if (List *baselist = Getattr(n, "bases")) {
+      Iterator i = First(baselist);
+      if (i.item) {
+	first_base_ = Copy(i.item);
+
+	i = Next(i);
+	if (i.item) {
+	  Swig_warning(WARN_C_UNSUPPORTTED, Getfile(n), Getline(n),
+	    "Multiple inheritance not supported yet, skipping C++ wrapper generation for %s\n",
+	    Getattr(n, "sym:name")
+	  );
+
+	  // Return before initializing class_node_, so that the dtor won't output anything neither.
+	  return;
+	}
+      }
+
+      Printv(base_classes, " : public ", Getattr(first_base_, "sym:name"), NIL);
+    }
+
+    Printv(f_out_,
+      "class ", Getattr(n, "sym:name"), base_classes.get(), " {\n"
+      "public:\n",
+      NIL
+    );
+
+    class_node_ = n;
+
+    // We're going to generate C++ wrappers for this class, so set up the pointer to do it.
+    *current_wrapper_ = this;
+  }
+
+  // Emit wrapper of a member function.
+  //
+  // Shouldn't be called if we're not emitting C++ wrappers for this class.
+  void emit_member_function(Node* n) {
+    // We don't need to redeclare functions inherited from the base class, as we use real inheritance.
+    if (Getattr(n, "c:inherited_from"))
+      return;
+
+    // Also ignore friend function declarations: they appear inside the class, but we shouldn't generate any wrappers for them.
+    if (Checkattr(n, "storage", "friend"))
+      return;
+
+    // As mentioned elsewhere, we can't use Swig_storage_isstatic() here because the "storage" attribute is temporarily saved in another view when this
+    // function is being executed, so rely on another attribute to determine if it's a static function instead.
+    const bool is_member = Checkattr(n, "ismember", "1");
+    const bool is_static = is_member && Getattr(n, "cplus:staticbase");
+    const bool is_ctor = Checkattr(n, "nodeType", "constructor");
+
+    // Deal with the return type: it may be different from the type of the C wrapper function if it involves objects, and so we may need to add a cast.
+    SwigType* const ret_type = Getattr(n, "type");
+    scoped_dohptr ret_ctype(Swig_typemap_lookup("ctype", n, "", NULL));
+    if (!ret_ctype) {
+      Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, Getfile(n), Getline(n),
+	"No ctype typemap defined for the return type \"%s\" of %s\n",
+	SwigType_str(ret_type, NULL),
+	Getattr(n, "sym:name")
+      );
+      return;
+    }
+
+    scoped_dohptr ret_cxxtype(Copy(ret_ctype));
+    const expr_wrapper ret_block = resolve_ret_type(ret_type, ret_cxxtype);
+
+    // We also need the list of parameters to take in the C++ function being generated and the list of them to pass to the C wrapper.
+    scoped_dohptr parms_cxx(NewStringEmpty());
+    scoped_dohptr parms_call(NewStringEmpty());
+
+    Parm* p = Getattr(n, "parms");
+    if (p && is_member && !is_ctor && !is_static) {
+      // We should have "this" as the first parameter and we need to just skip it, as we handle it specially in C++ wrappers.
+      if (Checkattr(p, "name", "self")) {
+	p = nextSibling(p);
+      } else {
+	// This is not supposed to happen, so warn if it does.
+	Swig_warning(WARN_C_UNSUPPORTTED, Getfile(n), Getline(n),
+	  "Unexpected first parameter \"%s\" in %s\n",
+	  Getattr(p, "name"),
+	  Getattr(n, "sym:name"));
+      }
+    }
+
+    for (; p; p = nextSibling(p)) {
+      // Static variables use fully qualified names, so we can't just use the name directly.
+      scoped_dohptr name_ptr;
+      String* name = Getattr(p, "name");
+      if (!name) {
+	// Parameters can also not have any names at all, in which case we use auto-generated one.
+	name = Getattr(p, "lname");
+      } else if (Strstr(name, "::")) {
+	name_ptr = Swig_scopename_last(name);
+	name = name_ptr.get();
+      }
+
+      SwigType* const ptype = Getattr(p, "type");
+      scoped_dohptr pcxxtype(Copy(Getattr(p, "tmap:ctype")));
+
+      const expr_wrapper parm_cast = resolve_param_type(ptype, pcxxtype);
+
+      if (Len(parms_cxx))
+	Append(parms_cxx, ", ");
+      Printv(parms_cxx, pcxxtype.get(), " ", name, NIL);
+
+      if (Len(parms_call))
+	Append(parms_call, ", ");
+      Printv(parms_call, parm_cast.start.get(), name, parm_cast.end.get(), NIL);
+    }
+
+    // For some reason overloaded functions use fully-qualified name, so we can't just use the name directly.
+    scoped_dohptr name_ptr(Swig_scopename_last(Getattr(n, "name")));
+    String* const name = name_ptr.get();
+    String* const wname = Getattr(n, "wrap:name");
+
+    if (Checkattr(n, "kind", "variable")) {
+      if (Checkattr(n, "memberget", "1")) {
+	Printv(f_out_,
+	  cindent, ret_cxxtype.get(), " ", name, "() const "
+	  "{ ",
+	    ret_block.start.get(),
+	    Getattr(n, "sym:name"), "(swig_self())",
+	    ret_block.end.get(),
+	  "; }\n",
+	  NIL
+	);
+      } else if (Checkattr(n, "memberset", "1")) {
+	Printv(f_out_,
+	  cindent, "void ", name, "(", parms_cxx.get(), ") "
+	  "{ ", Getattr(n, "sym:name"), "(swig_self(), ", parms_call.get(), "); }\n",
+	  NIL
+	);
+      } else if (Checkattr(n, "varget", "1")) {
+	Printv(f_out_,
+	  cindent, "static ", ret_cxxtype.get(), " ", name, "() "
+	  "{ ",
+	    ret_block.start.get(),
+	    Getattr(n, "sym:name"), "()",
+	    ret_block.end.get(),
+	  "; }\n",
+	  NIL
+	);
+      } else if (Checkattr(n, "varset", "1")) {
+	Printv(f_out_,
+	  cindent, "static void ", name, "(", parms_cxx.get(), ") "
+	  "{ ", Getattr(n, "sym:name"), "(", parms_call.get(), "); }\n",
+	  NIL
+	);
+      } else {
+	Swig_warning(WARN_C_UNSUPPORTTED, Getfile(n), Getline(n),
+	  "Not generating C++ wrappers for variable %s\n",
+	  Getattr(n, "sym:name")
+	);
+      }
+    } else if (is_ctor) {
+      // Note that we use the sym:name of the class rather than than any attribute of ctor itself because its sym:name is the name of the C wrapper function by
+      // now (and its name is not suitable to be used in the generated code, e.g. it could be a template).
+      String* const classname = Getattr(class_node_, "sym:name");
+
+      // Delegate to the ctor from opaque C pointer taking ownership of the object.
+      Printv(f_out_,
+	cindent, classname, "(", parms_cxx.get(), ") : ",
+	classname, "{", wname, "(", parms_call.get(), ")} {}\n",
+	NIL
+      );
+    } else if (Checkattr(n, "nodeType", "destructor")) {
+      // See the comment above.
+      String* const classname = Getattr(class_node_, "sym:name");
+
+      if (first_base_) {
+	// Delete the pointer and reset the ownership flag to ensure that the base class doesn't do it again.
+	Printv(f_out_,
+	  cindent, get_virtual_prefix(n), "~", classname, "() {\n",
+	  cindent, cindent, "if (swig_owns_self_) {\n",
+	  cindent, cindent, cindent, wname, "(swig_self());\n",
+	  cindent, cindent, cindent, "swig_owns_self_ = false;\n",
+	  cindent, cindent, "}\n",
+	  cindent, "}\n",
+	  NIL
+	);
+      } else {
+	// Slightly simplified version for classes without base classes, as we don't need to reset swig_self_ then.
+	Printv(f_out_,
+	  cindent, get_virtual_prefix(n), "~", classname, "() {\n",
+	  cindent, cindent, "if (swig_owns_self_)\n",
+	  cindent, cindent, cindent, wname, "(swig_self_);\n",
+	  cindent, "}\n",
+	  NIL
+	);
+      }
+    } else if (is_member) {
+      // Wrapper parameters list may or not include "this" pointer and may or not have other parameters, so construct it piecewise for simplicity.
+      scoped_dohptr wparms(NewStringEmpty());
+      if (!is_static)
+	Append(wparms, "swig_self()");
+      if (Len(parms_call)) {
+	if (Len(wparms))
+	  Append(wparms, ", ");
+	Append(wparms, parms_call);
+      }
+
+      Printv(f_out_,
+	cindent,
+	is_static ? "static " : get_virtual_prefix(n), ret_cxxtype.get(), " ",
+	name, "(", parms_cxx.get(), ")",
+	get_const_suffix(n), " { ",
+	NIL
+      );
+
+      Printv(f_out_,
+	ret_block.start.get(),
+	wname, "(", wparms.get(), ")",
+	ret_block.end.get(),
+	NIL
+      );
+
+      Printv(f_out_,
+	"; }\n",
+	NIL
+      );
+    } else {
+      // This is something we don't know about
+      Swig_warning(WARN_C_UNSUPPORTTED, Getfile(n), Getline(n),
+	"Not generating C++ wrappers for %s\n",
+	Getattr(n, "sym:name")
+      );
+    }
+  }
+
+  ~cxx_class_wrapper() {
+    if (!f_out_)
+      return;
+
+    // Don't do anything if generation of the wrapper for this class was disabled in ctor.
+    if (!class_node_)
+      return;
+
+    *current_wrapper_ = old_wrapper_;
+
+    // This is the name used for the class pointers in C wrappers.
+    scoped_dohptr c_class_ptr = get_c_class_ptr(class_node_);
+
+    // We need to generate a ctor from the C object pointer, which is required to be able to create objects of this class from pointers created by C wrappers
+    // and also by any derived classes.
+    Printv(f_out_,
+      "\n",
+      cindent, "explicit ", Getattr(class_node_, "sym:name"), "(", c_class_ptr.get(), " swig_self, "
+	"bool swig_owns_self = true) : ",
+      NIL
+    );
+
+    if (first_base_) {
+      // In this case we delegate to the base class ctor, but need a cast because it expects a different pointer type (as these types are opaque, there is no
+      // relationship between them). We rely on proxyname being already set
+      Printv(f_out_,
+	Getattr(first_base_, "sym:name"),
+	"{(", get_c_class_ptr(first_base_).get(), ")swig_self, swig_owns_self}",
+	NIL
+      );
+    } else {
+      // Just initialize our own field.
+      Printv(f_out_,
+	"swig_self_{swig_self}, swig_owns_self_{swig_owns_self}",
+	NIL
+      );
+    }
+
+    Append(f_out_, " {}\n");
+
+    // We also need a swig_self() method for accessing the C object pointer.
+    Printv(f_out_,
+      cindent, c_class_ptr.get(), " swig_self() const noexcept ",
+      NIL
+    );
+
+    if (first_base_) {
+      // If we have a base class, we reuse its existing "self" pointer.
+      Printv(f_out_,
+	"{ return (", c_class_ptr.get(), ")", Getattr(first_base_, "sym:name"), "::swig_self(); }\n",
+	NIL
+      );
+    } else {
+      // We use our own pointer, which we also have to declare, together with the ownership flag.
+      //
+      // Perhaps we could avoid having a separate bool flag by reusing the low-order bit of the pointer itself as the indicator of ownership and masking it when
+      // retrieving it here in the future. If we decide to implement this optimization, the code generated here should be the only thing that would need to
+      // change.
+      Printv(f_out_,
+	"{ return swig_self_; }\n",
+	cindent, c_class_ptr.get(), " swig_self_;\n",
+	cindent, "bool swig_owns_self_;\n",
+	NIL
+      );
+    }
+
+    Printv(f_out_,
+      "};\n"
+      "\n",
+      NIL
+    );
+  }
+
+
+private:
+  // Struct describing a wrapper around some expression: start part goes before the expression and the end part after it.
+  // Both parts may be empty.
+  struct expr_wrapper
+  {
+    expr_wrapper() : start(NewStringEmpty()), end(NewStringEmpty())
+    {
+    }
+
+    scoped_dohptr start;
+    scoped_dohptr end;
+  };
+
+
+  // Various helpers.
+
+  // Return the string containing the pointer type used for representing the objects of the given class in the C wrappers.
+  //
+  // Returned value includes "*" at the end.
+  static scoped_dohptr get_c_class_ptr(Node* class_node) {
+    return scoped_dohptr(NewStringf("SwigObj_%s*", Getattr(class_node, "proxyname")));
+  }
+
+  // Return "virtual " if this is a virtual function, empty string otherwise.
+  static const char* get_virtual_prefix(Node* n) {
+    return Checkattr(n, "storage", "virtual") ? "virtual " : "";
+  }
+
+  // Return " const" if this is a const function, empty string otherwise.
+  static const char* get_const_suffix(Node* n) {
+    String* const qualifier = Getattr(n, "qualifier");
+    return qualifier && strncmp(Char(qualifier), "q(const)", 8) == 0 ? " const" : "";
+  }
+
+  // Replace "resolved_type" occurrences in the string with the value corresponding to the given type.
+  //
+  // Also fills in the provided cast expressions, if they're not null, with the casts needed to translate from C type to C++ type (this is used for the
+  // parameters of C++ functions, hence the name) and from C types to C++ types (which is used for the function return values).
+  static void do_resolve_type(SwigType* type, String* s, expr_wrapper* parm_cast, expr_wrapper* ret_block) {
+    enum TypeKind
+    {
+      Type_Ptr,
+      Type_Ref,
+      Type_Obj,
+      Type_Max
+    } typeKind = Type_Max;
+
+    // These correspond to the typemaps for SWIGTYPE*, SWIGTYPE& and SWIGTYPE, respectively, defined in c.swg.
+    static const char* typemaps[Type_Max] = {
+      "$resolved_type*",
+      "$*resolved_type*",
+      "$&resolved_type*",
+    };
+
+    for (int i = 0; i < Type_Max; ++i) {
+      if (Strstr(s, typemaps[i])) {
+	typeKind = static_cast<TypeKind>(i);
+	break;
+      }
+    }
+
+    if (typeKind == Type_Max) {
+      if (Strstr(s, "resolved_type")) {
+	Swig_warning(WARN_C_UNSUPPORTTED, input_file, line_number,
+	  "Unsupported typemap used for \"%s\"\n",
+	  type
+	);
+      }
+
+      if (ret_block) {
+	Append(ret_block->start, "return ");
+      }
+
+      return;
+    }
+
+    scoped_dohptr resolved_type(SwigType_typedef_resolve_all(type));
+    scoped_dohptr stripped_type(SwigType_strip_qualifiers(resolved_type));
+
+    scoped_dohptr typestr;
+    String* classname;
+    if (Node* const class_node = Language::instance()->classLookup(stripped_type)) {
+      typestr = SwigType_str(type, 0);
+      classname = Getattr(class_node, "sym:name");
+    } else {
+      // This is something unknown, so just use an opaque typedef already declared in C wrappers section for it.
+      typestr = NewStringf("SWIGTYPE%s*", SwigType_manglestr(stripped_type));
+      classname = NULL;
+    }
+
+    switch (typeKind) {
+      case Type_Ptr:
+	if (parm_cast) {
+	  Append(parm_cast->end, "->swig_self()");
+	}
+
+	if (ret_block) {
+	  if (classname) {
+	    // We currently assume that all pointers are new, which is probably wrong.
+	    Append(ret_block->start, "auto swig_res = ");
+	    Printv(ret_block->end,
+	      "; "
+	      "return swig_res ? new ", classname, "(swig_res) : nullptr",
+	      NIL
+	    );
+	  } else {
+	    // We can't convert an opaque pointer into anything, so just return it as is.
+	    Append(ret_block->start, "return ");
+	  }
+	}
+	break;
+
+      case Type_Ref:
+	if (ret_block) {
+	  if (classname) {
+	    // We can't return a reference, as this requires an existing object and we don't have any, so we have to return an object instead, and this object
+	    // must be constructed using the special ctor not taking the pointer ownership.
+	    typestr = Copy(classname);
+
+	    Printv(ret_block->start,
+	      "return ", classname, "{",
+	      NIL
+	    );
+	    Printv(ret_block->end,
+	      ", false}",
+	      NIL
+	    );
+	  } else {
+	    // We can't do anything at all in this case.
+	    Swig_error(input_file, line_number, "Unknown reference return type \"%s\"\n", typestr.get());
+	  }
+	}
+
+	if (parm_cast) {
+	  Append(parm_cast->end, ".swig_self()");
+	}
+	break;
+
+      case Type_Obj:
+	if (ret_block) {
+	  if (classname) {
+	    // The pointer returned by C function wrapping a function returning an object should never be null unless an exception happened.
+	    Printv(ret_block->start,
+	      "return ", typestr.get(), "(",
+	      NIL
+	    );
+	    Append(ret_block->end, ")");
+	  } else {
+	    Swig_error(input_file, line_number, "Unknown reference return type \"%s\"\n", typestr.get());
+	  }
+	}
+
+	if (parm_cast) {
+	  Append(parm_cast->end, ".swig_self()");
+	}
+	break;
+
+      case Type_Max:
+	// Unreachable, but keep here to avoid -Wswitch warnings.
+	assert(0);
+    }
+
+    Replaceall(s, typemaps[typeKind], typestr);
+  }
+
+  static expr_wrapper resolve_param_type(SwigType* type, String* s) {
+    expr_wrapper parm_cast;
+    do_resolve_type(type, s, &parm_cast, NULL);
+    return parm_cast;
+  }
+
+  // Note that the returned wrapper always already contains "return".
+  static expr_wrapper resolve_ret_type(SwigType* type, String* s) {
+    expr_wrapper ret_block;
+    if (SwigType_type(type) != T_VOID) {
+      do_resolve_type(type, s, NULL, &ret_block);
+    }
+    //else: Don't even add "return" in this case.
+
+    return ret_block;
+  }
+
+
+  cxx_class_wrapper** const current_wrapper_;
+  cxx_class_wrapper* const old_wrapper_;
+  File* const f_out_;
+
+  // The class node itself, left null only if we skip generating wrappers for it for whatever reason.
+  Node* class_node_;
+
+  // We currently don't support generating C++ wrappers for classes using multiple inheritance. This could be implemented, with some tweaks to allow
+  // initializing the other base classes after creating the most-derived object, but hasn't been done yet. Until then we store just the first base class (if
+  // any, this member can also be null).
+  scoped_dohptr first_base_;
+
+  // Non copyable.
+  cxx_class_wrapper(const cxx_class_wrapper&);
+  cxx_class_wrapper& operator=(const cxx_class_wrapper&);
+};
+
 } // anonymous namespace
 
 class C:public Language {
@@ -177,12 +699,18 @@ class C:public Language {
   File *f_wrappers_types;
   File *f_wrappers_decl;
 
+  // This file contains C++ wrappers if they're generated.
+  File *f_wrappers_decl_cxx;
+
   // This one contains wrapper functions definitions and end up in the output C++ file.
   File *f_wrappers;
 
   String *empty_string;
 
-  // Prefix used for all symbols, if defined.
+  // Namespace used for the C++ wrappers, set from -namespace command-line option if specified or from the module name otherwise.
+  String *ns_cxx;
+
+  // Prefix used for all symbols, if non-null. If ns_cxx was specified, it is a mangled version of it.
   String *ns_prefix;
 
   // Prefix for module-level symbols, currently just the module name.
@@ -195,11 +723,17 @@ class C:public Language {
   // so we accumulate the full declaration here and then write it to f_wrappers_types at once only if there are any elements.
   String *enum_decl;
 
+  // Non-owning pointer to the current C++ class wrapper if we're currently generating one or NULL.
+  cxx_class_wrapper* cxx_class_wrapper_;
+
   // Selects between the wrappers (public) declarations and (private) definitions.
   enum {
     output_wrapper_decl,
     output_wrapper_def
   } current_output;
+
+  // Set to true if C++ wrappers should be generated.
+  bool cxx_wrappers;
 
 public:
 
@@ -209,13 +743,16 @@ public:
 
   C() :
     empty_string(NewString("")),
+    ns_cxx(NULL),
     ns_prefix(NULL),
-    module_prefix(NULL)
+    module_prefix(NULL),
+    cxx_class_wrapper_(NULL)
   {
   }
 
   ~C()
   {
+    Delete(ns_cxx);
     Delete(ns_prefix);
     Delete(module_prefix);
   }
@@ -454,6 +991,7 @@ public:
 
   virtual void main(int argc, char *argv[]) {
     bool except_flag = CPlusPlus;
+    cxx_wrappers = CPlusPlus;
 
     // look for certain command line options
     for (int i = 1; i < argc; i++) {
@@ -462,14 +1000,17 @@ public:
           Printf(stdout, "%s\n", usage);
         } else if (strcmp(argv[i], "-namespace") == 0) {
 	  if (argv[i + 1]) {
-	    scoped_dohptr ns(NewString(argv[i + 1]));
-	    ns_prefix = Swig_string_mangle(ns);
+	    ns_cxx = NewString(argv[i + 1]);
+	    ns_prefix = Swig_string_mangle(ns_cxx);
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
 	    i++;
 	  } else {
 	    Swig_arg_error();
 	  }
+        } else if (strcmp(argv[i], "-nocxx") == 0) {
+          cxx_wrappers = false;
+          Swig_mark_arg(i);
         } else if (strcmp(argv[i], "-noexcept") == 0) {
           except_flag = false;
           Swig_mark_arg(i);
@@ -577,6 +1118,44 @@ public:
       f_wrappers_types = NewString("");
       f_wrappers_decl = NewString("");
 
+      scoped_dohptr cxx_ns_end;
+      if (cxx_wrappers) {
+	f_wrappers_decl_cxx = NewString("");
+
+	if (!ns_cxx) {
+	  // We need some namespace for the C++ wrappers as otherwise their names could conflict with the C functions, so use the module name if nothing was
+	  // explicitly specified.
+	  ns_cxx = Copy(module);
+	}
+
+	Append(f_wrappers_decl_cxx, "#ifdef __cplusplus\n\n");
+
+	// Generate possibly nested namespace declarations, as unfortunately we can't rely on C++17 nested namespace definitions being always available.
+	cxx_ns_end = NewStringEmpty();
+	for (const char* c = Char(ns_cxx);;) {
+	  const char* const next = strstr(c, "::");
+
+	  maybe_owned_dohptr ns_component;
+	  if (next) {
+	    ns_component.assign_owned(NewStringWithSize(c, next - c));
+	  } else {
+	    ns_component.assign_non_owned((DOH*)c);
+	  }
+
+	  Printf(f_wrappers_decl_cxx, "namespace %s {\n", ns_component.get());
+	  Printf(cxx_ns_end, "}\n");
+
+	  if (!next)
+	    break;
+
+	  c = next + 2;
+	}
+
+	Append(f_wrappers_decl_cxx, "\n");
+      } else {
+	f_wrappers_decl_cxx = NIL;
+      }
+
       {
         cplusplus_output_guard
           cplusplus_guard_wrappers(f_wrappers),
@@ -591,6 +1170,13 @@ public:
 
       Dump(f_wrappers_decl, f_wrappers_h);
       Delete(f_wrappers_decl);
+
+      if (f_wrappers_decl_cxx) {
+	Printv(f_wrappers_decl_cxx, cxx_ns_end.get(), "\n#endif /* __cplusplus */\n", NIL);
+
+	Dump(f_wrappers_decl_cxx, f_wrappers_h);
+	Delete(f_wrappers_decl_cxx);
+      }
     } // close wrapper header guard
 
     // write all to the file
@@ -1130,6 +1716,9 @@ public:
 
        emit_wrapper_func_decl(n, wname);
 
+       if (cxx_class_wrapper_)
+	 cxx_class_wrapper_->emit_member_function(n);
+
        Delete(name);
     }
 
@@ -1307,6 +1896,8 @@ public:
     String *name = getProxyName(n);
 
     if (CPlusPlus) {
+      cxx_class_wrapper cxx_class_wrapper_obj(&cxx_class_wrapper_, f_wrappers_decl_cxx, n);
+
       // inheritance support: attach all members from base classes to this class
       if (List *baselist = Getattr(n, "bases")) {
 	Iterator i;
@@ -1642,6 +2233,7 @@ extern "C" Language *swig_c(void) {
 const char *C::usage = (char *) "\
 C Options (available with -c)\n\
      -namespace ns - use prefix based on the provided namespace\n\
+     -nocxx        - do not generate C++ wrappers\n\
      -noexcept     - do not generate exception handling code\n\
 \n";
 
