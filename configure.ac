@@ -1251,6 +1251,9 @@ else
       if test $SCILAB_VERSION -ge 540; then
         SCILABOPT+=" -noatomsautoload"
       fi
+      if test $SCILAB_VERSION -ge 600; then
+        SCILABOPT+=" -quit"
+      fi
       AC_MSG_RESULT($SCILABOPT)
 
       # Check for Scilab header files
