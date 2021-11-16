@@ -4,9 +4,10 @@ platform:
 
 skip_commits:
   files:
+    - '.github/**'
     - 'CHANGES*'
     - 'Doc/**'
-    - '.github/**'
+    - 'Tools/CI-*'
 
 environment:
   global:
