@@ -3613,7 +3613,7 @@ A target language is given the 'Supported' status when
   Examples must be available and run successfully.
 </li>
 <li>
-  The examples and test-suite must be fully functioning on the Travis Continuous Integration platform.
+  The examples and test-suite must be fully functioning on the Github Actions Continuous Integration platform.
 </li>
 </ul>
 
@@ -3660,9 +3660,9 @@ Some minimum requirements and notes about languages with the 'Experimental' stat
   The number of tests in these lists should be no greater than half of the number of tests in the full test-suite.
 </li>
 <li>
-  The examples and test-suite must also be fully functioning on the Travis Continuous Integration platform.
-  However, experimental languages will be set as 'allow_failures'.
-  This means that pull requests and normal development commits will not break the entire Travis build should an experimental language fail.
+  The examples and test-suite must also be fully functioning on the Github Actions Continuous Integration platform.
+  However, experimental languages will be flagged as 'continue-on-error'.
+  This means that pull requests and normal development commits will not break the entire Github Actions build should an experimental language fail.
 </li>
 <li>
   Any new failed tests will be fixed on a 'best effort' basis by core developers with no promises made.
