@@ -16,11 +16,15 @@ on:
 jobs:
   build:
 
+    # When continue-on-error is true for an individual build, that build can fail (it'll show red),
+    # but it won't fail the overall build
+    continue-on-error: ${{ matrix.continue-on-error || false }}
+
     runs-on: ${{ matrix.os || 'ubuntu-20.04' }}
 
     # By default, the name of the build is the language used and SWIG options, but matrix entries
     # can define the additional "desc" field with any additional information to include in the name.
-    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY3 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }}
+    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY3 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
 
     strategy:
       matrix:
@@ -280,7 +284,12 @@ jobs:
         - SWIGLANG: tcl
           CPPSTD: c++17
           GCC: 11
-        # let's run all of them, as opposed to aborting when one fails
+        # Experimental languages (these are allowed to fail)
+        - SWIGLANG: mzscheme
+          continue-on-error: true
+        - SWIGLANG: ocaml
+          continue-on-error: true
+      # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
     env:
