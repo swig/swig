@@ -1,0 +1,21 @@
+#!/bin/sh
+
+NODE=`which ${NODE:-node} 2>&1` || NODE=`which nodejs`
+include=`dirname $NODE`/../include
+include=`(cd $include/nodejs || cd $include; pwd) 2>/dev/null`
+[ -f $include/node/node.h ]          && INCS="-I$include/node"
+[ -f $include/src/node.h ]           && INCS="$INCS -I$include/src"
+[ -f $include/deps/v8/include/v8.h ] && INCS="$INCS -I$include/deps/v8/include"
+
+case `uname -s` in
+MINGW*) ${NODEGYP} --loglevel=silent rebuild >/dev/null
+        ;;
+Darwin) ${CXX} -bundle -bundle_loader "$NODE" -fPIC ${CXXFLAGS} \
+               ${INCS} -I.. -DBUILDING_NODE_EXTENSION \
+               -O -Wall -Wno-unused-function -Wno-unused-result -Wno-unused-but-set-variable -Wno-error "$@"
+        ;;
+*)      ${CXX} -shared -fPIC ${CXXFLAGS} \
+               ${INCS} -I.. -DBUILDING_NODE_EXTENSION \
+               -O -Wall -Wno-unused-function -Wno-unused-result -Wno-unused-but-set-variable -Wno-error "$@"
+        ;;
+esac
