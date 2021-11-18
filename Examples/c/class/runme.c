@@ -3,7 +3,7 @@
 #include "example_wrap.h"
 
 int main(int argc, char **argv) {
-  printf("Creating some objects:\n");
+  printf("Creating some objects from C:\n");
   Circle* c = Circle_new(10);
   printf("    Created circle\n");
   Square* s = Square_new(10);
@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
   Circle_delete(c);
 
   printf("%d shapes remain\n", Shape_nshapes_get());
-  printf("Goodbye\n");
+  printf("Goodbye from C\n");
 
   return 0;
 }
