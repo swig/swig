@@ -189,12 +189,11 @@ public:
 
     scoped_dohptr base_classes(NewStringEmpty());
     if (List *baselist = Getattr(n, "bases")) {
-      Iterator i = First(baselist);
-      if (i.item) {
-	first_base_ = Copy(i.item);
+      for (Iterator i = First(baselist); i.item; i = Next(i)) {
+	if (Checkattr(i.item, "feature:ignore", "1"))
+	  continue;
 
-	i = Next(i);
-	if (i.item) {
+	if (first_base_) {
 	  Swig_warning(WARN_C_UNSUPPORTTED, Getfile(n), Getline(n),
 	    "Multiple inheritance not supported yet, skipping C++ wrapper generation for %s\n",
 	    Getattr(n, "sym:name")
@@ -203,6 +202,8 @@ public:
 	  // Return before initializing class_node_, so that the dtor won't output anything neither.
 	  return;
 	}
+
+	first_base_ = Copy(i.item);
       }
 
       Printv(base_classes, " : public ", Getattr(first_base_, "sym:name"), NIL);
