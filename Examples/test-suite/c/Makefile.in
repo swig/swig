@@ -102,7 +102,107 @@ char_binary.cpptest director_binary_string.cpptest li_typemaps.cpptest li_typema
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-SWIGOPT += -w524 -nocxx # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
+SWIGOPT += -w524 # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
+
+%.ctest: SWIGOPT += -nocxx
+
+# Tests for which C++ wrappers currently don't compile.
+apply_strings.cpptest \
+autodoc.cpptest \
+class_ignore.cpptest \
+class_scope_weird.cpptest \
+contract.cpptest \
+conversion.cpptest \
+conversion_namespace.cpptest \
+conversion_ns_template.cpptest \
+cpp11_default_delete.cpptest \
+cpp11_explicit_conversion_operators.cpptest \
+cpp11_final_override.cpptest \
+cpp11_initializer_list.cpptest \
+cpp11_noexcept.cpptest \
+cpp11_shared_ptr_upcast.cpptest \
+cpp11_strongly_typed_enumerations.cpptest \
+cpp_typedef.cpptest \
+default_constructor.cpptest \
+derived_nested.cpptest \
+director_basic.cpptest \
+director_classes.cpptest \
+director_conversion_operators.cpptest \
+director_frob.cpptest \
+director_property.cpptest \
+director_string.cpptest \
+dynamic_cast.cpptest \
+extend_template_method.cpptest \
+features.cpptest \
+global_namespace.cpptest \
+ignore_parameter.cpptest \
+inherit_target_language.cpptest \
+kind.cpptest \
+li_boost_shared_ptr_bits.cpptest \
+li_boost_shared_ptr_director.cpptest \
+li_std_except.cpptest \
+li_std_map.cpptest \
+li_std_vector.cpptest \
+li_std_vector_enum.cpptest \
+li_std_vector_ptr.cpptest \
+li_swigtype_inout.cpptest \
+member_template.cpptest \
+multiple_inheritance_abstract.cpptest \
+multiple_inheritance_interfaces.cpptest \
+multiple_inheritance_nspace.cpptest \
+multiple_inheritance_shared_ptr.cpptest \
+namespace_class.cpptest \
+namespace_virtual_method.cpptest \
+naturalvar_more.cpptest \
+nested_ignore.cpptest \
+nested_scope_flat.cpptest \
+operator_pointer_ref.cpptest \
+operbool.cpptest \
+overload_arrays.cpptest \
+overload_complicated.cpptest \
+overload_null.cpptest \
+overload_template.cpptest \
+overload_template_fast.cpptest \
+pure_virtual.cpptest \
+refcount.cpptest \
+rename1.cpptest \
+rename2.cpptest \
+rename3.cpptest \
+rename4.cpptest \
+rename_wildcard.cpptest \
+return_const_value.cpptest \
+smart_pointer_ignore.cpptest \
+smart_pointer_member.cpptest \
+smart_pointer_multi_typedef.cpptest \
+smart_pointer_template_const_overload.cpptest \
+smart_pointer_templatemethods.cpptest \
+smart_pointer_typedef.cpptest \
+template_arg_scope.cpptest \
+template_const_ref.cpptest \
+template_default_arg.cpptest \
+template_default_arg_overloaded.cpptest \
+template_default_vw.cpptest \
+template_extend_overload.cpptest \
+template_inherit_abstract.cpptest \
+template_methods.cpptest \
+template_nested.cpptest \
+template_nested_flat.cpptest \
+template_ns_enum2.cpptest \
+template_opaque.cpptest \
+template_qualifier.cpptest \
+template_retvalue.cpptest \
+template_static.cpptest \
+template_typedef_class_template.cpptest \
+template_typedef_cplx5.cpptest \
+template_typemaps.cpptest \
+template_typemaps_typedef.cpptest \
+template_typemaps_typedef2.cpptest \
+typename.cpptest \
+valuewrapper_const.cpptest \
+valuewrapper_opaque.cpptest \
+: SWIGOPT += -nocxx
+
+%.multicpptest: SWIGOPT += -nocxx
 
 %.cpptest: SWIGOPT += -namespace $*
 
