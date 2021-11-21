@@ -575,6 +575,14 @@ private:
     if (Node* const class_node = Language::instance()->classLookup(stripped_type)) {
       typestr = SwigType_str(type, 0);
       classname = Getattr(class_node, "sym:name");
+
+      // We don't use namespaces, but the type may contain them, so get rid of them by replacing the base type name, which is fully qualified, with just the
+      // class name, which is not.
+      scoped_dohptr basetype(SwigType_base(type));
+      scoped_dohptr basetypestr(SwigType_str(basetype, 0));
+      if (Cmp(basetypestr, classname) != 0) {
+	Replaceall(typestr, basetypestr, classname);
+      }
     } else {
       // This is something unknown, so just use an opaque typedef already declared in C wrappers section for it.
       typestr = NewStringf("SWIGTYPE%s*", SwigType_manglestr(stripped_type));
