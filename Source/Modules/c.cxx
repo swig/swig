@@ -119,6 +119,33 @@ private:
   bool owned_;
 };
 
+
+// Helper class setting the given pointer to the given value in its ctor and resetting it in the dtor.
+//
+// Used to non-intrusively set a pointer to some object only during this object life-time.
+template <typename T>
+class temp_ptr_setter
+{
+public:
+  // Pointer must be non-null, its current value is restored when this object is destroyed.
+  temp_ptr_setter(T* ptr, T value) : ptr_(ptr), value_orig_(*ptr) {
+    *ptr_ = value;
+  }
+
+  ~temp_ptr_setter() {
+    *ptr_ = value_orig_;
+  }
+
+private:
+  T* const ptr_;
+  T const value_orig_;
+
+  // Non copyable.
+  temp_ptr_setter(const temp_ptr_setter&);
+  temp_ptr_setter& operator=(const temp_ptr_setter&);
+};
+
+
 // Helper class to output "begin" fragment in the ctor and "end" in the dtor.
 class begin_end_output_guard
 {
@@ -176,16 +203,14 @@ const char* const cindent = "  ";
 class cxx_class_wrapper
 {
 public:
-  // The pointer passed to the ctor is set to this object and restored to its previous value in dtor, ensuring that it never becomes dangling.
-  //
   // The file pointer may be null, in which case we simply don't do anything.
   //
-  // Finally, the node pointer must be valid, point to a class and remain valid for the lifetime of this object.
-  cxx_class_wrapper(cxx_class_wrapper** pp, File* f_out, Node* n) : current_wrapper_(pp), old_wrapper_(*current_wrapper_), f_out_(f_out) {
+  // The node pointer must be valid, point to a class and remain valid for the lifetime of this object.
+  cxx_class_wrapper(File* f_out, Node* n) : f_out_(f_out) {
+    class_node_ = NULL;
+
     if (!f_out_)
       return;
-
-    class_node_ = NULL;
 
     scoped_dohptr base_classes(NewStringEmpty());
     if (List *baselist = Getattr(n, "bases")) {
@@ -216,15 +241,13 @@ public:
     );
 
     class_node_ = n;
-
-    // We're going to generate C++ wrappers for this class, so set up the pointer to do it.
-    *current_wrapper_ = this;
   }
 
   // Emit wrapper of a member function.
-  //
-  // Shouldn't be called if we're not emitting C++ wrappers for this class.
   void emit_member_function(Node* n) {
+    if (!class_node_)
+      return;
+
     // We don't need to redeclare functions inherited from the base class, as we use real inheritance.
     if (Getattr(n, "c:inherited_from"))
       return;
@@ -418,14 +441,9 @@ public:
   }
 
   ~cxx_class_wrapper() {
-    if (!f_out_)
-      return;
-
     // Don't do anything if generation of the wrapper for this class was disabled in ctor.
     if (!class_node_)
       return;
-
-    *current_wrapper_ = old_wrapper_;
 
     // This is the name used for the class pointers in C wrappers.
     scoped_dohptr c_class_ptr = get_c_class_ptr(class_node_);
@@ -682,8 +700,6 @@ private:
   }
 
 
-  cxx_class_wrapper** const current_wrapper_;
-  cxx_class_wrapper* const old_wrapper_;
   File* const f_out_;
 
   // The class node itself, left null only if we skip generating wrappers for it for whatever reason.
@@ -1905,7 +1921,8 @@ public:
     String *name = getProxyName(n);
 
     if (CPlusPlus) {
-      cxx_class_wrapper cxx_class_wrapper_obj(&cxx_class_wrapper_, f_wrappers_decl_cxx, n);
+      cxx_class_wrapper cxx_class_wrapper_obj(f_wrappers_decl_cxx, n);
+      temp_ptr_setter<cxx_class_wrapper*> set_cxx_class_wrapper(&cxx_class_wrapper_, &cxx_class_wrapper_obj);
 
       // inheritance support: attach all members from base classes to this class
       if (List *baselist = Getattr(n, "bases")) {
