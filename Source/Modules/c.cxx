@@ -195,6 +195,27 @@ public:
 // String containing one indentation level for the generated code.
 const char* const cindent = "  ";
 
+// Returns the non-owned string to the name of the class or enum to use in C wrappers.
+String* get_c_proxy_name(Node* n) {
+  String *proxyname = Getattr(n, "proxyname");
+  if (!proxyname) {
+    String *symname = Getattr(n, "sym:name");
+    String *nspace = Getattr(n, "sym:nspace");
+
+    if (nspace) {
+      scoped_dohptr nspace_mangled(Swig_string_mangle(nspace));
+      proxyname = NewStringf("%s_%s", (DOH*)nspace_mangled, symname);
+    } else {
+      proxyname = Swig_name_type(symname);
+    }
+    Setattr(n, "proxyname", proxyname);
+
+    Delete(proxyname); // It stays alive because it's referenced by the hash.
+  }
+
+  return proxyname;
+}
+
 
 /*
   Struct containing information needed only for generating C++ wrappers.
@@ -510,7 +531,7 @@ public:
 
     if (first_base_) {
       // In this case we delegate to the base class ctor, but need a cast because it expects a different pointer type (as these types are opaque, there is no
-      // relationship between them). We rely on proxyname being already set
+      // relationship between them).
       Printv(cxx_wrappers_.f_decls,
 	Getattr(first_base_, "sym:name"),
 	"{(", get_c_class_ptr(first_base_).get(), ")swig_self, swig_owns_self}",
@@ -615,7 +636,7 @@ private:
   //
   // Returned value includes "*" at the end.
   static scoped_dohptr get_c_class_ptr(Node* class_node) {
-    return scoped_dohptr(NewStringf("SwigObj_%s*", Getattr(class_node, "proxyname")));
+    return scoped_dohptr(NewStringf("SwigObj_%s*", get_c_proxy_name(class_node)));
   }
 
   // Return "virtual " if this is a virtual function, empty string otherwise.
@@ -877,32 +898,6 @@ public:
     Delete(module_prefix);
   }
 
-  // Return the name to be used in proxy code and cache it as "proxyname".
-  String *getProxyName(Node *n)
-  {
-     if (!n)
-      return 0;
-
-     String *proxyname = NULL;
-     if ((proxyname = Getattr(n, "proxyname")))
-      return Copy(proxyname);
-
-     String *symname = Getattr(n, "sym:name");
-     String *nspace = Getattr(n, "sym:nspace");
-
-     if (nspace) {
-       scoped_dohptr nspace_mangled(Swig_string_mangle(nspace));
-       proxyname = NewStringf("%s_%s", (DOH*)nspace_mangled, symname);
-     } else if (ns_prefix) {
-       proxyname = NewStringf("%s_%s", ns_prefix, symname);
-     } else {
-       proxyname = Copy(symname);
-     }
-     Setattr(n, "proxyname", proxyname);
-
-     return proxyname;
-  }
-
   // Construct the name to be used for a function with the given name in C wrappers.
   //
   // The returned string must be freed by caller.
@@ -960,7 +955,7 @@ public:
    String *getClassProxyName(SwigType *t) {
      Node *n = classLookup(t);
 
-    return n ? getProxyName(n) : NULL;
+    return n ? Copy(get_c_proxy_name(n)) : NULL;
 
    }
 
@@ -992,7 +987,7 @@ public:
 	    Delete(proxyname);
           } else {
             // global enum or enum in a namespace
-	    enumname = getProxyName(n);
+	    enumname = Copy(get_c_proxy_name(n));
           }
           Setattr(n, "enumname", enumname);
           Delete(enumname);
@@ -2017,7 +2012,7 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int classHandler(Node *n) {
-    String *name = getProxyName(n);
+    String* const name = get_c_proxy_name(n);
 
     if (CPlusPlus) {
       cxx_class_wrapper cxx_class_wrapper_obj(cxx_wrappers_, n);
@@ -2064,7 +2059,6 @@ public:
       // declare type for specific class in the proxy header
       Printv(f_wrappers_types, "typedef struct SwigObj_", name, " ", name, ";\n\n", NIL);
 
-      Delete(name);
       return Language::classHandler(n);
     } else {
       // this is C struct, just declare it in the proxy
@@ -2082,8 +2076,6 @@ public:
 
       Printv(f_wrappers_types, struct_def, NIL);
       Delete(struct_def);
-
-      Delete(name);
     }
     return SWIG_OK;
   }
@@ -2188,7 +2180,7 @@ public:
     Printv(enum_decl, "enum", NIL);
 
     if (Node* const klass = getCurrentClass()) {
-      enum_prefix = getProxyName(klass);
+      enum_prefix = get_c_proxy_name(klass);
     } else {
       enum_prefix = ns_prefix; // Possibly NULL, but that's fine.
     }
