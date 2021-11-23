@@ -202,17 +202,27 @@ const char* const cindent = "  ";
 struct cxx_wrappers
 {
   // Default ctor doesn't do anything, use initialize() if C++ wrappers really need to be generated.
-  cxx_wrappers() : f_decls(NULL) {}
+  cxx_wrappers() : f_fwd_decls(NULL), f_decls(NULL), f_impls(NULL) {}
 
   void initialize() {
+    f_fwd_decls = NewStringEmpty();
     f_decls = NewStringEmpty();
+    f_impls = NewStringEmpty();
   }
 
-  bool is_initialized() const { return f_decls != NULL; }
+  bool is_initialized() const { return f_fwd_decls != NULL; }
 
+
+  // The order of the members here is the same as the order in which they appear in the output file.
+
+  // Forward declarations of the classes.
+  File* f_fwd_decls;
 
   // Full declarations of the classes.
   File* f_decls;
+
+  // Implementation of the classes.
+  File* f_impls;
 };
 
 /*
@@ -256,6 +266,11 @@ public:
 
       Printv(base_classes, " : public ", Getattr(first_base_, "sym:name"), NIL);
     }
+
+    Printv(cxx_wrappers_.f_fwd_decls,
+      "class ", Getattr(n, "sym:name"), ";\n",
+      NIL
+    );
 
     Printv(cxx_wrappers_.f_decls,
       "class ", Getattr(n, "sym:name"), base_classes.get(), " {\n"
@@ -361,6 +376,8 @@ public:
     String* const name = name_ptr.get();
     String* const wname = Getattr(n, "wrap:name");
 
+    String* const classname = Getattr(class_node_, "sym:name");
+
     if (Checkattr(n, "kind", "variable")) {
       if (Checkattr(n, "memberget", "1")) {
 	Printv(cxx_wrappers_.f_decls,
@@ -401,20 +418,18 @@ public:
 	);
       }
     } else if (is_ctor) {
-      // Note that we use the sym:name of the class rather than than any attribute of ctor itself because its sym:name is the name of the C wrapper function by
-      // now (and its name is not suitable to be used in the generated code, e.g. it could be a template).
-      String* const classname = Getattr(class_node_, "sym:name");
-
       // Delegate to the ctor from opaque C pointer taking ownership of the object.
       Printv(cxx_wrappers_.f_decls,
-	cindent, classname, "(", parms_cxx.get(), ") : ",
+	cindent, classname, "(", parms_cxx.get(), ");\n",
+	NIL
+      );
+
+      Printv(cxx_wrappers_.f_impls,
+	"inline ", classname, "::", classname, "(", parms_cxx.get(), ") : ",
 	classname, "{", wname, "(", parms_call.get(), ")} {}\n",
 	NIL
       );
     } else if (Checkattr(n, "nodeType", "destructor")) {
-      // See the comment above.
-      String* const classname = Getattr(class_node_, "sym:name");
-
       if (first_base_) {
 	// Delete the pointer and reset the ownership flag to ensure that the base class doesn't do it again.
 	Printv(cxx_wrappers_.f_decls,
@@ -451,7 +466,15 @@ public:
 	cindent,
 	is_static ? "static " : get_virtual_prefix(n), rtype_desc.type(), " ",
 	name, "(", parms_cxx.get(), ")",
-	get_const_suffix(n), " { ",
+	get_const_suffix(n), ";\n",
+	NIL
+      );
+
+      Printv(cxx_wrappers_.f_impls,
+	"inline ", rtype_desc.type(), " ",
+	classname, "::", name, "(", parms_cxx.get(), ")",
+	get_const_suffix(n),
+	" { ",
 	maybe_return,
 	rtype_desc.wrap_start(),
 	wname, "(", wparms.get(), ")",
@@ -1267,9 +1290,16 @@ public:
 	  c = next + 2;
 	}
 
-	Dump(cxx_files_.f_decls, f_wrappers_h);
+	Printv(f_wrappers_h, "\n", NIL);
+	Dump(cxx_wrappers_.f_fwd_decls, f_wrappers_h);
 
-	Printv(f_wrappers_h, cxx_ns_end.get(), "\n#endif /* __cplusplus */\n", NIL);
+	Printv(f_wrappers_h, "\n", NIL);
+	Dump(cxx_wrappers_.f_decls, f_wrappers_h);
+
+	Printv(f_wrappers_h, "\n", NIL);
+	Dump(cxx_wrappers_.f_impls, f_wrappers_h);
+
+	Printv(f_wrappers_h, "\n", cxx_ns_end.get(), "\n#endif /* __cplusplus */\n", NIL);
       }
     } // close wrapper header guard
 
