@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Install Linux packages where the version has been overidden in .travis.yml
+# Install Linux packages where the version has been overridden in .travis.yml
 
 lsb_release -a
 # find location of current script (only works in bash)
