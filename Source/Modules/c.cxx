@@ -571,6 +571,28 @@ public:
       NIL
     );
 
+    // OTOH we may always provide move ctor and assignment, as we can always implement them trivially ourselves.
+    if (first_base_) {
+      Printv(cxx_wrappers_.f_decls,
+	cindent, classname, "(", classname, "&& obj) = default;\n",
+	cindent, classname, "& operator=(", classname, "&& obj) = default;\n",
+	NIL
+      );
+    } else {
+      Printv(cxx_wrappers_.f_decls,
+	cindent, classname, "(", classname, "&& obj) : "
+	"swig_self_{obj.swig_self_}, swig_owns_self_{obj.swig_owns_self_} { "
+	"obj.swig_owns_self_ = false; "
+	"}\n",
+	cindent, classname, "& operator=(", classname, "&& obj) { "
+	"swig_self_ = obj.swig_self_; swig_owns_self_ = obj.swig_owns_self_; "
+	"obj.swig_owns_self_ = false; "
+	"return *this; "
+	"}\n",
+	NIL
+      );
+    }
+
     // We also need a swig_self() method for accessing the C object pointer.
     Printv(cxx_wrappers_.f_decls,
       cindent, c_class_ptr.get(), " swig_self() const noexcept ",
