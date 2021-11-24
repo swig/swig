@@ -520,11 +520,13 @@ public:
     // This is the name used for the class pointers in C wrappers.
     scoped_dohptr c_class_ptr = get_c_class_ptr(class_node_);
 
+    String* const classname = Getattr(class_node_, "sym:name");
+
     // We need to generate a ctor from the C object pointer, which is required to be able to create objects of this class from pointers created by C wrappers
     // and also by any derived classes.
     Printv(cxx_wrappers_.f_decls,
       "\n",
-      cindent, "explicit ", Getattr(class_node_, "sym:name"), "(", c_class_ptr.get(), " swig_self, "
+      cindent, "explicit ", classname, "(", c_class_ptr.get(), " swig_self, "
 	"bool swig_owns_self = true) : ",
       NIL
     );
