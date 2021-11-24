@@ -300,6 +300,7 @@ public:
     );
 
     class_node_ = n;
+    has_copy_ctor_ = false;
   }
 
   // Emit wrapper of a member function.
@@ -450,6 +451,10 @@ public:
 	classname, "{", wname, "(", parms_call.get(), ")} {}\n",
 	NIL
       );
+
+      // Remember that we had a copy ctor.
+      if (Checkattr(n, "copy_constructor", "1"))
+	has_copy_ctor_ = true;
     } else if (Checkattr(n, "nodeType", "destructor")) {
       if (first_base_) {
 	// Delete the pointer and reset the ownership flag to ensure that the base class doesn't do it again.
@@ -548,6 +553,23 @@ public:
     }
 
     Append(cxx_wrappers_.f_decls, " {}\n");
+
+    // If the class doesn't have a copy ctor, forbid copying it: we currently must do it even if the original class has a perfectly cromulent implicit copy ctor
+    // because we don't wrap it and copying would use the trivial ctor that would just copy the swig_self_ pointer resulting in double destruction of it later.
+    // To fix this, we would need to always provide our own C wrapper for the copy ctor, which is not something we do currently.
+    if (!has_copy_ctor_) {
+      Printv(cxx_wrappers_.f_decls,
+	cindent, classname, "(", classname, " const&) = delete;\n",
+	NIL
+      );
+    }
+
+    // We currently never wrap the assignment operator, so we have to always disable it for the same reason we disable the copy ctor above.
+    // It would definitely be nice to provide the assignment, if possible.
+    Printv(cxx_wrappers_.f_decls,
+      cindent, classname, "& operator=(", classname, " const&) = delete;\n",
+      NIL
+    );
 
     // We also need a swig_self() method for accessing the C object pointer.
     Printv(cxx_wrappers_.f_decls,
@@ -829,6 +851,9 @@ private:
   // These pointers are temporarily set to non-null value only while expanding a typemap for C++ wrappers, see replaceSpecialVariables().
   type_desc* ptype_desc_;
   type_desc* rtype_desc_;
+
+  // True if the class defines an explicit copy ctor.
+  bool has_copy_ctor_;
 
 
   // Non copyable.
