@@ -819,6 +819,10 @@ private:
 	}
 
 	if (ptype_desc) {
+	  // It doesn't seem like it can ever be useful to pass an object by value to a wrapper function and it can fail if it doesn't have a copy ctor (see
+	  // code related to has_copy_ctor_ in our dtor above), so always pass it by const reference instead.
+	  Append(typestr, " const&");
+
 	  Append(ptype_desc->wrap_end(), ".swig_self()");
 	}
 	break;
