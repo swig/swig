@@ -223,15 +223,49 @@ String* get_c_proxy_name(Node* n) {
 struct cxx_wrappers
 {
   // Default ctor doesn't do anything, use initialize() if C++ wrappers really need to be generated.
-  cxx_wrappers() : f_fwd_decls(NULL), f_decls(NULL), f_impls(NULL) {}
+  cxx_wrappers() :
+    except_check_start("swig_check("), except_check_end(")"),
+    f_fwd_decls(NULL), f_decls(NULL), f_impls(NULL) {
+  }
+
+  // This can be called before initialize() to disable generating exception support code.
+  void disable_exceptions() {
+    assert(!f_fwd_decls); // Check we are not called too late.
+
+    except_check_start =
+    except_check_end = "";
+  }
 
   void initialize() {
     f_fwd_decls = NewStringEmpty();
     f_decls = NewStringEmpty();
     f_impls = NewStringEmpty();
+
+    // Generate the functions which will be used in all wrappers to check for the exceptions if necessary.
+    if (*except_check_start != '\0') {
+      Printv(f_impls,
+	"void swig_check() {\n",
+	cindent, "if (SWIG_CException* swig_ex = SWIG_CException::get_pending()) {\n",
+	cindent, cindent, "SWIG_CException swig_ex_copy{*swig_ex};\n",
+	cindent, cindent, "SWIG_CException::reset_pending();\n",
+	cindent, cindent, "throw swig_ex_copy;\n",
+	cindent, "}\n",
+	"}\n\n",
+	"template <typename T> T swig_check(T x) {\n",
+	cindent, "swig_check();\n",
+	cindent, "return x;\n",
+	"}\n\n",
+	NIL
+      );
+    }
   }
 
   bool is_initialized() const { return f_fwd_decls != NULL; }
+
+
+  // Used for generating exception checks around the calls unless disable_exceptions() is called.
+  const char* except_check_start;
+  const char* except_check_end;
 
 
   // The order of the members here is the same as the order in which they appear in the output file.
@@ -324,7 +358,6 @@ public:
 
     // Deal with the return type: it may be different from the type of the C wrapper function if it involves objects, and so we may need to add a cast.
 
-    const char* maybe_return;
     type_desc rtype_desc;
     if (SwigType_type(Getattr(n, "type")) != T_VOID) {
       rtype_desc = lookup_cxx_ret_type(n);
@@ -336,12 +369,9 @@ public:
 	);
 	return;
       }
-
-      maybe_return = "return ";
     } else {
       // There is no need to do anything else with "void" and we don't even need "return" for it.
       rtype_desc.set_void_type();
-      maybe_return = "";
     }
 
     // We also need the list of parameters to take in the C++ function being generated and the list of them to pass to the C wrapper.
@@ -391,6 +421,17 @@ public:
       if (Len(parms_call))
 	Append(parms_call, ", ");
       Printv(parms_call, ptype_desc.wrap_start(), name, ptype_desc.wrap_end(), NIL);
+    }
+
+    // Avoid checking for exceptions unnecessarily. Note that this is more than an optimization: we'd get into infinite recursion if we checked for exceptions
+    // thrown by members of SWIG_CException itself if we didn't do it.
+    const char* except_check_start = cxx_wrappers_.except_check_start;
+    const char* except_check_end = cxx_wrappers_.except_check_end;
+    if (*except_check_start) {
+      if (Checkattr(n, "noexcept", "true") || (Checkattr(n, "throw", "1") && !Getattr(n, "throws"))) {
+	except_check_start =
+	except_check_end = "";
+      }
     }
 
     // For some reason overloaded functions use fully-qualified name, so we can't just use the name directly.
@@ -448,7 +489,11 @@ public:
 
       Printv(cxx_wrappers_.f_impls,
 	"inline ", classname, "::", classname, "(", parms_cxx.get(), ") : ",
-	classname, "{", wname, "(", parms_call.get(), ")} {}\n",
+	classname, "{",
+	  except_check_start,
+	    wname, "(", parms_call.get(), ")",
+	  except_check_end,
+	"} {}\n",
 	NIL
       );
 
@@ -501,10 +546,36 @@ public:
 	classname, "::", name, "(", parms_cxx.get(), ")",
 	get_const_suffix(n),
 	" { ",
-	maybe_return,
-	rtype_desc.wrap_start(),
-	wname, "(", wparms.get(), ")",
-	rtype_desc.wrap_end(),
+	NIL
+      );
+
+      if (rtype_desc.is_void()) {
+	Printv(cxx_wrappers_.f_impls,
+	  wname, "(", wparms.get(), ")",
+	  NIL
+	);
+
+	if (*except_check_start) {
+	  Printv(cxx_wrappers_.f_impls,
+	    "; ",
+	    except_check_start,
+	    except_check_end,
+	    NIL
+	  );
+	}
+      } else {
+	Printv(cxx_wrappers_.f_impls,
+	  "return ",
+	  rtype_desc.wrap_start(),
+	    except_check_start,
+	      wname, "(", wparms.get(), ")",
+	    except_check_end,
+	  rtype_desc.wrap_end(),
+	  NIL
+	);
+      }
+
+      Printv(cxx_wrappers_.f_impls,
 	"; }\n",
 	NIL
       );
@@ -661,6 +732,8 @@ private:
     // String must be non-null.
     void set_type(String* type) { type_ = Copy(type); }
     void set_void_type() { type_ = NewString("void"); }
+
+    bool is_void() const { return type_ && Cmp(type_, "void") == 0; }
 
     // If this one returns NULL, it means that we don't have any type information at all.
     String* type() const { return type_; }
@@ -1224,6 +1297,9 @@ public:
     Delete(ns_prefix_);
 
     if (use_cxx_wrappers) {
+      if (!except_flag)
+	cxx_wrappers_.disable_exceptions();
+
       cxx_wrappers_.initialize();
     }
 

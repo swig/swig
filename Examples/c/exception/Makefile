@@ -5,9 +5,15 @@ CXXSRCS    = example.cxx
 TARGET     = example
 INTERFACE  = example.i
 
-check: build
+check_c: build
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' RUNME_EXT=c c_run
+
+check_cxx: build
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' \
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' RUNME_EXT=cxx c_run
+
+check: check_c check_cxx
 
 build:
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \

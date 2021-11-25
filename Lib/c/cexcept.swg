@@ -4,39 +4,58 @@
  * Exception handling code and typemaps for C module.
  * ----------------------------------------------------------------------------- */
 
-%ignore SWIG_CException::SWIG_CException;
+// This function is special: it's used by various typemaps (via SWIG_exception
+// macro below) and needs to be defined, but we don't want to export it.
+%ignore SWIG_CException_Raise;
+%{
+extern "C" void SWIG_CException_Raise(int code, const char* msg);
+%}
 
 %inline %{
 class SWIG_CException {
 public:
-  SWIG_CException(int code, const char* msg) : code(code), msg(strdup(msg)) { }
+  SWIG_CException(const SWIG_CException& ex) throw() : code(ex.code), msg(strdup(ex.msg)) { }
 
   const int code;
   const char* const msg;
 
-private:
-  friend void SWIG_PendingException_reset();
+  static SWIG_CException* get_pending() throw() {
+    return PendingException;
+  }
 
+  static void reset_pending() throw() {
+    if (PendingException) {
+      delete PendingException;
+      PendingException = 0;
+    }
+  }
+
+private:
+  friend void SWIG_CException_Raise(int code, const char* msg);
+
+  static SWIG_CException* PendingException;
+
+  SWIG_CException(int code, const char* msg) : code(code), msg(strdup(msg)) { }
   ~SWIG_CException() { free(const_cast<char*>(msg)); }
 
-  SWIG_CException(const SWIG_CException& ex);
   SWIG_CException& operator=(const SWIG_CException& ex);
 };
+%}
 
-static SWIG_CException *SWIG_PendingException = 0;
-inline SWIG_CException* SWIG_PendingException_get() { return SWIG_PendingException; }
-inline void SWIG_PendingException_reset() {
-  if (SWIG_PendingException) {
-    delete SWIG_PendingException;
-    SWIG_PendingException = 0;
-  }
+// This part is implementation only and doesn't need to be seen by SWIG.
+%{
+SWIG_CException *SWIG_CException::PendingException = 0;
+
+SWIGEXPORTC void SWIG_CException_Raise(int code, const char* msg) {
+  delete SWIG_CException::PendingException;
+  SWIG_CException::PendingException = new SWIG_CException(code, msg);
 }
 %}
 
 %insert("runtime") "swigerrors.swg"
 
 #define SWIG_exception(code, msg)\
-  SWIG_PendingException = new SWIG_CException(code, msg)
+  SWIG_CException_Raise(code, msg)
 
 %typemap(throws, noblock="1") char *, const char * {
   SWIG_exception(SWIG_RuntimeError, $1);
