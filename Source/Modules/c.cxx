@@ -1362,6 +1362,38 @@ public:
   }
 
   /* -----------------------------------------------------------------------
+   * importDirective()
+   * ------------------------------------------------------------------------ */
+
+  virtual int importDirective(Node *n) {
+    // When we import another module, we need access to its declarations in our header, so we must include the header generated for that module. Unfortunately
+    // there doesn't seem to be any good way to get the name of that header, so we try to guess it from the header name of this module. This is obviously not
+    // completely reliable, but works reasonably well in practice and it's not clear what else could we do, short of requiring some C-specific %import attribute
+    // specifying the name of the header explicitly.
+
+    // First, find the top node.
+    for (Node* top = parentNode(n); top; top = parentNode(top)) {
+      if (Checkattr(top, "nodeType", "top")) {
+	// Get its header name.
+	scoped_dohptr header_name(Copy(Getattr(top, "outfile_h")));
+
+	// Strip the output directory from the file name, as it should be common to all generated headers.
+	Replace(header_name, SWIG_output_directory(), "", DOH_REPLACE_FIRST);
+
+	// And replace our module name with the name of the one being imported.
+	Replace(header_name, module_name, imported_module_name, DOH_REPLACE_FIRST);
+
+	// Finally inject inclusion of this header.
+	Printv(Swig_filebyname("cheader"), "#include \"", header_name.get(), "\"\n", NIL);
+
+	break;
+      }
+    }
+
+    return Language::importDirective(n);
+  }
+
+  /* -----------------------------------------------------------------------
    * globalvariableHandler()
    * ------------------------------------------------------------------------ */
 
