@@ -1374,10 +1374,10 @@ c_cpp: $(SRCDIR_SRCS)
 	$(CXX_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
 
 c_compile_c: $(SRCDIR)$(RUNME).c
-	$(COMPILETOOL) $(CC) $(CFLAGS) -o $(RUNME) -I. -I.. $< -L. -l$(TARGET)
+	$(COMPILETOOL) $(CC) $(CFLAGS) -o $(RUNME)_$(RUNME_EXT) -I. -I.. $< -L. -l$(TARGET)
 
 c_compile_cxx: $(SRCDIR)$(RUNME).cxx
-	$(COMPILETOOL) $(CXX) $(CXXFLAGS) -o $(RUNME) -I. -I.. $< -L. -l$(TARGET)
+	$(COMPILETOOL) $(CXX) $(CXXFLAGS) -o $(RUNME)_$(RUNME_EXT) -I. -I.. $< -L. -l$(TARGET)
 
 $(eval c_compile: c_compile_$(RUNME_EXT))
 
@@ -1397,7 +1397,7 @@ c_syntax_check_cxx:
 # -----------------------------------------------------------------
 
 c_run: c_compile
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) ./$(RUNME) $(RUNPIPE)
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) ./$(RUNME)_$(RUNME_EXT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1414,7 +1414,7 @@ c_clean:
 	rm -f *_wrap.[ch] *_wrap.cxx
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
-	rm -f $(RUNME)
+	rm -f $(RUNME)_c $(RUNME)_cxx
 
 ##################################################################
 #####                 SCILAB                                ######
