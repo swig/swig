@@ -240,10 +240,12 @@ struct cxx_wrappers
     f_fwd_decls = NewStringEmpty();
     f_decls = NewStringEmpty();
     f_impls = NewStringEmpty();
+  }
 
+  void output_exception_support(File* f_out) {
     // Generate the functions which will be used in all wrappers to check for the exceptions if necessary.
     if (*except_check_start != '\0') {
-      Printv(f_impls,
+      Printv(f_out,
 	"void swig_check() {\n",
 	cindent, "if (SWIG_CException* swig_ex = SWIG_CException::get_pending()) {\n",
 	cindent, cindent, "SWIG_CException swig_ex_copy{*swig_ex};\n",
@@ -1005,6 +1007,10 @@ class C:public Language {
   // Non-owning pointer to the current C++ class wrapper if we're currently generating one or NULL.
   cxx_class_wrapper* cxx_class_wrapper_;
 
+  // Non-owning, possibly null pointer to SWIG_CException class node. We only wrap this class if we don't import any other modules because there must be only
+  // one pending exception pointer for the entire module, not one per each of its submodules.
+  Node* exception_class_node_;
+
 public:
 
   /* -----------------------------------------------------------------------------
@@ -1017,7 +1023,8 @@ public:
     ns_prefix(NULL),
     module_name(NULL),
     outfile_h(NULL),
-    cxx_class_wrapper_(NULL)
+    cxx_class_wrapper_(NULL),
+    exception_class_node_(NULL)
   {
   }
 
@@ -1380,6 +1387,11 @@ public:
 
         // emit code for children
         Language::top(n);
+
+	if (exception_class_node_) {
+	  // Really emit the wrappers for the exception class now that we know that we need it.
+	  Language::classDeclaration(exception_class_node_);
+	}
       } // close extern "C" guards
 
       Dump(f_wrappers_types, f_wrappers_h);
@@ -1424,6 +1436,11 @@ public:
 	Printv(f_wrappers_h, "\n", NIL);
 	Dump(cxx_wrappers_.f_decls, f_wrappers_h);
 
+	// Also emit C++-specific exceptions support if not done in another module yet.
+	if (exception_class_node_) {
+	  cxx_wrappers_.output_exception_support(f_wrappers_h);
+	}
+
 	Printv(f_wrappers_h, "\n", NIL);
 	Dump(cxx_wrappers_.f_impls, f_wrappers_h);
 
@@ -1464,6 +1481,11 @@ public:
 
       // Finally inject inclusion of this header.
       Printv(Swig_filebyname("cheader"), "#include \"", header_name.get(), "\"\n", NIL);
+
+      // One more thing: if we have imported another module, it must have already defined SWIG_CException, so set the flag indicating that we shouldn't do it
+      // again in this one and define the symbol to skip compiling its implementation.
+      exception_class_node_ = NULL;
+      Printv(Swig_filebyname("runtime"), "#define SWIG_CException_DEFINED 1\n", NIL);
     }
 
     return Language::importDirective(n);
@@ -2166,6 +2188,22 @@ public:
 	  emit_c_struct_def(out, node);
       }
     }
+  }
+
+  /* ---------------------------------------------------------------------
+   * classDeclaration()
+   * --------------------------------------------------------------------- */
+
+  virtual int classDeclaration(Node *n) {
+    if (Cmp(Getattr(n, "name"), "SWIG_CException") == 0) {
+      // We don't know if we're going to need to wrap this class or not yet, it depends on whether any other modules are included by this one, and while we
+      // could walk the entire tree looking for "import" nodes, it seems simpler to just wait until our importDirective() is called and handle this class at the
+      // end in top() if it won't have been.
+      exception_class_node_ = n;
+      return SWIG_NOWRAP;
+    }
+
+    return Language::classDeclaration(n);
   }
 
   /* ---------------------------------------------------------------------
