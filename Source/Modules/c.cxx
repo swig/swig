@@ -1218,6 +1218,8 @@ public:
       Swig_name_register("type", NewStringf("%s%%c", ns_prefix_));
     }
 
+    Delete(ns_prefix_);
+
     if (use_cxx_wrappers) {
       cxx_wrappers_.initialize();
     }
