@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-11-12: wsfulton
+            [Javascript] v8 and node only. Fix mismatched new char[] and free()
+            when wrapping C code char arrays. Now calloc is now used instead of
+            new char[] in SWIG_AsCharPtrAndSize.
+
 2021-10-03: ajrh1
             [Perl] #2074: Avoid -Wmisleading-indentation in generated code
             when using gcc11.

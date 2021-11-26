@@ -37,13 +37,13 @@ check(13, o.byval1cpr(x));
 // check(15, o.byval2cpr(null));
 check(16, o.byval2cpr(x));
 
-// forward class declaration
-check(17, o.byval1forwardptr(x));
-// check(18, o.byval1forwardptr(null));
+// fwd class declaration
+check(17, o.byval1fwdptr(x));
+// check(18, o.byval1fwdptr(null));
 
-// check(19, o.byval2forwardptr(null));
-check(20, o.byval2forwardptr(x));
+// check(19, o.byval2fwdptr(null));
+check(20, o.byval2fwdptr(x));
 
-check(21, o.byval1forwardref(x));
+check(21, o.byval1fwdref(x));
 
-check(22, o.byval2forwardref(x));
+check(22, o.byval2fwdref(x));

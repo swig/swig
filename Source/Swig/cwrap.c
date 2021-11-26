@@ -632,7 +632,7 @@ String *Swig_cppconstructor_director_call(const_String_or_char_ptr name, ParmLis
  * If you define SWIG_FAST_REC_SEARCH, the method will set the found
  * 'attr' in the target class 'n'. If not, the method will set the
  * 'noattr' one. This prevents of having to navigate the entire
- * hierarchy tree everytime, so, it is an O(1) method...  or something
+ * hierarchy tree every time, so, it is an O(1) method...  or something
  * like that. However, it populates all the parsed classes with the
  * 'attr' and/or 'noattr' attributes.
  *

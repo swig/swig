@@ -146,14 +146,14 @@ then
 	*-*-aix*) LDSHARED="\$(srcdir)/ld_so_aix \$(CC)";;
 	*-*-cygwin* | *-*-mingw*)
             if test "$GCC" = yes; then
-                LDSHARED="$CC -shared"
+                LDSHARED="\$(CC) -shared"
             else
                 if test "cl" = $CC ;  then
                     # Microsoft Visual C++ (MSVC)
-                    LDSHARED="$CC -nologo -LD"
+                    LDSHARED="\$(CC) -nologo -LD"
                 else
                     # Unknown compiler try gcc approach
-                    LDSHARED="$CC -shared"
+                    LDSHARED="\$(CC) -shared"
                 fi
             fi ;;
 	*-*-irix5*) LDSHARED="ld -shared";;
@@ -165,25 +165,25 @@ then
 	*-sequent-sysv4) LDSHARED="ld -G";;
 	*-*-next*)
 		if test "$ns_dyld"
-		then LDSHARED='$(CC) $(LDFLAGS) -bundle -prebind'
-		else LDSHARED='$(CC) $(CFLAGS) -nostdlib -r'
+		then LDSHARED="\$(CC) \$(LDFLAGS) -bundle -prebind"
+		else LDSHARED="\$(CC) \$(CFLAGS) -nostdlib -r"
 		fi
                 if test "$with_next_framework" ; then
 		    LDSHARED="$LDSHARED \$(LDLIBRARY)"
 		fi ;;
-	*-*-linux*) LDSHARED="$CC -shared";;
+	*-*-linux*) LDSHARED="\$(CC) -shared";;
 	*-*-dgux*) LDSHARED="ld -G";;
-	*-*-freebsd3*) LDSHARED="$CC -shared";;
+	*-*-freebsd3*) LDSHARED="\$(CC) -shared";;
 	*-*-freebsd* | *-*-openbsd*) LDSHARED="ld -Bshareable";;
 	*-*-netbsd*)
-		if [[ "`$CC -dM -E - </dev/null | grep __ELF__`" != "" ]]
+		if [[ "`\$(CC) -dM -E - </dev/null | grep __ELF__`" != "" ]]
 		then
-			LDSHARED="$CC -shared"
+			LDSHARED="\$(CC) -shared"
 		else
 			LDSHARED="ld -Bshareable"
 		fi;;
-	*-sco-sysv*) LDSHARED="$CC -G -KPIC -Ki486 -belf -Wl,-Bexport";;
-	*-*-darwin*) LDSHARED="$CC -bundle -undefined suppress -flat_namespace";;
+	*-sco-sysv*) LDSHARED="\$(CC) -G -KPIC -Ki486 -belf -Wl,-Bexport";;
+	*-*-darwin*) LDSHARED="\$(CC) -bundle -undefined suppress -flat_namespace";;
 	*)	LDSHARED="ld";;
 	esac
 fi
@@ -205,23 +205,23 @@ if test -z "$TRYLINKINGWITHCXX"
 then
 	case $host in
 	*-*-solaris*) if test "$GCC" = yes
-             then TRYLINKINGWITHCXX="CXXSHARED= $CXX -Wl,-G"
-             else TRYLINKINGWITHCXX="CXXSHARED= $CXX -G -L/opt/SUNWspro/lib -lCrun -lCstd"
+             then TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -Wl,-G"
+             else TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -G -L/opt/SUNWspro/lib -lCrun -lCstd"
              fi;;
-        *-*-hp*) TRYLINKINGWITHCXX="CXXSHARED= $CXX +z ";;
-        *-*-darwin*) TRYLINKINGWITHCXX="CXXSHARED= $CXX -bundle -undefined suppress -flat_namespace";;
+        *-*-hp*) TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) +z ";;
+        *-*-darwin*) TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -bundle -undefined suppress -flat_namespace";;
         *-*-cygwin* | *-*-mingw*)
             if test "$GCC" = yes; then
-                TRYLINKINGWITHCXX="CXXSHARED= $CXX -shared "
+                TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -shared "
             else
                 if test "cl" = $CXX ;  then
                     # Microsoft Visual C++ (MSVC)
-                    TRYLINKINGWITHCXX="CXXSHARED= $CXX -nologo -LD"
+                    TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -nologo -LD"
                 else
                     TRYLINKINGWITHCXX="#unknown Windows compiler"
                 fi
             fi ;;
-        *)       TRYLINKINGWITHCXX="CXXSHARED= $CXX -shared ";;
+        *)       TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -shared ";;
         esac
 fi
 AC_MSG_RESULT($TRYLINKINGWITHCXX)
@@ -1250,6 +1250,9 @@ else
       SCILABOPT="-nwni -nb"
       if test $SCILAB_VERSION -ge 540; then
         SCILABOPT+=" -noatomsautoload"
+      fi
+      if test $SCILAB_VERSION -ge 600; then
+        SCILABOPT+=" -quit"
       fi
       AC_MSG_RESULT($SCILABOPT)
 
