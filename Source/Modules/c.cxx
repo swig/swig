@@ -910,6 +910,9 @@ class C:public Language {
   // Name of the module, used as a prefix for module-level symbols if ns_prefix is null.
   String *module_name;
 
+  // Name of the output header, set in top().
+  String *outfile_h;
+
   // Used only while generating wrappers for an enum and contains the prefix to use for enum elements if non-null.
   String *enum_prefix;
 
@@ -940,6 +943,7 @@ public:
     ns_cxx(NULL),
     ns_prefix(NULL),
     module_name(NULL),
+    outfile_h(NULL),
     cxx_class_wrapper_(NULL)
   {
   }
@@ -1244,7 +1248,7 @@ public:
     Swig_banner(f_wrappers_cxx);
 
     // Open the file where all wrapper declarations will be written to in the end.
-    String* const outfile_h = Getattr(n, "outfile_h");
+    outfile_h = Getattr(n, "outfile_h");
     const scoped_dohptr f_wrappers_h(NewFile(outfile_h, "w", SWIG_output_files()));
     if (!f_wrappers_h) {
       FileErrorDisplay(outfile_h);
@@ -1371,23 +1375,19 @@ public:
     // completely reliable, but works reasonably well in practice and it's not clear what else could we do, short of requiring some C-specific %import attribute
     // specifying the name of the header explicitly.
 
-    // First, find the top node.
-    for (Node* top = parentNode(n); top; top = parentNode(top)) {
-      if (Checkattr(top, "nodeType", "top")) {
-	// Get its header name.
-	scoped_dohptr header_name(Copy(Getattr(top, "outfile_h")));
+    // We can only do something if we have a module name.
+    if (String* const imported_module_name = Getattr(n, "module")) {
+      // Start with our header name.
+      scoped_dohptr header_name(Copy(outfile_h));
 
-	// Strip the output directory from the file name, as it should be common to all generated headers.
-	Replace(header_name, SWIG_output_directory(), "", DOH_REPLACE_FIRST);
+      // Strip the output directory from the file name, as it should be common to all generated headers.
+      Replace(header_name, SWIG_output_directory(), "", DOH_REPLACE_FIRST);
 
-	// And replace our module name with the name of the one being imported.
-	Replace(header_name, module_name, imported_module_name, DOH_REPLACE_FIRST);
+      // And replace our module name with the name of the one being imported.
+      Replace(header_name, module_name, imported_module_name, DOH_REPLACE_FIRST);
 
-	// Finally inject inclusion of this header.
-	Printv(Swig_filebyname("cheader"), "#include \"", header_name.get(), "\"\n", NIL);
-
-	break;
-      }
+      // Finally inject inclusion of this header.
+      Printv(Swig_filebyname("cheader"), "#include \"", header_name.get(), "\"\n", NIL);
     }
 
     return Language::importDirective(n);
