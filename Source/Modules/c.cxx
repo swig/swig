@@ -1390,6 +1390,14 @@ public:
 
     // Deal with exceptions support.
     if (exceptions_support_ == exceptions_support_enabled) {
+      // Redefine SWIG_CException_Raise() to have a unique prefix in the shared library built from SWIG-generated sources to allow using more than one extension
+      // in the same process without conflicts. This has to be done in this hackish way because we really need to change the name of the function itself, not
+      // its wrapper (which is not even generated).
+      Printv(f_runtime,
+	"#define SWIG_CException_Raise ", (ns_prefix ? ns_prefix : module_name), "_SWIG_CException_Raise\n",
+	NIL
+      );
+
       // We need to check if we have any %imported modules, as they would already define the exception support code and we want to have exactly one copy of it
       // in the generated shared library, so check for "import" nodes.
       if (find_first_named_import(n)) {
