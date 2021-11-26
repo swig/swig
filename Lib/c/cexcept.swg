@@ -40,7 +40,7 @@ public:
 private:
   friend void SWIG_CException_Raise(int code, const char* msg);
 
-  static SWIG_CException* PendingException;
+  static thread_local SWIG_CException* PendingException;
 
   SWIG_CException(int code, const char* msg) : code(code), msg(strdup(msg)) { }
   ~SWIG_CException() { free(const_cast<char*>(msg)); }
@@ -53,7 +53,7 @@ private:
 // This part is implementation only and doesn't need to be seen by SWIG.
 %{
 #ifndef SWIG_CException_DEFINED
-SWIG_CException *SWIG_CException::PendingException = 0;
+thread_local SWIG_CException *SWIG_CException::PendingException = 0;
 
 SWIGEXPORTC void SWIG_CException_Raise(int code, const char* msg) {
   delete SWIG_CException::PendingException;
