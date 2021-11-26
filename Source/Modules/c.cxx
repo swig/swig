@@ -907,8 +907,8 @@ class C:public Language {
   // Prefix used for all symbols, if non-null. If ns_cxx was specified, it is a mangled version of it.
   String *ns_prefix;
 
-  // Prefix for module-level symbols, currently just the module name.
-  String *module_prefix;
+  // Name of the module, used as a prefix for module-level symbols if ns_prefix is null.
+  String *module_name;
 
   // Used only while generating wrappers for an enum and contains the prefix to use for enum elements if non-null.
   String *enum_prefix;
@@ -939,7 +939,7 @@ public:
     empty_string(NewString("")),
     ns_cxx(NULL),
     ns_prefix(NULL),
-    module_prefix(NULL),
+    module_name(NULL),
     cxx_class_wrapper_(NULL)
   {
   }
@@ -948,7 +948,6 @@ public:
   {
     Delete(ns_cxx);
     Delete(ns_prefix);
-    Delete(module_prefix);
   }
 
   // Construct the name to be used for a function with the given name in C wrappers.
@@ -992,7 +991,7 @@ public:
       ? scopename_prefix
       : ns_prefix
 	? ns_prefix
-	: module_prefix;
+	: module_name;
 
     wname.assign_owned(NewStringf("%s_%s", prefix, name));
     return wname;
@@ -1232,8 +1231,7 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int top(Node *n) {
-    String *module = Getattr(n, "name");
-    module_prefix = Copy(module);
+    module_name = Getattr(n, "name");
     String *outfile = Getattr(n, "outfile");
 
     // initialize I/O
@@ -1274,7 +1272,7 @@ public:
     Swig_register_filebyname("cheader", f_wrappers_h);
 
     {
-      String* const include_guard_name = NewStringf("SWIG_%s_WRAP_H_", Char(module));
+      String* const include_guard_name = NewStringf("SWIG_%s_WRAP_H_", module_name);
       String* const include_guard_begin = NewStringf(
           "#ifndef %s\n"
           "#define %s\n\n",
@@ -1314,7 +1312,7 @@ public:
 	if (!ns_cxx) {
 	  // We need some namespace for the C++ wrappers as otherwise their names could conflict with the C functions, so use the module name if nothing was
 	  // explicitly specified.
-	  ns_cxx = Copy(module);
+	  ns_cxx = Copy(module_name);
 	}
 
 	Printv(f_wrappers_h, "#ifdef __cplusplus\n\n", NIL);
