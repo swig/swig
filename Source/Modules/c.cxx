@@ -29,6 +29,12 @@ int SwigType_isbuiltin(SwigType *t) {
 namespace
 {
 
+enum exceptions_support {
+  exceptions_support_enabled,  // Default value in C++ mode.
+  exceptions_support_disabled, // Not needed at all.
+  exceptions_support_imported  // Needed, but already defined in an imported module.
+};
+
 // When using scoped_dohptr, it's very simple to accidentally pass it to a vararg function, such as Printv() or Printf(), resulting in catastrophic results
 // during run-time (crash or, worse, junk in the generated output), so make sure gcc warning about this, which is not enabled by default for some reason (see
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=64867 for more information), is enabled.
@@ -216,6 +222,26 @@ String* get_c_proxy_name(Node* n) {
   return proxyname;
 }
 
+// Returns the first named "import" node under the given one (which must be non-NULL). May return NULL.
+Node* find_first_named_import(Node* parent) {
+  for (Node* n = firstChild(parent); n; n = nextSibling(n)) {
+    if (Cmp(nodeType(n), "import") == 0) {
+      // We've almost succeeded, but there are sometimes some weird unnamed import modules that don't really count for our purposes, so skip them.
+      if (Getattr(n, "module"))
+	return n;
+    } else if (Cmp(nodeType(n), "include") == 0) {
+      // Recurse into this node as included files may contain imports too.
+      if (Node* const import = find_first_named_import(n))
+	return import;
+    } else {
+      // We consider that import nodes can only occur in the global scope, some don't bother recursing here. If this turns out to be false, we'd just need to
+      // start doing it.
+    }
+  }
+
+  return NULL;
+}
+
 
 /*
   Struct containing information needed only for generating C++ wrappers.
@@ -224,16 +250,8 @@ struct cxx_wrappers
 {
   // Default ctor doesn't do anything, use initialize() if C++ wrappers really need to be generated.
   cxx_wrappers() :
-    except_check_start("swig_check("), except_check_end(")"),
+    except_check_start(NULL), except_check_end(NULL),
     f_fwd_decls(NULL), f_decls(NULL), f_impls(NULL) {
-  }
-
-  // This can be called before initialize() to disable generating exception support code.
-  void disable_exceptions() {
-    assert(!f_fwd_decls); // Check we are not called too late.
-
-    except_check_start =
-    except_check_end = "";
   }
 
   void initialize() {
@@ -242,30 +260,46 @@ struct cxx_wrappers
     f_impls = NewStringEmpty();
   }
 
-  void output_exception_support(File* f_out) {
-    // Generate the functions which will be used in all wrappers to check for the exceptions if necessary.
-    if (*except_check_start != '\0') {
-      Printv(f_out,
-	"void swig_check() {\n",
-	cindent, "if (SWIG_CException* swig_ex = SWIG_CException::get_pending()) {\n",
-	cindent, cindent, "SWIG_CException swig_ex_copy{*swig_ex};\n",
-	cindent, cindent, "SWIG_CException::reset_pending();\n",
-	cindent, cindent, "throw swig_ex_copy;\n",
-	cindent, "}\n",
-	"}\n\n",
-	"template <typename T> T swig_check(T x) {\n",
-	cindent, "swig_check();\n",
-	cindent, "return x;\n",
-	"}\n\n",
-	NIL
-      );
+  // This function must be called after initialize(). The two can't be combined because we don't yet know if we're going to use exceptions or not when we
+  // initialize the object of this class in C::main(), so this one is called later from C::top().
+  void initialize_exceptions(exceptions_support support) {
+    switch (support) {
+      case exceptions_support_enabled:
+	// Generate the functions which will be used in all wrappers to check for the exceptions only in this case, i.e. do not do it if they're already defined
+	// in another module imported by this one.
+	Printv(f_impls,
+	  "void swig_check() {\n",
+	  cindent, "if (SWIG_CException* swig_ex = SWIG_CException::get_pending()) {\n",
+	  cindent, cindent, "SWIG_CException swig_ex_copy{*swig_ex};\n",
+	  cindent, cindent, "SWIG_CException::reset_pending();\n",
+	  cindent, cindent, "throw swig_ex_copy;\n",
+	  cindent, "}\n",
+	  "}\n\n",
+	  "template <typename T> T swig_check(T x) {\n",
+	  cindent, "swig_check();\n",
+	  cindent, "return x;\n",
+	  "}\n\n",
+	  NIL
+	);
+
+	// fall through
+
+      case exceptions_support_imported:
+	except_check_start = "swig_check(";
+	except_check_end = ")";
+	break;
+
+      case exceptions_support_disabled:
+	except_check_start =
+	except_check_end = "";
+	break;
     }
   }
 
   bool is_initialized() const { return f_fwd_decls != NULL; }
 
 
-  // Used for generating exception checks around the calls unless disable_exceptions() is called.
+  // Used for generating exception checks around the calls, see initialize_exceptions().
   const char* except_check_start;
   const char* except_check_end;
 
@@ -1001,15 +1035,14 @@ class C:public Language {
     output_wrapper_def
   } current_output;
 
+  // Selects between various kinds of needed support for exception-related code.
+  exceptions_support exceptions_support_;
+
   // This object contains information necessary only for C++ wrappers generation, use its is_initialized() to check if this is being done.
   cxx_wrappers cxx_wrappers_;
 
   // Non-owning pointer to the current C++ class wrapper if we're currently generating one or NULL.
   cxx_class_wrapper* cxx_class_wrapper_;
-
-  // Non-owning, possibly null pointer to SWIG_CException class node. We only wrap this class if we don't import any other modules because there must be only
-  // one pending exception pointer for the entire module, not one per each of its submodules.
-  Node* exception_class_node_;
 
 public:
 
@@ -1023,8 +1056,7 @@ public:
     ns_prefix(NULL),
     module_name(NULL),
     outfile_h(NULL),
-    cxx_class_wrapper_(NULL),
-    exception_class_node_(NULL)
+    cxx_class_wrapper_(NULL)
   {
   }
 
@@ -1303,12 +1335,10 @@ public:
 
     Delete(ns_prefix_);
 
-    if (use_cxx_wrappers) {
-      if (!except_flag)
-	cxx_wrappers_.disable_exceptions();
+    exceptions_support_ = except_flag ? exceptions_support_enabled : exceptions_support_disabled;
 
+    if (use_cxx_wrappers)
       cxx_wrappers_.initialize();
-    }
 
     allow_overloading();
   }
@@ -1358,6 +1388,23 @@ public:
     // This one is C-specific and goes directly to the output header file.
     Swig_register_filebyname("cheader", f_wrappers_h);
 
+    // Deal with exceptions support.
+    if (exceptions_support_ == exceptions_support_enabled) {
+      // We need to check if we have any %imported modules, as they would already define the exception support code and we want to have exactly one copy of it
+      // in the generated shared library, so check for "import" nodes.
+      if (find_first_named_import(n)) {
+	  // We import another module, which will have already defined SWIG_CException, so set the flag indicating that we shouldn't do it again in this one and
+	  // define the symbol to skip compiling its implementation.
+	  Printv(f_runtime, "#define SWIG_CException_DEFINED 1\n", NIL);
+
+	  // Also set a flag telling classDeclaration() to skip creating SWIG_CException wrappers.
+	  exceptions_support_ = exceptions_support_imported;
+      }
+    }
+
+    if (cxx_wrappers_.is_initialized())
+      cxx_wrappers_.initialize_exceptions(exceptions_support_);
+
     {
       String* const include_guard_name = NewStringf("SWIG_%s_WRAP_H_", module_name);
       String* const include_guard_begin = NewStringf(
@@ -1387,11 +1434,6 @@ public:
 
         // emit code for children
         Language::top(n);
-
-	if (exception_class_node_) {
-	  // Really emit the wrappers for the exception class now that we know that we need it.
-	  Language::classDeclaration(exception_class_node_);
-	}
       } // close extern "C" guards
 
       Dump(f_wrappers_types, f_wrappers_h);
@@ -1436,11 +1478,6 @@ public:
 	Printv(f_wrappers_h, "\n", NIL);
 	Dump(cxx_wrappers_.f_decls, f_wrappers_h);
 
-	// Also emit C++-specific exceptions support if not done in another module yet.
-	if (exception_class_node_) {
-	  cxx_wrappers_.output_exception_support(f_wrappers_h);
-	}
-
 	Printv(f_wrappers_h, "\n", NIL);
 	Dump(cxx_wrappers_.f_impls, f_wrappers_h);
 
@@ -1481,11 +1518,6 @@ public:
 
       // Finally inject inclusion of this header.
       Printv(Swig_filebyname("cheader"), "#include \"", header_name.get(), "\"\n", NIL);
-
-      // One more thing: if we have imported another module, it must have already defined SWIG_CException, so set the flag indicating that we shouldn't do it
-      // again in this one and define the symbol to skip compiling its implementation.
-      exception_class_node_ = NULL;
-      Printv(Swig_filebyname("runtime"), "#define SWIG_CException_DEFINED 1\n", NIL);
     }
 
     return Language::importDirective(n);
@@ -2196,11 +2228,10 @@ public:
 
   virtual int classDeclaration(Node *n) {
     if (Cmp(Getattr(n, "name"), "SWIG_CException") == 0) {
-      // We don't know if we're going to need to wrap this class or not yet, it depends on whether any other modules are included by this one, and while we
-      // could walk the entire tree looking for "import" nodes, it seems simpler to just wait until our importDirective() is called and handle this class at the
-      // end in top() if it won't have been.
-      exception_class_node_ = n;
-      return SWIG_NOWRAP;
+      // Ignore this class only if it was already wrapped in another module, imported from this one (if exceptions are disabled, we shouldn't be even parsing
+      // SWIG_CException in the first place and if they're enabled, we handle it normally).
+      if (exceptions_support_ == exceptions_support_imported)
+	  return SWIG_NOWRAP;
     }
 
     return Language::classDeclaration(n);
