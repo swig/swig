@@ -1052,6 +1052,9 @@ class C:public Language {
   // Non-owning pointer to the current C++ class wrapper if we're currently generating one or NULL.
   cxx_class_wrapper* cxx_class_wrapper_;
 
+  // This is parallel to enum_prefix_ but for C++ enum elements.
+  scoped_dohptr cxx_enum_prefix_;
+
   // This is parallel to enum_decl but for C++ enum declaration.
   String *cxx_enum_decl;
 
@@ -2454,7 +2457,11 @@ public:
       enum_prefix = ns_prefix; // Possibly NULL, but that's fine.
     }
 
+    // C++ enum names don't use the prefix, as they're defined in namespace or class scope.
+    String* cxx_enum_prefix = NULL;
+
     scoped_dohptr enumname;
+    scoped_dohptr cxx_enumname;
 
     // Unnamed enums may just have no name at all or have a synthesized invalid name of the form "$unnamedN$ which is indicated by "unnamed" attribute.
     //
@@ -2464,23 +2471,27 @@ public:
       // But the name may included the containing class, so get rid of it.
       enumname = Swig_scopename_last(name);
 
-      // C++ enum name shouldn't include the prefix, as this enum is inside a namespace.
+      // C++ enum name shouldn't include the prefix, so make a copy before enumname is modified below.
       if (cxx_enum_decl)
-	Printv(cxx_enum_decl, " ", enumname.get(), NIL);
+	cxx_enumname = Copy(enumname);
 
       if (enum_prefix) {
 	enumname = NewStringf("%s_%s", enum_prefix, enumname.get());
       }
 
       Printv(enum_decl, " ", enumname.get(), NIL);
+      if (cxx_enum_decl)
+	Printv(cxx_enum_decl, " ", cxx_enumname.get(), NIL);
 
       // For scoped enums, their name should be prefixed to their elements in addition to any other prefix we use.
       if (Getattr(n, "scopedenum")) {
 	enum_prefix = enumname.get();
+	cxx_enum_prefix = cxx_enumname.get();
       }
     }
 
     enum_prefix_ = enum_prefix ? NewStringf("%s_", enum_prefix) : NewStringEmpty();
+    cxx_enum_prefix_ = cxx_enum_prefix ? NewStringf("%s_", cxx_enum_prefix) : NewStringEmpty();
 
     Printv(enum_decl, " {\n", NIL);
     if (cxx_enum_decl)
@@ -2539,7 +2550,7 @@ public:
     String* const symname = Getattr(n, "sym:name");
     Printv(enum_decl, cindent, enum_prefix_.get(), symname, NIL);
     if (cxx_enum_decl)
-      Printv(cxx_enum_decl, cxx_enum_indent, cindent, symname, NIL);
+      Printv(cxx_enum_decl, cxx_enum_indent, cindent, cxx_enum_prefix_.get(), symname, NIL);
 
     // We only use "enumvalue", which comes from the input, and not "enumvalueex" synthesized by SWIG itself because C should use the correct value for the enum
     // items without an explicit one anyhow (and "enumvalueex" can't be always used as is in C code for enum elements inside a class or even a namespace).
