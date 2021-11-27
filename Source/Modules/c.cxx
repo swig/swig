@@ -268,7 +268,7 @@ struct cxx_wrappers
 	// Generate the functions which will be used in all wrappers to check for the exceptions only in this case, i.e. do not do it if they're already defined
 	// in another module imported by this one.
 	Printv(f_impls,
-	  "void swig_check() {\n",
+	  "inline void swig_check() {\n",
 	  cindent, "if (SWIG_CException* swig_ex = SWIG_CException::get_pending()) {\n",
 	  cindent, cindent, "SWIG_CException swig_ex_copy{*swig_ex};\n",
 	  cindent, cindent, "SWIG_CException::reset_pending();\n",
