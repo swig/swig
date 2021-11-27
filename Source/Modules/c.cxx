@@ -251,13 +251,13 @@ struct cxx_wrappers
   // Default ctor doesn't do anything, use initialize() if C++ wrappers really need to be generated.
   cxx_wrappers() :
     except_check_start(NULL), except_check_end(NULL),
-    f_types(NULL), f_decls(NULL), f_impls(NULL) {
+    sect_types(NULL), sect_decls(NULL), sect_impls(NULL) {
   }
 
   void initialize() {
-    f_types = NewStringEmpty();
-    f_decls = NewStringEmpty();
-    f_impls = NewStringEmpty();
+    sect_types = NewStringEmpty();
+    sect_decls = NewStringEmpty();
+    sect_impls = NewStringEmpty();
   }
 
   // This function must be called after initialize(). The two can't be combined because we don't yet know if we're going to use exceptions or not when we
@@ -267,7 +267,7 @@ struct cxx_wrappers
       case exceptions_support_enabled:
 	// Generate the functions which will be used in all wrappers to check for the exceptions only in this case, i.e. do not do it if they're already defined
 	// in another module imported by this one.
-	Printv(f_impls,
+	Printv(sect_impls,
 	  "inline void swig_check() {\n",
 	  cindent, "if (SWIG_CException* swig_ex = SWIG_CException::get_pending()) {\n",
 	  cindent, cindent, "SWIG_CException swig_ex_copy{*swig_ex};\n",
@@ -296,7 +296,7 @@ struct cxx_wrappers
     }
   }
 
-  bool is_initialized() const { return f_types != NULL; }
+  bool is_initialized() const { return sect_types != NULL; }
 
 
   // Used for generating exception checks around the calls, see initialize_exceptions().
@@ -307,19 +307,19 @@ struct cxx_wrappers
   // The order of the members here is the same as the order in which they appear in the output file.
 
   // This section contains forward declarations of the classes.
-  File* f_types;
+  String* sect_types;
 
   // Full declarations of the classes.
-  File* f_decls;
+  String* sect_decls;
 
   // Implementation of the classes.
-  File* f_impls;
+  String* sect_impls;
 };
 
 /*
   cxx_class_wrapper
 
-  Outputs the declaration of the class wrapping the given one if we're generating C++ wrappers, i.e. if the provided File is not null.
+  Outputs the declaration of the class wrapping the given one if we're generating C++ wrappers, i.e. if the provided cxx_wrappers object is initialized.
 */
 class cxx_class_wrapper
 {
@@ -358,12 +358,12 @@ public:
       Printv(base_classes, " : public ", Getattr(first_base_, "sym:name"), NIL);
     }
 
-    Printv(cxx_wrappers_.f_types,
+    Printv(cxx_wrappers_.sect_types,
       "class ", Getattr(n, "sym:name"), ";\n",
       NIL
     );
 
-    Printv(cxx_wrappers_.f_decls,
+    Printv(cxx_wrappers_.sect_decls,
       "class ", Getattr(n, "sym:name"), base_classes.get(), " {\n"
       "public:\n",
       NIL
@@ -479,7 +479,7 @@ public:
 
     if (Checkattr(n, "kind", "variable")) {
       if (Checkattr(n, "memberget", "1")) {
-	Printv(cxx_wrappers_.f_decls,
+	Printv(cxx_wrappers_.sect_decls,
 	  cindent, rtype_desc.type(), " ", name, "() const "
 	  "{ ",
 	    "return ", rtype_desc.wrap_start(),
@@ -489,13 +489,13 @@ public:
 	  NIL
 	);
       } else if (Checkattr(n, "memberset", "1")) {
-	Printv(cxx_wrappers_.f_decls,
+	Printv(cxx_wrappers_.sect_decls,
 	  cindent, "void ", name, "(", parms_cxx.get(), ") "
 	  "{ ", Getattr(n, "sym:name"), "(swig_self(), ", parms_call.get(), "); }\n",
 	  NIL
 	);
       } else if (Checkattr(n, "varget", "1")) {
-	Printv(cxx_wrappers_.f_decls,
+	Printv(cxx_wrappers_.sect_decls,
 	  cindent, "static ", rtype_desc.type(), " ", name, "() "
 	  "{ ",
 	    "return ", rtype_desc.wrap_start(),
@@ -505,7 +505,7 @@ public:
 	  NIL
 	);
       } else if (Checkattr(n, "varset", "1")) {
-	Printv(cxx_wrappers_.f_decls,
+	Printv(cxx_wrappers_.sect_decls,
 	  cindent, "static void ", name, "(", parms_cxx.get(), ") "
 	  "{ ", Getattr(n, "sym:name"), "(", parms_call.get(), "); }\n",
 	  NIL
@@ -518,12 +518,12 @@ public:
       }
     } else if (is_ctor) {
       // Delegate to the ctor from opaque C pointer taking ownership of the object.
-      Printv(cxx_wrappers_.f_decls,
+      Printv(cxx_wrappers_.sect_decls,
 	cindent, classname, "(", parms_cxx.get(), ");\n",
 	NIL
       );
 
-      Printv(cxx_wrappers_.f_impls,
+      Printv(cxx_wrappers_.sect_impls,
 	"inline ", classname, "::", classname, "(", parms_cxx.get(), ") : ",
 	classname, "{",
 	  except_check_start,
@@ -539,7 +539,7 @@ public:
     } else if (Checkattr(n, "nodeType", "destructor")) {
       if (first_base_) {
 	// Delete the pointer and reset the ownership flag to ensure that the base class doesn't do it again.
-	Printv(cxx_wrappers_.f_decls,
+	Printv(cxx_wrappers_.sect_decls,
 	  cindent, get_virtual_prefix(n), "~", classname, "() {\n",
 	  cindent, cindent, "if (swig_owns_self_) {\n",
 	  cindent, cindent, cindent, wname, "(swig_self());\n",
@@ -550,7 +550,7 @@ public:
 	);
       } else {
 	// Slightly simplified version for classes without base classes, as we don't need to reset swig_self_ then.
-	Printv(cxx_wrappers_.f_decls,
+	Printv(cxx_wrappers_.sect_decls,
 	  cindent, get_virtual_prefix(n), "~", classname, "() {\n",
 	  cindent, cindent, "if (swig_owns_self_)\n",
 	  cindent, cindent, cindent, wname, "(swig_self_);\n",
@@ -569,7 +569,7 @@ public:
 	Append(wparms, parms_call);
       }
 
-      Printv(cxx_wrappers_.f_decls,
+      Printv(cxx_wrappers_.sect_decls,
 	cindent,
 	is_static ? "static " : get_virtual_prefix(n), rtype_desc.type(), " ",
 	name, "(", parms_cxx.get(), ")",
@@ -577,7 +577,7 @@ public:
 	NIL
       );
 
-      Printv(cxx_wrappers_.f_impls,
+      Printv(cxx_wrappers_.sect_impls,
 	"inline ", rtype_desc.type(), " ",
 	classname, "::", name, "(", parms_cxx.get(), ")",
 	get_const_suffix(n),
@@ -586,13 +586,13 @@ public:
       );
 
       if (rtype_desc.is_void()) {
-	Printv(cxx_wrappers_.f_impls,
+	Printv(cxx_wrappers_.sect_impls,
 	  wname, "(", wparms.get(), ")",
 	  NIL
 	);
 
 	if (*except_check_start) {
-	  Printv(cxx_wrappers_.f_impls,
+	  Printv(cxx_wrappers_.sect_impls,
 	    "; ",
 	    except_check_start,
 	    except_check_end,
@@ -600,7 +600,7 @@ public:
 	  );
 	}
       } else {
-	Printv(cxx_wrappers_.f_impls,
+	Printv(cxx_wrappers_.sect_impls,
 	  "return ",
 	  rtype_desc.wrap_start(),
 	    except_check_start,
@@ -611,7 +611,7 @@ public:
 	);
       }
 
-      Printv(cxx_wrappers_.f_impls,
+      Printv(cxx_wrappers_.sect_impls,
 	"; }\n",
 	NIL
       );
@@ -636,7 +636,7 @@ public:
 
     // We need to generate a ctor from the C object pointer, which is required to be able to create objects of this class from pointers created by C wrappers
     // and also by any derived classes.
-    Printv(cxx_wrappers_.f_decls,
+    Printv(cxx_wrappers_.sect_decls,
       "\n",
       cindent, "explicit ", classname, "(", c_class_ptr.get(), " swig_self, "
 	"bool swig_owns_self = true) noexcept : ",
@@ -646,26 +646,26 @@ public:
     if (first_base_) {
       // In this case we delegate to the base class ctor, but need a cast because it expects a different pointer type (as these types are opaque, there is no
       // relationship between them).
-      Printv(cxx_wrappers_.f_decls,
+      Printv(cxx_wrappers_.sect_decls,
 	Getattr(first_base_, "sym:name"),
 	"{(", get_c_class_ptr(first_base_).get(), ")swig_self, swig_owns_self}",
 	NIL
       );
     } else {
       // Just initialize our own field.
-      Printv(cxx_wrappers_.f_decls,
+      Printv(cxx_wrappers_.sect_decls,
 	"swig_self_{swig_self}, swig_owns_self_{swig_owns_self}",
 	NIL
       );
     }
 
-    Append(cxx_wrappers_.f_decls, " {}\n");
+    Append(cxx_wrappers_.sect_decls, " {}\n");
 
     // If the class doesn't have a copy ctor, forbid copying it: we currently must do it even if the original class has a perfectly cromulent implicit copy ctor
     // because we don't wrap it and copying would use the trivial ctor that would just copy the swig_self_ pointer resulting in double destruction of it later.
     // To fix this, we would need to always provide our own C wrapper for the copy ctor, which is not something we do currently.
     if (!has_copy_ctor_) {
-      Printv(cxx_wrappers_.f_decls,
+      Printv(cxx_wrappers_.sect_decls,
 	cindent, classname, "(", classname, " const&) = delete;\n",
 	NIL
       );
@@ -673,20 +673,20 @@ public:
 
     // We currently never wrap the assignment operator, so we have to always disable it for the same reason we disable the copy ctor above.
     // It would definitely be nice to provide the assignment, if possible.
-    Printv(cxx_wrappers_.f_decls,
+    Printv(cxx_wrappers_.sect_decls,
       cindent, classname, "& operator=(", classname, " const&) = delete;\n",
       NIL
     );
 
     // OTOH we may always provide move ctor and assignment, as we can always implement them trivially ourselves.
     if (first_base_) {
-      Printv(cxx_wrappers_.f_decls,
+      Printv(cxx_wrappers_.sect_decls,
 	cindent, classname, "(", classname, "&& obj) = default;\n",
 	cindent, classname, "& operator=(", classname, "&& obj) = default;\n",
 	NIL
       );
     } else {
-      Printv(cxx_wrappers_.f_decls,
+      Printv(cxx_wrappers_.sect_decls,
 	cindent, classname, "(", classname, "&& obj) noexcept : "
 	"swig_self_{obj.swig_self_}, swig_owns_self_{obj.swig_owns_self_} { "
 	"obj.swig_owns_self_ = false; "
@@ -701,14 +701,14 @@ public:
     }
 
     // We also need a swig_self() method for accessing the C object pointer.
-    Printv(cxx_wrappers_.f_decls,
+    Printv(cxx_wrappers_.sect_decls,
       cindent, c_class_ptr.get(), " swig_self() const noexcept ",
       NIL
     );
 
     if (first_base_) {
       // If we have a base class, we reuse its existing "self" pointer.
-      Printv(cxx_wrappers_.f_decls,
+      Printv(cxx_wrappers_.sect_decls,
 	"{ return (", c_class_ptr.get(), ")", Getattr(first_base_, "sym:name"), "::swig_self(); }\n",
 	NIL
       );
@@ -718,7 +718,7 @@ public:
       // Perhaps we could avoid having a separate bool flag by reusing the low-order bit of the pointer itself as the indicator of ownership and masking it when
       // retrieving it here in the future. If we decide to implement this optimization, the code generated here should be the only thing that would need to
       // change.
-      Printv(cxx_wrappers_.f_decls,
+      Printv(cxx_wrappers_.sect_decls,
 	"{ return swig_self_; }\n",
 	cindent, c_class_ptr.get(), " swig_self_;\n",
 	cindent, "bool swig_owns_self_;\n",
@@ -726,7 +726,7 @@ public:
       );
     }
 
-    Printv(cxx_wrappers_.f_decls,
+    Printv(cxx_wrappers_.sect_decls,
       "};\n"
       "\n",
       NIL
@@ -1002,11 +1002,11 @@ class C:public Language {
   static const char *usage;
 
   // These files contain types used by the wrappers declarations and the declarations themselves and end up in the output header file.
-  File *f_wrappers_types;
-  File *f_wrappers_decl;
+  String *sect_wrappers_types;
+  String *sect_wrappers_decl;
 
   // This one contains wrapper functions definitions and end up in the output C++ file.
-  File *f_wrappers;
+  String *sect_wrappers;
 
   String *empty_string;
 
@@ -1026,7 +1026,7 @@ class C:public Language {
   String *enum_prefix;
 
   // Used only while generating wrappers for an enum, as we don't know if enum will have any elements or not in advance and we must not generate an empty enum,
-  // so we accumulate the full declaration here and then write it to f_wrappers_types at once only if there are any elements.
+  // so we accumulate the full declaration here and then write it to sect_wrappers_types at once only if there are any elements.
   String *enum_decl;
 
   // Selects between the wrappers (public) declarations and (private) definitions.
@@ -1204,7 +1204,7 @@ public:
 	    typestr = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
 
 	    // And make sure it is declared before it is used.
-	    Printf(f_wrappers_types, "typedef struct %s %s;\n\n", typestr, typestr);
+	    Printf(sect_wrappers_types, "typedef struct %s %s;\n\n", typestr, typestr);
 	  }
 	}
       }
@@ -1370,20 +1370,20 @@ public:
 
     Swig_banner(f_wrappers_h);
 
-    // Associate file with the SWIG sections with the same name, so that e.g. "%header" contents end up in f_header etc.
-    const scoped_dohptr f_begin(NewStringEmpty());
-    const scoped_dohptr f_header(NewStringEmpty());
-    const scoped_dohptr f_runtime(NewStringEmpty());
-    const scoped_dohptr f_init(NewStringEmpty());
+    // Associate file with the SWIG sections with the same name, so that e.g. "%header" contents end up in sect_header etc.
+    const scoped_dohptr sect_begin(NewStringEmpty());
+    const scoped_dohptr sect_header(NewStringEmpty());
+    const scoped_dohptr sect_runtime(NewStringEmpty());
+    const scoped_dohptr sect_init(NewStringEmpty());
 
     // This one is used outside of this function, so it's a member variable rather than a local one.
-    f_wrappers = NewStringEmpty();
+    sect_wrappers = NewStringEmpty();
 
-    Swig_register_filebyname("begin", f_begin);
-    Swig_register_filebyname("header", f_header);
-    Swig_register_filebyname("wrapper", f_wrappers);
-    Swig_register_filebyname("runtime", f_runtime);
-    Swig_register_filebyname("init", f_init);
+    Swig_register_filebyname("begin", sect_begin);
+    Swig_register_filebyname("header", sect_header);
+    Swig_register_filebyname("wrapper", sect_wrappers);
+    Swig_register_filebyname("runtime", sect_runtime);
+    Swig_register_filebyname("init", sect_init);
 
     // This one is C-specific and goes directly to the output header file.
     Swig_register_filebyname("cheader", f_wrappers_h);
@@ -1393,7 +1393,7 @@ public:
       // Redefine SWIG_CException_Raise() to have a unique prefix in the shared library built from SWIG-generated sources to allow using more than one extension
       // in the same process without conflicts. This has to be done in this hackish way because we really need to change the name of the function itself, not
       // its wrapper (which is not even generated).
-      Printv(f_runtime,
+      Printv(sect_runtime,
 	"#define SWIG_CException_Raise ", (ns_prefix ? ns_prefix : module_name), "_SWIG_CException_Raise\n",
 	NIL
       );
@@ -1403,7 +1403,7 @@ public:
       if (find_first_named_import(n)) {
 	  // We import another module, which will have already defined SWIG_CException, so set the flag indicating that we shouldn't do it again in this one and
 	  // define the symbol to skip compiling its implementation.
-	  Printv(f_runtime, "#define SWIG_CException_DEFINED 1\n", NIL);
+	  Printv(sect_runtime, "#define SWIG_CException_DEFINED 1\n", NIL);
 
 	  // Also set a flag telling classDeclaration() to skip creating SWIG_CException wrappers.
 	  exceptions_support_ = exceptions_support_imported;
@@ -1432,23 +1432,23 @@ public:
 
       // All the struct types used by the functions go to f_wrappers_types so that they're certain to be defined before they're used by any functions. All the
       // functions declarations go directly to f_wrappers_decl we write both of them to f_wrappers_h at the end.
-      f_wrappers_types = NewString("");
-      f_wrappers_decl = NewString("");
+      sect_wrappers_types = NewString("");
+      sect_wrappers_decl = NewString("");
 
       {
         cplusplus_output_guard
-          cplusplus_guard_wrappers(f_wrappers),
-          cplusplus_guard_wrappers_h(f_wrappers_decl);
+          cplusplus_guard_wrappers(sect_wrappers),
+          cplusplus_guard_wrappers_h(sect_wrappers_decl);
 
         // emit code for children
         Language::top(n);
       } // close extern "C" guards
 
-      Dump(f_wrappers_types, f_wrappers_h);
-      Delete(f_wrappers_types);
+      Dump(sect_wrappers_types, f_wrappers_h);
+      Delete(sect_wrappers_types);
 
-      Dump(f_wrappers_decl, f_wrappers_h);
-      Delete(f_wrappers_decl);
+      Dump(sect_wrappers_decl, f_wrappers_h);
+      Delete(sect_wrappers_decl);
 
       if (cxx_wrappers_.is_initialized()) {
 	if (!ns_cxx) {
@@ -1481,24 +1481,24 @@ public:
 	}
 
 	Printv(f_wrappers_h, "\n", NIL);
-	Dump(cxx_wrappers_.f_types, f_wrappers_h);
+	Dump(cxx_wrappers_.sect_types, f_wrappers_h);
 
 	Printv(f_wrappers_h, "\n", NIL);
-	Dump(cxx_wrappers_.f_decls, f_wrappers_h);
+	Dump(cxx_wrappers_.sect_decls, f_wrappers_h);
 
 	Printv(f_wrappers_h, "\n", NIL);
-	Dump(cxx_wrappers_.f_impls, f_wrappers_h);
+	Dump(cxx_wrappers_.sect_impls, f_wrappers_h);
 
 	Printv(f_wrappers_h, "\n", cxx_ns_end.get(), "\n#endif /* __cplusplus */\n", NIL);
       }
     } // close wrapper header guard
 
     // write all to the file
-    Dump(f_begin, f_wrappers_cxx);
-    Dump(f_runtime, f_wrappers_cxx);
-    Dump(f_header, f_wrappers_cxx);
-    Dump(f_wrappers, f_wrappers_cxx);
-    Dump(f_init, f_wrappers_cxx);
+    Dump(sect_begin, f_wrappers_cxx);
+    Dump(sect_runtime, f_wrappers_cxx);
+    Dump(sect_header, f_wrappers_cxx);
+    Dump(sect_wrappers, f_wrappers_cxx);
+    Dump(sect_init, f_wrappers_cxx);
 
     return SWIG_OK;
   }
@@ -1545,7 +1545,7 @@ public:
     if (!ns_prefix && !scoped_dohptr(Swig_scopename_prefix(Getattr(n, "name")))) {
       // If we can export the variable directly, do it, this will be more convenient to use from C code than accessor functions.
       if (String* const var_decl = make_c_var_decl(n)) {
-	Printv(f_wrappers_decl, "SWIGIMPORT ", var_decl, ";\n\n", NIL);
+	Printv(sect_wrappers_decl, "SWIGIMPORT ", var_decl, ";\n\n", NIL);
 	Delete(var_decl);
 	return SWIG_OK;
       }
@@ -1725,7 +1725,7 @@ public:
          Printf(wrapper->code, "return result;\n");
        Printf(wrapper->code, "}");
 
-       Wrapper_print(wrapper, f_wrappers);
+       Wrapper_print(wrapper, sect_wrappers);
 
        emit_wrapper_func_decl(n, wname);
 
@@ -1876,7 +1876,7 @@ public:
        current_output = output_wrapper_decl;
 
        // add function declaration to the proxy header file
-       Printv(f_wrappers_decl, "SWIGIMPORT ", get_wrapper_func_return_type(n).get(), " ", wname, get_wrapper_func_proto(n).get(), ";\n\n", NIL);
+       Printv(sect_wrappers_decl, "SWIGIMPORT ", get_wrapper_func_return_type(n).get(), " ", wname, get_wrapper_func_proto(n).get(), ";\n\n", NIL);
     }
 
 
@@ -2051,7 +2051,7 @@ public:
 
        Append(wrapper->code, "}\n");
 
-       Wrapper_print(wrapper, f_wrappers);
+       Wrapper_print(wrapper, sect_wrappers);
 
        // cleanup
        DelWrapper(wrapper);
@@ -2176,7 +2176,7 @@ public:
 
 	  // Final complication: define bool if it is used here.
 	  if (Cmp(btype, "bool") == 0) {
-	    Printv(f_wrappers_types, "#include <stdbool.h>\n\n", NIL);
+	    Printv(sect_wrappers_types, "#include <stdbool.h>\n\n", NIL);
 	  }
 	}
       }
@@ -2201,7 +2201,7 @@ public:
    * emit_c_struct_def()
    *
    * Append the declarations of C struct members to the given string.
-   * Notice that this function has a side effect of outputting all enum declarations inside the struct into f_wrappers_types directly.
+   * Notice that this function has a side effect of outputting all enum declarations inside the struct into sect_wrappers_types directly.
    * This is done to avoid gcc warnings "declaration does not declare anything" given for the anonymous enums inside the structs.
    * --------------------------------------------------------------------- */
 
@@ -2220,7 +2220,7 @@ public:
 	  Delete(var_decl);
 	}
       } else if (Cmp(ntype, "enum") == 0) {
-	// This goes directly into f_wrappers_types, before this struct declaration.
+	// This goes directly into sect_wrappers_types, before this struct declaration.
 	emit_one(node);
       } else {
 	// WARNING: proxy declaration can be different than original code
@@ -2295,7 +2295,7 @@ public:
       }
 
       // declare type for specific class in the proxy header
-      Printv(f_wrappers_types, "typedef struct SwigObj_", name, " ", name, ";\n\n", NIL);
+      Printv(sect_wrappers_types, "typedef struct SwigObj_", name, " ", name, ";\n\n", NIL);
 
       return Language::classHandler(n);
     } else {
@@ -2312,7 +2312,7 @@ public:
       else
         Append(struct_def, "};\n\n");
 
-      Printv(f_wrappers_types, struct_def, NIL);
+      Printv(sect_wrappers_types, struct_def, NIL);
       Delete(struct_def);
     }
     return SWIG_OK;
@@ -2465,7 +2465,7 @@ public:
       }
       Printv(enum_decl, ";\n\n", NIL);
 
-      Append(f_wrappers_types, enum_decl);
+      Append(sect_wrappers_types, enum_decl);
     }
 
     enum_prefix = NULL;
@@ -2564,7 +2564,7 @@ public:
       value = Getattr(n, "value");
     }
 
-    Printv(f_wrappers_decl, "#define ", name, " ", value, "\n", NIL);
+    Printv(sect_wrappers_decl, "#define ", name, " ", value, "\n", NIL);
     return SWIG_OK;
   }
 };				/* class C */
