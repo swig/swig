@@ -1044,6 +1044,9 @@ class C:public Language {
   // Non-owning pointer to the current C++ class wrapper if we're currently generating one or NULL.
   cxx_class_wrapper* cxx_class_wrapper_;
 
+  // This is parallel to enum_decl but for C++ enum declaration.
+  String *cxx_enum_decl;
+
 public:
 
   /* -----------------------------------------------------------------------------
@@ -2409,12 +2412,18 @@ public:
     // We don't know here if we're going to have any non-ignored enum elements, so generate enum declaration in a temporary string.
     enum_decl = NewStringEmpty();
 
+    // Another string for C++ enum declaration, which differs from the C one because it never uses the prefix, as C++ enums are declared in the correct scope.
+    cxx_enum_decl = cxx_wrappers_.is_initialized() && !cxx_class_wrapper_ ? NewStringEmpty() : NULL;
     // Preserve the typedef if we have it in the input.
     String* const tdname = Getattr(n, "tdname");
     if (tdname) {
       Printv(enum_decl, "typedef ", NIL);
+      if (cxx_enum_decl)
+	Printv(cxx_enum_decl, "typedef ", NIL);
     }
     Printv(enum_decl, "enum", NIL);
+    if (cxx_enum_decl)
+      Printv(cxx_enum_decl, "enum", NIL);
 
     String* enum_prefix;
     if (Node* const klass = getCurrentClass()) {
@@ -2433,6 +2442,10 @@ public:
       // But the name may included the containing class, so get rid of it.
       enumname = Swig_scopename_last(name);
 
+      // C++ enum name shouldn't include the prefix, as this enum is inside a namespace.
+      if (cxx_enum_decl)
+	Printv(cxx_enum_decl, " ", enumname.get(), NIL);
+
       if (enum_prefix) {
 	enumname = NewStringf("%s_%s", enum_prefix, enumname.get());
       }
@@ -2448,6 +2461,8 @@ public:
     enum_prefix_ = enum_prefix ? NewStringf("%s_", enum_prefix) : NewStringEmpty();
 
     Printv(enum_decl, " {\n", NIL);
+    if (cxx_enum_decl)
+      Printv(cxx_enum_decl, " {\n", NIL);
 
     int const len_orig = Len(enum_decl);
 
@@ -2457,16 +2472,27 @@ public:
     // Only emit the enum declaration if there were actually any items.
     if (Len(enum_decl) > len_orig) {
       Printv(enum_decl, "\n}", NIL);
+      if (cxx_enum_decl)
+	Printv(cxx_enum_decl, "\n}", NIL);
 
       if (tdname) {
 	Printv(enum_decl, " ", enum_prefix_.get(), tdname, NIL);
+	if (cxx_enum_decl)
+	  Printv(cxx_enum_decl, " ", tdname, NIL);
       }
       Printv(enum_decl, ";\n\n", NIL);
+      if (cxx_enum_decl)
+	Printv(cxx_enum_decl, ";\n\n", NIL);
 
       Append(sect_wrappers_types, enum_decl);
+      if (cxx_enum_decl) {
+	Append(cxx_wrappers_.sect_types, cxx_enum_decl);
+      }
     }
 
     Delete(enum_decl);
+    if (cxx_enum_decl)
+      Delete(cxx_enum_decl);
 
     return SWIG_OK;
   }
@@ -2480,11 +2506,16 @@ public:
       return SWIG_NOWRAP;
     Swig_require("enumvalueDeclaration", n, "?enumvalueex", "?enumvalue", NIL);
 
-    if (!GetFlag(n, "firstenumitem"))
+    if (!GetFlag(n, "firstenumitem")) {
       Printv(enum_decl, ",\n", NIL);
+      if (cxx_enum_decl)
+	Printv(cxx_enum_decl, ",\n", NIL);
+    }
 
     String* const symname = Getattr(n, "sym:name");
     Printv(enum_decl, cindent, enum_prefix_.get(), symname, NIL);
+    if (cxx_enum_decl)
+      Printv(cxx_enum_decl, cindent, symname, NIL);
 
     // We only use "enumvalue", which comes from the input, and not "enumvalueex" synthesized by SWIG itself because C should use the correct value for the enum
     // items without an explicit one anyhow (and "enumvalueex" can't be always used as is in C code for enum elements inside a class or even a namespace).
@@ -2516,6 +2547,8 @@ public:
       }
 
       Printv(enum_decl, " = ", cvalue.get(), NIL);
+      if (cxx_enum_decl)
+	Printv(cxx_enum_decl, " = ", cvalue.get(), NIL);
     }
 
     Swig_restore(n);
