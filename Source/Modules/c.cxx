@@ -1022,8 +1022,8 @@ class C:public Language {
   // Name of the output header, set in top().
   String *outfile_h;
 
-  // Used only while generating wrappers for an enum and contains the prefix to use for enum elements if non-null.
-  String *enum_prefix;
+  // Used only while generating wrappers for an enum and contains the prefix, ending with underscore, to use for enum elements or is empty.
+  scoped_dohptr enum_prefix_;
 
   // Used only while generating wrappers for an enum, as we don't know if enum will have any elements or not in advance and we must not generate an empty enum,
   // so we accumulate the full declaration here and then write it to sect_wrappers_types at once only if there are any elements.
@@ -2416,6 +2416,7 @@ public:
     }
     Printv(enum_decl, "enum", NIL);
 
+    String* enum_prefix;
     if (Node* const klass = getCurrentClass()) {
       enum_prefix = get_c_proxy_name(klass);
     } else {
@@ -2444,6 +2445,8 @@ public:
       }
     }
 
+    enum_prefix_ = enum_prefix ? NewStringf("%s_", enum_prefix) : NewStringEmpty();
+
     Printv(enum_decl, " {\n", NIL);
 
     int const len_orig = Len(enum_decl);
@@ -2456,18 +2459,13 @@ public:
       Printv(enum_decl, "\n}", NIL);
 
       if (tdname) {
-	if (enum_prefix) {
-	  Printv(enum_decl, " ", enum_prefix, "_", tdname, NIL);
-	} else {
-	  Printv(enum_decl, " ", tdname, NIL);
-	}
+	Printv(enum_decl, " ", enum_prefix_.get(), tdname, NIL);
       }
       Printv(enum_decl, ";\n\n", NIL);
 
       Append(sect_wrappers_types, enum_decl);
     }
 
-    enum_prefix = NULL;
     Delete(enum_decl);
 
     return SWIG_OK;
@@ -2485,15 +2483,8 @@ public:
     if (!GetFlag(n, "firstenumitem"))
       Printv(enum_decl, ",\n", NIL);
 
-    maybe_owned_dohptr wname;
-
     String* const symname = Getattr(n, "sym:name");
-    if (enum_prefix) {
-      wname.assign_owned(NewStringf("%s_%s", enum_prefix, symname));
-    } else {
-      wname.assign_non_owned(symname);
-    }
-    Printv(enum_decl, cindent, wname.get(), NIL);
+    Printv(enum_decl, cindent, enum_prefix_.get(), symname, NIL);
 
     // We only use "enumvalue", which comes from the input, and not "enumvalueex" synthesized by SWIG itself because C should use the correct value for the enum
     // items without an explicit one anyhow (and "enumvalueex" can't be always used as is in C code for enum elements inside a class or even a namespace).
