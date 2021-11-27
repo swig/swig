@@ -2410,8 +2410,7 @@ public:
     enum_decl = NewStringEmpty();
 
     // Preserve the typedef if we have it in the input.
-    maybe_owned_dohptr tdname;
-    tdname.assign_non_owned(Getattr(n, "tdname"));
+    String* const tdname = Getattr(n, "tdname");
     if (tdname) {
       Printv(enum_decl, "typedef ", NIL);
     }
@@ -2421,10 +2420,6 @@ public:
       enum_prefix = get_c_proxy_name(klass);
     } else {
       enum_prefix = ns_prefix; // Possibly NULL, but that's fine.
-    }
-
-    if (tdname && enum_prefix) {
-      tdname.assign_owned(NewStringf("%s_%s", enum_prefix, tdname.get()));
     }
 
     scoped_dohptr enumname;
@@ -2461,7 +2456,11 @@ public:
       Printv(enum_decl, "\n}", NIL);
 
       if (tdname) {
-	Printv(enum_decl, " ", tdname.get(), NIL);
+	if (enum_prefix) {
+	  Printv(enum_decl, " ", enum_prefix, "_", tdname, NIL);
+	} else {
+	  Printv(enum_decl, " ", tdname, NIL);
+	}
       }
       Printv(enum_decl, ";\n\n", NIL);
 
