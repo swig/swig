@@ -373,6 +373,14 @@ public:
     has_copy_ctor_ = false;
   }
 
+  // Get indentation used inside this class declaration.
+  const char* get_indent() const {
+    // Currently we always use a single level of indent, but this would need to change if/when nested classes are supported.
+    //
+    // As the first step, we should probably change all occurrences of "cindent" in this class itself to use get_indent() instead.
+    return cindent;
+  }
+
   // Emit wrapper of a member function.
   void emit_member_function(Node* n) {
     if (!class_node_)
@@ -1046,6 +1054,9 @@ class C:public Language {
 
   // This is parallel to enum_decl but for C++ enum declaration.
   String *cxx_enum_decl;
+
+  // An extra indent level needed for nested C++ enums.
+  const char* cxx_enum_indent;
 
 public:
 
@@ -2413,7 +2424,18 @@ public:
     enum_decl = NewStringEmpty();
 
     // Another string for C++ enum declaration, which differs from the C one because it never uses the prefix, as C++ enums are declared in the correct scope.
-    cxx_enum_decl = cxx_wrappers_.is_initialized() && !cxx_class_wrapper_ ? NewStringEmpty() : NULL;
+    cxx_enum_decl = cxx_wrappers_.is_initialized() ? NewStringEmpty() : NULL;
+
+    // If we're currently generating a wrapper class, we need an extra level of indent.
+    if (cxx_enum_decl) {
+      if (cxx_class_wrapper_) {
+	cxx_enum_indent = cxx_class_wrapper_->get_indent();
+	Append(cxx_enum_decl, cxx_enum_indent);
+      } else {
+	cxx_enum_indent = "";
+      }
+    }
+
     // Preserve the typedef if we have it in the input.
     String* const tdname = Getattr(n, "tdname");
     if (tdname) {
@@ -2473,7 +2495,7 @@ public:
     if (Len(enum_decl) > len_orig) {
       Printv(enum_decl, "\n}", NIL);
       if (cxx_enum_decl)
-	Printv(cxx_enum_decl, "\n}", NIL);
+	Printv(cxx_enum_decl, "\n", cxx_enum_indent, "}", NIL);
 
       if (tdname) {
 	Printv(enum_decl, " ", enum_prefix_.get(), tdname, NIL);
@@ -2486,7 +2508,9 @@ public:
 
       Append(sect_wrappers_types, enum_decl);
       if (cxx_enum_decl) {
-	Append(cxx_wrappers_.sect_types, cxx_enum_decl);
+	// Enums declared in global scopes can be just defined before everything else, but nested enums have to be defined inside the declaration of the class,
+	// which we must be in process of creating, so output them in the appropriate section.
+	Append(cxx_class_wrapper_ ? cxx_wrappers_.sect_decls : cxx_wrappers_.sect_types, cxx_enum_decl);
       }
     }
 
@@ -2515,7 +2539,7 @@ public:
     String* const symname = Getattr(n, "sym:name");
     Printv(enum_decl, cindent, enum_prefix_.get(), symname, NIL);
     if (cxx_enum_decl)
-      Printv(cxx_enum_decl, cindent, symname, NIL);
+      Printv(cxx_enum_decl, cxx_enum_indent, cindent, symname, NIL);
 
     // We only use "enumvalue", which comes from the input, and not "enumvalueex" synthesized by SWIG itself because C should use the correct value for the enum
     // items without an explicit one anyhow (and "enumvalueex" can't be always used as is in C code for enum elements inside a class or even a namespace).
