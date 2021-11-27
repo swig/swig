@@ -251,11 +251,11 @@ struct cxx_wrappers
   // Default ctor doesn't do anything, use initialize() if C++ wrappers really need to be generated.
   cxx_wrappers() :
     except_check_start(NULL), except_check_end(NULL),
-    f_fwd_decls(NULL), f_decls(NULL), f_impls(NULL) {
+    f_types(NULL), f_decls(NULL), f_impls(NULL) {
   }
 
   void initialize() {
-    f_fwd_decls = NewStringEmpty();
+    f_types = NewStringEmpty();
     f_decls = NewStringEmpty();
     f_impls = NewStringEmpty();
   }
@@ -296,7 +296,7 @@ struct cxx_wrappers
     }
   }
 
-  bool is_initialized() const { return f_fwd_decls != NULL; }
+  bool is_initialized() const { return f_types != NULL; }
 
 
   // Used for generating exception checks around the calls, see initialize_exceptions().
@@ -306,8 +306,8 @@ struct cxx_wrappers
 
   // The order of the members here is the same as the order in which they appear in the output file.
 
-  // Forward declarations of the classes.
-  File* f_fwd_decls;
+  // This section contains forward declarations of the classes.
+  File* f_types;
 
   // Full declarations of the classes.
   File* f_decls;
@@ -358,7 +358,7 @@ public:
       Printv(base_classes, " : public ", Getattr(first_base_, "sym:name"), NIL);
     }
 
-    Printv(cxx_wrappers_.f_fwd_decls,
+    Printv(cxx_wrappers_.f_types,
       "class ", Getattr(n, "sym:name"), ";\n",
       NIL
     );
@@ -1481,7 +1481,7 @@ public:
 	}
 
 	Printv(f_wrappers_h, "\n", NIL);
-	Dump(cxx_wrappers_.f_fwd_decls, f_wrappers_h);
+	Dump(cxx_wrappers_.f_types, f_wrappers_h);
 
 	Printv(f_wrappers_h, "\n", NIL);
 	Dump(cxx_wrappers_.f_decls, f_wrappers_h);
