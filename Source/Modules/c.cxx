@@ -639,7 +639,7 @@ public:
     Printv(cxx_wrappers_.f_decls,
       "\n",
       cindent, "explicit ", classname, "(", c_class_ptr.get(), " swig_self, "
-	"bool swig_owns_self = true) : ",
+	"bool swig_owns_self = true) noexcept : ",
       NIL
     );
 
@@ -687,11 +687,11 @@ public:
       );
     } else {
       Printv(cxx_wrappers_.f_decls,
-	cindent, classname, "(", classname, "&& obj) : "
+	cindent, classname, "(", classname, "&& obj) noexcept : "
 	"swig_self_{obj.swig_self_}, swig_owns_self_{obj.swig_owns_self_} { "
 	"obj.swig_owns_self_ = false; "
 	"}\n",
-	cindent, classname, "& operator=(", classname, "&& obj) { "
+	cindent, classname, "& operator=(", classname, "&& obj) noexcept { "
 	"swig_self_ = obj.swig_self_; swig_owns_self_ = obj.swig_owns_self_; "
 	"obj.swig_owns_self_ = false; "
 	"return *this; "
