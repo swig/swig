@@ -2465,12 +2465,15 @@ public:
     scoped_dohptr cxx_enumname;
 
     // Unnamed enums may just have no name at all or have a synthesized invalid name of the form "$unnamedN$ which is indicated by "unnamed" attribute.
-    //
-    // Also note that we use "name" here and not "sym:name" because the latter is the name of typedef if there is one, while we want to use the name of enum
-    // itself here and, even more importantly, use the enum, and not the typedef, name as prefix for its elements.
-    if (String* const name = Getattr(n, "unnamed") ? NIL : Getattr(n, "name")) {
-      // But the name may included the containing class, so get rid of it.
-      enumname = Swig_scopename_last(name);
+    if (String* const name = Getattr(n, "unnamed") ? NULL : Getattr(n, "sym:name")) {
+      // If it's a typedef, its sym:name is the typedef name, but we don't want to use it here (we already use it for the typedef we generate), so use the
+      // actual C++ name instead.
+      if (tdname) {
+	// But the name may include the containing class, so get rid of it.
+	enumname = Swig_scopename_last(Getattr(n, "name"));
+      } else {
+	enumname = Copy(name);
+      }
 
       // C++ enum name shouldn't include the prefix, so make a copy before enumname is modified below.
       if (cxx_enum_decl)
