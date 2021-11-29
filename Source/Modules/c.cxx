@@ -2573,9 +2573,17 @@ public:
 	enumname = Copy(name);
       }
 
-      // C++ enum name shouldn't include the prefix, so make a copy before enumname is modified below.
-      if (cxx_enum_decl)
-	cxx_enumname = Copy(enumname);
+      const bool scoped_enum = Checkattr(n, "scopedenum", "1");
+
+      if (cxx_enum_decl) {
+	// In C++ we can use actual scoped enums instead of emulating them with element prefixes.
+	if (scoped_enum)
+	  Printv(cxx_enum_decl, " class", NIL);
+
+	// And enum name itself shouldn't include the prefix neither, as this enum is either inside a namespace or inside a class, so use enumname before it
+	// gets updated below.
+	Printv(cxx_enum_decl, " ", enumname.get(), NIL);
+      }
 
       if (enum_prefix) {
 	enumname = NewStringf("%s_%s", enum_prefix, enumname.get());
@@ -2586,7 +2594,7 @@ public:
 	Printv(cxx_enum_decl, " ", cxx_enumname.get(), NIL);
 
       // For scoped enums, their name should be prefixed to their elements in addition to any other prefix we use.
-      if (Getattr(n, "scopedenum")) {
+      if (scoped_enum) {
 	enum_prefix = enumname.get();
 	cxx_enum_prefix = cxx_enumname.get();
       }
