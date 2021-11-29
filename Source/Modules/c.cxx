@@ -932,7 +932,7 @@ private:
 	    );
 	    Append(rtype_desc->wrap_end(), ")");
 	  } else {
-	    Swig_error(input_file, line_number, "Unknown reference return type \"%s\"\n", typestr.get());
+	    Swig_error(input_file, line_number, "Unknown object return type \"%s\"\n", typestr.get());
 	  }
 	}
 
