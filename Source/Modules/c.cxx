@@ -1154,30 +1154,27 @@ public:
    * ----------------------------------------------------------------------------- */
 
   String *getEnumName(Node *n) {
-    String *enumname = NULL;
-    if (n) {
-      enumname = Getattr(n, "enumname");
-      if (!enumname) {
-        String *symname = Getattr(n, "sym:name");
-        if (symname) {
-          // Add in class scope when referencing enum if not a global enum
-          String *proxyname = 0;
-          if (String *name = Getattr(n, "name")) {
-	    if (String *scopename_prefix = Swig_scopename_prefix(name)) {
-	      proxyname = getClassProxyName(scopename_prefix);
-	      Delete(scopename_prefix);
-	    }
+    String *enumname = Getattr(n, "enumname");
+    if (!enumname) {
+      String *symname = Getattr(n, "sym:name");
+      if (symname) {
+	// Add in class scope when referencing enum if not a global enum
+	String *proxyname = 0;
+	if (String *name = Getattr(n, "name")) {
+	  if (String *scopename_prefix = Swig_scopename_prefix(name)) {
+	    proxyname = getClassProxyName(scopename_prefix);
+	    Delete(scopename_prefix);
 	  }
-          if (proxyname) {
-            enumname = NewStringf("%s_%s", proxyname, symname);
-	    Delete(proxyname);
-          } else {
-            // global enum or enum in a namespace
-	    enumname = Copy(get_c_proxy_name(n));
-          }
-          Setattr(n, "enumname", enumname);
-          Delete(enumname);
-        }
+	}
+	if (proxyname) {
+	  enumname = NewStringf("%s_%s", proxyname, symname);
+	  Delete(proxyname);
+	} else {
+	  // global enum or enum in a namespace
+	  enumname = Copy(get_c_proxy_name(n));
+	}
+	Setattr(n, "enumname", enumname);
+	Delete(enumname);
       }
     }
 
@@ -1199,14 +1196,15 @@ public:
       return;
     }
 
+    scoped_dohptr btype(SwigType_base(classnametype));
     if (SwigType_isenum(classnametype)) {
-      String *enumname = getEnumName(enumLookup(classnametype));
+      Node* const enum_node = enumLookup(btype);
+      String* const enumname = enum_node ? getEnumName(enum_node) : NULL;
       if (enumname)
 	Replaceall(tm, classnamespecialvariable, enumname);
       else
 	Replaceall(tm, classnamespecialvariable, NewStringf("int"));
     } else {
-      scoped_dohptr btype(SwigType_base(classnametype));
       String* typestr = NIL;
       if (current_output == output_wrapper_def || Cmp(btype, "SwigObj") == 0) {
 	// Special case, just leave it unchanged.
