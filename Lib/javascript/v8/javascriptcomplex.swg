@@ -17,7 +17,7 @@ SWIG_From_dec(Type)(%ifcplusplus(const Type&, Type) c)
 {
   SWIGV8_HANDLESCOPE_ESC();
 
-  v8::Local<v8::Array> vals = SWIGV8_ARRAY_NEW();
+  v8::Local<v8::Array> vals = SWIGV8_ARRAY_NEW(0);
 
   SWIGV8_ARRAY_SET(vals, 0, SWIG_From(double)(Real(c)));
   SWIGV8_ARRAY_SET(vals, 1, SWIG_From(double)(Imag(c)));
@@ -39,23 +39,23 @@ SWIG_AsVal_dec(Type) (SWIGV8_VALUE o, Type* val)
   if (o->IsArray()) {
     SWIGV8_ARRAY array = SWIGV8_ARRAY::Cast(o);
     
-    if(array->Length() != 2) SWIG_Error(SWIG_TypeError, "Illegal argument for complex: must be array[2].");
+    if (array->Length() != 2) SWIG_Error(SWIG_TypeError, "Illegal argument for complex: must be array[2].");
     double re, im;
     int res;
 
     res = SWIG_AsVal(double)(SWIGV8_ARRAY_GET(array, 0), &re);
-    if(!SWIG_IsOK(res)) {
+    if (!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
     
     res = SWIG_AsVal(double)(SWIGV8_ARRAY_GET(array, 1), &im);
-    if(!SWIG_IsOK(res)) {
+    if (!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
     
     if (val) *val = Constructor(re, im);
     return SWIG_OK;
-  } else if(o->IsNumber()){
+  } else if (o->IsNumber()) {
     double d;
     int res = SWIG_AddCast(SWIG_AsVal(double)(o, &d));
     if (SWIG_IsOK(res)) {
@@ -81,17 +81,17 @@ SWIG_AsVal_dec(Type) (SWIGV8_VALUE o, Type* val)
   if (o->IsArray()) {
     SWIGV8_ARRAY array = SWIGV8_ARRAY::Cast(o);
     
-    if(array->Length() != 2) SWIG_Error(SWIG_TypeError, "Illegal argument for complex: must be array[2].");
+    if (array->Length() != 2) SWIG_Error(SWIG_TypeError, "Illegal argument for complex: must be array[2].");
     double re, im;
     int res;
 
     res = SWIG_AsVal(double)(SWIGV8_ARRAY_GET(array, 0), &re);
-    if(!SWIG_IsOK(res)) {
+    if (!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
     
     res = SWIG_AsVal(double)(SWIGV8_ARRAY_GET(array, 1), &im);
-    if(!SWIG_IsOK(res)) {
+    if (!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
     
@@ -102,7 +102,7 @@ SWIG_AsVal_dec(Type) (SWIGV8_VALUE o, Type* val)
     } else {
       return SWIG_OverflowError;
     }    
-  } else if(o->IsNumber()){
+  } else if (o->IsNumber()) {
     float re;
     int res = SWIG_AddCast(SWIG_AsVal(float)(o, &re));
     if (SWIG_IsOK(res)) {

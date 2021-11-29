@@ -34,6 +34,7 @@
 <li><a href="#Windows_swig_exe">Building swig.exe on Windows</a>
 <ul>
 <li><a href="#Windows_cmake">Building swig.exe using CMake</a>
+<li><a href="#Windows_mingw_msys">Building swig.exe using MSYS2</a>
 <li><a href="#Windows_mingw_msys">Building swig.exe using MinGW and MSYS</a>
 <li><a href="#Windows_cygwin">Building swig.exe using Cygwin</a>
 </ul>
@@ -250,7 +251,8 @@ For fully working build steps always check the Continuous Integration setups cur
         and save to a folder e.g. C:\Tools\Bison
     </li>
     <li>
-        Install PCRE using Nuget using the following command: <pre>C:\Tools\nuget install pcre -Version 8.33.0.1 -OutputDirectory C:\Tools\pcre</pre>
+        Install PCRE using Nuget using the following command: <pre>C:\Tools\nuget install pcre -Version 8.33.0.1 -OutputDirectory C:\Tools\pcre</pre>.
+        Alternatively, use <tt>WITH_PCRE</tt> option to disable PCRE support if you are sure not to need it.
     </li>
     <li>
         We will also need the SWIG source code. Either download a zipped archive from GitHub, or if git is installed clone the latest codebase
@@ -296,7 +298,59 @@ swig.exe -help
     <pre>-python -c++ -o C:\Temp\doxygen_parsing.cpp C:\swig\Examples\test-suite\doxygen_parsing.i</pre>
 </div>
 
-<H4><a name="Windows_mingw_msys">3.3.1.2 Building swig.exe using MinGW and MSYS</a></H4>
+<H4><a name="Windows_mingw_msys">3.3.1.2 Building swig.exe using MSYS2</a></H4>
+
+
+<p>
+Download and install MSYS2 from <a href="https://www.msys2.org/">www.msys2.org</a> (tested with version msys2-x86_64-20201109).
+Launch the MSYS2 shell.
+</p>
+<p>
+Install the packages needed to build swig:<br>
+</p>
+
+<div class="shell">
+<pre>
+pacman -S git autoconf automake bison gcc make pcre-devel
+</pre>
+</div>
+
+<p>
+Clone the repository to /usr/src/:
+</p>
+
+<div class="shell">
+<pre>
+mkdir /usr/src/
+cd /usr/src/
+git clone https://github.com/swig/swig.git
+</pre>
+</div>
+
+<p>
+Configure and build:
+</p>
+
+<div class="shell">
+<pre>
+cd /usr/src/swig
+./autogen.sh
+./configure
+make
+</pre>
+</div>
+
+<p>
+Finally you may also want to install SWIG:
+</p>
+
+<div class="shell">
+<pre>
+make install
+</pre>
+</div>
+
+<H4><a name="Windows_mingw_msys">3.3.1.3 Building swig.exe using MinGW and MSYS</a></H4>
 
 
 <p>
@@ -414,7 +468,7 @@ make
 </ol>
 
 
-<H4><a name="Windows_cygwin">3.3.1.3 Building swig.exe using Cygwin</a></H4>
+<H4><a name="Windows_cygwin">3.3.1.4 Building swig.exe using Cygwin</a></H4>
 
 
 <p>

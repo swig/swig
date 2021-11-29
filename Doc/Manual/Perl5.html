@@ -2243,7 +2243,7 @@ can be done using the <tt>EXTEND()</tt> macro as in:
     EXTEND(sp, 1);              /* Extend the stack by 1 object */
   }
   $result = sv_newmortal();
-  sv_setiv($target, (IV) *($1));
+  sv_setiv($result, (IV) *($1));
   argvi++;
 }
 </pre></div>

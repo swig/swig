@@ -1,6 +1,5 @@
 <?php
 
-	require "example.php";
 	echo "\nVariables (values printed from C)\n";
 
 	print_vars();
@@ -91,6 +90,3 @@
 	/* And this */
 	//status_set(0);
 	echo "Status = ".status_get()."\n";
-
-?>
-

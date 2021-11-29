@@ -725,14 +725,11 @@ public:
 
       /* Produce string representation of source and target arguments */
       sprintf(source, "ST(%d)", i);
-      String *target = Getattr(p, "lname");
 
       if (i >= num_required) {
 	Printf(f->code, "    if (items > %d) {\n", i);
       }
       if ((tm = Getattr(p, "tmap:in"))) {
-	Replaceall(tm, "$target", target);
-	Replaceall(tm, "$source", source);
 	Replaceall(tm, "$input", source);
 	Setattr(p, "emit:input", source);	/* Save input location */
 
@@ -767,7 +764,6 @@ public:
     /* Insert constraint checking code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
-	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Printv(f->code, tm, "\n", NIL);
 	p = Getattr(p, "tmap:check:next");
       } else {
@@ -778,7 +774,6 @@ public:
     /* Insert cleanup code */
     for (i = 0, p = l; p; i++) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
-	Replaceall(tm, "$source", Getattr(p, "lname"));
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(cleanup, tm, "\n", NIL);
@@ -793,8 +788,6 @@ public:
     for (i = 0, p = l; p; i++) {
       if ((tm = Getattr(p, "tmap:argout"))) {
 	SwigType *t = Getattr(p, "type");
-	Replaceall(tm, "$source", Getattr(p, "lname"));
-	Replaceall(tm, "$target", "ST(argvi)");
 	Replaceall(tm, "$result", "ST(argvi)");
 	if (is_shadow(t)) {
 	  Replaceall(tm, "$shadow", "SWIG_SHADOW");
@@ -855,8 +848,6 @@ public:
 
     if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
       SwigType *t = Getattr(n, "type");
-      Replaceall(tm, "$source", Swig_cresult_name());
-      Replaceall(tm, "$target", "ST(argvi)");
       Replaceall(tm, "$result", "ST(argvi)");
       if (is_shadow(t)) {
 	Replaceall(tm, "$shadow", "SWIG_SHADOW");
@@ -884,13 +875,11 @@ public:
 
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
-	Replaceall(tm, "$source", Swig_cresult_name());
 	Printf(f->code, "%s\n", tm);
       }
     }
 
     if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
-      Replaceall(tm, "$source", Swig_cresult_name());
       Printf(f->code, "%s\n", tm);
     }
 
@@ -995,8 +984,6 @@ public:
       /* Check for a few typemaps */
       tm = Swig_typemap_lookup("varin", n, name, 0);
       if (tm) {
-	Replaceall(tm, "$source", "sv");
-	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "sv");
 	/* Printf(setf->code,"%s\n", tm); */
 	emit_action_code(n, setf->code, tm);
@@ -1019,9 +1006,7 @@ public:
     Printv(getf->code, tab4, "MAGIC_PPERL\n", NIL);
 
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
-      Replaceall(tm, "$target", "sv");
       Replaceall(tm, "$result", "sv");
-      Replaceall(tm, "$source", name);
       if (is_shadow(t)) {
 	Replaceall(tm, "$shadow", "SWIG_SHADOW");
       } else {
@@ -1111,8 +1096,6 @@ public:
     }
 
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
-      Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
       if (is_shadow(type)) {
 	Replaceall(tm, "$shadow", "SWIG_SHADOW");
@@ -1121,8 +1104,6 @@ public:
       }
       Printf(constant_tab, "%s,\n", tm);
     } else if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
-      Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
       if (is_shadow(type)) {
 	Replaceall(tm, "$shadow", "SWIG_SHADOW");
@@ -2341,7 +2322,7 @@ public:
 	Replaceall(tm, "$error", "ERRSV");
 	Printv(w->code, Str(tm), "\n", NIL);
       } else {
-	Printf(w->code, "  Swig::DirectorMethodException::raise(ERRSV);\n", classname, pyname);
+	Printf(w->code, "  Swig::DirectorMethodException::raise(ERRSV);\n");
       }
       Append(w->code, "}\n");
       Delete(tm);

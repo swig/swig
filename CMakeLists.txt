@@ -69,15 +69,20 @@ check_include_file_cxx ("boost/shared_ptr.hpp" HAVE_BOOST)
 check_library_exists (dl dlopen "" HAVE_LIBDL)
 check_function_exists (popen HAVE_POPEN)
 
-set (PCRE_REQUIRED_ARG "REQUIRED" CACHE STRING "required arg")
-find_package (PCRE ${PCRE_REQUIRED_ARG})
-if (PCRE_FOUND)
+if (MSVC)
+  set (CMAKE_CXX_FLAGS "/EHsc ${CMAKE_CXX_FLAGS}")
+endif ()
+
+option (WITH_PCRE "Enable pcre" ON)
+if (WITH_PCRE)
+  find_package (PCRE REQUIRED)
   set (HAVE_PCRE 1)
   include_directories (${PCRE_INCLUDE_DIRS})
 endif()
 
 if (WIN32)
   file (TO_NATIVE_PATH ${CMAKE_INSTALL_PREFIX}/${SWIG_LIB} SWIG_LIB_WIN_UNIX)
+  string (REGEX REPLACE "\\\\" "\\\\\\\\" SWIG_LIB_WIN_UNIX "${SWIG_LIB_WIN_UNIX}")
 endif ()
 configure_file (${SWIG_ROOT}/Tools/cmake/swigconfig.h.in
                 ${CMAKE_CURRENT_BINARY_DIR}/Source/Include/swigconfig.h)

@@ -472,7 +472,6 @@ public:
       String *tm;
       if ((tm = Getattr(param, "tmap:freearg"))) {
 	if (tm && (Len(tm) != 0)) {
-	  Replaceall(tm, "$source", Getattr(param, "lname"));
 	  Printf(wrapper->code, "%s\n", tm);
 	}
 	param = Getattr(param, "tmap:freearg:next");
@@ -484,7 +483,6 @@ public:
     /* See if there is any return cleanup code */
     String *tm;
     if ((tm = Swig_typemap_lookup("ret", node, Swig_cresult_name(), 0))) {
-      Replaceall(tm, "$source", Swig_cresult_name());
       Printf(wrapper->code, "%s\n", tm);
       Delete(tm);
     }

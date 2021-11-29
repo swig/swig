@@ -117,27 +117,25 @@ SWIGRUNTIME int SWIG_JSC_ConvertInstancePtr(JSContextRef context, JSObjectRef ob
   SwigPrivData *cdata;
 
   cdata = (SwigPrivData *) JSObjectGetPrivate(objRef);
-  if(cdata == NULL) {
+  if (cdata == NULL) {
     return SWIG_ERROR;
   }
-  if(cdata->info != info) {
-    bool type_valid = false;
-    swig_cast_info *t = info->cast;
-    while(t != NULL) {
-      if(t->type == cdata->info) {
-        type_valid = true;
-        break;
-      }
-      t = t->next;
-    }
-    if(!type_valid) {
-      return SWIG_TypeError;
+  assert(ptr);
+  *ptr = NULL;
+  if (cdata->info == info) {
+    *ptr = cdata->swigCObject;
+  } else {
+    swig_cast_info *tc = SWIG_TypeCheckStruct(cdata->info, info);
+    if (tc) {
+      int newmemory = 0;
+      *ptr = SWIG_TypeCast(tc, cdata->swigCObject, &newmemory);
+      assert(!newmemory); /* newmemory handling not yet implemented */
+    } else {
+      return SWIG_ERROR;
     }
   }
 
-  *ptr = cdata->swigCObject;
-
-  if(flags & SWIG_POINTER_DISOWN) {
+  if (flags & SWIG_POINTER_DISOWN) {
     cdata->swigCMemOwn = false;
   }
 

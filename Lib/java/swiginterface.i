@@ -28,7 +28,7 @@
   }
 %typemap(javaout) CTYPE *const& {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : ($javainterfacename)new $javaclassname(cPtr, $owner);
+    return (cPtr == 0) ? null : ($*javainterfacename)new $*javaclassname(cPtr, $owner);
   }
 
 %typemap(javadirectorin) CTYPE "($&javainterfacename)new $&javaclassname($jniinput, true)"
