@@ -823,14 +823,16 @@ private:
       Type_Ptr,
       Type_Ref,
       Type_Obj,
+      Type_Enm,
       Type_Max
     } typeKind = Type_Max;
 
-    // These correspond to the typemaps for SWIGTYPE*, SWIGTYPE& and SWIGTYPE, respectively, defined in c.swg.
+    // These correspond to the typemaps for SWIGTYPE*, SWIGTYPE&, SWIGTYPE and enum SWIGTYPE, respectively, defined in c.swg.
     static const char* typemaps[Type_Max] = {
       "$resolved_type*",
       "$*resolved_type*",
       "$&resolved_type*",
+      "$resolved_type",
     };
 
     for (int i = 0; i < Type_Max; ++i) {
@@ -853,101 +855,180 @@ private:
       return;
     }
 
+    // The logic here is somewhat messy because we use the same "$resolved_type*" typemap for pointers/references to both enums and classes, but we actually
+    // need to do quite different things for them. It could probably be simplified by changing the typemaps to be distinct, but this would require also updating
+    // the code for C wrappers generation in substituteResolvedTypeSpecialVariable().
     scoped_dohptr resolved_type(SwigType_typedef_resolve_all(type));
-    scoped_dohptr stripped_type(SwigType_strip_qualifiers(resolved_type));
+    scoped_dohptr base_resolved_type(SwigType_base(resolved_type));
 
     scoped_dohptr typestr;
-    String* classname;
-    if (Node* const class_node = Language::instance()->classLookup(stripped_type)) {
-      typestr = SwigType_str(type, 0);
-      classname = Getattr(class_node, "sym:name");
+    if (SwigType_isenum(base_resolved_type)) {
+      String* enumname = NULL;
+      if (Node* const enum_node = Language::instance()->enumLookup(base_resolved_type)) {
+	// This is the name of the enum in C wrappers, it should be already set by getEnumName().
+	enumname = Getattr(enum_node, "enumname");
 
-      // We don't use namespaces, but the type may contain them, so get rid of them by replacing the base type name, which is fully qualified, with just the
-      // class name, which is not.
-      scoped_dohptr basetype(SwigType_base(type));
-      scoped_dohptr basetypestr(SwigType_str(basetype, 0));
-      if (Cmp(basetypestr, classname) != 0) {
-	Replaceall(typestr, basetypestr, classname);
+	if (enumname) {
+	  String* const enum_symname = Getattr(enum_node, "sym:name");
+
+	  if (Checkattr(enum_node, "ismember", "1")) {
+	    Node* const parent_class = parentNode(enum_node);
+	    typestr = NewStringf("%s::%s", Getattr(parent_class, "sym:name"), enum_symname);
+	  } else {
+	    typestr = Copy(enum_symname);
+	  }
+	}
+      }
+
+      if (!enumname) {
+	// Unknown enums are mapped to int and no casts are necessary in this case.
+	typestr = NewString("int");
+      }
+
+      if (SwigType_ispointer(type))
+	Append(typestr, " *");
+      else if (SwigType_isreference(type))
+	Append(typestr, " &");
+
+      scoped_dohptr rtype_cast(enumname ? NewStringf("(%s)", typestr.get()) : NewStringEmpty());
+
+      switch (typeKind) {
+	case Type_Ptr:
+	  if (rtype_desc) {
+	    Append(rtype_desc->wrap_start(), rtype_cast);
+	  }
+
+	  if (ptype_desc) {
+	    if (enumname)
+	      Printv(ptype_desc->wrap_start(), "(", enumname, "*)", NIL);
+	  }
+	  break;
+
+	case Type_Ref:
+	  if (rtype_desc) {
+	    Printv(rtype_desc->wrap_start(), rtype_cast.get(), "*(", NIL);
+	    Append(rtype_desc->wrap_end(), ")");
+	  }
+
+	  if (ptype_desc) {
+	    if (enumname)
+	      Printv(ptype_desc->wrap_start(), "(", enumname, "*)", NIL);
+	    Append(ptype_desc->wrap_start(), "&");
+	  }
+	  break;
+
+	case Type_Enm:
+	  if (rtype_desc) {
+	    Append(rtype_desc->wrap_start(), rtype_cast);
+	  }
+
+	  if (ptype_desc) {
+	    if (enumname)
+	      Printv(ptype_desc->wrap_start(), "(", enumname, ")", NIL);
+	  }
+	  break;
+
+	case Type_Obj:
+	case Type_Max:
+	  // Unreachable, but keep here to avoid -Wswitch warnings.
+	  assert(0);
       }
     } else {
-      // This is something unknown, so just use an opaque typedef already declared in C wrappers section for it.
-      typestr = NewStringf("SWIGTYPE%s*", SwigType_manglestr(stripped_type));
-      classname = NULL;
-    }
+      scoped_dohptr stripped_type(SwigType_strip_qualifiers(resolved_type));
 
-    switch (typeKind) {
-      case Type_Ptr:
-	if (ptype_desc) {
-	  Append(ptype_desc->wrap_end(), "->swig_self()");
+      String* classname;
+      if (Node* const class_node = Language::instance()->classLookup(stripped_type)) {
+	typestr = SwigType_str(type, 0);
+	classname = Getattr(class_node, "sym:name");
+
+	// We don't use namespaces, but the type may contain them, so get rid of them by replacing the base type name, which is fully qualified, with just the
+	// class name, which is not.
+	scoped_dohptr basetype(SwigType_base(type));
+	scoped_dohptr basetypestr(SwigType_str(basetype, 0));
+	if (Cmp(basetypestr, classname) != 0) {
+	  Replaceall(typestr, basetypestr, classname);
 	}
+      } else {
+	// This is something unknown, so just use an opaque typedef already declared in C wrappers section for it.
+	typestr = NewStringf("SWIGTYPE%s*", SwigType_manglestr(stripped_type));
+	classname = NULL;
+      }
 
-	if (rtype_desc) {
-	  if (classname) {
-	    // We currently assume that all pointers are new, which is probably wrong.
-	    //
-	    // We generate here an immediately-invoked lambda, as we need something that can appear after a "return".
-	    Append(rtype_desc->wrap_start(), "[=] { auto swig_res = ");
-	    Printv(rtype_desc->wrap_end(),
-	      "; "
-	      "return swig_res ? new ", classname, "(swig_res) : nullptr; }()",
-	      NIL
-	    );
+      switch (typeKind) {
+	case Type_Ptr:
+	  if (ptype_desc) {
+	    Append(ptype_desc->wrap_end(), "->swig_self()");
 	  }
-	}
-	break;
 
-      case Type_Ref:
-	if (rtype_desc) {
-	  if (classname) {
-	    // We can't return a reference, as this requires an existing object and we don't have any, so we have to return an object instead, and this object
-	    // must be constructed using the special ctor not taking the pointer ownership.
-	    typestr = Copy(classname);
-
-	    Printv(rtype_desc->wrap_start(),
-	      classname, "{",
-	      NIL
-	    );
-	    Printv(rtype_desc->wrap_end(),
-	      ", false}",
-	      NIL
-	    );
-	  } else {
-	    // We can't do anything at all in this case.
-	    Swig_error(input_file, line_number, "Unknown reference return type \"%s\"\n", typestr.get());
+	  if (rtype_desc) {
+	    if (classname) {
+	      // We currently assume that all pointers are new, which is probably wrong.
+	      //
+	      // We generate here an immediately-invoked lambda, as we need something that can appear after a "return".
+	      Append(rtype_desc->wrap_start(), "[=] { auto swig_res = ");
+	      Printv(rtype_desc->wrap_end(),
+		"; "
+		"return swig_res ? new ", classname, "(swig_res) : nullptr; }()",
+		NIL
+	      );
+	    }
 	  }
-	}
+	  break;
 
-	if (ptype_desc) {
-	  Append(ptype_desc->wrap_end(), ".swig_self()");
-	}
-	break;
+	case Type_Ref:
+	  if (rtype_desc) {
+	    if (classname) {
+	      // We can't return a reference, as this requires an existing object and we don't have any, so we have to return an object instead, and this object
+	      // must be constructed using the special ctor not taking the pointer ownership.
+	      typestr = Copy(classname);
 
-      case Type_Obj:
-	if (rtype_desc) {
-	  if (classname) {
-	    // The pointer returned by C function wrapping a function returning an object should never be null unless an exception happened.
-	    Printv(rtype_desc->wrap_start(),
-	      typestr.get(), "(",
-	      NIL
-	    );
-	    Append(rtype_desc->wrap_end(), ")");
-	  } else {
-	    Swig_error(input_file, line_number, "Unknown object return type \"%s\"\n", typestr.get());
+	      Printv(rtype_desc->wrap_start(),
+		classname, "{",
+		NIL
+	      );
+	      Printv(rtype_desc->wrap_end(),
+		", false}",
+		NIL
+	      );
+	    } else {
+	      // We can't do anything at all in this case.
+	      Swig_error(input_file, line_number, "Unknown reference return type \"%s\"\n", typestr.get());
+	    }
 	  }
-	}
 
-	if (ptype_desc) {
-	  // It doesn't seem like it can ever be useful to pass an object by value to a wrapper function and it can fail if it doesn't have a copy ctor (see
-	  // code related to has_copy_ctor_ in our dtor above), so always pass it by const reference instead.
-	  Append(typestr, " const&");
+	  if (ptype_desc) {
+	    Append(ptype_desc->wrap_end(), ".swig_self()");
+	  }
+	  break;
 
-	  Append(ptype_desc->wrap_end(), ".swig_self()");
-	}
-	break;
+	case Type_Obj:
+	  if (rtype_desc) {
+	    if (classname) {
+	      // The pointer returned by C function wrapping a function returning an object should never be null unless an exception happened.
+	      Printv(rtype_desc->wrap_start(),
+		typestr.get(), "(",
+		NIL
+	      );
+	      Append(rtype_desc->wrap_end(), ")");
+	    } else {
+	      Swig_error(input_file, line_number, "Unknown object return type \"%s\"\n", typestr.get());
+	    }
+	  }
 
-      case Type_Max:
-	// Unreachable, but keep here to avoid -Wswitch warnings.
-	assert(0);
+	  if (ptype_desc) {
+	    // It doesn't seem like it can ever be useful to pass an object by value to a wrapper function and it can fail if it doesn't have a copy ctor (see
+	    // code related to has_copy_ctor_ in our dtor above), so always pass it by const reference instead.
+	    Append(typestr, " const&");
+
+	    Append(ptype_desc->wrap_end(), ".swig_self()");
+	  }
+	  break;
+
+	case Type_Enm:
+	case Type_Max:
+	  // Unreachable, but keep here to avoid -Wswitch warnings.
+	  assert(0);
+      }
     }
 
     Replaceall(s, typemaps[typeKind], typestr);
@@ -1156,6 +1237,11 @@ public:
   String *getEnumName(Node *n) {
     String *enumname = Getattr(n, "enumname");
     if (!enumname) {
+      // We can't use forward-declared enums because we can't define them for C wrappers (we could forward declare them in C++ if their underlying type,
+      // available as "inherit" node attribute, is specified, but not in C), so we have no choice but to use "int" for them.
+      if (Checkattr(n, "sym:weak", "1"))
+	return NULL;
+
       String *symname = Getattr(n, "sym:name");
       if (symname) {
 	// Add in class scope when referencing enum if not a global enum
@@ -1187,24 +1273,36 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
-    if (!CPlusPlus) {
-      // Just use the original C type when not using C++, we know that this type can be used in the wrappers.
-      Clear(tm);
-      String* const s = SwigType_str(classnametype, 0);
-      Append(tm, s);
-      Delete(s);
-      return;
-    }
-
     scoped_dohptr btype(SwigType_base(classnametype));
-    if (SwigType_isenum(classnametype)) {
+    if (SwigType_isenum(btype)) {
       Node* const enum_node = enumLookup(btype);
       String* const enumname = enum_node ? getEnumName(enum_node) : NULL;
-      if (enumname)
-	Replaceall(tm, classnamespecialvariable, enumname);
-      else
-	Replaceall(tm, classnamespecialvariable, NewStringf("int"));
+
+      // We use the enum name in the wrapper declaration if it's available, as this makes it more type safe, but we always use just int for the function
+      // definition because we don't have the enum declaration in scope there. This obviously only actually works if the actual enum underlying type is int (or
+      // smaller).
+      maybe_owned_dohptr c_enumname;
+      if (current_output == output_wrapper_decl && enumname) {
+	// We need to add "enum" iff this is not already a typedef for the enum.
+	if (Checkattr(enum_node, "allows_typedef", "1"))
+	  c_enumname.assign_non_owned(enumname);
+	else
+	  c_enumname.assign_owned(NewStringf("enum %s", enumname));
+      } else {
+	c_enumname.assign_owned(NewString("int"));
+      }
+
+      Replaceall(tm, classnamespecialvariable, c_enumname);
     } else {
+      if (!CPlusPlus) {
+	// Just use the original C type when not using C++, we know that this type can be used in the wrappers.
+	Clear(tm);
+	String* const s = SwigType_str(classnametype, 0);
+	Append(tm, s);
+	Delete(s);
+	return;
+      }
+
       String* typestr = NIL;
       if (current_output == output_wrapper_def || Cmp(btype, "SwigObj") == 0) {
 	// Special case, just leave it unchanged.

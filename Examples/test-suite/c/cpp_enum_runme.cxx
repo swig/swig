@@ -4,8 +4,7 @@
 
 int main(int argc, const char *argv[]) {
 
-	// We don't have "enum SOME_ENUM"
-	int e = cpp_enum_ENUM_ONE, *p;
+	enum cpp_enum_SOME_ENUM e = cpp_enum_ENUM_ONE, *p;
 
 	// check the constructor's default value
 	cpp_enum_StructWithEnums *s = cpp_enum_StructWithEnums_new();

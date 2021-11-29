@@ -122,8 +122,12 @@ same_macro_all_primitive_types_but_void(cref_as_value,ctype);
 %typemap(ctype) SWIGTYPE &    "$*resolved_type*"
 %typemap(ctype) SWIGTYPE [ANY] "$resolved_type*"
 %typemap(ctype) SWIGTYPE * [ANY] "$resolved_type**"
-%typemap(ctype) enum SWIGTYPE "int"
-%typemap(ctype) enum SWIGTYPE &, enum SWIGTYPE * "int *"
+
+// enums
+%typemap(ctype) enum SWIGTYPE       "$resolved_type"
+%typemap(ctype) enum SWIGTYPE *     "$resolved_type*"
+%typemap(ctype) enum SWIGTYPE &     "$*resolved_type*"
+%typemap(ctype) enum SWIGTYPE [ANY] "$resolved_type*"
 
 %typemap(ctype, fragment="stdbool_inc") bool, const bool, const bool & "bool"
 %typemap(ctype, fragment="stdbool_inc") bool *, const bool *, bool & "bool *"
