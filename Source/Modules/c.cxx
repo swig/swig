@@ -840,18 +840,19 @@ private:
       }
     }
 
+    String* const type = Getattr(n, "type");
+
     if (typeKind == Type_Max) {
       if (Strstr(s, "resolved_type")) {
 	Swig_warning(WARN_C_UNSUPPORTTED, input_file, line_number,
-	  "Unsupported typemap used for \"%s\"\n",
-	  Getattr(n, "sym:name")
+	  "Unsupported typemap \"%s\" used for type \"%s\" of \"%s\"\n",
+	  s, type, Getattr(n, "name")
 	);
       }
 
       return;
     }
 
-    String* const type = Getattr(n, "type");
     scoped_dohptr resolved_type(SwigType_typedef_resolve_all(type));
     scoped_dohptr stripped_type(SwigType_strip_qualifiers(resolved_type));
 
