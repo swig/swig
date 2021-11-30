@@ -46,7 +46,6 @@ FAILING_CPP_TESTS := \
     arrays_global \
     arrays_global_twodim \
     constant_pointers \
-    director_smartptr \
     enum_thorough \
     extend \
     extend_default \
@@ -74,7 +73,6 @@ FAILING_CPP_TESTS := \
     typedef_array_member \
     typedef_funcptr \
     typedef_struct_cpp \
-    typemap_array_qualifiers \
     typemap_namespace \
     typemap_various \
     using_extend \
