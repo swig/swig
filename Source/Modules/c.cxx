@@ -2440,9 +2440,11 @@ public:
       }
     }
 
+    String* const symname = Getattr(n, "sym:name");
+
     // Preserve the typedef if we have it in the input.
-    String* const tdname = Getattr(n, "tdname");
-    if (tdname) {
+    bool const is_typedef = Checkattr(n, "allows_typedef", "1");
+    if (is_typedef) {
       Printv(enum_decl, "typedef ", NIL);
       if (cxx_enum_decl)
 	Printv(cxx_enum_decl, "typedef ", NIL);
@@ -2465,10 +2467,10 @@ public:
     scoped_dohptr cxx_enumname;
 
     // Unnamed enums may just have no name at all or have a synthesized invalid name of the form "$unnamedN$ which is indicated by "unnamed" attribute.
-    if (String* const name = Getattr(n, "unnamed") ? NULL : Getattr(n, "sym:name")) {
+    if (String* const name = Getattr(n, "unnamed") ? NULL : symname) {
       // If it's a typedef, its sym:name is the typedef name, but we don't want to use it here (we already use it for the typedef we generate), so use the
       // actual C++ name instead.
-      if (tdname) {
+      if (is_typedef) {
 	// But the name may include the containing class, so get rid of it.
 	enumname = Swig_scopename_last(Getattr(n, "name"));
       } else {
@@ -2512,10 +2514,10 @@ public:
       if (cxx_enum_decl)
 	Printv(cxx_enum_decl, "\n", cxx_enum_indent, "}", NIL);
 
-      if (tdname) {
-	Printv(enum_decl, " ", enum_prefix_.get(), tdname, NIL);
+      if (is_typedef) {
+	Printv(enum_decl, " ", enum_prefix_.get(), symname, NIL);
 	if (cxx_enum_decl)
-	  Printv(cxx_enum_decl, " ", tdname, NIL);
+	  Printv(cxx_enum_decl, " ", symname, NIL);
       }
       Printv(enum_decl, ";\n\n", NIL);
       if (cxx_enum_decl)
