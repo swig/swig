@@ -66,6 +66,21 @@ jobs:
         - SWIGLANG: java
         - SWIGLANG: javascript
           ENGINE: node
+          VER: '6'
+          CPPSTD: c++11
+          os: ubuntu-18.04
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '8'
+          CPPSTD: c++11
+          os: ubuntu-18.04
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '10'
+          CPPSTD: c++11
+          os: ubuntu-18.04
+        - SWIGLANG: javascript
+          ENGINE: node
           VER: '12'
           CPPSTD: c++11
         - SWIGLANG: javascript
