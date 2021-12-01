@@ -2124,7 +2124,12 @@ public:
 	      const char* start = Char(tm);
 	      const char* p = strstr(start, "$result = ");
 	      if (p == start || (p && p[-1] == ' ')) {
-		Insert(tm, p - start + strlen("$result = "), NewStringf("(%s)", return_type.get()));
+		p += strlen("$result = ");
+		scoped_dohptr result_cast(NewStringf("(%s)", return_type.get()));
+
+		// However don't add a cast which is already there.
+		if (strncmp(p, Char(result_cast), strlen(Char(result_cast))) != 0)
+		  Insert(tm, p - start, result_cast);
 	      }
                  Replaceall(tm, "$result", "result");
 		 Replaceall(tm, "$owner", GetFlag(n, "feature:new") ? "1" : "0");
