@@ -214,6 +214,10 @@ SWIG_Python_CheckNoKeywords(PyObject *kwargs, const char *name) {
 #define SWIG_STATIC_POINTER(var)  var = 0; if (!var) var
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Python-specific SWIG API */
 #define SWIG_newvarlink()                             SWIG_Python_newvarlink()
 #define SWIG_addvarlink(p, name, get_attr, set_attr)  SWIG_Python_addvarlink(p, name, get_attr, set_attr)
@@ -429,6 +433,10 @@ SWIG_globals(void) {
   }
   return Swig_Globals_global;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 /* -----------------------------------------------------------------------------
  * Pointer declarations
