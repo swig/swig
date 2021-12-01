@@ -58,7 +58,10 @@
 
 #if defined(V8_MAJOR_VERSION) && defined(V8_MINOR_VERSION)
 #undef SWIG_V8_VERSION
-#define SWIG_V8_VERSION (V8_MAJOR_VERSION * 256 + V8_MINOR_VERSION)
+#define SWIG_V8_VERSION ((V8_MAJOR_VERSION / 10) * 4096 + \
+                         (V8_MAJOR_VERSION % 10) * 256 + \
+                         (V8_MINOR_VERSION / 10) * 16 + \
+                         (V8_MINOR_VERSION % 10))
 #endif
 
 #include <errno.h>
