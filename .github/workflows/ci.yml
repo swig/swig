@@ -89,9 +89,6 @@ jobs:
           CPPSTD: c++14
         - SWIGLANG: javascript
           ENGINE: jsc
-        - SWIGLANG: javascript
-          ENGINE: v8
-          os: ubuntu-18.04 # libv8-dev only actually provides v8 in 18.04.
         - SWIGLANG: lua
         - SWIGLANG: lua
           VER: '5.3'
