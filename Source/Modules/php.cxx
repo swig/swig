@@ -64,6 +64,7 @@ static String *pragma_phpinfo;
 static String *pragma_version;
 
 static String *class_name = NULL;
+static String *destructor_action = NULL;
 static String *magic_set = NULL;
 static String *magic_get = NULL;
 static String *magic_isset = NULL;
@@ -108,6 +109,7 @@ static enum {
   membervar,
   staticmembervar,
   constructor,
+  destructor,
   directorconstructor,
   directordisown
 } wrapperType = standard;
@@ -138,9 +140,19 @@ static void print_creation_free_wrapper(Node *n) {
 
     Printf(s, "  zend_object_std_dtor(&obj->std);\n");
 
-    // expand %delete typemap instead of SWIG_remove?
-    Printf(s, "  if (obj->newobject)\n");
-    Printf(s, "    SWIG_remove((%s *)obj->ptr);\n", Getattr(n, "classtype"));
+    Printf(s, "  if (obj->newobject)");
+    String * type = Getattr(n, "classtype");
+    if (destructor_action) {
+      Printv(s,
+	     " {\n",
+	     type, " * arg1 = (", type, " *)obj->ptr;\n",
+	     destructor_action, "\n",
+	     "  }\n", NIL);
+    } else if (CPlusPlus) {
+      Printf(s, "\n    delete (%s *)obj->ptr;\n", type);
+    } else {
+      Printf(s, "\n    free(obj->ptr);\n", type);
+    }
     Printf(s, "}\n\n");
   }
 
@@ -370,9 +382,6 @@ public:
     Printf(s_header, "#ifdef __cplusplus\n");
     Printf(s_header, "}\n");
     Printf(s_header, "#endif\n\n");
-
-    Printf(s_header, "#ifdef __cplusplus\n#define SWIG_remove(PTR) delete PTR\n");
-    Printf(s_header, "#else\n#define SWIG_remove(PTR) free(PTR)\n#endif\n\n");
 
     if (directorsEnabled()) {
       // Insert director runtime
@@ -1132,10 +1141,12 @@ public:
       }
     }
 
-    if (Cmp(nodeType, "destructor") == 0) {
+    if (wrapperType == destructor) {
       // We don't explicitly wrap the destructor for PHP - Zend manages the
       // reference counting, and the user can just do `$obj = null;' or similar
       // to remove a reference to an object.
+      Setattr(n, "wrap:name", wname);
+      (void)emit_action(n);
       return SWIG_OK;
     }
 
@@ -1535,6 +1546,7 @@ public:
     String *base_class = NULL;
 
     class_name = symname;
+    destructor_action = NULL;
 
     Printf(all_cs_entry, "static zend_function_entry class_%s_functions[] = {\n", class_name);
 
@@ -1811,8 +1823,13 @@ public:
   /* ------------------------------------------------------------
    * destructorHandler()
    * ------------------------------------------------------------ */
-  //virtual int destructorHandler(Node *n) {
-  //}
+  virtual int destructorHandler(Node *n) {
+    wrapperType = destructor;
+    Language::destructorHandler(n);
+    destructor_action = Getattr(n, "wrap:action");
+    wrapperType = standard;
+    return SWIG_OK;
+  }
 
   /* ------------------------------------------------------------
    * memberconstantHandler()
