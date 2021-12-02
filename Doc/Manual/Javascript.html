@@ -89,24 +89,10 @@ $ swig -javascript -jsc example.i</pre>
 <pre>
 $ swig -c++ -javascript -jsc example.i</pre>
 </div>
-<p>The V8 code that SWIG generates should work with most versions from 3.11.10.
-However, the only early version that receives some testing is 3.14.5, which is
-still shipped with Ubuntu for some reason. Other than that it's probably safer
-to assume that versions earlier than 5.0 are no longer supported. Keep in mind
-that these are V8 versions, not Node.js. To give some perspective, Node.js v6.0
+<p>The V8 code that SWIG generates requires at least V8 5.0. Keep in mind
+that this is theV8 version, not Node.js. To give some perspective, Node.js v6.0
 uses V8 5.0, v12.0 - 7.4, v14.0 - 8.1...</p>
-<p>The API headers for V8 &gt;= 4.3.10 define constants which SWIG can use to
-determine the V8 version it is compiling for.  For versions &lt; 4.3.10, you
-need to specify the V8 version when running SWIG.  This is specified as a hex
-constant, but the constant is read as pairs of decimal digits, so for V8
-3.25.30 use constant 0x032530.  This scheme can't represent components &gt; 99,
-but this constant is only useful for V8 &lt; 4.3.10, and no V8 versions from
-that era had a component &gt; 99.  For example:</p>
-<div class="shell">
-<pre>
-$ swig -c++ -javascript -v8 -DV8_VERSION=0x032530 example.i</pre>
-</div>
-<p>If you're targeting V8 &gt;= 4.3.10, you would just run swig like so:</p>
+<p>To generate code for V8, you would run swig like so:</p>
 <div class="shell">
 <pre>
 $ swig -c++ -javascript -v8 example.i</pre>
