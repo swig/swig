@@ -271,6 +271,7 @@ struct cxx_wrappers
 	  "inline void swig_check() {\n",
 	  cindent, "if (SWIG_CException* swig_ex = SWIG_CException::get_pending()) {\n",
 	  cindent, cindent, "SWIG_CException swig_ex_copy{*swig_ex};\n",
+	  cindent, cindent, "delete swig_ex;\n",
 	  cindent, cindent, "SWIG_CException::reset_pending();\n",
 	  cindent, cindent, "throw swig_ex_copy;\n",
 	  cindent, "}\n",
