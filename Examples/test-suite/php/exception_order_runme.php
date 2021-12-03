@@ -35,3 +35,5 @@ try {
 } catch (Exception $e) {
     check::equal($e->getMessage(), 'C++ E2 * exception thrown', '');
 }
+
+check::done();

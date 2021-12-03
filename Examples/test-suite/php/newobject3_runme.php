@@ -13,3 +13,5 @@ check::isnull($factory->create(0), "create(0) should be NULL");
 check::isnull($factory->create(7, -1), "create(7, -1) should be NULL");
 check::isnull($factory->create(0, -1), "create(0, -1) should be NULL");
 check::isnull($factory->create("bad", -1), "create(\"bad\", -1) should be NULL");
+
+check::done();
