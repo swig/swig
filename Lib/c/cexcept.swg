@@ -22,6 +22,7 @@ extern "C" void SWIG_CException_Raise(int code, const char* msg);
 class SWIG_CException {
 public:
   SWIG_CException(const SWIG_CException& ex) throw() : code(ex.code), msg(strdup(ex.msg)) { }
+  ~SWIG_CException() { free(const_cast<char*>(msg)); }
 
   const int code;
   const char* const msg;
@@ -43,7 +44,6 @@ private:
   static thread_local SWIG_CException* PendingException;
 
   SWIG_CException(int code, const char* msg) : code(code), msg(strdup(msg)) { }
-  ~SWIG_CException() { free(const_cast<char*>(msg)); }
 
   SWIG_CException& operator=(const SWIG_CException& ex);
 };
