@@ -372,6 +372,7 @@ public:
     );
 
     class_node_ = n;
+    dtor_wname_ = NULL;
     has_copy_ctor_ = false;
   }
 
@@ -569,6 +570,9 @@ public:
 	  cindent, "}\n",
 	  NIL
 	);
+
+	// We're also going to need this in move assignment operator.
+	dtor_wname_ = wname;
       }
     } else if (is_member) {
       // Wrapper parameters list may or not include "this" pointer and may or not have other parameters, so construct it piecewise for simplicity.
@@ -703,11 +707,24 @@ public:
 	"swig_self_{obj.swig_self_}, swig_owns_self_{obj.swig_owns_self_} { "
 	"obj.swig_owns_self_ = false; "
 	"}\n",
-	cindent, classname, "& operator=(", classname, "&& obj) noexcept { "
-	"swig_self_ = obj.swig_self_; swig_owns_self_ = obj.swig_owns_self_; "
-	"obj.swig_owns_self_ = false; "
-	"return *this; "
-	"}\n",
+	cindent, classname, "& operator=(", classname, "&& obj) noexcept {\n",
+	NIL
+      );
+
+      if (dtor_wname_) {
+	Printv(cxx_wrappers_.sect_decls,
+	  cindent, cindent, "if (swig_owns_self_)\n",
+	  cindent, cindent, cindent, dtor_wname_, "(swig_self_);\n",
+	  NIL
+	);
+      }
+
+      Printv(cxx_wrappers_.sect_decls,
+	cindent, cindent, "swig_self_ = obj.swig_self_;\n",
+	cindent, cindent, "swig_owns_self_ = obj.swig_owns_self_;\n",
+	cindent, cindent, "obj.swig_owns_self_ = false;\n",
+	cindent, cindent, "return *this;\n",
+	cindent, "}\n",
 	NIL
       );
     }
@@ -1090,6 +1107,9 @@ private:
   Node* node_func_;
   type_desc* ptype_desc_;
   type_desc* rtype_desc_;
+
+  // Name of the C function used for deleting the owned object, if any.
+  String* dtor_wname_;
 
   // True if the class defines an explicit copy ctor.
   bool has_copy_ctor_;
