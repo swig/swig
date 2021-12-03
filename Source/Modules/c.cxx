@@ -330,6 +330,7 @@ public:
   cxx_class_wrapper(const cxx_wrappers& cxx_wrappers, Node* n) : cxx_wrappers_(cxx_wrappers) {
     class_node_ = NULL;
 
+    node_func_ = NULL;
     rtype_desc_ =
     ptype_desc_ = NULL;
 
@@ -394,6 +395,8 @@ public:
     if (Checkattr(n, "storage", "friend"))
       return;
 
+    temp_ptr_setter<Node*> set(&node_func_, n);
+
     // As mentioned elsewhere, we can't use Swig_storage_isstatic() here because the "storage" attribute is temporarily saved in another view when this
     // function is being executed, so rely on another attribute to determine if it's a static function instead.
     const bool is_member = Checkattr(n, "ismember", "1");
@@ -448,7 +451,7 @@ public:
 	name = name_ptr.get();
       }
 
-      const type_desc ptype_desc = lookup_cxx_parm_type(p);
+      const type_desc ptype_desc = lookup_cxx_parm_type(n, p);
       if (!ptype_desc.type()) {
 	Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, Getfile(p), Getline(p),
 	  "No ctype typemap defined for the parameter \"%s\" of %s\n",
@@ -758,7 +761,7 @@ public:
       if (rtype_desc_)
 	rtype_desc_->set_type(type);
 
-      do_resolve_type(parm, tm, ptype_desc_, rtype_desc_);
+      do_resolve_type(node_func_, type, tm, ptype_desc_, rtype_desc_);
     }
 
     return true;
@@ -815,9 +818,12 @@ private:
 
   // Replace "resolved_type" occurrences in the string with the value corresponding to the given type.
   //
+  // Note that the node here is the function itself, but type may be either its return type or the type of one of its parameters, so it's passed as a different
+  // parameter.
+  //
   // Also fills in the start/end wrapper parts of the provided type descriptions if they're not null, with the casts needed to translate from C type to C++ type
   // (this is used for the parameters of C++ functions, hence the name) and from C types to C++ types (which is used for the function return values).
-  static void do_resolve_type(Node* n, String* s, type_desc* ptype_desc, type_desc* rtype_desc) {
+  static void do_resolve_type(Node* n, String* type, String* s, type_desc* ptype_desc, type_desc* rtype_desc) {
     enum TypeKind
     {
       Type_Ptr,
@@ -841,8 +847,6 @@ private:
 	break;
       }
     }
-
-    String* const type = Getattr(n, "type");
 
     if (typeKind == Type_Max) {
       if (Strstr(s, "resolved_type")) {
@@ -954,6 +958,7 @@ private:
 	classname = NULL;
       }
 
+      const char* const owns = GetFlag(n, "feature:new") ? "true" : "false";
       switch (typeKind) {
 	case Type_Ptr:
 	  if (ptype_desc) {
@@ -962,13 +967,11 @@ private:
 
 	  if (rtype_desc) {
 	    if (classname) {
-	      // We currently assume that all pointers are new, which is probably wrong.
-	      //
 	      // We generate here an immediately-invoked lambda, as we need something that can appear after a "return".
 	      Append(rtype_desc->wrap_start(), "[=] { auto swig_res = ");
 	      Printv(rtype_desc->wrap_end(),
 		"; "
-		"return swig_res ? new ", classname, "(swig_res) : nullptr; }()",
+		"return swig_res ? new ", classname, "(swig_res, ", owns, ") : nullptr; }()",
 		NIL
 	      );
 	    }
@@ -1009,7 +1012,16 @@ private:
 		typestr.get(), "(",
 		NIL
 	      );
-	      Append(rtype_desc->wrap_end(), ")");
+
+	      // Normally all returned objects should be owned by their wrappers, but there is a special case of objects not being returned by value: this seems
+	      // not to make sense, but can actually happen when typemaps map references or pointers to objects, like they do for shared_ptr<> for example.
+	      //
+	      // Note that we must use the type of the function, retrieved from its node, here and not the type passed to us which is the result of typemap
+	      // expansion and so may not be a reference any more.
+	      Printv(rtype_desc->wrap_end(),
+		", ", SwigType_isreference(Getattr(n, "type")) ? owns : "true", ")",
+		NIL
+	      );
 	    } else {
 	      Swig_error(input_file, line_number, "Unknown object return type \"%s\"\n", typestr.get());
 	    }
@@ -1034,15 +1046,15 @@ private:
     Replaceall(s, typemaps[typeKind], typestr);
   }
 
-  type_desc lookup_cxx_parm_type(Node* n) {
+  type_desc lookup_cxx_parm_type(Node* n, Parm* p) {
     type_desc ptype_desc;
 
     // Ensure our own replaceSpecialVariables() is used for $typemap() expansion.
     temp_ptr_setter<type_desc*> set(&ptype_desc_, &ptype_desc);
 
-    if (String* type = Swig_typemap_lookup("ctype", n, "", NULL)) {
+    if (String* type = Swig_typemap_lookup("ctype", p, "", NULL)) {
       ptype_desc.set_type(type);
-      do_resolve_type(n, ptype_desc.type(), &ptype_desc, NULL);
+      do_resolve_type(n, Getattr(p, "type"), ptype_desc.type(), &ptype_desc, NULL);
     }
 
     return ptype_desc;
@@ -1056,7 +1068,7 @@ private:
 
     if (String* type = Swig_typemap_lookup("ctype", n, "", NULL)) {
       rtype_desc.set_type(type);
-      do_resolve_type(n, rtype_desc.type(), NULL, &rtype_desc);
+      do_resolve_type(n, Getattr(n, "type"), rtype_desc.type(), NULL, &rtype_desc);
     }
 
     return rtype_desc;
@@ -1074,6 +1086,7 @@ private:
   scoped_dohptr first_base_;
 
   // These pointers are temporarily set to non-null value only while expanding a typemap for C++ wrappers, see replaceSpecialVariables().
+  Node* node_func_;
   type_desc* ptype_desc_;
   type_desc* rtype_desc_;
 
