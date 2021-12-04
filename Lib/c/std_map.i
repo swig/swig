@@ -52,8 +52,8 @@ namespace std {
           else
             throw std::out_of_range("key not found");
         }
-        bool has_key(const K& key) {
-          std::map< K, T, C >::iterator i = self->find(key);
+        bool has_key(const K& key) const {
+          std::map< K, T, C >::const_iterator i = self->find(key);
           return i != self->end();
         }
       }

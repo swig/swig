@@ -40,7 +40,7 @@ namespace std {
         bool del(const T& item) {
           return self->erase(item) != 0;
         }
-        bool has(const T& item) {
+        bool has(const T& item) const {
           return self->count(item) != 0;
         }
       }
