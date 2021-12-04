@@ -96,8 +96,18 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: perl5
         - SWIGLANG: php
+          VER: '7.0'
+        - SWIGLANG: php
+          VER: '7.1'
+        - SWIGLANG: php
+          VER: '7.2'
+        - SWIGLANG: php
+          VER: '7.3'
+        - SWIGLANG: php
           VER: '7.4'
         - SWIGLANG: php
+        - SWIGLANG: php
+          VER: '8.1'
         - SWIGLANG: python
         - SWIGLANG: python
           PY3: 3
