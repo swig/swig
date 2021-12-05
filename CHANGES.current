@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-12-05: rwf1
+            [Octave] #2020 #1893 Add support for Octave 6 up to and including 6.4.
+            Also add support for compiling with -Bsymbolic which is used by default
+            by mkoctfile.
+
 2021-12-02: jsenn
             [Python] #2102 Fixed crashes when using embedded Python interpreters. 
 
