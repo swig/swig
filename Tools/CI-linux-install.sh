@@ -103,9 +103,9 @@ case "$SWIGLANG" in
 			$RETRY sudo apt-get -qq update
 			$RETRY sudo apt-get -qq install python${VER}-dev
 			WITHLANG=$SWIGLANG$PY3=$SWIGLANG$VER
-                else
-		        $RETRY sudo apt-get install -qq python${PY3}-dev
-		        WITHLANG=$SWIGLANG$PY3
+		else
+			$RETRY sudo apt-get install -qq python${PY3}-dev
+			WITHLANG=$SWIGLANG$PY3
 		fi
 		;;
 	"r")
