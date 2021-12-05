@@ -64,4 +64,8 @@ class string;
   $result = strdup(cppresult->c_str());
 %}
 
+// This is required to warn about clashes between the overloaded functions
+// taking strings and raw pointers in the generated wrappers.
+%typemap(typecheck) string, const string &, string *, string & = char *;
+
 }

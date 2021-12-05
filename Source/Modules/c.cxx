@@ -402,6 +402,14 @@ public:
     if (Checkattr(n, "storage", "friend"))
       return;
 
+    // Usually generating wrappers for overloaded methods is fine, but sometimes their types can clash after applying typemaps and in this case we have no
+    // choice but to avoid generating them, as otherwise we'd just generate uncompilable code.
+    if (Getattr(n, "sym:overloaded")) {
+      Swig_overload_check(n);
+      if (Getattr(n, "overload:ignore"))
+	return;
+    }
+
     temp_ptr_setter<Node*> set(&node_func_, n);
 
     // As mentioned elsewhere, we can't use Swig_storage_isstatic() here because the "storage" attribute is temporarily saved in another view when this
