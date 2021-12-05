@@ -79,8 +79,14 @@ case "$SWIGLANG" in
 		$RETRY sudo apt-get -qq install ocaml camlp4
 		;;
 	"octave")
-		$RETRY sudo apt-get -qq update
-		$RETRY sudo apt-get -qq install liboctave-dev
+		if [[ "$VER" ]]; then
+			$RETRY sudo add-apt-repository -y ppa:devacom/science
+			$RETRY sudo apt-get -qq update
+			$RETRY sudo apt-get -qq install "liboctave-dev=$VER.*"
+		else
+			$RETRY sudo apt-get -qq update
+			$RETRY sudo apt-get -qq install liboctave-dev
+		fi
 		;;
 	"php")
 		if [[ "$VER" ]]; then

@@ -94,6 +94,9 @@ jobs:
           VER: '5.3'
         - SWIGLANG: octave
           CPPSTD: c++11
+        - SWIGLANG: octave
+          VER: '6.4'
+          CPPSTD: c++11
         - SWIGLANG: perl5
         - SWIGLANG: php
           VER: '7.0'
@@ -196,8 +199,6 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: lua
           CPPSTD: c++11
-          # - SWIGLANG: octave
-          # CPPSTD: c++11
         - SWIGLANG: perl5
           CPPSTD: c++11
         - SWIGLANG: php
