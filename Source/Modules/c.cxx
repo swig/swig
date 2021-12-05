@@ -393,6 +393,11 @@ public:
     if (Getattr(n, "c:inherited_from"))
       return;
 
+    // And we even don't need to redeclare virtual functions actually overridden in the derived class, as their implementation is the same as in the base class
+    // anyhow, so don't bother generating needless extra code.
+    if (Getattr(n, "override"))
+      return;
+
     // Also ignore friend function declarations: they appear inside the class, but we shouldn't generate any wrappers for them.
     if (Checkattr(n, "storage", "friend"))
       return;
