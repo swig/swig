@@ -326,6 +326,75 @@ struct cxx_wrappers
 };
 
 /*
+  Information about the function return type.
+ */
+class cxx_rtype_desc
+{
+public:
+  // Default ctor creates a "void" return type.
+  cxx_rtype_desc() {}
+
+  // If this returns true, get_return_code() can't be called.
+  bool is_void() const {
+    return !type_;
+  }
+
+  // This function must be called before calling get_return_code().
+  void set_type(String* type) {
+    type_ = Copy(type);
+  }
+
+  // This function must also be called before calling get_return_code().
+  //
+  // NB: It takes ownership of the string, the intended use is to pass it NewStringf(...).
+  void set_return_value(String* new_string) {
+    value_ = new_string;
+  }
+
+  // This function may be called to change the return code from the simple "return %s;" which is the default.
+  //
+  // The argument must contain exactly one "%s" in it, which will be replaced with the return value itself.
+  //
+  // NB: It also takes the ownership of the string, as with set_return_value() it's intended to be used with NewStringf().
+  void set_return_action(String* new_string) {
+    action_ = new_string;
+  }
+
+  // Simpler variant of set_return_action() which allows to omit the leading return and the trailing semicolon if the action is of the form "return something".
+  void set_return_expr(String* new_string) {
+    action_ = NewStringf("return %s;", new_string);
+    Delete(new_string);
+  }
+
+  // Return the function return type: can always be called, even for void functions (for which it just returns "void").
+  String* type() const {
+    return type_ ? type_ : get_void_type();
+  }
+
+  // Return the string containing the code for returning the value, previously set by set_return_value().
+  //
+  // The returned string ends with a semicolon, i.e. is a complete statement (or possibly more than one).
+  //
+  // Asserts unless both set_type() and set_return_value() had been called.
+  scoped_dohptr get_return_code() const {
+    assert(type_);
+    assert(value_);
+
+    return scoped_dohptr(NewStringf(action_ ? Char(action_) : "return %s;", value_.get()));
+  }
+
+private:
+  static String* get_void_type() {
+    static String* const void_type = NewString("void");
+    return void_type;
+  }
+
+  scoped_dohptr type_;
+  scoped_dohptr value_;
+  scoped_dohptr action_;
+};
+
+/*
   cxx_class_wrapper
 
   Outputs the declaration of the class wrapping the given one if we're generating C++ wrappers, i.e. if the provided cxx_wrappers object is initialized.
@@ -340,7 +409,7 @@ public:
     class_node_ = NULL;
 
     node_func_ = NULL;
-    rtype_desc_ =
+    rtype_desc_ = NULL;
     ptype_desc_ = NULL;
 
     if (!cxx_wrappers_.is_initialized())
@@ -428,10 +497,9 @@ public:
 
     // Deal with the return type: it may be different from the type of the C wrapper function if it involves objects, and so we may need to add a cast.
 
-    type_desc rtype_desc;
+    cxx_rtype_desc rtype_desc;
     if (SwigType_type(Getattr(n, "type")) != T_VOID) {
-      rtype_desc = lookup_cxx_ret_type(n);
-      if (!rtype_desc.type()) {
+      if (!lookup_cxx_ret_type(rtype_desc, n)) {
 	Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, Getfile(n), Getline(n),
 	  "No ctype typemap defined for the return type \"%s\" of %s\n",
 	  SwigType_str(Getattr(n, "type"), NULL),
@@ -439,9 +507,6 @@ public:
 	);
 	return;
       }
-    } else {
-      // There is no need to do anything else with "void" and we don't even need "return" for it.
-      rtype_desc.set_void_type();
     }
 
     // We also need the list of parameters to take in the C++ function being generated and the list of them to pass to the C wrapper.
@@ -513,13 +578,10 @@ public:
 
     if (Checkattr(n, "kind", "variable")) {
       if (Checkattr(n, "memberget", "1")) {
+	rtype_desc.set_return_value(NewStringf("%s(swig_self())", Getattr(n, "sym:name")));
 	Printv(cxx_wrappers_.sect_decls,
 	  cindent, rtype_desc.type(), " ", name, "() const "
-	  "{ ",
-	    "return ", rtype_desc.wrap_start(),
-	    Getattr(n, "sym:name"), "(swig_self())",
-	    rtype_desc.wrap_end(),
-	  "; }\n",
+	  "{ ", rtype_desc.get_return_code().get(), " }\n",
 	  NIL
 	);
       } else if (Checkattr(n, "memberset", "1")) {
@@ -529,13 +591,10 @@ public:
 	  NIL
 	);
       } else if (Checkattr(n, "varget", "1")) {
+	rtype_desc.set_return_value(NewStringf("%s()", Getattr(n, "sym:name")));
 	Printv(cxx_wrappers_.sect_decls,
 	  cindent, "static ", rtype_desc.type(), " ", name, "() "
-	  "{ ",
-	    "return ", rtype_desc.wrap_start(),
-	    Getattr(n, "sym:name"), "()",
-	    rtype_desc.wrap_end(),
-	  "; }\n",
+	  "{ ", rtype_desc.get_return_code().get(), " }\n",
 	  NIL
 	);
       } else if (Checkattr(n, "varset", "1")) {
@@ -624,34 +683,25 @@ public:
 
       if (rtype_desc.is_void()) {
 	Printv(cxx_wrappers_.sect_impls,
-	  wname, "(", wparms.get(), ")",
+	  wname, "(", wparms.get(), ");",
 	  NIL
 	);
 
 	if (*except_check_start) {
 	  Printv(cxx_wrappers_.sect_impls,
-	    "; ",
+	    " ",
 	    except_check_start,
 	    except_check_end,
+	    ";",
 	    NIL
 	  );
 	}
       } else {
-	Printv(cxx_wrappers_.sect_impls,
-	  "return ",
-	  rtype_desc.wrap_start(),
-	    except_check_start,
-	      wname, "(", wparms.get(), ")",
-	    except_check_end,
-	  rtype_desc.wrap_end(),
-	  NIL
-	);
+	rtype_desc.set_return_value(NewStringf("%s%s(%s)%s", except_check_start, wname, wparms.get(), except_check_end));
+	Append(cxx_wrappers_.sect_impls, rtype_desc.get_return_code());
       }
 
-      Printv(cxx_wrappers_.sect_impls,
-	"; }\n",
-	NIL
-      );
+      Append(cxx_wrappers_.sect_impls, " }\n");
     } else {
       // This is something we don't know about
       Swig_warning(WARN_C_UNSUPPORTTED, Getfile(n), Getline(n),
@@ -817,9 +867,6 @@ private:
 
     // String must be non-null.
     void set_type(String* type) { type_ = Copy(type); }
-    void set_void_type() { type_ = NewString("void"); }
-
-    bool is_void() const { return type_ && Cmp(type_, "void") == 0; }
 
     // If this one returns NULL, it means that we don't have any type information at all.
     String* type() const { return type_; }
@@ -862,7 +909,7 @@ private:
   //
   // Also fills in the start/end wrapper parts of the provided type descriptions if they're not null, with the casts needed to translate from C type to C++ type
   // (this is used for the parameters of C++ functions, hence the name) and from C types to C++ types (which is used for the function return values).
-  static void do_resolve_type(Node* n, String* type, String* s, type_desc* ptype_desc, type_desc* rtype_desc) {
+  static void do_resolve_type(Node* n, String* type, String* s, type_desc* ptype_desc, cxx_rtype_desc* rtype_desc) {
     enum TypeKind
     {
       Type_Ptr,
@@ -933,49 +980,48 @@ private:
       else if (SwigType_isreference(type))
 	Append(typestr, " &");
 
-      scoped_dohptr rtype_cast(enumname ? NewStringf("(%s)", typestr.get()) : NewStringEmpty());
+      if (enumname) {
+	switch (typeKind) {
+	  case Type_Ptr:
+	    if (rtype_desc) {
+	      rtype_desc->set_return_expr(NewStringf("(%s)%%s", typestr.get()));
+	    }
 
-      switch (typeKind) {
-	case Type_Ptr:
-	  if (rtype_desc) {
-	    Append(rtype_desc->wrap_start(), rtype_cast);
-	  }
-
-	  if (ptype_desc) {
-	    if (enumname)
+	    if (ptype_desc) {
 	      Printv(ptype_desc->wrap_start(), "(", enumname, "*)", NIL);
-	  }
-	  break;
+	    }
+	    break;
 
-	case Type_Ref:
-	  if (rtype_desc) {
-	    Printv(rtype_desc->wrap_start(), rtype_cast.get(), "*(", NIL);
-	    Append(rtype_desc->wrap_end(), ")");
-	  }
+	  case Type_Ref:
+	    if (rtype_desc) {
+	      rtype_desc->set_return_expr(NewStringf("(%s)(*(%%s))", typestr.get()));
+	    }
 
-	  if (ptype_desc) {
-	    if (enumname)
+	    if (ptype_desc) {
 	      Printv(ptype_desc->wrap_start(), "(", enumname, "*)", NIL);
-	    Append(ptype_desc->wrap_start(), "&");
-	  }
-	  break;
+	    }
+	    break;
 
-	case Type_Enm:
-	  if (rtype_desc) {
-	    Append(rtype_desc->wrap_start(), rtype_cast);
-	  }
+	  case Type_Enm:
+	    if (rtype_desc) {
+	      rtype_desc->set_return_expr(NewStringf("(%s)%%s", typestr.get()));
+	    }
 
-	  if (ptype_desc) {
-	    if (enumname)
+	    if (ptype_desc) {
 	      Printv(ptype_desc->wrap_start(), "(", enumname, ")", NIL);
-	  }
-	  break;
+	    }
+	    break;
 
-	case Type_Obj:
-	case Type_Max:
-	  // Unreachable, but keep here to avoid -Wswitch warnings.
-	  assert(0);
+	  case Type_Obj:
+	  case Type_Max:
+	    // Unreachable, but keep here to avoid -Wswitch warnings.
+	    assert(0);
+	}
       }
+
+      // This is the only thing we need to do even when we don't have the enum name.
+      if (typeKind == Type_Ref && ptype_desc)
+	Append(ptype_desc->wrap_start(), "&");
     } else {
       scoped_dohptr stripped_type(SwigType_strip_qualifiers(resolved_type));
 
@@ -1006,13 +1052,10 @@ private:
 
 	  if (rtype_desc) {
 	    if (classname) {
-	      // We generate here an immediately-invoked lambda, as we need something that can appear after a "return".
-	      Append(rtype_desc->wrap_start(), "[=] { auto swig_res = ");
-	      Printv(rtype_desc->wrap_end(),
-		"; "
-		"return swig_res ? new ", classname, "(swig_res, ", owns, ") : nullptr; }()",
-		NIL
-	      );
+	      rtype_desc->set_return_action(NewStringf("auto swig_res = %%s; "
+		  "return swig_res ? new %s(swig_res, %s) : nullptr;",
+		  classname, owns
+		));
 	    }
 	  }
 	  break;
@@ -1024,14 +1067,7 @@ private:
 	      // must be constructed using the special ctor not taking the pointer ownership.
 	      typestr = Copy(classname);
 
-	      Printv(rtype_desc->wrap_start(),
-		classname, "{",
-		NIL
-	      );
-	      Printv(rtype_desc->wrap_end(),
-		", false}",
-		NIL
-	      );
+	      rtype_desc->set_return_expr(NewStringf("%s{%%s, false}", classname));
 	    } else {
 	      // We can't do anything at all in this case.
 	      Swig_error(input_file, line_number, "Unknown reference return type \"%s\"\n", typestr.get());
@@ -1046,21 +1082,18 @@ private:
 	case Type_Obj:
 	  if (rtype_desc) {
 	    if (classname) {
-	      // The pointer returned by C function wrapping a function returning an object should never be null unless an exception happened.
-	      Printv(rtype_desc->wrap_start(),
-		typestr.get(), "(",
-		NIL
-	      );
-
-	      // Normally all returned objects should be owned by their wrappers, but there is a special case of objects not being returned by value: this seems
-	      // not to make sense, but can actually happen when typemaps map references or pointers to objects, like they do for shared_ptr<> for example.
+	      // The pointer returned by C function wrapping a function returning an object should never be null unless an exception happened, so we don't test
+	      // for it here, unlike in Type_Ptr case.
+	      //
+	      // Also, normally all returned objects should be owned by their wrappers, but there is a special case of objects not being returned by value: this
+	      // seems not to make sense, but can actually happen when typemaps map references or pointers to objects, like they do for e.g. shared_ptr<>.
 	      //
 	      // Note that we must use the type of the function, retrieved from its node, here and not the type passed to us which is the result of typemap
 	      // expansion and so may not be a reference any more.
-	      Printv(rtype_desc->wrap_end(),
-		", ", SwigType_isreference(Getattr(n, "type")) ? owns : "true", ")",
-		NIL
-	      );
+	      rtype_desc->set_return_expr(NewStringf("%s{%%s, %s}",
+		  typestr.get(),
+		  SwigType_isreference(Getattr(n, "type")) ? owns : "true"
+		));
 	    } else {
 	      Swig_error(input_file, line_number, "Unknown object return type \"%s\"\n", typestr.get());
 	    }
@@ -1099,18 +1132,18 @@ private:
     return ptype_desc;
   }
 
-  type_desc lookup_cxx_ret_type(Node* n) {
-    type_desc rtype_desc;
-
+  bool lookup_cxx_ret_type(cxx_rtype_desc& rtype_desc, Node* n) {
     // As above, ensure our replaceSpecialVariables() is used.
-    temp_ptr_setter<type_desc*> set(&rtype_desc_, &rtype_desc);
+    temp_ptr_setter<cxx_rtype_desc*> set(&rtype_desc_, &rtype_desc);
 
-    if (String* type = Swig_typemap_lookup("ctype", n, "", NULL)) {
-      rtype_desc.set_type(type);
-      do_resolve_type(n, Getattr(n, "type"), rtype_desc.type(), NULL, &rtype_desc);
-    }
+    String* type = Swig_typemap_lookup("ctype", n, "", NULL);
+    if (!type)
+      return false;
 
-    return rtype_desc;
+    rtype_desc.set_type(type);
+    do_resolve_type(n, Getattr(n, "type"), rtype_desc.type(), NULL, &rtype_desc);
+
+    return true;
   }
 
 
@@ -1127,7 +1160,7 @@ private:
   // These pointers are temporarily set to non-null value only while expanding a typemap for C++ wrappers, see replaceSpecialVariables().
   Node* node_func_;
   type_desc* ptype_desc_;
-  type_desc* rtype_desc_;
+  cxx_rtype_desc* rtype_desc_;
 
   // Name of the C function used for deleting the owned object, if any.
   String* dtor_wname_;
