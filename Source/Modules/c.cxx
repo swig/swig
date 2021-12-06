@@ -543,8 +543,11 @@ public:
     scoped_dohptr cxxcode(Swig_typemap_lookup("cxxcode", dummy, "", NULL));
     if (!cxxcode || *Char(cxxcode) != '\n')
       Append(cxx_wrappers_.sect_decls, "\n");
-    if (cxxcode)
+    if (cxxcode) {
+      Replaceall(cxxcode, "$cxxclassname", classname);
+      Replaceall(cxxcode, "$cclassptrname", get_c_class_ptr(n));
       Append(cxx_wrappers_.sect_decls, cxxcode);
+    }
 
     class_node_ = n;
     dtor_wname_ = NULL;

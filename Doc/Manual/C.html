@@ -498,7 +498,7 @@ area: 7.068583
   </tr>
   <tr>
       <td><tt>cxxcode</tt></td>
-      <td>May contain arbitrary code that will be injected in the declaration of the C++ wrapper class corresponding to the given type. Ignored for non-class types.
+      <td>May contain arbitrary code that will be injected in the declaration of the C++ wrapper class corresponding to the given type. Ignored for non-class types. The special variable <tt>$cxxclassname</tt> is replaced with the name of the class inside this typemap expansion and <tt>$cclassptrname</tt> is replaced with the name of the pointer type used to represent the class in C wrapper functions.
       </td>
   </tr>
 </table>
