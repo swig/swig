@@ -528,9 +528,21 @@ public:
 
     Printv(cxx_wrappers_.sect_decls,
       "class ", Getattr(n, "sym:name"), base_classes.get(), " {\n"
-      "public:\n",
+      "public:",
       NIL
     );
+
+    // If we have any extra code, inject it. Note that we need a hack with an artificial extra node to use Swig_typemap_lookup(), as it needs a "type" attribute
+    // which the class node doesn't have.
+    scoped_dohptr dummy(NewHash());
+    Setattr(dummy, "type", Getattr(n, "name"));
+    Setfile(dummy, Getfile(n));
+    Setline(dummy, Getline(n));
+    scoped_dohptr cxxcode(Swig_typemap_lookup("cxxcode", dummy, "", NULL));
+    if (!cxxcode || *Char(cxxcode) != '\n')
+      Append(cxx_wrappers_.sect_decls, "\n");
+    if (cxxcode)
+      Append(cxx_wrappers_.sect_decls, cxxcode);
 
     class_node_ = n;
     dtor_wname_ = NULL;
