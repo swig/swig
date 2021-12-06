@@ -406,6 +406,9 @@ struct cxx_wrappers
   cxx_wrappers() :
     except_check_start(NULL), except_check_end(NULL),
     sect_cxx_h(NULL), sect_types(NULL), sect_decls(NULL), sect_impls(NULL) {
+    node_func_ = NULL;
+    rtype_desc_ = NULL;
+    ptype_desc_ = NULL;
   }
 
   void initialize() {
@@ -458,6 +461,100 @@ struct cxx_wrappers
   bool is_initialized() const { return sect_types != NULL; }
 
 
+  // All the functions below are only used when is_initialized() returns true.
+
+  // Fill the provided rtype_desc with the type information for the given function node.
+  //
+  // Returns false in case of error, i.e. if function wrapper can't be generated at all.
+  bool lookup_cxx_ret_type(cxx_rtype_desc& rtype_desc, Node* n) {
+    String* const func_type = Getattr(n, "type");
+    if (SwigType_type(func_type) == T_VOID) {
+      // Nothing to do, rtype_desc is void by default.
+      return true;
+    }
+
+    // As above, ensure our replaceSpecialVariables() is used.
+    temp_ptr_setter<cxx_rtype_desc*> set(&rtype_desc_, &rtype_desc);
+
+    bool use_cxxout = true;
+    String* type(Swig_typemap_lookup("cxxouttype", n, "", NULL));
+    if (!type) {
+      use_cxxout = false;
+      type = Swig_typemap_lookup("ctype", n, "", NULL);
+    }
+
+    if (!type) {
+	Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, Getfile(n), Getline(n),
+	  "No ctype typemap defined for the return type \"%s\" of %s\n",
+	  SwigType_str(func_type, NULL),
+	  Getattr(n, "sym:name")
+	);
+      return false;
+    }
+
+    rtype_desc.set_type(type);
+    do_resolve_type(n, func_type, rtype_desc.type(), NULL, &rtype_desc);
+
+    if (use_cxxout) {
+      if (String* out_tm = Swig_typemap_lookup("cxxout", n, "", NULL))
+	rtype_desc.apply_out_typemap(out_tm);
+    }
+
+    return true;
+  }
+
+  // Return the type description for the given parameter of the function.
+  cxx_ptype_desc lookup_cxx_parm_type(Node* n, Parm* p) {
+    cxx_ptype_desc ptype_desc;
+
+    // Ensure our own replaceSpecialVariables() is used for $typemap() expansion.
+    temp_ptr_setter<cxx_ptype_desc*> set(&ptype_desc_, &ptype_desc);
+
+    bool use_cxxin = true;
+    String* type = Swig_typemap_lookup("cxxintype", p, "", NULL);
+    if (!type) {
+      use_cxxin = false;
+      type = Swig_typemap_lookup("ctype", p, "", NULL);
+    }
+
+    if (type) {
+      ptype_desc.set_type(type);
+      do_resolve_type(n, Getattr(p, "type"), ptype_desc.type(), &ptype_desc, NULL);
+    }
+
+    if (use_cxxin) {
+      if (String* in_tm = Getattr(p, "tmap:cxxin"))
+	ptype_desc.apply_in_typemap(Copy(in_tm));
+    }
+
+    return ptype_desc;
+  }
+
+
+  // This function is called from C::replaceSpecialVariables() but only does something non-trivial when it's called by our own lookup_cxx_xxx_type() functions.
+  bool replaceSpecialVariables(String *method, String *tm, Parm *parm) {
+    if (!ptype_desc_ && !rtype_desc_)
+      return false;
+
+    if (Cmp(method, "ctype") != 0) {
+      Swig_warning(WARN_C_UNSUPPORTTED, input_file, line_number, "Unsupported %s typemap %s\n", method, tm);
+      return false;
+    }
+
+    if (SwigType *type = Getattr(parm, "type")) {
+      if (ptype_desc_)
+	ptype_desc_->set_type(type);
+      if (rtype_desc_)
+	rtype_desc_->set_type(type);
+
+      do_resolve_type(node_func_, type, tm, ptype_desc_, rtype_desc_);
+    }
+
+    return true;
+  }
+
+
+
   // Used for generating exception checks around the calls, see initialize_exceptions().
   const char* except_check_start;
   const char* except_check_end;
@@ -477,6 +574,236 @@ struct cxx_wrappers
 
   // Implementation of the classes.
   String* sect_impls;
+
+
+private:
+  // Replace "resolved_type" occurrences in the string with the value corresponding to the given type.
+  //
+  // Note that the node here is the function itself, but type may be either its return type or the type of one of its parameters, so it's passed as a different
+  // parameter.
+  //
+  // Also fills in the start/end wrapper parts of the provided type descriptions if they're not null, with the casts needed to translate from C type to C++ type
+  // (this is used for the parameters of C++ functions, hence the name) and from C types to C++ types (which is used for the function return values).
+  static void do_resolve_type(Node* n, String* type, String* s, cxx_ptype_desc* ptype_desc, cxx_rtype_desc* rtype_desc) {
+    enum TypeKind
+    {
+      Type_Ptr,
+      Type_Ref,
+      Type_Obj,
+      Type_Enm,
+      Type_Max
+    } typeKind = Type_Max;
+
+    // These correspond to the typemaps for SWIGTYPE*, SWIGTYPE&, SWIGTYPE and enum SWIGTYPE, respectively, defined in c.swg.
+    static const char* typemaps[Type_Max] = {
+      "$resolved_type*",
+      "$*resolved_type*",
+      "$&resolved_type*",
+      "$resolved_type",
+    };
+
+    for (int i = 0; i < Type_Max; ++i) {
+      if (Strstr(s, typemaps[i])) {
+	typeKind = static_cast<TypeKind>(i);
+	break;
+      }
+    }
+
+    if (typeKind == Type_Max) {
+      if (Strstr(s, "resolved_type")) {
+	Swig_warning(WARN_C_UNSUPPORTTED, input_file, line_number,
+	  "Unsupported typemap \"%s\" used for type \"%s\" of \"%s\"\n",
+	  s, type, Getattr(n, "name")
+	);
+      }
+
+      return;
+    }
+
+    // The logic here is somewhat messy because we use the same "$resolved_type*" typemap for pointers/references to both enums and classes, but we actually
+    // need to do quite different things for them. It could probably be simplified by changing the typemaps to be distinct, but this would require also updating
+    // the code for C wrappers generation in substituteResolvedTypeSpecialVariable().
+    //
+    // An even better idea might be to try to define this using cxx{in,out} typemaps for the various types and let the generic SWIG machinery do all the
+    // matching instead of doing it in the code here.
+    scoped_dohptr resolved_type(SwigType_typedef_resolve_all(type));
+    scoped_dohptr base_resolved_type(SwigType_base(resolved_type));
+
+    scoped_dohptr typestr;
+    if (SwigType_isenum(base_resolved_type)) {
+      String* enumname = NULL;
+      if (Node* const enum_node = Language::instance()->enumLookup(base_resolved_type)) {
+	// This is the name of the enum in C wrappers, it should be already set by getEnumName().
+	enumname = Getattr(enum_node, "enumname");
+
+	if (enumname) {
+	  String* const enum_symname = Getattr(enum_node, "sym:name");
+
+	  if (Checkattr(enum_node, "ismember", "1")) {
+	    Node* const parent_class = parentNode(enum_node);
+	    typestr = NewStringf("%s::%s", Getattr(parent_class, "sym:name"), enum_symname);
+	  } else {
+	    typestr = Copy(enum_symname);
+	  }
+	}
+      }
+
+      if (!enumname) {
+	// Unknown enums are mapped to int and no casts are necessary in this case.
+	typestr = NewString("int");
+      }
+
+      if (SwigType_ispointer(type))
+	Append(typestr, " *");
+      else if (SwigType_isreference(type))
+	Append(typestr, " &");
+
+      if (enumname) {
+	switch (typeKind) {
+	  case Type_Ptr:
+	    if (rtype_desc) {
+	      rtype_desc->apply_out_typemap(NewStringf("(%s)$cresult", typestr.get()));
+	    }
+
+	    if (ptype_desc) {
+	      ptype_desc->apply_in_typemap(NewStringf("(%s*)$1", enumname));
+	    }
+	    break;
+
+	  case Type_Ref:
+	    if (rtype_desc) {
+	      rtype_desc->apply_out_typemap(NewStringf("(%s)(*($cresult))", typestr.get()));
+	    }
+
+	    if (ptype_desc) {
+	      ptype_desc->apply_in_typemap(NewStringf("(%s*)&($1)", enumname));
+	    }
+	    break;
+
+	  case Type_Enm:
+	    if (rtype_desc) {
+	      rtype_desc->apply_out_typemap(NewStringf("(%s)$cresult", typestr.get()));
+	    }
+
+	    if (ptype_desc) {
+	      ptype_desc->apply_in_typemap(NewStringf("(%s)$1", enumname));
+	    }
+	    break;
+
+	  case Type_Obj:
+	  case Type_Max:
+	    // Unreachable, but keep here to avoid -Wswitch warnings.
+	    assert(0);
+	}
+      } else {
+	// This is the only thing we need to do even when we don't have the enum name.
+	if (typeKind == Type_Ref && ptype_desc)
+	  ptype_desc->apply_in_typemap(NewString("&($1)"));
+      }
+    } else {
+      scoped_dohptr stripped_type(SwigType_strip_qualifiers(resolved_type));
+
+      String* classname;
+      if (Node* const class_node = Language::instance()->classLookup(stripped_type)) {
+	typestr = SwigType_str(type, 0);
+	classname = Getattr(class_node, "sym:name");
+
+	// We don't use namespaces, but the type may contain them, so get rid of them by replacing the base type name, which is fully qualified, with just the
+	// class name, which is not.
+	scoped_dohptr basetype(SwigType_base(type));
+	scoped_dohptr basetypestr(SwigType_str(basetype, 0));
+	if (Cmp(basetypestr, classname) != 0) {
+	  Replaceall(typestr, basetypestr, classname);
+	}
+      } else {
+	// This is something unknown, so just use an opaque typedef already declared in C wrappers section for it.
+	typestr = NewStringf("SWIGTYPE%s*", SwigType_manglestr(stripped_type));
+	classname = NULL;
+      }
+
+      const char* const owns = GetFlag(n, "feature:new") ? "true" : "false";
+      switch (typeKind) {
+	case Type_Ptr:
+	  if (ptype_desc) {
+	    ptype_desc->apply_in_typemap(NewString("$1->swig_self()"));
+	  }
+
+	  if (rtype_desc) {
+	    if (classname) {
+	      rtype_desc->apply_out_typemap(NewStringf(
+		  "$cresult ? new %s($cresult, %s) : nullptr;",
+		  classname, owns
+		));
+	    }
+	  }
+	  break;
+
+	case Type_Ref:
+	  if (rtype_desc) {
+	    if (classname) {
+	      // We can't return a reference, as this requires an existing object and we don't have any, so we have to return an object instead, and this object
+	      // must be constructed using the special ctor not taking the pointer ownership.
+	      typestr = Copy(classname);
+
+	      rtype_desc->apply_out_typemap(NewStringf("%s{$cresult, false}", classname));
+	    } else {
+	      // We can't do anything at all in this case.
+	      Swig_error(input_file, line_number, "Unknown reference return type \"%s\"\n", typestr.get());
+	    }
+	  }
+
+	  if (ptype_desc) {
+	    ptype_desc->apply_in_typemap(NewString("$1.swig_self()"));
+	  }
+	  break;
+
+	case Type_Obj:
+	  if (rtype_desc) {
+	    if (classname) {
+	      // The pointer returned by C function wrapping a function returning an object should never be null unless an exception happened, so we don't test
+	      // for it here, unlike in Type_Ptr case.
+	      //
+	      // Also, normally all returned objects should be owned by their wrappers, but there is a special case of objects not being returned by value: this
+	      // seems not to make sense, but can actually happen when typemaps map references or pointers to objects, like they do for e.g. shared_ptr<>.
+	      //
+	      // Note that we must use the type of the function, retrieved from its node, here and not the type passed to us which is the result of typemap
+	      // expansion and so may not be a reference any more.
+	      rtype_desc->apply_out_typemap(NewStringf("%s{$cresult, %s}",
+		  typestr.get(),
+		  SwigType_isreference(Getattr(n, "type")) ? owns : "true"
+		));
+	    } else {
+	      Swig_error(input_file, line_number, "Unknown object return type \"%s\"\n", typestr.get());
+	    }
+	  }
+
+	  if (ptype_desc) {
+	    // It doesn't seem like it can ever be useful to pass an object by value to a wrapper function and it can fail if it doesn't have a copy ctor (see
+	    // code related to has_copy_ctor_ in our dtor above), so always pass it by const reference instead.
+	    Append(typestr, " const&");
+
+	    ptype_desc->apply_in_typemap(NewString("$1.swig_self()"));
+	  }
+	  break;
+
+	case Type_Enm:
+	case Type_Max:
+	  // Unreachable, but keep here to avoid -Wswitch warnings.
+	  assert(0);
+      }
+    }
+
+    Replaceall(s, typemaps[typeKind], typestr);
+  }
+
+
+  // These pointers are temporarily set to non-null value only while expanding a typemap for C++ wrappers, see replaceSpecialVariables().
+  cxx_ptype_desc* ptype_desc_;
+  cxx_rtype_desc* rtype_desc_;
+
+  // This one is set from the outside, so make it public for simplicity.
+public:
+  Node* node_func_;
 };
 
 /*
@@ -490,12 +817,8 @@ public:
   // If the provided cxx_wrappers object is not initialized, this class doesn't do anything.
   //
   // The node pointer must be valid, point to a class and remain valid for the lifetime of this object.
-  cxx_class_wrapper(const cxx_wrappers& cxx_wrappers, Node* n) : cxx_wrappers_(cxx_wrappers) {
+  cxx_class_wrapper(cxx_wrappers& cxx_wrappers, Node* n) : cxx_wrappers_(cxx_wrappers) {
     class_node_ = NULL;
-
-    node_func_ = NULL;
-    rtype_desc_ = NULL;
-    ptype_desc_ = NULL;
 
     if (!cxx_wrappers_.is_initialized())
       return;
@@ -589,7 +912,7 @@ public:
 	return;
     }
 
-    temp_ptr_setter<Node*> set(&node_func_, n);
+    temp_ptr_setter<Node*> set(&cxx_wrappers_.node_func_, n);
 
     // As mentioned elsewhere, we can't use Swig_storage_isstatic() here because the "storage" attribute is temporarily saved in another view when this
     // function is being executed, so rely on another attribute to determine if it's a static function instead.
@@ -600,7 +923,7 @@ public:
     // Deal with the return type: it may be different from the type of the C wrapper function if it involves objects, and so we may need to add a cast.
 
     cxx_rtype_desc rtype_desc;
-    if (!lookup_cxx_ret_type(rtype_desc, n))
+    if (!cxx_wrappers_.lookup_cxx_ret_type(rtype_desc, n))
       return;
 
     // We also need the list of parameters to take in the C++ function being generated and the list of them to pass to the C wrapper.
@@ -646,7 +969,7 @@ public:
       for (; p; p = nextSibling(p)) {
 	String* const name = Getattr(p, "lname");
 
-	const cxx_ptype_desc ptype_desc = lookup_cxx_parm_type(n, p);
+	const cxx_ptype_desc ptype_desc = cxx_wrappers_.lookup_cxx_parm_type(n, p);
 	if (!ptype_desc.type()) {
 	  Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, Getfile(p), Getline(p),
 	    "No ctype typemap defined for the parameter \"%s\" of %s\n",
@@ -940,29 +1263,6 @@ public:
     );
   }
 
-
-  // This function is called from C::replaceSpecialVariables() but only does something non-trivial when it's called by our own lookup_cxx_xxx_type() functions.
-  bool replaceSpecialVariables(String *method, String *tm, Parm *parm) {
-    if (!ptype_desc_ && !rtype_desc_)
-      return false;
-
-    if (Cmp(method, "ctype") != 0) {
-      Swig_warning(WARN_C_UNSUPPORTTED, input_file, line_number, "Unsupported %s typemap %s\n", method, tm);
-      return false;
-    }
-
-    if (SwigType *type = Getattr(parm, "type")) {
-      if (ptype_desc_)
-	ptype_desc_->set_type(type);
-      if (rtype_desc_)
-	rtype_desc_->set_type(type);
-
-      do_resolve_type(node_func_, type, tm, ptype_desc_, rtype_desc_);
-    }
-
-    return true;
-  }
-
 private:
   // Various helpers.
 
@@ -984,290 +1284,8 @@ private:
     return qualifier && strncmp(Char(qualifier), "q(const)", 8) == 0 ? " const" : "";
   }
 
-  // Replace "resolved_type" occurrences in the string with the value corresponding to the given type.
-  //
-  // Note that the node here is the function itself, but type may be either its return type or the type of one of its parameters, so it's passed as a different
-  // parameter.
-  //
-  // Also fills in the start/end wrapper parts of the provided type descriptions if they're not null, with the casts needed to translate from C type to C++ type
-  // (this is used for the parameters of C++ functions, hence the name) and from C types to C++ types (which is used for the function return values).
-  static void do_resolve_type(Node* n, String* type, String* s, cxx_ptype_desc* ptype_desc, cxx_rtype_desc* rtype_desc) {
-    enum TypeKind
-    {
-      Type_Ptr,
-      Type_Ref,
-      Type_Obj,
-      Type_Enm,
-      Type_Max
-    } typeKind = Type_Max;
 
-    // These correspond to the typemaps for SWIGTYPE*, SWIGTYPE&, SWIGTYPE and enum SWIGTYPE, respectively, defined in c.swg.
-    static const char* typemaps[Type_Max] = {
-      "$resolved_type*",
-      "$*resolved_type*",
-      "$&resolved_type*",
-      "$resolved_type",
-    };
-
-    for (int i = 0; i < Type_Max; ++i) {
-      if (Strstr(s, typemaps[i])) {
-	typeKind = static_cast<TypeKind>(i);
-	break;
-      }
-    }
-
-    if (typeKind == Type_Max) {
-      if (Strstr(s, "resolved_type")) {
-	Swig_warning(WARN_C_UNSUPPORTTED, input_file, line_number,
-	  "Unsupported typemap \"%s\" used for type \"%s\" of \"%s\"\n",
-	  s, type, Getattr(n, "name")
-	);
-      }
-
-      return;
-    }
-
-    // The logic here is somewhat messy because we use the same "$resolved_type*" typemap for pointers/references to both enums and classes, but we actually
-    // need to do quite different things for them. It could probably be simplified by changing the typemaps to be distinct, but this would require also updating
-    // the code for C wrappers generation in substituteResolvedTypeSpecialVariable().
-    //
-    // An even better idea might be to try to define this using cxx{in,out} typemaps for the various types and let the generic SWIG machinery do all the
-    // matching instead of doing it in the code here.
-    scoped_dohptr resolved_type(SwigType_typedef_resolve_all(type));
-    scoped_dohptr base_resolved_type(SwigType_base(resolved_type));
-
-    scoped_dohptr typestr;
-    if (SwigType_isenum(base_resolved_type)) {
-      String* enumname = NULL;
-      if (Node* const enum_node = Language::instance()->enumLookup(base_resolved_type)) {
-	// This is the name of the enum in C wrappers, it should be already set by getEnumName().
-	enumname = Getattr(enum_node, "enumname");
-
-	if (enumname) {
-	  String* const enum_symname = Getattr(enum_node, "sym:name");
-
-	  if (Checkattr(enum_node, "ismember", "1")) {
-	    Node* const parent_class = parentNode(enum_node);
-	    typestr = NewStringf("%s::%s", Getattr(parent_class, "sym:name"), enum_symname);
-	  } else {
-	    typestr = Copy(enum_symname);
-	  }
-	}
-      }
-
-      if (!enumname) {
-	// Unknown enums are mapped to int and no casts are necessary in this case.
-	typestr = NewString("int");
-      }
-
-      if (SwigType_ispointer(type))
-	Append(typestr, " *");
-      else if (SwigType_isreference(type))
-	Append(typestr, " &");
-
-      if (enumname) {
-	switch (typeKind) {
-	  case Type_Ptr:
-	    if (rtype_desc) {
-	      rtype_desc->apply_out_typemap(NewStringf("(%s)$cresult", typestr.get()));
-	    }
-
-	    if (ptype_desc) {
-	      ptype_desc->apply_in_typemap(NewStringf("(%s*)$1", enumname));
-	    }
-	    break;
-
-	  case Type_Ref:
-	    if (rtype_desc) {
-	      rtype_desc->apply_out_typemap(NewStringf("(%s)(*($cresult))", typestr.get()));
-	    }
-
-	    if (ptype_desc) {
-	      ptype_desc->apply_in_typemap(NewStringf("(%s*)&($1)", enumname));
-	    }
-	    break;
-
-	  case Type_Enm:
-	    if (rtype_desc) {
-	      rtype_desc->apply_out_typemap(NewStringf("(%s)$cresult", typestr.get()));
-	    }
-
-	    if (ptype_desc) {
-	      ptype_desc->apply_in_typemap(NewStringf("(%s)$1", enumname));
-	    }
-	    break;
-
-	  case Type_Obj:
-	  case Type_Max:
-	    // Unreachable, but keep here to avoid -Wswitch warnings.
-	    assert(0);
-	}
-      } else {
-	// This is the only thing we need to do even when we don't have the enum name.
-	if (typeKind == Type_Ref && ptype_desc)
-	  ptype_desc->apply_in_typemap(NewString("&($1)"));
-      }
-    } else {
-      scoped_dohptr stripped_type(SwigType_strip_qualifiers(resolved_type));
-
-      String* classname;
-      if (Node* const class_node = Language::instance()->classLookup(stripped_type)) {
-	typestr = SwigType_str(type, 0);
-	classname = Getattr(class_node, "sym:name");
-
-	// We don't use namespaces, but the type may contain them, so get rid of them by replacing the base type name, which is fully qualified, with just the
-	// class name, which is not.
-	scoped_dohptr basetype(SwigType_base(type));
-	scoped_dohptr basetypestr(SwigType_str(basetype, 0));
-	if (Cmp(basetypestr, classname) != 0) {
-	  Replaceall(typestr, basetypestr, classname);
-	}
-      } else {
-	// This is something unknown, so just use an opaque typedef already declared in C wrappers section for it.
-	typestr = NewStringf("SWIGTYPE%s*", SwigType_manglestr(stripped_type));
-	classname = NULL;
-      }
-
-      const char* const owns = GetFlag(n, "feature:new") ? "true" : "false";
-      switch (typeKind) {
-	case Type_Ptr:
-	  if (ptype_desc) {
-	    ptype_desc->apply_in_typemap(NewString("$1->swig_self()"));
-	  }
-
-	  if (rtype_desc) {
-	    if (classname) {
-	      rtype_desc->apply_out_typemap(NewStringf(
-		  "$cresult ? new %s($cresult, %s) : nullptr;",
-		  classname, owns
-		));
-	    }
-	  }
-	  break;
-
-	case Type_Ref:
-	  if (rtype_desc) {
-	    if (classname) {
-	      // We can't return a reference, as this requires an existing object and we don't have any, so we have to return an object instead, and this object
-	      // must be constructed using the special ctor not taking the pointer ownership.
-	      typestr = Copy(classname);
-
-	      rtype_desc->apply_out_typemap(NewStringf("%s{$cresult, false}", classname));
-	    } else {
-	      // We can't do anything at all in this case.
-	      Swig_error(input_file, line_number, "Unknown reference return type \"%s\"\n", typestr.get());
-	    }
-	  }
-
-	  if (ptype_desc) {
-	    ptype_desc->apply_in_typemap(NewString("$1.swig_self()"));
-	  }
-	  break;
-
-	case Type_Obj:
-	  if (rtype_desc) {
-	    if (classname) {
-	      // The pointer returned by C function wrapping a function returning an object should never be null unless an exception happened, so we don't test
-	      // for it here, unlike in Type_Ptr case.
-	      //
-	      // Also, normally all returned objects should be owned by their wrappers, but there is a special case of objects not being returned by value: this
-	      // seems not to make sense, but can actually happen when typemaps map references or pointers to objects, like they do for e.g. shared_ptr<>.
-	      //
-	      // Note that we must use the type of the function, retrieved from its node, here and not the type passed to us which is the result of typemap
-	      // expansion and so may not be a reference any more.
-	      rtype_desc->apply_out_typemap(NewStringf("%s{$cresult, %s}",
-		  typestr.get(),
-		  SwigType_isreference(Getattr(n, "type")) ? owns : "true"
-		));
-	    } else {
-	      Swig_error(input_file, line_number, "Unknown object return type \"%s\"\n", typestr.get());
-	    }
-	  }
-
-	  if (ptype_desc) {
-	    // It doesn't seem like it can ever be useful to pass an object by value to a wrapper function and it can fail if it doesn't have a copy ctor (see
-	    // code related to has_copy_ctor_ in our dtor above), so always pass it by const reference instead.
-	    Append(typestr, " const&");
-
-	    ptype_desc->apply_in_typemap(NewString("$1.swig_self()"));
-	  }
-	  break;
-
-	case Type_Enm:
-	case Type_Max:
-	  // Unreachable, but keep here to avoid -Wswitch warnings.
-	  assert(0);
-      }
-    }
-
-    Replaceall(s, typemaps[typeKind], typestr);
-  }
-
-  cxx_ptype_desc lookup_cxx_parm_type(Node* n, Parm* p) {
-    cxx_ptype_desc ptype_desc;
-
-    // Ensure our own replaceSpecialVariables() is used for $typemap() expansion.
-    temp_ptr_setter<cxx_ptype_desc*> set(&ptype_desc_, &ptype_desc);
-
-    bool use_cxxin = true;
-    String* type = Swig_typemap_lookup("cxxintype", p, "", NULL);
-    if (!type) {
-      use_cxxin = false;
-      type = Swig_typemap_lookup("ctype", p, "", NULL);
-    }
-
-    if (type) {
-      ptype_desc.set_type(type);
-      do_resolve_type(n, Getattr(p, "type"), ptype_desc.type(), &ptype_desc, NULL);
-    }
-
-    if (use_cxxin) {
-      if (String* in_tm = Getattr(p, "tmap:cxxin"))
-	ptype_desc.apply_in_typemap(Copy(in_tm));
-    }
-
-    return ptype_desc;
-  }
-
-  bool lookup_cxx_ret_type(cxx_rtype_desc& rtype_desc, Node* n) {
-    String* const func_type = Getattr(n, "type");
-    if (SwigType_type(func_type) == T_VOID) {
-      // Nothing to do, rtype_desc is void by default.
-      return true;
-    }
-
-    // As above, ensure our replaceSpecialVariables() is used.
-    temp_ptr_setter<cxx_rtype_desc*> set(&rtype_desc_, &rtype_desc);
-
-    bool use_cxxout = true;
-    String* type(Swig_typemap_lookup("cxxouttype", n, "", NULL));
-    if (!type) {
-      use_cxxout = false;
-      type = Swig_typemap_lookup("ctype", n, "", NULL);
-    }
-
-    if (!type) {
-	Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, Getfile(n), Getline(n),
-	  "No ctype typemap defined for the return type \"%s\" of %s\n",
-	  SwigType_str(func_type, NULL),
-	  Getattr(n, "sym:name")
-	);
-      return false;
-    }
-
-    rtype_desc.set_type(type);
-    do_resolve_type(n, func_type, rtype_desc.type(), NULL, &rtype_desc);
-
-    if (use_cxxout) {
-      if (String* out_tm = Swig_typemap_lookup("cxxout", n, "", NULL))
-	rtype_desc.apply_out_typemap(out_tm);
-    }
-
-    return true;
-  }
-
-
-  const cxx_wrappers& cxx_wrappers_;
+  cxx_wrappers& cxx_wrappers_;
 
   // The class node itself, left null only if we skip generating wrappers for it for whatever reason.
   Node* class_node_;
@@ -1276,11 +1294,6 @@ private:
   // initializing the other base classes after creating the most-derived object, but hasn't been done yet. Until then we store just the first base class (if
   // any, this member can also be null).
   scoped_dohptr first_base_;
-
-  // These pointers are temporarily set to non-null value only while expanding a typemap for C++ wrappers, see replaceSpecialVariables().
-  Node* node_func_;
-  cxx_ptype_desc* ptype_desc_;
-  cxx_rtype_desc* rtype_desc_;
 
   // Name of the C function used for deleting the owned object, if any.
   String* dtor_wname_;
@@ -1586,7 +1599,7 @@ public:
 
   virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm) {
     // This function is called by Swig_typemap_lookup(), which may be called when generating C or C++ wrappers, so delegate to the latter one if necessary.
-    if (cxx_class_wrapper_ && cxx_class_wrapper_->replaceSpecialVariables(method, tm, parm))
+    if (cxx_wrappers_.is_initialized() && cxx_wrappers_.replaceSpecialVariables(method, tm, parm))
       return;
 
     SwigType *type = Getattr(parm, "type");
@@ -2386,8 +2399,10 @@ public:
 
        emit_wrapper_func_decl(n, wname);
 
-       if (cxx_class_wrapper_)
-	 cxx_class_wrapper_->emit_member_function(n);
+       if (cxx_wrappers_.is_initialized()) {
+	 if (cxx_class_wrapper_)
+	   cxx_class_wrapper_->emit_member_function(n);
+       }
 
        Delete(name);
     }
