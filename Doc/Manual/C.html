@@ -476,6 +476,26 @@ area: 7.068583
     <td>Type of the result variable used for the return value if the wrapped function is a C++ function
     </td>
   </tr>
+  <tr>
+      <td><tt>cxxintype</tt></td>
+      <td>Defines the type for the parameters of C++ wrapper functions corresponding to this type. By default is the same as <tt>ctype</tt>, but may sometimes be different to make the functions more convenient to use. For example, <tt>ctype</tt> for <tt>std::string</tt> is <tt>const char*</tt>, but <tt>cxxintype</tt> typemap for it is <tt>std::string const&amp;</tt>, i.e. even though the C++ string passed as a raw pointer via C API, the C++ wrapper still accepts a C++ string. If this typemap is defined, <tt>cxxin</tt> should normally be defined as well. If it is not defined, <tt>ctype</tt> is used.
+      </td>
+  </tr>
+  <tr>
+      <td><tt>cxxouttype</tt></td>
+      <td>Similar to <tt>cxxintype</tt>, but is used for the function return values and together with <tt>cxxout</tt> typemap. Also defaults to <tt>ctype</tt> if not defined.
+      </td>
+  </tr>
+  <tr>
+      <td><tt>cxxin</tt></td>
+      <td>Defines how to transform <tt>cxxintype</tt> value to <tt>ctype</tt>
+      </td>
+  </tr>
+  <tr>
+      <td><tt>cxxout</tt></td>
+      <td>Defines how to transform <tt>ctype</tt> value returned by a function to <tt>cxxouttype</tt>
+      </td>
+  </tr>
 </table>
 
 <H3>C Typemaps, a Code Generation Walkthrough</H3>

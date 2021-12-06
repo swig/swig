@@ -27,6 +27,10 @@ public:
 };
 }
 
+%fragment("include_string", "cxxheader") %{
+#include <string>
+%}
+
 namespace std {
 
 // use "const string &" typemaps for wrapping member strings
@@ -67,5 +71,20 @@ class string;
 // This is required to warn about clashes between the overloaded functions
 // taking strings and raw pointers in the generated wrappers.
 %typemap(typecheck) string, const string &, string *, string & = char *;
+
+
+// Define typemaps for wrapping strings back into std::string in C++ wrappers
+// and accepting strings directly.
+
+%typemap(cxxintype, fragment="include_string") string, const string & "std::string const&"
+
+%typemap(cxxin) string, const string & "$1.c_str()"
+
+%typemap(cxxouttype, fragment="include_string") string, const string & "std::string"
+
+%typemap(cxxout, noblock="1") string, const string & %{
+  $result = std::string($cresult);
+  free(const_cast<char*>($cresult));
+%}
 
 }
