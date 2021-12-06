@@ -199,6 +199,15 @@ This will compile the application code (<tt>runme.c</tt>) and link it against th
 Wrapping C functions and variables is obviously performed in a straightforward way. There is no need to perform type conversions, and all language constructs can be preserved in their original form. However, SWIG allows you to enhance the code with some additional elements, for instance using <tt>check</tt> typemap or <tt>%extend</tt> directive.
 </p>
 
+<p>
+It is also possible to output arbitrary additional code into the generated header by using <tt>%insert</tt> directive with <tt>cheader</tt> section, e.g.
+<div class="code"><pre>
+%insert("cheader") %{
+#include "another.h"
+%}
+</pre></div>
+</p>
+
 <H3><a name="C_functions"></a>36.3.1 Functions</H3>
 
 
@@ -667,6 +676,9 @@ Other ones are due to things that could be supported but haven't been implemente
   <li>Only enums using <tt>int</tt> (or smaller type) as underlying type are supported.</li>
 </ul>
 </p>
+
+Note that <tt>cxxheader</tt> section can be used to output additional
+declarations to the C++-only part of the generated header.
 
 </body>
 </html>

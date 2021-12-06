@@ -251,13 +251,17 @@ struct cxx_wrappers
   // Default ctor doesn't do anything, use initialize() if C++ wrappers really need to be generated.
   cxx_wrappers() :
     except_check_start(NULL), except_check_end(NULL),
-    sect_types(NULL), sect_decls(NULL), sect_impls(NULL) {
+    sect_cxx_h(NULL), sect_types(NULL), sect_decls(NULL), sect_impls(NULL) {
   }
 
   void initialize() {
+    sect_cxx_h = NewStringEmpty();
     sect_types = NewStringEmpty();
     sect_decls = NewStringEmpty();
     sect_impls = NewStringEmpty();
+
+    // Allow using SWIG directive to inject code here.
+    Swig_register_filebyname("cxxheader", sect_cxx_h);
   }
 
   // This function must be called after initialize(). The two can't be combined because we don't yet know if we're going to use exceptions or not when we
@@ -306,6 +310,10 @@ struct cxx_wrappers
 
 
   // The order of the members here is the same as the order in which they appear in the output file.
+
+  // This section doesn't contain anything by default but can be used by typemaps etc. It is the only section outside of the namespace in which all the other
+  // declaration live.
+  String* sect_cxx_h;
 
   // This section contains forward declarations of the classes.
   String* sect_types;
@@ -1619,6 +1627,7 @@ public:
 	}
 
 	Printv(f_wrappers_h, "#ifdef __cplusplus\n\n", NIL);
+	Dump(cxx_wrappers_.sect_cxx_h, f_wrappers_h);
 
 	// Generate possibly nested namespace declarations, as unfortunately we can't rely on C++17 nested namespace definitions being always available.
 	scoped_dohptr cxx_ns_end(NewStringEmpty());
