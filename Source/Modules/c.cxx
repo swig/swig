@@ -600,16 +600,8 @@ public:
     // Deal with the return type: it may be different from the type of the C wrapper function if it involves objects, and so we may need to add a cast.
 
     cxx_rtype_desc rtype_desc;
-    if (SwigType_type(Getattr(n, "type")) != T_VOID) {
-      if (!lookup_cxx_ret_type(rtype_desc, n)) {
-	Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, Getfile(n), Getline(n),
-	  "No ctype typemap defined for the return type \"%s\" of %s\n",
-	  SwigType_str(Getattr(n, "type"), NULL),
-	  Getattr(n, "sym:name")
-	);
-	return;
-      }
-    }
+    if (!lookup_cxx_ret_type(rtype_desc, n))
+      return;
 
     // We also need the list of parameters to take in the C++ function being generated and the list of them to pass to the C wrapper.
     scoped_dohptr parms_cxx(NewStringEmpty());
@@ -1238,6 +1230,12 @@ private:
   }
 
   bool lookup_cxx_ret_type(cxx_rtype_desc& rtype_desc, Node* n) {
+    String* const func_type = Getattr(n, "type");
+    if (SwigType_type(func_type) == T_VOID) {
+      // Nothing to do, rtype_desc is void by default.
+      return true;
+    }
+
     // As above, ensure our replaceSpecialVariables() is used.
     temp_ptr_setter<cxx_rtype_desc*> set(&rtype_desc_, &rtype_desc);
 
@@ -1248,11 +1246,17 @@ private:
       type = Swig_typemap_lookup("ctype", n, "", NULL);
     }
 
-    if (!type)
+    if (!type) {
+	Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, Getfile(n), Getline(n),
+	  "No ctype typemap defined for the return type \"%s\" of %s\n",
+	  SwigType_str(func_type, NULL),
+	  Getattr(n, "sym:name")
+	);
       return false;
+    }
 
     rtype_desc.set_type(type);
-    do_resolve_type(n, Getattr(n, "type"), rtype_desc.type(), NULL, &rtype_desc);
+    do_resolve_type(n, func_type, rtype_desc.type(), NULL, &rtype_desc);
 
     if (use_cxxout) {
       if (String* out_tm = Swig_typemap_lookup("cxxout", n, "", NULL))
