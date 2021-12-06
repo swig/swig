@@ -244,88 +244,6 @@ Node* find_first_named_import(Node* parent) {
 
 
 /*
-  Struct containing information needed only for generating C++ wrappers.
-*/
-struct cxx_wrappers
-{
-  // Default ctor doesn't do anything, use initialize() if C++ wrappers really need to be generated.
-  cxx_wrappers() :
-    except_check_start(NULL), except_check_end(NULL),
-    sect_cxx_h(NULL), sect_types(NULL), sect_decls(NULL), sect_impls(NULL) {
-  }
-
-  void initialize() {
-    sect_cxx_h = NewStringEmpty();
-    sect_types = NewStringEmpty();
-    sect_decls = NewStringEmpty();
-    sect_impls = NewStringEmpty();
-
-    // Allow using SWIG directive to inject code here.
-    Swig_register_filebyname("cxxheader", sect_cxx_h);
-  }
-
-  // This function must be called after initialize(). The two can't be combined because we don't yet know if we're going to use exceptions or not when we
-  // initialize the object of this class in C::main(), so this one is called later from C::top().
-  void initialize_exceptions(exceptions_support support) {
-    switch (support) {
-      case exceptions_support_enabled:
-	// Generate the functions which will be used in all wrappers to check for the exceptions only in this case, i.e. do not do it if they're already defined
-	// in another module imported by this one.
-	Printv(sect_impls,
-	  "inline void swig_check() {\n",
-	  cindent, "if (SWIG_CException* swig_ex = SWIG_CException::get_pending()) {\n",
-	  cindent, cindent, "SWIG_CException swig_ex_copy{*swig_ex};\n",
-	  cindent, cindent, "delete swig_ex;\n",
-	  cindent, cindent, "SWIG_CException::reset_pending();\n",
-	  cindent, cindent, "throw swig_ex_copy;\n",
-	  cindent, "}\n",
-	  "}\n\n",
-	  "template <typename T> T swig_check(T x) {\n",
-	  cindent, "swig_check();\n",
-	  cindent, "return x;\n",
-	  "}\n\n",
-	  NIL
-	);
-
-	// fall through
-
-      case exceptions_support_imported:
-	except_check_start = "swig_check(";
-	except_check_end = ")";
-	break;
-
-      case exceptions_support_disabled:
-	except_check_start =
-	except_check_end = "";
-	break;
-    }
-  }
-
-  bool is_initialized() const { return sect_types != NULL; }
-
-
-  // Used for generating exception checks around the calls, see initialize_exceptions().
-  const char* except_check_start;
-  const char* except_check_end;
-
-
-  // The order of the members here is the same as the order in which they appear in the output file.
-
-  // This section doesn't contain anything by default but can be used by typemaps etc. It is the only section outside of the namespace in which all the other
-  // declaration live.
-  String* sect_cxx_h;
-
-  // This section contains forward declarations of the classes.
-  String* sect_types;
-
-  // Full declarations of the classes.
-  String* sect_decls;
-
-  // Implementation of the classes.
-  String* sect_impls;
-};
-
-/*
   Information about the function return type.
  */
 class cxx_rtype_desc
@@ -476,6 +394,89 @@ public:
 private:
   scoped_dohptr type_;
   scoped_dohptr in_tm_;
+};
+
+
+/*
+  Struct containing information needed only for generating C++ wrappers.
+*/
+struct cxx_wrappers
+{
+  // Default ctor doesn't do anything, use initialize() if C++ wrappers really need to be generated.
+  cxx_wrappers() :
+    except_check_start(NULL), except_check_end(NULL),
+    sect_cxx_h(NULL), sect_types(NULL), sect_decls(NULL), sect_impls(NULL) {
+  }
+
+  void initialize() {
+    sect_cxx_h = NewStringEmpty();
+    sect_types = NewStringEmpty();
+    sect_decls = NewStringEmpty();
+    sect_impls = NewStringEmpty();
+
+    // Allow using SWIG directive to inject code here.
+    Swig_register_filebyname("cxxheader", sect_cxx_h);
+  }
+
+  // This function must be called after initialize(). The two can't be combined because we don't yet know if we're going to use exceptions or not when we
+  // initialize the object of this class in C::main(), so this one is called later from C::top().
+  void initialize_exceptions(exceptions_support support) {
+    switch (support) {
+      case exceptions_support_enabled:
+	// Generate the functions which will be used in all wrappers to check for the exceptions only in this case, i.e. do not do it if they're already defined
+	// in another module imported by this one.
+	Printv(sect_impls,
+	  "inline void swig_check() {\n",
+	  cindent, "if (SWIG_CException* swig_ex = SWIG_CException::get_pending()) {\n",
+	  cindent, cindent, "SWIG_CException swig_ex_copy{*swig_ex};\n",
+	  cindent, cindent, "delete swig_ex;\n",
+	  cindent, cindent, "SWIG_CException::reset_pending();\n",
+	  cindent, cindent, "throw swig_ex_copy;\n",
+	  cindent, "}\n",
+	  "}\n\n",
+	  "template <typename T> T swig_check(T x) {\n",
+	  cindent, "swig_check();\n",
+	  cindent, "return x;\n",
+	  "}\n\n",
+	  NIL
+	);
+
+	// fall through
+
+      case exceptions_support_imported:
+	except_check_start = "swig_check(";
+	except_check_end = ")";
+	break;
+
+      case exceptions_support_disabled:
+	except_check_start =
+	except_check_end = "";
+	break;
+    }
+  }
+
+  bool is_initialized() const { return sect_types != NULL; }
+
+
+  // Used for generating exception checks around the calls, see initialize_exceptions().
+  const char* except_check_start;
+  const char* except_check_end;
+
+
+  // The order of the members here is the same as the order in which they appear in the output file.
+
+  // This section doesn't contain anything by default but can be used by typemaps etc. It is the only section outside of the namespace in which all the other
+  // declaration live.
+  String* sect_cxx_h;
+
+  // This section contains forward declarations of the classes.
+  String* sect_types;
+
+  // Full declarations of the classes.
+  String* sect_decls;
+
+  // Implementation of the classes.
+  String* sect_impls;
 };
 
 /*
