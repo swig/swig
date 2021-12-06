@@ -351,19 +351,16 @@ public:
     value_ = new_string;
   }
 
-  // This function may be called to change the return code from the simple "return %s;" which is the default.
+  // This function applies the given typemap, which must set $result variable from $cresult containing the result of C wrapper function call.
   //
-  // The argument must contain exactly one "%s" in it, which will be replaced with the return value itself.
+  // If it is not called, the trivial "$result = $cresult" typemap is used and, in fact, the extra variables are optimized away and just "return $cresult" is
+  // generated directly for brevity.
   //
-  // NB: It also takes the ownership of the string, as with set_return_value() it's intended to be used with NewStringf().
-  void set_return_action(String* new_string) {
-    action_ = new_string;
-  }
-
-  // Simpler variant of set_return_action() which allows to omit the leading return and the trailing semicolon if the action is of the form "return something".
-  void set_return_expr(String* new_string) {
-    action_ = NewStringf("return %s;", new_string);
-    Delete(new_string);
+  // If the string doesn't start with "$result = ", it is prepended to it implicitly, for convenience.
+  //
+  // NB: It takes ownership of the string, which is typically returned from Swig_typemap_lookup().
+  void apply_out_typemap(String* new_out_tm_string) {
+    out_tm_ = new_out_tm_string;
   }
 
   // Return the function return type: can always be called, even for void functions (for which it just returns "void").
@@ -380,7 +377,53 @@ public:
     assert(type_);
     assert(value_);
 
-    return scoped_dohptr(NewStringf(action_ ? Char(action_) : "return %s;", value_.get()));
+    if (!out_tm_) {
+      // Trivial case when we return the same value, just do it.
+      //
+      // Add extra spaces after/before opening/closing braces because we keep everything on the same line in this case.
+      return scoped_dohptr(NewStringf(" return %s; ", value_.get()));
+    }
+
+    // We need to start by introducing a temporary variable for the C call result because if $cresult is used twice by the typemap, we don't want to call the
+    // function twice. Note that just "auto" is enough because C functions can't return references, but we need "auto&&" for C++ result which can be anything
+    // (defined by the user in their typemaps).
+    scoped_dohptr code(NewStringf(
+	"\n"
+	"%sauto swig_cres = %s;\n",
+	cindent, value_.get()
+      ));
+
+    // We support 2 cases: either typemap is a statement, or multiple statements, containing assignment to $result, in which case this assignment must occur at
+    // its beginning.
+    bool const has_result = strstr(Char(out_tm_), "$result = ") != NULL;
+    if (has_result) {
+      Printv(code, cindent, "auto&& ", NIL);
+    } else {
+      // Or the typemap is just an expression, which can be returned directly, without defining $result at all. Note that this is more than an optimization as
+      // it allows the generated code to work even with non-copyable classes.
+      Printv(code, cindent, "return ", NIL);
+    }
+
+    // Skip leading whitespace and chop the trailing whitespace from the typemap to keep indentation consistent.
+    const char* tm = Char(out_tm_);
+    while (isspace(*tm))
+      ++tm;
+    Append(code, tm);
+    Chop(code);
+
+    if ((Char(code))[Len(code) - 1] != ';')
+      Append(code, ";");
+
+    Replaceall(code, "$cresult", "swig_cres");
+
+    if (has_result) {
+      Printf(code, "\n%sreturn $result;\n", cindent);
+      Replaceall(code, "$result", "swig_cxxres");
+    } else {
+      Append(code, "\n");
+    }
+
+    return code;
   }
 
 private:
@@ -391,7 +434,7 @@ private:
 
   scoped_dohptr type_;
   scoped_dohptr value_;
-  scoped_dohptr action_;
+  scoped_dohptr out_tm_;
 };
 
 /*
@@ -581,7 +624,7 @@ public:
 	rtype_desc.set_return_value(NewStringf("%s(swig_self())", Getattr(n, "sym:name")));
 	Printv(cxx_wrappers_.sect_decls,
 	  cindent, rtype_desc.type(), " ", name, "() const "
-	  "{ ", rtype_desc.get_return_code().get(), " }\n",
+	  "{", rtype_desc.get_return_code().get(), "}\n",
 	  NIL
 	);
       } else if (Checkattr(n, "memberset", "1")) {
@@ -594,7 +637,7 @@ public:
 	rtype_desc.set_return_value(NewStringf("%s()", Getattr(n, "sym:name")));
 	Printv(cxx_wrappers_.sect_decls,
 	  cindent, "static ", rtype_desc.type(), " ", name, "() "
-	  "{ ", rtype_desc.get_return_code().get(), " }\n",
+	  "{", rtype_desc.get_return_code().get(), "}\n",
 	  NIL
 	);
       } else if (Checkattr(n, "varset", "1")) {
@@ -677,22 +720,21 @@ public:
 	"inline ", rtype_desc.type(), " ",
 	classname, "::", name, "(", parms_cxx.get(), ")",
 	get_const_suffix(n),
-	" { ",
+	" {",
 	NIL
       );
 
       if (rtype_desc.is_void()) {
 	Printv(cxx_wrappers_.sect_impls,
-	  wname, "(", wparms.get(), ");",
+	  " ", wname, "(", wparms.get(), "); ",
 	  NIL
 	);
 
 	if (*except_check_start) {
 	  Printv(cxx_wrappers_.sect_impls,
-	    " ",
 	    except_check_start,
 	    except_check_end,
-	    ";",
+	    "; ",
 	    NIL
 	  );
 	}
@@ -701,7 +743,7 @@ public:
 	Append(cxx_wrappers_.sect_impls, rtype_desc.get_return_code());
       }
 
-      Append(cxx_wrappers_.sect_impls, " }\n");
+      Append(cxx_wrappers_.sect_impls, "}\n");
     } else {
       // This is something we don't know about
       Swig_warning(WARN_C_UNSUPPORTTED, Getfile(n), Getline(n),
@@ -984,7 +1026,7 @@ private:
 	switch (typeKind) {
 	  case Type_Ptr:
 	    if (rtype_desc) {
-	      rtype_desc->set_return_expr(NewStringf("(%s)%%s", typestr.get()));
+	      rtype_desc->apply_out_typemap(NewStringf("(%s)$cresult", typestr.get()));
 	    }
 
 	    if (ptype_desc) {
@@ -994,7 +1036,7 @@ private:
 
 	  case Type_Ref:
 	    if (rtype_desc) {
-	      rtype_desc->set_return_expr(NewStringf("(%s)(*(%%s))", typestr.get()));
+	      rtype_desc->apply_out_typemap(NewStringf("(%s)(*($cresult))", typestr.get()));
 	    }
 
 	    if (ptype_desc) {
@@ -1004,7 +1046,7 @@ private:
 
 	  case Type_Enm:
 	    if (rtype_desc) {
-	      rtype_desc->set_return_expr(NewStringf("(%s)%%s", typestr.get()));
+	      rtype_desc->apply_out_typemap(NewStringf("(%s)$cresult", typestr.get()));
 	    }
 
 	    if (ptype_desc) {
@@ -1052,8 +1094,8 @@ private:
 
 	  if (rtype_desc) {
 	    if (classname) {
-	      rtype_desc->set_return_action(NewStringf("auto swig_res = %%s; "
-		  "return swig_res ? new %s(swig_res, %s) : nullptr;",
+	      rtype_desc->apply_out_typemap(NewStringf(
+		  "$cresult ? new %s($cresult, %s) : nullptr;",
 		  classname, owns
 		));
 	    }
@@ -1067,7 +1109,7 @@ private:
 	      // must be constructed using the special ctor not taking the pointer ownership.
 	      typestr = Copy(classname);
 
-	      rtype_desc->set_return_expr(NewStringf("%s{%%s, false}", classname));
+	      rtype_desc->apply_out_typemap(NewStringf("%s{$cresult, false}", classname));
 	    } else {
 	      // We can't do anything at all in this case.
 	      Swig_error(input_file, line_number, "Unknown reference return type \"%s\"\n", typestr.get());
@@ -1090,7 +1132,7 @@ private:
 	      //
 	      // Note that we must use the type of the function, retrieved from its node, here and not the type passed to us which is the result of typemap
 	      // expansion and so may not be a reference any more.
-	      rtype_desc->set_return_expr(NewStringf("%s{%%s, %s}",
+	      rtype_desc->apply_out_typemap(NewStringf("%s{$cresult, %s}",
 		  typestr.get(),
 		  SwigType_isreference(Getattr(n, "type")) ? owns : "true"
 		));
