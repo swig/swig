@@ -499,6 +499,8 @@ public:
     if (!cxx_wrappers_.is_initialized())
       return;
 
+    String* const classname = Getattr(n, "sym:name");
+
     scoped_dohptr base_classes(NewStringEmpty());
     if (List *baselist = Getattr(n, "bases")) {
       for (Iterator i = First(baselist); i.item; i = Next(i)) {
@@ -508,7 +510,7 @@ public:
 	if (first_base_) {
 	  Swig_warning(WARN_C_UNSUPPORTTED, Getfile(n), Getline(n),
 	    "Multiple inheritance not supported yet, skipping C++ wrapper generation for %s\n",
-	    Getattr(n, "sym:name")
+	    classname
 	  );
 
 	  // Return before initializing class_node_, so that the dtor won't output anything neither.
@@ -522,12 +524,12 @@ public:
     }
 
     Printv(cxx_wrappers_.sect_types,
-      "class ", Getattr(n, "sym:name"), ";\n",
+      "class ", classname, ";\n",
       NIL
     );
 
     Printv(cxx_wrappers_.sect_decls,
-      "class ", Getattr(n, "sym:name"), base_classes.get(), " {\n"
+      "class ", classname, base_classes.get(), " {\n"
       "public:",
       NIL
     );
