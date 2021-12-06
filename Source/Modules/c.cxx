@@ -438,6 +438,47 @@ private:
 };
 
 /*
+  Information about a function parameter.
+
+  This is similar to cxx_rtype_desc, but is used for the parameters and not the return type.
+ */
+class cxx_ptype_desc
+{
+public:
+  // Ctor initializes the object to an empty/unknown state, call set_type() later to finish initialization.
+  cxx_ptype_desc() {}
+
+  // This function must be called (with a non-null string) before calling get_param_code().
+  void set_type(String* type) { type_ = Copy(type); }
+
+  // If this one returns NULL, it means that we don't have any type information at all.
+  String* type() const { return type_; }
+
+  // This may be called before calling get_param_code() if a translation from C++ to C type is necessary. By default the parameter is passed "as is".
+  void apply_in_typemap(String* new_in_tm_string) {
+    in_tm_ = new_in_tm_string;
+  }
+
+  // Return the full expression needed to pass the given value as parameter to C wrapper function.
+  scoped_dohptr get_param_code(String* value) const {
+    assert(type_);
+
+    if (!in_tm_) {
+      return scoped_dohptr(Copy(value));
+    }
+
+    // There doesn't seem to be any simple way to use the full SWIG typemap expansion machinery here, so just do it manually.
+    scoped_dohptr code(Copy(in_tm_));
+    Replace(code, "$1", value, DOH_REPLACE_NUMBER_END);
+    return code;
+  }
+
+private:
+  scoped_dohptr type_;
+  scoped_dohptr in_tm_;
+};
+
+/*
   cxx_class_wrapper
 
   Outputs the declaration of the class wrapping the given one if we're generating C++ wrappers, i.e. if the provided cxx_wrappers object is initialized.
@@ -598,7 +639,7 @@ public:
 
       if (Len(parms_call))
 	Append(parms_call, ", ");
-      Printv(parms_call, ptype_desc.wrap_start(), name, ptype_desc.wrap_end(), NIL);
+      Append(parms_call, ptype_desc.get_param_code(name));
     }
 
     // Avoid checking for exceptions unnecessarily. Note that this is more than an optimization: we'd get into infinite recursion if we checked for exceptions
@@ -899,31 +940,6 @@ public:
   }
 
 private:
-  // This struct contains the type itself and, optionally, wrappers around expressions of this type: start part goes before the expression and the end part
-  // after it (and both parts may be empty).
-  class type_desc
-  {
-  public:
-    // Ctor initializes the object to an empty/unknown state, call set_type() later to finish initialization.
-    type_desc() : wrap_start_(NewStringEmpty()), wrap_end_(NewStringEmpty()) {}
-
-    // String must be non-null.
-    void set_type(String* type) { type_ = Copy(type); }
-
-    // If this one returns NULL, it means that we don't have any type information at all.
-    String* type() const { return type_; }
-
-    // These ones are always non-NULL (but possibly empty).
-    String* wrap_start() const { return wrap_start_; }
-    String* wrap_end() const { return wrap_end_; }
-
-  private:
-    scoped_dohptr type_;
-    scoped_dohptr wrap_start_;
-    scoped_dohptr wrap_end_;
-  };
-
-
   // Various helpers.
 
   // Return the string containing the pointer type used for representing the objects of the given class in the C wrappers.
@@ -951,7 +967,7 @@ private:
   //
   // Also fills in the start/end wrapper parts of the provided type descriptions if they're not null, with the casts needed to translate from C type to C++ type
   // (this is used for the parameters of C++ functions, hence the name) and from C types to C++ types (which is used for the function return values).
-  static void do_resolve_type(Node* n, String* type, String* s, type_desc* ptype_desc, cxx_rtype_desc* rtype_desc) {
+  static void do_resolve_type(Node* n, String* type, String* s, cxx_ptype_desc* ptype_desc, cxx_rtype_desc* rtype_desc) {
     enum TypeKind
     {
       Type_Ptr,
@@ -1030,7 +1046,7 @@ private:
 	    }
 
 	    if (ptype_desc) {
-	      Printv(ptype_desc->wrap_start(), "(", enumname, "*)", NIL);
+	      ptype_desc->apply_in_typemap(NewStringf("(%s*)$1", enumname));
 	    }
 	    break;
 
@@ -1040,7 +1056,7 @@ private:
 	    }
 
 	    if (ptype_desc) {
-	      Printv(ptype_desc->wrap_start(), "(", enumname, "*)", NIL);
+	      ptype_desc->apply_in_typemap(NewStringf("(%s*)&($1)", enumname));
 	    }
 	    break;
 
@@ -1050,7 +1066,7 @@ private:
 	    }
 
 	    if (ptype_desc) {
-	      Printv(ptype_desc->wrap_start(), "(", enumname, ")", NIL);
+	      ptype_desc->apply_in_typemap(NewStringf("(%s)$1", enumname));
 	    }
 	    break;
 
@@ -1059,11 +1075,11 @@ private:
 	    // Unreachable, but keep here to avoid -Wswitch warnings.
 	    assert(0);
 	}
+      } else {
+	// This is the only thing we need to do even when we don't have the enum name.
+	if (typeKind == Type_Ref && ptype_desc)
+	  ptype_desc->apply_in_typemap(NewString("&($1)"));
       }
-
-      // This is the only thing we need to do even when we don't have the enum name.
-      if (typeKind == Type_Ref && ptype_desc)
-	Append(ptype_desc->wrap_start(), "&");
     } else {
       scoped_dohptr stripped_type(SwigType_strip_qualifiers(resolved_type));
 
@@ -1089,7 +1105,7 @@ private:
       switch (typeKind) {
 	case Type_Ptr:
 	  if (ptype_desc) {
-	    Append(ptype_desc->wrap_end(), "->swig_self()");
+	    ptype_desc->apply_in_typemap(NewString("$1->swig_self()"));
 	  }
 
 	  if (rtype_desc) {
@@ -1117,7 +1133,7 @@ private:
 	  }
 
 	  if (ptype_desc) {
-	    Append(ptype_desc->wrap_end(), ".swig_self()");
+	    ptype_desc->apply_in_typemap(NewString("$1.swig_self()"));
 	  }
 	  break;
 
@@ -1146,7 +1162,7 @@ private:
 	    // code related to has_copy_ctor_ in our dtor above), so always pass it by const reference instead.
 	    Append(typestr, " const&");
 
-	    Append(ptype_desc->wrap_end(), ".swig_self()");
+	    ptype_desc->apply_in_typemap(NewString("$1.swig_self()"));
 	  }
 	  break;
 
@@ -1160,11 +1176,11 @@ private:
     Replaceall(s, typemaps[typeKind], typestr);
   }
 
-  type_desc lookup_cxx_parm_type(Node* n, Parm* p) {
-    type_desc ptype_desc;
+  cxx_ptype_desc lookup_cxx_parm_type(Node* n, Parm* p) {
+    cxx_ptype_desc ptype_desc;
 
     // Ensure our own replaceSpecialVariables() is used for $typemap() expansion.
-    temp_ptr_setter<type_desc*> set(&ptype_desc_, &ptype_desc);
+    temp_ptr_setter<cxx_ptype_desc*> set(&ptype_desc_, &ptype_desc);
 
     if (String* type = Swig_typemap_lookup("ctype", p, "", NULL)) {
       ptype_desc.set_type(type);
@@ -1201,7 +1217,7 @@ private:
 
   // These pointers are temporarily set to non-null value only while expanding a typemap for C++ wrappers, see replaceSpecialVariables().
   Node* node_func_;
-  type_desc* ptype_desc_;
+  cxx_ptype_desc* ptype_desc_;
   cxx_rtype_desc* rtype_desc_;
 
   // Name of the C function used for deleting the owned object, if any.
