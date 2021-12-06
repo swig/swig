@@ -17,9 +17,20 @@
                 SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >*
                 "$typemap(ctype, TYPE)";
 
-// Typemap for smart pointer type itself.
-%typemap(out) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >
-  "$result = new $1_ltype($1);"
+// Typemap for smart pointer type itself: these are somewhat special because we represent empty shared pointers as null pointers at C level because there is
+// no advantage in using a non-null pointer in this case, while testing for NULL is much simpler than testing whether a shared pointer is empty.
+%typemap(in) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > empty) %{
+  $1 = $input ? *(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE>*)$input : empty; %}
+
+%typemap(in) const SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >& (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > empty) %{
+  $1 = $input ? (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE>*)$input : &empty; %}
+
+// Note that "&" here is required because "$1" ends up being SwigValueWrapper and not the shared pointer itself. This is wrong and should be fixed by disabling
+// the use of SwigValueWrapper for shared pointers entirely, as it's never needed for them.
+%typemap(out) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > %{  $result = (&$1 ? new $1_ltype($1) : 0); %}
+
+// Use of "*" here is due to the fact that "$1" is a pointer, but we want to test the smart pointer itself.
+%typemap(out) const SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE>& %{  $result = (*$1 ? $1 : 0); %}
 
 // And for the plain type.
 %typemap(in) CONST TYPE (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) %{
@@ -49,6 +60,12 @@
   $1 = (TYPE *)smartarg->get();%}
 %typemap(out, fragment="SWIG_null_deleter") CONST TYPE & %{
   $result = (SwigObj*) new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE >($1 SWIG_NO_NULL_DELETER_$owner);%}
+
+// Allow creating null shared pointers and testing them for validity.
+%typemap(cxxcode) TYPE %{
+  static $cxxclassname null() { return $cxxclassname{($cclassptrname)nullptr, false}; }
+  explicit operator bool() const { return swig_self_ != nullptr; }
+%}
 
 %enddef
 
