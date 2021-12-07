@@ -101,7 +101,6 @@ SWIGOPT += -w524 # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
 # Tests for which C++ wrappers currently don't compile.
 apply_strings.cpptest \
 autodoc.cpptest \
-class_ignore.cpptest \
 class_scope_weird.cpptest \
 contract.cpptest \
 conversion.cpptest \

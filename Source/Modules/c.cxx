@@ -983,7 +983,8 @@ public:
 	first_base_ = Copy(i.item);
       }
 
-      Printv(base_classes, " : public ", Getattr(first_base_, "sym:name"), NIL);
+      if (first_base_)
+	Printv(base_classes, " : public ", Getattr(first_base_, "sym:name"), NIL);
     }
 
     Printv(cxx_wrappers_.sect_types,
