@@ -865,7 +865,10 @@ public:
 
       Swig_typemap_attach_parms("cxxin", p, NULL);
 
-      for (; p; p = nextSibling(p)) {
+      for (; p; p = Getattr(p, "tmap:in:next")) {
+	if (Checkattr(p, "tmap:in:numinputs", "0"))
+	  continue;
+
 	String* const name = Getattr(p, "lname");
 
 	cxx_ptype_desc ptype_desc;
