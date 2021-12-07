@@ -460,6 +460,8 @@ struct cxx_wrappers
 
   bool is_initialized() const { return sect_types != NULL; }
 
+  bool is_exception_support_enabled() const { return *except_check_start != '\0'; }
+
 
   // All the functions below are only used when is_initialized() returns true.
 
@@ -994,7 +996,7 @@ public:
     // thrown by members of SWIG_CException itself if we didn't do it.
     const char* except_check_start = cxx_wrappers_.except_check_start;
     const char* except_check_end = cxx_wrappers_.except_check_end;
-    if (*except_check_start) {
+    if (cxx_wrappers_.is_exception_support_enabled()) {
       if (Checkattr(n, "noexcept", "true") || (Checkattr(n, "throw", "1") && !Getattr(n, "throws"))) {
 	except_check_start =
 	except_check_end = "";
