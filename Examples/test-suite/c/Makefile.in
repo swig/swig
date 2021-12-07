@@ -99,97 +99,52 @@ SWIGOPT += -w524 # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
 %.ctest: SWIGOPT += -nocxx
 
 # Tests for which C++ wrappers currently don't compile.
-apply_strings.cpptest \
-autodoc.cpptest \
-class_scope_weird.cpptest \
-contract.cpptest \
-conversion.cpptest \
-conversion_namespace.cpptest \
-conversion_ns_template.cpptest \
-cpp11_default_delete.cpptest \
-cpp11_explicit_conversion_operators.cpptest \
-cpp11_final_override.cpptest \
-cpp11_initializer_list.cpptest \
-cpp11_noexcept.cpptest \
-cpp11_shared_ptr_upcast.cpptest \
-cpp11_strongly_typed_enumerations.cpptest \
-cpp_typedef.cpptest \
-default_constructor.cpptest \
-derived_nested.cpptest \
-director_basic.cpptest \
-director_classes.cpptest \
-director_conversion_operators.cpptest \
-director_frob.cpptest \
-director_property.cpptest \
-director_string.cpptest \
-extend_template_method.cpptest \
-features.cpptest \
-global_namespace.cpptest \
-ignore_parameter.cpptest \
-inherit_target_language.cpptest \
-kind.cpptest \
-li_boost_shared_ptr_bits.cpptest \
-li_boost_shared_ptr_director.cpptest \
-li_std_except.cpptest \
-li_std_map.cpptest \
-li_std_vector.cpptest \
-li_std_vector_enum.cpptest \
-li_std_vector_ptr.cpptest \
-li_swigtype_inout.cpptest \
-member_template.cpptest \
-multiple_inheritance_abstract.cpptest \
-multiple_inheritance_interfaces.cpptest \
-multiple_inheritance_nspace.cpptest \
-multiple_inheritance_shared_ptr.cpptest \
-namespace_class.cpptest \
-namespace_virtual_method.cpptest \
-naturalvar_more.cpptest \
-nested_ignore.cpptest \
-nested_scope_flat.cpptest \
-operator_pointer_ref.cpptest \
-operbool.cpptest \
-overload_arrays.cpptest \
-overload_complicated.cpptest \
-overload_null.cpptest \
-overload_template.cpptest \
-overload_template_fast.cpptest \
-pure_virtual.cpptest \
-refcount.cpptest \
-rename1.cpptest \
-rename2.cpptest \
-rename3.cpptest \
-rename4.cpptest \
-rename_wildcard.cpptest \
-return_const_value.cpptest \
-smart_pointer_ignore.cpptest \
-smart_pointer_member.cpptest \
-smart_pointer_multi_typedef.cpptest \
-smart_pointer_template_const_overload.cpptest \
-smart_pointer_templatemethods.cpptest \
-smart_pointer_typedef.cpptest \
-template_arg_scope.cpptest \
-template_const_ref.cpptest \
-template_default_arg.cpptest \
-template_default_arg_overloaded.cpptest \
-template_default_vw.cpptest \
-template_extend_overload.cpptest \
-template_inherit_abstract.cpptest \
-template_methods.cpptest \
-template_nested.cpptest \
-template_nested_flat.cpptest \
-template_ns_enum2.cpptest \
-template_opaque.cpptest \
-template_qualifier.cpptest \
-template_retvalue.cpptest \
-template_static.cpptest \
-template_typedef_class_template.cpptest \
-template_typedef_cplx5.cpptest \
-template_typemaps.cpptest \
-template_typemaps_typedef.cpptest \
-template_typemaps_typedef2.cpptest \
-valuewrapper_const.cpptest \
-valuewrapper_opaque.cpptest \
-: SWIGOPT += -nocxx
+contract.cpptest: SWIG_NOCXX = -nocxx # Class derived from a base class with multiple base classes and hence ignored.
+conversion.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type not handled specially.
+conversion_namespace.cpptest: SWIG_NOCXX = -nocxx # Conversion operator name not handled correctly.
+conversion_ns_template.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return not handled specially.
+cpp11_default_delete.cpptest: SWIG_NOCXX = -nocxx # Assignment operator and r-value references not handled.
+cpp11_explicit_conversion_operators.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type.
+cpp11_noexcept.cpptest: SWIG_NOCXX = -nocxx # Assignment operator.
+default_constructor.cpptest: SWIG_NOCXX = -nocxx # Something weird with OSRSpatialReferenceShadow.
+director_classes.cpptest: SWIG_NOCXX = -nocxx # Ref to pointer
+director_conversion_operators.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type.
+director_frob.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type.
+extend_template_method.cpptest: SWIG_NOCXX = -nocxx # Wrong form of template function name.
+features.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type not handled specially.
+global_namespace.cpptest: SWIG_NOCXX = -nocxx # Const const reference type.
+li_boost_shared_ptr_director.cpptest: SWIG_NOCXX = -nocxx # Ref to pointer
+li_std_vector_ptr.cpptest: SWIG_NOCXX = -nocxx # Ref to pointer
+member_template.cpptest: SWIG_NOCXX = -nocxx # Wrong form of template function name.
+multiple_inheritance_abstract.cpptest: SWIG_NOCXX = -nocxx # Multiple inheritance not supported.
+multiple_inheritance_interfaces.cpptest: SWIG_NOCXX = -nocxx
+multiple_inheritance_nspace.cpptest: SWIG_NOCXX = -nocxx
+multiple_inheritance_shared_ptr.cpptest: SWIG_NOCXX = -nocxx
+namespace_class.cpptest: SWIG_NOCXX = -nocxx # Many broken type names.
+operator_pointer_ref.cpptest: SWIG_NOCXX = -nocxx
+operbool.cpptest: SWIG_NOCXX = -nocxx
+overload_null.cpptest: SWIG_NOCXX = -nocxx
+overload_template.cpptest: SWIG_NOCXX = -nocxx
+overload_template_fast.cpptest: SWIG_NOCXX = -nocxx
+pure_virtual.cpptest: SWIG_NOCXX = -nocxx
+rename1.cpptest: SWIG_NOCXX = -nocxx
+rename2.cpptest: SWIG_NOCXX = -nocxx
+rename3.cpptest: SWIG_NOCXX = -nocxx
+rename4.cpptest: SWIG_NOCXX = -nocxx
+rename_wildcard.cpptest: SWIG_NOCXX = -nocxx
+return_const_value.cpptest: SWIG_NOCXX = -nocxx
+smart_pointer_member.cpptest: SWIG_NOCXX = -nocxx
+smart_pointer_template_const_overload.cpptest: SWIG_NOCXX = -nocxx
+smart_pointer_templatemethods.cpptest: SWIG_NOCXX = -nocxx # Wrong form of template function name.
+template_const_ref.cpptest: SWIG_NOCXX = -nocxx
+template_default_arg_overloaded.cpptest: SWIG_NOCXX = -nocxx
+template_inherit_abstract.cpptest: SWIG_NOCXX = -nocxx
+template_methods.cpptest: SWIG_NOCXX = -nocxx
+template_nested.cpptest: SWIG_NOCXX = -nocxx
+template_nested_flat.cpptest: SWIG_NOCXX = -nocxx
+template_qualifier.cpptest: SWIG_NOCXX = -nocxx
+template_static.cpptest: SWIG_NOCXX = -nocxx
+valuewrapper_const.cpptest: SWIG_NOCXX = -nocxx # Misplaced const.
 
 # Avoid conflict with the C++ keyword for some tests.
 SWIG_NS = $*
@@ -199,7 +154,7 @@ typename.cpptest: SWIG_NS = type_name
 
 %.multicpptest: SWIGOPT += -namespace $*
 
-%.cpptest: SWIGOPT += -namespace $(SWIG_NS)
+%.cpptest: SWIGOPT += -namespace $(SWIG_NS) $(SWIG_NOCXX)
 
 SRCDIR       = ../$(srcdir)/
 
