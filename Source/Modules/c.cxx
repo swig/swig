@@ -713,10 +713,8 @@ private:
 	  ptype_desc->apply_in_typemap(NewString("&($1)"));
       }
     } else {
-      scoped_dohptr stripped_type(SwigType_strip_qualifiers(resolved_type));
-
       String* classname;
-      if (Node* const class_node = Language::instance()->classLookup(stripped_type)) {
+      if (Node* const class_node = Language::instance()->classLookup(type)) {
 	typestr = SwigType_str(type, 0);
 	classname = Getattr(class_node, "sym:name");
 
