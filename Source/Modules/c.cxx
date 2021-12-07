@@ -715,12 +715,12 @@ private:
     } else {
       String* classname;
       if (Node* const class_node = Language::instance()->classLookup(type)) {
-	typestr = SwigType_str(type, 0);
+	typestr = SwigType_str(resolved_type, 0);
 	classname = Getattr(class_node, "sym:name");
 
 	// We don't use namespaces, but the type may contain them, so get rid of them by replacing the base type name, which is fully qualified, with just the
 	// class name, which is not.
-	scoped_dohptr basetype(SwigType_base(type));
+	scoped_dohptr basetype(SwigType_base(resolved_type));
 	scoped_dohptr basetypestr(SwigType_str(basetype, 0));
 	if (Cmp(basetypestr, classname) != 0) {
 	  Replaceall(typestr, basetypestr, classname);
