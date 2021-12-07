@@ -1082,28 +1082,48 @@ public:
 
     if (Checkattr(n, "kind", "variable")) {
       if (Checkattr(n, "memberget", "1")) {
-	rtype_desc.set_return_value(NewStringf("%s(swig_self())", Getattr(n, "sym:name")));
 	Printv(cxx_wrappers_.sect_decls,
-	  cindent, rtype_desc.type(), " ", name, "() const "
+	  cindent, rtype_desc.type(), " ", name, "() const;\n",
+	  NIL
+	);
+
+	rtype_desc.set_return_value(NewStringf("%s(swig_self())", Getattr(n, "sym:name")));
+	Printv(cxx_wrappers_.sect_impls,
+	  "inline ", rtype_desc.type(), " ", classname, "::", name, "() const "
 	  "{", rtype_desc.get_return_code().get(), "}\n",
 	  NIL
 	);
       } else if (Checkattr(n, "memberset", "1")) {
 	Printv(cxx_wrappers_.sect_decls,
-	  cindent, "void ", name, "(", parms_cxx, ") "
+	  cindent, "void ", name, "(", parms_cxx, ");\n",
+	  NIL
+	);
+
+	Printv(cxx_wrappers_.sect_impls,
+	  "inline void ", classname, "::", name, "(", parms_cxx, ") "
 	  "{ ", Getattr(n, "sym:name"), "(swig_self(), ", parms_call, "); }\n",
 	  NIL
 	);
       } else if (Checkattr(n, "varget", "1")) {
-	rtype_desc.set_return_value(NewStringf("%s()", Getattr(n, "sym:name")));
 	Printv(cxx_wrappers_.sect_decls,
-	  cindent, "static ", rtype_desc.type(), " ", name, "() "
+	  cindent, "static ", rtype_desc.type(), " ", name, "();\n",
+	  NIL
+	);
+
+	rtype_desc.set_return_value(NewStringf("%s()", Getattr(n, "sym:name")));
+	Printv(cxx_wrappers_.sect_impls,
+	  "inline ", rtype_desc.type(), " ", classname, "::", name, "() "
 	  "{", rtype_desc.get_return_code().get(), "}\n",
 	  NIL
 	);
       } else if (Checkattr(n, "varset", "1")) {
 	Printv(cxx_wrappers_.sect_decls,
-	  cindent, "static void ", name, "(", parms_cxx, ") "
+	  cindent, "static void ", name, "(", parms_cxx, ");\n",
+	  NIL
+	);
+
+	Printv(cxx_wrappers_.sect_impls,
+	  "inline void ", classname, "::", name, "(", parms_cxx, ") "
 	  "{ ", Getattr(n, "sym:name"), "(", parms_call, "); }\n",
 	  NIL
 	);
