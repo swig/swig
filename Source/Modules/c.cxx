@@ -920,6 +920,8 @@ public:
   bool can_wrap() const { return func_node != NULL; }
 
   // Emit just the function body, including the braces around it.
+  //
+  // This helper is used both by our emit() and emit_member_function().
   void emit_body(String* wparms) {
     String* const wname = Getattr(func_node, "wrap:name");
 
@@ -945,6 +947,23 @@ public:
     }
 
     Append(cxx_wrappers_.sect_impls, "}\n");
+  }
+
+  // Do emit the function wrapper.
+  void emit() {
+    // The wrapper function name should be sym:name, but we change it to include the namespace prefix in our own globalvariableHandler(), so now we have to undo
+    // this by using the value saved there, if available. This is definitely clumsy and it would be better to avoid it, but this would probably need to be done
+    // by separating C and C++ wrapper generation in two different passes and so would require significantly more changes than this hack.
+    String* name = Getattr(func_node, "c:globalvariableHandler:sym:name");
+    if (!name)
+      name = Getattr(func_node, "sym:name");
+
+    Printv(cxx_wrappers_.sect_impls,
+      "inline ", rtype_desc.type(), " ", name, "(", parms_cxx.get(), ") ",
+      NIL
+    );
+
+    emit_body(parms_call);
   }
 
 
@@ -2496,6 +2515,10 @@ public:
 
 	 if (cxx_class_wrapper_) {
 	   cxx_class_wrapper_->emit_member_function(n);
+	 } else {
+	   cxx_function_wrapper w(cxx_wrappers_, n, Getattr(n, "parms"));
+	   if (w.can_wrap())
+	     w.emit();
 	 }
        }
 

@@ -112,6 +112,8 @@ director_frob.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type.
 extend_template_method.cpptest: SWIG_NOCXX = -nocxx # Wrong form of template function name.
 features.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type not handled specially.
 global_namespace.cpptest: SWIG_NOCXX = -nocxx # Const const reference type.
+li_carrays_cpp.cpptest: SWIG_NOCXX = -nocxx # Arrays not really supported currently.
+li_cdata_cpp.cpptest: SWIG_NOCXX = -nocxx # No support for multiarg typemaps required here.
 member_template.cpptest: SWIG_NOCXX = -nocxx # Wrong form of template function name.
 multiple_inheritance_abstract.cpptest: SWIG_NOCXX = -nocxx # Multiple inheritance not supported.
 multiple_inheritance_interfaces.cpptest: SWIG_NOCXX = -nocxx
@@ -133,6 +135,7 @@ return_const_value.cpptest: SWIG_NOCXX = -nocxx
 smart_pointer_member.cpptest: SWIG_NOCXX = -nocxx
 smart_pointer_template_const_overload.cpptest: SWIG_NOCXX = -nocxx
 smart_pointer_templatemethods.cpptest: SWIG_NOCXX = -nocxx # Wrong form of template function name.
+struct_initialization_cpp.cpptest: SWIG_NOCXX = -nocxx # Arrays in initialization not supported.
 template_const_ref.cpptest: SWIG_NOCXX = -nocxx
 template_default_arg_overloaded.cpptest: SWIG_NOCXX = -nocxx
 template_inherit_abstract.cpptest: SWIG_NOCXX = -nocxx
@@ -141,6 +144,7 @@ template_nested.cpptest: SWIG_NOCXX = -nocxx
 template_nested_flat.cpptest: SWIG_NOCXX = -nocxx
 template_qualifier.cpptest: SWIG_NOCXX = -nocxx
 template_static.cpptest: SWIG_NOCXX = -nocxx
+typemap_array_qualifiers.cpptest: SWIG_NOCXX = -nocxx # Arrays not supported.
 valuewrapper_const.cpptest: SWIG_NOCXX = -nocxx # Misplaced const.
 
 # Avoid conflict with the C++ keyword for some tests.
