@@ -493,7 +493,8 @@ struct cxx_wrappers
     }
 
     rtype_desc.set_type(type);
-    do_resolve_type(n, func_type, rtype_desc.type(), NULL, &rtype_desc);
+    if (!do_resolve_type(n, func_type, rtype_desc.type(), NULL, &rtype_desc))
+      return false;
 
     if (use_cxxout) {
       if (String* out_tm = Swig_typemap_lookup("cxxout", n, "", NULL))
@@ -525,7 +526,8 @@ struct cxx_wrappers
     }
 
     ptype_desc.set_type(type);
-    do_resolve_type(n, Getattr(p, "type"), ptype_desc.type(), &ptype_desc, NULL);
+    if (!do_resolve_type(n, Getattr(p, "type"), ptype_desc.type(), &ptype_desc, NULL))
+      return false;
 
     if (use_cxxin) {
       if (String* in_tm = Getattr(p, "tmap:cxxin"))
@@ -552,7 +554,8 @@ struct cxx_wrappers
       if (rtype_desc_)
 	rtype_desc_->set_type(type);
 
-      do_resolve_type(node_func_, type, tm, ptype_desc_, rtype_desc_);
+      if (!do_resolve_type(node_func_, type, tm, ptype_desc_, rtype_desc_))
+	return false;
     }
 
     return true;
@@ -589,7 +592,7 @@ private:
   //
   // Also fills in the start/end wrapper parts of the provided type descriptions if they're not null, with the casts needed to translate from C type to C++ type
   // (this is used for the parameters of C++ functions, hence the name) and from C types to C++ types (which is used for the function return values).
-  static void do_resolve_type(Node* n, String* type, String* s, cxx_ptype_desc* ptype_desc, cxx_rtype_desc* rtype_desc) {
+  static bool do_resolve_type(Node* n, String* type, String* s, cxx_ptype_desc* ptype_desc, cxx_rtype_desc* rtype_desc) {
     enum TypeKind
     {
       Type_Ptr,
@@ -620,9 +623,11 @@ private:
 	  "Unsupported typemap \"%s\" used for type \"%s\" of \"%s\"\n",
 	  s, type, Getattr(n, "name")
 	);
+
+	return false;
       }
 
-      return;
+      return true;
     }
 
     // The logic here is somewhat messy because we use the same "$resolved_type*" typemap for pointers/references to both enums and classes, but we actually
@@ -721,9 +726,15 @@ private:
 	  Replaceall(typestr, basetypestr, classname);
 	}
       } else {
-	// This is something unknown, so just use an opaque typedef already declared in C wrappers section for it.
-	typestr = NewStringf("SWIGTYPE%s*", SwigType_manglestr(stripped_type));
 	classname = NULL;
+      }
+
+      if (!classname) {
+	Swig_warning(WARN_C_UNSUPPORTTED, input_file, line_number,
+	  "Unsupported C++ wrapper function %s type \"%s\"\n",
+	  ptype_desc ? "parameter" : "return", SwigType_str(type, 0)
+	);
+	return false;
       }
 
       const char* const owns = GetFlag(n, "feature:new") ? "true" : "false";
@@ -734,27 +745,20 @@ private:
 	  }
 
 	  if (rtype_desc) {
-	    if (classname) {
-	      rtype_desc->apply_out_typemap(NewStringf(
-		  "$cresult ? new %s($cresult, %s) : nullptr;",
-		  classname, owns
-		));
-	    }
+	    rtype_desc->apply_out_typemap(NewStringf(
+		"$cresult ? new %s($cresult, %s) : nullptr;",
+		classname, owns
+	      ));
 	  }
 	  break;
 
 	case Type_Ref:
 	  if (rtype_desc) {
-	    if (classname) {
-	      // We can't return a reference, as this requires an existing object and we don't have any, so we have to return an object instead, and this object
-	      // must be constructed using the special ctor not taking the pointer ownership.
-	      typestr = Copy(classname);
+	    // We can't return a reference, as this requires an existing object and we don't have any, so we have to return an object instead, and this object
+	    // must be constructed using the special ctor not taking the pointer ownership.
+	    typestr = Copy(classname);
 
-	      rtype_desc->apply_out_typemap(NewStringf("%s{$cresult, false}", classname));
-	    } else {
-	      // We can't do anything at all in this case.
-	      Swig_error(input_file, line_number, "Unknown reference return type \"%s\"\n", typestr.get());
-	    }
+	    rtype_desc->apply_out_typemap(NewStringf("%s{$cresult, false}", classname));
 	  }
 
 	  if (ptype_desc) {
@@ -764,22 +768,18 @@ private:
 
 	case Type_Obj:
 	  if (rtype_desc) {
-	    if (classname) {
-	      // The pointer returned by C function wrapping a function returning an object should never be null unless an exception happened, so we don't test
-	      // for it here, unlike in Type_Ptr case.
-	      //
-	      // Also, normally all returned objects should be owned by their wrappers, but there is a special case of objects not being returned by value: this
-	      // seems not to make sense, but can actually happen when typemaps map references or pointers to objects, like they do for e.g. shared_ptr<>.
-	      //
-	      // Note that we must use the type of the function, retrieved from its node, here and not the type passed to us which is the result of typemap
-	      // expansion and so may not be a reference any more.
-	      rtype_desc->apply_out_typemap(NewStringf("%s{$cresult, %s}",
-		  typestr.get(),
-		  SwigType_isreference(Getattr(n, "type")) ? owns : "true"
-		));
-	    } else {
-	      Swig_error(input_file, line_number, "Unknown object return type \"%s\"\n", typestr.get());
-	    }
+	    // The pointer returned by C function wrapping a function returning an object should never be null unless an exception happened, so we don't test
+	    // for it here, unlike in Type_Ptr case.
+	    //
+	    // Also, normally all returned objects should be owned by their wrappers, but there is a special case of objects not being returned by value: this
+	    // seems not to make sense, but can actually happen when typemaps map references or pointers to objects, like they do for e.g. shared_ptr<>.
+	    //
+	    // Note that we must use the type of the function, retrieved from its node, here and not the type passed to us which is the result of typemap
+	    // expansion and so may not be a reference any more.
+	    rtype_desc->apply_out_typemap(NewStringf("%s{$cresult, %s}",
+		typestr.get(),
+		SwigType_isreference(Getattr(n, "type")) ? owns : "true"
+	      ));
 	  }
 
 	  if (ptype_desc) {
@@ -799,6 +799,8 @@ private:
     }
 
     Replaceall(s, typemaps[typeKind], typestr);
+
+    return true;
   }
 
 
