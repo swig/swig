@@ -504,9 +504,7 @@ struct cxx_wrappers
   }
 
   // Return the type description for the given parameter of the function.
-  cxx_ptype_desc lookup_cxx_parm_type(Node* n, Parm* p) {
-    cxx_ptype_desc ptype_desc;
-
+  bool lookup_cxx_parm_type(cxx_ptype_desc& ptype_desc, Node* n, Parm* p) {
     // Ensure our own replaceSpecialVariables() is used for $typemap() expansion.
     temp_ptr_setter<cxx_ptype_desc*> set(&ptype_desc_, &ptype_desc);
 
@@ -517,17 +515,24 @@ struct cxx_wrappers
       type = Swig_typemap_lookup("ctype", p, "", NULL);
     }
 
-    if (type) {
-      ptype_desc.set_type(type);
-      do_resolve_type(n, Getattr(p, "type"), ptype_desc.type(), &ptype_desc, NULL);
+    if (!type) {
+      Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, Getfile(p), Getline(p),
+	"No ctype typemap defined for the parameter \"%s\" of %s\n",
+	Getattr(p, "name"),
+	Getattr(n, "sym:name")
+      );
+      return false;
     }
+
+    ptype_desc.set_type(type);
+    do_resolve_type(n, Getattr(p, "type"), ptype_desc.type(), &ptype_desc, NULL);
 
     if (use_cxxin) {
       if (String* in_tm = Getattr(p, "tmap:cxxin"))
 	ptype_desc.apply_in_typemap(Copy(in_tm));
     }
 
-    return ptype_desc;
+    return true;
   }
 
 
@@ -969,15 +974,9 @@ public:
       for (; p; p = nextSibling(p)) {
 	String* const name = Getattr(p, "lname");
 
-	const cxx_ptype_desc ptype_desc = cxx_wrappers_.lookup_cxx_parm_type(n, p);
-	if (!ptype_desc.type()) {
-	  Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, Getfile(p), Getline(p),
-	    "No ctype typemap defined for the parameter \"%s\" of %s\n",
-	    name,
-	    Getattr(n, "sym:name")
-	  );
+	cxx_ptype_desc ptype_desc;
+	if (!cxx_wrappers_.lookup_cxx_parm_type(ptype_desc, n, p))
 	  return;
-	}
 
 	if (Len(parms_cxx))
 	  Append(parms_cxx, ", ");
