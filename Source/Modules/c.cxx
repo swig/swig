@@ -1582,7 +1582,7 @@ public:
 	// Special case, just leave it unchanged.
 	typestr = NewString("SwigObj");
       } else {
-	typestr = getClassProxyName(classnametype);
+	typestr = getClassProxyName(btype);
 	if (!typestr) {
 	  if (SwigType_isbuiltin(btype)) {
 	    // This should work just as well in C without any changes.
