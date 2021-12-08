@@ -62,6 +62,39 @@ SWIGEXPORTC void SWIG_CException_Raise(int code, const char* msg) {
 #endif // SWIG_CException_DEFINED
 %}
 
+#ifdef SWIG_CXX_WRAPPERS
+
+// This is somewhat of a hack, but our generated header may include another
+// generated header, when using multiple modules, and defining swig_check() in
+// all of them would result in errors, so we use SWIG_swig_check_DEFINED to
+// prevent this from happening.
+//
+// This also has a nice side effect of allowing the user code to predefine this
+// symbol and provide their own SWIG_swig_check_DEFINED implementation to
+// customize exception handling.
+%insert("cxxcode") %{
+#ifndef SWIG_swig_check_DEFINED
+#define SWIG_swig_check_DEFINED 1
+
+inline void swig_check() {
+  if (SWIG_CException* swig_ex = SWIG_CException::get_pending()) {
+    SWIG_CException swig_ex_copy{*swig_ex};
+    delete swig_ex;
+    SWIG_CException::reset_pending();
+    throw swig_ex_copy;
+  }
+}
+
+template <typename T> T swig_check(T x) {
+  swig_check();
+  return x;
+}
+
+#endif // SWIG_swig_check_DEFINED
+%}
+
+#endif // SWIG_CXX_WRAPPERS
+
 %insert("runtime") "swigerrors.swg"
 
 #define SWIG_exception(code, msg)\

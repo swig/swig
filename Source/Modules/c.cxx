@@ -419,6 +419,7 @@ struct cxx_wrappers
 
     // Allow using SWIG directive to inject code here.
     Swig_register_filebyname("cxxheader", sect_cxx_h);
+    Swig_register_filebyname("cxxcode", sect_impls);
   }
 
   // This function must be called after initialize(). The two can't be combined because we don't yet know if we're going to use exceptions or not when we
@@ -426,26 +427,6 @@ struct cxx_wrappers
   void initialize_exceptions(exceptions_support support) {
     switch (support) {
       case exceptions_support_enabled:
-	// Generate the functions which will be used in all wrappers to check for the exceptions only in this case, i.e. do not do it if they're already defined
-	// in another module imported by this one.
-	Printv(sect_impls,
-	  "inline void swig_check() {\n",
-	  cindent, "if (SWIG_CException* swig_ex = SWIG_CException::get_pending()) {\n",
-	  cindent, cindent, "SWIG_CException swig_ex_copy{*swig_ex};\n",
-	  cindent, cindent, "delete swig_ex;\n",
-	  cindent, cindent, "SWIG_CException::reset_pending();\n",
-	  cindent, cindent, "throw swig_ex_copy;\n",
-	  cindent, "}\n",
-	  "}\n\n",
-	  "template <typename T> T swig_check(T x) {\n",
-	  cindent, "swig_check();\n",
-	  cindent, "return x;\n",
-	  "}\n\n",
-	  NIL
-	);
-
-	// fall through
-
       case exceptions_support_imported:
 	except_check_start = "swig_check(";
 	except_check_end = ")";
@@ -1756,6 +1737,8 @@ public:
       Preprocessor_define("SWIG_C_EXCEPT 1", 0);
     if (CPlusPlus)
       Preprocessor_define("SWIG_CPPMODE 1", 0);
+    if (use_cxx_wrappers)
+      Preprocessor_define("SWIG_CXX_WRAPPERS 1", 0);
 
     SWIG_library_directory("c");
 

@@ -683,6 +683,10 @@ void SomeIntTemplateClass_delete(SomeIntTemplateClass * carg1);
 
 <H2><a name="C_exceptions"></a>36.5 Exception handling</H2>
 
+<p>
+Any call to a C++ function may throw an exception, which cannot be caught by C code. Instead, the special <tt>SWIG_CException_get_pending()</tt> function must be called to check for this. If it returns a non-null pointer, <tt>SWIG_CException_msg_get()</tt> can be called to retrieve the error message associated with the exception. Finally, <tt>SWIG_CException_reset_pending()</tt> must be called to free the exception object and reset the current pending exception. Note that exception handling is much simpler when using C++, rather than C, wrappers, see sections 36.6.2.
+</p>
+
 <H2><a name="C_cxx_wrappers"></a>36.6 C++ Wrappers</H2>
 
 <p>
@@ -702,8 +706,52 @@ Other ones are due to things that could be supported but haven't been implemente
 </ul>
 </p>
 
-Note that <tt>cxxheader</tt> section can be used to output additional
-declarations to the C++-only part of the generated header.
+<H3>36.6.1 Additional sections</H3>
+
+Generated C++ code can be customized by inserting custom code in the following sections:
+
+<ul>
+  <li><tt>cxxheader</tt> for including additional headers and other declarations in the global scope.</li>
+  <li><tt>cxxcode</tt> for additional code to appear after the declarations of all wrapper classes, inside the module-specific namespace.</li>
+</ul>
+
+<H3>36.6.2 Exception handling</H3>
+
+<p>
+Exception handling in C++ is more natural, as the exceptions are re-thrown when using C++ wrappers and so can be caught, as objects of the special <tt>SWIG_CException</tt> type, using the usual <tt>try/catch</tt> statement. The objects of <tt>SWIG_CException</tt> class have <tt>code()</tt> and <tt>msg()</tt> methods, with the latter returning the error message associated with the exception.
+</p>
+
+<p>
+If necessary, a custom exception type may be used instead of <tt>SWIG_CException</tt>. To do this, a custom implementation of <tt>swig_check()</tt> function, called to check for the pending exception and throw the corresponding C++ exception if necessary, must be provided and <tt>SWIG_swig_check_DEFINED</tt> preprocessor symbol must be defined to prevent the default implementation of this function from being compiled:
+</p>
+<div class="code"><pre>
+%insert(cxxheader) %{
+#ifndef SWIG_swig_check_DEFINED
+#define SWIG_swig_check_DEFINED 1
+
+#include <stdexcept>
+
+class Exception : public std::runtime_error {
+public:
+    explicit Exception(const char* msg) : std::runtime_error{msg} {}
+};
+
+inline void swig_check() {
+  if (auto* swig_ex = SWIG_CException_get_pending()) {
+    Exception const e{SWIG_CException_msg_get(swig_ex)};
+    SWIG_CException_reset_pending();
+    throw e;
+  }
+}
+
+template <typename T> T swig_check(T x) {
+  swig_check();
+  return x;
+}
+
+#endif // SWIG_swig_check_DEFINED
+%}
+</pre></div>
 
 </body>
 </html>
