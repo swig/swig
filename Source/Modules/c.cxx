@@ -828,6 +828,9 @@ public:
     except_check_start =
     except_check_end = "";
 
+    if (Checkattr(n, "feature:cxxignore", "1"))
+      return;
+
     // Usually generating wrappers for overloaded methods is fine, but sometimes their types can clash after applying typemaps and in this case we have no
     // choice but to avoid generating them, as otherwise we'd just generate uncompilable code.
     if (Getattr(n, "sym:overloaded")) {
@@ -978,6 +981,9 @@ public:
     class_node_ = NULL;
 
     if (!cxx_wrappers_.is_initialized())
+      return;
+
+    if (Checkattr(n, "feature:cxxignore", "1"))
       return;
 
     String* const classname = Getattr(n, "sym:name");

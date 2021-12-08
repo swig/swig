@@ -706,13 +706,18 @@ Other ones are due to things that could be supported but haven't been implemente
 </ul>
 </p>
 
-<H3>36.6.1 Additional sections</H3>
+<H3>36.6.1 Additional customization possibilities</H3>
 
 Generated C++ code can be customized by inserting custom code in the following sections:
 
 <ul>
   <li><tt>cxxheader</tt> for including additional headers and other declarations in the global scope.</li>
   <li><tt>cxxcode</tt> for additional code to appear after the declarations of all wrapper classes, inside the module-specific namespace.</li>
+</ul>
+
+The following features are taken into account when generating C++ wrappers:
+<ul>
+  <li><tt>cxxignore</tt> May be set to skip generation of C++ wrappers for the given function or class, while still generating C wrappers for them.</li>
 </ul>
 
 <H3>36.6.2 Exception handling</H3>
