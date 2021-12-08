@@ -494,8 +494,7 @@ struct cxx_wrappers
       return false;
     }
 
-    rtype_desc.set_type(type);
-    if (!do_resolve_type(n, func_type, rtype_desc.type(), NULL, &rtype_desc))
+    if (!do_resolve_type(n, func_type, type, NULL, &rtype_desc))
       return false;
 
     if (use_cxxout) {
@@ -527,8 +526,7 @@ struct cxx_wrappers
       return false;
     }
 
-    ptype_desc.set_type(type);
-    if (!do_resolve_type(n, Getattr(p, "type"), ptype_desc.type(), &ptype_desc, NULL))
+    if (!do_resolve_type(n, Getattr(p, "type"), type, &ptype_desc, NULL))
       return false;
 
     if (use_cxxin) {
@@ -628,6 +626,12 @@ private:
 
 	return false;
       }
+
+      // Nothing else needed.
+      if (rtype_desc)
+	rtype_desc->set_type(s);
+      if (ptype_desc)
+	ptype_desc->set_type(s);
 
       return true;
     }
@@ -799,6 +803,11 @@ private:
     }
 
     Replaceall(s, typemaps[typeKind], typestr);
+
+    if (rtype_desc)
+      rtype_desc->set_type(s);
+    if (ptype_desc)
+      ptype_desc->set_type(s);
 
     return true;
   }
