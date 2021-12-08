@@ -54,7 +54,7 @@
 #define SWIG_PHP_INTERFACE_JsonSerializable_HEADER "ext/json/php_json.h"
 
 // New in PHP 8.0.
-#if PHP_MAJOR >= 8
+#if PHP_MAJOR_VERSION >= 8
 # define SWIG_PHP_INTERFACE_Stringable_CE zend_ce_stringable
 # define SWIG_PHP_INTERFACE_Stringable_HEADER "zend_interfaces.h"
 #endif
