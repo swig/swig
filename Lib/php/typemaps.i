@@ -25,7 +25,8 @@
  * ----------------------------------------------------------------------------- */
 
 %define BOOL_TYPEMAP(TYPE)
-%typemap(in) TYPE *INPUT(TYPE temp), TYPE &INPUT(TYPE temp)
+/* MAY_BE_BOOL was only added in PHP8 */
+%typemap(in, phptype="MAY_BE_FALSE|MAY_BE_TRUE") TYPE *INPUT(TYPE temp), TYPE &INPUT(TYPE temp)
 %{
   convert_to_boolean(&$input);
   temp = (Z_TYPE($input) == IS_TRUE);
@@ -39,7 +40,7 @@
   ZVAL_BOOL(&o, temp$argnum);
   t_output_helper($result, &o);
 }
-%typemap(in) TYPE *REFERENCE (TYPE lvalue), TYPE &REFERENCE (TYPE lvalue)
+%typemap(in, phptype="MAY_BE_DOUBLE") TYPE *REFERENCE (TYPE lvalue), TYPE &REFERENCE (TYPE lvalue)
 %{
   convert_to_boolean($input);
   lvalue = (Z_TYPE_P($input) == IS_TRUE);
@@ -77,7 +78,7 @@
 %enddef
 
 %define INT_TYPEMAP(TYPE)
-%typemap(in) TYPE *INPUT(TYPE temp), TYPE &INPUT(TYPE temp)
+%typemap(in, phptype="MAY_BE_LONG") TYPE *INPUT(TYPE temp), TYPE &INPUT(TYPE temp)
 %{
   temp = (TYPE) zval_get_long(&$input);
   $1 = &temp;
@@ -128,7 +129,7 @@ INT_TYPEMAP(long long);
   }
   t_output_helper($result, &o);
 }
-%typemap(in) TYPE *REFERENCE (long long lvalue)
+%typemap(in, phptype="MAY_BE_LONG") TYPE *REFERENCE (long long lvalue)
 %{
   CONVERT_LONG_LONG_IN(lvalue, long long, $input)
   $1 = &lvalue;
@@ -153,6 +154,7 @@ INT_TYPEMAP(long long);
     ZVAL_STRING($result, temp);
   }
 %}
+
 INT_TYPEMAP(unsigned long long);
 %typemap(argout,fragment="t_output_helper") unsigned long long *OUTPUT
 {
@@ -166,7 +168,7 @@ INT_TYPEMAP(unsigned long long);
   }
   t_output_helper($result, &o);
 }
-%typemap(in) TYPE *REFERENCE (unsigned long long lvalue)
+%typemap(in, phptype="MAY_BE_LONG") TYPE *REFERENCE (unsigned long long lvalue)
 %{
   CONVERT_UNSIGNED_LONG_LONG_IN(lvalue, unsigned long long, $input)
   $1 = &lvalue;
@@ -252,7 +254,7 @@ INT_TYPEMAP(unsigned long long);
 %typemap(argout) unsigned long long &INOUT = unsigned long long *OUTPUT;
 %typemap(argout) signed char &INOUT = signed char *OUTPUT;
 
-%typemap(in) char INPUT[ANY] ( char temp[$1_dim0] )
+%typemap(in, phptype="MAY_BE_STRING") char INPUT[ANY] ( char temp[$1_dim0] )
 %{
   convert_to_string(&$input);
   strncpy(temp, Z_STRVAL($input), $1_dim0);
@@ -267,7 +269,7 @@ INT_TYPEMAP(unsigned long long);
   t_output_helper($result, &o);
 }
 
-%typemap(in,numinputs=0) void **OUTPUT (int force),
+%typemap(in,numinputs=0,phptype="MAY_BE_OBJECT|MAY_BE_NULL") void **OUTPUT (int force),
                          void *&OUTPUT (int force)
 %{
   /* If they pass NULL by reference, make it into a void*

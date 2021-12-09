@@ -1,5 +1,5 @@
-%define %pass_by_ref( TYPE, CONVERT_IN, CONVERT_OUT )
-%typemap(in, byref=1) TYPE *REF ($*1_ltype tmp),
+%define %pass_by_ref( TYPE, PHP_TYPE, CONVERT_IN, CONVERT_OUT )
+%typemap(in,byref=1,phptype=PHP_TYPE) TYPE *REF ($*1_ltype tmp),
              TYPE &REF ($*1_ltype tmp)
 %{
   if (Z_ISREF($input)) {
@@ -18,25 +18,25 @@
 %}
 %enddef
 
-%pass_by_ref( size_t, CONVERT_INT_IN, ZVAL_LONG );
+%pass_by_ref( size_t, "MAY_BE_LONG", CONVERT_INT_IN, ZVAL_LONG );
 
-%pass_by_ref( signed int, CONVERT_INT_IN, ZVAL_LONG );
-%pass_by_ref( int, CONVERT_INT_IN, ZVAL_LONG );
-%pass_by_ref( unsigned int, CONVERT_INT_IN, ZVAL_LONG );
+%pass_by_ref( signed int, "MAY_BE_LONG", CONVERT_INT_IN, ZVAL_LONG );
+%pass_by_ref( int, "MAY_BE_LONG", CONVERT_INT_IN, ZVAL_LONG );
+%pass_by_ref( unsigned int, "MAY_BE_LONG", CONVERT_INT_IN, ZVAL_LONG );
 
-%pass_by_ref( signed short, CONVERT_INT_IN, ZVAL_LONG );
-%pass_by_ref( short, CONVERT_INT_IN, ZVAL_LONG );
-%pass_by_ref( unsigned short, CONVERT_INT_IN, ZVAL_LONG );
+%pass_by_ref( signed short, "MAY_BE_LONG", CONVERT_INT_IN, ZVAL_LONG );
+%pass_by_ref( short, "MAY_BE_LONG", CONVERT_INT_IN, ZVAL_LONG );
+%pass_by_ref( unsigned short, "MAY_BE_LONG", CONVERT_INT_IN, ZVAL_LONG );
 
-%pass_by_ref( signed long, CONVERT_INT_IN, ZVAL_LONG );
-%pass_by_ref( long, CONVERT_INT_IN, ZVAL_LONG );
-%pass_by_ref( unsigned long, CONVERT_INT_IN, ZVAL_LONG );
+%pass_by_ref( signed long, "MAY_BE_LONG", CONVERT_INT_IN, ZVAL_LONG );
+%pass_by_ref( long, "MAY_BE_LONG", CONVERT_INT_IN, ZVAL_LONG );
+%pass_by_ref( unsigned long, "MAY_BE_LONG", CONVERT_INT_IN, ZVAL_LONG );
 
-%pass_by_ref( signed char, CONVERT_INT_IN, ZVAL_LONG );
-%pass_by_ref( char, CONVERT_CHAR_IN, ZVAL_STRING );
-%pass_by_ref( unsigned char, CONVERT_INT_IN, ZVAL_LONG );
+%pass_by_ref( signed char, "MAY_BE_LONG", CONVERT_INT_IN, ZVAL_LONG );
+%pass_by_ref( char, "MAY_BE_STRING", CONVERT_CHAR_IN, ZVAL_STRING );
+%pass_by_ref( unsigned char, "MAY_BE_LONG", CONVERT_INT_IN, ZVAL_LONG );
 
-%pass_by_ref( float, CONVERT_FLOAT_IN, ZVAL_DOUBLE );
-%pass_by_ref( double, CONVERT_FLOAT_IN, ZVAL_DOUBLE );
+%pass_by_ref( float, "MAY_BE_DOUBLE", CONVERT_FLOAT_IN, ZVAL_DOUBLE );
+%pass_by_ref( double, "MAY_BE_DOUBLE", CONVERT_FLOAT_IN, ZVAL_DOUBLE );
 
-%pass_by_ref( char *, CONVERT_CHAR_IN, ZVAL_STRING );
+%pass_by_ref( char *, "MAY_BE_STRING", CONVERT_CHAR_IN, ZVAL_STRING );

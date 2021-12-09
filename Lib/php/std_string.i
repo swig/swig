@@ -27,7 +27,7 @@ namespace std {
         $1 = (Z_TYPE($input) == IS_STRING) ? 1 : 0;
     %}
 
-    %typemap(in) string %{
+    %typemap(in, phptype="MAY_BE_STRING") string %{
         convert_to_string(&$input);
         $1.assign(Z_STRVAL($input), Z_STRLEN($input));
     %}
@@ -54,7 +54,7 @@ namespace std {
         return;
     %}
 
-    %typemap(in) const string & ($*1_ltype temp) %{
+    %typemap(in, phptype="MAY_BE_STRING") const string & ($*1_ltype temp) %{
         convert_to_string(&$input);
         temp.assign(Z_STRVAL($input), Z_STRLEN($input));
         $1 = &temp;
@@ -62,7 +62,7 @@ namespace std {
 
     /* These next two handle a function which takes a non-const reference to
      * a std::string and modifies the string. */
-    %typemap(in,byref=1) string & ($*1_ltype temp) %{
+    %typemap(in,byref=1, phptype="MAY_BE_STRING") string & ($*1_ltype temp) %{
         {
           zval * p = Z_ISREF($input) ? Z_REFVAL($input) : &$input;
           convert_to_string(p);
