@@ -37,7 +37,7 @@ namespace std {
         $result.assign(Z_STRVAL_P($input), Z_STRLEN_P($input));
     %}
 
-    %typemap(out) string %{
+    %typemap(out, phptype="MAY_BE_STRING") string %{
         ZVAL_STRINGL($result, $1.data(), $1.size());
     %}
 
@@ -45,7 +45,7 @@ namespace std {
         ZVAL_STRINGL($input, $1.data(), $1.size());
     %}
 
-    %typemap(out) const string & %{
+    %typemap(out, phptype="MAY_BE_STRING") const string & %{
         ZVAL_STRINGL($result, $1->data(), $1->size());
     %}
 

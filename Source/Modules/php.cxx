@@ -676,10 +676,18 @@ public:
       --num_arguments;
       --num_required;
     }
+    // Don't annotate a return type for a constructor or a directed method.
+    String* out_phptype = NULL;
+    // directorNode being present seems to indicate if this method or one it
+    // inherits from is directed, which is what we care about here.  Using
+    // (!is_member_director(n)) would get it wrong for testcase director_frob.
+    if (!Equal(fname, "__construct") && !Getattr(n, "directorNode")) {
+      out_phptype = Getattr(n, "tmap:out:phptype");
+    }
     String * arginfo_code;
-    // FIXME: We can share arginfo still, but we need to take phptype into
+    // FIXME: We can share arginfo still, but we need to take phptype-s into
     // account when deciding what's the same.
-    if (!overload || overflowed) {
+    if (!overload || out_phptype || overflowed) {
       // We overflowed the bitmap so just generate a unique name - this only
       // happens for a function with more parameters than bits in a long
       // where a high numbered parameter is passed by reference, so should be
@@ -704,7 +712,12 @@ public:
     if (!GetFlag(arginfo_used, arginfo_code)) {
       // Not had this one before so emit it.
       SetFlag(arginfo_used, arginfo_code);
-      Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%s, 0, 0, %d)\n", arginfo_code, num_required);
+
+      if (out_phptype) {
+	Printf(s_arginfo, "ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(swig_arginfo_%s, 0, %d, %s)\n", arginfo_code, num_required, out_phptype);
+      } else {
+	Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%s, 0, 0, %d)\n", arginfo_code, num_required);
+      }
       bool skip_this = has_this;
       int param_count = 0;
       for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
@@ -1157,10 +1170,6 @@ public:
     /* Attach standard typemaps */
 
     emit_attach_parmmaps(l, f);
-    // Not issued for overloaded functions.
-    if (!overloaded && !static_getter) {
-      create_command(class_name, wname, n, false, modes);
-    }
 
     if (wrapperType == memberfn || wrapperType == membervar) {
       // Assign "this" to arg1 and remove first entry from ParmList l.
@@ -1370,10 +1379,15 @@ public:
     Wrapper_print(f, s_wrappers);
     DelWrapper(f);
     f = NULL;
-    wname = NULL;
 
-    if (overloaded && !Getattr(n, "sym:nextSibling")) {
-      dispatchFunction(n, constructor);
+    if (overloaded) {
+      if (!Getattr(n, "sym:nextSibling")) {
+	dispatchFunction(n, constructor);
+      }
+    } else {
+      if (!static_getter) {
+	create_command(class_name, wname, n, false, modes);
+      }
     }
 
     return SWIG_OK;
