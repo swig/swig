@@ -471,8 +471,7 @@ public:
 	Printf(s_init, "    NO_VERSION_YET,\n");
       }
       Printf(s_init, "    STANDARD_MODULE_PROPERTIES\n");
-      Printf(s_init, "};\n");
-      Printf(s_init, "zend_module_entry* SWIG_module_entry = &%s_module_entry;\n\n", module);
+      Printf(s_init, "};\n\n");
 
       Printf(s_init, "#ifdef __cplusplus\n");
       Printf(s_init, "extern \"C\" {\n");
