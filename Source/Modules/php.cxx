@@ -677,7 +677,9 @@ public:
       --num_required;
     }
     String * arginfo_code;
-    if (overflowed) {
+    // FIXME: We can share arginfo still, but we need to take phptype into
+    // account when deciding what's the same.
+    if (!overload || overflowed) {
       // We overflowed the bitmap so just generate a unique name - this only
       // happens for a function with more parameters than bits in a long
       // where a high numbered parameter is passed by reference, so should be
@@ -716,7 +718,20 @@ public:
 	  /* Ignored parameter */
 	  continue;
 	}
-	Printf(s_arginfo, " ZEND_ARG_INFO(%d,arg%d)\n", GetFlag(p, "tmap:in:byref"), ++param_count);
+	// FIXME:
+	// if (overload) {
+	//     // walk overloaded forms by calling previousSibling(n) repeatedly
+	//     // gather tmap:in:phptype values used per parameter - if any
+	//     overload doesn't have a type for a parameter then we can't
+	//     specify a type.
+	// }
+
+	String* phptype = Getattr(p, "tmap:in:phptype");
+	if (phptype && !overload) {
+	  Printf(s_arginfo, " ZEND_ARG_TYPE_MASK(%d,arg%d,%s,NULL)\n", GetFlag(p, "tmap:in:byref"), ++param_count, phptype);
+	} else {
+	  Printf(s_arginfo, " ZEND_ARG_INFO(%d,arg%d)\n", GetFlag(p, "tmap:in:byref"), ++param_count);
+	}
       }
       Printf(s_arginfo, "ZEND_END_ARG_INFO()\n");
     }
