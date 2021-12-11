@@ -93,6 +93,7 @@ static String *fake_class_name() {
  * different arginfo once, so we need to track which have been used.
  */
 static Hash *arginfo_used;
+static int arginfo_counter = 0;
 
 /* Track non-class pointer types we need to to wrap */
 static Hash *zend_types = 0;
@@ -631,12 +632,15 @@ public:
   /* Just need to append function names to function table to register with PHP. */
   void create_command(String *cname, String *fname, Node *n, bool overload, String *modes = NULL) {
     // This is for the single main zend_function_entry record
-    bool has_this = false;
+    ParmList *l = Getattr(n, "parms");
     if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
       Printf(f_h, "PHP_METHOD(%s%s,%s);\n", prefix, cname, fname);
-      has_this = (wrapperType != staticmemberfn) &&
-		 (wrapperType != staticmembervar) &&
-		 (Cmp(fname, "__construct") != 0);
+      if (wrapperType != staticmemberfn &&
+	  wrapperType != staticmembervar &&
+	  !Equal(fname, "__construct")) {
+	// Skip the first entry in the parameter list which is the this pointer.
+	l = Getattr(l, "tmap:in:next");
+      }
     } else {
       if (overload) {
         Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", fname);
@@ -644,137 +648,96 @@ public:
         Printf(f_h, "PHP_FUNCTION(%s);\n", fname);
       }
     }
+
+    int num_required = emit_num_required(l);
+
     // We want to only emit each different arginfo once, as that reduces the
     // size of both the generated source code and the compiled extension
     // module.  The parameters at this level are just named arg1, arg2, etc
-    // so we generate an arginfo name with the number of parameters and a
-    // bitmap value saying which (if any) are passed by reference.
-    ParmList *l = Getattr(n, "parms");
-    unsigned long bitmap = 0, bit = 1;
-    bool overflowed = false;
-    bool skip_this = has_this;
+    // so the arginfo will be the same for any function with the same number
+    // of parameter and (if present) PHP type information for parameters and
+    // return type.
+    //
+    // We generate the arginfo we would emit, then use the arginfo_used Hash
+    // to see if there's an assigned name for it already.
+    String * arginfo_code = NewStringEmpty();
+
+    // Don't annotate a return type for a constructor or a directed method.
+    // directorNode being present seems to indicate if this method or one it
+    // inherits from is directed, which is what we care about here.  Using
+    // (!is_member_director(n)) would get it wrong for testcase director_frob.
+    String* out_phptype = NULL;
+    if (!Equal(fname, "__construct") && !Getattr(n, "directorNode")) {
+      out_phptype = Getattr(n, "tmap:out:phptype");
+    }
+
+    // ### will be replaced with the id once that is known.
+    if (out_phptype) {
+      Printf(arginfo_code, "ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(swig_arginfo_###, 0, %d, %s)\n", num_required, out_phptype);
+    } else {
+      Printf(arginfo_code, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_###, 0, 0, %d)\n", num_required);
+    }
+    int param_count = 0;
     for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
-      if (skip_this) {
-	skip_this = false;
-        continue;
-      }
       String* tmap_in_numinputs = Getattr(p, "tmap:in:numinputs");
       // tmap:in:numinputs is unset for varargs, which we don't count here.
       if (!tmap_in_numinputs || Equal(tmap_in_numinputs, "0")) {
 	/* Ignored parameter */
 	continue;
       }
-      if (GetFlag(p, "tmap:in:byref")) {
-	  bitmap |= bit;
-	  if (bit == 0) overflowed = true;
-      }
-      bit <<= 1;
-    }
-    int num_arguments = emit_num_arguments(l);
-    int num_required = emit_num_required(l);
-    if (has_this) {
-      --num_arguments;
-      --num_required;
-    }
-    // Don't annotate a return type for a constructor or a directed method.
-    String* out_phptype = NULL;
-    // directorNode being present seems to indicate if this method or one it
-    // inherits from is directed, which is what we care about here.  Using
-    // (!is_member_director(n)) would get it wrong for testcase director_frob.
-    if (!Equal(fname, "__construct") && !Getattr(n, "directorNode")) {
-      out_phptype = Getattr(n, "tmap:out:phptype");
-    }
-    String * arginfo_code;
-    // FIXME: We can share arginfo still, but we need to take phptype-s into
-    // account when deciding what's the same.
-    if (!overload || out_phptype || overflowed) {
-      // We overflowed the bitmap so just generate a unique name - this only
-      // happens for a function with more parameters than bits in a long
-      // where a high numbered parameter is passed by reference, so should be
-      // rare in practice.
-      static int overflowed_counter = 0;
-      arginfo_code = NewStringf("z%d", ++overflowed_counter);
-    } else if (bitmap == 0) {
-      // No parameters passed by reference.
-      if (num_required == num_arguments) {
-	  arginfo_code = NewStringf("%d", num_arguments);
-      } else {
-	  arginfo_code = NewStringf("%d_%d", num_required, num_arguments);
-      }
-    } else {
-      if (num_required == num_arguments) {
-	  arginfo_code = NewStringf("%d_r%lx", num_arguments, bitmap);
-      } else {
-	  arginfo_code = NewStringf("%d_%d_r%lx", num_required, num_arguments, bitmap);
-      }
-    }
+      // FIXME:
+      // if (overload) {
+      //     // walk overloaded forms by calling previousSibling(n) repeatedly
+      //     // gather tmap:in:phptype values used per parameter - if any
+      //     overload doesn't have a type for a parameter then we can't
+      //     specify a type.
+      // }
 
-    if (!GetFlag(arginfo_used, arginfo_code)) {
-      // Not had this one before so emit it.
-      SetFlag(arginfo_used, arginfo_code);
-
-      if (out_phptype) {
-	Printf(s_arginfo, "ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(swig_arginfo_%s, 0, %d, %s)\n", arginfo_code, num_required, out_phptype);
+      String* phptype = Getattr(p, "tmap:in:phptype");
+      if (phptype && !overload) {
+	Printf(arginfo_code, " ZEND_ARG_TYPE_MASK(%d,arg%d,%s,NULL)\n", GetFlag(p, "tmap:in:byref"), ++param_count, phptype);
       } else {
-	Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%s, 0, 0, %d)\n", arginfo_code, num_required);
+	Printf(arginfo_code, " ZEND_ARG_INFO(%d,arg%d)\n", GetFlag(p, "tmap:in:byref"), ++param_count);
       }
-      bool skip_this = has_this;
-      int param_count = 0;
-      for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
-	if (skip_this) {
-	  skip_this = false;
-	  continue;
-	}
-	String* tmap_in_numinputs = Getattr(p, "tmap:in:numinputs");
-	// tmap:in:numinputs is unset for varargs, which we don't count here.
-	if (!tmap_in_numinputs || Equal(tmap_in_numinputs, "0")) {
-	  /* Ignored parameter */
-	  continue;
-	}
-	// FIXME:
-	// if (overload) {
-	//     // walk overloaded forms by calling previousSibling(n) repeatedly
-	//     // gather tmap:in:phptype values used per parameter - if any
-	//     overload doesn't have a type for a parameter then we can't
-	//     specify a type.
-	// }
-
-	String* phptype = Getattr(p, "tmap:in:phptype");
-	if (phptype && !overload) {
-	  Printf(s_arginfo, " ZEND_ARG_TYPE_MASK(%d,arg%d,%s,NULL)\n", GetFlag(p, "tmap:in:byref"), ++param_count, phptype);
-	} else {
-	  Printf(s_arginfo, " ZEND_ARG_INFO(%d,arg%d)\n", GetFlag(p, "tmap:in:byref"), ++param_count);
-	}
-      }
-      Printf(s_arginfo, "ZEND_END_ARG_INFO()\n");
     }
+    Printf(arginfo_code, "ZEND_END_ARG_INFO()\n");
+
+    String * arginfo_id = Getattr(arginfo_used, arginfo_code);
+    if (!arginfo_id) {
+      // Not had this arginfo before.
+      arginfo_id = NewStringf("%d", arginfo_counter++);
+      Setattr(arginfo_used, arginfo_code, arginfo_id);
+      Replace(arginfo_code, "###", arginfo_id, DOH_REPLACE_FIRST);
+      Append(s_arginfo, arginfo_code);
+    }
+    Delete(arginfo_code);
+    arginfo_code = NULL;
 
     String * s = cs_entry;
     if (!s) s = s_entry;
     if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
-      Printf(all_cs_entry, " PHP_ME(%s%s,%s,swig_arginfo_%s,%s)\n", prefix, cname, fname, arginfo_code, modes);
+      Printf(all_cs_entry, " PHP_ME(%s%s,%s,swig_arginfo_%s,%s)\n", prefix, cname, fname, arginfo_id, modes);
     } else {
       if (overload) {
 	if (wrap_nonclass_global) {
-	  Printf(s, " ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%s)\n", Getattr(n, "sym:name"), fname, arginfo_code);
+	  Printf(s, " ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%s)\n", Getattr(n, "sym:name"), fname, arginfo_id);
 	}
 
 	if (wrap_nonclass_fake_class) {
 	  (void)fake_class_name();
-	  Printf(fake_cs_entry, " ZEND_NAMED_ME(%(lower)s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", Getattr(n, "sym:name"), fname, arginfo_code);
+	  Printf(fake_cs_entry, " ZEND_NAMED_ME(%(lower)s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", Getattr(n, "sym:name"), fname, arginfo_id);
 	}
       } else {
 	if (wrap_nonclass_global) {
-	  Printf(s, " PHP_FE(%s,swig_arginfo_%s)\n", fname, arginfo_code);
+	  Printf(s, " PHP_FE(%s,swig_arginfo_%s)\n", fname, arginfo_id);
 	}
 
 	if (wrap_nonclass_fake_class) {
 	  String *fake_class = fake_class_name();
-	  Printf(fake_cs_entry, " PHP_ME(%s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", fake_class, fname, arginfo_code);
+	  Printf(fake_cs_entry, " PHP_ME(%s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", fake_class, fname, arginfo_id);
 	}
       }
     }
-    Delete(arginfo_code);
   }
 
   /* ------------------------------------------------------------
@@ -873,14 +836,14 @@ public:
     if (!GetFlag(arginfo_used, "1")) {
       SetFlag(arginfo_used, "1");
       Append(s_arginfo,
-	     "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_1, 0, 0, 1)\n"
+	     "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_x1, 0, 0, 1)\n"
 	     " ZEND_ARG_INFO(0,arg1)\n"
 	     "ZEND_END_ARG_INFO()\n");
     }
     if (!GetFlag(arginfo_used, "2")) {
       SetFlag(arginfo_used, "2");
       Append(s_arginfo,
-	     "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_2, 0, 0, 2)\n"
+	     "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_x2, 0, 0, 2)\n"
 	     " ZEND_ARG_INFO(0,arg1)\n"
 	     " ZEND_ARG_INFO(0,arg2)\n"
 	     "ZEND_END_ARG_INFO()\n");
@@ -889,7 +852,7 @@ public:
     Wrapper *f = NewWrapper();
 
     Printf(f_h, "PHP_METHOD(%s%s,__set);\n", prefix, class_name);
-    Printf(all_cs_entry, " PHP_ME(%s%s,__set,swig_arginfo_2,ZEND_ACC_PUBLIC)\n", prefix, class_name);
+    Printf(all_cs_entry, " PHP_ME(%s%s,__set,swig_arginfo_x2,ZEND_ACC_PUBLIC)\n", prefix, class_name);
     Printf(f->code, "PHP_METHOD(%s%s,__set) {\n", prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n");
@@ -927,7 +890,7 @@ public:
 
 
     Printf(f_h, "PHP_METHOD(%s%s,__get);\n", prefix, class_name);
-    Printf(all_cs_entry, " PHP_ME(%s%s,__get,swig_arginfo_1,ZEND_ACC_PUBLIC)\n", prefix, class_name);
+    Printf(all_cs_entry, " PHP_ME(%s%s,__get,swig_arginfo_x1,ZEND_ACC_PUBLIC)\n", prefix, class_name);
     Printf(f->code, "PHP_METHOD(%s%s,__get) {\n",prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n", class_name);
@@ -960,7 +923,7 @@ public:
 
 
     Printf(f_h, "PHP_METHOD(%s%s,__isset);\n", prefix, class_name);
-    Printf(all_cs_entry, " PHP_ME(%s%s,__isset,swig_arginfo_1,ZEND_ACC_PUBLIC)\n", prefix, class_name);
+    Printf(all_cs_entry, " PHP_ME(%s%s,__isset,swig_arginfo_x1,ZEND_ACC_PUBLIC)\n", prefix, class_name);
     Printf(f->code, "PHP_METHOD(%s%s,__isset) {\n",prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n", class_name);
