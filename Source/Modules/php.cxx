@@ -832,27 +832,29 @@ public:
       base_class = NULL;
     }
 
-    // Ensure arginfo_1 and arginfo_2 exist.
-    if (!GetFlag(arginfo_used, "1")) {
-      SetFlag(arginfo_used, "1");
+    static bool generated_magic_arginfo = false;
+    if (!generated_magic_arginfo) {
+      // Create arginfo entries for __get, __set and __isset.
       Append(s_arginfo,
-	     "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_x1, 0, 0, 1)\n"
-	     " ZEND_ARG_INFO(0,arg1)\n"
+	     "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_get, 0, 0, 1)\n"
+	     " ZEND_ARG_TYPE_MASK(0,arg1,MAY_BE_STRING,NULL)\n"
 	     "ZEND_END_ARG_INFO()\n");
-    }
-    if (!GetFlag(arginfo_used, "2")) {
-      SetFlag(arginfo_used, "2");
       Append(s_arginfo,
-	     "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_x2, 0, 0, 2)\n"
-	     " ZEND_ARG_INFO(0,arg1)\n"
+	     "ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(swig_arginfo_set, 0, 1, MAY_BE_VOID)\n"
+	     " ZEND_ARG_TYPE_MASK(0,arg1,MAY_BE_STRING,NULL)\n"
 	     " ZEND_ARG_INFO(0,arg2)\n"
 	     "ZEND_END_ARG_INFO()\n");
+      Append(s_arginfo,
+	     "ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(swig_arginfo_isset, 0, 1, MAY_BE_BOOL)\n"
+	     " ZEND_ARG_TYPE_MASK(0,arg1,MAY_BE_STRING,NULL)\n"
+	     "ZEND_END_ARG_INFO()\n");
+      generated_magic_arginfo = true;
     }
 
     Wrapper *f = NewWrapper();
 
     Printf(f_h, "PHP_METHOD(%s%s,__set);\n", prefix, class_name);
-    Printf(all_cs_entry, " PHP_ME(%s%s,__set,swig_arginfo_x2,ZEND_ACC_PUBLIC)\n", prefix, class_name);
+    Printf(all_cs_entry, " PHP_ME(%s%s,__set,swig_arginfo_set,ZEND_ACC_PUBLIC)\n", prefix, class_name);
     Printf(f->code, "PHP_METHOD(%s%s,__set) {\n", prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n");
@@ -890,7 +892,7 @@ public:
 
 
     Printf(f_h, "PHP_METHOD(%s%s,__get);\n", prefix, class_name);
-    Printf(all_cs_entry, " PHP_ME(%s%s,__get,swig_arginfo_x1,ZEND_ACC_PUBLIC)\n", prefix, class_name);
+    Printf(all_cs_entry, " PHP_ME(%s%s,__get,swig_arginfo_get,ZEND_ACC_PUBLIC)\n", prefix, class_name);
     Printf(f->code, "PHP_METHOD(%s%s,__get) {\n",prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n", class_name);
@@ -923,7 +925,7 @@ public:
 
 
     Printf(f_h, "PHP_METHOD(%s%s,__isset);\n", prefix, class_name);
-    Printf(all_cs_entry, " PHP_ME(%s%s,__isset,swig_arginfo_x1,ZEND_ACC_PUBLIC)\n", prefix, class_name);
+    Printf(all_cs_entry, " PHP_ME(%s%s,__isset,swig_arginfo_isset,ZEND_ACC_PUBLIC)\n", prefix, class_name);
     Printf(f->code, "PHP_METHOD(%s%s,__isset) {\n",prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n", class_name);
