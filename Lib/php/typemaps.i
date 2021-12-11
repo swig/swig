@@ -25,8 +25,7 @@
  * ----------------------------------------------------------------------------- */
 
 %define BOOL_TYPEMAP(TYPE)
-/* MAY_BE_BOOL was only added in PHP8 */
-%typemap(in, phptype="MAY_BE_FALSE|MAY_BE_TRUE") TYPE *INPUT(TYPE temp), TYPE &INPUT(TYPE temp)
+%typemap(in, phptype="MAY_BE_BOOL") TYPE *INPUT(TYPE temp), TYPE &INPUT(TYPE temp)
 %{
   convert_to_boolean(&$input);
   temp = (Z_TYPE($input) == IS_TRUE);

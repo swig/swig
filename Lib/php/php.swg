@@ -36,7 +36,7 @@
 
 %include <utils.i>
 
-%pass_by_val(bool, "MAY_BE_FALSE|MAY_BE_TRUE", CONVERT_BOOL_IN);
+%pass_by_val(bool, "MAY_BE_BOOL", CONVERT_BOOL_IN);
 
 %pass_by_val(size_t, "MAY_BE_LONG", CONVERT_INT_IN);
 
