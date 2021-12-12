@@ -749,10 +749,11 @@ public:
       // }
 
       String* phptype = get_phptype(p, "tmap:in:phptype");
+      int byref = GetFlag(p, "tmap:in:byref");
       if (phptype && !overload) {
-	Printf(arginfo_code, " ZEND_ARG_TYPE_MASK(%d,arg%d,%s,NULL)\n", GetFlag(p, "tmap:in:byref"), ++param_count, phptype);
+	Printf(arginfo_code, " ZEND_ARG_TYPE_MASK(%d,arg%d,%s,NULL)\n", byref, ++param_count, phptype);
       } else {
-	Printf(arginfo_code, " ZEND_ARG_INFO(%d,arg%d)\n", GetFlag(p, "tmap:in:byref"), ++param_count);
+	Printf(arginfo_code, " ZEND_ARG_INFO(%d,arg%d)\n", byref, ++param_count);
       }
     }
     Printf(arginfo_code, "ZEND_END_ARG_INFO()\n");
