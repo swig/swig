@@ -20,7 +20,7 @@ extern "C" {
 #include "zend_exceptions.h"
 #include "zend_inheritance.h"
 
-/* MAY_BE_BOOL was only added in PHP8 */
+/* MAY_BE_BOOL was new in PHP 8.0. */
 #ifndef MAY_BE_BOOL
 # define MAY_BE_BOOL (MAY_BE_FALSE|MAY_BE_TRUE)
 #endif

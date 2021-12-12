@@ -89,6 +89,61 @@ static String *fake_class_name() {
   return result;
 }
 
+static Hash *create_phptypes() {
+  Hash *h = NewHash();
+  Setattr(h, "array", "MAY_BE_ARRAY");
+  Setattr(h, "bool", "MAY_BE_BOOL");
+  Setattr(h, "callable", "MAY_BE_CALLABLE");
+  Setattr(h, "float", "MAY_BE_DOUBLE");
+  Setattr(h, "int", "MAY_BE_LONG");
+  Setattr(h, "iterable", "MAY_BE_ITERABLE");
+  Setattr(h, "mixed", "MAY_BE_MIXED");
+  Setattr(h, "null", "MAY_BE_NULL");
+  Setattr(h, "object", "MAY_BE_OBJECT");
+  Setattr(h, "resource", "MAY_BE_RESOURCE");
+  Setattr(h, "string", "MAY_BE_STRING");
+  Setattr(h, "void", "MAY_BE_VOID");
+  return h;
+}
+
+static String *get_phptype(Node *n, const String_or_char *attribute_name) {
+  String *phptype = Getattr(n, attribute_name);
+  if (!phptype || Len(phptype) == 0) return NULL;
+  List *types = Split(phptype, '|', -1);
+  String *first_type = Getitem(types, 0);
+  if (Char(first_type)[0] == '?') {
+    if (Len(types) > 1) {
+      Printf(stderr, "Ignoring invalid phptype: '%s' (can't use ? and | together)\n", phptype);
+      return NULL;
+    }
+    // Treat `?foo` just like `foo|null`.
+    Append(types, "null");
+    Setitem(types, 0, NewString(Char(first_type) + 1));
+  }
+  SortList(types, NULL);
+  String *prev = NULL;
+  String *result = NewStringEmpty();
+  for (Iterator i = First(types); i.item; i = Next(i)) {
+    if (prev && Equal(prev, i.item)) {
+      Printf(stderr, "Ignoring invalid phptype: '%s' (duplicate entry for '%s')\n", phptype, i.item);
+      return NULL;
+    }
+    if (Len(result) > 0) Append(result, "|");
+    static Hash *phptypes = create_phptypes();
+    String *c = Getattr(phptypes, i.item);
+    // FIXME: Reject void for parameter type
+    if (c) {
+      Append(result, c);
+    } else {
+      Printf(stderr, "Skipping unknown phptype entry: '%s'\n", i.item);
+      // FIXME: Handle class or interface name here...
+      // FIXME: Can be self or parent too
+    }
+    prev = i.item;
+  }
+  return result;
+}
+
 /* To reduce code size (generated and compiled) we only want to emit each
  * different arginfo once, so we need to track which have been used.
  */
@@ -668,7 +723,7 @@ public:
     // (!is_member_director(n)) would get it wrong for testcase director_frob.
     String* out_phptype = NULL;
     if (!Equal(fname, "__construct") && !Getattr(n, "directorNode")) {
-      out_phptype = Getattr(n, "tmap:out:phptype");
+      out_phptype = get_phptype(n, "tmap:out:phptype");
     }
 
     // ### will be replaced with the id once that is known.
@@ -693,7 +748,7 @@ public:
       //     specify a type.
       // }
 
-      String* phptype = Getattr(p, "tmap:in:phptype");
+      String* phptype = get_phptype(p, "tmap:in:phptype");
       if (phptype && !overload) {
 	Printf(arginfo_code, " ZEND_ARG_TYPE_MASK(%d,arg%d,%s,NULL)\n", GetFlag(p, "tmap:in:byref"), ++param_count, phptype);
       } else {

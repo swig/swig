@@ -4,7 +4,7 @@
  * PHP configuration file
  * ----------------------------------------------------------------------------- */
 
-/* For MAY_BE_OBJECT we typically should actually specify the correct class */
+/* For object we typically should actually specify the correct class */
 
 %runtime "swigrun.swg"  // Common C API type-checking code
 %runtime "swigerrors.swg"    // SWIG errors
@@ -36,56 +36,56 @@
 
 %include <utils.i>
 
-%pass_by_val(bool, "MAY_BE_BOOL", CONVERT_BOOL_IN);
+%pass_by_val(bool, "bool", CONVERT_BOOL_IN);
 
-%pass_by_val(size_t, "MAY_BE_LONG", CONVERT_INT_IN);
+%pass_by_val(size_t, "int", CONVERT_INT_IN);
 
-%pass_by_val(enum SWIGTYPE, "MAY_BE_LONG", CONVERT_INT_IN);
+%pass_by_val(enum SWIGTYPE, "int", CONVERT_INT_IN);
 
-%pass_by_val(signed int, "MAY_BE_LONG", CONVERT_INT_IN);
-%pass_by_val(int,"MAY_BE_LONG", CONVERT_INT_IN);
-%pass_by_val(unsigned int,"MAY_BE_LONG", CONVERT_INT_IN);
+%pass_by_val(signed int, "int", CONVERT_INT_IN);
+%pass_by_val(int,"int", CONVERT_INT_IN);
+%pass_by_val(unsigned int,"int", CONVERT_INT_IN);
 
-%pass_by_val(signed short, "MAY_BE_LONG", CONVERT_INT_IN);
-%pass_by_val(short,"MAY_BE_LONG", CONVERT_INT_IN);
-%pass_by_val(unsigned short, "MAY_BE_LONG", CONVERT_INT_IN);
+%pass_by_val(signed short, "int", CONVERT_INT_IN);
+%pass_by_val(short,"int", CONVERT_INT_IN);
+%pass_by_val(unsigned short, "int", CONVERT_INT_IN);
 
-%pass_by_val(signed long, "MAY_BE_LONG", CONVERT_INT_IN);
-%pass_by_val(long, "MAY_BE_LONG", CONVERT_INT_IN);
-%pass_by_val(unsigned long, "MAY_BE_LONG", CONVERT_INT_IN);
+%pass_by_val(signed long, "int", CONVERT_INT_IN);
+%pass_by_val(long, "int", CONVERT_INT_IN);
+%pass_by_val(unsigned long, "int", CONVERT_INT_IN);
 
-%pass_by_val(signed long long, "MAY_BE_LONG|MAY_BE_STRING", CONVERT_LONG_LONG_IN);
-%pass_by_val(long long, "MAY_BE_LONG|MAY_BE_STRING", CONVERT_LONG_LONG_IN);
-%pass_by_val(unsigned long long, "MAY_BE_LONG|MAY_BE_STRING", CONVERT_UNSIGNED_LONG_LONG_IN);
+%pass_by_val(signed long long, "int|string", CONVERT_LONG_LONG_IN);
+%pass_by_val(long long, "int|string", CONVERT_LONG_LONG_IN);
+%pass_by_val(unsigned long long, "int|string", CONVERT_UNSIGNED_LONG_LONG_IN);
 
-%pass_by_val(signed char, "MAY_BE_LONG", CONVERT_INT_IN);
-%pass_by_val(char, "MAY_BE_STRING", CONVERT_CHAR_IN);
-%pass_by_val(unsigned char, "MAY_BE_LONG", CONVERT_INT_IN);
+%pass_by_val(signed char, "int", CONVERT_INT_IN);
+%pass_by_val(char, "string", CONVERT_CHAR_IN);
+%pass_by_val(unsigned char, "int", CONVERT_INT_IN);
 
-%pass_by_val(float, "MAY_BE_DOUBLE", CONVERT_FLOAT_IN);
+%pass_by_val(float, "float", CONVERT_FLOAT_IN);
 
-%pass_by_val(double, "MAY_BE_DOUBLE", CONVERT_FLOAT_IN);
+%pass_by_val(double, "float", CONVERT_FLOAT_IN);
 
-%pass_by_val(char *, "MAY_BE_STRING", CONVERT_STRING_IN);
+%pass_by_val(char *, "string", CONVERT_STRING_IN);
 %typemap(in) char *& = const char *&;
 %typemap(directorout) char *& = const char *&;
 
 // char array can be in/out, though the passed string may not be big enough...
 // so we have to size it
-%typemap(in, phptype="MAY_BE_STRING") char[ANY]
+%typemap(in, phptype="string") char[ANY]
 %{
    convert_to_string(&$input);
    $1 = ($1_ltype) Z_STRVAL($input);
 %}
 
-%typemap(in, phptype="MAY_BE_STRING") (char *STRING, int LENGTH), (char *STRING, size_t LENGTH) %{
+%typemap(in, phptype="string") (char *STRING, int LENGTH), (char *STRING, size_t LENGTH) %{
    convert_to_string(&$input);
    $1 = ($1_ltype) Z_STRVAL($input);
    $2 = ($2_ltype) Z_STRLEN($input);
 %}
 
 /* Object passed by value. Convert to a pointer */
-%typemap(in, phptype="MAY_BE_OBJECT") SWIGTYPE ($&1_ltype tmp)
+%typemap(in, phptype="object") SWIGTYPE ($&1_ltype tmp)
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL) {
     zend_type_error("Expected $&1_descriptor for argument $argnum of $symname");
@@ -103,7 +103,7 @@
   $result = *tmp;
 %}
 
-%typemap(in, phptype="MAY_BE_OBJECT|MAY_BE_NULL") SWIGTYPE *,
+%typemap(in, phptype="?object") SWIGTYPE *,
 	     SWIGTYPE []
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0) {
@@ -122,7 +122,7 @@
   swig_acquire_ownership_obj((void*)$result, own);
 %}
 
-%typemap(in, phptype="MAY_BE_OBJECT") SWIGTYPE &,
+%typemap(in, phptype="object") SWIGTYPE &,
              SWIGTYPE &&
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL) {
@@ -141,7 +141,7 @@
   $result = tmp;
 %}
 
-%typemap(in, phptype="MAY_BE_OBJECT|MAY_BE_NULL") SWIGTYPE *const& ($*ltype temp)
+%typemap(in, phptype="?object") SWIGTYPE *const& ($*ltype temp)
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &temp, $*1_descriptor, 0) < 0) {
     zend_type_error("Expected $*1_descriptor for argument $argnum of $symname");
@@ -150,7 +150,7 @@
   $1 = ($1_ltype)&temp;
 %}
 
-%typemap(in, phptype="MAY_BE_OBJECT|MAY_BE_NULL") SWIGTYPE *DISOWN
+%typemap(in, phptype="?object") SWIGTYPE *DISOWN
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, SWIG_POINTER_DISOWN) < 0) {
     zend_type_error("Expected $1_descriptor for argument $argnum of $symname");
@@ -163,7 +163,7 @@
                  SWIGTYPE &,
                  SWIGTYPE &&;
 
-%typemap(in, phptype="MAY_BE_OBJECT|MAY_BE_NULL") void *
+%typemap(in, phptype="?object") void *
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &$1, 0, 0) < 0) {
     /* Allow NULL from php for void* */
@@ -213,7 +213,7 @@
 
 /* Typemap for output values */
 
-%typemap(out, phptype="MAY_BE_LONG")
+%typemap(out, phptype="int")
               int,
               unsigned int,
               short,
@@ -227,12 +227,12 @@
   RETVAL_LONG($1);
 %}
 
-%typemap(out, phptype="MAY_BE_LONG") enum SWIGTYPE
+%typemap(out, phptype="int") enum SWIGTYPE
 %{
   RETVAL_LONG((long)$1);
 %}
 
-%typemap(out, phptype="MAY_BE_LONG|MAY_BE_STRING") long long
+%typemap(out, phptype="int|string") long long
 %{
   if ((long long)LONG_MIN <= $1 && $1 <= (long long)LONG_MAX) {
     RETVAL_LONG((long)($1));
@@ -242,7 +242,7 @@
     RETVAL_STRING(temp);
   }
 %}
-%typemap(out, phptype="MAY_BE_LONG|MAY_BE_STRING") unsigned long long
+%typemap(out, phptype="int|string") unsigned long long
 %{
   if ($1 <= (unsigned long long)LONG_MAX) {
     RETVAL_LONG((long)($1));
@@ -253,7 +253,7 @@
   }
 %}
 
-%typemap(out, phptype="MAY_BE_LONG")
+%typemap(out, phptype="int")
               const int &,
               const unsigned int &,
               const short &,
@@ -268,17 +268,17 @@
   RETVAL_LONG(*$1);
 %}
 
-%typemap(out, phptype="MAY_BE_LONG") const enum SWIGTYPE &
+%typemap(out, phptype="int") const enum SWIGTYPE &
 %{
   RETVAL_LONG((long)*$1);
 %}
 
-%typemap(out, phptype="MAY_BE_LONG") const enum SWIGTYPE &&
+%typemap(out, phptype="int") const enum SWIGTYPE &&
 %{
   RETVAL_LONG((long)*$1);
 %}
 
-%typemap(out, phptype="MAY_BE_LONG|MAY_BE_STRING") const long long &
+%typemap(out, phptype="int|string") const long long &
 %{
   if ((long long)LONG_MIN <= *$1 && *$1 <= (long long)LONG_MAX) {
     RETVAL_LONG((long)(*$1));
@@ -288,7 +288,7 @@
     RETVAL_STRING(temp);
   }
 %}
-%typemap(out, phptype="MAY_BE_LONG|MAY_BE_STRING") const unsigned long long &
+%typemap(out, phptype="int|string") const unsigned long long &
 %{
   if (*$1 <= (unsigned long long)LONG_MAX) {
     RETVAL_LONG((long)(*$1));
@@ -327,12 +327,12 @@
     }
 %}
 
-%typemap(out, phptype="MAY_BE_BOOL") bool
+%typemap(out, phptype="bool") bool
 %{
   RETVAL_BOOL(($1) ? 1 : 0);
 %}
 
-%typemap(out, phptype="MAY_BE_BOOL") const bool &
+%typemap(out, phptype="bool") const bool &
 %{
   RETVAL_BOOL((*$1) ? 1 : 0);
 %}
@@ -342,13 +342,13 @@
   ZVAL_BOOL($input, ($1) ? 1 : 0);
 %}
 
-%typemap(out, phptype="MAY_BE_DOUBLE") float,
+%typemap(out, phptype="float") float,
               double
 %{
   RETVAL_DOUBLE($1);
 %}
 
-%typemap(out, phptype="MAY_BE_DOUBLE") const float &,
+%typemap(out, phptype="float") const float &,
               const double &
 %{
   RETVAL_DOUBLE(*$1);
@@ -360,22 +360,22 @@
   ZVAL_DOUBLE($input, $1);
 %}
 
-%typemap(out, phptype="MAY_BE_STRING") char
+%typemap(out, phptype="string") char
 %{
   RETVAL_STRINGL(&$1, 1);
 %}
 
-%typemap(out, phptype="MAY_BE_STRING") const char &
+%typemap(out, phptype="string") const char &
 %{
   RETVAL_STRINGL(&*$1, 1);
 %}
 
-%typemap(out, phptype="MAY_BE_STRING") char []
+%typemap(out, phptype="string") char []
 %{
   RETVAL_STRING((const char *)$1);
 %}
 
-%typemap(out, phptype="MAY_BE_STRING|MAY_BE_NULL") char *
+%typemap(out, phptype="?string") char *
 %{
   if (!$1) {
     RETVAL_NULL();
@@ -384,7 +384,7 @@
   }
 %}
 
-%typemap(out, phptype="MAY_BE_STRING|MAY_BE_NULL") char *&
+%typemap(out, phptype="?string") char *&
 %{
   if (!*$1) {
     RETVAL_NULL();
@@ -393,12 +393,12 @@
   }
 %}
 
-%typemap(out, phptype="MAY_BE_OBJECT|MAY_BE_NULL") SWIGTYPE *
+%typemap(out, phptype="?object") SWIGTYPE *
 %{
   SWIG_SetPointerZval($result, (void *)$1, $1_descriptor, $owner);
 %}
 
-%typemap(out, phptype="MAY_BE_OBJECT")
+%typemap(out, phptype="object")
               SWIGTYPE [],
               SWIGTYPE &,
               SWIGTYPE &&
@@ -406,7 +406,7 @@
   SWIG_SetPointerZval($result, (void *)$1, $1_descriptor, $owner);
 %}
 
-%typemap(out, phptype="MAY_BE_OBJECT|MAY_BE_NULL") SWIGTYPE *const&
+%typemap(out, phptype="?object") SWIGTYPE *const&
 %{
   SWIG_SetPointerZval($result, (void *)*$1, $*1_descriptor, $owner);
 %}
@@ -419,32 +419,32 @@
   SWIG_SetPointerZval($input, (void *)&$1, $1_descriptor, $owner);
 %}
 
-%typemap(out, phptype="MAY_BE_OBJECT") SWIGTYPE (CLASS::*)
+%typemap(out, phptype="object") SWIGTYPE (CLASS::*)
 {
   void * p = emalloc(sizeof($1));
   memcpy(p, &$1, sizeof($1));
   SWIG_SetPointerZval($result, (void *)p, $&1_descriptor, 1);
 }
 
-%typemap(in, phptype="MAY_BE_OBJECT") SWIGTYPE (CLASS::*)
+%typemap(in, phptype="object") SWIGTYPE (CLASS::*)
 {
   void * p = SWIG_Z_FETCH_OBJ_P(&$input)->ptr;
   memcpy(&$1, p, sizeof($1));
 }
 
-%typemap(out, phptype="MAY_BE_OBJECT|MAY_BE_NULL") SWIGTYPE *DYNAMIC
+%typemap(out, phptype="?object") SWIGTYPE *DYNAMIC
 {
   swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
   SWIG_SetPointerZval($result, (void *)$1, ty, $owner);
 }
 
-%typemap(out, phptype="MAY_BE_OBJECT") SWIGTYPE &DYNAMIC
+%typemap(out, phptype="object") SWIGTYPE &DYNAMIC
 {
   swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
   SWIG_SetPointerZval($result, (void *)$1, ty, $owner);
 }
 
-%typemap(out, phptype="MAY_BE_OBJECT") SWIGTYPE
+%typemap(out, phptype="object") SWIGTYPE
 {
 #ifdef __cplusplus
   $&1_ltype resultobj = new $1_ltype((const $1_ltype &) $1);
@@ -460,9 +460,9 @@
   SWIG_SetPointerZval($input, SWIG_as_voidptr(new $1_ltype((const $1_ltype &)$1)), $&1_descriptor, 1);
 %}
 
-%typemap(out, phptype="MAY_BE_VOID") void "";
+%typemap(out, phptype="void") void "";
 
-%typemap(out, phptype="MAY_BE_STRING") char [ANY]
+%typemap(out, phptype="string") char [ANY]
 {
   size_t len = 0;
   while (len < $1_dim0 && $1[len]) ++len;
