@@ -128,7 +128,7 @@ INT_TYPEMAP(long long);
   }
   t_output_helper($result, &o);
 }
-%typemap(in, phptype="int") TYPE *REFERENCE (long long lvalue)
+%typemap(in, phptype="int|string") TYPE *REFERENCE (long long lvalue)
 %{
   CONVERT_LONG_LONG_IN(lvalue, long long, $input)
   $1 = &lvalue;
@@ -167,7 +167,7 @@ INT_TYPEMAP(unsigned long long);
   }
   t_output_helper($result, &o);
 }
-%typemap(in, phptype="int") TYPE *REFERENCE (unsigned long long lvalue)
+%typemap(in, phptype="int|string") TYPE *REFERENCE (unsigned long long lvalue)
 %{
   CONVERT_UNSIGNED_LONG_LONG_IN(lvalue, unsigned long long, $input)
   $1 = &lvalue;
