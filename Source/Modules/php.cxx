@@ -762,6 +762,7 @@ public:
       // Not had this arginfo before.
       arginfo_id = NewStringf("%d", arginfo_counter++);
       Setattr(arginfo_used, arginfo_code, arginfo_id);
+      arginfo_code = Copy(arginfo_code);
       Replace(arginfo_code, "###", arginfo_id, DOH_REPLACE_FIRST);
       Append(s_arginfo, arginfo_code);
     }
