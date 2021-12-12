@@ -2171,7 +2171,7 @@ public:
 static PHP *maininstance = 0;
 
 // Collect non-class pointer types from the type table so we can set up PHP
-// resource types for them later.
+// classes for them later.
 //
 // NOTE: it's a function NOT A PHP::METHOD
 extern "C" {
