@@ -99,8 +99,6 @@ static Hash *zend_types = 0;
 
 static int shadow = 1;
 
-static String *wrapping_member_constant = NULL;
-
 // These static variables are used to pass some state from Handlers into functionWrapper
 static enum {
   standard = 0,
@@ -1397,6 +1395,7 @@ public:
 
     SwigType_remember(type);
 
+    String *wrapping_member_constant = Getattr(n, "memberconstantHandler:sym:name");
     if (!wrapping_member_constant) {
       {
 	tm = Swig_typemap_lookup("consttab", n, name, 0);
@@ -1780,17 +1779,6 @@ public:
     Language::destructorHandler(n);
     destructor_action = Getattr(n, "wrap:action");
     wrapperType = standard;
-    return SWIG_OK;
-  }
-
-  /* ------------------------------------------------------------
-   * memberconstantHandler()
-   * ------------------------------------------------------------ */
-
-  virtual int memberconstantHandler(Node *n) {
-    wrapping_member_constant = Getattr(n, "sym:name");
-    Language::memberconstantHandler(n);
-    wrapping_member_constant = NULL;
     return SWIG_OK;
   }
 
