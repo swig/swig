@@ -364,7 +364,7 @@ extern void DohMemoryDebug(void);
 #define Push(s,x)          DohInsertitem(s,DOH_BEGIN,x)
 #define Len                DohLen
 #define Data               DohData
-#define Char               (char *) Data
+#define Char(X)            ((char *) Data(X))
 #define Cmp                DohCmp
 #define Equal              DohEqual
 #define Setline            DohSetline
