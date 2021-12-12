@@ -494,7 +494,6 @@ public:
      * things are being called in the wrong order
      */
 
-    //    Printv(s_init,s_resourcetypes,NIL);
     Printf(s_oinit, "  /* end oinit subsection */\n");
     Printf(s_init, "%s\n", s_oinit);
 
@@ -831,49 +830,12 @@ public:
    * functionWrapper()
    * ------------------------------------------------------------ */
 
-  /* Helper method for PHP::functionWrapper */
-  bool is_class(SwigType *t) {
-    Node *n = classLookup(t);
-    if (n) {
-      String *r = Getattr(n, "php:proxy");	// Set by classDeclaration()
-      if (!r)
-	r = Getattr(n, "sym:name");	// Not seen by classDeclaration yet, but this is the name
-      if (r)
-	return true;
-    }
-    return false;
-  }
-
-  /* Helper method for PHP::functionWrapper to get class name for parameter*/
-  String *get_class_name(SwigType *t) {
-    Node *n = classLookup(t);
-    String *r = NULL;
-    if (n) {
-      r = Getattr(n, "php:proxy");      // Set by classDeclaration()
-      if (!r)
-        r = Getattr(n, "sym:name");     // Not seen by classDeclaration yet, but this is the name
-    }
-    return r;
-  }
-
   /* Helper function to check if class is wrapped */
   bool is_class_wrapped(String *className) {
     if (!className)
       return false;
     Node * n = symbolLookup(className);
     return n && Getattr(n, "classtype") != NULL;
-  }
-
-  /* Is special return type */
-  bool is_param_type_pointer(SwigType *t) {
-    
-    if (SwigType_ispointer(t) ||
-          SwigType_ismemberpointer(t) ||
-            SwigType_isreference(t) ||
-              SwigType_isarray(t))
-      return true;
-
-    return false;
   }
 
   void generate_magic_property_methods(Node *class_node, String *base_class) {
@@ -1254,7 +1216,6 @@ public:
       String *source;
 
       /* Skip ignored arguments */
-      //while (Getattr(p,"tmap:ignore")) { p = Getattr(p,"tmap:ignore:next");}
       while (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	p = Getattr(p, "tmap:in:next");
       }
@@ -1266,14 +1227,6 @@ public:
       /* Check if optional */
       if (i >= num_required) {
 	Printf(f->code, "\tif(arg_count > %d) {\n", i);
-      }
-
-      String *paramType_class = NULL;
-      bool paramType_valid = is_class(pt);
-
-      if (paramType_valid) {
-        paramType_class = get_class_name(pt);
-        Chop(paramType_class);
       }
 
       if ((tm = Getattr(p, "tmap:in"))) {
