@@ -1211,43 +1211,41 @@ public:
     // This may mean looking at Language::memberfunctionHandler
 
     for (i = 0, p = l; i < num_arguments; i++) {
-      String *source;
-
       /* Skip ignored arguments */
       while (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	p = Getattr(p, "tmap:in:next");
       }
-
-      SwigType *pt = Getattr(p, "type");
-
-      source = NewStringf("args[%d]", i);
 
       /* Check if optional */
       if (i >= num_required) {
 	Printf(f->code, "\tif(arg_count > %d) {\n", i);
       }
 
-      if ((tm = Getattr(p, "tmap:in"))) {
-	Replaceall(tm, "$input", source);
-	Setattr(p, "emit:input", source);
-	Printf(f->code, "%s\n", tm);
-	if (i == 0 && Getattr(p, "self")) {
-	  Printf(f->code, "\tif(!arg1) {\n");
-	  Printf(f->code, "\t  zend_throw_exception(zend_ce_type_error, \"this pointer is NULL\", 0);\n");
-	  Printf(f->code, "\t  return;\n");
-	  Printf(f->code, "\t}\n");
-	}
-	p = Getattr(p, "tmap:in:next");
-	if (i >= num_required) {
-	  Printf(f->code, "}\n");
-	}
-	continue;
-      } else {
+      tm = Getattr(p, "tmap:in");
+      if (!tm) {
+	SwigType *pt = Getattr(p, "type");
 	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
+	p = nextSibling(p);
+	continue;
       }
-      if (i >= num_required) {
+
+      String *source = NewStringf("args[%d]", i);
+      Replaceall(tm, "$input", source);
+      Setattr(p, "emit:input", source);
+      Printf(f->code, "%s\n", tm);
+      if (i == 0 && Getattr(p, "self")) {
+	Printf(f->code, "\tif(!arg1) {\n");
+	Printf(f->code, "\t  zend_throw_exception(zend_ce_type_error, \"this pointer is NULL\", 0);\n");
+	Printf(f->code, "\t  return;\n");
 	Printf(f->code, "\t}\n");
       }
+
+      if (i >= num_required) {
+	Printf(f->code, "}\n");
+      }
+
+      p = Getattr(p, "tmap:in:next");
+
       Delete(source);
     }
 
