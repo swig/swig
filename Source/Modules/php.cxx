@@ -160,6 +160,11 @@ static String *merge_phptypes(String *phptype1, String *phptype2) {
   // allows anything).
   if (!phptype1 || !phptype2) return NULL;
 
+  // It's common for the types to be the same, so shortcut that case.
+  if (Equal(phptype1, phptype2)) {
+    return Copy(phptype1);
+  }
+
   // An empty input means we're merging the classes part of the type
   // declaration and the corresponding overload only accepts built-in
   // types, so the merged list is just the other input.
@@ -167,11 +172,11 @@ static String *merge_phptypes(String *phptype1, String *phptype2) {
   // An input of "0" means we're merging the built-in type part and
   // the corresponding overload only accepts classes, so again the
   // merged list is just the other input.
-  if (Len(phptype1) == 0 || Equal(phptype1, "0")) {
-    return Copy(phptype2);
-  }
   if (Len(phptype2) == 0 || Equal(phptype2, "0")) {
     return Copy(phptype1);
+  }
+  if (Len(phptype1) == 0 || Equal(phptype1, "0")) {
+    return Copy(phptype2);
   }
 
   String *result = NewStringEmpty();
@@ -793,12 +798,16 @@ public:
       if (overload) {
 	// Walk overloaded forms and create a merged type declaration for
 	// the return type.
+//	Swig_print_node(n);
 	Node *o = n;
-	while ((o = previousSibling(o)) != NULL) {
+	while ((o = Getattr(o, "sym:previousSibling")) != NULL) {
+//	Swig_print_node(o);
 	  String* o_phpclasses = NewStringEmpty();
-	  String* o_phptype = get_phptype(o, "tmap:out_phptype", o_phpclasses);
-	  out_phpclasses = merge_phptypes(out_phpclasses, o_phpclasses);
+	  String* o_phptype = get_phptype(o, "tmap:out:phptype", o_phpclasses);
+	  Printf(stdout,"\nreturn: Merging (%s, %s) and (%s, %s) to ", out_phptype, out_phpclasses, o_phptype, o_phpclasses);
 	  out_phptype = merge_phptypes(out_phptype, o_phptype);
+	  out_phpclasses = merge_phptypes(out_phpclasses, o_phpclasses);
+	  Printf(stdout,"(%s, %s)\n", out_phptype, out_phpclasses);
 	}
       }
     }
@@ -833,15 +842,19 @@ public:
 	// Walk overloaded forms and create a merged type declaration for
 	// this parameter.
 	Node *o = p;
-	while ((o = previousSibling(o)) != NULL) {
+	while ((o = Getattr(o, "sym:previousSibling")) != NULL) {
 	    // FIXME: Not sure this is right - we want the corresponding parameter for previousSibling(n) don't we?
 	  String* o_phpclasses = NewStringEmpty();
 	  String* o_phptype = get_phptype(o, "tmap:in:phptype", o_phpclasses);
-	  phpclasses = merge_phptypes(phpclasses, o_phpclasses);
+	  Printf(stdout,"\narg %d: Merging (%s, %s) and (%s, %s) to ", param_count, phptype, phpclasses, o_phptype, o_phpclasses);
 	  phptype = merge_phptypes(phptype, o_phptype);
+	  phpclasses = merge_phptypes(phpclasses, o_phpclasses);
+	  Printf(stdout,"(%s, %s)\n", phptype, phpclasses);
 	  // If any overload takes a particular parameter by reference then the
 	  // dispatch function needs to take that parameter by reference.
+	  Printf(stdout,"byref merging %d ", byref);
 	  if (!byref) byref = GetFlag(p, "tmap:in:byref");
+	  Printf(stdout,"now  %d\n", byref);
 	}
       }
 
@@ -913,6 +926,7 @@ public:
 
     Wrapper *f = NewWrapper();
     String *symname = Getattr(n, "sym:name");
+    Printf(stdout, "dispatchFunction() for %s\n", symname);
     String *wname = NULL;
     String *modes = NULL;
     bool constructorRenameOverload = false;
@@ -1166,6 +1180,7 @@ public:
     }
     String *name = GetChar(n, "name");
     String *iname = GetChar(n, "sym:name");
+    Printf(stdout, "functionWrapper() for %s\n", iname);
     SwigType *d = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     String *nodeType = Getattr(n, "nodeType");
