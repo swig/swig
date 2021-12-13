@@ -155,11 +155,22 @@ static String *get_phptype(Node *n, const String_or_char *attribute_name, String
 }
 
 static String *merge_phptypes(String *phptype1, String *phptype2) {
-  if (!phptype1 || Equal(phptype1, "0")) {
+  // If an input is NULL then there's no type declaration and the merged
+  // version is also no type declaration (because at least one overload
+  // allows anything).
+  if (!phptype1 || !phptype2) return NULL;
+
+  // An empty input means we're merging the classes part of the type
+  // declaration and the corresponding overload only accepts built-in
+  // types, so the merged list is just the other input.
+  //
+  // An input of "0" means we're merging the built-in type part and
+  // the corresponding overload only accepts classes, so again the
+  // merged list is just the other input.
+  if (Len(phptype1) == 0 || Equal(phptype1, "0")) {
     return Copy(phptype2);
   }
-
-  if (!phptype2 || Equal(phptype2, "0")) {
+  if (Len(phptype2) == 0 || Equal(phptype2, "0")) {
     return Copy(phptype1);
   }
 
@@ -779,6 +790,17 @@ public:
     String* out_phpclasses = NewStringEmpty();
     if (!Equal(fname, "__construct") && !Getattr(n, "directorNode")) {
       out_phptype = get_phptype(n, "tmap:out:phptype", out_phpclasses);
+      if (overload) {
+	// Walk overloaded forms and create a merged type declaration for
+	// the return type.
+	Node *o = n;
+	while ((o = previousSibling(o)) != NULL) {
+	  String* o_phpclasses = NewStringEmpty();
+	  String* o_phptype = get_phptype(o, "tmap:out_phptype", o_phpclasses);
+	  out_phpclasses = merge_phptypes(out_phpclasses, o_phpclasses);
+	  out_phptype = merge_phptypes(out_phptype, o_phptype);
+	}
+      }
     }
 
     // ### will be replaced with the id once that is known.
@@ -801,19 +823,29 @@ public:
 	/* Ignored parameter */
 	continue;
       }
-      // FIXME:
-      // if (overload) {
-      //     // walk overloaded forms by calling previousSibling(n) repeatedly
-      //     // gather tmap:in:phptype values used per parameter - if any
-      //     overload doesn't have a type for a parameter then we can't
-      //     specify a type.
-      // }
 
       String* phpclasses = NewStringEmpty();
       String* phptype = get_phptype(p, "tmap:in:phptype", phpclasses);
       int byref = GetFlag(p, "tmap:in:byref");
       ++param_count;
-      if (phptype && !overload) {
+
+      if (overload) {
+	// Walk overloaded forms and create a merged type declaration for
+	// this parameter.
+	Node *o = p;
+	while ((o = previousSibling(o)) != NULL) {
+	    // FIXME: Not sure this is right - we want the corresponding parameter for previousSibling(n) don't we?
+	  String* o_phpclasses = NewStringEmpty();
+	  String* o_phptype = get_phptype(o, "tmap:in:phptype", o_phpclasses);
+	  phpclasses = merge_phptypes(phpclasses, o_phpclasses);
+	  phptype = merge_phptypes(phptype, o_phptype);
+	  // If any overload takes a particular parameter by reference then the
+	  // dispatch function needs to take that parameter by reference.
+	  if (!byref) byref = GetFlag(p, "tmap:in:byref");
+	}
+      }
+
+      if (phptype) {
 	if (Len(phpclasses)) {
 	  // We need to double backslashes (which are PHP namespace separators)
 	  // in list of classes.
