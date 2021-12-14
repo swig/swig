@@ -89,125 +89,6 @@ static String *fake_class_name() {
   return result;
 }
 
-static Hash *create_phptypes() {
-  Hash *h = NewHash();
-  Setattr(h, "array", "MAY_BE_ARRAY");
-  Setattr(h, "bool", "MAY_BE_BOOL");
-  Setattr(h, "callable", "MAY_BE_CALLABLE");
-  Setattr(h, "float", "MAY_BE_DOUBLE");
-  Setattr(h, "int", "MAY_BE_LONG");
-  Setattr(h, "iterable", "MAY_BE_ITERABLE");
-  Setattr(h, "mixed", "MAY_BE_MIXED");
-  Setattr(h, "null", "MAY_BE_NULL");
-  Setattr(h, "object", "MAY_BE_OBJECT");
-  Setattr(h, "resource", "MAY_BE_RESOURCE");
-  Setattr(h, "string", "MAY_BE_STRING");
-  Setattr(h, "void", "MAY_BE_VOID");
-  return h;
-}
-
-static String *get_phptype(Node *n, const String_or_char *attribute_name, String *classtypes) {
-  Clear(classtypes);
-  String *phptype = Getattr(n, attribute_name);
-  if (!phptype || Len(phptype) == 0) return NULL;
-  List *types = Split(phptype, '|', -1);
-  String *first_type = Getitem(types, 0);
-  if (Char(first_type)[0] == '?') {
-    if (Len(types) > 1) {
-      Printf(stderr, "Ignoring invalid phptype: '%s' (can't use ? and | together)\n", phptype);
-      Delete(types);
-      return NULL;
-    }
-    // Treat `?foo` just like `foo|null`.
-    Append(types, "null");
-    Setitem(types, 0, NewString(Char(first_type) + 1));
-  }
-  SortList(types, NULL);
-  String *prev = NULL;
-  String *result = NewStringEmpty();
-  for (Iterator i = First(types); i.item; i = Next(i)) {
-    if (prev && Equal(prev, i.item)) {
-      Printf(stderr, "Ignoring invalid phptype: '%s' (duplicate entry for '%s')\n", phptype, i.item);
-      Delete(result);
-      Delete(types);
-      return NULL;
-    }
-    static Hash *phptypes = create_phptypes();
-    String *c = Getattr(phptypes, i.item);
-    // FIXME: Reject void for parameter type
-    if (c) {
-      if (Len(result) > 0) Append(result, "|");
-      Append(result, c);
-    } else {
-      if (Len(classtypes) > 0) Append(classtypes, "|");
-      Append(classtypes, i.item);
-    }
-    prev = i.item;
-  }
-  Delete(types);
-
-  // Make the mask 0 if there are only class names specified.
-  if (Len(result) == 0) {
-    Append(result, "0");
-  }
-
-  return result;
-}
-
-static String *merge_phptypes(String *phptype1, String *phptype2) {
-  // If an input is NULL then there's no type declaration and the merged
-  // version is also no type declaration (because at least one overload
-  // allows anything).
-  if (!phptype1 || !phptype2) return NULL;
-
-  // It's common for the types to be the same, so shortcut that case.
-  if (Equal(phptype1, phptype2)) {
-    return Copy(phptype1);
-  }
-
-  // An empty input means we're merging the classes part of the type
-  // declaration and the corresponding overload only accepts built-in
-  // types, so the merged list is just the other input.
-  //
-  // An input of "0" means we're merging the built-in type part and
-  // the corresponding overload only accepts classes, so again the
-  // merged list is just the other input.
-  if (Len(phptype2) == 0 || Equal(phptype2, "0")) {
-    return Copy(phptype1);
-  }
-  if (Len(phptype1) == 0 || Equal(phptype1, "0")) {
-    return Copy(phptype2);
-  }
-
-  String *result = NewStringEmpty();
-  List *l1 = Split(phptype1, '|', -1);
-  List *l2 = Split(phptype2, '|', -1);
-  Iterator i1 = First(l1);
-  Iterator i2 = First(l2);
-  while (i1.item && i2.item) {
-    if (Len(result) > 0) Append(result, "|");
-    int cmp = Cmp(i1.item, i2.item);
-    if (cmp <= 0) {
-      Append(result, i1.item);
-      i1 = Next(i1);
-      if (cmp == 0) i2 = Next(i2);
-    } else {
-      Append(result, i2.item);
-      i2 = Next(i2);
-    }
-  }
-
-  if (i2.item) {
-    i1 = i2;
-  }
-  while (i1.item) {
-    if (Len(result) > 0) Append(result, "|");
-    Append(result, i1.item);
-  }
-
-  return result;
-}
-
 /* To reduce code size (generated and compiled) we only want to emit each
  * different arginfo once, so we need to track which have been used.
  */
@@ -352,7 +233,121 @@ static void SwigPHP_emit_pointer_type_registrations() {
   }
 }
 
+// Class encapsulating the machinery to add PHP type declarations.
+class PHPTypes {
+  Hash *phptypes;
+
+  // Hash with an entry for each parameter and one for the return type.
+  //
+  // We assemble the types in here before emitting them so for an overloaded
+  // function we combine the type declarations from each overloaded form.
+  Hash *merged_types;
+
+public:
+  PHPTypes() : phptypes(NewHash()), merged_types(NULL) {
+    Setattr(phptypes, "array", "MAY_BE_ARRAY");
+    Setattr(phptypes, "bool", "MAY_BE_BOOL");
+    Setattr(phptypes, "callable", "MAY_BE_CALLABLE");
+    Setattr(phptypes, "float", "MAY_BE_DOUBLE");
+    Setattr(phptypes, "int", "MAY_BE_LONG");
+    Setattr(phptypes, "iterable", "MAY_BE_ITERABLE");
+    Setattr(phptypes, "mixed", "MAY_BE_MIXED");
+    Setattr(phptypes, "null", "MAY_BE_NULL");
+    Setattr(phptypes, "object", "MAY_BE_OBJECT");
+    Setattr(phptypes, "resource", "MAY_BE_RESOURCE");
+    Setattr(phptypes, "string", "MAY_BE_STRING");
+    Setattr(phptypes, "void", "MAY_BE_VOID");
+  }
+
+  void reset() {
+    Delete(merged_types);
+    merged_types = NewList();
+  }
+
+  // key is 0 for return type, or >= 1 for parameters numbered from 1
+  void process_phptype(Node *n, int key, const String_or_char *attribute_name) {
+    Printf(stdout, "process_phptype(Node(%s), %d, \"%s\"", Getattr(n, "sym:name"), key, attribute_name);
+
+    while (Len(merged_types) <= key) {
+      Append(merged_types, NewList());
+    }
+
+    String *phptype = Getattr(n, attribute_name);
+    if (!phptype || Len(phptype) == 0) {
+      // There's no type declaration, so any merged version has no type declaration.
+      //
+      // Use a dummy DOH "Void" object as a marker to indicate there's no type
+      // declaration for this parameter/return value (you can't store NULL as a
+      // value in a DOH List).
+      Setitem(merged_types, key, NewVoid(NULL, NULL));
+      return;
+    }
+
+    DOH *merge_list = Getitem(merged_types, key);
+    if (!DohIsSequence(merge_list)) return;
+
+    List *types = Split(phptype, '|', -1);
+    String *first_type = Getitem(types, 0);
+    if (Char(first_type)[0] == '?') {
+      if (Len(types) > 1) {
+	Printf(stderr, "warning: Invalid phptype: '%s' (can't use ? and | together)\n", phptype);
+      }
+      // Treat `?foo` just like `foo|null`.
+      Append(types, "null");
+      Setitem(types, 0, NewString(Char(first_type) + 1));
+    }
+
+    SortList(types, NULL);
+    String *prev = NULL;
+    for (Iterator i = First(types); i.item; i = Next(i)) {
+      if (prev && Equal(prev, i.item)) {
+	Printf(stderr, "warning: Invalid phptype: '%s' (duplicate entry for '%s')\n", phptype, i.item);
+	continue;
+      }
+      // FIXME: Reject void for parameter type
+      Append(merge_list, i.item);
+      prev = i.item;
+    }
+  }
+
+  String *get_phptype(int key, String *classtypes) {
+    Printf(stdout, "get_phptype(%d, ...)\n", key);
+    Clear(classtypes);
+    DOH *types = Getitem(merged_types, key);
+    Printf(stdout, " types = %p\n", types);
+    String *result = NewStringEmpty();
+    if (DohIsSequence(types)) {
+      SortList(types, NULL);
+      String *prev = NULL;
+      for (Iterator i = First(types); i.item; i = Next(i)) {
+	if (prev && Equal(prev, i.item)) {
+	  // Skip duplicates when merging.
+	  continue;
+	}
+	Printf(stdout, " item = %s\n", i.item);
+	String *c = Getattr(phptypes, i.item);
+	if (c) {
+	  if (Len(result) > 0) Append(result, "|");
+	  Append(result, c);
+	} else {
+	  if (Len(classtypes) > 0) Append(classtypes, "|");
+	  Append(classtypes, i.item);
+	}
+	prev = i.item;
+      }
+    }
+    // Make the mask 0 if there are only class names specified.
+    if (Len(result) == 0) {
+      Append(result, "0");
+    }
+    Printf(stdout, " -> (%s, %s)\n", result, classtypes);
+    return result;
+  }
+};
+
 class PHP : public Language {
+  PHPTypes phptypes;
+
 public:
   PHP() {
     director_language = 1;
@@ -749,7 +744,7 @@ public:
   }
 
   /* Just need to append function names to function table to register with PHP. */
-  void create_command(String *cname, String *fname, Node *n, bool overload, String *modes = NULL) {
+  void create_command(String *cname, String *fname, Node *n, bool dispatch, String *modes = NULL) {
     // This is for the single main zend_function_entry record
     ParmList *l = Getattr(n, "parms");
     if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
@@ -759,9 +754,10 @@ public:
 	  !Equal(fname, "__construct")) {
 	// Skip the first entry in the parameter list which is the this pointer.
 	l = Getattr(l, "tmap:in:next");
+	// FIXME: does this throw the phptype key value off?
       }
     } else {
-      if (overload) {
+      if (dispatch) {
         Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", fname);
       } else {
         Printf(f_h, "PHP_FUNCTION(%s);\n", fname);
@@ -794,22 +790,7 @@ public:
     String* out_phptype = NULL;
     String* out_phpclasses = NewStringEmpty();
     if (!Equal(fname, "__construct") && !Getattr(n, "directorNode")) {
-      out_phptype = get_phptype(n, "tmap:out:phptype", out_phpclasses);
-      if (overload) {
-	// Walk overloaded forms and create a merged type declaration for
-	// the return type.
-//	Swig_print_node(n);
-	Node *o = n;
-	while ((o = Getattr(o, "sym:previousSibling")) != NULL) {
-//	Swig_print_node(o);
-	  String* o_phpclasses = NewStringEmpty();
-	  String* o_phptype = get_phptype(o, "tmap:out:phptype", o_phpclasses);
-	  Printf(stdout,"\nreturn: Merging (%s, %s) and (%s, %s) to ", out_phptype, out_phpclasses, o_phptype, o_phpclasses);
-	  out_phptype = merge_phptypes(out_phptype, o_phptype);
-	  out_phpclasses = merge_phptypes(out_phpclasses, o_phpclasses);
-	  Printf(stdout,"(%s, %s)\n", out_phptype, out_phpclasses);
-	}
-      }
+      out_phptype = phptypes.get_phptype(0, out_phpclasses);
     }
 
     // ### will be replaced with the id once that is known.
@@ -833,30 +814,21 @@ public:
 	continue;
       }
 
-      String* phpclasses = NewStringEmpty();
-      String* phptype = get_phptype(p, "tmap:in:phptype", phpclasses);
-      int byref = GetFlag(p, "tmap:in:byref");
       ++param_count;
 
-      if (overload) {
-	// Walk overloaded forms and create a merged type declaration for
-	// this parameter.
-	Node *o = p;
-	while ((o = Getattr(o, "sym:previousSibling")) != NULL) {
-	    // FIXME: Not sure this is right - we want the corresponding parameter for previousSibling(n) don't we?
-	  String* o_phpclasses = NewStringEmpty();
-	  String* o_phptype = get_phptype(o, "tmap:in:phptype", o_phpclasses);
-	  Printf(stdout,"\narg %d: Merging (%s, %s) and (%s, %s) to ", param_count, phptype, phpclasses, o_phptype, o_phpclasses);
-	  phptype = merge_phptypes(phptype, o_phptype);
-	  phpclasses = merge_phptypes(phpclasses, o_phpclasses);
-	  Printf(stdout,"(%s, %s)\n", phptype, phpclasses);
+      String *phpclasses = NewStringEmpty();
+      String *phptype;
+      phptype = phptypes.get_phptype(param_count, phpclasses);
+
+      int byref = GetFlag(p, "tmap:in:byref");
+#if 0 // FIXME: do this still
 	  // If any overload takes a particular parameter by reference then the
 	  // dispatch function needs to take that parameter by reference.
 	  Printf(stdout,"byref merging %d ", byref);
 	  if (!byref) byref = GetFlag(p, "tmap:in:byref");
 	  Printf(stdout,"now  %d\n", byref);
-	}
-      }
+	  // Also, should we be doing byref for return value?
+#endif
 
       if (phptype) {
 	if (Len(phpclasses)) {
@@ -890,7 +862,7 @@ public:
     if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
       Printf(all_cs_entry, " PHP_ME(%s%s,%s,swig_arginfo_%s,%s)\n", prefix, cname, fname, arginfo_id, modes);
     } else {
-      if (overload) {
+      if (dispatch) {
 	if (wrap_nonclass_global) {
 	  Printf(s, " ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%s)\n", Getattr(n, "sym:name"), fname, arginfo_id);
 	}
@@ -917,6 +889,7 @@ public:
    * ------------------------------------------------------------ */
   void dispatchFunction(Node *n, int constructor) {
     /* Last node in overloaded chain */
+    Printf(stdout, "dispatchFunction(Node(%s), constructor:%d)\n", Getattr(n, "sym:name"), constructor);
 
     int maxargs;
     String *tmp = NewStringEmpty();
@@ -926,7 +899,7 @@ public:
 
     Wrapper *f = NewWrapper();
     String *symname = Getattr(n, "sym:name");
-    Printf(stdout, "dispatchFunction() for %s\n", symname);
+//    Printf(stdout, "dispatchFunction() for %s\n", symname);
     String *wname = NULL;
     String *modes = NULL;
     bool constructorRenameOverload = false;
@@ -1150,27 +1123,25 @@ public:
   }
 
   bool is_setter_method(Node *n) {
-
     const char *p = GetChar(n, "sym:name");
-      if (strlen(p) > 4) {
-        p += strlen(p) - 4;
-        if (strcmp(p, "_set") == 0) {
-          return true;
-        }
+    if (strlen(p) > 4) {
+      p += strlen(p) - 4;
+      if (strcmp(p, "_set") == 0) {
+	return true;
       }
-      return false;
+    }
+    return false;
   }
 
   bool is_getter_method(Node *n) {
-
     const char *p = GetChar(n, "sym:name");
-      if (strlen(p) > 4) {
-        p += strlen(p) - 4;
-        if (strcmp(p, "_get") == 0) {
-          return true;
-        }
+    if (strlen(p) > 4) {
+      p += strlen(p) - 4;
+      if (strcmp(p, "_get") == 0) {
+	return true;
       }
-      return false;
+    }
+    return false;
   }
 
   virtual int functionWrapper(Node *n) {
@@ -1178,9 +1149,11 @@ public:
       // Handled via __set magic method - no explicit wrapper method wanted.
       return SWIG_OK;
     }
+    Printf(stdout, "functionWrapper(Node(%s))\n", Getattr(n, "sym:name"));
+
     String *name = GetChar(n, "name");
     String *iname = GetChar(n, "sym:name");
-    Printf(stdout, "functionWrapper() for %s\n", iname);
+//    Printf(stdout, "functionWrapper() for %s\n", iname);
     SwigType *d = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     String *nodeType = Getattr(n, "nodeType");
@@ -1196,7 +1169,6 @@ public:
     String *wname = NewStringEmpty();
     String *overloadwname = NULL;
     int overloaded = 0;
-    String *overname = 0;
     String *modes = NULL;
     bool static_setter = false;
     bool static_getter = false;
@@ -1214,16 +1186,19 @@ public:
 
     if (Getattr(n, "sym:overloaded")) {
       overloaded = 1;
-      overname = Getattr(n, "sym:overname");
+      overloadwname = NewString(Swig_name_wrapper(iname));
+      Printf(overloadwname, "%s", Getattr(n, "sym:overname"));
     } else {
       if (!addSymbol(iname, n))
 	return SWIG_ERROR;
     }
 
-    if (overname) {
-      // Test for overloading
-      overloadwname = NewString(Swig_name_wrapper(iname));
-      Printf(overloadwname, "%s", overname);
+    if (!Getattr(n, "sym:previousSibling")) {
+      // First function of an overloaded group or a function which isn't part
+      // of a group so reset the phptype information.
+      phptypes.reset();
+    } else {
+      Printf(stdout, "sym:previousSibling is set\n");
     }
 
     if (constructor) {
@@ -1363,6 +1338,8 @@ public:
       Printf(f->code, "WRONG_PARAM_COUNT;\n}\n\n");
     }
 
+    phptypes.process_phptype(n, 0, "tmap:out:phptype");
+
     /* Now convert from PHP to C variables */
     // At this point, argcount if used is the number of deliberately passed args
     // not including this_ptr even if it is used.
@@ -1391,6 +1368,8 @@ public:
 	p = nextSibling(p);
 	continue;
       }
+
+      phptypes.process_phptype(p, i + 1, "tmap:in:phptype");
 
       String *source = NewStringf("args[%d]", i);
       Replaceall(tm, "$input", source);
