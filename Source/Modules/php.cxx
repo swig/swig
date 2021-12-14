@@ -276,15 +276,15 @@ public:
     if (!phptype || Len(phptype) == 0) {
       // There's no type declaration, so any merged version has no type declaration.
       //
-      // Use a dummy DOH "Void" object as a marker to indicate there's no type
+      // Use a DOH None object as a marker to indicate there's no type
       // declaration for this parameter/return value (you can't store NULL as a
       // value in a DOH List).
-      Setitem(merged_types, key, NewVoid(NULL, NULL));
+      Setitem(merged_types, key, None);
       return;
     }
 
     DOH *merge_list = Getitem(merged_types, key);
-    if (!DohIsSequence(merge_list)) return;
+    if (merge_list == None) return;
 
     List *types = Split(phptype, '|', -1);
     String *first_type = Getitem(types, 0);
@@ -316,7 +316,7 @@ public:
     DOH *types = Getitem(merged_types, key);
 //    Printf(stdout, " types = %p\n", types);
     String *result = NewStringEmpty();
-    if (DohIsSequence(types)) {
+    if (types != None) {
       SortList(types, NULL);
       String *prev = NULL;
       for (Iterator i = First(types); i.item; i = Next(i)) {
