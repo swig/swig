@@ -1029,7 +1029,6 @@ public:
     String *wname = NewStringEmpty();
     String *overloadwname = NULL;
     int overloaded = 0;
-    String *overname = 0;
     String *modes = NULL;
     bool static_setter = false;
     bool static_getter = false;
@@ -1047,16 +1046,11 @@ public:
 
     if (Getattr(n, "sym:overloaded")) {
       overloaded = 1;
-      overname = Getattr(n, "sym:overname");
+      overloadwname = NewString(Swig_name_wrapper(iname));
+      Printf(overloadwname, "%s", Getattr(n, "sym:overname"));
     } else {
       if (!addSymbol(iname, n))
 	return SWIG_ERROR;
-    }
-
-    if (overname) {
-      // Test for overloading
-      overloadwname = NewString(Swig_name_wrapper(iname));
-      Printf(overloadwname, "%s", overname);
     }
 
     if (constructor) {
