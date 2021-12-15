@@ -2298,31 +2298,25 @@ void PHPTypes::process_phptype(Node *n, int key, const String_or_char *attribute
       Printf(stderr, "warning: Invalid phptype: '%s' (duplicate entry for '%s')\n", phptype, i.item);
       continue;
     }
-    // FIXME: Reject void for parameter type
+
     if (key > 0 && Equal(i.item, "void")) {
+      // Reject void for parameter type.
       Printf(stderr, "warning: Invalid phptype: '%s' ('%s' can't be used as a parameter phptype)\n", phptype, i.item);
       continue;
     }
+
     if (Equal(i.item, "SWIGTYPE")) {
       String *type = Getattr(n, "type");
-      if (!type) {
-	Printf(stdout, "*** type = NULL:\n");
-	Swig_print_node(n);
-	Append(merge_list, "object");
+      Node *class_node = maininstance->classLookup(type);
+      if (class_node) {
+	// FIXME: Prefix classname with a backslash to prevent collisions
+	// with built-in types?  Or are non of those valid anyway and so will
+	// have been renamed at this point?
+	Append(merge_list, Getattr(class_node, "sym:name"));
       } else {
-	Node *class_node = maininstance->classLookup(type);
-	if (!class_node) {
-	  Append(merge_list, NewStringf("SWIG\\%s", SwigType_manglestr(type)));
-	} else {
-	  String *class_name = Getattr(class_node, "sym:name");
-	  if (class_name) {
-	    // FIXME: Prefix classname with a backslash to prevent collisions with built-in types?  Or are non of those valid anyway and so will have been renamed at this point?
-	    Append(merge_list, class_name);
-	  } else {
-	    Swig_print_node(class_node);
-	    Append(merge_list, "object");
-	  }
-	}
+	// SWIG wraps a pointer to a non-object type as an object in a PHP
+	// class named based on the SWIG-mangled C/C++ type.
+	Append(merge_list, NewStringf("SWIG\\%s", SwigType_manglestr(type)));
       }
     } else {
       Append(merge_list, i.item);

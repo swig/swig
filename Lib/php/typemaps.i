@@ -268,7 +268,7 @@ INT_TYPEMAP(unsigned long long);
   t_output_helper($result, &o);
 }
 
-%typemap(in,numinputs=0,phptype="?object") void **OUTPUT (int force),
+%typemap(in,numinputs=0,phptype="?SWIGTYPE") void **OUTPUT (int force),
                          void *&OUTPUT (int force)
 %{
   /* If they pass NULL by reference, make it into a void*

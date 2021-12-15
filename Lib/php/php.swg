@@ -163,7 +163,7 @@
                  SWIGTYPE &,
                  SWIGTYPE &&;
 
-%typemap(in, phptype="?object") void *
+%typemap(in, phptype="?SWIGTYPE") void *
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &$1, 0, 0) < 0) {
     /* Allow NULL from php for void* */
@@ -419,14 +419,14 @@
   SWIG_SetPointerZval($input, (void *)&$1, $1_descriptor, $owner);
 %}
 
-%typemap(out, phptype="object") SWIGTYPE (CLASS::*)
+%typemap(out, phptype="SWIGTYPE") SWIGTYPE (CLASS::*)
 {
   void * p = emalloc(sizeof($1));
   memcpy(p, &$1, sizeof($1));
   SWIG_SetPointerZval($result, (void *)p, $&1_descriptor, 1);
 }
 
-%typemap(in, phptype="object") SWIGTYPE (CLASS::*)
+%typemap(in, phptype="SWIGTYPE") SWIGTYPE (CLASS::*)
 {
   // IN: SWIGTYPE CLASS::* $1_ltype
   void * p = SWIG_Z_FETCH_OBJ_P(&$input)->ptr;
@@ -439,7 +439,7 @@
   SWIG_SetPointerZval($result, (void *)$1, ty, $owner);
 }
 
-%typemap(out, phptype="object") SWIGTYPE &DYNAMIC
+%typemap(out, phptype="SWIGTYPE") SWIGTYPE &DYNAMIC
 {
   swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
   SWIG_SetPointerZval($result, (void *)$1, ty, $owner);
