@@ -265,50 +265,7 @@ public:
   }
 
   // key is 0 for return type, or >= 1 for parameters numbered from 1
-  void process_phptype(Node *n, int key, const String_or_char *attribute_name) {
-//    Printf(stdout, "process_phptype(Node(%s), %d, \"%s\"", Getattr(n, "sym:name"), key, attribute_name);
-
-    while (Len(merged_types) <= key) {
-      Append(merged_types, NewList());
-    }
-
-    String *phptype = Getattr(n, attribute_name);
-    if (!phptype || Len(phptype) == 0) {
-      // There's no type declaration, so any merged version has no type declaration.
-      //
-      // Use a DOH None object as a marker to indicate there's no type
-      // declaration for this parameter/return value (you can't store NULL as a
-      // value in a DOH List).
-      Setitem(merged_types, key, None);
-      return;
-    }
-
-    DOH *merge_list = Getitem(merged_types, key);
-    if (merge_list == None) return;
-
-    List *types = Split(phptype, '|', -1);
-    String *first_type = Getitem(types, 0);
-    if (Char(first_type)[0] == '?') {
-      if (Len(types) > 1) {
-	Printf(stderr, "warning: Invalid phptype: '%s' (can't use ? and | together)\n", phptype);
-      }
-      // Treat `?foo` just like `foo|null`.
-      Append(types, "null");
-      Setitem(types, 0, NewString(Char(first_type) + 1));
-    }
-
-    SortList(types, NULL);
-    String *prev = NULL;
-    for (Iterator i = First(types); i.item; i = Next(i)) {
-      if (prev && Equal(prev, i.item)) {
-	Printf(stderr, "warning: Invalid phptype: '%s' (duplicate entry for '%s')\n", phptype, i.item);
-	continue;
-      }
-      // FIXME: Reject void for parameter type
-      Append(merge_list, i.item);
-      prev = i.item;
-    }
-  }
+  void process_phptype(Node *n, int key, const String_or_char *attribute_name);
 
   String *get_phptype(int key, String *classtypes) {
 //    Printf(stdout, "get_phptype(%d, ...)\n", key);
@@ -817,8 +774,7 @@ public:
       ++param_count;
 
       String *phpclasses = NewStringEmpty();
-      String *phptype;
-      phptype = phptypes.get_phptype(param_count, phpclasses);
+      String *phptype = phptypes.get_phptype(param_count, phpclasses);
 
       int byref = GetFlag(p, "tmap:in:byref");
 #if 0 // FIXME: do this still
@@ -835,7 +791,7 @@ public:
 	  // We need to double backslashes (which are PHP namespace separators)
 	  // in list of classes.
 	  Replace(phpclasses, "\\", "\\\\", DOH_REPLACE_ANY);
-	  Printf(arginfo_code, " ZEND_ARG_OBJ_TYPE_MASK(%d,arg%d,%s,%d,NULL)\n", byref, param_count, phpclasses, phptype);
+	  Printf(arginfo_code, " ZEND_ARG_OBJ_TYPE_MASK(%d,arg%d,%s,%s,NULL)\n", byref, param_count, phpclasses, phptype);
 	} else {
 	  Printf(arginfo_code, " ZEND_ARG_TYPE_MASK(%d,arg%d,%s,NULL)\n", byref, param_count, phptype);
 	}
@@ -2302,6 +2258,78 @@ public:
 };				/* class PHP */
 
 static PHP *maininstance = 0;
+
+void PHPTypes::process_phptype(Node *n, int key, const String_or_char *attribute_name) {
+//    Printf(stdout, "process_phptype(Node(%s), %d, \"%s\"", Getattr(n, "sym:name"), key, attribute_name);
+
+  while (Len(merged_types) <= key) {
+    Append(merged_types, NewList());
+  }
+
+  String *phptype = Getattr(n, attribute_name);
+  if (!phptype || Len(phptype) == 0) {
+    // There's no type declaration, so any merged version has no type declaration.
+    //
+    // Use a DOH None object as a marker to indicate there's no type
+    // declaration for this parameter/return value (you can't store NULL as a
+    // value in a DOH List).
+    Setitem(merged_types, key, None);
+    return;
+  }
+
+  DOH *merge_list = Getitem(merged_types, key);
+  if (merge_list == None) return;
+
+  List *types = Split(phptype, '|', -1);
+  String *first_type = Getitem(types, 0);
+  if (Char(first_type)[0] == '?') {
+    if (Len(types) > 1) {
+      Printf(stderr, "warning: Invalid phptype: '%s' (can't use ? and | together)\n", phptype);
+    }
+    // Treat `?foo` just like `foo|null`.
+    Append(types, "null");
+    Setitem(types, 0, NewString(Char(first_type) + 1));
+  }
+
+  SortList(types, NULL);
+  String *prev = NULL;
+  for (Iterator i = First(types); i.item; i = Next(i)) {
+    if (prev && Equal(prev, i.item)) {
+      Printf(stderr, "warning: Invalid phptype: '%s' (duplicate entry for '%s')\n", phptype, i.item);
+      continue;
+    }
+    // FIXME: Reject void for parameter type
+    if (key > 0 && Equal(i.item, "void")) {
+      Printf(stderr, "warning: Invalid phptype: '%s' ('%s' can't be used as a parameter phptype)\n", phptype, i.item);
+      continue;
+    }
+    if (Equal(i.item, "SWIGTYPE")) {
+      String *type = Getattr(n, "type");
+      if (!type) {
+	Printf(stdout, "*** type = NULL:\n");
+	Swig_print_node(n);
+	Append(merge_list, "object");
+      } else {
+	Node *class_node = maininstance->classLookup(type);
+	if (!class_node) {
+	  Append(merge_list, NewStringf("SWIG\\%s", SwigType_manglestr(type)));
+	} else {
+	  String *class_name = Getattr(class_node, "sym:name");
+	  if (class_name) {
+	    // FIXME: Prefix classname with a backslash to prevent collisions with built-in types?  Or are non of those valid anyway and so will have been renamed at this point?
+	    Append(merge_list, class_name);
+	  } else {
+	    Swig_print_node(class_node);
+	    Append(merge_list, "object");
+	  }
+	}
+      }
+    } else {
+      Append(merge_list, i.item);
+    }
+    prev = i.item;
+  }
+}
 
 // Collect non-class pointer types from the type table so we can set up PHP
 // classes for them later.

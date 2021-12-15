@@ -85,7 +85,7 @@
 %}
 
 /* Object passed by value. Convert to a pointer */
-%typemap(in, phptype="object") SWIGTYPE ($&1_ltype tmp)
+%typemap(in, phptype="SWIGTYPE") SWIGTYPE ($&1_ltype tmp)
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL) {
     zend_type_error("Expected $&1_descriptor for argument $argnum of $symname");
@@ -103,7 +103,7 @@
   $result = *tmp;
 %}
 
-%typemap(in, phptype="?object") SWIGTYPE *,
+%typemap(in, phptype="?SWIGTYPE") SWIGTYPE *,
 	     SWIGTYPE []
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0) {
@@ -122,7 +122,7 @@
   swig_acquire_ownership_obj((void*)$result, own);
 %}
 
-%typemap(in, phptype="object") SWIGTYPE &,
+%typemap(in, phptype="SWIGTYPE") SWIGTYPE &,
              SWIGTYPE &&
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL) {
@@ -141,7 +141,7 @@
   $result = tmp;
 %}
 
-%typemap(in, phptype="?object") SWIGTYPE *const& ($*ltype temp)
+%typemap(in, phptype="?SWIGTYPE") SWIGTYPE *const& ($*ltype temp)
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &temp, $*1_descriptor, 0) < 0) {
     zend_type_error("Expected $*1_descriptor for argument $argnum of $symname");
@@ -150,7 +150,7 @@
   $1 = ($1_ltype)&temp;
 %}
 
-%typemap(in, phptype="?object") SWIGTYPE *DISOWN
+%typemap(in, phptype="?SWIGTYPE") SWIGTYPE *DISOWN
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, SWIG_POINTER_DISOWN) < 0) {
     zend_type_error("Expected $1_descriptor for argument $argnum of $symname");
@@ -393,12 +393,12 @@
   }
 %}
 
-%typemap(out, phptype="?object") SWIGTYPE *
+%typemap(out, phptype="?SWIGTYPE") SWIGTYPE *
 %{
   SWIG_SetPointerZval($result, (void *)$1, $1_descriptor, $owner);
 %}
 
-%typemap(out, phptype="object")
+%typemap(out, phptype="SWIGTYPE")
               SWIGTYPE [],
               SWIGTYPE &,
               SWIGTYPE &&
@@ -406,7 +406,7 @@
   SWIG_SetPointerZval($result, (void *)$1, $1_descriptor, $owner);
 %}
 
-%typemap(out, phptype="?object") SWIGTYPE *const&
+%typemap(out, phptype="?SWIGTYPE") SWIGTYPE *const&
 %{
   SWIG_SetPointerZval($result, (void *)*$1, $*1_descriptor, $owner);
 %}
@@ -428,11 +428,12 @@
 
 %typemap(in, phptype="object") SWIGTYPE (CLASS::*)
 {
+  // IN: SWIGTYPE CLASS::* $1_ltype
   void * p = SWIG_Z_FETCH_OBJ_P(&$input)->ptr;
   memcpy(&$1, p, sizeof($1));
 }
 
-%typemap(out, phptype="?object") SWIGTYPE *DYNAMIC
+%typemap(out, phptype="?SWIGTYPE") SWIGTYPE *DYNAMIC
 {
   swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
   SWIG_SetPointerZval($result, (void *)$1, ty, $owner);
@@ -444,7 +445,7 @@
   SWIG_SetPointerZval($result, (void *)$1, ty, $owner);
 }
 
-%typemap(out, phptype="object") SWIGTYPE
+%typemap(out, phptype="SWIGTYPE") SWIGTYPE
 {
 #ifdef __cplusplus
   $&1_ltype resultobj = new $1_ltype((const $1_ltype &) $1);
