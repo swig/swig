@@ -4,8 +4,6 @@
  * PHP configuration file
  * ----------------------------------------------------------------------------- */
 
-/* For object we typically should actually specify the correct class */
-
 %runtime "swigrun.swg"  // Common C API type-checking code
 %runtime "swigerrors.swg"    // SWIG errors
 %runtime "phprun.swg"	// PHP runtime functions
@@ -428,7 +426,6 @@
 
 %typemap(in, phptype="SWIGTYPE") SWIGTYPE (CLASS::*)
 {
-  // IN: SWIGTYPE CLASS::* $1_ltype
   void * p = SWIG_Z_FETCH_OBJ_P(&$input)->ptr;
   memcpy(&$1, p, sizeof($1));
 }

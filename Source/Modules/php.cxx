@@ -267,10 +267,8 @@ public:
   void process_phptype(Node *n, int key, const String_or_char *attribute_name);
 
   String *get_phptype(int key, String *classtypes) {
-//    Printf(stdout, "get_phptype(%d, ...)\n", key);
     Clear(classtypes);
     DOH *types = Getitem(merged_types, key);
-//    Printf(stdout, " types = %p\n", types);
     String *result = NewStringEmpty();
     if (types != None) {
       SortList(types, NULL);
@@ -280,7 +278,6 @@ public:
 	  // Skip duplicates when merging.
 	  continue;
 	}
-//	Printf(stdout, " item = %s\n", i.item);
 	String *c = Getattr(phptypes, i.item);
 	if (c) {
 	  if (Len(result) > 0) Append(result, "|");
@@ -296,7 +293,6 @@ public:
     if (Len(result) == 0) {
       Append(result, "0");
     }
-//    Printf(stdout, " -> (%s, %s)\n", result, classtypes);
     return result;
   }
 };
@@ -847,7 +843,6 @@ public:
    * ------------------------------------------------------------ */
   void dispatchFunction(Node *n, int constructor) {
     /* Last node in overloaded chain */
-    //Printf(stdout, "dispatchFunction(Node(%s), constructor:%d)\n", Getattr(n, "sym:name"), constructor);
 
     int maxargs;
     String *tmp = NewStringEmpty();
@@ -857,7 +852,6 @@ public:
 
     Wrapper *f = NewWrapper();
     String *symname = Getattr(n, "sym:name");
-//    Printf(stdout, "dispatchFunction() for %s\n", symname);
     String *wname = NULL;
     String *modes = NULL;
     bool constructorRenameOverload = false;
@@ -1107,11 +1101,8 @@ public:
       // Handled via __set magic method - no explicit wrapper method wanted.
       return SWIG_OK;
     }
-//    Printf(stdout, "functionWrapper(Node(%s))\n", Getattr(n, "sym:name"));
-
     String *name = GetChar(n, "name");
     String *iname = GetChar(n, "sym:name");
-//    Printf(stdout, "functionWrapper() for %s\n", iname);
     SwigType *d = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     String *nodeType = Getattr(n, "nodeType");
@@ -2260,7 +2251,6 @@ public:
 static PHP *maininstance = 0;
 
 void PHPTypes::process_phptype(Node *n, int key, const String_or_char *attribute_name) {
-//    Printf(stdout, "process_phptype(Node(%s), %d, \"%s\"", Getattr(n, "sym:name"), key, attribute_name);
 
   while (Len(merged_types) <= key) {
     Append(merged_types, NewList());
