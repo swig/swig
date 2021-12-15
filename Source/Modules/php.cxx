@@ -93,7 +93,6 @@ static String *fake_class_name() {
  * different arginfo once, so we need to track which have been used.
  */
 static Hash *arginfo_used;
-static int arginfo_counter = 0;
 
 /* Track non-class pointer types we need to to wrap */
 static Hash *zend_types = 0;
@@ -732,8 +731,8 @@ public:
     //
     // We generate the arginfo we want (taking care to normalise, e.g. the
     // lists of types are unique and in sorted order), then use the
-    // arginfo_used Hash to see if there's an assigned id for it already.
-    String * arginfo_code = NewStringEmpty();
+    // arginfo_used Hash to see if we've already generated it.
+    String *arginfo_code = NewStringEmpty();
 
     // Don't add a return type declaration for a constructor (because there
     // is no return type as far as PHP is concerned) or a directed method
@@ -744,8 +743,8 @@ public:
     // directorNode being present seems to indicate if this method or one it
     // inherits from is directed, which is what we care about here.  Using
     // (!is_member_director(n)) would get it wrong for testcase director_frob.
-    String* out_phptype = NULL;
-    String* out_phpclasses = NewStringEmpty();
+    String *out_phptype = NULL;
+    String *out_phpclasses = NewStringEmpty();
     if (!Equal(fname, "__construct") && !Getattr(n, "directorNode")) {
       out_phptype = phptypes.get_phptype(0, out_phpclasses);
     }
@@ -764,7 +763,7 @@ public:
 
     int param_count = 0;
     for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
-      String* tmap_in_numinputs = Getattr(p, "tmap:in:numinputs");
+      String *tmap_in_numinputs = Getattr(p, "tmap:in:numinputs");
       // tmap:in:numinputs is unset for varargs, which we don't count here.
       if (!tmap_in_numinputs || Equal(tmap_in_numinputs, "0")) {
 	/* Ignored parameter */
@@ -788,8 +787,9 @@ public:
 
       if (phptype) {
 	if (Len(phpclasses)) {
-	  // We need to double backslashes (which are PHP namespace separators)
-	  // in list of classes.
+	  // We need to double any backslashes (which are PHP namespace
+	  // separators) in the PHP class names as they get turned into
+	  // C strings by the ZEND_ARG_OBJ_TYPE_MASK macro.
 	  Replace(phpclasses, "\\", "\\\\", DOH_REPLACE_ANY);
 	  Printf(arginfo_code, " ZEND_ARG_OBJ_TYPE_MASK(%d,arg%d,%s,%s,NULL)\n", byref, param_count, phpclasses, phptype);
 	} else {
@@ -801,13 +801,15 @@ public:
     }
     Printf(arginfo_code, "ZEND_END_ARG_INFO()\n");
 
-    String * arginfo_id = Getattr(arginfo_used, arginfo_code);
-    if (!arginfo_id) {
+    String *arginfo_id_new = Getattr(n, "sym:name");
+    String *arginfo_id = Getattr(arginfo_used, arginfo_code);
+    if (arginfo_id) {
+      Printf(s_arginfo, "#define swig_arginfo_%s swig_arginfo_%s\n", arginfo_id_new, arginfo_id);
+    } else {
       // Not had this arginfo before.
-      arginfo_id = NewStringf("%d", arginfo_counter++);
-      Setattr(arginfo_used, arginfo_code, arginfo_id);
+      Setattr(arginfo_used, arginfo_code, arginfo_id_new);
       arginfo_code = Copy(arginfo_code);
-      Replace(arginfo_code, "###", arginfo_id, DOH_REPLACE_FIRST);
+      Replace(arginfo_code, "###", arginfo_id_new, DOH_REPLACE_FIRST);
       Append(s_arginfo, arginfo_code);
     }
     Delete(arginfo_code);
@@ -816,25 +818,25 @@ public:
     String * s = cs_entry;
     if (!s) s = s_entry;
     if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
-      Printf(all_cs_entry, " PHP_ME(%s%s,%s,swig_arginfo_%s,%s)\n", prefix, cname, fname, arginfo_id, modes);
+      Printf(all_cs_entry, " PHP_ME(%s%s,%s,swig_arginfo_%s,%s)\n", prefix, cname, fname, arginfo_id_new, modes);
     } else {
       if (dispatch) {
 	if (wrap_nonclass_global) {
-	  Printf(s, " ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%s)\n", Getattr(n, "sym:name"), fname, arginfo_id);
+	  Printf(s, " ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%s)\n", Getattr(n, "sym:name"), fname, arginfo_id_new);
 	}
 
 	if (wrap_nonclass_fake_class) {
 	  (void)fake_class_name();
-	  Printf(fake_cs_entry, " ZEND_NAMED_ME(%(lower)s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", Getattr(n, "sym:name"), fname, arginfo_id);
+	  Printf(fake_cs_entry, " ZEND_NAMED_ME(%(lower)s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", Getattr(n, "sym:name"), fname, arginfo_id_new);
 	}
       } else {
 	if (wrap_nonclass_global) {
-	  Printf(s, " PHP_FE(%s,swig_arginfo_%s)\n", fname, arginfo_id);
+	  Printf(s, " PHP_FE(%s,swig_arginfo_%s)\n", fname, arginfo_id_new);
 	}
 
 	if (wrap_nonclass_fake_class) {
 	  String *fake_class = fake_class_name();
-	  Printf(fake_cs_entry, " PHP_ME(%s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", fake_class, fname, arginfo_id);
+	  Printf(fake_cs_entry, " PHP_ME(%s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", fake_class, fname, arginfo_id_new);
 	}
       }
     }
@@ -938,16 +940,16 @@ public:
     if (!generated_magic_arginfo) {
       // Create arginfo entries for __get, __set and __isset.
       Append(s_arginfo,
-	     "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_get, 0, 0, 1)\n"
+	     "ZEND_BEGIN_ARG_INFO_EX(swig_magic_arginfo_get, 0, 0, 1)\n"
 	     " ZEND_ARG_TYPE_MASK(0,arg1,MAY_BE_STRING,NULL)\n"
 	     "ZEND_END_ARG_INFO()\n");
       Append(s_arginfo,
-	     "ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(swig_arginfo_set, 0, 1, MAY_BE_VOID)\n"
+	     "ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(swig_magic_arginfo_set, 0, 1, MAY_BE_VOID)\n"
 	     " ZEND_ARG_TYPE_MASK(0,arg1,MAY_BE_STRING,NULL)\n"
 	     " ZEND_ARG_INFO(0,arg2)\n"
 	     "ZEND_END_ARG_INFO()\n");
       Append(s_arginfo,
-	     "ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(swig_arginfo_isset, 0, 1, MAY_BE_BOOL)\n"
+	     "ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(swig_magic_arginfo_isset, 0, 1, MAY_BE_BOOL)\n"
 	     " ZEND_ARG_TYPE_MASK(0,arg1,MAY_BE_STRING,NULL)\n"
 	     "ZEND_END_ARG_INFO()\n");
       generated_magic_arginfo = true;
@@ -956,7 +958,7 @@ public:
     Wrapper *f = NewWrapper();
 
     Printf(f_h, "PHP_METHOD(%s%s,__set);\n", prefix, class_name);
-    Printf(all_cs_entry, " PHP_ME(%s%s,__set,swig_arginfo_set,ZEND_ACC_PUBLIC)\n", prefix, class_name);
+    Printf(all_cs_entry, " PHP_ME(%s%s,__set,swig_magic_arginfo_set,ZEND_ACC_PUBLIC)\n", prefix, class_name);
     Printf(f->code, "PHP_METHOD(%s%s,__set) {\n", prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n");
@@ -994,7 +996,7 @@ public:
 
 
     Printf(f_h, "PHP_METHOD(%s%s,__get);\n", prefix, class_name);
-    Printf(all_cs_entry, " PHP_ME(%s%s,__get,swig_arginfo_get,ZEND_ACC_PUBLIC)\n", prefix, class_name);
+    Printf(all_cs_entry, " PHP_ME(%s%s,__get,swig_magic_arginfo_get,ZEND_ACC_PUBLIC)\n", prefix, class_name);
     Printf(f->code, "PHP_METHOD(%s%s,__get) {\n",prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n", class_name);
@@ -1027,7 +1029,7 @@ public:
 
 
     Printf(f_h, "PHP_METHOD(%s%s,__isset);\n", prefix, class_name);
-    Printf(all_cs_entry, " PHP_ME(%s%s,__isset,swig_arginfo_isset,ZEND_ACC_PUBLIC)\n", prefix, class_name);
+    Printf(all_cs_entry, " PHP_ME(%s%s,__isset,swig_magic_arginfo_isset,ZEND_ACC_PUBLIC)\n", prefix, class_name);
     Printf(f->code, "PHP_METHOD(%s%s,__isset) {\n",prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n", class_name);
