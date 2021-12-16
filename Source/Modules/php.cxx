@@ -1521,7 +1521,7 @@ public:
 	  String *interface = Getitem(interface_list, i);
 	  // We generate conditional code in both minit and rinit - then we or the user
 	  // just need to define SWIG_PHP_INTERFACE_xxx_CE (and optionally
-	  // SWIG_PHP_INTERFACE_xxx_CE) to handle interface `xxx` at minit-time.
+	  // SWIG_PHP_INTERFACE_xxx_HEADER) to handle interface `xxx` at minit-time.
 	  Printv(s_header,
 		 "#ifdef SWIG_PHP_INTERFACE_", interface, "_HEADER\n",
 		 "# include SWIG_PHP_INTERFACE_", interface, "_HEADER\n",
