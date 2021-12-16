@@ -81,10 +81,10 @@ typedef struct {
   zend_object std;
 } swig_object_wrapper;
 
-#define SWIG_Z_FETCH_OBJ_P(zv) php_fetch_object(Z_OBJ_P(zv))
+#define SWIG_Z_FETCH_OBJ_P(zv) swig_php_fetch_object(Z_OBJ_P(zv))
 
 static inline
-swig_object_wrapper * php_fetch_object(zend_object *obj) {
+swig_object_wrapper * swig_php_fetch_object(zend_object *obj) {
   return (swig_object_wrapper *)((char *)obj - XtOffsetOf(swig_object_wrapper, std));
 }
 
@@ -115,7 +115,7 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
       obj = ce->create_object(ce);
       ZVAL_OBJ(z, obj);
     }
-    value = php_fetch_object(obj);
+    value = swig_php_fetch_object(obj);
     value->ptr = ptr;
     value->newobject = (newobject & 1);
     value->type = type;

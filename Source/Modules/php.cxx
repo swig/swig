@@ -134,7 +134,7 @@ static void print_creation_free_wrapper(Node *n) {
     Printf(s, "  swig_object_wrapper *obj = 0;\n");
     Printf(s, "  if (!object)\n");
     Printf(s, "    return;\n");
-    Printf(s, "  obj = php_fetch_object(object);\n");
+    Printf(s, "  obj = swig_php_fetch_object(object);\n");
 
     Printf(s, "  zend_object_std_dtor(&obj->std);\n");
 
@@ -198,7 +198,7 @@ static void SwigPHP_emit_pointer_type_registrations() {
   Append(s_wrappers, "#if PHP_MAJOR_VERSION < 8\n");
   Printf(s_wrappers, "    swig_object_wrapper *obj = SWIG_Z_FETCH_OBJ_P(z);\n");
   Append(s_wrappers, "#else\n");
-  Printf(s_wrappers, "    swig_object_wrapper *obj = php_fetch_object(zobj);\n");
+  Printf(s_wrappers, "    swig_object_wrapper *obj = swig_php_fetch_object(zobj);\n");
   Append(s_wrappers, "#endif\n");
   Printv(s_wrappers, "    sprintf(buf, \"SWIGPointer(%p,owned=%d)\", obj->ptr, obj->newobject);\n", NIL);
   Printf(s_wrappers, "    ZVAL_STRING(retval, buf);\n");
