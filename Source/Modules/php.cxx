@@ -124,13 +124,13 @@ static void print_creation_free_wrapper(Node *n) {
   String *s = s_creation;
 
   Printf(s, "/* class entry for %s */\n",class_name);
-  Printf(s, "zend_class_entry *SWIGTYPE_%s_ce;\n\n",class_name);
+  Printf(s, "static zend_class_entry *SWIGTYPE_%s_ce;\n\n",class_name);
   Printf(s, "/* class object handlers for %s */\n",class_name);
-  Printf(s, "zend_object_handlers %s_object_handlers;\n\n",class_name);
+  Printf(s, "static zend_object_handlers %s_object_handlers;\n\n",class_name);
 
   if (Getattr(n, "has_destructor")) {
     Printf(s, "/* Garbage Collection Method for class %s */\n",class_name);
-    Printf(s, "void %s_free_storage(zend_object *object) {\n",class_name);
+    Printf(s, "static void %s_free_storage(zend_object *object) {\n",class_name);
     Printf(s, "  swig_object_wrapper *obj = 0;\n");
     Printf(s, "  if (!object)\n");
     Printf(s, "    return;\n");
@@ -155,7 +155,7 @@ static void print_creation_free_wrapper(Node *n) {
   }
 
   Printf(s, "/* Object Creation Method for class %s */\n",class_name);
-  Printf(s, "zend_object *%s_object_new(zend_class_entry *ce) {\n",class_name);
+  Printf(s, "static zend_object *%s_object_new(zend_class_entry *ce) {\n",class_name);
   Printf(s, "  swig_object_wrapper *obj = (swig_object_wrapper*)zend_object_alloc(sizeof(swig_object_wrapper), ce);\n");
   Printf(s, "  zend_object_std_init(&obj->std, ce);\n");
   Printf(s, "  object_properties_init(&obj->std, ce);\n");
