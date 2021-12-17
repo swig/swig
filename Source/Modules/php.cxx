@@ -78,7 +78,7 @@ static String *fake_class_name() {
       fake_cs_entry = NewStringf("static zend_function_entry class_%s_functions[] = {\n", result);
     }
 
-    Printf(s_creation, "zend_class_entry *SWIG_Php_ce_%s;\n\n",result);
+    Printf(s_creation, "static zend_class_entry *SWIG_Php_ce_%s;\n\n",result);
 
     Printf(s_oinit, "  INIT_CLASS_ENTRY(internal_ce, \"%s\", class_%s_functions);\n", result, result);
     Printf(s_oinit, "  SWIG_Php_ce_%s = zend_register_internal_class(&internal_ce);\n", result);
@@ -164,7 +164,7 @@ static void SwigPHP_emit_pointer_type_registrations() {
     String *type = ki.key;
 
     Printf(s_creation, "/* class entry for pointer to %s */\n", type);
-    Printf(s_creation, "zend_class_entry *SWIG_Php_ce_%s;\n\n", type);
+    Printf(s_creation, "static zend_class_entry *SWIG_Php_ce_%s;\n\n", type);
 
     Printf(s_oinit, "  INIT_CLASS_ENTRY(internal_ce, \"%s\\\\%s\", NULL);\n", "SWIG", type);
     Printf(s_oinit, "  SWIG_Php_ce_%s = zend_register_internal_class(&internal_ce);\n", type);
