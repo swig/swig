@@ -77,10 +77,11 @@ static String *fake_class_name() {
     if (!fake_cs_entry) {
       fake_cs_entry = NewStringf("static zend_function_entry class_%s_functions[] = {\n", result);
     }
-    Printf(s_creation, "/* class entry for %s */\n",result);
-    Printf(s_creation, "zend_class_entry *SWIGTYPE_%s_ce;\n\n",result);
+
+    Printf(s_creation, "zend_class_entry *SWIG_Php_ce_%s;\n\n",result);
+
     Printf(s_oinit, "  INIT_CLASS_ENTRY(internal_ce, \"%s\", class_%s_functions);\n", result, result);
-    Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class(&internal_ce);\n", result);
+    Printf(s_oinit, "  SWIG_Php_ce_%s = zend_register_internal_class(&internal_ce);\n", result);
     Printf(s_oinit, "\n");
   }
   return result;
@@ -163,12 +164,12 @@ static void SwigPHP_emit_pointer_type_registrations() {
     String *type = ki.key;
 
     Printf(s_creation, "/* class entry for pointer to %s */\n", type);
-    Printf(s_creation, "zend_class_entry *SWIGTYPE_%s_ce;\n\n", type);
+    Printf(s_creation, "zend_class_entry *SWIG_Php_ce_%s;\n\n", type);
 
     Printf(s_oinit, "  INIT_CLASS_ENTRY(internal_ce, \"%s\\\\%s\", NULL);\n", "SWIG", type);
-    Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class(&internal_ce);\n", type);
-    Printf(s_oinit, "  SWIGTYPE_%s_ce->create_object = swig_ptr_object_new;\n", type);
-    Printf(s_oinit, "  SWIG_TypeClientData(SWIGTYPE%s,SWIGTYPE_%s_ce);\n", type, type);
+    Printf(s_oinit, "  SWIG_Php_ce_%s = zend_register_internal_class(&internal_ce);\n", type);
+    Printf(s_oinit, "  SWIG_Php_ce_%s->create_object = swig_ptr_object_new;\n", type);
+    Printf(s_oinit, "  SWIG_TypeClientData(SWIGTYPE%s,SWIG_Php_ce_%s);\n", type, type);
     Printf(s_oinit, "\n");
 
     ki = Next(ki);
@@ -1480,15 +1481,15 @@ public:
     }
 
     if (Equal(base_class, "Exception")) {
-      Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class_ex(&internal_ce, zend_ce_exception);\n", class_name);
+      Printf(s_oinit, "  SWIG_Php_ce_%s = zend_register_internal_class_ex(&internal_ce, zend_ce_exception);\n", class_name);
     } else if (is_class_wrapped(base_class)) {
-      Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class_ex(&internal_ce, SWIGTYPE_%s_ce);\n", class_name, base_class);
+      Printf(s_oinit, "  SWIG_Php_ce_%s = zend_register_internal_class_ex(&internal_ce, SWIG_Php_ce_%s);\n", class_name, base_class);
     } else {
-      Printf(s_oinit, "  SWIGTYPE_%s_ce = zend_register_internal_class(&internal_ce);\n", class_name);
+      Printf(s_oinit, "  SWIG_Php_ce_%s = zend_register_internal_class(&internal_ce);\n", class_name);
     }
 
     if (Getattr(n, "abstracts") && !GetFlag(n, "feature:notabstract")) {
-      Printf(s_oinit, "  SWIGTYPE_%s_ce->ce_flags |= ZEND_ACC_EXPLICIT_ABSTRACT_CLASS;\n", class_name);
+      Printf(s_oinit, "  SWIG_Php_ce_%s->ce_flags |= ZEND_ACC_EXPLICIT_ABSTRACT_CLASS;\n", class_name);
     }
 
     {
@@ -1529,7 +1530,7 @@ public:
 		 NIL);
 	  Printv(s_oinit,
 		 "#ifdef SWIG_PHP_INTERFACE_", interface, "_CE\n",
-		 "  zend_do_implement_interface(SWIGTYPE_", class_name, "_ce, SWIG_PHP_INTERFACE_", interface, "_CE);\n",
+		 "  zend_do_implement_interface(SWIG_Php_ce_", class_name, ", SWIG_PHP_INTERFACE_", interface, "_CE);\n",
 		 "#endif\n",
 		 NIL);
 	  Printv(r_init_prefix,
@@ -1537,7 +1538,7 @@ public:
 		 "  {\n",
 		 "    zend_class_entry *swig_interface_ce = zend_lookup_class(zend_string_init(\"", interface, "\", sizeof(\"", interface, "\") - 1, 0));\n",
 		 "    if (!swig_interface_ce) zend_throw_exception(zend_ce_error, \"Interface \\\"", interface, "\\\" not found\", 0);\n",
-		 "    zend_do_implement_interface(SWIGTYPE_", class_name, "_ce, swig_interface_ce);\n",
+		 "    zend_do_implement_interface(SWIG_Php_ce_", class_name, ", swig_interface_ce);\n",
 		 "  }\n",
 		 "#endif\n",
 		 NIL);
@@ -1562,18 +1563,18 @@ public:
 
     static bool emitted_base_object_handlers = false;
     if (!emitted_base_object_handlers) {
-      Printf(s_creation, "static zend_object_handlers SWIGTYPE_base_object_handlers;\n\n");
+      Printf(s_creation, "static zend_object_handlers Swig_Php_base_object_handlers;\n\n");
 
       // Set up a base zend_object_handlers structure which we can use as-is
       // for classes without a destructor, and copy as the basis for other
       // classes.
-      Printf(s_oinit, "  SWIGTYPE_base_object_handlers = *zend_get_std_object_handlers();\n");
-      Printf(s_oinit, "  SWIGTYPE_base_object_handlers.offset = XtOffsetOf(swig_object_wrapper, std);\n");
-      Printf(s_oinit, "  SWIGTYPE_base_object_handlers.clone_obj = NULL;\n");
+      Printf(s_oinit, "  Swig_Php_base_object_handlers = *zend_get_std_object_handlers();\n");
+      Printf(s_oinit, "  Swig_Php_base_object_handlers.offset = XtOffsetOf(swig_object_wrapper, std);\n");
+      Printf(s_oinit, "  Swig_Php_base_object_handlers.clone_obj = NULL;\n");
       emitted_base_object_handlers = true;
     }
 
-    Printf(s_creation, "static zend_class_entry *SWIGTYPE_%s_ce;\n\n", class_name);
+    Printf(s_creation, "static zend_class_entry *SWIG_Php_ce_%s;\n\n", class_name);
 
     if (Getattr(n, "has_destructor")) {
       if (destructor_action ? Equal(destructor_action, "free((char *) arg1);") : !CPlusPlus) {
@@ -1583,17 +1584,17 @@ public:
 	// code that Swig_cdestructor_call() emits.
 	static bool emitted_common_cdestructor = false;
 	if (!emitted_common_cdestructor) {
-	  Printf(s_creation, "static zend_object_handlers SWIGTYPE_common_c_object_handlers;\n\n");
+	  Printf(s_creation, "static zend_object_handlers Swig_Php_common_c_object_handlers;\n\n");
 	  Printf(s_creation, "static void SWIG_Php_common_c_free_obj(zend_object *object) {free(SWIG_Php_free_obj(object));}\n\n");
-	  Printf(s_creation, "static zend_object *SWIG_Php_common_c_create_object(zend_class_entry *ce) {return SWIG_Php_do_create_object(ce, &SWIGTYPE_common_c_object_handlers);}\n");
+	  Printf(s_creation, "static zend_object *SWIG_Php_common_c_create_object(zend_class_entry *ce) {return SWIG_Php_do_create_object(ce, &Swig_Php_common_c_object_handlers);}\n");
 
-	  Printf(s_oinit, "  SWIGTYPE_common_c_object_handlers = SWIGTYPE_base_object_handlers;\n");
-	  Printf(s_oinit, "  SWIGTYPE_common_c_object_handlers.free_obj = SWIG_Php_common_c_free_obj;\n");
+	  Printf(s_oinit, "  Swig_Php_common_c_object_handlers = Swig_Php_base_object_handlers;\n");
+	  Printf(s_oinit, "  Swig_Php_common_c_object_handlers.free_obj = SWIG_Php_common_c_free_obj;\n");
 
 	  emitted_common_cdestructor = true;
 	}
 
-	Printf(s_oinit, "  SWIGTYPE_%s_ce->create_object = SWIG_Php_common_c_create_object;\n", class_name);
+	Printf(s_oinit, "  SWIG_Php_ce_%s->create_object = SWIG_Php_common_c_create_object;\n", class_name);
       } else {
 	Printf(s_creation, "static zend_object_handlers %s_object_handlers;\n", class_name);
 	Printf(s_creation, "static zend_object *SWIG_Php_create_object_%s(zend_class_entry *ce) {return SWIG_Php_do_create_object(ce, &%s_object_handlers);}\n", class_name, class_name);
@@ -1613,25 +1614,25 @@ public:
 	}
 	Printf(s_creation, "}\n\n");
 
-	Printf(s_oinit, "  SWIGTYPE_%s_ce->create_object = SWIG_Php_create_object_%s;\n", class_name, class_name);
-	Printf(s_oinit, "  %s_object_handlers = SWIGTYPE_base_object_handlers;\n", class_name);
+	Printf(s_oinit, "  SWIG_Php_ce_%s->create_object = SWIG_Php_create_object_%s;\n", class_name, class_name);
+	Printf(s_oinit, "  %s_object_handlers = Swig_Php_base_object_handlers;\n", class_name);
 	Printf(s_oinit, "  %s_object_handlers.free_obj = SWIG_Php_free_obj_%s;\n", class_name, class_name);
       }
     } else {
       static bool emitted_destructorless_create_object = false;
       if (!emitted_destructorless_create_object) {
 	emitted_destructorless_create_object = true;
-	Printf(s_creation, "static zend_object *SWIG_Php_create_object(zend_class_entry *ce) {return SWIG_Php_do_create_object(ce, &SWIGTYPE_base_object_handlers);}\n", class_name);
+	Printf(s_creation, "static zend_object *SWIG_Php_create_object(zend_class_entry *ce) {return SWIG_Php_do_create_object(ce, &Swig_Php_base_object_handlers);}\n", class_name);
       }
 
-      Printf(s_oinit, "  SWIGTYPE_%s_ce->create_object = SWIG_Php_create_object;\n", class_name);
+      Printf(s_oinit, "  SWIG_Php_ce_%s->create_object = SWIG_Php_create_object;\n", class_name);
     }
 
     // If not defined we aren't wrapping any functions which use this type as a
     // parameter or return value, in which case we don't need the clientdata
     // set.
     Printf(s_oinit, "#ifdef SWIGTYPE_p%s\n", SwigType_manglestr(Getattr(n, "classtypeobj")));
-    Printf(s_oinit, "  SWIG_TypeClientData(SWIGTYPE_p%s,SWIGTYPE_%s_ce);\n", SwigType_manglestr(Getattr(n, "classtypeobj")), class_name);
+    Printf(s_oinit, "  SWIG_TypeClientData(SWIGTYPE_p%s,SWIG_Php_ce_%s);\n", SwigType_manglestr(Getattr(n, "classtypeobj")), class_name);
     Printf(s_oinit, "#endif\n");
     Printf(s_oinit, "\n");
 
