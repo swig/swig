@@ -86,10 +86,10 @@ typedef struct {
   zend_object std;
 } swig_object_wrapper;
 
-#define SWIG_Z_FETCH_OBJ_P(zv) php_fetch_object(Z_OBJ_P(zv))
+#define SWIG_Z_FETCH_OBJ_P(zv) swig_php_fetch_object(Z_OBJ_P(zv))
 
 static inline
-swig_object_wrapper * php_fetch_object(zend_object *obj) {
+swig_object_wrapper * swig_php_fetch_object(zend_object *obj) {
   return (swig_object_wrapper *)((char *)obj - XtOffsetOf(swig_object_wrapper, std));
 }
 
@@ -120,7 +120,7 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
       obj = ce->create_object(ce);
       ZVAL_OBJ(z, obj);
     }
-    value = php_fetch_object(obj);
+    value = swig_php_fetch_object(obj);
     value->ptr = ptr;
     value->newobject = (newobject & 1);
     value->type = type;
@@ -210,4 +210,25 @@ static swig_module_info *SWIG_Php_GetModule() {
 
 static void SWIG_Php_SetModule(swig_module_info *pointer, int module_number) {
   REGISTER_LONG_CONSTANT(const_name, (long) pointer, CONST_CS | CONST_PERSISTENT);
+}
+
+/* Common parts of the "create_object" object handler. */
+static zend_object *SWIG_Php_do_create_object(zend_class_entry *ce, zend_object_handlers *handlers) {
+  swig_object_wrapper *obj = (swig_object_wrapper*)zend_object_alloc(sizeof(swig_object_wrapper), ce);
+  zend_object_std_init(&obj->std, ce);
+  object_properties_init(&obj->std, ce);
+  obj->std.handlers = handlers;
+  obj->newobject = 1;
+  return &obj->std;
+}
+
+/* Common parts of the "free_obj" object handler.
+   Returns void* pointer if the C/C++ object should be destroyed. */
+static void* SWIG_Php_free_obj(zend_object *object) {
+  if (object) {
+    swig_object_wrapper *obj = swig_php_fetch_object(object);
+    zend_object_std_dtor(&obj->std);
+    if (obj->newobject) return obj->ptr;
+  }
+  return NULL;
 }
