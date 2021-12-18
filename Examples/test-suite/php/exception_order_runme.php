@@ -1,4 +1,4 @@
-<?
+<?php
 require "tests.php";
 
 check::functions(array('is_python_builtin'));

@@ -8,6 +8,7 @@
 %warnfilter(SWIGWARN_PARSE_KEYWORD) null;
 %warnfilter(SWIGWARN_PARSE_KEYWORD) True;
 %warnfilter(SWIGWARN_PARSE_KEYWORD) FALSE;
+%warnfilter(SWIGWARN_PARSE_KEYWORD) ns::readonly;
 #endif
 
 %ignore prev::operator++;
@@ -50,4 +51,17 @@
   class FALSE
   {
   };
+
+  // PHP 8.1 made `readonly` a keyword, but (unlike any other keyword it seems)
+  // it may still be used as a function name.
+  namespace ns {
+  class readonly { };
+  }
+
+  class readonly_should_be_ok_as_method {
+  public:
+    bool readonly() const { return true; }
+  };
+
+  bool readonly() { return false; }
 %}
