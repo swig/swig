@@ -5,6 +5,9 @@
 /* Keyword (case insensitive) */
 #define PHPKW(x) %keywordwarn("'" `x` "' is a PHP keyword, renaming to 'c_" `x` "'",sourcefmt="%(lower)s",rename="c_%s") `x`
 
+/* Keyword, except ok as a function */
+#define PHPKW_ok_as_function(x) %keywordwarn("'" `x` "' is a PHP keyword, renaming to 'c_" `x` "'",%$not %$isfunction,sourcefmt="%(lower)s",rename="c_%s") `x`
+
 /* Class (case insensitive) */
 #define PHPCN(x) %keywordwarn("'" `x` "' is a PHP reserved class name, renaming to 'c_" `x` "'",%$isclass,sourcefmt="%(lower)s",rename="c_%s") `x`
 
@@ -83,6 +86,11 @@ PHPKW(var);
 PHPKW(while);
 PHPKW(xor);
 PHPKW(yield);
+
+/* PHP 8.1 made `readonly` a keyword, but (unlike any other keyword it seems)
+ * it may still be used as a function name.
+ */
+PHPKW_ok_as_function(readonly);
 
 // Compile-time "magic" constants
 // From: http://php.net/manual/en/reserved.keywords.php
@@ -869,6 +877,7 @@ PHPFN(unset); // "Language construct"
 PHPFN(usort);
 
 #undef PHPKW
+#undef PHPKW_ok_as_function
 #undef PHPBN1a
 #undef PHPBN1b
 #undef PHPBN1

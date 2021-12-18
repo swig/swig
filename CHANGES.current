@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-12-18: olly
+	    [PHP] Add PHP keyword 'readonly' (added in 8.1) to the list SWIG
+	    knows to automatically rename.  This keyword is special in that PHP
+	    allows it to be used as a function (or method) name.
+
 2021-12-05: rwf1
             [Octave] #2020 #1893 Add support for Octave 6 up to and including 6.4.
             Also add support for compiling with -Bsymbolic which is used by default
