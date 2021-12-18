@@ -20,9 +20,25 @@ extern "C" {
 #include "zend_exceptions.h"
 #include "zend_inheritance.h"
 
-/* MAY_BE_BOOL was new in PHP 8.0. */
-#ifndef MAY_BE_BOOL
-# define MAY_BE_BOOL (MAY_BE_FALSE|MAY_BE_TRUE)
+#if PHP_MAJOR_VERSION == 7
+/* These macros were new in PHP 8.0.  For PHP 7.x we define them to give the
+ * same result except without any type declarations.  PHP 7.x supports type
+ * declarations, but not for the return type, and alternate types aren't
+ * supported, so we don't try to support these.
+ */
+# define ZEND_BEGIN_ARG_WITH_RETURN_OBJ_TYPE_MASK_EX(name, byref, num_req, classes, types) \
+    ZEND_BEGIN_ARG_INFO_EX(name, 0, byref, num_req)
+# define ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(name, byref, num_req, types) \
+    ZEND_BEGIN_ARG_INFO_EX(name, 0, byref, num_req)
+
+/* NB We ignore `default` here because this mechanism for specifying default
+ * values was new in PHP 8.0 and so we don't currently make use of it (we
+ * always pass NULL.
+ */
+# define ZEND_ARG_OBJ_TYPE_MASK(byref, name, classes, types, default) \
+    ZEND_ARG_INFO(byref, name)
+# define ZEND_ARG_TYPE_MASK(byref, name, types, default) \
+    ZEND_ARG_INFO(byref, name)
 #endif
 
 #include <stdlib.h> /* for abort(), used in generated code. */
