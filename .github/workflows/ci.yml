@@ -29,16 +29,16 @@ jobs:
     strategy:
       matrix:
         include:
-#        - SWIGLANG: php
-#          VER: '7.0'
-#        - SWIGLANG: php
-#          VER: '7.1'
-#        - SWIGLANG: php
-#          VER: '7.2'
-#        - SWIGLANG: php
-#          VER: '7.3'
-#        - SWIGLANG: php
-#          VER: '7.4'
+        - SWIGLANG: php
+          VER: '7.0'
+        - SWIGLANG: php
+          VER: '7.1'
+        - SWIGLANG: php
+          VER: '7.2'
+        - SWIGLANG: php
+          VER: '7.3'
+        - SWIGLANG: php
+          VER: '7.4'
         - SWIGLANG: php
         - SWIGLANG: php
           VER: '8.1'
