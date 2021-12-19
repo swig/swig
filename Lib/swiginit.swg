@@ -155,7 +155,7 @@ SWIG_InitializeModule(SWIG_INIT_CLIENT_DATA_TYPE clientdata) {
 	  ret = 0;
 	} else {
 	  /* Check for casting already in the list */
-	  swig_cast_info *ocast = SWIG_TypeCheck(ret->name, type);
+	  swig_cast_info *ocast = SWIG_TypeCheckStruct(ret, type);
 #ifdef SWIGRUNTIME_DEBUG
 	  if (ocast) printf("SWIG_InitializeModule: skip old cast %s\n", ret->name);
 #endif

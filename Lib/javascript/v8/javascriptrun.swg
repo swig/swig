@@ -182,6 +182,7 @@ SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, void **ptr, swi
     swig_cast_info *tc = SWIG_TypeCheckStruct(cdata->info, info);
     if (!tc && cdata->info->name) {
       tc = SWIG_TypeCheck(cdata->info->name, info);
+      if (tc) std::abort();
     }
     bool type_valid = tc != 0;
     if(!type_valid) {
@@ -408,7 +409,7 @@ int SWIGV8_ConvertPacked(SWIGV8_VALUE valRef, void *ptr, size_t sz, swig_type_in
   if (ty) {
     if (to != ty) {
       /* check type cast? */
-      swig_cast_info *tc = SWIG_TypeCheck(to->name,ty);
+      swig_cast_info *tc = SWIG_TypeCheckStruct(to,ty);
       if (!tc) return SWIG_ERROR;
     }
   }

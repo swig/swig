@@ -1314,7 +1314,7 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
         if (ptr) *ptr = vptr;
         break;
       } else {
-        swig_cast_info *tc = SWIG_TypeCheck(to->name,ty);
+        swig_cast_info *tc = SWIG_TypeCheckStruct(to,ty);
         if (!tc) {
           sobj = (SwigPyObject *)sobj->next;
         } else {
@@ -1427,7 +1427,7 @@ SWIG_Python_ConvertPacked(PyObject *obj, void *ptr, size_t sz, swig_type_info *t
   if (ty) {
     if (to != ty) {
       /* check type cast? */
-      swig_cast_info *tc = SWIG_TypeCheck(to->name,ty);
+      swig_cast_info *tc = SWIG_TypeCheckStruct(to,ty);
       if (!tc) return SWIG_ERROR;
     }
   }
