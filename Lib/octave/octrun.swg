@@ -600,7 +600,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
           return SWIG_OK;
         }
       for (unsigned int j = 0; j < types.size(); ++j) {
-	swig_cast_info *tc = SWIG_TypeCheckStruct(types[j].first, type);
+	swig_cast_info *tc = SWIG_TypeCheck(types[j].first->name, type);
 	if (!tc)
 	  continue;
         if(vptr) {
