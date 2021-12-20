@@ -180,10 +180,6 @@ SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, void **ptr, swi
   }
   if(cdata->info != info) {
     swig_cast_info *tc = SWIG_TypeCheckStruct(cdata->info, info);
-    if (!tc && cdata->info->name) {
-      tc = SWIG_TypeCheck(cdata->info->name, info);
-      if (tc) std::abort();
-    }
     bool type_valid = tc != 0;
     if(!type_valid) {
       return SWIG_TypeError;
