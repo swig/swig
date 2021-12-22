@@ -1228,8 +1228,6 @@ public:
       Printf(f->code, "WRONG_PARAM_COUNT;\n}\n\n");
     }
 
-    phptypes.process_phptype(n, 0, "tmap:out:phptype");
-
     /* Now convert from PHP to C variables */
     // At this point, argcount if used is the number of deliberately passed args
     // not including this_ptr even if it is used.
@@ -1343,6 +1341,8 @@ public:
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
     }
     emit_return_variable(n, d, f);
+
+    phptypes.process_phptype(n, 0, "tmap:out:phptype");
 
     if (outarg) {
       Printv(f->code, outarg, NIL);
