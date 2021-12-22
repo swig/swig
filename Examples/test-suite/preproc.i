@@ -373,6 +373,7 @@ int methodX(int x) { return x+100; }
 /*
    Comma in macro - https://github.com/swig/swig/issues/974 (for C comments)
    and https://github.com/swig/swig/pull/1166 (for //)
+   Also see preproc_cpp.i
 */
 %inline %{
 #define swig__attribute__(x)
@@ -389,18 +390,6 @@ TCX_PACKED (typedef struct tcxMessageBugImpl
 {
     int mBid; /**< Bid price and size, check PresentMap if available in message */
 }) tcxMessageBug;
-
-
-TCX_PACKED (typedef struct tcxMessageTestImpl2
-{
-    int mHeader; /**< comment */
-}) tcxMessageTest2;
-
-
-TCX_PACKED (typedef struct tcxMessageBugImpl2
-{
-    int mBid; /**< Bid price and size, check PresentMap if available in message */
-}) tcxMessageBug2;
 
 
 %}
