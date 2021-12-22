@@ -143,42 +143,6 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
   }
 }
 
-/* This pointer conversion routine takes the native pointer p (along with
-   its type name) and converts it by calling appropriate casting functions
-   according to ty.  The resultant pointer is returned, or NULL is returned
-   if the pointer can't be cast.
-
-   This is called by SWIG_ConvertPtr which gets the type name from the
-   swig_object_wrapper. */
-static void *
-SWIG_ConvertPtrData(void * p, const char *type_name, swig_type_info *ty, int *own) {
-  swig_cast_info *tc;
-  void *result = 0;
-
-  if (!ty) {
-    /* They don't care about the target type, so just pass on the pointer! */
-    return p;
-  }
-
-  if (! type_name) {
-    /* can't convert p to ptr type ty if we don't know what type p is */
-    return NULL;
-  }
-
-  /* convert and cast p from type_name to ptr as ty. */
-  tc = SWIG_TypeCheck(type_name, ty);
-  if (tc) {
-    int newmemory = 0;
-    result = SWIG_TypeCast(tc, p, &newmemory);
-    if (newmemory == SWIG_CAST_NEW_MEMORY) {
-      assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
-      if (own)
-        *own |= SWIG_CAST_NEW_MEMORY;
-    }
-  }
-  return result;
-}
-
 /* We wrap C/C++ pointers as PHP objects. */
 static int
 SWIG_ConvertPtrAndOwn(zval *z, void **ptr, swig_type_info *ty, int flags, swig_owntype *own) {
@@ -193,7 +157,23 @@ SWIG_ConvertPtrAndOwn(zval *z, void **ptr, swig_type_info *ty, int flags, swig_o
   switch (Z_TYPE_P(z)) {
     case IS_OBJECT: {
       swig_object_wrapper *value = SWIG_Z_FETCH_OBJ_P(z);
-      *ptr = SWIG_ConvertPtrData(value->ptr, value->type->name, ty, own);
+      if (!ty) {
+	/* They don't care about the target type, so just pass on the pointer! */
+	*ptr = value->ptr;
+      } else {
+	swig_cast_info *tc = SWIG_TypeCheckStruct(value->type, ty);
+	if (tc) {
+	  int newmemory = 0;
+	  *ptr = SWIG_TypeCast(tc, value->ptr, &newmemory);
+	  if (newmemory == SWIG_CAST_NEW_MEMORY) {
+	    assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
+	    if (own)
+	      *own |= SWIG_CAST_NEW_MEMORY;
+	  }
+	} else {
+	  *ptr = NULL;
+	}
+      }
       if (*ptr == NULL) return SWIG_ERROR;
       if (flags & SWIG_POINTER_DISOWN) {
 	value->newobject = 0;
