@@ -373,6 +373,7 @@ int methodX(int x) { return x+100; }
 /*
    Comma in macro - https://github.com/swig/swig/issues/974 (for C comments)
    and https://github.com/swig/swig/pull/1166 (for //)
+   Also see preproc_cpp.i
 */
 %inline %{
 #define swig__attribute__(x)
