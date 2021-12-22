@@ -17,4 +17,7 @@ $point = Geometry::create(Geometry::POINT);
 $w = $point->width();
 check::equal($w, 1.0, "w failed");
 
+$point = Geometry::create(42);
+check::equal($point, NULL, "NULL failed");
+
 check::done();

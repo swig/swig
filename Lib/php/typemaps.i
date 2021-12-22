@@ -52,7 +52,7 @@
 %enddef
 
 %define DOUBLE_TYPEMAP(TYPE)
-%typemap(in) TYPE *INPUT(TYPE temp), TYPE &INPUT(TYPE temp)
+%typemap(in, phptype="float") TYPE *INPUT(TYPE temp), TYPE &INPUT(TYPE temp)
 %{
   temp = (TYPE) zval_get_double(&$input);
   $1 = &temp;
@@ -65,7 +65,7 @@
   ZVAL_DOUBLE(&o, temp$argnum);
   t_output_helper($result, &o);
 }
-%typemap(in) TYPE *REFERENCE (TYPE dvalue), TYPE &REFERENCE (TYPE dvalue)
+%typemap(in, phptype="float") TYPE *REFERENCE (TYPE dvalue), TYPE &REFERENCE (TYPE dvalue)
 %{
   dvalue = (TYPE) zval_get_double(&$input);
   $1 = &dvalue;
@@ -90,7 +90,7 @@
   ZVAL_LONG(&o, temp$argnum);
   t_output_helper($result, &o);
 }
-%typemap(in) TYPE *REFERENCE (TYPE lvalue), TYPE &REFERENCE (TYPE lvalue)
+%typemap(in, phptype="int") TYPE *REFERENCE (TYPE lvalue), TYPE &REFERENCE (TYPE lvalue)
 %{
   lvalue = (TYPE) zval_get_long(&$input);
   $1 = &lvalue;

@@ -176,7 +176,7 @@
 
 /* Special case when void* is passed by reference so it can be made to point
    to opaque api structs */
-%typemap(in, byref=1) void ** ($*1_ltype ptr, int force),
+%typemap(in, phptype="?SWIG\\_p_void", byref=1) void ** ($*1_ltype ptr, int force),
              void *& ($*1_ltype ptr, int force)
 {
   /* If they pass NULL by reference, make it into a void*
