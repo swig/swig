@@ -4,6 +4,11 @@
  * PHP configuration file
  * ----------------------------------------------------------------------------- */
 
+// Default to generating PHP type declarations (for PHP >= 8) except for
+// cases which are liable to cause compatibility issues with existing
+// bindings.
+%feature("php:type", "compat");
+
 %runtime "swigrun.swg"  // Common C API type-checking code
 %runtime "swigerrors.swg"    // SWIG errors
 %runtime "phprun.swg"	// PHP runtime functions
