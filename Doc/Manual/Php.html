@@ -343,6 +343,75 @@ $c = bar(3.5);  # Use default argument for 2nd parameter
 
 </pre></div>
 
+<p>
+SWIG generates PHP type declarations for function parameters and return
+types for PHP 8 and later (we don't try to support PHP 7's more limited type
+declarations and the generated wrappers compiled for PHP 7 will not have any
+type declarations).
+</p>
+
+<p>
+You can control the generation of PHP type declarations using
+the "php:type" %feature.  This has three settings:
+</p>
+
+<ul>
+    <li> <p>If unset or set to "0" then no type declarations are generated, e.g.: <tt>%feature("php:type", "0");</tt>
+	</p></li>
+    <li> <p>If set to "1" then type declarations are generated for both parameters and return types, e.g.: <tt>%feature("php:type", "1");</tt>
+	</p></li>
+    <li> <p>The default setting is "compat", which is the same as "1" except no
+	return type declarations are generated for virtual methods for which
+	directors are enabled.  This provides better compatibility for PHP
+	subclasses of wrapped virtual methods in existing SWIG-generated bindings, e.g.: <tt>%feature("php:type", "compat");</tt>
+</ul>
+
+<p>
+If you have an existing PHP interface and are upgrading to SWIG &gt;= 4.1.0
+then the default "compat" setting should work well.
+</p>
+
+<p>
+If you're writing a new set of bindings and only targetting PHP8 or newer
+then enabling type declarations everywhere probably makes sense.
+</p>
+
+<p>
+The type declaration information will make the generated source code and
+compiler extension module larger, so you might want to turn off type
+declarations if keeping these small is important to you.  If you find you
+need to turn off type declarations to fix a problem, please let us know
+via our github issue tracker.
+</p>
+
+<p>
+Note that being a SWIG feature this can be specified globally (like above) or
+per class, per method, etc.  See the <a
+href="Customization.html#Customization_features">%feature directives</a>
+section for full details of how to control at a fine-grained level.
+</p>
+
+<p>
+The PHP type information is specified via a "phptype" attribute on "in" and
+"out" typemaps, and these have been added for all the typemaps we supply for
+PHP.  We don't currently support this for "argout" templates, but probably
+will in a future version.
+</p>
+
+<p>
+If you have written custom SWIG typemaps for PHP and want to add PHP type
+declarations, then the syntax is very like how you'd specify the type in
+PHP code, e.g. <tt>%typemap(in, phptype="int|string|Foo")</tt> means the
+typemap accepts a PHP int or string or an object of class Foo,
+<tt>%typemap(in, phptype="?int")</tt> means a PHP int or NULL, etc.
+As well as the standard PHP type declaration types, SWIG also understands the
+special type "SWIGTYPE" as an entry in phptype, which means the PHP type
+corresponding to the type that this typemap matched on - for a object this
+will give you the PHP class for the object, and for a pointer to a non-class
+type it will give you the name of the PHP class SWIG created for that
+pointer type.
+</p>
+
 <!-- This isn't correct for 1.3.30 and needs rewriting to reflect reality
 <p>
 Because PHP is a dynamically typed language, the default typemaps
