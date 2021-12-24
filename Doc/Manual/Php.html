@@ -367,6 +367,7 @@ the "php:type" %feature.  This has three settings:
 	return type declarations are generated for virtual methods for which
 	directors are enabled.  This provides better compatibility for PHP
 	subclasses of wrapped virtual methods in existing SWIG-generated bindings, e.g.: <tt>%feature("php:type", "compat");</tt>
+	</p></li>
 </ul>
 
 <p>
@@ -376,7 +377,10 @@ then the default "compat" setting should work well.
 
 <p>
 If you're writing a new set of bindings and only targetting PHP8 or newer
-then enabling type declarations everywhere probably makes sense.
+then enabling type declarations everywhere probably makes sense.  It will
+only actually make a difference if you enable directors and are wrapping C++
+classes with virtual methods, but doing it anyway means you won't forget to the
+code you are wrapping later evolves to have such classes and methods.
 </p>
 
 <p>
