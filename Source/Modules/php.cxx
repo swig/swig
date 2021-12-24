@@ -2329,6 +2329,17 @@ void PHPTypes::process_phptype(Node *n, int key, const String_or_char *attribute
       } else {
 	// SWIG wraps a pointer to a non-object type as an object in a PHP
 	// class named based on the SWIG-mangled C/C++ type.
+	//
+	// FIXME: We should check this is actually a known pointer to
+	// non-object type so we complain about `phptype="SWIGTYPE"` being
+	// used for PHP types like `int` or `string` (currently this only
+	// fails at runtime and the error isn't very helpful).  We could
+	// check the condition
+	//
+	//   zend_types && Getattr(zend_types, SwigType_manglestr(type))
+	//
+	// except that zend_types may not have been fully filled in when
+	// we are called.
 	Append(merge_list, NewStringf("SWIG\\%s", SwigType_manglestr(type)));
       }
     } else {
