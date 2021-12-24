@@ -16,7 +16,8 @@
   struct Geometry {
     enum GeomType{
       POINT,
-      CIRCLE
+      CIRCLE,
+      SHAPELESS
     };
 
     virtual ~Geometry() {}
