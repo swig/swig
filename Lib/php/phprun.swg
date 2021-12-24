@@ -31,9 +31,9 @@ extern "C" {
 # define ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(name, byref, num_req, types) \
     ZEND_BEGIN_ARG_INFO_EX(name, 0, byref, num_req)
 
-/* NB We ignore `default` here because this mechanism for specifying default
- * values was new in PHP 8.0 and so we don't currently make use of it (we
- * always pass NULL.
+/* NB We can just ignore `default` here we currently always pass NULL for it
+ * (this mechnism for specifying default parameter values was new in PHP 8.0
+ * so it's not useful while we still want to support PHP7 too).
  */
 # define ZEND_ARG_OBJ_TYPE_MASK(byref, name, classes, types, default) \
     ZEND_ARG_INFO(byref, name)
