@@ -957,6 +957,7 @@ swig -python -help
 <tr><td>-doxygen        </td><td>Convert C++ doxygen comments to pydoc comments in proxy classes</td></tr>
 <tr><td>-extranative    </td><td>Return extra native wrappers for C++ std containers wherever possible</td></tr>
 <tr><td>-fastproxy      </td><td>Use fast proxy mechanism for member methods</td></tr>
+<tr><td>-flatstaticmethod </td><td>Generate Foo_bar for static method Foo::bar</td></tr>
 <tr><td>-globals &lt;name&gt; </td><td>Set &lt;name&gt; used to access C global variable (default: 'cvar')</td></tr>
 <tr><td>-interface &lt;mod&gt;</td><td>Set low-level C/C++ module name to &lt;mod&gt; (default: module name prefixed by '_')</td></tr>
 <tr><td>-keyword        </td><td>Use keyword arguments</td></tr>
@@ -1616,16 +1617,15 @@ In Python, the static member can be accessed in three different ways:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; example.Spam_foo()    # Spam::foo()
 &gt;&gt;&gt; s = example.Spam()
 &gt;&gt;&gt; s.foo()               # Spam::foo() via an instance
-&gt;&gt;&gt; example.Spam.foo()    # Spam::foo() using Python-2.2 and later
+&gt;&gt;&gt; example.Spam.foo()    # Spam::foo() using class method
+&gt;&gt;&gt; example.Spam_foo()    # Spam::foo() "flattened" name
 </pre>
 </div>
 
 <p>
-The first two methods of access are supported in all versions of Python.  The
-last technique is only available in Python-2.2 and later versions.
+The last technique is only available when using the <tt>-flatstaticmethod</tt> option.
 </p>
 
 <p>
