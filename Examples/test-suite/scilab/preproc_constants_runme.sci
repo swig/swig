@@ -24,7 +24,7 @@ endfunction
 test_global();
 
 
-// Test assignement in enums
+// Test assignment in enums
 checkequal(kValue_get(), 4, "kValue");
 
 exec("swigtest.quit", -1);

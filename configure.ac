@@ -146,14 +146,14 @@ then
 	*-*-aix*) LDSHARED="\$(srcdir)/ld_so_aix \$(CC)";;
 	*-*-cygwin* | *-*-mingw*)
             if test "$GCC" = yes; then
-                LDSHARED="$CC -shared"
+                LDSHARED="\$(CC) -shared"
             else
                 if test "cl" = $CC ;  then
                     # Microsoft Visual C++ (MSVC)
-                    LDSHARED="$CC -nologo -LD"
+                    LDSHARED="\$(CC) -nologo -LD"
                 else
                     # Unknown compiler try gcc approach
-                    LDSHARED="$CC -shared"
+                    LDSHARED="\$(CC) -shared"
                 fi
             fi ;;
 	*-*-irix5*) LDSHARED="ld -shared";;
@@ -165,25 +165,25 @@ then
 	*-sequent-sysv4) LDSHARED="ld -G";;
 	*-*-next*)
 		if test "$ns_dyld"
-		then LDSHARED='$(CC) $(LDFLAGS) -bundle -prebind'
-		else LDSHARED='$(CC) $(CFLAGS) -nostdlib -r'
+		then LDSHARED="\$(CC) \$(LDFLAGS) -bundle -prebind"
+		else LDSHARED="\$(CC) \$(CFLAGS) -nostdlib -r"
 		fi
                 if test "$with_next_framework" ; then
 		    LDSHARED="$LDSHARED \$(LDLIBRARY)"
 		fi ;;
-	*-*-linux*) LDSHARED="$CC -shared";;
+	*-*-linux*) LDSHARED="\$(CC) -shared";;
 	*-*-dgux*) LDSHARED="ld -G";;
-	*-*-freebsd3*) LDSHARED="$CC -shared";;
+	*-*-freebsd3*) LDSHARED="\$(CC) -shared";;
 	*-*-freebsd* | *-*-openbsd*) LDSHARED="ld -Bshareable";;
 	*-*-netbsd*)
-		if [[ "`$CC -dM -E - </dev/null | grep __ELF__`" != "" ]]
+		if [[ "`\$(CC) -dM -E - </dev/null | grep __ELF__`" != "" ]]
 		then
-			LDSHARED="$CC -shared"
+			LDSHARED="\$(CC) -shared"
 		else
 			LDSHARED="ld -Bshareable"
 		fi;;
-	*-sco-sysv*) LDSHARED="$CC -G -KPIC -Ki486 -belf -Wl,-Bexport";;
-	*-*-darwin*) LDSHARED="$CC -bundle -undefined suppress -flat_namespace";;
+	*-sco-sysv*) LDSHARED="\$(CC) -G -KPIC -Ki486 -belf -Wl,-Bexport";;
+	*-*-darwin*) LDSHARED="\$(CC) -bundle -undefined suppress -flat_namespace";;
 	*)	LDSHARED="ld";;
 	esac
 fi
@@ -205,23 +205,23 @@ if test -z "$TRYLINKINGWITHCXX"
 then
 	case $host in
 	*-*-solaris*) if test "$GCC" = yes
-             then TRYLINKINGWITHCXX="CXXSHARED= $CXX -Wl,-G"
-             else TRYLINKINGWITHCXX="CXXSHARED= $CXX -G -L/opt/SUNWspro/lib -lCrun -lCstd"
+             then TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -Wl,-G"
+             else TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -G -L/opt/SUNWspro/lib -lCrun -lCstd"
              fi;;
-        *-*-hp*) TRYLINKINGWITHCXX="CXXSHARED= $CXX +z ";;
-        *-*-darwin*) TRYLINKINGWITHCXX="CXXSHARED= $CXX -bundle -undefined suppress -flat_namespace";;
+        *-*-hp*) TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) +z ";;
+        *-*-darwin*) TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -bundle -undefined suppress -flat_namespace";;
         *-*-cygwin* | *-*-mingw*)
             if test "$GCC" = yes; then
-                TRYLINKINGWITHCXX="CXXSHARED= $CXX -shared "
+                TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -shared "
             else
                 if test "cl" = $CXX ;  then
                     # Microsoft Visual C++ (MSVC)
-                    TRYLINKINGWITHCXX="CXXSHARED= $CXX -nologo -LD"
+                    TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -nologo -LD"
                 else
                     TRYLINKINGWITHCXX="#unknown Windows compiler"
                 fi
             fi ;;
-        *)       TRYLINKINGWITHCXX="CXXSHARED= $CXX -shared ";;
+        *)       TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -shared ";;
         esac
 fi
 AC_MSG_RESULT($TRYLINKINGWITHCXX)
@@ -812,7 +812,7 @@ else
     if test x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\" -a $PYVER -ge 3; then
       PYTHON3="$PYTHON"
     else
-      for py_ver in 3 3.9 3.8 3.7 3.6 3.5 3.4 3.3 3.2 ""; do
+      for py_ver in 3 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 3.2 ""; do
         AC_CHECK_PROGS(PYTHON3, [python$py_ver])
         if test -n "$PYTHON3"; then
           AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
@@ -1250,6 +1250,9 @@ else
       SCILABOPT="-nwni -nb"
       if test $SCILAB_VERSION -ge 540; then
         SCILABOPT+=" -noatomsautoload"
+      fi
+      if test $SCILAB_VERSION -ge 600; then
+        SCILABOPT+=" -quit"
       fi
       AC_MSG_RESULT($SCILABOPT)
 
@@ -2079,7 +2082,7 @@ if test x"${PHPBIN}" = xno; then
     PHP=
 else
     if test "x$PHPBIN" = xyes; then
-      AC_CHECK_PROGS(PHP, [php8.0 php7.4 php7.3 php7.2 php7.1 php7.0 php])
+      AC_CHECK_PROGS(PHP, [php8.1 php8.0 php7.4 php7.3 php7.2 php7.1 php7.0 php])
     else
       PHP=$PHPBIN
     fi

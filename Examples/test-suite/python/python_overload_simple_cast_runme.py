@@ -9,6 +9,8 @@ class Ai:
     def __int__(self):
         return self.x
 
+    def __index__(self):
+        return self.x
 
 class Ad:
 

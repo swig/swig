@@ -153,6 +153,7 @@ INT_TYPEMAP(long long);
     ZVAL_STRING($result, temp);
   }
 %}
+
 INT_TYPEMAP(unsigned long long);
 %typemap(argout,fragment="t_output_helper") unsigned long long *OUTPUT
 {

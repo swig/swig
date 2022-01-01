@@ -219,7 +219,6 @@
               unsigned long,
               signed char,
               unsigned char,
-              bool,
               size_t
 %{
   RETVAL_LONG($1);

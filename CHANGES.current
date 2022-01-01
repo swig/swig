@@ -7,6 +7,41 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2021-12-18: olly
+	    [PHP] Add PHP keyword 'readonly' (added in 8.1) to the list SWIG
+	    knows to automatically rename.  This keyword is special in that PHP
+	    allows it to be used as a function (or method) name.
+
+2021-12-05: rwf1
+            [Octave] #2020 #1893 Add support for Octave 6 up to and including 6.4.
+            Also add support for compiling with -Bsymbolic which is used by default
+            by mkoctfile.
+
+2021-12-02: jsenn
+            [Python] #2102 Fixed crashes when using embedded Python interpreters. 
+
+2021-11-12: wsfulton
+            [Javascript] v8 and node only. Fix mismatched new char[] and free()
+            when wrapping C code char arrays. Now calloc is now used instead of
+            new char[] in SWIG_AsCharPtrAndSize.
+
+2021-10-03: ajrh1
+            [Perl] #2074: Avoid -Wmisleading-indentation in generated code
+            when using gcc11.
+
+2021-10-03: jschueller
+            [CMake] #2065: Add option to enable or disable PCRE support.
+
+2021-09-16: ianlancetaylor
+            [Go] Improved _cgo_panic implementation.
+
+2021-09-16: ianlancetaylor
+            [Go] Don't use crosscall2 for panicking. Instead rely on documented
+            and exported interfaces.
+
+2021-09-14: ianlancetaylor
+            [Go] Remove -no-cgo option (long unsupported in Go)
+
 2021-05-04: olly
 	    [PHP] #2014 Throw PHP exceptions instead of using PHP errors
 

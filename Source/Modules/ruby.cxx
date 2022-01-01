@@ -116,6 +116,7 @@ public:
 
 
 /* flags for the make_autodoc function */
+namespace {
 enum autodoc_t {
   AUTODOC_CLASS,
   AUTODOC_CTOR,
@@ -127,6 +128,7 @@ enum autodoc_t {
   AUTODOC_SETTER,
   AUTODOC_NONE
 };
+}
 
 static const char *usage = "\
 Ruby Options (available with -ruby)\n\

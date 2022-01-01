@@ -569,8 +569,17 @@ namespace swig {
 	  } else {
 	    return octseq.check() ? SWIG_OK : SWIG_ERROR;
 	  }
-	} catch (std::exception& e) {
+	}
+%#if SWIG_OCTAVE_PREREQ(6,0,0)
+        catch (octave::execution_exception& exec) {
+        }
+%#endif
+        catch (std::exception& e) {
+%#if SWIG_OCTAVE_PREREQ(6,0,0)
+          if (seq) // Know that octave is not in an error state
+%#else
 	  if (seq&&!error_state)
+%#endif
 	    error("swig type error: %s",e.what());
 	  return SWIG_ERROR;
 	}

@@ -93,6 +93,7 @@ static int nortti = 0;
 static int relativeimport = 0;
 
 /* flags for the make_autodoc function */
+namespace {
 enum autodoc_t {
   AUTODOC_CLASS,
   AUTODOC_CTOR,
@@ -103,7 +104,7 @@ enum autodoc_t {
   AUTODOC_CONST,
   AUTODOC_VAR
 };
-
+}
 
 static const char *usage1 = "\
 Python Options (available with -python)\n\
@@ -3423,7 +3424,6 @@ public:
       Printf(f_init, "#endif\n");
       Printf(f_init, "\t }\n");
       Printf(f_init, "\t PyDict_SetItemString(md, \"%s\", globals);\n", global_name);
-      Printf(f_init, "\t Py_DECREF(globals);\n");
       if (builtin)
 	Printf(f_init, "\t SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", global_name);
       have_globals = 1;

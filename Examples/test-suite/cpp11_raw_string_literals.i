@@ -21,6 +21,11 @@
 %include <std_wstring.i>
 #endif
 
+#if defined(SWIGLUA)
+// Lua uses a parameter called L in every wrapper function
+%ignore L;
+#endif
+
 %inline %{
 #include <iostream>
 #include <string>

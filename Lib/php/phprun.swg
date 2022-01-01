@@ -81,10 +81,10 @@ typedef struct {
   zend_object std;
 } swig_object_wrapper;
 
-#define SWIG_Z_FETCH_OBJ_P(zv) php_fetch_object(Z_OBJ_P(zv))
+#define SWIG_Z_FETCH_OBJ_P(zv) swig_php_fetch_object(Z_OBJ_P(zv))
 
 static inline
-swig_object_wrapper * php_fetch_object(zend_object *obj) {
+swig_object_wrapper * swig_php_fetch_object(zend_object *obj) {
   return (swig_object_wrapper *)((char *)obj - XtOffsetOf(swig_object_wrapper, std));
 }
 
@@ -115,47 +115,11 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
       obj = ce->create_object(ce);
       ZVAL_OBJ(z, obj);
     }
-    value = php_fetch_object(obj);
+    value = swig_php_fetch_object(obj);
     value->ptr = ptr;
     value->newobject = (newobject & 1);
     value->type = type;
   }
-}
-
-/* This pointer conversion routine takes the native pointer p (along with
-   its type name) and converts it by calling appropriate casting functions
-   according to ty.  The resultant pointer is returned, or NULL is returned
-   if the pointer can't be cast.
-
-   This is called by SWIG_ConvertPtr which gets the type name from the
-   swig_object_wrapper. */
-static void *
-SWIG_ConvertPtrData(void * p, const char *type_name, swig_type_info *ty, int *own) {
-  swig_cast_info *tc;
-  void *result = 0;
-
-  if (!ty) {
-    /* They don't care about the target type, so just pass on the pointer! */
-    return p;
-  }
-
-  if (! type_name) {
-    /* can't convert p to ptr type ty if we don't know what type p is */
-    return NULL;
-  }
-
-  /* convert and cast p from type_name to ptr as ty. */
-  tc = SWIG_TypeCheck(type_name, ty);
-  if (tc) {
-    int newmemory = 0;
-    result = SWIG_TypeCast(tc, p, &newmemory);
-    if (newmemory == SWIG_CAST_NEW_MEMORY) {
-      assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
-      if (own)
-        *own |= SWIG_CAST_NEW_MEMORY;
-    }
-  }
-  return result;
 }
 
 /* We wrap C/C++ pointers as PHP objects. */
@@ -172,7 +136,23 @@ SWIG_ConvertPtrAndOwn(zval *z, void **ptr, swig_type_info *ty, int flags, swig_o
   switch (Z_TYPE_P(z)) {
     case IS_OBJECT: {
       swig_object_wrapper *value = SWIG_Z_FETCH_OBJ_P(z);
-      *ptr = SWIG_ConvertPtrData(value->ptr, value->type->name, ty, own);
+      if (!ty) {
+	/* They don't care about the target type, so just pass on the pointer! */
+	*ptr = value->ptr;
+      } else {
+	swig_cast_info *tc = SWIG_TypeCheckStruct(value->type, ty);
+	if (tc) {
+	  int newmemory = 0;
+	  *ptr = SWIG_TypeCast(tc, value->ptr, &newmemory);
+	  if (newmemory == SWIG_CAST_NEW_MEMORY) {
+	    assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
+	    if (own)
+	      *own |= SWIG_CAST_NEW_MEMORY;
+	  }
+	} else {
+	  *ptr = NULL;
+	}
+      }
       if (*ptr == NULL) return SWIG_ERROR;
       if (flags & SWIG_POINTER_DISOWN) {
 	value->newobject = 0;
@@ -205,4 +185,25 @@ static swig_module_info *SWIG_Php_GetModule() {
 
 static void SWIG_Php_SetModule(swig_module_info *pointer, int module_number) {
   REGISTER_LONG_CONSTANT(const_name, (long) pointer, CONST_CS | CONST_PERSISTENT);
+}
+
+/* Common parts of the "create_object" object handler. */
+static zend_object *SWIG_Php_do_create_object(zend_class_entry *ce, zend_object_handlers *handlers) {
+  swig_object_wrapper *obj = (swig_object_wrapper*)zend_object_alloc(sizeof(swig_object_wrapper), ce);
+  zend_object_std_init(&obj->std, ce);
+  object_properties_init(&obj->std, ce);
+  obj->std.handlers = handlers;
+  obj->newobject = 1;
+  return &obj->std;
+}
+
+/* Common parts of the "free_obj" object handler.
+   Returns void* pointer if the C/C++ object should be destroyed. */
+static void* SWIG_Php_free_obj(zend_object *object) {
+  if (object) {
+    swig_object_wrapper *obj = swig_php_fetch_object(object);
+    zend_object_std_dtor(&obj->std);
+    if (obj->newobject) return obj->ptr;
+  }
+  return NULL;
 }

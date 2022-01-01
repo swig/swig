@@ -39,15 +39,15 @@
 ;(check (=~ 15 (Overload-byval2cpr o #nil)))
 ;(check (=~ 16 (Overload-byval2cpr o x)))
 
-; forward class declaration
-(check (=~ 17 (Overload-byval1forwardptr o x)))
-(check (=~ 18 (Overload-byval1forwardptr o #nil)))
+; fwd class declaration
+(check (=~ 17 (Overload-byval1fwdptr o x)))
+(check (=~ 18 (Overload-byval1fwdptr o #nil)))
 
-(check (=~ 19 (Overload-byval2forwardptr o #nil)))
-(check (=~ 20 (Overload-byval2forwardptr o x)))
+(check (=~ 19 (Overload-byval2fwdptr o #nil)))
+(check (=~ 20 (Overload-byval2fwdptr o x)))
 
-(check (=~ 21 (Overload-byval1forwardref o x)))
+(check (=~ 21 (Overload-byval1fwdref o x)))
 
-(check (=~ 22 (Overload-byval2forwardref o x)))
+(check (=~ 22 (Overload-byval2fwdref o x)))
 
 (exit 0)

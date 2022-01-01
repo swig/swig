@@ -40,3 +40,5 @@ foreach (Array(1,2,3,4) as $i) {
     } catch (Exception $e) {
     }
 }
+
+check::done();
