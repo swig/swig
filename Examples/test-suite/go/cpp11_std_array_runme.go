@@ -1,29 +1,23 @@
 package main
 
-import "fmt"
-import "swigtests/cpp11_std_array"
+import (
+  "fmt"
+  "swigtests/cpp11_std_array"
+)
 
-// func ToArray6(array [6]int) ArrayInt6 {
-//   var outputArray ArrayInt6
-//   for i := 0; i < 6; i++ {
-//     outputArray.Set(i, array[i])
-//   }
-//   return outputArray
-// }
-
-func CompareContainers(actual cpp11_std_array.ArrayInt6, expected []int) error {
-  if actual.Size() != len(expected) {
+func CompareContainers(actual cpp11_std_array.ArrayInt6, expected [6]int) error {
+  if int(actual.Size()) != len(expected) {
     return fmt.Errorf("Sizes are different: %d %d", actual.Size(), len(expected))
   }
-  for i := 0; i < actual.Size(); i++ {
-	actualValue := actual.Get(i)
-	expectedValue := expected[i]
-	if actualValue != expectedValue {
-	  return fmt.Errorf("Value is wrong for element %d. Expected %d got: %d", i, expectedValue, actualValue)
-	}
+  for i := 0; i < int(actual.Size()); i++ {
+    actualValue := actual.Get(i)
+    expectedValue := expected[i]
+    if actualValue != expectedValue {
+      return fmt.Errorf("Value is wrong for element %d. Expected %d got: %d", i, expectedValue, actualValue)
+    }
   }
   if actual.IsEmpty() {
-	return fmt.Errorf("ai should not be empty")
+	  return fmt.Errorf("ai should not be empty")
   }
   return nil
 }
@@ -35,7 +29,7 @@ func main() {
 
   vals := [6]int{10, 20, 30, 40, 50, 60}
   for i := 0; i < len(vals); i++ {
-	ai.Set(i, vals[i])
+    ai.Set(i, vals[i])
   }
   CompareContainers(ai, vals);
 
@@ -50,7 +44,7 @@ func main() {
   vals = [6]int{9, 8, 7, 6, 5, 4}
   valsArrayInt6 := cpp11_std_array.NewArrayInt6()
   for i := 0; i < len(vals); i++ {
-	valsArrayInt6.Set(i, vals[i])
+    valsArrayInt6.Set(i, vals[i])
   }
 
   ai = cpp11_std_array.ArrayInVal(valsArrayInt6);
@@ -60,11 +54,11 @@ func main() {
   CompareContainers(ai, vals);
 
   ai = cpp11_std_array.NewArrayInt6(valsArrayInt6);
-  cpp11_std_array.arrayInRef(ai);
+  cpp11_std_array.ArrayInRef(ai);
   CompareContainers(ai, vals);
 
   ai = cpp11_std_array.NewArrayInt6(valsArrayInt6);
-  cpp11_std_array.arrayInPtr(ai);
+  cpp11_std_array.ArrayInPtr(ai);
   CompareContainers(ai, vals);
 
   // Fill
