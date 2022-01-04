@@ -24,7 +24,7 @@ public:
 }
 #endif
 
-#if defined(SWIGJAVA) 
+#if defined(SWIGJAVA)
 %typemap(javaout) Foo * {
     return new Bar($jnicall, $owner);
   }
