@@ -59,24 +59,24 @@ dnl To make configuring easier, check for a locally built PCRE using the Tools/p
 if test x"${with_pcre}" = xyes ; then
   AC_MSG_CHECKING([whether to use local PCRE])
   local_pcre_config=no
-  if test -z $PCRE_CONFIG; then
-    if test -f `pwd`/pcre/pcre-swig-install/bin/pcre-config; then
-      PCRE_CONFIG=`pwd`/pcre/pcre-swig-install/bin/pcre-config
-      local_pcre_config=$PCRE_CONFIG
+  if test -z $PCRE2_CONFIG; then
+    if test -f `pwd`/pcre/pcre-swig-install/bin/pcre2-config; then
+      PCRE2_CONFIG=`pwd`/pcre/pcre-swig-install/bin/pcre2-config
+      local_pcre_config=$PCRE2_CONFIG
     fi
   fi
   AC_MSG_RESULT([$local_pcre_config])
 fi
 AS_IF([test "x$with_pcre" != xno],
-  [AX_PATH_GENERIC([pcre],
+  [AX_PATH_GENERIC([pcre2],
     [], dnl Minimal version of PCRE we need -- accept any
     [], dnl custom sed script for version parsing is not needed
     [AC_DEFINE([HAVE_PCRE], [1], [Define if you have PCRE library])
-     LIBS="$LIBS $PCRE_LIBS"
-     CPPFLAGS="$CPPFLAGS $PCRE_CFLAGS"
+     LIBS="$LIBS $PCRE2_LIBS"
+     CPPFLAGS="$CPPFLAGS $PCRE2_CFLAGS"
     ],
     [AC_MSG_FAILURE([
-        Cannot find pcre-config script from PCRE (Perl Compatible Regular Expressions)
+        Cannot find pcre2-config script from PCRE (Perl Compatible Regular Expressions)
         library package. This dependency is needed for configure to complete,
         Either:
         - Install the PCRE developer package on your system (preferred approach).
@@ -87,7 +87,8 @@ AS_IF([test "x$with_pcre" != xno],
           (quite easy and does not require privileges to install PCRE on your system)
         - Use configure --without-pcre to disable regular expressions support in SWIG
           (not recommended).])
-    ])
+    ],
+    [],[],[--libs8])
   ])
 
 

@@ -84,7 +84,7 @@ export CXXFLAGS="$compileflags"
 swigbasename=swig-$version
 swigwinbasename=swigwin-$version
 tarball=$swigbasename.tar.gz
-pcre_tarball=`ls pcre-*.tar.*`
+pcre_tarball=`ls pcre2-*.tar.*`
 
 if ! test -f "$pcre_tarball"; then
   echo "Could not find PCRE tarball. Please download a PCRE source tarball from http://www.pcre.org"
