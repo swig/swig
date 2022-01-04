@@ -1693,4 +1693,3 @@ d_clean:
 	rm -f *_wrap* *~ .~* $(RUNME) $(RUNME).exe `find . -name \*.d | grep -v $(RUNME).d`
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
-
