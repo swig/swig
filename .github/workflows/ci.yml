@@ -22,8 +22,9 @@ jobs:
 
     runs-on: ${{ matrix.os || 'ubuntu-20.04' }}
 
-    # By default, the name of the build is the language used and SWIG options.
-    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY3 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.continue-on-error && '(can fail)' }}
+    # By default, the name of the build is the language used and SWIG options, but matrix entries
+    # can define the additional "desc" field with any additional information to include in the name.
+    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY3 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
 
     strategy:
       matrix:
