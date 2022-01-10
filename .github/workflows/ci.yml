@@ -332,6 +332,10 @@ jobs:
       with:
         key: ${{ matrix.os || 'ubuntu-20.04' }}-${{ matrix.compiler || 'gcc' }}${{ matrix.GCC }}
 
+# Uncomment to debug via ssh, see https://github.com/mxschmitt/action-tmate
+#    - name: Setup tmate session
+#      uses: mxschmitt/action-tmate@v3
+
     - name: Install Dependencies
       run: |
           set -x
