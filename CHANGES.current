@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-01-11: wsfulton
+            [Python] Accept keyword arguments accessing static member functions when
+            using -builtin and kwargs feature and Python class staticmethod syntax.
+            The missing keyword argument support was only when using the
+            class staticmethod syntax, such as Klass.memberfunction, and not when
+            using the flat static method syntax, such as Klass_memberfunction.
+
 2022-01-04: juierror
             [Go] #2045 Add support for std::array in std_array.i.
 

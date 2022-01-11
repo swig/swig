@@ -18,6 +18,9 @@ if f.foo(b=1, a=2) != 3:
 if Foo.statfoo(b=2) != 3:
     raise RuntimeError
 
+if Foo.statfoo_onearg(x=4) != 8:
+    raise RuntimeError
+
 if f.efoo(b=2) != 3:
     raise RuntimeError
 

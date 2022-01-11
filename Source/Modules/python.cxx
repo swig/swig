@@ -4727,6 +4727,7 @@ public:
       Swig_restore(n);
     }
 
+    int kw = (check_kwargs(n) && !Getattr(n, "sym:overloaded")) ? 1 : 0;
     if (builtin && in_class) {
       if ((GetFlagAttr(n, "feature:extend") || checkAttribute(n, "access", "public"))
 	  && !Getattr(class_members, symname)) {
@@ -4741,7 +4742,7 @@ public:
 	else if (funpack && argcount == 1)
 	  Append(pyflags, "METH_O");
 	else
-	  Append(pyflags, "METH_VARARGS");
+	  Append(pyflags, kw ? "METH_VARARGS|METH_KEYWORDS" : "METH_VARARGS");
 	// Cast via void(*)(void) to suppress GCC -Wcast-function-type warning.
 	// Python should always call the function correctly, but the Python C
 	// API requires us to store it in function pointer of a different type.
@@ -4767,7 +4768,6 @@ public:
       String *staticfunc_name = NewString(fastproxy ? "_swig_new_static_method" : "staticmethod");
       bool fast = (fastproxy && !have_addtofunc(n)) || Getattr(n, "feature:callback");
       if (!fast || olddefs) {
-	int kw = (check_kwargs(n) && !Getattr(n, "sym:overloaded")) ? 1 : 0;
 	String *parms = make_pyParmList(n, false, false, kw);
 	String *callParms = make_pyParmList(n, false, true, kw);
 	Printv(f_shadow, "\n", tab4, "@staticmethod", NIL);

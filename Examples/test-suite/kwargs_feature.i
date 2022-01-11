@@ -27,6 +27,7 @@
 
     virtual int foo(int a = 1, int b = 0) {return a + b; }
     static int statfoo(int a = 1, int b = 0) {return a + b; }
+    static int statfoo_onearg(int x = 10) {return x + x; }
 
     static Foo *create(int a = 1, int b = 0) 
     {
