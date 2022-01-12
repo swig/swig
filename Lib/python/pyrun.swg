@@ -1643,12 +1643,17 @@ SWIG_Python_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
   return (swig_module_info *) type_pointer;
 }
 
+
+static int interpreter_counter = 0; // how many (sub-)interpreters are using swig_module's types
+
 SWIGRUNTIME void
 SWIG_Python_DestroyModule(PyObject *obj)
 {
   swig_module_info *swig_module = (swig_module_info *) PyCapsule_GetPointer(obj, SWIGPY_CAPSULE_NAME);
   swig_type_info **types = swig_module->types;
   size_t i;
+  if (--interpreter_counter != 0) // another sub-interpreter may still be using the swig_module's types
+    return;
   for (i =0; i < swig_module->size; ++i) {
     swig_type_info *ty = types[i];
     if (ty->owndata) {
@@ -1676,6 +1681,7 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
 #endif
   PyObject *pointer = PyCapsule_New((void *) swig_module, SWIGPY_CAPSULE_NAME, SWIG_Python_DestroyModule);
   if (pointer && module) {
+    ++interpreter_counter;
     if (PyModule_AddObject(module, "type_pointer_capsule" SWIG_TYPE_TABLE_NAME, pointer) != 0) {
       Py_DECREF(pointer);
     }
