@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-01-14: wsfulton
+            [Python] Fix %callback and specifying the callback function as a
+            static member function using Python staticmethod syntax, such as
+            Klass.memberfunction instead of Klass_memberfunction when using
+            -builtin and -fastproxy.
+
 2022-01-11: wsfulton
             [Python] Accept keyword arguments accessing static member functions when
             using -builtin and kwargs feature and Python class staticmethod syntax.

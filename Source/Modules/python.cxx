@@ -73,8 +73,10 @@ static int py3 = 0;
 
 /* C++ Support + Shadow Classes */
 
-static int have_constructor;
-static int have_repr;
+static int have_constructor = 0;
+static int have_repr = 0;
+static bool have_builtin_static_member_method_callback = false;
+static bool have_fast_proxy_static_member_method_callback = false;
 static String *real_classname;
 
 /* Thread Support */
@@ -815,6 +817,10 @@ public:
 
     Append(const_code, "{0, 0, 0, 0.0, 0, 0}};\n");
     Printf(f_wrappers, "%s\n", const_code);
+
+    if (have_fast_proxy_static_member_method_callback)
+      Printf(f_init, "  SWIG_Python_FixMethods(SwigMethods_proxydocs, swig_const_table, swig_types, swig_type_initial);\n\n");
+
     initialize_threads(f_init);
 
     Printf(f_init, "#if PY_VERSION_HEX >= 0x03000000\n");
@@ -2478,6 +2484,7 @@ public:
       Printf(methods, "\"swig_ptr: %s\"", Getattr(n, "feature:callback:name"));
       if (fastproxy) {
 	Printf(methods_proxydocs, "\"swig_ptr: %s\"", Getattr(n, "feature:callback:name"));
+	have_fast_proxy_static_member_method_callback = true;
       }
     } else {
       Append(methods, "NULL");
@@ -3935,6 +3942,10 @@ public:
     int funpack = fastunpack;
     static String *tp_new = NewString("PyType_GenericNew");
 
+    if (have_builtin_static_member_method_callback) {
+      Printf(f_init, "  SWIG_Python_FixMethods(SwigPyBuiltin_%s_methods, swig_const_table, swig_types, swig_type_initial);\n", mname);
+    }
+
     Printv(f_init, "  SwigPyBuiltin_SetMetaType(builtin_pytype, metatype);\n", NIL);
 
     // We can’t statically initialize a structure member with a function defined in another C module
@@ -4365,6 +4376,7 @@ public:
       /* Create new strings for building up a wrapper function */
       have_constructor = 0;
       have_repr = 0;
+      have_builtin_static_member_method_callback = false;
 
       class_name = Getattr(n, "sym:name");
       real_classname = Getattr(n, "name");
@@ -4750,6 +4762,11 @@ public:
 	  String *ds = cdocstring(n, AUTODOC_STATICFUNC);
 	  Printf(builtin_methods, "  { \"%s\", (PyCFunction)(void(*)(void))%s, %s, \"%s\" },\n", symname, wname, pyflags, ds);
 	  Delete(ds);
+	} else if (Getattr(n, "feature:callback")) {
+	  String *ds = NewStringf("swig_ptr: %s", Getattr(n, "feature:callback:name"));
+	  Printf(builtin_methods, "  { \"%s\", (PyCFunction)(void(*)(void))%s, %s, \"%s\" },\n", symname, wname, pyflags, ds);
+	  Delete(ds);
+	  have_builtin_static_member_method_callback = true;
 	} else {
 	  Printf(builtin_methods, "  { \"%s\", (PyCFunction)(void(*)(void))%s, %s, \"\" },\n", symname, wname, pyflags);
 	}
