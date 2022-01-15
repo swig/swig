@@ -1,5 +1,6 @@
 /* File : example.h */
 
+#include <string.h>
 #ifndef SWIG
 struct A {
 };
@@ -10,7 +11,7 @@ class Exc {
 public:
   Exc(int c, const char *m) {
     code = c;
-    strncpy(msg,m,256);
+    strncpy(msg,m,255);
   }
   int code;
   char msg[256];
