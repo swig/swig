@@ -19,7 +19,12 @@ clear all
 # load module in a function globally before base context
 clear all;
 function testme_1
-  assert(exist("swigexample") == 3);
+  if compare_versions(version(), '4.4', '>=') && compare_versions(version(), '6', '<')
+    % in octave >= 4.4 < 6 'swigexample' is recognized as variable (1) instead of a .oct file (3) on the second call of 'swigexample'
+    assert(exist("swigexample") == 3 || exist("swigexample") == 1);
+  else
+    assert(exist("swigexample") == 3);
+  end
   swigexample;
   assert(isglobal("swigexample"));
   assert(cvar.ivar == ifunc);
@@ -32,7 +37,12 @@ assert(isglobal("swigexample"));
 assert(cvar.ivar == ifunc);
 clear all
 function testme_2
-  assert(exist("swigexample") == 3);
+  if compare_versions(version(), '4.4', '>=') && compare_versions(version(), '6', '<')
+    % in octave >= 4.4 < 6 'swigexample' is recognized as variable (1) instead of a .oct file (3) on the second call of 'swigexample'
+    assert(exist("swigexample") == 3 || exist("swigexample") == 1);
+  else
+    assert(exist("swigexample") == 3);
+  end
   swigexample;
   assert(isglobal("swigexample"));
   assert(cvar.ivar == ifunc);
@@ -52,7 +62,12 @@ swigexample;
 assert(isglobal("swigexample"));
 assert(cvar.ivar == ifunc);
 function testme_3
-  assert(exist("swigexample") == 3);
+  if compare_versions(version(), '4.4', '>=') && compare_versions(version(), '6', '<')
+    % in octave >= 4.4 < 6 'swigexample' is recognized as variable (1) instead of a .oct file (3) on the second call of 'swigexample'
+    assert(exist("swigexample") == 3 || exist("swigexample") == 1);
+  else
+    assert(exist("swigexample") == 3);
+  end
   swigexample;
   assert(isglobal("swigexample"));
   assert(cvar.ivar == ifunc);
@@ -65,7 +80,12 @@ swigexample;
 assert(isglobal("swigexample"));
 assert(cvar.ivar == ifunc);
 function testme_4
-  assert(exist("swigexample") == 3);
+  if compare_versions(version(), '4.4', '>=') && compare_versions(version(), '6', '<')
+    % in octave >= 4.4 < 6 'swigexample' is recognized as variable (1) instead of a .oct file (3) on the second call of 'swigexample'
+    assert(exist("swigexample") == 3 || exist("swigexample") == 1);
+  else
+    assert(exist("swigexample") == 3);
+  end
   swigexample;
   assert(isglobal("swigexample"));
   assert(cvar.ivar == ifunc);
