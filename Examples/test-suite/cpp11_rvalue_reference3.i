@@ -24,19 +24,19 @@ void takeit3(Thing const*&& t) {}
 void takeit4(Thing *const&& t) {}
 void takeit5(Thing const*const&& t) {}
 
-struct Containing {
-  Thing && member_rvalue_ref;
-  Thing *&& member_rvalue_ref_ptr1;
-  Thing const*&& member_rvalue_ref_ptr2;
-  Thing *const&& member_rvalue_ref_ptr3;
-  Thing const*const &&member_rvalue_ref_ptr4;
+struct Contain {
+  Thing && m_ref;
+  Thing *&& m_ref_ptr1;
+  Thing const*&& m_ref_ptr2;
+  Thing *const&& m_ref_ptr3;
+  Thing const*const &&m_ref_ptr4;
 
-  Containing(Thing&&r, Thing*&& r1, Thing const*&& r2, Thing *const&& r3, Thing const*const && r4) :
-    member_rvalue_ref(std::move(r)), 
-    member_rvalue_ref_ptr1(std::move(r1)),
-    member_rvalue_ref_ptr2(std::move(r2)),
-    member_rvalue_ref_ptr3(std::move(r3)),
-    member_rvalue_ref_ptr4(std::move(r4))
+  Contain(Thing&&r, Thing*&& r1, Thing const*&& r2, Thing *const&& r3, Thing const*const && r4) :
+    m_ref(std::move(r)),
+    m_ref_ptr1(std::move(r1)),
+    m_ref_ptr2(std::move(r2)),
+    m_ref_ptr3(std::move(r3)),
+    m_ref_ptr4(std::move(r4))
     {}
 };
 %}
@@ -61,19 +61,19 @@ void int_takeit3(int const*&& t) {}
 void int_takeit4(int *const&& t) {}
 void int_takeit5(int const*const&& t) {}
 
-struct IntContaining {
-  int && member_rvalue_ref;
-  int *&& member_rvalue_ref_ptr1;
-  int const*&& member_rvalue_ref_ptr2;
-  int *const&& member_rvalue_ref_ptr3;
-  int const*const &&member_rvalue_ref_ptr4;
+struct IContain {
+  int && m_ref;
+  int *&& m_ref_ptr1;
+  int const*&& m_ref_ptr2;
+  int *const&& m_ref_ptr3;
+  int const*const &&m_ref_ptr4;
 
-  IntContaining(int&& r, int*&& r1, int const*&& r2, int *const&& r3, int const*const && r4) :
-    member_rvalue_ref(std::move(r)),
-    member_rvalue_ref_ptr1(std::move(r1)),
-    member_rvalue_ref_ptr2(std::move(r2)),
-    member_rvalue_ref_ptr3(std::move(r3)),
-    member_rvalue_ref_ptr4(std::move(r4))
+  IContain(int&& r, int*&& r1, int const*&& r2, int *const&& r3, int const*const && r4) :
+    m_ref(std::move(r)),
+    m_ref_ptr1(std::move(r1)),
+    m_ref_ptr2(std::move(r2)),
+    m_ref_ptr3(std::move(r3)),
+    m_ref_ptr4(std::move(r4))
     {}
 };
 %}

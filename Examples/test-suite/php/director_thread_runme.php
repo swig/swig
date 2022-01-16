@@ -1,18 +1,17 @@
 <?php
 
 require "tests.php";
-require "director_thread.php";
 
 # Fails in a ZTS-build of PHP5 - see: https://github.com/swig/swig/pull/155
 # FIXME: Does this still fail in a threaded build of PHP7?
 exit(0);
 
-// No new functions
+// New functions
 check::functions(array('millisecondsleep','foo_stop','foo_run','foo_do_foo'));
-// No new classes
+// New classes
 check::classes(array('director_thread','Foo'));
-// now new vars
-check::globals(array('foo_val'));
+// No new vars
+check::globals(array());
 
 class Derived extends Foo {
   function do_foo() {
@@ -30,4 +29,3 @@ if ($d->val >= 0) {
 $d->stop();
 
 check::done();
-?>

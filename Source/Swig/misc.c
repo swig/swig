@@ -250,6 +250,19 @@ String *Swig_filename_escape(String *filename) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_filename_escape()
+ *
+ * Escapes spaces in filename - for Makefiles
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_filename_escape_space(String *filename) {
+  String *adjusted_filename = Copy(filename);
+  Swig_filename_correct(adjusted_filename);
+  Replaceall(adjusted_filename, " ", "\\ ");
+  return adjusted_filename;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_filename_unescape()
  *
  * Remove double backslash escaping in filename - for Windows

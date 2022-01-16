@@ -4,10 +4,6 @@
 
 %include <octcomplex.swg>
 
-%{
-#include <complex> 
-%}
-
 namespace std {
   %naturalvar complex;
   template<typename T> class complex;

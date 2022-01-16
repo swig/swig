@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "char_strings.php";
 
 $CPLUSPLUS_MSG = "A message from the deep dark world of C++, where anything is possible.";
 $OTHERLAND_MSG_10 = "Little message from the safe world.10";
@@ -40,4 +39,3 @@ check::equal(GetConstCharPointerRef(), $CPLUSPLUS_MSG, "failed GetConstCharPoint
 check::equal(SetConstCharPointerRef($OTHERLAND_MSG_10, 10), true, "failed SetConstCharPointerRef");
 
 check::done();
-?>

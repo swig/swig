@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "rename_scope.php";
 
 check::classes(array("rename_scope","Interface_UP","Interface_BP","Natural_UP","Natural_BP","Bucket"));
 
@@ -13,4 +12,3 @@ check::classparent("Natural_UP","Interface_UP");
 check::classparent("Natural_BP","Interface_BP");
 
 check::done();
-?>

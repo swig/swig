@@ -7,6 +7,19 @@ Release Notes
 Detailed release notes are available with the release and are also
 published on the SWIG web site at http://swig.org/release.html.
 
+SWIG-4.1.0 summary:
+- Add PHP 8 support.
+- PHP wrapping is now done entirely via PHP's C API - no more .php wrapper.
+- GitHub Actions is now used instead of Travis CI for continuous integration.
+
+SWIG-4.0.2 summary:
+- A few fixes around doxygen comment handling.
+- Ruby 2.7 support added.
+- Various minor improvements to C#, D, Java, OCaml, Octave, Python,
+  R, Ruby.
+- Considerable performance improvement running SWIG on large
+  interface files.
+
 SWIG-4.0.1 summary:
 - SWIG now cleans up on error by removing all generated files.
 - Add Python 3.8 support.

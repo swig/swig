@@ -43,5 +43,9 @@ struct Caller {
     return *(int *)p;
   }
 };
+
+struct MemberVoid {
+  void *memberVariable;
+};
 %}
 

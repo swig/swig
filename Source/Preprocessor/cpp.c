@@ -113,7 +113,7 @@ static int is_digits(const String *str) {
   const char *s = Char(str);
   int isdigits = (*s != 0);
   while (*s) {
-    if (!isdigit(*s)) {
+    if (!isdigit((int)*s)) {
       isdigits = 0;
       break;
     }

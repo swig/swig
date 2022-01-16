@@ -2,10 +2,6 @@
 // Based on overload_simple testcase
 %module overload_arrays
 
-#ifdef SWIGCHICKEN
-%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) fbool;
-#endif
-
 #ifdef SWIGLUA
 // lua only has one numeric type, so most of the overloads shadow each other creating warnings
 %warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) foo;

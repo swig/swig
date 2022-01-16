@@ -1132,6 +1132,7 @@ static int name_regexmatch_value(Node *n, String *pattern, String *s) {
   Swig_error("SWIG", Getline(n),
              "PCRE regex matching is not available in this SWIG build.\n");
   SWIG_exit(EXIT_FAILURE);
+  return 0;
 }
 
 #endif /* HAVE_PCRE/!HAVE_PCRE */
@@ -1513,7 +1514,7 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
 	    if (n) {
 	      /* Parameter renaming is not fully implemented. Mainly because there is no C/C++ syntax to
 	       * for %rename to fully qualify a function's parameter name from outside the function. Hence it
-	       * is not possible to implemented targetted warning suppression on one parameter in one function. */
+	       * is not possible to implemented targeted warning suppression on one parameter in one function. */
 	      int suppress_parameter_rename_warning = Equal(nodeType(n), "parm");
 	      if (!suppress_parameter_rename_warning) {
 		SWIG_WARN_NODE_BEGIN(n);

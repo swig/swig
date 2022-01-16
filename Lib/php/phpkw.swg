@@ -5,6 +5,9 @@
 /* Keyword (case insensitive) */
 #define PHPKW(x) %keywordwarn("'" `x` "' is a PHP keyword, renaming to 'c_" `x` "'",sourcefmt="%(lower)s",rename="c_%s") `x`
 
+/* Keyword, except ok as a function */
+#define PHPKW_ok_as_function(x) %keywordwarn("'" `x` "' is a PHP keyword, renaming to 'c_" `x` "'",%$not %$isfunction,sourcefmt="%(lower)s",rename="c_%s") `x`
+
 /* Class (case insensitive) */
 #define PHPCN(x) %keywordwarn("'" `x` "' is a PHP reserved class name, renaming to 'c_" `x` "'",%$isclass,sourcefmt="%(lower)s",rename="c_%s") `x`
 
@@ -55,6 +58,7 @@ PHPKW(endwhile);
 PHPKW(extends);
 PHPKW(final);
 PHPKW(finally);
+PHPKW(fn); // as of PHP 7.4
 PHPKW(for);
 PHPKW(foreach);
 PHPKW(function);
@@ -65,6 +69,7 @@ PHPKW(implements);
 PHPKW(instanceof);
 PHPKW(insteadof);
 PHPKW(interface);
+PHPKW(match); // as of PHP 8.0
 PHPKW(namespace);
 PHPKW(new);
 PHPKW(or);
@@ -81,6 +86,11 @@ PHPKW(var);
 PHPKW(while);
 PHPKW(xor);
 PHPKW(yield);
+
+/* PHP 8.1 made `readonly` a keyword, but (unlike any other keyword it seems)
+ * it may still be used as a function name.
+ */
+PHPKW_ok_as_function(readonly);
 
 // Compile-time "magic" constants
 // From: http://php.net/manual/en/reserved.keywords.php
@@ -119,6 +129,10 @@ PHPBN2(PHP_SAPI);
 PHPBN2(PHP_EOL);
 PHPBN2(PHP_INT_MAX);
 PHPBN2(PHP_INT_SIZE);
+PHPBN2(PHP_FLOAT_DIG); // Since 7.2.0
+PHPBN2(PHP_FLOAT_EPSILON); // Since 7.2.0
+PHPBN2(PHP_FLOAT_MIN); // Since 7.2.0
+PHPBN2(PHP_FLOAT_MAX); // Since 7.2.0
 PHPBN2(DEFAULT_INCLUDE_PATH);
 PHPBN2(PEAR_INSTALL_DIR);
 PHPBN2(PEAR_EXTENSION_DIR);
@@ -134,6 +148,7 @@ PHPBN2(PHP_LOCALSTATEDIR);
 PHPBN2(PHP_CONFIG_FILE_PATH);
 PHPBN2(PHP_CONFIG_FILE_SCAN_DIR);
 PHPBN2(PHP_SHLIB_SUFFIX);
+PHPBN2(PHP_FD_SETSIZE); // Since 7.1.0
 PHPBN2(E_ERROR);
 PHPBN2(E_WARNING);
 PHPBN2(E_PARSE);
@@ -145,6 +160,7 @@ PHPBN2(E_COMPILE_WARNING);
 PHPBN2(E_USER_ERROR);
 PHPBN2(E_USER_WARNING);
 PHPBN2(E_USER_NOTICE);
+PHPBN2(E_RECOVERABLE_ERROR);
 PHPBN2(E_DEPRECATED);
 PHPBN2(E_USER_DEPRECATED);
 PHPBN2(E_ALL);
@@ -156,6 +172,9 @@ PHPBN2(__COMPILER_HALT_OFFSET__);
 PHPBN2(PHP_OUTPUT_HANDLER_START);
 PHPBN2(PHP_OUTPUT_HANDLER_CONT);
 PHPBN2(PHP_OUTPUT_HANDLER_END);
+/* Since 7.4.0 (Microsoft Windows only) */
+PHPBN2(PHP_WINDOWS_EVENT_CTRL_C);
+PHPBN2(PHP_WINDOWS_EVENT_CTRL_BREAK);
 /* These don't actually seem to be set (tested on Linux, I guess they're
  * Windows only?) */
 PHPBN2(PHP_WINDOWS_NT_DOMAIN_CONTROLLER);
@@ -402,21 +421,6 @@ PHPBN2(CURLOPT_TCP_NODELAY);
 PHPBN2(CURLOPT_TIMEOUT_MS);
 PHPBN2(CURLOPT_CONNECTTIMEOUT_MS);
 PHPBN2(GMP_VERSION);
-PHPBN2(SWFTEXTFIELD_USEFONT);
-PHPBN2(SWFTEXTFIELD_AUTOSIZE);
-PHPBN2(SWF_SOUND_NOT_COMPRESSED);
-PHPBN2(SWF_SOUND_ADPCM_COMPRESSED);
-PHPBN2(SWF_SOUND_MP3_COMPRESSED);
-PHPBN2(SWF_SOUND_NOT_COMPRESSED_LE);
-PHPBN2(SWF_SOUND_NELLY_COMPRESSED);
-PHPBN2(SWF_SOUND_5KHZ);
-PHPBN2(SWF_SOUND_11KHZ);
-PHPBN2(SWF_SOUND_22KHZ);
-PHPBN2(SWF_SOUND_44KHZ);
-PHPBN2(SWF_SOUND_8BITS);
-PHPBN2(SWF_SOUND_16BITS);
-PHPBN2(SWF_SOUND_MONO);
-PHPBN2(SWF_SOUND_STEREO);
 PHPBN2(OPENSSL_VERSION_NUMBER);
 PHPBN2(SNMP_OID_OUTPUT_FULL);
 PHPBN2(SNMP_OID_OUTPUT_NUMERIC);
@@ -627,27 +631,26 @@ PHPBN2(PGSQL_POLLING_OK);
 PHPBN2(PGSQL_POLLING_READING);
 PHPBN2(PGSQL_POLLING_WRITING);
 
-/* Class names reserved by PHP (case insensitive) */
+/* Class names reserved by PHP. */
+/* Check is case insensitive - these *MUST* be listed in lower case here. */
 PHPCN(directory);
 PHPCN(stdclass);
 PHPCN(__php_incomplete_class);
-/* Added in PHP5. */
 PHPCN(exception);
 PHPCN(errorexception);
 PHPCN(php_user_filter);
 PHPCN(closure);
 PHPCN(generator);
 PHPCN(self);
-PHPCN(static);
 PHPCN(parent);
 /* http://php.net/manual/en/migration70.incompatible.php#migration70.incompatible.other.classes */
 PHPCN(bool); // As of PHP 7.0
 PHPCN(int); // As of PHP 7.0
 PHPCN(float); // As of PHP 7.0
 PHPCN(string); // As of PHP 7.0
-PHPCN(NULL); // As of PHP 7.0
-PHPCN(TRUE); // As of PHP 7.0
-PHPCN(FALSE); // As of PHP 7.0
+PHPCN(null); // As of PHP 7.0
+PHPCN(true); // As of PHP 7.0
+PHPCN(false); // As of PHP 7.0
 PHPCN(resource); // As of PHP 7.0 (currently works but reserved)
 PHPCN(object); // As of PHP 7.0 (currently works but reserved)
 PHPCN(mixed); // As of PHP 7.0 (currently works but reserved)
@@ -655,6 +658,14 @@ PHPCN(numeric); // As of PHP 7.0 (currently works but reserved)
 /* http://php.net/manual/en/migration71.incompatible.php#migration71.incompatible.invalid-class-names */
 PHPCN(iterable); // As of PHP 7.1
 PHPCN(void); // As of PHP 7.1
+/* Predefined interfaces and classes, introduced in PHP 7.0.0 */
+PHPCN(arithmeticerror);
+PHPCN(assertionerror);
+PHPCN(divisionbyzeroerror);
+PHPCN(error);
+PHPCN(throwable);
+PHPCN(parseerror);
+PHPCN(typeerror);
 /* From extensions (which of these are actually predefined depends which
  * extensions are loaded by default). */
 PHPCN(xmlwriter);
@@ -866,6 +877,7 @@ PHPFN(unset); // "Language construct"
 PHPFN(usort);
 
 #undef PHPKW
+#undef PHPKW_ok_as_function
 #undef PHPBN1a
 #undef PHPBN1b
 #undef PHPBN1

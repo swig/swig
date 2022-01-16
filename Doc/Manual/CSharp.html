@@ -6,7 +6,7 @@
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 <body bgcolor="#FFFFFF">
-<H1><a name="CSharp">22 SWIG and C#</a></H1>
+<H1><a name="CSharp">23 SWIG and C#</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -55,7 +55,7 @@
 
 
 
-<H2><a name="CSharp_introduction">22.1 Introduction</a></H2>
+<H2><a name="CSharp_introduction">23.1 Introduction</a></H2>
 
 
 <p>
@@ -76,15 +76,12 @@ This is when using the <tt>std::complex</tt> and <tt>std::list</tt> STL containe
 </p>
 
 <p>
-</p>
-
-<p>
 To get the most out of this chapter an understanding of interop is required.
 The <a href="https://msdn.microsoft.com">Microsoft Developer Network (MSDN)</a> has a good reference guide in a section titled "Interop Marshaling".
 Monodoc, available from the Mono project, has a very useful section titled <a href="https://www.mono-project.com/docs/advanced/pinvoke/">Interop with native libraries</a>.
 </p>
 
-<H3><a name="CSharp_introduction_swig2_compatibility">22.1.1 SWIG 2 Compatibility</a></H3>
+<H3><a name="CSharp_introduction_swig2_compatibility">23.1.1 SWIG 2 Compatibility</a></H3>
 
 
 <p>
@@ -92,7 +89,7 @@ In order to minimize name collisions between names generated based on input to S
 </p>
 
 
-<H3><a name="CSharp_commandline">22.1.2 Additional command line options</a></H3>
+<H3><a name="CSharp_commandline">23.1.2 Additional command line options</a></H3>
 
 
 <p>
@@ -144,7 +141,7 @@ Note that the file extension (.cs) will not be automatically added and needs to 
 Due to possible compiler limits it is not advisable to use <tt>-outfile</tt> for large projects.
 </p>
 
-<H2><a name="CSharp_differences_java">22.2 Differences to the Java module</a></H2>
+<H2><a name="CSharp_differences_java">23.2 Differences to the Java module</a></H2>
 
 
 <p>
@@ -243,6 +240,7 @@ javabody                    -&gt; csbody
 javafinalize                -&gt; csfinalize
 javadestruct                -&gt; csdisposing and csdispose
 javadestruct_derived        -&gt; csdisposing_derived and csdispose_derived
+javainterfacemodifiers      -&gt; csinterfacemodifiers
 javainterfacecode           -&gt; csinterfacecode
 </pre></div>
 
@@ -565,7 +563,7 @@ Windows users can also get the examples working using a
 <a href="http://www.cygwin.com">Cygwin</a> or <a href="http://www.mingw.org">MinGW</a> environment for automatic configuration of the example makefiles.
 Any one of the C# compilers (Mono or Microsoft) can be detected from within a Cygwin or Mingw environment if installed in your path. 
 
-<H2><a name="CSharp_void_pointers">22.3 Void pointers</a></H2>
+<H2><a name="CSharp_void_pointers">23.3 Void pointers</a></H2>
 
 
 <p>
@@ -583,7 +581,7 @@ void * f(void *v);
 </pre>
 </div>
 
-<H2><a name="CSharp_arrays">22.4 C# Arrays</a></H2>
+<H2><a name="CSharp_arrays">23.4 C# Arrays</a></H2>
 
 
 <p>
@@ -595,7 +593,7 @@ with one of the following three approaches; namely the SWIG C arrays library, P/
 pinned arrays.
 </p>
 
-<H3><a name="CSharp_arrays_swig_library">22.4.1 The SWIG C arrays library</a></H3>
+<H3><a name="CSharp_arrays_swig_library">23.4.1 The SWIG C arrays library</a></H3>
 
 
 <p>
@@ -632,7 +630,7 @@ example.print_array(c.cast());          // Pass to C
 </div>
 
 
-<H3><a name="CSharp_arrays_pinvoke_default_array_marshalling">22.4.2 Managed arrays using P/Invoke default array marshalling</a></H3>
+<H3><a name="CSharp_arrays_pinvoke_default_array_marshalling">23.4.2 Managed arrays using P/Invoke default array marshalling</a></H3>
 
 
 <p>
@@ -759,7 +757,7 @@ and intermediary class method
 </div>
 
 
-<H3><a name="CSharp_arrays_pinning">22.4.3 Managed arrays using pinning</a></H3>
+<H3><a name="CSharp_arrays_pinning">23.4.3 Managed arrays using pinning</a></H3>
 
 
 <p>
@@ -854,7 +852,7 @@ public static extern void myArrayCopy(global::System.IntPtr jarg1, global::Syste
 
 
 
-<H2><a name="CSharp_exceptions">22.5 C# Exceptions</a></H2>
+<H2><a name="CSharp_exceptions">23.5 C# Exceptions</a></H2>
 
 
 <p>
@@ -951,7 +949,7 @@ set so should only be used when a C# exception is not created.
 </p>
 
 
-<H3><a name="CSharp_exception_example_check_typemap">22.5.1 C# exception example using "check" typemap</a></H3>
+<H3><a name="CSharp_exception_example_check_typemap">23.5.1 C# exception example using "check" typemap</a></H3>
 
 
 <p>
@@ -1133,7 +1131,7 @@ method and C# code does not handle pending exceptions via the canthrow attribute
 Actually it will issue this warning for any function beginning with <tt>SWIG_CSharpSetPendingException</tt>.
 </P>
 
-<H3><a name="CSharp_exception_example_percent_exception">22.5.2 C# exception example using %exception</a></H3>
+<H3><a name="CSharp_exception_example_percent_exception">23.5.2 C# exception example using %exception</a></H3>
 
 
 <p>
@@ -1198,7 +1196,7 @@ The managed code generated does check for the pending exception as mentioned ear
 </pre>
 </div>
 
-<H3><a name="CSharp_exception_example_exception_specifications">22.5.3 C# exception example using exception specifications</a></H3>
+<H3><a name="CSharp_exception_example_exception_specifications">23.5.3 C# exception example using exception specifications</a></H3>
 
 
 <p>
@@ -1254,7 +1252,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_evensonly(int jarg1) {
 Multiple catch handlers are generated should there be more than one exception specifications declared.
 </p>
 
-<H3><a name="CSharp_custom_application_exception">22.5.4 Custom C# ApplicationException example</a></H3>
+<H3><a name="CSharp_custom_application_exception">23.5.4 Custom C# ApplicationException example</a></H3>
 
 
 <p>
@@ -1388,7 +1386,7 @@ try {
 </pre>
 </div>
 
-<H2><a name="CSharp_directors">22.6 C# Directors</a></H2>
+<H2><a name="CSharp_directors">23.6 C# Directors</a></H2>
 
 
 <p>
@@ -1401,7 +1399,7 @@ The following sections provide information on the C# director implementation and
 However, the <a href="Java.html#Java_directors">Java directors</a> section should also be read in order to gain more insight into directors.
 </p>
 
-<H3><a name="CSharp_directors_example">22.6.1 Directors example</a></H3>
+<H3><a name="CSharp_directors_example">23.6.1 Directors example</a></H3>
 
 
 <p>
@@ -1522,7 +1520,7 @@ CSharpDerived - UIntMethod(123)
 </pre>
 </div>
 
-<H3><a name="CSharp_directors_implementation">22.6.2 Directors implementation</a></H3>
+<H3><a name="CSharp_directors_implementation">23.6.2 Directors implementation</a></H3>
 
 
 <p>
@@ -1730,7 +1728,7 @@ before SWIG parses the Base class will change all the delegates to <tt>internal<
 </pre>
 </div>
 
-<H3><a name="CSharp_director_caveats">22.6.3 Director caveats</a></H3>
+<H3><a name="CSharp_director_caveats">23.6.3 Director caveats</a></H3>
 
 
 <p>
@@ -1778,7 +1776,7 @@ However, a call from C# to <tt>CSharpDefaults.DefaultMethod()</tt> will of cours
 should pass the call on to <tt>CSharpDefaults.DefaultMethod(int)</tt>using the C++ default value, as shown above.
 </p>
 
-<H2><a name="CSharp_multiple_modules">22.7 Multiple modules</a></H2>
+<H2><a name="CSharp_multiple_modules">23.7 Multiple modules</a></H2>
 
 
 <p>
@@ -1813,7 +1811,7 @@ the <tt>[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrows
 if you don't want users to easily stumble upon these so called 'internal workings' of the wrappers.
 </p>
 
-<H2><a name="CSharp_typemap_examples">22.8 C# Typemap examples</a></H2>
+<H2><a name="CSharp_typemap_examples">23.8 C# Typemap examples</a></H2>
 
 
 This section includes a few examples of typemaps.  For more examples, you
@@ -1821,7 +1819,7 @@ might look at the files "<tt>csharp.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 
 
-<H3><a name="CSharp_memory_management_member_variables">22.8.1 Memory management when returning references to member variables</a></H3>
+<H3><a name="CSharp_memory_management_member_variables">23.8.1 Memory management when returning references to member variables</a></H3>
 
 
 <p>
@@ -1945,7 +1943,7 @@ public class Bike : global::System.IDisposable {
 Note the <tt>addReference</tt> call.
 </p>
 
-<H3><a name="CSharp_memory_management_objects">22.8.2 Memory management for objects passed to the C++ layer</a></H3>
+<H3><a name="CSharp_memory_management_objects">23.8.2 Memory management for objects passed to the C++ layer</a></H3>
 
 
 <p>
@@ -2077,7 +2075,7 @@ as mentioned earlier, <tt>setElement</tt> is actually:
 </div>
 
 
-<H3><a name="CSharp_date_marshalling">22.8.3 Date marshalling using the csin typemap and associated attributes</a></H3>
+<H3><a name="CSharp_date_marshalling">23.8.3 Date marshalling using the csin typemap and associated attributes</a></H3>
 
 
 <p>
@@ -2363,7 +2361,7 @@ public class example {
 </pre>
 </div>
 
-<H3><a name="CSharp_date_properties">22.8.4 A date example demonstrating marshalling of C# properties</a></H3>
+<H3><a name="CSharp_date_properties">23.8.4 A date example demonstrating marshalling of C# properties</a></H3>
 
 
 <p>
@@ -2463,7 +2461,7 @@ Some points to note:
   <li>The 'csin' typemap has 'pre', 'post' and 'cshin' attributes, and these are all ignored in the property set. The code in these attributes must instead be replicated within the 'csvarin' typemap. The line creating the <tt>temp$csinput</tt> variable is such an example; it is identical to what is in the 'pre' attribute.
 </ul>
 
-<H3><a name="CSharp_date_pre_post_directors">22.8.5 Date example demonstrating the 'pre' and 'post' typemap attributes for directors</a></H3>
+<H3><a name="CSharp_date_pre_post_directors">23.8.5 Date example demonstrating the 'pre' and 'post' typemap attributes for directors</a></H3>
 
 
 <p>
@@ -2525,7 +2523,7 @@ Pay special attention to the memory management issues, using these attributes.
 </p>
 
 
-<H3><a name="CSharp_partial_classes">22.8.6 Turning proxy classes into partial classes</a></H3>
+<H3><a name="CSharp_partial_classes">23.8.6 Turning proxy classes into partial classes</a></H3>
 
 
 <p>
@@ -2625,7 +2623,7 @@ demonstrating that the class contains methods calling both unmanaged code - <tt>
 The following example is an alternative approach to adding managed code to the generated proxy class.
 </p>
 
-<H3><a name="CSharp_sealed_proxy_class">22.8.7 Turning proxy classes into sealed classes</a></H3>
+<H3><a name="CSharp_sealed_proxy_class">23.8.7 Turning proxy classes into sealed classes</a></H3>
 
 
 <p>
@@ -2715,7 +2713,7 @@ Either suppress the warning or modify the generated code by copying and tweaking
 'csbody' typemap code in csharp.swg by modifying swigCMemOwn to not be protected.
 </p>
 
-<H3><a name="CSharp_extending_proxy_class">22.8.8 Extending proxy classes with additional C# code</a></H3>
+<H3><a name="CSharp_extending_proxy_class">23.8.8 Extending proxy classes with additional C# code</a></H3>
 
 
 <p>
@@ -2754,7 +2752,7 @@ public class ExtendMe : global::System.IDisposable {
 </pre>
 </div>
 
-<H3><a name="CSharp_enum_underlying_type">22.8.9 Underlying type for enums</a></H3>
+<H3><a name="CSharp_enum_underlying_type">23.8.9 Underlying type for enums</a></H3>
 
 
 <P>

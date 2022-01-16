@@ -5,19 +5,19 @@ b = typedef_inherit.Bar()
 
 x = typedef_inherit.do_blah(a)
 if x != "Foo::blah":
-    print "Whoa! Bad return", x
+    raise RuntimeError("Whoa! Bad return {}".format(x))
 
 x = typedef_inherit.do_blah(b)
 if x != "Bar::blah":
-    print "Whoa! Bad return", x
+    raise RuntimeError("Whoa! Bad return {}".format(x))
 
 c = typedef_inherit.Spam()
 d = typedef_inherit.Grok()
 
 x = typedef_inherit.do_blah2(c)
 if x != "Spam::blah":
-    print "Whoa! Bad return", x
+    raise RuntimeError("Whoa! Bad return {}".format(x))
 
 x = typedef_inherit.do_blah2(d)
 if x != "Grok::blah":
-    print "Whoa! Bad return", x
+    raise RuntimeError("Whoa! Bad return {}".format(x))

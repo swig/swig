@@ -6,7 +6,7 @@ import sys
 
 
 def failed(a, b, msg):
-    raise RuntimeError, msg + " " + str(list(a)) + " " + str(list(b))
+    raise RuntimeError(msg + " " + str(list(a)) + " " + str(list(b)))
 
 
 def compare_sequences(a, b):
@@ -26,7 +26,7 @@ def compare_containers(pythonlist, swigvector, swiglist):
 
 
 def container_insert_step(i, j, step, newval):
-    ps = range(6)
+    ps = list(range(6))
     iv = vector_int(ps)
     il = list_int(ps)
 
@@ -43,9 +43,9 @@ def container_insert_step(i, j, step, newval):
             else:
                 ps[i:j:step] = newval
         ps_error = None
-    except ValueError, e:
+    except ValueError as e:
         ps_error = e
-    except IndexError, e:
+    except IndexError as e:
         ps_error = e
 
     # std::vector<int>
@@ -61,9 +61,9 @@ def container_insert_step(i, j, step, newval):
             else:
                 iv[i:j:step] = newval
         iv_error = None
-    except ValueError, e:
+    except ValueError as e:
         iv_error = e
-    except IndexError, e:
+    except IndexError as e:
         iv_error = e
 
     # std::list<int>
@@ -79,14 +79,14 @@ def container_insert_step(i, j, step, newval):
             else:
                 il[i:j:step] = newval
         il_error = None
-    except ValueError, e:
+    except ValueError as e:
         il_error = e
-    except IndexError, e:
+    except IndexError as e:
         il_error = e
 
     if not((type(ps_error) == type(iv_error)) and (type(ps_error) == type(il_error))):
-        raise RuntimeError, "ValueError exception not consistently thrown: " + \
-            str(ps_error) + " " + str(iv_error) + " " + str(il_error)
+        raise RuntimeError("ValueError exception not consistently thrown: " + \
+            str(ps_error) + " " + str(iv_error) + " " + str(il_error))
 
     compare_containers(ps, iv, il)
 
@@ -94,7 +94,7 @@ def container_insert_step(i, j, step, newval):
 # Check std::vector and std::list delete behaves same as Python list
 # delete including exceptions
 def container_delete_step(i, j, step):
-    ps = range(6)
+    ps = list(range(6))
     iv = vector_int(ps)
     il = list_int(ps)
 
@@ -111,9 +111,9 @@ def container_delete_step(i, j, step):
             else:
                 del ps[i:j:step]
         ps_error = None
-    except ValueError, e:
+    except ValueError as e:
         ps_error = e
-    except IndexError, e:
+    except IndexError as e:
         ps_error = e
 
     # std::vector<int>
@@ -129,9 +129,9 @@ def container_delete_step(i, j, step):
             else:
                 del iv[i:j:step]
         iv_error = None
-    except ValueError, e:
+    except ValueError as e:
         iv_error = e
-    except IndexError, e:
+    except IndexError as e:
         iv_error = e
 
     # std::list<int>
@@ -147,14 +147,14 @@ def container_delete_step(i, j, step):
             else:
                 del il[i:j:step]
         il_error = None
-    except ValueError, e:
+    except ValueError as e:
         il_error = e
-    except IndexError, e:
+    except IndexError as e:
         il_error = e
 
     if not((type(ps_error) == type(iv_error)) and (type(ps_error) == type(il_error))):
-        raise RuntimeError, "ValueError exception not consistently thrown: " + \
-            str(ps_error) + " " + str(iv_error) + " " + str(il_error)
+        raise RuntimeError("ValueError exception not consistently thrown: " + \
+            str(ps_error) + " " + str(iv_error) + " " + str(il_error))
 
     compare_containers(ps, iv, il)
 
@@ -252,7 +252,7 @@ for start in [-102, -100, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 10
         for step in range(-7, 7):
             container_delete_step(start, end, step)
 
-ps = range(6)
+ps = list(range(6))
 iv = vector_int(ps)
 il = list_int(ps)
 del ps[:]

@@ -1,5 +1,5 @@
 /* This interface checks whether SWIG supports the new double angled brackets
-   in the template syntax without having a space inbetween. This feature was
+   in the template syntax without having a space in between. This feature was
    introduced in new C++11 standard.
 */
 %module cpp11_template_double_brackets

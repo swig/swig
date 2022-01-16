@@ -19,7 +19,7 @@ public class director_string_runme {
     director_string_A c = new director_string_A("hi");
     for (int i=0; i<3; i++) {
       s = c.call_get(i);
-      if (!s.equals(new Integer(i).toString())) throw new RuntimeException("director_string_A.get(" + i + ") failed. Got:" + s);
+      if (!s.equals(Integer.valueOf(i).toString())) throw new RuntimeException("director_string_A.get(" + i + ") failed. Got:" + s);
     }
 
     director_string_B b = new director_string_B("hello");
@@ -50,7 +50,7 @@ class director_string_A extends A {
       super(first);
     }
     public String get(int n) {
-      return new Integer(n).toString();
+      return Integer.valueOf(n).toString();
     }
 }
 

@@ -115,8 +115,9 @@ if test -f "$tarball"; then
       ./configure $extraconfigureoptions --without-alllang
       echo "Compiling (quietly)..."
       make > build.log
-      echo "Simple check to see if swig.exe runs..."
+      echo "Simple check to see if swig.exe runs and show versions..."
       env LD_LIBRARY_PATH= PATH= $wine ./swig.exe -version || exit 1
+      env LD_LIBRARY_PATH= PATH= $wine ./swig.exe -pcreversion || exit 1
       echo "Simple check to see if ccache-swig.exe runs..."
       env LD_LIBRARY_PATH= PATH= $wine ./CCache/ccache-swig.exe -V || exit 1
       echo "Creating $swigwinbasename.zip..."

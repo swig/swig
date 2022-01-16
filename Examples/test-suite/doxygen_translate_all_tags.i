@@ -210,7 +210,7 @@ void func05(int a)
  * 
  * \line example
  *
- * \link someMember Some description follows \endlink
+ * \link someMember Some description follows\endlink with text after
  * 
  * \mainpage Some title
  *
@@ -262,6 +262,9 @@ void func06(int a)
  * \paragraph someParagraph Paragraph title
  *
  * \param a the first param
+ * \param[in] b parameter with intent(in)
+ * \param[out] c parameter with intent(out)
+ * \param[in,out] d parameter with intent(in,out)
  * 
  * \post Some description
  *
@@ -273,7 +276,7 @@ void func06(int a)
  *
  * \property someVar
  */
-void func07(int a)
+void func07(int a, int b, int c, int d)
 {
 }
 

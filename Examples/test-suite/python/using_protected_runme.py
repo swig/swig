@@ -4,4 +4,4 @@ f = FooBar()
 f.x = 3
 
 if f.blah(4) != 4:
-    raise RuntimeError, "blah(int)"
+    raise RuntimeError("blah(int)")

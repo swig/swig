@@ -1,86 +1,24 @@
 <?php
 
-function die_on_error($errno, $errstr, $file, $line) {
-    if ($file !== Null) {
-        print $file;
-        if ($line !== Null) print ":$line";
-        print ": ";
-    }
-    print "$errstr\n";
-    exit(1);
-}
-set_error_handler("die_on_error", -1);
-
-$_original_functions=get_defined_functions();
-$_original_globals=1;
-$_original_classes=get_declared_classes();
-$_original_globals=array_keys($GLOBALS);
-
 class check {
   // do we have true global vars or just GETSET functions?
   // Used to filter out get/set global functions to fake vars...
   const GETSET = 1;
 
-  static function get_extra_classes($ref=FALSE) {
-    static $extra;
-    global $_original_classes;
-    if ($ref===FALSE) $f=$_original_classes;
-    if (! is_array($extra)) {
-      $df=array_flip(get_declared_classes());
-      foreach($_original_classes as $class) unset($df[$class]);
-      $extra=array_keys($df);
-    }
-    return $extra;
-  }
+  private static $_extension = null;
 
-  static function get_extra_functions($ref=FALSE,$gs=false) {
-    static $extra;
-    static $extrags; // for get/setters
-    global $_original_functions;
-    if ($ref===FALSE) $f=$_original_functions;
-    if (! is_array($extra) || $gs) {
-      $extra=array();
-      $extrags=array();
-      $df=get_defined_functions();
-      $df=array_flip($df['internal']);
-      foreach($_original_functions['internal'] as $func) unset($df[$func]);
-      // Now chop out any get/set accessors
-      foreach(array_keys($df) as $func)
-        if ((self::GETSET && preg_match('/_[gs]et$/', $func)) ||
-            preg_match('/^new_/', $func) ||
-            preg_match('/_(alter|get)_newobject$/', $func))
-          $extrags[]=$func;
-        else $extra[]=$func;
-//      $extra=array_keys($df);
+  // This is called automatically at the end of this file.
+  static function init() {
+    foreach(get_included_files() as $f) {
+      $module_name = preg_filter('/.*\/([^\/]+)_runme\.php$/', '\1', $f);
+      if ($module_name !== null) break;
     }
-    if ($gs) return $extrags;
-    return $extra;
-  }
+    if ($module_name === null) {
+      print("Failed to determine module name from get_included_files()\n");
+      exit(1);
+    }
 
-  static function get_extra_globals($ref=FALSE) {
-    static $extra;
-    global $_original_globals;
-    if (! is_array($extra)) {
-      if (self::GETSET) {
-        $_extra=array();
-        foreach(check::get_extra_functions(false,1) as $global) {
-          if (preg_match('/^(.*)_[sg]et$/', $global, $match))
-            $_extra[$match[1]] = 1;
-        }
-        $extra=array_keys($_extra);
-      } else {
-        if ($ref===FALSE) $ref=$_original_globals;
-        if (! is_array($extra)) {
-          $df=array_flip(array_keys($GLOBALS));
-          foreach($_original_globals as $func) unset($df[$func]);
-          // MASK xxxx_LOADED__ variables
-          foreach(array_keys($df) as $func)
-            if (preg_match('/_LOADED__$/', $func)) unset($df[$func]);
-          $extra=array_keys($df);
-        }
-      }
-    }
-    return $extra;
+    self::$_extension = new ReflectionExtension($module_name);
   }
 
   static function classname($string,$object) {
@@ -148,7 +86,8 @@ class check {
     if (! is_array($classes)) $classes=array($classes);
     $message=array();
     $missing=array();
-    $extra=array_flip(check::get_extra_classes());
+    $extra = array_flip(array_filter(self::$_extension->getClassNames(),
+				     function ($e) { return !preg_match('/^SWIG\\\\/', $e); }));
     foreach($classes as $class) {
       if (! class_exists($class)) $missing[]=$class;
       else unset($extra[$class]);
@@ -164,15 +103,16 @@ class check {
     if (! is_array($functions)) $functions=array($functions);
     $message=array();
     $missing=array();
-    $extra=array_flip(check::get_extra_functions());
-
+    $extra = self::$_extension->getFunctions();
     foreach ($functions as $func) {
       if (! function_exists($func)) $missing[]=$func;
       else unset($extra[$func]);
     }
+    $extra = array_filter(array_keys($extra),
+			  function ($e) { return !preg_match('/_[gs]et$/', $e); });
     if ($missing) $message[]=sprintf("Functions missing: %s",join(",",$missing));
     if ($message) return check::fail(join("\n  ",$message));
-    if ($extra) $message[]=sprintf("These extra functions are defined: %s",join(",",array_keys($extra)));
+    if ($extra) $message[]=sprintf("These extra functions are defined: %s",join(",",$extra));
     if ($message) return check::warn(join("\n  ",$message));
     return TRUE;    
   }
@@ -181,19 +121,19 @@ class check {
     if (! is_array($globals)) $globals=array($globals);
     $message=array();
     $missing=array();
-    $extra=array_flip(check::get_extra_globals());
+    $extra = self::$_extension->getFunctions();
     foreach ($globals as $glob) {
-      if (self::GETSET) {
-        if (! isset($extra[$glob])) $missing[]=$glob;
-        else unset($extra[$glob]);
-      } else {
-        if (! isset($GLOBALS[$glob])) $missing[]=$glob;
-        else unset($extra[$glob]);
+      if (! function_exists($glob . "_get") && ! function_exists($glob . "_set")) $missing[]=$glob;
+      else {
+        unset($extra[$glob . "_get"]);
+        unset($extra[$glob . "_set"]);
       }
     }
+    $extra = array_filter(array_keys($extra),
+			  function ($e) { return preg_match('/_[gs]et$/', $e); });
     if ($missing) $message[]=sprintf("Globals missing: %s",join(",",$missing));
     if ($message) return check::fail(join("\n  ",$message));
-    if ($extra) $message[]=sprintf("These extra globals are defined: %s",join(",",array_keys($extra)));
+    if ($extra) $message[]=sprintf("These extra globals are defined: %s",join(",",$extra));
     if ($message) return check::warn(join("\n  ",$message));
     return TRUE;    
 
@@ -210,24 +150,13 @@ class check {
     return TRUE;
   }
 
-  static function resource($a,$b,$message) {
-    $resource=trim(check::var_dump($a));
-    if (! preg_match("/^resource\([0-9]+\) of type \($b\)/i", $resource))
-      return check::fail($message);
+  static function equivalent($a,$b,$message) {
+    if (! ($a==$b)) return check::fail($message . ": '$a'!='$b'");
     return TRUE;
   }
 
   static function isnull($a,$message) {
-    $value=trim(check::var_dump($a));
-    return check::equal($value,"NULL",$message);
-  }
-
-  static function var_dump($arg) {
-    ob_start();
-    var_dump($arg);
-    $result=ob_get_contents();
-    ob_end_clean();
-    return $result;
+    return check::equal($a,NULL,$message);
   }
 
   static function fail($pattern) {
@@ -246,4 +175,5 @@ class check {
 #    print $_SERVER[argv][0]." ok\n";
   }
 }
-?>
+
+check::init();

@@ -1,10 +1,9 @@
 <?php
 
 require "tests.php";
-require "ignore_parameter.php";
 
 // New functions
-check::functions(array('jaguar','lotus','tvr','ferrari','fiat','sportscars_daimler','sportscars_astonmartin','sportscars_bugatti','sportscars_lamborghini','sportscars_maseratti'));
+check::functions(array('jaguar','lotus','tvr','ferrari','fiat'));
 // New classes
 check::classes(array('ignore_parameter','SportsCars','MiniCooper','MorrisMinor','FordAnglia','AustinAllegro'));
 // No new vars
@@ -35,4 +34,3 @@ $aa=new austinallegro();
 check::classname("austinallegro",$aa);
 
 check::done();
-?>

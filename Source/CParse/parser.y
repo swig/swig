@@ -4800,6 +4800,9 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 if ($8.qualifier) {
 		   SwigType_push($4,$8.qualifier);
 		 }
+		 if ($8.val) {
+		   Setattr($$,"value",$8.val);
+		 }
 		 Setattr($$,"refqualifier",$8.refqualifier);
 		 Setattr($$,"decl",$4);
 		 Setattr($$,"parms",$6);
@@ -4818,6 +4821,9 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 if ($8.qualifier) {
 		   SwigType_push(decl,$8.qualifier);
 		 }
+		 if ($8.val) {
+		   Setattr($$,"value",$8.val);
+		 }
 		 Setattr($$,"refqualifier",$8.refqualifier);
 		 Setattr($$,"decl",decl);
 		 Setattr($$,"parms",$6);
@@ -4835,6 +4841,9 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 SwigType_add_function(decl,$6);
 		 if ($8.qualifier) {
 		   SwigType_push(decl,$8.qualifier);
+		 }
+		 if ($8.val) {
+		   Setattr($$,"value",$8.val);
 		 }
 		 Setattr($$,"refqualifier",$8.refqualifier);
 		 Setattr($$,"decl",decl);
@@ -4856,6 +4865,9 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 if ($9.qualifier) {
 		   SwigType_push(decl,$9.qualifier);
 		 }
+		 if ($9.val) {
+		   Setattr($$,"value",$9.val);
+		 }
 		 Setattr($$,"refqualifier",$9.refqualifier);
 		 Setattr($$,"decl",decl);
 		 Setattr($$,"parms",$7);
@@ -4873,7 +4885,10 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		if ($7.qualifier) {
 		  SwigType_push(t,$7.qualifier);
 		}
-		 Setattr($$,"refqualifier",$7.refqualifier);
+		if ($7.val) {
+		  Setattr($$,"value",$7.val);
+		}
+		Setattr($$,"refqualifier",$7.refqualifier);
 		Setattr($$,"decl",t);
 		Setattr($$,"parms",$5);
 		Setattr($$,"conversion_operator","1");
@@ -6217,19 +6232,19 @@ primitive_type_list : type_specifier {
 			} else if (Cmp($1.type,"double") == 0) {
 			  if (Cmp($2.type,"long") == 0) {
 			    $$.type = NewString("long double");
-			  } else if (Cmp($2.type,"complex") == 0) {
-			    $$.type = NewString("double complex");
+			  } else if (Cmp($2.type,"_Complex") == 0) {
+			    $$.type = NewString("double _Complex");
 			  } else {
 			    err = 1;
 			  }
 			} else if (Cmp($1.type,"float") == 0) {
-			  if (Cmp($2.type,"complex") == 0) {
-			    $$.type = NewString("float complex");
+			  if (Cmp($2.type,"_Complex") == 0) {
+			    $$.type = NewString("float _Complex");
 			  } else {
 			    err = 1;
 			  }
-			} else if (Cmp($1.type,"complex") == 0) {
-			  $$.type = NewStringf("%s complex", $2.type);
+			} else if (Cmp($1.type,"_Complex") == 0) {
+			  $$.type = NewStringf("%s _Complex", $2.type);
 			} else {
 			  err = 1;
 			}
@@ -6279,7 +6294,7 @@ type_specifier : TYPE_INT {
                     $$.type = 0;
                 }
                | TYPE_COMPLEX { 
-                    $$.type = NewString("complex");
+                    $$.type = NewString("_Complex");
                     $$.us = 0;
                 }
                | TYPE_NON_ISO_INT8 { 

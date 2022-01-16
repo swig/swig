@@ -1,7 +1,3 @@
-#define SWIG_Error(code, msg) Rf_warning(msg); return Rf_ScalarLogical(NA_LOGICAL)
-
-#define SWIG_fail return Rf_ScalarLogical(NA_LOGICAL)
-
 /* for raw pointers */
 #define SWIG_ConvertPtr(oc, ptr, ty, flags)             SWIG_R_ConvertPtr(oc, ptr, ty, flags)
 #define SWIG_ConvertFunctionPtr(oc, ptr, ty)            SWIG_R_ConvertPtr(oc, ptr, ty, 0)

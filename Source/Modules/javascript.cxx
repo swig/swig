@@ -727,7 +727,7 @@ Node *JSEmitter::getBaseClass(Node *n) {
  /* -----------------------------------------------------------------------------
   * JSEmitter::emitWrapperFunction() :  dispatches emitter functions.
   *
-  * This allows to have small sized, dedicated emitting functions.
+  * This allows having small sized, dedicated emitting functions.
   * All state dependent branching is done here.
   * ----------------------------------------------------------------------------- */
 
@@ -1255,7 +1255,7 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
   // Note: this dispatcher function gets called after the last overloaded function has been created.
   // At this time, n.wrap:name contains the name of the last wrapper function.
   // To get a valid function name for the dispatcher function we take the last wrapper name and
-  // substract the extension "sym:overname",
+  // subtract the extension "sym:overname",
   String *wrap_name = NewString(Getattr(n, "wrap:name"));
   String *overname = Getattr(n, "sym:overname");
 
@@ -1575,7 +1575,8 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
       Printf(arg, "argv[%d]", i);
       break;
     default:
-      throw "Illegal state.";
+      Printf(stderr, "Illegal MarshallingMode.");
+      SWIG_exit(EXIT_FAILURE);
     }
     tm = emitInputTypemap(n, p, wrapper, arg);
     Delete(arg);
@@ -2212,7 +2213,8 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
       Printf(arg, "args[%d]", i);
       break;
     default:
-      throw "Illegal state.";
+      Printf(stderr, "Illegal MarshallingMode.");
+      SWIG_exit(EXIT_FAILURE);
     }
 
     tm = emitInputTypemap(n, p, wrapper, arg);

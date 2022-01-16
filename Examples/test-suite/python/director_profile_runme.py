@@ -38,4 +38,4 @@ while i:
     a = fi(a)  # 20
     i -= 1
 
-print a
+print("a: {}".format(a))

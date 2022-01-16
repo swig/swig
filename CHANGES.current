@@ -4,18 +4,319 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
-Version 4.0.2 (in progress)
+Version 4.1.0 (in progress)
 ===========================
 
-2019-12-10: wsfulton
-            #1679 Fix parsing of C++11 identifiers with special meaning (final and override) when
-            they are used as part of the scope name of an identifier, such as a namespace name.
+2022-01-14: wsfulton
+            [Python] Fix %callback and specifying the callback function as a
+            static member function using Python staticmethod syntax, such as
+            Klass.memberfunction instead of Klass_memberfunction when using
+            -builtin and -fastproxy.
 
-2019-11-26: wsfulton
-            [C#] #1628 'out' or 'ref' used in a cstype typemap was not always stripped out in parts
-            of director code generation.
+2022-01-11: wsfulton
+            [Python] Accept keyword arguments accessing static member functions when
+            using -builtin and kwargs feature and Python class staticmethod syntax.
+            The missing keyword argument support was only when using the
+            class staticmethod syntax, such as Klass.memberfunction, and not when
+            using the flat static method syntax, such as Klass_memberfunction.
 
-2019-11-01: wsfulton
-            [Python] #1595 Fix bug in support for keyword arguments (kwargs feature or -keyword)
-            when using -builtin. The fix is in the argument error checking when wrapping zero
-            argument constructors only.
+2022-01-04: juierror
+            [Go] #2045 Add support for std::array in std_array.i.
+
+2021-12-18: olly
+	    [PHP] Add PHP keyword 'readonly' (added in 8.1) to the list SWIG
+	    knows to automatically rename.  This keyword is special in that PHP
+	    allows it to be used as a function (or method) name.
+
+2021-12-07: vstinner
+            [Python] #2116 Python 3.11 support: use Py_SET_TYPE()
+
+2021-12-05: rwf1
+            [Octave] #2020 #1893 Add support for Octave 6 up to and including 6.4.
+            Also add support for compiling with -Bsymbolic which is used by default
+            by mkoctfile.
+
+2021-12-02: jsenn
+            [Python] #2102 Fixed crashes when using embedded Python interpreters. 
+
+2021-11-12: wsfulton
+            [Javascript] v8 and node only. Fix mismatched new char[] and free()
+            when wrapping C code char arrays. Now calloc is now used instead of
+            new char[] in SWIG_AsCharPtrAndSize.
+
+2021-10-03: ajrh1
+            [Perl] #2074: Avoid -Wmisleading-indentation in generated code
+            when using gcc11.
+
+2021-10-03: jschueller
+            [CMake] #2065: Add option to enable or disable PCRE support.
+
+2021-09-16: ianlancetaylor
+            [Go] Improved _cgo_panic implementation.
+
+2021-09-16: ianlancetaylor
+            [Go] Don't use crosscall2 for panicking. Instead rely on documented
+            and exported interfaces.
+
+2021-09-14: ianlancetaylor
+            [Go] Remove -no-cgo option (long unsupported in Go)
+
+2021-05-04: olly
+	    [PHP] #2014 Throw PHP exceptions instead of using PHP errors
+
+	    PHP exceptions can be caught and handled if desired, but if they
+	    aren't caught then PHP exits in much the same way as it does for a
+	    PHP error.
+
+	    In particular this means parameter type errors and some other cases
+	    in SWIG-generated wrappers now throw a PHP exception, which matches
+	    how PHP's native parameter handling deals with similar situations.
+
+	    `SWIG_ErrorCode()`, `SWIG_ErrorMsg()`, `SWIG_FAIL()` and `goto thrown;`
+	    are no longer supported (these are really all internal implementation
+	    details and none are documented aside from brief mentions in CHANGES
+	    for the first three).  I wasn't able to find any uses in user interface
+	    files at least in FOSS code via code search tools.
+
+	    If you are using these:
+
+	    Use `SWIG_PHP_Error(code,msg);` instead of `SWIG_ErrorCode(code);
+	    SWIG_ErrorMsg(msg);` (which will throw a PHP exception in SWIG >= 4.1
+	    and do the same as the individual calls in older SWIG).
+
+	    `SWIG_FAIL();` and `goto thrown;` can typically be replaced with
+	    `SWIG_fail;`.  This will probably also work with older SWIG, but
+	    please test with your wrappers if this is important to you.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2021-05-17: adr26
+            [Python] #1985 Fix memory leaks:
+
+            1. Python object references were being incorrectly retained by
+            SwigPyClientData, causing swig_varlink_dealloc() never to run / free
+            memory. SwigPyClientData_New() / SwigPyClientData_Del() were updated
+            to fix the object reference counting, causing swig_varlink_dealloc()
+            to run and the memory swig_varlink owns to be freed.
+
+            2. SwigPyClientData itself was not freed by SwigPyClientData_Del(),
+            causing another heap leak. The required free() was added to
+            SwigPyClientData_Del()
+
+            3. Fix reference counting/leak of python cached type query
+
+            4. Fix reference counting/leak of SwigPyObject dict (-builtin)
+
+            5. Python object reference counting fixes for out-of-memory
+            scenarios were added to: SWIG_Python_RaiseOrModifyTypeError(),
+            SWIG_Python_AppendOutput(), SwigPyClientData_New(),
+            SwigPyObject_get___dict__() and SwigPyObject_format()
+
+            6. Add error handling for PyModule_AddObject() to
+            SWIG_Python_SetModule() (failure could be caused by OOM or a name
+            clash caused by malicious code)
+
+2021-05-13: olly
+	    [UFFI] #2009 Remove code for Common Lisp UFFI.  We dropped support
+	    for it in SWIG 4.0.0 and nobody has stepped forward to revive it in
+	    over 2 years.
+
+2021-05-13: olly
+	    [S-EXP] #2009 Remove code for Common Lisp S-Exp.  We dropped
+	    support for it in SWIG 4.0.0 and nobody has stepped forward to
+	    revive it in over 2 years.
+
+2021-05-13: olly
+	    [Pike] #2009 Remove code for Pike.  We dropped support for it in
+	    SWIG 4.0.0 and nobody has stepped forward to revive it in over 2
+	    years.
+
+2021-05-13: olly
+	    [Modula3] #2009 Remove code for Modula3.  We dropped support for it
+	    in SWIG 4.0.0 and nobody has stepped forward to revive it in over 2
+	    years.
+
+2021-05-13: olly
+	    [CLISP] #2009 Remove code for GNU Common Lisp.  We dropped support
+	    for it in SWIG 4.0.0 and nobody has stepped forward to revive it in
+	    over 2 years.
+
+2021-05-13: olly
+	    [Chicken] #2009 Remove code for Chicken.  We dropped support for it
+	    in SWIG 4.0.0 and nobody has stepped forward to revive it in over 2
+	    years.
+
+2021-05-13: olly
+	    [Allegrocl] #2009 Remove code for Allegro Common Lisp.  We dropped
+	    support for it in SWIG 4.0.0 and nobody has stepped forward to
+	    revive it in over 2 years.
+
+2021-05-04: olly
+	    [PHP] #1982 #1457 https://sourceforge.net/p/swig/bugs/1339/
+	    SWIG now only use PHP's C API to implement its wrappers, and no
+	    longer generates PHP code to define classes.  The wrappers should
+	    be almost entirely compatible with those generated before, but
+	    faster and without some previously hard-to-fix bugs.
+
+	    The main notable difference is SWIG no longer generates a .php
+	    wrapper at all by default (only if %pragma(php) code=... or
+	    %pragma(php) include=... are specified in the interface file).
+	    This also means you need to load the module via extension=...
+	    in php.ini, rather than letting the dl() in the generated
+	    .php wrapper load it (but dl() has only worked for command-line
+	    PHP for some years now).
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2021-04-30: olly
+	    #1984 Remove support for $source and $target.
+	    These were officially deprecated in 2001, and attempts to use them have
+	    resulted in a warning (including a pointer to what to update them to)
+	    for most if not all of that time.
+
+2021-04-27: wsfulton
+            #1987 [Java] Fix %interface family of macros for returning by const
+            pointer reference.
+
+2021-04-19: olly
+	    Fix use of uninitialised variable in the generated code for an
+	    empty typecheck typemap, such as the dummy one we include for
+	    std::initializer_list.
+
+2021-04-12: olly
+	    #1777 [Python] Specifying -py3 now generates a check for Python
+	    version >= 3.0.
+
+2021-03-26: olly
+	    [PHP] Add PHP keywords 'fn' (added in 7.4) and 'match' (added in
+	    8.0) to the list SWIG knows to automatically rename.
+
+2021-03-23: wsfulton
+            #1942 [Python] Fix compilation error in wrappers when using -builtin
+            and wrapping varargs in constructors.
+
+2021-03-22: goto40
+            #1977 Fix handling of template template parameters.
+
+2021-03-21: olly
+	    #1929, #1978 [PHP] Add support for PHP 8.
+
+2021-03-19: wsfulton
+            #1610 Remove -ansi from default compilation flags.
+
+2021-03-19: dot-asm
+            #1934 [Java] Clean up typemaps for long long arrays.
+
+2021-03-19: olly
+	    #1527 [PHP] Improve PHP object creation in directorin case.
+	    Reportedly the code we were using in this case gave segfaults in
+	    PHP 7.2 and later - we've been unable to reproduce these, but the
+	    new approach is also simpler and should be bit faster too.
+
+2021-03-18: olly
+	    #1655 [PHP] Fix char* typecheck typemap to accept PHP Null like the
+	    corresponding in typemap does.
+
+2021-03-18: olly
+	    #1900, #1905 [PHP] Fix wrapping of overloaded directed methods with
+	    non-void return.
+
+2021-03-11: murillo128
+            #1498 [Javascript] Support type conversion.
+
+2021-03-06: nshmyrev
+            #872 [Javascript] Various typemap issues in arrays_javascript.i fixed.
+
+2021-03-03: vaughamhong
+            #577 [Javascript] Implemented SetModule/GetModule for JSC to allow type sharing
+            across modules.
+
+2021-03-01: xantares, Oliver Buchtala, geographika
+            #1040 Add support for building SWIG with CMake. See documentation in Windows.html.
+
+2021-03-01: vadz
+            #1952 Fix incorrect warning "Unknown Doxygen command: ."
+
+2021-02-28: p2k
+            #969 [Javascript] v8/node - prevent crash calling a constructor without new keyword.
+
+2021-02-28: alecmev
+            #405 #1121 [Javascript] Fix OUTPUT typemaps on methods that don't return void.
+            The output value is appended to the return value.
+
+2021-02-26: murillo128, wsfulton
+            #1269 [Javascript] Fix handling of large positive unsigned long and
+            unsigned long long values.
+
+2021-02-24: tomleavy, yegorich, tungntpham
+            #1746 [Javascript] Add support for Node v12, v14 and v16.
+            SWIG support for Node is now for v6 and later only.
+
+2020-02-09: ZackerySpytz
+            #1872 Fix typos in attribute2ref macros.
+
+2020-10-10: wsfulton
+            [Javascript] Fix so that ccomplex.i interface to file can be used.
+
+2020-10-10: wsfulton
+            #252 complex can now be used as a C identifier and doesn't give a syntax error.
+
+2020-10-10: lpsinger
+            #1770 Correct C complex support.
+            _Complex is now parsed as a keyword rather than complex as per the C99 standard.
+            The complex macro is available in the ccomplex.i library file along with other
+            complex number handling provided by the complex.h header.
+
+2020-10-07: ZackerySpytz
+            [Python] #1812 Fix the error handling for the PyObject_GetBuffer() calls in
+            pybuffer.i.
+
+2020-10-07: treitmayr
+            #1824 Add missing space in director method declaration returning
+            const pointer.
+
+2020-10-07: adelva1984
+            #1859 Remove all (two) exceptions from SWIG executable.
+
+2020-09-25: wsfulton
+            [C#, Java] #1874 Add ability to change the modifiers for the interface
+            generated when using the %interface macros.
+
+            For C# use the 'csinterfacemodifiers' typemap.
+            For Java use the 'javainterfacemodifiers' typemap.
+
+            For example:
+
+              %typemap(csinterfacemodifiers) X "internal interface"
+
+
+2020-09-24: geefr
+            [C#] #1868 Fix wchar_t* csvarout typemap for member variable wrappers.
+
+2020-08-28: wsfulton
+            [Java] #1862 Fix crashes in swig_connect_director during director class construction
+            when using the director class from multiple threads - a race condition initialising
+            block scope static variables. The fix is guaranteed when using C++11, but most
+            compilers also fix it when using C++03/C++98.
+
+2020-08-16: wsfulton
+            [Python] Add missing initializer for member ‘_heaptypeobject::ht_module’ when using
+            -builtin to complete Python 3.9 support.
+
+2020-08-16: wsfulton
+            [Python] Remove PyEval_InitThreads() call for Python 3.7 and later as Python calls
+            it automatically now. This removes a deprecation warning when using Python 3.9.
+
+2020-08-15: wsfulton
+            [Python] All Python examples and tests are written to be Python 2 and Python 3
+            compatible, removing the need for 2to3 to run the examples or test-suite.
+
+2020-08-13: wsfulton
+            [C#] Add support for void *VOID_INT_PTR for member variables.
+
+2020-07-29: chrisburr
+            #1843 [Python] Compilation error fix in SwigPyBuiltin_SetMetaType when using PyPy.
+
+2020-06-14: ZackerySpytz
+            #1642 #1809 Fix virtual comparison operators in director classes - remove incorrect
+            space in the function name, for example, operator= = is now operator==.

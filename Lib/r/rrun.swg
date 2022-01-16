@@ -1,4 +1,3 @@
-
 /* Remove global namespace pollution */
 #if !defined(SWIG_NO_R_NO_REMAP)
 # define R_NO_REMAP
@@ -23,12 +22,54 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <stdarg.h>
 
 #if R_VERSION >= R_Version(2,6,0)
 #define VMAXTYPE void *
 #else
 #define VMAXTYPE char *
 #endif
+
+/* Last error */
+static int SWIG_lasterror_code = 0;
+static char SWIG_lasterror_msg[1024];
+SWIGRUNTIME void SWIG_Error(int code, const char *format, ...) {
+  va_list arg;
+  SWIG_lasterror_code = code;
+  va_start(arg, format);
+  vsnprintf(SWIG_lasterror_msg, sizeof(SWIG_lasterror_msg), format, arg);
+  va_end(arg);
+}
+
+SWIGRUNTIME const char *SWIG_ErrorType(int code) {
+  switch (code) {
+  case SWIG_MemoryError:
+    return "SWIG:MemoryError";
+  case SWIG_IOError:
+    return "SWIG:IOError";
+  case SWIG_RuntimeError:
+    return "SWIG:RuntimeError";
+  case SWIG_IndexError:
+    return "SWIG:IndexError";
+  case SWIG_TypeError:
+    return "SWIG:TypeError";
+  case SWIG_DivisionByZero:
+    return "SWIG:DivisionByZero";
+  case SWIG_OverflowError:
+    return "SWIG:OverflowError";
+  case SWIG_SyntaxError:
+    return "SWIG:SyntaxError";
+  case SWIG_ValueError:
+    return "SWIG:ValueError";
+  case SWIG_SystemError:
+    return "SWIG:SystemError";
+  case SWIG_AttributeError:
+    return "SWIG:AttributeError";
+  }
+  return "SWIG:UnknownError";
+}
+
+#define SWIG_fail goto fail
 
 /*
   This is mainly a way to avoid having lots of local variables that may 
