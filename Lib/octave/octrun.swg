@@ -812,7 +812,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       return as_value();
     }
 
-#if SWIG_OCTAVE_PREREQ(6,0,0)
+#if SWIG_OCTAVE_PREREQ(4,4,0)
     virtual bool isobject() const {
 #else
     virtual bool is_object() const {
