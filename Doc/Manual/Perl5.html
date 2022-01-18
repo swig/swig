@@ -2651,8 +2651,8 @@ constructors and destructors for the package and are always named
 "new" and "DESTROY".  The constructor always returns a tied hash
 table.  This hash table is used to access the member variables of a
 structure in addition to being able to invoke member functions.  The
-<tt>%OWNER</tt> and <tt>%BLESSEDMEMBERS</tt> hash tables are used
-internally and described shortly.
+<tt>%OWNER</tt> and <tt>%BLESSEDMEMBERS</tt> hash tables are
+implementation details used internally and described shortly.
 </p>
 
 <p>
@@ -2740,8 +2740,15 @@ to a C function that remembers the object, and then destroy the
 corresponding Perl object (this situation turns out to come up
 frequently when constructing objects like linked lists and trees).
 When C takes possession of an object, you can change Perl's ownership
-by simply deleting the object from the <tt>%OWNER</tt> hash.  This is
-done using the <tt>DISOWN</tt> method.
+by calling the <tt>DISOWN</tt> method (which will delete the object
+from the internal <tt>%OWNER</tt> hash).
+</p>
+
+<p>
+The <tt>%OWNER</tt> hash is an implementation detail, discussed here
+only to help clarify the operation of <tt>ACQUIRE</tt> and <tt>DISOWN</tt>.
+You should not access <tt>%OWNER</tt> directly - the details of how it
+works (and possibly even its existence) may chance in future SWIG versions.
 </p>
 
 <div class="targetlang"><pre>
