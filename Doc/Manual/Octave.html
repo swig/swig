@@ -570,13 +570,13 @@ __mul__        a * b
 __div__        a / b
 __pow__        a ^ b
 __ldiv__       a \ b
-__lshift__     a << b
-__rshift__     a >> b
-__lt__         a < b
-__le__         a <= b
+__lshift__     a &lt;&lt; b
+__rshift__     a &gt;&gt; b
+__lt__         a &lt; b
+__le__         a &lt;= b
 __eq__         a == b
-__ge__         a >= b
-__gt__         a > b
+__ge__         a &gt;= b
+__gt__         a &gt; b
 __ne__         a != b
 __el_mul__     a .* b
 __el_div__     a ./ b
@@ -598,16 +598,16 @@ On the C++ side, the default mappings are as follows:
 %rename(__mul__)       *::operator*;
 %rename(__div__)       *::operator/;
 %rename(__mod__)       *::operator%;
-%rename(__lshift__)    *::operator<<;
-%rename(__rshift__)    *::operator>>;
+%rename(__lshift__)    *::operator&lt;&lt;;
+%rename(__rshift__)    *::operator&gt;&gt;;
 %rename(__el_and__)    *::operator&amp;&amp;;
 %rename(__el_or__)     *::operator||;
 %rename(__xor__)       *::operator^;
 %rename(__invert__)    *::operator~;
-%rename(__lt__)        *::operator<;
-%rename(__le__)        *::operator<=;
-%rename(__gt__)        *::operator>;
-%rename(__ge__)        *::operator>=;
+%rename(__lt__)        *::operator&lt;;
+%rename(__le__)        *::operator&lt;=;
+%rename(__gt__)        *::operator&gt;;
+%rename(__ge__)        *::operator&gt;=;
 %rename(__eq__)        *::operator==;
 %rename(__ne__)        *::operator!=;
 %rename(__not__)       *::operator!;
@@ -634,7 +634,7 @@ You can use it to define special behavior, like for example defining Octave oper
 %extend A {
 string __str__() {
   stringstream sout;
-  sout&lt;&lt;$self->value;
+  sout&lt;&lt;$self-&gt;value;
   return sout.str();
 }
 }
