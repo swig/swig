@@ -983,7 +983,7 @@ else
 # First figure out what the name of Perl5 is
 
 if test "x$PERLBIN" = xyes; then
-AC_CHECK_PROGS(PERL, perl perl5.6.1 perl5.6.0 perl5.004 perl5.003 perl5.002 perl5.001 perl5 perl)
+AC_CHECK_PROGS(PERL, perl perl5)
 else
 PERL="$PERLBIN"
 fi

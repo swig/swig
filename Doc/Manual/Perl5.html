@@ -91,10 +91,10 @@
 <p>
 This chapter describes SWIG's support of Perl5. Although the Perl5
 module is one of the earliest SWIG modules, it has continued to evolve
-and has been improved greatly with the help of SWIG users. For the
-best results, it is recommended that SWIG be used with Perl 5.8 or
-later. We're no longer testing regularly with older versions, but
-Perl 5.6 seems to mostly work, while older versions don't.
+and has been improved greatly with the help of SWIG users. As of SWIG
+4.1.0, the minimum version of Perl we aim to support is Perl 5.8.0.
+We can no longer easily test with older versions, and they no longer
+seem to be in active use.
 </p>
 
 <H2><a name="Perl5_nn2">31.1 Overview</a></H2>
@@ -680,7 +680,6 @@ files(s) field".
 installation under "Additional include directories".
 
 <li>Define the symbols WIN32 and MSWIN32 under preprocessor options.
-If using the ActiveWare port, also define the symbol PERL_OBJECT.
 Note that all extensions to the ActiveWare port must be compiled with
 the C++ compiler since Perl has been encapsulated in a C++ class.
 

@@ -445,13 +445,7 @@ public:
 
     Printv(magic,
            "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n",
-	   "#ifdef PERL_OBJECT\n",
-	   "#define MAGIC_CLASS _wrap_", underscore_module, "_var::\n",
-	   "class _wrap_", underscore_module, "_var : public CPerlObj {\n",
-	   "public:\n",
-	   "#else\n",
 	   "#define MAGIC_CLASS\n",
-	   "#endif\n",
 	   "SWIGCLASS_STATIC int swig_magic_readonly(pTHX_ SV *SWIGUNUSEDPARM(sv), MAGIC *SWIGUNUSEDPARM(mg)) {\n",
 	   tab4, "MAGIC_PPERL\n", tab4, "croak(\"Value is read-only.\");\n", tab4, "return 0;\n", "}\n", NIL);
 
@@ -470,7 +464,6 @@ public:
 
     /* Dump out variable wrappers */
 
-    Printv(magic, "\n\n#ifdef PERL_OBJECT\n", "};\n", "#endif\n", NIL);
     Printv(magic, "\n#ifdef __cplusplus\n}\n#endif\n", NIL);
 
     Printf(f_header, "%s\n", magic);
