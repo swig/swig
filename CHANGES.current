@@ -7,10 +7,32 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-01-18: olly
+	    [Perl] #1629 Perl 5.8.0 is now the oldest version we aim to support.
+
+2022-01-14: wsfulton
+            [Python] Fix %callback and specifying the callback function as a
+            static member function using Python staticmethod syntax, such as
+            Klass.memberfunction instead of Klass_memberfunction when using
+            -builtin and -fastproxy.
+
+2022-01-11: wsfulton
+            [Python] Accept keyword arguments accessing static member functions when
+            using -builtin and kwargs feature and Python class staticmethod syntax.
+            The missing keyword argument support was only when using the
+            class staticmethod syntax, such as Klass.memberfunction, and not when
+            using the flat static method syntax, such as Klass_memberfunction.
+
+2022-01-04: juierror
+            [Go] #2045 Add support for std::array in std_array.i.
+
 2021-12-18: olly
 	    [PHP] Add PHP keyword 'readonly' (added in 8.1) to the list SWIG
 	    knows to automatically rename.  This keyword is special in that PHP
 	    allows it to be used as a function (or method) name.
+
+2021-12-07: vstinner
+            [Python] #2116 Python 3.11 support: use Py_SET_TYPE()
 
 2021-12-05: rwf1
             [Octave] #2020 #1893 Add support for Octave 6 up to and including 6.4.

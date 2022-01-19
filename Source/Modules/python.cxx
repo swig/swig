@@ -73,8 +73,10 @@ static int py3 = 0;
 
 /* C++ Support + Shadow Classes */
 
-static int have_constructor;
-static int have_repr;
+static int have_constructor = 0;
+static int have_repr = 0;
+static bool have_builtin_static_member_method_callback = false;
+static bool have_fast_proxy_static_member_method_callback = false;
 static String *real_classname;
 
 /* Thread Support */
@@ -815,6 +817,10 @@ public:
 
     Append(const_code, "{0, 0, 0, 0.0, 0, 0}};\n");
     Printf(f_wrappers, "%s\n", const_code);
+
+    if (have_fast_proxy_static_member_method_callback)
+      Printf(f_init, "  SWIG_Python_FixMethods(SwigMethods_proxydocs, swig_const_table, swig_types, swig_type_initial);\n\n");
+
     initialize_threads(f_init);
 
     Printf(f_init, "#if PY_VERSION_HEX >= 0x03000000\n");
@@ -2478,6 +2484,7 @@ public:
       Printf(methods, "\"swig_ptr: %s\"", Getattr(n, "feature:callback:name"));
       if (fastproxy) {
 	Printf(methods_proxydocs, "\"swig_ptr: %s\"", Getattr(n, "feature:callback:name"));
+	have_fast_proxy_static_member_method_callback = true;
       }
     } else {
       Append(methods, "NULL");
@@ -3935,6 +3942,10 @@ public:
     int funpack = fastunpack;
     static String *tp_new = NewString("PyType_GenericNew");
 
+    if (have_builtin_static_member_method_callback) {
+      Printf(f_init, "  SWIG_Python_FixMethods(SwigPyBuiltin_%s_methods, swig_const_table, swig_types, swig_type_initial);\n", mname);
+    }
+
     Printv(f_init, "  SwigPyBuiltin_SetMetaType(builtin_pytype, metatype);\n", NIL);
 
     // We can’t statically initialize a structure member with a function defined in another C module
@@ -4365,6 +4376,7 @@ public:
       /* Create new strings for building up a wrapper function */
       have_constructor = 0;
       have_repr = 0;
+      have_builtin_static_member_method_callback = false;
 
       class_name = Getattr(n, "sym:name");
       real_classname = Getattr(n, "name");
@@ -4727,6 +4739,7 @@ public:
       Swig_restore(n);
     }
 
+    int kw = (check_kwargs(n) && !Getattr(n, "sym:overloaded")) ? 1 : 0;
     if (builtin && in_class) {
       if ((GetFlagAttr(n, "feature:extend") || checkAttribute(n, "access", "public"))
 	  && !Getattr(class_members, symname)) {
@@ -4741,7 +4754,7 @@ public:
 	else if (funpack && argcount == 1)
 	  Append(pyflags, "METH_O");
 	else
-	  Append(pyflags, "METH_VARARGS");
+	  Append(pyflags, kw ? "METH_VARARGS|METH_KEYWORDS" : "METH_VARARGS");
 	// Cast via void(*)(void) to suppress GCC -Wcast-function-type warning.
 	// Python should always call the function correctly, but the Python C
 	// API requires us to store it in function pointer of a different type.
@@ -4749,6 +4762,11 @@ public:
 	  String *ds = cdocstring(n, AUTODOC_STATICFUNC);
 	  Printf(builtin_methods, "  { \"%s\", (PyCFunction)(void(*)(void))%s, %s, \"%s\" },\n", symname, wname, pyflags, ds);
 	  Delete(ds);
+	} else if (Getattr(n, "feature:callback")) {
+	  String *ds = NewStringf("swig_ptr: %s", Getattr(n, "feature:callback:name"));
+	  Printf(builtin_methods, "  { \"%s\", (PyCFunction)(void(*)(void))%s, %s, \"%s\" },\n", symname, wname, pyflags, ds);
+	  Delete(ds);
+	  have_builtin_static_member_method_callback = true;
 	} else {
 	  Printf(builtin_methods, "  { \"%s\", (PyCFunction)(void(*)(void))%s, %s, \"\" },\n", symname, wname, pyflags);
 	}
@@ -4767,7 +4785,6 @@ public:
       String *staticfunc_name = NewString(fastproxy ? "_swig_new_static_method" : "staticmethod");
       bool fast = (fastproxy && !have_addtofunc(n)) || Getattr(n, "feature:callback");
       if (!fast || olddefs) {
-	int kw = (check_kwargs(n) && !Getattr(n, "sym:overloaded")) ? 1 : 0;
 	String *parms = make_pyParmList(n, false, false, kw);
 	String *callParms = make_pyParmList(n, false, true, kw);
 	Printv(f_shadow, "\n", tab4, "@staticmethod", NIL);

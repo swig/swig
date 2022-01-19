@@ -6,13 +6,8 @@
  * type checking.
  * ----------------------------------------------------------------------------- */
 
-#ifdef PERL_OBJECT
-#define SWIG_PERL_OBJECT_DECL CPerlObj *SWIGUNUSEDPARM(pPerl),
-#define SWIG_PERL_OBJECT_CALL pPerl,
-#else
 #define SWIG_PERL_OBJECT_DECL
 #define SWIG_PERL_OBJECT_CALL
-#endif
 
 /* Common SWIG API */
 
@@ -88,31 +83,11 @@ extern "C" {
 #endif
 
 /* Macro to call an XS function */
-#ifdef PERL_OBJECT 
-#  define SWIG_CALLXS(_name) _name(cv,pPerl) 
-#else 
-#  ifndef MULTIPLICITY 
-#    define SWIG_CALLXS(_name) _name(cv) 
-#  else 
-#    define SWIG_CALLXS(_name) _name(PERL_GET_THX, cv) 
-#  endif 
-#endif 
-
-#ifdef PERL_OBJECT
-#define MAGIC_PPERL  CPerlObj *pPerl = (CPerlObj *) this;
-
-#ifdef __cplusplus
-extern "C" {
+#ifndef MULTIPLICITY
+#  define SWIG_CALLXS(_name) _name(cv)
+#else
+#  define SWIG_CALLXS(_name) _name(PERL_GET_THX, cv)
 #endif
-typedef int (CPerlObj::*SwigMagicFunc)(SV *, MAGIC *);
-#ifdef __cplusplus
-}
-#endif
-
-#define SWIG_MAGIC(a,b) (SV *a, MAGIC *b)
-#define SWIGCLASS_STATIC
-
-#else /* PERL_OBJECT */
 
 #define MAGIC_PPERL
 #define SWIGCLASS_STATIC static SWIGUNUSED
@@ -141,24 +116,14 @@ typedef int (*SwigMagicFunc)(struct interpreter *, SV *, MAGIC *);
 #endif
 
 #endif /* MULTIPLICITY */
-#endif /* PERL_OBJECT */
 
-#  ifdef PERL_OBJECT
-#    define SWIG_croak_null() SWIG_Perl_croak_null(pPerl)
-static void SWIGUNUSED SWIG_Perl_croak_null(CPerlObj *pPerl)
-#  else
 static void SWIGUNUSED SWIG_croak_null()
-#  endif
 {
   SV *err = get_sv("@", GV_ADD);
-#  if (PERL_VERSION < 6)
-  croak("%_", err);
-#  else
   if (sv_isobject(err))
     croak(0);
   else
     croak("%s", SvPV_nolen(err));
-#  endif
 }
 
 
@@ -462,20 +427,15 @@ typedef struct {
 } swig_variable_info;
 
 /* Magic variable code */
-#ifndef PERL_OBJECT
-# ifdef __cplusplus
+#ifdef __cplusplus
 #  define swig_create_magic(s,a,b,c) _swig_create_magic(s,const_cast<char*>(a),b,c)
-# else
-#  define swig_create_magic(s,a,b,c) _swig_create_magic(s,(char*)(a),b,c)
-# endif
-# ifndef MULTIPLICITY
-SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(SV *, MAGIC *), int (*get)(SV *,MAGIC *)) 
-# else
-SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(struct interpreter*, SV *, MAGIC *), int (*get)(struct interpreter*, SV *,MAGIC *)) 
-# endif
 #else
-#  define swig_create_magic(s,a,b,c) _swig_create_magic(pPerl,s,a,b,c)
-SWIGRUNTIME void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, int (CPerlObj::*set)(SV *, MAGIC *), int (CPerlObj::*get)(SV *, MAGIC *)) 
+#  define swig_create_magic(s,a,b,c) _swig_create_magic(s,(char*)(a),b,c)
+#endif
+#ifndef MULTIPLICITY
+SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(SV *, MAGIC *), int (*get)(SV *,MAGIC *))
+#else
+SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(struct interpreter*, SV *, MAGIC *), int (*get)(struct interpreter*, SV *,MAGIC *))
 #endif
 {
   MAGIC *mg;

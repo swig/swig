@@ -58,15 +58,12 @@ SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
   }
 }
 
-/* -----------------------------------------------------------------------------*/
-/* Fix SwigMethods to carry the callback ptrs when needed */
-/* -----------------------------------------------------------------------------*/
+/* -----------------------------------------------------------------------------
+ * Patch %callback methods' docstrings to hold the callback ptrs
+ * -----------------------------------------------------------------------------*/
 
 SWIGINTERN void
-SWIG_Python_FixMethods(PyMethodDef *methods,
-		       swig_const_info *const_table,
-		       swig_type_info **types,
-		       swig_type_info **types_initial) {
+SWIG_Python_FixMethods(PyMethodDef *methods, const swig_const_info *const_table, swig_type_info **types, swig_type_info **types_initial) {
   size_t i;
   for (i = 0; methods[i].ml_name; ++i) {
     const char *c = methods[i].ml_doc;
@@ -74,7 +71,7 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
     c = strstr(c, "swig_ptr: ");
     if (c) {
       int j;
-      swig_const_info *ci = 0;
+      const swig_const_info *ci = 0;
       const char *name = c + 10;
       for (j = 0; const_table[j].type; ++j) {
 	if (strncmp(const_table[j].name, name, 

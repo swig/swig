@@ -12,7 +12,7 @@ def run(module_name):
     de.accelerate()
     de.accelerate(default_args.EnumClass.SLOW)
 
-    if default_args.Statics_staticMethod() != 60:
+    if default_args.Statics.staticMethod() != 60:
         raise RuntimeError
 
     if default_args.cfunc1(1) != 2:

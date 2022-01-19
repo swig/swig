@@ -115,22 +115,22 @@ if s.foo(b) != "foo:Bar *":
 if s.foo(v) != "foo:void *":
     raise RuntimeError("Spam::foo(void *)")
 
-if Spam_bar(3) != "bar:int":
+if Spam.bar(3) != "bar:int":
     raise RuntimeError("Spam::bar(int)")
 
-if Spam_bar(3.0) != "bar:double":
+if Spam.bar(3.0) != "bar:double":
     raise RuntimeError("Spam::bar(double)")
 
-if Spam_bar("hello") != "bar:char *":
+if Spam.bar("hello") != "bar:char *":
     raise RuntimeError("Spam::bar(char *)")
 
-if Spam_bar(f) != "bar:Foo *":
+if Spam.bar(f) != "bar:Foo *":
     raise RuntimeError("Spam::bar(Foo *)")
 
-if Spam_bar(b) != "bar:Bar *":
+if Spam.bar(b) != "bar:Bar *":
     raise RuntimeError("Spam::bar(Bar *)")
 
-if Spam_bar(v) != "bar:void *":
+if Spam.bar(v) != "bar:void *":
     raise RuntimeError("Spam::bar(void *)")
 
 # Test constructors
