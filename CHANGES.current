@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-01-19: olly
+	    [PHP] #2027 Automatically generate PHP type declarations for PHP 8.
+	    The generate code still compiles for PHP 7.x, but without type
+	    declarations since PHP 7.x has much more limited type declaration
+	    support.
+
 2022-01-18: olly
 	    [Perl] #1629 Perl 5.8.0 is now the oldest version we aim to support.
 
