@@ -100,7 +100,7 @@ if (!dcast) {
 }%enddef
 
 %define %factory(Method,Types...)
-%typemap(out) Method {
+%typemap(out, phptype="?SWIGTYPE") Method {
   int dcast = 0;
   %formacro(%_factory_dispatch, Types)
   if (!dcast) {

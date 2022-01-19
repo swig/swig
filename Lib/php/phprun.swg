@@ -20,6 +20,27 @@ extern "C" {
 #include "zend_exceptions.h"
 #include "zend_inheritance.h"
 
+#if PHP_MAJOR_VERSION == 7
+/* These macros were new in PHP 8.0.  For PHP 7.x we define them to give the
+ * same result except without any type declarations.  PHP 7.x supports type
+ * declarations, but not for the return type, and alternate types aren't
+ * supported, so we don't try to support these.
+ */
+# define ZEND_BEGIN_ARG_WITH_RETURN_OBJ_TYPE_MASK_EX(name, byref, num_req, classes, types) \
+    ZEND_BEGIN_ARG_INFO_EX(name, 0, byref, num_req)
+# define ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(name, byref, num_req, types) \
+    ZEND_BEGIN_ARG_INFO_EX(name, 0, byref, num_req)
+
+/* NB We can just ignore `default` here we currently always pass NULL for it
+ * (this mechnism for specifying default parameter values was new in PHP 8.0
+ * so it's not useful while we still want to support PHP7 too).
+ */
+# define ZEND_ARG_OBJ_TYPE_MASK(byref, name, classes, types, default) \
+    ZEND_ARG_INFO(byref, name)
+# define ZEND_ARG_TYPE_MASK(byref, name, types, default) \
+    ZEND_ARG_INFO(byref, name)
+#endif
+
 #include <stdlib.h> /* for abort(), used in generated code. */
 
 #define SWIG_BOOL_CONSTANT(N, V) REGISTER_BOOL_CONSTANT(#N, V, CONST_CS | CONST_PERSISTENT)

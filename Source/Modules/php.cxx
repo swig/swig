@@ -176,7 +176,95 @@ static void SwigPHP_emit_pointer_type_registrations() {
   }
 }
 
+// Class encapsulating the machinery to add PHP type declarations.
+class PHPTypes {
+  Hash *phptypes;
+
+  // List with an entry for each parameter and one for the return type.
+  //
+  // We assemble the types in here before emitting them so for an overloaded
+  // function we combine the type declarations from each overloaded form.
+  List *merged_types;
+
+  // List with an entry for each parameter which is passed "byref" in any
+  // overloaded form.  We use this to pass such parameters by reference in
+  // the dispatch function.  If NULL, no parameters are passed by reference.
+  List *byref;
+
+public:
+  PHPTypes() : phptypes(NewHash()), merged_types(NULL), byref(NULL) {
+    Setattr(phptypes, "array", "MAY_BE_ARRAY");
+    Setattr(phptypes, "bool", "MAY_BE_BOOL");
+    Setattr(phptypes, "callable", "MAY_BE_CALLABLE");
+    Setattr(phptypes, "float", "MAY_BE_DOUBLE");
+    Setattr(phptypes, "int", "MAY_BE_LONG");
+    Setattr(phptypes, "iterable", "MAY_BE_ITERABLE");
+    Setattr(phptypes, "mixed", "MAY_BE_MIXED");
+    Setattr(phptypes, "null", "MAY_BE_NULL");
+    Setattr(phptypes, "object", "MAY_BE_OBJECT");
+    Setattr(phptypes, "resource", "MAY_BE_RESOURCE");
+    Setattr(phptypes, "string", "MAY_BE_STRING");
+    Setattr(phptypes, "void", "MAY_BE_VOID");
+  }
+
+  void reset() {
+    Delete(merged_types);
+    merged_types = NewList();
+    Delete(byref);
+    byref = NULL;
+  }
+
+  // key is 0 for return type, or >= 1 for parameters numbered from 1
+  void process_phptype(Node *n, int key, const String_or_char *attribute_name);
+
+  String *get_phptype(int key, String *classtypes) {
+    Clear(classtypes);
+    DOH *types = Getitem(merged_types, key);
+    String *result = NewStringEmpty();
+    if (types != None) {
+      SortList(types, NULL);
+      String *prev = NULL;
+      for (Iterator i = First(types); i.item; i = Next(i)) {
+	if (prev && Equal(prev, i.item)) {
+	  // Skip duplicates when merging.
+	  continue;
+	}
+	String *c = Getattr(phptypes, i.item);
+	if (c) {
+	  if (Len(result) > 0) Append(result, "|");
+	  Append(result, c);
+	} else {
+	  if (Len(classtypes) > 0) Append(classtypes, "|");
+	  Append(classtypes, i.item);
+	}
+	prev = i.item;
+      }
+    }
+    // Make the mask 0 if there are only class names specified.
+    if (Len(result) == 0) {
+      Append(result, "0");
+    }
+    return result;
+  }
+
+  void set_byref(int key) {
+    if (!byref) {
+      byref = NewList();
+    }
+    while (Len(byref) <= key) {
+      Append(byref, None);
+    }
+    Setitem(byref, key, ""); // Just needs to be something != None.
+  }
+
+  int get_byref(int key) const {
+    return byref && key < Len(byref) && Getitem(byref, key) != None;
+  }
+};
+
 class PHP : public Language {
+  PHPTypes phptypes;
+
 public:
   PHP() {
     director_language = 1;
@@ -572,124 +660,165 @@ public:
   }
 
   /* Just need to append function names to function table to register with PHP. */
-  void create_command(String *cname, String *fname, Node *n, bool overload, String *modes = NULL) {
+  void create_command(String *cname, String *fname, Node *n, bool dispatch, String *modes = NULL) {
     // This is for the single main zend_function_entry record
-    bool has_this = false;
+    ParmList *l = Getattr(n, "parms");
     if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
       Printf(f_h, "PHP_METHOD(%s%s,%s);\n", prefix, cname, fname);
-      has_this = (wrapperType != staticmemberfn) &&
-		 (wrapperType != staticmembervar) &&
-		 (Cmp(fname, "__construct") != 0);
+      if (wrapperType != staticmemberfn &&
+	  wrapperType != staticmembervar &&
+	  !Equal(fname, "__construct")) {
+	// Skip the first entry in the parameter list which is the this pointer.
+	l = Getattr(l, "tmap:in:next");
+	// FIXME: does this throw the phptype key value off?
+      }
     } else {
-      if (overload) {
+      if (dispatch) {
 	Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", fname);
       } else {
 	Printf(f_h, "PHP_FUNCTION(%s);\n", fname);
       }
     }
+
+    int num_required = emit_num_required(l);
+
     // We want to only emit each different arginfo once, as that reduces the
     // size of both the generated source code and the compiled extension
     // module.  The parameters at this level are just named arg1, arg2, etc
-    // so we generate an arginfo name with the number of parameters and a
-    // bitmap value saying which (if any) are passed by reference.
-    ParmList *l = Getattr(n, "parms");
-    unsigned long bitmap = 0, bit = 1;
-    bool overflowed = false;
-    bool skip_this = has_this;
-    for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
-      if (skip_this) {
-	skip_this = false;
-	continue;
+    // so the arginfo will be the same for any function with the same number
+    // of parameters and (if present) PHP type declarations for parameters and
+    // return type.
+    //
+    // We generate the arginfo we want (taking care to normalise, e.g. the
+    // lists of types are unique and in sorted order), then use the
+    // arginfo_used Hash to see if we've already generated it.
+
+    // Don't add a return type declaration for a constructor (because there
+    // is no return type as far as PHP is concerned).
+    String *out_phptype = NULL;
+    String *out_phpclasses = NewStringEmpty();
+    if (!Equal(fname, "__construct")) {
+      String *php_type_flag = GetFlagAttr(n, "feature:php:type");
+      if (Equal(php_type_flag, "1") ||
+	  (php_type_flag && !Getattr(n, "directorNode"))) {
+	// We provide a simple way to generate PHP return type declarations
+	// except for directed methods.  The point of directors is to allow
+	// subclassing in the target language, and if the wrapped method has
+	// a return type declaration then an overriding method in user code
+	// needs to have a compatible declaration.
+	//
+	// The upshot of this is that enabling return type declarations for
+	// existing bindings would break compatibility with user code written
+	// for an older version.  For parameters however the situation is
+	// different because if the parent class declares types for parameters
+	// a subclass overriding the function will be compatible whether it
+	// declares them or not.
+	//
+	// directorNode being present seems to indicate if this method or one
+	// it inherits from is directed, which is what we care about here.
+	// Using (!is_member_director(n)) would get it wrong for testcase
+	// director_frob.
+	out_phptype = phptypes.get_phptype(0, out_phpclasses);
       }
+    }
+
+    // ### in arginfo_code will be replaced with the id once that is known.
+    String *arginfo_code = NewStringEmpty();
+    if (out_phptype) {
+      if (Len(out_phpclasses)) {
+	Replace(out_phpclasses, "\\", "\\\\", DOH_REPLACE_ANY);
+	Printf(arginfo_code, "ZEND_BEGIN_ARG_WITH_RETURN_OBJ_TYPE_MASK_EX(swig_arginfo_###, 0, %d, %s, %s)\n", num_required, out_phpclasses, out_phptype);
+      } else {
+	Printf(arginfo_code, "ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(swig_arginfo_###, 0, %d, %s)\n", num_required, out_phptype);
+      }
+    } else {
+      Printf(arginfo_code, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_###, 0, 0, %d)\n", num_required);
+    }
+
+    int param_count = 0;
+    for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
       String *tmap_in_numinputs = Getattr(p, "tmap:in:numinputs");
       // tmap:in:numinputs is unset for varargs, which we don't count here.
       if (!tmap_in_numinputs || Equal(tmap_in_numinputs, "0")) {
 	/* Ignored parameter */
 	continue;
       }
-      if (GetFlag(p, "tmap:in:byref")) {
-	  bitmap |= bit;
-	  if (bit == 0) overflowed = true;
-      }
-      bit <<= 1;
-    }
-    int num_arguments = emit_num_arguments(l);
-    int num_required = emit_num_required(l);
-    if (has_this) {
-      --num_arguments;
-      --num_required;
-    }
-    String *arginfo_code;
-    if (overflowed) {
-      // We overflowed the bitmap so just generate a unique name - this only
-      // happens for a function with more parameters than bits in a long
-      // where a high numbered parameter is passed by reference, so should be
-      // rare in practice.
-      static int overflowed_counter = 0;
-      arginfo_code = NewStringf("z%d", ++overflowed_counter);
-    } else if (bitmap == 0) {
-      // No parameters passed by reference.
-      if (num_required == num_arguments) {
-	  arginfo_code = NewStringf("%d", num_arguments);
-      } else {
-	  arginfo_code = NewStringf("%d_%d", num_required, num_arguments);
-      }
-    } else {
-      if (num_required == num_arguments) {
-	  arginfo_code = NewStringf("%d_r%lx", num_arguments, bitmap);
-      } else {
-	  arginfo_code = NewStringf("%d_%d_r%lx", num_required, num_arguments, bitmap);
-      }
-    }
 
-    if (!GetFlag(arginfo_used, arginfo_code)) {
-      // Not had this one before so emit it.
-      SetFlag(arginfo_used, arginfo_code);
-      Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%s, 0, 0, %d)\n", arginfo_code, num_required);
-      bool skip_this = has_this;
-      int param_count = 0;
-      for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
-	if (skip_this) {
-	  skip_this = false;
-	  continue;
-	}
-	String *tmap_in_numinputs = Getattr(p, "tmap:in:numinputs");
-	// tmap:in:numinputs is unset for varargs, which we don't count here.
-	if (!tmap_in_numinputs || Equal(tmap_in_numinputs, "0")) {
-	  /* Ignored parameter */
-	  continue;
-	}
-	Printf(s_arginfo, " ZEND_ARG_INFO(%d,arg%d)\n", GetFlag(p, "tmap:in:byref"), ++param_count);
+      ++param_count;
+
+      String *phpclasses = NewStringEmpty();
+      String *phptype = NULL;
+      if (GetFlag(n, "feature:php:type")) {
+	phptypes.get_phptype(param_count, phpclasses);
       }
-      Printf(s_arginfo, "ZEND_END_ARG_INFO()\n");
+
+      int byref;
+      if (!dispatch) {
+	byref = GetFlag(p, "tmap:in:byref");
+	if (byref) phptypes.set_byref(param_count);
+      } else {
+	// If any overload takes a particular parameter by reference then the
+	// dispatch function also needs to take that parameter by reference.
+	byref = phptypes.get_byref(param_count);
+      }
+
+      // FIXME: Should we be doing byref for return value as well?
+
+      if (phptype) {
+	if (Len(phpclasses)) {
+	  // We need to double any backslashes (which are PHP namespace
+	  // separators) in the PHP class names as they get turned into
+	  // C strings by the ZEND_ARG_OBJ_TYPE_MASK macro.
+	  Replace(phpclasses, "\\", "\\\\", DOH_REPLACE_ANY);
+	  Printf(arginfo_code, " ZEND_ARG_OBJ_TYPE_MASK(%d,arg%d,%s,%s,NULL)\n", byref, param_count, phpclasses, phptype);
+	} else {
+	  Printf(arginfo_code, " ZEND_ARG_TYPE_MASK(%d,arg%d,%s,NULL)\n", byref, param_count, phptype);
+	}
+      } else {
+	Printf(arginfo_code, " ZEND_ARG_INFO(%d,arg%d)\n", byref, param_count);
+      }
     }
+    Printf(arginfo_code, "ZEND_END_ARG_INFO()\n");
+
+    String *arginfo_id_new = Getattr(n, "sym:name");
+    String *arginfo_id = Getattr(arginfo_used, arginfo_code);
+    if (arginfo_id) {
+      Printf(s_arginfo, "#define swig_arginfo_%s swig_arginfo_%s\n", arginfo_id_new, arginfo_id);
+    } else {
+      // Not had this arginfo before.
+      Setattr(arginfo_used, arginfo_code, arginfo_id_new);
+      arginfo_code = Copy(arginfo_code);
+      Replace(arginfo_code, "###", arginfo_id_new, DOH_REPLACE_FIRST);
+      Append(s_arginfo, arginfo_code);
+    }
+    Delete(arginfo_code);
+    arginfo_code = NULL;
 
     String *s = cs_entry;
     if (!s) s = s_entry;
     if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
-      Printf(all_cs_entry, " PHP_ME(%s%s,%s,swig_arginfo_%s,%s)\n", prefix, cname, fname, arginfo_code, modes);
+      Printf(all_cs_entry, " PHP_ME(%s%s,%s,swig_arginfo_%s,%s)\n", prefix, cname, fname, arginfo_id_new, modes);
     } else {
-      if (overload) {
+      if (dispatch) {
 	if (wrap_nonclass_global) {
-	  Printf(s, " ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%s)\n", Getattr(n, "sym:name"), fname, arginfo_code);
+	  Printf(s, " ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%s)\n", Getattr(n, "sym:name"), fname, arginfo_id_new);
 	}
 
 	if (wrap_nonclass_fake_class) {
 	  (void)fake_class_name();
-	  Printf(fake_cs_entry, " ZEND_NAMED_ME(%(lower)s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", Getattr(n, "sym:name"), fname, arginfo_code);
+	  Printf(fake_cs_entry, " ZEND_NAMED_ME(%(lower)s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", Getattr(n, "sym:name"), fname, arginfo_id_new);
 	}
       } else {
 	if (wrap_nonclass_global) {
-	  Printf(s, " PHP_FE(%s,swig_arginfo_%s)\n", fname, arginfo_code);
+	  Printf(s, " PHP_FE(%s,swig_arginfo_%s)\n", fname, arginfo_id_new);
 	}
 
 	if (wrap_nonclass_fake_class) {
 	  String *fake_class = fake_class_name();
-	  Printf(fake_cs_entry, " PHP_ME(%s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", fake_class, fname, arginfo_code);
+	  Printf(fake_cs_entry, " PHP_ME(%s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", fake_class, fname, arginfo_id_new);
 	}
       }
     }
-    Delete(arginfo_code);
   }
 
   /* ------------------------------------------------------------
@@ -784,27 +913,29 @@ public:
       base_class = NULL;
     }
 
-    // Ensure arginfo_1 and arginfo_2 exist.
-    if (!GetFlag(arginfo_used, "1")) {
-      SetFlag(arginfo_used, "1");
+    static bool generated_magic_arginfo = false;
+    if (!generated_magic_arginfo) {
+      // Create arginfo entries for __get, __set and __isset.
       Append(s_arginfo,
-	     "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_1, 0, 0, 1)\n"
-	     " ZEND_ARG_INFO(0,arg1)\n"
+	     "ZEND_BEGIN_ARG_INFO_EX(swig_magic_arginfo_get, 0, 0, 1)\n"
+	     " ZEND_ARG_TYPE_MASK(0,arg1,MAY_BE_STRING,NULL)\n"
 	     "ZEND_END_ARG_INFO()\n");
-    }
-    if (!GetFlag(arginfo_used, "2")) {
-      SetFlag(arginfo_used, "2");
       Append(s_arginfo,
-	     "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_2, 0, 0, 2)\n"
-	     " ZEND_ARG_INFO(0,arg1)\n"
+	     "ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(swig_magic_arginfo_set, 0, 1, MAY_BE_VOID)\n"
+	     " ZEND_ARG_TYPE_MASK(0,arg1,MAY_BE_STRING,NULL)\n"
 	     " ZEND_ARG_INFO(0,arg2)\n"
 	     "ZEND_END_ARG_INFO()\n");
+      Append(s_arginfo,
+	     "ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(swig_magic_arginfo_isset, 0, 1, MAY_BE_BOOL)\n"
+	     " ZEND_ARG_TYPE_MASK(0,arg1,MAY_BE_STRING,NULL)\n"
+	     "ZEND_END_ARG_INFO()\n");
+      generated_magic_arginfo = true;
     }
 
     Wrapper *f = NewWrapper();
 
     Printf(f_h, "PHP_METHOD(%s%s,__set);\n", prefix, class_name);
-    Printf(all_cs_entry, " PHP_ME(%s%s,__set,swig_arginfo_2,ZEND_ACC_PUBLIC)\n", prefix, class_name);
+    Printf(all_cs_entry, " PHP_ME(%s%s,__set,swig_magic_arginfo_set,ZEND_ACC_PUBLIC)\n", prefix, class_name);
     Printf(f->code, "PHP_METHOD(%s%s,__set) {\n", prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n");
@@ -842,7 +973,7 @@ public:
 
 
     Printf(f_h, "PHP_METHOD(%s%s,__get);\n", prefix, class_name);
-    Printf(all_cs_entry, " PHP_ME(%s%s,__get,swig_arginfo_1,ZEND_ACC_PUBLIC)\n", prefix, class_name);
+    Printf(all_cs_entry, " PHP_ME(%s%s,__get,swig_magic_arginfo_get,ZEND_ACC_PUBLIC)\n", prefix, class_name);
     Printf(f->code, "PHP_METHOD(%s%s,__get) {\n",prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n");
@@ -875,7 +1006,7 @@ public:
 
 
     Printf(f_h, "PHP_METHOD(%s%s,__isset);\n", prefix, class_name);
-    Printf(all_cs_entry, " PHP_ME(%s%s,__isset,swig_arginfo_1,ZEND_ACC_PUBLIC)\n", prefix, class_name);
+    Printf(all_cs_entry, " PHP_ME(%s%s,__isset,swig_magic_arginfo_isset,ZEND_ACC_PUBLIC)\n", prefix, class_name);
     Printf(f->code, "PHP_METHOD(%s%s,__isset) {\n",prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n");
@@ -994,6 +1125,12 @@ public:
 	return SWIG_ERROR;
     }
 
+    if (!Getattr(n, "sym:previousSibling")) {
+      // First function of an overloaded group or a function which isn't part
+      // of a group so reset the phptype information.
+      phptypes.reset();
+    }
+
     if (constructor) {
       wname = NewString("__construct");
     } else if (wrapperType == membervar) {
@@ -1077,10 +1214,6 @@ public:
     /* Attach standard typemaps */
 
     emit_attach_parmmaps(l, f);
-    // Not issued for overloaded functions.
-    if (!overloaded && !static_getter) {
-      create_command(class_name, wname, n, false, modes);
-    }
 
     if (wrapperType == memberfn || wrapperType == membervar) {
       // Assign "this" to arg1 and remove first entry from ParmList l.
@@ -1163,6 +1296,8 @@ public:
 	p = nextSibling(p);
 	continue;
       }
+
+      phptypes.process_phptype(p, i + 1, "tmap:in:phptype");
 
       String *source = NewStringf("args[%d]", i);
       Replaceall(tm, "$input", source);
@@ -1247,6 +1382,8 @@ public:
     }
     emit_return_variable(n, d, f);
 
+    phptypes.process_phptype(n, 0, "tmap:out:phptype");
+
     if (outarg) {
       Printv(f->code, outarg, NIL);
     }
@@ -1290,10 +1427,15 @@ public:
     Wrapper_print(f, s_wrappers);
     DelWrapper(f);
     f = NULL;
-    wname = NULL;
 
-    if (overloaded && !Getattr(n, "sym:nextSibling")) {
-      dispatchFunction(n, constructor);
+    if (overloaded) {
+      if (!Getattr(n, "sym:nextSibling")) {
+	dispatchFunction(n, constructor);
+      }
+    } else {
+      if (!static_getter) {
+	create_command(class_name, wname, n, false, modes);
+      }
     }
 
     return SWIG_OK;
@@ -2153,6 +2295,82 @@ public:
 };				/* class PHP */
 
 static PHP *maininstance = 0;
+
+void PHPTypes::process_phptype(Node *n, int key, const String_or_char *attribute_name) {
+
+  while (Len(merged_types) <= key) {
+    Append(merged_types, NewList());
+  }
+
+  String *phptype = Getattr(n, attribute_name);
+  if (!phptype || Len(phptype) == 0) {
+    // There's no type declaration, so any merged version has no type declaration.
+    //
+    // Use a DOH None object as a marker to indicate there's no type
+    // declaration for this parameter/return value (you can't store NULL as a
+    // value in a DOH List).
+    Setitem(merged_types, key, None);
+    return;
+  }
+
+  DOH *merge_list = Getitem(merged_types, key);
+  if (merge_list == None) return;
+
+  List *types = Split(phptype, '|', -1);
+  String *first_type = Getitem(types, 0);
+  if (Char(first_type)[0] == '?') {
+    if (Len(types) > 1) {
+      Printf(stderr, "warning: Invalid phptype: '%s' (can't use ? and | together)\n", phptype);
+    }
+    // Treat `?foo` just like `foo|null`.
+    Append(types, "null");
+    Setitem(types, 0, NewString(Char(first_type) + 1));
+  }
+
+  SortList(types, NULL);
+  String *prev = NULL;
+  for (Iterator i = First(types); i.item; i = Next(i)) {
+    if (prev && Equal(prev, i.item)) {
+      Printf(stderr, "warning: Invalid phptype: '%s' (duplicate entry for '%s')\n", phptype, i.item);
+      continue;
+    }
+
+    if (key > 0 && Equal(i.item, "void")) {
+      // Reject void for parameter type.
+      Printf(stderr, "warning: Invalid phptype: '%s' ('%s' can't be used as a parameter phptype)\n", phptype, i.item);
+      continue;
+    }
+
+    if (Equal(i.item, "SWIGTYPE")) {
+      String *type = Getattr(n, "type");
+      Node *class_node = maininstance->classLookup(type);
+      if (class_node) {
+	// FIXME: Prefix classname with a backslash to prevent collisions
+	// with built-in types?  Or are non of those valid anyway and so will
+	// have been renamed at this point?
+	Append(merge_list, Getattr(class_node, "sym:name"));
+      } else {
+	// SWIG wraps a pointer to a non-object type as an object in a PHP
+	// class named based on the SWIG-mangled C/C++ type.
+	//
+	// FIXME: We should check this is actually a known pointer to
+	// non-object type so we complain about `phptype="SWIGTYPE"` being
+	// used for PHP types like `int` or `string` (currently this only
+	// fails at runtime and the error isn't very helpful).  We could
+	// check the condition
+	//
+	//   zend_types && Getattr(zend_types, SwigType_manglestr(type))
+	//
+	// except that zend_types may not have been fully filled in when
+	// we are called.
+	Append(merge_list, NewStringf("SWIG\\%s", SwigType_manglestr(type)));
+      }
+    } else {
+      Append(merge_list, i.item);
+    }
+    prev = i.item;
+  }
+}
 
 // Collect non-class pointer types from the type table so we can set up PHP
 // classes for them later.

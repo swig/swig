@@ -20,11 +20,14 @@ $tr=copy_intp(4);
 check::equal(4,inctr($tr),"4==incr($tr)");
 check::equal(5,intp_value($tr),"5==$tr");
 
-# Check the voidhandle call, first with null
+# Check the voidhandle call, first with NULL and then with the SWIG\p_void we
+# get from the first call.
 $handle=NULL;
-voidhandle($handle);
-check::equal(get_class($handle),"SWIG\\_p_void",'$handle is not _p_void');
-$handledata=handle($handle);
-check::equal($handledata,"Here it is","\$handledata != \"Here it is\"");
+for ($i=0; $i != 1; $i++) {
+  voidhandle($handle);
+  check::equal(get_class($handle),"SWIG\\_p_void",'$handle is not _p_void');
+  $handledata=handle($handle);
+  check::equal($handledata,"Here it is","\$handledata != \"Here it is\"");
+}
 
 check::done();

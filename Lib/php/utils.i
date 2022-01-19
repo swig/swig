@@ -63,12 +63,12 @@
   }
 %enddef
 
-%define %pass_by_val( TYPE, CONVERT_IN )
-%typemap(in) TYPE
+%define %pass_by_val( TYPE, PHP_TYPE, CONVERT_IN )
+%typemap(in, phptype=PHP_TYPE) TYPE
 %{
   CONVERT_IN($1,$1_ltype,$input);
 %}
-%typemap(in) const TYPE & ($*1_ltype temp)
+%typemap(in, phptype=PHP_TYPE) const TYPE & ($*1_ltype temp)
 %{
   CONVERT_IN(temp,$*1_ltype,$input);
   $1 = &temp;
