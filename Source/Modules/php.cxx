@@ -180,14 +180,19 @@ static void SwigPHP_emit_pointer_type_registrations() {
 class PHPTypes {
   Hash *phptypes;
 
-  // Hash with an entry for each parameter and one for the return type.
+  // List with an entry for each parameter and one for the return type.
   //
   // We assemble the types in here before emitting them so for an overloaded
   // function we combine the type declarations from each overloaded form.
-  Hash *merged_types;
+  List *merged_types;
+
+  // List with an entry for each parameter which is passed "byref" in any
+  // overloaded form.  We use this to pass such parameters by reference in
+  // the dispatch function.  If NULL, no parameters are passed by reference.
+  List *byref;
 
 public:
-  PHPTypes() : phptypes(NewHash()), merged_types(NULL) {
+  PHPTypes() : phptypes(NewHash()), merged_types(NULL), byref(NULL) {
     Setattr(phptypes, "array", "MAY_BE_ARRAY");
     Setattr(phptypes, "bool", "MAY_BE_BOOL");
     Setattr(phptypes, "callable", "MAY_BE_CALLABLE");
@@ -205,6 +210,8 @@ public:
   void reset() {
     Delete(merged_types);
     merged_types = NewList();
+    Delete(byref);
+    byref = NULL;
   }
 
   // key is 0 for return type, or >= 1 for parameters numbered from 1
@@ -238,6 +245,20 @@ public:
       Append(result, "0");
     }
     return result;
+  }
+
+  void set_byref(int key) {
+    if (!byref) {
+      byref = NewList();
+    }
+    while (Len(byref) <= key) {
+      Append(byref, None);
+    }
+    Setitem(byref, key, ""); // Just needs to be something != None.
+  }
+
+  int get_byref(int key) const {
+    return byref && key < Len(byref) && Getitem(byref, key) != None;
   }
 };
 
@@ -731,15 +752,17 @@ public:
 	phptypes.get_phptype(param_count, phpclasses);
       }
 
-      int byref = GetFlag(p, "tmap:in:byref");
-#if 0 // FIXME: do this still
-	  // If any overload takes a particular parameter by reference then the
-	  // dispatch function needs to take that parameter by reference.
-	  Printf(stdout,"byref merging %d ", byref);
-	  if (!byref) byref = GetFlag(p, "tmap:in:byref");
-	  Printf(stdout,"now  %d\n", byref);
-	  // Also, should we be doing byref for return value?
-#endif
+      int byref;
+      if (!dispatch) {
+	byref = GetFlag(p, "tmap:in:byref");
+	if (byref) phptypes.set_byref(param_count);
+      } else {
+	// If any overload takes a particular parameter by reference then the
+	// dispatch function also needs to take that parameter by reference.
+	byref = phptypes.get_byref(param_count);
+      }
+
+      // FIXME: Should we be doing byref for return value as well?
 
       if (phptype) {
 	if (Len(phpclasses)) {
