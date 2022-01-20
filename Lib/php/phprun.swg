@@ -93,6 +93,12 @@ static int default_error_code = E_ERROR;
 #define SWIG_GetModule(clientdata) SWIG_Php_GetModule()
 #define SWIG_SetModule(clientdata, pointer) SWIG_Php_SetModule(pointer, *(int*)clientdata)
 
+static zend_class_entry SWIG_Php_swig_wrapped_interface_ce;
+
+#if PHP_MAJOR_VERSION == 7
+# define zend_class_implements_interface(C, I) instanceof_function_ex(C, I, 1)
+#endif
+
 /* used to wrap returned objects in so we know whether they are newobject
    and need freeing, or not */
 typedef struct {
@@ -156,7 +162,18 @@ SWIG_ConvertPtrAndOwn(zval *z, void **ptr, swig_type_info *ty, int flags, swig_o
 
   switch (Z_TYPE_P(z)) {
     case IS_OBJECT: {
-      swig_object_wrapper *value = SWIG_Z_FETCH_OBJ_P(z);
+      zend_object *obj = Z_OBJ_P(z);
+      swig_object_wrapper *value;
+      if (ty && ty->clientdata == (void*)obj->ce) {
+	// Object is exactly the class asked for - this handles common cases cheaply,
+	// and in particular the PHP classes we use to wrap a pointer to a non-class.
+      } else if (!zend_class_implements_interface(obj->ce, &SWIG_Php_swig_wrapped_interface_ce)) {
+	// Not an object we've wrapped.
+	return -1;
+      }
+
+      /* convert and cast value->ptr from value->type to ptr as ty. */
+      value = swig_php_fetch_object(obj);
       if (!ty) {
 	/* They don't care about the target type, so just pass on the pointer! */
 	*ptr = value->ptr;

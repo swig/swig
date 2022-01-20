@@ -87,6 +87,15 @@ static String *fake_class_name() {
   return result;
 }
 
+static String *swig_wrapped_interface_ce() {
+  static String *result = NULL;
+  if (!result) {
+    result = NewStringf("SWIG_Php_swig_wrapped_interface_ce");
+    Printf(s_oinit, "  INIT_CLASS_ENTRY(%s, \"SWIG\\\\wrapped\", NULL);\n", result);
+  }
+  return result;
+}
+
 /* To reduce code size (generated and compiled) we only want to emit each
  * different arginfo once, so we need to track which have been used.
  */
@@ -163,12 +172,14 @@ static void SwigPHP_emit_pointer_type_registrations() {
   while (ki.key) {
     String *type = ki.key;
 
+    String *swig_wrapped = swig_wrapped_interface_ce();
     Printf(s_creation, "/* class entry for pointer to %s */\n", type);
     Printf(s_creation, "static zend_class_entry *SWIG_Php_ce_%s;\n\n", type);
 
     Printf(s_oinit, "  INIT_CLASS_ENTRY(internal_ce, \"%s\\\\%s\", NULL);\n", "SWIG", type);
     Printf(s_oinit, "  SWIG_Php_ce_%s = zend_register_internal_class(&internal_ce);\n", type);
     Printf(s_oinit, "  SWIG_Php_ce_%s->create_object = swig_ptr_object_new;\n", type);
+    Printv(s_oinit, "  zend_do_implement_interface(SWIG_Php_ce_", type, ", &", swig_wrapped, ");\n", NIL);
     Printf(s_oinit, "  SWIG_TypeClientData(SWIGTYPE%s,SWIG_Php_ce_%s);\n", type, type);
     Printf(s_oinit, "\n");
 
@@ -1633,6 +1644,8 @@ public:
     if (Getattr(n, "abstracts") && !GetFlag(n, "feature:notabstract")) {
       Printf(s_oinit, "  SWIG_Php_ce_%s->ce_flags |= ZEND_ACC_EXPLICIT_ABSTRACT_CLASS;\n", class_name);
     }
+    String *swig_wrapped = swig_wrapped_interface_ce();
+    Printv(s_oinit, "  zend_do_implement_interface(SWIG_Php_ce_", class_name, ", &", swig_wrapped, ");\n", NIL);
 
     {
       Node *node = NewHash();

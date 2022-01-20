@@ -187,8 +187,9 @@ check("' 11 '", 'char *');
 
 # Check TypeError is thrown when the wrong type is passed.
 check("array()", NULL);
-# FIXME: These need fixing
-#check("function(){}", NULL);
-#check("new stdClass()", NULL);
+check("function(){}", NULL);
+check("new stdClass()", NULL);
+class NotASwigWrappedClass { };
+check("new NotASwigWrappedClass()", NULL);
 
 check::done();
