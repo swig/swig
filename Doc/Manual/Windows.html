@@ -258,7 +258,7 @@ cd pcre2
 cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_PREFIX=C:/pcre .
 cmake --build . --config Release --target install
 </pre></div>
-Alternatively, use <tt>WITH_PCRE</tt> option to disable PCRE support if you are sure not to need it.
+Alternatively, use <tt>WITH_PCRE</tt> option to disable PCRE2 support if you are sure not to need it.
     </li>
     <li>
         We will also need the SWIG source code. Either download a zipped archive from GitHub, or if git is installed clone the latest codebase
@@ -451,10 +451,10 @@ the autotools will fail miserably on those.
   </li>
 
   <li>
-The PCRE third party library needs to be built next. 
-Download the latest PCRE source tarball, such as <tt>pcre2-10.39.tar.bz2</tt>, from
-<a href=http://www.pcre.org>PCRE</a> and place in the <tt>/usr/src/swig</tt> directory.
-Build PCRE as a static library using the Tools/pcre-build.sh script as follows:
+The PCRE2 third party library needs to be built next.
+Download the latest PCRE2 source tarball, such as <tt>pcre2-10.39.tar.bz2</tt>, from
+<a href=http://www.pcre.org>www.pcre.org</a> and place in the <tt>/usr/src/swig</tt> directory.
+Build PCRE2 as a static library using the Tools/pcre-build.sh script as follows:
 
 <div class="shell"><pre>
 cd /usr/src/swig

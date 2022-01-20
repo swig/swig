@@ -1493,7 +1493,7 @@ String *Swig_pcre_version(void) {
   char *buf = malloc(len);
   String *result;
   pcre2_config(PCRE2_CONFIG_VERSION, buf);
-  result = NewStringf("PCRE Version: %s", buf);
+  result = NewStringf("PCRE2 Version: %s", buf);
   free(buf);
   return result;
 }
