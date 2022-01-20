@@ -96,7 +96,7 @@ static int default_error_code = E_ERROR;
 static zend_class_entry SWIG_Php_swig_wrapped_interface_ce;
 
 #if PHP_MAJOR_VERSION == 7
-/* The sense of parameter 3 of instanceof_function_ex() changed in PHP 7.4!
+/* The sense of parameter 3 of instanceof_function_ex() changed in PHP 7.4! */
 # if PHP_MINOR <= 3
 #  define zend_class_implements_interface(C, I) instanceof_function_ex(C, I, 0)
 # else
