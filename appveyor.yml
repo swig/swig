@@ -160,6 +160,7 @@ build_script:
 test_script:
 - set CCCL_OPTIONS=--cccl-muffle /W3 /EHsc
 - .\swig.exe -version
+- .\swig.exe -pcreversion
 - if not "%OSVARIANT%"=="" CCache\ccache-swig -V
 - bash -c "file ./swig.exe"
 - bash -c "make check-%SWIGLANG%-version"
