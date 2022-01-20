@@ -246,6 +246,7 @@ public:
 	  Append(result, c);
 	} else {
 	  if (Len(classtypes) > 0) Append(classtypes, "|");
+	  Append(classtypes, prefix);
 	  Append(classtypes, i.item);
 	}
 	prev = i.item;
