@@ -96,12 +96,24 @@ static int default_error_code = E_ERROR;
 static zend_class_entry SWIG_Php_swig_wrapped_interface_ce;
 
 #if PHP_MAJOR_VERSION == 7
-/* The sense of parameter 3 of instanceof_function_ex() changed in PHP 7.4! */
-# if PHP_MINOR_VERSION <= 3
-#  define zend_class_implements_interface(C, I) instanceof_function_ex(C, I, 0)
-# else
-#  define zend_class_implements_interface(C, I) instanceof_function_ex(C, I, 1)
-# endif
+/* zend_class_implements_interface() was new in PHP 8.0.
+ *
+ * We could use instanceof_function_ex(C, I, 1) here for 7.4, but for 7.3
+ * and earlier that doesn't work, so instead we just provide a compatibility
+ * implementation which does what zend_class_implements_interface() does in 8.x
+ * and use that for all 7.x so there are fewer variants to worry about testing.
+ */
+static int zend_class_implements_interface(const zend_class_entry *class_ce, const zend_class_entry *interface_ce) {
+  uint32_t i;
+  if (class_ce->num_interfaces) {
+    for (i = 0; i < class_ce->num_interfaces; i++) {
+      if (class_ce->interfaces[i] == interface_ce) {
+	return 1;
+      }
+    }
+  }
+  return 0;
+}
 #endif
 
 /* used to wrap returned objects in so we know whether they are newobject
