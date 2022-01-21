@@ -747,6 +747,10 @@ public:
       Printf(arginfo_code, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_###, 0, 0, %d)\n", num_required);
     }
 
+    if (Getattr(n, "defaultargs")) {
+      // Include parameters with default values in the arginfo.
+      l = Getattr(Getattr(n, "defaultargs"), "parms");
+    }
     int param_count = 0;
     for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
       String *tmap_in_numinputs = Getattr(p, "tmap:in:numinputs");
