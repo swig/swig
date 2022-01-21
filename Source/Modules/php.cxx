@@ -761,7 +761,7 @@ public:
       String *phpclasses = NewStringEmpty();
       String *phptype = NULL;
       if (GetFlag(n, "feature:php:type")) {
-	phptypes.get_phptype(param_count, phpclasses);
+	phptype = phptypes.get_phptype(param_count, phpclasses);
       }
 
       int byref;
