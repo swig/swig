@@ -7,6 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-01-21: wsfulton
+            #2120 #2138 Replace legacy PCRE dependency with PCRE2.
+            This requires changes for building SWIG from source. See updated
+            html documentation in Preface.html and Windows.html. Updated
+            instructions are also shown when running ./configure if PCRE2 is not
+            found. Note that debian based systems can install PCRE2 using:
+
+              apt install libpcre2-dev
+
+            Note that https://github.com/swig/swig/wiki/Getting-Started also has
+            updated information for building from source.
+
 2022-01-19: olly
 	    [PHP] #2027 Automatically generate PHP type declarations for PHP 8.
 	    The generate code still compiles for PHP 7.x, but without type
