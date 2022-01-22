@@ -676,7 +676,7 @@ public:
     // This is for the single main zend_function_entry record
     ParmList *l = Getattr(n, "parms");
     if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
-      Printf(f_h, "PHP_METHOD(%s%s,%s);\n", prefix, cname, fname);
+      Printf(f_h, "static PHP_METHOD(%s%s,%s);\n", prefix, cname, fname);
       if (wrapperType != staticmemberfn &&
 	  wrapperType != staticmembervar &&
 	  !Equal(fname, "__construct")) {
@@ -686,9 +686,9 @@ public:
       }
     } else {
       if (dispatch) {
-	Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", fname);
+	Printf(f_h, "static ZEND_NAMED_FUNCTION(%s);\n", fname);
       } else {
-	Printf(f_h, "PHP_FUNCTION(%s);\n", fname);
+	Printf(f_h, "static PHP_FUNCTION(%s);\n", fname);
       }
     }
 
@@ -883,9 +883,9 @@ public:
     create_command(class_name, wname, n, true, modes);
 
     if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
-      Printv(f->def, "PHP_METHOD(", prefix, class_name, ",", wname, ") {\n", NIL);
+      Printv(f->def, "static PHP_METHOD(", prefix, class_name, ",", wname, ") {\n", NIL);
     } else {
-      Printv(f->def, "ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
+      Printv(f->def, "static ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
     }
 
     Wrapper_add_local(f, "argc", "int argc");
@@ -1209,21 +1209,21 @@ public:
     if (!overloaded) {
       if (!static_getter) {
 	if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
-	  Printv(f->def, "PHP_METHOD(", prefix, class_name, ",", wname, ") {\n", NIL);
+	  Printv(f->def, "static PHP_METHOD(", prefix, class_name, ",", wname, ") {\n", NIL);
 	} else {
 	  if (wrap_nonclass_global) {
-	    Printv(f->def, "PHP_METHOD(", fake_class_name(), ",", wname, ") {\n",
+	    Printv(f->def, "static PHP_METHOD(", fake_class_name(), ",", wname, ") {\n",
 			   "  PHP_FN(", wname, ")(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n",
 			   "}\n\n", NIL);
 	  }
 
 	  if (wrap_nonclass_fake_class) {
-	    Printv(f->def, "PHP_FUNCTION(", wname, ") {\n", NIL);
+	    Printv(f->def, "static PHP_FUNCTION(", wname, ") {\n", NIL);
 	  }
 	}
       }
     } else {
-      Printv(f->def, "ZEND_NAMED_FUNCTION(", overloadwname, ") {\n", NIL);
+      Printv(f->def, "static ZEND_NAMED_FUNCTION(", overloadwname, ") {\n", NIL);
     }
 
     emit_parameter_variables(l, f);
