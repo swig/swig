@@ -1336,9 +1336,10 @@ public:
     }
 
     if (is_member_director(n)) {
+      Wrapper_add_local(f, "director", "Swig::Director *director = 0");
+      Append(f->code, "director = SWIG_DIRECTOR_CAST(arg1);\n");
       Wrapper_add_local(f, "upcall", "bool upcall = false");
-      Printf(f->code, "upcall = !Swig::Director::swig_is_overridden_method(\"%s%s\", ZEND_THIS);\n",
-	  prefix, Swig_class_name(Swig_methodclass(n)));
+      Printf(f->code, "upcall = (director && (director->swig_get_self()==Z_OBJ_P(ZEND_THIS)));\n");
     }
 
     Swig_director_emit_dynamic_cast(n, f);
@@ -1904,8 +1905,8 @@ public:
       Delete(director_ctor_code);
       director_ctor_code = NewStringEmpty();
       director_prot_ctor_code = NewStringEmpty();
-      Printf(director_ctor_code, "if (Swig::Director::swig_is_overridden_method(\"%s\", arg0)) { /* not subclassed */\n", class_name);
-      Printf(director_prot_ctor_code, "if (Swig::Director::swig_is_overridden_method(\"%s\", arg0)) { /* not subclassed */\n", class_name);
+      Printf(director_ctor_code, "if (Z_OBJCE_P(arg0) == SWIG_Php_ce_%s) { /* not subclassed */\n", class_name);
+      Printf(director_prot_ctor_code, "if (Z_OBJCE_P(arg0) == SWIG_Php_ce_%s) { /* not subclassed */\n", class_name);
       Printf(director_ctor_code, "  %s = new %s(%s);\n", Swig_cresult_name(), ctype, args);
       Printf(director_prot_ctor_code,
 	     "  zend_throw_exception(zend_ce_type_error, \"accessing abstract class or protected constructor\", 0);\n"
