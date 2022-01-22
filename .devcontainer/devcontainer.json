@@ -1,0 +1,15 @@
+{
+    # Instructions for building the Docker image
+    "build" : {
+        "dockerfile": "dockerfile",
+        "context": ".."
+    },
+    # VS Code extensions to install
+    "extensions": [
+        # Linter for lex/yacc and flex/bison
+        "daohong-emilio.yash",
+        # Git tools
+        "mhutchie.git-graph",
+        "eamodio.gitlens"
+    ]
+}

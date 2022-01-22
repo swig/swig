@@ -1,0 +1,6 @@
+FROM debian:latest
+
+COPY requirements requirements
+
+RUN    apt update \
+    && apt --yes install $(grep -vE "^\s*#" requirements/requirements_system.dev.txt  | tr "\n" " ")

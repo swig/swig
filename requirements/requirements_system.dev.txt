@@ -1,0 +1,18 @@
+# For building SWIG from source
+build-essential
+libpcre2-dev
+libpcre3-dev
+autoconf
+automake
+libtool
+bison
+git
+
+# Required to build Python 2 SWIG test suite
+python-dev
+
+# Required to build Python 3 SWIG test suite
+python3-dev
+
+# For the test suite
+libboost-dev
