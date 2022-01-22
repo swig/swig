@@ -1,4 +1,7 @@
+[![CI](https://github.com/swig/swig/actions/workflows/ci.yml/badge.svg)](https://github.com/swig/swig/actions/workflows/ci.yml)
+
 SWIG (Simplified Wrapper and Interface Generator)
+=================================================
 
 Version: 4.1.0 (in progress)
 
@@ -21,7 +24,8 @@ A SWIG FAQ and other hints can be found on the SWIG Wiki:
         https://github.com/swig/swig/wiki
 
 License
-=======
+-------
+
 Please see the LICENSE file for details of the SWIG license. For
 further insight into the license including the license of SWIG's
 output code, please visit
@@ -29,14 +33,16 @@ output code, please visit
         http://www.swig.org/legal.html
 
 Release Notes
-=============
-Please see the CHANGES.current file for a detailed list of bug fixes and
+-------------
+
+Please see the [CHANGES.current](CHANGES.current) file for a detailed list of bug fixes and
 new features for the current release. The CHANGES file contains bug fixes
 and new features for older versions. A summary of changes in each release
 can be found in the RELEASENOTES file.
 
 Documentation
-=============
+-------------
+
 The Doc/Manual directory contains the most recent set of updated
 documentation for this release. The documentation is available in
 three different formats, each of which contains identical content.
@@ -52,7 +58,8 @@ has some information on SWIG internals.
 Documentation is also online at http://www.swig.org/doc.html.
 
 Backwards Compatibility
-=======================
+-----------------------
+
 The developers strive their best to preserve backwards compatibility
 between releases, but this is not always possible as the overriding
 aim is to provide the best wrapping experience. Where backwards
@@ -64,7 +71,8 @@ symbol if you have backward compatibility issues and need to use more
 than one version of SWIG.
 
 Installation
-============
+------------
+
 Please read the Doc/Manual/Preface.html#Preface_installation for
 full installation instructions for Windows, Unix and Mac OS X
 using the release tarball/zip file. The INSTALL file has generic
@@ -75,27 +83,31 @@ instructions required for building code obtained from Github - extra
 steps are required compared to building from the release tarball.
 
 Testing
-=======
-The typical 'make -k check' can be performed on Unix operating systems.
+-------
+
+The typical `make -k check` can be performed on Unix operating systems.
 Please read Doc/Manual/Preface.html#Preface_testing for details.
 
 Examples
-========
+--------
+
 The Examples directory contains a variety of examples of using SWIG
 and it has some browsable documentation.  Simply point your browser to
-the file "Example/index.html".
+the file [Examples/index.html](Examples/index.html).
 
 The Examples directory also includes Visual C++ project 6 (.dsp) files for
 building some of the examples on Windows. Later versions of Visual Studio
 will convert these old style project files into a current solution file.
 
 Known Issues
-============
+------------
+
 There are minor known bugs, details of which are in the bug tracker, see
 http://www.swig.org/bugs.html.
 
 Troubleshooting
-===============
+---------------
+
 In order to operate correctly, SWIG relies upon a set of library
 files.  If after building SWIG, you get error messages like this,
 
@@ -127,7 +139,8 @@ If you are having other troubles, you might look at the SWIG Wiki at
 https://github.com/swig/swig/wiki.
 
 Participate!
-============
+------------
+
 Please report any errors and submit patches (if possible)!  We only
 have access to a limited variety of hardware (Linux, Solaris, OS-X,
 and Windows). All contributions help.
