@@ -16,7 +16,7 @@
           char * endptr;
           errno = 0;
           lvar = (t) strtoll(Z_STRVAL(invar), &endptr, 10);
-          if (*endptr && !errno) break;
+          if (*endptr == '\0' && !errno) break;
       }
       /* FALL THRU */
       default:
@@ -33,7 +33,7 @@
           char * endptr;
           errno = 0;
           lvar = (t) strtoull(Z_STRVAL(invar), &endptr, 10);
-          if (*endptr && !errno) break;
+          if (*endptr == '\0' && !errno) break;
       }
       /* FALL THRU */
       default:

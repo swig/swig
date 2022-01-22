@@ -21,7 +21,11 @@ function check_ull($ull) {
 
 check_ll("0");
 check_ll(0);
-check_ll(0x7FFFFFFFFFFFFFFF);
+check_ll("9223372036854775807"); // 0x7FFFFFFFFFFFFFFF
+if ((int)0x100000000 !== 0) {
+  // This check doesn't work if PHP int is 32 bits.
+  check_ll(0x7FFFFFFFFFFFFFFF);
+}
 check_ll(-10);
 
 $testNumber = 0;
