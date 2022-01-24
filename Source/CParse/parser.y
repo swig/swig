@@ -4361,12 +4361,23 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
                   $$ = 0; 
 		}
 
-		/* Explicit template instantiation without the translation unit */
+		/* Explicit function template instantiation */
+		| TEMPLATE cpp_alternate_rettype idcolon LPAREN parms RPAREN {
+			Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit function template instantiation ignored.\n");
+                  $$ = 0; 
+				}
+
+		/* Explicit class template instantiation without the translation unit */
 		| EXTERN TEMPLATE cpptype idcolon {
-		  Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
+		  Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit (extern) class template instantiation ignored.\n");
                   $$ = 0; 
                 }
-                ;
+		/* Explicit function template instantiation without the translation unit */
+		| EXTERN TEMPLATE cpp_alternate_rettype idcolon LPAREN parms RPAREN {
+			Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit (extern) function template instantiation ignored.\n");
+                  $$ = 0; 
+				}
+				;
 
 cpp_template_possible:  c_decl {
 		  $$ = $1;
