@@ -419,6 +419,7 @@
                      SWIGTYPE &,
                      SWIGTYPE &&
 %{
+  ZVAL_UNDEF($input);
   SWIG_SetPointerZval($input, (void *)&$1, $1_descriptor, $owner);
 %}
 
@@ -460,6 +461,7 @@
 
 %typemap(directorin) SWIGTYPE
 %{
+  ZVAL_UNDEF($input);
   SWIG_SetPointerZval($input, SWIG_as_voidptr(new $1_ltype((const $1_ltype &)$1)), $&1_descriptor, 1);
 %}
 
