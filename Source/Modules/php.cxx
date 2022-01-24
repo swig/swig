@@ -75,7 +75,7 @@ static String *fake_class_name() {
   if (!result) {
     result = Len(prefix) ? prefix : module;
     if (!fake_cs_entry) {
-      fake_cs_entry = NewStringf("static zend_function_entry class_%s_functions[] = {\n", result);
+      fake_cs_entry = NewStringf("static const zend_function_entry class_%s_functions[] = {\n", result);
     }
 
     Printf(s_creation, "static zend_class_entry *SWIG_Php_ce_%s;\n\n",result);
@@ -467,7 +467,7 @@ public:
     fake_cs_entry = NULL;
 
     Printf(s_entry, "/* Every non-class user visible function must have an entry here */\n");
-    Printf(s_entry, "static zend_function_entry module_%s_functions[] = {\n", module);
+    Printf(s_entry, "static const zend_function_entry module_%s_functions[] = {\n", module);
 
     /* Emit all of the code */
     Language::top(n);
@@ -1591,7 +1591,7 @@ public:
     class_name = symname;
     destructor_action = NULL;
 
-    Printf(all_cs_entry, "static zend_function_entry class_%s_functions[] = {\n", class_name);
+    Printf(all_cs_entry, "static const zend_function_entry class_%s_functions[] = {\n", class_name);
 
     // namespace code to introduce namespaces into wrapper classes.
     //if (nameSpace != NULL)
