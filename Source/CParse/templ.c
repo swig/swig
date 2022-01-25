@@ -50,6 +50,7 @@ void Swig_cparse_debug_templates(int x) {
  * patching typenames and other aspects of the node according to a list of
  * template parameters
  * ----------------------------------------------------------------------------- */
+
 static void cparse_template_expand(Node *templnode, Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist, List *cpatchlist) {
   static int expanded = 0;
   String *nodeType;
