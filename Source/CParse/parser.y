@@ -6554,6 +6554,25 @@ exprsimple     : exprnum {
 		  $$.val = NewStringf("sizeof...(%s)",SwigType_str($6,0));
 		  $$.type = T_ULONG;
                }
+	       /* We don't support all valid expressions here currently - e.g.
+		* sizeof(<unaryop> x) doesn't work - but those are unlikely to
+		* be seen in real code.
+		*
+		* Note: sizeof(x) is not handled here, but instead by the rule
+		* for sizeof(<type>) because it matches that syntactically.
+		*/
+	       | SIZEOF LPAREN exprsimple RPAREN {
+		  $$.val = NewStringf("sizeof(%s)", $3.val);
+		 $$.type = T_ULONG;
+	       }
+	       /* `sizeof expr` without parentheses is valid for an expression,
+		* but not for a type.  This doesn't support `sizeof x` in
+		* addition to the case not supported above.
+		*/
+	       | SIZEOF exprsimple {
+		  $$.val = NewStringf("sizeof(%s)", $2.val);
+		  $$.type = T_ULONG;
+	       }
 	       | wstring {
 		    $$.val = $1;
 		    $$.rawval = NewStringf("L\"%s\"", $$.val);

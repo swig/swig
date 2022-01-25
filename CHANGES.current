@@ -8,6 +8,12 @@ Version 4.1.0 (in progress)
 ===========================
 
 2022-01-25: olly
+	    #2091 Support most cases of `sizeof` applied to an expression
+	    in constant expressions.  Previously there was only support for
+	    `sizeof(<type>)` and expressions which syntactically look like a
+	    type (such as `sizeof(foo)`).
+
+2022-01-25: olly
 	    #80 #635 https://sourceforge.net/p/swig/bugs/1139/
 	    Add support for parsing common cases of `<` and `>` comparisons
 	    in constant expressions.  Adding full support for these seems hard
