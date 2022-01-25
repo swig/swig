@@ -4,8 +4,9 @@
 */
 %module cpp11_template_explicit
 
-/* Explicitely silence SWIG warning related to explicit templates */
+/* Suppress SWIG warnings related to explicit template instantiation and extern templates */
 #pragma SWIG nowarn=SWIGWARN_PARSE_EXPLICIT_TEMPLATE
+#pragma SWIG nowarn=SWIGWARN_PARSE_EXTERN_TEMPLATE
 
 %inline %{
 

@@ -4355,29 +4355,30 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			parsing_template_declaration = 0;
                 }
 
-		/* Explicit template instantiation */
+		/* Class template explicit instantiation definition */
                 | TEMPLATE cpptype idcolon {
 		  Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
                   $$ = 0; 
 		}
 
-		/* Explicit function template instantiation */
+		/* Function template explicit instantiation definition */
 		| TEMPLATE cpp_alternate_rettype idcolon LPAREN parms RPAREN {
-			Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit function template instantiation ignored.\n");
+			Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
                   $$ = 0; 
-				}
+		}
 
-		/* Explicit class template instantiation without the translation unit */
+		/* Class template explicit instantiation declaration (extern template) */
 		| EXTERN TEMPLATE cpptype idcolon {
-		  Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit (extern) class template instantiation ignored.\n");
+		  Swig_warning(WARN_PARSE_EXTERN_TEMPLATE, cparse_file, cparse_line, "Extern template ignored.\n");
                   $$ = 0; 
                 }
-		/* Explicit function template instantiation without the translation unit */
+
+		/* Function template explicit instantiation declaration (extern template) */
 		| EXTERN TEMPLATE cpp_alternate_rettype idcolon LPAREN parms RPAREN {
-			Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit (extern) function template instantiation ignored.\n");
+			Swig_warning(WARN_PARSE_EXTERN_TEMPLATE, cparse_file, cparse_line, "Extern template ignored.\n");
                   $$ = 0; 
-				}
-				;
+		}
+		;
 
 cpp_template_possible:  c_decl {
 		  $$ = $1;

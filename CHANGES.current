@@ -7,6 +7,22 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-01-25: wsfulton
+            New warning 327 for extern templates, eg:
+
+              extern template class std::vector<int>;
+              extern template void Func<int>();
+
+            results in warning
+
+              example.i:3: Warning 327: Extern template ignored.
+              example.i:4: Warning 327: Extern template ignored.
+
+            Extern template classes previously resulted in warning 320.
+
+2022-01-24: romintomasetti
+            #2131 #2157 C++11 extern function template parsing error fix.
+
 2022-01-21: wsfulton
             #2120 #2138 Replace legacy PCRE dependency with PCRE2.
             This requires changes for building SWIG from source. See updated
