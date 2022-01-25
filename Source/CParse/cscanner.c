@@ -351,6 +351,9 @@ static int yylook(void) {
       }
       break;
       
+    case SWIG_TOKEN_ELLIPSIS:
+      return ELLIPSIS;
+
       /* Look for multi-character sequences */
       
     case SWIG_TOKEN_RSTRING:
