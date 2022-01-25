@@ -6521,12 +6521,10 @@ exprmem        : ID ARROW ID {
 		 $$ = $1;
 		 Printf($$.val, "->%s", $3);
 	       }
-/* This generates a shift-reduce
 	       | ID PERIOD ID {
 		 $$.val = NewStringf("%s.%s", $1, $3);
 		 $$.type = 0;
 	       }
-*/
 	       | exprmem PERIOD ID {
 		 $$ = $1;
 		 Printf($$.val, ".%s", $3);

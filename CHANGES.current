@@ -8,6 +8,10 @@ Version 4.1.0 (in progress)
 ===========================
 
 2022-01-25: olly
+	    Constant expressions now support member access with `.` such as
+	    `foo.bar`.  Previous this only worked in a case like `x->foo.bar`.
+
+2022-01-25: olly
 	    #2091 Support most cases of `sizeof` applied to an expression
 	    in constant expressions.  Previously there was only support for
 	    `sizeof(<type>)` and expressions which syntactically look like a
