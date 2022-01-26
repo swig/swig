@@ -1092,6 +1092,7 @@ static DOH *get_lattr(Node *n, List *lattr) {
 }
 
 #ifdef HAVE_PCRE
+#define PCRE2_STATIC
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
 

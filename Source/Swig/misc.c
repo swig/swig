@@ -1312,6 +1312,7 @@ void Swig_offset_string(String *s, int number) {
 
 
 #ifdef HAVE_PCRE
+#define PCRE2_STATIC
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
 
