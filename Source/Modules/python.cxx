@@ -447,6 +447,11 @@ public:
       }
     }
 
+    if (builtin && !shadow) {
+      Printf(stderr, "Incompatible options -builtin and -noproxy specified.\n");
+      SWIG_exit(EXIT_FAILURE);
+    }
+
     if (doxygen)
       doxygenTranslator = new PyDocConverter(doxygen_translator_flags);
 
