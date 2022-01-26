@@ -144,7 +144,7 @@ AC_MSG_CHECKING(LDSHARED)
 if test -z "$LDSHARED"
 then
 	case $host in
-	*-*-aix*) LDSHARED="\$(srcdir)/ld_so_aix \$(CC)";;
+	*-*-aix*) LDSHARED="$CC -shared";;
 	*-*-cygwin* | *-*-mingw*)
             if test "$GCC" = yes; then
                 LDSHARED="\$(CC) -shared"
