@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-01-26: trex58
+	    #1919 #1921 #1923 Various fixes for AIX portability.
+
 2022-01-26: olly
 	    #1935 Don't crash on an unclosed HTML tag in a doxygen comment
 	    when -doxygen is specified.
