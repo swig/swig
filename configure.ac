@@ -289,6 +289,7 @@ case $host in
     else PLATCFLAGS=
       #    else PLATCFLAGS="-errtags=yes" # Need more work as C examples use ld for linking
     fi;;
+  *-*-aix*) PLATCFLAGS="$CFLAGS";;
   *) PLATCFLAGS=
 esac
 AC_MSG_RESULT($PLATCFLAGS)
