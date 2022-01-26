@@ -277,7 +277,7 @@ For fully working build steps always check the Continuous Integration (CI) setup
     SET PCRE_ROOT=C:/Tools/pcre2
     SET PCRE_PLATFORM=x64
     cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_INSTALL_PREFIX="%CD:\=/%/install2" -DCMAKE_C_FLAGS="/DPCRE2_STATIC" ^
-    -DPCRE2_INCLUDE_DIR=%PCRE_ROOT%/include -DPCRE2_LIBRARY=%PCRE_ROOT%/lib/pcre2-8-static.lib -S . -B build
+    -DCMAKE_CXX_FLAGS="/DPCRE2_STATIC" -DPCRE2_INCLUDE_DIR=%PCRE_ROOT%/include -DPCRE2_LIBRARY=%PCRE_ROOT%/lib/pcre2-8-static.lib -S . -B build
     cmake --build build --config Release --target install
     
     REM to test the exe
