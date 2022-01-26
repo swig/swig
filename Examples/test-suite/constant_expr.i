@@ -14,11 +14,4 @@ isPointer = false
 };
 };
 
-// Test handling of ID PERIOD ID in constant expressions (supported since 4.1.0).
-struct A {
-    int i;
-};
-constexpr A a{42};
-const int N = a.i;
-
 %}
