@@ -47,6 +47,7 @@
 <li><a href="#SWIG_rename_ignore">Renaming and ignoring declarations</a>
 <ul>
 <li><a href="#SWIG_nn29">Simple renaming of specific identifiers</a>
+<li><a href="#SWIG_renaming_replacing">Replacing methods with <tt>%rename</tt></a>
 <li><a href="#SWIG_advanced_renaming">Advanced renaming support</a>
 <li><a href="#SWIG_limiting_renaming">Limiting global renaming rules</a>
 <li><a href="#SWIG_chosen_unignore">Ignoring everything then wrapping a few selected symbols</a>
@@ -1842,6 +1843,24 @@ all to `output' by specifying :</p>
 </pre></div>
 
 <p>
+A new <tt>%rename</tt> for the same name will override the current
+name for all uses after it in the file, and setting the new name to
+"" will remove the rename.  So, for instance, if you wanted to rename
+some things in one file and not in another, you could do:
+</p>
+
+<div class="code">
+<pre>
+  %rename(print1) print
+  %include "header1.h" //Anything "print" in here will become "print1"
+  %rename(print2) print
+  %include "header2.h" //Anything "print" in here will become "print2"
+  %rename("") print
+  %include "header3.h" //Anything "print" in here will remain "print"
+</pre>
+</div>
+
+<p>
 SWIG does not normally perform any checks to see if the functions it wraps are
 already defined in the target scripting language. However, if you are
 careful about namespaces and your use of modules, you can usually
@@ -1896,7 +1915,58 @@ This directive is still supported, but it is deprecated and should probably be a
 directive is more powerful and better supports wrapping of raw header file information.
 </p>
 
-<H4><a name="SWIG_advanced_renaming">5.4.7.2 Advanced renaming support</a></H4>
+<H4><a name="SWIG_renaming_replacing">5.4.7.2 Replacing methods with <tt>%rename</tt></a></H4>
+
+
+<p>
+Suppose there is a method in a class that you need to replace.  You
+can do the following to replace the <tt>myfunc()</tt> method:
+
+<div class="code">
+<pre>
+%extend MyClass {
+    void myfunc() {
+        std::cout << "swig myfunc" << std::endl;
+    }
+}
+
+%ignore MyClass::myfunc;
+
+%inline %{
+class MyClass {
+public:
+    void myfunc() {
+        std::cout << "class myfunc" << std::endl;
+    }
+};
+%}
+</pre>
+</div>
+
+<p>
+Or if your code organization makes more sense to put
+the <tt>%extend</tt> after the class definition, you would need to following:
+</p>
+
+<div class="code">
+<pre>
+%rename("") MyClass::myfunc;
+</pre>
+</div>
+
+<p>
+before the <tt>%extend</tt> or SWIG will continue to ignore
+the <tt>myfunc()</tt> method, even in an <tt>%extend</tt>.
+</p>
+
+<p>
+Note that you can call the class method from the method
+in <tt>%extend</tt>, just use <tt>self->myfunc()</tt> and it will call
+the class method, not the one in <tt>%extend</tt>.
+</p>
+
+
+<H4><a name="SWIG_advanced_renaming">5.4.7.3 Advanced renaming support</a></H4>
 
 
 <p>
@@ -2105,7 +2175,7 @@ are exactly equivalent and <tt>%rename</tt> can be used to selectively ignore
 multiple declarations using the previously described matching possibilities.
 </p>
 
-<H4><a name="SWIG_limiting_renaming">5.4.7.3 Limiting global renaming rules</a></H4>
+<H4><a name="SWIG_limiting_renaming">5.4.7.4 Limiting global renaming rules</a></H4>
 
 
 <p>
@@ -2203,7 +2273,7 @@ wrap C++ overloaded functions and methods or C++ methods which use default argum
 </p>
 
 
-<H4><a name="SWIG_chosen_unignore">5.4.7.4 Ignoring everything then wrapping a few selected symbols</a></H4>
+<H4><a name="SWIG_chosen_unignore">5.4.7.5 Ignoring everything then wrapping a few selected symbols</a></H4>
 
 
 <p>
