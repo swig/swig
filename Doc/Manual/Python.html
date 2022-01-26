@@ -4954,7 +4954,6 @@ object to be used as a <tt>char **</tt> object.
       if (PyString_Check(o)) {
         $1[i] = PyString_AsString(PyList_GetItem($input, i));
       } else {
-        free($1);
         PyErr_SetString(PyExc_TypeError, "list must contain strings");
         SWIG_fail;
       }
@@ -5053,7 +5052,6 @@ previous example:
       if (PyString_Check(o)) {
         $2[i] = PyString_AsString(PyList_GetItem($input, i));
       } else {
-        free($2);
         PyErr_SetString(PyExc_TypeError, "list must contain strings");
         SWIG_fail;
       }
