@@ -2810,7 +2810,7 @@ public:
 
     /* Generate code for argument marshalling */
     if (funpack) {
-      if (num_arguments > 0 && !overname) {
+      if (num_arguments > (builtin_self && !constructor ? 1 : 0) && !overname) {
 	sprintf(source, "PyObject *swig_obj[%d]", num_arguments);
 	Wrapper_add_localv(f, "swig_obj", source, NIL);
       }
