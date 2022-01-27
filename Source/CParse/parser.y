@@ -1587,6 +1587,9 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
   Node         *node;
 };
 
+// Define special token END for end of input.
+%token END 0
+
 %token <id> ID
 %token <str> HBLOCK
 %token <id> POUND 
@@ -2010,7 +2013,7 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		 Swig_warning(WARN_PARSE_BAD_VALUE,cparse_file,cparse_line,"Bad constant value (ignored).\n");
 		 $$ = 0;
 	       }
-	       | CONSTANT error YYEOF {
+	       | CONSTANT error END {
 		 Swig_error(cparse_file,cparse_line,"Missing ';' after %%constant.\n");
 		 SWIG_exit(EXIT_FAILURE);
 	       }
