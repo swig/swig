@@ -47,7 +47,7 @@
 <li><a href="#SWIG_rename_ignore">Renaming and ignoring declarations</a>
 <ul>
 <li><a href="#SWIG_nn29">Simple renaming of specific identifiers</a>
-<li><a href="#SWIG_renaming_replacing">Replacing methods with <tt>%rename</tt></a>
+<li><a href="#SWIG_ignore">Ignoring identifiers</a>
 <li><a href="#SWIG_advanced_renaming">Advanced renaming support</a>
 <li><a href="#SWIG_limiting_renaming">Limiting global renaming rules</a>
 <li><a href="#SWIG_chosen_unignore">Ignoring everything then wrapping a few selected symbols</a>
@@ -1876,6 +1876,9 @@ If you are using the <tt>%rename</tt> directive and C++, make sure you read the
 for method overloading and default arguments.
 </p>
 
+<H4><a name="SWIG_ignore">5.4.7.2 Ignoring identifiers</a></H4>
+
+
 <p>
 Closely related to <tt>%rename</tt> is the <tt>%ignore</tt> directive.  <tt>%ignore</tt> instructs SWIG
 to ignore declarations that match a given identifier.  For example:
@@ -1914,57 +1917,6 @@ For example:
 This directive is still supported, but it is deprecated and should probably be avoided.  The <tt>%rename</tt>
 directive is more powerful and better supports wrapping of raw header file information.
 </p>
-
-<H4><a name="SWIG_renaming_replacing">5.4.7.2 Replacing methods with <tt>%rename</tt></a></H4>
-
-
-<p>
-Suppose there is a method in a class that you need to replace.  You
-can do the following to replace the <tt>myfunc()</tt> method:
-
-<div class="code">
-<pre>
-%extend MyClass {
-    void myfunc() {
-        std::cout << "swig myfunc" << std::endl;
-    }
-}
-
-%ignore MyClass::myfunc;
-
-%inline %{
-class MyClass {
-public:
-    void myfunc() {
-        std::cout << "class myfunc" << std::endl;
-    }
-};
-%}
-</pre>
-</div>
-
-<p>
-Or if your code organization makes more sense to put
-the <tt>%extend</tt> after the class definition, you would need to following:
-</p>
-
-<div class="code">
-<pre>
-%rename("") MyClass::myfunc;
-</pre>
-</div>
-
-<p>
-before the <tt>%extend</tt> or SWIG will continue to ignore
-the <tt>myfunc()</tt> method, even in an <tt>%extend</tt>.
-</p>
-
-<p>
-Note that you can call the class method from the method
-in <tt>%extend</tt>, just use <tt>self->myfunc()</tt> and it will call
-the class method, not the one in <tt>%extend</tt>.
-</p>
-
 
 <H4><a name="SWIG_advanced_renaming">5.4.7.3 Advanced renaming support</a></H4>
 
