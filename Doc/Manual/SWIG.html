@@ -47,7 +47,7 @@
 <li><a href="#SWIG_rename_ignore">Renaming and ignoring declarations</a>
 <ul>
 <li><a href="#SWIG_nn29">Simple renaming of specific identifiers</a>
-<li><a href="#SWIG_renaming_overriding">Overriding methods with <tt>%rename</tt></a>
+<li><a href="#SWIG_renaming_replacing">Replacing methods with <tt>%rename</tt></a>
 <li><a href="#SWIG_advanced_renaming">Advanced renaming support</a>
 <li><a href="#SWIG_limiting_renaming">Limiting global renaming rules</a>
 <li><a href="#SWIG_chosen_unignore">Ignoring everything then wrapping a few selected symbols</a>
@@ -1915,11 +1915,11 @@ This directive is still supported, but it is deprecated and should probably be a
 directive is more powerful and better supports wrapping of raw header file information.
 </p>
 
-<H4><a name="SWIG_renaming_overriding">5.4.7.2 Overriding methods with <tt>%rename</tt></a></H4>
+<H4><a name="SWIG_renaming_replacing">5.4.7.2 Replacing methods with <tt>%rename</tt></a></H4>
 
 
 <p>
-Say there is a method in a class that you want to override, like a
+Say there is a method in a class that you want to replace, like a
 destructor.  For instance, in the following, you cannot directly call
 the destructor, you must call <tt>free()</tt> to delete the object.  You
 can do the following:
@@ -1927,32 +1927,54 @@ can do the following:
 
 <div class="code">
 <pre>
-%ignore Myclass::~Myclass;
-%ignore Myclass::free;
-class MyClass {
-  public:
-    void free();
-  protected:
-    ~MyClass();
-};
-%rename("") Myclass::~Myclass;
-%extend Myclass {
-  ~Myclass() {
-    self->free()
-  }
+%extend MyClass {
+    ~MyClass() {
+        std::cout << "swig destructor" << std::endl;
+        self->free();
+    }
 }
+
+%ignore MyClass::~MyClass;
+%ignore MyClass::free;
+
+%inline %{
+class MyClass {
+public:
+    void free() {
+        delete this;
+    }
+protected:
+    ~MyClass() {
+        std::cout << "class destructor" << std::endl;
+    }
+};
+%}
 </pre>
 </div>
 
 <p>
-You must do the later <tt>%rename</tt> or SWIG will continue to ignore
-the <tt>~Myclass</tt> destructor, even in a <tt>%extend</tt>.  You
-obviously do not want target language code calling <tt>free()</tt>
+Or if your code organization makes more sense to put
+the <tt>%extend</tt> after the class definition, you would need to following:
+</p>
+
+<div class="code">
+<pre>
+%rename("") MyClass::~MyClass;
+</pre>
+</div>
+
+<p>
+before the <tt>%extend</tt> or SWIG will continue to ignore
+the <tt>~MyClass</tt> destructor, even in a <tt>%extend</tt>.
+</p>
+
+<p>
+You obviously do not want target language code calling <tt>free()</tt>
 because SWIG would not know the object was free.  Though you could
 use
 <a href="Customization.html#Customization_ownership"><tt>%delobject</tt></a>
 to handle this particular case, and just have the target code directly
-call <tt>free()</tt>, that does not work as well because the default
+call <tt>free()</tt>, but that does not work as well because the default
 destructors in the target language will not work correctly.
 </p>
 
