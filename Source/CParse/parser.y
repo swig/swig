@@ -2010,6 +2010,10 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		 Swig_warning(WARN_PARSE_BAD_VALUE,cparse_file,cparse_line,"Bad constant value (ignored).\n");
 		 $$ = 0;
 	       }
+	       | CONSTANT error YYEOF {
+		 Swig_error(cparse_file,cparse_line,"Missing ';' after %%constant.\n");
+		 SWIG_exit(EXIT_FAILURE);
+	       }
                ;
 
 /* ------------------------------------------------------------
