@@ -1,6 +1,6 @@
 package main
 
-import "./struct_value"
+import "swigtests/struct_value"
 
 func main() {
 	b := struct_value.NewBar()

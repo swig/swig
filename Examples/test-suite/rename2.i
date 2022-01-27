@@ -43,7 +43,7 @@ namespace Space {
 
 
 %rename(methodABC) ABC::method(ABC a) const;
-%rename(opABC) ABC::operator ABC() const;
+%rename(opABC) ABC::operator ABC*() const;
 %rename(methodKlass) ABC::method(Klass k) const;
 %rename(opKlass) ABC::operator Klass() const;
 }

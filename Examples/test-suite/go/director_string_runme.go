@@ -1,6 +1,6 @@
 package main
 
-import . "./director_string"
+import . "swigtests/director_string"
 
 type B struct { // From A
 	abi  A

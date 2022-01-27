@@ -57,6 +57,8 @@ void function3(int a, int b)
  * \warning This may not work as expected
  * \code
  * int main() { while(true); }
+ *
+ * // Test blank line in code block
  * \endcode
  * \endif
  */
@@ -104,6 +106,23 @@ double Atan2(double y, double x)
 {
     return 0;
 }
+
+/* Regression test for crash with empty comment: */
+/**/ 
+
+/**
+ * @brief Test variadic function
+ * @param ... extra args
+ */
+void function8(...) {
+}
+
+/**
+ * @brief Test unnamed argument
+ * @param baz Description of baz
+ */
+void function9(int) {
+} 
 
 /**
  * Comment at the end of file should be ignored.

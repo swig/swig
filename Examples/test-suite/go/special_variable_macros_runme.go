@@ -1,6 +1,6 @@
 package main
 
-import "./special_variable_macros"
+import "swigtests/special_variable_macros"
 
 func main() {
 	name := special_variable_macros.NewName()

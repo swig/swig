@@ -21,6 +21,11 @@
 %include <std_wstring.i>
 #endif
 
+#if defined(SWIGLUA)
+// Lua uses a parameter called L in every wrapper function
+%ignore L;
+#endif
+
 %inline %{
 #include <iostream>
 #include <string>
@@ -47,6 +52,9 @@ wstring         aa =  L"Wide string";
 const char     *bb = u8"UTF-8 string";
 const char16_t *cc =  u"UTF-16 string";
 const char32_t *dd =  U"UTF-32 string";
+// New char literals
+char16_t char16_t_char = u'a';
+char32_t char32_t_char = U'b';
 %}
 
 /* Raw string literals */

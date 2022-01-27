@@ -1,6 +1,6 @@
 package main
 
-import "./cpp_enum"
+import "swigtests/cpp_enum"
 
 func main() {
 	f := cpp_enum.NewFoo()

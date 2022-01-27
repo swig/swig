@@ -595,6 +595,13 @@ static char *end_quote(char *s) {
   }
 }
 
+static char *end_comment(char *s) {
+  char *substring = strstr(s, "*/");
+  if (substring)
+    ++substring;
+  return substring;
+}
+
 static char *match_simple(char *base, char *s, char *token, int tokenlen) {
   (void) base;
   (void) tokenlen;
@@ -677,6 +684,7 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
   int ic;
   int rcount = 0;
   int noquote = 0;
+  int nocomment = 0;
   char *c, *s, *t, *first;
   char *q, *q2;
   char *base;
@@ -697,6 +705,11 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
 
   if (flags & DOH_REPLACE_NOQUOTE)
     noquote = 1;
+
+  if (flags & DOH_REPLACE_NOCOMMENT)
+    nocomment = 1;
+
+  assert(!(noquote && nocomment)); /* quote and comment combination not implemented */
 
   /* If we are not replacing inside quotes, we need to do a little extra work */
   if (noquote) {
@@ -719,6 +732,31 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
 	q = strpbrk(q2 + 1, "\"\'");
 	if (!q)
 	  noquote = 0;		/* No more quotes */
+      }
+    }
+  }
+
+  /* If we are not replacing inside comments, we need to do a little extra work */
+  if (nocomment) {
+    q = strstr(base, "/*");
+    if (!q) {
+      nocomment = 0;		/* Well, no comments to worry about. Oh well */
+    } else {
+      while (q && (q < s)) {
+	/* First match was found inside a comment.  Try to find another match */
+	q2 = end_comment(q);
+	if (!q2) {
+	  return 0;
+	}
+	if (q2 > s) {
+	  /* Find next match */
+	  s = (*match) (base, q2 + 1, token, tokenlen);
+	}
+	if (!s)
+	  return 0;		/* Oh well, no matches */
+	q = strstr(q2 + 1, "/*");
+	if (!q)
+	  nocomment = 0;		/* No more comments */
       }
     }
   }
@@ -768,6 +806,28 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
 	  }
 	}
       }
+      if (nocomment) {
+	q = strstr(s, "/*");
+	if (!q) {
+	  nocomment = 0;
+	} else {
+	  while (q && (q < c)) {
+	    /* First match was found inside a comment.  Try to find another match */
+	    q2 = end_comment(q);
+	    if (!q2) {
+	      c = 0;
+	      break;
+	    }
+	    if (q2 > c)
+	      c = (*match) (base, q2 + 1, token, tokenlen);
+	    if (!c)
+	      break;
+	    q = strstr(q2 + 1, "/*");
+	    if (!q)
+	      nocomment = 0;	/* No more comments */
+	  }
+	}
+      }
       if (delta) {
 	if (c) {
 	  memmove(t, s, c - s);
@@ -776,7 +836,9 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
 	  memmove(t, s, (str->str + str->len) - s + 1);
 	}
       } else {
-	t += (c - s);
+	if (c) {
+	  t += (c - s);
+	}
       }
       s = c;
       ic--;
@@ -820,6 +882,29 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
 	    q = strpbrk(q2 + 1, "\"\'");
 	    if (!q)
 	      noquote = 0;
+	  }
+	}
+      }
+      if (nocomment) {
+	q = strstr(s, "/*");
+	if (!q) {
+	  break;
+	} else {
+	  while (q && (q < c)) {
+	    /* First match was found inside a comment.  Try to find another match */
+	    q2 = end_comment(q);
+	    if (!q2) {
+	      c = 0;
+	      break;
+	    }
+	    if (q2 > c) {
+	      c = (*match) (base, q2 + 1, token, tokenlen);
+	      if (!c)
+		break;
+	    }
+	    q = strstr(q2 + 1, "/*");
+	    if (!q)
+	      nocomment = 0;
 	  }
 	}
       }
@@ -872,6 +957,29 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
 	    q = strpbrk(q2 + 1, "\"\'");
 	    if (!q)
 	      noquote = 0;	/* No more quotes */
+	  }
+	}
+      }
+      if (nocomment) {
+	q = strstr(s, "/*");
+	if (!q) {
+	  nocomment = 0;
+	} else {
+	  while (q && (q < c)) {
+	    /* First match was found inside a comment.  Try to find another match */
+	    q2 = end_comment(q);
+	    if (!q2) {
+	      c = 0;
+	      break;
+	    }
+	    if (q2 > c) {
+	      c = (*match) (base, q2 + 1, token, tokenlen);
+	      if (!c)
+		break;
+	    }
+	    q = strstr(q2 + 1, "/*");
+	    if (!q)
+	      nocomment = 0;	/* No more comments */
 	  }
 	}
       }
@@ -987,7 +1095,6 @@ static DohFileMethods StringFileMethods = {
   String_ungetc,
   String_seek,
   String_tell,
-  0,				/* close */
 };
 
 static DohStringMethods StringStringMethods = {

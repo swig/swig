@@ -7,6 +7,7 @@
 %module(directors="1") java_director
 
 %typemap(javafinalize) SWIGTYPE %{
+  @SuppressWarnings("deprecation")
   protected void finalize() {
 //    System.out.println("Finalizing " + this);
     delete();

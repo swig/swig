@@ -4,14 +4,14 @@
  * ------------------------------------------------------------ */
 %fragment("SWIG_AsCharPtrAndSize", "header", fragment="SWIG_pchar_descriptor") {
 SWIGINTERN int
-SWIG_AsCharPtrAndSize(v8::Handle<v8::Value> valRef, char** cptr, size_t* psize, int *alloc)
+SWIG_AsCharPtrAndSize(SWIGV8_VALUE valRef, char** cptr, size_t* psize, int *alloc)
 {
   if(valRef->IsString()) {
-    v8::Handle<v8::String> js_str = valRef->ToString();
+    v8::Local<v8::String> js_str = v8::Local<v8::String>::Cast(valRef);
 
-    size_t len = js_str->Utf8Length() + 1;
-    char* cstr = new char[len];
-    js_str->WriteUtf8(cstr, len);
+    size_t len = SWIGV8_UTF8_LENGTH(js_str) + 1;
+    char* cstr = (char*) %new_array(len, char);
+    SWIGV8_WRITE_UTF8(js_str, cstr, len);
     
     if(alloc) *alloc = SWIG_NEWOBJ;
     if(psize) *psize = len;
@@ -20,7 +20,7 @@ SWIG_AsCharPtrAndSize(v8::Handle<v8::Value> valRef, char** cptr, size_t* psize, 
     return SWIG_OK;
   } else {
     if(valRef->IsObject()) {
-      v8::Handle<v8::Object> obj = valRef->ToObject();
+      SWIGV8_OBJECT obj = SWIGV8_OBJECT::Cast(valRef);
       // try if the object is a wrapped char[]
       swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
       if (pchar_descriptor) {
@@ -41,7 +41,7 @@ SWIG_AsCharPtrAndSize(v8::Handle<v8::Value> valRef, char** cptr, size_t* psize, 
 }
 
 %fragment("SWIG_FromCharPtrAndSize","header",fragment="SWIG_pchar_descriptor") {
-SWIGINTERNINLINE v8::Handle<v8::Value>
+SWIGINTERNINLINE SWIGV8_VALUE
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
   if (carray) {
@@ -49,7 +49,7 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
       // TODO: handle extra long strings
       return SWIGV8_UNDEFINED();
     } else {
-      v8::Handle<v8::String> js_str = SWIGV8_STRING_NEW2(carray, size);
+      v8::Local<v8::String> js_str = SWIGV8_STRING_NEW2(carray, size);
       return js_str;
     }
   } else {

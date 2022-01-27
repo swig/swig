@@ -10,23 +10,23 @@ dc = d.copy();
 ic = i.copy();
 
 if (d.get() != dc.get())
-  error
+  error("failed");
 endif
 
 if (i.get() != ic.get())
-  error
+  error("failed");
 endif
 
 virtual_poly.incr(ic);
 
 if ((i.get() + 1) != ic.get())
-  error
+  error("failed");
 endif
 
 
 dr = d.ref_this();
 if (d.get() != dr.get())
-  error
+  error("failed");
 endif
 
 
@@ -35,10 +35,10 @@ endif
 #
 ddc = virtual_poly.NDouble_narrow(d.nnumber());
 if (d.get() != ddc.get())
-  error
+  error("failed");
 endif
 
 dic = virtual_poly.NInt_narrow(i.nnumber());
 if (i.get() != dic.get())
-  error
+  error("failed");
 endif

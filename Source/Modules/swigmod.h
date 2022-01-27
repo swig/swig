@@ -371,7 +371,6 @@ struct TargetLanguageModule {
 int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm);
 void emit_parameter_variables(ParmList *l, Wrapper *f);
 void emit_return_variable(Node *n, SwigType *rt, Wrapper *f);
-void SWIG_exit(int);		/* use EXIT_{SUCCESS,FAILURE} */
 void SWIG_config_file(const_String_or_char_ptr );
 const String *SWIG_output_directory();
 void SWIG_config_cppext(const char *ext);
@@ -383,7 +382,8 @@ List *SWIG_output_files();
 void SWIG_library_directory(const char *);
 int emit_num_arguments(ParmList *);
 int emit_num_required(ParmList *);
-int emit_isvarargs(ParmList *);
+int emit_isvarargs(ParmList *p);
+bool emit_isvarargs_function(Node *n);
 void emit_attach_parmmaps(ParmList *, Wrapper *f);
 void emit_mark_varargs(ParmList *l);
 String *emit_action(Node *n);

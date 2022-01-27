@@ -63,13 +63,12 @@ static TargetLanguageModule modules[] = {
   {"-javascript", swig_javascript, "Javascript", Supported},
   {"-lua", swig_lua, "Lua", Supported},
   {"-modula3", NULL, "Modula 3", Disabled},
-  {"-mzscheme", swig_mzscheme, "Mzscheme", Supported},
-  {"-ocaml", swig_ocaml, "Ocaml", Supported},
+  {"-mzscheme", swig_mzscheme, "MzScheme/Racket", Experimental},
+  {"-ocaml", swig_ocaml, "OCaml", Experimental},
   {"-octave", swig_octave, "Octave", Supported},
   {"-perl", swig_perl5, NULL, Supported},
   {"-perl5", swig_perl5, "Perl 5", Supported},
   {"-php", swig_php, NULL, Supported},
-  {"-php4", NULL, "PHP 4", Disabled},
   {"-php5", NULL, "PHP 5", Disabled},
   {"-php7", swig_php, "PHP 7", Supported},
   {"-pike", NULL, "Pike", Disabled},
@@ -164,7 +163,7 @@ static void merge_options_files(int *argc, char ***argv) {
   i = 1;
   while (i < new_argc) {
     if (new_argv[i] && new_argv[i][0] == '@' && (f = fopen(&new_argv[i][1], "r"))) {
-      char c;
+      int ci;
       char *b;
       char *be = &buffer[BUFFER_SIZE];
       int quote = 0;
@@ -175,7 +174,8 @@ static void merge_options_files(int *argc, char ***argv) {
       insert = i;
       b = buffer;
 
-      while ((c = fgetc(f)) != EOF) {
+      while ((ci = fgetc(f)) != EOF) {
+        const char c = static_cast<char>(ci);
         if (escape) {
           if (b != be) {
             *b = c;

@@ -722,18 +722,18 @@ int Language::typemapDirective(Node *n) {
   String *code = Getattr(n, "code");
   Parm *kwargs = Getattr(n, "kwargs");
   Node *items = firstChild(n);
-  static int namewarn = 0;
+  static int nameerror = 0;
 
 
   if (code && (Strstr(code, "$source") || (Strstr(code, "$target")))) {
-    Swig_warning(WARN_TYPEMAP_SOURCETARGET, Getfile(n), Getline(n), "Deprecated typemap feature ($source/$target).\n");
-    if (!namewarn) {
-      Swig_warning(WARN_TYPEMAP_SOURCETARGET, Getfile(n), Getline(n), "The use of $source and $target in a typemap declaration is deprecated.\n\
+    Swig_error(Getfile(n), Getline(n), "Obsolete typemap feature ($source/$target).\n");
+    if (!nameerror) {
+      Swig_error(Getfile(n), Getline(n), "The use of $source and $target in a typemap declaration is no longer supported.\n\
 For typemaps related to argument input (in,ignore,default,arginit,check), replace\n\
 $source by $input and $target by $1.   For typemaps related to return values (out,\n\
 argout,ret,except), replace $source by $1 and $target by $result.  See the file\n\
 Doc/Manual/Typemaps.html for complete details.\n");
-      namewarn = 1;
+      nameerror = 1;
     }
   }
 
@@ -1320,16 +1320,21 @@ int Language::staticmemberfunctionHandler(Node *n) {
     Delete(mrename);
     mrename = mangled;
 
-    if (Getattr(n, "sym:overloaded") && code) {
-      Append(cname, Getattr(defaultargs ? defaultargs : n, "sym:overname"));
-    }
+    if (code) {
+      // See Swig_MethodToFunction() for the explanation of this code.
+      if (Getattr(n, "sym:overloaded")) {
+	Append(cname, Getattr(defaultargs ? defaultargs : n, "sym:overname"));
+      } else {
+	Append(cname, "__SWIG");
+      }
 
-    if (!defaultargs && code) {
-      /* Hmmm. An added static member.  We have to create a little wrapper for this */
-      String *mangled_cname = Swig_name_mangle(cname);
-      Swig_add_extension_code(n, mangled_cname, parms, type, code, CPlusPlus, 0);
-      Setattr(n, "extendname", mangled_cname);
-      Delete(mangled_cname);
+      if (!defaultargs) {
+	/* Hmmm. An added static member.  We have to create a little wrapper for this */
+	String *mangled_cname = Swig_name_mangle(cname);
+	Swig_add_extension_code(n, mangled_cname, parms, type, code, CPlusPlus, 0);
+	Setattr(n, "extendname", mangled_cname);
+	Delete(mangled_cname);
+      }
     }
   }
 
@@ -1481,8 +1486,6 @@ int Language::membervariableHandler(Node *n) {
 	} else {
 	  String *pname0 = Swig_cparm_name(0, 0);
 	  String *pname1 = Swig_cparm_name(0, 1);
-	  Replace(tm, "$source", pname1, DOH_REPLACE_ANY);
-	  Replace(tm, "$target", target, DOH_REPLACE_ANY);
 	  Replace(tm, "$input", pname1, DOH_REPLACE_ANY);
 	  Replace(tm, "$self", pname0, DOH_REPLACE_ANY);
 	  Setattr(n, "wrap:action", tm);
@@ -1894,6 +1897,8 @@ int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_
     }
     if (!checkAttribute(nn, "storage", "virtual"))
       continue;
+    if (GetFlag(nn, "final"))
+      continue;
     /* we need to add methods(cdecl) and destructor (to check for throw decl) */
     int is_destructor = (Cmp(nodeType, "destructor") == 0);
     if ((Cmp(nodeType, "cdecl") == 0) || is_destructor) {
@@ -2109,7 +2114,7 @@ int Language::classDirectorMethods(Node *n) {
     Node *item = Getitem(vtable, i);
     String *method = Getattr(item, "methodNode");
     String *fqdname = Getattr(item, "fqdname");
-    if (GetFlag(method, "feature:nodirector"))
+    if (GetFlag(method, "feature:nodirector") || GetFlag(method, "final"))
       continue;
 
     String *wrn = Getattr(method, "feature:warnfilter");
@@ -2198,6 +2203,16 @@ int Language::classDirector(Node *n) {
   String *using_protected_members_code = NewString("");
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     Node *nodeType = Getattr(ni, "nodeType");
+    if (Cmp(nodeType, "destructor") == 0 && GetFlag(ni, "final")) {
+      String *classtype = Getattr(n, "classtype");
+      SWIG_WARN_NODE_BEGIN(ni);
+      Swig_warning(WARN_LANG_DIRECTOR_FINAL, input_file, line_number, "Destructor %s is final, %s cannot be a director class.\n", Swig_name_decl(ni), classtype);
+      SWIG_WARN_NODE_END(ni);
+      SetFlag(n, "feature:nodirector");
+      Delete(vtable);
+      Delete(using_protected_members_code);
+      return SWIG_OK;
+    }
     bool cdeclaration = (Cmp(nodeType, "cdecl") == 0);
     if (cdeclaration && !GetFlag(ni, "feature:ignore")) {
       if (isNonVirtualProtectedAccess(ni)) {
@@ -3037,8 +3052,6 @@ int Language::variableWrapper(Node *n) {
       }
     } else {
       String *pname0 = Swig_cparm_name(0, 0);
-      Replace(tm, "$source", pname0, DOH_REPLACE_ANY);
-      Replace(tm, "$target", name, DOH_REPLACE_ANY);
       Replace(tm, "$input", pname0, DOH_REPLACE_ANY);
       Setattr(n, "wrap:action", tm);
       Delete(tm);

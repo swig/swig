@@ -1,6 +1,6 @@
 package main
 
-import "./enum_template"
+import "swigtests/enum_template"
 
 func main() {
 	if enum_template.MakeETest() != 1 {

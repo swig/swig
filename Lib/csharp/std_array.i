@@ -192,9 +192,9 @@
         else
           throw std::out_of_range("index");
       }
-      void setitem(int index, const_reference value) throw (std::out_of_range) {
+      void setitem(int index, const_reference val) throw (std::out_of_range) {
         if (index>=0 && index<(int)$self->size())
-          (*$self)[index] = value;
+          (*$self)[index] = val;
         else
           throw std::out_of_range("index");
       }

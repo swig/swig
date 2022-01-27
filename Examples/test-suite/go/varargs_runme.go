@@ -1,6 +1,6 @@
 package main
 
-import "./varargs"
+import "swigtests/varargs"
 
 func main() {
 	if varargs.Test("Hello") != "Hello" {

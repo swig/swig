@@ -28,7 +28,13 @@ A1::A1(const A1&) = default;
 
 struct A2 {
   void funk(int i) {}
+
+// Workaround clang 10.0.1 -std=c++17 linker error (oddly for Java and not Python):
+// Undefined symbols for architecture x86_64:"___cxa_deleted_virtual", referenced from: vtable for A2
+#if !(defined(__clang__) && __cplusplus >= 201703L)
   virtual void fff(int) = delete;
+#endif
+
   virtual ~A2() = default;
   template<class T> void funk(T) = delete;
 };

@@ -1,7 +1,5 @@
 <?php
 
-require "example.php";
-
 # ----- Object creation -----
 
 # Print out the value of some enums
@@ -28,5 +26,3 @@ $f = new Foo();
 $f->enum_test(Foo::IMPULSE);
 $f->enum_test(Foo::WARP);
 $f->enum_test(Foo::LUDICROUS);
-
-?>

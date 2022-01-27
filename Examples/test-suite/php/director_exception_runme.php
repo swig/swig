@@ -1,13 +1,12 @@
 <?php
 
 require "tests.php";
-require "director_exception.php";
 
-// No new functions
-check::functions(array('foo_ping','foo_pong','launder','bar_ping','bar_pong','returnalltypes_return_int','returnalltypes_return_double','returnalltypes_return_const_char_star','returnalltypes_return_std_string','returnalltypes_return_bar','returnalltypes_call_int','returnalltypes_call_double','returnalltypes_call_const_char_star','returnalltypes_call_std_string','returnalltypes_call_bar','is_python_builtin'));
-// No new classes
+// New functions
+check::functions(array('launder','is_python_builtin'));
+// New classes
 check::classes(array('director_exception','Foo','Exception1','Exception2','Base','Bar','ReturnAllTypes'));
-// now new vars
+// No new vars
 check::globals(array());
 
 class MyException extends Exception {
@@ -38,9 +37,7 @@ class MyFoo3 extends Foo {
 # MyFoo.pong().
 $ok = 0;
 $a = new MyFoo();
-# TODO: Currently we do not track the dynamic type of returned 
-# objects, so we skip the launder() call.
-#$b = director_exception::launder($a);
+$b = director_exception::launder($a);
 $b = $a;
 try {
   $b->pong();
@@ -124,4 +121,3 @@ try {
 }
 
 check::done();
-?>

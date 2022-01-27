@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "li_std_vector_member_var.php";
 
 $t = new Test();
 
@@ -27,4 +26,3 @@ check::equal($T->start_t->x, 4, "S::x != 4");
 check::equal($T->length, 7, "T::length != 7");
 
 check::done();
-?>

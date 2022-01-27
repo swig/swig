@@ -27,7 +27,7 @@ KW(synchronized, final)
 
 /* C# Keywords */
 KW(string, out)
-struct sealed {int i;};
+struct stackalloc {int i;};
 
 /* Go Keywords */
 KW(go, defer)

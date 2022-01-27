@@ -14,10 +14,17 @@ namespace std {
   template<class T> class vector {
   public:
     typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
     typedef T value_type;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
+    typedef value_type& reference;
     typedef const value_type& const_reference;
+
     vector();
     vector(size_type n);
+    vector(const vector& other);
+
     size_type size() const;
     size_type capacity() const;
     void reserve(size_type n);
@@ -56,10 +63,17 @@ namespace std {
   template<> class vector<bool> {
   public:
     typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
     typedef bool value_type;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
+    typedef value_type& reference;
     typedef bool const_reference;
+
     vector();
     vector(size_type n);
+    vector(const vector& other);
+
     size_type size() const;
     size_type capacity() const;
     void reserve(size_type n);
@@ -98,5 +112,3 @@ namespace std {
 %define specialize_std_vector(T)
 #warning "specialize_std_vector - specialization for type T no longer needed"
 %enddef
-
-

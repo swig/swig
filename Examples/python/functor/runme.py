@@ -12,5 +12,5 @@ for i in range(0, 100):
     a(i)                # Note: function call
     b(math.sqrt(i))     # Note: function call
 
-print a.result()
-print b.result()
+print(a.result())
+print(b.result())

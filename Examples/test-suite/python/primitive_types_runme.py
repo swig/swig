@@ -31,8 +31,7 @@ v_check()
 
 
 def pyerror(name, val, cte):
-    print "bad val/cte", name, val, cte
-    raise RuntimeError
+    raise RuntimeError("bad val/cte {} {} {}".format(name, val, cte))
     pass
 
 if cvar.var_bool != cct_bool:
@@ -173,7 +172,7 @@ p = PyTest()
 
 # internal call check
 if t.c_check() != p.c_check():
-    raise RuntimeError, "bad director"
+    raise RuntimeError("bad director")
 
 p.var_bool = p.stc_bool
 p.var_schar = p.stc_schar
@@ -227,86 +226,79 @@ t.var_paramc = sct_paramc
 t.v_check()
 
 # this value contains a '0' char!
-if def_namet != 'hola':
-    print "bad namet", def_namet
-    raise RuntimeError
+if def_namet != "hola":
+    raise RuntimeError("bad namet {}".format(def_namet))
 
 t.var_namet = def_namet
 if t.var_namet != def_namet:
-    print "bad namet", t.var_namet, def_namet
-    raise RuntimeError
+    raise RuntimeError("bad namet {} {}".format(t.var_namet, def_namet))
 
-t.var_namet = 'hola'
+t.var_namet = "hola"
 
-if t.var_namet != 'hola':
-    print "bad namet", t.var_namet
-    raise RuntimeError
+if t.var_namet != "hola":
+    raise RuntimeError("bad namet {}".format(t.var_namet))
 
-t.var_namet = 'hol'
+t.var_namet = "hol"
 
-if t.var_namet != 'hol':
-    # if t.var_namet != 'hol\0\0':
-    print "bad namet", t.var_namet
-    raise RuntimeError
+if t.var_namet != "hol":
+    # if t.var_namet != "hol\0\0":
+    raise RuntimeError("bad namet {}".format(t.var_namet))
 
 
-cvar.var_char = '\0'
-if cvar.var_char != '\0':
-    raise RuntimeError, "bad char '0' case"
+cvar.var_char = "\0"
+if cvar.var_char != "\0":
+    raise RuntimeError("bad char '0' case")
 
 cvar.var_char = 0
-if cvar.var_char != '\0':
-    raise RuntimeError, "bad char '0' case"
+if cvar.var_char != "\0":
+    raise RuntimeError("bad char '0' case")
 
-cvar.var_namet = '\0'
-# if cvar.var_namet != '\0\0\0\0\0':
-if cvar.var_namet != '':
-    print 'hola', '', cvar.var_namet
-    raise RuntimeError, "bad char '\0' case"
+cvar.var_namet = "\0"
+# if cvar.var_namet != "\0\0\0\0\0":
+if cvar.var_namet != "":
+    raise RuntimeError("bad char '\0' case hola {}".format(cvar.var_namet))
 
-cvar.var_namet = ''
-# if cvar.var_namet != '\0\0\0\0\0':
-if cvar.var_namet != '':
-    raise RuntimeError, "bad char empty case"
+cvar.var_namet = ""
+# if cvar.var_namet != "\0\0\0\0\0":
+if cvar.var_namet != "":
+    raise RuntimeError("bad char empty case")
 
 cvar.var_pchar = None
 if cvar.var_pchar != None:
-    raise RuntimeError, "bad None case"
+    raise RuntimeError("bad None case")
 
-cvar.var_pchar = ''
-if cvar.var_pchar != '':
-    print '%c' % (cvar.var_pchar[0],)
-    raise RuntimeError, "bad char empty case"
+cvar.var_pchar = ""
+if cvar.var_pchar != "":
+    raise RuntimeError("bad char empty case %c" % (cvar.var_pchar[0],))
 
 cvar.var_pcharc = None
 if cvar.var_pcharc != None:
-    raise RuntimeError, "bad None case"
+    raise RuntimeError("bad None case")
 
-cvar.var_pcharc = ''
-if cvar.var_pcharc != '':
-    raise RuntimeError, "bad char empty case"
+cvar.var_pcharc = ""
+if cvar.var_pcharc != "":
+    raise RuntimeError("bad char empty case")
 
 
 #
 # creating a raw char*
 #
 pc = new_pchar(5)
-pchar_setitem(pc, 0, 'h')
-pchar_setitem(pc, 1, 'o')
-pchar_setitem(pc, 2, 'l')
-pchar_setitem(pc, 3, 'a')
+pchar_setitem(pc, 0, "h")
+pchar_setitem(pc, 1, "o")
+pchar_setitem(pc, 2, "l")
+pchar_setitem(pc, 3, "a")
 pchar_setitem(pc, 4, 0)
 
 
 cvar.var_pchar = pc
 if cvar.var_pchar != "hola":
-    print cvar.var_pchar
-    raise RuntimeError, "bad pointer case"
+    raise RuntimeError("bad pointer case {}".format(cvar.var_pchar))
 
 cvar.var_namet = pc
 # if cvar.var_namet != "hola\0":
 if cvar.var_namet != "hola":
-    raise RuntimeError, "bad pointer case"
+    raise RuntimeError("bad pointer case")
 
 delete_pchar(pc)
 
@@ -325,20 +317,20 @@ except OverflowError:
         error = 1
     pass
 if error:
-    raise RuntimeError, "bad uchar typemap"
+    raise RuntimeError("bad uchar typemap")
 
 
 try:
     error = 0
     a = t.var_char
-    t.var_char = '23'
+    t.var_char = "23"
     error = 1
 except TypeError:
     if a != t.var_char:
         error = 1
     pass
 if error:
-    raise RuntimeError, "bad char typemap"
+    raise RuntimeError("bad char typemap")
 
 try:
     error = 0
@@ -350,7 +342,7 @@ except OverflowError:
         error = 1
     pass
 if error:
-    raise RuntimeError, "bad ushort typemap"
+    raise RuntimeError("bad ushort typemap")
 
 try:
     error = 0
@@ -362,7 +354,7 @@ except OverflowError:
         error = 1
     pass
 if error:
-    raise RuntimeError, "bad uint typemap"
+    raise RuntimeError("bad uint typemap")
 
 try:
     error = 0
@@ -374,7 +366,7 @@ except OverflowError:
         error = 1
     pass
 if error:
-    raise RuntimeError, "bad sizet typemap"
+    raise RuntimeError("bad sizet typemap")
 
 try:
     error = 0
@@ -386,57 +378,57 @@ except OverflowError:
         error = 1
     pass
 if error:
-    raise RuntimeError, "bad ulong typemap"
+    raise RuntimeError("bad ulong typemap")
 
 #
 #
 try:
     error = 0
     a = t.var_namet
-    t.var_namet = '123456'
+    t.var_namet = "123456"
     error = 1
 except TypeError:
     if a != t.var_namet:
         error = 1
     pass
 if error:
-    raise RuntimeError, "bad namet typemap"
+    raise RuntimeError("bad namet typemap")
 
 #
 #
 #
 t2 = p.vtest(t)
 if t.var_namet != t2.var_namet:
-    raise RuntimeError, "bad SWIGTYPE* typemap"
+    raise RuntimeError("bad SWIGTYPE* typemap")
 
 
-if cvar.fixsize != 'ho\0la\0\0\0':
-    raise RuntimeError, "bad FIXSIZE typemap"
+if cvar.fixsize != "ho\0la\0\0\0":
+    raise RuntimeError("bad FIXSIZE typemap")
 
-cvar.fixsize = 'ho'
-if cvar.fixsize != 'ho\0\0\0\0\0\0':
-    raise RuntimeError, "bad FIXSIZE typemap"
+cvar.fixsize = "ho"
+if cvar.fixsize != "ho\0\0\0\0\0\0":
+    raise RuntimeError("bad FIXSIZE typemap")
 
 
 f = Foo(3)
 f1 = fptr_val(f)
 f2 = fptr_ref(f)
 if f1._a != f2._a:
-    raise RuntimeError, "bad const ptr& typemap"
+    raise RuntimeError("bad const ptr& typemap")
 
 
 v = char_foo(1, 3)
 if v != 3:
-    raise RuntimeError, "bad int typemap"
+    raise RuntimeError("bad int typemap")
 
 s = char_foo(1, "hello")
 if s != "hello":
-    raise RuntimeError, "bad char* typemap"
+    raise RuntimeError("bad char* typemap")
 
 
 v = SetPos(1, 3)
 if v != 4:
-    raise RuntimeError, "bad int typemap"
+    raise RuntimeError("bad int typemap")
 
 #
 # Check the bounds for converting various types
@@ -481,53 +473,53 @@ maxullong = 2 * maxllong + 1
 
 # Make sure Python 2's sys.maxint is the same as the maxlong we calculated
 if sys.version_info[0] <= 2 and maxlong != sys.maxint:
-    raise RuntimeError, "sys.maxint is not the maximum value of a signed long"
+    raise RuntimeError("sys.maxint is not the maximum value of a signed long")
 
 def checkType(t, e, val, delta):
     """t = Test object, e = type name (e.g. ulong), val = max or min allowed value, delta = +1 for max, -1 for min"""
     error = 0
     # Set the extreme valid value for var_*
-    setattr(t, 'var_' + e, val)
+    setattr(t, "var_" + e, val)
     # Make sure it was set properly and works properly in the val_* and ref_* methods
-    if getattr(t, 'var_' + e) != val or getattr(t, 'val_' + e)(val) != val or getattr(t, 'ref_' + e)(val) != val:
+    if getattr(t, "var_" + e) != val or getattr(t, "val_" + e)(val) != val or getattr(t, "ref_" + e)(val) != val:
         error = 1
     # Make sure setting a more extreme value fails without changing the value
     try:
-        a = getattr(t, 'var_' + e)
-        setattr(t, 'var_' + e, val + delta)
+        a = getattr(t, "var_" + e)
+        setattr(t, "var_" + e, val + delta)
         error = 1
     except OverflowError:
-        if a != getattr(t, 'var_' + e):
+        if a != getattr(t, "var_" + e):
             error = 1
     # Make sure the val_* and ref_* methods fail with a more extreme value
     try:
-        getattr(t, 'val_' + e)(val + delta)
+        getattr(t, "val_" + e)(val + delta)
         error = 1
     except OverflowError:
         pass
     try:
-        getattr(t, 'ref_' + e)(val + delta)
+        getattr(t, "ref_" + e)(val + delta)
         error = 1
     except OverflowError:
         pass
     if error:
-        raise RuntimeError, "bad " + e + " typemap"
+        raise RuntimeError("bad " + e + " typemap")
 
 def checkFull(t, e, maxval, minval):
     """Check the maximum and minimum bounds for the type given by e"""
     checkType(t, e, maxval,  1)
     checkType(t, e, minval, -1)
 
-checkFull(t, 'llong',  maxllong,  minllong)
-checkFull(t, 'long',   maxlong,   minlong)
-checkFull(t, 'int',    maxint,    minint)
-checkFull(t, 'short',  maxshort,  minshort)
-checkFull(t, 'schar',  maxchar,   minchar)
-checkFull(t, 'ullong', maxullong, 0)
-checkFull(t, 'ulong',  maxulong,  0)
-checkFull(t, 'uint',   maxuint,   0)
-checkFull(t, 'ushort', maxushort, 0)
-checkFull(t, 'uchar',  maxuchar,  0)
+checkFull(t, "llong",  maxllong,  minllong)
+checkFull(t, "long",   maxlong,   minlong)
+checkFull(t, "int",    maxint,    minint)
+checkFull(t, "short",  maxshort,  minshort)
+checkFull(t, "schar",  maxchar,   minchar)
+checkFull(t, "ullong", maxullong, 0)
+checkFull(t, "ulong",  maxulong,  0)
+checkFull(t, "uint",   maxuint,   0)
+checkFull(t, "ushort", maxushort, 0)
+checkFull(t, "uchar",  maxuchar,  0)
 
 def checkOverload(t, name, val, delta, prevval, limit):
     """
@@ -543,47 +535,47 @@ def checkOverload(t, name, val, delta, prevval, limit):
     if val != prevval:
         # Make sure the most extreme value of this type gives the name of this type
         if t.ovr_str(val) != name:
-            raise RuntimeError, "bad " + name + " typemap"
+            raise RuntimeError("bad " + name + " typemap")
         # Make sure a more extreme value doesn't give the name of this type
         try:
             if t.ovr_str(val + delta) == name:
-                raise RuntimeError, "bad " + name + " typemap"
+                raise RuntimeError("bad " + name + " typemap")
             if val == limit:
                 # Should raise TypeError here since this is the largest integral type
-                raise RuntimeError, "bad " + name + " typemap"
+                raise RuntimeError("bad " + name + " typemap")
         except TypeError:
             if val != limit:
-                raise RuntimeError, "bad " + name + " typemap"
+                raise RuntimeError("bad " + name + " typemap")
 
 # Check that overloading works: uchar > schar > ushort > short > uint > int > ulong > long > ullong > llong
-checkOverload(t, 'uchar',  maxuchar,  +1, 0,         maxullong)
-checkOverload(t, 'ushort', maxushort, +1, maxuchar,  maxullong)
-checkOverload(t, 'uint',   maxuint,   +1, maxushort, maxullong)
-checkOverload(t, 'ulong',  maxulong,  +1, maxuint,   maxullong)
-checkOverload(t, 'ullong', maxullong, +1, maxulong,  maxullong)
-checkOverload(t, 'schar',  minchar,   -1, 0,         minllong)
-checkOverload(t, 'short',  minshort,  -1, minchar,   minllong)
-checkOverload(t, 'int',    minint,    -1, minshort,  minllong)
-checkOverload(t, 'long',   minlong,   -1, minint,    minllong)
-checkOverload(t, 'llong',  minllong,  -1, minlong,   minllong)
+checkOverload(t, "uchar",  maxuchar,  +1, 0,         maxullong)
+checkOverload(t, "ushort", maxushort, +1, maxuchar,  maxullong)
+checkOverload(t, "uint",   maxuint,   +1, maxushort, maxullong)
+checkOverload(t, "ulong",  maxulong,  +1, maxuint,   maxullong)
+checkOverload(t, "ullong", maxullong, +1, maxulong,  maxullong)
+checkOverload(t, "schar",  minchar,   -1, 0,         minllong)
+checkOverload(t, "short",  minshort,  -1, minchar,   minllong)
+checkOverload(t, "int",    minint,    -1, minshort,  minllong)
+checkOverload(t, "long",   minlong,   -1, minint,    minllong)
+checkOverload(t, "llong",  minllong,  -1, minlong,   minllong)
 
 # Make sure that large ints can be converted to doubles properly
-if val_double(sys.maxint + 1) != float(sys.maxint + 1):
-    raise RuntimeError, "bad double typemap"
-if val_double(-sys.maxint - 2) != float(-sys.maxint - 2):
-    raise RuntimeError, "bad double typemap"
+if val_double(sys.maxsize + 1) != float(sys.maxsize + 1):
+    raise RuntimeError("bad double typemap")
+if val_double(-sys.maxsize - 2) != float(-sys.maxsize - 2):
+    raise RuntimeError("bad double typemap")
 
 
 # Check the minimum and maximum values that fit in ptrdiff_t and size_t
 def checkType(name, maxfunc, maxval, minfunc, minval, echofunc):
     if maxfunc() != maxval:
-        raise RuntimeError, "bad " + name + " typemap"
+        raise RuntimeError("bad " + name + " typemap")
     if minfunc() != minval:
-        raise RuntimeError, "bad " + name + " typemap"
+        raise RuntimeError("bad " + name + " typemap")
     if echofunc(maxval) != maxval:
-        raise RuntimeError, "bad " + name + " typemap"
+        raise RuntimeError("bad " + name + " typemap")
     if echofunc(minval) != minval:
-        raise RuntimeError, "bad " + name + " typemap"
+        raise RuntimeError("bad " + name + " typemap")
     error = 0
     try:
         echofunc(maxval + 1)
@@ -591,14 +583,14 @@ def checkType(name, maxfunc, maxval, minfunc, minval, echofunc):
     except OverflowError:
         pass
     if error == 1:
-        raise RuntimeError, "bad " + name + " typemap"
+        raise RuntimeError("bad " + name + " typemap")
     try:
         echofunc(minval - 1)
         error = 1
     except OverflowError:
         pass
     if error == 1:
-        raise RuntimeError, "bad " + name + " typemap"
+        raise RuntimeError("bad " + name + " typemap")
 
 # sys.maxsize is the largest value supported by Py_ssize_t, which should be the same as ptrdiff_t
 if sys.version_info[0:2] >= (2, 6):

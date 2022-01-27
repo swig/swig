@@ -198,6 +198,11 @@ public:
   virtual int emitWrapperFunction(Node *n);
 
   /**
+   * Invoked by nativeWrapper callback
+   */
+  virtual int emitNativeFunction(Node *n);
+
+  /**
    * Invoked from constantWrapper after call to Language::constantWrapper.
    **/
   virtual int emitConstant(Node *n);
@@ -311,6 +316,7 @@ public:
   virtual int classHandler(Node *n);
   virtual int functionWrapper(Node *n);
   virtual int constantWrapper(Node *n);
+  virtual int nativeWrapper(Node *n);
   virtual void main(int argc, char *argv[]);
   virtual int top(Node *n);
 
@@ -437,6 +443,18 @@ int JAVASCRIPT::constantWrapper(Node *n) {
   // however, there is a remaining bug with function pointer constants
   // which could be fixed with a cleaner approach
   emitter->emitConstant(n);
+
+  return SWIG_OK;
+}
+
+/* ---------------------------------------------------------------------
+ * nativeWrapper()
+ *
+ * Function wrapper for generating placeholders for native functions
+ * --------------------------------------------------------------------- */
+
+int JAVASCRIPT::nativeWrapper(Node *n) {
+  emitter->emitNativeFunction(n);
 
   return SWIG_OK;
 }
@@ -709,7 +727,7 @@ Node *JSEmitter::getBaseClass(Node *n) {
  /* -----------------------------------------------------------------------------
   * JSEmitter::emitWrapperFunction() :  dispatches emitter functions.
   *
-  * This allows to have small sized, dedicated emitting functions.
+  * This allows having small sized, dedicated emitting functions.
   * All state dependent branching is done here.
   * ----------------------------------------------------------------------------- */
 
@@ -766,6 +784,14 @@ int JSEmitter::emitWrapperFunction(Node *n) {
   }
 
   return ret;
+}
+
+int JSEmitter::emitNativeFunction(Node *n) {
+  String *wrapname = Getattr(n, "wrap:name");
+  enterFunction(n);
+  state.function(WRAPPER_NAME, wrapname);
+  exitFunction(n);
+  return SWIG_OK;
 }
 
 int JSEmitter::enterClass(Node *n) {
@@ -1229,7 +1255,7 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
   // Note: this dispatcher function gets called after the last overloaded function has been created.
   // At this time, n.wrap:name contains the name of the last wrapper function.
   // To get a valid function name for the dispatcher function we take the last wrapper name and
-  // substract the extension "sym:overname",
+  // subtract the extension "sym:overname",
   String *wrap_name = NewString(Getattr(n, "wrap:name"));
   String *overname = Getattr(n, "sym:overname");
 
@@ -1549,7 +1575,8 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
       Printf(arg, "argv[%d]", i);
       break;
     default:
-      throw "Illegal state.";
+      Printf(stderr, "Illegal MarshallingMode.");
+      SWIG_exit(EXIT_FAILURE);
     }
     tm = emitInputTypemap(n, p, wrapper, arg);
     Delete(arg);
@@ -2186,7 +2213,8 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
       Printf(arg, "args[%d]", i);
       break;
     default:
-      throw "Illegal state.";
+      Printf(stderr, "Illegal MarshallingMode.");
+      SWIG_exit(EXIT_FAILURE);
     }
 
     tm = emitInputTypemap(n, p, wrapper, arg);

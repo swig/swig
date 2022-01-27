@@ -1,6 +1,6 @@
 package main
 
-import . "./smart_pointer_overload"
+import . "swigtests/smart_pointer_overload"
 
 func main() {
 	f := NewFoo()

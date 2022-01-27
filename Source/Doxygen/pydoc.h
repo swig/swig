@@ -80,6 +80,11 @@ protected:
   void handleParagraph(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg = std::string());
 
   /*
+   * Handle Doxygen verbatim tag
+   */
+  void handleVerbatimBlock(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg = std::string());
+
+  /*
    * Handle one of the Doxygen formula-related tags.
    */
   void handleMath(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
@@ -173,6 +178,11 @@ protected:
    */
   std::string getParamType(std::string name);
 
+  /*
+   * Simple helper function to retrieve the parameter value
+   */
+  std::string getParamValue(std::string name);
+
 private:
   // temporary thing, should be refactored somehow
   Node *currentNode;
@@ -185,7 +195,7 @@ private:
   typedef std::map<std::string, std::pair<tagHandler, std::string> >TagHandlersMap;
   static TagHandlersMap tagHandlers;
 
-  // this contains the sections tittles, like 'Arguments:' or 'Notes:', that are printed only once
+  // this contains the sections titles, like 'Arguments:' or 'Notes:', that are printed only once
   static std::map<std::string, std::string> sectionTitles;
 
   // Helper functions for fillStaticTables(): make a new tag handler object.

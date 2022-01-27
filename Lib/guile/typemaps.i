@@ -378,26 +378,26 @@ typedef unsigned long SCM;
 #define %argument_fail(code, type, name, argn)	scm_wrong_type_arg((char *) FUNC_NAME, argn, $input);
 #define %as_voidptr(ptr)		(void*)(ptr)
 
-%typemap(in) SWIGTYPE (CLASS::*) {  
-  int res = SWIG_ConvertMember($input, %as_voidptr(&$1), sizeof($type),$descriptor);
+%typemap(in) SWIGTYPE (CLASS::*) {
+  int res = SWIG_ConvertMember($input, %as_voidptr(&$1), sizeof($1), $descriptor);
   if (!SWIG_IsOK(res)) {
-    %argument_fail(res,"$type",$symname, $argnum); 
+    %argument_fail(res,"$type",$symname, $argnum);
   }
 }
 
 %typemap(out,noblock=1) SWIGTYPE (CLASS::*) {
-  %set_output(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($type), $descriptor));
+  %set_output(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($1), $descriptor));
 }
 
 %typemap(varin) SWIGTYPE (CLASS::*) {
-  int res = SWIG_ConvertMember($input,%as_voidptr(&$1), sizeof($type), $descriptor);
+  int res = SWIG_ConvertMember($input,%as_voidptr(&$1), sizeof($1), $descriptor);
   if (!SWIG_IsOK(res)) {
     scm_wrong_type_arg((char *) FUNC_NAME, 1, $input);
   }
 }
 
 %typemap(varout,noblock=1) SWIGTYPE (CLASS::*) {
-  %set_varoutput(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($type), $descriptor));
+  %set_varoutput(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($1), $descriptor));
 }
 
 /* ------------------------------------------------------------

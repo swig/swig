@@ -1,6 +1,6 @@
 package main
 
-import "./typedef_class"
+import "swigtests/typedef_class"
 
 func main() {
 	a := typedef_class.NewRealA()

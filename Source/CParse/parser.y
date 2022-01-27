@@ -1552,6 +1552,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     Parm   *throws;
     String *throwf;
     String *nexcept;
+    String *final;
   } dtype;
   struct {
     const char *type;
@@ -1567,6 +1568,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     ParmList  *throws;
     String    *throwf;
     String    *nexcept;
+    String    *final;
   } decl;
   Parm         *tparms;
   struct {
@@ -1585,6 +1587,9 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
   Node         *node;
 };
 
+// Define special token END for end of input.
+%token END 0
+
 %token <id> ID
 %token <str> HBLOCK
 %token <id> POUND 
@@ -1594,7 +1599,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token <dtype> NUM_INT NUM_FLOAT NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG NUM_BOOL
 %token <intvalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
-%token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
+%token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD ELLIPSIS
 %token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
 %token BEGINFILE ENDOFFILE
 %token ILLEGAL CONSTANT
@@ -1648,7 +1653,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 
 /* C declarations */
 %type <node>     c_declaration c_decl c_decl_tail c_enum_key c_enum_inherit c_enum_decl c_enum_forward_decl c_constructor_decl;
-%type <node>     enumlist enumlist_tail enumlist_item edecl_with_dox edecl;
+%type <node>     enumlist enumlist_item edecl_with_dox edecl;
 
 /* C++ declarations */
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl cpp_alternate_rettype;
@@ -1669,11 +1674,11 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <p>        templateparameter ;
 %type <id>       templcpptype cpptype classkey classkeyopt access_specifier;
 %type <node>     base_specifier;
-%type <str>      ellipsis variadic;
+%type <str>      variadic;
 %type <type>     type rawtype type_right anon_bitfield_type decltype ;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
-%type <dtype>    expr exprnum exprcompound valexpr exprmem;
+%type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem;
 %type <id>       ename ;
 %type <id>       less_valparms_greater;
 %type <str>      type_qualifier;
@@ -1777,7 +1782,7 @@ declaration    : swig_directive { $$ = $1; }
 		  } else {
 		      Swig_error(cparse_file, cparse_line, "Syntax error in input(1).\n");
 		  }
-		  exit(1);
+		  SWIG_exit(EXIT_FAILURE);
                }
 /* Out of class constructor/destructor declarations */
                | c_constructor_decl { 
@@ -2007,6 +2012,10 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
                | CONSTANT error SEMI {
 		 Swig_warning(WARN_PARSE_BAD_VALUE,cparse_file,cparse_line,"Bad constant value (ignored).\n");
 		 $$ = 0;
+	       }
+	       | CONSTANT error END {
+		 Swig_error(cparse_file,cparse_line,"Missing ';' after %%constant.\n");
+		 SWIG_exit(EXIT_FAILURE);
 	       }
                ;
 
@@ -2962,7 +2971,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             Swig_cparse_template_expand(templnode,nname,temparms,tscope);
                             Setattr(templnode,"sym:name",nname);
 			    Delete(nname);
-                            Setattr(templnode,"feature:onlychildren", "typemap,typemapitem,typemapcopy,typedef,types,fragment");
+                            Setattr(templnode,"feature:onlychildren", "typemap,typemapitem,typemapcopy,typedef,types,fragment,apply");
 			    if ($3) {
 			      Swig_warning(WARN_PARSE_NESTED_TEMPLATE, cparse_file, cparse_line, "Named nested template instantiations not supported. Processing as if no name was given to %%template().\n");
 			    }
@@ -3189,6 +3198,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$,"throws",$4.throws);
 	      Setattr($$,"throw",$4.throwf);
 	      Setattr($$,"noexcept",$4.nexcept);
+	      Setattr($$,"final",$4.final);
 	      if ($5.val && $5.type) {
 		/* store initializer type as it might be different to the declared type */
 		SwigType *valuetype = NewSwigType($5.type);
@@ -3266,6 +3276,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$,"throws",$4.throws);
 	      Setattr($$,"throw",$4.throwf);
 	      Setattr($$,"noexcept",$4.nexcept);
+	      Setattr($$,"final",$4.final);
 	      if (!$9) {
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
@@ -3330,6 +3341,7 @@ c_decl_tail    : SEMI {
 		 Setattr($$,"throws",$3.throws);
 		 Setattr($$,"throw",$3.throwf);
 		 Setattr($$,"noexcept",$3.nexcept);
+		 Setattr($$,"final",$3.final);
 		 if ($4.bitfield) {
 		   Setattr($$,"bitfield", $4.bitfield);
 		 }
@@ -3354,7 +3366,7 @@ c_decl_tail    : SEMI {
 		   } else {
 		       Swig_error(cparse_file, cparse_line, "Syntax error - possibly a missing semicolon.\n");
 		   }
-		   exit(1);
+		   SWIG_exit(EXIT_FAILURE);
                }
               ;
 
@@ -3638,12 +3650,13 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 			Setattr($$,"throws",$6.throws);
 			Setattr($$,"throw",$6.throwf);
 			Setattr($$,"noexcept",$6.nexcept);
+			Setattr($$,"final",$6.final);
 			err = 0;
 		      }
 		    }
 		    if (err) {
 		      Swig_error(cparse_file,cparse_line,"Syntax error in input(2).\n");
-		      exit(1);
+		      SWIG_exit(EXIT_FAILURE);
 		    }
                 }
                 ;
@@ -4349,18 +4362,30 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			parsing_template_declaration = 0;
                 }
 
-		/* Explicit template instantiation */
+		/* Class template explicit instantiation definition */
                 | TEMPLATE cpptype idcolon {
 		  Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
                   $$ = 0; 
 		}
 
-		/* Explicit template instantiation without the translation unit */
+		/* Function template explicit instantiation definition */
+		| TEMPLATE cpp_alternate_rettype idcolon LPAREN parms RPAREN {
+			Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
+                  $$ = 0; 
+		}
+
+		/* Class template explicit instantiation declaration (extern template) */
 		| EXTERN TEMPLATE cpptype idcolon {
-		  Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
+		  Swig_warning(WARN_PARSE_EXTERN_TEMPLATE, cparse_file, cparse_line, "Extern template ignored.\n");
                   $$ = 0; 
                 }
-                ;
+
+		/* Function template explicit instantiation declaration (extern template) */
+		| EXTERN TEMPLATE cpp_alternate_rettype idcolon LPAREN parms RPAREN {
+			Swig_warning(WARN_PARSE_EXTERN_TEMPLATE, cparse_file, cparse_line, "Extern template ignored.\n");
+                  $$ = 0; 
+		}
+		;
 
 cpp_template_possible:  c_decl {
 		  $$ = $1;
@@ -4626,7 +4651,7 @@ cpp_members  : cpp_member cpp_members {
 	       int start_line = cparse_line;
 	       skip_decl();
 	       Swig_error(cparse_file,start_line,"Syntax error in input(3).\n");
-	       exit(1);
+	       SWIG_exit(EXIT_FAILURE);
 	       } cpp_members { 
 		 $$ = $3;
    	     }
@@ -4704,6 +4729,7 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		Setattr($$,"throws",$6.throws);
 		Setattr($$,"throw",$6.throwf);
 		Setattr($$,"noexcept",$6.nexcept);
+		Setattr($$,"final",$6.final);
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
 		  Setattr($$,"code",code);
@@ -4740,6 +4766,7 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 	       Setattr($$,"throws",$6.throws);
 	       Setattr($$,"throw",$6.throwf);
 	       Setattr($$,"noexcept",$6.nexcept);
+	       Setattr($$,"final",$6.final);
 	       if ($6.val)
 	         Setattr($$,"value",$6.val);
 	       if ($6.qualifier)
@@ -4760,6 +4787,7 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 		Setattr($$,"throws",$7.throws);
 		Setattr($$,"throw",$7.throwf);
 		Setattr($$,"noexcept",$7.nexcept);
+		Setattr($$,"final",$7.final);
 		if ($7.val)
 		  Setattr($$,"value",$7.val);
 		if (Len(scanner_ccode)) {
@@ -4791,6 +4819,9 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 if ($8.qualifier) {
 		   SwigType_push($4,$8.qualifier);
 		 }
+		 if ($8.val) {
+		   Setattr($$,"value",$8.val);
+		 }
 		 Setattr($$,"refqualifier",$8.refqualifier);
 		 Setattr($$,"decl",$4);
 		 Setattr($$,"parms",$6);
@@ -4809,6 +4840,9 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 if ($8.qualifier) {
 		   SwigType_push(decl,$8.qualifier);
 		 }
+		 if ($8.val) {
+		   Setattr($$,"value",$8.val);
+		 }
 		 Setattr($$,"refqualifier",$8.refqualifier);
 		 Setattr($$,"decl",decl);
 		 Setattr($$,"parms",$6);
@@ -4826,6 +4860,9 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 SwigType_add_function(decl,$6);
 		 if ($8.qualifier) {
 		   SwigType_push(decl,$8.qualifier);
+		 }
+		 if ($8.val) {
+		   Setattr($$,"value",$8.val);
 		 }
 		 Setattr($$,"refqualifier",$8.refqualifier);
 		 Setattr($$,"decl",decl);
@@ -4847,6 +4884,9 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 if ($9.qualifier) {
 		   SwigType_push(decl,$9.qualifier);
 		 }
+		 if ($9.val) {
+		   Setattr($$,"value",$9.val);
+		 }
 		 Setattr($$,"refqualifier",$9.refqualifier);
 		 Setattr($$,"decl",decl);
 		 Setattr($$,"parms",$7);
@@ -4864,7 +4904,10 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		if ($7.qualifier) {
 		  SwigType_push(t,$7.qualifier);
 		}
-		 Setattr($$,"refqualifier",$7.refqualifier);
+		if ($7.val) {
+		  Setattr($$,"value",$7.val);
+		}
+		Setattr($$,"refqualifier",$7.refqualifier);
 		Setattr($$,"decl",t);
 		Setattr($$,"parms",$5);
 		Setattr($$,"conversion_operator","1");
@@ -4941,6 +4984,7 @@ cpp_end        : cpp_const SEMI {
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
 		    $$.nexcept = $1.nexcept;
+		    $$.final = $1.final;
                }
                | cpp_const EQUAL default_delete SEMI {
 	            Clear(scanner_ccode);
@@ -4951,6 +4995,7 @@ cpp_end        : cpp_const SEMI {
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
 		    $$.nexcept = $1.nexcept;
+		    $$.final = $1.final;
                }
                | cpp_const LBRACE { 
 		    skip_balanced('{','}'); 
@@ -4961,6 +5006,7 @@ cpp_end        : cpp_const SEMI {
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
 		    $$.nexcept = $1.nexcept;
+		    $$.final = $1.final;
 	       }
                ;
 
@@ -4973,6 +5019,7 @@ cpp_vend       : cpp_const SEMI {
                      $$.throws = $1.throws;
                      $$.throwf = $1.throwf;
                      $$.nexcept = $1.nexcept;
+                     $$.final = $1.final;
                 }
                | cpp_const EQUAL definetype SEMI { 
                      Clear(scanner_ccode);
@@ -4982,7 +5029,8 @@ cpp_vend       : cpp_const SEMI {
                      $$.bitfield = 0;
                      $$.throws = $1.throws; 
                      $$.throwf = $1.throwf; 
-                     $$.nexcept = $1.nexcept; 
+                     $$.nexcept = $1.nexcept;
+                     $$.final = $1.final;
                }
                | cpp_const LBRACE { 
                      skip_balanced('{','}');
@@ -4992,7 +5040,8 @@ cpp_vend       : cpp_const SEMI {
                      $$.bitfield = 0;
                      $$.throws = $1.throws; 
                      $$.throwf = $1.throwf; 
-                     $$.nexcept = $1.nexcept; 
+                     $$.nexcept = $1.nexcept;
+                     $$.final = $1.final;
                }
                ;
 
@@ -5113,7 +5162,7 @@ parm_no_dox	: rawtype parameter_declarator {
                     Setattr($$,"value",$7.val);
                   }
                 }
-                | PERIOD PERIOD PERIOD {
+                | ELLIPSIS {
 		  SwigType *t = NewString("v(...)");
 		  $$ = NewParmWithoutFileLineInfo(t, 0);
 		  previousNode = currentNode;
@@ -5210,6 +5259,7 @@ def_args       : EQUAL definetype {
 		    $$.throws = 0;
 		    $$.throwf = 0;
 		    $$.nexcept = 0;
+		    $$.final = 0;
 		  }
                }
                | EQUAL definetype LBRACKET expr RBRACKET { 
@@ -5223,6 +5273,7 @@ def_args       : EQUAL definetype {
 		    $$.throws = 0;
 		    $$.throwf = 0;
 		    $$.nexcept = 0;
+		    $$.final = 0;
 		  } else {
 		    $$.val = NewStringf("%s[%s]",$2.val,$4.val); 
 		  }		  
@@ -5236,6 +5287,7 @@ def_args       : EQUAL definetype {
 		 $$.throws = 0;
 		 $$.throwf = 0;
 		 $$.nexcept = 0;
+		 $$.final = 0;
 	       }
                | COLON expr { 
 		 $$.val = 0;
@@ -5245,6 +5297,7 @@ def_args       : EQUAL definetype {
 		 $$.throws = 0;
 		 $$.throwf = 0;
 		 $$.nexcept = 0;
+		 $$.final = 0;
 	       }
                | empty {
                  $$.val = 0;
@@ -5254,6 +5307,7 @@ def_args       : EQUAL definetype {
 		 $$.throws = 0;
 		 $$.throwf = 0;
 		 $$.nexcept = 0;
+		 $$.final = 0;
                }
                ;
 
@@ -5453,16 +5507,16 @@ declarator :  pointer notso_direct_declarator {
            
            /* Variadic versions eg. MyClasses&... myIds */
            
-           |  pointer PERIOD PERIOD PERIOD notso_direct_declarator {
-              $$ = $5;
+           |  pointer ELLIPSIS notso_direct_declarator {
+              $$ = $3;
 	      if ($$.type) {
 		SwigType_push($1,$$.type);
 		Delete($$.type);
 	      }
 	      $$.type = $1;
            }
-           | pointer AND PERIOD PERIOD PERIOD notso_direct_declarator {
-              $$ = $6;
+           | pointer AND ELLIPSIS notso_direct_declarator {
+              $$ = $4;
 	      SwigType_add_reference($1);
               if ($$.type) {
 		SwigType_push($1,$$.type);
@@ -5470,8 +5524,8 @@ declarator :  pointer notso_direct_declarator {
 	      }
 	      $$.type = $1;
            }
-           | pointer LAND PERIOD PERIOD PERIOD notso_direct_declarator {
-              $$ = $6;
+           | pointer LAND ELLIPSIS notso_direct_declarator {
+              $$ = $4;
 	      SwigType_add_rvalue_reference($1);
               if ($$.type) {
 		SwigType_push($1,$$.type);
@@ -5479,34 +5533,34 @@ declarator :  pointer notso_direct_declarator {
 	      }
 	      $$.type = $1;
            }
-           | PERIOD PERIOD PERIOD direct_declarator {
-              $$ = $4;
+           | ELLIPSIS direct_declarator {
+              $$ = $2;
 	      if (!$$.type) $$.type = NewStringEmpty();
            }
-           | AND PERIOD PERIOD PERIOD notso_direct_declarator {
-	     $$ = $5;
+           | AND ELLIPSIS notso_direct_declarator {
+	     $$ = $3;
 	     $$.type = NewStringEmpty();
 	     SwigType_add_reference($$.type);
-	     if ($5.type) {
-	       SwigType_push($$.type,$5.type);
-	       Delete($5.type);
+	     if ($3.type) {
+	       SwigType_push($$.type,$3.type);
+	       Delete($3.type);
 	     }
            }
-           | LAND PERIOD PERIOD PERIOD notso_direct_declarator {
+           | LAND ELLIPSIS notso_direct_declarator {
 	     /* Introduced in C++11, move operator && */
              /* Adds one S/R conflict */
-	     $$ = $5;
+	     $$ = $3;
 	     $$.type = NewStringEmpty();
 	     SwigType_add_rvalue_reference($$.type);
-	     if ($5.type) {
-	       SwigType_push($$.type,$5.type);
-	       Delete($5.type);
+	     if ($3.type) {
+	       SwigType_push($$.type,$3.type);
+	       Delete($3.type);
 	     }
            }
-           | idcolon DSTAR PERIOD PERIOD PERIOD notso_direct_declarator { 
+           | idcolon DSTAR ELLIPSIS notso_direct_declarator {
 	     SwigType *t = NewStringEmpty();
 
-	     $$ = $6;
+	     $$ = $4;
 	     SwigType_add_memberpointer(t,$1);
 	     if ($$.type) {
 	       SwigType_push(t,$$.type);
@@ -5514,9 +5568,9 @@ declarator :  pointer notso_direct_declarator {
 	     }
 	     $$.type = t;
 	     } 
-           | pointer idcolon DSTAR PERIOD PERIOD PERIOD notso_direct_declarator { 
+           | pointer idcolon DSTAR ELLIPSIS notso_direct_declarator {
 	     SwigType *t = NewStringEmpty();
-	     $$ = $7;
+	     $$ = $5;
 	     SwigType_add_memberpointer(t,$2);
 	     SwigType_push($1,t);
 	     if ($$.type) {
@@ -5526,8 +5580,8 @@ declarator :  pointer notso_direct_declarator {
 	     $$.type = $1;
 	     Delete(t);
 	   }
-           | pointer idcolon DSTAR AND PERIOD PERIOD PERIOD notso_direct_declarator { 
-	     $$ = $8;
+           | pointer idcolon DSTAR AND ELLIPSIS notso_direct_declarator {
+	     $$ = $6;
 	     SwigType_add_memberpointer($1,$2);
 	     SwigType_add_reference($1);
 	     if ($$.type) {
@@ -5536,8 +5590,8 @@ declarator :  pointer notso_direct_declarator {
 	     }
 	     $$.type = $1;
 	   }
-           | pointer idcolon DSTAR LAND PERIOD PERIOD PERIOD notso_direct_declarator { 
-	     $$ = $8;
+           | pointer idcolon DSTAR LAND ELLIPSIS notso_direct_declarator {
+	     $$ = $6;
 	     SwigType_add_memberpointer($1,$2);
 	     SwigType_add_rvalue_reference($1);
 	     if ($$.type) {
@@ -5546,9 +5600,9 @@ declarator :  pointer notso_direct_declarator {
 	     }
 	     $$.type = $1;
 	   }
-           | idcolon DSTAR AND PERIOD PERIOD PERIOD notso_direct_declarator { 
+           | idcolon DSTAR AND ELLIPSIS notso_direct_declarator {
 	     SwigType *t = NewStringEmpty();
-	     $$ = $7;
+	     $$ = $5;
 	     SwigType_add_memberpointer(t,$1);
 	     SwigType_add_reference(t);
 	     if ($$.type) {
@@ -5557,9 +5611,9 @@ declarator :  pointer notso_direct_declarator {
 	     } 
 	     $$.type = t;
 	   }
-           | idcolon DSTAR LAND PERIOD PERIOD PERIOD notso_direct_declarator { 
+           | idcolon DSTAR LAND ELLIPSIS notso_direct_declarator {
 	     SwigType *t = NewStringEmpty();
-	     $$ = $7;
+	     $$ = $5;
 	     SwigType_add_memberpointer(t,$1);
 	     SwigType_add_rvalue_reference(t);
 	     if ($$.type) {
@@ -6197,19 +6251,19 @@ primitive_type_list : type_specifier {
 			} else if (Cmp($1.type,"double") == 0) {
 			  if (Cmp($2.type,"long") == 0) {
 			    $$.type = NewString("long double");
-			  } else if (Cmp($2.type,"complex") == 0) {
-			    $$.type = NewString("double complex");
+			  } else if (Cmp($2.type,"_Complex") == 0) {
+			    $$.type = NewString("double _Complex");
 			  } else {
 			    err = 1;
 			  }
 			} else if (Cmp($1.type,"float") == 0) {
-			  if (Cmp($2.type,"complex") == 0) {
-			    $$.type = NewString("float complex");
+			  if (Cmp($2.type,"_Complex") == 0) {
+			    $$.type = NewString("float _Complex");
 			  } else {
 			    err = 1;
 			  }
-			} else if (Cmp($1.type,"complex") == 0) {
-			  $$.type = NewStringf("%s complex", $2.type);
+			} else if (Cmp($1.type,"_Complex") == 0) {
+			  $$.type = NewStringf("%s _Complex", $2.type);
 			} else {
 			  err = 1;
 			}
@@ -6259,7 +6313,7 @@ type_specifier : TYPE_INT {
                     $$.type = 0;
                 }
                | TYPE_COMPLEX { 
-                    $$.type = NewString("complex");
+                    $$.type = NewString("_Complex");
                     $$.us = 0;
                 }
                | TYPE_NON_ISO_INT8 { 
@@ -6293,6 +6347,7 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		   $$.throws = 0;
 		   $$.throwf = 0;
 		   $$.nexcept = 0;
+		   $$.final = 0;
 		   scanner_ignore_typedef();
                 }
                 | default_delete {
@@ -6319,6 +6374,7 @@ deleted_definition : DELETE_KW {
 		  $$.throws = 0;
 		  $$.throwf = 0;
 		  $$.nexcept = 0;
+		  $$.final = 0;
 		}
 		;
 
@@ -6333,6 +6389,7 @@ explicit_default : DEFAULT {
 		  $$.throws = 0;
 		  $$.throwf = 0;
 		  $$.nexcept = 0;
+		  $$.final = 0;
 		}
 		;
 
@@ -6342,45 +6399,58 @@ ename          :  identifier { $$ = $1; }
 	       |  empty { $$ = (char *) 0;}
 	       ;
 
-optional_ignored_define
-		: constant_directive
+constant_directives : constant_directive
+		| constant_directive constant_directives
+		;
+
+optional_ignored_defines
+		: constant_directives
 		| empty
 		;
 
-optional_ignored_define_after_comma
-		: empty
-		| COMMA
-		| COMMA constant_directive
-		;
-
 /* Enum lists - any #define macros (constant directives) within the enum list are ignored. Trailing commas accepted. */
-enumlist	: enumlist_item optional_ignored_define_after_comma {
+
+/*
+   Note that "_last" attribute is not supposed to be set on the last enum element, as might be expected from its name, but on the _first_ one, and _only_ on it,
+   so we propagate it back to the first item while parsing and reset it on all the subsequent ones.
+ */
+
+enumlist	: enumlist_item {
 		  Setattr($1,"_last",$1);
 		  $$ = $1;
 		}
-		| enumlist_item enumlist_tail optional_ignored_define_after_comma {
-		  set_nextSibling($1, $2);
-		  Setattr($1,"_last",Getattr($2,"_last"));
-		  Setattr($2,"_last",NULL);
+		| enumlist_item DOXYGENPOSTSTRING {
+		  Setattr($1,"_last",$1);
+		  set_comment($1, $2);
 		  $$ = $1;
 		}
-		| optional_ignored_define {
+		| enumlist_item COMMA enumlist {
+		  if ($3) {
+		    set_nextSibling($1, $3);
+		    Setattr($1,"_last",Getattr($3,"_last"));
+		    Setattr($3,"_last",NULL);
+		  } else {
+		    Setattr($1,"_last",$1);
+		  }
+		  $$ = $1;
+		}
+		| enumlist_item COMMA DOXYGENPOSTSTRING enumlist {
+		  if ($4) {
+		    set_nextSibling($1, $4);
+		    Setattr($1,"_last",Getattr($4,"_last"));
+		    Setattr($4,"_last",NULL);
+		  } else {
+		    Setattr($1,"_last",$1);
+		  }
+		  set_comment($1, $3);
+		  $$ = $1;
+		}
+		| optional_ignored_defines {
 		  $$ = 0;
 		}
 		;
 
-enumlist_tail	: COMMA enumlist_item {
-		  Setattr($2,"_last",$2);
-		  $$ = $2;
-		}
-		| enumlist_tail COMMA enumlist_item {
-		  set_nextSibling(Getattr($1,"_last"), $3);
-		  Setattr($1,"_last",$3);
-		  $$ = $1;
-		}
-		;
-
-enumlist_item	: optional_ignored_define edecl_with_dox optional_ignored_define {
+enumlist_item	: optional_ignored_defines edecl_with_dox optional_ignored_defines {
 		  $$ = $2;
 		}
 		;
@@ -6391,19 +6461,6 @@ edecl_with_dox	: edecl {
 		| DOXYGENSTRING edecl {
 		  $$ = $2;
 		  set_comment($2, $1);
-		}
-		| edecl DOXYGENPOSTSTRING {
-		  $$ = $1;
-		  set_comment($1, $2);
-		}
-		| DOXYGENPOSTSTRING edecl {
-		  $$ = $2;
-		  set_comment(previousNode, $1);
-		}
-		| DOXYGENPOSTSTRING edecl DOXYGENPOSTSTRING {
-		  $$ = $2;
-		  set_comment(previousNode, $1);
-		  set_comment($2, $3);
 		}
 		;
 
@@ -6471,19 +6528,18 @@ exprmem        : ID ARROW ID {
 		 $$ = $1;
 		 Printf($$.val, "->%s", $3);
 	       }
-/* This generates a shift-reduce
 	       | ID PERIOD ID {
 		 $$.val = NewStringf("%s.%s", $1, $3);
 		 $$.type = 0;
 	       }
-*/
 	       | exprmem PERIOD ID {
 		 $$ = $1;
 		 Printf($$.val, ".%s", $3);
 	       }
 	       ;
 
-valexpr        : exprnum {
+/* Non-compound expression */
+exprsimple     : exprnum {
 		    $$ = $1;
                }
                | exprmem {
@@ -6498,12 +6554,30 @@ valexpr        : exprnum {
 		  $$.val = NewStringf("sizeof(%s)",SwigType_str($3,0));
 		  $$.type = T_ULONG;
                }
-               | SIZEOF PERIOD PERIOD PERIOD LPAREN type parameter_declarator RPAREN {
-		  SwigType_push($6,$7.type);
-		  $$.val = NewStringf("sizeof...(%s)",SwigType_str($6,0));
+               | SIZEOF ELLIPSIS LPAREN type parameter_declarator RPAREN {
+		  SwigType_push($4,$5.type);
+		  $$.val = NewStringf("sizeof...(%s)",SwigType_str($4,0));
 		  $$.type = T_ULONG;
                }
-               | exprcompound { $$ = $1; }
+	       /* We don't support all valid expressions here currently - e.g.
+		* sizeof(<unaryop> x) doesn't work - but those are unlikely to
+		* be seen in real code.
+		*
+		* Note: sizeof(x) is not handled here, but instead by the rule
+		* for sizeof(<type>) because it matches that syntactically.
+		*/
+	       | SIZEOF LPAREN exprsimple RPAREN {
+		  $$.val = NewStringf("sizeof(%s)", $3.val);
+		 $$.type = T_ULONG;
+	       }
+	       /* `sizeof expr` without parentheses is valid for an expression,
+		* but not for a type.  This doesn't support `sizeof x` in
+		* addition to the case not supported above.
+		*/
+	       | SIZEOF exprsimple {
+		  $$.val = NewStringf("sizeof(%s)", $2.val);
+		  $$.type = T_ULONG;
+	       }
 	       | wstring {
 		    $$.val = $1;
 		    $$.rawval = NewStringf("L\"%s\"", $$.val);
@@ -6521,6 +6595,7 @@ valexpr        : exprnum {
 		  $$.throws = 0;
 		  $$.throwf = 0;
 		  $$.nexcept = 0;
+		  $$.final = 0;
 	       }
                | WCHARCONST {
 		  $$.val = NewString($1);
@@ -6534,7 +6609,13 @@ valexpr        : exprnum {
 		  $$.throws = 0;
 		  $$.throwf = 0;
 		  $$.nexcept = 0;
+		  $$.final = 0;
 	       }
+
+               ;
+
+valexpr        : exprsimple { $$ = $1; }
+	       | exprcompound { $$ = $1; }
 
 /* grouping */
                |  LPAREN expr RPAREN %prec CAST {
@@ -6614,7 +6695,7 @@ valexpr        : exprnum {
 		 $$ = $2;
                  $$.val = NewStringf("*%s",$2.val);
 	       }
-               ;
+	       ;
 
 exprnum        :  NUM_INT { $$ = $1; }
                |  NUM_FLOAT { $$ = $1; }
@@ -6682,16 +6763,24 @@ exprcompound   : expr PLUS expr {
 		 $$.val = NewStringf("%s!=%s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
-/* Sadly this causes 2 reduce-reduce conflicts with templates.  FIXME resolve these.
-               | expr GREATERTHAN expr {
-		 $$.val = NewStringf("%s > %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
+	       /* Trying to parse `>` in the general case results in conflicts
+		* in the parser, but all user-reported cases are actually inside
+		* parentheses and we can handle that case.
+		*/
+	       | LPAREN expr GREATERTHAN expr RPAREN {
+		 $$.val = NewStringf("%s > %s", COMPOUND_EXPR_VAL($2), COMPOUND_EXPR_VAL($4));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
-               | expr LESSTHAN expr {
-		 $$.val = NewStringf("%s < %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
+
+	       /* Similarly for `<` except trying to handle exprcompound on the
+		* left side gives a shift/reduce conflict, so also restrict
+		* handling to non-compound subexpressions there.  Again this
+		* covers all user-reported cases.
+		*/
+               | LPAREN exprsimple LESSTHAN expr RPAREN {
+		 $$.val = NewStringf("%s < %s", COMPOUND_EXPR_VAL($2), COMPOUND_EXPR_VAL($4));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
-*/
                | expr GREATERTHANOREQUALTO expr {
 		 $$.val = NewStringf("%s >= %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
@@ -6738,13 +6827,8 @@ exprcompound   : expr PLUS expr {
                }
                ;
 
-ellipsis      : PERIOD PERIOD PERIOD {
+variadic      : ELLIPSIS {
 	        $$ = NewString("...");
-	      }
-	      ;
-
-variadic      : ellipsis {
-	        $$ = $1;
 	      }
 	      | empty {
 	        $$ = 0;
@@ -6835,11 +6919,11 @@ templcpptype   : CLASS {
                    $$ = (char *)"typename"; 
 		   if (!inherit_list) last_cpptype = $$;
                }
-               | CLASS PERIOD PERIOD PERIOD { 
+               | CLASS ELLIPSIS {
                    $$ = (char *)"class..."; 
 		   if (!inherit_list) last_cpptype = $$;
                }
-               | TYPENAME PERIOD PERIOD PERIOD { 
+               | TYPENAME ELLIPSIS {
                    $$ = (char *)"typename..."; 
 		   if (!inherit_list) last_cpptype = $$;
                }
@@ -6888,18 +6972,18 @@ virt_specifier_seq : OVERRIDE {
                    $$ = 0;
 	       }
 	       | FINAL {
-                   $$ = 0;
+                   $$ = NewString("1");
 	       }
 	       | FINAL OVERRIDE {
-                   $$ = 0;
+                   $$ = NewString("1");
 	       }
 	       | OVERRIDE FINAL {
-                   $$ = 0;
+                   $$ = NewString("1");
 	       }
                ;
 
 virt_specifier_seq_opt : virt_specifier_seq {
-                   $$ = 0;
+                   $$ = $1;
                }
                | empty {
                    $$ = 0;
@@ -6910,31 +6994,37 @@ exception_specification : THROW LPAREN parms RPAREN {
                     $$.throws = $3;
                     $$.throwf = NewString("1");
                     $$.nexcept = 0;
+                    $$.final = 0;
 	       }
 	       | NOEXCEPT {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = NewString("true");
+                    $$.final = 0;
 	       }
 	       | virt_specifier_seq {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = 0;
+                    $$.final = $1;
 	       }
 	       | THROW LPAREN parms RPAREN virt_specifier_seq {
                     $$.throws = $3;
                     $$.throwf = NewString("1");
                     $$.nexcept = 0;
+                    $$.final = $5;
 	       }
 	       | NOEXCEPT virt_specifier_seq {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = NewString("true");
+                    $$.final = $2;
 	       }
 	       | NOEXCEPT LPAREN expr RPAREN {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = $3.val;
+                    $$.final = 0;
 	       }
 	       ;	
 
@@ -6942,6 +7032,7 @@ qualifiers_exception_specification : cv_ref_qualifier {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = 0;
+                    $$.final = 0;
                     $$.qualifier = $1.qualifier;
                     $$.refqualifier = $1.refqualifier;
                }
@@ -6964,6 +7055,7 @@ cpp_const      : qualifiers_exception_specification {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = 0;
+                    $$.final = 0;
                     $$.qualifier = 0;
                     $$.refqualifier = 0;
                }
@@ -6976,6 +7068,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
 		    $$.nexcept = $1.nexcept;
+		    $$.final = $1.final;
                     if ($1.qualifier)
                       Swig_error(cparse_file, cparse_line, "Constructor cannot have a qualifier.\n");
                }
@@ -6986,6 +7079,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.throws = $1.throws;
                     $$.throwf = $1.throwf;
                     $$.nexcept = $1.nexcept;
+                    $$.final = $1.final;
                     if ($1.qualifier)
                       Swig_error(cparse_file, cparse_line, "Constructor cannot have a qualifier.\n");
                }
@@ -6997,6 +7091,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
 		    $$.throws = 0;
 		    $$.throwf = 0;
 		    $$.nexcept = 0;
+		    $$.final = 0;
                }
                | LPAREN parms RPAREN LBRACE {
                     skip_balanced('{','}'); 
@@ -7006,6 +7101,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = 0;
+                    $$.final = 0;
                }
                | EQUAL definetype SEMI { 
                     $$.have_parms = 0; 
@@ -7013,6 +7109,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.throws = 0;
                     $$.throwf = 0;
                     $$.nexcept = 0;
+                    $$.final = 0;
                }
                | exception_specification EQUAL default_delete SEMI {
                     $$.have_parms = 0;
@@ -7020,6 +7117,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.throws = $1.throws;
                     $$.throwf = $1.throwf;
                     $$.nexcept = $1.nexcept;
+                    $$.final = $1.final;
                     if ($1.qualifier)
                       Swig_error(cparse_file, cparse_line, "Constructor cannot have a qualifier.\n");
                }
@@ -7031,8 +7129,8 @@ ctor_initializer : COLON mem_initializer_list
 
 mem_initializer_list : mem_initializer
                | mem_initializer_list COMMA mem_initializer
-               | mem_initializer PERIOD PERIOD PERIOD
-               | mem_initializer_list COMMA mem_initializer PERIOD PERIOD PERIOD
+               | mem_initializer ELLIPSIS
+               | mem_initializer_list COMMA mem_initializer ELLIPSIS
                ;
 
 mem_initializer : idcolon LPAREN {

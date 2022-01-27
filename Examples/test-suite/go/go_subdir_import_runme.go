@@ -1,9 +1,9 @@
 package main
 
 import (
-	"go_subdir_import_a"
-	"testdir/go_subdir_import/go_subdir_import_b"
-	"testdir/go_subdir_import/go_subdir_import_c"
+	"swigtests/go_subdir_import_a"
+	"swigtests/testdir/go_subdir_import/go_subdir_import_b"
+	"swigtests/testdir/go_subdir_import/go_subdir_import_c"
 )
 
 func main() {

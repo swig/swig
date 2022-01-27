@@ -58,7 +58,7 @@ template SwigOperatorDefinitions() {
 
 %rename(opCall) *::operator();
   
-// !a is not overrideable in D1.
+// !a is not overridable in D1.
 %ignoreoperator(LNOT) operator!;
 
 // opCmp is used in D.
@@ -71,7 +71,7 @@ template SwigOperatorDefinitions() {
 // a != b is rewritten as !a.opEquals(b) in D.
 %ignoreoperator(NOTEQUAL) operator!=;
 
-// The logic operators are not overrideable in D.
+// The logic operators are not overridable in D.
 %ignoreoperator(LAND) operator&&;
 %ignoreoperator(LOR) operator||;
 
@@ -198,7 +198,7 @@ mixin template SwigOperatorDefinitions() {
 // a != b is rewritten as !a.opEquals(b) in D.
 %ignoreoperator(NOTEQUAL) operator!=;
 
-// The logic operators are not overrideable in D.
+// The logic operators are not overridable in D.
 %ignoreoperator(LAND) operator&&;
 %ignoreoperator(LOR) operator||;
 

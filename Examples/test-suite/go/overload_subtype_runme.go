@@ -1,6 +1,6 @@
 package main
 
-import . "./overload_subtype"
+import . "swigtests/overload_subtype"
 
 func main() {
 	f := NewFoo()

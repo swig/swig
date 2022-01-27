@@ -1,6 +1,6 @@
 package main
 
-import _ "./empty"
+import _ "swigtests/empty"
 
 func main() {
 }

@@ -109,7 +109,6 @@ as this is overloaded by the const char* version
     public:
       string();
       string(const char*);
-      //string(const string&);
       unsigned int size() const;
       unsigned int length() const;
       bool empty() const;
@@ -119,7 +118,6 @@ as this is overloaded by the const char* version
       // assign does not return a copy of this object
       // (no point in a scripting language)
       void assign(const char*);
-      //void assign(const string&);
       // no support for all the other features
       // it's probably better to do it in lua
   };

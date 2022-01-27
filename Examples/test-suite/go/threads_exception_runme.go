@@ -1,7 +1,7 @@
 package main
 
 import "strings"
-import "./threads_exception"
+import "swigtests/threads_exception"
 
 func main() {
 	t := threads_exception.NewTest()

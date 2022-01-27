@@ -1,6 +1,5 @@
 
 import doxygen_parsing.*;
-import com.sun.javadoc.*;
 import java.util.HashMap;
 
 public class doxygen_parsing_runme {
@@ -15,14 +14,7 @@ public class doxygen_parsing_runme {
 
   public static void main(String argv[]) 
   {
-    /*
-      Here we are using internal javadoc tool, it accepts the name of the class as paramterer,
-      and calls the start() method of that class with parsed information.
-    */
-    CommentParser parser = new CommentParser();
-    com.sun.tools.javadoc.Main.execute("doxygen_parsing runtime test",
-                                       "CommentParser",
-                                       new String[]{"-quiet", "doxygen_parsing"});
+    CommentParser.parse("doxygen_parsing");
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     
@@ -52,6 +44,12 @@ public class doxygen_parsing_runme {
     wantedComments.put("doxygen_parsing.SomeStruct",
     		" The struct comment \n" +
     		" \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeStruct.setWidth(int)",
+    		"**immutable** image width in pixels \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeStruct.getWidth()",
+    		"**immutable** image width in pixels \n" +
     		"");
     wantedComments.put("doxygen_parsing.doxygen_parsing.setSomeVar(int)",
     		" The var comment \n" +
@@ -136,6 +134,6 @@ public class doxygen_parsing_runme {
     		"");
     
     // and ask the parser to check comments for us
-    System.exit(parser.check(wantedComments));
+    System.exit(CommentParser.check(wantedComments));
   }
 }

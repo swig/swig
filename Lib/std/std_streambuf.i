@@ -81,7 +81,7 @@ namespace std {
     basic_streambuf();
 
   private:
-    basic_streambuf(const basic_streambuf&);
+    basic_streambuf(const basic_streambuf& other);
 
   }; 
 }

@@ -24,8 +24,8 @@
 (check "ulonglong" 6432 =)
 
 ;; The checking of inoutr-int2 and out-foo is done in the individual
-;; language runme scripts, since chicken returns multiple values
-;; and must be checked with call-with-values, while guile just returns a list
+;; language runme scripts, since how multiple values are returned
+;; differs between scheme variants.
 
 ;(call-with-values (lambda () (inoutr-int2 3 -2))
 ;		  (lambda (a b)

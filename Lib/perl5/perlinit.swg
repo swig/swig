@@ -4,14 +4,10 @@
 #ifdef __cplusplus
 extern "C"
 #endif
-#ifndef PERL_OBJECT
 #ifndef MULTIPLICITY
 SWIGEXPORT void SWIG_init (CV* cv);
 #else
 SWIGEXPORT void SWIG_init (pTHXo_ CV* cv);
-#endif
-#else
-SWIGEXPORT void SWIG_init (CV *cv, CPerlObj *);
 #endif
 %}
 

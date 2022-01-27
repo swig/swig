@@ -1,5 +1,4 @@
 import doxygen_nested_class.*;
-import com.sun.javadoc.*;
 import java.util.HashMap;
 
 public class doxygen_nested_class_runme {
@@ -14,14 +13,7 @@ public class doxygen_nested_class_runme {
 
   public static void main(String argv[]) 
   {
-    /*
-      Here we are using internal javadoc tool, it accepts the name of the class as paramterer,
-      and calls the start() method of that class with parsed information.
-    */
-    CommentParser parser = new CommentParser();
-    com.sun.tools.javadoc.Main.execute("doxygen_nested_class runtime test",
-                                       "CommentParser",
-                                       new String[]{"-quiet", "doxygen_nested_class"});
+    CommentParser.parse("doxygen_nested_class");
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     
@@ -43,6 +35,6 @@ public class doxygen_nested_class_runme {
     		" doxShort const variable ");
     
     // and ask the parser to check comments for us
-    System.exit(parser.check(wantedComments));
+    System.exit(CommentParser.check(wantedComments));
   }
 }

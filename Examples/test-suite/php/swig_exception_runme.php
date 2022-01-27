@@ -1,6 +1,5 @@
 <?php
 
-require("swig_exception.php");
 require("tests.php");
 
 $c = new Circle(10);
@@ -30,4 +29,4 @@ if (Shape::nshapes() != 0) {
     check::fail("Shape::nshapes() should be 0, actually ".Shape::nshapes());
 }
 
-?>
+check::done();

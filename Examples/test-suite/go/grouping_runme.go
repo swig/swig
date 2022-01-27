@@ -1,6 +1,6 @@
 package main
 
-import "./grouping"
+import "swigtests/grouping"
 
 func main() {
 	x := grouping.Test1(42)

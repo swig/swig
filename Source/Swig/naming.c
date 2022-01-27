@@ -439,8 +439,8 @@ DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType
     rn = name_object_get(namehash, name, decl, ncdecl);
   }
   if (!rn && Swig_scopename_check(name)) {
-    String *nprefix = NewStringEmpty();
-    String *nlast = NewStringEmpty();
+    String *nprefix = 0;
+    String *nlast = 0;
     Swig_scopename_split(name, &nprefix, &nlast);
     rn = name_object_get(namehash, nlast, decl, ncdecl);
     Delete(nlast);
@@ -579,8 +579,8 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
   if (name && SwigType_istemplate(name)) {
     String *nodetype = nodeType(node);
     if (nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor"))) {
-      String *nprefix = NewStringEmpty();
-      String *nlast = NewStringEmpty();
+      String *nprefix = 0;
+      String *nlast = 0;
       String *tprefix;
       Swig_scopename_split(name, &nprefix, &nlast);
       tprefix = SwigType_templateprefix(nlast);
@@ -1092,33 +1092,39 @@ static DOH *get_lattr(Node *n, List *lattr) {
 }
 
 #ifdef HAVE_PCRE
-#include <pcre.h>
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 
 static int name_regexmatch_value(Node *n, String *pattern, String *s) {
-  pcre *compiled_pat;
-  const char *err;
-  int errpos;
+  pcre2_code *compiled_pat;
+  PCRE2_UCHAR err[256];
+  int errornum;
+  size_t errpos;
   int rc;
 
-  compiled_pat = pcre_compile(Char(pattern), 0, &err, &errpos, NULL);
+  compiled_pat = pcre2_compile((PCRE2_SPTR8)Char(pattern), PCRE2_ZERO_TERMINATED, 0, &errornum, &errpos, NULL);
   if (!compiled_pat) {
+    pcre2_get_error_message (errornum, err, sizeof err);
     Swig_error("SWIG", Getline(n),
                "Invalid regex \"%s\": compilation failed at %d: %s\n",
                Char(pattern), errpos, err);
-    exit(1);
+    SWIG_exit(EXIT_FAILURE);
   }
 
-  rc = pcre_exec(compiled_pat, NULL, Char(s), Len(s), 0, 0, NULL, 0);
-  pcre_free(compiled_pat);
+  pcre2_match_data *match_data = 0;
+  match_data = pcre2_match_data_create_from_pattern (compiled_pat, NULL);
+  rc = pcre2_match(compiled_pat, (PCRE2_SPTR8)Char(s), PCRE2_ZERO_TERMINATED, 0, 0, match_data, 0);
+  pcre2_code_free(compiled_pat);
+  pcre2_match_data_free(match_data);
 
-  if (rc == PCRE_ERROR_NOMATCH)
+  if (rc == PCRE2_ERROR_NOMATCH)
     return 0;
 
   if (rc < 0 ) {
     Swig_error("SWIG", Getline(n),
                "Matching \"%s\" against regex \"%s\" failed: %d\n",
                Char(s), Char(pattern), rc);
-    exit(1);
+    SWIG_exit(EXIT_FAILURE);
   }
 
   return 1;
@@ -1131,7 +1137,8 @@ static int name_regexmatch_value(Node *n, String *pattern, String *s) {
   (void)s;
   Swig_error("SWIG", Getline(n),
              "PCRE regex matching is not available in this SWIG build.\n");
-  exit(1);
+  SWIG_exit(EXIT_FAILURE);
+  return 0;
 }
 
 #endif /* HAVE_PCRE/!HAVE_PCRE */
@@ -1377,12 +1384,15 @@ void Swig_name_rename_add(String *prefix, String *name, SwigType *decl, Hash *ne
 }
 
 
-/* Create a name applying rename/namewarn if needed */
-static String *apply_rename(String *newname, int fullname, String *prefix, String *name) {
+/* Create a name for the given node applying rename/namewarn if needed */
+static String *apply_rename(Node* n, String *newname, int fullname, String *prefix, String *name) {
   String *result = 0;
   if (newname && Len(newname)) {
     if (Strcmp(newname, "$ignore") == 0) {
-      result = Copy(newname);
+      /* $ignore doesn't apply to parameters and while it's rare to explicitly write %ignore directives for them they could be caught by a wildcard ignore using
+         regex match, just ignore the attempt to ignore them in this case */
+      if (!Equal(nodeType(n), "parm"))
+	result = Copy(newname);
     } else {
       char *cnewname = Char(newname);
       if (cnewname) {
@@ -1431,8 +1441,8 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
   if (name && n && SwigType_istemplate(name)) {
     String *nodetype = nodeType(n);
     if (nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor"))) {
-      String *nprefix = NewStringEmpty();
-      String *nlast = NewStringEmpty();
+      String *nprefix = 0;
+      String *nlast = 0;
       String *tprefix;
       Swig_scopename_split(name, &nprefix, &nlast);
       tprefix = SwigType_templateprefix(nlast);
@@ -1480,7 +1490,7 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
     if (rn) {
       String *newname = Getattr(rn, "name");
       int fullname = GetFlag(rn, "fullname");
-      result = apply_rename(newname, fullname, prefix, name);
+      result = apply_rename(n, newname, fullname, prefix, name);
     }
     if (result && !Equal(result, name)) {
       /* operators in C++ allow aliases, we look for them */
@@ -1504,13 +1514,13 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
 	int fullname = GetFlag(wrn, "fullname");
 	if (result)
 	  Delete(result);
-	result = apply_rename(rename, fullname, prefix, name);
+	result = apply_rename(n, rename, fullname, prefix, name);
 	if ((msg) && (Len(msg))) {
 	  if (!Getmeta(nname, "already_warned")) {
 	    if (n) {
 	      /* Parameter renaming is not fully implemented. Mainly because there is no C/C++ syntax to
 	       * for %rename to fully qualify a function's parameter name from outside the function. Hence it
-	       * is not possible to implemented targetted warning suppression on one parameter in one function. */
+	       * is not possible to implemented targeted warning suppression on one parameter in one function. */
 	      int suppress_parameter_rename_warning = Equal(nodeType(n), "parm");
 	      if (!suppress_parameter_rename_warning) {
 		SWIG_WARN_NODE_BEGIN(n);
@@ -1656,12 +1666,13 @@ String *Swig_name_str(Node *n) {
   if (SwigType_istemplate(name)) {
     String *nodetype = nodeType(n);
     if (nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor"))) {
-      String *nprefix = NewStringEmpty();
-      String *nlast = NewStringEmpty();
+      String *nprefix = 0;
+      String *nlast = 0;
       String *tprefix;
       Swig_scopename_split(name, &nprefix, &nlast);
       tprefix = SwigType_templateprefix(nlast);
       Delete(nlast);
+      Delete(nprefix);
       Delete(name);
       name = tprefix;
     }

@@ -1,6 +1,6 @@
 package main
 
-import . "./director_alternating"
+import . "swigtests/director_alternating"
 
 func main() {
 	id := GetBar().Id()

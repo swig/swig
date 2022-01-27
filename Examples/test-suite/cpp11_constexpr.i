@@ -4,6 +4,15 @@
 %module cpp11_constexpr
 
 
+%{
+#if defined(__clang__)
+#pragma clang diagnostic push
+// Suppress: 'constexpr' non-static member function will not be implicitly 'const' in C++14; add 'const' to avoid a change in behavior
+// For MMM() and NNN()
+#pragma clang diagnostic ignored "-Wconstexpr-not-const"
+#endif
+%}
+
 %inline %{
 #ifdef SWIG
 #define SWIGTESTCONST const
@@ -43,4 +52,13 @@ int Array200[ConstExpressions::KKK];
 int Array300[ConstExpressions::LLL];
 //int Array400[ConstExpressions::MMM()];
 //int Array500[ConstExpressions::NNN()];
+%}
+
+%{
+// Test handling of ID PERIOD ID in constant expressions (supported since 4.1.0).
+struct A {
+    int i;
+};
+constexpr A a{42};
+constexpr int N = a.i;
 %}

@@ -95,6 +95,7 @@ struct MyFoo; // %attribute2 does not work with templates
 
 // class/struct attribute with get/set methods using return/pass by reference
 %attribute2(MyClass, MyFoo, Foo, GetFoo, SetFoo);
+%attribute2ref(MyClass, MyFoo, Foo2);
 %inline %{
   struct MyFoo { 
     MyFoo() : x(-1) {}
@@ -102,9 +103,11 @@ struct MyFoo; // %attribute2 does not work with templates
   };
   class MyClass {
     MyFoo foo;
+    MyFoo foo2;
   public:
     MyFoo& GetFoo() { return foo; }
     void SetFoo(const MyFoo& other) { foo = other; }
+    MyFoo& Foo2() { return foo2; }
   };
 %} 
 

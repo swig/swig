@@ -40,9 +40,10 @@ private {
   } else {
     version(D_Version2) {
       static import std.conv;
+    } else {
+      static import std.c.string;
     }
     static import std.string;
-    static import std.c.string;
   }
 
   version(D_Version2) {
@@ -112,7 +113,7 @@ private {
     version(Tango) {
       import tango.sys.Common;
     } else version(linux) {
-      import std.c.linux.linux;
+      import core.sys.posix.dlfcn;
     } else {
       extern(C) {
         const RTLD_NOW = 2;

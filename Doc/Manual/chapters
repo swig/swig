@@ -5,7 +5,9 @@ Scripting.html
 SWIG.html
 SWIGPlus.html
 CPlusPlus11.html
+CPlusPlus14.html
 CPlusPlus17.html
+CPlusPlus20.html
 Preprocessor.html
 Library.html
 Arguments.html
@@ -25,8 +27,6 @@ Guile.html
 Java.html
 Javascript.html
 Lua.html
-Mzscheme.html
-Ocaml.html
 Octave.html
 Perl5.html
 Php.html
@@ -35,4 +35,6 @@ R.html
 Ruby.html
 Scilab.html
 Tcl.html
+Mzscheme.html
+Ocaml.html
 Extending.html

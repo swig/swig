@@ -1,6 +1,6 @@
 package main
 
-import . "./director_default"
+import . "swigtests/director_default"
 
 func main() {
 	NewFoo()

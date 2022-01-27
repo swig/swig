@@ -16,9 +16,9 @@
           char * endptr;
           errno = 0;
           lvar = (t) strtoll(Z_STRVAL(invar), &endptr, 10);
-          if (*endptr && !errno) break;
-          /* FALL THRU */
+          if (*endptr == '\0' && !errno) break;
       }
+      /* FALL THRU */
       default:
           lvar = (t) zval_get_long(&invar);
   }
@@ -33,9 +33,9 @@
           char * endptr;
           errno = 0;
           lvar = (t) strtoull(Z_STRVAL(invar), &endptr, 10);
-          if (*endptr && !errno) break;
-          /* FALL THRU */
+          if (*endptr == '\0' && !errno) break;
       }
+      /* FALL THRU */
       default:
           lvar = (t) zval_get_long(&invar);
   }
@@ -63,34 +63,33 @@
   }
 %enddef
 
-%define %pass_by_val( TYPE, CONVERT_IN )
-%typemap(in) TYPE
+%define %pass_by_val( TYPE, PHP_TYPE, CONVERT_IN )
+%typemap(in, phptype=PHP_TYPE) TYPE
 %{
   CONVERT_IN($1,$1_ltype,$input);
 %}
-%typemap(in) const TYPE & ($*1_ltype temp)
+%typemap(in, phptype=PHP_TYPE) const TYPE & ($*1_ltype temp)
 %{
   CONVERT_IN(temp,$*1_ltype,$input);
   $1 = &temp;
 %}
 %typemap(directorout) TYPE
 %{
-  if (!EG(exception)) {
-    CONVERT_IN($result, $1_ltype, *$input);
-  } else {
-    typedef $1_ltype swig_result_typedef;
-    $result = swig_result_typedef();
-  }
+  CONVERT_IN($result, $1_ltype, *$input);
 %}
-%typemap(directorout) const TYPE & ($*1_ltype temp)
+%typemap(directorout) const TYPE &
 %{
-  if (!EG(exception)) {
-    CONVERT_IN(temp, $*1_ltype, *$input);
-  } else {
-    typedef $*1_ltype swig_result_typedef;
-    temp = swig_result_typedef();
+  $*1_ltype swig_val;
+  CONVERT_IN(swig_val, $*1_ltype, *$input);
+  $1_ltype temp = new $*1_ltype(($*1_ltype)swig_val);
+  swig_acquire_ownership(temp);
+  $result = temp;
+%}
+%typemap(directorfree) const TYPE &
+%{
+  if (director) {
+    director->swig_release_ownership(%as_voidptr($input));
   }
-  $result = &temp;
 %}
 %enddef
 

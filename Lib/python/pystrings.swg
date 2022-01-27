@@ -32,9 +32,11 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
     if (alloc)
       *alloc = SWIG_NEWOBJ;
 %#endif
-    PyBytes_AsStringAndSize(obj, &cstr, &len);
+    if (PyBytes_AsStringAndSize(obj, &cstr, &len) == -1)
+      return SWIG_TypeError;
 %#else
-    PyString_AsStringAndSize(obj, &cstr, &len);
+    if (PyString_AsStringAndSize(obj, &cstr, &len) == -1)
+      return SWIG_TypeError;
 %#endif
     if (cptr) {
       if (alloc) {

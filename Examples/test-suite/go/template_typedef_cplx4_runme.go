@@ -1,6 +1,6 @@
 package main
 
-import . "./template_typedef_cplx4"
+import . "swigtests/template_typedef_cplx4"
 
 func main() {
 	// this is OK

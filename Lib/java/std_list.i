@@ -43,7 +43,7 @@ namespace std {
     this();
     java.util.ListIterator<$typemap(jboxtype, T)> it = listIterator(0);
     // Special case the "copy constructor" here to avoid lots of cross-language calls
-    for (Object o : c) {
+    for (java.lang.Object o : c) {
       it.add(($typemap(jboxtype, T))o);
     }
   }
@@ -130,8 +130,12 @@ namespace std {
 
   public:
     typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
     typedef T value_type;
-    typedef T &reference;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
+    typedef value_type& reference;
+    typedef const value_type& const_reference;
 
     /*
      * We'd actually be better off having the nested class *not* be static in the wrapper
@@ -173,7 +177,8 @@ namespace std {
     };
 
     list();
-    list(const list &other);
+    list(const list& other);
+
     %rename(isEmpty) empty;
     bool empty() const;
     void clear();
@@ -193,11 +198,6 @@ namespace std {
 
     %extend {
       %fragment("SWIG_ListSize");
-      list(jint count) throw (std::out_of_range) {
-        if (count < 0)
-          throw std::out_of_range("list count must be positive");
-        return new std::list<T>(static_cast<std::list<T>::size_type>(count));
-      }
 
       list(jint count, const T &value) throw (std::out_of_range) {
         if (count < 0)
