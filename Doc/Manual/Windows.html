@@ -250,12 +250,13 @@ For fully working build steps always check the Continuous Integration (CI) setup
     <li>
         Unfortunately, PCRE2 is not yet available on Nuget. Instead we will use CMake to build and install <a href="https://www.pcre.org/">PCRE2</a> to <tt>C:\Tools\pcre2</tt> using the following commands:
         <div class="shell"><pre>
-        cd C:\
-        SET PATH=C:\Tools\CMake\CMake-win64.3.15.5\bin;%PATH%
-        git clone https://github.com/PhilipHazel/pcre2.git
-        cd pcre2
-        cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_INSTALL_PREFIX=C:/Tools/pcre2 -S . -B build
-        cmake --build build --config Release --target install</pre></div>
+cd C:\
+SET PATH=C:\Tools\CMake\CMake-win64.3.15.5\bin;%PATH%
+git clone https://github.com/PhilipHazel/pcre2.git
+cd pcre2
+cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_INSTALL_PREFIX=C:/Tools/pcre2 -S . -B build
+cmake --build build --config Release --target install
+        </pre></div>
         Alternatively, set <tt>WITH_PCRE=OFF</tt> to disable PCRE2 support if you are sure you do not require it.
     </li>
     <li>
@@ -270,19 +271,19 @@ For fully working build steps always check the Continuous Integration (CI) setup
         architecture. We add the required build tools to the system PATH, and then
         build a Release version of SWIG. If all runs successfully a new swig.exe should be generated in the <tt>C:/swig/install2/bin</tt> folder.
     </p>
-    <div class="shell">
-        <pre>
-    cd C:\swig
-    SET PATH=C:\Tools\CMake\CMake-win64.3.15.5\bin;C:\Tools\bison\bison-win32.2.4.1.1\tools\native\bin;%PATH%
-    SET PCRE_ROOT=C:/Tools/pcre2
-    SET PCRE_PLATFORM=x64
-    cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_INSTALL_PREFIX="%CD:\=/%/install2" -DCMAKE_C_FLAGS="/DPCRE2_STATIC" ^
-    -DCMAKE_CXX_FLAGS="/DPCRE2_STATIC" -DPCRE2_INCLUDE_DIR=%PCRE_ROOT%/include -DPCRE2_LIBRARY=%PCRE_ROOT%/lib/pcre2-8-static.lib -S . -B build
-    cmake --build build --config Release --target install
-    
-    REM to test the exe
-    cd install2/bin
-    swig.exe -help</pre></div>
+    <div class="shell"> <pre>
+cd C:\swig
+SET PATH=C:\Tools\CMake\CMake-win64.3.15.5\bin;C:\Tools\bison\bison-win32.2.4.1.1\tools\native\bin;%PATH%
+SET PCRE_ROOT=C:/Tools/pcre2
+SET PCRE_PLATFORM=x64
+cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_INSTALL_PREFIX="%CD:\=/%/install2" -DCMAKE_C_FLAGS="/DPCRE2_STATIC" ^
+-DCMAKE_CXX_FLAGS="/DPCRE2_STATIC" -DPCRE2_INCLUDE_DIR=%PCRE_ROOT%/include -DPCRE2_LIBRARY=%PCRE_ROOT%/lib/pcre2-8-static.lib -S . -B build
+cmake --build build --config Release --target install
+
+REM to test the exe
+cd install2/bin
+swig.exe -help
+    </pre></div>
     </li>
 </ol>
 <p>
@@ -292,7 +293,7 @@ For fully working build steps always check the Continuous Integration (CI) setup
     <pre>cmake --build build --config Debug</pre>
 </div>
 <p>
-    A Visual Studio solution file should be generated named swig.sln. This can be opened and debugged by running the swig project and setting <tt>Properties > Debugging > Command Arguments</tt>. For example to debug one of the test-suite .i files included with the SWIG source use the following:
+    A Visual Studio solution file should be generated named swig.sln. This can be opened and debugged by running the swig project and setting <tt>Properties &gt; Debugging &gt; Command Arguments</tt>. For example to debug one of the test-suite .i files included with the SWIG source use the following:
 </p>
 <div class="shell">
     <pre>-python -c++ -o C:\Temp\doxygen_parsing.cpp C:\swig\Examples\test-suite\doxygen_parsing.i</pre>
