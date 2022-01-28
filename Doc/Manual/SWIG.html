@@ -1843,19 +1843,20 @@ all to `output' by specifying :</p>
 </pre></div>
 
 <p>
-A new <tt>%rename</tt> for the same name will override the current
-name for all uses after it in the file, and setting the new name to
-"" will remove the rename.  So, for instance, if you wanted to rename
-some things in one file and not in another, you could do:
+A new <tt>%rename</tt> for the same name will replace the current
+<tt>%rename</tt> for all uses after it in the file, and setting the
+new name to "" will remove the rename.  So, for instance, if you
+wanted to rename some things in one file and not in another, you could
+do:
 </p>
 
 <div class="code">
 <pre>
-  %rename(print1) print
+  %rename(print1) print;
   %include "header1.h" //Anything "print" in here will become "print1"
-  %rename(print2) print
+  %rename(print2) print;
   %include "header2.h" //Anything "print" in here will become "print2"
-  %rename("") print
+  %rename("") print;
   %include "header3.h" //Anything "print" in here will remain "print"
 </pre>
 </div>
