@@ -2253,6 +2253,21 @@ the following approach could be taken:
 </div>
 
 <p>
+If <tt>Star</tt> was in the <tt>Galaxy</tt> namespace, you would need
+to unignore the namespace, too, and add the namespace to all the
+renames:
+</p>
+
+<div class="code">
+<pre>
+%rename("%s") Galaxy;
+%rename("%s") Galaxy::Star;
+%rename("%s") Galaxy::Star::Star;
+...
+</pre>
+</div>
+
+<p>
 Another approach which might be more suitable as it does not require naming all the methods in the
 chosen class is to begin by ignoring just the classes. This does not add an explicit ignore to any
 members of the class, so when the chosen class is unignored, all of its methods will be wrapped.
@@ -2263,6 +2278,7 @@ members of the class, so when the chosen class is unignored, all of its methods 
 %rename($ignore, %$isclass) ""; // Only ignore all classes
 %rename("%s") Star; // Unignore 'Star'
 %include "myheader.h"
+%rename("%s", %$isclass) ""; // Stop ignoring all classes
 </pre>
 </div>
 
