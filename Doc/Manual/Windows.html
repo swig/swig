@@ -243,8 +243,8 @@ For fully working build steps always check the Continuous Integration (CI) setup
         Alternatively you can download CMake from <a href="https://cmake.org/download/">https://cmake.org/download/</a>.
     </li>
     <li>
-        Install the <a href="https://www.nuget.org/packages/bison-win32/">Bison Nuget package</a> using the following command: <pre>C:\Tools\nuget install bison-win32 -Version 2.4.1.1 -OutputDirectory C:\Tools\bison</pre>
-        Alternatively download Bison from <a href="https://sourceforge.net/projects/gnuwin32/files/bison/">https://sourceforge.net/projects/gnuwin32/files/bison/</a> (2.4.1 is used in this example)
+        Install the <a href="https://www.nuget.org/packages/bison/">Bison Nuget package</a> using the following command: <pre>C:\Tools\nuget install Bison -Version 3.7.4 -OutputDirectory C:\Tools\bison</pre>
+        Alternatively download Bison from <a href="https://sourceforge.net/projects/winflexbison/files/">https://sourceforge.net/projects/winflexbison/files/</a> (Bison 3.7.4 is used in this example)
         and save to a folder e.g. <tt>C:\Tools\Bison</tt>
     </li>
     <li>
@@ -273,7 +273,7 @@ cmake --build build --config Release --target install
     </p>
     <div class="shell"> <pre>
 cd C:\swig
-SET PATH=C:\Tools\CMake\CMake-win64.3.15.5\bin;C:\Tools\bison\bison-win32.2.4.1.1\tools\native\bin;%PATH%
+SET PATH=C:\Tools\CMake\CMake-win64.3.15.5\bin;C:\Tools\bison\Bison.3.7.4\bin;%PATH%
 SET PCRE_ROOT=C:/Tools/pcre2
 SET PCRE_PLATFORM=x64
 cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_INSTALL_PREFIX="%CD:\=/%/install2" -DCMAKE_C_FLAGS="/DPCRE2_STATIC" ^
