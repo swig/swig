@@ -389,16 +389,16 @@ String *Swig_symbol_qualified_language_scopename(Symtab *n) {
  * Used for using-declarations within classes/structs.
  * ----------------------------------------------------------------------------- */
 
-void Swig_symbol_add_using(String * name, String * uname, Node * n) {
+void Swig_symbol_add_using(String *name, String *uname, Node *n) {
   Hash *h;
   h = Swig_symbol_clookup(uname, 0);
   if (h && (checkAttribute(h, "kind", "class") || checkAttribute(h, "kind", "struct"))) {
     String *qcurrent = Swig_symbol_qualifiedscopename(0);
     if (qcurrent) {
-	Append(qcurrent, "::");
-	Append(qcurrent, name);
+      Append(qcurrent, "::");
+      Append(qcurrent, name);
     } else {
-	qcurrent = NewString(name);
+      qcurrent = NewString(name);
     }
     Setattr(symtabs, qcurrent, n);
     Delete(qcurrent);

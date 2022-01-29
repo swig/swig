@@ -1,4 +1,4 @@
-%module using_member;
+%module using_member
 
 %rename(greater) one::two::three::interface1::AA::great(int);
 %rename(greater) one::two::three::interface1::AA::great(float);
@@ -42,7 +42,7 @@ namespace one {
             public:
                 using two::three::AA::great;
                 int great(bool) {return 2;}
-                int jj() {return 3;};
+                int jj() {return 3;}
             };
         }
     }
