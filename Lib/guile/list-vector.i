@@ -107,7 +107,7 @@
                      (size_t VECTORLENINPUT, C_TYPE *VECTORINPUT),
                      (int LISTLENINPUT, C_TYPE *LISTINPUT),
                      (size_t LISTLENINPUT, C_TYPE *LISTINPUT)
-       {if ($2!=NULL) SWIG_free($2);}
+       {SWIG_free($2);}
 
 %enddef
 
@@ -173,7 +173,7 @@
 	  (int *LISTLENOUTPUT, C_TYPE **LISTOUTPUT),
 	  (size_t *LISTLENOUTPUT, C_TYPE **LISTOUTPUT)
      {
-        if ((*$2)!=NULL) free(*$2);
+       free(*$2);
      }
 
 %enddef
@@ -231,7 +231,7 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, SWIG_str02scm, stri
 	 if ((*$2)!=NULL) {
 	     int i;
 	     for (i = 0; i < *$1; i++) {
-		 if ((*$2)[i] != NULL) free((*$2)[i]);
+		 free((*$2)[i]);
 	     }
 	     free(*$2);
 	 }
@@ -249,7 +249,7 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, SWIG_str02scm, stri
     if (($2)!=NULL) {
 	int i;
 	for (i = 0; i< $1; i++)
-	    if (($2)[i] != NULL) free(($2)[i]);
+	    free(($2)[i]);
 	free($2);
     }
 }
@@ -360,7 +360,7 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, SWIG_str02scm, stri
 		       const C_TYPE *PARALLEL_VECTORINPUT,
 		       C_TYPE *PARALLEL_LISTINPUT, 
 		       const C_TYPE *PARALLEL_LISTINPUT
-       {if ($1!=NULL) SWIG_free($1);}
+       {SWIG_free($1);}
 
 %enddef
 
@@ -422,7 +422,7 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, SWIG_str02scm, stri
      %typemap(freearg) C_TYPE **PARALLEL_VECTOROUTPUT, 
 		       C_TYPE **PARALLEL_LISTOUTPUT
      {
-        if ((*$1)!=NULL) free(*$1);
+       free(*$1);
      }
 
 %enddef
@@ -471,7 +471,7 @@ TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, SWIG_str02
     if (($1)!=NULL) {
 	int i;
 	for (i = 0; i<*_global_list_length; i++)
-	    if (($1)[i] != NULL) SWIG_free(($1)[i]);
+	    SWIG_free(($1)[i]);
 	SWIG_free($1);
     }
 }
@@ -482,7 +482,7 @@ TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, SWIG_str02
     if ((*$1)!=NULL) {
 	int i;
 	for (i = 0; i<_global_arraylentemp; i++)
-	    if ((*$1)[i] != NULL) free((*$1)[i]);
+	    free((*$1)[i]);
 	free(*$1);
     }
 }

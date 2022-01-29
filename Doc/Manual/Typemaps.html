@@ -3103,7 +3103,7 @@ as shown.   To work with heap allocated data, the following technique can be use
   }
 }
 %typemap(freearg) float value[ANY] {
-  if ($1) free($1);
+  free($1);
 }
 </pre>
 </div>
@@ -3556,7 +3556,7 @@ maps perform the conversion described for the above example:
 }
 
 %typemap(freearg) (int argc, char *argv[]) {
-  if ($2) free($2);
+  free($2);
 }
 
 /* Required for C++ method overloading */
