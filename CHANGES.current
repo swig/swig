@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-01-29: fschlimb
+	    #655 Better handling of using declarations.
+
 2022-01-29: dontpanic92
 	    #676 Fix code generated for a C++ class with a non-capitalised
 	    name.
