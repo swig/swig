@@ -1470,14 +1470,14 @@ SWIG generates the following code:
 <pre>
 /* C mode */
 void foo_set(char *value) {
-  if (foo) free(foo);
+  free(foo);
   foo = (char *) malloc(strlen(value)+1);
   strcpy(foo, value);
 }
 
 /* C++ mode.  When -c++ option is used */
 void foo_set(char *value) {
-  if (foo) delete [] foo;
+  delete [] foo;
   foo = new char[strlen(value)+1];
   strcpy(foo, value);
 }
@@ -2616,8 +2616,7 @@ char *Foo_name_get(Foo *obj) {
 }
 
 char *Foo_name_set(Foo *obj, char *c) {
-  if (obj-&gt;name)
-    free(obj-&gt;name);
+  free(obj-&gt;name);
   obj-&gt;name = (char *) malloc(strlen(c)+1);
   strcpy(obj-&gt;name, c);
   return obj-&gt;name;

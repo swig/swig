@@ -15,7 +15,7 @@ namespace test {
 	strcpy(data,s);
       }
      ~string_class() {
-        if (data) delete [] data;
+        delete [] data;
       }
       char *c_str() {
         return data;
