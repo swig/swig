@@ -107,7 +107,7 @@
                      (size_t VECTORLENINPUT, C_TYPE *VECTORINPUT),
                      (int LISTLENINPUT, C_TYPE *LISTINPUT),
                      (size_t LISTLENINPUT, C_TYPE *LISTINPUT)
-       SWIG_free($2);}
+       {SWIG_free($2);}
 
 %enddef
 
@@ -360,7 +360,7 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, SWIG_str02scm, stri
 		       const C_TYPE *PARALLEL_VECTORINPUT,
 		       C_TYPE *PARALLEL_LISTINPUT, 
 		       const C_TYPE *PARALLEL_LISTINPUT
-       SWIG_free($1);}
+       {SWIG_free($1);}
 
 %enddef
 
