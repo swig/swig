@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-01-31: mreeez
+	    https://sourceforge.net/p/swig/bugs/1147/
+	    Fix copyToR() generated for a struct in a namespace.
+
 2022-01-29: fschlimb
 	    #655 Better handling of using declarations.
 

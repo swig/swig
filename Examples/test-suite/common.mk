@@ -315,6 +315,7 @@ CPP_TEST_CASES += \
 	namespace_forward_declaration \
 	namespace_nested \
 	namespace_spaces \
+	namespace_struct \
 	namespace_template \
 	namespace_typedef_class \
 	namespace_typemap \

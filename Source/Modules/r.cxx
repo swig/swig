@@ -2569,7 +2569,7 @@ int R::generateCopyRoutines(Node *n) {
 
 
   Printf(sfile, "# Start definition of copy methods for %s\n", rclassName);
-  Printf(sfile, "setMethod('copyToR', '_p_%s', CopyToR%s);\n", rclassName,
+  Printf(sfile, "setMethod('copyToR', '_p%s', CopyToR%s);\n", mangledName,
 	 mangledName);
   Printf(sfile, "setMethod('copyToC', '%s', CopyToC%s);\n\n", rclassName,
 	 mangledName);
