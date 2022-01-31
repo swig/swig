@@ -2510,7 +2510,6 @@ int OBJECTIVEC::classDirectorMethod(Node *n, Node *parent, String *super)
     bool output_director = true;
     String *dirclassname = directorClassName(parent);
     String *qualified_name = NewStringf("%s::%s", dirclassname, name);
-    String *jnidesc = NewString("");
     String *classdesc = NewString("");
     String *classret_desc = NewString("");
     SwigType *c_ret_type = NULL;
@@ -2990,7 +2989,6 @@ int OBJECTIVEC::classDirectorMethod(Node *n, Node *parent, String *super)
 
     Delete(inline_extra_method);
     Delete(qualified_return);
-    Delete(jnidesc);
     Delete(c_ret_type);
     Delete(declaration);
     Delete(callback_def);
