@@ -1227,7 +1227,15 @@ _108fea88_p_Bar
 
 <p>
 Finally, to destroy objects created from Tcl, you can either let the object
-name go out of scope or you can explicitly delete the object.  For example:
+name go out of scope or you can explicitly delete the object as shown below.
+Objects won't get automatically destroyed when the Tcl program exits, so if
+it's important that the C++ destructor is called for a class you'll need to
+make sure that you explicitly do this for objects of that class before program
+exit.
+</p>
+
+<p>
+For example:
 </p>
 
 <div class="code">
