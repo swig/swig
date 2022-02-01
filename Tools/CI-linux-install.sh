@@ -76,7 +76,9 @@ case "$SWIGLANG" in
 		$RETRY sudo apt-get -qq install racket
 		;;
 	"ocaml")
-		$RETRY sudo apt-get -qq install ocaml camlp4
+		$RETRY sudo apt-get -qq install ocaml camlp4 opam
+                opam --version
+                opam switch list
 		;;
 	"octave")
 		if [[ "$VER" ]]; then
