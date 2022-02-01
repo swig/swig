@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-01: olly
+	    [OCaml] #2083 Fix to work when CAML_SAFE_STRING is on, which it is
+	    by default in recent Ocaml releases.
+
 2022-01-31: mreeez
 	    https://sourceforge.net/p/swig/bugs/1147/
 	    Fix copyToR() generated for a struct in a namespace.
