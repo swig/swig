@@ -9063,6 +9063,11 @@ Here the default typemaps work for <tt>int</tt> and <tt>char *</tt>.
 </p>
 
 <p>
+Note that if you're wanting to effectively <b>replace</b> the JNI code generated for a C/C++ function then you'll need to use <tt>%ignore</tt> as well
+to tell SWIG not to automatically generate a JNI wrapper for it.
+</p>
+
+<p>
 In summary the <tt>%native</tt> directive is telling SWIG to generate the Java code to access the JNI C code, but not the JNI C function itself.
 This directive is only really useful if you want to mix your own hand crafted JNI code and the SWIG generated code into one Java class or package.
 </p>
