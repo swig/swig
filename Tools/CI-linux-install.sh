@@ -80,7 +80,7 @@ case "$SWIGLANG" in
 		opam init
                 opam --version
 		eval `opam config env`
-                opam switch list --all
+                opam switch list --full
 		;;
 	"octave")
 		if [[ "$VER" ]]; then
