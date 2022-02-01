@@ -77,6 +77,7 @@ case "$SWIGLANG" in
 		;;
 	"ocaml")
 		$RETRY sudo apt-get -qq install ocaml camlp4 opam
+		opam init
                 opam --version
                 opam switch list
 		;;
