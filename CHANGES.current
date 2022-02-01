@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-01: olly
+	    #231 Handle returning an object by reference in a C++ trailing
+	    return type.
+
 2022-02-01: davidcl
             [Scilab] #745 use SWIG_<module>_Init() as a C module init function.
 

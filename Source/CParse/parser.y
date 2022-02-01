@@ -3383,6 +3383,10 @@ cpp_alternate_rettype : primitive_type { $$ = $1; }
 */
               | TYPE_RAW { $$ = $1; }
               | idcolon { $$ = $1; }
+              | idcolon AND {
+                $$ = $1;
+                SwigType_add_reference($$);
+              }
               | decltype { $$ = $1; }
               ;
 
