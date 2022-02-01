@@ -79,7 +79,8 @@ case "$SWIGLANG" in
 		$RETRY sudo apt-get -qq install ocaml camlp4 opam
 		opam init
                 opam --version
-                opam switch list
+		eval `opam config env`
+                opam switch list --all
 		;;
 	"octave")
 		if [[ "$VER" ]]; then
