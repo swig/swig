@@ -5,10 +5,10 @@ def check_equal(a, b):
     if a != b:
         raise RuntimeError("failed {} {}".format(a, b))
 
-h = u"h"
+h = "h"
 check_equal(li_std_wstring.test_wcvalue(h), h)
 
-x = u"abc"
+x = "abc"
 check_equal(li_std_wstring.test_ccvalue(x), x)
 check_equal(li_std_wstring.test_cvalue(x), x)
 
@@ -54,6 +54,12 @@ check_equal(li_std_wstring.test_value(x), x)
 check_equal(li_std_wstring.test_ccvalue(x), "abc")
 check_equal(li_std_wstring.test_wchar_overload(x), "abc")
 
+ts = li_std_wstring.wchar_test_struct()
+ts.wchar_t_member = h
+check_equal(ts.wchar_t_member, h)
+ts.wchar_t_ptr_member = s
+check_equal(ts.wchar_t_ptr_member, s)
+
 ################### Python specific
 
 # Byte strings only converted in Python 2
@@ -72,7 +78,7 @@ except TypeError:
 
 # Check surrogateescape
 if sys.version_info[0:2] > (3, 1):
-    x = u"h\udce9llo"  # surrogate escaped representation of C char*: "h\xe9llo"
+    x = "h\udce9llo"  # surrogate escaped representation of C char*: "h\xe9llo"
     if li_std_wstring.non_utf8_c_str() != x:
         raise RuntimeError("surrogateescape not working")
     if li_std_wstring.size_wstring(x) != 5 and len(x) != 5:

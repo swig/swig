@@ -228,9 +228,10 @@ public:
 
     // Module initialization function
     String *gatewayInitFunctionName = NewStringf("%s_Init", gatewayName);
+    String *wrapperInitFunctionName = NewStringf("SWIG_%s_Init", gatewayName);
 
     /* Add initialization function to builder table */
-    addFunctionToScilab(gatewayInitFunctionName, gatewayInitFunctionName);
+    addFunctionToScilab(gatewayInitFunctionName, wrapperInitFunctionName);
 
     // Add helper functions to builder table
     addHelperFunctions();
@@ -472,7 +473,6 @@ public:
       String *tm;
       if ((tm = Getattr(param, "tmap:freearg"))) {
 	if (tm && (Len(tm) != 0)) {
-	  Replaceall(tm, "$source", Getattr(param, "lname"));
 	  Printf(wrapper->code, "%s\n", tm);
 	}
 	param = Getattr(param, "tmap:freearg:next");
@@ -484,7 +484,6 @@ public:
     /* See if there is any return cleanup code */
     String *tm;
     if ((tm = Swig_typemap_lookup("ret", node, Swig_cresult_name(), 0))) {
-      Replaceall(tm, "$source", Swig_cresult_name());
       Printf(wrapper->code, "%s\n", tm);
       Delete(tm);
     }

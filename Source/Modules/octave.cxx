@@ -611,9 +611,7 @@ public:
         sprintf(source, "args(%d)", j);
         Setattr(p, "emit:input", source);
 
-        Replaceall(tm, "$source", Getattr(p, "emit:input"));
         Replaceall(tm, "$input", Getattr(p, "emit:input"));
-        Replaceall(tm, "$target", Getattr(p, "lname"));
 
         if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:in:disown"))) {
           Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
@@ -658,7 +656,6 @@ public:
     // Insert constraint checking code
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
-        Replaceall(tm, "$target", Getattr(p, "lname"));
         Printv(f->code, tm, "\n", NIL);
         p = Getattr(p, "tmap:check:next");
       } else {
@@ -681,7 +678,6 @@ public:
           }
         }
         if (tm && (Len(tm) != 0)) {
-          Replaceall(tm, "$source", Getattr(p, "lname"));
           Printv(cleanup, tm, "\n", NIL);
         }
         p = Getattr(p, "tmap:freearg:next");
@@ -694,8 +690,6 @@ public:
     String *outarg = NewString("");
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-        Replaceall(tm, "$source", Getattr(p, "lname"));
-        Replaceall(tm, "$target", "_outp");
         Replaceall(tm, "$result", "_outp");
         Replaceall(tm, "$arg", Getattr(p, "emit:input"));
         Replaceall(tm, "$input", Getattr(p, "emit:input"));
@@ -723,8 +717,6 @@ public:
 
     // Return the function value
     if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
-      Replaceall(tm, "$source", Swig_cresult_name());
-      Replaceall(tm, "$target", "_outv");
       Replaceall(tm, "$result", "_outv");
 
       if (GetFlag(n, "feature:new"))
@@ -745,13 +737,11 @@ public:
 
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
-        Replaceall(tm, "$source", Swig_cresult_name());
         Printf(f->code, "%s\n", tm);
       }
     }
 
     if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
-      Replaceall(tm, "$source", Swig_cresult_name());
       Replaceall(tm, "$result", "_outv");
       Printf(f->code, "%s\n", tm);
       Delete(tm);
@@ -815,7 +805,7 @@ public:
     Printf(tmp, "}");
     Wrapper_add_local(f, "argv", tmp);
     Printv(f->code, dispatch, "\n", NIL);
-    Printf(f->code, "error(\"No matching function for overload\");\n", iname);
+    Printf(f->code, "error(\"No matching function for overload\");\n");
     Printf(f->code, "return octave_value_list();\n");
     Printv(f->code, "}\n", NIL);
 
@@ -849,8 +839,6 @@ public:
     if (is_assignable(n)) {
       Setattr(n, "wrap:name", setname);
       if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
-        Replaceall(tm, "$source", "args(0)");
-        Replaceall(tm, "$target", name);
         Replaceall(tm, "$input", "args(0)");
         if (Getattr(n, "tmap:varin:implicitconv")) {
           Replaceall(tm, "$implicitconv", get_implicitconv_flag(n));
@@ -874,8 +862,6 @@ public:
     Octave_begin_function(n, getf->def, getname, getwname, true);
     Wrapper_add_local(getf, "obj", "octave_value obj");
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
-      Replaceall(tm, "$source", name);
-      Replaceall(tm, "$target", "obj");
       Replaceall(tm, "$result", "obj");
       addfail = emit_action_code(n, getf->code, tm);
       Delete(tm);
@@ -920,8 +906,6 @@ public:
       value = wname;
     }
     if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
-      Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", cppvalue ? cppvalue : value);
       Replaceall(tm, "$nsname", iname);
       Printf(f_init, "%s\n", tm);

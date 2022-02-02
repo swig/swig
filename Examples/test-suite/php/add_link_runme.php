@@ -1,10 +1,9 @@
 <?php
 
 require "tests.php";
-require "add_link.php";
 
-// No new functions, except the flat functions
-check::functions(array('new_foo','foo_blah'));
+// No new functions
+check::functions(array());
 
 check::classes(array('Foo'));
 
@@ -19,4 +18,3 @@ check::is_a($foo_blah,'foo');
 //check::is_a($class_foo_blah,foo);
 
 check::done();
-?>

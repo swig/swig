@@ -137,7 +137,7 @@ int execute(char **argv,
 	_dup2(fd, 2);
 	_close(fd);
 
-	/* Spawn process (_exec* familly doesn't return) */
+	/* Spawn process (_exec* family doesn't return) */
 	status = _spawnv(_P_WAIT, argv[0], (const char **)argv);
 
 	/* Restore descriptors */

@@ -61,14 +61,14 @@ NAME() {
   return new TYPE();
 }
 ~NAME() {
-  if ($self) delete $self;
+  delete $self;
 }
 #else
 NAME() {
   return (TYPE *) calloc(1,sizeof(TYPE));
 }
 ~NAME() {
-  if ($self) free($self);
+  free($self);
 }
 #endif
 }
@@ -140,9 +140,9 @@ static TYPE *copy_##NAME(TYPE value) { %}
 
 static void delete_##NAME(TYPE *obj) { %}
 #ifdef __cplusplus
-%{  if (obj) delete obj; %}
+%{  delete obj; %}
 #else
-%{  if (obj) free(obj); %}
+%{  free(obj); %}
 #endif
 %{}
 

@@ -1,10 +1,14 @@
 import _callback
 from callback import *
 
+# callbacks are implemented by modifying docstrings, useful for debugging:
+# print("A_bar doc: {}".format(A_bar.__doc__))
+# print("A.bar doc: {}".format(A.bar.__doc__))
+
 if foo(2) != 2:
     raise RuntimeError
 
-if A_bar(2) != 4:
+if A.bar(2) != 4:
     raise RuntimeError
 
 if foobar(3, _callback.foo) != foo(3):
@@ -13,11 +17,7 @@ if foobar(3, _callback.foo) != foo(3):
 if foobar(3, foo) != foo(3):
     raise RuntimeError
 
-# Needs some more work for -builtin
-# if foobar(3, A.bar) != A.bar(3):
-#     raise RuntimeError
-
-if foobar(3, A_bar) != A_bar(3):
+if foobar(3, A.bar) != A.bar(3):
     raise RuntimeError
 
 if foobar(3, foof) != foof(3):

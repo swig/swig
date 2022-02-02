@@ -93,7 +93,7 @@ int isStructuralDoxygen(String *s) {
     const size_t len = strlen(structuralTags[n]);
     if (strncmp(slashPointer, structuralTags[n], len) == 0) {
       /* Take care to avoid false positives with prefixes of other tags. */
-      if (slashPointer[len] == '\0' || isspace(slashPointer[len]))
+      if (slashPointer[len] == '\0' || isspace((int)slashPointer[len]))
 	return 1;
     }
   }
@@ -351,6 +351,9 @@ static int yylook(void) {
       }
       break;
       
+    case SWIG_TOKEN_ELLIPSIS:
+      return ELLIPSIS;
+
       /* Look for multi-character sequences */
       
     case SWIG_TOKEN_RSTRING:
@@ -908,7 +911,7 @@ int yylex(void) {
 	if (strcmp(yytext, "class") == 0) {
 	  Swig_warning(WARN_PARSE_CLASS_KEYWORD, cparse_file, cparse_line, "class keyword used, but not in C++ mode.\n");
 	}
-	if (strcmp(yytext, "complex") == 0) {
+	if (strcmp(yytext, "_Complex") == 0) {
 	  yylval.type = NewSwigType(T_COMPLEX);
 	  return (TYPE_COMPLEX);
 	}

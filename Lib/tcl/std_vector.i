@@ -168,7 +168,7 @@ namespace std {
                 else
                     if (nitems == 0)
                         $1 = 1;
-                //check the first value to see if it is of correct type
+                    //check the first value to see if it is of correct type
                     else if ((SWIG_ConvertPtr(listobjv[0],
                                               (void **) &temp, 
                                               $descriptor(T *),0)) != 0)
@@ -197,7 +197,7 @@ namespace std {
                 else
                     if (nitems == 0)
                         $1 = 1;
-                //check the first value to see if it is of correct type
+                    //check the first value to see if it is of correct type
                     else if ((SWIG_ConvertPtr(listobjv[0],
                                               (void **) &temp,
                                               $descriptor(T *),0)) != 0)
@@ -331,11 +331,11 @@ namespace std {
                 else
                     if (nitems == 0)
                         $1 = 1;
-                //check the first value to see if it is of correct type
-                if (CONVERT_FROM(interp, listobjv[0], &temp) == TCL_ERROR)
-                    $1 = 0;
-                else
-                    $1 = 1;
+                    //check the first value to see if it is of correct type
+                    else if (CONVERT_FROM(interp, listobjv[0], &temp) == TCL_ERROR)
+                        $1 = 0;
+                    else
+                        $1 = 1;
             }
         }      
 
@@ -358,11 +358,11 @@ namespace std {
                 else
                     if (nitems == 0)
                         $1 = 1;
-                //check the first value to see if it is of correct type
-                if (CONVERT_FROM(interp, listobjv[0], &temp) == TCL_ERROR)
-                    $1 = 0;
-                else
-                    $1 = 1;
+                    //check the first value to see if it is of correct type
+                    else if (CONVERT_FROM(interp, listobjv[0], &temp) == TCL_ERROR)
+                        $1 = 0;
+                    else
+                        $1 = 1;
             }
         }
         

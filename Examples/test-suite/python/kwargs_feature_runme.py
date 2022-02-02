@@ -15,13 +15,16 @@ f = Foo(b=2, a=1)
 if f.foo(b=1, a=2) != 3:
     raise RuntimeError
 
-if Foo_statfoo(b=2) != 3:
+if Foo.statfoo(b=2) != 3:
+    raise RuntimeError
+
+if Foo.statfoo_onearg(x=4) != 8:
     raise RuntimeError
 
 if f.efoo(b=2) != 3:
     raise RuntimeError
 
-if Foo_sfoo(b=2) != 3:
+if Foo.sfoo(b=2) != 3:
     raise RuntimeError
 
 
@@ -31,13 +34,13 @@ b = BarInt(b=2, a=1)
 if b.bar(b=1, a=2) != 3:
     raise RuntimeError
 
-if BarInt_statbar(b=2) != 3:
+if BarInt.statbar(b=2) != 3:
     raise RuntimeError
 
 if b.ebar(b=2) != 3:
     raise RuntimeError
 
-if BarInt_sbar(b=2) != 3:
+if BarInt.sbar(b=2) != 3:
     raise RuntimeError
 
 
@@ -119,6 +122,21 @@ except TypeError as e:
 
 try:
     f = Foo(1, nonexistent=10)
+    raise RuntimeError("missed exception")
+except TypeError as e:
+    pass
+
+# Varargs
+f = VarargConstructor(fmt="Ciao")
+f.vararg_method(fmt="Bonjour")
+try:
+    f = VarargConstructor(nonexistent="Ciao")
+    raise RuntimeError("missed exception")
+except TypeError as e:
+    pass
+
+try:
+    f.vararg_method(nonexistent="Bonjour")
     raise RuntimeError("missed exception")
 except TypeError as e:
     pass

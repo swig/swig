@@ -8,12 +8,10 @@ if aa.a != 1:
     raise RuntimeError
 aa.a = 3
 if aa.a != 3:
-    print aa.a
-    raise RuntimeError
+    raise RuntimeError("aa.a: {}".format(aa.a))
 
 if aa.b != 2:
-    print aa.b
-    raise RuntimeError
+    raise RuntimeError("aa.b: {}".format(aa.b))
 aa.b = 5
 if aa.b != 5:
     raise RuntimeError
@@ -47,6 +45,9 @@ myClass = li_attribute.MyClass()
 myClass.Foo = myFoo
 if myClass.Foo.x != 8:
     raise RuntimeError
+myClass.Foo2 = myFoo
+if myClass.Foo2.x != 8:
+    raise RuntimeError
 
 # class/struct attribute with get/set methods using return/pass by value
 myClassVal = li_attribute.MyClassVal()
@@ -77,7 +78,7 @@ if myStringyClass.ReadOnlyString != "changed string":
 try:
     x = myFoo.does_not_exist
     raise RuntimeError
-except AttributeError, e:
+except AttributeError as e:
     if str(e).find("does_not_exist") == -1:
         raise RuntimeError
 

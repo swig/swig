@@ -38,5 +38,5 @@ assert(li_typemaps.inoutr_bool(false)==false)
 a,b=li_typemaps.inoutr_int2(1,2)
 assert(a==1 and b==2)
 
-f,i=li_typemaps.out_foo(10)
-assert(f.a==10 and i==20)
+f,i,i2=li_typemaps.out_foo(10)
+assert(f.a==10 and i==20 and i2==30)

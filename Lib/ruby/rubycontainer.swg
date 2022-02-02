@@ -803,9 +803,9 @@ namespace swig
       static ID id_start = rb_intern("begin");
       static ID id_noend = rb_intern("exclude_end?");
 
-      VALUE start = rb_funcall( i, id_start, 0 );
-      VALUE end   = rb_funcall( i, id_end, 0 );
-      bool  noend = ( rb_funcall( i, id_noend, 0 ) == Qtrue );
+      VALUE start = rb_funcall2( i, id_start, 0, 0 );
+      VALUE end   = rb_funcall2( i, id_end, 0, 0 );
+      bool  noend = ( rb_funcall2( i, id_noend, 0, 0 ) == Qtrue );
 
       int len = $self->size();
 

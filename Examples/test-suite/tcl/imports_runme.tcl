@@ -15,8 +15,8 @@ import
 
 set x [new_B]
 A_hello $x
-if [ catch { $x nonexistant } ] {
+if [ catch { $x nonexistent } ] {
 } else {
-  puts stderr "nonexistant method did not throw exception\n"
+  puts stderr "nonexistent method did not throw exception\n"
   exit 1
 }

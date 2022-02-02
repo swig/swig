@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Build Windows distribution (swigwin-2.0.x.zip) from source tarball (swig-2.0.x.tar.gz)
+# Build Windows distribution (swigwin-x.y.z.zip) from source tarball (swig-x.y.x.tar.gz)
 # Requires running in either:
 # - MinGW environment
 # - Linux using MinGW cross compiler
@@ -23,8 +23,8 @@ if test x$1 != x; then
     fi
 else
     echo "Usage: mkwindows.sh version [zip]"
-    echo "       Build SWIG Windows distribution from source tarball. Works on Cygwin, MinGW or Linux"
-    echo "       version should be 2.0.x"
+    echo "       Build SWIG Windows distribution from source tarball. Works on Cygwin, MinGW or Linux."
+    echo "       version should be in format x.y.z, for example 4.1.0"
     echo "       zip is full path to zip program - default is /c/cygwin/bin/zip on MinGW, zip on Linux and Cygwin"
     exit 1
 fi
@@ -84,10 +84,10 @@ export CXXFLAGS="$compileflags"
 swigbasename=swig-$version
 swigwinbasename=swigwin-$version
 tarball=$swigbasename.tar.gz
-pcre_tarball=`ls pcre-*.tar.*`
+pcre_tarball=`ls pcre2-*.tar.*`
 
 if ! test -f "$pcre_tarball"; then
-  echo "Could not find PCRE tarball. Please download a PCRE source tarball from http://www.pcre.org"
+  echo "Could not find PCRE2 tarball. Please download a PCRE2 source tarball from http://www.pcre.org"
   echo "and place in the same directory as the SWIG tarball."
   exit 1
 fi
@@ -115,8 +115,9 @@ if test -f "$tarball"; then
       ./configure $extraconfigureoptions --without-alllang
       echo "Compiling (quietly)..."
       make > build.log
-      echo "Simple check to see if swig.exe runs..."
+      echo "Simple check to see if swig.exe runs and show versions..."
       env LD_LIBRARY_PATH= PATH= $wine ./swig.exe -version || exit 1
+      env LD_LIBRARY_PATH= PATH= $wine ./swig.exe -pcreversion || exit 1
       echo "Simple check to see if ccache-swig.exe runs..."
       env LD_LIBRARY_PATH= PATH= $wine ./CCache/ccache-swig.exe -V || exit 1
       echo "Creating $swigwinbasename.zip..."

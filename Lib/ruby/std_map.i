@@ -96,7 +96,7 @@
 	int res = SWIG_ERROR;
 	if ( TYPE(obj) == T_HASH ) {
 	  static ID id_to_a = rb_intern("to_a");
-	  VALUE items = rb_funcall(obj, id_to_a, 0);
+	  VALUE items = rb_funcall2(obj, id_to_a, 0, 0);
 	  res = traits_asptr_stdseq<std::map<K,T>, std::pair<K, T> >::asptr(items, val);
 	} else {
 	  map_type *p;

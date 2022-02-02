@@ -67,7 +67,7 @@
 #define SWIG_GetConstant        SWIG_GetConstantObj
 #define SWIG_Tcl_GetConstant    SWIG_Tcl_GetConstantObj
 
-#if TCL_MAJOR_VERSION >= 8 && TCL_MINOR_VERSION >= 5
+#if TCL_MAJOR_VERSION > 8 || (TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION >= 5)
 #define SWIG_TCL_HASHTABLE_INIT {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #else
 #define SWIG_TCL_HASHTABLE_INIT {0}

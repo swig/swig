@@ -369,7 +369,7 @@ extern "C" {
 	if( !p || len < 0 ) CAMLreturn(caml_val_ptr( (void *)p, 0 ));
 	vv = caml_swig_alloc(1,C_string);
 	SWIG_Store_field(vv,0,caml_alloc_string(len));
-	memcpy(String_val(SWIG_Field(vv,0)),p,len);
+	memcpy(Bp_val(SWIG_Field(vv,0)),p,len);
 	CAMLreturn(vv);
     }
 

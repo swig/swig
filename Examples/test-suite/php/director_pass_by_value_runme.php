@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "director_pass_by_value.php";
 
 $passByVal = null;
 
@@ -21,4 +20,3 @@ if ($ret != 0x12345678) {
 }
 
 check::done();
-?>

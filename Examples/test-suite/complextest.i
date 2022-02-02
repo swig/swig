@@ -9,9 +9,7 @@
 %}
 %include <std_vector.i>
 
-#if 1
 %template(VectorStdCplx) std::vector<std::complex<double> >;
-#endif
 
 %inline
 {
@@ -61,3 +59,4 @@
     return b;
   }
 }
+
