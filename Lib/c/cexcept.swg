@@ -8,7 +8,7 @@
 // macro below) and needs to be defined, but we don't want to export it.
 %ignore SWIG_CException_Raise;
 %{
-extern "C" void SWIG_CException_Raise(int code, const char* msg);
+extern "C" SWIGEXPORTC void SWIG_CException_Raise(int code, const char* msg);
 %}
 
 // This class is special too because its name is used in c.cxx source. It is
