@@ -185,6 +185,8 @@ jobs:
         # c++11 testing
         - SWIGLANG: csharp
           CPPSTD: c++11
+        - SWIGLANG: fortran
+          CPPSTD: c++11
         - SWIGLANG: go
           VER: '1.17'
           CPPSTD: c++11
@@ -255,6 +257,10 @@ jobs:
         # c++17 testing (using gcc11)
         - SWIGLANG: csharp
           CPPSTD: c++17
+          GCC: 11
+        - SWIGLANG: fortran
+          CPPSTD: c++17
+          FCSTD: f2003
           GCC: 11
         - SWIGLANG: go
           VER: '1.17'
@@ -369,6 +375,7 @@ jobs:
 
             CFLAGS="$CFLAGS -fPIE"
             CXXFLAGS="$CXXFLAGS -fPIE"
+            FCFLAGS="$FCFLAGS -fPIE"
           elif test -n "$GCC"; then
             CC="gcc-$GCC"
             CXX="g++-$GCC"
@@ -401,6 +408,7 @@ jobs:
           fi
           if test -n "$CPPSTD"; then CONFIGOPTS+=(--enable-cpp11-testing "CXXFLAGS=-std=$CPPSTD $CXXFLAGS"); fi
           if test -n "$CSTD"; then CONFIGOPTS+=("CFLAGS=-std=$CSTD $CFLAGS"); fi
+          if test -n "$FCSTD"; then CONFIGOPTS+=("FCFLAGS=-std=$FCSTD $FCFLAGS"); fi
           if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
           echo "${CONFIGOPTS[@]}"
           ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
@@ -438,10 +446,11 @@ jobs:
             # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
             cflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC)
             cxxflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)
+            fcflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --fcflags --std=$FCSTD --compiler=$FC)
             make check-$SWIGLANG-version
             make check-$SWIGLANG-enabled
-            make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"
-            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"
+            make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags" FCFLAGS="$fcflags"
+            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags" FCFLAGS="$fcflags"
           fi
 
     - name: Install
