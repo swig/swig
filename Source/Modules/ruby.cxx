@@ -106,9 +106,10 @@ public:
 
   char *strip(const_String_or_char_ptr s) {
     Clear(temp);
-    Append(temp, s);
     if (Strncmp(s, prefix, Len(prefix)) == 0) {
-      Replaceall(temp, prefix, "");
+      Append(temp, Char(s) + Len(prefix));
+    } else {
+      Append(temp, s);
     }
     return Char(temp);
   }
