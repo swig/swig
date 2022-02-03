@@ -452,6 +452,10 @@ public:
       SWIG_exit(EXIT_FAILURE);
     }
 
+    if (fastproxy) {
+      Preprocessor_define("SWIGPYTHON_FASTPROXY", 0);
+    }
+
     if (doxygen)
       doxygenTranslator = new PyDocConverter(doxygen_translator_flags);
 
@@ -617,6 +621,10 @@ public:
 
     if (builtin) {
       Printf(f_runtime, "#define SWIGPYTHON_BUILTIN\n");
+    }
+
+    if (fastproxy) {
+      Printf(f_runtime, "#define SWIGPYTHON_FASTPROXY\n");
     }
 
     Printf(f_runtime, "\n");
@@ -922,15 +930,15 @@ public:
    * as a replacement of new.instancemethod in Python 3.
    * ------------------------------------------------------------ */
   int add_pyinstancemethod_new() {
-    String *name = NewString("SWIG_PyInstanceMethod_New");
-    String *line = NewString("");
-    Printf(line, "\t { \"%s\", %s, METH_O, NULL},\n", name, name);
-    Append(methods, line);
-    if (fastproxy) {
+    if (!builtin && fastproxy) {
+      String *name = NewString("SWIG_PyInstanceMethod_New");
+      String *line = NewString("");
+      Printf(line, "\t { \"%s\", %s, METH_O, NULL},\n", name, name);
+      Append(methods, line);
       Append(methods_proxydocs, line);
+      Delete(line);
+      Delete(name);
     }
-    Delete(line);
-    Delete(name);
     return 0;
   }
 
@@ -940,7 +948,7 @@ public:
    * generated for static methods when using -fastproxy
    * ------------------------------------------------------------ */
   int add_pystaticmethod_new() {
-    if (fastproxy) {
+    if (!builtin && fastproxy) {
       String *name = NewString("SWIG_PyStaticMethod_New");
       String *line = NewString("");
       Printf(line, "\t { \"%s\", %s, METH_O, NULL},\n", name, name);
