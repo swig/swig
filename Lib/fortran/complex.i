@@ -32,7 +32,7 @@ struct SwigComplex_ ## CTYPE;
 %apply SwigComplex_ ## CTYPE ARRAY[] { CPPTYPE ARRAY[] };
 %apply SwigComplex_ ## CTYPE[ANY] { CPPTYPE[ANY] };
 
-%typemap(ctype, in="SwigComplex_" #CTYPE "*", null="SWIG_create_complex_" # CTYPE "(0, 0)", fragment="SWIG_complex_"{CTYPE}, noblock=1) CPPTYPE {
+%typemap(ctype, in="SwigComplex_" #CTYPE "*", null="SWIG_create_complex_" #CTYPE "(0, 0)", fragment="SWIG_complex_"{CTYPE}, noblock=1) CPPTYPE {
   SwigComplex_ ## CTYPE
 }
 %typemap(in, noblock=1) CPPTYPE {

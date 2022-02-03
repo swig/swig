@@ -57,7 +57,7 @@ end subroutine}
   %fortran_array(CPPTYPE)
 
   // Fortran proxy code: input is target 1D array
-  %typemap(ftype, in={$typemap(imtype, VTYPE), dimension(:), target}, noblock=1) CPPTYPE {
+  %typemap(ftype, in="$typemap(imtype, " #VTYPE "), dimension(:), target", noblock=1) CPPTYPE {
     $typemap(imtype, VTYPE), dimension(:), pointer
   }
   
@@ -90,7 +90,7 @@ end subroutine}
 %define %fortran_array_handle(VTYPE, CPPTYPE...)
 
   // Input arguments for pointer-by-ref are the same
-  %typemap(ftype, in={$typemap(imtype, VTYPE), dimension(:), pointer, intent(inout)}, noblock=1) CPPTYPE& {
+  %typemap(ftype, in="$typemap(imtype, " #VTYPE "), dimension(:), pointer, intent(inout)", noblock=1) CPPTYPE& {
     $typemap(imtype, VTYPE), dimension(:), pointer
   }
   %typemap(fin, match="ftype", noblock=1) CPPTYPE& {$typemap(fin, VTYPE ARRAY[])}

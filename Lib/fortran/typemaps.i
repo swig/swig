@@ -26,7 +26,7 @@ $2 = $input->size;
 %apply (SWIGTYPE *DATA, size_t SIZE) { (const SWIGTYPE *DATA, size_t SIZE) };
 
 /* Add 'intent(in)' for const arrays */
-%typemap(ftype, in={$typemap(imtype, $*1_ltype), dimension(:), intent(in), target}, noblock=1) (const SWIGTYPE *DATA, size_t SIZE) {
+%typemap(ftype, in="$typemap(imtype, $*1_ltype), dimension(:), intent(in), target", noblock=1) (const SWIGTYPE *DATA, size_t SIZE) {
   $typemap(imtype, $*1_ltype), dimension(:), pointer
 }
 

@@ -143,14 +143,14 @@ SWIGINTERN SwigArrayWrapper SwigArrayWrapper_uninitialized() {
   %fortran_apply_typemaps(FORTRAN_INTRINSIC_TYPE, CTYPE)
   
   // Regular values are passed as pointers and returned by value
-  %typemap(ctype, in={const CTYPE*}) CTYPE
+  %typemap(ctype, in="const " #CTYPE "*") CTYPE
    %{CTYPE%}
-  %typemap(imtype, in={FTYPE(FKIND), intent(in)}) CTYPE
+  %typemap(imtype, in=#FTYPE "(" #FKIND "), intent(in)") CTYPE
    %{FTYPE(FKIND)%}
-  %typemap(ftype, in={FTYPE(FKIND), intent(in)}) CTYPE
+  %typemap(ftype, in=#FTYPE "(" #FKIND "), intent(in)") CTYPE
    %{FTYPE(FKIND)%}
-  %typemap(bindc, in={FTYPE(FKIND), intent(in), value}, kind={FKIND},
-           fortranconst={FTYPE(FKIND)}) CTYPE
+  %typemap(bindc, in=#FTYPE "(" #FKIND "), intent(in), value", kind=#FKIND,
+           fortranconst=#FTYPE "(" #FKIND ")") CTYPE
    %{FTYPE(FKIND)%}
   %typemap(in) CTYPE = FORTRAN_INTRINSIC_TYPE;
   %typemap(out) CTYPE = FORTRAN_INTRINSIC_TYPE;
