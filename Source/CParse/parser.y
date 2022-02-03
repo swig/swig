@@ -1678,7 +1678,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <type>     type rawtype type_right anon_bitfield_type decltype ;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
-%type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem;
+%type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem callparms callptail;
 %type <id>       ename ;
 %type <id>       less_valparms_greater;
 %type <str>      type_qualifier;
@@ -5254,6 +5254,20 @@ valparm        : parm {
                }
                ;
 
+callparms      : valexpr callptail {
+		 $$ = $1;
+		 Printf($$.val, "%s", $2);
+	       }
+	       | empty { $$.val = NewStringEmpty(); }
+	       ;
+
+callptail      : COMMA valexpr callptail {
+		 $$.val = NewStringf(",%s%s", $2, $3);
+		 $$.type = 0;
+	       }
+	       | empty { $$.val = NewStringEmpty(); }
+	       ;
+
 def_args       : EQUAL definetype { 
                   $$ = $2; 
 		  if ($2.type == T_ERROR) {
@@ -6529,17 +6543,33 @@ exprmem        : ID ARROW ID {
 		 $$.val = NewStringf("%s->%s", $1, $3);
 		 $$.type = 0;
 	       }
+	       | ID ARROW ID LPAREN callparms RPAREN {
+		 $$.val = NewStringf("%s->%s(%s)", $1, $3, $5);
+		 $$.type = 0;
+	       }
 	       | exprmem ARROW ID {
 		 $$ = $1;
 		 Printf($$.val, "->%s", $3);
+	       }
+	       | exprmem ARROW ID LPAREN callparms RPAREN {
+		 $$ = $1;
+		 Printf($$.val, "->%s(%s)", $3, $5);
 	       }
 	       | ID PERIOD ID {
 		 $$.val = NewStringf("%s.%s", $1, $3);
 		 $$.type = 0;
 	       }
+	       | ID PERIOD ID LPAREN callparms RPAREN {
+		 $$.val = NewStringf("%s.%s(%s)", $1, $3, $5);
+		 $$.type = 0;
+	       }
 	       | exprmem PERIOD ID {
 		 $$ = $1;
 		 Printf($$.val, ".%s", $3);
+	       }
+	       | exprmem PERIOD ID LPAREN callparms RPAREN {
+		 $$ = $1;
+		 Printf($$.val, ".%s(%s)", $3, $5);
 	       }
 	       ;
 
