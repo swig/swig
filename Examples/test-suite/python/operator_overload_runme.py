@@ -1,7 +1,7 @@
 from operator_overload import *
 
 # first check all the operators are implemented correctly from pure C++ code
-Op_sanity_check()
+Op.sanity_check()
 
 pop = Op(6)/Op(3)
 

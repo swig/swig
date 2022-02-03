@@ -1241,6 +1241,9 @@ void DoxygenParser::processHtmlTags(size_t &pos, const std::string &line) {
   // prepend '<' to distinguish HTML tags from doxygen commands
   if (!cmd.empty() && addDoxyCommand(m_tokenList, '<' + cmd)) {
     // it is a valid HTML command
+    if (pos == string::npos) {
+      pos = line.size();
+    }
     if (line[pos] != '>') {
       // it should be HTML tag with args,
       // for example <A ...>, <IMG ...>, ...
@@ -1266,7 +1269,7 @@ void DoxygenParser::processHtmlTags(size_t &pos, const std::string &line) {
       }
     }
 
-    if (pos != string::npos) {
+    if (pos < line.size()) {
       pos++; // skip '>'
     }
   } else {

@@ -54,6 +54,7 @@ CPP_TEST_CASES += \
 	python_director \
 	python_docstring \
 	python_extranative \
+	python_flatstaticmethod \
 	python_moduleimport \
 	python_overload_simple_cast \
 	python_pickle \
@@ -97,7 +98,7 @@ LIBS         = -L.
 VALGRIND_OPT += --suppressions=pythonswig.supp
 
 # Custom tests - tests with additional commandline options
-# none!
+#python_flatstaticmethod.cpptest: SWIGOPT += -flatstaticmethod
 
 # Rules for the different types of tests
 %.cpptest:

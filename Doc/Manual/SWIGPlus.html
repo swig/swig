@@ -48,6 +48,9 @@
 </ul>
 <li><a href="#SWIGPlus_nn28">Overloaded operators</a>
 <li><a href="#SWIGPlus_class_extension">Class extension</a>
+<ul>
+<li><a href="#SWIGPlus_replacing_methods">Replacing class methods</a>
+</ul>
 <li><a href="#SWIGPlus_nn30">Templates</a>
 <ul>
 <li><a href="#SWIGPlus_template_directive">The %template directive</a>
@@ -2944,6 +2947,59 @@ be used to extend a structure with more than just methods, a more suitable
 directive name has been chosen.
 </p>
 
+<H3><a name="SWIGPlus_replacing_methods">6.17.1 Replacing class methods</a></H3>
+
+
+<p>
+Suppose there is a method in a class that you need to replace and keep the method name the same.
+This can be achieved combining the <tt>%extend</tt> and <tt>%ignore</tt> directives covered earlier.
+Here is an example to replace the <tt>MyClass::mymethod()</tt>:
+
+<div class="code">
+<pre>
+%extend MyClass {
+  void mymethod() {
+    std::cout &lt;&lt; "swig mymethod" &lt;&lt; std::endl;
+  }
+}
+
+%ignore MyClass::mymethod;
+
+%inline %{
+class MyClass {
+public:
+  void mymethod() {
+    std::cout &lt;&lt; "class mymethod" &lt;&lt; std::endl;
+  }
+};
+%}
+</pre>
+</div>
+
+<p>
+Or if your code organization makes more sense to put
+the <tt>%extend</tt> after the class definition, you would need the following:
+</p>
+
+<div class="code">
+<pre>
+%rename("") MyClass::mymethod; // unignores the method
+</pre>
+</div>
+
+<p>
+before the <tt>%extend</tt> or SWIG will continue to ignore
+<tt>mymethod()</tt>, even in an <tt>%extend</tt>.
+</p>
+
+<p>
+Note that you can call the class method from the method
+in <tt>%extend</tt>, just use <tt>self-&gt;mymethod()</tt> and it will call
+the class method, not the one in <tt>%extend</tt>.
+</p>
+
+
+
 <H2><a name="SWIGPlus_nn30">6.18 Templates</a></H2>
 
 
@@ -3632,7 +3688,7 @@ Alternatively, you could expand the constructor template in selected instantiati
 
 // Create default and conversion constructors 
 %extend pair&lt;double, double&gt; {
-  %template(paird) pair&lt;double, dobule&gt;;   // Default constructor
+  %template(paird) pair&lt;double, double&gt;;   // Default constructor
   %template(pairc) pair&lt;int, int&gt;;         // Conversion constructor
 };
 </pre>
@@ -3647,7 +3703,7 @@ instead:
 <pre>
 // Create default and conversion constructors 
 %extend pair&lt;double, double&gt; {
-  %template(pair) pair&lt;double, dobule&gt;;   // Default constructor
+  %template(pair) pair&lt;double, double&gt;;   // Default constructor
   %template(pair) pair&lt;int, int&gt;;         // Conversion constructor
 };
 </pre>

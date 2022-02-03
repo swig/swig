@@ -205,7 +205,7 @@ class JavaDerived extends Base
   // Note the following method can never be called from unmanaged code.
   // It is here only for code that calls it directly from managed code.
   // But should always be defined to ensure behaviour is consistent
-  // independent of where DefaultParsms is called from (managed or unmanaged code).
+  // independent of where DefaultParams is called from (managed or unmanaged code).
   // Note this method can never be called from unmanaged code
   public String DefaultParms(int x)
   {

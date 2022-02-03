@@ -720,7 +720,6 @@ Here's a simple example using Trolltech's Qt Library:
 class QApplication {
 public:
   QApplication( int argc, char **argv );
-  void setMainWidget( QWidget *widget );
   void exec();
 };
 
@@ -736,16 +735,15 @@ public:
 
 
 <div class="code"><pre>
-bash-2.05a$ QTPATH=/your/qt/path
-bash-2.05a$ for file in swig.mli swig.ml swigp4.ml ; do swig -ocaml -co $file ; done
-bash-2.05a$ ocamlc -c swig.mli ; ocamlc -c swig.ml
-bash-2.05a$ ocamlc -I `camlp4 -where` -pp "camlp4o pa_extend.cmo q_MLast.cmo" -c swigp4.ml
-bash-2.05a$ swig -ocaml -c++ -I$QTPATH/include qt.i
-bash-2.05a$ mv qt_wrap.cxx qt_wrap.c
-bash-2.05a$ ocamlc -c -ccopt -xc++ -ccopt -g -g -ccopt -I$QTPATH/include qt_wrap.c
-bash-2.05a$ ocamlc -c qt.mli
-bash-2.05a$ ocamlc -c qt.ml
-bash-2.05a$ ocamlmktop -custom swig.cmo -I `camlp4 -where` \
+$ QTPATH=/your/qt/path
+$ for file in swig.mli swig.ml swigp4.ml ; do swig -ocaml -co $file ; done
+$ ocamlc -c swig.mli ; ocamlc -c swig.ml
+$ ocamlc -I `camlp4 -where` -pp "camlp4o pa_extend.cmo q_MLast.cmo" -c swigp4.ml
+$ swig -ocaml -c++ -o qt_wrap.c qt.i
+$ ocamlc -c -ccopt -xc++ -ccopt -g -g -ccopt -I$QTPATH/include qt_wrap.c
+$ ocamlc -c qt.mli
+$ ocamlc -c qt.ml
+$ ocamlmktop -custom swig.cmo -I `camlp4 -where` \
   camlp4o.cma swigp4.cmo qt_wrap.o qt.cmo -o qt_top -cclib \
   -L$QTPATH/lib -cclib -lqt
 </pre></div>

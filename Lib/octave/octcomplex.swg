@@ -2,7 +2,7 @@
   Defines the As/From conversors for double/float complex, you need to
   provide complex Type, the Name you want to use in the conversors,
   the complex Constructor method, and the Real and Imag complex
-  accesor methods.
+  accessor methods.
 
   See the std_complex.i and ccomplex.i for concrete examples.
 */

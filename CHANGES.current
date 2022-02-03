@@ -7,6 +7,149 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-02: olly
+	    [Ruby] https://sourceforge.net/p/swig/bugs/1136/ Fix remove of prefix
+	    from method name to only remove it at the start.
+
+2022-02-01: olly
+	    #231 Handle returning an object by reference in a C++ trailing
+	    return type.
+
+2022-02-01: davidcl
+            [Scilab] #745 use SWIG_<module>_Init() as a C module init function.
+
+2022-02-01: olly
+	    [OCaml] #2083 Fix to work when CAML_SAFE_STRING is on, which it is
+	    by default in recent Ocaml releases.
+
+2022-01-31: mreeez
+	    https://sourceforge.net/p/swig/bugs/1147/
+	    Fix copyToR() generated for a struct in a namespace.
+
+2022-01-29: fschlimb
+	    #655 Better handling of using declarations.
+
+2022-01-29: dontpanic92
+	    #676 Fix code generated for a C++ class with a non-capitalised
+	    name.
+
+2022-01-26: trex58
+	    #1919 #1921 #1923 Various fixes for AIX portability.
+
+2022-01-26: olly
+	    #1935 Don't crash on an unclosed HTML tag in a doxygen comment
+	    when -doxygen is specified.
+
+2022-01-25: olly
+	    Constant expressions now support member access with `.` such as
+	    `foo.bar`.  Previous this only worked in a case like `x->foo.bar`.
+
+2022-01-25: olly
+	    #2091 Support most cases of `sizeof` applied to an expression
+	    in constant expressions.  Previously there was only support for
+	    `sizeof(<type>)` and expressions which syntactically look like a
+	    type (such as `sizeof(foo)`).
+
+2022-01-25: olly
+	    #80 #635 https://sourceforge.net/p/swig/bugs/1139/
+	    Add support for parsing common cases of `<` and `>` comparisons
+	    in constant expressions.  Adding full support for these seems hard
+	    to do without introducing conflicts into the parser grammar, but in
+	    fact all reported cases have had parentheses around the comparison
+	    and we can support that with a few restrictions on the left side of
+	    `<`.
+
+2022-01-25: wsfulton
+            New warning 327 for extern templates, eg:
+
+              extern template class std::vector<int>;
+              extern template void Func<int>();
+
+            results in warning
+
+              example.i:3: Warning 327: Extern template ignored.
+              example.i:4: Warning 327: Extern template ignored.
+
+            Extern template classes previously resulted in warning 320.
+
+2022-01-24: romintomasetti
+            #2131 #2157 C++11 extern function template parsing error fix.
+
+2022-01-21: wsfulton
+            #2120 #2138 Replace legacy PCRE dependency with PCRE2.
+            This requires changes for building SWIG from source. See updated
+            html documentation in Preface.html and Windows.html. Updated
+            instructions are also shown when running ./configure if PCRE2 is not
+            found. Note that debian based systems can install PCRE2 using:
+
+              apt install libpcre2-dev
+
+            Note that https://github.com/swig/swig/wiki/Getting-Started also has
+            updated information for building from source.
+
+2022-01-19: olly
+	    [PHP] #2027 Automatically generate PHP type declarations for PHP 8.
+	    The generate code still compiles for PHP 7.x, but without type
+	    declarations since PHP 7.x has much more limited type declaration
+	    support.
+
+2022-01-18: olly
+	    [Perl] #1629 Perl 5.8.0 is now the oldest version we aim to support.
+
+2022-01-14: wsfulton
+            [Python] Fix %callback and specifying the callback function as a
+            static member function using Python staticmethod syntax, such as
+            Klass.memberfunction instead of Klass_memberfunction when using
+            -builtin and -fastproxy.
+
+2022-01-11: wsfulton
+            [Python] Accept keyword arguments accessing static member functions when
+            using -builtin and kwargs feature and Python class staticmethod syntax.
+            The missing keyword argument support was only when using the
+            class staticmethod syntax, such as Klass.memberfunction, and not when
+            using the flat static method syntax, such as Klass_memberfunction.
+
+2022-01-04: juierror
+            [Go] #2045 Add support for std::array in std_array.i.
+
+2021-12-18: olly
+	    [PHP] Add PHP keyword 'readonly' (added in 8.1) to the list SWIG
+	    knows to automatically rename.  This keyword is special in that PHP
+	    allows it to be used as a function (or method) name.
+
+2021-12-07: vstinner
+            [Python] #2116 Python 3.11 support: use Py_SET_TYPE()
+
+2021-12-05: rwf1
+            [Octave] #2020 #1893 Add support for Octave 6 up to and including 6.4.
+            Also add support for compiling with -Bsymbolic which is used by default
+            by mkoctfile.
+
+2021-12-02: jsenn
+            [Python] #2102 Fixed crashes when using embedded Python interpreters. 
+
+2021-11-12: wsfulton
+            [Javascript] v8 and node only. Fix mismatched new char[] and free()
+            when wrapping C code char arrays. Now calloc is now used instead of
+            new char[] in SWIG_AsCharPtrAndSize.
+
+2021-10-03: ajrh1
+            [Perl] #2074: Avoid -Wmisleading-indentation in generated code
+            when using gcc11.
+
+2021-10-03: jschueller
+            [CMake] #2065: Add option to enable or disable PCRE support.
+
+2021-09-16: ianlancetaylor
+            [Go] Improved _cgo_panic implementation.
+
+2021-09-16: ianlancetaylor
+            [Go] Don't use crosscall2 for panicking. Instead rely on documented
+            and exported interfaces.
+
+2021-09-14: ianlancetaylor
+            [Go] Remove -no-cgo option (long unsupported in Go)
+
 2021-05-04: olly
 	    [PHP] #2014 Throw PHP exceptions instead of using PHP errors
 

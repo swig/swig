@@ -30,15 +30,15 @@ check::equal(14, $o->byval1cpr(null), "test 14");
 check::equal(15, $o->byval2cpr(null), "test 15");
 check::equal(16, $o->byval2cpr($x), "test 16");
 
-# forward class declaration
-check::equal(17, $o->byval1forwardptr($x), "test 17");
-check::equal(18, $o->byval1forwardptr(null), "test 18");
+# fwd class declaration
+check::equal(17, $o->byval1fwdptr($x), "test 17");
+check::equal(18, $o->byval1fwdptr(null), "test 18");
 
-check::equal(19, $o->byval2forwardptr(null), "test 19");
-check::equal(20, $o->byval2forwardptr($x), "test 20");
+check::equal(19, $o->byval2fwdptr(null), "test 19");
+check::equal(20, $o->byval2fwdptr($x), "test 20");
 
-check::equal(21, $o->byval1forwardref($x), "test 21");
+check::equal(21, $o->byval1fwdref($x), "test 21");
 
-check::equal(22, $o->byval2forwardref($x), "test 22");
+check::equal(22, $o->byval2fwdref($x), "test 22");
 
 check::done();

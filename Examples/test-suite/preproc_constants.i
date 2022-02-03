@@ -65,17 +65,15 @@
 
 #define EXPR_MULTIPLY    0xFF * 2
 #define EXPR_DIVIDE      0xFF / 2
-//FIXME #define EXPR_MOD         0xFF % 2
+#define EXPR_MOD         0xFF % 2
 
 #define EXPR_PLUS        0xFF + 2
 #define EXPR_MINUS       0xFF + 2
 
 #define EXPR_LSHIFT      0xFF << 2
 #define EXPR_RSHIFT      0xFF >> 2
-/* FIXME
-#define EXPR_LT          0xFF < 255
-#define EXPR_GT          0xFF > 255
-*/
+#define EXPR_LT          (0xFF < 255)
+#define EXPR_GT          (0xFF > 255)
 #define EXPR_LTE         0xFF <= 255
 #define EXPR_GTE         0xFF >= 255
 #define EXPR_INEQUALITY  0xFF != 255

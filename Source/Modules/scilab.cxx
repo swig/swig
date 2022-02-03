@@ -228,9 +228,10 @@ public:
 
     // Module initialization function
     String *gatewayInitFunctionName = NewStringf("%s_Init", gatewayName);
+    String *wrapperInitFunctionName = NewStringf("SWIG_%s_Init", gatewayName);
 
     /* Add initialization function to builder table */
-    addFunctionToScilab(gatewayInitFunctionName, gatewayInitFunctionName);
+    addFunctionToScilab(gatewayInitFunctionName, wrapperInitFunctionName);
 
     // Add helper functions to builder table
     addHelperFunctions();

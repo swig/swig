@@ -1,4 +1,4 @@
-<?
+<?php
 require "tests.php";
 
 check::functions(array('is_python_builtin'));
@@ -35,3 +35,5 @@ try {
 } catch (Exception $e) {
     check::equal($e->getMessage(), 'C++ E2 * exception thrown', '');
 }
+
+check::done();

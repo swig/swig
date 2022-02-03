@@ -192,10 +192,10 @@ int SWIG_read_NAME_num_array(lua_State* L,int index,TYPE *array,int size);
 There probably is some compiler that its not true for, so the code is left here just in case.
 #ifdef __cplusplus	
 #define SWIG_ALLOC_ARRAY(TYPE,LEN) 	new TYPE[LEN]
-#define SWIG_FREE_ARRAY(PTR)		if(PTR){delete[] PTR;}
+#define SWIG_FREE_ARRAY(PTR)		delete[] PTR
 #else
 #define SWIG_ALLOC_ARRAY(TYPE,LEN) 	(TYPE *)malloc(LEN*sizeof(TYPE))
-#define SWIG_FREE_ARRAY(PTR)		if(PTR){free(PTR);}
+#define SWIG_FREE_ARRAY(PTR)		free(PTR)
 #endif
 */
 %{

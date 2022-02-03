@@ -48,46 +48,47 @@ fi
 dnl PCRE
 AC_ARG_WITH([pcre],
   [AS_HELP_STRING([--without-pcre],
-                  [Disable support for regular expressions using PCRE])],
+                  [Disable support for regular expressions using PCRE2])],
   [],
   [with_pcre=yes])
 
-AC_MSG_CHECKING([whether to enable PCRE support])
+AC_MSG_CHECKING([whether to enable PCRE2 support])
 AC_MSG_RESULT([$with_pcre])
 
 dnl To make configuring easier, check for a locally built PCRE using the Tools/pcre-build.sh script
 if test x"${with_pcre}" = xyes ; then
-  AC_MSG_CHECKING([whether to use local PCRE])
+  AC_MSG_CHECKING([whether to use local PCRE2])
   local_pcre_config=no
-  if test -z $PCRE_CONFIG; then
-    if test -f `pwd`/pcre/pcre-swig-install/bin/pcre-config; then
-      PCRE_CONFIG=`pwd`/pcre/pcre-swig-install/bin/pcre-config
-      local_pcre_config=$PCRE_CONFIG
+  if test -z $PCRE2_CONFIG; then
+    if test -f `pwd`/pcre/pcre-swig-install/bin/pcre2-config; then
+      PCRE2_CONFIG=`pwd`/pcre/pcre-swig-install/bin/pcre2-config
+      local_pcre_config=$PCRE2_CONFIG
     fi
   fi
   AC_MSG_RESULT([$local_pcre_config])
 fi
 AS_IF([test "x$with_pcre" != xno],
-  [AX_PATH_GENERIC([pcre],
+  [AX_PATH_GENERIC([pcre2],
     [], dnl Minimal version of PCRE we need -- accept any
     [], dnl custom sed script for version parsing is not needed
-    [AC_DEFINE([HAVE_PCRE], [1], [Define if you have PCRE library])
-     LIBS="$LIBS $PCRE_LIBS"
-     CPPFLAGS="$CPPFLAGS $PCRE_CFLAGS"
+    [AC_DEFINE([HAVE_PCRE], [1], [Define if you have PCRE2 library])
+     LIBS="$LIBS $PCRE2_LIBS"
+     CPPFLAGS="$CPPFLAGS $PCRE2_CFLAGS"
     ],
     [AC_MSG_FAILURE([
-        Cannot find pcre-config script from PCRE (Perl Compatible Regular Expressions)
+        Cannot find pcre2-config script from PCRE2 (Perl Compatible Regular Expressions)
         library package. This dependency is needed for configure to complete,
         Either:
-        - Install the PCRE developer package on your system (preferred approach).
-        - Download the PCRE source tarball, build and install on your system
+        - Install the PCRE2 developer package on your system (preferred approach).
+        - Download the PCRE2 source tarball, build and install on your system
           as you would for any package built from source distribution.
-        - Use the Tools/pcre-build.sh script to build PCRE just for SWIG to statically
+        - Use the Tools/pcre-build.sh script to build PCRE2 just for SWIG to statically
           link against. Run 'Tools/pcre-build.sh --help' for instructions.
-          (quite easy and does not require privileges to install PCRE on your system)
+          (quite easy and does not require privileges to install PCRE2 on your system)
         - Use configure --without-pcre to disable regular expressions support in SWIG
           (not recommended).])
-    ])
+    ],
+    [],[],[--libs8])
   ])
 
 
@@ -143,17 +144,17 @@ AC_MSG_CHECKING(LDSHARED)
 if test -z "$LDSHARED"
 then
 	case $host in
-	*-*-aix*) LDSHARED="\$(srcdir)/ld_so_aix \$(CC)";;
+	*-*-aix*) LDSHARED="$CC -shared";;
 	*-*-cygwin* | *-*-mingw*)
             if test "$GCC" = yes; then
-                LDSHARED="$CC -shared"
+                LDSHARED="\$(CC) -shared"
             else
                 if test "cl" = $CC ;  then
                     # Microsoft Visual C++ (MSVC)
-                    LDSHARED="$CC -nologo -LD"
+                    LDSHARED="\$(CC) -nologo -LD"
                 else
                     # Unknown compiler try gcc approach
-                    LDSHARED="$CC -shared"
+                    LDSHARED="\$(CC) -shared"
                 fi
             fi ;;
 	*-*-irix5*) LDSHARED="ld -shared";;
@@ -165,25 +166,25 @@ then
 	*-sequent-sysv4) LDSHARED="ld -G";;
 	*-*-next*)
 		if test "$ns_dyld"
-		then LDSHARED='$(CC) $(LDFLAGS) -bundle -prebind'
-		else LDSHARED='$(CC) $(CFLAGS) -nostdlib -r'
+		then LDSHARED="\$(CC) \$(LDFLAGS) -bundle -prebind"
+		else LDSHARED="\$(CC) \$(CFLAGS) -nostdlib -r"
 		fi
                 if test "$with_next_framework" ; then
 		    LDSHARED="$LDSHARED \$(LDLIBRARY)"
 		fi ;;
-	*-*-linux*) LDSHARED="$CC -shared";;
+	*-*-linux*) LDSHARED="\$(CC) -shared";;
 	*-*-dgux*) LDSHARED="ld -G";;
-	*-*-freebsd3*) LDSHARED="$CC -shared";;
+	*-*-freebsd3*) LDSHARED="\$(CC) -shared";;
 	*-*-freebsd* | *-*-openbsd*) LDSHARED="ld -Bshareable";;
 	*-*-netbsd*)
-		if [[ "`$CC -dM -E - </dev/null | grep __ELF__`" != "" ]]
+		if [[ "`\$(CC) -dM -E - </dev/null | grep __ELF__`" != "" ]]
 		then
-			LDSHARED="$CC -shared"
+			LDSHARED="\$(CC) -shared"
 		else
 			LDSHARED="ld -Bshareable"
 		fi;;
-	*-sco-sysv*) LDSHARED="$CC -G -KPIC -Ki486 -belf -Wl,-Bexport";;
-	*-*-darwin*) LDSHARED="$CC -bundle -undefined suppress -flat_namespace";;
+	*-sco-sysv*) LDSHARED="\$(CC) -G -KPIC -Ki486 -belf -Wl,-Bexport";;
+	*-*-darwin*) LDSHARED="\$(CC) -bundle -undefined suppress -flat_namespace";;
 	*)	LDSHARED="ld";;
 	esac
 fi
@@ -205,23 +206,23 @@ if test -z "$TRYLINKINGWITHCXX"
 then
 	case $host in
 	*-*-solaris*) if test "$GCC" = yes
-             then TRYLINKINGWITHCXX="CXXSHARED= $CXX -Wl,-G"
-             else TRYLINKINGWITHCXX="CXXSHARED= $CXX -G -L/opt/SUNWspro/lib -lCrun -lCstd"
+             then TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -Wl,-G"
+             else TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -G -L/opt/SUNWspro/lib -lCrun -lCstd"
              fi;;
-        *-*-hp*) TRYLINKINGWITHCXX="CXXSHARED= $CXX +z ";;
-        *-*-darwin*) TRYLINKINGWITHCXX="CXXSHARED= $CXX -bundle -undefined suppress -flat_namespace";;
+        *-*-hp*) TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) +z ";;
+        *-*-darwin*) TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -bundle -undefined suppress -flat_namespace";;
         *-*-cygwin* | *-*-mingw*)
             if test "$GCC" = yes; then
-                TRYLINKINGWITHCXX="CXXSHARED= $CXX -shared "
+                TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -shared "
             else
                 if test "cl" = $CXX ;  then
                     # Microsoft Visual C++ (MSVC)
-                    TRYLINKINGWITHCXX="CXXSHARED= $CXX -nologo -LD"
+                    TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -nologo -LD"
                 else
                     TRYLINKINGWITHCXX="#unknown Windows compiler"
                 fi
             fi ;;
-        *)       TRYLINKINGWITHCXX="CXXSHARED= $CXX -shared ";;
+        *)       TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -shared ";;
         esac
 fi
 AC_MSG_RESULT($TRYLINKINGWITHCXX)
@@ -288,6 +289,7 @@ case $host in
     else PLATCFLAGS=
       #    else PLATCFLAGS="-errtags=yes" # Need more work as C examples use ld for linking
     fi;;
+  *-*-aix*) PLATCFLAGS="$CFLAGS";;
   *) PLATCFLAGS=
 esac
 AC_MSG_RESULT($PLATCFLAGS)
@@ -812,7 +814,7 @@ else
     if test x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\" -a $PYVER -ge 3; then
       PYTHON3="$PYTHON"
     else
-      for py_ver in 3 3.9 3.8 3.7 3.6 3.5 3.4 3.3 3.2 ""; do
+      for py_ver in 3 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 3.2 ""; do
         AC_CHECK_PROGS(PYTHON3, [python$py_ver])
         if test -n "$PYTHON3"; then
           AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
@@ -983,7 +985,7 @@ else
 # First figure out what the name of Perl5 is
 
 if test "x$PERLBIN" = xyes; then
-AC_CHECK_PROGS(PERL, perl perl5.6.1 perl5.6.0 perl5.004 perl5.003 perl5.002 perl5.001 perl5 perl)
+AC_CHECK_PROGS(PERL, perl perl5)
 else
 PERL="$PERLBIN"
 fi
@@ -1250,6 +1252,9 @@ else
       SCILABOPT="-nwni -nb"
       if test $SCILAB_VERSION -ge 540; then
         SCILABOPT+=" -noatomsautoload"
+      fi
+      if test $SCILAB_VERSION -ge 600; then
+        SCILABOPT+=" -quit"
       fi
       AC_MSG_RESULT($SCILABOPT)
 
@@ -2079,7 +2084,7 @@ if test x"${PHPBIN}" = xno; then
     PHP=
 else
     if test "x$PHPBIN" = xyes; then
-      AC_CHECK_PROGS(PHP, [php8.0 php7.4 php7.3 php7.2 php7.1 php7.0 php])
+      AC_CHECK_PROGS(PHP, [php8.1 php8.0 php7.4 php7.3 php7.2 php7.1 php7.0 php])
     else
       PHP=$PHPBIN
     fi

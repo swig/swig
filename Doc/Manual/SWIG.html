@@ -47,6 +47,7 @@
 <li><a href="#SWIG_rename_ignore">Renaming and ignoring declarations</a>
 <ul>
 <li><a href="#SWIG_nn29">Simple renaming of specific identifiers</a>
+<li><a href="#SWIG_ignore">Ignoring identifiers</a>
 <li><a href="#SWIG_advanced_renaming">Advanced renaming support</a>
 <li><a href="#SWIG_limiting_renaming">Limiting global renaming rules</a>
 <li><a href="#SWIG_chosen_unignore">Ignoring everything then wrapping a few selected symbols</a>
@@ -208,7 +209,7 @@ General Options
      -oh &lt;headfile&gt;  - Set name of C++ output header file for directors to &lt;headfile&gt;
      -outcurrentdir  - Set default output dir to current dir instead of input file's path
      -outdir &lt;dir&gt;   - Set language specific files output directory to &lt;dir&gt;
-     -pcreversion    - Display PCRE version information
+     -pcreversion    - Display PCRE2 version information
      -small          - Compile in virtual elimination and compact mode
      -swiglib        - Report location of SWIG library and exit
      -templatereduce - Reduce all the typedefs in templates
@@ -1469,14 +1470,14 @@ SWIG generates the following code:
 <pre>
 /* C mode */
 void foo_set(char *value) {
-  if (foo) free(foo);
+  free(foo);
   foo = (char *) malloc(strlen(value)+1);
   strcpy(foo, value);
 }
 
 /* C++ mode.  When -c++ option is used */
 void foo_set(char *value) {
-  if (foo) delete [] foo;
+  delete [] foo;
   foo = new char[strlen(value)+1];
   strcpy(foo, value);
 }
@@ -1842,6 +1843,25 @@ all to `output' by specifying :</p>
 </pre></div>
 
 <p>
+A new <tt>%rename</tt> for the same name will replace the current
+<tt>%rename</tt> for all uses after it in the file, and setting the
+new name to "" will remove the rename.  So, for instance, if you
+wanted to rename some things in one file and not in another, you could
+do:
+</p>
+
+<div class="code">
+<pre>
+  %rename(print1) print;
+  %include "header1.h" //Anything "print" in here will become "print1"
+  %rename(print2) print;
+  %include "header2.h" //Anything "print" in here will become "print2"
+  %rename("") print;
+  %include "header3.h" //Anything "print" in here will remain "print"
+</pre>
+</div>
+
+<p>
 SWIG does not normally perform any checks to see if the functions it wraps are
 already defined in the target scripting language. However, if you are
 careful about namespaces and your use of modules, you can usually
@@ -1856,6 +1876,9 @@ If you are using the <tt>%rename</tt> directive and C++, make sure you read the
 <a href="SWIGPlus.html#SWIGPlus_ambiguity_resolution_renaming">Renaming and ambiguity resolution</a>
 for method overloading and default arguments.
 </p>
+
+<H4><a name="SWIG_ignore">5.4.7.2 Ignoring identifiers</a></H4>
+
 
 <p>
 Closely related to <tt>%rename</tt> is the <tt>%ignore</tt> directive.  <tt>%ignore</tt> instructs SWIG
@@ -1896,7 +1919,7 @@ This directive is still supported, but it is deprecated and should probably be a
 directive is more powerful and better supports wrapping of raw header file information.
 </p>
 
-<H4><a name="SWIG_advanced_renaming">5.4.7.2 Advanced renaming support</a></H4>
+<H4><a name="SWIG_advanced_renaming">5.4.7.3 Advanced renaming support</a></H4>
 
 
 <p>
@@ -2022,8 +2045,8 @@ and a more descriptive one, but the two functions are otherwise equivalent:
     <td>String after (Perl-like) regex substitution operation. This function
     allows applying arbitrary regular expressions to the identifier names. The
     <i>pattern</i> part is a regular expression in Perl syntax (as supported
-    by the <a href="http://www.pcre.org/">Perl Compatible Regular Expressions (PCRE)</a>)
-    library and the <i>subst</i> string
+    by the <a href="http://www.pcre.org/">Perl Compatible Regular Expressions</a>)
+    (PCRE2 library) and the <i>subst</i> string
     can contain back-references of the form <tt>\N</tt> where <tt>N</tt> is a digit
     from 0 to 9, or one of the following escape sequences: <tt>\l</tt>, <tt>\L</tt>,
     <tt>\u</tt>, <tt>\U</tt> or <tt>\E</tt>. The back-references are replaced with the
@@ -2105,7 +2128,7 @@ are exactly equivalent and <tt>%rename</tt> can be used to selectively ignore
 multiple declarations using the previously described matching possibilities.
 </p>
 
-<H4><a name="SWIG_limiting_renaming">5.4.7.3 Limiting global renaming rules</a></H4>
+<H4><a name="SWIG_limiting_renaming">5.4.7.4 Limiting global renaming rules</a></H4>
 
 
 <p>
@@ -2203,7 +2226,7 @@ wrap C++ overloaded functions and methods or C++ methods which use default argum
 </p>
 
 
-<H4><a name="SWIG_chosen_unignore">5.4.7.4 Ignoring everything then wrapping a few selected symbols</a></H4>
+<H4><a name="SWIG_chosen_unignore">5.4.7.5 Ignoring everything then wrapping a few selected symbols</a></H4>
 
 
 <p>
@@ -2227,6 +2250,23 @@ the following approach could be taken:
 %rename("%s") Star::shine; // named method
 
 %include "myheader.h"
+
+%rename("%s") ""; // Undo the %ignore
+</pre>
+</div>
+
+<p>
+If <tt>Star</tt> was in the <tt>Galaxy</tt> namespace, you would need
+to unignore the namespace, too, and add the namespace to all the
+renames:
+</p>
+
+<div class="code">
+<pre>
+%rename("%s") Galaxy;
+%rename("%s") Galaxy::Star;
+%rename("%s") Galaxy::Star::Star;
+...
 </pre>
 </div>
 
@@ -2241,6 +2281,7 @@ members of the class, so when the chosen class is unignored, all of its methods 
 %rename($ignore, %$isclass) ""; // Only ignore all classes
 %rename("%s") Star; // Unignore 'Star'
 %include "myheader.h"
+%rename("%s", %$isclass) ""; // Stop ignoring all classes
 </pre>
 </div>
 
@@ -2594,8 +2635,7 @@ char *Foo_name_get(Foo *obj) {
 }
 
 char *Foo_name_set(Foo *obj, char *c) {
-  if (obj-&gt;name)
-    free(obj-&gt;name);
+  free(obj-&gt;name);
   obj-&gt;name = (char *) malloc(strlen(c)+1);
   strcpy(obj-&gt;name, c);
   return obj-&gt;name;
@@ -2975,6 +3015,11 @@ typedef struct Vector {
 } Vector;
 </pre>
 </div>
+
+<p>
+You'll also need to use these names if you want to directly call methods added
+using <tt>%extend</tt> from other C/C++ code.
+</p>
 
 <p>
 The name used for %extend should be the name of the struct and not the name of any typedef to the struct.

@@ -57,3 +57,5 @@ check::equal(3, member_pointer_const::call1(member_pointer_const::ADD_BY_VALUE, 
 check::equal(7, member_pointer_const::call2(member_pointer_const::ADD_BY_VALUE, 3, 4), "Add by pointer");
 check::equal(11, member_pointer_const::call3(member_pointer_const::ADD_BY_VALUE, 5, 6), "Add by reference");
  */
+
+check::done();

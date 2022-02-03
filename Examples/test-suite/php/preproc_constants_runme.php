@@ -63,3 +63,5 @@ check::equal(gettype(preproc_constants::EXPR_CONDITIONAL), "double", "preproc_co
 check::equal(gettype(preproc_constants::EXPR_MIXED1), "double", "preproc_constants.EXPR_MIXED1 has unexpected type");
 check::equal(gettype(preproc_constants::EXPR_WCHAR_MAX), "integer", "preproc_constants.EXPR_WCHAR_MAX has unexpected type");
 check::equal(gettype(preproc_constants::EXPR_WCHAR_MIN), "integer", "preproc_constants.EXPR_WCHAR_MIN has unexpected type");
+
+check::done();

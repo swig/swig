@@ -994,7 +994,7 @@ int JSEmitter::emitDtor(Node *n) {
      {
      SWIG_PRV_DATA* t = (SWIG_PRV_DATA*)JSObjectGetPrivate(thisObject);
      if(t && t->swigCMemOwn) free ((${type}*)t->swigCObject);
-     if(t) free(t);
+     free(t);
      }
      %}
 
@@ -1007,7 +1007,7 @@ int JSEmitter::emitDtor(Node *n) {
      ${type}* arg1 = (${type}*)t->swigCObject;
      ${destructor_action}
      }
-     if(t) free(t);
+     free(t);
 
      Based on what I saw in the Lua and Ruby modules, I use Getattr(n, "wrap:action")
      to decide if the user has a preferred destructor action.
@@ -1255,7 +1255,7 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
   // Note: this dispatcher function gets called after the last overloaded function has been created.
   // At this time, n.wrap:name contains the name of the last wrapper function.
   // To get a valid function name for the dispatcher function we take the last wrapper name and
-  // substract the extension "sym:overname",
+  // subtract the extension "sym:overname",
   String *wrap_name = NewString(Getattr(n, "wrap:name"));
   String *overname = Getattr(n, "sym:overname");
 

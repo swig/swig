@@ -137,7 +137,7 @@ static const char *usage4 = (const char *) "\
      -oh <headfile>  - Set name of C++ output header file for directors to <headfile>\n\
      -outcurrentdir  - Set default output dir to current dir instead of input file's path\n\
      -outdir <dir>   - Set language specific files output directory to <dir>\n\
-     -pcreversion    - Display PCRE version information\n\
+     -pcreversion    - Display PCRE2 version information\n\
      -small          - Compile in virtual elimination and compact mode\n\
      -swiglib        - Report location of SWIG library and exit\n\
      -templatereduce - Reduce all the typedefs in templates\n\
