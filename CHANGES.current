@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-03: olly
+	    #660 https://sourceforge.net/p/swig/bugs/1081/
+	    Default parameter values containing method calls are now parsed and
+	    handled - e.g. `x->foo(3,4)` and `y.z()`.
+
 2022-02-02: olly
 	    [Ruby] https://sourceforge.net/p/swig/bugs/1136/ Fix remove of prefix
 	    from method name to only remove it at the start.
