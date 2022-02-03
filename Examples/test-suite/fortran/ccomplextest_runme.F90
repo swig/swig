@@ -1,9 +1,9 @@
-! File : complextest_c_runme.F90
+! File : ccomplextest_runme.F90
 
 #include "fassert.h"
 
-program complextest_c_runme
-  use complextest_c
+program ccomplextest_runme
+  use ccomplextest
   use ISO_C_BINDING
   implicit none
   complex(C_FLOAT_COMPLEX) :: cflt
