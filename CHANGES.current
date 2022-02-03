@@ -8,6 +8,10 @@ Version 4.1.0 (in progress)
 ===========================
 
 2022-02-03: olly
+	    [C#] #283 #998 Fix memory leak in directorin typemap for
+	    std::string.
+
+2022-02-03: olly
 	    [Python] #967 Make `self` parameter available to user typemaps.
 
 2022-02-03: teythoon
