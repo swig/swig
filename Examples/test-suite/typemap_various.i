@@ -58,6 +58,10 @@ void CheckRetTypemapUsed() {
    /* hello */ delete[] result;
 }
 
+%{
+#include <string.h>
+%}
+
 %inline {
   class FFoo {
   public:
