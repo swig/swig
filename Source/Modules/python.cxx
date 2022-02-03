@@ -2545,6 +2545,11 @@ public:
     const char *builtin_kwargs = builtin_ctor ? ", PyObject *kwargs" : "";
     Printv(f->def, linkage, builtin_ctor ? "int " : "PyObject *", wname, "(PyObject *self, PyObject *args", builtin_kwargs, ") {", NIL);
 
+    if (builtin) {
+      /* Avoid warning if the self parameter is not used. */
+      Append(f->code, "(void)self;\n");
+    }
+
     Wrapper_add_local(f, "argc", "Py_ssize_t argc");
     Printf(tmp, "PyObject *argv[%d] = {0}", maxargs + 1);
     Wrapper_add_local(f, "argv", tmp);
@@ -2714,7 +2719,6 @@ public:
     bool add_self = builtin_self && (!builtin_ctor || director_class);
     bool builtin_getter = (builtin && GetFlag(n, "memberget"));
     bool builtin_setter = (builtin && GetFlag(n, "memberset") && !builtin_getter);
-    char const *self_param = builtin ? "self" : "SWIGUNUSEDPARM(self)";
     char const *wrap_return = builtin_ctor ? "int " : "PyObject *";
     String *linkage = NewString("SWIGINTERN ");
     String *wrapper_name = Swig_name_wrapper(iname);
@@ -2769,9 +2773,9 @@ public:
     const char *builtin_kwargs = builtin_ctor ? ", PyObject *kwargs" : "";
     if (!allow_kwargs || overname) {
       if (!varargs) {
-	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args", builtin_kwargs, ") {", NIL);
+	Printv(f->def, linkage, wrap_return, wname, "(PyObject *self, PyObject *args", builtin_kwargs, ") {", NIL);
       } else {
-	Printv(f->def, linkage, wrap_return, wname, "__varargs__", "(PyObject *", self_param, ", PyObject *args, PyObject *varargs", builtin_kwargs, ") {", NIL);
+	Printv(f->def, linkage, wrap_return, wname, "__varargs__", "(PyObject *self, PyObject *args, PyObject *varargs", builtin_kwargs, ") {", NIL);
       }
       if (allow_kwargs) {
 	Swig_warning(WARN_LANG_OVERLOAD_KEYWORD, input_file, line_number, "Can't use keyword arguments with overloaded functions (%s).\n", Swig_name_decl(n));
@@ -2782,8 +2786,14 @@ public:
 	Swig_warning(WARN_LANG_VARARGS_KEYWORD, input_file, line_number, "Can't wrap varargs with keyword arguments enabled\n");
 	varargs = 0;
       }
-      Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args, PyObject *kwargs) {", NIL);
+      Printv(f->def, linkage, wrap_return, wname, "(PyObject *self, PyObject *args, PyObject *kwargs) {", NIL);
     }
+
+    if (builtin) {
+      /* Avoid warning if the self parameter is not used. */
+      Append(f->code, "(void)self;\n");
+    }
+
     if (!builtin || !in_class || tuple_arguments > 0 || builtin_ctor) {
       if (!allow_kwargs) {
 	Append(parse_args, "    if (!PyArg_ParseTuple(args, \"");
@@ -2942,14 +2952,14 @@ public:
 	Clear(f->def);
 	if (overname) {
 	  if (noargs) {
-	    Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", Py_ssize_t nobjs, PyObject **SWIGUNUSEDPARM(swig_obj)) {", NIL);
+	    Printv(f->def, linkage, wrap_return, wname, "(PyObject *self, Py_ssize_t nobjs, PyObject **SWIGUNUSEDPARM(swig_obj)) {", NIL);
 	  } else {
-	    Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", Py_ssize_t nobjs, PyObject **swig_obj) {", NIL);
+	    Printv(f->def, linkage, wrap_return, wname, "(PyObject *self, Py_ssize_t nobjs, PyObject **swig_obj) {", NIL);
 	  }
 	  Printf(parse_args, "if ((nobjs < %d) || (nobjs > %d)) SWIG_fail;\n", num_required, num_arguments);
 	} else {
 	  int is_tp_call = Equal(Getattr(n, "feature:python:slot"), "tp_call");
-	  Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args", builtin_kwargs, ") {", NIL);
+	  Printv(f->def, linkage, wrap_return, wname, "(PyObject *self, PyObject *args", builtin_kwargs, ") {", NIL);
 	  if (builtin_ctor)
 	    Printf(parse_args, "if (!SWIG_Python_CheckNoKeywords(kwargs, \"%s\")) SWIG_fail;\n", iname);
 	  if (onearg && !builtin_ctor && !is_tp_call) {
@@ -3241,9 +3251,9 @@ public:
       f = NewWrapper();
       if (funpack) {
 	// Note: funpack is currently always false for varargs
-	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", Py_ssize_t nobjs, PyObject **swig_obj) {", NIL);
+	Printv(f->def, linkage, wrap_return, wname, "(PyObject *self, Py_ssize_t nobjs, PyObject **swig_obj) {", NIL);
       } else {
-	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args", builtin_kwargs, ") {", NIL);
+	Printv(f->def, linkage, wrap_return, wname, "(PyObject *self, PyObject *args", builtin_kwargs, ") {", NIL);
       }
       Wrapper_add_local(f, "resultobj", builtin_ctor ? "int resultobj" : "PyObject *resultobj");
       Wrapper_add_local(f, "varargs", "PyObject *varargs");
