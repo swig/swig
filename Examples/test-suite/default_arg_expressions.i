@@ -30,5 +30,5 @@ void CreateMaterialBindSubset1(const Tokens &elementType = UsdGeomTokens) {}
 void CreateMaterialBindSubset2(int num = UsdGeomTokensPtr->pface->val.val) {}
 void CreateMaterialBindSubset3(int num = UsdGeomTokensPtr->pface->ptr->val) {}
 void CreateMaterialBindSubset4(int num = UsdGeomTokensPtr->face.val.val) {}
-//void CreateMaterialBindSubset5(int num = UsdGeomTokens.face.val.val) {}
+void CreateMaterialBindSubset5(int num = UsdGeomTokens.face.val.val) {}
 %}
