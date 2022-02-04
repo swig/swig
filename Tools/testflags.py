@@ -71,6 +71,8 @@ def get_cxxflags(language, std, compiler):
 def get_fcflags(language, std, compiler):
     fcflags = ["-Wall", "-Wextra", "-Wimplicit-procedure",
             "-Wimplicit-interface", "-Wno-compare-reals",
+            "-Wno-intrinsic-shadow",
+            "-Wno-maybe-uninitialized", # GCC bugs
             "-ffree-line-length-none"]
     if std:
         fcflags.append("-std=" + std)
