@@ -69,7 +69,7 @@
   void foo(int) {}
 }
 
-%rename("%(lowercase)s",sourcefmt="%(regex:/GSL_(.*)/\\1/)s",%$isfunction) "";
+%rename("%(lowercase)s",sourcefmt="%(regex:/GSL_(.*)/\\1_/)s",%$isfunction) "";
 %inline {
   void GSL_Hello() {}
 }

@@ -4,6 +4,9 @@
 
 #ifdef SWIGOCAML
 %warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#elif SWIGFORTRAN
+// Can't natively wrap function pointers with nonnative return type
+%warnfilter(SWIGWARN_LANG_NATIVE_UNIMPL,SWIGWARN_TYPEMAP_UNDEF) TYPE1FPTR1_CONSTANT1;
 #endif
 
 %inline %{

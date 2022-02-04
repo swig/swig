@@ -56,6 +56,16 @@ int getintfrompointer(int* intptr) {
 
 %}
 
+#if defined(SWIGFORTRAN)
+/* Pointer helper functions for Fortan run test */
+%include "typemaps.i"
+%apply SWIGTYPE ARRAY[ANY] { int inp[ANY]  };
+%inline %{
+int *array_to_ptr(int inp[ARRAY_LEN]) { return inp; }
+int get_value(int *inp, int idx) { return inp[idx - 1]; }
+%}
+#endif
+
 // This tests wrapping of function that involves pointer to array
 
 

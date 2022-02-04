@@ -17,7 +17,7 @@
 
 // Use language macros since Java and C# don't have multiset support (yet)
 // and uses different naming conventions.
-#if defined(SWIGRUBY) || defined(SWIGPYTHON)
+#if defined(SWIGRUBY) || defined(SWIGPYTHON) || defined(SWIGFORTRAN)
     %include <std_multiset.i>
     %template(set_int) std::multiset<int>;
     %template(v_int) std::vector<int>;

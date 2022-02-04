@@ -1,6 +1,8 @@
 %module smart_pointer_member
 
 %warnfilter(SWIGWARN_GO_NAME_CONFLICT);                       /* Ignoring 'foo' due to Go name ('Foo') conflict with 'Foo' */
+// Fortran is case insensitive: function 'foo' conflicts with class Foo
+%warnfilter(SWIGWARN_FORTRAN_NAME_CONFLICT);
 
 %inline %{
 

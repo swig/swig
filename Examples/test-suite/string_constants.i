@@ -11,6 +11,9 @@
 #if defined(SWIGJAVA)
 %javaconst(1);
 #endif
+#if defined(SWIGFORTRAN)
+%fortranconst;
+#endif
 %inline %{
 #define SS1 "ÆÎOU\n"
 #define AA1 "A\rB\nC"

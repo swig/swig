@@ -2,6 +2,7 @@
 %module(ruby_minherit="1") multiple_inheritance_nspace
 
 %warnfilter(SWIGWARN_D_MULTIPLE_INHERITANCE,
+	    SWIGWARN_FORTRAN_MULTIPLE_INHERITANCE,
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE); /* languages not supporting multiple inheritance */
 
 // nspace feature only supported by these languages
@@ -16,7 +17,7 @@
 %interface(Space::CBase2)
 #endif
 
-#if defined(SWIGD)
+#if defined(SWIGD) || defined(SWIGFORTRAN)
 // Missing multiple inheritance support results in incorrect use of override
 %ignore CBase1;
 %ignore CBase2;

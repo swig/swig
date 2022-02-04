@@ -3,25 +3,18 @@
 
 %module(ruby_minherit="1") default_constructor
 
+/* C#, D, Fortran, Java, PHP multiple inheritance */
+%define %warnfilter_multiple_inheritance(CLS)
 %warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
 	    SWIGWARN_D_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) EB; /* C#, D, Java, PHP multiple inheritance */
-
-%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
-	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
-	    SWIGWARN_D_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) AD; /* C#, D, Java, PHP multiple inheritance */
-
-%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
-	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
-	    SWIGWARN_D_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) GGG; /* C#, D, Java, PHP multiple inheritance */
-
-%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
-	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
-	    SWIGWARN_D_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) HHH; /* C#, D, Java, PHP multiple inheritance */
+	    SWIGWARN_FORTRAN_MULTIPLE_INHERITANCE,
+	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) CLS;
+%enddef
+%warnfilter_multiple_inheritance(AD);
+%warnfilter_multiple_inheritance(EB);
+%warnfilter_multiple_inheritance(GGG);
+%warnfilter_multiple_inheritance(HHH);
 
 %warnfilter(SWIGWARN_LANG_FRIEND_IGNORE) F; /* friend function */
 
@@ -175,7 +168,12 @@ protected:
   };
 %}
 
+#ifndef SWIGFORTRAN
+// It's unclear to me what this typedef is trying to do. The result compiles
+// with Python but does not compile in Fortran. The OSRSpatialReferenceShadow
+// class is untested in any language.
 typedef void OSRSpatialReferenceShadow; 
+#endif
 
 class OSRSpatialReferenceShadow {
 private:
