@@ -45,7 +45,7 @@ Functionality
   -----------------
   
   Note:
-     See 'http://www.stack.nl/~dimitri/doxygen/docblocks.html' for
+     See 'https://www.doxygen.nl/manual/docblocks.html' for
      the detailed description of Doxygen syntax and terms used in this
      section.
 
@@ -72,7 +72,7 @@ Functionality
   ----
 
   This section contains all doxygen tags taken from 
-  http://www.stack.nl/~dimitri/doxygen/commands.html. If a tag is
+  https://www.doxygen.nl/manual/commands.html. If a tag is
   marked as 'ignored', then the tag is ignored, but the text is copied
   to the destination documentation. 'Not implemented' means that the
   tag with it's contents is stripped out of the output.
