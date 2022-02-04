@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "typedef_reference.php";
 
 check::functions(array('somefunc','otherfunc','new_intp','copy_intp','delete_intp','intp_assign','intp_value'));
 $int2=copy_intp(2);

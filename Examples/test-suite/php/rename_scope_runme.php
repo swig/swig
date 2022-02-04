@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "rename_scope.php";
 
 check::classes(array("rename_scope","Interface_UP","Interface_BP","Natural_UP","Natural_BP","Bucket"));
 

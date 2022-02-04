@@ -44,8 +44,8 @@ b = director_basic.Bar(3)
 d = director_basic.MyClass()
 c = PyClass()
 
-cc = director_basic.MyClass_get_self(c)
-dd = director_basic.MyClass_get_self(d)
+cc = director_basic.MyClass.get_self(c)
+dd = director_basic.MyClass.get_self(d)
 
 bc = cc.cmethod(b)
 bd = dd.cmethod(b)
@@ -86,8 +86,8 @@ for i in range(0, 100):
 pymult = PyMulti()
 
 
-p1 = director_basic.Foo_get_self(pymult)
-p2 = director_basic.MyClass_get_self(pymult)
+p1 = director_basic.Foo.get_self(pymult)
+p2 = director_basic.MyClass.get_self(pymult)
 
 p1.ping()
 p2.vmethod(bc)

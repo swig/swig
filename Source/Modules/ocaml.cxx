@@ -590,8 +590,6 @@ public:
       }
       // Handle parameter types.
       if ((tm = Getattr(p, "tmap:in"))) {
-	Replaceall(tm, "$source", source);
-	Replaceall(tm, "$target", target);
 	Replaceall(tm, "$input", source);
 	Setattr(p, "emit:input", source);
 	Printv(f->code, tm, "\n", NIL);
@@ -611,7 +609,6 @@ public:
     /* Insert constraint checking code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
-	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Printv(f->code, tm, "\n", NIL);
 	p = Getattr(p, "tmap:check:next");
       } else {
@@ -623,8 +620,6 @@ public:
 
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-	Replaceall(tm, "$source", Getattr(p, "emit:input"));	/* Deprecated */
-	Replaceall(tm, "$target", Getattr(p, "lname"));	/* Deprecated */
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Replaceall(tm, "$ntype", normalizeTemplatedClassName(Getattr(p, "type")));
@@ -640,7 +635,6 @@ public:
     /* Insert cleanup code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
-	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Printv(cleanup, tm, "\n", NIL);
 	p = Getattr(p, "tmap:freearg:next");
       } else {
@@ -681,8 +675,6 @@ public:
     String *actioncode = emit_action(n);
 
     if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
-      Replaceall(tm, "$source", "swig_result");
-      Replaceall(tm, "$target", "rv");
       Replaceall(tm, "$result", "rv");
       Replaceall(tm, "$ntype", return_type_normalized);
       Printv(f->code, tm, "\n", NIL);
@@ -701,14 +693,12 @@ public:
 
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
-	Replaceall(tm, "$source", "swig_result");
 	Printv(f->code, tm, "\n", NIL);
       }
     }
 
     /* See if there is any return cleanup code */
     if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
-      Replaceall(tm, "$source", Swig_cresult_name());
       Printf(f->code, "%s\n", tm);
       Delete(tm);
     }
@@ -716,7 +706,6 @@ public:
     // Free any memory allocated by the function being wrapped..
 
     if ((tm = Swig_typemap_lookup("swig_result", n, Swig_cresult_name(), 0))) {
-      Replaceall(tm, "$source", Swig_cresult_name());
       Printv(f->code, tm, "\n", NIL);
     }
     // Wrap things up (in a manner of speaking)
@@ -853,13 +842,9 @@ public:
       /* Check for a setting of the variable value */
       Printf(f->code, "if (args != Val_int(0)) {\n");
       if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
-	Replaceall(tm, "$source", "args");
-	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "args");
 	emit_action_code(n, f->code, tm);
       } else if ((tm = Swig_typemap_lookup("in", n, name, 0))) {
-	Replaceall(tm, "$source", "args");
-	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "args");
 	emit_action_code(n, f->code, tm);
       } else {
@@ -871,13 +856,9 @@ public:
     // of evaluating or setting)
 
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
-      Replaceall(tm, "$source", name);
-      Replaceall(tm, "$target", "swig_result");
       Replaceall(tm, "$result", "swig_result");
       emit_action_code(n, f->code, tm);
     } else if ((tm = Swig_typemap_lookup("out", n, name, 0))) {
-      Replaceall(tm, "$source", name);
-      Replaceall(tm, "$target", "swig_result");
       Replaceall(tm, "$result", "swig_result");
       emit_action_code(n, f->code, tm);
     } else {

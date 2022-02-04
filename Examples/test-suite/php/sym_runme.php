@@ -1,13 +1,12 @@
 <?php
 
 require "tests.php";
-require "sym.php";
 
 // No new functions
 check::functions(array());
-// No new classes
-check::classes(array('flim','flam'));
-// now new vars
+// New classes
+check::classes(array('Flim','Flam'));
+// No new vars
 check::globals(array());
 
 $flim=new flim();

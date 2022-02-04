@@ -13,7 +13,6 @@
 #define PyString_Size(str) PyBytes_Size(str)	
 #define PyString_InternFromString(key) PyUnicode_InternFromString(key)
 #define Py_TPFLAGS_HAVE_CLASS Py_TPFLAGS_BASETYPE
-#define PyString_AS_STRING(x) PyUnicode_AS_STRING(x)
 #define _PyLong_FromSsize_t(x) PyLong_FromSsize_t(x)
 
 #endif

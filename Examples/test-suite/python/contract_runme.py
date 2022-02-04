@@ -58,15 +58,15 @@ try:
 except RuntimeError:
     pass
 
-contract.Foo_stest_prepost(4, 0)
+contract.Foo.stest_prepost(4, 0)
 try:
-    contract.Foo_stest_prepost(-4, 2)
+    contract.Foo.stest_prepost(-4, 2)
     raise Exception("Failed! Static method preassertion")
 except RuntimeError:
     pass
 
 try:
-    contract.Foo_stest_prepost(4, -10)
+    contract.Foo.stest_prepost(4, -10)
     raise Exception("Failed! Static method posteassertion")
 except RuntimeError:
     pass

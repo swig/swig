@@ -1,11 +1,17 @@
 %module constant_expr;
-/* Tests of constant expressions. */
+/* Tests of constant expressions (C++ version). */
+
+%include "constant_expr_c.i"
 
 %inline %{
 
-/* % didn't work in SWIG 1.3.40 and earlier. */
-const int X = 123%7;
-#define FOO 12 % 9
-double d_array[12 % 9];
+// Testcase from https://sourceforge.net/p/swig/bugs/1139/
+template<typename Tp>
+struct SizeInfo {
+enum {
+isLarge = (sizeof(Tp)>sizeof(void*)),
+isPointer = false
+};
+};
 
 %}

@@ -336,8 +336,6 @@ public:
       if ((tm = Getattr(p, "tmap:in"))) {
 	String *parse = Getattr(p, "tmap:in:parse");
 	if (!parse) {
-	  Replaceall(tm, "$target", ln);
-	  Replaceall(tm, "$source", source);
 	  Replaceall(tm, "$input", source);
 	  Setattr(p, "emit:input", source);
 
@@ -401,7 +399,6 @@ public:
     /* Insert constraint checking code */
     for (p = parms; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
-	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Printv(f->code, tm, "\n", NIL);
 	p = Getattr(p, "tmap:check:next");
       } else {
@@ -414,7 +411,6 @@ public:
       if (!checkAttribute(p, "tmap:in:numinputs", "0")
 	  && !Getattr(p, "tmap:in:parse") && (tm = Getattr(p, "tmap:freearg"))) {
 	if (Len(tm) != 0) {
-	  Replaceall(tm, "$source", Getattr(p, "lname"));
 	  Printv(cleanup, tm, "\n", NIL);
 	}
 	p = Getattr(p, "tmap:freearg:next");
@@ -426,12 +422,9 @@ public:
     /* Insert argument output code */
     for (i = 0, p = parms; p; i++) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-	Replaceall(tm, "$source", Getattr(p, "lname"));
 #ifdef SWIG_USE_RESULTOBJ
-	Replaceall(tm, "$target", "resultobj");
 	Replaceall(tm, "$result", "resultobj");
 #else
-	Replaceall(tm, "$target", "(Tcl_GetObjResult(interp))");
 	Replaceall(tm, "$result", "(Tcl_GetObjResult(interp))");
 #endif
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
@@ -450,12 +443,9 @@ public:
 
     /* Return value if necessary  */
     if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
-      Replaceall(tm, "$source", Swig_cresult_name());
 #ifdef SWIG_USE_RESULTOBJ
-      Replaceall(tm, "$target", "resultobj");
       Replaceall(tm, "$result", "resultobj");
 #else
-      Replaceall(tm, "$target", "(Tcl_GetObjResult(interp))");
       Replaceall(tm, "$result", "(Tcl_GetObjResult(interp))");
 #endif
       if (GetFlag(n, "feature:new")) {
@@ -478,13 +468,11 @@ public:
     /* Look for any remaining cleanup */
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
-	Replaceall(tm, "$source", Swig_cresult_name());
 	Printf(f->code, "%s\n", tm);
       }
     }
 
     if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
-      Replaceall(tm, "$source", Swig_cresult_name());
       Printf(f->code, "%s\n", tm);
     }
 #ifdef SWIG_USE_RESULTOBJ
@@ -580,8 +568,6 @@ public:
     Printv(getf->def, "SWIGINTERN const char *", getfname, "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2, int flags) {", NIL);
     Wrapper_add_local(getf, "value", "Tcl_Obj *value = 0");
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
-      Replaceall(tm, "$source", name);
-      Replaceall(tm, "$target", "value");
       Replaceall(tm, "$result", "value");
       /* Printf(getf->code, "%s\n",tm); */
       addfail = emit_action_code(n, getf->code, tm);
@@ -616,8 +602,6 @@ public:
         Wrapper_add_local(setf, "name1o", "Tcl_Obj *name1o = 0");
 
         if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
-	  Replaceall(tm, "$source", "value");
-	  Replaceall(tm, "$target", name);
 	  Replaceall(tm, "$input", "value");
 	  Printf(setf->code, "name1o = Tcl_NewStringObj(name1,-1);\n");
 	  Printf(setf->code, "value = Tcl_ObjGetVar2(interp, name1o, 0, flags);\n");
@@ -690,14 +674,10 @@ public:
     }
 
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
-      Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
       Replaceall(tm, "$nsname", nsname);
       Printf(const_tab, "%s,\n", tm);
     } else if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
-      Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
       Replaceall(tm, "$nsname", nsname);
       Printf(f_init, "%s\n", tm);

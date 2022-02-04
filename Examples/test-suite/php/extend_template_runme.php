@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "extend_template.php";
 
 check::classes(array("Foo_0"));
 $foo=new Foo_0();

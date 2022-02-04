@@ -30,7 +30,7 @@ namespace std {
         if (scm_is_string($input)) {
             tempptr = SWIG_scm2str($input);
             $1.assign(tempptr);
-            if (tempptr) SWIG_free(tempptr);
+            SWIG_free(tempptr);
         } else {
             SWIG_exception(SWIG_TypeError, "string expected");
         }
@@ -40,7 +40,7 @@ namespace std {
         if (scm_is_string($input)) {
             tempptr = SWIG_scm2str($input);
             temp.assign(tempptr);
-            if (tempptr) SWIG_free(tempptr);
+            SWIG_free(tempptr);
             $1 = &temp;
         } else {
             SWIG_exception(SWIG_TypeError, "string expected");
@@ -51,7 +51,7 @@ namespace std {
         if (scm_is_string($input)) {
             tempptr = SWIG_scm2str($input);
             $1 = new $*1_ltype(tempptr);
-            if (tempptr) SWIG_free(tempptr);
+            SWIG_free(tempptr);
         } else {
             SWIG_exception(SWIG_TypeError, "string expected");
         }
@@ -73,7 +73,7 @@ namespace std {
         if (scm_is_string($input)) {
 	    char *tempptr = SWIG_scm2str($input);
             $1.assign(tempptr);
-            if (tempptr) SWIG_free(tempptr);
+            SWIG_free(tempptr);
         } else {
             SWIG_exception(SWIG_TypeError, "string expected");
         }

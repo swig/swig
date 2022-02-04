@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "li_std_vector_member_var.php";
 
 $t = new Test();
 

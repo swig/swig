@@ -33,4 +33,8 @@
     b = "string b";
     x = 1234;
   }
+
+  int read_x() { return x; }
+
+  std::string read_b() { return b; }
 %}

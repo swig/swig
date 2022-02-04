@@ -1608,7 +1608,7 @@ public:
 </div>
 
 <p>
-In Python, the static member can be access in three different ways:
+In Python, the static member can be accessed in three different ways:
 </p>
 
 <div class="targetlang">
@@ -1616,7 +1616,7 @@ In Python, the static member can be access in three different ways:
 &gt;&gt;&gt; example.Spam_foo()    # Spam::foo()
 &gt;&gt;&gt; s = example.Spam()
 &gt;&gt;&gt; s.foo()               # Spam::foo() via an instance
-&gt;&gt;&gt; example.Spam.foo()    # Spam::foo(). Python-2.2 only
+&gt;&gt;&gt; example.Spam.foo()    # Spam::foo() using Python-2.2 and later
 </pre>
 </div>
 
@@ -1627,15 +1627,30 @@ last technique is only available in Python-2.2 and later versions.
 
 <p>
 Static member variables are currently accessed as global variables.  This means,
-they are accessed through <tt>cvar</tt> like this:
+they are accessed through <tt>cvar</tt> or via an instance property:
 </p>
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; print example.cvar.Spam_bar
+&gt;&gt;&gt; example.cvar.Spam_bar # Spam::bar
+7
+&gt;&gt;&gt; s = example.Spam()
+&gt;&gt;&gt; s.bar                 # Spam::bar via an instance property
 7
 </pre>
 </div>
+
+<p>
+The <tt>-builtin</tt> option uses a metaclass to additionally provide access as follows:
+</p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; example.Spam.bar      # Spam::bar using -builtin option only
+7
+</pre>
+</div>
+
 
 <H3><a name="Python_nn21">33.3.8 C++ inheritance</a></H3>
 
@@ -4939,7 +4954,6 @@ object to be used as a <tt>char **</tt> object.
       if (PyString_Check(o)) {
         $1[i] = PyString_AsString(PyList_GetItem($input, i));
       } else {
-        free($1);
         PyErr_SetString(PyExc_TypeError, "list must contain strings");
         SWIG_fail;
       }
@@ -5038,7 +5052,6 @@ previous example:
       if (PyString_Check(o)) {
         $2[i] = PyString_AsString(PyList_GetItem($input, i));
       } else {
-        free($2);
         PyErr_SetString(PyExc_TypeError, "list must contain strings");
         SWIG_fail;
       }

@@ -2,8 +2,6 @@
 
 # This file illustrates the manipulation of C++ references in PHP.
 
-require "example.php";
-
 # ----- Object creation -----
 
 print "Creating some objects:\n";

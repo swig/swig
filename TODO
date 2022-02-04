@@ -201,12 +201,7 @@ PHP
 **     When returning wrapped objects via alternate constructors if that
        pointer value already exists "out there" as a resource we should
        use the same resource, we can't have multiple ref-counted resources
-       mapping to the same object in case it gets twice destroyed.  And check
-       if ref count destroying is even working, see smart_pointer_rename
-
-*      Work out how classes without even inherited constructors should
-       interact with the php "new <class>" notation.
-       See: abstract_inherit_wrap.cpptest
+       mapping to the same object in case it gets twice destroyed.
 
 **     Look at pass by point and passby ref,
        Make sometype** to be auto allocated

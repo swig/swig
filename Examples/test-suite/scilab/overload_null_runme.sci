@@ -30,16 +30,16 @@ checkequal(14, Overload_byval1cpr(o, NULL), "test 14");
 checkequal(15, Overload_byval2cpr(o, NULL), "test 15");
 checkequal(16, Overload_byval2cpr(o, x), "test 16");
 
-// forward class declaration
-checkequal(17, Overload_byval1forwardptr(o, x), "test 17");
-checkequal(18, Overload_byval1forwardptr(o, NULL), "test 18");
+// fwd class declaration
+checkequal(17, Overload_byval1fwdptr(o, x), "test 17");
+checkequal(18, Overload_byval1fwdptr(o, NULL), "test 18");
 
-checkequal(19, Overload_byval2forwardptr(o, NULL), "test 19");
-checkequal(20, Overload_byval2forwardptr(o, x), "test 20");
+checkequal(19, Overload_byval2fwdptr(o, NULL), "test 19");
+checkequal(20, Overload_byval2fwdptr(o, x), "test 20");
 
-checkequal(21, Overload_byval1forwardref(o, x), "test 21");
+checkequal(21, Overload_byval1fwdref(o, x), "test 21");
 
-checkequal(22, Overload_byval2forwardref(o, x), "test 22");
+checkequal(22, Overload_byval2fwdref(o, x), "test 22");
 
 exec("swigtest.quit", -1);
 

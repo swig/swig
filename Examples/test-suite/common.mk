@@ -134,6 +134,7 @@ CPP_TEST_CASES += \
 	char_binary \
 	char_strings \
 	chartest \
+	class_case \
 	class_scope_namespace \
 	class_forward \
 	class_ignore \
@@ -141,6 +142,7 @@ CPP_TEST_CASES += \
 	compactdefaultargs \
 	const_const_2 \
 	constant_directive \
+	constant_expr \
 	constant_pointers \
 	constover \
 	constructor_copy \
@@ -313,6 +315,7 @@ CPP_TEST_CASES += \
 	namespace_forward_declaration \
 	namespace_nested \
 	namespace_spaces \
+	namespace_struct \
 	namespace_template \
 	namespace_typedef_class \
 	namespace_typemap \
@@ -418,6 +421,7 @@ CPP_TEST_CASES += \
 	struct_value \
 	swig_exception \
 	symbol_clash \
+	sym \
 	template_arg_replace \
 	template_arg_scope \
 	template_arg_typename \
@@ -546,6 +550,7 @@ CPP_TEST_CASES += \
 	using_directive_and_declaration_forward \
 	using_extend \
 	using_inherit \
+	using_member \
 	using_namespace \
 	using_namespace_loop \
 	using_pointers \
@@ -676,7 +681,7 @@ ifndef SKIP_CPP_STD_CASES
 CPP_TEST_CASES += ${CPP_STD_TEST_CASES}
 endif
 
-ifneq (,$(HAVE_CXX11))
+ifeq (1,$(HAVE_CXX11))
 CPP_TEST_CASES += $(CPP11_TEST_CASES)
 endif
 
@@ -688,7 +693,7 @@ C_TEST_CASES += \
 	c_delete_function \
 	char_constant \
 	const_const \
-	constant_expr \
+	constant_expr_c \
 	default_args_c \
 	empty_c \
 	enums \

@@ -20,7 +20,7 @@ namespace std {
 class string;
 
 // string
-%typemap(ctype) string "char *"
+%typemap(ctype) string "const char *"
 %typemap(imtype) string "string"
 %typemap(cstype) string "string"
 
@@ -42,7 +42,7 @@ class string;
    }
    $result.assign($input); %}
 
-%typemap(directorin) string %{ $input = SWIG_csharp_string_callback($1.c_str()); %}
+%typemap(directorin) string %{ $input = $1.c_str(); %}
 
 %typemap(csin) string "$csinput"
 %typemap(csout, excode=SWIGEXCODE) string {

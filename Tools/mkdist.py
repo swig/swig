@@ -42,18 +42,18 @@ if dirname.lower() != dirname:
     sys.exit(3)
 
 # If directory and tarball exist, remove it
-print("Removing " + dirname)
 if check_dir_exists(dirpath):
+    print("Removing " + dirpath)
     run_command("rm", "-rf", dirpath)
 
-print("Removing " + dirname + ".tar if exists")
 filename = dirpath + ".tar"
 if check_file_exists(filename):
+    print("Removing " + filename)
     run_command("rm", "-rf", filename)
 
-print("Removing " + dirname + ".tar.gz if exists")
 filename += ".gz"
 if check_file_exists(filename):
+    print("Removing " + filename)
     run_command("rm", "-rf", filename)
 
 # Grab the code from git
@@ -89,10 +89,10 @@ if not skip_checks:
 
 print("Tagging release")
 tag = "v" + version
-force = "-f " if force_tag else ""
+force = "-f" if force_tag else ""
 command = ["git", "tag", "-a", "-m", "'Release version " + version + "'"]
-force and command.extend(force, tag)
-not force and command.append(tag)
+force and command.append(force)
+command.append(tag)
 run_command(*command) == 0 or failed()
 
 outdir = dirname + "/"

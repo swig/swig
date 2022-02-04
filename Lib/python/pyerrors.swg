@@ -95,8 +95,12 @@ SWIG_Python_RaiseOrModifyTypeError(const char *message)
 #else
     newvalue = PyString_FromFormat("%s\nAdditional information:\n%s", PyString_AsString(value), message);
 #endif
-    Py_XDECREF(value);
-    PyErr_Restore(type, newvalue, traceback);
+    if (newvalue) {
+      Py_XDECREF(value);
+      PyErr_Restore(type, newvalue, traceback);
+    } else {
+      PyErr_Restore(type, value, traceback);
+    }
   } else {
     /* Raise TypeError using given message */
     PyErr_SetString(PyExc_TypeError, message);

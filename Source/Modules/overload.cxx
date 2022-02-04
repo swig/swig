@@ -21,6 +21,7 @@
 String *argv_template_string;
 String *argc_template_string;
 
+namespace {
 struct Overloaded {
   Node *n;			/* Node                               */
   int argc;			/* Argument count                     */
@@ -28,6 +29,7 @@ struct Overloaded {
   int error;			/* Ambiguity error                    */
   bool implicitconv_function;	/* For ordering implicitconv functions*/
 };
+}
 
 static int fast_dispatch_mode = 0;
 static int cast_dispatch_mode = 0;
@@ -809,7 +811,7 @@ String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxar
     }
 
     if (num_arguments) {
-      Printf(f, "int _v;\n");
+      Printf(f, "int _v = 0;\n");
     }
 
     int num_braces = 0;

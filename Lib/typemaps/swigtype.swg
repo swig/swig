@@ -562,29 +562,29 @@
  * ------------------------------------------------------------ */
 
 %typemap(in) SWIGTYPE (CLASS::*) {  
-  int res = SWIG_ConvertMember($input, %as_voidptr(&$1), sizeof($type),$descriptor);
+  int res = SWIG_ConvertMember($input, %as_voidptr(&$1), sizeof($1),$descriptor);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res,"$type",$symname, $argnum); 
   }
 }
 
 %typemap(out,noblock=1) SWIGTYPE (CLASS::*) {
-  %set_output(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($type), $descriptor));
+  %set_output(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($1), $descriptor));
 }
 
 %typemap(varin) SWIGTYPE (CLASS::*) {
-  int res = SWIG_ConvertMember($input,%as_voidptr(&$1), sizeof($type), $descriptor);
+  int res = SWIG_ConvertMember($input,%as_voidptr(&$1), sizeof($1), $descriptor);
   if (!SWIG_IsOK(res)) {
     %variable_fail(res, "$type", "$name"); 
   }
 }
 
 %typemap(varout,noblock=1) SWIGTYPE (CLASS::*) {
-  %set_varoutput(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($type), $descriptor));
+  %set_varoutput(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($1), $descriptor));
 }
 
 %typemap(constcode,noblock=1) SWIGTYPE (CLASS::*) {
-  %set_constant("$symname", SWIG_NewMemberObj(%as_voidptr(&$value), sizeof($type), $descriptor));
+  %set_constant("$symname", SWIG_NewMemberObj(%as_voidptr(&$value), sizeof($value), $descriptor));
 }
 
 #if defined(SWIG_DIRECTOR_TYPEMAPS)
@@ -592,13 +592,13 @@
 /* directorin */
 
 %typemap(directorin,noblock=1) SWIGTYPE (CLASS::*) {
-  $input = SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($type), $descriptor);
+  $input = SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($1), $descriptor);
 }
 
 /* directorout */
 
 %typemap(directorout) SWIGTYPE (CLASS::*) {
-  int swig_res = SWIG_ConvertMember($input,%as_voidptr(&$result), sizeof($type), $descriptor);
+  int swig_res = SWIG_ConvertMember($input,%as_voidptr(&$result), sizeof($result), $descriptor);
   if (!SWIG_IsOK(swig_res)) {
     %dirout_fail(swig_res,"$type");
   }

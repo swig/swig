@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "overload_polymorphic.php";
 
 $t = new Derived();
 

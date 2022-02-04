@@ -13,13 +13,3 @@ SWIG Source directory
  Source/Modules      -  Language modules.
 
  Source/Include      -  Include files.
-
-Historic directories which may be in CVS, but have been removed:
-
- Source/Modules1.1   -  Old SWIG-1.1 modules. Empty.
-
- Source/LParse       -  Experimental parser.  Officially dead
-                        as CParse is more capable.
-
- Source/SWIG1.1      -  Old SWIG1.1 core. Completely empty now.
-

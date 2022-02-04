@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "conversion_namespace.php";
 
 check::classes(array("Foo","Bar"));
 $bar=new Bar;
