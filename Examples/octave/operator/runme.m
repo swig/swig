@@ -3,6 +3,9 @@ if exist("crash_dumps_octave_core", "builtin")
   crash_dumps_octave_core(0);
 endif
 
+scriptDir = fileparts(mfilename('fullpath'));
+addpath(scriptDir);
+
 # Operator overloading example
 swigexample
 
@@ -42,3 +45,7 @@ if swig_octave_prereq(3,8,0)
   printf("conj(a) = %s\n", disp(conj(a)));
   printf("exp(a) = %s\n", disp(exp(a)));
 endif
+
+# concatenation operator
+g = [a, b, c];
+printf("g   = %s\n",disp(g));
