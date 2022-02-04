@@ -1693,7 +1693,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <decl>     abstract_declarator direct_abstract_declarator ctor_end;
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate idtemplatetemplate stringbrace stringbracesemi;
-%type <str>      string stringnum stringnumbrace wstring;
+%type <str>      string stringnum wstring;
 %type <tparms>   template_parms;
 %type <dtype>    cpp_end cpp_vend;
 %type <intvalue> rename_namewarn;
@@ -7327,12 +7327,12 @@ options        : LPAREN kwargs RPAREN {
 
  
 /* Keyword arguments */
-kwargs         : idstring EQUAL stringnumbrace {
+kwargs         : idstring EQUAL stringnum {
 		 $$ = NewHash();
 		 Setattr($$,"name",$1);
 		 Setattr($$,"value",$3);
                }
-               | idstring EQUAL stringnumbrace COMMA kwargs {
+               | idstring EQUAL stringnum COMMA kwargs {
 		 $$ = NewHash();
 		 Setattr($$,"name",$1);
 		 Setattr($$,"value",$3);
@@ -7360,26 +7360,6 @@ kwargs         : idstring EQUAL stringnumbrace {
 
 stringnum      : string {
 		 $$ = $1;
-               }
-               | exprnum {
-                 $$ = Char($1.val);
-               }
-               ;
-
-stringnumbrace : string {
-		 $$ = $1;
-               }
-               | LBRACE {
-                  /* Assign exact typemap contents */
-		   String *code;
-                   skip_balanced('{','}');
-		   Delitem(scanner_ccode,0);
-		   Delitem(scanner_ccode,DOH_END);
-		   code = Copy(scanner_ccode);
-                  $$ = code;
-               }
-               | HBLOCK {
-	          $$ = $1;
                }
                | exprnum {
                  $$ = Char($1.val);

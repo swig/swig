@@ -47,7 +47,7 @@
   %typemap(bindc) const CLS* = const FORTRAN_INTRINSIC_TYPE*;
 
   // Set up C type
-  %typemap(ctype, in={const CLS*}, null={SWIG_null_struct_ ## CLS()}, fragment="SWIG_null_struct"{CLS}, noblock=1) CLS {
+  %typemap(ctype, in="const " #CLS "*", null="SWIG_null_struct_" #CLS "()", fragment="SWIG_null_struct"{CLS}, noblock=1) CLS {
     CLS
   }
 
