@@ -4,6 +4,13 @@
 # include <math.h>
 #endif
 
+#if defined(_MSC_VER) && _MSC_VER >= 1930
+/* Workaround what seems to be a bug in the Python headers with MSVC 2022.
+ * https://github.com/swig/swig/issues/2090
+ */
+# include <corecrt.h>
+#endif
+
 #if defined(_DEBUG) && defined(SWIG_PYTHON_INTERPRETER_NO_DEBUG)
 /* Use debug wrappers with the Python release dll */
 # undef _DEBUG

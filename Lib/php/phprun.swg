@@ -228,7 +228,7 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
 }
 
 static const char const_name[] = "swig_runtime_data_type_pointer";
-static swig_module_info *SWIG_Php_GetModule() {
+static swig_module_info *SWIG_Php_GetModule(void) {
   zval *pointer = zend_get_constant_str(const_name, sizeof(const_name) - 1);
   if (pointer) {
     if (Z_TYPE_P(pointer) == IS_LONG) {
