@@ -29,14 +29,293 @@ jobs:
     strategy:
       matrix:
         include:
+        - SWIGLANG: ""
+        - SWIGLANG: ""
+          GCC: 7
+        - SWIGLANG: ""
+          GCC: 8
+        - SWIGLANG: ""
+          GCC: 9
+        - SWIGLANG: ""
+          GCC: 10
+        - SWIGLANG: ""
+          GCC: 11
+        - SWIGLANG: ""
+          compiler: clang
+        - SWIGLANG: csharp
+        # D support can't  enabled because dmd 2.066 fails to build anything
+        # under Ubuntu 18.04 due to its standard library (libphobos2.a) not
+        # being compiled with -FPIC, but system gcc using -fpie by default,
+        # resulting in linking errors for any output. And later versions, such
+        # as 2.086.1, are not supported and result in errors in SWIG test suite.
+        #
+        # - SWIGLANG: d
+        #   VER: '2.066.0'
+        #   os: ubuntu-18.04 # This dlang version doesn't work under 20.04.
         - SWIGLANG: fortran
+          CPPSTD: c++11
+        - SWIGLANG: go
+          VER: '1.6'
+          CSTD: gnu11
+        - SWIGLANG: go
+          VER: '1.8'
+        - SWIGLANG: go
+          VER: '1.12'
+          CSTD: gnu11
+        - SWIGLANG: go
+          VER: '1.17'
+        - SWIGLANG: guile
+        - SWIGLANG: java
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '6'
+          CPPSTD: c++11
+          os: ubuntu-18.04
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '8'
+          CPPSTD: c++11
+          os: ubuntu-18.04
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '10'
+          CPPSTD: c++11
+          os: ubuntu-18.04
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '12'
+          CPPSTD: c++11
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '17'
+          CPPSTD: c++14
+        - SWIGLANG: javascript
+          ENGINE: jsc
+        - SWIGLANG: lua
+        - SWIGLANG: lua
+          VER: '5.3'
+        - SWIGLANG: octave
+          CPPSTD: c++11
+        - SWIGLANG: octave
+          VER: '6.4'
+          CPPSTD: c++11
+        - SWIGLANG: perl5
+        - SWIGLANG: php
+          VER: '7.0'
+        - SWIGLANG: php
+          VER: '7.1'
+        - SWIGLANG: php
+          VER: '7.2'
+        - SWIGLANG: php
+          VER: '7.3'
+        - SWIGLANG: php
+          VER: '7.4'
+        - SWIGLANG: php
+        - SWIGLANG: php
+          VER: '8.1'
+        - SWIGLANG: python
+        - SWIGLANG: python
+          PY3: 3
+          VER: '3.2'
+          os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
+        - SWIGLANG: python
+          PY3: 3
+          VER: '3.3'
+          os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
+        - SWIGLANG: python
+          PY3: 3
+          VER: '3.4'
+          os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
+        - SWIGLANG: python
+          PY3: 3
+          VER: '3.5'
+        - SWIGLANG: python
+          PY3: 3
+          VER: '3.6'
+        - SWIGLANG: python
+          PY3: 3
+          VER: '3.7'
+        - SWIGLANG: python
+          PY3: 3
+          VER: '3.8'
+        - SWIGLANG: python
+          PY3: 3
+          VER: '3.9'
+        - SWIGLANG: python
+          PY3: 3
+          VER: '3.10'
+        - SWIGLANG: python
+          SWIG_FEATURES: -builtin
+        - SWIGLANG: python
+          SWIG_FEATURES: -builtin -O
+        - SWIGLANG: python
+          PY3: 3
+          SWIG_FEATURES: -builtin
+        - SWIGLANG: python
+          PY3: 3
+          SWIG_FEATURES: -builtin -O
+        - SWIGLANG: r
+        - SWIGLANG: ruby
+          VER: '1.9'
+          os: ubuntu-18.04
+        - SWIGLANG: ruby
+          VER: '2.0'
+          os: ubuntu-18.04
+        - SWIGLANG: ruby
+          VER: '2.1'
+          os: ubuntu-18.04
+        - SWIGLANG: ruby
+          VER: '2.2'
+          os: ubuntu-18.04
+        - SWIGLANG: ruby
+          VER: '2.3'
+          os: ubuntu-18.04
+        - SWIGLANG: ruby
+          VER: '2.4'
+        - SWIGLANG: ruby
+          VER: '2.5'
+        - SWIGLANG: ruby
+          VER: '2.6'
+        - SWIGLANG: ruby
+          VER: '2.7'
+        - SWIGLANG: ruby
+          VER: '3.0'
+          CPPSTD: c++11
+        - SWIGLANG: scilab
+          os: ubuntu-18.04 # scilab-6.1 in ubuntu-20.04 not yet working
+        - SWIGLANG: tcl
+        # c++11 testing
+        - SWIGLANG: csharp
           CPPSTD: c++11
         - SWIGLANG: fortran
           CPPSTD: c++11
+        - SWIGLANG: go
+          VER: '1.17'
+          CPPSTD: c++11
+          CSTD: gnu11
+        - SWIGLANG: guile
+          CPPSTD: c++11
+        - SWIGLANG: java
+          CPPSTD: c++11
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '14'
+          CPPSTD: c++11
+        - SWIGLANG: lua
+          CPPSTD: c++11
+        - SWIGLANG: perl5
+          CPPSTD: c++11
+        - SWIGLANG: php
+          CPPSTD: c++11
+          CSTD: gnu11
+        - SWIGLANG: python
+          CPPSTD: c++11
+          PY3: 3
+        - SWIGLANG: r
+          CPPSTD: c++11
+        - SWIGLANG: ruby
+          CPPSTD: c++11
+        - SWIGLANG: scilab
+          CPPSTD: c++11
+          os: ubuntu-18.04 # scilab-6.1 in ubuntu-20.04 not yet working
+        - SWIGLANG: tcl
+          CPPSTD: c++11
+        # c++14 testing
+        - SWIGLANG: csharp
+          CPPSTD: c++14
+        - SWIGLANG: go
+          VER: '1.17'
+          CPPSTD: c++14
+          CSTD: gnu11
+        - SWIGLANG: guile
+          CPPSTD: c++14
+        - SWIGLANG: java
+          CPPSTD: c++14
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '16'
+          CPPSTD: c++14
+        - SWIGLANG: lua
+          CPPSTD: c++14
+        - SWIGLANG: octave
+          CPPSTD: c++14
+        - SWIGLANG: perl5
+          CPPSTD: c++14
+        - SWIGLANG: php
+          CPPSTD: c++14
+          CSTD: gnu11
+        - SWIGLANG: python
+          CPPSTD: c++14
+          PY3: 3
+        - SWIGLANG: r
+          CPPSTD: c++14
+        - SWIGLANG: ruby
+          CPPSTD: c++14
+        - SWIGLANG: scilab
+          CPPSTD: c++14
+          os: ubuntu-18.04 # scilab-6.1 in ubuntu-20.04 not yet working
+        - SWIGLANG: tcl
+          CPPSTD: c++14
+        # c++17 testing (using gcc11)
+        - SWIGLANG: csharp
+          CPPSTD: c++17
+          GCC: 11
         - SWIGLANG: fortran
           CPPSTD: c++17
           FCSTD: f2003
           GCC: 11
+        - SWIGLANG: go
+          VER: '1.17'
+          CPPSTD: c++17
+          GCC: 11
+          CSTD: gnu17
+        - SWIGLANG: guile
+          CPPSTD: c++17
+          GCC: 11
+        - SWIGLANG: java
+          CPPSTD: c++17
+          GCC: 11
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '17'
+          CPPSTD: c++17
+          GCC: 11
+        - SWIGLANG: lua
+          CPPSTD: c++17
+          GCC: 11
+        - SWIGLANG: octave
+          CPPSTD: c++17
+          GCC: 11
+        - SWIGLANG: perl5
+          CPPSTD: c++17
+          GCC: 11
+        - SWIGLANG: php
+          CPPSTD: c++17
+          CSTD: gnu17
+          GCC: 11
+        - SWIGLANG: python
+          CPPSTD: c++17
+          GCC: 11
+          PY3: 3
+        - SWIGLANG: r
+          CPPSTD: c++17
+          GCC: 11
+        - SWIGLANG: ruby
+          CPPSTD: c++17
+          GCC: 11
+        - SWIGLANG: scilab
+          CPPSTD: c++17
+          GCC: 11
+          os: ubuntu-18.04 # scilab-6.1 in ubuntu-20.04 not yet working
+        - SWIGLANG: tcl
+          CPPSTD: c++17
+          GCC: 11
+        # Experimental languages (these are allowed to fail)
+        - SWIGLANG: mzscheme
+          continue-on-error: true
+        - SWIGLANG: ocaml
+          continue-on-error: true
+          os: ubuntu-18.04 # ocaml-4.08 in ubuntu-20.04 not yet working
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
