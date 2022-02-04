@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-04: friedrichatgc
+	    [Octave] #1672 Fix Octave 4.4 support.
+
 2022-02-03: olly
 	    [C#] #283 #998 Fix memory leak in directorin typemap for
 	    std::string.
