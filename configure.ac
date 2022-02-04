@@ -1268,7 +1268,7 @@ else
       elif test -n "$PKGCONFIG"; then
         dirs=`$PKGCONFIG scilab --cflags-only-I | sed -e 's/-I//g'`
       else
-        dirs=""
+        dirs="/usr/include /include"
       fi
       for i in $dirs; do
         if test -r $i/api_scilab.h; then
