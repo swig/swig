@@ -53,13 +53,13 @@ public:
   virtual ~DoxygenTranslator();
 
   /*
-   * Return the documentation for a given node formated for the correct 
+   * Return the documentation for a given node formatted for the correct 
    * documentation system.
    */
   String *getDocumentation(Node *node, const_String_or_char_ptr indentationString);
 
   /*
-   * Returns truem is the specified node has comment attached.
+   * Returns true if the specified node has comment attached.
    */
   bool hasDocumentation(Node *node);
 

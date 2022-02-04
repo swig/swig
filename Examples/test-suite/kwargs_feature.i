@@ -27,6 +27,7 @@
 
     virtual int foo(int a = 1, int b = 0) {return a + b; }
     static int statfoo(int a = 1, int b = 0) {return a + b; }
+    static int statfoo_onearg(int x = 10) {return x + x; }
 
     static Foo *create(int a = 1, int b = 0) 
     {
@@ -125,4 +126,27 @@ struct Extending1 {};
 struct Extending2 {};
 struct ExtendingOptArgs1 {};
 struct ExtendingOptArgs2 {};
+%}
+
+// For strlen/strcpy
+%{
+#include <string.h>
+%}
+
+// Varargs
+%warnfilter(SWIGWARN_LANG_VARARGS_KEYWORD) VarargConstructor::VarargConstructor; // Can't wrap varargs with keyword arguments enabled
+%warnfilter(SWIGWARN_LANG_VARARGS_KEYWORD) VarargConstructor::vararg_method; // Can't wrap varargs with keyword arguments enabled
+%inline %{
+struct VarargConstructor {
+  char *str;
+  VarargConstructor(const char *fmt, ...) {
+    str = new char[strlen(fmt) + 1];
+    strcpy(str, fmt);
+  }
+  void vararg_method(const char *fmt, ...) {
+    delete [] str;
+    str = new char[strlen(fmt) + 1];
+    strcpy(str, fmt);
+  }
+};
 %}

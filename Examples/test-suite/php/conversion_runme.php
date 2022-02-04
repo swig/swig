@@ -1,7 +1,6 @@
 <?php
 
 require "tests.php";
-require "conversion.php";
 
 check::classes(array("Foo","Bar"));
 $bar=new Bar;
@@ -10,4 +9,3 @@ $foo=$bar->toFoo();
 check::classname("foo",$foo);
 
 check::done();
-?>

@@ -13,10 +13,10 @@ class MyFoo(director_abstract.Foo):
 a = MyFoo()
 
 if a.ping() != "MyFoo::ping()":
-    raise RuntimeError, a.ping()
+    raise RuntimeError(a.ping())
 
 if a.pong() != "Foo::pong();MyFoo::ping()":
-    raise RuntimeError, a.pong()
+    raise RuntimeError(a.pong())
 
 
 class MyExample1(director_abstract.Example1):
@@ -37,7 +37,7 @@ class MyExample3(director_abstract.Example3_i):
         return b
 
 me1 = MyExample1()
-if director_abstract.Example1_get_color(me1, 1, 2, 3) != 1:
+if director_abstract.Example1.get_color(me1, 1, 2, 3) != 1:
     raise RuntimeError
 
 me2 = MyExample2(1, 2)

@@ -1,11 +1,10 @@
 <?php
 
 require "tests.php";
-require "grouping.php";
 
 check::functions(array("test1","test2","do_unary","negate"));
 check::equal(5,test1(5),"5==test1(5)");
-check::resource(test2(7),"_p_int","_p_int==test2(7)");
+check::equal(get_class(test2(7)),"SWIG\\_p_int","test2(7) is _p_int");
 check::globals(array('test3'));
 
 //check::equal(37,test3_get(),'37==test3_get()');
@@ -19,4 +18,3 @@ check::equal(-5,negate(5),"-5==negate(5)");
 check::equal(7,do_unary(-7,NEGATE),"7=do_unary(-7,NEGATE)");
 
 check::done();
-?>

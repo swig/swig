@@ -14,4 +14,8 @@
 
 %include math.i
 
-extern double drand48();
+%{
+/* Add drand48 declaration as it is posix only and is not in stdlib.h when using strict c99 and later */
+extern double drand48(void);
+%}
+extern double drand48(void);

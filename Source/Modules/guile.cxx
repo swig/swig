@@ -719,7 +719,6 @@ public:
 	sprintf(source, "argv[%d]", i);
       else
 	sprintf(source, "s_%d", i);
-      String *target = Getattr(p, "lname");
 
       if (!args_passed_as_array) {
 	if (i != 0)
@@ -730,8 +729,6 @@ public:
 	Printf(f->code, "    if (%s != SCM_UNDEFINED) {\n", source);
       }
       if ((tm = Getattr(p, "tmap:in"))) {
-	Replaceall(tm, "$source", source);
-	Replaceall(tm, "$target", target);
 	Replaceall(tm, "$input", source);
 	Setattr(p, "emit:input", source);
 	Printv(f->code, tm, "\n", NIL);
@@ -794,7 +791,6 @@ public:
     /* Insert constraint checking code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
-	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Printv(f->code, tm, "\n", NIL);
 	p = Getattr(p, "tmap:check:next");
       } else {
@@ -807,8 +803,6 @@ public:
     String *returns_argout = NewString("");
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-	Replaceall(tm, "$source", Getattr(p, "lname"));
-	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(outarg, tm, "\n", NIL);
@@ -828,7 +822,6 @@ public:
     /* Insert cleanup code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
-	Replaceall(tm, "$target", Getattr(p, "lname"));
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(cleanup, tm, "\n", NIL);
 	p = Getattr(p, "tmap:freearg:next");
@@ -859,8 +852,6 @@ public:
     // Now have return value, figure out what to do with it.
     if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
       Replaceall(tm, "$result", "gswig_result");
-      Replaceall(tm, "$target", "gswig_result");
-      Replaceall(tm, "$source", Swig_cresult_name());
       if (GetFlag(n, "feature:new"))
 	Replaceall(tm, "$owner", "1");
       else
@@ -898,13 +889,11 @@ public:
 
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
-	Replaceall(tm, "$source", Swig_cresult_name());
 	Printv(f->code, tm, "\n", NIL);
       }
     }
     // Free any memory allocated by the function being wrapped..
     if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
-      Replaceall(tm, "$source", Swig_cresult_name());
       Printv(f->code, tm, "\n", NIL);
     }
     // Wrap things up (in a manner of speaking)
@@ -1141,9 +1130,7 @@ public:
 	/* Check for a setting of the variable value */
 	Printf(f->code, "if (s_0 != SCM_UNDEFINED) {\n");
 	if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
-	  Replaceall(tm, "$source", "s_0");
 	  Replaceall(tm, "$input", "s_0");
-	  Replaceall(tm, "$target", name);
 	  /* Printv(f->code,tm,"\n",NIL); */
 	  emit_action_code(n, f->code, tm);
 	} else {
@@ -1155,8 +1142,6 @@ public:
       // of evaluating or setting)
 
       if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
-	Replaceall(tm, "$source", name);
-	Replaceall(tm, "$target", "gswig_result");
 	Replaceall(tm, "$result", "gswig_result");
 	/* Printv(f->code,tm,"\n",NIL); */
 	emit_action_code(n, f->code, tm);
@@ -1334,9 +1319,7 @@ public:
     // See if there's a typemap
 
     if ((tm = Swig_typemap_lookup("constant", n, name, 0))) {
-      Replaceall(tm, "$source", value);
       Replaceall(tm, "$value", value);
-      Replaceall(tm, "$target", name);
       Printv(f_header, tm, "\n", NIL);
     } else {
       // Create variable and assign it a value

@@ -632,7 +632,7 @@ String *Swig_cppconstructor_director_call(const_String_or_char_ptr name, ParmLis
  * If you define SWIG_FAST_REC_SEARCH, the method will set the found
  * 'attr' in the target class 'n'. If not, the method will set the
  * 'noattr' one. This prevents of having to navigate the entire
- * hierarchy tree everytime, so, it is an O(1) method...  or something
+ * hierarchy tree every time, so, it is an O(1) method...  or something
  * like that. However, it populates all the parsed classes with the
  * 'attr' and/or 'noattr' attributes.
  *
@@ -1076,9 +1076,18 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
 
     /* Check if the method is overloaded.   If so, and it has code attached, we append an extra suffix
        to avoid a name-clash in the generated wrappers.  This allows overloaded methods to be defined
-       in C. */
-    if (Getattr(n, "sym:overloaded") && code) {
+       in C.
+
+       But when not using the suffix used for overloaded functions, we still need to ensure that the
+       wrapper name doesn't conflict with any wrapper functions, so make it sufficiently unique by
+       appending a suffix similar to the one used for overloaded functions to it.
+     */
+    if (code) {
+      if (Getattr(n, "sym:overloaded")) {
       Append(mangled, Getattr(defaultargs ? defaultargs : n, "sym:overname"));
+      } else {
+	Append(mangled, "__SWIG");
+      }
     }
 
     /* See if there is any code that we need to emit */

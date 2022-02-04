@@ -3,18 +3,18 @@ import threads_exception
 t = threads_exception.Test()
 try:
     t.unknown()
-except RuntimeError, e:
+except RuntimeError as e:
     pass
 
 try:
     t.simple()
-except RuntimeError, e:
+except RuntimeError as e:
     if e.args[0] != 37:
         raise RuntimeError
 
 try:
     t.message()
-except RuntimeError, e:
+except RuntimeError as e:
     if e.args[0] != "I died.":
         raise RuntimeError
 
@@ -23,18 +23,18 @@ except RuntimeError, e:
 if not threads_exception.is_python_builtin():
     try:
         t.hosed()
-    except threads_exception.Exc, e:
+    except threads_exception.Exc as e:
         code = e.code
         if code != 42:
-            raise RuntimeError, "bad... code: %d" % code
+            raise RuntimeError("bad... code: %d" % code)
         msg = e.msg
         if msg != "Hosed":
-            raise RuntimeError, "bad... msg: '%s' len: %d" % (msg, len(msg))
+            raise RuntimeError("bad... msg: '%s' len: %d" % (msg, len(msg)))
 
 for i in range(1, 4):
     try:
         t.multi(i)
-    except RuntimeError, e:
+    except RuntimeError as e:
         pass
-    except threads_exception.Exc, e:
+    except threads_exception.Exc as e:
         pass

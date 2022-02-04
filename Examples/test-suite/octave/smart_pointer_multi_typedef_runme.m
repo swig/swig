@@ -7,12 +7,12 @@ g = Grok(b);
 
 s.x = 3;
 if (s.getx() != 3)
-    error
+    error("failed");
 endif
 
 g.x = 4;
 if (g.getx() != 4)
-    error
+    error("failed");
 endif
 
 

@@ -25,7 +25,7 @@ public class rname_runme {
     bar.foo_u((long)10);
 
     RenamedBase base = new RenamedBase();
-    base.fn(base, base, base);
+    base.fn1(base, base, base);
     if (!base.newname(10.0).equals("Base"))
       throw new RuntimeException("base.newname");
 

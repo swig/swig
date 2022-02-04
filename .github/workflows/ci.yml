@@ -1,0 +1,193 @@
+name: CI
+
+on:
+  push:
+    paths-ignore:
+      - 'CHANGES*'
+      - 'Doc/**'
+      - 'appveyor.yml'
+  pull_request:
+    branches: master
+    paths-ignore:
+      - 'CHANGES*'
+      - 'Doc/**'
+      - 'appveyor.yml'
+
+jobs:
+  build:
+
+    # When continue-on-error is true for an individual build, that build can fail (it'll show red),
+    # but it won't fail the overall build
+    continue-on-error: ${{ matrix.continue-on-error || false }}
+
+    runs-on: ${{ matrix.os || 'ubuntu-20.04' }}
+
+    # By default, the name of the build is the language used and SWIG options, but matrix entries
+    # can define the additional "desc" field with any additional information to include in the name.
+    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY3 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
+
+    strategy:
+      matrix:
+        include:
+        - SWIGLANG: fortran
+          CPPSTD: c++11
+        - SWIGLANG: fortran
+          CPPSTD: c++11
+        - SWIGLANG: fortran
+          CPPSTD: c++17
+          FCSTD: f2003
+          GCC: 11
+      # Run all of them, as opposed to aborting when one fails
+      fail-fast: false
+
+    env:
+      SWIGLANG: ${{ matrix.SWIGLANG }}
+      PY3: ${{ matrix.PY3 }}
+      VER: ${{ matrix.VER }}
+      ENGINE: ${{ matrix.ENGINE }}
+      SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
+      GCC: ${{ matrix.GCC }}
+      CSTD: ${{ matrix.CSTD }}
+      CPPSTD: ${{ matrix.CPPSTD }}
+      FCSTD: ${{ matrix.FCSTD }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Install CCache
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        key: ${{ matrix.os || 'ubuntu-20.04' }}-${{ matrix.compiler || 'gcc' }}${{ matrix.GCC }}
+
+# Uncomment to debug via ssh, see https://github.com/mxschmitt/action-tmate
+#    - name: Setup tmate session
+#      uses: mxschmitt/action-tmate@v3
+
+    - name: Install Dependencies
+      run: |
+          set -x
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          echo PATH="$PATH" >> $GITHUB_ENV
+
+          source $GITHUB_WORKSPACE/Tools/GHA-linux-install.sh
+          echo WITHLANG="$WITHLANG" >> $GITHUB_ENV
+
+          case $(uname) in
+              Linux)
+                  cpu_count=$(nproc)
+                  ;;
+
+              Darwin)
+                  cpu_count=$(sysctl -n hw.ncpu)
+                  ;;
+
+              *)
+                  cpu_count=1
+                  ;;
+          esac
+
+          if [[ $cpu_count != 1 ]]; then
+            echo SWIGJOBS=-j$cpu_count >> $GITHUB_ENV
+          fi
+
+          if test '${{ matrix.compiler }}' = 'clang'; then
+            CC="clang"
+            CXX="clang++"
+
+            CFLAGS="$CFLAGS -fPIE"
+            CXXFLAGS="$CXXFLAGS -fPIE"
+          elif test -n "$GCC"; then
+            CC="gcc-$GCC"
+            CXX="g++-$GCC"
+            FC="gfortran-$GCC"
+          else
+            CC="gcc"
+            CXX="g++"
+            FC="gfortran"
+          fi
+
+          export CC CXX FC
+
+          echo CC="$CC" >> $GITHUB_ENV
+          echo CXX="$CXX" >> $GITHUB_ENV
+          echo FC="$FC" >> $GITHUB_ENV
+
+          ls -la $(which $CC) $(which $CXX)
+          $CC --version
+          $CXX --version
+          $FC --version
+
+    - name: Configure
+      run: |
+          source $GITHUB_WORKSPACE/Tools/CI-linux-environment.sh
+          set -x
+
+          if [[ -z "$CSTD" ]]; then
+            case "$CPPSTD" in
+              c++11) export CSTD=c11 ;;
+              c++14) export CSTD=c11 ;;
+              c++17) export CSTD=c17 ;;
+            esac
+            echo CSTD="$CSTD" >> $GITHUB_ENV
+          fi
+          if test -n "$CPPSTD"; then CONFIGOPTS+=(--enable-cpp11-testing "CXXFLAGS=-std=$CPPSTD $CXXFLAGS"); fi
+          if test -n "$CSTD"; then CONFIGOPTS+=("CFLAGS=-std=$CSTD $CFLAGS"); fi
+          if test -n "$FCSTD"; then CONFIGOPTS+=("FCFLAGS=-std=$FCSTD $FCFLAGS"); fi
+          if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
+          echo "${CONFIGOPTS[@]}"
+          ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
+
+    - name: Build
+      working-directory: build/build
+      run: |
+          set -x
+          make -s $SWIGJOBS
+          ./swig -version && ./swig -pcreversion
+
+    - name: Test
+      working-directory: build/build
+      run: |
+          source $GITHUB_WORKSPACE/Tools/CI-linux-environment.sh
+          set -x
+
+          if test -z "$SWIGLANG"; then
+            make $SWIGJOBS check-ccache
+            make $SWIGJOBS check-errors-test-suite
+          else
+            case "$SWIGLANG" in
+              javascript)
+                case "$ENGINE" in
+                  v8 | jsc)
+                    # Running tests using v8 or jsc involves creating a custom
+                    # interpreter in Tools/javascript, which is currently broken
+                    # for parallel builds (we attempt to update this interpreter
+                    # while running, resulting in "Text file busy" error).
+                    unset SWIGJOBS
+                esac
+                ;;
+            esac
+
+            # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
+            cflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC)
+            cxxflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)
+            fcflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --fcflags --std=$FCSTD --compiler=$FC)
+            make check-$SWIGLANG-version
+            make check-$SWIGLANG-enabled
+            make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags" FCFLAGS="$fcflags"
+            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags" FCFLAGS="$fcflags"
+          fi
+
+    - name: Install
+      working-directory: build/build
+      run: |
+          set -x
+          if test -z "$SWIGLANG"; then sudo make install && swig -version && ccache-swig -V; fi
+
+    - name: Clean
+      working-directory: build/build
+      run: |
+          set -x
+          make check-maintainer-clean && ../../configure

@@ -1,13 +1,19 @@
 #include "example.h"
-#include <stdio.h>
+#include <iostream>
 
 int x = 42;
-char *s = (char *)"Test";
+std::string s = "Test";
 
-void Sync::printer(void) {
+void Sync::printer() {
+    std::cout << "The value of global s is " << ::s << '\n';
+    std::cout << "The value of global x is " << ::x << '\n';
+    std::cout << "The value of class s is " << this->s << '\n';
+    std::cout << "The value of class x is " << this->x << '\n';
+}
 
-	printf("The value of global s is %s\n", s);
-	printf("The value of global x is %d\n", x);
-	printf("The value of class s is %s\n", s);
-	printf("The value of class x is %d\n", x);
+void Sync::all_change() {
+    ::s = "global change";
+    ++::x;
+    this->s = "local change";
+    ++this->x;
 }

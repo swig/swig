@@ -636,7 +636,7 @@ static int look(Scanner *s) {
       }
 
       else if (c == '.')
-	state = 100;		/* Maybe a number, maybe just a period */
+	state = 100;		/* Maybe a number, maybe ellipsis, just a period */
       else if (isdigit(c))
 	state = 8;		/* A numerical value */
       else
@@ -1330,15 +1330,30 @@ static int look(Scanner *s) {
       }
       break;
 
-      /* A period or maybe a floating point number */
+      /* A period or an ellipsis or maybe a floating point number */
 
     case 100:
       if ((c = nextchar(s)) == 0)
 	return (0);
       if (isdigit(c))
 	state = 81;
+      else if (c == '.')
+	state = 101;
       else {
 	retract(s, 1);
+	return SWIG_TOKEN_PERIOD;
+      }
+      break;
+
+      /* An ellipsis */
+
+    case 101:
+      if ((c = nextchar(s)) == 0)
+	return (0);
+      if (c == '.') {
+	return SWIG_TOKEN_ELLIPSIS;
+      } else {
+	retract(s, 2);
 	return SWIG_TOKEN_PERIOD;
       }
       break;

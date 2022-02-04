@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Test::More tests => 415;
+use Test::More tests => 416;
 BEGIN { use_ok('li_typemaps') }
 require_ok('li_typemaps');
 
@@ -75,10 +75,11 @@ SKIP: {
   batch('ulonglong', $c);
 }
 
-my($foo, $int) = li_typemaps::out_foo(10);
+my($foo, $int, $int2) = li_typemaps::out_foo(10);
 isa_ok($foo, 'li_typemaps::Foo');
 is($foo->{a}, 10);
 is($int, 20);
+is($int2, 30);
 
 my($a, $b) = li_typemaps::inoutr_int2(13, 31);
 is($a, 13);

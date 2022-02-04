@@ -34,16 +34,16 @@ unittest(12, o$byconstref2(x))
 #unittest(15, o$byval2cpr(NULL))
 #unittest(16, o$byval2cpr(x))
 
-# forward class declaration
-unittest(17, o$byval1forwardptr(x))
-unittest(18, o$byval1forwardptr(NULL))
+# fwd class declaration
+unittest(17, o$byval1fwdptr(x))
+unittest(18, o$byval1fwdptr(NULL))
 
-unittest(19, o$byval2forwardptr(NULL))
-unittest(20, o$byval2forwardptr(x))
+unittest(19, o$byval2fwdptr(NULL))
+unittest(20, o$byval2fwdptr(x))
 
-unittest(21, o$byval1forwardref(x))
+unittest(21, o$byval1fwdref(x))
 
-unittest(22, o$byval2forwardref(x))
+unittest(22, o$byval2fwdref(x))
 
 q(save="no")
 

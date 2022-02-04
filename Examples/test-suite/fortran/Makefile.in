@@ -36,7 +36,7 @@ C_TEST_CASES = \
 	fortran_bindc_c \
 	fortran_callback_c \
 	fortran_global_const \
-	complextest_c \
+	ccomplextest \
 
 FAILING_CPP_TESTS += \
 	contract \
@@ -46,7 +46,7 @@ FAILING_CPP_TESTS += \
 	member_pointer \
 	member_pointer_const \
 	namespace_class \
-	nested_scope \
+	nested_scope_flat \
 	overload_arrays \
 	overload_complicated \
 	overload_return_type \
@@ -69,6 +69,7 @@ FAILING_CPP_TESTS += \
 	director_default \
 	director_detect \
 	director_classes \
+	director_comparison_operators \
 	director_conversion_operators \
 	director_exception_catches \
 	director_exception_nothrow \

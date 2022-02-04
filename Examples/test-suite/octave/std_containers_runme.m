@@ -132,7 +132,7 @@ s.append(3);
 j=1;
 for i in s,
   if (i != j)
-    error
+    error("failed");
   endif
   j = j + 1;
 endfor

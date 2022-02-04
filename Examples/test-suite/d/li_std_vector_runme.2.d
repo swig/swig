@@ -47,7 +47,7 @@ void main() {
       enforce(countUntil(vector[], i * 10) == i, "indexOf test failed, i: " ~ to!string(i));
     }
 
-    enforce(countUntil(vector[], 42) == -1, "non-existant item indexOf test failed");
+    enforce(countUntil(vector[], 42) == -1, "non-existent item indexOf test failed");
 
     vector.clear();
     enforce(vector.length == 0, "clear test failed");

@@ -1,7 +1,5 @@
 <?php
 
-require "example.php";
-
 # Call our gcd() function
 
 $x = "42 aaa";
@@ -21,5 +19,3 @@ Foo_set(3.1415926);
 #				  manual for why. )
 print "Foo = "  . Foo_get() . "\n";
 print_Foo();
-
-?>

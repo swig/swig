@@ -3,12 +3,16 @@
 def get_cflags(language, std, compiler):
     if std == None or len(std) == 0:
         std = "gnu89"
-    c_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wdeclaration-after-statement -Wmissing-field-initializers"
+    c_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers"
+    if std == "gnu89" or std == "gnu90":
+        # gnu89 standard allows declaration after headers
+        # use c99 or gnu99 if feature is necessary for using target language
+        c_common = c_common + " -Wdeclaration-after-statement"
     cflags = {
         "csharp":"-Werror " + c_common,
              "d":"-Werror " + c_common,
        "fortran":"-Werror " + c_common,
-            "go":"-Werror " + c_common + " -Wno-declaration-after-statement",
+            "go":"-Werror " + c_common,
          "guile":"-Werror " + c_common,
           "java":"-Werror " + c_common,
     "javascript":"-Werror " + c_common,
@@ -67,6 +71,8 @@ def get_cxxflags(language, std, compiler):
 def get_fcflags(language, std, compiler):
     fcflags = ["-Wall", "-Wextra", "-Wimplicit-procedure",
             "-Wimplicit-interface", "-Wno-compare-reals",
+            "-Wno-intrinsic-shadow",
+            "-Wno-maybe-uninitialized", # GCC bugs
             "-ffree-line-length-none"]
     if std:
         fcflags.append("-std=" + std)

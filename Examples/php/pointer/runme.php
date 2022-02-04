@@ -1,7 +1,5 @@
 <?php
 
-	require "example.php";
-
 	# First create some objects using the pointer library.
 
 	print "Testing the pointer library\n";
@@ -14,7 +12,7 @@
 	print "	b = $b\n";
 	print "	c = $c\n";
 
-	# Call the add() function wuth some pointers
+	# Call the add() function with some pointers
 	add($a,$b,$c);
 
 	print "	$a + $b = $c\n";
@@ -28,8 +26,8 @@
 	print "	37 - 42 = $r\n";
 
 	# Now try the version with multiple return values
-	# print "Testing multiple return values\n";
-	# ($q,$r) = divide(42,37);
-	# print "	42/37 = $q remainder $r\n";
-
-?>
+	print "Testing multiple return values\n";
+	$a = divide(42,37);
+	$q = $a[0];
+	$r = $a[1];
+	print "	42/37 = $q remainder $r\n";

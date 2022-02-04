@@ -115,7 +115,7 @@
    SWIG errors code.
 
    Finally, if the SWIG_CASTRANK_MODE is enabled, the result code
-   allows to return the 'cast rank', for example, if you have this
+   allows returning the 'cast rank', for example, if you have this
 
        int food(double)
        int fooi(int);
@@ -290,7 +290,7 @@ SWIG_TypeCheck(const char *c, swig_type_info *ty) {
   Identical to SWIG_TypeCheck, except strcmp is replaced with a pointer comparison
 */
 SWIGRUNTIME swig_cast_info *
-SWIG_TypeCheckStruct(swig_type_info *from, swig_type_info *ty) {
+SWIG_TypeCheckStruct(const swig_type_info *from, swig_type_info *ty) {
   if (ty) {
     swig_cast_info *iter = ty->cast;
     while (iter) {

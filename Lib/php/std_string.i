@@ -27,19 +27,17 @@ namespace std {
         $1 = (Z_TYPE($input) == IS_STRING) ? 1 : 0;
     %}
 
-    %typemap(in) string %{
+    %typemap(in, phptype="string") string %{
         convert_to_string(&$input);
         $1.assign(Z_STRVAL($input), Z_STRLEN($input));
     %}
 
     %typemap(directorout) string %{
-      if (!EG(exception)) {
         convert_to_string($input);
         $result.assign(Z_STRVAL_P($input), Z_STRLEN_P($input));
-      }
     %}
 
-    %typemap(out) string %{
+    %typemap(out, phptype="string") string %{
         ZVAL_STRINGL($result, $1.data(), $1.size());
     %}
 
@@ -47,7 +45,7 @@ namespace std {
         ZVAL_STRINGL($input, $1.data(), $1.size());
     %}
 
-    %typemap(out) const string & %{
+    %typemap(out, phptype="string") const string & %{
         ZVAL_STRINGL($result, $1->data(), $1->size());
     %}
 
@@ -56,7 +54,7 @@ namespace std {
         return;
     %}
 
-    %typemap(in) const string & ($*1_ltype temp) %{
+    %typemap(in, phptype="string") const string & ($*1_ltype temp) %{
         convert_to_string(&$input);
         temp.assign(Z_STRVAL($input), Z_STRLEN($input));
         $1 = &temp;
@@ -64,7 +62,7 @@ namespace std {
 
     /* These next two handle a function which takes a non-const reference to
      * a std::string and modifies the string. */
-    %typemap(in,byref=1) string & ($*1_ltype temp) %{
+    %typemap(in,byref=1, phptype="string") string & ($*1_ltype temp) %{
         {
           zval * p = Z_ISREF($input) ? Z_REFVAL($input) : &$input;
           convert_to_string(p);
@@ -74,12 +72,10 @@ namespace std {
     %}
 
     %typemap(directorout) string & ($*1_ltype *temp) %{
-      if (!EG(exception)) {
         convert_to_string($input);
         temp = new $*1_ltype(Z_STRVAL_P($input), Z_STRLEN_P($input));
         swig_acquire_ownership(temp);
         $result = temp;
-      }
     %}
 
     %typemap(argout) string & %{

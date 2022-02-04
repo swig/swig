@@ -4,18 +4,18 @@
 %typemap(freearg) int *const ptrConst ""
 %typemap(freearg) int const* constPtr ""
 
-%typemap(in) int *ptr {
-  int temp = 1234;
+%typemap(in) int *ptr (int temp) {
+  temp = 1234;
   $1 = &temp;
 }
 
-%typemap(in) int *const ptrConst {
-  int temp = 5678;
+%typemap(in) int *const ptrConst (int temp) {
+  temp = 5678;
   $1 = &temp;
 }
 
-%typemap(in) int const* constPtr {
-  int temp = 3456;
+%typemap(in) int const* constPtr (int temp) {
+  temp = 3456;
   $1 = &temp;
 }
 

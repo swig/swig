@@ -1081,6 +1081,13 @@ bool DoxygenParser::addDoxyCommand(DoxygenParser::TokenList &tokList, const std:
     tokList.push_back(Token(COMMAND, cmd));
     return true;
   } else {
+    if (cmd.empty()) {
+      // This actually indicates a bug in the code in this file, as this
+      // function shouldn't be called at all in this case.
+      printListError(WARN_DOXYGEN_UNKNOWN_COMMAND, "Unexpected empty Doxygen command.");
+      return false;
+    }
+
     // This function is called for the special Doxygen commands, but also for
     // HTML commands (or anything that looks like them, actually) and entities.
     // We don't recognize all of those, so just ignore them and pass them
@@ -1181,6 +1188,11 @@ void DoxygenParser::processWordCommands(size_t &pos, const std::string &line) {
   size_t endOfWordPos = getEndOfWordCommand(line, pos);
 
   string cmd = line.substr(pos, endOfWordPos - pos);
+  if (cmd.empty()) {
+    // This was a bare backslash, just ignore it.
+    return;
+  }
+
   addDoxyCommand(m_tokenList, cmd);
 
   // A flag for whether we want to skip leading spaces after the command
@@ -1229,6 +1241,9 @@ void DoxygenParser::processHtmlTags(size_t &pos, const std::string &line) {
   // prepend '<' to distinguish HTML tags from doxygen commands
   if (!cmd.empty() && addDoxyCommand(m_tokenList, '<' + cmd)) {
     // it is a valid HTML command
+    if (pos == string::npos) {
+      pos = line.size();
+    }
     if (line[pos] != '>') {
       // it should be HTML tag with args,
       // for example <A ...>, <IMG ...>, ...
@@ -1254,7 +1269,7 @@ void DoxygenParser::processHtmlTags(size_t &pos, const std::string &line) {
       }
     }
 
-    if (pos != string::npos) {
+    if (pos < line.size()) {
       pos++; // skip '>'
     }
   } else {

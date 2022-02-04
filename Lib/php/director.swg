@@ -8,6 +8,8 @@
 #ifndef SWIG_DIRECTOR_PHP_HEADER_
 #define SWIG_DIRECTOR_PHP_HEADER_
 
+#define SWIG_DIRECTOR_CAST(ARG) dynamic_cast<Swig::Director *>(ARG)
+
 #include <string>
 #include <exception>
 #include <map>
@@ -76,37 +78,46 @@ namespace Swig {
   };
 
   class Director {
+    private:
+      /* flag indicating whether the object is owned by PHP or C++ */
+      mutable bool swig_disown_flag;
+
     protected:
       // "mutable" so we can get a non-const pointer to it in const methods.
       mutable zval swig_self;
       typedef std::map<void *, GCItem_var> swig_ownership_map;
       mutable swig_ownership_map swig_owner;
+
     public:
-      Director(zval *self) {
+      Director(zval *self) : swig_disown_flag(false) {
         ZVAL_COPY_VALUE(&swig_self, self);
       }
 
-      static bool swig_is_overridden_method(const char *cname, const char *lc_fname) {
-        bool result = false;
-        zend_string * cname_str = zend_string_init(cname, strlen(cname), 0);
-        zend_class_entry *ce = zend_lookup_class(cname_str);
-        if (ce) {
-          zval * mptr = zend_hash_str_find(&ce->function_table, lc_fname, strlen(lc_fname));
-          if (mptr) {
-            // common.scope points to zend_class_entry for the declaring class,
-            // and there's only one of those per class, so we can just use a
-            // pointer compare here.
-            result = Z_FUNC_P(mptr)->common.scope != ce;
-          }
+      ~Director() {
+        if (swig_disown_flag) {
+          Z_DELREF(swig_self);
+	}
+      }
+
+      zend_object *swig_get_self() const { return Z_OBJ(swig_self); }
+
+      void swig_disown() const {
+        if (!swig_disown_flag) {
+          swig_disown_flag = true;
+          Z_ADDREF(swig_self);
         }
-        zend_string_release(cname_str);
-        return result;
       }
 
       template <typename Type>
       void swig_acquire_ownership(Type *vptr) const {
         if (vptr) {
           swig_owner[vptr] = new GCItem_T<Type>(vptr);
+        }
+      }
+
+      void swig_acquire_ownership_obj(void *vptr, int own) const {
+        if (vptr && own) {
+          swig_owner[vptr] = new GCItem_Object(own);
         }
       }
   };
@@ -121,8 +132,8 @@ namespace Swig {
         swig_msg += " ";
         swig_msg += msg;
       }
-      SWIG_ErrorCode() = code;
-      SWIG_ErrorMsg() = swig_msg.c_str();
+      // Don't replace an already active PHP exception.
+      if (!EG(exception)) zend_throw_exception(NULL, swig_msg.c_str(), code);
     }
 
     virtual ~DirectorException() throw() {
@@ -150,8 +161,7 @@ namespace Swig {
   };
 
   /* any php exception that occurs during a director method call */
-  class DirectorMethodException : public DirectorException
-  {
+  class DirectorMethodException : public DirectorException {
   public:
     DirectorMethodException()
       : DirectorException(E_ERROR, "SWIG director method error", NULL) {

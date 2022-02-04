@@ -3,7 +3,9 @@
 #include "example.h"
 #include <stdio.h>
 
+#ifndef M_PI
 #define M_PI 3.14159265358979323846
+#endif
 
 /* Move the shape to a new location */
 void Shape::move(double dx, double dy) {

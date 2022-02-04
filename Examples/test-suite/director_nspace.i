@@ -15,7 +15,6 @@ namespace TopLevel
     class FooBar {
     public:
       FooBar() {}
-      FooBar(const FooBar&) {}
       virtual ~FooBar() {}
       
       std::string FooBarDo() { return "Bar::Foo2::Foo2Bar()"; }
@@ -56,7 +55,6 @@ namespace TopLevel
     class FooBar {
     public:
       FooBar();
-      FooBar(const FooBar&);
       virtual ~FooBar();
       
       std::string FooBarDo();
