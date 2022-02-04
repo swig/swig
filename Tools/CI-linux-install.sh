@@ -141,7 +141,18 @@ case "$SWIGLANG" in
 		# /usr/bin/scilab-bin: error while loading shared libraries: libjava.so: cannot open shared object file: No such file or directory
 		echo "JAVA_HOME was set to $JAVA_HOME"
 		unset JAVA_HOME
-		$RETRY sudo apt-get -qq install scilab
+		if [[ -z "$VER" ]]; then
+			$RETRY sudo apt-get -qq install scilab
+		else
+			$RETRY wget "https://www.scilab.org/download/$VER/scilab-$VER.bin.linux-x86_64.tar.gz"
+			tar -xzf "scilab-$VER.bin.linux-x86_64.tar.gz"
+			# SCI is the Scilab installation path, it can be used to resolve includes at ./configure time
+			# See https://help.scilab.org/SCI for more information
+			SCI=$(pwd)/scilab-$VER/share/scilab
+			export SCI; echo "SCI: $SCI"
+			PATH=$(pwd)/scilab-$VER/bin:$PATH
+			export PATH
+		fi
 		;;
 	"tcl")
 		$RETRY sudo apt-get -qq install tcl-dev
