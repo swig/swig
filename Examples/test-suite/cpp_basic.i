@@ -80,6 +80,12 @@ private:
 */
 };
 
+// This class is valid C++ but cannot be assigned to.
+struct JustConstMemberData {
+explicit JustConstMemberData(int i_inp) : i(i_inp) {}
+const int i;
+};
+
 %}
 
 %{
