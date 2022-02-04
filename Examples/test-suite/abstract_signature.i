@@ -2,6 +2,7 @@
 
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) abstract_foo;	// Ruby, wrong class name
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) abstract_bar;	// Ruby, wrong class name
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) meth; // Fortran prevents overloaded methods from overriding a base class non-overloaded method
 
 %inline %{ 
 class abstract_foo 

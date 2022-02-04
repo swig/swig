@@ -4,7 +4,7 @@
 
 %include "typemaps.i"
 
-#if !defined(SWIGJAVA) // Needs asymmetric type marshalling support for this testcase to work
+#if !defined(SWIGJAVA) && !defined(SWIGFORTRAN) // Needs asymmetric type marshalling support for this testcase to work
 
 %define TMAPS(PRIMTYPE, NAME)
 %apply PRIMTYPE *INPUT { PRIMTYPE * }

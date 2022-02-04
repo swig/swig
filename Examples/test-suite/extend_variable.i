@@ -45,6 +45,8 @@ double ExtendMe_ExtendVar_get(ExtendMe *thisptr) {
 %javaconst(1) AllBarOne;
 #elif SWIGCSHARP
 %csconst(1) AllBarOne;
+#elif SWIGFORTRAN
+%fortranconst AllBarOne;
 #endif
 
 
