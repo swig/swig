@@ -20,11 +20,8 @@ clear all
 clear all;
 function testme_1
   if compare_versions(version(), '4.4', '>=') && compare_versions(version(), '6', '<')
-    % in octave >= 4.4 < 6 'swigexample' is recognized as variable (1) instead of a .oct file (3) on the second call of 'swigexample'
-    assert(exist("swigexample") == 3 || exist("swigexample") == 1);
-  else
-    assert(exist("swigexample") == 3);
-  end
+  % exist("swigexample") returns 1 (variable) in octave >= 4.4 < 6 but 3 (.oct file) in octave >= 6
+  assert(exist("swigexample"));
   swigexample;
   assert(isglobal("swigexample"));
   assert(cvar.ivar == ifunc);
@@ -37,12 +34,8 @@ assert(isglobal("swigexample"));
 assert(cvar.ivar == ifunc);
 clear all
 function testme_2
-  if compare_versions(version(), '4.4', '>=') && compare_versions(version(), '6', '<')
-    % in octave >= 4.4 < 6 'swigexample' is recognized as variable (1) instead of a .oct file (3) on the second call of 'swigexample'
-    assert(exist("swigexample") == 3 || exist("swigexample") == 1);
-  else
-    assert(exist("swigexample") == 3);
-  end
+  % exist("swigexample") returns 1 (variable) in octave >= 4.4 < 6 but 3 (.oct file) in octave >= 6
+  assert(exist("swigexample"));
   swigexample;
   assert(isglobal("swigexample"));
   assert(cvar.ivar == ifunc);
@@ -62,12 +55,8 @@ swigexample;
 assert(isglobal("swigexample"));
 assert(cvar.ivar == ifunc);
 function testme_3
-  if compare_versions(version(), '4.4', '>=') && compare_versions(version(), '6', '<')
-    % in octave >= 4.4 < 6 'swigexample' is recognized as variable (1) instead of a .oct file (3) on the second call of 'swigexample'
-    assert(exist("swigexample") == 3 || exist("swigexample") == 1);
-  else
-    assert(exist("swigexample") == 3);
-  end
+  % exist("swigexample") returns 1 (variable) in octave >= 4.4 < 6 but 3 (.oct file) in octave >= 6
+  assert(exist("swigexample"));
   swigexample;
   assert(isglobal("swigexample"));
   assert(cvar.ivar == ifunc);
@@ -80,12 +69,8 @@ swigexample;
 assert(isglobal("swigexample"));
 assert(cvar.ivar == ifunc);
 function testme_4
-  if compare_versions(version(), '4.4', '>=') && compare_versions(version(), '6', '<')
-    % in octave >= 4.4 < 6 'swigexample' is recognized as variable (1) instead of a .oct file (3) on the second call of 'swigexample'
-    assert(exist("swigexample") == 3 || exist("swigexample") == 1);
-  else
-    assert(exist("swigexample") == 3);
-  end
+  % exist("swigexample") returns 1 (variable) in octave >= 4.4 < 6 but 3 (.oct file) in octave >= 6
+  assert(exist("swigexample"));
   swigexample;
   assert(isglobal("swigexample"));
   assert(cvar.ivar == ifunc);
