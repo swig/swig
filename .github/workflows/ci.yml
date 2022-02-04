@@ -43,7 +43,7 @@ jobs:
         - SWIGLANG: ""
           compiler: clang
         - SWIGLANG: csharp
-        # D support can't  enabled because dmd 2.066 fails to build anything
+        # D support can't be enabled because dmd 2.066 fails to build anything
         # under Ubuntu 18.04 due to its standard library (libphobos2.a) not
         # being compiled with -FPIC, but system gcc using -fpie by default,
         # resulting in linking errors for any output. And later versions, such

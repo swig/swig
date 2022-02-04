@@ -1,8 +1,9 @@
-/*
+/* 
 This testcase tests whether the sizeof operator on a pointer is working.
 */
 
 %module sizeof_pointer
+
 
 %inline %{
 

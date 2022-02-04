@@ -1392,7 +1392,7 @@ static String *apply_rename(Node* n, String *newname, int fullname, String *pref
       /* $ignore doesn't apply to parameters and while it's rare to explicitly write %ignore directives for them they could be caught by a wildcard ignore using
          regex match, just ignore the attempt to ignore them in this case */
       if (!Equal(nodeType(n), "parm"))
-      result = Copy(newname);
+	result = Copy(newname);
     } else {
       char *cnewname = Char(newname);
       if (cnewname) {
@@ -1532,9 +1532,9 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
 	       * is not possible to implemented targeted warning suppression on one parameter in one function. */
 	      int suppress_parameter_rename_warning = Equal(nodeType(n), "parm");
 	      if (!suppress_parameter_rename_warning) {
-	      SWIG_WARN_NODE_BEGIN(n);
+		SWIG_WARN_NODE_BEGIN(n);
 	      Swig_warning(0, Getfile(n), Getline(n), "%s%s", msg, suffix);
-	      SWIG_WARN_NODE_END(n);
+		SWIG_WARN_NODE_END(n);
 	      }
 	    } else {
 	      Swig_warning(0, Getfile(name), Getline(name), "%s%s", msg, suffix);

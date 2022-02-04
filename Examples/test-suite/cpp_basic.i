@@ -26,11 +26,11 @@ class Foo {
     int func1(int a) {
       return 2*a*num;
     }
-
+    
     int func2(int a) {
       return -a*num;
     }
-
+    
     int (Foo::*func_ptr)(int);
 
     const char* __str__() const { return "Foo"; }
@@ -60,7 +60,7 @@ static Foo init_ref = Foo(-4);
 class Bar {
   public:
     Bar() : fptr(0), fref(init_ref), fval(15) , cint(3) {}
-
+  
     Foo *fptr;
     Foo &fref;
     Foo fval;
@@ -83,6 +83,12 @@ class Bar {
 private:
     Bar& operator=(const Bar&);
 */
+};
+
+// This class is valid C++ but cannot be assigned to.
+struct JustConstMemberData {
+explicit JustConstMemberData(int i_inp) : i(i_inp) {}
+const int i;
 };
 
 %}

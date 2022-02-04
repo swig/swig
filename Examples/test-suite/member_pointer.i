@@ -17,7 +17,7 @@ public:
   virtual ~Shape() {
     nshapes--;
   };
-  double  x, y;
+  double  x, y;   
   double  *z;
 
   void    move(double dx, double dy);
@@ -34,7 +34,7 @@ public:
   virtual double area(void);
   virtual double perimeter(void);
 };
-
+  
 class Square : public Shape {
 private:
   double width;
@@ -119,7 +119,7 @@ PerimeterFunc_td perimetervar_td = &Shape::perimeter;
 /* Some constants */
 %constant double (Shape::*AREAPT)(void) = &Shape::area;
 %constant double (Shape::*PERIMPT)(void) = &Shape::perimeter;
-%constant double (Shape::*NULLPT)(void) = NULL;
+%constant double (Shape::*NULLPT)(void) = 0;
 
 /*
 %inline %{

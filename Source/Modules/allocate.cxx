@@ -57,45 +57,6 @@ extern "C" {
   }
 }
 
-static int is_copy_constructor(SwigType *type, ParmList *parms) {
-  int copy_constructor = 0;
-  if (parms && ParmList_numrequired(parms) == 1) {
-    String *tn = NewStringf("r.q(const).%s", type);
-    String *cc = SwigType_typedef_resolve_all(tn);
-    SwigType *rt = SwigType_typedef_resolve_all(Getattr(parms, "type"));
-    /* Look for a few cases. X(const X &), X(X &), X(X *) */
-    if (SwigType_istemplate(type)) {
-      String *tmp = Swig_symbol_template_deftype(cc, 0);
-      Delete(cc);
-      cc = tmp;
-      tmp = Swig_symbol_template_deftype(rt, 0);
-      Delete(rt);
-      rt = tmp;
-    }
-    if (Strcmp(cc, rt) == 0) {
-      copy_constructor = 1;
-    } else {
-      Delete(cc);
-      cc = NewStringf("r.%s", type);
-      if (Strcmp(cc, Getattr(parms, "type")) == 0) {
-        copy_constructor = 1;
-      } else {
-        Delete(cc);
-        cc = NewStringf("p.%s", type);
-        String *ty = SwigType_strip_qualifiers(Getattr(parms, "type"));
-        if (Strcmp(cc, ty) == 0) {
-          copy_constructor = 1;
-        }
-        Delete(ty);
-      }
-    }
-    Delete(cc);
-    Delete(rt);
-    Delete(tn);
-  }
-  return copy_constructor;
-}
-
 class Allocate:public Dispatcher {
   Node *inclass;
   int extendmode;
@@ -809,87 +770,95 @@ Allocate():
 
     process_exceptions(n);
 
-    if (!inclass)
-      return SWIG_OK;
-    
-    /* check whether the member node n is defined in class node in class's bases */
-    class_member_is_defined_in_bases(n, inclass);
+    if (inclass) {
+      /* check whether the member node n is defined in class node in class's bases */
+      class_member_is_defined_in_bases(n, inclass);
 
-    if (Swig_storage_isstatic(n)) {
-      /* Static member data: add an attribute cplus:staticbase that saves the current class */
-      Setattr(n, "cplus:staticbase", inclass);
-    } else if (Cmp(Getattr(n, "kind"), "variable") == 0) {
-      /* Check member variable to determine whether assignment is valid */
-      if (GetFlag(n, "feature:immutable")) {
-        /* Can't assign a class with an immutable member variable */
-        Setattr(inclass, "allocate:noassign", "1");
-      } else if (SwigType_isreference(Getattr(n, "decl"))) {
-        /* Can't assign a class with reference member data */
-        Setattr(inclass, "allocate:noassign", "1");
-      }
-    }
+      /* Check to see if this is a static member or not.  If so, we add an attribute
+         cplus:staticbase that saves the current class */
 
-    String *name = Getattr(n, "name");
-    if ((Strcmp(name, "operator =") == 0)
-        && is_copy_constructor(Getattr(inclass, "name"), Getattr(n, "parms"))) {
-      /* Copy assignment */
-      bool deleted = GetFlag(n, "deleted");
-      bool is_private = (cplus_mode != PUBLIC);
-      if (!deleted) 
-        Setattr(inclass, "allocate:has_assign", "1");
-      if (is_private || deleted)
-        Setattr(inclass, "allocate:noassign", "1");
-    } else if (Strcmp(name, "operator new") == 0) {
-      bool deleted = GetFlag(n, "deleted");
-      bool is_private = (cplus_mode != PUBLIC);
-      if (!deleted) 
-        Setattr(inclass, "allocate:has_new", "1");
-      if (is_private || deleted)
-        Setattr(inclass, "allocate:nonew", "1");
-    } else if ((cplus_mode == PUBLIC) && (Strcmp(name, "operator ->") == 0) && (!GetFlag(n, "feature:ignore"))) {
-      /* Smart pointer operator : look for version with no parameters */
-      Node *sn = n;
-      while (sn) {
-        if (!Getattr(sn, "parms")) {
-          SwigType *type = SwigType_typedef_resolve_all(Getattr(sn, "type"));
-          SwigType_push(type, Getattr(sn, "decl"));
-          Delete(SwigType_pop_function(type));
-          SwigType *base = SwigType_base(type);
-          Node *sc = Swig_symbol_clookup(base, 0);
-          if ((sc) && (Strcmp(nodeType(sc), "class") == 0)) {
-            if (SwigType_check_decl(type, "p.")) {
-              /* Need to check if type is a const pointer */
-              int isconst = 0;
-              Delete(SwigType_pop(type));
-              if (SwigType_isconst(type)) {
-                isconst = !Getattr(inclass, "allocate:smartpointermutable");
-                Setattr(inclass, "allocate:smartpointerconst", "1");
-              }
-              else {
-                Setattr(inclass, "allocate:smartpointermutable", "1");
-              }
-              List *methods = smart_pointer_methods(sc, 0, isconst);
-              Setattr(inclass, "allocate:smartpointer", methods);
-              Setattr(inclass, "allocate:smartpointerpointeeclassname", Getattr(sc, "name"));
-            } else {
-              /* Hmmm.  The return value is not a pointer.  If the type is a value
-                 or reference.  We're going to chase it to see if another operator->()
-                 can be found */
-              if ((SwigType_check_decl(type, "")) || (SwigType_check_decl(type, "r."))) {
-                Node *nn = Swig_symbol_clookup("operator ->", Getattr(sc, "symtab"));
-                if (nn) {
-                  Delete(base);
-                  Delete(type);
-                  sn = nn;
-                  continue;
-                }
-              }
-            }
-          }
-          Delete(base);
-          Delete(type);
-          break;
+      if (Swig_storage_isstatic(n)) {
+	Setattr(n, "cplus:staticbase", inclass);
+      } else if (Cmp(Getattr(n, "kind"), "variable") == 0) {
+        /* Check member variable to determine whether assignment is valid */
+        if (SwigType_isreference(Getattr(n, "type"))) {
+          /* Can't assign a class with reference member data */
+	  Setattr(inclass, "allocate:noassign", "1");
         }
+      }
+
+      String *name = Getattr(n, "name");
+      if (cplus_mode != PUBLIC) {
+	if (Strcmp(name, "operator =") == 0) {
+	  /* Look for a private assignment operator */
+	  if (!GetFlag(n, "deleted"))
+	    Setattr(inclass, "allocate:has_assign", "1");
+	  Setattr(inclass, "allocate:noassign", "1");
+	} else if (Strcmp(name, "operator new") == 0) {
+	  /* Look for a private new operator */
+	  if (!GetFlag(n, "deleted"))
+	    Setattr(inclass, "allocate:has_new", "1");
+	  Setattr(inclass, "allocate:nonew", "1");
+	}
+      } else {
+	if (Strcmp(name, "operator =") == 0) {
+	  if (!GetFlag(n, "deleted"))
+	    Setattr(inclass, "allocate:has_assign", "1");
+	  else
+	    Setattr(inclass, "allocate:noassign", "1");
+	} else if (Strcmp(name, "operator new") == 0) {
+	  if (!GetFlag(n, "deleted"))
+	    Setattr(inclass, "allocate:has_new", "1");
+	  else
+	    Setattr(inclass, "allocate:nonew", "1");
+	}
+	/* Look for smart pointer operator */
+	if ((Strcmp(name, "operator ->") == 0) && (!GetFlag(n, "feature:ignore"))) {
+	  /* Look for version with no parameters */
+	  Node *sn = n;
+	  while (sn) {
+	    if (!Getattr(sn, "parms")) {
+	      SwigType *type = SwigType_typedef_resolve_all(Getattr(sn, "type"));
+	      SwigType_push(type, Getattr(sn, "decl"));
+	      Delete(SwigType_pop_function(type));
+	      SwigType *base = SwigType_base(type);
+	      Node *sc = Swig_symbol_clookup(base, 0);
+	      if ((sc) && (Strcmp(nodeType(sc), "class") == 0)) {
+		if (SwigType_check_decl(type, "p.")) {
+		  /* Need to check if type is a const pointer */
+		  int isconst = 0;
+		  Delete(SwigType_pop(type));
+		  if (SwigType_isconst(type)) {
+		    isconst = !Getattr(inclass, "allocate:smartpointermutable");
+		    Setattr(inclass, "allocate:smartpointerconst", "1");
+		  }
+		  else {
+		    Setattr(inclass, "allocate:smartpointermutable", "1");
+		  }
+		  List *methods = smart_pointer_methods(sc, 0, isconst);
+		  Setattr(inclass, "allocate:smartpointer", methods);
+		  Setattr(inclass, "allocate:smartpointerpointeeclassname", Getattr(sc, "name"));
+		} else {
+		  /* Hmmm.  The return value is not a pointer.  If the type is a value
+		     or reference.  We're going to chase it to see if another operator->()
+		     can be found */
+		  if ((SwigType_check_decl(type, "")) || (SwigType_check_decl(type, "r."))) {
+		    Node *nn = Swig_symbol_clookup("operator ->", Getattr(sc, "symtab"));
+		    if (nn) {
+		      Delete(base);
+		      Delete(type);
+		      sn = nn;
+		      continue;
+		    }
+		  }
+		}
+	      }
+	      Delete(base);
+	      Delete(type);
+	      break;
+	    }
+	  }
+	}
       }
     }
     return SWIG_OK;
@@ -921,13 +890,52 @@ Allocate():
       Setattr(inclass, "allocate:public_constructor", "1");
     }
 
-    if (is_copy_constructor(Getattr(inclass, "name"), parms)) {
-      Setattr(n, "copy_constructor", "1");
-      Setattr(inclass, "allocate:has_copy_constructor", "1");
-      if (cplus_mode == PUBLIC) {
-        Setattr(inclass, "allocate:copy_constructor", "1");
-      } else if (cplus_mode == PROTECTED) {
-        Setattr(inclass, "allocate:copy_base_constructor", "1");
+
+    /* See if this is a copy constructor */
+    if (parms && (ParmList_numrequired(parms) == 1)) {
+      /* Look for a few cases. X(const X &), X(X &), X(X *) */
+      int copy_constructor = 0;
+      SwigType *type = Getattr(inclass, "name");
+      String *tn = NewStringf("r.q(const).%s", type);
+      String *cc = SwigType_typedef_resolve_all(tn);
+      SwigType *rt = SwigType_typedef_resolve_all(Getattr(parms, "type"));
+      if (SwigType_istemplate(type)) {
+	String *tmp = Swig_symbol_template_deftype(cc, 0);
+	Delete(cc);
+	cc = tmp;
+	tmp = Swig_symbol_template_deftype(rt, 0);
+	Delete(rt);
+	rt = tmp;
+      }
+      if (Strcmp(cc, rt) == 0) {
+	copy_constructor = 1;
+      } else {
+	Delete(cc);
+	cc = NewStringf("r.%s", Getattr(inclass, "name"));
+	if (Strcmp(cc, Getattr(parms, "type")) == 0) {
+	  copy_constructor = 1;
+	} else {
+	  Delete(cc);
+	  cc = NewStringf("p.%s", Getattr(inclass, "name"));
+	  String *ty = SwigType_strip_qualifiers(Getattr(parms, "type"));
+	  if (Strcmp(cc, ty) == 0) {
+	    copy_constructor = 1;
+	  }
+	  Delete(ty);
+	}
+      }
+      Delete(cc);
+      Delete(rt);
+      Delete(tn);
+
+      if (copy_constructor) {
+	Setattr(n, "copy_constructor", "1");
+	Setattr(inclass, "allocate:has_copy_constructor", "1");
+	if (cplus_mode == PUBLIC) {
+	  Setattr(inclass, "allocate:copy_constructor", "1");
+	} else if (cplus_mode == PROTECTED) {
+	  Setattr(inclass, "allocate:copy_base_constructor", "1");
+	}
       }
     }
     return SWIG_OK;

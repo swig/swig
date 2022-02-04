@@ -60,7 +60,7 @@
     (void)stardesc;
     (void)ampdesc;
   }
-  $1 = ($ltype) temp;
+  $1 = ($ltype) temp;  
 }
 
 /* Static language modules don't use SWIG's runtime type system */

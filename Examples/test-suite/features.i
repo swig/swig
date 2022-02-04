@@ -9,7 +9,7 @@
 // This testcase checks that %feature is working for templates and non user supplied constructors/destructors and is just generally working
 
 // If the default %exception is used it will not compile. It shouldn't get used.
-%exception "#error Exception code should not have been inserted;";
+%exception "this_will_not_compile";
 
 // Test 1: Test for no user supplied constructors and destructor
 %exception Simple::Simple(const Simple&) "$action /*Simple::Simple*/";

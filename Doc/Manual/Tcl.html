@@ -2819,7 +2819,7 @@ used as a <tt>char **</tt> object.
 
 // This gives SWIG some cleanup code that will get called after the function call
 %typemap(freearg) char ** {
-    free($1);
+  free($1);
 }
 
 // Now a test functions

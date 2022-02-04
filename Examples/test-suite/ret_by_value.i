@@ -4,7 +4,6 @@
 
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) test; /* Ruby, wrong class name */
 
-
 %inline %{
 
 typedef struct {

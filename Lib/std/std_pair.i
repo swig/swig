@@ -1,9 +1,6 @@
 %include <std_common.i>
 
-%{
-#include <utility>
-%}
-
+%fragment("<utility>");
 
 namespace std {
   template <class T, class U > struct pair {      

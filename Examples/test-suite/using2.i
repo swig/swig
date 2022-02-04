@@ -26,5 +26,5 @@ using Y::Foo;
 
 int spam(Foo::value_type x) { return x; }
 
-
+ 
 %}

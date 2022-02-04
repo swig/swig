@@ -8,10 +8,14 @@ typedef int Integer1;
 }
 typedef void Function2(int value); // Works
 typedef int Integer2;
+
+extern "C" int Integer3;
 %}
 
 %{
 void RealFunction(int value) {}
+
+extern "C" { int Integer3 = 0; }
 %}
 
 

@@ -264,10 +264,10 @@ int main(int margc, char **margv) {
 	for (int j = 0; modules[j].name; j++) {
 	  if (modules[j].help && modules[j].status == Experimental) {
 	    Printf(stdout, "     %-15s - Generate %s wrappers\n", modules[j].name, modules[j].help);
-      }
-    }
+	  }
+	}
 	// Swig_mark_arg not called as the general -help options also need to be displayed later on
-  }
+      }
     }
   }
 

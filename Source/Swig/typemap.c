@@ -525,7 +525,7 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
 	/* A typemap we have to copy */
 	String *nkey = Copy(ki.key);
 	Replace(nkey, ssig, dsig, DOH_REPLACE_ANY);
-        
+
 	/* Make sure the typemap doesn't already exist in the target map */
 	oldm = Getattr(tm, nkey);
 	if (!oldm || (!Getattr(tm, "code"))) {
@@ -536,26 +536,26 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
 	  if (code) {
 	    Replace(nkey, dsig, "", DOH_REPLACE_ANY);
 	    Replace(nkey, "tmap:", "", DOH_REPLACE_ANY);
-            Setattr(deferred_add, nkey, sm1);
-          }
-          Delete(nkey);
-        }
+	    Setattr(deferred_add, nkey, sm1);
+	  }
+	  Delete(nkey);
+	}
       }
     }
 
     /* After assembling the key/item pairs, add the resulting typemaps */
     for (ki = First(deferred_add); ki.key; ki = Next(ki)) {
       Hash *sm1 = ki.item;
-      String *src_str = ParmList_str_multibrackets(src);
-      String *dest_str = ParmList_str_multibrackets(dest);
-      String *source_directive = NewStringf("apply %s { %s }", src_str, dest_str);
+	    String *src_str = ParmList_str_multibrackets(src);
+	    String *dest_str = ParmList_str_multibrackets(dest);
+	    String *source_directive = NewStringf("apply %s { %s }", src_str, dest_str);
 
       typemap_register(ki.key, dest, Getattr(sm1, "code"), Getattr(sm1, "locals"), Getattr(sm1, "kwargs"), source_directive);
 
-      Delete(source_directive);
-      Delete(dest_str);
-      Delete(src_str);
-    }
+	    Delete(source_directive);
+	    Delete(dest_str);
+	    Delete(src_str);
+	  }
     Delete(deferred_add);
   }
   Delete(ssig);

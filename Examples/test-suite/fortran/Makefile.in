@@ -5,6 +5,7 @@
 LANGUAGE     = fortran
 SCRIPTSUFFIX = _runme.F90
 FORTRAN_SO   = @FORTRAN_SO@
+FORTRANLIBPREFIX = @FORTRANLIBPREFIX@
 
 CC           = @CC@
 CXX          = @CXX@
@@ -141,13 +142,13 @@ link_multi_cpp = \
           ALL_OBJS="$${ALL_OBJS} $${f}_wrap.o $${f}_fort.o" ; \
         done ; \
         @FORTRANCXXSHARED@ $(CXXFLAGS) $(LDFLAGS) $$ALL_OBJS \
-		$(FCLIBS) -o $(LIBPREFIX)$*$(FORTRAN_SO)
+		$(FCLIBS) -o $(FORTRANLIBPREFIX)$*$(FORTRAN_SO)
 
 # Runs the testcase.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	$(COMPILETOOL) $(FC) $(FCFLAGS) $(CCSHARED) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -c; \
-	$(COMPILETOOL) $(FC) $(FCFLAGS) $(CCSHARED) -o $*_runme.exe $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $(LIBPREFIX)$*$(FORTRAN_SO); \
+	$(COMPILETOOL) $(FC) $(FCFLAGS) $(CCSHARED) -o $*_runme.exe $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $(FORTRANLIBPREFIX)$*$(FORTRAN_SO); \
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme.exe; \
 	fi
 
