@@ -59,6 +59,7 @@ jobs:
         # - SWIGLANG: d
         #   VER: '2.066.0'
         #   os: ubuntu-18.04 # This dlang version doesn't work under 20.04.
+        - SWIGLANG: fortran
         - SWIGLANG: go
           VER: '1.6'
           CSTD: gnu11
@@ -194,6 +195,8 @@ jobs:
         # c++11 testing
         - SWIGLANG: csharp
           CPPSTD: c++11
+        - SWIGLANG: fortran
+          CPPSTD: c++11
         - SWIGLANG: go
           VER: '1.17'
           CPPSTD: c++11
@@ -266,6 +269,10 @@ jobs:
         - SWIGLANG: csharp
           CPPSTD: c++17
           GCC: 11
+        - SWIGLANG: fortran
+          CPPSTD: c++17
+          FCSTD: f2003
+          GCC: 11
         - SWIGLANG: go
           VER: '1.17'
           CPPSTD: c++17
@@ -337,6 +344,7 @@ jobs:
       CSTD: ${{ matrix.CSTD }}
       CPPSTD: ${{ matrix.CPPSTD }}
       CPPFLAGS: ${{ matrix.CPPFLAGS }}
+      FCSTD: ${{ matrix.FCSTD }}
 
     steps:
     - name: Checkout
@@ -457,10 +465,11 @@ jobs:
             # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
             cflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC)
             cxxflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)
+            if -n "$FC"; then fcflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --fcflags --std=$FCSTD --compiler=$FC); fi
             make check-$SWIGLANG-version
             make check-$SWIGLANG-enabled
-            make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"
-            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"
+            make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags" FCFLAGS="$fcflags"
+            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags" FCFLAGS="$fcflags"
           fi
 
     - name: Install

@@ -60,6 +60,7 @@ docs-main:
 
 skip-csharp	= test -n "@SKIP_CSHARP@"
 skip-d		= test -n "@SKIP_D@"
+skip-fortran	= test -n "@SKIP_FORTRAN@"
 skip-go		= test -n "@SKIP_GO@"
 skip-guile	= test -n "@SKIP_GUILE@"
 skip-java	= test -n "@SKIP_JAVA@"
@@ -101,6 +102,7 @@ check-aliveness:
 	./$(TARGET) -help
 	@$(skip-csharp)   || ./$(TARGET) -csharp     -help
 	@$(skip-d) 	  || ./$(TARGET) -d          -help
+	@$(skip-fortran) || ./$(TARGET) -fortran -help
 	@$(skip-go)	  || ./$(TARGET) -go         -help
 	@$(skip-guile)    || ./$(TARGET) -guile      -help
 	@$(skip-java)     || ./$(TARGET) -java       -help
@@ -125,6 +127,7 @@ check-versions:					\
 	check-android-version			\
 	check-csharp-version			\
 	check-d-version				\
+	check-fortran-version			\
 	check-go-version			\
 	check-guile-version			\
 	check-java-version			\
@@ -159,6 +162,7 @@ check-examples:					\
 	check-android-examples			\
 	check-csharp-examples			\
 	check-d-examples			\
+	check-fortran-examples			\
 	check-go-examples			\
 	check-guile-examples			\
 	check-java-examples			\
@@ -178,6 +182,7 @@ check-examples:					\
 android_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/android/check.list)
 csharp_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/csharp/check.list)
 d_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/d/check.list)
+fortran_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/fortran/check.list)
 go_examples        :=$(shell sed '/^\#/d' $(srcdir)/Examples/go/check.list)
 guile_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/guile/check.list)
 java_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/java/check.list)
@@ -219,6 +224,7 @@ check-test-suite:				\
 	check-errors-test-suite			\
 	check-csharp-test-suite			\
 	check-d-test-suite			\
+	check-fortran-test-suite			\
 	check-go-test-suite			\
 	check-guile-test-suite			\
 	check-java-test-suite			\
@@ -266,6 +272,7 @@ check: check-aliveness check-ccache check-versions check-examples check-test-sui
 all-test-suite:					\
 	all-csharp-test-suite			\
 	all-d-test-suite			\
+	all-fortran-test-suite			\
 	all-go-test-suite			\
 	all-guile-test-suite			\
 	all-java-test-suite			\
@@ -289,6 +296,7 @@ all-%-test-suite:
 broken-test-suite:				\
 	broken-csharp-test-suite		\
 	broken-d-test-suite			\
+	broken-fortran-test-suite			\
 	broken-go-test-suite			\
 	broken-guile-test-suite			\
 	broken-java-test-suite			\
@@ -436,7 +444,7 @@ install-main:
 
 lib-languages = typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
 	csharp lua r go d javascript javascript/jsc \
-	javascript/v8 scilab xml
+	javascript/v8 scilab fortran xml
 
 lib-modules = std
 

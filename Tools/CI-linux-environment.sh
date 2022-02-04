@@ -6,6 +6,19 @@
 set -e # exit on failure (same as -o errexit)
 
 case "$SWIGLANG" in
+	"fortran")
+		if [ -n "$FCSTD" ]; then
+			CONFIGOPTS+=("FCFLAGS=-std=$FCSTD $FCFLAGS")
+		fi
+		if test -n "$GCC"; then
+			FC="gfortran-$GCC"
+		else
+			FC="gfortran"
+		fi
+		export FC
+		$FC --version
+		echo FC="$FC" >> $GITHUB_ENV
+		;;
 	"go")
 		if [[ "$VER" ]]; then
 		  eval "$($HOME/bin/gimme ${VER}.x)"

@@ -1,0 +1,168 @@
+#######################################################################
+# Makefile for Fortran test-suite
+#######################################################################
+
+LANGUAGE     = fortran
+SCRIPTSUFFIX = _runme.F90
+FORTRAN_SO   = @FORTRAN_SO@
+FORTRANLIBPREFIX = @FORTRANLIBPREFIX@
+
+CC           = @CC@
+CXX          = @CXX@
+FC           = @FC@
+CCSHARED     = @CCSHARED@
+LDSHARED     = @LDSHARED@
+CXXSHARED    = @CXXSHARED@
+@TRYLINKINGWITHCXX@
+FCFLAGS      = @FCFLAGS@
+CXXFLAGS     = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@
+
+srcdir       = @srcdir@
+top_srcdir   = @top_srcdir@
+top_builddir = @top_builddir@
+
+CPP_TEST_CASES = \
+	complextest \
+	fortran_bindc \
+	fortran_callback \
+	fortran_naming \
+	fortran_onlywrapped \
+	fortran_overloads \
+	fortran_std_span \
+	fortran_subroutine \
+	li_std_set \
+
+C_TEST_CASES = \
+	fortran_array_typemap \
+	fortran_bindc_c \
+	fortran_callback_c \
+	fortran_global_const \
+	ccomplextest \
+
+FAILING_CPP_TESTS += \
+	allprotected \
+	apply_signed_char \
+	apply_strings \
+	contract \
+	director_abstract \
+	director_basic \
+	director_binary_string \
+	director_classes \
+	director_classic \
+	director_comparison_operators \
+	director_conversion_operators \
+	director_default \
+	director_detect \
+	director_enum \
+	director_exception \
+	director_exception_catches \
+	director_exception_nothrow \
+	director_extend \
+	director_frob \
+	director_ignore \
+	director_keywords \
+	director_multiple_inheritance \
+	director_namespace_clash \
+	director_nested \
+	director_nspace \
+	director_nspace_director_name_collision \
+	director_overload \
+	director_overload2 \
+	director_ownership \
+	director_pass_by_value \
+	director_primitives \
+	director_property \
+	director_protected \
+	director_protected_overloaded \
+	director_redefined \
+	director_ref \
+	director_smartptr \
+	director_string \
+	director_template \
+	director_unroll \
+	director_unwrap_result \
+	director_using \
+	director_using_member_scopes \
+	director_void \
+	director_wombat \
+	global_scope_types \
+	grouping \
+	li_boost_shared_ptr_director \
+	li_std_auto_ptr \
+	member_funcptr_galore \
+	member_pointer \
+	member_pointer_const \
+	namespace_class \
+	nested_directors \
+	nested_scope_flat \
+	overload_arrays \
+	overload_complicated \
+	overload_return_type \
+	overload_simple \
+	overload_subtype \
+	smart_pointer_member \
+	smart_pointer_template_defaults_overload \
+	typedef_classforward_same_name \
+	typemap_directorout \
+	using_member_scopes \
+
+FAILING_CPP_TESTS += \
+	cpp11_default_delete \
+	cpp11_director_enums \
+	cpp11_directors \
+	cpp11_function_objects \
+	cpp11_result_of \
+	cpp11_rvalue_reference2 \
+	cpp11_rvalue_reference3 \
+
+FAILING_C_TESTS += \
+	char_constant \
+	preproc \
+	typedef_classforward_same_name \
+		   
+
+FAILING_MULTI_CPP_TESTS += \
+	template_typedef_import \
+	import_stl \
+
+include $(srcdir)/../common.mk
+
+# Rules for the different types of tests
+%.cpptest:
+	$(setup)
+	+$(swig_and_compile_cpp) NOLINK=false
+	$(run_testcase)
+
+%.ctest:
+	$(setup)
+	+$(swig_and_compile_c) NOLINK=false
+	$(run_testcase)
+
+%.multicpptest:
+	$(setup)
+	+$(swig_and_compile_multi_cpp)
+	+$(link_multi_cpp)
+	$(run_testcase)
+
+# Compiles a multiple-module library
+link_multi_cpp = \
+        for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
+          ALL_OBJS="$${ALL_OBJS} $${f}_wrap.o $${f}_fort.o" ; \
+        done ; \
+        @FORTRANCXXSHARED@ $(CXXFLAGS) $(LDFLAGS) $$ALL_OBJS \
+		$(FCLIBS) -o $(FORTRANLIBPREFIX)$*$(FORTRAN_SO)
+
+# Runs the testcase.
+run_testcase = \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	$(COMPILETOOL) $(FC) $(FCFLAGS) $(CCSHARED) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -c; \
+	$(COMPILETOOL) $(FC) $(FCFLAGS) $(CCSHARED) -o $*_runme.exe $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $(FORTRANLIBPREFIX)$*$(FORTRAN_SO); \
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme.exe; \
+	fi
+
+%.clean:
+	@rm -f $*.o $*.a $*_runme.exe
+	@rm -rf $*.dSYM
+	find . -name $*.f90 -and -not -name $*_runme.F90 -exec rm {} \;
+clean:
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' fortran_clean

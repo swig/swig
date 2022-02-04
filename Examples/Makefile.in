@@ -345,6 +345,56 @@ d_clean:
 	rm -f *.@OBJEXT@ *@SO@
 
 ##################################################################
+#####                      Fortran                          ######
+##################################################################
+
+FC = @FC@
+FCFLAGS = @FCFLAGS@
+FORTRANCFLAGS =
+FORTRANCXXFLAGS =
+FORTRAN_RUNME = $(RUNME)
+FMOD = $(INTERFACE:.i=.f90)
+FOBJ = $(INTERFACE:.i=_fort.@OBJEXT@)
+FORTRANLIBPREFIX = @FORTRANLIBPREFIX@
+FORTRAN_SO = @FORTRAN_SO@
+FCLIBS = @FCLIBS@
+FORTRANLDSHARED = @FORTRANLDSHARED@
+FORTRANCXXSHARED = @FORTRANCXXSHARED@
+
+fortran: $(SRCDIR_SRCS)
+	$(SWIG) -fortran $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(FORTRANCFLAGS) \
+		$(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS) $(INCLUDES)
+	$(FC) -c $(CCSHARED) $(FCFLAGS) $(FMOD) -o $(FOBJ)
+	$(NOLINK) || $(FORTRANLDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(FOBJ) \
+		$(FCLIBS) $(LIBS) -o $(FORTRANLIBPREFIX)$(TARGET)$(FORTRAN_SO)
+
+fortran_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -fortran -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(FORTRANCXXFLAGS) \
+		$(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES)
+	$(FC) -c $(CCSHARED) $(FCFLAGS) $(FMOD) -o $(FOBJ)
+	$(NOLINK) || $(FORTRANCXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(FOBJ) \
+		$(FCLIBS) $(LIBS) -o $(FORTRANLIBPREFIX)$(TARGET)$(FORTRAN_SO)
+
+fortran_run: $(SRCDIR_SRCS)
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) ./$(RUNME).exe $(RUNPIPE)
+
+# FORTRANSRCS is the 'runme.f90' in the 'Examples' dir
+fortran_compile: $(SRCDIR_SRCS)
+	$(COMPILETOOL) $(FC) $(CCSHARED) $(FCFLAGS) $(addprefix $(SRCDIR),$(FORTRANSRCS)) $(patsubst %,$(FORTRANLIBPREFIX)%$(FORTRAN_SO),$(TARGET)) \
+		-o $(RUNME).exe
+
+fortran_clean:
+	rm -f *_wrap* *~ $(RUNME) $(RUNME).exe *.mod
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *$(FORTRAN_SO)
+	rm -f `find . -name \*.f90 | grep -v $(RUNME).f90`
+
+fortran_version:
+	$(FC) --version
+
+##################################################################
 #####                       Go                              ######
 ##################################################################
 
