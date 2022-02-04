@@ -11,6 +11,7 @@ def get_cflags(language, std, compiler):
     cflags = {
         "csharp":"-Werror " + c_common,
              "d":"-Werror " + c_common,
+       "fortran":"-Werror " + c_common,
             "go":"-Werror " + c_common,
          "guile":"-Werror " + c_common,
           "java":"-Werror " + c_common,
@@ -42,6 +43,7 @@ def get_cxxflags(language, std, compiler):
     cxxflags = {
         "csharp":"-Werror " + cxx_common,
              "d":"-Werror " + cxx_common,
+       "fortran":"-Werror " + cxx_common,
             "go":"-Werror " + cxx_common,
          "guile":"-Werror " + cxx_common,
           "java":"-Werror " + cxx_common,
@@ -66,12 +68,30 @@ def get_cxxflags(language, std, compiler):
 
     return cxxflags[language]
 
+def get_fcflags(language, std, compiler):
+    fcflags = ["-Wall", "-Wextra", "-Wimplicit-procedure",
+            "-Wimplicit-interface", "-Wno-compare-reals",
+            "-Wno-intrinsic-shadow",
+            "-Wno-maybe-uninitialized", # GCC bugs
+            "-ffree-line-length-none"]
+    if std:
+        fcflags.append("-std=" + std)
+    # The boost version on the systems seems to be compiled as multithreaded
+    # but does not link against the pthread library (and I guess the C++
+    # compiler does?)
+    fcflags.append("-pthread")
+    # Note: some test cases generate spurious -Wsurprising and
+    # -Wmaybe-uninitialized; others warn about shadowing intrinsics; so we
+    # don't add -Werror
+    return " ".join(fcflags)
+
 import argparse
 parser = argparse.ArgumentParser(description="Display CFLAGS or CXXFLAGS to use for testing the SWIG examples and test-suite.")
 parser.add_argument("-l", "--language", required=True, help="set language to show flags for")
 flags = parser.add_mutually_exclusive_group(required=True)
 flags.add_argument("-c", "--cflags", action="store_true", default=False, help="show CFLAGS")
 flags.add_argument("-x", "--cxxflags", action="store_true", default=False, help="show CXXFLAGS")
+flags.add_argument("-f", "--fcflags", action="store_true", default=False, help="show FCFLAGS")
 parser.add_argument("-s", "--std", required=False, help="language standard flags for the -std= option")
 parser.add_argument("-C", "--compiler", required=False, help="compiler used (clang or gcc)")
 args = parser.parse_args()
@@ -80,6 +100,8 @@ if args.cflags:
     get_flags = get_cflags
 elif args.cxxflags:
     get_flags = get_cxxflags
+elif args.fcflags:
+    get_flags = get_fcflags
 else:
     parser.print_help()
     exit(1)

@@ -26,6 +26,13 @@ case "$SWIGLANG" in
 		$RETRY wget http://downloads.dlang.org/releases/2.x/${VER}/dmd_${VER}-0_amd64.deb
 		$RETRY sudo dpkg -i dmd_${VER}-0_amd64.deb
 		;;
+  "fortran")
+    if [[ -n "$GCC" ]]; then
+      $RETRY sudo apt-get install -qq gfortran-$GCC
+    else
+      $RETRY sudo apt-get install -qq gfortran
+    fi
+    ;;
 	"go")
 		if [[ "$VER" ]]; then
 		  mkdir -p $HOME/bin

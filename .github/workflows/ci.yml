@@ -53,6 +53,8 @@ jobs:
         # - SWIGLANG: d
         #   VER: '2.066.0'
         #   os: ubuntu-18.04 # This dlang version doesn't work under 20.04.
+        - SWIGLANG: fortran
+          CPPSTD: c++11
         - SWIGLANG: go
           VER: '1.6'
           CSTD: gnu11
@@ -181,6 +183,8 @@ jobs:
         # c++11 testing
         - SWIGLANG: csharp
           CPPSTD: c++11
+        - SWIGLANG: fortran
+          CPPSTD: c++11
         - SWIGLANG: go
           VER: '1.17'
           CPPSTD: c++11
@@ -248,6 +252,10 @@ jobs:
         - SWIGLANG: csharp
           CPPSTD: c++17
           GCC: 11
+        - SWIGLANG: fortran
+          CPPSTD: c++17
+          FCSTD: f2003
+          GCC: 11
         - SWIGLANG: go
           VER: '1.17'
           CPPSTD: c++17
@@ -313,6 +321,7 @@ jobs:
       CSTD: ${{ matrix.CSTD }}
       CPPSTD: ${{ matrix.CPPSTD }}
       CPPFLAGS: ${{ matrix.CPPFLAGS }}
+      FCSTD: ${{ matrix.FCSTD }}
 
     steps:
     - name: Checkout
@@ -365,19 +374,23 @@ jobs:
           elif test -n "$GCC"; then
             CC="gcc-$GCC"
             CXX="g++-$GCC"
+            FC="gfortran-$GCC"
           else
             CC="gcc"
             CXX="g++"
+            FC="gfortran"
           fi
 
-          export CC CXX
+          export CC CXX FC
 
           echo CC="$CC" >> $GITHUB_ENV
           echo CXX="$CXX" >> $GITHUB_ENV
+          echo FC="$FC" >> $GITHUB_ENV
 
           ls -la $(which $CC) $(which $CXX)
           $CC --version
           $CXX --version
+          $FC --version
 
     - name: Configure
       run: |
@@ -395,6 +408,7 @@ jobs:
           if test -z "$CPPSTD"; then CONFIGOPTS+=("--disable-cpp11-testing"); fi
           if test -n "$CPPSTD"; then CONFIGOPTS+=("CXXFLAGS=-std=$CPPSTD $CXXFLAGS"); fi
           if test -n "$CSTD"; then CONFIGOPTS+=("CFLAGS=-std=$CSTD $CFLAGS"); fi
+          if test -n "$FCSTD"; then CONFIGOPTS+=("FCFLAGS=-std=$FCSTD $FCFLAGS"); fi
           if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
           echo "${CONFIGOPTS[@]}"
           ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
@@ -432,10 +446,11 @@ jobs:
             # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
             cflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC)
             cxxflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)
+            fcflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --fcflags --std=$FCSTD --compiler=$FC)
             make check-$SWIGLANG-version
             make check-$SWIGLANG-enabled
-            make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"
-            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"
+            make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags" FCFLAGS="$fcflags"
+            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags" FCFLAGS="$fcflags"
           fi
 
     - name: Install
