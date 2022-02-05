@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-06: sethrj
+	    #2194 Classes that are non-assignable due to const data or const
+	    reference members are now automatically detected.
+
 2022-02-04: friedrichatgc
 	    [Octave] #1672 Fix Octave 4.4 support.
 
