@@ -12,7 +12,7 @@ Version 4.1.0 (in progress)
 	    reference members are now automatically detected.
 
 2022-02-04: friedrichatgc
-	    [Octave] #1672 Fix Octave 4.4 support.
+	    [Octave] #1672 Fix for isobject for Octave 4.4 - 6.0.
 
 2022-02-03: olly
 	    [C#] #283 #998 Fix memory leak in directorin typemap for
@@ -56,7 +56,7 @@ Version 4.1.0 (in progress)
 	    #655 Better handling of using declarations.
 
 2022-01-29: dontpanic92
-	    #676 Fix code generated for a C++ class with a non-capitalised
+	    [Go] #676 Fix code generated for a C++ class with a non-capitalised
 	    name.
 
 2022-01-26: trex58
