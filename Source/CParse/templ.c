@@ -249,7 +249,7 @@ String *partial_arg(String *s, String *p) {
   }
   prefix = NewStringWithSize(cp, (int)(c - cp));
   newarg = Copy(s);
-  Replace(newarg, prefix, "", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
+  Replace(newarg, prefix, "", DOH_REPLACE_FIRST);
   Delete(prefix);
   return newarg;
 }

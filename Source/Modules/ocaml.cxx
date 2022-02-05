@@ -407,7 +407,7 @@ public:
       printf("Fatal error. SwigType_del_pointer applied to non-pointer.\n");
       abort();
     }
-    Replace(t, "r.", "", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
+    Replace(t, "r.", "", DOH_REPLACE_FIRST);
   }
 
   void oc_SwigType_del_array(SwigType *t) {

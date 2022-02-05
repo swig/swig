@@ -477,7 +477,7 @@ static void getoptions(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if (strncmp(argv[i], "-D", 2) == 0) {
 	String *d = NewString(argv[i] + 2);
-	Replace(d, "=", " ", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
+	Replace(d, "=", " ", DOH_REPLACE_FIRST);
 	Preprocessor_define((DOH *) d, 0);
 	Delete(d);
 	// Create a symbol
