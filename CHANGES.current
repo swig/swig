@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-06: olly
+	    #2193 -DFOO on the SWIG command line now sets FOO to 1 for
+	    consistency with C/C++ compiler preprocessors.  Previously
+	    SWIG set FOO to an empty value.
+
 2022-02-06: sethrj
 	    #2194 Classes that are non-assignable due to const data or const
 	    reference members are now automatically detected.
