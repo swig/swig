@@ -19,7 +19,6 @@ clear all
 # load module in a function globally before base context
 clear all;
 function testme_1
-  if compare_versions(version(), '4.4', '>=') && compare_versions(version(), '6', '<')
   % exist("swigexample") returns 1 (variable) in octave >= 4.4 < 6 but 3 (.oct file) in octave >= 6
   assert(exist("swigexample"));
   swigexample;
