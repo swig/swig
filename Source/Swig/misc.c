@@ -1157,46 +1157,13 @@ int Swig_scopename_check(const String *s) {
 /* -----------------------------------------------------------------------------
  * Swig_string_command()
  *
- * Executes a external command via popen with the string as a command
- * line parameter. For example:
- *
- *  Printf(stderr,"%(command:sed 's/[a-z]/\U\\1/' <<<)s","hello") -> Hello
+ * Feature removed in SWIG 4.1.0.
  * ----------------------------------------------------------------------------- */
-#if defined(_MSC_VER)
-#  define popen _popen
-#  define pclose _pclose
-#  if !defined(HAVE_POPEN)
-#    define HAVE_POPEN 1
-#  endif
-#else
-#  if !defined(_WIN32)
-/* These Posix functions are not ISO C and so are not always defined in stdio.h */
-extern FILE *popen(const char *command, const char *type);
-extern int pclose(FILE *stream);
-#  endif
-#endif
 
 String *Swig_string_command(String *s) {
-  String *res = NewStringEmpty();
-#if defined(HAVE_POPEN)
-  if (Len(s)) {
-    char *command = Char(s);
-    FILE *fp = popen(command, "r");
-    if (fp) {
-      char buffer[1025];
-      while (fscanf(fp, "%1024s", buffer) != EOF) {
-	Append(res, buffer);
-      }
-      pclose(fp);
-    } else {
-      Swig_error("SWIG", Getline(s), "Command encoder fails attempting '%s'.\n", s);
-      SWIG_exit(EXIT_FAILURE);
-    }
-  }
-#endif
-  return res;
+  Swig_error("SWIG", Getline(s), "Command encoder no longer supported - use regex encoder instead.\n");
+  SWIG_exit(EXIT_FAILURE);
 }
-
 
 /* -----------------------------------------------------------------------------
  * Swig_string_strip()

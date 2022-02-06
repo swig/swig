@@ -2064,23 +2064,10 @@ and a more descriptive one, but the two functions are otherwise equivalent:
     <tt>%rename("regex:/(\\w+)_(.*)/\\u\\2/")</tt></td>
     <td><tt>prefix_print</tt></td><td><tt>Print</tt></td>
 </tr>
-<tr>
-    <td><tt>command:cmd</tt></td>
-    <td>Output of an external command <tt>cmd</tt> with the string passed to
-    it as input. Notice that this function is extremely slow compared to all
-    the other ones as it involves spawning a separate process and using it for
-    many declarations is not recommended. The <i>cmd</i> is not enclosed in
-    square brackets but must be terminated with a triple <tt>'&lt;'</tt> sign,
-    e.g. <tt>%rename("command:tr&nbsp;-d&nbsp;aeiou &lt;&lt;&lt;")</tt>
-    (nonsensical example removing all vowels)</td>
-    <td><tt>Print</tt></td><td><tt>Prnt</tt></td>
-</tr>
 </table>
 
 <p>
-The most general function of all of the above ones (not counting
-<tt>command</tt> which is even more powerful in principle but which should
-generally be avoided because of performance considerations) is the
+The most general function of all of the above ones is the
 <tt>regex</tt> one. Here are some more examples of its use:
 </p>
 

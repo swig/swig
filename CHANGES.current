@@ -7,6 +7,29 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-07: olly
+	    #1806 Remove support for the "command" encoder, which was mostly
+	    intended for use in `%rename` - most uses can be achieved using
+	    the "regex" encoder, so we recommend using that instead.
+
+	    The "command" encoder suffers from a number of issues - as the
+	    documentation for it admitted, "[it] is extremely slow compared to
+	    all the other [encoders] as it involves spawning a separate process
+	    and using it for many declarations is not recommended" and that it
+	    "should generally be avoided because of performance
+	    considerations".
+
+	    But it's also not portable.  The design assumes that `/bin/sh`
+	    supports `<<<` but that's a bash-specific feature so it doesn't
+	    work on platforms where `/bin/sh` is not bash - it fails on
+	    Debian, Ubuntu and probably some other Linux distros, plus most
+	    non-Linux platforms.  Microsoft Windows doesn't even have a
+	    /bin/sh as standard.
+
+	    Finally, no escaping of the passed string is done, so it has
+	    potential security issues (though at least with %rename the input
+	    is limited to valid C/C++ symbol names).
+
 2022-02-06: olly
 	    #2193 -DFOO on the SWIG command line now sets FOO to 1 for
 	    consistency with C/C++ compiler preprocessors.  Previously
