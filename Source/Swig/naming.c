@@ -1521,7 +1521,7 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
 	    if (Strcmp(result, "$ignore") == 0) {
 	      suffix = NewStringf(": ignoring '%s'\n", name);
 	    } else if (Strcmp(result, name) != 0) {
-	      suffix = NewStringf(": renaming '%s' to '%s'\n", name, result);
+	      suffix = NewStringf(", renaming to '%s'\n", result);
 	    } else {
 	      /* No rename was performed */
 	      suffix = NewString("\n");
