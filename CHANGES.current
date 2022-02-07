@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-07: sethrj
+            #2196 Add alternative syntax for specifying fragments in typemaps.
+
+            New syntax:
+              %typemap("in", fragment="frag1", fragment="frag2", fragment="frag3") {...}
+            which is equivalent to:
+              %typemap(in, fragment="frag1,frag2,frag3") {...}
+
+
 2022-02-07: olly
 	    #1806 Remove support for the "command" encoder, which was mostly
 	    intended for use in `%rename` - most uses can be achieved using
