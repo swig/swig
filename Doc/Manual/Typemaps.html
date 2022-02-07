@@ -3983,9 +3983,19 @@ inclusion of the other fragments.
 
 <li>
 <p>
-A typemap can also use more than one fragment, but since the
-syntax is different, you need to specify the dependent fragments in a comma separated
-list. Consider:
+A typemap can also use more than one fragment with the same syntax:
+</p>
+<div class="code">
+<pre>
+%typemap("in", "header", fragment="frag1", fragment="frag2", fragment="frag3") "";
+</pre>
+</div>
+<p>
+<em>New in SWIG 4.1.</em>
+</p>
+
+<p>An older syntax allows multiple fragments to be specified in a comma
+separated list inside a single keyword argument. Consider:
 </p>
 
 <div class="code">
