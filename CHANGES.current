@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-08: benjamin-sch
+            [Python] added an interpreter counter to fix deinitialization
+            issues if multiple subinterpreters are used
+
 2022-02-07: sethrj
             #2196 Add alternative syntax for specifying fragments in typemaps.
 
