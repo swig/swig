@@ -141,7 +141,7 @@ std::vector<std::string> RevStringVec (const std::vector<std::string> &In)
   }
 %}
 
-// regression test for Tcl typecheck bug with empty list fixed in 4.2.0
+// regression test for Tcl typecheck bug with empty list fixed in 4.1.0
 %inline %{
 int sum(const std::vector<int> &v) {
   return std::accumulate(v.begin(),v.end(),0);
