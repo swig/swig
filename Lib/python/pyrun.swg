@@ -1627,19 +1627,19 @@ SWIG_Python_TypeCache(void) {
 
 SWIGRUNTIME swig_module_info *
 SWIG_Python_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
+#ifdef SWIG_LINK_RUNTIME
   static void *type_pointer = (void *)0;
   /* first check if module already created */
   if (!type_pointer) {
-#ifdef SWIG_LINK_RUNTIME
     type_pointer = SWIG_ReturnGlobalTypeList((void *)0);
-#else
-    type_pointer = PyCapsule_Import(SWIGPY_CAPSULE_NAME, 0);
-    if (PyErr_Occurred()) {
-      PyErr_Clear();
-      type_pointer = (void *)0;
-    }
-#endif
   }
+#else
+  void *type_pointer = PyCapsule_Import(SWIGPY_CAPSULE_NAME, 0);
+  if (PyErr_Occurred()) {
+    PyErr_Clear();
+    type_pointer = (void *)0;
+  }
+#endif
   return (swig_module_info *) type_pointer;
 }
 
