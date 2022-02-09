@@ -1278,7 +1278,7 @@ static void typemap_merge_fragment_kwargs(Parm *kw) {
 	fragment = thisfragment;
 	prev_kw = kw;
       } else {
-	/* Concatentate to previously found fragment */
+	/* Concatenate to previously found fragment */
 	Printv(fragment, ",", thisfragment, NULL);
 	reattach_kw = prev_kw;
       }

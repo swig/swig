@@ -32,7 +32,7 @@ extern "C" {
     ZEND_BEGIN_ARG_INFO_EX(name, 0, byref, num_req)
 
 /* NB We can just ignore `default` here we currently always pass NULL for it
- * (this mechnism for specifying default parameter values was new in PHP 8.0
+ * (this mechanism for specifying default parameter values was new in PHP 8.0
  * so it's not useful while we still want to support PHP7 too).
  */
 # define ZEND_ARG_OBJ_TYPE_MASK(byref, name, classes, types, default) \

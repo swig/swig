@@ -186,7 +186,7 @@ int main(int argc,char* argv[]) {
   luaopen_base(L);
   luaopen_string(L);
   luaopen_math(L);
-  printf("[C] now loading the SWIG wrappered library\n");
+  printf("[C] now loading the SWIG wrapped library\n");
   luaopen_example(L);
   printf("[C] all looks ok\n");
   printf("\n");
@@ -226,8 +226,8 @@ int main(int argc,char* argv[]) {
   printf("\n");
   printf("[C] Note: no protection if you mess up the va-args, this is C\n");
   printf("\n");
-  printf("[C] Finally we will call the wrappered gcd function gdc(6,9):\n");
-  printf("[C] This will pass the values to Lua, then call the wrappered function\n");
+  printf("[C] Finally we will call the wrapped gcd function gdc(6,9):\n");
+  printf("[C] This will pass the values to Lua, then call the wrapped function\n");
   printf("    Which will get the values from Lua, call the C code \n");
   printf("    and return the value to Lua and eventually back to C\n");
   printf("[C] Certainly not the best way to do it :-)\n");
