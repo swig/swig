@@ -118,7 +118,7 @@ namespace std {
             T*        temp;
 
             if(SWIG_ConvertPtr($input, (void **) &v, \
-                               $&1_descriptor, 0) == 0) {
+                               $1_descriptor, 0) == 0) {
                 $1 = v;
             } else {
                 // It isn't a vector< T > so it should be a list of T's

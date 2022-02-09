@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-10: olly
+	    [Tcl] https://sourceforge.net/p/swig/bugs/1207/
+	    https://sourceforge.net/p/swig/bugs/1213/
+
+	    Fix Tcl generic input typemap for std::vector.
+
 2022-02-07: sethrj
             #2196 Add alternative syntax for specifying fragments in typemaps.
 
