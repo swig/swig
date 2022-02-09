@@ -88,12 +88,12 @@ namespace std {
             int       i;
             T*        temp;
 
-            if (SWIG_ConvertPtr($input, (void **) &v, \
+            if (SWIG_ConvertPtr($input, (void **) &v,
                                 $&1_descriptor, 0) == 0){
                 $1 = *v;
             } else {
                 // It isn't a vector< T > so it should be a list of T's
-                if(Tcl_ListObjGetElements(interp, $input, \
+                if(Tcl_ListObjGetElements(interp, $input,
                                           &nitems, &listobjv) == TCL_ERROR)
                     return TCL_ERROR;
                 $1 = std::vector< T >();
@@ -117,7 +117,7 @@ namespace std {
             int       i;
             T*        temp;
 
-            if(SWIG_ConvertPtr($input, (void **) &v, \
+            if(SWIG_ConvertPtr($input, (void **) &v,
                                $1_descriptor, 0) == 0) {
                 $1 = v;
             } else {
@@ -143,7 +143,7 @@ namespace std {
         %typemap(out) vector< T > {
             for (unsigned int i=0; i<$1.size(); i++) {
                 T* ptr = new T((($1_type &)$1)[i]);
-                Tcl_ListObjAppendElement(interp, $result, \
+                Tcl_ListObjAppendElement(interp, $result,
                                          SWIG_NewInstanceObj(ptr, 
                                                              $descriptor(T *), 
                                                              0));
@@ -156,7 +156,7 @@ namespace std {
             T*        temp;
             std::vector< T > *v;
             
-            if(SWIG_ConvertPtr($input, (void **) &v, \
+            if(SWIG_ConvertPtr($input, (void **) &v,
                                $&1_descriptor, 0) == 0) {
                 /* wrapped vector */
                 $1 = 1;
@@ -185,7 +185,7 @@ namespace std {
             T*         temp;
             std::vector< T > *v;
 
-            if(SWIG_ConvertPtr($input, (void **) &v, \
+            if(SWIG_ConvertPtr($input, (void **) &v,
                                $1_descriptor, 0) == 0){
                 /* wrapped vector */
                 $1 = 1;
@@ -264,7 +264,7 @@ namespace std {
             int       i;
             T         temp;
 
-            if(SWIG_ConvertPtr($input, (void **) &v, \
+            if(SWIG_ConvertPtr($input, (void **) &v,
                                $&1_descriptor, 0) == 0) {
                 $1 = *v;
             } else {
@@ -288,7 +288,7 @@ namespace std {
             int       i;
             T         temp;
 
-            if(SWIG_ConvertPtr($input, (void **) &v, \
+            if(SWIG_ConvertPtr($input, (void **) &v,
                                $1_descriptor, 0) == 0) {
                 $1 = v;
             } else {
@@ -308,7 +308,7 @@ namespace std {
 
         %typemap(out) vector< T > {
             for (unsigned int i=0; i<$1.size(); i++) {
-                Tcl_ListObjAppendElement(interp, $result, \
+                Tcl_ListObjAppendElement(interp, $result,
                                          CONVERT_TO((($1_type &)$1)[i]));
             }
         }
@@ -319,7 +319,7 @@ namespace std {
             T         temp;
             std::vector< T > *v;
 
-            if(SWIG_ConvertPtr($input, (void **) &v, \
+            if(SWIG_ConvertPtr($input, (void **) &v,
                                $&1_descriptor, 0) == 0){
                 /* wrapped vector */
                 $1 = 1;
@@ -346,7 +346,7 @@ namespace std {
             T         temp;
             std::vector< T > *v;
 
-            if(SWIG_ConvertPtr($input, (void **) &v, \
+            if(SWIG_ConvertPtr($input, (void **) &v,
                                $1_descriptor, 0) == 0){
                 /* wrapped vector */
                 $1 = 1;
