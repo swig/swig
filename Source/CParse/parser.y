@@ -3139,7 +3139,9 @@ c_declaration   : c_decl {
 		      n = nextSibling(n);
 		    }
 		  } else {
-		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $2);
+            if (!Equal($2,"C++")) {
+		      Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $2);
+            }
 		    $$ = new_node("extern");
 		    Setattr($$,"name",$2);
 		    appendChild($$,firstChild($5));
