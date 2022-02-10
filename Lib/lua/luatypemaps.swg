@@ -24,7 +24,7 @@
 // additional check for unsigned numbers, to not permit negative input
 %typemap(in,checkfn="lua_isnumber") unsigned int,
              unsigned short, unsigned long, unsigned char
-%{SWIG_contract_assert((lua_tonumber(L,$input)>=0),"number must not be negative")
+%{SWIG_contract_assert((lua_tonumber(L,$input)>=0),"number must not be negative");
 $1 = ($type)lua_tonumber(L, $input);%}
 
 %typemap(out) int,short,long,
@@ -43,7 +43,7 @@ $1 = ($type)lua_tonumber(L, $input);%}
 %{ temp=($*1_ltype)lua_tonumber(L,$input); $1=&temp;%}
 
 %typemap(in,checkfn="lua_isnumber") const unsigned int&($*1_ltype temp)
-%{SWIG_contract_assert((lua_tonumber(L,$input)>=0),"number must not be negative")
+%{SWIG_contract_assert((lua_tonumber(L,$input)>=0),"number must not be negative");
 temp=($*1_ltype)lua_tonumber(L,$input); $1=&temp;%}
 
 %typemap(out) const int&, const unsigned int&
