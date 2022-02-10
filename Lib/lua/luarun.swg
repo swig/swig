@@ -307,7 +307,7 @@ typedef struct {
 
 /* Contract support */
 #define SWIG_contract_assert(expr, msg)  \
-  if (!(expr)) { SWIG_Lua_pusherrstring(L, (char *) msg); goto fail; } else
+  do { if (!(expr)) { SWIG_Lua_pusherrstring(L, (char *) msg); goto fail; } } while (0)
 
 
 /* helper #defines */
