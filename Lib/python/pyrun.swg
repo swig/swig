@@ -719,6 +719,8 @@ SwigPyObject_Check(PyObject *op) {
 SWIGRUNTIME PyObject *
 SwigPyObject_New(void *ptr, swig_type_info *ty, int own);
 
+static PyObject* Swig_Capsule_global = NULL;
+
 SWIGRUNTIME void
 SwigPyObject_dealloc(PyObject *v)
 {
@@ -774,6 +776,7 @@ SwigPyObject_dealloc(PyObject *v)
 #ifdef SWIGPYTHON_BUILTIN
   Py_XDECREF(sobj->dict);
 #endif
+  Py_XDECREF(Swig_Capsule_global);
   PyObject_DEL(v);
 }
 
@@ -994,6 +997,7 @@ SwigPyObject_New(void *ptr, swig_type_info *ty, int own)
 #ifdef SWIGPYTHON_BUILTIN
     sobj->dict = 0;
 #endif
+    Py_XINCREF(Swig_Capsule_global);
   }
   return (PyObject *)sobj;
 }
@@ -1663,6 +1667,7 @@ SWIG_Python_DestroyModule(PyObject *obj)
   Swig_Globals_global = NULL;
   Py_DECREF(SWIG_Python_TypeCache());
   Swig_TypeCache_global = NULL;
+  Swig_Capsule_global = NULL;
 }
 
 SWIGRUNTIME void
@@ -1676,7 +1681,9 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
 #endif
   PyObject *pointer = PyCapsule_New((void *) swig_module, SWIGPY_CAPSULE_NAME, SWIG_Python_DestroyModule);
   if (pointer && module) {
-    if (PyModule_AddObject(module, "type_pointer_capsule" SWIG_TYPE_TABLE_NAME, pointer) != 0) {
+    if (PyModule_AddObject(module, "type_pointer_capsule" SWIG_TYPE_TABLE_NAME, pointer) == 0) {
+      Swig_Capsule_global = pointer;
+    } else {
       Py_DECREF(pointer);
     }
   } else {
