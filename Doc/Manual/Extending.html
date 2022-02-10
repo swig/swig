@@ -2991,7 +2991,7 @@ virtual int functionWrapper(Node *n) {
   /* create the wrapper object */
   Wrapper *wrapper = NewWrapper();
 
-  /* create the functions wrapped name */
+  /* create the wrapper function's name */
   String *wname = Swig_name_wrapper(iname);
 
   /* deal with overloading */
@@ -3000,7 +3000,7 @@ virtual int functionWrapper(Node *n) {
   /* write the wrapper function definition */
   Printv(wrapper-&gt;def, "RETURN_TYPE ", wname, "(ARGS) {", NIL);
 
-  /* if any additional local variable needed, add them now */
+  /* if any additional local variables are needed, add them now */
   ...
 
   /* write the list of locals/arguments required */
