@@ -31,6 +31,8 @@ Integer int1;
 extern "C" int int2;
 extern "C" { extern int int3; }
 extern "C" { int int4 = 789; }
+extern "C" thread_local int int_tl;
+extern "C" { thread_local int int_tl2; }
 %}
 
 %{
