@@ -5094,7 +5094,13 @@ extern_string :  EXTERN string {
 
 storage_class  : EXTERN { $$ = "extern"; }
 	       | extern_string { $$ = $1; }
-	       | extern_string THREAD_LOCAL { $$ = "thread_local"; }
+	       | extern_string THREAD_LOCAL {
+                if (Equal($1, "extern")) {
+                  $$ = "extern thread_local";
+                } else {
+                  $$ = "externc thread_local";
+                }
+	       }
 	       | extern_string TYPEDEF { $$ = "typedef"; }
                | STATIC { $$ = "static"; }
                | TYPEDEF { $$ = "typedef"; }
