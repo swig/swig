@@ -3134,14 +3134,22 @@ c_declaration   : c_decl {
 		    Setattr($$,"name",$2);
 		    appendChild($$,n);
 		    while (n) {
-		      SwigType *decl = Getattr(n,"decl");
-		      if (SwigType_isfunction(decl) && !Equal(Getattr(n, "storage"), "typedef")) {
+		      String *s = Getattr(n, "storage");
+		      if (s) {
+			if (Strstr(s, "thread_local")) {
+			  Insert(s,0,"externc ");
+			} else if (!Equal(s, "typedef")) {
+			  Setattr(n,"storage","externc");
+			}
+		      } else {
 			Setattr(n,"storage","externc");
 		      }
 		      n = nextSibling(n);
 		    }
 		  } else {
-		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $2);
+		    if (!Equal($2,"C++")) {
+		      Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $2);
+		    }
 		    $$ = new_node("extern");
 		    Setattr($$,"name",$2);
 		    appendChild($$,firstChild($5));
@@ -5087,7 +5095,13 @@ extern_string :  EXTERN string {
 
 storage_class  : EXTERN { $$ = "extern"; }
 	       | extern_string { $$ = $1; }
-	       | extern_string THREAD_LOCAL { $$ = "thread_local"; }
+	       | extern_string THREAD_LOCAL {
+                if (Equal($1, "extern")) {
+                  $$ = "extern thread_local";
+                } else {
+                  $$ = "externc thread_local";
+                }
+	       }
 	       | extern_string TYPEDEF { $$ = "typedef"; }
                | STATIC { $$ = "static"; }
                | TYPEDEF { $$ = "typedef"; }
