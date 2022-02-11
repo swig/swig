@@ -771,12 +771,12 @@ SwigPyObject_dealloc(PyObject *v)
       printf("swig/python detected a memory leak of type '%s', no destructor found.\n", (name ? name : "unknown"));
     }
 #endif
-  } 
+    Py_XDECREF(Swig_Capsule_global);
+  }
   Py_XDECREF(next);
 #ifdef SWIGPYTHON_BUILTIN
   Py_XDECREF(sobj->dict);
 #endif
-  Py_XDECREF(Swig_Capsule_global);
   PyObject_DEL(v);
 }
 
@@ -997,7 +997,9 @@ SwigPyObject_New(void *ptr, swig_type_info *ty, int own)
 #ifdef SWIGPYTHON_BUILTIN
     sobj->dict = 0;
 #endif
-    Py_XINCREF(Swig_Capsule_global);
+    if (own == SWIG_POINTER_OWN) {
+      Py_XINCREF(Swig_Capsule_global);
+    }
   }
   return (PyObject *)sobj;
 }
