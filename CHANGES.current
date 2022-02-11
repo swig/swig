@@ -7,6 +7,20 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-11: adr26
+            [Python] #2154 Fix memory leak.
+
+            1. SWIG python objects were being freed after the corresponding SWIG
+            module information was destroyed in Python 3, causing leaks when as
+            a result the object destructor could not be invoked. To prevent this
+            misordering, SWIG python objects now obtain a reference to the
+            Python capsule wrapping the module information, so that the module
+            information is correctly destroyed after all SWIG python objects
+            have been freed (and corresponding destructors invoked).
+
+            2. Update AppVeyor to use correct PCRE2_STATIC macro in
+            CMAKE_C_FLAGS.
+
 2022-02-10: olly
 	    [Tcl] https://sourceforge.net/p/swig/bugs/1207/
 	    https://sourceforge.net/p/swig/bugs/1213/
