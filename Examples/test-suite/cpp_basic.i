@@ -45,6 +45,9 @@ class FooSubSub : public FooSub {
     const char* __str__() const { return "FooSubSub"; }
 };
 
+Foo& get_reference(Foo& other) { return other; }
+const Foo& get_const_reference(const Foo& other) { return other; }
+
 %}
 
 %{
