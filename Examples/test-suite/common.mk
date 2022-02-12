@@ -695,6 +695,7 @@ C_TEST_CASES += \
 	command_line_define \
 	const_const \
 	constant_expr_c \
+	contract_c \
 	default_args_c \
 	empty_c \
 	enums \
