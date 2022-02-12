@@ -2,7 +2,8 @@
 
 %module multi_import_a
 
-%import multi_import_b.i
+%import multi_import_d.i
+%import "multi_import_b.i"
 
 %{
 #include "multi_import.h"

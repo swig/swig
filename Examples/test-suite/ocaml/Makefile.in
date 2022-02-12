@@ -106,6 +106,6 @@ clean:
 	rm -f import_stl_a.ml import_stl_b.ml
 	rm -f imports_a.ml imports_b.ml
 	rm -f mod_a.ml mod_b.ml
-	rm -f multi_import_a.ml multi_import_b.ml
+	rm -f multi_import_a.ml multi_import_b.ml multi_import_d.ml
 	rm -f packageoption_a.ml packageoption_b.ml packageoption_c.ml
 	rm -f template_typedef_cplx2.ml
