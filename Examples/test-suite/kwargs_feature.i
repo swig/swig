@@ -128,6 +128,11 @@ struct ExtendingOptArgs1 {};
 struct ExtendingOptArgs2 {};
 %}
 
+// For strlen/strcpy
+%{
+#include <string.h>
+%}
+
 // Varargs
 %warnfilter(SWIGWARN_LANG_VARARGS_KEYWORD) VarargConstructor::VarargConstructor; // Can't wrap varargs with keyword arguments enabled
 %warnfilter(SWIGWARN_LANG_VARARGS_KEYWORD) VarargConstructor::vararg_method; // Can't wrap varargs with keyword arguments enabled
