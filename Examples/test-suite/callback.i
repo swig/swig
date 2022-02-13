@@ -13,6 +13,7 @@
 %callback("%s") A::foom;
 #endif
 %callback("%(uppercase)s_Cb_Ptr") foo_T;  // this works in Python too
+%callback("%s_cb") identity_finger;
 
 %inline %{
 
@@ -85,6 +86,15 @@
   const T& ident(const T& x) {
     return x;
   }
+
+  // Test callbacks for enum types
+  typedef enum {One, Two, Three, Four, Five} finger;
+  typedef finger (*finger_finger)(finger);
+  finger identity_finger(finger f) { return f; }
+  finger apply_finger_cb(finger f, finger_finger cb) {
+      return cb(f);
+  }
+
 %}
 
 %template(foo_i) foo_T<int>;
