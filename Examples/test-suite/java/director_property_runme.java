@@ -23,6 +23,10 @@ public class director_property_runme {
       if (!a.getA().equals("Hello set from MyFoo")) {
         throw new RuntimeException( "Test failed" );
       }
+      a.setAByRef("Hello");
+      if (!a.getA().equals("Hello setAByRef from MyFoo")) {
+        throw new RuntimeException( "Test failed" );
+      }
       a.delete();
     }
 
@@ -34,6 +38,10 @@ public class director_property_runme {
       }
       a.setA("Hello");
       if (!a.getA().equals("Hello set from MyFoo")) {
+        throw new RuntimeException( "Test failed" );
+      }
+      a.setAByRef("Hello");
+      if (!a.getA().equals("Hello setAByRef from MyFoo")) {
         throw new RuntimeException( "Test failed" );
       }
       a.delete();
@@ -48,6 +56,10 @@ class director_property_MyFoo extends Foo {
     @Override
     public void setA(String a) {
       super.setA(a + " set from MyFoo");
+    }
+    @Override
+    public void setAByRef(String a) {
+      super.setA(a + " setAByRef from MyFoo");
     }
 }
 
