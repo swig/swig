@@ -14,3 +14,7 @@ class ZZZ : public XXX
 public:
    int testz();
 };
+
+%inline %{
+void use_www_a(const WWW& w) {w.nullop();}
+%}
