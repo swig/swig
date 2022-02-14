@@ -7,8 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-21: davidcl
+	    [Scilab] improve 5.5.2, 6.0.0 and 6.1.0 support. The `targetversion`
+		argument has been removed as the generated code detect the Scilab 
+		version on loader.sce or builder.sce.
+
+		For Scilab 5, long names are reduced to small names preserving the 
+		class prefix and accessor suffix (get or set).
+		For Scilab 6, long names with class prefix and accessor suffix should
+		be used on the user code.
+
 2022-02-20: wsfulton
-            Fix %warnfilter warning suppress for warning 315 SWIGWARN_PARSE_USING_UNDEF.
+        Fix %warnfilter warning suppress for warning 315 SWIGWARN_PARSE_USING_UNDEF.
 
 2022-02-17: olly
 	    [PHP] https://sourceforge.net/p/swig/bugs/1211/
