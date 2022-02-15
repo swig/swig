@@ -1064,7 +1064,7 @@ int *Foo_x_get(Foo *self) {
 <p>
 If you want to set an array member, you will need to supply a "memberin" typemap
 described later in this chapter.  As a special case, SWIG does generate
-code to set array members of type <tt>char</tt> (allowing you to store a Python
+code to set array members of type <tt>char</tt> (allowing you to store a Perl
 string in the structure).
 </p>
 
@@ -1735,7 +1735,7 @@ See the chapter on "<a href="Customization.html#Customization">Customization fea
 
 <div class="code">
 <pre>
-%except(python) {
+%except(perl5) {
   try {
     $function
   }
