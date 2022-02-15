@@ -5,7 +5,7 @@ require "tests.php";
 // New functions
 check::functions(array('get_func1_ptr','get_func2_ptr','test_func_ptr'));
 // New classes
-check::classes(array('cpp_basic','Foo','FooSub','FooSubSub','Bar','Fl_Window'));
+check::classes(array('cpp_basic','Foo','FooSub','FooSubSub','Bar','Fl_Window','JustConst'));
 // No new vars
 check::globals(array());
 
