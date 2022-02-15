@@ -889,7 +889,7 @@ public:
       //  Add methods
       if (have_methods) {
 	Printv(ptrclass, imethods, NIL);
-      };
+      }
 
       //  Close out the pointer class
       Printv(ptrclass, "}\n\n", NIL);
@@ -947,7 +947,7 @@ public:
     if (!itcl) {
       Printv(cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, (ClientData)&_wrap_class_", mangled_classname,
 	     "},\n", NIL);
-    };
+    }
 
     Delete(t);
     Delete(mangled_classname);
@@ -1023,7 +1023,7 @@ public:
 	Printv(imethods, "{ ", ns_name, "::", class_name, "_", realname, " $swigobj", NIL);
       } else {
 	Printv(imethods, "{ ", class_name, "_", realname, " $swigobj", NIL);
-      };
+      }
 
       pnum = 0;
       for (p = l; p; p = nextSibling(p)) {

@@ -166,7 +166,7 @@ public:
    */
   virtual int exitClass(Node *) {
     return SWIG_OK;
-  };
+  }
 
   /**
    * Invoked at the beginning of the variableHandler.
@@ -178,7 +178,7 @@ public:
    */
   virtual int exitVariable(Node *) {
     return SWIG_OK;
-  };
+  }
 
   /**
    * Invoked at the beginning of the functionHandler.
@@ -190,7 +190,7 @@ public:
    */
   virtual int exitFunction(Node *) {
     return SWIG_OK;
-  };
+  }
 
   /**
    * Invoked by functionWrapper callback after call to Language::functionWrapper.
