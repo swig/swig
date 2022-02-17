@@ -1031,6 +1031,7 @@ public:
     Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
     Printf(f->code, "  if(!arg) {\n");
     Printf(f->code, "    zend_throw_exception(zend_ce_type_error, \"this pointer is NULL\", 0);\n");
+    Printf(f->code, "    return;\n");
     Printf(f->code, "  }\n");
     Printf(f->code, "  arg2 = Z_STR(args[0]);\n\n");
 
@@ -1405,7 +1406,7 @@ public:
       Printv(f->code, outarg, NIL);
     }
 
-    if (cleanup) {
+    if (static_setter && cleanup) {
       Printv(f->code, cleanup, NIL);
     }
 
@@ -1698,8 +1699,10 @@ public:
 		 "#ifndef SWIG_PHP_INTERFACE_", interface, "_CE\n",
 		 "  {\n",
 		 "    zend_class_entry *swig_interface_ce = zend_lookup_class(zend_string_init(\"", interface, "\", sizeof(\"", interface, "\") - 1, 0));\n",
-		 "    if (!swig_interface_ce) zend_throw_exception(zend_ce_error, \"Interface \\\"", interface, "\\\" not found\", 0);\n",
-		 "    zend_do_implement_interface(SWIG_Php_ce_", class_name, ", swig_interface_ce);\n",
+		 "    if (swig_interface_ce)\n",
+		 "      zend_do_implement_interface(SWIG_Php_ce_", class_name, ", swig_interface_ce);\n",
+                 "    else\n",
+                 "      zend_throw_exception(zend_ce_error, \"Interface \\\"", interface, "\\\" not found\", 0);\n",
 		 "  }\n",
 		 "#endif\n",
 		 NIL);

@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-17: olly
+	    [PHP] https://sourceforge.net/p/swig/bugs/1211/
+	    Fix to call cleanup code in exception situations and not to invoke
+	    the freearg typemap twice in certain situations.
+
 2022-02-15: olly
 	    #300 #368 Improve parser handling of % followed immediately by
 	    an identifier.  If it's not a recognised directive the scanner
