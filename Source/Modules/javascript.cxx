@@ -1143,7 +1143,7 @@ int JSEmitter::emitConstant(Node *n) {
   String *rawval = Getattr(n, "rawval");
   String *value = rawval ? rawval : Getattr(n, "value");
 
-  // HACK: forcing usage of cppvalue for v8 (which turned out to fix typdef_struct.i, et. al)
+  // HACK: forcing usage of cppvalue for v8 (which turned out to fix typedef_struct.i, et. al)
   if (State::IsSet(state.globals(FORCE_CPP)) && Getattr(n, "cppvalue") != NULL) {
     value = Getattr(n, "cppvalue");
   }

@@ -1863,7 +1863,7 @@ extend_directive : EXTEND options classkeyopt idcolon LBRACE {
 		 } else {
 		   /* Previous typedef class definition.  Use its symbol table.
 		      Deprecated, just the real name should be used. 
-		      Note that %extend before the class typedef never worked, only %extend after the class typdef. */
+		      Note that %extend before the class typedef never worked, only %extend after the class typedef. */
 		   prev_symtab = Swig_symbol_setscope(Getattr(cls, "symtab"));
 		   current_class = cls;
 		   SWIG_WARN_NODE_BEGIN(cls);
