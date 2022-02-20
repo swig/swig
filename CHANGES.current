@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-20: wsfulton
+            Fix %warnfilter warning suppress for warning 315 SWIGWARN_PARSE_USING_UNDEF.
+
 2022-02-17: olly
 	    [PHP] https://sourceforge.net/p/swig/bugs/1211/
 	    Fix to call cleanup code in exception situations and not to invoke
