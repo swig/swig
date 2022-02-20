@@ -21,6 +21,6 @@ isPointer = false
  * SWIG 3.0.4 until 4.1.0, `Unknown directive '%a'`.
  */
 int a;
-int test2(int b = 9%a);
+int test2(int b = 9%a) { return b; }
 
 %}
