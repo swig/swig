@@ -12,7 +12,7 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swig.h"
-#include "swigwarn.h"
+#include "cparse.h"
 #include <ctype.h>
 
 /* #define SWIG_DEBUG*/
@@ -1182,7 +1182,9 @@ Node *Swig_symbol_clookup(const_String_or_char_ptr name, Symtab *n) {
     Symtab *un = Getattr(s, "sym:symtab");
     Node *ss = (!Equal(name, uname) || (un != n)) ? Swig_symbol_clookup(uname, un) : 0;	/* avoid infinity loop */
     if (!ss) {
+      SWIG_WARN_NODE_BEGIN(s);
       Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(s, "uname")));
+      SWIG_WARN_NODE_END(s);
     }
     s = ss;
   }
@@ -1254,7 +1256,9 @@ Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, int (*
     Node *ss;
     ss = Swig_symbol_clookup(Getattr(s, "uname"), Getattr(s, "sym:symtab"));
     if (!ss && !checkfunc) {
+      SWIG_WARN_NODE_BEGIN(s);
       Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(s, "uname")));
+      SWIG_WARN_NODE_END(s);
     }
     s = ss;
   }
@@ -1305,7 +1309,9 @@ Node *Swig_symbol_clookup_local(const_String_or_char_ptr name, Symtab *n) {
   while (s && Checkattr(s, "nodeType", "using")) {
     Node *ss = Swig_symbol_clookup_local(Getattr(s, "uname"), Getattr(s, "sym:symtab"));
     if (!ss) {
+      SWIG_WARN_NODE_BEGIN(s);
       Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(s, "uname")));
+      SWIG_WARN_NODE_END(s);
     }
     s = ss;
   }
@@ -1353,7 +1359,9 @@ Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, 
   while (s && Checkattr(s, "nodeType", "using")) {
     Node *ss = Swig_symbol_clookup_local_check(Getattr(s, "uname"), Getattr(s, "sym:symtab"), checkfunc);
     if (!ss && !checkfunc) {
+      SWIG_WARN_NODE_BEGIN(s);
       Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(s, "uname")));
+      SWIG_WARN_NODE_END(s);
     }
     s = ss;
   }
