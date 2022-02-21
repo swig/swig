@@ -1031,8 +1031,23 @@ int yylex(void) {
       if (strcmp(yytext, "%warn") == 0)
 	return (WARN);
 
-      /* Note down the apparently unknown directive for error reporting. */
+      /* Note down the apparently unknown directive for error reporting - if
+       * we end up reporting a generic syntax error we'll instead report an
+       * error for his as an unknown directive.  Then we treat it as MODULO
+       * (`%`) followed by an identifier and if that parses OK then
+       * `cparse_unknown_directive` doesn't get used.
+       *
+       * This allows `a%b` to be handled in expressions without a space after
+       * the operator.
+       */
       cparse_unknown_directive = NewString(yytext);
+      String *stext = NewString(yytext + 1);
+      Seek(stext,0,SEEK_SET);
+      Setfile(stext,cparse_file);
+      Setline(stext,cparse_line);
+      Scanner_push(scan,stext);
+      Delete(stext);
+      return (MODULO);
     }
     /* Have an unknown identifier, as a last step, we'll do a typedef lookup on it. */
 

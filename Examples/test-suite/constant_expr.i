@@ -14,4 +14,13 @@ isPointer = false
 };
 };
 
+/* Regression test for #300, fixed in 4.1.0.
+ *
+ * Now `a%b` without a space after the `%` is handled as a modulus operator,
+ * but it gave a cryptic `Syntax error in input(1)` before SWIG 3.0.4, and from
+ * SWIG 3.0.4 until 4.1.0, `Unknown directive '%a'`.
+ */
+int a;
+int test2(int b = 9%a) { return b; }
+
 %}

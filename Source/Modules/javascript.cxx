@@ -166,7 +166,7 @@ public:
    */
   virtual int exitClass(Node *) {
     return SWIG_OK;
-  };
+  }
 
   /**
    * Invoked at the beginning of the variableHandler.
@@ -178,7 +178,7 @@ public:
    */
   virtual int exitVariable(Node *) {
     return SWIG_OK;
-  };
+  }
 
   /**
    * Invoked at the beginning of the functionHandler.
@@ -190,7 +190,7 @@ public:
    */
   virtual int exitFunction(Node *) {
     return SWIG_OK;
-  };
+  }
 
   /**
    * Invoked by functionWrapper callback after call to Language::functionWrapper.
@@ -1143,7 +1143,7 @@ int JSEmitter::emitConstant(Node *n) {
   String *rawval = Getattr(n, "rawval");
   String *value = rawval ? rawval : Getattr(n, "value");
 
-  // HACK: forcing usage of cppvalue for v8 (which turned out to fix typdef_struct.i, et. al)
+  // HACK: forcing usage of cppvalue for v8 (which turned out to fix typedef_struct.i, et. al)
   if (State::IsSet(state.globals(FORCE_CPP)) && Getattr(n, "cppvalue") != NULL) {
     value = Getattr(n, "cppvalue");
   }

@@ -2225,36 +2225,6 @@ public:
 
 };
 
-/* NEW LANGUAGE NOTE:***********************************************
- in order to add you language into swig, you need to make the following changes:
- - write this file (obviously)
- - add into the makefile (not 100% clear on how to do this)
- - edit swigmain.cxx to add your module
- 
-near the top of swigmain.cxx, look for this code & add you own codes
-======= begin change ==========
-extern "C" {
-  Language *swig_tcl(void);
-  Language *swig_python(void);
-  //etc,etc,etc...
-  Language *swig_lua(void);	// this is my code
-}
- 
-  //etc,etc,etc...
- 
-swig_module  modules[] = {
-  {"-guile",     swig_guile,     "Guile"},
-  {"-java",      swig_java,      "Java"},
-  //etc,etc,etc...
-  {"-lua",       swig_lua,       "Lua"},	// this is my code
-  {NULL, NULL, NULL}	// this must come at the end of the list
-};
-======= end change ==========
- 
-This is all that is needed
- 
-NEW LANGUAGE NOTE:END ************************************************/
-
 /* -----------------------------------------------------------------------------
  * swig_lua()    - Instantiate module
  * ----------------------------------------------------------------------------- */

@@ -7,6 +7,23 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-20: wsfulton
+            Fix %warnfilter warning suppress for warning 315 SWIGWARN_PARSE_USING_UNDEF.
+
+2022-02-17: olly
+	    [PHP] https://sourceforge.net/p/swig/bugs/1211/
+	    Fix to call cleanup code in exception situations and not to invoke
+	    the freearg typemap twice in certain situations.
+
+2022-02-15: olly
+	    #300 #368 Improve parser handling of % followed immediately by
+	    an identifier.  If it's not a recognised directive the scanner
+	    now emits MODULO and then rescans what follows, and if the parser
+	    then gives a syntax error we report it as an unknown directive.
+	    This means that `a%b` is now allowed in an expression, and that
+	    things like `%std::vector<std::string>` now give an error rather
+	    than being quietly ignored.
+
 2022-02-11: adr26
             [Python] #2154 Fix memory leak.
 
