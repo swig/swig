@@ -21,3 +21,13 @@ pp_expressions_bad.i:48: Warning 202: Could not evaluate expression '"TWO" == 1'
 pp_expressions_bad.i:48: Warning 202: Can't mix strings and integers in expression
 pp_expressions_bad.i:52: Warning 202: Could not evaluate expression '1 == ("TWO")'
 pp_expressions_bad.i:52: Warning 202: Can't mix strings and integers in expression
+pp_expressions_bad.i:58: Warning 202: Could not evaluate expression '-"1"'
+pp_expressions_bad.i:58: Warning 202: Syntax error: attempt to apply unary operator to string
+pp_expressions_bad.i:60: Warning 202: Could not evaluate expression '"1" == -"-1"'
+pp_expressions_bad.i:60: Warning 202: Syntax error: attempt to apply unary operator to string
+pp_expressions_bad.i:62: Warning 202: Could not evaluate expression '"1" == !"-1"'
+pp_expressions_bad.i:62: Warning 202: Syntax error: attempt to apply unary operator to string
+pp_expressions_bad.i:64: Warning 202: Could not evaluate expression '"1" == ~"1"'
+pp_expressions_bad.i:64: Warning 202: Syntax error: attempt to apply unary operator to string
+pp_expressions_bad.i:67: Warning 202: Could not evaluate expression '"1" == +"1"'
+pp_expressions_bad.i:67: Warning 202: Syntax error: attempt to apply unary operator to string

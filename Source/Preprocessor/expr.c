@@ -39,10 +39,11 @@ typedef struct {
 #define  EXPR_OP       3
 #define  EXPR_GROUP    4
 
-/* Special token value used here to distinguish from SWIG_TOKEN_MINUS
- * (which we use here for a two argument minus).
+/* Special token values used here to distinguish from SWIG_TOKEN_MINUS
+ * and SWIG_TOKEN_PLUS (which we use here for a two argument versions).
  */
 #define  OP_UMINUS   100
+#define  OP_UPLUS    101
 
 static exprval stack[256];	/* Parsing stack       */
 static int sp = 0;		/* Stack pointer       */
@@ -54,6 +55,7 @@ static const char *errmsg = 0;	/* Parsing error       */
 static void init_precedence() {
   prec[SWIG_TOKEN_NOT] = 10;
   prec[OP_UMINUS] = 10;
+  prec[OP_UPLUS] = 10;
   prec[SWIG_TOKEN_STAR] = 20;
   prec[SWIG_TOKEN_SLASH] = 20;
   prec[SWIG_TOKEN_PERCENT] = 20;
@@ -78,7 +80,8 @@ static void init_precedence() {
 
 #define UNARY_OP(token) (((token) == SWIG_TOKEN_NOT) || \
 			 ((token) == SWIG_TOKEN_LNOT) || \
-			 ((token) == OP_UMINUS))
+			 ((token) == OP_UMINUS) || \
+			 ((token) == OP_UPLUS))
 
 /* Reduce a single operator on the stack */
 /* return 0 on failure, 1 on success */
@@ -202,6 +205,10 @@ static int reduce_op() {
       stack[sp - 1].value = -stack[sp].value;
       sp--;
       break;
+    case OP_UPLUS:
+      stack[sp - 1].value = stack[sp].value;
+      sp--;
+      break;
     case SWIG_TOKEN_SLASH:
       if (stack[sp].value != 0) {
 	stack[sp - 2].value = stack[sp - 2].value / stack[sp].value;
@@ -314,10 +321,11 @@ int Preprocessor_expr(DOH *s, int *error) {
 	stack[sp].value = (long) strtol(c, 0, 0);
 	stack[sp].svalue = 0;
 	stack[sp].op = EXPR_VALUE;
-      } else if (token == SWIG_TOKEN_PLUS) {
-      } else if ((token == SWIG_TOKEN_MINUS) || (token == SWIG_TOKEN_LNOT) || (token == SWIG_TOKEN_NOT)) {
+      } else if ((token == SWIG_TOKEN_MINUS) || (token == SWIG_TOKEN_PLUS) || (token == SWIG_TOKEN_LNOT) || (token == SWIG_TOKEN_NOT)) {
 	if (token == SWIG_TOKEN_MINUS)
 	  token = OP_UMINUS;
+	else if (token == SWIG_TOKEN_PLUS)
+	  token = OP_UPLUS;
 	stack[sp].value = token;
 	stack[sp].op = EXPR_OP;
 	sp++;
