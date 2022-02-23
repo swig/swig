@@ -100,23 +100,23 @@ public:
     /* Manage command line arguments */
     for (int argIndex = 1; argIndex < argc; argIndex++) {
       if (argv[argIndex] != NULL) {
-	      if (strcmp(argv[argIndex], "-help") == 0) {
-	        Printf(stdout, "%s\n", usage);
-	      } else if (strcmp(argv[argIndex], "-builder") == 0) {
-	        Swig_mark_arg(argIndex);
-	        generateBuilder = true;
-	        createLoader = false;
-	      } else if (strcmp(argv[argIndex], "-buildersources") == 0) {
-	        if (argv[argIndex + 1] != NULL) {
-	          Swig_mark_arg(argIndex);
-	          char *sourceFile = strtok(argv[argIndex + 1], ",");
-	          while (sourceFile != NULL) {
-	            Insert(sourceFileList, Len(sourceFileList), sourceFile);
-	            sourceFile = strtok(NULL, ",");
-	          }
-	          Swig_mark_arg(argIndex + 1);
-	        }
-	      } else if (strcmp(argv[argIndex], "-buildercflags") == 0) {
+	if (strcmp(argv[argIndex], "-help") == 0) {
+	  Printf(stdout, "%s\n", usage);
+	} else if (strcmp(argv[argIndex], "-builder") == 0) {
+	  Swig_mark_arg(argIndex);
+	  generateBuilder = true;
+	  createLoader = false;
+	} else if (strcmp(argv[argIndex], "-buildersources") == 0) {
+	  if (argv[argIndex + 1] != NULL) {
+	    Swig_mark_arg(argIndex);
+	    char *sourceFile = strtok(argv[argIndex + 1], ",");
+	    while (sourceFile != NULL) {
+	      Insert(sourceFileList, Len(sourceFileList), sourceFile);
+	      sourceFile = strtok(NULL, ",");
+	    }
+	    Swig_mark_arg(argIndex + 1);
+	  }
+	} else if (strcmp(argv[argIndex], "-buildercflags") == 0) {
           Swig_mark_arg(argIndex);
           if (argv[argIndex + 1] != NULL) {
             Insert(cflags, Len(cflags), argv[argIndex + 1]);
@@ -499,7 +499,7 @@ public:
 
     /* Set CheckInputArgument and CheckOutputArgument input arguments */
     if (maxOutputArguments < 1) {
-        maxOutputArguments = 1;
+      maxOutputArguments = 1;
     }
     if (minOutputArguments == 1) {
       minOutputArguments = 0;
@@ -873,9 +873,9 @@ public:
     for (int i = 0; i < Len(sourceFileList); i++) {
       String *sourceFile = Getitem(sourceFileList, i);
       if (i == 0) {
-	      Printf(builderCode, "files = \"%s\";\n", sourceFile);
+	Printf(builderCode, "files = \"%s\";\n", sourceFile);
       } else {
-	      Printf(builderCode, "files($ + 1) = \"%s\";\n", sourceFile);
+	Printf(builderCode, "files($ + 1) = \"%s\";\n", sourceFile);
       }
     }
 
