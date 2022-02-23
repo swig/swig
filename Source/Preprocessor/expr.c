@@ -18,8 +18,19 @@
 static Scanner *scan = 0;
 
 typedef struct {
+  /* One of the EXPR_xxx values defined below. */
   int op;
+  /* op == EXPR_OP: value is the token specifying which operator.
+   *
+   * op == EXPR_VALUE && svalue == NULL: Numeric expression value.
+   *
+   * Otherwise unused.
+   */
   long value;
+  /* op == EXPR_VALUE: If non-NULL, string expression value; if NULL see value.
+   *
+   * Otherwise unused.
+   */
   String *svalue;
 } exprval;
 
@@ -27,7 +38,11 @@ typedef struct {
 #define  EXPR_VALUE    2
 #define  EXPR_OP       3
 #define  EXPR_GROUP    4
-#define  EXPR_UMINUS   100
+
+/* Special token value used here to distinguish from SWIG_TOKEN_MINUS
+ * (which we use here for a two argument minus).
+ */
+#define  OP_UMINUS   100
 
 static exprval stack[256];	/* Parsing stack       */
 static int sp = 0;		/* Stack pointer       */
@@ -38,7 +53,7 @@ static const char *errmsg = 0;	/* Parsing error       */
 /* Initialize the precedence table for various operators.  Low values have higher precedence */
 static void init_precedence() {
   prec[SWIG_TOKEN_NOT] = 10;
-  prec[EXPR_UMINUS] = 10;
+  prec[OP_UMINUS] = 10;
   prec[SWIG_TOKEN_STAR] = 20;
   prec[SWIG_TOKEN_SLASH] = 20;
   prec[SWIG_TOKEN_PERCENT] = 20;
@@ -63,7 +78,7 @@ static void init_precedence() {
 
 #define UNARY_OP(token) (((token) == SWIG_TOKEN_NOT) || \
 			 ((token) == SWIG_TOKEN_LNOT) || \
-			 ((token) == EXPR_UMINUS))
+			 ((token) == OP_UMINUS))
 
 /* Reduce a single operator on the stack */
 /* return 0 on failure, 1 on success */
@@ -183,7 +198,7 @@ static int reduce_op() {
       stack[sp - 1].value = !stack[sp].value;
       sp--;
       break;
-    case EXPR_UMINUS:
+    case OP_UMINUS:
       stack[sp - 1].value = -stack[sp].value;
       sp--;
       break;
@@ -278,13 +293,15 @@ int Preprocessor_expr(DOH *s, int *error) {
 
   /* Put initial state onto the stack */
   stack[sp].op = EXPR_TOP;
-  stack[sp].value = 0;
 
   while (1) {
     /* Look at the top of the stack */
     switch (stack[sp].op) {
     case EXPR_TOP:
-      /* An expression.   Can be a number or another expression enclosed in parens */
+      /* EXPR_TOP is a place-holder which can only appear on the top of the
+       * stack.  We can reduce it to any expression - a number, a string, an
+       * unary operator, or another expression enclosed in parentheses.
+       */
       token = expr_token(scan);
       if (!token) {
 	errmsg = "Expected an expression";
@@ -296,26 +313,27 @@ int Preprocessor_expr(DOH *s, int *error) {
 	char *c = Char(Scanner_text(scan));
 	stack[sp].value = (long) strtol(c, 0, 0);
 	stack[sp].svalue = 0;
-	/*        stack[sp].value = (long) atol(Char(Scanner_text(scan))); */
 	stack[sp].op = EXPR_VALUE;
       } else if (token == SWIG_TOKEN_PLUS) {
       } else if ((token == SWIG_TOKEN_MINUS) || (token == SWIG_TOKEN_LNOT) || (token == SWIG_TOKEN_NOT)) {
 	if (token == SWIG_TOKEN_MINUS)
-	  token = EXPR_UMINUS;
+	  token = OP_UMINUS;
 	stack[sp].value = token;
-	stack[sp++].op = EXPR_OP;
+	stack[sp].op = EXPR_OP;
+	sp++;
 	stack[sp].op = EXPR_TOP;
-	stack[sp].svalue = 0;
       } else if (token == SWIG_TOKEN_LPAREN) {
-	stack[sp++].op = EXPR_GROUP;
+	stack[sp].op = EXPR_GROUP;
+	sp++;
 	stack[sp].op = EXPR_TOP;
-	stack[sp].value = 0;
-	stack[sp].svalue = 0;
       } else if (token == SWIG_TOKEN_ENDLINE) {
       } else if (token == SWIG_TOKEN_STRING) {
 	stack[sp].svalue = NewString(Scanner_text(scan));
 	stack[sp].op = EXPR_VALUE;
       } else if (token == SWIG_TOKEN_ID) {
+	/* Defined macros have been expanded already so this is an unknown
+	 * macro, which gets treated as zero.
+	 */
 	stack[sp].value = 0;
 	stack[sp].svalue = 0;
 	stack[sp].op = EXPR_VALUE;
@@ -327,7 +345,9 @@ int Preprocessor_expr(DOH *s, int *error) {
 	goto syntax_error;
       break;
     case EXPR_VALUE:
-      /* A value is on the stack.   We may reduce or evaluate depending on what the next token is */
+      /* A value is on top of the stack.  We may reduce or evaluate depending
+       * on what the next token is.
+       */
       token = expr_token(scan);
       if (!token) {
 	/* End of input. Might have to reduce if an operator is on stack */
@@ -371,7 +391,6 @@ int Preprocessor_expr(DOH *s, int *error) {
 	  stack[sp].value = token;
 	  sp++;
 	  stack[sp].op = EXPR_TOP;
-	  stack[sp].value = 0;
 	} else {
 	  if (stack[sp - 1].op != EXPR_OP)
 	    goto syntax_error_expected_operator;
@@ -390,7 +409,6 @@ int Preprocessor_expr(DOH *s, int *error) {
 	  stack[sp].value = token;
 	  sp++;
 	  stack[sp].op = EXPR_TOP;
-	  stack[sp].value = 0;
 	}
 	break;
       case SWIG_TOKEN_RPAREN:
