@@ -7,6 +7,23 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-24: olly
+	    #1465 An invalid preprocessor expression is reported as a pair of
+	    warnings with the second giving a more detailed message from the
+	    expression evaluator.  Previously SWIG prefixed the second message
+	    with "Error:" - that was confusing as it's actually only a warning
+	    by default so we've now dropped this prefix.
+
+	    Before:
+
+	    x.i:1: Warning 202: Could not evaluate expression '1.2'
+	    x.i:1: Warning 202: Error: 'Floating point constant in preprocessor expression'
+
+	    Now:
+
+	    x.i:1: Warning 202: Could not evaluate expression '1.2'
+	    x.i:1: Warning 202: Floating point constant in preprocessor expression
+
 2022-02-23: olly
 	    #1384 Fix a preprocessor expression evaluation bug.  A
 	    subexpression in parentheses lost its string/int type flag and
