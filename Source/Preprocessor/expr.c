@@ -406,6 +406,7 @@ int Preprocessor_expr(DOH *s, int *error) {
 	  goto extra_rparen;
 	stack[sp - 1].op = EXPR_VALUE;
 	stack[sp - 1].value = stack[sp].value;
+	stack[sp - 1].svalue = stack[sp].svalue;
 	sp--;
 	break;
       default:
