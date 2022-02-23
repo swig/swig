@@ -35,6 +35,18 @@ Version 4.1.0 (in progress)
 
 	    Warning 202: Error: 'Can't mix strings and integers in expression'
 
+2022-02-21: davidcl
+	    [Scilab] Improve 5.5.2, 6.0.0 and 6.1.0 support.
+
+	    The `-targetversion` option has been removed as the generated code
+	    now detects the Scilab version in loader.sce or builder.sce.
+
+	    For Scilab 5, long names are reduced to small names preserving the 
+	    class prefix and accessor suffix (get or set).
+
+	    For Scilab 6, long names with the class prefix and accessor suffix
+	    should be used on the user code.
+
 2022-02-20: wsfulton
             Fix %warnfilter warning suppress for warning 315 SWIGWARN_PARSE_USING_UNDEF.
 

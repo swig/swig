@@ -180,7 +180,10 @@ jobs:
           VER: '3.0'
           CPPSTD: c++11
         - SWIGLANG: scilab
-          os: ubuntu-18.04 # scilab-6.1 in ubuntu-20.04 not yet working
+          VER: '5.5.2'
+        - SWIGLANG: scilab
+          os: ubuntu-18.04 # scilab 6.0
+        - SWIGLANG: scilab
         - SWIGLANG: tcl
         # c++11 testing
         - SWIGLANG: csharp
@@ -213,7 +216,9 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: scilab
           CPPSTD: c++11
-          os: ubuntu-18.04 # scilab-6.1 in ubuntu-20.04 not yet working
+          os: ubuntu-18.04 # scilab 6.0
+        - SWIGLANG: scilab
+          CPPSTD: c++11
         - SWIGLANG: tcl
           CPPSTD: c++11
         # c++14 testing
@@ -249,7 +254,9 @@ jobs:
           CPPSTD: c++14
         - SWIGLANG: scilab
           CPPSTD: c++14
-          os: ubuntu-18.04 # scilab-6.1 in ubuntu-20.04 not yet working
+          os: ubuntu-18.04 # scilab 6.0
+        - SWIGLANG: scilab
+          CPPSTD: c++14
         - SWIGLANG: tcl
           CPPSTD: c++14
         # c++17 testing (using gcc11)
@@ -298,7 +305,6 @@ jobs:
         - SWIGLANG: scilab
           CPPSTD: c++17
           GCC: 11
-          os: ubuntu-18.04 # scilab-6.1 in ubuntu-20.04 not yet working
         - SWIGLANG: tcl
           CPPSTD: c++17
           GCC: 11
