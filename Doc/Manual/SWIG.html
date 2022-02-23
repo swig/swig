@@ -2147,11 +2147,15 @@ the match to class declarations only (in C++) and <tt>match="enumitem"</tt>
 restricts it to the enum elements. SWIG also provides convenience macros for
 such match expressions, for example
 </p>
+
 <div class="code">
 <pre>
 %rename("%(title)s", %$isenumitem) "";
+// same as:
+%rename("%(title)s", match="enumitem") "";
 </pre>
 </div>
+
 <p>
 will capitalize the names of all the enum elements but not change the case of
 the other declarations. Similarly, <tt>%$isclass</tt>, <tt>%$isfunction</tt>,
@@ -2160,6 +2164,24 @@ and <tt>%$isvariable</tt> can be used. Many other checks are possible and this
 documentation is not exhaustive, see the "%rename predicates" section in
 <tt>swig.swg</tt> for the full list of supported match expressions.
 </p>
+
+<p>
+A logical not is also possible by using <tt>notmatch</tt>.
+For example, <tt>notmatch="enumitem"</tt> will restrict the
+match to all items that are not enum elements.
+There is also a <tt>%$not</tt> macro which simply expands to "not".
+Be careful using this as some of the other macros in <tt>swig.swg</tt>
+are complex expressions and so it will only "notmatch" the first part
+of the expression.
+</p>
+
+<div class="code">
+<pre>
+%rename("%(title)s", %$not %$isenumitem) "";
+// same as:
+%rename("%(title)s", notmatch="enumitem") "";
+</pre>
+</div>
 
 <p>
 In addition to literally matching some string with <tt>match</tt> you can
