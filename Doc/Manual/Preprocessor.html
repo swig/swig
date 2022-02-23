@@ -99,8 +99,23 @@ header files without generating any wrappers.
 <p>
 SWIG fully supports the use of <tt>#if</tt>, <tt>#ifdef</tt>,
 <tt>#ifndef</tt>, <tt>#else</tt>, <tt>#endif</tt> to conditionally
-include parts of an interface.  The following symbols are predefined
-by SWIG when it is parsing the interface:
+include parts of an interface.
+</p>
+
+<p>
+SWIG's preprocessor conditionals support the standard C/C++ preprocessor
+integer expressions.  As a SWIG-specific extension, string equality and
+inequality tests are also supported, for example:
+</p>
+
+<div class="code">
+<pre>
+#if defined __cplusplus && (#__VA_ARGS__ != "" || #TYPE == "void")
+</pre>
+</div>
+
+<p>
+The following symbols are predefined by SWIG when it is parsing the interface:
 </p>
 
 <div class="code"><pre>
