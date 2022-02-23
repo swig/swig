@@ -17,3 +17,7 @@ pp_expressions_bad.i:30: Error: Extraneous #endif.
 pp_expressions_bad.i:32: Error: Unknown SWIG preprocessor directive: if456e (if this is a block of target language code, delimit it with %{ and %})
 pp_expressions_bad.i:33: Error: Extraneous #endif.
 pp_expressions_bad.i:42: Warning 204: CPP #warning, "Warning okay: #if(1)".
+pp_expressions_bad.i:48: Warning 202: Could not evaluate expression '"TWO" == 1'
+pp_expressions_bad.i:48: Warning 202: Error: 'Can't mix strings and integers in expression'
+pp_expressions_bad.i:52: Warning 202: Could not evaluate expression '1 == ("TWO")'
+pp_expressions_bad.i:52: Warning 202: Error: 'Can't mix strings and integers in expression'

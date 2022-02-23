@@ -41,3 +41,13 @@
 #if(1)
 #warning Warning okay: #if(1)
 #endif
+
+/* The SWIG preprocessor support strings with equality/inequality tests.
+ * Check error cases.
+ */
+#if "TWO" == 1
+#endif
+
+/* This didn't fail prior with SWIG < 4.1.  Github #1384. */
+#if 1 == ("TWO")
+#endif
