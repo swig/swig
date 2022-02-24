@@ -1357,6 +1357,7 @@ r_clean:
 SCILAB = @SCILAB@
 SCILAB_INC= @SCILABINCLUDE@
 SCILAB_OPT = @SCILABOPT@
+SCILAB_VERSION = @SCILAB_VERSION@
 SCILAB_LIBPREFIX = lib
 
 # ----------------------------------------------------------------
@@ -1389,7 +1390,7 @@ scilab_run:
 # -----------------------------------------------------------------
 
 scilab_version:
-	echo `$(SCILAB) -version | head -1`
+	echo `$(SCILAB) -nwni -version | head -1`
 
 # -----------------------------------------------------------------
 # Cleaning the scilab examples

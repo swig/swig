@@ -7,6 +7,23 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-24: olly
+	    #1465 An invalid preprocessor expression is reported as a pair of
+	    warnings with the second giving a more detailed message from the
+	    expression evaluator.  Previously SWIG prefixed the second message
+	    with "Error:" - that was confusing as it's actually only a warning
+	    by default so we've now dropped this prefix.
+
+	    Before:
+
+	    x.i:1: Warning 202: Could not evaluate expression '1.2'
+	    x.i:1: Warning 202: Error: 'Floating point constant in preprocessor expression'
+
+	    Now:
+
+	    x.i:1: Warning 202: Could not evaluate expression '1.2'
+	    x.i:1: Warning 202: Floating point constant in preprocessor expression
+
 2022-02-23: olly
 	    #1384 Fix a preprocessor expression evaluation bug.  A
 	    subexpression in parentheses lost its string/int type flag and
@@ -17,6 +34,18 @@ Version 4.1.0 (in progress)
 	    zero.  If -Wextra was in use you got a warning:
 
 	    Warning 202: Error: 'Can't mix strings and integers in expression'
+
+2022-02-21: davidcl
+	    [Scilab] Improve 5.5.2, 6.0.0 and 6.1.0 support.
+
+	    The `-targetversion` option has been removed as the generated code
+	    now detects the Scilab version in loader.sce or builder.sce.
+
+	    For Scilab 5, long names are reduced to small names preserving the 
+	    class prefix and accessor suffix (get or set).
+
+	    For Scilab 6, long names with the class prefix and accessor suffix
+	    should be used on the user code.
 
 2022-02-20: wsfulton
             Fix %warnfilter warning suppress for warning 315 SWIGWARN_PARSE_USING_UNDEF.

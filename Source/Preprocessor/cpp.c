@@ -1686,7 +1686,7 @@ String *Preprocessor_parse(String *s) {
 	      Seek(value, 0, SEEK_SET);
 	      Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "Could not evaluate expression '%s'\n", value);
 	      if (msg)
-		Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "Error: '%s'\n", msg);
+		Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "%s\n", msg);
 	      allow = 0;
 	    } else {
 	      if (val == 0)
@@ -1720,7 +1720,7 @@ String *Preprocessor_parse(String *s) {
 		Seek(value, 0, SEEK_SET);
 		Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "Could not evaluate expression '%s'\n", value);
 		if (msg)
-		  Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "Error: '%s'\n", msg);
+		  Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "%s\n", msg);
 		allow = 0;
 	      } else {
 		if (val)
