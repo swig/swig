@@ -102,6 +102,7 @@ C_TEST_BROKEN += \
 # C++ test cases. (Can be run individually using: make testcase.cpptest)
 CPP_TEST_CASES += \
 	abstract_access \
+	abstract_basecast \
 	abstract_inherit \
 	abstract_inherit_ok \
 	abstract_signature \
@@ -213,6 +214,7 @@ CPP_TEST_CASES += \
 	director_protected_overloaded \
 	director_redefined \
 	director_ref \
+	director_simple \
 	director_smartptr \
 	director_thread \
 	director_unroll \
@@ -696,6 +698,7 @@ C_TEST_CASES += \
 	command_line_define \
 	const_const \
 	constant_expr_c \
+	contract_c \
 	default_args_c \
 	empty_c \
 	enums \

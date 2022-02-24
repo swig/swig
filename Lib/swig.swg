@@ -172,7 +172,7 @@
 #define %novaluewrapper      %feature("novaluewrapper")
 #define %clearnovaluewrapper %feature("novaluewrapper","")
 
-/* Contract support - Experimental and undocumented */
+/* Contract support - Experimental */
 #define %contract      %feature("contract")
 #define %nocontract    %feature("contract","0")
 #define %clearcontract %feature("contract","")
