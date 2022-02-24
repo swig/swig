@@ -214,13 +214,13 @@ void skip_decl(void) {
     tok = Scanner_token(scan);
     if (tok == 0) {
       if (!Swig_error_count()) {
-	Swig_error(cparse_file, start_line, "Missing semicolon. Reached end of input.\n");
+	Swig_error(cparse_file, start_line, "Missing semicolon (';'). Reached end of input.\n");
       }
       return;
     }
     if (tok == SWIG_TOKEN_LBRACE) {
       if (Scanner_skip_balanced(scan,'{','}') < 0) {
-	Swig_error(cparse_file, start_line, "Missing '}'. Reached end of input.\n");
+	Swig_error(cparse_file, start_line, "Missing closing brace ('}'). Reached end of input.\n");
       }
       break;
     }
@@ -267,7 +267,7 @@ static int yylook(void) {
     case SWIG_TOKEN_RBRACE:
       num_brace--;
       if (num_brace < 0) {
-	Swig_error(cparse_file, cparse_line, "Syntax error. Extraneous '}'\n");
+	Swig_error(cparse_file, cparse_line, "Syntax error. Extraneous closing brace ('}')\n");
 	num_brace = 0;
       } else {
 	return RBRACE;
