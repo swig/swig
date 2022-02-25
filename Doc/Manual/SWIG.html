@@ -2184,6 +2184,37 @@ of the expression.
 </div>
 
 <p>
+For a comprehensive understanding of how the matching works, the internal
+<a href="Extending.html#Extending_nn8">parse tree</a> needs to be examined using the
+command line option: <tt>-debug-module 1</tt>.
+A snippet of the resulting output might be:
+</p>
+
+<div class="shell">
+<pre>
+            +++ destructor - 0x7fc10ea05af0 ----------------------------------------
+            | name         - "~Shape"
+            | ismember     - "1"
+            | sym:name     - "~Shape"
+            | access       - "public"
+            | storage      - "virtual"
+</pre>
+</div>
+
+<p>
+Here the node type is a "destructor" and in order to match all destructor nodes, use
+<tt>match="destructor"</tt>. To match one of the listed attributes in the node,
+such as when the storage is virtual, use <tt>match$storage="virtual"</tt>.
+This will match all nodes that have a storage attribute set to "virtual".
+To match only virtual destructors, combine them and use <tt>match="destructor", match$storage="virtual"</tt>.
+</p>
+
+<p>
+While the vast majority of these internal parse tree nodes are unlikely to change from one version of
+SWIG to the next, <b>use these matching rules at your own risk</b> as there are no guarantees that they will not change.
+</p>
+
+<p>
 In addition to literally matching some string with <tt>match</tt> you can
 also use <tt>regexmatch</tt> or <tt>notregexmatch</tt> to match a string
 against a regular expression. For example, to ignore all functions having
