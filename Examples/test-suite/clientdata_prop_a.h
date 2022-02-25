@@ -6,7 +6,7 @@ class A {
 
 typedef A tA;
 
-void test_A(A *a) {}
-void test_tA(tA *a) {}
+inline void test_A(A *a) {}
+inline void test_tA(tA *a) {}
 
-tA *new_tA() { return new tA(); }
+inline tA *new_tA() { return new tA(); }

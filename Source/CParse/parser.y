@@ -2014,7 +2014,7 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		 $$ = 0;
 	       }
 	       | CONSTANT error END {
-		 Swig_error(cparse_file,cparse_line,"Missing ';' after %%constant.\n");
+		 Swig_error(cparse_file,cparse_line,"Missing semicolon (';') after %%constant.\n");
 		 SWIG_exit(EXIT_FAILURE);
 	       }
                ;
@@ -3371,9 +3371,9 @@ c_decl_tail    : SEMI {
                | error {
 		   $$ = 0;
 		   if (yychar == RPAREN) {
-		       Swig_error(cparse_file, cparse_line, "Unexpected ')'.\n");
+		       Swig_error(cparse_file, cparse_line, "Unexpected closing parenthesis (')').\n");
 		   } else {
-		       Swig_error(cparse_file, cparse_line, "Syntax error - possibly a missing semicolon.\n");
+		       Swig_error(cparse_file, cparse_line, "Syntax error - possibly a missing semicolon (';').\n");
 		   }
 		   SWIG_exit(EXIT_FAILURE);
                }

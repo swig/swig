@@ -242,6 +242,10 @@ std::string nullsmartpointerpointertest(SwigBoost::shared_ptr<Klass>* k) {
   else
     return "also not null";
 }
+
+SwigBoost::shared_ptr<Klass>* sp_pointer_null() { return NULL; }
+SwigBoost::shared_ptr<Klass>* null_sp_pointer() { static SwigBoost::shared_ptr<Klass> static_sp; return &static_sp; }
+SwigBoost::shared_ptr<Klass> sp_value_null() { return SwigBoost::shared_ptr<Klass>(); }
 // $owner
 Klass *pointerownertest() {
   return new Klass("pointerownertest");
