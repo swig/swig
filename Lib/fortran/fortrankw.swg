@@ -34,7 +34,7 @@
 %keywordwarn("'release' is reserved for SWIG destructors",
              rename="release_") "*::release";
 
-#ifdef SWIGFORTRAN
+#ifdef %fortransubroutine
 /* Always treat return values from assignment as optional, since it's usually
  * idiomatic to `return *this;` as a reference that is often ignored by the
  * calling code. Making the function a subroutine means being able to use "call" 
