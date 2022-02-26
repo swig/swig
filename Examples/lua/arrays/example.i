@@ -9,12 +9,12 @@ See the lua code for how they are called
 
 %include <carrays.i>    // array helpers
 
-// this declares a batch of function for manipulating C integer arrays
+// this declares a batch of functions for manipulating C integer arrays
 %array_functions(int,int)
 
 // this adds some lua code directly into the module
 // warning: you need the example. prefix if you want it added into the module
-// admittedly this code is a bit tedious, but its a one off effort
+// admittedly this code is a bit tedious, but it's a one off effort
 %luacode {
 function example.sort_int2(t)
 -- local len=table.maxn(t) -- the len - maxn deprecated in 5.3

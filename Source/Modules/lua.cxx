@@ -50,7 +50,7 @@
 /**** Diagnostics:
   With the #define REPORT(), you can change the amount of diagnostics given
   This helps me search the parse tree & figure out what is going on inside SWIG
-  (because its not clear or documented)
+  (because it's not clear or documented)
 */
 #define REPORT(T,D)		// no info:
 //#define REPORT(T,D)   {Printf(stdout,T"\n");} // only title
@@ -435,7 +435,7 @@ public:
   /* NEW LANGUAGE NOTE:***********************************************
      This is it!
      you get this one right, and most of your work is done
-     but its going to take some file to get it working right
+     but it's going to take some file to get it working right
      quite a bit of this is generally boilerplate code
      (or stuff I don't understand)
      that which matters will have extra added comments
@@ -2053,8 +2053,8 @@ public:
 	if (GetFlag(carrays_hash, "lua:class_instance")) {
 	  String *static_cls = Getattr(carrays_hash, "lua:class_instance:static_hash");
 	  assert(static_cls);
-	  // static_cls is swig_lua_namespace. This structure can't be use with eLua(LTR)
-	  // Instead structure describing its methods isused
+	  // static_cls is swig_lua_namespace. This structure can't be used with eLua(LTR)
+	  // Instead a structure describing its methods is used
 	  String *static_cls_cname = Getattr(static_cls, "methods:name");
 	  assert(static_cls_cname);
 	  Printv(metatable_tab, tab4, "{LSTRKEY(\".static\"), LROVAL(", static_cls_cname, ")},\n", NIL);

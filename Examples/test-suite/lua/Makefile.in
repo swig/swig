@@ -53,7 +53,7 @@ run_testcase = \
 	  env LUA_PATH="$(srcdir)/?.lua;" $(RUNTOOL) $(LUA) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
-# Clean: (does nothing, we dont generate extra lua code)
+# Clean: (does nothing, we don't generate extra lua code)
 %.clean:
 	@exit 0
 
