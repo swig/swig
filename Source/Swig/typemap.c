@@ -2105,7 +2105,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	      Printf(stdout, "  Containing: %s\n", dtypemap);
 	      Delete(dtypemap);
 	    }
-	    found_colon = Strstr(tmap_method, ":");
+	    found_colon = Strchr(tmap_method, ':');
 	    if (found_colon) {
 	      String *temp_tmap_method = NewStringWithSize(Char(tmap_method), found_colon - Char(tmap_method));
 	      Swig_typemap_attach_parms(temp_tmap_method, to_match_parms, f);
