@@ -3,6 +3,16 @@
 # e.g. RETRY=travis-retry SWIGLANG=python GCC=7
 set -e # exit on failure (same as -o errexit)
 
+# use apt-spy2 to select closest apt mirror,
+# which helps avoid connectivity issues in Azure;
+# see https://github.com/actions/virtual-environments/issues/675
+$RETRY sudo gem install apt-spy2
+$RETRY sudo apt-spy2 check
+$RETRY sudo apt-spy2 fix --commit
+
+# after selecting a specific mirror, we need to run 'apt-get update'
+$RETRY sudo apt-get update
+
 if [[ -n "$GCC" ]]; then
 	$RETRY sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 	$RETRY sudo apt-get -qq update
