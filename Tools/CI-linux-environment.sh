@@ -29,11 +29,5 @@ case "$SWIGLANG" in
 			set -x
 		fi
 		;;
-	"scilab")
-		# Travis has the wrong version of Java pre-installed resulting in error using scilab:
-		# /usr/bin/scilab-bin: error while loading shared libraries: libjava.so: cannot open shared object file: No such file or directory
-		echo "JAVA_HOME was set to $JAVA_HOME"
-		unset JAVA_HOME
-		;;
 	*)	;;
 esac

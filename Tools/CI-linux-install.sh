@@ -138,7 +138,7 @@ case "$SWIGLANG" in
 		;;
 	"scilab")
 		if [[ -z "$VER" ]]; then
-			$RETRY sudo apt-get -qq install scilab scilab-include
+			$RETRY sudo apt-get -qq install scilab
 		else
 			$RETRY wget --progress=dot:giga "https://www.scilab.org/download/$VER/scilab-$VER.bin.linux-x86_64.tar.gz"
 			# $HOME/.local/bin is in PATH and writeable

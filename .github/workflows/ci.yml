@@ -216,9 +216,6 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: scilab
           CPPSTD: c++11
-          os: ubuntu-18.04 # scilab 6.0
-        - SWIGLANG: scilab
-          CPPSTD: c++11
         - SWIGLANG: tcl
           CPPSTD: c++11
         # c++14 testing
@@ -252,9 +249,6 @@ jobs:
           CPPSTD: c++14
         - SWIGLANG: ruby
           CPPSTD: c++14
-        - SWIGLANG: scilab
-          CPPSTD: c++14
-          os: ubuntu-18.04 # scilab 6.0
         - SWIGLANG: scilab
           CPPSTD: c++14
         - SWIGLANG: tcl
