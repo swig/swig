@@ -2062,6 +2062,16 @@ public:
       // Finalize method
       if (*Char(destructor_call)) {
 	Printv(proxy_class_def, typemapLookup(n, "javafinalize", typemap_lookup_type, WARN_NONE), NIL);
+      } else {
+        // Warn when no finalizer is created and the nodefaultdtor flag isn't set
+        if (!GetFlag(n, "feature:nodefaultdtor")) {
+          Swig_warning(
+              WARN_JAVA_HIDDEN_DESTRUCTOR, Getfile(n), Getline(n),
+              "Skipping Java finalizer as C++ destructor does not have "
+              "public access\nIf this is intended please add: %%nodefaultdtor "
+              "%s\n",
+              c_classname);
+        }
       }
       // delete method
       Printv(destruct, tm, NIL);
