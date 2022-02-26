@@ -1,7 +1,13 @@
 %module using_member
 
+/* using declaration tests, including renaming */
+%warnfilter(SWIGWARN_LANG_USING_NAME_DIFFERENT) one::twotwo::threetwo::BB::great;
+
 %rename(greater) one::two::three::interface1::AA::great(int);
 %rename(greater) one::two::three::interface1::AA::great(float);
+%rename(greater) one::CC::great;
+%rename(greater) one::DD::great;
+%rename(greaterstill) one::DD::great(bool);
 
 %inline %{
 namespace interface1
@@ -46,5 +52,19 @@ namespace one {
             };
         }
     }
+
+    class CC : public two::three::AA
+    {
+    public:
+      using two::three::AA::great;
+      int great(bool) {return 20;}
+    };
+
+    class DD : public two::three::AA
+    {
+    public:
+      using two::three::AA::great;
+      int great(bool) {return 30;}
+    };
 }
 %}
