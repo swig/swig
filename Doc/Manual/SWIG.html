@@ -2147,11 +2147,15 @@ the match to class declarations only (in C++) and <tt>match="enumitem"</tt>
 restricts it to the enum elements. SWIG also provides convenience macros for
 such match expressions, for example
 </p>
+
 <div class="code">
 <pre>
 %rename("%(title)s", %$isenumitem) "";
+// same as:
+%rename("%(title)s", match="enumitem") "";
 </pre>
 </div>
+
 <p>
 will capitalize the names of all the enum elements but not change the case of
 the other declarations. Similarly, <tt>%$isclass</tt>, <tt>%$isfunction</tt>,
@@ -2159,6 +2163,55 @@ the other declarations. Similarly, <tt>%$isclass</tt>, <tt>%$isfunction</tt>,
 and <tt>%$isvariable</tt> can be used. Many other checks are possible and this
 documentation is not exhaustive, see the "%rename predicates" section in
 <tt>swig.swg</tt> for the full list of supported match expressions.
+</p>
+
+<p>
+A logical not is also possible by using <tt>notmatch</tt>.
+For example, <tt>notmatch="enumitem"</tt> will restrict the
+match to all items that are not enum elements.
+There is also a <tt>%$not</tt> macro which simply expands to "not".
+Be careful using this as some of the other macros in <tt>swig.swg</tt>
+are complex expressions and so it will only "notmatch" the first part
+of the expression.
+</p>
+
+<div class="code">
+<pre>
+%rename("%(title)s", %$not %$isenumitem) "";
+// same as:
+%rename("%(title)s", notmatch="enumitem") "";
+</pre>
+</div>
+
+<p>
+For a comprehensive understanding of how the matching works, the internal
+<a href="Extending.html#Extending_nn8">parse tree</a> needs to be examined using the
+command line option: <tt>-debug-module 1</tt>.
+A snippet of the resulting output might be:
+</p>
+
+<div class="shell">
+<pre>
+            +++ destructor - 0x7fc10ea05af0 ----------------------------------------
+            | name         - "~Shape"
+            | ismember     - "1"
+            | sym:name     - "~Shape"
+            | access       - "public"
+            | storage      - "virtual"
+</pre>
+</div>
+
+<p>
+Here the node type is a "destructor" and in order to match all destructor nodes, use
+<tt>match="destructor"</tt>. To match one of the listed attributes in the node,
+such as when the storage is virtual, use <tt>match$storage="virtual"</tt>.
+This will match all nodes that have a storage attribute set to "virtual".
+To match only virtual destructors, combine them and use <tt>match="destructor", match$storage="virtual"</tt>.
+</p>
+
+<p>
+While the vast majority of these internal parse tree nodes are unlikely to change from one version of
+SWIG to the next, <b>use these matching rules at your own risk</b> as there are no guarantees that they will not change.
 </p>
 
 <p>

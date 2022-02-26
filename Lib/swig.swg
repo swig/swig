@@ -268,7 +268,9 @@ static int NAME(TYPE x) {
 
 */
 
-%define %$not            "not" %enddef 
+/* Note that when %$not is used with another macro, say %enum as follows: %$not %$enum, the result is "notmatch=enum" */
+%define %$not            "not" %enddef
+
 %define %$isenum         "match"="enum"  %enddef
 %define %$isenumitem     "match"="enumitem"  %enddef
 %define %$isaccess       "match"="access"   %enddef
@@ -279,6 +281,7 @@ static int NAME(TYPE x) {
 %define %$isnamespace    "match"="namespace"  %enddef
 %define %$istemplate     "match"="template"  %enddef
 %define %$isconstant     "match"="constant"  %enddef  /* %constant definition */
+%define %$isusing        "match"="using"  %enddef
 
 %define %$isunion        "match$kind"="union"  %enddef
 %define %$isfunction     "match$kind"="function"  %enddef

@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-02-26: wsfulton
+            #655 #1840 Add new warning WARN_LANG_USING_NAME_DIFFERENT to warn when a
+            method introduced by a using declaration in a derived class cannot
+            be used due to a conflict in names.
+
 2022-02-24: olly
 	    #1465 An invalid preprocessor expression is reported as a pair of
 	    warnings with the second giving a more detailed message from the
