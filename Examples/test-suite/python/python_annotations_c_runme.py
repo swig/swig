@@ -1,6 +1,7 @@
 import sys
 
-if sys.version_info[0:2] >= (3, 2):
+# Disable as no __annotations__ support with -fastproxy and -builtin atm
+if False: # sys.version_info[0:2] >= (3, 2):
     from python_annotations_c import *
 
     anno = MakeShort.__annotations__
