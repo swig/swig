@@ -7,7 +7,7 @@ check::functions(array('jaguar','lotus','tvr','ferrari','fiat'));
 // New classes
 check::classes(array('ignore_parameter','SportsCars','MiniCooper','MorrisMinor','FordAnglia','AustinAllegro'));
 // No new vars
-check::globals(array());
+check::globals(array('called_argout'));
 
 check::equal(jaguar(2,3.4),"hello",'jaguar(2,3.4)=="hello"');
 check::equal(lotus("eek",3.4),101,'lotus("eek",3.4)==101');
