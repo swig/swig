@@ -48,6 +48,7 @@ CPP_TEST_CASES += \
 	li_std_wstring_inherit \
 	primitive_types \
 	python_abstractbase \
+	python_annotations_c \
 	python_append \
 	python_builtin \
 	python_destructor_exception \
