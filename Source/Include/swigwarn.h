@@ -148,7 +148,7 @@
 #define WARN_IGNORE_OPERATOR_DELARR     395	/* delete [] */
 #define WARN_IGNORE_OPERATOR_REF        396	/* operator *() */
 
-/* 394-399 are reserved */
+/* please leave 350-399 free for WARN_IGNORE_OPERATOR_* */
 
 /* -- Type system and typemaps -- */
 
@@ -225,7 +225,7 @@
 #define WARN_DOXYGEN_UNKNOWN_CHARACTER        565
 #define WARN_DOXYGEN_UNEXPECTED_ITERATOR_VALUE  566
 
-/* -- Reserved (600-799) -- */
+/* -- Reserved (600-699) -- */
 
 /* -- Language module specific warnings (700 - 899) -- */
 

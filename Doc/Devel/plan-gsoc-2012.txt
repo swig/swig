@@ -75,7 +75,7 @@ Functionality
   https://www.doxygen.nl/manual/commands.html. If a tag is
   marked as 'ignored', then the tag is ignored, but the text is copied
   to the destination documentation. 'Not implemented' means that the
-  tag with it's contents is stripped out of the output.
+  tag with its contents is stripped out of the output.
 
     Doxygen tags:
     

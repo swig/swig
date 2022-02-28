@@ -11,6 +11,10 @@
 %typemap(argout) int bb "called_argout = 1;"
 
 %ignore unignorable;
+// Don't let SWIG expand this function with its default parameter: instead,
+// always "require" the version of the function with a single argument, but
+// then ignore it using `numinputs=0`.
+%ignore audi();
 
 %inline %{
 // constant for detecting correct "argout" call

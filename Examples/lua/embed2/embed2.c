@@ -41,7 +41,7 @@ extern int luaopen_example(lua_State*L);
 
 /* This is an example of how to call the Lua function
     int add(int,int) 
-  its very tedious, but gives you an idea of the issues involved.
+  it's very tedious, but gives you an idea of the issues involved.
   (look below for a better idea)
 */
 int call_add(lua_State *L,int a,int b,int* res) {
@@ -75,7 +75,7 @@ int call_add(lua_State *L,int a,int b,int* res) {
   return 1;
 }
 
-/* This is a variargs call function for calling from C into Lua.
+/* This is a varargs call function for calling from C into Lua.
 Original Code from Programming in Lua (PIL) by Roberto Ierusalimschy
 ISBN 85-903798-1-7 
 http://www.lua.org/pil/25.3.html

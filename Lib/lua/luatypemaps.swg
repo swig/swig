@@ -252,7 +252,7 @@ $1=($1_ltype)&temp;%}
 
 /* void* is a special case
 A function void fn(void*) should take any kind of pointer as a parameter (just like C/C++ does)
-but if its an output, then it should be wrapped like any other SWIG object (using default typemap)
+but if it's an output, then it should be wrapped like any other SWIG object (using default typemap)
 */
 %typemap(in,checkfn="SWIG_isptrtype") void*
 %{$1=($1_ltype)SWIG_MustGetPtr(L,$input,0,0,$argnum,"$symname");%}
@@ -285,7 +285,7 @@ parameters match which function
 
 // unfortunately lua only considers one type of number
 // so all numbers (int,float,double) match
-// you could add an advanced fn to get type & check if its integral
+// you could add an advanced fn to get type & check if it's integral
 %typecheck(SWIG_TYPECHECK_INTEGER)
 	 int, short, long,
  	 unsigned int, unsigned short, unsigned long,
@@ -396,7 +396,7 @@ parameters match which function
  *                          Specials
  * ----------------------------------------------------------------------------- */
 // swig::LANGUAGE_OBJ was added to allow containers of native objects
-// however its rather difficult to do this in lua, as you cannot hold pointers
+// however it's rather difficult to do this in lua, as you cannot hold pointers
 // to native objects (they are held in the interpreter)
 // therefore for now: just ignoring this feature
 #ifdef __cplusplus

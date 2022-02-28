@@ -316,7 +316,6 @@ public:
 	  } else {
 	    Swig_arg_error();
 	  }
-	  /* end added */
 	} else if (strcmp(argv[i], "-globals") == 0) {
 	  if (argv[i + 1]) {
 	    global_name = NewString(argv[i + 1]);
@@ -2275,7 +2274,7 @@ public:
       return parms;
     }
 
-    bool funcanno = py3 ? true : false;
+    bool funcanno = Equal(Getattr(n, "feature:python:annotations"), "c") ? true : false;
     String *params = NewString("");
     String *_params = make_autodocParmList(n, false, ((in_class || has_self_for_count)? 2 : 1), is_calling, funcanno);
 
@@ -2391,8 +2390,8 @@ public:
       if (ret)
 	ret = SwigType_str(ret, 0);
     }
-    return (ret && py3) ? NewStringf(" -> \"%s\"", ret)
-	: NewString("");
+    bool funcanno = Equal(Getattr(n, "feature:python:annotations"), "c") ? true : false;
+    return (ret && funcanno) ? NewStringf(" -> \"%s\"", ret) : NewString("");
   }
 
   /* ------------------------------------------------------------
