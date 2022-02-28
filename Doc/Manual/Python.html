@@ -133,7 +133,7 @@
 </ul>
 <li><a href="#Python_python3support">Python 3 Support</a>
 <ul>
-<li><a href="#Python_nn74">Function annotations</a>
+<li><a href="#Python_annotations">Function annotations</a>
 <ul>
 <li><a href="#Python_annotations_c">C/C++ annotation types</a>
 </ul>
@@ -2534,6 +2534,12 @@ import A
 assert(issubclass(B.Derived, A.Base))
 </pre></div>
 </li>
+
+
+<li><p><a href="#Python_annotations">Python function annotations</a> are not supported.
+</p>
+</li>
+
 </ul>
 
 <H4><a name="Python_builtin_overloads">33.4.2.2 Operator overloads and slots -- use them!</a></H4>
@@ -6756,13 +6762,15 @@ The following are Python 3 new features that are currently supported by
 SWIG.
 </p>
 
-<H3><a name="Python_nn74">33.12.1 Function annotations</a></H3>
+<H3><a name="Python_annotations">33.12.1 Function annotations</a></H3>
 
 
 <p>
 Python 3 supports function annotations as defined in
 <a href="https://www.python.org/dev/peps/pep-3107/">PEP 3107</a>.
-Annotation support is via a <tt>python:annotations</tt>
+Note that there is currently no annotations support for the <tt>-builtin</tt> nor
+the <tt>-fastproxy</tt> option.
+Annotations are added via the <tt>python:annotations</tt>
 <a href="Customization.html#Customization_features">%feature directives</a>.
 SWIG currently supports one type of function annotation.
 </p>
