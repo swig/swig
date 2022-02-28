@@ -24,3 +24,17 @@ int *no_annotations(int &ri, const char *c) { return NULL; }
 %}
 %template(TemplateShort) Space::Template<short>;
 %template(MakeShort) makeT<short>;
+
+%inline %{
+#ifdef SWIGPYTHON_BUILTIN
+int is_python_builtin() { return 1; }
+#else
+int is_python_builtin() { return 0; }
+#endif
+
+#if defined SWIGPYTHON_FASTPROXY
+int is_python_fastproxy() { return 1; }
+#else
+int is_python_fastproxy() { return 0; }
+#endif
+%}
